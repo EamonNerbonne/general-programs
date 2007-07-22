@@ -29,7 +29,7 @@ namespace SpellCompendiumConverterLinq {
         }
     }
     class Program {
-        static string[] sectionNames = new string[]{"Level","Components","Casting Time", "Range","Area","Effect", "Target", "Duration",  "Saving Throw","Spell Resistance"};
+        static string[] sectionNames = new string[]{"Level","Components","Casting Time", "Range","Area","Effect", "Target","Targets", "Duration",  "Saving Throw","Spell Resistance"};
         static DirectoryInfo basepath;
         static Dictionary<string,string> sectionNameSet = new Dictionary<string,string>();
         static Dictionary<string,int> dictionary;
@@ -120,7 +120,11 @@ namespace SpellCompendiumConverterLinq {
             }
         }
         enum Tok{
-            Num,D,Word,Punc,Symbol
+            Num,
+            D,
+            Word,
+            Punc,
+            Symbol // '('
         }
         static XElement spelltext2xml(string[] spell,int pos,int ofTotal) {
             var header = spell.TakeWhile(s => !s.StartsWith("Level:"));
@@ -146,64 +150,68 @@ namespace SpellCompendiumConverterLinq {
                     string fieldName = line.Substring(0,line.IndexOf(':'));
                     string fieldContent = line.Substring(line.IndexOf(':')+1)
                         + string.Join(" ",tmp.AsEnumerable().Reverse().ToArray());
+                    fieldContent=string.Join(" ", fieldContent.Split(' ').Select(w=>Correct(w)).ToArray()); 
                     tmp = new List<string>();
                     firstHit = true;
                     fields[fieldName] = fieldContent;
                 } else {
                     tmp.Add(line);
-                    if(!firstHit && line[0]>='A' && line[0]<='Z') {
-                        string[] words = string.Join(" ",tmp.AsEnumerable().Reverse().ToArray()).Split(' ');
+                    if (!firstHit && line[0] >= 'A' && line[0] <= 'Z') {
+                        string[] words = string.Join(" ", tmp.AsEnumerable().Reverse().ToArray()).Split(' ');
 
                         tmp = new List<string>();
-                        foreach(var word in words.SelectMany(w=>splitWord(w))) {
-                            if(char.IsLetter(word[0])){
+                        foreach (var word in words.SelectMany(w => splitWord(w))) {
+                            if (char.IsLetter(word[0])) {
                                 tmp.Add(Correct(word));
-                            } else {
+                            }
+                            else {
                                 tmp.Add(word);
                             }
                         }
-                        StringBuilder text2add=new StringBuilder();
+                        StringBuilder text2add = new StringBuilder();
                         Tok last = Tok.Symbol;
-                        foreach(string token in tmp) {
-                            if(token.Length ==0) continue;
+                        foreach (string token in tmp) {
+                            if (token.Length == 0) continue;
                             UnicodeCategory cat = char.GetUnicodeCategory(token[0]);
-                            if (token[0] == '’' || token[0]=='\'')
-                            {
+                            if (token == "d" || token == "+" || token == "-" ||token == "–"|| token == "—" || token == "/"||token=="×") {
+                                if (last != Tok.Num && last != Tok.Symbol) text2add.Append(' ');
+                                text2add.Append(token);
+                                last = Tok.D;
+                            }
+                            else if (char.IsLetter(token[0])) {
+                                if (last != Tok.Symbol) text2add.Append(' ');
+                                text2add.Append(token);
+                                last = Tok.Word;
+                            }
+                            else if (token[0] == '’' || token[0] == '\'') {
                                 text2add.Append(token);
                                 last = Tok.Symbol;
-                            }else if(cat == UnicodeCategory.OpenPunctuation) {
+                            }
+                            else if (cat == UnicodeCategory.OpenPunctuation||cat==UnicodeCategory.InitialQuotePunctuation) {
                                 text2add.Append(' ');
                                 text2add.Append(token);
                                 last = Tok.Symbol;
-                            } else if(token =="d"){
-                                if(last != Tok.Num && last!=Tok.Symbol) {
-                                    text2add.Append(' ');
-                                }
-                                text2add.Append(token);
-                                last = Tok.D;
-                            }else if(char.IsLetter(token[0])) {
-                                if(last!=Tok.Symbol) text2add.Append(' ');
-                                text2add.Append(token);
-                                last = Tok.Word;
-                            } else if(char.IsPunctuation(token[0]) || char.IsSymbol(token[0])) {
-                                if(token[0] =='-'||token[0]=='+' && last==Tok.Word) text2add.Append(' ');
+                            }
+                            else if (char.IsPunctuation(token[0]) || char.IsSymbol(token[0])) {
                                 text2add.Append(token);
                                 last = Tok.Punc;
-                            } else if (char.IsNumber(token[0])) {
-                                if(last == Tok.Word) {
+                            }
+                            else if (char.IsNumber(token[0])) {
+                                if (last == Tok.Punc || last == Tok.Word) {
                                     text2add.Append(' ');
                                 }
                                 text2add.Append(token);
                                 last = Tok.Num;
-                            } else {//should never be reached, but for safety.
+                            }
+                            else {//should never be reached, but for safety.
                                 text2add.Append(' ');
                                 text2add.Append(token);
                                 last = Tok.Word;
                             }
                         }
                         string[] bulletedSplit = text2add.ToString().Split('•');
-                        if (bulletedSplit.Length > 0) 
-                            foreach (string textBit in bulletedSplit.Skip(1).Reverse()) text.Add("• "+textBit);
+                        if (bulletedSplit.Length > 0)
+                            foreach (string textBit in bulletedSplit.Skip(1).Reverse()) text.Add("• " + textBit);
                         text.Add(bulletedSplit[0]);
                         tmp = new List<string>();
                     }
