@@ -150,69 +150,15 @@ namespace SpellCompendiumConverterLinq {
                     string fieldName = line.Substring(0,line.IndexOf(':'));
                     string fieldContent = line.Substring(line.IndexOf(':')+1)
                         + string.Join(" ",tmp.AsEnumerable().Reverse().ToArray());
-                    fieldContent=string.Join(" ", fieldContent.Split(' ').Select(w=>Correct(w)).ToArray()); 
+                    fieldContent = string.Join(" ", RespaceParagraph(fieldContent).ToArray());
                     tmp = new List<string>();
                     firstHit = true;
                     fields[fieldName] = fieldContent;
                 } else {
                     tmp.Add(line);
                     if (!firstHit && line[0] >= 'A' && line[0] <= 'Z') {
-                        string[] words = string.Join(" ", tmp.AsEnumerable().Reverse().ToArray()).Split(' ');
-
-                        tmp = new List<string>();
-                        foreach (var word in words.SelectMany(w => splitWord(w))) {
-                            if (char.IsLetter(word[0])) {
-                                tmp.Add(Correct(word));
-                            }
-                            else {
-                                tmp.Add(word);
-                            }
-                        }
-                        StringBuilder text2add = new StringBuilder();
-                        Tok last = Tok.Symbol;
-                        foreach (string token in tmp) {
-                            if (token.Length == 0) continue;
-                            UnicodeCategory cat = char.GetUnicodeCategory(token[0]);
-                            if (token == "d" || token == "+" || token == "-" ||token == "–"|| token == "—" || token == "/"||token=="×") {
-                                if (last != Tok.Num && last != Tok.Symbol) text2add.Append(' ');
-                                text2add.Append(token);
-                                last = Tok.D;
-                            }
-                            else if (char.IsLetter(token[0])) {
-                                if (last != Tok.Symbol) text2add.Append(' ');
-                                text2add.Append(token);
-                                last = Tok.Word;
-                            }
-                            else if (token[0] == '’' || token[0] == '\'') {
-                                text2add.Append(token);
-                                last = Tok.Symbol;
-                            }
-                            else if (cat == UnicodeCategory.OpenPunctuation||cat==UnicodeCategory.InitialQuotePunctuation) {
-                                text2add.Append(' ');
-                                text2add.Append(token);
-                                last = Tok.Symbol;
-                            }
-                            else if (char.IsPunctuation(token[0]) || char.IsSymbol(token[0])) {
-                                text2add.Append(token);
-                                last = Tok.Punc;
-                            }
-                            else if (char.IsNumber(token[0])) {
-                                if (last == Tok.Punc || last == Tok.Word) {
-                                    text2add.Append(' ');
-                                }
-                                text2add.Append(token);
-                                last = Tok.Num;
-                            }
-                            else {//should never be reached, but for safety.
-                                text2add.Append(' ');
-                                text2add.Append(token);
-                                last = Tok.Word;
-                            }
-                        }
-                        string[] bulletedSplit = text2add.ToString().Split('•');
-                        if (bulletedSplit.Length > 0)
-                            foreach (string textBit in bulletedSplit.Skip(1).Reverse()) text.Add("• " + textBit);
-                        text.Add(bulletedSplit[0]);
+                        string paragraph = string.Join(" ", tmp.AsEnumerable().Reverse().ToArray());
+                        text.AddRange(RespaceParagraph(paragraph).Reverse());//in reverse, because we're adding everything in reverse.
                         tmp = new List<string>();
                     }
                 }
@@ -249,6 +195,61 @@ namespace SpellCompendiumConverterLinq {
                     ))),
                 text.Select(p=>new XElement("p",p.AsEnumerable())));
 
+        }
+
+        static IEnumerable<string> RespaceParagraph(string paragraph)
+        {
+            string[] words = paragraph.Split(' ');
+            var tmp =
+                          from word in words
+                          from token in splitWord(word)
+                          select char.IsLetter(token[0]) ? Correct(token) : token;
+                          
+
+            StringBuilder text2add = new StringBuilder();
+            Tok last = Tok.Symbol;
+            foreach (string token in tmp) {
+                if (token.Length == 0) continue;
+                UnicodeCategory cat = char.GetUnicodeCategory(token[0]);
+                if (token == "d" || token == "+" || token == "-" || token == "–" || token == "—" || token == "/" || token == "×") {
+                    if (last != Tok.Num && last != Tok.Symbol) text2add.Append(' ');
+                    text2add.Append(token);
+                    last = Tok.D;
+                }
+                else if (char.IsLetter(token[0])) {
+                    if (last != Tok.Symbol) text2add.Append(' ');
+                    text2add.Append(token);
+                    last = Tok.Word;
+                }
+                else if (token[0] == '’' || token[0] == '\'') {
+                    text2add.Append(token);
+                    last = Tok.Symbol;
+                }
+                else if (cat == UnicodeCategory.OpenPunctuation || cat == UnicodeCategory.InitialQuotePunctuation) {
+                    text2add.Append(' ');
+                    text2add.Append(token);
+                    last = Tok.Symbol;
+                }
+                else if (char.IsPunctuation(token[0]) || char.IsSymbol(token[0])) {
+                    text2add.Append(token);
+                    last = Tok.Punc;
+                }
+                else if (char.IsNumber(token[0])) {
+                    if (last == Tok.Punc || last == Tok.Word) {
+                        text2add.Append(' ');
+                    }
+                    text2add.Append(token);
+                    last = Tok.Num;
+                }
+                else {//should never be reached, but for safety.
+                    text2add.Append(' ');
+                    text2add.Append(token);
+                    last = Tok.Word;
+                }
+            }
+            string[] bulletedSplit = text2add.ToString().Split('•');
+            yield return bulletedSplit[0];
+            foreach (string textBit in bulletedSplit.Skip(1)) yield return "• " + textBit;
         }
 
         static void Main(string[] args) {
