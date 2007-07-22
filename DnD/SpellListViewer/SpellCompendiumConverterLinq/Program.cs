@@ -3,13 +3,12 @@ using System.Collections.Generic;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Globalization;
-using System.Query;
-using System.Xml.XLinq;
-using System.Data.DLinq;
+using System.Linq;
+using System.Xml.Linq;
 using System.IO;
-using EamonExtensions.Filesystem;
-using EamonExtensions.DebugTools;
-using EamonExtensions;
+using EamonExtensionsLinq.Filesystem;
+using EamonExtensionsLinq.DebugTools;
+using EamonExtensionsLinq;
 
 namespace SpellCompendiumConverterLinq {
     class WordSplit:IComparable<WordSplit> {
@@ -31,7 +30,7 @@ namespace SpellCompendiumConverterLinq {
     }
     class Program {
         static string[] sectionNames = new string[]{"Level","Components","Casting Time", "Range","Area","Effect", "Target", "Duration",  "Saving Throw","Spell Resistance"};
-        static string basepath = @"G:\Visual Studio 2005\Projects\SpellCompendiumConverte5\SpellCompendiumConverte5\Data\";
+        static DirectoryInfo basepath;
         static Dictionary<string,string> sectionNameSet = new Dictionary<string,string>();
         static Dictionary<string,int> dictionary;
         const int CUTOFF = 1000000;//don't search more than this number of possible splits of texts.
@@ -121,7 +120,7 @@ namespace SpellCompendiumConverterLinq {
             }
         }
         enum Tok{
-            Num,D,Word,Punc,Open
+            Num,D,Word,Punc,Symbol
         }
         static XElement spelltext2xml(string[] spell,int pos,int ofTotal) {
             var header = spell.TakeWhile(s => !s.StartsWith("Level:"));
@@ -146,14 +145,14 @@ namespace SpellCompendiumConverterLinq {
                 if(line.Contains(":") && sectionNameSet.ContainsKey(line.Substring(0,line.IndexOf(':'))) ) {
                     string fieldName = line.Substring(0,line.IndexOf(':'));
                     string fieldContent = line.Substring(line.IndexOf(':')+1)
-                        + string.Join(" ",tmp.ToSequence().Reverse().ToArray());
+                        + string.Join(" ",tmp.AsEnumerable().Reverse().ToArray());
                     tmp = new List<string>();
                     firstHit = true;
                     fields[fieldName] = fieldContent;
                 } else {
                     tmp.Add(line);
                     if(!firstHit && line[0]>='A' && line[0]<='Z') {
-                        string[] words = string.Join(" ",tmp.ToSequence().Reverse().ToArray()).Split(' ');
+                        string[] words = string.Join(" ",tmp.AsEnumerable().Reverse().ToArray()).Split(' ');
 
                         tmp = new List<string>();
                         foreach(var word in words.SelectMany(w=>splitWord(w))) {
@@ -164,26 +163,30 @@ namespace SpellCompendiumConverterLinq {
                             }
                         }
                         StringBuilder text2add=new StringBuilder();
-                        Tok last = Tok.Word;
+                        Tok last = Tok.Symbol;
                         foreach(string token in tmp) {
                             if(token.Length ==0) continue;
                             UnicodeCategory cat = char.GetUnicodeCategory(token[0]);
-                            if(cat == UnicodeCategory.OpenPunctuation) {
+                            if (token[0] == '’' || token[0]=='\'')
+                            {
+                                text2add.Append(token);
+                                last = Tok.Symbol;
+                            }else if(cat == UnicodeCategory.OpenPunctuation) {
                                 text2add.Append(' ');
                                 text2add.Append(token);
-                                last = Tok.Open;
+                                last = Tok.Symbol;
                             } else if(token =="d"){
-                                if(last != Tok.Num && last!=Tok.Open) {
+                                if(last != Tok.Num && last!=Tok.Symbol) {
                                     text2add.Append(' ');
                                 }
                                 text2add.Append(token);
                                 last = Tok.D;
                             }else if(char.IsLetter(token[0])) {
-                                if(last!=Tok.Open) text2add.Append(' ');
+                                if(last!=Tok.Symbol) text2add.Append(' ');
                                 text2add.Append(token);
                                 last = Tok.Word;
                             } else if(char.IsPunctuation(token[0]) || char.IsSymbol(token[0])) {
-                                if(token =="-") text2add.Append(' ');
+                                if(token[0] =='-'||token[0]=='+' && last==Tok.Word) text2add.Append(' ');
                                 text2add.Append(token);
                                 last = Tok.Punc;
                             } else if (char.IsNumber(token[0])) {
@@ -198,7 +201,10 @@ namespace SpellCompendiumConverterLinq {
                                 last = Tok.Word;
                             }
                         }
-                        text.Add(text2add.ToString());
+                        string[] bulletedSplit = text2add.ToString().Split('•');
+                        if (bulletedSplit.Length > 0) 
+                            foreach (string textBit in bulletedSplit.Skip(1).Reverse()) text.Add("• "+textBit);
+                        text.Add(bulletedSplit[0]);
                         tmp = new List<string>();
                     }
                 }
@@ -233,30 +239,30 @@ namespace SpellCompendiumConverterLinq {
                         new XElement("th",n+":"),
                         new XElement("td",fields[n])
                     ))),
-                text.Select(p=>new XElement("p",p.ToSequence())));
+                text.Select(p=>new XElement("p",p.AsEnumerable())));
 
         }
 
         static void Main(string[] args) {
+            basepath = new DirectoryInfo(args[0]);
+            if(!basepath.Exists) throw new DirectoryNotFoundException("You must specify the directory containing all data files as a first parameter");
+            foreach (var name in sectionNames) sectionNameSet[name] = name;
+            
             Console.Write("Processing...");
-            char[] test = "testtest".ToArray();
-            Console.Write(test.Count());
-            foreach(var name in sectionNames) sectionNameSet[name]=name;
 
 
-            IEnumerable<string> lines = 
-                new FileInfo(basepath+"Spell Compendium (OCR).txt").GetLines();
+            IEnumerable<string> lines =basepath.GetFiles("*.input.txt").Single().GetLines();
 
-            IEnumerable<string> words = 
-                new FileInfo(basepath+"354984si.new.ngl").GetLines();
-            /*StreamWriter sw = new StreamWriter( new FileInfo(basepath+"354984si.new2.ngl").OpenWrite());
-            foreach(var line in words.Where(w=>w.Trim().All(c=>char.IsLetter(c))).OrderBy(s=>s.Length).ThenBy(s=>s)){
-                sw.WriteLine(line);
-            }*/
+            IEnumerable<string> words = from file in basepath.GetFiles("*.include.txt") from line in file.GetLines() select line;
+            IEnumerable<string> excludeWords = from file in basepath.GetFiles("*.exclude.txt") from line in file.GetLines() select line;
+
             dictionary = new Dictionary<string,int>();
             Console.Write("[init] ");
             foreach(var word in words) dictionary[word]=0;
-            Console.Write("[dict] ");
+            Console.Write("[includeDict] ");
+            foreach (var word in excludeWords) dictionary.Remove(word);
+            Console.Write("[excludeDict] [dict] ");
+
 
             //select the right region of the file:
             lines = lines.Select((s) => s.Trim()).SkipWhile(s => s!= "SPELL DESCRIPTIONS").Skip(1);
@@ -285,7 +291,7 @@ namespace SpellCompendiumConverterLinq {
 
             
             new XElement("html",new XElement("body",
-                spelltexts.Select((st,i) => spelltext2xml(st,i,spelltexts.Length)))).Save(basepath+"SpellCompendiumOCR.xml");
+                spelltexts.Select((st,i) => spelltext2xml(st,i,spelltexts.Length)))).Save(Path.Combine(basepath.FullName,"SpellCompendiumOCR.xml"));
             Console.WriteLine("done.");
         }
     }

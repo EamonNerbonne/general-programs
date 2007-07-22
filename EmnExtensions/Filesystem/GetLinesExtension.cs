@@ -10,5 +10,11 @@ namespace EamonExtensionsLinq.Filesystem {
             while (!stream.EndOfStream)
                 yield return stream.ReadLine();
         }
+        public static IEnumerable<string> GetLines(this FileInfo fi,Encoding encoding)
+        {
+            var stream = new StreamReader(fi.OpenRead(), encoding);
+            while (!stream.EndOfStream)
+                yield return stream.ReadLine();
+        }
     }
 }
