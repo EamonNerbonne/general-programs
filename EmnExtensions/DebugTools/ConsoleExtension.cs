@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace EamonExtensions.DebugTools {
+namespace EamonExtensionsLinq.DebugTools {
     public static class ConsoleExtension {
         public static void PrintAllDebug<T>(this IEnumerable<T> source) {
             foreach (var item in source)
