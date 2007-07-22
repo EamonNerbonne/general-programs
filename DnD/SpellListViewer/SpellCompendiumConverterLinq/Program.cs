@@ -10,7 +10,8 @@ using System.IO;
 using EamonExtensions.Filesystem;
 using EamonExtensions.DebugTools;
 using EamonExtensions;
-namespace SpellCompendiumConverte5 {
+
+namespace SpellCompendiumConverterLinq {
     class WordSplit:IComparable<WordSplit> {
         public string word;
         public WordSplit next;
