@@ -1,0 +1,10 @@
+﻿<Window x:Class="DnDCharRoller.Window1"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Title="D&amp;D Natural Roller" Height="355" Width="359" SnapsToDevicePixels="True" Name="DndCharRollMainWindow">
+    <Grid>
+    <Button Height="23" HorizontalAlignment="Right" Margin="0,13,16,0" Name="rerollButton" VerticalAlignment="Top" Width="75" SnapsToDevicePixels="True" IsDefault="True" VerticalContentAlignment="Center" HorizontalContentAlignment="Center">Reroll</Button>
+    <Label Margin="16,0,16,19" Name="Stats" SnapsToDevicePixels="True" Height="252" VerticalAlignment="Bottom">Label</Label>
+    <Button Height="23" HorizontalAlignment="Left" Margin="16,13,0,0" Name="clipset" VerticalAlignment="Top" Width="107">Copy to Clipboard</Button>
+  </Grid>
+</Window>
