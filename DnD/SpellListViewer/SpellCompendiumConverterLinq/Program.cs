@@ -274,7 +274,7 @@ namespace SpellCompendiumConverterLinq {
         static Regex dictionaryRegex=null;
 
         static string Capitalize(string str) {
-            return str[0].ToString().ToUpper()+str.Substring(1);
+            return str.Length<2?str:str[0].ToString().ToUpper()+str.Substring(1);
         }
 
         static void Main(string[] args) {
