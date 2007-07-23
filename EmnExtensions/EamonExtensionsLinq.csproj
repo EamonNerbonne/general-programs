@@ -50,6 +50,7 @@
     <Compile Include="FuncUtil.cs" />
     <Compile Include="NiceTimer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Text\Canonicalize.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Exceptions\" />

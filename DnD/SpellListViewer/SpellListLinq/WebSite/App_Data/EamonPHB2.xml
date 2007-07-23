@@ -1,0 +1,615 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<html>
+  <body>
+<div spell="Rouse">
+  <h2>Rouse</h2>
+  <strong>
+    Enchantment (Compulsion) [Mind-Affecting]
+  </strong>
+  <table class="statBlock">
+    <tr>
+      <th>Level:</th>
+      <td>Sor/Wiz 1</td>
+    </tr>
+    <tr>
+      <th>Components:</th>
+      <td>V, S</td>
+    </tr>
+    <tr>
+      <th>Casting Time:</th>
+      <td>1 standard action</td>
+    </tr>
+    <tr>
+      <th>Range:</th>
+      <td>Close (25 ft. + 5 ft./2 levels)</td>
+    </tr>
+    <tr>
+      <th>Area:</th>
+      <td>10-ft.-radius burst</td>
+    </tr>
+    <tr>
+      <th>Duration:</th>
+      <td>Instantaneous</td>
+    </tr>
+    <tr>
+      <th>Saving Throw:</th>
+      <td>None</td>
+    </tr>
+    <tr>
+      <th>Spell Resistance:</th>
+      <td>No</td>
+    </tr>
+  </table>
+  <p>
+    <i>With a loud snap of your fingers, you cause any sleeping creatures in the spell's area to awaken.</i>
+  </p>
+  <p>
+    This spell has no effect on creatures that are unconscious due to being reduces to negative hit points, or that have taken nonlethal damage in excess of their current hit points.
+  </p>
+</div>
+<div spell="Whelm">
+  <h2>Whelm</h2>
+  <strong>
+    Enchantment (Compulsion) [Mind-Affecting]
+  </strong>
+  <table class="statBlock">
+    <tr>
+      <th>Level:</th>
+      <td>Sor/Wiz 1</td>
+    </tr>
+    <tr>
+      <th>Components:</th>
+      <td>V, S</td>
+    </tr>
+    <tr>
+      <th>Casting Time:</th>
+      <td>1 standard action</td>
+    </tr>
+    <tr>
+      <th>Range:</th>
+      <td>Close (25 ft. + 5 ft./2 levels)</td>
+    </tr>
+    <tr>
+      <th>Target:</th>
+      <td>One living creature</td>
+    </tr>
+    <tr>
+      <th>Duration:</th>
+      <td>Instantaneous</td>
+    </tr>
+    <tr>
+      <th>Saving Throw:</th>
+      <td>Will Negates</td>
+    </tr>
+    <tr>
+      <th>Spell Resistance:</th>
+      <td>Yes</td>
+    </tr>
+  </table>
+  <p>
+    <i>You thrust one arm forward toward your foe, palm open and fingers splayed. The creature reels as an invisible surge of power invades its mind.</i>
+  </p>
+  <p>
+    You launch a magical assault that wears at the target's mind, dealing 1d6 points of nonlethal damange it it fails its saving throw
+  </p>
+  <p>
+    For every two caster levels beyond 1st, you deal an extra 1d6 points of nonlethal damage to the subject, to a maximum of 5d6 at 9th level.
+  </p>
+
+</div>
+<div spell="Blinding Color Surge">
+  <h2>Blinding Color Surge</h2>
+  <strong>
+    Illusion (Glamer)
+  </strong>
+  <table class="statBlock">
+    <tr>
+      <th>Level:</th>
+      <td>Sor/Wiz 2</td>
+    </tr>
+    <tr>
+      <th>Components:</th>
+      <td>V, S, F</td>
+    </tr>
+    <tr>
+      <th>Casting Time:</th>
+      <td>1 standard action</td>
+    </tr>
+    <tr>
+      <th>Range:</th>
+      <td>Medium (100 ft. + 10 ft./level)</td>
+    </tr>
+    <tr>
+      <th>Targets:</th>
+      <td>You and one creature</td>
+    </tr>
+    <tr>
+      <th>Duration:</th>
+      <td>1 round/level</td>
+    </tr>
+    <tr>
+      <th>Saving Throw:</th>
+      <td>Will negates</td>
+    </tr>
+    <tr>
+      <th>Spell Resistance:</th>
+      <td>Yes</td>
+    </tr>
+  </table>
+  <p>
+    <i>You point at the target of this spell. The colors of your clothing, skin, and hair shine for a brief moment before they surge away from you , forming a multicolored ray that strikes your target. You disappear as the colors of your body and items leap from you into the beam. The target clutches his eyes and staggers.</i>
+  </p>
+  <p>
+    You strip the color from your body and gear, turn it into a alance of energy, and hurl it at a target. When you cast this spell, you target a creature with the colors stripped from your form. The target must make a Will save or be blinded for 1 round.
+  </p>
+  <p>
+    You also gain the benefit of <i>invisibility</i>, for the duration of this spell, even if the  target creature succeeds on its save or if its spell resistance protects it.
+  </p>
+  <p>
+    <i>Focus:</i> A small prism.
+
+  </p>
+</div>
+
+<div spell="Stay the Hand">
+  <h2>Stay the Hand</h2>
+  <strong>
+    Enchantment (Charm) [Mind-Affecting]
+  </strong>
+  <table class="statBlock">
+    <tr>
+      <th>Level:</th>
+      <td>Sor/Wiz 2, Clr 2, Brd 1</td>
+    </tr>
+    <tr>
+      <th>Components:</th>
+      <td>V</td>
+    </tr>
+    <tr>
+      <th>Casting Time:</th>
+      <td>1 immediate action</td>
+    </tr>
+    <tr>
+      <th>Range:</th>
+      <td>Medium (100ft. + 10 ft. / level)</td>
+    </tr>
+    <tr>
+      <th>Target:</th>
+      <td>One humanoid</td>
+    </tr>
+    <tr>
+      <th>Duration:</th>
+      <td>Instantaneous</td>
+    </tr>
+    <tr>
+      <th>Saving Throw:</th>
+      <td>Will negates</td>
+    </tr>
+    <tr>
+      <th>Spell Resistance:</th>
+      <td>Yes</td>
+    </tr>
+  </table>
+  <p>
+    <i>Your words invoke compassion and mercy in the merciless.</i>
+  </p>
+  <p>
+    If the target creature fails its save against <i>stay the hand</i>, it refrains from attacking you or targeting you with spells for the remainder of the current round.
+  </p>
+  <p>You can cast this spell during an opponent's turn after the opponent announces its intention to attack you or target you with a spell. If the opponent becomes subject to this spell, it can choose a new target to attack, but it takes a -4 circumstance penalty on its attack roll due to the sudden change of intentions at the last second. Likewise, the subject of this spell can redirect a spell that had been targeted on you, but it must succeed on a Concentration check (DC 15 + the spell's level) or the spell is wasted.</p>
+</div>
+
+<div spell="Vertigo">
+  <h2>Vertigo</h2>
+  <strong>
+    Illusion (Phantasm) [Fear, Mind-Affecting]
+  </strong>
+  <table class="statBlock">
+    <tr>
+      <th>Level:</th>
+      <td>Sor/Wiz 2, Brd 2</td>
+    </tr>
+    <tr>
+      <th>Components:</th>
+      <td>V, S</td>
+    </tr>
+    <tr>
+      <th>Casting Time:</th>
+      <td>1 standard action</td>
+    </tr>
+    <tr>
+      <th>Range:</th>
+      <td>Close (25 ft. + 5 ft./2 levels)</td>
+    </tr>
+    <tr>
+      <th>Target:</th>
+      <td>One living creature</td>
+    </tr>
+    <tr>
+      <th>Duration:</th>
+      <td>1 round/level (D)</td>
+    </tr>
+    <tr>
+      <th>Saving Throw:</th>
+      <td>Will disbelief</td>
+    </tr>
+    <tr>
+      <th>Spell Resistance:</th>
+      <td>No</td>
+    </tr>
+  </table>
+  <p>
+    <i>You cripple a target with sensations of falling</i>
+  </p>
+  <p>
+    The subject of this spell becomes dizzy as the ground seems to drop away beneath its feet. The subject must succeed on a DC 10 Balance check at the start of each turn to take a move action.  If it fails, it cannot move. If it fails the check by 5 or more, it falls prone. While affected, the subject also takes a -2 penalty on attack rolls and saving throws. Airborne creatures receive a +4 bonus on saves against this spell and do not need to make the Balance checks.
+  </p>
+</div>
+<div spell="Whelming Burst">
+  <h2>Whelming Burst</h2>
+  <strong>
+    Enchantment (Compulsion) [Mind-Affecting]
+  </strong>
+  <table class="statBlock">
+    <tr>
+      <th>Level:</th>
+      <td>Sor/Wiz 2</td>
+    </tr>
+    <tr>
+      <th>Components:</th>
+      <td>V, S</td>
+    </tr>
+    <tr>
+      <th>Casting Time:</th>
+      <td>1 standard action</td>
+    </tr>
+    <tr>
+      <th>Range:</th>
+      <td>30 ft.</td>
+    </tr>
+    <tr>
+      <th>Area:</th>
+      <td>Cone-shaped burst</td>
+    </tr>
+    <tr>
+      <th>Duration:</th>
+      <td>Instantaneous</td>
+    </tr>
+    <tr>
+      <th>Saving Throw:</th>
+      <td>Will negates</td>
+    </tr>
+    <tr>
+      <th>Spell Resistance:</th>
+      <td>Yes</td>
+    </tr>
+  </table>
+  <p>
+    <i>You stretch your arms before you, spread your hands wide, and unleash an invisible cone of magical power that assails the minds of the creatures within it.</i>
+  </p>
+  <p>
+    You assail the mental faculties of creatures in the area, dealing 1d6 points of nonlethal damage per two caster levels (maximum 5d6 at 10th level) to each creature that fails its save.
+  </p>
+</div>
+
+
+<div spell="Serene Visage">
+  <h2>Serene Visage</h2>
+  <strong>
+    Illusion (Glamer)
+  </strong>
+  <table class="statBlock">
+    <tr>
+      <th>Level:</th>
+      <td>Brd 1, sor/wiz 1</td>
+    </tr>
+    <tr>
+      <th>Components:</th>
+      <td>V, S</td>
+    </tr>
+    <tr>
+      <th>Casting Time:</th>
+      <td>1 standard action</td>
+    </tr>
+    <tr>
+      <th>Range:</th>
+      <td>Personal</td>
+    </tr>
+    <tr>
+      <th>Duration:</th>
+      <td>1 minute / level</td>
+    </tr>
+  </table>
+  <p>
+    By casting this spell, you imbue yourself
+    with an ephemeral quality that induces
+    others to trust what you say.
+    Simple illusions aid your attempts
+    to be persuasive. You gain an insight
+    bonus equal to one-half your caster
+    level (maximum +10) on Bluff checks.
+  </p>
+</div>
+    
+    
+    <div spell="Crown of Veils">
+      <h2>Crown of Veils</h2>
+      <strong>
+        Illusion (Figment)
+      </strong>
+      <table class="statBlock">
+        <tr>
+          <th>Level:</th>
+          <td>Brd 2, sor/wiz 3</td>
+        </tr>
+        <tr>
+          <th>Components:</th>
+          <td>V, S, F</td>
+        </tr>
+        <tr>
+          <th>Casting Time:</th>
+          <td>1 standard action</td>
+        </tr>
+        <tr>
+          <th>Target:</th>
+          <td>Creature Touched</td>
+        </tr>
+        <tr>
+          <th>Duration:</th>
+          <td>1 hour / level(D) or until discharged</td>
+        </tr>
+        <tr>
+          <th>Saving Throw:</th>
+          <td>Will negates (harmless)</td>
+        </tr>
+        <tr>
+          <th>Spell Resistance:</th>
+          <td>Yes (harmless)</td>
+        </tr>
+      </table>
+      <p>
+        <i> A shimmering halo of energy surrounds the target's head like a crown. It flashes a spectrum of colors before fading away.</i>
+      </p>
+      <p>This spell creates a magic crown infuse with illusion magic. The spell's recipient gains a +2 competence bonus on Disguise and Hide checks.</p>
+      <p>As an immediate action, the creature wearing the crown of veils can discharge its magic to gain a +8 competence bonus on a single Disguise or Hide check. The spell ends after the wearer uses the crown in this manner.</p>
+      <p>The crown occupies space on the body as a headband, hat, or helm. If the crown is removed, the spell immediately ends.</p>
+      <p>
+        <i>Focus:</i> A brass hoop 6 inches in diameter.
+      </p>
+    </div>
+    <div spell="Halt">
+      <h2>Halt</h2>
+      <strong>
+        Transmutation
+      </strong>
+      <table class="statBlock">
+        <tr>
+          <th>Level:</th>
+          <td>Brd 3, sor/wiz 3</td>
+        </tr>
+        <tr>
+          <th>Components:</th>
+          <td>V</td>
+        </tr>
+        <tr>
+          <th>Casting Time:</th>
+          <td>1 immediate action</td>
+        </tr>
+        <tr>
+          <th>Range:</th>
+          <td>Close (25 ft. + 5 ft./2 levels)</td>
+        </tr>
+        <tr>
+          <th>Target:</th>
+          <td>One creature</td>
+        </tr>
+        <tr>
+          <th>Duration:</th>
+          <td>1 round</td>
+        </tr>
+        <tr>
+          <th>Saving Throw:</th>
+          <td>Will negates</td>
+        </tr>
+        <tr>
+          <th>Spell Resistance:</th>
+          <td>Yes</td>
+        </tr>
+      </table>
+      <p>
+        <i>You utter the word "Halt!" and, in that instant, the creature's feet stick to the floor.</i>
+      </p>
+      <p>The subject creature's feet (or whatever pass for its feet) become momentarily stuck to the floor. The creature must stop moving, and cannot move farther in its current turn.  This spell has no effect on creatures that are not touching the ground (such as flying creatures), and the subject can still use a standard action (if it has one available in this round) to move by means of teleportation magic.
+      </p>
+      <p>You can cast this spell even when it's not your turn; however, you must cast it before your opponent finishes its movement on its current turn to gain the benefit.</p>
+    </div>
+    <div spell="Hesitate">
+      <h2>Hesitate</h2>
+      <strong>
+        Enchantment (Compulsion) [Mind-Affecting]
+      </strong>
+      <table class="statBlock">
+        <tr>
+          <th>Level:</th>
+          <td>Brd 3, sor/wiz 3, cleric 3</td>
+        </tr>
+        <tr>
+          <th>Components:</th>
+          <td>V, S</td>
+        </tr>
+        <tr>
+          <th>Casting Time:</th>
+          <td>1 immediate action</td>
+        </tr>
+        <tr>
+          <th>Range:</th>
+          <td>Close (25 ft. + 5 ft./2 levels)</td>
+        </tr>
+        <tr>
+          <th>Target:</th>
+          <td>One living creature</td>
+        </tr>
+        <tr>
+          <th>Duration:</th>
+          <td>1 round/level (D); see text</td>
+        </tr>
+        <tr>
+          <th>Saving Throw:</th>
+          <td>Will negates; see text</td>
+        </tr>
+        <tr>
+          <th>Spell Resistance:</th>
+          <td>Yes</td>
+        </tr>
+      </table>
+      <p>
+        <i>In the eyes of your enemy, you seem large, powerful, and indomitable</i>
+      </p>
+      <p>
+        You fill a subject with doubts and misgivings, making it believe it is inferior to you. On a  failed save, the subject can take no action other than a move action on its current turn. <i>Hesitate</i> confers no special bonuses for attackers attempting to hit the subject; the subject still defends itself. If you attack the affected creature, the spell ends immediately.
+      </p>
+      <p>Each round, as a swift action at the start of its turn, the subject can attempt a new saving throw to end the effect. if the save succeeds, the subject can then act normally.</p>
+      <p>You can cast this spell even when it's not your turn; however, you must cast it at the start of your opponent's turn to gain the benefit.</p>
+    </div>
+    <div spell="Inevitable Defeat">
+      <h2>Hesitate</h2>
+      <strong>
+        Enchantment (Compulsion) [Mind-Affecting]
+      </strong>
+      <table class="statBlock">
+        <tr>
+          <th>Level:</th>
+          <td>sor/wiz 3</td>
+        </tr>
+        <tr>
+          <th>Components:</th>
+          <td>V, S</td>
+        </tr>
+        <tr>
+          <th>Casting Time:</th>
+          <td>1 standard action</td>
+        </tr>
+        <tr>
+          <th>Range:</th>
+          <td>Touch</td>
+        </tr>
+        <tr>
+          <th>Target:</th>
+          <td>One creature</td>
+        </tr>
+        <tr>
+          <th>Duration:</th>
+          <td>1 round/level</td>
+        </tr>
+        <tr>
+          <th>Saving Throw:</th>
+          <td>None and Will negates; see text</td>
+        </tr>
+        <tr>
+          <th>Spell Resistance:</th>
+          <td>Yes</td>
+        </tr>
+      </table>
+      <p>
+        <i>You touch the creature with your hand, and it teeters on the edge of unconsciousness.</i>
+      </p>
+      <p>You draw a cloud over the subject's mind, dealing 3d6 points of nonlethal damage. No saving throw is allowed against this effect. Each round on its turn, the subject must succeed on a Will save or take another 3d6 points of nonlethal damage. If the saving throw is successful, the damage for that round is negated, and the spell ends.</p>
+    </div>
+    <div spell="Legion of Sentinels">
+      <h2>Legion of Sentinels</h2>
+      <strong>
+        Illusion (Shadow)
+      </strong>
+      <table class="statBlock">
+        <tr>
+          <th>Level:</th>
+          <td>sor/wiz 3</td>
+        </tr>
+        <tr>
+          <th>Components:</th>
+          <td>V, S, M</td>
+        </tr>
+        <tr>
+          <th>Casting Time:</th>
+          <td>1 standard action</td>
+        </tr>
+        <tr>
+          <th>Range:</th>
+          <td>Close (25 ft. + 5 ft./2 levels)</td>
+        </tr>
+        <tr>
+          <th>Area:</th>
+          <td>10-ft. radius emanation centered on a point in space</td>
+        </tr>
+        <tr>
+          <th>Duration:</th>
+          <td>1 round/level</td>
+        </tr>
+        <tr>
+          <th>Saving Throw:</th>
+          <td>None</td>
+        </tr>
+        <tr>
+          <th>Spell Resistance:</th>
+          <td>No</td>
+        </tr>
+      </table>
+      <p>
+        <i>A phalanx of spectral swordfighters appears. Their blades are drawn, and they stand ready to strike.</i>
+      </p>
+      <p>A ghostly, incorporeal swordfighter appears in each square covered by this spell's area. A swordfighter can share a space with another creature or object. Each swordfighter threatens the squares adjacent to it and can make one attack of opportunity per round. The swordfighters do not hinder movement, block terrain, or block line of effect. They can flank an opponent with each other and with your allies.</p>
+      <p>Each swordfighter has hit points equal to twice your caster level and an Armor Class of 25. It makes saving throws or checks with a bonus equal to your caster level.</p>
+      <p>
+        <i>Material Component:</i> A pewter swordfighter miniature figure.
+      </p>
+    </div>
+    <div spell="Vertigo Field">
+      <h2>Vertigo Field</h2>
+      <strong>
+        Illusion (Pattern)
+      </strong>
+      <table class="statBlock">
+        <tr>
+          <th>Level:</th>
+          <td>sor/wiz 3</td>
+        </tr>
+        <tr>
+          <th>Components:</th>
+          <td>V, S</td>
+        </tr>
+        <tr>
+          <th>Casting Time:</th>
+          <td>1 standard action</td>
+        </tr>
+        <tr>
+          <th>Range:</th>
+          <td>Medium (100 ft. + 10ft./level)</td>
+        </tr>
+        <tr>
+          <th>Area:</th>
+          <td>20-ft.-radius spread</td>
+        </tr>
+        <tr>
+          <th>Duration:</th>
+          <td>1 round/level</td>
+        </tr>
+        <tr>
+          <th>Saving Throw:</th>
+          <td>Fortitude partial; see text</td>
+        </tr>
+        <tr>
+          <th>Spell Resistance:</th>
+          <td>Yes</td>
+        </tr>
+      </table>
+      <p>
+        <i>You create a field of swirling patterns of color, light, and motion. Creatures in the area stagger as the barrage of sensations overloads their senses and leaves them overcome with vertigo.</i>
+      </p>
+      <p>This spell creates a field of illusory magic that hampers the movement and senses of any creature that enters it.  The area within the field counts as difficult terrain.  Attacks made through or from inside the field have a 20% miss chance. A creature that begins its turn inside the field must make a Fortitude save or become nauseated for one round. Once a creature fails this save, it does not need to make another save against this effect.</p>
+      <p>When you cast this spell, you can choose for this nauseating effect not to apply to a number of allies you designate less than or equal to your caster level.  Those allies still treat the 
+        <i>vertigo</i> field as difficult terrain and have the 20% miss chance on attacks.
+    </p>
+    </div>
+
+  </body>
+</html>

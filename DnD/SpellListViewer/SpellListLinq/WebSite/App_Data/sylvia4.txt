@@ -1,0 +1,7 @@
+0th Level, 6/day, DC 16 (18ench): Dancing Lights; Daze; Detect Magic; Ghost Sound; Message; Open/Close; Read Magic.
+
+1st Level, 8/day, DC 17 (19ench):
+Charm Person; Color Spray; Comprehend Languages; Detect Secret Doors; Disguise Self; Expeditious Retreat; Hypnotism; Mage Armor; Obscuring Mist; Rouse; Silent Image; Sleep; Undetectable Alignment;Whelm; Serene Visage.
+
+2nd Level, 5/day, DC 18 (20 ench):
+Blinding Color Surge; Blur; Daze Monster; Detect Thoughts; Fog Cloud; Glitterdust; Hypnotic Pattern; Invisibility; Knock; Minor Image; Mirror Image; Misdirection; See Invisibility; Silence; Spider Climb; Stay the Hand; Touch of Idiocy; Vertigo; Whelming Burst.
