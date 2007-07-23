@@ -311,6 +311,7 @@ namespace SpellCompendiumConverterLinq {
             new XElement("html",new XElement("body",
                 spelltexts.Select((st,i) => spelltext2xml(st,i,spelltexts.Length)))).Save(Path.Combine(basepath.FullName,"SpellCompendiumOCR.xml"));
             Console.WriteLine("done.");
+            foreach(string s in from word in unknownWord.Keys orderby unknownWord[word] descending select word) Console.Write(s+" ");
         }
     }
 }
