@@ -261,6 +261,8 @@ namespace SpellCompendiumConverterLinq {
             foreach (string textBit in bulletedSplit.Skip(1)) yield return "• " + textBit;
         }
 
+        static Regex dictionaryRegex=null;
+
         static void Main(string[] args) {
             basepath = new DirectoryInfo(args[0]);
             if(!basepath.Exists) throw new DirectoryNotFoundException("You must specify the directory containing all data files as a first parameter");
@@ -280,6 +282,9 @@ namespace SpellCompendiumConverterLinq {
             Console.Write("[includeDict] ");
             foreach (var word in excludeWords) dictionary.Remove(word);
             Console.Write("[excludeDict] [dict] ");
+
+            /*string regexString = "^((" + string.Join("|", dictionary.Keys.ToArray()) + ")+|.+)$";//escaping? unnecessary if I'm lucky?
+            dictionaryRegex = new Regex(regexString, RegexOptions.Compiled | RegexOptions.IgnoreCase);*///Out of memory if I try this when matching, and it's slow.
 
 
             //select the right region of the file:
