@@ -157,7 +157,7 @@ namespace SpellCompendiumConverterLinq {
                 if(line.Contains(":") && sectionNameSet.ContainsKey(line.Substring(0,line.IndexOf(':'))) ) {
                     string fieldName = line.Substring(0,line.IndexOf(':'));
                     string fieldContent = line.Substring(line.IndexOf(':')+1)
-                        + string.Join(" ",tmp.AsEnumerable().Reverse().ToArray());
+                        + string.Join("",tmp.AsEnumerable().Reverse().ToArray());
                     fieldContent = string.Join(" ", RespaceParagraph(fieldContent).ToArray());
                     tmp = new List<string>();
                     firstHit = true;
