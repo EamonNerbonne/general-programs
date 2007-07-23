@@ -111,16 +111,16 @@ namespace SpellCompendiumConverterLinq {
             if(solution!=null) {// we found a complete split ya!
                 return solution.GetWords();
             }else {//no luck, no fix...
-                if(unknownWord.ContainsKey(word.ToLower())) {
-                    unknownWord[word.ToLower()]++;
+                if(unknownWord.ContainsKey(word)) {
+                    unknownWord[word]++;
                 } else{
-                    unknownWord[word.ToLower()]=1;
+                    unknownWord[word]=1;
                 }
                 return Enumerable.Repeat(word, 1);
             }
         }
 
-        static Regex wordSplit = new Regex(@"^([\p{Lu}\p{Lt}\p{Ll}\p{Lm}’]+|.)*$", RegexOptions.Compiled);
+        static Regex wordSplit = new Regex(@"^([\p{Lu}\p{Lt}\p{Ll}\p{Lm}\p{Nd}’]+|.)*$", RegexOptions.Compiled);
 
         static IEnumerable <string> splitWord(string word) {
             foreach(Capture cap in wordSplit.Match(word).Groups[1].Captures) {
@@ -247,11 +247,18 @@ namespace SpellCompendiumConverterLinq {
                     last = Tok.Punc;
                 }
                 else if (char.IsNumber(token[0])) {
-                    if (last == Tok.Punc || last == Tok.Word) {
-                        text2add.Append(' ');
+                    if (token.Length > 1) {//e.g. 1st
+                        if (last != Tok.Symbol && last!=Tok.Num) text2add.Append(' ');
+                        text2add.Append(token);
+                        last = Tok.Word;
                     }
-                    text2add.Append(token);
-                    last = Tok.Num;
+                    else {
+                        if (last == Tok.Punc || last == Tok.Word) {
+                            text2add.Append(' ');
+                        }
+                        text2add.Append(token);
+                        last = Tok.Num;
+                    }
                 }
                 else {//should never be reached, but for safety.
                     text2add.Append(' ');
