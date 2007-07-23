@@ -105,7 +105,7 @@ namespace SpellCompendiumConverterLinq {
         }
         static Dictionary<string,int> unknownWord = new Dictionary<string,int>();
         static IEnumerable<string> Correct(string word) {//adds spaces if that means the word is then in the dictionary.
-            string lowword = word.ToLower();
+            string lowword = word;//.ToLower();
             if (dictionary.ContainsKey(lowword)) return Enumerable.Repeat(word, 1);
             var solution = TryCorrect(word,lowword,0,word.Length).Take(CUTOFF).Aggregate((WordSplit)null,(a,b) => a==null?b:a.CompareTo(b)<=0?a:b);
             if(solution!=null) {// we found a complete split ya!
@@ -263,6 +263,10 @@ namespace SpellCompendiumConverterLinq {
 
         static Regex dictionaryRegex=null;
 
+        static string Capitalize(string str) {
+            return str[0].ToString().ToUpper()+str.Substring(1);
+        }
+
         static void Main(string[] args) {
             basepath = new DirectoryInfo(args[0]);
             if(!basepath.Exists) throw new DirectoryNotFoundException("You must specify the directory containing all data files as a first parameter");
@@ -273,14 +277,14 @@ namespace SpellCompendiumConverterLinq {
 
             IEnumerable<string> lines =basepath.GetFiles("*.input.txt").Single().GetLines();
 
-            IEnumerable<string> words = from file in basepath.GetFiles("*.include.txt") from line in file.GetLines() select line;
-            IEnumerable<string> excludeWords = from file in basepath.GetFiles("*.exclude.txt") from line in file.GetLines() select line;
+            IEnumerable<string> words = from file in basepath.GetFiles("*.include.txt") from line in file.GetLines() where line != "" select line;
+            IEnumerable<string> excludeWords = from file in basepath.GetFiles("*.exclude.txt") from line in file.GetLines() where line!="" select line;
 
             dictionary = new Dictionary<string,int>();
             Console.Write("[init] ");
-            foreach(var word in words) dictionary[word]=0;
+            foreach (var word in words) { dictionary[word] = 0; dictionary[Capitalize(word)] = 0; }
             Console.Write("[includeDict] ");
-            foreach (var word in excludeWords) dictionary.Remove(word);
+            foreach (var word in excludeWords) { dictionary.Remove(word); dictionary.Remove(Capitalize(word)); }
             Console.Write("[excludeDict] [dict] ");
 
             /*string regexString = "^((" + string.Join("|", dictionary.Keys.ToArray()) + ")+|.+)$";//escaping? unnecessary if I'm lucky?
