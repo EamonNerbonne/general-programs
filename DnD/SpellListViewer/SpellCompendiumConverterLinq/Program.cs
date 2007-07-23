@@ -220,7 +220,7 @@ namespace SpellCompendiumConverterLinq {
             foreach (string token in tmp) {
                 if (token.Length == 0) continue;
                 UnicodeCategory cat = char.GetUnicodeCategory(token[0]);
-                if (token == "-" || token == "–" || token == "—" || token == "/") {
+                if (token == "-" || token == "–" || token == "—" || token == "/"||token=="&") {
                     text2add.Append(token);
                     last = Tok.Symbol;
                 }else if (token == "d" || token == "+" || token == "×") {
