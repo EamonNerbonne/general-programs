@@ -18,6 +18,14 @@ namespace SpellCompendiumConverterLinq {
         public WordSplit(string word,WordSplit next,int val){this.word=word;this.val=val;this.next=next;}
         public WordSplit(){}
         public int CompareTo(WordSplit other) {return this.val.CompareTo(other.val);}
+        public IEnumerable<string> GetWords()
+        {
+            WordSplit current=this;
+            while(current!=null) {
+                yield return current.word;
+                current = current.next;
+            }
+        }
         public override string ToString() {
             List<string> words= new List<string>();
             WordSplit t = this;
@@ -96,23 +104,23 @@ namespace SpellCompendiumConverterLinq {
             }
         }
         static Dictionary<string,int> unknownWord = new Dictionary<string,int>();
-        static string Correct(string word) {//adds spaces if that means the word is then in the dictionary.
+        static IEnumerable<string> Correct(string word) {//adds spaces if that means the word is then in the dictionary.
             string lowword = word.ToLower();
-            if(dictionary.ContainsKey(lowword)) return word;
+            if (dictionary.ContainsKey(lowword)) return Enumerable.Repeat(word, 1);
             var solution = TryCorrect(word,lowword,0,word.Length).Take(CUTOFF).Aggregate((WordSplit)null,(a,b) => a==null?b:a.CompareTo(b)<=0?a:b);
             if(solution!=null) {// we found a complete split ya!
-                return solution.ToString();
+                return solution.GetWords();
             }else {//no luck, no fix...
                 if(unknownWord.ContainsKey(word.ToLower())) {
                     unknownWord[word.ToLower()]++;
                 } else{
                     unknownWord[word.ToLower()]=1;
                 }
-                return word;
+                return Enumerable.Repeat(word, 1);
             }
         }
 
-        static Regex wordSplit=  new Regex(@"^([\p{Lu}\p{Lt}\p{Ll}\p{Lm}]+|.)*$",RegexOptions.Compiled);
+        static Regex wordSplit = new Regex(@"^([\p{Lu}\p{Lt}\p{Ll}\p{Lm}’]+|.)*$", RegexOptions.Compiled);
 
         static IEnumerable <string> splitWord(string word) {
             foreach(Capture cap in wordSplit.Match(word).Groups[1].Captures) {
@@ -203,7 +211,8 @@ namespace SpellCompendiumConverterLinq {
             var tmp =
                           from word in words
                           from token in splitWord(word)
-                          select char.IsLetter(token[0]) ? Correct(token) : token;
+                          from realword in Correct(token)
+                          select realword;
                           
 
             StringBuilder text2add = new StringBuilder();
@@ -223,7 +232,7 @@ namespace SpellCompendiumConverterLinq {
                 }
                 else if (token[0] == '’' || token[0] == '\'') {
                     text2add.Append(token);
-                    last = Tok.Symbol;
+                    last = Tok.Word;
                 }
                 else if (cat == UnicodeCategory.OpenPunctuation || cat == UnicodeCategory.InitialQuotePunctuation) {
                     text2add.Append(' ');
