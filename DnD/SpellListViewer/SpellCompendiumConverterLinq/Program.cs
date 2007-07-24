@@ -44,7 +44,7 @@ namespace SpellCompendiumConverterLinq {
         const int CUTOFF = 1000000;//don't search more than this number of possible splits of texts.
 
         public static bool IsTitle(string line){
-            return  line.All(c  =>  c < 'a' || c > 'z') && line.Count(c  =>  c >= 'A' && c <= 'Z') > 2 && line.Count(c=> char.IsLetter(c))*2+1 >= line.Length;
+            return  line.All(c  =>  c < 'a' || c > 'z') && line.Count(c  =>  c >= 'A' && c <= 'Z') > 3 && line.Count(c=> char.IsLetter(c))*2+1 >= line.Length;
         }
 
         public static IEnumerable<string> MergeTitle(IEnumerable<string> lines) {
