@@ -56,7 +56,7 @@ public class SpellList
     static string cm(string classname) { return cm(classname, classname); }
     static string cm(string classname, string match)    {        return "("+match+"\\s+(?<"+classname+">[0-9]+))";    }
     static string[] classes = new string[] { cm("Assassin"), cm("Wizard", "Sorcerer/Wizard"), cm("Cleric"), cm("Bard"), cm("Ranger"), cm("Druid"), cm("Paladin"), 
-                                  cm("Blackguard"),cm("Domain",@"(Abyss|Hunger|Gluttony|Portal|Spell|Windstorm|Darkness|Death\s+Bound|Force|Celerity|Glory|Madness|Mind|Mechanus|Purification|Greed|Balance|Courage|Drow|Pestilence|Pact|Dragon|Dream|Craft|Gnome|Trade|Celestia|Ocean|Limbo|Hades|Elysium|Cavern)")};
+                                  cm("Blackguard"),cm("Domain",@"(Abyss|Hunger|Gluttony|Portal|Spell|Windstorm|Darkness|Death\s+Bound|Force|Celerity|Glory|Madness|Mind|Mechanus|Purification|Greed|Balance|Courage|Drow|Pestilence|Pact|Dragon|Dream|Craft|Gnome|Trade|Celestia|Ocean|Limbo|Hades|Elysium|Cavern|Domination|Moon|Cold|Liberation|Arborea|Creation|Wrath)")};
 
     private SpellList(HttpContext context)
     {
