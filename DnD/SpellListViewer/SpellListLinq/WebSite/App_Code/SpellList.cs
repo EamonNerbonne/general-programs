@@ -51,7 +51,7 @@ public class SpellList
         List<string> spells = levels[level];
         spells.Add(name);
     }
-    Regex levelMatch = new Regex("^("+ string.Join("|",classes)+ "|([,\\s]+|(Branch.+Monkey)|(The kelp.+its target)))+$", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+    Regex levelMatch = new Regex("^("+ string.Join("|",classes)+ "|([,\\s]+))+$", RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
     static string cm(string classname) { return cm(classname, classname); }
     static string cm(string classname, string match)    {        return "("+match+"\\s+(?<"+classname+">[0-9]+))";    }
