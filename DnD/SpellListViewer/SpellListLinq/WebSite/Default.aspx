@@ -48,7 +48,7 @@
                     <asp:LinkButton ID="BlackguardLink" runat="server" onclick="NormalCasterLink_Click">Blackguard</asp:LinkButton>
 				</li>
 				<li>
-                    <asp:LinkButton ID="DomainsLink" runat="server">Cleric Domains</asp:LinkButton>
+                    <asp:LinkButton ID="DomainsLink" runat="server" onclick="DomainsLink_Click">Cleric Domains</asp:LinkButton>
 				</li>
             </ul>
             <h3>
@@ -80,8 +80,8 @@
 		</selectparameters>
 	</asp:SqlDataSource>
     <p>
-        <asp:TextBox ID="SpellBox" runat="server" Height="30em" OnTextChanged="SpellBox_TextChanged"
-            Width="65%" TextMode="MultiLine" Text="Wizard 1st: Time Stop" Style="height: 20em"></asp:TextBox><br />
+        <asp:TextBox ID="SpellBox" runat="server" OnTextChanged="SpellBox_TextChanged"
+            Width="65%" TextMode="MultiLine" Text="Wizard 1st: Time Stop" Style="height: 40em"></asp:TextBox><br />
         <asp:Button ID="GenerateButton" runat="server" OnClick="GenerateButton_Click" Text="Generate Now!"
             PostBackUrl="~/Validate.aspx" />
     </p>

@@ -14,7 +14,7 @@ using System.IO;
 public partial class _Default : System.Web.UI.Page {
 
     protected void Page_Load(object sender, EventArgs e) {
-        SpellBox.Text = Request.Form["SpellBox"];
+        SpellBox.Text = (string)Session["SpellBox"];
 
         SpellListLabel.Text = SpellList.Unique.SpellsAsText;
     }
@@ -36,5 +36,9 @@ public partial class _Default : System.Web.UI.Page {
     {
         string casterclass = ((LinkButton)sender).Text;
         SpellBox.Text = SpellList.Unique.SpellListByClass(casterclass);
+    }
+    protected void DomainsLink_Click(object sender, EventArgs e)
+    {
+        SpellBox.Text = SpellList.Unique.GetDomainSpellLists();
     }
 }

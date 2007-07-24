@@ -124,4 +124,17 @@ public class SpellList
     public bool Contains(string name) { return spellLookup.ContainsKey(Canonicalize.Basic(name)); }
     public IEnumerable<string> Spells { get { return spellLookup.Keys; } }
     public string SpellsAsText { get { return string.Join("; ", Spells.OrderBy(s => s).ToArray()) + "."; } }
+
+    public string GetDomainSpellLists()
+    {
+        StringBuilder sb = new StringBuilder();
+        foreach (string domainname in casterclasslists.Keys) {
+            if (!domainname.StartsWith("Domain/")) continue;//is normal caster list;
+            if (casterclasslists[domainname].Count < 9) continue;//isn't complete;
+            sb.AppendLine(domainname.Substring("Domain/".Length) + ":");
+            sb.Append(string.Join("; ", (from level in casterclasslists[domainname].Keys orderby level from spellname in casterclasslists[domainname][level] select spellname).ToArray()));
+            sb.AppendLine(".\n");
+        }
+        return sb.ToString();
+    }
 }

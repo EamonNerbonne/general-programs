@@ -4,12 +4,14 @@ using System;
 using System.Web;
 using System.Text;
 using System.IO;
-public class Handler : IHttpHandler {
+using System.Web.SessionState;
+public class Handler : IHttpHandler,IRequiresSessionState {
 
     public void ProcessRequest(HttpContext context) {
         context.Response.ContentType = "text/html";
         SpellList sl = SpellList.Unique;
-        SpellSelection ss = new SpellSelection(SpellList.Unique, context.Request.Form["SpellBox"]);
+        if (context.Session["SpellBox"] == null) context.Response.Redirect("Default.aspx", true);
+        SpellSelection ss = new SpellSelection(SpellList.Unique, (string)context.Session["SpellBox"]);
         TextWriter r= context.Response.Output;
         r.WriteLine("<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">\n");
         r.WriteLine(@"<html xmlns='http://www.w3.org/1999/xhtml'>
