@@ -17,10 +17,8 @@ function DIV1_onclick() {
 </head>
 <body>
     <form id="form1" runat="server">
-    <div>
         OK, so you want to make the following spell list eh (italicized spells are unknown):<br />
         <div id="SpellListHTML" runat="server"></div>
-        <br />
         <br />
         <asp:Button ID="NoGood" runat="server" PostBackUrl="~/Default.aspx" Text="Go Back and Try again..." />
         <asp:Button ID="YesGreat" runat="server" Text="Yeah, Let's Try This..." PostBackUrl="~/SpellList.ashx" /><br />
