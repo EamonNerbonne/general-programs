@@ -32,4 +32,9 @@ public partial class _Default : System.Web.UI.Page {
             Context.Request.PhysicalApplicationPath, "App_Data\\sylvia6.txt")).ReadToEnd();
 
     }
+    protected void NormalCasterLink_Click(object sender, EventArgs e)
+    {
+        string casterclass = ((LinkButton)sender).Text;
+        SpellBox.Text = SpellList.Unique.SpellListByClass(casterclass);
+    }
 }

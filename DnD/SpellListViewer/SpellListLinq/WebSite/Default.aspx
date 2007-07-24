@@ -8,7 +8,7 @@
 <body>
     <form id="form1" runat="server">
     <div>
-        <div style="float: right; width: 20em; padding: 0.5em; background: #eee; border: 1px solid #bbb;
+        <div style="float: right; width: 30%; padding: 0.5em; background: #eee; border: 1px solid #bbb;
             margin: 0.5em;">
             <h2>Spell List Maker</h2>
             <p>
@@ -20,6 +20,37 @@
                 by sticking some name in front of it, ending in a colon (i.e. "1st Level: Detect
                 Evil; Bless."). Spacing and newlines are irrelevant. You can have multiple lists
                 too, just put more than one in there.</p>
+            <h3>
+                Complete Spell-lists:</h3>
+            <ul>
+                <li>
+                    <asp:LinkButton ID="WizardLink" runat="server" onclick="NormalCasterLink_Click">Wizard</asp:LinkButton>
+				</li>
+				<li>
+                    <asp:LinkButton ID="DruidLink" runat="server" onclick="NormalCasterLink_Click">Druid</asp:LinkButton>
+				</li>
+				<li>
+                    <asp:LinkButton ID="ClericLink" runat="server" onclick="NormalCasterLink_Click">Cleric</asp:LinkButton>
+				</li>
+				<li>
+                    <asp:LinkButton ID="BardLink" runat="server" onclick="NormalCasterLink_Click">Bard</asp:LinkButton>
+				</li>
+				<li>
+                    <asp:LinkButton ID="PaladinLink" runat="server" onclick="NormalCasterLink_Click">Paladin</asp:LinkButton>
+				</li>
+				<li>
+                    <asp:LinkButton ID="RangerLink" runat="server" onclick="NormalCasterLink_Click">Ranger</asp:LinkButton>
+				</li>
+				<li>
+                    <asp:LinkButton ID="AssassinLink" runat="server" onclick="NormalCasterLink_Click">Assassin</asp:LinkButton>
+				</li>
+				<li>
+                    <asp:LinkButton ID="BlackguardLink" runat="server" onclick="NormalCasterLink_Click">Blackguard</asp:LinkButton>
+				</li>
+				<li>
+                    <asp:LinkButton ID="DomainsLink" runat="server">Cleric Domains</asp:LinkButton>
+				</li>
+            </ul>
             <h3>
                 For example:</h3>
             <ul>
@@ -49,8 +80,8 @@
 		</selectparameters>
 	</asp:SqlDataSource>
     <p>
-        <asp:TextBox ID="SpellBox" runat="server" Height="15em" OnTextChanged="SpellBox_TextChanged"
-            Width="100%" TextMode="MultiLine" Text="Wizard 1st: Time Stop" Style="height: 20em"></asp:TextBox><br />
+        <asp:TextBox ID="SpellBox" runat="server" Height="30em" OnTextChanged="SpellBox_TextChanged"
+            Width="65%" TextMode="MultiLine" Text="Wizard 1st: Time Stop" Style="height: 20em"></asp:TextBox><br />
         <asp:Button ID="GenerateButton" runat="server" OnClick="GenerateButton_Click" Text="Generate Now!"
             PostBackUrl="~/Validate.aspx" />
     </p>

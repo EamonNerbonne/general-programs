@@ -19149,7 +19149,48 @@
         </tr>
         <tr>
           <th>Spell Resistance:</th>
-          <td>Yes (harmless) The subject of lesser iron guard becomes immune to non magical metal. Metal items (including metal weapons) simply pass through you, and you can walk through metal barriers such as iron bars. Magic metal affects you normally, as do spells, spell-like abilities, and supernatural effects. Attacks delivered by metal items (such as poison on a dagger) affect you normally. If the spell expires while metal is inside you, the metal object is shunted out of your body (or you away from the metal, if it is an immovable object such as a set of iron bars). You and the object each take 1d6 points of damage as a result (ignoring the object’s hardness for determining damage to it). Because you pass through metal, you can ignore armor bonuses from non magic metal armor on opponents you attack with unarmed attacks. Material Component: A tiny shield of wood, glass, or crystal. You watch as your target’s skin lightens and IRONGUTS Abjuration</td>
+          <td>Yes (harmless)</td>
+        </tr>
+      </table>
+      <p>The subject of lesser iron guard becomes immune to non magical metal. Metal items (including metal weapons) simply pass through you, and you can walk through metal barriers such as iron bars. Magic metal affects you normally, as do spells, spell-like abilities, and supernatural effects. Attacks delivered by metal items (such as poison on a dagger) affect you normally. If the spell expires while metal is inside you, the metal object is shunted out of your body (or you away from the metal, if it is an immovable object such as a set of iron bars). You and the object each take 1d6 points of damage as a result (ignoring the object’s hardness for determining damage to it).</p>
+      <p>Because you pass through metal, you can ignore armor bonuses from non magic metal armor on opponents you attack with unarmed attacks.</p>
+      <p>Material Component: A tiny shield of wood, glass, or crystal.</p>
+    </div>
+    <div spell="Ironguts">
+      <h2>Ironguts</h2>
+      <strong>Abjuration</strong>
+      <table class="statBlock">
+        <tr>
+          <th>Level:</th>
+          <td>Bard 1, cleric 1, sorcerer/wizard 1</td>
+        </tr>
+        <tr>
+          <th>Components:</th>
+          <td>V, S, M</td>
+        </tr>
+        <tr>
+          <th>Casting Time:</th>
+          <td>1 standard action</td>
+        </tr>
+        <tr>
+          <th>Range:</th>
+          <td>Touch</td>
+        </tr>
+        <tr>
+          <th>Target:</th>
+          <td>Creature touched</td>
+        </tr>
+        <tr>
+          <th>Duration:</th>
+          <td>10 minutes/level</td>
+        </tr>
+        <tr>
+          <th>Saving Throw:</th>
+          <td>Will negates</td>
+        </tr>
+        <tr>
+          <th>Spell Resistance:</th>
+          <td>Yes</td>
         </tr>
       </table>
       <p>You mutter the spell and uncork a bottle with a noxious concoction of scorpion venom, toad sweat, adder venom, and the strained brains of carrion crawlers. The poisonous liquid evaporates into a black cloud that surrounds your hand as you reach out to touch the target.</p>
@@ -33377,7 +33418,7 @@
       <p>Summon undead I conjures one of the creatures from the 1st-level list in the accompanying sidebar. You choose which creature to summon, and you can change that choice each time you cast the spell.</p>
       <p>Summoned undead do not count toward the total Hit Dice of undead that you can control with animate dead or the other command undead abilities.</p>
       <p>No undead creature you summon can have more Hit Dice than your caster level +1.</p>
-      <p>Focus: A tiny bag, a small (not lit) candle, and a carved bone from any humanoid.</p>
+      <p>Focus: A tiny bag, a small (not lit) candle, and a carved bone from any humanoid. 1st Level: Human warrior skeleton (MM 226), kobold zombie (MM 266)</p>
     </div>
     <div spell="Summon Undead Ii">
       <h2>Summon Undead Ii</h2>
@@ -33393,12 +33434,7 @@
         </tr>
       </table>
       <p>Summon undead puts control of undead minions in the hands of even apprentice wizards</p>
-      <p>This spell functions like summon undead I, except that you can summon one undead from the 2nd-level list or two undead of the same kind from the 1st-level list. pqqqqqqqqqqqqrs</p>
-    </div>
-    <div spell="Summon Undead Lists">
-      <h2>Summon Undead Lists</h2>
-      <strong>1st Level: Human warrior skeleton (MM 226), kobold zombie (MM 266)  2nd Level: Owlbear skeleton (MM 226), bugbear zombie (MM 267).  3rd Level: Ghoul (MM 118), troll skeleton (MM 227), ogre zombie (MM 267).  4th Level: Allip (MM 10), ghast (MM 119), wyvern zombie (MM 267).  5th Level: Mummy (MM190), shadow (MM221), vampire spawn (MM253), wight  (MM 255).  pqqqqqqqqqqqqrs</strong>
-      <table class="statBlock" />
+      <p>This spell functions like summon undead I, except that you can summon one undead from the 2nd-level list or two undead of the same kind from the 1st-level list. 1st Level: Human warrior skeleton (MM 226), kobold zombie (MM 266) 2nd Level: Owl bear skeleton (MM 226), bugbear zombie (MM 267).</p>
     </div>
     <div spell="Summon Undead Iii">
       <h2>Summon Undead Iii</h2>
@@ -33413,7 +33449,7 @@
           <td>One or more summoned creatures, no two of which are more than 30 ft. apart</td>
         </tr>
       </table>
-      <p>This spell functions like summon undead I, except that you can summon one undead from the 3rd-level list, two undead of the same kind from the 2nd-level list, or four undead of the same kind from the 1st-level list.</p>
+      <p>This spell functions like summon undead I, except that you can summon one undead from the 3rd-level list, two undead of the same kind from the 2nd-level list, or four undead of the same kind from the 1st-level list. 1st Level: Human warrior skeleton (MM 226), kobold zombie (MM 266) 2nd Level: Owl bear skeleton (MM 226), bugbear zombie (MM 267). 3rd Level: Ghoul (MM 118), troll skeleton (MM 227), ogre zombie (MM 267).</p>
     </div>
     <div spell="Summon Undead Iv">
       <h2>Summon Undead Iv</h2>
@@ -33428,7 +33464,7 @@
           <td>One or more summoned creatures, no two of which are more than 30 ft. apart</td>
         </tr>
       </table>
-      <p>This spell functions like summon undead I, except that you can summon one undead from the 4th-level list, two undead of the same kind from the 3rd-level list, or four undead of the same kind from a lower-level list.</p>
+      <p>This spell functions like summon undead I, except that you can summon one undead from the 4th-level list, two undead of the same kind from the 3rd-level list, or four undead of the same kind from a lower-level list. 2nd Level: Owl bear skeleton (MM 226), bugbear zombie (MM 267). 3rd Level: Ghoul (MM 118), troll skeleton (MM 227), ogre zombie (MM 267). 4th Level: Allip (MM 10), ghast (MM 119), wyvern zombie (MM 267).</p>
     </div>
     <div spell="Summon Undead V">
       <h2>Summon Undead V</h2>
@@ -33443,7 +33479,7 @@
           <td>One or more summoned creatures, no two of which are more than 30 ft. apart</td>
         </tr>
       </table>
-      <p>This spell functions like summon undead I, except that you can summon one undead from the 5th-level list, two undead of the same kind from the 4th level list, or four undead of the same kind from a lower-level list.</p>
+      <p>This spell functions like summon undead I, except that you can summon one undead from the 5th-level list, two undead of the same kind from the 4th level list, or four undead of the same kind from a lower-level list. 3rd Level: Ghoul (MM 118), troll skeleton (MM 227), ogre zombie (MM 267). 4th Level: Allip (MM 10), ghast (MM 119), wyvern zombie (MM 267). 5th Level: Mummy (MM 190), shadow (MM 221), vampire spawn (MM 253), wight (MM 255).</p>
     </div>
     <div spell="Suppress Breath Weapon">
       <h2>Suppress Breath Weapon</h2>
@@ -35934,10 +35970,9 @@
       <table class="statBlock">
         <tr>
           <th>Level:</th>
-          <td>Cleric 9, Competition 9,</td>
+          <td>Cleric 9, Competition 9, Mysticism 9, Purification 9</td>
         </tr>
       </table>
-      <p>Mysticism 9, Purification 9</p>
       <p>This spell functions like lesser visage of the deity, except that you take on many qualities of a half-celestial or half-fiendish creature.</p>
       <p>Your creature type changes to outsider for the duration of the spell.</p>
       <p>Unlike other outsiders, you can be brought back from the dead if you are killed in this form.</p>
@@ -36569,7 +36604,7 @@
       <table class="statBlock">
         <tr>
           <th>Level:</th>
-          <td>Cleric 4, sorcerer/wizard 4 You invoke the abjuration, and a wall of translucent silver energy springs up before fading away to nothingness.</td>
+          <td>Cleric 4, sorcerer/wizard 4</td>
         </tr>
         <tr>
           <th>Saving Throw:</th>
@@ -36841,8 +36876,44 @@
     </div>
     <div spell="Wave Of Grief">
       <h2>Wave Of Grief</h2>
-      <strong>Enchantment [Evil,  Mind-Affecting]  Le vel: Bard 2, blackguard 2,  cleric 2  Components: V, S, M  Casting Time: 1 standard  action  Range: 30 ft.  Area: Cone-shaped burst  Duration: 1 round/level  Saving Throw: Will negates  Spell Resistance: Yes  Emitting a mournful wail, you send out  apulseofmagicimbuedwithsorrowand  sadness.  All within the cone when the spell is  cast take a –3 penalty on attack rolls,  saving throws, ability checks, and skill  checks.  Material Component: Three tears.</strong>
-      <table class="statBlock" />
+      <strong>Enchantment [Evil, Mind-Affecting]</strong>
+      <table class="statBlock">
+        <tr>
+          <th>Level:</th>
+          <td>Bard 2, blackguard 2, cleric 2</td>
+        </tr>
+        <tr>
+          <th>Components:</th>
+          <td>V, S, M</td>
+        </tr>
+        <tr>
+          <th>Casting Time:</th>
+          <td>1 standard action</td>
+        </tr>
+        <tr>
+          <th>Range:</th>
+          <td>30 ft.</td>
+        </tr>
+        <tr>
+          <th>Area:</th>
+          <td>Cone-shaped burst</td>
+        </tr>
+        <tr>
+          <th>Duration:</th>
+          <td>1 round/level</td>
+        </tr>
+        <tr>
+          <th>Saving Throw:</th>
+          <td>Will negates</td>
+        </tr>
+        <tr>
+          <th>Spell Resistance:</th>
+          <td>Yes</td>
+        </tr>
+      </table>
+      <p>Emitting a mournful wail, you send out apulse of magic imbued with sorrow and sadness.</p>
+      <p>All within the cone when the spell is cast take a–3 penalty on attack rolls, saving throws, ability checks, and skill checks.</p>
+      <p>Material Component: Three tears.</p>
     </div>
     <div spell="Weapon Of Energy">
       <h2>Weapon Of Energy</h2>
@@ -37386,7 +37457,11 @@
       <table class="statBlock">
         <tr>
           <th>Level:</th>
-          <td>Blackguard 4, paladin 4 Component: V, S, DF</td>
+          <td>Blackguard 4, paladin 4</td>
+        </tr>
+        <tr>
+          <th>Components:</th>
+          <td>V, S, DF</td>
         </tr>
         <tr>
           <th>Casting Time:</th>
