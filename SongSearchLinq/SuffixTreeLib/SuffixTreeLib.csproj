@@ -4,11 +4,11 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProductVersion>9.0.20404</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{4F8417B2-D31B-49DB-BAC0-FE46517E3D4F}</ProjectGuid>
-    <OutputType>Exe</OutputType>
+    <ProjectGuid>{08B75766-C41A-4959-A15C-7A66A5068B78}</ProjectGuid>
+    <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>SongDiskCrawler</RootNamespace>
-    <AssemblyName>SongDiskCrawler</AssemblyName>
+    <RootNamespace>SuffixTreeLib</RootNamespace>
+    <AssemblyName>SuffixTreeLib</AssemblyName>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
@@ -42,7 +42,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="SongDiskCrawlerMain.cs" />
+    <Compile Include="SongSuffixSearcherMain.cs" />
+    <Compile Include="Suffix.cs" />
+    <Compile Include="SuffixTree.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\EamonExtensionsLinq\EamonExtensionsLinq.csproj">
@@ -52,10 +54,6 @@
     <ProjectReference Include="..\SongData\SongData.csproj">
       <Project>{171E7F71-DB67-47CA-82BC-C63681BF2733}</Project>
       <Name>SongData</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\TagLibSharp\TagLibSharp.csproj">
-      <Project>{D7A55301-80A1-4160-BFC3-2111300BA733}</Project>
-      <Name>TagLibSharp</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />

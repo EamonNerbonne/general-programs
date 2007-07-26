@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Globalization;
-using EamonExtensions;
+using EamonExtensionsLinq;
 
 namespace SongDataLib {
     public static class SongUtil {

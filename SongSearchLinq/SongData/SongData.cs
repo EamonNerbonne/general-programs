@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using System.Query;
-using System.Xml.XLinq;
+using System.Linq;
+using System.Xml.Linq;
 using System.Xml;
 using TagLib;
-using EamonExtensions;
+using EamonExtensionsLinq;
 using System.IO;
 using System.Globalization;
 
@@ -14,6 +14,7 @@ namespace SongDataLib {
     public class SongData {
         public string filepath, title, artist, performer, composer, album, comment, genre;
         public int? year, track, trackcount, bitrate, length, samplerate, channels;
+        public DateTime? lastWriteTime;
 
         public string FullInfo {
             get {
@@ -69,28 +70,30 @@ namespace SongDataLib {
             year = (int?)file.Tag.Year;
             track = (int?)file.Tag.Track;
             trackcount = (int?)file.Tag.TrackCount;
+            lastWriteTime = fileObj.LastWriteTime;
             bitrate = file.AudioProperties == null ? null : (int?)file.AudioProperties.Bitrate;
             length = file.AudioProperties == null ? null : (int?)file.AudioProperties.Length;
             samplerate = file.AudioProperties == null ? null : (int?)file.AudioProperties.SampleRate;
             channels = file.AudioProperties == null ? null : (int?)file.AudioProperties.Channels;
         }
 
-        public SongData(XElement from) {
-            filepath = string.Intern(from.Attribute("filepath").Value);
-            title = string.Intern(from.Attribute("title").Value);
-            artist = string.Intern(from.Attribute("artist").Value);
-            performer = string.Intern(from.Attribute("performer").Value);
-            composer = string.Intern(from.Attribute("composer").Value);
-            album = string.Intern(from.Attribute("album").Value);
-            comment = string.Intern(from.Attribute("comment").Value);
-            genre = string.Intern(from.Attribute("genre").Value);
-            year = SongUtil.StringToNullableInt(from.Attribute("year").Value);
-            track = SongUtil.StringToNullableInt(from.Attribute("track").Value);
-            trackcount = SongUtil.StringToNullableInt(from.Attribute("trackcount").Value);
-            bitrate = SongUtil.StringToNullableInt(from.Attribute("bitrate").Value);
-            length = SongUtil.StringToNullableInt(from.Attribute("length").Value);
-            samplerate = SongUtil.StringToNullableInt(from.Attribute("samplerate").Value);
-            channels = SongUtil.StringToNullableInt(from.Attribute("channels").Value);
+        public SongData(XElement from)
+        {
+            filepath = (string)from.Attribute("filepath");
+            title = (string)from.Attribute("title");
+            artist = (string)from.Attribute("artist");
+            performer = (string)from.Attribute("performer");
+            composer = (string)from.Attribute("composer");
+            album = (string)from.Attribute("album");
+            comment = (string)from.Attribute("comment");
+            genre = (string)from.Attribute("genre");
+            year = SongUtil.StringToNullableInt((string)from.Attribute("year"));
+            track = SongUtil.StringToNullableInt((string)from.Attribute("track"));
+            trackcount = SongUtil.StringToNullableInt((string)from.Attribute("trackcount"));
+            bitrate = SongUtil.StringToNullableInt((string)from.Attribute("bitrate"));
+            length = SongUtil.StringToNullableInt((string)from.Attribute("length"));
+            samplerate = SongUtil.StringToNullableInt((string)from.Attribute("samplerate"));
+            channels = SongUtil.StringToNullableInt((string)from.Attribute("channels"));
         }
 
         public SongData() { }
@@ -118,7 +121,8 @@ namespace SongDataLib {
                 bitrate == null ? null :new XAttribute("bitrate", numtostring(bitrate)),
                 length == null ? null :new XAttribute("length", numtostring(length)),
                 samplerate == null ? null :new XAttribute("samplerate", numtostring(samplerate)),
-                channels == null ? null :new XAttribute("channels", numtostring(channels))
+                channels == null ? null :new XAttribute("channels", numtostring(channels)),
+                lastWriteTime==null?null:new XAttribute("lastmodified",lastWriteTime.Value.ToString())
             );
         }
 

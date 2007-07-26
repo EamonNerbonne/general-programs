@@ -1,13 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using System.Query;
-using System.Xml.XLinq;
+using System.Linq;
+using System.Xml.Linq;
 using TagLib;
 using System.IO;
 using SongDataLib;
-using EamonExtensions;
-using EamonExtensions.Filesystem;
+using EamonExtensionsLinq;
+using EamonExtensionsLinq.Filesystem;
 
 namespace TagLibSharp_LINQ {
     class Program {
@@ -41,7 +41,7 @@ namespace TagLibSharp_LINQ {
                 foreach (SongData file in files) {
                     try {
                         XElement song = file.ConvertToXml();
-                        outputlog.WriteLine(song.Xml);
+                        outputlog.WriteLine(song.ToString());
                         filecount++;
                         if ((DateTime.Now - prev).TotalSeconds >= 1.0) {
                             prev = DateTime.Now;
