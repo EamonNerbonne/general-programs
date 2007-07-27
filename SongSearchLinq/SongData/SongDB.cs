@@ -17,18 +17,18 @@ namespace SongDataLib {
         public IEnumerable<byte[]> NormalizedSongs { get { return Enumerable.Range(0, songs.Length).Select(si=>NormalizedSong(si)); } }
         public NormalizerDelegate norm;
 
-        public SongDB(FileInfo file,NormalizerDelegate norm) {
+        public SongDB(NormalizerDelegate norm,IEnumerable<FileInfo> files) {
             this.norm = norm;
             XmlReaderSettings settings = new XmlReaderSettings();
             settings.ConformanceLevel = ConformanceLevel.Fragment;
-            XmlReader reader = XmlReader.Create(file.OpenText(),settings);
             List<SongData> songlist = new List<SongData>();
-            XElement el;
-            while (reader.Read()) {
-                if (!reader.IsEmptyElement) continue;
-                if(reader.Name != "song") throw new Exception("Data file format unknown, expected xml document fragment consisting of 'song' elements");
-                song = new SongData(XElement.ReadFrom(reader));
-                songlist.Add(song);
+            foreach (FileInfo file in files) {
+                XmlReader reader = XmlReader.Create(file.OpenText(), settings);
+                while (reader.Read()) {
+                    if (!reader.IsEmptyElement) continue;
+                    if (reader.Name != "song") throw new Exception("Data file format unknown, expected xml document fragment consisting of 'song' elements");
+                    songlist.Add(new SongData((XElement)XElement.ReadFrom(reader)));
+                }
             }
             this.songs = songlist.ToArray();
             songlist = null;
