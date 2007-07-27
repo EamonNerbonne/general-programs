@@ -10,6 +10,7 @@ using EamonExtensionsLinq;
 using System.IO;
 using System.Globalization;
 using SongDataLib;
+using System.Linq;
 
 namespace SuffixTreeLib {
 
@@ -25,7 +26,7 @@ namespace SuffixTreeLib {
             normed = new byte[db.songs.Length][];
 
             for (int si = 0; si < db.songs.Length; si++) {
-                byte[] buf = normed[si] = db.NormalizedSong(si);
+                byte[] buf = normed[si] = SongUtil.str2byteArr(db.NormalizedSong(si));
                 SongData song = db.songs[si];
                 for (int i = 0; i < buf.Length; i++)
                     tree.AddSuffix(this, 0, new Suffix { songIndex = si, startPos = i });
@@ -35,7 +36,8 @@ namespace SuffixTreeLib {
             tree.CompactAndCalcSize();
         }
 
-        public SearchResult Query(byte[] query) {
+        public SearchResult Query(string strquery) {
+            byte[] query = strquery.ToCharArray().Where(c => (int)c < 256).Select(c => (byte)c).ToArray();
             return tree.Match(this, 0, query);
         }
 
@@ -43,7 +45,7 @@ namespace SuffixTreeLib {
             if (normed != null)
                 return normed[si];
             else
-                return db.NormalizedSong(si);
+                return SongUtil.str2byteArr(db.NormalizedSong(si));
         }
     }
 }

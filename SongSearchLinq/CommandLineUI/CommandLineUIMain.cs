@@ -1,25 +1,24 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using System.Query;
-using System.Xml.XLinq;
-using System.Data.DLinq;
+using System.Linq;
 using SongDataLib;
 using System.IO;
-using EamonExtensions.DebugTools;
-using EamonExtensions;
+using EamonExtensionsLinq.DebugTools;
+using EamonExtensionsLinq;
+using EamonExtensionsLinq.Text;
 namespace CommandLineUI {
     class CommandLineUIMain {
         SongDB db;
         ISongSearcher ss;
 
-        public IEnumerable<int> MatchAll(SearchResult[] results, byte[][] queries) {
+        public IEnumerable<int> MatchAll(SearchResult[] results, string[] queries) {
             Array.Sort(results, queries);
             IEnumerable<int> smallestMatch = results[0].songIndexes;
             //queries are still in the "best" possible order!
             foreach (int si in smallestMatch) {
-                byte[] elem = db.norm(db.songs[si].FullInfo).ToArray();
-                if (queries.Skip(1).All(q => SongUtil.Contains(elem, q)))
+                string songtext = db.NormalizedSong(si);
+                if (queries.Skip(1).All(q => songtext.Contains(q)))
                     yield return si;
             }
         }
@@ -27,7 +26,7 @@ namespace CommandLineUI {
 
         static void Main(string[] args) {
             timer = new NiceTimer("Starting");
-            var prog = new CommandLineUIMain(new FileInfo(args[0]));
+            var prog = new CommandLineUIMain(args.Select(str => new FileInfo(str)));
             timer.TimeMark(null);
             //prog.ExecBenchmark();
             prog.ExecUI();
@@ -48,16 +47,16 @@ namespace CommandLineUI {
             }
         }
 
-        public CommandLineUIMain(FileInfo dbfile) {
+        public CommandLineUIMain(IEnumerable<FileInfo> dbfiles) {
             timer.TimeMark("Loading DB");
-            db = new SongDB(dbfile,SongUtil.makeCanonical);
+            db = new SongDB(EamonExtensionsLinq.Text.Canonicalize.Basic, dbfiles);
             timer.TimeMark("Loading Search plugin");
             ss = new BwtLib.SongBwtSearcher();//new SuffixTreeLib.SuffixTreeSongSearcher();
             ss.Init(db);
         }
 
         IEnumerable<int> Matches(string querystring) {
-            byte[][] query = querystring.Split(' ').Select(q => SongUtil.makeCanonical(q).ToArray()).ToArray();
+            string[] query = querystring.Split(' ').Select(q => Canonicalize.Basic(q)).ToArray();
             SearchResult[] res = query.Select(q => ss.Query(q)).ToArray();
             return MatchAll(res, query);
         }

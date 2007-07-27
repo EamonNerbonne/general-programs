@@ -15,7 +15,8 @@ namespace BwtLib {
         int[] fl;
         int[] firstIndexOfByte;
         int[] fl0toSong;
-        public SearchResult Query(byte[] query) {
+        public SearchResult Query(string strquery) {
+            byte[] query = strquery.ToCharArray().Where(c => (int)c < 256).Select(c => (byte)c).ToArray();
             int start = 0, end = fl.Length;
             foreach (byte b in query.Reverse()) {//back to front...
                 int newBstart = firstIndexOfByte[b];
@@ -47,7 +48,7 @@ namespace BwtLib {
         public void Init(SongDB db) {
             this.db = db;
             int songCount = db.songs.Length;
-            byte[][] normed = db.NormalizedSongs.ToArray();
+            byte[][] normed = db.NormalizedSongs.Select(s=>SongUtil.str2byteArr(s)).ToArray();
             List<byte> bigstring = new List<byte>();
             Dictionary<int, int> songEnds = new Dictionary<int, int>();
             for (int i = 0; i < songCount; i++) {

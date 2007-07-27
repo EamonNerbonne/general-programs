@@ -4,7 +4,7 @@ using System.Text;
 
 namespace SongDataLib
 {
-    public delegate IEnumerable<byte> NormalizerDelegate(string str);
+    public delegate string NormalizerDelegate(string str);
 
     public struct SearchResult : IComparable<SearchResult>
     {
@@ -16,6 +16,6 @@ namespace SongDataLib
     public interface ISongSearcher
     {
         void Init(SongDB db);
-        SearchResult Query(byte[] query);
+        SearchResult Query(string query);
     }
 }

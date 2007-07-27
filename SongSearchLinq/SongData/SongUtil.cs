@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Globalization;
+using System.Linq;
 using EamonExtensionsLinq;
 
 namespace SongDataLib {
@@ -12,6 +13,7 @@ namespace SongDataLib {
             return FuncUtil.Swallow<int?>(()=> int.Parse(num), ()=>null);
         }
 
+        public static byte[] str2byteArr(string str) { return str.ToCharArray().Where(c => (int)c < 256).Select(c => (byte)c).ToArray(); }
 
         public static bool Contains(byte[] elem, byte[] substring) {
             for (int i = 0; i <= elem.Length - substring.Length; i++) {

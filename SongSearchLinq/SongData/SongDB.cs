@@ -11,10 +11,10 @@ namespace SongDataLib {
     public class SongDB {
         public SongData[] songs;
 
-        public byte[] NormalizedSong(int si) {
-            return norm(songs[si].FullInfo).ToArray();
+        public string NormalizedSong(int si) {
+            return norm(songs[si].FullInfo);
         }
-        public IEnumerable<byte[]> NormalizedSongs { get { return Enumerable.Range(0, songs.Length).Select(si=>NormalizedSong(si)); } }
+        public IEnumerable<string> NormalizedSongs { get { return Enumerable.Range(0, songs.Length).Select(si=>NormalizedSong(si)); } }
         public NormalizerDelegate norm;
 
         public SongDB(NormalizerDelegate norm,IEnumerable<FileInfo> files) {
