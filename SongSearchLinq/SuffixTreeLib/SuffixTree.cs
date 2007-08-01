@@ -7,7 +7,8 @@ using SongDataLib;
 namespace SuffixTreeLib {
 
     public class SuffixTree {
-        Dictionary<byte, SuffixTree> children;
+        //Dictionary<byte, SuffixTree> children;
+		 SuffixTree[] children;
         List<Suffix> hits = new List<Suffix>();
         int size;
 
@@ -17,7 +18,8 @@ namespace SuffixTreeLib {
             foreach (Suffix suf in hits)
                 distinct[suf.songIndex] = suf.songIndex;
             if (children != null) 
-                foreach (SuffixTree tree in children.Values)
+                foreach (SuffixTree tree in children)
+						 if(tree!=null)
                     foreach(int si in tree.CompactAndCalcSize().Keys)
                         distinct[si] = si;
             size = distinct.Count;
@@ -31,7 +33,7 @@ namespace SuffixTreeLib {
                 return;
             }
             byte next = buf[curdepth+s.startPos];
-            if (!children.ContainsKey(next))
+            if (children[next]==null)//!children.ContainsKey(next))
                 children[next] = new SuffixTree();
             children[next].AddSuffix(sssm,curdepth + 1, s);
         }
@@ -40,7 +42,7 @@ namespace SuffixTreeLib {
             if (children == null) {
                 hits.Add(s);
                 if (hits.Count > 1000) {
-                    children = new Dictionary<byte, SuffixTree>();
+						 children = new SuffixTree[256]; //new Dictionary<byte, SuffixTree>();
                     List<Suffix> oldhits = hits;
                     hits = new List<Suffix>();
                     foreach (Suffix old in oldhits) 
@@ -56,7 +58,8 @@ namespace SuffixTreeLib {
                 return children == null ?
                         hits.Select(suf => suf.songIndex) :
                         hits.Select(suf => suf.songIndex).Concat(
-                            from sub in children.Values
+                            from sub in children
+									 where sub!=null
                             from s in sub.AllSongsDup
                             select s);
             }
@@ -90,7 +93,7 @@ namespace SuffixTreeLib {
                 return new SearchResult { cost = this.size, songIndexes = AllSongsDup.Distinct() };
             } else
                 return
-                        children.ContainsKey(query[curdepth]) ?
+                        children[query[curdepth]]!=null ?
                         children[query[curdepth]].Match(sssm,curdepth + 1, query) :
                     new SearchResult { cost = 0, songIndexes = Enumerable.Empty<int>() }
                         ;
@@ -98,7 +101,7 @@ namespace SuffixTreeLib {
 
         public int RecursiveSize {
             get {
-                return this.size + ((children == null) ? 0 : children.Values.Select(t => t.RecursiveSize).Sum());
+                return this.size + ((children == null) ? 0 : children.Where(c=>c!=null).Select(t => t.RecursiveSize).Sum());
             }
         }
     }
