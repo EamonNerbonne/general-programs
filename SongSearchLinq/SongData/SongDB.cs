@@ -30,7 +30,9 @@ namespace SongDataLib
 					if(!reader.IsEmptyElement) continue;
 					if(reader.Name != "song") throw new Exception("Data file format unknown, expected xml document fragment consisting of 'song' elements");
 					songlist.Add(new SongData((XElement)XElement.ReadFrom(reader)));
+					//if(songlist.Count > 10000) break;
 				}
+				//if(songlist.Count > 10000) break;
 			}
 			this.songs = songlist.ToArray();
 			songlist = null;
