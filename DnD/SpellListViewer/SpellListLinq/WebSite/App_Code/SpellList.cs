@@ -69,14 +69,14 @@ public class SpellList
                 if (canonSpellName == "greater (spell name)" || canonSpellName == "legion's (spell name)" || canonSpellName == "lesser (spell name)" || canonSpellName == "greater (spell name)" || canonSpellName == "mass (spell name)" || canonSpellName == "swift (spell name)") continue;
                 string levels = elem.SelectSingleNode("table[@class='statBlock']/tr/th/text()[contains(.,'Level')]/../../td/text()").Value;
 
-                if (!levelMatch.Match(levels).Success)
+					 Match match = levelMatch.Match(levels);
+					 if(!match.Success)
                     fail++;
                 else
                     success++;
 
                 int classcount = 0;
 
-                Match match = levelMatch.Match(levels);
                 foreach (string classname in classnames) {
                     if(classname=="Domain")continue;
                     if (match.Groups[classname].Captures.Count == 1) { AddSpell(classname, Int32.Parse(match.Groups[classname].Value), canonSpellName); classcount++; }
