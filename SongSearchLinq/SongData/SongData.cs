@@ -7,6 +7,7 @@ using System.Xml;
 using TagLib;
 using EamonExtensionsLinq;
 using EamonExtensionsLinq.Text;
+using EamonExtensionsLinq.Filesystem;
 using System.IO;
 using System.Globalization;
 using System.Text.RegularExpressions;
@@ -48,7 +49,7 @@ namespace SongDataLib
 						string uri = tr.ReadLine();
 						if(uri != null) yield return new PartialSongData(nextLine, uri);
 					} else {
-						yield return new PartialSongData(nextLine);
+						yield return new MinimalSongData(nextLine);
 					}
 					nextLine = tr.ReadLine();
 				}
@@ -60,76 +61,72 @@ namespace SongDataLib
 	{
 		string FullInfo { get; }//for searching purposes, should contain all substrings a user is likely to search for (i.e. certainly the track title, perhaps the year released, certainly not the song length in seconds.)
 		XElement ConvertToXml();
-		string Uri { get; }//untranslated, mixes URL's and local filesystem path's willy-nilly!
+		string SongUri { get; }//untranslated, mixes URL's and local filesystem path's willy-nilly!
 		//bool IsLocal { get; }
 		int? Length { get; }
 		string HumanLabel { get; }//For display in UI's or so.  This is a fallback, if possible a user should try to use SongData's more complete data, but if that's to no avail...  Must not be null or empty therefore!
 	}
 
-	public abstract class AbstractSongData :ISongData
+	public class MinimalSongData : ISongData
 	{
 		string songuri;
 		bool isLocal;
-		public abstract string FullInfo {			get;		}
+		public virtual string FullInfo { get { return songuri; } }
 
-		public abstract XElement ConvertToXml() ;
-
-		public virtual string Uri { get { return songuri; } }
-
-		public bool IsLocal {
-			get { throw new NotImplementedException(); }
+		public virtual XElement ConvertToXml() {
+			return new XElement("songref", new XAttribute("songuri", songuri));
 		}
 
-		public int? Length {
-			get { throw new NotImplementedException(); }
+		public virtual int? Length { get { return null; } }
+
+		public virtual string SongUri { get { return songuri; } }
+
+		public virtual bool IsLocal {
+			get { return isLocal; }
 		}
 
-		public string HumanLabel {
-			get { throw new NotImplementedException(); }
-		}
-
-		public AbstractSongData(string songuri) {
-			if(songuri == null || songuri.Length == 0) throw new ArgumentNullException(songuri);
-		}
-	}
-
-	public class PartialSongData : ISongData
-	{
-		public string label;
-		public string fileuri;
-		public int? length;
-		bool isLocal;
-		internal PartialSongData(XElement xEl) {
-			fileuri = (string)xEl.Attribute("fileuri");
-			label = (string)xEl.Attribute("label");//might even be null!
-			length = ParseString.ParseAsInt32( (string)xEl.Attribute("length"));//might even be null!
-		}
-
-		public string FullInfo {
+		public virtual string HumanLabel {
 			get {
-				if(label == null) return fileuri;
-				else return fileuri+"\t" + label ;
+				return string.Join("/", songuri.Substring(0, songuri.Length - 4).Split('/', '\\').Reverse().Take(2).Reverse().ToArray());//adhoc best guess.//TODO improve: goes wrong on things like http://whee/boom.mp3#testtest
 			}
 		}
 
-		public XElement ConvertToXml() {
+		public MinimalSongData(string songuri) {
+			if(songuri == null || songuri.Length == 0) throw new ArgumentNullException(songuri);
+			this.songuri = songuri;
+			isLocal = FSUtil.IsValidAbsolutePath(songuri) == true;
+		}
+		public MinimalSongData(XElement xEl) : this((string)xEl.Attribute("songuri")) { }
+	}
+
+	public class PartialSongData : MinimalSongData
+	{
+		public string label;
+		public int? length;
+
+		public override string FullInfo {
+			get {
+				if(label == null) return SongUri;
+				else return SongUri+"\t" + label ;
+			}
+		}
+
+		public override XElement ConvertToXml() {
 			return new XElement("partsong",
-				new XAttribute("fileuri", fileuri),
+				new XAttribute("fileuri", SongUri),
 				label == null ? null : new XAttribute("label", label),
 				length == null ? null : new XAttribute("length", length.ToStringOrNull())
 				);
 		}
-		public string Uri { get { return fileuri; } }
-		public int? Length { get { return length; } }
-		public string HumanLabel {
-			get {
-				if(label != null) return label;
-				else return string.Join("/", fileuri.Substring(0, fileuri.Length - 4).Split('/', '\\').Reverse().Take(2).Reverse().ToArray());//adhoc best guess.//TODO improve
-			}
-		}
+		public override int? Length { get { return length; } }
+		public override string HumanLabel {	get {return label??base.HumanLabel;}}
+
 		static Regex extm3uPattern = new Regex(@"^#EXTINF:(?<songlength>[0-9]+),(?<label>.*)$", RegexOptions.Compiled | RegexOptions.ExplicitCapture);
-		internal PartialSongData(string extm3ustr, string url) {
-			fileuri = url;
+		internal PartialSongData(XElement xEl) : base((string)xEl.Attribute("fileuri")) {
+			label = (string)xEl.Attribute("label");//might even be null!
+			length = ParseString.ParseAsInt32((string)xEl.Attribute("length"));//might even be null!
+		}
+		internal PartialSongData(string extm3ustr, string url): base(url) {
 			Match m;
 			lock(extm3uPattern) m = extm3uPattern.Match(extm3ustr);
 			if(m.Success) {
@@ -140,16 +137,15 @@ namespace SongDataLib
 			} else {
 				length = null;
 				label = null;
+				throw new Exception("PartialSongData being constructed from non-EXTM3U string, impossible");
 			}
-		}
-		internal PartialSongData(string url) {
-			label = null;
-			length = null;
-			fileuri = url;
 		}
 	}
 
-	public class SongData:ISongData
+	/// <summary>
+	/// Represent all relevent meta-data about a Song.  If this data can't be determined, use PartialSongData instead.
+	/// </summary>
+	public class SongData:MinimalSongData
 	{
 		public string filepath, title, artist, performer, composer, album, comment, genre;
 		public int? year, track, trackcount, bitrate, length, samplerate, channels;
@@ -162,9 +158,10 @@ namespace SongDataLib
 		static string toSafeString(XAttribute data) { return strNullIfEmpty(makesafe((string)data)); }
 		static string toSafeString(string data) { return strNullIfEmpty(makesafe(data)); }
 		static string toSafeString(string[] data) { return strNullIfEmpty(makesafe(data)); }
-		internal SongData(FileInfo fileObj) {
+
+		internal SongData(FileInfo fileObj) :base(fileObj.FullName) {
 			TagLib.File file = TagLib.File.Create(fileObj.FullName);
-			filepath = toSafeString(file.Name);
+			//filepath = toSafeString(file.Name); //is this the same as fileObj.FullName?  yes, as the LocalFileAbstraction class in File.cs shows.
 			title = toSafeString(file.Tag.Title);
 			artist = toSafeString(file.Tag.Artists);
 			performer = toSafeString(file.Tag.Performers);
@@ -182,8 +179,8 @@ namespace SongDataLib
 			channels = file.AudioProperties == null ? null : (int?)file.AudioProperties.Channels;
 		}
 
-		internal SongData(XElement from) {
-			filepath = toSafeString(from.Attribute("filepath"));
+		internal SongData(XElement from) :base(toSafeString(from.Attribute("filepath"))) {
+			//filepath = toSafeString(from.Attribute("filepath"));
 			title = toSafeString(from.Attribute("title"));
 
 			artist = toSafeString(from.Attribute("artist"));
@@ -203,7 +200,7 @@ namespace SongDataLib
 		}
 
 
-		public XElement ConvertToXml() {
+		public override XElement ConvertToXml() {
 			return new XElement("song",
 				 filepath == null ? null : new XAttribute("filepath", filepath),
 				 title == null ? null : new XAttribute("title", title),
@@ -239,18 +236,17 @@ namespace SongDataLib
 			}
 		}
 
-		public string FullInfo { get { return string.Join("\t", Values.Where(v => v != null).ToArray()); } }
-		public string Uri { get { return filepath; } }
-		public int? Length { get { return length; } }
-		public string HumanLabel {
+		public override string FullInfo { get { return string.Join("\t", Values.Where(v => v != null).ToArray()); } }
+		public override int? Length { get { return length; } }
+		public override string HumanLabel {
 			get {
 				if(title == null)
-					return string.Join("/", filepath.Substring(0, filepath.Length - 4).Split('/', '\\').Reverse().Take(2).Reverse().ToArray());//adhoc best guess.//TODO improve
+					return base.HumanLabel;
 				else {
 					return
-						(album != null ?  album + "/":"") +
-						(track != null?  track + " - ":"") +
-					   (artist!= null? artist + " - ":performer!=null?performer+" - ":"")+
+						(album != null ? album + "/" : "") +
+						(track != null ? track + " - " : "") +
+						(artist != null ? artist + " - " : performer != null ? performer + " - " : "") +
 						title;
 				}
 			}

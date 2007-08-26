@@ -54,7 +54,7 @@ namespace TagLibSharp_LINQ
 						}
 					} catch(Exception e) {
 						if(errorlog == null) errorlog = new StreamWriter(errFile.OpenWrite());
-						errorlog.WriteLine("ERROR in file: " + songdata.Uri);
+						errorlog.WriteLine("ERROR in file: " + songdata.SongUri);
 						errorlog.WriteLine(e.ToString());
 						errorlog.WriteLine(e.StackTrace);
 					}
