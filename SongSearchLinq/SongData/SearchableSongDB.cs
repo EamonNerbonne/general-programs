@@ -16,7 +16,7 @@ namespace SongDataLib
 			searchMethod.Init(db);
 		}
 
-		public IEnumerable<SongData> Search(string query) {
+		public IEnumerable<ISongData> Search(string query) {
 			return Matches(query).Select(i => db.songs[i]);
 		}
 
@@ -31,7 +31,7 @@ namespace SongDataLib
 			Array.Sort(results, queries);
 			IEnumerable<int> smallestMatch = results[0].songIndexes;
 			//queries are still in the "best" possible order!
-			foreach(int si in smallestMatch) {
+			foreach(int si in smallestMatch) {//TODO: use better set intersection logic.  Either enforce results to come in-order so you can "zip" em up, or use hashing.
 				string songtext = db.NormalizedSong(si);
 				if(queries.Skip(1).All(q => songtext.Contains(q)))
 					yield return si;

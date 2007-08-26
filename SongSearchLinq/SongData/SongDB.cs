@@ -12,7 +12,7 @@ namespace SongDataLib
 {
 	public class SongDB
 	{
-		public SongData[] songs;
+		public ISongData[] songs;
 
 		public string NormalizedSong(int si) {
 			return Canonicalize.Basic(songs[si].FullInfo);
@@ -21,21 +21,11 @@ namespace SongDataLib
 
 
 		public SongDB(IEnumerable<FileInfo> files) {
-			XmlReaderSettings settings = new XmlReaderSettings();
-			settings.ConformanceLevel = ConformanceLevel.Fragment;
-			List<SongData> songlist = new List<SongData>();
-			foreach(FileInfo file in files) {
-				XmlReader reader = XmlReader.Create(file.OpenText(), settings);
-				while(reader.Read()) {
-					if(!reader.IsEmptyElement) continue;
-					if(reader.Name != "song") throw new Exception("Data file format unknown, expected xml document fragment consisting of 'song' elements");
-					songlist.Add(new SongData((XElement)XElement.ReadFrom(reader)));
-					//if(songlist.Count > 10000) break;
-				}
-				//if(songlist.Count > 10000) break;
-			}
+			var songlist =
+				from file in files
+				from songdata in SongDataFactory.LoadSongList(file)
+				select songdata;
 			this.songs = songlist.ToArray();
-			songlist = null;
 		}
 	}
 }

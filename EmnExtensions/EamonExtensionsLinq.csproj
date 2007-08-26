@@ -36,16 +36,20 @@
     <Reference Include="System.Core">
       <RequiredTargetFramework>3.5</RequiredTargetFramework>
     </Reference>
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DebugTools\ConsoleExtension.cs" />
     <Compile Include="Filesystem\DescendantDirsExtension.cs" />
+    <Compile Include="Filesystem\FSUtil.cs" />
     <Compile Include="Filesystem\GetLinesExtension.cs" />
     <Compile Include="Filesystem\GetRelativeFileExtension.cs" />
     <Compile Include="FuncUtil.cs" />
     <Compile Include="NiceTimer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Text\Canonicalize.cs" />
+    <Compile Include="Text\TryParse.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Exceptions\" />

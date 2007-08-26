@@ -28,11 +28,9 @@ namespace EamonExtensionsLinq {
             }
         }
 
-        //toy function:
-        public static IEnumerable<T> Concat2<T>(IEnumerable<T> a,IEnumerable<T> b) {
-            return IE<T>.E + a + b;
-        }
-
+		  public static string ToStringOrNull(this object obj) {
+			  return obj == null ? null : obj.ToString();
+		  }
     }
 
     public struct IE<T>:IEnumerable<T> {

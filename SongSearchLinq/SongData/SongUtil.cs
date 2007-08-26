@@ -4,6 +4,7 @@ using System.Text;
 using System.Globalization;
 using System.Linq;
 using EamonExtensionsLinq;
+using System.IO;
 
 namespace SongDataLib
 {
@@ -12,7 +13,8 @@ namespace SongDataLib
 
 
 		public static int? StringToNullableInt(string num) {
-			return FuncUtil.Swallow<int?>(() => int.Parse(num), () => null);
+			int retval;
+			if(!int.TryParse(num, out retval)) return null; else return retval;
 		}
 
 		public static byte[] str2byteArr(string str) { return str.ToCharArray().Where(c => (int)c < 256).Select(c => (byte)c).ToArray(); }
@@ -35,5 +37,7 @@ namespace SongDataLib
 			}
 			return false;
 		}
+
+
 	}
 }

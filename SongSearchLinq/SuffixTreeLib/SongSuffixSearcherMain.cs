@@ -27,10 +27,8 @@ namespace SuffixTreeLib {
 
             for (int si = 0; si < db.songs.Length; si++) {
                 byte[] buf = normed[si] = SongUtil.str2byteArr(db.NormalizedSong(si));
-                SongData song = db.songs[si];
                 for (int i = 0; i < buf.Length; i++)
                     tree.AddSuffix(this, 0, new Suffix { songIndex = si, startPos = i });
-                si++;
             }
             normed = null;
             tree.CompactAndCalcSize();
