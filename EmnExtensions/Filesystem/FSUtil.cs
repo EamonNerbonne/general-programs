@@ -9,7 +9,7 @@ namespace EamonExtensionsLinq.Filesystem
 	public static class FSUtil
 	{
 		static char[] invalidChars = Path.GetInvalidPathChars();
-		public static bool IsValidPath(string path) {
+		public static bool IsValidPath(string path) {//warning: forward slash is allowed and considered a pathseparator.
 			return path.IndexOfAny(invalidChars) < 0;
 		}
 

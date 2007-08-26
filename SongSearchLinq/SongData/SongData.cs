@@ -28,6 +28,7 @@ namespace SongDataLib
 		}
 
 		public static IEnumerable<ISongData> LoadSongList(FileInfo fi) {
+			//int count = 0;
 			if(fi.Extension == ".xml") { //xmlbased
 				XmlReaderSettings settings = new XmlReaderSettings();
 				settings.ConformanceLevel = ConformanceLevel.Fragment;
@@ -35,6 +36,7 @@ namespace SongDataLib
 				while(reader.Read()) {
 					if(!reader.IsEmptyElement) continue;
 					yield return LoadFromXElement((XElement)XElement.ReadFrom(reader));
+					//if(count++ > 300) yield break;
 				}
 			} else {//m3ubased
 				TextReader tr;
@@ -51,6 +53,7 @@ namespace SongDataLib
 					} else {
 						yield return new MinimalSongData(nextLine);
 					}
+					//if(count++ > 300) yield break;
 					nextLine = tr.ReadLine();
 				}
 			}
@@ -59,12 +62,34 @@ namespace SongDataLib
 
 	public interface ISongData
 	{
-		string FullInfo { get; }//for searching purposes, should contain all substrings a user is likely to search for (i.e. certainly the track title, perhaps the year released, certainly not the song length in seconds.)
+		/// <summary>
+		/// String representation of all meta-data a user is likely to search for.   This will be indexed for searching purposes - i.e it should include certainly the track title,
+		/// and perhaps the year released, but certainly not the song length in seconds.
+		/// </summary>
+		string FullInfo { get; }
+		/// <summary>
+		/// Converts to xml.  The class should be able to load from xml too then, and supply the appropriate constructor.
+		/// </summary>
+		/// <returns>A sufficiently complete XML representation such that the object could load from it.</returns>
 		XElement ConvertToXml();
-		string SongUri { get; }//untranslated, mixes URL's and local filesystem path's willy-nilly!
-		//bool IsLocal { get; }
+		/// <summary>
+		/// The path to the song.  This property mixes local path's and remote uri's, to differentiate, use the IsLocal Property.
+		/// </summary>
+		string SongPath { get; }//untranslated, mixes URL's and local filesystem path's willy-nilly!
+		/// <summary>
+		/// This is a security-sensitive property!
+		/// Returns whether this song is a local song.  A local song's SongPath property will potentially be resolved and the song file it points to used.
+		/// </summary>
+		bool IsLocal { get; }
+		/// <summary>
+		/// The length of the song in seconds.
+		/// </summary>
 		int? Length { get; }
-		string HumanLabel { get; }//For display in UI's or so.  This is a fallback, if possible a user should try to use SongData's more complete data, but if that's to no avail...  Must not be null or empty therefore!
+		/// <summary>
+		/// As best as possible, a human-readable version of the meta-data concerning the song.  This is for display in GUI's or so, and thus doesn't need to be as complete as FullInfo.  Must not be null or empty therefore!
+		/// This data is a fallback, if possible a user interface should try to use SongData's (or any other implementing class's) more complete data, but if that's to no avail...  
+		/// </summary>
+		string HumanLabel { get; }
 	}
 
 	public class MinimalSongData : ISongData
@@ -79,7 +104,7 @@ namespace SongDataLib
 
 		public virtual int? Length { get { return null; } }
 
-		public virtual string SongUri { get { return songuri; } }
+		public virtual string SongPath { get { return songuri; } }
 
 		public virtual bool IsLocal {
 			get { return isLocal; }
@@ -106,14 +131,14 @@ namespace SongDataLib
 
 		public override string FullInfo {
 			get {
-				if(label == null) return SongUri;
-				else return SongUri+"\t" + label ;
+				if(label == null) return SongPath;
+				else return SongPath+"\t" + label ;
 			}
 		}
 
 		public override XElement ConvertToXml() {
 			return new XElement("partsong",
-				new XAttribute("fileuri", SongUri),
+				new XAttribute("fileuri", SongPath),
 				label == null ? null : new XAttribute("label", label),
 				length == null ? null : new XAttribute("length", length.ToStringOrNull())
 				);

@@ -53,7 +53,7 @@ namespace CommandLineUI
 				DateTime dtA = DateTime.Now;
 				Console.WriteLine("======RESULTS======= in {0} songs.=========", searchEngine.db.songs.Length);
 
-				searchEngine.Search(input).Take(5).Select(songdata => songdata.SongUri).PrintAllDebug();
+				searchEngine.Search(input).Take(5).Select(songdata => songdata.SongPath).PrintAllDebug();
 
 				DateTime dtB = DateTime.Now;
 				Console.WriteLine("in " + (dtB - dtA).TotalSeconds + " secs.");
