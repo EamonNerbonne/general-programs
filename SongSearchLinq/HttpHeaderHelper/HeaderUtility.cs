@@ -9,92 +9,51 @@ namespace HttpHeaderHelper
 {
 	public static class HeaderUtility
 	{
+
 		public static PreconditionStatus CacheConditionIfModifiedSince(HttpContext context, ResourceInfo resource) {
-			string ifModifiedSinceHeader = context.Request.Headers["If-Modified-Since"];
-			if(ifModifiedSinceHeader.IsNullOrEmpty()) return PreconditionStatus.Unspecified;
+			return HeaderParser.isResourceUpdated(context,HttpHeader.IfModifiedSince, resource);
+		}
 
-			DateTime? requestTimeStamp = ifModifiedSinceHeader.ParseAsDateTime();
-			if(requestTimeStamp == null) return PreconditionStatus.HeaderError;
+		public static PreconditionStatus CacheConditionIfNoneMatch(HttpContext context, ResourceInfo resource) {
+			return HeaderParser.isResourceNew(context,HttpHeader.IfNoneMatch, resource);
+		}
 
-			if(resource.RoundedHttpTimeStamp <= (DateTime)requestTimeStamp)
-				return PreconditionStatus.False;//i.e. the local version is no newer
+		public static bool IsResponse304NotModified(HttpContext context, ResourceInfo resource) {
+			PreconditionStatus ifNoneMatch = CacheConditionIfNoneMatch(context, resource);
+			PreconditionStatus ifModifiedSince = CacheConditionIfModifiedSince(context, resource);
+
+			if(ifModifiedSince == PreconditionStatus.True || ifNoneMatch == PreconditionStatus.True)
+				return false;//either ETags or LastModified says this request is out of date and can't be cached.
+			else if(ifModifiedSince == PreconditionStatus.False || ifNoneMatch == PreconditionStatus.False)
+				return true;//at least one caching directive think's this is explicitly OK to cache
 			else
-				return PreconditionStatus.True;//i.e. the local version is newer.
+				return false;//neither caching directive is present.  Do not cache
 		}
 
 		public static PreconditionStatus PreConditionIfUnmodifiedSince(HttpContext context, ResourceInfo resource) {
-			string ifUnmodifiedSinceHeader = context.Request.Headers["If-Unmodified-Since"];
-			if(ifUnmodifiedSinceHeader.IsNullOrEmpty()) return PreconditionStatus.Unspecified;
-
-			DateTime? requestTimeStamp = ifUnmodifiedSinceHeader.ParseAsDateTime();
-			if(requestTimeStamp == null) return PreconditionStatus.HeaderError;
-
-			if(resource.RoundedHttpTimeStamp <= (DateTime)requestTimeStamp)
-				return PreconditionStatus.True;
-			else
-				return PreconditionStatus.False;
-		}
-
-
-		public static PreconditionStatus CacheConditionIfNoneMatch(HttpContext context, ResourceInfo resource) {
-			string ifNoneMatchHeader = context.Request.Headers["If-None-Match"];
-
-			if(ifNoneMatchHeader.IsNullOrEmpty())
-				return PreconditionStatus.Unspecified;
-
-			if(ifNoneMatchHeader == "*")
-				return PreconditionStatus.False;
-
-			string[] etags = HeaderParser.ParseETagList(ifNoneMatchHeader);
-			if(etags == null) return PreconditionStatus.HeaderError;
-
-			if(etags.Contains(resource.ETag))//note that this assumes that resource.ETag is a valid, quoted ETag, or is null
-				return PreconditionStatus.False;
-			else
-				return PreconditionStatus.True;
-
+			return HeaderParser.isResourceUpdated(context, HttpHeader.IfUnmodifiedSince, resource).NegateStatus();
 		}
 
 		public static PreconditionStatus PreConditionIfMatch(HttpContext context, ResourceInfo resource) {
-			//TODO refactor with CacheConditionIfNoneMatch
-			string ifMatchHeader = context.Request.Headers["If-Match"];
-			if(ifMatchHeader.IsNullOrEmpty())
-				return PreconditionStatus.Unspecified;
-
-			if(ifMatchHeader == "*")
-				return PreconditionStatus.True;
-
-			string[] etags = HeaderParser.ParseETagList(ifMatchHeader);
-			if(etags == null) return PreconditionStatus.HeaderError;
-
-			if(etags.Contains(resource.ETag))
-				return PreconditionStatus.True;
-			else
-				return PreconditionStatus.False;
+			return HeaderParser.isResourceNew(context,HttpHeader.IfMatch, resource).NegateStatus();
 		}
 
 		public static PreconditionStatus PreConditionIfRange(HttpContext context, ResourceInfo resource) {
-			//TODO refactor with CacheConditionIfNoneMatch
-			string ifMatchHeader = context.Request.Headers["If-Range"];
-			if(ifMatchHeader.IsNullOrEmpty())
-				return PreconditionStatus.Unspecified;
+			string ifRangeHeader = context.Request.Headers[HttpHeader.IfRange];
+			if(ifRangeHeader.IsNullOrEmpty()) 	return PreconditionStatus.Unspecified;
 
-			if(ifMatchHeader.StartsWith("\"") || ifMatchHeader.StartsWith("W/\"")) {//use etag logic
-
+			if(ifRangeHeader.StartsWith("\"") || ifRangeHeader.StartsWith("W/\"")) {//use etag logic
+				return HeaderParser.isResourceNew(ifRangeHeader, resource).NegateStatus();//condition is satisfied when _not_ new
+			} else {//use date logic
+				return HeaderParser.isResourceUpdated(ifRangeHeader, resource).NegateStatus();//condition satisfied when _not_ updated;
 			}
-
-			string[] etags = HeaderParser.ParseETagList(ifMatchHeader);
-			if(etags == null) return PreconditionStatus.HeaderError;
-
-			if(etags.Contains(resource.ETag))
-				return PreconditionStatus.True;
-			else
-				return PreconditionStatus.False;
 		}
 
 		public static void SetPublicCache(HttpContext context, ResourceInfo resource, DateTime? expiresAt) {
 			context.Response.Cache.SetCacheability(HttpCacheability.Public);
+			
 			context.Response.Cache.SetLastModified(resource.RoundedHttpTimeStamp);
+			
 			context.Response.Cache.SetETag(resource.ETag);//TODO deal with \" char's
 			if(expiresAt != null) {
 				context.Response.Cache.SetExpires((DateTime)expiresAt);
@@ -102,15 +61,21 @@ namespace HttpHeaderHelper
 			}
 		}
 
-		public static bool IsRangeRequest(HttpContext context) {
-			string rangeHeader = context.Request.Headers["Range"];
-			return !rangeHeader.IsNullOrEmpty();
-		}
 
 		static readonly string bytesStr = "bytes=";
+		/// <summary>
+		/// Parses the 'Range:' HTTP header, and returns all ranges requested
+		/// </summary>
+		/// <param name="context">The HTTPContext of the current request.</param>
+		/// <param name="contentLength">The Total Length of the current resource, in bytes</param>
+		/// <returns>null if the Range Header is not present, otherwise an array of all (valid) Ranges found.  
+		/// If the client submitted an invalid request (such as when all ranges are invalid), the array will be empty.</returns>
 		public static Range[] ParseRangeHeader(HttpContext context, int contentLength) {
-			string rangeHeader = context.Request.Headers["Range"];
-			if(!rangeHeader.StartsWith(bytesStr)) return null;
+			string rangeHeader = context.Request.Headers[HttpHeader.Range];
+			if(rangeHeader.IsNullOrEmpty()) return null;
+			
+			if(!rangeHeader.StartsWith(bytesStr)) return new Range[] {};//range head present, but no valid ranges.
+			
 			rangeHeader = rangeHeader.Substring(bytesStr.Length);
 			var ranges =
 				from listEl in rangeHeader.Split(',')
