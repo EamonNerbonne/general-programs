@@ -29,7 +29,5 @@ namespace EamonExtensionsLinq.Text
 			if(long.TryParse(s, out val)) return val;
 			else return null;
 		}
-
-
 	}
 }

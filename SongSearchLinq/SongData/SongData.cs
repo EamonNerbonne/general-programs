@@ -67,6 +67,7 @@ namespace SongDataLib
 		/// and perhaps the year released, but certainly not the song length in seconds.
 		/// </summary>
 		string FullInfo { get; }
+
 		/// <summary>
 		/// Converts to xml.  The class should be able to load from xml too then, and supply the appropriate constructor.
 		/// </summary>
