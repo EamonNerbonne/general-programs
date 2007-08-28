@@ -28,7 +28,7 @@ namespace SongDataLib
 		}
 
 		public static IEnumerable<ISongData> LoadSongList(FileInfo fi) {
-			//int count = 0;
+//			int count = 0;
 			if(fi.Extension == ".xml") { //xmlbased
 				XmlReaderSettings settings = new XmlReaderSettings();
 				settings.ConformanceLevel = ConformanceLevel.Fragment;
@@ -36,7 +36,7 @@ namespace SongDataLib
 				while(reader.Read()) {
 					if(!reader.IsEmptyElement) continue;
 					yield return LoadFromXElement((XElement)XElement.ReadFrom(reader));
-					//if(count++ > 300) yield break;
+//					if(count++ > 300) yield break;
 				}
 			} else {//m3ubased
 				TextReader tr;
@@ -53,7 +53,7 @@ namespace SongDataLib
 					} else {
 						yield return new MinimalSongData(nextLine);
 					}
-					//if(count++ > 300) yield break;
+//					if(count++ > 300) yield break;
 					nextLine = tr.ReadLine();
 				}
 			}

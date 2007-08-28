@@ -30,6 +30,16 @@ namespace HttpHeaderHelper
 				return false;//neither caching directive is present.  Do not cache
 		}
 
+		public static bool IsResponse412PreconditionFailed(HttpContext context, ResourceInfo resource) {
+			PreconditionStatus ifMatch = PreConditionIfMatch(context, resource);
+			PreconditionStatus ifUnmodifiedSince = PreConditionIfUnmodifiedSince(context, resource);
+
+			if(ifMatch == PreconditionStatus.False || ifUnmodifiedSince == PreconditionStatus.False)
+				return true;//at least one precondition explicitely failed.
+			else
+				return false;
+		}
+
 		public static PreconditionStatus PreConditionIfUnmodifiedSince(HttpContext context, ResourceInfo resource) {
 			return HeaderParser.isResourceUpdated(context, HttpHeader.IfUnmodifiedSince, resource).NegateStatus();
 		}
@@ -52,6 +62,7 @@ namespace HttpHeaderHelper
 		public static void SetPublicCache(HttpContext context, ResourceInfo resource, DateTime? expiresAt) {
 			context.Response.Cache.SetCacheability(HttpCacheability.Public);
 			
+			//shouldn't be set if response code is 206 and If-Range was present and If-Range used a weak validator 
 			context.Response.Cache.SetLastModified(resource.RoundedHttpTimeStamp);
 			
 			context.Response.Cache.SetETag(resource.ETag);//TODO deal with \" char's
@@ -70,7 +81,7 @@ namespace HttpHeaderHelper
 		/// <param name="contentLength">The Total Length of the current resource, in bytes</param>
 		/// <returns>null if the Range Header is not present, otherwise an array of all (valid) Ranges found.  
 		/// If the client submitted an invalid request (such as when all ranges are invalid), the array will be empty.</returns>
-		public static Range[] ParseRangeHeader(HttpContext context, int contentLength) {
+		public static Range[] ParseRangeHeader(HttpContext context, long contentLength) {
 			string rangeHeader = context.Request.Headers[HttpHeader.Range];
 			if(rangeHeader.IsNullOrEmpty()) return null;
 			
