@@ -26,38 +26,6 @@ namespace SongDataLib
 				return new PartialSongData(xEl);
 			} else throw new ArgumentException("Don't recognize xml name " + xEl.Name + ", is not a valid ISongData format.", "xEl");
 		}
-
-		public static IEnumerable<ISongData> LoadSongList(FileInfo fi) {
-//			int count = 0;
-			if(fi.Extension == ".xml") { //xmlbased
-				XmlReaderSettings settings = new XmlReaderSettings();
-				settings.ConformanceLevel = ConformanceLevel.Fragment;
-				XmlReader reader = XmlReader.Create(fi.OpenText(), settings);
-				while(reader.Read()) {
-					if(!reader.IsEmptyElement) continue;
-					yield return LoadFromXElement((XElement)XElement.ReadFrom(reader));
-//					if(count++ > 300) yield break;
-				}
-			} else {//m3ubased
-				TextReader tr;
-				if(fi.Extension == ".m3u") tr = new StreamReader(fi.OpenRead(), Encoding.GetEncoding(1252));//open as normal M3U with codepage 1252, and not UTF-8
-				else if(fi.Extension == ".m3u8") tr = fi.OpenText();//open as UTF-8
-				else throw new ArgumentException("Don't know how to deal with file " + fi.FullName);
-				string nextLine = tr.ReadLine();
-				bool extm3u = nextLine == "#EXTM3U";
-				if(extm3u) nextLine = tr.ReadLine();
-				while(nextLine != null) {//read another song!
-					if(extm3u) {
-						string uri = tr.ReadLine();
-						if(uri != null) yield return new PartialSongData(nextLine, uri);
-					} else {
-						yield return new MinimalSongData(nextLine);
-					}
-//					if(count++ > 300) yield break;
-					nextLine = tr.ReadLine();
-				}
-			}
-		}
 	}
 
 	public interface ISongData
@@ -95,8 +63,8 @@ namespace SongDataLib
 
 	public class MinimalSongData : ISongData
 	{
-		string songuri;
-		bool isLocal;
+		protected string songuri;
+		protected bool isLocal;
 		public virtual string FullInfo { get { return songuri; } }
 
 		public virtual XElement ConvertToXml() {
@@ -173,9 +141,9 @@ namespace SongDataLib
 	/// </summary>
 	public class SongData:MinimalSongData
 	{
-		public string filepath, title, artist, performer, composer, album, comment, genre;
-		public int? year, track, trackcount, bitrate, length, samplerate, channels;
-		public DateTime? lastWriteTime;
+		public string  title, artist, performer, composer, album, comment, genre;
+		public int year, track, trackcount, bitrate, length, samplerate, channels;
+		public DateTime lastWriteTime;
 
 		static string makesafe(string data) { return data == null ? data : new string(data.Select(c => c == '\n' || c == '\t' ? ' ' : c).Where(c => c >= ' ').ToArray()); }
 		static string makesafe(string[] data) { return data == null ? null : toSafeString(string.Join(", ", data)); }
@@ -195,17 +163,17 @@ namespace SongDataLib
 			album = toSafeString(file.Tag.Album);
 			comment = toSafeString(file.Tag.Comment);
 			genre = toSafeString(file.Tag.Genres);
-			year = (int?)file.Tag.Year;
-			track = (int?)file.Tag.Track;
-			trackcount = (int?)file.Tag.TrackCount;
+			year = (int) file.Tag.Year;
+			track = (int)file.Tag.Track;
+			trackcount = (int)file.Tag.TrackCount;
 			lastWriteTime = fileObj.LastWriteTime;
-			bitrate = file.AudioProperties == null ? null : (int?)file.AudioProperties.Bitrate;
-			length = file.AudioProperties == null ? null : (int?)file.AudioProperties.Length;
-			samplerate = file.AudioProperties == null ? null : (int?)file.AudioProperties.SampleRate;
-			channels = file.AudioProperties == null ? null : (int?)file.AudioProperties.Channels;
+			bitrate = file.AudioProperties == null ? 0 : file.AudioProperties.Bitrate;
+			length = file.AudioProperties == null ? 0 : file.AudioProperties.Length;
+			samplerate = file.AudioProperties == null ? 0 : file.AudioProperties.SampleRate;
+			channels = file.AudioProperties == null ? 0 : file.AudioProperties.Channels;
 		}
 
-		internal SongData(XElement from) :base(toSafeString(from.Attribute("filepath"))) {
+		internal SongData(XElement from) : base(toSafeString(from.Attribute("filepath"))) {
 			//filepath = toSafeString(from.Attribute("filepath"));
 			title = toSafeString(from.Attribute("title"));
 
@@ -215,20 +183,20 @@ namespace SongDataLib
 			album = toSafeString(from.Attribute("album"));
 			comment = toSafeString(from.Attribute("comment"));
 			genre = toSafeString(from.Attribute("genre"));
-			year = SongUtil.StringToNullableInt((string)from.Attribute("year"));
-			track = SongUtil.StringToNullableInt((string)from.Attribute("track"));
-			trackcount = SongUtil.StringToNullableInt((string)from.Attribute("trackcount"));
-			bitrate = SongUtil.StringToNullableInt((string)from.Attribute("bitrate"));
-			length = SongUtil.StringToNullableInt((string)from.Attribute("length"));
-			samplerate = SongUtil.StringToNullableInt((string)from.Attribute("samplerate"));
-			channels = SongUtil.StringToNullableInt((string)from.Attribute("channels"));
-			lastWriteTime = ((string)from.Attribute("lastmodified")).ParseAsDateTime();
+			year = SongUtil.StringToNullableInt((string)from.Attribute("year")) ?? 0;
+			track = SongUtil.StringToNullableInt((string)from.Attribute("track")) ?? 0;
+			trackcount = SongUtil.StringToNullableInt((string)from.Attribute("trackcount")) ?? 0;
+			bitrate = SongUtil.StringToNullableInt((string)from.Attribute("bitrate")) ?? 0;
+			length = SongUtil.StringToNullableInt((string)from.Attribute("length")) ?? 0;
+			samplerate = SongUtil.StringToNullableInt((string)from.Attribute("samplerate")) ?? 0;
+			channels = SongUtil.StringToNullableInt((string)from.Attribute("channels")) ?? 0;
+			lastWriteTime = ((string)from.Attribute("lastmodified")).ParseAsDateTime() ?? default(DateTime);
 		}
 
 
 		public override XElement ConvertToXml() {
 			return new XElement("song",
-				 filepath == null ? null : new XAttribute("filepath", filepath),
+				 songuri == null ? null : new XAttribute("filepath", songuri),
 				 title == null ? null : new XAttribute("title", title),
 				 artist == null ? null : new XAttribute("artist", artist),
 				 performer == null ? null : new XAttribute("performer", performer),
@@ -236,20 +204,20 @@ namespace SongDataLib
 				 album == null ? null : new XAttribute("album", album),
 				 comment == null ? null : new XAttribute("comment", comment),
 				 genre == null ? null : new XAttribute("genre", genre),
-				 year == null ? null : new XAttribute("year", year.ToStringOrNull()),
-				 track == null ? null : new XAttribute("track", track.ToStringOrNull()),
-				 trackcount == null ? null : new XAttribute("trackcount", trackcount.ToStringOrNull()),
-				 bitrate == null ? null : new XAttribute("bitrate", bitrate.ToStringOrNull()),
-				 length == null ? null : new XAttribute("length", length.ToStringOrNull()),
-				 samplerate == null ? null : new XAttribute("samplerate", samplerate.ToStringOrNull()),
-				 channels == null ? null : new XAttribute("channels", channels.ToStringOrNull()),
-				 lastWriteTime == null ? null : new XAttribute("lastmodified", lastWriteTime.Value.ToUniversalTime().ToString("u"))
+				 year == 0 ? null : new XAttribute("year", year.ToStringOrNull()),
+				 track == 0 ? null : new XAttribute("track", track.ToStringOrNull()),
+				 trackcount == 0 ? null : new XAttribute("trackcount", trackcount.ToStringOrNull()),
+				 bitrate == 0 ? null : new XAttribute("bitrate", bitrate.ToStringOrNull()),
+				 length == 0 ? null : new XAttribute("length", length.ToStringOrNull()),
+				 samplerate == 0 ? null : new XAttribute("samplerate", samplerate.ToStringOrNull()),
+				 channels == 0 ? null : new XAttribute("channels", channels.ToStringOrNull()),
+				 lastWriteTime == default(DateTime) ? null : new XAttribute("lastmodified", lastWriteTime.ToUniversalTime().ToString("o"))
 			);
 		}
 
 		public IEnumerable<string> Values {//only yield "distinctive search values
 			get {
-				yield return filepath;
+				yield return songuri;
 				yield return title;
 				yield return artist;
 				yield return performer;
@@ -271,7 +239,7 @@ namespace SongDataLib
 				else {
 					return
 						(album != null ? album + "/" : "") +
-						(track != null ? track + " - " : "") +
+						(track != 0 ? track + " - " : "") +
 						(artist != null ? artist + " - " : performer != null ? performer + " - " : "") +
 						title;
 				}

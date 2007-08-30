@@ -1,14 +1,15 @@
-﻿<Project ToolsVersion="3.5" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="3.5" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProductVersion>9.0.20706</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{171E7F71-DB67-47CA-82BC-C63681BF2733}</ProjectGuid>
-    <OutputType>Library</OutputType>
+    <ProjectGuid>{1AE2B905-EF2F-45FC-AF04-432C70D8DF9F}</ProjectGuid>
+    <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>SongDataLib</RootNamespace>
-    <AssemblyName>SongData</AssemblyName>
+    <RootNamespace>CassiniTest</RootNamespace>
+    <AssemblyName>CassiniTest</AssemblyName>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
@@ -30,34 +31,27 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="CrystalDecisions.Data.AdoDotNetInterop, Version=10.5.3700.0, Culture=neutral, PublicKeyToken=692fbea5521e1304, processorArchitecture=MSIL" />
     <Reference Include="System" />
     <Reference Include="System.Core">
       <RequiredTargetFramework>3.5</RequiredTargetFramework>
     </Reference>
-    <Reference Include="System.Data" />
-    <Reference Include="System.XML" />
     <Reference Include="System.Xml.Linq">
       <RequiredTargetFramework>3.5</RequiredTargetFramework>
     </Reference>
+    <Reference Include="System.Data.DataSetExtensions">
+      <RequiredTargetFramework>3.5</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="DatabaseConfigFile.cs" />
-    <Compile Include="ISongSearcher.cs" />
+    <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="SearchableSongDB.cs" />
-    <Compile Include="SongData.cs" />
-    <Compile Include="SongDB.cs" />
-    <Compile Include="SongUtil.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\EamonExtensionsLinq\EamonExtensionsLinq.csproj">
-      <Project>{53ECEDA4-BB11-4BD3-8B51-0D3481FCBFA1}</Project>
-      <Name>EamonExtensionsLinq</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\TagLibSharp\TagLibSharp.csproj">
-      <Project>{D7A55301-80A1-4160-BFC3-2111300BA733}</Project>
-      <Name>TagLibSharp</Name>
+    <ProjectReference Include="..\Cassini\Cassini.csproj">
+      <Project>{5341706E-042C-4FFF-A00B-ED2F6C9B598A}</Project>
+      <Name>Cassini</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />

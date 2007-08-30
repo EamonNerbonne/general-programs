@@ -17,7 +17,7 @@ namespace CommandLineUI
 
 		static void Main(string[] args) {
 			timer = new NiceTimer("Starting");
-			var prog = new CommandLineUIMain(args.Select(str => new FileInfo(str)));
+			var prog = new CommandLineUIMain(new FileInfo(args[0]));
 			timer.TimeMark(null);
 			//prog.ExecBenchmark();
 			prog.ExecUI();
@@ -38,9 +38,11 @@ namespace CommandLineUI
 			}
 		}
 
-		public CommandLineUIMain(IEnumerable<FileInfo> dbfiles) {
+		public CommandLineUIMain(FileInfo dbconfigfile) {
 			timer.TimeMark("Loading DB");
-			SongDB db = new SongDB( dbfiles);
+			DatabaseConfigFile dcf = new DatabaseConfigFile(dbconfigfile);
+			dcf.Load();
+			SongDB db = new SongDB(dcf.Songs);
 			timer.TimeMark("Loading Search plugin");
 			ISongSearcher ss = new SuffixTreeLib.SuffixTreeSongSearcher();
 			searchEngine = new SearchableSongDB(db, ss);

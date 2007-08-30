@@ -32,30 +32,4 @@ namespace EamonExtensionsLinq {
 			  return obj == null ? null : obj.ToString();
 		  }
     }
-
-    public struct IE<T>:IEnumerable<T> {
-        IEnumerable<T> wrapped;
-        public static IE<T> E {  get {  return new IE<T>(empty()); }    }
-        private static IEnumerable<T> empty() {yield break;}
-        private IE(IEnumerable<T> toWrap) {
-            wrapped= toWrap;
-        }
-
-        //public static explicit operator IE<T>(IEnumerable<T> a){return new IE<T>(a);}
-
-        public static IE<T> operator +(IE<T> a,IEnumerable<T> b) {
-            return new IE<T>(Concat(a,b));
-        }
-        private static IEnumerable<T> Concat(IE<T> a,IEnumerable<T> b) {
-            foreach(T t in a) yield return t;
-            foreach(T t in b) yield return t;
-        }
-        public IEnumerator<T> GetEnumerator() {
-            return wrapped.GetEnumerator();
-        }
-        
-        System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() {
-            return ((System.Collections.IEnumerable) wrapped).GetEnumerator();
-        }
-    }
 }

@@ -20,12 +20,14 @@ namespace SongDataLib
 		public IEnumerable<string> NormalizedSongs { get { return Enumerable.Range(0, songs.Length).Select(si => NormalizedSong(si)); } }
 
 
-		public SongDB(IEnumerable<FileInfo> files) {
-			var songlist =
+		public SongDB(IEnumerable<ISongData> songs) {
+			this.songs = songs.ToArray();
+			/*var songlist =
 				from file in files
 				from songdata in SongDataFactory.LoadSongList(file)
 				select songdata;
-			this.songs = songlist.ToArray();
+			this.songs = songlist.Where((sd,i)=>i%10==0).ToArray();*/
+//			this.songs = songlist.ToArray();
 		}
 	}
 }
