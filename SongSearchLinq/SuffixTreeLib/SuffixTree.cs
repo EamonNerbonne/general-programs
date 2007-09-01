@@ -8,9 +8,9 @@ namespace SuffixTreeLib {
 
     public class SuffixTree {
         //Dictionary<byte, SuffixTree> children;
-		 SuffixTree[] children;
-        List<Suffix> hits = new List<Suffix>();
-        int size;
+		 internal SuffixTree[] children;
+       internal List<Suffix> hits = new List<Suffix>();
+       internal int size;
 
         public Dictionary<int, int> CompactAndCalcSize() {
             hits.Capacity = hits.Count;
@@ -42,7 +42,7 @@ namespace SuffixTreeLib {
             if (children == null) {
                 hits.Add(s);
                 if (hits.Count > 1000) {
-						 children = new SuffixTree[256]; //new Dictionary<byte, SuffixTree>();
+						 children = new SuffixTree[SongUtil.MAXCANONBYTE+1]; //new Dictionary<byte, SuffixTree>();
                     List<Suffix> oldhits = hits;
                     hits = new List<Suffix>();
                     foreach (Suffix old in oldhits) 
@@ -104,5 +104,16 @@ namespace SuffixTreeLib {
                 return this.size + ((children == null) ? 0 : children.Where(c=>c!=null).Select(t => t.RecursiveSize).Sum());
             }
         }
+
+		  internal IEnumerable<SuffixTree> Desc {
+			  get {
+				  yield return this;
+				  if(children != null)
+					  foreach(SuffixTree child in children)
+						  if(child != null)
+							  foreach(SuffixTree desc in child.Desc)
+								  yield return desc;
+			  }
+		  }
     }
 }

@@ -5,7 +5,7 @@ using SongDataLib;
 
 namespace SuffixTreeLib {
     public struct Suffix {
-        public int startPos;
-        public int songIndex;
+		 public int songIndex;
+		 public int startPos;
     }
 }

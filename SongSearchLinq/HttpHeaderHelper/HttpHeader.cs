@@ -15,6 +15,7 @@ namespace HttpHeaderHelper
 		public static readonly string Range = "Range";
 		public static readonly string ContentRange = "Content-Range";
 		public static readonly string ContentLength = "Content-Length";
+		public static readonly string AcceptRanges = "Accept-Ranges";
 
 	}
 }

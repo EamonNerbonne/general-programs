@@ -22,12 +22,6 @@ namespace SongDataLib
 
 		public SongDB(IEnumerable<ISongData> songs) {
 			this.songs = songs.ToArray();
-			/*var songlist =
-				from file in files
-				from songdata in SongDataFactory.LoadSongList(file)
-				select songdata;
-			this.songs = songlist.Where((sd,i)=>i%10==0).ToArray();*/
-//			this.songs = songlist.ToArray();
 		}
 	}
 }

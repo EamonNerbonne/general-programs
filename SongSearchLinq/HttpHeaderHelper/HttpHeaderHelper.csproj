@@ -48,6 +48,9 @@
   <ItemGroup>
     <Compile Include="HeaderParser.cs" />
     <Compile Include="HeaderUtility.cs" />
+    <Compile Include="HttpRequestHelper.cs" />
+    <Compile Include="HttpStatus.cs" />
+    <Compile Include="IHttpRequestProcessor.cs" />
     <Compile Include="PreconditionStatus.cs" />
     <Compile Include="HttpHeader.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

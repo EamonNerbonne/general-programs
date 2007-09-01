@@ -145,13 +145,26 @@ namespace SongDataLib
 		public int year, track, trackcount, bitrate, length, samplerate, channels;
 		public DateTime lastWriteTime;
 
-		static string makesafe(string data) { return data == null ? data : new string(data.Select(c => c == '\n' || c == '\t' ? ' ' : c).Where(c => c >= ' ').ToArray()); }
-		static string makesafe(string[] data) { return data == null ? null : toSafeString(string.Join(", ", data)); }
+		static string makesafe(string data) { return data == null? data : new string(data.Select(c => c == '\n' || c == '\t' ? ' ' : c).Where(c => c >= ' ').ToArray()); }
+		/*static string makesafe(string data) {
+			int strLen = data.Length;
+			char[] str = null;
+			for(int i = 0; i < strLen; i++) {
+				char c = data[i];
+				if(c == '\n' || c == '\t' || c < ' ') {
+					str = str ?? data.ToCharArray();
+					str[i] = ' ';
+				}
+			}
+			return str == null ? data : new string(str);
+		}
+*/
+		static string makesafe(string[] data) { return data == null || data.Length == 0 || data.All(s => s.Length == 0) ? null : toSafeString(string.Join(", ", data)); }
 		static string strNullIfEmpty(string str) { return str == null || str.Length == 0 ? null : str; }
 
-		static string toSafeString(XAttribute data) { return strNullIfEmpty(makesafe((string)data)); }
+		static string toSafeString(XAttribute data) { return strNullIfEmpty((string)data); }//since it's from XML, no need to verify chars, saves 20% time
 		static string toSafeString(string data) { return strNullIfEmpty(makesafe(data)); }
-		static string toSafeString(string[] data) { return strNullIfEmpty(makesafe(data)); }
+		static string toSafeString(string[] data) { return makesafe(data); }
 
 		internal SongData(FileInfo fileObj) :base(fileObj.FullName) {
 			TagLib.File file = TagLib.File.Create(fileObj.FullName);
@@ -183,16 +196,21 @@ namespace SongDataLib
 			album = toSafeString(from.Attribute("album"));
 			comment = toSafeString(from.Attribute("comment"));
 			genre = toSafeString(from.Attribute("genre"));
-			year = SongUtil.StringToNullableInt((string)from.Attribute("year")) ?? 0;
-			track = SongUtil.StringToNullableInt((string)from.Attribute("track")) ?? 0;
-			trackcount = SongUtil.StringToNullableInt((string)from.Attribute("trackcount")) ?? 0;
-			bitrate = SongUtil.StringToNullableInt((string)from.Attribute("bitrate")) ?? 0;
-			length = SongUtil.StringToNullableInt((string)from.Attribute("length")) ?? 0;
-			samplerate = SongUtil.StringToNullableInt((string)from.Attribute("samplerate")) ?? 0;
-			channels = SongUtil.StringToNullableInt((string)from.Attribute("channels")) ?? 0;
-			lastWriteTime = ((string)from.Attribute("lastmodified")).ParseAsDateTime() ?? default(DateTime);
+			year = ParseInt((string)from.Attribute("year"));
+			track = ParseInt((string)from.Attribute("track"));
+			trackcount = ParseInt((string)from.Attribute("trackcount"));
+			bitrate = ParseInt((string)from.Attribute("bitrate"));
+			length = ParseInt((string)from.Attribute("length"));
+			samplerate = ParseInt((string)from.Attribute("samplerate"));
+			channels = ParseInt((string)from.Attribute("channels"));
+			lastWriteTime = ((string)from.Attribute("lastmodified")).ParseAsDateTime() ?? default(DateTime);//pretty slow. might be faster with explicit format.
 		}
 
+		internal static int ParseInt(string num) {
+			int retval;
+			int.TryParse(num, out retval);//used to deal with nullables, but no longer necessary...
+			return retval;
+		}
 
 		public override XElement ConvertToXml() {
 			return new XElement("song",

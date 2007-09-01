@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 
 namespace EamonExtensionsLinq {
-    public struct NiceTimer {
+    public class NiceTimer {
 //#if DEBUG
         DateTime dt;
         string oldmsg;

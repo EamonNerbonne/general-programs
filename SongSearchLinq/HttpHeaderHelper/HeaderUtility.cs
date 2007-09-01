@@ -59,17 +59,15 @@ namespace HttpHeaderHelper
 			}
 		}
 
-		public static void SetPublicCache(HttpContext context, ResourceInfo resource, DateTime? expiresAt) {
+		public static void SetPublicCache(HttpContext context, ResourceInfo resource) {
 			context.Response.Cache.SetCacheability(HttpCacheability.Public);
 			
 			//shouldn't be set if response code is 206 and If-Range was present and If-Range used a weak validator 
-			context.Response.Cache.SetLastModified(resource.RoundedHttpTimeStamp);
-			
-			context.Response.Cache.SetETag(resource.ETag);//TODO deal with \" char's
-			if(expiresAt != null) {
-				context.Response.Cache.SetExpires((DateTime)expiresAt);
-				context.Response.Cache.SetSlidingExpiration(true);
-			}
+			DateTime? lastModified = resource.RoundedHttpTimeStamp;
+			if(lastModified!=null) context.Response.Cache.SetLastModified(lastModified.Value);
+
+			string etag = resource.ETag;
+			if(etag!=null)context.Response.Cache.SetETag(etag);//TODO deal with \" char's - seems to be fine as is?
 		}
 
 
