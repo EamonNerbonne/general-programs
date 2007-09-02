@@ -51,26 +51,29 @@ namespace CommandLineUI
 
 		public void ExecUI() {
 			string input = "";
-			while(input != "EXIT") {
+			while(input != null) {
 				DateTime dtA = DateTime.Now;
 				Console.WriteLine("======RESULTS======= in {0} songs.=========", searchEngine.db.songs.Length);
 
-				searchEngine.Search(input).Take(5).Select(songdata => songdata.SongPath).PrintAllDebug();
+				searchEngine.Search(input).Take(20).Select(songdata => songdata.SongPath).PrintAllDebug();
 
 				DateTime dtB = DateTime.Now;
 				Console.WriteLine("in " + (dtB - dtA).TotalSeconds + " secs.");
 				Console.WriteLine();
-				Console.Write("Query (Esc to EXIT): " + input);
-				ConsoleKeyInfo key = Console.ReadKey(true);
-				if(key.Key == ConsoleKey.Escape) {
-					if(input == "")
-						break;
-					else
-						input = "";
-				} else if(key.Key == ConsoleKey.Backspace)
-					input = input.Substring(0, Math.Max(input.Length - 1, 0));
-				else if(key.KeyChar >= ' ')
-					input += key.KeyChar;
+				Console.Write("Query (Esc to {0}): {1}",input.Length==0?"EXIT":"Reset",input);
+				do {
+					ConsoleKeyInfo key = Console.ReadKey(true);
+					if(key.Key == ConsoleKey.Escape) {
+						if(input == "") {
+							input = null;
+							break;
+						} else
+							input = "";
+					} else if(key.Key == ConsoleKey.Backspace)
+						input = input.Substring(0, Math.Max(input.Length - 1, 0));
+					else if(key.KeyChar >= ' ')
+						input += key.KeyChar;
+				} while(Console.KeyAvailable);
 			}
 		}
 	}
