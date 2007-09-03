@@ -39,12 +39,13 @@ namespace BwtLib {
             }
         }
         private int ResolveSong(int bwtIndex) {
-            while (bwtIndex >= fl0toSong.Length) {
+            while (bwtIndex < firstIndexOfByte[TERMINATOR] || bwtIndex >= firstIndexOfByte[TERMINATOR+1]) {
                 bwtIndex = fl[bwtIndex];
             }
-            return fl0toSong[bwtIndex];
+            return fl0toSong[bwtIndex-firstIndexOfByte[TERMINATOR]];
         }
         public SongBwtSearcher() { }
+        public const byte TERMINATOR = (byte)(SongUtil.MAXCANONBYTE + 1);
         public void Init(SongDB db) {
             this.db = db;
             int songCount = db.songs.Length;
@@ -54,8 +55,8 @@ namespace BwtLib {
             for (int i = 0; i < songCount; i++) {
                 foreach (byte b in normed[i])
                     bigstring.Add(b);
-                bigstring.Add(0);//separator
-                songEnds[bigstring.Count - 1] = i;//store lookup from songend to songID
+                bigstring.Add(TERMINATOR);//separator which can't occur in the original data
+                songEnds[bigstring.Count - 1] = i;//store lookup from song-TERMINATOR position to songID
             }
 
             byte[] origdata = bigstring.ToArray();
@@ -69,17 +70,12 @@ namespace BwtLib {
                     int diff = (int)origdata[a] - (int)origdata[b];
                     if (diff != 0)
                         return diff;
-                    if (diff == 0 && origdata[a] == 0)
+                    if (diff == 0 && origdata[a] == TERMINATOR)
                         return 0;
                     a++;
                     b++;
                 }
             });
-            fl0toSong = new int[songCount];
-            for (int i = 0; i < songCount; i++) {
-                fl0toSong[i] = songEnds[suffixes[i]];
-            }
-//            songEnds = null;
             Console.WriteLine("sorted suffixarray");
 
             firstIndexOfByte = new int[257];
@@ -90,8 +86,16 @@ namespace BwtLib {
                 firstIndexOfByte[i] = pos;
             }
             firstIndexOfByte[256] = origdata.Length;
-
             Console.WriteLine("determined starting position of each char");
+
+            fl0toSong = new int[songCount];
+            for (int i = 0; i < songCount; i++) {
+                fl0toSong[i] = songEnds[suffixes[firstIndexOfByte[TERMINATOR]+i]];
+            }
+//            songEnds = null;
+
+            Console.WriteLine("Mapped i-th terminator to song index");
+
             int[] whereami = new int[origdata.Length];
             for (int i = 0; i < whereami.Length; i++)
                 whereami[suffixes[i]] = i;

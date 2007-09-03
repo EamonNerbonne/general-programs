@@ -32,7 +32,7 @@ namespace SongDataLib
 			return bytArr.ToArray();
 		}
 
-		public static byte MAXCANONBYTE = 57;
+		public const byte MAXCANONBYTE = 57;
 
 		public static byte[] CanonicalizedSearchStr(string str) {
 			return str2byteArr(EamonExtensionsLinq.Text.Canonicalize.Basic(str));

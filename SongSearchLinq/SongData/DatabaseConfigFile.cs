@@ -147,7 +147,7 @@ namespace SongDataLib
 
 		static bool isExtensionOK(FileInfo fi) {
 			string extension = fi.Extension.ToLower();
-			return extension == ".mp3" || extension == ".ogg" || extension == ".mpc" || extension == ".mpp" ||extension==".mp+"|| extension == ".wav" || extension == ".wma";
+			return extension == ".mp3" || extension == ".ogg" || extension == ".mpc" || extension == ".mpp" ||extension==".mp+"||extension == ".wma";
 		}
 
 		public bool IsLocal { get { return true; } }

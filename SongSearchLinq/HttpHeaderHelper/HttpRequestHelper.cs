@@ -41,7 +41,7 @@ namespace HttpHeaderHelper
 			AssertNotYetFinished();
 			requestFinished = true;
 			context.Response.StatusCode = statusCode;
-			context.Response.StatusDescription = statusDescription.Replace('\n', '\t');//safety net vs. Response Header Splitting.
+			context.Response.StatusDescription = (statusDescription??"").Replace('\n', '\t');//safety net vs. Response Header Splitting.
 			if(method != HttpMethod.HEAD) {
 				context.Response.ContentType = "text/plain";
 				context.Response.Write( statusLongMessage);

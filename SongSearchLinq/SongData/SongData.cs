@@ -167,6 +167,7 @@ namespace SongDataLib
 		static string toSafeString(string[] data) { return makesafe(data); }
 
 		internal SongData(FileInfo fileObj) :base(fileObj.FullName) {
+
 			TagLib.File file = TagLib.File.Create(fileObj.FullName);
 			//filepath = toSafeString(file.Name); //is this the same as fileObj.FullName?  yes, as the LocalFileAbstraction class in File.cs shows.
 			title = toSafeString(file.Tag.Title);
