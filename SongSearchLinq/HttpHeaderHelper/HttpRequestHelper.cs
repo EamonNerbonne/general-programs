@@ -22,7 +22,7 @@ namespace HttpHeaderHelper
 		bool requestFinished;
 		bool canAcceptRangeRequest = false;
 		Range[] requestedRanges = null;
-		string statusErrorMessageBody;
+//		string statusErrorMessageBody;
 
 		public HttpContext Context {			get { return context; }		}
 

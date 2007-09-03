@@ -11,6 +11,7 @@ using EamonExtensionsLinq.Filesystem;
 
 namespace SongDataLib
 {
+    public delegate bool DatabaseUpdateHandler(string songpath);
 	public class DatabaseConfigFile
 	{
 		FileInfo configFile;
@@ -52,16 +53,18 @@ namespace SongDataLib
 			catch(Exception e) {throw new DatabaseConfigException(this, e);}
 		}
 
-		public void Load() {
-			foreach(var local in locals) local.Load();
+		public void Load(DatabaseUpdateHandler handler) {
+			foreach(var local in locals) local.Load(handler);
 		}
 
-		public void Rescan() {
-			foreach(var local in locals) local.Rescan();
+        public void Rescan(DatabaseUpdateHandler handler)
+        {
+			foreach(var local in locals) local.Rescan(handler);
 		}
 
-		public void Save() {
-			foreach(var local in locals) local.Save();
+        public void Save(DatabaseUpdateHandler handler)
+        {
+			foreach(var local in locals) local.Save(handler);
 		}
 
 		public IEnumerable<ISongData> Songs { get { return locals.SelectMany(local => local.Songs); } }
@@ -71,10 +74,10 @@ namespace SongDataLib
 	public interface ISongDataCollection
 	{
 		IEnumerable<ISongData> Songs { get; }
-		void Load();
+		void Load(DatabaseUpdateHandler handler);
 		void Clear();
-		void Rescan();
-		void Save();
+        void Rescan(DatabaseUpdateHandler handler);
+        void Save(DatabaseUpdateHandler handler);
 		bool IsLocal { get; }
 	}
 
@@ -98,7 +101,8 @@ namespace SongDataLib
 			songs = null;
 		}
 
-		public void Load() {
+        public void Load(DatabaseUpdateHandler handler)
+        {
 			if(!dbFile.Exists) { songs = new ISongData[0]; return;}
 			XmlReaderSettings settings = new XmlReaderSettings();
 			settings.ConformanceLevel = ConformanceLevel.Fragment;
@@ -108,7 +112,12 @@ namespace SongDataLib
 				XmlReader reader = XmlReader.Create(textreader, settings);
 				while(reader.Read()) {
 					if(!reader.IsEmptyElement) continue;
-					songlist.Add(FuncUtil.Swallow(()=> SongDataFactory.LoadFromXElement((XElement)XElement.ReadFrom(reader)),()=>null));
+                    ISongData song = FuncUtil.Swallow(() => SongDataFactory.LoadFromXElement((XElement)XElement.ReadFrom(reader)), () => null);
+                    if (song != null)
+                    {
+                        songlist.Add(song);
+                        handler(song.SongPath);
+                    }
 				}
 				reader.Close();
 			} finally {
@@ -121,7 +130,8 @@ namespace SongDataLib
 			get { return songs; }
 		}
 
-		public void Rescan() {//TODO:do this in parallel, I mean, why not?
+        public void Rescan(DatabaseUpdateHandler handler)
+        {//TODO:do this in parallel, I mean, why not?
 			Dictionary<string, ISongData> songsByPath = new Dictionary<string, ISongData>();
 			List<ISongData> newsongs = new List<ISongData>();
 
@@ -135,12 +145,16 @@ namespace SongDataLib
 					SongData oldSong = songsByPath[newfile.FullName] as SongData;
 					if(oldSong!=null && oldSong.lastWriteTime!=null && oldSong.lastWriteTime==newfile.LastWriteTime) {
 						newsongs.Add(oldSong);
+                        handler("Already scanned - " + oldSong.SongPath);
 						continue;
 					}
 				}
-				try {
-					newsongs.Add(SongDataFactory.LoadFromFile(newfile));
-				} catch(Exception) { }//ignore files that aren't music.
+                ISongData song = FuncUtil.Swallow(() => SongDataFactory.LoadFromFile(newfile), () => null);
+                if (song != null)
+                {
+                    newsongs.Add(song);
+                    handler(song.SongPath);
+                }
 			}
 			songs = newsongs.ToArray();
 		}
@@ -156,7 +170,8 @@ namespace SongDataLib
 			songs = null;
 		}
 
-		public void Save() {
+        public void Save(DatabaseUpdateHandler handler)
+        {
 			FileInfo tmpFile = new FileInfo(dbFile.FullName + ".tmp");
 			try {
 				var outputlog = new StreamWriter(tmpFile.OpenWrite());
@@ -164,6 +179,7 @@ namespace SongDataLib
 				foreach(ISongData songdata in songs) {
 					XElement song = songdata.ConvertToXml();
 					outputlog.WriteLine(song.ToString());
+                    handler(songdata.SongPath);
 				}
 				outputlog.Flush();
 				outputlog.Close();
@@ -198,11 +214,13 @@ namespace SongDataLib
 			get { return songs; }
 		}
 
-		public void Rescan() {
+        public void Rescan(DatabaseUpdateHandler handler)
+        {
 			return;//TODO: implement.
 		}
 
-		public void Load() {
+        public void Load(DatabaseUpdateHandler handler)
+        {
 			TextReader tr;
 			FileInfo fi = dbFile;
 			List<ISongData> songlist = new List<ISongData>();
@@ -214,12 +232,16 @@ namespace SongDataLib
 			bool extm3u = nextLine == "#EXTM3U";
 			if(extm3u) nextLine = tr.ReadLine();
 			while(nextLine != null) {//read another song!
+                ISongData song;
 				if(extm3u) {
 					string uri = tr.ReadLine();
-					if(uri != null) songlist.Add( new PartialSongData(nextLine, uri));
+                    if (uri == null) break;//invalid M3U, though
+                    song = new PartialSongData(nextLine, uri);
 				} else {
-					songlist.Add( new MinimalSongData(nextLine));
+					song=new MinimalSongData(nextLine);
 				}
+                songlist.Add(song);
+                handler(song.SongPath);
 				nextLine = tr.ReadLine();
 			}
 
@@ -229,7 +251,8 @@ namespace SongDataLib
 			return;//TODO: implement.
 		}
 
-		public void Save() {
+        public void Save(DatabaseUpdateHandler handler)
+        {
 			return;//TODO: implement.
 		}
 	}

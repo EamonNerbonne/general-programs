@@ -38,7 +38,7 @@ namespace SongDataLib
 			return str2byteArr(EamonExtensionsLinq.Text.Canonicalize.Basic(str));
 		}
 
-		public static bool Contains(byte[] elem, byte[] substring) {
+		public static bool Contains(this byte[] elem, byte[] substring) {
 			for(int i = 0; i <= elem.Length - substring.Length; i++) {
 				bool match = true;
 				for(int j = 0; j < substring.Length; j++) {

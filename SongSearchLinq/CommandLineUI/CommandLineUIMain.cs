@@ -37,11 +37,24 @@ namespace CommandLineUI
 				searchEngine.Search(string.Join(" ", sq)).Take(30).ToArray();
 			}
 		}
+        int counter = 0;
+        int seconds = 0;
+        bool UpdateHandler(string msg)
+        {
+            counter++;
+            if (timer.ElapsedSinceMark.Seconds > seconds)
+            {
+                seconds = timer.ElapsedSinceMark.Seconds;
+                Console.WriteLine("Nodes/sec: " + (counter / timer.ElapsedSinceMark.TotalSeconds));
+                if (msg != null) Console.WriteLine(msg);
+            }
+            return true;
+        }
 
 		public CommandLineUIMain(FileInfo dbconfigfile) {
 			timer.TimeMark("Loading DB");
 			DatabaseConfigFile dcf = new DatabaseConfigFile(dbconfigfile);
-			dcf.Load();
+			dcf.Load(UpdateHandler);
 			SongDB db = new SongDB(dcf.Songs);
 			timer.TimeMark("Loading Search plugin");
             ISongSearcher ss = new BwtLib.SongBwtSearcher();//new SuffixTreeLib.SuffixTreeSongSearcher();

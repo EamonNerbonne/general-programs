@@ -157,7 +157,7 @@ namespace SuffixTreeLib
 				
 				uint songStart = curpos;
 
-				byte[] buf = normed[si] = SongUtil.str2byteArr(db.NormalizedSong(si));
+				byte[] buf = normed[si] = db.NormalizedSong(si);
 				curpos += (uint)buf.Length+1;//this many bytes accounted for, plus "boundary"
 				songCount += 1;//this many songs accounted for
 				songBoundaries[songCount] = curpos;//position of "first byte"
@@ -189,8 +189,7 @@ namespace SuffixTreeLib
 
 		}
 
-		public SearchResult Query(string strquery) {
-			byte[] query = SongUtil.str2byteArr(strquery);
+		public SearchResult Query(byte[] query) {
 			return tree.Match(this, 0, query);
 		}
 
@@ -208,7 +207,7 @@ namespace SuffixTreeLib
 			if(normed != null)
 				return normed[songIndex];
 			else
-				return SongUtil.str2byteArr(db.NormalizedSong(songIndex));
+				return db.NormalizedSong(songIndex);
 		}
 	}
 }

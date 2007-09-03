@@ -17,7 +17,7 @@ namespace SongDataLib
 	public interface ISongSearcher
 	{
 		void Init(SongDB db);
-		SearchResult Query(string query);
+		SearchResult Query(byte[] query);
 		//SearchResult CompleteQuery(string query, BitArray filter, BitArray result);
 	}
 }

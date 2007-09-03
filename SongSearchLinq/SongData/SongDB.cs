@@ -14,10 +14,10 @@ namespace SongDataLib
 	{
 		public ISongData[] songs;
 
-		public string NormalizedSong(int si) {
-			return Canonicalize.Basic(songs[si].FullInfo);
+		public byte[] NormalizedSong(int si) {
+			return SongUtil.CanonicalizedSearchStr(songs[si].FullInfo);
 		}
-		public IEnumerable<string> NormalizedSongs { get { return Enumerable.Range(0, songs.Length).Select(si => NormalizedSong(si)); } }
+		public IEnumerable<byte[]> NormalizedSongs { get { return Enumerable.Range(0, songs.Length).Select(si => NormalizedSong(si)); } }
 
 
 		public SongDB(IEnumerable<ISongData> songs) {

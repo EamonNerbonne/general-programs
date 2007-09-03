@@ -23,7 +23,11 @@ namespace SongDataLib
 
 
 		IEnumerable<int> Matches(string querystring) {
-			string[] query = querystring.Split(new char[]{' '},StringSplitOptions.RemoveEmptyEntries).Select(q => Canonicalize.Basic(q)).ToArray();
+			byte[][] query = 
+                querystring
+                .Split(new char[]{' '},StringSplitOptions.RemoveEmptyEntries)
+                .Select(q => SongUtil.CanonicalizedSearchStr( q))
+                .ToArray();
 			if(query.Length == 0) return Enumerable.Range(0, db.songs.Length);
 			/*
 			BitArray result = new BitArray(db.songs.Length, false), filter = new BitArray(db.songs.Length, true);
@@ -42,7 +46,7 @@ namespace SongDataLib
 			 /**/
 		}
 
-		IEnumerable<int> MatchAll(SearchResult[] results, string[] queries) {
+		IEnumerable<int> MatchAll(SearchResult[] results, byte[][] queries) {
 			Array.Sort(results, queries);
 			IEnumerable<int> smallestMatch = results[0].songIndexes;
 
@@ -52,7 +56,7 @@ namespace SongDataLib
 			return results.Select(sr => sr.songIndexes).Aggregate((a, b) => SongUtil.ZipIntersect(a, b));
 			/*/
 			   foreach(int si in smallestMatch) {//TODO: use better set intersection logic.  Either enforce results to come in-order so you can "zip" em up, or use hashing.
-				string songtext = db.NormalizedSong(si);
+				byte[] songtext = db.NormalizedSong(si);
 				if(queries.Skip(1).All(q => songtext.Contains(q)))
 					yield return si;
 			}/**/

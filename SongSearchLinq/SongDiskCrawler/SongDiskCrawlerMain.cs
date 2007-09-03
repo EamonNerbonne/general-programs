@@ -11,49 +11,40 @@ using EamonExtensionsLinq.Filesystem;
 
 namespace TagLibSharp_LINQ
 {
-	class Timer
-	{
-		DateTime start;
-		DateTime prev;
-		public Timer() {
-			start = DateTime.Now;
-			prev = start;
-		}
-		public TimeSpan Mark() {
-			DateTime now = DateTime.Now;
-			TimeSpan retval = now - prev;
-			prev = now;
-			return retval;
-		}
-		public TimeSpan TimeSinceStart() {
-			return DateTime.Now - start;
-		}
-		public TimeSpan TimeSinceStartUntilMark() {
-			return prev - start;
-		}
-	}
-
 
 	class Program
 	{
-
+        static DateTime phaseStart;
+        static int counter=0;
+        static int seconds=0;
+        static bool UpdateHandler(string msg)
+        {
+            counter++;
+            if(timer.ElapsedSinceMark.Seconds > seconds) {
+                seconds=timer.ElapsedSinceMark.Seconds;
+                Console.WriteLine("Nodes/sec: "+(counter / timer.ElapsedSinceMark.TotalSeconds));
+                if(msg!=null)Console.WriteLine(msg);
+            }
+            return true;
+        }
+        static NiceTimer timer;
 		static void Main(string[] args) {
-			Timer timer=new Timer();
-			Console.Write("Loading Config file " + args[0]+"...");
+			timer=new NiceTimer(null);
+            timer.TimeMark("Loading Config file " + args[0]+"...");
 			DatabaseConfigFile dcf = new DatabaseConfigFile(new FileInfo(args[0]));
-			Console.WriteLine("done in {0:f03}.",timer.Mark().TotalSeconds);
-			
-			Console.Write("Loading song databases...");
-			dcf.Load();
-			Console.WriteLine("done in {0:f03}.", timer.Mark().TotalSeconds);
-			
-			Console.Write("Rescanning local files...");
-			dcf.Rescan();
-			Console.WriteLine("done in {0:f03}.", timer.Mark().TotalSeconds);
-			
-			Console.Write("Saving...");
-			dcf.Save();
-			Console.WriteLine("done in {0:f03}.", timer.Mark().TotalSeconds);
+
+            timer.TimeMark("Loading songs from database...");
+            counter = 0; seconds = 0;
+			dcf.Load(UpdateHandler);
+
+            timer.TimeMark("Rescanning local files...");
+            counter = 0; seconds = 0;
+            dcf.Rescan(UpdateHandler);
+
+            timer.TimeMark("Saving songs to database...");
+            counter = 0; seconds = 0;
+            dcf.Save(UpdateHandler);
+            timer.TimeMark(null);
 		}
 	}
 }
