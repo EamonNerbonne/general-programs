@@ -25,7 +25,7 @@ namespace SongDataLib
 		IEnumerable<int> Matches(string querystring) {
 			string[] query = querystring.Split(new char[]{' '},StringSplitOptions.RemoveEmptyEntries).Select(q => Canonicalize.Basic(q)).ToArray();
 			if(query.Length == 0) return Enumerable.Range(0, db.songs.Length);
-			//*
+			/*
 			BitArray result = new BitArray(db.songs.Length, false), filter = new BitArray(db.songs.Length, true);
 			foreach(string q in query.Take(query.Length-1)) {
 				searchMethod.CompleteQuery(q, filter, result).songIndexes.Count();

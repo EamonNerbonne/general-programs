@@ -18,6 +18,6 @@ namespace SongDataLib
 	{
 		void Init(SongDB db);
 		SearchResult Query(string query);
-		SearchResult CompleteQuery(string query, BitArray filter, BitArray result);
+		//SearchResult CompleteQuery(string query, BitArray filter, BitArray result);
 	}
 }

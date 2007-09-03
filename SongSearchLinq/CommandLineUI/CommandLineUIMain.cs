@@ -44,7 +44,7 @@ namespace CommandLineUI
 			dcf.Load();
 			SongDB db = new SongDB(dcf.Songs);
 			timer.TimeMark("Loading Search plugin");
-			ISongSearcher ss = new SuffixTreeLib.SuffixTreeSongSearcher();
+            ISongSearcher ss = new BwtLib.SongBwtSearcher();//new SuffixTreeLib.SuffixTreeSongSearcher();
 			searchEngine = new SearchableSongDB(db, ss);
 		}
 

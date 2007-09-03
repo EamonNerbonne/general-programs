@@ -44,6 +44,10 @@
       <Project>{53ECEDA4-BB11-4BD3-8B51-0D3481FCBFA1}</Project>
       <Name>EamonExtensionsLinq</Name>
     </ProjectReference>
+    <ProjectReference Include="..\BwtLib\BwtLib.csproj">
+      <Project>{D9E43F36-9268-4E45-99D4-57D7A790843C}</Project>
+      <Name>BwtLib</Name>
+    </ProjectReference>
     <ProjectReference Include="..\SongData\SongData.csproj">
       <Project>{171E7F71-DB67-47CA-82BC-C63681BF2733}</Project>
       <Name>SongData</Name>

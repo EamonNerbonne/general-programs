@@ -16,7 +16,7 @@ namespace BwtLib {
         int[] firstIndexOfByte;
         int[] fl0toSong;
         public SearchResult Query(string strquery) {
-            byte[] query = strquery.ToCharArray().Where(c => (int)c < 256).Select(c => (byte)c).ToArray();
+            byte[] query = SongUtil.str2byteArr(strquery);
             int start = 0, end = fl.Length;
             foreach (byte b in query.Reverse()) {//back to front...
                 int newBstart = firstIndexOfByte[b];
