@@ -14,7 +14,7 @@ namespace EamonExtensionsLinq {
                 Console.WriteLine(oldmsg + " TOOK " + ((TimeSpan)(DateTime.Now - dt)).TotalSeconds + " secs.");
             }
 //#if DEBUG
-            Console.WriteLine("MB alloc'd: {0}",System.GC.GetTotalMemory(true)>>20);
+            Console.WriteLine("MB alloc'd: {0}", System.GC.GetTotalMemory(false) >> 20);
 //#endif
             if (msg != null)
                 Console.WriteLine("TIMING: " + msg);
@@ -23,11 +23,13 @@ namespace EamonExtensionsLinq {
 //#endif
         }
 
+        public TimeSpan ElapsedSinceMark{get{return DateTime.Now-dt;}}
+
         public NiceTimer(string msg) {
 //#if DEBUG
             dt = default(DateTime);
             oldmsg=null;
-            TimeMark(msg);
+            if(msg!=null) TimeMark(msg);
 //#endif
         }
     }

@@ -204,7 +204,9 @@ namespace SongDataLib
 			length = ParseInt((string)from.Attribute("length"));
 			samplerate = ParseInt((string)from.Attribute("samplerate"));
 			channels = ParseInt((string)from.Attribute("channels"));
-			lastWriteTime = ((string)from.Attribute("lastmodified")).ParseAsDateTime() ?? default(DateTime);//pretty slow. might be faster with explicit format.
+			string dateTimeString=(string)from.Attribute("lastmodified");
+			DateTime.TryParseExact(dateTimeString,"yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'fffffffzz",null,DateTimeStyles.None,out lastWriteTime);
+			//we use an explicit format string so MONO can parse it... it barfed on the auto-recognition.
 		}
 
 		internal static int ParseInt(string num) {
@@ -230,7 +232,7 @@ namespace SongDataLib
 				 length == 0 ? null : new XAttribute("length", length.ToStringOrNull()),
 				 samplerate == 0 ? null : new XAttribute("samplerate", samplerate.ToStringOrNull()),
 				 channels == 0 ? null : new XAttribute("channels", channels.ToStringOrNull()),
-				 lastWriteTime == default(DateTime) ? null : new XAttribute("lastmodified", lastWriteTime.ToUniversalTime().ToString("o"))
+				lastWriteTime == default(DateTime) ? null : new XAttribute("lastmodified", lastWriteTime.ToString("yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'fffffffzz"))
 			);
 		}
 
