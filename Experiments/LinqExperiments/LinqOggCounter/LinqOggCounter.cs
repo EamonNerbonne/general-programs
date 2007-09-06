@@ -1,16 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using System.Query;
-using System.Xml.XLinq;
-using System.Data.DLinq;
+using System.Linq;
 using System.IO;
 
 namespace LinqOggCounter {
     class LinqOggCounter {
         static IEnumerable<DirectoryInfo> GetDirs(DirectoryInfo dir) {
             //both expresseions are equivalent
-            return Sequence.Repeat(dir, 1).Concat( from d in dir.GetDirectories() from s in GetDirs(d) select s);
+            return Enumerable.Repeat(dir, 1).Concat( from d in dir.GetDirectories() from s in GetDirs(d) select s);
             //return Sequence.Repeat(dir, 1).Concat(dir.GetDirectories().SelectMany<DirectoryInfo,DirectoryInfo>(GetDirs));
         }
         

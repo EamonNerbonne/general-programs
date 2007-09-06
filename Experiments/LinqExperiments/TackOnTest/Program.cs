@@ -56,7 +56,6 @@ namespace TackOnTest
 			Util.Resolve(webmodule, BasicTexts.Hello);
 			string retval = Util.Resolve2(webmodule)[BasicTexts.Goobye];
 			Util.Resolve3(webmodule, BasicTexts.Hello);
-			Util.Resolve3(webmodule,
 		}
 	}
 }
