@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 namespace EamonExtensionsLinq.Text
 {
@@ -9,8 +6,8 @@ namespace EamonExtensionsLinq.Text
 	{
 		public static DateTime? ParseAsDateTime(this string s) {
 			DateTime val;
-					if (DateTime.TryParse(s, out val)) return val;
-					else return null;
+			if(DateTime.TryParse(s, out val)) return val;
+			else return null;
 		}
 		public static int? ParseAsInt32(this string s) {
 			int val;

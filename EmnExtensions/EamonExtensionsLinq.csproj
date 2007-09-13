@@ -40,6 +40,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Algorithms\ByteStringSearch.cs" />
     <Compile Include="DebugTools\ConsoleExtension.cs" />
     <Compile Include="Filesystem\DescendantDirsExtension.cs" />
     <Compile Include="Filesystem\FSUtil.cs" />
@@ -54,6 +55,12 @@
   </ItemGroup>
   <ItemGroup>
     <Service Include="{B4F97281-0DBD-4835-9ED8-7DFB966E87FF}" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Cassini\Cassini.csproj">
+      <Project>{5341706E-042C-4FFF-A00B-ED2F6C9B598A}</Project>
+      <Name>Cassini</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Exceptions\" />
