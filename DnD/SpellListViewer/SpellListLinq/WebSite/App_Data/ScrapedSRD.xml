@@ -6309,14 +6309,15 @@
         An evil aura’s power depends on the type of evil creature or object that you’re detecting and its HD, caster level, or (in the case of a cleric) class level; see the accompanying table. If an aura falls into more than one strength category, the spell indicates the stronger of the two.
       </p>
       <table><tr>
-            <th rowspan="2" align="left">Creature/Object</th>
+            <th rowspan="2" align="left">Creature or Object</th>
             <th colspan="4">Aura Power</th>
           </tr><tr>
             <th>Faint</th>
-            <th>Moderate</th>
+            <th>Mode-
+            rate</th>
             <th>Strong</th>
             <th>Over-
-            whelming</th>
+            whelm- ing</th>
           </tr><tr class="odd">
             <td>
               Evil creature<sup>1</sup> (HD)
@@ -6348,8 +6349,8 @@
           </tr><tr class="odd">
             <td>Evil magic item or spell (caster level)</td>
             <td align="center">up to 2nd</td>
-            <td align="center">3rd-8th</td>
-            <td align="center">9th-20th</td>
+            <td align="center">3rd- 8th</td>
+            <td align="center">9th- 20th</td>
             <td align="center">21st+</td>
           </tr></table>
               <ol style="font-size: 50%">
