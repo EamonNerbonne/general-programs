@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<?xml-stylesheet type="text/xsl" href="not2html.xsl"?>
+<notulen>
+    <head>
+        <date>2004-02-18</date>
+	<place>RC159</place>
+	<people>Everyone, Louwarnoud van der Duim, Paul Sorenson</people>
+	<preface>Videoconferencing with Warren, Yichuan and John Shillington, and an external observer Yin-Lou (sp?)</preface>
+    </head>
+    <main>
+	<section name="Start of videoconference">
+	 <p>Lars greets everyone and opens the Meeting.</p>
+	 <p>John introduces Yin-Lou, she'll be observering the meeting to see how such communication works, if this is alright with everyone (it is)</p>
+	</section>
+	<section name="Changes to the agenda"><p>Lars gives a short update on what we will be discussing:  The contract, the requirements (and specifically some validation issues), and some logistical aspects.</p>
+	<p>[At this point the conference essentially leaves the agenda.]</p></section>
+	<section name="The rest..."><p>Matthijs starts by asking whether the SQA-team in Canada has any questions before we get started.  Yichuan asks for the contract.
+	We'll send it tomorrow.</p>
+	<p>Matthijs asks Harold to elucidate some of the requirements we have so far.  Harold explains that we have quite a few use-cases and requirements by now.  Each requirement has a name, a description and a priority.
+	Harold lists a number of sections for which we have requirements and use cases, such as the code, systems(?), the GUI, the functions within the simulation etc.</p>
+	<p>
+	Harold explains further that we considered how we should test against these requirements, but found it rather difficult to find tests for requirements that essentially state that "the usability must be good".  Yichuan points out that these are non-functional requirements and thus more difficult to test.  He suggests doing things like using progress-bars for tasks which take long, defining appearance to be user-configurable,
+	and using wizards.  Warren says we should let the clients do some testing; We should do so because we're using an evolutionary model.</p>
+	<p>Lars says that one of reasons for this project is to improve usability; it's a requirement.  John explains that that requirement is too loose.  A better approach is to find some real concrete agreements.</p>
+
+	<p>The videoconferencing connection dies at this point.</p>
+
+	<p>Yichuan suggests requirements targetting the on-line help, cancelling of actions, undo-ability of actions.  We should also generate scenarios.</p>
+	<p> John mentions that we'll be using a version of RUP, we need to agree with the client to modify the requirements, evolutionary [lost some context here].</p>
+	<p>Eamon asks how much we should specify, given that we'll be using an evolutionary model and that we're modifying an existing program of which we don't have a deep understanding yet.</p>
+	<p>John says that the contract is going to be binding so it's natural to be cautious and put as little as possible into the contract (to avoid promising that which we can't deliver).  We should discuss
+	this with the client and be sure to say to the client that the tests will be agreed on at a later date.</p>
+	<p>Matthijs asks what the SQA-team in Canada will be reviewing.</p>
+	<p>Yichuan wants to know if we've seen the SQA-roadmap yet?  Apparently we have.  We should send all deliverables to canada.</p>
+	<p>Paul Sorensen clarifies that we've had a presentation about SQA yesterday [Tuesday 2004-02-17] and that he posted the slides to that presentation on DCSE so the SQA-team can get an idea of
+	what basis we're working on.</p>
+	<p>Warren asks us what our expectations are.  Matthijs says testing/review , and what kind of assistance should we provide for that?  Yichuan asks that all deliverables specifically such as documentation
+	in the form of contracts, users' guides, and use cases etc. be provided.  Warren says it's their role to help us provide quality.</p>
+	<p>Eamon asks if they have any tips to help us with effort estimation.  John says ("how many hours do you have?") that work estimation is difficult.  Divide in conquer; use three point estimates (best case,
+	worst case and expected case); Let people bid on what they think they will require (working in XP style pairs).</p>
+	<p>Matthijs wants to know what the status on the DCSE account is.  John says that we'll start out with one account for the whole team in the Netherlands for simplicity and if necessary more accounts can
+	be added later, that should be simplest.  Matthijs says we'll wrap it up now then.</p>
+	<p>Maybe using some communication tool like MSN messenger would be handy, Warren suggests.  The Canadian team will make the DCSE login and send us the info, and send us a review of the contract on Friday [2004-02-20]
+	after they receive it from us, and [something about a help-document, don't recollect what though].</p>
+	<p>The Dutch team will send the contract tomorrow [Thursday 2004-02-19] and send the Proposal that was made last week right now.</p>
+	<p>Paul suggests we should consider risk-mitigation, even more so since our project is very dependant on code we didn't write and don't know anything about yet.  We should try to quickly understand
+	the current state of the source code.   Yichuan says we should make user interface guidelines (given the importance of the GUI...).  After being asked, Paul says we don't need to include those in the contract.
+	Warren asks to receive the agenda for the next meeting next Wednesday [2004-02-25 16:00 GMT] before Monday [2004-02-23].  (This means we need to send it Monday sometime).  John asks us to circulate the minutes.
+	Louwarnoud asks if it would have been useful to send more information to Canada, suggesting that these meetings will be more useful if the SQA team knows more precisely what the Dutch
+	team is up to in advance.  Everyone agrees.</p>
+     </section>
+    </main>
+</notulen>

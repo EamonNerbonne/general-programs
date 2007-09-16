@@ -1,0 +1,9 @@
+﻿<?xml version="1.0" encoding="utf-8" ?> 
+<?xml-stylesheet type="text/xsl" href="def2html.xsl"?>
+<definition window-size="10">
+ <cols>
+  <col name="nummer" text="Nummer" type="integer" flags="id;editable;" input-size="7"/>
+  <col name="naam" text="Naam" type="string" flags="editable;" input-size="21"/>
+  <col name="email" text="E-mail adres" type="string" flags="editable;" input-size="40"/>
+ </cols>
+</definition>

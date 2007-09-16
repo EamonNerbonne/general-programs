@@ -1,0 +1,52 @@
+<?xml version="1.0" ?>
+<!DOCTYPE html PUBLIC 
+  "-//W3C//DTD XHTML 1.0 Strict//EN" 
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html>
+    <head>
+        <script language="javascript" src="../js/JSUtil.js"></script>
+        <script language="javascript"><!--
+    var globalvarA,globalvarB,objvar;
+
+    function container(x) {
+      function innerfunction() {
+        document.getElementById('outfield').value=''+document.getElementById('outfield').value+'\n'+x;
+      }
+      return innerfunction;
+    }
+    
+    /*DOESN'T WORK: function container(x) {
+      return new Function("document.getElementById('outfield').value=''+document.getElementById('outfield').value+'\n'+x;");
+    }*/
+    
+    function ObjT(x) {
+      function innerfunction() {
+        document.getElementById('outfield').value=''+document.getElementById('outfield').value+'\n'+x;
+      }
+      this.innerfunction=innerfunction;
+    }
+    globalvarA = container(1);
+    globalvarB = container(2);
+    objvar=new ObjT(3);
+    
+    function getonload() {
+       //if (window['onload']==null)
+        document.getElementById('outfield').value=''+document.getElementById('outfield').value+'\n'+ window['onload'];
+    }
+    window.onload=globalvarB;
+    JSUtil.addObserver(window,'onload',getonload);
+    JSUtil.addObserver(window,'onload',globalvarA);
+  --></script>
+        <title>Javascript test page</title>
+    </head>
+    <body>
+        Outputfield:<br />
+        <form onsubmit="return false" action="jstest.html">
+            <textarea id="outfield" cols="80" rows="25"></textarea>
+        </form>
+        Run <a href="javascript:globalvarA();">globalvarA();</a><br />
+        Run <a href="javascript:globalvarB();">globalvarB();</a><br />
+        Run <a href="javascript:objvar.innerfunction();">objvar.innerfunction();</a><br />
+        Run <a href="javascript:getonload();">getonload();</a><br />
+    </body>
+</html>

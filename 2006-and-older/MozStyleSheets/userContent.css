@@ -1,0 +1,55 @@
+blink { text-decoration: none ! important; }
+
+A:link[HREF*="adserver."] IMG { display: none ! important }
+A:link[HREF*="?BannerID"] IMG { display: none ! important }
+A:link[HREF*="/ad"] IMG { display: none ! important }
+A:link[HREF*="/A="] IMG { display: none ! important }
+A:link[HREF*="/click"] IMG { display: none ! important }
+A:link[HREF*="?click"] IMG { display: none ! important }
+A:link[HREF*="?banner"] IMG { display: none ! important }
+A:link[HREF*="=click"] IMG { display: none ! important }
+A:link[HREF*="/ar.atwo"] IMG { display: none ! important }
+A:link[HREF*="spinbox."] IMG { display: none ! important }
+A:link[HREF*="transfer.go"] IMG { display: none ! important }
+A:link[HREF*="adfarm"] IMG { display: none ! important }
+A:link[HREF*="bluestreak"] IMG { display: none ! important }
+A:link[HREF*="doubleclick"] IMG { display: none ! important }
+A:link[HREF*="prisdatabasen.dk"] IMG { display: none ! important }
+A:link IMG[width="468"][height="60"] { display: none ! important }
+A:link IMG[width="469"][height="60"] { display: none ! important }
+
+/* disable ad iframes */
+IFRAME[SRC*="ad."]  { display: none ! important }
+IFRAME[SRC*="ads"]  { display: none ! important }
+IFRAME[SRC*="/ad"]  { display: none ! important }
+IFRAME[SRC*="/A="]  { display: none ! important }
+IFRAME[SRC*="/click"]  { display: none ! important }
+IFRAME[SRC*="?click"]  { display: none ! important }
+IFRAME[SRC*="?banner"]  { display: none ! important }
+IFRAME[SRC*="=click"]  { display: none ! important }
+IFRAME[SRC*="/ar.atwo"]  { display: none ! important }
+IFRAME[SRC*="spinbox."]  { display: none ! important }
+IFRAME[SRC*="transfer.go"]  { display: none ! important }
+IFRAME[SRC*="adfarm"]  { display: none ! important }
+IFRAME[SRC*="bluestreak"]  { display: none ! important }
+IFRAME[SRC*="doubleclick"]  { display: none ! important }
+
+/*IMG[usemap] { display: none ! important }*/
+
+/* turning some false positives back off */
+/*
+A:link[HREF*="download."] IMG { display: inline ! important }
+A:link[HREF*="click.mp3"] IMG { display: inline ! important }
+A:link[HREF*="ead."] IMG { display: inline ! important }
+A:link[HREF*="eads."] IMG { display: inline ! important }
+*/
+/* Remove all flash */
+embed[type="application/x-shockwave-flash"]{
+  display: none !important;
+}
+
+/* Allow the flash that is proven useful at biobooking.dk */
+embed[type="application/x-shockwave-flash"][width="550"][height="299"] {
+  display: inline !important;
+}
+

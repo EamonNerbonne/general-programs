@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE html PUBLIC 
+  "-//W3C//DTD XHTML 1.0 Strict//EN" 
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html>
+    <head>
+        <title>MemTest</title>
+        <script src="../js/JSUtil.js"></script>
+        <script><!--
+        //var globArr=new Array();
+        function whenload() {
+            var i;
+            for(i=0;i<10000;i++) {
+                var temp=new Object();
+                temp.DOMobj=document.createElement('hr');
+                //temp.DOMobj.containerObj=globArr.length;
+                //alert(temp.DOMobj.containerObj);
+                //globArr.push(temp);
+                //temp.DOMobj.onclick=makeRef(temp);
+                JSUtil.addObserver(temp.DOMobj,'onclick',makeRef(temp));
+                //temp.cnt="x"+i;
+                //document.getElementById('bodyID').appendChild(temp.DOMobj);
+            }
+        }
+        function makeRef(temp) {
+            return function() {
+                temp.DOMobj.appendChild(document.createTextNode('.'));
+            }
+        }
+        /*function sample(e) {
+            var obj;
+            if(e) obj=e.target;
+            else obj=window.event.srcElement;
+            var container=globArr[obj.containerObj];
+            var str="";
+            for (prop in obj) str+="("+prop+"="+obj[prop]+")\n"
+            alert(str);
+            alert(obj===this);
+            alert(container.cnt);
+        }*/
+        --></script>
+    </head>
+    <body id="bodyID" onload="whenload();"></body>
+</html>

@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE html PUBLIC 
+  "-//W3C//DTD XHTML 1.0 Strict//EN" 
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html> <!--xhtml namespace http://www.w3.org/1999/xhtml isn't set as this causes problems in both mozilla and internet explorer with respect to DOM/XSLT generation of elements (the xhtml: prefix causes them to fail to recognize an html element, despite being in the right namespace, and the prefixes are only dynamically generated if there is a global one defined.-->
+    <head>
+        <title>GenEdit v3</title> 
+        <!--<script language="javascript" src="../js/JSLib.js"></script>-->
+        <script language="javascript" src="../js/JSUtil.js"></script>
+        <script language="javascript" src="../js/XMLUtil.js"></script>
+        <script language="javascript" src="../v3/genedit3.js"></script>
+        <link rel="stylesheet" type="text/css" href="../css/genedit3.css"></link>
+    </head>
+    <body>
+        <h3>This is my sample editor, very simple, eh?</h3>
+        <p>Debug:
+            <ul>
+                <li>
+                    <div style="color: blue; cursor: pointer;" onclick="JSUtil.showTextInWindow(document.documentElement.innerHTML);">Take 
+                        snapshot</div>
+                </li>
+            </ul>
+        </p>
+        <p>Just click a field to edit it. <em>Storing</em> files is not yet implemented, so 
+            don't worry about overwriting your original data :-(</p>
+        <p>This is loaded from email.xml:<br />
+            <div><genedit3 src="email.xml" def="email-def.xml" /></div>
+        </p>
+        <!--<p>And <strong>this</strong> from email.xml:<br />
+            <div><genedit3 src="email.xml" /></div>
+        </p>-->
+        <h4>Usage</h4>
+        <ul>
+            <li>
+                Use the arrow keys and the mouse to select the field you wish to edit</li>
+            <li>
+                You can click "Page Up" and "Page Down", or press the corresponding keys to 
+                scroll more quickly.</li>
+            <li>
+                If you want to edit a particular field and have it selected, press enter or 
+                just start typing. To revert a field to its initial value, press escape. To 
+                stop editing a field, press enter. Clicking on another field will also stop the 
+                editing.</li>
+        </ul>
+    </body>
+</html>

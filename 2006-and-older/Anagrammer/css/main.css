@@ -1,0 +1,33 @@
+﻿body {margin:0;padding:1em;
+background-color: #0b436b;
+}
+.head {
+padding:0.5em;
+margin:0;
+background-color:#1272b7;
+}
+.head h1,.head h2,.head h3,.head h4 
+{
+	display:inline;
+}
+.head a{color:Black;}
+.outercontainer {
+	padding: .2em;
+	margin:1em;
+	background-color:#474747;
+}
+.innercontainer {
+	padding:.2em;
+	background-color:#6b430b;
+}
+.content 
+{
+	clear:left;
+  border:solid #b88e12 .2em;
+  padding: .2em;
+  background-color:white;
+}
+
+p {
+margin:0.2em;
+}

@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<!DOCTYPE html PUBLIC 
+     "-//W3C//DTD XHTML 1.0 Strict//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html>
+ <head><title>temp</title>
+<script>
+function getID(oObject) 
+{
+    var id = oObject.id;
+    alert("This object's ID attribute is set to \"" + id + "\"."); 
+}
+</script>
+ </head>
+ <body>
+<table border="1" width="100%"><tr>
+<td id="firstcell"  onClick="getID(this);"><a href="javascript:alert('ohno');">table cell 1</a></td>
+<td id="secondcell" onClick="getID(this);">table cell 2</td>
+<td id="thirdcell"  onClick="getID(this);">table cell 3</td>
+</tr></table>
+</body>

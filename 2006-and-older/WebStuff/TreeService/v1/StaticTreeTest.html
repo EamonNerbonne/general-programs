@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE html PUBLIC 
+  "-//W3C//DTD XHTML 1.0 Strict//EN" 
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+		<title>This is a static Tree test</title>
+		<link rel="stylesheet" type="text/css" href="../css/tree.css"></link>
+		<script type="text/javascript">
+  function setClass(htmlEl, className) {
+    var str=htmlEl.className,strArr;
+    strArr=str.split(" ");
+    for(var sClass in strArr) {
+      if(strArr[sClass]==className) return;
+    }
+    strArr.push(className);
+    htmlEl.className=strArr.join(" ");
+  }
+
+  function unsetClass(htmlEl, className) {
+    var str=htmlEl.className,strArr;
+    strArr=str.split(" ");
+    for(var i=0;i<strArr.length;i++) {
+      if(strArr[i]==className){
+        strArr.splice(i,1);
+        htmlEl.className=strArr.join(" ");
+        return;
+      }
+    }
+  }
+
+  function flipClass(htmlEl, className) {
+    var str=htmlEl.className,strArr;
+    strArr=str.split(" ");
+    for(var i=0;i<strArr.length;i++) {
+      if(strArr[i]==className){
+        strArr.splice(i,1);
+        htmlEl.className=strArr.join(" ");
+        return;
+      }
+    }
+    strArr.push(className);
+    htmlEl.className=strArr.join(" ");
+  }
+
+function testClass(htmlEl,className) {
+    var str=htmlEl.className,strArr;
+    if(!str) return false;
+    strArr=str.split(" ");
+    for(var sClass in strArr) {
+      if(strArr[sClass]==className) return true;
+    }
+    return false;
+  }
+		
+		
+   window.onload=function(){
+    var divEl = document.documentElement.getElementsByTagName("div");
+    for(var i=0;i<divEl.length;i++){
+     var divE=divEl.item(i);
+     if(testClass(divE,"treehead")) {
+      divE.onclick=treeonclick;
+      divE.onmouseover=treeonhover;
+      divE.onmouseout=treenohover;
+     } else if(testClass(divE,"treeleafhead")) {
+      divE.onmouseover=treeonhover;
+      divE.onmouseout=treenohover;
+     
+     }
+    }
+   }
+
+treeonclick=function(e) {
+  flipClass(this.parentNode,"collapsed");
+  if(e && e.stopPropagation) e.stopPropagation();
+  if(window.event) window.event.cancelBubble=true;
+}
+treeonhover=function(e) {
+  setClass(this,"hovering");
+  if(e && e.stopPropagation) e.stopPropagation();
+  if(window.event) window.event.cancelBubble=true;
+}
+treenohover=function(e) {
+  unsetClass(this,"hovering");
+  if(e && e.stopPropagation) e.stopPropagation();
+  if(window.event) window.event.cancelBubble=true;
+}
+ </script>
+	</head>
+	<body><div>
+		The test is coming up...
+		<div class="tree collapsed"><div class="treecol">445$</div>
+			<div class="treecol">2 avail</div>
+			<div class="treehead">
+				<span>
+					<img src="../img/imin.png" class="whenexpanded treeicon" alt="-" /><img src="../img/iplus.png" class="whencollapsed treeicon" alt="+" /></span>
+				Buy a PC Now!!!
+				<div class="treebody">Components as follows:</div>
+			</div>
+			<div class="treeleaf"><div class="treecol">245$</div>
+				<div class="treecol">5 avail</div>
+				<div class="treeleafhead">
+					<span>* </span>
+					Buy a screen
+					<div class="treebody">17" great stuff</div>
+				</div>
+			</div>
+			<div class="treeleaf"><div class="treecol">101$</div>
+				<div class="treecol">unlim.</div>
+				<div class="treeleafhead">
+					<span>* </span>
+					Lessons for PC.
+				</div>
+			</div>
+			<div class="treeleaf"><div class="treecol">99$</div>
+				<div class="treecol">2 avail</div>
+				<div class="treeleafhead">
+					<span>* </span>
+					Your fancy GFX.
+					<div class="treebody">GF5 ULtra plus</div>
+				</div>
+			</div>
+		</div>
+	</div></body>
+</html>

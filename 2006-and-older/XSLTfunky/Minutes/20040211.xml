@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<?xml-stylesheet type="text/xsl" href="not2html.xsl"?>
+<notulen>
+    <head>
+        <date>2004-02-11</date>
+        <place>IWI (Jan Bosch's room?)</place>
+        <people>Everyone, HOD (Martijn Bodewes), Louwarnoud van der Duim</people>
+        <preface>
+         Videoconferencing with Warren, Yichuan and John Schulten(name unclear?)
+        </preface>
+    </head>
+    <main>
+     <section name="Introductions">
+       <p>Yichuan is studying Software Engineering at the University of Alberta, and also working for a company "net linx".
+       Warren is studying software engineering full-time.
+       John is helping them with this project (a supervisor?).</p>
+       <p>Everyone introduces themselves and sums up their (preliminary) tasks within our group.  Lars names the two companies for which we will be competing for a contract.  He names Dacolian's core liscence plate recognition business and the fact that we will need to build a web interface for that, and AZG's bacterial simulator which needs polish.</p>
+     </section>
+     <section name="Overview of SQA">
+      <p>Warren asks whether we've seen the roadmap. Nope.</p>
+      <p>The quick summary of SQA (software quality assurance) follows.  The idea is to develop as normal, following a normal roadmap but paying more attention to it.  He gives the example of the productivity measure "lines of code per coder".  One tries to be formally aware of productivity, measuring it and thus (hopefully) being able to project it and use the information gleaned to improve the process.</p>
+      <p>Yichuan lists three key points: Requirements (and verification), Design (the architecture), and Testing.  Testing is done on a per-unit basis with module tests, during integration (regression tests) and finally with user tests (i.e. acceptance testing).</p>
+      <p>John mentions SPICE. We won't be exposed to the details, which is good as there are 41 spice-regions.  Instead Warren and Yichuan will be focussing on three of those.  SPICE is intended to improve quality of the software.</p>
+      <p>Warren asks us what our software development process will be.</p>
+     </section>
+     <section name="Team Projects and Methods">
+       <p>Lars explains that we're not really very far with our planing yet but that we hope to use some evolutionary model of software development, so we can get feedback more effectively from our clients.  Rapid prototyping is mentioned, as are PHP+SQL in case we end up making Intrada-Web for Dacolian.</p>
+       <p>Somebody in canada asks us what our name is; we're BacSpace - as in Bacterial Space.  Warren asks how far we are, and whether we've had our Q+A sessions today, we only had Q+A with Dacolian.</p>
+       <p>More talk follows about what we're going to make (some questions from John who seems to have read Dacolian's RFI carefully) and what our planning is like -  but essentially nothing is really clear yet and therfore nothing is satisfactorily clarified.</p>
+     </section>
+     <section name="SQA feedback for proposals">
+      <p>They don't have much feedback for us yet (...not that surprising...).</p>
+      <p>The Evolutionary approach is good for getting feedback from clients.  Lars explains that we're inexperienced in quality management, so Warren suggests that we keep track of the quality.  Yichuan indicates that a coding standard is useful.  Client feedback is important (on the code).  Peer review helps too, as does testing.  [The suggestions seems to be that these things should start right away to get into the right habits.]</p>
+      <p>Lars says that last year's experience taught us that clients' feedback is often rather vague.  Warren proposes that we should prepare for the feedback.  Yichuan says that breaking things down into use cases (with sufficient context) listing the actors and the expected results makes things easier.  The use cases provide some firm basis on which feedback can be given, Warren points out. We could walk the clients through the use-cases with real, concrete details to get good comments.</p>
+     </section>
+     <section name="Logistics">
+      <tlist type="ul">
+       <item name="Contact Information">
+        John asks that we mail our contact information - with names with phonetic spelling to them at "sqa0304@" [didn't catch at what...]
+       </item>
+       <item name="Frequency, Timing of Messages.">
+        We agree on weekly meetings.  Not everyone is available at all times; wednesday same time each week is arranged (!!! I wrote down 1800 GMT - I think that 1600 GMT was what we <i>intended</i> to agree on though ...).
+       </item>
+       <item name="Discussion groups, DCSE site">
+        They don't have access to nestor but we can get access to they're groupware "thing", DCSE, but that's not set up yet (or will be set up via mail later).
+       </item>
+      </tlist>
+     </section>
+    </main>
+</notulen>

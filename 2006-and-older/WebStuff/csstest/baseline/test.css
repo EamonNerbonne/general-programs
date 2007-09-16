@@ -1,0 +1,12 @@
+span.changeFont {
+     font-family: Sans-Serif;
+     font-style:italic;
+     font-size:larger;
+}
+p {
+    text-decoration: underline;
+    text-align: justify;
+}
+p:first-line {
+    color: Red;
+}

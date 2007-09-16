@@ -1,0 +1,86 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+  <meta http-equiv="content-type"
+ content="text/html; charset=ISO-8859-1">
+  <title>Bla</title>
+  <style type="text/css">
+   body {
+     text-align: justify;
+     padding: 4cm;
+   }
+   p {
+     margin:0mm;
+   }
+   p+p{
+     text-indent: 1em;
+   }
+  
+  </style>
+</head>
+<body>
+<p>Such a construction is called a compound term.</p><br/>
+<p>The above informal discussion based
+on examples of simple declarative sentences gives motivation for
+introducing basic constructs of the language of symbolic logic. The
+kind of logic used here is called <em>predicate
+logic</em>. Next a formal definition of this language is given. For
+the moment we specify only the form of allowed sentences, while the
+meaning of the language will be discussed separately. Thus the
+definition covers only the <em>syntax</em>
+of the language separated from its <em>semantics</em>.
+</p>
+<p>From the syntactic point of view
+logic formulas are finite sequences of symbols such as variables,
+functors and predicate symbols. There are infinitely many of them and
+therefore the symbols are usually represented by finite strings of
+primitive characters. The representation employed in this book
+usually conforms to that specified in the ISO standard of the
+programming language Prolog (1995). Thus, the <em>alphabet</em> of the language of
+predicate logic consists of the following classes of symbols:
+</p>
+<ul>
+  <li><em>variables</em> which will be
+written as alphanumeric identifiers beginning with capital letters
+(sometimes subscriped). Examples of variables are <em>X</em>, <em>X<sub>s</sub></em>,
+    <em>Y</em>, <em>X</em><sub>7</sub>,
+...;</li>
+  <li><em>constants</em> which are
+numerals or alphanumeric identifiers beginning with lowercase letters.
+Examples of constants are <em>x</em>, <em>alf</em>, <em>none</em>, 17, ...;</li>
+  <li><em>functors</em> which are
+alphanumeric identifiers beginning with lower-case letters and with an
+associated arity &gt; 0. To emphasize the arity <em>n</em> of a functor <em>f</em> it is sometimes written in the
+form <em>f / n</em>;</li>
+  <li><em>predicate symbols</em> which
+are usually alphanumeric identifiers starting with lowercase letters
+and with an associated arity &gte; 0. The notation <em>p / n</em> is used also for predicate
+symbols;</li>
+  <li><em>logical connectives</em>
+which are ^ (conjunction), &not; (negation), * (logical equivalence), *
+(implication) and * (disjunction);</li>
+  <li><em>quantifiers</em> - *
+(universal) and * (existential);</li>
+  <li><em>auxiliary</em> symbols like
+parentheses and commas.
+  </li>
+</ul>
+<p>No syntactic distinction will be
+imposed between constants, functors and predicate symbols. However, as
+a notational convention we use <em>a</em>,
+<em>b</em>, <em>c</em>, ... (with or without adornments)
+to denote constants and <em>X</em>, <em>Y</em>, <em>Z</em>, ...
+to denote variables. Functors are denoted <em>f</em>, <em>g</em>, <em>h</em>, ... and <em>p</em>,
+ <em>q</em>, <em>r</em>, ... are used to denote predicate
+symbols. Constants are sometimes viewed as nullary functors. Notice
+also that the sets of functors and predicate symbols may contain
+identical identifiers with different arities.
+</p>
+<p>Sentences of natural language consist
+of words where objects of the described world are represented by nouns.
+In the formalized language of predicate logic objects will be
+represented by strings called <em>terms</em>
+whose syntax is defined as follows:
+</p>
+</body>
+</html>

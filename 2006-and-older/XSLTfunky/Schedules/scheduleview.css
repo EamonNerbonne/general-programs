@@ -1,0 +1,41 @@
+h3 {
+    margin:0mm;
+}
+body {
+    background: white;
+    margin: 0px;
+}
+table {
+    border-style: solid;
+    border-width: 2px;
+    border-color: black;
+    border-collapse: collapse;
+}
+td {
+    padding: 0px 0.15cm;
+    border: solid 1px #808080;
+}
+tr.less td {
+    color: #408040;
+}
+tr.xless td {
+    color: #808080;
+}
+tr.xless {
+    font-size: smaller;
+}
+tr.work td {
+  background-color: #ffffd8;
+}
+td.day {
+    text-align: center;
+    font-size: larger;
+}
+th {
+    font-family:Sans-Serif;
+    color: Red;
+    border: solid 1px #808080;
+}
+.hide {
+    display: none;
+}

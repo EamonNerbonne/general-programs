@@ -1,0 +1,240 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<?xml-stylesheet type="text/xsl" href="scheduleview.xsl"?>
+<schedule>
+	<ref>
+		<act id="architect" name="Architectuur en Netwerken" />
+		<act id="vertaler" name="Vertalerbouw" />
+		<act id="commvard" name="Communicatieve Vardigheden" />
+		<act id="apphps" name="APPHPS" />
+		<act id="opsys" name="Operating Systems" />
+		<act id="orwisk" name="Orientatie Wiskunde" />
+		<act id="progcorr" name="Programma Correctheid" class="xless" />
+		<act id="cowog" name="Werken bij Cowog" class="work" />
+		<act id="NormDiffEq" name="Gewone Differentiaalvergelijkingen" />
+		<act id="ProjCompAlgA" name="Project Computer Algebra A" />
+		<act id="ProjCompAlgB" name="Project Computer Algebra B" />
+		<act id="Swim" name="Swimming" />
+		<act id="Wisk2" name="Wiskunde 2 voor Nat. en Wisk." />
+		<act id="Wisk5" name="Wiskunde 5 voor Nat. en Wisk." />
+		<act id="Wisk6" name="Wiskunde 6 voor Nat. en Wisk." />
+		<act id="Kans" name="Kansrekening" class="xless" />
+		<act id="Analyse" name="Analyse" class="xless" />
+		<act id="ProjNumWisk" name="Project Numerieke Wiskunde" />
+		<act id="NumWisk1" name="Numerieke Wiskunde 1" />
+		<act id="TalAuto" name="Talen en Automaten" class="less" />
+		<act id="talNauto03" name="Talen en Automaten"/>
+		<act id="ontintsys" name="Ontwerp van Intelligente Systemen"/>
+		<act id="ITBP" name="IT-Beroepspraktijk"/>
+		<act id="Systeem1" name="Systeem Theorie 1" />
+		<act id="ProjModel" name="Project Modelleren" />
+		<act id="linalg" name="Lineaire Algebra" />
+		<act id="softeng" name="Software Engineering" />
+		<act id="Stat4Beta" name="Statistiek voor Beta's" />
+		<act id="KnR" name="Kennisrepresentatie en Redeneren" />
+		<act id="DB" name="Databases" />
+		<act id="mech" name="Mechanica" />
+		<act id="afproj" name="Afstudeer Project" />
+		<act id="compalg" name="Project Computer Algebra"/>
+		<act id="compgeo" name="Computational Geometry"/>
+		<act id="opsys2" name="Operating Systems 2"/>
+		<act id="netcomp" name="Net Computing"/>
+		<act id="neural" name="Neural Nets" class="xless"/>
+	</ref>
+	<week name="2003-2004 2nd Quarter">
+	   <day name="Monday">
+        <frame start="09:15" end="11:00" what="ontintsys" type="hc" loc="WSN31"/>
+	   </day>
+	   <day name="Tuesday">
+        <frame start="09:15" end="11:00" what="compgeo" type="hc" loc="WSN31"/>
+        <frame start="11:15" end="13:00" what="opsys2" type="wc" loc="ZG114"/>
+        <frame start="13:15" end="17:15" what="cowog" type="work" loc="cowog" note="4h"/>
+	   </day>
+	   <day name="Wednesday">
+        <frame start="09:15" end="11:00" what="netcomp" type="hc" loc="WSN31"/>
+        <frame start="11:15" end="13:00" what="ontintsys" type="hc" loc="WSN31"/>
+        <frame start="11:15" end="13:00" what="opsys2" type="pr" loc="IWI23" note="group 3.1"/>
+        <frame start="11:15" end="13:00" what="netcomp" type="pr" loc="IWI13" note="group 3.2"/>
+        <frame start="13:15" end="16:00" what="ontintsys" type="pr" loc="IWI9" note="group 2.2"/>
+	   </day>
+	   <day name="Thursday">
+        <frame start="09:15" end="11:00" what="opsys2" type="hc" loc="WSN31"/>
+        <frame start="11:15" end="13:00" what="opsys2" type="pr" loc="IWI9" note="group 3.2"/>
+        <frame start="11:15" end="13:00" what="netcomp" type="pr" loc="IWI23" note="group 3.1"/>
+        <frame start="13:15" end="15:00" what="compgeo" type="hc" loc="WSN31"/>
+	   </day>
+	   <day name="Friday">
+        <frame start="09:15" end="17:15" what="cowog" type="work" loc="cowog" note="8h"/>
+	   </day>
+	</week>
+	<week name="2002-2003 3rd Trimester" class="hide">
+	   <day name="Monday">
+	     <frame start="09:15" end="11:00" what="ontintsys" type="hc" loc="WSN 31"/>
+	     <frame start="11:15" end="13:00" what="talNauto03" type="hc" loc="ZG 119"/>
+	     <frame start="13:15" end="15:00" what="ontintsys" type="pr" loc="??RC 57"/>
+	     <frame start="15:15" end="18:15" what="cowog" type="work" note="3h"/>
+	   </day>
+	   <day name="Tuesday">
+	     <frame start="09:15" end="10:00" what="ontintsys" type="wc" loc="WSN 41"/>
+	     <frame start="10:15" end="13:00" what="ontintsys" type="pr" loc="IWI 9"/>
+	     <frame start="13:15" end="15:00" what="talNauto03" type="wc" loc="WSN 41"/>
+	     <frame start="15:15" end="18:15" what="cowog" type="work" note="3h"/>
+	   </day>
+	   <day name="Wednesday">
+	     <frame start="11:15" end="13:00" what="talNauto03" type="hc" loc="ZG 119"/>
+	     <frame start="13:15" end="15:00" what="ontintsys" type="hc" loc="WSN 31"/>
+	     <frame start="15:15" end="17:00" what="ITBP" type="hc" loc="WSN 20"/>
+      </day>	     
+	  <day name="Thursday">
+	    <frame start="09:00" end="18:00" what="cowog" type="work" note="9h, only catchup!"/>
+	  </day>
+	  <day name="Friday">
+	    <frame start="09:15" end="11:00" what="ontintsys" type="hc" loc="WSN 31"/>
+	    <frame start="11:15" end="17:15" what="cowog" type="work" note="6h"/>
+	  </day>
+	</week>
+	<week name="2002-2003 2nd Trimester" class="hide">
+		<day name="Monday">
+			<frame start="09:15" end="12:00" what="linalg" type="wc" loc="RC 250" />
+			<frame start="12:15" end="14:00" what="softeng" type="hc" loc="WSN 31" />
+			<frame start="14:15" end="16:00" what="Stat4Beta" type="hc" loc="WSN 20" />
+			<frame start="14:15" end="16:00" what="afproj" type="wc" loc="RC 251" note="Location unsure" />
+			<frame start="16:15" end="18:15" what="cowog" type="work" note="2h"/>
+		</day>
+		<day name="Tuesday">
+			<frame start="09:15" end="11:00" what="KnR" type="hc" loc="ZG 119" />
+			<frame start="09:15" end="11:00" what="linalg" type="hc" loc="WSN 31" />
+			<frame start="11:15" end="13:00" what="Stat4Beta" type="wc" loc="WSN 57"/>
+			<frame start="11:15" end="13:00" what="DB" type="hc" loc="WSN 20" />
+			<frame start="13:15" end="16:00" what="linalg" type="wc/pr" loc="RC 59" note="PR: weeks 2,7,10" />
+			<frame start="16:15" end="18:15" what="cowog" type="work" note="2h"/>
+		</day>
+		<day name="Wednesday">
+			<frame start="09:15" end="11:00" what="DB" type="wc/pr" loc="ZG 101" note="PR: weeks 7-11" />
+			<frame start="11:15" end="13:00" what="KnR" type="pr" loc="RC 57" />
+			<frame start="11:15" end="13:00" what="mech" type="hc" loc="5111.0080" />
+			<frame start="13:15" end="15:00" what="softeng" type="wc" loc="RC 251" />
+			<frame start="15:15" end="18:15" what="cowog" type="work" note="3h"/>
+		</day>
+		<day name="Thursday">
+			<frame start="09:15" end="13:00" what="softeng" type="pr" loc="IWI 11+13+23" />
+			<frame start="09:15" end="11:00" what="mech" type="hc" loc="5111.0080" />
+			<frame start="11:15" end="13:00" what="linalg" type="hc" loc="WSN 31" />
+			<frame start="13:15" end="16:00" what="mech" type="pr" loc="5113.0315a" note="weeks 51,4,8,10"/>
+			<frame start="13:15" end="16:00" what="mech" type="pr" loc="5116.0310" note="weeks 2,7,9,11"/>
+			<frame start="13:15" end="14:00" what="DB" type="hc" loc="WSN 20" />
+			<frame start="14:15" end="16:00" what="afproj" type="hc" loc="WSN 31" />
+			<frame start="16:15" end="17:15" what="cowog" type="work" note="1h"/>
+		</day>
+		<day name="Friday">
+			<frame start="09:15" end="12:00" what="mech" type="wc" loc="5114.0004" />
+			<frame start="12:15" end="14:00" what="cowog" type="work"/>
+			<frame start="14:15" end="16:00" what="Stat4Beta" type="hc" loc="WSN 20" />
+			<frame start="16:15" end="18:30" what="cowog" type="work" note="4h"/>
+		</day>
+	</week>
+	<week name="2002-2003 1st Trimester" class="hide">
+		<day name="Monday">
+			<frame start="09:15" end="11:00" what="architect" type="hc" loc="WSN 31" />
+			<frame start="09:15" end="11:00" what="opsys" type="hc" loc="ZG 119" />
+			<frame start="13:15" end="15:00" what="opsys" type="wc" loc="RC 60" note="group 1" />
+			<frame start="11:15" end="13:00" what="vertaler" type="hc" loc="ZG 119" />
+			<frame start="13:15" end="15:00" what="progcorr" type="hc" loc="ZG 119" />
+			<frame start="15:30" end="18:30" what="cowog" type="3h" />
+		</day>
+		<day name="Tuesday">
+			<frame start="13:15" end="15:00" what="architect" type="pr" loc="IWI 13" />
+			<frame start="09:15" end="11:00" what="vertaler" type="pr" loc="IWI 9" />
+			<frame start="13:15" end="15:00" what="opsys" type="pr" loc="IWI 9" note="group 1" />
+			<frame start="15:15" end="17:00" what="commvard" type="wc" loc="???" />
+		</day>
+		<day name="Wednesday">
+			<frame start="09:15" end="11:00" what="vertaler" type="hc" loc="ZG 119" />
+			<frame start="11:15" end="13:00" what="opsys" type="hc" loc="ZG 119" />
+			<frame start="09:15" end="11:00" what="orwisk" type="hc" loc="WSN 31" />
+			<frame start="14:15" end="15:00" what="progcorr" type="hc" loc="ZG 119" />
+			<frame start="14:15" end="17:15" what="apphps" type="hc" loc="WSN 31" />
+		</day>
+		<day name="Thursday">
+			<frame start="09:15" end="11:00" what="architect" type="hc" loc="WSN 31" />
+			<frame start="11:15" end="13:00" what="apphps" type="pr" loc="IWI 9" />
+			<frame start="13:00" end="15:00" what="progcorr" type="wc" loc="ZG 101" />
+			<frame start="13:30" end="16:30" what="cowog" type="3h" />
+		</day>
+		<day name="Friday">
+			<frame start="09:00" end="12:00" what="cowog" type="3h" />
+			<frame start="12:15" end="14:00" what="orwisk" type="hc" loc="WSN 31" />
+			<frame start="14:30" end="17:30" what="cowog" type="3h" />
+		</day>
+	</week>
+	<week name="2001-2002 3rd Trimester" class="hide">
+		<day name="Monday">
+			<frame start="09:15" end="11:00" what="NumWisk1" type="hc" loc="ZG7" />
+			<frame start="11:15" end="13:00" what="Wisk6" type="hc" loc="WSN20" />
+			<frame start="13:15" end="16:00" what="Systeem1" type="wc" loc="RC59" />
+		</day>
+		<day name="Tuesday">
+			<frame start="11:15" end="13:00" what="Kans" type="hc" loc="RC59" />
+			<frame start="11:15" end="13:00" what="TalAuto" type="hc" loc="ZG7" />
+		</day>
+		<day name="Wednesday">
+			<frame start="09:15" end="11:00" what="Analyse" type="hc" loc="RC59" />
+			<frame start="11:15" end="14:00" what="Analyse" type="wc" loc="WSN39" />
+			<frame start="14:14" end="16:00" what="Kans" type="wc" loc="WSN39" />
+			<frame start="09:15" end="11:00" what="TalAuto" type="wc" loc="ZG101" note="group 1" />
+			<frame start="12:15" end="14:00" what="TalAuto" type="wc" loc="ZG102" note="group 2" />
+			<frame start="09:15" end="11:00" what="NumWisk1" type="hc" loc="ZG7" />
+			<frame start="11:15" end="13:00" what="Wisk6" type="hc" loc="ZG8" />
+			<frame start="11:15" end="14:00" what="NumWisk1" type="pr" note="group A" loc="IWI13" />
+		</day>
+		<day name="Thursday">
+			<frame start="11:15" end="13:00" what="TalAuto" type="hc" loc="ZG119" />
+			<frame start="09:15" end="11:00" what="Kans" type="hc" loc="WSN35" />
+			<frame start="09:15" end="11:00" what="ProjModel" type="wc" loc="RC59" />
+			<frame start="11:15" end="14:00" what="Systeem1" type="hc" loc="RC57" />
+			<frame start="14:15" end="17:00" what="NumWisk1" type="pr" loc="IWI13" note="bij behoefte" />
+		</day>
+		<day name="Friday">
+			<frame start="12:15" end="14:00" what="Analyse" type="hc" loc="RC59" />
+			<frame start="14:15" end="16:00" what="ProjNumWisk" type="hc" loc="RC59" />
+			<frame start="09:15" end="11:00" what="Wisk6" type="wc" loc="groep??" />
+			<frame start="12:15" end="12:00" what="NumWisk1" type="pr" loc="IWI13" note="group B" />
+		</day>
+	</week>
+	<week name="2001-2002 2nd Trimester" class="hide">
+		<day name="Monday">
+			<frame start="09:15" end="11:00" what="NormDiffEq" type="hc/wc" loc="ZG101" />
+			<frame start="13:15" end="15:00" what="Stat4Beta" type="hc" loc="WSN20" />
+			<frame start="15:15" end="17:00" what="ProjCompAlgB" type="wc" loc="RC59" />
+			<frame start="17:00" end="18:00" what="Break" type="break" loc="-" note="hurry/food" />
+			<frame start="18:00" end="19:00" what="Swim" type="sport" loc="Corpus" />
+			<frame start="11:15" end="13:00" what="Cowog" type="work" loc="Cowog" /> <!--1.75-->
+		</day>
+		<day name="Tuesday">
+			<frame start="09:15" end="11:00" what="Wisk2" type="hc" loc="ZG8" />
+			<frame start="11:15" end="13:00" what="Wisk5" type="hc" loc="ZG8" />
+			<frame start="13:15" end="16:00" what="Wisk5" type="wc" loc="check" />
+			<frame start="16:15" end="18:30" what="Cowog" type="work" loc="Cowog" /> <!--2.25-->
+		</day>
+		<day name="Wednesday">
+			<frame start="08:25" end="09:00" what="Swim" type="sport" loc="Parrel" />
+			<frame start="09:15" end="11:00" what="ProjCompAlgA" type="wc" loc="RC59" />
+			<frame start="11:15" end="13:00" what="Wisk5" type="hc" loc="ZG8" />
+			<frame start="13:15" end="15:00" what="Stat4Beta" type="hc" loc="WSN20" />
+			<frame start="15:15" end="17:00" what="NormDiffEq" type="hc/wc" loc="ZG107" />
+			<frame start="17:15" end="18:15" what="Cowog" type="work" loc="Cowog" /> <!--1-->
+		</day>
+		<day name="Thursday">
+			<frame start="09:15" end="11:00" what="Stat4Beta" type="wc" loc="check" />
+			<frame start="11:15" end="13:00" what="Wisk2" type="hc" loc="WSN20" />
+			<frame start="13:00" end="13:30" what="Swim" type="sport" loc="Parrel" note="maybe..." />
+			<frame start="13:15" end="16:00" what="Wisk2" type="pr" loc="IWI" note="even weeks" />
+			<frame start="13:15" end="16:00" what="Wisk2" type="wc" loc="RC59" note="odd weeks" />
+			<frame start="16:15" end="18:15" what="Cowog" type="work" loc="Cowog" /> <!--2-->
+		</day>
+		<day name="Friday">
+			<frame start="09:15" end="11:00" what="NormDiffEq" type="hc/wc" loc="RC59" />
+			<frame start="11:15" end="18:15" what="Cowog" type="work" loc="Cowog" /> <!--7-->
+			<frame start="18:30" end="20:00" what="Swim" type="sport" loc="Parrel" note="maybe..." />
+		</day>
+	</week>
+</schedule>
