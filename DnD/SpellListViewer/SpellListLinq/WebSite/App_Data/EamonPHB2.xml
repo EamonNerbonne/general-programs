@@ -95,9 +95,60 @@
   <p>
     For every two caster levels beyond 1st, you deal an extra 1d6 points of nonlethal damage to the subject, to a maximum of 5d6 at 9th level.
   </p>
-
+<!--
 </div>
-<div spell="Blinding Color Surge">
+    <div spell="Whelm, Mass">
+      <h2>Whelm</h2>
+      <strong>
+        Enchantment (Compulsion) [Mind-Affecting]
+      </strong>
+      <table class="statBlock">
+        <tr>
+          <th>Level:</th>
+          <td>Sor/Wiz 4</td>
+        </tr>
+        <tr>
+          <th>Components:</th>
+          <td>V, S</td>
+        </tr>
+        <tr>
+          <th>Casting Time:</th>
+          <td>1 standard action</td>
+        </tr>
+        <tr>
+          <th>Range:</th>
+          <td>Close (25 ft. + 5 ft./2 levels)</td>
+        </tr>
+        <tr>
+          <th>Targets:</th>
+          <td>One living creature/level</td>
+        </tr>
+        <tr>
+          <th>Duration:</th>
+          <td>Instantaneous</td>
+        </tr>
+        <tr>
+          <th>Saving Throw:</th>
+          <td>Will Negates</td>
+        </tr>
+        <tr>
+          <th>Spell Resistance:</th>
+          <td>Yes</td>
+        </tr>
+      </table>
+      <p>
+        <i>You thrust one arm forward toward your foe, palm open and fingers splayed. The creature reels as an invisible surge of power invades its mind.</i>
+      </p>
+      <p>
+        You launch a magical assault that wears at the target's mind, dealing 1d6 points of nonlethal damange it it fails its saving throw
+      </p>
+      <p>
+        For every two caster levels beyond 1st, you deal an extra 1d6 points of nonlethal damage to the subject, to a maximum of 5d6 at 9th level.
+      </p>
+
+    </div>
+-->
+    <div spell="Blinding Color Surge">
   <h2>Blinding Color Surge</h2>
   <strong>
     Illusion (Glamer)

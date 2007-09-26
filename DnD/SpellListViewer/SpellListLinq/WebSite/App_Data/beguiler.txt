@@ -1,0 +1,17 @@
+﻿0th Level:
+Dancing Lights; Daze; Detect Magic; Ghost Sound; Message; Open/Close; Read Magic.
+
+1st Level:
+Charm Person; Color Spray; Comprehend Languages; Detect Secret Doors; Disguise Self; Expeditious Retreat; Hypnotism; Mage Armor; Obscuring Mist; Rouse; Silent Image; Sleep; Undetectable Alignment;Whelm; Serene Visage.
+
+2nd Level:
+Blinding Color Surge; Blur; Daze Monster; Detect Thoughts; Fog Cloud; Glitterdust; Hypnotic Pattern; Invisibility; Knock; Minor Image; Mirror Image; Misdirection; See Invisibility; Silence; Spider Climb; Stay the Hand; Touch of Idiocy; Vertigo; Whelming Burst.
+
+3rd Level:
+Arcane Sight; Clairaudience/Clairvoyance; Crown of Veils; Deep Slumber; Dispel Magic; Displacement; Glibness; Halt; Haste; Hesitate; Hold Person; Inevitable Defeat; Invisibility Sphere; Legion of Sentinels; Major Image; Nondetection; Slow; Suggestion; Vertigo Field; Zone of Silence.
+
+4th Level:
+Charm Monster; confusion; crushing despair; freedom of movement; invisibility, greater; mirror image, greater; locate creature; whelm, mass; phantom battle; rainbow pattern; solid fog.
+
+5th Level:
+Break Enchantment; Dominate Person; Feeblemind; Friend to Foe; Hold Monster; Incite Riot; Mind Fog; Telepathic Bond; Seeming; Sending; Etherealness, swift.

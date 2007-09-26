@@ -50,6 +50,7 @@
 				<li>
                     <asp:LinkButton ID="DomainsLink" runat="server" onclick="DomainsLink_Click">Cleric Domains</asp:LinkButton>
 				</li>
+                    <li><asp:LinkButton ID="BeguilerLink" runat="server" OnClick="Beguiler_Click">Beguiler</asp:LinkButton></li>
             </ul>
             <h3>
                 For example:</h3>
