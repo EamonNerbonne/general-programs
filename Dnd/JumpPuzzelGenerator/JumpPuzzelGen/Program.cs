@@ -195,8 +195,8 @@ namespace JumpPuzzelGen
 			int step = Math.Min(9, Math.Max(Math.Max(place.x,width-1-place.x), Math.Max(place.y,height-1-place.y)));
 			return (r.Next(step*3-2)+2)/3+1; //1 upto step
 		}
-		int DetermineRandomNumber(Pos place) {
-			return r.Next(1, 10);
+		int DetermineRandomNumber(Pos place,ref bool phaseSafe) {
+			return r.Next(1, width);
 		}
 
 		struct ValStepTuple
@@ -244,9 +244,8 @@ namespace JumpPuzzelGen
 				- 20 * end.x * (width - 1 - end.x) * end.y * (height - 1 - end.y) 
 				- 5 * (end.x - start.x) * (end.x - start.x) 
 				- 5 * (end.y - start.y) * (end.y - start.y) 
-				- 10 * fieldSum
-				- ones*50
-				+ 100*legalMoves
+				+ 10 * fieldSum
+				+ 75*(legalMoves-ones)
 				- width*height*Math.Max(20-phase,0); 
 		} 
 
@@ -292,15 +291,23 @@ namespace JumpPuzzelGen
 					Pos next = todo[posI];
 					if(puzzel[next.x, next.y] != 0) continue;//you might get the same element twice in a phase if reachable multiple times from the previous phase.
 					int val = 0;
-						val = DetermineWeightedNewNumber(next,ref  posterityEnsured);
+					val = DetermineRandomNumber(next, ref posterityEnsured);
+							//DetermineWeightedNewNumber(next,ref  posterityEnsured);
 					puzzel[next.x,next.y] = (byte)val;
 					fieldSum+=val;
-					if(val == 1) ones++;
+					if(val == 1) {
+						ones++;
+						foreach(Pos newPos in CalcMoves(next, (short)1)) 
+							if(puzzel[newPos.x, newPos.y] == 1) //adjacent ones
+								ones++;//extra bad!
+					}
 					fieldCount++;
 					foreach(Pos newPos in CalcMoves(next, (short)val)) {
 						legalMoves++;
-						if(puzzel[newPos.x, newPos.y] == 0) //meaning next phase you'll only get new things
+						if(puzzel[newPos.x, newPos.y] == 0) {//meaning next phase you'll only get new things
 							todo[todoTotalEnd++] = newPos;
+							posterityEnsured = true;
+						}
 					}
 				}
 				phase++;//finished one level of recursive descent - dig deeper!
@@ -318,30 +325,19 @@ namespace JumpPuzzelGen
 				} 
 			}
 		}
-		public void CreateByField() {
-			RandomStart();
-			fieldSum = 0;
-			for(int y = 0; y < height; y++) {
-				for(int x = 0; x < width; x++) {
-					int nextVal = r.Next(1, 10);//(int)(r.NextDouble() * Math.Sqrt(r.NextDouble()) * 8.499 + 1.5);
-					fieldSum += nextVal;
-					puzzel[x, y] = (byte)nextVal;
-				}
-			}
-		}
-
 	}
 
 	class Program
 	{
 		static void Main(string[] args) {
 			Random r = new Random();
-			int width = 10,height=10;
+			int width = 5,height=5;
 			PuzzleCreator creator = new PuzzleCreator(width, height);
 			//int bestSolLength = 0;
 			//int bestPuzVal = 0;
 			//int bestStepCount = 0;
 			int bestQual = Int32.MinValue;
+			int prevBestQual = Int32.MinValue;
 			int tries = 0;
 			DateTime startTime = DateTime.Now;
 			DateTime lastPrint = DateTime.Now;
@@ -355,10 +351,11 @@ namespace JumpPuzzelGen
 				totQ += solutionQ;
 				if(solutionQ >bestQual) {
 						creator.Print();
+						prevBestQual = bestQual;
 						bestQual = solutionQ;
 					Console.WriteLine("--------------------Best yet!");
-				} else if(solutionQ > 700) {
-					//solver.Print();
+				} else if(solutionQ > prevBestQual) {
+					creator.Print();
 				}
 				tries++;
 				if((DateTime.Now - lastPrint).TotalSeconds > 10.0) {
