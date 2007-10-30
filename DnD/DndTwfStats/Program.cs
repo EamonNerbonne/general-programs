@@ -78,7 +78,7 @@ namespace DndTwfStats
 			R10d6 = ProbDensity.AddDistributions(R9d6, Rd6);
 			R11d6 = ProbDensity.AddDistributions(R10d6, Rd6);
 			R12d6 = ProbDensity.AddDistributions(R11d6, Rd6);
-			NoDice = ProbDensity.UniformDistribution(Enumerable.Range(0, 1));
+			NoDice = ProbDensity.UniformDistribution(Enumerable.Repeat(0, 1));
 		}
 	}
 
@@ -144,7 +144,15 @@ namespace DndTwfStats
 		}
 		public IEnumerable<Prob> Probabilities { get { return probs.Select(cumprob => new Prob(cumprob)); } }
 		public double Average { get { return average; } }
-
+		public double CalcVariance() {
+			double collector = 0;
+			foreach(var p in probs){
+				double dev = p.result - average;
+				collector += dev * dev*p.p;
+			}
+			collector /= totalP;//should be one I think, but heck
+			return collector;
+		}
 		public static ProbDensity AddDistributions(ProbDensity a, ProbDensity b) {
 			return new ProbDensity(				
 				from ap in a.Probabilities
@@ -187,6 +195,53 @@ namespace DndTwfStats
 
 		public static Random R = new Random();
 		static void Main(string[] args) {
+
+		//	JosComp();
+			TwfComp();
+		}
+
+		private static void JosComp() {
+			//*
+			var wd = ProbDensity.UniformDistribution(new int[] { 4 });
+			var corrF = 1;
+			/*/
+			 var wd = Dice.Rd6;
+			var corrF = 0;
+			 /**/
+
+			Weapon scimitar = new Weapon(wd, 2, 18);
+						int bab=15;
+			int strBonus=8;
+			int enhBonus=1;
+			int wf=1;
+			int twfPen=1;
+	
+			ProbDensity extraDmgPrim = Dice.NoDice;
+			ProbDensity extraDmgSec = Dice.NoDice;
+			int dmgBonusPrim=strBonus+enhBonus;
+			int dmgBonusSec=strBonus/2+enhBonus;
+			int wpAttBonus=strBonus+wf+enhBonus;
+
+
+			WeaponAttack primaryHand = new WeaponAttack(scimitar, extraDmgPrim, Dice.NoDice, dmgBonusPrim, wpAttBonus);
+			WeaponAttack secondaryHand = new WeaponAttack(scimitar, extraDmgSec, Dice.NoDice, dmgBonusSec, wpAttBonus-corrF);
+
+			int AC = 35;
+			var primRolls = FullAttackSeq(bab).Select(ab => ab - twfPen).Select(ab => primaryHand.AttackRoll(ab, AC, 0));
+			var secRolls = FullAttackSeq(bab).Select(ab => ab - twfPen).Select(ab => secondaryHand.AttackRoll(ab, AC, 0));
+			ProbDensity resultDmg=primRolls.Concat(secRolls).Aggregate(ProbDensity.AddDistributions);
+
+			Console.WriteLine("Avg:" + resultDmg.Average);
+			Console.WriteLine("StdDev:" + Math.Sqrt(resultDmg.CalcVariance()));
+
+			int nettoBonus = bab - twfPen + wpAttBonus;
+			int nettoDmg = 4+strBonus+enhBonus+3+enhBonus ;
+			var alt=Enumerable.Range(1, 20).Select(ab => ab + nettoBonus).Select(ab =>Math.Max(0, nettoDmg + (ab - AC)*3/2));
+			ProbDensity altP = new ProbDensity(alt.Select(dmg=>new Prob{ p=1, result=dmg}) );
+			Console.WriteLine("Avg:" + altP.Average);
+			Console.WriteLine("StdDev:" + Math.Sqrt(altP.CalcVariance()));
+		}
+		static void TwfComp(){
 			int strBonusH = 8;
 			int babH=16;
 
