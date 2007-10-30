@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using System.Query;
-using System.Xml.XLinq;
-using System.Data.DLinq;
+using System.Linq;
 
 namespace DnDstatCalc {
     public struct Prob<T> {
@@ -24,7 +22,7 @@ namespace DnDstatCalc {
             return distribution.Select(p => new Prob<T>(p.Val, p.P/tot));
         }
         static void Main(string[] args) {
-            var d6 = Sequence.Range(1,6);
+            var d6 = Enumerable.Range(1,6);
             var dieTuple = from a in d6
                            from b in d6
                            from c in d6
