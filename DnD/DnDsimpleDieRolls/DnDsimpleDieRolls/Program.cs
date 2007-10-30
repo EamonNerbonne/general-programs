@@ -1,9 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
-using System.Query;
-using System.Xml.XLinq;
-using System.Data.DLinq;
+using System.Linq;
 
 namespace DnDsimpleDieRolls {
     class Histogram<T> {
@@ -21,10 +18,10 @@ namespace DnDsimpleDieRolls {
     }
     class Program {
        static void Main(string[] args) {
-           var d6 = Sequence.Range(1,6);
-           var d4 = Sequence.Range(1,4);
-           var dieTuple = Sequence.Repeat(d6,7).Aggregate((IEnumerable<IEnumerable<int>>)new int[][]{new int[]{}},
-               (listsRes,listPoss) => (from poss in listPoss from res in listsRes select  res.Concat(Sequence.Repeat(poss,1))));
+           var d6 = Enumerable.Range(1,6);
+           var d4 = Enumerable.Range(1,4);
+           var dieTuple = Enumerable.Repeat(d6,7).Aggregate((IEnumerable<IEnumerable<int>>)new int[][]{new int[]{}},
+               (listsRes,listPoss) => (from poss in listPoss from res in listsRes select  res.Concat(Enumerable.Repeat(poss,1))));
                
            var rolls = from roll in dieTuple
                        select (
