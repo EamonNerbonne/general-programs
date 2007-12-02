@@ -1,6 +1,257 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <html>
   <body>
+    <div spell="Incite Riot">
+      <h2>Incite Riot</h2>
+      <strong>
+        Enchantment [Mind-Affecting]
+      </strong>
+      <table class="statBlock">
+        <tr>
+          <th>Level:</th>
+          <td>Sor/Wiz 5, Bard 5</td>
+        </tr>
+        <tr>
+          <th>Components:</th>
+          <td>V</td>
+        </tr>
+        <tr>
+          <th>Casting Time:</th>
+          <td>1 standard action</td>
+        </tr>
+        <tr>
+          <th>Range:</th>
+          <td>Close (25 ft. + 5 ft./2 levels)</td>
+        </tr>
+        <tr>
+          <th>Targets:</th>
+          <td>One living creature/level, no two of which are more than 30 ft. apart</td>
+        </tr>
+        <tr>
+          <th>Duration:</th>
+          <td>1 round</td>
+        </tr>
+        <tr>
+          <th>Saving Throw:</th>
+          <td>Will negates</td>
+        </tr>
+        <tr>
+          <th>Spell Resistance:</th>
+          <td>Yes</td>
+        </tr>
+      </table>
+      <p>
+        <i>You sow discord among your enemies, spurring them to physical violence.</i>
+      </p>
+      <p>
+        Each creature that fails its saving throw attacks the nearest creature on its next turn, whether friend or foe.
+        An affected creature attacks with whatever weapon is in its hand, or with natural weapons.
+        An unarmed creature attacks with an unarmed strike. An affected creature not already adjacent to another creature will move or (if possible) charge the nearest creature; 
+        if the nearest creature is not within range of a charge, the subject moves toward the nearest creature along the most efficient route.
+      </p>
+      <p>
+        <i>Material Component:</i> A swatch of white silk.
+      </p>
+    </div>
+    <div spell="Friend to Foe">
+      <h2>Friend to Foe</h2>
+      <strong>
+        Illusion (Phantasm) [Mind-Affecting]
+      </strong>
+      <table class="statBlock">
+        <tr>
+          <th>Level:</th>
+          <td>Sor/Wiz 5, Bard 5</td>
+        </tr>
+        <tr>
+          <th>Components:</th>
+          <td>V, S, M</td>
+        </tr>
+        <tr>
+          <th>Casting Time:</th>
+          <td>1 standard action</td>
+        </tr>
+        <tr>
+          <th>Range:</th>
+          <td>Medium (100 ft. + 10 ft./level)</td>
+        </tr>
+        <tr>
+          <th>Targets:</th>
+          <td>One living creature/level, none of which are more than 30 ft. apart</td>
+        </tr>
+        <tr>
+          <th>Duration:</th>
+          <td>1 round/level (D); see text</td>
+        </tr>
+        <tr>
+          <th>Saving Throw:</th>
+          <td>Will negates</td>
+        </tr>
+        <tr>
+          <th>Spell Resistance:</th>
+          <td>Yes</td>
+        </tr>
+      </table>
+      <p>
+        <i>Your enemies transform into what they hate the most, suddenly turning against each-other.</i>
+      </p>
+      <p>
+        You overlay phantasmal images over your enemies, making them appear to each other as loathsome and despicable, implanting an urge to kill and destroy the object of their ire. 
+        Orcs might see each other as elves or dwarves, demons might see angels, and so on. All subjects receive a Will save to see through the phantasm. 
+        Each individual failing its save turns on the closest ally and attacks until the first time it deals damage, which causes the spell to end for that attacker.
+      </p>
+      <p>
+        <i>Material Component:</i> A swatch of white silk.
+      </p>
+    </div>
+    <div spell="Etherealness, Swift">
+      <h2>Etherealness, Swift</h2>
+      <strong>
+        Transmutation
+      </strong>
+      <table class="statBlock">
+        <tr>
+          <th>Level:</th>
+          <td>Sor/Wiz 5, Cleric 5</td>
+        </tr>
+        <tr>
+          <th>Components:</th>
+          <td>V, S</td>
+        </tr>
+        <tr>
+          <th>Casting Time:</th>
+          <td>1 swift action</td>
+        </tr>
+        <tr>
+          <th>Range:</th>
+          <td>Close (25 ft. + 5 ft./2 levels)</td>
+        </tr>
+        <tr>
+          <th>Target:</th>
+          <td>One willing creature</td>
+        </tr>
+        <tr>
+          <th>Duration:</th>
+          <td>1 round</td>
+        </tr>
+        <tr>
+          <th>Saving Throw:</th>
+          <td>Will negates</td>
+        </tr>
+        <tr>
+          <th>Spell Resistance:</th>
+          <td>Yes</td>
+        </tr>
+      </table>
+      <p>
+        <i>With a single word and a quick wave of your hand, the creature disappears.</i>
+      </p>
+      <p>
+        The subject becomes ethereal until the end of its next turn. If, at the end of the spell's duration, the subject creature rematerializes within a solid object 
+        or in an occupied space,        it is shunted off to the nearest open space and takes 1d6 points of damage per 5 feet so traveled.
+      </p>
+    </div>
+    <div spell="Phantom Battle">
+      <h2>Phantom Battle</h2>
+      <strong>
+        Illusion (Figment)
+      </strong>
+      <table class="statBlock">
+        <tr>
+          <th>Level:</th>
+          <td>Bard 3, Sor/Wiz 4</td>
+        </tr>
+        <tr>
+          <th>Components:</th>
+          <td>V, S</td>
+        </tr>
+        <tr>
+          <th>Casting Time:</th>
+          <td>1 immediate action</td>
+        </tr>
+        <tr>
+          <th>Range:</th>
+          <td>Medium (100 ft. + 10 ft./level)</td>
+        </tr>
+        <tr>
+          <th>Area:</th>
+          <td>20-ft. radius spread</td>
+        </tr>
+        <tr>
+          <th>Duration:</th>
+          <td>1 round/level (D)</td>
+        </tr>
+        <tr>
+          <th>Saving Throw:</th>
+          <td>Will negates</td>
+        </tr>
+        <tr>
+          <th>Spell Resistance:</th>
+          <td>Yes</td>
+        </tr>
+      </table>
+      <p>
+        <i>You create an illusory horde of snarling ogres, fierce orcs, and proud knights in armor, all locked in battle. Creatures in the area move cautiously as they are caught up in the phantom melee.</i>
+      </p>
+      <p>
+        This spell creates the illusion of a fierce battle.  Your enemies move cautiously and pass up the opportunity to strike their foes,
+        since the roar and confusion of the battle distracts them.
+      </p>
+      <p>
+        All creatures within the area of the spell that fail their saving throws cannot make attacks of opportunity. In addition, all creatures
+        withing the area are considered flanked. A creature ignores these effects when it leaves the spell's area. If a creature reenters the spell's area after leaving it, the creature
+        can attempt another save to resist the spell if its initial save failed. A creature that enters the area for the first time after the spell is cast must also make a saving throw to resist
+        the effect.
+      </p>
+      <p>
+        A <i>phantom battle</i> spell produces noise appropriate to a mob of creatures locked in battle. Anyone in the battle can plainly see that the conjured fighters are no threat,
+        since they          strike solely at other phantom warriors, but the din, tumult, and confusion make it difficult to focus on the true foes at hand. A creature that succeeds
+        on its save can still see the spectral outline of the illusion, but is able to block out the distraction and fight as normal.
+      </p>
+      <p>
+        When you cast this spell, you can choose for it not to affect a number of allies you designate less than or equal to your caster level.
+      </p>
+    </div>
+      <div spell="Mirror Image, Greater">
+      <h2>Mirror Image, Greater</h2>
+      <strong>
+        Illusion (Figment)
+      </strong>
+      <table class="statBlock">
+        <tr>
+          <th>Level:</th>
+          <td>Bard 4, Sor/Wiz 4</td>
+        </tr>
+        <tr>
+          <th>Components:</th>
+          <td>V, S</td>
+        </tr>
+        <tr>
+          <th>Casting Time:</th>
+          <td>1 immediate action</td>
+        </tr>
+        <tr>
+          <th>Range:</th>
+          <td>Personal; see text for <i>mirror image</i> (PH 254)</td>
+        </tr>
+        <tr>
+          <th>Target:</th>
+          <td>You</td>
+        </tr>
+        <tr>
+          <th>Duration:</th>
+          <td>1 minute/level (D)</td>
+        </tr>
+      </table>
+      <p>
+        <i>Several illusory duplicates of you pop into being.</i>
+      </p>
+      <p>
+        This spell functions like <i>mirror immage</i>, except that an additional image is created in each round after the first, up to a maximum of eight concurrent images.  If all images are destroyed, the spell ends.
+      </p> 
+    <p>This spell also differs from <i>mirror image</i> in that you can cast this spell even when it's not your turn.
+  </p>
+    </div>
 <div spell="Rouse">
   <h2>Rouse</h2>
   <strong>
@@ -95,10 +346,9 @@
   <p>
     For every two caster levels beyond 1st, you deal an extra 1d6 points of nonlethal damage to the subject, to a maximum of 5d6 at 9th level.
   </p>
-<!--
 </div>
     <div spell="Whelm, Mass">
-      <h2>Whelm</h2>
+      <h2>Whelm, Mass</h2>
       <strong>
         Enchantment (Compulsion) [Mind-Affecting]
       </strong>
@@ -137,17 +387,12 @@
         </tr>
       </table>
       <p>
-        <i>You thrust one arm forward toward your foe, palm open and fingers splayed. The creature reels as an invisible surge of power invades its mind.</i>
+        <i>With a sweep of your arm, creatures reel as an invisible surge of magical power invades their minds.</i>
       </p>
       <p>
-        You launch a magical assault that wears at the target's mind, dealing 1d6 points of nonlethal damange it it fails its saving throw
+        This spell functions like <i>whelm</i>, except that it affects multiple targets and it deals 1d6 points of nonlethal damage per caster level to each subject, to a maximum of 10d6 at 10th level.
       </p>
-      <p>
-        For every two caster levels beyond 1st, you deal an extra 1d6 points of nonlethal damage to the subject, to a maximum of 5d6 at 9th level.
-      </p>
-
     </div>
--->
     <div spell="Blinding Color Surge">
   <h2>Blinding Color Surge</h2>
   <strong>
@@ -523,7 +768,7 @@
       <p>You can cast this spell even when it's not your turn; however, you must cast it at the start of your opponent's turn to gain the benefit.</p>
     </div>
     <div spell="Inevitable Defeat">
-      <h2>Hesitate</h2>
+      <h2>Inevitable Defeat</h2>
       <strong>
         Enchantment (Compulsion) [Mind-Affecting]
       </strong>
@@ -610,6 +855,10 @@
       </p>
       <p>A ghostly, incorporeal swordfighter appears in each square covered by this spell's area. A swordfighter can share a space with another creature or object. Each swordfighter threatens the squares adjacent to it and can make one attack of opportunity per round. The swordfighters do not hinder movement, block terrain, or block line of effect. They can flank an opponent with each other and with your allies.</p>
       <p>Each swordfighter has hit points equal to twice your caster level and an Armor Class of 25. It makes saving throws or checks with a bonus equal to your caster level.</p>
+      <p>
+        The swordsmen’s attacks are at a bonus equal to your caster level, they threaten critical hits on a 19 or 20, and they deal 1d8 points of slashing damage with a +1 bonus
+        per three caster levels (max +5). They only make attacks of opportunity, and their weapon damage is slashing and is affected by damage reduction.
+      </p>
       <p>
         <i>Material Component:</i> A pewter swordfighter miniature figure.
       </p>
