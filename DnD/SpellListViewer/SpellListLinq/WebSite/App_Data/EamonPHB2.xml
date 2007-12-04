@@ -1,6 +1,55 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <html>
   <body>
+    <div spell="Alter Fortune">
+      <h2>Alter Fortune</h2>
+      <strong>
+        Divination
+      </strong>
+      <table class="statBlock">
+        <tr>
+          <th>Level:</th>
+          <td>Bard 3, Cleric 3, Druid 3, Sor/Wiz 3</td>
+        </tr>
+        <tr>
+          <th>Components:</th>
+          <td>V, X</td>
+        </tr>
+        <tr>
+          <th>Casting Time:</th>
+          <td>1 immediate action</td>
+        </tr>
+        <tr>
+          <th>Range:</th>
+          <td>Close (25 ft. + 5 ft./2 levels)</td>
+        </tr>
+        <tr>
+          <th>Target:</th>
+          <td>One creature</td>
+        </tr>
+        <tr>
+          <th>Duration:</th>
+          <td>Instantaneous</td>
+        </tr>
+        <tr>
+          <th>Saving Throw:</th>
+          <td>None</td>
+        </tr>
+        <tr>
+          <th>Spell Resistance:</th>
+          <td>No</td>
+        </tr>
+      </table>
+      <p>
+        <i>With a single utterance, you create a momentary distortion that engulfs and confounds your foe.</i>
+      </p>
+      <p>
+        You change the flow of chance, causing the subject to immediately reroll any die roll it just made.  It must abide by the second roll.
+      </p>
+      <p>
+        <i>XP cost:</i> 200 XP.
+      </p>
+    </div>
     <div spell="Incite Riot">
       <h2>Incite Riot</h2>
       <strong>
@@ -46,7 +95,7 @@
       <p>
         Each creature that fails its saving throw attacks the nearest creature on its next turn, whether friend or foe.
         An affected creature attacks with whatever weapon is in its hand, or with natural weapons.
-        An unarmed creature attacks with an unarmed strike. An affected creature not already adjacent to another creature will move or (if possible) charge the nearest creature; 
+        An unarmed creature attacks with an unarmed strike. An affected creature not already adjacent to another creature will move or (if possible) charge the nearest creature;
         if the nearest creature is not within range of a charge, the subject moves toward the nearest creature along the most efficient route.
       </p>
       <p>
