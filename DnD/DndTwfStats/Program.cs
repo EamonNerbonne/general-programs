@@ -57,7 +57,7 @@ namespace DndTwfStats
 
 	static class Dice
 	{
-		public static ProbDensity Rd4, R2d4, Rd6, Rd8, Rd10, Rd12, Rd20, R2d6, R3d6, R4d6, R5d6, R6d6, R7d6, R8d6, R9d6, R10d6, R11d6,R12d6, NoDice;
+		public static ProbDensity Rd4, R2d4, Rd6, Rd8, R2d8, R3d8, Rd10, Rd12, Rd20, R2d6, R3d6, R4d6, R5d6, R6d6, R7d6, R8d6, R9d6, R10d6, R11d6, R12d6, NoDice;
 
 		static Dice() {
 			Rd4 = ProbDensity.UniformDistribution(Enumerable.Range(1, 4));
@@ -67,6 +67,11 @@ namespace DndTwfStats
 			Rd10 = ProbDensity.UniformDistribution(Enumerable.Range(1, 10));
 			Rd12 = ProbDensity.UniformDistribution(Enumerable.Range(1, 12));
 			Rd20 = ProbDensity.UniformDistribution(Enumerable.Range(1, 20));
+
+			R2d8 = ProbDensity.AddDistributions(Rd8,Rd8);
+			R3d8 = ProbDensity.AddDistributions(R2d8, Rd8);
+
+
 			R2d6 = ProbDensity.AddDistributions(Rd6, Rd6);
 			R3d6 = ProbDensity.AddDistributions(R2d6, Rd6);
 			R4d6 = ProbDensity.AddDistributions(R3d6, Rd6);
@@ -78,6 +83,7 @@ namespace DndTwfStats
 			R10d6 = ProbDensity.AddDistributions(R9d6, Rd6);
 			R11d6 = ProbDensity.AddDistributions(R10d6, Rd6);
 			R12d6 = ProbDensity.AddDistributions(R11d6, Rd6);
+
 			NoDice = ProbDensity.UniformDistribution(Enumerable.Repeat(0, 1));
 		}
 	}
@@ -197,7 +203,8 @@ namespace DndTwfStats
 		static void Main(string[] args) {
 
 		//	JosComp();
-			TwfComp();
+		//	TwfComp();
+			MonkComp();
 		}
 
 		private static void JosComp() {
@@ -311,6 +318,80 @@ namespace DndTwfStats
 			Console.WriteLine("THF-weighted: {0,6:F02}, SA: {1,6:F02}, FA: {2,6:F02}", (thf1Tot + thfTot) / 2 / count, thf1Tot / count, thfTot / count);
 			Console.WriteLine("NoP-weighted: {0,6:F02}, SA: {1,6:F02}, FA: {2,6:F02}", (thfNP1Tot + thfNPTot) / 2 / count, thfNP1Tot / count, thfNPTot / count);
 			Console.WriteLine("TWF-weighted: {0,6:F02}, SA: {1,6:F02}, FA: {2,6:F02}", (twf1Tot + twfTot) / 2 / count, twf1Tot / count, twfTot / count);
+			Console.ReadKey();
+		}
+		static void MonkComp()
+		{
+			int strBonusH = 6;
+			int babH = 8;
+
+			int enhH = 2;
+			int wfH = 3;
+			int wsH = 4;
+			bool thfOfSpeed = false;
+			ProbDensity thfBonusDie = Dice.NoDice;
+			Weapon axe = new Weapon(Dice.R3d6, 3, 20);
+			var fullAttackSeqH = FullAttackSeq(babH).Concat(Enumerable.Range(babH, thfOfSpeed ? 1 : 0));
+			Func<int, int> PAmult = (pa => pa * 2);  // (pa => (pa * 3) / 2);//NONSTANDARD, should be 2
+
+			int strBonusM = 0;
+			int dexBonusM = 8;
+			int babM = 6;
+
+			int enhM = 2;
+			int wfM = 1;
+			int wsM = 0;
+			int flurryPenalty = 0;
+			int flurryExtraAttackNum = 1;
+			Weapon monkStrike = new Weapon(Dice.R3d8, 2, 20);
+			ProbDensity MonkBonusDie = Dice.NoDice;
+			var fullAttackSeqM = Enumerable.Repeat(babM, flurryExtraAttackNum).Concat(FullAttackSeq(babM));
+
+			WeaponAttack thf = new WeaponAttack(axe, thfBonusDie, Dice.NoDice, enhH + strBonusH * 3 / 2 + wsH, wfH + strBonusH + enhH);
+			WeaponAttack monk = new WeaponAttack(monkStrike, MonkBonusDie, Dice.NoDice, enhM + strBonusM + wsM, wfM + dexBonusM + enhM);
+
+			double monkTot = 0;
+			double thfTot = 0;
+			double thfNP1Tot = 0;
+			double thfNPTot = 0;
+			double monk1Tot = 0;
+			double thf1Tot = 0;
+			int count = 0;
+			foreach (int AC in Enumerable.Range(14, 26))
+			{
+				Console.WriteLine("\n=== vs. AC {0} ===", AC);
+
+				int optPowFA = OptimalPowerAttack(thf, PAmult, fullAttackSeqH, babH, AC);
+				int optPowSA = OptimalPowerAttack(thf, PAmult, SingleAttackSeq(babH), babH, AC);
+
+				double ThfDmgFA = fullAttackSeqH.Select(ab => thf.AttackRoll(ab - optPowFA, AC, PAmult(optPowFA)).Average).Sum();
+				double ThfDmgSA = SingleAttackSeq(babH).Select(ab => thf.AttackRoll(ab - optPowSA, AC, PAmult(optPowSA)).Average).Sum();
+
+				double ThfNoPowDmgFA = fullAttackSeqH.Select(ab => thf.AttackRoll(ab, AC, 0).Average).Sum();
+				double ThfNoPowDmgSA = SingleAttackSeq(babH).Select(ab => thf.AttackRoll(ab, AC, 0).Average).Sum();
+
+				double MonkDmgFA = fullAttackSeqM.Select(ab => monk.AttackRoll(ab - flurryPenalty, AC, 0).Average).Sum();
+				double MonkDmgSA = SingleAttackSeq(babM).Select(ab => monk.AttackRoll(ab, AC, 0).Average).Sum();
+
+
+				thf1Tot += ThfDmgSA;
+				thfTot += ThfDmgFA;
+				thfNP1Tot += ThfNoPowDmgSA;
+				thfNPTot += ThfNoPowDmgFA;
+				monk1Tot += MonkDmgSA;
+				monkTot += MonkDmgFA;
+				Console.WriteLine("Optimal PA:" + optPowSA + " (+" + (babH + thf.attackRollMod - optPowSA) + "): dmg +" + PAmult(optPowSA));
+				Console.WriteLine("Optimal PA:" + optPowFA + " (" + string.Join(", ", fullAttackSeqH.Select(a => "+" + (a + thf.attackRollMod - optPowFA)).ToArray()) + "): dmg +" + PAmult(optPowFA));
+				Console.WriteLine("THF-weighted: {0,6:F02}, SA: {1,6:F02}, FA: {2,6:F02}", (ThfDmgFA + ThfDmgSA) / 2, ThfDmgSA, ThfDmgFA);
+				Console.WriteLine("NoP-weighted: {0,6:F02}, SA: {1,6:F02}, FA: {2,6:F02}", (ThfNoPowDmgFA + ThfNoPowDmgSA) / 2, ThfNoPowDmgSA, ThfNoPowDmgFA);
+				Console.WriteLine("Monk-weighted: {0,6:F02}, SA: {1,6:F02}, FA: {2,6:F02}", (MonkDmgFA + MonkDmgSA) / 2, MonkDmgSA, MonkDmgFA);
+				count++;
+			}
+			Console.WriteLine("\n=== Average over all AC's ===");
+
+			Console.WriteLine("THF-weighted: {0,6:F02}, SA: {1,6:F02}, FA: {2,6:F02}", (thf1Tot + thfTot) / 2 / count, thf1Tot / count, thfTot / count);
+			Console.WriteLine("NoP-weighted: {0,6:F02}, SA: {1,6:F02}, FA: {2,6:F02}", (thfNP1Tot + thfNPTot) / 2 / count, thfNP1Tot / count, thfNPTot / count);
+			Console.WriteLine("Monk-weighted: {0,6:F02}, SA: {1,6:F02}, FA: {2,6:F02}", (monk1Tot + monkTot) / 2 / count, monk1Tot / count, monkTot / count);
 			Console.ReadKey();
 		}
 	}
