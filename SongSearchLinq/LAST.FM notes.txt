@@ -1,0 +1,30 @@
+Instead of spidering last.fm, use audioscrobbler.net and .com, all data of which is licensed under CC-A-NC-SA (i.e. fine for our purposes).
+
+these xml web services include an Age: HTTP header, useful for caching!
+
+
+Artists:
+You can convert  a link like http://www.last.fm/music/[artist-name-url-encoded] to 
+http://ws.audioscrobbler.com/1.0/artist/[artist]/similar.xml
+http://ws.audioscrobbler.com/1.0/artist/[artist]/toptracks.xml
+http://ws.audioscrobbler.com/1.0/artist/[artist]/topalbums.xml
+
+and for genre identification perhaps interesting:
+http://ws.audioscrobbler.com/1.0/artist/[artist]/toptags.xml
+
+Albums:
+You can convert a link like 
+http://www.last.fm/music/[artist]/[album]
+to 
+http://ws.audioscrobbler.com/1.0/album/[artist]/[album]/info.xml
+which only contains basic info, no similarity.  The track listing does contain "reach" info, though.
+
+
+Tracks:
+You can convert a link like
+http://www.last.fm/music/[artist]/_/[track]
+to
+http://ws.audioscrobbler.com/1.0/track/[artist]/[track]/similar.xml
+
+for genre info:
+http://ws.audioscrobbler.com/1.0/track/[artist]/[track]/toptags.xml

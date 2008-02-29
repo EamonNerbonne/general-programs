@@ -1,0 +1,41 @@
+<publishData>
+  <publishTarget publishUrl="http://localhost/EdnaGrepBridge/">
+    <file relUrl="bin/EamonExtensionsLinq.dll" publishTime="10/11/2007 22:11:48" />
+    <file relUrl="bin/SuffixTreeLib.pdb" publishTime="10/19/2007 18:45:11" />
+    <file relUrl="bin/HttpHeaderHelper.dll" publishTime="10/11/2007 22:11:50" />
+    <file relUrl="bin/Cassini.dll" publishTime="10/08/2007 12:41:17" />
+    <file relUrl="Web.config" publishTime="10/08/2007 14:18:53" />
+    <file relUrl="bin/EamonExtensionsLinq.pdb" publishTime="10/11/2007 22:11:48" />
+    <file relUrl="tableview.xsl" publishTime="09/28/2007 01:32:08" />
+    <file relUrl="bin/SongSearchSite.dll" publishTime="10/19/2007 18:45:12" />
+    <file relUrl="bin/CassiniTest.exe" publishTime="10/08/2007 12:41:18" />
+    <file relUrl="bin/taglib-sharp.dll" publishTime="09/11/2007 15:41:36" />
+    <file relUrl="bin/SongData.dll" publishTime="10/19/2007 16:10:17" />
+    <file relUrl="Default.aspx" publishTime="10/04/2007 18:25:50" />
+    <file relUrl="bin/CassiniTest.pdb" publishTime="10/08/2007 12:41:18" />
+    <file relUrl="bin/Cassini.pdb" publishTime="10/08/2007 12:41:17" />
+    <file relUrl="bin/SongSearchSite.pdb" publishTime="10/19/2007 18:45:12" />
+    <file relUrl="IndexStatus.aspx" publishTime="09/13/2007 16:21:50" />
+    <file relUrl="bin/SongData.pdb" publishTime="10/19/2007 16:10:17" />
+    <file relUrl="bin/SuffixTreeLib.dll" publishTime="10/19/2007 18:45:11" />
+    <file relUrl="bin/HttpHeaderHelper.pdb" publishTime="10/11/2007 22:11:50" />
+  </publishTarget>
+  <publishTarget publishUrl="G:\eamonpublic\SongSearchLinq\PrecompiledWeb\SongSearchSite\">
+    <file relUrl="bin/HttpHeaderHelper.pdb" publishTime="09/13/2007 16:05:30" />
+    <file relUrl="bin/SongData.pdb" publishTime="09/13/2007 16:37:44" />
+    <file relUrl="bin/SuffixTreeLib.dll" publishTime="09/13/2007 16:37:44" />
+    <file relUrl="bin/HttpHeaderHelper.dll" publishTime="09/13/2007 16:05:30" />
+    <file relUrl="bin/SongSearchSite.pdb" publishTime="09/13/2007 16:37:47" />
+    <file relUrl="bin/EamonExtensionsLinq.pdb" publishTime="09/13/2007 16:05:30" />
+    <file relUrl="Web.config" publishTime="09/13/2007 17:09:41" />
+    <file relUrl="Default.aspx" publishTime="09/13/2007 16:53:35" />
+    <file relUrl="bin/Cassini.pdb" publishTime="09/11/2007 14:41:02" />
+    <file relUrl="bin/SongSearchSite.dll" publishTime="09/13/2007 16:37:47" />
+    <file relUrl="bin/SongData.dll" publishTime="09/13/2007 16:37:44" />
+    <file relUrl="bin/Cassini.dll" publishTime="09/11/2007 14:41:02" />
+    <file relUrl="bin/taglib-sharp.dll" publishTime="09/11/2007 15:41:36" />
+    <file relUrl="bin/SuffixTreeLib.pdb" publishTime="09/13/2007 16:37:44" />
+    <file relUrl="bin/EamonExtensionsLinq.dll" publishTime="09/13/2007 16:05:30" />
+    <file relUrl="IndexStatus.aspx" publishTime="09/13/2007 16:21:50" />
+  </publishTarget>
+</publishData>

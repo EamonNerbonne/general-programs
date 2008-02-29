@@ -1,0 +1,127 @@
+== Introduction ==
+
+The purpose of this project is to spider various websites and to extract relevant meta information about songs and artists, and specifically about the amount of similarity between different artists and songs.
+
+This similarity data will be largely based on popupular trends - in other words people how frequently listen to A also listen to B with a certain chance, or people who frequently buy CD's from artist A, also buy CD's from artist B.  Since it's not possible to use the same similarity measures for different sources, this data will need to be scaled or reinterpreted before real use.
+
+In order to combine various data sources at all, we'll need to standardize the data format.
+
+==  Basics
+
+To start with, we have 3 entities:
+
+-- Artists
+-- Songs 
+-- Collections of Songs (such as CD's, LP's, or simply common playlists)
+
+And one pseudo-entity:
+
+-- Synonyms
+
+It is not the responsibility of the spider to recognize synonyms - that is, from the point of view of the spider, "The Prodigy" and "Prodigy" are two different artists.  If the data source somehow allows retrieval of likely synonyms, this information may be stored as well, though the spider need not deal with it beyond simple storage.
+
+The basic format is XML, and each of these entities has it's own element.
+
+The root element of the data format is <SongSpiderData>, and it must include a 'version' attribute.  This document describes version '1.0'.  Further, it should include a 'spiderVersion' attribute, containing a string describing the spider which generated this data (this is similar to a user agent in intent).
+
+example:  
+
+<SongSpiderData version="1.0" spiderVersion="eNet Last.fm v0.1">
+...
+</SongSpiderData>
+
+Similarity is a further core concept.  The attribute 'Rating' which should rate similarity on a numerical scale.  Elements describing 'Rating' may omit this attribute in which case the entity mentioned is presumed to be similar but it can't be quantified how similar.  Any entity mentioned is presumed to be more similar than those not mentioned.   
+
+Certainty about a specified similarity may be stated using an optional attribute 'Certainty', which is allowed whereever 'Rating' is.  It describes how likely the real 'Similarity' is to be (close to) the specified 'Rating'.  This certainty data could, for instance, be based on total listener count.
+
+Iterpreting Certainty and Rating is unspecified.  There is no standard for meaning beyond that a higher similarity indicates a greater similarity than a low similarity index.  Crucially, Similarities are not generally comparable between entities: so if entity A rates B as 0.8 similar and C as 0.5, and entity D rates C as 0.9 similar, you may not conclude that C is "more similar" to D than to A.  Future versions of this specification may add optional data allowing better comparability.  Similarly, certainty is not specified to be cross-comparable.
+
+All entities should mention their uri's as much as possible to permit further spidering and, if necessary, to help in distinguishing synonyms
+
+
+==  Artists
+
+
+<Artist value="The Prodigy" uri="http://www.last.fm/music/The+Prodigy" DateSpidered="2007-09-20"
+  Rating="425627">
+
+ <SimilarTo>
+
+  <ArtistRef
+	value="The Chemical Brothers" 
+	uri="http://www.last.fm/music/The+Chemical+Brothers" 
+	Rating="1.0" 
+	Certainty="0.5"/>
+  <ArtistRef
+	value="Fatboy Slim" 
+	Rating="0.89"
+	uri="http://www.last.fm/music/Fatboy+Slim"/>
+  <ArtistRef
+	value="Daft Punk" 
+	Rating="0.77" 
+	Certainty="0.7"
+	uri="http://www.last.fm/music/Daft+Punk"/>
+  <ArtistRef
+	value="Moby" 
+	Rating="0.76" 
+	Certainty="0.5"
+	uri="http://www.last.fm/music/Moby"/>
+  [...]
+ </SimilarTo>
+ <HasAlbums>
+  <AlbumRef
+    value="The Fat of the Land"
+    uri="http://www.last.fm/music/The+Prodigy/The+Fat+of+the+Land"
+    Rating="10"
+  />
+  <AlbumRef
+    uri="http://www.last.fm/music/The+Prodigy/Music+for+the+Jilted+Generation"
+    value="Music for the Jilted Generation"
+    Rating="9"
+   />
+  [...]
+ </HasAlbums>
+ <HasSongs>
+  <SongRef
+    value="Smack My Bitch Up"
+    uri="http://www.last.fm/music/The+Prodigy/_/Smack+My+Bitch+Up"
+
+    Rating="47087"
+   />
+
+ </HasSongs>    
+
+</Artist>
+
+
+==  Songs
+
+<Song 
+  value="Firestarter" 
+  uri="http://www.last.fm/music/The+Prodigy/_/Firestarter"
+  artist="The Prodigy"
+  artistUri="http://www.last.fm/music/The+Prodigy"
+  Rating="94159">
+ <SimilarTo>
+  <SongRef 
+    value="Hey Boy Hey Girl"
+    artist="The Chemical Brothers"
+    uri="http://www.last.fm/music/The+Chemical+Brothers/_/Hey+Boy+Hey+Girl"
+    artistUri="http://www.last.fm/music/The+Chemical+Brothers"
+    Confidence="62117"/>
+  [...]
+ </SimilarTo>
+
+ <InAlbums>
+   <AlbumRef
+     value="The Fat of the Land"
+     uri="http://www.last.fm/music/The+Prodigy/The+Fat+of+the+Land"/>
+  [...]
+ </InAlbums>
+
+</Song>
+
+
+==  Albums / Collections
+
+[TODO]

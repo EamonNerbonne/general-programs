@@ -1,0 +1,60 @@
+ON WINDOWS:
+HEAD /songs/C/Data/newstuff/music/Busta%20Rhymes%20-%20The%20Coming/Busta%20Rhymes%20-%20The%20Coming/Busta%20Rhymes%20-%2002.%20Do%20My%20Thing.mp3 HTTP/1.1
+Host: localhost:32108
+User-Agent: haha
+
+HTTP/1.1 200 OK
+Server: Microsoft-Cassini/1.0.0.0
+Date: Thu, 13 Sep 2007 20:46:57 GMT
+X-AspNet-Version: 2.0.50727
+Content-Length: 5780192
+Cache-Control: public
+ETag: "LsZqZ3jXdA1dSVEMvpBPdw=="
+Content-Type: audio/mpeg
+Connection: Close
+
+ON LINUX:
+HEAD /songs/home/eamon/test.net/Buster%20Poindexter-Buster%20Goes%20Berserk-02-Hit%20The%20Road,%20Jack.mp3
+Host: localhost:32109
+User-Agent: haha
+
+HTTP/1.1 200 OK
+Server: Microsoft-Cassini/1.0.0.0
+Date: Thu, 13 Sep 2007 20:45:56 GMT
+Accept-Ranges: bytes
+Date: Thu, 13 Sep 2007 20:45:56 GMT
+Content-Length: 2704685
+Expires: Sat, 13 Oct 2007 20:45:56 GMT
+Cache-Control: public
+ETag: "DwtJmQ2ODX4aMWbl6vnWhw=="
+Last-Modified: Mon, 5 Feb 2007 22:07:07 GMT
+Content-Type: audio/mpeg
+Set-Cookie: ASP.NET_SessionId=974DBF795F39F951C3ED4AE9; path=/
+Connection: Close
+
+ON LINUX:
+HEAD /list.xml?q=mp3
+Host: localhost:32109
+
+HTTP/1.1 200 OK
+Server: Microsoft-Cassini/1.0.0.0
+Date: Thu, 13 Sep 2007 20:52:12 GMT
+Date: Thu, 13 Sep 2007 20:52:12 GMT
+Content-Length: 16922
+Cache-Control: private
+Content-Type: application/xml
+Connection: Close
+
+ON WINDOWS:
+HEAD /list.xml?q=mp3
+Host: localhost:32108
+
+HTTP/1.1 200 OK
+Server: Microsoft-Cassini/1.0.0.0
+Date: Thu, 13 Sep 2007 20:52:59 GMT
+X-AspNet-Version: 2.0.50727
+Cache-Control: private
+Content-Type: application/xml; charset=utf-8
+Content-Length: 15406867
+Connection: Close
+

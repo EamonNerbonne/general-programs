@@ -1,0 +1,30 @@
+last.fm:
+
+Per willekeurige entity (song/albume/artist) links naar containing danwel contained entities.
+heeft # of listerers absoluut
+heeft similarity # naar soortgelijke entiteiten
+
+
+
+amazon:
+
+heeft eigenlijk vooral albums:
+
+heeft total sales rank #
+heeft review rating
+heeft review rating histogram
+
+heeft categories
+heeft rank within categories, meestal
+verwijst naar artiest en liedjes, meestal, niet altijd
+
+verwijst naar similar albums
+
+
+What Do Customers Ultimately Buy After Viewing Items Like This?
+So You'd Like to...
+Listmania!
+Look for Similar Items by Category
+Customers Who Bought This Item Also Bought
+Tags customers associate with this product
+Popular in these categories:
