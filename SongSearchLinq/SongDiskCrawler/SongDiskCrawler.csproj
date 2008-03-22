@@ -2,7 +2,7 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProductVersion>9.0.20706</ProductVersion>
+    <ProductVersion>9.0.21022</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{4F8417B2-D31B-49DB-BAC0-FE46517E3D4F}</ProjectGuid>
     <OutputType>Exe</OutputType>
@@ -44,10 +44,6 @@
     <Compile Include="SongDiskCrawlerMain.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\ProjectsTrunk\EamonExtensionsLinq\EamonExtensionsLinq.csproj">
-      <Project>{53ECEDA4-BB11-4BD3-8B51-0D3481FCBFA1}</Project>
-      <Name>EamonExtensionsLinq</Name>
-    </ProjectReference>
     <ProjectReference Include="..\SongData\SongData.csproj">
       <Project>{171E7F71-DB67-47CA-82BC-C63681BF2733}</Project>
       <Name>SongData</Name>

@@ -95,6 +95,7 @@ namespace AcloSync
 										AcloCalendarSource.start,
 										AcloCalendarSource.end)
 				select ev;
+			
 			//…but not those which are "all-day events" if those weren't explicitely enabled…
 			if(!ConsiderAllDayEventsCheckBox.Checked)
 				googleEvents = googleEvents.Where(ev => !ev.Times[0].AllDay);
