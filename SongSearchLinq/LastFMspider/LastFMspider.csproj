@@ -35,9 +35,7 @@
     <Reference Include="System.Core">
       <RequiredTargetFramework>3.5</RequiredTargetFramework>
     </Reference>
-    <Reference Include="System.Data.SQLite, Version=1.0.47.2, Culture=neutral, PublicKeyToken=db937bc2d44ff139">
-      <Private>True</Private>
-    </Reference>
+    <Reference Include="System.Data.SQLite, Version=1.0.48.0, Culture=neutral, PublicKeyToken=db937bc2d44ff139, processorArchitecture=x86" />
     <Reference Include="System.Transactions" />
     <Reference Include="System.Xml.Linq">
       <RequiredTargetFramework>3.5</RequiredTargetFramework>
@@ -66,7 +64,7 @@
     <WCFMetadata Include="Service References\" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\ProjectsTrunk\EamonExtensionsLinq\EamonExtensionsLinq.csproj">
+    <ProjectReference Include="..\..\..\EamonExtensionsLinq\EamonExtensionsLinq.csproj">
       <Project>{53ECEDA4-BB11-4BD3-8B51-0D3481FCBFA1}</Project>
       <Name>EamonExtensionsLinq</Name>
     </ProjectReference>
@@ -79,7 +77,7 @@
     <Service Include="{B4F97281-0DBD-4835-9ED8-7DFB966E87FF}" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="app.config" />
+    <None Include="App.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>

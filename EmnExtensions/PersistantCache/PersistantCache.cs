@@ -17,48 +17,20 @@ namespace EamonExtensionsLinq.PersistantCache
 		public PersistantCache(DirectoryInfo cacheDir, string ext, IPersistantCacheMapper<TKey,TItem>mapper) {
 			if(!ext.StartsWith(".")) throw new PersistantCacheException("extension must start with a '.'");
 			this.cacheDir = cacheDir;
+            this.filesDir = cacheDir.CreateSubdirectory("files");
 			this.ext = ext;
 			this.mapper = mapper;
 			maxKeyLength = 259 - (cacheDir.FullName.Length + 1)-ext.Length;
-			Load();
-		}
-		~PersistantCache() {
-			StoreQuickLoad();
-		}
-		void Load() {
-            return;
-			FileInfo store = new FileInfo(Path.Combine(cacheDir.FullName,"%%%"+ext+".bin"));
-			if(store.Exists) {
-				try {
-					using(Stream s = store.OpenRead()) {
-						BinaryFormatter bin = new BinaryFormatter();
-						memCache= (Dictionary<TKey, TItem> ) bin.Deserialize(s);
-						lastSave = memCache.Count;
-					}
-				} catch { }
-			}
-		}
-		public void StoreQuickLoad() {
-            return;
-			FileInfo store = new FileInfo(Path.Combine(cacheDir.FullName, "%%%" + ext + ".bin"));
-				try {
-					lastSave = memCache.Count;
-					using(Stream s = store.OpenWrite()) {
-//						SerializationWriter w= SerializationWriter.GetWriter();
-						//w.Write(memCache);
-						BinaryFormatter bin = new BinaryFormatter();
-						bin.Serialize(s, memCache);
-					}
-				} catch { }
 		}
 		
 		public readonly IPersistantCacheMapper<TKey,TItem> mapper;
 		readonly DirectoryInfo cacheDir;
+        readonly DirectoryInfo filesDir;
 		readonly string ext;
 		int maxKeyLength;
-		int lastSave = 0;
-		public int storeEach = 10000;
-		Dictionary<TKey, TItem> memCache = new Dictionary<TKey, TItem>();
+		//int lastSave = 0;
+		//public int storeEach = 10000;
+        Dictionary<TKey, TItem> memCache = new Dictionary<TKey, TItem>(); //used to be serialized at:Path.Combine(cacheDir.FullName,"%%%"+ext+".bin")
 		private void AssertKeyStringValid(string key) {
 			if(key.Length > maxKeyLength) throw new PersistantCacheException("Key too long, may be at most 259 chars including directory, directory separator, and extension.\n In this case that means at most " + maxKeyLength + " chars long.");
 			if(key.IndexOfAny(invalidKeyChars)>=0) {
@@ -69,9 +41,9 @@ namespace EamonExtensionsLinq.PersistantCache
 
 		private FileInfo getFileStoreLocation(string key) {
 			AssertKeyStringValid(key);
-			return new FileInfo(Path.Combine(cacheDir.FullName, key + ext));
+			return new FileInfo(Path.Combine(filesDir.FullName, key + ext));//TODO: provide fallback?
 		}
-		public IEnumerable<string> GetDiskCacheContents() {return cacheDir.GetFiles("*" + ext).Select(fi=>fi.Name.Substring(0,fi.Name.Length - ext.Length)) ; }
+		public IEnumerable<string> GetDiskCacheContents() {return filesDir.GetFiles("*" + ext).Select(fi=>fi.Name.Substring(0,fi.Name.Length - ext.Length)) ; }
 		public Dictionary<TKey,TItem> MemoryCache { get { return memCache; } }
 		public TItem Lookup(TKey key) { return Lookup(key, mapper.Evaluate); }
 		public TItem Lookup(TKey key, Func<TKey,TItem> customEvaluator) {
@@ -92,7 +64,7 @@ namespace EamonExtensionsLinq.PersistantCache
 				}
 			}
 			memCache[key] = item;
-			if(memCache.Count > lastSave + storeEach) StoreQuickLoad();
+			//if(memCache.Count > lastSave + storeEach) StoreQuickLoad();
 			return item;
 		}
 	}

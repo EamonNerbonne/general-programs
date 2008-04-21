@@ -111,6 +111,30 @@ CREATE UNIQUE INDEX IF NOT EXISTS [Unique_Track_ArtistID_LowercaseTitle] ON [Tra
 
             private static IEnumerable<T> DeNull<T>(IEnumerable<T> iter) { return iter == null ? Enumerable.Empty<T>() : iter; }
 
+
+            const string lookupSimilarityListSql = @"
+SELECT S.Rating, A.FullArtist, T.FullTitle FROM
+  SimilarTrack S, Artist A, Track T, Track Torig, Artist Aorig
+  WHERE
+    Aorig.LowercaseArtist=@lowerArtist AND
+    Aorig.ArtistID = Torig.ArtistID AND
+    Torig.LowercaseTitle = @lowerTitle AND
+    S.TrackA = Torig.TrackID AND
+    T.TrackID = S.TrackB AND
+    A.ArtistID = T.ArtistID
+  ORDER BY S.Rating DESC
+";
+            DbCommand lookupSimilarityListCommand;
+            DbParameter lookupSimilarityListParamLowerTitle, lookupSimilarityListParamLowerArtist;
+            //private void PrepareUpdateTimestamp
+
+
+            public SongSimilarityList LookupSimilarityList(SongRef songref)
+            {
+
+                throw new NotImplementedException("TODO");
+            }
+
             public void InsertSimilarityList(SongSimilarityList list)
             {
                 HashSet<SongRef> tracks = new HashSet<SongRef>(  DeNull(list.similartracks).Select(sim=>sim.similarsong) );
@@ -198,6 +222,7 @@ FROM Track A, Track B, Artist AsArtist, Artist BsArtist WHERE A.ArtistID = AsArt
 
 
 
+
             const string insertTrackSql = @"
 INSERT OR IGNORE INTO [Track] (ArtistID, FullTitle, LowercaseTitle)
 SELECT ArtistID, @fullTitle, @lowerTitle FROM [Artist]
@@ -257,10 +282,19 @@ WHERE LowercaseArtist = @lowerArtist
 		PersistantCache<SongRef, SongSimilarityList> backingCache;
         InternalDB backingDB;
 		public SongSimilarityCache(DirectoryInfo cacheDir) {
-            backingDB = new InternalDB(new FileInfo(Path.Combine(cacheDir.FullName,"lastFMcache.s3db")));
+            Console.WriteLine("Initializing file db");
             backingCache = new PersistantCache<SongRef, SongSimilarityList>(cacheDir, ".xml", new Mapper());
-            Port();
+            // Console.WriteLine("Initializing sqlite db");
+           // backingDB = new InternalDB(new FileInfo(Path.Combine(cacheDir.FullName,"lastFMcache.s3db")));//TODO decide what kind of DB we really want...
+            //Console.WriteLine("Porting file -> sqlite ...");
+            //Port();
 		}
+
+        public IEnumerable<SongRef> DiskCacheContents()
+        {
+            foreach (string songrefStr in backingCache.GetDiskCacheContents())
+                yield return SongRef.CreateFromCacheName(songrefStr);
+        }
 
         public void Port()
         {
@@ -295,6 +329,7 @@ WHERE LowercaseArtist = @lowerArtist
             foreach (var list in songSims.Concat(noSims.Select(sr => new SongSimilarityList() { songref = sr, similartracks = null })))
             {
                 backingDB.InsertSimilarityList(list);
+                
                 if (++progress % 100 == 0)
                     Console.WriteLine("Stored {0}.", progress);
 
@@ -309,13 +344,27 @@ WHERE LowercaseArtist = @lowerArtist
 
 		private class Mapper : IPersistantCacheMapper<SongRef, SongSimilarityList>
 		{
+            static TimeSpan minReqDelta = new TimeSpan(0, 0, 0, 1);//no more than one request per second.
+            DateTime nextRequestWhen = DateTime.Now;
 			string xmlrep;
 			SongSimilarityList lastlist;
 			public string KeyToString(SongRef key) {				return key.CacheName();			}
 
 			public SongSimilarityList Evaluate(SongRef songref) {
-				xmlrep = new System.Net.WebClient().DownloadString(songref.AudioscrobblerSimilarUrl());
-				return lastlist=SongSimilarityList.CreateFromAudioscrobblerXml(songref, XDocument.Parse(xmlrep));
+                try
+                {
+                    var now = DateTime.Now;
+                    if (nextRequestWhen > now)
+                    {
+                        Console.Write("<");
+                        System.Threading.Thread.Sleep(nextRequestWhen - now);
+                        Console.Write(">");
+                    }
+                    nextRequestWhen = now + minReqDelta;
+                    xmlrep = new System.Net.WebClient().DownloadString(songref.AudioscrobblerSimilarUrl());
+                    return lastlist = SongSimilarityList.CreateFromAudioscrobblerXml(songref, XDocument.Parse(xmlrep));
+                }
+                catch { return null; }//don't bother trying if anything happens
 			}
 
 			public void StoreItem(SongSimilarityList item, Stream to) {
