@@ -40,7 +40,6 @@ namespace LastFMspider
 			lookup = new SongDataLookups(db.Songs, null);
 
 			PrecacheAudioscrobbler();
-
 		}
 
 		void PrecacheAudioscrobbler() {
@@ -51,6 +50,7 @@ namespace LastFMspider
             lookup =null;
             db = null;
             System.GC.Collect();
+			
 			foreach(SongRef songref in dbSongRefs) {
                 try
                 {

@@ -15,8 +15,8 @@ namespace LastFMspider
 		public int hashcode;
 
 		public SongRef(string artist, string title) {
-			this.artist = string.Intern(artist);
-			this.title = string.Intern(title);
+			this.artist = string.Intern(artist);//interning saves bucketloads of memory since multiple tracks with the same artist share the same string
+			this.title = string.Intern(title);//but it's also a memory leak - no string ever constructed ever leaves memory either, this way...
 			hashcode = Artist.ToLowerInvariant().GetHashCode() + Title.ToLowerInvariant().GetHashCode(); 
 		}
 
