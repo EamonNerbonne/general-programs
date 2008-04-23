@@ -2,27 +2,93 @@
 using System.Xml.Linq;
 using System.Collections.Generic;
 using System;
+using System.Linq;
 using System.Runtime.Serialization;
 namespace LastFMspider
 {
 	[Serializable]
 	public class SongRef
 	{
+        private static class Cache<T> 
+        {
+            public static int nextClearIn=10000;
+            public static double clearScaleFactor = 0.5;
+            private static Dictionary<int, WeakReference[]> cache = new Dictionary<int, WeakReference[]>();
+            public static T Unique(T item,Func<T,T> optimize)
+            {
+                if (nextClearIn <= 0)
+                {
+                    var keys = cache.Keys.ToArray();
+                    foreach (var key in keys)
+                    {
+                        var liverefs = cache[key].Where(wk => wk.Target != null).ToArray();
+                        if (liverefs.Length == 0)
+                            cache.Remove(key);
+                        else
+                            cache[key] = liverefs;
+                    }
+                    nextClearIn = (int)(clearScaleFactor * cache.Count);
+                }
+                else
+                    nextClearIn--;
+                if (optimize == null) optimize = x => x;
+                int code = item.GetHashCode();
+                lock (cache)
+                {
+                    if (cache.ContainsKey(code))
+                    {
+                        var items = cache[code].Select(w => w.Target).Where(o => o != null).Cast<T>();
+                        var list = new List<T>();
+                        foreach (var cacheditem in items)
+                            if (cacheditem.Equals(item))
+                                return cacheditem;
+                            else
+                                list.Add(cacheditem);
+                        list.Add(optimize(item));
+                        cache[code] = list.Select(i => new WeakReference(i)).ToArray();
+                        return item;
+                    }
+                    else
+                    {
+                        cache[code] = new[] { new WeakReference(optimize(item)) };
+                        return item;
+                    }
+                }
+            }
+        }
+
 		private string artist;
 		public string Artist { get { return artist; } }
 		private string title;
 		public string Title { get { return title; } }
-		public int hashcode;
+		public readonly int hashcode;
 
-		public SongRef(string artist, string title) {
-			this.artist = string.Intern(artist);//interning saves bucketloads of memory since multiple tracks with the same artist share the same string
-			this.title = string.Intern(title);//but it's also a memory leak - no string ever constructed ever leaves memory either, this way...
-			hashcode = Artist.ToLowerInvariant().GetHashCode() + Title.ToLowerInvariant().GetHashCode(); 
+        private SongRef OptimalVersion()
+        {
+            return new SongRef(Cache<string>.Unique(artist,null), Cache<string>.Unique(title,null), hashcode);
+        }
+
+        public static SongRef Create(string artist, string title)
+        {
+            return Cache<SongRef>.Unique(new SongRef(artist, title), s=>s.OptimalVersion() );
+            
+        }
+
+		private SongRef(string artist, string title) {
+			this.artist = artist;
+			this.title = title;
+			hashcode = Artist.ToLowerInvariant().GetHashCode() + 137*Title.ToLowerInvariant().GetHashCode(); 
 		}
+        private SongRef(string artist, string title,int hashcode)
+        {
+            this.artist = artist;
+            this.title = title;
+            this.hashcode = hashcode;
+        }
 
 		public static SongRef Create(SongData song) {
 			if(song.performer == null || song.title == null) return null;//TODO - add error handling or simply remove from db?
-			return new SongRef(song.performer, song.title);
+			return Create(song.performer, song.title);
 		}
 		public override bool Equals(object obj) {
 			if(!(obj is SongRef)) return false;
@@ -42,7 +108,7 @@ namespace LastFMspider
 		}
 		public static SongRef CreateFromCacheName(string cachename) {
 			var parts = cachename.Split(' ');
-			return new SongRef(Uri.UnescapeDataString(parts[0]), Uri.UnescapeDataString(parts[1]));
+			return Create(Uri.UnescapeDataString(parts[0]), Uri.UnescapeDataString(parts[1]));
 		}
 
 		public string OldCacheName() {
@@ -65,7 +131,7 @@ namespace LastFMspider
 			SongRef retval = new SongRef((string)xEl.Attribute("artist"), (string)xEl.Attribute("title"));
 			if(retval.CacheName() != (string)xEl.Attribute("encodedName"))
 				throw new Exception("Invalid encodedName - error?");
-			return retval;
+			return Create(retval.artist,retval.title);
 		}
 
 

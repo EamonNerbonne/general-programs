@@ -20,7 +20,7 @@ namespace LastFMspider
 				from trackXml in doc.Element("similartracks").Elements("track")
 				select new SimilarTrack {
 					similarity = (double)trackXml.Element("match"),
-					similarsong = new SongRef( (string)trackXml.Element("artist").Element("name"), (string)trackXml.Element("name"))
+					similarsong = SongRef.Create( (string)trackXml.Element("artist").Element("name"), (string)trackXml.Element("name"))
 				};
 			return new SongSimilarityList {
 				songref = songref,

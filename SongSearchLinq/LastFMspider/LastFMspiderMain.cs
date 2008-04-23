@@ -49,19 +49,26 @@ namespace LastFMspider
             var dbSongRefs = lookup.dataByRef.Keys.ToArray();
             lookup =null;
             db = null;
+            long similarityCount=0;
+            int hits=0;
             System.GC.Collect();
-			
 			foreach(SongRef songref in dbSongRefs) {
                 try
                 {
                     progressCount++;
                     var similar = similarSongs.Lookup(songref);//precache the last.fm data.  unsure - NOT REALLY necessary?
-                    Console.WriteLine("{0,3} - {3} for {1} - {2}", 100 * progressCount / (double)total, songref.Artist, songref.Title, similar == null ? 0 : similar.similartracks.Length);
+                    int newSimilars=similar == null ? 0 : similar.similartracks.Length;
+                    similarityCount+=newSimilars;
+                    if (similar != null)
+                        hits++;
+                    Console.WriteLine("{0,3} - tot={4} in hits={5}, with relTo={3} in \"{1} - {2}\"", 100 * progressCount / (double)total, songref.Artist, songref.Title, similar == null ? 0 : similar.similartracks.Length,(double)similarityCount,hits);
 
                 }
                 catch { }//ignore all errors.
                 similarSongs.Cache.Clear();//TODO temp for low-mem server.
 			}
+            dbSongRefs = null;
+            System.GC.Collect();
             var onDisk = similarSongs.DiskCacheContents().ToArray();
             foreach (SongRef diskSongRef in onDisk)
             {
@@ -75,7 +82,11 @@ namespace LastFMspider
                             {
                                 progressCount++;
                                 var similar = similarSongs.Lookup(songref);//precache the last.fm data.  unsure - NOT REALLY necessary?
-                                Console.WriteLine("{0,3} - {3} for {1} - {2}", 100 * progressCount / (double)total, songref.Artist, songref.Title, similar == null ? 0 : similar.similartracks.Length);
+                                int newSimilars = similar == null ? 0 : similar.similartracks.Length;
+                                similarityCount += newSimilars;
+                                if (similar != null)
+                                    hits++;
+                                Console.WriteLine("{0,3} - tot={4} in hits={5}, with relTo={3} in \"{1} - {2}\"", 100 * progressCount / (double)total, songref.Artist, songref.Title, similar == null ? 0 : similar.similartracks.Length, (double)similarityCount, hits);
                             }
                             catch { }//ignore all errors.
                             similarSongs.Cache.Clear();//TODO temp for low-mem server.
@@ -118,7 +129,7 @@ namespace LastFMspider
 				else {
 					int bestMatchVal = Int32.MaxValue;
 					while(artistTitleSplitIndex != -1) {
-						SongRef songref = new SongRef(song.HumanLabel.Substring(0, artistTitleSplitIndex),  song.HumanLabel.Substring(artistTitleSplitIndex + 3) );
+						SongRef songref = SongRef.Create(song.HumanLabel.Substring(0, artistTitleSplitIndex),  song.HumanLabel.Substring(artistTitleSplitIndex + 3) );
 						if(lookup.dataByRef.ContainsKey(songref)) {
 							foreach(var songCandidate in lookup.dataByRef[songref]) {
 								int candidateMatchVal = 100 * Math.Abs(song.Length - songCandidate.Length) + Math.Min(199, Math.Abs(songCandidate.bitrate - 224));
@@ -135,7 +146,7 @@ namespace LastFMspider
 				if(bestMatch != null) known.Add(bestMatch);
 				else {
 					artistTitleSplitIndex = song.HumanLabel.IndexOf(" - ");
-					if(artistTitleSplitIndex >=0) unknown.Add( new SongRef (song.HumanLabel.Substring(0, artistTitleSplitIndex),  song.HumanLabel.Substring(artistTitleSplitIndex + 3) ));
+					if(artistTitleSplitIndex >=0) unknown.Add( SongRef.Create (song.HumanLabel.Substring(0, artistTitleSplitIndex),  song.HumanLabel.Substring(artistTitleSplitIndex + 3) ));
 					else Console.WriteLine("Can't deal with: " + song.HumanLabel + "\nat:" + song.SongPath);
 				} 
 			}

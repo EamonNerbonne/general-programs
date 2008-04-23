@@ -71,6 +71,10 @@
     <Service Include="{B4F97281-0DBD-4835-9ED8-7DFB966E87FF}" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\EamonExtensionsLinq\EamonExtensionsLinq.csproj">
+      <Project>{53ECEDA4-BB11-4BD3-8B51-0D3481FCBFA1}</Project>
+      <Name>EamonExtensionsLinq</Name>
+    </ProjectReference>
     <ProjectReference Include="..\CassiniTest\CassiniTest.csproj">
       <Project>{1AE2B905-EF2F-45FC-AF04-432C70D8DF9F}</Project>
       <Name>CassiniTest</Name>

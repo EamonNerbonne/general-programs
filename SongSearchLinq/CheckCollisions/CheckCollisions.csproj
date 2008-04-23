@@ -5,11 +5,11 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProductVersion>9.0.21022</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{74874CAF-777F-4961-AB3D-57BB8B28CDF7}</ProjectGuid>
-    <OutputType>Library</OutputType>
+    <ProjectGuid>{FD90A4C3-BB02-41CE-B046-429E8D68B823}</ProjectGuid>
+    <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>HttpHeaderHelper</RootNamespace>
-    <AssemblyName>HttpHeaderHelper</AssemblyName>
+    <RootNamespace>CheckCollisions</RootNamespace>
+    <AssemblyName>CheckCollisions</AssemblyName>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
@@ -35,34 +35,34 @@
     <Reference Include="System.Core">
       <RequiredTargetFramework>3.5</RequiredTargetFramework>
     </Reference>
-    <Reference Include="System.Web" />
     <Reference Include="System.Xml.Linq">
       <RequiredTargetFramework>3.5</RequiredTargetFramework>
     </Reference>
+    <Reference Include="System.Data.DataSetExtensions">
+      <RequiredTargetFramework>3.5</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="HeaderParser.cs" />
-    <Compile Include="HeaderUtility.cs" />
-    <Compile Include="HttpRequestHelper.cs" />
-    <Compile Include="HttpStatus.cs" />
-    <Compile Include="IHttpRequestProcessor.cs" />
-    <Compile Include="PreconditionStatus.cs" />
-    <Compile Include="HttpHeader.cs" />
+    <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Range.cs" />
-    <Compile Include="ResourceInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Service Include="{B4F97281-0DBD-4835-9ED8-7DFB966E87FF}" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\EamonExtensionsLinq\EamonExtensionsLinq.csproj">
+    <ProjectReference Include="..\..\..\EamonExtensionsLinq\EamonExtensionsLinq.csproj">
       <Project>{53ECEDA4-BB11-4BD3-8B51-0D3481FCBFA1}</Project>
       <Name>EamonExtensionsLinq</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\..\SongSearchLinq\SongData\SongData.csproj">
+      <Project>{171E7F71-DB67-47CA-82BC-C63681BF2733}</Project>
+      <Name>SongData</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\LastFMspider\LastFMspider.csproj">
+      <Project>{6AFF4733-511B-4EE5-8A5F-6B11A894E0D7}</Project>
+      <Name>LastFMspider</Name>
+    </ProjectReference>
   </ItemGroup>
-  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">
