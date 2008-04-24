@@ -9,6 +9,11 @@ using EamonExtensionsLinq.FastSerializer;
 
 namespace EamonExtensionsLinq.PersistantCache
 {
+    public struct Timestamped<TItem>
+    {
+        public TItem Item;
+        public DateTime Timestamp;
+    }
 
 	public class PersistantCache<TKey,TItem> where TItem : class
 	{
@@ -30,7 +35,8 @@ namespace EamonExtensionsLinq.PersistantCache
 		int maxKeyLength;
 		//int lastSave = 0;
 		//public int storeEach = 10000;
-        Dictionary<TKey, TItem> memCache = new Dictionary<TKey, TItem>(); //used to be serialized at:Path.Combine(cacheDir.FullName,"%%%"+ext+".bin")
+        
+        Dictionary<TKey, Timestamped<TItem>> memCache = new Dictionary<TKey, Timestamped<TItem>>(); //used to be serialized at:Path.Combine(cacheDir.FullName,"%%%"+ext+".bin")
 		private void AssertKeyStringValid(string key) {
 			if(key.Length > maxKeyLength) throw new PersistantCacheException("Key too long, may be at most 259 chars including directory, directory separator, and extension.\n In this case that means at most " + maxKeyLength + " chars long.");
 			if(key.IndexOfAny(invalidKeyChars)>=0) {
@@ -44,28 +50,36 @@ namespace EamonExtensionsLinq.PersistantCache
 			return new FileInfo(Path.Combine(filesDir.FullName, key + ext));//TODO: provide fallback?
 		}
 		public IEnumerable<string> GetDiskCacheContents() {return filesDir.GetFiles("*" + ext).Select(fi=>fi.Name.Substring(0,fi.Name.Length - ext.Length)) ; }
-		public Dictionary<TKey,TItem> MemoryCache { get { return memCache; } }
+		public Dictionary<TKey,Timestamped<TItem>> MemoryCache { get { return memCache; } }
 		public TItem Lookup(TKey key) { return Lookup(key, mapper.Evaluate); }
 		public TItem Lookup(TKey key, Func<TKey,TItem> customEvaluator) {
-			TItem item;
+			Timestamped<TItem> item;
 
 			if(memCache.TryGetValue(key, out item))
-				return item;
+				return item.Item;
 
 			string keyString = mapper.KeyToString(key);
 
 			FileInfo loc = getFileStoreLocation(keyString);
 			if(loc.Exists) {
-				item = mapper.LoadItem(key,loc.OpenRead());
+                item = new Timestamped<TItem>
+                {
+                    Item = mapper.LoadItem(key, loc.OpenRead()),
+                    Timestamp = loc.LastWriteTimeUtc
+                };
 			} else {
-				item = customEvaluator(key);
+                item = new Timestamped<TItem>
+                {
+                    Item = customEvaluator(key),
+                    Timestamp = DateTime.UtcNow
+                }; 
 				using(Stream s = getFileStoreLocation(keyString).OpenWrite()) {
-					mapper.StoreItem(item, s);
+					mapper.StoreItem(item.Item, s);
 				}
 			}
 			memCache[key] = item;
 			//if(memCache.Count > lastSave + storeEach) StoreQuickLoad();
-			return item;
+			return item.Item;
 		}
 	}
 }

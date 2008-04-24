@@ -64,7 +64,7 @@ namespace LastFMspider
                     Console.WriteLine("{0,3} - tot={4} in hits={5}, with relTo={3} in \"{1} - {2}\"", 100 * progressCount / (double)total, songref.Artist, songref.Title, similar == null ? 0 : similar.similartracks.Length,(double)similarityCount,hits);
 
                 }
-                catch { }//ignore all errors.
+                catch(Exception e) { }//ignore all errors.
                 similarSongs.Cache.Clear();//TODO temp for low-mem server.
 			}
             dbSongRefs = null;
@@ -211,7 +211,7 @@ namespace LastFMspider
 			return m3usongs.ToArray();
 		}
 
-		void RunOld() {//TODO: this code is old, and specifically assumes that "similarSongs[xyz].similartracks" only contains tracks in "songs"
+		/*void RunOld() {//TODO: this code is old, and specifically assumes that "similarSongs[xyz].similartracks" only contains tracks in "songs"
 			//TODO: rewrite to use Lookup instead of the dictionary hardcoded.
 			var referredSongsIter =
 	from similarSongList in similarSongs.Cache.Values
@@ -273,7 +273,7 @@ namespace LastFMspider
 				File.Copy(songmetadata.SongPath, mp3Path);
 				similarSongs.Cache[song].ToXElement().Save(simPath);
 			}
-		}
+		}*/
 
 	}
 }
