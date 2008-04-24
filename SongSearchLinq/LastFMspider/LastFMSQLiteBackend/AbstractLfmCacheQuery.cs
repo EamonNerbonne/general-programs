@@ -6,12 +6,9 @@ using System.Data.Common;
 using System.Data.SQLite;
 
 namespace LastFMspider.LastFMSQLiteBackend {
-    public abstract class AbstractLfmCacheQuery {
-        readonly protected LastFMSQLiteCache lfmCache;
+    public abstract class AbstractLfmCacheQuery :AbstractLfmCacheOperation{
         readonly protected DbCommand CommandObj;
-        protected DbConnection Connection { get { return lfmCache.Connection; } }
-        public AbstractLfmCacheQuery(LastFMSQLiteCache lfmCache) {
-            this.lfmCache = lfmCache;
+        public AbstractLfmCacheQuery(LastFMSQLiteCache lfmCache):base(lfmCache) {
             CommandObj = Connection.CreateCommand();
             CommandObj.CommandText = CommandText;
         }

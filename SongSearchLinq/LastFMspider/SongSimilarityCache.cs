@@ -16,7 +16,7 @@ namespace LastFMspider {
             Console.WriteLine("Initializing file db");
             backingCache = new PersistantCache<SongRef, SongSimilarityList>(cacheDir, ".xml", new Mapper(this));
             Console.WriteLine("Porting file -> sqlite ...");
-            Port();
+            //Port();
         }
 
         public IEnumerable<SongRef> DiskCacheContents() {
@@ -62,7 +62,7 @@ namespace LastFMspider {
 
             progress = 0;
             foreach (var list in songSims) {
-                backingDB.InsertSimilarityList(list.Item, list.Timestamp);//TODO, deal with dates
+                backingDB.InsertSimilarityList.Execute(list.Item, list.Timestamp);//TODO, deal with dates
                 backingCache.DeleteItem(list.Item.songref);
                 if (++progress % 100 == 0)
                     Console.WriteLine("Stored {0}.", progress);
@@ -86,7 +86,7 @@ namespace LastFMspider {
             DateTime? cachedVersionAge = backingDB.LookupSimilarityListAge.Execute(songref);
             if (cachedVersionAge == null) { //get online version
                 var retval = DirectWebRequest(songref);
-                backingDB.InsertSimilarityList(retval, DateTime.UtcNow);
+                backingDB.InsertSimilarityList.Execute(retval, DateTime.UtcNow);
                 return retval;
             }
             else {
