@@ -15,7 +15,11 @@ namespace EamonExtensionsLinq.PersistantCache
         public DateTime Timestamp;
     }
 
-	public class PersistantCache<TKey,TItem> where TItem : class
+	public class PersistantCache<TKey,TItem> where TItem : class 
+        //TODO: should be made more generic wrt key->value mappings and the whole filename/string/storage/serialization business
+        //TODO: consider usecases of persitant caches backed by other caches backed by memoization etc.
+        //TODO: consider multiple backends like sqlite, filesystem, BDB etc
+        //TODO: in filesystem storage, consider multiple directories for speed.
 	{
 
 		static char[] invalidKeyChars = Path.GetInvalidFileNameChars();
@@ -51,20 +55,22 @@ namespace EamonExtensionsLinq.PersistantCache
 		}
 		public IEnumerable<string> GetDiskCacheContents() {return filesDir.GetFiles("*" + ext).Select(fi=>fi.Name.Substring(0,fi.Name.Length - ext.Length)) ; }
 		public Dictionary<TKey,Timestamped<TItem>> MemoryCache { get { return memCache; } }
-		public TItem Lookup(TKey key) { return Lookup(key, mapper.Evaluate); }
-		public TItem Lookup(TKey key, Func<TKey,TItem> customEvaluator) {
+		public Timestamped<TItem> Lookup(TKey key) { return Lookup(key, mapper.Evaluate); }
+        public Timestamped<TItem> Lookup(TKey key, Func<TKey, TItem> customEvaluator)
+        {
 			Timestamped<TItem> item;
 
 			if(memCache.TryGetValue(key, out item))
-				return item.Item;
+				return item;
 
 			string keyString = mapper.KeyToString(key);
 
 			FileInfo loc = getFileStoreLocation(keyString);
 			if(loc.Exists) {
+                using (Stream s=loc.OpenRead())
                 item = new Timestamped<TItem>
                 {
-                    Item = mapper.LoadItem(key, loc.OpenRead()),
+                    Item = mapper.LoadItem(key, s),
                     Timestamp = loc.LastWriteTimeUtc
                 };
 			} else {
@@ -79,7 +85,14 @@ namespace EamonExtensionsLinq.PersistantCache
 			}
 			memCache[key] = item;
 			//if(memCache.Count > lastSave + storeEach) StoreQuickLoad();
-			return item.Item;
+			return item;
 		}
+        public void DeleteItem(TKey key) {
+            FileInfo loc = getFileStoreLocation(mapper.KeyToString(key));
+            if (loc.Exists)
+                loc.Delete();
+            if(memCache.ContainsKey(key))
+                memCache.Remove(key);
+        }
 	}
 }

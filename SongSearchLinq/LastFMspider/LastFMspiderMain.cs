@@ -33,7 +33,7 @@ namespace LastFMspider
 			db = new SimpleSongDB(new SongDatabaseConfigFile(new FileInfo(laptopVirtConfig), false),null);//TODO: remove laptop override
             Console.WriteLine("Loading song similarity...");
 			similarSongs = new SongSimilarityCache(db.DatabaseDirectory.CreateSubdirectory("cache"));
-
+            
 			if(db.InvalidDataCount!= 0) Console.WriteLine("Ignored {0} songs with unknown tags (should be 0).", db.InvalidDataCount);
 			Console.WriteLine("Taking those {0} songs and indexing em by artist/title...", db.Songs.Count);
 
@@ -65,7 +65,7 @@ namespace LastFMspider
 
                 }
                 catch(Exception e) { }//ignore all errors.
-                similarSongs.Cache.Clear();//TODO temp for low-mem server.
+                similarSongs.MemoryCache.Clear();//TODO temp for low-mem server.
 			}
             dbSongRefs = null;
             System.GC.Collect();
@@ -89,12 +89,12 @@ namespace LastFMspider
                                 Console.WriteLine("{0,3} - tot={4} in hits={5}, with relTo={3} in \"{1} - {2}\"", 100 * progressCount / (double)total, songref.Artist, songref.Title, similar == null ? 0 : similar.similartracks.Length, (double)similarityCount, hits);
                             }
                             catch { }//ignore all errors.
-                            similarSongs.Cache.Clear();//TODO temp for low-mem server.
+                            similarSongs.MemoryCache.Clear();//TODO temp for low-mem server.
                         }
                 }
                 catch { }
             }
-			Console.WriteLine("{0} songs precached!", similarSongs.Cache.Count);
+			Console.WriteLine("{0} songs precached!", similarSongs.MemoryCache.Count);
 		}
 
 /*			} catch(Exception e) {

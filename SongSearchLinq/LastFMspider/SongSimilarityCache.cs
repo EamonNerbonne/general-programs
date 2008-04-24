@@ -9,12 +9,9 @@ using System.Data.Common;
 using System.Transactions;
 using System.Data.SQLite;
 
-namespace LastFMspider
-{
-	public class SongSimilarityCache
-	{
-        class InternalDB
-        {
+namespace LastFMspider {
+    public class SongSimilarityCache {
+        class InternalDB {
             //we set legacy format to false for better storage efficiency
             //we set datetime format to ticks for better efficiency (interally just stored as integer)
             //rating is stored as a REAL which is a float in C#.
@@ -68,12 +65,11 @@ CREATE UNIQUE INDEX IF NOT EXISTS [Unique_Track_ArtistID_LowercaseTitle] ON [Tra
 
             public InternalDB(FileInfo sqliteFile) { dbFile = sqliteFile; Init(); }
 
-            
+
             /// <summary>
             /// Opens the DB connection.  Should be called by all constructors or whenever Db is reopened.
             /// </summary>
-            private void Init()
-            {
+            private void Init() {
                 //dbFile.Delete();//TODO:comment soon!
                 string instanceConnStr = String.Format(DataConnectionString, dbFile.FullName);
                 DbProviderFactory dbProviderFactory = DbProviderFactories.GetFactory(DataProvider);
@@ -86,8 +82,7 @@ CREATE UNIQUE INDEX IF NOT EXISTS [Unique_Track_ArtistID_LowercaseTitle] ON [Tra
             }
 
 
-            private void PrepareSql()
-            {
+            private void PrepareSql() {
                 PrepareInsertArtist();
                 PrepareInsertTrack();
                 PrepareInsertSimilarity();
@@ -97,12 +92,9 @@ CREATE UNIQUE INDEX IF NOT EXISTS [Unique_Track_ArtistID_LowercaseTitle] ON [Tra
             }
 
 
-            private void Create()
-            {
-                using (DbTransaction trans = conn.BeginTransaction())
-                {
-                    using (DbCommand createComm = conn.CreateCommand())
-                    {
+            private void Create() {
+                using (DbTransaction trans = conn.BeginTransaction()) {
+                    using (DbCommand createComm = conn.CreateCommand()) {
                         createComm.CommandText = DatabaseDef;
                         createComm.ExecuteNonQuery();
                     }
@@ -127,8 +119,7 @@ SELECT Torig.LookupTimestamp FROM
 ";
             DbCommand lookupSimilarityListAgeCommand;
             DbParameter lookupSimilarityListAgeParamLowerTitle, lookupSimilarityListAgeParamLowerArtist;
-            private void PrepareLookupSimilarityListAge()
-            {
+            private void PrepareLookupSimilarityListAge() {
                 lookupSimilarityListAgeCommand = conn.CreateCommand();
                 lookupSimilarityListAgeCommand.CommandText = lookupSimilarityListAgeSql;
 
@@ -141,27 +132,23 @@ SELECT Torig.LookupTimestamp FROM
 
             }
 
-            public DateTime? LookupSimilarityListAge(SongRef songref)
-            {
+            public DateTime? LookupSimilarityListAge(SongRef songref) {
                 lookupSimilarityListAgeParamLowerArtist.Value = songref.Artist.ToLowerInvariant();
                 lookupSimilarityListAgeParamLowerTitle.Value = songref.Title.ToLowerInvariant();
                 using (var reader = lookupSimilarityListAgeCommand.ExecuteReader())//no transaction needed for a single select!
                 {
                     //we expect exactly one hit - or none
-                    if (reader.Read())
-                    {
+                    if (reader.Read()) {
                         long? ticks = (long?)reader[0];
                         if (ticks == null)
                             return null;
-                        else return new DateTime((long)ticks, DateTimeKind.Utc) ;
+                        else return new DateTime((long)ticks, DateTimeKind.Utc);
                     }
                     else
                         return null;
 
                 }
             }
-
-
 
             const string lookupSimilarityListSql = @"
 SELECT S.Rating, A.FullArtist, T.FullTitle FROM
@@ -177,8 +164,7 @@ SELECT S.Rating, A.FullArtist, T.FullTitle FROM
 ";
             DbCommand lookupSimilarityListCommand;
             DbParameter lookupSimilarityListParamLowerTitle, lookupSimilarityListParamLowerArtist;
-            private void PrepareLookupSimilarityList()
-            {
+            private void PrepareLookupSimilarityList() {
                 lookupSimilarityListCommand = conn.CreateCommand();
                 lookupSimilarityListCommand.CommandText = lookupSimilarityListSql;
 
@@ -187,12 +173,9 @@ SELECT S.Rating, A.FullArtist, T.FullTitle FROM
 
                 lookupSimilarityListParamLowerTitle = new SQLiteParameter("@lowerTitle");
                 lookupSimilarityListCommand.Parameters.Add(lookupSimilarityListParamLowerTitle);
-
-
             }
 
-            public SongSimilarityList LookupSimilarityList(SongRef songref)
-            {
+            public SongSimilarityList LookupSimilarityList(SongRef songref) {
                 DateTime? age = LookupSimilarityListAge(songref);
                 if (age == null) return null;
                 lookupSimilarityListParamLowerArtist.Value = songref.Artist.ToLowerInvariant();
@@ -201,8 +184,7 @@ SELECT S.Rating, A.FullArtist, T.FullTitle FROM
                 using (var reader = lookupSimilarityListCommand.ExecuteReader())//no transaction needed for a single select!
                 {
                     while (reader.Read())
-                        similarto.Add(new SimilarTrack
-                        {
+                        similarto.Add(new SimilarTrack {
                             similarity = (float)reader[0],
                             similarsong = SongRef.Create((string)reader[1], (string)reader[2])
                         });
@@ -216,20 +198,18 @@ SELECT S.Rating, A.FullArtist, T.FullTitle FROM
 
             //private void PrepareUpdateTimestamp
 
-            public void InsertSimilarityList(SongSimilarityList list, DateTime? lookupTimestamp)
-            {
-                HashSet<SongRef> tracks = new HashSet<SongRef>(  DeNull(list.similartracks).Select(sim=>sim.similarsong) );
+            public void InsertSimilarityList(SongSimilarityList list, DateTime? lookupTimestamp) {
+                HashSet<SongRef> tracks = new HashSet<SongRef>(DeNull(list.similartracks).Select(sim => sim.similarsong));
                 tracks.Add(list.songref);
 
-                 DateTime timestamp = lookupTimestamp ?? DateTime.UtcNow;
+                DateTime timestamp = lookupTimestamp ?? DateTime.UtcNow;
 
-                using (DbTransaction trans = conn.BeginTransaction())
-                {
+                using (DbTransaction trans = conn.BeginTransaction()) {
                     DateTime? oldTime = LookupSimilarityListAge(list.songref);
                     if (oldTime == null || (DateTime)oldTime >= timestamp)
                         return;
 
-                    
+
                     foreach (var songref in tracks) InsertTrack(songref);
                     foreach (var similartrack in DeNull(list.similartracks)) InsertSimilarity(list.songref, similartrack.similarsong, similartrack.similarity);
                     UpdateTrackTimestamp(list.songref, timestamp);
@@ -243,8 +223,7 @@ WHERE LowercaseTitle = @lowerTitle AND ArtistID = (SELECT ArtistID FROM [Artist]
 ";
             DbCommand updateTrackTimestampCommand;
             DbParameter updateTrackTimestampParamLowerTitle, updateTrackTimestampParamLowerArtist, updateTrackTimestampParamTicks;
-            private void PrepareUpdateTimestamp()
-            {
+            private void PrepareUpdateTimestamp() {
                 updateTrackTimestampCommand = conn.CreateCommand();
                 updateTrackTimestampCommand.CommandText = updateTrackTimestampSql;
 
@@ -258,8 +237,7 @@ WHERE LowercaseTitle = @lowerTitle AND ArtistID = (SELECT ArtistID FROM [Artist]
                 updateTrackTimestampCommand.Parameters.Add(updateTrackTimestampParamTicks);
             }
 
-            private void UpdateTrackTimestamp(SongRef songRef, DateTime dateTime)
-            {
+            private void UpdateTrackTimestamp(SongRef songRef, DateTime dateTime) {
                 updateTrackTimestampParamTicks.Value = dateTime.Ticks;
                 updateTrackTimestampParamLowerArtist.Value = songRef.Artist.ToLowerInvariant();
                 updateTrackTimestampParamLowerTitle.Value = songRef.Title.ToLowerInvariant();
@@ -275,8 +253,7 @@ FROM Track A, Track B, Artist AsArtist, Artist BsArtist WHERE A.ArtistID = AsArt
 ";
             DbCommand insertSimilarityCommand;
             DbParameter insertSimilarityParamLowerTitleA, insertSimilarityParamLowerTitleB, insertSimilarityParamLowerArtistA, insertSimilarityParamLowerArtistB, insertSimilarityParamRating;
-            private void PrepareInsertSimilarity()
-            {
+            private void PrepareInsertSimilarity() {
                 insertSimilarityCommand = conn.CreateCommand();
                 insertSimilarityCommand.CommandText = insertSimilaritySql;
 
@@ -297,8 +274,7 @@ FROM Track A, Track B, Artist AsArtist, Artist BsArtist WHERE A.ArtistID = AsArt
             }
 
 
-            private void InsertSimilarity(SongRef songRefA, SongRef songRefB, double rating)
-            {
+            private void InsertSimilarity(SongRef songRefA, SongRef songRefB, double rating) {
                 insertSimilarityParamRating.Value = rating;
                 insertSimilarityParamLowerArtistA.Value = songRefA.Artist.ToLowerInvariant();
                 insertSimilarityParamLowerTitleA.Value = songRefA.Title.ToLowerInvariant();
@@ -317,11 +293,10 @@ WHERE LowercaseArtist = @lowerArtist
 ";
             DbCommand insertTrackCommand;
             DbParameter insertTrackParamFullTitle, insertTrackParamLowerTitle, insertTrackParamLowerArtist;
-            private void PrepareInsertTrack()
-            {
+            private void PrepareInsertTrack() {
                 insertTrackCommand = conn.CreateCommand();
                 insertTrackCommand.CommandText = insertTrackSql;
-                
+
                 insertTrackParamFullTitle = new SQLiteParameter("@fullTitle");
                 insertTrackCommand.Parameters.Add(insertTrackParamFullTitle);
 
@@ -332,9 +307,8 @@ WHERE LowercaseArtist = @lowerArtist
                 insertTrackCommand.Parameters.Add(insertTrackParamLowerArtist);
             }
 
-            private void InsertTrack(SongRef songref)
-            {
-                InsertArtist( songref.Artist);
+            private void InsertTrack(SongRef songref) {
+                InsertArtist(songref.Artist);
                 insertTrackParamFullTitle.Value = songref.Title;
                 insertTrackParamLowerTitle.Value = songref.Title.ToLowerInvariant();
                 insertTrackParamLowerArtist.Value = songref.Artist.ToLowerInvariant();
@@ -345,8 +319,7 @@ WHERE LowercaseArtist = @lowerArtist
             const string insertArtistSql = @"INSERT OR IGNORE INTO [Artist](FullArtist, LowercaseArtist) VALUES (?,?)";
             DbCommand insertArtistCommand;
             DbParameter insertArtistParamFull, insertArtistParamLower;
-            private void PrepareInsertArtist()
-            {
+            private void PrepareInsertArtist() {
                 insertArtistCommand = conn.CreateCommand();
                 insertArtistCommand.CommandText = insertArtistSql;
                 insertArtistParamFull = insertArtistCommand.CreateParameter();
@@ -354,11 +327,10 @@ WHERE LowercaseArtist = @lowerArtist
                 insertArtistCommand.Parameters.Add(insertArtistParamFull);
                 insertArtistCommand.Parameters.Add(insertArtistParamLower);
             }
-            private void InsertArtist(string artist)
-            {
-                    insertArtistParamFull.Value = artist;
-                    insertArtistParamLower.Value = artist.ToLowerInvariant();
-                    insertArtistCommand.ExecuteNonQuery();
+            private void InsertArtist(string artist) {
+                insertArtistParamFull.Value = artist;
+                insertArtistParamLower.Value = artist.ToLowerInvariant();
+                insertArtistCommand.ExecuteNonQuery();
             }
 
 
@@ -366,55 +338,62 @@ WHERE LowercaseArtist = @lowerArtist
 
 
         }
-		PersistantCache<SongRef, SongSimilarityList> backingCache;
+        PersistantCache<SongRef, SongSimilarityList> backingCache;
         InternalDB backingDB;
-		public SongSimilarityCache(DirectoryInfo cacheDir) {
+        public SongSimilarityCache(DirectoryInfo cacheDir) {
             Console.WriteLine("Initializing file db");
-            backingCache = new PersistantCache<SongRef, SongSimilarityList>(cacheDir, ".xml", new Mapper());
-             Console.WriteLine("Initializing sqlite db");
-            backingDB = new InternalDB(new FileInfo(Path.Combine(cacheDir.FullName,"lastFMcache.s3db")));//TODO decide what kind of DB we really want...
+            backingCache = new PersistantCache<SongRef, SongSimilarityList>(cacheDir, ".xml", new Mapper(this));
+            Console.WriteLine("Initializing sqlite db");
+            backingDB = new InternalDB(new FileInfo(Path.Combine(cacheDir.FullName, "lastFMcache.s3db")));//TODO decide what kind of DB we really want...
             Console.WriteLine("Porting file -> sqlite ...");
             Port();
-		}
+        }
 
-        public IEnumerable<SongRef> DiskCacheContents()
-        {
+        public IEnumerable<SongRef> DiskCacheContents() {
             foreach (string songrefStr in backingCache.GetDiskCacheContents())
                 yield return SongRef.CreateFromCacheName(songrefStr);
         }
 
-        public void Port()
-        {
-            List<SongSimilarityList> songSims = new List<SongSimilarityList>();
+        public void Port() {
+            var songSims = new List<Timestamped<SongSimilarityList>>();
             Dictionary<SongRef, SongRef> findCapitalization = new Dictionary<SongRef, SongRef>();
-            int progress=0;
-            foreach (string keystring in backingCache.GetDiskCacheContents())
-            {
+            int progress = 0;
+            foreach (string keystring in backingCache.GetDiskCacheContents()) {
                 SongRef songref = SongRef.CreateFromCacheName(keystring);
-                SongSimilarityList list = backingCache.Lookup(songref);
+                var list = backingCache.Lookup(songref);
                 findCapitalization[songref] = songref;//add all listed songrefs
-                if (list != null)
+                if (list.Item != null)
                     songSims.Add(list);
                 else
-                    songSims.Add(new SongSimilarityList { songref = songref, similartracks = null });
+                    songSims.Add(
+                        new Timestamped<SongSimilarityList> {
+                            Item = new SongSimilarityList {
+                                songref = songref,
+                                similartracks = null
+                            },
+                            Timestamp = list.Timestamp
+                        }
+                        );
 
                 if (++progress % 100 == 0)
                     Console.WriteLine("Loaded {0}.", progress);
             }
             //we have all songsimilarities loaded!
-            foreach (SongSimilarityList list in songSims)
-                foreach (SimilarTrack similar in list.similartracks)
-                    if(findCapitalization.ContainsKey(similar.similarsong))
-                        findCapitalization[similar.similarsong] = similar.similarsong;//add useful capitalization
-            foreach (SongSimilarityList list in songSims)
-                list.songref = findCapitalization[list.songref]; //fix capitalization in similarity lists
+            var capitizableSongs = from timestampedList in songSims
+                                   where timestampedList.Item.similartracks != null
+                                   from similartrack in timestampedList.Item.similartracks
+                                   where findCapitalization.ContainsKey(similartrack.similarsong)
+                                   select similartrack.similarsong;
+            foreach (var capSong in capitizableSongs)
+                        findCapitalization[capSong] = capSong;//add useful capitalization
+            foreach (var tlist in songSims)
+                tlist.Item.songref = findCapitalization[tlist.Item.songref]; //fix capitalization in similarity lists
             //OK we have correctly capitalized muck, hopefully.
 
             progress = 0;
-            foreach (var list in songSims)
-            {
-                backingDB.InsertSimilarityList(list,null);//TODO, deal with dates
-                
+            foreach (var list in songSims) {
+                backingDB.InsertSimilarityList(list.Item, list.Timestamp);//TODO, deal with dates
+                backingCache.DeleteItem(list.Item.songref);
                 if (++progress % 100 == 0)
                     Console.WriteLine("Stored {0}.", progress);
 
@@ -423,67 +402,73 @@ WHERE LowercaseArtist = @lowerArtist
 
 
 
-		public Dictionary<SongRef,Timestamped<SongSimilarityList>> Cache { get { return backingCache.MemoryCache; } }
+        public Dictionary<SongRef, Timestamped<SongSimilarityList>> MemoryCache { get { return backingCache.MemoryCache; } }
 
-        public SongSimilarityList Lookup(SongRef songref)
-        {
-            try
-            {
+        public SongSimilarityList Lookup(SongRef songref) {
+            try {
                 return backingDB.LookupSimilarityList(songref);
                 //return backingCache.Lookup(songref);
             }
             catch (PersistantCacheException) { return null; }
         }
 
-		private class Mapper : IPersistantCacheMapper<SongRef, SongSimilarityList>
-		{
-            static TimeSpan minReqDelta = new TimeSpan(0, 0, 0, 1);//no more than one request per second.
-            DateTime nextRequestWhen = DateTime.Now;
-			string xmlrep;
-			SongSimilarityList lastlist;
-			public string KeyToString(SongRef key) {				return key.CacheName();			}
+        TimeSpan minReqDelta = new TimeSpan(0, 0, 0, 1);//no more than one request per second.
+        DateTime nextRequestWhen = DateTime.Now;
+        string lastlistxmlrep;
+        SongSimilarityList lastlist;
 
-			public SongSimilarityList Evaluate(SongRef songref) {
-                try
-                {
-                    var now = DateTime.Now;
-                    if (nextRequestWhen > now)
-                    {
-                        Console.Write("<");
-                        System.Threading.Thread.Sleep(nextRequestWhen - now);
-                        Console.Write(">");
-                    }
-                    nextRequestWhen = now + minReqDelta;
-                    xmlrep = new System.Net.WebClient().DownloadString(songref.AudioscrobblerSimilarUrl());
-                    return lastlist = SongSimilarityList.CreateFromAudioscrobblerXml(songref, XDocument.Parse(xmlrep));
+        private SongSimilarityList DirectWebRequest(SongRef songref) {
+            try {
+                var now = DateTime.Now;
+                if (nextRequestWhen > now) {
+                    Console.Write("<");
+                    System.Threading.Thread.Sleep(nextRequestWhen - now);
+                    Console.Write(">");
                 }
-                catch { return null; }//don't bother trying if anything happens
-			}
+                nextRequestWhen = now + minReqDelta;
+                lastlistxmlrep = new System.Net.WebClient().DownloadString(songref.AudioscrobblerSimilarUrl());
+                return lastlist = SongSimilarityList.CreateFromAudioscrobblerXml(songref, XDocument.Parse(lastlistxmlrep));
+            }
+            catch { return null; }//don't bother trying if anything happens
+        }
 
-			public void StoreItem(SongSimilarityList item, Stream to) {
-				try {
-					if(lastlist != item) {
-						throw new NotImplementedException("Can only store similarity lists just retrieved from lastfm.");
-					}
-					using(var w = new StreamWriter(to))						w.Write(xmlrep ?? "");
-				} finally {
-					xmlrep = null;
-					lastlist = null;
-				}
-			}
+        private class Mapper : IPersistantCacheMapper<SongRef, SongSimilarityList> {
+            SongSimilarityCache owner;
+            public Mapper(SongSimilarityCache owner) {
+                this.owner = owner;
+            }
+            public string KeyToString(SongRef key) { return key.CacheName(); }
 
-			public SongSimilarityList LoadItem(SongRef songref,Stream from) {
-				string loadxmlrep=new StreamReader(from).ReadToEnd();
-				XDocument doc;
-				try {
-					doc = XDocument.Parse(loadxmlrep);
-				} catch {
-					return null;
-				}
-				return SongSimilarityList.CreateFromAudioscrobblerXml(songref, doc);
-			}
+            public SongSimilarityList Evaluate(SongRef songref) {
+                return owner.DirectWebRequest(songref);
+            }
 
-		}
+            public void StoreItem(SongSimilarityList item, Stream to) {
+                try {
+                    if (owner.lastlist != item) {
+                        throw new NotImplementedException("Can only store similarity lists just retrieved from lastfm.");
+                    }
+                    using (var w = new StreamWriter(to)) w.Write(owner.lastlistxmlrep ?? "");
+                }
+                finally {
+                    owner.lastlistxmlrep = null;
+                    owner.lastlist = null;
+                }
+            }
 
-	}
+            public SongSimilarityList LoadItem(SongRef songref, Stream from) {
+                string loadxmlrep = new StreamReader(from).ReadToEnd();
+                XDocument doc;
+                try {
+                    doc = XDocument.Parse(loadxmlrep);
+                }
+                catch {
+                    return null;
+                }
+                return SongSimilarityList.CreateFromAudioscrobblerXml(songref, doc);
+            }
+
+        }
+
+    }
 }
