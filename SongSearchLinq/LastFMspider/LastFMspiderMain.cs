@@ -5,7 +5,6 @@ using System.Text;
 using SongDataLib;
 using EamonExtensionsLinq.Text;
 using System.IO;
-using System.Security.Cryptography;
 using System.Xml.Linq;
 
 
@@ -57,11 +56,17 @@ namespace LastFMspider
                 {
                     progressCount++;
                     var similar = similarSongs.Lookup(songref);//precache the last.fm data.  unsure - NOT REALLY necessary?
-                    int newSimilars=similar == null ? 0 : similar.similartracks.Length;
+                    int newSimilars=similar.similartracks == null ? 0 : similar.similartracks.Length;
                     similarityCount+=newSimilars;
                     if (similar != null)
                         hits++;
-                    Console.WriteLine("{0,3} - tot={4} in hits={5}, with relTo={3} in \"{1} - {2}\"", 100 * progressCount / (double)total, songref.Artist, songref.Title, similar == null ? 0 : similar.similartracks.Length,(double)similarityCount,hits);
+                    Console.WriteLine("{0,3} - tot={4} in hits={5}, with relTo={3} in \"{1} - {2}\"", 
+                        100 * progressCount / (double)total, 
+                        songref.Artist, 
+                        songref.Title, 
+                        newSimilars,
+                        (double)similarityCount,
+                        hits);
 
                 }
                 catch(Exception e) { }//ignore all errors.
