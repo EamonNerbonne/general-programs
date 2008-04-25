@@ -25,6 +25,12 @@ SELECT Torig.LookupTimestamp FROM
         }
         DbParameter lowerTitle, lowerArtist;
 
+        public static DateTime? DbValueTicksToDateTime(object dbval) {
+            return dbval == DBNull.Value?
+                (DateTime?)null:
+                new DateTime((long)dbval, DateTimeKind.Utc);
+        }
+
         public DateTime? Execute(SongRef songref) {
             lowerArtist.Value = songref.Artist.ToLowerInvariant();
             lowerTitle.Value = songref.Title.ToLowerInvariant();
@@ -32,10 +38,7 @@ SELECT Torig.LookupTimestamp FROM
                 {
                 //we expect exactly one hit - or none
                 if (reader.Read()) {
-                    long? ticks =  (reader[0]==DBNull.Value?(long?)null:(long?)reader[0]);
-                    if (ticks == null)
-                        return null;
-                    else return new DateTime((long)ticks, DateTimeKind.Utc);
+                    return DbValueTicksToDateTime(reader[0]);
                 }
                 else
                     return null;

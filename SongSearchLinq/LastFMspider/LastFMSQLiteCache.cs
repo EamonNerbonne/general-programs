@@ -67,6 +67,10 @@ CREATE UNIQUE INDEX IF NOT EXISTS [Unique_Track_ArtistID_LowercaseTitle] ON [Tra
         public InsertSimilarity InsertSimilarity { get; private set; }
         public InsertSimilarityList InsertSimilarityList { get; private set; }
         public UpdateTrackTimestamp UpdateTrackTimestamp { get; private set; }
+        public LookupReverseSimilarityList LookupReverseSimilarityList { get; private set; }
+        public LookupSimilarityStats LookupSimilarityStats { get; private set; }
+        public CountSimilarities CountSimilarities { get; private set; }
+        public AllTracks AllTracks {get;private set;}
         //public LookupSimilarityListAge LookupSimilarityListAge { get; private set; }
         public LastFMSQLiteCache(FileInfo sqliteFile) { dbFile = sqliteFile; Init(); }
 
@@ -75,7 +79,6 @@ CREATE UNIQUE INDEX IF NOT EXISTS [Unique_Track_ArtistID_LowercaseTitle] ON [Tra
         /// Opens the DB connection.  Should be called by all constructors or whenever Db is reopened.
         /// </summary>
         private void Init() {
-            //dbFile.Delete();//TODO:comment soon!
             string instanceConnStr = String.Format(DataConnectionString, dbFile.FullName);
             DbProviderFactory dbProviderFactory = DbProviderFactories.GetFactory(DataProvider);
             Connection = dbProviderFactory.CreateConnection();
@@ -96,6 +99,10 @@ CREATE UNIQUE INDEX IF NOT EXISTS [Unique_Track_ArtistID_LowercaseTitle] ON [Tra
             UpdateTrackTimestamp = new UpdateTrackTimestamp(this);
             LookupSimilarityList = new LookupSimilarityList(this);
             LookupSimilarityListAge = new LookupSimilarityListAge(this);
+            LookupSimilarityStats = new LookupSimilarityStats(this);
+            LookupReverseSimilarityList = new LookupReverseSimilarityList(this);
+            CountSimilarities = new CountSimilarities(this);
+            AllTracks = new AllTracks(this);
         }
 
 

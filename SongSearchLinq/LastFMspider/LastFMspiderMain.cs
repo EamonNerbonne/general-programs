@@ -20,38 +20,54 @@ namespace LastFMspider
             laptopVirtConfig = args[0];
 			LastFMspiderMain main = new LastFMspiderMain();
 			main.Load();
+            main.RunStats();
 		//	main.RunNew(args);//TODO:reenable
             Console.ReadLine();
 		}
 
+        private void RunStats() {
+            var stats = similarSongs.LookupDbStats();
+            Console.WriteLine("Found {0} Referenced songs, of which {1} have stats downloaded.",stats.Length, stats.Where(s=>s.LookupTimestamp!=null).Count() );
+            Console.WriteLine("Sorting by rating...");
+            Array.Sort(stats, (a, b) => b.TimesReferenced.CompareTo(a.TimesReferenced));
+            Console.WriteLine("Showing a few...");
+            int shown = 0;
+            foreach (var stat in stats) {
+                Console.WriteLine("{1} {0}, {2}", stat.SongRef.ToString(), stat.LookupTimestamp == null ? "!" : " ", stat.TimesReferenced);
+                shown++;
+
+                if (shown % 20 == 0) { Console.WriteLine("Press any key for more"); Console.ReadKey(); }
+            }
+
+
+        }
+
 		SimpleSongDB db;
+        SongDatabaseConfigFile configFile;
 		SongSimilarityCache similarSongs;
 		SongDataLookups lookup;
 		public void Load() {
-			Console.WriteLine("Loading song database...");
-			db = new SimpleSongDB(new SongDatabaseConfigFile(new FileInfo(laptopVirtConfig), false),null);//TODO: remove laptop override
+            Console.WriteLine("Loading config...");
+            configFile = new SongDatabaseConfigFile(new FileInfo(laptopVirtConfig), false);//TODO: remove laptop override
+
             Console.WriteLine("Loading song similarity...");
-			similarSongs = new SongSimilarityCache(db.DatabaseDirectory.CreateSubdirectory("cache"));
+            similarSongs = new SongSimilarityCache(configFile.DataDirectory.CreateSubdirectory("cache"));
             
-			if(db.InvalidDataCount!= 0) Console.WriteLine("Ignored {0} songs with unknown tags (should be 0).", db.InvalidDataCount);
-			Console.WriteLine("Taking those {0} songs and indexing em by artist/title...", db.Songs.Count);
-
-			lookup = new SongDataLookups(db.Songs, null);
-
-			PrecacheAudioscrobbler();
+            //Console.WriteLine("Loading song database...");
+            //db = new SimpleSongDB(configFile,null);
+            //if(db.InvalidDataCount!= 0) Console.WriteLine("Ignored {0} songs with unknown tags (should be 0).", db.InvalidDataCount);
+			//Console.WriteLine("Taking those {0} songs and indexing em by artist/title...", db.Songs.Count);
+            //lookup = new SongDataLookups(db.Songs, null);
+			//PrecacheAudioscrobbler(lookup.dataByRef.Keys.ToArray());
 		}
 
-		void PrecacheAudioscrobbler() {
+		void PrecacheAudioscrobbler(SongRef[] songsToDownload) {
             Console.WriteLine("Downloading Last.fm similar tracks...");
 			int progressCount = 0;
-			int total = lookup.SongRefCount;
-            var dbSongRefs = lookup.dataByRef.Keys.ToArray();
-            lookup =null;
-            db = null;
+			int total = songsToDownload.Length;
             long similarityCount=0;
             int hits=0;
-            System.GC.Collect();
-			foreach(SongRef songref in dbSongRefs) {
+			foreach(SongRef songref in songsToDownload) {
                 try
                 {
                     progressCount++;
@@ -68,45 +84,15 @@ namespace LastFMspider
                         (double)similarityCount,
                         hits);
 
+                    similarSongs.MemoryCache.Clear();//TODO temp for low-mem server.
                 }
-                catch(Exception e) { }//ignore all errors.
-                similarSongs.MemoryCache.Clear();//TODO temp for low-mem server.
+                catch(Exception e) {
+                    Console.WriteLine("Exception: {0}", e.ToString());
+                }//ignore all errors.
 			}
-            dbSongRefs = null;
-            System.GC.Collect();
-            var onDisk = similarSongs.DiskCacheContents().ToArray();
-            foreach (SongRef diskSongRef in onDisk)
-            {
-                try
-                {
-                    var disksimilar = similarSongs.Lookup(diskSongRef);//precache the last.fm data.  unsure - NOT REALLY necessary?
-                    if (disksimilar!=null)
-                        foreach (var songref in disksimilar.similartracks.Select(sim => sim.similarsong))
-                        {
-                            try
-                            {
-                                progressCount++;
-                                var similar = similarSongs.Lookup(songref);//precache the last.fm data.  unsure - NOT REALLY necessary?
-                                int newSimilars = similar == null ? 0 : similar.similartracks.Length;
-                                similarityCount += newSimilars;
-                                if (similar != null)
-                                    hits++;
-                                Console.WriteLine("{0,3} - tot={4} in hits={5}, with relTo={3} in \"{1} - {2}\"", 100 * progressCount / (double)total, songref.Artist, songref.Title, similar == null ? 0 : similar.similartracks.Length, (double)similarityCount, hits);
-                            }
-                            catch { }//ignore all errors.
-                            similarSongs.MemoryCache.Clear();//TODO temp for low-mem server.
-                        }
-                }
-                catch { }
-            }
-			Console.WriteLine("{0} songs precached!", similarSongs.MemoryCache.Count);
+			Console.WriteLine("Done precaching.");
 		}
 
-/*			} catch(Exception e) {
-				File.AppendAllText(Path.Combine(dbDir.FullName, "errLFMlog.txt"), DateTime.Now.ToString() + "\n" + songref.Artist + "###" + songref.Title + "\n" + e.Message + "\n" + e + "\n\n");
-				return null;
-			}
-*/
 		void RunNew(string[] args) {
 			var dir = new DirectoryInfo(@"C:\Program Files\Winamp\Plugins\MEXP\Users\Standard\-quicklist");
 			var m3us = args.Length==0? dir.GetFiles("*.m3u"):args.Select(s=> new FileInfo(s)).Where(f=>f.Exists);

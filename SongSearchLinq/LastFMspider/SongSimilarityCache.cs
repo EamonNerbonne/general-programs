@@ -5,18 +5,26 @@ using System.Text;
 using EamonExtensionsLinq.PersistantCache;
 using System.IO;
 using System.Xml.Linq;
+using LastFMspider.LastFMSQLiteBackend;
 
 namespace LastFMspider {
     public class SongSimilarityCache {
-        PersistantCache<SongRef, SongSimilarityList> backingCache;
+        PersistantCache<SongRef, SongSimilarityList> backingCache; //TODO split backingCache and backingDB into separate SimilarityCaches
         LastFMSQLiteCache backingDB;
         public SongSimilarityCache(DirectoryInfo cacheDir) {
             Console.WriteLine("Initializing sqlite db");
             backingDB = new LastFMSQLiteCache(new FileInfo(Path.Combine(cacheDir.FullName, "lastFMcache.s3db")));//TODO decide what kind of DB we really want...
             Console.WriteLine("Initializing file db");
             backingCache = new PersistantCache<SongRef, SongSimilarityList>(cacheDir, ".xml", new Mapper(this));
-            Console.WriteLine("Porting file -> sqlite ...");
-            Port();
+        }
+
+        public SimilarityStat[] LookupDbStats() {
+            Console.WriteLine("Getting DB similarity stats (this may take a while)");
+            DateTime start = DateTime.UtcNow;
+            var retval = backingDB.LookupSimilarityStats.Execute();
+            DateTime end = DateTime.UtcNow;
+            Console.WriteLine("========Took {0} seconds!", (end - start).TotalSeconds);
+            return retval;
         }
 
         public IEnumerable<SongRef> DiskCacheContents() {
@@ -25,70 +33,77 @@ namespace LastFMspider {
         }
 
         public void Port() {
+            Console.WriteLine("Porting file -> sqlite ...");
             var songSims = new List<Timestamped<SongSimilarityList>>();
             Dictionary<SongRef, SongRef> findCapitalization = new Dictionary<SongRef, SongRef>();
             int progress = 0;
             string[] keys = backingCache.GetDiskCacheContents().ToArray();
             int numKeys = keys.Length;
-            foreach (string keystring in keys) {
+            using (var trans = backingDB.Connection.BeginTransaction()) {
                 try {
-                    progress++;
-                    SongRef songref = SongRef.CreateFromCacheName(keystring);
-                    var list = backingCache.Lookup(songref);
-                    findCapitalization[songref] = songref;//add all listed songrefs
-                    if (list.Item != null)
-                        songSims.Add(list);
-                    else
-                        songSims.Add(
-                            new Timestamped<SongSimilarityList> {
-                                Item = new SongSimilarityList {
-                                    songref = songref,
-                                    similartracks = null
-                                },
-                                Timestamp = list.Timestamp
+                    foreach (string keystring in keys) {
+                        try {
+                            progress++;
+                            SongRef songref = SongRef.CreateFromCacheName(keystring);
+                            var list = backingCache.Lookup(songref);
+                            
+                            if (list.Item != null) {
+                                songSims.Add(list);
+                                if (list.Item.similartracks != null) {
+                                    foreach (var simtrack in list.Item.similartracks) //note this is part of one big transaction!
+                                        backingDB.InsertTrack.Execute(simtrack.similarsong); //by pre-inserting, capitalization from last.fm takes priority over our own.
+                                }
                             }
-                            );
+                            else //occurs only on error, but we should cache those too.
+                                songSims.Add(
+                                    new Timestamped<SongSimilarityList> {
+                                        Item = new SongSimilarityList {
+                                            songref = songref,
+                                            similartracks = null
+                                        },
+                                        Timestamp = list.Timestamp
+                                    }
+                                    );
 
-                    if (progress % 100 == 0)
-                        Console.WriteLine("Loaded {0}: {1}/{2}.", 100.0*progress/keys.Length,progress,numKeys);
+                            if (progress % 100 == 0)
+                                Console.WriteLine("Loaded {0}: {1}/{2}.", 100.0 * progress / numKeys, progress, numKeys);
+                        }
+                        catch (Exception e) {
+                            Console.WriteLine("Failed on {0}", keystring);
+                            Console.WriteLine("Exception {0}, {1}", e.Message, e.StackTrace);
+                        }
+                    }
                 }
-                catch (Exception e) {
-                    Console.WriteLine("Failed on {0}", keystring);
-                    Console.WriteLine("Exception {0}, {1}", e.Message, e.StackTrace);
+                finally {
+                    trans.Commit(); //safe to commit even with exception since separate components are also transactions.
                 }
             }
             keys = null;
-            Console.WriteLine("Loaded em all!  Capitalizing:");
-            //we have all songsimilarities loaded!
-            var capitizableSongs = from timestampedList in songSims
-                                   where timestampedList.Item.similartracks != null
-                                   from similartrack in timestampedList.Item.similartracks
-                                   where findCapitalization.ContainsKey(similartrack.similarsong)
-                                   select similartrack.similarsong;
-            foreach (var capSong in capitizableSongs)
-                        findCapitalization[capSong] = capSong;//add useful capitalization
-            foreach (var tlist in songSims)
-                tlist.Item.songref = findCapitalization[tlist.Item.songref]; //fix capitalization in similarity lists
-            //OK we have correctly capitalized muck, hopefully.
-            Console.WriteLine("Done Capitalizing.");
             progress = 0;
-            foreach (var list in songSims) {
+            using (var trans = backingDB.Connection.BeginTransaction()) {
                 try {
-                    progress++;
-                    backingDB.InsertSimilarityList.Execute(list.Item, list.Timestamp);
-                    backingCache.DeleteItem(list.Item.songref);
-                    if (progress % 100 == 0)
-                        Console.WriteLine("Loaded {0}: {1}/{2}.", 100.0 * progress / keys.Length, progress, numKeys);
-                }
-                catch (Exception e) {
-                    Console.WriteLine("Failed on {0}th, ",progress, list.Item==null?"<null-list>":list.Item.songref==null?"<null-songref>":list.Item.songref.ToString() );
-                    Console.WriteLine("Exception {0}, {1}", e.Message, e.StackTrace);
-                }
 
+                    foreach (var list in songSims) {
+                        try {
+                            progress++;
+                            backingDB.InsertSimilarityList.Execute(list.Item, list.Timestamp);
+                            backingCache.DeleteItem(list.Item.songref);
+                            if (progress % 100 == 0)
+                                Console.WriteLine("Loaded {0}: {1}/{2}.", 100.0 * progress / numKeys, progress, numKeys);
+                        }
+                        catch (Exception e) {
+                            Console.WriteLine("Failed on {0}th, ", progress, list.Item == null ? "<null-list>" : list.Item.songref == null ? "<null-songref>" : list.Item.songref.ToString());
+                            Console.WriteLine("Exception {0}, {1}", e.Message, e.StackTrace);
+                        }
+
+                    }
+                }
+                finally {
+                    trans.Commit(); //safe to commit even with exception since separate components are also transactions.
+                }
             }
+
         }
-
-
 
         public Dictionary<SongRef, Timestamped<SongSimilarityList>> MemoryCache { get { return backingCache.MemoryCache; } }
 

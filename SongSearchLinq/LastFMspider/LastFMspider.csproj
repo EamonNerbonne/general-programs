@@ -72,13 +72,17 @@
     <Compile Include="LastFMspiderMain.cs" />
     <Compile Include="LastFMSQLiteBackend\AbstractLfmCacheOperation.cs" />
     <Compile Include="LastFMSQLiteBackend\AbstractLfmCacheQuery.cs" />
+    <Compile Include="LastFMSQLiteBackend\AllTracks.cs" />
+    <Compile Include="LastFMSQLiteBackend\CountSimilarities.cs" />
     <Compile Include="LastFMSQLiteBackend\DeleteSimilaritiesOf.cs" />
     <Compile Include="LastFMSQLiteBackend\InsertArtist.cs" />
     <Compile Include="LastFMSQLiteBackend\InsertSimilarity.cs" />
     <Compile Include="LastFMSQLiteBackend\InsertSimilarityList.cs" />
     <Compile Include="LastFMSQLiteBackend\InsertTrack.cs" />
+    <Compile Include="LastFMSQLiteBackend\LookupReverseSimilarityList.cs" />
     <Compile Include="LastFMSQLiteBackend\LookupSimilarityList.cs" />
     <Compile Include="LastFMSQLiteBackend\LookupSimilarityListAge.cs" />
+    <Compile Include="LastFMSQLiteBackend\LookupSimilarityStats.cs" />
     <Compile Include="LastFMSQLiteBackend\UpdateTrackTimestamp.cs" />
     <Compile Include="LastFMSQLiteCache.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
