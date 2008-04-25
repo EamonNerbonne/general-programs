@@ -20,23 +20,33 @@ namespace LastFMspider
             laptopVirtConfig = args[0];
 			LastFMspiderMain main = new LastFMspiderMain();
 			main.Load();
+            main.PrecacheAudioscrobbler();
             main.RunStats();
+            //main.ConvertEncoding();
 		//	main.RunNew(args);//TODO:reenable
             Console.ReadLine();
 		}
 
+        public void ConvertEncoding() {
+            Console.WriteLine("DANGEROUS- can screw up bigtime-dirty hack convert miscoded stuff back to bytes and then to UTF");
+            
+            similarSongs.ConvertEncoding();
+        }
+
         private void RunStats() {
             var stats = similarSongs.LookupDbStats();
+
             Console.WriteLine("Found {0} Referenced songs, of which {1} have stats downloaded.",stats.Length, stats.Where(s=>s.LookupTimestamp!=null).Count() );
             Console.WriteLine("Sorting by rating...");
             Array.Sort(stats, (a, b) => b.TimesReferenced.CompareTo(a.TimesReferenced));
             Console.WriteLine("Showing a few...");
-            int shown = 0;
+            
             foreach (var stat in stats) {
                 Console.WriteLine("{1} {0}, {2}", stat.SongRef.ToString(), stat.LookupTimestamp == null ? "!" : " ", stat.TimesReferenced);
-                shown++;
+                try { similarSongs.Lookup(stat.SongRef); } catch { }
+                //shown++;
 
-                if (shown % 20 == 0) { Console.WriteLine("Press any key for more"); Console.ReadKey(); }
+                //if (shown % 20 == 0) { Console.WriteLine("Press any key for more"); Console.ReadKey(); }
             }
 
 
@@ -53,15 +63,19 @@ namespace LastFMspider
             Console.WriteLine("Loading song similarity...");
             similarSongs = new SongSimilarityCache(configFile.DataDirectory.CreateSubdirectory("cache"));
             
-            //Console.WriteLine("Loading song database...");
-            //db = new SimpleSongDB(configFile,null);
-            //if(db.InvalidDataCount!= 0) Console.WriteLine("Ignored {0} songs with unknown tags (should be 0).", db.InvalidDataCount);
-			//Console.WriteLine("Taking those {0} songs and indexing em by artist/title...", db.Songs.Count);
-            //lookup = new SongDataLookups(db.Songs, null);
-			//PrecacheAudioscrobbler(lookup.dataByRef.Keys.ToArray());
+            
 		}
 
-		void PrecacheAudioscrobbler(SongRef[] songsToDownload) {
+		public void PrecacheAudioscrobbler() {
+            Console.WriteLine("Loading song database...");
+            db = new SimpleSongDB(configFile, null);
+            if (db.InvalidDataCount != 0) Console.WriteLine("Ignored {0} songs with unknown tags (should be 0).", db.InvalidDataCount);
+            Console.WriteLine("Taking those {0} songs and indexing em by artist/title...", db.Songs.Count);
+            lookup = new SongDataLookups(db.Songs, null);
+            SongRef[] songsToDownload=lookup.dataByRef.Keys.ToArray();
+            lookup = null;
+            db = null;
+            System.GC.Collect();
             Console.WriteLine("Downloading Last.fm similar tracks...");
 			int progressCount = 0;
 			int total = songsToDownload.Length;

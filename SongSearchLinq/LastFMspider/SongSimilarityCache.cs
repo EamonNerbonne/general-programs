@@ -6,6 +6,9 @@ using EamonExtensionsLinq.PersistantCache;
 using System.IO;
 using System.Xml.Linq;
 using LastFMspider.LastFMSQLiteBackend;
+using System.Xml;
+
+using EamonExtensionsLinq.Text;
 
 namespace LastFMspider {
     public class SongSimilarityCache {
@@ -25,6 +28,59 @@ namespace LastFMspider {
             DateTime end = DateTime.UtcNow;
             Console.WriteLine("========Took {0} seconds!", (end - start).TotalSeconds);
             return retval;
+        }
+        public void ConvertEncoding() {
+            using (var trans = backingDB.Connection.BeginTransaction()) {
+                var artists = backingDB.RawArtists.Execute();
+                foreach (var artist in artists) {
+                    var webbytes = Encoding.Default.GetBytes(artist.FullArtist);
+                    var goodstr = Encoding.UTF8.GetString(webbytes);
+                    if (goodstr != artist.FullArtist) {
+                        Console.Write("A: {0} isn't {1}: ", artist.FullArtist, goodstr);
+                        artist.FullArtist = goodstr;
+                        artist.LowercaseArtist = goodstr.ToLowerInvariant();
+                        if (goodstr.ToCharArray().All(c => Canonicalize.IsReasonableChar(c) && c != (char)65533)) {
+                            try {
+                                backingDB.UpdateArtist.Execute(artist);
+                                Console.WriteLine("Updated.");
+                            } catch {
+                                backingDB.DeleteArtist.Execute(artist.ArtistID);
+                                Console.WriteLine("Deleted dup.");
+                            }
+                        } else {
+                            backingDB.DeleteArtist.Execute(artist.ArtistID);
+                            Console.WriteLine("Deleted nogood.");
+                        }
+                    }
+                }
+                trans.Commit();
+            }
+                using (var trans = backingDB.Connection.BeginTransaction()) {
+                var tracks = backingDB.RawTracks.Execute();
+                foreach (var track in tracks) {
+                    var webbytes = Encoding.Default.GetBytes(track.FullTitle);
+                    var goodstr = Encoding.UTF8.GetString(webbytes);
+                    if (goodstr != track.FullTitle) {
+                        Console.Write("T: {0} isn't {1}: ", track.FullTitle, goodstr);
+                        track.FullTitle = goodstr;
+                        track.LowercaseTitle = goodstr.ToLowerInvariant();
+                        if (goodstr.ToCharArray().All(c => Canonicalize.IsReasonableChar(c) && c != (char)65533)) {
+                            try {
+                                backingDB.UpdateTrack.Execute(track);
+                                Console.WriteLine("Updated.");
+
+                            } catch {
+                                backingDB.DeleteTrack.Execute(track.TrackID);
+                                Console.WriteLine("Deleted dup.");
+                            }
+                        } else {
+                            backingDB.DeleteTrack.Execute(track.TrackID);
+                            Console.WriteLine("Deleted nogood.");
+                        }
+                    }
+                }
+                trans.Commit();
+            }
         }
 
         public IEnumerable<SongRef> DiskCacheContents() {
@@ -46,15 +102,14 @@ namespace LastFMspider {
                             progress++;
                             SongRef songref = SongRef.CreateFromCacheName(keystring);
                             var list = backingCache.Lookup(songref);
-                            
+
                             if (list.Item != null) {
                                 songSims.Add(list);
                                 if (list.Item.similartracks != null) {
                                     foreach (var simtrack in list.Item.similartracks) //note this is part of one big transaction!
                                         backingDB.InsertTrack.Execute(simtrack.similarsong); //by pre-inserting, capitalization from last.fm takes priority over our own.
                                 }
-                            }
-                            else //occurs only on error, but we should cache those too.
+                            } else //occurs only on error, but we should cache those too.
                                 songSims.Add(
                                     new Timestamped<SongSimilarityList> {
                                         Item = new SongSimilarityList {
@@ -67,14 +122,12 @@ namespace LastFMspider {
 
                             if (progress % 100 == 0)
                                 Console.WriteLine("Loaded {0}: {1}/{2}.", 100.0 * progress / numKeys, progress, numKeys);
-                        }
-                        catch (Exception e) {
+                        } catch (Exception e) {
                             Console.WriteLine("Failed on {0}", keystring);
                             Console.WriteLine("Exception {0}, {1}", e.Message, e.StackTrace);
                         }
                     }
-                }
-                finally {
+                } finally {
                     trans.Commit(); //safe to commit even with exception since separate components are also transactions.
                 }
             }
@@ -90,15 +143,13 @@ namespace LastFMspider {
                             backingCache.DeleteItem(list.Item.songref);
                             if (progress % 100 == 0)
                                 Console.WriteLine("Loaded {0}: {1}/{2}.", 100.0 * progress / numKeys, progress, numKeys);
-                        }
-                        catch (Exception e) {
+                        } catch (Exception e) {
                             Console.WriteLine("Failed on {0}th, ", progress, list.Item == null ? "<null-list>" : list.Item.songref == null ? "<null-songref>" : list.Item.songref.ToString());
                             Console.WriteLine("Exception {0}, {1}", e.Message, e.StackTrace);
                         }
 
                     }
-                }
-                finally {
+                } finally {
                     trans.Commit(); //safe to commit even with exception since separate components are also transactions.
                 }
             }
@@ -110,9 +161,8 @@ namespace LastFMspider {
         public SongSimilarityList Lookup(SongRef songref) {
             try {
                 return LookupViaSQLite(songref);
-             //   return backingCache.Lookup(songref);
-            }
-            catch (PersistantCacheException) { return null; }
+                //   return backingCache.Lookup(songref);
+            } catch (PersistantCacheException) { return null; }
         }
 
         private SongSimilarityList LookupViaSQLite(SongRef songref) {
@@ -121,15 +171,14 @@ namespace LastFMspider {
                 var retval = DirectWebRequest(songref);
                 backingDB.InsertSimilarityList.Execute(retval, DateTime.UtcNow);
                 return retval;
-            }
-            else {
-                return  backingDB.LookupSimilarityList.Execute(songref);
+            } else {
+                return backingDB.LookupSimilarityList.Execute(songref);
             }
         }
 
         TimeSpan minReqDelta = new TimeSpan(0, 0, 0, 1);//no more than one request per second.
         DateTime nextRequestWhen = DateTime.Now;
-        string lastlistxmlrep;
+        byte[] lastlistxmlrep;
         SongSimilarityList lastlist;
 
         private SongSimilarityList DirectWebRequest(SongRef songref) {
@@ -141,10 +190,12 @@ namespace LastFMspider {
                     Console.Write(">");
                 }
                 nextRequestWhen = now + minReqDelta;
-                lastlistxmlrep = new System.Net.WebClient().DownloadString(songref.AudioscrobblerSimilarUrl());
-                return lastlist = SongSimilarityList.CreateFromAudioscrobblerXml(songref, XDocument.Parse(lastlistxmlrep));
-            }
-            catch { return new SongSimilarityList { songref = songref, similartracks = null }; }//Also cache negatively; assume 404s and other errors remain.
+                lastlistxmlrep = new System.Net.WebClient().DownloadData(songref.AudioscrobblerSimilarUrl());//important:DownloadString destroys data due to encoding!
+                var xdoc=XDocument.Load( XmlReader.Create(new MemoryStream(lastlistxmlrep)));
+                object a,b,c;
+                lastlist = SongSimilarityList.CreateFromAudioscrobblerXml(songref,xdoc );
+                return lastlist;
+            } catch { return new SongSimilarityList { songref = songref, similartracks = null }; }//Also cache negatively; assume 404s and other errors remain.
         }
 
         private class Mapper : IPersistantCacheMapper<SongRef, SongSimilarityList> {
@@ -163,9 +214,9 @@ namespace LastFMspider {
                     if (owner.lastlist != item) {
                         throw new NotImplementedException("Can only store similarity lists just retrieved from lastfm.");
                     }
-                    using (var w = new StreamWriter(to)) w.Write(owner.lastlistxmlrep ?? "");
-                }
-                finally {
+                    byte[] towrite = owner.lastlistxmlrep ?? Encoding.UTF8.GetBytes("");
+                    to.Write(towrite,0,towrite.Length );
+                } finally {
                     owner.lastlistxmlrep = null;
                     owner.lastlist = null;
                 }
@@ -177,14 +228,15 @@ namespace LastFMspider {
                 try {
                     doc = XDocument.Parse(loadxmlrep);
                     return SongSimilarityList.CreateFromAudioscrobblerXml(songref, doc);
-                }
-                catch {
+                } catch {
                     return null;
                 }
-                
+
             }
 
         }
 
+
+        
     }
 }

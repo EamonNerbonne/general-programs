@@ -26,8 +26,8 @@ WHERE LowercaseTitle = @lowerTitle AND ArtistID = (SELECT ArtistID FROM [Artist]
         DbParameter lowerTitle, lowerArtist, ticks;
     
 
-        public void Execute(SongRef songRef, DateTime dateTime) {
-            ticks.Value = dateTime.Ticks;
+        public void Execute(SongRef songRef, DateTime? dateTime) {
+            ticks.Value = dateTime.HasValue? dateTime.Value.Ticks:(object)DBNull.Value;
             lowerArtist.Value = songRef.Artist.ToLowerInvariant();
             lowerTitle.Value = songRef.Title.ToLowerInvariant();
             CommandObj.ExecuteNonQuery();

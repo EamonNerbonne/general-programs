@@ -17,7 +17,17 @@ namespace LastFMspider.LastFMSQLiteBackend {
         public LookupSimilarityStats(LastFMSQLiteCache lfmCache) : base(lfmCache) { }
         protected override string CommandText {
             get {
-                return @"SELECT TrackB, count(*) FROM SimilarTrack Group by TrackB";
+                return @"SELECT A.FullArtist, T.FullTitle, T.LookupTimestamp,sub.refcount
+FROM (
+   SELECT TrackB, count(*) as 'refcount'
+   FROM SimilarTrack
+   GROUP BY TrackB
+   HAVING count(*)>1
+   ) sub, Track T,   Artist A
+WHERE T.TrackID = sub.TrackB
+AND T.LookupTimestamp IS NULL
+AND A.ArtistID = T.ArtistID
+ORDER BY sub.refcount DESC";
             }
         }
 
@@ -27,25 +37,22 @@ namespace LastFMspider.LastFMSQLiteBackend {
         }
 
         public SimilarityStat[] Execute() {
-            List<simstat> rates = new List<simstat>();
+            var rates = new List<SimilarityStat>();
             using (var reader = CommandObj.ExecuteReader()) { //no transaction needed for a single select!
                 while (reader.Read()) {
-                    var id = (int)(long)reader[0];
-                    var count = (int)(long)reader[1];
-                    rates.Add(new simstat{ID=id,Count=count});
+                    var artist = (string)reader[0];
+                    var title = (string)reader[1];
+                    var timestamp = LookupSimilarityListAge.DbValueTicksToDateTime( reader[2]);
+                    var count = (int)(long)reader[3];
+                    rates.Add(new SimilarityStat{
+                     TrackID =0,
+                      SongRef = SongRef.Create(artist,title),
+                       TimesReferenced = count,
+                        LookupTimestamp=timestamp
+                    });
                 }
             }
-            Console.Write("[...]");
-            var trackLookup = lfmCache.AllTracks.Execute().ToDictionary(ct=>ct.ID) ;
-            return (from stat in rates
-                    let cachedTrack = trackLookup[stat.ID]
-
-                    select new SimilarityStat {
-                        TrackID = stat.ID,
-                        SongRef = cachedTrack.SongRef,
-                        LookupTimestamp = cachedTrack.LookupTimestamp,
-                        TimesReferenced = stat.Count
-                    }).ToArray();
+            return rates.ToArray();
         }
     }
 }
