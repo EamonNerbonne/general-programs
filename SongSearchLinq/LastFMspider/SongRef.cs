@@ -98,6 +98,9 @@ namespace LastFMspider
 		public override int GetHashCode() {
 			return hashcode;
 		}
+        public override string ToString() {
+            return Artist + " - " + Title;
+        }
 
 		public string AudioscrobblerSimilarUrl() {
 			return "http://ws.audioscrobbler.com/1.0/track/" + Uri.EscapeDataString(Artist) + "/" + Uri.EscapeDataString(Title) + "/similar.xml";

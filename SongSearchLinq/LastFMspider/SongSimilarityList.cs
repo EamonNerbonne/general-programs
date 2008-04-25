@@ -17,7 +17,7 @@ namespace LastFMspider
 
 		public static SongSimilarityList CreateFromAudioscrobblerXml(SongRef songref, XDocument doc) {
 			var simtracksObj =
-				from trackXml in doc.Element("similartracks").Elements("track")
+				from trackXml in doc.Elements("similartracks").Elements("track")
 				select new SimilarTrack {
 					similarity = (double)trackXml.Element("match"),
 					similarsong = SongRef.Create( (string)trackXml.Element("artist").Element("name"), (string)trackXml.Element("name"))

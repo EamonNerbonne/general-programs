@@ -32,7 +32,7 @@ SELECT Torig.LookupTimestamp FROM
                 {
                 //we expect exactly one hit - or none
                 if (reader.Read()) {
-                    long? ticks = (long?)reader[0];
+                    long? ticks =  (reader[0]==DBNull.Value?(long?)null:(long?)reader[0]);
                     if (ticks == null)
                         return null;
                     else return new DateTime((long)ticks, DateTimeKind.Utc);
