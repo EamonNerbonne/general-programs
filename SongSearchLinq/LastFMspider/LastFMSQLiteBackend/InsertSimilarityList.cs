@@ -11,9 +11,7 @@ namespace LastFMspider.LastFMSQLiteBackend {
         private static IEnumerable<T> DeNull<T>(IEnumerable<T> iter) { return iter == null ? Enumerable.Empty<T>() : iter; }
         public void Execute(SongSimilarityList list, DateTime? lookupTimestamp) {
             if (list == null) return;
-            var tracks = DeNull(list.similartracks).Select(sim => sim.similarsong).ToList();
-            tracks.Add(list.songref);
-
+            
             DateTime timestamp = lookupTimestamp ?? DateTime.UtcNow;
 
             using (DbTransaction trans = Connection.BeginTransaction()) {
@@ -25,8 +23,12 @@ namespace LastFMspider.LastFMSQLiteBackend {
                         lfmCache. DeleteSimilaritiesOf.Execute(list.songref);
                 }
 
-
-                foreach (var songref in tracks) lfmCache.InsertTrack.Execute(songref);
+                lfmCache.InsertTrack.Execute(list.songref);
+                if(list.similartracks!=null)
+                    foreach (var similar in list.similartracks) {
+                        lfmCache.InsertTrack.Execute(similar.similarsong);
+                        lfmCache.UpdateTrackCasing.Execute(similar.similarsong);
+                    }
                 foreach (var similartrack in DeNull(list.similartracks)) lfmCache. InsertSimilarity.Execute(list.songref, similartrack.similarsong, similartrack.similarity);
                 lfmCache. UpdateTrackTimestamp.Execute(list.songref, timestamp);
                 trans.Commit();

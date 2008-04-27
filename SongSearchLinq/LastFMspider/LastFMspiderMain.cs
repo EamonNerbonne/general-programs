@@ -20,7 +20,7 @@ namespace LastFMspider
             laptopVirtConfig = args[0];
 			LastFMspiderMain main = new LastFMspiderMain();
 			main.Load();
-            main.PrecacheAudioscrobbler();
+            //main.PrecacheAudioscrobbler();
             main.RunStats();
             //main.ConvertEncoding();
 		//	main.RunNew(args);//TODO:reenable

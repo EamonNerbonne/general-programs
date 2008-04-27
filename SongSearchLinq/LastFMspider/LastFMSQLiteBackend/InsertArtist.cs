@@ -14,7 +14,6 @@ namespace LastFMspider.LastFMSQLiteBackend {
             lowername = DefineParameter("@lowername");
         }
 
-
         DbParameter fullname, lowername;
         public void Execute(string artist) {
             fullname.Value = artist;

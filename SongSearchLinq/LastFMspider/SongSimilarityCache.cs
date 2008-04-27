@@ -9,6 +9,7 @@ using LastFMspider.LastFMSQLiteBackend;
 using System.Xml;
 
 using EamonExtensionsLinq.Text;
+using EamonExtensionsLinq.Web;
 
 namespace LastFMspider {
     public class SongSimilarityCache {
@@ -190,9 +191,12 @@ namespace LastFMspider {
                     Console.Write(">");
                 }
                 nextRequestWhen = now + minReqDelta;
-                lastlistxmlrep = new System.Net.WebClient().DownloadData(songref.AudioscrobblerSimilarUrl());//important:DownloadString destroys data due to encoding!
-                var xdoc=XDocument.Load( XmlReader.Create(new MemoryStream(lastlistxmlrep)));
-                object a,b,c;
+                //lastlistxmlrep = new System.Net.WebClient().DownloadData(songref.AudioscrobblerSimilarUrl());//important:DownloadString destroys data due to encoding!
+                //var xdoc=XDocument.Load( XmlReader.Create(new MemoryStream(lastlistxmlrep)));
+                var requestedData= UriRequest.Execute(new Uri(songref.AudioscrobblerSimilarUrl()));//TODO: check that this actually works...
+                lastlistxmlrep = requestedData.Content;
+               
+                var xdoc = XDocument.Parse(requestedData.ContentAsString);
                 lastlist = SongSimilarityList.CreateFromAudioscrobblerXml(songref,xdoc );
                 return lastlist;
             } catch { return new SongSimilarityList { songref = songref, similartracks = null }; }//Also cache negatively; assume 404s and other errors remain.

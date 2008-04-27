@@ -90,6 +90,7 @@
     <Compile Include="LastFMSQLiteBackend\RawTracks.cs" />
     <Compile Include="LastFMSQLiteBackend\UpdateArtist.cs" />
     <Compile Include="LastFMSQLiteBackend\UpdateTrack.cs" />
+    <Compile Include="LastFMSQLiteBackend\UpdateTrackCasing.cs" />
     <Compile Include="LastFMSQLiteBackend\UpdateTrackTimestamp.cs" />
     <Compile Include="LastFMSQLiteCache.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

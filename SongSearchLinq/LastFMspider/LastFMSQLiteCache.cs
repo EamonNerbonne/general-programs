@@ -77,6 +77,7 @@ CREATE UNIQUE INDEX IF NOT EXISTS [Unique_Track_ArtistID_LowercaseTitle] ON [Tra
         public UpdateTrack UpdateTrack { get; private set; }
         public DeleteArtist DeleteArtist { get; private set; }
         public DeleteTrack DeleteTrack { get; private set; }
+        public UpdateTrackCasing UpdateTrackCasing { get; private set; }
         //public LookupSimilarityListAge LookupSimilarityListAge { get; private set; }
         public LastFMSQLiteCache(FileInfo sqliteFile) { dbFile = sqliteFile; Init(); }
 
@@ -115,6 +116,7 @@ CREATE UNIQUE INDEX IF NOT EXISTS [Unique_Track_ArtistID_LowercaseTitle] ON [Tra
             UpdateArtist = new UpdateArtist(this);
             DeleteTrack = new DeleteTrack(this);
             DeleteArtist = new DeleteArtist(this);
+            UpdateTrackCasing = new UpdateTrackCasing(this);
             
         }
 
