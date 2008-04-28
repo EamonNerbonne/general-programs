@@ -31,7 +31,7 @@ namespace LastFMspider {
             return retval;
         }
 
-        public class SimTrans {
+        public struct SimTrans {
             public float rateAB,rateBC,rateAC;
         }
         private struct SimilarTo { public int track; public float rating; }
@@ -57,7 +57,7 @@ namespace LastFMspider {
             return (float)list.Average(x => Math.Pow(x-average,moment));
         }
         static float Covariance(Statistics A, Statistics B) {
-            return (float)A.Seq.Cast<double>().ZipWith(B.Seq.Cast<double>(), (a, b) => (a - A.Mean) * (b - B.Mean)).Average();
+            return (float)(A.Seq.Cast<double>().ZipWith(B.Seq.Cast<double>(), (a, b) => (a - A.Mean) * (b - B.Mean)).Average() /Math.Sqrt(A.Var)/Math.Sqrt(B.Var) );
         }
 
 
@@ -119,13 +119,13 @@ namespace LastFMspider {
 
             List<SimTrans> retval = new List<SimTrans>();
             float[] refBuf = new float[trackCount];
-
+            Random rnd = new Random((int)(DateTime.UtcNow.Ticks/128));//just dividing since the windows times isn't that accurate anyhow.
             foreach (int trackId in Enumerable.Range(0, trackCount)) {
                 foreach (SimilarTo reachable in map[trackId]) refBuf[reachable.track] = reachable.rating;
 
                 foreach (SimilarTo reachable in map[trackId])
                     foreach (SimilarTo transReachable in map[reachable.track])
-                        if (refBuf[transReachable.track] > 0) //hit!
+                        if (refBuf[transReachable.track] > 0 && rnd.Next()%10==0) //hit!
                             retval.Add(new SimTrans { rateAB = reachable.rating, rateBC = transReachable.rating, rateAC = refBuf[transReachable.track] });
 
                 foreach (SimilarTo reachable in map[trackId]) refBuf[reachable.track] = -1;
@@ -162,6 +162,11 @@ namespace LastFMspider {
               sqrsum= (a,b)=>a*a+b*b,
               sqrtsum= (a,b)=>(float)(Math.Sqrt(a)+Math.Sqrt(b)),
               euclidian = (a, b) => (float)Math.Sqrt(a * a + b * b);
+            
+
+            //OK mistaken assumption here.  I'm doing statistics and looking at covariance over whole sets of songs, when it should be only ratings of a particular song.
+            //That's why Cov(AB,AC) is so high - generally one artist has a bunch of similarities in a similar range.
+            //So, as a hack, I could normalize mean and variance per artists... but... that's just weird, and wouldn't be right... so what to do?
 
             Statistics
                 statSum = new Statistics(retval, sum),
@@ -171,13 +176,12 @@ namespace LastFMspider {
                 statSqrtSum = new Statistics(retval, sqrtsum),
                 statEuclidian = new Statistics(retval, euclidian);
 
-            Console.WriteLine("f={0}, Cov={1}, Stats={2}", sum, Covariance(statSum, rateAC), statSum);
-            Console.WriteLine("f={0}, Cov={1}, Stats={2}", mul, Covariance(statMul, rateAC), statMul);
-            Console.WriteLine("f={0}, Cov={1}, Stats={2}", max, Covariance(statMax, rateAC), statMax);
-            Console.WriteLine("f={0}, Cov={1}, Stats={2}", sqrsum, Covariance(statSqrSum, rateAC), statSqrSum);
-            Console.WriteLine("f={0}, Cov={1}, Stats={2}", sqrtsum, Covariance(statSqrtSum, rateAC), statSqrtSum);
-            Console.WriteLine("f={0}, Cov={1}, Stats={2}", euclidian, Covariance(statEuclidian, rateAC), statEuclidian); 
-
+            Console.WriteLine("f={0}, Cov={1}, Stats={2}", "sum", Covariance(statSum, rateAC), statSum);
+            Console.WriteLine("f={0}, Cov={1}, Stats={2}", "mul", Covariance(statMul, rateAC), statMul);
+            Console.WriteLine("f={0}, Cov={1}, Stats={2}", "max", Covariance(statMax, rateAC), statMax);
+            Console.WriteLine("f={0}, Cov={1}, Stats={2}", "sqrsum", Covariance(statSqrSum, rateAC), statSqrSum);
+            Console.WriteLine("f={0}, Cov={1}, Stats={2}", "sqrtsum", Covariance(statSqrtSum, rateAC), statSqrtSum);
+            Console.WriteLine("f={0}, Cov={1}, Stats={2}", "euclidian", Covariance(statEuclidian, rateAC), statEuclidian); 
 
             timer.TimeMark(null);
         }
