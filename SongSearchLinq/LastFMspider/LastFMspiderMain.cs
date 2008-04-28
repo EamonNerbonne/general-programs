@@ -20,8 +20,9 @@ namespace LastFMspider
             laptopVirtConfig = args[0];
 			LastFMspiderMain main = new LastFMspiderMain();
 			main.Load();
+            main.similarSongs.SimilarityPatterns();
             //main.PrecacheAudioscrobbler();
-            main.RunStats();
+            //main.RunStats();
             //main.ConvertEncoding();
 		//	main.RunNew(args);//TODO:reenable
             Console.ReadLine();

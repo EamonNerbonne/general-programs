@@ -10,6 +10,8 @@ using System.Xml;
 
 using EamonExtensionsLinq.Text;
 using EamonExtensionsLinq.Web;
+using EamonExtensionsLinq.Collections;
+using EamonExtensionsLinq;
 
 namespace LastFMspider {
     public class SongSimilarityCache {
@@ -27,7 +29,29 @@ namespace LastFMspider {
             Console.WriteLine("========Took {0} seconds!", (end - start).TotalSeconds);
             return retval;
         }
-        public void ConvertEncoding() {
+
+        public class SimTrans {
+            public float rateAB,rateBC,rateAC;
+        }
+
+        public void SimilarityPatterns() {
+            var timer = new NiceTimer("Getting all similarities");
+            var sims = backingDB.RawSimilarTracks.Execute();
+            Console.WriteLine("Got {0} similarities", sims.Length);
+            timer.TimeMark("Inserting into MultiMap");
+            
+            HashMultiMap<int, int> songRels = new HashMultiMap<int, int>();
+            Dictionary<Edge<int, int>, float> rating = new Dictionary<Edge<int, int>, float>();
+            foreach (var sim in sims) {
+                songRels.AddEdge(sim.TrackA, sim.TrackB);
+                rating[Edge.Create( sim.TrackA, sim.TrackB )] = sim.Rating;
+            }
+
+
+            timer.TimeMark(null);
+        }
+
+        public void ConvertEncoding() { //TODO this should really be part of more advanced logic in EamonExtensionsLinq to guess and fix encodings.
             using (var trans = backingDB.Connection.BeginTransaction()) {
                 var artists = backingDB.RawArtists.Execute();
                 foreach (var artist in artists) {

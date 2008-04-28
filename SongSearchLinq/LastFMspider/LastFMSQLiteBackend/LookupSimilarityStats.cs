@@ -31,7 +31,6 @@ ORDER BY sub.refcount DESC";
             }
         }
 
-
         public SimilarityStat[] Execute() {
             var rates = new List<SimilarityStat>();
             using (var reader = CommandObj.ExecuteReader()) { //no transaction needed for a single select!
