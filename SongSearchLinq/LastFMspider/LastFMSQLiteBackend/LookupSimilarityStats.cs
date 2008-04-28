@@ -31,10 +31,6 @@ ORDER BY sub.refcount DESC";
             }
         }
 
-        struct simstat {
-            public int ID;
-            public int Count;
-        }
 
         public SimilarityStat[] Execute() {
             var rates = new List<SimilarityStat>();

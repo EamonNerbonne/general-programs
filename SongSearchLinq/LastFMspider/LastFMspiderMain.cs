@@ -98,7 +98,6 @@ namespace LastFMspider
                         (double)similarityCount,
                         hits);
 
-                    similarSongs.MemoryCache.Clear();//TODO temp for low-mem server.
                 }
                 catch(Exception e) {
                     Console.WriteLine("Exception: {0}", e.ToString());
