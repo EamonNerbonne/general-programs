@@ -12,6 +12,7 @@ using EamonExtensionsLinq.Text;
 using EamonExtensionsLinq.Web;
 using EamonExtensionsLinq.Collections;
 using EamonExtensionsLinq;
+using System.Diagnostics;
 
 namespace LastFMspider {
     public class SongSimilarityCache {
@@ -33,19 +34,149 @@ namespace LastFMspider {
         public class SimTrans {
             public float rateAB,rateBC,rateAC;
         }
+        private struct SimilarTo { public int track; public float rating; }
+
+        private TOut[][] ReMap<TIn, TOut>(int idCount, TIn[] inSet, Func<TIn,int> getId,Func<TIn,TOut> getVal ) {
+            int[] valCount = new int[idCount];
+            foreach (var item in inSet)
+                valCount[getId(item)]++;
+
+            TOut[][] map = new TOut[idCount][];
+            for (int itemId = 0; itemId < idCount; itemId++)
+                map[itemId] = new TOut[valCount[itemId]];
+
+
+            foreach (var item in inSet) {
+                int id = getId(item);
+                map[id][--valCount[id]] = getVal(item);
+            }
+            return map;
+        }
+
+        static float CentralMoment(IEnumerable<float> list, float average, int moment) {
+            return (float)list.Average(x => Math.Pow(x-average,moment));
+        }
+        static float Covariance(Statistics A, Statistics B) {
+            return (float)A.Seq.Cast<double>().ZipWith(B.Seq.Cast<double>(), (a, b) => (a - A.Mean) * (b - B.Mean)).Average();
+        }
+
+
+        class Statistics {
+            public float Mean, Var, Skew, Kurtosis;
+            public int Count;
+            public IEnumerable<float> Seq;
+            public Statistics(IEnumerable<SimTrans> seq, Func<float, float, float> comb) :this(seq.Select(r=>comb(r.rateAB,r.rateBC)) ) { }
+
+
+            public Statistics(IEnumerable<float> seq) {
+                Mean = seq.Average();
+                Count = seq.Count();
+                Var = CentralMoment(seq, Mean, 2);
+                Skew = CentralMoment(seq, Mean, 3);
+                Kurtosis = CentralMoment(seq, Mean, 4);
+                Seq = seq;
+            }
+
+            public override string ToString() {
+                return string.Format("Mean = {0}, Var = {1}, Skew = {2}, Kurtosis = {3}, Count = {4}", Mean, Var, Skew, Kurtosis, Count);
+            }
+        }
 
         public void SimilarityPatterns() {
             var timer = new NiceTimer("Getting all similarities");
-            var sims = backingDB.RawSimilarTracks.Execute();
+            Console.Write("Processing: [");
+            var sims = backingDB.RawSimilarTracks.Execute(true);
+            Console.WriteLine("]");
             Console.WriteLine("Got {0} similarities", sims.Length);
-            timer.TimeMark("Inserting into MultiMap");
             
-            HashMultiMap<int, int> songRels = new HashMultiMap<int, int>();
-            Dictionary<Edge<int, int>, float> rating = new Dictionary<Edge<int, int>, float>();
+            timer.TimeMark("Counting...");
+            
+            var tracks = (from sim in sims
+                          from track in new[] { sim.TrackA, sim.TrackB }
+                          select track).Distinct().ToArray();
+            var trackCount = tracks.Length;
+            Console.WriteLine("We have {0} unique tracks, maximum id being {1}", trackCount, tracks.Max());
+            
+            timer.TimeMark("renumbering");
+            
+            Array.Sort(tracks);
+            Dictionary<int, int> renum = new Dictionary<int,int>();
+            int i=0;
+            foreach(var tracknum in tracks) 
+                renum[tracknum] = i++;
             foreach (var sim in sims) {
-                songRels.AddEdge(sim.TrackA, sim.TrackB);
-                rating[Edge.Create( sim.TrackA, sim.TrackB )] = sim.Rating;
+                sim.TrackA = renum[sim.TrackA];
+                sim.TrackB = renum[sim.TrackB];
             }
+            tracks = null;//no longer relevant
+            renum = null;//TODO: maybe keep this alive since it might allow reverse mapping?
+            timer.TimeMark("Mapping...");
+
+
+            SimilarTo[][] map = ReMap(trackCount, sims, s => s.TrackA, s => new SimilarTo { track = s.TrackB, rating = s.Rating });
+
+            timer.TimeMark("Finding overlapping reachabilities");
+
+            List<SimTrans> retval = new List<SimTrans>();
+            float[] refBuf = new float[trackCount];
+
+            foreach (int trackId in Enumerable.Range(0, trackCount)) {
+                foreach (SimilarTo reachable in map[trackId]) refBuf[reachable.track] = reachable.rating;
+
+                foreach (SimilarTo reachable in map[trackId])
+                    foreach (SimilarTo transReachable in map[reachable.track])
+                        if (refBuf[transReachable.track] > 0) //hit!
+                            retval.Add(new SimTrans { rateAB = reachable.rating, rateBC = transReachable.rating, rateAC = refBuf[transReachable.track] });
+
+                foreach (SimilarTo reachable in map[trackId]) refBuf[reachable.track] = -1;
+            }
+            Console.WriteLine("Found {0} A->B->C whilst A->C",retval.Count);
+
+            timer.TimeMark("Calculating statistics");
+
+            var ratingsWhole=sims.Select(str=>str.Rating);
+             var   ratingsAB=retval.Select(r=>r.rateAB);
+             var   ratingsBC = retval.Select(r => r.rateBC);
+             var   ratingsAC=retval.Select(r=>r.rateAC);
+
+            Statistics whole = new Statistics( ratingsWhole),
+                rateAB=new Statistics( ratingsAB),
+                rateBC=new Statistics( ratingsBC),
+                rateAC=new Statistics( ratingsAC);
+
+
+
+            Console.WriteLine("Ratings: {0}", whole.ToString());
+            Console.WriteLine("Rate A->B: {0}", rateAB.ToString());
+            Console.WriteLine("Rate B->C: {0}", rateBC.ToString());
+            Console.WriteLine("Rate A->C: {0}", rateAC.ToString());
+
+            Console.WriteLine("Cov(AB,BC): {0}",Covariance(rateAB,rateBC));
+            Console.WriteLine("Cov(AB,AC): {0}",Covariance(rateAB,rateAC));
+            Console.WriteLine("Cov(BC,AC): {0}",Covariance(rateBC,rateAC));
+
+            Func<float,float,float>
+              sum= (a,b)=>a+b,
+              mul= (a,b)=>a*b,
+              max= (a,b)=>Math.Max(a,b),
+              sqrsum= (a,b)=>a*a+b*b,
+              sqrtsum= (a,b)=>(float)(Math.Sqrt(a)+Math.Sqrt(b)),
+              euclidian = (a, b) => (float)Math.Sqrt(a * a + b * b);
+
+            Statistics
+                statSum = new Statistics(retval, sum),
+                statMul = new Statistics(retval, mul),
+                statMax = new Statistics(retval, max),
+                statSqrSum = new Statistics(retval, sqrsum),
+                statSqrtSum = new Statistics(retval, sqrtsum),
+                statEuclidian = new Statistics(retval, euclidian);
+
+            Console.WriteLine("f={0}, Cov={1}, Stats={2}", sum, Covariance(statSum, rateAC), statSum);
+            Console.WriteLine("f={0}, Cov={1}, Stats={2}", mul, Covariance(statMul, rateAC), statMul);
+            Console.WriteLine("f={0}, Cov={1}, Stats={2}", max, Covariance(statMax, rateAC), statMax);
+            Console.WriteLine("f={0}, Cov={1}, Stats={2}", sqrsum, Covariance(statSqrSum, rateAC), statSqrSum);
+            Console.WriteLine("f={0}, Cov={1}, Stats={2}", sqrtsum, Covariance(statSqrtSum, rateAC), statSqrtSum);
+            Console.WriteLine("f={0}, Cov={1}, Stats={2}", euclidian, Covariance(statEuclidian, rateAC), statEuclidian); 
 
 
             timer.TimeMark(null);

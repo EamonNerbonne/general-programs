@@ -20,6 +20,14 @@ namespace EamonExtensionsLinq
 				yield return queue;
 			}
 		}
+
+        public static IEnumerable<Z> ZipWith<X, Y, Z>(this IEnumerable<X> seq,  IEnumerable<Y> other, Func<X, Y, Z> f) {
+            var seqE = seq.GetEnumerator();
+            var otherE = other.GetEnumerator();
+            while (seqE.MoveNext() && otherE.MoveNext()) 
+                yield return f(seqE.Current, otherE.Current);
+        }
+ 
 		public static T Swallow<T>(Func<T> trial, Func<T> error) {
 			try {
 				return trial();
