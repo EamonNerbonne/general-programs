@@ -47,6 +47,14 @@
     {
     "ProjRelPath" = "T"
     }
+    "imagehandling.fs"
+    {
+    "ProjRelPath" = "T"
+    }
+    "showimg.fs"
+    {
+    "ProjRelPath" = "T"
+    }
 }
 "ProjStartupServices"
 {
