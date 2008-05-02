@@ -1,0 +1,24 @@
+channel?
+
+"and" keyword for types?
+
+really good OO tutorial?
+
+Pervasives?
+
+List.hd head
+List.tl tail
+string_of_int
+List.map
+
+somelist |> List.iter (fun x -> ...)
+somelist |> List.iteri (fun i x -> ...)
+
+
+The order of file in .fshapp is relevant and must be manually edited.
+
+F#'s library documentation is not very good yet.
+
+Samples are important and a good place to start, though they contain some not so beautiful code here and there.
+
+// note #r vs. #R: capital copies file locally, needed for non-GAC stuff, not allowed for FSI.exe

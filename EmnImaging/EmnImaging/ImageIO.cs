@@ -55,7 +55,7 @@ namespace EmnImaging {
             }
         }
 
-        public static Bitmap CreateGdiBitmap(PixelArgb32[,] image) {
+        public static Bitmap CreateGdiBitmap(this PixelArgb32[,] image) {
             var width = image.GetLength(1);
             var height = image.GetLength(0);
             var bitmap = new Bitmap(width, height, PixelFormat.Format32bppArgb);
