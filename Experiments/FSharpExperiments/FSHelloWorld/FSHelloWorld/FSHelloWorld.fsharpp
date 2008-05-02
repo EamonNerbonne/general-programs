@@ -6,8 +6,8 @@
 {
     "Debug|Win32"
     {
-    "ProjectType" = "EXE"
-    "OptLevel" = "Off"
+    "ProjectType" = "WINEXE"
+    "OptLevel" = "3"
     "StrongNamingLevel" = "None"
     "OutputPath" = ""
     "SearchPath" = ""
@@ -43,15 +43,11 @@
 }
 "Files"
 {
-    "helloworld.fs"
-    {
-    "ProjRelPath" = "T"
-    }
-    "imagehandling.fs"
-    {
-    "ProjRelPath" = "T"
-    }
     "showimg.fs"
+    {
+    "ProjRelPath" = "T"
+    }
+    "helloworld.fs"
     {
     "ProjRelPath" = "T"
     }

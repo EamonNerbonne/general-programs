@@ -19,6 +19,7 @@ namespace LastFMspider
 		public static void Main(string[] args) {
             laptopVirtConfig = args[0];
 			LastFMspiderMain main = new LastFMspiderMain();
+            EamonExtensionsLinq.DebugTools.ConsoleExtension.PrintProperties(main, "main");
 			main.Load();
             main.similarSongs.SimilarityPatterns();
             //main.PrecacheAudioscrobbler();

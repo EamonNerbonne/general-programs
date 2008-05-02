@@ -1,11 +1,23 @@
 #light
+module HelloWorld
+#I @"C:\Users\Eamon\eamonhome\docs-trunk\VS.NET2008\EamonExtensionsLinq\bin\Debug"
+#I @"C:\Users\Eamon\eamonhome\docs-trunk\VS.NET2008\EmnImaging\EmnImaging\bin\Debug"
+#R @"EamonExtensionsLinq.dll"
+#R @"EmnImaging.dll"
 
-#I @"C:\Users\Eamon\eamonhome\docs-trunk\VS.NET2008\EamonExtensionsLinq\bin"
-#r @"Debug\EamonExtensionsLinq.dll"
+// note #r vs. #R: capital copies file locally, needed for non-GAC stuff, not allowed for FSI.exe
 
-open EamonExtensionsLinq.DebugTools
+#I @"C:\Program Files\Reference Assemblies\Microsoft\Framework\v3.0"
+#r @"WindowsBase.dll"
+#r @"PresentationCore.dll"
+#r @"PresentationFramework.dll"
+
+
 open System
 open System.Drawing
+open EamonExtensionsLinq
+open EmnImaging
+open System.Windows
 
 let f = (fun x -> x+x)
 let url = "http://ws.audioscrobbler.com/1.0/track/Saint%20Etienne/Message%20in%20a%20Bottle/similar.xml"
@@ -22,20 +34,24 @@ let tryit f =
 ;;
 
 Printf.printf "Hello World: %s\n" url;
-ConsoleExtension.PrintAllDebug( url);
-ConsoleExtension.PrintProperties(tryit,"tryit");
-System.Console.ReadKey();
+//ConsoleExtension.PrintAllDebug( url);
+
+EamonExtensionsLinq.DebugTools.ConsoleExtension.PrintProperties(tryit,"tryit");
 
 let bmpPath = @"C:\Users\Eamon\HWR\NL_HaNa_H2_7823_0227.tif"
-let bmp = Bitmap.FromFile(bmpPath);
+//Also Possible to use NativePtr and NativeArray instead of util lib, but then I can't declare structs!
+let image = ImageIO.Load(bmpPath)
 
-let myconvert (x:int16)  = uint16 x 
+let bitmapWpfWindow = new ShowImg.ShowMyBitmap(image)
 
-let copyArr2 (arrSrc:int16[,]) (arrTgt:uint16[,]) (translate:int16->uint16) = 
-  for i = 0 to arrSrc.GetLength(0)-1 do
-    for j = 0 to arrSrc.GetLength(1)-1 do
-      arrTgt.[i,j] <- translate arrSrc.[i,j]
+bitmapWpfWindow.Show()
 
+#if COMPILED
+[<STAThread()>]
+do 
+    let app =  new Application() in
+    app.Run() |> ignore
+#endif
 
 //printf read_line;
 //printf "\n";
