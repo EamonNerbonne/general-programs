@@ -53,7 +53,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="LinesAnnot.cs" />
+    <Compile Include="AnnotLinesParser.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
@@ -66,7 +66,7 @@
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
       <DependentUpon>Settings.settings</DependentUpon>
     </Compile>
-    <Compile Include="CharWidthParser.cs" />
+    <Compile Include="SymbolWidthParser.cs" />
     <Compile Include="WordsXml.cs" />
   </ItemGroup>
   <ItemGroup>

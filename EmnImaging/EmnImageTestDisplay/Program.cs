@@ -118,9 +118,16 @@ namespace EmnImageTestDisplay {
             ChooseImage();
             progressWindow.Dispatcher.Invoke(DispatcherPriority.Normal, new Action(progressWindow.Close));
             LoadImage();
-            LoadWords();
+            LoadSymbolWidths();
+//            LoadWords();
             LoadAnnot();
             while(true) ImproveGuess();
+        }
+
+        //0 is begin line, 10 is line end, and each word includes one 32 for space.  Unknown letters get 1.
+        Dictionary<char, SymbolWidth> symbolWidth;
+        private void LoadSymbolWidths() {
+            symbolWidth = SymbolWidthParser.Parse(new FileInfo(System.IO.Path.Combine(HWRsplitter.Program.DataPath, "line_annot.txt")));
         }
 
 
@@ -143,8 +150,7 @@ namespace EmnImageTestDisplay {
                 var shearedSum = ShearedSum((int)lineGuess.top, (int)lineGuess.bottom, lineGuess.shear);
                 var blurredSum = BlurLine(shearedSum, blurwindow);
                 var minVal = blurredSum.Min();
-                var range = blurredSum.Max() -minVal;
-                //TODO: blur this a little?
+                var range = blurredSum.Max() - minVal;
                 var maxedContrast = blurredSum.Select(x => (x - minVal) / range).ToArray();
 
                 List<Word> betterGuessWord = new List<Word>();
@@ -265,11 +271,9 @@ namespace EmnImageTestDisplay {
         }
         WordsImage wordsGuess;
         void LoadAnnot() {
-            wordsGuess = AnnotLinesParser.GetGuessWord(new FileInfo(System.IO.Path.Combine(HWRsplitter.Program.DataPath, "line_annot.txt")), pageNum);
+            wordsGuess = AnnotLinesParser.GetGuessWord(new FileInfo(System.IO.Path.Combine(HWRsplitter.Program.DataPath, "line_annot.txt")), pageNum, symbolWidth);
             Log("Loaded line_annot and parsed it");
             ProcessLines( wordsGuess, Brushes.Blue);
-
-
         }
 
         void ProcessLines(WordsImage words, Brush brush) {

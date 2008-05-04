@@ -5,6 +5,7 @@ using System.Text;
 using System.Xml.Linq;
 using System.IO;
 using System.Xml;
+using System.Diagnostics;
 
 namespace HWRsplitter {
     public interface IAsXml {
@@ -40,7 +41,8 @@ namespace HWRsplitter {
     public class Word:ShearedBox,IAsXml {
         public string text;
         public int no;
-
+        public LengthEstimate? lengthEstimate;
+        
         public Word(){}
         public Word(string text, int no, double top, double bottom, double left, double right, double shear)
             : base(top, bottom, left, right, shear) {
@@ -68,33 +70,60 @@ namespace HWRsplitter {
         public int no;
 
         public TextLine(){}
-        public TextLine(string text, int no, double top, double bottom, double left, double right, double shear)
+        public TextLine(string text, int no, double top, double bottom, double left, double right, double shear, Dictionary<char, SymbolWidth> symbolWidths)
          :base(top,bottom,left,right,shear) {
             this.no=no;
-            this.words = GuessWordsInString(text).ToArray();
+            this.words = GuessWordsInString(text, symbolWidths).ToArray();
         }
 
-        private IEnumerable<Word> GuessWordsInString(string text) {
-            int index=1;//"no" starts with 1!
-            int charsToLeft=0;
+        private LengthEstimate EstimateCharLength(char c, Dictionary<char, SymbolWidth> symbolWidths) {
+            SymbolWidth sym;
+            if (symbolWidths.TryGetValue(c, out sym))
+                return sym.estimate;
+            sym = symbolWidths[(char)1];
+            return sym.estimate;
+        }
+
+        private LengthEstimate EstimateWordLength(string word, Dictionary<char, SymbolWidth> symbolWidths,  bool isFirst, bool isLast) {
+            LengthEstimate estimate = EstimateCharLength(' ', symbolWidths);
+            if (isFirst) estimate += EstimateCharLength((char)0, symbolWidths);
+            if (isLast) estimate += EstimateCharLength((char)10, symbolWidths);
+            foreach (char c in word) {
+                estimate += EstimateCharLength(c, symbolWidths);
+            }
+            return estimate;
+        }
+        private IEnumerable<Word> GuessWordsInString(string text, Dictionary<char, SymbolWidth> symbolWidths) {
+            int no=1;//"number" starts with 1!
             double width = right-left;
             var wordStrs = text.Split(new[]{' '}, StringSplitOptions.RemoveEmptyEntries);
-            var charCount = wordStrs.Sum(str=>str.Length);
-
-            foreach (var wordStr in wordStrs) {
-                int charsToRight = charsToLeft + wordStr.Length;
-                yield return new Word(wordStr, index, top, bottom,
-                    left + charsToLeft * width / charCount,
-                    left + charsToRight * width / charCount,
-                    shear);
-                index++;
-                charsToLeft = charsToRight;
+            LengthEstimate[] lengthEstimates = wordStrs.Select((w, i) =>
+                EstimateWordLength(w, symbolWidths, i == 0, i == wordStrs.Length - 1)).ToArray();
+            var totalEstimate = lengthEstimates.Aggregate((a, b) => a + b);
+            //ok, so we have a total line length and a per word estimate
+            double estErr = totalEstimate.len - width;
+            double correctionPerVar = -estErr / totalEstimate.var;
+            double lengthToLeft = 0;
+            for (int i = 0; i < wordStrs.Length;i++ ) {
+                string wordStr = wordStrs[i];
+                
+                double lengthToRight = lengthToLeft+ lengthEstimates[i].len+lengthEstimates[i].var*correctionPerVar;
+                yield return new Word(wordStr, no, top, bottom,
+                    left + lengthToLeft,
+                    left + lengthToRight,
+                    shear) {
+                     lengthEstimate=lengthEstimates[i]
+                    };
+                no++;
+                lengthToLeft = lengthToRight;
             }
+            Debug.Assert(Math.Abs(lengthToLeft - width) < 1, "math error");
         }
         public TextLine(XElement fromXml):base(fromXml) {
             no = (int)fromXml.Attribute("no");
             words = fromXml.Elements("Word").Select(xmlWord => new Word(xmlWord)).ToArray();
         }
+
 
 
         public XNode AsXml() {

@@ -120,7 +120,7 @@ namespace CharWidthStats {
                               select new WordsImage(new FileInfo(filepath)) ;
 
             wordImagesByPage = wordImages.ToDictionary(wordimage => wordimage.pageNum);
-            annotImagesByPage = AnnotLinesParser.GetGuessWords(annotFile, wordImagesByPage.ContainsKey);
+            annotImagesByPage = AnnotLinesParser.GetGuessWords(annotFile, wordImagesByPage.ContainsKey,SymbolWidthParser.Unknown);
 
             //so now we have the "real" .words file loaded, and the plain annotations.
             usefulWords = GetUsefulWords().ToArray();
