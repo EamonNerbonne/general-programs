@@ -44,8 +44,8 @@ namespace EmnImageTestDisplay {
                               select numstr;
             var bothNumStrs = imgNumStrs.Intersect(wordNumStrs).ToArray();
             numStr = bothNumStrs[2];//TODO:make real choice
-            
-            
+
+
             string wordsPath = System.IO.Path.Combine(HWRsplitter.Program.DataPath, @"words-train\NL_HaNa_H2_7823_" + numStr + ".words");
             wordsFileInfo = new FileInfo(wordsPath);
 
@@ -66,7 +66,7 @@ namespace EmnImageTestDisplay {
             var xmlWords = XDocument.Load(wordsFileInfo.OpenText());
             words = new WordsImage(xmlWords.Root);
             Log("Loaded .words file");
-            imgWin.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action<WordsImage,Brush>(this.ProcessLinesUI), words, Brushes.DarkRed);
+            imgWin.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action<WordsImage, Brush>(this.ProcessLinesUI), words, Brushes.DarkRed);
         }
         PixelArgb32[,] image;
         public void LoadImage() {
@@ -87,7 +87,7 @@ localMin.ForEach((y, x, p) => {
 });
 MaxContrast(image);
 Invert(image);*/
-            Log("Image loaded: " + image.Width()+"x"+image.Height());
+            Log("Image loaded: " + image.Width() + "x" + image.Height());
         }
         ProgressWindow progressWindow;
         public Program() {
@@ -96,7 +96,7 @@ Invert(image);*/
             Console.SetOut(new DelegateTextWriter(s => { progressWindow.Append(s); }));
             this.ShutdownMode = ShutdownMode.OnMainWindowClose;
         }
-        public void Exec() {          this.Run(imgWin);        }
+        public void Exec() { this.Run(imgWin); }
         protected override void OnStartup(StartupEventArgs e) {
             base.OnStartup(e);
             progressWindow.Show();
@@ -125,13 +125,6 @@ Invert(image);*/
 
         }
         private void ImproveGuess() {
-            Log("Not Implemented!");
-
-            Console.Write("test\n");
-            
-            Process process =  Process.GetProcesses().Where(p => p.ProcessName.StartsWith("EmnImageTestDisplay")).FirstOrDefault();
-
-            ConsoleExtension.PrintProperties(process ,"process");
 
         }
         private void Log(string logmsg) {
@@ -149,22 +142,22 @@ Invert(image);*/
                 StrokeThickness = 5
             };
         }
-               private static IEnumerable<Line> WordToLines(Word word, Brush brush) {
+        private static IEnumerable<Line> WordToLines(Word word, Brush brush) {
             var height = word.bottom - word.top;
             var xcorr = height * Math.Tan(2 * Math.PI * word.shear / 360.0);
-            yield return mkLine(word.left, word.top, word.right, word.top,brush);
+            yield return mkLine(word.left, word.top, word.right, word.top, brush);
             yield return mkLine(word.right, word.top, word.right - xcorr, word.bottom, brush);
             yield return mkLine(word.right - xcorr, word.bottom, word.left - xcorr, word.bottom, brush);
             yield return mkLine(word.left - xcorr, word.bottom, word.left, word.top, brush);
         }
         WordsImage wordsGuess;
         void LoadAnnot() {
-            wordsGuess = LinesAnnot.GuessWord(new FileInfo(System.IO.Path.Combine(HWRsplitter.Program.DataPath, "line_annot.txt")),pageNum);
+            wordsGuess = LinesAnnot.GuessWord(new FileInfo(System.IO.Path.Combine(HWRsplitter.Program.DataPath, "line_annot.txt")), pageNum);
             Log("Loaded line_annot and parsed it");
             imgWin.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action<WordsImage, Brush>(this.ProcessLinesUI), wordsGuess, Brushes.Blue);
 
-            
-     }
+
+        }
 
         void ProcessLinesUI(WordsImage words, Brush brush) {
             var lines = from textline in words.textlines
@@ -183,7 +176,7 @@ Invert(image);*/
         }
         public static void Invert(PixelArgb32[,] image) {
             image.ForEach((y, x, p) => {
-                image[y, x].Data = p.Data ^ (uint.MaxValue^PixelArgb32.AMask);
+                image[y, x].Data = p.Data ^ (uint.MaxValue ^ PixelArgb32.AMask);
             });
         }
         public static PixelArgb32[,] BoxBlur(PixelArgb32[,] image) {
@@ -193,9 +186,9 @@ Invert(image);*/
         public static PixelArgb32[,] BoxBlurV(PixelArgb32[,] image) {
             PixelArgb32[,] retval = (PixelArgb32[,])image.Clone();
             for (int x = 0; x < image.Width(); x++) {
-                var R = (byte)(( (uint)image[0, x].R + image[1, x].R + 1) / 2);
-                var G = (byte)(((uint)image[0, x].G + image[ 1, x].G + 1) / 2);
-                var B = (byte)(( (uint)image[0, x].B + image[ 1, x].B + 1) / 2);
+                var R = (byte)(((uint)image[0, x].R + image[1, x].R + 1) / 2);
+                var G = (byte)(((uint)image[0, x].G + image[1, x].G + 1) / 2);
+                var B = (byte)(((uint)image[0, x].B + image[1, x].B + 1) / 2);
                 retval[0, x] = new PixelArgb32(255, R, G, B);
             }
 
@@ -220,22 +213,22 @@ Invert(image);*/
         public static PixelArgb32[,] BoxBlurH(PixelArgb32[,] image) {
             PixelArgb32[,] retval = (PixelArgb32[,])image.Clone();
             for (int y = 0; y < image.Height(); y++) {
-                var R = (byte)(((uint)image[y, 0].R + image[y,1].R + 1) / 2);
-                var G = (byte)(((uint)image[y, 0].G + image[y,1].G + 1) / 2);
-                var B = (byte)(((uint)image[y, 0].B + image[y,1].B + 1) / 2);
-                retval[y,0] = new PixelArgb32(255, R, G, B);
+                var R = (byte)(((uint)image[y, 0].R + image[y, 1].R + 1) / 2);
+                var G = (byte)(((uint)image[y, 0].G + image[y, 1].G + 1) / 2);
+                var B = (byte)(((uint)image[y, 0].B + image[y, 1].B + 1) / 2);
+                retval[y, 0] = new PixelArgb32(255, R, G, B);
             }
 
             for (int y = 0; y < image.Height(); y++)
-                for (int x = 1; x < image.Width()-1; x++) {
-                    var R = (byte)((image[y , x-1].R + (uint)image[y, x].R + image[y , x+ 1].R + 1) / 3);
-                    var G = (byte)((image[y, x-1].G + (uint)image[y, x].G + image[y , x+ 1].G + 1) / 3);
-                    var B = (byte)((image[y, x-1].B + (uint)image[y, x].B + image[y , x+ 1].B + 1) / 3);
+                for (int x = 1; x < image.Width() - 1; x++) {
+                    var R = (byte)((image[y, x - 1].R + (uint)image[y, x].R + image[y, x + 1].R + 1) / 3);
+                    var G = (byte)((image[y, x - 1].G + (uint)image[y, x].G + image[y, x + 1].G + 1) / 3);
+                    var B = (byte)((image[y, x - 1].B + (uint)image[y, x].B + image[y, x + 1].B + 1) / 3);
                     retval[y, x] = new PixelArgb32(255, R, G, B);
                 }
 
             for (int y = 0; y < image.Height(); y++) {
-                var R = (byte)(((uint)image[y,image.Width()-2].R + image[y,image.Width()-1].R + 1) / 2);
+                var R = (byte)(((uint)image[y, image.Width() - 2].R + image[y, image.Width() - 1].R + 1) / 2);
                 var G = (byte)(((uint)image[y, image.Width() - 2].G + image[y, image.Width() - 1].G + 1) / 2);
                 var B = (byte)(((uint)image[y, image.Width() - 2].B + image[y, image.Width() - 1].B + 1) / 2);
                 retval[y, image.Width() - 1] = new PixelArgb32(255, R, G, B);
@@ -248,10 +241,10 @@ Invert(image);*/
             PixelArgb32[,] retval = (PixelArgb32[,])image.Clone();
             byte r, g, b;
             for (int y = 0; y < image.Height(); y++) {
-                
-                var R = (byte)Math.Min((uint)image[y, 0].R ,image[y, 1].R ) ;
-                var G = (byte)Math.Min((uint)image[y, 0].G , image[y, 1].G ) ;
-                var B = (byte)Math.Min((uint)image[y, 0].B , image[y, 1].B);
+
+                var R = (byte)Math.Min((uint)image[y, 0].R, image[y, 1].R);
+                var G = (byte)Math.Min((uint)image[y, 0].G, image[y, 1].G);
+                var B = (byte)Math.Min((uint)image[y, 0].B, image[y, 1].B);
                 retval[y, 0] = new PixelArgb32(255, R, G, B);
             }
 
@@ -272,9 +265,9 @@ Invert(image);*/
                 }
 
             for (int y = 0; y < image.Height(); y++) {
-                var R = (byte)Math.Min((uint)image[y, image.Width() - 2].R , image[y, image.Width() - 1].R );
-                var G = (byte)Math.Min((uint)image[y, image.Width() - 2].G , image[y, image.Width() - 1].G ) ;
-                var B = (byte)Math.Min((uint)image[y, image.Width() - 2].B , image[y, image.Width() - 1].B ) ;
+                var R = (byte)Math.Min((uint)image[y, image.Width() - 2].R, image[y, image.Width() - 1].R);
+                var G = (byte)Math.Min((uint)image[y, image.Width() - 2].G, image[y, image.Width() - 1].G);
+                var B = (byte)Math.Min((uint)image[y, image.Width() - 2].B, image[y, image.Width() - 1].B);
                 retval[y, image.Width() - 1] = new PixelArgb32(255, R, G, B);
             }
 
@@ -290,22 +283,22 @@ Invert(image);*/
             byte r, g, b;
             for (int x = 0; x < image.Width(); x++) {
 
-                var R = (byte)Math.Min((uint)image[0,x].R, image[1,x].R);
+                var R = (byte)Math.Min((uint)image[0, x].R, image[1, x].R);
                 var G = (byte)Math.Min((uint)image[0, x].G, image[1, x].G);
                 var B = (byte)Math.Min((uint)image[0, x].B, image[1, x].B);
                 retval[0, x] = new PixelArgb32(255, R, G, B);
             }
 
-            for (int y = 1; y < image.Height()-1; y++)
+            for (int y = 1; y < image.Height() - 1; y++)
                 for (int x = 0; x < image.Width(); x++) {
                     r = g = b = 255;
 
                     for (int d = -1; d < 2; d++) {
-                        if (image[y+d, x ].R < r)
+                        if (image[y + d, x].R < r)
                             r = image[y + d, x].R;
-                        if (image[y+d, x ].G < g)
+                        if (image[y + d, x].G < g)
                             g = image[y + d, x].G;
-                        if (image[y+d, x ].B < b)
+                        if (image[y + d, x].B < b)
                             b = image[y + d, x].B;
                     }
                     retval[y, x] = new PixelArgb32(255, r, g, b);
@@ -360,11 +353,11 @@ Invert(image);*/
                     Min = PixelArgb32.Combine(cur.Min, pix, Math.Min)
                 });
             var range = PixelArgb32.Combine(minMax.Max, minMax.Min, (x, y) => (byte)(x - y));
-          //  range = PixelArgb32.Combine(range, new PixelArgb32(1, 1, 1, 1), Math.Max);
+            //  range = PixelArgb32.Combine(range, new PixelArgb32(1, 1, 1, 1), Math.Max);
             image.ForEach((y, x, p) => {
                 image[y, x] = PixelArgb32.Combine(
                    PixelArgb32.Combine(p, minMax.Min, (pix, min) => (byte)(pix - min)),
-                   range, (oldval, oldrange) => oldrange==0 ? (byte)255 : (byte)(((uint)oldval) * 255 / oldrange)
+                   range, (oldval, oldrange) => oldrange == 0 ? (byte)255 : (byte)(((uint)oldval) * 255 / oldrange)
                    );
             });
 
