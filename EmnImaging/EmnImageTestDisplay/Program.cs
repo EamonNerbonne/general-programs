@@ -265,7 +265,7 @@ namespace EmnImageTestDisplay {
         }
         WordsImage wordsGuess;
         void LoadAnnot() {
-            wordsGuess = LinesAnnot.GetGuessWord(new FileInfo(System.IO.Path.Combine(HWRsplitter.Program.DataPath, "line_annot.txt")), pageNum);
+            wordsGuess = AnnotLinesParser.GetGuessWord(new FileInfo(System.IO.Path.Combine(HWRsplitter.Program.DataPath, "line_annot.txt")), pageNum);
             Log("Loaded line_annot and parsed it");
             ProcessLines( wordsGuess, Brushes.Blue);
 

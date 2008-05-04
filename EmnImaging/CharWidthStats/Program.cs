@@ -120,19 +120,19 @@ namespace CharWidthStats {
                               select new WordsImage(new FileInfo(filepath)) ;
 
             wordImagesByPage = wordImages.ToDictionary(wordimage => wordimage.pageNum);
-            annotImagesByPage = LinesAnnot.GetGuessWords(annotFile, wordImagesByPage.ContainsKey);
+            annotImagesByPage = AnnotLinesParser.GetGuessWords(annotFile, wordImagesByPage.ContainsKey);
 
             //so now we have the "real" .words file loaded, and the plain annotations.
             usefulWords = GetUsefulWords().ToArray();
             Console.WriteLine("Discarded {0} of {1} lines ({2}%)", discardedLines, totalLines, discardedLines * 100.0 / totalLines);
-            Console.WriteLine("Discarded {0} of {1} words ({2}%) of which {3} ({4}%) end words", 
-                discardedWords,totalWords,discardedWords*100.0/totalWords,discardedEndWords,discardedEndWords*100.0/discardedWords);
+            Console.WriteLine("Discarded {0} of {1} words ({2}%)", 
+                discardedWords,totalWords,discardedWords*100.0/totalWords);
         }
 
         MeasuredWord[] usefulWords;
 
             int totalLines, discardedLines;
-            int totalWords, discardedWords, discardedEndWords;
+            int totalWords, discardedWords;
         IEnumerable<MeasuredWord> GetUsefulWords() {
 
             foreach (int pagenum in wordImagesByPage.Keys) {

@@ -11,10 +11,10 @@ namespace HWRsplitter {
         public const string ImgPath = @"C:\Users\Eamon\HWR";
         public static void Main(string[] args) { prog = new Program(DataPath, ImgPath); }
         public static Program prog;
-        public LinesAnnot linesAnnot;
+        public AnnotLinesParser linesAnnot;
         public Program(string dataPath, string imgPath) {
             FileInfo lineAnnotFile = new FileInfo(Path.Combine(DataPath, "line_annot.txt"));
-            linesAnnot = new LinesAnnot(lineAnnotFile,x=>true);
+            linesAnnot = new AnnotLinesParser(lineAnnotFile,x=>true);
         }
     }
 }

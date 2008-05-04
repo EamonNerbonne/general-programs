@@ -66,6 +66,7 @@
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
       <DependentUpon>Settings.settings</DependentUpon>
     </Compile>
+    <Compile Include="CharWidthParser.cs" />
     <Compile Include="WordsXml.cs" />
   </ItemGroup>
   <ItemGroup>

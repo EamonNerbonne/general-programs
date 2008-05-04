@@ -46,7 +46,7 @@ namespace HWRsplitter {
         public string text;
     }
 
-    public class LinesAnnot {
+    public class AnnotLinesParser {
         public AnnotLineSingle[] annotLines;
         Dictionary<int, WordsImage> guessWords;
         public Dictionary<int, WordsImage> GuessWords {
@@ -57,7 +57,7 @@ namespace HWRsplitter {
             }
         }
 
-        public LinesAnnot(FileInfo file,Func<int,bool> pageFilter) {
+        public AnnotLinesParser(FileInfo file,Func<int,bool> pageFilter) {
             annotLines = AnnotLineSingle.FromString(file.OpenText().ReadToEnd(),pageFilter).ToArray();
         }
         private void mkGuessWords() {
@@ -83,18 +83,18 @@ namespace HWRsplitter {
 
         }
         public static Dictionary<int, WordsImage> GetGuessWords(FileInfo file,Func<int, bool> pageFilter) {
-            return new LinesAnnot(file, pageFilter).GuessWords;
+            return new AnnotLinesParser(file, pageFilter).GuessWords;
         }
         public static WordsImage GetGuessWord(FileInfo file, int pageNum ) {
-            return new LinesAnnot(file, x=>x==pageNum).GuessWords[pageNum];
+            return new AnnotLinesParser(file, x=>x==pageNum).GuessWords[pageNum];
 
         }
 
         public static AnnotLineSingle[] GetAnnotLines(FileInfo file) {
-            return new LinesAnnot(file, x => true).annotLines;
+            return new AnnotLinesParser(file, x => true).annotLines;
         }
         public static AnnotLineSingle[] GetAnnotLines(FileInfo file, Func<int, bool> pageFilter) {
-            return new LinesAnnot(file, pageFilter).annotLines;
+            return new AnnotLinesParser(file, pageFilter).annotLines;
         }
 
     }
