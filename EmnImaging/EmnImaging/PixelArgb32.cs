@@ -32,5 +32,13 @@ namespace EmnImaging {
             get { return (byte)((BMask & Data) >> BShift); }
             set { Data = (Data & ~BMask) | (((uint)value) << BShift); }
         }
+
+        public PixelArgb32(byte a, byte r, byte g, byte b) {
+            Data = (((uint)a) << AShift) | (((uint)r) << RShift) | (((uint)g) << GShift) | (((uint)b) << BShift);
+        }
+
+        public static PixelArgb32 Combine(PixelArgb32 x, PixelArgb32 y,Func<byte,byte,byte> func) {
+            return new PixelArgb32(func(x.A, y.A), func(x.R, y.R), func(x.G, y.G), func(x.B, y.B));
+        }
     }
 }

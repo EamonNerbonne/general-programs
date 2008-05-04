@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Windows.Controls;
+using System.Windows.Shapes;
 
 namespace EmnImaging {
     class ImageControl :Image{
@@ -10,6 +11,7 @@ namespace EmnImaging {
             Source = image.AsBitmapSource();
             Width = image.Width();
             Height = image.Height();
+            
         }
     }
 }
