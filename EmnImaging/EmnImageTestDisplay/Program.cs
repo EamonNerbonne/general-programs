@@ -66,28 +66,36 @@ namespace EmnImageTestDisplay {
             var xmlWords = XDocument.Load(wordsFileInfo.OpenText());
             words = new WordsImage(xmlWords.Root);
             Log("Loaded .words file");
-            imgWin.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action<WordsImage, Brush>(this.ProcessLinesUI), words, Brushes.DarkRed);
+            ProcessLines( words, Brushes.DarkRed);
         }
         PixelArgb32[,] image;
         public void LoadImage() {
             image = ImageIO.Load(imageFileInfo);
             imgWin.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(this.ProcessImageUI));
 
-            /* Really slow, sigh, need to implement a better matrix handling for images.
- * 
- * Invert(image);
-var avgImg = BoxBlur(BoxBlur(BoxBlur(image)));
-var localMin = RepeatFunc<PixelArgb32[,]>(img=>BoxMin(img), 15)(avgImg);
 
-localMin.ForEach((y, x, p) => { 
-    image[y, x] = PixelArgb32.Combine(
-        image[y, x], p, 
-        (a, b) => (byte)Math.Max(a - b, 0)
-        );
-});
-MaxContrast(image);
-Invert(image);*/
+
+            Invert(image);
+            imgWin.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(this.ProcessImageUI));
+            var avgImg = BoxBlur(BoxBlur(BoxBlur(image)));
+            Log("blurred.");
+            var localMin = RepeatFunc<PixelArgb32[,]>(img => BoxMin(img), 15)(avgImg);
+            Log("minimum found");
+            localMin.ForEach((y, x, p) => {
+                image[y, x] = PixelArgb32.Combine(
+                    image[y, x], p,
+                    (a, b) => (byte)Math.Max(a - b, 0)
+                    );
+            });
+            Log("subtracted");
+            imgWin.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(this.ProcessImageUI));
+            MaxContrast(image);
+            Log("contrast stretched");
+            imgWin.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(this.ProcessImageUI));
+            Invert(image);
             Log("Image loaded: " + image.Width() + "x" + image.Height());
+            imgWin.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(this.ProcessImageUI));
+
         }
         ProgressWindow progressWindow;
         public Program() {
@@ -105,28 +113,133 @@ Invert(image);*/
             worker.Start();
             Log("Started Worker Thread");
         }
+
         void LoadInBackground() {
             ChooseImage();
             progressWindow.Dispatcher.Invoke(DispatcherPriority.Normal, new Action(progressWindow.Close));
             LoadImage();
             LoadWords();
             LoadAnnot();
-            ImproveGuess();
+            while(true) ImproveGuess();
         }
-        class MyWriter : TextWriter {
-            Program prog;
-            public MyWriter(Program prog) {
-                this.prog = prog;
+
+
+        const double lenCostFactor = 100;
+        const double posCostFactor = 100;
+        
+        static double CalcCost(double[] shearedSum, double targetStart, double targetEnd, int tryStart, int tryEnd) {
+            double lenDiff=((tryEnd-tryStart) -(targetEnd -targetStart))/lenCostFactor;
+            double posDiff =((tryEnd+tryStart) - (targetEnd + targetStart))/(posCostFactor*2);
+            return Math.Abs(lenDiff) + Math.Abs(posDiff) - (shearedSum[tryEnd] + shearedSum[tryStart])/2;
+        }
+
+        void ImproveGuess() {
+            double[] blurwindow = Enumerable.Range(-50, 101).Select(v => Math.Exp(-0.3 * Math.Abs(v))).ToArray();
+            var blurwindowSum = blurwindow.Sum();
+            blurwindow = blurwindow.Select(x => x / blurwindowSum).ToArray();
+
+            List<TextLine> betterGuessLine = new List<TextLine>();
+            foreach (TextLine lineGuess in wordsGuess.textlines) {
+                var shearedSum = ShearedSum((int)lineGuess.top, (int)lineGuess.bottom, lineGuess.shear);
+                var blurredSum = BlurLine(shearedSum, blurwindow);
+                var minVal = blurredSum.Min();
+                var range = blurredSum.Max() -minVal;
+                //TODO: blur this a little?
+                var maxedContrast = blurredSum.Select(x => (x - minVal) / range).ToArray();
+
+                List<Word> betterGuessWord = new List<Word>();
+                double lastOffset = 0;
+                foreach (Word wordGuess in lineGuess.words) {
+                    double targetStart = wordGuess.left+lastOffset;
+                    double targetEnd = wordGuess.right+lastOffset;
+
+                    int MinLength = Math.Max(0, (int)Math.Ceiling((targetEnd - targetStart) - lenCostFactor));
+                    int MaxLength = (int)((targetEnd - targetStart) + lenCostFactor);
+                    int MinStartPos = Math.Max(0, (int)Math.Ceiling(targetEnd - posCostFactor));
+                    int MaxStartPos = (int)(targetEnd + posCostFactor);
+
+
+                    int bestGuessStart = (int)targetStart;
+                    int bestGuessEnd = (int)targetEnd;
+                    double bestGuessCost = CalcCost(maxedContrast, targetStart, targetEnd, bestGuessStart, bestGuessEnd);
+                    for (int tryStart = MinStartPos; tryStart < MaxStartPos; tryStart++) {
+                        int LastEndPos = Math.Min(image.Width() - 1, tryStart + MaxLength);
+                        for (int tryEnd = tryStart+MinLength; tryEnd <= LastEndPos; tryEnd++) {
+                            var cost = CalcCost(maxedContrast, targetStart, targetEnd, tryStart, tryEnd);
+                            if (cost < bestGuessCost) {
+                                bestGuessStart = tryStart;
+                                bestGuessEnd = tryEnd;
+                                bestGuessCost = cost;
+                            }
+                        }
+
+                    }
+                    betterGuessWord.Add(
+                        new Word(wordGuess.text, wordGuess.no, wordGuess.top, wordGuess.bottom,
+                            bestGuessStart, bestGuessEnd, wordGuess.shear));
+                    ProcessLines(Enumerable.Repeat(betterGuessWord[betterGuessWord.Count - 1], 1),Brushes.Green);
+
+                }
+
+                betterGuessLine.Add(new TextLine {
+                    words = betterGuessWord.ToArray(),
+                    shear = lineGuess.shear,
+                    bottom = lineGuess.bottom,
+                    top = lineGuess.top,
+                    left = lineGuess.left,
+                    right = lineGuess.right,
+                    no = lineGuess.no
+                });
             }
-            public override Encoding Encoding { get { return Encoding.Unicode; } }
-            override public void Write(string str) {
-                prog.progressWindow.Append(str);
-            }
+            betterGuessWords = new WordsImage {
+                name = wordsGuess.name,
+                pageNum = wordsGuess.pageNum,
+                textlines = betterGuessLine.ToArray()
+            };
+            using (Stream stream = new FileInfo(wordsFileInfo.FullName + "guess").OpenWrite()) 
+                using (TextWriter writer = new StreamWriter(stream))
+                    writer.Write(betterGuessWords.AsXml().ToString());
+            
+        }
+        WordsImage betterGuessWords;
+
+
+        double[] BlurLine(double[] data, double[] window) {
+            double[] retval = new double[data.Length];
+            for(int di=0;di<data.Length;di++)
+                for(int wi=0;wi<window.Length;wi++) {
+                    int pos = di + wi - window.Length/2;
+                    if (pos < 0)
+                        pos = 0;
+                    else if (pos >= data.Length)
+                        pos = data.Length - 1;
+                    retval[di] += data[pos] * window[wi];
+                }
+            return retval;
+        }
+
+        double[] ShearedSum(int top, int bottom, double shear) {
+            var xOffsetLookup = Enumerable.Range(0, bottom - top).Select(
+                yOffset => -yOffset * Math.Tan(2 * Math.PI * shear / 360.0)
+                    ).ToArray();
+            return (
+                from x in Enumerable.Range(0, image.Width())
+                select (
+                        from yOffset in Enumerable.Range(0, bottom - top)
+                        let xOffset = xOffsetLookup[yOffset]
+                        let xNet = x + xOffset
+                        where xNet >= 0 && xNet <= image.Width()
+                        let yNet = top + yOffset
+                        let pixelVal = image.Interpolate(yNet, xNet)
+                        let avgVal = pixelVal.R / 255.0
+                        select avgVal
+                    ).Average()
+                ).ToArray();
+
 
         }
-        private void ImproveGuess() {
 
-        }
+
         private void Log(string logmsg) {
             progressWindow.AppendLine(logmsg);
         }
@@ -139,7 +252,7 @@ Invert(image);*/
                 Y2 = y2,
                 StrokeStartLineCap = PenLineCap.Round,
                 StrokeEndLineCap = PenLineCap.Round,
-                StrokeThickness = 5
+                StrokeThickness = 3
             };
         }
         private static IEnumerable<Line> WordToLines(Word word, Brush brush) {
@@ -152,16 +265,25 @@ Invert(image);*/
         }
         WordsImage wordsGuess;
         void LoadAnnot() {
-            wordsGuess = LinesAnnot.GuessWord(new FileInfo(System.IO.Path.Combine(HWRsplitter.Program.DataPath, "line_annot.txt")), pageNum);
+            wordsGuess = LinesAnnot.GetGuessWord(new FileInfo(System.IO.Path.Combine(HWRsplitter.Program.DataPath, "line_annot.txt")), pageNum);
             Log("Loaded line_annot and parsed it");
-            imgWin.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action<WordsImage, Brush>(this.ProcessLinesUI), wordsGuess, Brushes.Blue);
+            ProcessLines( wordsGuess, Brushes.Blue);
 
 
         }
 
-        void ProcessLinesUI(WordsImage words, Brush brush) {
-            var lines = from textline in words.textlines
-                        from word in textline.words
+        void ProcessLines(WordsImage words, Brush brush) {
+            ProcessLines(words.textlines.SelectMany(tl => tl.words),brush);
+        }
+        void ProcessLines(IEnumerable<Word> words, Brush brush) {
+            imgWin.Dispatcher.BeginInvoke(
+                DispatcherPriority.Normal,
+                new Action<IEnumerable<Word>, Brush>(this.ProcessLinesUI), 
+                words, brush);
+        }
+
+        void ProcessLinesUI(IEnumerable<Word> words, Brush brush) {
+            var lines = from word in words
                         from line in WordToLines(word, brush)
                         select line;
             imgWin.AddShapes(lines.Cast<UIElement>());
@@ -340,6 +462,7 @@ Invert(image);*/
 
             return retval;
         }
+
 
         public static void MaxContrast(PixelArgb32[,] image) {
             var minMax = image.AsEnumerable().Aggregate(

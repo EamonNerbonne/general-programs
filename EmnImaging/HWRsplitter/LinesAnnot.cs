@@ -48,9 +48,19 @@ namespace HWRsplitter {
 
     public class LinesAnnot {
         public AnnotLineSingle[] annotLines;
-        public Dictionary<int, WordsImage> guessWords = new Dictionary<int, WordsImage>();
+        Dictionary<int, WordsImage> guessWords;
+        public Dictionary<int, WordsImage> GuessWords {
+            get {
+                if (guessWords == null)
+                    mkGuessWords();
+                return guessWords;
+            }
+        }
+
         public LinesAnnot(FileInfo file,Func<int,bool> pageFilter) {
             annotLines = AnnotLineSingle.FromString(file.OpenText().ReadToEnd(),pageFilter).ToArray();
+        }
+        private void mkGuessWords() {
             var wordsImages = //lazily evaluated query.
                 from annotline in annotLines
                 group annotline by annotline.pageNum into pagegroup
@@ -64,20 +74,27 @@ namespace HWRsplitter {
                              select annotline).Select((line, index) => new { Index = index + 1, Line = line })
                         where !indexedLine.Line.text.Contains("\\n") //filter out potential nonsense lines AFTER indexing
                         let line = indexedLine.Line
-                        let height = line.bottom-line.top
+                        let height = line.bottom - line.top
                         let xcorr = height * 0.66 //we'll shift a little to the right to compensate for the shear
-                        select new TextLine(line.text,indexedLine.Index,line.top,line.bottom,line.left+xcorr,line.right+xcorr,45)
+                        select new TextLine(line.text, indexedLine.Index, line.top, line.bottom, line.left + xcorr, line.right + xcorr, 45)
                     ).ToArray()//textlines in WordsImage
                 };
             guessWords = wordsImages.ToDictionary(wordsImage => wordsImage.pageNum);
+
+        }
+        public static Dictionary<int, WordsImage> GetGuessWords(FileInfo file,Func<int, bool> pageFilter) {
+            return new LinesAnnot(file, pageFilter).GuessWords;
+        }
+        public static WordsImage GetGuessWord(FileInfo file, int pageNum ) {
+            return new LinesAnnot(file, x=>x==pageNum).GuessWords[pageNum];
+
         }
 
-        public static Dictionary<int, WordsImage> GuessWords(FileInfo file) {
-            return new LinesAnnot(file, x => true).guessWords;
+        public static AnnotLineSingle[] GetAnnotLines(FileInfo file) {
+            return new LinesAnnot(file, x => true).annotLines;
         }
-        public static WordsImage GuessWord(FileInfo file,int pageNum) {
-            return new LinesAnnot(file, x => x==pageNum).guessWords[pageNum];
-
+        public static AnnotLineSingle[] GetAnnotLines(FileInfo file, Func<int, bool> pageFilter) {
+            return new LinesAnnot(file, pageFilter).annotLines;
         }
 
     }
