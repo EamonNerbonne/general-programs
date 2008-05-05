@@ -18,6 +18,7 @@ namespace HWRsplitter {
         public double left;
         public double right;
         public double shear;
+        public double BottomXOffset { get { return (bottom - top) * Math.Tan(-2 * Math.PI * shear / 360.0); } }
         public ShearedBox(){}
         public ShearedBox(double top, double bottom, double left, double right,double shear) {this.top=top;this.bottom=bottom;this.left=left;this.right=right;this.shear=shear;}
         public ShearedBox(XElement fromXml) {
@@ -38,16 +39,24 @@ namespace HWRsplitter {
         }
 
     }
+
+
     public class Word:ShearedBox,IAsXml {
         public string text;
         public int no;
-        public LengthEstimate? lengthEstimate;
-        
-        public Word(){}
+        public LengthEstimate symbolBasedLength;
+        public double imageBasedCost = double.NaN;
+        public double lookaheadSum = double.NaN;
+        public double startLightness = double.NaN, endLightness = double.NaN;
+        public Word() { }
         public Word(string text, int no, double top, double bottom, double left, double right, double shear)
             : base(top, bottom, left, right, shear) {
             this.text = text;
             this.no = no;
+        }
+        public Word(Word toCopy):this(toCopy.text,toCopy.no,toCopy.top,toCopy.bottom,toCopy.left,toCopy.right,toCopy.shear) {
+            symbolBasedLength = toCopy.symbolBasedLength;
+            imageBasedCost = toCopy.imageBasedCost;
         }
         public Word(XElement fromXml):base(fromXml) {
             text = (string)fromXml.Attribute("text");
@@ -68,7 +77,11 @@ namespace HWRsplitter {
     public class TextLine : ShearedBox,IAsXml {
         public Word[] words;
         public int no;
-
+        public float[] shearedsum;
+        public float[] shearedbodysum;
+        public float[] rowsum;//TODO better name
+        public int bodyTop;
+        public int bodyBot;
         public TextLine(){}
         public TextLine(string text, int no, double top, double bottom, double left, double right, double shear, Dictionary<char, SymbolWidth> symbolWidths)
          :base(top,bottom,left,right,shear) {
@@ -112,7 +125,7 @@ namespace HWRsplitter {
                     left + lengthToLeft,
                     left + lengthToRight,
                     shear) {
-                     lengthEstimate=lengthEstimates[i]
+                      symbolBasedLength = lengthEstimates[i] 
                     };
                 no++;
                 lengthToLeft = lengthToRight;

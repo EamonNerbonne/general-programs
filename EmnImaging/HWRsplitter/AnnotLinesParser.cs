@@ -66,8 +66,7 @@ namespace HWRsplitter {
                         where !indexedLine.Line.text.Contains("\\n") //filter out potential nonsense lines AFTER indexing
                         let line = indexedLine.Line
                         let height = line.bottom - line.top
-                        let xcorr = height * 0.66 //we'll shift a little to the right to compensate for the shear
-                        select new TextLine(line.text, indexedLine.Index, line.top, line.bottom, line.left + xcorr, line.right + xcorr, 45,symbolWidths)
+                        select new TextLine(line.text, indexedLine.Index, line.top, line.bottom, line.left , line.right , 45,symbolWidths)
                     ).ToArray()//textlines in WordsImage
                 };
             return wordsImages.ToDictionary(wordsImage => wordsImage.pageNum);

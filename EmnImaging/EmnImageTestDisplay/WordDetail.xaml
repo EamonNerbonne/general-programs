@@ -1,0 +1,47 @@
+﻿<UserControl x:Class="EmnImageTestDisplay.WordDetail"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="261*" />
+            <ColumnDefinition Width="40" />
+
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition  MinHeight="10"/>
+            <RowDefinition MinHeight="10" />
+            <RowDefinition  MinHeight="10"/>
+            <RowDefinition  MinHeight="10"/>
+        </Grid.RowDefinitions>
+        <Rectangle Grid.Row="1" Name="lineView" Stroke="Black"  SizeChanged="lineView_SizeChanged">
+            <Rectangle.Fill>
+                <VisualBrush ViewportUnits="RelativeToBoundingBox" Viewport="0,0,1,1" Viewbox="0,0,100,10" ViewboxUnits="Absolute"/>
+            </Rectangle.Fill>
+        </Rectangle>
+        <Rectangle  Name="intensityGraph" Stroke="Black" Grid.Row="2">
+            <Rectangle.Fill>
+                <ImageBrush ViewportUnits="RelativeToBoundingBox" Viewport="0,0,1,1" Viewbox="0,0,100,1" ViewboxUnits="Absolute"/>
+            </Rectangle.Fill>
+        </Rectangle>
+        <Rectangle Name="intensityBodyGraph" Stroke="Black" Grid.Row="3">
+            <Rectangle.Fill>
+                <ImageBrush ViewportUnits="RelativeToBoundingBox" Viewport="0,0,1,1" Viewbox="0,0,100,1" ViewboxUnits="Absolute"/>
+            </Rectangle.Fill>
+        </Rectangle>
+        <Rectangle Name="intensityRowGraph" Stroke="Black" Grid.Row="1" Grid.Column="1">
+            <Rectangle.Fill>
+                <ImageBrush ViewportUnits="RelativeToBoundingBox" Viewport="0,0,1,1" Viewbox="0,0,100,1" ViewboxUnits="Absolute"/>
+            </Rectangle.Fill>
+        </Rectangle>
+        <Label Grid.Row="2" Name="label1" VerticalAlignment="Center" Background="Transparent" HorizontalAlignment="Center">Whole line sum</Label>
+        <Label Name="label2" Grid.Row="3" VerticalAlignment="Center" Background="Transparent" HorizontalAlignment="Center" >Line Body only sum</Label>
+        <Grid  Name="grid1" Grid.ColumnSpan="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition />
+                <ColumnDefinition />
+            </Grid.ColumnDefinitions>
+            <Label Name="wordContent" Grid.Column="1">Word-Stats</Label>
+            <Label Name="wordContent2">Word-Stats2</Label>
+        </Grid>
+    </Grid>
+</UserControl>
