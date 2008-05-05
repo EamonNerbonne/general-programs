@@ -36,6 +36,7 @@ namespace HWRsplitter {
                 retval = reader.ReadToEnd()
                         .Split(new[] { '\n' }, StringSplitOptions.RemoveEmptyEntries)
                         .Select(line => line.Split(',').Select(part => part.Trim()).ToArray())
+                        .Where(parts=>parts.Length==4)//no empty lines!
                         .Select(parts => new SymbolWidth {
                             c = (char)int.Parse(parts[0]),
                             estimate = new LengthEstimate {

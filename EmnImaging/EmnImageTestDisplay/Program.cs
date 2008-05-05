@@ -43,7 +43,7 @@ namespace EmnImageTestDisplay {
                               let numstr = m.Groups["num"].Value
                               select numstr;
             var bothNumStrs = imgNumStrs.Intersect(wordNumStrs).ToArray();
-            numStr = bothNumStrs[2];//TODO:make real choice
+            numStr = bothNumStrs[1];//TODO:make real choice
 
 
             string wordsPath = System.IO.Path.Combine(HWRsplitter.Program.DataPath, @"words-train\NL_HaNa_H2_7823_" + numStr + ".words");
@@ -74,7 +74,7 @@ namespace EmnImageTestDisplay {
             imgWin.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(this.ProcessImageUI));
 
 
-
+            /*
             Invert(image);
             imgWin.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(this.ProcessImageUI));
             var avgImg = BoxBlur(BoxBlur(BoxBlur(image)));
@@ -93,6 +93,7 @@ namespace EmnImageTestDisplay {
             Log("contrast stretched");
             imgWin.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(this.ProcessImageUI));
             Invert(image);
+             */
             Log("Image loaded: " + image.Width() + "x" + image.Height());
             imgWin.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(this.ProcessImageUI));
 
@@ -115,33 +116,29 @@ namespace EmnImageTestDisplay {
         }
 
         void LoadInBackground() {
-            ChooseImage();
-            progressWindow.Dispatcher.Invoke(DispatcherPriority.Normal, new Action(progressWindow.Close));
-            LoadImage();
             LoadSymbolWidths();
+
+            ChooseImage();
+            LoadImage();
 //            LoadWords();
             LoadAnnot();
-            while(true) ImproveGuess();
+            ImproveGuess();
         }
 
         //0 is begin line, 10 is line end, and each word includes one 32 for space.  Unknown letters get 1.
         Dictionary<char, SymbolWidth> symbolWidth;
         private void LoadSymbolWidths() {
-            symbolWidth = SymbolWidthParser.Parse(new FileInfo(System.IO.Path.Combine(HWRsplitter.Program.DataPath, "line_annot.txt")));
+            symbolWidth = SymbolWidthParser.Parse(new FileInfo(System.IO.Path.Combine(HWRsplitter.Program.DataPath, "char-width.txt")));
         }
 
 
         const double lenCostFactor = 100;
-        const double posCostFactor = 100;
-        
-        static double CalcCost(double[] shearedSum, double targetStart, double targetEnd, int tryStart, int tryEnd) {
-            double lenDiff=((tryEnd-tryStart) -(targetEnd -targetStart))/lenCostFactor;
-            double posDiff =((tryEnd+tryStart) - (targetEnd + targetStart))/(posCostFactor*2);
-            return Math.Abs(lenDiff) + Math.Abs(posDiff) - (shearedSum[tryEnd] + shearedSum[tryStart])/2;
-        }
+        const double posCostFactor = 400;
+        const double intermedBrightnessCostFactor = 2;
+        const double endPointCostFactor = 1;
 
         void ImproveGuess() {
-            double[] blurwindow = Enumerable.Range(-50, 101).Select(v => Math.Exp(-0.3 * Math.Abs(v))).ToArray();
+            double[] blurwindow = Enumerable.Range(-20, 41).Select(v => Math.Exp(-0.3 * Math.Abs(v))).ToArray();
             var blurwindowSum = blurwindow.Sum();
             blurwindow = blurwindow.Select(x => x / blurwindowSum).ToArray();
 
@@ -151,27 +148,58 @@ namespace EmnImageTestDisplay {
                 var blurredSum = BlurLine(shearedSum, blurwindow);
                 var minVal = blurredSum.Min();
                 var range = blurredSum.Max() - minVal;
-                var maxedContrast = blurredSum.Select(x => (x - minVal) / range).ToArray();
+                var contrastedSum = blurredSum.Select(x => (x - minVal) / range).ToArray();
 
+                //now I should make a dual-deep lookup for good measure
+                List<double[]> lightnessLookahead = new List<double[]>();
+                //i.e. lightnessLookahed[lookahead][pos] returns the sum of contrastedSum from pos to pos+lookahead.
+                lightnessLookahead.Add(contrastedSum);
+                Action addOneLookahead = () => {
+                    int nextLookahead = lightnessLookahead.Count;
+                    double[] lookaheadrow = new double[contrastedSum.Length];
+                    double[] oldrow = lightnessLookahead[nextLookahead - 1];
+                    for (int i = 0; i < oldrow.Length; i++) {
+                        lookaheadrow[i] = oldrow[i] + contrastedSum[(i + nextLookahead) % oldrow.Length];
+                    }
+                    lightnessLookahead.Add(lookaheadrow);
+                };
+
+                Func<int, int, double> Lookaheadsum = (pos, lookahead) => {
+                    while (lightnessLookahead.Count <= lookahead) addOneLookahead();
+                    return lightnessLookahead[lookahead][pos] / (lookahead+1); //calc average too!
+                };
+
+
+                double lastEnd=0;
+                double lastEndWeight=0;
                 List<Word> betterGuessWord = new List<Word>();
-                double lastOffset = 0;
                 foreach (Word wordGuess in lineGuess.words) {
-                    double targetStart = wordGuess.left+lastOffset;
-                    double targetEnd = wordGuess.right+lastOffset;
-
+                    double targetStart = wordGuess.left;
+                    double targetEnd = wordGuess.right;
+                    double targetLen = targetEnd - targetStart;
+                    double targetPos = targetStart + targetEnd;
                     int MinLength = Math.Max(0, (int)Math.Ceiling((targetEnd - targetStart) - lenCostFactor));
                     int MaxLength = (int)((targetEnd - targetStart) + lenCostFactor);
-                    int MinStartPos = Math.Max(0, (int)Math.Ceiling(targetEnd - posCostFactor));
-                    int MaxStartPos = (int)(targetEnd + posCostFactor);
+                    int MinStartPos = Math.Max(0, (int)Math.Ceiling(targetStart - posCostFactor));
+                    int MaxStartPos = (int)(targetStart + posCostFactor);
 
 
-                    int bestGuessStart = (int)targetStart;
-                    int bestGuessEnd = (int)targetEnd;
-                    double bestGuessCost = CalcCost(maxedContrast, targetStart, targetEnd, bestGuessStart, bestGuessEnd);
+                    int bestGuessStart = -1;
+                    int bestGuessEnd = -1;
+                    double bestGuessCost = double.MaxValue;
                     for (int tryStart = MinStartPos; tryStart < MaxStartPos; tryStart++) {
                         int LastEndPos = Math.Min(image.Width() - 1, tryStart + MaxLength);
                         for (int tryEnd = tryStart+MinLength; tryEnd <= LastEndPos; tryEnd++) {
-                            var cost = CalcCost(maxedContrast, targetStart, targetEnd, tryStart, tryEnd);
+                            int tryLen = tryEnd-tryStart;
+                            double lenDiff = (tryLen - targetLen) / lenCostFactor;//lower better
+                            double posDiff = ((tryEnd + tryStart) - targetPos) / (posCostFactor * 2);//lower better
+                            double intermedBrightness = Lookaheadsum(tryStart, tryLen);//lower better
+                            double cost = lenDiff * lenDiff
+                                + posDiff * posDiff
+                                + Math.Abs(tryStart - lastEnd) * lastEndWeight
+                                + intermedBrightness * intermedBrightnessCostFactor
+                                - (contrastedSum[tryEnd] + contrastedSum[tryStart]) * endPointCostFactor;
+
                             if (cost < bestGuessCost) {
                                 bestGuessStart = tryStart;
                                 bestGuessEnd = tryEnd;
@@ -184,6 +212,8 @@ namespace EmnImageTestDisplay {
                         new Word(wordGuess.text, wordGuess.no, wordGuess.top, wordGuess.bottom,
                             bestGuessStart, bestGuessEnd, wordGuess.shear));
                     ProcessLines(Enumerable.Repeat(betterGuessWord[betterGuessWord.Count - 1], 1),Brushes.Green);
+                    lastEnd = bestGuessEnd;
+                    lastEndWeight = 1.0 / 30.0;
 
                 }
 
@@ -264,9 +294,9 @@ namespace EmnImageTestDisplay {
         private static IEnumerable<Line> WordToLines(Word word, Brush brush) {
             var height = word.bottom - word.top;
             var xcorr = height * Math.Tan(2 * Math.PI * word.shear / 360.0);
-            yield return mkLine(word.left, word.top, word.right, word.top, brush);
+            //yield return mkLine(word.left, word.top, word.right, word.top, brush);
             yield return mkLine(word.right, word.top, word.right - xcorr, word.bottom, brush);
-            yield return mkLine(word.right - xcorr, word.bottom, word.left - xcorr, word.bottom, brush);
+            //yield return mkLine(word.right - xcorr, word.bottom, word.left - xcorr, word.bottom, brush);
             yield return mkLine(word.left - xcorr, word.bottom, word.left, word.top, brush);
         }
         WordsImage wordsGuess;

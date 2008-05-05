@@ -62,7 +62,7 @@ namespace EmnImageTestDisplay {
             e.Cancel = true;
             Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal, new Action(this.Hide));
             //the beginInvoke is necessary since you can't Hide a Closing window... phooey!
-            base.OnClosing(e);
+            //base.OnClosing(e);
         }
 
     }
