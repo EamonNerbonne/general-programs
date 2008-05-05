@@ -237,7 +237,7 @@ namespace EmnImageTestDisplay {
 
 
         const double lenCostFactor = 100;
-        const double posCostFactor = 400;
+        const int posCostFactor = 400;
         const double LineStartCostFactor = 100;
         const double InterWordCostFactor = 50;
         const double intermedBrightnessCostFactor = 2;
@@ -264,31 +264,8 @@ namespace EmnImageTestDisplay {
                 FindTextLineBody(lineXBegin, lineXEnd, lineYBegin, lineYEnd, out relativeBodyYBegin, out relativeBodyYEnd, improvedGuess);
 
 
-                var mainLineEls = Enumerable.Range(lineXBegin - (int)posCostFactor, lineXEnd - lineXBegin + 2 * (int)posCostFactor);
-                var rimEls = Enumerable.Range(0, lineXBegin - (int)posCostFactor)
-                    .Concat(Enumerable.Range(lineXEnd + (int)posCostFactor, image.Width() - lineXEnd - (int)posCostFactor));
-
-                //calculate the average intensity of each (sheared) column inside the entire line body:
-                var shearedSum = ShearedSum(lineYBegin, lineYBegin, lineYEnd, lineGuess.shear);
-                var mainLineAvg = mainLineEls.Select(i => shearedSum[i]).Average();
-                foreach (int i in rimEls)
-                    shearedSum[i] = mainLineAvg;
-
-                shearedSum = BlurLine(shearedSum, blurWindowXDir);
-                var shearedSumMinVal = shearedSum.Min();
-                var shearedSumRange = shearedSum.Max() - shearedSumMinVal;
-                var shearedSumContrastStretched = shearedSum.Select(x => (x - shearedSumMinVal) / shearedSumRange).ToArray();
-
-
-                //calculate the average intensity of each (sheared) column inside the main body:
-                var shearedBodySum = ShearedSum(lineYBegin,lineYBegin + relativeBodyYBegin, lineYBegin + relativeBodyYEnd, lineGuess.shear);
-                var mainLineBodyAvg = mainLineEls.Select(i => shearedBodySum[i]).Average();
-                foreach (int i in rimEls)
-                    shearedBodySum[i] = mainLineBodyAvg;
-                shearedBodySum = BlurLine(shearedBodySum, blurWindowXDir);
-                var shearedBodySumMinVal = shearedBodySum.Min();
-                var shearedBodySumRange = shearedBodySum.Max() - shearedBodySumMinVal;
-                var shearedBodySumContrastStretched = shearedBodySum.Select(x => (x - shearedBodySumMinVal) / shearedBodySumRange).ToArray();
+                double[] shearedBodySumContrastStretched,shearedSumContrastStretched;
+                FindContrastStretchedShearedSums(lineXBegin, lineXEnd, lineYBegin, lineYEnd, relativeBodyYBegin, relativeBodyYEnd, lineGuess.shear, out shearedSumContrastStretched, out shearedBodySumContrastStretched, improvedGuess);
 
 
                 
@@ -441,8 +418,33 @@ namespace EmnImageTestDisplay {
             improvedGuess.bodyBot = relativeBodyYEnd;
         }
 
+        void FindContrastStretchedShearedSums(int lineXBegin, int lineXEnd, int lineYBegin, int lineYEnd, int relativeBodyYBegin, int relativeBodyYEnd, double shear, out double[] processedShearedSum, out double[] processedShearedBodySum, TextLine improvedGuess) {
+            int relevantXBegin = lineXBegin - posCostFactor,
+                relevantXEnd = lineXEnd + posCostFactor;
 
-        double[] BlurLine(double[] data, double[] window) {
+            //calculate the average intensity of each (sheared) column inside the entire line body:
+            double[] shearedSum = ShearedSum(lineYBegin, lineYBegin, lineYEnd, shear);
+            processedShearedSum = ContrastStretchAndBlur(shearedSum, blurWindowXDir, relevantXBegin, relevantXEnd);
+
+            //calculate the average intensity of each (sheared) column inside the main section of the line body:
+            double[] shearedBodySum = ShearedSum(lineYBegin, lineYBegin + relativeBodyYBegin, lineYBegin + relativeBodyYEnd, shear);
+            processedShearedBodySum = ContrastStretchAndBlur(shearedBodySum, blurWindowXDir, relevantXBegin, relevantXEnd);
+        }
+
+        static double[] ContrastStretchAndBlur(double[] line, double[] blurWindow, int relevantXBegin, int relevantXEnd) {
+            double average = line.Skip(relevantXBegin).Take(relevantXEnd - relevantXBegin).Average();
+            for (int i = 0; i < relevantXBegin; i++)
+                line[i] = average;
+            for (int i = relevantXEnd; i < line.Length; i++)
+                line[i] = average;
+            double[] blurredLine = BlurLine(line, blurWindow);
+            double min = blurredLine.Min(), max = blurredLine.Max();
+
+            return line.Select(x => (x - min) / (max - min)).ToArray();
+        }
+
+
+        static double[] BlurLine(double[] data, double[] window) {
             double[] retval = new double[data.Length];
             for(int di=0;di<data.Length;di++)
                 for(int wi=0;wi<window.Length;wi++) {
@@ -480,8 +482,6 @@ namespace EmnImageTestDisplay {
                         select avgVal //*(1-yRelFromMid*yRelFromMid)
                     ).Sum()/divFactor
                 ).ToArray();
-
-
         }
 
 
