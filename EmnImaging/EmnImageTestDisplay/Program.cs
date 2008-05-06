@@ -23,9 +23,11 @@ namespace EmnImageTestDisplay {
 
         [STAThread]
         public static void Main(string[] args) {
-
-
-            Program app = new Program();
+            Program app;
+            if (args.Length > 0)
+                app = new Program(args[0]);
+            else
+                app = new Program();
             app.Exec();
         }
 
@@ -36,7 +38,7 @@ namespace EmnImageTestDisplay {
                              where m.Success
                              let numstr = m.Groups["num"].Value
                              select numstr;
-            var wordNumStrs = from filepath in Directory.GetFiles(
+            /*var wordNumStrs = from filepath in Directory.GetFiles(
                                   System.IO.Path.Combine(HWRsplitter.Program.DataPath, "words-train"), "NL_HaNa_H2_7823_*.words")
                               let filename = System.IO.Path.GetFileName(filepath)
                               let m = Regex.Match(filename, @"^NL_HaNa_H2_7823_(?<num>\d+).words$")
@@ -44,12 +46,16 @@ namespace EmnImageTestDisplay {
                               let numstr = m.Groups["num"].Value
                               select numstr;
             var bothNumStrs = imgNumStrs.Intersect(wordNumStrs).ToArray();
-            numStr = bothNumStrs[1];//TODO:make real choice
 
 
             string wordsPath = System.IO.Path.Combine(HWRsplitter.Program.DataPath, @"words-train\NL_HaNa_H2_7823_" + numStr + ".words");
             wordsFileInfo = new FileInfo(wordsPath);
 
+            */
+            if(imgForceNum.HasValue)
+            numStr = imgNumStrs.First(numStrs=>int.Parse(numStrs) == imgForceNum.Value);
+            else
+                numStr = imgNumStrs.First();
 
             string imgPath = System.IO.Path.Combine(HWRsplitter.Program.ImgPath, "NL_HaNa_H2_7823_" + numStr + ".tif");
             imageFileInfo = new FileInfo(imgPath);
@@ -57,7 +63,7 @@ namespace EmnImageTestDisplay {
             pageNum = int.Parse(numStr);
             Log("Chose page:" + pageNum);
         }
-        FileInfo wordsFileInfo, imageFileInfo;
+        FileInfo wordsFileInfo=null, imageFileInfo;
         string numStr;
         int pageNum;
         WordsImage words;
@@ -75,7 +81,7 @@ namespace EmnImageTestDisplay {
 
 
             UpdateImage();
-            if (false) {
+            if (true) {
                 var imgBack = (float[,])image.Clone();
                 foreach (int i in Enumerable.Range(0, 3)) {
                     image = BoxBlur(image); UpdateImage();
@@ -127,6 +133,10 @@ namespace EmnImageTestDisplay {
         ZoomRect zoomRect;
         MainWindow mainWindow;
         ImageAnnotViewbox imgAnnotViewbox;
+        int? imgForceNum;
+        public Program(string imgNum):this() {
+            imgForceNum = int.Parse(imgNum);
+        }
         public Program() {
             mainWindow = new MainWindow();
             imgAnnotViewbox = mainWindow.ImageAnnotViewbox;
@@ -236,15 +246,49 @@ namespace EmnImageTestDisplay {
         }
 
 
-        const double lenCostFactor = 10;
-        const int posCostFactor = 1000;
-        const int margin = 200;
-        const double InterWordCostFactor = 50;
-        const double intermedBrightnessCostFactor = 2;
+        const double lenCostFactor = 7;
+        const double posCostFactor = 1.0/1500;
+        const int margin = 60;
+        const int rShift = 10;
+        const double InterWordCostFactor = 1.0/50;
+        const double intermedBrightnessCostFactor = 5;
         const double endPointCostFactor = 2;
         const int MaxBodyLines = 60;
         const double MaxBodyBrightness = 0.6;
+        const double WordLightnessPower = 5;
+//        const double WordLightn
         double[] blurWindowXDir, blurWindowYDir;
+        public struct CostSummary {
+            public double
+                lengthErr, posErr, spaceErr,
+                spaceDarkness, wordLightness;
+            public double Total { get { return lengthErr + posErr + spaceErr + spaceDarkness + wordLightness; } }
+            public static CostSummary operator +(CostSummary a, CostSummary b) {
+                return new CostSummary {
+                    lengthErr = a.lengthErr + b.lengthErr,
+                    posErr = a.posErr + b.posErr,
+                    spaceErr = a.spaceErr + b.spaceErr,
+                    spaceDarkness = a.spaceDarkness + b.spaceDarkness,
+                    wordLightness = a.wordLightness + b.wordLightness
+                };
+            }
+            public static CostSummary operator -(CostSummary a, CostSummary b) {
+                return new CostSummary {
+                    lengthErr = a.lengthErr - b.lengthErr,
+                    posErr = a.posErr - b.posErr,
+                    spaceErr = a.spaceErr - b.spaceErr,
+                    spaceDarkness = a.spaceDarkness - b.spaceDarkness,
+                    wordLightness = a.wordLightness - b.wordLightness
+                };
+            }
+
+            public override string ToString() {
+                return string.Format("spaceE: {2:f2}, spaceDark: {3:f2}, wordLight: {4:f2}\nlenE: {0:f2}, posE: {1:f2}, TOT: {5:f2}",
+                    lengthErr, posErr, spaceErr,
+                spaceDarkness, wordLightness,Total
+                    );
+            }
+        }
 
 
         void ImproveGuess() {
@@ -265,7 +309,8 @@ namespace EmnImageTestDisplay {
 
                 //the shear-shift specifies how much the line-top will be right-shifted since it's the line body that's
                 //centered in the line.
-                int shearShift = (int)(relativeBodyYBegin * Math.Tan(2 * Math.PI * lineGuess.shear / 360.0) + 0.5);
+                int shearShift = (int)(relativeBodyYBegin * Math.Tan(2 * Math.PI * lineGuess.shear / 360.0) + 0.5)
+                    +rShift;//since we see more stupid things at start than end.
 
 
                 double[] processedShearedBodySum, processedShearedSum;
@@ -312,12 +357,13 @@ namespace EmnImageTestDisplay {
                         for (int k = i + 1; k < lineLength; k++) {
                             int imgPosE = k + lineXBegin + shearShift - margin;
                             double wordLenScaled = (imgPosE - imgPos - targetLength) / targetLength * lenCostFactor;
-                            double word2PosScaled = (imgPos + imgPosE - target2Pos) / posCostFactor;
+                            double word2PosScaled = (imgPos + imgPosE - target2Pos) * posCostFactor;
+                            double wordLightness = GetAverageBetween(imgPos, imgPosE) * intermedBrightnessCostFactor; ;
                             double endingHereCost =
                                 endCosts[wordIndex, k] +
                                 wordLenScaled * wordLenScaled +
                                 word2PosScaled * word2PosScaled +
-                                GetAverageBetween(imgPos, imgPosE) * intermedBrightnessCostFactor;
+                                wordLightness;
                             if (endingHereCost < bestEndCosts)
                                 bestEndCosts = endingHereCost;
                         }
@@ -330,14 +376,7 @@ namespace EmnImageTestDisplay {
                     if (wordIndex == 0) {
                         //OK, we just calculated the begin costs of 0, but we should add costs for beginning far from the
                         //line beginning...
-
-                       // for (int i = 0; i < lineLength; i++) {
-                       //     int imgPos = i + lineXBegin + shearShift;
-                       //     int posDiff = imgPos - (lineXBegin + shearShift);
-                       //     beginCosts[0, i] += posDiff * (double)posDiff / posCostFactor/posCostFactor;
-                            //TODO, isn't really posCostFactor
-                        //}
-                        break;// there's no end of -1 here...
+                        break;// there's no end of -1 here... ;-)
                     }
 
 
@@ -349,9 +388,10 @@ namespace EmnImageTestDisplay {
                         double bestBeginCosts = double.MaxValue;
                         for (int k = i + 1; k < lineLength; k++) {
                             int imgPosB = k + lineXBegin + shearShift - margin;
-                            double spaceLenScaled = (imgPosB - imgPos) / InterWordCostFactor;
+                            double spaceLenScaled = (imgPosB - imgPos) * InterWordCostFactor;
                             double beginningHereCost =
                                 beginCosts[wordIndex + 1, k] +
+                                //(1-GetAverageBetween(imgPos, imgPosB)) * intermedBrightnessCostFactor +
                                 spaceLenScaled * spaceLenScaled;
                             if (beginningHereCost < bestBeginCosts)
                                 bestBeginCosts = beginningHereCost;
@@ -373,6 +413,11 @@ namespace EmnImageTestDisplay {
                         bestBeginPos = i;
                     }
                 }
+
+                improvedGuess.cost = bestBeginCost;
+                CostSummary summary = new CostSummary();
+                CostSummary lastHit = new CostSummary();
+                CostSummary lastSummary = new CostSummary();
 
                 double bestEndCost = double.MaxValue;
                 int bestEndPos = -1;
@@ -396,33 +441,45 @@ namespace EmnImageTestDisplay {
                     for (int k = 0; k < lineLength; k++) {
                         int imgPosE = k + lineXBegin + shearShift - margin;
                         double wordLenScaled = (imgPosE - imgPos - targetLength) / targetLength * lenCostFactor;
-                        double word2PosScaled = (imgPos + imgPosE - target2Pos) / posCostFactor;
+                        double word2PosScaled = (imgPos + imgPosE - target2Pos) * posCostFactor;
+                        double wordLightness = GetAverageBetween(imgPos, imgPosE) * intermedBrightnessCostFactor;
                         double endingHereCost =
                             endCosts[wordIndex, k] +
                             wordLenScaled * wordLenScaled +
                             word2PosScaled * word2PosScaled +
-                            GetAverageBetween(imgPos, imgPosE) * intermedBrightnessCostFactor;
+                             wordLightness;
                         if (endingHereCost < bestEndCost) {
                             bestEndCost = endingHereCost;
                             bestEndPos = k;
+
+                            lastHit.lengthErr = wordLenScaled * wordLenScaled;
+                            lastHit.posErr = word2PosScaled * word2PosScaled;
+                            lastHit.wordLightness = wordLightness;
                         }
                     }
+
+
+                    summary.spaceDarkness += (1 - processedShearedSum[bestBeginPos + lineXBegin + shearShift - margin]) * endPointCostFactor;
+                    summary.spaceDarkness += (1 - processedShearedSum[bestEndPos + lineXBegin + shearShift - margin]) * endPointCostFactor;
+                   // summary.spaceDarkness += lastHit.spaceDarkness;
+                    summary.lengthErr += lastHit.lengthErr;
+                    summary.posErr += lastHit.posErr;
+                    summary.spaceErr += lastHit.spaceErr;
+                    summary.wordLightness += lastHit.wordLightness;
 
                     //beginCosts[wordIndex, bestBeginPos] == (1 - processedShearedSum[imgPos]) * endPointCostFactor - bestEndCost
 
                     //we have an optimal find!
                     betterGuessWord.Add(
                         new Word(word) {
-                            imageBasedCost = bestBeginCost - bestEndCost,//TODO, wrong, but fix later.
-                            lookaheadSum = GetAverageBetween(bestBeginPos, bestEndPos),
-                            startLightness = processedShearedSum[bestBeginPos],
-                            endLightness = processedShearedSum[bestEndPos],
+                            costSummary = summary - lastSummary,
+                            
                             left = bestBeginPos + lineXBegin + shearShift - margin,
                             right = bestEndPos + lineXBegin + shearShift - margin
                         });
                     ProcessLines(Enumerable.Repeat(betterGuessWord[betterGuessWord.Count - 1], 1), Brushes.Green);
 
-                    
+                    lastSummary = summary;
                     //now find next beginning
                     wordIndex = j + 1;
                     if (wordIndex == numWords)
@@ -434,13 +491,16 @@ namespace EmnImageTestDisplay {
 
                     for (int k = bestEndPos + 1; k < lineLength; k++) {
                         int imgPosB = k + lineXBegin + shearShift;
-                        double spaceLenScaled = (imgPosB - imgPos) / InterWordCostFactor;
+                        double spaceLenScaled = (imgPosB - imgPos) * InterWordCostFactor;
                         double beginningHereCost =
                             beginCosts[wordIndex, k] +
+                            //(1 - GetAverageBetween(imgPos, imgPosB)) * intermedBrightnessCostFactor +
                             spaceLenScaled * spaceLenScaled;
                         if (beginningHereCost < bestBeginCost) {
                             bestBeginCost = beginningHereCost;
                             bestBeginPos = k;
+                          //  lastHit.spaceDarkness = (1 - GetAverageBetween(imgPos, imgPosB)) * intermedBrightnessCostFactor;
+                            lastHit.spaceErr = spaceLenScaled * spaceLenScaled;
                         }
                     }
                     //endCosts[wordIndex-1, bestEndPos] == (1 - processedShearedSum[imgPos]) * endPointCostFactor - bestBeginCost
@@ -458,6 +518,7 @@ namespace EmnImageTestDisplay {
                 improvedGuess.left = lineGuess.left;
                 improvedGuess.right = lineGuess.right;
                 improvedGuess.no = lineGuess.no;
+                improvedGuess.costSummary = summary;
 
 
                 betterGuessLine.Add(improvedGuess);
@@ -467,7 +528,9 @@ namespace EmnImageTestDisplay {
                 pageNum = wordsGuess.pageNum,
                 textlines = betterGuessLine.ToArray()
             };
-            using (Stream stream = new FileInfo(wordsFileInfo.FullName + "guess").OpenWrite()) 
+            using (Stream stream = new FileInfo(
+                System.IO.Path.Combine(System.IO.Path.Combine(HWRsplitter.Program.DataPath, "words-train"), "NL_HaNa_H2_7823_" + numStr + ".words")
+                ).OpenWrite()) 
                 using (TextWriter writer = new StreamWriter(stream))
                     writer.Write(betterGuessWords.AsXml().ToString());
             
@@ -488,7 +551,7 @@ namespace EmnImageTestDisplay {
                     double[] nextSumRow = new double[data.Length];
 
                     for (int i = 0; i < currentSumRow.Length; i++)
-                        nextSumRow[i] = currentSumRow[i] + data[(i + nextSumLength) % data.Length];
+                        nextSumRow[i] = currentSumRow[i] + Math.Pow( data[(i + nextSumLength) % data.Length],WordLightnessPower);
                     
                     sumByLength.Add(nextSumRow);
                 }
@@ -548,10 +611,12 @@ namespace EmnImageTestDisplay {
 
             //calculate the average intensity of each (sheared) column inside the entire line body:
             double[] shearedSum = ShearedSum(lineYBegin, lineYBegin, lineYEnd, shear);
-            processedShearedSum = ContrastStretchAndBlur(shearedSum, blurWindowXDir, relevantXBegin, relevantXEnd);
 
             //calculate the average intensity of each (sheared) column inside the main section of the line body:
             double[] shearedBodySum = ShearedSum(lineYBegin, lineYBegin + relativeBodyYBegin, lineYBegin + relativeBodyYEnd, shear);
+
+            shearedSum = shearedSum.Select((x, i) => x + 2*shearedBodySum[i]).ToArray();//do weight center a little more.
+            processedShearedSum = ContrastStretchAndBlur(shearedSum, blurWindowXDir, relevantXBegin, relevantXEnd);
             processedShearedBodySum = ContrastStretchAndBlur(shearedBodySum, blurWindowXDir, relevantXBegin, relevantXEnd);
 
             improvedGuess.shearedbodysum = processedShearedBodySum.Cast<float>().ToArray();

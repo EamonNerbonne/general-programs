@@ -8,10 +8,10 @@
 
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
-            <RowDefinition  MinHeight="10"/>
-            <RowDefinition MinHeight="10" />
-            <RowDefinition  MinHeight="10"/>
-            <RowDefinition  MinHeight="10"/>
+            <RowDefinition  MinHeight="10"  Height="50*"/>
+            <RowDefinition MinHeight="10" Height="50*"/>
+            <RowDefinition  MinHeight="10" Height="20*"/>
+            <RowDefinition  MinHeight="10" Height="20*"/>
         </Grid.RowDefinitions>
         <Rectangle Grid.Row="1" Name="lineView" Stroke="Black"  SizeChanged="lineView_SizeChanged">
             <Rectangle.Fill>
