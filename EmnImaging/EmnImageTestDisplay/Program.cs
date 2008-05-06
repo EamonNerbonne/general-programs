@@ -263,35 +263,29 @@ namespace EmnImageTestDisplay {
                 int relativeBodyYEnd, relativeBodyYBegin;
                 FindTextLineBody(lineXBegin, lineXEnd, lineYBegin, lineYEnd, out relativeBodyYBegin, out relativeBodyYEnd, improvedGuess);
 
-
-                double[] shearedBodySumContrastStretched,shearedSumContrastStretched;
-                FindContrastStretchedShearedSums(lineXBegin, lineXEnd, lineYBegin, lineYEnd, relativeBodyYBegin, relativeBodyYEnd, lineGuess.shear, out shearedSumContrastStretched, out shearedBodySumContrastStretched, improvedGuess);
-
-
-                
+                //the shear-shift specifies how much the line-top will be right-shifted since it's the line body that's
+                //centered in the line.
+                int shearShift = (int)(relativeBodyYBegin * Math.Tan(2 * Math.PI * lineGuess.shear / 360.0) + 0.5);
 
 
-                List<double[]> lightnessLookahead = new List<double[]>();
-                //i.e. lightnessLookahed[lookahead][pos] returns the sum of contrasted-Body-Sum from pos to pos+lookahead.
-                lightnessLookahead.Add(shearedBodySumContrastStretched);
-                Action addOneLookahead = () => {
-                    int nextLookahead = lightnessLookahead.Count;
-                    double[] lookaheadrow = new double[shearedBodySumContrastStretched.Length];
-                    double[] oldrow = lightnessLookahead[nextLookahead - 1];
-                    for (int i = 0; i < oldrow.Length; i++) {
-                        lookaheadrow[i] = oldrow[i] + shearedBodySumContrastStretched[(i + nextLookahead) % oldrow.Length];
-                    }
-                    lightnessLookahead.Add(lookaheadrow);
-                };
+                double[] processedShearedBodySum,processedShearedSum;
+                FindContrastStretchedShearedSums(lineXBegin, lineXEnd, lineYBegin, lineYEnd, relativeBodyYBegin, relativeBodyYEnd, lineGuess.shear, out processedShearedSum, out processedShearedBodySum, improvedGuess);
 
-                Func<int, int, double> Lookaheadsum = (pos, lookahead) => {
-                    while (lightnessLookahead.Count <= lookahead) addOneLookahead();
-                    return lightnessLookahead[lookahead][pos] / (lookahead+1); //calc average too!
-                };
+
+                Func<int, int, double> GetAverageBetween = CreateMemoizedAverager(processedShearedBodySum);
 
 
 
-                double shearShift = relativeBodyYBegin * Math.Tan(2 * Math.PI * lineGuess.shear / 360.0);
+             //   int numWords = lineGuess.words.Length;
+
+              //  double[,] endCosts = new double[numWords,lineXEnd-lineXBegin];
+             //   double[,] startCosts = new double[numWords, lineXEnd - lineXBegin];
+
+                ///The endcost of a word and a point is the cost of ending that word at that point,
+                ///including costs for all following words.
+                ///The startcost of a word and a point is the cost of starting that word at that point,
+                ///including costs for ending and all following words.
+
                 double lastEnd=lineXBegin+shearShift;
                 
                 double lastEndWeight=1.0/LineStartCostFactor;
@@ -316,13 +310,13 @@ namespace EmnImageTestDisplay {
                             int tryLen = tryEnd-tryStart;
                             double lenDiff = (tryLen - targetLen) / lenCostFactor;//lower better
                             double posDiff = ((tryEnd + tryStart) - targetPos) / (posCostFactor * 2);//lower better
-                            double intermedBrightness = Lookaheadsum(tryStart, tryLen);//lower better
+                            double intermedBrightness = GetAverageBetween(tryStart, tryEnd);//lower better, TODO, offset?
                             double cost = 2*endPointCostFactor+
                                 lenDiff * lenDiff
                                 + posDiff * posDiff
                                 + Math.Abs(tryStart - lastEnd) * lastEndWeight
                                 + intermedBrightness * intermedBrightnessCostFactor
-                                - (shearedBodySumContrastStretched[tryEnd] + shearedBodySumContrastStretched[tryStart]) * endPointCostFactor;
+                                - (processedShearedBodySum[tryEnd] + processedShearedBodySum[tryStart]) * endPointCostFactor;
 
                             if (cost < bestGuessCost) {
                                 bestGuessStart = tryStart;
@@ -335,9 +329,9 @@ namespace EmnImageTestDisplay {
                     betterGuessWord.Add(
                         new Word(wordGuess) {
                             imageBasedCost = bestGuessCost,
-                            lookaheadSum = Lookaheadsum(bestGuessStart, bestGuessEnd-bestGuessStart),
-                            startLightness= shearedSumContrastStretched[bestGuessStart],
-                            endLightness = shearedSumContrastStretched[bestGuessEnd],
+                            lookaheadSum = GetAverageBetween(bestGuessStart, bestGuessEnd),
+                            startLightness= processedShearedSum[bestGuessStart],
+                            endLightness = processedShearedSum[bestGuessEnd],
                             left = bestGuessStart,
                             right = bestGuessEnd
 
@@ -356,8 +350,8 @@ namespace EmnImageTestDisplay {
                     improvedGuess.left = lineGuess.left;
                     improvedGuess.right = lineGuess.right;
                     improvedGuess.no = lineGuess.no;
-                    improvedGuess.shearedsum = shearedSumContrastStretched.Cast<float>().ToArray();
-                    improvedGuess.shearedbodysum = shearedBodySumContrastStretched.Cast<float>().ToArray();
+                    improvedGuess.shearedsum = processedShearedSum.Cast<float>().ToArray();
+                    improvedGuess.shearedbodysum = processedShearedBodySum.Cast<float>().ToArray();
 
                 
                 betterGuessLine.Add(improvedGuess);
@@ -371,6 +365,30 @@ namespace EmnImageTestDisplay {
                 using (TextWriter writer = new StreamWriter(stream))
                     writer.Write(betterGuessWords.AsXml().ToString());
             
+        }
+
+        private static Func<int, int, double> CreateMemoizedAverager(double[] data) {
+            
+            List<double[]> sumByLength = new List<double[]> {data};
+            //sumByLength[offset][start]  contains the sum of  'offset;+1 elements starting at index 'start'
+
+
+            return (start, end) => {
+                int length = end - start;
+                if (length < 1) return 0;
+                while (sumByLength.Count < length) {
+                    int nextSumLength = sumByLength.Count;
+                    double[] currentSumRow = sumByLength[nextSumLength - 1];
+                    double[] nextSumRow = new double[data.Length];
+
+                    for (int i = 0; i < currentSumRow.Length; i++)
+                        nextSumRow[i] = currentSumRow[i] + data[(i + nextSumLength) % data.Length];
+                    
+                    sumByLength.Add(nextSumRow);
+                }
+                return sumByLength[length-1][start] / length; //calc average too!
+            };
+
         }
         WordsImage betterGuessWords;
 
@@ -429,6 +447,9 @@ namespace EmnImageTestDisplay {
             //calculate the average intensity of each (sheared) column inside the main section of the line body:
             double[] shearedBodySum = ShearedSum(lineYBegin, lineYBegin + relativeBodyYBegin, lineYBegin + relativeBodyYEnd, shear);
             processedShearedBodySum = ContrastStretchAndBlur(shearedBodySum, blurWindowXDir, relevantXBegin, relevantXEnd);
+
+            improvedGuess.shearedbodysum = processedShearedBodySum.Cast<float>().ToArray();
+            improvedGuess.shearedsum = processedShearedSum.Cast<float>().ToArray();
         }
 
         static double[] ContrastStretchAndBlur(double[] line, double[] blurWindow, int relevantXBegin, int relevantXEnd) {
