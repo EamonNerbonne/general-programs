@@ -81,7 +81,7 @@ namespace EmnImageTestDisplay {
 
 
             UpdateImage();
-            if (true) {
+            if (false) {
                 var imgBack = (float[,])image.Clone();
                 foreach (int i in Enumerable.Range(0, 3)) {
                     image = BoxBlur(image); UpdateImage();
@@ -246,16 +246,16 @@ namespace EmnImageTestDisplay {
         }
 
 
-        const double lenCostFactor = 7;
+        const double lenCostFactor = 5;
         const double posCostFactor = 1.0/1500;
         const int margin = 60;
         const int rShift = 10;
         const double InterWordCostFactor = 1.0/50;
         const double intermedBrightnessCostFactor = 5;
         const double endPointCostFactor = 2;
-        const int MaxBodyLines = 60;
-        const double MaxBodyBrightness = 0.6;
-        const double WordLightnessPower = 5;
+        const int MaxBodyLines = 65;
+        const double MaxBodyBrightness = 0.63;
+        const double WordLightnessPower = 3;
 //        const double WordLightn
         double[] blurWindowXDir, blurWindowYDir;
         public struct CostSummary {
@@ -361,7 +361,7 @@ namespace EmnImageTestDisplay {
                             double wordLightness = GetAverageBetween(imgPos, imgPosE) * intermedBrightnessCostFactor; ;
                             double endingHereCost =
                                 endCosts[wordIndex, k] +
-                                wordLenScaled * wordLenScaled +
+                                wordLenScaled * wordLenScaled * wordLenScaled * wordLenScaled +
                                 word2PosScaled * word2PosScaled +
                                 wordLightness;
                             if (endingHereCost < bestEndCosts)
@@ -446,13 +446,13 @@ namespace EmnImageTestDisplay {
                         double endingHereCost =
                             endCosts[wordIndex, k] +
                             wordLenScaled * wordLenScaled +
-                            word2PosScaled * word2PosScaled +
+                            word2PosScaled * word2PosScaled * wordLenScaled * wordLenScaled +
                              wordLightness;
                         if (endingHereCost < bestEndCost) {
                             bestEndCost = endingHereCost;
                             bestEndPos = k;
 
-                            lastHit.lengthErr = wordLenScaled * wordLenScaled;
+                            lastHit.lengthErr = wordLenScaled * wordLenScaled * wordLenScaled * wordLenScaled;
                             lastHit.posErr = word2PosScaled * word2PosScaled;
                             lastHit.wordLightness = wordLightness;
                         }
@@ -529,7 +529,7 @@ namespace EmnImageTestDisplay {
                 textlines = betterGuessLine.ToArray()
             };
             using (Stream stream = new FileInfo(
-                System.IO.Path.Combine(System.IO.Path.Combine(HWRsplitter.Program.DataPath, "words-train"), "NL_HaNa_H2_7823_" + numStr + ".words")
+                System.IO.Path.Combine(System.IO.Path.Combine(HWRsplitter.Program.DataPath, "words-train"), "NL_HaNa_H2_7823_" + numStr + ".wordsguess")
                 ).OpenWrite()) 
                 using (TextWriter writer = new StreamWriter(stream))
                     writer.Write(betterGuessWords.AsXml().ToString());
