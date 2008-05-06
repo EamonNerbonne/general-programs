@@ -236,9 +236,9 @@ namespace EmnImageTestDisplay {
         }
 
 
-        const double lenCostFactor = 100;
-        const int posCostFactor = 400;
-        const double LineStartCostFactor = 100;
+        const double lenCostFactor = 10;
+        const int posCostFactor = 1000;
+        const int margin = 200;
         const double InterWordCostFactor = 50;
         const double intermedBrightnessCostFactor = 2;
         const double endPointCostFactor = 2;
@@ -255,11 +255,11 @@ namespace EmnImageTestDisplay {
 
                 TextLine improvedGuess = new TextLine();
 
-                int lineXBegin = (int)Math.Floor(lineGuess.left );
-                int lineXEnd = (int)Math.Ceiling (lineGuess.right);
+                int lineXBegin = (int)Math.Floor(lineGuess.left);
+                int lineXEnd = (int)Math.Ceiling(lineGuess.right);
                 int lineYBegin = (int)Math.Floor(lineGuess.top);
                 int lineYEnd = (int)Math.Ceiling(lineGuess.bottom);
-                
+
                 int relativeBodyYEnd, relativeBodyYBegin;
                 FindTextLineBody(lineXBegin, lineXEnd, lineYBegin, lineYEnd, out relativeBodyYBegin, out relativeBodyYEnd, improvedGuess);
 
@@ -268,7 +268,7 @@ namespace EmnImageTestDisplay {
                 int shearShift = (int)(relativeBodyYBegin * Math.Tan(2 * Math.PI * lineGuess.shear / 360.0) + 0.5);
 
 
-                double[] processedShearedBodySum,processedShearedSum;
+                double[] processedShearedBodySum, processedShearedSum;
                 FindContrastStretchedShearedSums(lineXBegin, lineXEnd, lineYBegin, lineYEnd, relativeBodyYBegin, relativeBodyYEnd, lineGuess.shear, out processedShearedSum, out processedShearedBodySum, improvedGuess);
 
 
@@ -276,84 +276,190 @@ namespace EmnImageTestDisplay {
 
 
 
-             //   int numWords = lineGuess.words.Length;
-
-              //  double[,] endCosts = new double[numWords,lineXEnd-lineXBegin];
-             //   double[,] startCosts = new double[numWords, lineXEnd - lineXBegin];
+                int numWords = lineGuess.words.Length;
+                int lineLength = lineXEnd - lineXBegin + 2*margin;//TODO, this should probably be a little larger.
+                double[,] endCosts = new double[numWords, lineLength];
+                double[,] beginCosts = new double[numWords, lineLength];
 
                 ///The endcost of a word and a point is the cost of ending that word at that point,
                 ///including costs for all following words.
                 ///The startcost of a word and a point is the cost of starting that word at that point,
                 ///including costs for ending and all following words.
-
-                double lastEnd=lineXBegin+shearShift;
-                
-                double lastEndWeight=1.0/LineStartCostFactor;
-                List<Word> betterGuessWord = new List<Word>();
-                foreach (Word wordGuess in lineGuess.words) {
-                    double targetStart = wordGuess.left;
-                    double targetEnd = wordGuess.right;
-                    double targetLen = wordGuess.symbolBasedLength.len;
-                    double targetPos = targetStart + targetEnd+shearShift;
-                    int MinLength = Math.Max(0, (int)Math.Ceiling((targetEnd - targetStart) - lenCostFactor));
-                    int MaxLength = (int)((targetEnd - targetStart) + lenCostFactor);
-                    int MinStartPos = Math.Max(0, (int)Math.Ceiling(targetStart - posCostFactor));
-                    int MaxStartPos = (int)(targetStart + posCostFactor);
+                ///point 0 is at lineXBegin+shearShift - margin.
 
 
-                    int bestGuessStart = -1;
-                    int bestGuessEnd = -1;
-                    double bestGuessCost = double.MaxValue;
-                    for (int tryStart = MinStartPos; tryStart < MaxStartPos; tryStart++) {
-                        int LastEndPos = Math.Min(image.Width() - 1, tryStart + MaxLength);
-                        for (int tryEnd = tryStart+MinLength; tryEnd <= LastEndPos; tryEnd++) {
-                            int tryLen = tryEnd-tryStart;
-                            double lenDiff = (tryLen - targetLen) / lenCostFactor;//lower better
-                            double posDiff = ((tryEnd + tryStart) - targetPos) / (posCostFactor * 2);//lower better
-                            double intermedBrightness = GetAverageBetween(tryStart, tryEnd);//lower better, TODO, offset?
-                            double cost = 2*endPointCostFactor+
-                                lenDiff * lenDiff
-                                + posDiff * posDiff
-                                + Math.Abs(tryStart - lastEnd) * lastEndWeight
-                                + intermedBrightness * intermedBrightnessCostFactor
-                                - (processedShearedBodySum[tryEnd] + processedShearedBodySum[tryStart]) * endPointCostFactor;
+                //we initialize by doing the endpoint of the last word.
+                int wordIndex = numWords - 1;
+                for (int i = 0; i < lineLength; i++) {
+                    int imgPos = i + lineXBegin + shearShift - margin;
+                    //int posDiff = lineXEnd + shearShift - imgPos;
+                    endCosts[wordIndex, i] =
+                       // posDiff * (double)posDiff / posCostFactor/posCostFactor + //TODO, isn't really posCostFactor
+                        (1 - processedShearedSum[imgPos]) * endPointCostFactor;
+                }
 
-                            if (cost < bestGuessCost) {
-                                bestGuessStart = tryStart;
-                                bestGuessEnd = tryEnd;
-                                bestGuessCost = cost;
-                            }
+                for (int j = numWords - 1; j >= 0; j--) {
+                    //we'll treat j's start and j-1's end in this iteration. 0's _begin_ is a little special...
+
+                    //begin costs:
+                    wordIndex = j;
+                    Word word = lineGuess.words[wordIndex];
+                    double targetLength = word.symbolBasedLength.len;
+                    double target2Pos = word.left + word.right;
+                    for (int i = 0; i < lineLength; i++) {
+                        int imgPos = i + lineXBegin + shearShift - margin;
+                        double bestEndCosts = double.MaxValue;
+                        for (int k = i + 1; k < lineLength; k++) {
+                            int imgPosE = k + lineXBegin + shearShift - margin;
+                            double wordLenScaled = (imgPosE - imgPos - targetLength) / targetLength * lenCostFactor;
+                            double word2PosScaled = (imgPos + imgPosE - target2Pos) / posCostFactor;
+                            double endingHereCost =
+                                endCosts[wordIndex, k] +
+                                wordLenScaled * wordLenScaled +
+                                word2PosScaled * word2PosScaled +
+                                GetAverageBetween(imgPos, imgPosE) * intermedBrightnessCostFactor;
+                            if (endingHereCost < bestEndCosts)
+                                bestEndCosts = endingHereCost;
                         }
 
+                        beginCosts[wordIndex, i] =
+                            bestEndCosts +
+                            (1 - processedShearedSum[imgPos]) * endPointCostFactor;
                     }
-                    betterGuessWord.Add(
-                        new Word(wordGuess) {
-                            imageBasedCost = bestGuessCost,
-                            lookaheadSum = GetAverageBetween(bestGuessStart, bestGuessEnd),
-                            startLightness= processedShearedSum[bestGuessStart],
-                            endLightness = processedShearedSum[bestGuessEnd],
-                            left = bestGuessStart,
-                            right = bestGuessEnd
 
-                            });
+                    if (wordIndex == 0) {
+                        //OK, we just calculated the begin costs of 0, but we should add costs for beginning far from the
+                        //line beginning...
+
+                       // for (int i = 0; i < lineLength; i++) {
+                       //     int imgPos = i + lineXBegin + shearShift;
+                       //     int posDiff = imgPos - (lineXBegin + shearShift);
+                       //     beginCosts[0, i] += posDiff * (double)posDiff / posCostFactor/posCostFactor;
+                            //TODO, isn't really posCostFactor
+                        //}
+                        break;// there's no end of -1 here...
+                    }
+
+
+                    //end costs:
+                    wordIndex = j - 1;
+                    word = lineGuess.words[wordIndex];
+                    for (int i = 0; i < lineLength; i++) {
+                        int imgPos = i + lineXBegin + shearShift - margin;
+                        double bestBeginCosts = double.MaxValue;
+                        for (int k = i + 1; k < lineLength; k++) {
+                            int imgPosB = k + lineXBegin + shearShift - margin;
+                            double spaceLenScaled = (imgPosB - imgPos) / InterWordCostFactor;
+                            double beginningHereCost =
+                                beginCosts[wordIndex + 1, k] +
+                                spaceLenScaled * spaceLenScaled;
+                            if (beginningHereCost < bestBeginCosts)
+                                bestBeginCosts = beginningHereCost;
+                        }
+
+                        endCosts[wordIndex, i] =
+                            bestBeginCosts +
+                            (1 - processedShearedSum[imgPos]) * endPointCostFactor;
+                    }
+                }
+
+                //OK, we did precalculation! now we just follow the cheapest path!
+                wordIndex = 0;
+                double bestBeginCost = double.MaxValue;
+                int bestBeginPos=-1;
+                for (int i = 0; i < lineLength; i++) {
+                    if (beginCosts[wordIndex, i] < bestBeginCost) {
+                        bestBeginCost = beginCosts[wordIndex, i];
+                        bestBeginPos = i;
+                    }
+                }
+
+                double bestEndCost = double.MaxValue;
+                int bestEndPos = -1;
+
+                List<Word> betterGuessWord = new List<Word>();
+                for (int j = 0; j < numWords; j++) {
+
+
+                    wordIndex = j;
+                    //we have a beginpos, now find the matching end.
+                    //that's not the cheapest end, since that not might be reachable!
+                    //that's the end whose endcost+transition costs are the lowest.
+
+                    bestEndCost = double.MaxValue;
+                    bestEndPos = -1;
+                    Word word = lineGuess.words[wordIndex];
+                    double targetLength = word.symbolBasedLength.len;
+                    double target2Pos = word.left + word.right;
+                    int imgPos = bestBeginPos + lineXBegin + shearShift - margin;
+
+                    for (int k = 0; k < lineLength; k++) {
+                        int imgPosE = k + lineXBegin + shearShift - margin;
+                        double wordLenScaled = (imgPosE - imgPos - targetLength) / targetLength * lenCostFactor;
+                        double word2PosScaled = (imgPos + imgPosE - target2Pos) / posCostFactor;
+                        double endingHereCost =
+                            endCosts[wordIndex, k] +
+                            wordLenScaled * wordLenScaled +
+                            word2PosScaled * word2PosScaled +
+                            GetAverageBetween(imgPos, imgPosE) * intermedBrightnessCostFactor;
+                        if (endingHereCost < bestEndCost) {
+                            bestEndCost = endingHereCost;
+                            bestEndPos = k;
+                        }
+                    }
+
+                    //beginCosts[wordIndex, bestBeginPos] == (1 - processedShearedSum[imgPos]) * endPointCostFactor - bestEndCost
+
+                    //we have an optimal find!
+                    betterGuessWord.Add(
+                        new Word(word) {
+                            imageBasedCost = bestBeginCost - bestEndCost,//TODO, wrong, but fix later.
+                            lookaheadSum = GetAverageBetween(bestBeginPos, bestEndPos),
+                            startLightness = processedShearedSum[bestBeginPos],
+                            endLightness = processedShearedSum[bestEndPos],
+                            left = bestBeginPos + lineXBegin + shearShift - margin,
+                            right = bestEndPos + lineXBegin + shearShift - margin
+                        });
                     ProcessLines(Enumerable.Repeat(betterGuessWord[betterGuessWord.Count - 1], 1), Brushes.Green);
+
+                    
+                    //now find next beginning
+                    wordIndex = j + 1;
+                    if (wordIndex == numWords)
+                        break;//found em all.
+                    bestBeginCost = double.MaxValue;
+                    bestBeginPos = -1;
+                    word = lineGuess.words[wordIndex];
+                    imgPos = bestEndPos + lineXBegin + shearShift;
+
+                    for (int k = bestEndPos + 1; k < lineLength; k++) {
+                        int imgPosB = k + lineXBegin + shearShift;
+                        double spaceLenScaled = (imgPosB - imgPos) / InterWordCostFactor;
+                        double beginningHereCost =
+                            beginCosts[wordIndex, k] +
+                            spaceLenScaled * spaceLenScaled;
+                        if (beginningHereCost < bestBeginCost) {
+                            bestBeginCost = beginningHereCost;
+                            bestBeginPos = k;
+                        }
+                    }
+                    //endCosts[wordIndex-1, bestEndPos] == (1 - processedShearedSum[imgPos]) * endPointCostFactor - bestBeginCost
+                }
+
+                /*
                     lastEnd = bestGuessEnd;
                     lastEndWeight = 1.0 / InterWordCostFactor;
+                */
 
-                }
-                
-                
-                    improvedGuess.words = betterGuessWord.ToArray();
-                    improvedGuess.shear = lineGuess.shear;
-                    improvedGuess.bottom = lineGuess.bottom;
-                    improvedGuess.top = lineGuess.top;
-                    improvedGuess.left = lineGuess.left;
-                    improvedGuess.right = lineGuess.right;
-                    improvedGuess.no = lineGuess.no;
-                    improvedGuess.shearedsum = processedShearedSum.Cast<float>().ToArray();
-                    improvedGuess.shearedbodysum = processedShearedBodySum.Cast<float>().ToArray();
+                improvedGuess.words = betterGuessWord.ToArray();
+                improvedGuess.shear = lineGuess.shear;
+                improvedGuess.bottom = lineGuess.bottom;
+                improvedGuess.top = lineGuess.top;
+                improvedGuess.left = lineGuess.left;
+                improvedGuess.right = lineGuess.right;
+                improvedGuess.no = lineGuess.no;
 
-                
+
                 betterGuessLine.Add(improvedGuess);
             }
             betterGuessWords = new WordsImage {
@@ -437,8 +543,8 @@ namespace EmnImageTestDisplay {
         }
 
         void FindContrastStretchedShearedSums(int lineXBegin, int lineXEnd, int lineYBegin, int lineYEnd, int relativeBodyYBegin, int relativeBodyYEnd, double shear, out double[] processedShearedSum, out double[] processedShearedBodySum, TextLine improvedGuess) {
-            int relevantXBegin = lineXBegin - posCostFactor,
-                relevantXEnd = lineXEnd + posCostFactor;
+            int relevantXBegin = lineXBegin - margin,
+                relevantXEnd = lineXEnd + margin;
 
             //calculate the average intensity of each (sheared) column inside the entire line body:
             double[] shearedSum = ShearedSum(lineYBegin, lineYBegin, lineYEnd, shear);
@@ -461,7 +567,7 @@ namespace EmnImageTestDisplay {
             double[] blurredLine = BlurLine(line, blurWindow);
             double min = blurredLine.Min(), max = blurredLine.Max();
 
-            return line.Select(x => (x - min) / (max - min)).ToArray();
+            return blurredLine.Select(x => (x - min) / (max - min)).ToArray();
         }
 
 
