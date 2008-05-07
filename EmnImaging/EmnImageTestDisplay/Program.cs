@@ -81,10 +81,10 @@ namespace EmnImageTestDisplay {
 
 
             UpdateImage();
-            if (false) {
+            if (true) {
                 var imgBack = (float[,])image.Clone();
-                foreach (int i in Enumerable.Range(0, 3)) {
-                    image = BoxBlur(image); UpdateImage();
+                foreach (int i in Enumerable.Range(0, 6)) {
+                    image = BoxBlurV(image); UpdateImage();
                 }
                 Log("blurred.");
                 var imgBlur = (float[,])image.Clone();
@@ -92,8 +92,8 @@ namespace EmnImageTestDisplay {
                 Invert(image); UpdateImage();
 
 
-                foreach (int i in Enumerable.Range(0, 10)) {
-                    image = BoxMin(image); UpdateImage();
+                foreach (int i in Enumerable.Range(0, 30)) {
+                    image = MinV (image); UpdateImage();
                 }
                 Log("local maximum found");
                 Invert(image);
@@ -241,20 +241,21 @@ namespace EmnImageTestDisplay {
         }
 
         void InitializeBlurWindows() {
-            blurWindowXDir = mkBlurWindow(81);
+            blurWindowXDir = mkBlurWindow(7);
             blurWindowYDir = mkBlurWindow(21);
         }
 
 
-        const double lenCostFactor = 5;
+        const double lenCostFactor = 3;
         const double posCostFactor = 1.0/1500;
-        const int margin = 60;
-        const int rShift = 10;
+        const int margin = 75;
+        const int rShift = 15;
         const double InterWordCostFactor = 1.0/50;
         const double intermedBrightnessCostFactor = 5;
         const double endPointCostFactor = 2;
         const int MaxBodyLines = 65;
         const double MaxBodyBrightness = 0.63;
+        const double SpaceDarknessPower = 3;
         const double WordLightnessPower = 3;
 //        const double WordLightn
         double[] blurWindowXDir, blurWindowYDir;
@@ -356,12 +357,13 @@ namespace EmnImageTestDisplay {
                         double bestEndCosts = double.MaxValue;
                         for (int k = i + 1; k < lineLength; k++) {
                             int imgPosE = k + lineXBegin + shearShift - margin;
-                            double wordLenScaled = (imgPosE - imgPos - targetLength) / targetLength * lenCostFactor;
+                            int FewPercent = (imgPosE - imgPos) / 50;
+                            double wordLenScaled = (imgPosE - imgPos - targetLength) / (targetLength + 2) * lenCostFactor;
                             double word2PosScaled = (imgPos + imgPosE - target2Pos) * posCostFactor;
-                            double wordLightness = GetAverageBetween(imgPos, imgPosE) * intermedBrightnessCostFactor; ;
+                            double wordLightness = GetAverageBetween(imgPos + FewPercent, imgPosE - FewPercent) * intermedBrightnessCostFactor; ;
                             double endingHereCost =
                                 endCosts[wordIndex, k] +
-                                wordLenScaled * wordLenScaled * wordLenScaled * wordLenScaled +
+                                wordLenScaled * wordLenScaled  +
                                 word2PosScaled * word2PosScaled +
                                 wordLightness;
                             if (endingHereCost < bestEndCosts)
@@ -391,7 +393,7 @@ namespace EmnImageTestDisplay {
                             double spaceLenScaled = (imgPosB - imgPos) * InterWordCostFactor;
                             double beginningHereCost =
                                 beginCosts[wordIndex + 1, k] +
-                                //(1-GetAverageBetween(imgPos, imgPosB)) * intermedBrightnessCostFactor +
+                                (1-GetAverageBetween(imgPos, imgPosB)) * intermedBrightnessCostFactor +
                                 spaceLenScaled * spaceLenScaled;
                             if (beginningHereCost < bestBeginCosts)
                                 bestBeginCosts = beginningHereCost;
@@ -440,19 +442,21 @@ namespace EmnImageTestDisplay {
 
                     for (int k = 0; k < lineLength; k++) {
                         int imgPosE = k + lineXBegin + shearShift - margin;
-                        double wordLenScaled = (imgPosE - imgPos - targetLength) / targetLength * lenCostFactor;
+                        int FewPercent = (imgPosE - imgPos) / 50;
+
+                        double wordLenScaled = (imgPosE - imgPos - targetLength) / (targetLength + 2) * lenCostFactor;
                         double word2PosScaled = (imgPos + imgPosE - target2Pos) * posCostFactor;
-                        double wordLightness = GetAverageBetween(imgPos, imgPosE) * intermedBrightnessCostFactor;
+                        double wordLightness = GetAverageBetween(imgPos + FewPercent, imgPosE - FewPercent) * intermedBrightnessCostFactor;
                         double endingHereCost =
                             endCosts[wordIndex, k] +
                             wordLenScaled * wordLenScaled +
-                            word2PosScaled * word2PosScaled * wordLenScaled * wordLenScaled +
+                            word2PosScaled * word2PosScaled +
                              wordLightness;
                         if (endingHereCost < bestEndCost) {
                             bestEndCost = endingHereCost;
                             bestEndPos = k;
 
-                            lastHit.lengthErr = wordLenScaled * wordLenScaled * wordLenScaled * wordLenScaled;
+                            lastHit.lengthErr = wordLenScaled * wordLenScaled ;
                             lastHit.posErr = word2PosScaled * word2PosScaled;
                             lastHit.wordLightness = wordLightness;
                         }
@@ -477,10 +481,11 @@ namespace EmnImageTestDisplay {
                             left = bestBeginPos + lineXBegin + shearShift - margin,
                             right = bestEndPos + lineXBegin + shearShift - margin
                         });
-                    ProcessLines(Enumerable.Repeat(betterGuessWord[betterGuessWord.Count - 1], 1), Brushes.Green);
+                    ProcessLines(Enumerable.Repeat(betterGuessWord[betterGuessWord.Count - 1], 1), Brushes.Red);
 
                     lastSummary = summary;
                     //now find next beginning
+
                     wordIndex = j + 1;
                     if (wordIndex == numWords)
                         break;//found em all.
@@ -494,12 +499,12 @@ namespace EmnImageTestDisplay {
                         double spaceLenScaled = (imgPosB - imgPos) * InterWordCostFactor;
                         double beginningHereCost =
                             beginCosts[wordIndex, k] +
-                            //(1 - GetAverageBetween(imgPos, imgPosB)) * intermedBrightnessCostFactor +
+                            (1 - GetAverageBetween(imgPos, imgPosB)) * intermedBrightnessCostFactor +
                             spaceLenScaled * spaceLenScaled;
                         if (beginningHereCost < bestBeginCost) {
                             bestBeginCost = beginningHereCost;
                             bestBeginPos = k;
-                          //  lastHit.spaceDarkness = (1 - GetAverageBetween(imgPos, imgPosB)) * intermedBrightnessCostFactor;
+                            lastHit.spaceDarkness = (1 - GetAverageBetween(imgPos, imgPosB)) * intermedBrightnessCostFactor;
                             lastHit.spaceErr = spaceLenScaled * spaceLenScaled;
                         }
                     }
@@ -615,7 +620,7 @@ namespace EmnImageTestDisplay {
             //calculate the average intensity of each (sheared) column inside the main section of the line body:
             double[] shearedBodySum = ShearedSum(lineYBegin, lineYBegin + relativeBodyYBegin, lineYBegin + relativeBodyYEnd, shear);
 
-            shearedSum = shearedSum.Select((x, i) => x + 2*shearedBodySum[i]).ToArray();//do weight center a little more.
+            shearedSum = shearedSum.Select((x, i) => x + 2*shearedBodySum[i]).Select(x=>Math.Pow(x,SpaceDarknessPower)).ToArray();//do weight center a little more.
             processedShearedSum = ContrastStretchAndBlur(shearedSum, blurWindowXDir, relevantXBegin, relevantXEnd);
             processedShearedBodySum = ContrastStretchAndBlur(shearedBodySum, blurWindowXDir, relevantXBegin, relevantXEnd);
 
