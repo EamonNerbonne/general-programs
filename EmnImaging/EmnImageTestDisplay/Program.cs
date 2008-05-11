@@ -55,7 +55,7 @@ namespace EmnImageTestDisplay {
             if(imgForceNum.HasValue)
             numStr = imgNumStrs.First(numStrs=>int.Parse(numStrs) == imgForceNum.Value);
             else
-                numStr = imgNumStrs.First();
+                numStr = imgNumStrs.First(s=>54<=int.Parse(s));
 
             string imgPath = System.IO.Path.Combine(HWRsplitter.Program.ImgPath, "NL_HaNa_H2_7823_" + numStr + ".tif");
             imageFileInfo = new FileInfo(imgPath);
