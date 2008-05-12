@@ -14,18 +14,17 @@ namespace LastFMspider
 
 	public class LastFMspiderMain
 	{
-        static string laptopVirtConfig; //= @"C:\Users\Eamon\SongSearchVirtual\SongSearch.config";
 
 		public static void Main(string[] args) {
-            laptopVirtConfig = args[0];
 			LastFMspiderMain main = new LastFMspiderMain();
             EamonExtensionsLinq.DebugTools.ConsoleExtension.PrintProperties(main, "main");
 			main.Load();
-            main.similarSongs.SimilarityPatterns();
-            //main.PrecacheAudioscrobbler();
-            //main.RunStats();
+            //main.similarSongs.SimilarityPatterns();
+            main.PrecacheAudioscrobbler();
+            main.RunStats();
             //main.ConvertEncoding();
 		//	main.RunNew(args);//TODO:reenable
+            Console.WriteLine("Done!");
             Console.ReadLine();
 		}
 
@@ -39,13 +38,17 @@ namespace LastFMspider
             var stats = similarSongs.LookupDbStats();
 
             Console.WriteLine("Found {0} Referenced songs, of which {1} have stats downloaded.",stats.Length, stats.Where(s=>s.LookupTimestamp!=null).Count() );
-            Console.WriteLine("Sorting by rating...");
+            Console.WriteLine("Sorting by # of references...");
             Array.Sort(stats, (a, b) => b.TimesReferenced.CompareTo(a.TimesReferenced));
             Console.WriteLine("Showing a few...");
             
             foreach (var stat in stats) {
                 Console.WriteLine("{1} {0}, {2}", stat.SongRef.ToString(), stat.LookupTimestamp == null ? "!" : " ", stat.TimesReferenced);
-                try { similarSongs.Lookup(stat.SongRef); } catch { }
+                try { similarSongs.Lookup(stat.SongRef); } catch (Exception e) {
+                    try {
+                        Console.WriteLine("Error in {0}: {1}: {2}", stat.SongRef.ToString(), e.Message, e.StackTrace);
+                    } catch { }
+                }
                 //shown++;
 
                 //if (shown % 20 == 0) { Console.WriteLine("Press any key for more"); Console.ReadKey(); }
@@ -60,7 +63,7 @@ namespace LastFMspider
 		SongDataLookups lookup;
 		public void Load() {
             Console.WriteLine("Loading config...");
-            configFile = new SongDatabaseConfigFile(new FileInfo(laptopVirtConfig), false);//TODO: remove laptop override
+            configFile = new SongDatabaseConfigFile(false);
 
             Console.WriteLine("Loading song similarity...");
             similarSongs = new SongSimilarityCache(configFile.DataDirectory.CreateSubdirectory("cache"));
