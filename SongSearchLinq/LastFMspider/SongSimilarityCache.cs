@@ -250,6 +250,7 @@ namespace LastFMspider {
         private SongSimilarityList LookupViaSQLite(SongRef songref) {
             DateTime? cachedVersionAge = backingDB.LookupSimilarityListAge.Execute(songref);
             if (cachedVersionAge == null) { //get online version
+                Console.Write("?");
                 var retval = DirectWebRequest(songref);
                 backingDB.InsertSimilarityList.Execute(retval, DateTime.UtcNow);
                 return retval;
