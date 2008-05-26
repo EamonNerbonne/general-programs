@@ -252,7 +252,12 @@ namespace LastFMspider {
             if (cachedVersionAge == null) { //get online version
                 Console.Write("?");
                 var retval = DirectWebRequest(songref);
-                backingDB.InsertSimilarityList.Execute(retval, DateTime.UtcNow);
+                try {
+                    backingDB.InsertSimilarityList.Execute(retval, DateTime.UtcNow);
+                } catch {//retry; might be a locking issue.  only retry once.
+                    System.Threading.Thread.Sleep(100);
+                    backingDB.InsertSimilarityList.Execute(retval, DateTime.UtcNow);
+                }
                 return retval;
             } else {
                 return backingDB.LookupSimilarityList.Execute(songref);

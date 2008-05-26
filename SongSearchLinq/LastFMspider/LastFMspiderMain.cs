@@ -39,7 +39,12 @@ namespace LastFMspider
 
             Console.WriteLine("Found {0} Referenced songs, of which {1} have stats downloaded.",stats.Length, stats.Where(s=>s.LookupTimestamp!=null).Count() );
             Console.WriteLine("Sorting by # of references...");
-            Array.Sort(stats, (a, b) => b.TimesReferenced.CompareTo(a.TimesReferenced));
+            Random r = new Random((int)DateTime.Now.Ticks/50);
+            var randarray=Enumerable.Repeat(0, stats.Length)
+                .Select(zero => r.Next())
+                .ToArray();
+            Array.Sort(randarray, stats);
+            //Array.Sort(stats, (a, b) => b.TimesReferenced.CompareTo(a.TimesReferenced));
             Console.WriteLine("Showing a few...");
             
             foreach (var stat in stats) {

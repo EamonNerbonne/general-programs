@@ -27,7 +27,7 @@ FROM (
 WHERE T.TrackID = sub.TrackB
 AND T.LookupTimestamp IS NULL
 AND A.ArtistID = T.ArtistID
-ORDER BY sub.refcount DESC";
+";//ORDER BY sub.refcount DESC
             }
         }
 
