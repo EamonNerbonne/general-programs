@@ -19,8 +19,8 @@ namespace LastFMspider
 			LastFMspiderMain main = new LastFMspiderMain();
             EamonExtensionsLinq.DebugTools.ConsoleExtension.PrintProperties(main, "main");
 			main.Load();
-            //main.similarSongs.SimilarityPatterns();
-            main.PrecacheAudioscrobbler();
+            //maisn.similarSongs.SimilarityPatterns();
+           // main.PrecacheAudioscrobbler();
             main.RunStats();
             //main.ConvertEncoding();
 		//	main.RunNew(args);//TODO:reenable
