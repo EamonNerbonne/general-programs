@@ -17,15 +17,17 @@ namespace LastFMspider.LastFMSQLiteBackend {
         public LookupSimilarityStats(LastFMSQLiteCache lfmCache) : base(lfmCache) { }
         protected override string CommandText {
             get {
-                return @"SELECT A.FullArtist, T.FullTitle, T.LookupTimestamp,sub.refcount
-FROM (
-   SELECT TrackB, count(*) as 'refcount'
-   FROM SimilarTrack
-   GROUP BY TrackB
-   HAVING count(*)>1
-   ) sub, Track T,   Artist A
-WHERE T.TrackID = sub.TrackB
-AND T.LookupTimestamp IS NULL
+                return @"
+SELECT  A.FullArtist, T.FullTitle, T.LookupTimestamp,sub.refcount
+FROM  (
+   SELECT T.TrackID as 'TrackID', count(*) as 'refcount'
+   FROM Track T, SimilarTrack S
+   WHERE T.LookupTimestamp IS NULL
+   AND T.TrackID = S.TrackB
+   GROUP BY TrackID
+   ) sub,
+   Track T, Artist A
+WHERE T.TrackID = sub.TrackID
 AND A.ArtistID = T.ArtistID
 ";//ORDER BY sub.refcount DESC
             }

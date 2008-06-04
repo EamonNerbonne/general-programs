@@ -14,7 +14,7 @@ namespace LastFMspider {
         //rating is stored as a REAL which is a float in C#.
 
         const string DataProvider = "System.Data.SQLite";
-        const string DataConnectionString = "page size=4096;cache size=10000;datetimeformat=Ticks;Legacy Format=False;Synchronous=N;data source=\"{0}\"";
+        const string DataConnectionString = "page size=4096;cache size=262144;datetimeformat=Ticks;Legacy Format=False;Synchronous=N;data source=\"{0}\"";
         const string DatabaseDef = @"
 CREATE TABLE IF NOT EXISTS [Artist] (
 [ArtistID] INTEGER  PRIMARY KEY NOT NULL,
@@ -53,6 +53,10 @@ CREATE UNIQUE INDEX  IF NOT EXISTS [Unique_SimilarTrack_TrackA_TrackB] ON [Simil
 CREATE UNIQUE INDEX IF NOT EXISTS [Unique_Track_ArtistID_LowercaseTitle] ON [Track](
 [ArtistID]  ASC,
 [LowercaseTitle]  ASC
+);
+
+CREATE INDEX IF NOT EXISTS [IDX_Track_LookupTimestamp] ON [Track](
+[LookupTimestamp]  ASC
 );
 ";
 
