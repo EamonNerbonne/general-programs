@@ -13,11 +13,31 @@ using EamonExtensionsLinq.Web;
 using EamonExtensionsLinq.Collections;
 using EamonExtensionsLinq;
 using System.Diagnostics;
+using SongDataLib;
 
 namespace LastFMspider {
     public class SongSimilarityCache {
         LastFMSQLiteCache backingDB;
         public SongSimilarityCache(DirectoryInfo cacheDir) {
+            Init(cacheDir);
+        }
+
+        public SongSimilarityCache(SongDatabaseConfigFile configFile) {
+            Init(configFile);
+        }
+
+
+        private void Init() {
+            Console.WriteLine("Loading config...");
+            var configFile = new SongDatabaseConfigFile(false);
+            Init(configFile);
+        }
+
+        private void Init(SongDatabaseConfigFile configFile) {
+            Init(configFile.DataDirectory.CreateSubdirectory("cache"));
+        }
+
+        private void Init(DirectoryInfo cacheDir) {
             Console.WriteLine("Initializing sqlite db");
             backingDB = new LastFMSQLiteCache(new FileInfo(Path.Combine(cacheDir.FullName, "lastFMcache.s3db")));//TODO decide what kind of DB we really want...
         }
@@ -184,60 +204,6 @@ namespace LastFMspider {
             Console.WriteLine("f={0}, Cov={1}, Stats={2}", "euclidian", Covariance(statEuclidian, rateAC), statEuclidian); 
 
             timer.TimeMark(null);
-        }
-
-        public void ConvertEncoding() { //TODO this should really be part of more advanced logic in EamonExtensionsLinq to guess and fix encodings.
-            using (var trans = backingDB.Connection.BeginTransaction()) {
-                var artists = backingDB.RawArtists.Execute();
-                foreach (var artist in artists) {
-                    var webbytes = Encoding.Default.GetBytes(artist.FullArtist);
-                    var goodstr = Encoding.UTF8.GetString(webbytes);
-                    if (goodstr != artist.FullArtist) {
-                        Console.Write("A: {0} isn't {1}: ", artist.FullArtist, goodstr);
-                        artist.FullArtist = goodstr;
-                        artist.LowercaseArtist = goodstr.ToLowerInvariant();
-                        if (goodstr.ToCharArray().All(c => Canonicalize.IsReasonableChar(c) && c != (char)65533)) {
-                            try {
-                                backingDB.UpdateArtist.Execute(artist);
-                                Console.WriteLine("Updated.");
-                            } catch {
-                                backingDB.DeleteArtist.Execute(artist.ArtistID);
-                                Console.WriteLine("Deleted dup.");
-                            }
-                        } else {
-                            backingDB.DeleteArtist.Execute(artist.ArtistID);
-                            Console.WriteLine("Deleted nogood.");
-                        }
-                    }
-                }
-                trans.Commit();
-            }
-                using (var trans = backingDB.Connection.BeginTransaction()) {
-                var tracks = backingDB.RawTracks.Execute();
-                foreach (var track in tracks) {
-                    var webbytes = Encoding.Default.GetBytes(track.FullTitle);
-                    var goodstr = Encoding.UTF8.GetString(webbytes);
-                    if (goodstr != track.FullTitle) {
-                        Console.Write("T: {0} isn't {1}: ", track.FullTitle, goodstr);
-                        track.FullTitle = goodstr;
-                        track.LowercaseTitle = goodstr.ToLowerInvariant();
-                        if (goodstr.ToCharArray().All(c => Canonicalize.IsReasonableChar(c) && c != (char)65533)) {
-                            try {
-                                backingDB.UpdateTrack.Execute(track);
-                                Console.WriteLine("Updated.");
-
-                            } catch {
-                                backingDB.DeleteTrack.Execute(track.TrackID);
-                                Console.WriteLine("Deleted dup.");
-                            }
-                        } else {
-                            backingDB.DeleteTrack.Execute(track.TrackID);
-                            Console.WriteLine("Deleted nogood.");
-                        }
-                    }
-                }
-                trans.Commit();
-            }
         }
 
         public SongSimilarityList Lookup(SongRef songref) {
