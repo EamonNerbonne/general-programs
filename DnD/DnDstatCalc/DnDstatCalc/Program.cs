@@ -21,6 +21,24 @@ namespace DnDstatCalc {
             var tot = (from p in distribution select p.P).Sum();
             return distribution.Select(p => new Prob<T>(p.Val, p.P/tot));
         }
+
+        static int StatMod(int stat) { return (stat - 10) / 2; }
+        static int StatVal(int stat) {
+            int off = stat - 10;
+            int off3 = off * off * off;
+            return off + off3 / 60;
+            /* 9 -1
+             * 10 0  0      0
+             * 11 1  0      1
+             * 12 2  0      8
+             * 13 3  0      27
+             * 14 5  1 0    64
+             * 15 7  2 0    125
+             * 16 9  3 0    216
+             * 17 12 5 1    343
+             * 18 16 8 3    512
+            */
+        }
         static void Main(string[] args) {
             var d6 = Enumerable.Range(1,6);
             var dieTuple = from a in d6
@@ -34,72 +52,29 @@ namespace DnDstatCalc {
                             orderby valGroup.Key
                             select new Prob<int>(valGroup.Key, valGroup.Count());
             histogram = Normalize(histogram).ToArray();
-            var avg = histogram.Select(p => p.P*p.Val).Sum();
-            
-            
-            var roll3d6 = from a in d6
-                          from b in d6 
-                          from c in d6
-                          group 0 by a+b+c into result
-                          orderby result.Key
-                          select new Prob<int>(result.Key, result.Count());
-            var rolled3d6 = Normalize(roll3d6).ToArray();
-            /*
-            var test = (from t1 in rolled3d6
-                       from t2 in rolled3d6
-                       from t3 in rolled3d6
-                       from t4 in rolled3d6
-                       from t5 in rolled3d6
-//                       from t6 in rolled3d6
-                       let chance = t1.P*t2.P*t3.P*t4.P*t5.P//*t6.P
-                       let nums = (new int[]{t1.Val,t2.Val,t3.Val,t4.Val,t5.Val}).OrderBy(i=>i).ToSequence().Skip(2).Sum()
-                       let WA = nums/3.0*chance
-                       select WA).Sum();
+            var sum = 0.0;
+            var cumHist = histogram.Select(pr => new Prob<int>(pr.Val, (sum += pr.P))).ToArray();
+            Random r = new Random();
+            Func<int> rollStat = delegate() {
+                double roll = r.NextDouble();
+                return cumHist.First(pr => pr.P >= roll).Val;
+            };
 
-                        /*/
-            double test=0.0;
-            double err=0.0;
-            foreach(var p in 
-                       from t1 in rolled3d6
-                       from t2 in rolled3d6
-                       from t3 in rolled3d6
-                       from t4 in rolled3d6
-                       from t5 in rolled3d6
-                       from t6 in rolled3d6
-                       from t7 in rolled3d6
-                       from t8 in rolled3d6
-                       from t9 in rolled3d6
-//                       from t6 in rolled3d6
-                       select new Prob<int[]>(new int[]{t1.Val,t2.Val,t3.Val,t4.Val,t5.Val,t6.Val,t7.Val,t8.Val,t9.Val},t1.P*t2.P*t3.P*t4.P*t5.P*t6.P*t7.P*t8.P*t9.P)){
-                int[] arr = p.Val;
-                Array.Sort<int>(arr);
-                double oldtest=test;
-                double pr = p.P * ( arr[3]+arr[4]+arr[5]+arr[6]+arr[7]+arr[8]);
-                test += pr;
-                oldtest-=test;
-                err+= Math.Abs(oldtest+pr);
+            double sumcosts=0.0;
+            int countcosts = 0;
+            foreach (var x in Enumerable.Range(0, 100000000)) {
+                var stats = new[] { rollStat(), rollStat(), rollStat(), rollStat(), rollStat(), rollStat() }.OrderBy(stat=>stat).ToArray();
+                stats[0] = rollStat();
+                //ok, we rerolled the lowest.
 
+                var totalmod = stats.Select(stat => StatMod(stat)).Sum();
+                var totalcost = stats.Select(stat => StatVal(stat)).Sum()+2;
+                //if(totalcost>22)Console.WriteLine(string.Join(", ", stats.Select(i => i.ToString()).ToArray()) + ":  " + totalmod + "   ("+totalcost+")");
+                if (totalmod < 4 || totalmod > 8) continue;
+                sumcosts += totalcost;
+                countcosts++;
             }
-            test/=6.0;/**/
-            //estimated running time: 2 days.
-
-            
-            /*var rolledNx3d6 = Sequence.Repeat(rolled3d6,trynum).Aggregate((new[] {new Prob<IEnumerable<int>>(new int[]{},1.0)}).ToSequence() ,
-                (histThrowSeq,histThrow) => (from throwSeqProb in histThrowSeq from aThrowProb in histThrow select new Prob<IEnumerable<int>>(throwSeqProb.Val.Concat(Sequence.Repeat(aThrowProb.Val,1)),throwSeqProb.P*aThrowProb.P)));
-            var nextRes = rolledNx3d6.Select(aSeqProb =>new Prob<double>( aSeqProb.Val.OrderBy(i=>i).Skip(trynum-takenum).Aggregate(0.0,(d,n) => d+n/(double)takenum),aSeqProb.P ))
-                .Aggregate(0.0,(tot,a) => tot+a.Val*a.P);*/
-            //Combine<IEnumerable<int>>(,(a,b) => a.Concat<int>(b));
-            
-
-
-            foreach(var res in histogram) {
-                Console.WriteLine("Roll {0} percentage: {1}",res.Val,res.P);
-            }
-            Console.WriteLine("In other words, the average is " + avg + ".");
-            //Console.WriteLine("Best "+takenum+" of "+trynum+" of 3d6: "+nextRes);
-            Console.WriteLine("Best "+takenum+" of "+trynum+" of 3d6: "+test);
-            Console.WriteLine(err);
-
+            Console.WriteLine("Avg:" + sumcosts / countcosts);
             Console.ReadLine();
         }
     }
