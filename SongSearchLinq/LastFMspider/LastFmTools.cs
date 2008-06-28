@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using SongDataLib;
 using System.IO;
-
+using EamonExtensionsLinq.Algorithms;
 namespace LastFMspider
 {
     public class LastFmTools
@@ -193,17 +193,12 @@ namespace LastFMspider
             return m3usongs.ToArray();
         }
 
-        public void RunStats() {
+        public void PrecacheSongSimilarity() {
             UseSimilarSongs();
             var stats = SimilarSongs.LookupDbStats();
 
-            Console.WriteLine("Found {0} Referenced songs, of which {1} have stats downloaded.", stats.Length, stats.Where(s => s.LookupTimestamp != null).Count());
-            Console.WriteLine("Sorting by # of references...");
-            Random r = new Random((int)DateTime.Now.Ticks / 50);
-            var randarray = Enumerable.Repeat(0, stats.Length)
-                .Select(zero => r.Next())
-                .ToArray();
-            Array.Sort(randarray, stats);
+            Console.WriteLine("Found {0} songs which don't have similarity stats.", stats.Length, stats.Where(s => s.LookupTimestamp != null).Count());
+            stats.Shuffle(); //we shuffle the list so that parallel processes don't lookup the data in the same order.
             //Array.Sort(stats, (a, b) => b.TimesReferenced.CompareTo(a.TimesReferenced));
             Console.WriteLine("Showing a few...");
 

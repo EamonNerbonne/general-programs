@@ -15,7 +15,7 @@ namespace LastFmCacheExtender
             //var similarSongs = new SongSimilarityCache(config);
             var tools = new LastFmTools(config);
             tools.PrecacheAudioscrobbler();
-            tools.RunStats();
+            tools.PrecacheSongSimilarity();
         }
     }
 }

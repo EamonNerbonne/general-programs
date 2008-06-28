@@ -61,6 +61,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Algorithms\ByteStringSearch.cs" />
+    <Compile Include="Algorithms\ShuffleAlgorithm.cs" />
     <Compile Include="Collections\Edge.cs" />
     <Compile Include="Collections\HashMultiMap.cs" />
     <Compile Include="Collections\IMultiMap.cs" />
