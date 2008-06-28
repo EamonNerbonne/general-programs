@@ -45,6 +45,11 @@ CREATE INDEX  IF NOT EXISTS [IDX_SimilarTrack_TrackB] ON [SimilarTrack](
 [TrackB]  ASC
 );
 
+CREATE INDEX  IF NOT EXISTS [IDX_SimilarTrack_Rating] ON [SimilarTrack](
+[Rating]  DESC
+);
+
+
 CREATE UNIQUE INDEX  IF NOT EXISTS [Unique_SimilarTrack_TrackA_TrackB] ON [SimilarTrack](
 [TrackA]  ASC,
 [TrackB]  ASC
