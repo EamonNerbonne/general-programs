@@ -5,14 +5,16 @@ using System.Text;
 using SongDataLib;
 using System.IO;
 using LastFMspider;
-
+using EamonExtensionsLinq.DebugTools;
+using EamonExtensionsLinq;
 namespace LastFmPlaylistSuggestions
 {
     class Program
     {
         static void Main(string[] args) {
-         //   Console.WriteLine(makeNum().ToString());
-            RunNew(new LastFmTools(new SongDatabaseConfigFile(false)), new string[] { @"C:\Users\Eamon\Documents\chillectro.m3u" });
+            //args.PrintAllDebug();
+            //Console.ReadLine();
+            RunNew(new LastFmTools(new SongDatabaseConfigFile(false)), args);
         }
 
         static void RunNew(LastFmTools tools, string[] args) {
