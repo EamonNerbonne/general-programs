@@ -1,1 +1,3 @@
+- ampersands in requests in songsearchlinq
 - tag downloader
+- use last.fm fingerprinter

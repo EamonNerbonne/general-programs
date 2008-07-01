@@ -3,7 +3,7 @@
 
 <html xmlns="http://www.w3.org/1999/xhtml" >
 <head runat="server">
-    <title>Untitled Page</title>
+    <title>Song Search Linq</title>
     <style type="text/css">
         #Text1
         {
@@ -27,7 +27,7 @@
     </style>
     <script type="text/javascript">
     var lastquery="";
-    var queryUrl="list.xml?top=20&view=xslt&remote=allow&q=";
+    var queryUrl="list.xml?top=1000&view=xslt&remote=allow&q=";
     var extm3ulink = "list.m3u?extm3u=true&remote=allow&q=";
     var extm3u8link = "list.m3u8?extm3u=true&remote=allow&q=";
     function updateResults() {
@@ -54,7 +54,7 @@
      <a id="m3u" href="list.m3u?extm3u=true&amp;remote=allow&amp;q=" >Play the damn songs!</a> <a id="m3u8" href="list.m3u8?extm3u=true&amp;remote=allow&amp;q=" >Play the damn songs (UTF-8, winamp unsupported)!</a>
      </td><td>Index Status:            <br />
             <iframe src="IndexStatus.aspx" frameborder="0" scrolling="no" style="width: 4em;height: 2em;"></iframe></td></tr>
-    <tr><td style="height:100%;width:100%;border:none;padding:0;" colspan="2"> <iframe scrolling="no" frameborder="0" style="height:100%;width:100%;border:none;" id="resultsview" src="list.xml?top=20&amp;view=xslt&amp;q="></iframe></td></tr>
+    <tr><td style="height:100%;width:100%;border:none;padding:0;" colspan="2"> <iframe scrolling="yes" frameborder="0" style="height:100%;width:100%;border:none;" id="resultsview" src="list.xml?top=20&amp;view=xslt&amp;q="></iframe></td></tr>
     </table>
     </form>
 </body>

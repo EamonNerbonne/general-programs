@@ -191,11 +191,13 @@ namespace HttpHeaderHelper
 				context.Response.ContentType = resource.MimeType;
 
 			if(method == HttpMethod.GET) {
-				try {
-					reqProc.WriteEntireContent();
-				} catch(SocketException) {
-					return; //The client has cancelled the download while still in progress.
-				}
+                try {
+                    reqProc.WriteEntireContent();
+                } catch (SocketException) {
+                    return; //The client has cancelled the download while still in progress.
+                } catch (System.Runtime.InteropServices.COMException) {
+                    return; //The client has cancelled the download while still in progress; server is IIS7.
+                }
 			} else if(method == HttpMethod.HEAD) {
 				//do nothing
 			} else {
