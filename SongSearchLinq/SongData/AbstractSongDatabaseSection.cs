@@ -25,7 +25,7 @@ namespace SongDataLib
 			using(StreamWriter writer = new StreamWriter(stream))		{
 				writer.WriteLine("<songs>");//we're not using an XmlWriter so that if part of the writer throws an unexpected exception, the writer isn't left in an invalid state.
 				ScanSongs(filter, delegate(ISongData song, double ratio) {
-					Console.WriteLine(song.SongPath);
+					//Console.WriteLine(song.SongPath);
 					try {
 						writer.WriteLine(song.ConvertToXml(null).ToString());
 						handler(song, ratio);
