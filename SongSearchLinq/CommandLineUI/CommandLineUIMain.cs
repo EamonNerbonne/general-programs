@@ -20,8 +20,8 @@ namespace CommandLineUI
 				timer = new NiceTimer("Starting");
 				var prog = new CommandLineUIMain(args.Length > 0 ? new FileInfo(args[0]) : null);
 				timer.TimeMark(null);
-				prog.ExecBenchmark();
-				//prog.ExecUI();
+				//prog.ExecBenchmark();
+				prog.ExecUI();
 #if !DEBUG
 			} catch(Exception e) {
 				Console.WriteLine("==========================");

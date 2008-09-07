@@ -51,6 +51,7 @@ namespace LastFMspider
             if (DB.InvalidDataCount != 0) Console.WriteLine("Ignored {0} songs with unknown tags (should be 0).", DB.InvalidDataCount);
             Console.WriteLine("Taking those {0} songs and indexing em by artist/title...", DB.Songs.Count);
             SongRef[] songsToDownload = Lookup.dataByRef.Keys.ToArray();
+            songsToDownload.Shuffle();
             UnloadDB();
             System.GC.Collect();
             Console.WriteLine("Downloading Last.fm similar tracks...");
