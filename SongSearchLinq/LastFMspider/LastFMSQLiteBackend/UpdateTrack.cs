@@ -17,7 +17,7 @@ namespace LastFMspider.LastFMSQLiteBackend {
         public void Execute(TrackRow row) {
             full.Value = row.FullTitle;
             lower.Value = row.LowercaseTitle;
-            id.Value = row.TrackID;
+            id.Value = row.TrackID; 
             timestamp.Value = row.LookupTimestamp == null ? DBNull.Value : (object)row.LookupTimestamp.Value.Ticks;
             CommandObj.ExecuteNonQuery();
         }

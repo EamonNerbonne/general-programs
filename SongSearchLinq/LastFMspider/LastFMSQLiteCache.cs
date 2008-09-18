@@ -131,6 +131,8 @@ CREATE INDEX  IF NOT EXISTS [IDX_TrackInfo_Playcount] ON [TrackInfo](
         public DeleteSimilaritiesOf DeleteSimilaritiesOf { get; private set; }
         public InsertArtist InsertArtist { get; private set; }
         public InsertTrack InsertTrack { get; private set; }
+        public InsertTag InsertTag { get; private set; }
+        public InsertTagging InsertTagging { get; private set; }
         public InsertSimilarity InsertSimilarity { get; private set; }
         public InsertSimilarityList InsertSimilarityList { get; private set; }
         public UpdateTrackTimestamp UpdateTrackTimestamp { get; private set; }
@@ -140,10 +142,13 @@ CREATE INDEX  IF NOT EXISTS [IDX_TrackInfo_Playcount] ON [TrackInfo](
         public AllTracks AllTracks {get;private set;}
         public RawArtists RawArtists { get; private set; }
         public RawTracks RawTracks { get; private set; }
+        public RawTags RawTags { get; private set; }
         public UpdateArtist UpdateArtist { get; private set; }
         public UpdateTrack UpdateTrack { get; private set; }
         public DeleteArtist DeleteArtist { get; private set; }
         public DeleteTrack DeleteTrack { get; private set; }
+        public DeleteTag DeleteTag { get; private set; }
+        public DeleteTagging DeleteTagging { get; private set; }
         public UpdateTrackCasing UpdateTrackCasing { get; private set; }
         public RawSimilarTracks RawSimilarTracks { get; private set; }
         //public LookupSimilarityListAge LookupSimilarityListAge { get; private set; }
@@ -170,6 +175,8 @@ CREATE INDEX  IF NOT EXISTS [IDX_TrackInfo_Playcount] ON [TrackInfo](
             InsertSimilarityList = new InsertSimilarityList(this);
             InsertSimilarity = new InsertSimilarity(this);
             InsertArtist = new InsertArtist(this);
+            InsertTag = new InsertTag(this);
+            InsertTagging = new InsertTagging(this);
             DeleteSimilaritiesOf = new DeleteSimilaritiesOf(this);
             UpdateTrackTimestamp = new UpdateTrackTimestamp(this);
             LookupSimilarityList = new LookupSimilarityList(this);
@@ -180,10 +187,13 @@ CREATE INDEX  IF NOT EXISTS [IDX_TrackInfo_Playcount] ON [TrackInfo](
             AllTracks = new AllTracks(this);
             RawTracks = new RawTracks(this);
             RawArtists = new RawArtists(this);
+            RawTags = new RawTags(this);
             UpdateTrack = new UpdateTrack(this);
             UpdateArtist = new UpdateArtist(this);
             DeleteTrack = new DeleteTrack(this);
             DeleteArtist = new DeleteArtist(this);
+            DeleteTagging = new DeleteTagging(this);
+            DeleteTag = new DeleteTag(this);
             UpdateTrackCasing = new UpdateTrackCasing(this);
             RawSimilarTracks = new RawSimilarTracks(this);
         }

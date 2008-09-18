@@ -14,16 +14,16 @@ namespace LastFMspider.LastFMSQLiteBackend {
         }
 
         public ArtistRow[] Execute() {
-            var tracks = new List<ArtistRow>();
+            var artists = new List<ArtistRow>();
             using (var reader = CommandObj.ExecuteReader()) {//no transaction needed for a single select!
                 while (reader.Read())
-                    tracks.Add(new ArtistRow {
+                    artists.Add(new ArtistRow {
                         ArtistID = (int)(long)reader[0],
                         FullArtist = (string)reader[1],
                         LowercaseArtist = (string)reader[2]
                     });
             }
-            return tracks.ToArray();
+            return artists.ToArray();
         }
     }
 }
