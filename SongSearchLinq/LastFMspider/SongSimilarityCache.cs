@@ -243,7 +243,7 @@ namespace LastFMspider {
                     Console.Write(">");
                 }
                 nextRequestWhen = now + minReqDelta;
-                //lastlistxmlrep = new System.Net.WebClient().DownloadData(songref.AudioscrobblerSimilarUrl());//important:DownloadString destroys data due to encoding!
+                //WebClient.Download???? has encoding issues, hence the use of UriRequest.
                 var requestedData= UriRequest.Execute(new Uri(songref.AudioscrobblerSimilarUrl()));
                
                 var xdoc = XDocument.Parse(requestedData.ContentAsString);
