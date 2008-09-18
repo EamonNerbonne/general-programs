@@ -24,7 +24,6 @@ namespace EdmTest
             Console.WriteLine("done!");
 
             Console.ReadKey();
-            //LastFMspider.EDM.LfmSqliteEdmContainer c = new LfmSqliteEdmContainer();
         }
     }
 }
