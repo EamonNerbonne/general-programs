@@ -232,7 +232,6 @@ namespace LastFMspider {
 
         TimeSpan minReqDelta = new TimeSpan(0, 0, 0, 1);//no more than one request per second.
         DateTime nextRequestWhen = DateTime.Now;
-        byte[] lastlistxmlrep;
         SongSimilarityList lastlist;
 
         private SongSimilarityList DirectWebRequest(SongRef songref) {
@@ -245,9 +244,7 @@ namespace LastFMspider {
                 }
                 nextRequestWhen = now + minReqDelta;
                 //lastlistxmlrep = new System.Net.WebClient().DownloadData(songref.AudioscrobblerSimilarUrl());//important:DownloadString destroys data due to encoding!
-                //var xdoc=XDocument.Load( XmlReader.Create(new MemoryStream(lastlistxmlrep)));
-                var requestedData= UriRequest.Execute(new Uri(songref.AudioscrobblerSimilarUrl()));//TODO: check that this actually works...
-                lastlistxmlrep = requestedData.Content;
+                var requestedData= UriRequest.Execute(new Uri(songref.AudioscrobblerSimilarUrl()));
                
                 var xdoc = XDocument.Parse(requestedData.ContentAsString);
                 lastlist = SongSimilarityList.CreateFromAudioscrobblerXml(songref,xdoc );
