@@ -37,14 +37,14 @@ FROM Track A, Tag B, Artist AsArtist, WHERE A.ArtistID = AsArtist.ArtistID
 
 
 
-    /*    public void Execute(SongRef songRef, TagRef tagRef, double tagCount)
+        public void Execute(SongRef songRef, TagRef tagRef, double tagCount)
         {
             this.tagCount.Value = tagCount;
             lowerArtist.Value = songRef.Artist.ToLowerInvariant();
             lowerTitle.Value  = songRef.Title.ToLowerInvariant();
             lowerTag.Value    = tagRef.Tag.ToLowerInvariant();
             CommandObj.ExecuteNonQuery();
-        }*/
+        }
 
     }
 }
