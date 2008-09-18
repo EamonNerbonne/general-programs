@@ -3,7 +3,7 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProductVersion>9.0.21022</ProductVersion>
+    <ProductVersion>9.0.30729</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{6AFF4733-511B-4EE5-8A5F-6B11A894E0D7}</ProjectGuid>
     <OutputType>Library</OutputType>
@@ -73,11 +73,18 @@
     <Reference Include="System.Core">
       <RequiredTargetFramework>3.5</RequiredTargetFramework>
     </Reference>
+    <Reference Include="System.Data.Entity">
+      <RequiredTargetFramework>3.5</RequiredTargetFramework>
+    </Reference>
     <Reference Include="System.Data.SQLite, Version=1.0.48.0, Culture=neutral, PublicKeyToken=db937bc2d44ff139, processorArchitecture=x86">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\SongSearchLinq\Sqlite.netBin\System.Data.SQLite.DLL</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="System.Runtime.Serialization">
+      <RequiredTargetFramework>3.0</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="System.Security" />
     <Reference Include="System.Transactions" />
     <Reference Include="System.Xml.Linq">
       <RequiredTargetFramework>3.5</RequiredTargetFramework>
@@ -93,6 +100,11 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="lastFMcacheDataSet.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>lastFMcacheDataSet.xsd</DependentUpon>
+    </Compile>
     <Compile Include="LastFMSQLiteBackend\AbstractLfmCacheOperation.cs" />
     <Compile Include="LastFMSQLiteBackend\AbstractLfmCacheQuery.cs" />
     <Compile Include="LastFMSQLiteBackend\AllTracks.cs" />
@@ -123,6 +135,11 @@
     <Compile Include="LastFMSQLiteBackend\UpdateTrackTimestamp.cs" />
     <Compile Include="LastFMSQLiteCache.cs" />
     <Compile Include="LastFmTools.cs" />
+    <Compile Include="EDM\LfmSqliteEdm.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>LfmSqliteEdm.edmx</DependentUpon>
+    </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Properties\Settings.Designer.cs">
       <AutoGen>True</AutoGen>
@@ -151,6 +168,21 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+    <None Include="lastFMcacheDataSet.xsc">
+      <DependentUpon>lastFMcacheDataSet.xsd</DependentUpon>
+    </None>
+    <None Include="lastFMcacheDataSet.xsd">
+      <Generator>MSDataSetGenerator</Generator>
+      <LastGenOutput>lastFMcacheDataSet.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="lastFMcacheDataSet.xss">
+      <DependentUpon>lastFMcacheDataSet.xsd</DependentUpon>
+    </None>
+    <EntityDeploy Include="EDM\LfmSqliteEdm.edmx">
+      <Generator>EntityModelCodeGenerator</Generator>
+      <LastGenOutput>LfmSqliteEdm.Designer.cs</LastGenOutput>
+    </EntityDeploy>
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>

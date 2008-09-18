@@ -17,7 +17,7 @@ using SongDataLib;
 
 namespace LastFMspider {
     public class SongSimilarityCache {
-        LastFMSQLiteCache backingDB;
+        public LastFMSQLiteCache backingDB { get; private set; }
         public SongSimilarityCache(DirectoryInfo cacheDir) {
             Init(cacheDir);
         }

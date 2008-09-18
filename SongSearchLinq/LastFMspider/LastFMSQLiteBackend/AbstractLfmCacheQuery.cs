@@ -20,6 +20,5 @@ namespace LastFMspider.LastFMSQLiteBackend {
             return param;
         }
 
-
     }
 }

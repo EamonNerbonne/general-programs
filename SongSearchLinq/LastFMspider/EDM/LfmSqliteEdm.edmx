@@ -1,0 +1,330 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="1.0" xmlns:edmx="http://schemas.microsoft.com/ado/2007/06/edmx">
+  <!-- EF Runtime content -->
+  <edmx:Runtime>
+    <!-- SSDL content -->
+    <edmx:StorageModels>
+    <Schema Namespace="LfmSqliteEdm.Store" Alias="Self" Provider="System.Data.SQLite" ProviderManifestToken="Ticks" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" xmlns="http://schemas.microsoft.com/ado/2006/04/edm/ssdl">
+        <EntityContainer Name="LfmSqliteEdmStoreContainer">
+          <EntitySet Name="Artist" EntityType="LfmSqliteEdm.Store.Artist" store:Type="Tables" />
+          <EntitySet Name="Mbid" EntityType="LfmSqliteEdm.Store.Mbid" store:Type="Tables" />
+          <EntitySet Name="SimilarTrack" EntityType="LfmSqliteEdm.Store.SimilarTrack" store:Type="Tables" />
+          <EntitySet Name="Tag" EntityType="LfmSqliteEdm.Store.Tag" store:Type="Tables" />
+          <EntitySet Name="Track" EntityType="LfmSqliteEdm.Store.Track" store:Type="Tables" />
+          <EntitySet Name="TrackInfo" EntityType="LfmSqliteEdm.Store.TrackInfo" store:Type="Tables" />
+          <EntitySet Name="TrackTag" EntityType="LfmSqliteEdm.Store.TrackTag" store:Type="Tables" />
+        </EntityContainer>
+        <EntityType Name="Artist">
+          <Key>
+            <PropertyRef Name="ArtistID" />
+          </Key>
+          <Property Name="ArtistID" Type="integer" Nullable="false" />
+          <Property Name="FullArtist" Type="nvarchar" Nullable="false" />
+          <Property Name="LowercaseArtist" Type="nvarchar" Nullable="false" />
+        </EntityType>
+        <EntityType Name="Mbid">
+          <Key>
+            <PropertyRef Name="MbidID" />
+          </Key>
+          <Property Name="MbidID" Type="integer" Nullable="false" />
+          <Property Name="LowercaseMbid" Type="nvarchar" Nullable="false" />
+        </EntityType>
+        <EntityType Name="SimilarTrack">
+          <Key>
+            <PropertyRef Name="SimilarTrackID" />
+          </Key>
+          <Property Name="SimilarTrackID" Type="integer" Nullable="false" />
+          <Property Name="TrackA" Type="integer" Nullable="false" />
+          <Property Name="TrackB" Type="integer" Nullable="false" />
+          <Property Name="Rating" Type="real" Nullable="false" />
+        </EntityType>
+        <EntityType Name="Tag">
+          <Key>
+            <PropertyRef Name="TagID" />
+          </Key>
+          <Property Name="TagID" Type="integer" Nullable="false" />
+          <Property Name="LowercaseTag" Type="nvarchar" Nullable="false" />
+        </EntityType>
+        <EntityType Name="Track">
+          <Key>
+            <PropertyRef Name="TrackID" />
+          </Key>
+          <Property Name="TrackID" Type="integer" Nullable="false" />
+          <Property Name="ArtistID" Type="integer" Nullable="false" />
+          <Property Name="FullTitle" Type="nvarchar" Nullable="false" />
+          <Property Name="LowercaseTitle" Type="nvarchar" Nullable="false" />
+          <Property Name="LookupTimestamp" Type="integer" />
+        </EntityType>
+        <EntityType Name="TrackInfo">
+          <Key>
+            <PropertyRef Name="TrackID" />
+          </Key>
+          <Property Name="TrackID" Type="integer" Nullable="false" />
+          <Property Name="InfoTimestamp" Type="integer" Nullable="false" />
+          <Property Name="Listeners" Type="integer" />
+          <Property Name="Playcount" Type="integer" />
+          <Property Name="Duration" Type="integer" />
+          <Property Name="ArtistMbidID" Type="integer" />
+          <Property Name="TrackMbidID" Type="integer" />
+          <Property Name="LastFmId" Type="integer" />
+        </EntityType>
+        <EntityType Name="TrackTag">
+          <Key>
+            <PropertyRef Name="TrackTagID" />
+          </Key>
+          <Property Name="TrackTagID" Type="integer" Nullable="false" />
+          <Property Name="TagID" Type="integer" Nullable="false" />
+          <Property Name="TrackID" Type="integer" Nullable="false" />
+          <Property Name="TagCount" Type="integer" Nullable="false" />
+        </EntityType>
+      </Schema></edmx:StorageModels>
+    <!-- CSDL content -->
+    <edmx:ConceptualModels>
+      <Schema xmlns="http://schemas.microsoft.com/ado/2006/04/edm" Namespace="LfmSqliteEdm" Alias="Self">
+        <EntityContainer Name="LfmSqliteEdmContainer" >
+          <EntitySet Name="ArtistSet" EntityType="LfmSqliteEdm.Artist" />
+          <EntitySet Name="Mbid" EntityType="LfmSqliteEdm.Mbid" />
+          <EntitySet Name="SimilarTrackSet" EntityType="LfmSqliteEdm.SimilarTrack" />
+          <EntitySet Name="Tag" EntityType="LfmSqliteEdm.Tag" />
+          <EntitySet Name="TrackSet" EntityType="LfmSqliteEdm.Track" />
+          <EntitySet Name="TrackInfo" EntityType="LfmSqliteEdm.TrackInfo" />
+          <EntitySet Name="TrackTag" EntityType="LfmSqliteEdm.TrackTag" />
+          <AssociationSet Name="ArtistTrack" Association="LfmSqliteEdm.ArtistTrack">
+            <End Role="Artist" EntitySet="ArtistSet" />
+            <End Role="Track" EntitySet="TrackSet" /></AssociationSet>
+          <AssociationSet Name="TrackSimilarTrack" Association="LfmSqliteEdm.TrackSimilarTrack">
+            <End Role="Track" EntitySet="TrackSet" />
+            <End Role="SimilarTrack" EntitySet="SimilarTrackSet" /></AssociationSet>
+          <AssociationSet Name="TrackSimilarTrack1" Association="LfmSqliteEdm.TrackSimilarTrack1">
+            <End Role="Track" EntitySet="TrackSet" />
+            <End Role="SimilarTrack" EntitySet="SimilarTrackSet" /></AssociationSet>
+          <AssociationSet Name="TrackInfoMbid" Association="LfmSqliteEdm.TrackInfoMbid">
+            <End Role="TrackInfo" EntitySet="TrackInfo" />
+            <End Role="Mbid" EntitySet="Mbid" /></AssociationSet>
+          <AssociationSet Name="TrackInfoMbid1" Association="LfmSqliteEdm.TrackInfoMbid1">
+            <End Role="TrackInfo" EntitySet="TrackInfo" />
+            <End Role="Mbid" EntitySet="Mbid" /></AssociationSet>
+          <AssociationSet Name="TagTrackTag" Association="LfmSqliteEdm.TagTrackTag">
+            <End Role="Tag" EntitySet="Tag" />
+            <End Role="TrackTag" EntitySet="TrackTag" /></AssociationSet>
+          <AssociationSet Name="TrackTrackTag" Association="LfmSqliteEdm.TrackTrackTag">
+            <End Role="Track" EntitySet="TrackSet" />
+            <End Role="TrackTag" EntitySet="TrackTag" /></AssociationSet>
+          </EntityContainer>
+        <EntityType Name="Artist">
+          <Key>
+            <PropertyRef Name="ArtistID" /></Key>
+          <Property Name="ArtistID" Type="Int32" Nullable="false" />
+          <Property Name="FullArtist" Type="String" Nullable="false" />
+          <Property Name="LowercaseArtist" Type="String" Nullable="false" />
+          <NavigationProperty Name="Track" Relationship="LfmSqliteEdm.ArtistTrack" FromRole="Artist" ToRole="Track" /></EntityType>
+        <EntityType Name="Mbid">
+          <Key>
+            <PropertyRef Name="MbidID" /></Key>
+          <Property Name="MbidID" Type="Int32" Nullable="false" />
+          <Property Name="LowercaseMbid" Type="String" Nullable="false" />
+          <NavigationProperty Name="TrackInfo" Relationship="LfmSqliteEdm.TrackInfoMbid" FromRole="Mbid" ToRole="TrackInfo" />
+          <NavigationProperty Name="TrackInfo_1" Relationship="LfmSqliteEdm.TrackInfoMbid1" FromRole="Mbid" ToRole="TrackInfo" /></EntityType>
+        <EntityType Name="SimilarTrack">
+          <Key>
+            <PropertyRef Name="SimilarTrackID" /></Key>
+          <Property Name="SimilarTrackID" Type="Int32" Nullable="false" />
+          <Property Name="Rating" Type="Single" Nullable="false" />
+          <NavigationProperty Name="A" Relationship="LfmSqliteEdm.TrackSimilarTrack" FromRole="SimilarTrack" ToRole="Track" />
+          <NavigationProperty Name="B" Relationship="LfmSqliteEdm.TrackSimilarTrack1" FromRole="SimilarTrack" ToRole="Track" /></EntityType>
+        <EntityType Name="Tag">
+          <Key>
+            <PropertyRef Name="TagID" /></Key>
+          <Property Name="TagID" Type="Int32" Nullable="false" />
+          <Property Name="LowercaseTag" Type="String" Nullable="false" />
+          <NavigationProperty Name="TrackTag" Relationship="LfmSqliteEdm.TagTrackTag" FromRole="Tag" ToRole="TrackTag" /></EntityType>
+        <EntityType Name="Track">
+          <Key>
+            <PropertyRef Name="TrackID" /></Key>
+          <Property Name="TrackID" Type="Int32" Nullable="false" />
+          <Property Name="FullTitle" Type="String" Nullable="false" />
+          <Property Name="LowercaseTitle" Type="String" Nullable="false" />
+          <Property Name="LookupTimestamp" Type="Int64" Nullable="true" />
+          <NavigationProperty Name="Artist" Relationship="LfmSqliteEdm.ArtistTrack" FromRole="Track" ToRole="Artist" />
+          <NavigationProperty Name="SimilarTrack" Relationship="LfmSqliteEdm.TrackSimilarTrack" FromRole="Track" ToRole="SimilarTrack" />
+          <NavigationProperty Name="SimilarTrack_1" Relationship="LfmSqliteEdm.TrackSimilarTrack1" FromRole="Track" ToRole="SimilarTrack" />
+          <NavigationProperty Name="TrackTag" Relationship="LfmSqliteEdm.TrackTrackTag" FromRole="Track" ToRole="TrackTag" />
+          </EntityType>
+        <EntityType Name="TrackInfo">
+          <Key>
+            <PropertyRef Name="TrackID" /></Key>
+          <Property Name="TrackID" Type="Int32" Nullable="false" />
+          <Property Name="InfoTimestamp" Type="Int64" Nullable="false" />
+          <Property Name="Listeners" Type="Int32" Nullable="true" />
+          <Property Name="Playcount" Type="Int32" Nullable="true" />
+          <Property Name="Duration" Type="Int32" Nullable="true" />
+          <Property Name="LastFmId" Type="Int32" Nullable="true" />
+          <NavigationProperty Name="ArtistMbid" Relationship="LfmSqliteEdm.TrackInfoMbid" FromRole="TrackInfo" ToRole="Mbid" />
+          <NavigationProperty Name="TrackMbid" Relationship="LfmSqliteEdm.TrackInfoMbid1" FromRole="TrackInfo" ToRole="Mbid" />
+          </EntityType>
+        <EntityType Name="TrackTag">
+          <Key>
+            <PropertyRef Name="TrackTagID" /></Key>
+          <Property Name="TrackTagID" Type="Int32" Nullable="false" />
+          <Property Name="TagCount" Type="Int32" Nullable="false" />
+          <NavigationProperty Name="Tag" Relationship="LfmSqliteEdm.TagTrackTag" FromRole="TrackTag" ToRole="Tag" />
+          <NavigationProperty Name="Track" Relationship="LfmSqliteEdm.TrackTrackTag" FromRole="TrackTag" ToRole="Track" /></EntityType>
+        <Association Name="ArtistTrack">
+          <End Type="LfmSqliteEdm.Artist" Role="Artist" Multiplicity="1" />
+          <End Type="LfmSqliteEdm.Track" Role="Track" Multiplicity="*" /></Association>
+        <Association Name="TrackSimilarTrack">
+          <End Type="LfmSqliteEdm.Track" Role="Track" Multiplicity="1" />
+          <End Type="LfmSqliteEdm.SimilarTrack" Role="SimilarTrack" Multiplicity="*" /></Association>
+        <Association Name="TrackSimilarTrack1">
+          <End Type="LfmSqliteEdm.Track" Role="Track" Multiplicity="1" />
+          <End Type="LfmSqliteEdm.SimilarTrack" Role="SimilarTrack" Multiplicity="*" /></Association>
+        <Association Name="TrackInfoMbid">
+          <End Type="LfmSqliteEdm.TrackInfo" Role="TrackInfo" Multiplicity="*" />
+          <End Type="LfmSqliteEdm.Mbid" Role="Mbid" Multiplicity="1" /></Association>
+        <Association Name="TrackInfoMbid1">
+          <End Type="LfmSqliteEdm.TrackInfo" Role="TrackInfo" Multiplicity="*" />
+          <End Type="LfmSqliteEdm.Mbid" Role="Mbid" Multiplicity="1" /></Association>
+        <Association Name="TagTrackTag">
+          <End Type="LfmSqliteEdm.Tag" Role="Tag" Multiplicity="1" />
+          <End Type="LfmSqliteEdm.TrackTag" Role="TrackTag" Multiplicity="*" /></Association>
+        <Association Name="TrackTrackTag">
+          <End Type="LfmSqliteEdm.Track" Role="Track" Multiplicity="1" />
+          <End Type="LfmSqliteEdm.TrackTag" Role="TrackTag" Multiplicity="*" /></Association>
+        </Schema>
+    </edmx:ConceptualModels>
+    <!-- C-S mapping content -->
+    <edmx:Mappings>
+      <Mapping xmlns="urn:schemas-microsoft-com:windows:storage:mapping:CS" Space="C-S">
+        <Alias Key="Model" Value="LfmSqliteEdm" />
+        <Alias Key="Target" Value="LfmSqliteEdm.Store" />
+        <EntityContainerMapping CdmEntityContainer="LfmSqliteEdmContainer" StorageEntityContainer="LfmSqliteEdmStoreContainer">
+          <EntitySetMapping Name="ArtistSet">
+            <EntityTypeMapping TypeName="IsTypeOf(LfmSqliteEdm.Artist)">
+              <MappingFragment StoreEntitySet="Artist">
+                <ScalarProperty Name="LowercaseArtist" ColumnName="LowercaseArtist" />
+                <ScalarProperty Name="FullArtist" ColumnName="FullArtist" />
+                <ScalarProperty Name="ArtistID" ColumnName="ArtistID" /></MappingFragment></EntityTypeMapping></EntitySetMapping>
+          <EntitySetMapping Name="Mbid">
+            <EntityTypeMapping TypeName="IsTypeOf(LfmSqliteEdm.Mbid)">
+              <MappingFragment StoreEntitySet="Mbid">
+                <ScalarProperty Name="LowercaseMbid" ColumnName="LowercaseMbid" />
+                <ScalarProperty Name="MbidID" ColumnName="MbidID" /></MappingFragment></EntityTypeMapping></EntitySetMapping>
+          <EntitySetMapping Name="SimilarTrackSet">
+            <EntityTypeMapping TypeName="IsTypeOf(LfmSqliteEdm.SimilarTrack)">
+              <MappingFragment StoreEntitySet="SimilarTrack">
+                <ScalarProperty Name="Rating" ColumnName="Rating" />
+                <ScalarProperty Name="SimilarTrackID" ColumnName="SimilarTrackID" /></MappingFragment></EntityTypeMapping></EntitySetMapping>
+          <EntitySetMapping Name="Tag">
+            <EntityTypeMapping TypeName="IsTypeOf(LfmSqliteEdm.Tag)">
+              <MappingFragment StoreEntitySet="Tag">
+                <ScalarProperty Name="LowercaseTag" ColumnName="LowercaseTag" />
+                <ScalarProperty Name="TagID" ColumnName="TagID" /></MappingFragment></EntityTypeMapping></EntitySetMapping>
+          <EntitySetMapping Name="TrackSet">
+            <EntityTypeMapping TypeName="IsTypeOf(LfmSqliteEdm.Track)">
+              <MappingFragment StoreEntitySet="Track">
+                <ScalarProperty Name="LookupTimestamp" ColumnName="LookupTimestamp" />
+                <ScalarProperty Name="LowercaseTitle" ColumnName="LowercaseTitle" />
+                <ScalarProperty Name="FullTitle" ColumnName="FullTitle" />
+                <ScalarProperty Name="TrackID" ColumnName="TrackID" /></MappingFragment></EntityTypeMapping></EntitySetMapping>
+          <EntitySetMapping Name="TrackInfo">
+            <EntityTypeMapping TypeName="IsTypeOf(LfmSqliteEdm.TrackInfo)">
+              <MappingFragment StoreEntitySet="TrackInfo">
+                <ScalarProperty Name="LastFmId" ColumnName="LastFmId" />
+                <ScalarProperty Name="Duration" ColumnName="Duration" />
+                <ScalarProperty Name="Playcount" ColumnName="Playcount" />
+                <ScalarProperty Name="Listeners" ColumnName="Listeners" />
+                <ScalarProperty Name="InfoTimestamp" ColumnName="InfoTimestamp" />
+                <ScalarProperty Name="TrackID" ColumnName="TrackID" /></MappingFragment></EntityTypeMapping></EntitySetMapping>
+          <EntitySetMapping Name="TrackTag">
+            <EntityTypeMapping TypeName="IsTypeOf(LfmSqliteEdm.TrackTag)">
+              <MappingFragment StoreEntitySet="TrackTag">
+                <ScalarProperty Name="TagCount" ColumnName="TagCount" />
+                <ScalarProperty Name="TrackTagID" ColumnName="TrackTagID" /></MappingFragment></EntityTypeMapping></EntitySetMapping>
+          <AssociationSetMapping Name="ArtistTrack" TypeName="LfmSqliteEdm.ArtistTrack" StoreEntitySet="Track">
+            <EndProperty Name="Track">
+              <ScalarProperty Name="TrackID" ColumnName="TrackID" /></EndProperty>
+            <EndProperty Name="Artist">
+              <ScalarProperty Name="ArtistID" ColumnName="ArtistID" /></EndProperty></AssociationSetMapping>
+          <AssociationSetMapping Name="TrackSimilarTrack" TypeName="LfmSqliteEdm.TrackSimilarTrack" StoreEntitySet="SimilarTrack">
+            <EndProperty Name="Track">
+              <ScalarProperty Name="TrackID" ColumnName="TrackA" /></EndProperty>
+            <EndProperty Name="SimilarTrack">
+              <ScalarProperty Name="SimilarTrackID" ColumnName="SimilarTrackID" /></EndProperty></AssociationSetMapping>
+          <AssociationSetMapping Name="TrackSimilarTrack1" TypeName="LfmSqliteEdm.TrackSimilarTrack1" StoreEntitySet="SimilarTrack">
+            <EndProperty Name="Track">
+              <ScalarProperty Name="TrackID" ColumnName="TrackB" /></EndProperty>
+            <EndProperty Name="SimilarTrack">
+              <ScalarProperty Name="SimilarTrackID" ColumnName="SimilarTrackID" /></EndProperty></AssociationSetMapping>
+          <AssociationSetMapping Name="TrackInfoMbid1" TypeName="LfmSqliteEdm.TrackInfoMbid1" StoreEntitySet="TrackInfo">
+            <EndProperty Name="Mbid">
+              <ScalarProperty Name="MbidID" ColumnName="TrackMbidID" /></EndProperty>
+            <EndProperty Name="TrackInfo">
+              <ScalarProperty Name="TrackID" ColumnName="TrackID" /></EndProperty></AssociationSetMapping>
+          <AssociationSetMapping Name="TrackInfoMbid" TypeName="LfmSqliteEdm.TrackInfoMbid" StoreEntitySet="TrackInfo">
+            <EndProperty Name="Mbid">
+              <ScalarProperty Name="MbidID" ColumnName="ArtistMbidID" /></EndProperty>
+            <EndProperty Name="TrackInfo">
+              <ScalarProperty Name="TrackID" ColumnName="TrackID" /></EndProperty></AssociationSetMapping>
+          <AssociationSetMapping Name="TrackTrackTag" TypeName="LfmSqliteEdm.TrackTrackTag" StoreEntitySet="TrackTag">
+            <EndProperty Name="TrackTag">
+              <ScalarProperty Name="TrackTagID" ColumnName="TrackTagID" /></EndProperty>
+            <EndProperty Name="Track">
+              <ScalarProperty Name="TrackID" ColumnName="TrackID" /></EndProperty></AssociationSetMapping>
+          <AssociationSetMapping Name="TagTrackTag" TypeName="LfmSqliteEdm.TagTrackTag" StoreEntitySet="TrackTag">
+            <EndProperty Name="TrackTag">
+              <ScalarProperty Name="TrackTagID" ColumnName="TrackTagID" /></EndProperty>
+            <EndProperty Name="Tag">
+              <ScalarProperty Name="TagID" ColumnName="TagID" /></EndProperty></AssociationSetMapping>
+          </EntityContainerMapping>
+      </Mapping>
+    </edmx:Mappings>
+  </edmx:Runtime>
+  <!-- EF Designer content (DO NOT EDIT MANUALLY BELOW HERE) -->
+  <edmx:Designer xmlns="http://schemas.microsoft.com/ado/2007/06/edmx">
+    <edmx:Connection>
+      <DesignerInfoPropertySet>
+        <DesignerProperty Name="MetadataArtifactProcessing" Value="EmbedInOutputAssembly" />
+      </DesignerInfoPropertySet>
+    </edmx:Connection>
+    <edmx:Options>
+      <DesignerInfoPropertySet>
+        <DesignerProperty Name="ValidateOnBuild" Value="true" />
+      </DesignerInfoPropertySet>
+    </edmx:Options>
+    <!-- Diagram content (shape and connector positions) -->
+    <edmx:Diagrams>
+      <Diagram Name="LfmSqliteEdm" >
+        <EntityTypeShape EntityType="LfmSqliteEdm.Artist" Width="1.5" PointX="8.375" PointY="1.875" Height="1.787985026041667" />
+        <EntityTypeShape EntityType="LfmSqliteEdm.Mbid" Width="1.5" PointX="1.625" PointY="6.5" Height="1.7879850260416657" />
+        <EntityTypeShape EntityType="LfmSqliteEdm.SimilarTrack" Width="1.5" PointX="8.125" PointY="4.375" Height="1.7879850260416657" />
+        <EntityTypeShape EntityType="LfmSqliteEdm.Tag" Width="1.5" PointX="7.875" PointY="7.25" Height="1.4033821614583333" />
+        <EntityTypeShape EntityType="LfmSqliteEdm.Track" Width="1.5" PointX="4.125" PointY="4.5" Height="2.5571907552083326" />
+        <EntityTypeShape EntityType="LfmSqliteEdm.TrackInfo" Width="1.5" PointX="1.875" PointY="1.625" Height="2.5571907552083335" />
+        <EntityTypeShape EntityType="LfmSqliteEdm.TrackTag" Width="1.5" PointX="5.25" PointY="8.125" Height="1.7879850260416674" />
+        <AssociationConnector Association="LfmSqliteEdm.ArtistTrack">
+          <ConnectorPoint PointX="8.375" PointY="2.7689925130208337" />
+          <ConnectorPoint PointX="5.145833333333333" PointY="2.7689925130208337" />
+          <ConnectorPoint PointX="5.145833333333333" PointY="4.5" /></AssociationConnector>
+        <AssociationConnector Association="LfmSqliteEdm.TrackSimilarTrack">
+          <ConnectorPoint PointX="5.625" PointY="5.6364058430989576" />
+          <ConnectorPoint PointX="8.125" PointY="5.6364058430989576" />
+          </AssociationConnector>
+        <AssociationConnector Association="LfmSqliteEdm.TrackSimilarTrack1">
+          <ConnectorPoint PointX="5.625" PointY="5.0057029215494788" />
+          <ConnectorPoint PointX="8.125" PointY="5.0057029215494788" />
+          </AssociationConnector>
+        <AssociationConnector Association="LfmSqliteEdm.TrackInfoMbid">
+          <ConnectorPoint PointX="2.25390625" PointY="4.1821907552083335" />
+          <ConnectorPoint PointX="2.25390625" PointY="6.5" /></AssociationConnector>
+        <AssociationConnector Association="LfmSqliteEdm.TrackInfoMbid1">
+          <ConnectorPoint PointX="2.751953125" PointY="4.1821907552083335" />
+          <ConnectorPoint PointX="2.751953125" PointY="6.5" /></AssociationConnector>
+        <AssociationConnector Association="LfmSqliteEdm.TagTrackTag">
+          <ConnectorPoint PointX="7.875" PointY="8.485341796875" />
+          <ConnectorPoint PointX="6.75" PointY="8.485341796875" /></AssociationConnector>
+        <AssociationConnector Association="LfmSqliteEdm.TrackTrackTag">
+          <ConnectorPoint PointX="5.4375" PointY="7.0571907552083326" />
+          <ConnectorPoint PointX="5.4375" PointY="8.125" /></AssociationConnector>
+        </Diagram></edmx:Diagrams>
+  </edmx:Designer>
+</edmx:Edmx>
