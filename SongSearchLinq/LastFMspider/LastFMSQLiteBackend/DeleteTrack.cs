@@ -10,6 +10,7 @@ namespace LastFMspider.LastFMSQLiteBackend {
                 return @"
 DELETE FROM SimilarTrack WHERE TrackB=@id;   
 DELETE FROM SimilarTrack WHERE TrackA=@id;
+DELETE FROM TrackInfo WHERE TrackID=@id;
 DELETE FROM Track WHERE TrackID=@id;
 ";
             }

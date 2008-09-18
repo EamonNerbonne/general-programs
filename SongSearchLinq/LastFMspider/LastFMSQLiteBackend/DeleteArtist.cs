@@ -8,7 +8,8 @@ namespace LastFMspider.LastFMSQLiteBackend {
         protected override string CommandText {
             get { return @"
 DELETE FROM SimilarTrack WHERE TrackB in (SELECT T.TrackID FROM Track T WHERE T.ArtistID=@id);   
-DELETE FROM SimilarTrack WHERE TrackA in (SELECT T.TrackID FROM Track T WHERE T.ArtistID=@id);   
+DELETE FROM SimilarTrack WHERE TrackA in (SELECT T.TrackID FROM Track T WHERE T.ArtistID=@id);
+DELETE FROM TrackInfo WHERE TrackID in (SELECT T.TrackID FROM Track T WHERE T.ArtistID=@id);
 DELETE FROM Track WHERE ArtistID=@id;
 DELETE FROM Artist WHERE ArtistID=@id;
 "; }

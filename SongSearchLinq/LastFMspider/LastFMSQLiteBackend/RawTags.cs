@@ -16,7 +16,7 @@ namespace LastFMspider.LastFMSQLiteBackend
             get { return @"SELECT TagID, LowercaseTag FROM Tag"; }
         }
 
-        public ArtistRow[] Execute()
+        public TagRow[] Execute()
         {
             var tags = new List<TagRow>();
             using (var reader = CommandObj.ExecuteReader())
@@ -28,7 +28,7 @@ namespace LastFMspider.LastFMSQLiteBackend
                         LowercaseTag = (string)reader[1]
                     });
             }
-            return tagss.ToArray();
+            return tags.ToArray();
         }
     }
 }
