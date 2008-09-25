@@ -21,7 +21,7 @@ namespace LfmApiSerializationTest
             XmlSerializer serializerTI = ApiTrackGetInfo.MakeSerializer();
 //            XmlDocument doc = new XmlDocument();
  //           doc.Load(getsimilarFI.OpenRead());
-            object o;
+/*            object o;
             o= serializerTT.Deserialize(gettoptagsFI.OpenRead());
             serializerTT.Serialize(Console.Out, o);
             Console.ReadKey();
@@ -32,6 +32,9 @@ namespace LfmApiSerializationTest
             
             o = serializerTI.Deserialize(getinfoFI.OpenRead());
             serializerTI.Serialize(Console.Out, o);
+            Console.ReadKey();*/
+            var toptags=ApiClient.Track.GetTopTags("Madonna", "Borderline");
+            serializerTT.Serialize(Console.Out, toptags);
             Console.ReadKey();
         }
     }

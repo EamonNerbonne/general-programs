@@ -3,7 +3,7 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProductVersion>9.0.21022</ProductVersion>
+    <ProductVersion>9.0.30729</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{6AFF4733-511B-4EE5-8A5F-6B11A894E0D7}</ProjectGuid>
     <OutputType>Library</OutputType>
@@ -132,6 +132,7 @@
     <Compile Include="LastFMSQLiteBackend\UpdateTrackTimestamp.cs" />
     <Compile Include="LastFMSQLiteCache.cs" />
     <Compile Include="LastFmTools.cs" />
+    <Compile Include="LfmApi\ApiClient.cs" />
     <Compile Include="LfmApi\LfmArtistRef.cs" />
     <Compile Include="LfmApi\TrackGetInfo.cs" />
     <Compile Include="LfmApi\TrackGetSimilar.cs" />
