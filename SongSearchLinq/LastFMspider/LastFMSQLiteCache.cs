@@ -156,7 +156,6 @@ CREATE INDEX  IF NOT EXISTS [IDX_TrackInfo_Playcount] ON [TrackInfo](
         //public LookupSimilarityListAge LookupSimilarityListAge { get; private set; }
         public LastFMSQLiteCache(FileInfo sqliteFile) { dbFile = sqliteFile; Init(); }
 
-        //public EDM.LfmSqliteEdmContainer EDMCont { get; private set; }
 
         /// <summary>
         /// Opens the DB connection.  Should be called by all constructors or whenever Db is reopened.
@@ -174,6 +173,7 @@ CREATE INDEX  IF NOT EXISTS [IDX_TrackInfo_Playcount] ON [TrackInfo](
             string edmConnStr = String.Format(EdmConnectionString, instanceConnStr);
             //EDMCont = new LastFMspider.EDM.LfmSqliteEdmContainer(edmConnStr);
         }
+        //public EDM.LfmSqliteEdmContainer EDMCont { get; private set; }
 
 
         private void PrepareSql() {

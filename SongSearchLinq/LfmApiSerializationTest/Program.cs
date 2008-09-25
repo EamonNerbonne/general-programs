@@ -16,7 +16,7 @@ namespace LfmApiSerializationTest
             FileInfo getsimilarFI = new FileInfo(@"C:\Users\Eamon\eamonhome\docs-trunk\VS.NET2008\SongSpider\LastFMspider\track.getsimilar.xml");
             FileInfo getinfoFI = new FileInfo(@"C:\Users\Eamon\eamonhome\docs-trunk\VS.NET2008\SongSpider\LastFMspider\track.getinfo.xml");
             FileInfo gettoptagsFI = new FileInfo(@"C:\Users\Eamon\eamonhome\docs-trunk\VS.NET2008\SongSpider\LastFMspider\track.gettoptags.xml");
-            XmlSerializer serializer = new XmlSerializer(typeof(LfmStatus));
+            XmlSerializer serializer = ApiTrackGetSimilar.MakeSerializer();
             XmlDocument doc = new XmlDocument();
             doc.Load(getsimilarFI.OpenRead());
             object o= serializer.Deserialize(getsimilarFI.OpenRead());

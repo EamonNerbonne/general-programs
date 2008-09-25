@@ -7,20 +7,15 @@ using System.Xml.Serialization;
 
 namespace LastFMspider.LfmApi
 {
-    public class LfmArtist
-    {
-        public string name;
-        public string mbid;
-    }
 
     public class LfmSimilarTrack
     {
         public string name;
         public float match;
-        public LfmArtist artist;
+        public LfmArtistRef artist;
     }
 
-    public class TrackGetSimilar
+    public class LfmSimilarTracks
     {
         [XmlElement("track")]
         public LfmSimilarTrack[] track;
@@ -28,10 +23,13 @@ namespace LastFMspider.LfmApi
         [XmlAttribute("track")]  public string trackTitle;
         [XmlAttribute]   public string artist;
     }
+
     [XmlRoot("lfm")]
-    public class LfmStatus
+    public class ApiTrackGetSimilar
     {
-        public TrackGetSimilar similartracks;
+        public LfmSimilarTracks similartracks;
         [XmlAttribute]  public string status;
+
+        public static XmlSerializer MakeSerializer() { return new XmlSerializer(typeof(ApiTrackGetSimilar)); }
     }
 }

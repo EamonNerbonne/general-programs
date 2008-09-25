@@ -135,6 +135,7 @@
     <Compile Include="LastFMSQLiteBackend\UpdateTrackTimestamp.cs" />
     <Compile Include="LastFMSQLiteCache.cs" />
     <Compile Include="LastFmTools.cs" />
+    <Compile Include="LfmApi\LfmArtistRef.cs" />
     <Compile Include="LfmApi\TrackGetInfo.cs" />
     <Compile Include="LfmApi\TrackGetSimilar.cs" />
     <Compile Include="LfmApi\TrackGetTopTags.cs" />
