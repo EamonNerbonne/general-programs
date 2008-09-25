@@ -62,6 +62,7 @@ namespace LastFMspider.LfmApi
         static public class Track
         {
             public static ApiTrackGetTopTags GetTopTags(string artist, string track) {
+                //http://www.last.fm/api/show?service=289
                 Uri reqUri = MakeUri("track.gettoptags",
                     par("artist",artist), par("track",track)
                     );
@@ -70,5 +71,9 @@ namespace LastFMspider.LfmApi
                 return (ApiTrackGetTopTags) ApiTrackGetTopTags.MakeSerializer().Deserialize(xmlReader);
             }
         }
+
+        //todo:
+        //http://www.last.fm/api/show?service=356 (getinfo)
+        //http://www.last.fm/api/show?service=319 (getsimilar)
     }
 }
