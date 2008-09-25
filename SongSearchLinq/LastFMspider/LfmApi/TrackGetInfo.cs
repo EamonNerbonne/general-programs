@@ -25,6 +25,6 @@ namespace LastFMspider.LfmApi
         [XmlAttribute]
         public string status;
 
-        public static XmlSerializer MakeSerializer() { return new XmlSerializer(typeof(ApiTrackGetSimilar)); }
+        public static XmlSerializer MakeSerializer() { return new XmlSerializer(typeof(ApiTrackGetInfo)); }
     }
 }

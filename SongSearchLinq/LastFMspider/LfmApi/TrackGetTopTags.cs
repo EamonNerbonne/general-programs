@@ -9,7 +9,11 @@ namespace LastFMspider.LfmApi
     public class LfmTag
     {
         public string name;
-        public int count;
+        [XmlElement]
+        public int? count;
+
+        [XmlIgnore]
+        public bool countSpecified { get { return count.HasValue; } }
     }
 
     public class LfmTrackTopTags
@@ -20,6 +24,7 @@ namespace LastFMspider.LfmApi
         [XmlAttribute("track")]
         public string trackTitle;
 
+        [XmlElement("tag")]
         public LfmTag[] tag;
     }
 
@@ -27,9 +32,8 @@ namespace LastFMspider.LfmApi
     public class ApiTrackGetTopTags
     {
         public LfmTrackTopTags toptags;
-        [XmlAttribute]
-        public string status;
+        [XmlAttribute] public string status;
 
-        public static XmlSerializer MakeSerializer() { return new XmlSerializer(typeof(ApiTrackGetSimilar)); }
+        public static XmlSerializer MakeSerializer() { return new XmlSerializer(typeof(ApiTrackGetTopTags)); }
     }
 }
