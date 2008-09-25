@@ -14,7 +14,7 @@ namespace LastFMspider.LastFMSQLiteBackend {
         public AllTracks(LastFMSQLiteCache lfm) : base(lfm) { }
 
         protected override string CommandText {
-            get { return @"SELECT T.TrackID, A.FullArtist, T.FullTitle, T.LookupTimestamp FROM Artist A, Track T WHERE T.ArtistID = A.ArtistID"; }
+            get { return @"SELECT T.TrackID, A.FullArtist, T.FullTitle, T.LookupTimestamp FROM Track T, Artist A WHERE T.ArtistID = A.ArtistID"; }
         }
 
         public CachedTrack[] Execute() {
