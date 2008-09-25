@@ -102,7 +102,7 @@ namespace LastFMspider {
             }
         }
 
-        public void SimilarityPatterns() {
+        public void SimilarityPatterns() {//TODO:refactor this algorithm into something external.  this shouldn't be here.
             var timer = new NiceTimer("Getting all similarities");
             Console.Write("Processing: [");
             var sims = backingDB.RawSimilarTracks.Execute(true);
@@ -207,10 +207,7 @@ namespace LastFMspider {
         }
 
         public SongSimilarityList Lookup(SongRef songref) {
-            try {
-                return LookupViaSQLite(songref);
-                //   return backingCache.Lookup(songref);
-            } catch (PersistantCacheException) { return null; }
+            return LookupViaSQLite(songref);
         }
 
         private SongSimilarityList LookupViaSQLite(SongRef songref) {
