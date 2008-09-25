@@ -135,11 +135,6 @@
     <Compile Include="LastFMSQLiteBackend\UpdateTrackTimestamp.cs" />
     <Compile Include="LastFMSQLiteCache.cs" />
     <Compile Include="LastFmTools.cs" />
-    <Compile Include="EDM\LfmSqliteEdm.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>LfmSqliteEdm.edmx</DependentUpon>
-    </Compile>
     <Compile Include="LfmApi\TrackGetInfo.cs" />
     <Compile Include="LfmApi\TrackGetSimilar.cs" />
     <Compile Include="LfmApi\TrackGetTopTags.cs" />
@@ -182,10 +177,6 @@
     <None Include="lastFMcacheDataSet.xss">
       <DependentUpon>lastFMcacheDataSet.xsd</DependentUpon>
     </None>
-    <EntityDeploy Include="EDM\LfmSqliteEdm.edmx">
-      <Generator>EntityModelCodeGenerator</Generator>
-      <LastGenOutput>LfmSqliteEdm.Designer.cs</LastGenOutput>
-    </EntityDeploy>
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
