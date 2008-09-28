@@ -10,44 +10,17 @@ namespace DragDropTest
     // a collection of Shape objects)
     public class Shape
     {
-        string _name = null;
-        string _numSides = null;
 
-        public Shape()
-        {
+        public Shape() { }
+
+        public Shape(string name, string description) {
+            Name = name;
+            NumSides = description;
         }
 
-        public Shape(string name, string description)
-        {
-            this._name = name;
-            this._numSides = description;
-        }
+        public string Name { get; set; }
 
-        public string Name
-        {
-            get
-            {
-                return _name;
-            }
-
-            set
-            {
-                _name = value;
-            }
-        }
-
-        public string NumSides
-        {
-            get
-            {
-                return _numSides;
-            }
-
-            set
-            {
-                _numSides = value;
-            }
-        }
+        public string NumSides { get; set; }
     }
 
     // Collection of Shape objects

@@ -13,7 +13,7 @@
         <ListView Name="ListView1"
                   ItemsSource="{Binding Source={StaticResource MyShapes}}"
                   SelectionMode="Extended"
-                  AllowDrop="True">
+                  AllowDrop="True" SelectionChanged="ListView1_SelectionChanged">
             <ListView.ItemTemplate>
                 <DataTemplate>
                     <StackPanel AllowDrop="True" Orientation="Horizontal">
@@ -30,6 +30,6 @@
                 </ItemsPanelTemplate>
             </ListView.ItemsPanel>
         </ListView>
-        
+        <Label Height="28" Name="label1" VerticalAlignment="Bottom">My content</Label>
     </Grid>
 </Window>

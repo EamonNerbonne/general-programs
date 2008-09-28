@@ -112,5 +112,9 @@ namespace DragDropTest
 			Point mousePos = getPosition((IInputElement) target);
 			return bounds.Contains( mousePos );
 		}
+
+        private void ListView1_SelectionChanged(object sender, SelectionChangedEventArgs e) {
+
+        }
     }
 }
