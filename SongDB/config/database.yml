@@ -1,0 +1,9 @@
+songdb:
+  adapter: sqlite3
+  database: db/songdb.sqlite3
+  timeout: 5000
+
+lastfm:
+  adapter: sqlite3
+  database: db/lastFMcache.s3db
+  timeout: 5000
