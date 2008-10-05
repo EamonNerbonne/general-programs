@@ -4,7 +4,7 @@ songdb:
   timeout: 5000
 
 sqlite:
-  cache_size: 50000
+  cache_size: 100000
 
 lastfm:
   adapter: sqlite3
