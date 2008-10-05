@@ -11,6 +11,7 @@ DBCONFIG = YAML.load_file(File.join(APP_ROOT, "config/database.yml"))
 ### Set up ActiveRecord
 ActiveRecord::Base.establish_connection DBCONFIG['songdb']
 ActiveRecord::Base.logger = LOGGER
+ActiveRecord::Base.connection.instance_eval { @connection.cache_size = DBCONFIG['sqlite']['cache_size'] } if DBCONFIG['sqlite']['cache_size'] 
 
 ### Preload ruby source files
 files_to_load = Dir[File.join(APP_ROOT, "lib/*.rb")] +
