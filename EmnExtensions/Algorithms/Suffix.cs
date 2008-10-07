@@ -1,5 +1,5 @@
 
-namespace SongDataLib
+namespace EamonExtensionsLinq.Algorithms
 {
 	public struct Suffix
 	{

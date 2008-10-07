@@ -60,7 +60,13 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Algorithms\SearchResult.cs" />
     <Compile Include="Algorithms\ShuffleAlgorithm.cs" />
+    <Compile Include="Algorithms\Suffix.cs" />
+    <Compile Include="Algorithms\SuffixTreeInternals\ISuffixTreeNode.cs" />
+    <Compile Include="Algorithms\SuffixTreeInternals\SongSuffixSearcherMain.cs" />
+    <Compile Include="Algorithms\SuffixTreeInternals\SuffixTreeLeafNode.cs" />
+    <Compile Include="Algorithms\SuffixTreeInternals\SuffixTreeNode.cs" />
     <Compile Include="Collections\Edge.cs" />
     <Compile Include="Collections\HashMultiMap.cs" />
     <Compile Include="Collections\IMultiMap.cs" />
