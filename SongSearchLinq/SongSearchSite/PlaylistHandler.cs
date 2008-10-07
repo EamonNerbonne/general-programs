@@ -6,7 +6,7 @@ using System.Web;
 using System.Xml;
 using EamonExtensionsLinq.Text;
 using SongDataLib;
-using SuffixTreeLib;
+using EamonExtensionsLinq.Algorithms.SuffixTreeInternals;
 using HttpHeaderHelper;
 using System.IO;
 

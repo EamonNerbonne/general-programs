@@ -2,7 +2,7 @@
 using System.Linq;
 using SongDataLib;
 
-namespace SuffixTreeLib
+namespace EamonExtensionsLinq.Algorithms.SuffixTreeInternals
 {
 	public class SuffixTreeNode : ISuffixTreeNode
 	{

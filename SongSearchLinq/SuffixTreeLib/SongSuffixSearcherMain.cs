@@ -5,7 +5,7 @@ using System.Linq;
 //using  System.Xml;
 using SongDataLib;
 
-namespace SuffixTreeLib
+namespace EamonExtensionsLinq.Algorithms.SuffixTreeInternals
 {
 	public class SuffixTreeSongSearcher : ISongSearcher
 	{
