@@ -1,6 +1,7 @@
 using System.Collections.Generic;
+using SongDataLib;
 
-namespace EamonExtensionsLinq.Algorithms.SuffixTreeInternals
+namespace SuffixTreeLib
 {
 	public interface ISuffixTreeNode
 	{

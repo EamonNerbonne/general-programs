@@ -75,7 +75,7 @@ namespace CommandLineUI
 			loadingSongs = null;
 			timer.TimeMark("Loading Search plugin");
 			ISongSearcher ss = //new BwtLib.SongBwtSearcher();
-				new EamonExtensionsLinq.Algorithms.SuffixTreeInternals.SuffixTreeSongSearcher();
+				new SuffixTreeLib.SuffixTreeSongSearcher();
 			searchEngine = new SearchableSongDB(db, ss);
 		}
 

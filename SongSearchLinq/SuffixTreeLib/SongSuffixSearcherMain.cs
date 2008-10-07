@@ -1,7 +1,11 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+//using  System.Query;
+//using  System.Xml.XLinq;
+//using  System.Xml;
+using SongDataLib;
 
-namespace EamonExtensionsLinq.Algorithms.SuffixTreeInternals
+namespace SuffixTreeLib
 {
 	public class SuffixTreeSongSearcher : ISongSearcher
 	{
