@@ -1,6 +1,0 @@
-﻿
-namespace EamonExtensionsLinq.Algorithms
-{
-
-
-}
