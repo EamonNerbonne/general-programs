@@ -16,38 +16,131 @@ namespace WikiParser
     {
         public static IEnumerable<XElement> StreamElements(this XmlReader reader, string matchName) {
             while (reader.ReadToFollowing(matchName))
-                yield return  (XElement)XElement.ReadFrom(reader);
+                yield return (XElement)XElement.ReadFrom(reader);
         }
     }
 
     class Program
     {
-        static readonly string[] regexes = {
-            @"''+",
-            @"&[nN][bB][sS][pP];",
-            @"(?<txt>&)amp;",
-            @"\[([^ \[\]]+( (?<txt>[^\[\]]*))?|\[((?<txt>[^\[:\|\]]*)|[^\[:\|\]]*(\|(?<txt>[^\[\]]*)|:([^\[\]]|\[\[([^\[\]]*)\]\])*))\])\]",
+        static readonly string[] regexes1 = {
+            @"(?>'')'*",
+            @"(?><)(!--([^-]|-[^-]|--[^>])*-->|([rR][eE][fF]|[sS][mM][aA][lL][lL]).*?(/>|</([rR][eE][fF]|[sS][mM][aA][lL][lL])>))",
+            @"^((?>#)[rR][eE][dD][iI][rR][eE][cC][tT].*$|(?>\*)\**)",
+            @"(?<=&)(?>[aA])[mM][pP];",
+            @"&(?>[nN])[bB][sS][pP];",
+        };
+        static readonly string[] regexesReplace = {
             @"\{(\|([^\|]|\|[^\}])*\||\{([^\}]|\}[^\}])*\})\}",
-            @"<!--([^-]|-[^-]|--[^>])*-->"            ,
-            @"<([rR][eE][fF]|[sS][mM][aA][lL][lL]).*?(/>|</([rR][eE][fF]|[sS][mM][aA][lL][lL])>)",
-            @"<[a-zA-Z]+( [^>]*?)?(/>|>(?<txt>[^<]*)</[a-zA-Z]+>)",
-            @"^[\* \t]+",
-            @"^#[rR][eE][dD][iI][rR][eE][cC][tT].*$",
+            @"(?>\[\[([^\[:\|\]]*):)([^\[\]]|\[\[[^\[\]]*\]\])*\]\]",
+            @"\[([^ \[\]]+( (?<txt>[^\[\]]*))?|\[((?<txt>[^\[\]:\|]*)|[^\[\]:\|]*\|(?<txt>[^\[\]]*))\])\]",
+            @"</?[a-zA-Z]+( [^>]*?)?/?>",
             @"^=+(?<txt>.*?)=+ *$",
-            @"[ \t]+$",
-            @"(?<txt>\n\n)\n+",
+        };
+        static readonly string[] regexesSpaceTrim = {
+            @"^ +",
+            @" +$",
+            @"(?<=\n\n)(\n *)+",
+        };
+        
 
-            
-                                 };
-        //static readonly string nestableRegex = @"\[\[[^\[:\|\]]*:(XXX)*\]\]";
-
-        const string sentenceRegex = @"(?<=([\.\?!]\s+)|^)(\(|" + "\"" + @")?[A-Z](e\.g\.|dr. |[A-Z]\. [A-Z]|\d\.\d|\. *[a-z]|\.\w|[^\.\n\?!])+[\.\?!](\)|" + "\"" + @")?((?=\s)|$)";
+        const string sentenceRegex =
+            @"(?<=[\.\?!]\s+|^)(?>(?<sentence>(\(|" + "\"" + @")?[A-Z](dr. |[A-Z]\. |\.( *[a-z]|[\w\d])|[^\.\n\?!])+[\.\?!](\)|" + "\"" + @")?))(?=\s|$)";
 
 
         static string CombineRegex(IEnumerable<string> regexes) {
             return string.Join("|", regexes.Select(r => "(" + r + ")").ToArray());
         }
 
+        static string FilterOutSpaces(string text) {
+
+            StringBuilder s = new StringBuilder(text.Length);
+            
+
+            char c;
+            for(int i=0;i<text.Length;i++) {
+                c = text[i];
+                
+                if (c == ' ' || c == '\t') {
+                    while (true) {
+                        if (++i >= text.Length) {
+                            break;
+                        }
+                        c = text[i];
+
+                        
+                        if (c == '\n') {
+                            while(true)  {
+                                if (++i >= text.Length) {
+                                    s.Append('\n');
+                                    break;
+                                }
+                                c=text[i];
+
+                                if (c == '\n') {
+                                    while (true) {
+                                        if (++i >= text.Length) {
+                                            s.Append('\n');
+                                            break;
+                                        }
+                                        c = text[i];
+
+                                        if (!(c == ' ' || c == '\t' || c == '\n')) {
+                                            s.Append('\n');
+                                            s.Append('\n');
+                                            s.Append(c);
+                                            break;
+                                        }
+                                    }
+                                    break;
+                                } else if (!(c == ' ' || c == '\t')) {
+                                    s.Append('\n');
+                                    s.Append(c);
+                                    break;
+                                }
+                            }
+                            break;
+                        } else if (!(c == ' ' || c == '\t')) {
+                            s.Append(' ');
+                            s.Append(c);
+                            break;
+                        }
+                    }
+                } else if (c == '\n') {
+                    while (true) {
+                        if (++i >= text.Length) {
+                            s.Append('\n');
+                            break;
+                        }
+                        c = text[i];
+
+                        if (c == '\n') {
+                            while (true) {
+                                if (++i >= text.Length) {
+                                    s.Append('\n');
+                                    break;
+                                }
+                                c = text[i];
+
+                                if (!(c == ' ' || c == '\t' || c == '\n')) {
+                                    s.Append('\n');
+                                    s.Append('\n');
+                                    s.Append(c);
+                                    break;
+                                }
+                            }
+                            break;
+                        } else if (!(c == ' ' || c == '\t')) {
+                            s.Append('\n');
+                            s.Append(c);
+                            break;
+                        }
+                    }
+                } else {
+                    s.Append(c);
+                }
+            }
+            return s.ToString();
+        }
 
         const string wikinamespacestring = "http://www.mediawiki.org/xml/export-0.3/";
 
@@ -57,56 +150,91 @@ namespace WikiParser
             yield return 1;
             yield return 0;
             yield return 1;
-         //   throw new Exception("uh-oh");
+            //   throw new Exception("uh-oh");
         }
 
-        static Regex markupStripper, sentenceFinder;
+        static Regex markupStripper,spaceStripper,markupReplace, sentenceFinder;
         static XNamespace ns = XNamespace.Get(wikinamespacestring);
 
+
         static void Main(string[] args) {
-            string fullRegex = CombineRegex(regexes);//.Concat(new[] { compRegex }));
-            markupStripper = new Regex(fullRegex, RegexOptions.Compiled | RegexOptions.ExplicitCapture | RegexOptions.Multiline | RegexOptions.CultureInvariant);
-            sentenceFinder = new Regex(sentenceRegex, RegexOptions.Compiled | RegexOptions.ExplicitCapture | RegexOptions.Multiline | RegexOptions.CultureInvariant);
-            
+
+            var langs = LMStats.LoadLangs(false);
+
+
+
+            var options = RegexOptions.Compiled | RegexOptions.ExplicitCapture | RegexOptions.Multiline | RegexOptions.CultureInvariant;
+            markupStripper = new Regex(CombineRegex(regexes1),options);
+            markupReplace = new Regex(CombineRegex(regexesReplace), options);
+            spaceStripper = new Regex(CombineRegex(regexesSpaceTrim), options);
+            sentenceFinder = new Regex(sentenceRegex, options);
+
             Stream stream = File.OpenRead(wikiPath);
             XmlReader reader = XmlReader.Create(stream);
             int pageCount = 0;
-            DateTime start = DateTime.Now,last=DateTime.Now;
+            int lastPageCount = 0;
+            DateTime start = DateTime.Now, last = DateTime.Now;
             long lastPos = stream.Position;
             int sentencecount = 0;
             foreach (var sentence in reader
                 .StreamElements("page")
-                .InAnotherThread(100)
-                .Select(page=> {
+             //   .InAnotherThread(100)
+                .Select(page => {
                     pageCount++;
                     if (DateTime.Now - last > TimeSpan.FromSeconds(1.0)) {
                         DateTime cur = DateTime.Now;
                         long curPos = stream.Position;
-                        Console.WriteLine("{5}: Read {0} pages,   {1:g5}/sec,   avg:{2:g5},   {3:g5} MB/s, avg: {4:g5}.", pageCount, 1000 / (cur - last).TotalSeconds, pageCount / (cur - start).TotalSeconds,
+                        Console.WriteLine("{5}: Read {0} pages,   {1:g5}/sec,   avg:{2:g5},   {3:g5} MB/s, avg: {4:g5}.", pageCount, (pageCount-lastPageCount) / (cur - last).TotalSeconds, pageCount / (cur - start).TotalSeconds,
                             (curPos - lastPos) / (cur - last).TotalSeconds / 1048576, curPos / (cur - start).TotalSeconds / 1048576, sentencecount);
+                        Console.WriteLine(string.Join("  ", langs.OrderByDescending(l => l.HitCounter).Take(10).Select(l => l.Name + "=" + l.HitCounter).ToArray()));
                         last = cur;
                         lastPos = curPos;
                     }
-                    return Page2Text(page);
+                    return Page2Text(page).Replace('\t',' ');
                 })
-                .Where(text=>text!=null)
+                .Where(text => text != null)
+//                .InAnotherThread(100)
+                .Select(text => markupStripper.Replace(text, ""))
                 .InAnotherThread(100)
-                .Select(text => StripWikiMarkup(text))
+                .Select(text => markupReplace.Replace(text, "${txt}"))
+  //              .InAnotherThread(100)
+                .Select(text => FilterOutSpaces(text))
+                .Where(text => text.Length > 2)
                 .InAnotherThread(100)
-                .Select(text => StripWikiMarkup(text))
-                .InAnotherThread(100)
-                .Where(text=>text.Length!=0)
-                .SelectMany(text=>plainText2Sentences(text))
-  //              .InAnotherThread(10000) /**/
+                .SelectMany(text => plainText2Sentences(text))
+                              .InAnotherThread(10000) /**/
                 ) {
-                    sentencecount++;
-                if (sentencecount > 100000) break;
-//                Console.WriteLine(sentence);
-  //              Console.ReadKey();
+                sentencecount++;
+                LMStats stats = new LMStats(sentence, false, "unknown");
+                var hits = (from language in langs
+//                            where language.Name!="english"
+                            let damage = stats.CompareTo(language)
+                            orderby damage
+                            select new { damage, language })
+                            ;
+                int val = 0;
+                foreach (var hit in hits.Take(2).Reverse())
+                    hit.language.HitCounter += (++val);
+
+                if (false && hits.First().language.Name != "english") {
+                    Console.WriteLine(sentence);
+
+                    foreach (var hit in hits.Take(3)) {
+                        Console.Write("{0}: {1}; ", hit.language.Name, hit.damage);
+                    }
+                    Console.WriteLine();
+                    Console.ReadKey();
+                }
+
+                if (sentencecount >= 10000) break;
             }
             Console.WriteLine("Took: {0} seconds.", (DateTime.Now - start).TotalSeconds);
-//            XmlReader reader = XmlReader.Create(wikiPath);
-            Console.ReadKey();
+            DateTime curE = DateTime.Now;
+            long curPosE = stream.Position;
+            Console.WriteLine("{5}: Read {0} pages,   {1:g5}/sec,   avg:{2:g5},   {3:g5} MB/s, avg: {4:g5}.", pageCount, 1000 / (curE - last).TotalSeconds, pageCount / (curE - start).TotalSeconds,
+                (curPosE - lastPos) / (curE - last).TotalSeconds / 1048576, curPosE / (curE - start).TotalSeconds / 1048576, sentencecount);
+            //            XmlReader reader = XmlReader.Create(wikiPath);
+            //Console.ReadKey();
         }
 
 
@@ -115,9 +243,6 @@ namespace WikiParser
             return textEl == null ? null : textEl.Value;
         }
 
-        static string StripWikiMarkup(string markedUpText) {
-            return markupStripper.Replace(markedUpText, "${txt}");
-        }
 
         static readonly Regex caps = new Regex("[A-Z]", RegexOptions.Compiled | RegexOptions.ExplicitCapture);
         static readonly Regex nums = new Regex("[0-9]", RegexOptions.Compiled | RegexOptions.ExplicitCapture);
@@ -132,23 +257,16 @@ namespace WikiParser
             int wordCount = words.Matches(sentenceCandidate).Count;
             int capWordCount = capwords.Matches(sentenceCandidate).Count;
             int charCount = sentenceCandidate.Length;
-            return (wordCharCount- numCount*0.75-capCount)/(double)charCount +(Math.Min(wordCount,6)*0.1)-((capWordCount-1) / (double)wordCount);
+            return (wordCharCount - numCount * 0.75 - capCount) / (double)charCount + (Math.Min(wordCount, 6) * 0.1) - ((capWordCount - 1) / (double)wordCount);
         }
 
         static IEnumerable<string> plainText2Sentences(string text) {
             return sentenceFinder.Matches(text)
                     .Cast<Match>()
                     .Where(m => m.Success)
-                    .Select(m => m.Value);
+                    .Select(m => m.Groups["sentence"].Value);
         }
 
-        static IEnumerable<string> page2Sentences(XElement page) {
-            string text = Page2Text(page);
-            if (text == null) return Enumerable.Empty<string>();
-            string plainText = StripWikiMarkup(text);
-            if (plainText.Length == 0) return Enumerable.Empty<string>();
-            return plainText2Sentences(plainText);
-        }
     }
     static class BackgroundProcessor
     {
