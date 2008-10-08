@@ -44,8 +44,8 @@ namespace WikiParser
         
 
         const string sentenceRegex =
-            @"(?<=[\.\?!]\s+|^)(?>(?<sentence>(\(|" + "\"" + @")?[A-Z](dr. |[A-Z]\. |\.( *[a-z]|[\w\d])|[^\.\n\?!])+[\.\?!](\)|" + "\"" + @")?))(?=\s|$)";
-
+            @"(?<=[\.\?!]\s+|^)(?>(?<sentence>(\(|" + "\"" + @")?[A-Z](dr\. |\(b\. c\.|e\.g\.|\(b\.|\(d\.|[Ss]t\.|et al\.| vs\.|Mrs\.|Mr\.|ed\.| c\.| v\.|[A-Z]\. |\.( *[a-z]|[\w\d])|[^\.\n\?!])+[\.\?!](\)|" + "\"" + @")?))(?=\s|$)";
+         
 
         static string CombineRegex(IEnumerable<string> regexes) {
             return string.Join("|", regexes.Select(r => "(" + r + ")").ToArray());
@@ -156,10 +156,13 @@ namespace WikiParser
         static Regex markupStripper,spaceStripper,markupReplace, sentenceFinder;
         static XNamespace ns = XNamespace.Get(wikinamespacestring);
 
+        readonly static string[] ignore = new[] { "spanish", "swedish", "italian", "slovak-ascii", "estonian", "scots_gaelic", "portuguese", "tagalog", "czech-iso8859_2", "indonesian", "norwegian", "irish", "basque", "hungarian", "slovenian-ascii", "welsh", "polish", "swahili", "serbian-ascii", "finnish", "lithuanian", "slovenian-iso8859_2", "albanian", "croatian-ascii", "malay", "slovak-windows1250", "latvian", "quechua", "sanskrit", "amharic-utf", "arabic-iso8859_6", "arabic-windows1256", "armenian", "belarus-windows1251", "bosnian", "bulgarian-iso8859_5", "chinese-big5", "chinese-gb2312", "georgian", "greek-iso8859-7", "hebrew-iso8859_8", "hindi", "icelandic", "japanese-euc_jp", "japanese-shift_jis", "korean", "marathi", "mingo", "nepali", "persian", "russian-iso8859_5", "russian-koi8_r", "russian-windows1251", "tamil", "thai", "turkish", "ukrainian-koi8_u", "vietnamese", "yiddish-utf" };
 
         static void Main(string[] args) {
 
-            var langs = LMStats.LoadLangs(false);
+            var langs = LMStats.LoadLangs(false)
+                .Where(l=>! ignore.Contains(l.Name))
+                .ToArray();
 
 
 
@@ -178,7 +181,8 @@ namespace WikiParser
             int sentencecount = 0;
             foreach (var sentence in reader
                 .StreamElements("page")
-             //   .InAnotherThread(100)
+//                .InAnotherThread(100)
+                .Where(page => !(page.Element(ns + "title").Value.StartsWith("Talk:") || page.Element(ns + "title").Value.StartsWith("User:")) )
                 .Select(page => {
                     pageCount++;
                     if (DateTime.Now - last > TimeSpan.FromSeconds(1.0)) {
@@ -186,47 +190,64 @@ namespace WikiParser
                         long curPos = stream.Position;
                         Console.WriteLine("{5}: Read {0} pages,   {1:g5}/sec,   avg:{2:g5},   {3:g5} MB/s, avg: {4:g5}.", pageCount, (pageCount-lastPageCount) / (cur - last).TotalSeconds, pageCount / (cur - start).TotalSeconds,
                             (curPos - lastPos) / (cur - last).TotalSeconds / 1048576, curPos / (cur - start).TotalSeconds / 1048576, sentencecount);
-                        Console.WriteLine(string.Join("  ", langs.OrderByDescending(l => l.HitCounter).Take(10).Select(l => l.Name + "=" + l.HitCounter).ToArray()));
+                        Console.WriteLine(string.Join("  ", langs.OrderByDescending(l => l.HitCounter).Take(5).Select(l => l.Name + "=" + l.HitCounter).ToArray()));
                         last = cur;
                         lastPos = curPos;
+                        lastPageCount = pageCount;
                     }
                     return Page2Text(page).Replace('\t',' ');
                 })
                 .Where(text => text != null)
 //                .InAnotherThread(100)
                 .Select(text => markupStripper.Replace(text, ""))
-                .InAnotherThread(100)
-                .Select(text => markupReplace.Replace(text, "${txt}"))
   //              .InAnotherThread(100)
+                .Select(text => markupReplace.Replace(text, "${txt}"))
+    //            .InAnotherThread(100)
                 .Select(text => FilterOutSpaces(text))
                 .Where(text => text.Length > 2)
                 .InAnotherThread(100)
                 .SelectMany(text => plainText2Sentences(text))
-                              .InAnotherThread(10000) /**/
+                              .Where(s=>gradeSentence(s)>1.2)/**/
+                              .InAnotherThread(10000)
                 ) {
                 sentencecount++;
                 LMStats stats = new LMStats(sentence, false, "unknown");
                 var hits = (from language in langs
-//                            where language.Name!="english"
-                            let damage = stats.CompareTo(language)
+                            let damage = stats.TryCompareFast(language)
                             orderby damage
-                            select new { damage, language })
-                            ;
-                int val = 0;
-                foreach (var hit in hits.Take(2).Reverse())
-                    hit.language.HitCounter += (++val);
-
-                if (false && hits.First().language.Name != "english") {
-                    Console.WriteLine(sentence);
-
-                    foreach (var hit in hits.Take(3)) {
-                        Console.Write("{0}: {1}; ", hit.language.Name, hit.damage);
+                            select new { damage, language }).ToArray();
+                bool betterThanE = true;
+                foreach(var hit in hits) {
+                    if (hit.language.Name == "english") {
+                        betterThanE = false;
+                        continue;
                     }
-                    Console.WriteLine();
-                    Console.ReadKey();
+                    if (betterThanE) {
+                        hit.language.HitRun++;
+                        hit.language.HitCounter++;
+                        hit.language.AppendToLog(sentence);
+                    } else {
+                        hit.language.HitRun = 0;
+                    }
                 }
 
-                if (sentencecount >= 10000) break;
+                /*
+                                 int val = 0;
+                 foreach (var hit in hits.Take(1))
+                                    hit.language.HitCounter += (++val);
+
+                
+                                if (hits.First().language.Name != "english") {
+                                    Console.WriteLine(sentence);
+                                    Console.WriteLine(gradeSentence(sentence));
+                                    foreach (var hit in hits.Take(3)) {
+                                        Console.Write("{0}: {1}; ", hit.language.Name, hit.damage);
+                                    }
+                                    Console.WriteLine();
+                                    Console.ReadKey();
+                                }/**/
+
+            //    if (sentencecount >= 20000) break;
             }
             Console.WriteLine("Took: {0} seconds.", (DateTime.Now - start).TotalSeconds);
             DateTime curE = DateTime.Now;
@@ -257,7 +278,7 @@ namespace WikiParser
             int wordCount = words.Matches(sentenceCandidate).Count;
             int capWordCount = capwords.Matches(sentenceCandidate).Count;
             int charCount = sentenceCandidate.Length;
-            return (wordCharCount - numCount * 0.75 - capCount) / (double)charCount + (Math.Min(wordCount, 6) * 0.1) - ((capWordCount - 1) / (double)wordCount);
+            return (wordCharCount - numCount  - capCount) / (double)charCount + (Math.Min(wordCount, 6) * 0.15) - 1.5*((capWordCount - 1) / (double)wordCount) ;
         }
 
         static IEnumerable<string> plainText2Sentences(string text) {
