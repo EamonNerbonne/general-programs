@@ -142,8 +142,8 @@ namespace WikiParser
             Name = Path.GetFileNameWithoutExtension(fromfile.FullName);
         }
 
-        public void AppendToLog(string sentence) {
-            string log=string.Format("============{0}\n{1}\n",string.Join("",Enumerable.Repeat("H", HitRun).ToArray()),  sentence );
+        public void AppendToLog(string sentence,string title) {
+            string log=string.Format("============{0} {2}\n{1}\n",string.Join("",Enumerable.Repeat(".", HitRun).ToArray()),  sentence,title );
             File.AppendAllText(Name + ".log",log ,Encoding.UTF8);
         }
 
