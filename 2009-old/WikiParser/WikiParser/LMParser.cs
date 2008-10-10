@@ -6,6 +6,7 @@ using System.Text;
 using System.IO;
 using EamonExtensionsLinq.Filesystem;
 using System.Text.RegularExpressions;
+using System.Reflection;
 
 namespace WikiParser
 {
@@ -292,13 +293,6 @@ namespace WikiParser
 #else
             return CompareTo(other);
 #endif
-        }
-        public static LMStats[] LoadLangs(bool initCounts) {
-            return
-                new DirectoryInfo("text_cat" + Path.DirectorySeparatorChar + "LM")
-                .GetFiles("*.lm")
-                .Select(fi => new LMStats(fi, initCounts))
-                .ToArray();
         }
 
     }
