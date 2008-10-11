@@ -4,10 +4,32 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Xml;
 using System.Xml.Linq;
-using LMstats = WikiParser.LMFastOrderingImpl;
+using LMstats = WikiParser.LMFastOrderingImpl; //alternative implementations: LMOrderingImpl, LMReferenceImpl
 namespace WikiParser
 {
-
+    /// <summary>
+    /// By Eamon Nerbonne (http://eamon.nerbonne.org/) 
+    /// 
+    /// This program parses a wiki xml dump and finds sentences in it which text_cat (http://www.let.rug.nl/~vannoord/TextCat/Demo/)
+    /// labels as non-english, but probably are english.
+    /// 
+    /// To do so it uses :
+    ///  - a wiki "parser" which parses the xml file and strips markup using a regex, (See WikiMarkupStripper.cs)
+    ///  - a custom white space normalizer (not crucial) (see WhitespaceNormalizer.cs)
+    ///  - a regex to split english text into sentences (imperfect, of course, see EnglishSentenceFinder.cs)
+    ///  - a few simple heuristics and a dictionary to grade the likelyhood that a string is actually an (interesting) english sentence
+    ///    (and not just a title or another language), see EnglishSentenceGrader.cs
+    ///  - and finally, three reimplementations of text_cat, which should behave identically, but be faster.  
+    ///  - 1st: LMReferenceImpl.cs which uses the same algorithm as text_cat
+    ///  - 2nd: LMOrderingImpl.cs which doesn't use a hashtable but a sorted list (6x speedup)
+    ///  - 3rd: LMFastOrderingImpl.cs which uses 64-bit integer math (RankedBytegram.cs) instead of string ngrams (another 3x speedup)
+    ///  
+    /// This file contains a large PLINQ query concatenating the above functions.
+    /// You will need the Parallel Extensions to .NET to run this code; the June 2008 CTP is at:
+    /// http://www.microsoft.com/downloads/details.aspx?FamilyId=348F73FD-593D-4B3C-B055-694C50D2B0F3&displaylang=en
+    /// if you don't want to use it, comment out the line marked "//PARALLELIZATION:", remove the reference to the System.Threading.dll,
+    /// and recompile.
+    /// </summary>
     class Program
     {
         static XNamespace ns = XNamespace.Get("http://www.mediawiki.org/xml/export-0.3/");
@@ -21,6 +43,7 @@ namespace WikiParser
 
 
         static void Main(string[] args) {
+            //first we parse the command line and doing boring initialization stuff.
             CommandLineArgs parsedArgs = new CommandLineArgs(args);
             if (!parsedArgs.AreOK) {
                 Console.Error.WriteLine("Cannot continue.\n\n");
@@ -30,23 +53,19 @@ namespace WikiParser
             }
             parsedArgs.PrintValues();
 
-
+            //a dictionary is used (if present) to improve the sentence grading.
             Console.Write("Loading Dictionary...");
             EnglishSentenceGrader.LoadDictionary( parsedArgs.LMFileSearchPath.GetFiles("english.ngl").FirstOrDefault());
             Console.WriteLine("done.");
 
-            Stream stream = parsedArgs.WikiFilePath.OpenRead();
-            XmlReader reader = XmlReader.Create(stream);
-
-            Console.Write("Loading Languages...");
+            //the text_cat *.lm files are read to build language models
+            Console.Write("Loading Language Models...");
             var langs = (
                 from lmFile in parsedArgs.LMFiles
                 let language = new LMstats(lmFile)
                 where !parsedArgs.IgnoreLangs.Contains(language.Name)
                 select language
                 ).ToArray();
-
-
             var englishlang = langs.Where(l => l.Name == "english").FirstOrDefault();
             if (englishlang == null) {
                 Console.Error.WriteLine("Could not find english.lm.  Did you ignore english?");
@@ -56,6 +75,9 @@ namespace WikiParser
             langs = langs.Where(l => l != englishlang).ToArray();
             Console.WriteLine("done.");
 
+            //Open the wiki dump file and initialize certain tracking variables used to print continual updates...
+            Stream stream = parsedArgs.WikiFilePath.OpenRead();
+            XmlReader reader = XmlReader.Create(stream);
             int lastPageCount = 0;
             int sentencecount = 0;
             int pageCount = 0;
@@ -69,9 +91,11 @@ namespace WikiParser
             var xmlPagesInParallel = reader
                 .StreamElements(el => el.LocalName == "page")
                 .Select((pageXml, i) => new { Page = pageXml, Index = i })
-                .AsParallel();
+                .AsParallel()//PARALLELIZATION: comment out this line to disable parallel processing.
+                ;
 
-            var parallelQuery = //won't be executed until enumerated over.
+            //The following query composes the various components into one big function.
+            var parallelQuery = //This won't be executed until enumerated over.
                                 from page in xmlPagesInParallel
                                 let pageXml = page.Page
                                 let i = page.Index
@@ -102,10 +126,13 @@ namespace WikiParser
                                     BestDamage = hits[0].damage,
                                     Hits = hits
                                 };
-
+            
+            //The parallelQuery function is executed and all sentences it produces are logged.
             foreach (var entry in parallelQuery) {
                 foreach (var hit in entry.Hits) {
                     if (hit.damage * 1.05 < entry.EnglishDamage && hit.damage < 1.05 * entry.BestDamage) {
+                        //all language that match 5% better than english are considered,
+                        //but only if they're no more than 5% worse than the best matching language
                         hit.language.HitRun++;
                         hit.language.HitCounter++;
                         hit.language.AppendToLog(entry.Sentence, entry.PageTitle);
@@ -114,9 +141,11 @@ namespace WikiParser
                     }
                 }
                 sentencecount++;
-                if (sentencecount >= 30000) break;
-                pageCount = entry.PageIndex;
+               // if (sentencecount >= 30000) break;//for benchmarking.
+
+                pageCount = Math.Max( entry.PageIndex,pageCount);
                 if (DateTime.Now - lastTime > TimeSpan.FromSeconds(1.0)) {
+                    //every second we print a status update.
                     DateTime cur = DateTime.Now;
                     long curPos = stream.Position;//stream may be reading ahead due to parallelization, but we can't do much about that...
                     var lastElapsed = (cur - lastTime).TotalSeconds;
