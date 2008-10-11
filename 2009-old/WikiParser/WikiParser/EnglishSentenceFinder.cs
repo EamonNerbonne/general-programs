@@ -6,7 +6,7 @@ namespace WikiParser
     public static class EnglishSentenceFinder
     {
         const string sentenceRegex =
-    @"(?<=[\.\?!]\s+|^)((?<sentence>(\(|" + "\"" + @")?[A-Z]( ([Ss]t|Mrs?|dr|ed|c|v|vs|vol|et al)\.|\(\w\.|[A-Z]\. |\.([\w\d]| (\w\.( \w\.)*|[a-z]))|[^\.\n\?!])+[\.\?!](\)|" + "\"" + @")?))(?=\s|$)";
+    @"(?<=[\.\?!]\s+|^)((?<sentence>(\(|" + "\"" + @")?[A-Z]( ([Ss]t|Mrs?|dr|ed|c|v(s|ol)?|[nN]o(?=\s+[0-9])|et al)\.|\(\w+\.|[A-Z]\. |\.([\w\d]| (\w\.( \w\.)*|[a-z]))|[^\.\n\?!])+[\.\?!\n](\)|" + "\"" + @")?))(?=\s|$)";
 
         public static IEnumerable<string> FindEnglishSentences(string text) {
             return 

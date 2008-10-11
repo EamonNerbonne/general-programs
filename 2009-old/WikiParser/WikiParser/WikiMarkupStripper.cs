@@ -18,16 +18,17 @@ namespace WikiParser
         static readonly string[] regexes1 = {
             @"(?>'')'*",
             @"(?><)(!--([^-]|-[^-]|--[^>])*-->|([mM][aA][tT][hH]|[rR][eE][fF]|[sS][mM][aA][lL][lL]).*?(/>|</([mM][aA][tT][hH]|[rR][eE][fF]|[sS][mM][aA][lL][lL])>))",
-            @"^((?>#)[rR][eE][dD][iI][rR][eE][cC][tT].*$|(?>\*)\**)",
+            @"^((?>#)[rR][eE][dD][iI][rR][eE][cC][tT].*$|(?>\*)\**|(?>=)=*)",
             @"(?<=&)(?>[aA])[mM][pP];",
             @"&(?>[nN])([bB][sS][pP]|[dD][aA][sS][hH]);",
+            @"=+ *$",
         };
         static readonly string[] regexesReplace = {
             @"\{(\|([^\|]|\|[^\}])*\||\{([^\}]|\}[^\}])*\})\}",
             @"(?>\[\[([^\[:\|\]]+):)([^\[\]]|\[\[[^\[\]]*\]\])*\]\]",
             @"\[([^ \[\]]+( (?<txt>[^\[\]]*))?|\[((?<txt>:[^\[\]]*)|(?<txt>[^\[\]:\|]*)|[^\[\]:\|]*\|(?<txt>[^\[\]]*))\])\]",
             @"</?[a-zA-Z]+( [^>]*?)?/?>",
-            @"^=+(?<txt>.*?)=+ *$",
+            //@"^=+(?<txt>.*?)=+ *$",
         };
         const RegexOptions options = RegexOptions.Compiled | RegexOptions.ExplicitCapture | RegexOptions.Multiline | RegexOptions.Singleline | RegexOptions.CultureInvariant;
         static Regex markupStripper = new Regex(RegexHelper.Combine(regexes1), options);

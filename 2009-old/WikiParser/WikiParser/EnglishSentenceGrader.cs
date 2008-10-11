@@ -1,5 +1,9 @@
 ﻿using System.Text.RegularExpressions;
 using System;
+using System.IO;
+using System.Collections.Generic;
+using System.Linq;
+using EamonExtensionsLinq.Filesystem;
 
 namespace WikiParser
 {
@@ -15,12 +19,42 @@ namespace WikiParser
             int capCount = caps.Matches(sentenceCandidate).Count;
             int numCount = nums.Matches(sentenceCandidate).Count;
             int wordCharCount = wordChars.Matches(sentenceCandidate).Count;
-            int wordCount = words.Matches(sentenceCandidate).Count;
+            var wordMatches = words.Matches(sentenceCandidate);
+            int wordCount = wordMatches.Count;
+            double pref = 0.0;
+            if (dictionary != null) {
+                int inDictCount = (
+                    from Match m in wordMatches
+                    where m.Success
+                    let word = m.Value.Trim().ToLowerInvariant()
+                    where dictionary.Contains(word)
+                    select word
+                 ).Count();
+                pref = (2 * inDictCount - wordCount) / (double)wordCount;
+            }
             int capWordCount = capwords.Matches(sentenceCandidate).Count;
             int charCount = sentenceCandidate.Length;
-            return (wordCharCount - numCount - capCount) / (double)charCount + (Math.Min(wordCount, 6) * 0.15) - 1.5 * ((capWordCount - 1) / (double)wordCount);
+            double capRate = wordCount == 1 ? 0.5 :
+                (capWordCount - 1) / (double)(wordCount - 1);
+            return (wordCharCount - numCount - capCount) / (double)charCount
+                + 0.3 * Math.Min(wordCount-capWordCount, 6)
+                - 1.0 * capRate
+                +pref;
         }
 
 
+        static HashSet<string> dictionary;
+
+        public static void LoadDictionary(FileInfo fileInfo) {
+            if (fileInfo == null)
+                dictionary = null;
+            else {
+
+                var dictElems =
+                    fileInfo.GetLines().Select(line => line.Trim().ToLowerInvariant());
+                dictionary = new HashSet<string>(dictElems);
+
+            }
+        }
     }
 }
