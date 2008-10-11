@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Linq;
 using System.Text;
 
 namespace WikiParser
@@ -23,7 +21,7 @@ namespace WikiParser
     public struct RankedBytegram
     {
         public RankedBytegram(RankedNgram stringbased) {
-            this.ngramK = CreateFromBytes( Encoding.Default.GetBytes(stringbased.ngram));
+            this.ngramK = CreateFromBytes(Encoding.Default.GetBytes(stringbased.ngram));
             this.rank = stringbased.rank;
         }
 
@@ -42,69 +40,71 @@ namespace WikiParser
             }
             return retval;
         }
-        public static ulong[] CreateFromByteString(byte[] arr) {
-            return CreateFromByteString(arr, 0, arr.Length);
-        }
-        public static ulong[] CreateFromByteString(byte[] arr, int start, int end) {
-            int len = end - start;
-            //0,1,3,6..10..15..20.....
-            int count =
+        public static int CalcNgramCountFromLength(int len) {
+            return
                 len == 0 ? 0 :
                 len == 1 ? 1 :
                 len == 2 ? 3 :
                 len == 3 ? 6 :
                 len == 4 ? 10 :
                 len * 5 - 10;
-            ulong[] retval = new ulong[count];
-            int next = 0;
+        }
+        public static ulong[] CreateFromByteString(byte[] arr, ulong[] output, ref int writePtr) {
+            return CreateFromByteString(arr, 0, arr.Length,output, ref writePtr);
+        }
+        public static ulong[] CreateFromByteString(byte[] arr, int start, int end,ulong[]output,ref int writePtr) {
+            int len = end - start;
+            //0,1,3,6..10..15..20.....
+            int count = CalcNgramCountFromLength(len);
+
             ulong b;
 
-            if (start == end) return retval;
+            if (start == end) return output;
             b = ((ulong)arr[start]);// <<BITOFFSET;
-            retval[next] = b << BITOFFSET; next++;
+            output[writePtr] = b << BITOFFSET; writePtr++;
             start++;
 
-            if (start == end) return retval;
+            if (start == end) return output;
             b = ((ulong)arr[start]); //<< BITOFFSET;
-            retval[next] = b << BITOFFSET; next++;
-            retval[next] = retval[next - 2] | (b << (BITOFFSET - 8)); next++;
+            output[writePtr] = b << BITOFFSET; writePtr++;
+            output[writePtr] = output[writePtr - 2] | (b << (BITOFFSET - 8)); writePtr++;
             start++;
 
-            if (start == end) return retval;
+            if (start == end) return output;
             b = ((ulong)arr[start]);// << BITOFFSET;
-            retval[next] = b << BITOFFSET; next++;
-            retval[next] = retval[next - 3] | (b << (BITOFFSET - 8)); next++;
-            retval[next] = retval[next - 3] | (b << (BITOFFSET - 16)); next++;
+            output[writePtr] = b << BITOFFSET; writePtr++;
+            output[writePtr] = output[writePtr - 3] | (b << (BITOFFSET - 8)); writePtr++;
+            output[writePtr] = output[writePtr - 3] | (b << (BITOFFSET - 16)); writePtr++;
             start++;
 
-            if (start == end) return retval;
+            if (start == end) return output;
             b = ((ulong)arr[start]);// << BITOFFSET;
-            retval[next] = b << BITOFFSET; next++;
-            retval[next] = retval[next - 4] | (b << (BITOFFSET - 8)); next++;
-            retval[next] = retval[next - 4] | (b << (BITOFFSET - 16)); next++;
-            retval[next] = retval[next - 4] | (b << (BITOFFSET - 24)); next++;
+            output[writePtr] = b << BITOFFSET; writePtr++;
+            output[writePtr] = output[writePtr - 4] | (b << (BITOFFSET - 8)); writePtr++;
+            output[writePtr] = output[writePtr - 4] | (b << (BITOFFSET - 16)); writePtr++;
+            output[writePtr] = output[writePtr - 4] | (b << (BITOFFSET - 24)); writePtr++;
             start++;
 
-            if (start == end) return retval;
+            if (start == end) return output;
             b = ((ulong)arr[start]);// << BITOFFSET;
-            retval[next] = b << BITOFFSET; next++;
-            retval[next] = retval[next - 5] | (b << (BITOFFSET - 8)); next++;
-            retval[next] = retval[next - 5] | (b << (BITOFFSET - 16)); next++;
-            retval[next] = retval[next - 5] | (b << (BITOFFSET - 24)); next++;
-            retval[next] = retval[next - 5] | b; next++;
+            output[writePtr] = b << BITOFFSET; writePtr++;
+            output[writePtr] = output[writePtr - 5] | (b << (BITOFFSET - 8)); writePtr++;
+            output[writePtr] = output[writePtr - 5] | (b << (BITOFFSET - 16)); writePtr++;
+            output[writePtr] = output[writePtr - 5] | (b << (BITOFFSET - 24)); writePtr++;
+            output[writePtr] = output[writePtr - 5] | b; writePtr++;
             start++;
 
             while (start < end) {
                 b = ((ulong)arr[start]);// << BITOFFSET;
-                retval[next] = b << BITOFFSET; next++;
-                retval[next] = retval[next - 6] | (b << (BITOFFSET - 8)); next++;
-                retval[next] = retval[next - 6] | (b << (BITOFFSET - 16)); next++;
-                retval[next] = retval[next - 6] | (b << (BITOFFSET - 24)); next++;
-                retval[next] = retval[next - 6] | b; next++;
+                output[writePtr] = b << BITOFFSET; writePtr++;
+                output[writePtr] = output[writePtr - 6] | (b << (BITOFFSET - 8)); writePtr++;
+                output[writePtr] = output[writePtr - 6] | (b << (BITOFFSET - 16)); writePtr++;
+                output[writePtr] = output[writePtr - 6] | (b << (BITOFFSET - 24)); writePtr++;
+                output[writePtr] = output[writePtr - 6] | b; writePtr++;
                 start++;
             }
 
-            return retval;
+            return output;
         }
         public override string ToString() {
             return

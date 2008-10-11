@@ -1,11 +1,9 @@
-﻿        using System;
+﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
-using System.IO;
-using EamonExtensionsLinq.Filesystem;
 using System.Text.RegularExpressions;
-using System.Reflection;
 
 namespace WikiParser
 {
@@ -47,7 +45,7 @@ namespace WikiParser
         const RegexOptions opts = RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.ExplicitCapture;
         protected static readonly Regex
             lineparser = new Regex(@"^(?<ngram>.*?)\t (?<count>\d+)$", opts),
-            wordSplitter = new Regex(@"[^0-9\s]+", opts);
+            wordSplitter = new Regex(@"[^0-9\s\n]+", opts);
         protected static IEnumerable<string> MakeNgramsFromSentence(string sentence) {
             return
                 from Match m in wordSplitter.Matches(sentence)

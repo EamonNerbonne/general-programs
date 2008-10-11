@@ -1,11 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.IO;
+using System.Linq;
 
 namespace WikiParser
 {
+    /// <summary>
+    /// This implementation is for reference only.  It takes 26.8s (64-bit) or 21.9s (32-bit) 
+    /// to process the first 30000 sentences on an intel q9300.
+    /// </summary>
     public class LMOrderingImpl:LMAbstract<LMOrderingImpl>
     {
         RankedNgram[] orderedNgrams;
@@ -18,7 +20,7 @@ namespace WikiParser
 
         public LMOrderingImpl(string fromstring, string name) {
             Name = name;
-            var sortedNgrams =
+            orderedNgrams =
                 MakeNgramsFromSentence(fromstring)
                 .GroupBy(ngram => ngram)
                 .Select(g => new { Ngram = g.Key, Count = g.Count() })

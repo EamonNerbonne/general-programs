@@ -1,15 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Xml.Linq;
-using System.Xml;
 using System.IO;
-
-using EamonExtensionsLinq.Filesystem;
+using System.Linq;
 using System.Text.RegularExpressions;
-using System.Threading;
-using System.Reflection;
+using System.Xml;
+using System.Xml.Linq;
+using LMstats = WikiParser.LMFastOrderingImpl;
 namespace WikiParser
 {
 
@@ -40,19 +35,13 @@ namespace WikiParser
             EnglishSentenceGrader.LoadDictionary( parsedArgs.LMFileSearchPath.GetFiles("english.ngl").FirstOrDefault());
             Console.WriteLine("done.");
 
-
-            DoWikiFiltering<LMFastOrderingImpl>( parsedArgs);
-
-        }
-
-        static void DoWikiFiltering<LMStats>( CommandLineArgs parsedArgs) {
             Stream stream = parsedArgs.WikiFilePath.OpenRead();
             XmlReader reader = XmlReader.Create(stream);
 
             Console.Write("Loading Languages...");
             var langs = (
                 from lmFile in parsedArgs.LMFiles
-                let language = new LMReferenceImpl(lmFile)
+                let language = new LMstats(lmFile)
                 where !parsedArgs.IgnoreLangs.Contains(language.Name)
                 select language
                 ).ToArray();
@@ -96,7 +85,7 @@ namespace WikiParser
                                 from sentence in EnglishSentenceFinder.FindEnglishSentences(text)
                                 let grade = EnglishSentenceGrader.GradeEnglishSentence(sentence)
                                 where grade > 2.5  //this is just a simple filter to prefer longer, more reasonable sentences.
-                                let stats = new LMReferenceImpl(sentence, "unknown")
+                                let stats = new LMstats(sentence, "unknown")
                                 let hits = (from language in langs
                                             let damage = stats.CompareTo(language)
                                             orderby damage
@@ -125,6 +114,7 @@ namespace WikiParser
                     }
                 }
                 sentencecount++;
+                if (sentencecount >= 30000) break;
                 pageCount = entry.PageIndex;
                 if (DateTime.Now - lastTime > TimeSpan.FromSeconds(1.0)) {
                     DateTime cur = DateTime.Now;

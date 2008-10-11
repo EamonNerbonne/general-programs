@@ -1,9 +1,8 @@
-﻿using System.Text.RegularExpressions;
-using System;
-using System.IO;
+﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
-using EamonExtensionsLinq.Filesystem;
+using System.Text.RegularExpressions;
 
 namespace WikiParser
 {

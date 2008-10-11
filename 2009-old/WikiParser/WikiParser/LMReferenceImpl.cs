@@ -1,14 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.IO;
-using EamonExtensionsLinq.Filesystem;
-using System.Text.RegularExpressions;
-using System.Reflection;
+using System.Linq;
 
 namespace WikiParser
 {
+    /// <summary>
+    /// This implementation is for reference only.  It takes 161s (64-bit) or 135s (32-bit) 
+    /// to process the first 30000 sentences on an intel q9300.
+    /// </summary>
     public class LMReferenceImpl : LMAbstract<LMReferenceImpl>
     {
         Dictionary<string, int> ngramToRank;
