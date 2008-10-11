@@ -12,11 +12,11 @@ namespace WikiParser
 {
     public class LMFastOrderingImpl : LMAbstract<LMFastOrderingImpl>
     {
-        Ranked5gram[] orderedK;
+        RankedBytegram[] orderedK;
         public LMFastOrderingImpl(FileInfo fromfile) {
             orderedK = 
                 LoadFromFile(fromfile)
-                .Select(rn=> new Ranked5gram(rn))
+                .Select(rn=> new RankedBytegram(rn))
                 .OrderBy(n => n.ngramK)
                 .ToArray();
             //using the ordinal string comparer is both faster and more consistent with the other implementation.
@@ -28,14 +28,14 @@ namespace WikiParser
             Name = name;
             var ngramsK = MakeBytegramsFromSentence(fromstring).ToArray();
             Array.Sort(ngramsK);//direct sort is faster than: ngramsK = ngramsK.OrderBy(n => n).ToArray();
-            List<Ranked5gram> ngramsG = new List<Ranked5gram>();
+            List<RankedBytegram> ngramsG = new List<RankedBytegram>();
             ulong lastkey = ngramsK[0];
             int lastkeycount=0;
             foreach (ulong ngramK in ngramsK) {
                 if (ngramK == lastkey) {
                     lastkeycount++;
                 } else {
-                    ngramsG.Add(new Ranked5gram {
+                    ngramsG.Add(new RankedBytegram {
                         ngramK = lastkey,
                         rank = lastkeycount
                     });
@@ -43,7 +43,7 @@ namespace WikiParser
                     lastkeycount = 1;
                 }
             }
-            ngramsG.Add(new Ranked5gram {
+            ngramsG.Add(new RankedBytegram {
                 ngramK = lastkey,
                 rank = lastkeycount
             });
@@ -52,7 +52,7 @@ namespace WikiParser
                 ngramsG
 //                .OrderByDescending(p=>p.rank) //implied by previous sort statement.
                 .Take(NumberOfRanks)
-                .Select((p,i)=>new Ranked5gram {ngramK= p.ngramK,rank=i})
+                .Select((p,i)=>new RankedBytegram {ngramK= p.ngramK,rank=i})
                 .OrderBy(p=>p.ngramK)
                 . ToArray();
         }
@@ -64,7 +64,7 @@ namespace WikiParser
                 let rawword = m.Value
                 let word = "_" + rawword + "_"
                 let bytes = Encoding.Default.GetBytes(word)
-                from ngram in Ranked5gram.CreateFromByteString(bytes)
+                from ngram in RankedBytegram.CreateFromByteString(bytes)
                 select ngram;
 
             //TODO: explicitly use the right encoding rather than the default.

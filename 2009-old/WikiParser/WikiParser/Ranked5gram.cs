@@ -20,9 +20,9 @@ namespace WikiParser
     /// Since words are converted to these n-grams, the CreateFromByteString implementation (which is performance-
     /// critical) tries to generate all n-grams with low overhead.
     /// </summary>
-    public struct Ranked5gram
+    public struct RankedBytegram
     {
-        public Ranked5gram(RankedNgram stringbased) {
+        public RankedBytegram(RankedNgram stringbased) {
             this.ngramK = CreateFromBytes( Encoding.Default.GetBytes(stringbased.ngram));
             this.rank = stringbased.rank;
         }
