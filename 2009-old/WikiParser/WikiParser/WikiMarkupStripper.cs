@@ -28,7 +28,6 @@ namespace WikiParser
             @"(?>\[\[([^\[:\|\]]+):)([^\[\]]|\[\[[^\[\]]*\]\])*\]\]",
             @"\[([^ \[\]]+( (?<txt>[^\[\]]*))?|\[((?<txt>:[^\[\]]*)|(?<txt>[^\[\]:\|]*)|[^\[\]:\|]*\|(?<txt>[^\[\]]*))\])\]",
             @"</?[a-zA-Z]+( [^>]*?)?/?>",
-            //@"^=+(?<txt>.*?)=+ *$",
         };
         const RegexOptions options = RegexOptions.Compiled | RegexOptions.ExplicitCapture | RegexOptions.Multiline | RegexOptions.Singleline | RegexOptions.CultureInvariant;
         static Regex markupStripper = new Regex(RegexHelper.Combine(regexes1), options);

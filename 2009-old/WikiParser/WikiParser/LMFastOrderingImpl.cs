@@ -8,7 +8,7 @@ using System.Text.RegularExpressions;
 namespace WikiParser
 {
     /// <summary>
-    /// This implementation is the fastest.  It takes 8.23s (64-bit) or 10.11s (32-bit) 
+    /// This implementation is the fastest.  It takes 8.07s (64-bit) or 9.93s (32-bit) 
     /// to process the first 30000 sentences on an intel q9300.
     /// </summary>
     public class LMFastOrderingImpl : LMAbstract<LMFastOrderingImpl>
