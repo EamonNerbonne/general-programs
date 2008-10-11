@@ -72,7 +72,6 @@ namespace WikiParser
             //TODO: explicitly use the right encoding rather than the default.
         }
 
-
         public int CompareFast(LMFastOrderingImpl other) {
             int damage = 0;
             int si = 0, oi = 0;
@@ -99,6 +98,7 @@ namespace WikiParser
                 key = orderedK[si].ngramK;
             }
         }
+
         public override int CompareTo(LMFastOrderingImpl other) {
             return CompareFast(other);
         }
