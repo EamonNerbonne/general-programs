@@ -24,10 +24,10 @@ namespace WikiParser
             var exeDir = new FileInfo(Assembly.GetExecutingAssembly().Location).Directory.FullName;
             var sep = Path.DirectorySeparatorChar;
             var LMsearchPath = new[]{
+                    "LM",
                     "text_cat" +sep + "LM",
-                    "LM"
                 };
-            LMsearchPath = LMsearchPath.Concat(LMsearchPath.Select(path => Path.Combine(exeDir, path))).ToArray();
+            LMsearchPath = LMsearchPath.Select(path => Path.Combine(exeDir, path)).Concat(LMsearchPath).ToArray();
             string wikiPath = null;
 
             var argsQ = new Queue<string>(args);
