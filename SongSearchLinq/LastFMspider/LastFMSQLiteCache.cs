@@ -15,7 +15,7 @@ namespace LastFMspider {
         //rating is stored as a REAL which is a float in C#.
 
         const string DataProvider = "System.Data.SQLite";
-        const string DataConnectionString = "page size=4096;cache size=262144;datetimeformat=Ticks;Legacy Format=False;Synchronous=N;data source=\"{0}\"";
+        const string DataConnectionString = "page size=4096;cache size=65536;datetimeformat=Ticks;Legacy Format=False;Synchronous=N;data source=\"{0}\"";
         const string EdmConnectionString = "metadata=res://*/EDM.LfmSqliteEdm.csdl|res://*/EDM.LfmSqliteEdm.ssdl|res://*/EDM.LfmSqliteEdm.msl;provider=System.Data.SQLite;provider connection string='{0}'";
         const string DatabaseDef = @"
 CREATE TABLE IF NOT EXISTS [Artist] (
@@ -141,7 +141,8 @@ CREATE INDEX  IF NOT EXISTS [IDX_TrackInfo_Playcount] ON [TrackInfo](
         public LookupReverseSimilarityList LookupReverseSimilarityList { get; private set; }
         public LookupSimilarityStats LookupSimilarityStats { get; private set; }
         public CountSimilarities CountSimilarities { get; private set; }
-        public AllTracks AllTracks {get;private set;}
+        public CountRoughSimilarities CountRoughSimilarities { get; private set; }
+        public AllTracks AllTracks { get; private set; }
         public RawArtists RawArtists { get; private set; }
         public RawTracks RawTracks { get; private set; }
         public RawTags RawTags { get; private set; }
@@ -190,6 +191,7 @@ CREATE INDEX  IF NOT EXISTS [IDX_TrackInfo_Playcount] ON [TrackInfo](
             LookupSimilarityStats = new LookupSimilarityStats(this);
             LookupReverseSimilarityList = new LookupReverseSimilarityList(this);
             CountSimilarities = new CountSimilarities(this);
+            CountRoughSimilarities = new CountRoughSimilarities(this);
             AllTracks = new AllTracks(this);
             RawTracks = new RawTracks(this);
             RawArtists = new RawArtists(this);

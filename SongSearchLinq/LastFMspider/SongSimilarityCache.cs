@@ -102,7 +102,7 @@ namespace LastFMspider {
             }
         }
 
-        public void SimilarityPatterns() {//TODO:refactor this algorithm into something external.  this shouldn't be here.
+      /*  public void SimilarityPatterns() {//TODO:refactor this algorithm into something external.  this shouldn't be here.
             var timer = new NiceTimer("Getting all similarities");
             Console.Write("Processing: [");
             var sims = backingDB.RawSimilarTracks.Execute(true);
@@ -124,9 +124,9 @@ namespace LastFMspider {
             int i=0;
             foreach(var tracknum in tracks) 
                 renum[tracknum] = i++;
-            foreach (var sim in sims) {
-                sim.TrackA = renum[sim.TrackA];
-                sim.TrackB = renum[sim.TrackB];
+            for (int j =0;j<sims.Length;j++) {
+                sims[j].TrackA = renum[sims[j].TrackA];
+                sims[j].TrackB = renum[sims[j].TrackB];
             }
             tracks = null;//no longer relevant
             renum = null;//TODO: maybe keep this alive since it might allow reverse mapping?
@@ -204,7 +204,7 @@ namespace LastFMspider {
             Console.WriteLine("f={0}, Cov={1}, Stats={2}", "euclidian", Covariance(statEuclidian, rateAC), statEuclidian); 
 
             timer.TimeMark(null);
-        }
+        }*/
 
         public SongSimilarityList Lookup(SongRef songref) {
             return LookupViaSQLite(songref);
