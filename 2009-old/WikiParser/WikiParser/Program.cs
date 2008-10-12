@@ -10,8 +10,8 @@ namespace WikiParser
     /// <summary>
     /// By Eamon Nerbonne (http://eamon.nerbonne.org/) 
     /// 
-    /// This program parses a wiki xml dump and finds sentences in it which text_cat (http://www.let.rug.nl/~vannoord/TextCat/Demo/)
-    /// labels as non-english, but probably are english.
+    /// This program uses wiki xml dump and finds sentences which text_cat (http://www.let.rug.nl/~vannoord/TextCat/Demo/ by Gertjan van Noord)
+    /// labels as non-english, but probably are nevertheless english.
     /// 
     /// To do so it uses :
     ///  - a wiki "parser" which parses the xml file and strips markup using a regex, (See WikiMarkupStripper.cs)

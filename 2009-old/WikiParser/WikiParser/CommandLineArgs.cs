@@ -88,7 +88,11 @@ namespace WikiParser
 
         public void PrintUsage() {
             var exeName = Path.GetFileName(Assembly.GetExecutingAssembly().Location);
-            Console.WriteLine("Usage: {0} <wikiPath> [-lm=<directory with .lm statistic files>] [-i=<comma separated languages to ignore>]",exeName);
+            Console.WriteLine("Usage: {0} <wikiPath>", exeName);
+            Console.WriteLine("Options:");
+            Console.WriteLine("  -lm=<directory with .lm statistic files>");
+            Console.WriteLine("  -i=<comma separated languages to ignore>");
+            Console.WriteLine("  -IncludeNonArticles");
             Console.WriteLine("By default, language files are searched for in the 'text_cat/LM' and 'LM' subdirectories");
             Console.WriteLine("of the current path and of the executable's path");
             Console.WriteLine("For each hit found, a line will be appended to a log file of the language's name in the current directory");
