@@ -5,9 +5,9 @@ using System.Text;
 using System.IO;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
-using EamonExtensionsLinq.FastSerializer;
+using EmnExtensions.FastSerializer;
 
-namespace EamonExtensionsLinq.PersistantCache
+namespace EmnExtensions.PersistantCache
 {
     public struct Timestamped<TItem>
     {

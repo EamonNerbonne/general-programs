@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace EamonExtensionsLinq.Text {
+namespace EmnExtensions.Text {
     public class DelegateTextWriter : AbstractTextWriter {
         public event Action<string> OnWrite;
         public event Action OnClose;

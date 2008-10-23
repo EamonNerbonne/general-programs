@@ -1,5 +1,5 @@
 ﻿
-namespace EamonExtensionsLinq.Text
+namespace EmnExtensions.Text
 {
 	public static class StringFeatures
 	{

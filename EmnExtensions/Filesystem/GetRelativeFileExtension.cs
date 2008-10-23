@@ -1,5 +1,5 @@
 using System.IO;
-namespace EamonExtensionsLinq.Filesystem
+namespace EmnExtensions.Filesystem
 {
 	public static class GetRelativeFileExtension
 	{

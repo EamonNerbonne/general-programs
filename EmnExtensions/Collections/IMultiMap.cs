@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace EamonExtensionsLinq.Collections {
+namespace EmnExtensions.Collections {
      public interface IMultiMap<T1,T2> {
          void AddNodeFrom(T1 from);
          void AddNodeTo(T2 to);

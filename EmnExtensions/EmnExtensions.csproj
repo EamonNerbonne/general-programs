@@ -7,8 +7,8 @@
     <ProjectGuid>{53ECEDA4-BB11-4BD3-8B51-0D3481FCBFA1}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>EamonExtensionsLinq</RootNamespace>
-    <AssemblyName>EamonExtensionsLinq</AssemblyName>
+    <RootNamespace>EmnExtensions</RootNamespace>
+    <AssemblyName>EmnExtensions</AssemblyName>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <StartupObject>

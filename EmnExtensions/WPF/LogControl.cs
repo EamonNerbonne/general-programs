@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Windows.Controls;
-using EamonExtensionsLinq.Text;
+using EmnExtensions.Text;
 
-namespace EamonExtensionsLinq.WPF
+namespace EmnExtensions.WPF
 {
     public class LogControl : TextBox
     {

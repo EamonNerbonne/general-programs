@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.IO;
 
-namespace EamonExtensionsLinq.PersistantCache
+namespace EmnExtensions.PersistantCache
 {
 	public interface IPersistantCacheMapper<TKey,TItem> where TItem : class
 	{

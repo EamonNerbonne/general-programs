@@ -1,15 +1,15 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-namespace EamonExtensionsLinq.Filesystem
+namespace EmnExtensions.Filesystem
 {
 	public static class DescendantDirsExtension
 	{
 		public static IEnumerable<DirectoryInfo> TryGetDirectories(this DirectoryInfo dir) {
-			return FuncUtil.Swallow(() => dir.GetDirectories(), () => new DirectoryInfo[] { });
+			return Functional.Swallow(() => dir.GetDirectories(), () => new DirectoryInfo[] { });
 		}
 		public static IEnumerable<FileInfo> TryGetFiles(this DirectoryInfo dir) {
-			return FuncUtil.Swallow(() => dir.GetFiles(), () => new FileInfo[] { });
+			return Functional.Swallow(() => dir.GetFiles(), () => new FileInfo[] { });
 		}
 		public static IEnumerable<DirectoryInfo> DescendantDirs(this DirectoryInfo dir) {
 			return Enumerable.Repeat(dir, 1).Concat(

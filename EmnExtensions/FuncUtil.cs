@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
 
-namespace EamonExtensionsLinq
+namespace EmnExtensions
 {
-	public static class FuncUtil
+	public static class Functional
 	{
 		public static IEnumerable<IEnumerable<T>> SplitWhen<T>(this IEnumerable<T> iter, Func<T, bool> splitMark) {
 			var queue = new Queue<T>();

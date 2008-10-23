@@ -5,7 +5,7 @@ using System.Text;
 using System.Net;
 using System.IO;
 
-namespace EamonExtensionsLinq.Web {
+namespace EmnExtensions.Web {
     public class UriRequest {
         public byte[] Content { get; private set; }
         public Uri Uri { get; private set; }

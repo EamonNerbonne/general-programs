@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.IO;
 
-namespace EamonExtensionsLinq.Text {
+namespace EmnExtensions.Text {
     /// <summary>
     /// This class implements a minimalist text writer.  Only one method is necessary to implement, namely 
     /// <code>WriteString</code>, unlike the normal <code>TextWriter</code>, which requires you implement all of them.

@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 
-namespace EamonExtensionsLinq.Filesystem
+namespace EmnExtensions.Filesystem
 {
 	public static class GetLinesExtension
 	{

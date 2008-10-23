@@ -1,6 +1,6 @@
 using System;
 
-namespace EamonExtensionsLinq
+namespace EmnExtensions
 {
 	public class NiceTimer
 	{

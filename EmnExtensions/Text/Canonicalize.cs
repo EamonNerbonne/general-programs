@@ -4,7 +4,7 @@ using System;
 using System.Linq;
 using System.Collections;
 
-namespace EamonExtensionsLinq.Text
+namespace EmnExtensions.Text
 {
 	public static class Canonicalize
 	{

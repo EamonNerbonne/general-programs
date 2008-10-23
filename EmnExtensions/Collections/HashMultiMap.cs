@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 
-namespace EamonExtensionsLinq.Collections {
+namespace EmnExtensions.Collections {
     public class HashMultiMap<T1,T2> :IMultiMap<T1,T2>{
 
         Dictionary<T1, HashSet<T2>> forwardLookup = new Dictionary<T1, HashSet<T2>>();

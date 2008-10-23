@@ -5,7 +5,7 @@
 	using System.Runtime.Serialization;
 	using System.Runtime.Serialization.Formatters.Binary;
 
-namespace EamonExtensionsLinq.FastSerializer
+namespace EmnExtensions.FastSerializer
 {
 	// FastSerializer.cs.  Provides SerializationWriter and SerializationReader classes to help high speed serialization.
 	// This short example shows how they're used:

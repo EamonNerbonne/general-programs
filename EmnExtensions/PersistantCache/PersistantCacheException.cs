@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace EamonExtensionsLinq.PersistantCache
+namespace EmnExtensions.PersistantCache
 {
 	public class PersistantCacheException : Exception
 	{
