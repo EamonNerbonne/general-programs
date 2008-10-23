@@ -5,7 +5,7 @@ using System.Text;
 using System.IO;
 using System.Security.AccessControl;
 using System.Reflection;
-using EamonExtensionsLinq.DebugTools;
+using EmnExtensions.DebugTools;
 
 namespace FileSystemInfoDisplayer
 {
