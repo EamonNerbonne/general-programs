@@ -4,8 +4,8 @@ using System.Net;
 using System.Text;
 using System.Xml;
 using System.Xml.Linq;
-using EamonExtensionsLinq;
-using EamonExtensionsLinq.Filesystem;
+using EmnExtensions;
+using EmnExtensions.Filesystem;
 
 namespace SongDataLib
 {
@@ -27,7 +27,7 @@ namespace SongDataLib
 		public static void LoadSongsFromXmlFrag(Stream songSource, SongDataLoadDelegate songSink, bool? songsLocal) {
 			XmlReaderSettings settings = new XmlReaderSettings();
 			settings.ConformanceLevel = ConformanceLevel.Fragment;
-			long streamLength = FuncUtil.Swallow(() => songSource.Length, () => -1);
+			long streamLength = Functional.Swallow(() => songSource.Length, () => -1);
 			TextReader textreader = new StreamReader(songSource);
 			int songCount = 0;
 			try {
@@ -67,7 +67,7 @@ namespace SongDataLib
 		/// <param name="songSink">The handler to call for each found song</param>
 		/// <param name="encoding">The encoding to use for decoding the stream.</param>
 		public static void LoadSongsFromM3U(Stream songSource, SongDataLoadDelegate songSink, Encoding encoding, bool? songsLocal) {
-			long streamLength = FuncUtil.Swallow(() => songSource.Length, () => -1);
+			long streamLength = Functional.Swallow(() => songSource.Length, () => -1);
 			int songCount = 0; //fallback guesstimation
 			StreamReader tr;
 			tr = new StreamReader(songSource, encoding);

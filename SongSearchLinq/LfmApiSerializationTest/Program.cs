@@ -2,8 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using EamonExtensionsLinq;
-using EamonExtensionsLinq.Filesystem;
+using EmnExtensions;
+using EmnExtensions.Filesystem;
 using System.IO;
 using System.Xml.Serialization;
 using LastFMspider.LfmApi;

@@ -5,8 +5,8 @@ using System.Text;
 using SongDataLib;
 using System.IO;
 using LastFMspider;
-using EamonExtensionsLinq.DebugTools;
-using EamonExtensionsLinq;
+using EmnExtensions.DebugTools;
+using EmnExtensions;
 namespace LastFmPlaylistSuggestions
 {
     class Program
@@ -18,7 +18,6 @@ namespace LastFmPlaylistSuggestions
         }
 
         static void RunNew(LastFmTools tools, string[] args) {
-            tools.UseSimilarSongs();
             var dir = new DirectoryInfo(@"D:\Data\playlists");
             var m3us = args.Length == 0 ? dir.GetFiles("*.m3u") : args.Select(s => new FileInfo(s)).Where(f => f.Exists);
             DirectoryInfo m3uDir = args.Length == 0 ? tools.DB.DatabaseDirectory.CreateSubdirectory("lists") : new DirectoryInfo(System.Environment.GetFolderPath(Environment.SpecialFolder.Desktop));
@@ -34,8 +33,6 @@ namespace LastFmPlaylistSuggestions
         }
 
         static void ProcessM3U(LastFmTools tools,FileInfo m3ufile, DirectoryInfo m3uDir) {
-            tools.UseLookup();
-            tools.UseSimilarSongs();
             Console.WriteLine("Trying " + m3ufile.FullName);
             var playlist = LoadExtM3U(m3ufile);
             var known = new List<SongData>();

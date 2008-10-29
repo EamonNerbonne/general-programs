@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
-using EamonExtensionsLinq;
-using EamonExtensionsLinq.Text;
+using EmnExtensions;
+using EmnExtensions.Text;
 using System.Web;
 
 namespace SongDataLib

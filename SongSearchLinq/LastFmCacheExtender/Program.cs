@@ -14,8 +14,7 @@ namespace LastFmCacheExtender
             Console.WriteLine("Loading song similarity...");
             //var similarSongs = new SongSimilarityCache(config);
             var tools = new LastFmTools(config);
-            //tools.PrecacheSongTags();
-            tools.PrecacheLocalFiles();
+            tools.PrecacheLocalFiles(false);
             tools.PrecacheSongSimilarity();
         }
     }

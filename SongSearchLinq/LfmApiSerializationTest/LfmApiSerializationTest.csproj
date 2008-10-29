@@ -89,9 +89,9 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\EamonExtensionsLinq\EamonExtensionsLinq.csproj">
+    <ProjectReference Include="..\..\..\EmnExtensions\EmnExtensions.csproj">
       <Project>{53ECEDA4-BB11-4BD3-8B51-0D3481FCBFA1}</Project>
-      <Name>EamonExtensionsLinq</Name>
+      <Name>EmnExtensions</Name>
     </ProjectReference>
     <ProjectReference Include="..\LastFMspider\LastFMspider.csproj">
       <Project>{6AFF4733-511B-4EE5-8A5F-6B11A894E0D7}</Project>

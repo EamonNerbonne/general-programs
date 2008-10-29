@@ -127,7 +127,7 @@ CREATE INDEX  IF NOT EXISTS [IDX_TrackInfo_Playcount] ON [TrackInfo](
 
 
         FileInfo dbFile;
-        internal DbConnection Connection { get; private set; }
+        public DbConnection Connection { get; private set; }
         public LookupSimilarityList LookupSimilarityList { get; private set; }
         public LookupSimilarityListAge LookupSimilarityListAge { get; private set; }
         public DeleteSimilaritiesOf DeleteSimilaritiesOf { get; private set; }

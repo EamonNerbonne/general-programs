@@ -164,16 +164,18 @@
       <DependentUpon>Settings.settings</DependentUpon>
     </Compile>
     <Compile Include="SimilarTrack.cs" />
+    <Compile Include="SimilarTracks.cs" />
     <Compile Include="SongDataLookups.cs" />
     <Compile Include="SongRef.cs" />
     <Compile Include="SongSimilarityCache.cs" />
     <Compile Include="SongSimilarityList.cs" />
     <Compile Include="TagRef.cs" />
+    <Compile Include="TrackMapper.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\EamonExtensionsLinq\EamonExtensionsLinq.csproj">
+    <ProjectReference Include="..\..\..\EmnExtensions\EmnExtensions.csproj">
       <Project>{53ECEDA4-BB11-4BD3-8B51-0D3481FCBFA1}</Project>
-      <Name>EamonExtensionsLinq</Name>
+      <Name>EmnExtensions</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\..\SongSearchLinq\SongData\SongData.csproj">
       <Project>{171E7F71-DB67-47CA-82BC-C63681BF2733}</Project>

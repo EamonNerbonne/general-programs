@@ -2,16 +2,16 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using EamonExtensionsLinq.PersistantCache;
+using EmnExtensions.PersistantCache;
 using System.IO;
 using System.Xml.Linq;
 using LastFMspider.LastFMSQLiteBackend;
 using System.Xml;
 
-using EamonExtensionsLinq.Text;
-using EamonExtensionsLinq.Web;
-using EamonExtensionsLinq.Collections;
-using EamonExtensionsLinq;
+using EmnExtensions.Text;
+using EmnExtensions.Web;
+using EmnExtensions.Collections;
+using EmnExtensions;
 using System.Diagnostics;
 using SongDataLib;
 
@@ -54,7 +54,6 @@ namespace LastFMspider {
         public struct SimTrans {
             public float rateAB,rateBC,rateAC;
         }
-        private struct SimilarTo { public int track; public float rating; }
 
         private TOut[][] ReMap<TIn, TOut>(int idCount, TIn[] inSet, Func<TIn,int> getId,Func<TIn,TOut> getVal ) {
             int[] valCount = new int[idCount];

@@ -1,0 +1,5 @@
+- split data into training, test and validation set.
+- reread landmark paper for hints
+- look for another implementation
+- look at hitmds in details
+- first trial of hitmds or other implementation on controlled data.

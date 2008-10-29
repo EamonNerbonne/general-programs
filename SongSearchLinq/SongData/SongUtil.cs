@@ -31,7 +31,7 @@ namespace SongDataLib
 		public const byte TERMINATOR = (byte)MAXCANONBYTE + (byte)1;
 
 		public static byte[] CanonicalizedSearchStr(string str) {
-			return str2byteArr(EamonExtensionsLinq.Text.Canonicalize.Basic(str));
+			return str2byteArr(EmnExtensions.Text.Canonicalize.Basic(str));
 		}
 
 		public static bool Contains(this byte[] elem, byte[] substring) {

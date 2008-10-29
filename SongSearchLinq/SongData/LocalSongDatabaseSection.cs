@@ -2,9 +2,9 @@
 using System.IO;
 using System.Linq;
 using System.Xml.Linq;
-using EamonExtensionsLinq;
-using EamonExtensionsLinq.Filesystem;
-using EamonExtensionsLinq.Text;
+using EmnExtensions;
+using EmnExtensions.Filesystem;
+using EmnExtensions.Text;
 
 namespace SongDataLib
 {
@@ -27,9 +27,9 @@ namespace SongDataLib
 			Console.WriteLine("{0} potential songs found.", newFiles.Length);
 			for(int i = 0; i < newFiles.Length; i++) {
 				FileInfo newfile = newFiles[i];
-				ISongData song = FuncUtil.Swallow(()=>filter(newfile.FullName),()=>null);
+				ISongData song = Functional.Swallow(()=>filter(newfile.FullName),()=>null);
 				if(song == null || (song is SongData && ((SongData)song).lastWriteTime < newfile.LastWriteTime))
-					song = FuncUtil.Swallow(() => SongDataFactory.ConstructFromFile(newfile), () => null);
+					song = Functional.Swallow(() => SongDataFactory.ConstructFromFile(newfile), () => null);
 				if(song != null) {
 					handler(song, (double)i / (double)newFiles.Length);
 				}

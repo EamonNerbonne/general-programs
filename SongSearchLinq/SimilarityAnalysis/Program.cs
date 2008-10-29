@@ -5,62 +5,40 @@ using System.Text;
 using SongDataLib;
 using LastFMspider;
 using LastFMspider.LastFMSQLiteBackend;
-using EamonExtensionsLinq;
+using EmnExtensions;
 using System.IO;
+using System.Data.Common;
+using System.Diagnostics;
+using System.Collections;
+using System.IO.Compression;
 
 namespace SimilarityAnalysis
 {
 
-    class DistanceMem
-    {
-        public List<SortedList<int, float>> distances = new List<SortedList<int, float>>();
-
-        public void AddDistance(int a, int b, float dist) {
-            distances[a][b] = dist;
-            distances[b][a] = dist;
-        }
-
-
-        public void RegTrack(int trackNum) {
-            while (distances.Count <= trackNum) {
-                distances.Add(new SortedList<int, float>());
-            }
-        }
-    }
-    class TrackMap
-    {
-        static void Noop(int ignore) { }
-        public Action<int> AddedTrack = new Action<int>(Noop);
-        Dictionary<int, int> oldToNew = new Dictionary<int, int>();
-        int nextSongIndex = 0;
-        public int Map(int oldIndex) {
-            int newIndex;
-            if (!oldToNew.TryGetValue(oldIndex, out newIndex)) {
-                oldToNew[oldIndex] = newIndex = nextSongIndex;
-                nextSongIndex++;
-                AddedTrack(newIndex);
-            }
-            return newIndex;
-        }
-    }
 
 
     class Program
     {
 
+
         //sparseness
         static void Main(string[] args) {
-            NiceTimer timer = new NiceTimer(null);
-            var config = new SongDatabaseConfigFile(false);
 
-            timer.TimeMark("Loading song similarity...");
-            var tools = new LastFmTools(config);
-            tools.UseSimilarSongs();
+            SongDatabaseConfigFile config = new SongDatabaseConfigFile(false);
+            LastFmTools tools = new LastFmTools(config);
+            SimilarTracks sims = SimilarTracks.LoadOrCache(tools, false);
+            Console.WriteLine("Sum is {0}.", sims.Similarities.Select(row => (double)row.Rating).Sum());
+
+            /*
+            LastFMSQLiteCache db = tools.SimilarSongs.backingDB;
+            SimilarTrackRow[] similarTracks = SimilarTracks.LoadSimilarTracksFromDB(db, timer);
+
             TrackMap mapper = new TrackMap();
             DistanceMem dmem = new DistanceMem();
             mapper.AddedTrack = dmem.RegTrack;
             double offset = Math.Log(-100.0);
-            foreach (var relation in tools.SimilarSongs.backingDB.RawSimilarTracks.Execute(true)) {
+            timer.TimeMark("Inserting song similarity...");
+            foreach (var relation in similarTracks) {
                 int songA = mapper.Map(relation.TrackA),
                     songB = mapper.Map(relation.TrackB);
                 float distance = -(float)(Math.Log(relation.Rating) + offset);
@@ -104,6 +82,7 @@ namespace SimilarityAnalysis
                 }
             }
             timer.TimeMark(null);
+              */
         }
     }
 }

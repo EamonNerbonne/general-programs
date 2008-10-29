@@ -16,9 +16,7 @@ namespace LastFMspider.LastFMSQLiteBackend {
         }
 
         public IEnumerable<SimilarTrackRow> Execute(bool printProgress) {
-           // using (var transaction = Connection.BeginTransaction()) {// we need a transaction to ensure that the count is accurate and no buffer overflow occurs.
                 int similarCount = lfmCache.CountRoughSimilarities.Execute();
-  //              SimilarTrackRow[] similarTracks = new SimilarTrackRow[similarCount];
                 int i = 0;
                 DateTime start = DateTime.Now, last = DateTime.Now;
                 using (var reader = CommandObj.ExecuteReader()) {
@@ -36,8 +34,6 @@ namespace LastFMspider.LastFMSQLiteBackend {
                     }
                     
                }
-              //  Debug.Assert(i == similarCount, "Warning, there were " + (i < similarCount ? "fewer" : "more") + " records in the result set than expected.");
-           // }
         }
     }
 }

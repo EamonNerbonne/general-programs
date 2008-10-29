@@ -4,48 +4,44 @@ using System.Linq;
 using System.Text;
 using SongDataLib;
 using System.IO;
-using EamonExtensionsLinq.Algorithms;
+using EmnExtensions.Algorithms;
 using LastFMspider.LastFMSQLiteBackend;
 namespace LastFMspider
 {
     public class LastFmTools
     {
-        public SongSimilarityCache SimilarSongs {get; protected set;}
-        public SongDatabaseConfigFile ConfigFile {get;protected set;}
-        public SimpleSongDB DB{get;protected set;}
-        public SongDataLookups Lookup { get; protected set; }
+        SongSimilarityCache similarSongs;
+        SongDatabaseConfigFile configFile;
+        SimpleSongDB db;
+        SongDataLookups lookup;
 
-        public LastFmTools(SongDatabaseConfigFile configFile) {
-            ConfigFile = configFile;
-        }
-
-        public void UseDB() {
-            if (DB == null) 
-                DB= new SimpleSongDB(ConfigFile, null);
-            
-        }
-        public void UseSimilarSongs() {
-            if (SimilarSongs == null) 
-            SimilarSongs = new SongSimilarityCache(ConfigFile);
-        }
-        public void UseLookup() {
-            if (Lookup == null) {
-                UseDB();
-                Lookup=new SongDataLookups(DB.Songs, null);
+        public SongSimilarityCache SimilarSongs { get {
+                return similarSongs ?? (similarSongs = new SongSimilarityCache(ConfigFile));
+        } }
+        public SongDatabaseConfigFile ConfigFile { get { return configFile; } }
+        public SimpleSongDB DB { get {
+                return db ?? (db = new SimpleSongDB(ConfigFile, null));
             }
         }
+        public SongDataLookups Lookup { get { 
+            return lookup??(lookup = new SongDataLookups(DB.Songs, null)); 
+        } }
+
+        public LastFmTools(SongDatabaseConfigFile configFile) {
+            this.configFile = configFile;
+        }
+
 
         public void UnloadLookup() {
-            Lookup = null;
+            lookup = null;
         }
 
         public void UnloadDB() {
             UnloadLookup();
-            DB = null;
+            db = null;
         }
 
         public void PrecacheSongMetadata() {
-            UseDB();
             Console.WriteLine("Loading song database...");
             if (DB.InvalidDataCount != 0)
                 Console.WriteLine("Ignored {0} songs with unknown tags (should be 0).", DB.InvalidDataCount);
@@ -66,15 +62,17 @@ namespace LastFMspider
             }
         }
 
-        public void PrecacheLocalFiles() {
-            UseSimilarSongs();
-            UseDB();
-            UseLookup();
+        /// <summary>
+        /// Downloads Last.fm metadata for all tracks in the song database (if not already present).
+        /// </summary>
+        /// <param name="shuffle">Whether to perform the precaching in a random order.  Doing so slows down the precaching when almost all
+        /// items are already downloaded, but permits multiple download threads to run in parallel without duplicating downloads.</param>
+        public void PrecacheLocalFiles(bool shuffle) {
             Console.WriteLine("Loading song database...");
             if (DB.InvalidDataCount != 0) Console.WriteLine("Ignored {0} songs with unknown tags (should be 0).", DB.InvalidDataCount);
             Console.WriteLine("Taking those {0} songs and indexing em by artist/title...", DB.Songs.Count);
             SongRef[] songsToDownload = Lookup.dataByRef.Keys.ToArray();
-            //songsToDownload.Shuffle(); //linearspeed: comment this line out if not executing in parallel for a DB speed boost
+            if(shuffle) songsToDownload.Shuffle();
             UnloadDB();
             System.GC.Collect();
             Console.WriteLine("Downloading Last.fm similar tracks...");
@@ -107,7 +105,6 @@ namespace LastFMspider
 
 
         public void PrecacheSongSimilarity() {
-            UseSimilarSongs();
             var stats = SimilarSongs.LookupDbStats();
 
             Console.WriteLine("Found {0} songs which don't have similarity stats.", stats.Length, stats.Where(s => s.LookupTimestamp != null).Count());
@@ -131,8 +128,7 @@ namespace LastFMspider
         }
         public void PrecacheSongTags() {
             Console.WriteLine("Loading songs...");
-            UseSimilarSongs();
-            CachedTrack[] tracks= SimilarSongs.backingDB.AllTracks.Execute();
+            CachedTrack[] tracks = SimilarSongs.backingDB.AllTracks.Execute();
             Console.WriteLine("Found {0} tracks", tracks.Length);
 
             /*Console.WriteLine("Downloading extra metadata from Last.fm...");
