@@ -170,10 +170,6 @@ namespace hitmds {
 	double Hitmds::deriv(int j, int k, int idx)
 	{
 
-#if 0
-		/* Wed Apr  4 11:05:01 */
-		static double sq, scal;
-#endif
 		static double preres;
 		static int _j = -1, _k = -1;
 
@@ -184,24 +180,6 @@ namespace hitmds {
 			double  D = D(pattern_distmat,j,k),
 				dif = d - points_distmat_mean;
 
-#if 0
-			/*    Wed Apr  4 11:05:01     2007: ABS encountered, making following unnecessary */
-			if(_j != j) {    /* only if new reference signal */
-				_j = j;
-				scal = sqrt(pattern_distmat_var_sum * points_distmat_mono);
-				sq = points_distmat_mixed / scal;
-				scal = correps / (points_distmat_mono * scal * (correps - sq) * (correps + sq));
-
-				/*
-				sq = scal * correps - points_distmat_mixed;
-				scal = correps * pattern_distmat_var_sum / (scal * sq * sq);
-				*/
-			}
-
-			_k = k;
-
-			preres = scal * (dif * points_distmat_mixed - D * points_distmat_mono);
-#endif
 			_j = j; _k = k;
 
 			preres = dif * points_distmat_mixed - D * points_distmat_mono;
