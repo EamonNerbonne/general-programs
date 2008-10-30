@@ -44,7 +44,7 @@ namespace MdsTestWpf
             for (int i = 0; i < res; i++)
                 for (int j = 0; j < res; j++)
                     origs[IndexFromIJ(i, j)] = new MdsPoint2D { x = i, y = j };
-            totalCycles = origs.Length * 5;
+            totalCycles = origs.Length * 100;
             mdsProgress.Maximum = totalCycles;
             mdsProgress.Minimum = 0;
             Thread t = new Thread(CalcMds) {

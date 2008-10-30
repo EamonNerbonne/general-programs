@@ -108,7 +108,7 @@ namespace EmnExtensions.Text
 								case (char)160:
 								case '·':
 								case '_':
-								case '^'://TODO-OK?
+								case '^':
 								case (char)175: output.Append(' '); break;// 254 '_',222 '_',190 '_',175 '_',//160 ' '
 								case 'ß': output.Append("ss"); break;
 								case '¿': output.Append('?'); break;
@@ -134,7 +134,7 @@ namespace EmnExtensions.Text
 								case (char)169: output.Append('c'); break;//169 'c'
 								default:
 									if(c < 128) output.Append(c); break;
-							}//TODO: should I normalize any of:  | # % & * + ; : = ? @ ~
+							}//Unclear: should I normalize any of:  | # % & * + ; : = ? @ ~
 							break;
 					}
 			}
