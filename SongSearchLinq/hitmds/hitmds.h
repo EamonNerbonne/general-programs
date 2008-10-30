@@ -14,7 +14,7 @@ namespace hitmds {
 	public:
 		Hitmds(int numberOfPoints, int numberOfDimensions, Func<int,int,float> ^distanceLookupFunction);
 		~Hitmds();
-		void mds_train(int cycles, double learning_rate);
+		void mds_train(int cycles, double learning_rate, Action<int,int>^ progressReport);
 		double GetPoint(int point,int dim);
 	private:
 		Random ^r;

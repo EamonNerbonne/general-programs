@@ -193,7 +193,7 @@ namespace hitmds {
 
 
 	/* the training loop */
-	void Hitmds::mds_train(int cycles, double learning_rate)
+	void Hitmds::mds_train(int cycles, double learning_rate, Action<int,int>^ progressReport)
 	{
 
 		double *delta_point, *point, dtmp, 
@@ -211,7 +211,7 @@ namespace hitmds {
 			t =0, m = cycles / 10;
 
 			for(c = 0; c < cycles && !stop_calculation; c++) {
-
+				progressReport->Invoke(c,cycles);
 				if(++t == m) {
 					t = 0;
 					fprintf(stderr, "%3.2f%%: %g  \t(r = %g)\n", 
