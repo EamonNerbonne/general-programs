@@ -67,6 +67,7 @@ namespace hitmds {
 				D(pattern_distmat,elemA,elemB) = (FLT)distanceLookupFunction->Invoke(elemA,elemB);
 
 			}
+			data_init();
 			//initDistanceMatrices(distanceLookupFunction);
 	}
 
