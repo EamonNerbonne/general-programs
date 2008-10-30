@@ -32,16 +32,19 @@ namespace MdsTestWpf
     /// </summary>
     public partial class MdsDisplay: Window
     {
+        const int res = 50;
+        int IndexFromIJ(int i, int j) {
+            return i + res * j;
+        }
         MdsPoint2D[] origs,calcs;
         int totalCycles = 0;
         public MdsDisplay() {
             InitializeComponent();
-            origs = (
-                from i in Enumerable.Range(0,50)
-                from j in Enumerable.Range(0,50)
-                select  new MdsPoint2D{x=i,y=j}
-                ).ToArray();
-            totalCycles = origs.Length * 50;
+            origs = new MdsPoint2D[res * res];
+            for (int i = 0; i < res; i++)
+                for (int j = 0; j < res; j++)
+                    origs[IndexFromIJ(i, j)] = new MdsPoint2D { x = i, y = j };
+            totalCycles = origs.Length * 5;
             mdsProgress.Maximum = totalCycles;
             mdsProgress.Minimum = 0;
             Thread t = new Thread(CalcMds) {
@@ -68,7 +71,42 @@ namespace MdsTestWpf
             pointCanvas.Width =scaleFactor* boundingBox.Width;
             pointCanvas.Height = scaleFactor* boundingBox.Height;
             Point topLeft = boundingBox.TopLeft;
-            foreach (var point in points.Select(mdsPoint=>mdsPoint.ToPoint())) {
+            Func<int, int, Point> locatePoint =(i, j) => (Point)(scaleFactor * (points[IndexFromIJ(i, j)].ToPoint() - topLeft));
+            for (int i = 0; i < res; i++) {
+                for (int j = 0; j < res; j++) {
+                    Point thisPoint = locatePoint(i,j);
+                    if (i+1 < res) {
+                        Point leftPoint = locatePoint(i+1, j);
+                        pointCanvas.Children.Add(new Line {
+                            X1 = thisPoint.X,
+                            X2 = leftPoint.X,
+                            Y1 = thisPoint.Y,
+                            Y2 = leftPoint.Y,
+                            StrokeThickness = 1,
+                            StrokeStartLineCap = PenLineCap.Round,
+                            StrokeEndLineCap = PenLineCap.Round,
+                            Stroke = Brushes.LightBlue
+                        });
+
+                    }
+                    if (j + 1 < res) {
+                        Point botPoint = locatePoint(i, j+1);
+
+                        pointCanvas.Children.Add(new Line {
+                            X1 = thisPoint.X,
+                            X2 = botPoint.X,
+                            Y1 = thisPoint.Y,
+                            Y2 = botPoint.Y,
+                            StrokeThickness = 1,
+                            StrokeStartLineCap = PenLineCap.Round,
+                            StrokeEndLineCap = PenLineCap.Round,
+                            Stroke = Brushes.LightBlue
+                        });
+                    }
+                }
+            }
+                    
+            foreach (var point in points.Select(mdsPoint => mdsPoint.ToPoint())) {
                 Point relPoint = (Point)(scaleFactor*(point - topLeft));
                 pointCanvas.Children.Add(new Line {
                     X1 = relPoint.X,
@@ -105,7 +143,7 @@ namespace MdsTestWpf
         void CalcMds() {
             Random r = new Random();
 
-            using (Hitmds mds = new Hitmds(origs.Length, 2, (i, j) => (float)(origs[i].DistanceTo(origs[j]) + 2* r.NextDouble()))) {
+            using (Hitmds mds = new Hitmds(origs.Length, 2, (i, j) => (float)(origs[i].DistanceTo(origs[j]) + 2* (r.NextDouble() - 0.5)))) {
                 mds.mds_train(totalCycles, 1.0,ProgressReport);
                 calcs = new MdsPoint2D[origs.Length];
                 for(int p=0;p<origs.Length;p++) {
