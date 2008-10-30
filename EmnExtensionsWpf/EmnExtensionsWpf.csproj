@@ -1,18 +1,19 @@
-﻿<Project ToolsVersion="3.5" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="3.5" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProductVersion>9.0.30729</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{53ECEDA4-BB11-4BD3-8B51-0D3481FCBFA1}</ProjectGuid>
-    <OutputType>Library</OutputType>
+    <ProjectGuid>{1CDECDDA-5CCA-4CA9-8243-60106CD7B428}</ProjectGuid>
+    <OutputType>library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>EmnExtensions</RootNamespace>
-    <AssemblyName>EmnExtensions</AssemblyName>
+    <RootNamespace>EmnExtensions.Wpf</RootNamespace>
+    <AssemblyName>EmnExtensionsWpf</AssemblyName>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
-    <StartupObject>
-    </StartupObject>
+    <ProjectTypeGuids>{60dc8134-eba5-43b8-bcc9-bb4bc16c2548};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+    <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -72,51 +73,58 @@
     <ErrorReport>prompt</ErrorReport>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="PresentationCore">
-      <RequiredTargetFramework>3.0</RequiredTargetFramework>
-    </Reference>
-    <Reference Include="PresentationFramework">
-      <RequiredTargetFramework>3.0</RequiredTargetFramework>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core">
       <RequiredTargetFramework>3.5</RequiredTargetFramework>
     </Reference>
+    <Reference Include="System.Xml.Linq">
+      <RequiredTargetFramework>3.5</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="System.Data.DataSetExtensions">
+      <RequiredTargetFramework>3.5</RequiredTargetFramework>
+    </Reference>
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
-    <Reference Include="WindowsBase">
-      <RequiredTargetFramework>3.0</RequiredTargetFramework>
-    </Reference>
+    <Reference Include="WindowsBase" />
+    <Reference Include="PresentationCore" />
+    <Reference Include="PresentationFramework" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Algorithms\ShuffleAlgorithm.cs" />
-    <Compile Include="Collections\Edge.cs" />
-    <Compile Include="Collections\HashMultiMap.cs" />
-    <Compile Include="Collections\IMultiMap.cs" />
-    <Compile Include="FastSerializer\FastSerializer.cs" />
-    <Compile Include="DebugTools\ConsoleExtension.cs" />
-    <Compile Include="Filesystem\DescendantDirsExtension.cs" />
-    <Compile Include="Filesystem\FSUtil.cs" />
-    <Compile Include="Filesystem\GetLinesExtension.cs" />
-    <Compile Include="Filesystem\GetRelativeFileExtension.cs" />
-    <Compile Include="FuncUtil.cs" />
-    <Compile Include="NiceTimer.cs" />
-    <Compile Include="PersistantCache\DelegateCacheMapper.cs" />
-    <Compile Include="PersistantCache\IPersistantCacheMapper.cs" />
-    <Compile Include="PersistantCache\PersistantCache.cs" />
-    <Compile Include="PersistantCache\PersistantCacheException.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Text\AbstractTextWriter.cs" />
-    <Compile Include="Text\Canonicalize.cs" />
-    <Compile Include="Text\DelegateTextWriter.cs" />
-    <Compile Include="Text\StringFeatures.cs" />
-    <Compile Include="Text\TryParse.cs" />
-    <Compile Include="Web\UriRequest.cs" />
+    <Compile Include="LogControl.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+    <Compile Include="Properties\Settings.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Settings.settings</DependentUpon>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+    </Compile>
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <None Include="Properties\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </None>
+    <AppDesigner Include="Properties\" />
   </ItemGroup>
   <ItemGroup>
-    <Service Include="{B4F97281-0DBD-4835-9ED8-7DFB966E87FF}" />
+    <ProjectReference Include="..\EmnExtensionsNative\EmnExtensionsNative.vcproj">
+      <Project>{CDE4D127-F155-4EA5-B85E-BFE9A0697D76}</Project>
+      <Name>EmnExtensionsNative</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\EmnExtensions\EmnExtensions.csproj">
+      <Project>{53ECEDA4-BB11-4BD3-8B51-0D3481FCBFA1}</Project>
+      <Name>EmnExtensions</Name>
+    </ProjectReference>
   </ItemGroup>
-  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

@@ -5,6 +5,8 @@ using System.Text;
 using System.Windows.Controls;
 using EmnExtensions.Text;
 using System.IO;
+using System.Threading;
+using EmnExtensionsNative;
 
 namespace EmnExtensions.WPF
 {
@@ -61,6 +63,8 @@ namespace EmnExtensions.WPF
                     if (value) {
                         oldOut = Console.Out;
                         Console.SetOut(logger);
+                        RedirectNativeStream(this, StdoutRedirector.RedirectStdout());
+
                     } else {
                         Console.SetOut(oldOut);
                     }
@@ -77,11 +81,29 @@ namespace EmnExtensions.WPF
                     if (value) {
                         oldError = Console.Error;
                         Console.SetError(logger);
+                        RedirectNativeStream(this, StdoutRedirector.RedirectStderr());
                     } else {
                         Console.SetError(oldError);
                     }
                 }
             }
         }
+
+        private static void RedirectNativeStream(LogControl toControl, Stream fromNative) {
+            Thread bgReader = new Thread(() => {
+                using (fromNative)
+                using (StreamReader reader = new StreamReader(fromNative)) {
+                    char[] buffer = new char[512];
+                    while (true) {
+                        int actuallyRead = reader.Read(buffer, 0, buffer.Length);
+                        if (actuallyRead <= 0) break;
+                        toControl.AppendThreadSafe(new string(buffer, 0, actuallyRead));
+                    }
+                }
+            });
+            bgReader.IsBackground = true;
+            bgReader.Start();
+        }
+
     }
 }

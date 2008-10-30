@@ -30,21 +30,22 @@ namespace MdsTestWpf
     /// <summary>
     /// Interaction logic for Window1.xaml
     /// </summary>
-    public partial class MdsDisplay: Window
+    public partial class MdsDisplay : Window
     {
-        const int res = 50;
+        const int res = 100;
         int IndexFromIJ(int i, int j) {
             return i + res * j;
         }
-        MdsPoint2D[] origs,calcs;
+        MdsPoint2D[] origs, calcs;
         int totalCycles = 0;
         public MdsDisplay() {
             InitializeComponent();
             origs = new MdsPoint2D[res * res];
+            calcs = new MdsPoint2D[origs.Length];
             for (int i = 0; i < res; i++)
                 for (int j = 0; j < res; j++)
                     origs[IndexFromIJ(i, j)] = new MdsPoint2D { x = i, y = j };
-            totalCycles = origs.Length * 100;
+            totalCycles = origs.Length * 1000;
             mdsProgress.Maximum = totalCycles;
             mdsProgress.Minimum = 0;
             Thread t = new Thread(CalcMds) {
@@ -53,30 +54,32 @@ namespace MdsTestWpf
             };
             t.Start();
             CompositionTarget.Rendering += new EventHandler(CompositionTarget_Rendering);
-            ShowMdsPoints(origs);    
+            ShowMdsPoints(origs);
         }
 
         Rect BoundMdsPoints(MdsPoint2D[] points) {
-            Rect viewRect= new Rect(points[0].ToPoint(),Size.Empty);
+            Rect viewRect = new Rect(points[0].ToPoint(), Size.Empty);
             foreach (var point in points) {
                 viewRect.Union(point.ToPoint());
             }
             return viewRect;
         }
 
+
+
         void ShowMdsPoints(MdsPoint2D[] points) {
             pointCanvas.Children.Clear();
             Rect boundingBox = BoundMdsPoints(points);
-            double scaleFactor = 1000/Math.Max(boundingBox.Width,boundingBox.Height);
-            pointCanvas.Width =scaleFactor* boundingBox.Width;
-            pointCanvas.Height = scaleFactor* boundingBox.Height;
+            double scaleFactor = 1000 / Math.Max(boundingBox.Width, boundingBox.Height);
+            pointCanvas.Width = scaleFactor * boundingBox.Width;
+            pointCanvas.Height = scaleFactor * boundingBox.Height;
             Point topLeft = boundingBox.TopLeft;
-            Func<int, int, Point> locatePoint =(i, j) => (Point)(scaleFactor * (points[IndexFromIJ(i, j)].ToPoint() - topLeft));
+            Func<int, int, Point> locatePoint = (i, j) => (Point)(scaleFactor * (points[IndexFromIJ(i, j)].ToPoint() - topLeft));
             for (int i = 0; i < res; i++) {
                 for (int j = 0; j < res; j++) {
-                    Point thisPoint = locatePoint(i,j);
-                    if (i+1 < res) {
-                        Point leftPoint = locatePoint(i+1, j);
+                    Point thisPoint = locatePoint(i, j);
+                    if (i + 1 < res) {
+                        Point leftPoint = locatePoint(i + 1, j);
                         pointCanvas.Children.Add(new Line {
                             X1 = thisPoint.X,
                             X2 = leftPoint.X,
@@ -90,7 +93,7 @@ namespace MdsTestWpf
 
                     }
                     if (j + 1 < res) {
-                        Point botPoint = locatePoint(i, j+1);
+                        Point botPoint = locatePoint(i, j + 1);
 
                         pointCanvas.Children.Add(new Line {
                             X1 = thisPoint.X,
@@ -105,15 +108,15 @@ namespace MdsTestWpf
                     }
                 }
             }
-                    
+
             foreach (var point in points.Select(mdsPoint => mdsPoint.ToPoint())) {
-                Point relPoint = (Point)(scaleFactor*(point - topLeft));
+                Point relPoint = (Point)(scaleFactor * (point - topLeft));
                 pointCanvas.Children.Add(new Line {
                     X1 = relPoint.X,
                     X2 = relPoint.X,
                     Y1 = relPoint.Y,
-                    Y2= relPoint.Y,
-                    StrokeThickness =3,
+                    Y2 = relPoint.Y,
+                    StrokeThickness = 3,
                     StrokeStartLineCap = PenLineCap.Round,
                     StrokeEndLineCap = PenLineCap.Round,
                     Stroke = Brushes.Black
@@ -125,8 +128,8 @@ namespace MdsTestWpf
             RedrawProgress();
         }
         int lastCycle;
-        object cycleSync=new object();
-
+        object cycleSync = new object();
+        Hitmds mdsInt;
 
         void RedrawProgress() {
             double nextVal;
@@ -136,20 +139,27 @@ namespace MdsTestWpf
                 mdsProgress.Value = nextVal;
         }
         void ProgressReport(int cycle, int total) {
-            lock(cycleSync) 
-                lastCycle=cycle;
+            lock (cycleSync) {
+                lastCycle = cycle;
+                ExtractCalcs(mdsInt);
+            }
+        }
+        void ExtractCalcs(Hitmds mds) {
+            for (int p = 0; p < origs.Length; p++) {
+                calcs[p] = new MdsPoint2D { x = mds.GetPoint(p, 0), y = mds.GetPoint(p, 1) };
+            }
         }
 
         void CalcMds() {
             Random r = new Random();
-
-            using (Hitmds mds = new Hitmds(origs.Length, 2, (i, j) => (float)(origs[i].DistanceTo(origs[j]) + 2* (r.NextDouble() - 0.5)))) {
-                mds.mds_train(totalCycles, 1.0,ProgressReport);
-                calcs = new MdsPoint2D[origs.Length];
-                for(int p=0;p<origs.Length;p++) {
-                    calcs[p] = new MdsPoint2D { x = mds.GetPoint(p,0), y = mds.GetPoint(p,1)};
+            try {
+                using (Hitmds mds = new Hitmds(origs.Length, 2, (i, j) => (float)(origs[i].DistanceTo(origs[j]) + 2 * (r.NextDouble() - 0.5)))) {
+                    this.mdsInt = mds;
+                    mds.mds_train(totalCycles, 1.0, ProgressReport);
+                    mdsInt = null;
+                    ExtractCalcs(mds);
                 }
-            }
+            } finally { this.mdsInt = null; }
             Dispatcher.Invoke((Action)(() => { ShowMdsPoints(calcs); }));
 
         }
