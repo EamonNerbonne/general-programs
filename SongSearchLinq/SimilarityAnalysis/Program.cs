@@ -23,7 +23,6 @@ namespace SimilarityAnalysis
 
         //sparseness
         static void Main(string[] args) {
-
             SongDatabaseConfigFile config = new SongDatabaseConfigFile(false);
             LastFmTools tools = new LastFmTools(config);
             SimilarTracks sims = SimilarTracks.LoadOrCache(tools, false);
