@@ -7,6 +7,24 @@ using System.IO;
 
 namespace LastFMspider
 {
+    /// <summary>
+    /// TrackMapper maps a potentially sparse input set of integers to [0..n) where n is the number of ints in the set.
+    /// The mapping is order preserving, so if i > j, the map(i)>map(j)
+    /// Since it is intended to be used on only slightly sparse input sets, the input set is passed as a BitArray, though
+    ///  the code could certainly be rewritten to use another (ordered) collection, such as for example simply a sorted array.
+    ///  
+    /// TrackMapper provides two forward mapping functions from the sparse range to the dense range:
+    /// 
+    /// LookupDenseID is O(1) by using a lookup array.  However, this array uses O(max(id)) memory so is infeasible for heavily
+    /// sparse mappings.  Since this reverse mapping isn't always reasonable, it must be explicitly requested first with the method
+    /// BuildReverseMapping(), and O(max(id)) operation.  If the mapping wasn't built, throws NullReferenceException.
+    ///
+    /// FindDenseID is O(log n) and simply uses binary search to find the dense id with the sought-after sparse id.  If the reverse mapping
+    /// is initialized, it uses that instead.
+    /// 
+    /// Both mappings return the denseId if found or the bitwise complement of the next larger denseId if not found 
+    /// (i.e. just like Array.BinarySearch)
+    /// </summary>
     public class TrackMapper
     {
         int[] sqliteFromDense;
@@ -27,6 +45,7 @@ namespace LastFMspider
             for (int i = 0; i < count; i++) {
                 sqliteFromDense[i] = readFrom.ReadInt32();
             }
+            
         }
 
         public void WriteTo(BinaryWriter writeTo) {
@@ -51,7 +70,7 @@ namespace LastFMspider
                     //so sqliteId == sqliteFromDense[sqliteFromDense.Length-1] == count -1
                     //so the loop will end anyhow and we don't need to check for it.
                 } else {
-                    denseFromSqlite[sqliteId] = -1;
+                    denseFromSqlite[sqliteId] = ~denseId;
                 }
             }
         }

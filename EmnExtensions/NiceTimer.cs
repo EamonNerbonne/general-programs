@@ -77,5 +77,25 @@ namespace EmnExtensions
             return elapsedPerTest;
         }
 
+        public static void Time(string actionName, Action toPerform) {
+            new NiceTimer().TimeAction(actionName, toPerform);
+        }
+        public static T Time<T>(string actionName, Func<T> toPerform) {
+            T t=default(T);
+            new NiceTimer().TimeAction(actionName, () => { t = toPerform(); });
+            return t;
+        }
+
+
+
+        public void TimeAction(string actionName, Action toPerform) {
+            TimeMark(actionName);
+            toPerform();
+            TimeMark(null);
+        }
+
+        public void Done() {
+            TimeMark(null);
+        }
     }
 }

@@ -16,11 +16,10 @@
 /* address matrix components */
 #define D(mat,i,j) (*(mat + ( \
 	(i<j) ? (j - 1 + ((((pattern_length<<1) - i - 3) * i) >> 1)) \
-	: ((i==j) ? matsize \
-	: (i - 1 + ((((pattern_length<<1) - j - 3) * j) >> 1))) \
+		  : ((i==j) ? matsize \
+					: (i - 1 + ((((pattern_length<<1) - j - 3) * j) >> 1))) \
 	)))
-#define START_ANNEALING_RATIO .5
-#define ABS(X) abs(X)
+//#define START_ANNEALING_RATIO .5
 
 
 namespace hitmds {
@@ -42,11 +41,11 @@ namespace hitmds {
 
 #define Point(elem) (points+target_dim*(elem))
 
-	Hitmds::Hitmds(int numberOfPoints, int numberOfDimensions, Func<int,int,float> ^distanceLookupFunction) {
+	Hitmds::Hitmds(int numberOfPoints, int numberOfDimensions, Func<int,int,float> ^distanceLookupFunction,Random^ r) {
 		pattern_length=numberOfPoints;
 		target_dim = numberOfDimensions;
 		matsize = ((numberOfPoints-1) * numberOfPoints) >> 1;
-		r= gcnew Random();
+		this->r=r;
 		shuffle_index = new int[pattern_length];
 		for(int i=0;i<pattern_length;i++)shuffle_index[i]=i;
 		nextShuffle = pattern_length;
@@ -167,33 +166,11 @@ namespace hitmds {
 		return pattern_distmat_var_sum*points_distmat_mono/((p2<e2)? e2 : p2) - 1.;
 	}
 
-	/* derivative of HiT-MDS stress function */
-	double Hitmds::deriv(int j, int k, int idx)
-	{
-
-		static double preres;
-		static int _j = -1, _k = -1;
-
-		double d = D(points_distmat,j, k);
-
-		if(_j != j || _k != k) {
-
-			double  D = D(pattern_distmat,j,k),
-				dif = d - points_distmat_mean;
-
-			_j = j; _k = k;
-
-			preres = dif * points_distmat_mixed - D * points_distmat_mono;
-
-		}
-
-		return preres * (Point(j)[idx] - Point(k)[idx]) / ((d < EPS) ? EPS : d);
-	}
 
 
 
 	/* the training loop */
-	void Hitmds::mds_train(int cycles, double learning_rate, Action<int,int>^ progressReport)
+	void Hitmds::mds_train(int cycles, double learning_rate, double start_annealing_ratio, Action<int,int,Hitmds^>^ progressReport)
 	{
 
 		double *delta_point, *point, dtmp, 
@@ -211,7 +188,7 @@ namespace hitmds {
 			t =0, m = cycles / 10;
 
 			for(c = 0; c < cycles && !stop_calculation; c++) {
-				progressReport->Invoke(c,cycles);
+				progressReport->Invoke(c,cycles,this);
 				if(++t == m) {
 					t = 0;
 					fprintf(stderr, "%3.2f%%: %g  \t(r = %g)\n", 
@@ -230,25 +207,43 @@ namespace hitmds {
 				for(j = 0; j < pattern_length; j++) {
 
 					if(j != i) {
+						double d = D(points_distmat,i, j);
+						double  D = D(pattern_distmat,i,j),
+				dif = d - points_distmat_mean;
+						double preres= (dif * points_distmat_mixed - D * points_distmat_mono)/ ((d < EPS) ? EPS : d);
+
 
 						for(k = 0; k < target_dim; k++) {
 
-							delta_point[k] += deriv(i, j, k);
+							delta_point[k] += preres * (Point(i)[k] - Point(j)[k]) ;
 
 						} 
 					}
 				}
 
 
-				if((diff_mixed = START_ANNEALING_RATIO * cycles - c) < 0.)  {
-					diff_mixed = learning_rate * (1. + 1. / (1.-START_ANNEALING_RATIO) * diff_mixed / cycles);
+				if((diff_mixed = start_annealing_ratio * cycles - c) < 0.)  {
+					diff_mixed = learning_rate * (1. + 1. / (1.-start_annealing_ratio) * diff_mixed / cycles);
 				}else
 					diff_mixed = learning_rate;
+				
+				//*				
+				double lenSqr=0;
+				for(k = 0; k < target_dim; k++) {
+					lenSqr += delta_point[k]*delta_point[k];
+				}
+				double invLen = diff_mixed *1.0/sqrt(lenSqr) *sqrt((double)target_dim);
+				for(k = 0; k < target_dim; k++) {
+					delta_point[k] = point[k] - delta_point[k]*invLen +  diff_mixed *(frand()-0.5);
+				} 
+				/*/
+
 
 				for(k = 0; k < target_dim; k++) {
-					diff = diff_mixed * delta_point[k] / ABS(delta_point[k]);
-					delta_point[k] = point[k] - diff /* * (2. * frand() - .5) */;
+					diff = diff_mixed * (delta_point[k] >0 ? 1 : delta_point[k] <0? -1:0);
+					delta_point[k] = point[k] - diff ;  //* (2. * frand() - .5) ;
 				}
+				/**/
 
 
 

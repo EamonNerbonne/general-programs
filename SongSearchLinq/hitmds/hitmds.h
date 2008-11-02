@@ -12,9 +12,9 @@ namespace hitmds {
 		// TODO: Add your methods for this class here.
 
 	public:
-		Hitmds(int numberOfPoints, int numberOfDimensions, Func<int,int,float> ^distanceLookupFunction);
+		Hitmds(int numberOfPoints, int numberOfDimensions, Func<int,int,float> ^distanceLookupFunction,Random^ r);
 		~Hitmds();
-		void mds_train(int cycles, double learning_rate, Action<int,int>^ progressReport);
+		void mds_train(int cycles, double learning_rate, double start_annealing_ratio, Action<int,int,Hitmds^>^ progressReport);
 		double GetPoint(int point,int dim);
 	private:
 		Random ^r;
@@ -45,6 +45,6 @@ namespace hitmds {
 		void data_init(void);
 		int shuffle_next(void);
 		double corr_2(void);
-		double deriv(int j, int k, int idx);
+		//double deriv(int j, int k, int idx);
 	};
 }

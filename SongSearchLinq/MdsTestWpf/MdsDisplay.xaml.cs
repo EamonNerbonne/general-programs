@@ -14,6 +14,7 @@ using System.Windows.Shapes;
 using System.Threading;
 using hitmds;
 using System.Windows.Threading;
+using EmnExtensions;
 
 namespace MdsTestWpf
 {
@@ -32,7 +33,7 @@ namespace MdsTestWpf
     /// </summary>
     public partial class MdsDisplay : Window
     {
-        const int res = 100;
+        const int res = 25;
         int IndexFromIJ(int i, int j) {
             return i + res * j;
         }
@@ -41,16 +42,15 @@ namespace MdsTestWpf
         public MdsDisplay() {
             InitializeComponent();
             origs = new MdsPoint2D[res * res];
-            calcs = new MdsPoint2D[origs.Length];
             for (int i = 0; i < res; i++)
                 for (int j = 0; j < res; j++)
                     origs[IndexFromIJ(i, j)] = new MdsPoint2D { x = i, y = j };
-            totalCycles = origs.Length * 1000;
+            totalCycles = origs.Length * 200;
             mdsProgress.Maximum = totalCycles;
             mdsProgress.Minimum = 0;
             Thread t = new Thread(CalcMds) {
                 IsBackground = true,
-                Priority = ThreadPriority.BelowNormal
+                Priority = ThreadPriority.Normal
             };
             t.Start();
             CompositionTarget.Rendering += new EventHandler(CompositionTarget_Rendering);
@@ -125,42 +125,53 @@ namespace MdsTestWpf
         }
 
         void CompositionTarget_Rendering(object sender, EventArgs e) {
-            RedrawProgress();
+            if (!needUpdate)
+                lock (cycleSync) {
+                    double nextVal = lastCycle;
+                    if (mdsProgress.Value != nextVal)
+                        mdsProgress.Value = nextVal;
+                    if (calcs != null) ShowMdsPoints(calcs);
+                    needUpdate = true;
+                }
         }
         int lastCycle;
+        bool needUpdate = true;
         object cycleSync = new object();
-        Hitmds mdsInt;
 
-        void RedrawProgress() {
-            double nextVal;
-            lock (cycleSync)
-                nextVal = lastCycle;
-            if (mdsProgress.Value != nextVal)
-                mdsProgress.Value = nextVal;
-        }
-        void ProgressReport(int cycle, int total) {
-            lock (cycleSync) {
-                lastCycle = cycle;
-                ExtractCalcs(mdsInt);
-            }
+        void ProgressReport(int cycle, int total,Hitmds src) {
+            if(needUpdate)
+                lock (cycleSync) {
+                    lastCycle = cycle;
+                    ExtractCalcs(src);//comment out for no gfx
+                    needUpdate = false;
+                }
         }
         void ExtractCalcs(Hitmds mds) {
+            if(calcs==null)
+                calcs = new MdsPoint2D[origs.Length];
             for (int p = 0; p < origs.Length; p++) {
                 calcs[p] = new MdsPoint2D { x = mds.GetPoint(p, 0), y = mds.GetPoint(p, 1) };
             }
         }
 
         void CalcMds() {
-            Random r = new Random();
-            try {
-                using (Hitmds mds = new Hitmds(origs.Length, 2, (i, j) => (float)(origs[i].DistanceTo(origs[j]) + 2 * (r.NextDouble() - 0.5)))) {
-                    this.mdsInt = mds;
-                    mds.mds_train(totalCycles, 1.0, ProgressReport);
-                    mdsInt = null;
+            NiceTimer timer = new NiceTimer();
+            timer.TimeMark("Doing MDS...");
+            Random r = new Random();//12345678);
+            using (Hitmds mds = 
+                new Hitmds(origs.Length, 2, 
+                    (i, j) => (float)(origs[i].DistanceTo(origs[j]) * (1.0 + origs[i].DistanceTo(origs[j])/res*2 + 0.8 * 2 * (r.NextDouble() - 0.5))),
+                    r
+                    )
+                    ) {
+                mds.mds_train(totalCycles, 5.0,0.0, ProgressReport);
+                lock (cycleSync) {
+                    lastCycle = totalCycles;
                     ExtractCalcs(mds);
+                    needUpdate = false;
                 }
-            } finally { this.mdsInt = null; }
-            Dispatcher.Invoke((Action)(() => { ShowMdsPoints(calcs); }));
+            }
+            timer.TimeMark(null);
 
         }
     }

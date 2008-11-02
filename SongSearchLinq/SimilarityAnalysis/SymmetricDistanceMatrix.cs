@@ -34,5 +34,14 @@ namespace SimilarityAnalysis
                 distances[calcOffset(i, j)] = value;
             }
         }
+
+        public void FloydWarshall() {
+            for (int k = 0; k < ElementCount; k++)
+                for (int i = 0; i < ElementCount - 1; i++)
+                    if (i != k)
+                        for (int j = i + 1; j < ElementCount; j++)
+                            if (j != k)
+                                this[i, j] = Math.Min(this[i, j], this[i, k] + this[k, j]);
+        }
     }
 }
