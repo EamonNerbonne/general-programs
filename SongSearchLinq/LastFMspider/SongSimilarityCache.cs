@@ -206,14 +206,27 @@ namespace LastFMspider {
         }*/
 
         public SongSimilarityList Lookup(SongRef songref) {
-            return LookupViaSQLite(songref);
+            bool ignore;
+            return Lookup(songref, out ignore);
+        }
+        public SongSimilarityList Lookup(SongRef songref, out bool isNewlyDownloaded) {
+            return LookupViaSQLite(songref, out isNewlyDownloaded);
         }
 
-        private SongSimilarityList LookupViaSQLite(SongRef songref) {
-            DateTime? cachedVersionAge = backingDB.LookupSimilarityListAge.Execute(songref);
+        private SongSimilarityList LookupViaSQLite(SongRef songref, out bool isNewlyDownloaded) {
+            DateTime? cachedVersionAge=null;
+            using (var trans = backingDB.Connection.BeginTransaction()) {
+                cachedVersionAge = backingDB.LookupSimilarityListAge.Execute(songref);
+                if (cachedVersionAge == null) //make sure no one else looks this one up!
+                    try {
+                        backingDB.UpdateTrackTimestamp.Execute(songref, DateTime.UtcNow - TimeSpan.FromSeconds(1.0));
+                        trans.Commit();
+                    } catch { }//if an error occurs, well, we just might duplicate a lookup.
+            }
             if (cachedVersionAge == null) { //get online version
                 Console.Write("?");
                 var retval = DirectWebRequest(songref);
+                isNewlyDownloaded = true;
                 try {
                     backingDB.InsertSimilarityList.Execute(retval, DateTime.UtcNow);
                 } catch {//retry; might be a locking issue.  only retry once.
@@ -222,6 +235,7 @@ namespace LastFMspider {
                 }
                 return retval;
             } else {
+                isNewlyDownloaded = false;
                 return backingDB.LookupSimilarityList.Execute(songref);
             }
         }

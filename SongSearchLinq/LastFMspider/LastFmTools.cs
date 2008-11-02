@@ -15,17 +15,22 @@ namespace LastFMspider
         SimpleSongDB db;
         SongDataLookups lookup;
 
-        public SongSimilarityCache SimilarSongs { get {
+        public SongSimilarityCache SimilarSongs {
+            get {
                 return similarSongs ?? (similarSongs = new SongSimilarityCache(ConfigFile));
-        } }
+            }
+        }
         public SongDatabaseConfigFile ConfigFile { get { return configFile; } }
-        public SimpleSongDB DB { get {
+        public SimpleSongDB DB {
+            get {
                 return db ?? (db = new SimpleSongDB(ConfigFile, null));
             }
         }
-        public SongDataLookups Lookup { get { 
-            return lookup??(lookup = new SongDataLookups(DB.Songs, null)); 
-        } }
+        public SongDataLookups Lookup {
+            get {
+                return lookup ?? (lookup = new SongDataLookups(DB.Songs, null));
+            }
+        }
 
         public LastFmTools(SongDatabaseConfigFile configFile) {
             this.configFile = configFile;
@@ -72,7 +77,7 @@ namespace LastFMspider
             if (DB.InvalidDataCount != 0) Console.WriteLine("Ignored {0} songs with unknown tags (should be 0).", DB.InvalidDataCount);
             Console.WriteLine("Taking those {0} songs and indexing em by artist/title...", DB.Songs.Count);
             SongRef[] songsToDownload = Lookup.dataByRef.Keys.ToArray();
-            if(shuffle) songsToDownload.Shuffle();
+            if (shuffle) songsToDownload.Shuffle();
             UnloadDB();
             System.GC.Collect();
             Console.WriteLine("Downloading Last.fm similar tracks...");
@@ -112,11 +117,22 @@ namespace LastFMspider
             //Array.Sort(stats, (a, b) => b.TimesReferenced.CompareTo(a.TimesReferenced));
             Console.WriteLine("Showing a few...");
 
-            foreach (var stat in stats) {
-                Console.WriteLine("{1} {0}, {2}", stat.SongRef.ToString(), stat.LookupTimestamp == null ? "!" : " ", stat.TimesReferenced);
-                try { SimilarSongs.Lookup(stat.SongRef); } catch (Exception e) {
+            var tolookup = new HashSet<SongRef>( stats.Select(stat => stat.SongRef));
+            stats = null;
+
+            while (tolookup.Count > 0) {
+                var songref = tolookup.First();
+                tolookup.Remove(songref);
+                Console.WriteLine("{0}", songref.ToString());
+                bool isNewlyDownloaded;
+                try {
+                    var simlist = SimilarSongs.Lookup(songref, out isNewlyDownloaded);
+                    if (isNewlyDownloaded)
+                        foreach (var sim in simlist.similartracks)
+                            tolookup.Add(sim.similarsong);
+                } catch (Exception e) {
                     try {
-                        Console.WriteLine("Error in {0}: {1}: {2}", stat.SongRef.ToString(), e.Message, e.StackTrace);
+                        Console.WriteLine("Error in {0}: {1}: {2}", songref.ToString(), e.Message, e.StackTrace);
                     } catch { }
                 }
                 //shown++;

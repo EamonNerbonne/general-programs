@@ -19,23 +19,23 @@ namespace LastFMspider
             Undefined, Complete, Training, Test, Verification
         }
 
-        struct DenseSimilarTo :IComparable<DenseSimilarTo>
+        public struct DenseSimilarTo :IComparable<DenseSimilarTo>
         {
-            public int otherDenseTrack;
+            public int trackID;
             public float rating;
             internal void WriteTo(BinaryWriter writer) {
-                writer.Write(otherDenseTrack);
+                writer.Write(trackID);
                 writer.Write(rating);
             }
 
             public DenseSimilarTo(BinaryReader readFrom) {
-                otherDenseTrack = readFrom.ReadInt32();
+                trackID = readFrom.ReadInt32();
                 rating = readFrom.ReadSingle();
             }
 
 
             public int CompareTo(DenseSimilarTo other) {
-                return otherDenseTrack.CompareTo(other.otherDenseTrack);
+                return trackID.CompareTo(other.trackID);
             }
         }
 
@@ -64,14 +64,14 @@ namespace LastFMspider
             if (file.Exists) {
                 using (var stream = file.OpenRead())
                 using (var reader = new BinaryReader(stream))
-                    retval = new SimilarTracks(reader);
+                    retval = new SimilarTracks(reader, dataset );
             } else if (dataset == DataSetType.Complete) {
                 var similarTrackRows = LoadSimilarTracksFromDB(tools, new NiceTimer());
-                retval = new SimilarTracks(similarTrackRows) { DataSet = DataSetType.Complete };
+                retval = new SimilarTracks(similarTrackRows, DataSetType.Complete);
                 retval.SaveDataset(tools);
                 System.GC.Collect();
             } else {
-                SimilarTrackRow[] similarities = LoadOrCache(tools, DataSetType.Complete).SimilaritiesOneSidedSqlite.ToArray();
+                SimilarTrackRow[] similarities = LoadOrCache(tools, DataSetType.Complete).SimilaritiesSqlite.ToArray();
                 //we use toarray to reduce peak memory usage - the garbage collector can now recycle the Complete set.
 
                 var labelledlists= new Dictionary<DataSetType,List<SimilarTrackRow>>() {
@@ -96,7 +96,7 @@ namespace LastFMspider
                 retval = null;
                 foreach (var list in labelledlists) {
                     SimilarTracks current;
-                    current = new SimilarTracks(list.Value) { DataSet = list.Key };
+                    current = new SimilarTracks(list.Value, list.Key);
                     current.SaveDataset(tools);
                     if (dataset == current.DataSet) retval = current;
                 }
@@ -131,8 +131,8 @@ namespace LastFMspider
                 }
             }
         }
-        public SimilarTracks(BinaryReader readFrom) {
-
+        public SimilarTracks(BinaryReader readFrom, DataSetType dataSet) {
+            DataSet = dataSet;
             TrackMapper = new TrackMapper(readFrom);
             similarTo = new DenseSimilarTo[TrackMapper.CountDense][];
             for (int i = 0; i < similarTo.Length; i++) {
@@ -143,7 +143,8 @@ namespace LastFMspider
             }
             CalcCount();
         }
-        private SimilarTracks(IList<SimilarTrackRow> similarTrackRows) {
+        private SimilarTracks(IList<SimilarTrackRow> similarTrackRows, DataSetType dataSet) {
+            DataSet = dataSet;
             int referencedTrackCount;
             BitArray isReferenced;
             ComputeReferencedTracks(similarTrackRows, out referencedTrackCount, out isReferenced);
@@ -207,8 +208,8 @@ namespace LastFMspider
                 similarTo[i] = new DenseSimilarTo[refCount[i]];
             }
             foreach (var sim in similarTracks) {
-                similarTo[sim.TrackA][trackWritePos[sim.TrackA]++] = new DenseSimilarTo { otherDenseTrack = sim.TrackB, rating = sim.Rating };
-                similarTo[sim.TrackB][trackWritePos[sim.TrackB]++] = new DenseSimilarTo { otherDenseTrack = sim.TrackA, rating = sim.Rating };
+                similarTo[sim.TrackA][trackWritePos[sim.TrackA]++] = new DenseSimilarTo { trackID = sim.TrackB, rating = sim.Rating };
+                similarTo[sim.TrackB][trackWritePos[sim.TrackB]++] = new DenseSimilarTo { trackID = sim.TrackA, rating = sim.Rating };
             }
 #if DEBUG
             for (int i = 0; i < refCount.Length; i++) {
@@ -223,25 +224,28 @@ namespace LastFMspider
 
             for (int i = 0; i < similarTo.Length; i++) {
                 DenseSimilarTo[] simToThis = similarTo[i];
-                Array.Sort(simToThis, (Comparison<DenseSimilarTo>)((a, b) => a.otherDenseTrack.CompareTo(b.otherDenseTrack)));
+                Array.Sort(simToThis, (Comparison<DenseSimilarTo>)((a, b) => a.trackID.CompareTo(b.trackID)));
                 int writePos = -1;
                 int last = -1;
                 for (int readPos = 0; readPos < simToThis.Length; readPos++) {
                     DenseSimilarTo sim = simToThis[readPos];
-                    if (sim.otherDenseTrack != last) {
+                    if (sim.trackID == i) {//this _really_ shouldn't happen, but it seems we downloaded some info wrongly normalized.
+                        continue;
+                    }
+                    if (sim.trackID != last) {
                         writePos++;
                         simToThis[writePos] = sim;
                     } else {
                         simToThis[writePos].rating = (simToThis[writePos].rating + sim.rating) / 2.0f;
                     }
-                    last = sim.otherDenseTrack;
+                    last = sim.trackID;
                 }
                 Array.Resize(ref simToThis, writePos+1);//!@#$$^#$^!  forgot the +1, that cost like 5 hours.
 #if DEBUG
                 last = -1;
                 for (int j = 0; j < simToThis.Length; j++) {
-                    if (last < simToThis[j].otherDenseTrack)
-                        last = simToThis[j].otherDenseTrack;
+                    if (last < simToThis[j].trackID)
+                        last = simToThis[j].trackID;
                     else
                         throw new Exception("Coding Assumption violated: simToThis must be sorted");
                 }
@@ -253,9 +257,9 @@ namespace LastFMspider
             for (int TrackA = 0; TrackA < similarTo.Length; TrackA++) {
                 for (int i = 0; i < similarTo[TrackA].Length; i++) {
                     var simTo = similarTo[TrackA][i];
-                    int TrackB = simTo.otherDenseTrack;
+                    int TrackB = simTo.trackID;
                     
-                    int TrackArev = Array.BinarySearch(similarTo[TrackB], new DenseSimilarTo { otherDenseTrack=TrackA});
+                    int TrackArev = Array.BinarySearch(similarTo[TrackB], new DenseSimilarTo { trackID=TrackA});
                     if(TrackArev<0)
                         Console.WriteLine("heee????");
 
@@ -266,35 +270,10 @@ namespace LastFMspider
 
         
         private void CalcCount() {
-            Count = similarTo.Sum(sim => sim.Length);
-        }
+            Count = similarTo.Sum(sim => sim.Length)/2;
+        } 
 
-        public int Count { get; private set; }
-        public int CountOneSided { get { return Count / 2; } }
-
-        /// <summary>
-        /// Returns all similarities.  For a given similarity (a,b,rating) returns (a,b,rating) and (b,a,rating).
-        /// Similarities are returned in order i.e. 0,13 before 1,0 before 1,2
-        /// 
-        /// Note that the id's in the SimilarTrackRow's listed are dense and must be converted using TrackMapper before
-        /// using in the sqlite index.
-        /// </summary>
-        public IEnumerable<DenseSimilarity> Similarities {
-            get {
-                for (int TrackA = 0; TrackA < similarTo.Length; TrackA++) {
-                    for (int i = 0; i < similarTo[TrackA].Length; i++) {
-                        yield return new DenseSimilarity {
-                            TrackA = TrackA,
-                            TrackB = similarTo[TrackA][i].otherDenseTrack,
-                            Rating = similarTo[TrackA][i].rating
-                        };
-                    }
-                }
-            }
-        }
-        
-
-        IEnumerable<SimilarTrackRow> SimilaritiesSqlite { get { return Similarities.Select<DenseSimilarity, SimilarTrackRow>(MapToSqlite); } }
+        public int Count { get; private set;}
 
         /// <summary>
         /// Returns all similarities.  For a given similarity (a,b,rating) returns either (a,b,rating) or (b,a,rating), such that
@@ -302,16 +281,16 @@ namespace LastFMspider
         /// larger denseID's) their similarities are listed last, and that adding new tracks DOES not change the order of old tracks in this
         /// listing.
         /// </summary>
-        IEnumerable<DenseSimilarity> SimilaritiesOneSided {
+        public IEnumerable<DenseSimilarity> SimilaritiesRemapped {
             get {
                 int returned = 0;
                 for (int TrackA = 0; TrackA < similarTo.Length; TrackA++) {
                     for (int i = 0; i < similarTo[TrackA].Length; i++) {
-                        int TrackB = similarTo[TrackA][i].otherDenseTrack;
+                        int TrackB = similarTo[TrackA][i].trackID;
                         if (TrackB >= TrackA) break;
                         returned++;
 #if DEBUG
-                        if (returned > CountOneSided)
+                        if (returned > Count)
                             Console.WriteLine("heuh?");
 #endif
                         yield return new DenseSimilarity {
@@ -321,9 +300,15 @@ namespace LastFMspider
                         };
                     }
                 }
+                if (returned != Count)
+                    Console.WriteLine("he?");
             }
         }
-        public IEnumerable<SimilarTrackRow> SimilaritiesOneSidedSqlite { get { return SimilaritiesOneSided.Select<DenseSimilarity, SimilarTrackRow>(MapToSqlite); } }
+        public IEnumerable<SimilarTrackRow> SimilaritiesSqlite { get { return SimilaritiesRemapped.Select<DenseSimilarity, SimilarTrackRow>(MapToSqlite); } }
+
+        public DenseSimilarTo[] SimilarTo(int remappedID) {
+            return similarTo[remappedID];
+        }
 
 
         public SimilarTrackRow MapToSqlite(DenseSimilarity dense) {
