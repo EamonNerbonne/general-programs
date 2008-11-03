@@ -46,7 +46,7 @@ namespace LastFMspider
             public int TrackA, TrackB;
             public float Rating;
         }
-        const float maxRate = 1000.0f;//note this is  too high!!!
+        const float maxRate = 200.0f;//note this is  too high, intentionally to at least mitigate triangle inequality muck!!!
         static readonly double logMaxRate = (float)Math.Log(maxRate);
         static float DistFromSim(float sim) {
             return (float)(logMaxRate - Math.Log(sim));

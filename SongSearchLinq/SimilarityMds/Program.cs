@@ -8,6 +8,7 @@ using EmnExtensions;
 using EmnExtensions.Algorithms;
 using System.Threading;
 using System.IO;
+using System.Text.RegularExpressions;
 
 namespace SimilarityMds
 {
@@ -21,6 +22,7 @@ namespace SimilarityMds
                 distance = sim.rating
             };
         }
+        static Regex fileNameRegex = new Regex(@"(e|t|b)(?<num>\d+)\.(dist|bin)", RegexOptions.CultureInvariant| RegexOptions.Compiled| RegexOptions.ExplicitCapture);
 
         static void Main(string[] args) {
           /*  Heap<int> test = new Heap<int>((i, j) => { });
@@ -44,34 +46,49 @@ namespace SimilarityMds
             timer.TimeMark("GC");
             System.GC.Collect();
 
-            Random r = new Random(37);
-            HashSet<int> selectedTracks = new HashSet<int>();
-            while (selectedTracks.Count < 3000) {
-                selectedTracks.Add(r.Next(sims.TrackMapper.Count));
+            DirectoryInfo dir = new DirectoryInfo(@"C:\emn\");
+            HashSet<int> cachedDists = new HashSet<int>();
+            foreach (var file in dir.GetFiles()) {
+                if (fileNameRegex.IsMatch(file.Name)) {
+                    int trackNum = int.Parse (fileNameRegex.Replace(file.Name, "${num}"));
+                    cachedDists.Add(trackNum);
+                }
             }
-            var selTrackArr = selectedTracks.ToArray();
-            File.WriteAllText(@"C:\emn\selected.tracks", string.Join("\n", selectedTracks.Select(t => t.ToString()).ToArray()));
+
+            Random r = new Random();
 
             timer.TimeMark("Dijkstra");
-            Parallel.ForEach(selTrackArr, (track) => {
-                float[] distanceFromA;
-                int[] pathToA;
+            Parallel.For(0,sims.TrackMapper.Count-cachedDists.Count, (i) => {
+                try {
+                    int track;
+                    lock (r) {
+                        do{track= r.Next(sims.TrackMapper.Count);}
+                        while (cachedDists.Contains(track));
+                        cachedDists.Add(track);
+                    }
+                    float[] distanceFromA;
+                    int[] pathToA;
 
-                Dijkstra.FindShortestPath(
-                    (numNode) => sims.SimilarTo(numNode).Select(
-                        sim => new Dijkstra.DistanceTo {
-                            targetNode = sim.trackID,
-                            distance = sim.rating
-                        }),
-                    sims.TrackMapper.Count,
-                    Enumerable.Repeat( track,1),
-                    out distanceFromA,
-                    out  pathToA);
-                File.WriteAllText(@"C:\emn\t" + track + ".dist",
-                    string.Join("",selTrackArr.Select(trackOther =>
-                        "" + trackOther + " " + distanceFromA[trackOther] + "\n").ToArray()));
+                    Dijkstra.FindShortestPath(
+                        (numNode) => sims.SimilarTo(numNode).Select(
+                            sim => new Dijkstra.DistanceTo {
+                                targetNode = sim.trackID,
+                                distance = sim.rating
+                            }),
+                        sims.TrackMapper.Count,
+                        Enumerable.Repeat(track, 1),
+                        out distanceFromA,
+                        out  pathToA);
+                    FileInfo saveFile = new FileInfo(@"C:\emn\b"+track+".bin");
+                    using(Stream s = saveFile.Open(FileMode.Create, FileAccess.Write))
+                    using (var binW = new BinaryWriter(s)) {
+                        binW.Write(distanceFromA.Length);
+                        foreach (var f in distanceFromA)
+                            binW.Write(f);
+                    }
+                } catch { }
             });
-
+            /*
             float[] distanceFromAll;
             int[] pathToAll;
 
@@ -94,36 +111,7 @@ namespace SimilarityMds
                 .OrderByDescending(d => d.dist)
                 .Select(d=>d.track)
                 );
-            List<int> tracksTotal = new List<int>(selTrackArr);
-
-            Parallel.For(0,tracksToGo.Count, (ignore) => {
-                int track;
-                lock (tracksToGo) {
-                    track = tracksToGo.Dequeue();
-                    tracksTotal.Add(track);
-                }
-                float[] distanceFromA;
-                int[] pathToA;
-
-                Dijkstra.FindShortestPath(
-                    (numNode) => sims.SimilarTo(numNode).Select(
-                        sim => new Dijkstra.DistanceTo {
-                            targetNode = sim.trackID,
-                            distance = sim.rating
-                        }),
-                    sims.TrackMapper.Count,
-                    Enumerable.Repeat(track, 1),
-                    out distanceFromA,
-                    out  pathToA);
-                string[] toWrite;
-                lock(tracksToGo)
-                    toWrite= tracksTotal.Select(trackOther =>
-                        "" + trackOther + " " + distanceFromA[trackOther] + "\n").ToArray();
-                File.WriteAllText(@"C:\emn\e" + track + ".dist",
-                    string.Join("", toWrite) );
-            });
-
-
+             */
             timer.Done();
         }
     }
