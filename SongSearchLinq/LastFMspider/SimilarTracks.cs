@@ -89,6 +89,18 @@ namespace LastFMspider
         //since the data is in memory in a 
         const int dataSetSplitSeed = 42;
 
+        public static TrackMapper LoadOnlyTrackMapper(LastFmTools tools, DataSetType dataset) {
+            SongDatabaseConfigFile config = tools.ConfigFile;
+            var file = SimCacheFile(config, dataset);
+            if (file.Exists) {
+                using (var stream = file.OpenRead())
+                using (var reader = new BinaryReader(stream))
+                    return new TrackMapper(reader); //the trackmapper is stored first in the stream so this just works
+            } else { //no way around it, we need to load the whole thing first to create the trackmapper from scratch.
+                SimilarTracks fulldata = LoadOrCache(tools, dataset);
+                return fulldata.TrackMapper;
+            }
+        }
 
         public static SimilarTracks LoadOrCache(LastFmTools tools, DataSetType dataset) {
             SongDatabaseConfigFile config = tools.ConfigFile;
