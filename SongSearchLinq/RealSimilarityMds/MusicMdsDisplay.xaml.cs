@@ -11,16 +11,20 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using System.Threading;
 
 namespace RealSimilarityMds
 {
-    /// <summary>
-    /// Interaction logic for Window1.xaml
-    /// </summary>
-    public partial class Window1 : Window
+    public partial class MusicMdsDisplay : Window
     {
-        public Window1() {
+        ProgressManager progress;
+        Program program;
+        public MusicMdsDisplay() {
             InitializeComponent();
+            progress = new ProgressManager(progressBar, labelETA);
+            program = new Program(progress);
+            program.RunInBackground();
+
         }
     }
 }
