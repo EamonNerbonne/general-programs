@@ -88,7 +88,6 @@
   <ItemGroup>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="SymmetricDistanceMatrix.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\EmnExtensions\EmnExtensions.csproj">
@@ -98,10 +97,6 @@
     <ProjectReference Include="..\..\..\SongSearchLinq\SongData\SongData.csproj">
       <Project>{171E7F71-DB67-47CA-82BC-C63681BF2733}</Project>
       <Name>SongData</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\hitmds\hitmds.vcproj">
-      <Project>{D3AC57E4-6EEC-460C-8571-1441B64B9503}</Project>
-      <Name>hitmds</Name>
     </ProjectReference>
     <ProjectReference Include="..\LastFMspider\LastFMspider.csproj">
       <Project>{6AFF4733-511B-4EE5-8A5F-6B11A894E0D7}</Project>
