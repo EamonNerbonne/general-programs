@@ -59,17 +59,22 @@ namespace SimilarityMds
                 out shortestDistanceToAny,
                 out shortedPathToAny);
 
-
+            //only for display purposes:
+            int cachedCount = Enumerable.Range(0, sims.TrackMapper.Count).Where(i => cachedDists[i]).Count();
 
             timer.TimeMark("Dijkstra's");
             Parallel.For(0, Enumerable.Range(0, sims.TrackMapper.Count).Where(i => !cachedDists[i]).Count(), (ignore) => {
 //                try {
                     int track;
+                    float origTrackDist;
+                    int sequenceNumber;
                     lock (shortestDistanceToAny) {
                         track=shortestDistanceToAny.IndexOfMax( (candidate,dist) => !cachedDists[candidate]&& !float.IsInfinity(dist) && !float.IsNaN(dist));
                         cachedDists[track] = true;
+                        sequenceNumber=cachedCount++;
+                        origTrackDist = shortestDistanceToAny[track];
                     }
-                    Console.WriteLine("Processing {0}", track);
+                    Console.WriteLine("Processing {0} (dist = {1}, count = {2})", track,origTrackDist,sequenceNumber);
                     float[] distanceFromA;
                     int[] pathToA;
 
