@@ -41,6 +41,7 @@ namespace LastFMspider
                 distances[i] = reader.ReadSingle();
         }
 
+        public IEnumerable<float> Values { get { return distances; } }
 
         public SymmetricDistanceMatrix(int elemCount) { this.ElementCount = elemCount; }
 
