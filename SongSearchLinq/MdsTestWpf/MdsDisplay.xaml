@@ -10,14 +10,15 @@
             <ColumnDefinition Width="158*" />
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
-            <RowDefinition Height="236*" />
-            <RowDefinition Height="26" />
+            <RowDefinition Height="929*" />
+            <RowDefinition Height="33" />
         </Grid.RowDefinitions>
         <ProgressBar Name="mdsProgress" Margin="4,4,4,4" Grid.Row="1"  />
         <Viewbox Name="pointViewbox" Stretch="Uniform" Margin="4,4,4,4" >
             <Canvas Name="pointCanvas"></Canvas>
         </Viewbox>
-        <emnExt:LogControl Name="logControl" ClaimStandardError="true" ClaimStandardOut="true" Grid.Column="2" TextWrapping="Wrap" Grid.RowSpan="2" />
+        <emnExt:LogControl Name="logControl" ClaimStandardError="true" ClaimStandardOut="true" Grid.Column="2" TextWrapping="Wrap" />
         <GridSplitter Grid.Column="1" HorizontalAlignment="Stretch" Name="gridSplitter1" Grid.RowSpan="2"  />
+        <Label Grid.Column="2" Grid.Row="1" Margin="4,4,4,4" Name="labelETA">Label</Label>
     </Grid>
 </Window>

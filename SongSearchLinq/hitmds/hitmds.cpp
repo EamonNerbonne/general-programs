@@ -233,8 +233,9 @@ namespace hitmds {
 					lenSqr += delta_point[k]*delta_point[k];
 				}
 				double invLen = diff_mixed *1.0/sqrt(lenSqr) *sqrt((double)target_dim);
+				double rndScale = diff_mixed;//*(cycles - c)/cycles;
 				for(k = 0; k < target_dim; k++) {
-					delta_point[k] = point[k] - delta_point[k]*invLen +  diff_mixed *(frand()-0.5);
+					delta_point[k] = point[k] - delta_point[k]*invLen +  rndScale *(frand()-0.5);
 				} 
 				/*/
 

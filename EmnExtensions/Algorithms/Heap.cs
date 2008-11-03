@@ -9,17 +9,22 @@ namespace EmnExtensions.Algorithms
     public class Heap<T>
         where T : IComparable<T>
     {
-        List<T> backingStore = new List<T>();
+        T[] backingStore = new T[8];
+        int backingCount = 0;
         Action<T, int> indexSet;
         public Heap(Action<T, int> indexSet) {
             this.indexSet = indexSet;
         }
         public void Add(T elem) {
-            int newIndex = backingStore.Count;
-            backingStore.Add(elem);
+            int newIndex = backingCount;
+            if (backingCount == backingStore.Length)
+                Array.Resize(ref backingStore, backingStore.Length * 2);
+            backingStore[backingCount++]=elem;
             Bubble(newIndex, elem);
         }
-        public int Count { get { return backingStore.Count; } }
+
+
+        public int Count { get { return backingCount; } }
 
         private void Bubble(int newIndex, T elem) {
             int parIndex = (newIndex - 1) / 2;
@@ -34,7 +39,7 @@ namespace EmnExtensions.Algorithms
         }
 
         public bool RemoveTop(out T retval) {
-            if (backingStore.Count == 0) {
+            if (backingCount == 0) {
                 retval = default(T);
                 return false;
             }
@@ -44,15 +49,14 @@ namespace EmnExtensions.Algorithms
             return true;
         }
         public void Delete(int indexOfItem) {
-            T toSink = backingStore[backingStore.Count - 1];
-            backingStore.RemoveAt(backingStore.Count - 1);
-            if(backingStore.Count>indexOfItem)
+            T toSink = backingStore[--backingCount];
+            if(backingCount>indexOfItem)
             Sink(indexOfItem, toSink);
         }
 
         private void Sink(int p, T elem) {
-            while (2 * p + 1 < backingStore.Count) {
-                int kid = 2 * p + 2 < backingStore.Count ?
+            while (2 * p + 1 < backingCount) {
+                int kid = 2 * p + 2 < backingCount ?
                     (0 < backingStore[2 * p + 1].CompareTo(backingStore[2 * p + 2]) ? 2 * p + 2 : 2 * p + 1)  :
                     (2 * p + 1);
                 if (0 >= elem.CompareTo(backingStore[kid])) {

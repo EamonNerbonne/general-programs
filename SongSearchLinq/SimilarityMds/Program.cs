@@ -6,6 +6,8 @@ using SongDataLib;
 using LastFMspider;
 using EmnExtensions;
 using EmnExtensions.Algorithms;
+using System.Threading;
+using System.IO;
 
 namespace SimilarityMds
 {
@@ -39,12 +41,39 @@ namespace SimilarityMds
             var sims = SimilarTracks.LoadOrCache(tools, SimilarTracks.DataSetType.Training);
             timer.TimeMark("Converting...");
             sims.ConvertToDistanceFormat();
-            timer.TimeMark("Dijkstra");
-            Random r = new Random();
+            timer.TimeMark("GC");
+            System.GC.Collect();
 
-            int trackA = r.Next(sims.TrackMapper.Count);
-            float[] distanceFromA;
-            int[] pathToA;
+            Random r = new Random(37);
+            HashSet<int> selectedTracks = new HashSet<int>();
+            while (selectedTracks.Count < 3000) {
+                selectedTracks.Add(r.Next(sims.TrackMapper.Count));
+            }
+            var selTrackArr = selectedTracks.ToArray();
+            File.WriteAllText(@"C:\emn\selected.tracks", string.Join("\n", selectedTracks.Select(t => t.ToString()).ToArray()));
+
+            timer.TimeMark("Dijkstra");
+            Parallel.ForEach(selTrackArr, (track) => {
+                float[] distanceFromA;
+                int[] pathToA;
+
+                Dijkstra.FindShortestPath(
+                    (numNode) => sims.SimilarTo(numNode).Select(
+                        sim => new Dijkstra.DistanceTo {
+                            targetNode = sim.trackID,
+                            distance = sim.rating
+                        }),
+                    sims.TrackMapper.Count,
+                    Enumerable.Repeat( track,1),
+                    out distanceFromA,
+                    out  pathToA);
+                File.WriteAllText(@"C:\emn\t" + track + ".dist",
+                    string.Join("",selTrackArr.Select(trackOther =>
+                        "" + trackOther + " " + distanceFromA[trackOther] + "\n").ToArray()));
+            });
+
+            float[] distanceFromAll;
+            int[] pathToAll;
 
             Dijkstra.FindShortestPath(
                 (numNode) => sims.SimilarTo(numNode).Select(
@@ -53,18 +82,46 @@ namespace SimilarityMds
                         distance = sim.rating
                     }),
                 sims.TrackMapper.Count,
-                trackA,
-                out distanceFromA,
-                out  pathToA);
-            timer.TimeMark("Reporting");
+                selTrackArr,
+                out distanceFromAll,
+                out  pathToAll);
 
-            int trackB = distanceFromA.IndexOfMax(dist=>dist!=float.PositiveInfinity);
-            Console.WriteLine("Going From {0} to {1} in {2}:",trackA,trackB,distanceFromA[trackB]);
-            int curr = trackB;
-            while (curr != trackA) {
-                Console.WriteLine("{0} dist at {1}, going {2} via {3}", distanceFromA[curr], curr, sims.FindRating( pathToA[curr],curr), pathToA[curr]);
-                curr = pathToA[curr];
-            }
+            Queue<int> tracksToGo = new Queue<int>(
+            distanceFromAll
+                .Select((d, i) => new { dist = d, track = i })
+                .Where(d => d.dist != float.PositiveInfinity)
+                .Where(d=>d.dist>0)
+                .OrderByDescending(d => d.dist)
+                .Select(d=>d.track)
+                );
+            List<int> tracksTotal = new List<int>(selTrackArr);
+
+            Parallel.For(0,tracksToGo.Count, (ignore) => {
+                int track;
+                lock (tracksToGo) {
+                    track = tracksToGo.Dequeue();
+                    tracksTotal.Add(track);
+                }
+                float[] distanceFromA;
+                int[] pathToA;
+
+                Dijkstra.FindShortestPath(
+                    (numNode) => sims.SimilarTo(numNode).Select(
+                        sim => new Dijkstra.DistanceTo {
+                            targetNode = sim.trackID,
+                            distance = sim.rating
+                        }),
+                    sims.TrackMapper.Count,
+                    Enumerable.Repeat(track, 1),
+                    out distanceFromA,
+                    out  pathToA);
+                string[] toWrite;
+                lock(tracksToGo)
+                    toWrite= tracksTotal.Select(trackOther =>
+                        "" + trackOther + " " + distanceFromA[trackOther] + "\n").ToArray();
+                File.WriteAllText(@"C:\emn\e" + track + ".dist",
+                    string.Join("", toWrite) );
+            });
 
 
             timer.Done();

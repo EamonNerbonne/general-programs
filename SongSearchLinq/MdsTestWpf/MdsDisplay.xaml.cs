@@ -45,7 +45,7 @@ namespace MdsTestWpf
             for (int i = 0; i < res; i++)
                 for (int j = 0; j < res; j++)
                     origs[IndexFromIJ(i, j)] = new MdsPoint2D { x = i, y = j };
-            totalCycles = origs.Length * 200;
+            totalCycles = origs.Length * 500;
             mdsProgress.Maximum = totalCycles;
             mdsProgress.Minimum = 0;
             Thread t = new Thread(CalcMds) {
@@ -128,8 +128,10 @@ namespace MdsTestWpf
             if (!needUpdate)
                 lock (cycleSync) {
                     double nextVal = lastCycle;
-                    if (mdsProgress.Value != nextVal)
+                    if (mdsProgress.Value != nextVal) {
                         mdsProgress.Value = nextVal;
+                        labelETA.Content = (TimeSpan.FromSeconds((DateTime.Now - startMDS).TotalSeconds * ((double)(totalCycles - lastCycle) / (double)Math.Max(lastCycle, 1)))).ToString();// .ToLongTimeString();
+                    }
                     if (calcs != null) ShowMdsPoints(calcs);
                     needUpdate = true;
                 }
@@ -153,7 +155,7 @@ namespace MdsTestWpf
                 calcs[p] = new MdsPoint2D { x = mds.GetPoint(p, 0), y = mds.GetPoint(p, 1) };
             }
         }
-
+        DateTime startMDS;
         void CalcMds() {
             NiceTimer timer = new NiceTimer();
             timer.TimeMark("Doing MDS...");
@@ -164,6 +166,7 @@ namespace MdsTestWpf
                     r
                     )
                     ) {
+                startMDS = DateTime.Now;
                 mds.mds_train(totalCycles, 5.0,0.0, ProgressReport);
                 lock (cycleSync) {
                     lastCycle = totalCycles;
