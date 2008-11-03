@@ -39,5 +39,22 @@ namespace EmnExtensions
 		public static string ToStringOrNull(this object obj) {
 			return obj == null ? null : obj.ToString();
 		}
+
+        public static int IndexOfMax<T>(this IEnumerable<T> iter,Func<T,bool> filter) where T:IComparable<T> {
+            var enumerator = iter.GetEnumerator();
+            if(!enumerator.MoveNext())
+                return -1;
+            T max = enumerator.Current;
+            int retval = 0;
+            int currentIndex=0;
+            while(enumerator.MoveNext()) {
+                currentIndex++;
+                if (filter(enumerator.Current) &&enumerator.Current.CompareTo(max) > 0) {
+                    max = enumerator.Current;
+                    retval = currentIndex;
+                }
+            }
+            return retval;
+        }
 	}
 }

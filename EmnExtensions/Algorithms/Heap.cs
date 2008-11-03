@@ -27,6 +27,7 @@ namespace EmnExtensions.Algorithms
                 backingStore[newIndex] = backingStore[parIndex];
                 indexSet(backingStore[newIndex], newIndex);
                 newIndex = parIndex;
+                parIndex = (newIndex - 1) / 2;
             }
             backingStore[newIndex] = elem;
             indexSet(backingStore[newIndex], newIndex);
@@ -45,6 +46,7 @@ namespace EmnExtensions.Algorithms
         public void Delete(int indexOfItem) {
             T toSink = backingStore[backingStore.Count - 1];
             backingStore.RemoveAt(backingStore.Count - 1);
+            if(backingStore.Count>indexOfItem)
             Sink(indexOfItem, toSink);
         }
 

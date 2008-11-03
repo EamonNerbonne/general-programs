@@ -39,10 +39,43 @@ namespace LastFMspider
             }
         }
 
+
+
         public struct DenseSimilarity
         {
             public int TrackA, TrackB;
             public float Rating;
+        }
+        const float maxRate = 1000.0f;//note this is  too high!!!
+        static readonly double logMaxRate = (float)Math.Log(maxRate);
+        static float DistFromSim(float sim) {
+            return (float)(logMaxRate - Math.Log(sim));
+        }
+        static float SimFromDist(float dist) {
+            return (float)Math.Exp(logMaxRate - dist);
+        }
+
+
+        bool inSimFormat = true;
+        public void ConvertToDistanceFormat() {
+            if(inSimFormat)
+            foreach (var simList in similarTo)
+                for (int j = 0; j < simList.Length; j++)
+                    simList[j].rating = DistFromSim(simList[j].rating);
+            inSimFormat = false;
+        }
+        public void ConvertToSimFormat() {
+            if (!inSimFormat)
+                foreach (var simList in similarTo)
+                    for (int j = 0; j < simList.Length; j++)
+                        simList[j].rating = SimFromDist(simList[j].rating);
+            inSimFormat = true;
+        }
+
+        public float? FindRating(int trackA, int trackB) {
+            int idx=Array.BinarySearch(similarTo[trackA], new DenseSimilarTo { trackID = trackB });
+            if (idx < 0) return null;
+            else return similarTo[trackA][idx].rating;
         }
 
         public DataSetType DataSet { get; private set; }
@@ -123,6 +156,7 @@ namespace LastFMspider
 
 
         public void WriteTo(BinaryWriter writer) {
+            if (!inSimFormat) throw new Exception("Serialization only wise in similarity format");
             TrackMapper.WriteTo(writer);//includes num of tracks
             foreach (DenseSimilarTo[] trackSims in similarTo) {
                 writer.Write(trackSims.Length);//num of tracks this track is similar to.
@@ -134,7 +168,7 @@ namespace LastFMspider
         public SimilarTracks(BinaryReader readFrom, DataSetType dataSet) {
             DataSet = dataSet;
             TrackMapper = new TrackMapper(readFrom);
-            similarTo = new DenseSimilarTo[TrackMapper.CountDense][];
+            similarTo = new DenseSimilarTo[TrackMapper.Count][];
             for (int i = 0; i < similarTo.Length; i++) {
                 similarTo[i] = new DenseSimilarTo[readFrom.ReadInt32()];
                 for (int j = 0; j < similarTo[i].Length; j++) {
@@ -190,7 +224,7 @@ namespace LastFMspider
         }
 
         void MapHandier(IList<SimilarTrackRow> similarTracks) {
-            int trackCount = TrackMapper.CountDense;
+            int trackCount = TrackMapper.Count;
             int[] refCount = new int[trackCount];//initialized to 0;
             foreach (var sim in similarTracks) {
                 refCount[sim.TrackA]++;

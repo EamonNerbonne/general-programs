@@ -37,7 +37,7 @@ namespace LastFMspider
                     sqliteFromDense[nextAvail++] = i;
             if (totalReferenced != nextAvail) throw new ArgumentException("totalReferenced wrong!");
         }
-        public int CountDense { get { return sqliteFromDense.Length; } }
+        public int Count { get { return sqliteFromDense.Length; } }
         public int CountSqlite { get { return sqliteFromDense[sqliteFromDense.Length - 1] + 1; } }
         public TrackMapper(BinaryReader readFrom) {
             int count = readFrom.ReadInt32();
