@@ -165,24 +165,26 @@ namespace SimilarityAnalysis
             tools = new LastFmTools(config);
 
 
+            VerifyTriangleInequality();
             VerifyDataSetsAreSubsets();
 
-            VerifyTriangleInequality();
         }
 
+
+        const float maxRate = 1000.0f;//note this is  too high!!!
         static void VerifyTriangleInequality() {
             SimilarTracks sims = SimilarTracks.LoadOrCache(tools, LastFMspider.SimilarTracks.DataSetType.Complete);
 
-            using (var writer = File.OpenWrite("errlog.log"))
-            using (var swriter = new StreamWriter(writer)) {
+//            using (var writer = File.OpenWrite("errlog.log"))
+  //          using (var swriter = new StreamWriter(writer)) {
                 DateTime lastUpdate = DateTime.Now;
                 int triangleCount = 0;
                 int simCount = 0;
                 int errCount = 0;
                 double errSum = 0;
                 double distSum = 0;
-                float log100 = (float)Math.Log(100.0);
-                Func<float, float> ratingToDist = rating => log100 - (float)Math.Log(rating);
+                float logMaxRate = (float)Math.Log(maxRate);
+                Func<float, float> ratingToDist = rating => logMaxRate - (float)Math.Log(rating);
 
                 foreach (var similarity in sims.SimilaritiesRemapped) {
                     simCount++;
@@ -196,23 +198,28 @@ namespace SimilarityAnalysis
                         float cD = ratingToDist(c.rating);
                         float longest = Math.Max(aD, Math.Max(bD, cD));
                         float rest = aD + bD + cD - longest;
-                        triangleCount++;
                         if (longest > rest) {
                             errCount++;
-                            errSum += longest - rest;
-                            swriter.WriteLine("{3}: {0},{1},{2}: {4}/{5}, avgDist:{6}",
-                                similarity.TrackA, similarity.TrackB, b.trackID, longest - rest, errCount, triangleCount,distSum/simCount);
+#if DEBUG
+                            var songs = new[] { b.trackID, similarity.TrackA, similarity.TrackB }
+                                .Select(id =>
+                                    tools.SimilarSongs.backingDB.LookupTrack.Execute(
+                                        sims.TrackMapper.LookupSqliteID(id))).ToArray(); 
+#endif
+                                errSum += longest - rest;
+//                            swriter.WriteLine("{3}: {0},{1},{2}: {4}/{5}, avgDist:{6}",
+  //                              similarity.TrackA, similarity.TrackB, b.trackID, longest - rest, errCount, triangleCount,distSum/simCount);
                         }
                     });
                     if (DateTime.Now - lastUpdate > TimeSpan.FromSeconds(1)) {
-                        Console.WriteLine("Error rate: {0}/{1}, Progress:{2}", errCount, triangleCount, simCount / (double)sims.Count);
+                        Console.WriteLine("Error rate: {3}%={0}/{1}, Progress:{2}", errCount, triangleCount, simCount *100.0/ sims.Count,errCount*100.0/triangleCount);
                         lastUpdate = DateTime.Now;
                     }
 
 
                 }
 
-            }
+            //}
         }
         public static void VerifyDataSetsAreSubsets() {
             NiceTimer timer = new NiceTimer();

@@ -89,6 +89,8 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Algorithms\Dijkstra.cs" />
+    <Compile Include="Algorithms\Heap.cs" />
     <Compile Include="Algorithms\ShuffleAlgorithm.cs" />
     <Compile Include="Collections\Edge.cs" />
     <Compile Include="Collections\HashMultiMap.cs" />

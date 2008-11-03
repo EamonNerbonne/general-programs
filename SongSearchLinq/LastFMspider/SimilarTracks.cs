@@ -19,7 +19,7 @@ namespace LastFMspider
             Undefined, Complete, Training, Test, Verification
         }
 
-        public struct DenseSimilarTo :IComparable<DenseSimilarTo>
+        public struct DenseSimilarTo : IComparable<DenseSimilarTo>
         {
             public int trackID;
             public float rating;

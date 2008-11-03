@@ -133,6 +133,7 @@ CREATE INDEX  IF NOT EXISTS [IDX_TrackInfo_Playcount] ON [TrackInfo](
         public DeleteSimilaritiesOf DeleteSimilaritiesOf { get; private set; }
         public InsertArtist InsertArtist { get; private set; }
         public InsertTrack InsertTrack { get; private set; }
+        public LookupTrack LookupTrack { get; private set; }
         public InsertTag InsertTag { get; private set; }
         public InsertTagging InsertTagging { get; private set; }
         public InsertSimilarity InsertSimilarity { get; private set; }
@@ -179,6 +180,7 @@ CREATE INDEX  IF NOT EXISTS [IDX_TrackInfo_Playcount] ON [TrackInfo](
 
         private void PrepareSql() {
             InsertTrack = new InsertTrack(this);
+            LookupTrack = new LookupTrack(this);
             InsertSimilarityList = new InsertSimilarityList(this);
             InsertSimilarity = new InsertSimilarity(this);
             InsertArtist = new InsertArtist(this);

@@ -142,6 +142,7 @@
     <Compile Include="LastFMSQLiteBackend\LookupSimilarityList.cs" />
     <Compile Include="LastFMSQLiteBackend\LookupSimilarityListAge.cs" />
     <Compile Include="LastFMSQLiteBackend\LookupSimilarityStats.cs" />
+    <Compile Include="LastFMSQLiteBackend\LookupTrack.cs" />
     <Compile Include="LastFMSQLiteBackend\RawArtists.cs" />
     <Compile Include="LastFMSQLiteBackend\RawSimilarTracks.cs" />
     <Compile Include="LastFMSQLiteBackend\RawTags.cs" />
