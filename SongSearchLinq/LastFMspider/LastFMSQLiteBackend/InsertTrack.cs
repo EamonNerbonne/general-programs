@@ -12,7 +12,6 @@ namespace LastFMspider.LastFMSQLiteBackend {
             lowerTitle = DefineParameter("@lowerTitle");
 
             lowerArtist = DefineParameter("@lowerArtist");
-
         }
         protected override string CommandText {
             get { return @"
