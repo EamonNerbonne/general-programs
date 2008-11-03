@@ -116,6 +116,8 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ArbitraryTrackMapper.cs" />
+    <Compile Include="CachedDistanceMatrix.cs" />
     <Compile Include="lastFMcacheDataSet.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -170,6 +172,7 @@
     <Compile Include="SongRef.cs" />
     <Compile Include="SongSimilarityCache.cs" />
     <Compile Include="SongSimilarityList.cs" />
+    <Compile Include="SymmetricDistanceMatrix.cs" />
     <Compile Include="TagRef.cs" />
     <Compile Include="TrackMapper.cs" />
   </ItemGroup>

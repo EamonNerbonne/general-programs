@@ -2,8 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.IO;
 
-namespace RealSimilarityMds
+namespace LastFMspider
 {
 
     /// <summary>
@@ -18,7 +19,7 @@ namespace RealSimilarityMds
                 elementCount = value;
                 int newMatSize = matSize(elementCount);
                 if (distances.Count < newMatSize)
-                    distances.AddRange(Enumerable.Repeat(0.0f, newMatSize - distances.Count));
+                    distances.AddRange(Enumerable.Repeat(float.PositiveInfinity, newMatSize - distances.Count));
                 else
                     distances.RemoveRange(newMatSize, distances.Count - newMatSize);
             }
@@ -26,8 +27,22 @@ namespace RealSimilarityMds
                 return elementCount;
             }
         }
-        
-        public SymmetricDistanceMatrix(int elemCount) {            this.ElementCount = elemCount;        }
+        public void WriteTo(BinaryWriter writer) {
+            writer.Write(elementCount);
+            writer.Write(distances.Count);
+            foreach (var f in distances) {
+                writer.Write(f);
+            }
+        }
+        public SymmetricDistanceMatrix(BinaryReader reader) {
+            elementCount = reader.ReadInt32();
+            distances = new List<float>(reader.ReadInt32());
+            for (int i = 0; i < distances.Count; i++)
+                distances[i] = reader.ReadSingle();
+        }
+
+
+        public SymmetricDistanceMatrix(int elemCount) { this.ElementCount = elemCount; }
 
         static int matSize(int elemCount) { return elemCount * (elemCount - 1) >> 1; }
         int calcOffset(int i, int j) {
