@@ -66,6 +66,7 @@ namespace LastFMspider
             if (Mapping.IsMapped(fileTrackID))
                 return;//this file was already mapped in the cache!
             int fileMdsID = Mapping.Map(fileTrackID);
+            if (Matrix.ElementCount <= fileMdsID) Matrix.ElementCount = fileMdsID + 1;
             try {
                 float[] distFromFileTrack;
                 using (var stream = file.OpenRead())
@@ -80,6 +81,8 @@ namespace LastFMspider
                     if (otherMdsID != fileMdsID) //can't map to itself!
                         Matrix[fileMdsID, otherMdsID] = distFromFileTrack[otherTrackID];
                 }
+                Console.WriteLine("Loaded {0} (Strong) (Count = {1})", fileTrackID,Mapping.Count);
+
             } catch (Exception e) {
                 ProcessError(e, file, fileMdsID, fileTrackID);
             }
@@ -111,6 +114,7 @@ namespace LastFMspider
                         if (otherTrackID != fileTrackID && Mapping.IsMapped(otherTrackID))
                             Matrix[Mapping.Map(otherTrackID), fileMdsID] = fileToOtherDist;
                     }
+                    Console.WriteLine("Loaded {0} (Weak) (Count = {1})", fileTrackID, Mapping.Count);
                 } catch (Exception e) {
                     ProcessError(e, file, fileMdsID, fileTrackID);
                     throw new Exception("This might make the distance matrix sparse!  If you know what you're doing, recompile without this exception",e);
@@ -129,10 +133,10 @@ namespace LastFMspider
             var removedMapping = Mapping.ExtractAndRemoveLast();
             int mdsIdToMove = Matrix.ElementCount - 1;
             if (mdsIdToMove != removedMapping.Value)
-                throw new Exception("This should not be possible");
+                throw new Exception("Mapping and matrix running out of sync!");
             int mdsIdToOverwrite = Mapping.ReplaceMapping(fileTrackID, removedMapping.Key);
             if (mdsIdToOverwrite != fileMdsID)
-                throw new Exception("This should not be possible either");
+                throw new Exception("Mapping and matrix running out of sync!");
 
             //OK, so now the Mapping of fileTrackID is gone, and so is the mapping of removedMapping.Key
             //instead, whatever trackID is removedMapping.Key now poins to fileMdsID, to we can stick it's 
