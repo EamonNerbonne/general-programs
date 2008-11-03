@@ -55,5 +55,9 @@ namespace EmnExtensions
 
             return retval;
         }
+
+        public static bool IsFinite(this float f) {
+            return !(float.IsInfinity(f) || float.IsNaN(f));
+        }
 	}
 }
