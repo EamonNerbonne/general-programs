@@ -19,6 +19,12 @@ namespace LastFMspider
                 return mdsIndexCount++;
             }
         }
+
+        public int GetMap(int trackID) {
+            return toMdsIndex[trackID];
+        }
+
+
         public IEnumerable<int> CurrentlyMapped { get { return toMdsIndex.Keys; } }
         public IEnumerable<KeyValuePair<int, int>> CurrentMappings { get { return toMdsIndex; } }
         public int Count { get { return mdsIndexCount; } }
@@ -55,6 +61,5 @@ namespace LastFMspider
             for (int mdsIndex = 0; mdsIndex < mdsIndexCount; mdsIndex++)
                 toMdsIndex[reader.ReadInt32()] = mdsIndex;
         }
-
     }
 }
