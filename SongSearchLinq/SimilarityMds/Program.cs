@@ -32,76 +32,95 @@ namespace SimilarityMds
             timer.TimeMark("Loading training data");
             var sims = SimilarTracks.LoadOrCache(tools, SimilarTracks.DataSetType.Training);
             timer.TimeMark("Converting...");
-            sims.ConvertToDistanceFormat();
+            int soFar = 0;
+            sims.ConvertToRankFormat(p => {
+                if ((int)(p * 100) > soFar) {
+                    soFar = (int)(p * 100);
+                    Console.Write(soFar.ToString()+"% ");
+                }
+            });
             timer.TimeMark("GC");
             System.GC.Collect();
             timer.TimeMark("Idendifying already cached tracks");
             DirectoryInfo dataDir = tools.ConfigFile.DataDirectory;
-            BitArray cachedDists = new BitArray(sims.TrackMapper.Count,false);
-
-            foreach(int cachedTrack in CachedDistanceMatrix.AllTracksCached(dataDir).Select(file => CachedDistanceMatrix.TrackNumberOfFile(file))) {
-                cachedDists[cachedTrack]=true;
+            BitArray cachedDists = new BitArray(sims.TrackMapper.Count, false);
+            bool atLeastOneTrackCached = false;
+            foreach (int cachedTrack in CachedDistanceMatrix.AllTracksCached(dataDir).Select(nfile => nfile.number)) {
+                cachedDists[cachedTrack] = true;
+                atLeastOneTrackCached = true;
             }
-            timer.TimeMark("Finding distance to any cached track");
-
+            
 
             float[] shortestDistanceToAny;
             int[] shortedPathToAny;
+            Random r = new Random();
+            if (atLeastOneTrackCached) {
+                timer.TimeMark("Finding distance to any cached track");
 
-            Dijkstra.FindShortestPath(
-                (numNode) => sims.SimilarTo(numNode).Select(
-                    sim => new Dijkstra.DistanceTo {
-                        targetNode = sim.trackID,
-                        distance = sim.rating
-                    }),
-                sims.TrackMapper.Count,
-                Enumerable.Range(0,sims.TrackMapper.Count).Where(i=>cachedDists[i]),
-                out shortestDistanceToAny,
-                out shortedPathToAny);
+                Dijkstra.FindShortestPath(
+                    (numNode) => sims.SimilarTo(numNode).Select(
+                        sim => new Dijkstra.DistanceTo {
+                            targetNode = sim.trackID,
+                            distance = sim.rating
+                        }),
+                    sims.TrackMapper.Count,
+                    Enumerable.Range(0, sims.TrackMapper.Count).Where(i => cachedDists[i]),
+                    out shortestDistanceToAny,
+                    out shortedPathToAny);
+            }  else {
+                timer.TimeMark("Initializing distances to inf");
 
-            //only for display purposes:
+                shortestDistanceToAny = Enumerable.Repeat(float.PositiveInfinity, sims.TrackMapper.Count).ToArray();
+            }
+
             int cachedCount = Enumerable.Range(0, sims.TrackMapper.Count).Where(i => cachedDists[i]).Count();
 
             timer.TimeMark("Dijkstra's");
             Parallel.For(0, Enumerable.Range(0, sims.TrackMapper.Count).Where(i => !cachedDists[i]).Count(), (ignore) => {
-//                try {
-                    int track;
-                    float origTrackDist;
-                    int sequenceNumber;
-                    lock (shortestDistanceToAny) {
-                        track=shortestDistanceToAny.IndexOfMax( (candidate,dist) => !cachedDists[candidate]&& !float.IsInfinity(dist) && !float.IsNaN(dist));
-                        cachedDists[track] = true;
-                        sequenceNumber=cachedCount++;
-                        origTrackDist = shortestDistanceToAny[track];
+                //                try {
+                int track;
+                float origTrackDist;
+                int sequenceNumber;
+                bool choiceWasRandom = false;
+                lock (shortestDistanceToAny) {
+                    if (cachedCount > 30 && r.Next(2) == 0) {
+                        track = shortestDistanceToAny.IndexOfMax((candidate, dist) => !cachedDists[candidate] && dist.IsFinite());
+                    } else {
+                        do { track = r.Next(shortestDistanceToAny.Length); } while (cachedDists[track]);
+                        choiceWasRandom = true;
                     }
-                    Console.WriteLine("Processing {0} (dist = {1}, count = {2})", track,origTrackDist,sequenceNumber);
-                    float[] distanceFromA;
-                    int[] pathToA;
+                    cachedDists[track] = true;
+                    sequenceNumber = cachedCount++;
+                    origTrackDist = shortestDistanceToAny[track];
+                }
+                Console.WriteLine("Processing {0} {3} (dist = {1}, count = {2})", track, origTrackDist, sequenceNumber, choiceWasRandom ? "randomly" : "max-dist ");
+                float[] distanceFromA;
+                int[] pathToA;
 
-                    Dijkstra.FindShortestPath(
-                        (numNode) => sims.SimilarTo(numNode).Select(
-                            sim => new Dijkstra.DistanceTo {
-                                targetNode = sim.trackID,
-                                distance = sim.rating
-                            }),
-                        sims.TrackMapper.Count,
-                        Enumerable.Repeat(track, 1),
-                        out distanceFromA,
-                        out  pathToA);
-                    FileInfo saveFile = CachedDistanceMatrix.FileForTrack(dataDir,track);
-                    using (Stream s = saveFile.Open(FileMode.Create, FileAccess.Write))
-                    using (var binW = new BinaryWriter(s)) {
-                        binW.Write(distanceFromA.Length);
-                        foreach (var f in distanceFromA)
-                            binW.Write(f);
+                Dijkstra.FindShortestPath(
+                    (numNode) => sims.SimilarTo(numNode).Select(
+                        sim => new Dijkstra.DistanceTo {
+                            targetNode = sim.trackID,
+                            distance = sim.rating
+                        }),
+                    sims.TrackMapper.Count,
+                    Enumerable.Repeat(track, 1),
+                    out distanceFromA,
+                    out  pathToA);
+                FileInfo saveFile = CachedDistanceMatrix.FileForTrack(dataDir, track);
+                using (Stream s = saveFile.Open(FileMode.Create, FileAccess.Write))
+                using (var binW = new BinaryWriter(s)) {
+                    binW.Write(distanceFromA.Length);
+                    foreach (var f in distanceFromA)
+                        binW.Write(f);
+                }
+                lock (shortestDistanceToAny) {
+                    for (int i = 0; i < shortestDistanceToAny.Length; i++) {
+                        shortestDistanceToAny[i] = Math.Min(shortestDistanceToAny[i], distanceFromA[i]);
                     }
-                    lock (shortestDistanceToAny) {
-                        for (int i = 0; i < shortestDistanceToAny.Length; i++) {
-                            shortestDistanceToAny[i] = Math.Min(shortestDistanceToAny[i], distanceFromA[i]);
-                        }
-                    }
-                    Console.WriteLine("Done: {0}", track);
-      //          } catch { }
+                }
+                Console.WriteLine("Done: {0}", track);
+                //          } catch { }
             });
             timer.Done();
         }

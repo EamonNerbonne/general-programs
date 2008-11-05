@@ -59,5 +59,8 @@ namespace EmnExtensions
         public static bool IsFinite(this float f) {
             return !(float.IsInfinity(f) || float.IsNaN(f));
         }
-	}
+        public static bool IsFinite(this double f) {
+            return !(double.IsInfinity(f) || double.IsNaN(f));
+        }
+    }
 }

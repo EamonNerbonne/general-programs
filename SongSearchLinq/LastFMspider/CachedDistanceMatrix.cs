@@ -9,16 +9,30 @@ namespace LastFMspider
 {
     public class CachedDistanceMatrix
     {
-        public static IEnumerable<FileInfo> AllTracksCached(DirectoryInfo dataDir) { return distCacheDir(dataDir).GetFiles().Where(file => fileNameRegex.IsMatch(file.Name)); }
-        static IEnumerable<FileInfo> TracksWeaklyCached(DirectoryInfo dataDir) { return AllTracksCached(dataDir).Where(file => file.Extension == ".dist"); }
-        public static IEnumerable<FileInfo> TracksCached(DirectoryInfo dataDir) { return AllTracksCached(dataDir).Where(file => file.Extension == ".bin"); }
+        public struct NumberedFile
+        {
+            public int number;
+            public FileInfo file;
+        }
+        public static IEnumerable<NumberedFile> AllTracksCached(DirectoryInfo dataDir) {
+            return from file in distCacheDir(dataDir).GetFiles()
+                   let match =  fileNameRegex.Match(file.Name)
+                   where match.Success
+                   select new NumberedFile{
+                       file = file, number = int.Parse(match.Groups["num"].Value)
+                   };
+        }
+        public IEnumerable<NumberedFile> UnmappedTracks { get{
+                return AllTracksCached(dataDir).Where(file => !Mapping.IsMapped(file.number));
+            }
+        }
         public static int TrackNumberOfFile(FileInfo file) { return int.Parse(fileNameRegex.Replace(file.Name, "${num}")); }
 
         public SymmetricDistanceMatrix Matrix { get; private set; }
         public ArbitraryTrackMapper Mapping { get; private set; }
 
-        static FileInfo fileCache(DirectoryInfo dataDir) { return new FileInfo(Path.Combine(dataDir.FullName, @".\DistanceMatrix.bin")); }
-        static DirectoryInfo distCacheDir(DirectoryInfo dataDir) { return dataDir.CreateSubdirectory("distCache"); }
+        static FileInfo fileCache(DirectoryInfo dataDir) { return new FileInfo(Path.Combine(dataDir.FullName, @".\DistanceMatrix"+SimilarTracks.maxRate+".bin")); }
+        static DirectoryInfo distCacheDir(DirectoryInfo dataDir) { return dataDir.CreateSubdirectory("distCache"+SimilarTracks.maxRate); }
 
 
         DirectoryInfo dataDir;
@@ -39,7 +53,6 @@ namespace LastFMspider
                 Mapping = new ArbitraryTrackMapper();
                 Matrix = new SymmetricDistanceMatrix(0);
             }
-            LoadWeaklyCachedFiles();
         }
 
         public void Save() {
@@ -49,20 +62,23 @@ namespace LastFMspider
                 this.WriteTo(writer);
         }
 
-        static Regex fileNameRegex = new Regex(@"(e|t|b)(?<num>\d+)\.(dist|bin)", RegexOptions.CultureInvariant | RegexOptions.Compiled | RegexOptions.ExplicitCapture);
+        static Regex fileNameRegex = new Regex(@"b(?<num>\d+)\.bin", RegexOptions.CultureInvariant | RegexOptions.Compiled | RegexOptions.ExplicitCapture);
 
         public static CachedDistanceMatrix LoadOrCache(DirectoryInfo dataDirectory) {
             return new CachedDistanceMatrix(dataDirectory);
         }
 
-        public void LoadDistFromAllCacheFiles() {
-            foreach (var file in TracksCached(dataDir))
+        public void LoadDistFromAllCacheFiles(Action<double> progress) {
+            int tot = UnmappedTracks.Count();
+            int cur = 0;
+            foreach (var file in UnmappedTracks) {
                 LoadDistFromCacheFile(file);
+                progress(cur++/(double)tot);
+            }
         }
-        public void LoadDistFromCacheFile(FileInfo file) {
-            if (file.Extension != ".bin")
-                throw new Exception("Can't dynamically load weakly cached files.");
-            int fileTrackID = TrackNumberOfFile(file);
+        void LoadDistFromCacheFile(NumberedFile nfile) {
+            int fileTrackID = nfile.number;
+            var file = nfile.file;
             if (Mapping.IsMapped(fileTrackID))
                 return;//this file was already mapped in the cache!
             int fileMdsID = Mapping.Map(fileTrackID);
@@ -85,40 +101,6 @@ namespace LastFMspider
 
             } catch (Exception e) {
                 ProcessError(e, file, fileMdsID, fileTrackID);
-            }
-        }
-
-        /// <summary>
-        /// This function precaches all "*.dist" files that don't have complete distance info.
-        /// These must all be loaded in a chuck, since there tracks don't necessarily contain distance info to everything.
-        /// </summary>
-        void LoadWeaklyCachedFiles() {
-            var files = TracksWeaklyCached(dataDir);
-            int currentlyMapped = Mapping.Count; //new files will have a mapped ID at least this high!
-
-            foreach (var file in files) {//we need to map first so that the ID's are known ahead of time.
-                Mapping.Map(TrackNumberOfFile(file));
-            }
-            Matrix.ElementCount = Mapping.Count;//allocate room in matrix!
-            foreach (var file in files) {
-                int fileTrackID = TrackNumberOfFile(file);
-                int fileMdsID = Mapping.Map(fileTrackID);
-                if (fileMdsID < currentlyMapped) continue; //this files was already mapped in the cache!
-                try {
-                    foreach (var line in file.OpenText().ReadToEnd().Split(new[] { '\n' }, StringSplitOptions.RemoveEmptyEntries)) {
-                        var entries = line.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-                        if (entries.Length != 2) throw new Exception("Invalid format");
-                        int otherTrackID = int.Parse(entries[0]);
-                        float fileToOtherDist = float.Parse(entries[1]);
-
-                        if (otherTrackID != fileTrackID && Mapping.IsMapped(otherTrackID))
-                            Matrix[Mapping.Map(otherTrackID), fileMdsID] = fileToOtherDist;
-                    }
-                    Console.WriteLine("Loaded {0} (Weak) (Count = {1})", fileTrackID, Mapping.Count);
-                } catch (Exception e) {
-                    ProcessError(e, file, fileMdsID, fileTrackID);
-                    throw new Exception("This might make the distance matrix sparse!  If you know what you're doing, recompile without this exception",e);
-                }
             }
         }
 

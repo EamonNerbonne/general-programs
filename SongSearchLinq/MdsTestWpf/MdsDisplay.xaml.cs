@@ -45,7 +45,7 @@ namespace MdsTestWpf
             for (int i = 0; i < res; i++)
                 for (int j = 0; j < res; j++)
                     origs[IndexFromIJ(i, j)] = new MdsPoint2D { x = i, y = j };
-            totalCycles = origs.Length * 500;
+            totalCycles = origs.Length * 50;
             mdsProgress.Maximum = totalCycles;
             mdsProgress.Minimum = 0;
             Thread t = new Thread(CalcMds) {
@@ -176,6 +176,16 @@ namespace MdsTestWpf
             }
             timer.TimeMark(null);
 
+            var d = from a in Enumerable.Range(0,res*res)
+                    from b in  Enumerable.Range(0,res*res)
+                    where a!=b
+                    let realDist = origs[a].DistanceTo(origs[b])
+                    let predictDist = calcs[a].DistanceTo(origs[b])
+                    select (predictDist/realDist);
+            histo.Dispatcher.BeginInvoke((Action)delegate {
+                histo.Values = d;
+                histo.BucketSize = res;
+            });
         }
     }
 }

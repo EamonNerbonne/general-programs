@@ -46,7 +46,7 @@ namespace LastFMspider
             public int TrackA, TrackB;
             public float Rating;
         }
-        const float maxRate = 200.0f;//note this is  too high, intentionally to at least mitigate triangle inequality muck!!!
+        public const int maxRate = 1;//note this is  too high, intentionally to at least mitigate triangle inequality muck!!!
         static readonly double logMaxRate = (float)Math.Log(maxRate);
         static float DistFromSim(float sim) {
             return (float)(logMaxRate - Math.Log(sim));
@@ -57,19 +57,45 @@ namespace LastFMspider
 
 
         bool inSimFormat = true;
-        public void ConvertToDistanceFormat() {
+        bool inRankFormat = false;
+        public void ConvertToDistanceFormat(Action<double> progress) {
             if(inSimFormat)
-            foreach (var simList in similarTo)
-                for (int j = 0; j < simList.Length; j++)
-                    simList[j].rating = DistFromSim(simList[j].rating);
+                for (int trackA = 0; trackA < similarTo.Length; trackA++) {
+                    var simToA = similarTo[trackA];
+                    for (int j = 0; j < simToA.Length; j++)
+                        simToA[j].rating = DistFromSim(simToA[j].rating);
+
+                    progress(trackA / (double)similarTo.Length);
+                }
             inSimFormat = false;
         }
-        public void ConvertToSimFormat() {
-            if (!inSimFormat)
-                foreach (var simList in similarTo)
-                    for (int j = 0; j < simList.Length; j++)
-                        simList[j].rating = SimFromDist(simList[j].rating);
-            inSimFormat = true;
+        public void ConvertToRankFormat(Action<double> progress) {
+            if (inSimFormat) {
+                for(int trackA=0;trackA<similarTo.Length;trackA++) {
+                    var simToA = similarTo[trackA];
+                    int rank=0;
+                    foreach (var s in simToA
+                                        .Select((simTo, i) => new { simTo = simTo, i = i })
+                                        .OrderByDescending(s => s.simTo.rating)
+                                        ) {
+                        int bInA = s.i;
+                        int trackB = simToA[bInA].trackID;
+                        rank++;
+                        if (trackB < trackA) {// this guy's been processed!
+                            var simToB = similarTo[trackB];
+                            int aInB = Array.BinarySearch(simToB, new DenseSimilarTo { trackID = trackA });
+
+                            simToB[aInB].rating = simToA[bInA].rating = (simToB[aInB].rating + rank) / 2.0f;
+
+                        } else {
+                            simToA[bInA].rating = rank;
+                        }
+                    }
+                    progress(trackA / (double)similarTo.Length);
+                }
+            }
+            inSimFormat = false;
+            inRankFormat = true;
         }
 
         public float? FindRating(int trackA, int trackB) {

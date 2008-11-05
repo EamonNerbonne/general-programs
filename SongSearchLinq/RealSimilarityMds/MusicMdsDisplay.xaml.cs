@@ -12,6 +12,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.Threading;
+using EmnExtensions.Wpf;
 
 namespace RealSimilarityMds
 {
@@ -19,10 +20,11 @@ namespace RealSimilarityMds
     {
         ProgressManager progress;
         Program program;
+        public AutoHistogram HistogramControl { get { return this.distanceHistoview; } }
         public MusicMdsDisplay() {
             InitializeComponent();
             progress = new ProgressManager(progressBar, labelETA);
-            program = new Program(progress);
+            program = new Program(progress,this);
             program.RunInBackground();
 
         }

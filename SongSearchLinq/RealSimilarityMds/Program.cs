@@ -17,8 +17,10 @@ namespace RealSimilarityMds
         static Regex fileNameRegex = new Regex(@"(e|t|b)(?<num>\d+)\.(dist|bin)", RegexOptions.CultureInvariant | RegexOptions.Compiled | RegexOptions.ExplicitCapture);
 
         ProgressManager progress;
-        public Program(ProgressManager progress) {
+        MusicMdsDisplay mainDisplay;
+        public Program(ProgressManager progress,MusicMdsDisplay mainDisplay) {
             this.progress = progress;
+            this.mainDisplay = mainDisplay;
             background = new Thread(Run) {
                 IsBackground = true,
                 Priority = ThreadPriority.Normal
@@ -39,9 +41,16 @@ namespace RealSimilarityMds
             
             CachedDistanceMatrix cachedMatrix = LoadCachedMatrix(tools);
             Console.WriteLine("dists: {0} total, {1} non-finite", cachedMatrix.Matrix.Values.Count(), cachedMatrix.Matrix.Values.Where(f => f.IsFinite()).Count());
-            
+
+            mainDisplay.Dispatcher.BeginInvoke((Action)delegate {
+                mainDisplay.HistogramControl.Values = cachedMatrix.Matrix.Values.Select(f => (double)f);
+                mainDisplay.HistogramControl.BucketSize = cachedMatrix.Mapping.Count;
+            });
+
 
             var positionedPoints = DoMds(cachedMatrix);
+            
+            
             progress.NewTask("Finding Billboard hits",1.0);
 
             Dictionary<int,SongRef> songrefByMds= WellKnownTracksByMdsId(tools,cachedMatrix);
@@ -53,7 +62,11 @@ namespace RealSimilarityMds
             using (TextWriter writer = new StreamWriter(s)) {
                 for (int i = 0; i < positionedPoints.GetLength(0); i++) {
                     if (songrefByMds.ContainsKey(i)) {
-                        writer.WriteLine("{0,10:6}, {1,10:6}:    {2}", positionedPoints[i, 0], positionedPoints[i, 1], songrefByMds[i]);
+                        writer.WriteLine("{0}:    {1}", 
+                            string.Join(", ",Enumerable.Range(0,positionedPoints.GetLength(1))
+                            .Select(j=>string.Format("{0,10:G6}",positionedPoints[i, j]))
+                            .ToArray())
+                            , songrefByMds[i]);
                     }
                 }
             }
@@ -106,11 +119,10 @@ namespace RealSimilarityMds
             timer.TimeMark("Loading cached distance matrix");
             CachedDistanceMatrix cachedMatrix = CachedDistanceMatrix.LoadOrCache(tools.ConfigFile.DataDirectory);
             progress.SetProgress(0.2);
-            timer.TimeMark("Saving matrix");
-            cachedMatrix.Save();
-            progress.SetProgress(0.3);
             timer.TimeMark("Loading strongly cached files into matrix");
-            cachedMatrix.LoadDistFromAllCacheFiles();
+            cachedMatrix.LoadDistFromAllCacheFiles((prog) => {
+                progress.SetProgress(0.2 + 0.7 * prog);
+            });
             progress.SetProgress(0.9);
             timer.TimeMark("Saving matrix");
             cachedMatrix.Save();
@@ -121,14 +133,15 @@ namespace RealSimilarityMds
 
         private double[,] DoMds(CachedDistanceMatrix cachedMatrix) {
             Random r = new Random();
-            int dimensions=5;
+            int dimensions=2;
 
             int totalRounds = cachedMatrix.Mapping.Count * 50;
             
-            progress.NewTask("MDS",1.0);
+            progress.NewTask("MDS-init",1.0);
 
             float maxDist = cachedMatrix.Matrix.Values.Where(dist => dist.IsFinite()).Max();
-
+            
+            progress.NewTask("MDS", 1.0);
             using (Hitmds mdsImpl = new Hitmds(cachedMatrix.Mapping.Count, dimensions, (i, j) => cachedMatrix.Matrix[i, j].IsFinite()?cachedMatrix.Matrix[i, j]:maxDist*10, r)) {
                 mdsImpl.mds_train(totalRounds, 5.0, 0.0, (cycle, ofTotal, src) => { progress.SetProgress(cycle/(double)ofTotal); });
 

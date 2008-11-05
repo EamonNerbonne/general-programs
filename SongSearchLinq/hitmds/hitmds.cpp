@@ -228,17 +228,18 @@ namespace hitmds {
 					diff_mixed = learning_rate;
 				
 				//*				
+				//this is eamon's alternative point update
 				double lenSqr=0;
 				for(k = 0; k < target_dim; k++) {
 					lenSqr += delta_point[k]*delta_point[k];
 				}
 				double invLen = diff_mixed *1.0/sqrt(lenSqr) *sqrt((double)target_dim);
-				double rndScale = diff_mixed;//*(cycles - c)/cycles;
+				double rndScale = diff_mixed/2;//*(cycles - c)/cycles; //  /2 managed 0.19, cycles-c/cycles...
 				for(k = 0; k < target_dim; k++) {
 					delta_point[k] = point[k] - delta_point[k]*invLen +  rndScale *(frand()-0.5);
 				} 
 				/*/
-
+				//the original hitmds update
 
 				for(k = 0; k < target_dim; k++) {
 					diff = diff_mixed * (delta_point[k] >0 ? 1 : delta_point[k] <0? -1:0);

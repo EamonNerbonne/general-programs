@@ -8,7 +8,7 @@ using System.IO;
 using System.Threading;
 using EmnExtensionsNative;
 
-namespace EmnExtensions.WPF
+namespace EmnExtensions.Wpf
 {
     public class LogControl : TextBox
     {
@@ -44,14 +44,19 @@ namespace EmnExtensions.WPF
         }
 
         private void UpdateStringUI() {
+            string strToAppend = null;
             lock (sb) {
                 if (redraw) {
                     redraw = false;
-                    Text += sb.ToString();
+                    strToAppend += sb.ToString();
                     sb.Length = 0;
-                    ScrollToEnd();
                 }
             }
+            if (strToAppend != null) {
+                Text += strToAppend;
+                ScrollToEnd();
+            }
+
         }
 
         public bool ClaimStandardOut {
