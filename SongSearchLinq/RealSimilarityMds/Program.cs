@@ -58,7 +58,7 @@ namespace RealSimilarityMds
             Dictionary<int,SongRef> songrefByMds= WellKnownTracksByMdsId(tools,cachedMatrix);
             
 
-            FileInfo logFile = new FileInfo (Path.Combine (tools.ConfigFile.DataDirectory.FullName,@".\mdsdPoints.txt") ); 
+            FileInfo logFile = new FileInfo (Path.Combine (settings.DataDirectory.FullName,@".\mdsPoints-"+settings.Format+".txt") ); 
 
             using(Stream s = logFile.Open(FileMode.Create, FileAccess.Write))
             using (TextWriter writer = new StreamWriter(s)) {
