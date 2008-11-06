@@ -115,6 +115,9 @@ new PropertyChangedCallback(BucketSizeSet))
 
         static Pen graphLinePen = new Pen(Brushes.Black, 1.0);
         static AutoHistogram() {
+            graphLinePen.StartLineCap = PenLineCap.Round;
+            graphLinePen.EndLineCap = PenLineCap.Round;
+            graphLinePen.LineJoin = PenLineJoin.Round;
             graphLinePen.Freeze();
         }
 
@@ -165,7 +168,7 @@ new PropertyChangedCallback(BucketSizeSet))
                     double lineBotPos = rotateLeft ? legendSize - ticklen : ticklen;
                     Point lineTop = new Point(pos, lineTopPos);
                     Point lineBot = new Point(pos, lineBotPos);
-                    legendGeom.Figures.Add(new PathFigure(lineTop, new[] { new LineSegment(lineBot, true) }, false));
+                    legendGeom.Figures.Add(new PathFigure(lineTop, new[] { new LineSegment(lineBot, true) { IsSmoothJoin=true} }, false));
 
                     if (rank == 0) {
                         string numericValueString = (val / Math.Pow(10, orderOfMagnitude)).ToString("f1");
