@@ -123,8 +123,9 @@ new PropertyChangedCallback(BucketSizeSet))
             int[] subDivTicks;
             int orderOfMagnitude;
             FindTickPositions(minVal, maxVal, viewWidth / 100, out firstTickAt, out totalSlotSize, out subDivTicks, out orderOfMagnitude);
+            if (totalSlotSize * 4 < viewWidth) orderOfMagnitude++;
             double magnitudeCorr;
-            if (orderOfMagnitude < -2 || orderOfMagnitude > 3)
+            if (orderOfMagnitude < -2 || orderOfMagnitude > 2)
                 magnitudeCorr = Math.Pow(10, orderOfMagnitude);
             else {
                 orderOfMagnitude = 0;
@@ -135,62 +136,63 @@ new PropertyChangedCallback(BucketSizeSet))
             Typeface labelType = new Typeface(new FontFamily("Calibri"), FontStyles.Normal, FontWeights.Normal, FontStretches.Normal, new FontFamily("Verdana"));
 
             DrawingVisual drawingVisual = new DrawingVisual();
-            DrawingContext drawingContext = drawingVisual.RenderOpen();
-            if (rotateLeft) drawingContext.PushTransform(new TransformGroup() {
-                Children = new TransformCollection() {
+            using (DrawingContext drawingContext = drawingVisual.RenderOpen()) {
+                if (rotateLeft) drawingContext.PushTransform(new TransformGroup() {
+                    Children = new TransformCollection() {
                     new RotateTransform(-90),
                     //new TranslateTransform(0, 70),
                 }
-            });  // new RotateTransform(-90.0,densityCanvas.ActualHeight/2,densityCanvas.ActualHeight/2);
-            drawingContext.PushClip(new RectangleGeometry(new Rect(0, 0, viewWidth + legendSize * 2, legendSize)));
-            drawingContext.DrawRectangle(Brushes.Transparent, null, new Rect(0, 0, viewWidth + legendSize * 2, legendSize));
-            PathGeometry legendGeom = new PathGeometry();
+                });  // new RotateTransform(-90.0,densityCanvas.ActualHeight/2,densityCanvas.ActualHeight/2);
+                drawingContext.PushClip(new RectangleGeometry(new Rect(0, 0, viewWidth + legendSize * 2, legendSize)));
+                drawingContext.DrawRectangle(Brushes.Transparent, null, new Rect(0, 0, viewWidth + legendSize * 2, legendSize));
+                PathGeometry legendGeom = new PathGeometry();
 
-            Action<double, int> DrawTick = null;
-            DrawTick = (double val, int rank) => {
+                Action<double, int> DrawTick = null;
+                DrawTick = (double val, int rank) => {
 
-                for (int subrank = rank; subrank < subDivTicks.Length; subrank++) {
-                    double subSlotSize = totalSlotSize / subDivTicks.Take(subrank + 1).Aggregate(1, (i, j) => i * j);
-                    for (int i = 1; i < subDivTicks[subrank]; i++)
-                        DrawTick(val + subSlotSize * i, subrank + 1);
+                    for (int subrank = rank; subrank < subDivTicks.Length; subrank++) {
+                        double subSlotSize = totalSlotSize / subDivTicks.Take(subrank + 1).Aggregate(1, (i, j) => i * j);
+                        for (int i = 1; i < subDivTicks[subrank]; i++)
+                            DrawTick(val + subSlotSize * i, subrank + 1);
+                    }
+
+                    if (val < minVal || val > maxVal) return;
+
+                    double pos = legendSize + scale * (val - minVal);
+                    double ticklen = 30 / (rank + 2);
+
+                    double lineTopPos = rotateLeft ? legendSize : 0;
+                    double lineBotPos = rotateLeft ? legendSize - ticklen : ticklen;
+                    Point lineTop = new Point(pos, lineTopPos);
+                    Point lineBot = new Point(pos, lineBotPos);
+                    legendGeom.Figures.Add(new PathFigure(lineTop, new[] { new LineSegment(lineBot, true) }, false));
+
+                    if (rank == 0) {
+                        string numericValueString = (val / Math.Pow(10, orderOfMagnitude)).ToString("f1");
+                        FormattedText label = new FormattedText(numericValueString, cachedCulture, FlowDirection.LeftToRight, labelType, 10 * 4.0 / 3.0, Brushes.Black);
+                        drawingContext.DrawText(label, new Point(pos - label.Width / 2, rotateLeft ? legendSize - label.Height - ticklen - 1 : ticklen + 1));
+                        //                    drawingContext.DrawRectangle(null, graphLinePen, new Rect(pos - label.Width / 2 - 2, ticklen - 2+5, label.Width + 4, label.Height + 4));
+                    }
+                };
+
+                for (double majorTick = firstTickAt - totalSlotSize; majorTick < maxVal; majorTick += totalSlotSize) {
+                    DrawTick(majorTick, 0);
                 }
+                drawingContext.DrawGeometry(null, graphLinePen, legendGeom);
+                FormattedText maglabel = new FormattedText(
+                    string.Format("×10", orderOfMagnitude),
+                    cachedCulture, FlowDirection.LeftToRight, labelType, 10 * 4.0 / 3.0, Brushes.Black);
+                FormattedText magpowlabel = new FormattedText(
+                    orderOfMagnitude.ToString(),
+                    cachedCulture, FlowDirection.LeftToRight, labelType, 8 * 4.0 / 3.0, Brushes.Black);
 
-                if (val < minVal || val > maxVal) return;
+                drawingContext.DrawText(maglabel, new Point(viewWidth + 2 * legendSize - maglabel.Width - magpowlabel.Width - 3, rotateLeft ? legendSize - maglabel.Height - 16 : 16));
 
-                double pos = legendSize + scale * (val - minVal);
-                double ticklen = 30 / (rank + 2);
+                drawingContext.DrawText(magpowlabel, new Point(viewWidth + 2 * legendSize - magpowlabel.Width - 3, rotateLeft ? legendSize - magpowlabel.Height - 20 : 14));
 
-                double lineTopPos = rotateLeft ? legendSize : 0;
-                double lineBotPos = rotateLeft ? legendSize - ticklen : ticklen;
-                Point lineTop = new Point(pos, lineTopPos);
-                Point lineBot = new Point(pos, lineBotPos);
-                legendGeom.Figures.Add(new PathFigure(lineTop, new[] { new LineSegment(lineBot, true) }, false));
 
-                if (rank == 0) {
-                    string numericValueString = (val / Math.Pow(10, orderOfMagnitude)).ToString("f1");
-                    FormattedText label = new FormattedText(numericValueString, cachedCulture, FlowDirection.LeftToRight, labelType, 10 * 4.0 / 3.0, Brushes.Black);
-                    drawingContext.DrawText(label, new Point(pos - label.Width / 2, rotateLeft ? legendSize - label.Height - ticklen - 1 : ticklen + 1));
-                    //                    drawingContext.DrawRectangle(null, graphLinePen, new Rect(pos - label.Width / 2 - 2, ticklen - 2+5, label.Width + 4, label.Height + 4));
-                }
-            };
-
-            for (double majorTick = firstTickAt - totalSlotSize; majorTick < maxVal; majorTick += totalSlotSize) {
-                DrawTick(majorTick, 0);
+                drawingContext.Close();
             }
-            drawingContext.DrawGeometry(null, graphLinePen, legendGeom);
-            FormattedText maglabel = new FormattedText(
-                string.Format("×10", orderOfMagnitude),
-                cachedCulture, FlowDirection.LeftToRight, labelType, 10 * 4.0 / 3.0, Brushes.Black);
-            FormattedText magpowlabel = new FormattedText(
-                orderOfMagnitude.ToString(),
-                cachedCulture, FlowDirection.LeftToRight, labelType, 8 * 4.0 / 3.0, Brushes.Black);
-
-            drawingContext.DrawText(maglabel, new Point(viewWidth + 2 * legendSize - maglabel.Width - magpowlabel.Width - 3, rotateLeft ? legendSize - maglabel.Height - 16 : 16));
-
-            drawingContext.DrawText(magpowlabel, new Point(viewWidth + 2 * legendSize - magpowlabel.Width - 3, rotateLeft ? legendSize - magpowlabel.Height - 20 : 14));
-
-
-            drawingContext.Close();
             return new VisualBrush(drawingVisual) { Stretch = Stretch.None, TileMode = TileMode.None, AlignmentX = AlignmentX.Right, AlignmentY = AlignmentY.Top };
         }
 
