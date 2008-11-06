@@ -25,29 +25,22 @@ namespace SimilarityMds
         }
 
         static void Main(string[] args) {
-            SimilarityFormat format = SimilarityFormat.AvgRank;
+
 
             NiceTimer timer = new NiceTimer();
             timer.TimeMark("loading config");
             SongDatabaseConfigFile config = new SongDatabaseConfigFile(false);
             tools = new LastFmTools(config);
+            SimCacheManager settings = new SimCacheManager(SimilarityFormat.AvgRank, tools, DataSetType.Training);
             timer.TimeMark("Loading training data");
-            var sims = SimilarTracks.LoadOrCache(tools, SimilarTracks.DataSetType.Training);
-            timer.TimeMark("Converting...");
-            int soFar = 0;
-            sims.ConvertDataFormat(SimilarityFormat.AvgRank, p => {
-                if ((int)(p * 100) > soFar) {
-                    soFar = (int)(p * 100);
-                    Console.Write(soFar.ToString()+"% ");
-                }
-            });
+            var sims = settings.LoadSimilarTracks();
             timer.TimeMark("GC");
             System.GC.Collect();
             timer.TimeMark("Idendifying already cached tracks");
             DirectoryInfo dataDir = tools.ConfigFile.DataDirectory;
             BitArray cachedDists = new BitArray(sims.TrackMapper.Count, false);
             bool atLeastOneTrackCached = false;
-            foreach (int cachedTrack in CachedDistanceMatrix.AllTracksCached(dataDir,format).Select(nfile => nfile.number)) {
+            foreach (int cachedTrack in settings.AllTracksCached.Select(nfile => nfile.number)) {
                 cachedDists[cachedTrack] = true;
                 atLeastOneTrackCached = true;
             }
@@ -109,7 +102,7 @@ namespace SimilarityMds
                     Enumerable.Repeat(track, 1),
                     out distanceFromA,
                     out  pathToA);
-                FileInfo saveFile = CachedDistanceMatrix.FileForTrack(dataDir,format, track);
+                FileInfo saveFile = settings.DijkstraFileOfTrackNumber( track);
                 using (Stream s = saveFile.Open(FileMode.Create, FileAccess.Write))
                 using (var binW = new BinaryWriter(s)) {
                     binW.Write(distanceFromA.Length);

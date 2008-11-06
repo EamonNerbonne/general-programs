@@ -171,9 +171,9 @@ namespace SimilarityAnalysis
         }
 
 
-        const float maxRate = 1000.0f;//note this is  too high!!!
         static void VerifyTriangleInequality() {
-            SimilarTracks sims = SimilarTracks.LoadOrCache(tools, LastFMspider.SimilarTracks.DataSetType.Complete);
+            SimCacheManager settings = new SimCacheManager(SimilarityFormat.Log200, tools, DataSetType.Complete);
+            SimilarTracks sims = settings.LoadSimilarTracks();
 
 //            using (var writer = File.OpenWrite("errlog.log"))
   //          using (var swriter = new StreamWriter(writer)) {
@@ -183,19 +183,17 @@ namespace SimilarityAnalysis
                 int errCount = 0;
                 double errSum = 0;
                 double distSum = 0;
-                float logMaxRate = (float)Math.Log(maxRate);
-                Func<float, float> ratingToDist = rating => logMaxRate - (float)Math.Log(rating);
 
                 foreach (var similarity in sims.SimilaritiesRemapped) {
                     simCount++;
-                    distSum += ratingToDist( similarity.Rating);
+                    distSum += similarity.Rating;
                     var simToA = sims.SimilarTo(similarity.TrackA);
                     var simToB = sims.SimilarTo(similarity.TrackB);
                     IntersectOrdered(simToA, simToB, (b, c) => {
                         triangleCount++;
-                        float aD = ratingToDist(similarity.Rating);
-                        float bD = ratingToDist(b.rating);
-                        float cD = ratingToDist(c.rating);
+                        float aD = similarity.Rating;
+                        float bD = b.rating;
+                        float cD = c.rating;
                         float longest = Math.Max(aD, Math.Max(bD, cD));
                         float rest = aD + bD + cD - longest;
                         if (longest > rest) {
@@ -232,8 +230,9 @@ namespace SimilarityAnalysis
             Console.Write("FromDB.Count "); Console.WriteLine(fromDB.Count());
             Console.Write("IsSorted(FromDB)? "); Console.WriteLine(IsSorted(fromDB));
 
+            SimCacheManager settings = new SimCacheManager(SimilarityFormat.LastFmRating, tools, DataSetType.Complete);
             timer.TimeMark("loading complete set");
-            var completeSet = UniqueSimilarities(SimilarTracks.LoadOrCache(tools, SimilarTracks.DataSetType.Complete));
+            var completeSet = UniqueSimilarities( settings.LoadSimilarTracks());
 
             timer.TimeMark("Comparing...");
             Console.Write("DB == Complete? "); Console.WriteLine(completeSet.SequenceEqual(fromDB));
@@ -241,13 +240,13 @@ namespace SimilarityAnalysis
 
 
             timer.TimeMark("Loading Test");
-            var testSet = UniqueSimilarities(SimilarTracks.LoadOrCache(tools, SimilarTracks.DataSetType.Test));
+            var testSet = UniqueSimilarities(settings.WithDataSetType( DataSetType.Test).LoadSimilarTracks());
 
             timer.TimeMark("Loading Training");
-            var trainSet = UniqueSimilarities(SimilarTracks.LoadOrCache(tools, SimilarTracks.DataSetType.Training));
+            var trainSet = UniqueSimilarities(settings.WithDataSetType(DataSetType.Training).LoadSimilarTracks());
 
             timer.TimeMark("Loading Verification...");
-            var verSet = UniqueSimilarities(SimilarTracks.LoadOrCache(tools, SimilarTracks.DataSetType.Verification));
+            var verSet = UniqueSimilarities(settings.WithDataSetType( DataSetType.Verification).LoadSimilarTracks());
 
             timer.TimeMark("Comparing...");
             var mergeSet = MergeOrdered(testSet, MergeOrdered(verSet, trainSet));

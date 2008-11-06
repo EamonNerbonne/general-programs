@@ -9,44 +9,24 @@ namespace LastFMspider
 {
     public class CachedDistanceMatrix
     {
-        public struct NumberedFile
-        {
-            public int number;
-            public FileInfo file;
-        }
-        public static IEnumerable<NumberedFile> AllTracksCached(DirectoryInfo dataDir, SimilarityFormat format) {
-            return from file in new CachedDistanceMatrix(dataDir, format).distCacheDir.GetFiles()
-                   let match =  fileNameRegex.Match(file.Name)
-                   where match.Success
-                   select new NumberedFile{
-                       file = file, number = int.Parse(match.Groups["num"].Value)
-                   };
-        }
-        public IEnumerable<NumberedFile> UnmappedTracks { get{
-                return AllTracksCached(dataDir,format).Where(file => !Mapping.IsMapped(file.number));
+        public readonly SimCacheManager Settings;
+        public IEnumerable<SimCacheManager.NumberedFile> UnmappedTracks { get{
+                return Settings.AllTracksCached.Where(file => !Mapping.IsMapped(file.number));
             }
         }
-        public static int TrackNumberOfFile(FileInfo file) { return int.Parse(fileNameRegex.Replace(file.Name, "${num}")); }
 
         public SymmetricDistanceMatrix Matrix { get; private set; }
         public ArbitraryTrackMapper Mapping { get; private set; }
 
-        FileInfo fileCache { get { return new FileInfo(Path.Combine(dataDir.FullName, @".\DistanceMatrix" + SimilarityFormatConv.ToPathString(format) + ".bin")); } }
-        DirectoryInfo distCacheDir {get { return dataDir.CreateSubdirectory("distCache" +SimilarityFormatConv.ToPathString(format)); }}
 
 
-        SimilarityFormat format;
-        DirectoryInfo dataDir;
         void WriteTo(BinaryWriter writer) {
             Mapping.WriteTo(writer);
             Matrix.WriteTo(writer);
         }
-        CachedDistanceMatrix(DirectoryInfo dataDir, SimilarityFormat format) {
-            this.format = format;
-            this.dataDir = dataDir;
-        }
-        void Init() {
-            var file = fileCache;
+        internal CachedDistanceMatrix(SimCacheManager settings) {
+            Settings = settings;
+            var file = Settings.DistanceMatrixCacheFile;
             if (file.Exists) {
                 using (var stream = file.OpenRead())
                 using (var reader = new BinaryReader(stream)) {
@@ -59,29 +39,24 @@ namespace LastFMspider
             }
         }
         public void Save() {
-            var file = fileCache;
+            var file = Settings.DistanceMatrixCacheFile;
             using (var stream = file.Open(FileMode.Create, FileAccess.Write))
             using (var writer = new BinaryWriter(stream))
                 this.WriteTo(writer);
         }
 
-        static Regex fileNameRegex = new Regex(@"b(?<num>\d+)\.bin", RegexOptions.CultureInvariant | RegexOptions.Compiled | RegexOptions.ExplicitCapture);
 
-        public static CachedDistanceMatrix LoadOrCache(DirectoryInfo dataDirectory, SimilarityFormat format) {
-            var mat= new CachedDistanceMatrix(dataDirectory,format);
-            mat.Init();
-            return mat;
-        }
-
-        public void LoadDistFromAllCacheFiles(Action<double> progress) {
+        public void LoadDistFromAllCacheFiles(Action<double> progress, bool saveAfterwards) {
             int tot = UnmappedTracks.Count();
             int cur = 0;
             foreach (var file in UnmappedTracks) {
                 LoadDistFromCacheFile(file);
                 progress(cur++/(double)tot);
             }
+            if (saveAfterwards)
+                Save();
         }
-        void LoadDistFromCacheFile(NumberedFile nfile) {
+        void LoadDistFromCacheFile(SimCacheManager.NumberedFile nfile) {
             int fileTrackID = nfile.number;
             var file = nfile.file;
             if (Mapping.IsMapped(fileTrackID))
@@ -142,8 +117,5 @@ namespace LastFMspider
 
 
 
-        public static FileInfo FileForTrack(DirectoryInfo dataDir, SimilarityFormat format, int track) {
-            return new FileInfo(Path.Combine(new CachedDistanceMatrix(dataDir, format).distCacheDir.FullName, @".\b" + track + ".bin"));
-        }
     }
 }

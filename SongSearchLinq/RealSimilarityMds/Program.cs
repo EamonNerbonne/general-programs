@@ -36,10 +36,12 @@ namespace RealSimilarityMds
             progress.NewTask("Configuring",1.0);
             SongDatabaseConfigFile config = new SongDatabaseConfigFile(false);
             tools = new LastFmTools(config);
+            SimCacheManager settings = new SimCacheManager(SimilarityFormat.AvgRank, tools, DataSetType.Training);
 
-            progress.SetProgress(0.1);
-            
-            CachedDistanceMatrix cachedMatrix = LoadCachedMatrix(tools);
+
+            CachedDistanceMatrix cachedMatrix = settings.LoadCachedDistanceMatrix();
+            progress.NewTask("Configuring", 1.0);
+            cachedMatrix.LoadDistFromAllCacheFiles(d => { progress.SetProgress(d); }, true);
             Console.WriteLine("dists: {0} total, {1} non-finite", cachedMatrix.Matrix.Values.Count(), cachedMatrix.Matrix.Values.Where(f => f.IsFinite()).Count());
 
             mainDisplay.Dispatcher.BeginInvoke((Action)delegate {
@@ -77,7 +79,7 @@ namespace RealSimilarityMds
         private static Dictionary<int, SongRef> WellKnownTracksByMdsId(LastFmTools tools, CachedDistanceMatrix cachedMatrix) {
             NiceTimer timer = new NiceTimer(); 
             timer.TimeMark("Loading TrackMapper");
-            TrackMapper trainingMapper = SimilarTracks.LoadOnlyTrackMapper(tools, SimilarTracks.DataSetType.Training);
+            TrackMapper trainingMapper = cachedMatrix.Settings.LoadTrackMapper();
             timer.TimeMark("Loading Billboard tracks");
             var songrefBySqliteId = WellKnownTracksBySqliteId(tools);
 
@@ -113,23 +115,6 @@ namespace RealSimilarityMds
             return FindWellKnown(tools).ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
         }
 
-
-        private CachedDistanceMatrix LoadCachedMatrix(LastFmTools tools) {
-            NiceTimer timer = new NiceTimer();
-            timer.TimeMark("Loading cached distance matrix");
-            CachedDistanceMatrix cachedMatrix = CachedDistanceMatrix.LoadOrCache(tools.ConfigFile.DataDirectory,SimilarityFormat.AvgRank);
-            progress.SetProgress(0.2);
-            timer.TimeMark("Loading strongly cached files into matrix");
-            cachedMatrix.LoadDistFromAllCacheFiles((prog) => {
-                progress.SetProgress(0.2 + 0.7 * prog);
-            });
-            progress.SetProgress(0.9);
-            timer.TimeMark("Saving matrix");
-            cachedMatrix.Save();
-            timer.Done();
-            progress.SetProgress(1.0);
-            return cachedMatrix;
-        }
 
         private double[,] DoMds(CachedDistanceMatrix cachedMatrix) {
             Random r = new Random();
