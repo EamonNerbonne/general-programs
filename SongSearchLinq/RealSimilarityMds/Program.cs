@@ -117,7 +117,7 @@ namespace RealSimilarityMds
         private CachedDistanceMatrix LoadCachedMatrix(LastFmTools tools) {
             NiceTimer timer = new NiceTimer();
             timer.TimeMark("Loading cached distance matrix");
-            CachedDistanceMatrix cachedMatrix = CachedDistanceMatrix.LoadOrCache(tools.ConfigFile.DataDirectory);
+            CachedDistanceMatrix cachedMatrix = CachedDistanceMatrix.LoadOrCache(tools.ConfigFile.DataDirectory,SimilarityFormat.AvgRank);
             progress.SetProgress(0.2);
             timer.TimeMark("Loading strongly cached files into matrix");
             cachedMatrix.LoadDistFromAllCacheFiles((prog) => {

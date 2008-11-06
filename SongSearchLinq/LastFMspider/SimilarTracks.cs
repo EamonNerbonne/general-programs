@@ -46,60 +46,81 @@ namespace LastFMspider
             public int TrackA, TrackB;
             public float Rating;
         }
-        public const int maxRate = 1;//note this is  too high, intentionally to at least mitigate triangle inequality muck!!!
-        static readonly double logMaxRate = (float)Math.Log(maxRate);
-        static float DistFromSim(float sim) {
-            return (float)(logMaxRate - Math.Log(sim));
-        }
-        static float SimFromDist(float dist) {
-            return (float)Math.Exp(logMaxRate - dist);
-        }
 
+        SimilarityFormat simFormat = SimilarityFormat.LastFmRating;
+        public SimilarityFormat DataSetFormat {get; private set; }
 
-        bool inSimFormat = true;
-        bool inRankFormat = false;
-        public void ConvertToDistanceFormat(Action<double> progress) {
-            if(inSimFormat)
-                for (int trackA = 0; trackA < similarTo.Length; trackA++) {
-                    var simToA = similarTo[trackA];
-                    for (int j = 0; j < simToA.Length; j++)
-                        simToA[j].rating = DistFromSim(simToA[j].rating);
-
-                    progress(trackA / (double)similarTo.Length);
-                }
-            inSimFormat = false;
-        }
-        public void ConvertToRankFormat(Action<double> progress) {
-            if (inSimFormat) {
-                for(int trackA=0;trackA<similarTo.Length;trackA++) {
-                    var simToA = similarTo[trackA];
-                    int rank=0;
-                    foreach (var s in simToA
-                                        .Select((simTo, i) => new { simTo = simTo, i = i })
-                                        .OrderByDescending(s => s.simTo.rating)
-                                        ) {
-                        int bInA = s.i;
-                        int trackB = simToA[bInA].trackID;
-                        rank++;
-                        if (trackB < trackA) {// this guy's been processed!
-                            var simToB = similarTo[trackB];
-                            int aInB = Array.BinarySearch(simToB, new DenseSimilarTo { trackID = trackA });
-
-                            simToB[aInB].rating = simToA[bInA].rating = (simToB[aInB].rating + rank) / 2.0f;
-
-                        } else {
-                            simToA[bInA].rating = rank;
-                        }
-                    }
-                    progress(trackA / (double)similarTo.Length);
-                }
+        public void ConvertDataFormat(SimilarityFormat format, Action<double> progress) {
+            switch (format) {
+                case SimilarityFormat.AvgRank: ConvertToRankFormat(progress); break;
+                case SimilarityFormat.Log200:
+                case SimilarityFormat.Log2000:
+                    ConvertToDistanceFormat(format, progress); break;
+                case SimilarityFormat.LastFmRating: throw new Exception("Conversion not defined.");
             }
-            inSimFormat = false;
-            inRankFormat = true;
+        }
+
+        //        static float SimFromDist(float dist) {
+        //          return (float)Math.Exp(logMaxRate - dist);
+        //    }
+        public double maxRate { get; private set; }
+        void ConvertToDistanceFormat(SimilarityFormat format, Action<double> progress) {
+            if (simFormat != SimilarityFormat.LastFmRating)
+                throw new Exception("Can only convert from LastFmRating");
+            switch (format) {
+                case SimilarityFormat.Log200: maxRate = 200.0; break;
+                case SimilarityFormat.Log2000: maxRate = 2000.0; break;
+                default:
+                    throw new Exception("Invalid conversion to " + format);
+            }
+
+            double logMaxRate = (float)Math.Log(maxRate);
+            Func<float, float> DistFromSim = (sim) => (float)(logMaxRate - Math.Log(sim));
+
+            for (int trackA = 0; trackA < similarTo.Length; trackA++) {
+                var simToA = similarTo[trackA];
+                for (int j = 0; j < simToA.Length; j++)
+                    simToA[j].rating = DistFromSim(simToA[j].rating);
+
+                progress(trackA / (double)similarTo.Length);
+            }
+
+            simFormat = format;
+        }
+
+        void ConvertToRankFormat(Action<double> progress) {
+            if (simFormat != SimilarityFormat.LastFmRating)
+                throw new Exception("Can only convert from LastFmRating");
+
+            for (int trackA = 0; trackA < similarTo.Length; trackA++) {
+                var simToA = similarTo[trackA];
+                int rank = 0;
+                foreach (var s in simToA
+                                    .Select((simTo, i) => new { simTo = simTo, i = i })
+                                    .OrderByDescending(s => s.simTo.rating)
+                                    ) {
+                    int bInA = s.i;
+                    int trackB = simToA[bInA].trackID;
+                    rank++;
+                    if (trackB < trackA) {// this guy's been processed!
+                        var simToB = similarTo[trackB];
+                        int aInB = Array.BinarySearch(simToB, new DenseSimilarTo { trackID = trackA });
+
+                        simToB[aInB].rating = simToA[bInA].rating = (simToB[aInB].rating + rank) / 2.0f;
+
+                    } else {
+                        simToA[bInA].rating = rank;
+                    }
+                }
+                progress(trackA / (double)similarTo.Length);
+
+            }
+            maxRate = 1; //for storage identification purposes.
+            simFormat = SimilarityFormat.AvgRank;
         }
 
         public float? FindRating(int trackA, int trackB) {
-            int idx=Array.BinarySearch(similarTo[trackA], new DenseSimilarTo { trackID = trackB });
+            int idx = Array.BinarySearch(similarTo[trackA], new DenseSimilarTo { trackID = trackB });
             if (idx < 0) return null;
             else return similarTo[trackA][idx].rating;
         }
@@ -135,7 +156,7 @@ namespace LastFMspider
             if (file.Exists) {
                 using (var stream = file.OpenRead())
                 using (var reader = new BinaryReader(stream))
-                    retval = new SimilarTracks(reader, dataset );
+                    retval = new SimilarTracks(reader, dataset);
             } else if (dataset == DataSetType.Complete) {
                 var similarTrackRows = LoadSimilarTracksFromDB(tools, new NiceTimer());
                 retval = new SimilarTracks(similarTrackRows, DataSetType.Complete);
@@ -145,7 +166,7 @@ namespace LastFMspider
                 SimilarTrackRow[] similarities = LoadOrCache(tools, DataSetType.Complete).SimilaritiesSqlite.ToArray();
                 //we use toarray to reduce peak memory usage - the garbage collector can now recycle the Complete set.
 
-                var labelledlists= new Dictionary<DataSetType,List<SimilarTrackRow>>() {
+                var labelledlists = new Dictionary<DataSetType, List<SimilarTrackRow>>() {
                     {DataSetType.Training, new List<SimilarTrackRow>()},
                     {DataSetType.Test, new List<SimilarTrackRow>()},
                     {DataSetType.Verification, new List<SimilarTrackRow>()}};
@@ -194,7 +215,7 @@ namespace LastFMspider
 
 
         public void WriteTo(BinaryWriter writer) {
-            if (!inSimFormat) throw new Exception("Serialization only wise in similarity format");
+            if (simFormat!=SimilarityFormat.LastFmRating) throw new Exception("Serialization only wise in similarity format");
             TrackMapper.WriteTo(writer);//includes num of tracks
             foreach (DenseSimilarTo[] trackSims in similarTo) {
                 writer.Write(trackSims.Length);//num of tracks this track is similar to.
@@ -312,7 +333,7 @@ namespace LastFMspider
                     }
                     last = sim.trackID;
                 }
-                Array.Resize(ref simToThis, writePos+1);//!@#$$^#$^!  forgot the +1, that cost like 5 hours.
+                Array.Resize(ref simToThis, writePos + 1);//!@#$$^#$^!  forgot the +1, that cost like 5 hours.
 #if DEBUG
                 last = -1;
                 for (int j = 0; j < simToThis.Length; j++) {
@@ -340,12 +361,12 @@ namespace LastFMspider
 #endif
         }
 
-        
-        private void CalcCount() {
-            Count = similarTo.Sum(sim => sim.Length)/2;
-        } 
 
-        public int Count { get; private set;}
+        private void CalcCount() {
+            Count = similarTo.Sum(sim => sim.Length) / 2;
+        }
+
+        public int Count { get; private set; }
 
         /// <summary>
         /// Returns all similarities.  For a given similarity (a,b,rating) returns either (a,b,rating) or (b,a,rating), such that

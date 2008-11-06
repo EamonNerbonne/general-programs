@@ -25,6 +25,8 @@ namespace SimilarityMds
         }
 
         static void Main(string[] args) {
+            SimilarityFormat format = SimilarityFormat.AvgRank;
+
             NiceTimer timer = new NiceTimer();
             timer.TimeMark("loading config");
             SongDatabaseConfigFile config = new SongDatabaseConfigFile(false);
@@ -33,7 +35,7 @@ namespace SimilarityMds
             var sims = SimilarTracks.LoadOrCache(tools, SimilarTracks.DataSetType.Training);
             timer.TimeMark("Converting...");
             int soFar = 0;
-            sims.ConvertToRankFormat(p => {
+            sims.ConvertDataFormat(SimilarityFormat.AvgRank, p => {
                 if ((int)(p * 100) > soFar) {
                     soFar = (int)(p * 100);
                     Console.Write(soFar.ToString()+"% ");
@@ -45,7 +47,7 @@ namespace SimilarityMds
             DirectoryInfo dataDir = tools.ConfigFile.DataDirectory;
             BitArray cachedDists = new BitArray(sims.TrackMapper.Count, false);
             bool atLeastOneTrackCached = false;
-            foreach (int cachedTrack in CachedDistanceMatrix.AllTracksCached(dataDir).Select(nfile => nfile.number)) {
+            foreach (int cachedTrack in CachedDistanceMatrix.AllTracksCached(dataDir,format).Select(nfile => nfile.number)) {
                 cachedDists[cachedTrack] = true;
                 atLeastOneTrackCached = true;
             }
@@ -107,7 +109,7 @@ namespace SimilarityMds
                     Enumerable.Repeat(track, 1),
                     out distanceFromA,
                     out  pathToA);
-                FileInfo saveFile = CachedDistanceMatrix.FileForTrack(dataDir, track);
+                FileInfo saveFile = CachedDistanceMatrix.FileForTrack(dataDir,format, track);
                 using (Stream s = saveFile.Open(FileMode.Create, FileAccess.Write))
                 using (var binW = new BinaryWriter(s)) {
                     binW.Write(distanceFromA.Length);

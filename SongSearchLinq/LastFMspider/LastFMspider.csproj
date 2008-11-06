@@ -167,6 +167,7 @@
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
       <DependentUpon>Settings.settings</DependentUpon>
     </Compile>
+    <Compile Include="SimilarityFormat.cs" />
     <Compile Include="SimilarTrack.cs" />
     <Compile Include="SimilarTracks.cs" />
     <Compile Include="SongDataLookups.cs" />

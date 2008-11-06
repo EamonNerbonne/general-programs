@@ -14,8 +14,8 @@ namespace LastFMspider
             public int number;
             public FileInfo file;
         }
-        public static IEnumerable<NumberedFile> AllTracksCached(DirectoryInfo dataDir) {
-            return from file in distCacheDir(dataDir).GetFiles()
+        public static IEnumerable<NumberedFile> AllTracksCached(DirectoryInfo dataDir, SimilarityFormat format) {
+            return from file in new CachedDistanceMatrix(dataDir, format).distCacheDir.GetFiles()
                    let match =  fileNameRegex.Match(file.Name)
                    where match.Success
                    select new NumberedFile{
@@ -23,7 +23,7 @@ namespace LastFMspider
                    };
         }
         public IEnumerable<NumberedFile> UnmappedTracks { get{
-                return AllTracksCached(dataDir).Where(file => !Mapping.IsMapped(file.number));
+                return AllTracksCached(dataDir,format).Where(file => !Mapping.IsMapped(file.number));
             }
         }
         public static int TrackNumberOfFile(FileInfo file) { return int.Parse(fileNameRegex.Replace(file.Name, "${num}")); }
@@ -31,18 +31,22 @@ namespace LastFMspider
         public SymmetricDistanceMatrix Matrix { get; private set; }
         public ArbitraryTrackMapper Mapping { get; private set; }
 
-        static FileInfo fileCache(DirectoryInfo dataDir) { return new FileInfo(Path.Combine(dataDir.FullName, @".\DistanceMatrix"+SimilarTracks.maxRate+".bin")); }
-        static DirectoryInfo distCacheDir(DirectoryInfo dataDir) { return dataDir.CreateSubdirectory("distCache"+SimilarTracks.maxRate); }
+        FileInfo fileCache { get { return new FileInfo(Path.Combine(dataDir.FullName, @".\DistanceMatrix" + SimilarityFormatConv.ToPathString(format) + ".bin")); } }
+        DirectoryInfo distCacheDir {get { return dataDir.CreateSubdirectory("distCache" +SimilarityFormatConv.ToPathString(format)); }}
 
 
+        SimilarityFormat format;
         DirectoryInfo dataDir;
         void WriteTo(BinaryWriter writer) {
             Mapping.WriteTo(writer);
             Matrix.WriteTo(writer);
         }
-        CachedDistanceMatrix(DirectoryInfo dataDir) {
+        CachedDistanceMatrix(DirectoryInfo dataDir, SimilarityFormat format) {
+            this.format = format;
             this.dataDir = dataDir;
-            var file = fileCache(dataDir);
+        }
+        void Init() {
+            var file = fileCache;
             if (file.Exists) {
                 using (var stream = file.OpenRead())
                 using (var reader = new BinaryReader(stream)) {
@@ -54,9 +58,8 @@ namespace LastFMspider
                 Matrix = new SymmetricDistanceMatrix(0);
             }
         }
-
         public void Save() {
-            var file = fileCache(dataDir);
+            var file = fileCache;
             using (var stream = file.Open(FileMode.Create, FileAccess.Write))
             using (var writer = new BinaryWriter(stream))
                 this.WriteTo(writer);
@@ -64,8 +67,10 @@ namespace LastFMspider
 
         static Regex fileNameRegex = new Regex(@"b(?<num>\d+)\.bin", RegexOptions.CultureInvariant | RegexOptions.Compiled | RegexOptions.ExplicitCapture);
 
-        public static CachedDistanceMatrix LoadOrCache(DirectoryInfo dataDirectory) {
-            return new CachedDistanceMatrix(dataDirectory);
+        public static CachedDistanceMatrix LoadOrCache(DirectoryInfo dataDirectory, SimilarityFormat format) {
+            var mat= new CachedDistanceMatrix(dataDirectory,format);
+            mat.Init();
+            return mat;
         }
 
         public void LoadDistFromAllCacheFiles(Action<double> progress) {
@@ -137,8 +142,8 @@ namespace LastFMspider
 
 
 
-        public static FileInfo FileForTrack(DirectoryInfo dataDir, int track) {
-            return new FileInfo(Path.Combine(distCacheDir( dataDir).FullName, @".\b" + track + ".bin"));
+        public static FileInfo FileForTrack(DirectoryInfo dataDir, SimilarityFormat format, int track) {
+            return new FileInfo(Path.Combine(new CachedDistanceMatrix(dataDir, format).distCacheDir.FullName, @".\b" + track + ".bin"));
         }
     }
 }
