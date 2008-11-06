@@ -102,8 +102,8 @@ new PropertyChangedCallback(BucketSizeSet))
             Path path = new Path {
                 Stroke = Brushes.Black,
                 StrokeThickness = 1.0,
-                Data = geom
-
+                Data = geom,
+                Clip = new RectangleGeometry(new Rect(new Size(densityCanvas.ActualWidth,densityCanvas.ActualHeight))),
             };
 
             densityCanvas.Children.Clear();

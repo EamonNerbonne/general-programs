@@ -31,14 +31,15 @@ namespace LastFMspider
             writer.Write(elementCount);
             writer.Write(distances.Count);
             foreach (var f in distances) {
-                writer.Write(f);
+                writer.Write((float)f);
             }
         }
         public SymmetricDistanceMatrix(BinaryReader reader) {
             elementCount = reader.ReadInt32();
-            distances = new List<float>(reader.ReadInt32());
-            for (int i = 0; i < distances.Count; i++)
-                distances[i] = reader.ReadSingle();
+            int distCount = reader.ReadInt32();
+            distances = new List<float>(distCount);
+            for (int i = 0; i < distCount; i++)
+                distances.Add(reader.ReadSingle());
         }
 
         public IEnumerable<float> Values { get { return distances; } }
