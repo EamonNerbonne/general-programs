@@ -18,12 +18,17 @@ namespace LastFMspider
         public SymmetricDistanceMatrix Matrix { get; private set; }
         public ArbitraryTrackMapper Mapping { get; private set; }
 
-
-
-        void WriteTo(BinaryWriter writer) {
-            Mapping.WriteTo(writer);
-            Matrix.WriteTo(writer);
+        public void LoadDistFromAllCacheFiles(Action<double> progress, bool saveAfterwards) {
+            int tot = UnmappedTracks.Count();
+            int cur = 0;
+            foreach (var file in UnmappedTracks.ToArray()) {
+                LoadDistFromCacheFile(file, false);
+                progress(++cur / (double)tot);
+            }
+            if (saveAfterwards)
+                Save();
         }
+
         internal CachedDistanceMatrix(SimCacheManager settings) {
             Settings = settings;
             var file = Settings.DistanceMatrixCacheFile;
@@ -35,27 +40,23 @@ namespace LastFMspider
                 }
             } else {
                 Mapping = new ArbitraryTrackMapper();
-                Matrix = new SymmetricDistanceMatrix(0);
+                Matrix = new SymmetricDistanceMatrix();
             }
         }
+
         void Save() {
             var file = Settings.DistanceMatrixCacheFile;
             using (var stream = file.Open(FileMode.Create, FileAccess.Write))
             using (var writer = new BinaryWriter(stream))
                 this.WriteTo(writer);
         }
-
-
-        public void LoadDistFromAllCacheFiles(Action<double> progress, bool saveAfterwards) {
-            int tot = UnmappedTracks.Count();
-            int cur = 0;
-            foreach (var file in UnmappedTracks.ToArray()) {
-                LoadDistFromCacheFile(file, false);
-                progress(++cur/(double)tot);
-            }
-            if (saveAfterwards)
-                Save();
+        
+        void WriteTo(BinaryWriter writer) {
+            Mapping.WriteTo(writer);
+            Matrix.WriteTo(writer);
         }
+
+
         void LoadDistFromCacheFile(SimCacheManager.NumberedFile nfile,bool reload) {
             int fileTrackID = nfile.number;
             var file = nfile.file;
@@ -93,7 +94,6 @@ namespace LastFMspider
                 RemoveTrackID(fileTrackID);
             }
         }
-
 
         /// <summary>
         /// This code can remove any track from the mapping, although it's actually only used to remove the last track

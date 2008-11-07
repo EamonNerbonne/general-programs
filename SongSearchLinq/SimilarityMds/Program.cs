@@ -31,7 +31,7 @@ namespace SimilarityMds
             timer.TimeMark("loading config");
             SongDatabaseConfigFile config = new SongDatabaseConfigFile(false);
             tools = new LastFmTools(config);
-            SimCacheManager settings = new SimCacheManager(SimilarityFormat.AvgRank, tools, DataSetType.Training);
+            SimCacheManager settings = new SimCacheManager(SimilarityFormat.AvgRank2, tools, DataSetType.Training);
             timer.TimeMark("Loading training data");
             var sims = settings.LoadSimilarTracks();
             timer.TimeMark("GC");

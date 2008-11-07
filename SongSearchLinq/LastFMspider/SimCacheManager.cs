@@ -16,13 +16,15 @@ namespace LastFMspider
         LastFmRating,
         Log200,
         Log2000,
-        AvgRank
+        AvgRank,
+        AvgRank2,
     };
     public static class SimilarityFormatConv
     {
         public static string ToPathString(SimilarityFormat format) {
             switch (format) {
                 case SimilarityFormat.AvgRank: return "1";
+                case SimilarityFormat.AvgRank2: return "2";
                 case SimilarityFormat.Log200: return "200";
                 case SimilarityFormat.Log2000: return "2000";
                 default: throw new Exception(format.ToString() + " is not cached.");

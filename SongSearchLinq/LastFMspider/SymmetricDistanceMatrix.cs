@@ -44,7 +44,7 @@ namespace LastFMspider
 
         public IEnumerable<float> Values { get { return distances; } }
 
-        public SymmetricDistanceMatrix(int elemCount) { this.ElementCount = elemCount; }
+        public SymmetricDistanceMatrix() {  }
 
         static int matSize(int elemCount) { return elemCount * (elemCount - 1) >> 1; }
         int calcOffset(int i, int j) {

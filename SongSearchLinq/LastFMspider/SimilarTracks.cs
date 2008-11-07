@@ -332,7 +332,8 @@ namespace LastFMspider
 
         void ConvertDataFormat(Action<double> progress) {
             switch (Settings.Format) {
-                case SimilarityFormat.AvgRank: ConvertToRankFormat(progress); break;
+                case SimilarityFormat.AvgRank: ConvertToRankFormat(progress,0); break;
+                case SimilarityFormat.AvgRank2: ConvertToRankFormat(progress, 99); break;
                 case SimilarityFormat.Log200:
                 case SimilarityFormat.Log2000:
                     ConvertToDistanceFormat( progress); break;
@@ -362,7 +363,7 @@ namespace LastFMspider
             }
         }
 
-        void ConvertToRankFormat(Action<double> progress) {
+        void ConvertToRankFormat(Action<double> progress,int offset) {
 
             for (int trackA = 0; trackA < similarTo.Length; trackA++) {
                 var simToA = similarTo[trackA];
@@ -378,10 +379,10 @@ namespace LastFMspider
                         var simToB = similarTo[trackB];
                         int aInB = Array.BinarySearch(simToB, new DenseSimilarTo { trackID = trackA });
 
-                        simToB[aInB].rating = simToA[bInA].rating = (simToB[aInB].rating + rank) / 2.0f;
+                        simToB[aInB].rating = simToA[bInA].rating = (simToB[aInB].rating + rank+offset) / 2.0f;
 
                     } else {
-                        simToA[bInA].rating = rank;
+                        simToA[bInA].rating = rank+offset;
                     }
                 }
                 progress(trackA / (double)similarTo.Length);
