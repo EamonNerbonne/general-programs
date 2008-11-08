@@ -9,6 +9,8 @@ using System.IO;
 using System.Text.RegularExpressions;
 using hitmds;
 using System.Threading;
+using EmnExtensions.Algorithms;
+using System.Windows;
 
 namespace RealSimilarityMds
 {
@@ -36,7 +38,7 @@ namespace RealSimilarityMds
             progress.NewTask("Configuring",1.0);
             SongDatabaseConfigFile config = new SongDatabaseConfigFile(false);
             tools = new LastFmTools(config);
-            SimCacheManager settings = new SimCacheManager(SimilarityFormat.AvgRank, tools, DataSetType.Training);
+            SimCacheManager settings = new SimCacheManager(SimilarityFormat.AvgRank2, tools, DataSetType.Training);
 
 
             CachedDistanceMatrix cachedMatrix = settings.LoadCachedDistanceMatrix();
@@ -45,8 +47,19 @@ namespace RealSimilarityMds
             Console.WriteLine("dists: {0} total, {1} non-finite", cachedMatrix.Matrix.Values.Count(), cachedMatrix.Matrix.Values.Where(f => f.IsFinite()).Count());
 
             mainDisplay.Dispatcher.BeginInvoke((Action)delegate {
-                mainDisplay.HistogramControl.Values = cachedMatrix.Matrix.Values.Select(f => (double)f);
-                mainDisplay.HistogramControl.BucketSize = cachedMatrix.Mapping.Count;
+                var histogram = new Histogrammer(cachedMatrix.Matrix.Values.Select(f => (double)f), cachedMatrix.Mapping.Count, 2000);
+                var histData = histogram.GenerateHistogram().ToArray();
+                mainDisplay.HistogramControl.Plot(histData.Select(data => new Point(data.point, data.density)));
+                Rect graphBounds = mainDisplay.HistogramControl.GraphControl.GraphBounds;
+                double
+                    densmax = histData.Select(d => d.density).Max(),
+                    densmin = histData.Select(d => d.density).Min(),
+                    valmax = histData.Select(d => d.point).Max(),
+                    valmin = histData.Select(d => d.point).Min();
+                Console.WriteLine( new Rect(new Point(valmin,densmin),new Point(valmax,densmax)).ToString());
+                Console.WriteLine(graphBounds.ToString());
+                //mainDisplay.HistogramControl.Values = cachedMatrix.Matrix.Values.Select(f => (double)f);
+                //mainDisplay.HistogramControl.BucketSize = cachedMatrix.Mapping.Count;
             });
 
 
@@ -58,7 +71,7 @@ namespace RealSimilarityMds
             Dictionary<int,SongRef> songrefByMds= WellKnownTracksByMdsId(tools,cachedMatrix);
             
 
-            FileInfo logFile = new FileInfo (Path.Combine (settings.DataDirectory.FullName,@".\mdsPoints-"+settings.Format+".txt") ); 
+            FileInfo logFile = new FileInfo (Path.Combine (settings.DataDirectory.FullName, @".\mdsPoints-"+settings.Format+".txt") ); 
 
             using(Stream s = logFile.Open(FileMode.Create, FileAccess.Write))
             using (TextWriter writer = new StreamWriter(s)) {

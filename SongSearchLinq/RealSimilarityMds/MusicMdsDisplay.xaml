@@ -13,9 +13,10 @@
             <RowDefinition Height="929*" />
             <RowDefinition Height="33" />
         </Grid.RowDefinitions>
-        <emnExt:AutoHistogram Name="distanceHistoview" Margin="0,0,0,0" />
+        <!--<emnExt:AutoHistogram Name="distanceHistoview" Margin="0,0,0,0" />-->
+        <emnExt:PlotControl Name="distanceHistoview" />
         <ProgressBar Name="progressBar" Margin="4,4,4,4" Grid.Row="1"  />
-        <emnExt:LogControl Name="logControl" ClaimStandardError="true" ClaimStandardOut="true" Grid.Column="2" TextWrapping="Wrap" />
+        <emnExt:LogControl Name="logControl" ClaimStandardError="true" ClaimStandardOut="true" Grid.Column="2" />
         <GridSplitter Grid.Column="1" HorizontalAlignment="Stretch" Name="gridSplitter1" Grid.RowSpan="2"  />
         <Label Grid.Column="2" Grid.Row="1" Margin="4,4,4,4" Name="labelETA">Label</Label>
     </Grid>

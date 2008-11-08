@@ -19,7 +19,7 @@
             <Canvas Name="pointCanvas"></Canvas>
         </Viewbox>
         <emnExt:AutoHistogram Grid.Column="1" Name="histo" Width="Auto" Height="Auto" />
-        <emnExt:LogControl Name="logControl" ClaimStandardError="true" ClaimStandardOut="true" Grid.Column="3" TextWrapping="Wrap" />
+        <emnExt:LogControl Name="logControl" ClaimStandardError="true" ClaimStandardOut="true" Grid.Column="3" />
         <GridSplitter Grid.Column="2" HorizontalAlignment="Stretch" Name="gridSplitter1" Grid.RowSpan="2"  />
         <Label Grid.Column="3" Grid.Row="1" Margin="4,4,4,4" Name="labelETA">Label</Label>
     </Grid>

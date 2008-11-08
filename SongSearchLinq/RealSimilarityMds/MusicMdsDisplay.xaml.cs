@@ -20,7 +20,7 @@ namespace RealSimilarityMds
     {
         ProgressManager progress;
         Program program;
-        public AutoHistogram HistogramControl { get { return this.distanceHistoview; } }
+        public PlotControl HistogramControl { get { return this.distanceHistoview; } }
         public MusicMdsDisplay() {
             InitializeComponent();
             progress = new ProgressManager(progressBar, labelETA);

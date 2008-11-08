@@ -7,26 +7,40 @@ using EmnExtensions.Text;
 using System.IO;
 using System.Threading;
 using EmnExtensionsNative;
+using System.Windows.Documents;
+using System.Windows;
+using System.Windows.Media;
+using System.Windows.Input;
 
 namespace EmnExtensions.Wpf
 {
-    public class LogControl : TextBox
+    public class LogControl : FlowDocumentScrollViewer
     {
+        Paragraph p;
+        FlowDocument doc;
+        TextPointer insertionPoint;
         public LogControl() {
+            p = new Paragraph();
+            doc = new FlowDocument(p);
+            var style = new Style();
+            doc.FontFamily = new FontFamily("Consolas");
+            doc.FontSize = 10.0;
+            insertionPoint = p.ContentEnd;
             logger = new DelegateTextWriter(AppendThreadSafe);
+            this.Document = doc;
         }
 
-        StringBuilder sb = new StringBuilder();
+        List<string> lines = new List<string>();
+        int nextLine = 0;
+        int nextChar = 0;
+        StringBuilder curLine = new StringBuilder();
         bool redraw = false;
         DelegateTextWriter logger;
         TextWriter oldOut,oldError;
 
 
         public void AppendLineThreadSafe(string line) {
-            lock (sb) {
-                sb.AppendLine(line);
-                Invalidate();
-            }
+            AppendThreadSafe(line + "\n");
         }
 
         private void Invalidate() {
@@ -36,26 +50,54 @@ namespace EmnExtensions.Wpf
             }
         }
 
+        static char[] splitChars = new char[] { '\n' };
         public void AppendThreadSafe(string text) {
-            lock (sb) {
-                sb.Append(text);
+            string[] newlines = text.Split(splitChars,StringSplitOptions.None);
+
+            lock (curLine) {
+
+                curLine.Append(newlines[0]);
+                if (newlines.Length > 1) {
+                    lines.Add(curLine.ToString());
+                    lines.AddRange(newlines.Take(newlines.Length - 1).Skip(1));
+                    curLine.Length = 0;
+                    curLine.Append(newlines[newlines.Length - 1]);
+                }
+
                 Invalidate();
             }
         }
 
         private void UpdateStringUI() {
-            string strToAppend = null;
-            lock (sb) {
+            string strToAppendToCur = null;
+            string[] newlines = null;
+            string newCur = null;
+            lock (curLine) {
                 if (redraw) {
                     redraw = false;
-                    strToAppend += sb.ToString();
-                    sb.Length = 0;
+                    if( nextLine <lines.Count){ //entire line added
+                        strToAppendToCur = lines[nextLine].Substring(nextChar);
+                        newlines = lines.Skip(nextLine+1).ToArray();//take full new lines
+                        nextLine = lines.Count;
+                        newCur = curLine.ToString();
+                    }else {//no entire line added
+                        strToAppendToCur = curLine.ToString(nextChar,curLine.Length);
+                    }
+                    nextChar=curLine.Length;
                 }
             }
-            if (strToAppend != null) {
-                Text += strToAppend;
-                ScrollToEnd();
+            if (strToAppendToCur != null) {
+                insertionPoint.InsertTextInRun(strToAppendToCur);
+                if (newlines != null) {
+                    foreach (string line in newlines) {
+                        // insertionPoint.InsertLineBreak();
+                        insertionPoint.InsertTextInRun(line);
+                    }
+                    //   insertionPoint.InsertLineBreak();
+                    insertionPoint.InsertTextInRun(newCur);
+                }
             }
+            NavigationCommands.LastPage.Execute(null, this);//can we say... nasty hack?
 
         }
 

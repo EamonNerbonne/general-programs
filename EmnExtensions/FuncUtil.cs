@@ -45,10 +45,11 @@ namespace EmnExtensions
             int retval = -1;
             T max = default(T);
             int currentIndex = -1;
-            while (enumerator.MoveNext()) {
+            T current;
+            while (enumerator.GetNext(out current)) {
                 currentIndex++;
-                if (filter(currentIndex, enumerator.Current) && (retval==-1||enumerator.Current.CompareTo(max) > 0)) {
-                    max = enumerator.Current;
+                if (filter(currentIndex, current) && (retval==-1||current.CompareTo(max) > 0)) {
+                    max = current;
                     retval = currentIndex;
                 }
             }
@@ -61,6 +62,16 @@ namespace EmnExtensions
         }
         public static bool IsFinite(this double f) {
             return !(double.IsInfinity(f) || double.IsNaN(f));
+        }
+
+        public static bool GetNext<T>(this IEnumerator<T> enumerator, out T nextVal) {
+            if (enumerator.MoveNext()) {
+                nextVal = enumerator.Current;
+                return true;
+            } else {
+                nextVal = default(T);
+                return false;
+            }
         }
     }
 }
