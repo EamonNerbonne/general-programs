@@ -43,7 +43,7 @@ namespace EmnExtensions.Wpf
     ///     <MyNamespace:GraphControl/>
     ///
     /// </summary>
-    public class GraphControl : Control
+    public class GraphControl : FrameworkElement
     {
         static Pen graphLinePen;
         static GraphControl() {
@@ -52,8 +52,6 @@ namespace EmnExtensions.Wpf
             graphLinePen.EndLineCap = PenLineCap.Round;
             graphLinePen.LineJoin = PenLineJoin.Round;
             graphLinePen.Freeze();
-
-            DefaultStyleKeyProperty.OverrideMetadata(typeof(GraphControl), new FrameworkPropertyMetadata(typeof(GraphControl)));
         }
 
         protected override Size MeasureOverride(Size constraint) {

@@ -103,7 +103,9 @@
       <DependentUpon>AutoHistogram.xaml</DependentUpon>
     </Compile>
     <Compile Include="GraphControl.cs" />
-    <Compile Include="LogControl.cs" />
+    <Compile Include="LogControl.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="PlotControl.xaml.cs">
       <DependentUpon>PlotControl.xaml</DependentUpon>
     </Compile>
@@ -149,10 +151,6 @@
     <Page Include="PlotControl.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Themes\Generic.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
     </Page>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
