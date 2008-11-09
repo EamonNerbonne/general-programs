@@ -5,17 +5,30 @@
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" MinHeight="10" />
-            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" MinHeight="10" />
+            <RowDefinition Height="*" MinHeight="10" />
             <RowDefinition Height="Auto" MinHeight="10" />
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="Auto" MinWidth="10"/>
-            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="*" MinWidth="10"/>
             <ColumnDefinition Width="Auto" MinWidth="10"/>
         </Grid.ColumnDefinitions>
-        <emnExt:GraphControl x:Name="graph" Grid.Column="1" Grid.Row="1" />
-
-        <emnExt:TickedLegendControl x:Name="leftLegend" Grid.Row="1" SnapTo="Right" />
-        <emnExt:TickedLegendControl x:Name="lowerLegend" Grid.Row="2" Grid.Column="1" />
+        <Grid Name="selectGrid" Grid.ColumnSpan="3"  VerticalAlignment="Top" Width="Auto" >
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <ComboBox  Name="botSelect" SelectionChanged="botSelect_SelectionChanged" />
+            <ComboBox  Name="topSelect" Grid.Column="1" SelectionChanged="topSelect_SelectionChanged" />
+            <ComboBox Grid.Column="2"  Name="visibilitySelect" SelectionChanged="visibility_SelectionChanged" />
+        </Grid>
+        <Grid Name="graphGrid"  Grid.Column="1" Grid.Row="2" >
+        </Grid>
+        <emnExt:TickedLegendControl x:Name="leftLegend" Grid.Row="2" SnapTo="Right" Visibility="Collapsed" />
+        <emnExt:TickedLegendControl x:Name="lowerLegend" Grid.Row="3" Grid.Column="1" Visibility="Collapsed" />
+        <emnExt:TickedLegendControl x:Name="rightLegend" Grid.Row="2" Grid.Column="2"  SnapTo="Left" Visibility="Collapsed"/>
+        <emnExt:TickedLegendControl x:Name="upperLegend" Grid.Row="1" Grid.Column="1" SnapTo="Bottom" Visibility="Collapsed"/>
     </Grid>
 </UserControl>

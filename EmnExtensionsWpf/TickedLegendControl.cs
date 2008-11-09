@@ -46,23 +46,66 @@ namespace EmnExtensions.Wpf
     /// </summary>
     public class TickedLegendControl : FrameworkElement
     {
-        string LegendLabel = "test";
         Typeface labelType;
-        double fontSize = 10.0 * 4.0 / 3.0;
-        static Pen tickPen;
-        static TickedLegendControl() {
-            tickPen = new Pen(Brushes.Black, 1.0);
-            tickPen.StartLineCap = PenLineCap.Round;
-            tickPen.EndLineCap = PenLineCap.Round;
-            tickPen.LineJoin = PenLineJoin.Round;
-            tickPen.Freeze();
+        double fontSize = 12.0 * 4.0 / 3.0;
+        Pen tickPen;
+        public Brush TickColor {
+            set {
+                tickPen = new Pen(value, 1.5);
+                tickPen.StartLineCap = PenLineCap.Round;
+                tickPen.EndLineCap = PenLineCap.Round;
+                tickPen.LineJoin = PenLineJoin.Round;
+                tickPen.Freeze();
+                InvalidateVisual();
+            }
+            get {
+                return tickPen.Brush;
+            }
         }
 
-        public TickedLegendControl() {
-            labelType = new Typeface(new FontFamily("Calibri"), FontStyles.Normal, FontWeights.Normal, FontStretches.Normal, new FontFamily("Verdana"));
-            StartVal = 0;
-            EndVal = 1;
 
+
+        public TickedLegendControl() {
+            TickColor = Brushes.Black;
+            labelType = new Typeface(new FontFamily("Segoe UI"), FontStyles.Normal, FontWeights.Normal, FontStretches.Normal, new FontFamily("Verdana"));
+//            StartVal = 0;
+  //          EndVal = 1;
+        }
+        GraphControl watchedGraph;
+        public GraphControl Watch {
+            get { return watchedGraph; }
+            set {
+                if (watchedGraph != null) {
+                    try {
+                        watchedGraph.GraphBoundsUpdated -= OnGraphBoundsUpdated;
+                    } catch { } //who cares if it doesn't work
+                }
+                watchedGraph = value;
+                if (watchedGraph != null) {
+                    watchedGraph.GraphBoundsUpdated += OnGraphBoundsUpdated;
+                    TickColor = watchedGraph.GraphLineColor;
+                    LegendLabel = watchedGraph.Name;
+                    OnGraphBoundsUpdated(watchedGraph, watchedGraph.GraphBounds);
+                }
+            }
+        }
+
+        void OnGraphBoundsUpdated(GraphControl graph, Rect newBounds) {
+            if (graph != watchedGraph) return;//shouldn't happen, but heck;
+            if (newBounds.IsEmpty) {
+                StartVal = double.NaN;
+                EndVal = double.NaN;
+                Visibility = Visibility.Collapsed;
+            } else {
+                if (IsHorizontal) {
+                    StartVal = newBounds.Left;
+                    EndVal = newBounds.Right;
+                } else {
+                    StartVal = newBounds.Top; //these are inverted since WPF has 0 at the top, and we work with a flipped coordinate system!
+                    EndVal = newBounds.Bottom;
+                }
+                Visibility = Visibility.Visible;
+            }
         }
 
         double startVal, endVal;
@@ -75,23 +118,30 @@ namespace EmnExtensions.Wpf
         /// </summary>
         public double EndVal { get { return endVal; } set { endVal = value; InvalidateVisual(); } }
 
+        string legendLabel = "test";
+        public string LegendLabel { get { return legendLabel; } set { legendLabel = value; InvalidateVisual(); } }
 
         public enum Side { Top, Right, Bottom, Left }
         Side snapTo = Side.Top;
         public Side SnapTo { get { return snapTo; } set { snapTo = value; InvalidateVisual(); } }
 
         CultureInfo cachedCulture;
-        int orderOfMagnitude;
-
+        int orderOfMagnitude,orderOfMagnitudeDiff;//TODO:really, these should be calculated in measure.  The measure pass should have everything measured!
+        bool IsHorizontal { get { return snapTo == Side.Bottom || snapTo == Side.Top; } }
 
         protected override Size MeasureOverride(Size constraint) {
+            if (Visibility == Visibility.Collapsed)
+                return new Size(0, 0);
             cachedCulture = CultureInfo.CurrentCulture;
-            FormattedText text = MakeText(88.8);
+
+            orderOfMagnitudeDiff = (int)Math.Floor(Math.Log10(Math.Abs(startVal - endVal)));
+            orderOfMagnitude = (int)Math.Floor(Math.Log10(Math.Max(Math.Abs(startVal), Math.Abs(endVal))));
+            FormattedText text = MakeText(8.88888888888888888);
             FormattedText baseL, powL, textL;
             double labelWidth;
             MakeLegendText(out baseL, out powL, out textL, out labelWidth);
 
-            if (snapTo == Side.Top || snapTo == Side.Bottom)
+            if (IsHorizontal)
                 return new Size(constraint.Width.IsFinite() ? constraint.Width : labelWidth, Math.Max(constraint.Height.IsFinite()?constraint.Height:0, 17 + text.Height * 2));
             else
                 return new Size( Math.Max(17 + text.Width + text.Height,constraint.Width.IsFinite()?constraint.Width:0), constraint.Height.IsFinite() ? constraint.Height : labelWidth);
@@ -99,10 +149,10 @@ namespace EmnExtensions.Wpf
 
 
         protected override void OnRender(DrawingContext drawingContext) {
-            base.OnRender(drawingContext);//not used.
+            if (Visibility != Visibility.Visible)
+                return;
 
-            bool ticksAlongWidth = snapTo == Side.Top || snapTo == Side.Bottom;
-            double ticksPixelsDim = ticksAlongWidth ? ActualWidth : ActualHeight;
+            double ticksPixelsDim = IsHorizontal ? ActualWidth : ActualHeight;
 
             if (ticksPixelsDim <= 0 ||
                 !ticksPixelsDim.IsFinite() ||
@@ -113,6 +163,7 @@ namespace EmnExtensions.Wpf
 
 
             cachedCulture = CultureInfo.CurrentCulture;
+            orderOfMagnitudeDiff = (int)Math.Floor(Math.Log10(Math.Abs(startVal - endVal)));
             orderOfMagnitude = (int)Math.Floor(Math.Log10(Math.Max(Math.Abs(startVal), Math.Abs(endVal))));
 
             Matrix mirrTrans = Matrix.Identity; //top-left is 0,0, so if you're on the bottom you're happy
@@ -126,7 +177,7 @@ namespace EmnExtensions.Wpf
             //now mirrTrans projects from an "ideal" SnapTo-Top world-view to what we need.
             StreamGeometry geom = DrawTicks(ticksPixelsDim, (val, pixPos) => {
                 FormattedText text = MakeText(val / Math.Pow(10, orderOfMagnitude));
-                double textH = (ticksAlongWidth ? text.Height : text.Width);
+                double textH = (IsHorizontal ? text.Height : text.Width);
                 double altitudeCenter = 17 + textH / 2.0;
                 if (textH > textHMax) textHMax = textH;
                 Point textPos = mirrTrans.Transform(new Point(pixPos, altitudeCenter));
@@ -143,7 +194,7 @@ namespace EmnExtensions.Wpf
             MakeLegendText(out baseL, out powL, out textL, out totalLabelWidth);
             double centerPix = ticksPixelsDim / 2;
 
-            if (!ticksAlongWidth) textHMax += baseL.Height * 0.1;
+            if (!IsHorizontal) textHMax += baseL.Height * 0.1;
             double centerAlt = 17 + textHMax + baseL.Height / 2.0;
 
             Point labelPos = mirrTrans.Transform(new Point(centerPix, centerAlt));
@@ -151,7 +202,7 @@ namespace EmnExtensions.Wpf
             if (snapTo == Side.Right)
                 drawingContext.PushTransform(new RotateTransform(90.0, labelPos.X, labelPos.Y));
             else if (snapTo == Side.Left)
-                drawingContext.PushTransform(new RotateTransform(-90.0, labelPos.Y, labelPos.X));
+                drawingContext.PushTransform(new RotateTransform(-90.0, labelPos.X, labelPos.Y));
 
             labelPos.Offset(-totalLabelWidth / 2.0, -baseL.Height / 2.0);
             drawingContext.DrawText(baseL, labelPos);
@@ -167,7 +218,7 @@ namespace EmnExtensions.Wpf
 
 
         FormattedText MakeText(double val) {
-            string numericValueString = (val).ToString("f1");
+            string numericValueString = (val).ToString("g" + (orderOfMagnitude-orderOfMagnitudeDiff+2));
             return new FormattedText(numericValueString, cachedCulture, FlowDirection.LeftToRight, labelType, fontSize, Brushes.Black);
         }
         void MakeLegendText(out FormattedText baseL, out FormattedText powL, out FormattedText textL, out double totalLabelWidth) {
@@ -178,7 +229,7 @@ cachedCulture, FlowDirection.LeftToRight, labelType, fontSize, Brushes.Black);
                 cachedCulture, FlowDirection.LeftToRight, labelType, fontSize * 0.8, Brushes.Black);
 
             textL = new FormattedText(
-                " " + LegendLabel,
+                " – " + legendLabel,
                 cachedCulture, FlowDirection.LeftToRight, labelType, fontSize, Brushes.Black);
 
             totalLabelWidth = baseL.Width + powL.Width + textL.Width;

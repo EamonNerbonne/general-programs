@@ -45,22 +45,16 @@ namespace EmnExtensions.Wpf
     /// </summary>
     public class GraphControl : FrameworkElement
     {
-        static Pen graphLinePen;
-        static GraphControl() {
-            graphLinePen = new Pen(Brushes.Red, 1.0);
-            graphLinePen.StartLineCap = PenLineCap.Round;
-            graphLinePen.EndLineCap = PenLineCap.Round;
-            graphLinePen.LineJoin = PenLineJoin.Round;
-            graphLinePen.Freeze();
-        }
 
         protected override Size MeasureOverride(Size constraint) {
             return new Size(
-                constraint.Width.IsFinite()?constraint.Width:150,
-                constraint.Height.IsFinite()?constraint.Height:150
+                constraint.Width.IsFinite() ? constraint.Width : 150,
+                constraint.Height.IsFinite() ? constraint.Height : 150
                 );
         }
+        public event Action<GraphControl, Rect> GraphBoundsUpdated;
 
+        Rect oldBounds = Rect.Empty;
         Rect graphBoundsPrivate = Rect.Empty;
         public Rect GraphBounds { //TODO dependency property?
             get {
@@ -68,45 +62,22 @@ namespace EmnExtensions.Wpf
             }
             set {
                 graphBoundsPrivate = value;
-
-                InvalidateVisual();
+                UpdateBounds();
             }
         }
 
-        Point[] points;
-        StreamGeometry graphGeom;
-        public void ShowLine(IEnumerable<Point> lineOfPoints) {
-            InvalidateVisual ();
-            if (lineOfPoints == null) {
-                graphGeom = null;
-                points = null;
-            } else {
-                points = lineOfPoints.ToArray();
-                graphGeom = new StreamGeometry();
-                Rect newBounds = Rect.Empty;
-                using (StreamGeometryContext context = graphGeom.Open()) {
-                    foreach (Point startPoint in points.Take(1)) {
-                        context.BeginFigure(startPoint, false, false);
-                        newBounds.Union(startPoint);
-                    }
-                    foreach (Point point in points.Skip(1)) {
-                        context.LineTo(point, true, true);
-                        newBounds.Union(point);
-                    }
-                }
-                //note that graphGeom.Bounds are in view-space, i.e. calling these without a Transformation should result in the same Bounds...
-                GraphBounds = newBounds;
-            }
+        public void EnsurePointInBounds(Point p) {
+            graphBoundsPrivate.Union(p);
+            UpdateBounds();
         }
 
-        public GraphControl() {
-            graphBoundsPrivate = new Rect(new Point(0, 0), new Point(1, 1));
-            ShowLine(new[] { new Point(0, 0), new Point(0, 1), new Point(1, 1), new Point(1, 0), new Point(0, 0) });
-        }
+        Size lastDispSize = Size.Empty;
+        void UpdateBounds() {
+            Size curSize = new Size(ActualWidth, ActualHeight);
+            if (oldBounds == graphBoundsPrivate && curSize== lastDispSize) 
+                return;
+            lastDispSize = curSize;
 
-        protected override void OnRender(DrawingContext drawingContext) {
-            // base.OnRender(drawingContext); // not necessary...
-            
             Matrix translateThenScale = Matrix.Identity;
             //we first translate since that's just easier
             translateThenScale.Translate(-graphBoundsPrivate.Location.X, -graphBoundsPrivate.Location.Y);
@@ -114,10 +85,97 @@ namespace EmnExtensions.Wpf
             translateThenScale.Scale(ActualWidth / graphBoundsPrivate.Width, ActualHeight / graphBoundsPrivate.Height);
             //then we flip the graph vertically around the viewport middle since in our graph positive is up, not down.
             translateThenScale.ScaleAt(1.0, -1.0, 0.0, ActualHeight / 2.0);
-            graphGeom.Transform = new MatrixTransform( translateThenScale);
-            
+            graphGeom2.Transform = new MatrixTransform(translateThenScale);
 
-            drawingContext.DrawGeometry(null, graphLinePen, graphGeom);
+
+            InvalidateVisual();
+            if (oldBounds == graphBoundsPrivate)
+                return;
+            oldBounds = graphBoundsPrivate;
+
+            if (GraphBoundsUpdated != null) GraphBoundsUpdated(this, graphBoundsPrivate);
+
+        }
+
+
+        Pen graphLinePen;
+        public Brush GraphLineColor {
+            set {
+                graphLinePen = new Pen(value, 1.5);
+                graphLinePen.StartLineCap = PenLineCap.Round;
+                graphLinePen.EndLineCap = PenLineCap.Round;
+                graphLinePen.LineJoin = PenLineJoin.Round;
+                graphLinePen.Freeze();
+                InvalidateVisual();
+            }
+            get {
+                return graphLinePen.Brush;
+            }
+        }
+
+        //List<Point> points;
+        PathGeometry graphGeom2;
+//        StreamGeometry graphGeom;
+        PathFigure fig=null;
+       // bool needUpdate = false;
+        public void NewLine(IEnumerable<Point> lineOfPoints) {
+            InvalidateVisual();
+            graphBoundsPrivate = Rect.Empty;
+            if (lineOfPoints == null) {
+                graphGeom2 = null;
+                fig = null;
+            } else {
+                var points = lineOfPoints.ToArray();
+                graphGeom2 = new PathGeometry();
+                foreach (Point startPoint in points.Take(1)) {
+                    fig = new PathFigure();
+                    fig.StartPoint = startPoint;
+                    graphGeom2.Figures.Add(fig);
+                    graphBoundsPrivate.Union(startPoint);
+                }
+                foreach (Point point in points.Skip(1)) {
+                    fig.Segments.Add(new LineSegment(point, true));
+                    graphBoundsPrivate.Union(point);
+                }
+                //note that graphGeom.Bounds are in view-space, i.e. calling these without a Transformation should result in the same Bounds...
+            }
+            UpdateBounds();
+        }
+
+        public IEnumerable<Point> CurrentPoints {
+            get {
+                if (fig == null) yield break;
+                yield return fig.StartPoint;
+                foreach (LineSegment lineTo in fig.Segments)
+                    yield return lineTo.Point;
+            }
+        }
+
+        public void AddPoint(Point point) {
+            if (graphGeom2 == null) NewLine(new[] { point });
+            else {
+                if (fig == null) {
+                    fig = new PathFigure();
+                    fig.StartPoint = point;
+                    graphGeom2.Figures.Add(fig);
+                } else {
+                    fig.Segments.Add(new LineSegment(point, true));
+                }
+                graphBoundsPrivate.Union(point);
+                InvalidateVisual();
+                if (GraphBoundsUpdated != null)
+                    GraphBoundsUpdated(this, graphBoundsPrivate);
+            }
+        }
+
+        public GraphControl() {
+            GraphLineColor = Brushes.Black;
+        }
+
+        protected override void OnRender(DrawingContext drawingContext) {
+            if (graphGeom2 == null) return;
+            UpdateBounds();
+            drawingContext.DrawGeometry(null, graphLinePen, graphGeom2);
         }
 
     }

@@ -26,7 +26,7 @@ namespace MdsTest
             Random r = new Random();
 
             using (Hitmds mds = new Hitmds(points.Length,2, (i,j) => (float)(points[i].DistanceTo(points[j]) + r.NextDouble()),r) ) {
-                mds.mds_train(points.Length * 5000, 1.0,0.5, (i, j,mdsP) => { });
+                mds.mds_train(points.Length * 5000, 1.0,0.5, (i, j,mdsP) => { },0);
 
                 foreach(string line in Enumerable.Range(0,points.Length)
                     .Select(pi=>

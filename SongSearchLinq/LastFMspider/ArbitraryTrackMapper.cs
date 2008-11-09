@@ -29,8 +29,7 @@ namespace LastFMspider
             return toMdsIndex[trackID];
         }
 
-
-        public IEnumerable<int> CurrentlyMapped { get { return toMdsIndex.Keys; } }
+        public IEnumerable<int> CurrentlyMapped { get { return toMdsIndex.Keys ; } }
         public IEnumerable<KeyValuePair<int, int>> CurrentMappings { get { return toMdsIndex; } }
         public int Count { get { return mdsIndexCount; } }
         public bool IsMapped(int trackID) { return toMdsIndex.ContainsKey(trackID); }

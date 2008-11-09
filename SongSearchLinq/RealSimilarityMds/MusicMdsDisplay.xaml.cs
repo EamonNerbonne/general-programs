@@ -13,6 +13,7 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.Threading;
 using EmnExtensions.Wpf;
+using LastFMspider;
 
 namespace RealSimilarityMds
 {
@@ -24,7 +25,7 @@ namespace RealSimilarityMds
         public MusicMdsDisplay() {
             InitializeComponent();
             progress = new ProgressManager(progressBar, labelETA);
-            program = new Program(progress,this);
+            program = new Program(progress,this , SimilarityFormat.AvgRank2);
             program.RunInBackground();
 
         }

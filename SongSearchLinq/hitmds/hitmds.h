@@ -14,8 +14,12 @@ namespace hitmds {
 	public:
 		Hitmds(int numberOfPoints, int numberOfDimensions, Func<int,int,float> ^distanceLookupFunction,Random^ r);
 		~Hitmds();
-		void mds_train(int cycles, double learning_rate, double start_annealing_ratio, Action<int,int,Hitmds^>^ progressReport);
+		void mds_train(int cycles, double learning_rate, double start_annealing_ratio, Action<int,int,Hitmds^>^ progressReport,int pointUpdateStyle);
 		double GetPoint(int point,int dim);
+		double corr_2(void);
+		double DistBetween(int i, int j);
+		array<double> ^ DistsTo(int i);
+		array<double,2>^ PointPositions();
 	private:
 		Random ^r;
 		//from header:
@@ -40,11 +44,9 @@ namespace hitmds {
 
 	int*shuffle_index;
 	int nextShuffle;
-
 		double frand(void);
 		void data_init(void);
 		int shuffle_next(void);
-		double corr_2(void);
 		//double deriv(int j, int k, int idx);
 	};
 }

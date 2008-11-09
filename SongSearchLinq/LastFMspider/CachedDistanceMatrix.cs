@@ -25,7 +25,7 @@ namespace LastFMspider
                 LoadDistFromCacheFile(file, false);
                 progress(++cur / (double)tot);
             }
-            if (saveAfterwards)
+            if (saveAfterwards && cur!=0)
                 Save();
         }
 

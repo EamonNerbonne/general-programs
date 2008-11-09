@@ -25,26 +25,51 @@ namespace SimilarityMds
         }
 
         static void Main(string[] args) {
-
-
-            NiceTimer timer = new NiceTimer();
-            timer.TimeMark("loading config");
             SongDatabaseConfigFile config = new SongDatabaseConfigFile(false);
             tools = new LastFmTools(config);
-            SimCacheManager settings = new SimCacheManager(SimilarityFormat.AvgRank2, tools, DataSetType.Training);
+            SimCacheManager settings = new SimCacheManager(SimilarityFormat.LastFmRating, tools, DataSetType.Training);
+
+            var allformats = new[] { SimilarityFormat.AvgRank, SimilarityFormat.AvgRank2, SimilarityFormat.Log200, SimilarityFormat.Log2000 };
+            foreach (var format in allformats ) {
+                Precache(settings.WithFormat(format) , 13000);
+            }
+            foreach (var format in allformats) {
+                CachedDistanceMatrix cachedMatrix = settings.WithFormat(format).LoadCachedDistanceMatrix();
+                int nextPercent = 1;
+                cachedMatrix.LoadDistFromAllCacheFiles(d => { 
+                    if(d*100>=nextPercent){
+                        Console.Write("{0}% ", nextPercent);
+                        nextPercent++;
+                    }
+                }, true);
+            }
+        }
+        static void Precache(SimCacheManager settings,int maxToCache){
+
+            NiceTimer timer = new NiceTimer();
+            timer.TimeMark("Idendifying already cached tracks");
+            var cachedTrackNumbers=settings.AllTracksCached.Select(nfile => nfile.number).ToArray();
+            if (cachedTrackNumbers.Length >= maxToCache) {
+                Console.WriteLine("Sufficient tracks ({0}) cached, {1} requested.", cachedTrackNumbers.Length, maxToCache);
+                timer.Done();
+                return;
+            } else {
+                Console.WriteLine("Requested {0} tracks, finished {1}", maxToCache, cachedTrackNumbers.Length);
+            }
             timer.TimeMark("Loading training data");
             var sims = settings.LoadSimilarTracks();
             timer.TimeMark("GC");
             System.GC.Collect();
-            timer.TimeMark("Idendifying already cached tracks");
-            DirectoryInfo dataDir = tools.ConfigFile.DataDirectory;
+            timer.TimeMark("Marking cached tracks");
             BitArray cachedDists = new BitArray(sims.TrackMapper.Count, false);
             bool atLeastOneTrackCached = false;
-            foreach (int cachedTrack in settings.AllTracksCached.Select(nfile => nfile.number)) {
+            foreach (int cachedTrack in cachedTrackNumbers) {
                 cachedDists[cachedTrack] = true;
                 atLeastOneTrackCached = true;
             }
-            
+            int cachedCount = cachedTrackNumbers.Length;
+            cachedTrackNumbers = null;
+
 
             float[] shortestDistanceToAny;
             int[] shortedPathToAny;
@@ -68,27 +93,25 @@ namespace SimilarityMds
                 shortestDistanceToAny = Enumerable.Repeat(float.PositiveInfinity, sims.TrackMapper.Count).ToArray();
             }
 
-            int cachedCount = Enumerable.Range(0, sims.TrackMapper.Count).Where(i => cachedDists[i]).Count();
 
             timer.TimeMark("Dijkstra's");
-            Parallel.For(0, Enumerable.Range(0, sims.TrackMapper.Count).Where(i => !cachedDists[i]).Count(), (ignore) => {
-                //                try {
+            Parallel.For(0, maxToCache-cachedCount, (ignore) => {
                 int track;
                 float origTrackDist;
                 int sequenceNumber;
                 bool choiceWasRandom = false;
                 lock (shortestDistanceToAny) {
-                    if (cachedCount > 30 && r.Next(2) == 0) {
+                    if (cachedCount > 0 && r.Next(2) == 0) {
                         track = shortestDistanceToAny.IndexOfMax((candidate, dist) => !cachedDists[candidate] && dist.IsFinite());
                     } else {
                         do { track = r.Next(shortestDistanceToAny.Length); } while (cachedDists[track]);
                         choiceWasRandom = true;
                     }
                     cachedDists[track] = true;
-                    sequenceNumber = cachedCount++;
+                    sequenceNumber = cachedCount;
                     origTrackDist = shortestDistanceToAny[track];
                 }
-                Console.WriteLine("Processing {0} {3} (dist = {1}, count = {2})", track, origTrackDist, sequenceNumber, choiceWasRandom ? "randomly" : "max-dist ");
+                Console.WriteLine("Processing {0} {3} (dist = {1}, count = {2}/{4})", track, origTrackDist, sequenceNumber, choiceWasRandom ? "randomly" : "max-dist ",maxToCache);
                 float[] distanceFromA;
                 int[] pathToA;
 
@@ -113,9 +136,9 @@ namespace SimilarityMds
                     for (int i = 0; i < shortestDistanceToAny.Length; i++) {
                         shortestDistanceToAny[i] = Math.Min(shortestDistanceToAny[i], distanceFromA[i]);
                     }
+                    cachedCount++;
                 }
                 Console.WriteLine("Done: {0}", track);
-                //          } catch { }
             });
             timer.Done();
         }

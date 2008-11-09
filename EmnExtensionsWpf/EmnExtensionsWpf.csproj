@@ -99,9 +99,6 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AutoHistogram.xaml.cs">
-      <DependentUpon>AutoHistogram.xaml</DependentUpon>
-    </Compile>
     <Compile Include="GraphControl.cs" />
     <Compile Include="LogControl.cs">
       <SubType>Code</SubType>
@@ -144,10 +141,6 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Page Include="AutoHistogram.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
     <Page Include="PlotControl.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>

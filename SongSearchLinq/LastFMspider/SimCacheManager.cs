@@ -42,7 +42,7 @@ namespace LastFMspider
 
         public DirectoryInfo DataDirectory { get { return Tools.ConfigFile.DataDirectory; } }
         public FileInfo DistanceMatrixCacheFile { get { return new FileInfo(Path.Combine(DataDirectory.FullName, @".\DistanceMatrix" + SimilarityFormatConv.ToPathString(Format) + ".bin")); } }
-        public DirectoryInfo DijkstraCacheDir { get { return DataDirectory.CreateSubdirectory("distCache" + SimilarityFormatConv.ToPathString(Format)); } }
+        public DirectoryInfo DijkstraCacheDir { get { if (DataSetType != DataSetType.Training) throw new Exception(string.Format("Won't process dijkstra results for non-training set {0}.", DataSetType)); return DataDirectory.CreateSubdirectory("distCache" + SimilarityFormatConv.ToPathString(Format)); } }
         public int TrackNumberOfDijkstraFile(FileInfo file) { return int.Parse(fileNameRegex.Replace(file.Name, "${num}")); }
         public FileInfo DijkstraFileOfTrackNumber(int track) { return new FileInfo(Path.Combine(DijkstraCacheDir.FullName, @".\b" + track + ".bin")); }
 

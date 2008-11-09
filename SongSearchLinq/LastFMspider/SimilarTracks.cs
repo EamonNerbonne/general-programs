@@ -133,7 +133,7 @@ namespace LastFMspider
 
         /// <summary>
         /// Returns all similarities.  For a given similarity (a,b,rating) returns either (a,b,rating) or (b,a,rating), such that
-        /// the _larger_ ID is listed first.  This means that if new tracks are added to the index (which have larger sqliteID's and thus 
+        /// the _smaller_ ID is listed first.  This means that if new tracks are added to the index (which have larger sqliteID's and thus 
         /// larger denseID's) their similarities are listed last, and that adding new tracks DOES not change the order of old tracks in this
         /// listing.
         /// </summary>

@@ -34,6 +34,7 @@ namespace MdsTestWpf
     public partial class MdsDisplay : Window
     {
         const int res = 25;
+        const int POINT_UPDATE_STYLE = 1;
         int IndexFromIJ(int i, int j) {
             return i + res * j;
         }
@@ -167,7 +168,7 @@ namespace MdsTestWpf
                     )
                     ) {
                 startMDS = DateTime.Now;
-                mds.mds_train(totalCycles, 5.0,0.0, ProgressReport);
+                mds.mds_train(totalCycles, 5.0,0.0, ProgressReport,POINT_UPDATE_STYLE);
                 lock (cycleSync) {
                     lastCycle = totalCycles;
                     ExtractCalcs(mds);

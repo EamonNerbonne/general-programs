@@ -16,8 +16,8 @@
 /* address matrix components */
 #define D(mat,i,j) (*(mat + ( \
 	(i<j) ? (j - 1 + ((((pattern_length<<1) - i - 3) * i) >> 1)) \
-		  : ((i==j) ? matsize \
-					: (i - 1 + ((((pattern_length<<1) - j - 3) * j) >> 1))) \
+	: ((i==j) ? matsize \
+	: (i - 1 + ((((pattern_length<<1) - j - 3) * j) >> 1))) \
 	)))
 //#define START_ANNEALING_RATIO .5
 
@@ -114,7 +114,6 @@ namespace hitmds {
 	static int stop_calculation = 0;
 	double (*distance)(int dimension, double *d1, double *d2) =dist;
 
-	double Hitmds::GetPoint(int point, int dim){return Point(point)[dim];}
 
 	void Hitmds::data_init(void)
 	{
@@ -167,10 +166,41 @@ namespace hitmds {
 	}
 
 
+	double Hitmds::DistBetween(int i,int j) {
+		return D(points_distmat,i,j);
+	}
 
+	array<double>^ Hitmds::DistsTo(int i) {
+		array<double>^ retval = gcnew array<double>(pattern_length);
+		for(int j=0;j<pattern_length;j++)
+			retval[j] = D(points_distmat,i,j);
+		return retval;
+	}
+	double Hitmds::GetPoint(int point, int dim){return Point(point)[dim];}
+
+	array<double,2>^ Hitmds::PointPositions() {
+		array<double,2>^ retval = gcnew array<double,2>(pattern_length,target_dim);
+		for(int p=0;p<pattern_length;p++)
+			for(int d=0;d<target_dim;d++)
+				retval[p,d] = Point(p)[d];
+		return retval;
+
+	}
+
+	/*void Hitmds::PointUpdate(double* delta_point,double diff_mixed,int cycles, int c) {
+	double lenSqr=0;
+	for(k = 0; k < target_dim; k++) {
+	lenSqr += delta_point[k]*delta_point[k];
+	}
+	double invLen = diff_mixed *1.0/sqrt(lenSqr) *sqrt((double)target_dim);
+	double rndScale = diff_mixed*(cycles - c)/cycles; //  /2 managed 0.19, cycles-c/cycles...
+	for(k = 0; k < target_dim; k++) {
+	delta_point[k] = point[k] - delta_point[k]*invLen +  rndScale *(frand()-0.5);
+	} 
+	}
 
 	/* the training loop */
-	void Hitmds::mds_train(int cycles, double learning_rate, double start_annealing_ratio, Action<int,int,Hitmds^>^ progressReport)
+	void Hitmds::mds_train(int cycles, double learning_rate, double start_annealing_ratio, Action<int,int,Hitmds^>^ progressReport,int pointUpdateStyle)
 	{
 
 		double *delta_point, *point, dtmp, 
@@ -209,7 +239,7 @@ namespace hitmds {
 					if(j != i) {
 						double d = D(points_distmat,i, j);
 						double  D = D(pattern_distmat,i,j),
-				dif = d - points_distmat_mean;
+							dif = d - points_distmat_mean;
 						double preres= (dif * points_distmat_mixed - D * points_distmat_mono)/ ((d < EPS) ? EPS : d);
 
 
@@ -226,28 +256,29 @@ namespace hitmds {
 					diff_mixed = learning_rate * (1. + 1. / (1.-start_annealing_ratio) * diff_mixed / cycles);
 				}else
 					diff_mixed = learning_rate;
-				
+
 				//*				
 				//this is eamon's alternative point update
-				double lenSqr=0;
-				for(k = 0; k < target_dim; k++) {
-					lenSqr += delta_point[k]*delta_point[k];
+				if(pointUpdateStyle>0) {
+					double lenSqr=0;
+					for(k = 0; k < target_dim; k++) {
+						lenSqr += delta_point[k]*delta_point[k];
+					}
+					double invLen = diff_mixed *1.0/sqrt(lenSqr) *sqrt((double)target_dim);
+
+					double rndScale = diff_mixed*(pointUpdateStyle==1?0.5:(double)(cycles - c)/(double)cycles); 
+						for(k = 0; k < target_dim; k++) {
+							delta_point[k] = point[k] - delta_point[k]*invLen +  rndScale *(frand()-0.5);
+						} 
+				} else {
+					//the original hitmds update
+
+					for(k = 0; k < target_dim; k++) {
+						diff = diff_mixed * (delta_point[k] >0 ? 1 : delta_point[k] <0? -1:0);
+						delta_point[k] = point[k] - diff ;  //* (2. * frand() - .5) ;
+					}
+
 				}
-				double invLen = diff_mixed *1.0/sqrt(lenSqr) *sqrt((double)target_dim);
-				double rndScale = diff_mixed/2;//*(cycles - c)/cycles; //  /2 managed 0.19, cycles-c/cycles...
-				for(k = 0; k < target_dim; k++) {
-					delta_point[k] = point[k] - delta_point[k]*invLen +  rndScale *(frand()-0.5);
-				} 
-				/*/
-				//the original hitmds update
-
-				for(k = 0; k < target_dim; k++) {
-					diff = diff_mixed * (delta_point[k] >0 ? 1 : delta_point[k] <0? -1:0);
-					delta_point[k] = point[k] - diff ;  //* (2. * frand() - .5) ;
-				}
-				/**/
-
-
 
 				/* track change of mean, mixed, mono { */
 				diff = 0.;  

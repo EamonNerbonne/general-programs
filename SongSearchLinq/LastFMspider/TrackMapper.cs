@@ -45,7 +45,7 @@ namespace LastFMspider
             for (int i = 0; i < count; i++) {
                 sqliteFromDense[i] = readFrom.ReadInt32();
             }
-            
+
         }
 
         public void WriteTo(BinaryWriter writeTo) {
@@ -56,6 +56,7 @@ namespace LastFMspider
         }
 
         public void BuildReverseMapping() {
+            if (denseFromSqlite != null) return;
             int count = sqliteFromDense[sqliteFromDense.Length - 1] + 1;
             denseFromSqlite = new int[count];
             int denseId = 0;
@@ -76,7 +77,7 @@ namespace LastFMspider
         }
 
         public int LookupDenseID(int sqliteID) {
-            return denseFromSqlite[sqliteID];
+            return sqliteID > denseFromSqlite.Length ? ~denseFromSqlite.Length : denseFromSqlite[sqliteID];
         }
 
         public int LookupSqliteID(int denseID) {
