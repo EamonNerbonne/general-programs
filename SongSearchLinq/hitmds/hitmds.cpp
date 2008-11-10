@@ -13,17 +13,29 @@
 #define error(X) fprintf(stderr, (X)), /*main_bye(),*/ exit(1)
 #define EPS 1e-16
 #define irand(X) ((int)((double)(X) * frand()))
+//#define USE_HIT_DISTMAT
+#ifdef USE_HIT_DISTMAT
 /* address matrix components */
 #define D(mat,i,j) (*(mat + ( \
-	(i<j) ? (j - 1 + ((((pattern_length<<1) - i - 3) * i) >> 1)) \
+	(i<j) ?     (j - 1 + ((((pattern_length<<1) - i - 3) * i) >> 1)) \
 	: ((i==j) ? matsize \
 	: (i - 1 + ((((pattern_length<<1) - j - 3) * j) >> 1))) \
 	)))
+#else
+#define D(mat,i,j)   (*((i)<(j)  ? mat+ ((i) + (((j) * ((j) - 1)) >> 1))  :  (i)>(j)  ?  mat+(  (j) + (((i) * ((i) - 1)) >> 1))  :  &zero))
+#define Dindex(i,j)   ((i) + (((j) * ((j) - 1)) >> 1))
+#define DincLower(i,j) 1
+#define DincLarger(i,j) j
+
+#endif
 //#define START_ANNEALING_RATIO .5
+
+
 
 
 namespace hitmds {
 
+	FLT zero=0.0f;
 	/* Euclidean distance */
 	inline double dist(int dimension, double *d1, double *d2) 
 	{
@@ -41,16 +53,22 @@ namespace hitmds {
 
 #define Point(elem) (points+target_dim*(elem))
 
-	Hitmds::Hitmds(int numberOfPoints, int numberOfDimensions, Func<int,int,float> ^distanceLookupFunction,Random^ r) {
+	Hitmds::Hitmds(int numberOfPoints, int numberOfDimensions,  SymmetricDistanceMatrix ^origDists ,Random^ r) {
 		pattern_length=numberOfPoints;
 		target_dim = numberOfDimensions;
 		matsize = ((numberOfPoints-1) * numberOfPoints) >> 1;
 		this->r=r;
+		this->origDists = origDists;
 		shuffle_index = new int[pattern_length];
 		for(int i=0;i<pattern_length;i++)shuffle_index[i]=i;
 		nextShuffle = pattern_length;
-
-		pattern_distmat = new FLT[matsize+1];
+#ifdef USE_HIT_DISTMAT
+		pattern_distmat =  new FLT[matsize+1];
+#else
+		matrixHandle = GCHandle::Alloc(origDists->DirectArrayAccess(),GCHandleType::Pinned);
+		//origDists->DirectArrayAccess()->
+		pattern_distmat =  (float*)matrixHandle.AddrOfPinnedObject().ToPointer() ;  //new FLT[matsize+1];
+#endif
 		points_distmat = new FLT[matsize+1];
 		points = new double[pattern_length*target_dim];
 
@@ -63,8 +81,9 @@ namespace hitmds {
 		for(int elemA=0;elemA<pattern_length;elemA++)
 			for(int elemB=elemA+1;elemB<pattern_length;elemB++) {
 				D(points_distmat,elemA,elemB) = (FLT)dist(target_dim,Point(elemA),Point(elemB));
-				D(pattern_distmat,elemA,elemB) = (FLT)distanceLookupFunction->Invoke(elemA,elemB);
-
+#ifdef USE_HIT_DISTMAT
+				D(pattern_distmat,elemA,elemB) = origDists->default[elemA,elemB];
+#endif
 			}
 			data_init();
 			//initDistanceMatrices(distanceLookupFunction);
@@ -72,7 +91,11 @@ namespace hitmds {
 
 	Hitmds::~Hitmds() {
 		delete[] shuffle_index;
+#ifdef USE_HIT_DISTMAT
 		delete[] pattern_distmat;
+#else
+		matrixHandle.Free();
+#endif
 		delete[] points_distmat;
 		delete[] points;
 	}
@@ -187,33 +210,24 @@ namespace hitmds {
 
 	}
 
-	/*void Hitmds::PointUpdate(double* delta_point,double diff_mixed,int cycles, int c) {
-	double lenSqr=0;
-	for(k = 0; k < target_dim; k++) {
-	lenSqr += delta_point[k]*delta_point[k];
-	}
-	double invLen = diff_mixed *1.0/sqrt(lenSqr) *sqrt((double)target_dim);
-	double rndScale = diff_mixed*(cycles - c)/cycles; //  /2 managed 0.19, cycles-c/cycles...
-	for(k = 0; k < target_dim; k++) {
-	delta_point[k] = point[k] - delta_point[k]*invLen +  rndScale *(frand()-0.5);
-	} 
-	}
-
 	/* the training loop */
 	void Hitmds::mds_train(int cycles, double learning_rate, double start_annealing_ratio, Action<int,int,Hitmds^>^ progressReport,int pointUpdateStyle)
 	{
 
-		double *delta_point, *point, dtmp, 
+		double *delta_point,  dtmp, 
 			diff, diff_mixed, diff_mono, 
 			*diffs, diffs_mean;
+		float *pointDistCache,*patternDistCache;
 
-		FLT *ptmp;
 
 		int c, k, i, j, m, t;
 		try{
 			delta_point = new double[target_dim];
 			diffs = new double[pattern_length];
+			pointDistCache = new float[pattern_length-1];
+			patternDistCache = new float[pattern_length-1];
 
+			//newDists=diffs;
 
 			t =0, m = cycles / 10;
 
@@ -229,12 +243,22 @@ namespace hitmds {
 
 				i = shuffle_next();
 
-				point = Point(i);
-
-
+				double* point =Point(i);
+				int dIndex;
+				for(j = 0,dIndex = Dindex(j,i); j < i; j++) {
+					pointDistCache[j] = points_distmat[dIndex];
+					patternDistCache[j]=pattern_distmat[dIndex];
+					dIndex+=DincLower(j,i);
+				}
+				for(j=i+1,dIndex = Dindex(i,j);j<pattern_length;j++) {
+					pointDistCache[j] = points_distmat[dIndex];
+					patternDistCache[j]=pattern_distmat[dIndex];
+					dIndex+=DincLarger(i,j);
+				}
 				for(k = 0; k < target_dim; k++) delta_point[k] = 0.;
-
-				for(j = 0; j < pattern_length; j++) {
+				
+#ifdef USE_HIT_DISTMAT
+								for(j = 0; j < pattern_length; j++) {
 
 					if(j != i) {
 						double d = D(points_distmat,i, j);
@@ -250,10 +274,45 @@ namespace hitmds {
 						} 
 					}
 				}
+#else
+                double *pj=Point(0);
+#if 0==1
+				for(j = 0; j < pattern_length; j++) {
+					if(j != i) {
+						double dPoints = pointDistCache[j];
+						double dPattern = patternDistCache[j];
+						double dif = dPoints - points_distmat_mean;
+						double preres= (dif * points_distmat_mixed - dPattern * points_distmat_mono)/ ((dPoints < EPS) ? EPS : dPoints);
+						for(k = 0; k < target_dim; k++) 
+							delta_point[k] += preres * (point[k] - pj[k]) ;
+					}
+					pj+=target_dim;
+				}
+#else
+				for(j = 0; j < i; j++) {
+						double dPoints = pointDistCache[j];
+						double dPattern = patternDistCache[j];
+						double dif = dPoints - points_distmat_mean;
+						double preres= (dif * points_distmat_mixed - dPattern * points_distmat_mono)/ ((dPoints < EPS) ? EPS : dPoints);
+						for(k = 0; k < target_dim; k++) 
+							delta_point[k] += preres * (point[k] - pj[k]) ;
+						pj+=target_dim;
+				}
+				pj += target_dim;
+				for(j=i+1;j<pattern_length;j++) {
+						double dPoints = pointDistCache[j];
+						double dPattern = patternDistCache[j];
+						double dif = dPoints - points_distmat_mean;
+						double preres= (dif * points_distmat_mixed - dPattern * points_distmat_mono)/ ((dPoints < EPS) ? EPS : dPoints);
+						for(k = 0; k < target_dim; k++) 
+							delta_point[k] += preres * (point[k] - pj[k]) ;
+						pj+=target_dim;
+				}
+#endif
+#endif
 
-
-				if((diff_mixed = start_annealing_ratio * cycles - c) < 0.)  {
-					diff_mixed = learning_rate * (1. + 1. / (1.-start_annealing_ratio) * diff_mixed / cycles);
+				if(c > start_annealing_ratio * cycles)  {
+					diff_mixed = learning_rate * ( 1. - c /(double)cycles   )  / (1.-start_annealing_ratio);
 				}else
 					diff_mixed = learning_rate;
 
@@ -267,44 +326,43 @@ namespace hitmds {
 					double invLen = diff_mixed *1.0/sqrt(lenSqr) *sqrt((double)target_dim);
 
 					double rndScale = diff_mixed*(pointUpdateStyle==1?0.5:(double)(cycles - c)/(double)cycles); 
-						for(k = 0; k < target_dim; k++) {
-							delta_point[k] = point[k] - delta_point[k]*invLen +  rndScale *(frand()-0.5);
-						} 
+
+					for(k = 0; k < target_dim; k++) {
+						point[k] -= delta_point[k]*invLen +  rndScale *(frand()-0.5);
+					} 
 				} else {
 					//the original hitmds update
 
 					for(k = 0; k < target_dim; k++) {
 						diff = diff_mixed * (delta_point[k] >0 ? 1 : delta_point[k] <0? -1:0);
-						delta_point[k] = point[k] - diff ;  //* (2. * frand() - .5) ;
+						point[k]-=diff;//delta_point[k] = point[k] - diff ;  //* (2. * frand() - .5) ;
 					}
 
 				}
 
 				/* track change of mean, mixed, mono { */
 				diff = 0.;  
+				diff_mixed = diff_mono = 0.;
 
-				for(k = 0; k < pattern_length; k++) {
-					if(k != i) {
-						dtmp = dist(target_dim, delta_point, Point(k));
-						diff += (diffs[k] = dtmp - D(points_distmat, i, k));
+				for(j = 0; j < pattern_length; j++) {
+					if(j != i) {
+						double newdist =  dist(target_dim, point, Point(j));//new dist
+						//dtmp = dist(target_dim, delta_point, Point(j));//new dist
+						double difftemp = newdist - pointDistCache[j];
+						diffs[j] =difftemp;
+						diff += difftemp; //diff == sum( new - old)
+						diff_mixed += patternDistCache[j] * difftemp;
+						D(points_distmat, i, j) = (FLT)newdist;
 					}
 				}
 				diffs_mean = diff / matsize;
 
-				dtmp = -diffs_mean - points_distmat_mean;
+				dtmp = -2*(diffs_mean + points_distmat_mean);
 
-				diff_mixed = diff_mono = 0.;
 
-				for(k = 0; k < pattern_length; k++) {
-					if(k != i) {
-
-						ptmp = &D(points_distmat, i, k);
-
-						diff_mixed += D(pattern_distmat, i, k) * diffs[k];
-
-						diff_mono += diffs[k] * (diffs[k] + 2. * (*ptmp + dtmp));
-
-						*ptmp = (FLT)(*ptmp+diffs[k]); /* ugly */
+				for(j = 0; j < pattern_length; j++) {
+					if(j != i) {
+						diff_mono += (diffs[j]) * (diffs[j]+ pointDistCache[j]*2  +  dtmp);// (new-old)*(new+old+dtmp)
 					}
 				}
 				points_distmat_mean += diffs_mean;
@@ -315,15 +373,12 @@ namespace hitmds {
 
 				/* } track changes of mean, mixed, mono */
 
-				for(k = 0; k < target_dim; k++) 
-					point[k] = delta_point[k];
-
-
 
 			} /* for cycles */
 
 		} finally {
-
+			delete[] pointDistCache;
+			delete[] patternDistCache;
 			delete[] diffs;
 			delete[] delta_point;
 		}

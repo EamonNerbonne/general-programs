@@ -6,7 +6,7 @@ using LastFMspider;
 using EmnExtensions;
 using System.Text.RegularExpressions;
 
-namespace RealSimilarityMds
+namespace SimilarityMdsLib
 {
     static class BillboardByMdsId
     {

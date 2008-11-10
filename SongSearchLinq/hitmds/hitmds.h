@@ -4,6 +4,9 @@
 
 using namespace System;
 
+using namespace EmnExtensions::Collections;
+using namespace System::Runtime::InteropServices;
+
 namespace hitmds {
 	typedef float FLT;
 
@@ -12,7 +15,7 @@ namespace hitmds {
 		// TODO: Add your methods for this class here.
 
 	public:
-		Hitmds(int numberOfPoints, int numberOfDimensions, Func<int,int,float> ^distanceLookupFunction,Random^ r);
+		Hitmds(int numberOfPoints, int numberOfDimensions, SymmetricDistanceMatrix ^origDists,Random^ r);
 		~Hitmds();
 		void mds_train(int cycles, double learning_rate, double start_annealing_ratio, Action<int,int,Hitmds^>^ progressReport,int pointUpdateStyle);
 		double GetPoint(int point,int dim);
@@ -21,7 +24,9 @@ namespace hitmds {
 		array<double> ^ DistsTo(int i);
 		array<double,2>^ PointPositions();
 	private:
+		SymmetricDistanceMatrix^ origDists;
 		Random ^r;
+		GCHandle matrixHandle;
 		//from header:
 	int correlation_exponent,/**/  /* (1/r^2)^k */
 		pattern_length,      /*s*/  /* Length of data series */

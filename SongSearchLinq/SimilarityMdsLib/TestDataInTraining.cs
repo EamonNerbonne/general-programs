@@ -5,7 +5,7 @@ using System.Text;
 using LastFMspider;
 using LastFMspider.LastFMSQLiteBackend;
 
-namespace RealSimilarityMds
+namespace SimilarityMdsLib
 {
     public class TestDataInTraining
     {

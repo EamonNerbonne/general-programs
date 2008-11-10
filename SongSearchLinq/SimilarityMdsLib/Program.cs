@@ -11,13 +11,13 @@ using hitmds;
 using System.Threading;
 using EmnExtensions.Algorithms;
 using System.Windows;
-using EmnExtensions.Wpf;
+//using EmnExtensions.Wpf;
 using System.Windows.Media;
 using LastFMspider.LastFMSQLiteBackend;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 
-namespace RealSimilarityMds
+namespace SimilarityMdsLib
 {
     class Program
     {
@@ -25,7 +25,7 @@ namespace RealSimilarityMds
         const int MAX_MDS_ITEM_COUNT = 13000;
 
         public readonly IProgressManager progress;
-        public readonly MusicMdsDisplay mainDisplay;
+        //public readonly MusicMdsDisplay mainDisplay;
         public readonly SimilarityFormat format;
 
         bool doneInit = false;
@@ -33,9 +33,8 @@ namespace RealSimilarityMds
         CachedDistanceMatrix cachedMatrix;
         TestDataInTraining evaluator;
 
-        public Program(IProgressManager progress, MusicMdsDisplay mainDisplay, SimilarityFormat format) {
+        public Program(IProgressManager progress, SimilarityFormat format) {
             this.progress = progress;
-            this.mainDisplay = mainDisplay;
             this.format = format;
         }
 
@@ -74,14 +73,17 @@ namespace RealSimilarityMds
 
             //progress.NewTask("MDS");
             MdsEngine engine = new MdsEngine(settings, evaluator, cachedMatrix, Opts);
+
+            //TODO move to UI:
             //engine.Correlations.CollectionChanged += new NotifyCollectionChangedEventHandler(Correlations_CollectionChanged);
             //engine.TestSetRankings.CollectionChanged += new NotifyCollectionChangedEventHandler(TestSetRankings_CollectionChanged);
+
             engine.DoMds();
             engine.SaveMds();
             //progress.Done();
             //   FindBillboardHits(positionedPoints,settings,cachedMatrix);
         }
-
+        /*
         void TestSetRankings_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e) {
             if (e.Action != NotifyCollectionChangedAction.Add)
                 throw new Exception("WHooops!");
@@ -101,6 +103,8 @@ namespace RealSimilarityMds
                 }
             });
         }
+         * */
+        //TODO move to UI
 
         private void CalculateDistanceHistogram(CachedDistanceMatrix cachedMatrix) {
             progress.NewTask("Calculate Distance Histogram for " + cachedMatrix.Settings.Format);
@@ -108,7 +112,7 @@ namespace RealSimilarityMds
                 cachedMatrix.Matrix.Values.Select(f => (double)f), cachedMatrix.Mapping.Count, 2000
                 ).GenerateHistogram().ToArray();
 
-            mainDisplay.Dispatcher.BeginInvoke((Action)delegate {
+            /*mainDisplay.Dispatcher.BeginInvoke((Action)delegate {
                 var graph = mainDisplay.HistogramControl.NewGraph("dist" + cachedMatrix.Settings.Format, new Point[] { });
                 foreach (var p in histData.Select(data => new Point(data.point, data.density)))
                     graph.AddPoint(p);
@@ -116,7 +120,7 @@ namespace RealSimilarityMds
                 graph.GraphBounds = new Rect(bounds.X, 0.0, bounds.Width, bounds.Height + bounds.Top);
                 mainDisplay.HistogramControl.ShowGraph(graph);
                 histData = null;
-            });
+            });*/ //TODO move to UI
             progress.Done();
         }
 

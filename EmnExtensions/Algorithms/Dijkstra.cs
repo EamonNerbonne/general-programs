@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Collections;
 
+using EmnExtensions.Collections;
 namespace EmnExtensions.Algorithms
 {
     public static class Dijkstra

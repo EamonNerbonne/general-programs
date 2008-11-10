@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.IO;
 using System.Text.RegularExpressions;
+using EmnExtensions.Collections;
 
 namespace LastFMspider
 {

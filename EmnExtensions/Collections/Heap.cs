@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace EmnExtensions.Algorithms
+namespace EmnExtensions.Collections
 {
 
     public class Heap<T>

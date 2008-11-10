@@ -8,7 +8,7 @@ using System.Windows;
 using hitmds;
 using System.IO;
 using EmnExtensions;
-namespace RealSimilarityMds
+namespace SimilarityMdsLib
 {
     public class MdsEngine
     {
@@ -125,7 +125,7 @@ namespace RealSimilarityMds
             float maxDist = cachedMatrix.Matrix.Values.Where(dist => dist.IsFinite()).Max();
 
             progress.NewTask("MDS");
-            using (Hitmds mdsImpl = new Hitmds(cachedMatrix.Mapping.Count, Opts.Dimensions, (i, j) => cachedMatrix.Matrix[i, j].IsFinite() ? cachedMatrix.Matrix[i, j] : maxDist * 10, r)) {
+            using (Hitmds mdsImpl = new Hitmds(cachedMatrix.Mapping.Count, Opts.Dimensions, cachedMatrix.Matrix, r)) { //(i, j) => cachedMatrix.Matrix[i, j].IsFinite() ? cachedMatrix.Matrix[i, j] : maxDist * 10
                 nextGraphUpdateOn = 1;
                 mdsImpl.mds_train(totalRounds, Opts.LearnRate, Opts.StartAnnealingWhen, DoProgress, Opts.PointUpdateStyle);
                 Correlations.Add(new Point(1.0, CalcCorr(mdsImpl)));

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using hitmds;
+using EmnExtensions.Collections;
 
 namespace MdsTest
 {
@@ -25,7 +26,13 @@ namespace MdsTest
 
             Random r = new Random();
 
-            using (Hitmds mds = new Hitmds(points.Length,2, (i,j) => (float)(points[i].DistanceTo(points[j]) + r.NextDouble()),r) ) {
+            SymmetricDistanceMatrix distMat = new SymmetricDistanceMatrix();
+            distMat.ElementCount = points.Length;
+            for (int i = 0; i < points.Length; i++)
+                for (int j = i + 1; j < points.Length; j++)
+                    distMat[i, j] = (float)(points[i].DistanceTo(points[j]) + r.NextDouble());
+
+            using (Hitmds mds = new Hitmds(points.Length,2, distMat,r)) {
                 mds.mds_train(points.Length * 5000, 1.0,0.5, (i, j,mdsP) => { },0);
 
                 foreach(string line in Enumerable.Range(0,points.Length)
