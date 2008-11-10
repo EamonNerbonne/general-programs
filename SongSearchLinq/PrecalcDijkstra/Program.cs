@@ -11,7 +11,7 @@ using System.IO;
 using System.Text.RegularExpressions;
 using System.Collections;
 
-namespace SimilarityMds
+namespace PrecalcDijkstra
 {
     class Program
     {

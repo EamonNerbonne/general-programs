@@ -8,8 +8,8 @@
     <ProjectGuid>{7D2A734E-451D-4A36-A871-61A41AC13A18}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>SimilarityMds</RootNamespace>
-    <AssemblyName>SimilarityMds</AssemblyName>
+    <RootNamespace>PrecalcDijkstra</RootNamespace>
+    <AssemblyName>PrecalcDijkstra</AssemblyName>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
