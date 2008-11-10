@@ -7,7 +7,7 @@ using LastFMspider.LastFMSQLiteBackend;
 
 namespace RealSimilarityMds
 {
-    class TestDataInTraining
+    public class TestDataInTraining
     {
         static IEnumerable<SimilarTrackRow> TranslateTo(SimCacheManager settingsTrainingSet, ArbitraryTrackMapper mapTrainToMds,DataSetType testSet) {
             TrackMapper mapSqliteToTrain = settingsTrainingSet.LoadTrackMapper();

@@ -45,6 +45,25 @@ namespace EmnExtensions.Wpf
     /// </summary>
     public class GraphControl : FrameworkElement
     {
+        static Random GraphColorRandom = new Random();
+        static Brush RandomGraphColor() {
+            double r, g, b, sum;
+            r = GraphColorRandom.NextDouble() + 0.01;
+            g = GraphColorRandom.NextDouble() + 0.01;
+            b = GraphColorRandom.NextDouble() + 0.01;
+            sum = GraphColorRandom.NextDouble() * 0.5 + 0.5;
+            SolidColorBrush brush = new SolidColorBrush(
+                new Color {
+                    A = (byte)255,
+                    R = (byte)(255 * r * sum / (r + g + b)),
+                    G = (byte)(255 * g * sum / (r + g + b)),
+                    B = (byte)(255 * b * sum / (r + g + b)),
+                }
+                );
+            brush.Freeze();
+            return brush;
+        }
+
 
         protected override Size MeasureOverride(Size constraint) {
             return new Size(
@@ -169,7 +188,7 @@ namespace EmnExtensions.Wpf
         }
 
         public GraphControl() {
-            GraphLineColor = Brushes.Black;
+            GraphLineColor = RandomGraphColor();
         }
 
         protected override void OnRender(DrawingContext drawingContext) {
