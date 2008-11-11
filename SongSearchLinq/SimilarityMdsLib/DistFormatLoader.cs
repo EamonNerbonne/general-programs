@@ -19,7 +19,7 @@ using System.Collections.Specialized;
 
 namespace SimilarityMdsLib
 {
-    class Program
+    public class DistFormatLoader
     {
 
         const int MAX_MDS_ITEM_COUNT = 13000;
@@ -33,7 +33,7 @@ namespace SimilarityMdsLib
         CachedDistanceMatrix cachedMatrix;
         TestDataInTraining evaluator;
 
-        public Program(IProgressManager progress, SimilarityFormat format) {
+        public DistFormatLoader(IProgressManager progress, SimilarityFormat format) {
             this.progress = progress;
             this.format = format;
         }
@@ -56,16 +56,27 @@ namespace SimilarityMdsLib
             while (cachedMatrix.Mapping.Count > MAX_MDS_ITEM_COUNT)
                 cachedMatrix.Mapping.ExtractAndRemoveLast();
             cachedMatrix.Matrix.ElementCount = cachedMatrix.Mapping.Count;
-            int distCount = cachedMatrix.Matrix.Values.Count();
-            int distFiniteCount = cachedMatrix.Matrix.Values.Where(f => f.IsFinite()).Count();
-            Console.WriteLine("dists: {0} total, {1}% finite", distCount, 100.0 * distFiniteCount / (double)distCount);
+
+            //remove infinities:
+            var arr=cachedMatrix.Matrix.DirectArrayAccess();
+            float max=0.0f;
+            List<int> infIndexes = new List<int>();
+            for (int i = 0; i < cachedMatrix.Matrix.DistCount; i++) {
+                if (!arr[i].IsFinite()) infIndexes.Add(i);
+                else if (arr[i] > max) max = arr[i];
+            }
+            foreach (int infIndex in infIndexes)
+                arr[infIndex] = max*10;//anything, as long as it's FAR away but not infinite.
+            Console.WriteLine("dists: {0} total, {1}% finite", cachedMatrix.Matrix.DistCount, 100.0 * (1 - infIndexes.Count / (double)cachedMatrix.Matrix.DistCount));
+            infIndexes = null;
+
 
             progress.NewTask("Finding relevant matches in test-data");
             evaluator = new TestDataInTraining(settings, cachedMatrix);
             progress.Done();
             doneInit = true;
         }
-        public void Run(MdsEngine.Options Opts) {
+        public void Run(MdsEngine.Options Opts, bool rerunEvenIfCached) {
 
             //  CalculateDistanceHistogram(cachedMatrix);
             
@@ -73,13 +84,21 @@ namespace SimilarityMdsLib
 
             //progress.NewTask("MDS");
             MdsEngine engine = new MdsEngine(settings, evaluator, cachedMatrix, Opts);
+            NiceTimer timer = new NiceTimer();
+            if (engine.ResultsAlreadyCached && !rerunEvenIfCached) {
+                Console.WriteLine("Cached: " + engine.resultsFilename);
 
+                return;
+            } else {
+                timer.TimeMark("Calc: " + engine.resultsFilename);
+            }
             //TODO move to UI:
             //engine.Correlations.CollectionChanged += new NotifyCollectionChangedEventHandler(Correlations_CollectionChanged);
             //engine.TestSetRankings.CollectionChanged += new NotifyCollectionChangedEventHandler(TestSetRankings_CollectionChanged);
 
             engine.DoMds();
             engine.SaveMds();
+            timer.Done();
             //progress.Done();
             //   FindBillboardHits(positionedPoints,settings,cachedMatrix);
         }

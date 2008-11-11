@@ -86,6 +86,8 @@ namespace EmnExtensions.Wpf
                     TickColor = watchedGraph.GraphLineColor;
                     LegendLabel = watchedGraph.Name;
                     OnGraphBoundsUpdated(watchedGraph, watchedGraph.GraphBounds);
+                } else {
+                    this.Visibility = Visibility.Collapsed;
                 }
             }
         }

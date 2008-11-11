@@ -24,7 +24,7 @@ namespace SimilarityMdsLib
             }
         }
         public readonly Options Opts;
-
+        bool maySave = false;
         public IProgressManager progress { get; set; }
         SimCacheManager settings;
         TestDataInTraining evaluator;
@@ -38,14 +38,18 @@ namespace SimilarityMdsLib
             this.cachedMatrix = cachedMatrix;
         }
 
-        public void SaveMds() {
+        public bool ResultsAlreadyCached { get { return testFile.Exists; } }
 
+        public string resultsFilename { get { return settings.Format.ToString() + Opts.ToString(); } }
+        FileInfo mdsFile { get { return new FileInfo(Path.Combine(settings.DataDirectory.FullName, @".\res\mds-" + resultsFilename + ".bin")); } }
+        FileInfo corrFile {get{return new FileInfo(Path.Combine(settings.DataDirectory.FullName, @".\res\mds-" + resultsFilename + "-corr.graph"));}}
+        FileInfo testFile {get{return new FileInfo(Path.Combine(settings.DataDirectory.FullName, @".\res\mds-" + resultsFilename + "-test.graph"));}}
+
+        public void SaveMds() {
+            if (!maySave)
+                throw new Exception("No calculations to save!");
             double[,] positionedPoints = MdsResults;
             progress.NewTask("Saving MDS");
-            string resultsFilename = settings.Format.ToString() + Opts.ToString();
-            FileInfo mdsFile = new FileInfo(Path.Combine(settings.DataDirectory.FullName, @".\res\mds-" + resultsFilename + ".bin"));
-            FileInfo corrFile = new FileInfo(Path.Combine(settings.DataDirectory.FullName, @".\res\mds-" + resultsFilename + "-corr.graph"));
-            FileInfo testFile = new FileInfo(Path.Combine(settings.DataDirectory.FullName, @".\res\mds-" + resultsFilename + "-test.graph"));
             using (Stream s = mdsFile.Open(FileMode.Create, FileAccess.Write))
             using (BinaryWriter writer = new BinaryWriter(s)) {
                 writer.Write((int)positionedPoints.GetLength(0));//songCount
@@ -78,6 +82,42 @@ namespace SimilarityMdsLib
             progress.Done();
         }
 
+        public void LoadCachedMds() {
+            double[,] positionedPoints;
+            progress.NewTask("Loading MDS");
+            using (Stream s = mdsFile.OpenRead())
+            using (BinaryReader reader = new BinaryReader(s)) {
+                int songCount=reader.ReadInt32();
+                int dimCount=reader.ReadInt32();
+                positionedPoints = new double[songCount,dimCount];
+                for (int i = 0; i < positionedPoints.GetLength(0); i++) { //mdsSongIndex
+                    for (int dim = 0; dim < positionedPoints.GetLength(1); dim++) {
+                        positionedPoints[i, dim]=reader.ReadDouble();
+                    }
+                    progress.SetProgress((i + 1.0) / positionedPoints.GetLength(0));
+                }
+            }
+
+            using (Stream s = corrFile.OpenRead())
+            using (BinaryReader reader = new BinaryReader(s)) {
+                int numCorrelations=reader.ReadInt32();
+                Correlations.Clear();
+                foreach (int n in Enumerable.Range(0,numCorrelations)) {
+                    Correlations.Add(new Point(                 reader.ReadDouble(),       reader.ReadDouble()));
+                }
+            }
+            using (Stream s = testFile.OpenRead())
+            using (BinaryReader reader = new BinaryReader(s)) {
+                int numTestSetRanking=reader.ReadInt32();
+                TestSetRankings.Clear();
+                foreach (int n in Enumerable.Range(0, numTestSetRanking)) {
+                    TestSetRankings.Add(new Point(reader.ReadDouble(), reader.ReadDouble()));
+                }
+            }
+
+            progress.Done();
+
+        }
 
         public readonly ObservableCollection<Point> Correlations = new ObservableCollection<Point>();
         public readonly ObservableCollection<Point> TestSetRankings = new ObservableCollection<Point>();
@@ -116,6 +156,8 @@ namespace SimilarityMdsLib
         }
 
         public void DoMds() {
+            if (evaluator == null || cachedMatrix == null)
+                throw new ArgumentNullException();
             Random r = new Random();
 
             int totalRounds = cachedMatrix.Mapping.Count * Opts.NGenerations;
@@ -134,6 +176,8 @@ namespace SimilarityMdsLib
                 MdsResults = mdsImpl.PointPositions();
                 progress.SetProgress(1.0);
             }
+
+            maySave = true;
         }
     }
 }

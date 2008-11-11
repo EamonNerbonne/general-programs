@@ -19,6 +19,8 @@ namespace SimilarityAnalysis
 
     static class Program
     {
+        const SimilarityFormat FORMAT=SimilarityFormat.Log200;
+
 
         static ulong ID(SimilarTrackRow row) {
             uint a = (uint)row.TrackA;
@@ -172,7 +174,7 @@ namespace SimilarityAnalysis
 
 
         static void VerifyTriangleInequality() {
-            SimCacheManager settings = new SimCacheManager(SimilarityFormat.Log200, tools, DataSetType.Complete);
+            SimCacheManager settings = new SimCacheManager(FORMAT, tools, DataSetType.Complete);
             SimilarTracks sims = settings.LoadSimilarTracks();
 
 //            using (var writer = File.OpenWrite("errlog.log"))

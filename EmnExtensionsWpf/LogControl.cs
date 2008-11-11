@@ -78,6 +78,7 @@ namespace EmnExtensions.Wpf
                     if (value) {
                         oldOut = Console.Out;
                         Console.SetOut(logger);
+                    //    return;
                         RedirectNativeStream(this, StdoutRedirector.RedirectStdout());
 
                     } else {
@@ -96,6 +97,7 @@ namespace EmnExtensions.Wpf
                     if (value) {
                         oldError = Console.Error;
                         Console.SetError(logger);
+                       // return;
                         RedirectNativeStream(this, StdoutRedirector.RedirectStderr());
                     } else {
                         Console.SetError(oldError);

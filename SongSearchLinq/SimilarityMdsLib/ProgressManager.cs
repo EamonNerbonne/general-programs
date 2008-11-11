@@ -32,6 +32,27 @@ namespace SimilarityMdsLib
         }
     }
 
+    public class TimingProgressManager : IProgressManager
+    {
+        NiceTimer timer = new NiceTimer();
+
+
+
+        public void NewTask(string taskName) {
+            timer.TimeMark(taskName);
+        }
+
+        public void Done() {
+            timer.Done();
+        }
+
+        public void SetProgress(double newVal) {
+        }
+
+        public void SetProgress(double newVal, string msg) {
+        }
+    }
+
     public class ProgressManager :IProgressManager
     {
         ProgressBar progressBar;

@@ -4,8 +4,8 @@
 
 using namespace System;
 
-using namespace EmnExtensions::Collections;
 using namespace System::Runtime::InteropServices;
+using namespace EmnExtensions::Collections;
 
 namespace hitmds {
 	typedef float FLT;

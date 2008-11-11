@@ -16,6 +16,9 @@ using EmnExtensions.Wpf;
 using LastFMspider;
 using EmnExtensions;
 using EmnExtensions.Algorithms;
+using SimilarityMdsLib;
+using SongDataLib;
+using System.IO;
 
 namespace RealSimilarityMds
 {
@@ -25,80 +28,145 @@ namespace RealSimilarityMds
         //Program program;
         public PlotControl HistogramControl { get { return this.distanceHistoview; } }
 
-        internal GraphControl corrgraph, testSetRanking;
+        SimCacheManager settings;
         public MusicMdsDisplay() {
+            settings = new SimCacheManager(SimilarityFormat.LastFmRating, new LastFmTools(new SongDatabaseConfigFile(false)), DataSetType.Training);
             InitializeComponent();
+            comboBoxFMT.ItemsSource = fmtValues;
+            comboBoxLR.ItemsSource = lrValues;
+            comboBoxSA.ItemsSource = saValues;
+            comboBoxPUS.ItemsSource = pusValues;
+            comboBoxGEN.ItemsSource = genValues;
+            comboBoxDIM.ItemsSource = dimValues;
 
-            progress = new ProgressManager(progressBar, labelETA, new NiceTimer());
-            corrgraph = HistogramControl.NewGraph("corr", new Point[] { });
-            corrgraph.EnsurePointInBounds(new Point(0, 0));
-            corrgraph.EnsurePointInBounds(new Point(1, 1));
-            HistogramControl.ShowGraph(corrgraph);
-
-            testSetRanking = HistogramControl.NewGraph("testRank", new Point[] { });
-            testSetRanking.EnsurePointInBounds(new Point(0, 0.5));
-            testSetRanking.EnsurePointInBounds(new Point(1, 1));
-            HistogramControl.ShowGraph(testSetRanking);
-
-
-
-
-            new Thread(InBg) {
-                IsBackground = true,
-            }.Start();
+            comboBoxFMT.SelectedItem = SimilarityFormat.AvgRank2;
+            comboBoxLR.SelectedItem = 1.0;
+            comboBoxSA.SelectedItem = 0.0;
+            comboBoxPUS.SelectedItem = PointUpdate.ConstantRandom;
+            comboBoxGEN.SelectedItem = 30;
+            comboBoxDIM.SelectedItem = 20;
         }
 
-        void InBg() {
-            var programAvRank2 = new Program(progress, this, SimilarityFormat.AvgRank2);
-            var programAvRank = new Program(progress, this, SimilarityFormat.AvgRank);
-            var programLog200 = new Program(progress, this, SimilarityFormat.Log200);
-            var programLog2000 = new Program(progress, this, SimilarityFormat.Log2000);
-            var progs = new[] { programAvRank2, programLog2000, programLog200, programAvRank };
-            Parallel.ForEach(
-            progs, prog => {
-                prog.Init();
-            });
+        SimilarityFormat[] fmtValues = new[] { SimilarityFormat.AvgRank, SimilarityFormat.AvgRank2, SimilarityFormat.Log200, SimilarityFormat.Log2000 };
+        double[] lrValues = new[] { 1.0, 5.0, 2.0 };
+        double[] saValues = new[] { 0.0, 0.5 };
+        PointUpdate[] pusValues = new[] { PointUpdate.ConstantRandom, PointUpdate.DecreasingRandom, PointUpdate.OriginalHiTmds };
+        int[] genValues = new[] { 20, 30, 50 };
+        int[] dimValues = new[] { 2, 3, 5, 10, 20, 50 };
 
-            Semaphore sem = new Semaphore(5, 5);
-            var optsChoices=MakeInterestingOptions().ToArray();
-            optsChoices.Shuffle();
-            Parallel.ForEach(optsChoices, opts => {
-                foreach (var prog in progs) {
-                    bool dubious = ((opts.StartAnnealingWhen == 0.5 || opts.Dimensions == 10 || opts.Dimensions == 50) && (prog.format == SimilarityFormat.AvgRank || prog.format == SimilarityFormat.Log200));
-                    if (!dubious) try {
-                            sem.WaitOne();//for memory issues...
-                            prog.Run(opts);
-                            sem.Release();
-                        } catch (Exception e) { Console.WriteLine(e.StackTrace); }
+        enum PointUpdate
+        {
+            ConstantRandom = 1,
+            DecreasingRandom = 2,
+            OriginalHiTmds = 0,
+        }
+        HashSet<KeyValuePair<SimilarityFormat, MdsEngine.Options>> loaded = new HashSet<KeyValuePair<SimilarityFormat, MdsEngine.Options>>();
+
+        private void button1_Click(object sender, RoutedEventArgs e) {
+            try {
+                var fmt = (SimilarityFormat)comboBoxFMT.SelectedItem;
+                var lr = (double)comboBoxLR.SelectedItem;
+                var sa = (double)comboBoxSA.SelectedItem;
+                var pus = (PointUpdate)comboBoxPUS.SelectedItem;
+                var gen = (int)comboBoxGEN.SelectedItem;
+                var dim = (int)comboBoxDIM. SelectedItem;
+                var options = new MdsEngine.Options {
+                    Dimensions = dim,
+                    LearnRate = lr,
+                    NGenerations = gen,
+                    PointUpdateStyle = (int)pus,
+                    StartAnnealingWhen = sa,
+                };
+                LoadSettings(fmt, options, (g) => { });
+            } catch (Exception e0) {
+                Console.WriteLine(e0.StackTrace);
+            }
+        }
+
+
+        void PrintAll() {
+            var opts =
+                   from lr in lrValues
+                   from sa in saValues
+                   from pus in pusValues
+                   from gen in genValues
+                   from dim in dimValues
+                   select new MdsEngine.Options {
+                       Dimensions = dim,
+                       LearnRate = lr,
+                       NGenerations = gen,
+                       PointUpdateStyle = (int)pus,
+                       StartAnnealingWhen = sa,
+                   };
+            foreach (var fmt in fmtValues)
+                foreach (var opt in opts)
+                    LoadSettings(fmt, opt, (g) => {
+                        try {
+                                using (var stream = File.Open(@"C:\out\g-" + g.Name + ".xps", FileMode.Create, FileAccess.ReadWrite))
+                                    HistogramControl.Print(g, stream);
+                        } catch (Exception ex) {
+                            Console.WriteLine(ex.StackTrace);
+                        }
+
+                    });
+
+        }
+        void LoadSettings(SimilarityFormat fmt,MdsEngine.Options options, Action<GraphControl> whenDone) {
+            if (loaded.Contains(new KeyValuePair<SimilarityFormat, MdsEngine.Options>(fmt, options))) {
+                Console.WriteLine("Already Loaded.");
+                return;
+            }
+            ThreadPool.QueueUserWorkItem((o) => {
+                try {
+                    var engine = new MdsEngine(settings.WithFormat(fmt), null, null, options);
+                    if (!engine.ResultsAlreadyCached) {
+                        Console.WriteLine("These results are not available");
+                    } else {
+                        engine.LoadCachedMds();
+                        Console.WriteLine("Loaded.");
+                        Dispatcher.BeginInvoke((Action)delegate {
+                            try {
+                                if (loaded.Contains(new KeyValuePair<SimilarityFormat, MdsEngine.Options>(fmt, options))) {
+                                    Console.WriteLine("Already Loaded!");
+                                    return;
+                                }
+                                var testG = HistogramControl.NewGraph("test_" + engine.resultsFilename, engine.TestSetRankings);
+                                var corrG = HistogramControl.NewGraph("corr_" + engine.resultsFilename, engine.Correlations);
+                                testG.GraphBounds = new Rect(-0.01, 0.49, 1.02, 0.52);
+                                corrG.GraphBounds = new Rect(-0.01, -0.01, 1.02, 1.02);
+                                HistogramControl.ShowGraph(testG);
+                                HistogramControl.ShowGraph(corrG);
+                                loaded.Add(new KeyValuePair<SimilarityFormat, MdsEngine.Options>(fmt, options));
+                                whenDone(testG);
+                                whenDone(corrG);
+                            } catch (Exception e2) {
+                                Console.WriteLine(e2.StackTrace);
+                            }
+                        });
+                    }
+
+                } catch (Exception e1) {
+                    Console.WriteLine(e1.StackTrace);
                 }
+
             });
 
         }
 
-        IEnumerable<RealSimilarityMds.MdsEngine.Options> MakeInterestingOptions() {
-            MdsEngine.Options opts;
-            opts.NGenerations = 30;
-            opts.LearnRate = 2.0;
-            opts.StartAnnealingWhen = 0.0;
-            opts.PointUpdateStyle = 1;
-            opts.Dimensions = 2;
-
-
-
-            yield return opts;
-            foreach (var sa in new[] { 0.0, 0.5 })
-                foreach (var lr in new[] { 1.0, 5.0, 2.0 })
-                    foreach (var pus in new[] { 1, 2, 0 })
-                        foreach (var dims in new[] { 2, 3, 5, 10, 20, 50 })
-                            foreach (var gen in new[] { 20, 50 }) 
-                                yield return new MdsEngine.Options {
-                                    Dimensions = dims,
-                                    PointUpdateStyle = pus,
-                                    StartAnnealingWhen = sa,
-                                    LearnRate = lr,
-                                    NGenerations = gen
-                                };
+        private void button2_Click(object sender, RoutedEventArgs e) {
+            PrintAll();
+            /*
+            try {
+                foreach(var graph in HistogramControl.Graphs.Where(g=>g!=null)) {
+                using(var stream =File.Open(@"C:\out\g-"+graph.Name+ ".xps", FileMode.Create, FileAccess.ReadWrite))
+                HistogramControl.Print(graph,stream );
+                }
+            } catch (Exception ex) {
+                Console.WriteLine(ex.StackTrace);
+            }
+            */
         }
+
 
     }
 }

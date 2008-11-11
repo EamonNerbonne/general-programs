@@ -134,7 +134,7 @@ namespace hitmds {
 
 
 
-	static int stop_calculation = 0;
+//	static int stop_calculation = 0;
 	double (*distance)(int dimension, double *d1, double *d2) =dist;
 
 
@@ -224,14 +224,14 @@ namespace hitmds {
 		try{
 			delta_point = new double[target_dim];
 			diffs = new double[pattern_length];
-			pointDistCache = new float[pattern_length-1];
-			patternDistCache = new float[pattern_length-1];
+			pointDistCache = new float[pattern_length];
+			patternDistCache = new float[pattern_length];
 
 			//newDists=diffs;
 
 			t =0, m = cycles / 10;
 
-			for(c = 0; c < cycles && !stop_calculation; c++) {
+			for(c = 0; c < cycles; c++) {
 				progressReport->Invoke(c,cycles,this);
 				if(++t == m) {
 					t = 0;

@@ -35,7 +35,7 @@ namespace MdsTestWpf
     /// </summary>
     public partial class MdsDisplay : Window
     {
-        const int res = 80;
+        const int res = 25;
         const int POINT_UPDATE_STYLE = 1;
         int IndexFromIJ(int i, int j) {
             return i + res * j;
@@ -48,12 +48,12 @@ namespace MdsTestWpf
             for (int i = 0; i < res; i++)
                 for (int j = 0; j < res; j++)
                     origs[IndexFromIJ(i, j)] = new MdsPoint2D { x = i, y = j };
-            totalCycles = origs.Length * 10;
+            totalCycles = origs.Length * 30;
             mdsProgress.Maximum = totalCycles;
             mdsProgress.Minimum = 0;
             Thread t = new Thread(CalcMds) {
                 IsBackground = true,
-                Priority = ThreadPriority.AboveNormal
+//                Priority = ThreadPriority.AboveNormal,
             };
             t.Start();
             CompositionTarget.Rendering += new EventHandler(CompositionTarget_Rendering);
@@ -175,7 +175,7 @@ namespace MdsTestWpf
                     r)) {
                 timer.TimeMark("Training MDS");
                 startMDS = DateTime.Now;
-                mds.mds_train(totalCycles, 5.0,0.0, ProgressReport,POINT_UPDATE_STYLE);
+                mds.mds_train(totalCycles, 2.0,0.0, ProgressReport,POINT_UPDATE_STYLE);
                 timer.TimeMark("Extracting points");
                 lock (cycleSync) {
                     lastCycle = totalCycles;
@@ -183,7 +183,7 @@ namespace MdsTestWpf
                     needUpdate = false;
                 }
             }
-            /*timer.TimeMark("Calculating Histogram");
+            timer.TimeMark("Calculating Histogram");
 
             var d = from a in Enumerable.Range(0,res*res)
                     from b in  Enumerable.Range(0,res*res)
@@ -200,7 +200,7 @@ namespace MdsTestWpf
             histo.Dispatcher.BeginInvoke((Action)delegate {
                 histo.ShowGraph(histo.NewGraph("DistancesDistribution", points));
             });
-            timer.Done();*/
+            timer.Done();/**/
         }
     }
 }

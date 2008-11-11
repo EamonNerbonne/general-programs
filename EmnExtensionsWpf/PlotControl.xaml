@@ -5,6 +5,40 @@
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" MinHeight="10" />
+            <RowDefinition Height="*" MinHeight="10" />
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+            <ComboBox  Name="botSelect" SelectionChanged="botSelect_SelectionChanged" >
+                <ComboBox.ItemTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding Name}" Foreground="{Binding GraphLineColor}" />
+                    </DataTemplate>
+                </ComboBox.ItemTemplate>
+            </ComboBox>
+            <ComboBox  Name="topSelect" Grid.Column="1" SelectionChanged="topSelect_SelectionChanged">
+                <ComboBox.ItemTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding Name}" Foreground="{Binding GraphLineColor}" />
+                    </DataTemplate>
+                </ComboBox.ItemTemplate>
+            </ComboBox>
+            <Menu  Grid.Column="2" Width="Auto" >
+                <MenuItem Header="Graphs" Name="visibilityMenu">
+                    <MenuItem.ItemTemplate>
+                        <DataTemplate>
+                            <MenuItem Header="{Binding Name}" Foreground="{Binding GraphLineColor}" Click="MenuItem_Click" />
+                        </DataTemplate>
+                    </MenuItem.ItemTemplate>
+                </MenuItem>
+            </Menu>
+            <!--<ComboBox Grid.Column="2"  Name="visibilitySelect" SelectionChanged="visibility_SelectionChanged" Visibility="Hidden" />-->
+
+        <Grid Name="graphWithLegend" Grid.Row="1" Grid.ColumnSpan="3">
+        <Grid.RowDefinitions>
             <RowDefinition Height="Auto" MinHeight="10" />
             <RowDefinition Height="*" MinHeight="10" />
             <RowDefinition Height="Auto" MinHeight="10" />
@@ -14,21 +48,12 @@
             <ColumnDefinition Width="*" MinWidth="10"/>
             <ColumnDefinition Width="Auto" MinWidth="10"/>
         </Grid.ColumnDefinitions>
-        <Grid Name="selectGrid" Grid.ColumnSpan="3"  VerticalAlignment="Top" Width="Auto" >
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="*" />
-            </Grid.ColumnDefinitions>
-            <ComboBox  Name="botSelect" SelectionChanged="botSelect_SelectionChanged" />
-            <ComboBox  Name="topSelect" Grid.Column="1" SelectionChanged="topSelect_SelectionChanged" />
-            <ComboBox Grid.Column="2"  Name="visibilitySelect" SelectionChanged="visibility_SelectionChanged" />
+        <Grid Name="graphGrid"  Grid.Column="1" Grid.Row="1" >
         </Grid>
-        <Grid Name="graphGrid"  Grid.Column="1" Grid.Row="2" >
-        </Grid>
-        <emnExt:TickedLegendControl x:Name="leftLegend" Grid.Row="2" SnapTo="Right" Visibility="Collapsed" />
-        <emnExt:TickedLegendControl x:Name="lowerLegend" Grid.Row="3" Grid.Column="1" Visibility="Collapsed" />
-        <emnExt:TickedLegendControl x:Name="rightLegend" Grid.Row="2" Grid.Column="2"  SnapTo="Left" Visibility="Collapsed"/>
-        <emnExt:TickedLegendControl x:Name="upperLegend" Grid.Row="1" Grid.Column="1" SnapTo="Bottom" Visibility="Collapsed"/>
+        <emnExt:TickedLegendControl x:Name="leftLegend" Grid.Row="1" SnapTo="Right" Visibility="Collapsed" />
+        <emnExt:TickedLegendControl x:Name="lowerLegend" Grid.Row="2" Grid.Column="1" Visibility="Collapsed" />
+        <emnExt:TickedLegendControl x:Name="rightLegend" Grid.Row="1" Grid.Column="2"  SnapTo="Left" Visibility="Collapsed"/>
+        <emnExt:TickedLegendControl x:Name="upperLegend" Grid.Row="0" Grid.Column="1" SnapTo="Bottom" Visibility="Collapsed"/>
+    </Grid>
     </Grid>
 </UserControl>

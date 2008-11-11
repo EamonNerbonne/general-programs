@@ -11,6 +11,11 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using System.Collections.ObjectModel;
+using System.Windows.Xps.Packaging;
+using System.Windows.Xps;
+using System.IO.Packaging;
+using System.IO;
 
 namespace EmnExtensions.Wpf
 {
@@ -22,15 +27,17 @@ namespace EmnExtensions.Wpf
         public PlotControl() {
             graphLookup.Add("", null);
             InitializeComponent();
-            botSelect.ItemsSource = graphLookup.Keys;
-            topSelect.ItemsSource = graphLookup.Keys;
-            NewGraph("unlabelled", new[] { new Point(0, 0), new Point(0, 1), new Point(1, 1), new Point(1, 0), new Point(0, 0) });
+            botSelect.ItemsSource = graphs;
+            topSelect.ItemsSource = graphs;
+            visibilityMenu.ItemsSource = graphs;
+            //            graphs.Add(null);
+            //NewGraph("unlabelled", new[] { new Point(0, 0), new Point(0, 1), new Point(1, 1), new Point(1, 0), new Point(0, 0) });
         }
 
-
+        ObservableCollection<GraphControl> graphs = new ObservableCollection<GraphControl>();
         Dictionary<string, GraphControl> graphLookup = new Dictionary<string, GraphControl>();
 
-      //  public GraphControl GraphControl { get { return graphLookup.Select(kv => kv.Value).FirstOrDefault(); } }
+        //  public GraphControl GraphControl { get { return graphLookup.Select(kv => kv.Value).FirstOrDefault(); } }
 
         bool nextIsTopRight;
 
@@ -38,9 +45,10 @@ namespace EmnExtensions.Wpf
             GraphControl graph = new GraphControl();
             graph.Name = name;
             graphLookup[name] = graph;
-            botSelect.ItemsSource = graphLookup.Keys;
-            topSelect.ItemsSource = graphLookup.Keys;
-            visibilitySelect.ItemsSource = graphLookup.Keys.Where(s=>s!="");
+            graphs.Add(graph);
+            //            botSelect.Items.Add( graph);
+            //          topSelect.Items.Add( graph);
+            //        visibilityMenu.Items.Add(graph);
             graphGrid.Children.Add(graph);
             graph.NewLine(line);
             return graph;
@@ -48,14 +56,80 @@ namespace EmnExtensions.Wpf
 
         public void Remove(string graphName) { Remove(graphLookup[graphName]); }
         public void Remove(GraphControl graph) {
+            if (graph == null)
+                throw new ArgumentNullException("graph");
             graphGrid.Children.Remove(graph);
             graphLookup.Remove(graph.Name);
-            botSelect.ItemsSource = graphLookup.Keys;
-            topSelect.ItemsSource = graphLookup.Keys;
-            visibilitySelect.ItemsSource = graphLookup.Keys.Where(s => s != "");
+            graphs.Remove(graph);
+            //            botSelect.Items.Remove(graph);
+            //            topSelect.Items.Remove(graph);
+            //            visibilityMenu.Items.Remove(graph);
             foreach (var legend in new[] { leftLegend, lowerLegend, upperLegend, rightLegend }) {
                 if (legend.Watch == graph)
                     legend.Watch = null;
+            }
+        }
+
+
+        /// <summary>
+        /// You must pass a read/write newly created stream!
+        /// </summary>
+        public void Print(GraphControl graph,Stream s) {
+            bool wasContained=graphGrid.Children.Contains(graph);
+            var toPrint = new SimpleGraph();
+
+            try {
+                if (wasContained)
+                    graphGrid.Children.Remove(graph);
+                toPrint.Graph = graph;
+                PrintXPS(toPrint, 400, 400, s, FileMode.Create, FileAccess.ReadWrite);
+            } finally {
+                toPrint.Graph = null;
+                if (wasContained)
+                    graphGrid.Children.Add(graph);
+            }
+        }
+
+        /// <summary>
+        /// Note that Xps actually reads the stream too, so the file cannot already exist and simply be overwritten
+        /// (unless it's a valid xps), and it in particular may not have 0 bytes unless you open it in FileMode.Create.
+        /// </summary>
+        /// <param name="el">The element to print to xps</param>
+        /// <param name="reqWidth">The requested width.  Don't expect miracles.</param>
+        /// <param name="reqHeight">The requested height.  Don't expect miracles.</param>
+        /// <param name="toStream"></param>
+        public static void PrintXPS(FrameworkElement el, double reqWidth, double reqHeight, Stream toStream, FileMode fileMode, FileAccess fileAccess) {
+            //MemoryStream ms = new MemoryStream();
+            //  using (var stream = File.Open(@"C:\test.xps",FileMode.,FileAccess.ReadWrite)) 
+            Transform oldLayout = el.LayoutTransform;
+            double oldWidth = el.Width;
+            double oldHeight = el.Height;
+
+            try {
+                VisualBrush brush = new VisualBrush(el);
+
+                el.LayoutTransform = Transform.Identity;
+                el.Width = reqWidth;
+                el.Height = reqHeight;
+                el.UpdateLayout();
+
+                var rect = new Rect(0, 0, el.ActualWidth, el.ActualHeight);
+                FixedPage page = new FixedPage();
+                page.Width = rect.Width;
+                page.Height = rect.Height;
+                page.Background = brush;
+                using (Package packInto = Package.Open(toStream, fileMode, fileAccess))
+                using (XpsDocument doc = new XpsDocument(packInto)) {
+                    //doc.CoreDocumentProperties.
+                    XpsDocumentWriter writer = XpsDocument.CreateXpsDocumentWriter(doc);
+
+                    writer.Write(page);
+                }
+            } finally {
+                el.Width = oldWidth;
+                el.Height = oldHeight;
+                el.LayoutTransform = oldLayout;
+                el.UpdateLayout();
             }
         }
 
@@ -64,54 +138,57 @@ namespace EmnExtensions.Wpf
 
         public void ShowGraph(string graphname) { ShowGraph(graphLookup[graphname]); }
         public void ShowGraph(GraphControl graph) { ShowGraph(graph, nextIsTopRight); }
-        public void ShowGraph(string graphname, bool legendIsTopRight) { ShowGraph(graphLookup[graphname],legendIsTopRight); }
+        public void ShowGraph(string graphname, bool legendIsTopRight) { ShowGraph(graphLookup[graphname], legendIsTopRight); }
         public void ShowGraph(GraphControl graph, bool legendIsTopRight) {
             if (legendIsTopRight) {
-                upperLegend.Watch = graph;
-                rightLegend.Watch = graph;
+                topSelect.SelectedItem = graph;
             } else {
-                leftLegend.Watch = graph;
-                lowerLegend.Watch = graph;
+                botSelect.SelectedItem = graph;
             }
-
-            if (graph!=null && graph.Visibility != Visibility.Visible)
-                graph.Visibility = Visibility.Visible;
             nextIsTopRight = !legendIsTopRight;
         }
 
-        private void botSelect_SelectionChanged(object sender, SelectionChangedEventArgs e) {
-            string selItem =null;
-            foreach(string key in e.AddedItems.OfType<string>().Take(1))
-                selItem=key;
-            ShowGraph(selItem,false);
-        }
 
-        private void topSelect_SelectionChanged(object sender, SelectionChangedEventArgs e) {
-            string selItem = null;
-            foreach (string key in e.AddedItems.OfType<string>().Take(1))
-                selItem = key;
-            ShowGraph(selItem,true);
 
-        }
-
-        private void visibility_SelectionChanged(object sender, SelectionChangedEventArgs e) {
-            string selItem = null;
-            foreach (string key in e.AddedItems.OfType<string>().Take(1))
-                selItem = key;
-            GraphControl graph = graphLookup[selItem];
+        private void MenuItem_Click(object sender, RoutedEventArgs e) {
+            MenuItem item = (MenuItem)sender;
+            GraphControl graph = (GraphControl)item.DataContext;
             if (graph.Visibility == Visibility.Visible) {
                 graph.Visibility = Visibility.Hidden;
             } else {
                 graph.Visibility = Visibility.Visible;
             }
-            if (upperLegend.Watch!=null && upperLegend.Watch.Visibility != Visibility.Visible) {
+            if (upperLegend.Watch != null && upperLegend.Watch.Visibility != Visibility.Visible) {
                 upperLegend.Watch = null;
                 rightLegend.Watch = null;
             }
-            if (lowerLegend.Watch!=null && lowerLegend.Watch.Visibility != Visibility.Visible) {
+            if (lowerLegend.Watch != null && lowerLegend.Watch.Visibility != Visibility.Visible) {
                 leftLegend.Watch = null;
                 lowerLegend.Watch = null;
             }
+        }
+
+
+        private void botSelect_SelectionChanged(object sender, SelectionChangedEventArgs e) {
+
+            GraphControl graph = (GraphControl)botSelect.SelectedItem;
+
+            if (graph != null && graph.Visibility != Visibility.Visible)
+                graph.Visibility = Visibility.Visible;
+
+            lowerLegend.Watch = graph;
+            leftLegend.Watch = graph;
+
+        }
+
+        private void topSelect_SelectionChanged(object sender, SelectionChangedEventArgs e) {
+            GraphControl graph = (GraphControl)topSelect.SelectedItem;
+            if (graph != null && graph.Visibility != Visibility.Visible)
+                graph.Visibility = Visibility.Visible;
+
+            upperLegend.Watch = graph;
+            rightLegend.Watch = graph;
+
 
         }
 

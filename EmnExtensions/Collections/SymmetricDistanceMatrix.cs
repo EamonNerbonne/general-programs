@@ -34,6 +34,8 @@ namespace EmnExtensions.Collections
             }
         }
 
+        public int DistCount { get { return matSize(elementCount); } }
+
         public void TrimCapacityToFit() {
             Array.Resize(ref distances, matSize(elementCount));
         }
@@ -41,7 +43,7 @@ namespace EmnExtensions.Collections
         public void WriteTo(BinaryWriter writer) {
             writer.Write(elementCount);
             writer.Write(matSize(elementCount));
-            foreach (var f in distances) {
+            foreach (var f in distances.Take(DistCount)) {
                 writer.Write((float)f);
             }
         }
