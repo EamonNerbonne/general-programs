@@ -90,7 +90,7 @@ namespace RealSimilarityMds
                    from sa in saValues
                    from pus in pusValues
                    from gen in genValues
-                   from dim in dimValues
+                   from dim in Enumerable.Range(1,51)
                    select new MdsEngine.Options {
                        Dimensions = dim,
                        LearnRate = lr,

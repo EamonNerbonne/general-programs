@@ -98,7 +98,7 @@ namespace PrecalcSimilarityMds
                          NGenerations = gen
                      }
                  );
-            return forSkreePlot;
+            return forSkreePlot.Concat(forDecent.Concat(forLessDecent));
         }
 
     }

@@ -35,7 +35,7 @@ namespace MdsTestWpf
     /// </summary>
     public partial class MdsDisplay : Window
     {
-        const int res = 25;
+        const int res = 50;
         const int POINT_UPDATE_STYLE = 1;
         int IndexFromIJ(int i, int j) {
             return i + res * j;
@@ -48,12 +48,12 @@ namespace MdsTestWpf
             for (int i = 0; i < res; i++)
                 for (int j = 0; j < res; j++)
                     origs[IndexFromIJ(i, j)] = new MdsPoint2D { x = i, y = j };
-            totalCycles = origs.Length * 30;
+            totalCycles = origs.Length * 100;
             mdsProgress.Maximum = totalCycles;
             mdsProgress.Minimum = 0;
             Thread t = new Thread(CalcMds) {
                 IsBackground = true,
-//                Priority = ThreadPriority.AboveNormal,
+                Priority = ThreadPriority.BelowNormal,
             };
             t.Start();
             CompositionTarget.Rendering += new EventHandler(CompositionTarget_Rendering);
@@ -143,21 +143,26 @@ namespace MdsTestWpf
         bool needUpdate = true;
         object cycleSync = new object();
 
-        void ProgressReport(int cycle, int total,Hitmds src) {
-            if(needUpdate)
+        void ProgressReport(int cycle, int total, Hitmds src) {
+            if (needUpdate)
                 lock (cycleSync) {
                     lastCycle = cycle;
-                   // ExtractCalcs(src);//comment out for no gfx
+                    // ExtractCalcs(src);//comment out for no gfx
                     needUpdate = false;
                 }
         }
         void ExtractCalcs(Hitmds mds) {
-            if(calcs==null)
+            if (calcs == null)
                 calcs = new MdsPoint2D[origs.Length];
-            double[,] mdsRes=mds.PointPositions();
-            for (int p = 0; p < origs.Length; p++) {
-                calcs[p] = new MdsPoint2D { x = mdsRes[p,0], y = mdsRes[p,1] };
-            }
+            double[,] mdsRes = mds.PointPositions();
+            if (mdsRes.GetLength(1) == 1)
+                for (int p = 0; p < origs.Length; p++)
+                    calcs[p] = new MdsPoint2D { x = mdsRes[p, 0], y = mdsRes[p, 0] };
+
+            else
+                for (int p = 0; p < origs.Length; p++)
+                    calcs[p] = new MdsPoint2D { x = mdsRes[p, 0], y = mdsRes[p, 1] };
+
         }
         DateTime startMDS;
         void CalcMds() {
@@ -166,16 +171,16 @@ namespace MdsTestWpf
             Random r = new Random();//12345678);
             SymmetricDistanceMatrix distMat = new SymmetricDistanceMatrix();
             distMat.ElementCount = origs.Length;
-            for(int i=0;i<origs.Length;i++)
-                for(int j=i+1;j<origs.Length;j++)
-                    distMat[i,j] = (float)(origs[i].DistanceTo(origs[j]) * (1.0 + origs[i].DistanceTo(origs[j])/res*2 + 0.8 * 2 * (r.NextDouble() - 0.5)));
-            using (Hitmds mds = 
-                new Hitmds(origs.Length, 2, 
-                   distMat ,
+            for (int i = 0; i < origs.Length; i++)
+                for (int j = i + 1; j < origs.Length; j++)
+                    distMat[i, j] = (float)(origs[i].DistanceTo(origs[j]) * (1.0 + origs[i].DistanceTo(origs[j]) / res * 2 + 0.8 * 2 * (r.NextDouble() - 0.5)));
+            using (Hitmds mds =
+                new Hitmds(origs.Length, 2,
+                   distMat,
                     r)) {
                 timer.TimeMark("Training MDS");
                 startMDS = DateTime.Now;
-                mds.mds_train(totalCycles, 2.0,0.0, ProgressReport,POINT_UPDATE_STYLE);
+                mds.mds_train(totalCycles, 2.0, 0.0, ProgressReport, POINT_UPDATE_STYLE);
                 timer.TimeMark("Extracting points");
                 lock (cycleSync) {
                     lastCycle = totalCycles;
@@ -185,17 +190,17 @@ namespace MdsTestWpf
             }
             timer.TimeMark("Calculating Histogram");
 
-            var d = from a in Enumerable.Range(0,res*res)
-                    from b in  Enumerable.Range(0,res*res)
-                    where a!=b
+            var d = from a in Enumerable.Range(0, res * res)
+                    from b in Enumerable.Range(0, res * res)
+                    where a != b
                     let realDist = origs[a].DistanceTo(origs[b])
                     let predictDist = calcs[a].DistanceTo(origs[b])
-                    select (predictDist/realDist);
+                    select (predictDist / realDist);
 
-            var points=
+            var points =
             new Histogrammer(d, res, 2000)
                 .GenerateHistogram()
-                .Select(datapoint=> new Point {X = datapoint.point, Y=datapoint.density})
+                .Select(datapoint => new Point { X = datapoint.point, Y = datapoint.density })
                 .ToArray();
             histo.Dispatcher.BeginInvoke((Action)delegate {
                 histo.ShowGraph(histo.NewGraph("DistancesDistribution", points));
