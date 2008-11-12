@@ -10,11 +10,15 @@ namespace EmnExtensions.Collections
     /// <summary>
     /// Resizable Symmetric distance matrix.  It is an error to access the matrix's diagonal.
     /// </summary>
-    public class SymmetricDistanceMatrix
+    public class SymmetricDistanceMatrixGen<T>
     {
-        const float resizefactor=1.5f;
-        float[] distances = new float[0];
+        const double resizefactor = 1.5;
+        T[] distances = new T[0];
         int elementCount = 0;
+
+        public T DefaultElement { get; set; }
+
+
         public int ElementCount {
             set {
                 int oldMatSize = matSize(elementCount);
@@ -24,8 +28,8 @@ namespace EmnExtensions.Collections
                 if (distances.Length < newMatSize) {
                     Array.Resize(ref distances, (int)(newMatSize * resizefactor + 0.9));
                     for (int i = oldMatSize; i < newMatSize; i++)
-                        distances[i] = float.PositiveInfinity;
-                } else if (distances.Length > (int)(newMatSize * resizefactor*resizefactor + 0.9)) {
+                        distances[i] = DefaultElement;
+                } else if (distances.Length > (int)(newMatSize * resizefactor * resizefactor + 0.9)) {
                     Array.Resize(ref distances, (int)(newMatSize * resizefactor + 0.9));
                 }
             }
@@ -40,24 +44,10 @@ namespace EmnExtensions.Collections
             Array.Resize(ref distances, matSize(elementCount));
         }
 
-        public void WriteTo(BinaryWriter writer) {
-            writer.Write(elementCount);
-            writer.Write(matSize(elementCount));
-            foreach (var f in distances.Take(DistCount)) {
-                writer.Write((float)f);
-            }
-        }
-        public SymmetricDistanceMatrix(BinaryReader reader) {
-            elementCount = reader.ReadInt32();
-            int distCount = reader.ReadInt32();
-            distances = new float[distCount];
-            for (int i = 0; i < distCount; i++)
-                distances[i] =reader.ReadSingle();
-        }
 
-        public IEnumerable<float> Values { get { return distances; } }
+        public IEnumerable<T> Values { get { return distances.Take(DistCount); } }
 
-        public SymmetricDistanceMatrix() {  }
+        public SymmetricDistanceMatrixGen() { }
 
         static int matSize(int elemCount) { return elemCount * (elemCount - 1) >> 1; }
         int calcOffset(int i, int j) {
@@ -78,11 +68,14 @@ namespace EmnExtensions.Collections
         /// Access to this array is read/write.  element i,j is at location i + ((j * (j - 1)) >> 1) given that i is less than j.
         /// </summary>
         /// <returns></returns>
-        public float[] DirectArrayAccess() {
+        public T[] DirectArrayAccess() {
             return distances;
         }
 
-        public float this[int i, int j] {
+        /// <summary>
+        /// It is an error to access the diagonal which must be 0!
+        /// </summary>
+        public T this[int i, int j] {
             get {
                 return distances[calcOffset(i, j)];
             }
@@ -91,13 +84,46 @@ namespace EmnExtensions.Collections
             }
         }
 
-        public void FloydWarshall() {
-            for (int k = 0; k < elementCount; k++)
-                for (int i = 0; i < elementCount - 1; i++)
-                    if (i != k)
-                        for (int j = i + 1; j < elementCount; j++)
-                            if (j != k)
-                                this[i, j] = Math.Min(this[i, j], this[i, k] + this[k, j]);
+        /// <summary>
+        /// Returns default(T) == 0.0 when accessing the diagonal.
+        /// </summary>
+        /// <param name="i"></param>
+        /// <param name="j"></param>
+        /// <returns></returns>
+        public T GetDist(int i, int j) {
+            int ind = calcOffset(i, j);
+            return ind < 0 ? default(T) : distances[ind];
         }
+    }
+
+
+
+    public class SymmetricDistanceMatrix : SymmetricDistanceMatrixGen<float>
+    {
+        public void WriteTo(BinaryWriter writer) {
+            writer.Write(ElementCount);
+            writer.Write(DistCount);
+            foreach (var f in Values) {
+                writer.Write((float)f);
+            }
+        }
+        public SymmetricDistanceMatrix(BinaryReader reader) {
+            ElementCount = reader.ReadInt32();
+            int distCount = reader.ReadInt32();
+            float[] distances = DirectArrayAccess();
+            for (int i = 0; i < distCount; i++)
+                distances[i] = reader.ReadSingle();
+        }
+        public SymmetricDistanceMatrix() { }
+
+        public static void FloydWarshall(SymmetricDistanceMatrix mat) {
+            for (int k = 0; k < mat.ElementCount; k++)
+                for (int i = 0; i < mat.ElementCount - 1; i++)
+                    if (i != k)
+                        for (int j = i + 1; j < mat.ElementCount; j++)
+                            if (j != k)
+                                mat[i, j] = Math.Min(mat[i, j], mat[i, k] + mat[k, j]);
+        }
+
     }
 }

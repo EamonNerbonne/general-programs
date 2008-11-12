@@ -29,7 +29,7 @@ namespace PrecalcSimilarityMds
 
             Semaphore sem = new Semaphore(5, 5);
             var optsChoices = MakeInterestingOptions().ToArray();
-          //  optsChoices.Shuffle();
+            optsChoices.Shuffle();
             Parallel.ForEach(optsChoices, opts => {
                 bool waited = false;
                 try {
