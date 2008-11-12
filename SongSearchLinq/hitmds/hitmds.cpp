@@ -150,10 +150,10 @@ namespace hitmds {
 
 		for(int i = 0; i < matsize; i++) {
 			double tmp = points_distmat[i] - points_distmat_mean;
-			pattern_distmat[i] = (FLT)(pattern_distmat[i] - pattern_distmat_mean);
-			points_distmat_mixed += tmp * pattern_distmat[i];
+			double pattern_distmat_i_meancorr = (FLT)(pattern_distmat[i] - pattern_distmat_mean);
+			points_distmat_mixed += tmp * pattern_distmat_i_meancorr;
 			points_distmat_mono +=  tmp * tmp;
-			pattern_distmat_var_sum += pattern_distmat[i] * pattern_distmat[i];
+			pattern_distmat_var_sum += pattern_distmat_i_meancorr * pattern_distmat_i_meancorr;
 		}
 
 
@@ -247,12 +247,12 @@ namespace hitmds {
 				int dIndex;
 				for(j = 0,dIndex = Dindex(j,i); j < i; j++) {
 					pointDistCache[j] = points_distmat[dIndex];
-					patternDistCache[j]=pattern_distmat[dIndex];
+					patternDistCache[j]=(FLT)(pattern_distmat[dIndex]-pattern_distmat_mean);
 					dIndex+=DincLower(j,i);
 				}
 				for(j=i+1,dIndex = Dindex(i,j);j<pattern_length;j++) {
 					pointDistCache[j] = points_distmat[dIndex];
-					patternDistCache[j]=pattern_distmat[dIndex];
+					patternDistCache[j]=(FLT)(pattern_distmat[dIndex]-pattern_distmat_mean);
 					dIndex+=DincLarger(i,j);
 				}
 				for(k = 0; k < target_dim; k++) delta_point[k] = 0.;
@@ -262,7 +262,7 @@ namespace hitmds {
 
 					if(j != i) {
 						double d = D(points_distmat,i, j);
-						double  D = D(pattern_distmat,i,j),
+						double  D = D(pattern_distmat,i,j) - pattern_distmat_mean,
 							dif = d - points_distmat_mean;
 						double preres= (dif * points_distmat_mixed - D * points_distmat_mono)/ ((d < EPS) ? EPS : d);
 
