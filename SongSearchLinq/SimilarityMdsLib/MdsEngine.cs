@@ -154,7 +154,10 @@ namespace SimilarityMdsLib
                     retval[mdsId, dim] = mdsImpl.GetPoint(mdsId, dim);
             return retval;
         }
-
+        public void DoMds(IProgressManager progress) {
+            this.progress = progress;
+            DoMds();
+        }
         public void DoMds() {
             if (evaluator == null || cachedMatrix == null)
                 throw new ArgumentNullException();

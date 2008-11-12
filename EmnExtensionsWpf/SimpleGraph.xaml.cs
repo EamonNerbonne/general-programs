@@ -20,7 +20,6 @@ namespace EmnExtensions.Wpf
     public partial class SimpleGraph : UserControl
     {
         GraphControl kid;
-        VisualBrush kidbrush;
         public GraphControl Graph {
             get {
                 return kid;

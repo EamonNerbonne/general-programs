@@ -44,7 +44,6 @@
             <ComboBox Grid.Column="1" Margin="3,3,3,3" IsEditable="False" IsReadOnly="True" Grid.Row="3" Name="comboBoxPUS" />
             <ComboBox Grid.Column="1" Margin="3,3,3,3" IsEditable="True" IsReadOnly="False" Grid.Row="4" Name="comboBoxGEN"/>
             <ComboBox Grid.Column="1" Margin="3,3,3,3" IsEditable="True" IsReadOnly="False" Grid.Row="5" Name="comboBoxDIM" />
-            <ComboBox Grid.Column="1" Margin="3,3,3,3" IsEditable="True" IsReadOnly="False" Grid.Row="6" Name="comboBox8" />
             <TextBox Grid.Row="0" VerticalAlignment="Center"  >Format:</TextBox>
             <TextBox Grid.Row="1" VerticalAlignment="Center"  >Learning Rate:</TextBox>
             <TextBox Grid.Row="2"  VerticalAlignment="Center" >Start Annealing:</TextBox>
@@ -52,8 +51,9 @@
             <TextBox Grid.Row="4" VerticalAlignment="Center"  ># Generations:</TextBox>
             <TextBox Grid.Row="5"  VerticalAlignment="Center" ># Dimensions:</TextBox>
             <TextBox Grid.Row="6" ></TextBox>
-            <Button Grid.Row="8" Width="Auto" Height="Auto"  VerticalAlignment="Center" HorizontalAlignment="Center" Padding="20,4,20,4"    Name="button1" Grid.ColumnSpan="2" Click="button1_Click">Load</Button>
-            <Button Grid.Row="7" Margin="94,6,122,8" Name="button2" Grid.ColumnSpan="2" Click="button2_Click">Button</Button>
+            <Button Grid.Row="6" Padding="20,4,20,4"    Name="button1" Click="button1_Click"  >Load</Button>
+            <Button Grid.Row="6" Padding="20,4,20,4"   Name="button2"  Click="button2_Click" Grid.Column="1">Load All and Export</Button>
+            <Button Grid.Row="7" Name="button3" Click="button3_Click">Calculate</Button>
         </Grid>
     </Grid>
 </Window>

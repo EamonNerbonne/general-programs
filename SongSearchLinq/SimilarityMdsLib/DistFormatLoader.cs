@@ -76,6 +76,11 @@ namespace SimilarityMdsLib
             progress.Done();
             doneInit = true;
         }
+
+        public MdsEngine ConstructMdsEngine(MdsEngine.Options Opts) {
+            return new MdsEngine(settings, evaluator, cachedMatrix, Opts);
+        }
+
         public void Run(MdsEngine.Options Opts, bool rerunEvenIfCached) {
 
             //  CalculateDistanceHistogram(cachedMatrix);
@@ -97,7 +102,8 @@ namespace SimilarityMdsLib
             //engine.TestSetRankings.CollectionChanged += new NotifyCollectionChangedEventHandler(TestSetRankings_CollectionChanged);
 
             engine.DoMds();
-            engine.SaveMds();
+
+                engine.SaveMds();
             timer.Done();
             //progress.Done();
             //   FindBillboardHits(positionedPoints,settings,cachedMatrix);

@@ -46,9 +46,6 @@ namespace EmnExtensions.Wpf
             graph.Name = name;
             graphLookup[name] = graph;
             graphs.Add(graph);
-            //            botSelect.Items.Add( graph);
-            //          topSelect.Items.Add( graph);
-            //        visibilityMenu.Items.Add(graph);
             graphGrid.Children.Add(graph);
             graph.NewLine(line);
             return graph;
@@ -61,9 +58,6 @@ namespace EmnExtensions.Wpf
             graphGrid.Children.Remove(graph);
             graphLookup.Remove(graph.Name);
             graphs.Remove(graph);
-            //            botSelect.Items.Remove(graph);
-            //            topSelect.Items.Remove(graph);
-            //            visibilityMenu.Items.Remove(graph);
             foreach (var legend in new[] { leftLegend, lowerLegend, upperLegend, rightLegend }) {
                 if (legend.Watch == graph)
                     legend.Watch = null;
@@ -176,6 +170,10 @@ namespace EmnExtensions.Wpf
             if (graph != null && graph.Visibility != Visibility.Visible)
                 graph.Visibility = Visibility.Visible;
 
+            GraphControl oldGraph = lowerLegend.Watch;
+            if (oldGraph != null && oldGraph.Visibility == Visibility.Visible)
+                oldGraph.Visibility = Visibility.Collapsed;
+
             lowerLegend.Watch = graph;
             leftLegend.Watch = graph;
 
@@ -186,10 +184,11 @@ namespace EmnExtensions.Wpf
             if (graph != null && graph.Visibility != Visibility.Visible)
                 graph.Visibility = Visibility.Visible;
 
+            GraphControl oldGraph = upperLegend.Watch;
+            if (oldGraph != null && oldGraph.Visibility == Visibility.Visible)
+                oldGraph.Visibility = Visibility.Collapsed;
             upperLegend.Watch = graph;
             rightLegend.Watch = graph;
-
-
         }
 
     }
