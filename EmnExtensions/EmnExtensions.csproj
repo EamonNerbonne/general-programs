@@ -97,6 +97,7 @@
     <Compile Include="Filesystem\GetLinesExtension.cs" />
     <Compile Include="Filesystem\GetRelativeFileExtension.cs" />
     <Compile Include="FuncUtil.cs" />
+    <Compile Include="MathHelpers\Matrix.cs" />
     <Compile Include="NiceTimer.cs" />
     <Compile Include="PersistantCache\DelegateCacheMapper.cs" />
     <Compile Include="PersistantCache\IPersistantCacheMapper.cs" />
