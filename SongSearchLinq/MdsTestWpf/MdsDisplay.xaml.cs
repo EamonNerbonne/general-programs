@@ -43,13 +43,14 @@ namespace MdsTestWpf
     /// </summary>
     public partial class MdsDisplay : Window
     {
-        const int res = 40;//80
-        const int SUBSET_SIZE = 1000;//1000
-        const int GEN = 30;//30
-        const int POINT_UPDATE_STYLE = 2;
+        const int res = 39;//80
+        const int SUBSET_SIZE = 5;//1000
+        const int GEN = 60;//30
+        const int POINT_UPDATE_STYLE = 1;
+        const double LEARN_RATE = 2.0;
         const double DIST_LIMIT_AVG = 5.0;
         const double DIST_LIMIT_RAND = 0.5;
-        const double DIST_NOISE = 0.5;
+        const double DIST_NOISE = 0.1;
         const float INF_REPLACEMENT_FACTOR = 10.0f;
         int IndexFromIJ(int i, int j) {
             return i + res * j;
@@ -160,7 +161,6 @@ namespace MdsTestWpf
                 int dimCount = mappedPos.GetLength(1);
                 int pCount = mappedPos.GetLength(0);
                 MeanCenter();
-               // Rescale(1 / 40.0);
                 FindEigvals();
                 CompDu();
 
@@ -171,16 +171,51 @@ namespace MdsTestWpf
                         for (int pi = 0; pi < pCount; pi++) {
                             sum += mappedPos[pi, dim] * mappedPos[pi, dim2];
                         }
-                        if (dim2 == dim) Console.WriteLine("Dim {0}<->{0} sqrLen: {1}, length:{2}, eig:{3}", dim, sum,Math.Sqrt(sum),eigvals[dim]);
-                        else Console.WriteLine("Dim {0}<->{1} dotprod: {2}", dim, dim2, sum);
+                        if (dim2 == dim) {
+                            Console.WriteLine("Dim {0}<->{0} sqrLen: {1}, length:{2}, eig:{3}", dim, sum, Math.Sqrt(sum), eigvals[dim]);
+//                            eigvals[dim] = Math.Sqrt(sum);
+                        } else Console.WriteLine("Dim {0}<->{1} dotprod: {2}", dim, dim2, sum);
                     }
                 }
+                /*
+                for (int dim = 0; dim < dimCount; dim++) {
+                    double sum = 0;
+                    for (int pi = 0; pi < pCount; pi++) {
+                        sum += Sqr(mappedPos[pi, dim]);
+                    }
+                    double len = Math.Sqrt(sum);
+                    for (int pi = 0; pi < pCount; pi++) {
+                        mappedPos[pi, dim]*=eigvals[dim]/ len;
+                    }
+                }
+                /*
+                FindEigvals();
+                double[,] cov = new double[dimCount, dimCount];
+                for (int dim = 0; dim < dimCount; dim++) {
+
+                    for (int dim2 = dim; dim2 < dimCount; dim2++) {
+                        double sum = 0;
+                        for (int pi = 0; pi < pCount; pi++) {
+                            sum += mappedPos[pi, dim] * mappedPos[pi, dim2];
+                        }
+                        if (dim2 == dim) {
+                            Console.WriteLine("Dim {0}<->{0} sqrLen: {1}, length:{2}, eig:{3}", dim, sum, Math.Sqrt(sum), eigvals[dim]);
+                            //                            eigvals[dim] = Math.Sqrt(sum);
+                            cov[dim, dim] = 1 ;
+                        } else {
+                            Console.WriteLine("Dim {0}<->{1} dotprod: {2}", dim, dim2, sum);
+                            cov[dim, dim2] = cov[dim2, dim] = -sum / eigvals[dim] / eigvals[dim2];
+                        }
+                    }
+                }
+                */
+
 
                 allPoses = new double[allCount, dimCount];
                 double[] netDiff = new double[allCount];
                 for (int unmP = 0; unmP < allCount; unmP++) {
                     prog(unmP / (double)allCount);
-                    if (false&&mapper.IsMapped(unmP)) {
+                    if (false &&mapper.IsMapped(unmP)) {
                         int mP = mapper.Map(unmP);
                         for (int dim = 0; dim < dimCount; dim++)
                             allPoses[unmP, dim] = mappedPos[mP, dim];
@@ -189,12 +224,18 @@ namespace MdsTestWpf
                             double dist = distsFromMapped[pi][unmP];
                             netDiff[pi] = dist * dist - Du[pi];
                         }
+                        double[] sums = new double[dimCount];
                         for (int dim = 0; dim < dimCount; dim++) {
-                            double sum = 0.0;
+                            //double sum = 0.0;
                             for (int pi = 0; pi < pCount; pi++) {
-                                sum += mappedPos[pi, dim] * netDiff[pi];
+                                sums[dim] += mappedPos[pi, dim] * netDiff[pi];
                             }
-                            allPoses[unmP, dim] = (-0.5) * sum / eigvals[dim];
+                        }
+                        for (int dim = 0; dim < dimCount; dim++) {
+
+                            allPoses[unmP, dim] = (-0.5) *
+                                sums[dim] / eigvals[dim];
+                                // sums.Select((sum, d) => sum * cov[d, dim]).Sum()/eigvals[dim];
                         }
                     }
                 }
@@ -410,7 +451,7 @@ namespace MdsTestWpf
         void CalcMds() {
             NiceTimer timer = new NiceTimer();
             timer.TimeMark("Initializing MDS...");
-            Random r = new Random();//12345678);
+            Random r = new Random(12345678);
             MappedDistStruct mappedDists = CreateDistMat(r, timer);
             using (Hitmds mds =
                 new Hitmds( 2,
@@ -418,7 +459,7 @@ namespace MdsTestWpf
                     r)) {
                 timer.TimeMark("Training MDS");
                 startMDS = DateTime.Now;
-                mds.mds_train(totalCycles, 5.0, 0.0, (cyc, tot, src) => {
+                mds.mds_train(totalCycles, LEARN_RATE, 0.0, (cyc, tot, src) => {
                     ProgressReport(cyc / (double)tot);
                     // if(needUpdate) lock(cycleSync) ExtractCalcs(src);
                 }, POINT_UPDATE_STYLE);
