@@ -33,24 +33,28 @@ namespace EmnExtensions.Algorithms
                 throw new ArgumentException("Too few points: bucket size: " + minBucketSize + "  bucket number:" + numBuckets);
             }
         }
-
         public IEnumerable<Data> GenerateHistogram() {
+            return GenerateHistogram(0.0, 1.0);
+        }
+
+        public IEnumerable<Data> GenerateHistogram(double startPercentile,double endPercentile) {
 
 
             double minBucketWidth = (maxVal - minVal) / maxResolution;
 
             double curSum = 0;
-            int startIndex = 0;
-            int endIndex = 0;
+            int startIndex = (int)(startPercentile*sortedData.Length+0.5);
+            int endIndex = startIndex;
+            int untilIndex = (int)(endPercentile * sortedData.Length + 0.5);
             double maxDensity = 0.0;
-            while (endIndex < sortedData.Length) {
+            while (endIndex < untilIndex) {
                 if (endIndex - startIndex < minBucketSize || sortedData[endIndex] - sortedData[startIndex] < minBucketWidth) { //make sure we satisfy minimum bucket size.
                     curSum += sortedData[endIndex]; endIndex++;
                 } else {//ok my window is at least as big as necessary! 
                     double density = (endIndex - startIndex) / (sortedData[endIndex] - sortedData[startIndex]);
                     if (density > maxDensity) maxDensity = density;
                     yield return new Data {
-                        point = curSum / (endIndex - startIndex + 1),
+                        point = curSum / (endIndex - startIndex),
                         density = density
                     };
 

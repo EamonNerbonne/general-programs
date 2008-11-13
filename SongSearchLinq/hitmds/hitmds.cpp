@@ -53,10 +53,10 @@ namespace hitmds {
 
 #define Point(elem) (points+target_dim*(elem))
 
-	Hitmds::Hitmds(int numberOfPoints, int numberOfDimensions,  SymmetricDistanceMatrix ^origDists ,Random^ r) {
-		pattern_length=numberOfPoints;
+	Hitmds::Hitmds( int numberOfDimensions,  SymmetricDistanceMatrix ^origDists ,Random^ r) {
+		pattern_length=origDists->ElementCount;
 		target_dim = numberOfDimensions;
-		matsize = ((numberOfPoints-1) * numberOfPoints) >> 1;
+		matsize = ((pattern_length-1) * pattern_length) >> 1;
 		this->r=r;
 		this->origDists = origDists;
 		shuffle_index = new int[pattern_length];

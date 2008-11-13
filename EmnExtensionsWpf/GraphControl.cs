@@ -194,6 +194,7 @@ namespace EmnExtensions.Wpf
         protected override void OnRender(DrawingContext drawingContext) {
             if (graphGeom2 == null) return;
             UpdateBounds();
+            drawingContext.PushClip(new RectangleGeometry(new Rect(0, 0, ActualWidth, ActualHeight)));
             drawingContext.DrawGeometry(null, graphLinePen, graphGeom2);
         }
 

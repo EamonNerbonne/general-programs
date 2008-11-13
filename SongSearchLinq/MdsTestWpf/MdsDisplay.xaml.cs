@@ -31,26 +31,37 @@ namespace MdsTestWpf
         public Point ToPoint() { return new Point(x, y); }
 
     }
+    public static class RndHelper
+    {
+        public static double NextNorm(this Random r) {//from http://www.cs.princeton.edu/introcs/21function/MyMath.java.html
+            return Math.Sin(2 * Math.PI * r.NextDouble()) * Math.Sqrt((-2 * Math.Log(1 - r.NextDouble())));
+        }
+    }
 
     /// <summary>
     /// Interaction logic for Window1.xaml
     /// </summary>
     public partial class MdsDisplay : Window
     {
-        const int res = 114;
-        const int SUBSET_SIZE = 1000;
-        const int POINT_UPDATE_STYLE = 1;
-        const double DIST_LIMIT_AVG = 4.7;
+        const int res = 150;//80
+        const int SUBSET_SIZE = 5000;//1000
+        const int GEN = 30;//30
+        const int POINT_UPDATE_STYLE = 2;
+        const double DIST_LIMIT_AVG = 5.0;
         const double DIST_LIMIT_RAND = 0.5;
-        const double DIST_NOISE = 0.3;
+        const double DIST_NOISE = 3.0;
         const float INF_REPLACEMENT_FACTOR = 10.0f;
         int IndexFromIJ(int i, int j) {
             return i + res * j;
+        }
+        static double percentToSigma(double percent) {
+            return Math.Log(percent / 100 + 1);
         }
         MdsPoint2D[] origs, calcs;
         int totalCycles = 0;
         List<Dijkstra.DistanceTo>[] distsTo;
         public MdsDisplay() {
+
             InitializeComponent();
             origs = new MdsPoint2D[res * res];
             distsTo = new List<Dijkstra.DistanceTo>[res * res];
@@ -59,7 +70,7 @@ namespace MdsTestWpf
                     origs[IndexFromIJ(i, j)] = new MdsPoint2D { x = i, y = j };
                     distsTo[IndexFromIJ(i, j)] = new List<Dijkstra.DistanceTo>();
                 }
-            totalCycles = origs.Length * 100;
+            totalCycles = origs.Length * GEN;
             mdsProgress.Maximum = 1.0;
             mdsProgress.Minimum = 0;
             Thread t = new Thread(CalcMds) {
@@ -69,6 +80,7 @@ namespace MdsTestWpf
             t.Start();
             CompositionTarget.Rendering += new EventHandler(CompositionTarget_Rendering);
             ShowMdsPoints(origs);
+            Console.WriteLine("Noise: " + (DIST_NOISE * 100) + "%");
         }
 
         Rect BoundMdsPoints(MdsPoint2D[] points) {
@@ -81,7 +93,7 @@ namespace MdsTestWpf
         float MaxDist = 0.0f;
         int infCount = 0;
 
-        public struct MappedDistStruct
+        public class MappedDistStruct
         {
             public ArbitraryTrackMapper mapper;
             public List<float[]> distsFromMapped;
@@ -100,7 +112,7 @@ namespace MdsTestWpf
                     }
                     double mean = sum / pCount;
                     for (int pi = 0; pi < pCount; pi++) {
-                        mappedPos[pi, dim]-=mean;
+                        mappedPos[pi, dim] -= mean;
                     }
                 }
             }
@@ -144,17 +156,29 @@ namespace MdsTestWpf
             double[] Du;//mean of sqr'd distances to each mapped element.
             public double[,] allPoses;
 
-            public void TriangulateUnmapped(Action<double> prog,int allCount) {
-                MeanCenter();
-                FindEigvals();
-                CompDu();
+            public void TriangulateUnmapped(Action<double> prog, int allCount) {
                 int dimCount = mappedPos.GetLength(1);
                 int pCount = mappedPos.GetLength(0);
-                allPoses = new double[allCount,dimCount];
+                MeanCenter();
+               // Rescale(1 / 40.0);
+                FindEigvals();
+                CompDu();
+
+                for (int dim = 0; dim < dimCount; dim++) {
+                    for (int dim2 = 0; dim2 < dimCount; dim2++) {
+                        double sum = 0;
+                        for (int pi = 0; pi < pCount; pi++) {
+                            sum += mappedPos[pi, dim] * mappedPos[pi, dim2];
+                        }
+                        Console.WriteLine("Dim {0}<->{1} dotprod: {2}", dim, dim2, sum);
+                    }
+                }
+
+                allPoses = new double[allCount, dimCount];
                 double[] netDiff = new double[allCount];
                 for (int unmP = 0; unmP < allCount; unmP++) {
                     prog(unmP / (double)allCount);
-                    if (mapper.IsMapped(unmP)) {
+                    if (false&&mapper.IsMapped(unmP)) {
                         int mP = mapper.Map(unmP);
                         for (int dim = 0; dim < dimCount; dim++)
                             allPoses[unmP, dim] = mappedPos[mP, dim];
@@ -164,7 +188,7 @@ namespace MdsTestWpf
                             netDiff[pi] = dist * dist - Du[pi];
                         }
                         for (int dim = 0; dim < dimCount; dim++) {
-                            double sum=0.0;
+                            double sum = 0.0;
                             for (int pi = 0; pi < pCount; pi++) {
                                 sum += mappedPos[pi, dim] * netDiff[pi];
                             }
@@ -175,6 +199,17 @@ namespace MdsTestWpf
                 prog(1.0);
             }
 
+            private void Rescale(double p) {
+                int dimCount = mappedPos.GetLength(1);
+                int pCount = mappedPos.GetLength(0);
+                for (int pi = 0; pi < pCount; pi++) {
+                    for (int dim = 0; dim < dimCount; dim++) {
+                        mappedPos[pi, dim] *= p;
+                    }
+                }
+
+            }
+
         }
 
         MappedDistStruct CreateDistMat(Random r, NiceTimer t) {
@@ -182,10 +217,11 @@ namespace MdsTestWpf
             //SymmetricDistanceMatrix distMat = new SymmetricDistanceMatrix();
             //distMat.ElementCount = origs.Length;
             int connCount = 0;
+            double sigma = percentToSigma(DIST_NOISE * 100) / Math.Sqrt(2); // div by sqrt(2) simulates symmetrization.
             for (int i = 0; i < origs.Length; i++)
                 for (int j = i + 1; j < origs.Length; j++) {
                     double dist = origs[i].DistanceTo(origs[j]);
-                    dist *= 1.0 + DIST_NOISE * 2 * (r.NextDouble() - 0.5); //between 1 - DIST_NOISE and 1+DIST_NOISE;
+                    dist *= Math.Exp(r.NextNorm() * sigma); //between 1 - DIST_NOISE and 1+DIST_NOISE;
                     double distLim = DIST_LIMIT_AVG * (1.0 + DIST_LIMIT_RAND * 2 * (r.NextDouble() - 0.5));
                     if (dist < distLim) {
                         distsTo[i].Add(new Dijkstra.DistanceTo { distance = (float)dist, targetNode = j });
@@ -252,17 +288,17 @@ namespace MdsTestWpf
         void ShowMdsPoints(MdsPoint2D[] points) {
             pointCanvas.Children.Clear();
             Rect boundingBox = BoundMdsPoints(points);
-            double scaleFactor = 1000 / Math.Max(boundingBox.Width, boundingBox.Height);
-            pointCanvas.Width = scaleFactor * boundingBox.Width;
-            pointCanvas.Height = scaleFactor * boundingBox.Height;
+            double scaleFactor = 10*res / Math.Max(boundingBox.Width, boundingBox.Height);
+            pointCanvas.Width = 10+scaleFactor * boundingBox.Width;
+            pointCanvas.Height = 10+scaleFactor * boundingBox.Height;
             Point topLeft = boundingBox.TopLeft;
-            Func<int, int, Point> locatePoint = (i, j) => (Point)(scaleFactor * (points[IndexFromIJ(i, j)].ToPoint() - topLeft));
+            Func<int, int, Point> locatePoint = (i, j) => (Point)(scaleFactor * (points[IndexFromIJ(i, j)].ToPoint() - topLeft) + new Point(5,5));
             for (int i = 0; i < res; i++) {
                 for (int j = 0; j < res; j++) {
                     Point thisPoint = locatePoint(i, j);
                     if (i + 1 < res) {
                         Point leftPoint = locatePoint(i + 1, j);
-                        pointCanvas.Children.Add( new Line {
+                        pointCanvas.Children.Add(new Line {
                             X1 = thisPoint.X,
                             X2 = leftPoint.X,
                             Y1 = thisPoint.Y,
@@ -270,7 +306,7 @@ namespace MdsTestWpf
                             StrokeThickness = 1,
                             StrokeStartLineCap = PenLineCap.Round,
                             StrokeEndLineCap = PenLineCap.Round,
-                            Stroke = Brushes.LightBlue
+                            Stroke = Brushes.LightGray
                         });
 
                     }
@@ -285,24 +321,31 @@ namespace MdsTestWpf
                             StrokeThickness = 1,
                             StrokeStartLineCap = PenLineCap.Round,
                             StrokeEndLineCap = PenLineCap.Round,
-                            Stroke = Brushes.LightBlue
+                            Stroke = Brushes.LightGray
                         });
                     }
                 }
             }
 
-            for (int pi = 0; pi< points.Length;pi++) {
+            for (int pi = 0; pi < points.Length; pi++) {
                 var mdsPoint = points[pi];
                 var point = mdsPoint.ToPoint();
-                Point relPoint = (Point)(scaleFactor * (point - topLeft));
-                double radius = wasLandmark != null && wasLandmark[pi] ? 6:3;
+                double radius = wasLandmark != null && wasLandmark[pi] ? 6 : 3;
+                int i = pi % res;
+                int j = pi / res;
+                Point relPoint = locatePoint(i, j);
+                double r = i / (double)(res - 1);
+                double b = j / (double)(res - 1);
+                double g = 1.0 - (r + b) / 2;
+                SolidColorBrush color = new SolidColorBrush(new Color() { R = (byte)(255 * r), G = (byte)(255 * g), B = (byte)(255 * b), A = 255 });
+                color.Freeze();
                 Ellipse pointCirc = new Ellipse {
-                            Fill = Brushes.Black,
-                            Width = radius,
-                            Height = radius,
-                        };
-                Canvas.SetLeft(pointCirc, relPoint.X - radius/2);
-                Canvas.SetTop(pointCirc, relPoint.Y - radius/2);
+                    Fill = color,
+                    Width = radius,
+                    Height = radius,
+                };
+                Canvas.SetLeft(pointCirc, relPoint.X - radius / 2);
+                Canvas.SetTop(pointCirc, relPoint.Y - radius / 2);
                 pointCanvas.Children.Add(pointCirc);
 
                 /*pointCanvas.Children.Add(new Line {
@@ -347,7 +390,7 @@ namespace MdsTestWpf
             wasLandmark = new BitArray(origs.Length, false);
             foreach (var mapping in mappedDists.mapper.CurrentMappings)
                 wasLandmark[mapping.Key] = true;
-                if (calcs == null)
+            if (calcs == null)
                 calcs = new MdsPoint2D[origs.Length];
             double[,] mdsRes = mappedDists.allPoses;
             if (mdsRes.GetLength(1) == 1)
@@ -368,43 +411,49 @@ namespace MdsTestWpf
             Random r = new Random();//12345678);
             MappedDistStruct mappedDists = CreateDistMat(r, timer);
             using (Hitmds mds =
-                new Hitmds(mappedDists.distMat.ElementCount, 2,
+                new Hitmds( 2,
                    mappedDists.distMat,
                     r)) {
                 timer.TimeMark("Training MDS");
                 startMDS = DateTime.Now;
-                mds.mds_train(totalCycles, 2.0, 0.0, (cyc, tot, src) => {
+                mds.mds_train(totalCycles, 5.0, 0.0, (cyc, tot, src) => {
                     ProgressReport(cyc / (double)tot);
                     // if(needUpdate) lock(cycleSync) ExtractCalcs(src);
                 }, POINT_UPDATE_STYLE);
                 timer.TimeMark("Extracting points");
                 startMDS = DateTime.Now;
                 mappedDists.mappedPos = mds.PointPositions();
-                mappedDists.TriangulateUnmapped(ProgressReport,origs.Length);
+                mappedDists.TriangulateUnmapped(ProgressReport, origs.Length);
             }
             lock (cycleSync) {
                 lastCycle = totalCycles;
                 ExtractCalcs(mappedDists);
                 needUpdate = false;
             }
+            mappedDists = null;
+            System.GC.Collect();
+            /*
             timer.TimeMark("Calculating Histogram");
+            List<double> stats = new List<double>();
+            for (int a = 0; a < origs.Length; a++)
+                for (int b = 0; b < origs.Length; b++) {
+                    var realDist = origs[a].DistanceTo(origs[b]);
+                    var predictDist = calcs[a].DistanceTo(calcs[b]);
+                    stats.Add(predictDist / realDist);
+                }
 
-            var d = from a in Enumerable.Range(0, res * res)
-                    from b in Enumerable.Range(0, res * res)
-                    where a != b
-                    let realDist = origs[a].DistanceTo(origs[b])
-                    let predictDist = calcs[a].DistanceTo(origs[b])
-                    select (predictDist / realDist);
 
             var points =
-            new Histogrammer(d, res, 2000)
-                .GenerateHistogram()
+            new Histogrammer(stats, res, 2000)
+                .GenerateHistogram(0.01, 0.99)
                 .Select(datapoint => new Point { X = datapoint.point, Y = datapoint.density })
                 .ToArray();
             histo.Dispatcher.BeginInvoke((Action)delegate {
-                histo.ShowGraph(histo.NewGraph("DistancesDistribution", points));
+                var graph = histo.NewGraph("DistancesDistribution", points);
+                histo.ShowGraph(graph);
             });
-            timer.Done();/**/
+            /**/
+            timer.Done();
         }
     }
 }

@@ -32,7 +32,7 @@ namespace MdsTest
                 for (int j = i + 1; j < points.Length; j++)
                     distMat[i, j] = (float)(points[i].DistanceTo(points[j]) + r.NextDouble());
 
-            using (Hitmds mds = new Hitmds(points.Length,2, distMat,r)) {
+            using (Hitmds mds = new Hitmds(2, distMat,r)) {
                 mds.mds_train(points.Length * 5000, 1.0,0.5, (i, j,mdsP) => { },0);
 
                 foreach(string line in Enumerable.Range(0,points.Length)

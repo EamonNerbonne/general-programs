@@ -15,7 +15,7 @@ namespace hitmds {
 		// TODO: Add your methods for this class here.
 
 	public:
-		Hitmds(int numberOfPoints, int numberOfDimensions, SymmetricDistanceMatrix ^origDists,Random^ r);
+		Hitmds(int numberOfDimensions, SymmetricDistanceMatrix ^origDists,Random^ r);
 		~Hitmds();
 		void mds_train(int cycles, double learning_rate, double start_annealing_ratio, Action<int,int,Hitmds^>^ progressReport,int pointUpdateStyle);
 		double GetPoint(int point,int dim);
