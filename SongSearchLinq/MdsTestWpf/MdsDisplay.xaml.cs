@@ -43,14 +43,14 @@ namespace MdsTestWpf
     /// </summary>
     public partial class MdsDisplay : Window
     {
-        const int res = 39;//80
-        const int SUBSET_SIZE = 5;//1000
+        const int res = 110;//80
+        const int SUBSET_SIZE = 10000;//1000
         const int GEN = 60;//30
         const int POINT_UPDATE_STYLE = 1;
         const double LEARN_RATE = 2.0;
         const double DIST_LIMIT_AVG = 5.0;
         const double DIST_LIMIT_RAND = 0.5;
-        const double DIST_NOISE = 0.1;
+        const double DIST_NOISE = 1.0;
         const float INF_REPLACEMENT_FACTOR = 10.0f;
         int IndexFromIJ(int i, int j) {
             return i + res * j;
@@ -173,7 +173,7 @@ namespace MdsTestWpf
                         }
                         if (dim2 == dim) {
                             Console.WriteLine("Dim {0}<->{0} sqrLen: {1}, length:{2}, eig:{3}", dim, sum, Math.Sqrt(sum), eigvals[dim]);
-//                            eigvals[dim] = Math.Sqrt(sum);
+                //           eigvals[dim] = Math.Sqrt(sum);
                         } else Console.WriteLine("Dim {0}<->{1} dotprod: {2}", dim, dim2, sum);
                     }
                 }
@@ -234,7 +234,7 @@ namespace MdsTestWpf
                         for (int dim = 0; dim < dimCount; dim++) {
 
                             allPoses[unmP, dim] = (-0.5) *
-                                sums[dim] / eigvals[dim];
+                                sums[dim]  / eigvals[dim];
                                 // sums.Select((sum, d) => sum * cov[d, dim]).Sum()/eigvals[dim];
                         }
                     }
@@ -451,7 +451,7 @@ namespace MdsTestWpf
         void CalcMds() {
             NiceTimer timer = new NiceTimer();
             timer.TimeMark("Initializing MDS...");
-            Random r = new Random(12345678);
+            Random r = new Random();//12345678);
             MappedDistStruct mappedDists = CreateDistMat(r, timer);
             using (Hitmds mds =
                 new Hitmds( 2,
