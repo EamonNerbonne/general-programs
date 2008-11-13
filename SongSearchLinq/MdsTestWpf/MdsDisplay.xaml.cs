@@ -43,13 +43,13 @@ namespace MdsTestWpf
     /// </summary>
     public partial class MdsDisplay : Window
     {
-        const int res = 150;//80
-        const int SUBSET_SIZE = 5000;//1000
+        const int res = 40;//80
+        const int SUBSET_SIZE = 1000;//1000
         const int GEN = 30;//30
         const int POINT_UPDATE_STYLE = 2;
         const double DIST_LIMIT_AVG = 5.0;
         const double DIST_LIMIT_RAND = 0.5;
-        const double DIST_NOISE = 3.0;
+        const double DIST_NOISE = 0.5;
         const float INF_REPLACEMENT_FACTOR = 10.0f;
         int IndexFromIJ(int i, int j) {
             return i + res * j;
@@ -165,12 +165,14 @@ namespace MdsTestWpf
                 CompDu();
 
                 for (int dim = 0; dim < dimCount; dim++) {
-                    for (int dim2 = 0; dim2 < dimCount; dim2++) {
+                    
+                    for (int dim2 = dim; dim2 < dimCount; dim2++) {
                         double sum = 0;
                         for (int pi = 0; pi < pCount; pi++) {
                             sum += mappedPos[pi, dim] * mappedPos[pi, dim2];
                         }
-                        Console.WriteLine("Dim {0}<->{1} dotprod: {2}", dim, dim2, sum);
+                        if (dim2 == dim) Console.WriteLine("Dim {0}<->{0} sqrLen: {1}, length:{2}, eig:{3}", dim, sum,Math.Sqrt(sum),eigvals[dim]);
+                        else Console.WriteLine("Dim {0}<->{1} dotprod: {2}", dim, dim2, sum);
                     }
                 }
 
