@@ -8,6 +8,7 @@ using System.Windows;
 using hitmds;
 using System.IO;
 using EmnExtensions;
+using System.Text.RegularExpressions;
 namespace SimilarityMdsLib
 {
     public class MdsEngine
@@ -39,6 +40,8 @@ namespace SimilarityMdsLib
         }
 
         public bool ResultsAlreadyCached { get { return testFile.Exists; } }
+
+        //static Regex filenameRegex = 
 
         public string resultsFilename { get { return settings.Format.ToString() + Opts.ToString(); } }
         FileInfo mdsFile { get { return new FileInfo(Path.Combine(settings.DataDirectory.FullName, @".\res\mds-" + resultsFilename + ".bin")); } }

@@ -144,6 +144,10 @@
       <Project>{D3AC57E4-6EEC-460C-8571-1441B64B9503}</Project>
       <Name>hitmds</Name>
     </ProjectReference>
+    <ProjectReference Include="..\LastFMspider\LastFMspider.csproj">
+      <Project>{6AFF4733-511B-4EE5-8A5F-6B11A894E0D7}</Project>
+      <Name>LastFMspider</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

@@ -127,7 +127,7 @@ namespace ScratchProject
             MinMax(x => SpecCost(x), Enumerable.Range(-10000, 20001).Select(i => i / 100.0));
             Console.WriteLine("minguess:" + MinGuess());
             Console.WriteLine("Speccost@9.5:" + SpecCost(9.5));
-            Console.WriteLine("Est2:" + Est2(D.Select(d => Sqr(d)).ToArray()) / 93.0942857142857);
+            Console.WriteLine("Est2:" + Est2(D.Select(d => Sqr(d)).ToArray()) / eigval);
             Console.WriteLine("Eigval:" + eigval);
             //            Console.WriteLine("Est2:" + Est2(D.Select(d => Sqr(d)).ToArray()) / -1460.5972039801);
             Console.WriteLine("\nBk"); bk().PrintAllDebug();
