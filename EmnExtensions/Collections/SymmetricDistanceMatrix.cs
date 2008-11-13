@@ -116,13 +116,15 @@ namespace EmnExtensions.Collections
         }
         public SymmetricDistanceMatrix() { }
 
-        public static void FloydWarshall(SymmetricDistanceMatrix mat) {
-            for (int k = 0; k < mat.ElementCount; k++)
-                for (int i = 0; i < mat.ElementCount - 1; i++)
+        public void FloydWarshall(Action<double> progress) {
+            for (int k = 0; k < this.ElementCount; k++) {
+                progress(k / (double)this.ElementCount);
+                for (int i = 0; i < this.ElementCount - 1; i++)
                     if (i != k)
-                        for (int j = i + 1; j < mat.ElementCount; j++)
+                        for (int j = i + 1; j < this.ElementCount; j++)
                             if (j != k)
-                                mat[i, j] = Math.Min(mat[i, j], mat[i, k] + mat[k, j]);
+                                this[i, j] = Math.Min(this[i, j], this[i, k] + this[k, j]);
+            }
         }
 
     }
