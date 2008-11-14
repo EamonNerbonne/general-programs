@@ -19,7 +19,6 @@ namespace SimilarityAnalysis
 
     static class Program
     {
-        const SimilarityFormat FORMAT=SimilarityFormat.Log200;
 
 
         static ulong ID(SimilarTrackRow row) {
@@ -166,31 +165,31 @@ namespace SimilarityAnalysis
             SongDatabaseConfigFile config = new SongDatabaseConfigFile(false);
             tools = new LastFmTools(config);
 
-
-            VerifyTriangleInequality();
+            foreach (var format in new SimilarityFormat[]{SimilarityFormat.AvgRank,SimilarityFormat.AvgRank2, SimilarityFormat.Log200,SimilarityFormat.Log2000})
+            VerifyTriangleInequality(format);
             VerifyDataSetsAreSubsets();
 
         }
 
 
-        static void VerifyTriangleInequality() {
+        static void VerifyTriangleInequality( SimilarityFormat FORMAT) {
             SimCacheManager settings = new SimCacheManager(FORMAT, tools, DataSetType.Complete);
             SimilarTracks sims = settings.LoadSimilarTracks();
 
 //            using (var writer = File.OpenWrite("errlog.log"))
   //          using (var swriter = new StreamWriter(writer)) {
                 DateTime lastUpdate = DateTime.Now;
-                int triangleCount = 0;
-                int simCount = 0;
-                int errCount = 0;
+                long triangleCount = 0;
+                long simCount = 0;
+                long errCount = 0;
                 double errSum = 0;
                 double distSum = 0;
 
                 foreach (var similarity in sims.SimilaritiesRemapped) {
                     simCount++;
                     distSum += similarity.Rating;
-                    var simToA = sims.SimilarTo(similarity.TrackA);
-                    var simToB = sims.SimilarTo(similarity.TrackB);
+                    var simToA = sims.SimilarTo(similarity.TrackA).Where(sim=>sim.trackID>similarity.TrackB).ToArray() ;
+                    var simToB = sims.SimilarTo(similarity.TrackB).Where(sim => sim.trackID > similarity.TrackB).ToArray();
                     IntersectOrdered(simToA, simToB, (b, c) => {
                         triangleCount++;
                         float aD = similarity.Rating;
@@ -218,7 +217,8 @@ namespace SimilarityAnalysis
 
 
                 }
-
+                File.AppendAllText("errlog.log",
+                    string.Format("Error rate {3}: {2}%={0}/{1}\n", errCount, triangleCount, errCount * 100.0 / triangleCount, FORMAT));
             //}
         }
         public static void VerifyDataSetsAreSubsets() {

@@ -215,11 +215,13 @@ namespace MdsTestWpf
                 double[] netDiff = new double[allCount];
                 for (int unmP = 0; unmP < allCount; unmP++) {
                     prog(unmP / (double)allCount);
-                    if (false &&mapper.IsMapped(unmP)) {
+#if DONT_REMAP_LANDMARKS
+                    if (mapper.IsMapped(unmP)) {
                         int mP = mapper.Map(unmP);
                         for (int dim = 0; dim < dimCount; dim++)
                             allPoses[unmP, dim] = mappedPos[mP, dim];
                     } else {
+#endif
                         for (int pi = 0; pi < pCount; pi++) {
                             double dist = distsFromMapped[pi][unmP];
                             netDiff[pi] = dist * dist - Du[pi];
@@ -235,9 +237,11 @@ namespace MdsTestWpf
 
                             allPoses[unmP, dim] = (-0.5) *
                                 sums[dim]  / eigvals[dim];
-                                // sums.Select((sum, d) => sum * cov[d, dim]).Sum()/eigvals[dim];
+                                // sums.Select((sum, d) => sum * cov[d, dim]).Sum()/eigvals[dim]; //tried this, is no better
                         }
+#if DONT_REMAP_LANDMARKS
                     }
+#endif
                 }
                 prog(1.0);
             }

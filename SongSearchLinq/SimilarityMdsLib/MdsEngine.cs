@@ -9,10 +9,43 @@ using hitmds;
 using System.IO;
 using EmnExtensions;
 using System.Text.RegularExpressions;
+using SongDataLib;
 namespace SimilarityMdsLib
 {
     public class MdsEngine
     {
+        public struct FormatAndOptions
+        {
+            public SimilarityFormat Format;
+            public Options Options;
+
+            static Regex filenameRegex = new Regex(@"^mds-(?<format>.*)N(?<N>\d+)LR(?<LR>\d+)SA(?<SA>\d+)PU(?<PU>\d)D(?<D>\d+)(\.bin|-(corr|test)\.graph$", RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.ExplicitCapture);
+            public static FormatAndOptions? FindOptionsFromFileName(string filename) {
+                var match = filenameRegex.Match(filename);
+
+                return !match.Success
+                    ? (FormatAndOptions?)null
+                    : new FormatAndOptions {
+                        Format = (SimilarityFormat)Enum.Parse(typeof(SimilarityFormat), match.Groups["format"].Value),
+                        Options = new Options {
+                            Dimensions = int.Parse(match.Groups["D"].Value),
+                            NGenerations = int.Parse(match.Groups["N"].Value),
+                            LearnRate = int.Parse(match.Groups["LR"].Value) / 1000.0,
+                            PointUpdateStyle = int.Parse(match.Groups["PU"].Value),
+                            StartAnnealingWhen = int.Parse(match.Groups["SA"].Value) / 1000.0,
+                        },
+                    };
+            }
+
+            public static IEnumerable<FormatAndOptions> AvailableInCache(SongDatabaseConfigFile configFile) {
+                DirectoryInfo resDir = configFile.DataDirectory.CreateSubdirectory("res");
+                return
+                resDir.GetFiles("*.bin")
+                    .Select(file => FindOptionsFromFileName(file.Name))
+                    .Where(opts => opts.HasValue)
+                    .Select(opts => opts.Value);
+            }
+        }
         public struct Options
         {
             public int NGenerations;
@@ -41,12 +74,13 @@ namespace SimilarityMdsLib
 
         public bool ResultsAlreadyCached { get { return testFile.Exists; } }
 
-        //static Regex filenameRegex = 
+
+
 
         public string resultsFilename { get { return settings.Format.ToString() + Opts.ToString(); } }
         FileInfo mdsFile { get { return new FileInfo(Path.Combine(settings.DataDirectory.FullName, @".\res\mds-" + resultsFilename + ".bin")); } }
-        FileInfo corrFile {get{return new FileInfo(Path.Combine(settings.DataDirectory.FullName, @".\res\mds-" + resultsFilename + "-corr.graph"));}}
-        FileInfo testFile {get{return new FileInfo(Path.Combine(settings.DataDirectory.FullName, @".\res\mds-" + resultsFilename + "-test.graph"));}}
+        FileInfo corrFile { get { return new FileInfo(Path.Combine(settings.DataDirectory.FullName, @".\res\mds-" + resultsFilename + "-corr.graph")); } }
+        FileInfo testFile { get { return new FileInfo(Path.Combine(settings.DataDirectory.FullName, @".\res\mds-" + resultsFilename + "-test.graph")); } }
 
         public void SaveMds() {
             if (!maySave)
@@ -75,7 +109,7 @@ namespace SimilarityMdsLib
             }
             using (Stream s = testFile.Open(FileMode.Create, FileAccess.Write))
             using (BinaryWriter writer = new BinaryWriter(s)) {
-                writer.Write((int) TestSetRankings.Count);
+                writer.Write((int)TestSetRankings.Count);
                 foreach (Point p in TestSetRankings) {
                     writer.Write((double)p.X);
                     writer.Write((double)p.Y);
@@ -90,12 +124,12 @@ namespace SimilarityMdsLib
             progress.NewTask("Loading MDS");
             using (Stream s = mdsFile.OpenRead())
             using (BinaryReader reader = new BinaryReader(s)) {
-                int songCount=reader.ReadInt32();
-                int dimCount=reader.ReadInt32();
-                positionedPoints = new double[songCount,dimCount];
+                int songCount = reader.ReadInt32();
+                int dimCount = reader.ReadInt32();
+                positionedPoints = new double[songCount, dimCount];
                 for (int i = 0; i < positionedPoints.GetLength(0); i++) { //mdsSongIndex
                     for (int dim = 0; dim < positionedPoints.GetLength(1); dim++) {
-                        positionedPoints[i, dim]=reader.ReadDouble();
+                        positionedPoints[i, dim] = reader.ReadDouble();
                     }
                     progress.SetProgress((i + 1.0) / positionedPoints.GetLength(0));
                 }
@@ -103,15 +137,15 @@ namespace SimilarityMdsLib
 
             using (Stream s = corrFile.OpenRead())
             using (BinaryReader reader = new BinaryReader(s)) {
-                int numCorrelations=reader.ReadInt32();
+                int numCorrelations = reader.ReadInt32();
                 Correlations.Clear();
-                foreach (int n in Enumerable.Range(0,numCorrelations)) {
-                    Correlations.Add(new Point(                 reader.ReadDouble(),       reader.ReadDouble()));
+                foreach (int n in Enumerable.Range(0, numCorrelations)) {
+                    Correlations.Add(new Point(reader.ReadDouble(), reader.ReadDouble()));
                 }
             }
             using (Stream s = testFile.OpenRead())
             using (BinaryReader reader = new BinaryReader(s)) {
-                int numTestSetRanking=reader.ReadInt32();
+                int numTestSetRanking = reader.ReadInt32();
                 TestSetRankings.Clear();
                 foreach (int n in Enumerable.Range(0, numTestSetRanking)) {
                     TestSetRankings.Add(new Point(reader.ReadDouble(), reader.ReadDouble()));
@@ -119,7 +153,25 @@ namespace SimilarityMdsLib
             }
 
             progress.Done();
+        }
 
+        public double LoadOnlyFinalCorrelation() {
+            using (Stream s = corrFile.OpenRead())
+            using (BinaryReader reader = new BinaryReader(s)) {
+                int numCorrelations = reader.ReadInt32();
+                int offset = 4 + 8 * (2 * numCorrelations - 1);
+                reader.BaseStream.Seek(offset, SeekOrigin.Begin);
+                return reader.ReadDouble();
+            }
+        }
+        public double LoadOnlyFinalTestSetRanking() {
+            using (Stream s = testFile.OpenRead())
+            using (BinaryReader reader = new BinaryReader(s)) {
+                int numTestSetRanking = reader.ReadInt32();
+                int offset = 4 + 8 * (2 * numTestSetRanking - 1);
+                reader.BaseStream.Seek(offset, SeekOrigin.Begin);
+                return reader.ReadDouble();
+            }
         }
 
         public readonly ObservableCollection<Point> Correlations = new ObservableCollection<Point>();
@@ -173,7 +225,7 @@ namespace SimilarityMdsLib
             float maxDist = cachedMatrix.Matrix.Values.Where(dist => dist.IsFinite()).Max();
 
             progress.NewTask("MDS");
-            using (Hitmds mdsImpl = new Hitmds( Opts.Dimensions, cachedMatrix.Matrix, r)) { //(i, j) => cachedMatrix.Matrix[i, j].IsFinite() ? cachedMatrix.Matrix[i, j] : maxDist * 10
+            using (Hitmds mdsImpl = new Hitmds(Opts.Dimensions, cachedMatrix.Matrix, r)) { //(i, j) => cachedMatrix.Matrix[i, j].IsFinite() ? cachedMatrix.Matrix[i, j] : maxDist * 10
                 nextGraphUpdateOn = 1;
                 mdsImpl.mds_train(totalRounds, Opts.LearnRate, Opts.StartAnnealingWhen, DoProgress, Opts.PointUpdateStyle);
                 Correlations.Add(new Point(1.0, CalcCorr(mdsImpl)));

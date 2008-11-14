@@ -76,54 +76,11 @@ namespace EmnExtensions.Wpf
                 if (wasContained)
                     graphGrid.Children.Remove(graph);
                 toPrint.Graph = graph;
-                PrintXPS(toPrint, 400, 400, s, FileMode.Create, FileAccess.ReadWrite);
+                WpfTools.PrintXPS(toPrint, 400, 400, s, FileMode.Create, FileAccess.ReadWrite);
             } finally {
                 toPrint.Graph = null;
                 if (wasContained)
                     graphGrid.Children.Add(graph);
-            }
-        }
-
-        /// <summary>
-        /// Note that Xps actually reads the stream too, so the file cannot already exist and simply be overwritten
-        /// (unless it's a valid xps), and it in particular may not have 0 bytes unless you open it in FileMode.Create.
-        /// </summary>
-        /// <param name="el">The element to print to xps</param>
-        /// <param name="reqWidth">The requested width.  Don't expect miracles.</param>
-        /// <param name="reqHeight">The requested height.  Don't expect miracles.</param>
-        /// <param name="toStream"></param>
-        public static void PrintXPS(FrameworkElement el, double reqWidth, double reqHeight, Stream toStream, FileMode fileMode, FileAccess fileAccess) {
-            //MemoryStream ms = new MemoryStream();
-            //  using (var stream = File.Open(@"C:\test.xps",FileMode.,FileAccess.ReadWrite)) 
-            Transform oldLayout = el.LayoutTransform;
-            double oldWidth = el.Width;
-            double oldHeight = el.Height;
-
-            try {
-                VisualBrush brush = new VisualBrush(el);
-
-                el.LayoutTransform = Transform.Identity;
-                el.Width = reqWidth;
-                el.Height = reqHeight;
-                el.UpdateLayout();
-
-                var rect = new Rect(0, 0, el.ActualWidth, el.ActualHeight);
-                FixedPage page = new FixedPage();
-                page.Width = rect.Width;
-                page.Height = rect.Height;
-                page.Background = brush;
-                using (Package packInto = Package.Open(toStream, fileMode, fileAccess))
-                using (XpsDocument doc = new XpsDocument(packInto)) {
-                    //doc.CoreDocumentProperties.
-                    XpsDocumentWriter writer = XpsDocument.CreateXpsDocumentWriter(doc);
-
-                    writer.Write(page);
-                }
-            } finally {
-                el.Width = oldWidth;
-                el.Height = oldHeight;
-                el.LayoutTransform = oldLayout;
-                el.UpdateLayout();
             }
         }
 

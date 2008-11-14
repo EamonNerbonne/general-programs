@@ -129,6 +129,7 @@
       <DependentUpon>SimpleGraph.xaml</DependentUpon>
     </Compile>
     <Compile Include="TickedLegendControl.cs" />
+    <Compile Include="WpfTools.cs" />
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
