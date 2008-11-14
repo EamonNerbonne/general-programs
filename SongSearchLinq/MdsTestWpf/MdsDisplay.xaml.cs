@@ -43,14 +43,14 @@ namespace MdsTestWpf
     /// </summary>
     public partial class MdsDisplay : Window
     {
-        const int res = 110;//80
-        const int SUBSET_SIZE = 10000;//1000
-        const int GEN = 60;//30
+        const int res = 110; //80
+        const int SUBSET_SIZE = 10000; //1000
+        const int GEN = 60; //30
         const int POINT_UPDATE_STYLE = 1;
         const double LEARN_RATE = 2.0;
         const double DIST_LIMIT_AVG = 5.0;
         const double DIST_LIMIT_RAND = 0.5;
-        const double DIST_NOISE = 1.0;
+        const double DIST_NOISE = 0.2;
         const float INF_REPLACEMENT_FACTOR = 10.0f;
         int IndexFromIJ(int i, int j) {
             return i + res * j;

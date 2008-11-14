@@ -104,7 +104,7 @@ namespace PrecalcSimilarityMds
                  from sa in new[] { 0.0 }
                  from lr in new[] { 1.0/s2,1.0,s2, 2.0,2*s2,4.0,2*4.0,8.0 }
                  from pus in new[] { 1, 2 }
-                 from dims in new[] { 2,  10, }
+                 from dims in new[] { 2,5,  10, }
                  from gen in new[] { 10,15,20,25,30,35,40,45,50,60,100 }
                  select new KeyValuePair<SimilarityFormat, MdsEngine.Options>(
                      decentFormat,
