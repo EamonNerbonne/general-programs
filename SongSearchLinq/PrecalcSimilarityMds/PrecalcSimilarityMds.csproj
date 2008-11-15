@@ -94,6 +94,10 @@
       <Project>{53ECEDA4-BB11-4BD3-8B51-0D3481FCBFA1}</Project>
       <Name>EmnExtensions</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\..\SongSearchLinq\SongData\SongData.csproj">
+      <Project>{171E7F71-DB67-47CA-82BC-C63681BF2733}</Project>
+      <Name>SongData</Name>
+    </ProjectReference>
     <ProjectReference Include="..\hitmds\hitmds.vcproj">
       <Project>{D3AC57E4-6EEC-460C-8571-1441B64B9503}</Project>
       <Name>hitmds</Name>

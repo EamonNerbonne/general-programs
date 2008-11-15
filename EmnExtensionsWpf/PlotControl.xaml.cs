@@ -41,6 +41,8 @@ namespace EmnExtensions.Wpf
 
         bool nextIsTopRight;
 
+        public ObservableCollection<GraphControl> Graphs { get { return graphs; } }
+
         public GraphControl NewGraph(string name, IEnumerable<Point> line) {
             GraphControl graph = new GraphControl();
             graph.Name = name;
@@ -76,7 +78,10 @@ namespace EmnExtensions.Wpf
                 if (wasContained)
                     graphGrid.Children.Remove(graph);
                 toPrint.Graph = graph;
+                var oldVis = graph.Visibility;
+                graph.Visibility = Visibility.Visible;
                 WpfTools.PrintXPS(toPrint, 400, 400, s, FileMode.Create, FileAccess.ReadWrite);
+                graph.Visibility = oldVis;
             } finally {
                 toPrint.Graph = null;
                 if (wasContained)
@@ -85,7 +90,6 @@ namespace EmnExtensions.Wpf
         }
 
         public bool TryGetGraph(string name, out GraphControl graph) { return graphLookup.TryGetValue(name, out graph); }
-        public IEnumerable<GraphControl> Graphs { get { return graphLookup.Values; } }
 
         public void ShowGraph(string graphname) { ShowGraph(graphLookup[graphname]); }
         public void ShowGraph(GraphControl graph) { ShowGraph(graph, nextIsTopRight); }

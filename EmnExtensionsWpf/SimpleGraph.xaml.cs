@@ -33,6 +33,8 @@ namespace EmnExtensions.Wpf
                 graphGrid.Children.Add(kid);
                 lowerLegend.Watch = kid;
                 leftLegend.Watch = kid;
+                upperLegend.Watch = kid;
+                rightLegend.Watch = kid;
             }
         }
 

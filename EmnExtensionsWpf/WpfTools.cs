@@ -36,7 +36,9 @@ namespace EmnExtensions.Wpf
                 el.LayoutTransform = Transform.Identity;
                 el.Width = reqWidth;
                 el.Height = reqHeight;
+                el.Measure(new Size(reqWidth, reqHeight));
                 el.UpdateLayout();
+                
 
                 var rect = new Rect(0, 0, el.ActualWidth, el.ActualHeight);
                 FixedPage page = new FixedPage();

@@ -13,11 +13,11 @@ namespace LastFMspider
     }
     public enum SimilarityFormat
     {
-        LastFmRating,
-        Log200,
-        Log2000,
-        AvgRank,
-        AvgRank2,
+        LastFmRating=0,
+        Log200=1,
+        Log2000=2,
+        AvgRank=3,
+        AvgRank2=4,
     };
     public static class SimilarityFormatConv
     {

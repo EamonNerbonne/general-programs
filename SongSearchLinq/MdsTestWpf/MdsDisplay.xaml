@@ -12,17 +12,19 @@
             <ColumnDefinition Width="195*" />
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
-            <RowDefinition Height="929*" />
+            <RowDefinition Height="502*" />
+            <RowDefinition Height="27*" />
             <RowDefinition Height="33" />
         </Grid.RowDefinitions>
-        <ProgressBar Name="mdsProgress" Margin="4,4,4,4" Grid.Row="1" Grid.ColumnSpan="3" />
-        <Viewbox Name="pointViewbox" Stretch="Uniform" Margin="4,4,0,4">
+        <ProgressBar Name="mdsProgress" Margin="4,4,4,4" Grid.Row="2" Grid.ColumnSpan="3" />
+        <Viewbox Name="pointViewbox" Stretch="Uniform" Margin="4,4,0,4" Grid.RowSpan="2">
             <Canvas Name="pointCanvas"></Canvas>
         </Viewbox>
-        <emnExt:PlotControl Grid.Column="2" Name="histo"  />
-        <emnExt:LogControl Name="logControl" ClaimStandardError="true" ClaimStandardOut="true" Grid.Column="4" />
-        <GridSplitter Grid.Column="3" HorizontalAlignment="Stretch" Name="gridSplitter1" Grid.RowSpan="2"  />
-        <GridSplitter Grid.Column="1" HorizontalAlignment="Stretch" Name="gridSplitter2"  />
-        <Label Grid.Column="4" Grid.Row="1" Margin="4,4,4,4" Name="labelETA">Label</Label>
+        <emnExt:PlotControl Grid.Column="2" Name="histo" Grid.RowSpan="2" />
+        <emnExt:LogControl Name="logControl" ClaimStandardError="true" ClaimStandardOut="true" Grid.Column="4" Grid.RowSpan="2" />
+        <GridSplitter Grid.Column="3" Name="gridSplitter1" Grid.RowSpan="3"  />
+        <GridSplitter Grid.Column="1" Name="gridSplitter2" Grid.RowSpan="2" />
+        <Label Grid.Column="4" Grid.Row="2" Margin="4,4,4,4" Name="labelETA">Label</Label>
+        <Button Grid.Column="4" Grid.Row="1" Padding="10,0,10,0"  Name="saveButton" HorizontalAlignment="Left" Click="saveButton_Click">Save View As...</Button>
     </Grid>
 </Window>

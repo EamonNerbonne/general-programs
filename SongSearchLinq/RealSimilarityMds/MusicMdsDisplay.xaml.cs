@@ -20,6 +20,7 @@ using SimilarityMdsLib;
 using SongDataLib;
 using System.IO;
 using System.Collections.Specialized;
+using Microsoft.Win32;
 
 namespace RealSimilarityMds
 {
@@ -48,6 +49,8 @@ namespace RealSimilarityMds
             comboBoxDIM.SelectedItem = 20;
 
             progress = new ProgressManager(this.progressBar, this.labelETA, new NiceTimer());
+
+            graphPrintBox.ItemsSource = HistogramControl.Graphs;
         }
 
         SimilarityFormat[] fmtValues = new[] { SimilarityFormat.AvgRank, SimilarityFormat.AvgRank2, SimilarityFormat.Log200, SimilarityFormat.Log2000 };
@@ -70,7 +73,7 @@ namespace RealSimilarityMds
                 var lr = double.Parse(comboBoxLR.Text);
                 var sa = double.Parse(comboBoxSA.Text);
                 var pus = (PointUpdate)comboBoxPUS.SelectedItem;
-                var gen = int.Parse( comboBoxGEN.Text);
+                var gen = int.Parse(comboBoxGEN.Text);
                 var dim = int.Parse(comboBoxDIM.Text);
                 var options = new MdsEngine.Options {
                     Dimensions = dim,
@@ -83,11 +86,7 @@ namespace RealSimilarityMds
             }
         }
 
-        SimilarityFormat SelectedFormat {
-            get {
-                return (SimilarityFormat)comboBoxFMT.SelectedItem;
-            }
-        }
+        SimilarityFormat SelectedFormat { get { return (SimilarityFormat)comboBoxFMT.SelectedItem; } }
 
         private void button1_Click(object sender, RoutedEventArgs e) {
             try {
@@ -103,7 +102,7 @@ namespace RealSimilarityMds
                    from sa in saValues
                    from pus in pusValues
                    from gen in genValues
-                   from dim in Enumerable.Range(1,51)
+                   from dim in Enumerable.Range(1, 51)
                    select new MdsEngine.Options {
                        Dimensions = dim,
                        LearnRate = lr,
@@ -115,16 +114,14 @@ namespace RealSimilarityMds
                 foreach (var opt in opts)
                     LoadSettings(fmt, opt, (g) => {
                         try {
-                                using (var stream = File.Open(@"C:\out\g-" + g.Name + ".xps", FileMode.Create, FileAccess.ReadWrite))
-                                    HistogramControl.Print(g, stream);
+                            using (var stream = File.Open(@"C:\out\g-" + g.Name + ".xps", FileMode.Create, FileAccess.ReadWrite))
+                                HistogramControl.Print(g, stream);
                         } catch (Exception ex) {
                             Console.WriteLine(ex.StackTrace);
                         }
-
                     });
-
         }
-        void LoadSettings(SimilarityFormat fmt,MdsEngine.Options options, Action<GraphControl> whenDone) {
+        void LoadSettings(SimilarityFormat fmt, MdsEngine.Options options, Action<GraphControl> whenDone) {
             if (loaded.ContainsKey(new KeyValuePair<SimilarityFormat, MdsEngine.Options>(fmt, options))) {
                 Console.WriteLine("Already Loaded.");
                 return;
@@ -163,8 +160,12 @@ namespace RealSimilarityMds
             }
             var testG = HistogramControl.NewGraph("test_" + engine.resultsFilename, engine.TestSetRankings);
             var corrG = HistogramControl.NewGraph("corr_" + engine.resultsFilename, engine.Correlations);
-            testG.GraphBounds = new Rect(-0.01, 0.49, 1.02, 0.52);
-            corrG.GraphBounds = new Rect(-0.01, -0.01, 1.02, 1.02);
+            testG.GraphBounds = new Rect(-0.005, 0.495, 1.01, 0.51);
+            testG.XLabel = "MDS progress";
+            testG.YLabel = "Average Test Ranking";
+            corrG.GraphBounds = new Rect(-0.005, -0.005, 1.01, 1.01);
+            corrG.XLabel = "MDS progress";
+            corrG.YLabel = "Correlation to training (" + options.Dimensions + "d)";
             HistogramControl.ShowGraph(testG);
             HistogramControl.ShowGraph(corrG);
             loaded[new KeyValuePair<SimilarityFormat, MdsEngine.Options>(fmt, options)]
@@ -184,7 +185,7 @@ namespace RealSimilarityMds
             var fmt = SelectedFormat;
             var options = SelectedOptions;
             var setup = new DistFormatLoader(new TimingProgressManager(), fmt);
-            GraphControl testG, 
+            GraphControl testG,
                 corrG;
             ThreadPool.QueueUserWorkItem((o) => {
                 try {
@@ -203,7 +204,7 @@ namespace RealSimilarityMds
                     engine.Correlations.CollectionChanged += delegate(object coll, NotifyCollectionChangedEventArgs eArgs) {
                         if (eArgs.Action == NotifyCollectionChangedAction.Add) {
                             foreach (Point p in eArgs.NewItems)
-                                corrG.Dispatcher.BeginInvoke((Action<Point>)corrG.AddPoint,p);
+                                corrG.Dispatcher.BeginInvoke((Action<Point>)corrG.AddPoint, p);
                         }
                     };
                     engine.TestSetRankings.CollectionChanged += delegate(object coll, NotifyCollectionChangedEventArgs eArgs) {
@@ -233,6 +234,163 @@ namespace RealSimilarityMds
             throw new NotImplementedException();
         }
 
+        private void exportButton_Click(object sender, RoutedEventArgs e) {
+            var graph = graphPrintBox.SelectedItem as GraphControl;
+            if (graph == null)
+                return;
+
+            var saveDialog = new SaveFileDialog() {
+                Title = "Save Graph As ...",
+                Filter = "XPS file|*.xps",
+                FileName = graph.Name + ".xps",
+            };
+            if (saveDialog.ShowDialog() == true) {
+                using (var writestream = new FileStream(saveDialog.FileName, FileMode.Create, FileAccess.ReadWrite))
+                    HistogramControl.Print(graph, writestream);
+            }
+        }
+
+
+        void showSkreeGraph(Func<SkreePoint, double> makePoint, string shortname, string ylab, string xlab, SkreeGraph skreegraph, double? ymin, double? ymax) {
+            var graph = HistogramControl.NewGraph(shortname + "_" + skreegraph.opts.ToString(), skreegraph.points.Select(p => new Point(p.SkreeVariable, makePoint(p))));
+            graph.YLabel = ylab;
+            graph.XLabel = xlab;
+            if (ymax.HasValue && ymin.HasValue) {
+                Rect bounds = graph.GraphBounds;
+                bounds.Y = ymin.Value;
+                bounds.Height = (double)(ymax - ymin);
+                graph.GraphBounds = bounds;
+            }
+            HistogramControl.ShowGraph(graph);
+        }
+
+        private void Window_Loaded(object sender, RoutedEventArgs e) {
+            new Thread((ThreadStart)delegate {
+                SongDatabaseConfigFile config = new SongDatabaseConfigFile(false);
+                var availOpts = MdsEngine.FormatAndOptions.AvailableInCache(config).ToArray();
+
+                var skreeByDims = SkreePlot(
+                    fopt => (double)fopt.Options.Dimensions,
+                    fopt => { fopt.Options.Dimensions = 0; return fopt; },
+                    availOpts, 15, 10);
+
+                var skreeByNGens = SkreePlot(
+                    fopt => (double)fopt.Options.NGenerations,
+                    fopt => { fopt.Options.NGenerations = 0; return fopt; },
+                    availOpts, 15, 10);
+
+                var skreeByLRs = SkreePlot(
+                    fopt => (double)fopt.Options.LearnRate,
+                    fopt => { fopt.Options.LearnRate = 0; return fopt; },
+                    availOpts, 15, 5);
+
+                var skreeByPUs = SkreePlot(
+                    fopt => (double)fopt.Options.PointUpdateStyle,
+                    fopt => { fopt.Options.PointUpdateStyle = 0; return fopt; },
+                    availOpts, 1500, 3);
+
+                var skreeByFMTs = SkreePlot(
+                    fopt => (double)(int)fopt.Format,
+                    fopt => { fopt.Format = (SimilarityFormat)0; return fopt; },
+                    availOpts, 1500, 4);
+
+
+                Dispatcher.Invoke((Action)delegate {
+                    foreach (var skreegraph in skreeByDims) {
+                        showSkreeGraph(sp => sp.Correlation, "CorrByDim", "Correlation", "Dimensions", skreegraph, 0.5, 1.0);
+                        showSkreeGraph(sp => sp.TestSetRanking, "TestRankByDim", "Mean Test Pair Rank", "Dimensions", skreegraph, 0.7, 1.0);
+                    }
+
+                    foreach (var skreegraph in skreeByNGens) {
+                        showSkreeGraph(sp => sp.Correlation, "CorrByGen", "Correlation", "Generations", skreegraph, 0.5, 1.0);
+                        showSkreeGraph(sp => sp.TestSetRanking, "TestRankByGen", "Mean Test Pair Rank", "Generations", skreegraph, 0.7, 1.0);
+                    }
+                    foreach (var skreegraph in skreeByLRs) {
+                        showSkreeGraph(sp => sp.Correlation, "CorrByLR", "Correlation", "Learning Rate", skreegraph, 0.5, 1.0);
+                        showSkreeGraph(sp => sp.TestSetRanking, "TestRankByLR", "Mean Test Pair Rank", "Learning Rate", skreegraph, 0.7, 1.0);
+                    }
+                    foreach (var skreegraph in new[]{skreeByPUs
+                        .Aggregate((g1, g2) =>
+                            new SkreeGraph {
+                                opts = g1.opts,
+                                points = g1.points.ZipWith(g2.points, (p1, p2) =>
+                                    new SkreePoint {
+                                        SkreeVariable = p1.SkreeVariable,
+                                        Correlation = Math.Max(p1.Correlation, p2.Correlation),
+                                        TestSetRanking = Math.Max(p1.TestSetRanking , p2.TestSetRanking)
+                                    })
+                            }
+                        )}) {
+                        showSkreeGraph(sp => sp.Correlation, "CorrByPU", "Correlation", "PointUpdate", skreegraph, null, null);
+                        showSkreeGraph(sp => sp.TestSetRanking, "TestRankByPU", "Mean Test Pair Rank", "PointUpdate", skreegraph, null, null);
+                    }
+                    foreach (var skreegraph in new[]{skreeByFMTs
+
+                                                .Aggregate((g1, g2) =>
+                            new SkreeGraph {
+                                opts = g1.opts,
+                                points = g1.points.ZipWith(g2.points, (p1, p2) =>
+                                    new SkreePoint {
+                                        SkreeVariable = p1.SkreeVariable,
+                                        Correlation = Math.Max(p1.Correlation , p2.Correlation),
+                                        TestSetRanking = Math.Max(p1.TestSetRanking , p2.TestSetRanking)
+                                    })
+                            }
+                        )
+                    }
+                        ) {
+                        showSkreeGraph(sp => sp.Correlation, "CorrByFMT", "Correlation", "Format", skreegraph, null, null);
+                        showSkreeGraph(sp => sp.TestSetRanking, "TestRankByFMT", "Mean Test Pair Rank", "Format", skreegraph, null, null);
+                    }
+                });
+
+            }) { IsBackground = true }.Start();
+        }
+
+        struct SkreePoint
+        {
+            public double Correlation, TestSetRanking, SkreeVariable;
+        }
+        struct SkreeGraph
+        {
+            public MdsEngine.FormatAndOptions opts;
+            public IEnumerable<SkreePoint> points;
+        }
+        IEnumerable<SkreeGraph> SkreePlot(Func<MdsEngine.FormatAndOptions, double> selectKey,
+            Func<MdsEngine.FormatAndOptions, MdsEngine.FormatAndOptions> ignoreKey,
+            MdsEngine.FormatAndOptions[] availOpts, int maxPlots, int minItems) {
+            return (
+                from g in
+                    (from fopt in availOpts
+                     group fopt by ignoreKey(fopt) into g
+                     let count = g.Count()
+                     where count >= minItems
+                     orderby count descending
+                     select g).Take(maxPlots)
+                select new SkreeGraph {
+                    opts = g.Key,
+                    points = (from spOpt in g
+                              let selkey = selectKey(spOpt)
+                              orderby selkey
+                              let cachedMds = new MdsEngine(settings.WithFormat(spOpt.Format), null, null, spOpt.Options)
+                              select new SkreePoint {
+                                  SkreeVariable = selkey,
+                                  Correlation = cachedMds.LoadOnlyFinalCorrelation(),
+                                  TestSetRanking = cachedMds.LoadOnlyFinalTestSetRanking(),
+                              }).ToArray()
+                }).ToArray();
+
+
+        }
+
+        private void button4_Click(object sender, RoutedEventArgs e) {
+            foreach (GraphControl g in HistogramControl.Graphs) {
+
+                using (var stream = File.Open(@"C:\out\g-" + g.Name + ".xps", FileMode.Create, FileAccess.ReadWrite))
+                    HistogramControl.Print(g, stream);
+
+            }
+        }
 
     }
 }

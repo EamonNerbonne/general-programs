@@ -19,38 +19,26 @@ using EmnExtensions.Algorithms;
 using EmnExtensions.Collections;
 using LastFMspider;
 using System.Collections;
+using Microsoft.Win32;
+using System.IO;
+using EmnExtensions.Wpf;
 
 namespace MdsTestWpf
 {
-    struct MdsPoint2D
-    {
-        public double x, y;
-        public double DistanceTo(MdsPoint2D other) {
-            return Math.Sqrt((x - other.x) * (x - other.x) + (y - other.y) * (y - other.y));
-        }
-        public Point ToPoint() { return new Point(x, y); }
-
-    }
-    public static class RndHelper
-    {
-        public static double NextNorm(this Random r) {//from http://www.cs.princeton.edu/introcs/21function/MyMath.java.html
-            return Math.Sin(2 * Math.PI * r.NextDouble()) * Math.Sqrt((-2 * Math.Log(1 - r.NextDouble())));
-        }
-    }
 
     /// <summary>
     /// Interaction logic for Window1.xaml
     /// </summary>
     public partial class MdsDisplay : Window
     {
-        const int res = 110; //80
-        const int SUBSET_SIZE = 10000; //1000
-        const int GEN = 60; //30
+        const int res = 100; //80
+        const int SUBSET_SIZE = 2000; //1000
+        const int GEN = 100; //30
         const int POINT_UPDATE_STYLE = 1;
         const double LEARN_RATE = 2.0;
-        const double DIST_LIMIT_AVG = 5.0;
+        const double DIST_LIMIT_AVG = 4.7;
         const double DIST_LIMIT_RAND = 0.5;
-        const double DIST_NOISE = 0.2;
+        const double DIST_NOISE = 3.0;
         const float INF_REPLACEMENT_FACTOR = 10.0f;
         int IndexFromIJ(int i, int j) {
             return i + res * j;
@@ -185,7 +173,7 @@ namespace MdsTestWpf
                     }
                     double len = Math.Sqrt(sum);
                     for (int pi = 0; pi < pCount; pi++) {
-                        mappedPos[pi, dim]*=eigvals[dim]/ len;
+                        mappedPos[pi, dim]*=eigvals[dim]/ len;//doesn't help.
                     }
                 }
                 /*
@@ -502,5 +490,47 @@ namespace MdsTestWpf
             /**/
             timer.Done();
         }
+
+        private void saveButton_Click(object sender, RoutedEventArgs e) {
+            /*
+             *         const int res = 110; //80
+        const int SUBSET_SIZE = 10000; //1000
+        const int GEN = 60; //30
+        const int POINT_UPDATE_STYLE = 1;
+        const double LEARN_RATE = 2.0;
+        const double DIST_LIMIT_AVG = 5.0;
+        const double DIST_LIMIT_RAND = 0.5;
+        const double DIST_NOISE = 0.2;
+        const float INF_REPLACEMENT_FACTOR = 10.0f;
+*/
+            var saveDialog = new SaveFileDialog() {
+                Title = "Save Embedding As ...",
+                Filter = "XPS file|*.xps",
+                FileName = "L"+SUBSET_SIZE+"R"+res+"NS"+(int)(DIST_NOISE*100)+ "N"+GEN+"LR"+((int)(LEARN_RATE*1000))+"PU"+POINT_UPDATE_STYLE+".xps",
+            };
+            if (saveDialog.ShowDialog() == true) {
+                using (var writestream = new FileStream(saveDialog.FileName, FileMode.Create, FileAccess.ReadWrite))
+                    WpfTools.PrintXPS(pointViewbox, 300, 300, writestream, FileMode.Create, FileAccess.ReadWrite);
+            }
+
+        }
+
     }
+
+    struct MdsPoint2D
+    {
+        public double x, y;
+        public double DistanceTo(MdsPoint2D other) {
+            return Math.Sqrt((x - other.x) * (x - other.x) + (y - other.y) * (y - other.y));
+        }
+        public Point ToPoint() { return new Point(x, y); }
+
+    }
+    public static class RndHelper
+    {
+        public static double NextNorm(this Random r) {//from http://www.cs.princeton.edu/introcs/21function/MyMath.java.html
+            return Math.Sin(2 * Math.PI * r.NextDouble()) * Math.Sqrt((-2 * Math.Log(1 - r.NextDouble())));
+        }
+    }
+
 }

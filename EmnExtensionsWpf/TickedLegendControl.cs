@@ -84,7 +84,7 @@ namespace EmnExtensions.Wpf
                 if (watchedGraph != null) {
                     watchedGraph.GraphBoundsUpdated += OnGraphBoundsUpdated;
                     TickColor = watchedGraph.GraphLineColor;
-                    LegendLabel = watchedGraph.Name;
+                    LegendLabel = (IsHorizontal?watchedGraph.XLabel:watchedGraph.YLabel) ?? watchedGraph.Name;
                     OnGraphBoundsUpdated(watchedGraph, watchedGraph.GraphBounds);
                 } else {
                     this.Visibility = Visibility.Collapsed;

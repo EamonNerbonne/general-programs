@@ -85,6 +85,11 @@ namespace EmnExtensions.Wpf
             }
         }
 
+        string xLabel;
+        public string XLabel { get { return xLabel; } set { xLabel = value; InvalidateVisual(); } }
+        string yLabel;
+        public string YLabel { get { return yLabel; } set { yLabel = value; InvalidateVisual(); } }
+
         public void EnsurePointInBounds(Point p) {
             graphBoundsPrivate.Union(p);
             UpdateBounds();

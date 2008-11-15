@@ -19,7 +19,9 @@ namespace SimilarityMdsLib
             public SimilarityFormat Format;
             public Options Options;
 
-            static Regex filenameRegex = new Regex(@"^mds-(?<format>.*)N(?<N>\d+)LR(?<LR>\d+)SA(?<SA>\d+)PU(?<PU>\d)D(?<D>\d+)(\.bin|-(corr|test)\.graph$", RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.ExplicitCapture);
+            public override string ToString() {                return Format.ToString() + Options.ToString();             }
+
+            static Regex filenameRegex = new Regex(@"^mds-(?<format>.*)N(?<N>\d+)LR(?<LR>\d+)SA(?<SA>\d+)PU(?<PU>\d)D(?<D>\d+)(\.bin|-(corr|test)\.graph)$", RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.ExplicitCapture);
             public static FormatAndOptions? FindOptionsFromFileName(string filename) {
                 var match = filenameRegex.Match(filename);
 
@@ -54,7 +56,7 @@ namespace SimilarityMdsLib
             public int PointUpdateStyle;//0(orig) 1(emn*0.5) or 2(emn dynamically scaled)
             public int Dimensions;
             public override string ToString() {
-                return "N" + NGenerations + "LR" + ((int)LearnRate * 1000) + "SA" + ((int)StartAnnealingWhen * 1000) + "PU" + PointUpdateStyle + "D" + Dimensions;
+                return "N" + NGenerations + "LR" + ((int)(LearnRate * 1000)) + "SA" + ((int)(StartAnnealingWhen * 1000)) + "PU" + PointUpdateStyle + "D" + Dimensions;
             }
         }
         public readonly Options Opts;
@@ -77,10 +79,10 @@ namespace SimilarityMdsLib
 
 
 
-        public string resultsFilename { get { return settings.Format.ToString() + Opts.ToString(); } }
-        FileInfo mdsFile { get { return new FileInfo(Path.Combine(settings.DataDirectory.FullName, @".\res\mds-" + resultsFilename + ".bin")); } }
-        FileInfo corrFile { get { return new FileInfo(Path.Combine(settings.DataDirectory.FullName, @".\res\mds-" + resultsFilename + "-corr.graph")); } }
-        FileInfo testFile { get { return new FileInfo(Path.Combine(settings.DataDirectory.FullName, @".\res\mds-" + resultsFilename + "-test.graph")); } }
+        public string resultsFilename { get { return new FormatAndOptions { Format = settings.Format, Options = Opts }.ToString(); } }
+        public FileInfo mdsFile { get { return new FileInfo(Path.Combine(settings.DataDirectory.FullName, @".\res\mds-" + resultsFilename + ".bin")); } }
+        public FileInfo corrFile { get { return new FileInfo(Path.Combine(settings.DataDirectory.FullName, @".\res\mds-" + resultsFilename + "-corr.graph")); } }
+        public FileInfo testFile { get { return new FileInfo(Path.Combine(settings.DataDirectory.FullName, @".\res\mds-" + resultsFilename + "-test.graph")); } }
 
         public void SaveMds() {
             if (!maySave)
