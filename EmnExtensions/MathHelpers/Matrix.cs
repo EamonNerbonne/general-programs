@@ -5,7 +5,7 @@ using System.Text;
 
 namespace EmnExtensions.MathHelpers
 {
-    static class Overloads
+    public static class Overloads
     {
 
         public static IEnumerable<int> To(this int from, int to) {
