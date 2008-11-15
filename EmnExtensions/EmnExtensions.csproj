@@ -109,6 +109,7 @@
     <Compile Include="Text\DelegateTextWriter.cs" />
     <Compile Include="Text\StringFeatures.cs" />
     <Compile Include="Text\TryParse.cs" />
+    <Compile Include="Threading\BackgroundProcessor.cs" />
     <Compile Include="Web\UriRequest.cs" />
   </ItemGroup>
   <ItemGroup>
