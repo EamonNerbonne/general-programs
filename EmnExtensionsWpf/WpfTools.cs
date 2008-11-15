@@ -37,6 +37,7 @@ namespace EmnExtensions.Wpf
                 el.Width = reqWidth;
                 el.Height = reqHeight;
                 el.Measure(new Size(reqWidth, reqHeight));
+                el.Arrange(new Rect(el.DesiredSize));
                 el.UpdateLayout();
                 
 

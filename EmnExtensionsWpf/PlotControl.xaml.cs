@@ -16,6 +16,7 @@ using System.Windows.Xps.Packaging;
 using System.Windows.Xps;
 using System.IO.Packaging;
 using System.IO;
+using System.Collections.Specialized;
 
 namespace EmnExtensions.Wpf
 {
@@ -25,13 +26,57 @@ namespace EmnExtensions.Wpf
     public partial class PlotControl : UserControl
     {
         public PlotControl() {
-            graphLookup.Add("", null);
             InitializeComponent();
             botSelect.ItemsSource = graphs;
             topSelect.ItemsSource = graphs;
             visibilityMenu.ItemsSource = graphs;
+            graphs.CollectionChanged += new System.Collections.Specialized.NotifyCollectionChangedEventHandler(graphs_CollectionChanged);
             //            graphs.Add(null);
             //NewGraph("unlabelled", new[] { new Point(0, 0), new Point(0, 1), new Point(1, 1), new Point(1, 0), new Point(0, 0) });
+        }
+
+        void graphs_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e) {
+            switch (e.Action) {
+                case NotifyCollectionChangedAction.Add:
+                    foreach (GraphControl graph in e.NewItems) {
+                        graphLookup[graph.Name] = graph;
+                        graphGrid.Children.Add(graph);
+                    }
+                    break;
+                case NotifyCollectionChangedAction.Move:break;
+                case NotifyCollectionChangedAction.Remove:
+                    foreach (GraphControl graph in e.OldItems) {
+                        graphGrid.Children.Remove(graph);
+                        graphLookup.Remove(graph.Name);
+                        foreach (var legend in new[] { leftLegend, lowerLegend, upperLegend, rightLegend }) {
+                            if (legend.Watch == graph)
+                                legend.Watch = null;
+                        }
+                    }
+                    break;
+                case NotifyCollectionChangedAction.Replace:
+                    foreach (GraphControl graph in e.OldItems) {
+                        graphGrid.Children.Remove(graph);
+                        graphLookup.Remove(graph.Name);
+                        foreach (var legend in new[] { leftLegend, lowerLegend, upperLegend, rightLegend }) {
+                            if (legend.Watch == graph)
+                                legend.Watch = null;
+                        }
+                    }
+                    foreach (GraphControl graph in e.NewItems) {
+                        graphLookup[graph.Name] = graph;
+                        graphGrid.Children.Add(graph);
+                    }
+                    break;
+                case NotifyCollectionChangedAction.Reset:
+                    graphGrid.Children.Clear();
+                    graphLookup.Clear();
+                    foreach (GraphControl graph in graphs) {
+                        graphLookup[graph.Name] = graph;
+                        graphGrid.Children.Add(graph);
+                    }
+                    break;
+            }
         }
 
         ObservableCollection<GraphControl> graphs = new ObservableCollection<GraphControl>();
@@ -46,10 +91,8 @@ namespace EmnExtensions.Wpf
         public GraphControl NewGraph(string name, IEnumerable<Point> line) {
             GraphControl graph = new GraphControl();
             graph.Name = name;
-            graphLookup[name] = graph;
-            graphs.Add(graph);
-            graphGrid.Children.Add(graph);
             graph.NewLine(line);
+            graphs.Add(graph);
             return graph;
         }
 
@@ -57,13 +100,7 @@ namespace EmnExtensions.Wpf
         public void Remove(GraphControl graph) {
             if (graph == null)
                 throw new ArgumentNullException("graph");
-            graphGrid.Children.Remove(graph);
-            graphLookup.Remove(graph.Name);
             graphs.Remove(graph);
-            foreach (var legend in new[] { leftLegend, lowerLegend, upperLegend, rightLegend }) {
-                if (legend.Watch == graph)
-                    legend.Watch = null;
-            }
         }
 
 
@@ -103,8 +140,6 @@ namespace EmnExtensions.Wpf
             nextIsTopRight = !legendIsTopRight;
         }
 
-
-
         private void MenuItem_Click(object sender, RoutedEventArgs e) {
             MenuItem item = (MenuItem)sender;
             GraphControl graph = (GraphControl)item.DataContext;
@@ -122,7 +157,6 @@ namespace EmnExtensions.Wpf
                 lowerLegend.Watch = null;
             }
         }
-
 
         private void botSelect_SelectionChanged(object sender, SelectionChangedEventArgs e) {
 
@@ -151,6 +185,5 @@ namespace EmnExtensions.Wpf
             upperLegend.Watch = graph;
             rightLegend.Watch = graph;
         }
-
     }
 }

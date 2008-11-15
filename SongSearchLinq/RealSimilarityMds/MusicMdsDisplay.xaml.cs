@@ -28,7 +28,7 @@ namespace RealSimilarityMds
     {
         ProgressManager progress;
         //Program program;
-        public PlotControl HistogramControl { get { return this.distanceHistoview; } }
+        public PlotControl PlotControl { get { return this.distanceHistoview; } }
 
         SimCacheManager settings;
         public MusicMdsDisplay() {
@@ -50,23 +50,16 @@ namespace RealSimilarityMds
 
             progress = new ProgressManager(this.progressBar, this.labelETA, new NiceTimer());
 
-            graphPrintBox.ItemsSource = HistogramControl.Graphs;
+            graphPrintBox.ItemsSource = PlotControl.Graphs;
         }
 
         SimilarityFormat[] fmtValues = new[] { SimilarityFormat.AvgRank, SimilarityFormat.AvgRank2, SimilarityFormat.Log200, SimilarityFormat.Log2000 };
         double[] lrValues = new[] { 1.0, 5.0, 2.0 };
         double[] saValues = new[] { 0.0, 0.5 };
+        enum PointUpdate { ConstantRandom = 1, DecreasingRandom = 2, OriginalHiTmds = 0, }
         PointUpdate[] pusValues = new[] { PointUpdate.ConstantRandom, PointUpdate.DecreasingRandom, PointUpdate.OriginalHiTmds };
         int[] genValues = new[] { 20, 30, 50 };
         int[] dimValues = new[] { 2, 3, 5, 10, 20, 50 };
-
-        enum PointUpdate
-        {
-            ConstantRandom = 1,
-            DecreasingRandom = 2,
-            OriginalHiTmds = 0,
-        }
-        Dictionary<KeyValuePair<SimilarityFormat, MdsEngine.Options>, KeyValuePair<GraphControl, GraphControl>> loaded = new Dictionary<KeyValuePair<SimilarityFormat, MdsEngine.Options>, KeyValuePair<GraphControl, GraphControl>>();
 
         MdsEngine.Options SelectedOptions {
             get {
@@ -87,48 +80,25 @@ namespace RealSimilarityMds
         }
 
         SimilarityFormat SelectedFormat { get { return (SimilarityFormat)comboBoxFMT.SelectedItem; } }
+        MdsEngine.FormatAndOptions SelectedFormatAndOptions { get { return new MdsEngine.FormatAndOptions { Format = SelectedFormat, Options = SelectedOptions }; } }
 
-        private void button1_Click(object sender, RoutedEventArgs e) {
+        private void loadButton_Click(object sender, RoutedEventArgs e) {
             try {
-                LoadSettings(SelectedFormat, SelectedOptions, (g) => { });
+                LoadSettings(SelectedFormatAndOptions, (g) => { });
             } catch (Exception e0) {
                 Console.WriteLine(e0.StackTrace);
             }
         }
 
-        void PrintAll() {
-            var opts =
-                   from lr in lrValues
-                   from sa in saValues
-                   from pus in pusValues
-                   from gen in genValues
-                   from dim in Enumerable.Range(1, 51)
-                   select new MdsEngine.Options {
-                       Dimensions = dim,
-                       LearnRate = lr,
-                       NGenerations = gen,
-                       PointUpdateStyle = (int)pus,
-                       StartAnnealingWhen = sa,
-                   };
-            foreach (var fmt in fmtValues)
-                foreach (var opt in opts)
-                    LoadSettings(fmt, opt, (g) => {
-                        try {
-                            using (var stream = File.Open(@"C:\out\g-" + g.Name + ".xps", FileMode.Create, FileAccess.ReadWrite))
-                                HistogramControl.Print(g, stream);
-                        } catch (Exception ex) {
-                            Console.WriteLine(ex.StackTrace);
-                        }
-                    });
-        }
-        void LoadSettings(SimilarityFormat fmt, MdsEngine.Options options, Action<GraphControl> whenDone) {
-            if (loaded.ContainsKey(new KeyValuePair<SimilarityFormat, MdsEngine.Options>(fmt, options))) {
+        void LoadSettings(MdsEngine.FormatAndOptions foptions, Action<GraphControl> whenDone) {
+            GraphControl testGraph;
+            if (PlotControl.TryGetGraph("test_" + foptions.ToString(), out testGraph)) {
                 Console.WriteLine("Already Loaded.");
                 return;
             }
             ThreadPool.QueueUserWorkItem((o) => {
                 try {
-                    var engine = new MdsEngine(settings.WithFormat(fmt), null, null, options);
+                    var engine = new MdsEngine(settings.WithFormat(foptions.Format), null, null, foptions.Options);
                     if (!engine.ResultsAlreadyCached) {
                         Console.WriteLine("These results are not available");
                     } else {
@@ -136,7 +106,7 @@ namespace RealSimilarityMds
                         Console.WriteLine("Loaded.");
                         Dispatcher.BeginInvoke((Action)delegate {
                             try {
-                                ShowMdsGraphs(fmt, options, engine, whenDone);
+                                ShowMdsGraphs(foptions, engine, whenDone);
                             } catch (Exception e2) {
                                 Console.WriteLine(e2.StackTrace);
                             }
@@ -150,57 +120,79 @@ namespace RealSimilarityMds
             });
         }
 
-        void ShowMdsGraphs(SimilarityFormat fmt, MdsEngine.Options options, MdsEngine engine, Action<GraphControl> whenDone) {
-            if (loaded.ContainsKey(new KeyValuePair<SimilarityFormat, MdsEngine.Options>(fmt, options))) {
-                var gToDel = loaded[new KeyValuePair<SimilarityFormat, MdsEngine.Options>(fmt, options)];
-                Console.WriteLine("Already Loaded, removing...");
-                HistogramControl.Remove(gToDel.Key);
-                HistogramControl.Remove(gToDel.Value);
-                Console.WriteLine("removed.");
+        void ShowMdsGraphs(MdsEngine.FormatAndOptions foptions, MdsEngine engine, Action<GraphControl> whenDone) {
+            GraphControl oldGraph;
+            if (PlotControl.TryGetGraph("test_" + foptions.ToString(), out oldGraph)) {
+                PlotControl.Remove(oldGraph);
             }
-            var testG = HistogramControl.NewGraph("test_" + engine.resultsFilename, engine.TestSetRankings);
-            var corrG = HistogramControl.NewGraph("corr_" + engine.resultsFilename, engine.Correlations);
+            if (PlotControl.TryGetGraph("corr_" + foptions.ToString(), out oldGraph)) {
+                PlotControl.Remove(oldGraph);
+            }
+            var testG = PlotControl.NewGraph("test_" + engine.resultsFilename, engine.TestSetRankings);
+            var corrG = PlotControl.NewGraph("corr_" + engine.resultsFilename, engine.Correlations);
             testG.GraphBounds = new Rect(-0.005, 0.495, 1.01, 0.51);
             testG.XLabel = "MDS progress";
             testG.YLabel = "Average Test Ranking";
             corrG.GraphBounds = new Rect(-0.005, -0.005, 1.01, 1.01);
             corrG.XLabel = "MDS progress";
-            corrG.YLabel = "Correlation to training (" + options.Dimensions + "d)";
-            HistogramControl.ShowGraph(testG);
-            HistogramControl.ShowGraph(corrG);
-            loaded[new KeyValuePair<SimilarityFormat, MdsEngine.Options>(fmt, options)]
-                = new KeyValuePair<GraphControl, GraphControl>(testG, corrG);
+            corrG.YLabel = "Correlation to training (" + foptions.Options.Dimensions + "d)";
+            PlotControl.ShowGraph(testG);
+            PlotControl.ShowGraph(corrG);
             whenDone(testG);
             whenDone(corrG);
         }
 
-
-
-        private void button2_Click(object sender, RoutedEventArgs e) {
-            PrintAll();
+        private void loadAllExportButton_Click(object sender, RoutedEventArgs e) {
+            var fopts =
+                from fmt in fmtValues
+                from lr in lrValues
+                from sa in saValues
+                from pus in pusValues
+                from gen in genValues
+                from dim in Enumerable.Range(1, 51)
+                select new MdsEngine.FormatAndOptions {
+                    Format = fmt,
+                    Options = new MdsEngine.Options {
+                        Dimensions = dim,
+                        LearnRate = lr,
+                        NGenerations = gen,
+                        PointUpdateStyle = (int)pus,
+                        StartAnnealingWhen = sa,
+                    }
+                };
+            foreach (var fopt in fopts)
+                LoadSettings(fopt, (g) => {
+                    try {
+                        using (var stream = File.Open(@"C:\out\g-" + g.Name + ".xps", FileMode.Create, FileAccess.ReadWrite))
+                            PlotControl.Print(g, stream);
+                        PlotControl.Remove(g);
+                    } catch (Exception ex) {
+                        Console.WriteLine(ex.StackTrace);
+                    }
+                });
         }
 
-        private void button3_Click(object sender, RoutedEventArgs e) {
+        private void calculateButton_Click(object sender, RoutedEventArgs e) {
             progress.NewTask("Initializing...");
-            var fmt = SelectedFormat;
-            var options = SelectedOptions;
-            var setup = new DistFormatLoader(new TimingProgressManager(), fmt);
+            var foptions = SelectedFormatAndOptions;
+            var setup = new DistFormatLoader(new TimingProgressManager(), foptions.Format);
             GraphControl testG,
                 corrG;
             ThreadPool.QueueUserWorkItem((o) => {
                 try {
                     progress.NewTask("Loading data...");
                     setup.Init();
-                    var engine = setup.ConstructMdsEngine(options);
+                    var engine = setup.ConstructMdsEngine(foptions.Options);
                     Dispatcher.Invoke((Action)delegate {
                         try {
-                            ShowMdsGraphs(fmt, options, engine, (g) => { });
+                            ShowMdsGraphs(foptions, engine, (g) => { });
                         } catch (Exception e2) {
                             Console.WriteLine(e2.StackTrace);
                         }
                     });
-                    testG = loaded[new KeyValuePair<SimilarityFormat, MdsEngine.Options>(fmt, options)].Key;
-                    corrG = loaded[new KeyValuePair<SimilarityFormat, MdsEngine.Options>(fmt, options)].Value;
+                    PlotControl.TryGetGraph("test_" + foptions.ToString(), out testG);
+                    PlotControl.TryGetGraph("corr_" + foptions.ToString(), out corrG);
+
                     engine.Correlations.CollectionChanged += delegate(object coll, NotifyCollectionChangedEventArgs eArgs) {
                         if (eArgs.Action == NotifyCollectionChangedAction.Add) {
                             foreach (Point p in eArgs.NewItems)
@@ -235,24 +227,27 @@ namespace RealSimilarityMds
         }
 
         private void exportButton_Click(object sender, RoutedEventArgs e) {
-            var graph = graphPrintBox.SelectedItem as GraphControl;
-            if (graph == null)
-                return;
+            try {
+                var graph = graphPrintBox.SelectedItem as GraphControl;
+                if (graph == null)
+                    return;
 
-            var saveDialog = new SaveFileDialog() {
-                Title = "Save Graph As ...",
-                Filter = "XPS file|*.xps",
-                FileName = graph.Name + ".xps",
-            };
-            if (saveDialog.ShowDialog() == true) {
-                using (var writestream = new FileStream(saveDialog.FileName, FileMode.Create, FileAccess.ReadWrite))
-                    HistogramControl.Print(graph, writestream);
+                var saveDialog = new SaveFileDialog() {
+                    Title = "Save Graph As ...",
+                    Filter = "XPS file|*.xps",
+                    FileName = graph.Name + ".xps",
+                };
+                if (saveDialog.ShowDialog() == true) {
+                    using (var writestream = new FileStream(saveDialog.FileName, FileMode.Create, FileAccess.ReadWrite))
+                        PlotControl.Print(graph, writestream);
+                }
+            } catch (Exception ex) {
+                Console.WriteLine(ex.StackTrace);
             }
         }
 
-
         void showSkreeGraph(Func<SkreePoint, double> makePoint, string shortname, string ylab, string xlab, SkreeGraph skreegraph, double? ymin, double? ymax) {
-            var graph = HistogramControl.NewGraph(shortname + "_" + skreegraph.opts.ToString(), skreegraph.points.Select(p => new Point(p.SkreeVariable, makePoint(p))));
+            var graph = PlotControl.NewGraph(shortname + "_" + skreegraph.opts.ToString(), skreegraph.points.Select(p => new Point(p.SkreeVariable, makePoint(p))));
             graph.YLabel = ylab;
             graph.XLabel = xlab;
             if (ymax.HasValue && ymin.HasValue) {
@@ -261,10 +256,10 @@ namespace RealSimilarityMds
                 bounds.Height = (double)(ymax - ymin);
                 graph.GraphBounds = bounds;
             }
-            HistogramControl.ShowGraph(graph);
+            PlotControl.ShowGraph(graph);
         }
 
-        private void Window_Loaded(object sender, RoutedEventArgs e) {
+        private void loadSkreeGraphsButton_Click(object sender, RoutedEventArgs e) {
             new Thread((ThreadStart)delegate {
                 SongDatabaseConfigFile config = new SongDatabaseConfigFile(false);
                 var availOpts = MdsEngine.FormatAndOptions.AvailableInCache(config).ToArray();
@@ -347,15 +342,8 @@ namespace RealSimilarityMds
             }) { IsBackground = true }.Start();
         }
 
-        struct SkreePoint
-        {
-            public double Correlation, TestSetRanking, SkreeVariable;
-        }
-        struct SkreeGraph
-        {
-            public MdsEngine.FormatAndOptions opts;
-            public IEnumerable<SkreePoint> points;
-        }
+        struct SkreePoint { public double Correlation, TestSetRanking, SkreeVariable;        }
+        struct SkreeGraph { public MdsEngine.FormatAndOptions opts; public IEnumerable<SkreePoint> points;        }
         IEnumerable<SkreeGraph> SkreePlot(Func<MdsEngine.FormatAndOptions, double> selectKey,
             Func<MdsEngine.FormatAndOptions, MdsEngine.FormatAndOptions> ignoreKey,
             MdsEngine.FormatAndOptions[] availOpts, int maxPlots, int minItems) {
@@ -383,14 +371,42 @@ namespace RealSimilarityMds
 
         }
 
-        private void button4_Click(object sender, RoutedEventArgs e) {
-            foreach (GraphControl g in HistogramControl.Graphs) {
+        private void exportAllLoaded_Click(object sender, RoutedEventArgs e) {
+            foreach (GraphControl g in PlotControl.Graphs) {
 
                 using (var stream = File.Open(@"C:\out\g-" + g.Name + ".xps", FileMode.Create, FileAccess.ReadWrite))
-                    HistogramControl.Print(g, stream);
+                    PlotControl.Print(g, stream);
 
             }
         }
+
+        private void unloadButton_Click(object sender, RoutedEventArgs e) {
+            var graph = graphPrintBox.SelectedItem as GraphControl;
+            if (graph == null)
+                return;
+            PlotControl.Remove(graph);
+        }
+
+        private void unloadAllButton_Click(object sender, RoutedEventArgs e) { PlotControl.Graphs.Clear(); }
+
+        private void listBestButton_Click(object sender, RoutedEventArgs e) {
+            new Thread((ThreadStart)delegate {
+                SongDatabaseConfigFile config = new SongDatabaseConfigFile(false);
+                var availOpts = MdsEngine.FormatAndOptions.AvailableInCache(config).ToArray();
+                Console.WriteLine("Running query...");
+                var query = from fopt in availOpts
+                            let cachedMds = new MdsEngine(settings.WithFormat(fopt.Format), null, null, fopt.Options)
+                            let correlation = cachedMds.LoadOnlyFinalCorrelation()
+                            let testRanking = cachedMds.LoadOnlyFinalTestSetRanking()
+                            orderby testRanking descending
+                            select new { Fopt = fopt, Corr = correlation, TestRank = testRanking };
+
+                foreach (var result in query.Take(100))
+                    Console.WriteLine("TR:{0:f4}, Corr:{1:f4}, {2}", result.TestRank, result.Corr, result.Fopt);
+
+            }) { IsBackground = true }.Start();
+        }
+
 
     }
 }

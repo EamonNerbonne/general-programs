@@ -234,7 +234,7 @@ namespace MdsTestWpf
                 prog(1.0);
             }
 
-            private void Rescale(double p) {
+            private void Rescale(double p) {//not used
                 int dimCount = mappedPos.GetLength(1);
                 int pCount = mappedPos.GetLength(0);
                 for (int pi = 0; pi < pCount; pi++) {
@@ -242,9 +242,7 @@ namespace MdsTestWpf
                         mappedPos[pi, dim] *= p;
                     }
                 }
-
             }
-
         }
 
         MappedDistStruct CreateDistMat(Random r, NiceTimer t) {
@@ -382,17 +380,6 @@ namespace MdsTestWpf
                 Canvas.SetLeft(pointCirc, relPoint.X - radius / 2);
                 Canvas.SetTop(pointCirc, relPoint.Y - radius / 2);
                 pointCanvas.Children.Add(pointCirc);
-
-                /*pointCanvas.Children.Add(new Line {
-                    X1 = relPoint.X,
-                    X2 = relPoint.X,
-                    Y1 = relPoint.Y,
-                    Y2 = relPoint.Y,
-                    StrokeThickness = 3,
-                    StrokeStartLineCap = PenLineCap.Round,
-                    StrokeEndLineCap = PenLineCap.Round,
-                    Stroke = Brushes.Black
-                });*/
             }
         }
 
@@ -416,7 +403,6 @@ namespace MdsTestWpf
             if (needUpdate)
                 lock (cycleSync) {
                     lastCycle = cycle;
-                    // ExtractCalcs(src);//comment out for no gfx
                     needUpdate = false;
                 }
         }
@@ -492,17 +478,6 @@ namespace MdsTestWpf
         }
 
         private void saveButton_Click(object sender, RoutedEventArgs e) {
-            /*
-             *         const int res = 110; //80
-        const int SUBSET_SIZE = 10000; //1000
-        const int GEN = 60; //30
-        const int POINT_UPDATE_STYLE = 1;
-        const double LEARN_RATE = 2.0;
-        const double DIST_LIMIT_AVG = 5.0;
-        const double DIST_LIMIT_RAND = 0.5;
-        const double DIST_NOISE = 0.2;
-        const float INF_REPLACEMENT_FACTOR = 10.0f;
-*/
             var saveDialog = new SaveFileDialog() {
                 Title = "Save Embedding As ...",
                 Filter = "XPS file|*.xps",
@@ -510,7 +485,7 @@ namespace MdsTestWpf
             };
             if (saveDialog.ShowDialog() == true) {
                 using (var writestream = new FileStream(saveDialog.FileName, FileMode.Create, FileAccess.ReadWrite))
-                    WpfTools.PrintXPS(pointViewbox, 300, 300, writestream, FileMode.Create, FileAccess.ReadWrite);
+                    WpfTools.PrintXPS(pointCanvas, 3000, 3000, writestream, FileMode.Create, FileAccess.ReadWrite);
             }
 
         }
