@@ -21,6 +21,7 @@ using SongDataLib;
 using System.IO;
 using System.Collections.Specialized;
 using Microsoft.Win32;
+using EmnExtensions.Threading;
 
 namespace RealSimilarityMds
 {
@@ -304,36 +305,32 @@ namespace RealSimilarityMds
                         showSkreeGraph(sp => sp.Correlation, "CorrByLR", "Correlation", "Learning Rate", skreegraph, 0.5, 1.0);
                         showSkreeGraph(sp => sp.TestSetRanking, "TestRankByLR", "Mean Test Pair Rank", "Learning Rate", skreegraph, 0.7, 1.0);
                     }
-                    foreach (var skreegraph in new[]{skreeByPUs
-                        .Aggregate((g1, g2) =>
-                            new SkreeGraph {
-                                opts = g1.opts,
-                                points = g1.points.ZipWith(g2.points, (p1, p2) =>
-                                    new SkreePoint {
-                                        SkreeVariable = p1.SkreeVariable,
-                                        Correlation = Math.Max(p1.Correlation, p2.Correlation),
-                                        TestSetRanking = Math.Max(p1.TestSetRanking , p2.TestSetRanking)
-                                    })
-                            }
-                        )}) {
+
+                    Func<SkreeGraph, SkreeGraph, Func<double, double, double>, SkreeGraph> combineGraphs =
+                        (g1, g2, comb) => new SkreeGraph {
+                            opts = g1.opts,
+                            points = g1.points.ZipWith(g2.points, (p1, p2) =>
+                                new SkreePoint {
+                                    SkreeVariable = p1.SkreeVariable,
+                                    Correlation = comb(p1.Correlation, p2.Correlation),
+                                    TestSetRanking = comb(p1.TestSetRanking, p2.TestSetRanking)
+                                })
+                        };
+
+
+                    foreach (var skreegraph in new[] { skreeByPUs.Aggregate((g1, g2) => combineGraphs(g1, g1, Math.Max)) }) {
+                        showSkreeGraph(sp => sp.Correlation, "MaxCorrByPU", "MaxCorrelation", "PointUpdate", skreegraph, null, null);
+                        showSkreeGraph(sp => sp.TestSetRanking, "MaxTestRankByPU", "Max Mean Test Pair Rank", "PointUpdate", skreegraph, null, null);
+                    }
+                    foreach (var skreegraph in new[] { skreeByFMTs.Aggregate((g1, g2) => combineGraphs(g1, g1, Math.Max)) }) {
+                        showSkreeGraph(sp => sp.Correlation, "MaxCorrByFMT", "MaxCorrelation", "Format", skreegraph, null, null);
+                        showSkreeGraph(sp => sp.TestSetRanking, "MaxTestRankByFMT", "Max Mean Test Pair Rank", "Format", skreegraph, null, null);
+                    }
+                    foreach (var skreegraph in new[] { skreeByPUs.Aggregate((g1, g2) => combineGraphs(g1, g1, (a, b) => a + b)) }) {
                         showSkreeGraph(sp => sp.Correlation, "CorrByPU", "Correlation", "PointUpdate", skreegraph, null, null);
                         showSkreeGraph(sp => sp.TestSetRanking, "TestRankByPU", "Mean Test Pair Rank", "PointUpdate", skreegraph, null, null);
                     }
-                    foreach (var skreegraph in new[]{skreeByFMTs
-
-                                                .Aggregate((g1, g2) =>
-                            new SkreeGraph {
-                                opts = g1.opts,
-                                points = g1.points.ZipWith(g2.points, (p1, p2) =>
-                                    new SkreePoint {
-                                        SkreeVariable = p1.SkreeVariable,
-                                        Correlation = Math.Max(p1.Correlation , p2.Correlation),
-                                        TestSetRanking = Math.Max(p1.TestSetRanking , p2.TestSetRanking)
-                                    })
-                            }
-                        )
-                    }
-                        ) {
+                    foreach (var skreegraph in new[] { skreeByFMTs.Aggregate((g1, g2) => combineGraphs(g1, g1, (a, b) => a + b)) }) {
                         showSkreeGraph(sp => sp.Correlation, "CorrByFMT", "Correlation", "Format", skreegraph, null, null);
                         showSkreeGraph(sp => sp.TestSetRanking, "TestRankByFMT", "Mean Test Pair Rank", "Format", skreegraph, null, null);
                     }
@@ -367,8 +364,6 @@ namespace RealSimilarityMds
                                   TestSetRanking = cachedMds.LoadOnlyFinalTestSetRanking(),
                               }).ToArray()
                 }).ToArray();
-
-
         }
 
         private void exportAllLoaded_Click(object sender, RoutedEventArgs e) {
@@ -395,16 +390,80 @@ namespace RealSimilarityMds
                 var availOpts = MdsEngine.FormatAndOptions.AvailableInCache(config).ToArray();
                 Console.WriteLine("Running query...");
                 var query = from fopt in availOpts
-                            let cachedMds = new MdsEngine(settings.WithFormat(fopt.Format), null, null, fopt.Options)
-                            let correlation = cachedMds.LoadOnlyFinalCorrelation()
-                            let testRanking = cachedMds.LoadOnlyFinalTestSetRanking()
-                            orderby testRanking descending
-                            select new { Fopt = fopt, Corr = correlation, TestRank = testRanking };
 
-                foreach (var result in query.Take(100))
-                    Console.WriteLine("TR:{0:f4}, Corr:{1:f4}, {2}", result.TestRank, result.Corr, result.Fopt);
+                            let cachedMds = new MdsEngine(settings.WithFormat(fopt.Format), null, null, fopt.Options)
+                            group new { fopt, cachedMds } by fopt.Options.Dimensions into g
+                            from bestOf in
+                                (from optengine in g
+                                 let correlation = optengine.cachedMds.LoadOnlyFinalCorrelation()
+                                 let testRanking = optengine.cachedMds.LoadOnlyFinalTestSetRanking()
+                                 orderby testRanking + 0.1 * correlation descending
+                                 select new { Fopt = optengine.fopt, Corr = correlation, TestRank = testRanking }
+                                    ).Take(5)
+                            orderby bestOf.TestRank + 0.1 * bestOf.Corr descending
+                            select bestOf;
+                bool first = true;
+                foreach (var result in query.Take(100)) {
+                    Console.WriteLine("DIM:{3,2}, TR:{0:f4}, Corr:{1:f4}, {2}", result.TestRank, result.Corr, result.Fopt, result.Fopt.Options.Dimensions);
+                    if (first) {
+                        first = false;
+                        Dispatcher.Invoke((Action)delegate {
+                            comboBoxDIM.Text = result.Fopt.Options.Dimensions.ToString();
+                            comboBoxFMT.SelectedItem = result.Fopt.Format;
+                            comboBoxGEN.Text = result.Fopt.Options.NGenerations.ToString();
+                            comboBoxLR.Text = result.Fopt.Options.LearnRate.ToString();
+                            comboBoxPUS.SelectedItem = (PointUpdate) result.Fopt.Options.PointUpdateStyle;
+                            comboBoxSA.Text = result.Fopt.Options.StartAnnealingWhen.ToString();
+                        });
+                    }
+                }
 
             }) { IsBackground = true }.Start();
+        }
+
+        private void hideAllButton_Click(object sender, RoutedEventArgs e) {
+            foreach (var graph in PlotControl.Graphs) graph.Visibility = Visibility.Collapsed;
+        }
+
+        private void triangulateButton_Click(object sender, RoutedEventArgs e) {
+            var fopts = SelectedFormatAndOptions;
+            new Thread((ThreadStart)delegate {
+                DistFormatLoader loader = new DistFormatLoader(this.progress, fopts.Format);
+                loader.Init();
+                MdsEngine engine =  loader.ConstructMdsEngine(fopts.Options);
+                engine.LoadCachedMds();
+                var sqliteToAll = loader.Settings.LoadTrackMapper();
+                progress.NewTask("Embedding");
+                
+                var allDists = loader.Settings.AllTracksCached
+                    .Where( nf=> loader.CachedMatrix.Mapping.IsMapped(nf.number))
+                    .Select(nf=>
+                        new EmbedNonLandmarks.DistanceToLandmark {
+                            LandmarkIndex = loader.CachedMatrix.Mapping.GetMap(nf.number),
+                            DistanceToAllSongs = loader.CachedMatrix.LoadDistsFromId(nf.number)
+                        })
+                        .InAnotherThread(10);
+
+                double[,] allPositions=
+                    EmbedNonLandmarks.Triangulate(progress, sqliteToAll.Count, loader.CachedMatrix.Matrix, engine.MdsResults, 
+                    allDists
+                    );
+                progress.Done();
+                FileInfo saveFile = new FileInfo(System.IO.Path.Combine(loader.Settings.DataDirectory.FullName, @".\pos-" + fopts + ".pos"));
+                progress.NewTask("Saving: "+saveFile.Name);
+                using (var stream = saveFile.Open(FileMode.Create, FileAccess.Write))
+                using (var writer = new BinaryWriter(stream)) {
+                    writer.Write((int)allPositions.GetLength(0)); //# of points
+                    writer.Write((int)allPositions.GetLength(1)); //# of dims
+                    for(int pi=0;pi<allPositions.GetLength(0);pi++)
+                        for (int dim = 0; dim < allPositions.GetLength(1); dim++) 
+                            writer.Write((double)allPositions[pi, dim]);
+                    sqliteToAll.WriteTo(writer);//then we write mapping between sqlite id's and this id's scheme.
+                }
+                progress.Done();
+
+            }) { IsBackground = true }.Start();
+
         }
 
 

@@ -32,11 +32,13 @@ namespace SimilarityMdsLib
         SimCacheManager settings;
         CachedDistanceMatrix cachedMatrix;
         TestDataInTraining evaluator;
-
+        public SimCacheManager Settings { get { return settings; } }
         public DistFormatLoader(IProgressManager progress, SimilarityFormat format) {
             this.progress = progress;
             this.format = format;
         }
+
+        public CachedDistanceMatrix CachedMatrix { get { return cachedMatrix; } }
 
         public void Init() {
             if (doneInit) return;

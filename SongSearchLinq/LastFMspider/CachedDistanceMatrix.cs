@@ -57,6 +57,17 @@ namespace LastFMspider
             Matrix.WriteTo(writer);
         }
 
+        public float[] LoadDistsFromId(int id) {
+            float[] distFromFileTrack;
+            var file = Settings.DijkstraFileOfTrackNumber(  id);
+            using (var stream = file.OpenRead()) //this might throw due to another process just writing this cache file
+            using (var reader = new BinaryReader(stream)) {
+                distFromFileTrack = new float[reader.ReadInt32()];
+                for (int i = 0; i < distFromFileTrack.Length; i++)
+                    distFromFileTrack[i] = reader.ReadSingle();
+            }
+            return distFromFileTrack;
+        }
 
         void LoadDistFromCacheFile(SimCacheManager.NumberedFile nfile,bool reload) {
             int fileTrackID = nfile.number;

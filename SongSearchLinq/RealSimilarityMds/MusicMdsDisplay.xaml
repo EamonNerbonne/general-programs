@@ -10,7 +10,7 @@
             <ColumnDefinition Width="300*" />
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
-            <RowDefinition Height="322*" />
+            <RowDefinition Height="300" />
             <RowDefinition Height="3" />
             <RowDefinition Height="206*" />
             <RowDefinition Height="24" />
@@ -21,9 +21,9 @@
         <GridSplitter Grid.Column="1" Name="gridSplitter1" Grid.RowSpan="4" HorizontalAlignment="Stretch" Width="0" />
         <GridSplitter Grid.Row="1" Name="gridSplitter2" Width="294" Grid.ColumnSpan="3" HorizontalAlignment="Right" Height="0" VerticalAlignment="Stretch" />
         <Label Grid.Column="2" Grid.Row="3" Name="labelETA">Label</Label>
-        <ComboBox Grid.Column="2" Margin="0,105,-478,106" Name="comboBox1" HorizontalAlignment="Right" Width="119.625" />
         <Grid Name="grid1" Grid.Column="2" >
             <Grid.RowDefinitions>
+                <RowDefinition Height="30*" />
                 <RowDefinition Height="30*" />
                 <RowDefinition Height="30*" />
                 <RowDefinition Height="30*" />
@@ -40,12 +40,12 @@
                 <ColumnDefinition Width="107*" />
                 <ColumnDefinition Width="183.625*" />
             </Grid.ColumnDefinitions>
-            <ComboBox Grid.Column="1" Margin="3,3,3,3" IsEditable="False" IsReadOnly="True" Grid.Row="0" Name="comboBoxFMT" />
-            <ComboBox Grid.Column="1" Margin="3,3,3,3" IsEditable="True" IsReadOnly="False" Grid.Row="1" Name="comboBoxLR" />
-            <ComboBox Grid.Column="1" Margin="3,3,3,3" IsEditable="True" IsReadOnly="False" Grid.Row="2" Name="comboBoxSA"/>
-            <ComboBox Grid.Column="1" Margin="3,3,3,3" IsEditable="False" IsReadOnly="True" Grid.Row="3" Name="comboBoxPUS" />
-            <ComboBox Grid.Column="1" Margin="3,3,3,3" IsEditable="True" IsReadOnly="False" Grid.Row="4" Name="comboBoxGEN"/>
-            <ComboBox Grid.Column="1" Margin="3,3,3,3" IsEditable="True" IsReadOnly="False" Grid.Row="5" Name="comboBoxDIM" />
+            <ComboBox Grid.Column="1" Margin="1,1,1,1" IsEditable="False" IsReadOnly="True" Grid.Row="0" Name="comboBoxFMT" />
+            <ComboBox Grid.Column="1" Margin="1,1,1,1" IsEditable="True" IsReadOnly="False" Grid.Row="1" Name="comboBoxLR" />
+            <ComboBox Grid.Column="1" Margin="1,1,1,1" IsEditable="True" IsReadOnly="False" Grid.Row="2" Name="comboBoxSA"/>
+            <ComboBox Grid.Column="1" Margin="1,1,1,1" IsEditable="False" IsReadOnly="True" Grid.Row="3" Name="comboBoxPUS" />
+            <ComboBox Grid.Column="1" Margin="1,1,1,1" IsEditable="True" IsReadOnly="False" Grid.Row="4" Name="comboBoxGEN"/>
+            <ComboBox Grid.Column="1" Margin="1,1,1,1" IsEditable="True" IsReadOnly="False" Grid.Row="5" Name="comboBoxDIM" />
             <TextBox Grid.Row="0" VerticalAlignment="Center"  >Format:</TextBox>
             <TextBox Grid.Row="1" VerticalAlignment="Center"  >Learning Rate:</TextBox>
             <TextBox Grid.Row="2"  VerticalAlignment="Center" >Start Annealing:</TextBox>
@@ -67,8 +67,10 @@
             <Button Grid.Column="1" Grid.Row="7" Name="exportAllLoaded" Click="exportAllLoaded_Click">Export all Loaded</Button>
             <Button Grid.Row="9" Name="unloadButton" Click="unloadButton_Click">Unload:</Button>
             <Button Grid.Column="1" Grid.Row="9"  Name="unloadAllButton" Click="unloadAllButton_Click">Unload All</Button>
-            <Button Grid.Row="10" Name="loadSkreeGraphsButton" Click="loadSkreeGraphsButton_Click" >Load Skree Graphs</Button>
-            <Button Grid.Row="10"  Name="listBestButton" Grid.Column="1" Click="listBestButton_Click">List Best Tested Options</Button>
+            <Button Grid.Row="10" Name="hideAllButton" Click="hideAllButton_Click">Hide All</Button>
+            <Button Grid.Row="11" Name="loadSkreeGraphsButton" Click="loadSkreeGraphsButton_Click" >Load Skree Graphs</Button>
+            <Button Grid.Row="11" Name="listBestButton" Grid.Column="1" Click="listBestButton_Click">List Best Tested Options</Button>
+            <Button Grid.Column="1" Grid.Row="10" Name="triangulateButton" FontWeight="Bold" Click="triangulateButton_Click">Triangulate</Button>
         </Grid>
     </Grid>
 </Window>

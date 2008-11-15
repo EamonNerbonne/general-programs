@@ -128,13 +128,13 @@ namespace PrecalcSimilarityMds
                          NGenerations = gen
                      }
                  );
-            var forSkreePlot =
+            var forSkreePlotN =
                  from decentFormat in new[] { SimilarityFormat.AvgRank2, SimilarityFormat.Log2000 }
                  from sa in new[] { 0.0 }
                  from lr in new[] { 1.0, 2.0 }
                  from pus in new[] { 1, 2 }
                  from dims in new[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 14, 16, 18, 20, 23, 26, 29, 32, 36, 40, 45, 50 }
-                 from gen in new[] { 30 }
+                 from gen in new[] { 30,80 }
                  select new KeyValuePair<SimilarityFormat, MdsEngine.Options>(
                      decentFormat,
                      new MdsEngine.Options {
@@ -146,13 +146,13 @@ namespace PrecalcSimilarityMds
                      }
                  );
             double s2 = Math.Sqrt(2);
-            var forSkreePlot2 =
+            var forSkreePlotLR =
                  from decentFormat in new[] { SimilarityFormat.AvgRank2, SimilarityFormat.Log2000 }
                  from sa in new[] { 0.0 }
                  from lr in new[] { 1.0 / s2, 1.0, s2, 2.0, s2 *2.0, 4.0, s2 * 4.0, 8.0 } 
                  from pus in new[] { 1, 2 }
                  from dims in new[] { 2, 10, }
-                 from gen in new[] { 10, 15, 20, 25, 30, 40, 50, 80 }
+                 from gen in new[] { 40, }
                  select new KeyValuePair<SimilarityFormat, MdsEngine.Options>(
                      decentFormat,
                      new MdsEngine.Options {
@@ -163,7 +163,41 @@ namespace PrecalcSimilarityMds
                          NGenerations = gen
                      }
                  );
-            return forSkreePlot.Concat(forSkreePlot2).Concat(forDecent.Concat(forLessDecent));
+            var forSkreePlotGEN =
+                 from decentFormat in new[] { SimilarityFormat.AvgRank2, SimilarityFormat.Log2000 }
+                 from sa in new[] { 0.0 }
+                 from lr in new[] { 1.0, 2.0, }
+                 from pus in new[] { 1, 2 }
+                 from dims in new[] { 2, 10, }
+                 from gen in new[] { 10, 15, 20, 25, 30, 40, 50, 80,160 }
+                 select new KeyValuePair<SimilarityFormat, MdsEngine.Options>(
+                     decentFormat,
+                     new MdsEngine.Options {
+                         Dimensions = dims,
+                         PointUpdateStyle = pus,
+                         StartAnnealingWhen = sa,
+                         LearnRate = lr,
+                         NGenerations = gen
+                     }
+                 );
+            var forGoodResult =
+                 from decentFormat in new[] { SimilarityFormat.AvgRank2, SimilarityFormat.Log2000 }
+                 from sa in new[] { 0.0 }
+                 from lr in new[] { 2.0, }
+                 from gen in new[] { 160,150,140 }
+                 from pus in new[] { 1, 2 }
+                 from dims in new[] { 2,5, 10,20 }
+                 select new KeyValuePair<SimilarityFormat, MdsEngine.Options>(
+                     decentFormat,
+                     new MdsEngine.Options {
+                         Dimensions = dims,
+                         PointUpdateStyle = pus,
+                         StartAnnealingWhen = sa,
+                         LearnRate = lr,
+                         NGenerations = gen
+                     }
+                 );
+            return forGoodResult.Concat(forSkreePlotN).Concat(forSkreePlotGEN).Concat(forSkreePlotLR).Concat(forDecent).Concat(forLessDecent);
         }
 
     }

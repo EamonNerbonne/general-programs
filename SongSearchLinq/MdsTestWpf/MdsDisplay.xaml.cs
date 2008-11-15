@@ -205,6 +205,22 @@ namespace MdsTestWpf
 
 
                 allPoses = new double[allCount, dimCount];
+#if USE_LANDMARK_ITER
+                for (int pi = 0; pi < pCount; pi++) {
+                    for (int unmP = 0; unmP < allCount; unmP++) {
+                        double dist = distsFromMapped[pi][unmP];
+                        double netDiffp = dist * dist - Du[pi];
+                        for (int dim = 0; dim < dimCount; dim++) {
+                            allPoses[unmP, dim] += mappedPos[pi, dim] * netDiffp;
+                        }
+                    }
+                }
+                for (int unmP = 0; unmP < allCount; unmP++) {
+                    for (int dim = 0; dim < dimCount; dim++) {
+                        allPoses[unmP, dim] = -0.5 * allPoses[unmP, dim] / eigvals[dim];
+                    }
+                }
+#else
                 double[] netDiff = new double[allCount];
                 for (int unmP = 0; unmP < allCount; unmP++) {
                     prog(unmP / (double)allCount);
@@ -236,6 +252,7 @@ namespace MdsTestWpf
                     }
 #endif
                 }
+#endif
                 prog(1.0);
             }
 

@@ -96,6 +96,7 @@
   <ItemGroup>
     <Compile Include="BillboardByMdsId.cs" />
     <Compile Include="DistFormatLoader.cs" />
+    <Compile Include="EmbedNonLandmarks.cs" />
     <Compile Include="MdsEngine.cs" />
     <Compile Include="ProgressManager.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

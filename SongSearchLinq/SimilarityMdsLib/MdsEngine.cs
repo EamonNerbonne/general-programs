@@ -136,7 +136,7 @@ namespace SimilarityMdsLib
                     progress.SetProgress((i + 1.0) / positionedPoints.GetLength(0));
                 }
             }
-
+            MdsResults = positionedPoints;
             using (Stream s = corrFile.OpenRead())
             using (BinaryReader reader = new BinaryReader(s)) {
                 int numCorrelations = reader.ReadInt32();
