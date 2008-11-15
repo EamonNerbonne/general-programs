@@ -31,14 +31,14 @@ namespace MdsTestWpf
     /// </summary>
     public partial class MdsDisplay : Window
     {
-        const int res = 100; //80
-        const int SUBSET_SIZE = 2000; //1000
-        const int GEN = 100; //30
+        const int res = 25; //80
+        const int SUBSET_SIZE = 200; //1000
+        const int GEN = 1000; //30
         const int POINT_UPDATE_STYLE = 1;
         const double LEARN_RATE = 2.0;
         const double DIST_LIMIT_AVG = 4.7;
         const double DIST_LIMIT_RAND = 0.5;
-        const double DIST_NOISE = 3.0;
+        const double DIST_NOISE = 0.2;
         const float INF_REPLACEMENT_FACTOR = 10.0f;
         int IndexFromIJ(int i, int j) {
             return i + res * j;
@@ -152,6 +152,7 @@ namespace MdsTestWpf
                 FindEigvals();
                 CompDu();
 
+                double[,] cov = new double[dimCount, dimCount];
                 for (int dim = 0; dim < dimCount; dim++) {
                     
                     for (int dim2 = dim; dim2 < dimCount; dim2++) {
@@ -161,10 +162,14 @@ namespace MdsTestWpf
                         }
                         if (dim2 == dim) {
                             Console.WriteLine("Dim {0}<->{0} sqrLen: {1}, length:{2}, eig:{3}", dim, sum, Math.Sqrt(sum), eigvals[dim]);
-                //           eigvals[dim] = Math.Sqrt(sum);
-                        } else Console.WriteLine("Dim {0}<->{1} dotprod: {2}", dim, dim2, sum);
+                            //           eigvals[dim] = Math.Sqrt(sum);
+                        } else {
+                            Console.WriteLine("Dim {0}<->{1} dotprod: {2}", dim, dim2, sum);
+                        }
+                        cov[dim, dim2] = cov[dim2,dim]=sum;
                     }
                 }
+                Console.WriteLine("SHEAR FACTOR: {0}", Math.Sqrt(cov[0, 0] * cov[1, 1])/cov[0,1] );
                 /*
                 for (int dim = 0; dim < dimCount; dim++) {
                     double sum = 0;
