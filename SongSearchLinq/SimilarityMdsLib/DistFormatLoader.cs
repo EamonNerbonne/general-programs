@@ -29,68 +29,96 @@ namespace SimilarityMdsLib
         public readonly SimilarityFormat format;
 
         bool doneInit = false;
-        SimCacheManager settings;
-        CachedDistanceMatrix cachedMatrix;
-        TestDataInTraining evaluator;
-        public SimCacheManager Settings { get { return settings; } }
-        public DistFormatLoader(IProgressManager progress, SimilarityFormat format) {
+        SimCacheManager _settings;
+        CachedDistanceMatrix _cachedMatrix;
+        TestDataInTraining _evaluator;
+        public SimCacheManager Settings { get {
+                lock (this) {
+                    if (_settings == null) {
+                        var config = new SongDatabaseConfigFile(false);
+                        var tools = new LastFmTools(config);
+                        _settings = new SimCacheManager(format, tools, DataSetType.Training);
+
+                    }
+                    return _settings;
+                }
+        } }
+        readonly bool extendCache;
+        public DistFormatLoader(IProgressManager progress, SimilarityFormat format,bool extendIfPossible) {
             this.progress = progress;
             this.format = format;
+            extendCache = extendIfPossible;
         }
 
-        public CachedDistanceMatrix CachedMatrix { get { return cachedMatrix; } }
+        public CachedDistanceMatrix CachedMatrix {
+            get {
+                lock (this) {
+                    if (_cachedMatrix == null) {
+                        progress.NewTask("Load Distance Matrix " + Settings.Format);
+                        _cachedMatrix = Settings.LoadCachedDistanceMatrix();
 
-        public void Init() {
-            if (doneInit) return;
+                        if (extendCache) {
+                            progress.SetProgress(0.5, "Extending Cache");
+                            _cachedMatrix.LoadDistFromAllCacheFiles(d => { progress.SetProgress(d); }, true);
+                        }
 
-            //Load Settings:
-            var config = new SongDatabaseConfigFile(false);
-            var tools = new LastFmTools(config);
-            settings = new SimCacheManager(format, tools, DataSetType.Training);
+                        progress.SetProgress(0.6, "Trimming and counting Dataset");
+                        while (_cachedMatrix.Mapping.Count > MAX_MDS_ITEM_COUNT)
+                            _cachedMatrix.Mapping.ExtractAndRemoveLast();
+                        _cachedMatrix.Matrix.ElementCount = _cachedMatrix.Mapping.Count;
 
-            progress.NewTask("Load Distance Matrix " + settings.Format);
-            cachedMatrix = settings.LoadCachedDistanceMatrix();
-
-            progress.SetProgress(0.5, "Extending Cache");
-            cachedMatrix.LoadDistFromAllCacheFiles(d => { progress.SetProgress(d); }, true);
-
-            progress.SetProgress(0.6, "Trimming and counting Dataset");
-            while (cachedMatrix.Mapping.Count > MAX_MDS_ITEM_COUNT)
-                cachedMatrix.Mapping.ExtractAndRemoveLast();
-            cachedMatrix.Matrix.ElementCount = cachedMatrix.Mapping.Count;
-
-            //remove infinities:
-            var arr=cachedMatrix.Matrix.DirectArrayAccess();
-            float max=0.0f;
-            List<int> infIndexes = new List<int>();
-            for (int i = 0; i < cachedMatrix.Matrix.DistCount; i++) {
-                if (!arr[i].IsFinite()) infIndexes.Add(i);
-                else if (arr[i] > max) max = arr[i];
+                        //remove infinities:
+                        var arr = _cachedMatrix.Matrix.DirectArrayAccess();
+                        float max = 0.0f;
+                        List<int> infIndexes = new List<int>();
+                        for (int i = 0; i < _cachedMatrix.Matrix.DistCount; i++) {
+                            if (!arr[i].IsFinite()) infIndexes.Add(i);
+                            else if (arr[i] > max) max = arr[i];
+                        }
+                        foreach (int infIndex in infIndexes)
+                            arr[infIndex] = max * 10;//anything, as long as it's FAR away but not infinite.
+                        _maxDist = max;
+                        Console.WriteLine("dists: {0} total, {1}% finite", _cachedMatrix.Matrix.DistCount, 100.0 * (1 - infIndexes.Count / (double)_cachedMatrix.Matrix.DistCount));
+                        infIndexes = null;
+                    }
+                    return _cachedMatrix;
+                }
             }
-            foreach (int infIndex in infIndexes)
-                arr[infIndex] = max*10;//anything, as long as it's FAR away but not infinite.
-            Console.WriteLine("dists: {0} total, {1}% finite", cachedMatrix.Matrix.DistCount, 100.0 * (1 - infIndexes.Count / (double)cachedMatrix.Matrix.DistCount));
-            infIndexes = null;
-
-
-            progress.NewTask("Finding relevant matches in test-data");
-            evaluator = new TestDataInTraining(settings, cachedMatrix);
-            progress.Done();
-            doneInit = true;
         }
+        double _maxDist=double.NaN;
+        public double MaxDistance {
+            get {
+                lock (this) {
+                    if (!_maxDist.IsFinite()) {
+                        var cachedMatrix = CachedMatrix;
+                    }
+                    return _maxDist;
+                }
+            }
+        }
+
+        public TestDataInTraining Evaluator {
+            get {
+                lock (this) {
+                    if (_evaluator == null) {
+                        progress.NewTask("Finding relevant matches in test-data");
+                        _evaluator = new TestDataInTraining(Settings, CachedMatrix);
+                        progress.Done();
+
+                    }
+                    return _evaluator;
+                }
+            }
+        }
+
 
         public MdsEngine ConstructMdsEngine(MdsEngine.Options Opts) {
-            return new MdsEngine(settings, evaluator, cachedMatrix, Opts);
+            return new MdsEngine(Settings, Evaluator, CachedMatrix, Opts);
         }
 
         public void Run(MdsEngine.Options Opts, bool rerunEvenIfCached) {
 
-            //  CalculateDistanceHistogram(cachedMatrix);
-            
-
-
-            //progress.NewTask("MDS");
-            MdsEngine engine = new MdsEngine(settings, evaluator, cachedMatrix, Opts);
+            MdsEngine engine = ConstructMdsEngine(Opts);
             NiceTimer timer = new NiceTimer();
             if (engine.ResultsAlreadyCached && !rerunEvenIfCached) {
                 Console.WriteLine("Cached: " + engine.resultsFilename);
@@ -99,44 +127,17 @@ namespace SimilarityMdsLib
             } else {
                 timer.TimeMark("Calc: " + engine.resultsFilename);
             }
-            //TODO move to UI:
-            //engine.Correlations.CollectionChanged += new NotifyCollectionChangedEventHandler(Correlations_CollectionChanged);
-            //engine.TestSetRankings.CollectionChanged += new NotifyCollectionChangedEventHandler(TestSetRankings_CollectionChanged);
 
             engine.DoMds();
 
                 engine.SaveMds();
             timer.Done();
-            //progress.Done();
-            //   FindBillboardHits(positionedPoints,settings,cachedMatrix);
         }
-        /*
-        void TestSetRankings_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e) {
-            if (e.Action != NotifyCollectionChangedAction.Add)
-                throw new Exception("WHooops!");
-            mainDisplay.Dispatcher.BeginInvoke((Action)delegate {
-                foreach (Point p in e.NewItems) {
-                    mainDisplay.testSetRanking.AddPoint(p);
-                }
-            });
-        }
-
-        void Correlations_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e) {
-            if (e.Action != NotifyCollectionChangedAction.Add)
-                throw new Exception("WHooops!");
-            mainDisplay.Dispatcher.BeginInvoke((Action)delegate {
-                foreach (Point p in e.NewItems) {
-                    mainDisplay.corrgraph.AddPoint(p);
-                }
-            });
-        }
-         * */
-        //TODO move to UI
 
         private void CalculateDistanceHistogram(CachedDistanceMatrix cachedMatrix) {
             progress.NewTask("Calculate Distance Histogram for " + cachedMatrix.Settings.Format);
             var histData = new Histogrammer(
-                cachedMatrix.Matrix.Values.Select(f => (double)f), cachedMatrix.Mapping.Count, 2000
+                CachedMatrix.Matrix.Values.Select(f => (double)f), cachedMatrix.Mapping.Count, 2000
                 ).GenerateHistogram().ToArray();
 
             /*mainDisplay.Dispatcher.BeginInvoke((Action)delegate {
@@ -155,9 +156,9 @@ namespace SimilarityMdsLib
         private void FindBillboardHits(double[,] positionedPoints) {
             progress.NewTask("Finding Billboard hits");
 
-            Dictionary<int, SongRef> songrefByMds = BillboardByMdsId.TracksByMdsId(cachedMatrix);
+            Dictionary<int, SongRef> songrefByMds = BillboardByMdsId.TracksByMdsId(CachedMatrix);
             progress.SetProgress(0.5);
-            FileInfo logFile = new FileInfo(Path.Combine(settings.DataDirectory.FullName, @".\mdsPoints-" + settings.Format + ".txt"));
+            FileInfo logFile = new FileInfo(Path.Combine(Settings.DataDirectory.FullName, @".\mdsPoints-" + Settings.Format + ".txt"));
 
             using (Stream s = logFile.Open(FileMode.Create, FileAccess.Write))
             using (TextWriter writer = new StreamWriter(s)) {

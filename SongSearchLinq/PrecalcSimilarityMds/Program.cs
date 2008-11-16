@@ -23,16 +23,12 @@ namespace PrecalcSimilarityMds
         static SimCacheManager settings = new SimCacheManager(SimilarityFormat.LastFmRating, tools, DataSetType.Training);
 
         static void InitializeCalculationBackend() {
-            var programAvRank2 = new DistFormatLoader(new TimingProgressManager(), SimilarityFormat.AvgRank2);
-            var programAvRank = new DistFormatLoader(new TimingProgressManager(), SimilarityFormat.AvgRank);
-            var programLog200 = new DistFormatLoader(new TimingProgressManager(), SimilarityFormat.Log200);
-            var programLog2000 = new DistFormatLoader(new TimingProgressManager(), SimilarityFormat.Log2000);
+            var programAvRank2 = new DistFormatLoader(new TimingProgressManager(), SimilarityFormat.AvgRank2,true);
+            var programAvRank = new DistFormatLoader(new TimingProgressManager(), SimilarityFormat.AvgRank, true);
+            var programLog200 = new DistFormatLoader(new TimingProgressManager(), SimilarityFormat.Log200, true);
+            var programLog2000 = new DistFormatLoader(new TimingProgressManager(), SimilarityFormat.Log2000, true);
             progs = new[] { programAvRank2, programLog2000, programLog200, programAvRank }
                 .ToDictionary(prog => prog.format, prog => prog);
-            Parallel.ForEach(
-            progs, prog => {
-                prog.Value.Init();
-            });
 
         }
 

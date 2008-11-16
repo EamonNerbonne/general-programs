@@ -5,6 +5,7 @@ using System.Text;
 using LastFMspider;
 using EmnExtensions.Collections;
 using EmnExtensions.MathHelpers;
+using EmnExtensions;
 namespace SimilarityMdsLib
 {
     public class EmbedNonLandmarks
@@ -15,12 +16,12 @@ namespace SimilarityMdsLib
             public float[] DistanceToAllSongs;
         }
         private EmbedNonLandmarks() { }
-        public static double[,] Triangulate(IProgressManager progress, int allCount, SymmetricDistanceMatrix landmarkDistanceMatrix, double[,] landmarkPos, IEnumerable<DistanceToLandmark> distLandmarkToAll) {
+        public static double[,] Triangulate(IProgressManager progress, int allCount, SymmetricDistanceMatrix landmarkDistanceMatrix, double[,] landmarkPos, IEnumerable<DistanceToLandmark> distLandmarkToAll,double maxdist) {
             EmbedNonLandmarks computeEngine = new EmbedNonLandmarks();
             computeEngine.distMat = landmarkDistanceMatrix;
             computeEngine.mappedPos = landmarkPos;
             computeEngine.distLandmarkToAll = distLandmarkToAll;
-            computeEngine.TriangulateUnmapped(progress, allCount);
+            computeEngine.TriangulateUnmapped(progress, allCount,maxdist *10);
             return computeEngine.allPoses;
         }
 
@@ -112,7 +113,7 @@ namespace SimilarityMdsLib
                 ).Sum();
         }
 
-        public void TriangulateUnmapped(IProgressManager prog, int allCount) {
+        public void TriangulateUnmapped(IProgressManager prog, int allCount,double replacedist) {
             int dimCount = mappedPos.GetLength(1);
             int pCount = mappedPos.GetLength(0);
             prog.NewTask("Mean Centering");
@@ -131,7 +132,8 @@ namespace SimilarityMdsLib
                 var distsFromLandmark = distToL.DistanceToAllSongs;
                 int pi = distToL.LandmarkIndex;
                 for (int unmP = 0; unmP < allCount; unmP++) {
-                    double dist = distsFromLandmark[unmP];
+                    double dist = distsFromLandmark[unmP];//what if this isn't finite?
+                    if (!dist.IsFinite()) dist = replacedist; // replace it.
                     double netDiffp = dist * dist - Du[pi];
                     for (int dim = 0; dim < dimCount; dim++) {
                         allPoses[unmP,dim] += mappedPos[pi, dim] * netDiffp;

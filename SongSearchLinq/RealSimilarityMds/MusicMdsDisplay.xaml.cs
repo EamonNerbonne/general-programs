@@ -22,6 +22,8 @@ using System.IO;
 using System.Collections.Specialized;
 using Microsoft.Win32;
 using EmnExtensions.Threading;
+using System.Threading.Collections;
+using EmnExtensions.MathHelpers;
 
 namespace RealSimilarityMds
 {
@@ -176,13 +178,12 @@ namespace RealSimilarityMds
         private void calculateButton_Click(object sender, RoutedEventArgs e) {
             progress.NewTask("Initializing...");
             var foptions = SelectedFormatAndOptions;
-            var setup = new DistFormatLoader(new TimingProgressManager(), foptions.Format);
+            var setup = new DistFormatLoader(new TimingProgressManager(), foptions.Format, true);
             GraphControl testG,
                 corrG;
             ThreadPool.QueueUserWorkItem((o) => {
                 try {
                     progress.NewTask("Loading data...");
-                    setup.Init();
                     var engine = setup.ConstructMdsEngine(foptions.Options);
                     Dispatcher.Invoke((Action)delegate {
                         try {
@@ -390,7 +391,6 @@ namespace RealSimilarityMds
                 var availOpts = MdsEngine.FormatAndOptions.AvailableInCache(config).ToArray();
                 Console.WriteLine("Running query...");
                 var query = from fopt in availOpts
-
                             let cachedMds = new MdsEngine(settings.WithFormat(fopt.Format), null, null, fopt.Options)
                             group new { fopt, cachedMds } by fopt.Options.Dimensions into g
                             from bestOf in
@@ -399,8 +399,8 @@ namespace RealSimilarityMds
                                  let testRanking = optengine.cachedMds.LoadOnlyFinalTestSetRanking()
                                  orderby testRanking + 0.1 * correlation descending
                                  select new { Fopt = optengine.fopt, Corr = correlation, TestRank = testRanking }
-                                    ).Take(5)
-                            orderby bestOf.TestRank + 0.1 * bestOf.Corr descending
+                                    ).Take(3)
+                            orderby bestOf.TestRank + 0.1 * bestOf.Corr - bestOf.Fopt.Options.Dimensions / 100.0 descending
                             select bestOf;
                 bool first = true;
                 foreach (var result in query.Take(100)) {
@@ -412,7 +412,7 @@ namespace RealSimilarityMds
                             comboBoxFMT.SelectedItem = result.Fopt.Format;
                             comboBoxGEN.Text = result.Fopt.Options.NGenerations.ToString();
                             comboBoxLR.Text = result.Fopt.Options.LearnRate.ToString();
-                            comboBoxPUS.SelectedItem = (PointUpdate) result.Fopt.Options.PointUpdateStyle;
+                            comboBoxPUS.SelectedItem = (PointUpdate)result.Fopt.Options.PointUpdateStyle;
                             comboBoxSA.Text = result.Fopt.Options.StartAnnealingWhen.ToString();
                         });
                     }
@@ -426,41 +426,134 @@ namespace RealSimilarityMds
         }
 
         private void triangulateButton_Click(object sender, RoutedEventArgs e) {
-            var fopts = SelectedFormatAndOptions;
+            //            var fopts = SelectedFormatAndOptions;
             new Thread((ThreadStart)delegate {
-                DistFormatLoader loader = new DistFormatLoader(this.progress, fopts.Format);
-                loader.Init();
-                MdsEngine engine =  loader.ConstructMdsEngine(fopts.Options);
-                engine.LoadCachedMds();
-                var sqliteToAll = loader.Settings.LoadTrackMapper();
-                progress.NewTask("Embedding");
-                
-                var allDists = loader.Settings.AllTracksCached
-                    .Where( nf=> loader.CachedMatrix.Mapping.IsMapped(nf.number))
-                    .Select(nf=>
-                        new EmbedNonLandmarks.DistanceToLandmark {
-                            LandmarkIndex = loader.CachedMatrix.Mapping.GetMap(nf.number),
-                            DistanceToAllSongs = loader.CachedMatrix.LoadDistsFromId(nf.number)
-                        })
-                        .InAnotherThread(10);
 
-                double[,] allPositions=
-                    EmbedNonLandmarks.Triangulate(progress, sqliteToAll.Count, loader.CachedMatrix.Matrix, engine.MdsResults, 
-                    allDists
-                    );
-                progress.Done();
-                FileInfo saveFile = new FileInfo(System.IO.Path.Combine(loader.Settings.DataDirectory.FullName, @".\pos-" + fopts + ".pos"));
-                progress.NewTask("Saving: "+saveFile.Name);
-                using (var stream = saveFile.Open(FileMode.Create, FileAccess.Write))
-                using (var writer = new BinaryWriter(stream)) {
-                    writer.Write((int)allPositions.GetLength(0)); //# of points
-                    writer.Write((int)allPositions.GetLength(1)); //# of dims
-                    for(int pi=0;pi<allPositions.GetLength(0);pi++)
-                        for (int dim = 0; dim < allPositions.GetLength(1); dim++) 
-                            writer.Write((double)allPositions[pi, dim]);
-                    sqliteToAll.WriteTo(writer);//then we write mapping between sqlite id's and this id's scheme.
+
+                SongDatabaseConfigFile config = new SongDatabaseConfigFile(false);
+                var query = from fopt in MdsEngine.FormatAndOptions.AvailableInCache(config).ToArray()
+                            let cachedMds = new MdsEngine(settings.WithFormat(fopt.Format), null, null, fopt.Options)
+                            group new { fopt, cachedMds } by fopt.Options.Dimensions into g
+                            from bestOf in
+                                (from optengine in g
+                                 let correlation = optengine.cachedMds.LoadOnlyFinalCorrelation()
+                                 let testRanking = optengine.cachedMds.LoadOnlyFinalTestSetRanking()
+                                 orderby testRanking + 0.1 * correlation descending
+                                 select new { Fopt = optengine.fopt, Corr = correlation, TestRank = testRanking }
+                                    ).Take(2)
+                            orderby bestOf.TestRank + 0.1 * bestOf.Corr - bestOf.Fopt.Options.Dimensions / 100.0 descending
+                            select bestOf;
+
+                Dictionary<SimilarityFormat, DistFormatLoader> loadedFormats = new Dictionary<SimilarityFormat, DistFormatLoader>();
+                Dictionary<SimilarityFormat, TrackMapper> loadedTrackMappers = new Dictionary<SimilarityFormat, TrackMapper>();
+                Func<SimilarityFormat, DistFormatLoader> loadFormat = format => {
+                    lock (loadedFormats) {
+                        DistFormatLoader formatLoader;
+                        if (!loadedFormats.TryGetValue(format, out formatLoader))
+                            loadedFormats[format] = formatLoader = new DistFormatLoader(this.progress, format, false);
+                        return formatLoader;
+                    }
+                };
+                Func<SimilarityFormat, TrackMapper> loadTrackMapper = format => {
+                    lock (loadedTrackMappers) {
+                        TrackMapper trackMapper;
+                        if (!loadedTrackMappers.TryGetValue(format, out trackMapper))
+                            loadedTrackMappers[format] = trackMapper = loadFormat(format).Settings.LoadTrackMapper();
+                        return trackMapper;
+                    }
+                };
+
+                Action<SimilarityFormat, MdsEngine.Options[],FileInfo[]> embedNonLandmarks = (format, optsArr,saveFiles) => {
+                    BlockingCollection<EmbedNonLandmarks.DistanceToLandmark>[] queues =
+                        optsArr.Select(fopt => new BlockingCollection<EmbedNonLandmarks.DistanceToLandmark>(50)).ToArray();
+
+                    DistFormatLoader loader = loadFormat(format);
+                    var allDists = loader.Settings.AllTracksCached
+                        .Where(nf => loader.CachedMatrix.Mapping.IsMapped(nf.number))
+                        .Select(nf =>
+                            new EmbedNonLandmarks.DistanceToLandmark {
+                                LandmarkIndex = loader.CachedMatrix.Mapping.GetMap(nf.number),
+                                DistanceToAllSongs = loader.CachedMatrix.LoadDistsFromId(nf.number)
+                            });
+                    var sqliteToAll = loadTrackMapper(format);
+
+                    new Thread((ThreadStart)delegate {
+                        foreach (var distToL in allDists)
+                            foreach (var queue in queues)
+                                queue.Add(distToL);
+                        foreach (var queue in queues)
+                            queue.CompleteAdding();
+                    }) { IsBackground = true }.Start();
+                    var bgThreads= 0.To(optsArr.Length).Select( i => (ThreadStart)delegate {
+                        Console.WriteLine("Beginning processing for " + saveFiles[i].Name);
+                        //var oldPrio = Thread.CurrentThread.Priority;
+                       // Thread.CurrentThread.Priority = ThreadPriority.BelowNormal;//IO thread thus has higher priority
+                        var opts = optsArr[i];
+                        var fopts = new MdsEngine.FormatAndOptions { Format = format, Options = opts };
+                        FileInfo saveFile = saveFiles[i];
+                        Console.WriteLine("Embedding " + fopts);
+                        MdsEngine engine = new MdsEngine(loader.Settings, null, null, opts);
+                        engine.LoadCachedMds();
+                        double[,] mdsResults = engine.MdsResults;
+                        engine = null;
+                        
+                        double[,] allPositions =
+                            EmbedNonLandmarks.Triangulate(i==0? (IProgressManager) progress:new NullProgressManager(), sqliteToAll.Count, loader.CachedMatrix.Matrix, mdsResults,
+                            queues[i].GetConsumingEnumerable(), loader.MaxDistance
+                            );
+                        if(i==0)
+                        progress.NewTask("Saving: " + saveFile.Name);
+                        else Console.WriteLine("Saving: " + saveFile.Name);
+                        using (var stream = saveFile.Open(FileMode.Create, FileAccess.Write))
+                        using (var writer = new BinaryWriter(stream)) {
+                            writer.Write((int)allPositions.GetLength(0)); //# of points
+                            writer.Write((int)allPositions.GetLength(1)); //# of dims
+                            for (int pi = 0; pi < allPositions.GetLength(0); pi++)
+                                for (int dim = 0; dim < allPositions.GetLength(1); dim++)
+                                    writer.Write((double)allPositions[pi, dim]);
+                            sqliteToAll.WriteTo(writer);//then we write mapping between sqlite id's and this id's scheme.
+                        }
+                        if(i==0)
+                        progress.Done();
+                       // Thread.CurrentThread.Priority = oldPrio;
+                    }).Select(action=>new Thread(action) { IsBackground=true, Priority= ThreadPriority.BelowNormal}).ToArray();
+                    foreach (var thread in bgThreads) 
+                        thread.Start();
+                    foreach (var thread in bgThreads)
+                        thread.Join();
+                };
+
+                var enumerator = query.GetEnumerator();
+                var optsToEmbed = new Dictionary<SimilarityFormat, List<MdsEngine.FormatAndOptions>>();
+                foreach (var genopts in query) {
+                    {
+                        var fopts = genopts.Fopt;
+                        FileInfo saveFile = new FileInfo(System.IO.Path.Combine(settings.DataDirectory.FullName, @".\pos-" + fopts + ".pos"));
+                        if (saveFile.Exists) {
+                            Console.WriteLine("Already embedded: " + fopts);
+                            continue;
+                        }
+                    }
+                    var format = genopts.Fopt.Format;
+                    List<MdsEngine.FormatAndOptions> optsForThisFormat;
+                    if (!optsToEmbed.TryGetValue(format, out optsForThisFormat))
+                        optsToEmbed[format] = optsForThisFormat = new List<MdsEngine.FormatAndOptions>();
+                    optsForThisFormat.Add(genopts.Fopt);
+                    if (optsForThisFormat.Sum(fopt => fopt.Options.Dimensions) >= 100) {
+                        embedNonLandmarks(format, optsForThisFormat.Select(fopt => fopt.Options).ToArray(),
+                            optsForThisFormat.Select(fopt => new FileInfo(System.IO.Path.Combine(settings.DataDirectory.FullName, @".\pos-" + fopt + ".pos"))).ToArray()
+                            );
+                        optsForThisFormat.Clear();
+                    }
+                }//note that if a format has less than a multiple of 4 of embeddings, it'll just be ignored.
+                foreach (var entry in optsToEmbed.Where(potEntry => potEntry.Value.Count > 0)) {
+                    var format = entry.Key;
+                    var optsForThisFormat = entry.Value;
+                    embedNonLandmarks(format, optsForThisFormat.Select(fopt => fopt.Options).ToArray(),
+    optsForThisFormat.Select(fopt => new FileInfo(System.IO.Path.Combine(settings.DataDirectory.FullName, @".\pos-" + fopt + ".pos"))).ToArray()
+    );
+
                 }
-                progress.Done();
 
             }) { IsBackground = true }.Start();
 
