@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Web;
-using EamonExtensionsLinq.Text;
+using EmnExtensions.Text;
 
 namespace HttpHeaderHelper
 {

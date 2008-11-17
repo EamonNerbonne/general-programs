@@ -1,5 +1,5 @@
 ﻿using System;
-using EamonExtensionsLinq.Text;
+using EmnExtensions.Text;
 
 namespace HttpHeaderHelper
 {

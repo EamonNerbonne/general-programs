@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using EamonExtensionsLinq;
+using EmnExtensions;
 using SongDataLib;
 
 namespace SongDiskCrawlerMain
@@ -34,7 +34,7 @@ namespace SongDiskCrawlerMain
 #if !DEBUG
 			try {
 #endif
-				timer = new NiceTimer(null);
+				timer = new NiceTimer();
 				timer.TimeMark("Loading Config file...");
 				SongDatabaseConfigFile dcf = new SongDatabaseConfigFile(true);
 

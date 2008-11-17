@@ -2,7 +2,7 @@
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Web;
-using EamonExtensionsLinq.Text;
+using EmnExtensions.Text;
 
 
 

@@ -2,7 +2,7 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProductVersion>9.0.21022</ProductVersion>
+    <ProductVersion>9.0.30729</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{201A21F4-E83A-4D0D-9A6E-F990D89C7CD1}</ProjectGuid>
     <ProjectTypeGuids>{349c5851-65df-11da-9384-00065b846f21};{fae04ec0-301f-11d3-bf4b-00c04f79efbc}</ProjectTypeGuids>
@@ -71,9 +71,9 @@
     <Service Include="{B4F97281-0DBD-4835-9ED8-7DFB966E87FF}" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\EamonExtensionsLinq\EamonExtensionsLinq.csproj">
-      <Project>{53ECEDA4-BB11-4BD3-8B51-0D3481FCBFA1}</Project>
-      <Name>EamonExtensionsLinq</Name>
+    <ProjectReference Include="..\..\EmnExtensions\EmnExtensions.csproj">
+      <Project>{1FC71689-B62E-4831-9558-70D1ED971DEC}</Project>
+      <Name>EmnExtensions</Name>
     </ProjectReference>
     <ProjectReference Include="..\CassiniTest\CassiniTest.csproj">
       <Project>{1AE2B905-EF2F-45FC-AF04-432C70D8DF9F}</Project>
@@ -118,6 +118,9 @@
           <DevelopmentServerVPath>/</DevelopmentServerVPath>
           <IISUrl>http://localhost/SongSearchSite</IISUrl>
           <NTLMAuthentication>False</NTLMAuthentication>
+          <UseCustomServer>False</UseCustomServer>
+          <CustomServerUrl>
+          </CustomServerUrl>
           <SaveServerSettingsInUserFile>False</SaveServerSettingsInUserFile>
         </WebProjectProperties>
       </FlavorProperties>

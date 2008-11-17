@@ -147,7 +147,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\EmnExtensions\EmnExtensions.csproj">
-      <Project>{53ECEDA4-BB11-4BD3-8B51-0D3481FCBFA1}</Project>
+      <Project>{1FC71689-B62E-4831-9558-70D1ED971DEC}</Project>
       <Name>EmnExtensions</Name>
     </ProjectReference>
   </ItemGroup>

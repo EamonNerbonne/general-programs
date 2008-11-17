@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Web;
 using System.Xml;
-using EamonExtensionsLinq.Text;
+using EmnExtensions.Text;
 using SongDataLib;
 using SuffixTreeLib;
 using HttpHeaderHelper;

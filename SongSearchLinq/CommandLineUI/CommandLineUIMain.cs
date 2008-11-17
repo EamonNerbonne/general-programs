@@ -2,8 +2,8 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using EamonExtensionsLinq;
-using EamonExtensionsLinq.DebugTools;
+using EmnExtensions;
+using EmnExtensions.DebugTools;
 using SongDataLib;
 namespace CommandLineUI
 {
@@ -17,9 +17,10 @@ namespace CommandLineUI
 #if !DEBUG
 			try {
 #endif
-				timer = new NiceTimer("Starting");
+				timer = new NiceTimer();
+            timer.TimeMark("Starting");
 				var prog = new CommandLineUIMain(args.Length > 0 ? new FileInfo(args[0]) : null);
-				timer.TimeMark(null);
+				timer.Done();
 				//prog.ExecBenchmark();
 				prog.ExecUI();
 #if !DEBUG

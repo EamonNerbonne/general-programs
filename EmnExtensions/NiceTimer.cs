@@ -35,6 +35,7 @@ namespace EmnExtensions
         /// </summary>
         /// <param name="writer">The TextWriter to log timing info to, or null to disable logging.</param>
 		public NiceTimer(TextWriter writer) {
+            writer =writer ?? Console.Out;
 			dt = default(DateTime);
 			oldmsg = null;
             Writer = writer;
