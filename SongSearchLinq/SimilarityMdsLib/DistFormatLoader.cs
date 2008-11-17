@@ -28,7 +28,6 @@ namespace SimilarityMdsLib
         //public readonly MusicMdsDisplay mainDisplay;
         public readonly SimilarityFormat format;
 
-        bool doneInit = false;
         SimCacheManager _settings;
         CachedDistanceMatrix _cachedMatrix;
         TestDataInTraining _evaluator;

@@ -550,7 +550,7 @@ namespace RealSimilarityMds
                     var format = entry.Key;
                     var optsForThisFormat = entry.Value;
                     embedNonLandmarks(format, optsForThisFormat.Select(fopt => fopt.Options).ToArray(),
-    optsForThisFormat.Select(fopt => new FileInfo(System.IO.Path.Combine(settings.DataDirectory.FullName, @".\pos-" + fopt + ".pos"))).ToArray()
+    optsForThisFormat.Select(fopt => MdsResults.ResultsPath(fopt,settings)).ToArray()
     );
 
                 }

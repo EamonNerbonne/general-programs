@@ -44,7 +44,7 @@ namespace SongDataLib
 			if(songuri == null || songuri.Length == 0) throw new ArgumentNullException(songuri);
 			bool pathSeemsLocal = FSUtil.IsValidAbsolutePath(songuri) == true;
 			if(isLocal == null) this.isLocal = pathSeemsLocal;
-			if(isLocal != pathSeemsLocal)
+			else if(isLocal != pathSeemsLocal)
 				throw new Exception("Supposedly " + (pathSeemsLocal ? "" : "non-") + "local song isn't: " + songuri);
 			else this.isLocal = isLocal.Value;
 

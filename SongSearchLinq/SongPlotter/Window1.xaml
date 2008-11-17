@@ -1,0 +1,21 @@
+﻿<Window x:Class="SongPlotter.Window1"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+            xmlns:emnExt="clr-namespace:EmnExtensions.Wpf;assembly=EmnExtensionsWpf"
+            xmlns:mdsDispExt="clr-namespace:LastFmMdsDisplay;assembly=LastFmMdsDisplay"
+    Title="Window1" 
+  Height="600" Width="800">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="32" />
+            <RowDefinition Height="230*" />
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="204*" />
+            <ColumnDefinition Width="74*" />
+        </Grid.ColumnDefinitions>
+        <mdsDispExt:SongCanvas Name="songCanvas" Grid.RowSpan="2" Margin="15,15,15,15" />
+        <emnExt:LogControl Name="logControl" ClaimStandardError="true" ClaimStandardOut="true" Grid.Column="1" Grid.Row="1" />
+        <Button Grid.Column="1" Name="loadbutton" Click="loadbutton_Click">LoadM3U</Button>
+    </Grid>
+</Window>
