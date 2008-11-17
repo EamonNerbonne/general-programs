@@ -8,6 +8,7 @@ using LastFMspider;
 using SimilarityMdsLib;
 using System.Windows;
 using EmnExtensions;
+using System.Windows.Media;
 
 namespace LastFmMdsDisplay
 {
@@ -15,16 +16,33 @@ namespace LastFmMdsDisplay
     {
         public SongRef Song { get; private set; }
         public Point Position { get; private set; }
+        public Point MappedPosition { get; set; }
         public PositionedSong(SongRef song, double x, double y) {
             Song = song;
-            Position = new Point(x, y);
+            MappedPosition=Position = new Point(x, y);
         }
     }
 
     public class PositionedTracks
     {
+        public static void RepositionWithin(IEnumerable<PositionedSong> songs, Rect projectInto) {
+            Rect bounds = Rect.Empty;
+            foreach (var song in songs)
+                bounds.Union(song.Position);
+            Matrix transMat = Matrix.Identity;
+            transMat.Translate(-bounds.X, -bounds.Y);
+            transMat.Scale(projectInto.Width / bounds.Width, projectInto.Height / bounds.Height);
+            transMat.Translate(projectInto.X, projectInto.Y);
+            foreach (var song in songs)
+                song.MappedPosition = transMat.Transform(song.Position);
+        }
+
         public static void PositionSongs(Stream m3uStream, LastFmTools tools, MdsResults mdsPos, out PositionedSong[] songs, out string[] unknown) {
-            var playlist =LoadM3U.LoadPlaylistFromM3U(m3uStream, tools);
+            var playlist = LoadM3U.LoadPlaylistFromM3U(m3uStream, tools);
+            PositionSongs(playlist, mdsPos, out songs, out unknown);
+        }
+        public static void PositionSongs(IEnumerable< ISongInPlaylist> playlistE, MdsResults mdsPos, out PositionedSong[] songs, out string[] unknown) {
+            var playlist = playlistE.ToArray();
             var pos = PositionTracks(playlist, mdsPos);
             List<PositionedSong> songsL=new List<PositionedSong>();
             List<string> unknownL=new List<string>();
@@ -96,19 +114,18 @@ namespace LastFmMdsDisplay
         }
     }
 
-    class LoadM3U
+    public class LoadM3U
     {
 
-        public static ISongInPlaylist[] LoadPlaylistFromM3U(Stream m3uStream, LastFmTools tools) {
-            return LoadExtM3U(m3uStream).Select(psd=>GuessSongRef(psd.HumanLabel,tools)).ToArray();
+        public static IEnumerable< ISongInPlaylist> LoadPlaylistFromM3U(Stream m3uStream, LastFmTools tools) {
+            return LoadExtM3U(m3uStream).Select(psd=>GuessSongRef(psd.HumanLabel,tools));
         }
-        public static ISongInPlaylist[] LoadPlaylistFromTextBlock(string text, LastFmTools tools) {
+        public static IEnumerable<ISongInPlaylist> LoadPlaylistFromTextBlock(string text, LastFmTools tools) {
             return 
                 text.Split(new[]{'\n'})
                 .Select(s=>s.Trim())
                 .Where(s=>s.Length>1)
-                .Select(humanlabel => GuessSongRef(humanlabel,tools))
-                .ToArray();
+                .Select(humanlabel => GuessSongRef(humanlabel,tools));
         }
 
         static ISongInPlaylist GuessSongRef(string humanlabel, LastFmTools tools) {
