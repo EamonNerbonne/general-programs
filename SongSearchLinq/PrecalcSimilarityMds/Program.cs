@@ -179,10 +179,10 @@ namespace PrecalcSimilarityMds
             var forGoodResult =
                  from decentFormat in new[] { SimilarityFormat.AvgRank2, SimilarityFormat.Log2000 }
                  from sa in new[] { 0.0 }
-                 from lr in new[] { 2.0, }
+                 from lr in new[] { 2.0,1.0 }
                  from gen in new[] { 160,150,140 }
                  from pus in new[] { 1, 2 }
-                 from dims in new[] { 2,5, 10,20 }
+                 from dims in new[] { 2,5, 10,20,50 }
                  select new KeyValuePair<SimilarityFormat, MdsEngine.Options>(
                      decentFormat,
                      new MdsEngine.Options {

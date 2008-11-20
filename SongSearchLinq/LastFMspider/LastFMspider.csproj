@@ -118,11 +118,6 @@
   <ItemGroup>
     <Compile Include="ArbitraryTrackMapper.cs" />
     <Compile Include="CachedDistanceMatrix.cs" />
-    <Compile Include="lastFMcacheDataSet.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>lastFMcacheDataSet.xsd</DependentUpon>
-    </Compile>
     <Compile Include="LastFMSQLiteBackend\AbstractLfmCacheOperation.cs" />
     <Compile Include="LastFMSQLiteBackend\AbstractLfmCacheQuery.cs" />
     <Compile Include="LastFMSQLiteBackend\AllTracks.cs" />
@@ -161,6 +156,9 @@
     <Compile Include="LfmApi\TrackGetInfo.cs" />
     <Compile Include="LfmApi\TrackGetSimilar.cs" />
     <Compile Include="LfmApi\TrackGetTopTags.cs" />
+    <Compile Include="OldApi\ArtistSimilarArtists.cs" />
+    <Compile Include="OldApi\ArtistTopTracks.cs" />
+    <Compile Include="OldApi\OldApiClient.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Properties\Settings.Designer.cs">
       <AutoGen>True</AutoGen>
@@ -192,17 +190,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
-    <None Include="lastFMcacheDataSet.xsc">
-      <DependentUpon>lastFMcacheDataSet.xsd</DependentUpon>
-    </None>
-    <None Include="lastFMcacheDataSet.xsd">
-      <Generator>MSDataSetGenerator</Generator>
-      <LastGenOutput>lastFMcacheDataSet.Designer.cs</LastGenOutput>
-      <SubType>Designer</SubType>
-    </None>
-    <None Include="lastFMcacheDataSet.xss">
-      <DependentUpon>lastFMcacheDataSet.xsd</DependentUpon>
-    </None>
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>

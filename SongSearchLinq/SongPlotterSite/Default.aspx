@@ -93,6 +93,7 @@
     <div id="textbox" onmouseover="document.getElementById('TextBox1').focus()">Or enter a number of tracks as `Artist - Title':<br />
         <asp:TextBox ID="TextBox1" TextMode="MultiLine"  AutoPostBack="false"  runat="server" Width="100%" Height="35em"/></div>
     <div id="submitbutton"><asp:Button ID="Button1" runat="server" Text="Plot those songs" /></div>
+    <div id="hideOrDelete">onclick: <a href="javascript:hideMode()" id="hideModaA">hide</a> / <a href="javascript:removeMode()" id="removeModeA">remove</a> / </div>
     <div id="unknown" <%=unknownSongs==null? "style='display:none;'":""%>><div style="float:right"><a href="#" onclick="document.getElementById('unknown').style.display='none';return false">close</a></div><center>I've never heard of: </center><br />
         <asp:TextBox TextMode="MultiLine"  AutoPostBack="false" ID="UnknownBox2" runat="server" CssClass="textboxFix"></asp:TextBox></div>
     <div id="map"><div style="position:absolute; top:5em;bottom:5em;left:5em;right:5em;" ><%PrintSongs(); %></div></div>

@@ -24,7 +24,7 @@ namespace LastFMspider.LfmApi
                     if (nextRequestWhen > now) {
                         sleepSpan = nextRequestWhen - now;
                     } else {
-                        nextRequestWhen = now + minReqDelta;//TODO: consider replacing now with the old time.
+                        nextRequestWhenInternal = now + minReqDelta;//TODO: consider replacing now with the old time.
                         break;
                     }
                 }

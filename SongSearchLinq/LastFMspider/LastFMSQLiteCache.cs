@@ -28,7 +28,6 @@ CREATE UNIQUE INDEX  IF NOT EXISTS [Unique_Artist_LowercaseArtist] ON [Artist](
 );
 
 
-
 CREATE TABLE IF NOT EXISTS  [Track] (
   [TrackID] INTEGER  NOT NULL PRIMARY KEY,
   [ArtistID] INTEGER  NOT NULL,
@@ -43,8 +42,6 @@ CREATE UNIQUE INDEX IF NOT EXISTS [Unique_Track_ArtistID_LowercaseTitle] ON [Tra
 CREATE INDEX IF NOT EXISTS [IDX_Track_LookupTimestamp] ON [Track](
   [LookupTimestamp]  ASC
 );
-
-
 
 CREATE TABLE IF NOT EXISTS [SimilarTrack] (
   [SimilarTrackID] INTEGER  NOT NULL PRIMARY KEY,
@@ -64,6 +61,48 @@ CREATE INDEX  IF NOT EXISTS [IDX_SimilarTrack_Rating] ON [SimilarTrack](
 );
 
 
+CREATE TABLE [SimilarArtist] (
+[SimilarArtistID] INTEGER  NOT NULL PRIMARY KEY,
+[ArtistA] INTEGER  NOT NULL,
+[ArtistB] INTEGER  NOT NULL,
+[Rating] REAL NOT NULL,
+[LookupTimestamp] INTEGER NOT NULL,
+);
+CREATE UNIQUE INDEX  IF NOT EXISTS [Unique_SimilarArtist_ArtistA_ArtistB] ON [SimilarArtist](
+  [ArtistA]  ASC,
+  [ArtistB]  ASC
+);
+CREATE INDEX  IF NOT EXISTS [IDX_SimilarArtist_ArtistB] ON [SimilarArtist](
+  [ArtistB]  ASC
+);
+CREATE INDEX  IF NOT EXISTS [IDX_SimilarArtist_Rating] ON [SimilarArtist](
+  [Rating]  DESC
+);
+CREATE INDEX IF NOT EXISTS [IDX_SimilarArtist_LookupTimestamp] ON [SimilarArtist](
+  [LookupTimestamp]  DESC
+);
+
+
+CREATE TABLE [TopTracks] (
+[TrackID] INTEGER  NOT NULL PRIMARY KEY,
+[ArtistID] INTEGER  NOT NULL,
+[Reach] REAL NOT NULL,
+[LookupTimestamp] INTEGER NOT NULL,
+);
+CREATE UNIQUE INDEX  IF NOT EXISTS [Unique_TopTracks_ArtistID_TrackID] ON [TopTracks](
+  [ArtistID]  ASC,
+  [TrackID]  ASC
+);
+CREATE INDEX  IF NOT EXISTS [IDX_TopTracks_LookupTimestamp] ON [TopTracks](
+  [LookupTimestamp]  DESC
+);
+CREATE INDEX  IF NOT EXISTS [IDX_TopTracks_Reach] ON [TopTracks](
+  [Reach]  DESC
+);
+
+
+
+
 
 CREATE TABLE IF NOT EXISTS  [Tag] (
   [TagID] INTEGER NOT NULL PRIMARY KEY,
@@ -72,8 +111,6 @@ CREATE TABLE IF NOT EXISTS  [Tag] (
 CREATE UNIQUE INDEX  IF NOT EXISTS [Unique_Tag_LowercaseTag] ON [Tag](
   [LowercaseTag]  ASC
 );
-
-
 
 CREATE TABLE IF NOT EXISTS  [TrackTag] (
   [TrackTagID] INTEGER NOT NULL PRIMARY KEY,
