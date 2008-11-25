@@ -46,6 +46,17 @@ public partial class _Default : System.Web.UI.Page
         base.OnUnload(e);
         LoadStuff();
         songs = null;
+        if (unknownSongs != null) {
+            var backingDB = man.Tools.SimilarSongs.backingDB;
+            try {
+                using (var trans = backingDB.Connection.BeginTransaction()) {
+                    foreach (var songref in unknownSongs.SelectMany(unknownSong => LoadM3U.PossibleSongRefs(unknownSong)))
+                        backingDB.InsertTrack.Execute(songref);
+                }
+            }catch {
+                //if this fails, it's no biggy.  potentially, we should log it though... don't know how, though...
+            }
+        }
         unknownSongs = null;
 
     }

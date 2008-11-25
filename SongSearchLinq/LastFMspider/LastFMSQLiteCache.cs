@@ -61,12 +61,12 @@ CREATE INDEX  IF NOT EXISTS [IDX_SimilarTrack_Rating] ON [SimilarTrack](
 );
 
 
-CREATE TABLE [SimilarArtist] (
+CREATE TABLE IF NOT EXISTS [SimilarArtist] (
 [SimilarArtistID] INTEGER  NOT NULL PRIMARY KEY,
 [ArtistA] INTEGER  NOT NULL,
 [ArtistB] INTEGER  NOT NULL,
 [Rating] REAL NOT NULL,
-[LookupTimestamp] INTEGER NOT NULL,
+[LookupTimestamp] INTEGER NOT NULL
 );
 CREATE UNIQUE INDEX  IF NOT EXISTS [Unique_SimilarArtist_ArtistA_ArtistB] ON [SimilarArtist](
   [ArtistA]  ASC,
@@ -83,11 +83,11 @@ CREATE INDEX IF NOT EXISTS [IDX_SimilarArtist_LookupTimestamp] ON [SimilarArtist
 );
 
 
-CREATE TABLE [TopTracks] (
+CREATE TABLE IF NOT EXISTS [TopTracks] (
 [TrackID] INTEGER  NOT NULL PRIMARY KEY,
 [ArtistID] INTEGER  NOT NULL,
 [Reach] REAL NOT NULL,
-[LookupTimestamp] INTEGER NOT NULL,
+[LookupTimestamp] INTEGER NOT NULL
 );
 CREATE UNIQUE INDEX  IF NOT EXISTS [Unique_TopTracks_ArtistID_TrackID] ON [TopTracks](
   [ArtistID]  ASC,

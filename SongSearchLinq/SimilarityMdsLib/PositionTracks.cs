@@ -94,6 +94,7 @@ namespace SimilarityMdsLib
         public string HumanLabel { get; private set; }
         public SongNotFound(string humanlabel) { HumanLabel = humanlabel; }
         public void ComputeDenseId(TrackMapper mapper) { }
+        public IEnumerable<SongRef> PossibleSongRefs { get { return LoadM3U.PossibleSongRefs(HumanLabel); } }
     }
 
     public class SongWithId : ISongInPlaylist
@@ -131,6 +132,7 @@ namespace SimilarityMdsLib
         static ISongInPlaylist GuessSongRef(string humanlabel, LastFmTools tools) {
             foreach (var songref in PossibleSongRefs(humanlabel)) {
                 int? retval = tools.SimilarSongs.backingDB.LookupTrackID.Execute(songref);
+                //TODO: really, should prefer not just in-DB songs, but songs with simLists.
                 if (retval != null) {
                     return new SongWithId(retval.Value, songref);
                 }
@@ -138,7 +140,7 @@ namespace SimilarityMdsLib
             return new SongNotFound(humanlabel);
         }
 
-        static IEnumerable<SongRef> PossibleSongRefs(string humanlabel) {
+        public static IEnumerable<SongRef> PossibleSongRefs(string humanlabel) {
             int idxFound = -1;
             while (true) {
                 idxFound = humanlabel.IndexOf(" - ", idxFound + 1);
