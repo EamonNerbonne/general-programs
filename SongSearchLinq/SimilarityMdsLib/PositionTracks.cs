@@ -119,25 +119,28 @@ namespace SimilarityMdsLib
     {
 
         public static IEnumerable< ISongInPlaylist> LoadPlaylistFromM3U(Stream m3uStream, LastFmTools tools) {
-            return LoadExtM3U(m3uStream).Select(psd=>GuessSongRef(psd.HumanLabel,tools));
+            return LoadExtM3U(m3uStream).SelectMany(psd=>GuessSongRef(psd.HumanLabel,tools));
         }
         public static IEnumerable<ISongInPlaylist> LoadPlaylistFromTextBlock(string text, LastFmTools tools) {
             return 
                 text.Split(new[]{'\n'})
                 .Select(s=>s.Trim())
                 .Where(s=>s.Length>1)
-                .Select(humanlabel => GuessSongRef(humanlabel,tools));
+                .SelectMany(humanlabel => GuessSongRef(humanlabel,tools));
         }
 
-        static ISongInPlaylist GuessSongRef(string humanlabel, LastFmTools tools) {
+        static IEnumerable<ISongInPlaylist> GuessSongRef(string humanlabel, LastFmTools tools) {
+            bool foundOne = false;
             foreach (var songref in PossibleSongRefs(humanlabel)) {
                 int? retval = tools.SimilarSongs.backingDB.LookupTrackID.Execute(songref);
                 //TODO: really, should prefer not just in-DB songs, but songs with simLists.
                 if (retval != null) {
-                    return new SongWithId(retval.Value, songref);
+                    foundOne = true;
+                    yield return new SongWithId(retval.Value, songref);
                 }
             }
-            return new SongNotFound(humanlabel);
+            if(!foundOne)
+            yield return new SongNotFound(humanlabel);
         }
 
         public static IEnumerable<SongRef> PossibleSongRefs(string humanlabel) {

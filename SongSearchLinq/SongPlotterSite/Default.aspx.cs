@@ -12,11 +12,25 @@ using System.Windows;
 public partial class _Default : System.Web.UI.Page
 {
     public static object syncroot = new object();
-    public static EmbeddingManager man;
+    public static MdsResults mds;
+    [ThreadStatic]
+    public static LastFmTools tools; //this is thread static due to Sqlite restrictions.
     void LoadStuff() {
         lock (syncroot)
-            if (man == null)
-                man = new EmbeddingManager();
+            if (tools == null)
+                tools = new LastFmTools(new SongDataLib.SongDatabaseConfigFile(false));
+        if (mds == null) {
+            mds = MdsResults.LoadResults(new MdsEngine.FormatAndOptions {
+                Format = SimilarityFormat.AvgRank2,
+                Options = new MdsEngine.Options {
+                    NGenerations = 140,
+                    LearnRate = 2.0,
+                    StartAnnealingWhen = 0.0,
+                    PointUpdateStyle = 1,
+                    Dimensions = 2,
+                }
+            }, new SimCacheManager(SimilarityFormat.LastFmRating, tools, DataSetType.Training));
+        }
     }
     PositionedSong[] songs = null;
     protected string[] unknownSongs = null;
@@ -25,12 +39,12 @@ public partial class _Default : System.Web.UI.Page
         LoadStuff();
 
         //so this is a postback.
-        var playlist = LoadM3U.LoadPlaylistFromTextBlock(this.TextBox1.Text, man.Tools);
+        var playlist = LoadM3U.LoadPlaylistFromTextBlock(this.TextBox1.Text, tools);
         if (FileUpload1.HasFile)
-            playlist = playlist.Concat(LoadM3U.LoadPlaylistFromM3U(this.FileUpload1.FileContent, man.Tools));
+            playlist = playlist.Concat(LoadM3U.LoadPlaylistFromM3U(this.FileUpload1.FileContent, tools));
 
         //using (var m3ustream = File.OpenRead(openDialog.FileName)) {
-        PositionedTracks.PositionSongs(playlist, man.Mds, out songs, out unknownSongs);
+        PositionedTracks.PositionSongs(playlist, mds, out songs, out unknownSongs);
         if (unknownSongs.Length == 0) unknownSongs = null;
         TextBox1.Text = string.Join("\n" ,songs.Select(song => song.Song.ToString()).ToArray());
         if (unknownSongs != null)
@@ -47,7 +61,7 @@ public partial class _Default : System.Web.UI.Page
         LoadStuff();
         songs = null;
         if (unknownSongs != null) {
-            var backingDB = man.Tools.SimilarSongs.backingDB;
+            var backingDB = tools.SimilarSongs.backingDB;
             try {
                 using (var trans = backingDB.Connection.BeginTransaction()) {
                     foreach (var songref in unknownSongs.SelectMany(unknownSong => LoadM3U.PossibleSongRefs(unknownSong)))
