@@ -113,8 +113,6 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="EmbeddingManager.cs" />
-    <Compile Include="PositionTracks.cs" />
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -142,10 +140,6 @@
     <AppDesigner Include="Properties\" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\EmnExtensionsWpf\EmnExtensionsWpf.csproj">
-      <Project>{1CDECDDA-5CCA-4CA9-8243-60106CD7B428}</Project>
-      <Name>EmnExtensionsWpf</Name>
-    </ProjectReference>
     <ProjectReference Include="..\..\..\EmnExtensions\EmnExtensions.csproj">
       <Project>{53ECEDA4-BB11-4BD3-8B51-0D3481FCBFA1}</Project>
       <Name>EmnExtensions</Name>

@@ -10,7 +10,7 @@ using System.Windows;
 using EmnExtensions;
 using System.Windows.Media;
 
-namespace LastFmMdsDisplay
+namespace SimilarityMdsLib
 {
     public class PositionedSong
     {

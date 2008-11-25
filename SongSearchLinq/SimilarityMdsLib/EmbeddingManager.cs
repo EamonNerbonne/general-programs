@@ -6,7 +6,7 @@ using SimilarityMdsLib;
 using LastFMspider;
 using SongDataLib;
 
-namespace LastFmMdsDisplay
+namespace SimilarityMdsLib
 {
     public class EmbeddingManager
     {
