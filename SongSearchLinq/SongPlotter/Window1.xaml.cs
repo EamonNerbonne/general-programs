@@ -14,6 +14,7 @@ using System.Windows.Shapes;
 using LastFmMdsDisplay;
 using Microsoft.Win32;
 using System.IO;
+using SimilarityMdsLib;
 
 namespace SongPlotter
 {
