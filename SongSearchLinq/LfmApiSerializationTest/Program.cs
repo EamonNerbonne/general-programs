@@ -8,6 +8,7 @@ using System.IO;
 using System.Xml.Serialization;
 using LastFMspider.LfmApi;
 using System.Xml;
+using LastFMspider.OldApi;
 namespace LfmApiSerializationTest
 {
     class Program
@@ -16,6 +17,8 @@ namespace LfmApiSerializationTest
             FileInfo getsimilarFI = new FileInfo(@"C:\Users\Eamon\eamonhome\docs-trunk\VS.NET2008\SongSpider\LastFMspider\track.getsimilar.xml");
             FileInfo getinfoFI = new FileInfo(@"C:\Users\Eamon\eamonhome\docs-trunk\VS.NET2008\SongSpider\LastFMspider\track.getinfo.xml");
             FileInfo gettoptagsFI = new FileInfo(@"C:\Users\Eamon\eamonhome\docs-trunk\VS.NET2008\SongSpider\LastFMspider\track.gettoptags.xml");
+            FileInfo toptracksFI = new FileInfo(@"C:\Users\Eamon\eamonhome\docs-trunk\VS.NET2008\SongSpider\LastFMspider\old.artist.toptracks.xml");
+//            XmlSerializer serializerOTT = ApiArtistTopTracks.MakeSerializer();
             XmlSerializer serializerTT = ApiTrackGetTopTags.MakeSerializer();
             XmlSerializer serializerST = ApiTrackGetSimilar.MakeSerializer();
             XmlSerializer serializerTI = ApiTrackGetInfo.MakeSerializer();
@@ -33,8 +36,9 @@ namespace LfmApiSerializationTest
             o = serializerTI.Deserialize(getinfoFI.OpenRead());
             serializerTI.Serialize(Console.Out, o);
             Console.ReadKey();*/
-            var toptags=ApiClient.Track.GetTopTags("Madonna", "Borderline");
-            serializerTT.Serialize(Console.Out, toptags);
+          //  var toptags=ApiClient.Track.GetTopTags("Madonna", "Borderline");
+            var toptracks = OldApiClient.Artist.GetSimilarArtists("Metallica");
+            toptracks.SerializeTo(Console.Out );
             Console.ReadKey();
         }
     }

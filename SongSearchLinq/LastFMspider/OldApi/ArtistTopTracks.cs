@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Xml.Serialization;
+using EmnExtensions;
 
 namespace LastFMspider.OldApi
 {
@@ -14,10 +15,14 @@ namespace LastFMspider.OldApi
         public string url;
     }
 
-        [XmlRoot("similartists")]
-    public class ApiArtistTopTracks
+    [XmlRoot("mostknowntracks")]
+    public class ApiArtistTopTracks : XmlSerializableBase<ApiArtistTopTracks>
     {
+            [XmlAttribute]
             public string artist;
+            [XmlElement("track")]
             public ArtistTopTracks[] track;
+
+
     }
 }

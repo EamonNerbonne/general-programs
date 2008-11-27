@@ -4,6 +4,8 @@ using System.Linq;
 using System.Text;
 using EmnExtensions.Web;
 using System.Xml;
+using System.IO;
+using EmnExtensions;
 
 namespace LastFMspider.OldApi
 {
@@ -46,7 +48,20 @@ namespace LastFMspider.OldApi
 
 
 
+        public static class Artist
+        {
+            public static ApiArtistTopTracks GetTopTracks(string artist) {
+                var req=MakeUriRequest("artist", "toptracks", artist);
+                var xmlReader = XmlReader.Create(new StringReader(req.ContentAsString));
+                return XmlSerializableBase<ApiArtistTopTracks>.Deserialize(xmlReader);
+            }
+            public static ApiArtistSimilarArtists GetSimilarArtists(string artist) {
+                var req = MakeUriRequest("artist", "similar", artist);
+                var xmlReader = XmlReader.Create(new StringReader(req.ContentAsString));
+                return XmlSerializableBase<ApiArtistSimilarArtists>.Deserialize(xmlReader);
 
+            }
+        }
     }
 }
 

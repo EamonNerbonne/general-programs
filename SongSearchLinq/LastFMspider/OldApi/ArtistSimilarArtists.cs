@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Xml.Serialization;
+using EmnExtensions;
 
 namespace LastFMspider.OldApi
 {
@@ -17,8 +18,8 @@ namespace LastFMspider.OldApi
         public int streamable;
     }
 
-    [XmlRoot("similartists")]
-    public class ApiArtistSimilarArtists
+    [XmlRoot("similarartists")]
+    public class ApiArtistSimilarArtists: XmlSerializableBase<ApiArtistSimilarArtists>
     {
         [XmlAttribute("artist")]
         public string artistName;
@@ -29,6 +30,8 @@ namespace LastFMspider.OldApi
         [XmlAttribute]
         public string mbid;
 
+        [XmlElement("artist")]
         public ArtistSimilarArtists[] artist;
+
     }
 }
