@@ -43,6 +43,8 @@ CREATE INDEX IF NOT EXISTS [IDX_Track_LookupTimestamp] ON [Track](
   [LookupTimestamp]  ASC
 );
 
+
+
 CREATE TABLE IF NOT EXISTS [SimilarTrack] (
   [SimilarTrackID] INTEGER  NOT NULL PRIMARY KEY,
   [TrackA] INTEGER  NOT NULL,
@@ -61,15 +63,30 @@ CREATE INDEX  IF NOT EXISTS [IDX_SimilarTrack_Rating] ON [SimilarTrack](
 );
 
 
-CREATE TABLE IF NOT EXISTS [SimilarArtist] (
-[SimilarArtistID] INTEGER  NOT NULL PRIMARY KEY,
-[ArtistA] INTEGER  NOT NULL,
-[ArtistB] INTEGER  NOT NULL,
-[Rating] REAL NOT NULL,
+
+CREATE TABLE IF NOT EXISTS [SimilarArtistList] (
+[ListID] INTEGER NOT NULL PRIMARY KEY,
+[ArtistID] INTEGER  NOT NULL,
 [LookupTimestamp] INTEGER NOT NULL
 );
+CREATE UNIQUE INDEX  IF NOT EXISTS [Unique_SimilarArtistList_ArtistID_LookupTimestamp] ON [SimilarArtistList](
+  [ArtistID]  ASC,
+  [LookupTimestamp]  DESC
+);
+CREATE INDEX IF NOT EXISTS [IDX_SimilarArtistList_LookupTimestamp] ON [SimilarArtistList](
+  [LookupTimestamp]  ASC
+);
+
+
+
+CREATE TABLE IF NOT EXISTS [SimilarArtist] (
+[SimilarArtistID] INTEGER  NOT NULL PRIMARY KEY,
+[ListID] INTEGER  NOT NULL,
+[ArtistB] INTEGER  NOT NULL,
+[Rating] REAL NOT NULL
+);
 CREATE UNIQUE INDEX  IF NOT EXISTS [Unique_SimilarArtist_ArtistA_ArtistB] ON [SimilarArtist](
-  [ArtistA]  ASC,
+  [ListID]  ASC,
   [ArtistB]  ASC
 );
 CREATE INDEX  IF NOT EXISTS [IDX_SimilarArtist_ArtistB] ON [SimilarArtist](
@@ -78,23 +95,35 @@ CREATE INDEX  IF NOT EXISTS [IDX_SimilarArtist_ArtistB] ON [SimilarArtist](
 CREATE INDEX  IF NOT EXISTS [IDX_SimilarArtist_Rating] ON [SimilarArtist](
   [Rating]  DESC
 );
-CREATE INDEX IF NOT EXISTS [IDX_SimilarArtist_LookupTimestamp] ON [SimilarArtist](
+
+
+
+CREATE TABLE IF NOT EXISTS [TopTracksList] (
+[ListID] INTEGER NOT NULL PRIMARY KEY,
+[ArtistID] INTEGER  NOT NULL,
+[LookupTimestamp] INTEGER NOT NULL
+);
+CREATE UNIQUE INDEX  IF NOT EXISTS [Unique_TopTracksList_ArtistID_LookupTimestamp] ON [TopTracksList](
+  [ArtistID]  ASC,
   [LookupTimestamp]  DESC
+);
+CREATE INDEX IF NOT EXISTS [IDX_TopTracksList_LookupTimestamp] ON [TopTracksList](
+  [LookupTimestamp]  ASC
 );
 
 
 CREATE TABLE IF NOT EXISTS [TopTracks] (
-[TrackID] INTEGER  NOT NULL PRIMARY KEY,
-[ArtistID] INTEGER  NOT NULL,
-[Reach] REAL NOT NULL,
-[LookupTimestamp] INTEGER NOT NULL
+[TopTrackID] INTEGER NOT NULL PRIMARY KEY,
+[TrackID] INTEGER  NOT NULL,
+[ListID] INTEGER  NOT NULL,
+[Reach] INTEGER NOT NULL
 );
-CREATE UNIQUE INDEX  IF NOT EXISTS [Unique_TopTracks_ArtistID_TrackID] ON [TopTracks](
-  [ArtistID]  ASC,
+CREATE UNIQUE INDEX  IF NOT EXISTS [Unique_TopTracks_ListID_TrackID] ON [TopTracks](
+  [ListID]  ASC,
   [TrackID]  ASC
 );
-CREATE INDEX  IF NOT EXISTS [IDX_TopTracks_LookupTimestamp] ON [TopTracks](
-  [LookupTimestamp]  DESC
+CREATE INDEX  IF NOT EXISTS [IDX_TopTracks_TrackID] ON [TopTracks](
+  [TrackID]  DESC
 );
 CREATE INDEX  IF NOT EXISTS [IDX_TopTracks_Reach] ON [TopTracks](
   [Reach]  DESC
@@ -182,6 +211,7 @@ CREATE INDEX  IF NOT EXISTS [IDX_TrackInfo_Playcount] ON [TrackInfo](
         public CountSimilarities CountSimilarities { get; private set; }
         public CountRoughSimilarities CountRoughSimilarities { get; private set; }
         public AllTracks AllTracks { get; private set; }
+        public TracksWithoutSimilarityList TracksWithoutSimilarityList { get; private set; }
         public RawArtists RawArtists { get; private set; }
         public RawTracks RawTracks { get; private set; }
         public RawTags RawTags { get; private set; }
@@ -193,7 +223,17 @@ CREATE INDEX  IF NOT EXISTS [IDX_TrackInfo_Playcount] ON [TrackInfo](
         public DeleteTagging DeleteTagging { get; private set; }
         public UpdateTrackCasing UpdateTrackCasing { get; private set; }
         public RawSimilarTracks RawSimilarTracks { get; private set; }
-        //public LookupSimilarityListAge LookupSimilarityListAge { get; private set; }
+        public LookupArtistSimilarityList LookupArtistSimilarityList { get; private set; }
+        public LookupArtistSimilarityListAge LookupArtistSimilarityListAge { get; private set; }
+        public InsertArtistSimilarity InsertArtistSimilarity { get; private set; }
+        public InsertArtistSimilarityList InsertArtistSimilarityList { get; private set; }
+        public ArtistsWithoutSimilarityList ArtistsWithoutSimilarityList { get; private set; }
+        public ArtistsWithoutTopTracksList ArtistsWithoutTopTracksList { get; private set; }
+        public LookupArtistTopTracksListAge LookupArtistTopTracksListAge { get; private set; }
+        public LookupArtistTopTracksList LookupArtistTopTracksList { get; private set; }
+        public InsertArtistTopTrack InsertArtistTopTrack { get; private set; }
+        public InsertArtistTopTracksList InsertArtistTopTracksList { get; private set; }
+
         public LastFMSQLiteCache(FileInfo sqliteFile) { dbFile = sqliteFile; Init(); }
 
 
@@ -245,6 +285,17 @@ CREATE INDEX  IF NOT EXISTS [IDX_TrackInfo_Playcount] ON [TrackInfo](
             DeleteTag = new DeleteTag(this);
             UpdateTrackCasing = new UpdateTrackCasing(this);
             RawSimilarTracks = new RawSimilarTracks(this);
+            TracksWithoutSimilarityList = new TracksWithoutSimilarityList(this);
+            LookupArtistSimilarityListAge = new LookupArtistSimilarityListAge(this);
+            LookupArtistSimilarityList = new LookupArtistSimilarityList(this);
+            InsertArtistSimilarityList = new InsertArtistSimilarityList(this);
+            InsertArtistSimilarity = new InsertArtistSimilarity(this);
+            ArtistsWithoutSimilarityList = new ArtistsWithoutSimilarityList(this);
+            ArtistsWithoutTopTracksList = new ArtistsWithoutTopTracksList(this);
+            LookupArtistTopTracksListAge = new LookupArtistTopTracksListAge(this);
+            LookupArtistTopTracksList = new LookupArtistTopTracksList(this);
+            InsertArtistTopTrack = new InsertArtistTopTrack(this);
+            InsertArtistTopTracksList = new InsertArtistTopTracksList(this);
         }
 
 

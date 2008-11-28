@@ -31,6 +31,7 @@ SELECT S.Rating, A.FullArtist, T.FullTitle FROM
 
         public SongSimilarityList Execute(SongRef songref) {
             DateTime? age = lfmCache.LookupSimilarityListAge.Execute(songref);
+            
             if (age == null) return null;
             lowerArtist.Value = songref.Artist.ToLowerInvariant();
             lowerTitle.Value = songref.Title.ToLowerInvariant();

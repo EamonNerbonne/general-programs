@@ -127,9 +127,15 @@
     <Compile Include="LastFMSQLiteBackend\AbstractLfmCacheOperation.cs" />
     <Compile Include="LastFMSQLiteBackend\AbstractLfmCacheQuery.cs" />
     <Compile Include="LastFMSQLiteBackend\AllTracks.cs" />
+    <Compile Include="LastFMSQLiteBackend\ArtistsWithoutSimilarityList.cs" />
+    <Compile Include="LastFMSQLiteBackend\ArtistsWithoutTopTracksList.cs" />
     <Compile Include="LastFMSQLiteBackend\CountRoughtSimilarities.cs" />
     <Compile Include="LastFMSQLiteBackend\DeleteTag.cs" />
     <Compile Include="LastFMSQLiteBackend\DeleteTagging.cs" />
+    <Compile Include="LastFMSQLiteBackend\InsertArtistSimilarity.cs" />
+    <Compile Include="LastFMSQLiteBackend\InsertArtistSimilarityList.cs" />
+    <Compile Include="LastFMSQLiteBackend\InsertArtistTopTrack.cs" />
+    <Compile Include="LastFMSQLiteBackend\InsertArtistTopTracksList.cs" />
     <Compile Include="LastFMSQLiteBackend\InsertTag.cs" />
     <Compile Include="LastFMSQLiteBackend\CountSimilarities.cs" />
     <Compile Include="LastFMSQLiteBackend\DeleteArtist.cs" />
@@ -141,6 +147,10 @@
     <Compile Include="LastFMSQLiteBackend\InsertTagging.cs" />
     <Compile Include="LastFMSQLiteBackend\InsertTrack.cs" />
     <Compile Include="LastFMSQLiteBackend\InsertTrackInfo.cs" />
+    <Compile Include="LastFMSQLiteBackend\LookupArtistSimilarityList.cs" />
+    <Compile Include="LastFMSQLiteBackend\LookupArtistSimilarityListAge.cs" />
+    <Compile Include="LastFMSQLiteBackend\LookupArtistTopTracksList.cs" />
+    <Compile Include="LastFMSQLiteBackend\LookupArtistTopTracksListAge.cs" />
     <Compile Include="LastFMSQLiteBackend\LookupReverseSimilarityList.cs" />
     <Compile Include="LastFMSQLiteBackend\LookupSimilarityList.cs" />
     <Compile Include="LastFMSQLiteBackend\LookupSimilarityListAge.cs" />
@@ -151,6 +161,7 @@
     <Compile Include="LastFMSQLiteBackend\RawSimilarTracks.cs" />
     <Compile Include="LastFMSQLiteBackend\RawTags.cs" />
     <Compile Include="LastFMSQLiteBackend\RawTracks.cs" />
+    <Compile Include="LastFMSQLiteBackend\TracksWithoutSimilarityList.cs" />
     <Compile Include="LastFMSQLiteBackend\UpdateArtist.cs" />
     <Compile Include="LastFMSQLiteBackend\UpdateTrack.cs" />
     <Compile Include="LastFMSQLiteBackend\UpdateTrackCasing.cs" />

@@ -6,6 +6,7 @@ using EmnExtensions.Web;
 using System.Xml;
 using System.IO;
 using EmnExtensions;
+using System.Net;
 
 namespace LastFMspider.OldApi
 {
@@ -36,9 +37,9 @@ namespace LastFMspider.OldApi
 
 
         const string baseApiUrl = "http://ws.audioscrobbler.com/1.0/";
-
+        //TODO:double-escape data strings!!! LFM bug.
         public static Uri MakeUri(string category, string method, params string[] otherParams) {
-            return new Uri(baseApiUrl + category + "/" + string.Join("", otherParams.Select(s => Uri.EscapeDataString(s) + "/").ToArray()) + method + ".xml");
+            return new Uri(baseApiUrl + category + "/" + string.Join("", otherParams.Select(s => Uri.EscapeDataString(Uri.EscapeDataString(s)) + "/").ToArray()) + method + ".xml");
         }
 
         public static UriRequest MakeUriRequest(string category, string method, params string[] otherParams) {
@@ -51,14 +52,30 @@ namespace LastFMspider.OldApi
         public static class Artist
         {
             public static ApiArtistTopTracks GetTopTracks(string artist) {
-                var req=MakeUriRequest("artist", "toptracks", artist);
-                var xmlReader = XmlReader.Create(new StringReader(req.ContentAsString));
-                return XmlSerializableBase<ApiArtistTopTracks>.Deserialize(xmlReader);
+                try {
+                    var req = MakeUriRequest("artist", "toptracks", artist);
+                    var xmlReader = XmlReader.Create(new StringReader(req.ContentAsString));
+                    return XmlSerializableBase<ApiArtistTopTracks>.Deserialize(xmlReader);
+                } catch (WebException we) { //if for some reason the server ain't happy...
+                    HttpWebResponse wr = we.Response as HttpWebResponse;
+                    if (wr.StatusCode == HttpStatusCode.NotFound)
+                        return null;
+                    else
+                        throw;
+                }
             }
             public static ApiArtistSimilarArtists GetSimilarArtists(string artist) {
-                var req = MakeUriRequest("artist", "similar", artist);
-                var xmlReader = XmlReader.Create(new StringReader(req.ContentAsString));
-                return XmlSerializableBase<ApiArtistSimilarArtists>.Deserialize(xmlReader);
+                try {
+                    var req = MakeUriRequest("artist", "similar", artist);
+                    var xmlReader = XmlReader.Create(new StringReader(req.ContentAsString));
+                    return XmlSerializableBase<ApiArtistSimilarArtists>.Deserialize(xmlReader);
+                } catch (WebException we) { //if for some reason the server ain't happy...
+                    HttpWebResponse wr = we.Response as HttpWebResponse;
+                    if (wr.StatusCode == HttpStatusCode.NotFound)
+                        return null;
+                    else
+                        throw;
+                }
 
             }
         }

@@ -6,6 +6,7 @@ using SongDataLib;
 using System.IO;
 using EmnExtensions.Algorithms;
 using LastFMspider.LastFMSQLiteBackend;
+using LastFMspider.OldApi;
 namespace LastFMspider
 {
     public class LastFmTools
@@ -109,7 +110,7 @@ namespace LastFMspider
         }
 
 
-        public void PrecacheSongSimilarity() {
+        public void PrecacheSongSimilarity() { //TODO: redo this function like PrecacheArtistSimilarity for better robustness in the face of 404's and Url-encoding...
             var stats = SimilarSongs.LookupDbStats();
 
             Console.WriteLine("Found {0} songs which don't have similarity stats.", stats.Length, stats.Where(s => s.LookupTimestamp != null).Count());
@@ -117,7 +118,7 @@ namespace LastFMspider
             //Array.Sort(stats, (a, b) => b.TimesReferenced.CompareTo(a.TimesReferenced));
             Console.WriteLine("Showing a few...");
 
-            var tolookup = new HashSet<SongRef>( stats.Select(stat => stat.SongRef));
+            var tolookup = new HashSet<SongRef>(stats.Select(stat => stat.SongRef));
             stats = null;
 
             while (tolookup.Count > 0) {
@@ -142,6 +143,94 @@ namespace LastFMspider
 
 
         }
+        private static IEnumerable<T> DeNull<T>(IEnumerable<T> iter) { return iter == null ? Enumerable.Empty<T>() : iter; }
+
+        public void PrecacheArtistSimilarity() {
+            var artistsToGo = SimilarSongs.backingDB.ArtistsWithoutSimilarityList.Execute(-1);
+#if !DEBUG
+            artistsToGo.Shuffle();
+#endif
+            Console.WriteLine("Looking up similarities for {0} artists...", artistsToGo.Length);
+            foreach (var artist in artistsToGo) {
+                try {
+                    Console.Write("SimTo:{0,-30}", artist.ArtistName.Substring(0,Math.Min(artist.ArtistName.Length,30)));
+                    DateTime? previousAge = SimilarSongs.backingDB.LookupArtistSimilarityListAge.Execute(artist.ArtistName);
+                    if (previousAge != null) {
+                        Console.WriteLine("done.");
+                        continue;
+                    }
+
+                    ApiArtistSimilarArtists simArtists = OldApiClient.Artist.GetSimilarArtists(artist.ArtistName);
+                    var newEntry = simArtists == null
+                        ? new ArtistSimilarityList {//represents 404 Not Found
+                            Artist = artist.ArtistName,
+                            LookupTimestamp = DateTime.UtcNow,
+                            Similar = new SimilarArtist[] { }
+                        }
+                        : new ArtistSimilarityList {
+                            Artist = simArtists.artistName,
+                            LookupTimestamp = DateTime.UtcNow,
+                            Similar = DeNull(simArtists.artist).Select(simArtist => new SimilarArtist {
+                                Artist = simArtist.name,
+                                Rating = simArtist.match,
+                            }).ToArray(),
+                        };
+                    Console.Write("={0,3} ", newEntry.Similar.Length);
+                    if(newEntry.Similar.Length>0)
+                        Console.Write("{1}: {0}", newEntry.Similar[0].Artist.Substring(0, Math.Min(newEntry.Similar[0].Artist.Length, 30)), newEntry.Similar[0].Rating);
+
+                    SimilarSongs.backingDB.InsertArtistSimilarityList.Execute(newEntry);
+                    Console.WriteLine(".");
+                } catch (Exception e) {
+                    Console.WriteLine("{0}", e);
+                }
+            }
+        }
+
+
+        public void PrecacheArtistTopTracks() {
+            var artistsToGo = SimilarSongs.backingDB.ArtistsWithoutTopTracksList.Execute(100);
+#if !DEBUG
+            artistsToGo.Shuffle();
+#endif
+            Console.WriteLine("Looking up top-tracks for {0} artists...", artistsToGo.Length);
+
+            foreach (var artist in artistsToGo) {
+                try {
+                    Console.Write("TopOf:{0,-30}", artist.ArtistName.Substring(0, Math.Min(artist.ArtistName.Length, 30)));
+                    DateTime? previousAge = SimilarSongs.backingDB.LookupArtistTopTracksListAge.Execute(artist.ArtistName);
+                    if (previousAge != null) {
+                        Console.WriteLine("done.");
+                        continue;
+                    }
+                    ApiArtistTopTracks artistTopTracks = OldApiClient.Artist.GetTopTracks(artist.ArtistName);
+                    var newEntry= artistTopTracks == null
+                        ?new ArtistTopTracksList {//represents 404 Not Found
+                            Artist = artist.ArtistName,
+                            LookupTimestamp = DateTime.UtcNow,
+                            TopTracks =  new ArtistTopTrack[0],
+                        }
+                        :new ArtistTopTracksList {
+                            Artist = artistTopTracks.artist,
+                            LookupTimestamp = DateTime.UtcNow,
+                            TopTracks = DeNull(artistTopTracks.track).Select(toptrack => new ArtistTopTrack {
+                                Track = toptrack.name,
+                                Reach = toptrack.reach,
+                            }).ToArray(),
+                        };
+                    Console.Write("={0,3} ", newEntry.TopTracks.Length);
+                    if (newEntry.TopTracks.Length > 0)
+                        Console.Write("{1}: {0}", newEntry.TopTracks[0].Track.Substring(0, Math.Min(newEntry.TopTracks[0].Track.Length, 30)), newEntry.TopTracks[0].Reach);
+
+
+                    SimilarSongs.backingDB.InsertArtistTopTracksList.Execute(newEntry);
+                } catch (Exception e) {
+                    Console.WriteLine("{0}", e);
+                }
+            }
+        }
+
+
         public void PrecacheSongTags() {
             Console.WriteLine("Loading songs...");
             CachedTrack[] tracks = SimilarSongs.backingDB.AllTracks.Execute();
@@ -158,6 +247,7 @@ namespace LastFMspider
                 }
             }*/
         }
+
 
 
 

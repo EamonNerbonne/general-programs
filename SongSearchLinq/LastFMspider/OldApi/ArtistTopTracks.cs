@@ -11,7 +11,7 @@ namespace LastFMspider.OldApi
     {
         public string name;
         public string mbid;//always empty??
-        public int reach;
+        public long reach;
         public string url;
     }
 
@@ -22,7 +22,5 @@ namespace LastFMspider.OldApi
             public string artist;
             [XmlElement("track")]
             public ArtistTopTracks[] track;
-
-
     }
 }
