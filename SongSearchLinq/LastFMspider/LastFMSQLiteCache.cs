@@ -15,7 +15,7 @@ namespace LastFMspider {
         //rating is stored as a REAL which is a float in C#.
 
         const string DataProvider = "System.Data.SQLite";
-        const string DataConnectionString = "page size=4096;cache size=65536;datetimeformat=Ticks;Legacy Format=False;Synchronous=N;data source=\"{0}\"";
+        const string DataConnectionString = "page size=4096;cache size=1048576;datetimeformat=Ticks;Legacy Format=False;Synchronous=N;data source=\"{0}\"";
         const string EdmConnectionString = "metadata=res://*/EDM.LfmSqliteEdm.csdl|res://*/EDM.LfmSqliteEdm.ssdl|res://*/EDM.LfmSqliteEdm.msl;provider=System.Data.SQLite;provider connection string='{0}'";
         const string DatabaseDef = @"
 CREATE TABLE IF NOT EXISTS [Artist] (

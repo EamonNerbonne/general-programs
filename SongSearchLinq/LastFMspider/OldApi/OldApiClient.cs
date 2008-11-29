@@ -39,7 +39,8 @@ namespace LastFMspider.OldApi
         const string baseApiUrl = "http://ws.audioscrobbler.com/1.0/";
         //TODO:double-escape data strings!!! LFM bug.
         public static Uri MakeUri(string category, string method, params string[] otherParams) {
-            return new Uri(baseApiUrl + category + "/" + string.Join("", otherParams.Select(s => Uri.EscapeDataString(Uri.EscapeDataString(s)) + "/").ToArray()) + method + ".xml");
+            return new Uri(baseApiUrl + category + "/" + string.Join("",
+                otherParams.Select(s => Uri.EscapeDataString(Uri.EscapeDataString(s).Replace(".", "%2e")) + "/").ToArray()) + method + ".xml");
         }
 
         public static UriRequest MakeUriRequest(string category, string method, params string[] otherParams) {
@@ -54,7 +55,7 @@ namespace LastFMspider.OldApi
             public static ApiArtistTopTracks GetTopTracks(string artist) {
                 try {
                     var req = MakeUriRequest("artist", "toptracks", artist);
-                    var xmlReader = XmlReader.Create(new StringReader(req.ContentAsString));
+                    var xmlReader = XmlReader.Create(new StringReader(req.ContentAsString ));
                     return XmlSerializableBase<ApiArtistTopTracks>.Deserialize(xmlReader);
                 } catch (WebException we) { //if for some reason the server ain't happy...
                     HttpWebResponse wr = we.Response as HttpWebResponse;
