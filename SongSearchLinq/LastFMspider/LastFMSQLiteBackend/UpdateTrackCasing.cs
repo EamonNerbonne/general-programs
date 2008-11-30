@@ -18,7 +18,6 @@ namespace LastFMspider.LastFMSQLiteBackend {
                 return @"
 UPDATE Artist SET FullArtist = @fullArtist WHERE LowercaseArtist=@lowerArtist;
 UPDATE Track SET FullTitle = @fullTitle WHERE LowercaseTitle=@lowerTitle AND ArtistID = (SELECT ArtistID FROM Artist WHERE LowercaseArtist = @lowerArtist)
-
 ";
             }
         }

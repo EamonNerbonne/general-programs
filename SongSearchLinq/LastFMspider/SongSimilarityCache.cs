@@ -74,10 +74,10 @@ namespace LastFMspider {
                 var retval = DirectWebRequest(songref);
                 isNewlyDownloaded = true;
                 try {
-                    backingDB.InsertSimilarityList.Execute(retval, DateTime.UtcNow);
+                    backingDB.InsertSimilarityList.Execute(retval);
                 } catch {//retry; might be a locking issue.  only retry once.
                     System.Threading.Thread.Sleep(100);
-                    backingDB.InsertSimilarityList.Execute(retval, DateTime.UtcNow);
+                    backingDB.InsertSimilarityList.Execute(retval);
                 }
                 return retval;
             } else {
@@ -103,7 +103,7 @@ namespace LastFMspider {
                 var requestedData= UriRequest.Execute(new Uri(songref.AudioscrobblerSimilarUrl()));
                
                 var xdoc = XDocument.Parse(requestedData.ContentAsString);
-                lastlist = SongSimilarityList.CreateFromAudioscrobblerXml(songref,xdoc );
+                lastlist = SongSimilarityList.CreateFromAudioscrobblerXml(songref,xdoc,DateTime.UtcNow );
                 return lastlist;
             } catch { return new SongSimilarityList { songref = songref, similartracks = null }; }//Also cache negatively; assume 404s and other errors remain.
         }

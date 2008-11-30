@@ -80,6 +80,22 @@ namespace LastFMspider.OldApi
 
             }
         }
+        public static class Track
+        {
+            public static ApiTrackSimilarTracks GetSimilarTracks(SongRef songref) {
+                try {
+                    var req = MakeUriRequest("track", "similar", songref.Artist,songref.Title);
+                    var xmlReader = XmlReader.Create(new StringReader(req.ContentAsString));
+                    return XmlSerializableBase<ApiTrackSimilarTracks>.Deserialize(xmlReader);
+                } catch (WebException we) { //if for some reason the server ain't happy...
+                    HttpWebResponse wr = we.Response as HttpWebResponse;
+                    if (wr.StatusCode == HttpStatusCode.NotFound)
+                        return null;
+                    else
+                        throw;
+                }
+            }
+        }
     }
 }
 

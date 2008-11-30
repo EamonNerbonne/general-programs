@@ -39,11 +39,11 @@ WHERE TrackA = (
 );
 UPDATE OR IGNORE Track
 SET LookupTimestamp=NULL
-WHERE LowercaseTitle = @lowerTitle
-AND ArtistID=
+WHERE ArtistID=
   (SELECT A.ArtistID
    FROM Artist A
    WHERE A.LowercaseArtist = @lowerArtist)
+AND LowercaseTitle = @lowerTitle
 ";
             }
         }

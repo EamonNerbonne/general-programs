@@ -110,9 +110,8 @@ namespace LastFMspider
         }
 
 
-        public void PrecacheSongSimilarity() { //TODO: redo this function like PrecacheArtistSimilarity for better robustness in the face of 404's and Url-encoding...
+        public void PrecacheSongSimilarityOld() { //TODO: redo this function like PrecacheArtistSimilarity for better robustness in the face of 404's and Url-encoding...            var stats = SimilarSongs.LookupDbStats();
             var stats = SimilarSongs.LookupDbStats();
-
             Console.WriteLine("Found {0} songs which don't have similarity stats.", stats.Length, stats.Where(s => s.LookupTimestamp != null).Count());
             stats.Shuffle(); //we shuffle the list so that parallel processes don't lookup the data in the same order.
             //Array.Sort(stats, (a, b) => b.TimesReferenced.CompareTo(a.TimesReferenced));
@@ -140,10 +139,52 @@ namespace LastFMspider
 
                 //if (shown % 20 == 0) { Console.WriteLine("Press any key for more"); Console.ReadKey(); }
             }
-
-
         }
         private static IEnumerable<T> DeNull<T>(IEnumerable<T> iter) { return iter == null ? Enumerable.Empty<T>() : iter; }
+
+        public void PrecacheSongSimilarity() {
+            var tracksToGo = SimilarSongs.backingDB.TracksWithoutSimilarityList.Execute(1000000);
+#if !DEBUG
+            tracksToGo.Shuffle();
+#endif
+            Console.WriteLine("Looking up similarities for {0} tracks...", tracksToGo.Length);
+            foreach (var track in tracksToGo) {
+                try {
+                    string trackStr = track.SongRef.ToString();
+                    Console.Write("SimTo:{0,-30}", trackStr.Substring(0, Math.Min(trackStr.Length, 30)));
+                    DateTime? previousAge = SimilarSongs.backingDB.LookupSimilarityListAge.Execute(track.SongRef);
+                    if (previousAge != null) {
+                        Console.WriteLine("done.");
+                        continue;
+                    }
+
+                    ApiTrackSimilarTracks simTracks = OldApiClient.Track.GetSimilarTracks(track.SongRef);
+                    var newEntry = simTracks == null
+                        ? new SongSimilarityList {//represents 404 Not Found
+                            LookupTimestamp = DateTime.UtcNow,
+                             songref = track.SongRef,
+                              similartracks = new SimilarTrack[0],
+                        }
+                        : new SongSimilarityList {
+                            LookupTimestamp = DateTime.UtcNow,
+                            songref = track.SongRef,
+                            similartracks= DeNull(simTracks.track).Select(simTrack=>new SimilarTrack{
+                                 similarity = simTrack.match,
+                                  similarsong = SongRef.Create(simTrack.artist.name,simTrack.name),
+                            }).ToArray(),
+                        };
+                    Console.Write("={0,3} ", newEntry.similartracks.Length);
+                    if (newEntry.similartracks.Length > 0)
+                        Console.Write("{1}: {0}", newEntry.similartracks[0].similarsong.ToString().Substring(0, Math.Min(newEntry.similartracks[0].similarsong.ToString().Length, 30)), newEntry.similartracks[0].similarity);
+
+                    SimilarSongs.backingDB.InsertSimilarityList.Execute(newEntry);
+                    Console.WriteLine(".");
+                } catch (Exception e) {
+                    Console.WriteLine("{0}", e);
+                }
+            }
+        }
+
 
         public void PrecacheArtistSimilarity() {
             var artistsToGo = SimilarSongs.backingDB.ArtistsWithoutSimilarityList.Execute(-1);

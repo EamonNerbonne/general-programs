@@ -11,34 +11,33 @@ namespace LastFMspider.LastFMSQLiteBackend {
 
             rating = DefineParameter("@rating");
 
-            lowerArtistA = DefineParameter("@lowerArtistA");
+            trackA = DefineParameter("@trackA");
 
-            lowerTitleA = DefineParameter("@lowerTitleA");
-
-            lowerArtistB = DefineParameter("@lowerArtistB");
-
-            lowerTitleB = DefineParameter("@lowerTitleB");
+            trackB = DefineParameter("@trackB");
         }
         protected override string CommandText {
             get { return @"
 INSERT OR REPLACE INTO [SimilarTrack] (TrackA, TrackB, Rating) 
-SELECT A.TrackID, B.TrackID, (@rating) AS Rating
-FROM Track A, Track B, Artist AsArtist, Artist BsArtist WHERE A.ArtistID = AsArtist.ArtistID AND B.ArtistID == BsArtist.ArtistID
-  AND AsArtist.LowercaseArtist = @lowerArtistA AND A.LowercaseTitle == @lowerTitleA 
-  AND BsArtist.LowercaseArtist = @lowerArtistB AND B.LowercaseTitle == @lowerTitleB
-";}
+VALUES (@trackA,trackB,@rating)
+";
+            }
         }
 
-        DbParameter lowerTitleA, lowerTitleB, lowerArtistA, lowerArtistB, rating;
+        DbParameter trackA, trackB, rating;
       
 
 
-        public void Execute(SongRef songRefA, SongRef songRefB, double rating) {
+        public void Execute(int trackID, SongRef songRefB, double rating) {
+            int? trackBid = lfmCache.LookupTrackID.Execute(songRefB);
+            if (trackBid.HasValue)
+                lfmCache.UpdateTrackCasing.Execute(songRefB);
+            else {
+                lfmCache.InsertTrack.Execute(songRefB);
+                trackBid = lfmCache.LookupTrackID.Execute(songRefB);
+            }
             this.rating.Value = rating;
-            lowerArtistA.Value = songRefA.Artist.ToLowerInvariant();
-            lowerTitleA.Value = songRefA.Title.ToLowerInvariant();
-            lowerArtistB.Value = songRefB.Artist.ToLowerInvariant();
-            lowerTitleB.Value = songRefB.Title.ToLowerInvariant();
+            this.trackA.Value = trackID;
+            this.trackB.Value = trackBid.Value;
             CommandObj.ExecuteNonQuery();
         }
 

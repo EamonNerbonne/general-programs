@@ -9,10 +9,10 @@ namespace LastFMspider.LastFMSQLiteBackend {
         public InsertSimilarityList(LastFMSQLiteCache lfm) : base(lfm) { }
 
         private static IEnumerable<T> DeNull<T>(IEnumerable<T> iter) { return iter == null ? Enumerable.Empty<T>() : iter; }
-        public void Execute(SongSimilarityList list, DateTime? lookupTimestamp) {
+        public void Execute(SongSimilarityList list) {
             if (list == null) return;
             
-            DateTime timestamp = lookupTimestamp ?? DateTime.UtcNow;
+            DateTime timestamp = list.LookupTimestamp;
 
             using (DbTransaction trans = Connection.BeginTransaction()) {
                 DateTime? oldTime = lfmCache. LookupSimilarityListAge.Execute(list.songref);
@@ -24,12 +24,10 @@ namespace LastFMspider.LastFMSQLiteBackend {
                 }
 
                 lfmCache.InsertTrack.Execute(list.songref);
-                if(list.similartracks!=null)
-                    foreach (var similar in list.similartracks) {
-                        lfmCache.InsertTrack.Execute(similar.similarsong);
-                        lfmCache.UpdateTrackCasing.Execute(similar.similarsong);
-                    }
-                foreach (var similartrack in DeNull(list.similartracks)) lfmCache. InsertSimilarity.Execute(list.songref, similartrack.similarsong, similartrack.similarity);
+                int trackID = lfmCache.LookupTrackID.Execute(list.songref).Value;//must exist due to insert
+                foreach (var similartrack in DeNull(list.similartracks)) {
+                    lfmCache.InsertSimilarity.Execute(trackID, similartrack.similarsong, similartrack.similarity);
+                }
                 lfmCache. UpdateTrackTimestamp.Execute(list.songref, timestamp);
                 trans.Commit();
             }
