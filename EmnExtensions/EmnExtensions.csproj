@@ -104,6 +104,7 @@
     <Compile Include="Filesystem\GetRelativeFileExtension.cs" />
     <Compile Include="FuncUtil.cs" />
     <Compile Include="MathHelpers\Matrix.cs" />
+    <Compile Include="MathHelpers\RndHelper.cs" />
     <Compile Include="MathHelpers\Statistics.cs" />
     <Compile Include="NiceTimer.cs" />
     <Compile Include="PersistantCache\DelegateCacheMapper.cs" />
