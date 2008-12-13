@@ -1,27 +1,21 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+using System.IO;
+using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
 using System.Windows.Documents;
-using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
 using System.Windows.Shapes;
-using System.Threading;
-using hitmds;
-using System.Windows.Threading;
 using EmnExtensions;
 using EmnExtensions.Algorithms;
 using EmnExtensions.Collections;
-using LastFMspider;
-using System.Collections;
-using Microsoft.Win32;
-using System.IO;
+using EmnExtensions.MathHelpers;
 using EmnExtensions.Wpf;
+using hitmds;
+using LastFMspider;
+using Microsoft.Win32;
 
 namespace MdsTestWpf
 {
@@ -522,12 +516,6 @@ namespace MdsTestWpf
         }
         public Point ToPoint() { return new Point(x, y); }
 
-    }
-    public static class RndHelper
-    {
-        public static double NextNorm(this Random r) {//from http://www.cs.princeton.edu/introcs/21function/MyMath.java.html
-            return Math.Sin(2 * Math.PI * r.NextDouble()) * Math.Sqrt((-2 * Math.Log(1 - r.NextDouble())));
-        }
     }
 
 }
