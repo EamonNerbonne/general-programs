@@ -35,7 +35,7 @@ WHERE B.LowercaseArtist= @lowerArtistB
 
             this.rating.Value = rating;
             this.listID.Value = (long)listID;
-            lowerArtistB.Value = artistB.ToLowerInvariant();
+            this.lowerArtistB.Value = artistB.ToLowerInvariant();
             CommandObj.ExecuteNonQuery();
         }
 

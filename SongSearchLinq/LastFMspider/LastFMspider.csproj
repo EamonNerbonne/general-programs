@@ -130,17 +130,12 @@
     <Compile Include="LastFMSQLiteBackend\ArtistsWithoutSimilarityList.cs" />
     <Compile Include="LastFMSQLiteBackend\ArtistsWithoutTopTracksList.cs" />
     <Compile Include="LastFMSQLiteBackend\CountRoughtSimilarities.cs" />
-    <Compile Include="LastFMSQLiteBackend\DeleteTag.cs" />
-    <Compile Include="LastFMSQLiteBackend\DeleteTagging.cs" />
     <Compile Include="LastFMSQLiteBackend\InsertArtistSimilarity.cs" />
     <Compile Include="LastFMSQLiteBackend\InsertArtistSimilarityList.cs" />
     <Compile Include="LastFMSQLiteBackend\InsertArtistTopTrack.cs" />
     <Compile Include="LastFMSQLiteBackend\InsertArtistTopTracksList.cs" />
     <Compile Include="LastFMSQLiteBackend\InsertTag.cs" />
     <Compile Include="LastFMSQLiteBackend\CountSimilarities.cs" />
-    <Compile Include="LastFMSQLiteBackend\DeleteArtist.cs" />
-    <Compile Include="LastFMSQLiteBackend\DeleteSimilaritiesOf.cs" />
-    <Compile Include="LastFMSQLiteBackend\DeleteTrack.cs" />
     <Compile Include="LastFMSQLiteBackend\InsertArtist.cs" />
     <Compile Include="LastFMSQLiteBackend\InsertSimilarity.cs" />
     <Compile Include="LastFMSQLiteBackend\InsertSimilarityList.cs" />

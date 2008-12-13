@@ -11,33 +11,34 @@ namespace LastFMspider.LastFMSQLiteBackend {
 
             rating = DefineParameter("@rating");
 
-            trackA = DefineParameter("@trackA");
+            listID = DefineParameter("@listID");
 
-            trackB = DefineParameter("@trackB");
+            lowerTrackB = DefineParameter("@lowerTrackB");
+            lowerArtistB = DefineParameter("@lowerArtistB");
+
         }
         protected override string CommandText {
             get { return @"
-INSERT OR REPLACE INTO [SimilarTrack] (TrackA, TrackB, Rating) 
-VALUES (@trackA,trackB,@rating)
+INSERT OR REPLACE INTO [SimilarTrack] (ListID, TrackB, Rating) 
+SELECT @listID as ListID, B.TrackID, @rating as Rating
+FROM Artist BA,Track B,
+WHERE BA.LowercaseArtist = @lowerArtistB 
+AND BA.ArtistID = B.ArtistID 
+AND B.LowercaseTitle = @lowerTrackB
 ";
             }
         }
 
-        DbParameter trackA, trackB, rating;
+        DbParameter listID, lowerTrackB, rating,lowerArtistB;
       
 
-
-        public void Execute(int trackID, SongRef songRefB, double rating) {
-            int? trackBid = lfmCache.LookupTrackID.Execute(songRefB);
-            if (trackBid.HasValue)
-                lfmCache.UpdateTrackCasing.Execute(songRefB);
-            else {
-                lfmCache.InsertTrack.Execute(songRefB);
-                trackBid = lfmCache.LookupTrackID.Execute(songRefB);
-            }
+        //TODO fix call
+        public void Execute(object o,int listID, SongRef songRefB, double rating) {
+            lfmCache.InsertTrack.Execute(songRefB);
             this.rating.Value = rating;
-            this.trackA.Value = trackID;
-            this.trackB.Value = trackBid.Value;
+            this.listID.Value = listID;
+            this.lowerArtistB.Value = songRefB.Artist.ToLowerInvariant();
+            this.lowerTrackB.Value = songRefB.Title.ToLowerInvariant();
             CommandObj.ExecuteNonQuery();
         }
 

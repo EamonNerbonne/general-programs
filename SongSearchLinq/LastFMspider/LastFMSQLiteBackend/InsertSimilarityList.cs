@@ -5,30 +5,55 @@ using System.Text;
 using System.Data.Common;
 
 namespace LastFMspider.LastFMSQLiteBackend {
-    public class InsertSimilarityList:AbstractLfmCacheOperation {
-        public InsertSimilarityList(LastFMSQLiteCache lfm) : base(lfm) { }
+    public class InsertSimilarityList : AbstractLfmCacheQuery
+    {
+        public InsertSimilarityList(LastFMSQLiteCache lfm)
+            : base(lfm) {
+            lowerArtist = DefineParameter("@lowerArtist");
+            lookupTimestamp = DefineParameter("@lookupTimestamp");
+            lowerTitle = DefineParameter("@lowerTitle");
+        }
+        DbParameter lowerArtist,lowerTitle, lookupTimestamp;
+        protected override string CommandText {
+            get {
+                return @"
+INSERT INTO [SimilarTrackList] (TrackID, LookupTimestamp) 
+SELECT T.TrackID, (@lookupTimestamp) AS LookupTimestamp
+FROM Artist A,Track T
+WHERE A.LowercaseArtist = @lowerArtist
+AND A.ArtistID = T.ArtistID
+AND T.LowercaseTitle = @lowerTitle
+;
+
+SELECT L.ListID
+FROM SimilarTrackList L, Artist A, Track T
+WHERE A.LowercaseArtist = @lowerArtist
+AND A.ArtistID = T.ArtistID
+AND T.LowercaseTitle = @lowerTitle
+AND L.TrackID = T.TrackID
+AND L.LookupTimestamp = @lookupTimestamp
+";
+            }
+        }
 
         private static IEnumerable<T> DeNull<T>(IEnumerable<T> iter) { return iter == null ? Enumerable.Empty<T>() : iter; }
-        public void Execute(SongSimilarityList list) {
-            if (list == null) return;
-            
-            DateTime timestamp = list.LookupTimestamp;
-
+        public void Execute(SongSimilarityList simList) {
             using (DbTransaction trans = Connection.BeginTransaction()) {
-                DateTime? oldTime = lfmCache. LookupSimilarityListAge.Execute(list.songref);
-                if (oldTime != null) {
-                    if ((DateTime)oldTime >= timestamp)
-                        return;
-                    else
-                        lfmCache. DeleteSimilaritiesOf.Execute(list.songref);
+                lfmCache.InsertTrack.Execute(simList.songref);
+                int listID;
+                lowerArtist.Value = simList.Artist.ToLowerInvariant();
+                lookupTimestamp.Value = simList.LookupTimestamp.Ticks;
+                using (var reader = CommandObj.ExecuteReader()) {
+                    if (reader.Read()) { //might need to do reader.NextResult();
+                        listID = (int)(long)reader[0];
+                    } else {
+                        throw new Exception("Command failed???");
+                    }
                 }
 
-                lfmCache.InsertTrack.Execute(list.songref);
-                int trackID = lfmCache.LookupTrackID.Execute(list.songref).Value;//must exist due to insert
-                foreach (var similartrack in DeNull(list.similartracks)) {
-                    lfmCache.InsertSimilarity.Execute(trackID, similartrack.similarsong, similartrack.similarity);
+                foreach (var similarArtist in simList.Similar) {
+                    lfmCache.InsertArtistSimilarity.Execute(listID, similarArtist.Artist, similarArtist.Rating);
                 }
-                lfmCache. UpdateTrackTimestamp.Execute(list.songref, timestamp);
                 trans.Commit();
             }
         }

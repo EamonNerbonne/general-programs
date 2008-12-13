@@ -26,17 +26,6 @@ WHERE A.LowercaseArtist = @lowerArtist
 AND L.ArtistID = A.ArtistID
 AND L.LookupTimestamp = @lookupTimestamp
 ";
-                /*
-DELETE FROM [SimilarArtist]
-WHERE ListID = (
-  SELECT L.ListID
-  FROM SimilarArtistList L, Artist A
-  WHERE A.LowercaseArtist = @lowerArtist
-  AND L.ArtistID = A.ArtistID
-)
-AND LookupTimestamp = @lookupTimestamp;
-*/
-            
             }
         }
 
