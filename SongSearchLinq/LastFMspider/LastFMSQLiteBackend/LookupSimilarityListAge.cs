@@ -36,8 +36,8 @@ LIMIT 1
         }
 
         public DateTime? Execute(SongRef songref) {
-            lowerArtist.Value = songref.Artist.ToLowerInvariant();
-            lowerTitle.Value = songref.Title.ToLowerInvariant();
+            lowerArtist.Value = songref.Artist.ToLatinLowercase();
+            lowerTitle.Value = songref.Title.ToLatinLowercase();
             using (var reader = CommandObj.ExecuteReader())//no transaction needed for a single select!
                 {
                 //we expect exactly one hit - or none

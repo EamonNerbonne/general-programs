@@ -125,9 +125,9 @@ namespace EmnExtensions.Text
 								case '£': output.Append('l'); break;
 								case 'º': output.Append('o'); break;//use letter, not number, for canonicalization purposes.
 								case '$': output.Append('s'); break;
-								case '<': output.Append('('); break;
 								case '\\': output.Append('/'); break;//for stupid path stuff
-								case '>': output.Append(')'); break;
+                                case '<': output.Append('('); break;
+                                case '>': output.Append(')'); break;
 								case '÷': output.Append('/'); break;
 								case (char)173: output.Append('-'); break;
 								case '¡': output.Append('!'); break;//this one's difficult

@@ -37,8 +37,8 @@ AND B.LowercaseTitle = @lowerTrackB
             lfmCache.InsertTrack.Execute(songRefB);
             this.rating.Value = rating;
             this.listID.Value = listID;
-            this.lowerArtistB.Value = songRefB.Artist.ToLowerInvariant();
-            this.lowerTrackB.Value = songRefB.Title.ToLowerInvariant();
+            this.lowerArtistB.Value = songRefB.Artist.ToLatinLowercase();
+            this.lowerTrackB.Value = songRefB.Title.ToLatinLowercase();
             CommandObj.ExecuteNonQuery();
         }
 

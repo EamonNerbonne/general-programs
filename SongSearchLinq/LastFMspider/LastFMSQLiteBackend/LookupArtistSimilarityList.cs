@@ -47,7 +47,7 @@ AND L.LookupTimestamp = @ticks
                 if (null == age)
                     return null;
 
-                lowerArtist.Value = artist.ToLowerInvariant();
+                lowerArtist.Value = artist.ToLatinLowercase();
                 ticks.Value = age.Value.Ticks;//we want the newest one!
 
                 List<SimilarArtist> similarto = new List<SimilarArtist>();

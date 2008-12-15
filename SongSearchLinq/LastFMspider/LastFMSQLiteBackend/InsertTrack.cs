@@ -25,8 +25,8 @@ WHERE LowercaseArtist = @lowerArtist
         public void Execute(SongRef songref) {
             lfmCache.InsertArtist.Execute(songref.Artist);
             fullTitle.Value = songref.Title;
-            lowerTitle.Value = songref.Title.ToLowerInvariant();
-            lowerArtist.Value = songref.Artist.ToLowerInvariant();
+            lowerTitle.Value = songref.Title.ToLatinLowercase();
+            lowerArtist.Value = songref.Artist.ToLatinLowercase();
             CommandObj.ExecuteNonQuery();
         }
 

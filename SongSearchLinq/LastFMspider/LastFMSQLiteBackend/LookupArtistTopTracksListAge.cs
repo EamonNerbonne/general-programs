@@ -32,7 +32,7 @@ LIMIT 1
         }
 
         public DateTime? Execute(string artist) {
-            lowerArtist.Value = artist.ToLowerInvariant();
+            lowerArtist.Value = artist.ToLatinLowercase();
             using (var reader = CommandObj.ExecuteReader())//no transaction needed for a single select!
                 {
                 //we expect exactly one hit - or none

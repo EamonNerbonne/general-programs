@@ -109,6 +109,25 @@ namespace LastFMspider
             Console.WriteLine("Done precaching.");
         }
 
+        public void EnsureLocalFilesInDB() {
+            Console.WriteLine("Loading song database...");
+            if (DB.InvalidDataCount != 0) Console.WriteLine("Ignored {0} songs with unknown tags (should be 0).", DB.InvalidDataCount);
+            Console.WriteLine("Taking those {0} songs and indexing em by artist/title...", DB.Songs.Count);
+            SongRef[] songsToDownload = Lookup.dataByRef.Keys.ToArray();
+            UnloadDB();
+            using (var trans = SimilarSongs.backingDB.Connection.BeginTransaction()) {
+                foreach (SongRef songref in songsToDownload) {
+                    try {
+                        SimilarSongs.backingDB.InsertTrack.Execute(songref);
+                    } catch (Exception e) {
+                        Console.WriteLine("Exception: {0}", e.ToString());
+                    }//ignore all errors.
+                }
+                trans.Commit();
+            }
+        }
+
+
         private static IEnumerable<T> DeNull<T>(IEnumerable<T> iter) { return iter == null ? Enumerable.Empty<T>() : iter; }
 
         public void PrecacheSongSimilarity() {
@@ -257,6 +276,7 @@ namespace LastFMspider
                 }
             }*/
         }
+
 
 
 

@@ -37,7 +37,7 @@ AND L.LookupTimestamp = @lookupTimestamp
             using (DbTransaction trans = Connection.BeginTransaction()) {
                 lfmCache.InsertArtist.Execute(simList.Artist);
                 int listID;
-                lowerArtist.Value = simList.Artist.ToLowerInvariant();
+                lowerArtist.Value = simList.Artist.ToLatinLowercase();
                 lookupTimestamp.Value = simList.LookupTimestamp.Ticks;
                 using (var reader = CommandObj.ExecuteReader())
                 {

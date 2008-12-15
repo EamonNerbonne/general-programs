@@ -39,8 +39,8 @@ ORDER BY S.Rating DESC
             DateTime? age = lfmCache.LookupSimilarityListAge.Execute(songref);
             
             if (age == null) return null;
-            lowerArtist.Value = songref.Artist.ToLowerInvariant();
-            lowerTitle.Value = songref.Title.ToLowerInvariant();
+            lowerArtist.Value = songref.Artist.ToLatinLowercase();
+            lowerTitle.Value = songref.Title.ToLatinLowercase();
             ticks.Value = age.Value.Ticks;
             List<SimilarTrack> similarto = new List<SimilarTrack>();
             using (var reader = CommandObj.ExecuteReader())//no transaction needed for a single select!

@@ -6,9 +6,27 @@ using System.Linq;
 using System.Runtime.Serialization;
 namespace LastFMspider
 {
-	[Serializable]
+    public static class SongRefUtils
+    {
+        static int charDiff = (int)'a' - (int)'A';
+        /// <summary>
+        /// Last.FM only lowercases normal latin characters.
+        /// </summary>
+        static public string ToLatinLowercase(this string orig) {
+            var chars = orig.ToCharArray();
+            for (int i = 0; i < chars.Length; i++) {
+                if (chars[i] >= 'A' && chars[i] <= 'Z')
+                    chars[i] = (char)((int)chars[i] + charDiff);
+            }
+            return new string(chars);
+        }
+
+    }
+
+    [Serializable]
 	public class SongRef
 	{
+
         private static class Cache<T> 
         {
             public static int nextClearIn=10000;
@@ -77,7 +95,7 @@ namespace LastFMspider
 		private SongRef(string artist, string title) {
 			this.artist = artist;
 			this.title = title;
-			hashcode = Artist.ToLowerInvariant().GetHashCode() + 137*Title.ToLowerInvariant().GetHashCode(); 
+            hashcode = Artist.ToLatinLowercase().GetHashCode() + 137 * Title.ToLatinLowercase().GetHashCode(); 
 		}
         private SongRef(string artist, string title,int hashcode)
         {
@@ -107,7 +125,7 @@ namespace LastFMspider
             //TODO: test ampersands and question marks, I don't trust it!
 		}
 		public string CacheName() {
-			return (Uri.EscapeDataString(Artist.ToLowerInvariant()) + " " + Uri.EscapeDataString(Title.ToLowerInvariant())).Replace("*", "%2A").ToLowerInvariant();
+			return (Uri.EscapeDataString(Artist.ToLatinLowercase()) + " " + Uri.EscapeDataString(Title.ToLatinLowercase())).Replace("*", "%2A").ToLatinLowercase();
 		}
 		public static SongRef CreateFromCacheName(string cachename) {
 			var parts = cachename.Split(' ');
@@ -115,7 +133,7 @@ namespace LastFMspider
 		}
 
 		public string OldCacheName() {
-			return (Uri.EscapeDataString(Artist) + " " + Uri.EscapeDataString(Title)).Replace("*", "%2A").ToLowerInvariant();
+			return (Uri.EscapeDataString(Artist) + " " + Uri.EscapeDataString(Title)).Replace("*", "%2A").ToLatinLowercase();
 		}
 
 		/*public string NewCacheName() {

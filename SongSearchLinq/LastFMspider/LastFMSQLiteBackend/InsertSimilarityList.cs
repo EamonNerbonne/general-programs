@@ -41,7 +41,7 @@ AND L.LookupTimestamp = @lookupTimestamp
             using (DbTransaction trans = Connection.BeginTransaction()) {
                 lfmCache.InsertTrack.Execute(simList.songref);
                 int listID;
-                lowerArtist.Value = simList.songref.Artist.ToLowerInvariant();
+                lowerArtist.Value = simList.songref.Artist.ToLatinLowercase();
                 lookupTimestamp.Value = simList.LookupTimestamp.Ticks;
                 using (var reader = CommandObj.ExecuteReader()) {
                     if (reader.Read()) { //might need to do reader.NextResult();

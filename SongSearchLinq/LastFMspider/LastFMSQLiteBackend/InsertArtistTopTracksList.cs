@@ -39,7 +39,7 @@ AND L.LookupTimestamp = @lookupTimestamp
                 lfmCache.InsertArtist.Execute(toptracksList.Artist);
                 int listID;
                 int artistID;
-                lowerArtist.Value = toptracksList.Artist.ToLowerInvariant();
+                lowerArtist.Value = toptracksList.Artist.ToLatinLowercase();
                 lookupTimestamp.Value = toptracksList.LookupTimestamp.Ticks;
                 using (var reader = CommandObj.ExecuteReader())
                 {

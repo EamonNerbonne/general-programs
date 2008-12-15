@@ -38,10 +38,11 @@ UPDATE Track SET LookupTimestamp = NULL WHERE TrackID in
             Console.WriteLine("done.");
             // */
             //tools.PrecacheSongSimilarity();
-            tools.PrecacheLocalFiles(false);//might want to do this first, but meh.
+            tools.EnsureLocalFilesInDB();
+            //tools.PrecacheLocalFiles(false);//might want to do this first, but meh.
             tools.PrecacheArtistSimilarity();
             tools.PrecacheArtistTopTracks();
-            tools.PrecacheSongSimilarity();
+            //tools.PrecacheSongSimilarity();
         }
     }
 }

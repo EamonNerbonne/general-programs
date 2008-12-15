@@ -17,7 +17,7 @@ namespace LastFMspider.LastFMSQLiteBackend {
         DbParameter fullname, lowername;
         public void Execute(string artist) {
             fullname.Value = artist;
-            lowername.Value = artist.ToLowerInvariant();
+            lowername.Value = artist.ToLatinLowercase();
             CommandObj.ExecuteNonQuery();
         }
 
