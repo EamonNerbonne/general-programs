@@ -32,27 +32,6 @@ namespace LastFMspider
 			};
 		}
 
-		public static SongSimilarityList CreateFromXElement(XElement xEl) {
-			SongSimilarityList retval = new SongSimilarityList();
-			retval.songref = SongRef.CreateFromXml(xEl);
-			retval.similartracks =
-				(from simEl in xEl.Elements("similarTo")
-				 select new SimilarTrack {
-					 similarsong = SongRef.CreateFromXml(simEl),
-					 similarity = (double)simEl.Attribute("match")
-				 }).ToArray();
-			return retval;
-		}
-
-		public XElement ToXElement() {
-			return new XElement("similarsongs",
-				songref.ToXml(),
-				from similartrack in similartracks
-				select new XElement("similarTo",
-					similartrack.similarsong.ToXml(),
-					new XAttribute("match", similartrack.similarity)
-				));
-		}
 
 	}
 }
