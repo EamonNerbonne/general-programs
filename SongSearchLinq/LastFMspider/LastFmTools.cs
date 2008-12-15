@@ -90,7 +90,7 @@ namespace LastFMspider
                 try {
                     progressCount++;
                     var similar = SimilarSongs.Lookup(songref);//precache the last.fm data.  unsure - NOT REALLY necessary?
-                    int newSimilars = similar.similartracks == null ? 0 : similar.similartracks.Length;
+                    int newSimilars = similar==null||similar.similartracks == null ? 0 : similar.similartracks.Length;
                     similarityCount += newSimilars;
                     if (similar != null)
                         hits++;

@@ -14,6 +14,7 @@ using EmnExtensions.Collections;
 using EmnExtensions;
 using System.Diagnostics;
 using SongDataLib;
+using LastFMspider.OldApi;
 
 namespace LastFMspider {
     public class SongSimilarityCache {
@@ -48,10 +49,6 @@ namespace LastFMspider {
             return Lookup(songref, out ignore);
         }
         public SongSimilarityList Lookup(SongRef songref, out bool isNewlyDownloaded) {
-            return LookupViaSQLite(songref, out isNewlyDownloaded);
-        }
-
-        private SongSimilarityList LookupViaSQLite(SongRef songref, out bool isNewlyDownloaded) {
             DateTime? cachedVersionAge=null;
             using (var trans = backingDB.Connection.BeginTransaction()) {
                 cachedVersionAge = backingDB.LookupSimilarityListAge.Execute(songref);
@@ -60,6 +57,8 @@ namespace LastFMspider {
                 Console.Write("?");
                 var retval = DirectWebRequest(songref);
                 isNewlyDownloaded = true;
+                if (retval == null) 
+                    return retval;
                 try {
                     backingDB.InsertSimilarityList.Execute(retval);
                 } catch {//retry; might be a locking issue.  only retry once.
@@ -73,26 +72,29 @@ namespace LastFMspider {
             }
         }
 
-        TimeSpan minReqDelta = new TimeSpan(0, 0, 0, 1);//no more than one request per second.
-        DateTime nextRequestWhen = DateTime.Now;
-        SongSimilarityList lastlist;
 
+        private static IEnumerable<T> DeNull<T>(IEnumerable<T> iter) { return iter == null ? Enumerable.Empty<T>() : iter; }
         private SongSimilarityList DirectWebRequest(SongRef songref) {
             try {
-                var now = DateTime.Now;
-                if (nextRequestWhen > now) {
-                    Console.Write("<");
-                    System.Threading.Thread.Sleep(nextRequestWhen - now);
-                    Console.Write(">");
-                }
-                nextRequestWhen = now + minReqDelta;
-                //WebClient.Download???? has encoding issues, hence the use of UriRequest.
-                var requestedData= UriRequest.Execute(new Uri(songref.AudioscrobblerSimilarUrl()));
-               
-                var xdoc = XDocument.Parse(requestedData.ContentAsString);
-                lastlist = SongSimilarityList.CreateFromAudioscrobblerXml(songref,xdoc,DateTime.UtcNow );
-                return lastlist;
-            } catch { return new SongSimilarityList { songref = songref, similartracks = null }; }//Also cache negatively; assume 404s and other errors remain.
+                ApiTrackSimilarTracks simTracks = OldApiClient.Track.GetSimilarTracks(songref);
+                var newEntry = simTracks == null
+                    ? new SongSimilarityList {//represents 404 Not Found
+                        LookupTimestamp = DateTime.UtcNow,
+                        songref = songref,
+                        similartracks = new SimilarTrack[0],
+                    }
+                    : new SongSimilarityList {
+                        LookupTimestamp = DateTime.UtcNow,
+                        songref = songref,
+                        similartracks = DeNull(simTracks.track).Select(simTrack => new SimilarTrack {
+                            similarity = simTrack.match,
+                            similarsong = SongRef.Create(simTrack.artist.name, simTrack.name),
+                        }).ToArray(),
+                    };
+                return newEntry;
+            } catch (Exception e) {
+                return null;
+            }
         }
     }
 }

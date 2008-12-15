@@ -73,7 +73,7 @@ namespace LastFmPlaylistSuggestions
                 from songref in playlistSongRefs//select all "known" songs in the playlist.
                 let simlist = tools.SimilarSongs.Lookup(songref)
                 where simlist != null
-                from simtrack in tools.SimilarSongs.Lookup(songref).similartracks                          //also at least try "unknown songs, who knows, maybe last.fm knows em?
+                from simtrack in simlist.similartracks                          //also at least try "unknown songs, who knows, maybe last.fm knows em?
                 group simtrack.similarity + 50 by simtrack.similarsong into simGroup    // group all similarity entries by actual song refence (being artist/title)
                 let uniquesimtrack = new SimilarTrack { similarsong = simGroup.Key, similarity = simGroup.Sum() - 50 }
                 where !playlistSongRefs.Contains(uniquesimtrack.similarsong) //but don't consider those already in the playlist
