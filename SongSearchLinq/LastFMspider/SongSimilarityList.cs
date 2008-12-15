@@ -16,22 +16,5 @@ namespace LastFMspider
 		public SimilarTrack[] similartracks;
         public DateTime LookupTimestamp;
         
-		public static SongSimilarityList CreateFromAudioscrobblerXml(SongRef songref, XDocument doc,DateTime downloaded) {
-			var simtracksObj =
-				from trackXml in doc.Elements("similartracks").Elements("track")
-				select new SimilarTrack {
-					similarity = (double)trackXml.Element("match"),
-					similarsong = SongRef.Create( (string)trackXml.Element("artist").Element("name"), (string)trackXml.Element("name")),
-                   
-				};
-			return new SongSimilarityList {
-				songref = songref,
-				similartracks = simtracksObj.ToArray(),
-                 LookupTimestamp = downloaded
-                 
-			};
-		}
-
-
 	}
 }
