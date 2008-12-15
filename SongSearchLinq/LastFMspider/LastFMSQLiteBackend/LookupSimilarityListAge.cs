@@ -14,12 +14,16 @@ namespace LastFMspider.LastFMSQLiteBackend {
         protected override string CommandText {
             get {
                 return @"
-SELECT Torig.LookupTimestamp FROM
-  Track Torig, Artist Aorig
-  WHERE
-    Aorig.LowercaseArtist=@lowerArtist AND
-    Aorig.ArtistID = Torig.ArtistID AND
-    Torig.LowercaseTitle = @lowerTitle
+SELECT L.LookupTimestamp 
+FROM Artist A,
+     Track T, 
+     SimilarTrackList L
+WHERE A.LowercaseArtist = @lowerArtist
+AND T.ArtistID=A.ArtistID
+AND T.LowercaseTitle = @lowerTitle
+AND L.TrackID = T.TrackID
+ORDER BY L.LookupTimestamp DESC
+LIMIT 1
 ";
             }
         }

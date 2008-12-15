@@ -41,7 +41,7 @@ AND L.LookupTimestamp = @lookupTimestamp
             using (DbTransaction trans = Connection.BeginTransaction()) {
                 lfmCache.InsertTrack.Execute(simList.songref);
                 int listID;
-                lowerArtist.Value = simList.Artist.ToLowerInvariant();
+                lowerArtist.Value = simList.songref.Artist.ToLowerInvariant();
                 lookupTimestamp.Value = simList.LookupTimestamp.Ticks;
                 using (var reader = CommandObj.ExecuteReader()) {
                     if (reader.Read()) { //might need to do reader.NextResult();
@@ -51,8 +51,8 @@ AND L.LookupTimestamp = @lookupTimestamp
                     }
                 }
 
-                foreach (var similarArtist in simList.Similar) {
-                    lfmCache.InsertArtistSimilarity.Execute(listID, similarArtist.Artist, similarArtist.Rating);
+                foreach (var similarTrack in simList.similartracks) {
+                    lfmCache.InsertSimilarity.Execute(null,listID, similarTrack.similarsong, similarTrack.similarity);
                 }
                 trans.Commit();
             }

@@ -109,37 +109,6 @@ namespace LastFMspider
             Console.WriteLine("Done precaching.");
         }
 
-
-        public void PrecacheSongSimilarityOld() { //TODO: redo this function like PrecacheArtistSimilarity for better robustness in the face of 404's and Url-encoding...            var stats = SimilarSongs.LookupDbStats();
-            var stats = SimilarSongs.LookupDbStats();
-            Console.WriteLine("Found {0} songs which don't have similarity stats.", stats.Length, stats.Where(s => s.LookupTimestamp != null).Count());
-            stats.Shuffle(); //we shuffle the list so that parallel processes don't lookup the data in the same order.
-            //Array.Sort(stats, (a, b) => b.TimesReferenced.CompareTo(a.TimesReferenced));
-            Console.WriteLine("Showing a few...");
-
-            var tolookup = new HashSet<SongRef>(stats.Select(stat => stat.SongRef));
-            stats = null;
-
-            while (tolookup.Count > 0) {
-                var songref = tolookup.First();
-                tolookup.Remove(songref);
-                Console.WriteLine("{0}", songref.ToString());
-                bool isNewlyDownloaded;
-                try {
-                    var simlist = SimilarSongs.Lookup(songref, out isNewlyDownloaded);
-                    if (isNewlyDownloaded)
-                        foreach (var sim in simlist.similartracks)
-                            tolookup.Add(sim.similarsong);
-                } catch (Exception e) {
-                    try {
-                        Console.WriteLine("Error in {0}: {1}: {2}", songref.ToString(), e.Message, e.StackTrace);
-                    } catch { }
-                }
-                //shown++;
-
-                //if (shown % 20 == 0) { Console.WriteLine("Press any key for more"); Console.ReadKey(); }
-            }
-        }
         private static IEnumerable<T> DeNull<T>(IEnumerable<T> iter) { return iter == null ? Enumerable.Empty<T>() : iter; }
 
         public void PrecacheSongSimilarity() {

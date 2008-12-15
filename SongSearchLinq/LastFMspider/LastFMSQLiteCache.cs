@@ -211,22 +211,14 @@ CREATE INDEX  IF NOT EXISTS [IDX_TrackInfo_Playcount] ON [TrackInfo](
         public InsertTrack InsertTrack { get; private set; }
         public LookupTrack LookupTrack { get; private set; }
         public LookupTrackID LookupTrackID { get; private set; }
-        public InsertTag InsertTag { get; private set; }
-        public InsertTagging InsertTagging { get; private set; }
         public InsertSimilarity InsertSimilarity { get; private set; }
         public InsertSimilarityList InsertSimilarityList { get; private set; }
-        public UpdateTrackTimestamp UpdateTrackTimestamp { get; private set; }
-        public LookupReverseSimilarityList LookupReverseSimilarityList { get; private set; }
-        public LookupSimilarityStats LookupSimilarityStats { get; private set; }
         public CountSimilarities CountSimilarities { get; private set; }
         public CountRoughSimilarities CountRoughSimilarities { get; private set; }
         public AllTracks AllTracks { get; private set; }
         public TracksWithoutSimilarityList TracksWithoutSimilarityList { get; private set; }
         public RawArtists RawArtists { get; private set; }
         public RawTracks RawTracks { get; private set; }
-        public RawTags RawTags { get; private set; }
-        public UpdateArtist UpdateArtist { get; private set; }
-        public UpdateTrack UpdateTrack { get; private set; }
         public UpdateTrackCasing UpdateTrackCasing { get; private set; }
         public RawSimilarTracks RawSimilarTracks { get; private set; }
         public LookupArtistSimilarityList LookupArtistSimilarityList { get; private set; }
@@ -269,21 +261,13 @@ CREATE INDEX  IF NOT EXISTS [IDX_TrackInfo_Playcount] ON [TrackInfo](
             InsertSimilarityList = new InsertSimilarityList(this);
             InsertSimilarity = new InsertSimilarity(this);
             InsertArtist = new InsertArtist(this);
-            InsertTag = new InsertTag(this);
-            InsertTagging = new InsertTagging(this);
-            UpdateTrackTimestamp = new UpdateTrackTimestamp(this);
             LookupSimilarityList = new LookupSimilarityList(this);
             LookupSimilarityListAge = new LookupSimilarityListAge(this);
-            LookupSimilarityStats = new LookupSimilarityStats(this);
-            LookupReverseSimilarityList = new LookupReverseSimilarityList(this);
             CountSimilarities = new CountSimilarities(this);
             CountRoughSimilarities = new CountRoughSimilarities(this);
             AllTracks = new AllTracks(this);
             RawTracks = new RawTracks(this);
             RawArtists = new RawArtists(this);
-            RawTags = new RawTags(this);
-            UpdateTrack = new UpdateTrack(this);
-            UpdateArtist = new UpdateArtist(this);
             UpdateTrackCasing = new UpdateTrackCasing(this);
             RawSimilarTracks = new RawSimilarTracks(this);
             TracksWithoutSimilarityList = new TracksWithoutSimilarityList(this);

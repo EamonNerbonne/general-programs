@@ -42,14 +42,6 @@ namespace LastFMspider {
             backingDB = new LastFMSQLiteCache(new FileInfo(Path.Combine(cacheDir.FullName, "lastFMcache.s3db")));//TODO decide what kind of DB we really want...
         }
 
-        public SimilarityStat[] LookupDbStats() {
-            Console.WriteLine("Getting DB similarity stats (this may take a while)");
-            DateTime start = DateTime.UtcNow;
-            var retval = backingDB.LookupSimilarityStats.Execute();
-            DateTime end = DateTime.UtcNow;
-            Console.WriteLine("========Took {0} seconds!", (end - start).TotalSeconds);
-            return retval;
-        }
 
         public SongSimilarityList Lookup(SongRef songref) {
             bool ignore;
@@ -63,11 +55,6 @@ namespace LastFMspider {
             DateTime? cachedVersionAge=null;
             using (var trans = backingDB.Connection.BeginTransaction()) {
                 cachedVersionAge = backingDB.LookupSimilarityListAge.Execute(songref);
-                if (cachedVersionAge == null) //make sure no one else looks this one up!
-                    try {
-                        backingDB.UpdateTrackTimestamp.Execute(songref, DateTime.UtcNow - TimeSpan.FromSeconds(1.0));
-                        trans.Commit();
-                    } catch { }//if an error occurs, well, we just might duplicate a lookup.
             }
             if (cachedVersionAge == null) { //get online version
                 Console.Write("?");

@@ -12,7 +12,7 @@ namespace LastFMspider.LastFMSQLiteBackend {
     public class RawSimilarTracks : AbstractLfmCacheQuery {
         public RawSimilarTracks(LastFMSQLiteCache lfm) : base(lfm) { }
         protected override string CommandText {
-            get { return @"SELECT TrackA, TrackB, Rating FROM SimilarTrack"; }
+            get { return @"SELECT L.TrackID, S.TrackB, S.Rating FROM SimilarTrackList L, SimilarTrack S WHERE S.ListID = L.ListID"; }
         }
 
         public void Execute(bool printProgress, Func<int,int> AcceptCount, Action<int,SimilarTrackRow> AcceptNthRow) {

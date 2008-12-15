@@ -10,9 +10,11 @@ namespace LastFMspider.LastFMSQLiteBackend {
         DbParameter limitRowCount;
         protected override string CommandText {
             get { return @"
-SELECT T.TrackID, A.FullArtist, T.FullTitle, T.LookupTimestamp 
-FROM Track T, Artist A 
-WHERE T.LookupTimestamp IS NULL AND T.ArtistID = A.ArtistID
+SELECT T.TrackID, A.FullArtist, T.FullTitle
+FROM Artist A,
+INNER JOIN Track T ON A.ArtistID = T.ArtistID
+LEFT JOIN SimilarTrackList L ON T.TrackID = L.TrackID
+WHERE L.LookupTimestamp IS NULL
 LIMIT @limitRowCount 
             ";
             }
@@ -26,7 +28,6 @@ LIMIT @limitRowCount
                     tracks.Add(new CachedTrack {
                         ID = (int)(long)reader[0],
                         SongRef = SongRef.Create((string)reader[1], (string)reader[2]),
-                        LookupTimestamp = LookupSimilarityListAge.DbValueTicksToDateTime(reader[3]) //should be NULL
                     });
 
             }
