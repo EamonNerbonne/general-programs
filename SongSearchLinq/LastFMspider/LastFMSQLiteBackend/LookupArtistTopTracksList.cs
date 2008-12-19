@@ -42,28 +42,31 @@ AND L.LookupTimestamp = @ticks
         DbParameter lowerArtist,ticks;
 
         public ArtistTopTracksList Execute(string artist) {
-            using (var trans = Connection.BeginTransaction()) {
-                DateTime? age = lfmCache.LookupArtistTopTracksListAge.Execute(artist);
-                if (null == age)
-                    return null;
+            lock (SyncRoot) {
 
-                lowerArtist.Value = artist.ToLatinLowercase();
-                ticks.Value = age.Value.Ticks;//we want the newest one!
+                using (var trans = Connection.BeginTransaction()) {
+                    DateTime? age = lfmCache.LookupArtistTopTracksListAge.Execute(artist);
+                    if (null == age)
+                        return null;
 
-                List<ArtistTopTrack> toptracks = new List<ArtistTopTrack>();
-                using (var reader = CommandObj.ExecuteReader()) {
-                    while (reader.Read())
-                        toptracks.Add(new ArtistTopTrack {
-                            Track = (string)reader[0],
-                            Reach = (long)reader[1],
-                        });
+                    lowerArtist.Value = artist.ToLatinLowercase();
+                    ticks.Value = age.Value.Ticks;//we want the newest one!
+
+                    List<ArtistTopTrack> toptracks = new List<ArtistTopTrack>();
+                    using (var reader = CommandObj.ExecuteReader()) {
+                        while (reader.Read())
+                            toptracks.Add(new ArtistTopTrack {
+                                Track = (string)reader[0],
+                                Reach = (long)reader[1],
+                            });
+                    }
+                    var retval = new ArtistTopTracksList {
+                        Artist = artist,
+                        TopTracks = toptracks.ToArray(),
+                        LookupTimestamp = age.Value
+                    };
+                    return retval;
                 }
-                var retval = new ArtistTopTracksList {
-                    Artist = artist,
-                    TopTracks = toptracks.ToArray(),
-                    LookupTimestamp = age.Value
-                };
-                return retval;
             }
         }
 

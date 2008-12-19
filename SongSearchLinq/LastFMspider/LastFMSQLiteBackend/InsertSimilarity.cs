@@ -34,12 +34,14 @@ AND B.LowercaseTitle = @lowerTrackB
 
         //TODO fix call
         public void Execute(object o,int listID, SongRef songRefB, double rating) {
-            lfmCache.InsertTrack.Execute(songRefB);
-            this.rating.Value = rating;
-            this.listID.Value = listID;
-            this.lowerArtistB.Value = songRefB.Artist.ToLatinLowercase();
-            this.lowerTrackB.Value = songRefB.Title.ToLatinLowercase();
-            CommandObj.ExecuteNonQuery();
+            lock (SyncRoot) {
+                lfmCache.InsertTrack.Execute(songRefB);
+                this.rating.Value = rating;
+                this.listID.Value = listID;
+                this.lowerArtistB.Value = songRefB.Artist.ToLatinLowercase();
+                this.lowerTrackB.Value = songRefB.Title.ToLatinLowercase();
+                CommandObj.ExecuteNonQuery();
+            }
         }
 
     }

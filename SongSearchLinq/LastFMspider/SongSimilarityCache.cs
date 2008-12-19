@@ -50,9 +50,7 @@ namespace LastFMspider {
         }
         public SongSimilarityList Lookup(SongRef songref, out bool isNewlyDownloaded) {
             DateTime? cachedVersionAge=null;
-            using (var trans = backingDB.Connection.BeginTransaction()) {
                 cachedVersionAge = backingDB.LookupSimilarityListAge.Execute(songref);
-            }
             if (cachedVersionAge == null) { //get online version
                 Console.Write("?");
                 var retval = DirectWebRequest(songref);
@@ -92,7 +90,7 @@ namespace LastFMspider {
                         }).ToArray(),
                     };
                 return newEntry;
-            } catch (Exception e) {
+            } catch (Exception) {
                 return null;
             }
         }

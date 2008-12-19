@@ -36,27 +36,30 @@ ORDER BY S.Rating DESC
         DbParameter lowerTitle, lowerArtist,ticks;
 
         public SongSimilarityList Execute(SongRef songref) {
-            DateTime? age = lfmCache.LookupSimilarityListAge.Execute(songref);
-            
-            if (age == null) return null;
-            lowerArtist.Value = songref.Artist.ToLatinLowercase();
-            lowerTitle.Value = songref.Title.ToLatinLowercase();
-            ticks.Value = age.Value.Ticks;
-            List<SimilarTrack> similarto = new List<SimilarTrack>();
-            using (var reader = CommandObj.ExecuteReader())//no transaction needed for a single select!
+            lock (SyncRoot) {
+
+                DateTime? age = lfmCache.LookupSimilarityListAge.Execute(songref);
+
+                if (age == null) return null;
+                lowerArtist.Value = songref.Artist.ToLatinLowercase();
+                lowerTitle.Value = songref.Title.ToLatinLowercase();
+                ticks.Value = age.Value.Ticks;
+                List<SimilarTrack> similarto = new List<SimilarTrack>();
+                using (var reader = CommandObj.ExecuteReader())//no transaction needed for a single select!
                 {
-                while (reader.Read())
-                    similarto.Add(new SimilarTrack {
-                        similarity = (float)reader[2],
-                        similarsong = SongRef.Create((string)reader[0], (string)reader[1])
-                    });
+                    while (reader.Read())
+                        similarto.Add(new SimilarTrack {
+                            similarity = (float)reader[2],
+                            similarsong = SongRef.Create((string)reader[0], (string)reader[1])
+                        });
+                }
+                var retval = new SongSimilarityList {
+                    songref = songref,
+                    similartracks = similarto.ToArray(),
+                    LookupTimestamp = age.Value,
+                };
+                return retval;
             }
-            var retval = new SongSimilarityList {
-                songref = songref,
-                similartracks = similarto.ToArray(),
-                LookupTimestamp = age.Value,
-            };
-            return retval;
         }
 
 

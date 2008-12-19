@@ -10,12 +10,13 @@ using System.Xml.Linq;
 
 namespace LastFMspider {
     public class LastFMSQLiteCache:IDisposable {
+        public readonly object SyncRoot = new object();
         //we set legacy format to false for better storage efficiency
         //we set datetime format to ticks for better efficiency (interally just stored as integer)
         //rating is stored as a REAL which is a float in C#.
 
         const string DataProvider = "System.Data.SQLite";
-        const string DataConnectionString = "page size=4096;cache size=1000000;datetimeformat=Ticks;Legacy Format=False;Synchronous=N;data source=\"{0}\"";
+        const string DataConnectionString = "page size=4096;cache size=1000000;datetimeformat=Ticks;Legacy Format=False;Synchronous=OFF;data source=\"{0}\"";
         const string EdmConnectionString = "metadata=res://*/EDM.LfmSqliteEdm.csdl|res://*/EDM.LfmSqliteEdm.ssdl|res://*/EDM.LfmSqliteEdm.msl;provider=System.Data.SQLite;provider connection string='{0}'";
         const string DatabaseDef = @"
 CREATE TABLE IF NOT EXISTS [Artist] (
@@ -298,7 +299,9 @@ CREATE INDEX  IF NOT EXISTS [IDX_TrackInfo_Playcount] ON [TrackInfo](
         #region IDisposable Members
 
         public void Dispose() {
-            Connection.Dispose();
+            lock (SyncRoot) {
+                Connection.Dispose();
+            }
         }
 
         #endregion

@@ -31,12 +31,14 @@ WHERE B.LowercaseArtist= @lowerArtistB
 
 
         public void Execute(int listID, string artistB, double rating) {
-            lfmCache.InsertArtist.Execute(artistB);//we could also replace casing... whatever...
+            lock (SyncRoot) {
+                lfmCache.InsertArtist.Execute(artistB);//we could also replace casing... whatever...
 
-            this.rating.Value = rating;
-            this.listID.Value = (long)listID;
-            this.lowerArtistB.Value = artistB.ToLatinLowercase();
-            CommandObj.ExecuteNonQuery();
+                this.rating.Value = rating;
+                this.listID.Value = (long)listID;
+                this.lowerArtistB.Value = artistB.ToLatinLowercase();
+                CommandObj.ExecuteNonQuery();
+            }
         }
 
     }

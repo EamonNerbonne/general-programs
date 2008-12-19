@@ -18,15 +18,17 @@ namespace LastFMspider.LastFMSQLiteBackend {
 
         public TrackRow[] Execute() {
             List<TrackRow> tracks = new List<TrackRow>();
-            using (var reader = CommandObj.ExecuteReader()) {//no transaction needed for a single select!
-                while (reader.Read())
-                    tracks.Add(new TrackRow {
-                        TrackID = (int)(long)reader[0],
-                        ArtistID = (int)(long)reader[1],
-                        FullTitle = (string)reader[2],
-                        LowercaseTitle = (string)reader[3],
-                    });
+            lock (SyncRoot) {
+                using (var reader = CommandObj.ExecuteReader()) {//no transaction needed for a single select!
+                    while (reader.Read())
+                        tracks.Add(new TrackRow {
+                            TrackID = (int)(long)reader[0],
+                            ArtistID = (int)(long)reader[1],
+                            FullTitle = (string)reader[2],
+                            LowercaseTitle = (string)reader[3],
+                        });
 
+                }
             }
             return tracks.ToArray();
         }

@@ -22,14 +22,17 @@ LIMIT @limitRowCount
 
         public CachedTrack[] Execute(int limitRowCount) {
             List<CachedTrack> tracks = new List<CachedTrack>();
-            this.limitRowCount.Value = limitRowCount;
-            using (var reader = CommandObj.ExecuteReader()) {//no transaction needed for a single select!
-                while (reader.Read())
-                    tracks.Add(new CachedTrack {
-                        ID = (int)(long)reader[0],
-                        SongRef = SongRef.Create((string)reader[1], (string)reader[2]),
-                    });
+            lock (SyncRoot) {
 
+                this.limitRowCount.Value = limitRowCount;
+                using (var reader = CommandObj.ExecuteReader()) {//no transaction needed for a single select!
+                    while (reader.Read())
+                        tracks.Add(new CachedTrack {
+                            ID = (int)(long)reader[0],
+                            SongRef = SongRef.Create((string)reader[1], (string)reader[2]),
+                        });
+
+                }
             }
             return tracks.ToArray();
         }

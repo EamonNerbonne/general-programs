@@ -31,15 +31,17 @@ LIMIT 1
         }
 
         public DateTime? Execute(string artist) {
-            lowerArtist.Value = artist.ToLatinLowercase();
-            using (var reader = CommandObj.ExecuteReader())//no transaction needed for a single select!
+            lock (SyncRoot) {
+
+                lowerArtist.Value = artist.ToLatinLowercase();
+                using (var reader = CommandObj.ExecuteReader())//no transaction needed for a single select!
                 {
-                //we expect exactly one hit - or none
-                if (reader.Read()) {
-                    return DbValueTicksToDateTime(reader[0]);
+                    //we expect exactly one hit - or none
+                    if (reader.Read()) {
+                        return DbValueTicksToDateTime(reader[0]);
+                    } else
+                        return null;
                 }
-                else
-                    return null;
             }
         }
     }

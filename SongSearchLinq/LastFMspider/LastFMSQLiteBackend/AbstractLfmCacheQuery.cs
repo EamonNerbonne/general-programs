@@ -5,10 +5,13 @@ using System.Text;
 using System.Data.Common;
 using System.Data.SQLite;
 
-namespace LastFMspider.LastFMSQLiteBackend {
-    public abstract class AbstractLfmCacheQuery :AbstractLfmCacheOperation{
+namespace LastFMspider.LastFMSQLiteBackend
+{
+    public abstract class AbstractLfmCacheQuery : AbstractLfmCacheOperation
+    {
         readonly protected DbCommand CommandObj;
-        public AbstractLfmCacheQuery(LastFMSQLiteCache lfmCache):base(lfmCache) {
+        public AbstractLfmCacheQuery(LastFMSQLiteCache lfmCache)
+            : base(lfmCache) {
             CommandObj = Connection.CreateCommand();
             CommandObj.CommandText = CommandText;
         }

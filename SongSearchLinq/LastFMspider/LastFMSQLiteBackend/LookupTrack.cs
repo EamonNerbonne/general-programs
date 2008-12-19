@@ -22,14 +22,17 @@ SELECT FullArtist, FullTitle FROM [Track] NATURAL join [Artist] WHERE TrackID = 
         DbParameter trackID;
 
         public SongRef Execute(int TrackID) {
-            trackID.Value = TrackID;
-            using (var reader = CommandObj.ExecuteReader())//no transaction needed for a single select!
+            lock (SyncRoot) {
+
+                trackID.Value = TrackID;
+                using (var reader = CommandObj.ExecuteReader())//no transaction needed for a single select!
                 {
-                //we expect exactly one hit - or none
-                if (reader.Read()) {
-                    return SongRef.Create((string)reader[0], (string)reader[1]);
-                } else
-                    return null;
+                    //we expect exactly one hit - or none
+                    if (reader.Read()) {
+                        return SongRef.Create((string)reader[0], (string)reader[1]);
+                    } else
+                        return null;
+                }
             }
         }
 

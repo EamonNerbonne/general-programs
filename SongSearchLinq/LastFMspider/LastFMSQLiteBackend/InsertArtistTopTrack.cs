@@ -40,13 +40,15 @@ AND B.LowercaseTitle= @lowerTitleB
 
 
         public void Execute(int listID, int artistID, string trackTitle, long reach) {
-            this.reach.Value = reach;
-            this.listID.Value = (long)listID;
-            lowerTitleB.Value = trackTitle.ToLatinLowercase();
-            fullTitleB.Value = trackTitle;
-            this.artistID.Value = artistID;
+            lock (SyncRoot) {
+                this.reach.Value = reach;
+                this.listID.Value = (long)listID;
+                lowerTitleB.Value = trackTitle.ToLatinLowercase();
+                fullTitleB.Value = trackTitle;
+                this.artistID.Value = artistID;
 
-            CommandObj.ExecuteNonQuery();
+                CommandObj.ExecuteNonQuery();
+            }
         }
 
     }

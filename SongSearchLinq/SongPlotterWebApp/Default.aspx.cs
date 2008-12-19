@@ -65,6 +65,7 @@ namespace SongPlotterWebApp
             if (unknownSongs != null) {
                 var backingDB = tools.SimilarSongs.backingDB;
                 try {
+                    lock (backingDB.SyncRoot) 
                     using (var trans = backingDB.Connection.BeginTransaction()) {
                         foreach (var songref in unknownSongs.SelectMany(unknownSong => LoadM3U.PossibleSongRefs(unknownSong)))
                             backingDB.InsertTrack.Execute(songref);

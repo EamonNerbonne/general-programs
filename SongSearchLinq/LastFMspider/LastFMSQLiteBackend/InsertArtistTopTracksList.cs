@@ -35,26 +35,27 @@ AND L.LookupTimestamp = @lookupTimestamp
 
         private static IEnumerable<T> DeNull<T>(IEnumerable<T> iter) { return iter == null ? Enumerable.Empty<T>() : iter; }
         public void Execute(ArtistTopTracksList toptracksList) {
-            using (DbTransaction trans = Connection.BeginTransaction()) {
-                lfmCache.InsertArtist.Execute(toptracksList.Artist);
-                int listID;
-                int artistID;
-                lowerArtist.Value = toptracksList.Artist.ToLatinLowercase();
-                lookupTimestamp.Value = toptracksList.LookupTimestamp.Ticks;
-                using (var reader = CommandObj.ExecuteReader())
-                {
-                    if (reader.Read()) { //might need to do reader.NextResult();
-                        listID = (int)(long)reader[0];
-                        artistID = (int)(long)reader[1];
-                    } else {
-                        throw new Exception("Command failed???");
+            lock (SyncRoot) {
+                using (DbTransaction trans = Connection.BeginTransaction()) {
+                    lfmCache.InsertArtist.Execute(toptracksList.Artist);
+                    int listID;
+                    int artistID;
+                    lowerArtist.Value = toptracksList.Artist.ToLatinLowercase();
+                    lookupTimestamp.Value = toptracksList.LookupTimestamp.Ticks;
+                    using (var reader = CommandObj.ExecuteReader()) {
+                        if (reader.Read()) { //might need to do reader.NextResult();
+                            listID = (int)(long)reader[0];
+                            artistID = (int)(long)reader[1];
+                        } else {
+                            throw new Exception("Command failed???");
+                        }
                     }
-                }
 
-                foreach (var toptrack in toptracksList.TopTracks) {
-                    lfmCache.InsertArtistTopTrack.Execute(listID, artistID, toptrack.Track, toptrack.Reach);
+                    foreach (var toptrack in toptracksList.TopTracks) {
+                        lfmCache.InsertArtistTopTrack.Execute(listID, artistID, toptrack.Track, toptrack.Reach);
+                    }
+                    trans.Commit();
                 }
-                trans.Commit();
             }
         }
 

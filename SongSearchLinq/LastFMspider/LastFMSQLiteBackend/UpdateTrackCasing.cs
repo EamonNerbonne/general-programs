@@ -27,11 +27,14 @@ UPDATE Track SET FullTitle = @fullTitle WHERE LowercaseTitle=@lowerTitle AND Art
 
 
         public void Execute(SongRef songRef) {
-            lowerArtist.Value = songRef.Artist.ToLatinLowercase();
-            lowerTitle.Value = songRef.Title.ToLatinLowercase();
-            fullTitle.Value = songRef.Title;
-            fullArtist.Value = songRef.Artist;
-            CommandObj.ExecuteNonQuery();
+            lock (SyncRoot) {
+
+                lowerArtist.Value = songRef.Artist.ToLatinLowercase();
+                lowerTitle.Value = songRef.Title.ToLatinLowercase();
+                fullTitle.Value = songRef.Title;
+                fullArtist.Value = songRef.Artist;
+                CommandObj.ExecuteNonQuery();
+            }
         }
 
     }

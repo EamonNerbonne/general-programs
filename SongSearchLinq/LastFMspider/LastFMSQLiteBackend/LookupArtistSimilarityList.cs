@@ -42,28 +42,31 @@ AND L.LookupTimestamp = @ticks
         DbParameter lowerArtist,ticks;
 
         public ArtistSimilarityList Execute(string artist) {
-            using (var trans = Connection.BeginTransaction()) {
-                DateTime? age = lfmCache.LookupArtistSimilarityListAge.Execute(artist);
-                if (null == age)
-                    return null;
+            lock (SyncRoot) {
 
-                lowerArtist.Value = artist.ToLatinLowercase();
-                ticks.Value = age.Value.Ticks;//we want the newest one!
+                using (var trans = Connection.BeginTransaction()) {
+                    DateTime? age = lfmCache.LookupArtistSimilarityListAge.Execute(artist);
+                    if (null == age)
+                        return null;
 
-                List<SimilarArtist> similarto = new List<SimilarArtist>();
-                using (var reader = CommandObj.ExecuteReader()) {
-                    while (reader.Read())
-                        similarto.Add(new SimilarArtist {
-                            Artist = (string)reader[0],
-                            Rating = (float)reader[1],
-                        });
+                    lowerArtist.Value = artist.ToLatinLowercase();
+                    ticks.Value = age.Value.Ticks;//we want the newest one!
+
+                    List<SimilarArtist> similarto = new List<SimilarArtist>();
+                    using (var reader = CommandObj.ExecuteReader()) {
+                        while (reader.Read())
+                            similarto.Add(new SimilarArtist {
+                                Artist = (string)reader[0],
+                                Rating = (float)reader[1],
+                            });
+                    }
+                    var retval = new ArtistSimilarityList {
+                        Artist = artist,
+                        Similar = similarto.ToArray(),
+                        LookupTimestamp = age.Value
+                    };
+                    return retval;
                 }
-                var retval = new ArtistSimilarityList {
-                    Artist = artist,
-                    Similar = similarto.ToArray(),
-                    LookupTimestamp = age.Value
-                };
-                return retval;
             }
         }
 

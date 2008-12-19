@@ -24,35 +24,34 @@ namespace LastFMspider
     }
 
     [Serializable]
-	public class SongRef
-	{
+    public class SongRef
+    {
 
 
-		private string artist;
-		public string Artist { get { return artist; } }
-		private string title;
-		public string Title { get { return title; } }
-		public readonly int hashcode;
+        private string artist;
+        public string Artist { get { return artist; } }
+        private string title;
+        public string Title { get { return title; } }
+        public readonly int hashcode;
 
 
-        public static SongRef Create(string artist, string title)
-        {
-            return Cache<SongRef>.Unique(new SongRef(artist, title), s=>s.OptimalVersion() );
+        public static SongRef Create(string artist, string title) {
+            return Cache<SongRef>.Unique(new SongRef(artist, title), s => s.OptimalVersion());
         }
 
 
-		public static SongRef Create(SongData song) {
-			if(song.performer == null || song.title == null) return null;//TODO - add error handling or simply remove from db?
-			return Create(song.performer, song.title);
-		}
-		public override bool Equals(object obj) {
-			if(!(obj is SongRef)) return false;
-			SongRef other = ((SongRef)obj);
-			return other.hashcode == hashcode&& other.Artist.Equals(Artist, StringComparison.InvariantCultureIgnoreCase) && Title.Equals(other.Title, StringComparison.InvariantCultureIgnoreCase);
-		}
-		public override int GetHashCode() {
-			return hashcode;
-		}
+        public static SongRef Create(SongData song) {
+            if (song.performer == null || song.title == null) return null;//TODO - add error handling or simply remove from db?
+            return Create(song.performer, song.title);
+        }
+        public override bool Equals(object obj) {
+            if (!(obj is SongRef)) return false;
+            SongRef other = ((SongRef)obj);
+            return other.hashcode == hashcode && other.Artist.Equals(Artist, StringComparison.InvariantCultureIgnoreCase) && Title.Equals(other.Title, StringComparison.InvariantCultureIgnoreCase);
+        }
+        public override int GetHashCode() {
+            return hashcode;
+        }
         public override string ToString() {
             return Artist + " - " + Title;
         }
@@ -76,21 +75,21 @@ namespace LastFMspider
             public static double clearScaleFactor = 0.5;
             private static Dictionary<int, WeakReference[]> cache = new Dictionary<int, WeakReference[]>();
             public static T Unique(T item, Func<T, T> optimize) {
-                if (nextClearIn <= 0) {
-                    var keys = cache.Keys.ToArray();
-                    foreach (var key in keys) {
-                        var liverefs = cache[key].Where(wk => wk.Target != null).ToArray();
-                        if (liverefs.Length == 0)
-                            cache.Remove(key);
-                        else
-                            cache[key] = liverefs;
-                    }
-                    nextClearIn = (int)(clearScaleFactor * cache.Count);
-                } else
-                    nextClearIn--;
-                if (optimize == null) optimize = x => x;
-                int code = item.GetHashCode();
                 lock (cache) {
+                    if (nextClearIn <= 0) {
+                        var keys = cache.Keys.ToArray();
+                        foreach (var key in keys) {
+                            var liverefs = cache[key].Where(wk => wk.Target != null).ToArray();
+                            if (liverefs.Length == 0)
+                                cache.Remove(key);
+                            else
+                                cache[key] = liverefs;
+                        }
+                        nextClearIn = (int)(clearScaleFactor * cache.Count);
+                    } else
+                        nextClearIn--;
+                    if (optimize == null) optimize = x => x;
+                    int code = item.GetHashCode();
                     if (cache.ContainsKey(code)) {
                         var items = cache[code].Select(w => w.Target).Where(o => o != null).Cast<T>();
                         var list = new List<T>();
@@ -110,5 +109,5 @@ namespace LastFMspider
             }
         }
 
-	}
+    }
 }

@@ -34,24 +34,25 @@ AND L.LookupTimestamp = @lookupTimestamp
 
         private static IEnumerable<T> DeNull<T>(IEnumerable<T> iter) { return iter == null ? Enumerable.Empty<T>() : iter; }
         public void Execute(ArtistSimilarityList simList) {
-            using (DbTransaction trans = Connection.BeginTransaction()) {
-                lfmCache.InsertArtist.Execute(simList.Artist);
-                int listID;
-                lowerArtist.Value = simList.Artist.ToLatinLowercase();
-                lookupTimestamp.Value = simList.LookupTimestamp.Ticks;
-                using (var reader = CommandObj.ExecuteReader())
-                {
-                    if (reader.Read()) { //might need to do reader.NextResult();
-                        listID = (int)(long)reader[0];
-                    } else {
-                        throw new Exception("Command failed???");
+            lock (SyncRoot) {
+                using (DbTransaction trans = Connection.BeginTransaction()) {
+                    lfmCache.InsertArtist.Execute(simList.Artist);
+                    int listID;
+                    lowerArtist.Value = simList.Artist.ToLatinLowercase();
+                    lookupTimestamp.Value = simList.LookupTimestamp.Ticks;
+                    using (var reader = CommandObj.ExecuteReader()) {
+                        if (reader.Read()) { //might need to do reader.NextResult();
+                            listID = (int)(long)reader[0];
+                        } else {
+                            throw new Exception("Command failed???");
+                        }
                     }
-                }
 
-                foreach (var similarArtist in simList.Similar) {
-                    lfmCache.InsertArtistSimilarity.Execute(listID, similarArtist.Artist, similarArtist.Rating);
+                    foreach (var similarArtist in simList.Similar) {
+                        lfmCache.InsertArtistSimilarity.Execute(listID, similarArtist.Artist, similarArtist.Rating);
+                    }
+                    trans.Commit();
                 }
-                trans.Commit();
             }
         }
 
