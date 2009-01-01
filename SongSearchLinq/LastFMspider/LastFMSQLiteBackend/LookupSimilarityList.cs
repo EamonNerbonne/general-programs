@@ -38,12 +38,12 @@ ORDER BY S.Rating DESC
         public SongSimilarityList Execute(SongRef songref) {
             lock (SyncRoot) {
 
-                DateTime? age = lfmCache.LookupSimilarityListAge.Execute(songref);
+                ListStatus? listStatus = lfmCache.LookupSimilarityListAge.Execute(songref);
 
-                if (age == null) return null;
+                if (listStatus == null || !listStatus.Value.IsOK()) return null;
                 lowerArtist.Value = songref.Artist.ToLatinLowercase();
                 lowerTitle.Value = songref.Title.ToLatinLowercase();
-                ticks.Value = age.Value.Ticks;
+                ticks.Value = listStatus.Value.Timestamp.Ticks;
                 List<SimilarTrack> similarto = new List<SimilarTrack>();
                 using (var reader = CommandObj.ExecuteReader())//no transaction needed for a single select!
                 {
@@ -56,12 +56,10 @@ ORDER BY S.Rating DESC
                 var retval = new SongSimilarityList {
                     songref = songref,
                     similartracks = similarto.ToArray(),
-                    LookupTimestamp = age.Value,
+                    LookupTimestamp = listStatus.Value.Timestamp,
                 };
                 return retval;
             }
         }
-
-
     }
 }

@@ -21,7 +21,7 @@ namespace LastFMspider.LastFMSQLiteBackend {
             get { return @"
 INSERT OR REPLACE INTO [SimilarTrack] (ListID, TrackB, Rating) 
 SELECT @listID as ListID, B.TrackID, @rating as Rating
-FROM Artist BA,Track B,
+FROM Artist BA,Track B
 WHERE BA.LowercaseArtist = @lowerArtistB 
 AND BA.ArtistID = B.ArtistID 
 AND B.LowercaseTitle = @lowerTrackB

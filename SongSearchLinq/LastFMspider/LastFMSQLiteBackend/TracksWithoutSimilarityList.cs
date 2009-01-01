@@ -11,8 +11,8 @@ namespace LastFMspider.LastFMSQLiteBackend {
         protected override string CommandText {
             get { return @"
 SELECT T.TrackID, A.FullArtist, T.FullTitle
-FROM Artist A,
-INNER JOIN Track T ON A.ArtistID = T.ArtistID
+FROM Artist A
+JOIN Track T ON A.ArtistID = T.ArtistID
 LEFT JOIN SimilarTrackList L ON T.TrackID = L.TrackID
 WHERE L.LookupTimestamp IS NULL
 LIMIT @limitRowCount 

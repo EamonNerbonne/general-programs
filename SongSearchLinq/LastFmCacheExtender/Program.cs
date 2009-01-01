@@ -19,17 +19,25 @@ namespace LastFmCacheExtender
             tools = new LastFmTools(config);
             tools.EnsureLocalFilesInDB();
             tools.UnloadDB();
-            Parallel.Invoke(Enumerable.Repeat((Action)ExtendSimilarities, 8).ToArray());
+            object a, b, c, d, e, f, g,h;
+            Console.WriteLine("go!");
+#if DEBUG
+            ExtendSimilarities();
+#else
+
+            Parallel.Invoke(Enumerable.Repeat((Action)ExtendSimilarities, 4).ToArray());
+#endif
         }
 
         static void ExtendSimilarities() {
-
+        //    tools.PrecacheArtistTopTracks();
+            tools.PrecacheSongSimilarity();
             //tools.PrecacheSongSimilarity();
             //tools.PrecacheLocalFiles(false);//might want to do this first, but meh.
-            do {
-                tools.PrecacheArtistSimilarity();
-                tools.PrecacheArtistTopTracks();
-            } while (tools.SimilarSongs.backingDB.ArtistsWithoutSimilarityList.Execute(1).Length > 0);
+            //do {
+            //    tools.PrecacheArtistSimilarity();
+            //    tools.PrecacheArtistTopTracks();
+            //} while (tools.SimilarSongs.backingDB.ArtistsWithoutSimilarityList.Execute(1).Length > 0);
             //tools.PrecacheSongSimilarity();
         }
     }

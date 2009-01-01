@@ -7,16 +7,22 @@ using System.Data.SQLite;
 
 namespace LastFMspider.LastFMSQLiteBackend
 {
-    public struct SimilarArtist
+    public struct SimilarArtist:IComparable<SimilarArtist>
     {
         public string Artist;
         public double Rating;
+
+
+        public int CompareTo(SimilarArtist other) {
+            return other.Rating.CompareTo(Rating);
+        }
     }
     public class ArtistSimilarityList
     {
         public DateTime LookupTimestamp;
         public string Artist;
         public SimilarArtist[] Similar;
+        public int? StatusCode;//TODO:integrate. (and delete lookuptimestamp)
     }
 
     public class LookupArtistSimilarityList : AbstractLfmCacheQuery

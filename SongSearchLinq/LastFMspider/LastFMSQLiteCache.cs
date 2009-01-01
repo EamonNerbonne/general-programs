@@ -16,7 +16,7 @@ namespace LastFMspider {
         //rating is stored as a REAL which is a float in C#.
 
         const string DataProvider = "System.Data.SQLite";
-        const string DataConnectionString = "page size=4096;cache size=1000000;datetimeformat=Ticks;Legacy Format=False;Synchronous=OFF;data source=\"{0}\"";
+        const string DataConnectionString = "page size=4096;cache size=100000;datetimeformat=Ticks;Legacy Format=False;Synchronous=OFF;data source=\"{0}\"";
         const string EdmConnectionString = "metadata=res://*/EDM.LfmSqliteEdm.csdl|res://*/EDM.LfmSqliteEdm.ssdl|res://*/EDM.LfmSqliteEdm.msl;provider=System.Data.SQLite;provider connection string='{0}'";
         const string DatabaseDef = @"
 CREATE TABLE IF NOT EXISTS [Artist] (
@@ -33,7 +33,8 @@ CREATE UNIQUE INDEX  IF NOT EXISTS [Unique_Artist_LowercaseArtist] ON [Artist](
 CREATE TABLE IF NOT EXISTS [SimilarArtistList] (
 [ListID] INTEGER NOT NULL PRIMARY KEY,
 [ArtistID] INTEGER  NOT NULL,
-[LookupTimestamp] INTEGER NOT NULL
+[LookupTimestamp] INTEGER NOT NULL,
+[StatusCode] INTEGER
 );
 CREATE UNIQUE INDEX  IF NOT EXISTS [Unique_SimilarArtistList_ArtistID_LookupTimestamp] ON [SimilarArtistList](
   [ArtistID]  ASC,
@@ -69,27 +70,24 @@ CREATE TABLE IF NOT EXISTS  [Track] (
   [TrackID] INTEGER  NOT NULL PRIMARY KEY,
   [ArtistID] INTEGER  NOT NULL,
   [FullTitle] TEXT  NOT NULL,
-  [LowercaseTitle] TEXT  NOT NULL,
-  [LookupTimestamp] INTEGER  NULL
+  [LowercaseTitle] TEXT  NOT NULL
 );
 CREATE UNIQUE INDEX IF NOT EXISTS [Unique_Track_ArtistID_LowercaseTitle] ON [Track](
   [ArtistID]  ASC,
   [LowercaseTitle]  ASC
 );
-CREATE INDEX IF NOT EXISTS [IDX_Track_LookupTimestamp] ON [Track](
-  [LookupTimestamp]  ASC
-);
 
 CREATE TABLE IF NOT EXISTS [SimilarTrackList] (
 [ListID] INTEGER NOT NULL PRIMARY KEY,
 [TrackID] INTEGER  NOT NULL,
-[LookupTimestamp] INTEGER NOT NULL
+[LookupTimestamp] INTEGER NOT NULL,
+[StatusCode] INTEGER
 );
-CREATE UNIQUE INDEX  IF NOT EXISTS [Unique_SimilarArtistList_ArtistID_LookupTimestamp] ON [SimilarArtistList](
+CREATE UNIQUE INDEX  IF NOT EXISTS [Unique_SimilarTrackList_ArtistID_LookupTimestamp] ON [SimilarTrackList](
   [TrackID]  ASC,
   [LookupTimestamp]  DESC
 );
-CREATE INDEX IF NOT EXISTS [IDX_SimilarArtistList_LookupTimestamp] ON [SimilarArtistList](
+CREATE INDEX IF NOT EXISTS [IDX_SimilarTrackList_LookupTimestamp] ON [SimilarTrackList](
   [LookupTimestamp]  ASC
 );
 
@@ -115,7 +113,8 @@ CREATE INDEX  IF NOT EXISTS [IDX_SimilarTrack_Rating] ON [SimilarTrack](
 CREATE TABLE IF NOT EXISTS [TopTracksList] (
 [ListID] INTEGER NOT NULL PRIMARY KEY,
 [ArtistID] INTEGER  NOT NULL,
-[LookupTimestamp] INTEGER NOT NULL
+[LookupTimestamp] INTEGER NOT NULL,
+[StatusCode] INTEGER
 );
 CREATE UNIQUE INDEX  IF NOT EXISTS [Unique_TopTracksList_ArtistID_LookupTimestamp] ON [TopTracksList](
   [ArtistID]  ASC,

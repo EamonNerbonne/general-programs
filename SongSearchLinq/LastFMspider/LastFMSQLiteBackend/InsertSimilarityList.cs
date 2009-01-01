@@ -43,6 +43,7 @@ AND L.LookupTimestamp = @lookupTimestamp
                     lfmCache.InsertTrack.Execute(simList.songref);
                     int listID;
                     lowerArtist.Value = simList.songref.Artist.ToLatinLowercase();
+                    lowerTitle.Value = simList.songref.Title.ToLatinLowercase();
                     lookupTimestamp.Value = simList.LookupTimestamp.Ticks;
                     using (var reader = CommandObj.ExecuteReader()) {
                         if (reader.Read()) { //might need to do reader.NextResult();

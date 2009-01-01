@@ -7,6 +7,7 @@ using System.IO;
 using EmnExtensions.Algorithms;
 using LastFMspider.LastFMSQLiteBackend;
 using LastFMspider.OldApi;
+using System.Net;
 namespace LastFMspider
 {
     public class LastFmTools
@@ -142,8 +143,8 @@ namespace LastFMspider
                 try {
                     string trackStr = track.SongRef.ToString();
                     msg.AppendFormat("SimTo:{0,-30}", trackStr.Substring(0, Math.Min(trackStr.Length, 30)));
-                    DateTime? previousAge = SimilarSongs.backingDB.LookupSimilarityListAge.Execute(track.SongRef);
-                    if (previousAge != null) {
+                    ListStatus? listStatus = SimilarSongs.backingDB.LookupSimilarityListAge.Execute(track.SongRef);
+                    if (listStatus != null) {
                         msg.AppendFormat("done.");
                         continue;
                     }
@@ -178,7 +179,7 @@ namespace LastFMspider
 
 
         public void PrecacheArtistSimilarity() {
-            var artistsToGo = SimilarSongs.backingDB.ArtistsWithoutSimilarityList.Execute(100000);
+            var artistsToGo = SimilarSongs.backingDB.ArtistsWithoutSimilarityList.Execute(1000000);
 #if !DEBUG
             artistsToGo.Shuffle();
 #endif
@@ -202,7 +203,8 @@ namespace LastFMspider
                             Similar = new SimilarArtist[] { }
                         }
                         : new ArtistSimilarityList {
-                            Artist = simArtists.artistName,
+                            Artist = artist.ArtistName.ToLatinLowercase() ==  simArtists.artistName.ToLatinLowercase()?
+                                simArtists.artistName:artist.ArtistName,
                             LookupTimestamp = DateTime.UtcNow,
                             Similar = DeNull(simArtists.artist).Select(simArtist => new SimilarArtist {
                                 Artist = simArtist.name,
@@ -214,6 +216,9 @@ namespace LastFMspider
                         msg.AppendFormat("{1}: {0}", newEntry.Similar[0].Artist.Substring(0, Math.Min(newEntry.Similar[0].Artist.Length, 30)), newEntry.Similar[0].Rating);
 
                     SimilarSongs.backingDB.InsertArtistSimilarityList.Execute(newEntry);
+                } catch (WebException we) {
+                    msg.AppendFormat("-Error:{0}", we.Status);
+                    //SimilarSongs.backingDB.InsertArtistSimilarityList.Execute(newEntry);
                 } catch (Exception e) {
                     msg.AppendFormat("{0}", e);
                 } finally {
@@ -224,13 +229,13 @@ namespace LastFMspider
 
 
         public void PrecacheArtistTopTracks() {
-            var artistsToGo = SimilarSongs.backingDB.ArtistsWithoutTopTracksList.Execute(100000);
+            var artistsToGo = SimilarSongs.backingDB.ArtistsWithoutTopTracksList.Execute(1000000);
 #if !DEBUG
             artistsToGo.Shuffle();
 #endif
             Console.WriteLine("Looking up top-tracks for {0} artists...", artistsToGo.Length);
 
-            foreach (var artist in artistsToGo.Take(10000)) {
+            foreach (var artist in artistsToGo) {
                 StringBuilder msg = new StringBuilder();
 
                 try {
