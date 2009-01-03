@@ -137,6 +137,7 @@ namespace LastFMspider
 #if !DEBUG
             tracksToGo.Shuffle();
 #endif
+            tracksToGo = tracksToGo.Take(100000).ToArray();
             Console.WriteLine("Looking up similarities for {0} tracks...", tracksToGo.Length);
             foreach (var track in tracksToGo) {
                 StringBuilder msg = new StringBuilder();
