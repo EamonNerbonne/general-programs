@@ -16,21 +16,25 @@ namespace LastFMspider
         SongDatabaseConfigFile configFile;
         SimpleSongDB db;
         SongDataLookups lookup;
+      //  private object sync = new object();
 
         public SongSimilarityCache SimilarSongs {
             get {
-                return similarSongs ?? (similarSongs = new SongSimilarityCache(ConfigFile));
+               // lock (sync)
+                    return similarSongs ?? (similarSongs = new SongSimilarityCache(ConfigFile));
             }
         }
         public SongDatabaseConfigFile ConfigFile { get { return configFile; } }
         public SimpleSongDB DB {
             get {
-                return db ?? (db = new SimpleSongDB(ConfigFile, null));
+               // lock (sync)
+                    return db ?? (db = new SimpleSongDB(ConfigFile, null));
             }
         }
         public SongDataLookups Lookup {
             get {
-                return lookup ?? (lookup = new SongDataLookups(DB.Songs, null));
+              //  lock (sync)
+                    return lookup ?? (lookup = new SongDataLookups(DB.Songs, null));
             }
         }
 
@@ -40,12 +44,15 @@ namespace LastFMspider
 
 
         public void UnloadLookup() {
-            lookup = null;
+           // lock (sync)
+                lookup = null;
         }
 
         public void UnloadDB() {
-            UnloadLookup();
-            db = null;
+          //  lock (sync) {
+                UnloadLookup();
+                db = null;
+           // }
         }
 
         public void PrecacheSongMetadata() {
@@ -91,7 +98,7 @@ namespace LastFMspider
                 try {
                     progressCount++;
                     var similar = SimilarSongs.Lookup(songref);//precache the last.fm data.  unsure - NOT REALLY necessary?
-                    int newSimilars = similar==null||similar.similartracks == null ? 0 : similar.similartracks.Length;
+                    int newSimilars = similar == null || similar.similartracks == null ? 0 : similar.similartracks.Length;
                     similarityCount += newSimilars;
                     if (similar != null)
                         hits++;
@@ -116,17 +123,17 @@ namespace LastFMspider
             Console.WriteLine("Taking those {0} songs and indexing em by artist/title...", DB.Songs.Count);
             SongRef[] songsToDownload = Lookup.dataByRef.Keys.ToArray();
             UnloadDB();
-            lock(SimilarSongs.backingDB.SyncRoot)
-            using (var trans = SimilarSongs.backingDB.Connection.BeginTransaction()) {
-                foreach (SongRef songref in songsToDownload) {
-                    try {
-                        SimilarSongs.backingDB.InsertTrack.Execute(songref);
-                    } catch (Exception e) {
-                        Console.WriteLine("Exception: {0}", e.ToString());
-                    }//ignore all errors.
+            lock (SimilarSongs.backingDB.SyncRoot)
+                using (var trans = SimilarSongs.backingDB.Connection.BeginTransaction()) {
+                    foreach (SongRef songref in songsToDownload) {
+                        try {
+                            SimilarSongs.backingDB.InsertTrack.Execute(songref);
+                        } catch (Exception e) {
+                            Console.WriteLine("Exception: {0}", e.ToString());
+                        }//ignore all errors.
+                    }
+                    trans.Commit();
                 }
-                trans.Commit();
-            }
         }
 
 
@@ -204,8 +211,8 @@ namespace LastFMspider
                             Similar = new SimilarArtist[] { }
                         }
                         : new ArtistSimilarityList {
-                            Artist = artist.ArtistName.ToLatinLowercase() ==  simArtists.artistName.ToLatinLowercase()?
-                                simArtists.artistName:artist.ArtistName,
+                            Artist = artist.ArtistName.ToLatinLowercase() == simArtists.artistName.ToLatinLowercase() ?
+                                simArtists.artistName : artist.ArtistName,
                             LookupTimestamp = DateTime.UtcNow,
                             Similar = DeNull(simArtists.artist).Select(simArtist => new SimilarArtist {
                                 Artist = simArtist.name,
@@ -247,13 +254,13 @@ namespace LastFMspider
                         continue;
                     }
                     ApiArtistTopTracks artistTopTracks = OldApiClient.Artist.GetTopTracks(artist.ArtistName);
-                    var newEntry= artistTopTracks == null
-                        ?new ArtistTopTracksList {//represents 404 Not Found
+                    var newEntry = artistTopTracks == null
+                        ? new ArtistTopTracksList {//represents 404 Not Found
                             Artist = artist.ArtistName,
                             LookupTimestamp = DateTime.UtcNow,
-                            TopTracks =  new ArtistTopTrack[0],
+                            TopTracks = new ArtistTopTrack[0],
                         }
-                        :new ArtistTopTracksList {
+                        : new ArtistTopTracksList {
                             Artist = artistTopTracks.artist,
                             LookupTimestamp = DateTime.UtcNow,
                             TopTracks = DeNull(artistTopTracks.track).Select(toptrack => new ArtistTopTrack {
