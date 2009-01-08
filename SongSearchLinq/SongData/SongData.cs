@@ -126,8 +126,8 @@ namespace SongDataLib
 					return base.HumanLabel;
 				else {
 					return
-						(performer != null ? performer + " - " : "") +
-						title;
+						(performer != null ? performer.TrimEnd() + " - " : "") +
+						title.TrimEnd();
 				}
 			}
 		}

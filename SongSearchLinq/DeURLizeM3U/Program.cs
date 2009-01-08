@@ -15,11 +15,18 @@ namespace DeURLizeM3U
     {
         static void Main(string[] args) {
             if (args.Length == 1 && Directory.Exists(args[0]))
-                args = Directory.GetFiles(args[0],"*.m3u").Where(fi=>!Path.GetFileNameWithoutExtension(fi).EndsWith("-fixed")).ToArray();
+                args = Directory.GetFiles(args[0], "*.m3u").Where(fi => !Path.GetFileNameWithoutExtension(fi).EndsWith("-fixed")).ToArray();
             LastFmTools tools = new LastFmTools(new SongDatabaseConfigFile(false));
-            int nulls = 0, nulls2 = 0,fine=0;
+            int nulls2 = 0, fine = 0;
             //Parallel.ForEach(args, m3ufilename => {
-                foreach (var m3ufilename in args) {
+            List<SongMatch> 
+                toobadL = new List<SongMatch>(),
+                hmmL = new List<SongMatch>();
+            //List<PartialSongData> errL = new List<PartialSongData>();
+            File.Delete("m3ufixer-err.log");
+            File.Delete("m3ufixer-ok.log");
+
+            foreach (var m3ufilename in args) {
                 try {
                     Console.WriteLine("\nprocessing: {0}", m3ufilename);
                     FileInfo fi = new FileInfo(m3ufilename);
@@ -37,17 +44,16 @@ namespace DeURLizeM3U
                                 best = FindBestMatch2(tools, song);
                                 if (best.SongData == null) {
                                     Console.WriteLine("XXX:({1}) {0}  ===  {2}\n", NormalizedFileName(song.SongPath), song.length, song.HumanLabel);
-                                    File.AppendAllText("m3ufixer-err.log", NormalizedFileName(song.SongPath) + "(" + TimeSpan.FromSeconds(song.Length).ToString() + "): " + song.HumanLabel + "\n");
+                                    File.AppendAllText("m3ufixer-err.log", SongMatch.ToString(song));
                                     nulls2++;
-                                } else if (best.Cost > 10) {
-                                    Console.WriteLine("!!!:({2}) {0}\n Is:({3}) {1}\n", NormalizedFileName(song.SongPath) + ": " + song.HumanLabel, NormalizedFileName(best.SongData.SongPath) + ": " + best.SongData.HumanLabel, song.length, best.SongData.Length);
-                                    File.AppendAllText("m3ufixer-toobad.log", NormalizedFileName(song.SongPath) + "(" + TimeSpan.FromSeconds(song.Length).ToString() + "): " + song.HumanLabel + "\t==>\t" + NormalizedFileName(best.SongData.SongPath) + "(" + TimeSpan.FromSeconds(best.SongData.Length).ToString() + "): " + best.SongData.HumanLabel + "\n");
-                                    nulls2++;
-                                    best.SongData = null;
+                                } else if (best.Cost > 8) {
+                                    Console.WriteLine("!!!{4}:({2}) {0}\n Is:({3}) {1}\n", NormalizedFileName(song.SongPath) + ": " + song.HumanLabel, NormalizedFileName(best.SongData.SongPath) + ": " + best.SongData.HumanLabel, song.length, best.SongData.Length, best.Cost);
+                                    toobadL.Add(best);
+
+                                    best = new SongMatch { SongData = null };
                                 } else {
-                                    nulls++;
                                     Console.WriteLine("!!!:({2}) {0}\n Is:({3}) {1}\n", NormalizedFileName(song.SongPath) + ": " + song.HumanLabel, NormalizedFileName(best.SongData.SongPath) + ": " + best.SongData.HumanLabel, song.length, best.SongData.Length);
-                                    File.AppendAllText("m3ufixer-hmm.log", NormalizedFileName(song.SongPath) + "(" + TimeSpan.FromSeconds(song.Length).ToString() + "): " + song.HumanLabel + "\t==>\t" + NormalizedFileName(best.SongData.SongPath) + "(" + TimeSpan.FromSeconds(best.SongData.Length).ToString() + "): " + best.SongData.HumanLabel + "\n");
+                                    hmmL.Add(best);
                                 }
                             } else {
                                 fine++;
@@ -63,15 +69,29 @@ namespace DeURLizeM3U
                             idx++;
 
                         }
-                        Console.WriteLine("Fine: {0}, Rough: {1}, No-match: {2}", fine, nulls, nulls2);
+                        Console.WriteLine("Fine: {0}, Rough: {1}, Too bad: {2},  No-match: {3}", fine, hmmL.Count,toobadL.Count, nulls2);
                         FileInfo outputplaylist = new FileInfo(Path.Combine(fi.DirectoryName, Path.GetFileNameWithoutExtension(fi.Name) + "-fixed.m3u"));
-                        using (var stream = outputplaylist.OpenWrite())
+                        using (var stream = outputplaylist.Open(FileMode.Create,FileAccess.Write))
                         using (var writer = new StreamWriter(stream, Encoding.GetEncoding(1252))) {
                             writer.WriteLine("#EXTM3U");
                             foreach (var track in playlistfixed) {
                                 writer.WriteLine("#EXTINF:" + track.Length + "," + track.HumanLabel + "\r\n" + track.SongPath);
                             }
                         }
+                        hmmL.Sort((a, b) => b.Cost.CompareTo(a.Cost));
+                        toobadL.Sort((a, b) => a.Cost.CompareTo(b.Cost));
+                        using (var stream = File.Open("m3ufixer-hmm.log",FileMode.Create,FileAccess.Write))
+                        using (var writer = new StreamWriter(stream))
+                            foreach (var match in hmmL)
+                                writer.WriteLine(match.ToString());
+                        using (var stream = File.Open("m3ufixer-toobad.log", FileMode.Create, FileAccess.Write))
+                        using (var writer = new StreamWriter(stream))
+                            foreach (var match in toobadL)
+                                writer.WriteLine(match.ToString());
+
+                        
+
+
                     }
                 } catch (Exception e) {
                     Console.WriteLine(e.ToString());
@@ -98,7 +118,7 @@ namespace DeURLizeM3U
                 //Step 4
                 for (int j = 0; j < m; j++) {
                     // Step 5
-                    cost = (t[j] == s[i] ? 0 : 1);
+                    cost = (t[j] == s[i] ? 0 : 2);//substitution will be cost 2.
                     // Step 6
                     d[i + 1, j + 1] = System.Math.Min(System.Math.Min(d[i, j + 1] + 1, d[i + 1, j] + 1), d[i, j] + cost);
                 }
@@ -108,8 +128,31 @@ namespace DeURLizeM3U
         }
         struct SongMatch
         {
+            public static SongMatch? Compare(PartialSongData src, string filename, string normlabel, SongData opt) {
+                double lenC = Math.Abs(src.Length - opt.Length);
+                if (lenC > 5) return null;
+                string optFileName = Path.GetFileName(opt.SongPath);
+                string optBasicLabel = Canonicalize.Basic(opt.HumanLabel);
+                double nameC = LD(filename, optFileName) / (double)(filename.Length + optFileName.Length);
+                double labelC = LD(optBasicLabel, normlabel) / (double)(normlabel.Length + optBasicLabel.Length);
+                return new SongMatch {
+                    SongData = opt,
+                    Orig = src,
+                    LenC = lenC,
+                    NameC = nameC,
+                    TagC = labelC,
+                    Cost = lenC/2.0 + Math.Sqrt(50 * Math.Min(nameC, labelC)) + Math.Sqrt(50 * labelC)
+                };
+            }
             public SongData SongData;
-            public double Cost;
+            public PartialSongData Orig;
+            public double Cost, LenC, NameC, TagC;
+            public override string ToString() {
+                return string.Format("{0,7:g5} {1,7:g5} {2,7:g5} {3,7:g5} {4} ==> {5} ", Cost, LenC, NameC, TagC, ToString(Orig), ToString(SongData));
+            }
+            public static string ToString(ISongData song) {
+                return NormalizedFileName(song.SongPath) + ": " + song.HumanLabel + " (" + TimeSpan.FromSeconds(song.Length) + ")";
+            }
         }
 
         static SongMatch FindBestMatch(LastFmTools tools, PartialSongData songToFind) {
@@ -118,26 +161,16 @@ namespace DeURLizeM3U
                     from songdataOpt in tools.Lookup.dataByRef[songrefOpt]
                     let lengthDiff = Math.Abs(songToFind.Length - songdataOpt.Length)
                     let filenameDiff = LD(NormalizedFileName(songToFind.SongPath), NormalizedFileName(songdataOpt.SongPath))
-                    select new SongMatch { SongData = songdataOpt, Cost = lengthDiff*0.5 + filenameDiff*0.2 };
+                    select new SongMatch { SongData = songdataOpt, Orig = songToFind, Cost = lengthDiff * 0.5 + filenameDiff * 0.2 };
             return q.Aggregate(new SongMatch { SongData = (SongData)null, Cost = int.MaxValue }, (a, b) => a.Cost < b.Cost ? a : b);
         }
         static SongMatch FindBestMatch2(LastFmTools tools, PartialSongData songToFind) {
             string fileName = NormalizedFileName(songToFind.SongPath);
-            string basicLabel =  Canonicalize.Basic( songToFind.HumanLabel);
+            string basicLabel = Canonicalize.Basic(songToFind.HumanLabel);
             var q = from songdataOpt in tools.DB.Songs
-                    let lengthDiff = Math.Abs(songToFind.Length - songdataOpt.Length)
-                    where lengthDiff < 5
-                    let optFileName = Path.GetFileName(songdataOpt.SongPath)
-                    let nameDiff = LD(fileName, optFileName) / (double)Math.Max(fileName.Length,optFileName.Length)
-                    let optBasicLabel = Canonicalize.Basic( songdataOpt.HumanLabel)
-                    let labelDiff = LD(optBasicLabel, basicLabel) / (double)Math.Max(basicLabel.Length, optBasicLabel.Length)
-                    where labelDiff < 0.6
-                    select new SongMatch {
-                        SongData = songdataOpt,
-                        Cost = lengthDiff
-                        + Math.Sqrt(Math.Min(nameDiff,labelDiff)*50)
-                        + Math.Sqrt(labelDiff*50)
-                    };
+                    let songmatch = SongMatch.Compare(songToFind, fileName, basicLabel, songdataOpt)
+                    where songmatch.HasValue
+                    select songmatch.Value;
             return q.Aggregate(new SongMatch { SongData = (SongData)null, Cost = (double)int.MaxValue }, (a, b) => a.Cost < b.Cost ? a : b);
         }
 
