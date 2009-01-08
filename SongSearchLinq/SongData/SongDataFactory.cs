@@ -77,7 +77,7 @@ namespace SongDataLib
 			while(nextLine != null) {//read another song!
 				ISongData song;
 				string metaLine = null;
-				while(nextLine!=null&&nextLine.StartsWith("#")) {//iignore comments, but keep "last" comment line for EXTM3U meta-info.
+				while(nextLine!=null&&nextLine.StartsWith("#") ||nextLine.Trim().Length==0) {//ignore comments or empty lines, but keep "last" comment line for EXTM3U meta-info.
 					metaLine = nextLine;
 					nextLine = tr.ReadLine();
 				}
