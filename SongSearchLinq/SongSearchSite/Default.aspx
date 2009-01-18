@@ -38,11 +38,11 @@
     if(newquery == lastquery) return;
     lastquery=newquery;
     var resultsviewEl = document.getElementById("resultsview");
-    resultsviewEl.src = queryUrl + encodeURI(lastquery);
+    resultsviewEl.src = queryUrl + encodeURIComponent(lastquery);
     var m3uEl = document.getElementById("m3u");
-    m3uEl.href = extm3ulink + encodeURI(lastquery);
+    m3uEl.href = extm3ulink + encodeURIComponent(lastquery);
     var m3u8El = document.getElementById("m3u8");
-    m3u8El.href = extm3u8link + encodeURI(lastquery);
+    m3u8El.href = extm3u8link + encodeURIComponent(lastquery);
     }
     </script>
 </head>
