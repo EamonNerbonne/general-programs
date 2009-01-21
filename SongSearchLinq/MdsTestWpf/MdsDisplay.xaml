@@ -7,7 +7,7 @@
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="389*" />
             <ColumnDefinition Width="5" />
-            <ColumnDefinition Width="381*" />
+            <ColumnDefinition Width="01*" />
             <ColumnDefinition Width="5" />
             <ColumnDefinition Width="195*" />
         </Grid.ColumnDefinitions>
@@ -20,11 +20,12 @@
         <Viewbox Name="pointViewbox" Stretch="Uniform" Margin="4,4,0,4" Grid.RowSpan="2">
             <Canvas Name="pointCanvas"></Canvas>
         </Viewbox>
-        <emnExt:PlotControl Grid.Column="2" Name="histo" Grid.RowSpan="2" />
+        <emnExt:PlotControl Grid.Column="2" Name="histo" Grid.RowSpan="2" Visibility="Collapsed" />
         <emnExt:LogControl Name="logControl" ClaimStandardError="true" ClaimStandardOut="true" Grid.Column="4" Grid.RowSpan="2" />
         <GridSplitter Grid.Column="3" Name="gridSplitter1" Grid.RowSpan="3"  />
         <GridSplitter Grid.Column="1" Name="gridSplitter2" Grid.RowSpan="2" />
         <Label Grid.Column="4" Grid.Row="2" Margin="4,4,4,4" Name="labelETA">Label</Label>
-        <Button Grid.Column="4" Grid.Row="1" Padding="10,0,10,0"  Name="saveButton" HorizontalAlignment="Left" Click="saveButton_Click">Save View As...</Button>
+        <Button Grid.Column="4" Grid.Row="1" Padding="10,0,10,0"  Name="startButton" HorizontalAlignment="Left" Click="startButton_Click">Start</Button>
+        <Button Grid.Column="4" Grid.Row="1" Padding="10,0,10,0"  Name="saveButton" HorizontalAlignment="Left" Click="saveButton_Click"  Margin="55,0,0,0" Width="101.02">Save View As...</Button>
     </Grid>
 </Window>

@@ -25,9 +25,9 @@ namespace MdsTestWpf
     /// </summary>
     public partial class MdsDisplay : Window
     {
-        const int res = 25; //80
-        const int SUBSET_SIZE = 200; //1000
-        const int GEN = 1000; //30
+        const int res = 50; //80
+        const int SUBSET_SIZE = 800; //1000
+        const int GEN = 30; //30
         const int POINT_UPDATE_STYLE = 1;
         const double LEARN_RATE = 2.0;
         const double DIST_LIMIT_AVG = 4.7;
@@ -56,11 +56,6 @@ namespace MdsTestWpf
             totalCycles = origs.Length * GEN;
             mdsProgress.Maximum = 1.0;
             mdsProgress.Minimum = 0;
-            Thread t = new Thread(CalcMds) {
-                IsBackground = true,
-                Priority = ThreadPriority.BelowNormal,
-            };
-            t.Start();
             CompositionTarget.Rendering += new EventHandler(CompositionTarget_Rendering);
             ShowMdsPoints(origs);
             Console.WriteLine("Noise: " + (DIST_NOISE * 100) + "%");
@@ -454,8 +449,12 @@ namespace MdsTestWpf
                 timer.TimeMark("Training MDS");
                 startMDS = DateTime.Now;
                 mds.mds_train(totalCycles, LEARN_RATE, 0.0, (cyc, tot, src) => {
+                    if (needUpdate) lock (cycleSync) {
+                            mappedDists.mappedPos = mds.PointPositions();
+                            mappedDists.TriangulateUnmapped(ProgressReport, origs.Length);
+                            ExtractCalcs(mappedDists);
+                        }
                     ProgressReport(cyc / (double)tot);
-                    // if(needUpdate) lock(cycleSync) ExtractCalcs(src);
                 }, POINT_UPDATE_STYLE);
                 timer.TimeMark("Extracting points");
                 startMDS = DateTime.Now;
@@ -503,6 +502,16 @@ namespace MdsTestWpf
                 using (var writestream = new FileStream(saveDialog.FileName, FileMode.Create, FileAccess.ReadWrite))
                     WpfTools.PrintXPS(pointCanvas, 3000, 3000, writestream, FileMode.Create, FileAccess.ReadWrite);
             }
+
+        }
+
+        private void startButton_Click(object sender, RoutedEventArgs e) {
+            Thread t = new Thread(CalcMds) {
+                IsBackground = true,
+                Priority = ThreadPriority.BelowNormal,
+            };
+            t.Start();
+            ShowMdsPoints(origs);
 
         }
 
