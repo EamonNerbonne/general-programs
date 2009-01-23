@@ -12,13 +12,14 @@ namespace LastFMspider.LastFMSQLiteBackend {
             lowerArtist = DefineParameter("@lowerArtist");
             lookupTimestamp = DefineParameter("@lookupTimestamp");
             lowerTitle = DefineParameter("@lowerTitle");
+            statusCode = DefineParameter("@statusCode");
         }
-        DbParameter lowerArtist,lowerTitle, lookupTimestamp;
+        DbParameter lowerArtist,lowerTitle, lookupTimestamp,statusCode;
         protected override string CommandText {
             get {
                 return @"
-INSERT INTO [SimilarTrackList] (TrackID, LookupTimestamp) 
-SELECT T.TrackID, (@lookupTimestamp) AS LookupTimestamp
+INSERT INTO [SimilarTrackList] (TrackID, LookupTimestamp,StatusCode) 
+SELECT T.TrackID, (@lookupTimestamp) AS LookupTimestamp, (@statusCode) AS StatusCode
 FROM Artist A,Track T
 WHERE A.LowercaseArtist = @lowerArtist
 AND A.ArtistID = T.ArtistID
@@ -45,8 +46,10 @@ AND L.LookupTimestamp = @lookupTimestamp
                     lowerArtist.Value = simList.songref.Artist.ToLatinLowercase();
                     lowerTitle.Value = simList.songref.Title.ToLatinLowercase();
                     lookupTimestamp.Value = simList.LookupTimestamp.Ticks;
+                    statusCode.Value = simList.StatusCode;
+
                     using (var reader = CommandObj.ExecuteReader()) {
-                        if (reader.Read()) { //might need to do reader.NextResult();
+                        if (reader.Read()) { //might need to do reader.NextResult()? guess not.
                             listID = (int)(long)reader[0];
                         } else {
                             throw new Exception("Command failed???");
@@ -54,7 +57,8 @@ AND L.LookupTimestamp = @lookupTimestamp
                     }
 
                     foreach (var similarTrack in simList.similartracks) {
-                        lfmCache.InsertSimilarity.Execute(null, listID, similarTrack.similarsong, similarTrack.similarity);
+                        lfmCache.InsertSimilarity.Execute(listID, similarTrack.similarsong, similarTrack.similarity);
+                        lfmCache.UpdateTrackCasing.Execute(similarTrack.similarsong);
                     }
                     trans.Commit();
                 }

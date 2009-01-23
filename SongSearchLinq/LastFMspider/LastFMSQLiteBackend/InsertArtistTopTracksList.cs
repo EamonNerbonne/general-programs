@@ -11,12 +11,13 @@ namespace LastFMspider.LastFMSQLiteBackend {
             : base(lfm) { 
          lowerArtist = DefineParameter("@lowerArtist");
             lookupTimestamp = DefineParameter("@lookupTimestamp");
+            statusCode = DefineParameter("@statusCode");
         }
         protected override string CommandText {
             get {
                 return @"
-INSERT INTO [TopTracksList] (ArtistID, LookupTimestamp) 
-SELECT A.ArtistID, (@lookupTimestamp) AS LookupTimestamp
+INSERT INTO [TopTracksList] (ArtistID, LookupTimestamp,StatusCode) 
+SELECT A.ArtistID, (@lookupTimestamp) AS LookupTimestamp, (@statusCode) AS StatusCode
 FROM Artist A
 WHERE A.LowercaseArtist = @lowerArtist;
 
@@ -30,7 +31,7 @@ AND L.LookupTimestamp = @lookupTimestamp
             }
         }
 
-        DbParameter lowerArtist, lookupTimestamp;
+        DbParameter lowerArtist, lookupTimestamp,statusCode;
 
 
         private static IEnumerable<T> DeNull<T>(IEnumerable<T> iter) { return iter == null ? Enumerable.Empty<T>() : iter; }
@@ -42,6 +43,7 @@ AND L.LookupTimestamp = @lookupTimestamp
                     int artistID;
                     lowerArtist.Value = toptracksList.Artist.ToLatinLowercase();
                     lookupTimestamp.Value = toptracksList.LookupTimestamp.Ticks;
+                    statusCode.Value = toptracksList.StatusCode;
                     using (var reader = CommandObj.ExecuteReader()) {
                         if (reader.Read()) { //might need to do reader.NextResult();
                             listID = (int)(long)reader[0];
@@ -53,6 +55,9 @@ AND L.LookupTimestamp = @lookupTimestamp
 
                     foreach (var toptrack in toptracksList.TopTracks) {
                         lfmCache.InsertArtistTopTrack.Execute(listID, artistID, toptrack.Track, toptrack.Reach);
+                        lfmCache.UpdateTrackCasing.Execute(
+                            SongRef.Create(toptracksList.Artist,
+                            toptrack.Track));
                     }
                     trans.Commit();
                 }

@@ -8,6 +8,7 @@ using EmnExtensions.Algorithms;
 using LastFMspider.LastFMSQLiteBackend;
 using LastFMspider.OldApi;
 using System.Net;
+using System.Threading;
 namespace LastFMspider
 {
     public class LastFmTools
@@ -140,146 +141,195 @@ namespace LastFMspider
         private static IEnumerable<T> DeNull<T>(IEnumerable<T> iter) { return iter == null ? Enumerable.Empty<T>() : iter; }
 
         public void PrecacheSongSimilarity() {
+            Console.WriteLine("Finding songs without similarities");
             var tracksToGo = SimilarSongs.backingDB.TracksWithoutSimilarityList.Execute(1000000);
 #if !DEBUG
             tracksToGo.Shuffle();
 #endif
             tracksToGo = tracksToGo.Take(100000).ToArray();
             Console.WriteLine("Looking up similarities for {0} tracks...", tracksToGo.Length);
-            foreach (var track in tracksToGo) {
+            Parallel.ForEach(tracksToGo, track => {
                 StringBuilder msg = new StringBuilder();
                 try {
                     string trackStr = track.SongRef.ToString();
                     msg.AppendFormat("SimTo:{0,-30}", trackStr.Substring(0, Math.Min(trackStr.Length, 30)));
-                    ListStatus? listStatus = SimilarSongs.backingDB.LookupSimilarityListAge.Execute(track.SongRef);
-                    if (listStatus != null) {
+                    ListStatus listStatus = SimilarSongs.backingDB.LookupSimilarityListAge.Execute(track.SongRef);
+                    if (listStatus.LookupTimestamp.HasValue) {
                         msg.AppendFormat("done.");
-                        continue;
+                    } else {
+                        ApiTrackSimilarTracks simTracks = OldApiClient.Track.GetSimilarTracks(track.SongRef);
+                        var newEntry = simTracks == null
+                            ? new SongSimilarityList {//represents 404 Not Found
+                                LookupTimestamp = DateTime.UtcNow,
+                                songref = track.SongRef,
+                                similartracks = new SimilarTrack[0],
+                                StatusCode = -1,
+                            }
+                            : new SongSimilarityList {
+                                LookupTimestamp = DateTime.UtcNow,
+                                songref = track.SongRef,
+                                similartracks = DeNull(simTracks.track).Select(simTrack => new SimilarTrack {
+                                    similarity = simTrack.match,
+                                    similarsong = SongRef.Create(simTrack.artist.name, simTrack.name),
+                                }).ToArray(),
+                                StatusCode = 0,
+                            };
+                        msg.AppendFormat("={0,3} ", newEntry.similartracks.Length);
+                        if (newEntry.similartracks.Length > 0)
+                            msg.AppendFormat("{1}: {0}", newEntry.similartracks[0].similarsong.ToString().Substring(0, Math.Min(newEntry.similartracks[0].similarsong.ToString().Length, 30)), newEntry.similartracks[0].similarity);
+
+                        SimilarSongs.backingDB.InsertSimilarityList.Execute(newEntry);
                     }
-
-                    ApiTrackSimilarTracks simTracks = OldApiClient.Track.GetSimilarTracks(track.SongRef);
-                    var newEntry = simTracks == null
-                        ? new SongSimilarityList {//represents 404 Not Found
-                            LookupTimestamp = DateTime.UtcNow,
-                            songref = track.SongRef,
-                            similartracks = new SimilarTrack[0],
-                        }
-                        : new SongSimilarityList {
-                            LookupTimestamp = DateTime.UtcNow,
-                            songref = track.SongRef,
-                            similartracks = DeNull(simTracks.track).Select(simTrack => new SimilarTrack {
-                                similarity = simTrack.match,
-                                similarsong = SongRef.Create(simTrack.artist.name, simTrack.name),
-                            }).ToArray(),
-                        };
-                    msg.AppendFormat("={0,3} ", newEntry.similartracks.Length);
-                    if (newEntry.similartracks.Length > 0)
-                        msg.AppendFormat("{1}: {0}", newEntry.similartracks[0].similarsong.ToString().Substring(0, Math.Min(newEntry.similartracks[0].similarsong.ToString().Length, 30)), newEntry.similartracks[0].similarity);
-
-                    SimilarSongs.backingDB.InsertSimilarityList.Execute(newEntry);
                 } catch (Exception e) {
+                    int errCode = 1;//unknown
+                    if (e is WebException)
+                        errCode = ((int)((WebException)e).Status) + 2;//2-22
+                    else if (e is InvalidOperationException) //probably xml
+                        errCode = 32;
+                    try {
+                        SimilarSongs.backingDB.InsertSimilarityList.Execute(new SongSimilarityList {
+                            songref = track.SongRef,
+                            LookupTimestamp = DateTime.UtcNow,
+                            similartracks = new SimilarTrack[0],
+                            StatusCode = errCode,
+                        });
+                    } catch (Exception ee) { Console.WriteLine(ee.ToString()); }
                     msg.AppendFormat("{0}", e);
                 } finally {
                     Console.WriteLine(msg);
                 }
-            }
+            });
         }
 
 
         public void PrecacheArtistSimilarity() {
+            Console.WriteLine("Finding artists without similarities");
             var artistsToGo = SimilarSongs.backingDB.ArtistsWithoutSimilarityList.Execute(1000000);
 #if !DEBUG
             artistsToGo.Shuffle();
 #endif
+            artistsToGo = artistsToGo.Take(100000).ToArray();
             Console.WriteLine("Looking up similarities for {0} artists...", artistsToGo.Length);
-            foreach (var artist in artistsToGo.Take(10000)) {
+            Parallel.ForEach(artistsToGo, artist => {
                 StringBuilder msg = new StringBuilder();
                 try {
                     msg.AppendFormat("SimTo:{0,-30}", artist.ArtistName.Substring(0, Math.Min(artist.ArtistName.Length, 30)));
-                    DateTime? previousAge = SimilarSongs.backingDB.LookupArtistSimilarityListAge.Execute(artist.ArtistName);
-                    if (previousAge != null) {
+                    ArtistQueryInfo info = SimilarSongs.backingDB.LookupArtistSimilarityListAge.Execute(artist.ArtistName);
+                    if (info.LookupTimestamp.HasValue || info.IsAlternateOf.HasValue) {
                         msg.AppendFormat("done.");
-                        continue;
+                    } else {
+
+
+                        ApiArtistSimilarArtists simArtists = OldApiClient.Artist.GetSimilarArtists(artist.ArtistName);
+                        var newEntry = simArtists == null
+                            ? new ArtistSimilarityList {//represents 404 Not Found
+                                Artist = artist.ArtistName,
+                                LookupTimestamp = DateTime.UtcNow,
+                                Similar = new SimilarArtist[] { },
+                                StatusCode = -1,
+                            }
+                            : new ArtistSimilarityList {
+                                Artist = simArtists.artistName,
+                                LookupTimestamp = DateTime.UtcNow,
+                                Similar = DeNull(simArtists.artist).Select(simArtist => new SimilarArtist {
+                                    Artist = simArtist.name,
+                                    Rating = simArtist.match,
+                                }).ToArray(),
+                                StatusCode = 0,
+                            };
+                        msg.AppendFormat("={0,3} ", newEntry.Similar.Length);
+                        if (newEntry.Similar.Length > 0)
+                            msg.AppendFormat("{1}: {0}", newEntry.Similar[0].Artist.Substring(0, Math.Min(newEntry.Similar[0].Artist.Length, 30)), newEntry.Similar[0].Rating);
+
+                        if (simArtists != null && artist.ArtistName.ToLatinLowercase() != simArtists.artistName.ToLatinLowercase())
+                            SimilarSongs.backingDB.SetArtistAlternate.Execute(artist.ArtistName, simArtists.artistName);
+                        SimilarSongs.backingDB.InsertArtistSimilarityList.Execute(newEntry);
                     }
-
-
-                    ApiArtistSimilarArtists simArtists = OldApiClient.Artist.GetSimilarArtists(artist.ArtistName);
-                    var newEntry = simArtists == null
-                        ? new ArtistSimilarityList {//represents 404 Not Found
+                } catch (Exception e) {
+                    int errCode = 1;//unknown
+                    if (e is WebException)
+                        errCode = ((int)((WebException)e).Status) + 2;//2-22
+                    else if (e is InvalidOperationException) //probably xml
+                        errCode = 32;
+                    try {
+                        SimilarSongs.backingDB.InsertArtistSimilarityList.Execute(new ArtistSimilarityList {
                             Artist = artist.ArtistName,
                             LookupTimestamp = DateTime.UtcNow,
-                            Similar = new SimilarArtist[] { }
-                        }
-                        : new ArtistSimilarityList {
-                            Artist = artist.ArtistName.ToLatinLowercase() == simArtists.artistName.ToLatinLowercase() ?
-                                simArtists.artistName : artist.ArtistName,
-                            LookupTimestamp = DateTime.UtcNow,
-                            Similar = DeNull(simArtists.artist).Select(simArtist => new SimilarArtist {
-                                Artist = simArtist.name,
-                                Rating = simArtist.match,
-                            }).ToArray(),
-                        };
-                    msg.AppendFormat("={0,3} ", newEntry.Similar.Length);
-                    if (newEntry.Similar.Length > 0)
-                        msg.AppendFormat("{1}: {0}", newEntry.Similar[0].Artist.Substring(0, Math.Min(newEntry.Similar[0].Artist.Length, 30)), newEntry.Similar[0].Rating);
-
-                    SimilarSongs.backingDB.InsertArtistSimilarityList.Execute(newEntry);
-                } catch (WebException we) {
-                    msg.AppendFormat("-Error:{0}", we.Status);
-                    //SimilarSongs.backingDB.InsertArtistSimilarityList.Execute(newEntry);
-                } catch (Exception e) {
+                            Similar = new SimilarArtist[] { },
+                            StatusCode = errCode,
+                        });
+                    } catch (Exception ee) { Console.WriteLine(ee.ToString()); }
                     msg.AppendFormat("{0}", e);
                 } finally {
                     Console.WriteLine(msg);
                 }
-            }
+            });
         }
 
 
         public void PrecacheArtistTopTracks() {
+            Console.WriteLine("Finding artists without toptracks");
             var artistsToGo = SimilarSongs.backingDB.ArtistsWithoutTopTracksList.Execute(1000000);
 #if !DEBUG
             artistsToGo.Shuffle();
 #endif
+            artistsToGo = artistsToGo.Take(100000).ToArray();
             Console.WriteLine("Looking up top-tracks for {0} artists...", artistsToGo.Length);
-
-            foreach (var artist in artistsToGo) {
+            Parallel.ForEach(artistsToGo, artist => {
                 StringBuilder msg = new StringBuilder();
 
                 try {
                     msg.AppendFormat("TopOf:{0,-30}", artist.ArtistName.Substring(0, Math.Min(artist.ArtistName.Length, 30)));
-                    DateTime? previousAge = SimilarSongs.backingDB.LookupArtistTopTracksListAge.Execute(artist.ArtistName);
-                    if (previousAge != null) {
+                    ArtistQueryInfo info = SimilarSongs.backingDB.LookupArtistTopTracksListAge.Execute(artist.ArtistName);
+                    if (info.LookupTimestamp.HasValue || info.IsAlternateOf.HasValue) {
                         msg.AppendFormat("done.");
-                        continue;
+                    } else {
+
+                        ApiArtistTopTracks artistTopTracks = OldApiClient.Artist.GetTopTracks(artist.ArtistName);
+                        var newEntry = artistTopTracks == null
+                            ? new ArtistTopTracksList {//represents 404 Not Found
+                                Artist = artist.ArtistName,
+                                LookupTimestamp = DateTime.UtcNow,
+                                TopTracks = new ArtistTopTrack[0],
+                                StatusCode = -1,
+                            }
+                            : new ArtistTopTracksList {
+                                Artist = artistTopTracks.artist,
+                                LookupTimestamp = DateTime.UtcNow,
+                                TopTracks = DeNull(artistTopTracks.track).Select(toptrack => new ArtistTopTrack {
+                                    Track = toptrack.name,
+                                    Reach = toptrack.reach,
+                                }).ToArray(),
+                                StatusCode = 0,
+                            };
+                        msg.AppendFormat("={0,3} ", newEntry.TopTracks.Length);
+                        if (newEntry.TopTracks.Length > 0)
+                            msg.AppendFormat("{1}: {0}", newEntry.TopTracks[0].Track.Substring(0, Math.Min(newEntry.TopTracks[0].Track.Length, 30)), newEntry.TopTracks[0].Reach);
+
+                        if (artistTopTracks != null && artist.ArtistName.ToLatinLowercase() != artistTopTracks.artist.ToLatinLowercase())
+                            SimilarSongs.backingDB.SetArtistAlternate.Execute(artist.ArtistName, artistTopTracks.artist);
+
+                        SimilarSongs.backingDB.InsertArtistTopTracksList.Execute(newEntry);
                     }
-                    ApiArtistTopTracks artistTopTracks = OldApiClient.Artist.GetTopTracks(artist.ArtistName);
-                    var newEntry = artistTopTracks == null
-                        ? new ArtistTopTracksList {//represents 404 Not Found
+                } catch (Exception e) {
+                    int errCode = 1;//unknown
+                    if (e is WebException)
+                        errCode = ((int)((WebException)e).Status) + 2;//2-22
+                    else if (e is InvalidOperationException) //probably xml
+                        errCode = 32;
+                    try {
+                        SimilarSongs.backingDB.InsertArtistTopTracksList.Execute(new ArtistTopTracksList {
                             Artist = artist.ArtistName,
                             LookupTimestamp = DateTime.UtcNow,
                             TopTracks = new ArtistTopTrack[0],
-                        }
-                        : new ArtistTopTracksList {
-                            Artist = artistTopTracks.artist,
-                            LookupTimestamp = DateTime.UtcNow,
-                            TopTracks = DeNull(artistTopTracks.track).Select(toptrack => new ArtistTopTrack {
-                                Track = toptrack.name,
-                                Reach = toptrack.reach,
-                            }).ToArray(),
-                        };
-                    msg.AppendFormat("={0,3} ", newEntry.TopTracks.Length);
-                    if (newEntry.TopTracks.Length > 0)
-                        msg.AppendFormat("{1}: {0}", newEntry.TopTracks[0].Track.Substring(0, Math.Min(newEntry.TopTracks[0].Track.Length, 30)), newEntry.TopTracks[0].Reach);
-
-
-                    SimilarSongs.backingDB.InsertArtistTopTracksList.Execute(newEntry);
-                } catch (Exception e) {
-                    Console.WriteLine("{0}", e);
+                            StatusCode = errCode,
+                        });
+                    } catch (Exception ee) { Console.WriteLine(ee.ToString()); }
+                    msg.AppendFormat("{0}", e);
                 } finally {
                     Console.WriteLine(msg);
                 }
-            }
+            });
         }
 
 

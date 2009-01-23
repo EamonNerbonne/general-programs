@@ -16,13 +16,16 @@ namespace LastFMspider {
         //rating is stored as a REAL which is a float in C#.
 
         const string DataProvider = "System.Data.SQLite";
-        const string DataConnectionString = "page size=4096;cache size=16384;datetimeformat=Ticks;Legacy Format=False;Synchronous=Normal;data source=\"{0}\"";
+        const string DataConnectionString = "page size=4096;cache size=100000;datetimeformat=Ticks;Legacy Format=False;Synchronous=Off;data source=\"{0}\"";
         const string EdmConnectionString = "metadata=res://*/EDM.LfmSqliteEdm.csdl|res://*/EDM.LfmSqliteEdm.ssdl|res://*/EDM.LfmSqliteEdm.msl;provider=System.Data.SQLite;provider connection string='{0}'";
         const string DatabaseDef = @"
+PRAGMA journal_mode = PERSIST;
+
 CREATE TABLE IF NOT EXISTS [Artist] (
   [ArtistID] INTEGER  PRIMARY KEY NOT NULL,
   [FullArtist] TEXT  NOT NULL,
-  [LowercaseArtist] TEXT  NOT NULL
+  [LowercaseArtist] TEXT  NOT NULL,
+  [IsAlternateOf] INTEGER NULL
 );
 CREATE UNIQUE INDEX  IF NOT EXISTS [Unique_Artist_LowercaseArtist] ON [Artist](
   [LowercaseArtist]  ASC
@@ -83,7 +86,7 @@ CREATE TABLE IF NOT EXISTS [SimilarTrackList] (
 [LookupTimestamp] INTEGER NOT NULL,
 [StatusCode] INTEGER
 );
-CREATE UNIQUE INDEX  IF NOT EXISTS [Unique_SimilarTrackList_ArtistID_LookupTimestamp] ON [SimilarTrackList](
+CREATE UNIQUE INDEX  IF NOT EXISTS [Unique_SimilarTrackList_TrackID_LookupTimestamp] ON [SimilarTrackList](
   [TrackID]  ASC,
   [LookupTimestamp]  DESC
 );
@@ -210,6 +213,7 @@ CREATE INDEX  IF NOT EXISTS [IDX_TrackInfo_Playcount] ON [TrackInfo](
         public InsertArtist InsertArtist { get; private set; }
         public InsertTrack InsertTrack { get; private set; }
         public LookupTrack LookupTrack { get; private set; }
+        public LookupArtist LookupArtist { get; private set; }
         public LookupTrackID LookupTrackID { get; private set; }
         public InsertSimilarity InsertSimilarity { get; private set; }
         public InsertSimilarityList InsertSimilarityList { get; private set; }
@@ -220,6 +224,7 @@ CREATE INDEX  IF NOT EXISTS [IDX_TrackInfo_Playcount] ON [TrackInfo](
         public RawArtists RawArtists { get; private set; }
         public RawTracks RawTracks { get; private set; }
         public UpdateTrackCasing UpdateTrackCasing { get; private set; }
+        public UpdateArtistCasing UpdateArtistCasing { get; private set; }
         public RawSimilarTracks RawSimilarTracks { get; private set; }
         public LookupArtistSimilarityList LookupArtistSimilarityList { get; private set; }
         public LookupArtistSimilarityListAge LookupArtistSimilarityListAge { get; private set; }
@@ -231,6 +236,7 @@ CREATE INDEX  IF NOT EXISTS [IDX_TrackInfo_Playcount] ON [TrackInfo](
         public LookupArtistTopTracksList LookupArtistTopTracksList { get; private set; }
         public InsertArtistTopTrack InsertArtistTopTrack { get; private set; }
         public InsertArtistTopTracksList InsertArtistTopTracksList { get; private set; }
+        public SetArtistAlternate SetArtistAlternate { get; private set; }
 
         public LastFMSQLiteCache(FileInfo sqliteFile) { dbFile = sqliteFile; Init(); }
 
@@ -255,8 +261,10 @@ CREATE INDEX  IF NOT EXISTS [IDX_TrackInfo_Playcount] ON [TrackInfo](
 
 
         private void PrepareSql() {
+            
             InsertTrack = new InsertTrack(this);
             LookupTrack = new LookupTrack(this);
+            LookupArtist = new LookupArtist(this);
             LookupTrackID = new LookupTrackID(this);
             InsertSimilarityList = new InsertSimilarityList(this);
             InsertSimilarity = new InsertSimilarity(this);
@@ -269,6 +277,7 @@ CREATE INDEX  IF NOT EXISTS [IDX_TrackInfo_Playcount] ON [TrackInfo](
             RawTracks = new RawTracks(this);
             RawArtists = new RawArtists(this);
             UpdateTrackCasing = new UpdateTrackCasing(this);
+            UpdateArtistCasing = new UpdateArtistCasing(this);
             RawSimilarTracks = new RawSimilarTracks(this);
             TracksWithoutSimilarityList = new TracksWithoutSimilarityList(this);
             LookupArtistSimilarityListAge = new LookupArtistSimilarityListAge(this);
@@ -281,6 +290,7 @@ CREATE INDEX  IF NOT EXISTS [IDX_TrackInfo_Playcount] ON [TrackInfo](
             LookupArtistTopTracksList = new LookupArtistTopTracksList(this);
             InsertArtistTopTrack = new InsertArtistTopTrack(this);
             InsertArtistTopTracksList = new InsertArtistTopTracksList(this);
+            SetArtistAlternate = new SetArtistAlternate(this);
         }
 
 

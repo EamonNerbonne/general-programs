@@ -33,7 +33,7 @@ AND B.LowercaseTitle = @lowerTrackB
       
 
         //TODO fix call
-        public void Execute(object o,int listID, SongRef songRefB, double rating) {
+        public void Execute(int listID, SongRef songRefB, double rating) {
             lock (SyncRoot) {
                 lfmCache.InsertTrack.Execute(songRefB);
                 this.rating.Value = rating;

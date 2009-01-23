@@ -11,12 +11,13 @@ namespace LastFMspider.LastFMSQLiteBackend {
         public InsertArtistSimilarityList(LastFMSQLiteCache lfm) : base(lfm) { 
          lowerArtist = DefineParameter("@lowerArtist");
             lookupTimestamp = DefineParameter("@lookupTimestamp");
+            statusCode = DefineParameter("@statusCode");
         }
         protected override string CommandText {
             get {
                 return @"
-INSERT INTO [SimilarArtistList] (ArtistID, LookupTimestamp) 
-SELECT A.ArtistID, (@lookupTimestamp) AS LookupTimestamp
+INSERT INTO [SimilarArtistList] (ArtistID, LookupTimestamp,StatusCode) 
+SELECT A.ArtistID, (@lookupTimestamp) AS LookupTimestamp, (@statusCode) AS StatusCode
 FROM Artist A
 WHERE A.LowercaseArtist = @lowerArtist;
 
@@ -29,7 +30,7 @@ AND L.LookupTimestamp = @lookupTimestamp
             }
         }
 
-        DbParameter lowerArtist, lookupTimestamp;
+        DbParameter lowerArtist, lookupTimestamp, statusCode;
 
 
         private static IEnumerable<T> DeNull<T>(IEnumerable<T> iter) { return iter == null ? Enumerable.Empty<T>() : iter; }
@@ -37,9 +38,11 @@ AND L.LookupTimestamp = @lookupTimestamp
             lock (SyncRoot) {
                 using (DbTransaction trans = Connection.BeginTransaction()) {
                     lfmCache.InsertArtist.Execute(simList.Artist);
+                    lfmCache.UpdateArtistCasing.Execute(simList.Artist);
                     int listID;
                     lowerArtist.Value = simList.Artist.ToLatinLowercase();
                     lookupTimestamp.Value = simList.LookupTimestamp.Ticks;
+                    statusCode.Value = simList.StatusCode;
                     using (var reader = CommandObj.ExecuteReader()) {
                         if (reader.Read()) { //might need to do reader.NextResult();
                             listID = (int)(long)reader[0];
@@ -50,6 +53,7 @@ AND L.LookupTimestamp = @lookupTimestamp
 
                     foreach (var similarArtist in simList.Similar) {
                         lfmCache.InsertArtistSimilarity.Execute(listID, similarArtist.Artist, similarArtist.Rating);
+                        lfmCache.UpdateArtistCasing.Execute(similarArtist.Artist);
                     }
                     trans.Commit();
                 }

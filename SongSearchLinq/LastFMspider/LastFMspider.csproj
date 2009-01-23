@@ -107,6 +107,7 @@
       <RequiredTargetFramework>3.0</RequiredTargetFramework>
     </Reference>
     <Reference Include="System.Security" />
+    <Reference Include="System.Threading, Version=1.0.3058.34407, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL" />
     <Reference Include="System.Transactions" />
     <Reference Include="System.Xml.Linq">
       <RequiredTargetFramework>3.5</RequiredTargetFramework>
@@ -139,6 +140,7 @@
     <Compile Include="LastFMSQLiteBackend\InsertSimilarity.cs" />
     <Compile Include="LastFMSQLiteBackend\InsertSimilarityList.cs" />
     <Compile Include="LastFMSQLiteBackend\InsertTrack.cs" />
+    <Compile Include="LastFMSQLiteBackend\LookupArtist.cs" />
     <Compile Include="LastFMSQLiteBackend\LookupArtistSimilarityList.cs" />
     <Compile Include="LastFMSQLiteBackend\LookupArtistSimilarityListAge.cs" />
     <Compile Include="LastFMSQLiteBackend\LookupArtistTopTracksList.cs" />
@@ -150,7 +152,9 @@
     <Compile Include="LastFMSQLiteBackend\RawArtists.cs" />
     <Compile Include="LastFMSQLiteBackend\RawSimilarTracks.cs" />
     <Compile Include="LastFMSQLiteBackend\RawTracks.cs" />
+    <Compile Include="LastFMSQLiteBackend\SetArtistAlternate.cs" />
     <Compile Include="LastFMSQLiteBackend\TracksWithoutSimilarityList.cs" />
+    <Compile Include="LastFMSQLiteBackend\UpdateArtistCasing.cs" />
     <Compile Include="LastFMSQLiteBackend\UpdateTrackCasing.cs" />
     <Compile Include="LastFMSQLiteCache.cs" />
     <Compile Include="LastFmTools.cs" />

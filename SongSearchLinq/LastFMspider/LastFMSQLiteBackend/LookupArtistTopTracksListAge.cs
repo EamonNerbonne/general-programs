@@ -14,7 +14,7 @@ namespace LastFMspider.LastFMSQLiteBackend {
         protected override string CommandText {
             get {
                 return @"
-SELECT L.LookupTimestamp 
+SELECT A.IsAlternateOf, L.LookupTimestamp, L.StatusCode 
 FROM Artist A 
 left join TopTracksList L on A.ArtistID = L.ArtistID
 WHERE A.LowercaseArtist = @lowerArtist
@@ -31,7 +31,7 @@ LIMIT 1
                 new DateTime((long)dbval, DateTimeKind.Utc);
         }
 
-        public DateTime? Execute(string artist) {
+        public ArtistQueryInfo Execute(string artist) {
             lock (SyncRoot) {
 
                 lowerArtist.Value = artist.ToLatinLowercase();
@@ -39,9 +39,17 @@ LIMIT 1
                 {
                     //we expect exactly one hit - or none
                     if (reader.Read()) {
-                        return DbValueTicksToDateTime(reader[0]);
+                        return new ArtistQueryInfo {
+                            IsAlternateOf = reader[0] == DBNull.Value ? null : (int?)(long)reader[0],
+                            LookupTimestamp = DbValueTicksToDateTime(reader[1]),
+                            StatusCode = reader[2] == DBNull.Value ? null : (int?)(long)reader[2],
+                        };
                     } else
-                        return null;
+                        return new ArtistQueryInfo {
+                            IsAlternateOf = null,
+                            LookupTimestamp = null,
+                            StatusCode = null,
+                        };
                 }
             }
         }

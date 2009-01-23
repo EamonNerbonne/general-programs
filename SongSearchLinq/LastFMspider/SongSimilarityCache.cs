@@ -50,7 +50,7 @@ namespace LastFMspider {
         }
         public SongSimilarityList Lookup(SongRef songref, out bool isNewlyDownloaded) {
             ListStatus? cachedVersion = backingDB.LookupSimilarityListAge.Execute(songref);
-            if (cachedVersion == null || !cachedVersion.Value.IsOK()) { //get online version
+            if (cachedVersion == null) { //get online version
                 Console.Write("?");
                 var retval = DirectWebRequest(songref);
                 isNewlyDownloaded = true;

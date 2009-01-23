@@ -22,7 +22,7 @@ namespace LastFMspider.LastFMSQLiteBackend
         public DateTime LookupTimestamp;
         public string Artist;
         public SimilarArtist[] Similar;
-        public int? StatusCode;//TODO:integrate. (and delete lookuptimestamp)
+        public int? StatusCode;
     }
 
     public class LookupArtistSimilarityList : AbstractLfmCacheQuery
@@ -51,12 +51,16 @@ AND L.LookupTimestamp = @ticks
             lock (SyncRoot) {
 
                 using (var trans = Connection.BeginTransaction()) {
-                    DateTime? age = lfmCache.LookupArtistSimilarityListAge.Execute(artist);
-                    if (null == age)
+                    ArtistQueryInfo
+                        info = lfmCache.LookupArtistSimilarityListAge.Execute(artist);
+                    if (info.IsAlternateOf.HasValue)
+                        return Execute(lfmCache.LookupArtist.Execute(info.IsAlternateOf.Value));
+                    if (!info.LookupTimestamp.HasValue)
                         return null;
+                    DateTime age = info.LookupTimestamp.Value;
 
                     lowerArtist.Value = artist.ToLatinLowercase();
-                    ticks.Value = age.Value.Ticks;//we want the newest one!
+                    ticks.Value = age.Ticks;//we want the newest one!
 
                     List<SimilarArtist> similarto = new List<SimilarArtist>();
                     using (var reader = CommandObj.ExecuteReader()) {
@@ -69,7 +73,9 @@ AND L.LookupTimestamp = @ticks
                     var retval = new ArtistSimilarityList {
                         Artist = artist,
                         Similar = similarto.ToArray(),
-                        LookupTimestamp = age.Value
+                        LookupTimestamp = age,
+                        StatusCode = info.StatusCode,
+
                     };
                     return retval;
                 }

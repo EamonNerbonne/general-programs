@@ -21,7 +21,7 @@ namespace LastFMspider.LastFMSQLiteBackend
             get { return @"
 SELECT A.ArtistID, A.FullArtist, L.LookupTimestamp 
 FROM Artist A left join SimilarArtistList L on A.ArtistID = L.ArtistID
-WHERE   L.LookupTimestamp IS NULL
+WHERE  A.IsAlternateOf IS NULL AND L.LookupTimestamp IS NULL 
 LIMIT @limitRowCount
 "; }
         }

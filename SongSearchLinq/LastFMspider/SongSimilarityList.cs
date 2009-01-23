@@ -15,6 +15,7 @@ namespace LastFMspider
 		public SongRef songref;
 		public SimilarTrack[] similartracks;
         public DateTime LookupTimestamp;
+        public int? StatusCode;
         
 	}
 }

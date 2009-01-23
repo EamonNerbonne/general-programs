@@ -5,6 +5,19 @@ using System.Text;
 using System.Data.Common;
 
 namespace LastFMspider.LastFMSQLiteBackend {
+    public struct ArtistQueryInfo
+    {
+        public int? IsAlternateOf;
+        public DateTime? LookupTimestamp;
+        public int? StatusCode;
+        // negative: non-problematic error (-1 == http404)
+        // 0: no error, list is accurate
+        // positive: list request error; list is empty but that might be an error.
+        // 1: unknown exception occurred (DB locked?)
+        // 2-22: WebException occured
+        // 32: InvalidOperationException occurred.
+    }
+
     public class LookupArtistSimilarityListAge : AbstractLfmCacheQuery {
         public LookupArtistSimilarityListAge(LastFMSQLiteCache lfmCache)
             : base(lfmCache) {
@@ -13,7 +26,7 @@ namespace LastFMspider.LastFMSQLiteBackend {
         protected override string CommandText {
             get {
                 return @"
-SELECT L.LookupTimestamp 
+SELECT A.IsAlternateOf, L.LookupTimestamp, L.StatusCode
 FROM Artist A 
 left join SimilarArtistList L on A.ArtistID = L.ArtistID
 WHERE A.LowercaseArtist = @lowerArtist
@@ -30,7 +43,8 @@ LIMIT 1
                 new DateTime((long)dbval, DateTimeKind.Utc);
         }
 
-        public DateTime? Execute(string artist) {
+
+        public ArtistQueryInfo Execute(string artist) {
             lock (SyncRoot) {
 
                 lowerArtist.Value = artist.ToLatinLowercase();
@@ -38,9 +52,17 @@ LIMIT 1
                 {
                     //we expect exactly one hit - or none
                     if (reader.Read()) {
-                        return DbValueTicksToDateTime(reader[0]);
+                        return new ArtistQueryInfo {
+                            IsAlternateOf = reader[0] == DBNull.Value ? null : (int?)(long)reader[0],
+                            LookupTimestamp = DbValueTicksToDateTime(reader[1]),
+                            StatusCode = reader[2] == DBNull.Value ? null : (int?)(long)reader[2],
+                        };
                     } else
-                        return null;
+                        return new ArtistQueryInfo {
+                            IsAlternateOf = null,
+                            LookupTimestamp = null,
+                            StatusCode = null,
+                        };
                 }
             }
         }

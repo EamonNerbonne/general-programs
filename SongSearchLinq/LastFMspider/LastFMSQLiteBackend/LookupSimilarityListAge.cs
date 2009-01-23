@@ -7,9 +7,8 @@ using System.Data.Common;
 namespace LastFMspider.LastFMSQLiteBackend {
     public struct ListStatus
     {
-        public DateTime Timestamp;
+        public DateTime? LookupTimestamp;
         public int? StatusCode;
-        public bool IsOK() { return (StatusCode ?? 200) < 400; }
     }
     public class LookupSimilarityListAge : AbstractLfmCacheQuery {
         public LookupSimilarityListAge(LastFMSQLiteCache lfmCache)
@@ -39,7 +38,7 @@ LIMIT 1
             return DBNull.Value==dbval?null:(DateTime?) new DateTime((long)dbval, DateTimeKind.Utc);
         }
 
-        public ListStatus? Execute(SongRef songref) {
+        public ListStatus Execute(SongRef songref) {
             lock (SyncRoot) {
 
                 lowerArtist.Value = songref.Artist.ToLatinLowercase();
@@ -49,10 +48,13 @@ LIMIT 1
                     //we expect exactly one hit - or none
                     if (reader.Read()) {
                         return new ListStatus { 
-                            Timestamp = DbValueTicksToDateTime(reader[0]).Value, 
+                            LookupTimestamp = DbValueTicksToDateTime(reader[0]).Value, 
                             StatusCode = reader[1] == DBNull.Value ? (int?)null : (int)(long)reader[1] };
                     } else
-                        return null;
+                        return new ListStatus {
+                            LookupTimestamp = null,
+                            StatusCode = null
+                        };
                 }
             }
         }

@@ -17,6 +17,7 @@ namespace LastFMspider.LastFMSQLiteBackend
         public DateTime LookupTimestamp;
         public string Artist;
         public ArtistTopTrack[] TopTracks;
+        public int? StatusCode;
     }
 
     public class LookupArtistTopTracksList : AbstractLfmCacheQuery
@@ -45,12 +46,15 @@ AND L.LookupTimestamp = @ticks
             lock (SyncRoot) {
 
                 using (var trans = Connection.BeginTransaction()) {
-                    DateTime? age = lfmCache.LookupArtistTopTracksListAge.Execute(artist);
-                    if (null == age)
+                    ArtistQueryInfo info = lfmCache.LookupArtistTopTracksListAge.Execute(artist);
+                    if (info.IsAlternateOf.HasValue)
+                        return Execute(lfmCache.LookupArtist.Execute(info.IsAlternateOf.Value));
+                    if (!info.LookupTimestamp.HasValue)
                         return null;
+                    DateTime age = info.LookupTimestamp.Value;
 
                     lowerArtist.Value = artist.ToLatinLowercase();
-                    ticks.Value = age.Value.Ticks;//we want the newest one!
+                    ticks.Value = age.Ticks;//we want the newest one!
 
                     List<ArtistTopTrack> toptracks = new List<ArtistTopTrack>();
                     using (var reader = CommandObj.ExecuteReader()) {
@@ -63,7 +67,8 @@ AND L.LookupTimestamp = @ticks
                     var retval = new ArtistTopTracksList {
                         Artist = artist,
                         TopTracks = toptracks.ToArray(),
-                        LookupTimestamp = age.Value
+                        LookupTimestamp = age,
+                        StatusCode = info.StatusCode,
                     };
                     return retval;
                 }
