@@ -140,7 +140,8 @@ namespace LastFMspider
 
         private static IEnumerable<T> DeNull<T>(IEnumerable<T> iter) { return iter == null ? Enumerable.Empty<T>() : iter; }
 
-        public void PrecacheSongSimilarity() {
+        public int PrecacheSongSimilarity() {
+            int songsCached = 0;
             Console.WriteLine("Finding songs without similarities");
             var tracksToGo = SimilarSongs.backingDB.TracksWithoutSimilarityList.Execute(1000000);
 #if !DEBUG
@@ -179,6 +180,7 @@ namespace LastFMspider
                             msg.AppendFormat("{1}: {0}", newEntry.similartracks[0].similarsong.ToString().Substring(0, Math.Min(newEntry.similartracks[0].similarsong.ToString().Length, 30)), newEntry.similartracks[0].similarity);
 
                         SimilarSongs.backingDB.InsertSimilarityList.Execute(newEntry);
+                        lock (tracksToGo) songsCached++;
                     }
                 } catch (Exception e) {
                     int errCode = 1;//unknown
@@ -193,16 +195,19 @@ namespace LastFMspider
                             similartracks = new SimilarTrack[0],
                             StatusCode = errCode,
                         });
+                        lock (tracksToGo) songsCached++;
                     } catch (Exception ee) { Console.WriteLine(ee.ToString()); }
                     msg.AppendFormat("{0}", e);
                 } finally {
                     Console.WriteLine(msg);
                 }
             });
+            return songsCached;
         }
 
 
-        public void PrecacheArtistSimilarity() {
+        public int PrecacheArtistSimilarity() {
+            int artistsCached = 0;
             Console.WriteLine("Finding artists without similarities");
             var artistsToGo = SimilarSongs.backingDB.ArtistsWithoutSimilarityList.Execute(1000000);
 #if !DEBUG
@@ -244,6 +249,7 @@ namespace LastFMspider
                         if (simArtists != null && artist.ArtistName.ToLatinLowercase() != simArtists.artistName.ToLatinLowercase())
                             SimilarSongs.backingDB.SetArtistAlternate.Execute(artist.ArtistName, simArtists.artistName);
                         SimilarSongs.backingDB.InsertArtistSimilarityList.Execute(newEntry);
+                        lock(artistsToGo)artistsCached++;
                     }
                 } catch (Exception e) {
                     int errCode = 1;//unknown
@@ -258,16 +264,19 @@ namespace LastFMspider
                             Similar = new SimilarArtist[] { },
                             StatusCode = errCode,
                         });
+                        lock(artistsToGo)artistsCached++;
                     } catch (Exception ee) { Console.WriteLine(ee.ToString()); }
                     msg.AppendFormat("{0}", e);
                 } finally {
                     Console.WriteLine(msg);
                 }
             });
+            return artistsCached;
         }
 
 
-        public void PrecacheArtistTopTracks() {
+        public int PrecacheArtistTopTracks() {
+            int artistsCached = 0;
             Console.WriteLine("Finding artists without toptracks");
             var artistsToGo = SimilarSongs.backingDB.ArtistsWithoutTopTracksList.Execute(1000000);
 #if !DEBUG
@@ -310,6 +319,7 @@ namespace LastFMspider
                             SimilarSongs.backingDB.SetArtistAlternate.Execute(artist.ArtistName, artistTopTracks.artist);
 
                         SimilarSongs.backingDB.InsertArtistTopTracksList.Execute(newEntry);
+                        lock(artistsToGo)artistsCached++;
                     }
                 } catch (Exception e) {
                     int errCode = 1;//unknown
@@ -324,12 +334,14 @@ namespace LastFMspider
                             TopTracks = new ArtistTopTrack[0],
                             StatusCode = errCode,
                         });
+                        lock(artistsToGo)artistsCached++;
                     } catch (Exception ee) { Console.WriteLine(ee.ToString()); }
                     msg.AppendFormat("{0}", e);
                 } finally {
                     Console.WriteLine(msg);
                 }
             });
+            return artistsCached;
         }
 
 
