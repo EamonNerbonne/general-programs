@@ -143,11 +143,11 @@ namespace LastFMspider
         public int PrecacheSongSimilarity() {
             int songsCached = 0;
             Console.WriteLine("Finding songs without similarities");
-            var tracksToGo = SimilarSongs.backingDB.TracksWithoutSimilarityList.Execute(1000000);
+            var tracksToGo = SimilarSongs.backingDB.TracksWithoutSimilarityList.Execute(900000);
 #if !DEBUG
             tracksToGo.Shuffle();
 #endif
-            tracksToGo = tracksToGo.Take(100000).ToArray();
+            tracksToGo = tracksToGo.Take(300000).ToArray();
             Console.WriteLine("Looking up similarities for {0} tracks...", tracksToGo.Length);
             Parallel.ForEach(tracksToGo, track => {
                 StringBuilder msg = new StringBuilder();

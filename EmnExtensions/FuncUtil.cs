@@ -73,5 +73,15 @@ namespace EmnExtensions
                 return false;
             }
         }
+
+        public static IEnumerable<T> AsEnumerable<T>(this Func<T> func) {
+            return func.AsEnumerable(null);
+        }
+
+        public static IEnumerable<T> AsEnumerable<T>(this Func<T> func, Action init) {
+            if (init != null) init();
+            while (true)
+                yield return func();
+        }
     }
 }
