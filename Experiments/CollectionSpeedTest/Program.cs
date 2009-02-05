@@ -1,4 +1,7 @@
-﻿using System;
+﻿#define USECPP
+#define DOSLOWTESTS
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -121,7 +124,9 @@ namespace CollectionSpeedTest
             //var vecB = Functional.AsEnumerable(() => r.NextNorm()).Take(SIZE).ToArray();
             Console.WriteLine("word-size:" +System.Runtime.InteropServices.Marshal.SizeOf(typeof(IntPtr))*8 );
             for (int trials = 0; trials < 2; trials++) {
-               /* NiceTimer.Time("C++/CLI .Dot " + ITER + "x" + SIZE, () => {
+				Console.WriteLine("\n\n\n\n\nTest-run #{0}:", trials);
+#if USECPP
+                NiceTimer.Time("C++/CLI .Dot " + ITER + "x" + SIZE, () => {
                     Console.WriteLine(CollectionSpeedTestCpp.TestWithDotProd(vecA, vecB));
                 });
                 NiceTimer.Time("C++/CLI v2 .Dot " + ITER + "x" + SIZE, () => {
@@ -129,7 +134,8 @@ namespace CollectionSpeedTest
                 });
                 NiceTimer.Time("C++/native .Dot " + ITER + "x" + SIZE, () => {
                     Console.WriteLine(CollectionSpeedTestCpp.TestWithDotProdExt(vecA, vecB));
-                });*/
+                });
+#endif
                 NiceTimer.Time("FOR (param) dot " + ITER + "x" + SIZE, () => {
                     double sumO = DotFullTestC(vecA, vecB);
                     Console.WriteLine(sumO);
@@ -154,7 +160,8 @@ namespace CollectionSpeedTest
                     double sumO = DotSubLTestC(vecA, vecB);
                     Console.WriteLine(sumO);
                 });
-                /*NiceTimer.Time("FOR LIST dot " + ITER + "x" + SIZE, () => {
+#if DOSLOWTESTS
+                NiceTimer.Time("FOR LIST dot " + ITER + "x" + SIZE, () => {
                     double sumO = 0.0;
 
                     for (int i = 0; i < ITER; i++) {
@@ -213,7 +220,8 @@ namespace CollectionSpeedTest
                         sumO += sum;
                     }
                     Console.WriteLine(sumO);
-                });*/
+                });
+#endif
             }
 
 
