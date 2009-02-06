@@ -25,7 +25,6 @@ namespace EmnExtensions.PersistantCache
 		static char[] invalidKeyChars = Path.GetInvalidFileNameChars();
 		public PersistantCache(DirectoryInfo cacheDir, string ext, IPersistantCacheMapper<TKey,TItem>mapper) {
 			if(!ext.StartsWith(".")) throw new PersistantCacheException("extension must start with a '.'");
-			this.cacheDir = cacheDir;
             this.filesDir = cacheDir.CreateSubdirectory("files");
 			this.ext = ext;
 			this.mapper = mapper;
@@ -33,7 +32,6 @@ namespace EmnExtensions.PersistantCache
 		}
 		
 		public readonly IPersistantCacheMapper<TKey,TItem> mapper;
-		readonly DirectoryInfo cacheDir;
         readonly DirectoryInfo filesDir;
 		readonly string ext;
 		int maxKeyLength;
