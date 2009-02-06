@@ -1,4 +1,4 @@
-﻿#define USECPP
+﻿//#define USECPP
 #define DOSLOWTESTS
 
 using System;
