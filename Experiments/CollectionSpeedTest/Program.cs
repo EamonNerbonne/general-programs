@@ -35,8 +35,6 @@ namespace CollectionSpeedTest
                 sumO += sum;
             }
             return sumO;
-            //Console.WriteLine(sumO);
-
         }
     }
     class Program
