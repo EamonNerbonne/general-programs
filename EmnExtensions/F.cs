@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace EmnExtensions
 {
-	public static class Functional
+	public static class F
 	{
 		public static IEnumerable<IEnumerable<T>> SplitWhen<T>(this IEnumerable<T> iter, Func<T, bool> splitMark) {
 			var queue = new Queue<T>();
@@ -74,14 +74,23 @@ namespace EmnExtensions
             }
         }
 
-        public static IEnumerable<T> AsEnumerable<T>(this Func<T> func) {
-            return func.AsEnumerable(null);
+
+        public static IEnumerable<T> AsEnumerable<T>(Func<T> func) {
+			while (true)yield return func();
         }
 
-        public static IEnumerable<T> AsEnumerable<T>(this Func<T> func, Action init) {
-            if (init != null) init();
-            while (true)
-                yield return func();
+        public static IEnumerable<T> AsEnumerable<T>(Action init,Func<T> func) {
+            init();
+			return AsEnumerable(func);
         }
-    }
+
+		//no-op functions to support C# type inference:
+		public static Func<T> Create<T>(Func<T> func) { return func; }
+		public static Func<A,T> Create<A,T>(Func<A,T> func) { return func; }
+		public static Func<A,B, T> Create<A,B, T>(Func<A,B, T> func) { return func; }
+		public static Func<A, B,C, T> Create<A, B,C, T>(Func<A, B,C, T> func) { return func; }
+		public static Action<A> Create<A>(Action<A> action) { return action; }
+		public static Action<A,B> Create<A,B>(Action<A,B> action) { return action; }
+		public static Action<A,B,C> Create<A,B,C>(Action<A,B,C> action) { return action; }
+	}
 }

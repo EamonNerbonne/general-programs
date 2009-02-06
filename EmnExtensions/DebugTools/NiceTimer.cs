@@ -1,7 +1,7 @@
 using System;
 using System.IO;
 
-namespace EmnExtensions
+namespace EmnExtensions.DebugTools
 {
 
 	public class NiceTimer
