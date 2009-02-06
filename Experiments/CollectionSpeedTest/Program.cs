@@ -35,14 +35,14 @@ namespace CollectionSpeedTest
 		public static double Dot(this double[] vecA, double[] vecB)
 		{
 			double sum = 0.0;
-			for (int i = 0; i < Program.SIZE; i++)
+			for (int i = 0; i < SIZE; i++)
 				sum += vecA[i] * vecB[i];
 			return sum;
 		}
 		public static double TestDotLengthParam(double[] vecA, double[] vecB)
 		{
 			double sumO = 0.0;
-			for (int i = 0; i < Program.ITER; i++)
+			for (int i = 0; i < ITER; i++)
 			{
 				double sum = 0.0;
 				for (int j = 0; j < vecA.Length; j++)
