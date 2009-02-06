@@ -90,6 +90,7 @@ namespace EmnExtensions.Wpf
 
         public GraphControl NewGraph(string name, IEnumerable<Point> line) {
             GraphControl graph = new GraphControl();
+            graph.Visibility = Visibility.Hidden;
             graph.Name = name;
             graph.NewLine(line);
             graphs.Add(graph);

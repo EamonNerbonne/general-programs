@@ -13,9 +13,18 @@ using EmnExtensions.DebugTools;
 
 namespace CollectionSpeedTest
 {
-    public static class Operators
+    static class Program
     {
-        public static double DotL(this double[] vecA, double[] vecB) {
+        public  const int ITER = 10000000;
+        public const int SIZE = 100;
+        static Random r = new Random();
+        static double[] vecA, vecB;
+        static void Main(string[] args) {
+            vecA = Functional.AsEnumerable(() => r.NextNorm()).Take(SIZE).ToArray();
+            vecB = Functional.AsEnumerable(() => r.NextNorm()).Take(SIZE).ToArray();
+            DoTest();
+        }
+        public static double DotWithLength(this double[] vecA, double[] vecB) {
             double sum = 0.0;
             for (int i = 0; i < vecA.Length; i++)
                 sum += vecA[i] * vecB[i];
@@ -27,9 +36,8 @@ namespace CollectionSpeedTest
                 sum += vecA[i] * vecB[i];
             return sum;
         }
-        public static double DotFullTest(double[] vecA, double[] vecB) {
-            double sumO = 0.0;
-            for (int i = 0; i < Program.ITER; i++) {
+        public static double DotFullTest(double[] vecA, double[] vecB) {            double sumO = 0.0;            for (int i = 0; i < Program.ITER; i++) {                double sum = 0.0;                for (int j = 0; j < vecA.Length; j++)                    sum += vecA[j] * vecB[j];                sumO += sum;            }            return sumO;        public static double TestDotLengthParam(double[] vecA, double[] vecB) {            double sumO = 0.0;
+            for (int i = 0; i < ITER; i++) {
                 double sum = 0.0;
                 for (int j = 0; j < vecA.Length; j++)
                     sum += vecA[j] * vecB[j];
@@ -37,20 +45,7 @@ namespace CollectionSpeedTest
             }
             return sumO;
         }
-    }
-    class Program
-    {
-        public  const int ITER = 10000000;
-        public const int SIZE = 100;
-        static Random r = new Random();
-        static void Main(string[] args) {
-            vecA = F.AsEnumerable(() => r.NextNorm()).Take(SIZE).ToArray();
-            vecB = F.AsEnumerable(() => r.NextNorm()).Take(SIZE).ToArray();
-            DoTest();
-        }
-
-        static double[] vecA, vecB;
-        public static double DotFullTest(double[] vecA, double[] vecB) {
+        public static double TestDotLengthMember() {
             double sumO = 0.0;
             for (int i = 0; i < ITER; i++) {
                 double sum = 0.0;
@@ -60,17 +55,7 @@ namespace CollectionSpeedTest
             }
             return sumO;
         }
-        public static double DotFullTest2() {
-            double sumO = 0.0;
-            for (int i = 0; i < ITER; i++) {
-                double sum = 0.0;
-                for (int j = 0; j < vecA.Length; j++)
-                    sum += vecA[j] * vecB[j];
-                sumO += sum;
-            }
-            return sumO;
-        }
-        public static double DotFullTestC(double[] vecA, double[] vecB) {
+        public static double TestDotParam(double[] vecA, double[] vecB) {
             double sumO = 0.0;
             for (int i = 0; i < ITER; i++) {
                 double sum = 0.0;
@@ -80,7 +65,7 @@ namespace CollectionSpeedTest
             }
             return sumO;
         }
-        public static double DotFullTest2C() {
+        public static double TestDotMember() {
             double sumO = 0.0;
             for (int i = 0; i < ITER; i++) {
                 double sum = 0.0;
@@ -91,7 +76,7 @@ namespace CollectionSpeedTest
             return sumO;
         }
 
-        public static double DotSubTestC(double[] vecA, double[] vecB) {
+        public static double TestDotSubroutineParam(double[] vecA, double[] vecB) {
             double sumO = 0.0;
             for (int i = 0; i < ITER; i++) {
                 double sum = vecA.Dot(vecB);
@@ -99,10 +84,10 @@ namespace CollectionSpeedTest
             }
             return sumO;
         }
-        public static double DotSubLTestC(double[] vecA, double[] vecB) {
+        public static double TestDotSubroutineLengthParam(double[] vecA, double[] vecB) {
             double sumO = 0.0;
             for (int i = 0; i < ITER; i++) {
-                double sum = vecA.DotL(vecB);
+                double sum = vecA.DotWithLength(vecB);
                 sumO += sum;
             }
             return sumO;
@@ -119,8 +104,6 @@ namespace CollectionSpeedTest
             var vecBlr = vecBl.AsReadOnly();
             var vecAr = new ReadOnlyCollection<double>(vecA);
             var vecBr = new ReadOnlyCollection<double>(vecB);
-            //var vecA = Functional.AsEnumerable(() => r.NextNorm()).Take(SIZE).ToArray();
-            //var vecB = Functional.AsEnumerable(() => r.NextNorm()).Take(SIZE).ToArray();
             Console.WriteLine("word-size:" +System.Runtime.InteropServices.Marshal.SizeOf(typeof(IntPtr))*8 );
             for (int trials = 0; trials < 2; trials++) {
 				Console.WriteLine("\n\n\n\n\nTest-run #{0}:", trials);
@@ -136,27 +119,27 @@ namespace CollectionSpeedTest
                 });
 #endif
                 NiceTimer.Time("FOR (param) dot " + ITER + "x" + SIZE, () => {
-                    double sumO = DotFullTestC(vecA, vecB);
+                    double sumO = TestDotParam(vecA, vecB);
                     Console.WriteLine(sumO);
                 });
                 NiceTimer.Time("FOR (variable) dot " + ITER + "x" + SIZE, () => {
-                    double sumO = DotFullTest2C();
+                    double sumO = TestDotMember();
                     Console.WriteLine(sumO);
                 });
                 NiceTimer.Time("FOR using Length(param) dot " + ITER + "x" + SIZE, () => {
-                    double sumO = DotFullTest(vecA, vecB);
+                    double sumO = TestDotLengthParam(vecA, vecB);
                     Console.WriteLine(sumO);
                 });
                 NiceTimer.Time("FOR using Length(variable) dot " + ITER + "x" + SIZE, () => {
-                    double sumO = DotFullTest2();
+                    double sumO = TestDotLengthMember();
                     Console.WriteLine(sumO);
                 });
                 NiceTimer.Time(".Dot " + ITER + "x" + SIZE, () => {
-                    double sumO = DotSubTestC(vecA,vecB);
+                    double sumO = TestDotSubroutineParam(vecA,vecB);
                     Console.WriteLine(sumO);
                 });
                 NiceTimer.Time(".Dot using Length" + ITER + "x" + SIZE, () => {
-                    double sumO = DotSubLTestC(vecA, vecB);
+                    double sumO = TestDotSubroutineLengthParam(vecA, vecB);
                     Console.WriteLine(sumO);
                 });
 #if DOSLOWTESTS

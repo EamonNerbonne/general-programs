@@ -1,0 +1,15 @@
+﻿<Window x:Class="NeuralNetworks.NNappWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:emnWpf="clr-namespace:EmnExtensions.Wpf;assembly=EmnExtensionsWpf"
+    Title="Neural Networks" Height="479" Width="817">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="534*" />
+            <ColumnDefinition Width="261*" />
+        </Grid.ColumnDefinitions>
+        <emnWpf:PlotControl Name="plotControl" />
+        <GridSplitter ResizeDirection="Columns" HorizontalAlignment="Right" Width="3" Background="Gray" /> 
+        <emnWpf:LogControl Name="outputLogger" ClaimStandardError="True" ClaimStandardOut="True" Grid.Column="1" /> 
+    </Grid>
+</Window>

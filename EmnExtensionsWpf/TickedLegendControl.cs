@@ -220,7 +220,7 @@ namespace EmnExtensions.Wpf
 
 
         FormattedText MakeText(double val) {
-            string numericValueString = (val).ToString("g" + (orderOfMagnitude-orderOfMagnitudeDiff+2));
+            string numericValueString = (val).ToString("f" + (orderOfMagnitude-orderOfMagnitudeDiff+2));
             return new FormattedText(numericValueString, cachedCulture, FlowDirection.LeftToRight, labelType, fontSize, Brushes.Black);
         }
         void MakeLegendText(out FormattedText baseL, out FormattedText powL, out FormattedText textL, out double totalLabelWidth) {
@@ -315,8 +315,6 @@ cachedCulture, FlowDirection.LeftToRight, labelType, fontSize, Brushes.Black);
             firstTickAt = Math.Ceiling(minVal / slotSize) * slotSize;
 
         }
-
-
 
     }
 }
