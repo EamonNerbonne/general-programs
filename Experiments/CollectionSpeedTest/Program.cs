@@ -9,6 +9,7 @@ using EmnExtensions;
 using EmnExtensions.MathHelpers;
 using System.Diagnostics;
 using System.Collections.ObjectModel;
+using EmnExtensions.DebugTools;
 
 namespace CollectionSpeedTest
 {
@@ -43,8 +44,8 @@ namespace CollectionSpeedTest
         public const int SIZE = 100;
         static Random r = new Random();
         static void Main(string[] args) {
-            vecA = Functional.AsEnumerable(() => r.NextNorm()).Take(SIZE).ToArray();
-            vecB = Functional.AsEnumerable(() => r.NextNorm()).Take(SIZE).ToArray();
+            vecA = F.AsEnumerable(() => r.NextNorm()).Take(SIZE).ToArray();
+            vecB = F.AsEnumerable(() => r.NextNorm()).Take(SIZE).ToArray();
             DoTest();
         }
 
