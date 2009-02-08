@@ -104,6 +104,7 @@ namespace EmnExtensions.Wpf
             graphs.Remove(graph);
         }
 
+        public Grid GraphWithLegend {           get {                return graphWithLegend;            }        }
 
         /// <summary>
         /// You must pass a read/write newly created stream!

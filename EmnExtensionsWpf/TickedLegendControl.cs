@@ -276,7 +276,7 @@ cachedCulture, FlowDirection.LeftToRight, labelType, fontSize, Brushes.Black);
 
             int firstSubTickMult = (int)Math.Ceiling((minVal - firstTickAt) / subSlotSize);//some positive number;
 
-            for (int i = firstSubTickMult; firstTickAt + subSlotSize * i <= maxVal; i++) {
+            for (int i = firstSubTickMult; firstTickAt + subSlotSize * i <= maxVal+(maxVal-minVal)*0.001; i++) {
                 int rank = 0;
                 while (rank < subDivTicks.Length && i % subDivTicks[rank] != 0) rank++;
                 foundTickWithRank(firstTickAt + subSlotSize * i, rank);
