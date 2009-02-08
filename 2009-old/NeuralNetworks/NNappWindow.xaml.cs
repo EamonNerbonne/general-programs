@@ -33,14 +33,14 @@ namespace NeuralNetworks
                 vars[i] = i==0?0: (x2Sum / (i + 1) - mean[i] * mean[i])*(i+1)/i ;
             }
         }
-        const int iters = 100000;
+        const int iters = 10000;
         const int parLev = 8;
         public NNappWindow() {
             InitializeComponent();
         }
         protected override void OnInitialized(EventArgs e) {
             base.OnInitialized(e);
-            Random r1 = new Random();
+            Random r1 = new MersenneTwister();
             var meanSumVec = new double[points];
             var varSumVec = new double[points];
 

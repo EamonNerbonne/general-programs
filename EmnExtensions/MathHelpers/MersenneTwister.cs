@@ -1,3 +1,5 @@
+//modification by eamon: changed namespace to fit into project.
+//modification by eamon: changed default init to use secure random.
 // Copyright 2007-2008 Rory Plaire (codekaizen@gmail.com)
 
 // Adapted from:
@@ -75,7 +77,7 @@
 
 using System;
 
-namespace NPack
+namespace EmnExtensions.MathHelpers
 {
     /// <summary>
     /// Generates pseudo-random numbers using the Mersenne Twister algorithm.
@@ -103,9 +105,13 @@ namespace NPack
         /// <c>new <see cref="System.Random"/>().<see cref="Random.Next()"/></c> 
         /// is used for the seed.
         /// </remarks>
-        public MersenneTwister()
-            : this(new Random().Next()) /* a default initial seed is used   */
-        { }
+        public MersenneTwister() //changed by eamon; was:            : this(new Random().Next()) /* a default initial seed is used   */
+        { 
+            uint[] initkey =new uint[N];
+            for(int i=0;i<initkey.Length;i++)
+                initkey[i] = RndHelper.MakeSecureUInt();
+            init(initkey);
+        }
 
         /// <summary>
         /// Creates a pseudo-random number generator initialized with the given array.

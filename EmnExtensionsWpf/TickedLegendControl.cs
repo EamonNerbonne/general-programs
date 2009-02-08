@@ -68,8 +68,8 @@ namespace EmnExtensions.Wpf
         public TickedLegendControl() {
             TickColor = Brushes.Black;
             labelType = new Typeface(new FontFamily("Segoe UI"), FontStyles.Normal, FontWeights.Normal, FontStretches.Normal, new FontFamily("Verdana"));
-//            StartVal = 0;
-  //          EndVal = 1;
+            //            StartVal = 0;
+            //          EndVal = 1;
         }
         GraphControl watchedGraph;
         public GraphControl Watch {
@@ -84,7 +84,7 @@ namespace EmnExtensions.Wpf
                 if (watchedGraph != null) {
                     watchedGraph.GraphBoundsUpdated += OnGraphBoundsUpdated;
                     TickColor = watchedGraph.GraphLineColor;
-                    LegendLabel = (IsHorizontal?watchedGraph.XLabel:watchedGraph.YLabel) ?? watchedGraph.Name;
+                    LegendLabel = (IsHorizontal ? watchedGraph.XLabel : watchedGraph.YLabel) ?? watchedGraph.Name;
                     OnGraphBoundsUpdated(watchedGraph, watchedGraph.GraphBounds);
                 } else {
                     this.Visibility = Visibility.Collapsed;
@@ -128,7 +128,7 @@ namespace EmnExtensions.Wpf
         public Side SnapTo { get { return snapTo; } set { snapTo = value; InvalidateVisual(); } }
 
         CultureInfo cachedCulture;
-        int orderOfMagnitude,orderOfMagnitudeDiff;//TODO:really, these should be calculated in measure.  The measure pass should have everything measured!
+        int orderOfMagnitude, orderOfMagnitudeDiff;//TODO:really, these should be calculated in measure.  The measure pass should have everything measured!
         bool IsHorizontal { get { return snapTo == Side.Bottom || snapTo == Side.Top; } }
 
         protected override Size MeasureOverride(Size constraint) {
@@ -136,7 +136,7 @@ namespace EmnExtensions.Wpf
                 return new Size(0, 0);
             cachedCulture = CultureInfo.CurrentCulture;
 
-            orderOfMagnitudeDiff = (int)Math.Floor(Math.Log10(Math.Abs(startVal - endVal)));
+            orderOfMagnitudeDiff = (int)Math.Floor(Math.Log10(Math.Abs(startVal - endVal))) - 2;
             orderOfMagnitude = (int)Math.Floor(Math.Log10(Math.Max(Math.Abs(startVal), Math.Abs(endVal))));
             FormattedText text = MakeText(8.88888888888888888);
             FormattedText baseL, powL, textL;
@@ -144,9 +144,15 @@ namespace EmnExtensions.Wpf
             MakeLegendText(out baseL, out powL, out textL, out labelWidth);
 
             if (IsHorizontal)
-                return new Size(constraint.Width.IsFinite() ? constraint.Width : labelWidth, Math.Max(constraint.Height.IsFinite()?constraint.Height:0, 17 + text.Height * 2));
+                return new Size(
+                    Math.Max(constraint.Width.IsFinite() ? constraint.Width : 0, labelWidth),
+                    Math.Max(constraint.Height.IsFinite() ? constraint.Height : 0, 17 + text.Height + baseL.Height)
+                    );
             else
-                return new Size( Math.Max(17 + text.Width + text.Height,constraint.Width.IsFinite()?constraint.Width:0), constraint.Height.IsFinite() ? constraint.Height : labelWidth);
+                return new Size(
+                    Math.Max(17 + text.Width + baseL.Height*1.1, constraint.Width.IsFinite() ? constraint.Width : 0),
+                    Math.Max(constraint.Height.IsFinite() ? constraint.Height : 0,labelWidth)
+                    );
         }
 
 
@@ -165,7 +171,7 @@ namespace EmnExtensions.Wpf
 
 
             cachedCulture = CultureInfo.CurrentCulture;
-            orderOfMagnitudeDiff = (int)Math.Floor(Math.Log10(Math.Abs(startVal - endVal)));
+            orderOfMagnitudeDiff = (int)Math.Floor(Math.Log10(Math.Abs(startVal - endVal))) - 1;
             orderOfMagnitude = (int)Math.Floor(Math.Log10(Math.Max(Math.Abs(startVal), Math.Abs(endVal))));
 
             Matrix mirrTrans = Matrix.Identity; //top-left is 0,0, so if you're on the bottom you're happy
@@ -220,7 +226,7 @@ namespace EmnExtensions.Wpf
 
 
         FormattedText MakeText(double val) {
-            string numericValueString = (val).ToString("f" + (orderOfMagnitude-orderOfMagnitudeDiff+2));
+            string numericValueString = (val).ToString("f" + (orderOfMagnitude - orderOfMagnitudeDiff));
             return new FormattedText(numericValueString, cachedCulture, FlowDirection.LeftToRight, labelType, fontSize, Brushes.Black);
         }
         void MakeLegendText(out FormattedText baseL, out FormattedText powL, out FormattedText textL, out double totalLabelWidth) {
@@ -242,7 +248,7 @@ cachedCulture, FlowDirection.LeftToRight, labelType, fontSize, Brushes.Black);
             double scale = pixelsWide / (endVal - startVal);
             StreamGeometry geom = new StreamGeometry();
             using (var context = geom.Open()) {
-                FindAllTicks(pixelsWide / 100, Math.Min(startVal, endVal), Math.Max(startVal, endVal), (val, rank) => {
+                FindAllTicks(pixelsWide / 100, Math.Min(startVal, endVal), Math.Max(startVal, endVal), out orderOfMagnitudeDiff, (val, rank) => {
                     double pixelPos = (val - startVal) * scale;
 
                     context.BeginFigure(new Point(pixelPos, 0), false, false);
@@ -255,11 +261,12 @@ cachedCulture, FlowDirection.LeftToRight, labelType, fontSize, Brushes.Black);
         }
 
 
-        static void FindAllTicks(double preferredNum, double minVal, double maxVal, Action<double, int> foundTickWithRank) {
+        static void FindAllTicks(double preferredNum, double minVal, double maxVal, out int orderOfMagnitudeSlot, Action<double, int> foundTickWithRank) {
             double firstTickAt, totalSlotSize;
             int[] subDivTicks;
             int orderOfMagnitude;
             CalcTickPositions(minVal, maxVal, preferredNum, out firstTickAt, out totalSlotSize, out subDivTicks, out orderOfMagnitude);
+            orderOfMagnitudeSlot = (int)Math.Floor(Math.Log10(Math.Abs(totalSlotSize)));
             //we want the first tick to start before the range
             firstTickAt -= totalSlotSize;
             //convert subDivTicks into multiples:

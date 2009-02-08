@@ -106,9 +106,12 @@
     <Compile Include="Filesystem\GetLinesExtension.cs" />
     <Compile Include="Filesystem\GetRelativeFileExtension.cs" />
     <Compile Include="MathHelpers\Matrix.cs" />
+    <Compile Include="MathHelpers\MersenneTwister.cs" />
     <Compile Include="MathHelpers\RndHelper.cs" />
     <Compile Include="MathHelpers\Statistics.cs" />
-    <Compile Include="MathHelpers\VectorHelpers.cs" />    <Compile Include="PersistantCache\DelegateCacheMapper.cs" />    <Compile Include="PersistantCache\IPersistantCacheMapper.cs" />
+    <Compile Include="MathHelpers\VectorHelpers.cs" />
+    <Compile Include="PersistantCache\DelegateCacheMapper.cs" />
+    <Compile Include="PersistantCache\IPersistantCacheMapper.cs" />
     <Compile Include="PersistantCache\PersistantCache.cs" />
     <Compile Include="PersistantCache\PersistantCacheException.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
