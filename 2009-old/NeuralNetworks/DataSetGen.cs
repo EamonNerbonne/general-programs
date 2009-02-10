@@ -51,5 +51,27 @@ namespace NeuralNetworks
             Console.WriteLine("{2}  ==[{0}: {1}]",P/(double)N,ratio, epSum/(double)managed);
             return ratio;
         }
+
+		public struct ValErr { public double val, err;}
+		public static ValErr AverageStability(int N, int P, int nD, int maxEpochs, Random r) {
+
+			double stabilitySum=0.0;
+			double stability2Sum=0.0;
+			for (int i = 0; i < nD; i++) {
+				DataSet D = new DataSet(N, P, r);
+				SimplePerceptron w = new SimplePerceptron(N);
+				var stability = w.DoMinOver(D, maxEpochs);
+				stabilitySum += stability;
+				stability2Sum += stability * stability;
+			}
+			double meanStability = stabilitySum / nD;
+			var variance = (stability2Sum - meanStability * meanStability * nD) / (nD - 1);
+			double stdErr = Math.Sqrt(variance / nD);
+			Console.WriteLine("[{0}: {1} +/- {2}]", P / (double)N, meanStability, stdErr);
+			return new ValErr {
+				val = meanStability,
+				err = stdErr
+			};
+		}
     }
 }

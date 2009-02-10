@@ -44,7 +44,7 @@ namespace NeuralNetworks
         }
         protected override void OnInitialized(EventArgs e) {
             base.OnInitialized(e);
-            new Thread(MakeSuccessPlots) {
+			new Thread(MakeMinOverPlots) {
                 IsBackground = true,
             }
             .Start();
@@ -53,11 +53,23 @@ namespace NeuralNetworks
         
         [ThreadStatic] static MersenneTwister randomImpl;
         static Random Random {get{if (randomImpl==null) randomImpl = new MersenneTwister(); return randomImpl;}}
+		void MakeMinOverPlots() {
+			MakeMinOverPlot(20);
+			MakeMinOverPlot(50);
+			MakeMinOverPlot(80);
+			MakeMinOverPlot(120);
+			MakeMinOverPlot(160);
+			MakeMinOverPlot(200);
+			//Dispatcher.Invoke((Action)this.Close);
+		}
 
         void MakeSuccessPlots() {
-            MakeSuccessPlot(20);
-            MakeSuccessPlot(50);
-            MakeSuccessPlot(80);
+			MakeSuccessPlot(20);
+			MakeSuccessPlot(50);
+			MakeSuccessPlot(80);
+			MakeSuccessPlot(120);
+            MakeSuccessPlot(160);
+            MakeSuccessPlot(200);
         }
 
         void MakeSuccessPlot(int N) {
@@ -65,7 +77,7 @@ namespace NeuralNetworks
             int nD = 3000;
             
             var plotLine = F.Create(()=> (
-                from P in Enumerable.Range(8,23).Select(p=>p*N /10).Where(p=>p-2*N<45 ).AsParallel(4)
+                from P in Enumerable.Range(8,23).Select(p=>p*N /10).Where(p=>p-2*N<40 ).Reverse().AsParallel(4)
                 let ratio=DataSet.FractionManageable(N, P, nD, epochMax, Random)
                 let alpha = P / (double) N
                 orderby alpha ascending
@@ -79,11 +91,50 @@ namespace NeuralNetworks
                 var g = plotControl.NewGraph("PerceptronStorage", plotLine);
                 g.GraphBounds = new Rect(new Point(0.5, 1.01), new Point(3.0, 0.0));
                 plotControl.ShowGraph(g);
+                g.XLabel = "α = P/N for N = "+N;
+                g.YLabel = "successful storage ratio";
                 string fileName = "PerceptronStorage_N" + N + "_eM" + epochMax + "_nD" + nD + ".xps";
                 using (var writestream = new FileStream(fileName, FileMode.Create, FileAccess.ReadWrite))
                     plotControl.Print(g, writestream);
             }));
         }
+
+
+		void MakeMinOverPlot(int N) {
+			int epochMax = 3000;
+			int nD = 500;
+
+			var plotLine = F.Create(() => (
+				from P in Enumerable.Range(8, 23).Select(p => p * N / 10).AsParallel(4)
+				let stability = DataSet.AverageStability(N, P, nD, epochMax, Random)
+				let alpha = P / (double)N
+				orderby alpha ascending
+				select new { Point = new Point(alpha, stability.val), Err = stability.err }
+				).ToArray()
+				).Time(timespan => {
+					Console.WriteLine("Computation took {0}.", timespan);
+				});
+
+			Dispatcher.Invoke((Action)(() => {
+				var g=new GraphControl();
+				g.Name = "StabilityPlot";
+				g.NewLine(
+					GraphControl.LineWithErrorBars(
+					  plotLine.Select(pe => pe.Point).ToArray(),
+					  plotLine.Select(pe => pe.Err).ToArray()));
+				g.XLabel = "α = P/N for N = " + N;
+				g.YLabel = "expected stability";
+				plotControl.Graphs.Add(g);
+				
+				//g.GraphBounds = new Rect(new Point(0.5, 1.01), new Point(3.0, 0.0));
+				plotControl.ShowGraph(g);
+				string fileName = "MinOverStability_N" + N + "_eM" + epochMax + "_nD" + nD + ".xps";
+				using (var writestream = new FileStream(fileName, FileMode.Create, FileAccess.ReadWrite))
+					plotControl.Print(g, writestream);
+			}));
+		}
+
+
 
         void RandomTester() { //must execute on UI thread.
             Random r1 = new MersenneTwister();

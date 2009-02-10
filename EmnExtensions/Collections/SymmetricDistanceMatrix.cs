@@ -128,4 +128,81 @@ namespace EmnExtensions.Collections
         }
 
     }
+
+	/// <summary>
+	/// Triangular symmetric matrix.  It is not an error to access the matrix's diagonal.
+	/// </summary>
+	public class TriangularMatrix<T>
+	{
+		const double resizefactor = 1.5;
+		T[] distances = new T[0];
+		int elementCount = 0;
+
+		//used when growing the matrix;
+		public T DefaultElement { get; set; }
+
+		public int ElementCount {
+			set {
+				int oldMatSize = matSize(elementCount);
+				elementCount = value;
+				int newMatSize = matSize(elementCount);
+
+				if (distances.Length < newMatSize) {
+					Array.Resize(ref distances, (int)(newMatSize * resizefactor + 0.9));
+					for (int i = oldMatSize; i < newMatSize; i++)
+						distances[i] = DefaultElement;
+				} else if (distances.Length > (int)(newMatSize * resizefactor * resizefactor + 0.9)) {
+					Array.Resize(ref distances, (int)(newMatSize * resizefactor + 0.9));
+				}
+			}
+			get {
+				return elementCount;
+			}
+		}
+
+		public int DistCount { get { return matSize(elementCount); } }
+
+		public void TrimCapacityToFit() {
+			Array.Resize(ref distances, matSize(elementCount));
+		}
+
+
+		public IEnumerable<T> Values { get { return distances.Take(DistCount); } }
+
+		public TriangularMatrix() { }
+
+		static int matSize(int elemCount) { return elemCount * (elemCount + 1) >> 1; }
+		int calcOffset(int i, int j) {
+			if (i > j) {
+				if (i > elementCount) throw new IndexOutOfRangeException("i is out of range");
+				int tmp = i;
+				i = j;
+				j = tmp;
+			} else if (j > elementCount) throw new IndexOutOfRangeException("j is out of range");
+			return i + ((j * (j + 1)) >> 1);
+		}
+
+		/// <summary>
+		/// Returns the internal array used for storage.  This array can safely by used until the matrix is resized
+		/// with a call to TrimCapacityToFit or by setting ElementCount.
+		/// Access to this array is read/write.  element i,j is at location i + ((j * (j + 1)) >> 1) given that i is less than j.
+		/// </summary>
+		/// <returns></returns>
+		public T[] DirectArrayAccess() {
+			return distances;
+		}
+
+		/// <summary>
+		/// It is an error to access the diagonal which must be 0!
+		/// </summary>
+		public T this[int i, int j] {
+			get {
+				return distances[calcOffset(i, j)];
+			}
+			set {
+				distances[calcOffset(i, j)] = value;
+			}
+		}
+	}
+
 }

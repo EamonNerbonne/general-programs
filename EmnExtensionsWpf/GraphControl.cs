@@ -137,7 +137,6 @@ namespace EmnExtensions.Wpf
             }
         }
 
-        //List<Point> points;
         PathGeometry graphGeom2;
 //        StreamGeometry graphGeom;
         PathFigure fig=null;
@@ -165,6 +164,46 @@ namespace EmnExtensions.Wpf
             }
             UpdateBounds();
         }
+
+		public void NewLine(PathGeometry newGeom) {
+			InvalidateVisual();
+			newGeom.Transform = Transform.Identity;
+
+			graphBoundsPrivate = newGeom.Bounds;
+			graphGeom2 = newGeom;
+			fig = null;
+			UpdateBounds();
+		}
+
+
+		public static PathGeometry LineWithErrorBars(Point[] lineOfPoints, double[] ErrBars) {
+			PathGeometry geom = new PathGeometry();
+			PathFigure fig=null;
+			foreach (Point startPoint in lineOfPoints.Take(1)) {
+				fig = new PathFigure();
+				fig.StartPoint = startPoint;
+				geom.Figures.Add(fig);
+			}
+			foreach (Point point in lineOfPoints.Skip(1)) {
+				fig.Segments.Add(new LineSegment(point, true));
+			}
+			Rect bounds = geom.Bounds;
+			double errWidth = bounds.Width / 200.0;
+			for (int i = 0; i < lineOfPoints.Length; i++) {
+				if (ErrBars[i].IsFinite()) {
+					PathFigure errf = new PathFigure();
+					errf.StartPoint = lineOfPoints[i] + new Vector(-errWidth, -ErrBars[i]);
+					errf.Segments.Add(new LineSegment(lineOfPoints[i] + new Vector(errWidth, -ErrBars[i]),true));
+					errf.Segments.Add(new LineSegment(lineOfPoints[i] + new Vector(0, -ErrBars[i]), false));
+					errf.Segments.Add(new LineSegment(lineOfPoints[i] + new Vector(0, ErrBars[i]), true));
+					errf.Segments.Add(new LineSegment(lineOfPoints[i] + new Vector(errWidth, ErrBars[i]), false));
+					errf.Segments.Add(new LineSegment(lineOfPoints[i] + new Vector(-errWidth, ErrBars[i]), true));
+					geom.Figures.Add(errf);
+				}
+			}
+
+			return geom;
+		}
 
         public IEnumerable<Point> CurrentPoints {
             get {
