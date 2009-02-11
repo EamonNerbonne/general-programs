@@ -5,6 +5,7 @@ using System.Text;
 using LastFMspider;
 using EmnExtensions;
 using System.Text.RegularExpressions;
+using EmnExtensions.DebugTools;
 
 namespace SimilarityMdsLib
 {

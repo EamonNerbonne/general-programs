@@ -27,9 +27,9 @@ namespace SongDataLib
 			Console.WriteLine("{0} potential songs found.", newFiles.Length);
 			for(int i = 0; i < newFiles.Length; i++) {
 				FileInfo newfile = newFiles[i];
-				ISongData song = Functional.Swallow(()=>filter(newfile.FullName),()=>null);
+				ISongData song = F.Swallow(()=>filter(newfile.FullName),()=>null);
 				if(song == null || (song is SongData && ((SongData)song).lastWriteTime < newfile.LastWriteTime))
-					song = Functional.Swallow(() => SongDataFactory.ConstructFromFile(newfile), () => null);
+					song = F.Swallow(() => SongDataFactory.ConstructFromFile(newfile), () => null);
 				if(song != null) {
 					handler(song, (double)i / (double)newFiles.Length);
 				}

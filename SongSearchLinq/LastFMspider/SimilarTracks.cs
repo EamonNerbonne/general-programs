@@ -9,6 +9,7 @@ using System.Data.Common;
 using System.Collections;
 using System.Diagnostics;
 using SongDataLib;
+using EmnExtensions.DebugTools;
 
 namespace LastFMspider
 {

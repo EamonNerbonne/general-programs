@@ -24,6 +24,7 @@ using Microsoft.Win32;
 using EmnExtensions.Threading;
 using System.Threading.Collections;
 using EmnExtensions.MathHelpers;
+using EmnExtensions.DebugTools;
 
 namespace RealSimilarityMds
 {

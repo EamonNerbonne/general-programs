@@ -16,6 +16,7 @@ using EmnExtensions.Wpf;
 using hitmds;
 using LastFMspider;
 using Microsoft.Win32;
+using EmnExtensions.DebugTools;
 
 namespace MdsTestWpf
 {

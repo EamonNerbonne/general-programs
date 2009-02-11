@@ -16,6 +16,7 @@ using System.Windows.Media;
 using LastFMspider.LastFMSQLiteBackend;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
+using EmnExtensions.DebugTools;
 
 namespace SimilarityMdsLib
 {
