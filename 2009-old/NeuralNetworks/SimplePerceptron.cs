@@ -35,19 +35,30 @@ namespace NeuralNetworks
 			return dotprod;
 		}
 
-		public int DoTraining(DataSet D, int maxEpochs) {
+		public int DoTraining(DataSet D, int maxEpochs, Action<int,double> EpochErrSink) {
 			//returns 0 if no storage possible; otherwise number of epochs+1 - useful for tweaking params
 			int unchangedCount = 0;// number of consecutively "correct" classifications, updated online.
+			double epochDot = 0;
 			for (int n = 0; n < maxEpochs; n++) {
+				int epochErr = 0;
+				double dotSum = 0.0;
 				for (int i = 0; i < D.P; i++) {
-					if (FastRStep(D.samples[i]) > 0)//if (LearningStep(Rosenblatt0, D.samples[i]) > 0)
+					var dotprod=FastRStep(D.samples[i]);
+					dotSum += dotprod;
+					if (dotprod > 0) {//if (LearningStep(Rosenblatt0, D.samples[i]) > 0)
 						unchangedCount++; //sample is OK and w not updated
-					else
+					} else {
 						unchangedCount = 0; //needed learning, reset.
-
-					if (unchangedCount >= D.P) //all samples work!
+						epochErr++;
+					}
+					if (unchangedCount >= D.P) { //all samples work!
+						epochDot += (dotSum / D.P - epochDot) * (1.0 / 1024.0);
+						if (EpochErrSink != null) EpochErrSink(n, epochDot);
 						return n + 1;
+					}
 				}
+				epochDot += (dotSum/D.P - epochDot) * (1.0 / 512.0);
+				if(EpochErrSink!=null) EpochErrSink(n,epochDot);
 			}
 			return 0;
 		}

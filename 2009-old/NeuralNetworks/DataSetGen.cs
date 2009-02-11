@@ -4,12 +4,14 @@ using System.Linq;
 using System.Text;
 using EmnExtensions.MathHelpers;
 using EmnExtensions;
+using EmnExtensions.Filesystem;
+using System.IO;
 
 namespace NeuralNetworks
 {
     public struct LabelledSample
     {
-        public int Label;
+        public double Label;
         public Vector Sample;
     }
     public class DataSet
@@ -18,15 +20,49 @@ namespace NeuralNetworks
         public readonly int N;
         public int P { get { return samples.Length; } }
 
+		public Vector ComputCenterOfMass() {
+			Vector result = new Vector(N);
+			foreach (LabelledSample sample in samples) {
+				for (int i = 0; i < sample.Sample.elems.Length; i++)
+					result.elems[i] += sample.Label * sample.Sample.elems[i] / samples.Length;
+			}
+			return result;
+		}
 
-
-        public DataSet(int N, int P, Random r) {
+		public DataSet(int N, int P, Random r) {
             this.N=N;
             samples = F
                 .AsEnumerable(() => MakeRandomSample(N, r))
                 .Take(P)
                 .ToArray();
         }
+		public DataSet(LabelledSample[] samples) {
+			this.samples = samples;
+			this.N = samples[0].Sample.N;
+			if (!samples.All(sample => sample.Sample.N == N))
+				throw new ArgumentException("Inconsistent number of features");
+		}
+
+		public static void LoadDataSet(FileInfo srcFile, double testSize, out DataSet train, out DataSet test) {
+			var samples =
+				(from textline in srcFile.GetLines()
+				 let fields = textline.Split(' ')
+				 let label = double.Parse(fields[0])
+				 let elems = fields.Skip(1).Select(s=>double.Parse(s)).ToArray()
+				 select new LabelledSample {
+					 Label = label,
+					 Sample = elems
+				 }
+				).ToArray();
+			int N = samples[0].Sample.N;
+			if (!samples.All(sample => sample.Sample.N == N))
+				throw new FileFormatException("various lines had different numbers of features");
+
+			int testCnt = (int)(samples.Length * testSize + 0.5);
+			int trainCnt = samples.Length - testCnt;
+			train = new DataSet(samples.Take(trainCnt).ToArray());
+			test = new DataSet(samples.Skip(trainCnt).ToArray());
+		}
 
         public static LabelledSample MakeRandomSample(int N, Random r) {
             return new LabelledSample {
@@ -35,13 +71,13 @@ namespace NeuralNetworks
             };
         }
 
-        public static double FractionManageable(int N, int P, int nD,int maxEpochs, Random r) {
+        public static double FractionManageable(int N, int P, int nD,int maxEpochs,bool useCoM, Random r) {
             int managed = 0;
             int epSum = 0;
             for (int i = 0; i < nD; i++) {
                 DataSet D = new DataSet(N, P, r);
-                SimplePerceptron w = new SimplePerceptron(N);
-                int numEpochsNeeded = w.DoTraining(D, maxEpochs);
+                SimplePerceptron w = useCoM? new SimplePerceptron(D.ComputCenterOfMass()): new SimplePerceptron(N);
+                int numEpochsNeeded = w.DoTraining(D, maxEpochs,null);
                 if (numEpochsNeeded > 0) {
                     managed++;
                     epSum += numEpochsNeeded;
@@ -53,13 +89,12 @@ namespace NeuralNetworks
         }
 
 		public struct ValErr { public double val, err;}
-		public static ValErr AverageStability(int N, int P, int nD, int maxEpochs, Random r) {
-
+		public static ValErr AverageStability(int N, int P, int nD, int maxEpochs,bool useCoM,Random r) {
 			double stabilitySum=0.0;
 			double stability2Sum=0.0;
 			for (int i = 0; i < nD; i++) {
 				DataSet D = new DataSet(N, P, r);
-				SimplePerceptron w = new SimplePerceptron(N);
+				SimplePerceptron w = useCoM ? new SimplePerceptron(D.ComputCenterOfMass()) : new SimplePerceptron(N);
 				var stability = w.DoMinOver(D, maxEpochs);
 				stabilitySum += stability;
 				stability2Sum += stability * stability;
