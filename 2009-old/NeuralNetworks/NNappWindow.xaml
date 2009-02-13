@@ -15,9 +15,9 @@
         <emnWpf:PlotControl Name="plotControl" Grid.RowSpan="2" />
         <GridSplitter ResizeDirection="Columns" HorizontalAlignment="Right" Width="3" Background="Gray" Grid.RowSpan="2" /> 
         <emnWpf:LogControl Name="outputLogger" ClaimStandardError="True" ClaimStandardOut="True" Grid.Column="1" Grid.Row="1" />
-        <Button Grid.Column="1" Height="23" HorizontalAlignment="Left" Margin="6,12,0,0" Name="AverageStability" VerticalAlignment="Top" Width="101" Click="AverageStability_Click">AverageStability</Button>
-        <Button Grid.Column="1" Height="23" Margin="6,41,0,0" Name="FractionManagable" VerticalAlignment="Top" HorizontalAlignment="Left" Width="117" Click="FractionManagable_Click">FractionManagable</Button>
-        <Button Grid.Column="1" Height="23" HorizontalAlignment="Left" VerticalAlignment="Top"  Margin="6,70,0,86" Name="LearnOne" Width="75" Click="LearnOne_Click">Learn N=50,P=100</Button>
-        <CheckBox Grid.Column="1" Margin="6,0,0,6" Name="UseCenterOfMass" Height="16" VerticalAlignment="Bottom" HorizontalAlignment="Left" Width="121">UseCenterOfMass</CheckBox>
+        <Button Grid.Column="1" Height="23" HorizontalAlignment="Left" Margin="6,12,0,0" Name="AverageStability" VerticalAlignment="Top" Width="Auto" Click="AverageStability_Click">AverageStability</Button>
+        <Button Grid.Column="1" Height="23" Margin="6,41,0,0" Name="FractionManagable" VerticalAlignment="Top" HorizontalAlignment="Left" Width="Auto" Click="FractionManagable_Click">FractionManagable</Button>
+        <Button Grid.Column="1" Height="23" HorizontalAlignment="Left" VerticalAlignment="Top"  Margin="6,70,0,86" Name="LearnOne" Width="Auto" Click="LearnOne_Click">Do Learning benchmark</Button>
+        <CheckBox Grid.Column="1" Margin="6,0,0,6" Name="UseCenterOfMass"  IsChecked="True" Height="16" VerticalAlignment="Bottom" HorizontalAlignment="Left" Width="121">UseCenterOfMass</CheckBox>
     </Grid>
 </Window>

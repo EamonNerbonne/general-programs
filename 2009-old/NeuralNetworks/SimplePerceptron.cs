@@ -19,15 +19,16 @@ namespace NeuralNetworks
 			w += (1.0 / N * algorithm(dotprod)) * directedSample;
 			return dotprod;
 		}
-		public static double Rosenblatt0(double E_mu_t) { return E_mu_t <= 0 ? 1 : 0; }
-
+		const double c = 0.000001;//seems to help stopping heuristic.
+		public static double Rosenblatt0(double E_mu_t) { return E_mu_t <= c ? 1 : 0; }
 		public double FastRStep(LabelledSample example) {//avoid memory allocation; otherwise like LearningStep(Rosenblatt0,...)
 			var sample = example.Sample.elems;
 			var wA = w.elems;
 			double dotprod = 0;
 			for (int i = 0; i < wA.Length; i++)
-				dotprod += sample[i] * example.Label * wA[i];
-			if (dotprod <= 0) {
+				dotprod += sample[i] * wA[i];
+			dotprod *= example.Label;
+			if (dotprod <= c) {
 				var scaleFac = example.Label / (double)N;
 				for (int i = 0; i < wA.Length; i++)
 					wA[i] += scaleFac * sample[i];
@@ -35,32 +36,33 @@ namespace NeuralNetworks
 			return dotprod;
 		}
 
-		public int DoTraining(DataSet D, int maxEpochs, Action<int,double> EpochErrSink) {
+		public int DoTraining(DataSet D, int maxEpochs, Func<int,double,bool> EpochErrSink) {
 			//returns 0 if no storage possible; otherwise number of epochs+1 - useful for tweaking params
 			int unchangedCount = 0;// number of consecutively "correct" classifications, updated online.
 			double epochDot = 0;
 			for (int n = 0; n < maxEpochs; n++) {
-				int epochErr = 0;
 				double dotSum = 0.0;
 				for (int i = 0; i < D.P; i++) {
-					var dotprod=FastRStep(D.samples[i]);
+					//var dotprod = LearningStep(Rosenblatt0, D.samples[i]);
+					var dotprod = FastRStep(D.samples[i]);
 					dotSum += dotprod;
-					if (dotprod > 0) {//if (LearningStep(Rosenblatt0, D.samples[i]) > 0)
+					if (dotprod > c) {
 						unchangedCount++; //sample is OK and w not updated
 					} else {
 						unchangedCount = 0; //needed learning, reset.
-						epochErr++;
 					}
 					if (unchangedCount >= D.P) { //all samples work!
-						epochDot += (dotSum / D.P - epochDot) * (1.0 / 1024.0);
+						epochDot += (dotSum / D.P - epochDot) * (1.0 / 128.0);
 						if (EpochErrSink != null) EpochErrSink(n, epochDot);
 						return n + 1;
 					}
 				}
-				epochDot += (dotSum/D.P - epochDot) * (1.0 / 512.0);
-				if(EpochErrSink!=null) EpochErrSink(n,epochDot);
+				epochDot += (dotSum/D.P - epochDot) * (1.0 / 128.0);
+				if(EpochErrSink!=null) 
+					if (EpochErrSink(n,epochDot))
+						return -(n+1);
 			}
-			return 0;
+			return -maxEpochs;
 		}
 
 		public double DoMinOver(DataSet D, int maxEpochs) {

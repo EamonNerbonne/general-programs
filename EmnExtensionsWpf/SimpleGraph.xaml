@@ -15,7 +15,7 @@
         </Grid.ColumnDefinitions>
         <Grid Name="graphGrid"  Grid.Column="1" Grid.Row="1" >
         </Grid>
-        <emnExt:TickedLegendControl x:Name="leftLegend" Grid.Row="1" SnapTo="Right"  />
+        <emnExt:TickedLegendControl x:Name="leftLegend" Grid.Row="1" SnapTo="Right" />
         <emnExt:TickedLegendControl x:Name="lowerLegend" Grid.Row="2" Grid.Column="1"  />
         <emnExt:TickedLegendControl x:Name="rightLegend" Grid.Row="1" Grid.Column="2"  SnapTo="Left"  />
         <emnExt:TickedLegendControl x:Name="upperLegend" Grid.Row="0" SnapTo="Bottom"  Grid.Column="1"  />

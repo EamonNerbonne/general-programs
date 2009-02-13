@@ -17,6 +17,8 @@ using EmnExtensions.DebugTools;
 using EmnExtensions;
 using System.IO;
 using EmnExtensions.Wpf;
+using System.Text.RegularExpressions;
+using System.Diagnostics;
 
 namespace NeuralNetworks
 {
@@ -41,6 +43,7 @@ namespace NeuralNetworks
 		const int parLev = 8;
 		public NNappWindow() {
 			InitializeComponent();
+			Process.GetCurrentProcess().PriorityClass = ProcessPriorityClass.BelowNormal;
 		}
 
 		[ThreadStatic]
@@ -48,22 +51,31 @@ namespace NeuralNetworks
 		static Random Random { get { if (randomImpl == null) randomImpl = new MersenneTwister(); return randomImpl; } }
 
 		void MakeSuccessPlot(int N, bool useCoM) {
-			int epochMax = 10000;
-			int nD = 3000;
+#if DEBUG
+			int epochMax = 1000;
+			int nD = 100;
+#else
+			int epochMax = 100000;
+			int nD = 50;
+#endif
+			double ComputeExtent = Math.Sqrt(30.0 * N);
+			int stepSize = Math.Max((int)(ComputeExtent/10),1);
 
-			var plotLine = F.Create(() => (
-				from P in Enumerable.Range(8, 23).Select(p => p * N / 10).Where(p => p - 2 * N < 10 * Math.Sqrt(N)).Reverse().AsParallel(8)
-				let ratio = DataSet.FractionManageable(N, P, nD, epochMax, useCoM, Random)
+
+
+			var plotLine = (
+				from P in Enumerable.Range(1, 3*N).Select(p=>p*stepSize).TakeWhile(p=>p<2*N+ComputeExtent).AsParallel()
+				let ratio = DataSet.FractionManageable(N, P, nD, epochMax, useCoM, ()=>Random)
 				let alpha = P / (double)N
 				orderby alpha ascending
 				select new Point(alpha, ratio)
-				).ToArray()
-				).Time(timespan => {
-					Console.WriteLine("Computation took {0}.", timespan);
-				});
+				).ToArray();
 
 			Dispatcher.Invoke((Action)(() => {
 				var g = plotControl.NewGraph("PerceptronStorage", plotLine);
+				var bounds = g.GraphBounds;
+				bounds.Union(new Point(0.5, 1.001));
+				bounds.Union(new Point(3.0, 0.0));
 				g.GraphBounds = new Rect(new Point(0.5, 1.001), new Point(3.0, 0.0));
 				plotControl.ShowGraph(g);
 				g.XLabel = "α = P/N for N = " + N;
@@ -169,8 +181,9 @@ namespace NeuralNetworks
 		private void FractionManagable_Click(object sender, RoutedEventArgs e) {
 			bool useCoM = UseCenterOfMass.IsChecked == true;
 			new Thread((ThreadStart)(() => {
-				Parallel.ForEach(new[] { 20, }, N => {// 50, 80, 120 
-					MakeSuccessPlot(N, useCoM);
+				NiceTimer.Time("FracManagable", () => {
+					foreach(int N in new[] { 20, 50, 80, 120 })
+						MakeSuccessPlot(N, useCoM);
 				});
 			})) {
 				IsBackground = true
@@ -187,71 +200,114 @@ namespace NeuralNetworks
 			//plotControl.ShowGraph(errGraph);
 
 			new Thread(() => {
-				int fp = 0;
-				int fn = 0;
-				object synroot = new object();
-				Parallel.For(0, 100, iterI => {
-					int epochMax = 100000;
-					int N = 100;
-					int P = 230;
-					DataSet D = new DataSet(N, P, Random);
-					SimplePerceptron w = new SimplePerceptron(D.ComputCenterOfMass());
-					//List<Point> errP = new List<Point>();
-					double lastErrN = double.MinValue;
-					int dipCnt = 0;
-					int firstHit = 0;
-					int epochToConverge = w.DoTraining(D, epochMax, (epochN, errN) => {
-						if (errN < lastErrN) {
-							if (dipCnt == 25)
-								firstHit = epochN;
-							dipCnt++;
-						}
-						lastErrN = errN;
-						//errP.Add(new Point(epochN, errN / (double)P));
-					});
-					if(epochToConverge>0 && firstHit>0 || epochToConverge ==0 && firstHit==0) {
+				NiceTimer.Time("NN:", () => {
+					int fp = 0;
+					int fn = 0;
+					object synroot = new object();
+
+					long stoppedAt = 0;
+					long doneCnt = 0;
+					long completedAt = 0;
+					long complCnt = 0;
+					Parallel.For(0, 1000, iterI => {
+						int epochMax = 1000000;
+						int N = 50;
+						int P = 120;
+						DataSet D = new DataSet(N, P, Random);
+						SimplePerceptron w = new SimplePerceptron(D.ComputCenterOfMass());
+						//List<Point> errP = new List<Point>();
+						double lastErrN = double.MinValue;
+						int dipCnt = 0;
+						int firstHit = 0;
+						int lastHit = 0;
+						int epochToConverge = w.DoTraining(D, epochMax, (epochN, errN) => {
+							if (errN < lastErrN)
+								dipCnt++;
+							lastErrN = errN;
+
+							if (epochN > 10 && (dipCnt / (double)epochN) > 0.40) {
+								lastHit = epochN;
+								if (firstHit == 0)
+									firstHit = epochN;
+								if ((dipCnt / (double)epochN) > 0.45)
+									return true;
+							}
+							return false;
+						});
 						lock (synroot) {
-							Console.WriteLine("\n[{0}: {1}], but Converged?=={2}", dipCnt, firstHit, epochToConverge, firstHit == 0 ? "" : "!!!!!!!!!");
-							if (epochToConverge == 0) //did not converge but was predicted to.
-								fp++;
-							else//did converge but wasn't predicted to.
-								fn++;
+							if (epochToConverge <= 0) {
+								if (firstHit == 0) {//did not converge but was predicted to.
+									fp++;
+									Console.WriteLine("{4} ??? <{0},{1}:{2}>,{3}", firstHit, lastHit, dipCnt, -epochToConverge, -dipCnt / (double)epochToConverge);
+								}
+							} else {
+								if (firstHit > 0) {//did converge but wasn't predicted to.
+									fn++;
+									Console.WriteLine("{4} ::: <{0},{1}:{2}>,{3}", firstHit, lastHit, dipCnt, epochToConverge, dipCnt / (double)epochToConverge);
+								}
+							}
+							if (epochToConverge <= 0) {
+								stoppedAt += firstHit;
+								doneCnt++;
+								if (doneCnt % 100 == 0) {
+									Console.WriteLine("meanStop:{0}", stoppedAt / (double)doneCnt);
+								}
+							} else {
+								completedAt += epochToConverge;
+								complCnt++;
+								if (complCnt % 100 == 0) {
+									Console.WriteLine("meanCompl:{0}", completedAt / (double)complCnt);
+								}
+							}
 						}
-					} 
-					if(iterI%100==0) {
-						Console.Write(".");
-					}
 
 
-					//int pointN = 1000;
-					//List<Point> errGP = new List<Point>();
-					//if (errP.Count <= pointN)
-					//    errGP = errP;
-					//else
-					//    for (int i = 0; i < pointN; i++) {
-					//        int eS = i * errP.Count / pointN;
-					//        int eF = (i + 1) * errP.Count / pointN;
-					//        double xs = 0, ys = 0;
-					//        for (int p = eS; p < eF; p++) {
-					//            xs += errP[p].X;
-					//            ys += errP[p].Y;
-					//        }
-					//        errGP.Add(new Point(xs / (eF - eS), ys / (eF - eS)));
-					//    }
+						//int pointN = 1000;
+						//List<Point> errGP = new List<Point>();
+						//if (errP.Count <= pointN)
+						//    errGP = errP;
+						//else
+						//    for (int i = 0; i < pointN; i++) {
+						//        int eS = i * errP.Count / pointN;
+						//        int eF = (i + 1) * errP.Count / pointN;
+						//        double xs = 0, ys = 0;
+						//        for (int p = eS; p < eF; p++) {
+						//            xs += errP[p].X;
+						//            ys += errP[p].Y;
+						//        }
+						//        errGP.Add(new Point(xs / (eF - eS), ys / (eF - eS)));
+						//    }
 
 
-					//Dispatcher.Invoke((Action)(() => {
-					//    foreach (var point in errGP)
-					//        errGraph.AddPoint(point);
-					//    var bounds = errGraph.GraphBounds;
-					//    bounds.Union(new Point(0, 0));
-					//    //bounds.Union(new Point(1, 1));
-					//    errGraph.GraphBounds = bounds;
+						//Dispatcher.Invoke((Action)(() => {
+						//    foreach (var point in errGP)
+						//        errGraph.AddPoint(point);
+						//    var bounds = errGraph.GraphBounds;
+						//    bounds.Union(new Point(0, 0));
+						//    //bounds.Union(new Point(1, 1));
+						//    errGraph.GraphBounds = bounds;
 
-					//}));
+						//}));
+					});
+					Console.WriteLine("meanStop:{0}", stoppedAt / (double)doneCnt);
+					Console.WriteLine("meanCompl:{0}", completedAt / (double)complCnt);
+
+					Console.WriteLine("Convergence; {0} false positives, {1} false negatives", fp, fn);
 				});
-				Console.WriteLine("Convergence; {0} false positives, {1} false negatives",fp,fn);
 			}) { IsBackground = true }.Start();
+		}
+
+		static Regex analConvRegex = new Regex(
+			@"^(
+              (?<fail> \(\d+\:\d+\) )
+             |(?<suc> \[\d+\:\d+\] )
+             |(?<fp> \<\d+\:\d+\>[^=]+==\d+)
+             |\s
+             )+$", RegexOptions.IgnorePatternWhitespace | RegexOptions.Compiled | RegexOptions.Singleline | RegexOptions.ExplicitCapture
+			);
+		private void AnalyzeConvergenceLog(string log) {
+
+
 		}
 	}
 }

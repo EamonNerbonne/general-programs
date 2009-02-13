@@ -27,13 +27,19 @@ namespace EmnExtensions.Wpf
     {
         public PlotControl() {
             InitializeComponent();
-            botSelect.ItemsSource = graphs;
+			
+			botSelect.ItemsSource = graphs;
+			
             topSelect.ItemsSource = graphs;
             visibilityMenu.ItemsSource = graphs;
             graphs.CollectionChanged += new System.Collections.Specialized.NotifyCollectionChangedEventHandler(graphs_CollectionChanged);
-            //            graphs.Add(null);
             //NewGraph("unlabelled", new[] { new Point(0, 0), new Point(0, 1), new Point(1, 1), new Point(1, 0), new Point(0, 0) });
         }
+
+		protected override void OnInitialized(EventArgs e) {
+			graphs.Add(null);
+			base.OnInitialized(e);
+		}
 
         void graphs_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e) {
             switch (e.Action) {
@@ -145,18 +151,19 @@ namespace EmnExtensions.Wpf
         private void MenuItem_Click(object sender, RoutedEventArgs e) {
             MenuItem item = (MenuItem)sender;
             GraphControl graph = (GraphControl)item.DataContext;
+			if (graph == null) return;
             if (graph.Visibility == Visibility.Visible) {
                 graph.Visibility = Visibility.Hidden;
-            } else {
-                graph.Visibility = Visibility.Visible;
-            }
-            if (upperLegend.Watch != null && upperLegend.Watch.Visibility != Visibility.Visible) {
-                upperLegend.Watch = null;
-                rightLegend.Watch = null;
-            }
-            if (lowerLegend.Watch != null && lowerLegend.Watch.Visibility != Visibility.Visible) {
-                leftLegend.Watch = null;
-                lowerLegend.Watch = null;
+				if (upperLegend.Watch != null && upperLegend.Watch.Visibility != Visibility.Visible) {
+					upperLegend.Watch = null;
+					rightLegend.Watch = null;
+				}
+				if (lowerLegend.Watch != null && lowerLegend.Watch.Visibility != Visibility.Visible) {
+					leftLegend.Watch = null;
+					lowerLegend.Watch = null;
+				}
+			} else {
+				ShowGraph(graph);
             }
         }
 
@@ -168,7 +175,7 @@ namespace EmnExtensions.Wpf
                 graph.Visibility = Visibility.Visible;
 
             GraphControl oldGraph = lowerLegend.Watch;
-            if (oldGraph != null && oldGraph.Visibility == Visibility.Visible)
+            if (oldGraph != null && oldGraph.Visibility == Visibility.Visible && oldGraph!= topSelect.SelectedItem)
                 oldGraph.Visibility = Visibility.Collapsed;
 
             lowerLegend.Watch = graph;
@@ -182,10 +189,44 @@ namespace EmnExtensions.Wpf
                 graph.Visibility = Visibility.Visible;
 
             GraphControl oldGraph = upperLegend.Watch;
-            if (oldGraph != null && oldGraph.Visibility == Visibility.Visible)
+			if (oldGraph != null && oldGraph.Visibility == Visibility.Visible && oldGraph != botSelect.SelectedItem)
                 oldGraph.Visibility = Visibility.Collapsed;
             upperLegend.Watch = graph;
             rightLegend.Watch = graph;
         }
-    }
+
+		private void topSelect_Item_MouseLeftButtonDown(object sender, MouseButtonEventArgs e) {
+			TextBlock target = sender as TextBlock;
+			if (target.DataContext == null)
+				topSelect.SelectedItem = null;
+		}
+
+		private void botSelect_Item_MouseLeftButtonDown(object sender, MouseButtonEventArgs e) {
+			TextBlock target = sender as TextBlock;
+			if (target.DataContext == null)
+				botSelect.SelectedItem = null;
+		}
+	}
+
+	public class DealWithNullConverter : IValueConverter
+	{
+		public DealWithNullConverter() {
+			Console.WriteLine("Started converter");
+		}
+		const string NotSet = "<unset>";
+		public object Convert(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture) {
+			GraphControl graph = value as GraphControl;
+			if (graph == null)
+				return NotSet;
+			else
+				return graph.Name;
+		}
+
+		public object ConvertBack(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture) {
+			return DependencyProperty.UnsetValue;
+		}
+
+	}
+
+
 }

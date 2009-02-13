@@ -6,6 +6,7 @@ using EmnExtensions.MathHelpers;
 using EmnExtensions;
 using EmnExtensions.Filesystem;
 using System.IO;
+using System.Threading;
 
 namespace NeuralNetworks
 {
@@ -71,20 +72,39 @@ namespace NeuralNetworks
             };
         }
 
-        public static double FractionManageable(int N, int P, int nD,int maxEpochs,bool useCoM, Random r) {
+        public static double FractionManageable(int N, int P, int nD,int maxEpochs,bool useCoM, Func<Random> r) {
             int managed = 0;
             int epSum = 0;
-            for (int i = 0; i < nD; i++) {
-                DataSet D = new DataSet(N, P, r);
+			int notManaged = 0;
+			int epNSum = 0;
+			object sync=new object();
+			Parallel.For(0,nD,i=>
+//            for (int i = 0; i < nD; i++) 
+			{
+                DataSet D = new DataSet(N, P, r());
                 SimplePerceptron w = useCoM? new SimplePerceptron(D.ComputCenterOfMass()): new SimplePerceptron(N);
-                int numEpochsNeeded = w.DoTraining(D, maxEpochs,null);
-                if (numEpochsNeeded > 0) {
-                    managed++;
-                    epSum += numEpochsNeeded;
-                }
-            }
+
+				double lastErrN = double.MinValue;
+				int dipCnt = 0;
+                int numEpochsNeeded = w.DoTraining(D, maxEpochs,(epochN, errN) => {
+							if (errN < lastErrN)
+								dipCnt++;
+							lastErrN = errN;
+
+							return epochN > 10 && (dipCnt / (double)epochN) > 0.41;//... then stop
+						});
+				lock(sync) {
+				if (numEpochsNeeded > 0) {
+					managed++;
+					epSum += numEpochsNeeded;
+				} else {
+					notManaged++;
+					epNSum -= numEpochsNeeded;
+				}
+				}
+            });
             var ratio = managed / (double)nD;
-            Console.WriteLine("{2}  ==[{0}: {1}]",P/(double)N,ratio, epSum/(double)managed);
+            Console.WriteLine("{2}/{3}   [{0}: {1}]",P/(double)N,ratio, epSum/(double)managed, epNSum/(double)notManaged);
             return ratio;
         }
 
