@@ -40,6 +40,7 @@ namespace NeuralNetworks
 			//returns 0 if no storage possible; otherwise number of epochs+1 - useful for tweaking params
 			int unchangedCount = 0;// number of consecutively "correct" classifications, updated online.
 			double epochDot = 0;
+			double smoothingFactor = 1.0 / (10.0 + 2560.0 / D.N);
 			for (int n = 0; n < maxEpochs; n++) {
 				double dotSum = 0.0;
 				for (int i = 0; i < D.P; i++) {
@@ -52,12 +53,12 @@ namespace NeuralNetworks
 						unchangedCount = 0; //needed learning, reset.
 					}
 					if (unchangedCount >= D.P) { //all samples work!
-						epochDot += (dotSum / D.P - epochDot) * (1.0 / 128.0);
+						epochDot += (dotSum / D.P - epochDot) * smoothingFactor;
 						if (EpochErrSink != null) EpochErrSink(n, epochDot);
 						return n + 1;
 					}
 				}
-				epochDot += (dotSum/D.P - epochDot) * (1.0 / 128.0);
+				epochDot += (dotSum/D.P - epochDot) * smoothingFactor;
 				if(EpochErrSink!=null) 
 					if (EpochErrSink(n,epochDot))
 						return -(n+1);

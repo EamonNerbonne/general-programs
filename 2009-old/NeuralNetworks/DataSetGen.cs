@@ -78,7 +78,8 @@ namespace NeuralNetworks
 			int notManaged = 0;
 			int epNSum = 0;
 			object sync=new object();
-			Parallel.For(0,nD,i=>
+			Enumerable.Range(0,nD).AsParallel(4).Select( i=>
+			//Parallel.For(0,nD,i=>
 //            for (int i = 0; i < nD; i++) 
 			{
                 DataSet D = new DataSet(N, P, r());
@@ -102,7 +103,8 @@ namespace NeuralNetworks
 					epNSum -= numEpochsNeeded;
 				}
 				}
-            });
+				return true;
+            }).AsUnordered().ToArray();
             var ratio = managed / (double)nD;
             Console.WriteLine("{2}/{3}   [{0}: {1}]",P/(double)N,ratio, epSum/(double)managed, epNSum/(double)notManaged);
             return ratio;

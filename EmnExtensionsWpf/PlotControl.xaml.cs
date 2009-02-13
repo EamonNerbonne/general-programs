@@ -125,7 +125,7 @@ namespace EmnExtensions.Wpf
                 toPrint.Graph = graph;
                 var oldVis = graph.Visibility;
                 graph.Visibility = Visibility.Visible;
-                WpfTools.PrintXPS(toPrint, 400, 400, s, FileMode.Create, FileAccess.ReadWrite);
+                WpfTools.PrintXPS(toPrint, 500, 500, s, FileMode.Create, FileAccess.ReadWrite);
                 graph.Visibility = oldVis;
             } finally {
                 toPrint.Graph = null;

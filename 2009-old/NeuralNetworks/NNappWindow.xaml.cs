@@ -43,7 +43,7 @@ namespace NeuralNetworks
 		const int parLev = 8;
 		public NNappWindow() {
 			InitializeComponent();
-			Process.GetCurrentProcess().PriorityClass = ProcessPriorityClass.BelowNormal;
+			Process.GetCurrentProcess().PriorityClass = ProcessPriorityClass.Idle;
 		}
 
 		[ThreadStatic]
@@ -56,7 +56,7 @@ namespace NeuralNetworks
 			int nD = 100;
 #else
 			int epochMax = 100000;
-			int nD = 50;
+			int nD = 5000;
 #endif
 			double ComputeExtent = Math.Sqrt(30.0 * N);
 			int stepSize = Math.Max((int)(ComputeExtent/10),1);
@@ -64,7 +64,7 @@ namespace NeuralNetworks
 
 
 			var plotLine = (
-				from P in Enumerable.Range(1, 3*N).Select(p=>p*stepSize).TakeWhile(p=>p<2*N+ComputeExtent).AsParallel()
+				from P in Enumerable.Range(1, 6*N).Select(p=>p*stepSize).TakeWhile(p=>p<2*N+ComputeExtent).AsParallel(4)
 				let ratio = DataSet.FractionManageable(N, P, nD, epochMax, useCoM, ()=>Random)
 				let alpha = P / (double)N
 				orderby alpha ascending
@@ -73,10 +73,7 @@ namespace NeuralNetworks
 
 			Dispatcher.Invoke((Action)(() => {
 				var g = plotControl.NewGraph("PerceptronStorage", plotLine);
-				var bounds = g.GraphBounds;
-				bounds.Union(new Point(0.5, 1.001));
-				bounds.Union(new Point(3.0, 0.0));
-				g.GraphBounds = new Rect(new Point(0.5, 1.001), new Point(3.0, 0.0));
+				g.GraphBounds = new Rect(new Point(0.8, 1.0001), new Point(3.2, 0.0));
 				plotControl.ShowGraph(g);
 				g.XLabel = "α = P/N for N = " + N;
 				g.YLabel = "successful storage ratio";
@@ -182,7 +179,7 @@ namespace NeuralNetworks
 			bool useCoM = UseCenterOfMass.IsChecked == true;
 			new Thread((ThreadStart)(() => {
 				NiceTimer.Time("FracManagable", () => {
-					foreach(int N in new[] { 20, 50, 80, 120 })
+					foreach(int N in new[] { 10, 20, 50, 80, 120, 200 })
 						MakeSuccessPlot(N, useCoM);
 				});
 			})) {
