@@ -109,7 +109,7 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="DataSetGen.cs" />
+    <Compile Include="DataSet.cs" />
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -124,6 +124,7 @@
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
     <Compile Include="SimplePerceptron.cs" />
+    <Compile Include="TrainingSettings.cs" />
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>

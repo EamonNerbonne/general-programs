@@ -105,7 +105,6 @@ namespace EmnExtensions.Wpf
                 }
             }
         }
-
         private static void RedirectNativeStream(LogControl toControl, Stream fromNative) {
             Thread bgReader = new Thread(() => {
                 using (fromNative)
@@ -121,6 +120,5 @@ namespace EmnExtensions.Wpf
             bgReader.IsBackground = true;
             bgReader.Start();
         }
-
     }
 }

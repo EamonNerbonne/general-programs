@@ -51,22 +51,22 @@ namespace NeuralNetworks
 		static Random Random { get { if (randomImpl == null) randomImpl = new MersenneTwister(); return randomImpl; } }
 
 		void MakeSuccessPlot(int N, bool useCoM) {
+			TrainingSettings settings = new TrainingSettings {
 #if DEBUG
-			int epochMax = 1000;
-			int nD = 100;
+				MaxEpoch = 1000,
+				TrialRuns = 100,
 #else
-			int epochMax = 100000;
-			int nD = 5000;
+				MaxEpoch= 100000,
+				TrialRuns = 5000,
 #endif
-			double ComputeExtent = Math.Sqrt(30.0 * N);
-			int stepSize = Math.Max((int)(ComputeExtent/10),1);
-
-
+				N = N,
+				UseCenterOfMass = useCoM,
+			};
 
 			var plotLine = (
-				from P in Enumerable.Range(1, 6*N).Select(p=>p*stepSize).TakeWhile(p=>p<2*N+ComputeExtent).AsParallel(4)
-				let ratio = DataSet.FractionManageable(N, P, nD, epochMax, useCoM, ()=>Random)
-				let alpha = P / (double)N
+				from Psettings in settings.SettingsWithReasonableP.AsParallel(4)
+				let ratio = DataSet.FractionManageable(Psettings, () => Random)
+				let alpha = Psettings.P / (double)N
 				orderby alpha ascending
 				select new Point(alpha, ratio)
 				).ToArray();
@@ -77,7 +77,7 @@ namespace NeuralNetworks
 				plotControl.ShowGraph(g);
 				g.XLabel = "α = P/N for N = " + N;
 				g.YLabel = "successful storage ratio";
-				string fileName = "PerceptronStorage_N" + N + "_eM" + epochMax + "_nD" + nD + ".xps";
+				string fileName = "PerceptronStorage_N" + N + "_eM" + settings.MaxEpoch + "_nD" + settings.TrialRuns + ".xps";
 				using (var writestream = new FileStream(fileName, FileMode.Create, FileAccess.ReadWrite))
 					plotControl.Print(g, writestream);
 			}));
@@ -85,19 +85,24 @@ namespace NeuralNetworks
 
 
 		void MakeMinOverPlot(int N, bool useCoM) {
-			int epochMax = 30000;
+			TrainingSettings settings = new TrainingSettings {
+				MaxEpoch = 30000,
 #if DEBUG
-			int nD = 3;
+				TrialRuns = 3,
 #else
-			int nD = 500;
+				TrialRuns = 500,
 #endif
+				N = N,
+				UseCenterOfMass = useCoM,
+			};
+
 			var plotLine = F.Create(() => (
-				from P in Enumerable.Range(8, 23).Select(p => p * N / 10)
+				from Psettings in settings.SettingsWithReasonableP
 #if !DEBUG
 					.AsParallel(8)
 #endif
-				let stability = DataSet.AverageStability(N, P, nD, epochMax, useCoM, Random)
-				let alpha = P / (double)N
+				let stability = DataSet.AverageStability(settings, Random)
+				let alpha = Psettings.P / (double)Psettings.N
 				orderby alpha ascending
 				select new { Point = new Point(alpha, stability.val), Err = stability.err }
 				).ToArray()
@@ -118,7 +123,7 @@ namespace NeuralNetworks
 
 				//g.GraphBounds = new Rect(new Point(0.5, 1.01), new Point(3.0, 0.0));
 				plotControl.ShowGraph(g);
-				string fileName = "MinOverStability_N" + N + "_eM" + epochMax + "_nD" + nD + ".xps";
+				string fileName = "MinOverStability_N" + N + "_eM" + settings.MaxEpoch + "_nD" + settings.TrialRuns + ".xps";
 				using (var writestream = new FileStream(fileName, FileMode.Create, FileAccess.ReadWrite))
 					plotControl.Print(g, writestream);
 			}));
@@ -174,7 +179,7 @@ namespace NeuralNetworks
 			bool useCoM = UseCenterOfMass.IsChecked == true;
 			new Thread((ThreadStart)(() => {
 #if DEBUG
-				foreach(int N in new[] { 20, 50, 80, 120 })
+				foreach (int N in new[] { 20, 50, 80, 120 })
 					MakeMinOverPlot(N, useCoM);
 #else
 				Parallel.ForEach(new[] { 20, 50, 80, 120 }, N => {
@@ -190,7 +195,7 @@ namespace NeuralNetworks
 			bool useCoM = UseCenterOfMass.IsChecked == true;
 			new Thread((ThreadStart)(() => {
 				NiceTimer.Time("FracManagable", () => {
-					foreach(int N in new[] { 10, 20, 50, 80, 120, 200 })
+					foreach (int N in new[] { 10, 20, 50, 80, 120, 200 })
 						MakeSuccessPlot(N, useCoM);
 				});
 			})) {
@@ -206,7 +211,7 @@ namespace NeuralNetworks
 			//errGraph.Name = "errGraph" + (errGcnt++);
 			//plotControl.Graphs.Add(errGraph);
 			//plotControl.ShowGraph(errGraph);
-
+			bool useCoM = UseCenterOfMass.IsChecked == true;
 			new Thread(() => {
 				NiceTimer.Time("NN:", () => {
 					int fp = 0;
@@ -217,18 +222,23 @@ namespace NeuralNetworks
 					long doneCnt = 0;
 					long completedAt = 0;
 					long complCnt = 0;
+					TrainingSettings settings = new TrainingSettings {
+						MaxEpoch = 1000000,
+						N = 50,
+						P = 120,
+						TrialRuns = 1000,
+						UseCenterOfMass = useCoM
+					};
+
 					Parallel.For(0, 1000, iterI => {
-						int epochMax = 1000000;
-						int N = 50;
-						int P = 120;
-						DataSet D = new DataSet(N, P, Random);
-						SimplePerceptron w = new SimplePerceptron(D.ComputCenterOfMass());
+						DataSet D = new DataSet(settings, Random);
+						SimplePerceptron w = D.InitializeNewPerceptron(settings.UseCenterOfMass);
 						//List<Point> errP = new List<Point>();
 						double lastErrN = double.MinValue;
 						int dipCnt = 0;
 						int firstHit = 0;
 						int lastHit = 0;
-						int epochToConverge = w.DoTraining(D, epochMax, (epochN, errN) => {
+						int epochToConverge = w.DoTraining(D, settings.MaxEpoch, (epochN, errN) => {
 							if (errN < lastErrN)
 								dipCnt++;
 							lastErrN = errN;
@@ -303,19 +313,6 @@ namespace NeuralNetworks
 					Console.WriteLine("Convergence; {0} false positives, {1} false negatives", fp, fn);
 				});
 			}) { IsBackground = true }.Start();
-		}
-
-		static Regex analConvRegex = new Regex(
-			@"^(
-              (?<fail> \(\d+\:\d+\) )
-             |(?<suc> \[\d+\:\d+\] )
-             |(?<fp> \<\d+\:\d+\>[^=]+==\d+)
-             |\s
-             )+$", RegexOptions.IgnorePatternWhitespace | RegexOptions.Compiled | RegexOptions.Singleline | RegexOptions.ExplicitCapture
-			);
-		private void AnalyzeConvergenceLog(string log) {
-
-
 		}
 	}
 }

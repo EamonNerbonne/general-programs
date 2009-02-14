@@ -125,7 +125,7 @@ namespace EmnExtensions.Wpf
         Pen graphLinePen;
         public Brush GraphLineColor {
             set {
-                graphLinePen = new Pen(value, 1.5);
+                graphLinePen = new Pen(value, 1.0);
                 graphLinePen.StartLineCap = PenLineCap.Round;
                 graphLinePen.EndLineCap = PenLineCap.Round;
                 graphLinePen.LineJoin = PenLineJoin.Round;

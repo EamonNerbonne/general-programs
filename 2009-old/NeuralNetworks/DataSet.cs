@@ -30,8 +30,9 @@ namespace NeuralNetworks
 			return result;
 		}
 
-		public DataSet(int N, int P, Random r) {
-            this.N=N;
+		public DataSet(TrainingSettings settings, Random r) {
+
+            this.N=settings.N;
             samples = F
                 .AsEnumerable(() => MakeRandomSample(N, r))
                 .Take(P)
@@ -42,6 +43,10 @@ namespace NeuralNetworks
 			this.N = samples[0].Sample.N;
 			if (!samples.All(sample => sample.Sample.N == N))
 				throw new ArgumentException("Inconsistent number of features");
+		}
+
+		public SimplePerceptron InitializeNewPerceptron(bool useCenterOfMass) {
+			return useCenterOfMass ? new SimplePerceptron(ComputCenterOfMass()) : new SimplePerceptron(N);
 		}
 
 		public static void LoadDataSet(FileInfo srcFile, double testSize, out DataSet train, out DataSet test) {
@@ -72,22 +77,24 @@ namespace NeuralNetworks
             };
         }
 
-        public static double FractionManageable(int N, int P, int nD,int maxEpochs,bool useCoM, Func<Random> r) {
+		//rather that supply a random number generator, supply a random number generator generator
+		// this avoid worrying about multithreading issues in RNG.
+        public static double FractionManageable(TrainingSettings settings, Func<Random> r) {
             int managed = 0;
             int epSum = 0;
 			int notManaged = 0;
 			int epNSum = 0;
 			object sync=new object();
-			Enumerable.Range(0,nD).AsParallel(4).Select( i=>
+			Enumerable.Range(0,settings.TrialRuns).AsParallel(4).Select( i=>
 			//Parallel.For(0,nD,i=>
 //            for (int i = 0; i < nD; i++) 
 			{
-                DataSet D = new DataSet(N, P, r());
-                SimplePerceptron w = useCoM? new SimplePerceptron(D.ComputCenterOfMass()): new SimplePerceptron(N);
+                DataSet D = new DataSet(settings, r());
+				SimplePerceptron w = D.InitializeNewPerceptron(settings.UseCenterOfMass);
 
 				double lastErrN = double.MinValue;
 				int dipCnt = 0;
-                int numEpochsNeeded = w.DoTraining(D, maxEpochs,(epochN, errN) => {
+                int numEpochsNeeded = w.DoTraining(D, settings.MaxEpoch,(epochN, errN) => {
 							if (errN < lastErrN)
 								dipCnt++;
 							lastErrN = errN;
@@ -105,26 +112,27 @@ namespace NeuralNetworks
 				}
 				return true;
             }).AsUnordered().ToArray();
-            var ratio = managed / (double)nD;
-            Console.WriteLine("{2}/{3}   [{0}: {1}]",P/(double)N,ratio, epSum/(double)managed, epNSum/(double)notManaged);
+            var ratio = managed / (double)settings.TrialRuns;
+            Console.WriteLine("{2}/{3}   [{0}: {1}]",settings.P/(double)settings.N,ratio, epSum/(double)managed, epNSum/(double)notManaged);
             return ratio;
         }
 
 		public struct ValErr { public double val, err;}
-		public static ValErr AverageStability(int N, int P, int nD, int maxEpochs,bool useCoM,Random r) {
+		public static ValErr AverageStability(TrainingSettings settings, Random r) {
+
 			double stabilitySum=0.0;
 			double stability2Sum=0.0;
-			for (int i = 0; i < nD; i++) {
-				DataSet D = new DataSet(N, P, r);
-				SimplePerceptron w = useCoM ? new SimplePerceptron(D.ComputCenterOfMass()) : new SimplePerceptron(N);
-				var stability = w.DoMinOver(D, maxEpochs);
+			for (int i = 0; i < settings.TrialRuns; i++) {
+				DataSet D = new DataSet(settings, r);
+				SimplePerceptron w = D.InitializeNewPerceptron(settings.UseCenterOfMass);
+				var stability = w.DoMinOver(D, settings.MaxEpoch);
 				stabilitySum += stability;
 				stability2Sum += stability * stability;
 			}
-			double meanStability = stabilitySum / nD;
-			var variance = (stability2Sum - meanStability * meanStability * nD) / (nD - 1);
-			double stdErr = Math.Sqrt(variance / nD);
-			Console.WriteLine("[{0}: {1} +/- {2}]", P / (double)N, meanStability, stdErr);
+			double meanStability = stabilitySum / settings.TrialRuns;
+			var variance = (stability2Sum - meanStability * meanStability * settings.TrialRuns) / (settings.TrialRuns - 1);
+			double stdErr = Math.Sqrt(variance / settings.TrialRuns);
+			Console.WriteLine("[{0}: {1} +/- {2}]", settings.P / (double)settings.N, meanStability, stdErr);
 			return new ValErr {
 				val = meanStability,
 				err = stdErr
