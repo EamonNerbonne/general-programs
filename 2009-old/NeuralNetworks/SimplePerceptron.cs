@@ -36,10 +36,10 @@ namespace NeuralNetworks
 			return dotprod;
 		}
 
-		public int DoTraining(DataSet D, int maxEpochs, Func<int,double,bool> EpochErrSink) {
-			//returns 0 if no storage possible; otherwise number of epochs+1 - useful for tweaking params
-			int unchangedCount = 0;// number of consecutively "correct" classifications, updated online.
-			double epochDot = 0;
+		public int DoTraining(DataSet D, int maxEpochs, Func<int, double, bool> StoppingHeuristic) {
+			//returns number of epochs needed for convergence or negative number of epochs for heuristic stopping
+			int unchangedCount = 0;// number of consecutively "correct" classifications, continually updated.
+			double smoothedPotential = 0;
 			double smoothingFactor = 1.0 / (10.0 + 2560.0 / D.N);
 			for (int n = 0; n < maxEpochs; n++) {
 				double dotSum = 0.0;
@@ -47,52 +47,53 @@ namespace NeuralNetworks
 					//var dotprod = LearningStep(Rosenblatt0, D.samples[i]);
 					var dotprod = FastRStep(D.samples[i]);
 					dotSum += dotprod;
-					if (dotprod > c) {
-						unchangedCount++; //sample is OK and w not updated
-					} else {
-						unchangedCount = 0; //needed learning, reset.
-					}
+					unchangedCount = dotprod > c ? unchangedCount + 1 : 0; //was w changed?
 					if (unchangedCount >= D.P) { //all samples work!
-						epochDot += (dotSum / D.P - epochDot) * smoothingFactor;
-						if (EpochErrSink != null) EpochErrSink(n, epochDot);
+						smoothedPotential += (dotSum / D.P - smoothedPotential) * smoothingFactor;
+						if (StoppingHeuristic != null) StoppingHeuristic(n, smoothedPotential);
 						return n + 1;
 					}
 				}
-				epochDot += (dotSum/D.P - epochDot) * smoothingFactor;
-				if(EpochErrSink!=null) 
-					if (EpochErrSink(n,epochDot))
-						return -(n+1);
+				smoothedPotential += (dotSum / D.P - smoothedPotential) * smoothingFactor;
+				if (StoppingHeuristic != null)
+					if (StoppingHeuristic(n, smoothedPotential))
+						return -(n + 1);
 			}
 			return -maxEpochs;
 		}
 
 		public double DoMinOver(DataSet D, int maxEpochs) {
-
-			var dataPointOverlap = new double[D.P, D.P];//TriangularMatrix<double>();
-			//dataPointOverlap.ElementCount = D.P;
-			//dataPointOverlap.TrimCapacityToFit();
-
+			var dataPointOverlap = new double[D.P, D.P];
 
 			for (int j = 0; j < D.P; j++)
 				for (int i = 0; i < D.P; i++)
-					dataPointOverlap[i, j] = (D.samples[i].Sample & D.samples[j].Sample) * (D.samples[i].Label * D.samples[j].Label) / N;
+					dataPointOverlap[i, j] = (D.samples[i].Sample & D.samples[j].Sample) 
+						* (D.samples[i].Label * D.samples[j].Label) / N;
 
-			double[] currentOverlap = new double[D.P];//unscaled!
-			int resync = maxEpochs * D.P / 5;//resync to avoid numerical inaccuracies 
 
 			int minI = -1;
 			double min = double.MaxValue;
 
-			for (int j = 0; j < D.P; j++) {
-				currentOverlap[j] = (D.samples[j].Sample & w) * D.samples[j].Label;
-				if (currentOverlap[j] < min) {
+			double[] localPotential = new double[D.P];//unscaled!
+			for (int j = 0; j < D.P; j++) { //initialize localPotential
+				localPotential[j] = (D.samples[j].Sample & w) * D.samples[j].Label;
+				if (localPotential[j] < min) {
 					minI = j;
-					min = currentOverlap[minI];
+					min = localPotential[minI];
 				}
 			}
+			int resync = maxEpochs * D.P / 3;//resync to avoid numerical inaccuracies 
+
+			double wSqr = w & w;
+			double smoothFactor = 1 / 10000.0;
+			double smoothedStab = min/Math.Sqrt(wSqr);
+			double bestStab = min / Math.Sqrt(wSqr);
+			double bestSqr = wSqr;
+			int lastUpdate =0;
+			int lastUpdateNG = 0;
+			int notGood=0;
+
 			for (int n = 0; n < maxEpochs * D.P; n++) {
-
-
 				var wA = w.elems;
 				var sample = D.samples[minI].Sample.elems;
 				var scaleFac = D.samples[minI].Label / (double)N;
@@ -103,22 +104,37 @@ namespace NeuralNetworks
 				minI = -1;
 				min = double.MaxValue;
 				if ((n + 1) % resync == 0) {
-					for (int j = 0; j < D.P; j++) {
-						currentOverlap[j] = (D.samples[j].Sample & w) * D.samples[j].Label;
-						if (currentOverlap[j] < min) {
+					for (int j = 0; j < localPotential.Length; j++) {
+						localPotential[j] = (D.samples[j].Sample & w) * D.samples[j].Label;
+						if (localPotential[j] < min) {
 							minI = j;
-							min = currentOverlap[minI];
+							min = localPotential[minI];
 						}
 					}
+					wSqr = w & w;
 				} else {
-					for (int j = 0; j < D.P; j++) {
-						currentOverlap[j] += dataPointOverlap[curMinI, j];
-						if (currentOverlap[j] < min) {
+					wSqr += (2.0 * localPotential[curMinI] + dataPointOverlap[curMinI, curMinI]) / N;
+					for (int j = 0; j < localPotential.Length; j++) {
+						localPotential[j] += dataPointOverlap[curMinI, j];
+						if (localPotential[j] < min) {
 							minI = j;
-							min = currentOverlap[minI];
+							min = localPotential[minI];
 						}
 					}
 				}
+				double oldSt = smoothedStab;
+				double currentStab = min/Math.Sqrt(wSqr);
+				smoothedStab += smoothFactor * (min/Math.Sqrt(wSqr) - smoothedStab);
+				if (smoothedStab < oldSt) //not good, going the wrong way!
+					notGood++;
+
+				if (currentStab - bestStab > 0.0001) {
+					lastUpdate = n;
+					lastUpdateNG = notGood;
+					bestStab = currentStab;
+					bestSqr = wSqr;
+				}
+
 			}
 
 			return min / Math.Sqrt(w & w);

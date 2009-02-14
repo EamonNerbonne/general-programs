@@ -85,11 +85,17 @@ namespace NeuralNetworks
 
 
 		void MakeMinOverPlot(int N, bool useCoM) {
-			int epochMax = 3000;
+			int epochMax = 30000;
+#if DEBUG
+			int nD = 3;
+#else
 			int nD = 500;
-
+#endif
 			var plotLine = F.Create(() => (
-				from P in Enumerable.Range(8, 23).Select(p => p * N / 10).AsParallel(8)
+				from P in Enumerable.Range(8, 23).Select(p => p * N / 10)
+#if !DEBUG
+					.AsParallel(8)
+#endif
 				let stability = DataSet.AverageStability(N, P, nD, epochMax, useCoM, Random)
 				let alpha = P / (double)N
 				orderby alpha ascending
@@ -167,9 +173,14 @@ namespace NeuralNetworks
 		private void AverageStability_Click(object sender, RoutedEventArgs e) {
 			bool useCoM = UseCenterOfMass.IsChecked == true;
 			new Thread((ThreadStart)(() => {
+#if DEBUG
+				foreach(int N in new[] { 20, 50, 80, 120 })
+					MakeMinOverPlot(N, useCoM);
+#else
 				Parallel.ForEach(new[] { 20, 50, 80, 120 }, N => {
 					MakeMinOverPlot(N, useCoM);
 				});
+#endif
 			})) {
 				IsBackground = true
 			}.Start();
