@@ -62,7 +62,8 @@ namespace NeuralNetworks
 			return -maxEpochs;
 		}
 
-		public double DoMinOver(DataSet D, int maxEpochs) {
+		public struct MinOverRes { public double Stability, BestStability;}
+		public MinOverRes DoMinOver(DataSet D, int maxEpochs) {
 			var dataPointOverlap = new double[D.P, D.P];
 
 			for (int j = 0; j < D.P; j++)
@@ -88,10 +89,10 @@ namespace NeuralNetworks
 			double smoothFactor = 1 / 10000.0;
 			double smoothedStab = min/Math.Sqrt(wSqr);
 			double bestStab = min / Math.Sqrt(wSqr);
-			double bestSqr = wSqr;
-			int lastUpdate =0;
-			int lastUpdateNG = 0;
-			int notGood=0;
+			//double bestSqr = wSqr;
+		//	int lastUpdate =0;
+		//	int lastUpdateNG = 0;
+		//	int notGood=0;
 
 			for (int n = 0; n < maxEpochs * D.P; n++) {
 				var wA = w.elems;
@@ -124,20 +125,22 @@ namespace NeuralNetworks
 				}
 				double oldSt = smoothedStab;
 				double currentStab = min/Math.Sqrt(wSqr);
-				smoothedStab += smoothFactor * (min/Math.Sqrt(wSqr) - smoothedStab);
-				if (smoothedStab < oldSt) //not good, going the wrong way!
-					notGood++;
+				//smoothedStab += smoothFactor * (min/Math.Sqrt(wSqr) - smoothedStab);
+				//if (smoothedStab < oldSt) //not good, going the wrong way!
+				//	notGood++;
 
-				if (currentStab - bestStab > 0.0001) {
-					lastUpdate = n;
-					lastUpdateNG = notGood;
+				if (currentStab > bestStab) {
+//					lastUpdate = n;
+//					lastUpdateNG = notGood;
 					bestStab = currentStab;
-					bestSqr = wSqr;
+					//bestSqr = wSqr;
 				}
 
 			}
-
-			return min / Math.Sqrt(w & w);
+			return new MinOverRes {
+				BestStability = bestStab,
+				Stability = min / Math.Sqrt(w & w)
+			};
 		}
 
 	}

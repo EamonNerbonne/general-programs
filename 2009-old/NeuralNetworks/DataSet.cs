@@ -10,16 +10,16 @@ using System.Threading;
 
 namespace NeuralNetworks
 {
-    public struct LabelledSample
-    {
-        public double Label;
-        public Vector Sample;
-    }
-    public class DataSet
-    {
-        public LabelledSample[] samples;
-        public readonly int N;
-        public int P { get { return samples.Length; } }
+	public struct LabelledSample
+	{
+		public double Label;
+		public Vector Sample;
+	}
+	public class DataSet
+	{
+		public LabelledSample[] samples;
+		public readonly int N;
+		public int P { get { return samples.Length; } }
 
 		public Vector ComputCenterOfMass() {
 			Vector result = new Vector(N);
@@ -32,12 +32,12 @@ namespace NeuralNetworks
 
 		public DataSet(TrainingSettings settings, Random r) {
 
-            this.N=settings.N;
-            samples = F
-                .AsEnumerable(() => MakeRandomSample(N, r))
-                .Take(P)
-                .ToArray();
-        }
+			this.N = settings.N;
+			samples = F
+				.AsEnumerable(() => MakeRandomSample(N, r))
+				.Take(settings.P)
+				.ToArray();
+		}
 		public DataSet(LabelledSample[] samples) {
 			this.samples = samples;
 			this.N = samples[0].Sample.N;
@@ -54,7 +54,7 @@ namespace NeuralNetworks
 				(from textline in srcFile.GetLines()
 				 let fields = textline.Split(' ')
 				 let label = double.Parse(fields[0])
-				 let elems = fields.Skip(1).Select(s=>double.Parse(s)).ToArray()
+				 let elems = fields.Skip(1).Select(s => double.Parse(s)).ToArray()
 				 select new LabelledSample {
 					 Label = label,
 					 Sample = elems
@@ -70,65 +70,72 @@ namespace NeuralNetworks
 			test = new DataSet(samples.Skip(trainCnt).ToArray());
 		}
 
-        public static LabelledSample MakeRandomSample(int N, Random r) {
-            return new LabelledSample {
-                Label = r.Next(2) * 2 - 1,
-                Sample = F.AsEnumerable(() => r.NextNorm()).Take(N).ToArray()
-            };
-        }
+		public static LabelledSample MakeRandomSample(int N, Random r) {
+			return new LabelledSample {
+				Label = r.Next(2) * 2 - 1,
+				Sample = F.AsEnumerable(() => r.NextNorm()).Take(N).ToArray()
+			};
+		}
 
 		//rather that supply a random number generator, supply a random number generator generator
 		// this avoid worrying about multithreading issues in RNG.
-        public static double FractionManageable(TrainingSettings settings, Func<Random> r) {
-            int managed = 0;
-            int epSum = 0;
+		public static double FractionManageable(TrainingSettings settings, Func<Random> r) {
+			int managed = 0;
+			int epSum = 0;
 			int notManaged = 0;
 			int epNSum = 0;
-			object sync=new object();
-			Enumerable.Range(0,settings.TrialRuns).AsParallel(4).Select( i=>
-			//Parallel.For(0,nD,i=>
-//            for (int i = 0; i < nD; i++) 
+			object sync = new object();
+			Enumerable.Range(0, settings.TrialRuns).AsParallel(4).Select(i =>
+				//Parallel.For(0,nD,i=>
+				//            for (int i = 0; i < nD; i++) 
 			{
-                DataSet D = new DataSet(settings, r());
+				DataSet D = new DataSet(settings, r());
 				SimplePerceptron w = D.InitializeNewPerceptron(settings.UseCenterOfMass);
 
 				double lastErrN = double.MinValue;
 				int dipCnt = 0;
-                int numEpochsNeeded = w.DoTraining(D, settings.MaxEpoch,(epochN, errN) => {
-							if (errN < lastErrN)
-								dipCnt++;
-							lastErrN = errN;
+				int numEpochsNeeded = w.DoTraining(D, settings.MaxEpoch, (epochN, errN) => {
+					if (errN < lastErrN)
+						dipCnt++;
+					lastErrN = errN;
 
-							return epochN > 10 && (dipCnt / (double)epochN) > 0.41;//... then stop
-						});
-				lock(sync) {
-				if (numEpochsNeeded > 0) {
-					managed++;
-					epSum += numEpochsNeeded;
-				} else {
-					notManaged++;
-					epNSum -= numEpochsNeeded;
-				}
+					return epochN > 10 && (dipCnt / (double)epochN) > 0.41;//... then stop
+				});
+				lock (sync) {
+					if (numEpochsNeeded > 0) {
+						managed++;
+						epSum += numEpochsNeeded;
+					} else {
+						notManaged++;
+						epNSum -= numEpochsNeeded;
+					}
 				}
 				return true;
-            }).AsUnordered().ToArray();
-            var ratio = managed / (double)settings.TrialRuns;
-            Console.WriteLine("{2}/{3}   [{0}: {1}]",settings.P/(double)settings.N,ratio, epSum/(double)managed, epNSum/(double)notManaged);
-            return ratio;
-        }
+			}).AsUnordered().ToArray();
+			var ratio = managed / (double)settings.TrialRuns;
+			Console.WriteLine("{2}/{3}   [{0}: {1}]", settings.P / (double)settings.N, ratio, epSum / (double)managed, epNSum / (double)notManaged);
+			return ratio;
+		}
 
 		public struct ValErr { public double val, err;}
 		public static ValErr AverageStability(TrainingSettings settings, Random r) {
-
-			double stabilitySum=0.0;
-			double stability2Sum=0.0;
+			List<NeuralNetworks.SimplePerceptron.MinOverRes> retval = new List<SimplePerceptron.MinOverRes>();
+			double stabilitySum = 0.0;
+			double stability2Sum = 0.0;
 			for (int i = 0; i < settings.TrialRuns; i++) {
 				DataSet D = new DataSet(settings, r);
 				SimplePerceptron w = D.InitializeNewPerceptron(settings.UseCenterOfMass);
 				var stability = w.DoMinOver(D, settings.MaxEpoch);
-				stabilitySum += stability;
-				stability2Sum += stability * stability;
+				retval.Add(stability);
+				stabilitySum += stability.Stability;
+				stability2Sum += stability.Stability * stability.Stability;
 			}
+			string saveLogName = "N_" + settings.N + "_P_" + settings.P + "_.molog";
+			using (var stream = File.OpenWrite(saveLogName))
+			using (var writer = new StreamWriter(stream))
+				foreach (var s in retval)
+					writer.WriteLine(s.Stability.ToString() + " & " + s.BestStability);
+
 			double meanStability = stabilitySum / settings.TrialRuns;
 			var variance = (stability2Sum - meanStability * meanStability * settings.TrialRuns) / (settings.TrialRuns - 1);
 			double stdErr = Math.Sqrt(variance / settings.TrialRuns);
@@ -137,6 +144,7 @@ namespace NeuralNetworks
 				val = meanStability,
 				err = stdErr
 			};
+			//return retval;
 		}
-    }
+	}
 }

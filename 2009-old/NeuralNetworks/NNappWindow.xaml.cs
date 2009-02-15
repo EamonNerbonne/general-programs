@@ -86,11 +86,11 @@ namespace NeuralNetworks
 
 		void MakeMinOverPlot(int N, bool useCoM) {
 			TrainingSettings settings = new TrainingSettings {
-				MaxEpoch = 30000,
+				MaxEpoch = 500,
 #if DEBUG
 				TrialRuns = 3,
 #else
-				TrialRuns = 500,
+				TrialRuns = 10,
 #endif
 				N = N,
 				UseCenterOfMass = useCoM,
@@ -101,7 +101,7 @@ namespace NeuralNetworks
 #if !DEBUG
 					.AsParallel(8)
 #endif
-				let stability = DataSet.AverageStability(settings, Random)
+				let stability = DataSet.AverageStability(Psettings, Random)
 				let alpha = Psettings.P / (double)Psettings.N
 				orderby alpha ascending
 				select new { Point = new Point(alpha, stability.val), Err = stability.err }
@@ -178,14 +178,10 @@ namespace NeuralNetworks
 		private void AverageStability_Click(object sender, RoutedEventArgs e) {
 			bool useCoM = UseCenterOfMass.IsChecked == true;
 			new Thread((ThreadStart)(() => {
-#if DEBUG
-				foreach (int N in new[] { 20, 50, 80, 120 })
-					MakeMinOverPlot(N, useCoM);
-#else
-				Parallel.ForEach(new[] { 20, 50, 80, 120 }, N => {
-					MakeMinOverPlot(N, useCoM);
+				NiceTimer.Time("AvgStab", () => {
+					foreach (int N in new[] { 20, 50, 80, 120 })
+						MakeMinOverPlot(N, useCoM);
 				});
-#endif
 			})) {
 				IsBackground = true
 			}.Start();

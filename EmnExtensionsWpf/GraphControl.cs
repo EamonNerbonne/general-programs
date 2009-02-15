@@ -98,7 +98,7 @@ namespace EmnExtensions.Wpf
         Size lastDispSize = Size.Empty;
         void UpdateBounds() {
             Size curSize = new Size(ActualWidth, ActualHeight);
-            if (oldBounds == graphBoundsPrivate && curSize== lastDispSize) 
+            if (!(graphBoundsPrivate.Height.IsFinite()&&graphBoundsPrivate.Width.IsFinite()) || (oldBounds == graphBoundsPrivate && curSize== lastDispSize)) 
                 return;
             lastDispSize = curSize;
 
