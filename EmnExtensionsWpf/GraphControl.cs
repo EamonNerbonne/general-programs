@@ -123,19 +123,44 @@ namespace EmnExtensions.Wpf
 
 
         Pen graphLinePen;
+		public Pen GraphPen {
+			set {
+				graphLinePen = value;
+				graphLinePen.Freeze();
+				InvalidateVisual();
+			}
+			get {
+				return graphLinePen;
+			}
+		}
         public Brush GraphLineColor {
-            set {
-                graphLinePen = new Pen(value, 1.0);
-                graphLinePen.StartLineCap = PenLineCap.Round;
-                graphLinePen.EndLineCap = PenLineCap.Round;
-                graphLinePen.LineJoin = PenLineJoin.Round;
-                graphLinePen.Freeze();
-                InvalidateVisual();
-            }
-            get {
+			set {
+				Pen newPen= graphLinePen.CloneCurrentValue();
+				newPen.Brush = value;
+				GraphPen = newPen;
+			}
+			get {
                 return graphLinePen.Brush;
-            }
-        }
+            } 
+		}
+		public double PenThickness {
+			get {
+				return graphLinePen.Thickness;
+			}
+			set {
+				Pen newPen = graphLinePen.CloneCurrentValue();
+				newPen.Thickness = value;
+				GraphPen = newPen;
+			}
+
+		}
+		public static Pen MakeDefaultPen(bool randomColor) {
+			var newPen = new Pen(randomColor?RandomGraphColor(): Brushes.Black, 1.0);
+			newPen.StartLineCap = PenLineCap.Round;
+			newPen.EndLineCap = PenLineCap.Round;
+			newPen.LineJoin = PenLineJoin.Round;
+			return newPen;
+		}
 
         PathGeometry graphGeom2;
 //        StreamGeometry graphGeom;
@@ -232,7 +257,7 @@ namespace EmnExtensions.Wpf
         }
 
         public GraphControl() {
-            GraphLineColor = RandomGraphColor();
+			GraphPen = MakeDefaultPen(true);
         }
 
         protected override void OnRender(DrawingContext drawingContext) {

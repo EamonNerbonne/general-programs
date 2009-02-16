@@ -17,143 +17,156 @@ using System.Windows.Xps;
 using System.IO.Packaging;
 using System.IO;
 using System.Collections.Specialized;
+using Microsoft.Win32;
 
 namespace EmnExtensions.Wpf
 {
-    /// <summary>
-    /// Interaction logic for PlotControl.xaml
-    /// </summary>
-    public partial class PlotControl : UserControl
-    {
-        public PlotControl() {
-            InitializeComponent();
-			
+	/// <summary>
+	/// Interaction logic for PlotControl.xaml
+	/// </summary>
+	public partial class PlotControl : UserControl
+	{
+		public PlotControl() {
+			InitializeComponent();
+
 			botSelect.ItemsSource = graphs;
-			
-            topSelect.ItemsSource = graphs;
-            visibilityMenu.ItemsSource = graphs;
-            graphs.CollectionChanged += new System.Collections.Specialized.NotifyCollectionChangedEventHandler(graphs_CollectionChanged);
-            //NewGraph("unlabelled", new[] { new Point(0, 0), new Point(0, 1), new Point(1, 1), new Point(1, 0), new Point(0, 0) });
-        }
+
+			topSelect.ItemsSource = graphs;
+			visibilityMenu.ItemsSource = graphs;
+			graphs.CollectionChanged += new System.Collections.Specialized.NotifyCollectionChangedEventHandler(graphs_CollectionChanged);
+			//NewGraph("unlabelled", new[] { new Point(0, 0), new Point(0, 1), new Point(1, 1), new Point(1, 0), new Point(0, 0) });
+		}
 
 		protected override void OnInitialized(EventArgs e) {
 			graphs.Add(null);
 			base.OnInitialized(e);
 		}
 
-        void graphs_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e) {
-            switch (e.Action) {
-                case NotifyCollectionChangedAction.Add:
-                    foreach (GraphControl graph in e.NewItems) {
-                        graphLookup[graph.Name] = graph;
-                        graphGrid.Children.Add(graph);
-                    }
-                    break;
-                case NotifyCollectionChangedAction.Move:break;
-                case NotifyCollectionChangedAction.Remove:
-                    foreach (GraphControl graph in e.OldItems) {
-                        graphGrid.Children.Remove(graph);
-                        graphLookup.Remove(graph.Name);
-                        foreach (var legend in new[] { leftLegend, lowerLegend, upperLegend, rightLegend }) {
-                            if (legend.Watch == graph)
-                                legend.Watch = null;
-                        }
-                    }
-                    break;
-                case NotifyCollectionChangedAction.Replace:
-                    foreach (GraphControl graph in e.OldItems) {
-                        graphGrid.Children.Remove(graph);
-                        graphLookup.Remove(graph.Name);
-                        foreach (var legend in new[] { leftLegend, lowerLegend, upperLegend, rightLegend }) {
-                            if (legend.Watch == graph)
-                                legend.Watch = null;
-                        }
-                    }
-                    foreach (GraphControl graph in e.NewItems) {
-                        graphLookup[graph.Name] = graph;
-                        graphGrid.Children.Add(graph);
-                    }
-                    break;
-                case NotifyCollectionChangedAction.Reset:
-                    graphGrid.Children.Clear();
-                    graphLookup.Clear();
-                    foreach (GraphControl graph in graphs) {
-                        graphLookup[graph.Name] = graph;
-                        graphGrid.Children.Add(graph);
-                    }
-                    break;
-            }
-        }
+		void graphs_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e) {
+			switch (e.Action) {
+				case NotifyCollectionChangedAction.Add:
+					foreach (GraphControl graph in e.NewItems) {
+						graphLookup[graph.Name] = graph;
+						graphGrid.Children.Add(graph);
+					}
+					break;
+				case NotifyCollectionChangedAction.Move: break;
+				case NotifyCollectionChangedAction.Remove:
+					foreach (GraphControl graph in e.OldItems) {
+						graphGrid.Children.Remove(graph);
+						graphLookup.Remove(graph.Name);
+						foreach (var legend in new[] { leftLegend, lowerLegend, upperLegend, rightLegend }) {
+							if (legend.Watch == graph)
+								legend.Watch = null;
+						}
+					}
+					break;
+				case NotifyCollectionChangedAction.Replace:
+					foreach (GraphControl graph in e.OldItems) {
+						graphGrid.Children.Remove(graph);
+						graphLookup.Remove(graph.Name);
+						foreach (var legend in new[] { leftLegend, lowerLegend, upperLegend, rightLegend }) {
+							if (legend.Watch == graph)
+								legend.Watch = null;
+						}
+					}
+					foreach (GraphControl graph in e.NewItems) {
+						graphLookup[graph.Name] = graph;
+						graphGrid.Children.Add(graph);
+					}
+					break;
+				case NotifyCollectionChangedAction.Reset:
+					graphGrid.Children.Clear();
+					graphLookup.Clear();
+					foreach (GraphControl graph in graphs) {
+						graphLookup[graph.Name] = graph;
+						graphGrid.Children.Add(graph);
+					}
+					break;
+			}
+		}
 
-        ObservableCollection<GraphControl> graphs = new ObservableCollection<GraphControl>();
-        Dictionary<string, GraphControl> graphLookup = new Dictionary<string, GraphControl>();
+		ObservableCollection<GraphControl> graphs = new ObservableCollection<GraphControl>();
+		Dictionary<string, GraphControl> graphLookup = new Dictionary<string, GraphControl>();
 
-        //  public GraphControl GraphControl { get { return graphLookup.Select(kv => kv.Value).FirstOrDefault(); } }
+		//  public GraphControl GraphControl { get { return graphLookup.Select(kv => kv.Value).FirstOrDefault(); } }
 
-        bool nextIsTopRight;
+		bool nextIsTopRight;
 
-        public ObservableCollection<GraphControl> Graphs { get { return graphs; } }
+		public ObservableCollection<GraphControl> Graphs { get { return graphs; } }
 
-        public GraphControl NewGraph(string name, IEnumerable<Point> line) {
-            GraphControl graph = new GraphControl();
-            graph.Visibility = Visibility.Hidden;
-            graph.Name = name;
-            graph.NewLine(line);
-            graphs.Add(graph);
-            return graph;
-        }
+		public GraphControl NewGraph(string name, IEnumerable<Point> line) {
+			GraphControl graph = new GraphControl();
+			graph.Visibility = Visibility.Hidden;
+			graph.Name = name;
+			graph.NewLine(line);
+			graphs.Add(graph);
+			return graph;
+		}
 
-        public void Remove(string graphName) { Remove(graphLookup[graphName]); }
-        public void Remove(GraphControl graph) {
-            if (graph == null)
-                throw new ArgumentNullException("graph");
-            graphs.Remove(graph);
-        }
+		public void Remove(string graphName) { Remove(graphLookup[graphName]); }
+		public void Remove(GraphControl graph) {
+			if (graph == null)
+				throw new ArgumentNullException("graph");
+			graphs.Remove(graph);
+		}
 
-        public Grid GraphWithLegend {           get {                return graphWithLegend;            }        }
+		public Grid GraphWithLegend { get { return graphWithLegend; } }
 
-        /// <summary>
-        /// You must pass a read/write newly created stream!
-        /// </summary>
-        public void Print(GraphControl graph,Stream s) {
-            bool wasContained=graphGrid.Children.Contains(graph);
-            var toPrint = new SimpleGraph();
+		/// <summary>
+		/// You must pass a read/write newly created stream!
+		/// </summary>
+		public void Print(GraphControl graph, Stream s) {
+			bool wasContained = graphGrid.Children.Contains(graph);
+			var toPrint = new SimpleGraph();
 
-            try {
-                if (wasContained)
-                    graphGrid.Children.Remove(graph);
-                toPrint.Graph = graph;
-                var oldVis = graph.Visibility;
-                graph.Visibility = Visibility.Visible;
-                WpfTools.PrintXPS(toPrint, 500, 500, s, FileMode.Create, FileAccess.ReadWrite);
-                graph.Visibility = oldVis;
-            } finally {
-                toPrint.Graph = null;
-                if (wasContained)
-                    graphGrid.Children.Add(graph);
-            }
-        }
+			try {
+				if (wasContained)
+					graphGrid.Children.Remove(graph);
+				toPrint.Graph = graph;
+				var oldVis = graph.Visibility;
+				graph.Visibility = Visibility.Visible;
+				WpfTools.PrintXPS(toPrint, 500, 500, s, FileMode.Create, FileAccess.ReadWrite);
+				graph.Visibility = oldVis;
+			} finally {
+				toPrint.Graph = null;
+				if (wasContained)
+					graphGrid.Children.Add(graph);
+			}
+		}
 
-        public bool TryGetGraph(string name, out GraphControl graph) { return graphLookup.TryGetValue(name, out graph); }
+		public void PrintThis() {
+			var saveDialog = new SaveFileDialog() {
+				Title = "Save Graph As ...",
+				Filter = "XPS file|*.xps",
+				FileName = (leftLegend.Watch == null ? "graph" : leftLegend.Watch.Name) + ".xps",
+			};
+			if (saveDialog.ShowDialog() == true) {
+				using (var writestream = new FileStream(saveDialog.FileName, FileMode.Create, FileAccess.ReadWrite))
+					WpfTools.PrintXPS(graphWithLegend, 500, 500, writestream, FileMode.Create, FileAccess.ReadWrite);
+			}
+		}
 
-        public void ShowGraph(string graphname) { ShowGraph(graphLookup[graphname]); }
-        public void ShowGraph(GraphControl graph) { ShowGraph(graph, nextIsTopRight); }
-        public void ShowGraph(string graphname, bool legendIsTopRight) { ShowGraph(graphLookup[graphname], legendIsTopRight); }
-        public void ShowGraph(GraphControl graph, bool legendIsTopRight) {
-            if (legendIsTopRight) {
-                topSelect.SelectedItem = graph;
-            } else {
-                botSelect.SelectedItem = graph;
-            }
-            nextIsTopRight = !legendIsTopRight;
-        }
+		public bool TryGetGraph(string name, out GraphControl graph) { return graphLookup.TryGetValue(name, out graph); }
 
-        private void MenuItem_Click(object sender, RoutedEventArgs e) {
-            MenuItem item = (MenuItem)sender;
-            GraphControl graph = (GraphControl)item.DataContext;
+		public void ShowGraph(string graphname) { ShowGraph(graphLookup[graphname]); }
+		public void ShowGraph(GraphControl graph) { ShowGraph(graph, nextIsTopRight); }
+		public void ShowGraph(string graphname, bool legendIsTopRight) { ShowGraph(graphLookup[graphname], legendIsTopRight); }
+		public void ShowGraph(GraphControl graph, bool legendIsTopRight) {
+			if (legendIsTopRight) {
+				topSelect.SelectedItem = graph;
+			} else {
+				botSelect.SelectedItem = graph;
+			}
+			nextIsTopRight = !legendIsTopRight;
+		}
+
+		private void MenuItem_Click(object sender, RoutedEventArgs e) {
+			MenuItem item = (MenuItem)sender;
+			GraphControl graph = (GraphControl)item.DataContext;
 			if (graph == null) return;
-            if (graph.Visibility == Visibility.Visible) {
-                graph.Visibility = Visibility.Hidden;
+			if (graph.Visibility == Visibility.Visible) {
+				graph.Visibility = Visibility.Hidden;
 				if (upperLegend.Watch != null && upperLegend.Watch.Visibility != Visibility.Visible) {
 					upperLegend.Watch = null;
 					rightLegend.Watch = null;
@@ -164,36 +177,36 @@ namespace EmnExtensions.Wpf
 				}
 			} else {
 				ShowGraph(graph);
-            }
-        }
+			}
+		}
 
-        private void botSelect_SelectionChanged(object sender, SelectionChangedEventArgs e) {
+		private void botSelect_SelectionChanged(object sender, SelectionChangedEventArgs e) {
 
-            GraphControl graph = (GraphControl)botSelect.SelectedItem;
+			GraphControl graph = (GraphControl)botSelect.SelectedItem;
 
-            if (graph != null && graph.Visibility != Visibility.Visible)
-                graph.Visibility = Visibility.Visible;
+			if (graph != null && graph.Visibility != Visibility.Visible)
+				graph.Visibility = Visibility.Visible;
 
-            GraphControl oldGraph = lowerLegend.Watch;
-            if (oldGraph != null && oldGraph.Visibility == Visibility.Visible && oldGraph!= topSelect.SelectedItem)
-                oldGraph.Visibility = Visibility.Collapsed;
+			GraphControl oldGraph = lowerLegend.Watch;
+			if (oldGraph != null && oldGraph.Visibility == Visibility.Visible && oldGraph != topSelect.SelectedItem)
+				oldGraph.Visibility = Visibility.Collapsed;
 
-            lowerLegend.Watch = graph;
-            leftLegend.Watch = graph;
+			lowerLegend.Watch = graph;
+			leftLegend.Watch = graph;
 
-        }
+		}
 
-        private void topSelect_SelectionChanged(object sender, SelectionChangedEventArgs e) {
-            GraphControl graph = (GraphControl)topSelect.SelectedItem;
-            if (graph != null && graph.Visibility != Visibility.Visible)
-                graph.Visibility = Visibility.Visible;
+		private void topSelect_SelectionChanged(object sender, SelectionChangedEventArgs e) {
+			GraphControl graph = (GraphControl)topSelect.SelectedItem;
+			if (graph != null && graph.Visibility != Visibility.Visible)
+				graph.Visibility = Visibility.Visible;
 
-            GraphControl oldGraph = upperLegend.Watch;
+			GraphControl oldGraph = upperLegend.Watch;
 			if (oldGraph != null && oldGraph.Visibility == Visibility.Visible && oldGraph != botSelect.SelectedItem)
-                oldGraph.Visibility = Visibility.Collapsed;
-            upperLegend.Watch = graph;
-            rightLegend.Watch = graph;
-        }
+				oldGraph.Visibility = Visibility.Collapsed;
+			upperLegend.Watch = graph;
+			rightLegend.Watch = graph;
+		}
 
 		private void topSelect_Item_MouseLeftButtonDown(object sender, MouseButtonEventArgs e) {
 			TextBlock target = sender as TextBlock;
