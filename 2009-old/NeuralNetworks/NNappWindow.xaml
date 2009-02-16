@@ -18,6 +18,7 @@
         <Button Grid.Column="1" Height="23" HorizontalAlignment="Left" Margin="6,12,0,0" Name="AverageStability" VerticalAlignment="Top" Width="Auto" Click="AverageStability_Click">AverageStability</Button>
         <Button Grid.Column="1" Height="23" Margin="6,41,0,0" Name="FractionManagable" VerticalAlignment="Top" HorizontalAlignment="Left" Width="Auto" Click="FractionManagable_Click">FractionManagable</Button>
         <Button Grid.Column="1" Height="23" HorizontalAlignment="Left" VerticalAlignment="Top"  Margin="6,70,0,86" Name="LearnOne" Width="Auto" Click="LearnOne_Click">Do Learning benchmark</Button>
+        <Button Grid.Column="1" HorizontalAlignment="Left" Name="saveAsXPS" Click="saveAsXPS_Click" Margin="6,99,0,0" Width="63.507" Height="23" VerticalAlignment="Top">SaveAsXPS</Button>
         <CheckBox Grid.Column="1" Margin="6,0,0,6" Name="UseCenterOfMass"  IsChecked="True" Height="16" VerticalAlignment="Bottom" HorizontalAlignment="Left" Width="121">UseCenterOfMass</CheckBox>
     </Grid>
 </Window>

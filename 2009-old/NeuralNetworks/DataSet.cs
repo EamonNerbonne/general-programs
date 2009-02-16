@@ -118,12 +118,12 @@ namespace NeuralNetworks
 		}
 
 		public struct ValErr { public double val, err;}
-		public static ValErr AverageStability(TrainingSettings settings, Random r) {
+		public static ValErr AverageStability(TrainingSettings settings, Func< Random> r) {
 			List<NeuralNetworks.SimplePerceptron.MinOverRes> retval = new List<SimplePerceptron.MinOverRes>();
 			double stabilitySum = 0.0;
 			double stability2Sum = 0.0;
 			for (int i = 0; i < settings.TrialRuns; i++) {
-				DataSet D = new DataSet(settings, r);
+				DataSet D = new DataSet(settings, r());
 				SimplePerceptron w = D.InitializeNewPerceptron(settings.UseCenterOfMass);
 				var stability = w.DoMinOver(D, settings.MaxEpoch);
 				retval.Add(stability);
@@ -131,7 +131,7 @@ namespace NeuralNetworks
 				stability2Sum += stability.Stability * stability.Stability;
 			}
 			string saveLogName = "N_" + settings.N + "_P_" + settings.P + "_.molog";
-			using (var stream = File.OpenWrite(saveLogName))
+			using (var stream = File.Open(saveLogName,FileMode.Append,FileAccess.Write))
 			using (var writer = new StreamWriter(stream))
 				foreach (var s in retval)
 					writer.WriteLine(s.Stability.ToString() + " & " + s.BestStability);

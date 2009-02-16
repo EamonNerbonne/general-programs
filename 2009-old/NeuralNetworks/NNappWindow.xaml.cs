@@ -53,8 +53,8 @@ namespace NeuralNetworks
 		void MakeSuccessPlot(int N, bool useCoM) {
 			TrainingSettings settings = new TrainingSettings {
 #if DEBUG
-				MaxEpoch = 1000,
-				TrialRuns = 100,
+				MaxEpoch = 10,
+				TrialRuns = 3,
 #else
 				MaxEpoch= 100000,
 				TrialRuns = 5000,
@@ -86,30 +86,39 @@ namespace NeuralNetworks
 
 		void MakeMinOverPlot(int N, bool useCoM) {
 			TrainingSettings settings = new TrainingSettings {
-				MaxEpoch = 500,
+				MaxEpoch = 4000,
 #if DEBUG
 				TrialRuns = 3,
 #else
-				TrialRuns = 10,
+				TrialRuns = 2000,
 #endif
 				N = N,
 				UseCenterOfMass = useCoM,
 			};
 
-			var plotLine = F.Create(() => (
+/*			List<Point> plotLine2 = new List<Point>();
+			List<double> err = new List<double>();
+			foreach(var Psettings in settings.SettingsWithReasonableP) {
+				var stability = DataSet.AverageStability(Psettings, () => Random);
+				var alpha = Psettings.P / (double)Psettings.N;
+				lock (plotLine2) {
+					plotLine2.Add(new Point(alpha, stability.val));
+					err.Add(stability.err);
+				}
+			}*/
+			
+				
+			var plotLine =(
 				from Psettings in settings.SettingsWithReasonableP
-#if !DEBUG
-					.AsParallel(8)
-#endif
-				let stability = DataSet.AverageStability(Psettings, Random)
+//#if !DEBUG
+					.Reverse().AsParallel()
+//#endif
+				let stability = DataSet.AverageStability(Psettings, ()=> Random)
 				let alpha = Psettings.P / (double)Psettings.N
-				orderby alpha ascending
+			//	orderby alpha ascending
 				select new { Point = new Point(alpha, stability.val), Err = stability.err }
-				).ToArray()
-				).Time(timespan => {
-					Console.WriteLine("Computation took {0}.", timespan);
-				});
-
+				).ToArray();
+			/*
 			Dispatcher.Invoke((Action)(() => {
 				var g = new GraphControl();
 				g.Name = "StabilityPlot";
@@ -126,7 +135,7 @@ namespace NeuralNetworks
 				string fileName = "MinOverStability_N" + N + "_eM" + settings.MaxEpoch + "_nD" + settings.TrialRuns + ".xps";
 				using (var writestream = new FileStream(fileName, FileMode.Create, FileAccess.ReadWrite))
 					plotControl.Print(g, writestream);
-			}));
+			}));*/
 		}
 
 
@@ -179,8 +188,9 @@ namespace NeuralNetworks
 			bool useCoM = UseCenterOfMass.IsChecked == true;
 			new Thread((ThreadStart)(() => {
 				NiceTimer.Time("AvgStab", () => {
-					foreach (int N in new[] { 20, 50, 80, 120 })
+					Parallel.ForEach(new[] { 20, 50, 80, 120 }.Reverse(), N => {
 						MakeMinOverPlot(N, useCoM);
+					});
 				});
 			})) {
 				IsBackground = true
@@ -191,7 +201,7 @@ namespace NeuralNetworks
 			bool useCoM = UseCenterOfMass.IsChecked == true;
 			new Thread((ThreadStart)(() => {
 				NiceTimer.Time("FracManagable", () => {
-					foreach (int N in new[] { 10, 20, 50, 80, 120, 200 })
+					foreach (int N in new[] { 10, 20, 50, 80, 120 })
 						MakeSuccessPlot(N, useCoM);
 				});
 			})) {
@@ -309,6 +319,10 @@ namespace NeuralNetworks
 					Console.WriteLine("Convergence; {0} false positives, {1} false negatives", fp, fn);
 				});
 			}) { IsBackground = true }.Start();
+		}
+
+		private void saveAsXPS_Click(object sender, RoutedEventArgs e) {
+			plotControl.PrintThis();
 		}
 	}
 }
