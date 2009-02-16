@@ -30,16 +30,27 @@ namespace EmnExtensions.Wpf
             double oldWidth = el.Width;
             double oldHeight = el.Height;
 
+			double curWidth = el.ActualWidth;
+			double curHeight = el.ActualHeight;
             try {
                 VisualBrush brush = new VisualBrush(el);
 
-                el.LayoutTransform = Transform.Identity;
+				//now IF we already have a size, we'll make a layout-transform that maps the requested size to the current 
+				//size.  This way, if there's something forcing it to the current size, the element must choose to take the 
+				//requested size in order to maintain its size.
+				//Doing this fixes bugs in saving complex grid layouts that probably are doing some layout calcs outside of
+				//.Measure and .Arrange cycles (which is nasty, but seems to be real).
+				if (curHeight.IsFinite() && curWidth.IsFinite() && curHeight>0&& curWidth>0)
+					el.LayoutTransform = new ScaleTransform(curWidth / reqWidth, curHeight/reqWidth);
+				else 
+					el.LayoutTransform = Transform.Identity;
+
+
                 el.Width = reqWidth;
                 el.Height = reqHeight;
-                el.Measure(new Size(reqWidth, reqHeight));
+				el.UpdateLayout();
+				el.Measure(new Size(reqWidth, reqHeight));
                 el.Arrange(new Rect(el.DesiredSize));
-                el.UpdateLayout();
-                
 
                 var rect = new Rect(0, 0, el.ActualWidth, el.ActualHeight);
                 FixedPage page = new FixedPage();
@@ -48,7 +59,6 @@ namespace EmnExtensions.Wpf
                 page.Background = brush;
                 using (Package packInto = Package.Open(toStream, fileMode, fileAccess))
                 using (XpsDocument doc = new XpsDocument(packInto)) {
-                    //doc.CoreDocumentProperties.
                     XpsDocumentWriter writer = XpsDocument.CreateXpsDocumentWriter(doc);
                     writer.Write(page);
                 }
