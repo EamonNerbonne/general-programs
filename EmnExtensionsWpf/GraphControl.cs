@@ -47,17 +47,27 @@ namespace EmnExtensions.Wpf
     {
         static Random GraphColorRandom = new Random();
         static Brush RandomGraphColor() {
-            double r, g, b, sum;
-            r = GraphColorRandom.NextDouble() + 0.01;
-            g = GraphColorRandom.NextDouble() + 0.01;
-            b = GraphColorRandom.NextDouble() + 0.01;
-            sum = GraphColorRandom.NextDouble() * 0.5 + 0.5;
-            SolidColorBrush brush = new SolidColorBrush(
+            double r, g, b, max,min,minV,maxV;
+			max = GraphColorRandom.NextDouble() * 0.5 + 0.5;
+			min = GraphColorRandom.NextDouble() * 0.5;
+			r = GraphColorRandom.NextDouble();
+            g = GraphColorRandom.NextDouble();
+            b = GraphColorRandom.NextDouble();
+			maxV = Math.Max(r, Math.Max(g, b));
+			minV = Math.Min(r, Math.Min(g, b));
+			r = (r - minV) / (maxV - minV) * (max - min) + min;
+			g = (g - minV) / (maxV - minV) * (max - min) + min;
+			b = (b - minV) / (maxV - minV) * (max - min) + min;
+			if (r + g + b > 1.5) {
+				double scale = 1.5 / (r + g + b);
+				r *= scale; g *= scale; b *= scale;
+			}
+			SolidColorBrush brush = new SolidColorBrush(
                 new Color {
                     A = (byte)255,
-                    R = (byte)(255 * r * sum / (r + g + b)),
-                    G = (byte)(255 * g * sum / (r + g + b)),
-                    B = (byte)(255 * b * sum / (r + g + b)),
+                    R = (byte)(255 * r + 0.5),
+					G = (byte)(255 * g + 0.5),
+					B = (byte)(255 * b + 0.5),
                 }
                 );
             brush.Freeze();
@@ -163,9 +173,9 @@ namespace EmnExtensions.Wpf
 		}
 
         PathGeometry graphGeom2;
-//        StreamGeometry graphGeom;
+        // StreamGeometry graphGeom;
         PathFigure fig=null;
-       // bool needUpdate = false;
+        // bool needUpdate = false;
         public void NewLine(IEnumerable<Point> lineOfPoints) {
             InvalidateVisual();
             graphBoundsPrivate = Rect.Empty;
@@ -200,6 +210,11 @@ namespace EmnExtensions.Wpf
 			UpdateBounds();
 		}
 
+		public PathGeometry LineGeometry {
+			get { return graphGeom2; }
+			set { NewLine(value); }
+		}
+
 
 		public static PathGeometry LineWithErrorBars(Point[] lineOfPoints, double[] ErrBars) {
 			PathGeometry geom = new PathGeometry();
@@ -227,6 +242,20 @@ namespace EmnExtensions.Wpf
 				}
 			}
 
+			return geom;
+		}
+
+		public static PathGeometry Line(Point[] lineOfPoints) {
+			PathGeometry geom = new PathGeometry();
+			PathFigure fig = null;
+			foreach (Point startPoint in lineOfPoints.Take(1)) {
+				fig = new PathFigure();
+				fig.StartPoint = startPoint;
+				geom.Figures.Add(fig);
+			}
+			foreach (Point point in lineOfPoints.Skip(1)) {
+				fig.Segments.Add(new LineSegment(point, true));
+			}
 			return geom;
 		}
 
