@@ -373,8 +373,8 @@ namespace NeuralNetworks
 				let bestPoints = orderedGraph.Select(p => new Point(p.alpha, p.bestMean)).ToArray()
 				let bestMedianPoints = orderedGraph.Select(p => new Point(p.alpha, p.bestMedian)).ToArray()
 				let bestSEMs = orderedGraph.Select(p => p.bestSEM).ToArray()
-				let finalWithErrorBars = GraphControl.LineWithErrorBars(finalPoints, finalSEMs)
-				let bestWithErrorBars = GraphControl.LineWithErrorBars(bestPoints, bestSEMs)
+				let finalWithErrorBars = GraphControl.Line(finalPoints)
+				let bestWithErrorBars = GraphControl.Line(bestPoints)
 				let finalMedian = GraphControl.Line(finalMedianPoints)
 				let bestMedian = GraphControl.Line(bestMedianPoints)
 				let bounds = Rect.Union(finalWithErrorBars.Bounds, bestWithErrorBars.Bounds)
@@ -398,6 +398,7 @@ namespace NeuralNetworks
 					YLabel = "median final stability",
 					LineGeometry = finalMedian,
 					GraphBounds = bounds,
+					GraphPen = F.Create<Pen,Pen>(pen=>{pen.DashStyle = DashStyles.Dot; return pen;})( fGraphC.GraphPen.Clone())
 				}
 				let bMGraphC = new GraphControl {
 					Name = "MinOverMedianBestStability_N" + graph.Key.N + "_eM" + graph.Key.eM + "_nD" + orderedGraph[0].runs,
@@ -405,6 +406,7 @@ namespace NeuralNetworks
 					YLabel = "median best stability",
 					LineGeometry = bestMedian,
 					GraphBounds = bounds,
+					GraphPen = F.Create<Pen, Pen>(pen => { pen.DashStyle = DashStyles.Dot; return pen; })(bGraphC.GraphPen.Clone())
 				}
 				from graphControl in new[] {fMGraphC,bMGraphC, fGraphC, bGraphC }
 				select graphControl;

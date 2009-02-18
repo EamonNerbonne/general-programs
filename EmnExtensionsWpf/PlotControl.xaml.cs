@@ -176,7 +176,8 @@ namespace EmnExtensions.Wpf
 					lowerLegend.Watch = null;
 				}
 			} else {
-				ShowGraph(graph);
+				graph.Visibility = Visibility.Visible;
+				//ShowGraph(graph);
 			}
 		}
 
