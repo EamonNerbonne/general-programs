@@ -15,10 +15,11 @@
         <emnWpf:PlotControl Name="plotControl" Grid.RowSpan="2" />
         <GridSplitter ResizeDirection="Columns" HorizontalAlignment="Right" Width="3" Background="Gray" Grid.RowSpan="2" /> 
         <emnWpf:LogControl Name="outputLogger" ClaimStandardError="True" ClaimStandardOut="True" Grid.Column="1" Grid.Row="1" />
-        <Button Grid.Column="1" Height="23" HorizontalAlignment="Left" Margin="6,12,0,0" Name="AverageStability" VerticalAlignment="Top" Width="Auto" Click="AverageStability_Click">AverageStability</Button>
-        <Button Grid.Column="1" Height="23" Margin="6,41,0,0" Name="FractionManagable" VerticalAlignment="Top" HorizontalAlignment="Left" Width="Auto" Click="FractionManagable_Click">FractionManagable</Button>
-        <Button Grid.Column="1" Height="23" HorizontalAlignment="Left" VerticalAlignment="Top"  Margin="6,70,0,86" Name="LearnOne" Width="Auto" Click="LearnOne_Click">Do Learning benchmark</Button>
+        <Button Grid.Column="1" Height="23" HorizontalAlignment="Left" Margin="6,12,0,0" Name="AverageStability" VerticalAlignment="Top" Click="AverageStability_Click">AverageStability</Button>
+        <Button Grid.Column="1" Height="23" Margin="6,41,0,0" Name="FractionManagable" VerticalAlignment="Top" HorizontalAlignment="Left" Click="FractionManagable_Click">FractionManagable</Button>
+        <Button Grid.Column="1" Height="23" HorizontalAlignment="Left" VerticalAlignment="Top"  Margin="6,70,0,0" Name="LearnOne" Click="LearnOne_Click">Do Learning benchmark</Button>
         <Button Grid.Column="1" HorizontalAlignment="Left" Name="saveAsXPS" Click="saveAsXPS_Click" Margin="6,99,0,0" Width="63.507" Height="23" VerticalAlignment="Top">SaveAsXPS</Button>
         <CheckBox Grid.Column="1" Margin="6,0,0,6" Name="UseCenterOfMass"  IsChecked="True" Height="16" VerticalAlignment="Bottom" HorizontalAlignment="Left" Width="121">UseCenterOfMass</CheckBox>
+        <Button Grid.Column="1" Margin="0,99,12,0" Name="avgStabilityGraph" Height="23" VerticalAlignment="Top" HorizontalAlignment="Right" Width="158.153" Click="avgStabilityGraph_Click">MakeAverageStabilityGraphs</Button>
     </Grid>
 </Window>

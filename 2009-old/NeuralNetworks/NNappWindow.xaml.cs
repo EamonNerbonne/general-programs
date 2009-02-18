@@ -15,6 +15,7 @@ using EmnExtensions.MathHelpers;
 using System.Threading;
 using EmnExtensions.DebugTools;
 using EmnExtensions;
+using EmnExtensions.Filesystem;
 using System.IO;
 using EmnExtensions.Wpf;
 using System.Text.RegularExpressions;
@@ -56,7 +57,7 @@ namespace NeuralNetworks
 				MaxEpoch = 10,
 				TrialRuns = 3,
 #else
-				MaxEpoch= 100000,
+				MaxEpoch = 100000,
 				TrialRuns = 5000,
 #endif
 				N = N,
@@ -96,26 +97,26 @@ namespace NeuralNetworks
 				UseCenterOfMass = useCoM,
 			};
 
-/*			List<Point> plotLine2 = new List<Point>();
-			List<double> err = new List<double>();
-			foreach(var Psettings in settings.SettingsWithReasonableP) {
-				var stability = DataSet.AverageStability(Psettings, () => Random);
-				var alpha = Psettings.P / (double)Psettings.N;
-				lock (plotLine2) {
-					plotLine2.Add(new Point(alpha, stability.val));
-					err.Add(stability.err);
-				}
-			}*/
-			
-				
-			var plotLine =(
+			/*			List<Point> plotLine2 = new List<Point>();
+						List<double> err = new List<double>();
+						foreach(var Psettings in settings.SettingsWithReasonableP) {
+							var stability = DataSet.AverageStability(Psettings, () => Random);
+							var alpha = Psettings.P / (double)Psettings.N;
+							lock (plotLine2) {
+								plotLine2.Add(new Point(alpha, stability.val));
+								err.Add(stability.err);
+							}
+						}*/
+
+
+			var plotLine = (
 				from Psettings in settings.SettingsWithReasonableP
-//#if !DEBUG
+					//#if !DEBUG
 					.Reverse().AsParallel()
-//#endif
-				let stability = DataSet.AverageStability(Psettings, ()=> Random)
+				//#endif
+				let stability = DataSet.AverageStability(Psettings, () => Random)
 				let alpha = Psettings.P / (double)Psettings.N
-			//	orderby alpha ascending
+				//	orderby alpha ascending
 				select new { Point = new Point(alpha, stability.val), Err = stability.err }
 				).ToArray();
 			/*
@@ -323,6 +324,95 @@ namespace NeuralNetworks
 
 		private void saveAsXPS_Click(object sender, RoutedEventArgs e) {
 			plotControl.PrintThis();
+		}
+
+		static Regex mologNameRegex = new Regex(@"^N_(?<N>\d+)_P_(?<P>\d+)_E_(?<E>\d+)\.molog$", RegexOptions.Compiled | RegexOptions.ExplicitCapture);
+		private void avgStabilityGraph_Click(object sender, RoutedEventArgs e) {
+			var q =
+				from file in new DirectoryInfo(".").GetFiles("*.molog")
+				let nameMatch = mologNameRegex.Match(file.Name)
+				where nameMatch.Success
+				let N = int.Parse(nameMatch.Groups["N"].Value)
+				let P = int.Parse(nameMatch.Groups["P"].Value)
+				let eM = int.Parse(nameMatch.Groups["E"].Value)
+				let stabilities = (
+					from mologRow in file.GetLines()
+					where mologRow.Trim().Length > 0
+					let vals = mologRow.Split('&')
+					select new {
+						finalStability = double.Parse(vals[0].Trim()),
+						bestStability = double.Parse(vals[1].Trim())
+					}
+					).ToArray()
+				let runs = stabilities.Length
+				let corrFactor = runs / (double)(runs - 1)
+				let finalMean = stabilities.Average(s => s.finalStability)
+				let finalMedian = stabilities.Select(s => s.finalStability).OrderBy(s=>s).Skip((runs-1)/2).Take(2-(runs%2)).Average()
+				let finalVar = corrFactor * (stabilities.Average(s => s.finalStability * s.finalStability) - finalMean * finalMean)
+				let finalSEM = Math.Sqrt(finalVar / runs)
+				let bestMean = stabilities.Average(s => s.bestStability)
+				let bestMedian = stabilities.Select(s => s.bestStability).OrderBy(s => s).Skip((runs - 1) / 2).Take(2 - (runs % 2)).Average()
+				let bestVar = corrFactor * (stabilities.Average(s => s.bestStability * s.bestStability) - bestMean * bestMean)
+				let bestSEM = Math.Sqrt(bestVar / runs)
+				group new {
+					N = N,
+					eM = eM,
+					alpha = P / (double)N,
+					runs = runs,
+					finalMean = finalMean,
+					finalMedian = finalMedian,
+					finalSEM = finalSEM,
+					bestMean = bestMean,
+					bestSEM = bestSEM,
+					bestMedian = bestMedian,
+				} by new { N = N, eM = eM } into graph
+				let orderedGraph = graph.OrderBy(point => point.alpha).ToArray()
+				let finalPoints = orderedGraph.Select(p => new Point(p.alpha, p.finalMean)).ToArray()
+				let finalMedianPoints = orderedGraph.Select(p => new Point(p.alpha, p.finalMedian)).ToArray()
+				let finalSEMs = orderedGraph.Select(p => p.finalSEM).ToArray()
+				let bestPoints = orderedGraph.Select(p => new Point(p.alpha, p.bestMean)).ToArray()
+				let bestMedianPoints = orderedGraph.Select(p => new Point(p.alpha, p.bestMedian)).ToArray()
+				let bestSEMs = orderedGraph.Select(p => p.bestSEM).ToArray()
+				let finalWithErrorBars = GraphControl.LineWithErrorBars(finalPoints, finalSEMs)
+				let bestWithErrorBars = GraphControl.LineWithErrorBars(bestPoints, bestSEMs)
+				let finalMedian = GraphControl.Line(finalMedianPoints)
+				let bestMedian = GraphControl.Line(bestMedianPoints)
+				let bounds = Rect.Union(finalWithErrorBars.Bounds, bestWithErrorBars.Bounds)
+				let fGraphC = new GraphControl {
+					Name = "MinOverStability_N" + graph.Key.N + "_eM" + graph.Key.eM + "_nD" + orderedGraph[0].runs,
+					XLabel = "α = P/N for N = " + graph.Key.N,
+					YLabel = "mean final stability",
+					LineGeometry = finalWithErrorBars,
+					GraphBounds = bounds,
+				}
+				let bGraphC = new GraphControl {
+					Name = "MinOverBestStability_N" + graph.Key.N + "_eM" + graph.Key.eM + "_nD" + orderedGraph[0].runs,
+					XLabel = "α = P/N for N = " + graph.Key.N,
+					YLabel = "mean best stability",
+					LineGeometry = bestWithErrorBars,
+					GraphBounds = bounds,
+				}
+				let fMGraphC = new GraphControl {
+					Name = "MinOverMedianStability_N" + graph.Key.N + "_eM" + graph.Key.eM + "_nD" + orderedGraph[0].runs,
+					XLabel = "α = P/N for N = " + graph.Key.N,
+					YLabel = "median final stability",
+					LineGeometry = finalMedian,
+					GraphBounds = bounds,
+				}
+				let bMGraphC = new GraphControl {
+					Name = "MinOverMedianBestStability_N" + graph.Key.N + "_eM" + graph.Key.eM + "_nD" + orderedGraph[0].runs,
+					XLabel = "α = P/N for N = " + graph.Key.N,
+					YLabel = "median best stability",
+					LineGeometry = bestMedian,
+					GraphBounds = bounds,
+				}
+				from graphControl in new[] {fMGraphC,bMGraphC, fGraphC, bGraphC }
+				select graphControl;
+
+			foreach (var graphControl in q) {
+				plotControl.Graphs.Add(graphControl);
+				plotControl.ShowGraph(graphControl);
+			}
 		}
 	}
 }
