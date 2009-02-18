@@ -130,7 +130,7 @@ namespace NeuralNetworks
 				stabilitySum += stability.Stability;
 				stability2Sum += stability.Stability * stability.Stability;
 			}
-			string saveLogName = "N_" + settings.N + "_P_" + settings.P + "_.molog";
+			string saveLogName = "N_" + settings.N + "_P_" + settings.P + "_E_"+settings.MaxEpoch +".molog";
 			using (var stream = File.Open(saveLogName,FileMode.Append,FileAccess.Write))
 			using (var writer = new StreamWriter(stream))
 				foreach (var s in retval)
@@ -144,7 +144,6 @@ namespace NeuralNetworks
 				val = meanStability,
 				err = stdErr
 			};
-			//return retval;
 		}
 	}
 }
