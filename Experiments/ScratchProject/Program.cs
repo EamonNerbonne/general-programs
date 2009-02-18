@@ -6,6 +6,7 @@ using EmnExtensions;
 using EmnExtensions.DebugTools;
 using EmnExtensions.Collections;
 using EmnExtensions.MathHelpers;
+using System.Runtime.InteropServices;
 namespace ScratchProject
 {
 
@@ -124,7 +125,11 @@ namespace ScratchProject
         }
 
         static void Main(string[] args) {
-            MinMax(x => SpecCost(x), Enumerable.Range(-10000, 20001).Select(i => i / 100.0));
+			Console.WriteLine(Test());
+			Console.WriteLine(Test());
+			Console.WriteLine(Test());
+			Console.WriteLine(Test());
+            /*MinMax(x => SpecCost(x), Enumerable.Range(-10000, 20001).Select(i => i / 100.0));
             Console.WriteLine("minguess:" + MinGuess());
             Console.WriteLine("Speccost@9.5:" + SpecCost(9.5));
             Console.WriteLine("Est2:" + Est2(D.Select(d => Sqr(d)).ToArray()) / eigval);
@@ -133,10 +138,16 @@ namespace ScratchProject
             Console.WriteLine("\nBk"); bk().PrintAllDebug();
             Console.WriteLine("\nV"); V.PrintAllDebug();
             Console.WriteLine("\nV*eigval"); V.Select(v => v * eigval).PrintAllDebug();
-
+			*/
         }
-
-
+		static int y = 0;
+		static unsafe int Test() {
+			int* px;
+			fixed (int* py = &y) px = py;
+			(*px)++;
+			
+			return y;
+		}
 
     }
 }
