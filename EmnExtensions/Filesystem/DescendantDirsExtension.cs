@@ -23,5 +23,11 @@ namespace EmnExtensions.Filesystem
 			return dir.DescendantDirs().SelectMany(subdir => subdir.TryGetFiles());
 		}
 
+		public static IEnumerable<DirectoryInfo> ParentDirs(this DirectoryInfo dir) {
+			while (dir != null) {
+				yield return dir;
+				dir = dir.Parent;
+			}
+		}
 	}
 }
