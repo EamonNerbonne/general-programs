@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using EmnExtensions.MathHelpers;
+using EmnExtensions.Algorithms;
 using EmnExtensions;
 using EmnExtensions.Filesystem;
 using System.IO;
@@ -17,7 +18,8 @@ namespace NeuralNetworks
 	}
 	public class DataSet
 	{
-		public LabelledSample[] samples;
+		//per agreement, all samples should not be changed after construction for thread safety.
+		public readonly LabelledSample[] samples;
 		public readonly int N;
 		public int P { get { return samples.Length; } }
 
@@ -49,7 +51,17 @@ namespace NeuralNetworks
 			return useCenterOfMass ? new SimplePerceptron(ComputCenterOfMass()) : new SimplePerceptron(N);
 		}
 
-		public static void LoadDataSet(FileInfo srcFile, double testSize, out DataSet train, out DataSet test) {
+		public static FileInfo Ass2File {
+			get {
+				var assemblyDir = new FileInfo(System.Reflection.Assembly.GetExecutingAssembly().Location).Directory;
+				return (from dir in assemblyDir.ParentDirs()
+						from file in dir.TryGetFiles()
+						where file.Name == "nndat.txt"
+						select file).FirstOrDefault();
+			}
+		}
+
+		public static LabelledSample[] LoadSamples(FileInfo srcFile) {
 			var samples =
 				(from textline in srcFile.GetLines()
 				 let fields = textline.Split(' ')
@@ -63,12 +75,16 @@ namespace NeuralNetworks
 			int N = samples[0].Sample.N;
 			if (!samples.All(sample => sample.Sample.N == N))
 				throw new FileFormatException("various lines had different numbers of features");
+			return samples;
+		}
 
+		public static void SplitSamples(LabelledSample[] samples, double testSize, out DataSet trainSet, out DataSet testSet) {
 			int testCnt = (int)(samples.Length * testSize + 0.5);
 			int trainCnt = samples.Length - testCnt;
-			train = new DataSet(samples.Take(trainCnt).ToArray());
-			test = new DataSet(samples.Skip(trainCnt).ToArray());
+			trainSet = new DataSet(samples.Take(trainCnt).ToArray());
+			testSet = new DataSet(samples.Skip(trainCnt).ToArray());
 		}
+
 
 		public static LabelledSample MakeRandomSample(int N, Random r) {
 			return new LabelledSample {
@@ -92,15 +108,7 @@ namespace NeuralNetworks
 				DataSet D = new DataSet(settings, r());
 				SimplePerceptron w = D.InitializeNewPerceptron(settings.UseCenterOfMass);
 
-				double lastErrN = double.MinValue;
-				int dipCnt = 0;
-				int numEpochsNeeded = w.DoTraining(D, settings.MaxEpoch, (epochN, errN) => {
-					if (errN < lastErrN)
-						dipCnt++;
-					lastErrN = errN;
-
-					return epochN > 10 && (dipCnt / (double)epochN) > 0.41;//... then stop
-				});
+				int numEpochsNeeded = w.DoTraining(D, settings.MaxEpoch, SimplePerceptron.DefaultStoppingHeuristic);
 				lock (sync) {
 					if (numEpochsNeeded > 0) {
 						managed++;
@@ -144,6 +152,12 @@ namespace NeuralNetworks
 				val = meanStability,
 				err = stdErr
 			};
+		}
+
+		public DataSet ShuffledCopy() {
+			var samplesCopy = this.samples.ToArray();
+			samplesCopy.Shuffle();
+			return new DataSet(samplesCopy);
 		}
 	}
 }
