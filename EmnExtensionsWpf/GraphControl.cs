@@ -245,16 +245,23 @@ namespace EmnExtensions.Wpf
 			return geom;
 		}
 
+		private static bool IsOK(Point p) {		return p.X.IsFinite() && p.Y.IsFinite();		}
 		public static PathGeometry Line(Point[] lineOfPoints) {
 			PathGeometry geom = new PathGeometry();
 			PathFigure fig = null;
-			foreach (Point startPoint in lineOfPoints.Take(1)) {
+			foreach (Point startPoint in lineOfPoints.SkipWhile(p=>!IsOK(p)).Take(1)) {
 				fig = new PathFigure();
 				fig.StartPoint = startPoint;
 				geom.Figures.Add(fig);
 			}
-			foreach (Point point in lineOfPoints.Skip(1)) {
-				fig.Segments.Add(new LineSegment(point, true));
+			bool wasOK = true;
+			foreach (Point point in lineOfPoints.SkipWhile(p => !IsOK(p)).Skip(1)) {
+				if (IsOK(point)) {
+					fig.Segments.Add(new LineSegment(point, wasOK));
+					wasOK = true;
+				} else {
+					wasOK = false;
+				}
 			}
 			return geom;
 		}
