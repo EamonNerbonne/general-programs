@@ -106,6 +106,7 @@
     <Compile Include="Filesystem\GetLinesExtension.cs" />
     <Compile Include="Filesystem\GetRelativeFileExtension.cs" />
     <Compile Include="MathHelpers\Matrix.cs" />
+    <Compile Include="MathHelpers\MeanVarCalc.cs" />
     <Compile Include="MathHelpers\MersenneTwister.cs" />
     <Compile Include="MathHelpers\RndHelper.cs" />
     <Compile Include="MathHelpers\Statistics.cs" />
