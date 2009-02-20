@@ -61,5 +61,9 @@ namespace EmnExtensions.MathHelpers
             return (float)MakeSecureUInt() / (MaxValF);
         }
 
-    }
+		[ThreadStatic]
+		static MersenneTwister randomImpl;
+		public static MersenneTwister GetThreadLocalRandom() {if (randomImpl == null) randomImpl = new MersenneTwister(); return randomImpl; }
+		public static MersenneTwister ThreadLocalRandom { get { return GetThreadLocalRandom(); } }
+	}
 }
