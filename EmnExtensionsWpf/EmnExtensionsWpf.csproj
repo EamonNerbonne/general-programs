@@ -118,9 +118,6 @@
     <Compile Include="PlotControl.xaml.cs">
       <DependentUpon>PlotControl.xaml</DependentUpon>
     </Compile>
-    <Compile Include="PlotControlSaveWindow.xaml.cs">
-      <DependentUpon>PlotControlSaveWindow.xaml</DependentUpon>
-    </Compile>
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -161,10 +158,6 @@
   </ItemGroup>
   <ItemGroup>
     <Page Include="PlotControl.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="PlotControlSaveWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
