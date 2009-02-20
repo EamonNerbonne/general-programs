@@ -20,6 +20,7 @@ using System.IO;
 using EmnExtensions.Wpf;
 using System.Text.RegularExpressions;
 using System.Diagnostics;
+using System.Reflection;
 
 namespace NeuralNetworks
 {
@@ -44,12 +45,44 @@ namespace NeuralNetworks
 		const int parLev = 8;
 		public NNappWindow() {
 			InitializeComponent();
+			commandChooser.ItemsSource = Actions;
+		}
+
+		protected override void OnInitialized(EventArgs e) {
+			base.OnInitialized(e);
 			Process.GetCurrentProcess().PriorityClass = ProcessPriorityClass.Idle;
 		}
 
-		[ThreadStatic]
-		static MersenneTwister randomImpl;
-		static Random Random { get { if (randomImpl == null) randomImpl = new MersenneTwister(); return randomImpl; } }
+		[AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
+		sealed class MakeButtonAttribute : Attribute
+		{
+			public MakeButtonAttribute(string label) { Label = label; }
+			public MakeButtonAttribute() { }
+			public string Label { get; set; }
+		}
+		public class LabelledAction { public string Label { get; set; } public Action Action { get; set; } }
+
+		IEnumerable<LabelledAction> Actions {
+			get {
+				return
+					from mInfo in GetType().GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
+					let attr = (MakeButtonAttribute)mInfo.GetCustomAttributes(typeof(MakeButtonAttribute), true).FirstOrDefault()
+					where attr != null
+					let label = attr.Label ?? mInfo.Name
+					select new LabelledAction {
+						Action = (Action)Delegate.CreateDelegate(typeof(Action), this, mInfo),
+						Label = label,
+					};
+			}
+		}
+
+		private void ExecuteButton_Click(object sender, RoutedEventArgs e) {
+			var button = sender as Button;
+			if (button == null) return;
+			var action = button.DataContext as LabelledAction;
+			if (action == null) return;
+			action.Action();
+		}
 
 		void MakeSuccessPlot(int N, bool useCoM) {
 			TrainingSettings settings = new TrainingSettings {
@@ -66,7 +99,7 @@ namespace NeuralNetworks
 
 			var plotLine = (
 				from Psettings in settings.SettingsWithReasonableP.AsParallel(4)
-				let ratio = DataSet.FractionManageable(Psettings, () => Random)
+				let ratio = DataSet.FractionManageable(Psettings, RndHelper.GetThreadLocalRandom)
 				let alpha = Psettings.P / (double)N
 				orderby alpha ascending
 				select new Point(alpha, ratio)
@@ -83,7 +116,6 @@ namespace NeuralNetworks
 					plotControl.Print(g, writestream);
 			}));
 		}
-
 
 		void MakeMinOverPlot(int N, bool useCoM) {
 			TrainingSettings settings = new TrainingSettings {
@@ -114,7 +146,7 @@ namespace NeuralNetworks
 					//#if !DEBUG
 					.Reverse().AsParallel()
 				//#endif
-				let stability = DataSet.AverageStability(Psettings, () => Random)
+				let stability = DataSet.AverageStability(Psettings, RndHelper.GetThreadLocalRandom)
 				let alpha = Psettings.P / (double)Psettings.N
 				//	orderby alpha ascending
 				select new { Point = new Point(alpha, stability.val), Err = stability.err }
@@ -139,53 +171,12 @@ namespace NeuralNetworks
 			}));*/
 		}
 
+		[MakeButton]
+		void SaveAsXPS() { plotControl.PrintThis(); }
 
 
-		void RandomTester() { //must execute on UI thread.
-			Random r1 = new MersenneTwister();
-			var meanSumVec = new double[points];
-			var varSumVec = new double[points];
-
-			Parallel.Invoke(Enumerable.Repeat<Action>(() => {
-				Random r;
-				lock (meanSumVec) {
-					r = new MersenneTwister(r1.Next());
-				}
-				var meanSumVecI = new double[points];
-				var varSumVecI = new double[points];
-				var cM = new double[points];
-				var cV = new double[points];
-				for (int i = 0; i < iters; i++) {
-					calcMV(r, cM, cV);
-					meanSumVecI.AddTo(cM);
-					varSumVecI.AddTo(cV);
-				}
-
-				meanSumVecI.ScaleTo(1.0 / iters);
-				varSumVecI.ScaleTo(1.0 / iters);
-				lock (meanSumVec) {
-					meanSumVec.AddTo(meanSumVecI);
-					varSumVec.AddTo(varSumVecI);
-				}
-			}, parLev).ToArray());
-
-			meanSumVec.ScaleTo(1.0 / parLev);
-			varSumVec.ScaleTo(1.0 / parLev);
-			var meanPlot = plotControl.NewGraph("mean", meanSumVec.Select((meanV, i) => new Point(i + 1, meanV)));
-			var meanDev = 2 * (Math.Abs(meanSumVec[points / 4] - 0) + Math.Abs(meanSumVec[points / 2] - 0) + Math.Abs(meanSumVec[points / 3] - 0));
-			var meanBounds = meanPlot.GraphBounds;
-			meanPlot.GraphBounds = new Rect(0, 0 - meanDev, points, 2 * meanDev);
-
-			var varPlot = plotControl.NewGraph("var", varSumVec.Select((varV, i) => new Point(i + 1, varV)));
-			var varDev = 2 * (Math.Abs(varSumVec[points / 4] - 1) + Math.Abs(varSumVec[points / 2] - 1) + Math.Abs(varSumVec[points / 3] - 1));
-			var varBounds = varPlot.GraphBounds;
-			varPlot.GraphBounds = new Rect(0, 1 - varDev, points, 2 * varDev);
-
-			plotControl.ShowGraph(meanPlot);
-			plotControl.ShowGraph(varPlot);
-		}
-
-		private void AverageStability_Click(object sender, RoutedEventArgs e) {
+		[MakeButton]
+		private void AverageStability() {
 			bool useCoM = UseCenterOfMass.IsChecked == true;
 			new Thread((ThreadStart)(() => {
 				NiceTimer.Time("AvgStab", () => {
@@ -198,7 +189,8 @@ namespace NeuralNetworks
 			}.Start();
 		}
 
-		private void FractionManagable_Click(object sender, RoutedEventArgs e) {
+		[MakeButton]
+		private void FractionManagable() {
 			bool useCoM = UseCenterOfMass.IsChecked == true;
 			new Thread((ThreadStart)(() => {
 				NiceTimer.Time("FracManagable", () => {
@@ -210,8 +202,9 @@ namespace NeuralNetworks
 			}.Start();
 		}
 
-		static int errGcnt = 0;
-		private void LearnOne_Click(object sender, RoutedEventArgs e) {
+		//static int errGcnt = 0;
+		[MakeButton]
+		private void LearnOne() {
 			//GraphControl errGraph = new GraphControl();
 			//errGraph.XLabel = "Epoch";
 			//errGraph.YLabel = "errRate";
@@ -238,7 +231,7 @@ namespace NeuralNetworks
 					};
 
 					Parallel.For(0, 1000, iterI => {
-						DataSet D = new DataSet(settings, Random);
+						DataSet D = new DataSet(settings, RndHelper.ThreadLocalRandom);
 						SimplePerceptron w = D.InitializeNewPerceptron(settings.UseCenterOfMass);
 						//List<Point> errP = new List<Point>();
 						double lastErrN = double.MinValue;
@@ -322,12 +315,11 @@ namespace NeuralNetworks
 			}) { IsBackground = true }.Start();
 		}
 
-		private void saveAsXPS_Click(object sender, RoutedEventArgs e) {
-			plotControl.PrintThis();
-		}
 
 		static Regex mologNameRegex = new Regex(@"^N_(?<N>\d+)_P_(?<P>\d+)_E_(?<E>\d+)\.molog$", RegexOptions.Compiled | RegexOptions.ExplicitCapture);
-		private void avgStabilityGraph_Click(object sender, RoutedEventArgs e) {
+
+		[MakeButton]
+		private void MakeStabilityGraphs() {
 			var q =
 				from file in new DirectoryInfo(".").GetFiles("*.molog")
 				let nameMatch = mologNameRegex.Match(file.Name)
@@ -347,7 +339,7 @@ namespace NeuralNetworks
 				let runs = stabilities.Length
 				let corrFactor = runs / (double)(runs - 1)
 				let finalMean = stabilities.Average(s => s.finalStability)
-				let finalMedian = stabilities.Select(s => s.finalStability).OrderBy(s=>s).Skip((runs-1)/2).Take(2-(runs%2)).Average()
+				let finalMedian = stabilities.Select(s => s.finalStability).OrderBy(s => s).Skip((runs - 1) / 2).Take(2 - (runs % 2)).Average()
 				let finalVar = corrFactor * (stabilities.Average(s => s.finalStability * s.finalStability) - finalMean * finalMean)
 				let finalSEM = Math.Sqrt(finalVar / runs)
 				let bestMean = stabilities.Average(s => s.bestStability)
@@ -398,7 +390,7 @@ namespace NeuralNetworks
 					YLabel = "median final stability",
 					LineGeometry = finalMedian,
 					GraphBounds = bounds,
-					GraphPen = F.Create<Pen,Pen>(pen=>{pen.DashStyle = DashStyles.Dot; return pen;})( fGraphC.GraphPen.Clone())
+					GraphPen = F.Create<Pen, Pen>(pen => { pen.DashStyle = DashStyles.Dot; return pen; })(fGraphC.GraphPen.Clone())
 				}
 				let bMGraphC = new GraphControl {
 					Name = "MinOverMedianBestStability_N" + graph.Key.N + "_eM" + graph.Key.eM + "_nD" + orderedGraph[0].runs,
@@ -408,7 +400,7 @@ namespace NeuralNetworks
 					GraphBounds = bounds,
 					GraphPen = F.Create<Pen, Pen>(pen => { pen.DashStyle = DashStyles.Dot; return pen; })(bGraphC.GraphPen.Clone())
 				}
-				from graphControl in new[] {fMGraphC,bMGraphC, fGraphC, bGraphC }
+				from graphControl in new[] { fMGraphC, bMGraphC, fGraphC, bGraphC }
 				select graphControl;
 
 			foreach (var graphControl in q) {
@@ -416,5 +408,227 @@ namespace NeuralNetworks
 				plotControl.ShowGraph(graphControl);
 			}
 		}
+
+		[MakeButton]
+		void RandomTester() { //must execute on UI thread.
+			Random r1 = new MersenneTwister();
+			var meanSumVec = new double[points];
+			var varSumVec = new double[points];
+
+			Parallel.Invoke(Enumerable.Repeat<Action>(() => {
+				Random r;
+				lock (meanSumVec) {
+					r = new MersenneTwister(r1.Next());
+				}
+				var meanSumVecI = new double[points];
+				var varSumVecI = new double[points];
+				var cM = new double[points];
+				var cV = new double[points];
+				for (int i = 0; i < iters; i++) {
+					calcMV(r, cM, cV);
+					meanSumVecI.AddTo(cM);
+					varSumVecI.AddTo(cV);
+				}
+
+				meanSumVecI.ScaleTo(1.0 / iters);
+				varSumVecI.ScaleTo(1.0 / iters);
+				lock (meanSumVec) {
+					meanSumVec.AddTo(meanSumVecI);
+					varSumVec.AddTo(varSumVecI);
+				}
+			}, parLev).ToArray());
+
+			meanSumVec.ScaleTo(1.0 / parLev);
+			varSumVec.ScaleTo(1.0 / parLev);
+			var meanPlot = plotControl.NewGraph("mean", meanSumVec.Select((meanV, i) => new Point(i + 1, meanV)));
+			var meanDev = 2 * (Math.Abs(meanSumVec[points / 4] - 0) + Math.Abs(meanSumVec[points / 2] - 0) + Math.Abs(meanSumVec[points / 3] - 0));
+			var meanBounds = meanPlot.GraphBounds;
+			meanPlot.GraphBounds = new Rect(0, 0 - meanDev, points, 2 * meanDev);
+
+			var varPlot = plotControl.NewGraph("var", varSumVec.Select((varV, i) => new Point(i + 1, varV)));
+			var varDev = 2 * (Math.Abs(varSumVec[points / 4] - 1) + Math.Abs(varSumVec[points / 2] - 1) + Math.Abs(varSumVec[points / 3] - 1));
+			var varBounds = varPlot.GraphBounds;
+			varPlot.GraphBounds = new Rect(0, 1 - varDev, points, 2 * varDev);
+
+			plotControl.ShowGraph(meanPlot);
+			plotControl.ShowGraph(varPlot);
+		}
+
+		[MakeButton]
+		void RealWorldConvergence() {
+			bool useCoM = UseCenterOfMass.IsChecked == true;
+			new Thread(() => {
+				const int maxEpoch = 1000;
+				const int nD = 100000;
+				var data = DataSet.LoadSamples(DataSet.Ass2File);
+				DataSet test, train;
+				DataSet.SplitSamples(data, 0.2, out train, out test);//0.2 means with 20% as test.
+				Console.WriteLine("Data Loaded");
+
+				//sink for online (no storage) mean/variance calculations
+				MeanVarCalc[] trainError = new MeanVarCalc[maxEpoch];
+				MeanVarCalc[] testError = new MeanVarCalc[maxEpoch];
+				//doing offline mean/var calcs would mean storing all error rates for all runs,
+				//that's maxEpoch*nD*2*sizeof(double) ~ 1.6GB mem usage, just for the  mean/variance!
+
+				object syncMutex = new object(); //mutex for accessing the MeanVarCalc shared variables.
+				Parallel.For(0, nD, iterI => {
+					DataSet D = train.ShuffledCopy();
+					SimplePerceptron w = D.InitializeNewPerceptron(useCoM);
+					var trainErrThisRun = new double[maxEpoch]; //this runs error rate cache.
+					var testErrThisRun = new double[maxEpoch];
+					int epochToConverge = w.DoTraining(D, maxEpoch, (epochN, errN) => {
+						trainErrThisRun[epochN] = w.ErrorRate(D);
+						testErrThisRun[epochN] = w.ErrorRate(test);
+						return false;
+					});
+					lock (syncMutex) { //for reduced lock contention, send error rates all at once.
+						for (int i = 0; i < maxEpoch; i++) {
+							trainError[i].Add(trainErrThisRun[i]);
+							testError[i].Add(testErrThisRun[i]);
+						}
+					}
+				});
+
+				Console.WriteLine("FinalTrain:{0}", trainError[maxEpoch - 1]);
+				Console.WriteLine("FinalTest:{0}", testError[maxEpoch - 1]);
+
+				//Graph construction function:
+				Func<IEnumerable<double>, string, GraphControl> errors2Graph = (vec, name) => new GraphControl {
+					LineGeometry = GraphControl.Line(vec.Select((e, i) => new Point(i, e)).ToArray()),
+					Name = name,
+					XLabel = "Epoch",
+					YLabel = name + " Rate",
+				};
+				//Color fading function:
+				Func<Brush,Brush> fadeColorBrush = (brush)=> new SolidColorBrush(Color.Multiply(
+						Color.Add(Color.FromScRgb(1.0f,1.0f,1.0f,1.0f), ((SolidColorBrush)brush).Color),0.5f));
+				
+				//display code must run on the UI thread, hence the Dispatcher:
+				Dispatcher.Invoke((Action)(() => {
+					var trainG = errors2Graph(trainError.Select(err=>err.Mean) , "TrainingError");
+					var trainLower = errors2Graph(trainError.Select(err => err.Mean - err.StdDev), "TrainingErrorLower");
+					var trainUpper = errors2Graph(trainError.Select(err => err.Mean + err.StdDev), "TrainingErrorUpper");
+					trainG.GraphLineColor = Brushes.DarkBlue;
+					trainLower.GraphLineColor = fadeColorBrush(trainG.GraphLineColor);
+					trainUpper.GraphLineColor = fadeColorBrush(trainG.GraphLineColor);
+
+					var testG = errors2Graph(testError.Select(err => err.Mean), "TestError");
+					var testLower = errors2Graph(testError.Select(err => err.Mean - err.StdDev), "TestErrorLower");
+					var testUpper = errors2Graph(testError.Select(err => err.Mean + err.StdDev), "TestErrorUpper");
+					testG.GraphLineColor = Brushes.DarkRed;
+					testLower.GraphLineColor = fadeColorBrush(testG.GraphLineColor);
+					testUpper.GraphLineColor = fadeColorBrush(testG.GraphLineColor);
+
+					var graphs = new[] { trainLower, trainUpper, trainG, testLower, testUpper, testG, };
+					var bounds = Rect.Empty;
+					foreach (var graph in graphs)
+						bounds.Union(graph.GraphBounds);
+					bounds.Union(new Point(0, 0));
+					bounds.Union(new Point(0, 0.281));
+
+					foreach (var graph in graphs) {
+						graph.GraphBounds = bounds;
+						plotControl.Graphs.Add(graph);
+						graph.Visibility = Visibility.Visible;
+					}
+					plotControl.ShowGraph(trainG);
+					plotControl.ShowGraph(testG);
+				}));
+
+				Console.WriteLine("Done with RealWorldConvergence");
+			}) { IsBackground = true }.Start();
+		}
+
+		[MakeButton]
+		void VaryingTraingSamples() {
+			bool useCoM = UseCenterOfMass.IsChecked == true;
+			new Thread(() => {
+				const int maxEpoch = 1000;
+				const int nD = 10000;
+				const int topP = 400;
+				const int botP = 0;
+				const int stepP = 4;
+				const int numP = (topP - botP) / stepP; //  P = topP - i * stepP
+				var data = DataSet.LoadSamples(DataSet.Ass2File);
+				DataSet test, train;
+				DataSet.SplitSamples(data, 0.2, out train, out test);//0.2 means with 20% as test.
+				Console.WriteLine("Data Loaded");
+
+				//sink for online (no storage) mean/variance calculations
+				MeanVarCalc[] trainError = new MeanVarCalc[numP];
+				MeanVarCalc[] testError = new MeanVarCalc[numP];
+
+				object syncMutex = new object(); //mutex for accessing the MeanVarCalc shared variables.
+				Parallel.For(0, nD, iterI => {
+					DataSet D = train.ShuffledCopy();
+					double[] trainErr = new double[numP];
+					double[] testErr = new double[numP];
+					for (int i = 0; i < numP; i++) {
+						int P = topP - i * stepP;
+						DataSet subset = new DataSet(D.samples.Take(P).ToArray());
+						SimplePerceptron w = subset.InitializeNewPerceptron(useCoM);
+						int epochToConverge = w.DoTraining(subset, maxEpoch, (epochN, errN) => false);
+						trainErr[i] = w.ErrorRate(subset);
+						testErr[i] = w.ErrorRate(test);
+
+					}
+					lock (syncMutex) {
+						for (int i = 0; i < numP; i++) {
+							trainError[i].Add(trainErr[i]);
+							testError[i].Add(testErr[i]);
+						}
+					}
+				});
+
+
+				//Graph construction function:
+				Func<IEnumerable<double>, string, GraphControl> errors2Graph = (vec, name) => new GraphControl {
+					LineGeometry = GraphControl.Line(vec.Select((e, i) => new Point(topP - i * stepP, e)).ToArray()),
+					Name = name,
+					XLabel = "P",
+					YLabel = name + " Rate",
+				};
+				//Color fading function:
+				Func<Brush, Brush> fadeColorBrush = (brush) => new SolidColorBrush(Color.Multiply(
+						Color.Add(Color.FromScRgb(1.0f, 1.0f, 1.0f, 1.0f), ((SolidColorBrush)brush).Color), 0.5f));
+
+				//display code must run on the UI thread, hence the Dispatcher:
+				Dispatcher.Invoke((Action)(() => {
+					var trainG = errors2Graph(trainError.Select(err => err.Mean), "TrainingError");
+					var trainLower = errors2Graph(trainError.Select(err => err.Mean - err.StdDev), "TrainingErrorLower");
+					var trainUpper = errors2Graph(trainError.Select(err => err.Mean + err.StdDev), "TrainingErrorUpper");
+					trainG.GraphLineColor = Brushes.DarkBlue;
+					trainLower.GraphLineColor = fadeColorBrush(trainG.GraphLineColor);
+					trainUpper.GraphLineColor = fadeColorBrush(trainG.GraphLineColor);
+
+					var testG = errors2Graph(testError.Select(err => err.Mean), "TestError");
+					var testLower = errors2Graph(testError.Select(err => err.Mean - err.StdDev), "TestErrorLower");
+					var testUpper = errors2Graph(testError.Select(err => err.Mean + err.StdDev), "TestErrorUpper");
+					testG.GraphLineColor = Brushes.DarkRed;
+					testLower.GraphLineColor = fadeColorBrush(testG.GraphLineColor);
+					testUpper.GraphLineColor = fadeColorBrush(testG.GraphLineColor);
+
+					var graphs = new[] { trainLower, trainUpper, trainG, testLower, testUpper, testG, };
+					var bounds = Rect.Empty;
+					foreach (var graph in graphs)
+						bounds.Union(graph.GraphBounds);
+					bounds.Union(new Point(0, 0));
+					//bounds.Union(new Point(0, 0.281));
+
+					foreach (var graph in graphs) {
+						graph.GraphBounds = bounds;
+						plotControl.Graphs.Add(graph);
+						graph.Visibility = Visibility.Visible;
+					}
+					plotControl.ShowGraph(trainG);
+					plotControl.ShowGraph(testG);
+				}));
+
+				Console.WriteLine("Done with P variation");
+			}) { IsBackground = true }.Start();
+		}
+
+
 	}
 }

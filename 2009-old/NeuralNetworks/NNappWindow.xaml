@@ -5,21 +5,24 @@
     Title="Neural Networks" Height="479" Width="817">
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="179*" />
-            <RowDefinition Height="262*" />
+            <RowDefinition Height="50*" />
+            <RowDefinition Height="50*" />
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="534*" />
             <ColumnDefinition Width="261*" />
         </Grid.ColumnDefinitions>
         <emnWpf:PlotControl Name="plotControl" Grid.RowSpan="2" />
-        <GridSplitter ResizeDirection="Columns" HorizontalAlignment="Right" Width="3" Background="Gray" Grid.RowSpan="2" /> 
-        <emnWpf:LogControl Name="outputLogger" ClaimStandardError="True" ClaimStandardOut="True" Grid.Column="1" Grid.Row="1" />
-        <Button Grid.Column="1" Height="23" HorizontalAlignment="Left" Margin="6,12,0,0" Name="AverageStability" VerticalAlignment="Top" Click="AverageStability_Click">AverageStability</Button>
-        <Button Grid.Column="1" Height="23" Margin="6,41,0,0" Name="FractionManagable" VerticalAlignment="Top" HorizontalAlignment="Left" Click="FractionManagable_Click">FractionManagable</Button>
-        <Button Grid.Column="1" Height="23" HorizontalAlignment="Left" VerticalAlignment="Top"  Margin="6,70,0,0" Name="LearnOne" Click="LearnOne_Click">Do Learning benchmark</Button>
-        <Button Grid.Column="1" HorizontalAlignment="Left" Name="saveAsXPS" Click="saveAsXPS_Click" Margin="6,99,0,0" Width="63.507" Height="23" VerticalAlignment="Top">SaveAsXPS</Button>
+        <GridSplitter ResizeDirection="Columns" HorizontalAlignment="Right" Width="3" Background="Gray" Grid.RowSpan="2" />
+        <GridSplitter ResizeDirection="Rows" VerticalAlignment="Bottom" Height="3" Background="Gray" Grid.Column="1" />
+        <emnWpf:LogControl Name="outputLogger" ClaimStandardError="True" ClaimStandardOut="True" Grid.Column="1" Margin="0,0,0,0" Grid.Row="1" />
         <CheckBox Grid.Column="1" Margin="6,0,0,6" Name="UseCenterOfMass"  IsChecked="True" Height="16" VerticalAlignment="Bottom" HorizontalAlignment="Left" Width="121">UseCenterOfMass</CheckBox>
-        <Button Grid.Column="1" Margin="0,99,12,0" Name="avgStabilityGraph" Height="23" VerticalAlignment="Top" HorizontalAlignment="Right" Width="158.153" Click="avgStabilityGraph_Click">MakeAverageStabilityGraphs</Button>
+        <ListBox Name="commandChooser" Grid.Column="1" Margin="0,0,0,28">
+            <ListBox.ItemTemplate>
+                <DataTemplate>
+                    <Button Click="ExecuteButton_Click" Content="{Binding Path=Label}"/>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
     </Grid>
 </Window>
