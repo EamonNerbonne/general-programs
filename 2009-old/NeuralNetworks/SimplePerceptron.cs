@@ -19,7 +19,7 @@ namespace NeuralNetworks
 			w += (1.0 / N * algorithm(dotprod)) * directedSample;
 			return dotprod;
 		}
-		const double c = 0.000001;//seems to help stopping heuristic.
+		const double c = 10;//0.000001;//seems to help stopping heuristic.
 		public static double Rosenblatt0(double E_mu_t) { return E_mu_t <= c ? 1 : 0; }
 		public double FastRStep(LabelledSample example) {//avoid memory allocation; otherwise like LearningStep(Rosenblatt0,...)
 			var sample = example.Sample.elems;
@@ -60,6 +60,20 @@ namespace NeuralNetworks
 						return -(n + 1);
 			}
 			return -maxEpochs;
+		}
+
+		public static Func<int, double, bool> DefaultStoppingHeuristic {
+			get {
+				double lastErrN = double.MinValue;
+				int dipCnt = 0;
+				return  (epochN, errN) => {
+					if (errN < lastErrN)
+						dipCnt++;
+					lastErrN = errN;
+
+					return epochN > 10 && (dipCnt / (double)epochN) > 0.41;//... then stop
+				};
+			}
 		}
 
 		public struct MinOverRes { public double Stability, BestStability;}
@@ -128,6 +142,19 @@ namespace NeuralNetworks
 				BestStability = bestStability,
 				Stability = minE / Math.Sqrt(w & w)
 			};
+		}
+
+
+		/// <summary>
+		/// Determines error rate of current perceptron with a given dataset.
+		/// </summary>
+		/// <param name="D">The DataSet to test.</param>
+		public double ErrorRate(DataSet D) {
+			int ErrCount = 0;
+			foreach(var example in D.samples)
+				if ((example.Sample & w) * example.Label <= 0)
+					ErrCount++;
+			return ErrCount / (double)D.P;
 		}
 	}
 }
