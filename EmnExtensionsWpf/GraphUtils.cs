@@ -8,11 +8,8 @@ using System.Windows.Media.Imaging;
 
 namespace EmnExtensions.Wpf
 {
-
-
 	public static class GraphUtils
 	{
-
 		public static PathGeometry LineWithErrorBars(Point[] lineOfPoints, double[] ErrBars) {
 			PathGeometry geom = new PathGeometry();
 			PathFigure fig = null;
@@ -121,22 +118,28 @@ namespace EmnExtensions.Wpf
 			return BitmapSource.Create(w, h, 96.0, 96.0, PixelFormats.Gray8, null, inlinearray, w);
 		}
 
-		public static Drawing MakeBitmapDrawing(BitmapSource bitmap, double h0,double hFin, double w0, double wFin) {
-			var img= new ImageDrawing(bitmap, new Rect(0, 0, bitmap.Width, bitmap.Height));
-			RenderOptions.SetBitmapScalingMode(img, BitmapScalingMode.NearestNeighbor);
+		public static uint ToNativeColor(this Color colorstruct) {
+			return ((uint)colorstruct.A << 24) | ((uint)colorstruct.R << 16) | ((uint)colorstruct.G << 8) | ((uint)colorstruct.B);
+		}
+		public static BitmapSource MakeColormappedBitmap(double[,] image, Func<double, Color> colormap) {
+			return MakeColormappedBitmap(image, colormap, 1);
+		}
+		public static BitmapSource MakeColormappedBitmap(double[,] image, Func<double, Color> colormap, int sampleFactor) {
+			int w = image.GetLength(1)*sampleFactor, h = image.GetLength(0)*sampleFactor;
+			uint[] inlinearray = new uint[w * h];
+			int i = 0;
+			for (int y = 0; y < h; y++)
+				for (int x = 0; x < w; x++)
+					inlinearray[i++] = ToNativeColor(colormap(image[y/sampleFactor, x/sampleFactor]));
+			return BitmapSource.Create(w, h, 96.0, 96.0, PixelFormats.Bgra32, null, inlinearray, w * 4);
+		}
 
-			double hDelta = hFin - h0;
-			double wDelta = wFin -w0;
-			double hDeltaPP = hDelta / (bitmap.Height - 1);
-			double wDeltaPP = wDelta / (bitmap.Width - 1);
-			h0 -= 0.5 * hDeltaPP;
-			hFin += 0.5 * hDeltaPP;
-			w0 -= 0.5 * wDeltaPP;
-			wFin+=0.5* wDeltaPP;
+		public static Drawing MakeBitmapDrawing(BitmapSource bitmap, double yStart,double yEnd, double xStart, double xEnd) {
+			var img= new ImageDrawing(bitmap, new Rect(0, 0, bitmap.Width, bitmap.Height));
 
 			Matrix trans = Matrix.Identity;
-			trans.Scale((wFin - w0) / bitmap.Width, (hFin - h0) / bitmap.Height);
-			trans.Translate(w0, h0);
+			trans.Scale((xEnd - xStart) / bitmap.Width, (yEnd - yStart) / bitmap.Height);
+			trans.Translate(xStart, yStart);
 			MatrixTransform transD = new MatrixTransform(trans);
 			Rect clipRect = transD.TransformBounds(new Rect(0, 0, bitmap.Width, bitmap.Height));
 			var retval = new DrawingGroup();
