@@ -460,7 +460,7 @@ namespace NeuralNetworks
 			bool useCoM = UseCenterOfMass.IsChecked == true;
 			new Thread(() => {
 				const int maxEpoch = 1000;
-				const int nD = 100;
+				const int nD = 100000;
 				var data = DataSet.LoadSamples(DataSet.Ass2File);
 				DataSet test, train;
 				DataSet.SplitSamples(data, 0.2, out train, out test);//0.2 means with 20% as test.

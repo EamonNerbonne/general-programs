@@ -113,6 +113,9 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CustomDrawing.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="GraphControl.cs" />
     <Compile Include="GraphGeometryControl.cs" />
     <Compile Include="GraphImageControl.cs" />
