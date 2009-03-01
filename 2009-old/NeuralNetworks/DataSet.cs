@@ -159,5 +159,15 @@ namespace NeuralNetworks
 			samplesCopy.Shuffle();
 			return new DataSet(samplesCopy);
 		}
+
+		public DataSet WithScaledLabels(double scaleFactor) {
+			return new DataSet(
+				samples
+					.Select(sample => new LabelledSample { 
+						Label = scaleFactor * sample.Label, 
+						Sample = sample.Sample })
+					.ToArray()
+				);
+		}
 	}
 }
