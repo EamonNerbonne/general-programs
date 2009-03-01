@@ -906,31 +906,36 @@ namespace NeuralNetworks
 					return GraphUtils.MakeBitmapDrawing(GraphUtils.MakeGreyBitmap(Map2D(mvs, (i, j, mv) => (byte)(256 * Math.Min((mv.Mean - min) / (max - min), 0.99999)))),
 						idxToLog10Rate(0), idxToLog10Rate(res - 1), idxToLog10Rate(0), idxToLog10Rate(res - 1));
 				};
+
+				Func<MeanVarCalc[,],double,double,string,Graph2DControl> makeGraph =(mvs,min,max,label) => 
+					new Graph2DControl {
+						GraphData = Map2D(mvs, (i, j, mv) => mv.Mean),
+						MinVal = min,
+						MaxVal = max,
+						YLabel = "log10(learning rate)",
+						XLabel = "log10(label scale)",
+						ColorLabel = label,
+						X0 = idxToLog10Rate(0),
+						XFin = idxToLog10Rate(res - 1),
+						Y0 = idxToLog10Rate(0),
+						YFin = idxToLog10Rate(res - 1),
+						Name = label,
+						Colormap = Colormaps.BlueMagentaWhite,
+						GraphLineColor = Brushes.Black,
+						ScaleFactor = 10,
+					};
+
 				Dispatcher.Invoke((Action)(() => {
-					plotControl.Graphs.Add(new GraphDrawingControl {
-						GraphDrawing = makeBmp(trainError, errMin, errMax),
-						YLabel = "log10(learning rate)",
-						XLabel = "log10(label scale)",
-						Name = "TrainError",
-					});
-					plotControl.Graphs.Add(new GraphDrawingControl {
-						GraphDrawing = makeBmp(testError, errMin, errMax),
-						YLabel = "log10(learning rate)",
-						XLabel = "log10(label scale)",
-						Name = "TestError",
-					});
-					plotControl.Graphs.Add(new GraphDrawingControl {
-						GraphDrawing = makeBmp(trainCost, costMin, costMax),
-						YLabel = "log10(learning rate)",
-						XLabel = "log10(label scale)",
-						Name = "TrainCost",
-					});
-					plotControl.Graphs.Add(new GraphDrawingControl {
-						GraphDrawing = makeBmp(testCost, costMin, costMax),
-						YLabel = "log10(learning rate)",
-						XLabel = "log10(label scale)",
-						Name = "TestCost",
-					});
+					foreach (var graph in new[] {
+						makeGraph(trainError, errMin, errMax,"TrainErrorRate"),
+						makeGraph(testError, errMin, errMax,"TestErrorRate"),
+						makeGraph(trainCost, costMin, costMax,"TrainCost"),
+						makeGraph(testCost, costMin, costMax,"TestCost"),
+					}) {
+						graph.RecomputeBitmap();
+						plotControl.Graphs.Add(graph);
+						plotControl.ShowGraph(graph);
+					}
 				}));
 			}) { IsBackground = true }.Start();
 		}
