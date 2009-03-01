@@ -196,6 +196,26 @@ namespace EmnExtensions.Wpf
 			lowerLegend.Watch = graph;
 			leftLegend.Watch = graph;
 
+
+			if (graph is Graph2DControl) {
+				foreach (var othergraph in Graphs)
+					if (othergraph is Graph2DControl && othergraph != graph)
+						othergraph.Visibility = Visibility.Collapsed;
+				var g = graph as Graph2DControl;
+				colormapLegend.TickedLegendControl.StartVal = g.RealMin;
+				colormapLegend.TickedLegendControl.EndVal = g.RealMax;
+				colormapLegend.TickedLegendControl.LegendLabel = g.ColorLabel;
+				colormapLegend.DynamicBitmap.BitmapGenerator = (w, h) => {
+					uint[] map = new uint[w * h];
+					int i = 0;
+					for (int y = 0; y < h; y++)
+						for (int x = 0; x < w; x++)
+							map[i++] = g.Colormap(x / (double)(w - 1)).ToNativeColor();
+					return map;
+				};
+				colormapLegend.Visibility = Visibility.Visible;
+			} else
+				colormapLegend.Visibility = Visibility.Collapsed;
 		}
 
 		private void topSelect_SelectionChanged(object sender, SelectionChangedEventArgs e) {

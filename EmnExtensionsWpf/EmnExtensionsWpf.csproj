@@ -113,10 +113,13 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ColorConversion.cs" />
     <Compile Include="ColorMapLegend.xaml.cs">
       <DependentUpon>ColorMapLegend.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Colormaps.cs" />
     <Compile Include="DynamicBitmap.cs" />
+    <Compile Include="Graph2DControl.cs" />
     <Compile Include="GraphControl.cs" />
     <Compile Include="GraphDrawingControl.cs" />
     <Compile Include="GraphGeometryControl.cs" />
