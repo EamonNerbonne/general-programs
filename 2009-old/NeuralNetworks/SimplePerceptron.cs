@@ -4,11 +4,12 @@ using System.Linq;
 using System.Text;
 using EmnExtensions.MathHelpers;
 using EmnExtensions.Collections;
+using EmnExtensions;
 namespace NeuralNetworks
 {
 	public class SimplePerceptron
 	{
-		public SimplePerceptron(int N) { w = new Vector(N); }
+		public SimplePerceptron(int N) { w = F.AsEnumerable(() => RndHelper.ThreadLocalRandom.NextNorm() / 10000.0).Take(N).ToArray(); }// w = new Vector(N);
 		public SimplePerceptron(Vector w) { this.w = w; }
 		private int N { get { return w.N; } }
 
@@ -66,7 +67,7 @@ namespace NeuralNetworks
 			get {
 				double lastErrN = double.MinValue;
 				int dipCnt = 0;
-				return  (epochN, errN) => {
+				return (epochN, errN) => {
 					if (errN < lastErrN)
 						dipCnt++;
 					lastErrN = errN;
@@ -86,8 +87,8 @@ namespace NeuralNetworks
 						* (D.samples[i].Label * D.samples[j].Label) / N;
 
 
-			int  minI    = -1;               //the index of the currently minimally stable example
-			double minE  = double.MaxValue;  // the currently minimal local potential.
+			int minI = -1;               //the index of the currently minimally stable example
+			double minE = double.MaxValue;  // the currently minimal local potential.
 
 			double[] localPotential = new double[D.P]; //unscaled!
 			for (int j = 0; j < D.P; j++) { //initialize localPotential...
@@ -99,7 +100,7 @@ namespace NeuralNetworks
 			}
 			int resync = maxEpochs * D.P / 3;//resync to avoid numerical inaccuracies 
 
-			double  wSqr         = w & w;                   //square of weight vector.
+			double wSqr = w & w;                   //square of weight vector.
 			double bestStability = minE / Math.Sqrt(wSqr);  //maximal stability found so far
 
 			for (int n = 0; n < maxEpochs * D.P; n++) {
@@ -144,6 +145,32 @@ namespace NeuralNetworks
 			};
 		}
 
+		public void GradientDescent(DataSet D, double learnRate, int maxEpochs, MersenneTwister r, Action<int> postEpoch) {
+			var wA = w.elems;
+			double invLearnBase = 1 / learnRate;
+			int t = 0;
+			for (int epCnt = 0; epCnt < maxEpochs; epCnt++) {
+				for (int i = 0; i < D.P; i++) {
+					double curLearnRate = 1.0 / (t++ + invLearnBase);
+					LabelledSample sample = D.samples[r.NextUInt32()%(uint)D.P]; //this is much faster than r.Next
+					var sA = sample.Sample.elems;
+					double sample_w = 0.0;
+					for (int k = 0; k < wA.Length; k++)	sample_w += sA[k] * wA[k];
+
+					double exp2_sample_w = Math.Exp(2 * sample_w);
+					double exp2_sample_w1 = exp2_sample_w + 1;
+
+					double sigmaMinTau = (exp2_sample_w - 1) / exp2_sample_w1 - sample.Label;
+					double Dsigma = 4 * exp2_sample_w / (exp2_sample_w1 * exp2_sample_w1);
+
+					double scaleFac = -curLearnRate * sigmaMinTau * Dsigma;
+
+					for (int j = 0; j < wA.Length; j++)	wA[j] += scaleFac * sA[j];
+				}
+				if(postEpoch!=null) postEpoch(epCnt);
+			}
+		}
+
 
 		/// <summary>
 		/// Determines error rate of current perceptron with a given dataset.
@@ -151,10 +178,24 @@ namespace NeuralNetworks
 		/// <param name="D">The DataSet to test.</param>
 		public double ErrorRate(DataSet D) {
 			int ErrCount = 0;
-			foreach(var example in D.samples)
+			foreach (var example in D.samples)
 				if ((example.Sample & w) * example.Label <= 0)
 					ErrCount++;
 			return ErrCount / (double)D.P;
+		}
+
+		public double SigmoidActivation(Vector sample) {
+			double exp2_sample_w = Math.Exp(2 * (sample & w));
+			return (exp2_sample_w - 1) / (exp2_sample_w + 1);
+		}
+
+		public double TotalCost(DataSet D) {
+			double costSum = 0.0;
+			foreach (var example in D.samples) {
+				double diff = SigmoidActivation(example.Sample) - example.Label;
+				costSum += diff * diff;
+			}
+			return 0.5 * costSum;
 		}
 	}
 }
