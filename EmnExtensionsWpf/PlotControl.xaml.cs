@@ -96,10 +96,11 @@ namespace EmnExtensions.Wpf
 		public ObservableCollection<GraphControl> Graphs { get { return graphs; } }
 
 		public GraphControl NewGraph(string name, IEnumerable<Point> line) {
-			GraphControl graph = new GraphControl();
-			graph.Visibility = Visibility.Hidden;
-			graph.Name = name;
-			graph.NewLine(line);
+			GraphControl graph = new GraphGeometryControl {
+				Visibility = Visibility.Hidden,
+				Name = name,
+				GraphGeometry = GraphUtils.Line(line.ToArray())
+			};
 			graphs.Add(graph);
 			return graph;
 		}
