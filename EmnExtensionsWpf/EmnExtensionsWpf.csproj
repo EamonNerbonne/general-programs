@@ -116,12 +116,11 @@
     <Compile Include="ColorMapLegend.xaml.cs">
       <DependentUpon>ColorMapLegend.xaml</DependentUpon>
     </Compile>
-    <Compile Include="CustomDrawing.cs">
-      <SubType>Code</SubType>
-    </Compile>
+    <Compile Include="DynamicBitmap.cs" />
     <Compile Include="GraphControl.cs" />
+    <Compile Include="GraphDrawingControl.cs" />
     <Compile Include="GraphGeometryControl.cs" />
-    <Compile Include="GraphImageControl.cs" />
+    <Compile Include="GraphRandomPen.cs" />
     <Compile Include="GraphUtils.cs" />
     <Compile Include="LogControl.cs">
       <SubType>Code</SubType>
