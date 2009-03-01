@@ -120,7 +120,7 @@ namespace EmnExtensions.Wpf
         /// </summary>
         public double EndVal { get { return endVal; } set { endVal = value; InvalidateVisual(); } }
 
-        string legendLabel = "test";
+        string legendLabel = "<unset>";
         public string LegendLabel { get { return legendLabel; } set { legendLabel = value; InvalidateVisual(); } }
 
         public enum Side { Top, Right, Bottom, Left }
@@ -132,7 +132,7 @@ namespace EmnExtensions.Wpf
         bool IsHorizontal { get { return snapTo == Side.Bottom || snapTo == Side.Top; } }
 
         protected override Size MeasureOverride(Size constraint) {
-            if (Visibility == Visibility.Collapsed)
+            if (Visibility == Visibility.Collapsed || startVal==endVal)
                 return new Size(0, 0);
             cachedCulture = CultureInfo.CurrentCulture;
 

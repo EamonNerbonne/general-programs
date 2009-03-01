@@ -113,6 +113,9 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ColorMapLegend.xaml.cs">
+      <DependentUpon>ColorMapLegend.xaml</DependentUpon>
+    </Compile>
     <Compile Include="CustomDrawing.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -165,6 +168,10 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <Page Include="ColorMapLegend.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="PlotControl.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
