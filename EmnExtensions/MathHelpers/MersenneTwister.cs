@@ -88,7 +88,7 @@ namespace EmnExtensions.MathHelpers
     /// http://www.math.sci.hiroshima-u.ac.jp/~m-mat/MT/emt.html</a> for details
     /// on the algorithm.
     /// </remarks>
-    public class MersenneTwister : Random
+    public sealed class MersenneTwister : Random
     {
         /// <summary>
         /// Creates a new pseudo-random number generator with a given seed.
@@ -140,7 +140,7 @@ namespace EmnExtensions.MathHelpers
         /// </summary>
         /// <returns>A pseudo-random <see cref="UInt32"/> value.</returns>
         //[CLSCompliant(false)]
-        public virtual UInt32 NextUInt32()
+        public UInt32 NextUInt32()
         {
             return GenerateUInt32();
         }
@@ -156,7 +156,7 @@ namespace EmnExtensions.MathHelpers
         /// A pseudo-random <see cref="UInt32"/> value which is at most <paramref name="maxValue"/>.
         /// </returns>
         //[CLSCompliant(false)]
-        public virtual UInt32 NextUInt32(UInt32 maxValue)
+        public UInt32 NextUInt32(UInt32 maxValue)
         {
             return (UInt32)(GenerateUInt32() / ((Double)UInt32.MaxValue / maxValue));
         }
@@ -175,7 +175,7 @@ namespace EmnExtensions.MathHelpers
         /// If <c><paramref name="minValue"/> &gt;= <paramref name="maxValue"/></c>.
         /// </exception>
 //        [CLSCompliant(false)]
-        public virtual UInt32 NextUInt32(UInt32 minValue, UInt32 maxValue) /* throws ArgumentOutOfRangeException */
+        public UInt32 NextUInt32(UInt32 minValue, UInt32 maxValue) /* throws ArgumentOutOfRangeException */
         {
             if (minValue >= maxValue)
             {
@@ -216,8 +216,10 @@ namespace EmnExtensions.MathHelpers
                 return 0;
             }
 
-            return (Int32)(NextDouble() * maxValue);
+			return (Int32)(NextDouble() * maxValue);
         }
+
+
 
         /// <summary>
         /// Returns the next pseudo-random <see cref="Int32"/> 
@@ -382,7 +384,7 @@ namespace EmnExtensions.MathHelpers
         /// </summary>
         /// <returns>A pseudo-random <see cref="UInt32"/>.</returns>
 //        [CLSCompliant(false)]
-        protected UInt32 GenerateUInt32()
+        UInt32 GenerateUInt32()
         {
             UInt32 y;
 
@@ -529,5 +531,9 @@ namespace EmnExtensions.MathHelpers
             // Why? (Is it the FMUL instruction? Does this count in .Net? Will the JITter notice?)
             //return BitConverter.Int64BitsToDouble((a << 26) + b));
         }
+
+		/*private double computeRnd0to1() {
+			return compute53BitRandom(0, InverseOnePlus53BitsOf1s);
+		}*/
     }
 }

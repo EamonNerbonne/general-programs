@@ -16,6 +16,11 @@ namespace EmnExtensions.MathHelpers
 			sum += val;
 			sum2 += val * val;
 		}
+		public void Add(int count, double sum, double sumSquared) {
+			this.count += count;
+			this.sum += sum;
+			this.sum2 += sumSquared;
+		}
 
 		public double Mean { get { return sum / count; } }
 		//need Math.Max since it's possible rounding errors cause negative numbers!
