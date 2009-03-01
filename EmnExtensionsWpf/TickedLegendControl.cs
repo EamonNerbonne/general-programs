@@ -138,6 +138,7 @@ namespace EmnExtensions.Wpf
 
             orderOfMagnitudeDiff = (int)Math.Floor(Math.Log10(Math.Abs(startVal - endVal))) - 2;
             orderOfMagnitude = (int)Math.Floor(Math.Log10(Math.Max(Math.Abs(startVal), Math.Abs(endVal))));
+			if (Math.Abs(orderOfMagnitude) < 4) orderOfMagnitude = 0;
             FormattedText text = MakeText(8.88888888888888888);
             FormattedText baseL, powL, textL;
             double labelWidth;
@@ -146,11 +147,11 @@ namespace EmnExtensions.Wpf
             if (IsHorizontal)
                 return new Size(
                     Math.Max(constraint.Width.IsFinite() ? constraint.Width : 0, labelWidth),
-                    Math.Max(constraint.Height.IsFinite() ? constraint.Height : 0, 17 + text.Height + baseL.Height)
+                    Math.Max(constraint.Height.IsFinite() ? constraint.Height : 0, 17 + text.Height + textL.Height)
                     );
             else
                 return new Size(
-                    Math.Max(17 + text.Width + baseL.Height*1.1, constraint.Width.IsFinite() ? constraint.Width : 0),
+                    Math.Max(17 + text.Width + textL.Height + baseL.Height*0.1, constraint.Width.IsFinite() ? constraint.Width : 0),
                     Math.Max(constraint.Height.IsFinite() ? constraint.Height : 0,labelWidth)
                     );
         }
@@ -173,6 +174,7 @@ namespace EmnExtensions.Wpf
             cachedCulture = CultureInfo.CurrentCulture;
             orderOfMagnitudeDiff = (int)Math.Floor(Math.Log10(Math.Abs(startVal - endVal))) - 1;
             orderOfMagnitude = (int)Math.Floor(Math.Log10(Math.Max(Math.Abs(startVal), Math.Abs(endVal))));
+			if (Math.Abs(orderOfMagnitude) < 4) orderOfMagnitude = 0;
 
             Matrix mirrTrans = Matrix.Identity; //top-left is 0,0, so if you're on the bottom you're happy
             if (snapTo == Side.Right || snapTo == Side.Bottom)
@@ -203,7 +205,7 @@ namespace EmnExtensions.Wpf
             double centerPix = ticksPixelsDim / 2;
 
             if (!IsHorizontal) textHMax += baseL.Height * 0.1;
-            double centerAlt = 17 + textHMax + baseL.Height / 2.0;
+            double centerAlt = 17 + textHMax + textL.Height / 2.0;
 
             Point labelPos = mirrTrans.Transform(new Point(centerPix, centerAlt));
 
@@ -212,12 +214,14 @@ namespace EmnExtensions.Wpf
             else if (snapTo == Side.Left)
                 drawingContext.PushTransform(new RotateTransform(-90.0, labelPos.X, labelPos.Y));
 
-            labelPos.Offset(-totalLabelWidth / 2.0, -baseL.Height / 2.0);
-            drawingContext.DrawText(baseL, labelPos);
+            labelPos.Offset(-totalLabelWidth / 2.0, -textL.Height / 2.0);
+			drawingContext.DrawText(textL, labelPos);
+			labelPos.Offset(textL.Width, 0);
+			drawingContext.DrawText(baseL, labelPos);
             labelPos.Offset(baseL.Width, -0.1 * baseL.Height);
             drawingContext.DrawText(powL, labelPos);
-            labelPos.Offset(powL.Width, 0.1 * baseL.Height);
-            drawingContext.DrawText(textL, labelPos);
+            //labelPos.Offset(powL.Width, 0.1 * baseL.Height);
+            //drawingContext.DrawText(textL, labelPos);
 
             if (snapTo == Side.Right || snapTo == Side.Left)
                 drawingContext.Pop();
@@ -230,14 +234,18 @@ namespace EmnExtensions.Wpf
             return new FormattedText(numericValueString, cachedCulture, FlowDirection.LeftToRight, labelType, fontSize, Brushes.Black);
         }
         void MakeLegendText(out FormattedText baseL, out FormattedText powL, out FormattedText textL, out double totalLabelWidth) {
-            baseL = new FormattedText("×10",
+			string baseStr = orderOfMagnitude == 0 ? "" : "×10";
+			string powStr = orderOfMagnitude == 0 ? "" : orderOfMagnitude.ToString();
+			string labelStr = legendLabel + (orderOfMagnitude == 0 ? "" : " — ");
+            baseL = new FormattedText(baseStr,
 cachedCulture, FlowDirection.LeftToRight, labelType, fontSize, Brushes.Black);
+
             powL = new FormattedText(
-                orderOfMagnitude.ToString(),
+                powStr,
                 cachedCulture, FlowDirection.LeftToRight, labelType, fontSize * 0.8, Brushes.Black);
 
             textL = new FormattedText(
-                " – " + legendLabel,
+                labelStr,
                 cachedCulture, FlowDirection.LeftToRight, labelType, fontSize, Brushes.Black);
 
             totalLabelWidth = baseL.Width + powL.Width + textL.Width;
