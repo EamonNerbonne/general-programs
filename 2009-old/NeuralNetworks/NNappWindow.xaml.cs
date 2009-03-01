@@ -45,12 +45,13 @@ namespace NeuralNetworks
 		const int parLev = 8;
 		public NNappWindow() {
 			InitializeComponent();
-			commandChooser.ItemsSource = Actions;
+			//commandChooser.ItemsSource = Actions;
+			//RealWorldGradientDescent();
 		}
 
 		protected override void OnInitialized(EventArgs e) {
 			base.OnInitialized(e);
-			Process.GetCurrentProcess().PriorityClass = ProcessPriorityClass.Idle;
+			//Process.GetCurrentProcess().PriorityClass = ProcessPriorityClass.Idle;
 		}
 
 		[AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
@@ -62,7 +63,7 @@ namespace NeuralNetworks
 		}
 		public class LabelledAction { public string Label { get; set; } public Action Action { get; set; } }
 
-		IEnumerable<LabelledAction> Actions {
+		public IEnumerable<LabelledAction> Actions {
 			get {
 				return
 					from mInfo in GetType().GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
@@ -365,38 +366,38 @@ namespace NeuralNetworks
 				let bestPoints = orderedGraph.Select(p => new Point(p.alpha, p.bestMean)).ToArray()
 				let bestMedianPoints = orderedGraph.Select(p => new Point(p.alpha, p.bestMedian)).ToArray()
 				let bestSEMs = orderedGraph.Select(p => p.bestSEM).ToArray()
-				let finalWithErrorBars = GraphControl.Line(finalPoints)
-				let bestWithErrorBars = GraphControl.Line(bestPoints)
-				let finalMedian = GraphControl.Line(finalMedianPoints)
-				let bestMedian = GraphControl.Line(bestMedianPoints)
+				let finalWithErrorBars = GraphUtils.Line(finalPoints)
+				let bestWithErrorBars = GraphUtils.Line(bestPoints)
+				let finalMedian = GraphUtils.Line(finalMedianPoints)
+				let bestMedian = GraphUtils.Line(bestMedianPoints)
 				let bounds = Rect.Union(finalWithErrorBars.Bounds, bestWithErrorBars.Bounds)
-				let fGraphC = new GraphControl {
+				let fGraphC = new GraphGeometryControl {
 					Name = "MinOverStability_N" + graph.Key.N + "_eM" + graph.Key.eM + "_nD" + orderedGraph[0].runs,
 					XLabel = "α = P/N for N = " + graph.Key.N,
 					YLabel = "mean final stability",
-					LineGeometry = finalWithErrorBars,
+					GraphGeometry = finalWithErrorBars,
 					GraphBounds = bounds,
 				}
-				let bGraphC = new GraphControl {
+				let bGraphC = new GraphGeometryControl {
 					Name = "MinOverBestStability_N" + graph.Key.N + "_eM" + graph.Key.eM + "_nD" + orderedGraph[0].runs,
 					XLabel = "α = P/N for N = " + graph.Key.N,
 					YLabel = "mean best stability",
-					LineGeometry = bestWithErrorBars,
+					GraphGeometry = bestWithErrorBars,
 					GraphBounds = bounds,
 				}
-				let fMGraphC = new GraphControl {
+				let fMGraphC = new GraphGeometryControl {
 					Name = "MinOverMedianStability_N" + graph.Key.N + "_eM" + graph.Key.eM + "_nD" + orderedGraph[0].runs,
 					XLabel = "α = P/N for N = " + graph.Key.N,
 					YLabel = "median final stability",
-					LineGeometry = finalMedian,
+					GraphGeometry = finalMedian,
 					GraphBounds = bounds,
 					GraphPen = F.Create<Pen, Pen>(pen => { pen.DashStyle = DashStyles.Dot; return pen; })(fGraphC.GraphPen.Clone())
 				}
-				let bMGraphC = new GraphControl {
+				let bMGraphC = new GraphGeometryControl {
 					Name = "MinOverMedianBestStability_N" + graph.Key.N + "_eM" + graph.Key.eM + "_nD" + orderedGraph[0].runs,
 					XLabel = "α = P/N for N = " + graph.Key.N,
 					YLabel = "median best stability",
-					LineGeometry = bestMedian,
+					GraphGeometry = bestMedian,
 					GraphBounds = bounds,
 					GraphPen = F.Create<Pen, Pen>(pen => { pen.DashStyle = DashStyles.Dot; return pen; })(bGraphC.GraphPen.Clone())
 				}
@@ -459,7 +460,7 @@ namespace NeuralNetworks
 			bool useCoM = UseCenterOfMass.IsChecked == true;
 			new Thread(() => {
 				const int maxEpoch = 1000;
-				const int nD = 100000;
+				const int nD = 100;
 				var data = DataSet.LoadSamples(DataSet.Ass2File);
 				DataSet test, train;
 				DataSet.SplitSamples(data, 0.2, out train, out test);//0.2 means with 20% as test.
@@ -494,19 +495,19 @@ namespace NeuralNetworks
 				Console.WriteLine("FinalTest:{0}", testError[maxEpoch - 1]);
 
 				//Graph construction function:
-				Func<IEnumerable<double>, string, GraphControl> errors2Graph = (vec, name) => new GraphControl {
-					LineGeometry = GraphControl.Line(vec.Select((e, i) => new Point(i, e)).ToArray()),
+				Func<IEnumerable<double>, string, GraphControl> errors2Graph = (vec, name) => new GraphGeometryControl {
+					GraphGeometry = GraphUtils.Line(vec.Select((e, i) => new Point(i, e)).ToArray()),
 					Name = name,
 					XLabel = "Epoch",
 					YLabel = name + " Rate",
 				};
 				//Color fading function:
-				Func<Brush,Brush> fadeColorBrush = (brush)=> new SolidColorBrush(Color.Multiply(
-						Color.Add(Color.FromScRgb(1.0f,1.0f,1.0f,1.0f), ((SolidColorBrush)brush).Color),0.5f));
-				
+				Func<Brush, Brush> fadeColorBrush = (brush) => new SolidColorBrush(Color.Multiply(
+						Color.Add(Color.FromScRgb(1.0f, 1.0f, 1.0f, 1.0f), ((SolidColorBrush)brush).Color), 0.5f));
+
 				//display code must run on the UI thread, hence the Dispatcher:
 				Dispatcher.Invoke((Action)(() => {
-					var trainG = errors2Graph(trainError.Select(err=>err.Mean) , "TrainingError");
+					var trainG = errors2Graph(trainError.Select(err => err.Mean), "TrainingError");
 					var trainLower = errors2Graph(trainError.Select(err => err.Mean - err.StdDev), "TrainingErrorLower");
 					var trainUpper = errors2Graph(trainError.Select(err => err.Mean + err.StdDev), "TrainingErrorUpper");
 					trainG.GraphLineColor = Brushes.DarkBlue;
@@ -583,8 +584,8 @@ namespace NeuralNetworks
 
 
 				//Graph construction function:
-				Func<IEnumerable<double>, string, GraphControl> errors2Graph = (vec, name) => new GraphControl {
-					LineGeometry = GraphControl.Line(vec.Select((e, i) => new Point(topP - i * stepP, e)).ToArray()),
+				Func<IEnumerable<double>, string, GraphControl> errors2Graph = (vec, name) => new GraphGeometryControl {
+					GraphGeometry = GraphUtils.Line(vec.Select((e, i) => new Point(topP - i * stepP, e)).ToArray()),
 					Name = name,
 					XLabel = "P",
 					YLabel = name + " Rate",
@@ -629,6 +630,310 @@ namespace NeuralNetworks
 			}) { IsBackground = true }.Start();
 		}
 
+		[MakeButton]
+		void RealWorldGradientDescent() {
+			bool useCoM = UseCenterOfMass.IsChecked == true;
+			new Thread(() => {
+				NiceTimer.Time("DoGD", () => {
+					const int maxEpoch = 10000;
+					const int nD = 50;
+					const double learnRate = 0.01;
+					const double labelScale = 0.1;
+					var data = DataSet.LoadSamples(DataSet.Ass2File)
+						.Select(sample => new LabelledSample {
+							Label = labelScale * sample.Label,
+							Sample = sample.Sample
+						})
+						.ToArray();
+					DataSet test, train;
+					DataSet.SplitSamples(data, 0.2, out train, out test);//0.2 means with 20% as test.
+					Console.WriteLine("Data Loaded");
+
+					//sink for online (no storage) mean/variance calculations
+					MeanVarCalc[] trainError = new MeanVarCalc[maxEpoch];
+					MeanVarCalc[] testError = new MeanVarCalc[maxEpoch];
+					MeanVarCalc[] trainCost = new MeanVarCalc[maxEpoch];
+					MeanVarCalc[] testCost = new MeanVarCalc[maxEpoch];
+
+					object syncMutex = new object(); //mutex for accessing the MeanVarCalc shared variables.
+					Parallel.For(0, nD, iterI => {
+						DataSet D = train.ShuffledCopy();
+						SimplePerceptron w = D.InitializeNewPerceptron(useCoM);
+						var trainErrThisRun = new double[maxEpoch]; //this runs error rate cache.
+						var testErrThisRun = new double[maxEpoch];
+						var trainCostThisRun = new double[maxEpoch]; //this runs error rate cache.
+						var testCostThisRun = new double[maxEpoch];
+						w.GradientDescent(D, learnRate, maxEpoch, RndHelper.ThreadLocalRandom, null);/*(epochN) => {
+						trainErrThisRun[epochN] = w.ErrorRate(D);
+						testErrThisRun[epochN] = w.ErrorRate(test);
+						trainCostThisRun[epochN] = w.TotalCost(D)/D.P/labelScale/labelScale;
+						testCostThisRun[epochN] = w.TotalCost(test) / test.P / labelScale / labelScale;
+					});
+					lock (syncMutex) { //for reduced lock contention, send error rates all at once.
+						for (int i = 0; i < maxEpoch; i++) {
+							trainError[i].Add(trainErrThisRun[i]);
+							testError[i].Add(testErrThisRun[i]);
+							trainCost[i].Add(trainCostThisRun[i]);
+							testCost[i].Add(testCostThisRun[i]);
+						}
+					}*/
+					});
+				});
+				//				Console.WriteLine("done.");
+				//				Dispatcher.Invoke((Action)Close);
+				/*
+				Console.WriteLine("FinalTrain:{0}", trainError[maxEpoch - 1]);
+				Console.WriteLine("FinalTest:{0}", testError[maxEpoch - 1]);
+				Console.WriteLine("FinalTrainCost:{0}", trainCost[maxEpoch - 1]);
+				Console.WriteLine("FinalTestCost:{0}", testCost[maxEpoch - 1]);
+
+				//Graph construction function:
+				Func<IEnumerable<double>, string, GraphControl> errors2Graph = (vec, name) => new GraphControl {
+					LineGeometry = GraphControl.Line(vec.Select((e, i) => new Point(i+1, e)).ToArray()),
+					Name = name,
+					XLabel = "Epoch",
+					YLabel = name + " Rate",
+				};
+				//Color fading function:
+				Func<Brush, Brush> fadeColorBrush = (brush) => new SolidColorBrush(Color.Multiply(
+						Color.Add(Color.FromScRgb(1.0f, 1.0f, 1.0f, 1.0f), ((SolidColorBrush)brush).Color), 0.5f));
+
+				Func<MeanVarCalc[], string, SolidColorBrush, IEnumerable<GraphControl>> makeGraphs = (graphdata,label,brush) => {
+					GraphControl datG = errors2Graph(graphdata.Select(p => p.Mean), label),
+						datGU = errors2Graph(graphdata.Select(p => p.Mean + p.StdDev), label + "Upper"),
+						datGL = errors2Graph(graphdata.Select(p => p.Mean - p.StdDev), label + "Lower");
+					datG.GraphLineColor = brush;
+					datGU.GraphLineColor = datGL.GraphLineColor = fadeColorBrush(brush);
+					return new[] { datG, datGL, datGU };
+				};
+
+				//display code must run on the UI thread, hence the Dispatcher:
+				Dispatcher.Invoke((Action)(() => {
+					var graphsA =
+						makeGraphs(trainError, "TrainingError", Brushes.DarkBlue).Concat(
+						makeGraphs(testError, "TestError", Brushes.DarkRed)).ToArray();
+					var graphsB =
+						makeGraphs(trainCost, "TrainingCost", Brushes.DarkCyan).Concat(
+						makeGraphs(testCost, "TestCost", Brushes.DarkOrange)).ToArray();
+					
+					var bounds = Rect.Empty;
+					foreach (var graph in graphsA)
+						bounds.Union(graph.GraphBounds);
+					bounds.Union(new Point(0, 0));
+
+					foreach (var graph in graphsA) {
+						graph.GraphBounds = bounds;
+						plotControl.Graphs.Add(graph);
+						graph.Visibility = Visibility.Hidden;
+					}
+					
+					var boundsB = Rect.Empty;
+					foreach (var graph in graphsB)
+						boundsB.Union(graph.GraphBounds);
+					boundsB.Union(new Point(0, 0));
+
+					foreach (var graph in graphsB) {
+						graph.GraphBounds = boundsB;
+						plotControl.Graphs.Add(graph);
+						graph.Visibility = Visibility.Hidden;
+					}
+					plotControl.ShowGraph(graphsA[0]);
+					plotControl.ShowGraph(graphsA[3]);
+
+				}));
+
+				Console.WriteLine("Done with RealWorldConvergence");
+				 */
+			}) { IsBackground = true }.Start();
+		}
+		const int res = 51;
+		static double idxToRate(int i) { return Math.Pow(10, i * (-4 / (double)(res - 1))); }
+		static double idxToLog10Rate(int i) { return i * (-4 / (double)(res - 1)); }
+		[MakeButton]
+		void GradientDescentPicture() {
+			bool useCoM = UseCenterOfMass.IsChecked == true;
+			new Thread(() => {
+				while (true) {
+					const int maxEpoch = 10000;
+					const int nD = 10;
+					var data = DataSet.LoadSamples(DataSet.Ass2File);
+					DataSet test, train;
+					DataSet.SplitSamples(data, 0.2, out train, out test);//0.2 means with 20% as test.
+
+
+
+					// 10 to the power: -4 -> 0 in 50 steps, learning rate and labelScale.
+					//Func<int, double> idxToRate = i => Math.Pow(10, i * (-4 / (double)(res - 1)));
+
+					var combos = (from learnRateIdx in Enumerable.Range(0, res)
+								  from labelScaleIdx in Enumerable.Range(0, res)
+								  select new { LRidx = learnRateIdx, LSidx = labelScaleIdx }).ToArray();
+					object syncroot = new object();//guards the next counter...
+					int nextComboCounter = 0;
+					const int maxThreads = 4;
+					Semaphore stopSem = new Semaphore(0, maxThreads + 1);
+
+					MeanVarCalc[,] trainError = new MeanVarCalc[res, res];
+					MeanVarCalc[,] testError = new MeanVarCalc[res, res];
+					MeanVarCalc[,] trainCost = new MeanVarCalc[res, res];
+					MeanVarCalc[,] testCost = new MeanVarCalc[res, res];
+
+
+					ThreadStart workerAction = () => {
+						while (true) {
+							int nextWork = 0;
+							lock (syncroot) {
+								nextWork = nextComboCounter;
+								nextComboCounter++;
+							}
+							if (nextWork >= combos.Length) break;
+							int LRidx = combos[nextWork].LRidx;
+							int LSidx = combos[nextWork].LSidx;
+							double learnRate = idxToRate(LRidx);
+							double labelScale = idxToRate(LSidx);
+							var testW = test.WithScaledLabels(labelScale);
+							var trainW = train.WithScaledLabels(labelScale);
+							MeanVarCalc trainErrorW = new MeanVarCalc();
+							MeanVarCalc testErrorW = new MeanVarCalc();
+							MeanVarCalc trainCostW = new MeanVarCalc();
+							MeanVarCalc testCostW = new MeanVarCalc();
+
+							for (int i = 0; i < nD; i++) {
+								SimplePerceptron w = trainW.InitializeNewPerceptron(useCoM);
+								w.GradientDescent(trainW, learnRate, maxEpoch, RndHelper.ThreadLocalRandom, null);
+								trainErrorW.Add(w.ErrorRate(trainW));
+								testErrorW.Add(w.ErrorRate(testW));
+								trainCostW.Add(w.TotalCost(trainW) / trainW.P / labelScale / labelScale);
+								testCostW.Add(w.TotalCost(testW) / testW.P / labelScale / labelScale);
+							}
+
+							trainError[LRidx, LSidx] = trainErrorW;
+							testError[LRidx, LSidx] = testErrorW;
+							trainCost[LRidx, LSidx] = trainCostW;
+							testCost[LRidx, LSidx] = testCostW;
+							/*Console.WriteLine("[" + LRidx + "," + LSidx + "]: " +
+									"TRE<" + trainError[LRidx, LSidx] + "> " +
+									"TEE<" + testError[LRidx, LSidx] + "> " +
+									"TRC<" + trainCost[LRidx, LSidx] + "> " +
+									"TEC<" + testCost[LRidx, LSidx] + ">");*/
+						}
+
+						stopSem.Release();
+					};
+
+					for (int i = 0; i < maxThreads; i++)
+						new Thread(workerAction) { IsBackground = true }.Start();
+
+					for (int i = 0; i < maxThreads; i++)
+						stopSem.WaitOne();
+					string saveLogName = "errorsSave.log";
+					using (var stream = File.Open(saveLogName, FileMode.Append, FileAccess.Write))
+					using (var writer = new StreamWriter(stream)) {
+						for (int LRidx = 0; LRidx < res; LRidx++)
+							for (int LSidx = 0; LSidx < res; LSidx++)
+								writer.WriteLine("[" + LRidx + "," + LSidx + "]: " +
+									"TRE<" + trainError[LRidx, LSidx] + "> " +
+									"TEE<" + testError[LRidx, LSidx] + "> " +
+									"TRC<" + trainCost[LRidx, LSidx] + "> " +
+									"TEC<" + testCost[LRidx, LSidx] + ">");
+
+					}
+					Console.WriteLine("Did {0} more tests", nD);
+				}
+			}) { IsBackground = true }.Start();
+		}
+
+		public Regex errorsaveRegex = new Regex(
+			@"^\[(?<lr>\d+),(?<ls>\d+)\]: TRE<(?<tre>[^ ]+) \+/- (?<treE>[^>]+)> TEE<(?<tee>[^ ]+) \+/- (?<teeE>[^>]+)> TRC<(?<trc>[^ ]+) \+/- (?<trcE>[^>]+)> TEC<(?<tec>[^ ]+) \+/- (?<tecE>[^>]+)>$", RegexOptions.Compiled | RegexOptions.ExplicitCapture);
+
+		public static M[,] Map2D<T, M>(T[,] input, Func<int, int, T, M> mapFunc) {
+			M[,] retval = new M[input.GetLength(0), input.GetLength(1)];
+			for (int i = 0; i < input.GetLength(0); i++)
+				for (int j = 0; j < input.GetLength(1); j++)
+					retval[i, j] = mapFunc(i, j, input[i, j]);
+			return retval;
+		}
+
+		public static IEnumerable<T> AsEnumerable<T>(T[,] input) {
+			foreach (T item in input) yield return item;
+		}
+
+		[MakeButton]
+		void LoadGradientDescentPicture() {
+
+
+			new Thread(() => {
+				const int res = 51;
+				MeanVarCalc[,] trainError = new MeanVarCalc[res, res];
+				MeanVarCalc[,] testError = new MeanVarCalc[res, res];
+				MeanVarCalc[,] trainCost = new MeanVarCalc[res, res];
+				MeanVarCalc[,] testCost = new MeanVarCalc[res, res];
+
+
+				string saveLogName = "errorsSave.log";
+				Func<Match, string, int> geti = (match, s) => int.Parse(match.Groups[s].Value);
+				Func<Match, string, double> getd = (match, s) => double.Parse(match.Groups[s].Value);
+				Action<Match, string, MeanVarCalc[,]> proc = (match, s, sink) => {
+					var mean = getd(match, s);
+					var stddev = getd(match, s + "E");
+					int count = 10;
+					sink[geti(match, "lr"), geti(match, "ls")].Add(count, mean * count, stddev * stddev * (count - 1) + mean * mean * count);
+				};
+				foreach (string line in new FileInfo(saveLogName).GetLines()) {
+					if (line.Trim() == "") continue;
+					var match = errorsaveRegex.Match(line);
+					proc(match, "tre", trainError);
+					proc(match, "trc", trainCost);
+					proc(match, "tee", testError);
+					proc(match, "tec", testCost);
+				}
+
+				var errs = AsEnumerable(trainError).Concat(AsEnumerable(testError))
+					.Select(mv => mv.Mean)
+					.OrderBy(mean => mean)
+					.ToArray();
+				var costs = AsEnumerable(trainCost).Concat(AsEnumerable(testCost))
+					.Select(mv => mv.Mean)
+					.OrderBy(mean => mean)
+					.ToArray();
+				double errMin = errs.First(),
+					errMax = errs.Skip((int)(errs.Length * 0.90)).First(),
+					costMin = costs.First(),
+					costMax = costs.Skip((int)(costs.Length * 0.90)).First();
+
+
+				Func<MeanVarCalc[,], double, double, Drawing> makeBmp = (mvs, min, max) => {
+					return GraphUtils.MakeBitmapDrawing(GraphUtils.MakeGreyBitmap(Map2D(mvs, (i, j, mv) => (byte)(256 * Math.Min((mv.Mean - min) / (max - min), 0.99999)))),
+						idxToLog10Rate(0), idxToLog10Rate(res - 1), idxToLog10Rate(0), idxToLog10Rate(res - 1));
+				};
+				Dispatcher.Invoke((Action)(() => {
+					plotControl.Graphs.Add(new GraphDrawingControl {
+						GraphDrawing = makeBmp(trainError, errMin, errMax),
+						YLabel = "log10(learning rate)",
+						XLabel = "log10(label scale)",
+						Name = "TrainError",
+					});
+					plotControl.Graphs.Add(new GraphDrawingControl {
+						GraphDrawing = makeBmp(testError, errMin, errMax),
+						YLabel = "log10(learning rate)",
+						XLabel = "log10(label scale)",
+						Name = "TestError",
+					});
+					plotControl.Graphs.Add(new GraphDrawingControl {
+						GraphDrawing = makeBmp(trainCost, costMin, costMax),
+						YLabel = "log10(learning rate)",
+						XLabel = "log10(label scale)",
+						Name = "TrainCost",
+					});
+					plotControl.Graphs.Add(new GraphDrawingControl {
+						GraphDrawing = makeBmp(testCost, costMin, costMax),
+						YLabel = "log10(learning rate)",
+						XLabel = "log10(label scale)",
+						Name = "TestCost",
+					});
+				}));
+			}) { IsBackground = true }.Start();
+		}
 
 	}
 }

@@ -2,22 +2,22 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:emnWpf="clr-namespace:EmnExtensions.Wpf;assembly=EmnExtensionsWpf"
-    Title="Neural Networks" Height="479" Width="817">
+    Title="Neural Networks" Height="479" Width="817" x:Name="thiswindow" >
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="50*" />
-            <RowDefinition Height="50*" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="220*" />
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="534*" />
             <ColumnDefinition Width="261*" />
         </Grid.ColumnDefinitions>
-        <emnWpf:PlotControl Name="plotControl" Grid.RowSpan="2" />
-        <GridSplitter ResizeDirection="Columns" HorizontalAlignment="Right" Width="3" Background="Gray" Grid.RowSpan="2" />
-        <GridSplitter ResizeDirection="Rows" VerticalAlignment="Bottom" Height="3" Background="Gray" Grid.Column="1" />
-        <emnWpf:LogControl Name="outputLogger" ClaimStandardError="True" ClaimStandardOut="True" Grid.Column="1" Margin="0,0,0,0" Grid.Row="1" />
-        <CheckBox Grid.Column="1" Margin="6,0,0,6" Name="UseCenterOfMass"  IsChecked="True" Height="16" VerticalAlignment="Bottom" HorizontalAlignment="Left" Width="121">UseCenterOfMass</CheckBox>
-        <ListBox Name="commandChooser" Grid.Column="1" Margin="0,0,0,28">
+        <emnWpf:PlotControl Name="plotControl" Grid.RowSpan="3" />
+        <GridSplitter ResizeDirection="Columns" HorizontalAlignment="Right" Width="3" Background="Gray" Grid.RowSpan="3" />
+        <emnWpf:LogControl Name="outputLogger" ClaimStandardError="True" ClaimStandardOut="True" Grid.Column="1" Margin="0,29.283,0,0" Grid.Row="1" Grid.RowSpan="2" />
+        <CheckBox Grid.Column="1" Margin="6,7.283,0,6.25" Name="UseCenterOfMass"   HorizontalAlignment="Left" Width="121" Grid.Row="1">UseCenterOfMass</CheckBox>
+        <ListBox Name="commandChooser" Grid.Column="1" Margin="0,0,0,0" MinHeight="32" ItemsSource="{Binding ElementName=thiswindow, Path=Actions}">
             <ListBox.ItemTemplate>
                 <DataTemplate>
                     <Button Click="ExecuteButton_Click" Content="{Binding Path=Label}"/>
