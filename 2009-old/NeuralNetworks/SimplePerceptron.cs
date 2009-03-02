@@ -9,7 +9,10 @@ namespace NeuralNetworks
 {
 	public class SimplePerceptron
 	{
-		public SimplePerceptron(int N) { w = F.AsEnumerable(() => RndHelper.ThreadLocalRandom.NextNorm() / 10000.0).Take(N).ToArray(); }// w = new Vector(N);
+		public SimplePerceptron(int N) { 
+			//w = F.AsEnumerable(() => RndHelper.ThreadLocalRandom.NextNorm() / 10000.0).Take(N).ToArray();
+			 w = new Vector(N);
+		}
 		public SimplePerceptron(Vector w) { this.w = w; }
 		private int N { get { return w.N; } }
 
@@ -146,28 +149,28 @@ namespace NeuralNetworks
 		}
 
 		public void GradientDescent(DataSet D, double learnRate, int maxEpochs, MersenneTwister r, Action<int> postEpoch) {
-			var wA = w.elems;
+			double[] wA = w.elems;
 			double invLearnBase = 1 / learnRate;
 			int t = 0;
 			for (int epCnt = 0; epCnt < maxEpochs; epCnt++) {
 				for (int i = 0; i < D.P; i++) {
-					double curLearnRate = 1.0 / (t++ + invLearnBase);
-					LabelledSample sample = D.samples[r.NextUInt32()%(uint)D.P]; //this is much faster than r.Next
-					var sA = sample.Sample.elems;
+					double curLearnRate = 1.0 / (invLearnBase + t++); 				//$\gamma_t = (\gamma'^{-1}+t)^{-1}$
+					LabelledSample sample = D.samples[r.NextUInt32() % (uint)D.P];	//select a random sample $\mu_t$
+					double[] sA = sample.Sample.elems;
 					double sample_w = 0.0;
-					for (int k = 0; k < wA.Length; k++)	sample_w += sA[k] * wA[k];
+					for (int k = 0; k < wA.Length; k++) sample_w += sA[k] * wA[k];	//sample_w $\leftarrow w \cdot \xi^{\mu_t}$
 
 					double exp2_sample_w = Math.Exp(2 * sample_w);
-					double exp2_sample_w1 = exp2_sample_w + 1;
+					double exp2_sample_w1 = exp2_sample_w + 1;						//precalculate common expression.
 
-					double sigmaMinTau = (exp2_sample_w - 1) / exp2_sample_w1 - sample.Label;
-					double Dsigma = 4 * exp2_sample_w / (exp2_sample_w1 * exp2_sample_w1);
+					double sigmaMinTau = (exp2_sample_w - 1) / exp2_sample_w1 - sample.Label;//$\sigma\left(\xi^{\mu_t} \cdot w_t \right) - \tau\left(\xi^{\mu_t}\right)$
+					double Dsigma = 4 * exp2_sample_w / (exp2_sample_w1 * exp2_sample_w1);	 //$\sigma'\left(\xi^{\mu_t} \cdot w_t\right)$
 
-					double scaleFac = -curLearnRate * sigmaMinTau * Dsigma;
+					double scaleFac = -curLearnRate * sigmaMinTau * Dsigma;			//$- \gamma_t  \left(\sigma - \tau\right) \sigma' $
 
-					for (int j = 0; j < wA.Length; j++)	wA[j] += scaleFac * sA[j];
+					for (int j = 0; j < wA.Length; j++) wA[j] += scaleFac * sA[j];	//compute $w_{t+1}$ via eq [*\eqref{UR}*]
 				}
-				if(postEpoch!=null) postEpoch(epCnt);
+				if (postEpoch != null) postEpoch(epCnt);							//callback to permit graphing etc.
 			}
 		}
 
