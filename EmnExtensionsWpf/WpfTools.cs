@@ -23,7 +23,7 @@ namespace EmnExtensions.Wpf
 		/// <param name="reqWidth">The requested width.  Don't expect miracles.</param>
 		/// <param name="reqHeight">The requested height.  Don't expect miracles.</param>
 		/// <param name="toStream"></param>
-		public static void PrintXPS(FrameworkElement el, double reqWidth, double reqHeight, Stream toStream, FileMode fileMode, FileAccess fileAccess) {
+		public static void PrintXPS(FrameworkElement el, double reqWidth, double reqHeight, double scaleFactor, Stream toStream, FileMode fileMode, FileAccess fileAccess) {
 			//MemoryStream ms = new MemoryStream();
 			//  using (var stream = File.Open(@"C:\test.xps",FileMode.,FileAccess.ReadWrite)) 
 			Transform oldLayout = el.LayoutTransform;
@@ -55,8 +55,8 @@ namespace EmnExtensions.Wpf
 				el.UpdateLayout();
 
 				FixedPage page = new FixedPage();
-				page.Width = el.ActualWidth;
-				page.Height = el.ActualHeight;
+				page.Width = el.ActualWidth*scaleFactor;
+				page.Height = el.ActualHeight*scaleFactor;
 				page.Background = brush;
 				using (Package packInto = Package.Open(toStream, fileMode, fileAccess))
 				using (XpsDocument doc = new XpsDocument(packInto)) {

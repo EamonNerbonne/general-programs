@@ -127,7 +127,7 @@ namespace EmnExtensions.Wpf
 				toPrint.Graph = graph;
 				var oldVis = graph.Visibility;
 				graph.Visibility = Visibility.Visible;
-				WpfTools.PrintXPS(toPrint, 500, 500, s, FileMode.Create, FileAccess.ReadWrite);
+				WpfTools.PrintXPS(toPrint, 500, 500,1.0, s, FileMode.Create, FileAccess.ReadWrite);
 				graph.Visibility = oldVis;
 			} finally {
 				toPrint.Graph = null;
@@ -144,7 +144,7 @@ namespace EmnExtensions.Wpf
 			};
 			if (saveDialog.ShowDialog() == true) {
 				using (var writestream = new FileStream(saveDialog.FileName, FileMode.Create, FileAccess.ReadWrite))
-					WpfTools.PrintXPS(graphWithLegend, 500, 500, writestream, FileMode.Create, FileAccess.ReadWrite);
+					WpfTools.PrintXPS(graphWithLegend, 500, 500, 1.0,writestream, FileMode.Create, FileAccess.ReadWrite);
 			}
 		}
 
