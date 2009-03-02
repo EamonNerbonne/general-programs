@@ -634,10 +634,11 @@ namespace NeuralNetworks
 		void RealWorldGradientDescent() {
 			bool useCoM = UseCenterOfMass.IsChecked == true;
 			new Thread(() => {
-				const int maxEpoch = 100000;		//5000000
-				const int nD = 100;
-				const double learnRate = 0.01;	//0.000005
-				const double labelScale = 0.25;		//20
+				const int maxEpoch = 1000000;		//5000000
+				const int nD = 10;
+				const double learnRate = 0.002;	//0.000005
+				const double learnDropOff = 1.0;
+				const double labelScale = 1.0;		//20
 				const int graphRes = 10000;
 				var data = DataSet.LoadSamples(DataSet.Ass2File)
 					.Select(sample => new LabelledSample {
@@ -663,7 +664,7 @@ namespace NeuralNetworks
 					var testErrThisRun = new MeanVarCalc[graphRes];
 					var trainCostThisRun = new MeanVarCalc[graphRes]; //this runs error rate cache.
 					var testCostThisRun = new MeanVarCalc[graphRes];
-					w.GradientDescent(D, learnRate, maxEpoch, RndHelper.ThreadLocalRandom, (epochN) => {
+					w.GradientDescent(D, learnRate, learnDropOff,maxEpoch, RndHelper.ThreadLocalRandom, (epochN) => {
 						trainErrThisRun[epochN * (long)graphRes / maxEpoch].Add(w.ErrorRate(D));
 						testErrThisRun[epochN * (long)graphRes / maxEpoch].Add(w.ErrorRate(test));
 						trainCostThisRun[epochN * (long)graphRes / maxEpoch].Add(w.TotalCost(D) / D.P / labelScale / labelScale);
@@ -727,7 +728,7 @@ namespace NeuralNetworks
 					var boundsB = Rect.Empty;
 					foreach (var graph in graphsB)
 						boundsB.Union(graph.GraphBounds);
-					boundsB.Union(new Point(0, 0));
+					boundsB.Union(new Point(0, boundsB.Y));
 
 					foreach (var graph in graphsB.Reverse()) {
 						graph.GraphBounds = boundsB;
@@ -753,6 +754,7 @@ namespace NeuralNetworks
 				while (true) {
 					const int maxEpoch = 10000;
 					const int nD = 10;
+					const double learnDropOff = 1.0;//i.e. plain unscaled harmonic sequence
 					var data = DataSet.LoadSamples(DataSet.Ass2File);
 					DataSet test, train;
 					DataSet.SplitSamples(data, 0.2, out train, out test);//0.2 means with 20% as test.
@@ -797,7 +799,7 @@ namespace NeuralNetworks
 
 							for (int i = 0; i < nD; i++) {
 								SimplePerceptron w = trainW.InitializeNewPerceptron(useCoM);
-								w.GradientDescent(trainW, learnRate, maxEpoch, RndHelper.ThreadLocalRandom, null);
+								w.GradientDescent(trainW, learnRate,learnDropOff, maxEpoch, RndHelper.ThreadLocalRandom, null);
 								trainErrorW.Add(w.ErrorRate(trainW));
 								testErrorW.Add(w.ErrorRate(testW));
 								trainCostW.Add(w.TotalCost(trainW) / trainW.P / labelScale / labelScale);
@@ -951,5 +953,125 @@ namespace NeuralNetworks
 				}));
 			}) { IsBackground = true }.Start();
 		}
+
+		[MakeButton]
+		void VaryingTrainingSamplesGradientDescent() {
+			bool useCoM = UseCenterOfMass.IsChecked == true;
+			new Thread(() => {
+				const int maxEpoch = 10000;		//5000000
+				const int nD = 10;
+				const double learnRate = 0.01;	//0.000005
+				const double learnDropOff = 1.0;
+				const double labelScale = 0.3;		//20
+				const int topP = 400;
+				const int botP = 0;
+				const int stepP = 4;
+				const int numP = (topP - botP) / stepP; //  P = topP - i * stepP
+				var data = DataSet.LoadSamples(DataSet.Ass2File);
+				DataSet test, train;
+				DataSet.SplitSamples(data, 0.2, out train, out test);//0.2 means with 20% as test.
+				test = test.WithScaledLabels(labelScale);
+				train = train.WithScaledLabels(labelScale);
+				Console.WriteLine("Data Loaded");
+
+				//sink for online (no storage) mean/variance calculations
+				MeanVarCalc[] trainError = new MeanVarCalc[numP];
+				MeanVarCalc[] testError = new MeanVarCalc[numP];
+				MeanVarCalc[] trainCost = new MeanVarCalc[numP];
+				MeanVarCalc[] testCost = new MeanVarCalc[numP];
+
+				object syncMutex = new object(); //mutex for accessing the MeanVarCalc shared variables.
+				Parallel.For(0, nD, iterI => {
+					DataSet D = train.ShuffledCopy();
+					double[] trainErr = new double[numP];
+					double[] testErr = new double[numP];
+					double[] trainCostL = new double[numP];
+					double[] testCostL = new double[numP];
+					for (int i = 0; i < numP; i++) {
+						int P = topP - i * stepP;
+						DataSet subset = new DataSet(D.samples.Take(P).ToArray());
+						SimplePerceptron w = subset.InitializeNewPerceptron(useCoM);
+						w.GradientDescent(subset, learnRate,learnDropOff, maxEpoch,RndHelper.ThreadLocalRandom, null);
+						trainErr[i] = w.ErrorRate(subset);
+						testErr[i] = w.ErrorRate(test);
+						trainCostL[i] = w.TotalCost(subset) / subset.P / labelScale / labelScale;
+						testCostL[i] = w.TotalCost(test) / test.P / labelScale / labelScale;
+					}
+					lock (syncMutex) {
+						for (int i = 0; i < numP; i++) {
+							trainError[i].Add(trainErr[i]);
+							testError[i].Add(testErr[i]);
+							trainCost[i].Add(trainCostL[i]);
+							testCost[i].Add(testCostL[i]);
+						}
+					}
+				});
+
+
+				Console.WriteLine("FinalTrain:{0}", trainError[numP - 1]);
+				Console.WriteLine("FinalTest:{0}", testError[numP - 1]);
+				Console.WriteLine("FinalTrainCost:{0}", trainCost[numP - 1]);
+				Console.WriteLine("FinalTestCost:{0}", testCost[numP - 1]);
+
+				//Graph construction function:
+				Func<IEnumerable<double>, string, GraphControl> errors2Graph = (vec, name) => new GraphGeometryControl {
+					GraphGeometry = GraphUtils.Line(vec.Select((e, i) => new Point(topP-i*stepP, e)).ToArray()),
+					Name = name,
+					XLabel = "P",
+					YLabel = name + " Rate",
+				};
+				//Color fading function:
+				Func<Brush, Brush> fadeColorBrush = (brush) => new SolidColorBrush(Color.Multiply(
+						Color.Add(Color.FromScRgb(1.0f, 1.0f, 1.0f, 1.0f), ((SolidColorBrush)brush).Color), 0.5f));
+
+				Func<MeanVarCalc[], string, SolidColorBrush, IEnumerable<GraphControl>> makeGraphs = (graphdata, label, brush) => {
+					GraphControl datG = errors2Graph(graphdata.Select(p => p.Mean), label),
+						datGU = errors2Graph(graphdata.Select(p => p.Mean + p.StdDev), label + "Upper"),
+						datGL = errors2Graph(graphdata.Select(p => p.Mean - p.StdDev), label + "Lower");
+					datG.GraphLineColor = brush;
+					datGU.GraphLineColor = datGL.GraphLineColor = fadeColorBrush(brush);
+					return new[] { datG, datGL, datGU };
+				};
+
+				//display code must run on the UI thread, hence the Dispatcher:
+				Dispatcher.Invoke((Action)(() => {
+					var graphsA =
+						makeGraphs(trainError, "TrainingError", Brushes.DarkBlue).Concat(
+						makeGraphs(testError, "TestError", Brushes.DarkRed)).ToArray();
+					var graphsB =
+						makeGraphs(trainCost, "TrainingCost", Brushes.DarkCyan).Concat(
+						makeGraphs(testCost, "TestCost", Brushes.DarkOrange)).ToArray();
+
+					var bounds = Rect.Empty;
+					foreach (var graph in graphsA)
+						bounds.Union(graph.GraphBounds);
+					bounds.Union(new Point(0, 0));
+
+					foreach (var graph in graphsA.Reverse()) {
+						graph.GraphBounds = bounds;
+						plotControl.Graphs.Add(graph);
+						graph.Visibility = Visibility.Hidden;
+					}
+
+					var boundsB = Rect.Empty;
+					foreach (var graph in graphsB)
+						boundsB.Union(graph.GraphBounds);
+					boundsB.Union(new Point(0, 0));
+
+					foreach (var graph in graphsB.Reverse()) {
+						graph.GraphBounds = boundsB;
+						plotControl.Graphs.Add(graph);
+						graph.Visibility = Visibility.Hidden;
+					}
+					plotControl.ShowGraph(graphsA[0]);
+					plotControl.ShowGraph(graphsA[3]);
+
+				}));
+
+				Console.WriteLine("Done with RealWorldConvergence");
+
+			}) { IsBackground = true }.Start();
+		}
+
 	}
 }
