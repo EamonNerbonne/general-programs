@@ -40,7 +40,7 @@ namespace EmnExtensions.Wpf
 		public int ScaleFactor { get; set; }
 		public string ColorLabel { get; set; }
 
-		public double ComputeScaledValue(double v) { return v > rMax ? 1.0 : (v < rMin ? 0.0 : (v - rMin) / (rMax - rMin)); }
+		public double ComputeScaledValue(double v) { return v > rMax||! double.IsNaN(v) ? 1.0 : (v < rMin ? 0.0 : (v - rMin) / (rMax - rMin)); }
 
 		public void RecomputeBitmap() {
 			if (ColorLabel == null && Name != null)
