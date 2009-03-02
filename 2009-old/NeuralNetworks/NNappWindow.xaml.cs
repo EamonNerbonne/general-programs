@@ -51,7 +51,7 @@ namespace NeuralNetworks
 
 		protected override void OnInitialized(EventArgs e) {
 			base.OnInitialized(e);
-			//Process.GetCurrentProcess().PriorityClass = ProcessPriorityClass.Idle;
+			Process.GetCurrentProcess().PriorityClass = ProcessPriorityClass.BelowNormal;
 		}
 
 		[AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
@@ -634,62 +634,59 @@ namespace NeuralNetworks
 		void RealWorldGradientDescent() {
 			bool useCoM = UseCenterOfMass.IsChecked == true;
 			new Thread(() => {
-				NiceTimer.Time("DoGD", () => {
-					const int maxEpoch = 10000;
-					const int nD = 50;
-					const double learnRate = 0.01;
-					const double labelScale = 0.1;
-					var data = DataSet.LoadSamples(DataSet.Ass2File)
-						.Select(sample => new LabelledSample {
-							Label = labelScale * sample.Label,
-							Sample = sample.Sample
-						})
-						.ToArray();
-					DataSet test, train;
-					DataSet.SplitSamples(data, 0.2, out train, out test);//0.2 means with 20% as test.
-					Console.WriteLine("Data Loaded");
+				const int maxEpoch = 100000;		//5000000
+				const int nD = 100;
+				const double learnRate = 0.01;	//0.000005
+				const double labelScale = 0.25;		//20
+				const int graphRes = 10000;
+				var data = DataSet.LoadSamples(DataSet.Ass2File)
+					.Select(sample => new LabelledSample {
+						Label = labelScale * sample.Label,
+						Sample = sample.Sample
+					})
+					.ToArray();
+				DataSet test, train;
+				DataSet.SplitSamples(data, 0.2, out train, out test);//0.2 means with 20% as test.
+				Console.WriteLine("Data Loaded");
 
-					//sink for online (no storage) mean/variance calculations
-					MeanVarCalc[] trainError = new MeanVarCalc[maxEpoch];
-					MeanVarCalc[] testError = new MeanVarCalc[maxEpoch];
-					MeanVarCalc[] trainCost = new MeanVarCalc[maxEpoch];
-					MeanVarCalc[] testCost = new MeanVarCalc[maxEpoch];
+				//sink for online (no storage) mean/variance calculations
+				MeanVarCalc[] trainError = new MeanVarCalc[graphRes];
+				MeanVarCalc[] testError = new MeanVarCalc[graphRes];
+				MeanVarCalc[] trainCost = new MeanVarCalc[graphRes];
+				MeanVarCalc[] testCost = new MeanVarCalc[graphRes];
 
-					object syncMutex = new object(); //mutex for accessing the MeanVarCalc shared variables.
-					Parallel.For(0, nD, iterI => {
-						DataSet D = train.ShuffledCopy();
-						SimplePerceptron w = D.InitializeNewPerceptron(useCoM);
-						var trainErrThisRun = new double[maxEpoch]; //this runs error rate cache.
-						var testErrThisRun = new double[maxEpoch];
-						var trainCostThisRun = new double[maxEpoch]; //this runs error rate cache.
-						var testCostThisRun = new double[maxEpoch];
-						w.GradientDescent(D, learnRate, maxEpoch, RndHelper.ThreadLocalRandom, null);/*(epochN) => {
-						trainErrThisRun[epochN] = w.ErrorRate(D);
-						testErrThisRun[epochN] = w.ErrorRate(test);
-						trainCostThisRun[epochN] = w.TotalCost(D)/D.P/labelScale/labelScale;
-						testCostThisRun[epochN] = w.TotalCost(test) / test.P / labelScale / labelScale;
+				object syncMutex = new object(); //mutex for accessing the MeanVarCalc shared variables.
+				Parallel.For(0, nD, iterI => {
+					DataSet D = train.ShuffledCopy();
+					SimplePerceptron w = D.InitializeNewPerceptron(useCoM);
+					var trainErrThisRun = new MeanVarCalc[graphRes]; //this runs error rate cache.
+					var testErrThisRun = new MeanVarCalc[graphRes];
+					var trainCostThisRun = new MeanVarCalc[graphRes]; //this runs error rate cache.
+					var testCostThisRun = new MeanVarCalc[graphRes];
+					w.GradientDescent(D, learnRate, maxEpoch, RndHelper.ThreadLocalRandom, (epochN) => {
+						trainErrThisRun[epochN * (long)graphRes / maxEpoch].Add(w.ErrorRate(D));
+						testErrThisRun[epochN * (long)graphRes / maxEpoch].Add(w.ErrorRate(test));
+						trainCostThisRun[epochN * (long)graphRes / maxEpoch].Add(w.TotalCost(D) / D.P / labelScale / labelScale);
+						testCostThisRun[epochN * (long)graphRes / maxEpoch].Add(w.TotalCost(test) / test.P / labelScale / labelScale);
 					});
 					lock (syncMutex) { //for reduced lock contention, send error rates all at once.
-						for (int i = 0; i < maxEpoch; i++) {
+						for (int i = 0; i < graphRes; i++) {
 							trainError[i].Add(trainErrThisRun[i]);
 							testError[i].Add(testErrThisRun[i]);
 							trainCost[i].Add(trainCostThisRun[i]);
 							testCost[i].Add(testCostThisRun[i]);
 						}
-					}*/
-					});
+					}
 				});
-				//				Console.WriteLine("done.");
-				//				Dispatcher.Invoke((Action)Close);
-				/*
-				Console.WriteLine("FinalTrain:{0}", trainError[maxEpoch - 1]);
-				Console.WriteLine("FinalTest:{0}", testError[maxEpoch - 1]);
-				Console.WriteLine("FinalTrainCost:{0}", trainCost[maxEpoch - 1]);
-				Console.WriteLine("FinalTestCost:{0}", testCost[maxEpoch - 1]);
+
+				Console.WriteLine("FinalTrain:{0}", trainError[graphRes - 1]);
+				Console.WriteLine("FinalTest:{0}", testError[graphRes - 1]);
+				Console.WriteLine("FinalTrainCost:{0}", trainCost[graphRes - 1]);
+				Console.WriteLine("FinalTestCost:{0}", testCost[graphRes - 1]);
 
 				//Graph construction function:
-				Func<IEnumerable<double>, string, GraphControl> errors2Graph = (vec, name) => new GraphControl {
-					LineGeometry = GraphControl.Line(vec.Select((e, i) => new Point(i+1, e)).ToArray()),
+				Func<IEnumerable<double>, string, GraphControl> errors2Graph = (vec, name) => new GraphGeometryControl {
+					GraphGeometry = GraphUtils.Line(vec.Select((e, i) => new Point((i + 0.5) / (double)graphRes*maxEpoch + 1, e)).ToArray()),
 					Name = name,
 					XLabel = "Epoch",
 					YLabel = name + " Rate",
@@ -698,7 +695,7 @@ namespace NeuralNetworks
 				Func<Brush, Brush> fadeColorBrush = (brush) => new SolidColorBrush(Color.Multiply(
 						Color.Add(Color.FromScRgb(1.0f, 1.0f, 1.0f, 1.0f), ((SolidColorBrush)brush).Color), 0.5f));
 
-				Func<MeanVarCalc[], string, SolidColorBrush, IEnumerable<GraphControl>> makeGraphs = (graphdata,label,brush) => {
+				Func<MeanVarCalc[], string, SolidColorBrush, IEnumerable<GraphControl>> makeGraphs = (graphdata, label, brush) => {
 					GraphControl datG = errors2Graph(graphdata.Select(p => p.Mean), label),
 						datGU = errors2Graph(graphdata.Select(p => p.Mean + p.StdDev), label + "Upper"),
 						datGL = errors2Graph(graphdata.Select(p => p.Mean - p.StdDev), label + "Lower");
@@ -715,24 +712,24 @@ namespace NeuralNetworks
 					var graphsB =
 						makeGraphs(trainCost, "TrainingCost", Brushes.DarkCyan).Concat(
 						makeGraphs(testCost, "TestCost", Brushes.DarkOrange)).ToArray();
-					
+
 					var bounds = Rect.Empty;
 					foreach (var graph in graphsA)
 						bounds.Union(graph.GraphBounds);
 					bounds.Union(new Point(0, 0));
 
-					foreach (var graph in graphsA) {
+					foreach (var graph in graphsA.Reverse()) {
 						graph.GraphBounds = bounds;
 						plotControl.Graphs.Add(graph);
 						graph.Visibility = Visibility.Hidden;
 					}
-					
+
 					var boundsB = Rect.Empty;
 					foreach (var graph in graphsB)
 						boundsB.Union(graph.GraphBounds);
 					boundsB.Union(new Point(0, 0));
 
-					foreach (var graph in graphsB) {
+					foreach (var graph in graphsB.Reverse()) {
 						graph.GraphBounds = boundsB;
 						plotControl.Graphs.Add(graph);
 						graph.Visibility = Visibility.Hidden;
@@ -743,12 +740,12 @@ namespace NeuralNetworks
 				}));
 
 				Console.WriteLine("Done with RealWorldConvergence");
-				 */
+
 			}) { IsBackground = true }.Start();
 		}
 		const int res = 51;
-		static double idxToRate(int i) { return Math.Pow(10, i * (-4 / (double)(res - 1))); }
-		static double idxToLog10Rate(int i) { return i * (-4 / (double)(res - 1)); }
+		static double idxToRate(int i) { return Math.Pow(10, idxToLog10Rate(i)); }
+		static double idxToLog10Rate(int i) { return (i - 3) * (-5 / (double)(res - 1)); }
 		[MakeButton]
 		void GradientDescentPicture() {
 			bool useCoM = UseCenterOfMass.IsChecked == true;
@@ -835,7 +832,7 @@ namespace NeuralNetworks
 									"TRE<" + trainError[LRidx, LSidx] + "> " +
 									"TEE<" + testError[LRidx, LSidx] + "> " +
 									"TRC<" + trainCost[LRidx, LSidx] + "> " +
-									"TEC<" + testCost[LRidx, LSidx] + ">");
+									"TEC<" + testCost[LRidx, LSidx] + ">, " + trainError[LRidx, LSidx].Count);
 
 					}
 					Console.WriteLine("Did {0} more tests", nD);
@@ -844,7 +841,7 @@ namespace NeuralNetworks
 		}
 
 		public Regex errorsaveRegex = new Regex(
-			@"^\[(?<lr>\d+),(?<ls>\d+)\]: TRE<(?<tre>[^ ]+) \+/- (?<treE>[^>]+)> TEE<(?<tee>[^ ]+) \+/- (?<teeE>[^>]+)> TRC<(?<trc>[^ ]+) \+/- (?<trcE>[^>]+)> TEC<(?<tec>[^ ]+) \+/- (?<tecE>[^>]+)>$", RegexOptions.Compiled | RegexOptions.ExplicitCapture);
+			@"^\[(?<lr>\d+),(?<ls>\d+)\]: TRE<(?<tre>[^ ]+) \+/- (?<treE>[^>]+)> TEE<(?<tee>[^ ]+) \+/- (?<teeE>[^>]+)> TRC<(?<trc>[^ ]+) \+/- (?<trcE>[^>]+)> TEC<(?<tec>[^ ]+) \+/- (?<tecE>[^>]+)>(, (?<count>\d+))?$", RegexOptions.Compiled | RegexOptions.ExplicitCapture);
 
 		public static M[,] Map2D<T, M>(T[,] input, Func<int, int, T, M> mapFunc) {
 			M[,] retval = new M[input.GetLength(0), input.GetLength(1)];
@@ -876,7 +873,9 @@ namespace NeuralNetworks
 				Action<Match, string, MeanVarCalc[,]> proc = (match, s, sink) => {
 					var mean = getd(match, s);
 					var stddev = getd(match, s + "E");
-					int count = 10;
+					int count;
+					if (!int.TryParse(match.Groups["count"].Value, out count))
+						count = 10;//default in earlier versions.
 					sink[geti(match, "lr"), geti(match, "ls")].Add(count, mean * count, stddev * stddev * (count - 1) + mean * mean * count);
 				};
 				foreach (string line in new FileInfo(saveLogName).GetLines()) {
@@ -892,24 +891,32 @@ namespace NeuralNetworks
 					.Select(mv => mv.Mean)
 					.OrderBy(mean => mean)
 					.ToArray();
+				var errsDev = AsEnumerable(trainError).Concat(AsEnumerable(testError))
+					.Select(mv => mv.StdDev)
+					.OrderBy(s => s)
+					.ToArray();
 				var costs = AsEnumerable(trainCost).Concat(AsEnumerable(testCost))
 					.Select(mv => mv.Mean)
 					.OrderBy(mean => mean)
 					.ToArray();
-				double errMin = errs.First(),
+				var costsDev = AsEnumerable(trainCost).Concat(AsEnumerable(testCost))
+					.Select(mv => mv.StdDev)
+					.OrderBy(s => s)
+					.ToArray();
+				double errMin = errs.First(v => v.IsFinite()),
 					errMax = errs.Skip((int)(errs.Length * 0.90)).First(),
-					costMin = costs.First(),
-					costMax = costs.Skip((int)(costs.Length * 0.90)).First();
+					costMin = costs.First(v => v.IsFinite()),
+					costMax = costs.Skip((int)(costs.Length * 0.90)).First(),
+					errDMin = errsDev.First(v => v.IsFinite()),
+					errDMax = errsDev.Skip((int)(errsDev.Length * 0.90)).First(),
+					costDMin = costsDev.First(v => v.IsFinite()),
+					costDMax = costsDev.Skip((int)(costsDev.Length * 0.90)).First();
 
 
-				Func<MeanVarCalc[,], double, double, Drawing> makeBmp = (mvs, min, max) => {
-					return GraphUtils.MakeBitmapDrawing(GraphUtils.MakeGreyBitmap(Map2D(mvs, (i, j, mv) => (byte)(256 * Math.Min((mv.Mean - min) / (max - min), 0.99999)))),
-						idxToLog10Rate(0), idxToLog10Rate(res - 1), idxToLog10Rate(0), idxToLog10Rate(res - 1));
-				};
 
-				Func<MeanVarCalc[,],double,double,string,Graph2DControl> makeGraph =(mvs,min,max,label) => 
+				Func<double[,], double, double, string, Graph2DControl> makeGraph = (mvs, min, max, label) =>
 					new Graph2DControl {
-						GraphData = Map2D(mvs, (i, j, mv) => mv.Mean),
+						GraphData = mvs,
 						MinVal = min,
 						MaxVal = max,
 						YLabel = "log10(learning rate)",
@@ -920,17 +927,22 @@ namespace NeuralNetworks
 						Y0 = idxToLog10Rate(0),
 						YFin = idxToLog10Rate(res - 1),
 						Name = label,
-						Colormap = Colormaps.BlueMagentaWhite,
+						Colormap = Colormaps.ScaledRainbow,
 						GraphLineColor = Brushes.Black,
 						ScaleFactor = 10,
 					};
 
 				Dispatcher.Invoke((Action)(() => {
 					foreach (var graph in new[] {
-						makeGraph(trainError, errMin, errMax,"TrainErrorRate"),
-						makeGraph(testError, errMin, errMax,"TestErrorRate"),
-						makeGraph(trainCost, costMin, costMax,"TrainCost"),
-						makeGraph(testCost, costMin, costMax,"TestCost"),
+						makeGraph(Map2D(trainError, (i, j, mv) => mv.Mean), errMin, errMax,"TrainErrorRate"),
+						makeGraph(Map2D(testError, (i, j, mv) => mv.Mean), errMin, errMax,"TestErrorRate"),
+						makeGraph(Map2D(trainCost, (i, j, mv) => mv.Mean), costMin, costMax,"TrainCost"),
+						makeGraph(Map2D(testCost, (i, j, mv) => mv.Mean), costMin, costMax,"TestCost"),
+						
+						makeGraph(Map2D(trainError, (i, j, mv) => mv.StdDev), errDMin, errDMax,"TrainErrorRateStdDev"),
+						makeGraph(Map2D(testError, (i, j, mv) => mv.StdDev), errDMin, errDMax,"TestErrorRateStdDev"),
+						makeGraph(Map2D(trainCost, (i, j, mv) => mv.StdDev), costDMin, costDMax,"TrainCostStdDev"),
+						makeGraph(Map2D(testCost, (i, j, mv) => mv.StdDev), costDMin, costDMax,"TestCostStdDev"),
 					}) {
 						graph.RecomputeBitmap();
 						plotControl.Graphs.Add(graph);
@@ -939,6 +951,5 @@ namespace NeuralNetworks
 				}));
 			}) { IsBackground = true }.Start();
 		}
-
 	}
 }
