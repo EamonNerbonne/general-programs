@@ -31,6 +31,26 @@ namespace EmnExtensions.Wpf
 
 			return c;
 		}
+		public static Color ScaledRainbow(double value) {
+			if (value < 0) value = 0; if (value > 1) value = 1;
+			const double rampMargin = 0.05;
+			const double ramp1 = 0.29;
+			const double ramp2 = 0.71;
+			const double hStart =ramp1-rampMargin;
+			const double hEnd = ramp2+rampMargin;
+			HSL hsl = new HSL {
+				S = Math.Min(1.0, (1 - value)/(1-ramp2)),
+				L = Math.Min(value/ramp1,1.0)
+			};
+			if (value < hStart) hsl.H = 0;
+			else if (value < hEnd) hsl.H = (value-hStart) / (hEnd - hStart) * 2.0 / 3.0;
+			else hsl.H = 2.0/3.0;
+			
+
+			Color c = ColorConversion.HSL_to_RGB(hsl);
+
+			return c;
+		}
 
 
 		public static Color BlueYellow(double value) {
@@ -60,14 +80,12 @@ namespace EmnExtensions.Wpf
 			return Color.FromRgb((byte)(r * 255.9999), (byte)(g * 255.9999), (byte)(b * 255.9999));
 		}
 		public static Color BlueMagentaWhite(double value) {
-			//value = Math.Pow(value, 1.1) * 3.0;
-			double b = Math.Min(0.4, value)/0.4;
-			value = Math.Max(0.0, value - 0.4);
-			
-			double r = Math.Min(0.3, value)/0.3;
-			value = Math.Max(0.0, value - 0.3);
-			
-			double g = value/0.3;
+			value = value * 3.0;
+			double b = Math.Min(1.0, value);
+			value = Math.Max(0.0, value - 1.0);
+			double r = Math.Min(1.0, value);
+			value = Math.Max(0.0, value - 1.0);
+			double g = value;
 			return Color.FromRgb((byte)(r * 255.9999), (byte)(g * 255.9999), (byte)(b * 255.9999));
 		}
 
