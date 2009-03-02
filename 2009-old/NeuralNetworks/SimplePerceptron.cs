@@ -9,9 +9,9 @@ namespace NeuralNetworks
 {
 	public class SimplePerceptron
 	{
-		public SimplePerceptron(int N) { 
+		public SimplePerceptron(int N) {
 			//w = F.AsEnumerable(() => RndHelper.ThreadLocalRandom.NextNorm() / 10000.0).Take(N).ToArray();
-			 w = new Vector(N);
+			w = new Vector(N);
 		}
 		public SimplePerceptron(Vector w) { this.w = w; }
 		private int N { get { return w.N; } }
@@ -148,13 +148,13 @@ namespace NeuralNetworks
 			};
 		}
 
-		public void GradientDescent(DataSet D, double learnRate, int maxEpochs, MersenneTwister r, Action<int> postEpoch) {
+		public void GradientDescent(DataSet D, double lrInitial, double lrDropOff, int maxEpochs, MersenneTwister r, Action<int> postEpoch) {
 			double[] wA = w.elems;
-			double invLearnBase = 1 / learnRate;
+			double invLR0 = 1 / lrInitial;
 			int t = 0;
 			for (int epCnt = 0; epCnt < maxEpochs; epCnt++) {
 				for (int i = 0; i < D.P; i++) {
-					double curLearnRate = 1.0 / (invLearnBase + t++); 				//$\gamma_t = (\gamma'^{-1}+t)^{-1}$
+					double curLearnRate = 1.0 / (invLR0 + lrDropOff * (t++));		//$\gamma_t = (\gamma'^{-1}+t)^{-1}$
 					LabelledSample sample = D.samples[r.NextUInt32() % (uint)D.P];	//select a random sample $\mu_t$
 					double[] sA = sample.Sample.elems;
 					double sample_w = 0.0;
