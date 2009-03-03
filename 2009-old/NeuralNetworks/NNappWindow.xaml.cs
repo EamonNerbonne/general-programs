@@ -634,11 +634,11 @@ namespace NeuralNetworks
 		void RealWorldGradientDescent() {
 			bool useCoM = UseCenterOfMass.IsChecked == true;
 			new Thread(() => {
-				const int maxEpoch = 5000000;		//5000000
-				const int nD = 10;
-				const double learnRate = 0.005;	//0.000005
-				const double learnDropOff = 0.5;
-				const double labelScale = 1.0;		//20
+				const int maxEpoch = 20000;		//5000000
+				const int nD = 100;
+				const double learnRate = 0.000005;	//0.000005
+				const double learnDropOff = 0.0001;
+				const double labelScale = 20;		//20
 				const int graphRes = 10000;
 				var data = DataSet.LoadSamples(DataSet.Ass2File)
 					.Select(sample => new LabelledSample {
