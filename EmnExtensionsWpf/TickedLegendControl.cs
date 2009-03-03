@@ -172,7 +172,7 @@ namespace EmnExtensions.Wpf
 
 
             cachedCulture = CultureInfo.CurrentCulture;
-            orderOfMagnitudeDiff = (int)Math.Floor(Math.Log10(Math.Abs(startVal - endVal))) - 1;
+            orderOfMagnitudeDiff = (int)Math.Floor(Math.Log10(Math.Abs(startVal - endVal))) - 2;
             orderOfMagnitude = (int)Math.Floor(Math.Log10(Math.Max(Math.Abs(startVal), Math.Abs(endVal))));
 			if (Math.Abs(orderOfMagnitude) < 4) orderOfMagnitude = 0;
 
@@ -230,7 +230,7 @@ namespace EmnExtensions.Wpf
 
 
         FormattedText MakeText(double val) {
-            string numericValueString = (val).ToString("f" + (orderOfMagnitude - orderOfMagnitudeDiff));
+            string numericValueString = (val).ToString("f" + Math.Max(0,orderOfMagnitude - orderOfMagnitudeDiff));
             return new FormattedText(numericValueString, cachedCulture, FlowDirection.LeftToRight, labelType, fontSize, Brushes.Black);
         }
         void MakeLegendText(out FormattedText baseL, out FormattedText powL, out FormattedText textL, out double totalLabelWidth) {

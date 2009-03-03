@@ -634,10 +634,10 @@ namespace NeuralNetworks
 		void RealWorldGradientDescent() {
 			bool useCoM = UseCenterOfMass.IsChecked == true;
 			new Thread(() => {
-				const int maxEpoch = 1000000;		//5000000
+				const int maxEpoch = 5000000;		//5000000
 				const int nD = 10;
-				const double learnRate = 0.002;	//0.000005
-				const double learnDropOff = 1.0;
+				const double learnRate = 0.005;	//0.000005
+				const double learnDropOff = 0.5;
 				const double labelScale = 1.0;		//20
 				const int graphRes = 10000;
 				var data = DataSet.LoadSamples(DataSet.Ass2File)
@@ -958,8 +958,8 @@ namespace NeuralNetworks
 		void VaryingTrainingSamplesGradientDescent() {
 			bool useCoM = UseCenterOfMass.IsChecked == true;
 			new Thread(() => {
-				const int maxEpoch = 10000;		//5000000
-				const int nD = 10;
+				const int maxEpoch = 20000;		//5000000
+				const int nD = 1000;
 				const double learnRate = 0.01;	//0.000005
 				const double learnDropOff = 1.0;
 				const double labelScale = 0.3;		//20
@@ -981,32 +981,48 @@ namespace NeuralNetworks
 				MeanVarCalc[] testCost = new MeanVarCalc[numP];
 
 				object syncMutex = new object(); //mutex for accessing the MeanVarCalc shared variables.
-				Parallel.For(0, nD, iterI => {
-					DataSet D = train.ShuffledCopy();
-					double[] trainErr = new double[numP];
-					double[] testErr = new double[numP];
-					double[] trainCostL = new double[numP];
-					double[] testCostL = new double[numP];
-					for (int i = 0; i < numP; i++) {
-						int P = topP - i * stepP;
-						DataSet subset = new DataSet(D.samples.Take(P).ToArray());
-						SimplePerceptron w = subset.InitializeNewPerceptron(useCoM);
-						w.GradientDescent(subset, learnRate,learnDropOff, maxEpoch,RndHelper.ThreadLocalRandom, null);
-						trainErr[i] = w.ErrorRate(subset);
-						testErr[i] = w.ErrorRate(test);
-						trainCostL[i] = w.TotalCost(subset) / subset.P / labelScale / labelScale;
-						testCostL[i] = w.TotalCost(test) / test.P / labelScale / labelScale;
-					}
-					lock (syncMutex) {
-						for (int i = 0; i < numP; i++) {
-							trainError[i].Add(trainErr[i]);
-							testError[i].Add(testErr[i]);
-							trainCost[i].Add(trainCostL[i]);
-							testCost[i].Add(testCostL[i]);
-						}
-					}
-				});
+				int nextI = 0;
+				const int maxThreads = 4;
+				Semaphore stopSem = new Semaphore(0, maxThreads + 1);
 
+
+
+				ThreadStart workerAction = () => {
+					while (true) {
+						int i;
+						lock (syncMutex) {
+							i = nextI;
+							nextI++;
+
+						}
+						if (i >= numP) break;
+						MeanVarCalc trainErr = new MeanVarCalc();
+						MeanVarCalc testErr = new MeanVarCalc();
+						MeanVarCalc trainCostL = new MeanVarCalc();
+						MeanVarCalc testCostL = new MeanVarCalc();
+						int P = topP - i * stepP;//handy: start with high P, these are more difficult.
+						for (int iterI = 0; iterI < nD; iterI++) {
+							DataSet subset = new DataSet(train.ShuffledCopy().samples.Take(P).ToArray());
+							SimplePerceptron w = subset.InitializeNewPerceptron(useCoM);
+							w.GradientDescent(subset, learnRate, learnDropOff, maxEpoch, RndHelper.ThreadLocalRandom, null);
+							trainErr.Add(w.ErrorRate(subset));
+							testErr.Add(w.ErrorRate(test));
+							trainCostL.Add(w.TotalCost(subset) / subset.P / labelScale / labelScale);
+							testCostL.Add(w.TotalCost(test) / test.P / labelScale / labelScale);
+						}
+						trainError[i] = trainErr;//no locking needed since only this thread ever uses the current i;
+						testError[i]= testErr;
+						trainCost[i]=trainCostL;
+						testCost[i]=testCostL;
+					}
+					stopSem.Release();
+				};
+
+				for (int i = 0; i < maxThreads; i++)
+					new Thread(workerAction) { IsBackground = true }.Start();
+
+				for (int i = 0; i < maxThreads; i++)
+					stopSem.WaitOne();
 
 				Console.WriteLine("FinalTrain:{0}", trainError[numP - 1]);
 				Console.WriteLine("FinalTest:{0}", testError[numP - 1]);
