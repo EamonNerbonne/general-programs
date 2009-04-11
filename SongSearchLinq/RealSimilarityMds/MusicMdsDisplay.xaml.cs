@@ -176,12 +176,11 @@ namespace RealSimilarityMds
                 });
         }
 
-        private void calculateButton_Click(object sender, RoutedEventArgs e) {
+/*        private void calculateButton_Click(object sender, RoutedEventArgs e) {
             progress.NewTask("Initializing...");
             var foptions = SelectedFormatAndOptions;
             var setup = new DistFormatLoader(new TimingProgressManager(), foptions.Format, true);
-            GraphControl testG,
-                corrG;
+            GraphGeometryControl testG, corrG;
             ThreadPool.QueueUserWorkItem((o) => {
                 try {
                     progress.NewTask("Loading data...");
@@ -193,13 +192,14 @@ namespace RealSimilarityMds
                             Console.WriteLine(e2.StackTrace);
                         }
                     });
-                    PlotControl.TryGetGraph("test_" + foptions.ToString(), out testG);
-                    PlotControl.TryGetGraph("corr_" + foptions.ToString(), out corrG);
+					GraphControl gr;
+					PlotControl.TryGetGraph("test_" + foptions.ToString(), out gr); testG = (GraphGeometryControl)gr;
+					PlotControl.TryGetGraph("corr_" + foptions.ToString(), out gr); corrG = (GraphGeometryControl)gr;
 
                     engine.Correlations.CollectionChanged += delegate(object coll, NotifyCollectionChangedEventArgs eArgs) {
                         if (eArgs.Action == NotifyCollectionChangedAction.Add) {
                             foreach (Point p in eArgs.NewItems)
-                                corrG.Dispatcher.BeginInvoke((Action<Point>)corrG.AddPoint, p);
+                                corrG.Dispatcher.BeginInvoke((Action<Point>)corrG .AddPoint, p);
                         }
                     };
                     engine.TestSetRankings.CollectionChanged += delegate(object coll, NotifyCollectionChangedEventArgs eArgs) {
@@ -219,11 +219,7 @@ namespace RealSimilarityMds
                 }
 
             });
-
-
-
-
-        }
+        }*/
 
         void Correlations_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e) {
             throw new NotImplementedException();

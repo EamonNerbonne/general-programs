@@ -90,6 +90,26 @@ namespace EmnExtensions.Wpf
 			fig.Segments.Add(new LineSegment(point, true));
 		}
 
+		/// <summary>
+		/// Extends the line made by the last figure in the geometry to the given point.  
+		/// </summary>
+		/// <param name="toGeom">The PathGeometry to extend.</param>
+		/// <param name="point">The point to draw a line to.  Note; IsOK(point) must hold (i.e.
+		/// no NaN of Inf points) for sane results;</param>
+		public static void AddPoint(PathGeometry toGeom, Point point) {
+			var figs = toGeom.Figures;
+			var lastFig = figs.Count>0?figs[figs.Count-1]:null;
+			if (lastFig == null) {
+				lastFig = new PathFigure {
+					StartPoint = point
+				};
+				toGeom.Figures.Add(lastFig);
+			} else {
+				lastFig.Segments.Add(new LineSegment(point, true));
+			};
+		}
+
+
 		public static Matrix TransformShape(Rect fromPosition, Rect toPosition, bool flipVertical) {
 			Matrix translateThenScale = Matrix.Identity;
 			//we first translate to origin since that's just easier

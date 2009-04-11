@@ -55,7 +55,6 @@
             <TextBox Grid.Row="6" ></TextBox>
             <Button Grid.Row="6" Padding="20,4,20,4"    Name="loadButton" Click="loadButton_Click"  >Load</Button>
             <Button Grid.Row="6" Padding="20,4,20,4"   Name="loadAllExportButton"  Click="loadAllExportButton_Click" Grid.Column="1">Load All and Export</Button>
-            <Button Grid.Row="7" Name="calculateButton" Click="calculateButton_Click">Calculate</Button>
             <ComboBox Grid.Column="1" Grid.Row="8" Name="graphPrintBox" >
                 <ComboBox.ItemTemplate>
                     <DataTemplate>

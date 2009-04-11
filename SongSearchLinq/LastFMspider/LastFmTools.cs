@@ -197,8 +197,8 @@ namespace LastFMspider
                         });
                         lock (tracksToGo) songsCached++;
                     } catch (Exception ee) { Console.WriteLine(ee.ToString()); }
-                    msg.AppendFormat("{0}", e);
-                } finally {
+					msg.AppendFormat("\n{0}: {1}\n", e.GetType().Name, e.Message);
+				} finally {
                     Console.WriteLine(msg);
                 }
             });
@@ -266,8 +266,8 @@ namespace LastFMspider
                         });
                         lock(artistsToGo)artistsCached++;
                     } catch (Exception ee) { Console.WriteLine(ee.ToString()); }
-                    msg.AppendFormat("{0}", e);
-                } finally {
+					msg.AppendFormat("\n{0}: {1}\n",e.GetType().Name, e.Message);
+				} finally {
                     Console.WriteLine(msg);
                 }
             });
@@ -336,8 +336,8 @@ namespace LastFMspider
                         });
                         lock(artistsToGo)artistsCached++;
                     } catch (Exception ee) { Console.WriteLine(ee.ToString()); }
-                    msg.AppendFormat("{0}", e);
-                } finally {
+					msg.AppendFormat("\n{0}: {1}\n", e.GetType().Name, e.Message);
+				} finally {
                     Console.WriteLine(msg);
                 }
             });

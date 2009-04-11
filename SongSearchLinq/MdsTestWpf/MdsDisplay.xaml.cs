@@ -501,7 +501,7 @@ namespace MdsTestWpf
             };
             if (saveDialog.ShowDialog() == true) {
                 using (var writestream = new FileStream(saveDialog.FileName, FileMode.Create, FileAccess.ReadWrite))
-                    WpfTools.PrintXPS(pointCanvas, 3000, 3000, writestream, FileMode.Create, FileAccess.ReadWrite);
+                    WpfTools.PrintXPS(pointCanvas, 3000, 3000,1.0,  writestream, FileMode.Create, FileAccess.ReadWrite);
             }
 
         }
