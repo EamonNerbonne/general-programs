@@ -16,7 +16,6 @@ namespace EmnExtensions.Threading
             IEnumerable<T> orig;
             T[] buffer;
             int readPos = 0, writePos = 0, queueDepth;
-            Thread bgThread;
             public ProcHelp(IEnumerable<T> orig, int queueDepth) {
                 if (queueDepth < 1) throw new ArgumentException("You cannot make a background buffer of size 0;");
                 readS = new Semaphore(0, queueDepth + 1);//+1 is for cancelling.
@@ -29,7 +28,6 @@ namespace EmnExtensions.Threading
                 BackgroundRun();
             }
             public void BackgroundRun() {
-                bgThread = Thread.CurrentThread;
                 var enumerator = orig.GetEnumerator();
                 while (true) {
                     writeS.WaitOne();
@@ -70,7 +68,11 @@ namespace EmnExtensions.Threading
             }
             public void Dispose() {
                 Cancel();
+				GC.SuppressFinalize(this);
             }
+
+
+
         }
         public static IEnumerable<T> InAnotherThread<T>(this IEnumerable<T> orig) {
             return InAnotherThread(orig, 10);

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Globalization;
 
 namespace EmnExtensions.MathHelpers
 {
@@ -32,7 +33,7 @@ namespace EmnExtensions.MathHelpers
         }
 
         public override string ToString() {
-            return string.Format("Mean = {0}, Var = {1}, Skew = {2}, Kurtosis = {3}, Count = {4}", Mean, Var, Skew, Kurtosis, Count);
+            return string.Format(CultureInfo.InvariantCulture,"Mean = {0}, Var = {1}, Skew = {2}, Kurtosis = {3}, Count = {4}", Mean, Var, Skew, Kurtosis, Count);
         }
     }
 }

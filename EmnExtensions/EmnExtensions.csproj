@@ -13,6 +13,8 @@
     <FileAlignment>512</FileAlignment>
     <StartupObject>
     </StartupObject>
+    <SignAssembly>true</SignAssembly>
+    <AssemblyOriginatorKeyFile>emnExtensions.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -138,16 +140,14 @@
     <Compile Include="Filesystem\FSUtil.cs" />
     <Compile Include="Filesystem\GetLinesExtension.cs" />
     <Compile Include="Filesystem\GetRelativeFileExtension.cs" />
+    <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="MathHelpers\Matrix.cs" />
+    <Compile Include="MathHelpers\MatrixMismatchException.cs" />
     <Compile Include="MathHelpers\MeanVarCalc.cs" />
     <Compile Include="MathHelpers\MersenneTwister.cs" />
     <Compile Include="MathHelpers\RndHelper.cs" />
     <Compile Include="MathHelpers\Statistics.cs" />
     <Compile Include="MathHelpers\VectorHelpers.cs" />
-    <Compile Include="PersistantCache\DelegateCacheMapper.cs" />
-    <Compile Include="PersistantCache\IPersistantCacheMapper.cs" />
-    <Compile Include="PersistantCache\PersistantCache.cs" />
-    <Compile Include="PersistantCache\PersistantCacheException.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Text\AbstractTextWriter.cs" />
     <Compile Include="Text\Canonicalize.cs" />
@@ -160,6 +160,9 @@
   </ItemGroup>
   <ItemGroup>
     <Service Include="{B4F97281-0DBD-4835-9ED8-7DFB966E87FF}" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="emnExtensions.snk" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

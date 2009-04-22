@@ -13,16 +13,19 @@ namespace EmnExtensions.MathHelpers
             return MakeNormal(r.NextDouble(), r.NextDouble());
         }
         static RNGCryptoServiceProvider cryptGen = new RNGCryptoServiceProvider();
-        static float MaxValF;
-        static double MaxValD;
-        static RndHelper() {
+        static readonly float MaxValF = ComputeMaxValF();
+		static readonly double MaxValD = ComputeMaxValD();
+		static float ComputeMaxValF() {
+			long offset = 0;
+			while ((float)uint.MaxValue / ((float)uint.MaxValue + (float)offset) >= 1.0) offset++;
+			return (float)uint.MaxValue + (float)offset;//offset will be 0x101
+		}
+
+		static double ComputeMaxValD() {
             long offset = 0;
-            while ((float)uint.MaxValue/((float)uint.MaxValue + (float)offset) >=1.0 ) offset++;
-            MaxValF = (float)uint.MaxValue + (float)offset;//offset will be 0x101
-            offset = 0;
             while ((double)ulong.MaxValue/((double)ulong.MaxValue + (double)offset) >=1.0 ) offset++;
-            MaxValD = (double)ulong.MaxValue + (double)offset;//offset will be 0x801
-        }
+            return (double)ulong.MaxValue + (double)offset;//offset will be 0x801
+		}
 
         public static double MakeNormal(double randVal1, double randVal2) {
             return Math.Sin(2 * Math.PI * randVal1) * Math.Sqrt((-2 * Math.Log(1 - randVal2)));
@@ -34,12 +37,15 @@ namespace EmnExtensions.MathHelpers
             return MakeNormal(MakeSecureDouble(), MakeSecureDouble());
         }
 
+		[CLSCompliant(false)]
         public static uint MakeSecureUInt() {
             byte[] bytes = new byte[4];
             cryptGen.GetBytes(bytes);
             uint retval = (uint)bytes[0] + ((uint)bytes[1] << 8) + ((uint)bytes[2] << 16) + ((uint)bytes[3] << 24);
             return retval;
         }
+
+		[CLSCompliant(false)]
         public static ulong MakeSecureULong() {
             byte[] bytes = new byte[8];
             cryptGen.GetBytes(bytes);
@@ -63,7 +69,6 @@ namespace EmnExtensions.MathHelpers
 
 		[ThreadStatic]
 		static MersenneTwister randomImpl;
-		public static MersenneTwister GetThreadLocalRandom() {if (randomImpl == null) randomImpl = new MersenneTwister(); return randomImpl; }
-		public static MersenneTwister ThreadLocalRandom { get { return GetThreadLocalRandom(); } }
+		public static MersenneTwister ThreadLocalRandom { get { if (randomImpl == null) randomImpl = new MersenneTwister(); return randomImpl; } }
 	}
 }

@@ -139,7 +139,7 @@ namespace EmnExtensions.MathHelpers
         /// Returns the next pseudo-random <see cref="UInt32"/>.
         /// </summary>
         /// <returns>A pseudo-random <see cref="UInt32"/> value.</returns>
-        //[CLSCompliant(false)]
+        [CLSCompliant(false)]
         public UInt32 NextUInt32()
         {
             return GenerateUInt32();
@@ -155,7 +155,7 @@ namespace EmnExtensions.MathHelpers
         /// <returns>
         /// A pseudo-random <see cref="UInt32"/> value which is at most <paramref name="maxValue"/>.
         /// </returns>
-        //[CLSCompliant(false)]
+        [CLSCompliant(false)]
         public UInt32 NextUInt32(UInt32 maxValue)
         {
             return (UInt32)(GenerateUInt32() / ((Double)UInt32.MaxValue / maxValue));
@@ -174,12 +174,12 @@ namespace EmnExtensions.MathHelpers
         /// <exception cref="ArgumentOutOfRangeException">
         /// If <c><paramref name="minValue"/> &gt;= <paramref name="maxValue"/></c>.
         /// </exception>
-//        [CLSCompliant(false)]
+        [CLSCompliant(false)]
         public UInt32 NextUInt32(UInt32 minValue, UInt32 maxValue) /* throws ArgumentOutOfRangeException */
         {
             if (minValue >= maxValue)
             {
-                throw new ArgumentOutOfRangeException();
+                throw new ArgumentOutOfRangeException("minValue","minValue >= maxValue");
             }
 
             return (UInt32)(GenerateUInt32() / ((Double)UInt32.MaxValue / (maxValue - minValue)) + minValue);
@@ -210,7 +210,7 @@ namespace EmnExtensions.MathHelpers
             {
                 if (maxValue < 0)
                 {
-                    throw new ArgumentOutOfRangeException();
+                    throw new ArgumentOutOfRangeException("maxValue");
                 }
 
                 return 0;
@@ -237,7 +237,7 @@ namespace EmnExtensions.MathHelpers
         {
             if (maxValue <= minValue)
             {
-                throw new ArgumentOutOfRangeException();
+                throw new ArgumentOutOfRangeException("maxValue", "maxValue <= minValue");
             }
 
             if (maxValue == minValue)
@@ -260,7 +260,7 @@ namespace EmnExtensions.MathHelpers
             // [codekaizen: corrected this to check null before checking length.]
             if (buffer == null)
             {
-                throw new ArgumentNullException();
+                throw new ArgumentNullException("buffer");
             }
 
             Int32 bufLen = buffer.Length;

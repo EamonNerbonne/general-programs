@@ -55,7 +55,7 @@ namespace EmnExtensions.DebugTools
 		{
 			writer = writer ?? Console.Out;
 			dt = default(DateTime);
-			oldmsg = null;
+			//oldmsg = null;
 			Writer = writer;
 		}
 

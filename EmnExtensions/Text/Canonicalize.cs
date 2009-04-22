@@ -10,10 +10,11 @@ namespace EmnExtensions.Text
 	{
 		private static byte[] categorycache;
 		private static BitArray reasonablechar;
+		[System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1065:DoNotRaiseExceptionsInUnexpectedLocations"), System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1810:InitializeReferenceTypeStaticFieldsInline")]
 		static Canonicalize() {
 			foreach(UnicodeCategory cat in Enum.GetValues(typeof(UnicodeCategory))) {
 				int val = (int)cat;
-				if(val < 0 || val > 255) throw new Exception("Invalid category number!  Can't cache in byte: " + cat);
+				if(val < 0 || val > 255) throw new ApplicationException("Programming Error: Invalid category number!  Can't cache in byte: " + cat);
 			}
 			categorycache = new byte[(int)char.MaxValue + 1];
 			reasonablechar = new BitArray((int)char.MaxValue + 1);
@@ -69,6 +70,7 @@ namespace EmnExtensions.Text
 		}
 
 
+		[System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Maintainability", "CA1502:AvoidExcessiveComplexity")]
 		public static string Basic(string input) {
 			//splits accents and the likes from the characters.  FormKD even splits a single char ¾ into 3/4.
 			string temp = input.ToLowerInvariant().Normalize(NormalizationForm.FormD);//Normalize is fast! Much faster than ToLower for instance.

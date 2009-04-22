@@ -27,7 +27,8 @@ namespace EmnExtensions
             while (seqE.MoveNext() && otherE.MoveNext()) 
                 yield return f(seqE.Current, otherE.Current);
         }
- 
+
+		[System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes")]
 		public static T Swallow<T>(Func<T> trial, Func<T> error) {
 			try {
 				return trial();
@@ -36,12 +37,20 @@ namespace EmnExtensions
 			}
 		}
 
-		public static string ToStringOrNull(this object obj) {
-			return obj == null ? null : obj.ToString();
+		public static T Swallow<T,TE>(Func<T> trial, Func<TE,T> error) where TE:Exception {
+			try {
+				return trial();
+			} catch (TE e) {
+				return error(e);
+			}
 		}
 
-        public static int IndexOfMax<T>(this IEnumerable<T> iter,Func<int,T,bool> filter) where T:IComparable<T> {
-            var enumerator = iter.GetEnumerator();
+		public static string ToStringOrNull(this object value) {
+			return value == null ? null : value.ToString();
+		}
+
+        public static int IndexOfMax<T>(this IEnumerable<T> sequence,Func<int,T,bool> filter) where T:IComparable<T> {
+			var enumerator = sequence.GetEnumerator();
             int retval = -1;
             T max = default(T);
             int currentIndex = -1;
@@ -64,12 +73,13 @@ namespace EmnExtensions
             return !(double.IsInfinity(f) || double.IsNaN(f));
         }
 
-        public static bool GetNext<T>(this IEnumerator<T> enumerator, out T nextVal) {
+		[System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1021:AvoidOutParameters", MessageId = "1#")]
+		public static bool GetNext<T>(this IEnumerator<T> enumerator, out T nextValue) {
             if (enumerator.MoveNext()) {
-                nextVal = enumerator.Current;
+                nextValue = enumerator.Current;
                 return true;
             } else {
-                nextVal = default(T);
+                nextValue = default(T);
                 return false;
             }
         }

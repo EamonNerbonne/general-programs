@@ -13,7 +13,7 @@ namespace EmnExtensions.Text {
     /// 
     /// Beyond the required implementation of <code>WriteString</code>, inhereting classes might wish to override 
     /// <code>Encoding</code>, which currently (meaninglessly) returns <code>Encoding.Unicode</code> if a meaningful
-    /// alternative exists, and might wish to overrise <code>Close</code>, <code>Flush</code> &amp; <code>Dispose</code>
+    /// alternative exists, and might wish to override <code>Close</code>, <code>Flush</code> &amp; <code>Dispose</code>
     /// as necessary.
     /// </summary>
     public abstract class AbstractTextWriter :TextWriter{
@@ -79,10 +79,12 @@ namespace EmnExtensions.Text {
             WriteString(value.ToString(FormatProvider));
         }
 
+		[CLSCompliant(false)]
         public override void Write(uint value) {
             WriteString(value.ToString(FormatProvider));
         }
-
+		
+		[CLSCompliant(false)]
         public override void Write(ulong value) {
             WriteString(value.ToString(FormatProvider));
         }

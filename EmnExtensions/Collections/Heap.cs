@@ -38,7 +38,8 @@ namespace EmnExtensions.Collections
             indexSet(backingStore[newIndex], newIndex);
         }
 
-        public bool RemoveTop(out T retval) {
+		[System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1021:AvoidOutParameters", MessageId = "0#")]
+		public bool RemoveTop(out T retval) {
             if (backingCount == 0) {
                 retval = default(T);
                 return false;

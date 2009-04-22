@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Globalization;
 
 namespace EmnExtensions.MathHelpers
 {
@@ -17,10 +18,10 @@ namespace EmnExtensions.MathHelpers
 			sum2 += val * val;
 		}
 		public void Add(MeanVarCalc other) {			Add(other.count, other.sum, other.sum2);	}
-		public void Add(int count, double sum, double sumSquared) {
-			this.count += count;
-			this.sum += sum;
-			this.sum2 += sumSquared;
+		public void Add(int extraCount, double extraSum, double extraSumSquared) {
+			this.count += extraCount;
+			this.sum += extraSum;
+			this.sum2 += extraSumSquared;
 		}
 
 		public double Mean { get { return sum / count; } }
@@ -29,6 +30,6 @@ namespace EmnExtensions.MathHelpers
 		public double StdDev { get { return Math.Sqrt(Var); } }
 		public int Count { get { return count; } }
 
-		public override string ToString() {			return Mean.ToString() + " +/- " + StdDev.ToString();		}
+		public override string ToString() { return Mean.ToString(CultureInfo.InvariantCulture) + " +/- " + StdDev.ToString(CultureInfo.InvariantCulture); }
 	}
 }

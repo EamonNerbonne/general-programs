@@ -15,9 +15,9 @@ namespace EmnExtensions.Algorithms
         }
 
         double[] sortedData;
-        int infCount = 0;
-        public double minVal { get { return sortedData[0]; } }
-        public double maxVal { get { return sortedData[sortedData.Length - 1]; } }
+        int infCount;
+        public double MinVal { get { return sortedData[0]; } }
+        public double MaxVal { get { return sortedData[sortedData.Length - 1]; } }
         double? maximumDensity ;
         int minBucketSize, maxResolution;
         public double MaximumDensity { get { if (!maximumDensity.HasValue) GenerateHistogram().Count(); return maximumDensity.Value; } }
@@ -40,7 +40,7 @@ namespace EmnExtensions.Algorithms
         public IEnumerable<Data> GenerateHistogram(double startPercentile,double endPercentile) {
 
 
-            double minBucketWidth = (maxVal - minVal) / maxResolution;
+            double minBucketWidth = (MaxVal - MinVal) / maxResolution;
 
             double curSum = 0;
             int startIndex = (int)(startPercentile*sortedData.Length+0.5);

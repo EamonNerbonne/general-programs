@@ -44,21 +44,20 @@ namespace EmnExtensions.Collections
             Array.Resize(ref distances, matSize(elementCount));
         }
 
-
-        public IEnumerable<T> Values { get { return distances.Take(DistCount); } }
+		public IEnumerable<T> Values { get { return distances.Take(DistCount); } }
 
         public SymmetricDistanceMatrixGen() { }
 
         static int matSize(int elemCount) { return elemCount * (elemCount - 1) >> 1; }
         int calcOffset(int i, int j) {
             if (i > j) {
-                if (i > elementCount) throw new IndexOutOfRangeException("i is out of range");
+                if (i > elementCount) throw new ArgumentOutOfRangeException("i" ,"i is out of range");
                 int tmp = i;
                 i = j;
                 j = tmp;
             } else if (i == j) {
                 return -1;
-            } else if (j > elementCount) throw new IndexOutOfRangeException("j is out of range");
+			} else if (j > elementCount) throw new ArgumentOutOfRangeException("j","j is out of range");
             return i + ((j * (j - 1)) >> 1);
         }
 
@@ -75,7 +74,8 @@ namespace EmnExtensions.Collections
         /// <summary>
         /// It is an error to access the diagonal which must be 0!
         /// </summary>
-        public T this[int i, int j] {
+		[System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1023:IndexersShouldNotBeMultidimensional")]
+		public T this[int i, int j] {
             get {
                 return distances[calcOffset(i, j)];
             }
@@ -174,11 +174,11 @@ namespace EmnExtensions.Collections
 		static int matSize(int elemCount) { return elemCount * (elemCount + 1) >> 1; }
 		int calcOffset(int i, int j) {
 			if (i > j) {
-				if (i > elementCount) throw new IndexOutOfRangeException("i is out of range");
+				if (i > elementCount) throw new ArgumentOutOfRangeException("i","i is out of range");
 				int tmp = i;
 				i = j;
 				j = tmp;
-			} else if (j > elementCount) throw new IndexOutOfRangeException("j is out of range");
+			} else if (j > elementCount) throw new ArgumentOutOfRangeException("j","j is out of range");
 			return i + ((j * (j + 1)) >> 1);
 		}
 
@@ -195,6 +195,7 @@ namespace EmnExtensions.Collections
 		/// <summary>
 		/// It is an error to access the diagonal which must be 0!
 		/// </summary>
+		[System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1023:IndexersShouldNotBeMultidimensional")]
 		public T this[int i, int j] {
 			get {
 				return distances[calcOffset(i, j)];

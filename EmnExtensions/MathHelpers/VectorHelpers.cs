@@ -9,10 +9,12 @@ namespace EmnExtensions.MathHelpers
 	{
 		public double[] elems;
 		public Vector(int N) { elems = new double[N]; }
+		public Vector(double[] v) { elems = v; }
 		public int N { get { return elems.Length; } }
 
 		public static implicit operator Vector(double[] v) { return new Vector { elems = v }; }
 		public static implicit operator double[](Vector v) { return v.elems; }
+		public double[] ToArray() { return elems; }
 
 		public static Vector operator *(double a, Vector B) { return B.elems.Scale(a); }
 		public static Vector operator *(Vector B, double a) { return B.elems.Scale(a); }
@@ -20,7 +22,9 @@ namespace EmnExtensions.MathHelpers
 		/// Dot Product!
 		/// </summary>
 		public static double operator &(Vector A, Vector B) { return A.elems.Dot(B); }
+		[System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1013:OverloadOperatorEqualsOnOverloadingAddAndSubtract")]
 		public static Vector operator +(Vector A, Vector B) { return A.elems.Add(B); }
+		[System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1013:OverloadOperatorEqualsOnOverloadingAddAndSubtract")]
 		public static Vector operator -(Vector A, Vector B) { return A.elems.Sub(B); }
 		public static Vector operator /(Vector A, double b) { return A.elems.Scale(1.0 / b); }
 
