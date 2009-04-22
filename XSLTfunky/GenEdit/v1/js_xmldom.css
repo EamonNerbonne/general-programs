@@ -1,0 +1,8 @@
+table.genedit {
+/*	width: 100%;*/
+	border: solid 2px black;
+}
+td {
+	padding: 0px;
+	border: solid 1px black;
+}

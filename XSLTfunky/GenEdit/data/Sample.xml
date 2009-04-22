@@ -1,0 +1,9 @@
+﻿<?xml version="1.0" encoding="utf-8" ?> 
+<!--<?xml-stylesheet type="text/xsl" href="Sample.xsl"?>-->
+<genedit d1="Expression" d2="Value">
+<row d1="1 + 1" d2="2" />
+<row d1="2 * 2" d2="4" />
+<row d2="'Mary'" d1="Lamb.owner"/>
+<row d1="1 &gt; 3" d2="FALSE"/>
+<row d1="Random" d2="&quot;metallic sheen&quot;"/>
+</genedit>

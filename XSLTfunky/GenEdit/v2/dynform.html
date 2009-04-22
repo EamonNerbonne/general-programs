@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE html PUBLIC 
+  "-//W3C//DTD XHTML 1.0 Strict//EN" 
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html> <!--xhtml namespace http://www.w3.org/1999/xhtml isn't set as this causes problems in both mozilla and internet explorer with respect to DOM/XSLT generation of elements (the xhtml: prefix causes them to fail to recognize an html element, despite being in the right namespace, and the prefixes are only dynamically generated if there is a global one defined.-->
+    <head>
+        <title>GenEdit v2</title>
+        <script language="javascript" src="../js/JSUtil.js"></script>
+        <script language="javascript" src="../js/XMLUtil.js"></script>
+        <script language="javascript" src="../js/genedit2.js"></script>
+        <link rel="stylesheet" type="text/css" href="../css/dynform.css"></link>
+    </head>
+    <body>
+        <h3>This is my sample editor, very simple, eh?</h3>
+        <table>
+            <tr style="display: none">
+                <td>ARG!</td>
+            </tr>
+        </table>
+        <p>Just click a field to edit it. <em>Storing</em> files is not yet implemented, so 
+            don't worry about overwriting your original data :-(</p>
+        <p>This is loaded from email.xml:<br />
+            <div><genedit src="../data/email.xml" id="temp" /></div>
+        </p>
+        <p>And <strong>this</strong> from email.xml:<br />
+            <div><genedit src="../data/email.xml" /></div>
+        </p>
+    </body>
+</html>

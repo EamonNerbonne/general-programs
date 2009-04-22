@@ -1,0 +1,67 @@
+table {
+    font-family: Sans-Serif;
+    border-collapse: collapse;
+    border: solid 2px Black;
+}
+tr.XSLGE_colhead th {
+    font-weight:normal;
+    border: solid 1px #808080;
+    cursor: pointer;
+}
+tr.xslgeHiddenRow {
+    color:#808080;   
+    display:none;
+    font-size:xx-small;
+    text-align: center;
+    
+}
+table.XSLGE input {
+    font-family: Sans-Serif;
+    color: Black;
+    border-style:none;
+    margin: 1px;
+}
+table.XSLGE td {
+    padding:0px;
+    border: solid 1px #808080;   
+}
+
+td.xslgeUnchangedField input {
+    background-color:#ffffff;
+}
+td.xslgeChangedField input {
+    background-color:#fff8d0;
+}
+td.xslgeFocusedField input{
+    background-color:#c0e4ff;
+}
+td.xslgeFocusedField input.xslgeEditMode{
+    background-color:#ffe0e0;
+    border-top: solid 1px #0000ff;
+    border-bottom: solid 1px #0000ff;
+    margin: 0px 1px 0px 1px;
+    color: Black;
+}
+
+
+td.xslgeChangedField {
+    background-color:#fff0d0;
+}
+td.xslgeFocusedField{
+    background-color:#c0e4ff;
+}
+td.xslgeActiveField{
+    background-color:#c0e4ff;
+}
+
+div.xslge_Button {
+    border-style:double;
+    border-width:3px;
+    border-color:Black;
+    background-color:#ffff80;
+    color: black;
+    font-family: Sans-Serif;
+    cursor: pointer;
+    text-align: center;
+    width:60%;
+}

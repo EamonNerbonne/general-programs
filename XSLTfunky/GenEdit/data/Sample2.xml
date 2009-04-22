@@ -1,0 +1,8 @@
+﻿<?xml version="1.0" encoding="utf-8" ?> 
+<genedit d1="First Name" d2="Last Name" d3="Personality">
+<row d1="Eamon" d2="Nerbonne" d3="Magnificent"/>
+<row d1="Bart" d2="Simpson" d3="Cruel"/>
+<row d1="Yurii" d2="Khomskii" d3="Yuriesque, what else can one say?"/>
+<row d3="Weird" d2="Alewijnse" d1="Bart"/>
+<row d1="Free" d2="As a" d3="Bird"/>
+</genedit>

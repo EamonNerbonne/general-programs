@@ -1,0 +1,22 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" >
+<head>
+    <title>NetComputing DOM/XSLT</title>
+</head>
+<body>
+ Voorbeelduitvoer:
+ <ul>
+ <li><a href="http://home.nerbonne.org/TidyRooster/tidy.aspx?vakcodes=INKR-03*INCGEOM-03*INTA-03&amp;periode=4e%20periode">Rooster 4de kwartaal</a></li>
+ <li><a href="tidy.aspx?vakcodes=INVB-03*INOS2_03*INOIS-03&amp;periode=2e%20periode">Mijn rooster</a></li>
+ </ul>
+ Gebruikt XSLT idd.
+ <br />
+ mzzl!
+ <a href="TidyRooster.zip">het src zipje (+verslag enzo)</a>
+ <p>
+ Deze applicatie implementeerd een eenvoudige screen scraper om een custom-rooster zamen te stellen.  .NET standaard functies downloaden de benodigde html paginas waarin de rooster(s) staan.  Met behulp van html tidy, en specifiek de COM+ variant ervan te vinden op <a href="http://users.rcn.com/creitzel/tidy.html">http://users.rcn.com/creitzel/tidy.html</a> worden de paginas naar XML geconverteerd.  Als well-formed XML worden deze met XSLT gefilterd.  Deze stap is in Scrape.cs verwerkt die een url en een xslt file neemt en dan het gefilterde bestand opleverd.  Alle gedownloadde urls en de gecompileerde XSL file worden gecached.  Output caching wordt niet gebruikt.  Het voordeel van deze aanpak is dat kleine veranderingen in de vak selectie nog steeds snel zijn, omdat hij niet tientallen webpaginas aan het leachen is, terwijl dit met output caching wel nodig zou zijn.
+ </p>
+ <p>Op basis van een zeer korte zamenvatting van de rooster index pagina waarin alleen nog de boeinde links naar de roosters staan, wordt met de DOM dan over alle link geitereerd.  Scrape verwerkt weer elke pagina, en pikt de roostertabel eruit.  Van al deze tabellen wordt met de DOM weer een document gemaakt. Uiteindelijk halen twee XSLT transformaties dan de zinnige informatie hier uit.</p>
+ 
+</body>
+</html>

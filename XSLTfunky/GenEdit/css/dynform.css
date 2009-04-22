@@ -1,0 +1,67 @@
+body {
+ background-color: #ffffff;
+ color: black;	
+}
+
+table.genedit {
+    border-collapse: collapse;/*CSS2*/
+	background-color: #808080;
+	border: solid 0px black;
+}
+td {
+    padding: 0px;
+	border: 0px;
+	background-color: White;
+}
+thead {
+	text-align: center;
+}
+tfoot {
+	text-align: center;
+}
+th {
+    border: 1px;
+    padding: 0px;
+    background-color:White;
+}
+
+div.XSLGenEdit_button {
+    border:solid 2px #408060;
+    border-left-width:0px;
+    border-right-width:0px;
+    background-color:#d0e0d0;
+    color: black;
+    font-family: Sans-Serif;
+    cursor: pointer;
+    text-align: center;
+	width: 80%;
+}
+
+input.XSLGenEdit_unchanged {
+    border: solid 1px #808080;
+    font-family:sans-serif;
+    color:Black;
+    background-color:#ffffff;
+    margin: 1px;
+}
+input.XSLGenEdit_changed {
+    border: solid 1px Black;
+    font-family:sans-serif;
+    color:Black;
+    background-color:#fff0b0;
+    margin: 1px;
+}
+input.XSLGenEdit_focused {
+    border: solid 2px Blue;
+    font-family:sans-serif;
+    color:Black;
+    background-color:#c0e4ff;
+    margin: 0px;    
+}
+
+tr.XSLGenEdit_hide-row {
+    display: none;
+}
+tr.XSLGenEdit_show-row {
+    display: block;
+}
