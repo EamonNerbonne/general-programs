@@ -17,6 +17,7 @@ namespace EmnExtensions.Wpf
 		public void RecomputeBounds() {
 			graphGeom.Transform = Transform.Identity;
 			GraphBounds = graphGeom.Bounds;
+			//graphGeom.Transform.Inverse.TransformBounds(graphGeom.Bounds);
 		}
 		protected override void SetTransform(MatrixTransform displayTransform) {
 			graphGeom.Transform = displayTransform;
