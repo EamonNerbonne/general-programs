@@ -59,7 +59,7 @@ namespace SongSearchSite
             searchterms = searchterms.Concat(queryParam.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries));
             searchterms = searchterms.Select(s => Canonicalize.Basic(s)).ToArray();
             searchQuery = string.Join(" ", searchterms.ToArray());
-            res.ETag = ResourceInfo.GenerateETagFrom(searchQuery, includeRemote, extm3u, isXml, extension);
+			res.ETag = ResourceInfo.GenerateETagFrom(searchQuery, includeRemote, extm3u, isXml, extension, context.Request.QueryString["top"]);
             res.ResourceLength = null;//unknown
             res.TimeStamp = startup;
             Console.WriteLine("Request Determined: [" + (isXml ? 'X' : ' ') + (includeRemote ? 'R' : ' ') + (enc == Encoding.UTF8 ? 'U' : ' ') + (extm3u ? 'E' : ' ') + "] q=" + searchQuery);

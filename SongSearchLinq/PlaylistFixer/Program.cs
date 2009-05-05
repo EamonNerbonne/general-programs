@@ -14,8 +14,12 @@ namespace DeURLizeM3U
     class Program
     {
         static void Main(string[] args) {
-            if (args.Length == 1 && Directory.Exists(args[0]))
-                args = Directory.GetFiles(args[0], "*.m3u").Where(fi => !Path.GetFileNameWithoutExtension(fi).EndsWith("-fixed")).ToArray();
+			if (args.Length == 1 && Directory.Exists(args[0])) {
+
+				args = Directory.GetFiles(args[0], "*.m3u")
+					//.Where(fi => !Path.GetFileNameWithoutExtension(fi).EndsWith("-fixed"))
+					.ToArray();
+			}
             LastFmTools tools = new LastFmTools(new SongDatabaseConfigFile(false));
             int nulls2 = 0, fine = 0;
             //Parallel.ForEach(args, m3ufilename => {
@@ -52,7 +56,7 @@ namespace DeURLizeM3U
 
                                     best = new SongMatch { SongData = null };
                                 } else {
-                                    Console.WriteLine("!!!:({2}) {0}\n Is:({3}) {1}\n", NormalizedFileName(song.SongPath) + ": " + song.HumanLabel, NormalizedFileName(best.SongData.SongPath) + ": " + best.SongData.HumanLabel, song.length, best.SongData.Length);
+                                    Console.WriteLine("___:({2}) {0}\n Is:({3}) {1}\n", NormalizedFileName(song.SongPath) + ": " + song.HumanLabel, NormalizedFileName(best.SongData.SongPath) + ": " + best.SongData.HumanLabel, song.length, best.SongData.Length);
                                     hmmL.Add(best);
                                 }
                             } else {
@@ -70,7 +74,7 @@ namespace DeURLizeM3U
 
                         }
                         Console.WriteLine("Fine: {0}, Rough: {1}, Too bad: {2},  No-match: {3}", fine, hmmL.Count,toobadL.Count, nulls2);
-                        FileInfo outputplaylist = new FileInfo(Path.Combine(fi.DirectoryName, Path.GetFileNameWithoutExtension(fi.Name) + "-fixed.m3u"));
+                        FileInfo outputplaylist = new FileInfo(Path.Combine(fi.DirectoryName, Path.GetFileNameWithoutExtension(fi.Name) + ".m3u"));
                         using (var stream = outputplaylist.Open(FileMode.Create,FileAccess.Write))
                         using (var writer = new StreamWriter(stream, Encoding.GetEncoding(1252))) {
                             writer.WriteLine("#EXTM3U");

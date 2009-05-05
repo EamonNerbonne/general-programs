@@ -9,7 +9,7 @@ namespace LVQeamon
 	public static class CreateGaussianCloud
 	{
 
-		public static double[,] GaussianCloud(int numPoints, int numDimensions, double[,] covarianceMatrix, double[] mean, MersenneTwister rand) {
+		public static double[,] GaussianCloud(int numPoints, int numDimensions, double[,] transformMatrix, double[] mean, MersenneTwister rand) {
 			
 		}
 

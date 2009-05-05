@@ -11,6 +11,7 @@ using System.Data.Common;
 using System.Diagnostics;
 using System.Collections;
 using System.IO.Compression;
+using EmnExtensions.DebugTools;
 
 namespace SimilarityAnalysis
 {

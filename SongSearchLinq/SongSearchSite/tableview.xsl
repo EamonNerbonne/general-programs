@@ -26,7 +26,7 @@
     <xsl:apply-templates select="*"/>
   </xsl:template>
   <xsl:template match="song[@artist]">
-    <tr>
+    <tr  onclick="top.frames['idxStatus'].location.href='{@songuri}'" style="cursor:pointer;">
       <td>
         <xsl:value-of select="@artist"/>
       </td>
@@ -42,8 +42,8 @@
     </tr>
   </xsl:template>
   <xsl:template match="partsong|songref|song">
-    <tr>
-      <td colspan="4">
+    <tr  onclick="location.href='{@songuri}'" style="cursor:pointer;">
+      <td colspan="4" >
         <xsl:choose>
         <xsl:when test="string-length(@label) &gt; 0">  
           <xsl:value-of select="@label"/>

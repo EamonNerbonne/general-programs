@@ -26,8 +26,13 @@
        	iframe {border:0;}
     </style>
     <script type="text/javascript">
-    var lastquery="";
-    var queryUrl="list.xml?top=1000&view=xslt&remote=allow&q=";
+        var lastquery = "";
+        var lasttop = "20";
+        function queryUrl(topNr,query) {
+            return "list.xml?top=" + encodeURIComponent(topNr) +
+                    "&view=xslt&remote=allow&q=" + encodeURIComponent(query);
+        }
+   // var queryUrlOLD="list.xml?top=1000&view=xslt&remote=allow&q=";
     var extm3ulink = "list.m3u?extm3u=true&remote=allow&q=";
     var extm3u8link = "list.m3u8?extm3u=true&remote=allow&q=";
     function updateResults() {
@@ -35,10 +40,12 @@
     newquery = document.getElementById("searchquery").value;
     newquery = newquery.replace(/^\s+|\s+$/g, "");
     newquery = newquery.toLowerCase();
-    if(newquery == lastquery) return;
-    lastquery=newquery;
+    var topNr = document.getElementById("shownumber").value;
+    if (newquery == lastquery && topNr == lasttop) return;
+    lastquery = newquery;
+    lasttop = topNr;
     var resultsviewEl = document.getElementById("resultsview");
-    resultsviewEl.src = queryUrl + encodeURIComponent(lastquery);
+    resultsviewEl.src = queryUrl(lasttop,lastquery);
     var m3uEl = document.getElementById("m3u");
     m3uEl.href = extm3ulink + encodeURIComponent(lastquery);
     var m3u8El = document.getElementById("m3u8");
@@ -50,10 +57,10 @@
     <form id="form1" runat="server">
     <table id="pagetable">
     <tr style="height:5em"><td style="background:#ffc;padding:0.5em">SongSearch - a site for searching &amp; playing distributed song db&#39;s.<br />
-     Search:        <input id="searchquery" onkeyup="updateResults()" type="text" /><br />
-     <a id="m3u" href="list.m3u?extm3u=true&amp;remote=allow&amp;q=" >Play the damn songs!</a> <a id="m3u8" href="list.m3u8?extm3u=true&amp;remote=allow&amp;q=" >Play the damn songs (UTF-8, winamp unsupported)!</a>
-     </td><td>Index Status:            <br />
-            <iframe src="IndexStatus.aspx" frameborder="0" scrolling="no" style="width: 4em;height: 2em;"></iframe></td></tr>
+     Search:        <input id="searchquery" onkeyup="updateResults()" type="text" /> with at most <input id="shownumber" onkeyup="updateResults()" type="text" value="20" /> results.<br />
+     <a id="m3u" href="list.m3u?extm3u=true&amp;remote=allow&amp;q=" >Play ALL the damn songs!</a> <a id="m3u8" href="list.m3u8?extm3u=true&amp;remote=allow&amp;q=" >Play ALL the damn songs (UTF-8, winamp unsupported)!</a>
+     </td><td>Status:            <br />
+     <iframe src="IndexStatus.aspx" frameborder="0" scrolling="no" style="width: 10em;height: 2em;" id="idxStatus" name="idxStatus"></iframe></td></tr>
     <tr><td style="height:100%;width:100%;border:none;padding:0;" colspan="2"> <iframe scrolling="yes" frameborder="0" style="height:100%;width:100%;border:none;" id="resultsview" src="list.xml?top=20&amp;view=xslt&amp;q="></iframe></td></tr>
     </table>
     </form>
