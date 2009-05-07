@@ -22,5 +22,13 @@ namespace LVQeamon
 		public MainWindow() {
 			InitializeComponent();
 		}
+
+		private void textBoxNumberOfSets_TextChanged(object sender, TextChangedEventArgs e) { DataVerifiers.VerifyTextBox((TextBox)sender, DataVerifiers.IsInt32Positive); }
+
+		private void textBoxPointsPerSet_TextChanged(object sender, TextChangedEventArgs e) { DataVerifiers.VerifyTextBox((TextBox)sender, DataVerifiers.IsInt32Positive); }
+
+		private void buttonGeneratePointClouds_Click(object sender, RoutedEventArgs e) {
+
+		}
 	}
 }

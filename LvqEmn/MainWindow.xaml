@@ -1,8 +1,36 @@
 ﻿<Window x:Class="LVQeamon.MainWindow"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    Title="Eamon's LVQ test App" Height="300" Width="300">
+	xmlns:emn="clr-namespace:EmnExtensions.Wpf;assembly=EmnExtensionsWpf"
+    Title="Eamon's LVQ test App" Height="576" Width="854">
     <Grid>
-        
-    </Grid>
+		<Grid.RowDefinitions>
+			<RowDefinition Height="354*" />
+			<RowDefinition Height="138.04*" />
+			<RowDefinition Height="Auto" />
+		</Grid.RowDefinitions>
+		<Grid.ColumnDefinitions>
+			<ColumnDefinition Width="188*" />
+			<ColumnDefinition Width="90*" />
+		</Grid.ColumnDefinitions>
+		<Grid Grid.Column="1" Margin="12" Name="grid1">
+			<Grid.ColumnDefinitions>
+				<ColumnDefinition Width="Auto" />
+				<ColumnDefinition Width="121.353*" />
+			</Grid.ColumnDefinitions>
+			<Grid.RowDefinitions>
+				<RowDefinition Height="Auto" />
+				<RowDefinition Height="Auto" />
+				<RowDefinition Height="Auto" MinHeight="10" />
+				<RowDefinition Height="Auto" MinHeight="10" />
+				<RowDefinition Height="*" />
+			</Grid.RowDefinitions>
+			<Label  Margin="2" Name="label1" HorizontalAlignment="Right">Number of Sets</Label>
+			<TextBox Grid.Column="1" Margin="2" Name="textBoxNumberOfSets" TextChanged="textBoxNumberOfSets_TextChanged" Text="2" />
+			<Label Grid.Row="1"  HorizontalAlignment="Right" Margin="2" Name="label2">Points per Set</Label>
+			<TextBox Grid.Column="1"  Grid.Row="1" Margin="2" Name="textBoxPointsPerSet" TextChanged="textBoxPointsPerSet_TextChanged"  Text="100" />
+		</Grid>
+		<emn:LogControl Name="logControl" ClaimStandardOut="True" ClaimStandardError="True" Grid.Column="1" Grid.Row="1"/>
+		<Button Grid.Column="1" Grid.Row="2" Margin="12" Name="buttonGeneratePointClouds" HorizontalAlignment="Right" Click="buttonGeneratePointClouds_Click">Generate Point Clouds</Button>
+	</Grid>
 </Window>

@@ -107,9 +107,9 @@ namespace EmnExtensions.MathHelpers
         /// is used for the seed.
         /// </remarks>
         public MersenneTwister() //changed by eamon; was:            : this(new Random().Next()) /* a default initial seed is used   */
-        { 
-            uint[] initkey =new uint[N];
-            for(int i=0;i<initkey.Length;i++)
+        {
+            uint[] initkey = new uint[N];
+            for (int i = 0; i < initkey.Length; i++)
                 initkey[i] = RndHelper.MakeSecureUInt();
             init(initkey);
         }
@@ -179,7 +179,7 @@ namespace EmnExtensions.MathHelpers
         {
             if (minValue >= maxValue)
             {
-                throw new ArgumentOutOfRangeException("minValue","minValue >= maxValue");
+                throw new ArgumentOutOfRangeException("minValue", "minValue >= maxValue");
             }
 
             return (UInt32)(GenerateUInt32() / ((Double)UInt32.MaxValue / (maxValue - minValue)) + minValue);
@@ -216,7 +216,7 @@ namespace EmnExtensions.MathHelpers
                 return 0;
             }
 
-			return (Int32)(NextDouble() * maxValue);
+            return (Int32)(NextDouble() * maxValue);
         }
 
 
@@ -383,7 +383,7 @@ namespace EmnExtensions.MathHelpers
         /// Generates a new pseudo-random <see cref="UInt32"/>.
         /// </summary>
         /// <returns>A pseudo-random <see cref="UInt32"/>.</returns>
-//        [CLSCompliant(false)]
+        [CLSCompliant(false)]
         UInt32 GenerateUInt32()
         {
             UInt32 y;
@@ -419,7 +419,7 @@ namespace EmnExtensions.MathHelpers
 
             return y;
         }
-        
+
         /* Period parameters */
         private const Int32 N = 624;
         private const Int32 M = 397;
@@ -532,8 +532,14 @@ namespace EmnExtensions.MathHelpers
             //return BitConverter.Int64BitsToDouble((a << 26) + b));
         }
 
-		/*private double computeRnd0to1() {
-			return compute53BitRandom(0, InverseOnePlus53BitsOf1s);
-		}*/
+        /// <summary>
+        /// Generates a double in the half-open interval [0,1) just like NextDouble(), but slightly faster non-virtual.
+        /// </summary>
+        public double NextDouble0To1() { return compute53BitRandom(0, InverseOnePlus53BitsOf1s); }
+
+        /// <summary>
+        /// Generates a normally distributed double with mean 0 and variance 1.
+        /// </summary>
+        public double NextNormal() { return RndHelper.MakeNormal(NextDouble0To1(), NextDouble0To1()); }
     }
 }
