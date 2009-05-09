@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using EmnExtensions;
 using SongDataLib;
+using EmnExtensions.DebugTools;
 
 namespace SongDiskCrawlerMain
 {

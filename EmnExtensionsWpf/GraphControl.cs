@@ -100,7 +100,7 @@ namespace EmnExtensions.Wpf
 
 		}
 
-		public GraphControl() {	GraphPen = GraphRandomPen.MakeDefaultPen(true);	}
+		public GraphControl() {	GraphPen = GraphRandomPen.MakeDefaultPen(true);IsHitTestVisible = false;}	
 
 		public abstract bool IsEmpty { get; }
 

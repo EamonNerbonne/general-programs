@@ -383,7 +383,6 @@ namespace EmnExtensions.MathHelpers
         /// Generates a new pseudo-random <see cref="UInt32"/>.
         /// </summary>
         /// <returns>A pseudo-random <see cref="UInt32"/>.</returns>
-        [CLSCompliant(false)]
         UInt32 GenerateUInt32()
         {
             UInt32 y;

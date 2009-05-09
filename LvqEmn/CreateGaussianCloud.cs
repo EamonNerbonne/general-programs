@@ -39,18 +39,22 @@ namespace LVQeamon
 			return points;
 		}
 
-		public static double[,] RandomTransform(int numDimensions,MersenneTwister rand) {
+		public static double[,] RandomTransform(int numDimensions, MersenneTwister rand) {
 			double[,] points = new double[numDimensions, numDimensions];
 			for (int i = 0; i < numDimensions; i++) {
 				for (int j = 0; j < numDimensions; j++) {
-					points[i, j] = i==j? rand.NextDouble0To1()+0.2: rand.NextNormal();
+					points[i, j] = i == j ? rand.NextDouble0To1() + 0.2 : rand.NextNormal();
 				}
 			}
 			return points;
 		}
 
-		public static double[] RandomMean(int numDimensions) {
-
+		public static double[] RandomMean(int numDimensions, MersenneTwister rand) {
+			double[] mean = new double[numDimensions];
+			for (int i = 0; i < numDimensions; i++) {
+				mean[i] = rand.NextNormal();
+			}
+			return mean;
 		}
 	}
 }

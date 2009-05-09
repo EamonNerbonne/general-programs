@@ -54,7 +54,8 @@ namespace EmnExtensions.Wpf
 				if (IsOK(point)) {
 					fig.Segments.Add(new LineSegment(point, wasOK));
 					wasOK = true;
-				} else {
+				}
+				else {
 					wasOK = false;
 				}
 			}
@@ -72,12 +73,49 @@ namespace EmnExtensions.Wpf
 						else
 							context.BeginFigure(point, false, false);
 						wasOK = true;
-					} else wasOK = false;
+					}
+					else wasOK = false;
 				}
 			}
 			//geom.Freeze();//can't freeze since that breaks transform changes.
 			return geom;
 		}
+
+		public static StreamGeometry PointCloud(IEnumerable<Point> setOfPoints) {
+
+			StreamGeometry geom = new StreamGeometry();
+			using (var context = geom.Open()) {
+				foreach (var point in setOfPoints) {
+					if (IsOK(point)) {
+						context.BeginFigure(point, false, false);
+
+						context.LineTo(point, true, false);
+					}
+				}
+			}
+			//geom.Freeze();//can't freeze since that breaks transform changes.
+			return geom;
+		}
+
+		public static DrawingVisual PointCloud2(IEnumerable<Point> setOfPoints, Brush brush, double radius, out Rect bounds) {
+
+			DrawingVisual vis = new DrawingVisual();
+			bounds = Rect.Empty;
+			using (DrawingContext ctx = vis.RenderOpen()) {
+				foreach (var point in setOfPoints) {
+					if (IsOK(point)) {
+						ctx.DrawEllipse(brush, null, point, radius, radius);
+						bounds.Union(point);
+					}
+				}
+			}
+			
+			//geom.Freeze();//can't freeze since that breaks transform changes.
+			return vis;
+		}
+
+
+
 
 		public static IEnumerable<Point> PathFigurePoints(PathFigure fig) {
 			if (fig == null) yield break;
@@ -98,13 +136,14 @@ namespace EmnExtensions.Wpf
 		/// no NaN of Inf points) for sane results;</param>
 		public static void AddPoint(PathGeometry toGeom, Point point) {
 			var figs = toGeom.Figures;
-			var lastFig = figs.Count>0?figs[figs.Count-1]:null;
+			var lastFig = figs.Count > 0 ? figs[figs.Count - 1] : null;
 			if (lastFig == null) {
 				lastFig = new PathFigure {
 					StartPoint = point
 				};
 				toGeom.Figures.Add(lastFig);
-			} else {
+			}
+			else {
 				lastFig.Segments.Add(new LineSegment(point, true));
 			};
 		}
@@ -131,7 +170,7 @@ namespace EmnExtensions.Wpf
 		public static BitmapSource MakeGreyBitmap(byte[,] image) {
 			int w = image.GetLength(1), h = image.GetLength(0);
 			byte[] inlinearray = new byte[w * h];
-			int i=0;
+			int i = 0;
 			for (int y = 0; y < h; y++)
 				for (int x = 0; x < w; x++)
 					inlinearray[i++] = image[y, x];
@@ -145,17 +184,17 @@ namespace EmnExtensions.Wpf
 			return MakeColormappedBitmap(image, colormap, 1);
 		}
 		public static BitmapSource MakeColormappedBitmap(double[,] image, Func<double, Color> colormap, int sampleFactor) {
-			int w = image.GetLength(1)*sampleFactor, h = image.GetLength(0)*sampleFactor;
+			int w = image.GetLength(1) * sampleFactor, h = image.GetLength(0) * sampleFactor;
 			uint[] inlinearray = new uint[w * h];
 			int i = 0;
 			for (int y = 0; y < h; y++)
 				for (int x = 0; x < w; x++)
-					inlinearray[i++] = ToNativeColor(colormap(image[y/sampleFactor, x/sampleFactor]));
+					inlinearray[i++] = ToNativeColor(colormap(image[y / sampleFactor, x / sampleFactor]));
 			return BitmapSource.Create(w, h, 96.0, 96.0, PixelFormats.Bgra32, null, inlinearray, w * 4);
 		}
 
-		public static Drawing MakeBitmapDrawing(BitmapSource bitmap, double yStart,double yEnd, double xStart, double xEnd) {
-			var img= new ImageDrawing(bitmap, new Rect(0, 0, bitmap.Width, bitmap.Height));
+		public static Drawing MakeBitmapDrawing(BitmapSource bitmap, double yStart, double yEnd, double xStart, double xEnd) {
+			var img = new ImageDrawing(bitmap, new Rect(0, 0, bitmap.Width, bitmap.Height));
 
 			Matrix trans = Matrix.Identity;
 			trans.Scale((xEnd - xStart) / bitmap.Width, (yEnd - yStart) / bitmap.Height);

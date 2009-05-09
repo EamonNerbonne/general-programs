@@ -13,6 +13,7 @@
 			<ColumnDefinition Width="188*" />
 			<ColumnDefinition Width="90*" />
 		</Grid.ColumnDefinitions>
+		<emn:PlotControl Name="plotControl" Grid.RowSpan="3"/>
 		<Grid Grid.Column="1" Margin="12" Name="grid1">
 			<Grid.ColumnDefinitions>
 				<ColumnDefinition Width="Auto" />
@@ -25,10 +26,11 @@
 				<RowDefinition Height="Auto" MinHeight="10" />
 				<RowDefinition Height="*" />
 			</Grid.RowDefinitions>
+			
 			<Label  Margin="2" Name="label1" HorizontalAlignment="Right">Number of Sets</Label>
-			<TextBox Grid.Column="1" Margin="2" Name="textBoxNumberOfSets" TextChanged="textBoxNumberOfSets_TextChanged" Text="2" />
+			<TextBox Grid.Column="1" Margin="2" Name="textBoxNumberOfSets" TextChanged="textBoxNumberOfSets_TextChanged" Text="3" />
 			<Label Grid.Row="1"  HorizontalAlignment="Right" Margin="2" Name="label2">Points per Set</Label>
-			<TextBox Grid.Column="1"  Grid.Row="1" Margin="2" Name="textBoxPointsPerSet" TextChanged="textBoxPointsPerSet_TextChanged"  Text="100" />
+			<TextBox Grid.Column="1"  Grid.Row="1" Margin="2" Name="textBoxPointsPerSet" TextChanged="textBoxPointsPerSet_TextChanged"  Text="10000" />
 		</Grid>
 		<emn:LogControl Name="logControl" ClaimStandardOut="True" ClaimStandardError="True" Grid.Column="1" Grid.Row="1"/>
 		<Button Grid.Column="1" Grid.Row="2" Margin="12" Name="buttonGeneratePointClouds" HorizontalAlignment="Right" Click="buttonGeneratePointClouds_Click">Generate Point Clouds</Button>
