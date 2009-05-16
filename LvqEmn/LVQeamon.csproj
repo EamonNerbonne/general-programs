@@ -144,6 +144,7 @@
   <ItemGroup>
     <Compile Include="CreateGaussianCloud.cs" />
     <Compile Include="DataVerifiers.cs" />
+    <Compile Include="PlotPoints.cs" />
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
     </Compile>

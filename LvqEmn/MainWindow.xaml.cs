@@ -61,12 +61,30 @@ namespace LVQeamon
 
 
 					Dispatcher.BeginInvoke((Action)(() => {
-						Geometry pointCloud = GraphUtils.PointCloud(
-						Enumerable.Range(0, pointsPerSet)
-							.Select(i => new Point(points[i, 0], points[i, 1]))
-							);
-						//pointCloud.Transform = new MatrixTransform( GraphUtils.TransformShape(pointCloud.Bounds, new Rect(0,0,500, 500), true));
-						plotControl.Graphs.Add(new GraphGeometryControl() { GraphGeometry = pointCloud, Name = "g" + si, PenThickness = 2.0 });
+						var pointsIter = Enumerable.Range(0, pointsPerSet)
+							.Select(i => new Point(points[i, 0], points[i, 1]));
+
+						//Rect bounds;
+						//Drawing pointCloud3 = GraphUtils.PointCloud3(pointsIter, Brushes.Black, 0.01, out bounds);
+						//plotControl.Graphs.Add(new GraphDrawingControl { GraphDrawing = pointCloud3, Name = "g" + si, GraphBounds = bounds });
+
+						//Rect bounds;
+						//DrawingVisual pointCloud2 = GraphUtils.PointCloud2(pointsIter, Brushes.Black, 0.01, out bounds);
+						//plotControl.Graphs.Add(new GraphDrawingControl { GraphDrawing = (Drawing)VisualTreeHelper.GetDrawing(pointCloud2).GetAsFrozen(), Name = "g" + si, GraphBounds = bounds });
+
+						Geometry pointCloud = GraphUtils.PointCloud(pointsIter);
+						Pen pen = new Pen {
+						    Brush = GraphRandomPen.RandomGraphColor(),
+						    EndLineCap = PenLineCap.Square,
+						    StartLineCap = PenLineCap.Square,
+						    Thickness = 1.5,
+						};
+						plotControl.Graphs.Add(new GraphGeometryControl() { GraphGeometry = pointCloud, Name = "g" + si, GraphPen = pen });
+
+						//Geometry pointCloud = GraphUtils.PointCloud4(pointsIter, 0.01);
+						//plotControl.Graphs.Add(new GraphGeometryControl() { GraphGeometry = pointCloud, Name = "g" + si, GraphFill = GraphRandomPen.RandomGraphColor(), GraphPen = null });
+
+
 						lock (sync) {
 							done++;
 							if (done == numSets) {
@@ -97,7 +115,7 @@ namespace LVQeamon
 				if (!completedTest) {
 					completedTest = true;
 					overall.TimeMark(null);
-					Close();
+					//Close();
 				}
 			}
 			else {
