@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Windows.Media;
 
-namespace EmnExtensions.Wpf
+namespace EmnExtensions.Wpf.OldGraph
 {
 	public static class GraphRandomPen
 	{

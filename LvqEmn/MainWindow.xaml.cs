@@ -17,6 +17,7 @@ using EmnExtensions.Wpf;
 using EmnExtensions.DebugTools;
 using System.Threading;
 using System.Threading.Tasks;
+using EmnExtensions.Wpf.OldGraph;
 
 namespace LVQeamon
 {

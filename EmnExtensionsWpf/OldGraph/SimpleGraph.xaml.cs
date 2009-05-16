@@ -12,7 +12,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
-namespace EmnExtensions.Wpf
+namespace EmnExtensions.Wpf.OldGraph
 {
     /// <summary>
     /// Interaction logic for SimpleGraph.xaml

@@ -11,8 +11,9 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using EmnExtensions.Wpf.OldGraph;
 
-namespace EmnExtensions.Wpf
+namespace EmnExtensions.Wpf.OldGraph
 {
 	/// <summary>
 	/// Interaction logic for ColorMapLegend.xaml

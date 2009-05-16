@@ -5,7 +5,7 @@ using System.Text;
 using System.Windows.Media;
 using System.Windows;
 
-namespace EmnExtensions.Wpf
+namespace EmnExtensions.Wpf.OldGraph
 {
 	public class Graph2DControl : GraphDrawingControl
 	{

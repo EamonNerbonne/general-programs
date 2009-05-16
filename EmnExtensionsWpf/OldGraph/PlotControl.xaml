@@ -1,9 +1,10 @@
-﻿<UserControl x:Class="EmnExtensions.Wpf.PlotControl"
+﻿<UserControl x:Class="EmnExtensions.Wpf.OldGraph.PlotControl"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:emnExt="clr-namespace:EmnExtensions.Wpf" >
+    xmlns:emnExtGr="clr-namespace:EmnExtensions.Wpf.OldGraph" 
+			 xmlns:emnExt="clr-namespace:EmnExtensions.Wpf" >
     <UserControl.Resources>
-        <emnExt:DealWithNullConverter x:Key="nullConverter"/>
+        <emnExtGr:DealWithNullConverter x:Key="nullConverter"/>
     </UserControl.Resources>
     <Grid>
         <Grid.RowDefinitions>
@@ -60,11 +61,11 @@
             </Grid.ColumnDefinitions>
             <Grid Name="graphGrid"  Grid.Column="1" Grid.Row="1" >
             </Grid>
-            <emnExt:TickedLegendControl x:Name="leftLegend" Grid.Row="1" SnapTo="Right" Visibility="Collapsed" />
-            <emnExt:TickedLegendControl x:Name="lowerLegend" Grid.Row="2" Grid.Column="1" Visibility="Collapsed" />
-            <emnExt:TickedLegendControl x:Name="rightLegend" Grid.Row="1" Grid.Column="2"  SnapTo="Left" Visibility="Collapsed"/>
-            <emnExt:TickedLegendControl x:Name="upperLegend" Grid.Row="0" Grid.Column="1" SnapTo="Bottom" Visibility="Collapsed"/>
-            <emnExt:ColorMapLegend x:Name="colormapLegend" Grid.Row="3" Grid.Column="1" Visibility="Collapsed" Margin="0,10,0,0" />
+            <emnExtGr:TickedLegendControl x:Name="leftLegend" Grid.Row="1" SnapTo="Right" Visibility="Collapsed" />
+            <emnExtGr:TickedLegendControl x:Name="lowerLegend" Grid.Row="2" Grid.Column="1" Visibility="Collapsed" />
+            <emnExtGr:TickedLegendControl x:Name="rightLegend" Grid.Row="1" Grid.Column="2"  SnapTo="Left" Visibility="Collapsed"/>
+            <emnExtGr:TickedLegendControl x:Name="upperLegend" Grid.Row="0" Grid.Column="1" SnapTo="Bottom" Visibility="Collapsed"/>
+            <emnExtGr:ColorMapLegend x:Name="colormapLegend" Grid.Row="3" Grid.Column="1" Visibility="Collapsed" Margin="0,10,0,0" />
         </Grid>
     </Grid>
 </UserControl>

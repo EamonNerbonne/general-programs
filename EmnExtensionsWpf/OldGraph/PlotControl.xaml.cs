@@ -19,7 +19,7 @@ using System.IO;
 using System.Collections.Specialized;
 using Microsoft.Win32;
 
-namespace EmnExtensions.Wpf
+namespace EmnExtensions.Wpf.OldGraph
 {
 	/// <summary>
 	/// Interaction logic for PlotControl.xaml

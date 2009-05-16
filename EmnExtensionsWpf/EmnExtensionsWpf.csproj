@@ -146,23 +146,28 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ColorConversion.cs" />
-    <Compile Include="ColorMapLegend.xaml.cs">
-      <DependentUpon>ColorMapLegend.xaml</DependentUpon>
-    </Compile>
     <Compile Include="Colormaps.cs" />
     <Compile Include="DynamicBitmap.cs" />
-    <Compile Include="Graph2DControl.cs" />
-    <Compile Include="GraphControl.cs" />
-    <Compile Include="GraphDrawingControl.cs" />
-    <Compile Include="GraphGeometryControl.cs" />
-    <Compile Include="GraphRandomPen.cs" />
-    <Compile Include="GraphUtils.cs" />
     <Compile Include="LogControl.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="PlotControl.xaml.cs">
+    <Compile Include="OldGraph\ColorMapLegend.xaml.cs">
+      <DependentUpon>ColorMapLegend.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="OldGraph\Graph2DControl.cs" />
+    <Compile Include="OldGraph\GraphControl.cs" />
+    <Compile Include="OldGraph\GraphDrawingControl.cs" />
+    <Compile Include="OldGraph\GraphGeometryControl.cs" />
+    <Compile Include="OldGraph\GraphRandomPen.cs" />
+    <Compile Include="OldGraph\GraphUtils.cs" />
+    <Compile Include="OldGraph\PlotControl.xaml.cs">
       <DependentUpon>PlotControl.xaml</DependentUpon>
     </Compile>
+    <Compile Include="OldGraph\SimpleGraph.xaml.cs">
+      <DependentUpon>SimpleGraph.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="OldGraph\TickedLegendControl.cs" />
+    <Compile Include="OldGraph\WpfTools.cs" />
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -176,11 +181,6 @@
       <DependentUpon>Settings.settings</DependentUpon>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
-    <Compile Include="SimpleGraph.xaml.cs">
-      <DependentUpon>SimpleGraph.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="TickedLegendControl.cs" />
-    <Compile Include="WpfTools.cs" />
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
@@ -202,21 +202,18 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Page Include="ColorMapLegend.xaml">
-      <SubType>Designer</SubType>
+    <Page Include="OldGraph\ColorMapLegend.xaml">
       <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="PlotControl.xaml">
       <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="SimpleGraph.xaml">
+    <Page Include="OldGraph\PlotControl.xaml">
+      <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
     </Page>
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="OldGraph\" />
+    <Page Include="OldGraph\SimpleGraph.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
