@@ -9,7 +9,7 @@ namespace EmnExtensions.Wpf
 	public static class GraphRandomPen
 	{
 		static Random GraphColorRandom = new EmnExtensions.MathHelpers.MersenneTwister();
-		static Brush RandomGraphColor() {
+		public static Brush RandomGraphColor() {
 			double r, g, b, max, min, minV, maxV;
 			max = GraphColorRandom.NextDouble() * 0.5 + 0.5;
 			min = GraphColorRandom.NextDouble() * 0.5;

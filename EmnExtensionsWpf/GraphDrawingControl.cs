@@ -14,8 +14,8 @@ namespace EmnExtensions.Wpf
 		public void RecomputeBounds() { GraphBounds = graphDrawing.Bounds; }
 
 		MatrixTransform drawingTransform;
-		protected override void SetTransform(MatrixTransform displayTransform) {
-			drawingTransform = displayTransform;
+		protected override void SetTransform(Matrix displayTransform) {
+			drawingTransform = new MatrixTransform(displayTransform);
 		}
 
 		public override bool IsEmpty { get { return graphDrawing == null; } }

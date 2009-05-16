@@ -43,14 +43,14 @@ namespace EmnExtensions.Wpf
 
 		Size lastDispSize = Size.Empty;
 
-		protected abstract void SetTransform(MatrixTransform displayTransform);
+		protected abstract void SetTransform(Matrix displayTransform);
 
 		void UpdateBounds() {
 			if (!(graphBoundsPrivate.Height.IsFinite() && graphBoundsPrivate.Width.IsFinite())) return; //no nonsense
 			Size curSize = new Size(ActualWidth, ActualHeight);
 			if (curSize.IsEmpty || curSize.Width*curSize.Height==0) return;
 
-			SetTransform(new MatrixTransform(GraphUtils.TransformShape(graphBoundsPrivate,new Rect(curSize),true)));
+			SetTransform(GraphUtils.TransformShape(graphBoundsPrivate,new Rect(curSize),true));
 	
 			if (oldBounds == graphBoundsPrivate && curSize == lastDispSize) return; //no visual invalidation if no change
 			lastDispSize = curSize;
@@ -71,7 +71,7 @@ namespace EmnExtensions.Wpf
 		public Pen GraphPen {
 			set {
 				graphLinePen = value;
-				graphLinePen.Freeze();
+				if(graphLinePen!=null) graphLinePen.Freeze();
 				InvalidateVisual();
 			}
 			get {

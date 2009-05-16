@@ -11,7 +11,7 @@ namespace EmnExtensions.Wpf
 		//MatrixTransform dispTrans;
 		protected override void RenderGraph(DrawingContext drawingContext) {
 			//drawingContext.PushTransform(dispTrans);
-			drawingContext.DrawGeometry(null, GraphPen, graphGeom );//(Geometry)graphGeom.GetCurrentValueAsFrozen());
+			drawingContext.DrawGeometry(GraphFill, GraphPen, graphGeom );//(Geometry)graphGeom.GetCurrentValueAsFrozen());
 			//drawingContext.Pop();
 		}
 
@@ -24,14 +24,19 @@ namespace EmnExtensions.Wpf
 				//InvalidateVisual();
 			}
 		}
+
+		public Brush GraphFill { get; set; }
+
 		public void RecomputeBounds() {
 		//	graphGeom.Transform = Transform.Identity;
 		//	GraphBounds = graphGeom.Bounds;
 			GraphBounds = graphGeom.Transform.Inverse.TransformBounds(graphGeom.Bounds);
 		}
-		protected override void SetTransform(MatrixTransform displayTransform) {
+		protected override void SetTransform(Matrix displayTransform) {
 			//dispTrans = displayTransform;
-			graphGeom.Transform = displayTransform;
+			//graphGeom = graphGeom.CloneCurrentValue();
+			graphGeom.Transform = new MatrixTransform(displayTransform);
+			//graphGeom.Freeze();
 		}
 
 		public override bool IsEmpty { get { return graphGeom == null; } }

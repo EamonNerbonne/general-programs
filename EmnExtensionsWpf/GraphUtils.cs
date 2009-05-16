@@ -81,6 +81,9 @@ namespace EmnExtensions.Wpf
 			return geom;
 		}
 
+		/// <summary>
+		/// Makes a StreamGeometry based point-cloud (quite fast).
+		/// </summary>
 		public static StreamGeometry PointCloud(IEnumerable<Point> setOfPoints) {
 
 			StreamGeometry geom = new StreamGeometry();
@@ -97,6 +100,43 @@ namespace EmnExtensions.Wpf
 			return geom;
 		}
 
+		/// <summary>
+		/// Makes a filled-square based point cloud; radius is in data-space, so distorted (fast)
+		/// </summary>
+		public static StreamGeometry PointCloud4(IEnumerable<Point> setOfPoints, double radius) {
+			StreamGeometry geom = new StreamGeometry();
+			geom.FillRule = FillRule.Nonzero;
+			using (var context = geom.Open()) {
+				foreach (var point in setOfPoints) {
+					if (IsOK(point)) {
+						point.Offset(-radius, -radius);
+						context.BeginFigure(point, true, false);
+						point.Offset(radius * 2, 0.0);
+						context.LineTo(point, true, false);
+						point.Offset(0, radius * 2);
+						context.LineTo(point, true, false);
+						point.Offset(-2* radius, 0.0);
+						context.LineTo(point, true, false);
+
+
+						//point.Offset(radius, 0);
+						//context.BeginFigure(point, true, true);
+
+
+						//point.Offset(-2 * radius, 0);
+						//context.ArcTo(point, new Size(radius, radius), 0.0, true, SweepDirection.Clockwise, true, true);
+						//point.Offset(2 * radius, 0);
+						//context.ArcTo(point, new Size(radius, radius), 0.0, true, SweepDirection.Clockwise, true, true);
+					}
+				}
+			}
+			//geom.Freeze();//can't freeze since that breaks transform changes.
+			return geom;
+		}
+
+		/// <summary>
+		/// Makes a DrawingVisual based point cloud (slow)
+		/// </summary>
 		public static DrawingVisual PointCloud2(IEnumerable<Point> setOfPoints, Brush brush, double radius, out Rect bounds) {
 
 			DrawingVisual vis = new DrawingVisual();
@@ -109,11 +149,27 @@ namespace EmnExtensions.Wpf
 					}
 				}
 			}
-			
-			//geom.Freeze();//can't freeze since that breaks transform changes.
+
 			return vis;
 		}
 
+		/// <summary>
+		/// Makes a DrawingGroup based point cloud (slow)
+		/// </summary>
+		public static DrawingGroup PointCloud3(IEnumerable<Point> setOfPoints, Brush brush, double radius, out Rect bounds) {
+			DrawingGroup drawing = new DrawingGroup();
+			bounds = Rect.Empty;
+			using (DrawingContext ctx = drawing.Open()) {
+				foreach (var point in setOfPoints) {
+					if (IsOK(point)) {
+						ctx.DrawEllipse(brush, null, point, radius, radius);
+						bounds.Union(point);
+					}
+				}
+			}
+			drawing.Freeze();
+			return drawing;
+		}
 
 
 
