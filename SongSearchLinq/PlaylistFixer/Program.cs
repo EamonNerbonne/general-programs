@@ -37,6 +37,15 @@ namespace DeURLizeM3U
                     if (!fi.Exists) {
                         Console.WriteLine("Not found");
                     } else {
+						if (fi.Name.EndsWith("-fixed.m3u")) {
+							string newPath = Path.Combine(
+								fi.Directory.FullName,
+								fi.Name.Substring(0, fi.Name.Length - "-fixed.m3u".Length)
+								+ ".m3u");
+							if (!File.Exists(newPath))
+								fi.MoveTo(newPath);
+						}
+
                         MinimalSongData[] playlistfixed;
                         PartialSongData[] playlist = LoadExtM3U(fi);
                         playlistfixed = new MinimalSongData[playlist.Length];
