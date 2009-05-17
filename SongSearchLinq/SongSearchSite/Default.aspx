@@ -52,15 +52,17 @@
     m3u8El.href = extm3u8link + encodeURIComponent(lastquery);
     }
     </script>
+    <script type="text/javascript" src="batmomultiplayer.js"></script>
 </head>
 <body>
     <form id="form1" runat="server">
     <table id="pagetable">
-    <tr style="height:5em"><td style="background:#ffc;padding:0.5em">SongSearch - a site for searching &amp; playing distributed song db&#39;s.<br />
+    <tr style="height:8em"><td style="background:#ffc;padding:0.5em">SongSearch - a site for searching &amp; playing distributed song db&#39;s.<br />
      Search:        <input id="searchquery" onkeyup="updateResults()" type="text" /> with at most <input id="shownumber" onkeyup="updateResults()" type="text" value="20" /> results.<br />
-     <a id="m3u" href="list.m3u?extm3u=true&amp;remote=allow&amp;q=" >Play ALL the damn songs!</a> <a id="m3u8" href="list.m3u8?extm3u=true&amp;remote=allow&amp;q=" >Play ALL the damn songs (UTF-8, winamp unsupported)!</a>
-     </td><td>Status:            <br />
-     <iframe src="IndexStatus.aspx" frameborder="0" scrolling="no" style="width: 10em;height: 2em;" id="idxStatus" name="idxStatus"></iframe></td></tr>
+     <a id="m3u" href="list.m3u?extm3u=true&amp;remote=allow&amp;q=" >Play ALL the damn songs!</a> <a id="m3u8" href="list.m3u8?extm3u=true&amp;remote=allow&amp;q=" >Play ALL the damn songs (UTF-8, winamp unsupported)!</a><br />
+     Autostart: <input type="checkbox" name="autostart" id="autostart" checked="checked"/>
+     </td><td>
+     <iframe src="IndexStatus.aspx" frameborder="0" scrolling="no" style="width: 20em;height: 8em;" id="idxStatus" name="idxStatus"></iframe></td></tr>
     <tr><td style="height:100%;width:100%;border:none;padding:0;" colspan="2"> <iframe scrolling="yes" frameborder="0" style="height:100%;width:100%;border:none;" id="resultsview" src="list.xml?top=20&amp;view=xslt&amp;q="></iframe></td></tr>
     </table>
     </form>

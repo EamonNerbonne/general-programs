@@ -7,7 +7,7 @@ using SongDataLib;
 using LastFMspider;
 using EmnExtensions;
 using EmnExtensions.Text;
-using System.Threading;
+//using System.Threading;
 
 namespace DeURLizeM3U
 {

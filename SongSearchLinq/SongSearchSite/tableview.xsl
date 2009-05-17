@@ -27,7 +27,11 @@
 	</xsl:template>
 
 	<xsl:template match="partsong|songref|song">
-		<tr onclick="top.frames['idxStatus'].location.href='{@songuri}'" style="cursor:pointer;">
+		<xsl:variable name="songlabel">
+			<xsl:apply-templates select="." mode="makelabel" />
+		</xsl:variable>
+		<tr onclick="parent.BatPop(this.getAttribute('songlabel'),decodeURIComponent(this.getAttribute('href').substring(this.getAttribute('href').lastIndexOf('/')+1)), this.getAttribute('href'), null);" style="cursor:pointer;" href="{@songuri}" songlabel="{$songlabel}">
+		<!-- onclick="top.frames['idxStatus'].location.href='{@songuri}'" -->
 			<xsl:choose>
 				<xsl:when test="@artist">
 					<td>
@@ -68,7 +72,18 @@
 	</xsl:template>
 
 
-	<xsl:template name="replace">
+	<xsl:template match="partsong|songref|song" mode="makelabel">
+		<xsl:choose>
+			<xsl:when test="@artist">
+				<xsl:value-of select="concat(@artist,' - ',@title)"/>
+			</xsl:when>
+			<xsl:otherwise>
+				<xsl:value-of select="@label"/>
+			</xsl:otherwise>
+		</xsl:choose>
+	</xsl:template>
+
+		<xsl:template name="replace">
 		<xsl:param name="str" />
 		<xsl:param name ="what"/>
 		<xsl:param name="with"/>
