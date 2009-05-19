@@ -1,0 +1,10 @@
+﻿<UserControl x:Class="EmnExtensions.Wpf.Plot.PlotControl"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:emnExt="clr-namespace:EmnExtensions.Wpf"
+    xmlns:emnExtPlot="clr-namespace:EmnExtensions.Wpf"
+    Height="300" Width="300">
+	<Grid>
+
+	</Grid>
+</UserControl>

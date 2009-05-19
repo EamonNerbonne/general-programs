@@ -103,6 +103,8 @@ namespace EmnExtensions.Wpf
 			return geom;
 		}
 
+
+
 		/// <summary>
 		/// Makes a filled-square based point cloud; radius is in data-space, so distorted (fast)
 		/// </summary>

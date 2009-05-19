@@ -24,10 +24,15 @@ namespace LVQeamon
 	/// <summary>
 	/// Interaction logic for MainWindow.xaml
 	/// </summary>
-	public partial class MainWindow : Window
+	public partial class MainWindow : Window// Window
 	{
 		public MainWindow() {
+			//this.WindowStyle = WindowStyle.None;
+			//this.AllowsTransparency = true; 
+			BorderBrush = Brushes.White;
+			
 			InitializeComponent();
+			this.Background = Brushes.White;
 		}
 
 		private void textBoxNumberOfSets_TextChanged(object sender, TextChangedEventArgs e) { DataVerifiers.VerifyTextBox((TextBox)sender, DataVerifiers.IsInt32Positive); }
@@ -75,10 +80,10 @@ namespace LVQeamon
 
 						Geometry pointCloud = GraphUtils.PointCloud(pointsIter);
 						Pen pen = new Pen {
-						    Brush = GraphRandomPen.RandomGraphColor(),
-						    EndLineCap = PenLineCap.Square,
-						    StartLineCap = PenLineCap.Square,
-						    Thickness = 1.5,
+							Brush = GraphRandomPen.RandomGraphColor(),
+							EndLineCap = PenLineCap.Square,
+							StartLineCap = PenLineCap.Square,
+							Thickness = 1.5,
 						};
 						plotControl.Graphs.Add(new GraphGeometryControl() { GraphGeometry = pointCloud, Name = "g" + si, GraphPen = pen });
 
@@ -104,8 +109,8 @@ namespace LVQeamon
 			overall = new NiceTimer();
 			overall.TimeMark("Sizing");
 			base.OnInitialized(e);
-			buttonGeneratePointClouds_Click(null, null);
-			Dispatcher.BeginInvoke((Action)DoSizingTest);
+			//buttonGeneratePointClouds_Click(null, null);
+			//Dispatcher.BeginInvoke((Action)DoSizingTest);
 		}
 
 		volatile int renderCount = 0;
@@ -129,6 +134,53 @@ namespace LVQeamon
 				}
 				Dispatcher.BeginInvoke((Action)DoSizingTest);
 			}
+		}
+
+		GeometryGroup smallerGeom;
+		private void buttonAddPoints_Click(object sender, RoutedEventArgs e) {
+			if (smallerGeom == null) {
+				smallerGeom = new GeometryGroup();
+			}
+			int pointsPerSet = PointsPerSet.Value / 100;
+
+			ThreadPool.QueueUserWorkItem((index) => {
+
+				double[] mean = CreateGaussianCloud.RandomMean(2, RndHelper.ThreadLocalRandom);
+				double[,] trans = CreateGaussianCloud.RandomTransform(2, RndHelper.ThreadLocalRandom);
+				double[,] points = CreateGaussianCloud.GaussianCloud(pointsPerSet, 2, trans, mean, RndHelper.ThreadLocalRandom);
+
+
+				var pointsIter = Enumerable.Range(0, pointsPerSet)
+					.Select(i => new Point(points[i, 0], points[i, 1]))
+					.ToArray();
+
+
+				Dispatcher.BeginInvoke((Action)(() => {
+					Geometry pointCloud = GraphUtils.PointCloud(pointsIter);
+					smallerGeom.Children.Add(pointCloud);
+					//pointCloud.Freeze();
+					GraphGeometryControl control =
+						plotControl.Graphs
+						.Where(gc => gc is GraphGeometryControl)
+						.Cast<GraphGeometryControl>()
+						.Where(gc => gc.GraphGeometry == smallerGeom)
+						.FirstOrDefault();
+					if (control == null) {
+						Pen pen = new Pen {
+							Brush = GraphRandomPen.RandomGraphColor(),
+							EndLineCap = PenLineCap.Square,
+							StartLineCap = PenLineCap.Square,
+							Thickness = 1.5,
+						};
+						plotControl.Graphs.Add(new GraphGeometryControl() {
+							GraphGeometry =pointCloud,// smallerGeom,
+							Name = "smallerGeom",
+							GraphPen = pen
+						});
+					}
+				}));
+
+			});
 		}
 
 	}

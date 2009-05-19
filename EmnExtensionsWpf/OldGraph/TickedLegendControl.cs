@@ -47,7 +47,7 @@ namespace EmnExtensions.Wpf.OldGraph
     public class TickedLegendControl : FrameworkElement
     {
         Typeface labelType;
-        double fontSize = 12.0 * 4.0 / 3.0;
+        double fontSize = 12.0 * 4.0 / 3.0;//12pt = 12 pixels at 72dpi = 16pixels at 96dpi
         Pen tickPen;
         public Brush TickColor {
             set {

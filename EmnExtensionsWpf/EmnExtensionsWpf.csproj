@@ -168,8 +168,11 @@
     </Compile>
     <Compile Include="OldGraph\TickedLegendControl.cs" />
     <Compile Include="OldGraph\WpfTools.cs" />
-    <Compile Include="Plot\DataRange.cs" />
     <Compile Include="Plot\GraphableData.cs" />
+    <Compile Include="Plot\GraphableGeometry.cs" />
+    <Compile Include="Plot\PlotControl.xaml.cs">
+      <DependentUpon>PlotControl.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -215,6 +218,10 @@
     <Page Include="OldGraph\SimpleGraph.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Plot\PlotControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
     </Page>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
