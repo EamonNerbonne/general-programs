@@ -20,6 +20,7 @@ namespace EmnExtensions.Wpf.OldGraph
 			get { return graphGeom; }
 			set {
 				graphGeom = value;// (Geometry)value.GetCurrentValueAsFrozen();
+				
 				RecomputeBounds();
 				//InvalidateVisual();
 			}

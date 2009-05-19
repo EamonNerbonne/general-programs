@@ -168,6 +168,8 @@
     </Compile>
     <Compile Include="OldGraph\TickedLegendControl.cs" />
     <Compile Include="OldGraph\WpfTools.cs" />
+    <Compile Include="Plot\DataRange.cs" />
+    <Compile Include="Plot\GraphableData.cs" />
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
     </Compile>

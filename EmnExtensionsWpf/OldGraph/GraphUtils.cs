@@ -6,10 +6,13 @@ using System.Windows.Media;
 using System.Windows;
 using System.Windows.Media.Imaging;
 
-namespace EmnExtensions.Wpf.OldGraph
+namespace EmnExtensions.Wpf
 {
 	public static class GraphUtils
 	{
+
+		public static bool IsFiniteNonEmpty(this Rect rect) {			return rect.Width.IsFinite() && rect.Height.IsFinite() && rect.Height * rect.Width > 0;		}
+
 		public static PathGeometry LineWithErrorBars(Point[] lineOfPoints, double[] ErrBars) {
 			PathGeometry geom = new PathGeometry();
 			PathFigure fig = null;
