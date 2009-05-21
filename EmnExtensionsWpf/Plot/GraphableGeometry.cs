@@ -20,7 +20,7 @@ namespace EmnExtensions.Wpf.Plot
 
 		static Pen defaultPen = (Pen)new Pen { Brush = Brushes.Black, EndLineCap = PenLineCap.Square, StartLineCap = PenLineCap.Square }.GetAsFrozen();
 
-		public Brush Fill { get { return m_Fill; } set { if (m_Fill != value) { m_Fill = value; OnChange(GraphChangeEffects.Redraw); } } }
+		public Brush Fill { get { return m_Fill; } set { if (m_Fill != value) { m_Fill = value; OnChange(GraphChangeEffects.RedrawGraph); } } }
 		public Pen Pen {
 			get { return m_Pen; }
 			set {
@@ -31,7 +31,7 @@ namespace EmnExtensions.Wpf.Plot
 					if (m_Pen != null && !m_Pen.IsFrozen)
 						m_Pen.Changed += m_Pen_Changed;
 					RecomputeBoundsIfAuto();
-					OnChange(GraphChangeEffects.Redraw);
+					OnChange(GraphChangeEffects.RedrawGraph);
 				}
 			}
 		}
@@ -76,9 +76,6 @@ namespace EmnExtensions.Wpf.Plot
 				m_OuterGeom.Transform = m_OuterGeomTransform;
 			}
 			context.DrawGeometry(m_Fill, m_Pen, m_OuterGeom);
-			var g=new GeometryDrawing();
-			Drawing
-			
 		}
 
 	}

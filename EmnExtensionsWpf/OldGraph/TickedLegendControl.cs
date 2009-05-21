@@ -68,8 +68,6 @@ namespace EmnExtensions.Wpf.OldGraph
         public TickedLegendControl() {
             TickColor = Brushes.Black;
             labelType = new Typeface(new FontFamily("Segoe UI"), FontStyles.Normal, FontWeights.Normal, FontStretches.Normal, new FontFamily("Verdana"));
-            //            StartVal = 0;
-            //          EndVal = 1;
         }
         GraphControl watchedGraph;
         public GraphControl Watch {
@@ -272,8 +270,7 @@ cachedCulture, FlowDirection.LeftToRight, labelType, fontSize, Brushes.Black);
         static void FindAllTicks(double preferredNum, double minVal, double maxVal, out int orderOfMagnitudeSlot, Action<double, int> foundTickWithRank) {
             double firstTickAt, totalSlotSize;
             int[] subDivTicks;
-            int orderOfMagnitude;
-            CalcTickPositions(minVal, maxVal, preferredNum, out firstTickAt, out totalSlotSize, out subDivTicks, out orderOfMagnitude);
+            CalcTickPositions(minVal, maxVal, preferredNum, out firstTickAt, out totalSlotSize, out subDivTicks);
             orderOfMagnitudeSlot = (int)Math.Floor(Math.Log10(Math.Abs(totalSlotSize)));
             //we want the first tick to start before the range
             firstTickAt -= totalSlotSize;
@@ -296,16 +293,16 @@ cachedCulture, FlowDirection.LeftToRight, labelType, fontSize, Brushes.Black);
         /// </summary>
         /// <param name="minVal">the start of the range to be ticked</param>
         /// <param name="maxVal">the end of the range to be ticked</param>
-        /// <param name="preferredNum">the preferred number of labelled ticks.  This method will deviate by at most a factor 1.5 from that</param>
+        /// <param name="preferredNum">the preferred number segments.  This method will deviate by at most a factor 1.5 from that</param>
         /// <param name="firstTickAt">output: where the first tick should be placed</param>
         /// <param name="slotSize">output: the distance between consequetive ticks</param>
         /// <param name="ticks">output: the additional order of subdivisions each slot can be divided into.
         /// This value aims to have around 10 subdivisions total, slightly more when the actual number of slots is fewer than requested
         /// and slightly less when the actual number of slots greater than requested.</param>
-        public static void CalcTickPositions(double minVal, double maxVal, double preferredNum, out double firstTickAt, out double slotSize, out int[] ticks, out int orderOfMagnitude) {
+        public static void CalcTickPositions(double minVal, double maxVal, double preferredNum, out double firstTickAt, out double slotSize, out int[] ticks) {
             double range = maxVal - minVal;
-            double idealSlotSize = range / (preferredNum + 1);
-            orderOfMagnitude = (int)Math.Floor(Math.Log10(idealSlotSize)); //i.e  for 143 or 971 this is 2
+            double idealSlotSize = range / preferredNum;
+            int orderOfMagnitude = (int)Math.Floor(Math.Log10(idealSlotSize)); //i.e  for 143 or 971 this is 2
             double relSlotSize = idealSlotSize / Math.Pow(10, orderOfMagnitude); //some number between 1 and 10
             int fixedSlot;
 
@@ -328,8 +325,6 @@ cachedCulture, FlowDirection.LeftToRight, labelType, fontSize, Brushes.Black);
             //now to find the first tick!
 
             firstTickAt = Math.Ceiling(minVal / slotSize) * slotSize;
-
         }
-
     }
 }
