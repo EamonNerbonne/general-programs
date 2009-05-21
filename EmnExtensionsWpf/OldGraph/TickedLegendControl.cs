@@ -241,6 +241,7 @@ cachedCulture, FlowDirection.LeftToRight, labelType, fontSize, Brushes.Black);
             powL = new FormattedText(
                 powStr,
                 cachedCulture, FlowDirection.LeftToRight, labelType, fontSize * 0.8, Brushes.Black);
+			
 
             textL = new FormattedText(
                 labelStr,

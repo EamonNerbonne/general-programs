@@ -176,6 +176,9 @@
     <Compile Include="Plot\PlotControl.xaml.cs">
       <DependentUpon>PlotControl.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Plot\TickedLegend.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
     </Compile>
