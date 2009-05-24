@@ -53,7 +53,12 @@ namespace SongDataLib
 		}
 		protected static bool isExtensionOK(FileInfo fi) {
 			string extension = fi.Extension.ToLowerInvariant();
-			return extension == ".mp3";//TODO: reenable! || extension == ".ogg" || extension == ".mpc" || extension == ".mpp" || extension == ".mp+" || extension == ".wma";
+			return (extension == ".mp3" && !fi.Name.ToLowerInvariant().EndsWith("._@X.mp3"))
+				|| extension == ".ogg" 
+				|| extension == ".mpc" 
+				|| extension == ".mpp" 
+				|| extension == ".mp+" 
+				|| extension == ".wma";
 		}
 
 		protected abstract void ScanSongs(FileKnownFilter filter, SongDataLoadDelegate handler);

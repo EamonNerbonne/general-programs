@@ -18,9 +18,9 @@ namespace LastFmPlaylistSuggestions
         }
 
         static void RunNew(LastFmTools tools, string[] args) {
-            var dir = new DirectoryInfo(@"D:\Data\playlists");
+			var dir = tools.DB.DatabaseDirectory.CreateSubdirectory("inputlists");
             var m3us = args.Length == 0 ? dir.GetFiles("*.m3u") : args.Select(s => new FileInfo(s)).Where(f => f.Exists);
-            DirectoryInfo m3uDir = args.Length == 0 ? tools.DB.DatabaseDirectory.CreateSubdirectory("lists") : new DirectoryInfo(System.Environment.GetFolderPath(Environment.SpecialFolder.Desktop));
+            DirectoryInfo m3uDir = args.Length == 0 ? tools.DB.DatabaseDirectory.CreateSubdirectory("similarlists") : new DirectoryInfo(System.Environment.GetFolderPath(Environment.SpecialFolder.Desktop));
 
             foreach (var m3ufile in m3us) {
                 try {
@@ -32,39 +32,46 @@ namespace LastFmPlaylistSuggestions
             }
         }
 
+		static void FindPlaylistSongLocally(LastFmTools tools, PartialSongData playlistEntry, Action<SongData> ifFound, Action<SongRef> ifNotFound, Action<PartialSongData> cannotParse) {
+			SongData bestMatch = null;
+			int artistTitleSplitIndex = playlistEntry.HumanLabel.IndexOf(" - ");
+			if (tools.Lookup.dataByPath.ContainsKey(playlistEntry.SongPath)) 
+				ifFound( tools.Lookup.dataByPath[playlistEntry.SongPath]);
+			else {
+				int bestMatchVal = Int32.MaxValue;
+				while (artistTitleSplitIndex != -1) {
+					SongRef songref = SongRef.Create(playlistEntry.HumanLabel.Substring(0, artistTitleSplitIndex), playlistEntry.HumanLabel.Substring(artistTitleSplitIndex + 3));
+					if (tools.Lookup.dataByRef.ContainsKey(songref)) {
+						foreach (var songCandidate in tools.Lookup.dataByRef[songref]) {
+							int candidateMatchVal = 100 * Math.Abs(playlistEntry.Length - songCandidate.Length) + Math.Min(199, Math.Abs(songCandidate.bitrate - 224));
+							if (candidateMatchVal < bestMatchVal) {
+								bestMatchVal = candidateMatchVal;
+								bestMatch = songCandidate;
+							}
+						}
+					}
+					artistTitleSplitIndex = playlistEntry.HumanLabel.IndexOf(" - ", artistTitleSplitIndex + 3);
+				}
+				if (bestMatch != null) ifFound(bestMatch);
+				else {
+					artistTitleSplitIndex = playlistEntry.HumanLabel.IndexOf(" - ");
+					if (artistTitleSplitIndex >= 0) ifNotFound(SongRef.Create(playlistEntry.HumanLabel.Substring(0, artistTitleSplitIndex), playlistEntry.HumanLabel.Substring(artistTitleSplitIndex + 3)));
+					else cannotParse(playlistEntry);
+				}
+			}
+		}
+
         static void ProcessM3U(LastFmTools tools,FileInfo m3ufile, DirectoryInfo m3uDir) {
             Console.WriteLine("Trying " + m3ufile.FullName);
             var playlist = LoadExtM3U(m3ufile);
             var known = new List<SongData>();
             var unknown = new List<SongRef>();
-            foreach (var song in playlist) {
-                SongData bestMatch = null;
-                int artistTitleSplitIndex = song.HumanLabel.IndexOf(" - ");
-                if (tools.Lookup.dataByPath.ContainsKey(song.SongPath)) bestMatch = tools.Lookup.dataByPath[song.SongPath];
-                else {
-                    int bestMatchVal = Int32.MaxValue;
-                    while (artistTitleSplitIndex != -1) {
-                        SongRef songref = SongRef.Create(song.HumanLabel.Substring(0, artistTitleSplitIndex), song.HumanLabel.Substring(artistTitleSplitIndex + 3));
-                        if (tools.Lookup.dataByRef.ContainsKey(songref)) {
-                            foreach (var songCandidate in tools.Lookup.dataByRef[songref]) {
-                                int candidateMatchVal = 100 * Math.Abs(song.Length - songCandidate.Length) + Math.Min(199, Math.Abs(songCandidate.bitrate - 224));
-                                if (candidateMatchVal < bestMatchVal) {
-                                    bestMatchVal = candidateMatchVal;
-                                    bestMatch = songCandidate;
-                                }
-                            }
-                        }
-                        artistTitleSplitIndex = song.HumanLabel.IndexOf(" - ", artistTitleSplitIndex + 3);
-                    }
-                }
-
-                if (bestMatch != null) known.Add(bestMatch);
-                else {
-                    artistTitleSplitIndex = song.HumanLabel.IndexOf(" - ");
-                    if (artistTitleSplitIndex >= 0) unknown.Add(SongRef.Create(song.HumanLabel.Substring(0, artistTitleSplitIndex), song.HumanLabel.Substring(artistTitleSplitIndex + 3)));
-                    else Console.WriteLine("Can't deal with: " + song.HumanLabel + "\nat:" + song.SongPath);
-                }
-            }
+            foreach (var song in playlist) 
+				FindPlaylistSongLocally(tools,song,
+					(songData)=> {known.Add(songData);},
+					(songRef)=> {unknown.Add(songRef);},
+					(partialSong)=> {Console.WriteLine("Can't deal with: " + partialSong.HumanLabel + "\nat:" + partialSong.SongPath);}
+				);
             //OK, so we now have the playlist in the var "playlist" with knowns in "known" except for the unknowns, which are in "unknown" as far as possible.
 
             var playlistSongRefs = new HashSet<SongRef>(known.Select(sd => SongRef.Create(sd)).Where(sr => sr != null).Cast<SongRef>().Concat(unknown));
