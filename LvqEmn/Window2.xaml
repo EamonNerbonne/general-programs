@@ -1,0 +1,10 @@
+﻿<Window x:Class="LVQeamon.Window2"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:emn="clr-namespace:EmnExtensions.Wpf;assembly=EmnExtensionsWpf"
+	xmlns:emnPlot="clr-namespace:EmnExtensions.Wpf.Plot;assembly=EmnExtensionsWpf"
+    Title="Window2" Height="300" Width="300">
+    <Grid>
+		<emnPlot:TickedAxis Name="tickedAxis" DataUnits="cm" VerticalAlignment="Bottom" />
+	</Grid>
+</Window>

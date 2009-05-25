@@ -9,6 +9,10 @@ namespace EmnExtensions.Wpf.Plot
 		public double Max { get; set; }
 		public double Length { get { return Max - Min; } }
 		public bool EncompassesValue(double value) { return value >= Min && value <= Max; }
+
+		public void Translate(double offset) { Min += offset; Max += offset; }
+		public void Scale(double factor) { Min *= factor; Max *= factor; }
+
 		public static DimensionBounds Undefined { get { return new DimensionBounds { Min = double.NaN, Max = double.NaN }; } }
 		public static DimensionBounds FromRectX(Rect r) { return new DimensionBounds { Min = r.X, Max = r.Right }; }
 		public static DimensionBounds FromRectY(Rect r) { return new DimensionBounds { Min = r.Y, Max = r.Bottom }; }
