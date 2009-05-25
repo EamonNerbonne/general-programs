@@ -21,7 +21,8 @@ namespace LVQeamon
 	{
 		public Window2() {
 			InitializeComponent();
-			tickedAxis.DataBound = new DimensionBounds { Min = 1.0, Max = 10.0 };
+			tickedAxis.ClockwiseNextAxis = tickedAxisL;
+			tickedAxisL.ClockwisePrevAxis = tickedAxis;
 		}
 	}
 }

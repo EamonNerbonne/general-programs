@@ -154,7 +154,7 @@
     <Compile Include="Text\Canonicalize.cs" />
     <Compile Include="Text\DelegateTextWriter.cs" />
     <Compile Include="Text\StringFeatures.cs" />
-    <Compile Include="Text\TryParse.cs" />
+    <Compile Include="Text\ParseString.cs" />
     <Compile Include="Threading\BackgroundProcessor.cs" />
     <Compile Include="Web\UriRequest.cs" />
     <Compile Include="XmlSerializableBase.cs" />

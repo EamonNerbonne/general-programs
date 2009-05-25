@@ -41,6 +41,7 @@ namespace EmnExtensions.Wpf.Plot
 
 		public DimensionBounds DataBound { get; set; }
 		public DimensionMargins DataMargin { get; set; }
+		public Brush Background { get; set; }
 
 		public TickedAxis ClockwisePrevAxis { get; set; }
 		public TickedAxis ClockwiseNextAxis { get; set; }
@@ -127,11 +128,11 @@ namespace EmnExtensions.Wpf.Plot
 					);
 			else {
 				var canBeNegative = Rank0Values().Any(value => value < 0.0);
-				var textSample = MakeText(8.88888888888888888 * (canBeNegative ? -1 : 1));
+				var excessMagnitude = m_dataOrderOfMagnitude == 0 ? (int)(0.5 + Math.Floor(Math.Log10(Math.Max(Math.Abs(DataBound.Min), Math.Abs(DataBound.Max))))) : 0;
+				var textSample = MakeText(8.88888888888888888 * Math.Pow(10.0,excessMagnitude)* (canBeNegative ? -1 : 1));
 				return new Size(textSample.Width, textSample.Height);
 			}
 		}
-
 
 		static Size Transpose(Size size) { return new Size(size.Height, size.Width); }
 
@@ -139,10 +140,13 @@ namespace EmnExtensions.Wpf.Plot
 
 		bool IsCollapsedOrEmpty() { return Visibility == Visibility.Collapsed || DataBound.Length <= 0 || !DataBound.Length.IsFinite(); }
 
+
+
 		protected override Size MeasureOverride(Size constraint) {
-			RequiredThicknessOfNext = RequiredThicknessOfPrev = 0.0;
-			if (IsCollapsedOrEmpty())
+			if (IsCollapsedOrEmpty()) {
+				RequiredThicknessOfNext = RequiredThicknessOfPrev = 0.0;
 				return (m_bestGuessCurrentSize = Size.Empty); //won't render - not visible or no data to display.
+			}
 
 			if (m_cachedCulture == null)
 				m_cachedCulture = CultureInfo.CurrentCulture;
@@ -157,8 +161,10 @@ namespace EmnExtensions.Wpf.Plot
 
 			RecomputeTicks();
 
-			if (m_ticks == null)
+			if (m_ticks == null) {
+				RequiredThicknessOfNext = RequiredThicknessOfPrev = 0.0;
 				return (m_bestGuessCurrentSize = Size.Empty); //can't render; too little space...
+			}
 
 			double constraintAxisAlignedWidth = CondTranspose(constraint).Width;
 			m_bestGuessCurrentSize = CondTranspose(ComputeSize(constraintAxisAlignedWidth));
@@ -176,17 +182,14 @@ namespace EmnExtensions.Wpf.Plot
 
 			if (AttemptBorderTicks) {
 				minimumSize.Width = Math.Max(minimumSize.Width, tickLabelSize.Width * 2);
-				RequiredThicknessOfNext = RequiredThicknessOfPrev = tickLabelSize.Width / 2.0;
-			} else {
-				RequiredThicknessOfNext = RequiredThicknessOfPrev = 0.0;
-			}
+			} 
+			RequiredThicknessOfNext = RequiredThicknessOfPrev = tickLabelSize.Width / 2.0;
 
 			minimumSize.Height += TickLength + LabelOffset + tickLabelSize.Height;
 			minimumSize.Height = Math.Max(minimumSize.Height, RequiredThickness());
 
 			return minimumSize;
 		}
-
 
 		void RecomputeTickLabels() {
 			if (m_rank0Labels == null)
@@ -263,7 +266,7 @@ namespace EmnExtensions.Wpf.Plot
 				transform.ScaleAt(1.0, -1.0, 0.0, axisAlignedRenderSize.Height / 2.0);
 			if (snapTo == SnapToSide.Right || snapTo == SnapToSide.Left) {
 				transform.Rotate(-90.0);
-				transform.Translate(0.0, axisAlignedRenderSize.Width);
+				transform.Scale(1.0, -1.0);
 			}
 			return transform;
 		}
@@ -278,8 +281,12 @@ namespace EmnExtensions.Wpf.Plot
 			return transform;
 		}
 
-
 		protected override void OnRender(DrawingContext drawingContext) {
+
+			//TODO:looks like vertical alignment overstates label height?
+			//TODO: weird snapping error on the 1000.
+
+			drawingContext.DrawRectangle(Background, null, new Rect(m_bestGuessCurrentSize));
 			if (IsCollapsedOrEmpty())
 				return;
 
@@ -292,7 +299,7 @@ namespace EmnExtensions.Wpf.Plot
 			//first, we compute transforms data->display as if snapToTop->display
 			double dispStart,dispEnd;
 			ComputeDisplayRange(out dispStart,out dispEnd);
-			Matrix dataToDispX = DataToDisplay(dispStart, dispEnd, DataBound);
+			Matrix dataToDispX = DataToDisplay(dispStart, dispEnd, DataBound.UnionWith(m_ticks.First().Value,m_ticks.Last().Value) );
 			Matrix dispXToDisp = AlignmentTransform(SnapTo, CondTranspose(m_bestGuessCurrentSize));
 			Matrix dataToDisp = Matrix.Multiply(dataToDispX, dispXToDisp);
 
@@ -318,7 +325,6 @@ namespace EmnExtensions.Wpf.Plot
 			drawingContext.Pop();
 
 		}
-
 
 		FormattedText MakeText(double val) {
 			string numericValueString = (val).ToString("f" + Math.Max(0, m_dataOrderOfMagnitude - m_slotOrderOfMagnitude));
@@ -370,8 +376,8 @@ namespace EmnExtensions.Wpf.Plot
 			for (int i = subDivTicks.Length - 1; i >= 0; i--)
 				subMultiple[i] = subDivTicks[i] * subMultiple[i + 1];
 
-			double subSlotSize = totalSlotSize / subDivTicks[0];
-			int subSlotCount = slotCount * subDivTicks[0];
+			double subSlotSize = totalSlotSize / subMultiple[0];
+			int subSlotCount = slotCount * subMultiple[0];
 
 			List<Tick> allTicks = new List<Tick>();
 			for (int i = 0; i <= subSlotCount; i++) {
