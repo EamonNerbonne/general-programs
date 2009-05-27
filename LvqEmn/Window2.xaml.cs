@@ -21,8 +21,6 @@ namespace LVQeamon
 	{
 		public Window2() {
 			InitializeComponent();
-			tickedAxis.ClockwiseNextAxis = tickedAxisL;
-			tickedAxisL.ClockwisePrevAxis = tickedAxis;
 		}
 	}
 }

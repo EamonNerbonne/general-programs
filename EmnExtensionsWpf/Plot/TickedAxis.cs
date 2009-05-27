@@ -15,12 +15,12 @@ using System.Globalization;
 
 namespace EmnExtensions.Wpf.Plot
 {
-	public enum SnapToSide { Top, Right, Bottom, Left }
+	public enum TickedAxisLocation { Undefined = 0, LeftOfGraph = 1, AboveGraph = 2, RightOfGraph = 3, BelowGraph = 4 }
 
 	public class TickedAxis : FrameworkElement
 	{
 		const double DefaultAxisLength = 1000.0;//assume we have this many pixels for estimates (i.e. measuring)
-		const double MinimumNumberOfTicks = 0.5;//don't bother rendering if we have fewer than this many ticks.
+		const double MinimumNumberOfTicks = 1.0;//don't bother rendering if we have fewer than this many ticks.
 
 		Typeface m_typeface;
 		double m_fontSize = 12.0 * 4.0 / 3.0;//12pt = 12 pixels at 72dpi = 16pixels at 96dpi
@@ -39,15 +39,23 @@ namespace EmnExtensions.Wpf.Plot
 			PixelsPerTick = 100;
 		}
 
+		protected override void OnInitialized(EventArgs e) {
+			base.OnInitialized(e);
+			GuessNeighborsBasedOnAxisPos();
+
+		}
+
 		public DimensionBounds DataBound { get; set; }
 		public DimensionMargins DataMargin { get; set; }
 		public Brush Background { get; set; }
 
-		public TickedAxis ClockwisePrevAxis { get; set; }
+		public TickedAxis ClockwisePrevAxis { get; set; }//TODO:auto-infer these from parent?
 		public TickedAxis ClockwiseNextAxis { get; set; }
 
-		double RequiredThicknessOfNext { get; set; }
-		double RequiredThicknessOfPrev { get; set; }
+		double m_reqOfNext, m_reqOfPrev;
+
+		double RequiredThicknessOfNext { get { return m_reqOfNext; } set { if (value != m_reqOfNext && ClockwiseNextAxis != null) ClockwiseNextAxis.InvalidateArrange(); m_reqOfNext = value; } }
+		double RequiredThicknessOfPrev { get { return m_reqOfPrev; } set { if (value != m_reqOfPrev && ClockwisePrevAxis != null) ClockwisePrevAxis.InvalidateArrange(); m_reqOfPrev = value; } }
 		double Thickness { get { return Math.Max(0.0, IsHorizontal ? m_bestGuessCurrentSize.Height : m_bestGuessCurrentSize.Width); } }
 
 		double ThicknessOfNext() { return ClockwiseNextAxis == null || ClockwiseNextAxis.Thickness <= 0.0 ? RequiredThicknessOfNext : ClockwiseNextAxis.Thickness; }
@@ -57,7 +65,7 @@ namespace EmnExtensions.Wpf.Plot
 			ClockwiseNextAxis == null ? 0.0 : ClockwiseNextAxis.RequiredThicknessOfPrev,
 			ClockwisePrevAxis == null ? 0.0 : ClockwisePrevAxis.RequiredThicknessOfNext);
 		}
-
+		double EffectiveThickness() { return Math.Max(Thickness, RequiredThickness()); }
 
 		public string DataUnits { get; set; }
 		public bool AttemptBorderTicks { get; set; }
@@ -65,8 +73,27 @@ namespace EmnExtensions.Wpf.Plot
 		public double LabelOffset { get; set; }
 		public double PixelsPerTick { get; set; }
 
-		public SnapToSide SnapTo { get; set; }
-		bool IsHorizontal { get { return SnapTo == SnapToSide.Bottom || SnapTo == SnapToSide.Top; } }
+		public TickedAxisLocation AxisPos { get; set; } //TODO: link to VerticalAlignment/HorizontalAlignment.
+
+		bool IsHorizontal { get { return AxisPos == TickedAxisLocation.AboveGraph || AxisPos == TickedAxisLocation.BelowGraph; } }
+
+		private void GuessNeighborsBasedOnAxisPos() {
+			TickedAxisLocation next = (TickedAxisLocation)(((int)AxisPos) % 4 + 1);
+			TickedAxisLocation prev = (TickedAxisLocation)((((int)AxisPos) - 5) % 4 + 4);
+
+			foreach (object sibling in LogicalTreeHelper.GetChildren(Parent)) {
+				TickedAxis siblingAxis = sibling as TickedAxis;
+				if (siblingAxis == null) continue;
+
+				if (siblingAxis.AxisPos == next) {
+					ClockwiseNextAxis = siblingAxis;
+					siblingAxis.ClockwisePrevAxis = this;
+				} else if (siblingAxis.AxisPos == prev) {
+					ClockwisePrevAxis = siblingAxis;
+					siblingAxis.ClockwiseNextAxis = this;
+				}
+			}
+		}
 
 		CultureInfo m_cachedCulture;
 		int m_dataOrderOfMagnitude, m_slotOrderOfMagnitude;
@@ -129,7 +156,7 @@ namespace EmnExtensions.Wpf.Plot
 			else {
 				var canBeNegative = Rank0Values().Any(value => value < 0.0);
 				var excessMagnitude = m_dataOrderOfMagnitude == 0 ? (int)(0.5 + Math.Floor(Math.Log10(Math.Max(Math.Abs(DataBound.Min), Math.Abs(DataBound.Max))))) : 0;
-				var textSample = MakeText(8.88888888888888888 * Math.Pow(10.0,excessMagnitude)* (canBeNegative ? -1 : 1));
+				var textSample = MakeText(8.88888888888888888 * Math.Pow(10.0, excessMagnitude) * (canBeNegative ? -1 : 1));
 				return new Size(textSample.Width, textSample.Height);
 			}
 		}
@@ -140,37 +167,46 @@ namespace EmnExtensions.Wpf.Plot
 
 		bool IsCollapsedOrEmpty() { return Visibility == Visibility.Collapsed || DataBound.Length <= 0 || !DataBound.Length.IsFinite(); }
 
+		Size DontShow() {
+			m_bestGuessCurrentSize = new Size(0, 0);
+			RequiredThicknessOfNext = RequiredThicknessOfPrev = 0.0;
+			return m_bestGuessCurrentSize;
+		}
 
+		void RedrawNeighbors() {
+			if (ClockwiseNextAxis != null) ClockwiseNextAxis.InvalidateVisual();
+			if (ClockwisePrevAxis != null) ClockwisePrevAxis.InvalidateVisual();
+		}
 
 		protected override Size MeasureOverride(Size constraint) {
-			if (IsCollapsedOrEmpty()) {
-				RequiredThicknessOfNext = RequiredThicknessOfPrev = 0.0;
-				return (m_bestGuessCurrentSize = Size.Empty); //won't render - not visible or no data to display.
+			double origThickness = EffectiveThickness();
+			try {
+				if (IsCollapsedOrEmpty())
+					return DontShow();
+
+				if (m_cachedCulture == null)
+					m_cachedCulture = CultureInfo.CurrentCulture;
+
+				RecomputeDataOrderOfMagnitude();
+
+				if (m_axisLegend == null)
+					m_axisLegend = MakeAxisLegendText(m_dataOrderOfMagnitude, DataUnits, m_cachedCulture, m_fontSize, m_typeface);
+
+				RecomputeTicks();
+
+				if (m_ticks == null)
+					return DontShow();
+
+				double constraintAxisAlignedWidth = CondTranspose(constraint).Width;
+				m_bestGuessCurrentSize = CondTranspose(ComputeSize(constraintAxisAlignedWidth));
+
+				//At the end of Measure, m_bestGuessCurrentSize is either 0x0 if we don't think we can render, 
+				//or it's a reasonable estimate of a final layout size, producing reasonable thickness.
+				return m_bestGuessCurrentSize;
+			} finally {
+				if (origThickness != EffectiveThickness())
+					RedrawNeighbors();
 			}
-
-			if (m_cachedCulture == null)
-				m_cachedCulture = CultureInfo.CurrentCulture;
-
-			RecomputeDataOrderOfMagnitude();
-
-			if (m_axisLegend == null)
-				m_axisLegend = MakeAxisLegendText(m_dataOrderOfMagnitude, DataUnits, m_cachedCulture, m_fontSize, m_typeface);
-
-			if (m_bestGuessCurrentSize.IsEmpty)
-				m_bestGuessCurrentSize = constraint;
-
-			RecomputeTicks();
-
-			if (m_ticks == null) {
-				RequiredThicknessOfNext = RequiredThicknessOfPrev = 0.0;
-				return (m_bestGuessCurrentSize = Size.Empty); //can't render; too little space...
-			}
-
-			double constraintAxisAlignedWidth = CondTranspose(constraint).Width;
-			m_bestGuessCurrentSize = CondTranspose(ComputeSize(constraintAxisAlignedWidth));
-
-			//At the end of Measure, m_bestGuessCurrentSize is either empty if we don't think we can render, or it's a reasonable estimate of a final layout size, producing reasonable thickness.
-			return m_bestGuessCurrentSize;
 		}
 
 		Size ComputeSize(double constraintAxisAlignedWidth) {
@@ -182,7 +218,7 @@ namespace EmnExtensions.Wpf.Plot
 
 			if (AttemptBorderTicks) {
 				minimumSize.Width = Math.Max(minimumSize.Width, tickLabelSize.Width * 2);
-			} 
+			}
 			RequiredThicknessOfNext = RequiredThicknessOfPrev = tickLabelSize.Width / 2.0;
 
 			minimumSize.Height += TickLength + LabelOffset + tickLabelSize.Height;
@@ -199,39 +235,48 @@ namespace EmnExtensions.Wpf.Plot
 		}
 
 		protected override Size ArrangeOverride(Size finalSize) {
-			m_bestGuessCurrentSize = finalSize;
-			if (IsCollapsedOrEmpty())
+			double origThickness = EffectiveThickness();
+			try {
+
+				m_bestGuessCurrentSize = finalSize;
+				if (IsCollapsedOrEmpty())
+					return DontShow();
+
+				RecomputeTicks(); //now with accurate info of actual size and an estimate of neighbors thicknesses.
+
+				if (m_ticks == null)
+					return DontShow();
+
+				//ticks are likely good now, so we compute labels...
+				RecomputeTickLabels();			//we now have ticks and labels, yay!
+
+				double constraintAxisAlignedWidth = CondTranspose(finalSize).Width;
+				m_bestGuessCurrentSize = CondTranspose(ComputeSize(constraintAxisAlignedWidth));
+				if (m_bestGuessCurrentSize.Width > finalSize.Width || m_bestGuessCurrentSize.Height > finalSize.Height
+					|| (finalSize.Width - m_bestGuessCurrentSize.Width) + (finalSize.Height - m_bestGuessCurrentSize.Height) > 1.0
+					) {
+					//OK, we misestimated.  We either need more space than available, or too much less than available; time to reevaluate.
+					InvalidateVisual();
+
+					//this affects our neighbors, e.g. as follows:
+					//less thickness for us-> longer axis for them -> potentially more ticks -> they become thicker...
+					//so they'll need a new measurement pass as well; this is dealt with by the finally clause below.
+				}
+
+
+				//At the end of arrange, the ticks+labels have been set, and m_bestGuessCurrentSize of this axis and it's neighbours 
+				//is valid.  This means that we can caluculate the precise position of the axis as being within m_bestGuessCurrentSize, with margins on either side
+				//corresponding to the neighbors' thicknesses (when shown) or the minimum required thickness (when not shown)
+				//This layout will therefore be used for rendering (although if ArrangeOverride isn't happy, it will have triggered a remeasure.
 				return m_bestGuessCurrentSize;
-			RecomputeTicks(); //now with accurate info of actual size and an estimate of neighbors thicknesses.
-
-			if (m_ticks == null) return Size.Empty; //can't render; too little space...
-
-			double constraintAxisAlignedWidth = CondTranspose(finalSize).Width;
-			m_bestGuessCurrentSize = CondTranspose(ComputeSize(constraintAxisAlignedWidth));
-			if (m_bestGuessCurrentSize.Width > finalSize.Width || m_bestGuessCurrentSize.Height > finalSize.Height
-				|| (finalSize.Width - m_bestGuessCurrentSize.Width) + (finalSize.Height - m_bestGuessCurrentSize.Height) > 1.0
-				) {
-				//OK, we misestimated.  We either need more space than available, or too much less than available
-				//this affects our neighbors, e.g. as follows:
-				//less thickness for us-> longer axis for them -> potentially more ticks -> they become thicker...
-				//so they'll need a new measurement pass.
-
-				if (ClockwisePrevAxis != null) ClockwisePrevAxis.InvalidateMeasure();
-				if (ClockwiseNextAxis != null) ClockwiseNextAxis.InvalidateMeasure();
+			} finally {
+				if (origThickness != EffectiveThickness())
+					RedrawNeighbors();
 			}
-
-			//ticks are likely good now, so we compute labels...
-			RecomputeTickLabels();			//we now have ticks and labels, yay!
-
-			//At the end of arrange, the ticks+labels have been set, and m_bestGuessCurrentSize of this axis and it's neighbours 
-			//is valid.  This means that we can caluculate the precise position of the axis as being within m_bestGuessCurrentSize, with margins on either side
-			//corresponding to the neighbors' thicknesses (when shown) or the minimum required thickness (when not shown)
-			//This layout will therefore be used for rendering (although if ArrangeOverride isn't happy, it will have triggered a remeasure.
-			return m_bestGuessCurrentSize;
 		}
 
 		void ComputeDisplayRange(out double displayStart, out double displayEnd) {
-			bool lowAtNext = SnapTo == SnapToSide.Top || SnapTo == SnapToSide.Left; //if we're on bottom or right, data low values are towards the clockwise end.
+			bool lowAtNext = AxisPos == TickedAxisLocation.BelowGraph || AxisPos == TickedAxisLocation.RightOfGraph; //if we're on bottom or right, data low values are towards the clockwise end.
 			displayStart = (lowAtNext ? ThicknessOfNext() : ThicknessOfPrev()) + DataMargin.AtStart;
 			displayEnd = (IsHorizontal ? m_bestGuessCurrentSize.Width : m_bestGuessCurrentSize.Height) -
 				 ((lowAtNext ? ThicknessOfPrev() : ThicknessOfNext()) + DataMargin.AtEnd);
@@ -260,22 +305,22 @@ namespace EmnExtensions.Wpf.Plot
 			return transform;
 		}
 
-		static Matrix AlignmentTransform(SnapToSide snapTo, Size axisAlignedRenderSize) {
+		static Matrix AlignmentTransform(TickedAxisLocation side, Size axisAlignedRenderSize) {
 			Matrix transform = Matrix.Identity; //top-left is 0,0, so if you're on the bottom you're happy
-			if (snapTo == SnapToSide.Right || snapTo == SnapToSide.Bottom)
+			if (side == TickedAxisLocation.LeftOfGraph || side == TickedAxisLocation.AboveGraph)
 				transform.ScaleAt(1.0, -1.0, 0.0, axisAlignedRenderSize.Height / 2.0);
-			if (snapTo == SnapToSide.Right || snapTo == SnapToSide.Left) {
+			if (side == TickedAxisLocation.LeftOfGraph || side == TickedAxisLocation.RightOfGraph) {
 				transform.Rotate(-90.0);
 				transform.Scale(1.0, -1.0);
 			}
 			return transform;
 		}
 
-		static Matrix AxisLegendToCenter(SnapToSide snapTo,Rect axisLegendBounds, Point centerAt) {
+		static Matrix AxisLegendToCenter(TickedAxisLocation side, Rect axisLegendBounds, Point centerAt) {
 			Matrix transform = Matrix.Identity;
-			Vector center = 0.5*((Vector)axisLegendBounds.TopLeft + (Vector)axisLegendBounds.BottomRight);
+			Vector center = 0.5 * ((Vector)axisLegendBounds.TopLeft + (Vector)axisLegendBounds.BottomRight);
 			transform.Translate(-center.X, -center.Y);
-			if (snapTo == SnapToSide.Left || snapTo == SnapToSide.Right)
+			if (side == TickedAxisLocation.RightOfGraph || side == TickedAxisLocation.LeftOfGraph)
 				transform.Rotate(90.0);
 			transform.Translate(centerAt.X, centerAt.Y);
 			return transform;
@@ -283,11 +328,8 @@ namespace EmnExtensions.Wpf.Plot
 
 		protected override void OnRender(DrawingContext drawingContext) {
 
-			//TODO:looks like vertical alignment overstates label height?
-			//TODO: weird snapping error on the 1000.
-
 			drawingContext.DrawRectangle(Background, null, new Rect(m_bestGuessCurrentSize));
-			if (IsCollapsedOrEmpty())
+			if (IsCollapsedOrEmpty() || m_ticks == null)
 				return;
 
 			//We have a layout estimate.  We need to compute a transform from the data values to the axis position.
@@ -296,20 +338,20 @@ namespace EmnExtensions.Wpf.Plot
 			//one for the data units (rotated as needed)
 			//another for the tick labels (to keep them upright).
 
-			//first, we compute transforms data->display as if snapToTop->display
-			double dispStart,dispEnd;
-			ComputeDisplayRange(out dispStart,out dispEnd);
-			Matrix dataToDispX = DataToDisplay(dispStart, dispEnd, DataBound.UnionWith(m_ticks.First().Value,m_ticks.Last().Value) );
-			Matrix dispXToDisp = AlignmentTransform(SnapTo, CondTranspose(m_bestGuessCurrentSize));
+			//first, we compute transforms data->display as if BelowGraph->display with actual alignment
+			double dispStart, dispEnd;
+			ComputeDisplayRange(out dispStart, out dispEnd);
+			Matrix dataToDispX = DataToDisplay(dispStart, dispEnd, DataBound.UnionWith(m_ticks.First().Value, m_ticks.Last().Value));
+			Matrix dispXToDisp = AlignmentTransform(AxisPos, CondTranspose(m_bestGuessCurrentSize));
 			Matrix dataToDisp = Matrix.Multiply(dataToDispX, dispXToDisp);
 
 			//next, we draw a streamgeometry of all the ticks using data->disp transform.
-			StreamGeometry tickGeometry = DrawTicksAlongX(m_ticks, TickLength);// in data-space.
-			tickGeometry.Transform = new MatrixTransform(dataToDisp);
+			StreamGeometry tickGeometry = DrawTicksAlongX(m_ticks, TickLength, dataToDispX);// in disp-space due to accuracy.
+			tickGeometry.Transform = new MatrixTransform(dispXToDisp);
 			drawingContext.DrawGeometry(null, m_tickPen, tickGeometry);
 
 			//then we draw all labels, computing the label center point accounting for horizontal/vertical alignment, and using data->disp to position that center point.
-			foreach (var labelledValue in F.ZipWith(Rank0Values(), m_rank0Labels, (val, label) => new { Value=val, Label=label })) {
+			foreach (var labelledValue in F.ZipWith(Rank0Values(), m_rank0Labels, (val, label) => new { Value = val, Label = label })) {
 				double labelAltitude = TickLength + LabelOffset + (IsHorizontal ? labelledValue.Label.Height : labelledValue.Label.Width) / 2.0;
 				Point centerPoint = dataToDisp.Transform(new Point(labelledValue.Value, labelAltitude));
 				Point originPoint = centerPoint - new Vector(labelledValue.Label.Width / 2.0, labelledValue.Label.Height / 2.0);
@@ -320,7 +362,7 @@ namespace EmnExtensions.Wpf.Plot
 			//finally, we draw the axisLegend:
 			double axisLegendAltitude = TickLength + LabelOffset + CondTranspose(TickLabelSizeGuess()).Height + m_axisLegend.Bounds.Height / 2.0;
 			Point axisLegendCenterPoint = dispXToDisp.Transform(new Point(CondTranspose(m_bestGuessCurrentSize).Width / 2.0, axisLegendAltitude));
-			drawingContext.PushTransform(new MatrixTransform(AxisLegendToCenter(SnapTo, m_axisLegend.Bounds, axisLegendCenterPoint)));
+			drawingContext.PushTransform(new MatrixTransform(AxisLegendToCenter(AxisPos, m_axisLegend.Bounds, axisLegendCenterPoint)));
 			drawingContext.DrawDrawing(m_axisLegend);
 			drawingContext.Pop();
 
@@ -351,12 +393,14 @@ namespace EmnExtensions.Wpf.Plot
 			return retval;
 		}
 
-		static StreamGeometry DrawTicksAlongX(IEnumerable<Tick> ticks, double tickLength) {
+		static StreamGeometry DrawTicksAlongX(IEnumerable<Tick> ticks, double tickLength, Matrix transformToDispX) {
+			//we choose to transform the streamgeometry during generation, rather than during display due to accuracy: it seems the geometry is low-resolution, so
+			//once stored, the resolution is no better than a float.
 			StreamGeometry geom = new StreamGeometry();
 			using (var context = geom.Open()) {
 				foreach (Tick tick in ticks) {
-					context.BeginFigure(new Point(tick.Value, 0), false, false);
-					context.LineTo(new Point(tick.Value, (4 - tick.Rank) / 4.0 * tickLength), true, false);
+					context.BeginFigure(transformToDispX.Transform(new Point(tick.Value, 0)), false, false);
+					context.LineTo(transformToDispX.Transform(new Point(tick.Value, (3.5 - tick.Rank) / 3.5 * tickLength)), true, false);
 				}
 			}
 			return geom;
@@ -403,6 +447,9 @@ namespace EmnExtensions.Wpf.Plot
 		//    }
 		//}
 
+
+		const double permittedErrorRatio = 0.0009; //i.e. upto 0.1 percent overshoot of the outer tick is permitted when attempting border ticks.
+		//0.0009 value chosen to avoid unnecessary overshoot in cases approaching maximum resolution of a double.
 		/// <summary>
 		/// Calculates optimal parameters for the placements of the legend
 		/// </summary>
@@ -417,8 +464,8 @@ namespace EmnExtensions.Wpf.Plot
 		/// This value aims to have around 10 subdivisions total, slightly more when the actual number of slots is fewer than requested
 		/// and slightly less when the actual number of slots greater than requested.</param>
 		public static void CalcTickPositions(DimensionBounds range, double preferredNum, ref bool attemptBorderTicks, out double firstTickAt, out double slotSize, out int slotOrderOfMagnitude, out int slotCount, out int[] ticks) {
-			if (preferredNum < 2) attemptBorderTicks = false;
-			if (attemptBorderTicks) preferredNum--;
+			if (preferredNum < 1.5) attemptBorderTicks = false;
+			//if (attemptBorderTicks) preferredNum--;
 
 			double idealSlotSize = range.Length / preferredNum;
 			slotOrderOfMagnitude = (int)Math.Floor(Math.Log10(idealSlotSize)); //i.e  for 143 or 971 this is 2
@@ -443,9 +490,9 @@ namespace EmnExtensions.Wpf.Plot
 			}
 
 			slotSize = fixedSlot * baseSize;
-			firstTickAt = Math.Floor(range.Min / slotSize) * slotSize;
+			firstTickAt = Math.Floor(range.Min / slotSize + permittedErrorRatio) * slotSize;
 			slotCount = (int)(Math.Ceiling((range.Max
-				- firstTickAt) / slotSize) + 0.5);
+				- firstTickAt) / slotSize - permittedErrorRatio) + 0.5);
 		}
 
 	}
