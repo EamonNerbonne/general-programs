@@ -6,8 +6,8 @@
     Title="Window2" Height="450" Width="600">
     <Grid Margin="10" Background="#eee"  >
 		<emnPlot:TickedAxis AttemptBorderTicks="True" Name="tickedAxisBot" DataUnits="cm" AxisPos="BelowGraph"   VerticalAlignment="Bottom"  DataBound="10,70" DataMargin="1" Background="#2f0f"  />
-		<emnPlot:TickedAxis AttemptBorderTicks="True" Name="tickedAxisLft" DataUnits="cm" AxisPos="LeftOfGraph"  HorizontalAlignment="Left"  DataBound="2.0,2.000000000001"  DataMargin="1"  Background="#20ff"/>
-		<emnPlot:TickedAxis AttemptBorderTicks="True" Name="tickedAxisTop" DataUnits="cm" AxisPos="AboveGraph"   VerticalAlignment="Top"   DataBound="0,1"  DataMargin="1"  Background="#20f0"/>
+		<emnPlot:TickedAxis AttemptBorderTicks="True" Name="tickedAxisLft" DataUnits="cm" AxisPos="LeftOfGraph"  HorizontalAlignment="Left"  DataBound="0,1"  DataMargin="1"  Background="#20ff"/>
+		<emnPlot:TickedAxis AttemptBorderTicks="True" Name="tickedAxisTop" DataUnits="cm" AxisPos="AboveGraph"   VerticalAlignment="Top"   DataBound="2.0,2.000000000001"  DataMargin="1"  Background="#20f0"/>
 		<emnPlot:TickedAxis AttemptBorderTicks="True" Name="tickedAxisRgt" DataUnits="cm" AxisPos="RightOfGraph" HorizontalAlignment="Right"  DataBound="0,8.5"  DataMargin="1"  Background="#2ff0"/>
 	</Grid>
 </Window>

@@ -58,8 +58,8 @@ namespace EmnExtensions.Wpf.Plot
 		double RequiredThicknessOfPrev { get { return m_reqOfPrev; } set { if (value != m_reqOfPrev && ClockwisePrevAxis != null) ClockwisePrevAxis.InvalidateArrange(); m_reqOfPrev = value; } }
 		double Thickness { get { return Math.Max(0.0, IsHorizontal ? m_bestGuessCurrentSize.Height : m_bestGuessCurrentSize.Width); } }
 
-		double ThicknessOfNext() { return ClockwiseNextAxis == null || ClockwiseNextAxis.Thickness <= 0.0 ? RequiredThicknessOfNext : ClockwiseNextAxis.Thickness; }
-		double ThicknessOfPrev() { return ClockwisePrevAxis == null || ClockwisePrevAxis.Thickness <= 0.0 ? RequiredThicknessOfPrev : ClockwisePrevAxis.Thickness; }
+		double ThicknessOfNext() { return Math.Max(ClockwiseNextAxis == null ? 0.0 : ClockwiseNextAxis.Thickness, RequiredThicknessOfNext); }
+		double ThicknessOfPrev() { return Math.Max(ClockwisePrevAxis == null ? 0.0 : ClockwisePrevAxis.Thickness, RequiredThicknessOfPrev); }
 		double RequiredThickness() {
 			return Math.Max(
 			ClockwiseNextAxis == null ? 0.0 : ClockwiseNextAxis.RequiredThicknessOfPrev,
@@ -122,16 +122,20 @@ namespace EmnExtensions.Wpf.Plot
 		/// <summary>
 		/// Recomputes m_ticks: if available space is too small set to null, else when null recomputed based on m_bestGuessCurrentSize.
 		/// </summary>
-		void RecomputeTicks() {
+		void RecomputeTicks(bool mayIncrease) {
 			double preferredNrOfTicks = AxisLengthGuess() / PixelsPerTick;
 			if (preferredNrOfTicks < MinimumNumberOfTicks) {
 				m_ticks = null;
 				m_rank0Labels = null;
 			} else {
 				var newTicks = FindAllTicks(DataBound, preferredNrOfTicks, AttemptBorderTicks, out m_slotOrderOfMagnitude);
-				if (m_ticks == null || !m_ticks.SequenceEqual(newTicks))
+				if (
+					m_ticks == null && mayIncrease
+					||
+					!m_ticks.SequenceEqual(newTicks) && (mayIncrease || m_ticks.Count(tick => tick.Rank == 0) > newTicks.Count(tick => tick.Rank == 0))) {
 					m_rank0Labels = null;
-				m_ticks = newTicks;
+					m_ticks = newTicks;
+				}
 			}
 		}
 
@@ -173,9 +177,10 @@ namespace EmnExtensions.Wpf.Plot
 			return m_bestGuessCurrentSize;
 		}
 
-		void RedrawNeighbors() {
-			if (ClockwiseNextAxis != null) ClockwiseNextAxis.InvalidateVisual();
-			if (ClockwisePrevAxis != null) ClockwisePrevAxis.InvalidateVisual();
+		void RedrawNeighbors(bool remeasure) {
+			Action<TickedAxis> invalidate = (axis) => { if (axis == null) return; if (remeasure)axis.InvalidateMeasure(); axis.InvalidateVisual(); };
+			invalidate(ClockwiseNextAxis);
+			invalidate(ClockwisePrevAxis);
 		}
 
 		protected override Size MeasureOverride(Size constraint) {
@@ -187,15 +192,23 @@ namespace EmnExtensions.Wpf.Plot
 				if (m_cachedCulture == null)
 					m_cachedCulture = CultureInfo.CurrentCulture;
 
+				bool isReasonableConstraint = constraint.Height >= 0 && constraint.Width >= 0 && constraint.Width.IsFinite() && constraint.Height.IsFinite();
+
+				if (isReasonableConstraint && CondTranspose(m_bestGuessCurrentSize).Width == 0)
+					m_bestGuessCurrentSize = constraint;
+
 				RecomputeDataOrderOfMagnitude();
 
 				if (m_axisLegend == null)
 					m_axisLegend = MakeAxisLegendText(m_dataOrderOfMagnitude, DataUnits, m_cachedCulture, m_fontSize, m_typeface);
 
-				RecomputeTicks();
+				RecomputeTicks(true);
 
 				if (m_ticks == null)
 					return DontShow();
+
+				//ticks are likely good now, so we compute labels...
+				RecomputeTickLabels();			//we now have ticks and labels, yay!
 
 				double constraintAxisAlignedWidth = CondTranspose(constraint).Width;
 				m_bestGuessCurrentSize = CondTranspose(ComputeSize(constraintAxisAlignedWidth));
@@ -205,26 +218,29 @@ namespace EmnExtensions.Wpf.Plot
 				return m_bestGuessCurrentSize;
 			} finally {
 				if (origThickness != EffectiveThickness())
-					RedrawNeighbors();
+					RedrawNeighbors(EffectiveThickness() > origThickness);
 			}
 		}
 
 		Size ComputeSize(double constraintAxisAlignedWidth) {
 			Size tickLabelSize = CondTranspose(TickLabelSizeGuess());//height==thickness, width == along span of axis
-			Size minimumSize = m_axisLegend.Bounds.Size;
+			Rect minBounds = m_axisLegend.Bounds;
+
+			minBounds.Height += TickLength + LabelOffset + tickLabelSize.Height;
+
+			//Size minimumSize = m_axisLegend.Bounds.Size;
+			minBounds.Union(new Point(constraintAxisAlignedWidth, 0));
 
 			if (constraintAxisAlignedWidth.IsFinite())
-				minimumSize.Width = Math.Max(minimumSize.Width, constraintAxisAlignedWidth);
+				minBounds.Union(new Point(constraintAxisAlignedWidth, 0));
 
-			if (AttemptBorderTicks) {
-				minimumSize.Width = Math.Max(minimumSize.Width, tickLabelSize.Width * 2);
-			}
 			RequiredThicknessOfNext = RequiredThicknessOfPrev = tickLabelSize.Width / 2.0;
+			double minAxisLength = MinimumNumberOfTicks * PixelsPerTick;
+			double overallWidth = minAxisLength + ThicknessOfNext() + ThicknessOfPrev() + DataMargin.Sum;
 
-			minimumSize.Height += TickLength + LabelOffset + tickLabelSize.Height;
-			minimumSize.Height = Math.Max(minimumSize.Height, RequiredThickness());
+			minBounds.Union(new Point(overallWidth, RequiredThickness()));
 
-			return minimumSize;
+			return minBounds.Size;
 		}
 
 		void RecomputeTickLabels() {
@@ -234,15 +250,15 @@ namespace EmnExtensions.Wpf.Plot
 								).ToArray();
 		}
 
-		protected override Size ArrangeOverride(Size finalSize) {
+		protected override Size ArrangeOverride(Size constraint) {
 			double origThickness = EffectiveThickness();
 			try {
 
-				m_bestGuessCurrentSize = finalSize;
+				m_bestGuessCurrentSize = constraint;
 				if (IsCollapsedOrEmpty())
 					return DontShow();
 
-				RecomputeTicks(); //now with accurate info of actual size and an estimate of neighbors thicknesses.
+				RecomputeTicks(false); //now with accurate info of actual size and an estimate of neighbors thicknesses.
 
 				if (m_ticks == null)
 					return DontShow();
@@ -250,12 +266,13 @@ namespace EmnExtensions.Wpf.Plot
 				//ticks are likely good now, so we compute labels...
 				RecomputeTickLabels();			//we now have ticks and labels, yay!
 
-				double constraintAxisAlignedWidth = CondTranspose(finalSize).Width;
+				double constraintAxisAlignedWidth = CondTranspose(constraint).Width;
 				m_bestGuessCurrentSize = CondTranspose(ComputeSize(constraintAxisAlignedWidth));
-				if (m_bestGuessCurrentSize.Width > finalSize.Width || m_bestGuessCurrentSize.Height > finalSize.Height
-					|| (finalSize.Width - m_bestGuessCurrentSize.Width) + (finalSize.Height - m_bestGuessCurrentSize.Height) > 1.0
+				if (m_bestGuessCurrentSize.Width > constraint.Width || m_bestGuessCurrentSize.Height > constraint.Height
+					|| (constraint.Width - m_bestGuessCurrentSize.Width) + (constraint.Height - m_bestGuessCurrentSize.Height) > 1.0
 					) {
 					//OK, we misestimated.  We either need more space than available, or too much less than available; time to reevaluate.
+					InvalidateMeasure();
 					InvalidateVisual();
 
 					//this affects our neighbors, e.g. as follows:
@@ -271,7 +288,7 @@ namespace EmnExtensions.Wpf.Plot
 				return m_bestGuessCurrentSize;
 			} finally {
 				if (origThickness != EffectiveThickness())
-					RedrawNeighbors();
+					RedrawNeighbors(EffectiveThickness() > origThickness);
 			}
 		}
 
