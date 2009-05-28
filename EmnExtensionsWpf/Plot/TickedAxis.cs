@@ -33,6 +33,7 @@ namespace EmnExtensions.Wpf.Plot
 				EndLineCap = PenLineCap.Round,
 				Thickness = 1.5
 			};
+			DataBound = DimensionBounds.Undefined;
 			m_typeface = new Typeface(new FontFamily("Segoe UI"), FontStyles.Normal, FontWeights.Normal, FontStretches.Normal, new FontFamily("Verdana"));
 			TickLength = 16;
 			LabelOffset = 1;
@@ -95,9 +96,9 @@ namespace EmnExtensions.Wpf.Plot
 			get { return m_axisPos; }
 			set {
 				m_axisPos = value;
-				//VerticalAlignment = m_axisPos == TickedAxisLocation.BelowGraph ? VerticalAlignment.Bottom : VerticalAlignment.Top;
-				//HorizontalAlignment = m_axisPos == TickedAxisLocation.RightOfGraph ? HorizontalAlignment.Right : HorizontalAlignment.Left;
-			//	InvalidateMeasure(); InvalidateVisual();
+				VerticalAlignment = m_axisPos == TickedAxisLocation.BelowGraph ? VerticalAlignment.Bottom : VerticalAlignment.Top;
+				HorizontalAlignment = m_axisPos == TickedAxisLocation.RightOfGraph ? HorizontalAlignment.Right : HorizontalAlignment.Left;
+				InvalidateMeasure(); InvalidateVisual();
 			}
 		} //TODO: link to VerticalAlignment/HorizontalAlignment.
 
@@ -195,7 +196,7 @@ namespace EmnExtensions.Wpf.Plot
 
 		double PreferredPixelsPerTick {
 			get {
-				return Math.Max(PixelsPerTick, m_ticks == null ? 0.0 : TickLabelSizeGuess.Width * Math.Sqrt(2) + 4); //factor 1.41 since actual tick distance may be off by that much from the preferred quantity.
+				return Math.Max(PixelsPerTick, m_ticks == null ? 0.0 : TickLabelSizeGuess.Width * Math.Sqrt(10)/2.0 + 4); //factor 1.41 since actual tick distance may be off by that much from the preferred quantity.
 			}
 		}
 		static Size Transpose(Size size) { return new Size(size.Height, size.Width); }
@@ -388,13 +389,15 @@ namespace EmnExtensions.Wpf.Plot
 		public Matrix DataToDisplayTransform {
 			get {
 				Matrix dataToDispX = DataToDisplayAlongXTransform;
-				dataToDispX.RotatePrepend(90.0);
-				dataToDispX.Rotate(-90.0);
+				if (!IsHorizontal) {
+					dataToDispX.RotatePrepend(-90.0);//should be doable via swapping.
+					dataToDispX.Rotate(90.0);
+				}
 				return dataToDispX;
 			}
 		}
 
-		public DimensionBounds DisplayedDataBounds { get{ return m_ticks==null ? DataBound:DataBound.UnionWith(m_ticks.First().Value, m_ticks.Last().Value);}}
+		public DimensionBounds DisplayedDataBounds { get { return m_ticks == null ? DataBound : DataBound.UnionWith(m_ticks.First().Value, m_ticks.Last().Value); } }
 
 		protected override void OnRender(DrawingContext drawingContext) {
 
@@ -523,7 +526,7 @@ namespace EmnExtensions.Wpf.Plot
 		/// </summary>
 		/// <param name="minVal">the start of the range to be ticked</param>
 		/// <param name="maxVal">the end of the range to be ticked</param>
-		/// <param name="preferredNum">the preferred number of labelled ticks.  This method will deviate by at most a factor 1.5 from that</param>
+		/// <param name="preferredNum">the preferred number of labelled ticks.  This method will deviate by at most a factor 0.5*sqrt(10) from that</param>
 		/// <param name="attemptBorderTicks">Whether to try and extend the minVal-maxVal data range to include the next logical ticks.  Set to false by the method if inadvisable (when the preferredNum is too small, for instance).</param>
 		/// <param name="firstTickAt">output: the position of the major tick before the data range.</param>
 		/// <param name="slotSize">output: the distance between consecutive ticks</param>
