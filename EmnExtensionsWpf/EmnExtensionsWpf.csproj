@@ -175,6 +175,7 @@
     <Compile Include="Plot\GraphChangeEffects.cs" />
     <Compile Include="Plot\PlotControl.xaml.cs">
       <DependentUpon>PlotControl.xaml</DependentUpon>
+      <SubType>Code</SubType>
     </Compile>
     <Compile Include="Plot\TickedAxis.cs">
       <SubType>Code</SubType>

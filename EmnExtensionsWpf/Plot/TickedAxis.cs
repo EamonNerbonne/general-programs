@@ -42,6 +42,8 @@ namespace EmnExtensions.Wpf.Plot
 		protected override void OnInitialized(EventArgs e) {
 			base.OnInitialized(e);
 			GuessNeighborsBasedOnAxisPos();
+			//VerticalAlignment = m_axisPos == TickedAxisLocation.BelowGraph ? VerticalAlignment.Bottom : VerticalAlignment.Top;
+			//HorizontalAlignment = m_axisPos == TickedAxisLocation.RightOfGraph ? HorizontalAlignment.Right : HorizontalAlignment.Left;
 		}
 
 		public DimensionBounds DataBound { get; set; }
