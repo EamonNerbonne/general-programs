@@ -42,7 +42,6 @@ namespace EmnExtensions.Wpf.Plot
 		protected override void OnInitialized(EventArgs e) {
 			base.OnInitialized(e);
 			GuessNeighborsBasedOnAxisPos();
-
 		}
 
 		public DimensionBounds DataBound { get; set; }
@@ -89,7 +88,16 @@ namespace EmnExtensions.Wpf.Plot
 		public double LabelOffset { get; set; }
 		public double PixelsPerTick { get; set; }
 
-		public TickedAxisLocation AxisPos { get; set; } //TODO: link to VerticalAlignment/HorizontalAlignment.
+		TickedAxisLocation m_axisPos;
+		public TickedAxisLocation AxisPos {
+			get { return m_axisPos; }
+			set {
+				m_axisPos = value;
+				//VerticalAlignment = m_axisPos == TickedAxisLocation.BelowGraph ? VerticalAlignment.Bottom : VerticalAlignment.Top;
+				//HorizontalAlignment = m_axisPos == TickedAxisLocation.RightOfGraph ? HorizontalAlignment.Right : HorizontalAlignment.Left;
+			//	InvalidateMeasure(); InvalidateVisual();
+			}
+		} //TODO: link to VerticalAlignment/HorizontalAlignment.
 
 		bool IsHorizontal { get { return AxisPos == TickedAxisLocation.AboveGraph || AxisPos == TickedAxisLocation.BelowGraph; } }
 
@@ -320,28 +328,30 @@ namespace EmnExtensions.Wpf.Plot
 			}
 		}
 
-		void ComputeDisplayRange(out double displayStart, out double displayEnd) {
-			bool lowAtNext = AxisPos == TickedAxisLocation.BelowGraph || AxisPos == TickedAxisLocation.RightOfGraph; //if we're on bottom or right, data low values are towards the clockwise end.
-			displayStart = (lowAtNext ? ThicknessOfNext : ThicknessOfPrev) + DataMargin.AtStart;
-			displayEnd = (IsHorizontal ? m_bestGuessCurrentSize.Width : m_bestGuessCurrentSize.Height) -
-				 ((lowAtNext ? ThicknessOfPrev : ThicknessOfNext) + DataMargin.AtEnd);
+		public DimensionBounds DisplayBounds { //depends on AxisPos, DataMargin, ThicknessOf*, m_bestGuessCurrentSize
+			get {
+				bool lowAtNext = AxisPos == TickedAxisLocation.BelowGraph || AxisPos == TickedAxisLocation.RightOfGraph; //if we're on bottom or right, data low values are towards the clockwise end.
+				double displayStart = (lowAtNext ? ThicknessOfNext : ThicknessOfPrev) + DataMargin.AtStart;
+				double displayEnd = (IsHorizontal ? m_bestGuessCurrentSize.Width : m_bestGuessCurrentSize.Height) -
+					 ((lowAtNext ? ThicknessOfPrev : ThicknessOfNext) + DataMargin.AtEnd);
 
-			if (!IsHorizontal) { //we need to "flip" the vertical ordering!
-				displayStart = m_bestGuessCurrentSize.Height - displayStart;
-				displayEnd = m_bestGuessCurrentSize.Height - displayEnd;
+				if (!IsHorizontal) { //we need to "flip" the vertical ordering!
+					displayStart = m_bestGuessCurrentSize.Height - displayStart;
+					displayEnd = m_bestGuessCurrentSize.Height - displayEnd;
+				}
+				return new DimensionBounds { Min = displayStart, Max = displayEnd };
 			}
 		}
 
-		static Matrix DataToDisplay(double displayStart, double displayEnd, DimensionBounds dataBounds) {//TODO: take into account AttemptBorderTicks
+		static Matrix DataToDisplay(DimensionBounds displayBounds, DimensionBounds dataBounds) {//TODO: take into account AttemptBorderTicks
 			Matrix transform = Matrix.Identity;
-			double dataStart = dataBounds.Min, dataEnd = dataBounds.Max;
 
-			double scaleFactor = (displayEnd - displayStart) / (dataEnd - dataStart);
+			double scaleFactor = displayBounds.Length / dataBounds.Length;
 
 			transform.Scale(scaleFactor, 1.0);
-			dataStart *= scaleFactor; dataEnd *= scaleFactor;
+			dataBounds.Max *= scaleFactor; dataBounds.Min *= scaleFactor;
 
-			double offset = displayStart - dataStart;
+			double offset = displayBounds.Min - dataBounds.Min;
 			transform.Translate(offset, 0.0);
 
 			//dataStart += offset; dataEnd += offset;
@@ -371,6 +381,19 @@ namespace EmnExtensions.Wpf.Plot
 			return transform;
 		}
 
+		Matrix DataToDisplayAlongXTransform { get { return DataToDisplay(DisplayBounds, DisplayedDataBounds); } }
+
+		public Matrix DataToDisplayTransform {
+			get {
+				Matrix dataToDispX = DataToDisplayAlongXTransform;
+				dataToDispX.RotatePrepend(90.0);
+				dataToDispX.Rotate(-90.0);
+				return dataToDispX;
+			}
+		}
+
+		public DimensionBounds DisplayedDataBounds { get{ return m_ticks==null ? DataBound:DataBound.UnionWith(m_ticks.First().Value, m_ticks.Last().Value);}}
+
 		protected override void OnRender(DrawingContext drawingContext) {
 
 			drawingContext.DrawRectangle(Background, null, new Rect(m_bestGuessCurrentSize));
@@ -384,9 +407,7 @@ namespace EmnExtensions.Wpf.Plot
 			//another for the tick labels (to keep them upright).
 
 			//first, we compute transforms data->display as if BelowGraph->display with actual alignment
-			double dispStart, dispEnd;
-			ComputeDisplayRange(out dispStart, out dispEnd);
-			Matrix dataToDispX = DataToDisplay(dispStart, dispEnd, DataBound.UnionWith(m_ticks.First().Value, m_ticks.Last().Value));
+			Matrix dataToDispX = DataToDisplayAlongXTransform;
 			Matrix dispXToDisp = AlignmentTransform(AxisPos, CondTranspose(m_bestGuessCurrentSize));
 			Matrix dataToDisp = Matrix.Multiply(dataToDispX, dispXToDisp);
 
