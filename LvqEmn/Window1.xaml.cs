@@ -18,6 +18,7 @@ using EmnExtensions.DebugTools;
 using System.Threading;
 using System.Threading.Tasks;
 using EmnExtensions.Wpf.OldGraph;
+using EmnExtensions.Wpf.Plot;
 
 namespace LVQeamon
 {
@@ -43,7 +44,7 @@ namespace LVQeamon
 		public int? PointsPerSet { get { return textBoxPointsPerSet.Text.ParseAsInt32(); } }
 
 		private void buttonGeneratePointClouds_Click(object sender, RoutedEventArgs e) {
-			plotControl.Graphs.Clear();
+			//plotControl.Graphs.Clear();
 			NiceTimer timer = new NiceTimer(); timer.TimeMark("making point clouds");
 			if (!NumberOfSets.HasValue || !PointsPerSet.HasValue) {
 				Console.WriteLine("Invalid initialization values");
@@ -85,7 +86,10 @@ namespace LVQeamon
 							StartLineCap = PenLineCap.Square,
 							Thickness = 1.5,
 						};
-						plotControl.Graphs.Add(new GraphGeometryControl() { GraphGeometry = pointCloud, Name = "g" + si, GraphPen = pen });
+						pen.Freeze();
+						plotControl.AddPlot(new GraphableGeometry { Geometry = pointCloud, Pen = pen });
+						//plotControl.Graphs.Add(new GraphGeometryControl() { GraphGeometry = pointCloud, Name = "g" + si, GraphPen = pen });
+						//plotControl.ShowGraph("g" + si);
 
 						//Geometry pointCloud = GraphUtils.PointCloud4(pointsIter, 0.01);
 						//plotControl.Graphs.Add(new GraphGeometryControl() { GraphGeometry = pointCloud, Name = "g" + si, GraphFill = GraphRandomPen.RandomGraphColor(), GraphPen = null });
@@ -109,15 +113,15 @@ namespace LVQeamon
 			overall = new NiceTimer();
 			overall.TimeMark("Sizing");
 			base.OnInitialized(e);
-			//buttonGeneratePointClouds_Click(null, null);
-			//Dispatcher.BeginInvoke((Action)DoSizingTest);
+			buttonGeneratePointClouds_Click(null, null);
+			Dispatcher.BeginInvoke((Action)DoSizingTest);
 		}
 
 		volatile int renderCount = 0;
 		bool completedTest = false;
 
 		void DoSizingTest() {
-			if (Width + Height > 1600) {
+			if (Width + Height > 2000) {
 				if (!completedTest) {
 					completedTest = true;
 					overall.TimeMark(null);
@@ -154,7 +158,7 @@ namespace LVQeamon
 					.Select(i => new Point(points[i, 0], points[i, 1]))
 					.ToArray();
 
-
+/*
 				Dispatcher.BeginInvoke((Action)(() => {
 					Geometry pointCloud = GraphUtils.PointCloud(pointsIter);
 					smallerGeom.Children.Add(pointCloud);
@@ -178,7 +182,7 @@ namespace LVQeamon
 							GraphPen = pen
 						});
 					}
-				}));
+				}));*/
 
 			});
 		}
