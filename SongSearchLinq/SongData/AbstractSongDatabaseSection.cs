@@ -53,7 +53,7 @@ namespace SongDataLib
 		}
 		protected static bool isExtensionOK(FileInfo fi) {
 			string extension = fi.Extension.ToLowerInvariant();
-			return (extension == ".mp3" && !fi.Name.ToLowerInvariant().EndsWith("._@X.mp3"))
+			return extension == ".mp3"
 				|| extension == ".ogg" 
 				|| extension == ".mpc" 
 				|| extension == ".mpp" 
