@@ -10,15 +10,16 @@ namespace EmnExtensions.Wpf.Plot
 	public class GraphableGeometry : GraphableData
 	{
 		Geometry m_Geometry ;
-		GeometryGroup m_OuterGeom = new GeometryGroup();
-		MatrixTransform m_OuterGeomTransform = new MatrixTransform();
+		Transform m_OldTransform;
+		MatrixTransform m_ProjectionTransform = new MatrixTransform();
 		bool m_AutosizeBounds = true;
 		Brush m_Fill = Brushes.Black;
 		Pen m_Pen = defaultPen;
+		Matrix m_geomToAxis = Matrix.Identity;
 
 		//public GraphableGeometry
 
-		static Pen defaultPen = (Pen)new Pen { Brush = Brushes.Black, EndLineCap = PenLineCap.Square, StartLineCap = PenLineCap.Square }.GetAsFrozen();
+		static Pen defaultPen = (Pen)new Pen { Brush = Brushes.Black, EndLineCap = PenLineCap.Square, StartLineCap = PenLineCap.Square, Thickness=1.5 }.GetAsFrozen();
 
 		public Brush Fill { get { return m_Fill; } set { if (m_Fill != value) { m_Fill = value; OnChange(GraphChangeEffects.RedrawGraph); } } }
 		public Pen Pen {
@@ -47,8 +48,8 @@ namespace EmnExtensions.Wpf.Plot
 			set {
 				if (m_Geometry != null && !m_Geometry.IsFrozen)
 					m_Geometry.Changed -= m_Geometry_Changed;
+				m_OldTransform = value.Transform;
 				m_Geometry = value;
-				m_OuterGeom = null;
 				if (m_Geometry != null && !m_Geometry.IsFrozen)
 					m_Geometry.Changed += m_Geometry_Changed;
 				RecomputeBoundsIfAuto();
@@ -56,26 +57,51 @@ namespace EmnExtensions.Wpf.Plot
 			}
 		}
 
+		public Matrix GeometryToAxisProjection {
+			get { return m_geomToAxis; }
+			set {
+				Matrix oldTransformInvert = m_geomToAxis;
+				oldTransformInvert.Invert();
+				m_geomToAxis = value;
+				changingGeometry = true;
+				m_ProjectionTransform.Matrix = m_geomToAxis * oldTransformInvert * m_ProjectionTransform.Matrix;
+				changingGeometry = false;
+				RecomputeBoundsIfAuto();
+			}
+		}
+
 		void m_Pen_Changed(object sender, EventArgs e) { RecomputeBoundsIfAuto(); }
-		void m_Geometry_Changed(object sender, EventArgs e) { RecomputeBoundsIfAuto(); }
+		void m_Geometry_Changed(object sender, EventArgs e) {if(!changingGeometry) RecomputeBoundsIfAuto(); }
+		bool changingGeometry = false;
 
 		void RecomputeBoundsIfAuto() {
 			if (m_AutosizeBounds) {
+				changingGeometry = true;
+				
+				m_Geometry.Transform = new MatrixTransform(m_geomToAxis);
 				DataBounds = m_Geometry.Bounds;//this will trigger OnChanged if neeeded.
+				m_Geometry.Transform = m_ProjectionTransform;
+				changingGeometry = false;
 				Margin = new Thickness(Pen.Thickness);//this will trigger OnChanged if neeeded.
 			}
 		}
 
-		public override void SetTransform(Matrix matrix) { this.m_OuterGeomTransform.Matrix = matrix;OnChange(GraphChangeEffects.DrawingInternals); }
+		public override void SetTransform(Matrix axisToDisplay) { 
+			changingGeometry = true; 
+			m_ProjectionTransform.Matrix = m_geomToAxis * axisToDisplay;
+			changingGeometry = false;
+			OnChange(GraphChangeEffects.DrawingInternals); 
+		}
 
 		public override void DrawGraph(DrawingContext context) {
-			if (m_OuterGeom == null) { //we lazily construct this outer geometry since it might never be needed.
-				m_OuterGeom = new GeometryGroup();
-				m_OuterGeom.Children.Add(m_Geometry);
-				//m_OuterGeom.FillRule = FillRule.Nonzero;
-				m_OuterGeom.Transform = m_OuterGeomTransform;
-			}
-			context.DrawGeometry(m_Fill, m_Pen, m_OuterGeom);
+			//if (m_OuterGeom == null) { //we lazily construct this outer geometry since it might never be needed.
+			//    m_OuterGeom = new GeometryGroup();
+			//    m_OuterGeom.Children.Add(m_Geometry);
+			//    m_OuterGeom.FillRule = FillRule.Nonzero;
+			//    m_OuterGeom.Transform = m_OuterGeomTransform;
+			//}
+			//context.DrawGeometry(m_Fill, m_Pen, m_OuterGeom);
+			context.DrawGeometry(m_Fill, m_Pen, m_Geometry);
 		}
 
 	}

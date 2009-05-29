@@ -2,11 +2,13 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:emnExt="clr-namespace:EmnExtensions.Wpf"
-    xmlns:emnPlot="clr-namespace:EmnExtensions.Wpf.Plot">
+    xmlns:emnPlot="clr-namespace:EmnExtensions.Wpf.Plot"
+			 IsHitTestVisible="False"
+			 >
 	<Grid>
-		<emnPlot:TickedAxis AttemptBorderTicks="True" x:Name="tickedAxisBot" AxisPos="BelowGraph"   Background="#2f0f"/>
-		<emnPlot:TickedAxis AttemptBorderTicks="True" x:Name="tickedAxisLft" AxisPos="LeftOfGraph"  Background="#20ff"/>
-		<emnPlot:TickedAxis AttemptBorderTicks="True" x:Name="tickedAxisTop" AxisPos="AboveGraph"   Background="#20f0"/>
-		<emnPlot:TickedAxis AttemptBorderTicks="True" x:Name="tickedAxisRgt" AxisPos="RightOfGraph" Background="#2ff0"/>
+		<emnPlot:TickedAxis x:Name="tickedAxisBot" AxisPos="BelowGraph"   Background="#2f0f"/>
+		<emnPlot:TickedAxis x:Name="tickedAxisLft" AxisPos="LeftOfGraph"  Background="#20ff"/>
+		<emnPlot:TickedAxis x:Name="tickedAxisTop" AxisPos="AboveGraph"   Background="#20f0"/>
+		<emnPlot:TickedAxis x:Name="tickedAxisRgt" AxisPos="RightOfGraph" Background="#2ff0"/>
 	</Grid>
 </UserControl>
