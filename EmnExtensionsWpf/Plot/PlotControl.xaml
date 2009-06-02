@@ -10,5 +10,6 @@
 		<emnPlot:TickedAxis x:Name="tickedAxisLft" AxisPos="LeftOfGraph"  Background="#20ff"/>
 		<emnPlot:TickedAxis x:Name="tickedAxisTop" AxisPos="AboveGraph"   Background="#20f0"/>
 		<emnPlot:TickedAxis x:Name="tickedAxisRgt" AxisPos="RightOfGraph" Background="#2ff0"/>
+        <emnPlot:GraphDisplayControl x:Name="graphDisp"/>
 	</Grid>
 </UserControl>

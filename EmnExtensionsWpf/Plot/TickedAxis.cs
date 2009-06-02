@@ -15,16 +15,19 @@ using System.Globalization;
 
 namespace EmnExtensions.Wpf.Plot
 {
-	public enum TickedAxisLocation { Undefined = 0, LeftOfGraph = 1, AboveGraph = 2, RightOfGraph = 3, BelowGraph = 4 }
+	[Flags]
+	public enum TickedAxisLocation { None = 0, LeftOfGraph = 1, AboveGraph = 2, RightOfGraph = 4, BelowGraph = 16 }
 
 	public class TickedAxis : FrameworkElement
 	{
+		//TODO: reorganize code to make public/protected difference more obvious
+
 		const double DefaultAxisLength = 1000.0;//assume we have this many pixels for estimates (i.e. measuring)
 		const double MinimumNumberOfTicks = 1.0;//don't bother rendering if we have fewer than this many ticks.
 
 		Typeface m_typeface;
-		double m_fontSize = 12.0 * 4.0 / 3.0;//12pt = 12 pixels at 72dpi = 16pixels at 96dpi
-		Pen m_tickPen; //start flat end round
+		double m_fontSize;
+		Pen m_tickPen;
 
 		public TickedAxis() {
 			m_tickPen = new Pen {
@@ -32,9 +35,10 @@ namespace EmnExtensions.Wpf.Plot
 				StartLineCap = PenLineCap.Flat,
 				EndLineCap = PenLineCap.Round,
 				Thickness = 1.5
-			};
+			}; //start flat end round
 			DataBound = DimensionBounds.Undefined;
 			m_typeface = new Typeface(new FontFamily("Segoe UI"), FontStyles.Normal, FontWeights.Normal, FontStretches.Normal, new FontFamily("Verdana"));
+			m_fontSize = 12.0 * 4.0 / 3.0;//12pt = 12 pixels at 72dpi = 16pixels at 96dpi
 			TickLength = 16;
 			LabelOffset = 1;
 			PixelsPerTick = 100;
@@ -43,15 +47,13 @@ namespace EmnExtensions.Wpf.Plot
 		protected override void OnInitialized(EventArgs e) {
 			base.OnInitialized(e);
 			GuessNeighborsBasedOnAxisPos();
-			//VerticalAlignment = m_axisPos == TickedAxisLocation.BelowGraph ? VerticalAlignment.Bottom : VerticalAlignment.Top;
-			//HorizontalAlignment = m_axisPos == TickedAxisLocation.RightOfGraph ? HorizontalAlignment.Right : HorizontalAlignment.Left;
 		}
 
-		public DimensionBounds DataBound { get; set; }
-		public DimensionMargins DataMargin { get; set; }
-		public Brush Background { get; set; }
+		public DimensionBounds DataBound { get; set; }  //TODO:should invalidate measure/render
+		public DimensionMargins DataMargin { get; set; } //TODO:should invalidate measure/render
+		public Brush Background { get; set; } //TODO:affectsrender
 
-		public TickedAxis ClockwisePrevAxis { get; set; }//TODO:auto-infer these from parent?
+		public TickedAxis ClockwisePrevAxis { get; set; }//TODO:should invalidate measure/render
 		public TickedAxis ClockwiseNextAxis { get; set; }
 
 		double m_reqOfNext, m_reqOfPrev;
@@ -85,39 +87,45 @@ namespace EmnExtensions.Wpf.Plot
 		}
 		double EffectiveThickness { get { return Math.Max(Thickness, RequiredThickness); } }
 
-		public string DataUnits { get; set; }
-		public bool AttemptBorderTicks { get; set; }
-		public double TickLength { get; set; }
-		public double LabelOffset { get; set; }
-		public double PixelsPerTick { get; set; }
+		public string DataUnits { get; set; } //TODO:should invalidate measure/render
+		public bool AttemptBorderTicks { get; set; } //TODO:should invalidate measure/render
+		public double TickLength { get; set; } //TODO:should invalidate measure/render
+		public double LabelOffset { get; set; } //TODO:should invalidate measure/render
+		public double PixelsPerTick { get; set; } //TODO:should invalidate measure/render
 
 		TickedAxisLocation m_axisPos;
-		public TickedAxisLocation AxisPos {
+		public TickedAxisLocation AxisPos { //TODO: make DependancyProperty
 			get { return m_axisPos; }
 			set {
+				if (!Enum.GetValues(typeof(TickedAxisLocation)).Cast<TickedAxisLocation>().Contains(value))
+					throw new ArgumentException("A Ticked Axis must be along precisely one side");
 				m_axisPos = value;
 				VerticalAlignment = m_axisPos == TickedAxisLocation.BelowGraph ? VerticalAlignment.Bottom : VerticalAlignment.Top;
 				HorizontalAlignment = m_axisPos == TickedAxisLocation.RightOfGraph ? HorizontalAlignment.Right : HorizontalAlignment.Left;
 				InvalidateMeasure(); InvalidateVisual();
-			}
-		} //TODO: link to VerticalAlignment/HorizontalAlignment.
+			} //TODO:GuessNeighborsBasedOnAxisPos here and not in Initialized?
+		}
 
 		bool IsHorizontal { get { return AxisPos == TickedAxisLocation.AboveGraph || AxisPos == TickedAxisLocation.BelowGraph; } }
 
 		private void GuessNeighborsBasedOnAxisPos() {
-			TickedAxisLocation next = (TickedAxisLocation)(((int)AxisPos) % 4 + 1);
-			TickedAxisLocation prev = (TickedAxisLocation)((((int)AxisPos) - 5) % 4 + 4);
+			if (AxisPos == TickedAxisLocation.None) {
+				ClockwiseNextAxis = ClockwisePrevAxis = null;
+			} else {
 
-			foreach (object sibling in LogicalTreeHelper.GetChildren(Parent)) {
-				TickedAxis siblingAxis = sibling as TickedAxis;
-				if (siblingAxis == null) continue;
+				TickedAxisLocation next = (TickedAxisLocation)(Math.Max(((int)AxisPos) * 2 % 32, 1));
+				TickedAxisLocation prev = (TickedAxisLocation)(((int)AxisPos) * 33 / 2 % 32);
+				foreach (object sibling in LogicalTreeHelper.GetChildren(Parent)) {
+					TickedAxis siblingAxis = sibling as TickedAxis;
+					if (siblingAxis == null) continue;
 
-				if (siblingAxis.AxisPos == next) {
-					ClockwiseNextAxis = siblingAxis;
-					siblingAxis.ClockwisePrevAxis = this;
-				} else if (siblingAxis.AxisPos == prev) {
-					ClockwisePrevAxis = siblingAxis;
-					siblingAxis.ClockwiseNextAxis = this;
+					if (siblingAxis.AxisPos == next) {
+						ClockwiseNextAxis = siblingAxis;
+						siblingAxis.ClockwisePrevAxis = this;
+					} else if (siblingAxis.AxisPos == prev) {
+						ClockwisePrevAxis = siblingAxis;
+						siblingAxis.ClockwiseNextAxis = this;
+					}
 				}
 			}
 		}
@@ -128,7 +136,7 @@ namespace EmnExtensions.Wpf.Plot
 		FormattedText[] m_rank0Labels;
 		DrawingGroup m_axisLegend;
 
-		Size m_bestGuessCurrentSize; //TODO refactor to store "local" size - i.e. in rotated form.
+		Size m_bestGuessCurrentSize;
 
 		/// <summary>
 		/// Attempts to guess the length of the ticked axis based on a previous render length or the DefaultAxisLength, for estimating tick labels for sizing.
@@ -196,7 +204,7 @@ namespace EmnExtensions.Wpf.Plot
 
 		double PreferredPixelsPerTick {
 			get {
-				return Math.Max(PixelsPerTick, m_ticks == null ? 0.0 : TickLabelSizeGuess.Width * Math.Sqrt(10)/2.0 + 4); //factor 1.41 since actual tick distance may be off by that much from the preferred quantity.
+				return Math.Max(PixelsPerTick, m_ticks == null ? 0.0 : TickLabelSizeGuess.Width * Math.Sqrt(10)/2.0 + 4); //factor sqrt(10)/2 since actual tick distance may be off by that much from the preferred quantity.
 			}
 		}
 		static Size Transpose(Size size) { return new Size(size.Height, size.Width); }
@@ -333,7 +341,9 @@ namespace EmnExtensions.Wpf.Plot
 
 		public DimensionBounds DisplayBounds { //depends on AxisPos, DataMargin, ThicknessOf*, m_bestGuessCurrentSize
 			get {
-				bool lowAtNext = AxisPos == TickedAxisLocation.BelowGraph || AxisPos == TickedAxisLocation.RightOfGraph; //if we're on bottom or right, data low values are towards the clockwise end.
+				//if we're on bottom or right, data low values are towards the clockwise end.
+				bool lowAtNext = AxisPos == TickedAxisLocation.BelowGraph || AxisPos == TickedAxisLocation.RightOfGraph; //flipped-vertical-relevant
+
 				double displayStart = (lowAtNext ? ThicknessOfNext : ThicknessOfPrev) + DataMargin.AtStart;
 				double displayEnd = (IsHorizontal ? m_bestGuessCurrentSize.Width : m_bestGuessCurrentSize.Height) -
 					 ((lowAtNext ? ThicknessOfPrev : ThicknessOfNext) + DataMargin.AtEnd);
@@ -346,19 +356,15 @@ namespace EmnExtensions.Wpf.Plot
 			}
 		}
 
-		static Matrix DataToDisplay(DimensionBounds displayBounds, DimensionBounds dataBounds) {//TODO: take into account AttemptBorderTicks
+		static Matrix DataToDisplay(DimensionBounds displayBounds, DimensionBounds dataBounds) {
 			Matrix transform = Matrix.Identity;
 
 			double scaleFactor = displayBounds.Length / dataBounds.Length;
 
 			transform.Scale(scaleFactor, 1.0);
-			dataBounds.Max *= scaleFactor; dataBounds.Min *= scaleFactor;
 
-			double offset = displayBounds.Min - dataBounds.Min;
+			double offset = displayBounds.Min - dataBounds.Min * scaleFactor;
 			transform.Translate(offset, 0.0);
-
-			//dataStart += offset; dataEnd += offset;
-			//now datastart~=displayStart && displayEnd ~=dataEnd
 
 			return transform;
 		}
@@ -390,8 +396,10 @@ namespace EmnExtensions.Wpf.Plot
 			get {
 				Matrix dataToDispX = DataToDisplayAlongXTransform;
 				if (!IsHorizontal) {
-					dataToDispX.RotatePrepend(-90.0);//should be doable via swapping.
-					dataToDispX.Rotate(90.0);
+					dataToDispX.M22 = dataToDispX.M11;
+					dataToDispX.M11 = 1.0;
+					dataToDispX.OffsetY = dataToDispX.OffsetX;
+					dataToDispX.OffsetX = 0.0;
 				}
 				return dataToDispX;
 			}
@@ -517,7 +525,6 @@ namespace EmnExtensions.Wpf.Plot
 		//        }
 		//    }
 		//}
-
 
 		const double permittedErrorRatio = 0.0009; //i.e. upto 0.1 percent overshoot of the outer tick is permitted when attempting border ticks.
 		//0.0009 value chosen to avoid unnecessary overshoot in cases approaching maximum resolution of a double.

@@ -1,4 +1,18 @@
-﻿//#define ASBG
+﻿#define ASBG //benchmarked: 20.2 sec or with MAKEDV: 23.5
+//#define INRENDER //benchmarked:24.3 sec
+//#define GRAPHDISP //benchmarked:23.5
+
+#if ASBG||GRAPHDISP
+#define MAKEDRAWING
+#endif
+
+#if ASBG
+//#define MAKEDV //fastest without
+#endif
+#if GRAPHDISP
+#define MAKEDV
+#endif
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,50 +34,80 @@ namespace EmnExtensions.Wpf.Plot
 	/// </summary>
 	public partial class PlotControl : UserControl
 	{
+		bool redrawGraphs = false;
+		List<GraphableData> graphs = new List<GraphableData>();
+		Dictionary<TickedAxisLocation, TickedAxis> axes;
 		public PlotControl() {
 			InitializeComponent();
+			axes = new[] { tickedAxisLft, tickedAxisBot, tickedAxisRgt, tickedAxisTop }.ToDictionary(axis => axis.AxisPos);
 		}
-		List<GraphableData> graphs = new List<GraphableData>();
 
 		public void AddPlot(GraphableData newgraph) {
 			graphs.Add(newgraph);
-			tickedAxisBot.DataBound = DimensionBounds.Merge(tickedAxisBot.DataBound, new DimensionBounds { Min = newgraph.DataBounds.Left, Max = newgraph.DataBounds.Right });
-			tickedAxisLft.DataBound = DimensionBounds.Merge(tickedAxisLft.DataBound, new DimensionBounds { Min = newgraph.DataBounds.Top, Max = newgraph.DataBounds.Bottom });
-			tickedAxisLft.DataUnits = newgraph.YUnitLabel;
+			tickedAxisBot.DataBound = DimensionBounds.Merge(tickedAxisBot.DataBound, DimensionBounds.FromRectX(newgraph.DataBounds));
 			tickedAxisBot.DataUnits = newgraph.XUnitLabel;
-			tickedAxisBot.DataMargin = DimensionMargins.Merge(tickedAxisBot.DataMargin, new DimensionMargins { AtStart = newgraph.Margin.Left, AtEnd = newgraph.Margin.Right });
-			tickedAxisLft.DataMargin = DimensionMargins.Merge(tickedAxisLft.DataMargin, new DimensionMargins { AtStart = newgraph.Margin.Top, AtEnd = newgraph.Margin.Bottom });
-#if ASBG
+			tickedAxisBot.DataMargin = DimensionMargins.Merge(tickedAxisBot.DataMargin, DimensionMargins.FromThicknessX(newgraph.Margin));
+
+			tickedAxisLft.DataBound = DimensionBounds.Merge(tickedAxisLft.DataBound, DimensionBounds.FromRectY(newgraph.DataBounds));
+			tickedAxisLft.DataUnits = newgraph.YUnitLabel;
+			tickedAxisLft.DataMargin = DimensionMargins.Merge(tickedAxisLft.DataMargin, DimensionMargins.FromThicknessY(newgraph.Margin));
+
+			redrawGraphs = true;
+			InvalidateVisual();
+		}
+
+#if INRENDER
+		private void MakeDrawing() { }
+#endif
+
+#if MAKEDRAWING
+		private void MakeDrawing() {
+#if MAKEDV
+			DrawingVisual dv = new DrawingVisual();
+			using (var drawingContext = dv.RenderOpen()) {
+#else
 			DrawingGroup bg = new DrawingGroup();
 			using (var drawingContext = bg.Open()) {
+#endif
 				foreach (var graph in graphs) {
 					graph.DrawGraph(drawingContext);
 				}
 			}
-			this.Background = new DrawingBrush(bg) { Stretch = Stretch.None, ViewboxUnits =  BrushMappingMode.Absolute };
+#if ASBG
+
+			this.Background =
+#if MAKEDV
+				new VisualBrush(dv) {
+#else
+ new DrawingBrush(bg) {
+#endif
+	 Stretch = Stretch.None, //No stretch since we want the ticked axis to determine stretch
+	 ViewboxUnits = BrushMappingMode.Absolute,
+	 Viewbox = new Rect(0, 0, 0, 0), //we want to to start displaying in the corner 0,0 - and width+height are irrelevant due to Stretch.None.
+	 AlignmentX = AlignmentX.Left, //and corner 0,0 is in the Top-Left!
+	 AlignmentY = AlignmentY.Top,
+ };
+#endif
+#if GRAPHDISP
+			graphDisp.GraphDrawing = dv;
 #endif
 		}
+#endif
 
-#if ASBG
-		protected override Size ArrangeOverride(Size arrangeBounds) {
-			Size retval = base.ArrangeOverride(arrangeBounds);
+
+		protected override void OnRender(DrawingContext drawingContext) {
+			MakeDrawing();
+			base.OnRender(drawingContext);
 			var projection = LftBot();
 			foreach (var graph in graphs) {
+#if INRENDER
+		        graph.DrawGraph(drawingContext);
+#endif
 				graph.SetTransform(projection);
 			}
-			if (Background != null) ((DrawingBrush)Background).Viewbox = new Rect(0, 0, retval.Width, retval.Height);
-			return retval;
+
 		}
-#else
-		protected override void OnRender(DrawingContext drawingContext) {
-		    var projection = LftBot();
-		    foreach (var graph in graphs) {
-		        graph.SetTransform(projection);
-		        graph.DrawGraph(drawingContext);
-		    }
-		    base.OnRender(drawingContext);
-		}
-#endif
+
 
 		Matrix LftBot() { return tickedAxisBot.DataToDisplayTransform * tickedAxisLft.DataToDisplayTransform; }
 	}

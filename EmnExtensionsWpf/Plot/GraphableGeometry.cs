@@ -82,7 +82,7 @@ namespace EmnExtensions.Wpf.Plot
 				DataBounds = m_Geometry.Bounds;//this will trigger OnChanged if neeeded.
 				m_Geometry.Transform = m_ProjectionTransform;
 				changingGeometry = false;
-				Margin = new Thickness(Pen.Thickness);//this will trigger OnChanged if neeeded.
+				Margin = new Thickness(Pen.Thickness/2.0);//this will trigger OnChanged if neeeded.
 			}
 		}
 
