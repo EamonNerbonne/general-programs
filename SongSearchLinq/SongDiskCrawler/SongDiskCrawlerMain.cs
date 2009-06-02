@@ -25,7 +25,7 @@ namespace SongDiskCrawlerMain
 			}
 		}
 		static ISongData LookupSong(string url) {
-			ISongData retval;
+			ISongData retval=null;
 			songs.TryGetValue(url, out retval);
 			if(retval == null) newsongs++;
 			return retval;
