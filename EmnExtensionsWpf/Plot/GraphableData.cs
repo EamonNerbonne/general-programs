@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Windows.Media;
 using System.Windows;
+using System.Windows.Media.Imaging;
 
 namespace EmnExtensions.Wpf.Plot
 {
@@ -13,7 +14,7 @@ namespace EmnExtensions.Wpf.Plot
 		string m_xUnitLabel, m_yUnitLabel, m_DataLabel;
 		Rect m_DataBounds;
 		Thickness m_Margin;
-		TickedAxisLocation m_axisBindings = TickedAxisLocation.LeftOfGraph | TickedAxisLocation.BelowGraph | TickedAxisLocation.AboveGraph;
+		TickedAxisLocation m_axisBindings = TickedAxisLocation.LeftOfGraph | TickedAxisLocation.BelowGraph ;
 
 		public string XUnitLabel { get { return m_xUnitLabel; } set { if (m_xUnitLabel != value) { m_xUnitLabel = value; OnChange(GraphChangeEffects.Labels); } } }
 		public string YUnitLabel { get { return m_yUnitLabel; } set { if (m_yUnitLabel != value) { m_yUnitLabel = value; OnChange(GraphChangeEffects.Labels); } } }
@@ -28,6 +29,6 @@ namespace EmnExtensions.Wpf.Plot
 		}
 
 		public abstract void DrawGraph(DrawingContext context);
-		public abstract void SetTransform(Matrix matrix);
+		public abstract void SetTransform(Matrix matrix, Size estimatedDisplaySize);
 	}
 }

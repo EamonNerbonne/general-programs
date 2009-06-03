@@ -89,10 +89,10 @@ namespace LVQeamon
 							//EndLineCap = PenLineCap.Round,	StartLineCap = PenLineCap.Round,
 							EndLineCap = PenLineCap.Square,
 							StartLineCap = PenLineCap.Square,
-							Thickness = 3,
+							Thickness = 1.5,
 						};
 						pen.Freeze();
-						plotControl.AddPlot(new GraphableGeometry { Geometry = pointCloud, Pen = pen });
+						plotControl.AddPlot(new GraphableGeometry { Geometry = pointCloud, Pen = pen, XUnitLabel = "X axis", YUnitLabel = "Y axis" });
 						//plotControl.Graphs.Add(new GraphGeometryControl() { GraphGeometry = pointCloud, Name = "g" + si, GraphPen = pen });
 						//plotControl.ShowGraph("g" + si);
 

@@ -6,10 +6,10 @@
 			 IsHitTestVisible="False"
 			 >
 	<Grid>
-		<emnPlot:TickedAxis x:Name="tickedAxisBot" AxisPos="BelowGraph"   Background="#2f0f"/>
-		<emnPlot:TickedAxis x:Name="tickedAxisLft" AxisPos="LeftOfGraph"  Background="#20ff"/>
-		<emnPlot:TickedAxis x:Name="tickedAxisTop" AxisPos="AboveGraph"   Background="#20f0"/>
-		<emnPlot:TickedAxis x:Name="tickedAxisRgt" AxisPos="RightOfGraph" Background="#2ff0"/>
+		<emnPlot:TickedAxis x:Name="tickedAxisBot" AxisPos="BelowGraph"   AttemptBorderTicks="true" />
+		<emnPlot:TickedAxis x:Name="tickedAxisLft" AxisPos="LeftOfGraph"  AttemptBorderTicks="true" />
+		<emnPlot:TickedAxis x:Name="tickedAxisTop" AxisPos="AboveGraph"   AttemptBorderTicks="true" />
+		<emnPlot:TickedAxis x:Name="tickedAxisRgt" AxisPos="RightOfGraph" AttemptBorderTicks="true" />
         <emnPlot:GraphDisplayControl x:Name="graphDisp"/>
 	</Grid>
 </UserControl>

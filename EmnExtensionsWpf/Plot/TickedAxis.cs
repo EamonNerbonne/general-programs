@@ -32,6 +32,8 @@ namespace EmnExtensions.Wpf.Plot
 		Pen m_tickPen;
 		Pen[] m_gridRankPen;
 
+
+
 		public TickedAxis() {
 			m_tickPen = new Pen {
 				Brush = Brushes.Black,
@@ -41,7 +43,8 @@ namespace EmnExtensions.Wpf.Plot
 			}; //start flat end round
 			m_tickPen.Freeze();
 			m_gridRankPen = Enumerable.Range(0, GridLineRanks)
-				.Select(rank => (Pen)new Pen { Brush = Brushes.Black, Thickness = BaseTickWidth * (GridLineRanks - rank) * (GridLineRanks - rank) / (double)(GridLineRanks*GridLineRanks) }.GetCurrentValueAsFrozen())
+				.Select(rank =>(GridLineRanks - rank) / (double)(GridLineRanks))
+				.Select(relevance => (Pen)new Pen { Brush = (Brush) new SolidColorBrush(new Color { ScA = (float)relevance}).GetAsFrozen(), Thickness = BaseTickWidth * relevance *Math.Sqrt(relevance) }.GetCurrentValueAsFrozen())
 				.ToArray();
 
 			DataBound = DimensionBounds.Undefined;
@@ -143,7 +146,7 @@ namespace EmnExtensions.Wpf.Plot
 		Tick[] m_ticks;
 		FormattedText[] m_rank0Labels;
 		DrawingGroup m_axisLegend;
-
+		bool m_redrawGridLines;
 		Size m_bestGuessCurrentSize;
 
 		/// <summary>
@@ -179,6 +182,7 @@ namespace EmnExtensions.Wpf.Plot
 					||
 					m_ticks != null && !m_ticks.SequenceEqual(newTicks) && (mayIncrease || m_ticks.Count(tick => tick.Rank <= 1) > newTicks.Count(tick => tick.Rank <= 1))) {
 					m_rank0Labels = null;
+					m_redrawGridLines = true;
 					m_ticks = newTicks;
 				}
 			}
@@ -366,14 +370,14 @@ namespace EmnExtensions.Wpf.Plot
 			}
 		}
 
-		static Matrix DataToDisplay(DimensionBounds displayBounds, DimensionBounds dataBounds) {
+		static Matrix MapBounds(DimensionBounds dstBounds, DimensionBounds srcBounds) {
 			Matrix transform = Matrix.Identity;
 
-			double scaleFactor = displayBounds.Length / dataBounds.Length;
+			double scaleFactor = dstBounds.Length / srcBounds.Length;
 
 			transform.Scale(scaleFactor, 1.0);
 
-			double offset = displayBounds.Min - dataBounds.Min * scaleFactor;
+			double offset = dstBounds.Min - srcBounds.Min * scaleFactor;
 			transform.Translate(offset, 0.0);
 
 			return transform;
@@ -400,7 +404,9 @@ namespace EmnExtensions.Wpf.Plot
 			return transform;
 		}
 
-		Matrix DataToDisplayAlongXTransform { get { return DataToDisplay(DisplayBounds, DisplayedDataBounds); } }
+		Matrix DataToDisplayAlongXTransform { get { return MapBounds(DisplayBounds, DisplayedDataBounds); } }
+
+		Matrix TickIndexToDisplayX { get { return MapBounds(DisplayBounds, new DimensionBounds { Min = 0, Max = m_ticks.Length - 1 }); } }
 
 		public Matrix DataToDisplayTransform {
 			get {
@@ -431,19 +437,20 @@ namespace EmnExtensions.Wpf.Plot
 
 			//first, we compute transforms data->display as if BelowGraph->display with actual alignment
 			Matrix dataToDispX = DataToDisplayAlongXTransform;
-			Matrix dispXToDisp = AlignmentTransform(AxisPos, CondTranspose(m_bestGuessCurrentSize));
-			Matrix dataToDisp = Matrix.Multiply(dataToDispX, dispXToDisp);
+			Matrix alignToDisp = AlignmentTransform(AxisPos, CondTranspose(m_bestGuessCurrentSize));
+			Matrix dataToDisp = Matrix.Multiply(dataToDispX, alignToDisp);
 
 			//next, we draw a streamgeometry of all the ticks using data->disp transform.
-			StreamGeometry tickGeometry = DrawTicksAlongX(m_ticks, TickLength, dataToDispX);// in disp-space due to accuracy.
-			tickGeometry.Transform = new MatrixTransform(dispXToDisp);
+			StreamGeometry tickGeometry = DrawTicksAlongX(m_ticks.Select((tick,idx)=>new Tick{Value=idx,Rank=tick.Rank} ), TickLength);// in disp-space due to accuracy.
+			tickGeometry.Transform = new MatrixTransform(TickIndexToDisplayX*alignToDisp);
 			drawingContext.DrawGeometry(null, m_tickPen, tickGeometry);
 
-			RenderGridLines(dataToDispX);
+			if(m_redrawGridLines)
+			RenderGridLines();
 
 			var dispBounds = DisplayBounds;
 
-			drawingContext.DrawLine(m_tickPen, dispXToDisp.Transform(new Point(dispBounds.Max, m_tickPen.Thickness / 2.0)), dispXToDisp.Transform(new Point(dispBounds.Min, m_tickPen.Thickness / 2.0)));
+			drawingContext.DrawLine(m_tickPen, alignToDisp.Transform(new Point(dispBounds.Max, m_tickPen.Thickness / 2.0)), alignToDisp.Transform(new Point(dispBounds.Min, m_tickPen.Thickness / 2.0)));
 
 			//then we draw all labels, computing the label center point accounting for horizontal/vertical alignment, and using data->disp to position that center point.
 			foreach (var labelledValue in F.ZipWith(Rank1Values, m_rank0Labels, (val, label) => new { Value = val, Label = label })) {
@@ -456,44 +463,45 @@ namespace EmnExtensions.Wpf.Plot
 
 			//finally, we draw the axisLegend:
 			double axisLegendAltitude = TickLength + LabelOffset + CondTranspose(TickLabelSizeGuess).Height + m_axisLegend.Bounds.Height / 2.0;
-			Point axisLegendCenterPoint = dispXToDisp.Transform(new Point(CondTranspose(m_bestGuessCurrentSize).Width / 2.0, axisLegendAltitude));
+			Point axisLegendCenterPoint = alignToDisp.Transform(new Point(0.5*(dispBounds.Min+dispBounds.Max), axisLegendAltitude));
 			drawingContext.PushTransform(new MatrixTransform(AxisLegendToCenter(AxisPos, m_axisLegend.Bounds, axisLegendCenterPoint)));
 			drawingContext.DrawDrawing(m_axisLegend);
 			drawingContext.Pop();
 
 		}
 
-		private void RenderGridLines(Matrix dataToDispX) {
-			if (AxisPos == TickedAxisLocation.BelowGraph) 
+		private void RenderGridLines() {
+			var ticksByIdx = m_ticks.Select((tick, idx) => new Tick { Value = idx, Rank = tick.Rank });
 			using (var context = m_gridLines.Open()) {
 				foreach (var rank in Enumerable.Range(0, m_gridRankPen.Length)) {
-					StreamGeometry rankGridLineGeom = DrawGridLines(m_ticks.Where(tick => tick.Rank == rank), dataToDispX);
+					StreamGeometry rankGridLineGeom = DrawGridLines(ticksByIdx.Where(tick => tick.Rank == rank));
 					rankGridLineGeom.Transform = m_gridLineAlignTransform;
 					context.DrawGeometry(null, m_gridRankPen[rank], rankGridLineGeom);
 				}
 			}
+			m_redrawGridLines = false;
 		}
 
-		private static StreamGeometry DrawGridLines(IEnumerable<Tick> ticks, Matrix dataToDispX) {
+		private static StreamGeometry DrawGridLines(IEnumerable<Tick> ticks) {
 			StreamGeometry geom = new StreamGeometry();
 			using (var context = geom.Open())
 				foreach (Tick tick in ticks)
-					DrawGridLinesHelper(context, tick.Value, 1, dataToDispX);
+					DrawGridLinesHelper(context, tick.Value, 1);
 			return geom;
 		}
 
-		private static void DrawGridLinesHelper(StreamGeometryContext context, double value, double tickLength, Matrix dataToDispX) {
-			//we choose to transform the streamgeometry during generation, rather than during display due to accuracy: it seems the geometry is low-resolution, so
-			//once stored, the resolution is no better than a float.
-			context.BeginFigure(dataToDispX.Transform(new Point(value, 0)), false, false);
-			context.LineTo(dataToDispX.Transform(new Point(value, tickLength)), true, false);
+		private static void DrawGridLinesHelper(StreamGeometryContext context, double value, double tickLength) {
+			//we choose to generate the the streamgeometry "by index" of tick rather than value, due to accuracy: it seems the geometry is low-resolution, so
+			//once stored, the resolution is no better than a float: using the "real" value is often inaccurate.
+			context.BeginFigure(new Point(value, 0), false, false);
+			context.LineTo(new Point(value, tickLength), true, false);
 		}
 
-		static StreamGeometry DrawTicksAlongX(IEnumerable<Tick> ticks, double tickLength, Matrix dataToDispX) {
+		static StreamGeometry DrawTicksAlongX(IEnumerable<Tick> ticks, double tickLength) {
 			StreamGeometry geom = new StreamGeometry();
 			using (var context = geom.Open())
 				foreach (Tick tick in ticks)
-					DrawGridLinesHelper(context, tick.Value, (3.8 - Math.Max(tick.Rank - 1, 0)) / 3.8 * tickLength, dataToDispX);
+					DrawGridLinesHelper(context, tick.Value, (3.8 - Math.Max(tick.Rank - 1, 0)) / 3.8 * tickLength);
 			return geom;
 		}
 		static Matrix TransposeMatrix { get { return new Matrix { M11 = 0, M12 = 1, M21 = 1, M22 = 0, OffsetX = 0, OffsetY = 0 }; } }
@@ -503,6 +511,7 @@ namespace EmnExtensions.Wpf.Plot
 
 		public Drawing GridLines { get { return m_gridLines; } }
 		public void SetGridLineExtent(Size outerBounds) {
+			if (m_ticks == null) return; //TODO; why is this test actually necessary?
 			bool oppFirst = AxisPos == TickedAxisLocation.BelowGraph || AxisPos == TickedAxisLocation.RightOfGraph;
 			var oppAxis = ClockwiseNextAxis.ClockwiseNextAxis ?? ClockwisePrevAxis.ClockwisePrevAxis;
 			double oppositeThickness = oppAxis != null ? oppAxis.EffectiveThickness : 0.0;
@@ -514,8 +523,9 @@ namespace EmnExtensions.Wpf.Plot
 			Matrix transform = Matrix.Identity;
 			transform.Scale(1.0, endAt - startAt);
 			transform.Translate(0.0, startAt);
+			transform.Append(TickIndexToDisplayX);
 			if (!IsHorizontal)
-				transform = TransposeMatrix * transform;
+				transform = transform*TransposeMatrix;
 			m_gridLineAlignTransform.Matrix = transform;
 		}
 
@@ -543,7 +553,6 @@ namespace EmnExtensions.Wpf.Plot
 			}
 			return retval;
 		}
-
 
 		struct Tick { public double Value; public int Rank; }
 

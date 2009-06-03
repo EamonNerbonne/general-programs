@@ -79,7 +79,7 @@ namespace EmnExtensions.Wpf.Plot
 			}
 			needRecomputeBounds = false;
 		}
-		private void RedrawGraphs() {
+		private void RedrawGraphs(TickedAxisLocation gridLineAxes) {
 #if RENDER_VIA_BG_BRUSH||RENDER_VIA_CHILD_CONTROL
 #if MAKEDV
 			DrawingVisual dv = new DrawingVisual();
@@ -88,7 +88,7 @@ namespace EmnExtensions.Wpf.Plot
 			DrawingGroup bg = new DrawingGroup();
 			using (var drawingContext = bg.Open()) {
 #endif
-				RedrawScene(drawingContext);
+				RedrawScene(drawingContext, gridLineAxes);
 			}
 #if RENDER_VIA_BG_BRUSH
 			this.Background =
@@ -112,10 +112,11 @@ namespace EmnExtensions.Wpf.Plot
 			needRedrawGraphs = false;
 		}
 
-		private void RedrawScene(DrawingContext drawingContext) {
+		private void RedrawScene(DrawingContext drawingContext, TickedAxisLocation gridLineAxes) {
 			foreach (var axis in Axes)
-				drawingContext.DrawDrawing(axis.GridLines);
-			foreach (var graph in graphs) 
+				if ((axis.AxisPos & gridLineAxes) != TickedAxisLocation.None)
+					drawingContext.DrawDrawing(axis.GridLines);
+			foreach (var graph in graphs)
 				graph.DrawGraph(drawingContext);
 		}
 
@@ -126,18 +127,25 @@ namespace EmnExtensions.Wpf.Plot
 		}
 
 		protected override void OnRender(DrawingContext drawingContext) {
-			if (needRedrawGraphs) RedrawGraphs();
-			base.OnRender(drawingContext);
-#if RENDER_VIA_ONRENDER
-		        RedrawScene(drawingContext);
-#endif
 
 			//axes which influence projection matrices:
 			TickedAxisLocation relevantAxes = graphs.Aggregate(TickedAxisLocation.None, (axisLoc, graph) => axisLoc | ChooseProjection(graph));
 
+			if (needRedrawGraphs) RedrawGraphs(relevantAxes);
+			base.OnRender(drawingContext);
+#if RENDER_VIA_ONRENDER
+		        RedrawScene(drawingContext,relevantAxes);
+#endif
+
+
 			var transforms = Axes
 				.Where(axis => (axis.AxisPos & relevantAxes) != TickedAxisLocation.None)
-				.Select(axis => new { AxisPos = axis.AxisPos, Transform = axis.DataToDisplayTransform });
+				.Select(axis => new { 
+					AxisPos = axis.AxisPos, 
+					Transform = axis.DataToDisplayTransform, 
+					RenderWidth = axis.IsHorizontal?Math.Abs( axis.DisplayBounds.Length ):0.0,
+					RenderHeight = axis.IsHorizontal ? 0.0 : Math.Abs(axis.DisplayBounds.Length)
+				});
 
 			var cornerProjection = (from corner in ProjectionCorners
 									where corner == (corner & relevantAxes)
@@ -146,12 +154,14 @@ namespace EmnExtensions.Wpf.Plot
 										corner => corner,
 										corner => (from transform in transforms
 												   where transform.AxisPos == (transform.AxisPos & corner)
-												   select transform.Transform
-												  ).Aggregate((mat1, mat2) => mat1 * mat2)
+												   select new { transform.Transform, transform.RenderWidth, transform.RenderHeight }
+												  ).Aggregate((t1, t2) => new { Transform = t1.Transform * t2.Transform, RenderWidth = Math.Max(t1.RenderWidth, t2.RenderWidth), RenderHeight = Math.Max(t1.RenderHeight, t2.RenderHeight) })
 												 );
 
-			foreach (var graph in graphs)
-				graph.SetTransform(cornerProjection[ChooseProjection(graph)]);
+			foreach (var graph in graphs) {
+				var trans = cornerProjection[ChooseProjection(graph)];
+				graph.SetTransform(trans.Transform, new Size(trans.RenderWidth,trans.RenderHeight));
+			}
 			foreach (var axis in Axes)
 				axis.SetGridLineExtent(RenderSize);
 
