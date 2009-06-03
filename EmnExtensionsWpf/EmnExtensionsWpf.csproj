@@ -3,7 +3,7 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProductVersion>10.0.20506</ProductVersion>
+    <ProductVersion>9.0.30729</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{1CDECDDA-5CCA-4CA9-8243-60106CD7B428}</ProjectGuid>
     <OutputType>library</OutputType>
@@ -233,7 +233,7 @@
     <AppDesigner Include="Properties\" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\EmnExtensionsNative\EmnExtensionsNative.vcxproj">
+    <ProjectReference Include="..\EmnExtensionsNative\EmnExtensionsNative.vcproj">
       <Project>{CDE4D127-F155-4EA5-B85E-BFE9A0697D76}</Project>
       <Name>EmnExtensionsNative</Name>
     </ProjectReference>

@@ -16,7 +16,7 @@ using System.Globalization;
 namespace EmnExtensions.Wpf.Plot
 {
 	[Flags]
-	public enum TickedAxisLocation { None = 0, LeftOfGraph = 1, AboveGraph = 2, RightOfGraph = 4, BelowGraph = 16 }
+	public enum TickedAxisLocation { None = 0, LeftOfGraph = 1, AboveGraph = 2, RightOfGraph = 4, BelowGraph = 8 }
 
 	public class TickedAxis : FrameworkElement
 	{
@@ -24,18 +24,26 @@ namespace EmnExtensions.Wpf.Plot
 
 		const double DefaultAxisLength = 1000.0;//assume we have this many pixels for estimates (i.e. measuring)
 		const double MinimumNumberOfTicks = 1.0;//don't bother rendering if we have fewer than this many ticks.
+		const int GridLineRanks = 3;
+		const double BaseTickWidth = 1.5;
 
 		Typeface m_typeface;
 		double m_fontSize;
 		Pen m_tickPen;
+		Pen[] m_gridRankPen;
 
 		public TickedAxis() {
 			m_tickPen = new Pen {
 				Brush = Brushes.Black,
 				StartLineCap = PenLineCap.Flat,
 				EndLineCap = PenLineCap.Round,
-				Thickness = 1.5
+				Thickness = BaseTickWidth
 			}; //start flat end round
+			m_tickPen.Freeze();
+			m_gridRankPen = Enumerable.Range(0, GridLineRanks)
+				.Select(rank => (Pen)new Pen { Brush = Brushes.Black, Thickness = BaseTickWidth * (GridLineRanks - rank) * (GridLineRanks - rank) / (double)(GridLineRanks*GridLineRanks) }.GetCurrentValueAsFrozen())
+				.ToArray();
+
 			DataBound = DimensionBounds.Undefined;
 			m_typeface = new Typeface(new FontFamily("Segoe UI"), FontStyles.Normal, FontWeights.Normal, FontStretches.Normal, new FontFamily("Verdana"));
 			m_fontSize = 12.0 * 4.0 / 3.0;//12pt = 12 pixels at 72dpi = 16pixels at 96dpi
@@ -85,7 +93,7 @@ namespace EmnExtensions.Wpf.Plot
 				ClockwisePrevAxis == null ? 0.0 : ClockwisePrevAxis.RequiredThicknessOfNext);
 			}
 		}
-		double EffectiveThickness { get { return Math.Max(Thickness, RequiredThickness); } }
+		public double EffectiveThickness { get { return Math.Max(Thickness, RequiredThickness); } }
 
 		public string DataUnits { get; set; } //TODO:should invalidate measure/render
 		public bool AttemptBorderTicks { get; set; } //TODO:should invalidate measure/render
@@ -106,15 +114,15 @@ namespace EmnExtensions.Wpf.Plot
 			} //TODO:GuessNeighborsBasedOnAxisPos here and not in Initialized?
 		}
 
-		bool IsHorizontal { get { return AxisPos == TickedAxisLocation.AboveGraph || AxisPos == TickedAxisLocation.BelowGraph; } }
+		public bool IsHorizontal { get { return AxisPos == TickedAxisLocation.AboveGraph || AxisPos == TickedAxisLocation.BelowGraph; } }
 
 		private void GuessNeighborsBasedOnAxisPos() {
 			if (AxisPos == TickedAxisLocation.None) {
 				ClockwiseNextAxis = ClockwisePrevAxis = null;
 			} else {
 
-				TickedAxisLocation next = (TickedAxisLocation)(Math.Max(((int)AxisPos) * 2 % 32, 1));
-				TickedAxisLocation prev = (TickedAxisLocation)(((int)AxisPos) * 33 / 2 % 32);
+				TickedAxisLocation next = (TickedAxisLocation)(Math.Max(((int)AxisPos) * 2 % 16, 1));
+				TickedAxisLocation prev = (TickedAxisLocation)(((int)AxisPos) * 17 / 2 % 16);
 				foreach (object sibling in LogicalTreeHelper.GetChildren(Parent)) {
 					TickedAxis siblingAxis = sibling as TickedAxis;
 					if (siblingAxis == null) continue;
@@ -147,11 +155,13 @@ namespace EmnExtensions.Wpf.Plot
 			return axisAlignedLength - ThicknessOfNext - ThicknessOfPrev - DataMargin.Sum;
 		}
 
-		IEnumerable<double> Rank0Values() {
-			return m_ticks == null ? null :
-				from tick in m_ticks
-				where tick.Rank == 0
-				select tick.Value;
+		IEnumerable<double> Rank1Values {
+			get {
+				return m_ticks == null ? null :
+					from tick in m_ticks
+					where tick.Rank <= 1
+					select tick.Value;
+			}
 		}
 
 		/// <summary>
@@ -167,7 +177,7 @@ namespace EmnExtensions.Wpf.Plot
 				if (
 					m_ticks == null && mayIncrease
 					||
-					m_ticks != null && !m_ticks.SequenceEqual(newTicks) && (mayIncrease || m_ticks.Count(tick => tick.Rank == 0) > newTicks.Count(tick => tick.Rank == 0))) {
+					m_ticks != null && !m_ticks.SequenceEqual(newTicks) && (mayIncrease || m_ticks.Count(tick => tick.Rank <= 1) > newTicks.Count(tick => tick.Rank <= 1))) {
 					m_rank0Labels = null;
 					m_ticks = newTicks;
 				}
@@ -194,7 +204,7 @@ namespace EmnExtensions.Wpf.Plot
 						m_rank0Labels.Select(label => label.Height).DefaultIfEmpty(0.0).Max()
 						);
 				else {
-					var canBeNegative = Rank0Values().Any(value => value < 0.0);
+					var canBeNegative = Rank1Values.Any(value => value < 0.0);
 					var excessMagnitude = m_dataOrderOfMagnitude == 0 ? (int)(0.5 + Math.Floor(Math.Log10(Math.Max(Math.Abs(DataBound.Min), Math.Abs(DataBound.Max))))) : 0;
 					var textSample = MakeText(8.88888888888888888 * Math.Pow(10.0, excessMagnitude) * (canBeNegative ? -1 : 1));
 					return new Size(textSample.Width, textSample.Height);
@@ -204,7 +214,7 @@ namespace EmnExtensions.Wpf.Plot
 
 		double PreferredPixelsPerTick {
 			get {
-				return Math.Max(PixelsPerTick, m_ticks == null ? 0.0 : TickLabelSizeGuess.Width * Math.Sqrt(10)/2.0 + 4); //factor sqrt(10)/2 since actual tick distance may be off by that much from the preferred quantity.
+				return Math.Max(PixelsPerTick, m_ticks == null ? 0.0 : TickLabelSizeGuess.Width * Math.Sqrt(10) / 2.0 + 4); //factor sqrt(10)/2 since actual tick distance may be off by that much from the preferred quantity.
 			}
 		}
 		static Size Transpose(Size size) { return new Size(size.Height, size.Width); }
@@ -303,7 +313,7 @@ namespace EmnExtensions.Wpf.Plot
 
 		void RecomputeTickLabels() {
 			if (m_rank0Labels == null)
-				m_rank0Labels = (from value in Rank0Values()
+				m_rank0Labels = (from value in Rank1Values
 								 select MakeText(value)
 								).ToArray();
 		}
@@ -429,8 +439,14 @@ namespace EmnExtensions.Wpf.Plot
 			tickGeometry.Transform = new MatrixTransform(dispXToDisp);
 			drawingContext.DrawGeometry(null, m_tickPen, tickGeometry);
 
+			RenderGridLines(dataToDispX);
+
+			var dispBounds = DisplayBounds;
+
+			drawingContext.DrawLine(m_tickPen, dispXToDisp.Transform(new Point(dispBounds.Max, m_tickPen.Thickness / 2.0)), dispXToDisp.Transform(new Point(dispBounds.Min, m_tickPen.Thickness / 2.0)));
+
 			//then we draw all labels, computing the label center point accounting for horizontal/vertical alignment, and using data->disp to position that center point.
-			foreach (var labelledValue in F.ZipWith(Rank0Values(), m_rank0Labels, (val, label) => new { Value = val, Label = label })) {
+			foreach (var labelledValue in F.ZipWith(Rank1Values, m_rank0Labels, (val, label) => new { Value = val, Label = label })) {
 				double labelAltitude = TickLength + LabelOffset + (IsHorizontal ? labelledValue.Label.Height : labelledValue.Label.Width) / 2.0;
 				Point centerPoint = dataToDisp.Transform(new Point(labelledValue.Value, labelAltitude));
 				Point originPoint = centerPoint - new Vector(labelledValue.Label.Width / 2.0, labelledValue.Label.Height / 2.0);
@@ -445,6 +461,62 @@ namespace EmnExtensions.Wpf.Plot
 			drawingContext.DrawDrawing(m_axisLegend);
 			drawingContext.Pop();
 
+		}
+
+		private void RenderGridLines(Matrix dataToDispX) {
+			if (AxisPos == TickedAxisLocation.BelowGraph) 
+			using (var context = m_gridLines.Open()) {
+				foreach (var rank in Enumerable.Range(0, m_gridRankPen.Length)) {
+					StreamGeometry rankGridLineGeom = DrawGridLines(m_ticks.Where(tick => tick.Rank == rank), dataToDispX);
+					rankGridLineGeom.Transform = m_gridLineAlignTransform;
+					context.DrawGeometry(null, m_gridRankPen[rank], rankGridLineGeom);
+				}
+			}
+		}
+
+		private static StreamGeometry DrawGridLines(IEnumerable<Tick> ticks, Matrix dataToDispX) {
+			StreamGeometry geom = new StreamGeometry();
+			using (var context = geom.Open())
+				foreach (Tick tick in ticks)
+					DrawGridLinesHelper(context, tick.Value, 1, dataToDispX);
+			return geom;
+		}
+
+		private static void DrawGridLinesHelper(StreamGeometryContext context, double value, double tickLength, Matrix dataToDispX) {
+			//we choose to transform the streamgeometry during generation, rather than during display due to accuracy: it seems the geometry is low-resolution, so
+			//once stored, the resolution is no better than a float.
+			context.BeginFigure(dataToDispX.Transform(new Point(value, 0)), false, false);
+			context.LineTo(dataToDispX.Transform(new Point(value, tickLength)), true, false);
+		}
+
+		static StreamGeometry DrawTicksAlongX(IEnumerable<Tick> ticks, double tickLength, Matrix dataToDispX) {
+			StreamGeometry geom = new StreamGeometry();
+			using (var context = geom.Open())
+				foreach (Tick tick in ticks)
+					DrawGridLinesHelper(context, tick.Value, (3.8 - Math.Max(tick.Rank - 1, 0)) / 3.8 * tickLength, dataToDispX);
+			return geom;
+		}
+		static Matrix TransposeMatrix { get { return new Matrix { M11 = 0, M12 = 1, M21 = 1, M22 = 0, OffsetX = 0, OffsetY = 0 }; } }
+
+		MatrixTransform m_gridLineAlignTransform = new MatrixTransform();
+		DrawingGroup m_gridLines = new DrawingGroup();
+
+		public Drawing GridLines { get { return m_gridLines; } }
+		public void SetGridLineExtent(Size outerBounds) {
+			bool oppFirst = AxisPos == TickedAxisLocation.BelowGraph || AxisPos == TickedAxisLocation.RightOfGraph;
+			var oppAxis = ClockwiseNextAxis.ClockwiseNextAxis ?? ClockwisePrevAxis.ClockwisePrevAxis;
+			double oppositeThickness = oppAxis != null ? oppAxis.EffectiveThickness : 0.0;
+
+			double overallLength = IsHorizontal ? outerBounds.Height : outerBounds.Width;
+			double startAt = oppFirst ? oppositeThickness : Thickness;
+			double endAt = overallLength - (oppFirst ? Thickness : oppositeThickness);
+
+			Matrix transform = Matrix.Identity;
+			transform.Scale(1.0, endAt - startAt);
+			transform.Translate(0.0, startAt);
+			if (!IsHorizontal)
+				transform = TransposeMatrix * transform;
+			m_gridLineAlignTransform.Matrix = transform;
 		}
 
 		FormattedText MakeText(double val) {
@@ -472,26 +544,14 @@ namespace EmnExtensions.Wpf.Plot
 			return retval;
 		}
 
-		static StreamGeometry DrawTicksAlongX(IEnumerable<Tick> ticks, double tickLength, Matrix transformToDispX) {
-			//we choose to transform the streamgeometry during generation, rather than during display due to accuracy: it seems the geometry is low-resolution, so
-			//once stored, the resolution is no better than a float.
-			StreamGeometry geom = new StreamGeometry();
-			using (var context = geom.Open()) {
-				foreach (Tick tick in ticks) {
-					context.BeginFigure(transformToDispX.Transform(new Point(tick.Value, 0)), false, false);
-					context.LineTo(transformToDispX.Transform(new Point(tick.Value, (3.5 - tick.Rank) / 3.5 * tickLength)), true, false);
-				}
-			}
-			return geom;
-		}
 
 		struct Tick { public double Value; public int Rank; }
 
 		static Tick[] FindAllTicks(DimensionBounds range, double preferredNum, bool attemptBorderTicks, out int slotOrderOfMagnitude) {
-			double firstTickAt, totalSlotSize;
+			double totalSlotSize;
 			int[] subDivTicks;
-			int slotCount;
-			CalcTickPositions(range, preferredNum, ref attemptBorderTicks, out firstTickAt, out totalSlotSize, out slotOrderOfMagnitude, out slotCount, out subDivTicks);
+			long firstTickMult, lastTickMult;
+			CalcTickPositions(range, preferredNum, ref attemptBorderTicks, out totalSlotSize, out slotOrderOfMagnitude, out firstTickMult, out lastTickMult, out subDivTicks);
 
 			//convert subDivTicks into "cumulative" multiples, i.e. 2,2,5 into 20,10,5
 			int[] subMultiple = new int[subDivTicks.Length + 1];
@@ -500,15 +560,18 @@ namespace EmnExtensions.Wpf.Plot
 				subMultiple[i] = subDivTicks[i] * subMultiple[i + 1];
 
 			double subSlotSize = totalSlotSize / subMultiple[0];
-			int subSlotCount = slotCount * subMultiple[0];
+			int subSlotCount = (int)(lastTickMult - firstTickMult) * subMultiple[0];
 
 			List<Tick> allTicks = new List<Tick>();
 			for (int i = 0; i <= subSlotCount; i++) {
-				double value = firstTickAt + subSlotSize * i;
+				double value = (firstTickMult * subMultiple[0] + i) * subSlotSize; //by working in integral math here, we ensure that 0 falls on 0.0 exactly.
 				if (!attemptBorderTicks && !range.EncompassesValue(value)) continue;
 
-				int rank = 0;
-				while (i % subMultiple[rank] != 0) rank++;
+				int rank = 1;
+				if (value == 0.0)
+				    rank = 0;
+				else
+				    while (i % subMultiple[rank-1] != 0) rank++;
 				allTicks.Add(new Tick { Rank = rank, Value = value });
 			}
 			return allTicks.ToArray();
@@ -541,7 +604,7 @@ namespace EmnExtensions.Wpf.Plot
 		/// <param name="ticks">output: the additional order of subdivisions each slot can be divided into.
 		/// This value aims to have around 10 subdivisions total, slightly more when the actual number of slots is fewer than requested
 		/// and slightly less when the actual number of slots greater than requested.</param>
-		public static void CalcTickPositions(DimensionBounds range, double preferredNum, ref bool attemptBorderTicks, out double firstTickAt, out double slotSize, out int slotOrderOfMagnitude, out int slotCount, out int[] ticks) {
+		public static void CalcTickPositions(DimensionBounds range, double preferredNum, ref bool attemptBorderTicks, out double slotSize, out int slotOrderOfMagnitude, out long firstTickAtSlotMultiple, out long lastTickAtSlotMultiple, out int[] ticks) {
 			if (preferredNum < 1.5) attemptBorderTicks = false;
 			//if (attemptBorderTicks) preferredNum--;
 
@@ -568,10 +631,8 @@ namespace EmnExtensions.Wpf.Plot
 			}
 
 			slotSize = fixedSlot * baseSize;
-			firstTickAt = Math.Floor(range.Min / slotSize + permittedErrorRatio) * slotSize;
-			slotCount = (int)(Math.Ceiling((range.Max
-				- firstTickAt) / slotSize - permittedErrorRatio) + 0.5);
+			firstTickAtSlotMultiple = (long)Math.Floor(range.Min / slotSize + permittedErrorRatio);
+			lastTickAtSlotMultiple = (long)Math.Ceiling(range.Max / slotSize - permittedErrorRatio);
 		}
-
 	}
 }

@@ -9,34 +9,20 @@ namespace EmnExtensions.Wpf.Plot
 {
 	class GraphDisplayControl : FrameworkElement
 	{
-		DrawingVisual drawing;
+		DrawingGroup drawing;
 		//bool needRedraw = false;
-		public DrawingVisual GraphDrawing {
+		public DrawingGroup GraphDrawing {
 			get {
 				return drawing;
 			}
 			set {
-				if (drawing != null) {
-					RemoveLogicalChild(drawing);
-					RemoveVisualChild(drawing);
-				}
 				drawing = value;
-				if (drawing != null) {
-					AddVisualChild(drawing);
-					AddLogicalChild(drawing);
-				}
 				InvalidateVisual();
 			}
 		}
-
-		protected override int VisualChildrenCount { get { return drawing == null ? 0 : 1; } }
-		protected override Visual GetVisualChild(int index) {
-			if (index != 0)
-				throw new IndexOutOfRangeException();
-			return drawing;
+		protected override void OnRender(DrawingContext drawingContext) {
+			drawingContext.DrawDrawing(drawing);
 		}
-
-
 	}
 
 }

@@ -89,7 +89,7 @@ namespace LVQeamon
 							//EndLineCap = PenLineCap.Round,	StartLineCap = PenLineCap.Round,
 							EndLineCap = PenLineCap.Square,
 							StartLineCap = PenLineCap.Square,
-							Thickness = 1.5,
+							Thickness = 3,
 						};
 						pen.Freeze();
 						plotControl.AddPlot(new GraphableGeometry { Geometry = pointCloud, Pen = pen });
@@ -114,7 +114,7 @@ namespace LVQeamon
 		}
 		NiceTimer overall;
 		protected override void OnInitialized(EventArgs e) {
-			textBoxPointsPerSet.Text = 10000.ToString();
+			textBoxPointsPerSet.Text = 1000.ToString();
 			overall = new NiceTimer();
 			overall.TimeMark("Sizing");
 			base.OnInitialized(e);

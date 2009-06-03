@@ -1,16 +1,10 @@
-﻿#define ASBG //benchmarked: 20.2 sec or with MAKEDV: 23.5
-//#define INRENDER //benchmarked:24.3 sec
-//#define GRAPHDISP //benchmarked:23.5
+﻿//select one of three rendering methods:
+#define RENDER_VIA_BG_BRUSH //benchmarked: 20.2 sec or with MAKEDV: 23.5
+//#define RENDER_VIA_ONRENDER //benchmarked:24.3 sec
+//#define RENDER_VIA_CHILD_CONTROL //benchmarked:23.5
 
-#if ASBG||GRAPHDISP
-#define MAKEDRAWING
-#endif
-
-#if ASBG
+#if RENDER_VIA_BG_BRUSH
 //#define MAKEDV //fastest without
-#endif
-#if GRAPHDISP
-#define MAKEDV
 #endif
 
 using System;
@@ -34,7 +28,8 @@ namespace EmnExtensions.Wpf.Plot
 	/// </summary>
 	public partial class PlotControl : UserControl
 	{
-		bool redrawGraphs = false;
+		bool needRedrawGraphs = false;
+		bool needRecomputeBounds = false;
 		List<GraphableData> graphs = new List<GraphableData>();
 		Dictionary<TickedAxisLocation, TickedAxis> axes;
 		public PlotControl() {
@@ -44,24 +39,48 @@ namespace EmnExtensions.Wpf.Plot
 
 		public void AddPlot(GraphableData newgraph) {
 			graphs.Add(newgraph);
-			tickedAxisBot.DataBound = DimensionBounds.Merge(tickedAxisBot.DataBound, DimensionBounds.FromRectX(newgraph.DataBounds));
-			tickedAxisBot.DataUnits = newgraph.XUnitLabel;
-			tickedAxisBot.DataMargin = DimensionMargins.Merge(tickedAxisBot.DataMargin, DimensionMargins.FromThicknessX(newgraph.Margin));
-
-			tickedAxisLft.DataBound = DimensionBounds.Merge(tickedAxisLft.DataBound, DimensionBounds.FromRectY(newgraph.DataBounds));
-			tickedAxisLft.DataUnits = newgraph.YUnitLabel;
-			tickedAxisLft.DataMargin = DimensionMargins.Merge(tickedAxisLft.DataMargin, DimensionMargins.FromThicknessY(newgraph.Margin));
-
-			redrawGraphs = true;
+			needRecomputeBounds = true;
+			needRedrawGraphs = true;
 			InvalidateVisual();
 		}
 
-#if INRENDER
-		private void MakeDrawing() { }
-#endif
+		private IEnumerable<TickedAxis> Axes { get { return new[] { tickedAxisLft, tickedAxisBot, tickedAxisRgt, tickedAxisTop }; } }
 
-#if MAKEDRAWING
-		private void MakeDrawing() {
+		#region Static Helper Functions
+		private static IEnumerable<TickedAxisLocation> ProjectionCorners {
+			get {
+				yield return TickedAxisLocation.BelowGraph | TickedAxisLocation.LeftOfGraph;
+				yield return TickedAxisLocation.BelowGraph | TickedAxisLocation.RightOfGraph;
+				yield return TickedAxisLocation.AboveGraph | TickedAxisLocation.LeftOfGraph;
+				yield return TickedAxisLocation.AboveGraph | TickedAxisLocation.RightOfGraph;
+			}
+		}
+		private static DimensionBounds ToDimBounds(Rect bounds, bool isHorizontal) { return isHorizontal ? DimensionBounds.FromRectX(bounds) : DimensionBounds.FromRectY(bounds); }
+		private static DimensionMargins ToDimMargins(Thickness margins, bool isHorizontal) { return isHorizontal ? DimensionMargins.FromThicknessX(margins) : DimensionMargins.FromThicknessY(margins); }
+		private static TickedAxisLocation ChooseProjection(GraphableData graph) { return ProjectionCorners.FirstOrDefault(corner => (graph.AxisBindings & corner) == corner); }
+		#endregion
+
+		private void RecomputeBounds() {
+			foreach (TickedAxis axis in Axes) {
+				var boundGraphs = graphs.Where(graph => (graph.AxisBindings & axis.AxisPos) != TickedAxisLocation.None);
+				DimensionBounds bounds =
+					boundGraphs
+					.Select(graph => ToDimBounds(graph.DataBounds, axis.IsHorizontal))
+					.Aggregate(DimensionBounds.Undefined, (bounds1, bounds2) => DimensionBounds.Merge(bounds1, bounds2));
+				DimensionMargins margin =
+					boundGraphs
+					.Select(graph => ToDimMargins(graph.Margin, axis.IsHorizontal))
+					.Aggregate(DimensionMargins.Undefined, (m1, m2) => DimensionMargins.Merge(m1, m2));
+				string dataUnits = string.Join(", ", graphs.Select(graph => axis.IsHorizontal ? graph.XUnitLabel : graph.YUnitLabel).Distinct().ToArray());
+
+				axis.DataBound = bounds;
+				axis.DataMargin = margin;
+				axis.DataUnits = dataUnits;
+			}
+			needRecomputeBounds = false;
+		}
+		private void RedrawGraphs() {
+#if RENDER_VIA_BG_BRUSH||RENDER_VIA_CHILD_CONTROL
 #if MAKEDV
 			DrawingVisual dv = new DrawingVisual();
 			using (var drawingContext = dv.RenderOpen()) {
@@ -69,12 +88,9 @@ namespace EmnExtensions.Wpf.Plot
 			DrawingGroup bg = new DrawingGroup();
 			using (var drawingContext = bg.Open()) {
 #endif
-				foreach (var graph in graphs) {
-					graph.DrawGraph(drawingContext);
-				}
+				RedrawScene(drawingContext);
 			}
-#if ASBG
-
+#if RENDER_VIA_BG_BRUSH
 			this.Background =
 #if MAKEDV
 				new VisualBrush(dv) {
@@ -88,27 +104,60 @@ namespace EmnExtensions.Wpf.Plot
 	 AlignmentY = AlignmentY.Top,
  };
 #endif
-#if GRAPHDISP
-			graphDisp.GraphDrawing = dv;
+#if RENDER_VIA_CHILD_CONTROL
+			graphDisp.GraphDrawing = bg;
+			graphDisp.Visibility = Visibility.Visible;
 #endif
+#endif
+			needRedrawGraphs = false;
 		}
-#endif
 
+		private void RedrawScene(DrawingContext drawingContext) {
+			foreach (var axis in Axes)
+				drawingContext.DrawDrawing(axis.GridLines);
+			foreach (var graph in graphs) 
+				graph.DrawGraph(drawingContext);
+		}
+
+		#region Wpf Layout Overrides
+		protected override Size MeasureOverride(Size constraint) {
+			if (needRecomputeBounds) RecomputeBounds();
+			return base.MeasureOverride(constraint);
+		}
 
 		protected override void OnRender(DrawingContext drawingContext) {
-			MakeDrawing();
+			if (needRedrawGraphs) RedrawGraphs();
 			base.OnRender(drawingContext);
-			var projection = LftBot();
-			foreach (var graph in graphs) {
-#if INRENDER
-		        graph.DrawGraph(drawingContext);
+#if RENDER_VIA_ONRENDER
+		        RedrawScene(drawingContext);
 #endif
-				graph.SetTransform(projection);
-			}
+
+			//axes which influence projection matrices:
+			TickedAxisLocation relevantAxes = graphs.Aggregate(TickedAxisLocation.None, (axisLoc, graph) => axisLoc | ChooseProjection(graph));
+
+			var transforms = Axes
+				.Where(axis => (axis.AxisPos & relevantAxes) != TickedAxisLocation.None)
+				.Select(axis => new { AxisPos = axis.AxisPos, Transform = axis.DataToDisplayTransform });
+
+			var cornerProjection = (from corner in ProjectionCorners
+									where corner == (corner & relevantAxes)
+									select corner
+								   ).ToDictionary(//we have only relevant corners...
+										corner => corner,
+										corner => (from transform in transforms
+												   where transform.AxisPos == (transform.AxisPos & corner)
+												   select transform.Transform
+												  ).Aggregate((mat1, mat2) => mat1 * mat2)
+												 );
+
+			foreach (var graph in graphs)
+				graph.SetTransform(cornerProjection[ChooseProjection(graph)]);
+			foreach (var axis in Axes)
+				axis.SetGridLineExtent(RenderSize);
+
 
 		}
+		#endregion
 
-
-		Matrix LftBot() { return tickedAxisBot.DataToDisplayTransform * tickedAxisLft.DataToDisplayTransform; }
 	}
 }
