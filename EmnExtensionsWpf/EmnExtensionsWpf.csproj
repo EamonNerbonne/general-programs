@@ -198,8 +198,10 @@
     <Compile Include="OldGraph\WpfTools.cs" />
     <Compile Include="Plot\DimensionBounds.cs" />
     <Compile Include="Plot\DimensionMargins.cs" />
+    <Compile Include="Plot\GraphableBitmap.cs" />
     <Compile Include="Plot\GraphableData.cs" />
     <Compile Include="Plot\GraphableGeometry.cs" />
+    <Compile Include="Plot\GraphableDrawing.cs" />
     <Compile Include="Plot\GraphChangeEffects.cs" />
     <Compile Include="Plot\GraphDisplayControl.cs" />
     <Compile Include="Plot\PlotControl.xaml.cs">

@@ -10,7 +10,6 @@ namespace EmnExtensions.Wpf.Plot
 	public class GraphableGeometry : GraphableData
 	{
 		Geometry m_Geometry ;
-		Transform m_OldTransform;
 		MatrixTransform m_ProjectionTransform = new MatrixTransform();
 		bool m_AutosizeBounds = true;
 		Brush m_Fill = Brushes.Black;
@@ -48,25 +47,12 @@ namespace EmnExtensions.Wpf.Plot
 			set {
 				if (m_Geometry != null && !m_Geometry.IsFrozen)
 					m_Geometry.Changed -= m_Geometry_Changed;
-				m_OldTransform = value.Transform;
+				m_geomToAxis = value.Transform.Value;
 				m_Geometry = value;
 				if (m_Geometry != null && !m_Geometry.IsFrozen)
 					m_Geometry.Changed += m_Geometry_Changed;
 				RecomputeBoundsIfAuto();
-				OnChange(GraphChangeEffects.DrawingInternals);
-			}
-		}
-
-		public Matrix GeometryToAxisProjection {
-			get { return m_geomToAxis; }
-			set {
-				Matrix oldTransformInvert = m_geomToAxis;
-				oldTransformInvert.Invert();
-				m_geomToAxis = value;
-				changingGeometry = true;
-				m_ProjectionTransform.Matrix = m_geomToAxis * oldTransformInvert * m_ProjectionTransform.Matrix;
-				changingGeometry = false;
-				RecomputeBoundsIfAuto();
+				OnChange(GraphChangeEffects.RedrawGraph);
 			}
 		}
 
@@ -94,13 +80,6 @@ namespace EmnExtensions.Wpf.Plot
 		}
 
 		public override void DrawGraph(DrawingContext context) {
-			//if (m_OuterGeom == null) { //we lazily construct this outer geometry since it might never be needed.
-			//    m_OuterGeom = new GeometryGroup();
-			//    m_OuterGeom.Children.Add(m_Geometry);
-			//    m_OuterGeom.FillRule = FillRule.Nonzero;
-			//    m_OuterGeom.Transform = m_OuterGeomTransform;
-			//}
-			//context.DrawGeometry(m_Fill, m_Pen, m_OuterGeom);
 			context.DrawGeometry(m_Fill, m_Pen, m_Geometry);
 		}
 
