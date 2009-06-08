@@ -29,6 +29,6 @@ namespace EmnExtensions.Wpf.Plot
 		}
 
 		public abstract void DrawGraph(DrawingContext context);
-		public abstract void SetTransform(Matrix matrix, Size estimatedDisplaySize);
+		public abstract void SetTransform(Matrix boundsToDisplay, Rect displayClip);
 	}
 }

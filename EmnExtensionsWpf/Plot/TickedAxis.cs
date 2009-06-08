@@ -43,11 +43,11 @@ namespace EmnExtensions.Wpf.Plot
 			}; //start flat end round
 			m_tickPen.Freeze();
 			m_gridRankPen = Enumerable.Range(0, GridLineRanks)
-				.Select(rank =>(GridLineRanks - rank) / (double)(GridLineRanks))
-				.Select(relevance => (Pen)new Pen { Brush = (Brush) new SolidColorBrush(new Color { ScA = (float)relevance}).GetAsFrozen(), Thickness = BaseTickWidth * relevance *Math.Sqrt(relevance) }.GetCurrentValueAsFrozen())
+				.Select(rank => (GridLineRanks - rank) / (double)(GridLineRanks))
+				.Select(relevance => (Pen)new Pen { Brush = (Brush)new SolidColorBrush(new Color { ScA = (float)relevance }).GetAsFrozen(), Thickness = BaseTickWidth * relevance * Math.Sqrt(relevance) }.GetCurrentValueAsFrozen())
 				.ToArray();
 
-			DataBound = DimensionBounds.Undefined;
+			DataBound = DimensionBounds.Empty;
 			m_typeface = new Typeface(new FontFamily("Segoe UI"), FontStyles.Normal, FontWeights.Normal, FontStretches.Normal, new FontFamily("Verdana"));
 			m_fontSize = 12.0 * 4.0 / 3.0;//12pt = 12 pixels at 72dpi = 16pixels at 96dpi
 			TickLength = 16;
@@ -72,6 +72,7 @@ namespace EmnExtensions.Wpf.Plot
 		double RequiredThicknessOfNext {
 			get { return m_reqOfNext; }
 			set {
+				//value = Math.Ceiling(value);
 				if (value != m_reqOfNext && ClockwiseNextAxis != null)
 					ClockwiseNextAxis.InvalidateArrange();
 				m_reqOfNext = value;
@@ -80,6 +81,7 @@ namespace EmnExtensions.Wpf.Plot
 		double RequiredThicknessOfPrev {
 			get { return m_reqOfPrev; }
 			set {
+			//	value = Math.Ceiling(value);
 				if (value != m_reqOfPrev && ClockwisePrevAxis != null)
 					ClockwisePrevAxis.InvalidateArrange();
 				m_reqOfPrev = value;
@@ -193,7 +195,7 @@ namespace EmnExtensions.Wpf.Plot
 		/// </summary>
 		void RecomputeDataOrderOfMagnitude() {
 			double oldDOOM = m_dataOrderOfMagnitude;
-			m_dataOrderOfMagnitude = (int)(0.5 + Math.Floor(Math.Log10(Math.Max(Math.Abs(DataBound.Min), Math.Abs(DataBound.Max)))));
+			m_dataOrderOfMagnitude = (int)(0.5 + Math.Floor(Math.Log10(Math.Max(Math.Abs(DataBound.Start), Math.Abs(DataBound.End)))));
 			if (Math.Abs(m_dataOrderOfMagnitude) < 4) m_dataOrderOfMagnitude = 0;//don't use scientific notation for small powers of 10
 
 			if (m_dataOrderOfMagnitude != oldDOOM)
@@ -209,7 +211,7 @@ namespace EmnExtensions.Wpf.Plot
 						);
 				else {
 					var canBeNegative = Rank1Values.Any(value => value < 0.0);
-					var excessMagnitude = m_dataOrderOfMagnitude == 0 ? (int)(0.5 + Math.Floor(Math.Log10(Math.Max(Math.Abs(DataBound.Min), Math.Abs(DataBound.Max))))) : 0;
+					var excessMagnitude = m_dataOrderOfMagnitude == 0 ? (int)(0.5 + Math.Floor(Math.Log10(Math.Max(Math.Abs(DataBound.Start), Math.Abs(DataBound.End))))) : 0;
 					var textSample = MakeText(8.88888888888888888 * Math.Pow(10.0, excessMagnitude) * (canBeNegative ? -1 : 1));
 					return new Size(textSample.Width, textSample.Height);
 				}
@@ -264,7 +266,7 @@ namespace EmnExtensions.Wpf.Plot
 
 				bool isReasonableConstraint = constraint.Height >= 0 && constraint.Width >= 0 && constraint.Width.IsFinite() && constraint.Height.IsFinite();
 
-				if (isReasonableConstraint)//&& CondTranspose(m_bestGuessCurrentSize).Width == 0)
+				if (isReasonableConstraint)
 					m_bestGuessCurrentSize = constraint;
 
 				RecomputeDataOrderOfMagnitude();
@@ -311,6 +313,7 @@ namespace EmnExtensions.Wpf.Plot
 			double overallWidth = minAxisLength + ThicknessOfNext + ThicknessOfPrev + DataMargin.Sum;
 
 			minBounds.Union(new Point(overallWidth, RequiredThickness));
+			minBounds.Height = Math.Ceiling(minBounds.Height);
 
 			return minBounds.Size;
 		}
@@ -355,6 +358,8 @@ namespace EmnExtensions.Wpf.Plot
 
 		public DimensionBounds DisplayBounds { //depends on AxisPos, DataMargin, ThicknessOf*, m_bestGuessCurrentSize
 			get {
+				if (DataBound == DimensionBounds.Empty)
+					return DimensionBounds.Empty;
 				//if we're on bottom or right, data low values are towards the clockwise end.
 				bool lowAtNext = AxisPos == TickedAxisLocation.BelowGraph || AxisPos == TickedAxisLocation.RightOfGraph; //flipped-vertical-relevant
 
@@ -366,18 +371,41 @@ namespace EmnExtensions.Wpf.Plot
 					displayStart = m_bestGuessCurrentSize.Height - displayStart;
 					displayEnd = m_bestGuessCurrentSize.Height - displayEnd;
 				}
-				return new DimensionBounds { Min = displayStart, Max = displayEnd };
+				
+				return new DimensionBounds { Start = displayStart, End = displayEnd };
 			}
 		}
 
-		static Matrix MapBounds(DimensionBounds dstBounds, DimensionBounds srcBounds) {
+		public DimensionBounds DisplayClippingBounds {
+			get {
+				if (DataBound == DimensionBounds.Empty)
+					return DimensionBounds.Empty;
+				//if we're on bottom or right, data low values are towards the clockwise end.
+				bool lowAtNext = AxisPos == TickedAxisLocation.BelowGraph || AxisPos == TickedAxisLocation.RightOfGraph; //flipped-vertical-relevant
+
+				double displayStart = (lowAtNext ? ThicknessOfNext : ThicknessOfPrev);
+				double displayEnd = (IsHorizontal ? m_bestGuessCurrentSize.Width : m_bestGuessCurrentSize.Height) - (lowAtNext ? ThicknessOfPrev : ThicknessOfNext);
+
+				if (!IsHorizontal) { //we need to "flip" the vertical ordering!
+					displayStart = m_bestGuessCurrentSize.Height - displayStart;
+					displayEnd = m_bestGuessCurrentSize.Height - displayEnd;
+				}
+
+				return new DimensionBounds { Start = displayStart, End = displayEnd };
+			}
+		}
+
+
+		static Matrix MapBounds(DimensionBounds srcBounds, DimensionBounds dstBounds) {
+			if (dstBounds.IsEmpty || srcBounds.IsEmpty)
+				return Matrix.Identity;
 			Matrix transform = Matrix.Identity;
 
-			double scaleFactor = dstBounds.Length / srcBounds.Length;
+			double scaleFactor = (dstBounds.End - dstBounds.Start) / (srcBounds.End - srcBounds.Start);
 
 			transform.Scale(scaleFactor, 1.0);
 
-			double offset = dstBounds.Min - srcBounds.Min * scaleFactor;
+			double offset = dstBounds.Start - srcBounds.Start * scaleFactor;
 			transform.Translate(offset, 0.0);
 
 			return transform;
@@ -404,9 +432,9 @@ namespace EmnExtensions.Wpf.Plot
 			return transform;
 		}
 
-		Matrix DataToDisplayAlongXTransform { get { return MapBounds(DisplayBounds, DisplayedDataBounds); } }
+		Matrix DataToDisplayAlongXTransform { get { return MapBounds(DisplayedDataBounds, DisplayBounds); } }
 
-		Matrix TickIndexToDisplayX { get { return MapBounds(DisplayBounds, new DimensionBounds { Min = 0, Max = m_ticks.Length - 1 }); } }
+		Matrix TickIndexToDisplayX { get { return MapBounds(new DimensionBounds { Start = 0, End = m_ticks.Length - 1 }, DisplayBounds); } }
 
 		public Matrix DataToDisplayTransform {
 			get {
@@ -441,16 +469,16 @@ namespace EmnExtensions.Wpf.Plot
 			Matrix dataToDisp = Matrix.Multiply(dataToDispX, alignToDisp);
 
 			//next, we draw a streamgeometry of all the ticks using data->disp transform.
-			StreamGeometry tickGeometry = DrawTicksAlongX(m_ticks.Select((tick,idx)=>new Tick{Value=idx,Rank=tick.Rank} ), TickLength);// in disp-space due to accuracy.
-			tickGeometry.Transform = new MatrixTransform(TickIndexToDisplayX*alignToDisp);
+			StreamGeometry tickGeometry = DrawTicksAlongX(m_ticks.Select((tick, idx) => new Tick { Value = idx, Rank = tick.Rank }), TickLength);// in disp-space due to accuracy.
+			tickGeometry.Transform = new MatrixTransform(TickIndexToDisplayX * alignToDisp);
 			drawingContext.DrawGeometry(null, m_tickPen, tickGeometry);
 
-			if(m_redrawGridLines)
-			RenderGridLines();
+			if (m_redrawGridLines)
+				RenderGridLines();
 
 			var dispBounds = DisplayBounds;
 
-			drawingContext.DrawLine(m_tickPen, alignToDisp.Transform(new Point(dispBounds.Max, m_tickPen.Thickness / 2.0)), alignToDisp.Transform(new Point(dispBounds.Min, m_tickPen.Thickness / 2.0)));
+			drawingContext.DrawLine(m_tickPen, alignToDisp.Transform(new Point(dispBounds.End, m_tickPen.Thickness / 2.0)), alignToDisp.Transform(new Point(dispBounds.Start, m_tickPen.Thickness / 2.0)));
 
 			//then we draw all labels, computing the label center point accounting for horizontal/vertical alignment, and using data->disp to position that center point.
 			foreach (var labelledValue in F.ZipWith(Rank1Values, m_rank0Labels, (val, label) => new { Value = val, Label = label })) {
@@ -463,7 +491,7 @@ namespace EmnExtensions.Wpf.Plot
 
 			//finally, we draw the axisLegend:
 			double axisLegendAltitude = TickLength + LabelOffset + CondTranspose(TickLabelSizeGuess).Height + m_axisLegend.Bounds.Height / 2.0;
-			Point axisLegendCenterPoint = alignToDisp.Transform(new Point(0.5*(dispBounds.Min+dispBounds.Max), axisLegendAltitude));
+			Point axisLegendCenterPoint = alignToDisp.Transform(new Point(0.5 * (dispBounds.Start + dispBounds.End), axisLegendAltitude));
 			drawingContext.PushTransform(new MatrixTransform(AxisLegendToCenter(AxisPos, m_axisLegend.Bounds, axisLegendCenterPoint)));
 			drawingContext.DrawDrawing(m_axisLegend);
 			drawingContext.Pop();
@@ -525,7 +553,7 @@ namespace EmnExtensions.Wpf.Plot
 			transform.Translate(0.0, startAt);
 			transform.Append(TickIndexToDisplayX);
 			if (!IsHorizontal)
-				transform = transform*TransposeMatrix;
+				transform = transform * TransposeMatrix;
 			m_gridLineAlignTransform.Matrix = transform;
 		}
 
@@ -578,9 +606,9 @@ namespace EmnExtensions.Wpf.Plot
 
 				int rank = 1;
 				if (value == 0.0)
-				    rank = 0;
+					rank = 0;
 				else
-				    while (i % subMultiple[rank-1] != 0) rank++;
+					while (i % subMultiple[rank - 1] != 0) rank++;
 				allTicks.Add(new Tick { Rank = rank, Value = value });
 			}
 			return allTicks.ToArray();
@@ -640,8 +668,8 @@ namespace EmnExtensions.Wpf.Plot
 			}
 
 			slotSize = fixedSlot * baseSize;
-			firstTickAtSlotMultiple = (long)Math.Floor(range.Min / slotSize + permittedErrorRatio);
-			lastTickAtSlotMultiple = (long)Math.Ceiling(range.Max / slotSize - permittedErrorRatio);
+			firstTickAtSlotMultiple = (long)Math.Floor(range.Start / slotSize + permittedErrorRatio);
+			lastTickAtSlotMultiple = (long)Math.Ceiling(range.End / slotSize - permittedErrorRatio);
 		}
 	}
 }

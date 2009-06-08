@@ -12,30 +12,51 @@ namespace EmnExtensions.Wpf.Plot
 	[TypeConverter(typeof(DimensionBoundsConverter))]
 	public struct DimensionBounds
 	{
-		public double Min { get; set; }
-		public double Max { get; set; }
-		public double Length { get { return Max - Min; } }
-		public bool EncompassesValue(double value) { return value >= Min && value <= Max; }
+		public double Start { get; set; }
+		public double End { get; set; }
+		public bool FlippedOrder { get { return End < Start; } }
+		public double Min { get { return Math.Min(Start, End); } }
+		public double Max { get { return Math.Max(Start, End); } }
+		public bool IsEmpty { get { return double.IsPositiveInfinity(Start) && double.IsPositiveInfinity(End); } }
+		public double Length { get { return Math.Abs(End - Start); } }
+
+		public bool EncompassesValue(double value) { return value >= Start && value <= End; }
 		public DimensionBounds UnionWith(params double[] vals) { return UnionWith(vals.AsEnumerable()); }
 		public DimensionBounds UnionWith(IEnumerable<double> vals) {
-			DimensionBounds copy = this;
+			double min = this.Min, max = this.Max;
+			if (IsEmpty)
+				max = double.NegativeInfinity;
 			foreach (double val in vals) {
-				if (val < copy.Min)
-					copy.Min = val;
-				if (val > copy.Max)
-					copy.Max = val;
+				if (val < min)
+					min = val;
+				if (val > max)
+					max = val;
 			}
-			return copy;
-		} 
 
-		public void Translate(double offset) { Min += offset; Max += offset; }
-		public void Scale(double factor) { Min *= factor; Max *= factor; }
+			if (double.IsNegativeInfinity(max))
+				return DimensionBounds.Empty;
+			else
+				return FlippedOrder ? new DimensionBounds { Start = max, End = min } : new DimensionBounds { Start = min, End = max };
+		}
 
-		public static DimensionBounds Undefined { get { return new DimensionBounds { Min = double.PositiveInfinity, Max = double.NegativeInfinity }; } }
-		public static DimensionBounds FromRectX(Rect r) { return new DimensionBounds { Min = r.X, Max = r.Right }; }
-		public static DimensionBounds FromRectY(Rect r) { return new DimensionBounds { Min = r.Y, Max = r.Bottom }; }
-		public static DimensionBounds Merge(DimensionBounds a, DimensionBounds b) { return new DimensionBounds { Min = Math.Min(a.Min, b.Min), Max = Math.Max(a.Max, b.Max) }; }
-		public static double MergeQuality(DimensionBounds a, DimensionBounds b) { double mergedLength = Merge(a, b).Length; return a.Length * b.Length / mergedLength / mergedLength; }
+		public void Translate(double offset) { Start += offset; End += offset; }
+		public void Scale(double factor) { Start *= factor; End *= factor; }
+
+		public static DimensionBounds Empty { get { return new DimensionBounds { Start = double.PositiveInfinity, End = double.PositiveInfinity }; } }
+		public static DimensionBounds FromRectX(Rect r) { return new DimensionBounds { Start = r.X, End = r.Right }; }
+		public static DimensionBounds FromRectY(Rect r) { return new DimensionBounds { Start = r.Y, End = r.Bottom }; }
+		public static DimensionBounds Merge(DimensionBounds a, DimensionBounds b) {
+			return a.IsEmpty ? b : b.IsEmpty ? a :
+				a.FlippedOrder
+				? new DimensionBounds { Start = Math.Max(a.Max, b.Max), End = Math.Min(a.Min, b.Min) }
+				: new DimensionBounds { Start = Math.Min(a.Min, b.Min), End = Math.Max(a.Max, b.Max) };
+		}
+		public static double MergeQuality(DimensionBounds a, DimensionBounds b) { double mergedLength = Merge(a, b).Length; return double.IsNaN(mergedLength) ? 0.0 : a.Length * b.Length / mergedLength / mergedLength; }
+
+		public static bool operator ==(DimensionBounds a, DimensionBounds b) { return a.Start == b.Start && a.End == b.End; }
+		public static bool operator !=(DimensionBounds a, DimensionBounds b) { return a.Start != b.Start || a.End != b.End; }
+		public override int GetHashCode() { return base.GetHashCode(); }
+		public override bool Equals(object obj) { return obj is DimensionBounds && this == (DimensionBounds)obj; }
 	}
 
 
@@ -49,7 +70,7 @@ namespace EmnExtensions.Wpf.Plot
 							 ).ToArray();
 			if (parameters.Length < 1 || parameters.Length > 2 || parameters.Contains(null)) return null;
 
-			return new DimensionBounds { Min = parameters[0].Value, Max = parameters[parameters.Length - 1].Value };
+			return new DimensionBounds { Start = parameters[0].Value, End = parameters[parameters.Length - 1].Value };
 		}
 		public override object ConvertTo(ITypeDescriptorContext context, CultureInfo culture, object value, Type destinationType) {
 			if (destinationType != typeof(string))
@@ -57,7 +78,7 @@ namespace EmnExtensions.Wpf.Plot
 			if (value == null || !(value is DimensionBounds))
 				return null;
 			DimensionBounds dim = (DimensionBounds)value;
-			return dim.Min == dim.Max ? dim.Min.ToString(culture) : dim.Min.ToString(culture) + "," + dim.Max.ToString(culture);
+			return dim.Start == dim.End ? dim.Start.ToString(culture) : dim.Start.ToString(culture) + "," + dim.End.ToString(culture);
 		}
 		public override bool CanConvertFrom(ITypeDescriptorContext context, Type sourceType) {
 			return sourceType.Equals(typeof(string)) || base.CanConvertFrom(context, sourceType);

@@ -20,17 +20,22 @@ namespace EmnExtensions.Wpf.Plot
 			get { return bmp; }
 			set {
 				if (bmp != value) {
+					
 					bmp = value;
-					DrawingRect = new Rect(0, 0, bmp.Width, bmp.Height); 
-					double marginX = 0.5 / bmp.PixelWidth * bmp.Width;
-					double marginY = 0.5 / bmp.PixelHeight * bmp.Height;
-					IrrelevantDrawingMargins = new Thickness(marginX, marginY, marginX, marginY);
+					OnChange(GraphChangeEffects.RedrawGraph);
 				}
 			}
 		}
 
-		protected override void DrawUntransformedIntoDrawingRect(DrawingContext context) {
-			context.DrawImage(bmp, DrawingRect);
+		public Rect InnerDataBounds {
+			get { return Rect.Transform(DataBounds, GraphUtils.TransformShape(DrawingRect, InnerDrawingRect, false)); }
+			set { DataBounds = ComputeDataBounds(InnerDrawingRect, value, DrawingRect); }
 		}
+
+		protected override Rect DrawingRect { get { return new Rect(0, 0, bmp.Width, bmp.Height); } }
+		protected Rect InnerDrawingRect { get { return new Rect(0.5 * (bmp.Width / bmp.PixelWidth), 0.5 * (bmp.Height / bmp.PixelHeight), bmp.Width - bmp.Width / bmp.PixelWidth, bmp.Height - bmp.Height / bmp.PixelHeight); } }
+
+
+		protected override void DrawUntransformedIntoDrawingRect(DrawingContext context) { context.DrawImage(bmp, DrawingRect); }
 	}
 }

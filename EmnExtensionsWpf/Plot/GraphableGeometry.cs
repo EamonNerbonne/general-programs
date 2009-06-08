@@ -72,7 +72,7 @@ namespace EmnExtensions.Wpf.Plot
 			}
 		}
 
-		public override void SetTransform(Matrix axisToDisplay, Size estimatedDisplaySize) { 
+		public override void SetTransform(Matrix axisToDisplay, Rect displayClip) { 
 			changingGeometry = true; 
 			m_ProjectionTransform.Matrix = m_geomToAxis * axisToDisplay;
 			changingGeometry = false;

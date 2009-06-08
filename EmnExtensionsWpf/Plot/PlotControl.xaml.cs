@@ -66,7 +66,7 @@ namespace EmnExtensions.Wpf.Plot
 				DimensionBounds bounds =
 					boundGraphs
 					.Select(graph => ToDimBounds(graph.DataBounds, axis.IsHorizontal))
-					.Aggregate(DimensionBounds.Undefined, (bounds1, bounds2) => DimensionBounds.Merge(bounds1, bounds2));
+					.Aggregate(DimensionBounds.Empty, (bounds1, bounds2) => DimensionBounds.Merge(bounds1, bounds2));
 				DimensionMargins margin =
 					boundGraphs
 					.Select(graph => ToDimMargins(graph.Margin, axis.IsHorizontal))
@@ -90,6 +90,7 @@ namespace EmnExtensions.Wpf.Plot
 #endif
 				RedrawScene(drawingContext, gridLineAxes);
 			}
+
 #if RENDER_VIA_BG_BRUSH
 			this.Background =
 #if MAKEDV
@@ -140,11 +141,11 @@ namespace EmnExtensions.Wpf.Plot
 
 			var transforms = Axes
 				.Where(axis => (axis.AxisPos & relevantAxes) != TickedAxisLocation.None)
-				.Select(axis => new { 
-					AxisPos = axis.AxisPos, 
-					Transform = axis.DataToDisplayTransform, 
-					RenderWidth = axis.IsHorizontal?Math.Abs( axis.DisplayBounds.Length ):0.0,
-					RenderHeight = axis.IsHorizontal ? 0.0 : Math.Abs(axis.DisplayBounds.Length)
+				.Select(axis => new {
+					AxisPos = axis.AxisPos,
+					Transform = axis.DataToDisplayTransform,
+					HorizontalClip = axis.IsHorizontal ? axis.DisplayClippingBounds : DimensionBounds.Empty,
+					VerticalClip = axis.IsHorizontal ? DimensionBounds.Empty : axis.DisplayClippingBounds,
 				});
 
 			var cornerProjection = (from corner in ProjectionCorners
@@ -154,13 +155,18 @@ namespace EmnExtensions.Wpf.Plot
 										corner => corner,
 										corner => (from transform in transforms
 												   where transform.AxisPos == (transform.AxisPos & corner)
-												   select new { transform.Transform, transform.RenderWidth, transform.RenderHeight }
-												  ).Aggregate((t1, t2) => new { Transform = t1.Transform * t2.Transform, RenderWidth = Math.Max(t1.RenderWidth, t2.RenderWidth), RenderHeight = Math.Max(t1.RenderHeight, t2.RenderHeight) })
+												   select transform
+												  ).Aggregate((t1, t2) => new {
+													  AxisPos = t1.AxisPos | t2.AxisPos,
+													  Transform = t1.Transform * t2.Transform,
+													  HorizontalClip = DimensionBounds.Merge(t1.HorizontalClip, t2.HorizontalClip),
+													  VerticalClip = DimensionBounds.Merge(t1.VerticalClip, t2.VerticalClip),
+												  })
 												 );
 
 			foreach (var graph in graphs) {
 				var trans = cornerProjection[ChooseProjection(graph)];
-				graph.SetTransform(trans.Transform, new Size(trans.RenderWidth,trans.RenderHeight));
+				graph.SetTransform(trans.Transform, new Rect(new Point(trans.HorizontalClip.Start,trans.VerticalClip.Start),new Point(trans.HorizontalClip.End,trans.VerticalClip.End))  );
 			}
 			foreach (var axis in Axes)
 				axis.SetGridLineExtent(RenderSize);

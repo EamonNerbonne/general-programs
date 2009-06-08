@@ -1,4 +1,7 @@
-﻿using System;
+﻿#if DEBUG
+//#define USEGEOMPLOT
+#endif
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -19,6 +22,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using EmnExtensions.Wpf.OldGraph;
 using EmnExtensions.Wpf.Plot;
+using System.Windows.Threading;
+using EmnExtensions;
 
 namespace LVQeamon
 {
@@ -75,36 +80,36 @@ namespace LVQeamon
 						var pointsIter = Enumerable.Range(0, pointsPerSet)
 							.Select(i => new Point(points[i, 0], points[i, 1]));
 
-						//Rect bounds;
-						//Drawing pointCloud3 = GraphUtils.PointCloud3(pointsIter, Brushes.Black, 0.01, out bounds);
-						//plotControl.Graphs.Add(new GraphDrawingControl { GraphDrawing = pointCloud3, Name = "g" + si, GraphBounds = bounds });
-
-						//Rect bounds;
-						//DrawingVisual pointCloud2 = GraphUtils.PointCloud2(pointsIter, Brushes.Black, 0.01, out bounds);
-						//plotControl.Graphs.Add(new GraphDrawingControl { GraphDrawing = (Drawing)VisualTreeHelper.GetDrawing(pointCloud2).GetAsFrozen(), Name = "g" + si, GraphBounds = bounds });
-
+#if USEGEOMPLOT
 						Geometry pointCloud = GraphUtils.PointCloud(pointsIter);
 						Pen pen = new Pen {
-							Brush = GraphRandomPen.RandomGraphColor(),
-							//EndLineCap = PenLineCap.Round,	StartLineCap = PenLineCap.Round,
-							EndLineCap = PenLineCap.Square,
-							StartLineCap = PenLineCap.Square,
-							Thickness = 1.5,
+						    Brush = GraphRandomPen.RandomGraphBrush(),
+						    //EndLineCap = PenLineCap.Round,	StartLineCap = PenLineCap.Round,
+						    EndLineCap = PenLineCap.Square,
+						    StartLineCap = PenLineCap.Square,
+						    Thickness = 1.0,
 						};
 						pen.Freeze();
 						plotControl.AddPlot(new GraphableGeometry { Geometry = pointCloud, Pen = pen, XUnitLabel = "X axis", YUnitLabel = "Y axis" });
-						//plotControl.Graphs.Add(new GraphGeometryControl() { GraphGeometry = pointCloud, Name = "g" + si, GraphPen = pen });
-						//plotControl.ShowGraph("g" + si);
-
-						//Geometry pointCloud = GraphUtils.PointCloud4(pointsIter, 0.01);
-						//plotControl.Graphs.Add(new GraphGeometryControl() { GraphGeometry = pointCloud, Name = "g" + si, GraphFill = GraphRandomPen.RandomGraphColor(), GraphPen = null });
-
-
+#else
+						plotControl.AddPlot(
+							new GraphablePixelScatterPlot {
+								PointColor = F.Create<Color, Color>((c) => { c.ScA = 0.3f; return c; })(GraphRandomPen.RandomGraphColor()),
+								XUnitLabel = "X axis",
+								YUnitLabel = "Y axis",
+								DpiX = 192.0,
+								DpiY = 192.0,
+								BitmapScalingMode = BitmapScalingMode.LowQuality,
+								CoverageRatio = 0.99,
+								Points = pointsIter.ToArray(),
+							});
+#endif
 						lock (sync) {
 							done++;
 							if (done == numSets) {
 								timer.TimeMark(null);
 								renderCount = 0;
+								Dispatcher.BeginInvoke((Action)DoSizingTest, DispatcherPriority.Loaded);
 							}
 						}
 					}));
@@ -114,18 +119,23 @@ namespace LVQeamon
 		}
 		NiceTimer overall;
 		protected override void OnInitialized(EventArgs e) {
-			textBoxPointsPerSet.Text = 1000.ToString();
-			overall = new NiceTimer();
-			overall.TimeMark("Sizing");
+#if USEGEOMPLOT || DEBUG
+			textBoxPointsPerSet.Text = 10000.ToString();
+#else
+			textBoxPointsPerSet.Text = 1000000.ToString();
+#endif
 			base.OnInitialized(e);
 			buttonGeneratePointClouds_Click(null, null);
-			Dispatcher.BeginInvoke((Action)DoSizingTest);
 		}
 
 		volatile int renderCount = 0;
 		bool completedTest = false;
 
 		void DoSizingTest() {
+			if (overall == null) {
+				overall = new NiceTimer();
+				overall.TimeMark("Sizing");
+			}
 			if (Width + Height > 2000) {
 				if (!completedTest) {
 					completedTest = true;

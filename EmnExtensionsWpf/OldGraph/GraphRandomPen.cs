@@ -9,7 +9,13 @@ namespace EmnExtensions.Wpf.OldGraph
 	public static class GraphRandomPen
 	{
 		static Random GraphColorRandom = new EmnExtensions.MathHelpers.MersenneTwister();
-		public static Brush RandomGraphColor() {
+		public static Brush RandomGraphBrush() {
+			SolidColorBrush brush = new SolidColorBrush(RandomGraphColor());
+			brush.Freeze();
+			return brush;
+		}
+
+		public static Color RandomGraphColor() {
 			double r, g, b, max, min, minV, maxV;
 			max = GraphColorRandom.NextDouble() * 0.5 + 0.5;
 			min = GraphColorRandom.NextDouble() * 0.5;
@@ -25,19 +31,16 @@ namespace EmnExtensions.Wpf.OldGraph
 				double scale = 1.5 / (r + g + b);
 				r *= scale; g *= scale; b *= scale;
 			}
-			SolidColorBrush brush = new SolidColorBrush(
-				new Color {
-					A = (byte)255,
-					R = (byte)(255 * r + 0.5),
-					G = (byte)(255 * g + 0.5),
-					B = (byte)(255 * b + 0.5),
-				}
-				);
-			brush.Freeze();
-			return brush;
+			return new Color {
+				A = (byte)255,
+				R = (byte)(255 * r + 0.5),
+				G = (byte)(255 * g + 0.5),
+				B = (byte)(255 * b + 0.5),
+			};
 		}
+
 		public static Pen MakeDefaultPen(bool randomColor) {
-			var newPen = new Pen(randomColor ? RandomGraphColor() : Brushes.Black, 1.0);
+			var newPen = new Pen(randomColor ? RandomGraphBrush() : Brushes.Black, 1.0);
 			newPen.StartLineCap = PenLineCap.Round;
 			newPen.EndLineCap = PenLineCap.Round;
 			newPen.LineJoin = PenLineJoin.Round;

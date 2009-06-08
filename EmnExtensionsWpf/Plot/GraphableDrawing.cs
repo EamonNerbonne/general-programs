@@ -10,32 +10,18 @@ namespace EmnExtensions.Wpf.Plot
 {
 	public abstract class GraphableDrawing : GraphableData
 	{
-		Rect m_relevant=Rect.Empty, m_relevantData=Rect.Empty;
-		Thickness m_drawingMargins = new Thickness();
 		MatrixTransform m_drawingToDisplay = new MatrixTransform();
-		public Rect DrawingRect { get { return m_relevant; } set { if (value != m_relevant) { m_relevant = value; RecomuteBounds(); } } }
-		public Thickness IrrelevantDrawingMargins { get { return m_drawingMargins; } set { if (value != m_drawingMargins) { m_drawingMargins = value; RecomuteBounds(); } } }
-		public Rect RelevantDataBounds { get { return m_relevantData; } set { if (value != m_relevantData) { m_relevantData = value; RecomuteBounds(); } } }
 
-		private void RecomuteBounds() {
-			if (RelevantDataBounds.IsEmpty || DrawingRect.IsEmpty) {
-				DataBounds = Rect.Empty;
+		public static Rect ComputeDataBounds(Rect innerDrawingBounds, Rect innerDataBounds, Rect drawingBounds) {
+			if (innerDataBounds.IsEmpty || innerDrawingBounds.IsEmpty) {
+				return Rect.Empty;
 			} else {
-				Rect relevantDrawingRect = DrawingRect;
-				relevantDrawingRect.X += IrrelevantDrawingMargins.Left;
-				relevantDrawingRect.Width -= IrrelevantDrawingMargins.Left + IrrelevantDrawingMargins.Right;
-				relevantDrawingRect.Y += IrrelevantDrawingMargins.Top;
-				relevantDrawingRect.Height -= IrrelevantDrawingMargins.Top + IrrelevantDrawingMargins.Bottom;
-
-				Matrix trans = ComputeBoundsTransform(relevantDrawingRect, RelevantDataBounds);
-				DataBounds = Rect.Transform(DrawingRect, trans);
+				Matrix trans = GraphUtils.TransformShape(innerDrawingBounds, innerDataBounds,false);
+				return Rect.Transform(drawingBounds, trans);
 			}
 		}
 
-		static Matrix ComputeBoundsTransform(Rect src, Rect dst) { return GraphUtils.TransformShape(src, dst, false); }
-
-		Matrix ComputeDrawingToDataTransform() { return ComputeBoundsTransform(DrawingRect, DataBounds); }
-		public override void DrawGraph(DrawingContext context) {
+		public override sealed void DrawGraph(DrawingContext context) {
 			context.PushTransform(m_drawingToDisplay);
 			try {
 				DrawUntransformedIntoDrawingRect(context);
@@ -44,10 +30,11 @@ namespace EmnExtensions.Wpf.Plot
 			}
 		}
 
-		protected abstract void DrawUntransformedIntoDrawingRect(DrawingContext context);
 
-		public override void SetTransform(Matrix dataToDisplay, Size estimatedDisplaySize) {
-			m_drawingToDisplay.Matrix = ComputeDrawingToDataTransform() * dataToDisplay;
+		public override sealed void SetTransform(Matrix dataToDisplay, Rect displayClip) {
+			m_drawingToDisplay.Matrix = GraphUtils.TransformShape(DrawingRect, DataBounds, false) * dataToDisplay;
 		}
+		protected abstract void DrawUntransformedIntoDrawingRect(DrawingContext context);
+		protected abstract Rect DrawingRect { get; }
 	}
 }

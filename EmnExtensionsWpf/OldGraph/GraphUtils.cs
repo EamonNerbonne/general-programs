@@ -11,7 +11,7 @@ namespace EmnExtensions.Wpf
 	public static class GraphUtils
 	{
 
-		public static bool IsFiniteNonEmpty(this Rect rect) {			return rect.Width.IsFinite() && rect.Height.IsFinite() && rect.Height * rect.Width > 0;		}
+		public static bool IsFiniteNonEmpty(this Rect rect) { return rect.Width.IsFinite() && rect.Height.IsFinite() && rect.Height * rect.Width > 0; }
 
 		public static PathGeometry LineWithErrorBars(Point[] lineOfPoints, double[] ErrBars) {
 			PathGeometry geom = new PathGeometry();
@@ -57,8 +57,7 @@ namespace EmnExtensions.Wpf
 				if (IsOK(point)) {
 					fig.Segments.Add(new LineSegment(point, wasOK));
 					wasOK = true;
-				}
-				else {
+				} else {
 					wasOK = false;
 				}
 			}
@@ -76,8 +75,7 @@ namespace EmnExtensions.Wpf
 						else
 							context.BeginFigure(point, false, false);
 						wasOK = true;
-					}
-					else wasOK = false;
+					} else wasOK = false;
 				}
 			}
 			//geom.Freeze();//can't freeze since that breaks transform changes.
@@ -120,7 +118,7 @@ namespace EmnExtensions.Wpf
 						context.LineTo(point, true, false);
 						point.Offset(0, radius * 2);
 						context.LineTo(point, true, false);
-						point.Offset(-2* radius, 0.0);
+						point.Offset(-2 * radius, 0.0);
 						context.LineTo(point, true, false);
 
 
@@ -203,12 +201,18 @@ namespace EmnExtensions.Wpf
 					StartPoint = point
 				};
 				toGeom.Figures.Add(lastFig);
-			}
-			else {
+			} else {
 				lastFig.Segments.Add(new LineSegment(point, true));
 			};
 		}
 
+
+		public static Rect ExpandRect(this Rect src, Thickness withMargin) {
+			return new Rect(src.X - withMargin.Left, src.Y - withMargin.Top, src.Width + withMargin.Left + withMargin.Right, src.Height + withMargin.Top + withMargin.Bottom);
+		}
+		public static Rect ShrinkRect(this Rect src, Thickness withMargin) {
+			return new Rect(src.X + withMargin.Left, src.Y + withMargin.Top, src.Width - withMargin.Left - withMargin.Right, src.Height - withMargin.Top - withMargin.Bottom);
+		}
 
 		public static Matrix TransformShape(Rect fromPosition, Rect toPosition, bool flipVertical) {
 			Matrix translateThenScale = Matrix.Identity;
@@ -224,7 +228,6 @@ namespace EmnExtensions.Wpf
 
 			return translateThenScale;
 		}
-
 
 		private static bool IsOK(Point p) { return p.X.IsFinite() && p.Y.IsFinite(); }
 
