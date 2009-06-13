@@ -185,6 +185,7 @@
   <ItemGroup>
     <Compile Include="CreateGaussianCloud.cs" />
     <Compile Include="DataVerifiers.cs" />
+    <Compile Include="MatSpeedTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -216,6 +217,10 @@
     <ProjectReference Include="..\EmnExtensions\EmnExtensions.csproj">
       <Project>{53ECEDA4-BB11-4BD3-8B51-0D3481FCBFA1}</Project>
       <Name>EmnExtensions</Name>
+    </ProjectReference>
+    <ProjectReference Include="LVQCppCli\LVQCppCli.vcproj">
+      <Project>{A4353940-C302-4556-BA67-3C4E977D1948}</Project>
+      <Name>LVQCppCli</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

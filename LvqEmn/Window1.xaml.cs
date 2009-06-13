@@ -125,7 +125,12 @@ namespace LVQeamon
 			textBoxPointsPerSet.Text = 1000000.ToString();
 #endif
 			base.OnInitialized(e);
-			buttonGeneratePointClouds_Click(null, null);
+			//buttonGeneratePointClouds_Click(null, null);
+			Dispatcher.Invoke((Action)(() => {
+				ThreadPool.QueueUserWorkItem((ignore) => {
+					MatSpeedTest.Test();
+				});
+			}), DispatcherPriority.ApplicationIdle);
 		}
 
 		volatile int renderCount = 0;
