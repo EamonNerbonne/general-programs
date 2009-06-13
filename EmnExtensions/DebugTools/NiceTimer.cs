@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Diagnostics;
 
 namespace EmnExtensions.DebugTools
 {
@@ -18,27 +19,28 @@ namespace EmnExtensions.DebugTools
 			public TimingResults Timing;
 			public T Value;
 		}
-
-		DateTime dt;
+		Stopwatch sw;
 		string oldmsg;
 		public TimingResults TimeMark(string msg)
 		{
-			double sec = ((TimeSpan)(DateTime.Now - dt)).TotalSeconds;
+			sw.Stop();
+			double sec =  ((TimeSpan)sw.Elapsed).TotalSeconds;
 			TimingResults retval = new TimingResults { ActionName = oldmsg, ElapsedSeconds = sec };
 			if (Writer != null)
 			{
 				if (oldmsg != null)
 					Writer.WriteLine(retval);
-				Writer.WriteLine("MB alloc'd: {0}", System.GC.GetTotalMemory(false) >> 20);
+			//	Writer.WriteLine("MB alloc'd: {0}", System.GC.GetTotalMemory(false) >> 20);
 				if (msg != null)
 					Writer.WriteLine("TIMING: " + msg);
 			}
-			dt = DateTime.Now;
 			oldmsg = msg;
+			sw.Reset();
+			sw.Start();
 			return retval;
 		}
 
-		public TimeSpan ElapsedSinceMark { get { return DateTime.Now - dt; } }
+		public TimeSpan ElapsedSinceMark { get { return sw.Elapsed; } }
 		public TextWriter Writer { get; set; }
 		public string TimingAction { get { return oldmsg; } set { TimeMark(value); } }
 
@@ -54,7 +56,7 @@ namespace EmnExtensions.DebugTools
 		public NiceTimer(TextWriter writer)
 		{
 			writer = writer ?? Console.Out;
-			dt = default(DateTime);
+			sw = new Stopwatch();
 			//oldmsg = null;
 			Writer = writer;
 		}

@@ -2,7 +2,7 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProductVersion>10.0.20506</ProductVersion>
+    <ProductVersion>9.0.30729</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{53ECEDA4-BB11-4BD3-8B51-0D3481FCBFA1}</ProjectGuid>
     <OutputType>Library</OutputType>
@@ -170,10 +170,15 @@
     <Compile Include="Filesystem\GetLinesExtension.cs" />
     <Compile Include="Filesystem\GetRelativeFileExtension.cs" />
     <Compile Include="GlobalSuppressions.cs" />
-    <Compile Include="MathHelpers\Matrix.cs" />
+    <Compile Include="MathHelpers\QMatrixCM.cs" />
+    <Compile Include="MathHelpers\IMatrix.cs" />
+    <Compile Include="MathHelpers\QMatrixSquare.cs" />
     <Compile Include="MathHelpers\MatrixMismatchException.cs" />
     <Compile Include="MathHelpers\MeanVarCalc.cs" />
     <Compile Include="MathHelpers\MersenneTwister.cs" />
+    <Compile Include="MathHelpers\QMatrixHelper.cs" />
+    <Compile Include="MathHelpers\QMatrixJaggedRM.cs" />
+    <Compile Include="MathHelpers\QMatrixRM.cs" />
     <Compile Include="MathHelpers\RndHelper.cs" />
     <Compile Include="MathHelpers\Statistics.cs" />
     <Compile Include="MathHelpers\VectorHelpers.cs" />
