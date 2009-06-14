@@ -7,12 +7,9 @@
 
 #include "targetver.h"
 
-#define WIN32_LEAN_AND_MEAN             // Exclude rarely-used stuff from Windows headers
+#include <stdio.h>
+#include <tchar.h>
 
 
-#pragma warning (disable:4996)
-//#define BOOST_UBLAS_NDEBUG
-#include <boost/numeric/ublas/matrix.hpp>
-#include <boost/smart_ptr/scoped_array.hpp>
-#include <iostream>
+#include "../LVQCppNative/BoostMatrixTest.h"
 // TODO: reference additional headers your program requires here

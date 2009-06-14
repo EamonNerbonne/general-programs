@@ -11,6 +11,7 @@ namespace LVQCppCli {
 	public:
 		static void Testublas(int iters, int dims);
 		static void TestublasNative(int iters, int dims);
+		static void TestCustomNative(int iters, int dims);
 		// TODO: Add your methods for this class here.
 	};
 }
