@@ -12,4 +12,6 @@
 
 
 #include "../LVQCppNative/BoostMatrixTest.h"
+#include <boost/timer.hpp>
+#include <boost/progress.hpp>
 // TODO: reference additional headers your program requires here

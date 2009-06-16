@@ -14,15 +14,8 @@ namespace LVQCppCli {
 		matrix<double> b = identity_matrix<double>(dims); 
 		for(int i=0;i<iters;i++)
 			a=prod(b,a);
-		/*for(int row=0;row< a.size1();row++) {
-		for(int col=0;col<a.size2();col++) {
-		double val = a(row,col);
-		std::cout<< a(row,col) <<" ";
-		}
-		std::cout<<std::endl;
-		}*/
 	}
-	void Class1::TestublasNative(int iters, int dims){BoostMatrixTest::TestMult(iters,dims);}
+	void Class1::TestublasNative(int iters, int dims){BoostMatrixTest::TestMult<row_major>(iters,dims);}
 	void Class1::TestCustomNative(int iters, int dims){BoostMatrixTest::TestMultCustom(iters,dims);}
 
 }

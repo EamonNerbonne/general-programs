@@ -11,8 +11,11 @@
 
 
 #pragma warning (disable:4996)
-//#define BOOST_UBLAS_NDEBUG
+#pragma warning (disable:4099)
+#include <iostream>
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/smart_ptr/scoped_array.hpp>
-#include <iostream>
+//#include <boost/numeric/mtl/mtl.hpp>
+
+
 // TODO: reference additional headers your program requires here
