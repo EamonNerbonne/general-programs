@@ -19,7 +19,7 @@ using EmnExtensions.MathHelpers;
 using EmnExtensions.Wpf;
 using EmnExtensions.DebugTools;
 using System.Threading;
-using System.Threading.Tasks;
+//using System.Threading.Tasks;
 using EmnExtensions.Wpf.OldGraph;
 using EmnExtensions.Wpf.Plot;
 using System.Windows.Threading;
@@ -97,9 +97,9 @@ namespace LVQeamon
 								PointColor = F.Create<Color, Color>((c) => { c.ScA = 0.3f; return c; })(GraphRandomPen.RandomGraphColor()),
 								XUnitLabel = "X axis",
 								YUnitLabel = "Y axis",
-								DpiX = 192.0,
-								DpiY = 192.0,
-								BitmapScalingMode = BitmapScalingMode.LowQuality,
+								DpiX = 96.0,
+								DpiY = 96.0,
+								BitmapScalingMode = BitmapScalingMode.Linear,
 								CoverageRatio = 0.99,
 								Points = pointsIter.ToArray(),
 							});
