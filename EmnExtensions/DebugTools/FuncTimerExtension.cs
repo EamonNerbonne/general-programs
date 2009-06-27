@@ -5,7 +5,7 @@ using System.Text;
 
 namespace EmnExtensions.DebugTools
 {
-	public static class Timer
+	public static class FuncTimerExtension
 	{
 		public static T Time<T>(this Func<T> function, Action<TimeSpan> resultsSink)
 		{

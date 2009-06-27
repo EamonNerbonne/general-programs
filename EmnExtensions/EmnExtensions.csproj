@@ -159,9 +159,9 @@
     <Compile Include="Collections\Heap.cs" />
     <Compile Include="Collections\IMultiMap.cs" />
     <Compile Include="Collections\SymmetricDistanceMatrix.cs" />
-    <Compile Include="DebugTools\DisposableTimer.cs" />
+    <Compile Include="DebugTools\DTimer.cs" />
     <Compile Include="DebugTools\NiceTimer.cs" />
-    <Compile Include="DebugTools\Timer.cs" />
+    <Compile Include="DebugTools\FuncTimerExtension.cs" />
     <Compile Include="F.cs" />
     <Compile Include="FastSerializer\FastSerializer.cs" />
     <Compile Include="DebugTools\ConsoleExtension.cs" />
