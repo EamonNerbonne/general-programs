@@ -1,0 +1,814 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="1.0" xmlns:edmx="http://schemas.microsoft.com/ado/2007/06/edmx">
+  <!-- EF Runtime content -->
+  <edmx:Runtime>
+    <!-- SSDL content -->
+    <edmx:StorageModels>
+      <Schema Namespace="lastFMcacheModel.Store" Alias="Self" Provider="System.Data.SQLite" ProviderManifestToken="Ticks" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" xmlns="http://schemas.microsoft.com/ado/2006/04/edm/ssdl">
+        <EntityContainer Name="lastFMcacheModelStoreContainer">
+          <EntitySet Name="Artist" EntityType="lastFMcacheModel.Store.Artist" store:Type="Tables" />
+          <EntitySet Name="SimilarArtist" EntityType="lastFMcacheModel.Store.SimilarArtist" store:Type="Tables" />
+          <EntitySet Name="SimilarArtistList" EntityType="lastFMcacheModel.Store.SimilarArtistList" store:Type="Tables" />
+          <EntitySet Name="SimilarTrack" EntityType="lastFMcacheModel.Store.SimilarTrack" store:Type="Tables" />
+          <EntitySet Name="SimilarTrackList" EntityType="lastFMcacheModel.Store.SimilarTrackList" store:Type="Tables" />
+          <EntitySet Name="TopTracks" EntityType="lastFMcacheModel.Store.TopTracks" store:Type="Tables" />
+          <EntitySet Name="TopTracksList" EntityType="lastFMcacheModel.Store.TopTracksList" store:Type="Tables" />
+          <EntitySet Name="Track" EntityType="lastFMcacheModel.Store.Track" store:Type="Tables" />
+          <AssociationSet Name="FK_Artist_0" Association="lastFMcacheModel.Store.FK_Artist_0">
+            <End Role="TopTracksList" EntitySet="TopTracksList" />
+            <End Role="Artist" EntitySet="Artist" />
+          </AssociationSet>
+          <AssociationSet Name="FK_Artist_1" Association="lastFMcacheModel.Store.FK_Artist_1">
+            <End Role="SimilarArtistList" EntitySet="SimilarArtistList" />
+            <End Role="Artist" EntitySet="Artist" />
+          </AssociationSet>
+          <AssociationSet Name="FK_Artist_2" Association="lastFMcacheModel.Store.FK_Artist_2">
+            <End Role="Artist" EntitySet="Artist" />
+            <End Role="Artist1" EntitySet="Artist" />
+          </AssociationSet>
+          <AssociationSet Name="FK_SimilarArtist_0" Association="lastFMcacheModel.Store.FK_SimilarArtist_0">
+            <End Role="SimilarArtistList" EntitySet="SimilarArtistList" />
+            <End Role="SimilarArtist" EntitySet="SimilarArtist" />
+          </AssociationSet>
+          <AssociationSet Name="FK_SimilarArtist_1" Association="lastFMcacheModel.Store.FK_SimilarArtist_1">
+            <End Role="Artist" EntitySet="Artist" />
+            <End Role="SimilarArtist" EntitySet="SimilarArtist" />
+          </AssociationSet>
+          <AssociationSet Name="FK_SimilarArtistList_0" Association="lastFMcacheModel.Store.FK_SimilarArtistList_0">
+            <End Role="Artist" EntitySet="Artist" />
+            <End Role="SimilarArtistList" EntitySet="SimilarArtistList" />
+          </AssociationSet>
+          <AssociationSet Name="FK_SimilarTrack_0" Association="lastFMcacheModel.Store.FK_SimilarTrack_0">
+            <End Role="Track" EntitySet="Track" />
+            <End Role="SimilarTrack" EntitySet="SimilarTrack" />
+          </AssociationSet>
+          <AssociationSet Name="FK_SimilarTrack_1" Association="lastFMcacheModel.Store.FK_SimilarTrack_1">
+            <End Role="SimilarTrackList" EntitySet="SimilarTrackList" />
+            <End Role="SimilarTrack" EntitySet="SimilarTrack" />
+          </AssociationSet>
+          <AssociationSet Name="FK_SimilarTrackList_0" Association="lastFMcacheModel.Store.FK_SimilarTrackList_0">
+            <End Role="Track" EntitySet="Track" />
+            <End Role="SimilarTrackList" EntitySet="SimilarTrackList" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TopTracks_0" Association="lastFMcacheModel.Store.FK_TopTracks_0">
+            <End Role="Track" EntitySet="Track" />
+            <End Role="TopTracks" EntitySet="TopTracks" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TopTracks_1" Association="lastFMcacheModel.Store.FK_TopTracks_1">
+            <End Role="TopTracksList" EntitySet="TopTracksList" />
+            <End Role="TopTracks" EntitySet="TopTracks" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TopTracksList_0" Association="lastFMcacheModel.Store.FK_TopTracksList_0">
+            <End Role="Artist" EntitySet="Artist" />
+            <End Role="TopTracksList" EntitySet="TopTracksList" />
+          </AssociationSet>
+          <AssociationSet Name="FK_Track_0" Association="lastFMcacheModel.Store.FK_Track_0">
+            <End Role="SimilarTrackList" EntitySet="SimilarTrackList" />
+            <End Role="Track" EntitySet="Track" />
+          </AssociationSet>
+          <AssociationSet Name="FK_Track_1" Association="lastFMcacheModel.Store.FK_Track_1">
+            <End Role="Artist" EntitySet="Artist" />
+            <End Role="Track" EntitySet="Track" />
+          </AssociationSet>
+        </EntityContainer>
+        <EntityType Name="Artist">
+          <Key>
+            <PropertyRef Name="ArtistID" />
+          </Key>
+          <Property Name="ArtistID" Type="integer" Nullable="false" />
+          <Property Name="FullArtist" Type="nvarchar" Nullable="false" />
+          <Property Name="LowercaseArtist" Type="nvarchar" Nullable="false" />
+          <Property Name="IsAlternateOf" Type="integer" />
+          <Property Name="CurrentSimilarArtistList" Type="integer" />
+          <Property Name="CurrentTopTracksList" Type="integer" />
+        </EntityType>
+        <EntityType Name="SimilarArtist">
+          <Key>
+            <PropertyRef Name="SimilarArtistID" />
+          </Key>
+          <Property Name="SimilarArtistID" Type="integer" Nullable="false" />
+          <Property Name="ListID" Type="integer" Nullable="false" />
+          <Property Name="ArtistB" Type="integer" Nullable="false" />
+          <Property Name="Rating" Type="real" Nullable="false" />
+        </EntityType>
+        <EntityType Name="SimilarArtistList">
+          <Key>
+            <PropertyRef Name="ListID" />
+          </Key>
+          <Property Name="ListID" Type="integer" Nullable="false" />
+          <Property Name="ArtistID" Type="integer" Nullable="false" />
+          <Property Name="LookupTimestamp" Type="integer" Nullable="false" />
+          <Property Name="StatusCode" Type="integer" />
+        </EntityType>
+        <EntityType Name="SimilarTrack">
+          <Key>
+            <PropertyRef Name="SimilarTrackID" />
+          </Key>
+          <Property Name="SimilarTrackID" Type="integer" Nullable="false" />
+          <Property Name="ListID" Type="integer" Nullable="false" />
+          <Property Name="TrackB" Type="integer" Nullable="false" />
+          <Property Name="Rating" Type="real" Nullable="false" />
+        </EntityType>
+        <EntityType Name="SimilarTrackList">
+          <Key>
+            <PropertyRef Name="ListID" />
+          </Key>
+          <Property Name="ListID" Type="integer" Nullable="false" />
+          <Property Name="TrackID" Type="integer" Nullable="false" />
+          <Property Name="LookupTimestamp" Type="integer" Nullable="false" />
+          <Property Name="StatusCode" Type="integer" />
+        </EntityType>
+        <EntityType Name="TopTracks">
+          <Key>
+            <PropertyRef Name="TopTrackID" />
+          </Key>
+          <Property Name="TopTrackID" Type="integer" Nullable="false" />
+          <Property Name="TrackID" Type="integer" Nullable="false" />
+          <Property Name="ListID" Type="integer" Nullable="false" />
+          <Property Name="Reach" Type="integer" Nullable="false" />
+        </EntityType>
+        <EntityType Name="TopTracksList">
+          <Key>
+            <PropertyRef Name="ListID" />
+          </Key>
+          <Property Name="ListID" Type="integer" Nullable="false" />
+          <Property Name="ArtistID" Type="integer" Nullable="false" />
+          <Property Name="LookupTimestamp" Type="integer" Nullable="false" />
+          <Property Name="StatusCode" Type="integer" />
+        </EntityType>
+        <EntityType Name="Track">
+          <Key>
+            <PropertyRef Name="TrackID" />
+          </Key>
+          <Property Name="TrackID" Type="integer" Nullable="false" />
+          <Property Name="ArtistID" Type="integer" Nullable="false" />
+          <Property Name="FullTitle" Type="nvarchar" Nullable="false" />
+          <Property Name="LowercaseTitle" Type="nvarchar" Nullable="false" />
+          <Property Name="CurrentSimilarTrackList" Type="integer" />
+        </EntityType>
+        <Association Name="FK_Artist_0">
+          <End Role="TopTracksList" Type="lastFMcacheModel.Store.TopTracksList" Multiplicity="0..1" />
+          <End Role="Artist" Type="lastFMcacheModel.Store.Artist" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="TopTracksList">
+              <PropertyRef Name="ListID" />
+            </Principal>
+            <Dependent Role="Artist">
+              <PropertyRef Name="CurrentTopTracksList" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_Artist_1">
+          <End Role="SimilarArtistList" Type="lastFMcacheModel.Store.SimilarArtistList" Multiplicity="0..1" />
+          <End Role="Artist" Type="lastFMcacheModel.Store.Artist" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="SimilarArtistList">
+              <PropertyRef Name="ListID" />
+            </Principal>
+            <Dependent Role="Artist">
+              <PropertyRef Name="CurrentSimilarArtistList" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_Artist_2">
+          <End Role="Artist" Type="lastFMcacheModel.Store.Artist" Multiplicity="0..1" />
+          <End Role="Artist1" Type="lastFMcacheModel.Store.Artist" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Artist">
+              <PropertyRef Name="ArtistID" />
+            </Principal>
+            <Dependent Role="Artist1">
+              <PropertyRef Name="IsAlternateOf" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_SimilarArtist_0">
+          <End Role="SimilarArtistList" Type="lastFMcacheModel.Store.SimilarArtistList" Multiplicity="1" />
+          <End Role="SimilarArtist" Type="lastFMcacheModel.Store.SimilarArtist" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="SimilarArtistList">
+              <PropertyRef Name="ListID" />
+            </Principal>
+            <Dependent Role="SimilarArtist">
+              <PropertyRef Name="ListID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_SimilarArtist_1">
+          <End Role="Artist" Type="lastFMcacheModel.Store.Artist" Multiplicity="1" />
+          <End Role="SimilarArtist" Type="lastFMcacheModel.Store.SimilarArtist" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Artist">
+              <PropertyRef Name="ArtistID" />
+            </Principal>
+            <Dependent Role="SimilarArtist">
+              <PropertyRef Name="ArtistB" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_SimilarArtistList_0">
+          <End Role="Artist" Type="lastFMcacheModel.Store.Artist" Multiplicity="1" />
+          <End Role="SimilarArtistList" Type="lastFMcacheModel.Store.SimilarArtistList" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Artist">
+              <PropertyRef Name="ArtistID" />
+            </Principal>
+            <Dependent Role="SimilarArtistList">
+              <PropertyRef Name="ArtistID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_SimilarTrack_0">
+          <End Role="Track" Type="lastFMcacheModel.Store.Track" Multiplicity="1" />
+          <End Role="SimilarTrack" Type="lastFMcacheModel.Store.SimilarTrack" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Track">
+              <PropertyRef Name="TrackID" />
+            </Principal>
+            <Dependent Role="SimilarTrack">
+              <PropertyRef Name="TrackB" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_SimilarTrack_1">
+          <End Role="SimilarTrackList" Type="lastFMcacheModel.Store.SimilarTrackList" Multiplicity="1" />
+          <End Role="SimilarTrack" Type="lastFMcacheModel.Store.SimilarTrack" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="SimilarTrackList">
+              <PropertyRef Name="ListID" />
+            </Principal>
+            <Dependent Role="SimilarTrack">
+              <PropertyRef Name="ListID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_SimilarTrackList_0">
+          <End Role="Track" Type="lastFMcacheModel.Store.Track" Multiplicity="1" />
+          <End Role="SimilarTrackList" Type="lastFMcacheModel.Store.SimilarTrackList" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Track">
+              <PropertyRef Name="TrackID" />
+            </Principal>
+            <Dependent Role="SimilarTrackList">
+              <PropertyRef Name="TrackID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TopTracks_0">
+          <End Role="Track" Type="lastFMcacheModel.Store.Track" Multiplicity="1" />
+          <End Role="TopTracks" Type="lastFMcacheModel.Store.TopTracks" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Track">
+              <PropertyRef Name="TrackID" />
+            </Principal>
+            <Dependent Role="TopTracks">
+              <PropertyRef Name="TrackID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TopTracks_1">
+          <End Role="TopTracksList" Type="lastFMcacheModel.Store.TopTracksList" Multiplicity="1" />
+          <End Role="TopTracks" Type="lastFMcacheModel.Store.TopTracks" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="TopTracksList">
+              <PropertyRef Name="ListID" />
+            </Principal>
+            <Dependent Role="TopTracks">
+              <PropertyRef Name="ListID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TopTracksList_0">
+          <End Role="Artist" Type="lastFMcacheModel.Store.Artist" Multiplicity="1" />
+          <End Role="TopTracksList" Type="lastFMcacheModel.Store.TopTracksList" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Artist">
+              <PropertyRef Name="ArtistID" />
+            </Principal>
+            <Dependent Role="TopTracksList">
+              <PropertyRef Name="ArtistID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_Track_0">
+          <End Role="SimilarTrackList" Type="lastFMcacheModel.Store.SimilarTrackList" Multiplicity="0..1" />
+          <End Role="Track" Type="lastFMcacheModel.Store.Track" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="SimilarTrackList">
+              <PropertyRef Name="ListID" />
+            </Principal>
+            <Dependent Role="Track">
+              <PropertyRef Name="CurrentSimilarTrackList" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_Track_1">
+          <End Role="Artist" Type="lastFMcacheModel.Store.Artist" Multiplicity="1" />
+          <End Role="Track" Type="lastFMcacheModel.Store.Track" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Artist">
+              <PropertyRef Name="ArtistID" />
+            </Principal>
+            <Dependent Role="Track">
+              <PropertyRef Name="ArtistID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+      </Schema>
+    </edmx:StorageModels>
+    <!-- CSDL content -->
+    <edmx:ConceptualModels>
+      <Schema Namespace="lastFMcacheModel" Alias="Self" xmlns="http://schemas.microsoft.com/ado/2006/04/edm">
+        <EntityContainer Name="LastFMCacheModel">
+          <EntitySet Name="Artist" EntityType="lastFMcacheModel.Artist" />
+          <EntitySet Name="SimilarArtist" EntityType="lastFMcacheModel.SimilarArtist" />
+          <EntitySet Name="SimilarArtistList" EntityType="lastFMcacheModel.SimilarArtistList" />
+          <EntitySet Name="SimilarTrack" EntityType="lastFMcacheModel.SimilarTrack" />
+          <EntitySet Name="SimilarTrackList" EntityType="lastFMcacheModel.SimilarTrackList" />
+          <EntitySet Name="TopTracks" EntityType="lastFMcacheModel.TopTracks" />
+          <EntitySet Name="TopTracksList" EntityType="lastFMcacheModel.TopTracksList" />
+          <EntitySet Name="Track" EntityType="lastFMcacheModel.Track" />
+          <AssociationSet Name="FK_Artist_0" Association="lastFMcacheModel.FK_Artist_0">
+            <End Role="TopTracksList" EntitySet="TopTracksList" />
+            <End Role="Artist" EntitySet="Artist" />
+          </AssociationSet>
+          <AssociationSet Name="FK_Artist_1" Association="lastFMcacheModel.FK_Artist_1">
+            <End Role="SimilarArtistList" EntitySet="SimilarArtistList" />
+            <End Role="Artist" EntitySet="Artist" />
+          </AssociationSet>
+          <AssociationSet Name="FK_Artist_2" Association="lastFMcacheModel.FK_Artist_2">
+            <End Role="Artist" EntitySet="Artist" />
+            <End Role="Artist1" EntitySet="Artist" />
+          </AssociationSet>
+          <AssociationSet Name="FK_SimilarArtist_1" Association="lastFMcacheModel.FK_SimilarArtist_1">
+            <End Role="Artist" EntitySet="Artist" />
+            <End Role="SimilarArtist" EntitySet="SimilarArtist" />
+          </AssociationSet>
+          <AssociationSet Name="FK_SimilarArtistList_0" Association="lastFMcacheModel.FK_SimilarArtistList_0">
+            <End Role="Artist" EntitySet="Artist" />
+            <End Role="SimilarArtistList" EntitySet="SimilarArtistList" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TopTracksList_0" Association="lastFMcacheModel.FK_TopTracksList_0">
+            <End Role="Artist" EntitySet="Artist" />
+            <End Role="TopTracksList" EntitySet="TopTracksList" />
+          </AssociationSet>
+          <AssociationSet Name="FK_Track_1" Association="lastFMcacheModel.FK_Track_1">
+            <End Role="Artist" EntitySet="Artist" />
+            <End Role="Track" EntitySet="Track" />
+          </AssociationSet>
+          <AssociationSet Name="FK_SimilarArtist_0" Association="lastFMcacheModel.FK_SimilarArtist_0">
+            <End Role="SimilarArtistList" EntitySet="SimilarArtistList" />
+            <End Role="SimilarArtist" EntitySet="SimilarArtist" />
+          </AssociationSet>
+          <AssociationSet Name="FK_SimilarTrack_0" Association="lastFMcacheModel.FK_SimilarTrack_0">
+            <End Role="Track" EntitySet="Track" />
+            <End Role="SimilarTrack" EntitySet="SimilarTrack" />
+          </AssociationSet>
+          <AssociationSet Name="FK_SimilarTrack_1" Association="lastFMcacheModel.FK_SimilarTrack_1">
+            <End Role="SimilarTrackList" EntitySet="SimilarTrackList" />
+            <End Role="SimilarTrack" EntitySet="SimilarTrack" />
+          </AssociationSet>
+          <AssociationSet Name="FK_SimilarTrackList_0" Association="lastFMcacheModel.FK_SimilarTrackList_0">
+            <End Role="Track" EntitySet="Track" />
+            <End Role="SimilarTrackList" EntitySet="SimilarTrackList" />
+          </AssociationSet>
+          <AssociationSet Name="FK_Track_0" Association="lastFMcacheModel.FK_Track_0">
+            <End Role="SimilarTrackList" EntitySet="SimilarTrackList" />
+            <End Role="Track" EntitySet="Track" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TopTracks_0" Association="lastFMcacheModel.FK_TopTracks_0">
+            <End Role="Track" EntitySet="Track" />
+            <End Role="TopTracks" EntitySet="TopTracks" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TopTracks_1" Association="lastFMcacheModel.FK_TopTracks_1">
+            <End Role="TopTracksList" EntitySet="TopTracksList" />
+            <End Role="TopTracks" EntitySet="TopTracks" />
+          </AssociationSet>
+        </EntityContainer>
+        <EntityType Name="Artist">
+          <Key>
+            <PropertyRef Name="ArtistID" />
+          </Key>
+          <Property Name="ArtistID" Type="Int64" Nullable="false" />
+          <Property Name="FullArtist" Type="String" Nullable="false" MaxLength="2147483647" Unicode="true" FixedLength="false" />
+          <Property Name="LowercaseArtist" Type="String" Nullable="false" MaxLength="2147483647" Unicode="true" FixedLength="false" />
+          <NavigationProperty Name="CurrentTopTracksList" Relationship="lastFMcacheModel.FK_Artist_0" FromRole="Artist" ToRole="TopTracksList" />
+          <NavigationProperty Name="CurrentSimilarArtistList" Relationship="lastFMcacheModel.FK_Artist_1" FromRole="Artist" ToRole="SimilarArtistList" />
+          <NavigationProperty Name="BadAlternates" Relationship="lastFMcacheModel.FK_Artist_2" FromRole="Artist" ToRole="Artist1" />
+          <NavigationProperty Name="CorrectAlternate" Relationship="lastFMcacheModel.FK_Artist_2" FromRole="Artist1" ToRole="Artist" />
+          <NavigationProperty Name="RefSimilarArtistOf" Relationship="lastFMcacheModel.FK_SimilarArtist_1" FromRole="Artist" ToRole="SimilarArtist" />
+          <NavigationProperty Name="SimilarArtistLists" Relationship="lastFMcacheModel.FK_SimilarArtistList_0" FromRole="Artist" ToRole="SimilarArtistList" />
+          <NavigationProperty Name="TopTracksLists" Relationship="lastFMcacheModel.FK_TopTracksList_0" FromRole="Artist" ToRole="TopTracksList" />
+          <NavigationProperty Name="Tracks" Relationship="lastFMcacheModel.FK_Track_1" FromRole="Artist" ToRole="Track" />
+        </EntityType>
+        <EntityType Name="SimilarArtist">
+          <Key>
+            <PropertyRef Name="SimilarArtistID" />
+          </Key>
+          <Property Name="SimilarArtistID" Type="Int64" Nullable="false" />
+          <Property Name="Rating" Type="Single" Nullable="false" />
+          <NavigationProperty Name="SimilarToArtist" Relationship="lastFMcacheModel.FK_SimilarArtist_1" FromRole="SimilarArtist" ToRole="Artist" />
+          <NavigationProperty Name="InList" Relationship="lastFMcacheModel.FK_SimilarArtist_0" FromRole="SimilarArtist" ToRole="SimilarArtistList" />
+        </EntityType>
+        <EntityType Name="SimilarArtistList">
+          <Key>
+            <PropertyRef Name="ListID" />
+          </Key>
+          <Property Name="ListID" Type="Int64" Nullable="false" />
+          <Property Name="LookupTimestamp" Type="Int64" Nullable="false" />
+          <Property Name="StatusCode" Type="Int64" />
+          <NavigationProperty Name="IsCurrentOf" Relationship="lastFMcacheModel.FK_Artist_1" FromRole="SimilarArtistList" ToRole="Artist" />
+          <NavigationProperty Name="OfArtist" Relationship="lastFMcacheModel.FK_SimilarArtistList_0" FromRole="SimilarArtistList" ToRole="Artist" />
+          <NavigationProperty Name="SimilarArtists" Relationship="lastFMcacheModel.FK_SimilarArtist_0" FromRole="SimilarArtistList" ToRole="SimilarArtist" />
+        </EntityType>
+        <EntityType Name="SimilarTrack">
+          <Key>
+            <PropertyRef Name="SimilarTrackID" />
+          </Key>
+          <Property Name="SimilarTrackID" Type="Int64" Nullable="false" />
+          <Property Name="Rating" Type="Single" Nullable="false" />
+          <NavigationProperty Name="SimilarToTrack" Relationship="lastFMcacheModel.FK_SimilarTrack_0" FromRole="SimilarTrack" ToRole="Track" />
+          <NavigationProperty Name="InList" Relationship="lastFMcacheModel.FK_SimilarTrack_1" FromRole="SimilarTrack" ToRole="SimilarTrackList" />
+        </EntityType>
+        <EntityType Name="SimilarTrackList">
+          <Key>
+            <PropertyRef Name="ListID" />
+          </Key>
+          <Property Name="ListID" Type="Int64" Nullable="false" />
+          <Property Name="LookupTimestamp" Type="Int64" Nullable="false" />
+          <Property Name="StatusCode" Type="Int64" />
+          <NavigationProperty Name="SimilarTracks" Relationship="lastFMcacheModel.FK_SimilarTrack_1" FromRole="SimilarTrackList" ToRole="SimilarTrack" />
+          <NavigationProperty Name="Track" Relationship="lastFMcacheModel.FK_SimilarTrackList_0" FromRole="SimilarTrackList" ToRole="Track" />
+          <NavigationProperty Name="IsCurrentOf" Relationship="lastFMcacheModel.FK_Track_0" FromRole="SimilarTrackList" ToRole="Track" />
+        </EntityType>
+        <EntityType Name="TopTracks">
+          <Key>
+            <PropertyRef Name="TopTrackID" />
+          </Key>
+          <Property Name="TopTrackID" Type="Int64" Nullable="false" />
+          <Property Name="Reach" Type="Int64" Nullable="false" />
+          <NavigationProperty Name="Track" Relationship="lastFMcacheModel.FK_TopTracks_0" FromRole="TopTracks" ToRole="Track" />
+          <NavigationProperty Name="InList" Relationship="lastFMcacheModel.FK_TopTracks_1" FromRole="TopTracks" ToRole="TopTracksList" />
+        </EntityType>
+        <EntityType Name="TopTracksList">
+          <Key>
+            <PropertyRef Name="ListID" />
+          </Key>
+          <Property Name="ListID" Type="Int64" Nullable="false" />
+          <Property Name="LookupTimestamp" Type="Int64" Nullable="false" />
+          <Property Name="StatusCode" Type="Int64" />
+          <NavigationProperty Name="IsCurrentOf" Relationship="lastFMcacheModel.FK_Artist_0" FromRole="TopTracksList" ToRole="Artist" />
+          <NavigationProperty Name="OfArtist" Relationship="lastFMcacheModel.FK_TopTracksList_0" FromRole="TopTracksList" ToRole="Artist" />
+          <NavigationProperty Name="TopTracks" Relationship="lastFMcacheModel.FK_TopTracks_1" FromRole="TopTracksList" ToRole="TopTracks" />
+        </EntityType>
+        <EntityType Name="Track">
+          <Key>
+            <PropertyRef Name="TrackID" />
+          </Key>
+          <Property Name="TrackID" Type="Int64" Nullable="false" />
+          <Property Name="FullTitle" Type="String" Nullable="false" MaxLength="2147483647" Unicode="true" FixedLength="false" />
+          <Property Name="LowercaseTitle" Type="String" Nullable="false" MaxLength="2147483647" Unicode="true" FixedLength="false" />
+          <NavigationProperty Name="Artist" Relationship="lastFMcacheModel.FK_Track_1" FromRole="Track" ToRole="Artist" />
+          <NavigationProperty Name="RefSimilarTrackOf" Relationship="lastFMcacheModel.FK_SimilarTrack_0" FromRole="Track" ToRole="SimilarTrack" />
+          <NavigationProperty Name="SimilarTrackLists" Relationship="lastFMcacheModel.FK_SimilarTrackList_0" FromRole="Track" ToRole="SimilarTrackList" />
+          <NavigationProperty Name="CurrentSimilarTrackList" Relationship="lastFMcacheModel.FK_Track_0" FromRole="Track" ToRole="SimilarTrackList" />
+          <NavigationProperty Name="TopTracks" Relationship="lastFMcacheModel.FK_TopTracks_0" FromRole="Track" ToRole="TopTracks" />
+        </EntityType>
+        <Association Name="FK_Artist_0">
+          <End Role="TopTracksList" Type="lastFMcacheModel.TopTracksList" Multiplicity="0..1" />
+          <End Role="Artist" Type="lastFMcacheModel.Artist" Multiplicity="*" />
+        </Association>
+        <Association Name="FK_Artist_1">
+          <End Role="SimilarArtistList" Type="lastFMcacheModel.SimilarArtistList" Multiplicity="0..1" />
+          <End Role="Artist" Type="lastFMcacheModel.Artist" Multiplicity="*" />
+        </Association>
+        <Association Name="FK_Artist_2">
+          <End Role="Artist" Type="lastFMcacheModel.Artist" Multiplicity="0..1" />
+          <End Role="Artist1" Type="lastFMcacheModel.Artist" Multiplicity="*" />
+        </Association>
+        <Association Name="FK_SimilarArtist_1">
+          <End Role="Artist" Type="lastFMcacheModel.Artist" Multiplicity="1" />
+          <End Role="SimilarArtist" Type="lastFMcacheModel.SimilarArtist" Multiplicity="*" />
+        </Association>
+        <Association Name="FK_SimilarArtistList_0">
+          <End Role="Artist" Type="lastFMcacheModel.Artist" Multiplicity="1" />
+          <End Role="SimilarArtistList" Type="lastFMcacheModel.SimilarArtistList" Multiplicity="*" />
+        </Association>
+        <Association Name="FK_TopTracksList_0">
+          <End Role="Artist" Type="lastFMcacheModel.Artist" Multiplicity="1" />
+          <End Role="TopTracksList" Type="lastFMcacheModel.TopTracksList" Multiplicity="*" />
+        </Association>
+        <Association Name="FK_Track_1">
+          <End Role="Artist" Type="lastFMcacheModel.Artist" Multiplicity="1" />
+          <End Role="Track" Type="lastFMcacheModel.Track" Multiplicity="*" />
+        </Association>
+        <Association Name="FK_SimilarArtist_0">
+          <End Role="SimilarArtistList" Type="lastFMcacheModel.SimilarArtistList" Multiplicity="1" />
+          <End Role="SimilarArtist" Type="lastFMcacheModel.SimilarArtist" Multiplicity="*" />
+        </Association>
+        <Association Name="FK_SimilarTrack_0">
+          <End Role="Track" Type="lastFMcacheModel.Track" Multiplicity="1" />
+          <End Role="SimilarTrack" Type="lastFMcacheModel.SimilarTrack" Multiplicity="*" />
+        </Association>
+        <Association Name="FK_SimilarTrack_1">
+          <End Role="SimilarTrackList" Type="lastFMcacheModel.SimilarTrackList" Multiplicity="1" />
+          <End Role="SimilarTrack" Type="lastFMcacheModel.SimilarTrack" Multiplicity="*" />
+        </Association>
+        <Association Name="FK_SimilarTrackList_0">
+          <End Role="Track" Type="lastFMcacheModel.Track" Multiplicity="1" />
+          <End Role="SimilarTrackList" Type="lastFMcacheModel.SimilarTrackList" Multiplicity="*" />
+        </Association>
+        <Association Name="FK_Track_0">
+          <End Role="SimilarTrackList" Type="lastFMcacheModel.SimilarTrackList" Multiplicity="0..1" />
+          <End Role="Track" Type="lastFMcacheModel.Track" Multiplicity="*" />
+        </Association>
+        <Association Name="FK_TopTracks_0">
+          <End Role="Track" Type="lastFMcacheModel.Track" Multiplicity="1" />
+          <End Role="TopTracks" Type="lastFMcacheModel.TopTracks" Multiplicity="*" />
+        </Association>
+        <Association Name="FK_TopTracks_1">
+          <End Role="TopTracksList" Type="lastFMcacheModel.TopTracksList" Multiplicity="1" />
+          <End Role="TopTracks" Type="lastFMcacheModel.TopTracks" Multiplicity="*" />
+        </Association>
+      </Schema>
+    </edmx:ConceptualModels>
+    <!-- C-S mapping content -->
+    <edmx:Mappings>
+      <Mapping Space="C-S" xmlns="urn:schemas-microsoft-com:windows:storage:mapping:CS">
+        <EntityContainerMapping StorageEntityContainer="lastFMcacheModelStoreContainer" CdmEntityContainer="LastFMCacheModel">
+          <EntitySetMapping Name="Artist">
+            <EntityTypeMapping TypeName="IsTypeOf(lastFMcacheModel.Artist)">
+              <MappingFragment StoreEntitySet="Artist">
+                <ScalarProperty Name="ArtistID" ColumnName="ArtistID" />
+                <ScalarProperty Name="FullArtist" ColumnName="FullArtist" />
+                <ScalarProperty Name="LowercaseArtist" ColumnName="LowercaseArtist" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="SimilarArtist">
+            <EntityTypeMapping TypeName="IsTypeOf(lastFMcacheModel.SimilarArtist)">
+              <MappingFragment StoreEntitySet="SimilarArtist">
+                <ScalarProperty Name="SimilarArtistID" ColumnName="SimilarArtistID" />
+                <ScalarProperty Name="Rating" ColumnName="Rating" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="SimilarArtistList">
+            <EntityTypeMapping TypeName="IsTypeOf(lastFMcacheModel.SimilarArtistList)">
+              <MappingFragment StoreEntitySet="SimilarArtistList">
+                <ScalarProperty Name="ListID" ColumnName="ListID" />
+                <ScalarProperty Name="LookupTimestamp" ColumnName="LookupTimestamp" />
+                <ScalarProperty Name="StatusCode" ColumnName="StatusCode" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="SimilarTrack">
+            <EntityTypeMapping TypeName="IsTypeOf(lastFMcacheModel.SimilarTrack)">
+              <MappingFragment StoreEntitySet="SimilarTrack">
+                <ScalarProperty Name="SimilarTrackID" ColumnName="SimilarTrackID" />
+                <ScalarProperty Name="Rating" ColumnName="Rating" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="SimilarTrackList">
+            <EntityTypeMapping TypeName="IsTypeOf(lastFMcacheModel.SimilarTrackList)">
+              <MappingFragment StoreEntitySet="SimilarTrackList">
+                <ScalarProperty Name="ListID" ColumnName="ListID" />
+                <ScalarProperty Name="LookupTimestamp" ColumnName="LookupTimestamp" />
+                <ScalarProperty Name="StatusCode" ColumnName="StatusCode" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="TopTracks">
+            <EntityTypeMapping TypeName="IsTypeOf(lastFMcacheModel.TopTracks)">
+              <MappingFragment StoreEntitySet="TopTracks">
+                <ScalarProperty Name="TopTrackID" ColumnName="TopTrackID" />
+                <ScalarProperty Name="Reach" ColumnName="Reach" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="TopTracksList">
+            <EntityTypeMapping TypeName="IsTypeOf(lastFMcacheModel.TopTracksList)">
+              <MappingFragment StoreEntitySet="TopTracksList">
+                <ScalarProperty Name="ListID" ColumnName="ListID" />
+                <ScalarProperty Name="LookupTimestamp" ColumnName="LookupTimestamp" />
+                <ScalarProperty Name="StatusCode" ColumnName="StatusCode" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="Track">
+            <EntityTypeMapping TypeName="IsTypeOf(lastFMcacheModel.Track)">
+              <MappingFragment StoreEntitySet="Track">
+                <ScalarProperty Name="TrackID" ColumnName="TrackID" />
+                <ScalarProperty Name="FullTitle" ColumnName="FullTitle" />
+                <ScalarProperty Name="LowercaseTitle" ColumnName="LowercaseTitle" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <AssociationSetMapping Name="FK_Artist_0" TypeName="lastFMcacheModel.FK_Artist_0" StoreEntitySet="Artist">
+            <EndProperty Name="TopTracksList">
+              <ScalarProperty Name="ListID" ColumnName="CurrentTopTracksList" />
+            </EndProperty>
+            <EndProperty Name="Artist">
+              <ScalarProperty Name="ArtistID" ColumnName="ArtistID" />
+            </EndProperty>
+            <Condition ColumnName="CurrentTopTracksList" IsNull="false" />
+          </AssociationSetMapping>
+          <AssociationSetMapping Name="FK_Artist_1" TypeName="lastFMcacheModel.FK_Artist_1" StoreEntitySet="Artist">
+            <EndProperty Name="SimilarArtistList">
+              <ScalarProperty Name="ListID" ColumnName="CurrentSimilarArtistList" />
+            </EndProperty>
+            <EndProperty Name="Artist">
+              <ScalarProperty Name="ArtistID" ColumnName="ArtistID" />
+            </EndProperty>
+            <Condition ColumnName="CurrentSimilarArtistList" IsNull="false" />
+          </AssociationSetMapping>
+          <AssociationSetMapping Name="FK_Artist_2" TypeName="lastFMcacheModel.FK_Artist_2" StoreEntitySet="Artist">
+            <EndProperty Name="Artist">
+              <ScalarProperty Name="ArtistID" ColumnName="IsAlternateOf" />
+            </EndProperty>
+            <EndProperty Name="Artist1">
+              <ScalarProperty Name="ArtistID" ColumnName="ArtistID" />
+            </EndProperty>
+            <Condition ColumnName="IsAlternateOf" IsNull="false" />
+          </AssociationSetMapping>
+          <AssociationSetMapping Name="FK_SimilarArtist_1" TypeName="lastFMcacheModel.FK_SimilarArtist_1" StoreEntitySet="SimilarArtist">
+            <EndProperty Name="Artist">
+              <ScalarProperty Name="ArtistID" ColumnName="ArtistB" />
+            </EndProperty>
+            <EndProperty Name="SimilarArtist">
+              <ScalarProperty Name="SimilarArtistID" ColumnName="SimilarArtistID" />
+            </EndProperty>
+          </AssociationSetMapping>
+          <AssociationSetMapping Name="FK_SimilarArtistList_0" TypeName="lastFMcacheModel.FK_SimilarArtistList_0" StoreEntitySet="SimilarArtistList">
+            <EndProperty Name="Artist">
+              <ScalarProperty Name="ArtistID" ColumnName="ArtistID" />
+            </EndProperty>
+            <EndProperty Name="SimilarArtistList">
+              <ScalarProperty Name="ListID" ColumnName="ListID" />
+            </EndProperty>
+          </AssociationSetMapping>
+          <AssociationSetMapping Name="FK_TopTracksList_0" TypeName="lastFMcacheModel.FK_TopTracksList_0" StoreEntitySet="TopTracksList">
+            <EndProperty Name="Artist">
+              <ScalarProperty Name="ArtistID" ColumnName="ArtistID" />
+            </EndProperty>
+            <EndProperty Name="TopTracksList">
+              <ScalarProperty Name="ListID" ColumnName="ListID" />
+            </EndProperty>
+          </AssociationSetMapping>
+          <AssociationSetMapping Name="FK_Track_1" TypeName="lastFMcacheModel.FK_Track_1" StoreEntitySet="Track">
+            <EndProperty Name="Artist">
+              <ScalarProperty Name="ArtistID" ColumnName="ArtistID" />
+            </EndProperty>
+            <EndProperty Name="Track">
+              <ScalarProperty Name="TrackID" ColumnName="TrackID" />
+            </EndProperty>
+          </AssociationSetMapping>
+          <AssociationSetMapping Name="FK_SimilarArtist_0" TypeName="lastFMcacheModel.FK_SimilarArtist_0" StoreEntitySet="SimilarArtist">
+            <EndProperty Name="SimilarArtistList">
+              <ScalarProperty Name="ListID" ColumnName="ListID" />
+            </EndProperty>
+            <EndProperty Name="SimilarArtist">
+              <ScalarProperty Name="SimilarArtistID" ColumnName="SimilarArtistID" />
+            </EndProperty>
+          </AssociationSetMapping>
+          <AssociationSetMapping Name="FK_SimilarTrack_0" TypeName="lastFMcacheModel.FK_SimilarTrack_0" StoreEntitySet="SimilarTrack">
+            <EndProperty Name="Track">
+              <ScalarProperty Name="TrackID" ColumnName="TrackB" />
+            </EndProperty>
+            <EndProperty Name="SimilarTrack">
+              <ScalarProperty Name="SimilarTrackID" ColumnName="SimilarTrackID" />
+            </EndProperty>
+          </AssociationSetMapping>
+          <AssociationSetMapping Name="FK_SimilarTrack_1" TypeName="lastFMcacheModel.FK_SimilarTrack_1" StoreEntitySet="SimilarTrack">
+            <EndProperty Name="SimilarTrackList">
+              <ScalarProperty Name="ListID" ColumnName="ListID" />
+            </EndProperty>
+            <EndProperty Name="SimilarTrack">
+              <ScalarProperty Name="SimilarTrackID" ColumnName="SimilarTrackID" />
+            </EndProperty>
+          </AssociationSetMapping>
+          <AssociationSetMapping Name="FK_SimilarTrackList_0" TypeName="lastFMcacheModel.FK_SimilarTrackList_0" StoreEntitySet="SimilarTrackList">
+            <EndProperty Name="Track">
+              <ScalarProperty Name="TrackID" ColumnName="TrackID" />
+            </EndProperty>
+            <EndProperty Name="SimilarTrackList">
+              <ScalarProperty Name="ListID" ColumnName="ListID" />
+            </EndProperty>
+          </AssociationSetMapping>
+          <AssociationSetMapping Name="FK_Track_0" TypeName="lastFMcacheModel.FK_Track_0" StoreEntitySet="Track">
+            <EndProperty Name="SimilarTrackList">
+              <ScalarProperty Name="ListID" ColumnName="CurrentSimilarTrackList" />
+            </EndProperty>
+            <EndProperty Name="Track">
+              <ScalarProperty Name="TrackID" ColumnName="TrackID" />
+            </EndProperty>
+            <Condition ColumnName="CurrentSimilarTrackList" IsNull="false" />
+          </AssociationSetMapping>
+          <AssociationSetMapping Name="FK_TopTracks_0" TypeName="lastFMcacheModel.FK_TopTracks_0" StoreEntitySet="TopTracks">
+            <EndProperty Name="Track">
+              <ScalarProperty Name="TrackID" ColumnName="TrackID" />
+            </EndProperty>
+            <EndProperty Name="TopTracks">
+              <ScalarProperty Name="TopTrackID" ColumnName="TopTrackID" />
+            </EndProperty>
+          </AssociationSetMapping>
+          <AssociationSetMapping Name="FK_TopTracks_1" TypeName="lastFMcacheModel.FK_TopTracks_1" StoreEntitySet="TopTracks">
+            <EndProperty Name="TopTracksList">
+              <ScalarProperty Name="ListID" ColumnName="ListID" />
+            </EndProperty>
+            <EndProperty Name="TopTracks">
+              <ScalarProperty Name="TopTrackID" ColumnName="TopTrackID" />
+            </EndProperty>
+          </AssociationSetMapping>
+        </EntityContainerMapping>
+      </Mapping>
+    </edmx:Mappings>
+  </edmx:Runtime>
+  <!-- EF Designer content (DO NOT EDIT MANUALLY BELOW HERE) -->
+  <edmx:Designer xmlns="http://schemas.microsoft.com/ado/2007/06/edmx">
+    <edmx:Connection>
+      <DesignerInfoPropertySet>
+        <DesignerProperty Name="MetadataArtifactProcessing" Value="EmbedInOutputAssembly" />
+      </DesignerInfoPropertySet>
+    </edmx:Connection>
+    <edmx:Options>
+      <DesignerInfoPropertySet>
+        <DesignerProperty Name="ValidateOnBuild" Value="true" />
+      </DesignerInfoPropertySet>
+    </edmx:Options>
+    <!-- Diagram content (shape and connector positions) -->
+    <edmx:Diagrams>
+      <Diagram Name="LastFMmodel">
+        <EntityTypeShape EntityType="lastFMcacheModel.Artist" Width="1.5" PointX="3" PointY="6.25" Height="3.1340950520833344" IsExpanded="true" />
+        <EntityTypeShape EntityType="lastFMcacheModel.SimilarArtist" Width="1.5" PointX="7.5" PointY="8" Height="1.7879850260416674" IsExpanded="true" />
+        <EntityTypeShape EntityType="lastFMcacheModel.SimilarArtistList" Width="1.5" PointX="5.25" PointY="9.25" Height="2.1725878906249996" IsExpanded="true" />
+        <EntityTypeShape EntityType="lastFMcacheModel.SimilarTrack" Width="1.5" PointX="9.75" PointY="8.375" Height="1.7879850260416674" IsExpanded="true" />
+        <EntityTypeShape EntityType="lastFMcacheModel.SimilarTrackList" Width="1.5" PointX="7.5" PointY="10.75" Height="2.1725878906249996" IsExpanded="true" />
+        <EntityTypeShape EntityType="lastFMcacheModel.TopTracks" Width="1.5" PointX="7.625" PointY="5.25" Height="1.7879850260416674" IsExpanded="true" />
+        <EntityTypeShape EntityType="lastFMcacheModel.TopTracksList" Width="1.5" PointX="0.75" PointY="6.75" Height="2.1725878906250005" IsExpanded="true" />
+        <EntityTypeShape EntityType="lastFMcacheModel.Track" Width="1.5" PointX="5.25" PointY="5.5" Height="2.5571907552083344" IsExpanded="true" />
+        <AssociationConnector Association="lastFMcacheModel.FK_Artist_0" ManuallyRouted="false">
+          <ConnectorPoint PointX="2.25" PointY="7.8362939453125" />
+          <ConnectorPoint PointX="3" PointY="7.8362939453125" /></AssociationConnector>
+        <AssociationConnector Association="lastFMcacheModel.FK_Artist_1" ManuallyRouted="false">
+          <ConnectorPoint PointX="5.25" PointY="10.403341971354166" />
+          <ConnectorPoint PointX="4.2395858333333329" PointY="10.403341971354166" />
+          <ConnectorPoint PointX="4.0729191666666669" PointY="10.403341971354166" />
+          <ConnectorPoint PointX="3.75" PointY="10.403341971354166" />
+          <ConnectorPoint PointX="3.75" PointY="9.3840950520833353" /></AssociationConnector>
+        <AssociationConnector Association="lastFMcacheModel.FK_Artist_2" ManuallyRouted="false">
+          <ConnectorPoint PointX="3.5319230769230767" PointY="6.25" />
+          <ConnectorPoint PointX="3.5319230769230767" PointY="6" />
+          <ConnectorPoint PointX="3.9784615384615383" PointY="6" />
+          <ConnectorPoint PointX="3.9784615384615383" PointY="6.25" /></AssociationConnector>
+        <AssociationConnector Association="lastFMcacheModel.FK_SimilarArtist_1" ManuallyRouted="false">
+          <ConnectorPoint PointX="4.5" PointY="8.6535953776041676" />
+          <ConnectorPoint PointX="6.979166666666667" PointY="8.6535953776041676" />
+          <ConnectorPoint PointX="7.208333333333333" PointY="8.6535953776041676" />
+          <ConnectorPoint PointX="7.5" PointY="8.6535953776041676" /></AssociationConnector>
+        <AssociationConnector Association="lastFMcacheModel.FK_SimilarArtistList_0" ManuallyRouted="false">
+          <ConnectorPoint PointX="4.1562525" PointY="9.3840950520833353" />
+          <ConnectorPoint PointX="4.1562525" PointY="10.944217430989582" />
+          <ConnectorPoint PointX="5.25" PointY="10.944217430989582" /></AssociationConnector>
+        <AssociationConnector Association="lastFMcacheModel.FK_TopTracksList_0" ManuallyRouted="false">
+          <ConnectorPoint PointX="3" PointY="7.23064697265625" />
+          <ConnectorPoint PointX="2.25" PointY="7.23064697265625" /></AssociationConnector>
+        <AssociationConnector Association="lastFMcacheModel.FK_Track_1" ManuallyRouted="false">
+          <ConnectorPoint PointX="4.5" PointY="7.1535953776041676" />
+          <ConnectorPoint PointX="5.25" PointY="7.1535953776041676" /></AssociationConnector>
+        <AssociationConnector Association="lastFMcacheModel.FK_SimilarArtist_0" ManuallyRouted="false">
+          <ConnectorPoint PointX="6.75" PointY="9.5189925130208337" />
+          <ConnectorPoint PointX="6.979166666666667" PointY="9.5189925130208337" />
+          <ConnectorPoint PointX="7.208333333333333" PointY="9.5189925130208337" />
+          <ConnectorPoint PointX="7.5" PointY="9.5189925130208337" /></AssociationConnector>
+        <AssociationConnector Association="lastFMcacheModel.FK_SimilarTrack_0" ManuallyRouted="false">
+          <ConnectorPoint PointX="6.75" PointY="7.5189925130208337" />
+          <ConnectorPoint PointX="6.979166666666667" PointY="7.5189925130208328" />
+          <ConnectorPoint PointX="7.208333333333333" PointY="7.5189925130208337" />
+          <ConnectorPoint PointX="10.5" PointY="7.5189925130208337" />
+          <ConnectorPoint PointX="10.5" PointY="8.375" /></AssociationConnector>
+        <AssociationConnector Association="lastFMcacheModel.FK_SimilarTrack_1" ManuallyRouted="false">
+          <ConnectorPoint PointX="9" PointY="11.8362939453125" />
+          <ConnectorPoint PointX="10.5" PointY="11.8362939453125" />
+          <ConnectorPoint PointX="10.5" PointY="10.162985026041667" /></AssociationConnector>
+        <AssociationConnector Association="lastFMcacheModel.FK_SimilarTrackList_0" ManuallyRouted="false">
+          <ConnectorPoint PointX="6.75" PointY="6.4782442565104166" />
+          <ConnectorPoint PointX="7.125" PointY="6.4782442565104166" />
+          <ConnectorPoint PointX="7.125" PointY="11.8362939453125" />
+          <ConnectorPoint PointX="7.5" PointY="11.8362939453125" /></AssociationConnector>
+        <AssociationConnector Association="lastFMcacheModel.FK_Track_0" ManuallyRouted="false">
+          <ConnectorPoint PointX="7.5" PointY="11.261894972656251" />
+          <ConnectorPoint PointX="7.0625" PointY="11.261894972656251" />
+          <ConnectorPoint PointX="7.0625" PointY="6.9986183847656251" />
+          <ConnectorPoint PointX="6.75" PointY="6.9986183847656251" />
+          </AssociationConnector>
+        <AssociationConnector Association="lastFMcacheModel.FK_TopTracks_0" ManuallyRouted="false">
+          <ConnectorPoint PointX="6.75" PointY="5.9266221282552083" />
+          <ConnectorPoint PointX="7.625" PointY="5.9266221282552083" /></AssociationConnector>
+        <AssociationConnector Association="lastFMcacheModel.FK_TopTracks_1" ManuallyRouted="false">
+          <ConnectorPoint PointX="1.5" PointY="6.75" />
+          <ConnectorPoint PointX="1.5" PointY="5.34375" />
+          <ConnectorPoint PointX="7.625" PointY="5.34375" /></AssociationConnector></Diagram></edmx:Diagrams>
+  </edmx:Designer>
+</edmx:Edmx>
