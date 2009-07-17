@@ -63,8 +63,6 @@
 			if (newquery == lastquery && topNr == lasttop) return;
 			lastquery = newquery;
 			lasttop = topNr;
-//			var resultsviewEl = document.getElementById("resultsview");
-			//resultsviewEl.src = queryUrl(lasttop, lastquery);
 			window.frames["resultsview"].location.href = queryUrl(lasttop, lastquery);
 			var m3uEl = document.getElementById("m3u");
 			m3uEl.href = extm3ulink + encodeURIComponent(lastquery);
