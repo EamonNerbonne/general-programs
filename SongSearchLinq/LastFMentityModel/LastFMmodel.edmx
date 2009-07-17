@@ -389,7 +389,7 @@
           <Key>
             <PropertyRef Name="ArtistID" />
           </Key>
-          <Property Name="ArtistID" Type="Int64" Nullable="false" />
+          <Property Name="ArtistID" Type="Int32" Nullable="false" />
           <Property Name="FullArtist" Type="String" Nullable="false" MaxLength="2147483647" Unicode="true" FixedLength="false" />
           <Property Name="LowercaseArtist" Type="String" Nullable="false" MaxLength="2147483647" Unicode="true" FixedLength="false" />
           <NavigationProperty Name="CurrentTopTracksList" Relationship="lastFMcacheModel.FK_Artist_0" FromRole="Artist" ToRole="TopTracksList" />
@@ -405,7 +405,7 @@
           <Key>
             <PropertyRef Name="SimilarArtistID" />
           </Key>
-          <Property Name="SimilarArtistID" Type="Int64" Nullable="false" />
+          <Property Name="SimilarArtistID" Type="Int32" Nullable="false" />
           <Property Name="Rating" Type="Single" Nullable="false" />
           <NavigationProperty Name="SimilarToArtist" Relationship="lastFMcacheModel.FK_SimilarArtist_1" FromRole="SimilarArtist" ToRole="Artist" />
           <NavigationProperty Name="InList" Relationship="lastFMcacheModel.FK_SimilarArtist_0" FromRole="SimilarArtist" ToRole="SimilarArtistList" />
@@ -414,9 +414,9 @@
           <Key>
             <PropertyRef Name="ListID" />
           </Key>
-          <Property Name="ListID" Type="Int64" Nullable="false" />
+          <Property Name="ListID" Type="Int32" Nullable="false" />
           <Property Name="LookupTimestamp" Type="Int64" Nullable="false" />
-          <Property Name="StatusCode" Type="Int64" />
+          <Property Name="StatusCode" Type="Int32" />
           <NavigationProperty Name="IsCurrentOf" Relationship="lastFMcacheModel.FK_Artist_1" FromRole="SimilarArtistList" ToRole="Artist" />
           <NavigationProperty Name="OfArtist" Relationship="lastFMcacheModel.FK_SimilarArtistList_0" FromRole="SimilarArtistList" ToRole="Artist" />
           <NavigationProperty Name="SimilarArtists" Relationship="lastFMcacheModel.FK_SimilarArtist_0" FromRole="SimilarArtistList" ToRole="SimilarArtist" />
@@ -425,7 +425,7 @@
           <Key>
             <PropertyRef Name="SimilarTrackID" />
           </Key>
-          <Property Name="SimilarTrackID" Type="Int64" Nullable="false" />
+          <Property Name="SimilarTrackID" Type="Int32" Nullable="false" />
           <Property Name="Rating" Type="Single" Nullable="false" />
           <NavigationProperty Name="SimilarToTrack" Relationship="lastFMcacheModel.FK_SimilarTrack_0" FromRole="SimilarTrack" ToRole="Track" />
           <NavigationProperty Name="InList" Relationship="lastFMcacheModel.FK_SimilarTrack_1" FromRole="SimilarTrack" ToRole="SimilarTrackList" />
@@ -434,9 +434,9 @@
           <Key>
             <PropertyRef Name="ListID" />
           </Key>
-          <Property Name="ListID" Type="Int64" Nullable="false" />
+          <Property Name="ListID" Type="Int32" Nullable="false" />
           <Property Name="LookupTimestamp" Type="Int64" Nullable="false" />
-          <Property Name="StatusCode" Type="Int64" />
+          <Property Name="StatusCode" Type="Int32" />
           <NavigationProperty Name="SimilarTracks" Relationship="lastFMcacheModel.FK_SimilarTrack_1" FromRole="SimilarTrackList" ToRole="SimilarTrack" />
           <NavigationProperty Name="Track" Relationship="lastFMcacheModel.FK_SimilarTrackList_0" FromRole="SimilarTrackList" ToRole="Track" />
           <NavigationProperty Name="IsCurrentOf" Relationship="lastFMcacheModel.FK_Track_0" FromRole="SimilarTrackList" ToRole="Track" />
@@ -445,8 +445,8 @@
           <Key>
             <PropertyRef Name="TopTrackID" />
           </Key>
-          <Property Name="TopTrackID" Type="Int64" Nullable="false" />
-          <Property Name="Reach" Type="Int64" Nullable="false" />
+          <Property Name="TopTrackID" Type="Int32" Nullable="false" />
+          <Property Name="Reach" Type="Int32" Nullable="false" />
           <NavigationProperty Name="Track" Relationship="lastFMcacheModel.FK_TopTracks_0" FromRole="TopTracks" ToRole="Track" />
           <NavigationProperty Name="InList" Relationship="lastFMcacheModel.FK_TopTracks_1" FromRole="TopTracks" ToRole="TopTracksList" />
         </EntityType>
@@ -454,9 +454,9 @@
           <Key>
             <PropertyRef Name="ListID" />
           </Key>
-          <Property Name="ListID" Type="Int64" Nullable="false" />
+          <Property Name="ListID" Type="Int32" Nullable="false" />
           <Property Name="LookupTimestamp" Type="Int64" Nullable="false" />
-          <Property Name="StatusCode" Type="Int64" />
+          <Property Name="StatusCode" Type="Int32" />
           <NavigationProperty Name="IsCurrentOf" Relationship="lastFMcacheModel.FK_Artist_0" FromRole="TopTracksList" ToRole="Artist" />
           <NavigationProperty Name="OfArtist" Relationship="lastFMcacheModel.FK_TopTracksList_0" FromRole="TopTracksList" ToRole="Artist" />
           <NavigationProperty Name="TopTracks" Relationship="lastFMcacheModel.FK_TopTracks_1" FromRole="TopTracksList" ToRole="TopTracks" />
@@ -465,7 +465,7 @@
           <Key>
             <PropertyRef Name="TrackID" />
           </Key>
-          <Property Name="TrackID" Type="Int64" Nullable="false" />
+          <Property Name="TrackID" Type="Int32" Nullable="false" />
           <Property Name="FullTitle" Type="String" Nullable="false" MaxLength="2147483647" Unicode="true" FixedLength="false" />
           <Property Name="LowercaseTitle" Type="String" Nullable="false" MaxLength="2147483647" Unicode="true" FixedLength="false" />
           <NavigationProperty Name="Artist" Relationship="lastFMcacheModel.FK_Track_1" FromRole="Track" ToRole="Artist" />
