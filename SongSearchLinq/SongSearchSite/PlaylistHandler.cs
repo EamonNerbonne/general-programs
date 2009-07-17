@@ -40,7 +40,7 @@ namespace SongSearchSite
 				res.MimeType = "audio/x-mpegurl";
 			} else if (extension == ".xml") {
 				enc = Encoding.UTF8;
-				res.MimeType = "application/xml";
+				res.MimeType = "text/xml";
 				isXml = true;
 			}
 
