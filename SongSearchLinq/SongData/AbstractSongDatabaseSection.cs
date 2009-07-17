@@ -58,7 +58,8 @@ namespace SongDataLib
 				|| extension == ".mpc" 
 				|| extension == ".mpp" 
 				|| extension == ".mp+" 
-				|| extension == ".wma";
+				|| extension == ".wma"
+				|| extension == "._@mp3";
 		}
 
 		protected abstract void ScanSongs(FileKnownFilter filter, SongDataLoadDelegate handler);

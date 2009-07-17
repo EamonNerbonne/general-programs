@@ -25,6 +25,15 @@ namespace SongDataLib
             if (!localSearchPath.Exists) throw new DirectoryNotFoundException("Local search path doesn't exist: " + localSearchPath.FullName); //TODO: do this during init instead?
             FileInfo[] newFiles = localSearchPath.DescendantFiles().Where(fi => isExtensionOK(fi)).ToArray();
 			Console.WriteLine("{0} potential songs found.", newFiles.Length);
+			foreach (var fi in newFiles.Where(fi => fi.Name.EndsWith("._@X.mp3"))) {
+				try {
+					fi.MoveTo(Path.Combine(fi.DirectoryName + Path.DirectorySeparatorChar, fi.Name.Substring(0, fi.Name.Length - "._@X.mp3".Length) + "._@mp3"));
+				} catch (Exception e) {
+					Console.WriteLine(e);
+				}
+			}
+			newFiles = newFiles.Where(fi => isExtensionOK(fi)).ToArray();
+
 			for(int i = 0; i < newFiles.Length; i++) {
 				FileInfo newfile = newFiles[i];
 				ISongData song = F.Swallow(()=>filter(newfile.FullName),()=>null);
