@@ -63,8 +63,9 @@
 			if (newquery == lastquery && topNr == lasttop) return;
 			lastquery = newquery;
 			lasttop = topNr;
-			var resultsviewEl = document.getElementById("resultsview");
-			resultsviewEl.src = queryUrl(lasttop, lastquery);
+//			var resultsviewEl = document.getElementById("resultsview");
+			//resultsviewEl.src = queryUrl(lasttop, lastquery);
+			window.frames["resultsview"].location.href = queryUrl(lasttop, lastquery);
 			var m3uEl = document.getElementById("m3u");
 			m3uEl.href = extm3ulink + encodeURIComponent(lastquery);
 			var m3u8El = document.getElementById("m3u8");
@@ -100,7 +101,7 @@
 		<tr>
 			<td style="height: 100%; width: 100%; border: none; padding: 0;" colspan="2">
 				<iframe frameborder="0" style="height: 100%; width: 100%; border: none;" id="resultsview"
-					src="list.xml?top=20&amp;view=xslt&amp;q="></iframe>
+					src="list.xml?top=20&amp;view=xslt&amp;q=" name="resultsview"></iframe>
 			</td>
 		</tr>
 	</table>
