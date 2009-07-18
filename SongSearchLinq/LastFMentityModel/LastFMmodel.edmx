@@ -75,7 +75,7 @@
           <Key>
             <PropertyRef Name="ArtistID" />
           </Key>
-          <Property Name="ArtistID" Type="integer" Nullable="false" />
+          <Property Name="ArtistID" Type="integer" Nullable="false" StoreGeneratedPattern="Identity" />
           <Property Name="FullArtist" Type="nvarchar" Nullable="false" />
           <Property Name="LowercaseArtist" Type="nvarchar" Nullable="false" />
           <Property Name="IsAlternateOf" Type="integer" />
@@ -86,7 +86,7 @@
           <Key>
             <PropertyRef Name="SimilarArtistID" />
           </Key>
-          <Property Name="SimilarArtistID" Type="integer" Nullable="false" />
+          <Property Name="SimilarArtistID" Type="integer" Nullable="false" StoreGeneratedPattern="Identity" />
           <Property Name="ListID" Type="integer" Nullable="false" />
           <Property Name="ArtistB" Type="integer" Nullable="false" />
           <Property Name="Rating" Type="real" Nullable="false" />
@@ -95,7 +95,7 @@
           <Key>
             <PropertyRef Name="ListID" />
           </Key>
-          <Property Name="ListID" Type="integer" Nullable="false" />
+          <Property Name="ListID" Type="integer" Nullable="false" StoreGeneratedPattern="Identity" />
           <Property Name="ArtistID" Type="integer" Nullable="false" />
           <Property Name="LookupTimestamp" Type="integer" Nullable="false" />
           <Property Name="StatusCode" Type="integer" />
@@ -104,7 +104,7 @@
           <Key>
             <PropertyRef Name="SimilarTrackID" />
           </Key>
-          <Property Name="SimilarTrackID" Type="integer" Nullable="false" />
+          <Property Name="SimilarTrackID" Type="integer" Nullable="false" StoreGeneratedPattern="Identity" />
           <Property Name="ListID" Type="integer" Nullable="false" />
           <Property Name="TrackB" Type="integer" Nullable="false" />
           <Property Name="Rating" Type="real" Nullable="false" />
@@ -113,7 +113,7 @@
           <Key>
             <PropertyRef Name="ListID" />
           </Key>
-          <Property Name="ListID" Type="integer" Nullable="false" />
+          <Property Name="ListID" Type="integer" Nullable="false" StoreGeneratedPattern="Identity" />
           <Property Name="TrackID" Type="integer" Nullable="false" />
           <Property Name="LookupTimestamp" Type="integer" Nullable="false" />
           <Property Name="StatusCode" Type="integer" />
@@ -122,7 +122,7 @@
           <Key>
             <PropertyRef Name="TopTrackID" />
           </Key>
-          <Property Name="TopTrackID" Type="integer" Nullable="false" />
+          <Property Name="TopTrackID" Type="integer" Nullable="false" StoreGeneratedPattern="Identity" />
           <Property Name="TrackID" Type="integer" Nullable="false" />
           <Property Name="ListID" Type="integer" Nullable="false" />
           <Property Name="Reach" Type="integer" Nullable="false" />
@@ -131,7 +131,7 @@
           <Key>
             <PropertyRef Name="ListID" />
           </Key>
-          <Property Name="ListID" Type="integer" Nullable="false" />
+          <Property Name="ListID" Type="integer" Nullable="false" StoreGeneratedPattern="Identity" />
           <Property Name="ArtistID" Type="integer" Nullable="false" />
           <Property Name="LookupTimestamp" Type="integer" Nullable="false" />
           <Property Name="StatusCode" Type="integer" />
@@ -140,7 +140,7 @@
           <Key>
             <PropertyRef Name="TrackID" />
           </Key>
-          <Property Name="TrackID" Type="integer" Nullable="false" />
+          <Property Name="TrackID" Type="integer" Nullable="false" StoreGeneratedPattern="Identity" />
           <Property Name="ArtistID" Type="integer" Nullable="false" />
           <Property Name="FullTitle" Type="nvarchar" Nullable="false" />
           <Property Name="LowercaseTitle" Type="nvarchar" Nullable="false" />
