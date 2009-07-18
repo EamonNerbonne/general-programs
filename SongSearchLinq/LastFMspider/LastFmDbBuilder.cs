@@ -21,7 +21,7 @@ PRAGMA journal_mode = PERSIST;
 
 
 CREATE TABLE IF NOT EXISTS [Artist] (
-  [ArtistID] INTEGER  PRIMARY KEY NOT NULL,
+  [ArtistID] INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
   [FullArtist] TEXT  NOT NULL,
   [LowercaseArtist] TEXT  NOT NULL,
   [IsAlternateOf] INTEGER NULL,
@@ -34,17 +34,11 @@ CREATE TABLE IF NOT EXISTS [Artist] (
 CREATE UNIQUE INDEX  IF NOT EXISTS [Unique_Artist_LowercaseArtist] ON [Artist](
   [LowercaseArtist]  ASC
 );
-CREATE UNIQUE INDEX  IF NOT EXISTS [Unique_Artist_CurrentSimilarArtistList] ON [Artist](
-  [CurrentSimilarArtistList]  ASC
-);
-CREATE UNIQUE INDEX  IF NOT EXISTS [Unique_Artist_CurrentTopTracksList] ON [Artist](
-  [CurrentTopTracksList]  ASC
-);
 
 
 
 CREATE TABLE IF NOT EXISTS [SimilarArtistList] (
-[ListID] INTEGER NOT NULL PRIMARY KEY,
+[ListID] INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT ,
 [ArtistID] INTEGER  NOT NULL,
 [LookupTimestamp] INTEGER NOT NULL,
 [StatusCode] INTEGER,
@@ -60,7 +54,7 @@ CREATE INDEX IF NOT EXISTS [IDX_SimilarArtistList_LookupTimestamp] ON [SimilarAr
 
 
 CREATE TABLE IF NOT EXISTS [SimilarArtist] (
-[SimilarArtistID] INTEGER  NOT NULL PRIMARY KEY,
+[SimilarArtistID] INTEGER  NOT NULL PRIMARY KEY AUTOINCREMENT ,
 [ListID] INTEGER  NOT NULL,
 [ArtistB] INTEGER  NOT NULL,
 [Rating] REAL NOT NULL,
@@ -81,7 +75,7 @@ CREATE INDEX  IF NOT EXISTS [IDX_SimilarArtist_Rating] ON [SimilarArtist](
 
 
 CREATE TABLE IF NOT EXISTS  [Track] (
-  [TrackID] INTEGER  NOT NULL PRIMARY KEY,
+  [TrackID] INTEGER  NOT NULL PRIMARY KEY AUTOINCREMENT ,
   [ArtistID] INTEGER  NOT NULL,
   [FullTitle] TEXT  NOT NULL,
   [LowercaseTitle] TEXT  NOT NULL,
@@ -93,14 +87,11 @@ CREATE UNIQUE INDEX IF NOT EXISTS [Unique_Track_ArtistID_LowercaseTitle] ON [Tra
   [ArtistID]  ASC,
   [LowercaseTitle]  ASC
 );
-CREATE UNIQUE INDEX IF NOT EXISTS [Unique_Track_CurrentSimilarTrackList] ON [Track](
-  [CurrentSimilarTrackList]  ASC
-);
 
 
 
 CREATE TABLE IF NOT EXISTS [SimilarTrackList] (
-[ListID] INTEGER NOT NULL PRIMARY KEY,
+[ListID] INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
 [TrackID] INTEGER  NOT NULL,
 [LookupTimestamp] INTEGER NOT NULL,
 [StatusCode] INTEGER,
@@ -116,7 +107,7 @@ CREATE INDEX IF NOT EXISTS [IDX_SimilarTrackList_LookupTimestamp] ON [SimilarTra
 
 
 CREATE TABLE IF NOT EXISTS [SimilarTrack] (
-  [SimilarTrackID] INTEGER  NOT NULL PRIMARY KEY,
+  [SimilarTrackID] INTEGER  NOT NULL PRIMARY KEY AUTOINCREMENT,
   [ListID] INTEGER  NOT NULL,
   [TrackB] INTEGER  NOT NULL,
   [Rating] REAL NOT NULL,
@@ -137,7 +128,7 @@ CREATE INDEX  IF NOT EXISTS [IDX_SimilarTrack_Rating] ON [SimilarTrack](
 
 
 CREATE TABLE IF NOT EXISTS [TopTracksList] (
-[ListID] INTEGER NOT NULL PRIMARY KEY,
+[ListID] INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
 [ArtistID] INTEGER  NOT NULL,
 [LookupTimestamp] INTEGER NOT NULL,
 [StatusCode] INTEGER,
@@ -153,7 +144,7 @@ CREATE INDEX IF NOT EXISTS [IDX_TopTracksList_LookupTimestamp] ON [TopTracksList
 
 
 CREATE TABLE IF NOT EXISTS [TopTracks] (
-[TopTrackID] INTEGER NOT NULL PRIMARY KEY,
+[TopTrackID] INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
 [TrackID] INTEGER  NOT NULL,
 [ListID] INTEGER  NOT NULL,
 [Reach] INTEGER NOT NULL,

@@ -100,6 +100,7 @@ namespace LastFMentityModel
 
 
 		static void Main(string[] args) {
+			new LastFMSQLiteCache(new SongDatabaseConfigFile(false)).Dispose();//just to create the appropriate tables.
 			using (var model = new LastFMCacheModel())
 				Actions.LfmAction.EnsureLocalFilesInDb(new SimpleSongDB(new SongDatabaseConfigFile(false), null), model);
 			Console.WriteLine("done.");

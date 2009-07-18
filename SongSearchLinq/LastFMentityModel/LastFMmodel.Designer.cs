@@ -25,7 +25,7 @@
 [assembly: global::System.Data.Objects.DataClasses.EdmRelationshipAttribute("lastFMcacheModel", "FK_TopTracks_1", "TopTracksList", global::System.Data.Metadata.Edm.RelationshipMultiplicity.One, typeof(LastFMentityModel.TopTracksList), "TopTracks", global::System.Data.Metadata.Edm.RelationshipMultiplicity.Many, typeof(LastFMentityModel.TopTracks))]
 
 // Original file name:
-// Generation date: 2009-07-17 23:45:03
+// Generation date: 2009-07-18 16:30:40
 namespace LastFMentityModel
 {
     
@@ -253,7 +253,7 @@ namespace LastFMentityModel
         /// <param name="artistID">Initial value of ArtistID.</param>
         /// <param name="fullArtist">Initial value of FullArtist.</param>
         /// <param name="lowercaseArtist">Initial value of LowercaseArtist.</param>
-        public static Artist CreateArtist(int artistID, string fullArtist, string lowercaseArtist)
+        public static Artist CreateArtist(long artistID, string fullArtist, string lowercaseArtist)
         {
             Artist artist = new Artist();
             artist.ArtistID = artistID;
@@ -266,7 +266,7 @@ namespace LastFMentityModel
         /// </summary>
         [global::System.Data.Objects.DataClasses.EdmScalarPropertyAttribute(EntityKeyProperty=true, IsNullable=false)]
         [global::System.Runtime.Serialization.DataMemberAttribute()]
-        public int ArtistID
+        public long ArtistID
         {
             get
             {
@@ -281,8 +281,8 @@ namespace LastFMentityModel
                 this.OnArtistIDChanged();
             }
         }
-        private int _ArtistID;
-        partial void OnArtistIDChanging(int value);
+        private long _ArtistID;
+        partial void OnArtistIDChanging(long value);
         partial void OnArtistIDChanged();
         /// <summary>
         /// There are no comments for Property FullArtist in the schema.
@@ -563,7 +563,7 @@ namespace LastFMentityModel
         /// </summary>
         /// <param name="similarArtistID">Initial value of SimilarArtistID.</param>
         /// <param name="rating">Initial value of Rating.</param>
-        public static SimilarArtist CreateSimilarArtist(int similarArtistID, float rating)
+        public static SimilarArtist CreateSimilarArtist(long similarArtistID, float rating)
         {
             SimilarArtist similarArtist = new SimilarArtist();
             similarArtist.SimilarArtistID = similarArtistID;
@@ -575,7 +575,7 @@ namespace LastFMentityModel
         /// </summary>
         [global::System.Data.Objects.DataClasses.EdmScalarPropertyAttribute(EntityKeyProperty=true, IsNullable=false)]
         [global::System.Runtime.Serialization.DataMemberAttribute()]
-        public int SimilarArtistID
+        public long SimilarArtistID
         {
             get
             {
@@ -590,8 +590,8 @@ namespace LastFMentityModel
                 this.OnSimilarArtistIDChanged();
             }
         }
-        private int _SimilarArtistID;
-        partial void OnSimilarArtistIDChanging(int value);
+        private long _SimilarArtistID;
+        partial void OnSimilarArtistIDChanging(long value);
         partial void OnSimilarArtistIDChanged();
         /// <summary>
         /// There are no comments for Property Rating in the schema.
@@ -707,7 +707,7 @@ namespace LastFMentityModel
         /// </summary>
         /// <param name="listID">Initial value of ListID.</param>
         /// <param name="lookupTimestamp">Initial value of LookupTimestamp.</param>
-        public static SimilarArtistList CreateSimilarArtistList(int listID, long lookupTimestamp)
+        public static SimilarArtistList CreateSimilarArtistList(long listID, long lookupTimestamp)
         {
             SimilarArtistList similarArtistList = new SimilarArtistList();
             similarArtistList.ListID = listID;
@@ -719,7 +719,7 @@ namespace LastFMentityModel
         /// </summary>
         [global::System.Data.Objects.DataClasses.EdmScalarPropertyAttribute(EntityKeyProperty=true, IsNullable=false)]
         [global::System.Runtime.Serialization.DataMemberAttribute()]
-        public int ListID
+        public long ListID
         {
             get
             {
@@ -734,8 +734,8 @@ namespace LastFMentityModel
                 this.OnListIDChanged();
             }
         }
-        private int _ListID;
-        partial void OnListIDChanging(int value);
+        private long _ListID;
+        partial void OnListIDChanging(long value);
         partial void OnListIDChanged();
         /// <summary>
         /// There are no comments for Property LookupTimestamp in the schema.
@@ -765,7 +765,7 @@ namespace LastFMentityModel
         /// </summary>
         [global::System.Data.Objects.DataClasses.EdmScalarPropertyAttribute()]
         [global::System.Runtime.Serialization.DataMemberAttribute()]
-        public global::System.Nullable<int> StatusCode
+        public global::System.Nullable<long> StatusCode
         {
             get
             {
@@ -780,8 +780,8 @@ namespace LastFMentityModel
                 this.OnStatusCodeChanged();
             }
         }
-        private global::System.Nullable<int> _StatusCode;
-        partial void OnStatusCodeChanging(global::System.Nullable<int> value);
+        private global::System.Nullable<long> _StatusCode;
+        partial void OnStatusCodeChanging(global::System.Nullable<long> value);
         partial void OnStatusCodeChanged();
         /// <summary>
         /// There are no comments for IsCurrentOf in the schema.
@@ -879,7 +879,7 @@ namespace LastFMentityModel
         /// </summary>
         /// <param name="similarTrackID">Initial value of SimilarTrackID.</param>
         /// <param name="rating">Initial value of Rating.</param>
-        public static SimilarTrack CreateSimilarTrack(int similarTrackID, float rating)
+        public static SimilarTrack CreateSimilarTrack(long similarTrackID, float rating)
         {
             SimilarTrack similarTrack = new SimilarTrack();
             similarTrack.SimilarTrackID = similarTrackID;
@@ -891,7 +891,7 @@ namespace LastFMentityModel
         /// </summary>
         [global::System.Data.Objects.DataClasses.EdmScalarPropertyAttribute(EntityKeyProperty=true, IsNullable=false)]
         [global::System.Runtime.Serialization.DataMemberAttribute()]
-        public int SimilarTrackID
+        public long SimilarTrackID
         {
             get
             {
@@ -906,8 +906,8 @@ namespace LastFMentityModel
                 this.OnSimilarTrackIDChanged();
             }
         }
-        private int _SimilarTrackID;
-        partial void OnSimilarTrackIDChanging(int value);
+        private long _SimilarTrackID;
+        partial void OnSimilarTrackIDChanging(long value);
         partial void OnSimilarTrackIDChanged();
         /// <summary>
         /// There are no comments for Property Rating in the schema.
@@ -1023,7 +1023,7 @@ namespace LastFMentityModel
         /// </summary>
         /// <param name="listID">Initial value of ListID.</param>
         /// <param name="lookupTimestamp">Initial value of LookupTimestamp.</param>
-        public static SimilarTrackList CreateSimilarTrackList(int listID, long lookupTimestamp)
+        public static SimilarTrackList CreateSimilarTrackList(long listID, long lookupTimestamp)
         {
             SimilarTrackList similarTrackList = new SimilarTrackList();
             similarTrackList.ListID = listID;
@@ -1035,7 +1035,7 @@ namespace LastFMentityModel
         /// </summary>
         [global::System.Data.Objects.DataClasses.EdmScalarPropertyAttribute(EntityKeyProperty=true, IsNullable=false)]
         [global::System.Runtime.Serialization.DataMemberAttribute()]
-        public int ListID
+        public long ListID
         {
             get
             {
@@ -1050,8 +1050,8 @@ namespace LastFMentityModel
                 this.OnListIDChanged();
             }
         }
-        private int _ListID;
-        partial void OnListIDChanging(int value);
+        private long _ListID;
+        partial void OnListIDChanging(long value);
         partial void OnListIDChanged();
         /// <summary>
         /// There are no comments for Property LookupTimestamp in the schema.
@@ -1081,7 +1081,7 @@ namespace LastFMentityModel
         /// </summary>
         [global::System.Data.Objects.DataClasses.EdmScalarPropertyAttribute()]
         [global::System.Runtime.Serialization.DataMemberAttribute()]
-        public global::System.Nullable<int> StatusCode
+        public global::System.Nullable<long> StatusCode
         {
             get
             {
@@ -1096,8 +1096,8 @@ namespace LastFMentityModel
                 this.OnStatusCodeChanged();
             }
         }
-        private global::System.Nullable<int> _StatusCode;
-        partial void OnStatusCodeChanging(global::System.Nullable<int> value);
+        private global::System.Nullable<long> _StatusCode;
+        partial void OnStatusCodeChanging(global::System.Nullable<long> value);
         partial void OnStatusCodeChanged();
         /// <summary>
         /// There are no comments for SimilarTracks in the schema.
@@ -1195,7 +1195,7 @@ namespace LastFMentityModel
         /// </summary>
         /// <param name="topTrackID">Initial value of TopTrackID.</param>
         /// <param name="reach">Initial value of Reach.</param>
-        public static TopTracks CreateTopTracks(int topTrackID, int reach)
+        public static TopTracks CreateTopTracks(long topTrackID, long reach)
         {
             TopTracks topTracks = new TopTracks();
             topTracks.TopTrackID = topTrackID;
@@ -1207,7 +1207,7 @@ namespace LastFMentityModel
         /// </summary>
         [global::System.Data.Objects.DataClasses.EdmScalarPropertyAttribute(EntityKeyProperty=true, IsNullable=false)]
         [global::System.Runtime.Serialization.DataMemberAttribute()]
-        public int TopTrackID
+        public long TopTrackID
         {
             get
             {
@@ -1222,15 +1222,15 @@ namespace LastFMentityModel
                 this.OnTopTrackIDChanged();
             }
         }
-        private int _TopTrackID;
-        partial void OnTopTrackIDChanging(int value);
+        private long _TopTrackID;
+        partial void OnTopTrackIDChanging(long value);
         partial void OnTopTrackIDChanged();
         /// <summary>
         /// There are no comments for Property Reach in the schema.
         /// </summary>
         [global::System.Data.Objects.DataClasses.EdmScalarPropertyAttribute(IsNullable=false)]
         [global::System.Runtime.Serialization.DataMemberAttribute()]
-        public int Reach
+        public long Reach
         {
             get
             {
@@ -1245,8 +1245,8 @@ namespace LastFMentityModel
                 this.OnReachChanged();
             }
         }
-        private int _Reach;
-        partial void OnReachChanging(int value);
+        private long _Reach;
+        partial void OnReachChanging(long value);
         partial void OnReachChanged();
         /// <summary>
         /// There are no comments for Track in the schema.
@@ -1339,7 +1339,7 @@ namespace LastFMentityModel
         /// </summary>
         /// <param name="listID">Initial value of ListID.</param>
         /// <param name="lookupTimestamp">Initial value of LookupTimestamp.</param>
-        public static TopTracksList CreateTopTracksList(int listID, long lookupTimestamp)
+        public static TopTracksList CreateTopTracksList(long listID, long lookupTimestamp)
         {
             TopTracksList topTracksList = new TopTracksList();
             topTracksList.ListID = listID;
@@ -1351,7 +1351,7 @@ namespace LastFMentityModel
         /// </summary>
         [global::System.Data.Objects.DataClasses.EdmScalarPropertyAttribute(EntityKeyProperty=true, IsNullable=false)]
         [global::System.Runtime.Serialization.DataMemberAttribute()]
-        public int ListID
+        public long ListID
         {
             get
             {
@@ -1366,8 +1366,8 @@ namespace LastFMentityModel
                 this.OnListIDChanged();
             }
         }
-        private int _ListID;
-        partial void OnListIDChanging(int value);
+        private long _ListID;
+        partial void OnListIDChanging(long value);
         partial void OnListIDChanged();
         /// <summary>
         /// There are no comments for Property LookupTimestamp in the schema.
@@ -1397,7 +1397,7 @@ namespace LastFMentityModel
         /// </summary>
         [global::System.Data.Objects.DataClasses.EdmScalarPropertyAttribute()]
         [global::System.Runtime.Serialization.DataMemberAttribute()]
-        public global::System.Nullable<int> StatusCode
+        public global::System.Nullable<long> StatusCode
         {
             get
             {
@@ -1412,8 +1412,8 @@ namespace LastFMentityModel
                 this.OnStatusCodeChanged();
             }
         }
-        private global::System.Nullable<int> _StatusCode;
-        partial void OnStatusCodeChanging(global::System.Nullable<int> value);
+        private global::System.Nullable<long> _StatusCode;
+        partial void OnStatusCodeChanging(global::System.Nullable<long> value);
         partial void OnStatusCodeChanged();
         /// <summary>
         /// There are no comments for IsCurrentOf in the schema.
@@ -1512,7 +1512,7 @@ namespace LastFMentityModel
         /// <param name="trackID">Initial value of TrackID.</param>
         /// <param name="fullTitle">Initial value of FullTitle.</param>
         /// <param name="lowercaseTitle">Initial value of LowercaseTitle.</param>
-        public static Track CreateTrack(int trackID, string fullTitle, string lowercaseTitle)
+        public static Track CreateTrack(long trackID, string fullTitle, string lowercaseTitle)
         {
             Track track = new Track();
             track.TrackID = trackID;
@@ -1525,7 +1525,7 @@ namespace LastFMentityModel
         /// </summary>
         [global::System.Data.Objects.DataClasses.EdmScalarPropertyAttribute(EntityKeyProperty=true, IsNullable=false)]
         [global::System.Runtime.Serialization.DataMemberAttribute()]
-        public int TrackID
+        public long TrackID
         {
             get
             {
@@ -1540,8 +1540,8 @@ namespace LastFMentityModel
                 this.OnTrackIDChanged();
             }
         }
-        private int _TrackID;
-        partial void OnTrackIDChanging(int value);
+        private long _TrackID;
+        partial void OnTrackIDChanging(long value);
         partial void OnTrackIDChanged();
         /// <summary>
         /// There are no comments for Property FullTitle in the schema.

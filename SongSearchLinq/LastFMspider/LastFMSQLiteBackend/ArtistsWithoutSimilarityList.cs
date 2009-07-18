@@ -20,8 +20,8 @@ namespace LastFMspider.LastFMSQLiteBackend
         protected override string CommandText {
             get { return @"
 SELECT A.ArtistID, A.FullArtist, L.LookupTimestamp 
-FROM Artist A left join SimilarArtistList L on A.ArtistID = L.ArtistID
-WHERE  A.IsAlternateOf IS NULL AND L.LookupTimestamp IS NULL 
+FROM Artist A 
+WHERE A.CurrentSimilarAr A.IsAlternateOf IS NULL 
 LIMIT @limitRowCount
 "; }
         }
