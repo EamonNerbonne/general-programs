@@ -64,6 +64,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Actions\EnsureLocalFilesInDb.cs" />
+    <Compile Include="Actions\PrecacheLocalFiles.cs" />
     <Compile Include="LastFMmodel.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -83,6 +85,14 @@
     <ProjectReference Include="..\..\..\EmnExtensions\EmnExtensions.csproj">
       <Project>{53ECEDA4-BB11-4BD3-8B51-0D3481FCBFA1}</Project>
       <Name>EmnExtensions</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\SongSearchLinq\SongData\SongData.csproj">
+      <Project>{171E7F71-DB67-47CA-82BC-C63681BF2733}</Project>
+      <Name>SongData</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\LastFMspider\LastFMspider.csproj">
+      <Project>{6AFF4733-511B-4EE5-8A5F-6B11A894E0D7}</Project>
+      <Name>LastFMspider</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

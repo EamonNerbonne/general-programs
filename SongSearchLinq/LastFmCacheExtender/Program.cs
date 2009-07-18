@@ -28,7 +28,7 @@ namespace LastFmCacheExtender
             while (run&&errCount<10) {
                 try {
                     run = false;
-                    //tools.PrecacheLocalFiles(false);//might want to do this first, but meh.
+                    tools.PrecacheLocalFiles(false);//might want to do this first, but meh.
                     run = 0 < tools.PrecacheArtistSimilarity()||run;
                     run = 0 < tools.PrecacheArtistTopTracks()||run;
                     run = 0 < tools.PrecacheSongSimilarity()||run;

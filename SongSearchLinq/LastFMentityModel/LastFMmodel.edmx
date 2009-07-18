@@ -740,75 +740,72 @@
     <!-- Diagram content (shape and connector positions) -->
     <edmx:Diagrams>
       <Diagram Name="LastFMmodel">
-        <EntityTypeShape EntityType="lastFMcacheModel.Artist" Width="1.5" PointX="3" PointY="6.25" Height="3.1340950520833344" IsExpanded="true" />
-        <EntityTypeShape EntityType="lastFMcacheModel.SimilarArtist" Width="1.5" PointX="7.5" PointY="8" Height="1.7879850260416674" IsExpanded="true" />
-        <EntityTypeShape EntityType="lastFMcacheModel.SimilarArtistList" Width="1.5" PointX="5.25" PointY="9.25" Height="2.1725878906249996" IsExpanded="true" />
-        <EntityTypeShape EntityType="lastFMcacheModel.SimilarTrack" Width="1.5" PointX="9.75" PointY="8.375" Height="1.7879850260416674" IsExpanded="true" />
-        <EntityTypeShape EntityType="lastFMcacheModel.SimilarTrackList" Width="1.5" PointX="7.5" PointY="10.75" Height="2.1725878906249996" IsExpanded="true" />
-        <EntityTypeShape EntityType="lastFMcacheModel.TopTracks" Width="1.5" PointX="7.625" PointY="5.25" Height="1.7879850260416674" IsExpanded="true" />
-        <EntityTypeShape EntityType="lastFMcacheModel.TopTracksList" Width="1.5" PointX="0.75" PointY="6.75" Height="2.1725878906250005" IsExpanded="true" />
-        <EntityTypeShape EntityType="lastFMcacheModel.Track" Width="1.5" PointX="5.25" PointY="5.5" Height="2.5571907552083344" IsExpanded="true" />
+        <EntityTypeShape EntityType="lastFMcacheModel.Artist" Width="1.5" PointX="6.875" PointY="8.125" Height="3.1340950520833344" IsExpanded="true" />
+        <EntityTypeShape EntityType="lastFMcacheModel.SimilarArtist" Width="1.5" PointX="11.25" PointY="8.625" Height="1.7879850260416674" IsExpanded="true" />
+        <EntityTypeShape EntityType="lastFMcacheModel.SimilarArtistList" Width="1.5" PointX="9.25" PointY="9.625" Height="2.1725878906249996" IsExpanded="true" />
+        <EntityTypeShape EntityType="lastFMcacheModel.SimilarTrack" Width="1.5" PointX="2.5" PointY="9.625" Height="1.7879850260416674" IsExpanded="true" />
+        <EntityTypeShape EntityType="lastFMcacheModel.SimilarTrackList" Width="1.5" PointX="4.75" PointY="9.625" Height="2.1725878906249996" IsExpanded="true" />
+        <EntityTypeShape EntityType="lastFMcacheModel.TopTracks" Width="1.5" PointX="6.875" PointY="6" Height="1.7879850260416674" IsExpanded="true" />
+        <EntityTypeShape EntityType="lastFMcacheModel.TopTracksList" Width="1.5" PointX="9.5" PointY="5.5" Height="2.1725878906250005" IsExpanded="true" />
+        <EntityTypeShape EntityType="lastFMcacheModel.Track" Width="1.5" PointX="4.75" PointY="6.25" Height="2.5571907552083344" IsExpanded="true" />
         <AssociationConnector Association="lastFMcacheModel.FK_Artist_0" ManuallyRouted="false">
-          <ConnectorPoint PointX="2.25" PointY="7.8362939453125" />
-          <ConnectorPoint PointX="3" PointY="7.8362939453125" /></AssociationConnector>
+          <ConnectorPoint PointX="10.541666666666666" PointY="7.6725878906250005" />
+          <ConnectorPoint PointX="10.541666666666666" PointY="8.8984375" />
+          <ConnectorPoint PointX="8.375" PointY="8.8984375" />
+          </AssociationConnector>
         <AssociationConnector Association="lastFMcacheModel.FK_Artist_1" ManuallyRouted="false">
-          <ConnectorPoint PointX="5.25" PointY="10.403341971354166" />
-          <ConnectorPoint PointX="4.2395858333333329" PointY="10.403341971354166" />
-          <ConnectorPoint PointX="4.0729191666666669" PointY="10.403341971354166" />
-          <ConnectorPoint PointX="3.75" PointY="10.403341971354166" />
-          <ConnectorPoint PointX="3.75" PointY="9.3840950520833353" /></AssociationConnector>
+          <ConnectorPoint PointX="9.25" PointY="10.8671875" />
+          <ConnectorPoint PointX="8.375" PointY="10.8671875" />
+          </AssociationConnector>
         <AssociationConnector Association="lastFMcacheModel.FK_Artist_2" ManuallyRouted="false">
-          <ConnectorPoint PointX="3.5319230769230767" PointY="6.25" />
-          <ConnectorPoint PointX="3.5319230769230767" PointY="6" />
-          <ConnectorPoint PointX="3.9784615384615383" PointY="6" />
-          <ConnectorPoint PointX="3.9784615384615383" PointY="6.25" /></AssociationConnector>
+          <ConnectorPoint PointX="7.2708333333333321" PointY="11.259095052083335" />
+          <ConnectorPoint PointX="7.2708333333333321" PointY="11.509095052083335" />
+          <ConnectorPoint PointX="8.03125" PointY="11.509095052083335" />
+          <ConnectorPoint PointX="8.03125" PointY="11.259095052083335" /></AssociationConnector>
         <AssociationConnector Association="lastFMcacheModel.FK_SimilarArtist_1" ManuallyRouted="false">
-          <ConnectorPoint PointX="4.5" PointY="8.6535953776041676" />
-          <ConnectorPoint PointX="6.979166666666667" PointY="8.6535953776041676" />
-          <ConnectorPoint PointX="7.208333333333333" PointY="8.6535953776041676" />
-          <ConnectorPoint PointX="7.5" PointY="8.6535953776041676" /></AssociationConnector>
+          <ConnectorPoint PointX="8.375" PointY="9.2317708333333321" />
+          <ConnectorPoint PointX="11.25" PointY="9.2317708333333321" />
+          </AssociationConnector>
         <AssociationConnector Association="lastFMcacheModel.FK_SimilarArtistList_0" ManuallyRouted="false">
-          <ConnectorPoint PointX="4.1562525" PointY="9.3840950520833353" />
-          <ConnectorPoint PointX="4.1562525" PointY="10.944217430989582" />
-          <ConnectorPoint PointX="5.25" PointY="10.944217430989582" /></AssociationConnector>
+          <ConnectorPoint PointX="8.375" PointY="10.4296875" />
+          <ConnectorPoint PointX="9.25" PointY="10.4296875" />
+          </AssociationConnector>
         <AssociationConnector Association="lastFMcacheModel.FK_TopTracksList_0" ManuallyRouted="false">
-          <ConnectorPoint PointX="3" PointY="7.23064697265625" />
-          <ConnectorPoint PointX="2.25" PointY="7.23064697265625" /></AssociationConnector>
+          <ConnectorPoint PointX="8.375" PointY="8.5338541666666661" />
+          <ConnectorPoint PointX="9.9375" PointY="8.5338541666666661" />
+          <ConnectorPoint PointX="9.9375" PointY="7.6725878906250005" />
+          </AssociationConnector>
         <AssociationConnector Association="lastFMcacheModel.FK_Track_1" ManuallyRouted="false">
-          <ConnectorPoint PointX="4.5" PointY="7.1535953776041676" />
-          <ConnectorPoint PointX="5.25" PointY="7.1535953776041676" /></AssociationConnector>
+          <ConnectorPoint PointX="6.875" PointY="8.2630208333333321" />
+          <ConnectorPoint PointX="6.25" PointY="8.2630208333333321" />
+          </AssociationConnector>
         <AssociationConnector Association="lastFMcacheModel.FK_SimilarArtist_0" ManuallyRouted="false">
-          <ConnectorPoint PointX="6.75" PointY="9.5189925130208337" />
-          <ConnectorPoint PointX="6.979166666666667" PointY="9.5189925130208337" />
-          <ConnectorPoint PointX="7.208333333333333" PointY="9.5189925130208337" />
-          <ConnectorPoint PointX="7.5" PointY="9.5189925130208337" /></AssociationConnector>
+          <ConnectorPoint PointX="10.75" PointY="11.065104166666666" />
+          <ConnectorPoint PointX="12" PointY="11.065104166666666" />
+          <ConnectorPoint PointX="12" PointY="10.412985026041667" /></AssociationConnector>
         <AssociationConnector Association="lastFMcacheModel.FK_SimilarTrack_0" ManuallyRouted="false">
-          <ConnectorPoint PointX="6.75" PointY="7.5189925130208337" />
-          <ConnectorPoint PointX="6.979166666666667" PointY="7.5189925130208328" />
-          <ConnectorPoint PointX="7.208333333333333" PointY="7.5189925130208337" />
-          <ConnectorPoint PointX="10.5" PointY="7.5189925130208337" />
-          <ConnectorPoint PointX="10.5" PointY="8.375" /></AssociationConnector>
+          <ConnectorPoint PointX="4.75" PointY="7.5285953776041676" />
+          <ConnectorPoint PointX="3.25" PointY="7.5285953776041676" />
+          <ConnectorPoint PointX="3.25" PointY="9.625" /></AssociationConnector>
         <AssociationConnector Association="lastFMcacheModel.FK_SimilarTrack_1" ManuallyRouted="false">
-          <ConnectorPoint PointX="9" PointY="11.8362939453125" />
-          <ConnectorPoint PointX="10.5" PointY="11.8362939453125" />
-          <ConnectorPoint PointX="10.5" PointY="10.162985026041667" /></AssociationConnector>
+          <ConnectorPoint PointX="4.75" PointY="10.377604166666666" />
+          <ConnectorPoint PointX="4" PointY="10.377604166666666" />
+          </AssociationConnector>
         <AssociationConnector Association="lastFMcacheModel.FK_SimilarTrackList_0" ManuallyRouted="false">
-          <ConnectorPoint PointX="6.75" PointY="6.4782442565104166" />
-          <ConnectorPoint PointX="7.125" PointY="6.4782442565104166" />
-          <ConnectorPoint PointX="7.125" PointY="11.8362939453125" />
-          <ConnectorPoint PointX="7.5" PointY="11.8362939453125" /></AssociationConnector>
+          <ConnectorPoint PointX="5.28125" PointY="8.8071907552083353" />
+          <ConnectorPoint PointX="5.28125" PointY="9.625" />
+          </AssociationConnector>
         <AssociationConnector Association="lastFMcacheModel.FK_Track_0" ManuallyRouted="false">
-          <ConnectorPoint PointX="7.5" PointY="11.261894972656251" />
-          <ConnectorPoint PointX="7.0625" PointY="11.261894972656251" />
-          <ConnectorPoint PointX="7.0625" PointY="6.9986183847656251" />
-          <ConnectorPoint PointX="6.75" PointY="6.9986183847656251" />
+          <ConnectorPoint PointX="5.828125" PointY="9.625" />
+          <ConnectorPoint PointX="5.828125" PointY="8.8071907552083353" />
           </AssociationConnector>
         <AssociationConnector Association="lastFMcacheModel.FK_TopTracks_0" ManuallyRouted="false">
-          <ConnectorPoint PointX="6.75" PointY="5.9266221282552083" />
-          <ConnectorPoint PointX="7.625" PointY="5.9266221282552083" /></AssociationConnector>
+          <ConnectorPoint PointX="6.25" PointY="6.8046875" />
+          <ConnectorPoint PointX="6.875" PointY="6.8046875" />
+          </AssociationConnector>
         <AssociationConnector Association="lastFMcacheModel.FK_TopTracks_1" ManuallyRouted="false">
-          <ConnectorPoint PointX="1.5" PointY="6.75" />
-          <ConnectorPoint PointX="1.5" PointY="5.34375" />
-          <ConnectorPoint PointX="7.625" PointY="5.34375" /></AssociationConnector></Diagram></edmx:Diagrams>
+          <ConnectorPoint PointX="9.5" PointY="6.8362939453125" />
+          <ConnectorPoint PointX="8.375" PointY="6.8362939453125" />
+          </AssociationConnector></Diagram></edmx:Diagrams>
   </edmx:Designer>
 </edmx:Edmx>

@@ -9,7 +9,7 @@ using EmnExtensions;
 using EmnExtensions.Text;
 //using System.Threading;
 
-namespace DeURLizeM3U
+namespace PlaylistFixer
 {
     class Program
     {

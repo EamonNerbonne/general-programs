@@ -6,6 +6,12 @@ using System.Data.Objects;
 using EmnExtensions.DebugTools;
 using System.Diagnostics;
 using EmnExtensions;
+using System.Data.EntityClient;
+using System.Data.Common;
+using LastFMspider;
+using SongDataLib;
+using System.Reflection;
+using System.IO;
 
 namespace LastFMentityModel
 {
@@ -23,7 +29,7 @@ namespace LastFMentityModel
 				return obj.ToString();
 		}
 
-		private static void PrintTimeRes(Stopwatch timer, string msg, object obj) {
+		public static void PrintTimeRes(this Stopwatch timer, string msg, object obj) {
 			try {
 				timer.Stop();
 				Console.WriteLine(PrintDebug(obj));
@@ -79,10 +85,6 @@ namespace LastFMentityModel
 				let reach = g.Sum()
 				orderby reach descending
 				select new { ArtistID = artID, ArtistReachEstimate = reach };*/
-				//PrintDebug(artistReach);
-				//artistReach = artistReach.Take(10000);
-				//PrintDebug(artistReach);
-				//artistReach.Q
 				long curArtistID = -1;
 				var aL = from artist in model.Artist
 						 where artist.ArtistID == curArtistID
@@ -90,9 +92,7 @@ namespace LastFMentityModel
 				for (int i = 0; i < 1000; i++) {
 					curArtistID = artistIDs[i];
 					var a = aL.First();
-					Console.WriteLine("{2}: {0} (Reach:{1})", a.FullArtist, reach[i],i+1);
-//					if ((i+1) % 25 == 0)
-//						Console.ReadKey();
+					Console.WriteLine("{2}: {0} (Reach:{1})", a.FullArtist, reach[i], i + 1);
 				}
 				PrintTimeRes(timer, "Query execution", "");
 			}
@@ -100,9 +100,14 @@ namespace LastFMentityModel
 
 
 		static void Main(string[] args) {
-			Test2();
-			Test2();
+			using (var model = new LastFMCacheModel())
+				Actions.LfmAction.EnsureLocalFilesInDb(new SimpleSongDB(new SongDatabaseConfigFile(false), null), model);
+			Console.WriteLine("done.");
+			Console.ReadKey();
 		}
+
+		const string DataProvider = "System.Data.SQLite";
+		const string DataConnectionString = "page size=4096;cache size=100000;datetimeformat=Ticks;Legacy Format=False;Synchronous=Off;data source=\"{0}\"";
 
 		/// <summary>
 		/// Effectively:
@@ -117,24 +122,26 @@ namespace LastFMentityModel
 		/// order by TT.TrackID desc
 		/// </summary>
 		static void Test2() {
-			using (LastFMCacheModel model = new LastFMCacheModel()) {
-				Stopwatch timer = Stopwatch.StartNew();
-				//var AFewMonthsAgo = DateTime.Now - TimeSpan.FromDays(365.25/12.0*6.0);
-				var AFewMonthsAgo = new DateTime(633672352317986158L);//2009-01-12
-				var relevantTracks = from toptrack in model.TopTracks
-									 orderby toptrack.Track.TrackID descending
-									 where toptrack.Reach > 30000 && toptrack.InList.LookupTimestamp >AFewMonthsAgo.Ticks&& toptrack.InList == toptrack.InList.OfArtist.CurrentTopTracksList
-									 orderby toptrack.Track.TrackID descending
-									 select new {toptrack.Track.TrackID, FullArtist = toptrack.Track.Artist.FullArtist, FullTitle =  toptrack.Track.FullTitle, Reach = toptrack.Reach, LookupTimestamp = toptrack.InList.LookupTimestamp };
-				PrintTimeRes(timer, "relevant track query constructed", relevantTracks);
-				int i=0;
-				foreach (var recenttrack in relevantTracks) {
-					Console.WriteLine("{0}:{5}: {1} - {2} ({3} listeners @ {4})", ++i, recenttrack.FullArtist,recenttrack.FullTitle,recenttrack.Reach,new DateTime(recenttrack.LookupTimestamp),recenttrack.TrackID );
-					//if (i % 25 == 0)
-					//    Console.ReadKey();
-				}
-				PrintTimeRes(timer, "Query execution", "");
+			using (LastFMSQLiteCache cache = new LastFMSQLiteCache(new FileInfo(@"E:\musicDB\cache\lastFMcache.old.s3db"))) {
+				cache.Connection.Close();
 
+				using (LastFMCacheModel model = new LastFMCacheModel()) { //new LastFMCacheModel(new EntityConnection(new System.Data.Metadata.Edm.MetadataWorkspace(new[] { "res://*/" }, new[] { Assembly.GetExecutingAssembly() }), cache.Connection))) {
+					Stopwatch timer = Stopwatch.StartNew();
+					//var AFewMonthsAgo = DateTime.Now - TimeSpan.FromDays(365.25/12.0*6.0);
+					var AFewMonthsAgo = new DateTime(633672352317986158L);//2009-01-12
+					var relevantTracks = from toptrack in model.TopTracks
+										 orderby toptrack.Track.TrackID descending
+										 where toptrack.Reach > 30000 && toptrack.InList.LookupTimestamp > AFewMonthsAgo.Ticks && toptrack.InList == toptrack.InList.OfArtist.CurrentTopTracksList
+										 orderby toptrack.Track.TrackID descending
+										 select new { toptrack.Track.TrackID, FullArtist = toptrack.Track.Artist.FullArtist, FullTitle = toptrack.Track.FullTitle, Reach = toptrack.Reach, LookupTimestamp = toptrack.InList.LookupTimestamp };
+					PrintTimeRes(timer, "relevant track query constructed", relevantTracks);
+					int i = 0;
+					foreach (var recenttrack in relevantTracks) {
+						Console.WriteLine("{0}:{5}: {1} - {2} ({3} listeners @ {4})", ++i, recenttrack.FullArtist, recenttrack.FullTitle, recenttrack.Reach, new DateTime(recenttrack.LookupTimestamp), recenttrack.TrackID);
+					}
+					PrintTimeRes(timer, "Query execution", "");
+
+				}
 			}
 		}
 	}

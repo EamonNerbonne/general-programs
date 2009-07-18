@@ -18,11 +18,8 @@ using LastFMspider.OldApi;
 namespace LastFMspider {
     public class SongSimilarityCache {
         public LastFMSQLiteCache backingDB { get; private set; }
-        public SongSimilarityCache(DirectoryInfo cacheDir) {
-            Init(cacheDir);
-        }
 
-        public SongSimilarityCache(SongDatabaseConfigFile configFile) {
+		public SongSimilarityCache(SongDatabaseConfigFile configFile) {
             Init(configFile);
         }
 
@@ -34,12 +31,8 @@ namespace LastFMspider {
         }
 
         private void Init(SongDatabaseConfigFile configFile) {
-            Init(configFile.DataDirectory.CreateSubdirectory("cache"));
-        }
-
-        private void Init(DirectoryInfo cacheDir) {
             Console.WriteLine("Initializing sqlite db");
-            backingDB = new LastFMSQLiteCache(new FileInfo(Path.Combine(cacheDir.FullName, "lastFMcache.s3db")));//TODO decide what kind of DB we really want...
+			backingDB = new LastFMSQLiteCache(configFile);//TODO decide what kind of DB we really want...
         }
 
 
@@ -47,6 +40,7 @@ namespace LastFMspider {
             bool ignore;
             return Lookup(songref, out ignore);
         }
+
         public SongSimilarityList Lookup(SongRef songref, out bool isNewlyDownloaded) {
             ListStatus? cachedVersion = backingDB.LookupSimilarityListAge.Execute(songref);
             if (cachedVersion == null) { //get online version

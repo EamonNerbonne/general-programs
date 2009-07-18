@@ -126,6 +126,7 @@
   <ItemGroup>
     <Compile Include="ArbitraryTrackMapper.cs" />
     <Compile Include="CachedDistanceMatrix.cs" />
+    <Compile Include="LastFmDbBuilder.cs" />
     <Compile Include="LastFMSQLiteBackend\AbstractLfmCacheOperation.cs" />
     <Compile Include="LastFMSQLiteBackend\AbstractLfmCacheQuery.cs" />
     <Compile Include="LastFMSQLiteBackend\AllTracks.cs" />

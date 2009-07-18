@@ -47,7 +47,7 @@ namespace LastFMspider
         public override bool Equals(object obj) {
             if (!(obj is SongRef)) return false;
             SongRef other = ((SongRef)obj);
-            return other.hashcode == hashcode && other.Artist.Equals(Artist, StringComparison.InvariantCultureIgnoreCase) && Title.Equals(other.Title, StringComparison.InvariantCultureIgnoreCase);
+            return other.hashcode == hashcode && other.Artist.ToLatinLowercase().Equals(Artist.ToLatinLowercase()) && Title.ToLatinLowercase().Equals(other.Title.ToLatinLowercase());
         }
         public override int GetHashCode() {
             return hashcode;

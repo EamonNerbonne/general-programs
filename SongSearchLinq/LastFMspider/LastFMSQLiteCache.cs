@@ -7,341 +7,94 @@ using System.Data.Common;
 using System.Data.SQLite;
 using LastFMspider.LastFMSQLiteBackend;
 using System.Xml.Linq;
+using SongDataLib;
 
-namespace LastFMspider {
-    public class LastFMSQLiteCache:IDisposable {
-        public readonly object SyncRoot = new object();
-        //we set legacy format to false for better storage efficiency
-        //we set datetime format to ticks for better efficiency (interally just stored as integer)
-        //rating is stored as a REAL which is a float in C#.
+namespace LastFMspider
+{
+	public sealed class LastFMSQLiteCache : IDisposable
+	{
+		public readonly object SyncRoot = new object();
 
-        const string DataProvider = "System.Data.SQLite";
-        const string DataConnectionString = "page size=4096;cache size=100000;datetimeformat=Ticks;Legacy Format=False;Synchronous=Off;data source=\"{0}\"";
-        const string DatabaseDef = @"
-PRAGMA journal_mode = PERSIST;
+		public DbConnection Connection { get; private set; }
+		public LookupSimilarityList LookupSimilarityList { get; private set; }
+		public LookupSimilarityListAge LookupSimilarityListAge { get; private set; }
+		public InsertArtist InsertArtist { get; private set; }
+		public InsertTrack InsertTrack { get; private set; }
+		public LookupTrack LookupTrack { get; private set; }
+		public LookupArtist LookupArtist { get; private set; }
+		public LookupTrackID LookupTrackID { get; private set; }
+		public InsertSimilarity InsertSimilarity { get; private set; }
+		public InsertSimilarityList InsertSimilarityList { get; private set; }
+		public CountSimilarities CountSimilarities { get; private set; }
+		public CountRoughSimilarities CountRoughSimilarities { get; private set; }
+		public AllTracks AllTracks { get; private set; }
+		public TracksWithoutSimilarityList TracksWithoutSimilarityList { get; private set; }
+		public RawArtists RawArtists { get; private set; }
+		public RawTracks RawTracks { get; private set; }
+		public UpdateTrackCasing UpdateTrackCasing { get; private set; }
+		public UpdateArtistCasing UpdateArtistCasing { get; private set; }
+		public RawSimilarTracks RawSimilarTracks { get; private set; }
+		public LookupArtistSimilarityList LookupArtistSimilarityList { get; private set; }
+		public LookupArtistSimilarityListAge LookupArtistSimilarityListAge { get; private set; }
+		public InsertArtistSimilarity InsertArtistSimilarity { get; private set; }
+		public InsertArtistSimilarityList InsertArtistSimilarityList { get; private set; }
+		public ArtistsWithoutSimilarityList ArtistsWithoutSimilarityList { get; private set; }
+		public ArtistsWithoutTopTracksList ArtistsWithoutTopTracksList { get; private set; }
+		public LookupArtistTopTracksListAge LookupArtistTopTracksListAge { get; private set; }
+		public LookupArtistTopTracksList LookupArtistTopTracksList { get; private set; }
+		public InsertArtistTopTrack InsertArtistTopTrack { get; private set; }
+		public InsertArtistTopTracksList InsertArtistTopTracksList { get; private set; }
+		public SetArtistAlternate SetArtistAlternate { get; private set; }
 
+		const string filename = "lastFMcache.s3db";
+		public LastFMSQLiteCache(SongDatabaseConfigFile config) : this(new FileInfo(Path.Combine(config.DataDirectory.CreateSubdirectory("cache").FullName, filename))) { }
 
+		public LastFMSQLiteCache(FileInfo dbFile) {
+			Connection = LastFmDbBuilder.ConstructConnection(dbFile);
+			Connection.Open();
+			LastFmDbBuilder.CreateTables(Connection);
+			PrepareSql();
+		}
 
-CREATE TABLE IF NOT EXISTS [Artist] (
-  [ArtistID] INTEGER  PRIMARY KEY NOT NULL,
-  [FullArtist] TEXT  NOT NULL,
-  [LowercaseArtist] TEXT  NOT NULL,
-  [IsAlternateOf] INTEGER NULL,
-  [CurrentSimilarArtistList] INTEGER NULL,
-  [CurrentTopTracksList] INTEGER NULL,
-  CONSTRAINT fk_is_alt_artist FOREIGN KEY(IsAlternateOf) REFERENCES Artist(ArtistID),
-  CONSTRAINT fk_cur_sal_simart FOREIGN KEY(CurrentSimilarArtistList) REFERENCES SimilarArtistList(ListID),
-  CONSTRAINT fk_cur_ttl_toptracks FOREIGN KEY(CurrentTopTracksList) REFERENCES TopTracksList(ListID)
-);
-CREATE UNIQUE INDEX  IF NOT EXISTS [Unique_Artist_LowercaseArtist] ON [Artist](
-  [LowercaseArtist]  ASC
-);
-CREATE UNIQUE INDEX  IF NOT EXISTS [Unique_Artist_CurrentSimilarArtistList] ON [Artist](
-  [CurrentSimilarArtistList]  ASC
-);
-CREATE UNIQUE INDEX  IF NOT EXISTS [Unique_Artist_CurrentTopTracksList] ON [Artist](
-  [CurrentTopTracksList]  ASC
-);
-
-
-
-CREATE TABLE IF NOT EXISTS [SimilarArtistList] (
-[ListID] INTEGER NOT NULL PRIMARY KEY,
-[ArtistID] INTEGER  NOT NULL,
-[LookupTimestamp] INTEGER NOT NULL,
-[StatusCode] INTEGER,
-CONSTRAINT fk_artist FOREIGN KEY(ArtistID) REFERENCES Artist(ArtistID)
-);
-CREATE UNIQUE INDEX  IF NOT EXISTS [Unique_SimilarArtistList_ArtistID_LookupTimestamp] ON [SimilarArtistList](
-  [ArtistID]  ASC,
-  [LookupTimestamp]  DESC
-);
-CREATE INDEX IF NOT EXISTS [IDX_SimilarArtistList_LookupTimestamp] ON [SimilarArtistList](
-  [LookupTimestamp]  ASC
-);
-
-
-
-CREATE TABLE IF NOT EXISTS [SimilarArtist] (
-[SimilarArtistID] INTEGER  NOT NULL PRIMARY KEY,
-[ListID] INTEGER  NOT NULL,
-[ArtistB] INTEGER  NOT NULL,
-[Rating] REAL NOT NULL,
-CONSTRAINT fk_other_artist FOREIGN KEY(ArtistB) REFERENCES Artist(ArtistID),
-  CONSTRAINT fk_sal_owner FOREIGN KEY(ListID) REFERENCES SimilarArtistList(ListID)
-);
-CREATE UNIQUE INDEX  IF NOT EXISTS [Unique_SimilarArtist_ArtistA_ArtistB] ON [SimilarArtist](
-  [ListID]  ASC,
-  [ArtistB]  ASC
-);
-CREATE INDEX  IF NOT EXISTS [IDX_SimilarArtist_ArtistB] ON [SimilarArtist](
-  [ArtistB]  ASC
-);
-CREATE INDEX  IF NOT EXISTS [IDX_SimilarArtist_Rating] ON [SimilarArtist](
-  [Rating]  DESC
-);
-
-
-
-CREATE TABLE IF NOT EXISTS  [Track] (
-  [TrackID] INTEGER  NOT NULL PRIMARY KEY,
-  [ArtistID] INTEGER  NOT NULL,
-  [FullTitle] TEXT  NOT NULL,
-  [LowercaseTitle] TEXT  NOT NULL,
-  [CurrentSimilarTrackList] INTEGER NULL,
-	CONSTRAINT fk_of_artist FOREIGN KEY(ArtistID) REFERENCES Artist(ArtistID),
-	CONSTRAINT fk_cur_stl FOREIGN KEY(CurrentSimilarTrackList) REFERENCES SimilarTrackList(ListID)
-);
-CREATE UNIQUE INDEX IF NOT EXISTS [Unique_Track_ArtistID_LowercaseTitle] ON [Track](
-  [ArtistID]  ASC,
-  [LowercaseTitle]  ASC
-);
-CREATE UNIQUE INDEX IF NOT EXISTS [Unique_Track_CurrentSimilarTrackList] ON [Track](
-  [CurrentSimilarTrackList]  ASC
-);
+		private void PrepareSql() {
+			InsertTrack = new InsertTrack(this);
+			LookupTrack = new LookupTrack(this);
+			LookupArtist = new LookupArtist(this);
+			LookupTrackID = new LookupTrackID(this);
+			InsertSimilarityList = new InsertSimilarityList(this);
+			InsertSimilarity = new InsertSimilarity(this);
+			InsertArtist = new InsertArtist(this);
+			LookupSimilarityList = new LookupSimilarityList(this);
+			LookupSimilarityListAge = new LookupSimilarityListAge(this);
+			CountSimilarities = new CountSimilarities(this);
+			CountRoughSimilarities = new CountRoughSimilarities(this);
+			AllTracks = new AllTracks(this);
+			RawTracks = new RawTracks(this);
+			RawArtists = new RawArtists(this);
+			UpdateTrackCasing = new UpdateTrackCasing(this);
+			UpdateArtistCasing = new UpdateArtistCasing(this);
+			RawSimilarTracks = new RawSimilarTracks(this);
+			TracksWithoutSimilarityList = new TracksWithoutSimilarityList(this);
+			LookupArtistSimilarityListAge = new LookupArtistSimilarityListAge(this);
+			LookupArtistSimilarityList = new LookupArtistSimilarityList(this);
+			InsertArtistSimilarityList = new InsertArtistSimilarityList(this);
+			InsertArtistSimilarity = new InsertArtistSimilarity(this);
+			ArtistsWithoutSimilarityList = new ArtistsWithoutSimilarityList(this);
+			ArtistsWithoutTopTracksList = new ArtistsWithoutTopTracksList(this);
+			LookupArtistTopTracksListAge = new LookupArtistTopTracksListAge(this);
+			LookupArtistTopTracksList = new LookupArtistTopTracksList(this);
+			InsertArtistTopTrack = new InsertArtistTopTrack(this);
+			InsertArtistTopTracksList = new InsertArtistTopTracksList(this);
+			SetArtistAlternate = new SetArtistAlternate(this);
+		}
 
 
-
-CREATE TABLE IF NOT EXISTS [SimilarTrackList] (
-[ListID] INTEGER NOT NULL PRIMARY KEY,
-[TrackID] INTEGER  NOT NULL,
-[LookupTimestamp] INTEGER NOT NULL,
-[StatusCode] INTEGER,
-	CONSTRAINT fk_of_track FOREIGN KEY(TrackID) REFERENCES Track(TrackID)
-);
-CREATE UNIQUE INDEX  IF NOT EXISTS [Unique_SimilarTrackList_TrackID_LookupTimestamp] ON [SimilarTrackList](
-  [TrackID]  ASC,
-  [LookupTimestamp]  DESC
-);
-CREATE INDEX IF NOT EXISTS [IDX_SimilarTrackList_LookupTimestamp] ON [SimilarTrackList](
-  [LookupTimestamp]  ASC
-);
-
-
-
-CREATE TABLE IF NOT EXISTS [SimilarTrack] (
-  [SimilarTrackID] INTEGER  NOT NULL PRIMARY KEY,
-  [ListID] INTEGER  NOT NULL,
-  [TrackB] INTEGER  NOT NULL,
-  [Rating] REAL NOT NULL,
-CONSTRAINT fk_owning_stl FOREIGN KEY(ListID) REFERENCES SimilarTrackList(ListID),
-CONSTRAINT fk_other_track FOREIGN KEY(TrackB) REFERENCES Track(TrackID)
-);
-CREATE UNIQUE INDEX  IF NOT EXISTS [Unique_SimilarTrack_TrackA_TrackB] ON [SimilarTrack](
-  [ListID]  ASC,
-  [TrackB]  ASC
-);
-CREATE INDEX  IF NOT EXISTS [IDX_SimilarTrack_TrackB] ON [SimilarTrack](
-  [TrackB]  ASC
-);
-CREATE INDEX  IF NOT EXISTS [IDX_SimilarTrack_Rating] ON [SimilarTrack](
-  [Rating]  DESC
-);
-
-
-
-CREATE TABLE IF NOT EXISTS [TopTracksList] (
-[ListID] INTEGER NOT NULL PRIMARY KEY,
-[ArtistID] INTEGER  NOT NULL,
-[LookupTimestamp] INTEGER NOT NULL,
-[StatusCode] INTEGER,
-CONSTRAINT fk_owner_artist FOREIGN KEY(ArtistID) REFERENCES Artist(ArtistID)
-);
-CREATE UNIQUE INDEX  IF NOT EXISTS [Unique_TopTracksList_ArtistID_LookupTimestamp] ON [TopTracksList](
-  [ArtistID]  ASC,
-  [LookupTimestamp]  DESC
-);
-CREATE INDEX IF NOT EXISTS [IDX_TopTracksList_LookupTimestamp] ON [TopTracksList](
-  [LookupTimestamp]  ASC
-);
-
-
-
-CREATE TABLE IF NOT EXISTS [TopTracks] (
-[TopTrackID] INTEGER NOT NULL PRIMARY KEY,
-[TrackID] INTEGER  NOT NULL,
-[ListID] INTEGER  NOT NULL,
-[Reach] INTEGER NOT NULL,
-CONSTRAINT fk_of_ttl FOREIGN KEY(ListID) REFERENCES TopTracksList(ListID),
-CONSTRAINT fk_has_track FOREIGN KEY(TrackID) REFERENCES Track(TrackID)
-);
-CREATE UNIQUE INDEX  IF NOT EXISTS [Unique_TopTracks_ListID_TrackID] ON [TopTracks](
-  [ListID]  ASC,
-  [TrackID]  ASC
-);
-CREATE INDEX  IF NOT EXISTS [IDX_TopTracks_TrackID] ON [TopTracks](
-  [TrackID]  DESC
-);
-CREATE INDEX  IF NOT EXISTS [IDX_TopTracks_Reach] ON [TopTracks](
-  [Reach]  DESC
-);
-
-
-";/*
-CREATE TABLE IF NOT EXISTS  [Tag] (
-  [TagID] INTEGER NOT NULL PRIMARY KEY,
-  [LowercaseTag] TEXT  NOT NULL
-);
-CREATE UNIQUE INDEX  IF NOT EXISTS [Unique_Tag_LowercaseTag] ON [Tag](
-  [LowercaseTag]  ASC
-);
-
-CREATE TABLE IF NOT EXISTS  [TrackTag] (
-  [TrackTagID] INTEGER NOT NULL PRIMARY KEY,
-  [TagID] INTEGER NOT NULL,
-  [TrackID] INTEGER NOT NULL,
-  [TagCount] INTEGER NOT NULL
-);
-CREATE UNIQUE INDEX  IF NOT EXISTS [Unique_TrackTag_TrackID_TagID] ON [TrackTag](
-  [TrackID]  ASC,
-  [TagID] ASC
-);
-CREATE INDEX  IF NOT EXISTS [IDX_TrackTag_TagID] ON [TrackTag](
-  [TagID] ASC
-);
-CREATE INDEX  IF NOT EXISTS [IDX_TrackTag_TagCount] ON [TrackTag](
-  [TagCount] DESC
-);
-
-
-
-CREATE TABLE IF NOT EXISTS  [Mbid] (
-  [MbidID] INTEGER NOT NULL PRIMARY KEY,
-  [LowercaseMbid] TEXT NOT NULL
-);
-CREATE UNIQUE INDEX  IF NOT EXISTS [Unique_Mbid_LowercaseMbid] ON [Mbid](
-  [LowercaseMbid]  ASC
-);
-
-
-
-CREATE TABLE IF NOT EXISTS  [TrackInfo] (
-  [TrackID] INTEGER NOT NULL PRIMARY KEY,
-  [InfoTimestamp] INTEGER NOT NULL,
-  [Listeners] INTEGER NULL,
-  [Playcount] INTEGER NULL,
-  [Duration] INTEGER NULL,
-  [ArtistMbidID] INTEGER NULL,
-  [TrackMbidID] INTEGER NULL,
-  [LastFmId] INTEGER NULL
-);
-CREATE INDEX  IF NOT EXISTS [IDX_TrackInfo_InfoTimestamp] ON [TrackInfo](
-  [InfoTimestamp] ASC
-);
-CREATE INDEX  IF NOT EXISTS [IDX_TrackInfo_Listeners] ON [TrackInfo](
-  [Listeners] DESC
-);
-CREATE INDEX  IF NOT EXISTS [IDX_TrackInfo_Playcount] ON [TrackInfo](
-  [Playcount] DESC
-);
-";*/
-
-
-        FileInfo dbFile;
-        public DbConnection Connection { get; private set; }
-        public LookupSimilarityList LookupSimilarityList { get; private set; }
-        public LookupSimilarityListAge LookupSimilarityListAge { get; private set; }
-        public InsertArtist InsertArtist { get; private set; }
-        public InsertTrack InsertTrack { get; private set; }
-        public LookupTrack LookupTrack { get; private set; }
-        public LookupArtist LookupArtist { get; private set; }
-        public LookupTrackID LookupTrackID { get; private set; }
-        public InsertSimilarity InsertSimilarity { get; private set; }
-        public InsertSimilarityList InsertSimilarityList { get; private set; }
-        public CountSimilarities CountSimilarities { get; private set; }
-        public CountRoughSimilarities CountRoughSimilarities { get; private set; }
-        public AllTracks AllTracks { get; private set; }
-        public TracksWithoutSimilarityList TracksWithoutSimilarityList { get; private set; }
-        public RawArtists RawArtists { get; private set; }
-        public RawTracks RawTracks { get; private set; }
-        public UpdateTrackCasing UpdateTrackCasing { get; private set; }
-        public UpdateArtistCasing UpdateArtistCasing { get; private set; }
-        public RawSimilarTracks RawSimilarTracks { get; private set; }
-        public LookupArtistSimilarityList LookupArtistSimilarityList { get; private set; }
-        public LookupArtistSimilarityListAge LookupArtistSimilarityListAge { get; private set; }
-        public InsertArtistSimilarity InsertArtistSimilarity { get; private set; }
-        public InsertArtistSimilarityList InsertArtistSimilarityList { get; private set; }
-        public ArtistsWithoutSimilarityList ArtistsWithoutSimilarityList { get; private set; }
-        public ArtistsWithoutTopTracksList ArtistsWithoutTopTracksList { get; private set; }
-        public LookupArtistTopTracksListAge LookupArtistTopTracksListAge { get; private set; }
-        public LookupArtistTopTracksList LookupArtistTopTracksList { get; private set; }
-        public InsertArtistTopTrack InsertArtistTopTrack { get; private set; }
-        public InsertArtistTopTracksList InsertArtistTopTracksList { get; private set; }
-        public SetArtistAlternate SetArtistAlternate { get; private set; }
-
-        public LastFMSQLiteCache(FileInfo sqliteFile) { dbFile = sqliteFile; Init(); }
-
-
-        /// <summary>
-        /// Opens the DB connection.  Should be called by all constructors or whenever Db is reopened.
-        /// </summary>
-        private void Init() {
-            string instanceConnStr = String.Format(DataConnectionString, dbFile.FullName);
-            DbProviderFactory dbProviderFactory = DbProviderFactories.GetFactory(DataProvider);
-            Connection = dbProviderFactory.CreateConnection();
-            //Connection could be disposed eventually - but when? We're not troubled with failing to release a bit of memory for a while.
-            Connection.ConnectionString = instanceConnStr;
-            Connection.Open();
-            Create();
-            PrepareSql();
-        }
-        //public EDM.LfmSqliteEdmContainer EDMCont { get; private set; }
-
-
-        private void PrepareSql() {
-            
-            InsertTrack = new InsertTrack(this);
-            LookupTrack = new LookupTrack(this);
-            LookupArtist = new LookupArtist(this);
-            LookupTrackID = new LookupTrackID(this);
-            InsertSimilarityList = new InsertSimilarityList(this);
-            InsertSimilarity = new InsertSimilarity(this);
-            InsertArtist = new InsertArtist(this);
-            LookupSimilarityList = new LookupSimilarityList(this);
-            LookupSimilarityListAge = new LookupSimilarityListAge(this);
-            CountSimilarities = new CountSimilarities(this);
-            CountRoughSimilarities = new CountRoughSimilarities(this);
-            AllTracks = new AllTracks(this);
-            RawTracks = new RawTracks(this);
-            RawArtists = new RawArtists(this);
-            UpdateTrackCasing = new UpdateTrackCasing(this);
-            UpdateArtistCasing = new UpdateArtistCasing(this);
-            RawSimilarTracks = new RawSimilarTracks(this);
-            TracksWithoutSimilarityList = new TracksWithoutSimilarityList(this);
-            LookupArtistSimilarityListAge = new LookupArtistSimilarityListAge(this);
-            LookupArtistSimilarityList = new LookupArtistSimilarityList(this);
-            InsertArtistSimilarityList = new InsertArtistSimilarityList(this);
-            InsertArtistSimilarity = new InsertArtistSimilarity(this);
-            ArtistsWithoutSimilarityList = new ArtistsWithoutSimilarityList(this);
-            ArtistsWithoutTopTracksList = new ArtistsWithoutTopTracksList(this);
-            LookupArtistTopTracksListAge = new LookupArtistTopTracksListAge(this);
-            LookupArtistTopTracksList = new LookupArtistTopTracksList(this);
-            InsertArtistTopTrack = new InsertArtistTopTrack(this);
-            InsertArtistTopTracksList = new InsertArtistTopTracksList(this);
-            SetArtistAlternate = new SetArtistAlternate(this);
-        }
-
-
-        private void Create() {
-            using (DbTransaction trans = Connection.BeginTransaction()) {
-                using (DbCommand createComm = Connection.CreateCommand()) {
-                    createComm.CommandText = DatabaseDef;
-                    createComm.ExecuteNonQuery();
-                }
-                trans.Commit();
-            }
-        }
-
-
-        #region IDisposable Members
-
-        public void Dispose() {
-            lock (SyncRoot) {
-                Connection.Dispose();
-            }
-        }
-
-        #endregion
-    }
+		public void Dispose() {
+			lock (SyncRoot) {
+				if (Connection != null)
+					Connection.Dispose();
+			}
+		}
+	}
 
 }
