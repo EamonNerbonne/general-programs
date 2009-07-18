@@ -19,9 +19,9 @@ namespace LastFMspider.LastFMSQLiteBackend
         DbParameter limitRowCount;
         protected override string CommandText {
             get { return @"
-SELECT A.ArtistID, A.FullArtist, L.LookupTimestamp 
+SELECT A.ArtistID, A.FullArtist
 FROM Artist A 
-WHERE A.CurrentSimilarAr A.IsAlternateOf IS NULL 
+WHERE A.CurrentSimilarArtistList IS NULL and A.IsAlternateOf IS NULL 
 LIMIT @limitRowCount
 "; }
         }
@@ -36,7 +36,7 @@ LIMIT @limitRowCount
                         tracks.Add(new CachedArtist {
                             ArtistID = (int)(long)reader[0],
                             ArtistName = (string)reader[1],
-                            LookupTimestamp = LookupSimilarityListAge.DbValueTicksToDateTime(reader[2]) //should be NULL
+                            LookupTimestamp = null 
                         });
 
                 }

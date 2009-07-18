@@ -11,6 +11,16 @@ namespace LastFMentityModel.Actions
 {
 	public static partial class LfmAction
 	{
+		class LowerLatinEqual : IEqualityComparer<string>
+		{
+			public bool Equals(string x, string y) {
+				return x.ToLatinLowercase() == y.ToLatinLowercase();
+			}
+
+			public int GetHashCode(string obj) {
+				return obj.ToLatinLowercase().GetHashCode();
+			}
+		}
 
 		public static void EnsureLocalFilesInDb(SimpleSongDB db, LastFMCacheModel model) {
 			Stopwatch overall = Stopwatch.StartNew();
@@ -22,33 +32,34 @@ namespace LastFMentityModel.Actions
 						   select songref).Distinct().ToArray();
 			timer.PrintTimeRes("loaded songrefs:", songrefs.Length);
 
-			var newArtists = (from artist in songrefs.Select(sr => sr.Artist).Distinct()
+			var newArtists = from artist in songrefs.Select(sr => sr.Artist).Distinct(new LowerLatinEqual())
 							 let lowerArtist = artist.ToLatinLowercase()
 							 where !model.Artist.Any(a => a.LowercaseArtist == lowerArtist)
-							 select new Artist { FullArtist = artist, LowercaseArtist = lowerArtist }).ToArray();
-			timer.PrintTimeRes("newed artists:", newArtists.Length);
-
+							 select new Artist { FullArtist = artist, LowercaseArtist = lowerArtist };
+			int newArtistCount = 0 ;
 			foreach (var newArtist in newArtists) {
 				model.AddToArtist(newArtist);
 				Console.WriteLine("Added {0}", newArtist.FullArtist);
+				newArtistCount++;
 			}
-			timer.PrintTimeRes("added artists:", newArtists.Length);
+			timer.PrintTimeRes("added artists:", newArtistCount);
 			model.SaveChanges();
 			timer.PrintTimeRes("saved changes", null);
 
-			var newTracks = (from songref in songrefs
+			var newTracks = from songref in songrefs
 							let lowercaseArtist = songref.Artist.ToLatinLowercase()
 							let artist = model.Artist.First(a => a.LowercaseArtist == lowercaseArtist)
 							let lowerTitle = songref.Title.ToLatinLowercase()
 							where !model.Track.Any(t => t.LowercaseTitle == lowerTitle)
-							select new Track { LowercaseTitle = lowerTitle, FullTitle = songref.Title, Artist = artist }).ToArray(); ;
-			timer.PrintTimeRes("newed tracks:", newTracks.Length);
+							select new Track { LowercaseTitle = lowerTitle, FullTitle = songref.Title, Artist = artist };
 
+			int newTrackCount = 0;
 			foreach (var newTrack in newTracks) {
 				model.AddToTrack(newTrack);
 				Console.WriteLine("Added {0}", newTrack.Artist.FullArtist + " - " + newTrack.FullTitle);
+				newTrackCount++;
 			}
-			timer.PrintTimeRes("added tracks:", newArtists.Length);
+			timer.PrintTimeRes("added tracks:", newTrackCount);
 			model.SaveChanges();
 			timer.PrintTimeRes("saved changes", null);
 			Console.WriteLine("Overall, took {0}.", overall.Elapsed);

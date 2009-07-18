@@ -30,7 +30,13 @@ namespace HttpHeaderHelper
 				SetFinalStatus(501, "Http Method Not Supported");
 			}
 			return isOK;
+			
 		}
+
+		public static string encode(string str) { return HttpUtility.UrlEncode(str); }
+		public static string encode2(string str) { return Uri.EscapeDataString(str); }
+		public static string encode3(string str) { return Uri.EscapeUriString(str); }
+		public static string encode4(string str) { return HttpUtility.UrlPathEncode(str); }
 
 		private void AssertNotYetFinished() {
 			if(requestFinished) throw new Exception("This request has already been finished!");

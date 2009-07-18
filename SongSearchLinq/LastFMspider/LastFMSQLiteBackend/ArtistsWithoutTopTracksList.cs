@@ -12,9 +12,9 @@ namespace LastFMspider.LastFMSQLiteBackend
         DbParameter limitRowCount;
         protected override string CommandText {
             get { return @"
-SELECT A.ArtistID, A.FullArtist, L.LookupTimestamp 
-FROM Artist A left join TopTracksList L on A.ArtistID = L.ArtistID
-WHERE A.IsAlternateOf IS NULL AND L.LookupTimestamp IS NULL 
+SELECT A.ArtistID, A.FullArtist
+FROM Artist A 
+WHERE A.CurrentTopTracksList IS NULL AND A.IsAlternateOf IS NULL
 LIMIT @limitRowCount
 "; }
         }
