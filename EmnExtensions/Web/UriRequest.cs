@@ -53,7 +53,6 @@ namespace EmnExtensions.Web
 				using (var stream = httpReponse.GetResponseStream()) {
 					int lastReadCount = stream.Read(buf, 0, BUFSIZE);
 					using (MemoryStream returnBuf = new MemoryStream(lastReadCount)) {
-
 						while (lastReadCount != 0) {
 							returnBuf.Write(buf, 0, lastReadCount);
 							lastReadCount = stream.Read(buf, 0, BUFSIZE);
