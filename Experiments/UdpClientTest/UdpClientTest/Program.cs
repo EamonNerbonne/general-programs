@@ -5,35 +5,91 @@ using System.Text;
 using System.Net.Sockets;
 using System.Net;
 using System.Threading;
+using System.Security.Cryptography;
 
 namespace UdpClientTest
 {
 	class Program
 	{
+		public const double ClientErr = 0.0001;
+		public const double ServerErr = 0.0001;
 		static void Main(string[] args)
 		{
-			using (Listener l = new Listener())
+			foreach (ushort port in args
+				.Where(arg => arg.StartsWith("/server="))
+				.Select(arg => ushort.Parse(arg.Substring("/server=".Length))))
 			{
-				int portNr = l.Port;
-				new Thread(() =>
+				new Thread((serverPort) =>
 				{
-					while (true)
+					using (Listener l = new Listener((int)serverPort))
+						l.Loop();
+				}).Start((int)port);
+			}
+
+			int clientCount = Math.Max(1,
+						args
+						.Where(arg => arg.StartsWith("/clientcount="))
+						.Select(arg => int.Parse(arg.Substring("/clientcount=".Length)))
+						.FirstOrDefault());
+
+			foreach (IPEndPoint serverLocation in
+				from arg in args
+				where arg.StartsWith("/connect=")
+				let endPointStr = arg.Substring("/connect=".Length)
+				let portSplitterIdx = endPointStr.LastIndexOf(':')
+				let ipAddrStr = endPointStr.Substring(0, portSplitterIdx)
+				let portStr = endPointStr.Substring(portSplitterIdx + 1)
+				let ipAddr = IPAddress.Parse(ipAddrStr)
+				let port = ushort.Parse(portStr)
+				select new IPEndPoint(ipAddr, port)
+			)
+				for (int i = 0; i < clientCount; i++)
+					new Thread((object endPoint) =>
 					{
-						UdpClient client = new UdpClient();
-						client.Connect(new IPEndPoint(IPAddress.Loopback, portNr));
-						var data = Encoding.UTF8.GetBytes( Console.ReadKey(true).KeyChar.ToString());
-						IPEndPoint remote = null;
+						UdpClientProc((IPEndPoint)endPoint);
+					}).Start(serverLocation);
+		}
+
+		static void UdpClientProc(IPEndPoint endPoint)
+		{
+			Console.WriteLine("Connecting to: {0}", endPoint);
+			byte[] intB = new byte[4];
+
+			Random r = new Random((Thread.CurrentThread.ManagedThreadId << 24) ^ (int)DateTime.Now.Ticks);
+			for (int i = 0; i < int.MaxValue; i++)
+			{
+				try
+				{
+					UdpClient client = new UdpClient();
+					client.Ttl = 5;
+					client.Client.SendTimeout = 500;
+					client.Client.ReceiveTimeout = 500;
+
+					client.Connect(endPoint);
+
+					int v = r.Next();
+					var data = BitConverter.GetBytes(v).Concat(BitConverter.GetBytes(-v)).ToArray();
+					IPEndPoint remote = null;
+					if (r.NextDouble() < ClientErr)
+						Console.WriteLine("Client: not sending SIM");
+					else
 						client.Send(data, data.Length);
 
-
-						var recData = client.Receive(ref remote);
-						if (!recData.SequenceEqual(data))
-							throw new Exception("bad mirror!");
-					}
-
-				}) { IsBackground = true, Priority = ThreadPriority.BelowNormal }.Start();
-
-				l.Loop();
+					var recData = client.Receive(ref remote);
+					if (recData.Length != 8
+						|| BitConverter.ToInt32(recData, 0) + BitConverter.ToInt32(recData, 4) != 0
+						|| BitConverter.ToInt32(recData, 4) != v
+						)
+						throw new Exception("Inconsistent packet");
+					client.Close();
+				}
+				catch (SocketException se)
+				{
+					if (se.ErrorCode == 10060)
+						Console.WriteLine("Client receive time-out");
+					else
+						throw;
+				}
 			}
 		}
 
@@ -44,14 +100,16 @@ namespace UdpClientTest
 		Socket serverSocket;
 		int port;
 		public int Port { get { return port; } }
-		public Listener()
+		public Listener() : this(0) { }
+		public Listener(int param_port)
 		{
 			try
 			{
 				serverSocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
-				port = (new Random().Next() % 60000)+5000;
+				port = param_port == 0 ? (new Random().Next() % 60000) + 5000 : param_port;
 				IPEndPoint endPoint = new IPEndPoint(IPAddress.Any, port);
 				serverSocket.Bind(endPoint);
+				Console.WriteLine("Using port:{0}", port);
 			}
 			catch
 			{
@@ -60,35 +118,31 @@ namespace UdpClientTest
 				throw;
 			}
 		}
-		StringBuilder sb =new StringBuilder();
+		StringBuilder sb = new StringBuilder();
+		long count = 0;
 		public void Loop()
 		{
+			Random r = new Random((Thread.CurrentThread.ManagedThreadId << 24) ^ (int)DateTime.Now.Ticks);
 			byte[] buffer = new byte[65536];
-			while(true) {
-				EndPoint remoteEP = new IPEndPoint(IPAddress.Any,0) ;
+			while (true)
+			{
+				EndPoint remoteEP = new IPEndPoint(IPAddress.Any, 0);
 				int recBytes = serverSocket.ReceiveFrom(buffer, ref remoteEP);
-				serverSocket.SendTo(buffer, recBytes, SocketFlags.None, remoteEP); //mirror
-
-				string message = Encoding.UTF8.GetString(buffer, 0, recBytes);
-				foreach (char c1 in message)
-				{
-					var c = c1 == 13?'\n':c1;
-					sb.Append(c);
-					if (c == '\n')
-					{
-						Console.Write(sb.ToString());
-						if (sb.ToString() == "EXIT\n")
-							return;
-						sb.Length = 0;
-					}
-				}
+				if (recBytes != 8) throw new Exception("Should have received 8 bytes");
+				if (BitConverter.ToInt32(buffer, 0) + BitConverter.ToInt32(buffer, 4) != 0)
+					throw new Exception("Inconsistent packet");
+				if (r.NextDouble() < Program.ServerErr)
+					Console.WriteLine("Server: not sending SIM");
+				else
+					serverSocket.SendTo(buffer.Skip(4).Take(4).Concat(buffer.Take(4)).ToArray(), recBytes, SocketFlags.None, remoteEP); //mirror
+				count++;
 			}
-			
 		}
 
 		public void Dispose()
 		{
 			serverSocket.Close();
+			Console.WriteLine("Received {0} packets", count);
 		}
 	}
 }
