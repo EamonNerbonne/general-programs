@@ -34,11 +34,20 @@ CREATE TABLE IF NOT EXISTS [Artist] (
 CREATE UNIQUE INDEX  IF NOT EXISTS [Unique_Artist_LowercaseArtist] ON [Artist](
   [LowercaseArtist]  ASC
 );
+CREATE TRIGGER IF NOT EXISTS Artist_Ignore_Duplicates BEFORE INSERT ON Artist
+FOR EACH ROW BEGIN 
+   INSERT OR IGNORE 
+      INTO Artist (ArtistID, FullArtist, LowercaseArtist, IsAlternateOf, CurrentSimilarArtistList, CurrentTopTracksList) 
+      VALUES (NEW.ArtistId, NEW.FullArtist, NEW.LowercaseArtist, NEW.IsAlternateOf, NEW.CurrentSimilarArtistList, NEW.CurrentTopTracksList);
+   select RAISE(IGNORE);
+END;
+
+
 
 
 
 CREATE TABLE IF NOT EXISTS [SimilarArtistList] (
-[ListID] INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT ,
+[ListID] INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
 [ArtistID] INTEGER  NOT NULL,
 [LookupTimestamp] INTEGER NOT NULL,
 [StatusCode] INTEGER,
@@ -54,7 +63,7 @@ CREATE INDEX IF NOT EXISTS [IDX_SimilarArtistList_LookupTimestamp] ON [SimilarAr
 
 
 CREATE TABLE IF NOT EXISTS [SimilarArtist] (
-[SimilarArtistID] INTEGER  NOT NULL PRIMARY KEY AUTOINCREMENT ,
+[SimilarArtistID] INTEGER  NOT NULL PRIMARY KEY AUTOINCREMENT,
 [ListID] INTEGER  NOT NULL,
 [ArtistB] INTEGER  NOT NULL,
 [Rating] REAL NOT NULL,
@@ -75,7 +84,7 @@ CREATE INDEX  IF NOT EXISTS [IDX_SimilarArtist_Rating] ON [SimilarArtist](
 
 
 CREATE TABLE IF NOT EXISTS  [Track] (
-  [TrackID] INTEGER  NOT NULL PRIMARY KEY AUTOINCREMENT ,
+  [TrackID] INTEGER  NOT NULL PRIMARY KEY AUTOINCREMENT,
   [ArtistID] INTEGER  NOT NULL,
   [FullTitle] TEXT  NOT NULL,
   [LowercaseTitle] TEXT  NOT NULL,
@@ -87,6 +96,14 @@ CREATE UNIQUE INDEX IF NOT EXISTS [Unique_Track_ArtistID_LowercaseTitle] ON [Tra
   [ArtistID]  ASC,
   [LowercaseTitle]  ASC
 );
+CREATE TRIGGER IF NOT EXISTS Track_Ignore_Duplicates BEFORE INSERT ON Track
+FOR EACH ROW BEGIN 
+   INSERT OR IGNORE 
+      INTO Artist (TrackID, ArtistID, FullTitle, LowercaseTitle, CurrentSimilarTrackList) 
+      VALUES (NEW.TrackID, NEW.ArtistID, NEW.FullTitle, NEW.LowercaseTitle, NEW.CurrentSimilarTrackList);
+   select RAISE(IGNORE);
+END;
+
 
 
 
