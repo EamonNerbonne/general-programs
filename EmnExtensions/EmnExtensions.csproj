@@ -184,6 +184,7 @@
     <Compile Include="MathHelpers\VectorHelpers.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Text\AbstractTextWriter.cs" />
+    <Compile Include="Text\BlockingReader.cs" />
     <Compile Include="Text\Canonicalize.cs" />
     <Compile Include="Text\DelegateTextWriter.cs" />
     <Compile Include="Text\StringFeatures.cs" />
