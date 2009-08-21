@@ -212,15 +212,15 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\..\..\..\..\morelinq\MoreLinq\MoreLinq.csproj">
+    <ProjectReference Include="..\..\..\..\..\morelinq\MoreLinq\MoreLinq.csproj">
       <Project>{8642E81B-3414-4C13-914F-05A4E600FE49}</Project>
       <Name>MoreLinq</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\..\..\VS.NET2008\EmnExtensionsWpf\EmnExtensionsWpf.csproj">
+    <ProjectReference Include="..\..\EmnExtensionsWpf\EmnExtensionsWpf.csproj">
       <Project>{1CDECDDA-5CCA-4CA9-8243-60106CD7B428}</Project>
       <Name>EmnExtensionsWpf</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\..\..\VS.NET2008\EmnExtensions\EmnExtensions.csproj">
+    <ProjectReference Include="..\..\EmnExtensions\EmnExtensions.csproj">
       <Project>{53ECEDA4-BB11-4BD3-8B51-0D3481FCBFA1}</Project>
       <Name>EmnExtensions</Name>
     </ProjectReference>
