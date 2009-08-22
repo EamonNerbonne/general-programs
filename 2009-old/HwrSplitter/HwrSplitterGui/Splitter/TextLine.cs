@@ -64,8 +64,6 @@ namespace DataIO
 			words = fromXml.Elements("Word").Select(xmlWord => new Word(xmlWord)).ToArray();
 		}
 
-
-
 		public XNode AsXml() {
 			return new XElement("TextLine",
 				new XAttribute("no", no),
@@ -73,7 +71,6 @@ namespace DataIO
 				words.Select(word => word.AsXml())
 					);
 		}
-
 
 		BitmapSource featImg;
 		int featDataY, featDataX;

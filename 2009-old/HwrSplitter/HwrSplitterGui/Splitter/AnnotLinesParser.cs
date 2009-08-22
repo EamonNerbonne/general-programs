@@ -12,9 +12,9 @@ namespace DataIO {
         static string DeXmlize(string xmlString) {
             //this is probably not fast, but it's pretty safe.
             using (var reader = XmlReader.Create(new StringReader(xmlString), settings)) {
-                if (reader.Read() && reader.NodeType == XmlNodeType.Text) {
+                if (reader.Read() && reader.NodeType == XmlNodeType.Text) 
                     return reader.Value;
-                } else throw new InvalidDataException(string.Format("Expected a single valid xml-encoded string - not {0}", xmlString));
+                else throw new InvalidDataException(string.Format("Expected a single valid xml-encoded string - not {0}", xmlString));
             }
         }
         public static IEnumerable<AnnotLineSingle> FromString(string str, Func<int, bool> pageFilter) {
@@ -65,7 +65,7 @@ namespace DataIO {
                         where !indexedLine.Line.text.Contains("\\n") //filter out potential nonsense lines AFTER indexing
                         let line = indexedLine.Line
                         let height = line.bottom - line.top
-                        select new TextLine(line.text, indexedLine.Index, line.top, line.bottom, line.left , line.right , 45,symbolWidths)
+						select new TextLine(line.text, indexedLine.Index, line.top, line.bottom, line.left, line.right + height * 0.6/*shear fix*/, 45, symbolWidths)
                     ).ToArray()//textlines in WordsImage
                 };
             return wordsImages.ToDictionary(wordsImage => wordsImage.pageNum);

@@ -19,21 +19,21 @@ namespace DataIO
 		public HwrPageImage(FileInfo fileToLoad) {
 			NiceTimer timer = new NiceTimer();
 			timer.TimeMark("Loading");
-			BitmapImage 
+			BitmapImage
 				original = new BitmapImage();
 			original.BeginInit();
 			original.UriSource = new Uri(fileToLoad.FullName);
 			original.EndInit();
-			 Console.WriteLine(original.IsDownloading);
+			Console.WriteLine(original.IsDownloading);
 			original.Freeze();
-			
+
 			timer.TimeMark("Converting to array");
 			var rawImg = new ImageStruct<uint>(original.PixelWidth, original.PixelHeight);
-			Console.WriteLine("{0:X}", rawImg[1000, 2000]);
-			uint[] data = new uint[original.PixelWidth * original.PixelHeight];
-			original.CopyPixels(data, original.PixelWidth*4, 0);
+			//Console.WriteLine("{0:X}", rawImg[1000, 2000]);//loading bug debug help
+			//uint[] data = new uint[original.PixelWidth * original.PixelHeight];//TODO:these lines prevent some sort of loading bug ... sometimes...
+			//original.CopyPixels(data, original.PixelWidth*4, 0);
 			original.CopyPixels(rawImg.RawData, rawImg.Stride, 0);
-			Console.WriteLine("{0:X}", rawImg[1000, 2000]);
+			//Console.WriteLine("{0:X}", rawImg[1000, 2000]);//loading bug debug help
 #if VIACPP
 			timer.TimeMark("preprocessing");
 			image = ImageProcessor.preprocess(rawImg);
@@ -59,7 +59,7 @@ namespace DataIO
 			bmp.WritePixels(new Int32Rect(0, 0, bmp.PixelWidth, bmp.PixelHeight), gray, image.Stride, 0);
 		}
 
-		public sbyte this[int y, int x] { get { return (sbyte)(1 - image[x,y]); } }
+		public sbyte this[int y, int x] { get { return (sbyte)(1 - image[x, y]); } }
 
 		public float Interpolate(double y, double x) { return ImageDataConversion.Interpolate((yI, xI) => (float)this[yI, xI], y, x); }
 		public ImageStruct<sbyte> Image { get { return image; } }
