@@ -21,7 +21,6 @@ namespace DataIO
 		public float[,] features;
 
 		public double cost = double.NaN;
-		public CostSummary? costSummary;
 
 		public TextLine() { }
 		public TextLine(string text, int no, double top, double bottom, double left, double right, double shear, Dictionary<char, SymbolWidth> symbolWidths)
@@ -33,7 +32,6 @@ namespace DataIO
 			.ToArray();
 			GuessWordsInString(symbolWidths);
 		}
-		public string costSummaryString() { return costSummary == null ? "" : costSummary.ToString(); }
 
 
 		private void GuessWordsInString( Dictionary<char, SymbolWidth> symbolWidths) {

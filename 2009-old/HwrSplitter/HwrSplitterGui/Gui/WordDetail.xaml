@@ -12,8 +12,6 @@
             <RowDefinition  MinHeight="10" Height="Auto"/>
             <RowDefinition  MinHeight="60" Height="1*"/>
             <RowDefinition  MinHeight="10" Height="Auto"/>
-            <RowDefinition  MinHeight="10" Height="Auto"/>
-			<RowDefinition  MinHeight="10" Height="Auto"/>
 		</Grid.RowDefinitions>
         <TextBlock Name="wordSelectorTextBlock" Grid.ColumnSpan="2"  TextAlignment="Center" ><Run Foreground="Red">Uninitialized</Run></TextBlock>
         <Grid  Name="grid1" Grid.Row="1" Grid.ColumnSpan="2">
@@ -21,8 +19,7 @@
                 <ColumnDefinition />
                 <ColumnDefinition />
             </Grid.ColumnDefinitions>
-            <Label Name="wordContent" Grid.Column="1">Word-Stats</Label>
-            <Label Name="wordContent2">Word-Stats2</Label>
+            <Label Name="wordContent" Grid.ColumnSpan="2">Word-Stats</Label>
         </Grid>
 
         <Rectangle Grid.Row="2" Name="lineView" Stroke="Black"  SizeChanged="lineView_SizeChanged">
@@ -31,32 +28,10 @@
             </Rectangle.Fill>
         </Rectangle>
 		
-        <Rectangle Name="intensityRowGraph" Stroke="Black" Grid.Row="2" Grid.Column="1">
-            <Rectangle.Fill>
-                <ImageBrush ViewportUnits="RelativeToBoundingBox" Viewport="0,0,1,1" Viewbox="0,0,100,1" ViewboxUnits="Absolute"/>
-            </Rectangle.Fill>
-        </Rectangle>
-
 		<Rectangle  Name="featuresGraph" Stroke="Black" Grid.Row="3">
 			<Rectangle.Fill>
 				<ImageBrush ViewportUnits="RelativeToBoundingBox" Viewport="0,0,1,1" Viewbox="0,0,100,1" ViewboxUnits="Absolute"/>
 			</Rectangle.Fill>
 		</Rectangle>
-
-
-
-		<Label Grid.Row="4" Name="label1" VerticalAlignment="Center" Background="Transparent" HorizontalAlignment="Center">Whole line sum</Label>
-        <Rectangle  Name="intensityGraph" Stroke="Black" Grid.Row="4">
-            <Rectangle.Fill>
-                <ImageBrush ViewportUnits="RelativeToBoundingBox" Viewport="0,0,1,1" Viewbox="0,0,100,1" ViewboxUnits="Absolute"/>
-            </Rectangle.Fill>
-        </Rectangle>
-		
-        <Label Name="label2" Grid.Row="5" VerticalAlignment="Center" Background="Transparent" HorizontalAlignment="Center" >Line Body only sum</Label>
-        <Rectangle Name="intensityBodyGraph" Stroke="Black" Grid.Row="5">
-            <Rectangle.Fill>
-                <ImageBrush ViewportUnits="RelativeToBoundingBox" Viewport="0,0,1,1" Viewbox="0,0,100,1" ViewboxUnits="Absolute"/>
-            </Rectangle.Fill>
-        </Rectangle>
     </Grid>
 </UserControl>

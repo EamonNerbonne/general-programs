@@ -9,7 +9,6 @@ namespace DataIO
         public int no;
         public TrackStatus leftStat, rightStat, topStat, botStat;
         public LengthEstimate symbolBasedLength;
-        public CostSummary? costSummary;
         public object guiTag;
         // public double cost = double.NaN;
         public Word() { 
@@ -33,7 +32,6 @@ namespace DataIO
             botStat=toCopy.botStat;
 
             symbolBasedLength = toCopy.symbolBasedLength;
-            costSummary = toCopy.costSummary;// imageBasedCost = toCopy.imageBasedCost;
         }
         public Word(XElement fromXml)
             : base(fromXml) {

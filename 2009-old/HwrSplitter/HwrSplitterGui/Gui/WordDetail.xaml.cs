@@ -25,16 +25,13 @@ namespace HwrSplitter.Gui
 			lineVisual = (VisualBrush)lineView.Fill;
 			lineVisual.Transform = new SkewTransform(45.0, 0); //TODO: make skew correction variable.
 
-			intensBrush = (ImageBrush)intensityGraph.Fill;
-			intensBodyBrush = (ImageBrush)intensityBodyGraph.Fill;
-			intensRowBrush = (ImageBrush)intensityRowGraph.Fill;
 			featuresGraphBrush = (ImageBrush)featuresGraph.Fill;
 			RenderOptions.SetBitmapScalingMode(featuresGraph, BitmapScalingMode.Fant);
 		}
 
 		public TextBlock WordSelectorTextBlock { get { return wordSelectorTextBlock; } }
 		VisualBrush lineVisual;
-		ImageBrush intensBrush, intensBodyBrush, intensRowBrush, featuresGraphBrush;
+		ImageBrush  featuresGraphBrush;
 		public Canvas ToZoom { get { return (Canvas)lineVisual.Visual; } set { lineVisual.Visual = value; } }
 		internal Rect imgRect = new Rect(0, 0, 1, 1);
 
@@ -145,12 +142,6 @@ namespace HwrSplitter.Gui
 				imgRect.Y - padHeight / 2,
 				imgRect.Width + padWidth,
 				imgRect.Height + padHeight);
-			intensBrush.Viewbox = intensBodyBrush.Viewbox =
-				new Rect(
-				imgRect.X - padWidth / 2 + shearOffsetHelper,
-				0,
-				imgRect.Width + padWidth,
-				1);
 			double featImgHeight = featuresGraphBrush.ImageSource == null ? 1 : featuresGraphBrush.ImageSource.Height;
 			featuresGraphBrush.Viewbox = new Rect(
 				imgRect.X - padWidth / 2 + shearOffsetHelper - featureComputeOffset.X,
@@ -158,11 +149,6 @@ namespace HwrSplitter.Gui
 				imgRect.Width + padWidth,
 				featImgHeight);
 			featuresGraph.Height = featImgHeight*2;
-			intensRowBrush.Viewbox = new Rect(
-				0,
-				 -padHeight / 2,
-				1,
-				imgRect.Height + padHeight);
 		}
 
 		private void lineView_SizeChanged(object sender, SizeChangedEventArgs e) {
