@@ -178,6 +178,12 @@
       <DependentUpon>Settings.settings</DependentUpon>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
+    <Compile Include="Splitter\AnnotLinesParser.cs" />
+    <Compile Include="Splitter\HwrPageImage.cs" />
+    <Compile Include="Splitter\Program.cs" />
+    <Compile Include="Splitter\TextLine.cs" />
+    <Compile Include="Splitter\TextLineCostOptimizer.cs" />
+    <Compile Include="Splitter\WordsImage.cs" />
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
@@ -246,9 +252,6 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Splitter\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

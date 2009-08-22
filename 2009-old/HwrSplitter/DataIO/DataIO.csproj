@@ -56,13 +56,10 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AnnotLinesParser.cs" />
     <Compile Include="CostSummary.cs" />
-    <Compile Include="HwrPageImage.cs" />
     <Compile Include="IAsXml.cs" />
     <Compile Include="ImageDataConversion.cs" />
     <Compile Include="PixelArgb32.cs" />
-    <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
@@ -76,11 +73,8 @@
     </Compile>
     <Compile Include="ShearedBox.cs" />
     <Compile Include="SymbolWidthParser.cs" />
-    <Compile Include="TextLine.cs" />
-    <Compile Include="TextLineCostOptimizer.cs" />
     <Compile Include="TrackedDouble.cs" />
     <Compile Include="Word.cs" />
-    <Compile Include="WordsImage.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Properties\Settings.settings">

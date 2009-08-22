@@ -68,8 +68,8 @@ namespace HwrSplitter.Gui
 		Point featureComputeOffset;
 
 		public void DisplayLine(TextLine textline, Word word) {
-			intensBrush.ImageSource = ImgdataFromShearedSum(textline.words, word, textline.shearedsum);
-			intensBodyBrush.ImageSource = ImgdataFromShearedSum(textline.words, word, textline.shearedbodysum);
+			//intensBrush.ImageSource = ImgdataFromShearedSum(textline.words, word, textline.shearedsum);
+			//intensBodyBrush.ImageSource = ImgdataFromShearedSum(textline.words, word, textline.shearedbodysum);
 			
 			BitmapSource bmp;
 			textline.Retrieve(out bmp, out featureComputeOffset);
@@ -77,20 +77,6 @@ namespace HwrSplitter.Gui
 			
 
 
-			byte[] rowSumImgData = ByteArrFromFloatArr(textline.rowsum);
-
-			rowSumImgData[textline.bodyTop * 4] = 0;
-			rowSumImgData[textline.bodyTop * 4 + 1] = 255;
-			rowSumImgData[textline.bodyTop * 4 + 2] = 0;
-
-			rowSumImgData[textline.bodyBot * 4] = 0;
-			rowSumImgData[textline.bodyBot * 4 + 1] = 255;
-			rowSumImgData[textline.bodyBot * 4 + 2] = 0;
-
-			intensRowBrush.ImageSource =
-				BitmapSource.Create(1, textline.rowsum.Length, 96.0, 96.0, PixelFormats.Bgra32, null,
-				  rowSumImgData, 4);//this uses the fact that horizontal or vertical lines
-			//are only distinguishable by their stride!
 
 			if (bodyBotLine != null) {
 				ToZoom.Children.Remove(bodyBotLine);
@@ -101,7 +87,7 @@ namespace HwrSplitter.Gui
 
 			bodyTopLine = new Line {
 				X1 = 0,
-				X2 = textline.shearedsum.Length - 1,
+				X2 = textline.right,
 				Y1 = textline.top + textline.bodyTop,
 				Y2 = textline.top + textline.bodyTop,
 				StrokeThickness = 2,
@@ -110,7 +96,7 @@ namespace HwrSplitter.Gui
 
 			bodyBotLine = new Line {
 				X1 = 0,
-				X2 = textline.shearedsum.Length - 1,
+				X2 = textline.right, //TODO:?
 				Y1 = textline.top + textline.bodyBot,
 				Y2 = textline.top + textline.bodyBot,
 				StrokeThickness = 2,

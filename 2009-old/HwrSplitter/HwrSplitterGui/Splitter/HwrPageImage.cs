@@ -40,11 +40,6 @@ namespace DataIO
 #else
 			timer.TimeMark("threshholding");
 			image = rawImg.MapTo(nr => ((PixelArgb32)nr).R >= 200 ? (sbyte)0 : (sbyte)1);
-			/*Width = original.PixelWidth;
-			Height = original.PixelHeight;
-			image = new float[Width * Height];
-			for (int pxOffset = 0; pxOffset < data.Length; pxOffset++)
-				image[pxOffset] = ((PixelArgb32)data[pxOffset]).R >= 200 ? 1.0f : 0.0f;*/
 #endif
 			timer.TimeMark(null);
 		}
