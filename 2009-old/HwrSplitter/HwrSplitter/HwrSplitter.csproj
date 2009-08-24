@@ -230,7 +230,7 @@
       <Project>{53ECEDA4-BB11-4BD3-8B51-0D3481FCBFA1}</Project>
       <Name>EmnExtensions</Name>
     </ProjectReference>
-    <ProjectReference Include="..\DataIO\HwrDataModel.csproj">
+    <ProjectReference Include="..\HwrDataModel\HwrDataModel.csproj">
       <Project>{173FB9EC-62DA-4729-BB05-704685F3CB44}</Project>
       <Name>HwrDataModel</Name>
     </ProjectReference>
