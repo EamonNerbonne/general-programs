@@ -1,6 +1,6 @@
 ﻿using System.Xml.Linq;
 
-namespace DataIO
+namespace HwrDataModel
 {
     public interface IAsXml
     {

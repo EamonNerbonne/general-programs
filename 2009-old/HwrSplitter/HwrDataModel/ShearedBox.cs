@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Xml.Linq;
 
-namespace DataIO
+namespace HwrDataModel
 {
     public abstract class ShearedBox
     {
