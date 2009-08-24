@@ -52,7 +52,8 @@ namespace HwrSplitter.Engine
         public AnnotLinesParser(FileInfo file, Func<int, bool> pageFilter) {
             annotLines = AnnotLineSingle.FromString(file.OpenText().ReadToEnd(), pageFilter).ToArray();
         }
-        public Dictionary<int, WordsImage> GuessWords(Dictionary<char, SymbolWidth> symbolWidths) {
+		public Dictionary<int, WordsImage> GuessWords(Dictionary<char, GaussianEstimate> symbolWidths)
+		{
             var wordsImages = //lazily evaluated query.
                 from annotline in annotLines
                 group annotline by annotline.pageNum into pagegroup
@@ -73,10 +74,11 @@ namespace HwrSplitter.Engine
             return wordsImages.ToDictionary(wordsImage => wordsImage.pageNum);
 
         }
-        public static Dictionary<int, WordsImage> GetGuessWords(FileInfo file, Func<int, bool> pageFilter, Dictionary<char, SymbolWidth> symbolWidths) {
+		public static Dictionary<int, WordsImage> GetGuessWords(FileInfo file, Func<int, bool> pageFilter, Dictionary<char, GaussianEstimate> symbolWidths)
+		{
             return new AnnotLinesParser(file, pageFilter).GuessWords(symbolWidths);
         }
-        public static WordsImage GetGuessWord(FileInfo file, int pageNum , Dictionary<char, SymbolWidth> symbolWidths) {
+        public static WordsImage GetGuessWord(FileInfo file, int pageNum , Dictionary<char, GaussianEstimate> symbolWidths) {
             return new AnnotLinesParser(file, x=>x==pageNum).GuessWords(symbolWidths)[pageNum];
 
         }

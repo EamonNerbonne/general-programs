@@ -15,13 +15,13 @@ namespace HwrSplitter.Engine
 {
 	public class TextLineCostOptimizer
 	{
-		const int charPhases = 1;
+		public const int CharPhases = 1;
 		HwrOptimizer nativeOptimizer;
-		readonly SymbolWidth[] availableChars;
+		readonly SymbolClass[] symbolClasses;
 
-		public TextLineCostOptimizer( SymbolWidth[] availableChars) {
-			this.availableChars = availableChars;
-			nativeOptimizer = new HwrOptimizer(availableChars.Length * charPhases);
+		public TextLineCostOptimizer(SymbolClass[] symbolClasses) {
+			this.symbolClasses = symbolClasses;
+			nativeOptimizer = new HwrOptimizer(symbolClasses);
 		}
 
 		public void ImproveGuess(HwrPageImage image, WordsImage betterGuessWords, Action<TextLine> lineProcessed)
@@ -62,7 +62,7 @@ namespace HwrSplitter.Engine
 			int y0 = (int)(lineGuess.top + 0.5);
 			int y1 = (int)(lineGuess.bottom + 0.5);
 
-			Func<char, bool> charKnown = c => availableChars.Where(sym => sym.c == c).Any();
+			Func<char, bool> charKnown = c => symbolClasses.Where(sym => sym.Letter == c).Any();
 
 			var basicLine = from word in lineGuess.words
 							from letter in word.text.AsEnumerable().Concat(' ')
@@ -74,8 +74,8 @@ namespace HwrSplitter.Engine
 
 			var phaseCodeSeq = (
 				from letter in basicLine
-				let code = availableChars.Single(sym => sym.c == letter).code
-				from phaseCode in Enumerable.Range((int)code * charPhases, charPhases)
+				let code = symbolClasses.Single(sym => sym.Letter == letter).Code
+				from phaseCode in Enumerable.Range((int)code * CharPhases, CharPhases)
 				select (uint)phaseCode
 				).ToArray();
 
@@ -90,7 +90,7 @@ namespace HwrSplitter.Engine
 									(float)lineGuess.shear);
 			int x0 = x0Est + topXoffset;
 
-			charEndPos = charEndPos.Where((pos, i) => i % charPhases == charPhases - 1).ToArray();
+			charEndPos = charEndPos.Where((pos, i) => i % CharPhases == CharPhases - 1).ToArray();
 			int currWord = -1;
 
 
@@ -150,6 +150,20 @@ namespace HwrSplitter.Engine
 			featureImage = featImgRGB.MapTo(p => p.Data).ToBitmap();
 			featureImage.Freeze();
 			offset = new Point(featDataX, featDataY);
+		}
+
+		public  Dictionary<char, GaussianEstimate> MakeSymbolWidthEstimate()
+		{
+			return (
+					from symbolClass in symbolClasses
+					group symbolClass.Length by symbolClass.Letter into symbolsByLetter
+					select symbolsByLetter
+				).ToDictionary(
+					symbolGroup => symbolGroup.Key,
+					symbolGroup => symbolGroup.Aggregate((a, b) => a + b)
+				);
+
+			
 		}
 	}
 }

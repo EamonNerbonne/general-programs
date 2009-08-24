@@ -109,8 +109,8 @@ namespace HwrSplitter.Gui
         }
 
         void LoadInBackground() {
-            LoadSymbolWidths();
-			manager.optimizer = new TextLineCostOptimizer( symbolWidth);
+            manager.optimizer =LoadSymbolClasses();
+			
 
             ChooseImage();
             LoadImage();
@@ -132,10 +132,10 @@ namespace HwrSplitter.Gui
         }
 
 
-        //0 is begin line, 10 is line end, and each word includes one 32 for space.  Unknown letters get 1.
-        SymbolWidth[] symbolWidth;
-        private void LoadSymbolWidths() {
-            symbolWidth = SymbolWidthParser.Parse(new FileInfo(System.IO.Path.Combine(HwrDataModel.Program.DataPath, "char-width.txt")));
+        private TextLineCostOptimizer LoadSymbolClasses() {
+            var symbolClasses = SymbolClassParser.Parse(new FileInfo(System.IO.Path.Combine(HwrDataModel.Program.DataPath, "char-width.txt")), TextLineCostOptimizer.CharPhases);
+
+			return new TextLineCostOptimizer(symbolClasses);
         }
 
         private void Log(string logmsg) {
@@ -146,7 +146,7 @@ namespace HwrSplitter.Gui
             var annotLines = AnnotLinesParser.GetAnnotLines(annotFile);
             Console.WriteLine("Lines higher than 255: {0} of {1}",  annotLines.Where(al => al.bottom - al.top > 255).Count(),annotLines.Length);
 
-            words = AnnotLinesParser.GetGuessWord(annotFile, pageNum, symbolWidth.ToDictionary(symW=>symW.c) );
+            words = AnnotLinesParser.GetGuessWord(annotFile, pageNum, manager.optimizer.MakeSymbolWidthEstimate()  );
             manager.words = words;
 
             Log("Loaded line_annot and parsed it");

@@ -69,7 +69,7 @@
       <DependentUpon>Settings.settings</DependentUpon>
     </Compile>
     <Compile Include="ShearedBox.cs" />
-    <Compile Include="SymbolWidthParser.cs" />
+    <Compile Include="SymbolClass.cs" />
     <Compile Include="TextLine.cs" />
     <Compile Include="Word.cs" />
     <Compile Include="WordsImage.cs" />

@@ -20,7 +20,7 @@ namespace HwrDataModel
 
 
 		public TextLine() { }
-		public TextLine(string text, int no, double top, double bottom, double left, double right, double shear, Dictionary<char, SymbolWidth> symbolWidths)
+		public TextLine(string text, int no, double top, double bottom, double left, double right, double shear, Dictionary<char, GaussianEstimate> symbolWidths)
 			: base(top, bottom, left, right, shear) {
 			this.no = no;
 			this.words = text
@@ -31,28 +31,29 @@ namespace HwrDataModel
 		}
 
 
-		private void GuessWordsInString( Dictionary<char, SymbolWidth> symbolWidths) {
+		private void GuessWordsInString(Dictionary<char, GaussianEstimate> symbolWidths)
+		{
 			foreach (var word in words)
 				word.EstimateLength(symbolWidths);
 
 			var lengthEstimates = words.Select(word => word.symbolBasedLength);
 
-			LengthEstimate
-				start = symbolWidths[(char)0].estimate,
-				end = symbolWidths[(char)10].estimate;
+			GaussianEstimate
+				start = symbolWidths[(char)0],
+				end = symbolWidths[(char)10];
 
-			LengthEstimate totalEstimate = start + lengthEstimates.Aggregate((a, b) => a + b) + end;
-			double wordwiseStddevTotal = start.stddev + lengthEstimates.Select(est=>est.stddev).Sum() + end.stddev;
+			GaussianEstimate totalEstimate = start + lengthEstimates.Aggregate((a, b) => a + b) + end;
+			double wordwiseStddevTotal = start.StdDev + lengthEstimates.Select(est=>est.StdDev).Sum() + end.StdDev;
 
 			//ok, so we have a total line length and a per word estimate
-			double correctionPerStdDev = (right - left-totalEstimate.len) / wordwiseStddevTotal;
-			double position = left + start.len+ start.stddev *correctionPerStdDev;
+			double correctionPerStdDev = (right - left-totalEstimate.Mean) / wordwiseStddevTotal;
+			double position = left + start.Mean+ start.StdDev *correctionPerStdDev;
 			foreach(Word word in words) {
 				word.left = position;
-				position += word.symbolBasedLength.len + word.symbolBasedLength.stddev * correctionPerStdDev;
+				position += word.symbolBasedLength.Mean + word.symbolBasedLength.StdDev * correctionPerStdDev;
 				word.right = position;
 			}
-			position += end.len+ end.stddev * correctionPerStdDev;
+			position += end.Mean+ end.StdDev * correctionPerStdDev;
 			Debug.Assert(Math.Abs(position - right) < 1, "math error");
 		}
 

@@ -129,7 +129,7 @@ namespace HwrLibCliWrapper {
 		}
 		~HwrOptimizer() { this->!HwrOptimizer(); }
 	public:
-		HwrOptimizer(int symCount) : symbols(new AllSymbolClasses(symCount)) {
+		HwrOptimizer(array<HwrDataModel::SymbolClass^>^ symbolClasses) : symbols(new AllSymbolClasses(symbolClasses->Length )) {
 			symbols->initRandom();
 		}
 

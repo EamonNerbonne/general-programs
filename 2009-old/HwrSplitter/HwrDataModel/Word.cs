@@ -1,4 +1,5 @@
 ﻿using System.Xml.Linq;
+using System.Linq;
 using System.Collections.Generic;
 
 namespace HwrDataModel
@@ -10,7 +11,7 @@ namespace HwrDataModel
 		public TrackStatus leftStat, rightStat, topStat, botStat;
 		public enum TrackStatus { Uninitialized = 0, Initialized, Calculated, Manual }
 
-		public LengthEstimate symbolBasedLength;
+		public GaussianEstimate symbolBasedLength;
 		public object guiTag;
 		// public double cost = double.NaN;
 		public Word()
@@ -24,7 +25,7 @@ namespace HwrDataModel
 			this.no = no;
 			leftStat = rightStat = topStat = botStat = TrackStatus.Initialized;
 		}
-		public void EstimateLength(Dictionary<char, SymbolWidth> symbolWidths)
+		public void EstimateLength(Dictionary<char, GaussianEstimate> symbolWidths)
 		{
 			symbolBasedLength = EstimateWordLength(text, symbolWidths);
 		}
@@ -58,23 +59,11 @@ namespace HwrDataModel
 				);
 		}
 
-		static LengthEstimate EstimateWordLength(string word, Dictionary<char, SymbolWidth> symbolWidths)
+		static GaussianEstimate EstimateWordLength(string word, Dictionary<char, GaussianEstimate> symbolWidths)
 		{
-			LengthEstimate estimate = EstimateCharLength(' ', symbolWidths);
-			foreach (char c in word)
-				estimate += EstimateCharLength(c, symbolWidths);
-
-			return estimate;
+			return word
+				.Select(c => symbolWidths.ContainsKey(c) ? symbolWidths[c] : symbolWidths[(char)1])
+				.Aggregate((a, b) => a + b);
 		}
-
-		private static LengthEstimate EstimateCharLength(char c, Dictionary<char, SymbolWidth> symbolWidths)
-		{
-			SymbolWidth sym;
-			if (symbolWidths.TryGetValue(c, out sym))
-				return sym.estimate;
-			sym = symbolWidths[(char)1];
-			return sym.estimate;
-		}
-
 	}
 }
