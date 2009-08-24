@@ -10,7 +10,7 @@ using System.IO;
 using HwrLibCliWrapper;
 using EmnExtensions.DebugTools;
 
-namespace DataIO
+namespace HwrSplitter.Engine
 {
 	public class HwrPageImage
 	{

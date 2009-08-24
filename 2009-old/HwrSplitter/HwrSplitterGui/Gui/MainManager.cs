@@ -6,6 +6,7 @@ using System.Windows.Input;
 using DataIO;
 using System.Windows;
 using System.Windows.Threading;
+using HwrSplitter.Engine;
 
 namespace HwrSplitter.Gui
 {

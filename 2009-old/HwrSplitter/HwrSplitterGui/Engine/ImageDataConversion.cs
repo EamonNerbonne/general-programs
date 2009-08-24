@@ -6,7 +6,7 @@ using System.Windows.Media.Imaging;
 using HwrLibCliWrapper;
 using System.Windows.Media;
 
-namespace DataIO
+namespace HwrSplitter.Engine
 {
 	public static class ImageDataConversion
 	{

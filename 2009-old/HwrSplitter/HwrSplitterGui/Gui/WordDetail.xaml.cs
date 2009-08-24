@@ -12,6 +12,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using DataIO;
+using HwrSplitter.Engine;
 
 namespace HwrSplitter.Gui
 {

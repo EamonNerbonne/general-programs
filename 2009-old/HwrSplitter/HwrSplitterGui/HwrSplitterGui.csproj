@@ -147,6 +147,12 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Engine\AnnotLinesParser.cs" />
+    <Compile Include="Engine\HwrPageImage.cs" />
+    <Compile Include="Engine\ImageDataConversion.cs" />
+    <Compile Include="Engine\PixelArgb32.cs" />
+    <Compile Include="Engine\Program.cs" />
+    <Compile Include="Engine\TextLineCostOptimizer.cs" />
     <Compile Include="Gui\ClickableTextBlock.cs" />
     <Compile Include="Gui\HwrImageAnnotater.cs" />
     <Compile Include="Gui\ImageAnnotControl.cs" />
@@ -178,11 +184,6 @@
       <DependentUpon>Settings.settings</DependentUpon>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
-    <Compile Include="Splitter\AnnotLinesParser.cs" />
-    <Compile Include="Splitter\HwrPageImage.cs" />
-    <Compile Include="Splitter\ImageDataConversion.cs" />
-    <Compile Include="Splitter\Program.cs" />
-    <Compile Include="Splitter\TextLineCostOptimizer.cs" />
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>

@@ -4,8 +4,10 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Xml;
+using DataIO;
 
-namespace DataIO {
+namespace HwrSplitter.Engine
+{
     public class AnnotLineSingle {
         public static Regex lineMatch = new Regex(@"^(?<Source>\w+)-(?<pageNum>\d+)-par-(?<par>\d+)-line-(?<line>\d+)\s+(?<top>\d+)\s+(?<bottom>\d+)\s+(?<left>\d+)\s+(?<right>\d+)\s+(?<text>.*)$", RegexOptions.Compiled | RegexOptions.ExplicitCapture | RegexOptions.Multiline);
         static readonly XmlReaderSettings settings = new XmlReaderSettings { ConformanceLevel = ConformanceLevel.Fragment };

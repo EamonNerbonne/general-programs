@@ -15,6 +15,7 @@ using System.Diagnostics;
 using EmnExtensions.DebugTools;
 using EmnExtensions.Text;
 using System.Windows.Input;
+using HwrSplitter.Engine;
 
 namespace HwrSplitter.Gui
 {

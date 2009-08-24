@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace DataIO
+namespace HwrSplitter.Engine
 {
     public struct PixelArgb32 {
         public uint Data;

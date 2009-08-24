@@ -11,7 +11,7 @@ using System.Diagnostics;
 using System.Windows.Media.Imaging;
 using System.Windows;
 
-namespace DataIO
+namespace HwrSplitter.Engine
 {
 	public class TextLineCostOptimizer
 	{
