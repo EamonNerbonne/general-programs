@@ -9,7 +9,7 @@
 #include "FeatureDistribution.h"
 #include "image/transformations.h"
 
-#include <msclr/auto_handle.h>
+
 
 using namespace System::Runtime::InteropServices;
 
@@ -134,6 +134,10 @@ namespace HwrLibCliWrapper {
 		array<int>^ SplitWords(ImageStruct<signed char> block, array<unsigned> ^ sequenceToMatch, [Out] int % topOffRef,float shear) {
 			using std::min;
 			using std::max;
+			using std::cout;
+			using std::wcout;
+			boost::timer t;
+
 			PamImage<BWPixel> shearedImg = ImageProcessor::StructToPamImage(block);
 			ImageBW unsheared = unshear(shearedImg,shear);
 			topOffRef = shearedImg.getWidth() - unsheared.getWidth();
@@ -144,6 +148,7 @@ namespace HwrLibCliWrapper {
 				sequenceVector.push_back(tmp);
 			}
 
+			cout << "C++ textline prepare took " << t.elapsed() <<"\n";
 			WordSplitSolver splitSolve( *symbols, feats, sequenceVector);
 
 			vector<int> splits = splitSolve.MostLikelySplit();
@@ -156,8 +161,6 @@ namespace HwrLibCliWrapper {
 
 			return retval;
 		}
-
 	};
-
 }
 

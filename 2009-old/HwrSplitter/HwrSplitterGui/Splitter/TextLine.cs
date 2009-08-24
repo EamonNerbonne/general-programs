@@ -72,44 +72,6 @@ namespace DataIO
 					);
 		}
 
-		BitmapSource featImg;
-		int featDataY, featDataX;
-		public void ComputeFeatures(HwrPageImage hwrPage) {
-			int topXoffset;
-
-			int x0Est = Math.Max(0, (int)(left + BottomXOffset - 500 + 0.5));
-			int x1Est = Math.Min(hwrPage.Width, (int)(right + 500 + 0.5));
-			int y0 = (int)(top + 0.5);
-			int y1 = (int)(bottom + 0.5);
-
-			ImageStruct<float> data = ImageProcessor.ExtractFeatures(hwrPage.Image.CropTo(x0Est, y0, x1Est, y1), out topXoffset);
-			featDataY = y0;
-			featDataX = (int)x0Est + topXoffset;
-			var featImgRGB = data.MapTo(f => (byte)(255.9 * f)).MapTo(b => new PixelArgb32(255, b, b, b));
-			foreach (Word w in words) {
-				int l = (int)(w.left + 0.5) - featDataX;
-				int r = (int)(w.right + 0.5) - featDataX;
-				for (int y = 0; y < featImgRGB.Height; y++) {
-					if (l >= 0 && l < featImgRGB.Width) {
-						var pl = featImgRGB[l, y];
-						pl.R = 255;
-						featImgRGB[l, y] = pl;
-					}
-					if (r >= 0 && l < featImgRGB.Width) {
-						var pr = featImgRGB[r, y];
-						pr.G = 255;
-						featImgRGB[r, y] = pr;
-					}
-				}
-			}
-			featImg = featImgRGB.MapTo(p => p.Data).ToBitmap();
-			featImg.Freeze();
-		}
-
-		public void Retrieve(out BitmapSource featureImage, out Point offset) {
-			featureImage = featImg;
-			offset = new Point(featDataX, featDataY);
-		}
 
 
 	}

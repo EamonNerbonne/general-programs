@@ -16,6 +16,7 @@ namespace HwrSplitter.Gui
         ZoomRectManager zoomRectMan;
         WordDetailManager wordDetailMan;
 		HwrPageImage currentPage;
+		public TextLineCostOptimizer optimizer;
 
         public Point LastClickPoint { get; private set; }
         public WordsImage words;
@@ -29,6 +30,7 @@ namespace HwrSplitter.Gui
         }
         public MainWindow Window { get { return window; } }
         public HwrImageAnnotater ImageAnnotater { get { return annotater; } }
+		public HwrPageImage PageImage { get { return currentPage; } }
 
 
 

@@ -33,7 +33,7 @@ namespace HwrSplitter.Gui
         FileInfo wordsFileInfo = null, imageFileInfo;
         string numStr;
         int pageNum;
-        HwrPageImage hwrImg;
+        HwrPageImage hwrImg;//TODO:rename
         MainWindow mainWindow;
         int? imgForceNum;
         WordsImage words;
@@ -109,6 +109,7 @@ namespace HwrSplitter.Gui
 
         void LoadInBackground() {
             LoadSymbolWidths();
+			manager.optimizer = new TextLineCostOptimizer( symbolWidth);
 
             ChooseImage();
             LoadImage();
@@ -116,7 +117,9 @@ namespace HwrSplitter.Gui
             //            LoadWords();
             LoadAnnot();
             manager.ImageAnnotater.ProcessLines(words.textlines);
-            new TextLineCostOptimizer(hwrImg,symbolWidth).ImproveGuess(words, line => {
+			
+			manager.optimizer.ImproveGuess(hwrImg, words, line =>
+			{
                 manager.ImageAnnotater.ProcessLine(line);
             });
 			//mainWindow.Dispatcher.Invoke((Action)mainWindow.Close);

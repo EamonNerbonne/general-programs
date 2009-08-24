@@ -30,8 +30,8 @@ namespace DataIO
 			timer.TimeMark("Converting to array");
 			var rawImg = new ImageStruct<uint>(original.PixelWidth, original.PixelHeight);
 			//Console.WriteLine("{0:X}", rawImg[1000, 2000]);//loading bug debug help
-			//uint[] data = new uint[original.PixelWidth * original.PixelHeight];//TODO:these lines prevent some sort of loading bug ... sometimes...
-			//original.CopyPixels(data, original.PixelWidth*4, 0);
+			uint[] data = new uint[original.PixelWidth * original.PixelHeight];//TODO:these lines prevent some sort of loading bug ... sometimes...
+			original.CopyPixels(data, original.PixelWidth*4, 0);
 			original.CopyPixels(rawImg.RawData, rawImg.Stride, 0);
 			//Console.WriteLine("{0:X}", rawImg[1000, 2000]);//loading bug debug help
 #if VIACPP

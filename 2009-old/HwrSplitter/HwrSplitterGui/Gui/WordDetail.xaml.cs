@@ -64,12 +64,12 @@ namespace HwrSplitter.Gui
 		Line bodyBotLine, bodyTopLine, wordBotLine, wordTopLine;
 		Point featureComputeOffset;
 
-		public void DisplayLine(TextLine textline, Word word) {
+		public void DisplayLine(TextLineCostOptimizer tlco,HwrPageImage pageImage, TextLine textline, Word word) {
 			//intensBrush.ImageSource = ImgdataFromShearedSum(textline.words, word, textline.shearedsum);
 			//intensBodyBrush.ImageSource = ImgdataFromShearedSum(textline.words, word, textline.shearedbodysum);
 			
 			BitmapSource bmp;
-			textline.Retrieve(out bmp, out featureComputeOffset);
+			tlco.ComputeFeatures(pageImage, textline, out bmp, out featureComputeOffset);
 			featuresGraphBrush.ImageSource = bmp;
 			
 

@@ -8,6 +8,8 @@ using System.Threading;
 using EmnExtensions.DebugTools;
 using HwrLibCliWrapper;
 using System.Diagnostics;
+using System.Windows.Media.Imaging;
+using System.Windows;
 
 namespace DataIO
 {
@@ -16,26 +18,15 @@ namespace DataIO
 	{
 		const int charPhases = 1;
 		HwrOptimizer nativeOptimizer;
-		readonly HwrPageImage image;
 		readonly SymbolWidth[] availableChars;
 
-		public TextLineCostOptimizer(HwrPageImage image, SymbolWidth[] availableChars) {
-			this.image = image;
+		public TextLineCostOptimizer( SymbolWidth[] availableChars) {
 			this.availableChars = availableChars;
 			nativeOptimizer = new HwrOptimizer(availableChars.Length * charPhases);
 		}
 
-		static double[] mkBlurWindow(int length) {
-			if (length % 2 != 1) throw new ArgumentException("must make odd sized convolution window for centering reasons.");
-			var blurWindow = Enumerable.Range(-length / 2, length).Select(v => Math.Exp(-10 * Math.Abs(v) / (double)length));
-			var blurWindowSum = blurWindow.Sum();
-			return blurWindow.Select(x => x / blurWindowSum).ToArray();
-		}
-
-
-
-
-		public void ImproveGuess(WordsImage betterGuessWords, Action<TextLine> lineProcessed) {
+		public void ImproveGuess(HwrPageImage image, WordsImage betterGuessWords, Action<TextLine> lineProcessed)
+		{
 			object sync = new object();
 			double totalTime = 0.0;
 			while (true) {
@@ -47,7 +38,8 @@ namespace DataIO
 					var textLine = betterGuessWords.textlines[lineI];
 					//ThreadPool.QueueUserWorkItem((WaitCallback)((ignored) => {
 					//	Thread.CurrentThread.Priority = ThreadPriority.BelowNormal;
-					ImproveLineGuessNew(textLine);
+					ImproveLineGuessNew(image,textLine);
+					
 					//using (var t = new DTimer((ts) => { lock (sync)	totalTime += ts.TotalSeconds; Console.WriteLine(ts);}))
 					//    textLine.ComputeFeatures(image);
 					lineProcessed(textLine);
@@ -60,7 +52,10 @@ namespace DataIO
 			Console.WriteLine("TotalFeatureExtractionTime == " + totalTime);
 		}
 
-		private void ImproveLineGuessNew(TextLine lineGuess) {
+		private void ImproveLineGuessNew(HwrPageImage image, TextLine lineGuess)
+		{
+			NiceTimer timer = new NiceTimer();
+			timer.TimeMark("preparing lineguess");
 			int topXoffset;
 
 			int x0Est = Math.Max(0, (int)(lineGuess.left + lineGuess.BottomXOffset - 10 + 0.5));
@@ -78,16 +73,20 @@ namespace DataIO
 
 			basicLine = basicLine.Prepend((char)0).Concat((char)10);//overall line starts with 0 and ends with 10.
 
-			var phaseCodeSeq =
+			var phaseCodeSeq = (
 				from letter in basicLine
 				let code = availableChars.Single(sym => sym.c == letter).code
 				from phaseCode in Enumerable.Range((int)code * charPhases, charPhases)
-				select (uint)phaseCode;
+				select (uint)phaseCode
+				).ToArray();
 
+			var croppedLine = image.Image.CropTo(x0Est, y0, x1Est, y1);
+
+			timer.TimeMark(null);
 
 			int[] charEndPos = nativeOptimizer.SplitWords(
-									image.Image.CropTo(x0Est, y0, x1Est, y1),
-									phaseCodeSeq.ToArray(),
+									croppedLine,
+									phaseCodeSeq,
 									out topXoffset,
 									(float)lineGuess.shear);
 			int x0 = x0Est + topXoffset;
@@ -115,6 +114,45 @@ namespace DataIO
 			}
 			Debug.Assert(currWord == lineGuess.words.Length);
 		}
+
+		public void ComputeFeatures(HwrPageImage image, TextLine line, out BitmapSource featureImage, out Point offset)
+		{
+			int topXoffset;
+
+			int x0Est = Math.Max(0, (int)(line.left + line.BottomXOffset - 500 + 0.5));
+			int x1Est = Math.Min(image.Width, (int)(line.right + 500 + 0.5));
+			int y0 = (int)(line.top + 0.5);
+			int y1 = (int)(line.bottom + 0.5);
+
+			ImageStruct<float> data = ImageProcessor.ExtractFeatures(image.Image.CropTo(x0Est, y0, x1Est, y1), out topXoffset);
+			int featDataY = y0;
+			int featDataX = (int)x0Est + topXoffset;
+			var featImgRGB = data.MapTo(f => (byte)(255.9 * f)).MapTo(b => new PixelArgb32(255, b, b, b));
+			foreach (Word w in line.words)
+			{
+				int l = (int)(w.left + 0.5) - featDataX;
+				int r = (int)(w.right + 0.5) - featDataX;
+				for (int y = 0; y < featImgRGB.Height; y++)
+				{
+					if (l >= 0 && l < featImgRGB.Width)
+					{
+						var pl = featImgRGB[l, y];
+						pl.R = 255;
+						featImgRGB[l, y] = pl;
+					}
+					if (r >= 0 && l < featImgRGB.Width)
+					{
+						var pr = featImgRGB[r, y];
+						pr.G = 255;
+						featImgRGB[r, y] = pr;
+					}
+				}
+			}
+			featureImage = featImgRGB.MapTo(p => p.Data).ToBitmap();
+			featureImage.Freeze();
+			offset = new Point(featDataX, featDataY);
+		}
+
 
 	}
 }
