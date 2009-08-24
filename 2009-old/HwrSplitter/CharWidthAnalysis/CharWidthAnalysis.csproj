@@ -3,7 +3,7 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProductVersion>9.0.21022</ProductVersion>
+    <ProductVersion>9.0.30729</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{C4A6C6CC-C2BD-4F43-BBBF-F54570E219F1}</ProjectGuid>
     <OutputType>Exe</OutputType>
@@ -49,7 +49,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\DataIO\DataIO.csproj">
+    <ProjectReference Include="..\HwrDataModel\HwrDataModel.csproj">
       <Project>{173FB9EC-62DA-4729-BB05-704685F3CB44}</Project>
       <Name>DataIO</Name>
     </ProjectReference>
