@@ -4,7 +4,6 @@ using System.Diagnostics;
 using System.Linq;
 using MoreLinq;
 using System.Xml.Linq;
-using HwrLibCliWrapper;
 using System.Windows.Media.Imaging;
 using System.Windows;
 using System.Windows.Media;

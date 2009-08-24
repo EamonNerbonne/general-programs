@@ -180,9 +180,9 @@
     </Compile>
     <Compile Include="Splitter\AnnotLinesParser.cs" />
     <Compile Include="Splitter\HwrPageImage.cs" />
+    <Compile Include="Splitter\ImageDataConversion.cs" />
     <Compile Include="Splitter\Program.cs" />
     <Compile Include="Splitter\TextLineCostOptimizer.cs" />
-    <Compile Include="Splitter\WordsImage.cs" />
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>

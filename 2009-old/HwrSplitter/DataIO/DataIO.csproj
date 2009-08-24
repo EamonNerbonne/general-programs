@@ -57,7 +57,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="IAsXml.cs" />
-    <Compile Include="ImageDataConversion.cs" />
     <Compile Include="PixelArgb32.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
@@ -75,6 +74,7 @@
     <Compile Include="TextLine.cs" />
     <Compile Include="TrackedDouble.cs" />
     <Compile Include="Word.cs" />
+    <Compile Include="WordsImage.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Properties\Settings.settings">
@@ -97,10 +97,6 @@
     <ProjectReference Include="..\..\EmnExtensions\EmnExtensions.csproj">
       <Project>{53ECEDA4-BB11-4BD3-8B51-0D3481FCBFA1}</Project>
       <Name>EmnExtensions</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\HwrLibCliWrapper\HwrLibCliWrapper.vcproj">
-      <Project>{8D2DA31B-C30C-430C-B166-AE9A0D1BC59F}</Project>
-      <Name>HwrLibCliWrapper</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
