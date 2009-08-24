@@ -9,7 +9,7 @@
     <OutputType>WinExe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>HwrSplitter</RootNamespace>
-    <AssemblyName>MainGui</AssemblyName>
+    <AssemblyName>HwrSplitter</AssemblyName>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{60dc8134-eba5-43b8-bcc9-bb4bc16c2548};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
@@ -230,9 +230,9 @@
       <Project>{53ECEDA4-BB11-4BD3-8B51-0D3481FCBFA1}</Project>
       <Name>EmnExtensions</Name>
     </ProjectReference>
-    <ProjectReference Include="..\DataIO\DataIO.csproj">
+    <ProjectReference Include="..\DataIO\HwrDataModel.csproj">
       <Project>{173FB9EC-62DA-4729-BB05-704685F3CB44}</Project>
-      <Name>DataIO</Name>
+      <Name>HwrDataModel</Name>
     </ProjectReference>
     <ProjectReference Include="..\HwrLibCliWrapper\HwrLibCliWrapper.vcproj">
       <Project>{8D2DA31B-C30C-430C-B166-AE9A0D1BC59F}</Project>

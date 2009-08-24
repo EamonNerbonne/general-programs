@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using DataIO;
+using HwrDataModel;
 using System.Windows;
 
 namespace HwrSplitter.Gui

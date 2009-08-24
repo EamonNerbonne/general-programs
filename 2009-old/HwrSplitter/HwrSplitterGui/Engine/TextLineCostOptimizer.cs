@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using MoreLinq;
 using System.Text;
-using DataIO;
+using HwrDataModel;
 using System.Threading;
 using EmnExtensions.DebugTools;
 using HwrLibCliWrapper;
@@ -101,13 +101,13 @@ namespace HwrSplitter.Engine
 					if (currWord >= 0) //then the previous char was the rightmost character of the current word.
 					{
 						lineGuess.words[currWord].right = x0 + charEndPos[i - 1];
-						lineGuess.words[currWord].rightStat = TrackStatus.Calculated;
+						lineGuess.words[currWord].rightStat = Word.TrackStatus.Calculated;
 					}
 					currWord++;//space means new word
 					if (currWord < lineGuess.words.Length) //then the endpos of the space must be the beginning pos of the current word.
 					{
 						lineGuess.words[currWord].left = x0 + charEndPos[i];
-						lineGuess.words[currWord].leftStat = TrackStatus.Calculated;
+						lineGuess.words[currWord].leftStat = Word.TrackStatus.Calculated;
 					}
 				}
 			}

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using DataIO;
+using HwrDataModel;
 using System.Windows.Shapes;
 using System.Windows;
 using System.Windows.Media;
@@ -25,12 +25,12 @@ namespace HwrSplitter.Gui
             man.SelectPoint(e.MouseDevice.GetPosition(imageView.ImageCanvas));
         }
 
-        private static Brush stat2brush(TrackStatus stat) {
+        private static Brush stat2brush(Word.TrackStatus stat) {
             switch (stat) {
-                case TrackStatus.Uninitialized: return Brushes.Pink;
-                case TrackStatus.Initialized: return Brushes.Blue;
-                case TrackStatus.Calculated: return Brushes.Purple;
-                case TrackStatus.Manual: return Brushes.Red;
+				case Word.TrackStatus.Uninitialized: return Brushes.Pink;
+				case Word.TrackStatus.Initialized: return Brushes.Blue;
+				case Word.TrackStatus.Calculated: return Brushes.Purple;
+				case Word.TrackStatus.Manual: return Brushes.Red;
                 default: throw new NotImplementedException("This track status does not exist!");
             }
         }

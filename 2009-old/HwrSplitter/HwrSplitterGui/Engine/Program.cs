@@ -1,7 +1,7 @@
 ﻿using System.IO;
 using System.Linq;
 
-namespace DataIO {
+namespace HwrDataModel {
     public static class Program {
 
 		public readonly static string[] DataPaths = new[] { @"D:\EamonLargeDocs\HWR\data", @"C:\Users\nerbonne\HWR\data" };

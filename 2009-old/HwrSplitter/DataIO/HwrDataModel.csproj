@@ -8,8 +8,8 @@
     <ProjectGuid>{173FB9EC-62DA-4729-BB05-704685F3CB44}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>DataIO</RootNamespace>
-    <AssemblyName>DataIO</AssemblyName>
+    <RootNamespace>HwrDataModel</RootNamespace>
+    <AssemblyName>HwrDataModel</AssemblyName>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <StartupObject>
@@ -71,7 +71,6 @@
     <Compile Include="ShearedBox.cs" />
     <Compile Include="SymbolWidthParser.cs" />
     <Compile Include="TextLine.cs" />
-    <Compile Include="TrackedDouble.cs" />
     <Compile Include="Word.cs" />
     <Compile Include="WordsImage.cs" />
   </ItemGroup>

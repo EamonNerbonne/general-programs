@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Windows;
-using DataIO;
+using HwrDataModel;
 using System.Xml.Linq;
 using System.IO;
 using System.Windows.Shapes;
@@ -61,7 +61,7 @@ namespace HwrSplitter.Gui
         }
 
         public void ChooseImage() {
-            var imgNumStrs = from filepath in Directory.GetFiles(DataIO.Program.ImgPath, "NL_HaNa_H2_7823_*.tif")
+            var imgNumStrs = from filepath in Directory.GetFiles(HwrDataModel.Program.ImgPath, "NL_HaNa_H2_7823_*.tif")
                              let filename = System.IO.Path.GetFileName(filepath)
                              let m = Regex.Match(filename, @"^NL_HaNa_H2_7823_(?<num>\d+).tif$")
                              where m.Success
@@ -86,7 +86,7 @@ namespace HwrSplitter.Gui
             else
                 numStr = imgNumStrs.First(s=>54<=int.Parse(s));
 
-            string imgPath = System.IO.Path.Combine(DataIO.Program.ImgPath, "NL_HaNa_H2_7823_" + numStr + ".tif");
+            string imgPath = System.IO.Path.Combine(HwrDataModel.Program.ImgPath, "NL_HaNa_H2_7823_" + numStr + ".tif");
             imageFileInfo = new FileInfo(imgPath);
 
             pageNum = int.Parse(numStr);
@@ -125,7 +125,7 @@ namespace HwrSplitter.Gui
             });
 			//mainWindow.Dispatcher.Invoke((Action)mainWindow.Close);
             using (Stream stream = new FileInfo(
-                    System.IO.Path.Combine(System.IO.Path.Combine(DataIO.Program.DataPath, "words-train"), "NL_HaNa_H2_7823_" + numStr + ".wordsguess")
+                    System.IO.Path.Combine(System.IO.Path.Combine(HwrDataModel.Program.DataPath, "words-train"), "NL_HaNa_H2_7823_" + numStr + ".wordsguess")
                 ).OpenWrite())
             using (TextWriter writer = new StreamWriter(stream))
                 writer.Write(words.AsXml().ToString());
@@ -135,14 +135,14 @@ namespace HwrSplitter.Gui
         //0 is begin line, 10 is line end, and each word includes one 32 for space.  Unknown letters get 1.
         SymbolWidth[] symbolWidth;
         private void LoadSymbolWidths() {
-            symbolWidth = SymbolWidthParser.Parse(new FileInfo(System.IO.Path.Combine(DataIO.Program.DataPath, "char-width.txt")));
+            symbolWidth = SymbolWidthParser.Parse(new FileInfo(System.IO.Path.Combine(HwrDataModel.Program.DataPath, "char-width.txt")));
         }
 
         private void Log(string logmsg) {
             Console.WriteLine(logmsg);
         }
         void LoadAnnot() {
-            var annotFile = new FileInfo(System.IO.Path.Combine(DataIO.Program.DataPath, "line_annot.txt"));
+            var annotFile = new FileInfo(System.IO.Path.Combine(HwrDataModel.Program.DataPath, "line_annot.txt"));
             var annotLines = AnnotLinesParser.GetAnnotLines(annotFile);
             Console.WriteLine("Lines higher than 255: {0} of {1}",  annotLines.Where(al => al.bottom - al.top > 255).Count(),annotLines.Length);
 

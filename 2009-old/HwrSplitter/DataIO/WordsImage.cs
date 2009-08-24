@@ -3,7 +3,7 @@ using System.Linq;
 using System.Xml;
 using System.Xml.Linq;
 
-namespace DataIO
+namespace HwrDataModel
 {
 
 	public class WordsImage : IAsXml

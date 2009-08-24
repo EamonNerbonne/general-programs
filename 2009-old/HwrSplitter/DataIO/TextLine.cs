@@ -8,7 +8,7 @@ using System.Windows.Media.Imaging;
 using System.Windows;
 using System.Windows.Media;
 
-namespace DataIO
+namespace HwrDataModel
 {
 	public class TextLine : ShearedBox, IAsXml
 	{
