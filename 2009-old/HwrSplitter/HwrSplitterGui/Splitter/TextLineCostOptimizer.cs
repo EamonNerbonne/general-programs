@@ -13,7 +13,6 @@ using System.Windows;
 
 namespace DataIO
 {
-
 	public class TextLineCostOptimizer
 	{
 		const int charPhases = 1;
@@ -28,7 +27,7 @@ namespace DataIO
 		public void ImproveGuess(HwrPageImage image, WordsImage betterGuessWords, Action<TextLine> lineProcessed)
 		{
 			object sync = new object();
-			double totalTime = 0.0;
+			//double totalTime = 0.0;
 			while (true) {
 				//var textLine = betterGuessWords.textlines[0];
 				//ImproveLineGuessNew(textLine);
@@ -49,7 +48,7 @@ namespace DataIO
 			}
 			//for (int lineI = 0; lineI < betterGuessWords.textlines.Length; lineI++)
 			//    doneSem.WaitOne();
-			Console.WriteLine("TotalFeatureExtractionTime == " + totalTime);
+			//Console.WriteLine("TotalFeatureExtractionTime == " + totalTime);
 		}
 
 		private void ImproveLineGuessNew(HwrPageImage image, TextLine lineGuess)
@@ -152,7 +151,5 @@ namespace DataIO
 			featureImage.Freeze();
 			offset = new Point(featDataX, featDataY);
 		}
-
-
 	}
 }

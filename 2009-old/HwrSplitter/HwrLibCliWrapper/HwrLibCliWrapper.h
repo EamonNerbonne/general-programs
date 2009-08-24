@@ -123,12 +123,14 @@ namespace HwrLibCliWrapper {
 	};
 	public ref class HwrOptimizer {
 		AllSymbolClasses* symbols;
+		!HwrOptimizer() {
+			delete symbols;
+			symbols = NULL;
+		}
+		~HwrOptimizer() { this->!HwrOptimizer(); }
 	public:
 		HwrOptimizer(int symCount) : symbols(new AllSymbolClasses(symCount)) {
 			symbols->initRandom();
-		}
-		~HwrOptimizer() {
-			delete symbols;
 		}
 
 		array<int>^ SplitWords(ImageStruct<signed char> block, array<unsigned> ^ sequenceToMatch, [Out] int % topOffRef,float shear) {

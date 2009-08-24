@@ -13,14 +13,12 @@ namespace DataIO
 {
 	public class TextLine : ShearedBox, IAsXml
 	{
-		public Word[] words;
-		public int no;
+		public readonly Word[] words; //after construction, words are fixed - you can only recompute their positions.
+		public readonly int no;
 
-		public int bodyTop;
+		public int bodyTop;//TODO: compute
 		public int bodyBot;
-		public float[,] features;
 
-		public double cost = double.NaN;
 
 		public TextLine() { }
 		public TextLine(string text, int no, double top, double bottom, double left, double right, double shear, Dictionary<char, SymbolWidth> symbolWidths)
@@ -58,6 +56,7 @@ namespace DataIO
 			position += end.len+ end.stddev * correctionPerStdDev;
 			Debug.Assert(Math.Abs(position - right) < 1, "math error");
 		}
+
 		public TextLine(XElement fromXml)
 			: base(fromXml) {
 			no = (int)fromXml.Attribute("no");
@@ -71,8 +70,5 @@ namespace DataIO
 				words.Select(word => word.AsXml())
 					);
 		}
-
-
-
 	}
 }

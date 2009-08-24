@@ -72,6 +72,7 @@
     </Compile>
     <Compile Include="ShearedBox.cs" />
     <Compile Include="SymbolWidthParser.cs" />
+    <Compile Include="TextLine.cs" />
     <Compile Include="TrackedDouble.cs" />
     <Compile Include="Word.cs" />
   </ItemGroup>

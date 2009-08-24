@@ -181,7 +181,6 @@
     <Compile Include="Splitter\AnnotLinesParser.cs" />
     <Compile Include="Splitter\HwrPageImage.cs" />
     <Compile Include="Splitter\Program.cs" />
-    <Compile Include="Splitter\TextLine.cs" />
     <Compile Include="Splitter\TextLineCostOptimizer.cs" />
     <Compile Include="Splitter\WordsImage.cs" />
     <EmbeddedResource Include="Properties\Resources.resx">

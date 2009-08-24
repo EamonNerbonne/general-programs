@@ -21,7 +21,7 @@ namespace DataIO {
             foreach (Match m in lineMatch.Matches(str)) {
                 int pageNum = int.Parse(m.Groups["pageNum"].Value);
                 if(pageFilter(pageNum))
-                yield return new AnnotLineSingle() {
+                yield return new AnnotLineSingle {
                     Source = m.Groups["Source"].Value,
                     pageNum = pageNum,
                     par = int.Parse(m.Groups["par"].Value),
@@ -54,10 +54,10 @@ namespace DataIO {
             var wordsImages = //lazily evaluated query.
                 from annotline in annotLines
                 group annotline by annotline.pageNum into pagegroup
-                select new WordsImage {
-                    pageNum = pagegroup.Key,
-                    name = string.Format("NL_HaNa_H2_7823_{0:D4}", pagegroup.Key),
-                    textlines = (
+                select new WordsImage(
+                    string.Format("NL_HaNa_H2_7823_{0:D4}", pagegroup.Key),
+					pagegroup.Key,
+                    (
                         from indexedLine in
                             (from annotline in pagegroup
                              orderby annotline.par, annotline.line
@@ -67,7 +67,7 @@ namespace DataIO {
                         let height = line.bottom - line.top
 						select new TextLine(line.text, indexedLine.Index, line.top, line.bottom, line.left, line.right + height * 0.6/*shear fix*/, 45, symbolWidths)
                     ).ToArray()//textlines in WordsImage
-                };
+                );
             return wordsImages.ToDictionary(wordsImage => wordsImage.pageNum);
 
         }
