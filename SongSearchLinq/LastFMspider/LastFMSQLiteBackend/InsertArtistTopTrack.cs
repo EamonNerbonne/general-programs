@@ -39,7 +39,7 @@ AND B.LowercaseTitle= @lowerTitleB
       
 
 
-        public void Execute(int listID, int artistID, string trackTitle, long reach) {
+        public void Execute(long listID, int artistID, string trackTitle, long reach) {
             lock (SyncRoot) {
                 this.reach.Value = reach;
                 this.listID.Value = (long)listID;

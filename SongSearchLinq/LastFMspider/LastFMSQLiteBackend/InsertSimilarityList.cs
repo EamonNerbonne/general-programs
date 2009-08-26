@@ -9,42 +9,30 @@ namespace LastFMspider.LastFMSQLiteBackend {
     {
         public InsertSimilarityList(LastFMSQLiteCache lfm)
             : base(lfm) {
-            lowerArtist = DefineParameter("@lowerArtist");
+			trackID = DefineParameter("@trackID");
             lookupTimestamp = DefineParameter("@lookupTimestamp");
-            lowerTitle = DefineParameter("@lowerTitle");
             statusCode = DefineParameter("@statusCode");
         }
-        DbParameter lowerArtist,lowerTitle, lookupTimestamp,statusCode;
+        DbParameter trackID, lookupTimestamp,statusCode;
         protected override string CommandText {
             get {
                 return @"
 INSERT INTO [SimilarTrackList] (TrackID, LookupTimestamp,StatusCode) 
-SELECT T.TrackID, (@lookupTimestamp) AS LookupTimestamp, (@statusCode) AS StatusCode
-FROM Artist A,Track T
-WHERE A.LowercaseArtist = @lowerArtist
-AND A.ArtistID = T.ArtistID
-AND T.LowercaseTitle = @lowerTitle
-;
+VALUES (@trackID, @lookupTimestamp, @statusCode);
 
 SELECT L.ListID
-FROM SimilarTrackList L, Artist A, Track T
-WHERE A.LowercaseArtist = @lowerArtist
-AND A.ArtistID = T.ArtistID
-AND T.LowercaseTitle = @lowerTitle
-AND L.TrackID = T.TrackID
+FROM SimilarTrackList L
+WHERE L.TrackID = @trackID
 AND L.LookupTimestamp = @lookupTimestamp
 ";
             }
         }
 
-        private static IEnumerable<T> DeNull<T>(IEnumerable<T> iter) { return iter == null ? Enumerable.Empty<T>() : iter; }
         public void Execute(SongSimilarityList simList) {
             lock (SyncRoot) {
                 using (DbTransaction trans = Connection.BeginTransaction()) {
-                    lfmCache.InsertTrack.Execute(simList.songref);
-                    int listID;
-                    lowerArtist.Value = simList.songref.Artist.ToLatinLowercase();
-                    lowerTitle.Value = simList.songref.Title.ToLatinLowercase();
+                    long listID;
+					trackID.Value = lfmCache.InsertTrack.Execute(simList.songref);
                     lookupTimestamp.Value = simList.LookupTimestamp.Ticks;
                     statusCode.Value = simList.StatusCode;
 
@@ -55,6 +43,10 @@ AND L.LookupTimestamp = @lookupTimestamp
                             throw new Exception("Command failed???");
                         }
                     }
+
+					if (simList.LookupTimestamp > DateTime.Now - TimeSpan.FromDays(1.0)) {
+						lfmCache.TrackSetCurrentSimList.Execute(listID); //presume if this is recently downloaded, then it's the most current.
+					}
 
                     foreach (var similarTrack in simList.similartracks) {
                         lfmCache.InsertSimilarity.Execute(listID, similarTrack.similarsong, similarTrack.similarity);

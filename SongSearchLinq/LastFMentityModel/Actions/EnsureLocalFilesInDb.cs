@@ -34,7 +34,6 @@ namespace LastFMentityModel.Actions
 
 			var newArtists = from artist in songrefs.Select(sr => sr.Artist).Distinct(new LowerLatinEqual())
 							 let lowerArtist = artist.ToLatinLowercase()
-							 where !model.Artist.Any(a => a.LowercaseArtist == lowerArtist)
 							 select new Artist { FullArtist = artist, LowercaseArtist = lowerArtist };
 			int newArtistCount = 0 ;
 			foreach (var newArtist in newArtists) {
@@ -43,14 +42,16 @@ namespace LastFMentityModel.Actions
 				newArtistCount++;
 			}
 			timer.PrintTimeRes("added artists:", newArtistCount);
-			model.SaveChanges();
+			using (var trans = model.Connection.BeginTransaction()) {
+				model.SaveChanges();
+				trans.Commit();
+			}
 			timer.PrintTimeRes("saved changes", null);
 
 			var newTracks = from songref in songrefs
 							let lowercaseArtist = songref.Artist.ToLatinLowercase()
 							let artist = model.Artist.First(a => a.LowercaseArtist == lowercaseArtist)
 							let lowerTitle = songref.Title.ToLatinLowercase()
-							where !model.Track.Any(t => t.LowercaseTitle == lowerTitle)
 							select new Track { LowercaseTitle = lowerTitle, FullTitle = songref.Title, Artist = artist };
 
 			int newTrackCount = 0;

@@ -23,7 +23,16 @@ namespace LastFMspider.LastFMSQLiteBackend
         public string Artist;
         public SimilarArtist[] Similar;
         public int? StatusCode;
-    }
+
+		public static ArtistSimilarityList CreateErrorList(string artist, int errCode) {
+			return new ArtistSimilarityList {
+				Artist = artist,
+				LookupTimestamp = DateTime.UtcNow,
+				Similar = new SimilarArtist[] { },
+				StatusCode = errCode,
+			};
+		}
+	}
 
     public class LookupArtistSimilarityList : AbstractLfmCacheQuery
     {

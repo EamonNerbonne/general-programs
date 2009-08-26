@@ -132,6 +132,10 @@
     <Compile Include="LastFMSQLiteBackend\AllTracks.cs" />
     <Compile Include="LastFMSQLiteBackend\ArtistsWithoutSimilarityList.cs" />
     <Compile Include="LastFMSQLiteBackend\ArtistsWithoutTopTracksList.cs" />
+    <Compile Include="LastFMSQLiteBackend\ArtistSetCurrentSimList.cs" />
+    <Compile Include="LastFMSQLiteBackend\ArtistSetCurrentTopTracks.cs" />
+    <Compile Include="LastFMSQLiteBackend\DbUtil.cs" />
+    <Compile Include="LastFMSQLiteBackend\TrackSetCurrentSimList.cs" />
     <Compile Include="LastFMSQLiteBackend\CountRoughtSimilarities.cs" />
     <Compile Include="LastFMSQLiteBackend\InsertArtistSimilarity.cs" />
     <Compile Include="LastFMSQLiteBackend\InsertArtistSimilarityList.cs" />

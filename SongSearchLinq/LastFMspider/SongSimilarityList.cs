@@ -16,6 +16,7 @@ namespace LastFMspider
 		public SimilarTrack[] similartracks;
         public DateTime LookupTimestamp;
         public int? StatusCode;
-        
+
+		public static SongSimilarityList CreateErrorList(SongRef songref, int errorCode) { return new SongSimilarityList { LookupTimestamp = DateTime.UtcNow, StatusCode = errorCode, similartracks = new SimilarTrack[0], songref = songref }; }
 	}
 }

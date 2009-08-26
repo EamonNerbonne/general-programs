@@ -11,42 +11,30 @@ namespace LastFMspider.LastFMSQLiteBackend
     {
         public LookupSimilarityList(LastFMSQLiteCache lfmCache)
             : base(lfmCache) {
-            lowerArtist = DefineParameter("@lowerArtist");
-            lowerTitle = DefineParameter("@lowerTitle");
-            ticks = DefineParameter("@ticks");
+			listId = DefineParameter("@listId");
         }
         protected override string CommandText {
             get {
                 return @"
 SELECT BA.FullArtist, BT.FullTitle, S.Rating
-FROM Artist A, 
-     Track T,
-     SimilarTrackList TS,
-     SimilarTrack S,
+FROM SimilarTrack S,
      Track BT,
      Artist BA
-WHERE A.LowercaseArtist = @lowerArtist
-AND T.ArtistID = A.ArtistID
-AND TS.TrackID = T.TrackID
-AND TS.LookupTimestamp = @ticks
-AND S.ListID = TS.ListID
+WHERE S.ListID = @listId
 AND BT.TrackID = S.TrackB
 AND BA.ArtistID = BT.ArtistID
 ORDER BY S.Rating DESC
 ";
             }
         }
-        DbParameter lowerTitle, lowerArtist, ticks;
+        DbParameter listId;
 
-        public SongSimilarityList Execute(SongRef songref) {
+        public SongSimilarityList Execute(TrackSimilarityListInfo list) {
+			if (list.ListID==null || list.SongRef==null) return null;
+
             lock (SyncRoot) {
                 using (var trans = Connection.BeginTransaction()) {
-                    ListStatus listStatus = lfmCache.LookupSimilarityListAge.Execute(songref);
-
-                    if (!listStatus.LookupTimestamp.HasValue) return null;
-                    lowerArtist.Value = songref.Artist.ToLatinLowercase();
-                    lowerTitle.Value = songref.Title.ToLatinLowercase();
-                    ticks.Value = listStatus.LookupTimestamp.Value.Ticks;
+					listId.Value = list.ListID;
 
                     List<SimilarTrack> similarto = new List<SimilarTrack>();
                     using (var reader = CommandObj.ExecuteReader()) {
@@ -57,10 +45,10 @@ ORDER BY S.Rating DESC
                             });
                     }
                     var retval = new SongSimilarityList {
-                        songref = songref,
+                        songref = list.SongRef,
                         similartracks = similarto.ToArray(),
-                        LookupTimestamp = listStatus.LookupTimestamp.Value,
-                        StatusCode = listStatus.StatusCode,
+						LookupTimestamp = list.LookupTimestamp.Value,
+						StatusCode = list.StatusCode,
                     };
                     return retval;
                 }

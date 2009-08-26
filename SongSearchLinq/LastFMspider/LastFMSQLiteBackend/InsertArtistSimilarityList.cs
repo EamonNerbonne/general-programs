@@ -38,13 +38,12 @@ AND L.LookupTimestamp = @lookupTimestamp
 		DbParameter lowerArtist, lookupTimestamp, statusCode;
 
 
-		private static IEnumerable<T> DeNull<T>(IEnumerable<T> iter) { return iter == null ? Enumerable.Empty<T>() : iter; }
 		public void Execute(ArtistSimilarityList simList) {
 			lock (SyncRoot) {
 				using (DbTransaction trans = Connection.BeginTransaction()) {
 					lfmCache.InsertArtist.Execute(simList.Artist);
 					lfmCache.UpdateArtistCasing.Execute(simList.Artist);
-					int listID;
+					long listID;
 					lowerArtist.Value = simList.Artist.ToLatinLowercase();
 					lookupTimestamp.Value = simList.LookupTimestamp.Ticks;
 					statusCode.Value = simList.StatusCode;
@@ -55,6 +54,10 @@ AND L.LookupTimestamp = @lookupTimestamp
 							throw new Exception("Command failed???");
 						}
 					}
+					if (simList.LookupTimestamp > DateTime.Now - TimeSpan.FromDays(1.0)) {
+						lfmCache.ArtistSetCurrentSimList.Execute(listID); //presume if this is recently downloaded, then it's the most current.
+					}
+
 
 					foreach (var similarArtist in simList.Similar) {
 						lfmCache.InsertArtistSimilarity.Execute(listID, similarArtist.Artist, similarArtist.Rating);

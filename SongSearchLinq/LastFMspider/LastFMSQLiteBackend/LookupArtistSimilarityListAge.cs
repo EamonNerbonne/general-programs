@@ -28,21 +28,12 @@ namespace LastFMspider.LastFMSQLiteBackend {
                 return @"
 SELECT A.IsAlternateOf, L.LookupTimestamp, L.StatusCode
 FROM Artist A 
-left join SimilarArtistList L on A.ArtistID = L.ArtistID
+left join SimilarArtistList L on A.CurrentSimilarArtistList = L.ListID
 WHERE A.LowercaseArtist = @lowerArtist
-ORDER BY L.LookupTimestamp DESC
-LIMIT 1
-";//we want the biggest timestamp first!
+";
             }
         }
         DbParameter  lowerArtist;
-
-        public static DateTime? DbValueTicksToDateTime(object dbval) {
-            return dbval == DBNull.Value?
-                (DateTime?)null:
-                new DateTime((long)dbval, DateTimeKind.Utc);
-        }
-
 
         public ArtistQueryInfo Execute(string artist) {
             lock (SyncRoot) {
@@ -53,9 +44,9 @@ LIMIT 1
                     //we expect exactly one hit - or none
                     if (reader.Read()) {
                         return new ArtistQueryInfo {
-                            IsAlternateOf = reader[0] == DBNull.Value ? null : (int?)(long)reader[0],
-                            LookupTimestamp = DbValueTicksToDateTime(reader[1]),
-                            StatusCode = reader[2] == DBNull.Value ? null : (int?)(long)reader[2],
+                            IsAlternateOf = (int?)reader[0].CastDbObjectAs<long?>(),
+                            LookupTimestamp = reader[1].CastDbObjectAsDateTime(),
+							StatusCode = (int?)reader[0].CastDbObjectAs<int?>(),
                         };
                     } else
                         return new ArtistQueryInfo {

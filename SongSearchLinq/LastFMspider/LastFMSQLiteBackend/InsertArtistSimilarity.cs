@@ -30,7 +30,7 @@ WHERE B.LowercaseArtist= @lowerArtistB
       
 
 
-        public void Execute(int listID, string artistB, double rating) {
+        public void Execute(long listID, string artistB, double rating) {
             lock (SyncRoot) {
                 lfmCache.InsertArtist.Execute(artistB);//we could also replace casing... whatever...
 

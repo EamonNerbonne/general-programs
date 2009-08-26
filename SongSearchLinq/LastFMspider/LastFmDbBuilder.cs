@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.IO;
 using System.Data.Common;
+using SongDataLib;
 
 namespace LastFMspider
 {
@@ -14,7 +15,7 @@ namespace LastFMspider
 		//rating is stored as a REAL which is a float in C#.
 
 		const string DataProvider = "System.Data.SQLite";
-		const string DataConnectionString = "page size=4096;cache size=100000;datetimeformat=Ticks;Legacy Format=False;Synchronous=Normal;data source=\"{0}\"";
+		const string DataConnectionString = "page size=4096;cache size=100000;datetimeformat=Ticks;Legacy Format=False;Synchronous=Normal;Default Timeout=300;data source=\"{0}\"";
 		const string DatabaseDef = @"
 PRAGMA journal_mode = PERSIST;
 
@@ -31,16 +32,9 @@ CREATE TABLE IF NOT EXISTS [Artist] (
   CONSTRAINT fk_cur_sal_simart FOREIGN KEY(CurrentSimilarArtistList) REFERENCES SimilarArtistList(ListID),
   CONSTRAINT fk_cur_ttl_toptracks FOREIGN KEY(CurrentTopTracksList) REFERENCES TopTracksList(ListID)
 );
-CREATE UNIQUE INDEX  IF NOT EXISTS [Unique_Artist_LowercaseArtist] ON [Artist](
+CREATE UNIQUE INDEX IF NOT EXISTS [Unique_Artist_LowercaseArtist] ON [Artist](
   [LowercaseArtist]  ASC
 );
-CREATE TRIGGER IF NOT EXISTS Artist_Ignore_Duplicates BEFORE INSERT ON Artist
-FOR EACH ROW BEGIN 
-   INSERT OR IGNORE 
-      INTO Artist (ArtistID, FullArtist, LowercaseArtist, IsAlternateOf, CurrentSimilarArtistList, CurrentTopTracksList) 
-      VALUES (NEW.ArtistId, NEW.FullArtist, NEW.LowercaseArtist, NEW.IsAlternateOf, NEW.CurrentSimilarArtistList, NEW.CurrentTopTracksList);
-   select RAISE(IGNORE);
-END;
 
 
 
@@ -96,13 +90,13 @@ CREATE UNIQUE INDEX IF NOT EXISTS [Unique_Track_ArtistID_LowercaseTitle] ON [Tra
   [ArtistID]  ASC,
   [LowercaseTitle]  ASC
 );
-CREATE TRIGGER IF NOT EXISTS Track_Ignore_Duplicates BEFORE INSERT ON Track
-FOR EACH ROW BEGIN 
-   INSERT OR IGNORE 
-      INTO Artist (TrackID, ArtistID, FullTitle, LowercaseTitle, CurrentSimilarTrackList) 
-      VALUES (NEW.TrackID, NEW.ArtistID, NEW.FullTitle, NEW.LowercaseTitle, NEW.CurrentSimilarTrackList);
-   select RAISE(IGNORE);
-END;
+--CREATE TRIGGER IF NOT EXISTS Track_Ignore_Duplicates BEFORE INSERT ON Track
+--FOR EACH ROW BEGIN 
+   --INSERT OR IGNORE 
+      --INTO Track (TrackID, ArtistID, FullTitle, LowercaseTitle, CurrentSimilarTrackList) 
+      --VALUES (NEW.TrackID, NEW.ArtistID, NEW.FullTitle, NEW.LowercaseTitle, NEW.CurrentSimilarTrackList);
+   --select RAISE(IGNORE);
+--END;
 
 
 
@@ -179,6 +173,22 @@ CREATE INDEX  IF NOT EXISTS [IDX_TopTracks_Reach] ON [TopTracks](
   [Reach]  DESC
 );
 ";
+//CREATE TRIGGER IF NOT EXISTS Artist_Ignore_Duplicates BEFORE INSERT ON Artist
+//FOR EACH ROW BEGIN 
+//   INSERT OR IGNORE 
+//      INTO Artist (ArtistID, FullArtist, LowercaseArtist, IsAlternateOf, CurrentSimilarArtistList, CurrentTopTracksList) 
+//      VALUES (NEW.ArtistId, NEW.FullArtist, NEW.LowercaseArtist, NEW.IsAlternateOf, NEW.CurrentSimilarArtistList, NEW.CurrentTopTracksList);
+//   select RAISE(IGNORE);
+//END;
+//CREATE TRIGGER IF NOT EXISTS Track_Ignore_Duplicates BEFORE INSERT ON Track
+//FOR EACH ROW BEGIN 
+//   INSERT OR IGNORE 
+//      INTO Track (TrackID, ArtistID, FullTitle, LowercaseTitle, CurrentSimilarTrackList) 
+//      VALUES (NEW.TrackID, NEW.ArtistID, NEW.FullTitle, NEW.LowercaseTitle, NEW.CurrentSimilarTrackList);
+//   select RAISE(IGNORE);
+//END;
+
+		
 		/*
 CREATE TABLE IF NOT EXISTS  [Tag] (
   [TagID] INTEGER NOT NULL PRIMARY KEY,
@@ -251,6 +261,9 @@ CREATE INDEX  IF NOT EXISTS [IDX_TrackInfo_Playcount] ON [TrackInfo](
 				return conn;
 			} catch { if (conn != null) conn.Dispose(); throw; }
 		}
+		public static DbConnection ConstructConnection(SongDatabaseConfigFile configFile) {
+			return ConstructConnection(DbFile(configFile));
+		}
 
 		public static void CreateTables(DbConnection lfmDbConnection) {
 			using (DbTransaction trans = lfmDbConnection.BeginTransaction())
@@ -260,6 +273,7 @@ CREATE INDEX  IF NOT EXISTS [IDX_TrackInfo_Playcount] ON [TrackInfo](
 				trans.Commit();
 			}
 		}
-
+		const string filename = "lastFMcache.s3db";
+		public static FileInfo DbFile(SongDatabaseConfigFile config) { return new FileInfo(Path.Combine(config.DataDirectory.CreateSubdirectory("cache").FullName, filename)); }
 	}
 }

@@ -7,29 +7,33 @@ using System.Data.SQLite;
 
 namespace LastFMspider.LastFMSQLiteBackend
 {
-    public struct ArtistTopTrack
-    {
-        public string Track;
-        public long Reach;
-    }
-    public class ArtistTopTracksList
-    {
-        public DateTime LookupTimestamp;
-        public string Artist;
-        public ArtistTopTrack[] TopTracks;
-        public int? StatusCode;
-    }
+	public struct ArtistTopTrack
+	{
+		public string Track;
+		public long Reach;
+	}
+	public class ArtistTopTracksList
+	{
+		public DateTime LookupTimestamp;
+		public string Artist;
+		public ArtistTopTrack[] TopTracks;
+		public int? StatusCode;
 
-    public class LookupArtistTopTracksList : AbstractLfmCacheQuery
-    {
-        public LookupArtistTopTracksList(LastFMSQLiteCache lfmCache)
-            : base(lfmCache) {
-            lowerArtist = DefineParameter("@lowerArtist");
-            ticks = DefineParameter("@ticks");
-        }
-        protected override string CommandText {
-            get {
-                return @"
+		internal static ArtistTopTracksList CreateErrorList(string artist, int errCode) {
+			return new ArtistTopTracksList { Artist = artist, LookupTimestamp = DateTime.UtcNow, TopTracks = new ArtistTopTrack[0], StatusCode = errCode, };
+		}
+	}
+
+	public class LookupArtistTopTracksList : AbstractLfmCacheQuery
+	{
+		public LookupArtistTopTracksList(LastFMSQLiteCache lfmCache)
+			: base(lfmCache) {
+			lowerArtist = DefineParameter("@lowerArtist");
+			ticks = DefineParameter("@ticks");
+		}
+		protected override string CommandText {
+			get {
+				return @"
 SELECT B.FullTitle, T.Reach
 FROM Artist A 
 join TopTracksList L on A.ArtistID = L.ArtistID
@@ -38,43 +42,43 @@ join Track B on T.TrackID = B.TrackID
 WHERE A.LowercaseArtist = @lowerArtist
 AND L.LookupTimestamp = @ticks
 ";
-            }
-        }
-        DbParameter lowerArtist,ticks;
+			}
+		}
+		DbParameter lowerArtist, ticks;
 
-        public ArtistTopTracksList Execute(string artist) {
-            lock (SyncRoot) {
+		public ArtistTopTracksList Execute(string artist) {
+			lock (SyncRoot) {
 
-                using (var trans = Connection.BeginTransaction()) {
-                    ArtistQueryInfo info = lfmCache.LookupArtistTopTracksListAge.Execute(artist);
-                    if (info.IsAlternateOf.HasValue)
-                        return Execute(lfmCache.LookupArtist.Execute(info.IsAlternateOf.Value));
-                    if (!info.LookupTimestamp.HasValue)
-                        return null;
-                    DateTime age = info.LookupTimestamp.Value;
+				using (var trans = Connection.BeginTransaction()) {
+					ArtistQueryInfo info = lfmCache.LookupArtistTopTracksListAge.Execute(artist);
+					if (info.IsAlternateOf.HasValue)
+						return Execute(lfmCache.LookupArtist.Execute(info.IsAlternateOf.Value));
+					if (!info.LookupTimestamp.HasValue)
+						return null;
+					DateTime age = info.LookupTimestamp.Value;
 
-                    lowerArtist.Value = artist.ToLatinLowercase();
-                    ticks.Value = age.Ticks;//we want the newest one!
+					lowerArtist.Value = artist.ToLatinLowercase();
+					ticks.Value = age.Ticks;//we want the newest one!
 
-                    List<ArtistTopTrack> toptracks = new List<ArtistTopTrack>();
-                    using (var reader = CommandObj.ExecuteReader()) {
-                        while (reader.Read())
-                            toptracks.Add(new ArtistTopTrack {
-                                Track = (string)reader[0],
-                                Reach = (long)reader[1],
-                            });
-                    }
-                    var retval = new ArtistTopTracksList {
-                        Artist = artist,
-                        TopTracks = toptracks.ToArray(),
-                        LookupTimestamp = age,
-                        StatusCode = info.StatusCode,
-                    };
-                    return retval;
-                }
-            }
-        }
+					List<ArtistTopTrack> toptracks = new List<ArtistTopTrack>();
+					using (var reader = CommandObj.ExecuteReader()) {
+						while (reader.Read())
+							toptracks.Add(new ArtistTopTrack {
+								Track = (string)reader[0],
+								Reach = (long)reader[1],
+							});
+					}
+					var retval = new ArtistTopTracksList {
+						Artist = artist,
+						TopTracks = toptracks.ToArray(),
+						LookupTimestamp = age,
+						StatusCode = info.StatusCode,
+					};
+					return retval;
+				}
+			}
+		}
 
 
-    }
+	}
 }

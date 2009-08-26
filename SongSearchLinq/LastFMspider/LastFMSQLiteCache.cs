@@ -45,9 +45,11 @@ namespace LastFMspider
 		public InsertArtistTopTrack InsertArtistTopTrack { get; private set; }
 		public InsertArtistTopTracksList InsertArtistTopTracksList { get; private set; }
 		public SetArtistAlternate SetArtistAlternate { get; private set; }
+		internal TrackSetCurrentSimList TrackSetCurrentSimList { get; private set; }
+		internal ArtistSetCurrentTopTracks ArtistSetCurrentTopTracks { get; private set; }
+		internal ArtistSetCurrentSimList ArtistSetCurrentSimList { get; private set; }
 
-		const string filename = "lastFMcache.s3db";
-		public LastFMSQLiteCache(SongDatabaseConfigFile config) : this(new FileInfo(Path.Combine(config.DataDirectory.CreateSubdirectory("cache").FullName, filename))) { }
+		public LastFMSQLiteCache(SongDatabaseConfigFile config) : this(LastFmDbBuilder.DbFile(config)) { }
 
 		public LastFMSQLiteCache(FileInfo dbFile) {
 			Connection = LastFmDbBuilder.ConstructConnection(dbFile);
@@ -86,6 +88,9 @@ namespace LastFMspider
 			InsertArtistTopTrack = new InsertArtistTopTrack(this);
 			InsertArtistTopTracksList = new InsertArtistTopTracksList(this);
 			SetArtistAlternate = new SetArtistAlternate(this);
+			TrackSetCurrentSimList = new TrackSetCurrentSimList(this);
+			ArtistSetCurrentTopTracks = new ArtistSetCurrentTopTracks(this);
+			ArtistSetCurrentSimList = new ArtistSetCurrentSimList(this);
 		}
 
 

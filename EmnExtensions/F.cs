@@ -1,10 +1,14 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace EmnExtensions
 {
 	public static class F
 	{
+
+		public static IEnumerable<T> EmptyIfNull<T>(this IEnumerable<T> enumerable) { return enumerable ?? Enumerable.Empty<T>(); }
+
 		public static IEnumerable<IEnumerable<T>> SplitWhen<T>(this IEnumerable<T> iter, Func<T, bool> splitMark) {
 			var queue = new Queue<T>();
 			foreach (T t in iter) {
@@ -95,6 +99,7 @@ namespace EmnExtensions
 			init();
 			return AsEnumerable(func);
 		}
+
 
 		//no-op functions to support C# type inference:
 		public static Func<T> Create<T>(Func<T> func) { return func; }

@@ -100,11 +100,19 @@ namespace LastFMentityModel
 
 
 		static void Main(string[] args) {
-			new LastFMSQLiteCache(new SongDatabaseConfigFile(false)).Dispose();//just to create the appropriate tables.
-			using (var model = new LastFMCacheModel())
-				Actions.LfmAction.EnsureLocalFilesInDb(new SimpleSongDB(new SongDatabaseConfigFile(false), null), model);
-			Console.WriteLine("done.");
-			Console.ReadKey();
+			//var configFile = new SongDatabaseConfigFile(false);
+
+			//using (var connection = LastFmDbBuilder.ConstructConnection(configFile)) {
+			//    connection.Open();
+			//    LastFmDbBuilder.CreateTables(connection);
+			//}
+			//using (var model = new LastFMCacheModel()) {
+			//    model.Connection.Open();
+			//    Actions.LfmAction.EnsureLocalFilesInDb(new SimpleSongDB(configFile, null), model);
+			//}
+			//Console.WriteLine("done.");
+			//Console.ReadKey();
+			Test2();
 		}
 
 		const string DataProvider = "System.Data.SQLite";
@@ -123,7 +131,7 @@ namespace LastFMentityModel
 		/// order by TT.TrackID desc
 		/// </summary>
 		static void Test2() {
-			using (LastFMSQLiteCache cache = new LastFMSQLiteCache(new FileInfo(@"E:\musicDB\cache\lastFMcache.old.s3db"))) {
+			using (LastFMSQLiteCache cache = new LastFMSQLiteCache(new FileInfo(@"E:\musicDB\cache\lastFMcache.s3db"))) {
 				cache.Connection.Close();
 
 				using (LastFMCacheModel model = new LastFMCacheModel()) { //new LastFMCacheModel(new EntityConnection(new System.Data.Metadata.Edm.MetadataWorkspace(new[] { "res://*/" }, new[] { Assembly.GetExecutingAssembly() }), cache.Connection))) {

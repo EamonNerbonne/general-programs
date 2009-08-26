@@ -18,18 +18,25 @@ namespace LastFMspider.LastFMSQLiteBackend {
 INSERT OR IGNORE INTO [Track] (ArtistID, FullTitle, LowercaseTitle)
 SELECT ArtistID, @fullTitle, @lowerTitle FROM [Artist]
 WHERE LowercaseArtist = @lowerArtist
-";}
+;
+SELECT TrackID FROM [Track] NATURAL join [Artist] WHERE LowercaseArtist = @lowerArtist AND LowercaseTitle = @lowerTitle
+";
+			}
         }
         DbParameter fullTitle, lowerTitle, lowerArtist;
 
-        public void Execute(SongRef songref) {
+        public int Execute(SongRef songref) {
             lock (SyncRoot) {
-
                 lfmCache.InsertArtist.Execute(songref.Artist);
                 fullTitle.Value = songref.Title;
                 lowerTitle.Value = songref.Title.ToLatinLowercase();
                 lowerArtist.Value = songref.Artist.ToLatinLowercase();
-                CommandObj.ExecuteNonQuery();
+				int trackID = -1;
+				using (DbTransaction trans = Connection.BeginTransaction()) {
+					trackID = (int)(long)CommandObj.ExecuteScalar();
+					trans.Commit();
+				}
+				return trackID;
             }
         }
 
