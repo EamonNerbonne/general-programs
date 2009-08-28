@@ -11,12 +11,12 @@ inline static Float sqr(Float x) { return x*x; }
 class FeatureDistribution
 {
 
-	Float weightSum;
 	Float logDCfactor;
-	FeatureVector meanX, sX;
 	Float varX(int i) { return sX[i] / weightSum;}
 	void setVarX(int i, Float newVar) {sX[i] = newVar*weightSum;}
 public:
+	Float weightSum;
+	FeatureVector meanX, sX;//public for managed/native transition simplicity.
 
 	FeatureDistribution(void);
 	~FeatureDistribution(void);

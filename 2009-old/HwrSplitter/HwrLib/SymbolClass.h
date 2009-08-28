@@ -10,10 +10,10 @@ double const defaultVariance = sqr(1000);
 
 class SymbolClass
 {
+public:
 	Float mLength;
 	Float sLength;
 	Float wLength;
-public:
 	FeatureDistribution state[SUB_SYMBOL_COUNT];
 	SymbolClass(Float meanLength, Float varLength) : mLength(meanLength), wLength(100), sLength(varLength*100)	{ }
 	SymbolClass() : mLength(100*FloatRand()), wLength(defaultWeight), sLength(defaultWeight * defaultVariance) {}
