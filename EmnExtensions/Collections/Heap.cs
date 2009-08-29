@@ -72,5 +72,7 @@ namespace EmnExtensions.Collections
 			indexSet(backingStore[p] = elem, p);
 		}
 
+		public T this[int i] { get { return backingStore[i]; } }
+		public IEnumerable<T> ElementsInRoughOrder { get { return backingStore.Take(backingCount); } }
 	}
 }
