@@ -18,6 +18,7 @@ struct AllSymbolClasses {
 		for(int i=0;i<symbolCount;i++)
 			sym[i].initRandom();
 	}
+	int AllocatedSize() {return sizeof(AllSymbolClasses) + sizeof(SymbolClass)*symbolCount;}
 };
 
 class WordSplitSolver
@@ -240,7 +241,10 @@ class WordSplitSolver
 		for(unsigned x=0; x <imageLen(); x++) {
 			for(short u=0; u<U; u++) {
 				P(x,u) = pC(x,u) - pC(x,u+1); //should be positive.  Is it?
-				if(P(x,u)<0.0) std::cout<<"!";
+				if(P(x,u)<0.0) {
+					std::cout<<"!";
+					P(x,u) = 0.0;
+				}
 			}
 			P(x,U) = pC(x,U); //probability of pC(x, U+1) -- i.e. of the symbol after the last in this string having started already -- is zero.
 		}

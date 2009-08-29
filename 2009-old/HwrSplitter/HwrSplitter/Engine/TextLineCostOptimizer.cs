@@ -1,77 +1,101 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using MoreLinq;
-using System.Text;
-using HwrDataModel;
-using System.Threading;
-using EmnExtensions.DebugTools;
-using HwrLibCliWrapper;
 using System.Diagnostics;
-using System.Windows.Media.Imaging;
-using System.Windows;
-using EmnExtensions;
-using EmnExtensions.Filesystem;
-using System.IO;
 using System.Globalization;
+using System.IO;
+using System.Linq;
+using System.Text;
+using System.Threading;
+using System.Windows;
+using System.Windows.Media.Imaging;
+using EmnExtensions;
+using EmnExtensions.DebugTools;
+using EmnExtensions.Filesystem;
+using HwrDataModel;
+using HwrLibCliWrapper;
+using MoreLinq;
+using System.Xml;
 
 namespace HwrSplitter.Engine
 {
 	public class SymbolClasses : XmlSerializableBase<SymbolClasses>
 	{
+		public int Iteration = -1;
+		public int LastPage = -1;
 		public SymbolClass[] Symbol;
 	}
 
 	public class TextLineCostOptimizer
 	{
+		static TextLineCostOptimizer() {
+			FeatureDistributionEstimate.FeatureNames = FeatureToString.FeatureNames();
+		}
 		public const int CharPhases = 1;
 		HwrOptimizer nativeOptimizer;
 		SymbolClass[] symbolClasses;
 		int iteration = 0;
+		public int StartPastPage;
 
-		public TextLineCostOptimizer(SymbolClass[] symbolClasses) {
-			this.symbolClasses = symbolClasses;
+		public TextLineCostOptimizer() {
+
+			if (HwrResources.Symbols.Exists)
+				using (var fileStream = HwrResources.Symbols.OpenRead())
+				using (var xmlreader = XmlReader.Create(fileStream)) {
+					SymbolClasses fromDisk = SymbolClasses.Deserialize(xmlreader);
+					this.iteration = fromDisk.Iteration == -1 ? 0 : fromDisk.Iteration;
+					this.StartPastPage = fromDisk.LastPage;
+					this.symbolClasses = fromDisk.Symbol;
+				} else
+				this.symbolClasses = SymbolClassParser.Parse(HwrResources.CharWidthFile, TextLineCostOptimizer.CharPhases);
+
 			nativeOptimizer = new HwrOptimizer(symbolClasses);
 		}
 
-		public void ImproveGuess(HwrPageImage image, WordsImage betterGuessWords, Action<TextLine> lineProcessed)
-		{
+		public void ImproveGuess(HwrPageImage image, WordsImage betterGuessWords, Action<TextLine> lineProcessed) {
 			//object sync = new object();
 			//double totalTime = 0.0;
 			//while (true) {
-				//var textLine = betterGuessWords.textlines[0];
-				//ImproveLineGuessNew(textLine);
-				//lineProcessed(textLine);
-				//			Semaphore doneSem = new Semaphore(0, betterGuessWords.textlines.Length);
-				for (int lineI = 0; lineI < betterGuessWords.textlines.Length; lineI++) {
-					var textLine = betterGuessWords.textlines[lineI];
-					//ThreadPool.QueueUserWorkItem((WaitCallback)((ignored) => {
-					//	Thread.CurrentThread.Priority = ThreadPriority.BelowNormal;
-					ImproveLineGuessNew(image,textLine);
-					
-					//using (var t = new DTimer((ts) => { lock (sync)	totalTime += ts.TotalSeconds; Console.WriteLine(ts);}))
-					//    textLine.ComputeFeatures(image);
-					lineProcessed(textLine);
-					Console.Write("{0}, ", iteration);
+			//var textLine = betterGuessWords.textlines[0];
+			//ImproveLineGuessNew(textLine);
+			//lineProcessed(textLine);
+			//			Semaphore doneSem = new Semaphore(0, betterGuessWords.textlines.Length);
+			for (int lineI = 0; lineI < betterGuessWords.textlines.Length; lineI++) {
+				var textLine = betterGuessWords.textlines[lineI];
+				//ThreadPool.QueueUserWorkItem((WaitCallback)((ignored) => {
+				//	Thread.CurrentThread.Priority = ThreadPriority.BelowNormal;
 
-					if (iteration % 100 == 0) {
-						nativeOptimizer.SaveToManaged(symbolClasses);
-						using (var stream = Program.SymbolPath.GetRelativeFile("symbols-" + DateTime.Now.ToString("u", CultureInfo.InvariantCulture).Replace(' ', '_').Replace(':', '.') + ".xml").Open(FileMode.Create))
-							new SymbolClasses { Symbol = symbolClasses }.SerializeTo(stream);
-					}
-
-
-					//				doneSem.Release();
-					//}));
+#if DEBUG
+				if (iteration % 100 == 0) {
+					nativeOptimizer.SaveToManaged(symbolClasses);
+					using (var stream = HwrResources.SymbolDir.GetRelativeFile("symbolsD-" + DateTime.Now.ToString("u", CultureInfo.InvariantCulture).Replace(' ', '_').Replace(':', '.') + ".xml").Open(FileMode.Create))
+						new SymbolClasses { Symbol = symbolClasses, Iteration = iteration, LastPage = betterGuessWords.pageNum }.SerializeTo(stream);
 				}
+#endif
+
+				ImproveLineGuessNew(image, textLine);
+
+				//using (var t = new DTimer((ts) => { lock (sync)	totalTime += ts.TotalSeconds; Console.WriteLine(ts);}))
+				//    textLine.ComputeFeatures(image);
+				lineProcessed(textLine);
+				Console.Write("{0}, ", iteration);
+
+				if (iteration % 100 == 0) {
+					nativeOptimizer.SaveToManaged(symbolClasses);
+					using (var stream = HwrResources.SymbolDir.GetRelativeFile("symbols-" + DateTime.Now.ToString("u", CultureInfo.InvariantCulture).Replace(' ', '_').Replace(':', '.') + ".xml").Open(FileMode.Create))
+						new SymbolClasses { Symbol = symbolClasses, Iteration = iteration, LastPage = betterGuessWords.pageNum }.SerializeTo(stream);
+				}
+
+
+				//				doneSem.Release();
+				//}));
+			}
 			//}
 			//for (int lineI = 0; lineI < betterGuessWords.textlines.Length; lineI++)
 			//    doneSem.WaitOne();
 			//Console.WriteLine("TotalFeatureExtractionTime == " + totalTime);
 		}
 
-		private void ImproveLineGuessNew(HwrPageImage image, TextLine lineGuess)
-		{
+		private void ImproveLineGuessNew(HwrPageImage image, TextLine lineGuess) {
 #if LOGLINESPEED
 			NiceTimer timer = new NiceTimer();
 			timer.TimeMark("preparing lineguess");
@@ -109,7 +133,7 @@ namespace HwrSplitter.Engine
 									croppedLine,
 									phaseCodeSeq,
 									out topXoffset,
-									(float)lineGuess.shear,iteration++);
+									(float)lineGuess.shear, iteration++);
 			int x0 = x0Est + topXoffset;
 
 			charEndPos = charEndPos.Where((pos, i) => i % CharPhases == CharPhases - 1).ToArray();
@@ -136,8 +160,7 @@ namespace HwrSplitter.Engine
 			Debug.Assert(currWord == lineGuess.words.Length);
 		}
 
-		public void ComputeFeatures(HwrPageImage image, TextLine line, out BitmapSource featureImage, out Point offset)
-		{
+		public void ComputeFeatures(HwrPageImage image, TextLine line, out BitmapSource featureImage, out Point offset) {
 			int topXoffset;
 
 			int x0Est = Math.Max(0, (int)(line.left + line.BottomXOffset - 500 + 0.5));
@@ -149,20 +172,16 @@ namespace HwrSplitter.Engine
 			int featDataY = y0;
 			int featDataX = (int)x0Est + topXoffset;
 			var featImgRGB = data.MapTo(f => (byte)(255.9 * f)).MapTo(b => new PixelArgb32(255, b, b, b));
-			foreach (Word w in line.words)
-			{
+			foreach (Word w in line.words) {
 				int l = (int)(w.left + 0.5) - featDataX;
 				int r = (int)(w.right + 0.5) - featDataX;
-				for (int y = 0; y < featImgRGB.Height; y++)
-				{
-					if (l >= 0 && l < featImgRGB.Width)
-					{
+				for (int y = 0; y < featImgRGB.Height; y++) {
+					if (l >= 0 && l < featImgRGB.Width) {
 						var pl = featImgRGB[l, y];
 						pl.R = 255;
 						featImgRGB[l, y] = pl;
 					}
-					if (r >= 0 && l < featImgRGB.Width)
-					{
+					if (r >= 0 && l < featImgRGB.Width) {
 						var pr = featImgRGB[r, y];
 						pr.G = 255;
 						featImgRGB[r, y] = pr;
@@ -174,8 +193,7 @@ namespace HwrSplitter.Engine
 			offset = new Point(featDataX, featDataY);
 		}
 
-		public  Dictionary<char, GaussianEstimate> MakeSymbolWidthEstimate()
-		{
+		public Dictionary<char, GaussianEstimate> MakeSymbolWidthEstimate() {
 			return (
 					from symbolClass in symbolClasses
 					group symbolClass.Length by symbolClass.Letter into symbolsByLetter
@@ -185,7 +203,7 @@ namespace HwrSplitter.Engine
 					symbolGroup => symbolGroup.Aggregate((a, b) => a + b)
 				);
 
-			
+
 		}
 	}
 }

@@ -4,6 +4,10 @@ using MoreLinq;
 using System.IO;
 using System.Linq;
 using EmnExtensions;
+using System.Xml.Serialization;
+using System.Xml;
+using System.Xml.Linq;
+using System.Globalization;
 
 namespace HwrDataModel
 {
@@ -28,14 +32,72 @@ namespace HwrDataModel
 		public static GaussianEstimate operator +(GaussianEstimate a, GaussianEstimate b) { return GaussianEstimate.CreateWithVariance(a.Mean + b.Mean, a.Variance + b.Variance, 0.5 * a.weightSum + 0.5 * b.weightSum); }
 	}
 
-	public class FeatureDistributionEstimate
+	public class FeatureDistributionEstimate : IXmlSerializable
 	{
+
 		public double weightSum;
 		public double[] means, scaledVars;
+
+		public System.Xml.Schema.XmlSchema GetSchema() { throw new NotImplementedException(); }
+
+		static double ToDouble(XElement elem) { return double.Parse(elem.Value, CultureInfo.InvariantCulture); }
+		static double ToDouble(XAttribute elem) { return double.Parse(elem.Value, CultureInfo.InvariantCulture); }
+		public void ReadXml(XmlReader reader) {
+			XElement xml = (XElement)XElement.ReadFrom(reader);
+			weightSum = ToDouble(xml.Element("weightSum"));
+			if (xml.Element("features") != null) {
+				means = xml.Element("features").Elements().Attributes("mean").Select(xDouble => ToDouble(xDouble)).ToArray();
+				scaledVars = xml.Element("features").Elements().Attributes("scaledVar").Select(xDouble => ToDouble(xDouble)).ToArray();
+			} else {
+				means = xml.Element("means").Elements("double").Select(xDouble => ToDouble(xDouble)).ToArray();
+				scaledVars = xml.Element("scaledVars").Elements("double").Select(xDouble => ToDouble(xDouble)).ToArray();
+			}
+		}
+
+		public void WriteXml(XmlWriter writer) {
+			new XElement("weightSum", weightSum).WriteTo(writer);
+			new XElement("features", FeaturesAsXml).WriteTo(writer);
+		}
+
+		static string[] featureNames;
+		public static string[] FeatureNames {
+			get { return featureNames; }
+			set {
+				featureNames = value.ToArray();
+				string lastname = "UNKNOWN";
+				int lastI = 0;
+				for (int i = 0; i < featureNames.Length; i++) {
+					string name;
+					if (featureNames[i] != null) {
+						name = lastname = featureNames[i];
+						lastI = i;
+					} else {
+						name = lastname;
+					}
+					if (FeatureNames[i] == null || (i + 1 < featureNames.Length && featureNames[i + 1] == null))
+						name += "_" + (i - lastI);
+					
+					featureNames[i] = name;
+				}
+
+			}
+		}
+		IEnumerable<XElement> FeaturesAsXml {
+			get {
+				for (int i = 0; i < means.Length; i++) {
+					yield return
+						new XElement(featureNames==null?"unknown":featureNames[i],
+							new XAttribute("mean", means[i]),
+							new XAttribute("stddev", Math.Sqrt(scaledVars[i]/weightSum)),
+							new XAttribute("scaledVar", scaledVars[i]));
+				}
+			}
+		}
 	}
 
 	public class SymbolClass
 	{
+
 		char? letter;//by agreement, char 0 is str-start, char 1 is unknown, char 10 is str-end, and char 32 is space
 		uint? code;
 		public char Letter { get { return letter.Value; } set { if (letter.HasValue) throw new ApplicationException("letter already set"); letter = value; } }
@@ -43,7 +105,7 @@ namespace HwrDataModel
 		public GaussianEstimate Length { get; set; }
 		public FeatureDistributionEstimate[] State { get; set; }
 		public SymbolClass() { }
-		public SymbolClass(char c, GaussianEstimate lengthEstimate) { this.Letter = c;  this.Length = lengthEstimate; }
+		public SymbolClass(char c, GaussianEstimate lengthEstimate) { this.Letter = c; this.Length = lengthEstimate; }
 		public SymbolClass(char c, uint code, GaussianEstimate lengthEstimate) { this.Letter = c; this.Code = code; this.Length = lengthEstimate; }
 
 		public IEnumerable<SymbolClass> Split(int intoCharPhases) {

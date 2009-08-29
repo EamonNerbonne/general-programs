@@ -13,6 +13,7 @@ using System.Threading;
 using System.Windows.Threading;
 using System.Diagnostics;
 using EmnExtensions.DebugTools;
+using EmnExtensions.Filesystem;
 using EmnExtensions.Text;
 using System.Windows.Input;
 using HwrSplitter.Engine;
@@ -77,53 +78,49 @@ namespace HwrSplitter.Gui
 		}
 
 		void LoadInBackground() {
-			manager.optimizer = LoadSymbolClasses();
+			manager.optimizer = new TextLineCostOptimizer();
 			LoadAnnot();
 
 
-			var imgNumStrs = (from filepath in Directory.GetFiles(HwrDataModel.Program.ImgPath, "NL_HaNa_H2_7823_*.tif")
-							 let filename = System.IO.Path.GetFileName(filepath)
-							 let m = Regex.Match(filename, @"^NL_HaNa_H2_7823_(?<num>\d+).tif$")
-							 where m.Success
-							 let numstr = m.Groups["num"].Value
-							 let num = int.Parse(numstr)
-							 where annot_lines.ContainsKey(num)
-							 select numstr).ToArray();
+			var imgNumStrs = (from filepath in HwrDataModel.HwrResources.ImageDir.GetFiles("NL_HaNa_H2_7823_*.tif")
+							  let m = Regex.Match(filepath.Name, @"^NL_HaNa_H2_7823_(?<num>\d+).tif$")
+							  where m.Success
+							  let numstr = m.Groups["num"].Value
+							  let num = int.Parse(numstr)
+							  where annot_lines.ContainsKey(num)
+							  select numstr).ToArray();
 
-			while(true)
-			foreach (var possiblePage in imgNumStrs) {
-
-				string imgPath = System.IO.Path.Combine(HwrDataModel.Program.ImgPath, "NL_HaNa_H2_7823_" + possiblePage + ".tif");
-				imageFileInfo = new FileInfo(imgPath);
-
-				//Log("Chose page:" + int.Parse(possiblePage));
+			imgNumStrs = imgNumStrs.Where(page => int.Parse(page) > manager.optimizer.StartPastPage)
+				.Concat(imgNumStrs.Where(page => int.Parse(page) <= manager.optimizer.StartPastPage))
+				.ToArray();//cycle the pages so we start learning past where we last learnt from.
 
 
-				LoadImage();
 
-				//            LoadWords();
-				manager.words = annot_lines[int.Parse(possiblePage)];
+			while (true) {
+				foreach (var possiblePage in imgNumStrs) {
+					imageFileInfo = HwrDataModel.HwrResources.ImageDir.GetRelativeFile("NL_HaNa_H2_7823_" + possiblePage + ".tif");
 
-				manager.ImageAnnotater.ProcessLines(manager.words.textlines);
+					//Log("Chose page:" + int.Parse(possiblePage));
 
-				manager.optimizer.ImproveGuess(hwrImg, manager.words, line => {
-					manager.ImageAnnotater.ProcessLine(line);
-				});
-				//mainWindow.Dispatcher.Invoke((Action)mainWindow.Close);
-				using (Stream stream = new FileInfo(
-						System.IO.Path.Combine(System.IO.Path.Combine(HwrDataModel.Program.DataPath, "words-train"), "NL_HaNa_H2_7823_" + possiblePage + ".wordsguess")
-					).OpenWrite())
-				using (TextWriter writer = new StreamWriter(stream))
-					writer.Write(manager.words.AsXml().ToString());
+					LoadImage();
+
+					//            LoadWords();
+					manager.words = annot_lines[int.Parse(possiblePage)];
+
+					manager.ImageAnnotater.ProcessLines(manager.words.textlines);
+
+					manager.optimizer.ImproveGuess(hwrImg, manager.words, line => {
+						manager.ImageAnnotater.ProcessLine(line);
+					});
+					//mainWindow.Dispatcher.Invoke((Action)mainWindow.Close);
+					using (Stream stream = HwrResources.WordsGuessDir.GetRelativeFile("NL_HaNa_H2_7823_" + possiblePage + ".wordsguess").OpenWrite())
+					using (TextWriter writer = new StreamWriter(stream))
+						writer.Write(manager.words.AsXml().ToString());
+				}
+
 			}
 		}
 
-
-		private TextLineCostOptimizer LoadSymbolClasses() {
-			var symbolClasses = SymbolClassParser.Parse(new FileInfo(System.IO.Path.Combine(HwrDataModel.Program.DataPath, "char-width.txt")), TextLineCostOptimizer.CharPhases);
-
-			return new TextLineCostOptimizer(symbolClasses);
-		}
 
 		private void Log(string logmsg) {
 			Console.WriteLine(logmsg);
@@ -131,7 +128,7 @@ namespace HwrSplitter.Gui
 
 		Dictionary<int, WordsImage> annot_lines;
 		void LoadAnnot() {
-			var annotFile = new FileInfo(System.IO.Path.Combine(HwrDataModel.Program.DataPath, "line_annot.txt"));
+			var annotFile = HwrResources.DataDir.GetRelativeFile("line_annot.txt");
 
 			//var annotLines = AnnotLinesParser.GetAnnotLines(annotFile);
 			//Console.WriteLine("Lines higher than 255: {0} of {1}",  annotLines.Where(al => al.bottom - al.top > 255).Count(),annotLines.Length);

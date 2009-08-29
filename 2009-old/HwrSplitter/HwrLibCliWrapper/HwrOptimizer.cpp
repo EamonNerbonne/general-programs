@@ -16,7 +16,7 @@ namespace HwrLibCliWrapper {
 		for(int i=0;i<SUB_SYMBOL_COUNT;i++) {
 			if(managedSymbol->State !=nullptr 
 				&& managedSymbol->State[i %  managedSymbol->State->Length] != nullptr 
-				&& managedSymbol->State[i %  managedSymbol->State->Length]->means->Length != NUMBER_OF_FEATURES) {
+				&& managedSymbol->State[i %  managedSymbol->State->Length]->means->Length == NUMBER_OF_FEATURES) {
 				HwrDataModel::FeatureDistributionEstimate ^ mState = managedSymbol->State[i %  managedSymbol->State->Length];
 				//we use modulo to reasonably support a changing number of substates: if native has more states, it just repeats other states.  If it has few; it truncates (implicitly).
 
@@ -63,9 +63,9 @@ namespace HwrLibCliWrapper {
 		boost::timer t;
 #endif
 		//based on learningIteration, set a few things:
-		double dampingFactor = 1.0- min(learningIteration/1000.0,1.0);
+		double dampingFactor = 1.0 - min(learningIteration/1000.0,1.0);
 		int blurIter = 3;
-		int winAngleSize = int(1000.0*dampingFactor + 4);
+		int winAngleSize = int(100.0*dampingFactor + 4);
 		int winDensSize = int(winAngleSize*0.76);
 		double featureRelevance = 0.1 * exp(-7*dampingFactor) ;
 

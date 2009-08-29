@@ -12,8 +12,11 @@ namespace HwrLibCliWrapper {
 	public ref class HwrOptimizer {
 		AllSymbolClasses* symbols;
 		!HwrOptimizer() {
-			delete symbols;
-			symbols = NULL;
+			if(symbols != NULL) {
+				GC::RemoveMemoryPressure(symbols->AllocatedSize());
+				delete symbols;
+				symbols = NULL;
+			}
 		}
 		~HwrOptimizer() { this->!HwrOptimizer(); }
 	public:
@@ -22,6 +25,7 @@ namespace HwrLibCliWrapper {
 		static void CopyToManaged(SymbolClass const & nativeSymbol, HwrDataModel::SymbolClass^ managedSymbol);
 
 		HwrOptimizer(array<HwrDataModel::SymbolClass^>^ symbolClasses) : symbols(new AllSymbolClasses(symbolClasses->Length )) {
+			GC::AddMemoryPressure(symbols->AllocatedSize());
 			symbols->initRandom();
 			for(int i=0;i<symbolClasses->Length;i++) {
 				if(symbolClasses[i]->Code != i)
