@@ -2,14 +2,17 @@
 #include "WordSplitSolver.h"
 #include <boost/timer.hpp>
 
-WordSplitSolver::WordSplitSolver(AllSymbolClasses & syms, ImageFeatures const & imageFeatures, std::vector<short> const & targetString) 
+WordSplitSolver::WordSplitSolver(AllSymbolClasses & syms, ImageFeatures const & imageFeatures, std::vector<short> const & targetString, double featureRelevance) 
 : syms(syms)
 , imageFeatures(imageFeatures)
 , imageLen1(imageFeatures.getImageWidth()+1)
 , targetString(targetString) 
 , symToStrIdx(new vector<short>[syms.size()])
 {
+#if LOGLEVEL >=9
 	boost::timer overallTimer;
+#endif
+
 	//first we initialize a lookup table mapping symbol to the indexes at which it is used in the string.
 	init_symToStrIdx();
 
@@ -17,15 +20,18 @@ WordSplitSolver::WordSplitSolver(AllSymbolClasses & syms, ImageFeatures const & 
 	init_usedSymbols();
 
 	//next, we determine the loglikelihood of observing each state at every index.
-	init_op_x_u_i();
+	init_op_x_u_i(featureRelevance);
 	
+#if LOGLEVEL >=9
 	std::cout << "Init: "<<overallTimer.elapsed();
-	
+#endif
 
 	//we marginalize to find the cumulative loglikelihood of observing all pixels between any x0 and x1 for any given symbol.
 	init_opC_x_u();
 
+#if LOGLEVEL >=9
 	std::cout << ",  Marginalize: "<<overallTimer.elapsed();
+#endif
 
 	//then we compute the forward loglikelihood: observing all symbols upto and including u over pixels upto and excluding x
 	init_pf_x_u();
@@ -33,7 +39,9 @@ WordSplitSolver::WordSplitSolver(AllSymbolClasses & syms, ImageFeatures const & 
 	//similarly, we compute the backward loglikelihood: observing all symbols starting with u and later over pixels starting at x until the end of the image.
 	init_pb_x_u();
 
+#if LOGLEVEL >=9
 	std::cout << ",  fwd/bk: "<<overallTimer.elapsed();
+#endif
 
 	//compute the loglikelihood of u starting precisely at x: p(x,u) == pf(x,u-1) + pb(x,u)
 	init_p_x_u();
@@ -44,7 +52,9 @@ WordSplitSolver::WordSplitSolver(AllSymbolClasses & syms, ImageFeatures const & 
 	//then compute the probability of a particular symbol at a particular pixel.
 	init_P_x_u();
 
+#if LOGLEVEL >=9
 	std::cout << ", final: " << overallTimer.elapsed()<<"\n";
+#endif
 
 }
 
@@ -64,7 +74,7 @@ std::vector<int> WordSplitSolver::MostLikelySplit() {
 }
 
 
-void WordSplitSolver::Learn(){
+void WordSplitSolver::Learn(double blurSymbols){
 	using namespace std;
 	using namespace boost;
 
@@ -94,12 +104,16 @@ void WordSplitSolver::Learn(){
 	}
 	for(int u=0;u<(int)strLen();u++) {
 		sym(u).RecomputeDCoffset();
+#if LOGLEVEL >= 10 
 		cout<<"sym["<<targetString[u]<<"]: w="<<sym(u).state[0].getWeightSum() <<"; DC="<<sym(u).state[0].getDCoffset()<<"\n"; 
+#endif
 	}
 
 
 
+#if LOGLEVEL >= 9 
 	cout<<"SymbolLearning: "<<overallTimer.elapsed()<<endl;
+#endif
 	overallTimer.restart();
 
 	//now we'd like to somehow compute the expected length+ variance of each symbol.
@@ -138,6 +152,28 @@ void WordSplitSolver::Learn(){
 		for(unsigned i=0;i<imageLen1;i++)
 			sc.LearnLength(Float(i),lengthWeight[i]);
 	}
+	if(blurSymbols != 0.0 ) {
+		FeatureDistribution overall;
+		for(int i=0;i<syms.size();i++) {
+			for(int j=0;j<SUB_SYMBOL_COUNT;j++) {
+				overall.CombineWith(syms[i].state[j]);
+			}
+		}
+		overall.ScaleWeightBy(blurSymbols/syms.size()*SUB_SYMBOL_COUNT);
+		for(int i=0;i<syms.size();i++) {
+			for(int j=0;j<SUB_SYMBOL_COUNT;j++) {
+				if(syms[i].originalChar == 32 ||syms[i].originalChar == 0 ||syms[i].originalChar == 10) { //space,begin, or end
+					syms[i].state[j].meanX[FEATURE_DENSITY] *= 1.0-blurSymbols;
+					syms[i].state[j].meanX[FEATURE_DENSITY_MID] *= 1.0-blurSymbols;
+				}
+				syms[i].state[j].CombineWith(overall);
+				syms[i].state[j].ScaleWeightBy(1.0/(1.0+blurSymbols));
+			}
+		}
+	}
+
+
+#if LOGLEVEL >=10
 	for(int ui=0;ui<usedSymbols.size();ui++) {
 		SymbolClass const & sc = syms[usedSymbols[ui]];
 		cout << "sc("<<usedSymbols[ui]<<").len= "<<sc.meanLength() <<" +/- "<<sqrt(sc.varLength())<<";  ["<<sc.weightLength() <<"]";
@@ -145,7 +181,11 @@ void WordSplitSolver::Learn(){
 			cout<< symToStrIdx[usedSymbols[ui]][ci] << ";";
 		cout <<"\n";
 	}
+#endif
+#if LOGLEVEL >=9
 	cout<<"LengthLearning: "<<overallTimer.elapsed()<<endl;
+#endif
+
 
 }
 

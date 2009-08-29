@@ -82,14 +82,14 @@ void clipbin(int& bin) {
 	}
 }
 
-ImageFeatures::ImageFeatures(PamImage<BWPixel> const& im)
+ImageFeatures::ImageFeatures(PamImage<BWPixel> const& im, int winSizeDens,int winSizeAngle, int iter)
 : image_width(  im.getWidth() )
 , image_height( im.getHeight() )
 , topline (image_height    / 3)
 , baseline(image_height *2 / 3)
 , image(im)
 {
-	init();
+	init(winSizeDens,winSizeAngle, iter);
 }
 
 void CalcAltTopline(int baseline, int topline, int & altTop, int &altTopNear, int &altTopFar, int &altTopFarEnd) {
@@ -99,7 +99,7 @@ void CalcAltTopline(int baseline, int topline, int & altTop, int &altTopNear, in
 	altTopFarEnd = max(0, altTop - 52);
 }
 
-void ImageFeatures::init() {
+void ImageFeatures::init(int winSizeDens,int winSizeAngle, int iter) {
 	using namespace boost;
 	ASSERT(sizeof(cumsums) / sizeof(cumsums[0]) == MAX_CAT);
 	// Find baseline
@@ -353,7 +353,7 @@ void ImageFeatures::init() {
 	//blurHisto(); // blurring makes things worse
 	initRunlength();
 
-	blurEm(); //but blurring in x makes thing better.
+	blurEm(winSizeDens,winSizeAngle,iter); //but blurring in x makes thing better.
 }
 
 void ImageFeatures::initRunlength() {
@@ -561,12 +561,12 @@ inline Feature ImageFeatures::featV(int cat, int x) const  {
 
 
 
-void ImageFeatures::blurEm() {
+void ImageFeatures::blurEm(int winSizeDens,int winSizeAngle, int iter) {
 	if (!USE_BLUR_FEATURES_X) return;
 	for (int cat = 0 ; cat < ANGLE1 ; cat++) 
-		fastblur(cumsums[cat],(int)cumsums[cat].size(), 4,3,0.8);
+		fastblur(cumsums[cat],(int)cumsums[cat].size(), winSizeDens,iter,0.8);
 	for (int cat = ANGLE1 ; cat < MAX_CAT ; cat++) 
-		fastblur(cumsums[cat],(int)cumsums[cat].size(),6,3,0.8);
+		fastblur(cumsums[cat],(int)cumsums[cat].size(),winSizeAngle,iter,0.8);
 }
 
 

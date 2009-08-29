@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using MoreLinq;
 using System.IO;
 using System.Linq;
+using EmnExtensions;
 
 namespace HwrDataModel
 {
@@ -10,13 +11,14 @@ namespace HwrDataModel
 	{
 		const double defaultWeight = 100.0;
 		double mean, scaledVar, weightSum;
-		public double Mean { get { return mean; } }
-		public double ScaledVariance { get { return scaledVar; } }
-		public double WeightSum { get { return weightSum; } }
+		public double Mean { get { return mean; } set { if (double.IsNaN(value) || !double.IsNaN(mean)) throw new ApplicationException("mean already set"); else mean = value; } }
+		public double ScaledVariance { get { return scaledVar; } set { if (double.IsNaN(value) || !double.IsNaN(scaledVar)) throw new ApplicationException("scaledVar already set"); else scaledVar = value; } }
+		public double WeightSum { get { return weightSum; } set { if (double.IsNaN(value) || !double.IsNaN(weightSum)) throw new ApplicationException("weightSum already set"); else weightSum = value; } }
 
 		public double Variance { get { return scaledVar / weightSum; } }
 		public double StdDev { get { return Math.Sqrt(Variance); } }
 
+		public GaussianEstimate() : this(double.NaN, double.NaN, double.NaN) { }
 
 		public GaussianEstimate(double mean, double scaledVar, double weightSum) { this.mean = mean; this.scaledVar = scaledVar; this.weightSum = weightSum; }
 
@@ -34,16 +36,18 @@ namespace HwrDataModel
 
 	public class SymbolClass
 	{
-		public char Letter { get; private set; }//by agreement, char 0 is str-start, char 1 is unknown, char 10 is str-end, and char 32 is space
-		public uint Code { get; private set; }
+		char? letter;//by agreement, char 0 is str-start, char 1 is unknown, char 10 is str-end, and char 32 is space
+		uint? code;
+		public char Letter { get { return letter.Value; } set { if (letter.HasValue) throw new ApplicationException("letter already set"); letter = value; } }
+		public uint Code { get { return code.Value; } set { if (code.HasValue) throw new ApplicationException("code already set"); code = value; } }
 		public GaussianEstimate Length { get; set; }
 		public FeatureDistributionEstimate[] State { get; set; }
-		public SymbolClass(char c, GaussianEstimate lengthEstimate) { this.Letter = c; this.Code = uint.MaxValue; this.Length = lengthEstimate; }
+		public SymbolClass() { }
+		public SymbolClass(char c, GaussianEstimate lengthEstimate) { this.Letter = c;  this.Length = lengthEstimate; }
 		public SymbolClass(char c, uint code, GaussianEstimate lengthEstimate) { this.Letter = c; this.Code = code; this.Length = lengthEstimate; }
-		public void SetCode(uint newcode) { if (Code != uint.MaxValue) throw new ApplicationException("code already set"); else Code = newcode; }
 
 		public IEnumerable<SymbolClass> Split(int intoCharPhases) {
-			if (Code == uint.MaxValue) throw new ApplicationException("Code not set");
+			if (!code.HasValue) throw new ApplicationException("Code not set");
 			for (int i = 0; i < intoCharPhases; i++)
 				yield return new SymbolClass(this.Letter,
 					Code * (uint)intoCharPhases + (uint)i,
@@ -91,7 +95,7 @@ namespace HwrDataModel
 
 			var symbolClasses = symbolsByChar.Values.OrderBy(c => c.Letter).ToArray();
 			for (int i = 0; i < symbolClasses.Length; i++)
-				symbolClasses[i].SetCode((uint)i);
+				symbolClasses[i].Code = (uint)i;
 			//OK, now we have the symbol classes for one char-phase.
 
 			var phaseSplitSymbols = symbolClasses.SelectMany(symbolClass => symbolClass.Split(charPhases)).ToArray();

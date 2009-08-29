@@ -3,10 +3,11 @@ using System.Linq;
 
 namespace HwrDataModel {
     public static class Program {
+		static readonly DirectoryInfo HwrDir = new DirectoryInfo( new[] { @"D:\EamonLargeDocs\HWR", @"C:\Users\nerbonne\HWR" }.First(Directory.Exists));
 
-		public readonly static string[] DataPaths = new[] { @"D:\EamonLargeDocs\HWR\data", @"C:\Users\nerbonne\HWR\data" };
-		public static string DataPath { get { return DataPaths.First(path => Directory.Exists(path)); } }
-		public readonly static string[] ImgPaths = new[] { @"D:\EamonLargeDocs\HWR\Original", @"C:\Users\nerbonne\HWR\Original" };
-		public static string ImgPath { get { return ImgPaths.First(path => Directory.Exists(path)); } }
+
+		public static string DataPath { get { return  HwrDir.CreateSubdirectory("data").FullName; } }
+		public static string ImgPath { get { return HwrDir.CreateSubdirectory("Original").FullName; } }
+		public static DirectoryInfo SymbolPath { get { return HwrDir.CreateSubdirectory("Symbols"); } }
     }
 }

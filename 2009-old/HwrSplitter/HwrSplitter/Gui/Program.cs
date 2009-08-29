@@ -19,140 +19,129 @@ using HwrSplitter.Engine;
 
 namespace HwrSplitter.Gui
 {
-    class Program : Application {
-        [STAThread]
-        public static void Main(string[] args) {
-            Program app;
-            if (args.Length > 0)
-                app = new Program(args[0]);
-            else
-                app = new Program();
-            app.Exec();
-        }
+	class Program : Application
+	{
+		[STAThread]
+		public static void Main(string[] args) {
+			Program app;
+			if (args.Length > 0)
+				app = new Program(args[0]);
+			else
+				app = new Program();
+			app.Exec();
+		}
 
-        MainManager manager;
-        FileInfo wordsFileInfo = null, imageFileInfo;
-        string numStr;
-        int pageNum;
-        HwrPageImage hwrImg;//TODO:rename
-        MainWindow mainWindow;
-        int? imgForceNum;
-        WordsImage words;
-
-        public Program(string imgNum)
-            : this() {
-            imgForceNum = int.Parse(imgNum);
-        }
-        public Program() {
-            mainWindow = new MainWindow();
-            manager = mainWindow.Manager;
-            this.ShutdownMode = ShutdownMode.OnMainWindowClose;//TODO:add save warning.
-        }
-
-        public void Exec() { this.Run(mainWindow); } //TODO:MainWindow.
-        protected override void OnStartup(StartupEventArgs e) {
-            base.OnStartup(e);
-            Thread worker = new Thread(this.LoadInBackground);
-            worker.Name = "WorkerHWR";
-            worker.IsBackground = true; //if background processing has not completed, exit anyway.
-            //worker.Priority = ThreadPriority.BelowNormal;
-            worker.Start();
-            Log("Started Worker Thread");
-        }
-
-        public void ChooseImage() {
-            var imgNumStrs = from filepath in Directory.GetFiles(HwrDataModel.Program.ImgPath, "NL_HaNa_H2_7823_*.tif")
-                             let filename = System.IO.Path.GetFileName(filepath)
-                             let m = Regex.Match(filename, @"^NL_HaNa_H2_7823_(?<num>\d+).tif$")
-                             where m.Success
-                             let numstr = m.Groups["num"].Value
-                             select numstr;
-            /*var wordNumStrs = from filepath in Directory.GetFiles(
-                                  System.IO.Path.Combine(DataIO.Program.DataPath, "words-train"), "NL_HaNa_H2_7823_*.words")
-                              let filename = System.IO.Path.GetFileName(filepath)
-                              let m = Regex.Match(filename, @"^NL_HaNa_H2_7823_(?<num>\d+).words$")
-                              where m.Success
-                              let numstr = m.Groups["num"].Value
-                              select numstr;
-            var bothNumStrs = imgNumStrs.Intersect(wordNumStrs).ToArray();
+		MainManager manager;
+		FileInfo wordsFileInfo = null, imageFileInfo;
 
 
-            string wordsPath = System.IO.Path.Combine(DataIO.Program.DataPath, @"words-train\NL_HaNa_H2_7823_" + numStr + ".words");
-            wordsFileInfo = new FileInfo(wordsPath);
+		HwrPageImage hwrImg;//TODO:rename
+		MainWindow mainWindow;
+		int? imgForceNum;
 
-            */
-            if(imgForceNum.HasValue)
-            numStr = imgNumStrs.First(numStrs=>int.Parse(numStrs) == imgForceNum.Value);
-            else
-                numStr = imgNumStrs.First(s=>54<=int.Parse(s));
+		public Program(string imgNum)
+			: this() {
+			imgForceNum = int.Parse(imgNum);
+		}
+		public Program() {
+			mainWindow = new MainWindow();
+			manager = mainWindow.Manager;
+			this.ShutdownMode = ShutdownMode.OnMainWindowClose;//TODO:add save warning.
+		}
 
-            string imgPath = System.IO.Path.Combine(HwrDataModel.Program.ImgPath, "NL_HaNa_H2_7823_" + numStr + ".tif");
-            imageFileInfo = new FileInfo(imgPath);
-
-            pageNum = int.Parse(numStr);
-            Log("Chose page:" + pageNum);
-        }
-        
-        //unused as of now.
-        public void LoadWords() {
-            var xmlWords = XDocument.Load(wordsFileInfo.OpenText());
-            words = new WordsImage(xmlWords.Root);
-            Log("Loaded .words file");
-            manager.ImageAnnotater.ProcessLines( words.textlines);
-        }
-
-
-        public void LoadImage() {
-            hwrImg = new HwrPageImage(imageFileInfo);
-            manager.SetImage(hwrImg);
-            Log("Image loaded: " + hwrImg.Width + "x" + hwrImg.Height);
-        }
-
-        void LoadInBackground() {
-            manager.optimizer =LoadSymbolClasses();
-			
-
-            ChooseImage();
-            LoadImage();
-
-            //            LoadWords();
-            LoadAnnot();
-            manager.ImageAnnotater.ProcessLines(words.textlines);
-			
-			manager.optimizer.ImproveGuess(hwrImg, words, line =>
-			{
-                manager.ImageAnnotater.ProcessLine(line);
-            });
-			//mainWindow.Dispatcher.Invoke((Action)mainWindow.Close);
-            using (Stream stream = new FileInfo(
-                    System.IO.Path.Combine(System.IO.Path.Combine(HwrDataModel.Program.DataPath, "words-train"), "NL_HaNa_H2_7823_" + numStr + ".wordsguess")
-                ).OpenWrite())
-            using (TextWriter writer = new StreamWriter(stream))
-                writer.Write(words.AsXml().ToString());
-        }
+		public void Exec() { this.Run(mainWindow); } //TODO:MainWindow.
+		protected override void OnStartup(StartupEventArgs e) {
+			base.OnStartup(e);
+			Thread worker = new Thread(this.LoadInBackground);
+			worker.Name = "WorkerHWR";
+			worker.IsBackground = true; //if background processing has not completed, exit anyway.
+			//worker.Priority = ThreadPriority.BelowNormal;
+			worker.Start();
+			Log("Started Worker Thread");
+		}
 
 
-        private TextLineCostOptimizer LoadSymbolClasses() {
-            var symbolClasses = SymbolClassParser.Parse(new FileInfo(System.IO.Path.Combine(HwrDataModel.Program.DataPath, "char-width.txt")), TextLineCostOptimizer.CharPhases);
+		//unused as of now.
+		public void LoadWords() {
+			var xmlWords = XDocument.Load(wordsFileInfo.OpenText());
+			manager.words = new WordsImage(xmlWords.Root);
+			Log("Loaded .words file");
+			manager.ImageAnnotater.ProcessLines(manager.words.textlines);
+		}
+
+
+		public void LoadImage() {
+			hwrImg = new HwrPageImage(imageFileInfo);
+			manager.SetImage(hwrImg);
+			//Log("Image loaded: " + hwrImg.Width + "x" + hwrImg.Height);
+		}
+
+		void LoadInBackground() {
+			manager.optimizer = LoadSymbolClasses();
+			LoadAnnot();
+
+
+			var imgNumStrs = (from filepath in Directory.GetFiles(HwrDataModel.Program.ImgPath, "NL_HaNa_H2_7823_*.tif")
+							 let filename = System.IO.Path.GetFileName(filepath)
+							 let m = Regex.Match(filename, @"^NL_HaNa_H2_7823_(?<num>\d+).tif$")
+							 where m.Success
+							 let numstr = m.Groups["num"].Value
+							 let num = int.Parse(numstr)
+							 where annot_lines.ContainsKey(num)
+							 select numstr).ToArray();
+
+			while(true)
+			foreach (var possiblePage in imgNumStrs) {
+
+				string imgPath = System.IO.Path.Combine(HwrDataModel.Program.ImgPath, "NL_HaNa_H2_7823_" + possiblePage + ".tif");
+				imageFileInfo = new FileInfo(imgPath);
+
+				//Log("Chose page:" + int.Parse(possiblePage));
+
+
+				LoadImage();
+
+				//            LoadWords();
+				manager.words = annot_lines[int.Parse(possiblePage)];
+
+				manager.ImageAnnotater.ProcessLines(manager.words.textlines);
+
+				manager.optimizer.ImproveGuess(hwrImg, manager.words, line => {
+					manager.ImageAnnotater.ProcessLine(line);
+				});
+				//mainWindow.Dispatcher.Invoke((Action)mainWindow.Close);
+				using (Stream stream = new FileInfo(
+						System.IO.Path.Combine(System.IO.Path.Combine(HwrDataModel.Program.DataPath, "words-train"), "NL_HaNa_H2_7823_" + possiblePage + ".wordsguess")
+					).OpenWrite())
+				using (TextWriter writer = new StreamWriter(stream))
+					writer.Write(manager.words.AsXml().ToString());
+			}
+		}
+
+
+		private TextLineCostOptimizer LoadSymbolClasses() {
+			var symbolClasses = SymbolClassParser.Parse(new FileInfo(System.IO.Path.Combine(HwrDataModel.Program.DataPath, "char-width.txt")), TextLineCostOptimizer.CharPhases);
 
 			return new TextLineCostOptimizer(symbolClasses);
-        }
+		}
 
-        private void Log(string logmsg) {
-            Console.WriteLine(logmsg);
-        }
-        void LoadAnnot() {
-            var annotFile = new FileInfo(System.IO.Path.Combine(HwrDataModel.Program.DataPath, "line_annot.txt"));
-            var annotLines = AnnotLinesParser.GetAnnotLines(annotFile);
-            Console.WriteLine("Lines higher than 255: {0} of {1}",  annotLines.Where(al => al.bottom - al.top > 255).Count(),annotLines.Length);
+		private void Log(string logmsg) {
+			Console.WriteLine(logmsg);
+		}
 
-            words = AnnotLinesParser.GetGuessWord(annotFile, pageNum, manager.optimizer.MakeSymbolWidthEstimate()  );
-            manager.words = words;
+		Dictionary<int, WordsImage> annot_lines;
+		void LoadAnnot() {
+			var annotFile = new FileInfo(System.IO.Path.Combine(HwrDataModel.Program.DataPath, "line_annot.txt"));
 
-            Log("Loaded line_annot and parsed it");
-            //ProcessLines( wordsGuess, Brushes.Blue);
-        }
+			//var annotLines = AnnotLinesParser.GetAnnotLines(annotFile);
+			//Console.WriteLine("Lines higher than 255: {0} of {1}",  annotLines.Where(al => al.bottom - al.top > 255).Count(),annotLines.Length);
+			Console.Write("Loading line_annot...");
+			annot_lines = AnnotLinesParser.GetGuessWords(annotFile, num => true, manager.optimizer.MakeSymbolWidthEstimate());
+			Console.WriteLine("done.");
+
+			//ProcessLines( wordsGuess, Brushes.Blue);
+		}
 
 
-    }
+	}
 }

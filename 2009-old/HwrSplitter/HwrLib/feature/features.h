@@ -118,15 +118,15 @@ private:
 	
 	// return "mean(i = x, x < width) cat(i)"
 	inline Feature featV(int cat, int x) const;
-	void init();
-	void blurEm();
+	void init(int winSizeDens,int winSizeAngle, int iter);
+	void blurEm(int winSizeDens,int winSizeAngle, int iter);
 	void blurHisto();
 	void initRunlength();
 public:
 	/// Construct an image feature extractor for a word image
 	/** The image will not be preprocessed
 	*/
-	ImageFeatures(PamImage<BWPixel> const& im);
+	ImageFeatures(PamImage<BWPixel> const& im, int winSizeDens=4,int winSizeAngle=6, int blurIterations=3);
 	ImageFeatures(PamImage<BWPixel> const& im, FILE* file);
 	/// Was the data correctly loaded?
 	inline bool ok() const { return image_width >= 0; }

@@ -25,6 +25,12 @@ public:
 	Float getDCoffset()const{return logDCfactor;}
 
 	inline Float occurence() {return weightSum;}
+	void ScaleWeightBy(double scaleFactor) { 
+		weightSum*=scaleFactor;
+		for (int i=0;i<NUMBER_OF_FEATURES;i++) 
+			sX[i]*=scaleFactor;
+	}
+
 
 	Float LogProbDensityOf(FeatureVector const & target) {
 		Float distSqr=0.0; 

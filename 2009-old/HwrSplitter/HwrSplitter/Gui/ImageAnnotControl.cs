@@ -38,6 +38,7 @@ namespace HwrSplitter.Gui
                 ImageSource = image.BitmapSource
             };
             brush.Freeze();
+			canvas.Children.Clear();
             canvas.Background = brush;
             canvas.Width = image.Width;
             canvas.Height = image.Height;

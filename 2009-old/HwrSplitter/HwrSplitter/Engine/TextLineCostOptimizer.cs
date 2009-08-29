@@ -10,14 +10,24 @@ using HwrLibCliWrapper;
 using System.Diagnostics;
 using System.Windows.Media.Imaging;
 using System.Windows;
+using EmnExtensions;
+using EmnExtensions.Filesystem;
+using System.IO;
+using System.Globalization;
 
 namespace HwrSplitter.Engine
 {
+	public class SymbolClasses : XmlSerializableBase<SymbolClasses>
+	{
+		public SymbolClass[] Symbol;
+	}
+
 	public class TextLineCostOptimizer
 	{
 		public const int CharPhases = 1;
 		HwrOptimizer nativeOptimizer;
-		readonly SymbolClass[] symbolClasses;
+		SymbolClass[] symbolClasses;
+		int iteration = 0;
 
 		public TextLineCostOptimizer(SymbolClass[] symbolClasses) {
 			this.symbolClasses = symbolClasses;
@@ -26,9 +36,9 @@ namespace HwrSplitter.Engine
 
 		public void ImproveGuess(HwrPageImage image, WordsImage betterGuessWords, Action<TextLine> lineProcessed)
 		{
-			object sync = new object();
+			//object sync = new object();
 			//double totalTime = 0.0;
-			while (true) {
+			//while (true) {
 				//var textLine = betterGuessWords.textlines[0];
 				//ImproveLineGuessNew(textLine);
 				//lineProcessed(textLine);
@@ -42,10 +52,19 @@ namespace HwrSplitter.Engine
 					//using (var t = new DTimer((ts) => { lock (sync)	totalTime += ts.TotalSeconds; Console.WriteLine(ts);}))
 					//    textLine.ComputeFeatures(image);
 					lineProcessed(textLine);
+					Console.Write("{0}, ", iteration);
+
+					if (iteration % 100 == 0) {
+						nativeOptimizer.SaveToManaged(symbolClasses);
+						using (var stream = Program.SymbolPath.GetRelativeFile("symbols-" + DateTime.Now.ToString("u", CultureInfo.InvariantCulture).Replace(' ', '_').Replace(':', '.') + ".xml").Open(FileMode.Create))
+							new SymbolClasses { Symbol = symbolClasses }.SerializeTo(stream);
+					}
+
+
 					//				doneSem.Release();
 					//}));
 				}
-			}
+			//}
 			//for (int lineI = 0; lineI < betterGuessWords.textlines.Length; lineI++)
 			//    doneSem.WaitOne();
 			//Console.WriteLine("TotalFeatureExtractionTime == " + totalTime);
@@ -53,8 +72,10 @@ namespace HwrSplitter.Engine
 
 		private void ImproveLineGuessNew(HwrPageImage image, TextLine lineGuess)
 		{
+#if LOGLINESPEED
 			NiceTimer timer = new NiceTimer();
 			timer.TimeMark("preparing lineguess");
+#endif
 			int topXoffset;
 
 			int x0Est = Math.Max(0, (int)(lineGuess.left + lineGuess.BottomXOffset - 10 + 0.5));
@@ -80,14 +101,15 @@ namespace HwrSplitter.Engine
 				).ToArray();
 
 			var croppedLine = image.Image.CropTo(x0Est, y0, x1Est, y1);
-
+#if LOGLINESPEED
 			timer.TimeMark(null);
+#endif
 
 			int[] charEndPos = nativeOptimizer.SplitWords(
 									croppedLine,
 									phaseCodeSeq,
 									out topXoffset,
-									(float)lineGuess.shear);
+									(float)lineGuess.shear,iteration++);
 			int x0 = x0Est + topXoffset;
 
 			charEndPos = charEndPos.Where((pos, i) => i % CharPhases == CharPhases - 1).ToArray();

@@ -17,17 +17,21 @@ namespace HwrSplitter.Engine
 		ImageStruct<sbyte> image;
 		//BitmapImage original;
 		public HwrPageImage(FileInfo fileToLoad) {
+#if LOGSPEED
 			NiceTimer timer = new NiceTimer();
 			timer.TimeMark("Loading");
+#endif
 			BitmapImage
 				original = new BitmapImage();
 			original.BeginInit();
 			original.UriSource = new Uri(fileToLoad.FullName);
 			original.EndInit();
-			Console.WriteLine(original.IsDownloading);
+			//Console.WriteLine(original.IsDownloading);
 			original.Freeze();
 
+#if LOGSPEED
 			timer.TimeMark("Converting to array");
+#endif
 			var rawImg = new ImageStruct<uint>(original.PixelWidth, original.PixelHeight);
 			//Console.WriteLine("{0:X}", rawImg[1000, 2000]);//loading bug debug help
 			uint[] data = new uint[original.PixelWidth * original.PixelHeight];//TODO:these lines prevent some sort of loading bug ... sometimes...
@@ -35,13 +39,19 @@ namespace HwrSplitter.Engine
 			original.CopyPixels(rawImg.RawData, rawImg.Stride, 0);
 			//Console.WriteLine("{0:X}", rawImg[1000, 2000]);//loading bug debug help
 #if VIACPP
+#if LOGSPEED
 			timer.TimeMark("preprocessing");
+#endif
 			image = ImageProcessor.preprocess(rawImg);
 #else
+#if LOGSPEED
 			timer.TimeMark("threshholding");
+#endif
 			image = rawImg.MapTo(nr => ((PixelArgb32)nr).R >= 200 ? (sbyte)0 : (sbyte)1);
 #endif
+#if LOGSPEED
 			timer.TimeMark(null);
+#endif
 		}
 
 		public int Width { get { return image.Width; } }

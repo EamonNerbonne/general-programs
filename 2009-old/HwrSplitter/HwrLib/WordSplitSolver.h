@@ -11,6 +11,8 @@ struct AllSymbolClasses {
 	boost::scoped_array<SymbolClass> sym;
 	AllSymbolClasses(int symbolCount) : symbolCount(symbolCount), sym(new SymbolClass[symbolCount]) {	}
 	SymbolClass & operator[](short symbol) {return sym[symbol];}
+	SymbolClass const & getSymbol(short symbol) const {return sym[symbol];}
+	SymbolClass & getSymbol(short symbol) {return sym[symbol];}
 	short size() {return symbolCount;}
 	void initRandom() {
 		for(int i=0;i<symbolCount;i++)
@@ -53,7 +55,7 @@ class WordSplitSolver
 	//op(x,u,i) == log(pd_u_i(x) * k(x)) for some scaling factor k(x).
 	std::vector<double> op_x_u_i;
 	inline double & op(unsigned x, short u,short i) { return op_x_u_i[x*strLen()*SUB_SYMBOL_COUNT +  u*SUB_SYMBOL_COUNT + i];	}
-	void init_op_x_u_i() {
+	void init_op_x_u_i(double featureRelevanceFactor) {
 		op_x_u_i.resize(imageLen()*strLen()*SUB_SYMBOL_COUNT);
 		for(unsigned x=0;x<imageLen();++x) { //for all x-positions
 			FeatureVector const & fv = imageFeatures.featAt(x);
@@ -61,7 +63,7 @@ class WordSplitSolver
 				short c = usedSymbols[ci];
 				SymbolClass & sc = this->syms[c];
 				for(short i=0;i<SUB_SYMBOL_COUNT;i++) {//for each sub-symbol
-					double logProbDensity = sc.state[i].LogProbDensityOf(fv)/1000.0;//TODO: potential scaling factor initially to reduce impact?
+					double logProbDensity = sc.state[i].LogProbDensityOf(fv)*featureRelevanceFactor;//TODO: potential scaling factor initially to reduce impact?
 					for(unsigned ui=0;ui<symToStrIdx[c].size();ui++) { //for each string position of a used symbol...
 						short u = symToStrIdx[c][ui];
 						op(x,u,i) = logProbDensity;
@@ -246,7 +248,7 @@ class WordSplitSolver
 
 
 public:
-	WordSplitSolver(AllSymbolClasses & syms, ImageFeatures const & imageFeatures, std::vector<short> const & targetString) ;
-	void Learn();
+	WordSplitSolver(AllSymbolClasses & syms, ImageFeatures const & imageFeatures, std::vector<short> const & targetString,double featureRelevance) ;
+	void Learn(double blurSymbols);
 	vector<int> MostLikelySplit();
 };
