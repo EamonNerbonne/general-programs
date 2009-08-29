@@ -87,9 +87,9 @@ namespace HwrDataModel
 				for (int i = 0; i < means.Length; i++) {
 					yield return
 						new XElement(featureNames==null?"unknown":featureNames[i],
-							new XAttribute("mean", means[i]),
+							new XAttribute("mean", means[i].ToString("R",CultureInfo.InvariantCulture) ),
 							new XAttribute("stddev", Math.Sqrt(scaledVars[i]/weightSum)),
-							new XAttribute("scaledVar", scaledVars[i]));
+							new XAttribute("scaledVar", scaledVars[i].ToString("R", CultureInfo.InvariantCulture)));
 				}
 			}
 		}
