@@ -353,7 +353,7 @@ void ImageFeatures::init(int winSizeDens,int winSizeAngle, int iter) {
 	//blurHisto(); // blurring makes things worse
 	initRunlength();
 
-	blurEm(winSizeDens,winSizeAngle,iter); //but blurring in x makes thing better.
+//	blurEm(winSizeDens,winSizeAngle,iter); //but blurring in x makes thing better.
 }
 
 void ImageFeatures::initRunlength() {

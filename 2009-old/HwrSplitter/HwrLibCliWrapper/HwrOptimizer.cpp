@@ -67,7 +67,7 @@ namespace HwrLibCliWrapper {
 		int blurIter = 3;
 		int winAngleSize = int(100.0*dampingFactor + 4);
 		int winDensSize = int(winAngleSize*0.76);
-		double featureRelevance = 0.1 * exp(-7*dampingFactor) ;
+		double featureRelevance = exp(-20*dampingFactor) ;
 
 
 		PamImage<BWPixel> shearedImg = ImageProcessor::StructToPamImage(block);

@@ -171,6 +171,11 @@ void WordSplitSolver::Learn(double blurSymbols){
 			}
 		}
 	}
+	for(int i=0;i<syms.size();i++) {
+		for(int j=0;j<SUB_SYMBOL_COUNT;j++) {
+			syms[i].state[j].ScaleWeightBy(0.9999307);//halve over 10000 iterations
+		}
+	}
 
 
 #if LOGLEVEL >=10

@@ -76,7 +76,7 @@ namespace HwrDataModel
 					}
 					if (FeatureNames[i] == null || (i + 1 < featureNames.Length && featureNames[i + 1] == null))
 						name += "_" + (i - lastI);
-					
+
 					featureNames[i] = name;
 				}
 
@@ -86,9 +86,9 @@ namespace HwrDataModel
 			get {
 				for (int i = 0; i < means.Length; i++) {
 					yield return
-						new XElement(featureNames==null?"unknown":featureNames[i],
-							new XAttribute("mean", means[i].ToString("R",CultureInfo.InvariantCulture) ),
-							new XAttribute("stddev", Math.Sqrt(scaledVars[i]/weightSum)),
+						new XElement(featureNames == null ? "unknown" : featureNames[i],
+							new XAttribute("mean", means[i].ToString("R", CultureInfo.InvariantCulture)),
+							new XAttribute("stddev", Math.Sqrt(scaledVars[i] / weightSum)),
 							new XAttribute("scaledVar", scaledVars[i].ToString("R", CultureInfo.InvariantCulture)));
 				}
 			}
@@ -100,7 +100,17 @@ namespace HwrDataModel
 
 		char? letter;//by agreement, char 0 is str-start, char 1 is unknown, char 10 is str-end, and char 32 is space
 		uint? code;
-		public char Letter { get { return letter.Value; } set { if (letter.HasValue) throw new ApplicationException("letter already set"); letter = value; } }
+		public char Letter { get { return letter.Value; } set { if (letter.HasValue && letter.Value != value) throw new ApplicationException("letter already set"); else letter = value; } }
+		public string LetterReadable {
+			get { return letter.HasValue ? (letter.Value <= ' ' ? ((int)letter.Value).ToString() : "'" + letter.Value.ToString() + "'") : "<null>"; }
+			set {
+				char newVal = value.StartsWith("'")
+					? value[1]
+					: (char)int.Parse(value);
+				Letter = newVal;
+			}
+		}
+
 		public uint Code { get { return code.Value; } set { if (code.HasValue) throw new ApplicationException("code already set"); code = value; } }
 		public GaussianEstimate Length { get; set; }
 		public FeatureDistributionEstimate[] State { get; set; }
