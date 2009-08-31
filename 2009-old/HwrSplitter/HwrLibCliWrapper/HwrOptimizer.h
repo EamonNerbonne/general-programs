@@ -32,6 +32,7 @@ namespace HwrLibCliWrapper {
 					throw gcnew ArgumentException("Symbol position does not match its code");
 				CopyToNative(symbolClasses[i],symbols->getSymbol(i));
 			}
+			symbols->RecomputeFeatureWeights();
 		}
 
 		void SaveToManaged(array<HwrDataModel::SymbolClass^>^ symbolClasses) {
@@ -42,12 +43,19 @@ namespace HwrLibCliWrapper {
 			}
 		}
 
+		array<double>^ GetFeatureWeights(){
+			array<double>^ retval = gcnew array<double>(NUMBER_OF_FEATURES);
+			for(int i=0;i<NUMBER_OF_FEATURES;i++) 
+				retval[i] = symbols->featureWeights[i];
+			return retval;
+		}
+
 		// block - the bit of the original (b/w) image, cropped to fit the line closely.
 		// sequenceToMatch - the sequence of symbolClass codes to match
 		// topOffRef - will be set to the amount of pixels the top row was shifted to account for shear
 		// shear - the angle of text shearing in the input
 		// learningIteration - the current learning iteration; used to decrease the weight of symbolclasses (for instance) and to improve 
-		array<int>^ SplitWords(ImageStruct<signed char> block, array<unsigned> ^ sequenceToMatch, [Out] int % topOffRef, float shear, int learningIteration);
+		array<int>^ SplitWords(ImageStruct<signed char> block, array<unsigned> ^ sequenceToMatch,  float shear, int learningIteration,[Out] int % topOffRef,[Out] double % loglikelihood);
 	};
 }
 

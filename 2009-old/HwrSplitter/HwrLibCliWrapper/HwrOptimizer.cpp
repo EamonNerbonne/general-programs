@@ -54,7 +54,7 @@ namespace HwrLibCliWrapper {
 	}
 
 
-	array<int>^ HwrOptimizer::SplitWords(ImageStruct<signed char> block, array<unsigned> ^ sequenceToMatch, [Out] int % topOffRef,float shear, int learningIteration) {
+	array<int>^ HwrOptimizer::SplitWords(ImageStruct<signed char> block, array<unsigned> ^ sequenceToMatch,  float shear, int learningIteration,[Out] int % topOffRef,[Out] double % loglikelihood) {
 		using std::min;
 		using std::max;
 		using std::cout;
@@ -83,8 +83,10 @@ namespace HwrLibCliWrapper {
 		cout << "C++ textline prepare took " << t.elapsed() <<"\n";
 #endif
 		WordSplitSolver splitSolve( *symbols, feats, sequenceVector,featureRelevance);
-
-		vector<int> splits = splitSolve.MostLikelySplit();
+		
+		double computedLikelihood;
+		vector<int> splits = splitSolve.MostLikelySplit(computedLikelihood);
+		loglikelihood = computedLikelihood;
 		array<int>^ retval = gcnew array<int>((int)splits.size());
 		for(int i=0;i<(int)splits.size();i++) {
 			retval[i] = splits[i];

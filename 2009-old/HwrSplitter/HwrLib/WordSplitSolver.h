@@ -9,7 +9,11 @@
 struct AllSymbolClasses {
 	int symbolCount;
 	boost::scoped_array<SymbolClass> sym;
-	AllSymbolClasses(int symbolCount) : symbolCount(symbolCount), sym(new SymbolClass[symbolCount]) {	}
+	FeatureVector featureWeights;
+	AllSymbolClasses(int symbolCount) : symbolCount(symbolCount), sym(new SymbolClass[symbolCount]) {	
+		for(int i=0;i<NUMBER_OF_FEATURES;i++)
+			featureWeights[i]=1.0;
+	}
 	SymbolClass & operator[](short symbol) {return sym[symbol];}
 	SymbolClass const & getSymbol(short symbol) const {return sym[symbol];}
 	SymbolClass & getSymbol(short symbol) {return sym[symbol];}
@@ -19,6 +23,24 @@ struct AllSymbolClasses {
 			sym[i].initRandom();
 	}
 	int AllocatedSize() {return sizeof(AllSymbolClasses) + sizeof(SymbolClass)*symbolCount;}
+	void RecomputeFeatureWeights(){
+		FeatureDistribution overall;
+		FeatureDistribution means;
+		for(int i=0;i<size();i++) {
+			for(int j=0;j<SUB_SYMBOL_COUNT;j++) {
+				overall.CombineWith(sym[i].state[j]);
+				means.CombineWith(sym[i].state[j].meanX, sym[i].state[j].weightSum);
+			}
+		}
+		//OK, we have the overall variance and the variance of the means.  Where the means variance is high in relation to the overall variance, most variation is inter rather than intra-class.
+		double maxWeight=0.0;
+		for(int i=0;i<NUMBER_OF_FEATURES;i++) {
+			featureWeights[i] = means.varX(i) / overall.varX(i);
+			maxWeight = std::max(maxWeight,featureWeights[i]);
+		}
+		for(int i=0;i<NUMBER_OF_FEATURES;i++)
+			featureWeights[i]/=maxWeight;
+	}
 };
 
 class WordSplitSolver
@@ -64,7 +86,7 @@ class WordSplitSolver
 				short c = usedSymbols[ci];
 				SymbolClass & sc = this->syms[c];
 				for(short i=0;i<SUB_SYMBOL_COUNT;i++) {//for each sub-symbol
-					double logProbDensity = sc.state[i].LogProbDensityOf(fv)*featureRelevanceFactor;//TODO: potential scaling factor initially to reduce impact?
+					double logProbDensity = sc.state[i].LogProbDensityOf(fv,syms.featureWeights)*featureRelevanceFactor;//TODO: potential scaling factor initially to reduce impact?
 					for(unsigned ui=0;ui<symToStrIdx[c].size();ui++) { //for each string position of a used symbol...
 						short u = symToStrIdx[c][ui];
 						op(x,u,i) = logProbDensity;
@@ -142,6 +164,7 @@ class WordSplitSolver
 			SymbolClass const & sc = sym(u);
 			for(unsigned len=0;len<imageLen1;len++){
 				double lenL = exp(sc.LogLikelihoodLength(len)); //avoiding the exp in the inner loop saves a bunch of time.
+				if(len<5) lenL*=exp(-0.5*(5.0-len));
 				for(unsigned x0=0;x0<imageLen1-len;x0++)  {
 					unsigned x1= x0 +len;
 					pf(x1,u) = pf(x1,u) +  pf(x0, u-1) * opR(u,x0,x1) *lenL;
@@ -176,6 +199,7 @@ class WordSplitSolver
 			SymbolClass const & sc = sym(u);
 			for(unsigned len=0;len<imageLen1;len++){
 				double lenL = exp(sc.LogLikelihoodLength(len));
+				if(len<5) lenL*=exp(-0.5*(5.0-len));
 				for(unsigned x0=0;x0<imageLen1-len;x0++)  {
 					unsigned x1 = x0 + len;
 					pb(x0,u) = pb(x0,u) +  pb(x1, u + 1) *opR(u,x0,x1) *lenL;
@@ -224,6 +248,20 @@ class WordSplitSolver
 				sum += p(x,u);
 				pC(x,u) = sum;
 			}
+
+			//we do a second pass to reduce errors.
+
+			double lastVal = 0.0;
+			double sumError=0.0;
+			for(unsigned x=0;x<imageLen1;x++) {
+				double diff = p(x,u) - (pC(x,u) - lastVal); //OK, (pC(x,u) - sum) should be p(x,u), but let's say it's too big, then diff is negative by the amout pC(x,u) should be corrected by.
+				sumError+=diff; //we accumulate all the errors in sumError; after all, the sum needs to be corrected for offset errors for all previous values of X.
+				lastVal = pC(x,u);
+				pC(x,u) += sumError;
+			}
+
+			sum = pC(imageLen1-1,u);
+
 			for(unsigned x=0;x<imageLen1;x++) 
 				pC(x,u) /= sum; //scaled to 0..1
 		}
@@ -254,5 +292,5 @@ class WordSplitSolver
 public:
 	WordSplitSolver(AllSymbolClasses & syms, ImageFeatures const & imageFeatures, std::vector<short> const & targetString,double featureRelevance) ;
 	void Learn(double blurSymbols);
-	vector<int> MostLikelySplit();
+	vector<int> MostLikelySplit(double & loglikelihood);
 };

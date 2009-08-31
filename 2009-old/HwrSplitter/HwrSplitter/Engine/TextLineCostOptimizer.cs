@@ -15,6 +15,8 @@ using HwrDataModel;
 using HwrLibCliWrapper;
 using MoreLinq;
 using System.Xml;
+using System.IO.Compression;
+using System.Text.RegularExpressions;
 
 namespace HwrSplitter.Engine
 {
@@ -38,19 +40,29 @@ namespace HwrSplitter.Engine
 
 		public TextLineCostOptimizer() {
 
-			if (HwrResources.Symbols.Exists)
+			if (HwrResources.SymbolsGZ.Exists) {
+				using (var fileStream = HwrResources.SymbolsGZ.OpenRead())
+				using (var zipStream = new GZipStream(fileStream, CompressionMode.Decompress))
+				using (var xmlreader = XmlReader.Create(zipStream)) {
+					SymbolClasses fromDisk = SymbolClasses.Deserialize(xmlreader);
+					this.iteration = fromDisk.Iteration == -1 ? 0 : fromDisk.Iteration;
+					this.StartPastPage = fromDisk.LastPage;
+					this.symbolClasses = fromDisk.Symbol;
+				}
+			} else if (HwrResources.Symbols.Exists) {
 				using (var fileStream = HwrResources.Symbols.OpenRead())
 				using (var xmlreader = XmlReader.Create(fileStream)) {
 					SymbolClasses fromDisk = SymbolClasses.Deserialize(xmlreader);
 					this.iteration = fromDisk.Iteration == -1 ? 0 : fromDisk.Iteration;
 					this.StartPastPage = fromDisk.LastPage;
 					this.symbolClasses = fromDisk.Symbol;
-				} else
+				}
+			} else
 				this.symbolClasses = SymbolClassParser.Parse(HwrResources.CharWidthFile, TextLineCostOptimizer.CharPhases);
 
 			nativeOptimizer = new HwrOptimizer(symbolClasses);
 		}
-
+		static Regex fractionRegex = new Regex(@"\d/\d", RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.ExplicitCapture);
 		public void ImproveGuess(HwrPageImage image, WordsImage betterGuessWords, Action<TextLine> lineProcessed) {
 			//object sync = new object();
 			//double totalTime = 0.0;
@@ -61,6 +73,17 @@ namespace HwrSplitter.Engine
 			//			Semaphore doneSem = new Semaphore(0, betterGuessWords.textlines.Length);
 			for (int lineI = 0; lineI < betterGuessWords.textlines.Length; lineI++) {
 				var textLine = betterGuessWords.textlines[lineI];
+				StringBuilder linetextB = new StringBuilder();
+				textLine.words.ForEach(w => { linetextB.Append(w.text); linetextB.Append(' '); });
+				string linetext = linetextB.ToString();
+				if (linetext.Length < 30 ) {
+					Console.Write("skipped:len=={0}, ", linetext.Length);
+					continue;
+				}
+				if (fractionRegex.IsMatch(linetext)) {
+					Console.Write("skipped:fraction, ", linetext.Length);
+					continue;
+				}
 				//ThreadPool.QueueUserWorkItem((WaitCallback)((ignored) => {
 				//	Thread.CurrentThread.Priority = ThreadPriority.BelowNormal;
 
@@ -77,12 +100,16 @@ namespace HwrSplitter.Engine
 				//using (var t = new DTimer((ts) => { lock (sync)	totalTime += ts.TotalSeconds; Console.WriteLine(ts);}))
 				//    textLine.ComputeFeatures(image);
 				lineProcessed(textLine);
-				Console.Write("{0}, ", iteration);
+				//Console.Write("{0}[{1}], ", iteration,textLine.ComputedLikelihood);
 
 				if (iteration % 100 == 0) {
 					nativeOptimizer.SaveToManaged(symbolClasses);
-					using (var stream = HwrResources.SymbolDir.GetRelativeFile("symbols-" + DateTime.Now.ToString("u", CultureInfo.InvariantCulture).Replace(' ', '_').Replace(':', '.') + ".xml").Open(FileMode.Create))
-						new SymbolClasses { Symbol = symbolClasses, Iteration = iteration, LastPage = betterGuessWords.pageNum }.SerializeTo(stream);
+					using (var stream = HwrResources.SymbolDir.GetRelativeFile("symbols-" + DateTime.Now.ToString("u", CultureInfo.InvariantCulture).Replace(' ', '_').Replace(':', '.') + ".xml.gz").Open(FileMode.Create))
+					using (var zipStream = new GZipStream(stream,CompressionMode.Compress))
+						new SymbolClasses { Symbol = symbolClasses, Iteration = iteration, LastPage = betterGuessWords.pageNum }.SerializeTo(zipStream);
+					Console.WriteLine();
+					nativeOptimizer.GetFeatureWeights().Zip(FeatureDistributionEstimate.FeatureNames, (weight, name) => name + ": " + weight).ForEach(Console.WriteLine);
+
 				}
 
 
@@ -129,11 +156,12 @@ namespace HwrSplitter.Engine
 			timer.TimeMark(null);
 #endif
 
+			double likelihood;
 			int[] charEndPos = nativeOptimizer.SplitWords(
 									croppedLine,
 									phaseCodeSeq,
-									out topXoffset,
-									(float)lineGuess.shear, iteration++);
+									(float)lineGuess.shear, iteration++, out topXoffset, out likelihood);
+			lineGuess.ComputedLikelihood = likelihood;
 			int x0 = x0Est + topXoffset;
 
 			charEndPos = charEndPos.Where((pos, i) => i % CharPhases == CharPhases - 1).ToArray();
@@ -158,6 +186,7 @@ namespace HwrSplitter.Engine
 				}
 			}
 			Debug.Assert(currWord == lineGuess.words.Length);
+
 		}
 
 		public void ComputeFeatures(HwrPageImage image, TextLine line, out BitmapSource featureImage, out Point offset) {

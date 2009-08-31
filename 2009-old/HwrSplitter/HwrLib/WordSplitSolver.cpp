@@ -61,14 +61,42 @@ WordSplitSolver::WordSplitSolver(AllSymbolClasses & syms, ImageFeatures const & 
 
 
 
-std::vector<int> WordSplitSolver::MostLikelySplit() {
+std::vector<int> WordSplitSolver::MostLikelySplit(double & loglikelihood) {
+	using namespace std;
 	vector<int> splits;
 	int x=0;
+
+	double featureLikelihoodSum=0.0;
+	double lenLikelihoodSum=0.0;
 	for(int u=0; u< (int)strLen()-1;u++) {
-		while(x <(int) imageLen() && P(x,u) > P(x,u+1)) x++;
+		int startX = x;
+		while(x <(int) imageLen() && P(x,u) > P(x,u+1)) { 
+			double maxL=-numeric_limits<double>::max();
+			for(int j=0;j<SUB_SYMBOL_COUNT;j++)
+				maxL= max(sym(u).state[j].LogProbDensityOf(imageFeatures.featAt(x),syms.featureWeights) ,maxL);
+			featureLikelihoodSum+=maxL;
+			x++;
+		}
+		lenLikelihoodSum += sym(u).LogLikelihoodLength(x-startX);
 		splits.push_back(x);
 	}
+	
+	int U = (int)strLen()-1;
+	int startX = x;
+
+	while(x <(int) imageLen() ) { 
+		double maxL=-numeric_limits<double>::max();
+		for(int j=0;j<SUB_SYMBOL_COUNT;j++)
+			maxL= max(sym(U).state[j].LogProbDensityOf(imageFeatures.featAt(x),syms.featureWeights) ,maxL);
+		featureLikelihoodSum+=maxL;
+		x++;
+	}
+	lenLikelihoodSum += sym(U).LogLikelihoodLength(imageLen()-startX);
+
 	splits.push_back(imageLen());
+
+
+	loglikelihood = featureLikelihoodSum/imageLen() + lenLikelihoodSum/strLen();
 
 	return splits;
 }
@@ -122,9 +150,7 @@ void WordSplitSolver::Learn(double blurSymbols){
 	{
 		SymbolClass & sc = sym(0);
 		for(unsigned x1=0;x1<imageLen1;x1++) {
-			sc.LearnLength(Float(x1), 
-			    p(0,0) * p(x1,0+1) * exp(sc.LogLikelihoodLength(x1-0))
-				);
+			sc.LearnLength(Float(x1), p(0,0) * p(x1,0+1) * exp(sc.LogLikelihoodLength(x1-0)) );
 		}
     }
 
@@ -152,6 +178,7 @@ void WordSplitSolver::Learn(double blurSymbols){
 		for(unsigned i=0;i<imageLen1;i++)
 			sc.LearnLength(Float(i),lengthWeight[i]);
 	}
+
 	if(blurSymbols != 0.0 ) {
 		FeatureDistribution overall;
 		for(int i=0;i<syms.size();i++) {
@@ -159,6 +186,7 @@ void WordSplitSolver::Learn(double blurSymbols){
 				overall.CombineWith(syms[i].state[j]);
 			}
 		}
+
 		overall.ScaleWeightBy(blurSymbols/syms.size()*SUB_SYMBOL_COUNT);
 		for(int i=0;i<syms.size();i++) {
 			for(int j=0;j<SUB_SYMBOL_COUNT;j++) {
@@ -168,14 +196,14 @@ void WordSplitSolver::Learn(double blurSymbols){
 				}
 				syms[i].state[j].CombineWith(overall);
 				syms[i].state[j].ScaleWeightBy(1.0/(1.0+blurSymbols));
+				syms[i].state[j].RecomputeDCfactor();
 			}
 		}
 	}
 	for(int i=0;i<syms.size();i++) {
-		for(int j=0;j<SUB_SYMBOL_COUNT;j++) {
-			syms[i].state[j].ScaleWeightBy(0.9999307);//halve over 10000 iterations
-		}
+		syms[i].ScaleWeightBy(0.9999307);//halve over 10000 iterations
 	}
+	syms.RecomputeFeatureWeights();
 
 
 #if LOGLEVEL >=10

@@ -49,7 +49,7 @@ namespace HwrSplitter.Gui
 
 		private string DescribeLine(TextLine textline, Word word) {
 			StringBuilder sb = new StringBuilder();
-			sb.AppendFormat("Line: [{0:f2},{1:f2}), length={2:f2}\n", textline.left, textline.right, textline.right - textline.left);
+			sb.AppendFormat("Line: [{0:f2},{1:f2}), length={2:f2}, likelihood={3}\n", textline.left, textline.right, textline.right - textline.left,textline.ComputedLikelihood);
 			sb.AppendFormat("Word: [{0:f2},{1:f2}), length={2:f2}, est={3:f2} ~ {4:f2}\n", word.left, word.right, word.right - word.left, word.symbolBasedLength.Mean, Math.Sqrt(word.symbolBasedLength.Variance));
 			return sb.ToString();
 		}

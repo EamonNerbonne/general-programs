@@ -18,6 +18,7 @@ namespace HwrDataModel
 		public int bodyTop;//TODO: compute
 		public int bodyBot;
 
+		public double ComputedLikelihood = double.NaN;
 
 		public TextLine() { }
 		public TextLine(string text, int no, double top, double bottom, double left, double right, double shear, Dictionary<char, GaussianEstimate> symbolWidths)
