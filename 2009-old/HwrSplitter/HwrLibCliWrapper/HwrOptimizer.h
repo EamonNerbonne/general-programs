@@ -32,7 +32,7 @@ namespace HwrLibCliWrapper {
 					throw gcnew ArgumentException("Symbol position does not match its code");
 				CopyToNative(symbolClasses[i],symbols->getSymbol(i));
 			}
-			symbols->RecomputeFeatureWeights();
+			symbols->RecomputeFeatureWeights(0.0);
 		}
 
 		void SaveToManaged(array<HwrDataModel::SymbolClass^>^ symbolClasses) {

@@ -5,5 +5,6 @@
 typedef double Float;
 
 #define LOGLEVEL 1
+#define LENGTH_WEIGHT_ON_TERMINATORS (1==1)
 
 #endif

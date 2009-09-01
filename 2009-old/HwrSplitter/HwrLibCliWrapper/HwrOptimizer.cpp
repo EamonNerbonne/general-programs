@@ -9,9 +9,9 @@
 namespace HwrLibCliWrapper {
 
 	void HwrOptimizer::CopyToNative(HwrDataModel::SymbolClass ^ managedSymbol, SymbolClass & nativeSymbol) {
-		nativeSymbol.wLength = managedSymbol->Length->WeightSum;
+		nativeSymbol.wLength = 1.0;//managedSymbol->Length->WeightSum;
 		nativeSymbol.mLength = managedSymbol->Length->Mean;
-		nativeSymbol.sLength = managedSymbol->Length->ScaledVariance;
+		nativeSymbol.sLength = managedSymbol->Length->ScaledVariance/managedSymbol->Length->WeightSum;
 		nativeSymbol.originalChar = managedSymbol->Letter;
 		for(int i=0;i<SUB_SYMBOL_COUNT;i++) {
 			if(managedSymbol->State !=nullptr 
@@ -22,11 +22,11 @@ namespace HwrLibCliWrapper {
 
 				FeatureDistribution & state = nativeSymbol.state[i];
 				
-				state.weightSum = mState->weightSum;
+				state.weightSum = 1.0;// mState->weightSum;
 
 				for(int j=0;j<NUMBER_OF_FEATURES;j++) {
 					state.meanX[j] = mState->means[j];
-					state.sX[j]=mState->scaledVars[j];
+					state.sX[j]=mState->scaledVars[j]/ mState->weightSum;
 				}
 				state.RecomputeDCfactor();
 			}

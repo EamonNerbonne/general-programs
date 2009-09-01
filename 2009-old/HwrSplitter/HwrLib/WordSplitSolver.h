@@ -23,7 +23,7 @@ struct AllSymbolClasses {
 			sym[i].initRandom();
 	}
 	int AllocatedSize() {return sizeof(AllSymbolClasses) + sizeof(SymbolClass)*symbolCount;}
-	void RecomputeFeatureWeights(){
+	void RecomputeFeatureWeights(double minWeight){
 		FeatureDistribution overall;
 		FeatureDistribution means;
 		for(int i=0;i<size();i++) {
@@ -39,7 +39,7 @@ struct AllSymbolClasses {
 			maxWeight = std::max(maxWeight,featureWeights[i]);
 		}
 		for(int i=0;i<NUMBER_OF_FEATURES;i++)
-			featureWeights[i]/=maxWeight;
+			featureWeights[i]=featureWeights[i]/maxWeight*(1-minWeight) + minWeight;
 	}
 };
 
@@ -156,7 +156,11 @@ class WordSplitSolver
 
 		SymbolClass const & sc0 = sym(0);
 		for(unsigned x=0; x<imageLen1; x++) {
-			pf(x,0) = pf(x,0) + opR(0,0,x)*exp(sc0.LogLikelihoodLength(x-0));
+			pf(x,0) = pf(x,0) + opR(0,0,x)
+#if LENGTH_WEIGHT_ON_TERMINATORS
+				*sc0.LogLikelihoodLength(x-0)
+#endif
+				;//first+last symbol have no intrinsic length
 		}
 
 
@@ -193,7 +197,11 @@ class WordSplitSolver
 
 		SymbolClass const & scU = sym(U);
 		for(unsigned x=0; x<imageLen1; x++) 
-			pb(x,U) =  pb(x,U) + opR(U,x,X) *exp(scU.LogLikelihoodLength(X-x));   
+			pb(x,U) =  pb(x,U) + opR(U,x,X)
+#if LENGTH_WEIGHT_ON_TERMINATORS
+				*scU.LogLikelihoodLength(X-x)
+#endif
+			;//first+last symbol have no intrinsic length 
 
 		for(short u=U-1;u>=0; --u) {
 			SymbolClass const & sc = sym(u);
@@ -290,7 +298,7 @@ class WordSplitSolver
 
 
 public:
-	WordSplitSolver(AllSymbolClasses & syms, ImageFeatures const & imageFeatures, std::vector<short> const & targetString,double featureRelevance) ;
+	WordSplitSolver(AllSymbolClasses & syms, ImageFeatures const & imageFeatures, std::vector<short> const & targetString, double featureRelevance) ;
 	void Learn(double blurSymbols);
 	vector<int> MostLikelySplit(double & loglikelihood);
 };
