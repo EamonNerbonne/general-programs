@@ -106,6 +106,7 @@ namespace HwrSplitter.Gui
 
 					//            LoadWords();
 					manager.words = annot_lines[int.Parse(possiblePage)];
+					manager.optimizer.LocateLineBodies(hwrImg, manager.words);
 
 					manager.ImageAnnotater.ProcessLines(manager.words.textlines);
 

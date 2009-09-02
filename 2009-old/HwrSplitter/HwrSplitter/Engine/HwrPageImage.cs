@@ -73,5 +73,38 @@ namespace HwrSplitter.Engine
 
 		public float Interpolate(double y, double x) { return ImageDataConversion.Interpolate((yI, xI) => (float)this[yI, xI], y, x); }
 		public ImageStruct<sbyte> Image { get { return image; } }
+
+		public double[] XProjectionSmart { get; set; }
+		public double[] XProjectionRaw { get; set; }
+
+		public void ComputeXProjection(int x0, int x1) {
+			double[] xProjectionSmart = new double[Height];
+			double[] xProjectionRaw = new double[Height];
+			for (int y = 0; y < Height; y++) {
+				int sum = 0;
+				int sumRaw = 0;
+				for (int x = x0 + 1; x < x1 - 1; x++) {
+					if (y > 0 && y<Height-1
+						&& image[x, y] != 0
+						
+						//&& image[x-1, y] == 0
+
+						&& image[x - 1, y - 1] != 0
+						&& image[x + 1, y + 1] != 0
+						&& (image[x + 1, y] == 0 || image[x, y - 1] == 0)
+						&& image[x + 1, y - 1] == 0
+						)
+						sum++;
+
+					if (image[x, y] != 0)
+						sumRaw++;
+				}
+				xProjectionSmart[y] = sum / (double)(x1-x0);
+				xProjectionRaw[y] = sumRaw / (double)(x1 - x0);
+			}
+			XProjectionSmart= xProjectionSmart;
+			XProjectionRaw = xProjectionRaw;
+		}
+
 	}
 }

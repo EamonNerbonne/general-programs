@@ -8,8 +8,8 @@ namespace HwrDataModel {
 
 
 		public static DirectoryInfo DataDir { get { return HwrDir.CreateSubdirectory("data"); } }
-		public static FileInfo Symbols { get { return DataDir.GetRelativeFile("symbols.xml"); } }
-		public static FileInfo SymbolsGZ { get { return DataDir.GetRelativeFile("symbols.xml.gz"); } }
+		public static FileInfo Symbols { get { return DataDir.GetFiles("symbols*.xml").OrderByDescending(fi=>fi.LastWriteTimeUtc).FirstOrDefault(); } }
+		public static FileInfo SymbolsGZ { get { return DataDir.GetFiles("symbols*.xml.gz").OrderByDescending(fi => fi.LastWriteTimeUtc).FirstOrDefault(); } }
 		public static FileInfo CharWidthFile { get { return DataDir.GetRelativeFile("char-width.txt"); } }
 		public static FileInfo LineAnnotFile { get { return DataDir.GetRelativeFile("line_annot.txt"); } }
 

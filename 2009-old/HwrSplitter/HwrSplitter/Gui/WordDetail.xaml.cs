@@ -28,29 +28,32 @@ namespace HwrSplitter.Gui
 			lineVisual.Transform = new SkewTransform(45.0, 0); //TODO: make skew correction variable.
 
 			featuresGraphBrush = (ImageBrush)featuresGraph.Fill;
+			lineProjection = (ImageBrush)lineProjectView.Fill;
+			lineProjectionRaw = (ImageBrush)lineProjectRawView.Fill;
 			RenderOptions.SetBitmapScalingMode(featuresGraph, BitmapScalingMode.Fant);
 		}
 
 		public TextBlock WordSelectorTextBlock { get { return wordSelectorTextBlock; } }
 		VisualBrush lineVisual;
+		ImageBrush lineProjection,lineProjectionRaw;
 		ImageBrush featuresGraphBrush;
 		public Canvas ToZoom { get { return (Canvas)lineVisual.Visual; } set { lineVisual.Visual = value; } }
 		internal Rect imgRect = new Rect(0, 0, 1, 1);
 
-		byte[] ByteArrFromFloatArr(float[] arr) {
+		byte[] ByteArrFromProjection(double[] arr,double max) {
 			byte[] imgData = new byte[arr.Length * 4];
 			int i = 0;
 			foreach (var f in arr) {
-				imgData[i++] = (byte)(255 * f);
-				imgData[i++] = (byte)(255 * f);
-				imgData[i++] = (byte)(255 * f);
+				imgData[i++] = (byte)(255 * f/max);
+				imgData[i++] = (byte)(255 * f / max);
+				imgData[i++] = (byte)(255 * f / max);
 				imgData[i++] = (byte)(255);
 			}
 			return imgData;
 		}
 
-		BitmapSource ImgdataFromShearedSum(Word[] linewords, Word targetword, float[] shearedsum) {
-			var imgData = ByteArrFromFloatArr(shearedsum);
+		BitmapSource ImgdataFromShearedSum(Word[] linewords, Word targetword, double[] shearedsum) {
+			var imgData = ByteArrFromProjection(shearedsum,1.0);
 			foreach (Word lineword in linewords) {
 				var l = 4 * (int)lineword.left;
 				var r = 4 * (int)lineword.right;
@@ -63,8 +66,23 @@ namespace HwrSplitter.Gui
 			}
 			return BitmapSource.Create(shearedsum.Length, 1, 96.0, 96.0, PixelFormats.Bgra32, null, imgData, imgData.Length); ;
 		}
-		Point featureComputeOffset;
 
+		BitmapSource ImgdataFromXProject(double[] data, TextLine line,int bodyTop,int bodyBot) {
+			var imgData = ByteArrFromProjection(data, data.Max());
+			int t = 4 * (int)line.top;
+			int tB = 4 * (int)(line.top + bodyTop);
+			int bB = 4 * (int)(line.top + bodyBot);
+			int b = 4 * (int)(line.bottom);
+			imgData[t] = 0; imgData[t + 1] = 255; imgData[t + 2] = 0;
+			imgData[tB] = 0; imgData[tB + 1] = 255; imgData[tB + 2] = 255;
+			imgData[bB] = 255; imgData[bB + 1] = 255; imgData[bB + 2] = 0;
+			imgData[b] = 255; imgData[b + 1] = 0; imgData[b + 2] = 255;
+			return BitmapSource.Create(1,imgData.Length/4, 96.0, 96.0, PixelFormats.Bgra32, null, imgData, 4); 
+		}
+
+
+		Point featureComputeOffset;
+		SolidColorBrush highlightBrush = (SolidColorBrush)new SolidColorBrush(Color.FromArgb(100, 255, 255, 80)).GetAsFrozen();
 		public void DisplayLine(TextLineCostOptimizer tlco, HwrPageImage pageImage, TextLine textline, Word word) {
 			//intensBrush.ImageSource = ImgdataFromShearedSum(textline.words, word, textline.shearedsum);
 			//intensBodyBrush.ImageSource = ImgdataFromShearedSum(textline.words, word, textline.shearedbodysum);
@@ -72,9 +90,44 @@ namespace HwrSplitter.Gui
 			BitmapSource bmp;
 			tlco.ComputeFeatures(pageImage, textline, out bmp, out featureComputeOffset);
 			featuresGraphBrush.ImageSource = bmp;
-			foreach (var line in ToZoom.Children.OfType<Line>().Where(line => line.Tag == this).ToArray())
+
+			lineProjectionRaw.ImageSource = ImgdataFromXProject(pageImage.XProjectionRaw, textline,textline.bodyTopAlt, textline.bodyBotAlt);
+			lineProjection.ImageSource = ImgdataFromXProject(pageImage.XProjectionSmart, textline, textline.bodyTop   , textline.bodyBot);
+
+			foreach (var line in ToZoom.Children.OfType<FrameworkElement>().Where(line => line.Tag == this).ToArray())
 				ToZoom.Children.Remove(line);
 
+			ToZoom.Children.Add(new Polygon {
+				Tag = this,
+				Fill = highlightBrush,
+				Points = new PointCollection {
+					new Point(word.left,word.top), 
+					new Point(word.right,word.top),
+					new Point(word.right + word.BottomXOffset, word.bottom),
+					new Point(word.left + word.BottomXOffset,word.bottom),
+				},
+			});
+
+			if (textline.bodyBot > 0) {
+				ToZoom.Children.Add(new Line {//text-body top line
+					X1 = textline.left + textline.XOffsetForYOffset(textline.bodyTop),
+					X2 = textline.right + textline.XOffsetForYOffset(textline.bodyTop),
+					Y1 = textline.top + textline.bodyTop,
+					Y2 = textline.top + textline.bodyTop,
+					StrokeThickness = 2,
+					Stroke = Brushes.Fuchsia,
+					Tag = this,
+				});
+				ToZoom.Children.Add(new Line {//text-body bottom line
+					X1 = textline.left + textline.XOffsetForYOffset(textline.bodyBot),
+					X2 = textline.right + textline.XOffsetForYOffset(textline.bodyBot),
+					Y1 = textline.top + textline.bodyBot,
+					Y2 = textline.top + textline.bodyBot,
+					StrokeThickness = 2,
+					Stroke = Brushes.HotPink,
+					Tag = this,
+				});
+			}
 
 			Line[] lines = new[] {
 				new Line {//text-line top edge
@@ -91,20 +144,6 @@ namespace HwrSplitter.Gui
 				Y2 = textline.bottom,
 				StrokeThickness = 2,
 				Stroke = Brushes.Red
-			}, new Line {//text-body top line
-				X1 = textline.left + textline.XOffsetForYOffset(textline.bodyTop),
-				X2 = textline.right + textline.XOffsetForYOffset(textline.bodyTop),
-				Y1 = textline.top + textline.bodyTop,
-				Y2 = textline.top + textline.bodyTop,
-				StrokeThickness = 2,
-				Stroke = Brushes.Fuchsia
-			}, new Line {//text-body bottom line
-				X1 = textline.left + textline.XOffsetForYOffset(textline.bodyBot),
-				X2 = textline.right + textline.XOffsetForYOffset(textline.bodyBot), 
-				Y1 = textline.top + textline.bodyBot,
-				Y2 = textline.top + textline.bodyBot,
-				StrokeThickness = 2,
-				Stroke = Brushes.HotPink
 			}, new Line { //text-line(s) left edge
 				X1 = textline.left,
 				X2 = textline.left,
@@ -140,6 +179,7 @@ namespace HwrSplitter.Gui
 				line.Tag = this;
 				ToZoom.Children.Add(line);
 			}
+
 		}
 
 		internal void redisplay() {
@@ -160,6 +200,18 @@ namespace HwrSplitter.Gui
 				imgRect.Y - padHeight / 2,
 				imgRect.Width + padWidth,
 				imgRect.Height + padHeight);
+
+			lineProjection.Viewbox = new Rect(
+				0, imgRect.Y - padHeight / 2,
+				1, imgRect.Height + padHeight);
+			lineProjectionRaw.Viewbox = new Rect(
+				0, imgRect.Y - padHeight / 2,
+				1, imgRect.Height + padHeight);
+				 
+
+
+
+
 			double featImgHeight = featuresGraphBrush.ImageSource == null ? 1 : featuresGraphBrush.ImageSource.Height;
 			featuresGraphBrush.Viewbox = new Rect(
 				imgRect.X - padWidth / 2 + shearOffsetHelper - featureComputeOffset.X,
