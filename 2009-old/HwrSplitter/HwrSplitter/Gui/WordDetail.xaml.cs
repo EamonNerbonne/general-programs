@@ -1,4 +1,5 @@
 ﻿using System;
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -32,7 +33,7 @@ namespace HwrSplitter.Gui
 
 		public TextBlock WordSelectorTextBlock { get { return wordSelectorTextBlock; } }
 		VisualBrush lineVisual;
-		ImageBrush  featuresGraphBrush;
+		ImageBrush featuresGraphBrush;
 		public Canvas ToZoom { get { return (Canvas)lineVisual.Visual; } set { lineVisual.Visual = value; } }
 		internal Rect imgRect = new Rect(0, 0, 1, 1);
 
@@ -62,67 +63,83 @@ namespace HwrSplitter.Gui
 			}
 			return BitmapSource.Create(shearedsum.Length, 1, 96.0, 96.0, PixelFormats.Bgra32, null, imgData, imgData.Length); ;
 		}
-		Line bodyBotLine, bodyTopLine, wordBotLine, wordTopLine;
 		Point featureComputeOffset;
 
-		public void DisplayLine(TextLineCostOptimizer tlco,HwrPageImage pageImage, TextLine textline, Word word) {
+		public void DisplayLine(TextLineCostOptimizer tlco, HwrPageImage pageImage, TextLine textline, Word word) {
 			//intensBrush.ImageSource = ImgdataFromShearedSum(textline.words, word, textline.shearedsum);
 			//intensBodyBrush.ImageSource = ImgdataFromShearedSum(textline.words, word, textline.shearedbodysum);
-			
+
 			BitmapSource bmp;
 			tlco.ComputeFeatures(pageImage, textline, out bmp, out featureComputeOffset);
 			featuresGraphBrush.ImageSource = bmp;
-			
+			foreach (var line in ToZoom.Children.OfType<Line>().Where(line => line.Tag == this).ToArray())
+				ToZoom.Children.Remove(line);
 
 
-
-			if (bodyBotLine != null) {
-				ToZoom.Children.Remove(bodyBotLine);
-				ToZoom.Children.Remove(bodyTopLine);
-				ToZoom.Children.Remove(wordBotLine);
-				ToZoom.Children.Remove(wordTopLine);
-			}
-
-			bodyTopLine = new Line {
-				X1 = 0,
+			Line[] lines = new[] {
+				new Line {//text-line top edge
+				X1 = textline.left,
 				X2 = textline.right,
+				Y1 = textline.top,
+				Y2 = textline.top,
+				StrokeThickness = 2,
+				Stroke = Brushes.Red
+			}, new Line {//text-line bottom edge
+				X1 = textline.left + textline.BottomXOffset,
+				X2 = textline.right + textline.BottomXOffset,
+				Y1 = textline.bottom,
+				Y2 = textline.bottom,
+				StrokeThickness = 2,
+				Stroke = Brushes.Red
+			}, new Line {//text-body top line
+				X1 = textline.left + textline.XOffsetForYOffset(textline.bodyTop),
+				X2 = textline.right + textline.XOffsetForYOffset(textline.bodyTop),
 				Y1 = textline.top + textline.bodyTop,
 				Y2 = textline.top + textline.bodyTop,
 				StrokeThickness = 2,
 				Stroke = Brushes.Fuchsia
-			};
-
-			bodyBotLine = new Line {
-				X1 = 0,
-				X2 = textline.right, //TODO:?
+			}, new Line {//text-body bottom line
+				X1 = textline.left + textline.XOffsetForYOffset(textline.bodyBot),
+				X2 = textline.right + textline.XOffsetForYOffset(textline.bodyBot), 
 				Y1 = textline.top + textline.bodyBot,
 				Y2 = textline.top + textline.bodyBot,
 				StrokeThickness = 2,
 				Stroke = Brushes.HotPink
-			};
-
-			wordTopLine = new Line {
-				X1 = word.left,
-				X2 = word.right,
-				Y1 = word.top,
-				Y2 = word.top,
+			}, new Line { //text-line(s) left edge
+				X1 = textline.left,
+				X2 = textline.left,
+				Y1 = 0,
+				Y2 = pageImage.Height,
 				StrokeThickness = 2,
-				Stroke = Brushes.Blue
-			};
-
-			wordBotLine = new Line {
-				X1 = word.left + word.BottomXOffset,
-				X2 = word.right + word.BottomXOffset,
-				Y1 = word.bottom,
-				Y2 = word.bottom,
+				Stroke = Brushes.LightSalmon
+			}, new Line { //text-line(s) right edge
+				X1 = textline.right,
+				X2 = textline.right,
+				Y1 = 0,
+				Y2 = pageImage.Height,
 				StrokeThickness = 2,
-				Stroke = Brushes.Blue
+				Stroke = Brushes.LightSalmon
+			}, 
+			new Line { //text-line(s) left edge
+				X1 = textline.OuterExtremeLeft,
+				X2 = textline.OuterExtremeLeft + textline.BottomXOffset,
+				Y1 = textline.top,
+				Y2 = textline.bottom,
+				StrokeThickness = 2,
+				Stroke = Brushes.Red
+			}, new Line { //text-line(s) right edge
+				X1 = textline.OuterExtremeRight,
+				X2 = textline.OuterExtremeRight + textline.BottomXOffset,
+				Y1 = textline.top,
+				Y2 = textline.bottom,
+				StrokeThickness = 2,
+				Stroke = Brushes.Red
+			}, 
 			};
-
-			ToZoom.Children.Add(bodyBotLine);
-			ToZoom.Children.Add(bodyTopLine);
-			ToZoom.Children.Add(wordBotLine);
-			ToZoom.Children.Add(wordTopLine);
+			foreach (var line in lines) {
+				line.Tag = this;
+				ToZoom.Children.Add(line);
+			}
 		}
 
 		internal void redisplay() {
@@ -149,7 +166,7 @@ namespace HwrSplitter.Gui
 				0,
 				imgRect.Width + padWidth,
 				featImgHeight);
-			featuresGraph.Height = featImgHeight*2;
+			featuresGraph.Height = featImgHeight * 2;
 		}
 
 		private void lineView_SizeChanged(object sender, SizeChangedEventArgs e) {
@@ -158,7 +175,7 @@ namespace HwrSplitter.Gui
 
 		internal void displayFeatures(TextLine textline) {
 			//featuresGraphBrush.Viewbox(
-			
+
 		}
 	}
 }

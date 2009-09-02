@@ -220,7 +220,7 @@ void WordSplitSolver::Learn(double blurSymbols){
 	for(int i=0;i<syms.size();i++) {
 		syms[i].ScaleWeightBy(0.9999307);//halve over 10000 iterations
 	}
-	syms.RecomputeFeatureWeights(1.0);//blurSymbols
+	syms.RecomputeFeatureWeights(blurSymbols);
 
 
 #if LOGLEVEL >=10

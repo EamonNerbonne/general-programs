@@ -31,7 +31,7 @@ namespace HwrSplitter.Gui
 		public void WordDisplay(TextLine textline, int wordIndex) {
 			currentTextLine = textline;
 			Word word = textline.words[wordIndex];
-			wordDetail.DisplayLine(man.optimizer,man.PageImage, textline, word);
+			wordDetail.DisplayLine(man.optimizer, man.PageImage, textline, word);
 
 			wordSelector.WireUpTextBlock(textline.words.Select(w => w.text).ToArray());
 			wordSelector.SelectedIndex = wordIndex;

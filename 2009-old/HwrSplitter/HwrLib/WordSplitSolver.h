@@ -24,6 +24,7 @@ struct AllSymbolClasses {
 	}
 	int AllocatedSize() {return sizeof(AllSymbolClasses) + sizeof(SymbolClass)*symbolCount;}
 	void RecomputeFeatureWeights(double minWeight){
+		minWeight = DYNAMIC_SYMBOL_WEIGHT*minWeight + (1.0 - DYNAMIC_SYMBOL_WEIGHT);
 		FeatureDistribution overall;
 		FeatureDistribution means;
 		for(int i=0;i<size();i++) {
@@ -41,6 +42,8 @@ struct AllSymbolClasses {
 		for(int i=0;i<NUMBER_OF_FEATURES;i++)
 			featureWeights[i]=featureWeights[i]/maxWeight*(1-minWeight) + minWeight;
 	}
+
+	
 };
 
 class WordSplitSolver
@@ -158,7 +161,7 @@ class WordSplitSolver
 		for(unsigned x=0; x<imageLen1; x++) {
 			pf(x,0) = pf(x,0) + opR(0,0,x)
 #if LENGTH_WEIGHT_ON_TERMINATORS
-				*sc0.LogLikelihoodLength(x-0)
+				*exp(sc0.LogLikelihoodLength(x-0))
 #endif
 				;//first+last symbol have no intrinsic length
 		}
@@ -168,7 +171,7 @@ class WordSplitSolver
 			SymbolClass const & sc = sym(u);
 			for(unsigned len=0;len<imageLen1;len++){
 				double lenL = exp(sc.LogLikelihoodLength(len)); //avoiding the exp in the inner loop saves a bunch of time.
-				if(len<5) lenL*=exp(-0.5*(5.0-len));
+				if(len<15) lenL*=exp(-0.5*(15.0-len));
 				for(unsigned x0=0;x0<imageLen1-len;x0++)  {
 					unsigned x1= x0 +len;
 					pf(x1,u) = pf(x1,u) +  pf(x0, u-1) * opR(u,x0,x1) *lenL;
@@ -199,7 +202,7 @@ class WordSplitSolver
 		for(unsigned x=0; x<imageLen1; x++) 
 			pb(x,U) =  pb(x,U) + opR(U,x,X)
 #if LENGTH_WEIGHT_ON_TERMINATORS
-				*scU.LogLikelihoodLength(X-x)
+				*exp(scU.LogLikelihoodLength(X-x))
 #endif
 			;//first+last symbol have no intrinsic length 
 
@@ -207,7 +210,7 @@ class WordSplitSolver
 			SymbolClass const & sc = sym(u);
 			for(unsigned len=0;len<imageLen1;len++){
 				double lenL = exp(sc.LogLikelihoodLength(len));
-				if(len<5) lenL*=exp(-0.5*(5.0-len));
+				if(len<15) lenL*=exp(-0.5*(15.0-len));
 				for(unsigned x0=0;x0<imageLen1-len;x0++)  {
 					unsigned x1 = x0 + len;
 					pb(x0,u) = pb(x0,u) +  pb(x1, u + 1) *opR(u,x0,x1) *lenL;

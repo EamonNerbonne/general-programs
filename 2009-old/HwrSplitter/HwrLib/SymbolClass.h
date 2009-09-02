@@ -1,12 +1,6 @@
 #pragma once
 #include "HwrConfig.h"
 #include "FeatureDistribution.h"
-#define SUB_SYMBOL_COUNT 4
-//#define SUB_STATE_COUNT (SUB_SYMBOL_COUNT + 1)
-//#define TERMINATOR_STATE SUB_SYMBOL_COUNT
-
-double const defaultWeight = 1.0;
-double const defaultVariance = sqr(1000);
 
 class SymbolClass
 {
@@ -17,7 +11,7 @@ public:
 	wchar_t originalChar;
 	FeatureDistribution state[SUB_SYMBOL_COUNT];
 	SymbolClass(Float meanLength, Float varLength) : mLength(meanLength), wLength(100), sLength(varLength*100)	{ }
-	SymbolClass() : mLength(100*FloatRand()), wLength(defaultWeight), sLength(defaultWeight * defaultVariance) {}
+	SymbolClass() : mLength(100*FloatRand()), wLength(DefaultFeatureWeight), sLength(DefaultFeatureWeight * DefaultFeatureVariance) {}
 	
 	Float meanLength() const {return mLength;}
 	Float varLength() const {return sLength/wLength;}

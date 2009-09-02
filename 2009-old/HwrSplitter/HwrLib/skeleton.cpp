@@ -66,7 +66,6 @@ struct Skeletonizer {
 
 static const double UNKNOWN_U = 1e128;
 static const double LARGE = 1e128;
-inline double sqr(double x) { return x * x; }
 
 // ----------------------------------------------------------------------------- : Memory management
 

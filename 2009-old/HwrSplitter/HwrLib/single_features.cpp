@@ -16,8 +16,6 @@ using namespace std;
 #define ASSERT(a)
 #endif
 
-inline Float sqr(Float x) { return x*x; }
-
 // ----------------------------------------------------------------------------- : Features
 
 Float dark_fraction(PamImage<BWPixel> const& im, int x0, int y0, int x1, int y1) {

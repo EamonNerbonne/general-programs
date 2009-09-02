@@ -23,10 +23,6 @@ typedef vector<Float> floats;
 class ImageFeatures {
 private:
 	// ----------------------------------------------------------------------------- : Cumsums
-	/// Size of the image
-	const int image_width, image_height;
-	/// Top and baseline
-	const int topline, baseline;
 
 	/// The original image; TODO: really shouldn't be here!
 	PamImage<BWPixel> image;
@@ -101,7 +97,8 @@ private:
 	#endif
 	#if USE_RUNLENGTHS
 		RUNLENGTH        = DOWNSAMPLED_BGS_END,
-		RUNLENGTH_END    = RUNLENGTH + RUNLENGTH_RESOLUTION_Y,
+		RUNLENGTH_RL     = RUNLENGTH + RUNLENGTH_RESOLUTION_Y,
+		RUNLENGTH_END    = RUNLENGTH_RL + RUNLENGTH_RESOLUTION_Y,
 	#else
 		RUNLENGTH_END    = DOWNSAMPLED_BGS_END,
 	#endif
@@ -123,6 +120,11 @@ private:
 	void blurHisto();
 	void initRunlength();
 public:
+		/// Size of the image
+	const int image_width, image_height;
+	/// Top and baseline
+	const int topline, baseline;
+
 	/// Construct an image feature extractor for a word image
 	/** The image will not be preprocessed
 	*/

@@ -29,8 +29,6 @@ using namespace std;
 #define ASSERT(a)
 #endif
 
-inline Float sqr(Float x) { return x*x; }
-
 DECLARE_TYPEOF_COLLECTION(ImageComponent);
 
 // ----------------------------------------------------------------------------- : Flags
@@ -384,6 +382,24 @@ void ImageFeatures::initRunlength() {
 			cumsums[RUNLENGTH + row][x] = run;
 		}
 	}
+	for (int row = 0 ; row < RUNLENGTH_RESOLUTION_Y ; ++row) {
+		int yy = rows[row];
+		// left to right pass
+		int run = 0;
+		for (int x = image_width-1 ; x >=0 ; x--) {
+			int ink = 0, non_ink = 0;
+			for (int y = max(0,yy-2) ; y < min(image_height-1,yy+2) ; ++y) {
+				if (image.pix(x,y)) ink++;
+				else              non_ink++;
+			}
+			if (ink * 2 >= non_ink) {
+				run = 0;
+			} else {
+				run++;
+			}
+			cumsums[RUNLENGTH_RL + row][x] = run;
+		}
+	}
 	// TODO: also right to left?
   #endif
 }
@@ -490,6 +506,7 @@ const FeatureVector& ImageFeatures::featAt(int x) const {
 	#if USE_RUNLENGTHS
 		for (int y = 0 ; y < RUNLENGTH_RESOLUTION_Y ; ++y) {
 			features[FEATURE_RUNLENGTH + y ] =  featV(RUNLENGTH + y, x);
+			features[FEATURE_RUNLENGTH_RL + y ] =  featV(RUNLENGTH_RL + y, x);
 		}
 	#endif
 	

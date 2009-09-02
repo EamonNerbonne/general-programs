@@ -17,7 +17,6 @@
 
 using namespace std;
 
-inline Float sqr(Float x) { return x*x; }
 
 DECLARE_TYPEOF_COLLECTION(ImageComponent);
 

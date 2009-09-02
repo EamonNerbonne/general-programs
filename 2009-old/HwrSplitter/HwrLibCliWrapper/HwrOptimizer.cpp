@@ -9,9 +9,9 @@
 namespace HwrLibCliWrapper {
 
 	void HwrOptimizer::CopyToNative(HwrDataModel::SymbolClass ^ managedSymbol, SymbolClass & nativeSymbol) {
-		nativeSymbol.wLength = 1.0;//managedSymbol->Length->WeightSum;
+		nativeSymbol.wLength = managedSymbol->Length->WeightSum;//1.0;//
 		nativeSymbol.mLength = managedSymbol->Length->Mean;
-		nativeSymbol.sLength = managedSymbol->Length->ScaledVariance/managedSymbol->Length->WeightSum;
+		nativeSymbol.sLength = managedSymbol->Length->ScaledVariance;///managedSymbol->Length->WeightSum;
 		nativeSymbol.originalChar = managedSymbol->Letter;
 		for(int i=0;i<SUB_SYMBOL_COUNT;i++) {
 			if(managedSymbol->State !=nullptr 
@@ -22,11 +22,11 @@ namespace HwrLibCliWrapper {
 
 				FeatureDistribution & state = nativeSymbol.state[i];
 				
-				state.weightSum = 1.0;// mState->weightSum;
+				state.weightSum = mState->weightSum;// 1.0;//
 
 				for(int j=0;j<NUMBER_OF_FEATURES;j++) {
 					state.meanX[j] = mState->means[j];
-					state.sX[j]=mState->scaledVars[j]/ mState->weightSum;
+					state.sX[j] = mState->scaledVars[j]; /// mState->weightSum;
 				}
 				state.RecomputeDCfactor();
 			}
@@ -54,7 +54,7 @@ namespace HwrLibCliWrapper {
 	}
 
 
-	array<int>^ HwrOptimizer::SplitWords(ImageStruct<signed char> block, array<unsigned> ^ sequenceToMatch,  float shear, int learningIteration,[Out] int % topOffRef,[Out] double % loglikelihood) {
+	array<int>^ HwrOptimizer::SplitWords(ImageStruct<signed char> block, array<unsigned> ^ sequenceToMatch,  float shear, int learningIteration, HwrDataModel::TextLine^ textLine,[Out] int % topOffRef, [Out] double % loglikelihood) {
 		using std::min;
 		using std::max;
 		using std::cout;
@@ -67,13 +67,16 @@ namespace HwrLibCliWrapper {
 		int blurIter = 3;
 		int winAngleSize = int(100.0*dampingFactor + 4);
 		int winDensSize = int(winAngleSize*0.76);
-		double featureRelevance = exp(-20*dampingFactor) ;
+		double featureRelevance = 0.1* exp(-20*dampingFactor) ;
 
 
 		PamImage<BWPixel> shearedImg = ImageProcessor::StructToPamImage(block);
 		ImageBW unsheared = unshear(shearedImg,shear);
 		topOffRef = shearedImg.getWidth() - unsheared.getWidth();
 		ImageFeatures feats(unsheared,winDensSize,winAngleSize,blurIter);
+		textLine->bodyBot = feats.baseline;
+		textLine->bodyTop = feats.topline;
+
 		vector<short> sequenceVector;
 		for(int i=0;i<sequenceToMatch->Length;i++) {
 			unsigned tmp = sequenceToMatch[i];

@@ -50,12 +50,26 @@ namespace HwrLibCliWrapper {
 			return retval;
 		}
 
+		array<double>^ GetFeatureVariances() {
+			FeatureDistribution overall;
+			for(int i=0;i<symbols->size();i++) {
+				for(int j=0;j<SUB_SYMBOL_COUNT;j++) {
+					overall.CombineWith(symbols->getSymbol(i).state[j]);
+				}
+			}
+
+			array<double>^ retval = gcnew array<double>(NUMBER_OF_FEATURES);
+			for(int i=0;i<NUMBER_OF_FEATURES;i++) 
+				retval[i] = overall.varX(i);
+			return retval;
+		}
+
 		// block - the bit of the original (b/w) image, cropped to fit the line closely.
 		// sequenceToMatch - the sequence of symbolClass codes to match
 		// topOffRef - will be set to the amount of pixels the top row was shifted to account for shear
 		// shear - the angle of text shearing in the input
 		// learningIteration - the current learning iteration; used to decrease the weight of symbolclasses (for instance) and to improve 
-		array<int>^ SplitWords(ImageStruct<signed char> block, array<unsigned> ^ sequenceToMatch,  float shear, int learningIteration,[Out] int % topOffRef,[Out] double % loglikelihood);
+		array<int>^ SplitWords(ImageStruct<signed char> block, array<unsigned> ^ sequenceToMatch,  float shear, int learningIteration, HwrDataModel::TextLine^ textLine, [Out] int % topOffRef, [Out] double % loglikelihood);
 	};
 }
 

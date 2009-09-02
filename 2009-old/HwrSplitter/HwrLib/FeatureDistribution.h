@@ -6,7 +6,6 @@
 #include "randHelper.h"
 #include "LogNumber.h"
 
-inline static Float sqr(Float x) { return x*x; }
 
 class FeatureDistribution
 {

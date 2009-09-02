@@ -15,8 +15,12 @@ namespace HwrDataModel
 		public readonly Word[] words; //after construction, words are fixed - you can only recompute their positions.
 		public readonly int no;
 
-		public int bodyTop;//TODO: compute
+		public int bodyTop;
 		public int bodyBot;
+
+		public double OuterExtremeLeft { get { return left - 10; } }
+		public double OuterExtremeRight { get { return right - BottomXOffset +30; } } //hacky
+
 
 		public double ComputedLikelihood = double.NaN;
 

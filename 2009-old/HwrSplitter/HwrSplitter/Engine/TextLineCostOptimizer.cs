@@ -64,13 +64,9 @@ namespace HwrSplitter.Engine
 		}
 		static Regex fractionRegex = new Regex(@"\d/\d", RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.ExplicitCapture);
 		public void ImproveGuess(HwrPageImage image, WordsImage betterGuessWords, Action<TextLine> lineProcessed) {
-			//object sync = new object();
-			//double totalTime = 0.0;
-			//while (true) {
-			//var textLine = betterGuessWords.textlines[0];
-			//ImproveLineGuessNew(textLine);
-			//lineProcessed(textLine);
-			//			Semaphore doneSem = new Semaphore(0, betterGuessWords.textlines.Length);
+
+
+
 			for (int lineI = 0; lineI < betterGuessWords.textlines.Length; lineI++) {
 				var textLine = betterGuessWords.textlines[lineI];
 				StringBuilder linetextB = new StringBuilder();
@@ -84,8 +80,6 @@ namespace HwrSplitter.Engine
 					Console.Write("skipped:fraction, ", linetext.Length);
 					continue;
 				}
-				//ThreadPool.QueueUserWorkItem((WaitCallback)((ignored) => {
-				//	Thread.CurrentThread.Priority = ThreadPriority.BelowNormal;
 
 #if DEBUG
 				if (iteration % 100 == 0) {
@@ -97,8 +91,6 @@ namespace HwrSplitter.Engine
 
 				ImproveLineGuessNew(image, textLine);
 
-				//using (var t = new DTimer((ts) => { lock (sync)	totalTime += ts.TotalSeconds; Console.WriteLine(ts);}))
-				//    textLine.ComputeFeatures(image);
 				lineProcessed(textLine);
 				//Console.Write("{0}[{1}], ", iteration,textLine.ComputedLikelihood);
 
@@ -108,18 +100,12 @@ namespace HwrSplitter.Engine
 					using (var zipStream = new GZipStream(stream,CompressionMode.Compress))
 						new SymbolClasses { Symbol = symbolClasses, Iteration = iteration, LastPage = betterGuessWords.pageNum }.SerializeTo(zipStream);
 					Console.WriteLine();
-					nativeOptimizer.GetFeatureWeights().Zip(FeatureDistributionEstimate.FeatureNames, (weight, name) => name + ": " + weight).ForEach(Console.WriteLine);
-
+					nativeOptimizer.GetFeatureWeights()
+						.Zip(FeatureDistributionEstimate.FeatureNames, (weight, name) => name + ": " + weight)
+						.Zip(nativeOptimizer.GetFeatureVariances(), (str,variance)=> str + " ("+variance+")")
+						.ForEach(Console.WriteLine);
 				}
-
-
-				//				doneSem.Release();
-				//}));
 			}
-			//}
-			//for (int lineI = 0; lineI < betterGuessWords.textlines.Length; lineI++)
-			//    doneSem.WaitOne();
-			//Console.WriteLine("TotalFeatureExtractionTime == " + totalTime);
 		}
 
 		private void ImproveLineGuessNew(HwrPageImage image, TextLine lineGuess) {
@@ -129,8 +115,8 @@ namespace HwrSplitter.Engine
 #endif
 			int topXoffset;
 
-			int x0Est = Math.Max(0, (int)(lineGuess.left + lineGuess.BottomXOffset - 10 + 0.5));
-			int x1Est = Math.Min(image.Width, (int)(lineGuess.right - lineGuess.BottomXOffset + 0.5));
+			int x0Est = Math.Max(0, (int)(lineGuess.OuterExtremeLeft + 0.5));
+			int x1Est = Math.Min(image.Width, (int)(lineGuess.OuterExtremeRight + 0.5));
 			int y0 = (int)(lineGuess.top + 0.5);
 			int y1 = (int)(lineGuess.bottom + 0.5);
 
@@ -160,7 +146,7 @@ namespace HwrSplitter.Engine
 			int[] charEndPos = nativeOptimizer.SplitWords(
 									croppedLine,
 									phaseCodeSeq,
-									(float)lineGuess.shear, iteration++, out topXoffset, out likelihood);
+									(float)lineGuess.shear, iteration++, lineGuess, out topXoffset, out likelihood);
 			lineGuess.ComputedLikelihood = likelihood;
 			int x0 = x0Est + topXoffset;
 
