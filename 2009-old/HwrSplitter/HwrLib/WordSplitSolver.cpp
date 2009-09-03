@@ -27,7 +27,7 @@ WordSplitSolver::WordSplitSolver(AllSymbolClasses & syms, ImageFeatures const & 
 #endif
 
 	//we marginalize to find the cumulative loglikelihood of observing all pixels between any x0 and x1 for any given symbol.
-	init_opC_x_u();
+	init_opC_x_u(featureRelevance);
 
 #if LOGLEVEL >=9
 	std::cout << ",  Marginalize: "<<overallTimer.elapsed();

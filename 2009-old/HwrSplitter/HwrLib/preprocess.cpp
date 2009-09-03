@@ -22,29 +22,29 @@ DECLARE_TYPEOF_COLLECTION(ImageComponent);
 
 // ----------------------------------------------------------------------------- : Preprocessing pipeline
 
-bool removeComponent(const ImageComponent& c, int width, int height) {
-    if( c.size < 5) {
+bool removeComponent(const ImageComponent& c, int width, int height,int bodyTop,int bodyBot) {
+    if( c.size < 15) {
         return true;
-    } else if (c.max_y == height - 1 && c.min_y > height * 0.66) {
+    } else if (c.max_y == height - 1 && c.min_y >= bodyBot) {
         return true;
-    } else if (c.min_y == 0 && c.max_y < height * 0.33) {
+    } else if (c.min_y == 0 && c.max_y < bodyTop) {
         return true;
-    } else if (c.min_y == 0 && c.max_x == width - 1 && c.min_x > width * 0.66) {
+    } else if (c.min_y == 0 && c.max_x == width - 1 && c.min_x > width - 100) {//bad for whole lines?
         return true;
-    } else if (c.min_y == 0 && c.min_x == 0 && c.max_x < width * 0.33) {
+    } else if (c.min_y == 0 && c.min_x == 0 && c.max_x < 100) {
         return true;
-    } else if (c.mean_xy < height) {
+    } else if (c.mean_xy < height) { //huh?
         return true;
-    } else if (c.mean_xy > width) {
+    } else if (c.mean_xy > width) { //huh?
         return true;
-    } else if (c.max_xy - c.min_xy <= 30 && c.min_y == 0 && c.max_y < height * 0.55) {
+    } else if (c.max_xy - c.min_xy <= 30 && c.min_y == 0 && c.max_y < height * 0.55) { //huh?
         return true;
     } else {
         return false;
     }
 }
 
-PamImage<BWPixel> preprocess(PamImage<RGBPixel> const& input_image, float shear_angle) {
+PamImage<BWPixel> preprocess(PamImage<RGBPixel> const& input_image, float shear_angle,int bodyTop,int bodyBot) {
     PamImage<GrayPixel> grey_image(red_channel(input_image));
     PamImage<BWPixel> bw_image (threshold(grey_image, 200)); // some ink is almost white
     SegmentedImage seg_image( bw_image );
@@ -57,7 +57,7 @@ PamImage<BWPixel> preprocess(PamImage<RGBPixel> const& input_image, float shear_
     long width = input_image.getWidth(), height = input_image.getHeight();
     FOR_EACH(c, seg_image.components) {
         // remove this component?
-        if (removeComponent(c, width, height)) {
+        if (removeComponent(c, width, height,bodyTop,bodyBot)) {
             seg_image.recolor(c, RGBPixel(50,50,50));
         } else {
             seg_image.recolor(c, RGBPixel(c.label.r/4+191,c.label.g/4+191,c.label.b/4+191));
@@ -87,10 +87,9 @@ PamImage<BWPixel> preprocessLimited(PamImage<RGBPixel> const& input_image) {
 	}
 }
 
-PamImage<Float> featuresImage(ImageBW shearedImg, float shear, int &topXOffset) {
+PamImage<Float> featuresImage(ImageBW shearedImg, float shear) {
 	ImageBW unsheared = unshear(shearedImg,shear);
-	topXOffset = shearedImg.getWidth() - unsheared.getWidth();
-	ImageFeatures feats(unsheared);
+	ImageFeatures feats(unsheared,-1,-1);
 	PamImage<Float> featsImg(feats.getImageWidth(),NUMBER_OF_FEATURES);
 	for(int x=0;x<featsImg.getWidth();x++) {
 		FeatureVector const & featsV = feats.featAt(x);
@@ -101,6 +100,21 @@ PamImage<Float> featuresImage(ImageBW shearedImg, float shear, int &topXOffset) 
 	return featsImg;
 }
 
+PamImage<BWPixel> processAndUnshear(PamImage<BWPixel> const& input_image, float shear_angle, int bodyTop, int bodyBot) {
+    SegmentedImage seg_image( input_image );
+    // what segments to keep?
+    long width = input_image.getWidth(), height = input_image.getHeight();
+    FOR_EACH(c, seg_image.components) {
+        // remove this component?
+        if (removeComponent(c, width, height,bodyTop,bodyBot)) {
+            seg_image.recolor(c, RGBPixel(50,50,50));
+        } else {
+            seg_image.recolor(c, RGBPixel(c.label.r/4+191,c.label.g/4+191,c.label.b/4+191));
+        }
+    }
+    PamImage<BWPixel> bw_seg_image = seg_image.convert<BWPixel>();
+    return unshear(bw_seg_image, shear_angle);
+}
 
 
 

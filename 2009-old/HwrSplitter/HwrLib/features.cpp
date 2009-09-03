@@ -80,13 +80,16 @@ void clipbin(int& bin) {
 	}
 }
 
-ImageFeatures::ImageFeatures(PamImage<BWPixel> const& im, int winSizeDens,int winSizeAngle, int iter)
+ImageFeatures::ImageFeatures(PamImage<BWPixel> const& im, int topline,int baseline, int winSizeDens,int winSizeAngle, int iter)
 : image_width(  im.getWidth() )
 , image_height( im.getHeight() )
-, topline (image_height    / 3)
-, baseline(image_height *2 / 3)
+, topline (topline)
+, baseline(baseline)
 , image(im)
 {
+	if(baseline <=0)
+			find_baseline(image, const_cast<int&>(topline), const_cast<int&>(baseline));
+
 	init(winSizeDens,winSizeAngle, iter);
 }
 
@@ -101,7 +104,6 @@ void ImageFeatures::init(int winSizeDens,int winSizeAngle, int iter) {
 	using namespace boost;
 	ASSERT(sizeof(cumsums) / sizeof(cumsums[0]) == MAX_CAT);
 	// Find baseline
-	find_baseline(image, const_cast<int&>(topline), const_cast<int&>(baseline));
 	// Derived images
 #if USE_DOWNSAMPLED_BGS
 	PamImage<BWPixel> imageBS = skeleton(invert(image), 10);
@@ -350,8 +352,9 @@ void ImageFeatures::init(int winSizeDens,int winSizeAngle, int iter) {
 
 	//blurHisto(); // blurring makes things worse
 	initRunlength();
-
-//	blurEm(winSizeDens,winSizeAngle,iter); //but blurring in x makes thing better.
+#if FEATURE_BLUR
+	blurEm(winSizeDens,winSizeAngle,iter); //but blurring in x makes thing better.
+#endif
 }
 
 void ImageFeatures::initRunlength() {
@@ -655,16 +658,4 @@ bool ImageFeatures::load(const std::string& name) {
 	bool ok = load(file);
 	fclose(file);
 	return ok;
-}
-
-ImageFeatures::ImageFeatures(PamImage<BWPixel> const & im, FILE* file)
-	: image_width(  im.getWidth() )
-	, image_height( im.getHeight() )
-	, topline (image_height    / 3)
-	, baseline(image_height *2 / 3)
-	, image(im)
-{
-	if (!load(file)) {
-		const_cast<int&>(image_width) = -1;
-	}
 }

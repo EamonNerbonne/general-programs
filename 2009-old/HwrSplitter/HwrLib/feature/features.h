@@ -128,8 +128,7 @@ public:
 	/// Construct an image feature extractor for a word image
 	/** The image will not be preprocessed
 	*/
-	ImageFeatures(PamImage<BWPixel> const& im, int winSizeDens=4,int winSizeAngle=6, int blurIterations=3);
-	ImageFeatures(PamImage<BWPixel> const& im, FILE* file);
+	ImageFeatures(PamImage<BWPixel> const& im,int topline, int baseline, int winSizeDens=4,int winSizeAngle=6, int blurIterations=3);
 	/// Was the data correctly loaded?
 	inline bool ok() const { return image_width >= 0; }
 

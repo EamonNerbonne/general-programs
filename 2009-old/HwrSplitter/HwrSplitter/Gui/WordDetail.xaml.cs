@@ -35,16 +35,16 @@ namespace HwrSplitter.Gui
 
 		public TextBlock WordSelectorTextBlock { get { return wordSelectorTextBlock; } }
 		VisualBrush lineVisual;
-		ImageBrush lineProjection,lineProjectionRaw;
+		ImageBrush lineProjection, lineProjectionRaw;
 		ImageBrush featuresGraphBrush;
 		public Canvas ToZoom { get { return (Canvas)lineVisual.Visual; } set { lineVisual.Visual = value; } }
 		internal Rect imgRect = new Rect(0, 0, 1, 1);
 
-		byte[] ByteArrFromProjection(double[] arr,double max) {
+		byte[] ByteArrFromProjection(double[] arr, double max) {
 			byte[] imgData = new byte[arr.Length * 4];
 			int i = 0;
 			foreach (var f in arr) {
-				imgData[i++] = (byte)(255 * f/max);
+				imgData[i++] = (byte)(255 * f / max);
 				imgData[i++] = (byte)(255 * f / max);
 				imgData[i++] = (byte)(255 * f / max);
 				imgData[i++] = (byte)(255);
@@ -53,7 +53,7 @@ namespace HwrSplitter.Gui
 		}
 
 		BitmapSource ImgdataFromShearedSum(Word[] linewords, Word targetword, double[] shearedsum) {
-			var imgData = ByteArrFromProjection(shearedsum,1.0);
+			var imgData = ByteArrFromProjection(shearedsum, 1.0);
 			foreach (Word lineword in linewords) {
 				var l = 4 * (int)lineword.left;
 				var r = 4 * (int)lineword.right;
@@ -67,7 +67,7 @@ namespace HwrSplitter.Gui
 			return BitmapSource.Create(shearedsum.Length, 1, 96.0, 96.0, PixelFormats.Bgra32, null, imgData, imgData.Length); ;
 		}
 
-		BitmapSource ImgdataFromXProject(double[] data, TextLine line,int bodyTop,int bodyBot) {
+		BitmapSource ImgdataFromXProject(double[] data, TextLine line, int bodyTop, int bodyBot) {
 			var imgData = ByteArrFromProjection(data, data.Max());
 			int t = 4 * (int)line.top;
 			int tB = 4 * (int)(line.top + bodyTop);
@@ -77,7 +77,7 @@ namespace HwrSplitter.Gui
 			imgData[tB] = 0; imgData[tB + 1] = 255; imgData[tB + 2] = 255;
 			imgData[bB] = 255; imgData[bB + 1] = 255; imgData[bB + 2] = 0;
 			imgData[b] = 255; imgData[b + 1] = 0; imgData[b + 2] = 255;
-			return BitmapSource.Create(1,imgData.Length/4, 96.0, 96.0, PixelFormats.Bgra32, null, imgData, 4); 
+			return BitmapSource.Create(1, imgData.Length / 4, 96.0, 96.0, PixelFormats.Bgra32, null, imgData, 4);
 		}
 
 
@@ -91,11 +91,25 @@ namespace HwrSplitter.Gui
 			tlco.ComputeFeatures(pageImage, textline, out bmp, out featureComputeOffset);
 			featuresGraphBrush.ImageSource = bmp;
 
-			lineProjectionRaw.ImageSource = ImgdataFromXProject(pageImage.XProjectionRaw, textline,textline.bodyTopAlt, textline.bodyBotAlt);
-			lineProjection.ImageSource = ImgdataFromXProject(pageImage.XProjectionSmart, textline, textline.bodyTop   , textline.bodyBot);
+			lineProjectionRaw.ImageSource = ImgdataFromXProject(pageImage.XProjectionRaw, textline, textline.bodyTopAlt, textline.bodyBotAlt);
+			lineProjection.ImageSource = ImgdataFromXProject(pageImage.XProjectionSmart, textline, textline.bodyTop, textline.bodyBot);
 
 			foreach (var line in ToZoom.Children.OfType<FrameworkElement>().Where(line => line.Tag == this).ToArray())
 				ToZoom.Children.Remove(line);
+
+			if (textline.computedCharEndpoints != null)
+				foreach (var endX in textline.computedCharEndpoints) {
+					ToZoom.Children.Add(new Line {//char separator
+						X1 = endX + textline.XOffsetForYOffset(textline.bodyTop),
+						X2 = endX + textline.XOffsetForYOffset(textline.bodyBot),
+						Y1 = textline.top + textline.bodyTop,
+						Y2 = textline.top + textline.bodyBot,
+						StrokeThickness = 2,
+						Stroke = Brushes.Green,
+						Tag = this,
+					});
+				}
+
 
 			ToZoom.Children.Add(new Polygon {
 				Tag = this,
@@ -107,6 +121,8 @@ namespace HwrSplitter.Gui
 					new Point(word.left + word.BottomXOffset,word.bottom),
 				},
 			});
+
+
 
 			if (textline.bodyBot > 0) {
 				ToZoom.Children.Add(new Line {//text-body top line
@@ -180,6 +196,7 @@ namespace HwrSplitter.Gui
 				ToZoom.Children.Add(line);
 			}
 
+
 		}
 
 		internal void redisplay() {
@@ -207,7 +224,7 @@ namespace HwrSplitter.Gui
 			lineProjectionRaw.Viewbox = new Rect(
 				0, imgRect.Y - padHeight / 2,
 				1, imgRect.Height + padHeight);
-				 
+
 
 
 

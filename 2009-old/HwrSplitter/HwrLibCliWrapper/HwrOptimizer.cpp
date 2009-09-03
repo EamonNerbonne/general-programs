@@ -63,17 +63,17 @@ namespace HwrLibCliWrapper {
 		boost::timer t;
 #endif
 		//based on learningIteration, set a few things:
-		double dampingFactor = 1.0 - min(learningIteration/1000.0,1.0);
+		double dampingFactor = 1.0 - min(learningIteration/200.0,1.0);
 		int blurIter = 3;
 		int winAngleSize = int(100.0*dampingFactor + 4);
 		int winDensSize = int(winAngleSize*0.76);
-		double featureRelevance = 0.1* exp(-20*dampingFactor) ;
+		double featureRelevance = FEATURE_SCALING * exp(-20*dampingFactor) ;
 
 
 		PamImage<BWPixel> shearedImg = ImageProcessor::StructToPamImage(block);
-		ImageBW unsheared = unshear(shearedImg,shear);
+		ImageBW unsheared = processAndUnshear(shearedImg,shear,textLine->bodyTop,textLine->bodyBot);
 		topOffRef = shearedImg.getWidth() - unsheared.getWidth();
-		ImageFeatures feats(unsheared,winDensSize,winAngleSize,blurIter);
+		ImageFeatures feats(unsheared,textLine->bodyTop,textLine->bodyBot, winDensSize,winAngleSize,blurIter);
 		textLine->bodyBot = feats.baseline;
 		textLine->bodyTop = feats.topline;
 

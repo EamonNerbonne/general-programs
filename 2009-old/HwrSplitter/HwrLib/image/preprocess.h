@@ -20,7 +20,9 @@ PamImage<BWPixel> preprocess(PamImage<RGBPixel> const& input_image, float shear_
 
 PamImage<BWPixel> preprocessLimited(PamImage<RGBPixel> const& input_image);
 
-PamImage<Float> featuresImage(ImageBW shearedImg, float shear, int &topXOffset);
+PamImage<Float> featuresImage(ImageBW shearedImg, float shear);
+
+PamImage<BWPixel> processAndUnshear(PamImage<BWPixel> const& input_image, float shear_angle, int bodyTop, int bodyBot);
 
 
 

@@ -15,6 +15,8 @@ namespace HwrDataModel
 		public readonly Word[] words; //after construction, words are fixed - you can only recompute their positions.
 		public readonly int no;
 
+		public int[] computedCharEndpoints;
+
 		public int bodyTop, bodyTopAlt;
 		public int bodyBot, bodyBotAlt;
 

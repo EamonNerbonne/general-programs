@@ -14,6 +14,7 @@ namespace HwrSplitter.Engine
 {
 	public class HwrPageImage
 	{
+		const int SCALE = 64;
 		ImageStruct<sbyte> image;
 		//BitmapImage original;
 		public HwrPageImage(FileInfo fileToLoad) {
@@ -34,21 +35,84 @@ namespace HwrSplitter.Engine
 #endif
 			var rawImg = new ImageStruct<uint>(original.PixelWidth, original.PixelHeight);
 			//Console.WriteLine("{0:X}", rawImg[1000, 2000]);//loading bug debug help
-			uint[] data = new uint[original.PixelWidth * original.PixelHeight];//TODO:these lines prevent some sort of loading bug ... sometimes...
-			original.CopyPixels(data, original.PixelWidth*4, 0);
+			uint[] data = new uint[original.PixelWidth * original.PixelHeight];//TODO:these lines prevent some sort of loading bug ... that occurs sometimes...
+			original.CopyPixels(data, original.PixelWidth * 4, 0);
 			original.CopyPixels(rawImg.RawData, rawImg.Stride, 0);
-			//Console.WriteLine("{0:X}", rawImg[1000, 2000]);//loading bug debug help
-#if VIACPP
-#if LOGSPEED
-			timer.TimeMark("preprocessing");
-#endif
-			image = ImageProcessor.preprocess(rawImg);
-#else
+
+			var greyScale = rawImg.MapTo(nr => ((PixelArgb32)nr).R);
+			rawImg = default(ImageStruct<uint>);
+
+			var minSmall = new ImageStruct<ushort>((greyScale.Width + SCALE - 1) / SCALE, (greyScale.Height + SCALE - 1) / SCALE);
+			var maxSmall = new ImageStruct<ushort>((greyScale.Width + SCALE - 1) / SCALE, (greyScale.Height + SCALE - 1) / SCALE);
+			for (int y = 0; y < minSmall.Height; y++)
+				for (int x = 0; x < minSmall.Width; x++) {
+					minSmall[x, y] = 255;
+					maxSmall[x, y] = 0;
+				}
+
+			for (int y = 0; y < greyScale.Height; y++)
+				for (int x = 0; x < greyScale.Width; x++) {
+					int sx = x / SCALE;
+					int sy = y / SCALE;
+					minSmall[sx, sy] = Math.Min(minSmall[sx, sy], greyScale[x, y]);
+					maxSmall[sx, sy] = Math.Max(maxSmall[sx, sy], greyScale[x, y]);
+				}
+
+
+
+			for (int y = 0; y < minSmall.Height; y++) {
+				for (int x = 0; x < minSmall.Width - 1; x++) {
+					minSmall[x, y] = (ushort)(minSmall[x, y] + minSmall[x + 1, y]);
+					maxSmall[x, y] = (ushort)(maxSmall[x, y] + maxSmall[x + 1, y]);
+				}
+				minSmall[minSmall.Width - 1, y] *= 2;
+				maxSmall[minSmall.Width - 1, y] *= 2;
+
+				for (int x = minSmall.Width - 1; x > 0; x--) {
+					minSmall[x, y] = (ushort)(minSmall[x, y] + minSmall[x - 1, y]);
+					maxSmall[x, y] = (ushort)(maxSmall[x, y] + maxSmall[x - 1, y]);
+				}
+				minSmall[0, y] *= 2;
+				maxSmall[0, y] *= 2;
+			}
+
+			for (int y = 0; y < minSmall.Height - 1; y++)
+				for (int x = 0; x < minSmall.Width; x++) {
+					minSmall[x, y] = (ushort)(minSmall[x, y] + minSmall[x, y + 1]);
+					maxSmall[x, y] = (ushort)(maxSmall[x, y] + maxSmall[x, y + 1]);
+				}
+			for (int x = 0; x < minSmall.Width; x++) {
+				minSmall[x, minSmall.Height - 1] *= 2;
+				maxSmall[x, minSmall.Height - 1] *= 2;
+			}
+
+			for (int y = minSmall.Height - 1; y > 0; y--)
+				for (int x = 0; x < minSmall.Width; x++) {
+					minSmall[x, y] = (ushort)(minSmall[x, y] + minSmall[x, y - 1]);
+					maxSmall[x, y] = (ushort)(maxSmall[x, y] + maxSmall[x, y - 1]);
+				}
+			for (int x = 0; x < minSmall.Width; x++) {
+				minSmall[x, 0] *= 2;
+				maxSmall[x, 0] *= 2;
+			}
+
+
+
 #if LOGSPEED
 			timer.TimeMark("threshholding");
 #endif
-			image = rawImg.MapTo(nr => ((PixelArgb32)nr).R >= 200 ? (sbyte)0 : (sbyte)1);
-#endif
+
+			image = new ImageStruct<sbyte>(greyScale.Width, greyScale.Height);
+
+			for (int y = 0; y < greyScale.Height; y++)
+				for (int x = 0; x < greyScale.Width; x++) {
+					int sx = x / SCALE;
+					int sy = y / SCALE;
+					byte threshold = (byte)(200.0*0.6+ 0.4*(minSmall[sx, sy] * (1 / 16.0) * 0.3 + maxSmall[sx, sy] * (1 / 16.0) * 0.7) + 0.5);
+					image[x, y] = greyScale[x, y] > threshold ? (sbyte)0 : (sbyte)1;
+				}
+
+
 #if LOGSPEED
 			timer.TimeMark(null);
 #endif
@@ -84,9 +148,9 @@ namespace HwrSplitter.Engine
 				int sum = 0;
 				int sumRaw = 0;
 				for (int x = x0 + 1; x < x1 - 1; x++) {
-					if (y > 0 && y<Height-1
+					if (y > 0 && y < Height - 1
 						&& image[x, y] != 0
-						
+
 						//&& image[x-1, y] == 0
 
 						&& image[x - 1, y - 1] != 0
@@ -99,10 +163,10 @@ namespace HwrSplitter.Engine
 					if (image[x, y] != 0)
 						sumRaw++;
 				}
-				xProjectionSmart[y] = sum / (double)(x1-x0);
+				xProjectionSmart[y] = (sum + sumRaw) / 2 / (double)(x1 - x0);
 				xProjectionRaw[y] = sumRaw / (double)(x1 - x0);
 			}
-			XProjectionSmart= xProjectionSmart;
+			XProjectionSmart = xProjectionSmart;
 			XProjectionRaw = xProjectionRaw;
 		}
 

@@ -105,7 +105,7 @@ class WordSplitSolver
 	std::vector<double> opC_x_u;
 	inline double & opC(unsigned x, short u) { return opC_x_u[u*imageLen1 + x];	}
 	inline double opR(short u, unsigned x0, unsigned x1) {return opC(x1,u) / opC(x0,u);}//the cumulative log-likelihood that u_i was observed on px [x0..x1)
-	void init_opC_x_u() {
+	void init_opC_x_u(double featureRelevanceFactor) {
 		using namespace std;
 		opC_x_u.resize(imageLen1*strLen());
 
@@ -121,7 +121,7 @@ class WordSplitSolver
 				double maxL(-numeric_limits<double>::max());
 				for(short i=0;i<SUB_SYMBOL_COUNT;i++) 
 					maxL = max(maxL, op(x-1,u,i));
-
+				
 				//Effectively: "op(x-1,u) == maxL"
 
 				opC(x,u) = maxL + opC(x-1,u); //marginalize
@@ -159,19 +159,20 @@ class WordSplitSolver
 
 		SymbolClass const & sc0 = sym(0);
 		for(unsigned x=0; x<imageLen1; x++) {
-			pf(x,0) = pf(x,0) + opR(0,0,x)
+			pf(x,0) = pf(x,0) + opR(0,0,x)*exp(-0.1*x)
 #if LENGTH_WEIGHT_ON_TERMINATORS
 				*exp(sc0.LogLikelihoodLength(x-0))
 #endif
 				;//first+last symbol have no intrinsic length
+		//	if(x<100&& x%5==0) cout<<pf(x,0)<<", ";
 		}
-
+        //cout<<"\n";
 
 		for(short u=1;u<strLen();u++) {
 			SymbolClass const & sc = sym(u);
 			for(unsigned len=0;len<imageLen1;len++){
 				double lenL = exp(sc.LogLikelihoodLength(len)); //avoiding the exp in the inner loop saves a bunch of time.
-				if(len<15) lenL*=exp(-0.5*(15.0-len));
+				if(len<MIN_SYM_LENGTH) lenL*=exp(-0.5*(double(MIN_SYM_LENGTH)-len));
 				for(unsigned x0=0;x0<imageLen1-len;x0++)  {
 					unsigned x1= x0 +len;
 					pf(x1,u) = pf(x1,u) +  pf(x0, u-1) * opR(u,x0,x1) *lenL;
@@ -210,7 +211,7 @@ class WordSplitSolver
 			SymbolClass const & sc = sym(u);
 			for(unsigned len=0;len<imageLen1;len++){
 				double lenL = exp(sc.LogLikelihoodLength(len));
-				if(len<15) lenL*=exp(-0.5*(15.0-len));
+				if(len<MIN_SYM_LENGTH) lenL*=exp(-0.5*(double(MIN_SYM_LENGTH)-len));
 				for(unsigned x0=0;x0<imageLen1-len;x0++)  {
 					unsigned x1 = x0 + len;
 					pb(x0,u) = pb(x0,u) +  pb(x1, u + 1) *opR(u,x0,x1) *lenL;

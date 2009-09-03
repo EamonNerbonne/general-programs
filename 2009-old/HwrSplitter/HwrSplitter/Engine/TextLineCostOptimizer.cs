@@ -32,7 +32,7 @@ namespace HwrSplitter.Engine
 		static TextLineCostOptimizer() {
 			FeatureDistributionEstimate.FeatureNames = FeatureToString.FeatureNames();
 		}
-		public const int CharPhases = 1;
+		public const int CharPhases = 2;
 		HwrOptimizer nativeOptimizer;
 		SymbolClass[] symbolClasses;
 		int iteration = 0;
@@ -91,15 +91,17 @@ namespace HwrSplitter.Engine
 			LocateLineBodiesImpl(image.XProjectionRaw, betterGuessWords, (tl, range) => {
 				tl.bodyTopAlt = range.start;
 				tl.bodyBotAlt = range.end;
-			});
+				//Console.WriteLine("lineheight:{0} (`{1}')",range.end-range.start, tl.FullText);
+			},false);
 			LocateLineBodiesImpl(image.XProjectionSmart, betterGuessWords, (tl, range) => {
 				tl.bodyTop = range.start;
 				tl.bodyBot = range.end;
-			});
+			},true);
+
 		}
 
 		public struct Range {public  int start, end;}
-		public void LocateLineBodiesImpl(double[] xProjection, WordsImage betterGuessWords, Action<TextLine, Range> setBody) {
+		public void LocateLineBodiesImpl(double[] xProjection, WordsImage betterGuessWords, Action<TextLine, Range> setBody,bool shiftLineEdges) {
 			double[] cum = new double[xProjection.Length + 1];
 			double sum = 0.0;
 			for (int i = 0; true; i++) {
@@ -151,6 +153,31 @@ namespace HwrSplitter.Engine
 					}
 				}
 				setBody(textLine, new Range { start = bodyY0 - y0, end = bodyY1 - y0 });
+				if (shiftLineEdges) {
+					while (y0 > 0 && (bodyY0 - y0) < 2 * (bodyY1 - bodyY0) && xProjection[y0 - 1] < mean*0.95)
+						y0--;
+					while (y1 < xProjection.Length - 1 && (y1 - bodyY1) < 2 * (bodyY1 - bodyY0) && xProjection[y1 + 1] < mean * 0.95)
+						y1++;
+					//now, we may need to move words and thus their x-coordinates as well.
+					double yShift = y0 - textLine.top; //negative
+					double xShift = textLine.XOffsetForYOffset(yShift);
+					foreach (var word in textLine.words) {
+						word.top = y0;
+						word.left += xShift;
+						word.right += xShift;
+						word.bottom = y1;
+					}
+					
+					textLine.bodyBot += -(int)(yShift+0.5);//we shouldn't shift the body;
+					textLine.bodyTop += -(int)(yShift + 0.5);//we shouldn't shift the body;
+					textLine.bodyBotAlt += -(int)(yShift + 0.5);//we shouldn't shift the body;
+					textLine.bodyTopAlt += -(int)(yShift + 0.5);//we shouldn't shift the body;
+
+					textLine.top = y0;
+					textLine.left += xShift;
+					textLine.right += xShift;
+					textLine.bottom = y1;
+				}
 			}
 		}
 
@@ -215,8 +242,7 @@ namespace HwrSplitter.Engine
 
 			var phaseCodeSeq = (
 				from letter in basicLine
-				let code = symbolClasses.Single(sym => sym.Letter == letter).Code
-				from phaseCode in Enumerable.Range((int)code * CharPhases, CharPhases)
+				from phaseCode in symbolClasses.Where(sym => sym.Letter == letter).Select(sym => sym.Code).OrderBy(code => code)
 				select (uint)phaseCode
 				).ToArray();
 
@@ -233,9 +259,10 @@ namespace HwrSplitter.Engine
 			lineGuess.ComputedLikelihood = likelihood;
 			int x0 = x0Est + topXoffset;
 
-			charEndPos = charEndPos.Where((pos, i) => i % CharPhases == CharPhases - 1).ToArray();
+			charEndPos = charEndPos.Where((pos, i) => i % CharPhases == CharPhases - 1).Select(x=>x+x0) .ToArray(); //correct for extra char phases.
 			int currWord = -1;
 
+			lineGuess.computedCharEndpoints = charEndPos;
 
 			char[] charValue = basicLine.ToArray();
 
@@ -243,13 +270,13 @@ namespace HwrSplitter.Engine
 				if (charValue[i] == ' ') { //found word boundary
 					if (currWord >= 0) //then the previous char was the rightmost character of the current word.
 					{
-						lineGuess.words[currWord].right = x0 + charEndPos[i - 1];
+						lineGuess.words[currWord].right = charEndPos[i - 1];
 						lineGuess.words[currWord].rightStat = Word.TrackStatus.Calculated;
 					}
 					currWord++;//space means new word
 					if (currWord < lineGuess.words.Length) //then the endpos of the space must be the beginning pos of the current word.
 					{
-						lineGuess.words[currWord].left = x0 + charEndPos[i];
+						lineGuess.words[currWord].left = charEndPos[i];
 						lineGuess.words[currWord].leftStat = Word.TrackStatus.Calculated;
 					}
 				}
@@ -266,7 +293,7 @@ namespace HwrSplitter.Engine
 			int y0 = (int)(line.top + 0.5);
 			int y1 = (int)(line.bottom + 0.5);
 
-			ImageStruct<float> data = ImageProcessor.ExtractFeatures(image.Image.CropTo(x0Est, y0, x1Est, y1), out topXoffset);
+			ImageStruct<float> data = ImageProcessor.ExtractFeatures(image.Image.CropTo(x0Est, y0, x1Est, y1),line, out topXoffset);
 			int featDataY = y0;
 			int featDataX = (int)x0Est + topXoffset;
 			var featImgRGB = data.MapTo(f => (byte)(255.9 * f)).MapTo(b => new PixelArgb32(255, b, b, b));
