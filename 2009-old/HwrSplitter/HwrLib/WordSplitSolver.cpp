@@ -2,11 +2,12 @@
 #include "WordSplitSolver.h"
 #include <boost/timer.hpp>
 
-WordSplitSolver::WordSplitSolver(AllSymbolClasses & syms, ImageFeatures const & imageFeatures, std::vector<short> const & targetString, double featureRelevance) 
+WordSplitSolver::WordSplitSolver(AllSymbolClasses & syms, ImageFeatures const & imageFeatures, std::vector<short> const & targetString,std::vector<int> const & overrideEnds, double featureRelevance) 
 : syms(syms)
 , imageFeatures(imageFeatures)
 , imageLen1(imageFeatures.getImageWidth()+1)
 , targetString(targetString) 
+, overrideEnds(overrideEnds)
 , symToStrIdx(new vector<short>[syms.size()])
 {
 #if LOGLEVEL >=9

@@ -54,6 +54,7 @@ class WordSplitSolver
 	ImageFeatures const & imageFeatures;//details of the features of the image at various x-coordinates.
 	const unsigned imageLen1;//number of possible starting points for a symbol: imageLen()+1 since a symbol may have zero length and thus start after the last pixel ends.
 	std::vector<short> const & targetString;
+	std::vector<int> const & overrideEnds;
 	inline unsigned imageLen() { return imageFeatures.getImageWidth(); }
 	inline short strLen() { return (short) targetString.size(); }
 	inline SymbolClass & sym(short u) {return syms[targetString[u]];}
@@ -169,17 +170,23 @@ class WordSplitSolver
         //cout<<"\n";
 
 		for(short u=1;u<strLen();u++) {
-			SymbolClass const & sc = sym(u);
-			for(unsigned len=0;len<imageLen1;len++){
-				double lenL = exp(sc.LogLikelihoodLength(len)); //avoiding the exp in the inner loop saves a bunch of time.
-				if(len<MIN_SYM_LENGTH) lenL*=exp(-0.5*(double(MIN_SYM_LENGTH)-len));
-				for(unsigned x0=0;x0<imageLen1-len;x0++)  {
-					unsigned x1= x0 +len;
-					pf(x1,u) = pf(x1,u) +  pf(x0, u-1) * opR(u,x0,x1) *lenL;
+			if(overrideEnds[u]<0) {
+				SymbolClass const & sc = sym(u);
+				for(unsigned len=0;len<imageLen1;len++){
+					double lenL = exp(sc.LogLikelihoodLength(len)); //avoiding the exp in the inner loop saves a bunch of time.
+					if(len<MIN_SYM_LENGTH) lenL*=exp(-0.5*(double(MIN_SYM_LENGTH)-len));
+					for(unsigned x0=0;x0<imageLen1-len;x0++)  {
+						unsigned x1= x0 +len;
+						pf(x1,u) = pf(x1,u) +  pf(x0, u-1) * opR(u,x0,x1) *lenL;
+					}
 				}
-
+			} else {
+				int endX = overrideEnds[u];
+				pf(endX,u)=1.0;
+				//for(unsigned x=0; (int)x<endX; x++) {
+				//	pf(endX,u) = pf(endX,u) +  pf(x, u-1);// * opR(u,x,endX);is this needed?
+				//}
 			}
-
 		}
 	}
 
@@ -208,14 +215,22 @@ class WordSplitSolver
 			;//first+last symbol have no intrinsic length 
 
 		for(short u=U-1;u>=0; --u) {
-			SymbolClass const & sc = sym(u);
-			for(unsigned len=0;len<imageLen1;len++){
-				double lenL = exp(sc.LogLikelihoodLength(len));
-				if(len<MIN_SYM_LENGTH) lenL*=exp(-0.5*(double(MIN_SYM_LENGTH)-len));
-				for(unsigned x0=0;x0<imageLen1-len;x0++)  {
-					unsigned x1 = x0 + len;
-					pb(x0,u) = pb(x0,u) +  pb(x1, u + 1) *opR(u,x0,x1) *lenL;
+			if(u==0 || overrideEnds[u-1]<0) {
+				SymbolClass const & sc = sym(u);
+				for(unsigned len=0;len<imageLen1;len++){
+					double lenL = exp(sc.LogLikelihoodLength(len));
+					if(len<MIN_SYM_LENGTH) lenL*=exp(-0.5*(double(MIN_SYM_LENGTH)-len));
+					for(unsigned x0=0;x0<imageLen1-len;x0++)  {
+						unsigned x1 = x0 + len;
+						pb(x0,u) = pb(x0,u) +  pb(x1, u + 1) *opR(u,x0,x1) *lenL;
+					}
 				}
+			} else {
+				int startX = overrideEnds[u-1];
+				pb(startX,u) = 1.0;
+				//for(unsigned x=startX; x<imageLen1; x++) {
+				//	pb(startX,u) = pb(startX,u) +  pb(x, u+1);// * opR(u,startX,x);is this needed?
+				//}
 			}
 		}
 	}
@@ -261,18 +276,18 @@ class WordSplitSolver
 				pC(x,u) = sum;
 			}
 
-			//we do a second pass to reduce errors.
+			//we do a second pass to reduce errors. //doesn't seem to matter - errors still occur, and are not fatal.
 
-			double lastVal = 0.0;
-			double sumError=0.0;
-			for(unsigned x=0;x<imageLen1;x++) {
-				double diff = p(x,u) - (pC(x,u) - lastVal); //OK, (pC(x,u) - sum) should be p(x,u), but let's say it's too big, then diff is negative by the amout pC(x,u) should be corrected by.
-				sumError+=diff; //we accumulate all the errors in sumError; after all, the sum needs to be corrected for offset errors for all previous values of X.
-				lastVal = pC(x,u);
-				pC(x,u) += sumError;
-			}
+			//double lastVal = 0.0;
+			//double sumError=0.0;
+			//for(unsigned x=0;x<imageLen1;x++) {
+			//	double diff = p(x,u) - (pC(x,u) - lastVal); //OK, (pC(x,u) - sum) should be p(x,u), but let's say it's too big, then diff is negative by the amout pC(x,u) should be corrected by.
+			//	sumError+=diff; //we accumulate all the errors in sumError; after all, the sum needs to be corrected for offset errors for all previous values of X.
+			//	lastVal = pC(x,u);
+			//	pC(x,u) += sumError;
+			//}
 
-			sum = pC(imageLen1-1,u);
+			//sum = pC(imageLen1-1,u);
 
 			for(unsigned x=0;x<imageLen1;x++) 
 				pC(x,u) /= sum; //scaled to 0..1
@@ -302,7 +317,7 @@ class WordSplitSolver
 
 
 public:
-	WordSplitSolver(AllSymbolClasses & syms, ImageFeatures const & imageFeatures, std::vector<short> const & targetString, double featureRelevance) ;
+	WordSplitSolver(AllSymbolClasses & syms, ImageFeatures const & imageFeatures, std::vector<short> const & targetString, std::vector<int> const & overrideEnds, double featureRelevance) ;
 	void Learn(double blurSymbols);
 	vector<int> MostLikelySplit(double & loglikelihood);
 };

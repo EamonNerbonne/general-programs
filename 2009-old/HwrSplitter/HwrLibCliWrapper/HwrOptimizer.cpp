@@ -54,7 +54,7 @@ namespace HwrLibCliWrapper {
 	}
 
 
-	array<int>^ HwrOptimizer::SplitWords(ImageStruct<signed char> block, array<unsigned> ^ sequenceToMatch,  float shear, int learningIteration, HwrDataModel::TextLine^ textLine,[Out] int % topOffRef, [Out] double % loglikelihood) {
+	array<int>^ HwrOptimizer::SplitWords(ImageStruct<signed char> block, array<unsigned> ^ sequenceToMatch, array<int> ^ overrideEnds, float shear, int learningIteration, HwrDataModel::TextLine^ textLine,[Out] int % topOffRef, [Out] double % loglikelihood) {
 		using std::min;
 		using std::max;
 		using std::cout;
@@ -77,15 +77,22 @@ namespace HwrLibCliWrapper {
 		textLine->bodyBot = feats.baseline;
 		textLine->bodyTop = feats.topline;
 
+		if(sequenceToMatch->Length != overrideEnds->Length)
+			throw gcnew ArgumentException("overrideEnds must be equally long as sequenceToMatch");
 		vector<short> sequenceVector;
+		vector<int> overrideEndsVector;
 		for(int i=0;i<sequenceToMatch->Length;i++) {
 			unsigned tmp = sequenceToMatch[i];
 			sequenceVector.push_back(tmp);
+			int endPoint = overrideEnds[i]-topOffRef;
+			overrideEndsVector.push_back(endPoint);
 		}
+
+
 #if LOGLEVEL >=8
 		cout << "C++ textline prepare took " << t.elapsed() <<"\n";
 #endif
-		WordSplitSolver splitSolve( *symbols, feats, sequenceVector,featureRelevance);
+		WordSplitSolver splitSolve( *symbols, feats, sequenceVector,overrideEndsVector,featureRelevance);
 		
 		double computedLikelihood;
 		vector<int> splits = splitSolve.MostLikelySplit(computedLikelihood);

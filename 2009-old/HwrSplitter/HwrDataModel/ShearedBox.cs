@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Xml.Linq;
+using System.Windows;
 
 namespace HwrDataModel
 {
@@ -23,6 +24,14 @@ namespace HwrDataModel
             shear = (double)fromXml.Attribute("shear");
         }
 
+		public bool ContainsPoint(Point p) {
+			if (p.Y < bottom && p.Y >= top) {
+				double x = p.X + XOffsetForYOffset(p.Y - top);
+				return p.X < right && p.X >= left;
+			}
+			return false;
+		}
+		public Point CenterPoint { get { return new Point((left + right) / 2.0 + XOffsetForYOffset((bottom - top) / 2.0), (bottom + top) / 2.0); } }
 
         protected IEnumerable<XAttribute> MakeXAttrs() {
             yield return new XAttribute("top", top);

@@ -106,7 +106,22 @@ namespace HwrSplitter.Gui
 
 					//            LoadWords();
 					manager.words = annot_lines[int.Parse(possiblePage)];
+
+
+					WordsImage handChecked=null;
+					FileInfo trainFile = HwrResources.WordsTrainDir.GetRelativeFile("NL_HaNa_H2_7823_" + possiblePage + ".words");
+					try {
+						if (trainFile.Exists) {
+							handChecked = new WordsImage(trainFile);
+							foreach(var line in handChecked.textlines)
+								foreach (var word in line.words) 
+									word.rightStat = word.leftStat = word.topStat = word.botStat = Word.TrackStatus.Manual;
+						}
+					} catch (Exception e) { Console.WriteLine(e.ToString()); }//if this fails, we don't use the manually entered xml.
+
 					manager.optimizer.LocateLineBodies(hwrImg, manager.words);
+
+					manager.words.SetFromTrainingExample(handChecked);
 
 					manager.ImageAnnotater.ProcessLines(manager.words.textlines);
 

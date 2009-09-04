@@ -69,7 +69,7 @@ namespace HwrLibCliWrapper {
 		// topOffRef - will be set to the amount of pixels the top row was shifted to account for shear
 		// shear - the angle of text shearing in the input
 		// learningIteration - the current learning iteration; used to decrease the weight of symbolclasses (for instance) and to improve 
-		array<int>^ SplitWords(ImageStruct<signed char> block, array<unsigned> ^ sequenceToMatch,  float shear, int learningIteration, HwrDataModel::TextLine^ textLine, [Out] int % topOffRef, [Out] double % loglikelihood);
+		array<int>^ SplitWords(ImageStruct<signed char> block, array<unsigned> ^ sequenceToMatch, array<int> ^ overrideEnds, float shear, int learningIteration, HwrDataModel::TextLine^ textLine, [Out] int % topOffRef, [Out] double % loglikelihood);
 	};
 }
 

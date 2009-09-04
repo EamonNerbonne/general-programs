@@ -32,7 +32,7 @@ namespace HwrSplitter.Engine
 		static TextLineCostOptimizer() {
 			FeatureDistributionEstimate.FeatureNames = FeatureToString.FeatureNames();
 		}
-		public const int CharPhases = 2;
+		public const int CharPhases = 1;
 		HwrOptimizer nativeOptimizer;
 		SymbolClass[] symbolClasses;
 		int iteration = 0;
@@ -92,16 +92,16 @@ namespace HwrSplitter.Engine
 				tl.bodyTopAlt = range.start;
 				tl.bodyBotAlt = range.end;
 				//Console.WriteLine("lineheight:{0} (`{1}')",range.end-range.start, tl.FullText);
-			},false);
+			}, false);
 			LocateLineBodiesImpl(image.XProjectionSmart, betterGuessWords, (tl, range) => {
 				tl.bodyTop = range.start;
 				tl.bodyBot = range.end;
-			},true);
+			}, true);
 
 		}
 
-		public struct Range {public  int start, end;}
-		public void LocateLineBodiesImpl(double[] xProjection, WordsImage betterGuessWords, Action<TextLine, Range> setBody,bool shiftLineEdges) {
+		public struct Range { public int start, end;}
+		public void LocateLineBodiesImpl(double[] xProjection, WordsImage betterGuessWords, Action<TextLine, Range> setBody, bool shiftLineEdges) {
 			double[] cum = new double[xProjection.Length + 1];
 			double sum = 0.0;
 			for (int i = 0; true; i++) {
@@ -154,7 +154,7 @@ namespace HwrSplitter.Engine
 				}
 				setBody(textLine, new Range { start = bodyY0 - y0, end = bodyY1 - y0 });
 				if (shiftLineEdges) {
-					while (y0 > 0 && (bodyY0 - y0) < 2 * (bodyY1 - bodyY0) && xProjection[y0 - 1] < mean*0.95)
+					while (y0 > 0 && (bodyY0 - y0) < 2 * (bodyY1 - bodyY0) && xProjection[y0 - 1] < mean * 0.95)
 						y0--;
 					while (y1 < xProjection.Length - 1 && (y1 - bodyY1) < 2 * (bodyY1 - bodyY0) && xProjection[y1 + 1] < mean * 0.95)
 						y1++;
@@ -167,8 +167,8 @@ namespace HwrSplitter.Engine
 						word.right += xShift;
 						word.bottom = y1;
 					}
-					
-					textLine.bodyBot += -(int)(yShift+0.5);//we shouldn't shift the body;
+
+					textLine.bodyBot += -(int)(yShift + 0.5);//we shouldn't shift the body;
 					textLine.bodyTop += -(int)(yShift + 0.5);//we shouldn't shift the body;
 					textLine.bodyBotAlt += -(int)(yShift + 0.5);//we shouldn't shift the body;
 					textLine.bodyTopAlt += -(int)(yShift + 0.5);//we shouldn't shift the body;
@@ -194,10 +194,10 @@ namespace HwrSplitter.Engine
 					Console.Write("skipped:len=={0}, ", linetext.Length);
 					continue;
 				}
-				if (fractionRegex.IsMatch(linetext)) {
-					Console.Write("skipped:fraction, ", linetext.Length);
-					continue;
-				}
+				//if (fractionRegex.IsMatch(linetext)) {
+				//    Console.Write("skipped:fraction, ", linetext.Length);
+				//    continue;
+				//}
 
 				//if (iteration % 100 == 0) {
 				//    nativeOptimizer.SaveToManaged(symbolClasses);
@@ -240,11 +240,25 @@ namespace HwrSplitter.Engine
 
 			var basicLine = lineGuess.TextWithTerminators.Select(letter => charKnown(letter) ? letter : (char)1).ToArray();
 
+			var overrideEnds = from word in lineGuess.words
+							   from oe in Enumerable.Repeat(-1, word.text.Length - 1)
+											.Prepend(word.leftStat == Word.TrackStatus.Manual ? (int)(word.left - x0Est + 0.5) : -1)
+											.Concat(word.rightStat == Word.TrackStatus.Manual ? (int)(word.right - x0Est + 0.5) : -1)
+							   //ok, each word has accounted for its preceeding space and itself
+							   select oe;
+			//we're missing the end of the startSymbol, and the ends of the final space and end symbol.
+
+			overrideEnds =	(-1).Concat(overrideEnds).Concat(-1).Concat(-1).ToArray();
+
 			var phaseCodeSeq = (
 				from letter in basicLine
 				from phaseCode in symbolClasses.Where(sym => sym.Letter == letter).Select(sym => sym.Code).OrderBy(code => code)
 				select (uint)phaseCode
 				).ToArray();
+
+			var overrideEndsArray = (from end in overrideEnds
+									from phase in Enumerable.Range(0, CharPhases)
+									select phase == CharPhases - 1 ? end : -1).ToArray();
 
 			var croppedLine = image.Image.CropTo(x0Est, y0, x1Est, y1);
 #if LOGLINESPEED
@@ -255,11 +269,12 @@ namespace HwrSplitter.Engine
 			int[] charEndPos = nativeOptimizer.SplitWords(
 									croppedLine,
 									phaseCodeSeq,
+									overrideEndsArray,
 									(float)lineGuess.shear, iteration++, lineGuess, out topXoffset, out likelihood);
 			lineGuess.ComputedLikelihood = likelihood;
 			int x0 = x0Est + topXoffset;
 
-			charEndPos = charEndPos.Where((pos, i) => i % CharPhases == CharPhases - 1).Select(x=>x+x0) .ToArray(); //correct for extra char phases.
+			charEndPos = charEndPos.Where((pos, i) => i % CharPhases == CharPhases - 1).Select(x => x + x0).ToArray(); //correct for extra char phases.
 			int currWord = -1;
 
 			lineGuess.computedCharEndpoints = charEndPos;
@@ -268,8 +283,7 @@ namespace HwrSplitter.Engine
 
 			for (int i = 0; i < charValue.Length; i++) {
 				if (charValue[i] == ' ') { //found word boundary
-					if (currWord >= 0) //then the previous char was the rightmost character of the current word.
-					{
+					if (currWord >= 0) { //then the previous char was the rightmost character of the current word.
 						lineGuess.words[currWord].right = charEndPos[i - 1];
 						lineGuess.words[currWord].rightStat = Word.TrackStatus.Calculated;
 					}
@@ -293,7 +307,7 @@ namespace HwrSplitter.Engine
 			int y0 = (int)(line.top + 0.5);
 			int y1 = (int)(line.bottom + 0.5);
 
-			ImageStruct<float> data = ImageProcessor.ExtractFeatures(image.Image.CropTo(x0Est, y0, x1Est, y1),line, out topXoffset);
+			ImageStruct<float> data = ImageProcessor.ExtractFeatures(image.Image.CropTo(x0Est, y0, x1Est, y1), line, out topXoffset);
 			int featDataY = y0;
 			int featDataX = (int)x0Est + topXoffset;
 			var featImgRGB = data.MapTo(f => (byte)(255.9 * f)).MapTo(b => new PixelArgb32(255, b, b, b));
