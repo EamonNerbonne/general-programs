@@ -16,7 +16,7 @@ namespace HwrSplitter.Gui
         HwrImageAnnotater annotater;
         ZoomRectManager zoomRectMan;
         WordDetailManager wordDetailMan;
-		HwrPageImage currentPage;
+		public HwrPageImage currentPage { get; private set; }
 		public TextLineCostOptimizer optimizer;
 
         public Point LastClickPoint { get; private set; }

@@ -208,20 +208,18 @@ namespace HwrSplitter.Engine
 				ImproveLineGuessNew(image, textLine);
 
 				lineProcessed(textLine);
-				//Console.Write("{0}[{1}], ", iteration,textLine.ComputedLikelihood);
+				Console.Write("{0}[p{1};l{2}=={3}], ", iteration,betterGuessWords.pageNum,textLine.no, textLine.ComputedLikelihood);
 
-				if (iteration % 100 == 0) {
-					nativeOptimizer.SaveToManaged(symbolClasses);
-					using (var stream = HwrResources.SymbolDir.GetRelativeFile("symbols-" + DateTime.Now.ToString("u", CultureInfo.InvariantCulture).Replace(' ', '_').Replace(':', '.') + ".xml.gz").Open(FileMode.Create))
-					using (var zipStream = new GZipStream(stream, CompressionMode.Compress))
-						new SymbolClasses { Symbol = symbolClasses, Iteration = iteration, LastPage = betterGuessWords.pageNum }.SerializeTo(zipStream);
-					Console.WriteLine();
-					nativeOptimizer.GetFeatureWeights()
-						.Zip(FeatureDistributionEstimate.FeatureNames, (weight, name) => name + ": " + weight)
-						.Zip(nativeOptimizer.GetFeatureVariances(), (str, variance) => str + " (" + variance + ")")
-						.ForEach(Console.WriteLine);
-				}
 			}
+			nativeOptimizer.SaveToManaged(symbolClasses);
+			using (var stream = HwrResources.SymbolDir.GetRelativeFile("symbols-" + DateTime.Now.ToString("u", CultureInfo.InvariantCulture).Replace(' ', '_').Replace(':', '.') + "-p" + betterGuessWords.pageNum + ".xml.gz").Open(FileMode.Create))
+			using (var zipStream = new GZipStream(stream, CompressionMode.Compress))
+				new SymbolClasses { Symbol = symbolClasses, Iteration = iteration, LastPage = betterGuessWords.pageNum }.SerializeTo(zipStream);
+			//Console.WriteLine();
+			//nativeOptimizer.GetFeatureWeights()
+			//    .Zip(FeatureDistributionEstimate.FeatureNames, (weight, name) => name + ": " + weight)
+			//    .Zip(nativeOptimizer.GetFeatureVariances(), (str, variance) => str + " (" + variance + ")")
+			//    .ForEach(Console.WriteLine);
 		}
 
 		private void ImproveLineGuessNew(HwrPageImage image, TextLine lineGuess) {
@@ -248,7 +246,7 @@ namespace HwrSplitter.Engine
 							   select oe;
 			//we're missing the end of the startSymbol, and the ends of the final space and end symbol.
 
-			overrideEnds =	(-1).Concat(overrideEnds).Concat(-1).Concat(-1).ToArray();
+			overrideEnds = (-1).Concat(overrideEnds).Concat(-1).Concat(-1).ToArray();
 
 			var phaseCodeSeq = (
 				from letter in basicLine
@@ -257,8 +255,8 @@ namespace HwrSplitter.Engine
 				).ToArray();
 
 			var overrideEndsArray = (from end in overrideEnds
-									from phase in Enumerable.Range(0, CharPhases)
-									select phase == CharPhases - 1 ? end : -1).ToArray();
+									 from phase in Enumerable.Range(0, CharPhases)
+									 select phase == CharPhases - 1 ? end : -1).ToArray();
 
 			var croppedLine = image.Image.CropTo(x0Est, y0, x1Est, y1);
 #if LOGLINESPEED

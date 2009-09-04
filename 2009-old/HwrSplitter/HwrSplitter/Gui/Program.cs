@@ -36,7 +36,6 @@ namespace HwrSplitter.Gui
 		FileInfo wordsFileInfo = null, imageFileInfo;
 
 
-		HwrPageImage hwrImg;//TODO:rename
 		MainWindow mainWindow;
 		int? imgForceNum;
 
@@ -71,11 +70,6 @@ namespace HwrSplitter.Gui
 		}
 
 
-		public void LoadImage() {
-			hwrImg = new HwrPageImage(imageFileInfo);
-			manager.SetImage(hwrImg);
-			//Log("Image loaded: " + hwrImg.Width + "x" + hwrImg.Height);
-		}
 
 		void LoadInBackground() {
 			manager.optimizer = new TextLineCostOptimizer();
@@ -102,7 +96,8 @@ namespace HwrSplitter.Gui
 
 					//Log("Chose page:" + int.Parse(possiblePage));
 
-					LoadImage();
+					manager.SetImage(new HwrPageImage(imageFileInfo));
+
 
 					//            LoadWords();
 					manager.words = annot_lines[int.Parse(possiblePage)];
@@ -119,13 +114,13 @@ namespace HwrSplitter.Gui
 						}
 					} catch (Exception e) { Console.WriteLine(e.ToString()); }//if this fails, we don't use the manually entered xml.
 
-					manager.optimizer.LocateLineBodies(hwrImg, manager.words);
+					manager.optimizer.LocateLineBodies(manager.currentPage, manager.words);
 
 					manager.words.SetFromTrainingExample(handChecked);
 
 					manager.ImageAnnotater.ProcessLines(manager.words.textlines);
 
-					manager.optimizer.ImproveGuess(hwrImg, manager.words, line => {
+					manager.optimizer.ImproveGuess(manager.currentPage, manager.words, line => {
 						manager.ImageAnnotater.ProcessLine(line);
 					});
 					//mainWindow.Dispatcher.Invoke((Action)mainWindow.Close);
