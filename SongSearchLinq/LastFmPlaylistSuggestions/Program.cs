@@ -10,6 +10,7 @@ using EmnExtensions.DebugTools;
 using EmnExtensions;
 using EmnExtensions.Collections;
 using System.Threading;
+using EmnExtensions.Text;
 namespace LastFmPlaylistSuggestions
 {
 	class Program
@@ -115,21 +116,21 @@ namespace LastFmPlaylistSuggestions
 			List<SongWithCost> similarList = new List<SongWithCost>();
 
 			HashSet<SongRef> lookupsStarted = new HashSet<SongRef>();
-			Dictionary<SongRef, SongSimilarityList> cachedLookup = new Dictionary<SongRef,SongSimilarityList>();
+			Dictionary<SongRef, SongSimilarityList> cachedLookup = new Dictionary<SongRef, SongSimilarityList>();
 			Queue<SongRef> cacheOrder = new Queue<SongRef>();
 			HashSet<SongRef> lookupsDeleted = new HashSet<SongRef>();
 
 			object ignore = tools.SimilarSongs;//ensure similarsongs loaded.
-			object sync=new object();
-			bool done=false;
+			object sync = new object();
+			bool done = false;
 			Random rand = new Random();
 
-			ThreadStart bgLookup = ()=>{
+			ThreadStart bgLookup = () => {
 				bool tDone;
-				lock(sync) tDone = done;
-				while(!tDone) {
+				lock (sync) tDone = done;
+				while (!tDone) {
 					SongRef nextToLookup;
-					SongSimilarityList simList=null;
+					SongSimilarityList simList = null;
 					lock (sync) {
 						nextToLookup =
 							songCosts.ElementsInRoughOrder
@@ -196,7 +197,7 @@ namespace LastFmPlaylistSuggestions
 			int lastPercent = 0;
 			try {
 				int localSuggestion = 0;
-				while (similarList.Count < SuggestionCount || localSuggestion<SuggestionCountLocal) {
+				while (similarList.Count < SuggestionCount || localSuggestion < SuggestionCountLocal) {
 					SongWithCost currentSong;
 					if (!songCosts.RemoveTop(out currentSong))
 						break;
@@ -218,7 +219,7 @@ namespace LastFmPlaylistSuggestions
 						simRank++;
 						if (similarSong.cost <= currentSong.cost) //well, either we've already been processed, or we're already at the top spot in the heap: ignore.
 							continue;
-						
+
 						if (similarSong.index == -1) {
 							similarSong.cost = directCost;
 							foreach (var baseSong in currentSong.basedOn)
@@ -237,7 +238,7 @@ namespace LastFmPlaylistSuggestions
 							songCosts.Add(similarSong);
 						}
 					}
-					int newPercent = Math.Min( (similarList.Count * 100) / SuggestionCount, (localSuggestion*100) / SuggestionCountLocal);
+					int newPercent = Math.Min((similarList.Count * 100) / SuggestionCount, (localSuggestion * 100) / SuggestionCountLocal);
 					if (newPercent > lastPercent) {
 						lastPercent = newPercent;
 						string msg = "[" + songCosts.Count + ";" + newPercent + "%]";
@@ -254,7 +255,7 @@ namespace LastFmPlaylistSuggestions
 				 where tools.Lookup.dataByRef.ContainsKey(simtrack.songref)
 				 select
 					(from songcandidate in tools.Lookup.dataByRef[simtrack.songref]
-					 orderby Math.Abs(songcandidate.bitrate - 224)
+					 orderby Math.Abs(songcandidate.bitrate - 225) / 100.0 + Math.Log((songcandidate.Length + 1) / 216.0)
 					 select songcandidate).First()).ToArray()
 				;
 
@@ -270,7 +271,7 @@ namespace LastFmPlaylistSuggestions
 			}
 			FileInfo outputsimtracks = new FileInfo(Path.Combine(m3uDir.FullName, Path.GetFileNameWithoutExtension(m3ufile.Name) + "-similar.txt"));
 			using (var stream = outputsimtracks.Open(FileMode.Create))
-			using (var writer = new StreamWriter(stream, Encoding.GetEncoding(1252))) {
+			using (var writer = new StreamWriter(stream, Encoding.UTF8)) {
 				foreach (var track in similarList) {
 					writer.WriteLine("{0} {2} {1}    [{3}]",
 							track.cost,
@@ -280,9 +281,63 @@ namespace LastFmPlaylistSuggestions
 						);
 				}
 			}
-
-
+			Console.Write("Trying to find best missing tracks:");
+			FileInfo outputmissingtracks = new FileInfo(Path.Combine(m3uDir.FullName, Path.GetFileNameWithoutExtension(m3ufile.Name) + "-missing.txt"));
+			using (var stream = outputmissingtracks.Open(FileMode.Create))
+			using (var writer = new StreamWriter(stream, Encoding.UTF8)) {
+				//var q = from songdata in tools.DB.Songs.Where(songdata=>songdata.performer!=null&& songdata.title!=null)
+				//        from trigram in 
+				foreach (var track in similarList.Where(track => !tools.Lookup.dataByRef.ContainsKey(track.songref))) {
+					SongMatcher matcher = new SongMatcher(track.songref);
+					if (matcher.OK) {
+						SongData best = tools.DB.Songs.Where(songdata=>songdata.performer!=null&& songdata.title!=null).MinBy(songdata => matcher.Cost(songdata));
+						double cost = matcher.Cost(best);
+						writer.WriteLine("{0}      {1}    ||{2}: {3}   --  {4} at {5}kbps", track.songref.Artist, track.songref.Title, cost, best.HumanLabel,TimeSpan.FromSeconds( best.Length), best.bitrate);
+					} else {
+						writer.WriteLine("{0}      {1}", track.songref.Artist, track.songref.Title);
+					}
+					Console.Write(".");
+				}
+			}
+			Console.WriteLine("done.");
 		}
+
+		struct SongMatcher
+		{
+			public readonly bool OK;
+			HashSet<string> artistTrigrams, titleTrigrams;
+			public SongMatcher(SongRef search) {
+				string artist = Canonicalize.Basic(search.Artist.Trim())+"__";
+				string title = Canonicalize.Basic(search.Title.Trim())+"__";
+				if (artist.Length > 2 && title.Length > 2) {
+					OK = true;
+					artistTrigrams = new HashSet<string>(from start in Enumerable.Range(0, artist.Length - 3)
+														 select artist.Substring(start, 3));
+					titleTrigrams = new HashSet<string>(from start in Enumerable.Range(0, title.Length - 3)
+														select title.Substring(start, 3));
+				} else {
+					OK = false;
+					artistTrigrams = titleTrigrams = null;
+				}
+			}
+
+			public double Cost(SongData local) {
+				double absoluteCost = Math.Abs(local.bitrate - 225) / 200.0 + Math.Abs(Math.Log((local.Length + 1) / 216.0));//~typically between 0..1, can be higher
+				string artist = Canonicalize.Basic(local.performer)+"__";
+				string title = Canonicalize.Basic(local.title)+"__";
+				int aMatches=0,tMatches=0;
+				for (int i = 0; i < artist.Length - 3; i++)
+					if (artistTrigrams.Contains(artist.Substring(i, 3)))
+						aMatches++;
+
+				for (int i = 0; i < title.Length - 3; i++)
+					if (titleTrigrams.Contains(title.Substring(i, 3)))
+						tMatches++;
+
+				return absoluteCost + 6 * (1.0 - aMatches / (double)Math.Max(artist.Length - 2, artistTrigrams.Count)) + 6 * (1.0 - tMatches / (double)Math.Max(title.Length - 2, titleTrigrams.Count));
+			}
+		}
+
 
 		static ISongData[] LoadExtM3U(FileInfo m3ufile) {
 			List<ISongData> m3usongs = new List<ISongData>();
