@@ -23,7 +23,6 @@ public:
 	Float getWeightSum()const{return weightSum;}
 	Float getDCoffset()const{return logDCfactor;}
 
-	inline Float occurence() {return weightSum;}
 	void ScaleWeightBy(double scaleFactor) { 
 		weightSum*=scaleFactor;
 		for (int i=0;i<NUMBER_OF_FEATURES;i++) 
@@ -31,7 +30,7 @@ public:
 	}
 
 
-	Float LogProbDensityOf(FeatureVector const & target) {
+	Float LogProbDensityOf(FeatureVector const & target)const {
 		Float distSqr=0.0; 
 		for(int i=0; i<NUMBER_OF_FEATURES;i++) 
 			distSqr += sqr(target[i]-meanX[i])/sX[i];
@@ -47,38 +46,61 @@ public:
 
 	void RecomputeDCfactor();
 
-	void CombineWith(FeatureDistribution const & other);
+	void CombineWithDistribution(FeatureDistribution const & other);
 	void CombineWith(FeatureVector const & vect, Float occurenceProb);
 };
 
 class CombinedFeatureDistribution {
 
 public:
-	FeatureDistribution state[SUB_SYMBOL_COUNT];
+	FeatureDistribution state[SUB_STATE_COUNT];
 
-	FeatureDistribution(void);
-	~FeatureDistribution(void);
-	void initRandom();
+	CombinedFeatureDistribution(void){}
+	~CombinedFeatureDistribution(void){}
+	void initRandom(){
+		for(int i=0;i<SUB_STATE_COUNT;i++) 
+			state[i].initRandom();
+	}
 
-	inline Float occurence() {return weightSum;}
 	void ScaleWeightBy(double scaleFactor) { 
-		for(int i=0;i<SUB_SYMBOL_COUNT;i++) 
+		for(int i=0;i<SUB_STATE_COUNT;i++) 
 			state[i].ScaleWeightBy(scaleFactor);
 	}
 
 
-	Float LogProbDensityOf(FeatureVector const & target) {
+	Float LogProbDensityOf(FeatureVector const & target) const{
 		Float ll = state[0].LogProbDensityOf(target);
-		for(int i=1; i<SUB_SYMBOL_COUNT;i++) 
+		for(int i=1; i<SUB_STATE_COUNT;i++) 
 			ll = std::max(ll,state[i].LogProbDensityOf(target));
 		return ll;
 	}
 
 	void RecomputeDCfactor() {
-		for(int i=0;i<SUB_SYMBOL_COUNT;i++) 
+		for(int i=0;i<SUB_STATE_COUNT;i++) 
 			state[i].RecomputeDCfactor();
 	}
 
-	void CombineWith(FeatureDistribution const & other);
-	void CombineWith(FeatureVector const & vect, Float occurenceProb);
+	void CombineWithDistribution(CombinedFeatureDistribution const & other) {
+		for(int i=1; i<SUB_STATE_COUNT;i++) 
+			state[i].CombineWithDistribution(other.state[i]);
+	}
+	
+	//learningTarget may be the current distribution, but to permit parallelism, it may be a different target that 
+	//can be combined into the current distribution at a thread-safe time via CombineWithDistribution
+	void CombineInto(FeatureVector const & vect, Float occurenceProb, CombinedFeatureDistribution & learningTarget)const {
+		Float ll[SUB_STATE_COUNT];
+		
+		for(int i=0;i<SUB_STATE_COUNT;i++) 
+			ll[i] = state[i].LogProbDensityOf(vect);
+		Float maxLL = ll[0];
+		int maxLLi=0;
+		for(int i=1;i<SUB_STATE_COUNT;i++) {
+			if(ll[i]>maxLL){
+				maxLLi = i;
+				maxLL = ll[i];
+			}
+		}
+		for(int i=0;i<SUB_STATE_COUNT;i++) 
+			learningTarget.state[i].CombineWith(vect, occurenceProb * exp( ll[i] - maxLL + (i==maxLLi?0:-1)  )  );
+	}
 };

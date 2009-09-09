@@ -17,7 +17,7 @@ FeatureDistribution::FeatureDistribution(void): weightSum(Float(0.0)), meanX(Flo
 FeatureDistribution::~FeatureDistribution(void){}
 
 //slight variant of CombineWith(vector, weight) to account for variance inside 
-void FeatureDistribution::CombineWith(FeatureDistribution const & other){
+void FeatureDistribution::CombineWithDistribution(FeatureDistribution const & other){
 	Float newWeightSum = weightSum + other.weightSum;
 	Float mScale = other.weightSum/newWeightSum;
 	Float sScale = weightSum*other.weightSum/newWeightSum;

@@ -1,7 +1,10 @@
 #include "StdAfx.h"
 #include "SymbolClass.h"
-void SymbolClass::initRandom()
+void SymbolClass::initializeRandomly()
 {
-	for(int i=0;i<SUB_SYMBOL_COUNT;i++)
-		state[i].initRandom();
+	mLength = 100*FloatRand();
+	wLength = DefaultFeatureWeight;
+	sLength = DefaultFeatureWeight * DefaultFeatureVariance;
+	for(int i=0;i<SUB_PHASE_COUNT;i++)
+		phase[i].initRandom();
 }

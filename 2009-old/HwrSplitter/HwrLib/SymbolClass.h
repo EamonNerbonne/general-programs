@@ -9,9 +9,9 @@ public:
 	Float sLength;
 	Float wLength;
 	wchar_t originalChar;
-	FeatureDistribution state[SUB_SYMBOL_COUNT];
+	CombinedFeatureDistribution phase[SUB_PHASE_COUNT];
 	SymbolClass(Float meanLength, Float varLength) : mLength(meanLength), wLength(100), sLength(varLength*100)	{ }
-	SymbolClass() : mLength(100*FloatRand()), wLength(DefaultFeatureWeight), sLength(DefaultFeatureWeight * DefaultFeatureVariance) {}
+	SymbolClass() : mLength(0.0), wLength(0.0), sLength(0.0) {}
 	
 	Float meanLength() const {return mLength;}
 	Float varLength() const {return sLength/wLength;}
@@ -20,8 +20,8 @@ public:
 	void ScaleWeightBy(double scaleFactor) {
 		wLength*=scaleFactor;
 		sLength*=scaleFactor;
-		for (int i=0;i<SUB_SYMBOL_COUNT;i++) 
-			state[i].ScaleWeightBy(scaleFactor);
+		for (int i=0;i<SUB_PHASE_COUNT;i++) 
+			phase[i].ScaleWeightBy(scaleFactor);
 	}
 
 
@@ -36,8 +36,8 @@ public:
 	}
 
 	void RecomputeDCoffset() {
-		for(int i=0;i<SUB_SYMBOL_COUNT;i++)
-			state[i].RecomputeDCfactor();
+		for(int i=0;i<SUB_PHASE_COUNT;i++)
+			phase[i].RecomputeDCfactor();
 	}
-	void initRandom();
+	void initializeRandomly();
 };

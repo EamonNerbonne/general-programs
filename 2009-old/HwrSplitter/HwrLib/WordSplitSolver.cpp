@@ -28,7 +28,7 @@ WordSplitSolver::WordSplitSolver(AllSymbolClasses & syms, ImageFeatures const & 
 #endif
 
 	//we marginalize to find the cumulative loglikelihood of observing all pixels between any x0 and x1 for any given symbol.
-	init_opC_x_u(featureRelevance);
+	init_opC_x_u_i(featureRelevance);
 
 #if LOGLEVEL >=9
 	std::cout << ",  Marginalize: "<<overallTimer.elapsed();
@@ -72,32 +72,31 @@ std::vector<int> WordSplitSolver::MostLikelySplit(double & loglikelihood) {
 	for(int u=0; u< (int)strLen()-1;u++) {
 		int startX = x;
 		while(x <(int) imageLen() && P(x,u) > P(x,u+1)) { 
-			double maxL=-numeric_limits<double>::max();
-			for(int j=0;j<SUB_SYMBOL_COUNT;j++)
-				maxL= max(sym(u).state[j].LogProbDensityOf(imageFeatures.featAt(x),syms.featureWeights) ,maxL);
-			featureLikelihoodSum+=maxL;
 			x++;
 		}
-#if LENGTH_WEIGHT_ON_TERMINATORS
+		int len = x - startX;
+		for(int i=0;i<SUB_PHASE_COUNT;i++) 
+			for(int xp = startX + i*len/SUB_PHASE_COUNT;   xp < startX + (i+1)*len/SUB_PHASE_COUNT;   xp++)
+				featureLikelihoodSum += sym(u).phase[i].LogProbDensityOf(imageFeatures.featAt(xp));
+		
+
+#if !LENGTH_WEIGHT_ON_TERMINATORS
 		if(u>0)
 #endif
-			lenLikelihoodSum += sym(u).LogLikelihoodLength(x-startX);
+			lenLikelihoodSum += sym(u).LogLikelihoodLength(len);
 		splits.push_back(x);
 	}
 	
 	int U = (int)strLen()-1;
 	int startX = x;
+	int len =  imageLen() - startX;
+	for(int i=0;i<SUB_PHASE_COUNT;i++) 
+		for(int xp = startX + i*len/SUB_PHASE_COUNT;   xp < startX + (i+1)*len/SUB_PHASE_COUNT;   xp++)
+			featureLikelihoodSum += sym(U).phase[i].LogProbDensityOf(imageFeatures.featAt(xp));
 
-	while(x <(int) imageLen() ) { 
-		double maxL=-numeric_limits<double>::max();
-		for(int j=0;j<SUB_SYMBOL_COUNT;j++)
-			maxL= max(sym(U).state[j].LogProbDensityOf(imageFeatures.featAt(x),syms.featureWeights) ,maxL);
-		featureLikelihoodSum+=maxL;
-		x++;
-	}
 	splits.push_back(imageLen());
 #if LENGTH_WEIGHT_ON_TERMINATORS
-		lenLikelihoodSum += sym(U).LogLikelihoodLength(imageLen()-startX);
+		lenLikelihoodSum += sym(U).LogLikelihoodLength(len);
 #endif
 
 
@@ -111,7 +110,7 @@ std::vector<int> WordSplitSolver::MostLikelySplit(double & loglikelihood) {
 }
 
 
-void WordSplitSolver::Learn(double blurSymbols){
+void WordSplitSolver::Learn(double blurSymbols, AllSymbolClasses& learningTarget){
 	using namespace std;
 	using namespace boost;
 

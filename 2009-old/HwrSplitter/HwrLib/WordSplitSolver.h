@@ -9,41 +9,44 @@
 struct AllSymbolClasses {
 	int symbolCount;
 	boost::scoped_array<SymbolClass> sym;
-	FeatureVector featureWeights;
-	AllSymbolClasses(int symbolCount) : symbolCount(symbolCount), sym(new SymbolClass[symbolCount]) {	
-		for(int i=0;i<NUMBER_OF_FEATURES;i++)
-			featureWeights[i]=1.0;
-	}
+	//FeatureVector featureWeights;
+	AllSymbolClasses(int symbolCount) 
+		: symbolCount(symbolCount)
+		, sym(new SymbolClass[symbolCount])
+	//	, featureWeights(1.0)
+	{}
+
 	SymbolClass & operator[](short symbol) {return sym[symbol];}
-	SymbolClass const & getSymbol(short symbol) const {return sym[symbol];}
+	SymbolClass const & operator[](short symbol)const {return sym[symbol];}
 	SymbolClass & getSymbol(short symbol) {return sym[symbol];}
-	short size() {return symbolCount;}
-	void initRandom() {
+	SymbolClass const & getSymbol(short symbol) const {return sym[symbol];}
+
+	short size() const {return symbolCount;}
+	void initializeRandomly() {
 		for(int i=0;i<symbolCount;i++)
-			sym[i].initRandom();
-	}
-	int AllocatedSize() {return sizeof(AllSymbolClasses) + sizeof(SymbolClass)*symbolCount;}
-	void RecomputeFeatureWeights(double minWeight){
-		minWeight = DYNAMIC_SYMBOL_WEIGHT*minWeight + (1.0 - DYNAMIC_SYMBOL_WEIGHT);
-		FeatureDistribution overall;
-		FeatureDistribution means;
-		for(int i=0;i<size();i++) {
-			for(int j=0;j<SUB_SYMBOL_COUNT;j++) {
-				overall.CombineWith(sym[i].state[j]);
-				means.CombineWith(sym[i].state[j].meanX, sym[i].state[j].weightSum);
-			}
-		}
-		//OK, we have the overall variance and the variance of the means.  Where the means variance is high in relation to the overall variance, most variation is inter rather than intra-class.
-		double maxWeight=0.0;
-		for(int i=0;i<NUMBER_OF_FEATURES;i++) {
-			featureWeights[i] = means.varX(i) / overall.varX(i);
-			maxWeight = std::max(maxWeight,featureWeights[i]);
-		}
-		for(int i=0;i<NUMBER_OF_FEATURES;i++)
-			featureWeights[i]=featureWeights[i]/maxWeight*(1-minWeight) + minWeight;
+			sym[i].initializeRandomly();
 	}
 
-	
+	int AllocatedSize() const {return sizeof(AllSymbolClasses) + sizeof(SymbolClass)*symbolCount;}
+	//void RecomputeFeatureWeights(double minWeight){
+	//	minWeight = DYNAMIC_SYMBOL_WEIGHT*minWeight + (1.0 - DYNAMIC_SYMBOL_WEIGHT);
+	//	FeatureDistribution overall;
+	//	FeatureDistribution means;
+	//	for(int i=0;i<size();i++) {
+	//		for(int j=0;j<SUB_SYMBOL_COUNT;j++) {
+	//			overall.CombineWith(sym[i].state[j]);
+	//			means.CombineWith(sym[i].state[j].meanX, sym[i].state[j].weightSum);
+	//		}
+	//	}
+	//	//OK, we have the overall variance and the variance of the means.  Where the means variance is high in relation to the overall variance, most variation is inter rather than intra-class.
+	//	double maxWeight=0.0;
+	//	for(int i=0;i<NUMBER_OF_FEATURES;i++) {
+	//		featureWeights[i] = means.varX(i) / overall.varX(i);
+	//		maxWeight = std::max(maxWeight,featureWeights[i]);
+	//	}
+	//	for(int i=0;i<NUMBER_OF_FEATURES;i++)
+	//		featureWeights[i]=featureWeights[i]/maxWeight*(1-minWeight) + minWeight;
+	//}
 };
 
 class WordSplitSolver
@@ -81,16 +84,16 @@ class WordSplitSolver
 	//The scaling factor is identical for all symbols; i.e. may vary per x but not per symbol
 	//op(x,u,i) == log(pd_u_i(x) * k(x)) for some scaling factor k(x).
 	std::vector<double> op_x_u_i;
-	inline double & op(unsigned x, short u,short i) { return op_x_u_i[x*strLen()*SUB_SYMBOL_COUNT +  u*SUB_SYMBOL_COUNT + i];	}
+	inline double & op(unsigned x, short u,short i) { return op_x_u_i[x*strLen()*SUB_PHASE_COUNT +  u*SUB_PHASE_COUNT + i];	}
 	void init_op_x_u_i(double featureRelevanceFactor) {
-		op_x_u_i.resize(imageLen()*strLen()*SUB_SYMBOL_COUNT);
+		op_x_u_i.resize(imageLen()*strLen()*SUB_PHASE_COUNT);
 		for(unsigned x=0;x<imageLen();++x) { //for all x-positions
 			FeatureVector const & fv = imageFeatures.featAt(x);
 			for(short ci=0;ci<(short)usedSymbols.size();ci++){ //for all used symbols
 				short c = usedSymbols[ci];
 				SymbolClass & sc = this->syms[c];
-				for(short i=0;i<SUB_SYMBOL_COUNT;i++) {//for each sub-symbol
-					double logProbDensity = sc.state[i].LogProbDensityOf(fv,syms.featureWeights)*featureRelevanceFactor;//TODO: potential scaling factor initially to reduce impact?
+				for(short i=0;i<SUB_PHASE_COUNT;i++) {//for each symbol-phase
+					double logProbDensity = sc.phase[i].LogProbDensityOf(fv)*featureRelevanceFactor;//TODO: potential scaling factor initially to reduce impact?
 					for(unsigned ui=0;ui<symToStrIdx[c].size();ui++) { //for each string position of a used symbol...
 						short u = symToStrIdx[c][ui];
 						op(x,u,i) = logProbDensity;
@@ -102,47 +105,49 @@ class WordSplitSolver
 
 	//========================
 	//===opC(x,u)===
-	//the cumulative log-likelihood that u_i for any i was observed on pixels [0..x)
-	std::vector<double> opC_x_u;
-	inline double & opC(unsigned x, short u) { return opC_x_u[u*imageLen1 + x];	}
-	inline double opR(short u, unsigned x0, unsigned x1) {return opC(x1,u) / opC(x0,u);}//the cumulative log-likelihood that u_i was observed on px [x0..x1)
-	void init_opC_x_u(double featureRelevanceFactor) {
+	//the cumulative log-likelihood that u_i for any i was observed on pixels [0..x) Il1|
+	std::vector<double> opC_x_u_i;
+	inline double & opC(unsigned x, short u, short i) { return opC_x_u_i[u*imageLen1*SUB_PHASE_COUNT + i*imageLen1 + x];	}
+	inline double opsR(short u, short i,unsigned x0, unsigned x1) { return opC(x1,u,i) / opC(x0,u,i);}
+	inline double opR(short u, unsigned x0, unsigned x1) {//the cumulative log-likelihood that u was observed on px [x0..x1)
+		unsigned len = x1 - x0;
+		double ll =1.0;
+		for(int i=0;i<SUB_PHASE_COUNT;i++)
+			ll*=opsR(u,i, x0 + i*len/SUB_PHASE_COUNT, x0 + (i+1)*len/SUB_PHASE_COUNT);
+		return ll;
+	}
+	void init_opC_x_u_i(double featureRelevanceFactor) {
 		using namespace std;
-		opC_x_u.resize(imageLen1*strLen());
+		opC_x_u_i.resize(strLen()*SUB_PHASE_COUNT*imageLen1);
 
 		double lowestLL=0.0; //maintains the lowest LL seen sofar per char, to avoid excessive LL rises.
 
+		for(short u=0;u<strLen();u++ )
+			for(short i=0;i<SUB_PHASE_COUNT;i++ )
+				opC(0,u,i) =  0.0; //marginalize starting with 0
 
-		for(short u=0;u<strLen();u++ ) {
-			opC(0,u) =  0.0; //marginalize
-		}
 		for(unsigned x=1;x<imageLen1;x++) {
 			double maxCL(-numeric_limits<double>::max());
-			for(short u=0;u<strLen();u++ ) {
-				double maxL(-numeric_limits<double>::max());
-				for(short i=0;i<SUB_SYMBOL_COUNT;i++) 
-					maxL = max(maxL, op(x-1,u,i));
-				
-				//Effectively: "op(x-1,u) == maxL"
-
-				opC(x,u) = maxL + opC(x-1,u); //marginalize
-				maxCL = max(maxCL, opC(x,u));
-			}
+			for(short u=0;u<strLen();u++ )
+				for(short i=0;i<SUB_PHASE_COUNT;i++ ) {
+					opC(x,u,i) = op(x-1,u,i)  + opC(x-1,u,i); //marginalize
+					maxCL = max(maxCL,opC(x,u,i));
+				}
 			//so now we've found the cumulatively most likely
-			for(short u=0;u<strLen();u++ ) {
-				opC(x,u) -= maxCL;
-				lowestLL = min(opC(x,u),lowestLL);
-			}
+			for(short u=0;u<strLen();u++ )
+				for(short i=0;i<SUB_PHASE_COUNT;i++ ){
+					opC(x,u,i) -= maxCL;
+					lowestLL = min(opC(x,u,i),lowestLL);
+				}
 			//so now we've found the cumulatively most likely relative to the maximum at this value of x.
 			//if I wanted to work in non-log space, you'd need to ensure that for NO x0, x1, u with x0 < x1 that opC(x1, u) - opC(x1, u) > 1000 because of limitations in the exponent of a double - a diff. of 1000 is about 2^1000, which is still OK, barely.
 		}
-		
-		
-		//delogize:
-		double scaleFactor = lowestLL < -320 ? -320/lowestLL:1.0; //2^(-1023) ~ 10^(-324), plus some safety margin.
+		//de-log-ize:
+		double scaleFactor = lowestLL < -705 ? -705/lowestLL:1.0; //2^(-1023) ~ E^(-709), plus some safety margin.
 		for(short u=0;u<strLen();u++ ) 
-			for(unsigned x=0;x<imageLen1;x++)
-				opC(x,u) = exp(opC(x,u)*scaleFactor);
+			for(short i=0;i<SUB_PHASE_COUNT;i++ )
+				for(unsigned x=0;x<imageLen1;x++)
+					opC(x,u,i) = exp(opC(x,u,i)*scaleFactor);
 	}
 
 	//========================
@@ -295,6 +300,36 @@ class WordSplitSolver
 	}
 
 	//========================
+	//the likelihood (not log!) of symbol u phase i starting before (or just at) x
+	std::vector<double> pC_x_u_i;
+	inline double & pCi(unsigned x, short u,short i) { return pC_x_u_i[u*imageLen1*SUB_PHASE_COUNT + i*imageLen1+ x]; }
+	void init_pC_x_u_i() {
+		using namespace std;
+		pC_x_u_i.resize(imageLen1*SUB_PHASE_COUNT*strLen());
+		for(short u=0;u<strLen();u++) {
+			for(unsigned x=0;x<imageLen1;x++) {
+				double prob = pC(x,u);
+				//now we want to find the equivalently probable point for the next symbol:
+				//some kind of if; xFin == imageLen1 is just fine for u == U == strLen()-1
+				unsigned x0=x;
+				unsigned x1 = imageLen1;
+
+				while(x0<x1) { //TODO:finish this.
+					unsigned xMid = (x0+x1) / 2;
+					double pAtMid = pC(xMid,u+1);
+					if(pAtMid < prob) //need to look to the right
+						x0=xMid;
+					else 
+						x1 = xMid;
+				}
+
+				...
+			}
+		}
+	}
+
+
+	//========================
 	//the probability that pixel x is in symbol u. -- u in [ 0..strLen() ), x in [ 0..imageLen() )
 	std::vector<double> P_x_u;
 	inline double & P(unsigned x, short u) { return P_x_u[x*strLen() +  u]; }
@@ -318,6 +353,6 @@ class WordSplitSolver
 
 public:
 	WordSplitSolver(AllSymbolClasses & syms, ImageFeatures const & imageFeatures, std::vector<short> const & targetString, std::vector<int> const & overrideEnds, double featureRelevance) ;
-	void Learn(double blurSymbols);
+	void Learn(double blurSymbols, AllSymbolClasses& learningTarget);
 	vector<int> MostLikelySplit(double & loglikelihood);
 };
