@@ -38,18 +38,46 @@ public:
 		return /*logDCfactor*0.001 +*/ -0.5*distSqr*weightSum;
 	}
 
-	Float LogProbDensityOf(FeatureVector const & target,FeatureVector const & weights) {
-		Float distSqr=0.0; 
-		for(int i=0; i<NUMBER_OF_FEATURES;i++) 
-			distSqr += weights[i]*sqr(target[i]-meanX[i])/sX[i];
-		return /*logDCfactor*0.001 +*/ -0.5*distSqr*weightSum;
+	//Float LogProbDensityOf(FeatureVector const & target,FeatureVector const & weights) {
+	//	Float distSqr=0.0; 
+	//	for(int i=0; i<NUMBER_OF_FEATURES;i++) 
+	//		distSqr += weights[i]*sqr(target[i]-meanX[i])/sX[i];
+	//	return /*logDCfactor*0.001 +*/ -0.5*distSqr*weightSum;
+	//}
+
+	void RecomputeDCfactor();
+
+	void CombineWith(FeatureDistribution const & other);
+	void CombineWith(FeatureVector const & vect, Float occurenceProb);
+};
+
+class CombinedFeatureDistribution {
+
+public:
+	FeatureDistribution state[SUB_SYMBOL_COUNT];
+
+	FeatureDistribution(void);
+	~FeatureDistribution(void);
+	void initRandom();
+
+	inline Float occurence() {return weightSum;}
+	void ScaleWeightBy(double scaleFactor) { 
+		for(int i=0;i<SUB_SYMBOL_COUNT;i++) 
+			state[i].ScaleWeightBy(scaleFactor);
 	}
 
 
-	//void probDensityOf(FeatureVector const & target, Float & prob)	{ prob= std::exp(LogProbDensityOf(target));	}
-	//void probDensityOf(FeatureVector const & target, LogNumber & prob)	{ prob = LogNumber::FromExp(LogProbDensityOf(target)); }
+	Float LogProbDensityOf(FeatureVector const & target) {
+		Float ll = state[0].LogProbDensityOf(target);
+		for(int i=1; i<SUB_SYMBOL_COUNT;i++) 
+			ll = std::max(ll,state[i].LogProbDensityOf(target));
+		return ll;
+	}
 
-	void RecomputeDCfactor();
+	void RecomputeDCfactor() {
+		for(int i=0;i<SUB_SYMBOL_COUNT;i++) 
+			state[i].RecomputeDCfactor();
+	}
 
 	void CombineWith(FeatureDistribution const & other);
 	void CombineWith(FeatureVector const & vect, Float occurenceProb);

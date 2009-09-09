@@ -83,25 +83,15 @@ namespace HwrSplitter.Engine
 
 		public void LocateLineBodies(HwrPageImage image, WordsImage betterGuessWords) {
 			image.ComputeXProjection((int)(betterGuessWords.textlines[0].left + 0.5), (int)(betterGuessWords.textlines[0].right + 0.5));
-			BoxBlur(image.XProjectionSmart, 6);
-			BoxBlur(image.XProjectionSmart, 6);
-			BoxBlur(image.XProjectionSmart, 6);//sideeffect!
-			BoxBlur(image.XProjectionRaw, 4);
-			BoxBlur(image.XProjectionRaw, 4);//sideeffect!
-			LocateLineBodiesImpl(image.XProjectionRaw, betterGuessWords, (tl, range) => {
-				tl.bodyTopAlt = range.start;
-				tl.bodyBotAlt = range.end;
-				//Console.WriteLine("lineheight:{0} (`{1}')",range.end-range.start, tl.FullText);
-			}, false);
-			LocateLineBodiesImpl(image.XProjectionSmart, betterGuessWords, (tl, range) => {
-				tl.bodyTop = range.start;
-				tl.bodyBot = range.end;
-			}, true);
+			BoxBlur(image.XProjectionSmart, 4);
+			BoxBlur(image.XProjectionSmart, 4);
+			BoxBlur(image.XProjectionSmart, 4);//sideeffect!
+			LocateLineBodiesImpl(image.XProjectionSmart, betterGuessWords);
 
 		}
 
 		public struct Range { public int start, end;}
-		public void LocateLineBodiesImpl(double[] xProjection, WordsImage betterGuessWords, Action<TextLine, Range> setBody, bool shiftLineEdges) {
+		public void LocateLineBodiesImpl(double[] xProjection, WordsImage betterGuessWords) {
 			double[] cum = new double[xProjection.Length + 1];
 			double sum = 0.0;
 			for (int i = 0; true; i++) {
@@ -110,23 +100,89 @@ namespace HwrSplitter.Engine
 				sum += xProjection[i];
 			}
 
-
-
 			for (int lineI = 0; lineI < betterGuessWords.textlines.Length; lineI++) {
 				TextLine textLine = betterGuessWords.textlines[lineI];
 				int y0 = (int)(textLine.top + 0.5);
 				int y1 = (int)(textLine.bottom + 0.5);
+				var origProjection = xProjection.Skip(y0).Take(y1 - y0);
 
-				double mean = (cum[y1] - cum[y0]) / (y1 - y0);
+				double origMean = (cum[y1] - cum[y0]) / (y1 - y0);
+				double orig95Percentile = origProjection.OrderBy(x => x).ToArray()[(int)((y1 - y0) * 0.95)];
+				double threshold = (6 * orig95Percentile * 0.40 + 4 * origMean * 0.95) / 10;
+
+
+				var biggestHighDensitySection =
+					xProjection.Skip(y0).Take(y1 - y0) //select the pixel rows of the current line
+					.Select(density => density > threshold ? 1 : 0) // 1 where high density, 0 where low density
+					.Scan((cursum, current) => cursum * current + current) //accumulate: value == number of consecutive high-density rows
+					.Select((densityRunLength, relativeLineNum) => new { Line = y0 + relativeLineNum, DensityRunLength = densityRunLength }) //add line index
+					.Aggregate((lineA, lineB) => lineA.DensityRunLength > lineB.DensityRunLength ? lineA : lineB); //select maximal run of high-density lines.
+
+				int extraLength = Math.Max(40 - biggestHighDensitySection.DensityRunLength, 0);
+
+				int highDens0 = biggestHighDensitySection.Line + 1 - biggestHighDensitySection.DensityRunLength - (extraLength + 1) / 2;
+				int highDens1 = biggestHighDensitySection.Line + 1 + extraLength / 2;
+
+				int xHeight = highDens1 - highDens0;
+
+
+				while (y0 > 0 && xProjection[y0 - 1] < threshold * 0.9) y0--; //expand row to cover fairly empty places.
+				while (y1 < xProjection.Length - 1 && xProjection[y1 + 1] < threshold * 0.9) y1++;//expand row to cover fairly empty places.
+				y0 = Math.Max(y0, highDens0 - 2 * xHeight); //no more than 2 xHeights above body;
+				y1 = Math.Min(y1, highDens1 + 2 * xHeight); //no more than 2 xHeights below body;
+
+				double highDensMean = (cum[highDens1] - cum[highDens0]) / (highDens1 - highDens0);
+				double emptyThreshold = 0.04 * highDensMean;
+
+				for (int y = highDens0 - xHeight * 3/2; y > y0; y--) {
+					if (xProjection[y] <= emptyThreshold) {
+						y0 = y;
+						break;
+					}
+				}
+				for (int y = highDens1 + xHeight * 3 / 2; y < y1; y++) {
+					if (xProjection[y] <= emptyThreshold) {
+						y1 = y;
+						break;
+					}
+				}
+
+				//now, we may need to move words and thus their x-coordinates as well.
+				double yShift = y0 - textLine.top; //shift line from textLine.top to y0 - usually negative, not always.
+				double xShift = textLine.XOffsetForYOffset(yShift);
+				foreach (var word in textLine.words) {
+					word.top = y0;
+					word.left += xShift;
+					word.right += xShift;
+					word.bottom = y1;
+				}
+
+				if (textLine.bodyTop != 0) {
+					textLine.bodyBot += -(int)(yShift + 0.5);//we shouldn't shift the body;
+					textLine.bodyTop += -(int)(yShift + 0.5);//we shouldn't shift the body;
+				}
+				if (textLine.bodyTopAlt != 0) {
+					textLine.bodyBotAlt += -(int)(yShift + 0.5);//we shouldn't shift the body;
+					textLine.bodyTopAlt += -(int)(yShift + 0.5);//we shouldn't shift the body;
+				}
+
+				textLine.top = y0;
+				textLine.bodyTop = highDens0 - y0;
+				textLine.bodyBot = highDens1 - y0;
+				textLine.left += xShift;
+				textLine.right += xShift;
+				textLine.bottom = y1;
+				Console.Write("{0}, ", highDens1 - highDens0);
 
 				int bodyY0 = (y0 + y1) / 2;
 				int bodyY1 = (y0 + y1) / 2 + 1;
+				double mean = (cum[y1] - cum[y0]) / (y1 - y0);
 
 				Func<int, double> bodyRating0 =
-				(by0) => ((cum[bodyY1] - cum[by0]) - mean * (bodyY1 - by0)) - ((cum[by0] - cum[y0]) - mean * (by0 - y0));
+				(by0) => ((cum[bodyY1] - cum[by0]) - threshold * (bodyY1 - by0)) - ((cum[by0] - cum[y0]) - threshold * (by0 - y0));
 
 				Func<int, double> bodyRating1 =
-				(by1) => ((cum[by1] - cum[bodyY0]) - mean * (by1 - bodyY0)) - ((cum[y1] - cum[by1]) - mean * (y1 - by1));
+				(by1) => ((cum[by1] - cum[bodyY0]) - threshold * (by1 - bodyY0)) - ((cum[y1] - cum[by1]) - threshold * (y1 - by1));
 
 				bool improvement = true;
 
@@ -152,39 +208,13 @@ namespace HwrSplitter.Engine
 						}
 					}
 				}
-				setBody(textLine, new Range { start = bodyY0 - y0, end = bodyY1 - y0 });
-				if (shiftLineEdges) {
-					while (y0 > 0 && (bodyY0 - y0) < 2 * (bodyY1 - bodyY0) && xProjection[y0 - 1] < mean * 0.95)
-						y0--;
-					while (y1 < xProjection.Length - 1 && (y1 - bodyY1) < 2 * (bodyY1 - bodyY0) && xProjection[y1 + 1] < mean * 0.95)
-						y1++;
-					//now, we may need to move words and thus their x-coordinates as well.
-					double yShift = y0 - textLine.top; //negative
-					double xShift = textLine.XOffsetForYOffset(yShift);
-					foreach (var word in textLine.words) {
-						word.top = y0;
-						word.left += xShift;
-						word.right += xShift;
-						word.bottom = y1;
-					}
-
-					textLine.bodyBot += -(int)(yShift + 0.5);//we shouldn't shift the body;
-					textLine.bodyTop += -(int)(yShift + 0.5);//we shouldn't shift the body;
-					textLine.bodyBotAlt += -(int)(yShift + 0.5);//we shouldn't shift the body;
-					textLine.bodyTopAlt += -(int)(yShift + 0.5);//we shouldn't shift the body;
-
-					textLine.top = y0;
-					textLine.left += xShift;
-					textLine.right += xShift;
-					textLine.bottom = y1;
-				}
+				textLine.bodyTopAlt = bodyY0 - y0;
+				textLine.bodyBotAlt = bodyY1 - y0;
 			}
 		}
 
 		static Regex fractionRegex = new Regex(@"\d/\d", RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.ExplicitCapture);
 		public void ImproveGuess(HwrPageImage image, WordsImage betterGuessWords, Action<TextLine> lineProcessed) {
-
-
 			for (int lineI = 0; lineI < betterGuessWords.textlines.Length; lineI++) {
 				var textLine = betterGuessWords.textlines[lineI];
 				StringBuilder linetextB = new StringBuilder();
@@ -208,7 +238,7 @@ namespace HwrSplitter.Engine
 				ImproveLineGuessNew(image, textLine);
 
 				lineProcessed(textLine);
-				Console.Write("{0}[p{1};l{2}=={3}], ", iteration,betterGuessWords.pageNum,textLine.no, textLine.ComputedLikelihood);
+				Console.Write("{0}[p{1};l{2}=={3}], ", iteration, betterGuessWords.pageNum, textLine.no, textLine.ComputedLikelihood);
 
 			}
 			nativeOptimizer.SaveToManaged(symbolClasses);
@@ -300,8 +330,8 @@ namespace HwrSplitter.Engine
 		public void ComputeFeatures(HwrPageImage image, TextLine line, out BitmapSource featureImage, out Point offset) {
 			int topXoffset;
 
-			int x0Est = Math.Max(0, (int)(line.left + line.BottomXOffset - 500 + 0.5));
-			int x1Est = Math.Min(image.Width, (int)(line.right + 500 + 0.5));
+			int x0Est = Math.Max(0, (int)(line.OuterExtremeLeft + 0.5));
+			int x1Est = Math.Min(image.Width, (int)(line.OuterExtremeRight + 0.5));
 			int y0 = (int)(line.top + 0.5);
 			int y1 = (int)(line.bottom + 0.5);
 
@@ -309,22 +339,30 @@ namespace HwrSplitter.Engine
 			int featDataY = y0;
 			int featDataX = (int)x0Est + topXoffset;
 			var featImgRGB = data.MapTo(f => (byte)(255.9 * f)).MapTo(b => new PixelArgb32(255, b, b, b));
-			foreach (Word w in line.words) {
-				int l = (int)(w.left + 0.5) - featDataX;
-				int r = (int)(w.right + 0.5) - featDataX;
+			foreach (int wordBoundary in
+							from word in line.words
+							from edge in new[] { word.left, word.right }
+							let edgeTrans = (int)(edge + 0.5) - featDataX
+							where edgeTrans >= 0 && edgeTrans < featImgRGB.Width
+							select edgeTrans) {
 				for (int y = 0; y < featImgRGB.Height; y++) {
-					if (l >= 0 && l < featImgRGB.Width) {
-						var pl = featImgRGB[l, y];
-						pl.R = 255;
-						featImgRGB[l, y] = pl;
-					}
-					if (r >= 0 && l < featImgRGB.Width) {
-						var pr = featImgRGB[r, y];
-						pr.G = 255;
-						featImgRGB[r, y] = pr;
-					}
+					var pix = featImgRGB[wordBoundary, y];
+					pix.R = 255;
+					pix.B = 255;
+					featImgRGB[wordBoundary, y] = pix;
 				}
 			}
+
+			for (int x = 0; x < featImgRGB.Width; x++) { //only useful for scaled version, not for features!
+				var pix = featImgRGB[x, line.bodyTop];
+				pix.G = 255;
+				featImgRGB[x, line.bodyTop] = pix;
+				var pixB = featImgRGB[x, line.bodyBot];
+				pixB.G = 255;
+				featImgRGB[x, line.bodyBot] = pixB;
+			}
+
+
 			featureImage = featImgRGB.MapTo(p => p.Data).ToBitmap();
 			featureImage.Freeze();
 			offset = new Point(featDataX, featDataY);
@@ -339,8 +377,6 @@ namespace HwrSplitter.Engine
 					symbolGroup => symbolGroup.Key,
 					symbolGroup => symbolGroup.Aggregate((a, b) => a + b)
 				);
-
-
 		}
 	}
 }

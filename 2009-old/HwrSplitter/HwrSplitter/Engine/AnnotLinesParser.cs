@@ -68,7 +68,7 @@ namespace HwrSplitter.Engine
                         where !indexedLine.Line.text.Contains("\\n") //filter out potential nonsense lines AFTER indexing
                         let line = indexedLine.Line
                         let height = line.bottom - line.top
-						select new TextLine(line.text, indexedLine.Index, line.top, line.bottom, line.left, line.right , 45, symbolWidths)
+						select new TextLine(line.text, indexedLine.Index, line.top, line.bottom, line.left, line.right +height , 45, symbolWidths)
                     ).ToArray()//textlines in WordsImage
                 );
             return wordsImages.ToDictionary(wordsImage => wordsImage.pageNum);

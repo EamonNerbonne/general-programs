@@ -1,5 +1,4 @@
 ﻿using System;
-
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -44,9 +43,9 @@ namespace HwrSplitter.Gui
 			byte[] imgData = new byte[arr.Length * 4];
 			int i = 0;
 			foreach (var f in arr) {
-				imgData[i++] = (byte)(255 * f / max);
-				imgData[i++] = (byte)(255 * f / max);
-				imgData[i++] = (byte)(255 * f / max);
+				imgData[i++] = (byte)(Math.Min(255.5, 256 * f / max));
+				imgData[i++] = (byte)(Math.Min(255.5, 256 * f / max));
+				imgData[i++] = (byte)(Math.Min(255.5, 256 * f / max));
 				imgData[i++] = (byte)(255);
 			}
 			return imgData;
@@ -68,7 +67,7 @@ namespace HwrSplitter.Gui
 		}
 
 		BitmapSource ImgdataFromXProject(double[] data, TextLine line, int bodyTop, int bodyBot) {
-			var imgData = ByteArrFromProjection(data, data.Max());
+			var imgData = ByteArrFromProjection(data, data.Skip((int)(line.top+0.5)).Take((int)(line.bottom-line.top+0.5)).Max());
 			int t = 4 * (int)line.top;
 			int tB = 4 * (int)(line.top + bodyTop);
 			int bB = 4 * (int)(line.top + bodyBot);
@@ -91,8 +90,8 @@ namespace HwrSplitter.Gui
 			tlco.ComputeFeatures(pageImage, textline, out bmp, out featureComputeOffset);
 			featuresGraphBrush.ImageSource = bmp;
 
-			lineProjectionRaw.ImageSource = ImgdataFromXProject(pageImage.XProjectionRaw, textline, textline.bodyTopAlt, textline.bodyBotAlt);
 			lineProjection.ImageSource = ImgdataFromXProject(pageImage.XProjectionSmart, textline, textline.bodyTop, textline.bodyBot);
+			lineProjectionRaw.ImageSource = ImgdataFromXProject(pageImage.XProjectionSmart, textline, textline.bodyTopAlt, textline.bodyBotAlt);
 
 			foreach (var line in ToZoom.Children.OfType<FrameworkElement>().Where(line => line.Tag == this).ToArray())
 				ToZoom.Children.Remove(line);

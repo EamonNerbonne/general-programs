@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using MoreLinq;
 using System.Text;
 using HwrDataModel;
 using System.Windows;
@@ -30,33 +31,6 @@ namespace HwrSplitter.Gui
             }
         }
 
-        public static void FindWord(WordsImage words, Point point, out int lineIndex, out int wordIndex) {
-            if (words == null) {
-                lineIndex = -1;
-                wordIndex = -1;
-                return;
-            }
-
-            lineIndex = Array.BinarySearch(words.textlines,//TODO - threadsafe?
-                new TextLine {
-                    top = point.Y,
-                    bottom = point.Y
-                }, new TextLineVerticalComparer());
-            if (lineIndex >= 0) {
-                TextLine target = words.textlines[lineIndex];
-                //fix shear:
-                double yoff = point.Y - target.top;
-                double shearEffect = yoff * Math.Tan(-2 * Math.PI * target.shear / 360.0);
-                double correctedX = point.X - shearEffect;
-
-                wordIndex = Array.BinarySearch(target.words, new Word {
-                    right = correctedX,
-                    left = correctedX
-                }, new WordHorizComparer());
-
-            } else
-                wordIndex = -1;
-        }
 
     }
 }

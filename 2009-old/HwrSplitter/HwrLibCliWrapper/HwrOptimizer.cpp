@@ -77,6 +77,14 @@ namespace HwrLibCliWrapper {
 		textLine->bodyBot = feats.baseline;
 		textLine->bodyTop = feats.topline;
 
+#ifdef _DEBUG
+		int shearedW = shearedImg.getWidth();
+		int shearedH = shearedImg.getHeight();
+		int unshearedW = unsheared.getWidth();
+		int unshearedH = unsheared.getHeight();
+
+#endif
+
 		if(sequenceToMatch->Length != overrideEnds->Length)
 			throw gcnew ArgumentException("overrideEnds must be equally long as sequenceToMatch");
 		vector<short> sequenceVector;

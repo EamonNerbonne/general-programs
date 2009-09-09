@@ -5,6 +5,7 @@ using System.Xml;
 using System.Xml.Linq;
 using System;
 using System.Collections.Generic;
+using System.Windows;
 
 namespace HwrDataModel
 {
@@ -35,20 +36,61 @@ namespace HwrDataModel
 				);
 		}
 
+		public struct WordPair
+		{
+			public Word MyWord, Other;
+		}
 
-		public void SetFromTrainingExample(WordsImage handChecked) {
+		public IEnumerable<WordPair> MatchWordPairs(WordsImage other) {
+			if (other == null)
+				return Enumerable.Empty<WordPair>();
+			return
+				from line in textlines
+				let otherLines = other.textlines.Where(trainline => trainline.ContainsPoint(line.CenterPoint) && line.ContainsPoint(trainline.CenterPoint)).ToArray()
+				where otherLines.Length == 1 //TODO: add error for multiple matching lines.
+				let otherLine = otherLines[0]
+				let otherWordsByText = otherLine.words.ToLookup(word => word.text)
+				let myWordsByText = line.words.ToLookup(word => word.text)
+				from otherWords in otherWordsByText
+				let myWords = myWordsByText[otherWords.Key]
+				where otherWords.Count() == myWords.Count()
+				from pair in otherWords.Zip(myWords, (otherW, myW) => new WordPair { Other = otherW, MyWord = myW })
+				select pair;
+		}
+
+		public Word FindWord(Point point) {
+			return (
+				from line in textlines
+				where line.ContainsPoint(point)
+				let lineMidpoint = line.bodyBot > 0 ? line.top + 0.5 * (line.bodyBot + line.bodyTop) : 0.5 * (line.top + line.bottom)
+				orderby Math.Abs(point.Y - lineMidpoint)
+				let correctedX = point.X + line.XOffsetForYOffset(line.top - point.Y)
+				from word in line.words
+				where word.left <= correctedX && correctedX < word.right
+				orderby Math.Abs(correctedX - 0.5 * (word.left + word.right))
+				select word
+				).FirstOrDefault();
+		}
+
+
+		public void SetFromManualExample(WordsImage handChecked) {
 			if (handChecked == null)
 				return;
-			var trainLines = handChecked.textlines.ToDictionary(line => line.no);
 
 			foreach (TextLine line in textlines) {
-				if (!trainLines.ContainsKey(line.no))
+				var trainLines = handChecked.textlines.Where(trainline => trainline.ContainsPoint(line.CenterPoint) && line.ContainsPoint(trainline.CenterPoint)).ToArray();
+				if (trainLines.Length == 0)
 					continue;
-				TextLine trainLine = trainLines[line.no];
-				if (!line.ContainsPoint(trainLine.CenterPoint)) {
-					Console.WriteLine("text/train lines don't match! Page:{0}\n--annot_line={1}\n--train_line={2}", this.pageNum, line.FullText, trainLine.FullText);
+				else if (trainLines.Length > 1) {
+					Console.WriteLine("\nMultiple Options for line @ {1}: {0}", line.FullText, line.CenterPoint);
+					foreach (var option in trainLines)
+						Console.WriteLine("--({1}):  {0}", option.FullText, option.CenterPoint);
+					Console.WriteLine();
 					continue;
 				}
+
+				var trainLine = trainLines[0];
+
 
 				var trainWordsByText = trainLine.words.ToLookup(word => word.text);
 				var myWordsByText = line.words.ToLookup(word => word.text);
@@ -70,8 +112,59 @@ namespace HwrDataModel
 					myWord.left = trainWord.left + xShift;
 					myWord.right = trainWord.right + xShift;
 					myWord.leftStat = myWord.rightStat = Word.TrackStatus.Manual;
+					if (myWord.left < line.left) {
+						Console.WriteLine("X-underflow: word at [{0}, {1}) '{2}'\n in line  [{3}, {4}) '{5}'", myWord.left, myWord.right, myWord.text,
+							line.left, line.right, line.FullText
+							);
+						line.left = myWord.left;
+					}
+					if (myWord.right > line.right) {
+						Console.WriteLine("X-overflow: word at [{0}, {1}) '{2}'\n in line  [{3}, {4}) '{5}'", myWord.left, myWord.right, myWord.text,
+							line.left, line.right, line.FullText
+							);
+						line.right = myWord.right;
+					}
+				}
+				//unfortunately some training samples violate my assumption that words are non-overlapping.
+				double minX = 0;
+				foreach (Word word in line.words) {
+					if (word.leftStat == Word.TrackStatus.Manual || word.leftStat == Word.TrackStatus.Calculated) {
+						if (word.left < minX)
+							word.leftStat = Word.TrackStatus.Calculated; //don't regard as absolute truth.
+						else
+							minX = word.left;
+					}
+
+					if (word.rightStat == Word.TrackStatus.Manual || word.rightStat == Word.TrackStatus.Calculated) {
+						if (word.right < minX)
+							word.rightStat = Word.TrackStatus.Calculated;
+						else
+							minX = word.right;
+					}
+				}
+				double maxX = double.MaxValue;
+				foreach (Word word in line.words.Reverse()) {
+					if (word.rightStat == Word.TrackStatus.Manual || word.rightStat == Word.TrackStatus.Calculated) {
+						if (word.right > maxX)
+							word.rightStat = Word.TrackStatus.Calculated;
+						else
+							maxX = word.right;
+					}
+
+					if (word.leftStat == Word.TrackStatus.Manual || word.leftStat == Word.TrackStatus.Calculated) {
+						if (word.left > maxX)
+							word.leftStat = Word.TrackStatus.Calculated; //don't regard as absolute truth.
+						else
+							maxX = word.left;
+					}
+
+
 				}
 			}
+		}
+
+		public void MarkIfManual(WordsImage handChecked) {
+			throw new NotImplementedException();
 		}
 	}
 }

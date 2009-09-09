@@ -20,6 +20,7 @@ namespace HwrSplitter.Gui
     public partial class MainWindow : Window {
         MainManager manager;
         public MainWindow() {
+			this.WindowState = WindowState.Maximized;
             InitializeComponent();
 			
             zoomRect.ToZoom = imgViewbox.ImageCanvas;
@@ -34,7 +35,15 @@ namespace HwrSplitter.Gui
         public WordDetail WordDetail { get { return wordDetail; } }
 
         private void Window_Loaded(object sender, RoutedEventArgs e) {
-            
+//			this.WindowState = WindowState.Maximized;
         }
+
+		private void pauseBox_Checked(object sender, RoutedEventArgs e) {
+			manager.Paused = true;
+		}
+
+		private void pauseBox_Unchecked(object sender, RoutedEventArgs e) {
+			manager.Paused = false;
+		}
     }
 }

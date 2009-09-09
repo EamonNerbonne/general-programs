@@ -25,26 +25,25 @@ namespace HwrSplitter.Gui
 		}
 
 		void wordSelector_WordClicked(int wordIndex, string word) {
-			WordDisplay(currentTextLine, wordIndex);
+			WordDisplay(currentTextLine.words[wordIndex]);
 		}
 
-		public void WordDisplay(TextLine textline, int wordIndex) {
-			currentTextLine = textline;
-			Word word = textline.words[wordIndex];
-			wordDetail.DisplayLine(man.optimizer, man.PageImage, textline, word);
+		public void WordDisplay(Word word) {
+			currentTextLine = word.line;
+			wordDetail.DisplayLine(man.optimizer, man.PageImage, currentTextLine, word);
 
-			wordSelector.WireUpTextBlock(textline.words.Select(w => w.text).ToArray());
-			wordSelector.SelectedIndex = wordIndex;
+			wordSelector.WireUpTextBlock(currentTextLine.words.Select(w => w.text).ToArray());
+			wordSelector.SelectedIndex = Enumerable.Range(0,currentTextLine.words.Length).Where(i=>currentTextLine.words[i]== word).Single();
 
-			wordDetail.wordContent.Content = DescribeLine(textline, word);
+			wordDetail.wordContent.Content = DescribeLine(currentTextLine, word);
 
 			wordDetail.imgRect = new Rect(
-				textline.left + Math.Min(0, textline.BottomXOffset), //x
-				textline.top, //y
-				textline.right - textline.left + Math.Abs(textline.BottomXOffset),
-				textline.bottom - textline.top);
+				currentTextLine.left + Math.Min(0, currentTextLine.BottomXOffset), //x
+				currentTextLine.top, //y
+				currentTextLine.right - currentTextLine.left + Math.Abs(currentTextLine.BottomXOffset),
+				currentTextLine.bottom - currentTextLine.top);
 			wordDetail.redisplay();
-			wordDetail.displayFeatures(textline);
+			wordDetail.displayFeatures(currentTextLine);
 		}
 
 		private string DescribeLine(TextLine textline, Word word) {
@@ -53,7 +52,5 @@ namespace HwrSplitter.Gui
 			sb.AppendFormat("Word: [{0:f2},{1:f2}), length={2:f2}, est={3:f2} ~ {4:f2}\n", word.left, word.right, word.right - word.left, word.symbolBasedLength.Mean, Math.Sqrt(word.symbolBasedLength.Variance));
 			return sb.ToString();
 		}
-
-
 	}
 }

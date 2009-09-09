@@ -24,8 +24,13 @@ namespace HwrLibCliWrapper {
 		using std::min;
 		using std::max;
 		PamImage<BWPixel> pi = StructToPamImage(block);
-		//PamImage<double> featImg( featuresImage(pi,(float)line->shear));
+#if 0
+		PamImage<double> featImg( featuresImage(pi,(float)line->shear));//TODO: if this is reenabled, update TextLineCostOptimizer: this currently assumes it's the same y-resolution as the actual image.
+#else
 		PamImage<BWPixel>  featImg(processAndUnshear(pi,45.0f,line->bodyTop,line->bodyBot));
+#endif
+
+
 		topOffRef = block.Width - featImg.getWidth();
 		ImageStruct<float> featImgScaled(featImg.getWidth(),featImg.getHeight());
 		for(int y=0;y<featImg.getHeight();y++) {

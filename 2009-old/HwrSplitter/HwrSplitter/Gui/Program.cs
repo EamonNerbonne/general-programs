@@ -96,7 +96,7 @@ namespace HwrSplitter.Gui
 
 					//Log("Chose page:" + int.Parse(possiblePage));
 
-					manager.SetImage(new HwrPageImage(imageFileInfo));
+					manager.PageImage = new HwrPageImage(imageFileInfo);
 
 
 					//            LoadWords();
@@ -114,19 +114,23 @@ namespace HwrSplitter.Gui
 						}
 					} catch (Exception e) { Console.WriteLine(e.ToString()); }//if this fails, we don't use the manually entered xml.
 
-					manager.optimizer.LocateLineBodies(manager.currentPage, manager.words);
+					manager.optimizer.LocateLineBodies(manager.PageImage, manager.words);
 
-					manager.words.SetFromTrainingExample(handChecked);
+					manager.words.SetFromManualExample(handChecked);
 
 					manager.ImageAnnotater.ProcessLines(manager.words.textlines);
 
-					manager.optimizer.ImproveGuess(manager.currentPage, manager.words, line => {
+					manager.optimizer.ImproveGuess(manager.PageImage, manager.words, line => {
 						manager.ImageAnnotater.ProcessLine(line);
 					});
+
+					manager.words.MarkIfManual(handChecked);
+
 					//mainWindow.Dispatcher.Invoke((Action)mainWindow.Close);
 					using (Stream stream = HwrResources.WordsGuessDir.GetRelativeFile("NL_HaNa_H2_7823_" + possiblePage + ".wordsguess").OpenWrite())
 					using (TextWriter writer = new StreamWriter(stream))
 						writer.Write(manager.words.AsXml().ToString());
+					manager.WaitWhilePaused();
 				}
 
 			}

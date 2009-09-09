@@ -6,20 +6,22 @@
     Title="MainWindow" Height="1000" Width="1200" Loaded="Window_Loaded">
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="10*" />
-            <RowDefinition Height="40*" />
-        </Grid.RowDefinitions>
+            <RowDefinition Height="Auto" MinHeight="136" />
+            <RowDefinition Height="184*" />
+            <RowDefinition Height="600*" />
+			<RowDefinition Height="Auto" />
+		</Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="130*" />
             <ColumnDefinition Width="148*" />
         </Grid.ColumnDefinitions>
         <emn:WordDetail x:Name="wordDetail" Grid.Column="1" />
-        <emn:ImageAnnotViewbox x:Name="imgViewbox" Grid.RowSpan="3" />
+        <emn:ImageAnnotViewbox x:Name="imgViewbox" Grid.RowSpan="4" />
         <emn:ZoomRect x:Name="zoomRect" Grid.Column="1" Grid.Row="1" />
-        <emnExt:LogControl x:Name="logControl" Grid.Column="1" Grid.Row="2" ClaimStandardError="True" ClaimStandardOut="True"/>
-		<GridSplitter Grid.Column="1" Grid.Row="2" VerticalAlignment="Top" HorizontalAlignment="Stretch" Background="Yellow" Height="3"/>
+        <emnExt:LogControl x:Name="logControl" Grid.Column="1" Grid.Row="2" ClaimStandardError="True" ClaimStandardOut="True" Margin="0,0,0,0"  />
+		<GridSplitter Grid.Column="1" Grid.Row="2" VerticalAlignment="Top" Background="Yellow" Height="3" Margin="0,0.007,0,0" />
 		<GridSplitter Grid.Column="1" Grid.Row="1" VerticalAlignment="Top" HorizontalAlignment="Stretch" Background="Yellow" Height="3"/>
-		<GridSplitter Grid.Column="0" Grid.RowSpan="3" VerticalAlignment="Stretch" HorizontalAlignment="Right" Background="Yellow" Width="3"/>
+		<GridSplitter Grid.RowSpan="4" HorizontalAlignment="Right" Background="Yellow" Width="3"/>
+		<CheckBox Grid.Column="1" Grid.Row="3" HorizontalAlignment="Left" Margin="6,6,0,6" Name="pauseBox" Checked="pauseBox_Checked" Unchecked="pauseBox_Unchecked">Pause on this Page</CheckBox>
 	</Grid>
 </Window>

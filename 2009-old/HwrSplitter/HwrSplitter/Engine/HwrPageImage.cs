@@ -139,11 +139,11 @@ namespace HwrSplitter.Engine
 		public ImageStruct<sbyte> Image { get { return image; } }
 
 		public double[] XProjectionSmart { get; set; }
-		public double[] XProjectionRaw { get; set; }
+		//public double[] XProjectionRaw { get; set; }
 
 		public void ComputeXProjection(int x0, int x1) {
 			double[] xProjectionSmart = new double[Height];
-			double[] xProjectionRaw = new double[Height];
+			//double[] xProjectionRaw = new double[Height];
 			for (int y = 0; y < Height; y++) {
 				int sum = 0;
 				int sumRaw = 0;
@@ -163,11 +163,10 @@ namespace HwrSplitter.Engine
 					if (image[x, y] != 0)
 						sumRaw++;
 				}
-				xProjectionSmart[y] = (sum + sumRaw) / 2 / (double)(x1 - x0);
-				xProjectionRaw[y] = sumRaw / (double)(x1 - x0);
+				xProjectionSmart[y] = (sum*2 + sumRaw) / 3.0 / (double)(x1 - x0);
+				//xProjectionRaw[y] = sumRaw / (double)(x1 - x0);
 			}
 			XProjectionSmart = xProjectionSmart;
-			XProjectionRaw = xProjectionRaw;
 		}
 
 	}

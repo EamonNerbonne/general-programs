@@ -20,8 +20,8 @@ namespace HwrDataModel
 		public int bodyTop, bodyTopAlt;
 		public int bodyBot, bodyBotAlt;
 
-		public double OuterExtremeLeft { get { return left - 10; } }
-		public double OuterExtremeRight { get { return right - BottomXOffset + 30; } } //hacky
+		public double OuterExtremeLeft { get { return left + BottomXOffset - 10; } }
+		public double OuterExtremeRight { get { return right + 30; } } //hacky
 
 
 		public double ComputedLikelihood = double.NaN;
@@ -32,7 +32,7 @@ namespace HwrDataModel
 			this.no = no;
 			this.words = text
 				.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)
-				.Select((t, i) => new Word(t, i + 1, top, bottom, 0.0, 0.0, shear))
+				.Select((t, i) => new Word(this,t, i + 1, top, bottom, 0.0, 0.0, shear))
 			.ToArray();
 			GuessWordsInString(symbolWidths);
 		}
@@ -76,7 +76,7 @@ namespace HwrDataModel
 		public TextLine(XElement fromXml)
 			: base(fromXml) {
 			no = (int)fromXml.Attribute("no");
-			words = fromXml.Elements("Word").Select(xmlWord => new Word(xmlWord)).ToArray();
+			words = fromXml.Elements("Word").Select(xmlWord => new Word(this, xmlWord)).ToArray();
 		}
 
 		public XNode AsXml() {

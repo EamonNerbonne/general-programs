@@ -27,6 +27,8 @@ bool removeComponent(const ImageComponent& c, int width, int height,int bodyTop,
         return true;
     } else if (c.max_y == height - 1 && c.min_y >= bodyBot) {
         return true;
+    } else if (c.min_y >= bodyBot && c.size < 200) { //segments under the body can be discarded - these aren't dots.
+        return true;
     } else if (c.min_y == 0 && c.max_y < bodyTop) {
         return true;
     } else if (c.min_y == 0 && c.max_x == width - 1 && c.min_x > width - 100) {//bad for whole lines?
