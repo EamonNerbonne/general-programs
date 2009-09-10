@@ -33,6 +33,7 @@ namespace LastFMspider
 				return db ?? (db = new SimpleSongDB(ConfigFile, null));
 			}
 		}
+
 		public SongDataLookups Lookup {
 			get {
 				//  lock (sync)
