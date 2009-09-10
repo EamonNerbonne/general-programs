@@ -32,5 +32,8 @@ namespace EmnExtensions.Algorithms
 			// Step 7
 			return d[n, m];
 		}
+		public static double LevenshteinDistanceScaled(this string s, string t) {
+			return LevenshteinDistance(s, t) / (double)Math.Max(1,Math.Max(s.Length, t.Length));
+		}
 	}
 }
