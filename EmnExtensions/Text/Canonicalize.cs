@@ -69,6 +69,7 @@ namespace EmnExtensions.Text
 			return new string(retval, 0, pos);
 		}
 
+		public static string CanonicalizeBasic(this string input) {return Basic(input);	}
 
 		[System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Maintainability", "CA1502:AvoidExcessiveComplexity")]
 		public static string Basic(string input) {
