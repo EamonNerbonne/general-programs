@@ -18,10 +18,10 @@ namespace EmnExtensions.Collections
 		}
 		public Heap() : this(null) { }
 		public void Add(T elem) {
-			int newIndex = backingCount;
 			if (backingCount == backingStore.Length)
 				Array.Resize(ref backingStore, backingStore.Length * 2);
-			backingStore[backingCount++] = elem;
+			int newIndex = backingCount++;
+			//backingStore[newIndex] = elem;
 			Bubble(newIndex, elem);
 		}
 
@@ -51,10 +51,29 @@ namespace EmnExtensions.Collections
 
 			return true;
 		}
+
+		public T RemoveTop() {
+			T retval;
+			if (RemoveTop(out retval)) {
+				return retval;
+			} else {
+				throw new ArgumentOutOfRangeException("Can't remove top; sequence empty");
+			}
+		}
+
 		public void Delete(int indexOfItem) {
 			T toSink = backingStore[--backingCount];
-			if (backingCount > indexOfItem)
+			//we must delete from the end of the array to avoid holes.
+			//but we actually want to delete @ indexOfItem; so we'll insert this last element @ indexOfItem,
+			//and if it's heavier than the original item there, we need to sink it towards the leaves
+			//but if it's lighter, we need to bubble as usual.
+			int sinkCompToDeleted = toSink.CompareTo(backingStore[indexOfItem]);
+
+			if (indexOfItem == backingCount) { } //we deleted the last item.
+			else if (sinkCompToDeleted >= 0) // sink item is heavier than deleted item, need to sink it.
 				Sink(indexOfItem, toSink);
+			else if (sinkCompToDeleted < 0) // last item is lighter than deleted item, need to bubble it.
+				Bubble(indexOfItem, toSink);
 		}
 
 		private void Sink(int p, T elem) {
