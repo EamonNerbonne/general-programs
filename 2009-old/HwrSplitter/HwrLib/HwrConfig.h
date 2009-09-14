@@ -6,7 +6,7 @@ typedef double Float;
 inline static Float sqr(Float x) { return x*x; }
 
 #define LOGLEVEL 1
-#define LENGTH_WEIGHT_ON_TERMINATORS 0
+#define LENGTH_WEIGHT_ON_TERMINATORS 1
 
 #define SUB_STATE_COUNT 4 //more than one looks counter-productive - at least initially, hard to say about later
 #define SUB_PHASE_COUNT 3

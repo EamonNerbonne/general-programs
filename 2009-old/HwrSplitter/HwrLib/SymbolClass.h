@@ -24,10 +24,10 @@ public:
 			phase[i].ScaleWeightBy(scaleFactor);
 	}
 
-
 	double LogLikelihoodLength(double length) const {
 		return -0.5*sqr(length - mLength)/sLength*wLength; //we can ignore the DC offset - after all this is constant for any length.
 	}
+
 	void LearnLength(Float length, Float weight) {
 		Float newWeight = wLength + weight;
 		sLength = sLength + sqr(length - mLength)*wLength*weight/newWeight;

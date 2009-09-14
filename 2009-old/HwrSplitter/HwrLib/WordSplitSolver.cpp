@@ -50,6 +50,9 @@ WordSplitSolver::WordSplitSolver(AllSymbolClasses & syms, ImageFeatures const & 
 	//compute the cumulative (non-log) likelihood of symbol u starting at or before x
 	init_pC_x_u();
 
+	//compute the cumulative (non-log) likelihood of symbol u, subphase i starting at or before x
+	init_pCi_x_u_i();
+
 	//then compute the probability of a particular symbol at a particular pixel.
 	init_P_x_u();
 
@@ -121,31 +124,11 @@ void WordSplitSolver::Learn(double blurSymbols, AllSymbolClasses& learningTarget
 	for(int x=0;x<(int)imageLen();x++) {
 		FeatureVector const & fv = imageFeatures.featAt(x);
 		for(int u=0;u<(int)strLen();u++) {
-			double maxLL(-numeric_limits<double>::max());
-			int maxI=0;
-			for(int i=0;i<SUB_SYMBOL_COUNT;i++) {
-				if(maxLL < op(x,u,i)) {
-					maxLL = op(x,u,i);
-					maxI = i;
-				}
-			}
-
-			//we know the _total_ probability that u is observerd at x, and now we presume that this total probability
-			//can be proportionally divided across its state according to their likelihood
-
 			int c=targetString[u];
-			for(int i=0;i<SUB_SYMBOL_COUNT;i++) 
-				syms[c].state[i].CombineWith(fv, P(x,u) * exp( op(x,u,i) - maxLL + (i==maxI?0:-1)  )  );
+			for(int i=0;i<SUB_PHASE_COUNT;i++) 
+				syms[c].phase[i].CombineInto(fv, Pi(x,u,i), learningTarget[c].phase[i]);
 		}
 	}
-	for(int u=0;u<(int)strLen();u++) {
-		sym(u).RecomputeDCoffset();
-#if LOGLEVEL >= 10 
-		cout<<"sym["<<targetString[u]<<"]: w="<<sym(u).state[0].getWeightSum() <<"; DC="<<sym(u).state[0].getDCoffset()<<"\n"; 
-#endif
-	}
-
-
 
 #if LOGLEVEL >= 9 
 	cout<<"SymbolLearning: "<<overallTimer.elapsed()<<endl;
@@ -157,81 +140,62 @@ void WordSplitSolver::Learn(double blurSymbols, AllSymbolClasses& learningTarget
 #if LENGTH_WEIGHT_ON_TERMINATORS
 	vector<double> lengthWeight(imageLen1);
 	{
-		SymbolClass & sc = sym(0);
+		SymbolClass & sc = learningTarget[targetString[0]];
+		SymbolClass const & scOrig =  syms[targetString[0]];
 		for(unsigned x1=0;x1<imageLen1;x1++) {
-			sc.LearnLength(Float(x1), p(0,0) * p(x1,0+1) * exp(sc.LogLikelihoodLength(x1-0)) );
+			sc.LearnLength(Float(x1), p(0,0) * p(x1,0+1) * exp(scOrig.LogLikelihoodLength(x1-0)) );
 		}
     }
 #endif
 
 	for(int u=1;u <(int)strLen()-1; u++) {
-		SymbolClass & sc = sym(u);
+		SymbolClass & sc =  learningTarget[targetString[u]];
+		SymbolClass const & scOrig =  syms[targetString[u]];
 
 		for(unsigned i=0;i<imageLen1;i++) {
-			double lenFactor= exp( sc.LogLikelihoodLength(i));
+			double lenFactor= exp( scOrig.LogLikelihoodLength(i));
 			double sum =0.0;
 			for(unsigned x0=0;x0<imageLen1-i;x0++) 
 				sum+= p(x0,u) * p(x0+i,u+1);
 			sc.LearnLength(Float(i),sum*lenFactor);
-			
 		}
 	}
 #if LENGTH_WEIGHT_ON_TERMINATORS
 	{
 		int U = strLen()-1;
-		SymbolClass & sc = sym(U);
-		for(unsigned i=0;i<imageLen1;i++)
-			lengthWeight[i]=0.0;
-
+		SymbolClass & sc =  learningTarget[targetString[U]];
+		SymbolClass const & scOrig =  syms[targetString[U]];
 		for(unsigned x0=0;x0<imageLen1;x0++) 
-			lengthWeight[imageLen()-x0] += p(x0,U) * exp(sc.LogLikelihoodLength(imageLen()-x0));
-
-		for(unsigned i=0;i<imageLen1;i++)
-			sc.LearnLength(Float(i),lengthWeight[i]);
+			sc.LearnLength(Float(imageLen()-x0), p(x0,U) * exp(scOrig.LogLikelihoodLength(imageLen()-x0) ));
 	}
 #endif
 
 	if(blurSymbols != 0.0 ) {
 		FeatureDistribution overall;
-		for(int i=0;i<syms.size();i++) {
-			for(int j=0;j<SUB_SYMBOL_COUNT;j++) {
-				overall.CombineWith(syms[i].state[j]);
-			}
-		}
+		for(int i=0;i<syms.size();i++) 
+			for(int j=0;j<SUB_PHASE_COUNT;j++) 
+				for(int k=0;k<SUB_STATE_COUNT;k++)
+					overall.CombineWithDistribution(syms[i].phase[j].state[k]);
 
-		overall.ScaleWeightBy(blurSymbols/syms.size()*SUB_SYMBOL_COUNT);
-		for(int i=0;i<syms.size();i++) {
-			for(int j=0;j<SUB_SYMBOL_COUNT;j++) {
-				if(syms[i].originalChar == 32 ||syms[i].originalChar == 0 ||syms[i].originalChar == 10) { //space,begin, or end
-					syms[i].state[j].meanX[FEATURE_DENSITY] *= 1.0-blurSymbols;
-					syms[i].state[j].meanX[FEATURE_DENSITY_MID] *= 1.0-blurSymbols;
-					syms[i].state[j].meanX[FEATURE_DENSITY_HIGH_NEAR] *= 1.0-blurSymbols;
-					syms[i].state[j].meanX[FEATURE_DENSITY_HIGH_NEAR_FIX] *= 1.0-blurSymbols;
-					syms[i].state[j].meanX[FEATURE_DENSITY_LOW_NEAR] *= 1.0-blurSymbols;
-					syms[i].state[j].meanX[FEATURE_DENSITY_MID_FIX] *= 1.0-blurSymbols;
+		overall.ScaleWeightBy(blurSymbols/(syms.size()*SUB_PHASE_COUNT*SUB_STATE_COUNT));
+
+		for(int i=0;i<syms.size();i++) 
+			for(int j=0;j<SUB_PHASE_COUNT;j++) 
+				for(int k=0;k<SUB_STATE_COUNT;k++) {
+					if(syms[i].originalChar == 32 ||syms[i].originalChar == 0 ||syms[i].originalChar == 10) { //space,begin, or end
+						learningTarget[i].phase[j].state[k].meanX[FEATURE_DENSITY] *= 1.0-blurSymbols;
+						learningTarget[i].phase[j].state[k].meanX[FEATURE_DENSITY_MID] *= 1.0-blurSymbols;
+						learningTarget[i].phase[j].state[k].meanX[FEATURE_DENSITY_HIGH_NEAR] *= 1.0-blurSymbols;
+						learningTarget[i].phase[j].state[k].meanX[FEATURE_DENSITY_HIGH_NEAR_FIX] *= 1.0-blurSymbols;
+						learningTarget[i].phase[j].state[k].meanX[FEATURE_DENSITY_LOW_NEAR] *= 1.0-blurSymbols;
+						learningTarget[i].phase[j].state[k].meanX[FEATURE_DENSITY_MID_FIX] *= 1.0-blurSymbols;
+					}
+					learningTarget[i].phase[j].state[k].CombineWithDistribution(overall);
+					learningTarget[i].phase[j].state[k].ScaleWeightBy(1.0/(1.0+blurSymbols));
 				}
 
-				syms[i].state[j].CombineWith(overall);
-				syms[i].state[j].ScaleWeightBy(1.0/(1.0+blurSymbols));
-				syms[i].state[j].RecomputeDCfactor();
-			}
-		}
-	}
-	for(int i=0;i<syms.size();i++) {
-		syms[i].ScaleWeightBy(0.9999307);//halve over 10000 iterations
-	}
-	syms.RecomputeFeatureWeights(blurSymbols);
+	}//endif blursymbols>0
 
-
-#if LOGLEVEL >=10
-	for(int ui=0;ui<usedSymbols.size();ui++) {
-		SymbolClass const & sc = syms[usedSymbols[ui]];
-		cout << "sc("<<usedSymbols[ui]<<").len= "<<sc.meanLength() <<" +/- "<<sqrt(sc.varLength())<<";  ["<<sc.weightLength() <<"]";
-		for(int ci =0; ci<symToStrIdx[usedSymbols[ui]].size(); ci++)
-			cout<< symToStrIdx[usedSymbols[ui]][ci] << ";";
-		cout <<"\n";
-	}
-#endif
 #if LOGLEVEL >=9
 	cout<<"LengthLearning: "<<overallTimer.elapsed()<<endl;
 #endif

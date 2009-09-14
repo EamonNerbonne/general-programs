@@ -17,7 +17,7 @@ struct AllSymbolClasses {
 	{}
 
 	SymbolClass & operator[](short symbol) {return sym[symbol];}
-	SymbolClass const & operator[](short symbol)const {return sym[symbol];}
+	SymbolClass const & operator[](short symbol) const {return sym[symbol];}
 	SymbolClass & getSymbol(short symbol) {return sym[symbol];}
 	SymbolClass const & getSymbol(short symbol) const {return sym[symbol];}
 
@@ -53,14 +53,14 @@ class WordSplitSolver
 {
 	//========================
 	//image + string details:  initialized in contructor:
-	AllSymbolClasses & syms; //details of the prob. distribution for the features of the various symbols.
+	AllSymbolClasses const & syms; //details of the prob. distribution for the features of the various symbols.
 	ImageFeatures const & imageFeatures;//details of the features of the image at various x-coordinates.
 	const unsigned imageLen1;//number of possible starting points for a symbol: imageLen()+1 since a symbol may have zero length and thus start after the last pixel ends.
 	std::vector<short> const & targetString;
 	std::vector<int> const & overrideEnds;
 	inline unsigned imageLen() { return imageFeatures.getImageWidth(); }
 	inline short strLen() { return (short) targetString.size(); }
-	inline SymbolClass & sym(short u) {return syms[targetString[u]];}
+	inline SymbolClass const & sym(short u) {return syms[targetString[u]];}
 
 	//lookuptable from char value to vector of those string indexes containing that value.
 	boost::scoped_array< vector<short> > symToStrIdx; //initialized in constuctor.
@@ -91,7 +91,7 @@ class WordSplitSolver
 			FeatureVector const & fv = imageFeatures.featAt(x);
 			for(short ci=0;ci<(short)usedSymbols.size();ci++){ //for all used symbols
 				short c = usedSymbols[ci];
-				SymbolClass & sc = this->syms[c];
+				SymbolClass const & sc = this->syms[c];
 				for(short i=0;i<SUB_PHASE_COUNT;i++) {//for each symbol-phase
 					double logProbDensity = sc.phase[i].LogProbDensityOf(fv)*featureRelevanceFactor;//TODO: potential scaling factor initially to reduce impact?
 					for(unsigned ui=0;ui<symToStrIdx[c].size();ui++) { //for each string position of a used symbol...
@@ -301,30 +301,47 @@ class WordSplitSolver
 
 	//========================
 	//the likelihood (not log!) of symbol u phase i starting before (or just at) x
-	std::vector<double> pC_x_u_i;
-	inline double & pCi(unsigned x, short u,short i) { return pC_x_u_i[u*imageLen1*SUB_PHASE_COUNT + i*imageLen1+ x]; }
-	void init_pC_x_u_i() {
+	std::vector<double> pCi_x_u_i;
+	inline double & pCi(unsigned x, short u,short i) { return pCi_x_u_i[u*imageLen1*SUB_PHASE_COUNT + i*imageLen1+ x]; }
+	void init_pCi_x_u_i() {
 		using namespace std;
-		pC_x_u_i.resize(imageLen1*SUB_PHASE_COUNT*strLen());
+		pCi_x_u_i.resize(imageLen1*SUB_PHASE_COUNT*strLen());
 		for(short u=0;u<strLen();u++) {
-			for(unsigned x=0;x<imageLen1;x++) {
-				double prob = pC(x,u);
-				//now we want to find the equivalently probable point for the next symbol:
-				//some kind of if; xFin == imageLen1 is just fine for u == U == strLen()-1
-				unsigned x0=x;
-				unsigned x1 = imageLen1;
-
-				while(x0<x1) { //TODO:finish this.
-					unsigned xMid = (x0+x1) / 2;
-					double pAtMid = pC(xMid,u+1);
-					if(pAtMid < prob) //need to look to the right
-						x0=xMid;
-					else 
-						x1 = xMid;
-				}
-
-				...
+			int xLastSet[SUB_PHASE_COUNT];
+			double xUpto[SUB_PHASE_COUNT];
+			for(int i=0;i<SUB_PHASE_COUNT;i++) {
+				xLastSet[i]=0;
+				xUpto[i]=0.0;
 			}
+			double lastProb = 0.0;
+			unsigned x1=0;
+			double x1p=0.0;
+			for(unsigned x0=0; x0<imageLen1; x0++) {
+				if(x1<x0) x1=x0;
+				
+				double prob = pC(x0, u);
+				if(u+1<strLen()) {
+					while(prob >= pC(x1, u+1) && x1 < imageLen1)
+						x1++;
+					x1p = x1==0? 0.0 : (double)x1 - (pC(x1, u+1) - prob) / (pC(x1, u+1) - pC(x1-1,u+1));
+					if(x1p>imageLen1 - 1) x1p = imageLen1 - 1;
+				} else
+					x1p = imageLen1 - 1;
+
+				for(int i=0;i<SUB_PHASE_COUNT;i++) {
+					double newPos = (x1p - x0)*i/double(SUB_PHASE_COUNT) + x0;
+					int xMaxSet =(int) (newPos+0.5);
+					for(int x=xLastSet[i];x <xMaxSet;x++) {
+						//linear interpolation so that pCi(xUpto[i],u,i) == lastProb and pCi(newPos,u,i) == prob
+						pCi(x,u,i) = (x - xUpto[i]) / (newPos - xUpto[i]) * (prob - lastProb) + lastProb;
+					}
+					xUpto[i] = newPos;
+					xLastSet[i] = xMaxSet;
+				}
+			}
+			for(int i=0;i<SUB_PHASE_COUNT;i++) 
+				for(int x=xLastSet[i];x<(int)imageLen1;x++)
+					pCi(x,u,i) = 1.0;
 		}
 	}
 
@@ -332,22 +349,47 @@ class WordSplitSolver
 	//========================
 	//the probability that pixel x is in symbol u. -- u in [ 0..strLen() ), x in [ 0..imageLen() )
 	std::vector<double> P_x_u;
-	inline double & P(unsigned x, short u) { return P_x_u[x*strLen() +  u]; }
+	inline double & P(unsigned x, short u) { return P_x_u[u*imageLen() + x]; }
+	std::vector<double> Pi_x_u_i;
+	inline double & Pi(unsigned x, short u,short i) { return P_x_u[u*imageLen()*SUB_PHASE_COUNT + i*imageLen()+ x]; }
 	void init_P_x_u() {
 		P_x_u.resize(imageLen()*strLen());
 
 		short U = strLen()-1;
-
+	
+		bool err=false;
 		for(unsigned x=0; x <imageLen(); x++) {
 			for(short u=0; u<U; u++) {
 				P(x,u) = pC(x,u) - pC(x,u+1); //should be positive.  Is it?
 				if(P(x,u)<0.0) {
-					std::cout<<"!";
+					err=true;
 					P(x,u) = 0.0;
 				}
 			}
 			P(x,U) = pC(x,U); //probability of pC(x, U+1) -- i.e. of the symbol after the last in this string having started already -- is zero.
 		}
+		if(err)
+			std::cout<<"!!";
+		err=false;
+
+		for(short u=0; u<strLen(); u++) {
+			for(short i=0;i<SUB_PHASE_COUNT;i++) {
+				short nextU = u+(i+1)/SUB_PHASE_COUNT;
+				short nextI = (i+1)%SUB_PHASE_COUNT;
+				for(unsigned x=0; x <imageLen(); x++) {
+					if(nextU<strLen())
+						Pi(x,u,i) = pCi(x,u,i) - pCi(x,nextU,nextI);
+					else 
+						Pi(x,u,i) = pCi(x,u,i); //probability of pCi(x, strLen(), ?) -- i.e. of the symbol after the last in this string having started already -- is zero.
+					if(Pi(x,u,i)<0.0) { //should be positive.  Is it?
+						err=true;
+						Pi(x,u,i) = 0.0;
+					}
+				}
+			}
+		}
+		if(err)
+			std::cout<<"!";
 	}
 
 
