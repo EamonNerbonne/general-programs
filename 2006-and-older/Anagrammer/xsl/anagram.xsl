@@ -5,7 +5,7 @@
       <head>
         <title>Anagrams!</title>
         <style type="text/css">
-          @import '../css/main.css';
+          @import 'css/main.css';
         </style>
       </head>
       <body onload="document.getElementById('startHere').focus();">
@@ -14,7 +14,7 @@
             <div class="content">
               <form method="get">
                 <p >
-                  This web page finds anagrams! The dictionary contains <xsl:value-of select="@dictsize" /> words. There may be <a href="anagrams.html">more dictionaries</a>.
+                  This web page finds anagrams! The dictionary contains <xsl:value-of select="@dictsize" /> words. There may be <a href=".">more dictionaries</a>.
                 </p>
                 <p>
                   You can search manually:<br/>

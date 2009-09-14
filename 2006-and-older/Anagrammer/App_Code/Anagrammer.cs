@@ -31,7 +31,7 @@ namespace DynWeb.Anagram {
 			XmlTextWriter outp = new XmlTextWriter(context.Response.Output);
 			context.Response.ContentType = "text/xml";
 			outp.WriteStartDocument();
-			outp.WriteProcessingInstruction("xml-stylesheet", "type=\"text/xsl\" href=\"../xsl/anagram.xsl\"");
+			outp.WriteProcessingInstruction("xml-stylesheet", "type=\"text/xsl\" href=\"xsl/anagram.xsl\"");
 			outp.WriteStartElement("matches");
 			string query = context.Request.QueryString["word"];
 			if (query != null) {
