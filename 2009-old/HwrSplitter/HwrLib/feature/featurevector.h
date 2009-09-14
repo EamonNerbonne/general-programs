@@ -195,7 +195,7 @@ enum FeatureTypes
 
 // ----------------------------------------------------------------------------- : Feature vectors
 
-typedef Float Feature;
+typedef double Feature;
 
 /// A vector of features. Each feature is a floating point number
 class FeatureVector {
@@ -235,8 +235,8 @@ class FeatureVector {
 			features[i] = ::pow(features[i], p);
 		}
 	}
-	inline Float dot (const FeatureVector& that) const {
-		Float sum = 0;
+	inline double dot (const FeatureVector& that) const {
+		double sum = 0;
 		for (size_t i = 0 ; i < size ; ++i) {
 			sum += features[i] * that[i];
 		}

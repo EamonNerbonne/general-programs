@@ -143,7 +143,7 @@ void WordSplitSolver::Learn(double blurSymbols, AllSymbolClasses& learningTarget
 		SymbolClass & sc = learningTarget[targetString[0]];
 		SymbolClass const & scOrig =  syms[targetString[0]];
 		for(unsigned x1=0;x1<imageLen1;x1++) {
-			sc.LearnLength(Float(x1), p(0,0) * p(x1,0+1) * exp(scOrig.LogLikelihoodLength(x1-0)) );
+			sc.LearnLength(double(x1), p(0,0) * p(x1,0+1) * exp(scOrig.LogLikelihoodLength(x1-0)) );
 		}
     }
 #endif
@@ -157,7 +157,7 @@ void WordSplitSolver::Learn(double blurSymbols, AllSymbolClasses& learningTarget
 			double sum =0.0;
 			for(unsigned x0=0;x0<imageLen1-i;x0++) 
 				sum+= p(x0,u) * p(x0+i,u+1);
-			sc.LearnLength(Float(i),sum*lenFactor);
+			sc.LearnLength(double(i),sum*lenFactor);
 		}
 	}
 #if LENGTH_WEIGHT_ON_TERMINATORS
@@ -166,7 +166,7 @@ void WordSplitSolver::Learn(double blurSymbols, AllSymbolClasses& learningTarget
 		SymbolClass & sc =  learningTarget[targetString[U]];
 		SymbolClass const & scOrig =  syms[targetString[U]];
 		for(unsigned x0=0;x0<imageLen1;x0++) 
-			sc.LearnLength(Float(imageLen()-x0), p(x0,U) * exp(scOrig.LogLikelihoodLength(imageLen()-x0) ));
+			sc.LearnLength(double(imageLen()-x0), p(x0,U) * exp(scOrig.LogLikelihoodLength(imageLen()-x0) ));
 	}
 #endif
 

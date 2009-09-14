@@ -32,9 +32,9 @@ public:
 
 	//explicit inline operator double() { return std::exp( exponent); }
 
-	explicit LogNumber(Float val) {
+	explicit LogNumber(double val) {
 		if(val==0.0)
-			exponent = -std::numeric_limits<Float>::max();
+			exponent = -std::numeric_limits<double>::max();
 		else
 			exponent = std::log(val);
 	}	
@@ -43,7 +43,7 @@ public:
 
 inline double ToDouble(LogNumber num) { return std::exp( num.exponent); }
 inline double ToDouble(double num) { return num; }
-//inline LogNumber FromExp(Float exponent) {return LogNumber::FromExp(exponent);}
-//inline double FromExp(Float exponent) {return exp(exponent);}
+//inline LogNumber FromExp(double exponent) {return LogNumber::FromExp(exponent);}
+//inline double FromExp(double exponent) {return exp(exponent);}
 
 inline LogNumber exp(LogNumber num,double power) { 	return LogNumber::FromExp(num.exponent*power);}

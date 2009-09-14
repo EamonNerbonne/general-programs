@@ -113,19 +113,10 @@ namespace HwrDataModel
 
 		public uint Code { get { return code.Value; } set { if (code.HasValue) throw new ApplicationException("code already set"); code = value; } }
 		public GaussianEstimate Length { get; set; }
-		public FeatureDistributionEstimate[] State { get; set; }
+		public FeatureDistributionEstimate[][] SubPhase { get; set; }
 		public SymbolClass() { }
 		public SymbolClass(char c, GaussianEstimate lengthEstimate) { this.Letter = c; this.Length = lengthEstimate; }
 		public SymbolClass(char c, uint code, GaussianEstimate lengthEstimate) { this.Letter = c; this.Code = code; this.Length = lengthEstimate; }
-
-		public IEnumerable<SymbolClass> Split(int intoCharPhases) {
-			if (!code.HasValue) throw new ApplicationException("Code not set");
-			for (int i = 0; i < intoCharPhases; i++)
-				yield return new SymbolClass(this.Letter,
-					Code * (uint)intoCharPhases + (uint)i,
-					GaussianEstimate.CreateWithVariance(Length.Mean / intoCharPhases, Length.Variance / intoCharPhases, Length.WeightSum));
-		}
-
 	}
 
 
@@ -141,7 +132,7 @@ namespace HwrDataModel
 		/// </summary>
 		/// <param name="file"></param>
 		/// <returns></returns>
-		public static SymbolClass[] Parse(FileInfo file, int charPhases) {
+		public static SymbolClass[] Parse(FileInfo file) {
 			//TODO: known limitation: culture-sensitive parsing.
 			Dictionary<char, SymbolClass> symbolsByChar;
 			using (var reader = file.OpenText())
@@ -168,10 +159,7 @@ namespace HwrDataModel
 			var symbolClasses = symbolsByChar.Values.OrderBy(c => c.Letter).ToArray();
 			for (int i = 0; i < symbolClasses.Length; i++)
 				symbolClasses[i].Code = (uint)i;
-			//OK, now we have the symbol classes for one char-phase.
-
-			var phaseSplitSymbols = symbolClasses.SelectMany(symbolClass => symbolClass.Split(charPhases)).ToArray();
-			return phaseSplitSymbols;
+			return symbolClasses;
 		}
 	}
 }

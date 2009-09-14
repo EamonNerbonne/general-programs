@@ -2,10 +2,10 @@
 #ifndef RAND_HELPER
 #define RAND_HELPER
 
-inline Float FloatRand() {
+inline double FloatRand() {
 	unsigned int val;
 	rand_s(&val);
-	return Float(val)/Float(UINT_MAX);
+	return double(val)/double(UINT_MAX);
 }
 
 #endif

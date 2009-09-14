@@ -20,7 +20,7 @@
 using namespace std;
 
 #ifdef _MSC_VER
-	const inline int finite(Float f) {
+	const inline int finite(double f) {
 		return _finite(f);
 	}
 #endif
@@ -63,10 +63,10 @@ int to_boundary_histo_bin(int size, double angle) {
 	int g = (int)floor(angle / (USE_HISTO_PI) * size + 0.5);
 	return (g + size) % size;
 }
-void to_boundary_histo_bin(int size, double angle, int& binA, int& binB, Float& rem) {
+void to_boundary_histo_bin(int size, double angle, int& binA, int& binB, double& rem) {
 	double scaled = angle / (USE_HISTO_PI) * size;
 	int g = (int)floor(scaled);
-	rem = (Float)(scaled - g);
+	rem = (double)(scaled - g);
 	binA = (g +     size) % size;
 	binB = (g + 1 + size) % size;
 }
@@ -128,8 +128,8 @@ void ImageFeatures::init(int winSizeDens,int winSizeAngle, int iter) {
 	CalcAltTopline(baseline, topline, altTop, altTopNear, altTopFar, altTopFarEnd);
 	
 	// Accumulate feature values : separate
-	Float weight  = 1.0f / topline;
-	Float weight2 = 2.0f / (topline * (1 + topline));
+	double weight  = 1.0f / topline;
+	double weight2 = 2.0f / (topline * (1 + topline));
 	for (int x = 0 ; x < image_width ; ++x) {
 		for (int y = 0 ; y < topline ; ++y) {
 			cumsums[AVG_HIGH     ][x] += pixelsForDensity.pix(x,y) * weight;
@@ -199,7 +199,7 @@ void ImageFeatures::init(int winSizeDens,int winSizeAngle, int iter) {
 	}
 	
 	// Accumulate feature values : downsampled
-	Float total = 1e-10, total_bgs = 1e-10;
+	double total = 1e-10, total_bgs = 1e-10;
 	for (int y = 0 ; y < image_height ; ++y) {
 		for (int x = 0 ; x < image_width ; ++x) {
 			total += pixelsForDownsample.pix(x,y);
@@ -260,11 +260,11 @@ void ImageFeatures::init(int winSizeDens,int winSizeAngle, int iter) {
 	}
 	// normalize angle types, avg. will be 1 over each column
 	for (int t = 0 ; t < 3 ; ++t) {
-		Float tot = 1;
+		double tot = 1;
 		for (int x = 0 ; x + 1 < image_width ; ++x) {
 			for (int a = 0 ; a < 4 ; ++a) tot += cumsums[ANGLE1+a+5*t][x];
 		}
-		Float factor = image_width / tot;
+		double factor = image_width / tot;
 		for (int x = 0 ; x + 1 < image_width ; ++x) {
 			for (int a = 0 ; a < 5 ; ++a) cumsums[ANGLE1+a+5*t][x] *= factor;
 		}
@@ -277,7 +277,7 @@ void ImageFeatures::init(int winSizeDens,int winSizeAngle, int iter) {
 	for (size_t i = 0 ; i < boundaries.size() ; ++i) {
 		b_len += boundaries[i].size();
 	}
-	weight = (Float)image_width / b_len; // avg over columns will be 1
+	weight = (double)image_width / b_len; // avg over columns will be 1
 	for (size_t i = 0 ; i < boundaries.size() ; ++i) {
 		Boundary& b = boundaries[i];
 		for (int j = 0 ; j < b.size() ; ++j) {
@@ -294,7 +294,7 @@ void ImageFeatures::init(int winSizeDens,int winSizeAngle, int iter) {
 			#if USE_HISTO_INTERPOLATION
 				// interpolation over bins
 				int bin1a, bin1b, bin2a, bin2b;
-				Float rem1, rem2;
+				double rem1, rem2;
 				to_boundary_histo_bin(BOUNDARY_HISTO_RESOLUTION_BASE,      a1, bin1a, bin1b, rem1);
 				to_boundary_histo_bin(BOUNDARY_HISTO_RESOLUTION_DIFF_OVER, a2, bin2a, bin2b, rem2);
 				clipbin(bin2a);
@@ -344,7 +344,7 @@ void ImageFeatures::init(int winSizeDens,int winSizeAngle, int iter) {
 		SegmentedImage seg_image( image );
 		FOR_EACH(c, seg_image.components) {
 			if (c.size < MAX_DOT_SIZE && c.max_y < (topline + baseline)/2) {
-				Float dot_size= (Float)1.5 - max((Float)0.0, (Float)c.size / MAX_DOT_SIZE - (Float)0.5);
+				double dot_size= (double)1.5 - max((double)0.0, (double)c.size / MAX_DOT_SIZE - (double)0.5);
 				cumsums[DOTCOUNT][(c.max_x+c.min_x)/2] = dot_size;
 			}
 		}
@@ -423,10 +423,10 @@ const FeatureVector& ImageFeatures::featAt(int x) const {
 	features[FEATURE_DENSITY_HIGH]       = featV(AVG_HIGH, x);
 	
 	#if USE_DENSITY_DEV
-		features[FEATURE_DENSITY_DEV]        = sqrt(max((Float)0.0,features[FEATURE_DENSITY]      - sqr(featV(AVG_SQRT,x))));
-		features[FEATURE_DENSITY_LOW_DEV]    = sqrt(max((Float)0.0,features[FEATURE_DENSITY_LOW]  - sqr(featV(AVG_LOW_SQRT,x))));
-		features[FEATURE_DENSITY_MID_DEV]    = sqrt(max((Float)0.0,features[FEATURE_DENSITY_MID]  - sqr(featV(AVG_MID_SQRT,x))));
-		features[FEATURE_DENSITY_HIGH_DEV]   = sqrt(max((Float)0.0,features[FEATURE_DENSITY_HIGH] - sqr(featV(AVG_HIGH_SQRT,x))));
+		features[FEATURE_DENSITY_DEV]        = sqrt(max((double)0.0,features[FEATURE_DENSITY]      - sqr(featV(AVG_SQRT,x))));
+		features[FEATURE_DENSITY_LOW_DEV]    = sqrt(max((double)0.0,features[FEATURE_DENSITY_LOW]  - sqr(featV(AVG_LOW_SQRT,x))));
+		features[FEATURE_DENSITY_MID_DEV]    = sqrt(max((double)0.0,features[FEATURE_DENSITY_MID]  - sqr(featV(AVG_MID_SQRT,x))));
+		features[FEATURE_DENSITY_HIGH_DEV]   = sqrt(max((double)0.0,features[FEATURE_DENSITY_HIGH] - sqr(featV(AVG_HIGH_SQRT,x))));
 	#endif
 	
 	features[FEATURE_DENSITY_LOW_NEAR]   = featV(AVG_LOW_NEAR,  x);
@@ -451,16 +451,16 @@ const FeatureVector& ImageFeatures::featAt(int x) const {
 	features[FEATURE_DENSITY_RIGHT_MID]  = featV(AVG_MID,  (x1+2*x2)/3,x2);
 	features[FEATURE_DENSITY_RIGHT_HIGH] = featV(AVG_HIGH, (x1+2*x2)/3,x2);
 #endif
-	Float density = max(featV(SUM, x), (Float)1e-10);
-	Float mean_y = featV(SUM_Y, x) / density;
+	double density = max(featV(SUM, x), (double)1e-10);
+	double mean_y = featV(SUM_Y, x) / density;
 #if HORIZ_POS
-	Float mean_x = featV(SUM_X, x) / density;
+	double mean_x = featV(SUM_X, x) / density;
 	features[FEATURE_MEAN_X_WORD]     = mean_x / image_width;
 	features[FEATURE_MEAN_X_WINDOW]   = (mean_x - x1) / (x2-x1);
-	features[FEATURE_STDDEV_X_WINDOW] = sqrt(max((Float)0, featV(SUM_XX, x) / density - sqr(mean_x))) / image_width;  // std deviation
+	features[FEATURE_STDDEV_X_WINDOW] = sqrt(max((double)0, featV(SUM_XX, x) / density - sqr(mean_x))) / image_width;  // std deviation
 #endif
 	features[FEATURE_MEAN_Y_WINDOW]   = (mean_y - baseline) / image_height;//baseline has more meaning.
-	features[FEATURE_STDDEV_Y_WINDOW] = sqrt(max((Float)0, featV(SUM_YY, x) / density - sqr(mean_y))) / image_height;
+	features[FEATURE_STDDEV_Y_WINDOW] = sqrt(max((double)0, featV(SUM_YY, x) / density - sqr(mean_y))) / image_height;
 	
 	#if USE_DOT_DETECTOR
 		features[FEATURE_DOT_COUNT] = featV(DOTCOUNT,   x);
@@ -533,10 +533,10 @@ const FeatureVector& ImageFeatures::featAt(int x) const {
 				l_max = max(l_max, lenv[x]);
 				u_max = max(u_max, uenv[x]);
 			}
-			features[FEATURE_UPPER_ENVELOPE1 + i] = (Float)u_min / image_height;
-			features[FEATURE_LOWER_ENVELOPE1 + i] = (Float)l_min / image_height;
-			features[FEATURE_UPPER_ENVELOPE2 + i] = (Float)u_max / image_height;
-			features[FEATURE_LOWER_ENVELOPE2 + i] = (Float)l_max / image_height;
+			features[FEATURE_UPPER_ENVELOPE1 + i] = (double)u_min / image_height;
+			features[FEATURE_LOWER_ENVELOPE1 + i] = (double)l_min / image_height;
+			features[FEATURE_UPPER_ENVELOPE2 + i] = (double)u_max / image_height;
+			features[FEATURE_LOWER_ENVELOPE2 + i] = (double)l_max / image_height;
 		}
 	#endif
 	
@@ -594,7 +594,7 @@ void ImageFeatures::blurHisto() {
 #if USE_BOUNDARY_ANGLES
 	for (int x = 0 ; x < image_width ; ++x) {
 		// temporary copy
-		Float boundary_histo[BOUNDARY_HISTO_RESOLUTION_BASE * BOUNDARY_HISTO_RESOLUTION_DIFF];
+		double boundary_histo[BOUNDARY_HISTO_RESOLUTION_BASE * BOUNDARY_HISTO_RESOLUTION_DIFF];
 		for (int i = 0 ; i < BOUNDARY_HISTO_RESOLUTION_BASE * BOUNDARY_HISTO_RESOLUTION_DIFF; ++i) {
 			boundary_histo[i] = cumsums[BOUNDARY_HISTO + i][x];
 		}
@@ -605,11 +605,11 @@ void ImageFeatures::blurHisto() {
 		for (int i = 0 ; i < BOUNDARY_HISTO_RESOLUTION_BASE; ++i) {
 			for (int j = 0 ; j < BOUNDARY_HISTO_RESOLUTION_DIFF; ++j) {
 				cumsums[BOUNDARY_HISTO + i * BOUNDARY_HISTO_RESOLUTION_DIFF + j][x]
-					= boundaryhisto(i,  j  ) * (Float)0.5
-					+ boundaryhisto(i-1,j  ) * (Float)0.125
-					+ boundaryhisto(i+1,j  ) * (Float)0.125
-					+ boundaryhisto(i,  j-1) * (Float)0.125
-					+ boundaryhisto(i,  j+1) * (Float)0.125;
+					= boundaryhisto(i,  j  ) * (double)0.5
+					+ boundaryhisto(i-1,j  ) * (double)0.125
+					+ boundaryhisto(i+1,j  ) * (double)0.125
+					+ boundaryhisto(i,  j-1) * (double)0.125
+					+ boundaryhisto(i,  j+1) * (double)0.125;
 			}
 		}
 		#undef boundarhisto
@@ -625,7 +625,7 @@ void ImageFeatures::save(FILE* file) {
 	fwrite(&topline,      sizeof(int), 1, file);
 	fwrite(&baseline,     sizeof(int), 1, file);
 	for (int cat = 0 ; cat < MAX_CAT ; cat++) {
-		fwrite(&cumsums[cat].front(), sizeof(Float), image_width+1, file);
+		fwrite(&cumsums[cat].front(), sizeof(double), image_width+1, file);
 	}
 }
 
@@ -636,7 +636,7 @@ bool ImageFeatures::load(FILE* file) {
 	fread(const_cast<int*>(&baseline),     sizeof(int), 1, file);
 	for (int cat = 0 ; cat < MAX_CAT ; cat++) {
 		cumsums[cat].resize(image_width + 1);
-		fread(&cumsums[cat].front(), sizeof(Float), image_width+1, file);
+		fread(&cumsums[cat].front(), sizeof(double), image_width+1, file);
 		if (feof(file)) return false;
 	}
 	int dummy;

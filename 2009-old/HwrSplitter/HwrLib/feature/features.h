@@ -16,7 +16,7 @@
 
 using std::vector;
 
-typedef vector<Float> floats;
+typedef vector<double> floats;
 
 // ----------------------------------------------------------------------------- : High level interface
 
@@ -148,11 +148,11 @@ public:
 // ----------------------------------------------------------------------------- : Feature extraction
 
 /// Fraction of non-zero pixels in a certain region
-Float dark_fraction(PamImage<BWPixel> const& im, int x0 = 0, int y0 = 0, int x1 = INT_MAX, int y1 = INT_MAX);
+double dark_fraction(PamImage<BWPixel> const& im, int x0 = 0, int y0 = 0, int x1 = INT_MAX, int y1 = INT_MAX);
 
 /// Classification of angle types in a certain region
 /// Returns an array [-,/,|,\]
-void angle_types(PamImage<BWPixel> const& im, int x0, int y0, int width, int height, Float* out);
+void angle_types(PamImage<BWPixel> const& im, int x0, int y0, int width, int height, double* out);
 floats angle_types(PamImage<BWPixel> const& im, int x = 0, int y = 0, int width = INT_MAX, int height = INT_MAX);
 
 /// Statistics:  mean x, mean y, var x, var y
@@ -184,11 +184,11 @@ void floodfill_corners(PamImage<RGBPixel> const& im);
 //rest
 
 template<typename T>
-void fastblur(T& data, int dataCnt, int win,int iter, Float blurRatio) {
+void fastblur(T& data, int dataCnt, int win,int iter, double blurRatio) {
 	using namespace boost;
-	scoped_array<Float> acc(new Float[dataCnt]);
+	scoped_array<double> acc(new double[dataCnt]);
 	for(int itCnt=0;itCnt<iter;itCnt++) {
-		Float lastVal=0.0;
+		double lastVal=0.0;
 		for(int i=0;i<(int)dataCnt;i++) {
 			lastVal+=data[i];
 			acc[i]=lastVal;
@@ -196,9 +196,9 @@ void fastblur(T& data, int dataCnt, int win,int iter, Float blurRatio) {
 		for(int i=dataCnt-1;i>=0;i--) {
 			int i0 = std::max(i-win,0)-1;
 			int i1 = std::min(i+win,dataCnt-1);
-			Float v0 = i0<0?0.0:acc[i0];
-			Float v1 = acc[i1];
-			Float avg = (v1-v0)/(i1-i0);
+			double v0 = i0<0?0.0:acc[i0];
+			double v1 = acc[i1];
+			double avg = (v1-v0)/(i1-i0);
 			data[i] = avg*blurRatio + data[i]*(1-blurRatio);
 		}
 	}

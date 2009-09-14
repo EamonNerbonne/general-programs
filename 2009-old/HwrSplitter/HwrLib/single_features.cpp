@@ -18,7 +18,7 @@ using namespace std;
 
 // ----------------------------------------------------------------------------- : Features
 
-Float dark_fraction(PamImage<BWPixel> const& im, int x0, int y0, int x1, int y1) {
+double dark_fraction(PamImage<BWPixel> const& im, int x0, int y0, int x1, int y1) {
     x0 = max(x0, 0);
     y0 = max(y0, 0);
     x1 = min(x1, im.getWidth());
@@ -31,7 +31,7 @@ Float dark_fraction(PamImage<BWPixel> const& im, int x0, int y0, int x1, int y1)
         }
     }
     
-    return (Float)count / max(1, (x1-x0) * (y1-y0));
+    return (double)count / max(1, (x1-x0) * (y1-y0));
 }
 
 // ----------------------------------------------------------------------------- : Angles
@@ -42,7 +42,7 @@ floats angle_types(PamImage<BWPixel> const& im, int x0, int y0, int width, int h
     return result;
 }
 
-void angle_types(PamImage<BWPixel> const& im, int x0, int y0, int width, int height, Float* out) {
+void angle_types(PamImage<BWPixel> const& im, int x0, int y0, int width, int height, double* out) {
     x0     = max(x0, 0);
     y0     = max(y0, 0);
     width  = min(width,  im.getWidth());
@@ -64,8 +64,8 @@ void angle_types(PamImage<BWPixel> const& im, int x0, int y0, int width, int hei
         }
     }
     
-    //Float total = max(1, width * height);
-    Float total = (Float)( types[1]+types[2]+types[3] +types[4] +types[5] +types[6] +types[7]
+    //double total = max(1, width * height);
+    double total = (double)( types[1]+types[2]+types[3] +types[4] +types[5] +types[6] +types[7]
                              + types[8]+types[9]+types[10]+types[11]+types[12]+types[13]+types[14]);
     out[0] = (types[TL+TR] + types[BL+BR])      / total; // "-" 0 degrees
     out[1] = (types[TL] + types[BR] + types[TR+BL]
@@ -95,16 +95,16 @@ floats mean_variance(PamImage<BWPixel> const& im, int x0, int y0, int width, int
     width  = min(width,  im.getWidth());
     height = min(height, im.getHeight());
     
-    Float tot_x = 0, tot_y = 0, tot_xx = 0, tot_yy = 0;
+    double tot_x = 0, tot_y = 0, tot_xx = 0, tot_yy = 0;
     int count = 0;
     
     for (long y = y0 ; y < height ; y++) {
         for (long x = x0 ; x < width ; x++) {
             if (im.pix(x,y)) {
-                tot_x += (Float)x / width;
-                tot_y += (Float)y / height;
-                tot_xx += sqr((Float)x / width);
-                tot_yy += sqr((Float)y / height);
+                tot_x += (double)x / width;
+                tot_y += (double)y / height;
+                tot_xx += sqr((double)x / width);
+                tot_yy += sqr((double)y / height);
                 count++;
             }
         }

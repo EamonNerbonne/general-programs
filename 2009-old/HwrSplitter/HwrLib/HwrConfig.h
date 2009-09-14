@@ -2,8 +2,8 @@
 #define HWRCONFIG_H
 
 #pragma warning (disable:4996)
-typedef double Float;
-inline static Float sqr(Float x) { return x*x; }
+
+inline static double sqr(double x) { return x*x; }
 
 #define LOGLEVEL 1
 #define LENGTH_WEIGHT_ON_TERMINATORS 1

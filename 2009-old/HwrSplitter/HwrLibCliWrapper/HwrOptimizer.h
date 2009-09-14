@@ -26,13 +26,11 @@ namespace HwrLibCliWrapper {
 
 		HwrOptimizer(array<HwrDataModel::SymbolClass^>^ symbolClasses) : symbols(new AllSymbolClasses(symbolClasses->Length )) {
 			GC::AddMemoryPressure(symbols->AllocatedSize());
-			symbols->initRandom();
 			for(int i=0;i<symbolClasses->Length;i++) {
 				if(symbolClasses[i]->Code != i)
 					throw gcnew ArgumentException("Symbol position does not match its code");
 				CopyToNative(symbolClasses[i],symbols->getSymbol(i));
 			}
-			symbols->RecomputeFeatureWeights(0.0);
 		}
 
 		void SaveToManaged(array<HwrDataModel::SymbolClass^>^ symbolClasses) {
@@ -43,26 +41,19 @@ namespace HwrLibCliWrapper {
 			}
 		}
 
-		array<double>^ GetFeatureWeights(){
-			array<double>^ retval = gcnew array<double>(NUMBER_OF_FEATURES);
-			for(int i=0;i<NUMBER_OF_FEATURES;i++) 
-				retval[i] = symbols->featureWeights[i];
-			return retval;
-		}
+		//array<double>^ GetFeatureVariances() {
+		//	FeatureDistribution overall;
+		//	for(int i=0;i<symbols->size();i++) {
+		//		for(int j=0;j<SUB_SYMBOL_COUNT;j++) {
+		//			overall.CombineWith(symbols->getSymbol(i).state[j]);
+		//		}
+		//	}
 
-		array<double>^ GetFeatureVariances() {
-			FeatureDistribution overall;
-			for(int i=0;i<symbols->size();i++) {
-				for(int j=0;j<SUB_SYMBOL_COUNT;j++) {
-					overall.CombineWith(symbols->getSymbol(i).state[j]);
-				}
-			}
-
-			array<double>^ retval = gcnew array<double>(NUMBER_OF_FEATURES);
-			for(int i=0;i<NUMBER_OF_FEATURES;i++) 
-				retval[i] = overall.varX(i);
-			return retval;
-		}
+		//	array<double>^ retval = gcnew array<double>(NUMBER_OF_FEATURES);
+		//	for(int i=0;i<NUMBER_OF_FEATURES;i++) 
+		//		retval[i] = overall.varX(i);
+		//	return retval;
+		//}
 
 		// block - the bit of the original (b/w) image, cropped to fit the line closely.
 		// sequenceToMatch - the sequence of symbolClass codes to match

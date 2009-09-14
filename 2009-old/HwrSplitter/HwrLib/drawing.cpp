@@ -104,7 +104,7 @@ void horizontal_line_rgb(PamImage<RGBPixel>& im, int y, RGBPixel color, float al
 	block_rgb(im, -1, y, INT_MAX, y, color, alpha);
 }
 
-void draw_x_projection(PamImage<RGBPixel>& im, int x0, int x1, const std::vector<Float>& histo, RGBPixel color, float alpha) {
+void draw_x_projection(PamImage<RGBPixel>& im, int x0, int x1, const std::vector<double>& histo, RGBPixel color, float alpha) {
 	if (histo.empty()) return;
 
 	int width = im.getWidth();
@@ -127,7 +127,7 @@ void draw_x_projection(PamImage<RGBPixel>& im, int x0, int x1, const std::vector
 	}
 }
 
-void draw_y_projection(PamImage<RGBPixel>& im, int y0, int y1, const std::vector<Float>& histo, RGBPixel color, float alpha) {
+void draw_y_projection(PamImage<RGBPixel>& im, int y0, int y1, const std::vector<double>& histo, RGBPixel color, float alpha) {
 	if (histo.empty()) return;
 
 	int width  = im.getWidth();

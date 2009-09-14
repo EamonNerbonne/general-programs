@@ -89,10 +89,10 @@ PamImage<BWPixel> preprocessLimited(PamImage<RGBPixel> const& input_image) {
 	}
 }
 
-PamImage<Float> featuresImage(ImageBW shearedImg, float shear) {
+PamImage<double> featuresImage(ImageBW shearedImg, float shear) {
 	ImageBW unsheared = unshear(shearedImg,shear);
 	ImageFeatures feats(unsheared,-1,-1);
-	PamImage<Float> featsImg(feats.getImageWidth(),NUMBER_OF_FEATURES);
+	PamImage<double> featsImg(feats.getImageWidth(),NUMBER_OF_FEATURES);
 	for(int x=0;x<featsImg.getWidth();x++) {
 		FeatureVector const & featsV = feats.featAt(x);
 		for(int y=0;y<NUMBER_OF_FEATURES;y++) 
@@ -122,18 +122,18 @@ PamImage<BWPixel> processAndUnshear(PamImage<BWPixel> const& input_image, float 
 
 // ----------------------------------------------------------------------------- : Utility
 
-Float median(vector<Float> values) {
+double median(vector<double> values) {
 	sort(values.begin(), values.end());
 	return values[values.size()/2];
 }
-Float mean(const vector<Float>& values) {
-	Float sum = 0;
+double mean(const vector<double>& values) {
+	double sum = 0;
 	for (size_t i = 0 ; i < values.size() ; ++i) sum += values[i];
 	return sum / values.size();
 }
 
-void blur_projection(vector<Float>& values, int radius) {
-	vector<Float> out(values.size());
+void blur_projection(vector<double>& values, int radius) {
+	vector<double> out(values.size());
 	for (int i = 0 ; i < (int)values.size() ; ++i) {
 		int n = 0;
 		for (int j = max(0, i-radius) ; j < min(i+radius+1, (int)values.size()) ; ++j) {
@@ -146,8 +146,8 @@ void blur_projection(vector<Float>& values, int radius) {
 }
 
 
-void convolve(vector<Float>& values, const vector<Float>& window) {
-	vector<Float> out(values.size());
+void convolve(vector<double>& values, const vector<double>& window) {
+	vector<double> out(values.size());
 	int winsize = (int)window.size();
 	int valsize = (int)values.size();
 	int offset=(winsize/2);
@@ -165,9 +165,9 @@ void convolve(vector<Float>& values, const vector<Float>& window) {
 //   where N has a max value of 1
 //
 //   sigma2s = 2 * sigma^2
-void add_gaussian(vector<Float>& values, int mean, Float sigma2s, Float height) {
+void add_gaussian(vector<double>& values, int mean, double sigma2s, double height) {
 	for (size_t i = 0 ; i < values.size() ; ++i) {
-		values[i] += exp(- sqr((Float)i - (Float)mean) / sigma2s) * height;
+		values[i] += exp(- sqr((double)i - (double)mean) / sigma2s) * height;
 	}
 }
 

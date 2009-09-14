@@ -20,7 +20,7 @@ PamImage<BWPixel> preprocess(PamImage<RGBPixel> const& input_image, float shear_
 
 PamImage<BWPixel> preprocessLimited(PamImage<RGBPixel> const& input_image);
 
-PamImage<Float> featuresImage(ImageBW shearedImg, float shear);
+PamImage<double> featuresImage(ImageBW shearedImg, float shear);
 
 PamImage<BWPixel> processAndUnshear(PamImage<BWPixel> const& input_image, float shear_angle, int bodyTop, int bodyBot);
 
@@ -29,14 +29,14 @@ PamImage<BWPixel> processAndUnshear(PamImage<BWPixel> const& input_image, float 
 // ----------------------------------------------------------------------------- : Utilities
 
 ///misc
-void add_gaussian(std::vector<Float>& values, int mean, Float sigma2s, Float height);
+void add_gaussian(std::vector<double>& values, int mean, double sigma2s, double height);
 
 /// Convolution:  values[i] = sum_j  values[i+j] * values[j]
 /// values is treated as a circular array
-void convolve(std::vector<Float>& values, const std::vector<Float>& window);
+void convolve(std::vector<double>& values, const std::vector<double>& window);
 
-void blur_projection(std::vector<Float>& values, int radius);
-Float mean(std::vector<Float> const & values);
+void blur_projection(std::vector<double>& values, int radius);
+double mean(std::vector<double> const & values);
 
 
 // ----------------------------------------------------------------------------- : Pixel type conversion
@@ -57,12 +57,12 @@ PamImage<BWPixel> invert(PamImage<BWPixel> const im);
 /// Find the baseline and xheight of a word
 template<typename T> void find_baseline(PamImage<T> const& im, int& top_out, int& base_out) {
 	// blur x projection
-	vector<Float> projection;
+	vector<double> projection;
 	project_x(im, projection);
 	blur_projection(projection, 3);
 	// The base of the word is everything where the x projection is >= mean(x-projection), ...
 	if (projection.empty()) return; // empty image, shouldn't happen
-	Float mean = ::mean(projection);
+	double mean = ::mean(projection);
 	// ... and the largest contiguous segment
 	int best_len = 0;
 	int cur_top  = 0;
@@ -96,24 +96,24 @@ template<typename T> void find_baseline(PamImage<T> const& im, int& top_out, int
 /// Find the letter breaks of a word
 template<typename T> void find_letters(PamImage<T> const& im, int top, int base, int minBreaks , std::vector<int>& out) {
 	// some constants:
-	const Float BORDER_EMPTY = 0.01f;  // below this we consider to be 0
-	const Float BORDER_SIGMA = 120.0f;
-	const Float BORDER_SCALE = 1.0f;
-	const Float PLATEAU      = 0.04f;
-	const Float INNER_STOP   = 0.4f;
-	const Float INNER_SIGMA1 = 140.0f;
-	const Float INNER_SCALE1 = 0.66f;
-	const Float INNER_SIGMA2 = 648.0f;
-	const Float INNER_SCALE2 = 0.13f;
-	const Float INNER_SIGMA3 = 4.0f;
-	const Float INNER_SCALE3 = 2.0f;
+	const double BORDER_EMPTY = 0.01f;  // below this we consider to be 0
+	const double BORDER_SIGMA = 120.0f;
+	const double BORDER_SCALE = 1.0f;
+	const double PLATEAU      = 0.04f;
+	const double INNER_STOP   = 0.4f;
+	const double INNER_SIGMA1 = 140.0f;
+	const double INNER_SCALE1 = 0.66f;
+	const double INNER_SIGMA2 = 648.0f;
+	const double INNER_SCALE2 = 0.13f;
+	const double INNER_SIGMA3 = 4.0f;
+	const double INNER_SCALE3 = 2.0f;
 	
 	// put the topline a bit higher
 	//top = top * 2 / 3;
 	
 	// make a projection along the y axis.
 	// both of the part inside the baseline and of the whole word
-	vector<Float> projection, projection_base;
+	vector<double> projection, projection_base;
 	project_y(im, projection);
 	project_y(im, projection_base, top, base);
 	
@@ -125,7 +125,7 @@ template<typename T> void find_letters(PamImage<T> const& im, int top, int base,
 		projection[i] += fabs(projection_base[i] - projection[i]);
 	}
 	blur_projection(projection, 1);
-	Float height = *std::max_element(projection.begin(), projection.end());
+	double height = *std::max_element(projection.begin(), projection.end());
 	
 	// find the left edge
 	for (size_t i = 0 ; i < projection.size() ; ++i) {
