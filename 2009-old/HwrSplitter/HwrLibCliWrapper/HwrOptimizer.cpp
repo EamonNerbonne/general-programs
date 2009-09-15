@@ -62,7 +62,7 @@ namespace HwrLibCliWrapper {
 	}
 
 
-	array<int>^ HwrOptimizer::SplitWords(ImageStruct<signed char> block, float shear, array<unsigned> ^ sequenceToMatch, array<int> ^ overrideEnds,  int learningIteration, HwrDataModel::TextLine^ textLine, [Out] int % topOffRef, [Out] double % loglikelihood) {
+	array<int>^ HwrOptimizer::SplitWords(ImageStruct<signed char> block, int cropXoffset, HwrDataModel::TextLine^ textLine) {
 		using std::min;
 		using std::max;
 		using std::cout;
@@ -70,6 +70,7 @@ namespace HwrLibCliWrapper {
 #if LOGLEVEL >=8
 		boost::timer t;
 #endif
+		int learningIteration = managedSymbols->Iteration;
 		//based on learningIteration, set a few things:
 		double dampingFactor = 1.0 - min(learningIteration/200.0,1.0);
 		int blurIter = 3;
@@ -78,11 +79,12 @@ namespace HwrLibCliWrapper {
 		double featureRelevance = FEATURE_SCALING * exp(-20*dampingFactor) ;
 
 		PamImage<BWPixel> shearedImg = ImageProcessor::StructToPamImage(block);
-		ImageBW unsheared = processAndUnshear(shearedImg,shear,textLine->bodyTop,textLine->bodyBot);
-		topOffRef = shearedImg.getWidth() - unsheared.getWidth();
+		ImageBW unsheared = processAndUnshear(shearedImg, (float)textLine->shear, textLine->bodyTop,textLine->bodyBot);//bodyTop/bodyBot are relative to line top, not to page top.
+		int topShearOffset = unsheared.getWidth() - shearedImg.getWidth();
+
 		ImageFeatures feats(unsheared,textLine->bodyTop,textLine->bodyBot, winDensSize,winAngleSize,blurIter);
-		textLine->bodyBot = feats.baseline;
-		textLine->bodyTop = feats.topline;
+		textLine->bodyBot = feats.baseline; //these should not have changed.
+		textLine->bodyTop = feats.topline; //these should not have changed.
 
 #ifdef _DEBUG
 		int shearedW = shearedImg.getWidth();
@@ -91,33 +93,45 @@ namespace HwrLibCliWrapper {
 		int unshearedH = unsheared.getHeight();
 #endif
 
-		if(sequenceToMatch->Length != overrideEnds->Length)
-			throw gcnew ArgumentException("overrideEnds must be equally long as sequenceToMatch");
-		vector<short> sequenceVector;
-		vector<int> overrideEndsVector;
-		for(int i=0;i<sequenceToMatch->Length;i++) {
-			unsigned tmp = sequenceToMatch[i];
-			sequenceVector.push_back(tmp);
-			int endPoint = overrideEnds[i]-topOffRef;
-			overrideEndsVector.push_back(endPoint);
+		array<wchar_t>^ textArray = Enumerable::ToArray(textLine->TextWithTerminators);
+		array<int> ^ manualEndsArray = Enumerable::ToArray(textLine->ManualEndPoints);
+		vector<short> symbolCodeVector;
+		vector<int> manualEndsVector;
+		for(int i=0;i<textArray->Length;i++) {
+			unsigned charCode = managedSymbols->LookupSymbolCode(textArray[i]);
+			int manualEndPoint = manualEndsArray[i]>=0  ?  manualEndsArray[i] - cropXoffset - topShearOffset  :  -1;
+			if(manualEndPoint >shearedImg.getWidth()) {
+				Console::WriteLine("#");
+				manualEndPoint = -1; 
+			}
+			symbolCodeVector.push_back((short)charCode);
+			manualEndsVector.push_back(manualEndPoint);
 		}
+		if(!(
+			textArray->Length == manualEndsArray->Length
+			&& textArray->Length == symbolCodeVector.size()
+			&& textArray->Length == manualEndsVector.size()))
+			throw gcnew ApplicationException(
+									String::Format("Error: sequences are not of equal length; text:{0}, manualEnds:{1}, symbolCodeV:{2}, manualEndsV:{3}", gcnew array<Object^>{textArray->Length, manualEndsArray->Length, symbolCodeVector.size(), manualEndsVector.size()} )
+								);
 
 
 #if LOGLEVEL >=8
 		cout << "C++ textline prepare took " << t.elapsed() <<"\n";
 #endif
-		WordSplitSolver splitSolve( *symbols, feats, sequenceVector,overrideEndsVector,featureRelevance);
+		WordSplitSolver splitSolve(*symbols, feats, symbolCodeVector, manualEndsVector, featureRelevance); //computes various prob. distributions
 		
 		double computedLikelihood;
-		vector<int> splits = splitSolve.MostLikelySplit(computedLikelihood);
-		loglikelihood = computedLikelihood;
-		array<int>^ retval = gcnew array<int>((int)splits.size());
-		for(int i=0;i<(int)splits.size();i++) {
-			retval[i] = splits[i];
-		}
+		vector<int> splits = splitSolve.MostLikelySplit(computedLikelihood);//these, of course, are computed relative to the sheared image, i.e. you need to add topShearOffset + cropXoffset for absolute coordinates.
+		
+		
+		array<int>^ absoluteEndpoints = gcnew array<int>((int)splits.size());
+		for(int i=0;i<(int)splits.size();i++) 
+			absoluteEndpoints[i] = splits[i] + topShearOffset + cropXoffset;
 
-		splitSolve.Learn(dampingFactor);
+		textLine->SetComputedCharEndpoints(absoluteEndpoints, computedLikelihood, HwrDataModel::Word::TrackStatus::Calculated);
 
+		splitSolve.Learn(dampingFactor); //TODO:fix up
 		return retval;
 	}
 }

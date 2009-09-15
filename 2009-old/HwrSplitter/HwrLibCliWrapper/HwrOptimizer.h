@@ -11,6 +11,7 @@
 namespace HwrLibCliWrapper {
 	public ref class HwrOptimizer {
 		AllSymbolClasses* symbols;
+		HwrDataModel::SymbolClasses^ managedSymbols;
 		!HwrOptimizer() {
 			if(symbols != NULL) {
 				GC::RemoveMemoryPressure(symbols->AllocatedSize());
@@ -24,22 +25,24 @@ namespace HwrLibCliWrapper {
 
 		static void CopyToManaged(SymbolClass const & nativeSymbol, HwrDataModel::SymbolClass^ managedSymbol);
 
-		HwrOptimizer(array<HwrDataModel::SymbolClass^>^ symbolClasses) : symbols(new AllSymbolClasses(symbolClasses->Length )) {
+		HwrOptimizer(HwrDataModel::SymbolClasses^ symbolClasses) : symbols(new AllSymbolClasses(symbolClasses->Count )) {
 			GC::AddMemoryPressure(symbols->AllocatedSize());
+			managedSymbols = symbolClasses;
 			
 			symbols->initializeRandomly(); //0 variances are not permitted
-			for(int i=0;i<symbolClasses->Length;i++) {
+
+			for(int i=0;i<symbolClasses->Count;i++) {
 				if(symbolClasses[i]->Code != i)
 					throw gcnew ArgumentException("Symbol position does not match its code");
-				CopyToNative(symbolClasses[i],symbols->getSymbol(i));
+				CopyToNative(symbolClasses[i] ,symbols->getSymbol(i));
 			}
 		}
 
-		void SaveToManaged(array<HwrDataModel::SymbolClass^>^ symbolClasses) {
-			for(int i=0;i<symbolClasses->Length;i++) {
-				if(symbolClasses[i]->Code != i)
+		void SaveToManaged() {
+			for(int i=0;i<managedSymbols->Count;i++) {
+				if(managedSymbols[i]->Code != i)
 					throw gcnew ArgumentException("Symbol position does not match its code");
-				CopyToManaged(symbols->getSymbol(i),symbolClasses[i]);
+				CopyToManaged(symbols->getSymbol(i), managedSymbols[i]);
 			}
 		}
 
@@ -63,7 +66,7 @@ namespace HwrLibCliWrapper {
 		// overrideEnds - a manually specified endpoint (relative to block's start) for each symbol, negative for those (common) symbols where no manually specified endpoint exists
 		// topOffRef - will be set to the amount of pixels the top row was shifted to account for shear
 		// learningIteration - the current learning iteration; used to decrease the weight of symbolclasses (for instance) and to improve 
-		array<int>^ SplitWords(ImageStruct<signed char> block, float shear, array<unsigned> ^ sequenceToMatch, array<int> ^ overrideEnds,  int learningIteration, HwrDataModel::TextLine^ textLine, [Out] int % topOffRef, [Out] double % loglikelihood);
+		array<int>^ HwrOptimizer::SplitWords(ImageStruct<signed char> block, int cropXoffset, HwrDataModel::TextLine^ textLine);
 	};
 }
 

@@ -1,5 +1,6 @@
 ﻿using System.Xml.Linq;
 using System.Linq;
+using MoreLinq;
 using System.Collections.Generic;
 
 namespace HwrDataModel
@@ -20,7 +21,7 @@ namespace HwrDataModel
 			this.line = line;
 			leftStat = rightStat = topStat = botStat = TrackStatus.Uninitialized;
 		}
-		public Word(TextLine line,string text, int no, double top, double bottom, double left, double right, double shear)
+		public Word(TextLine line, string text, int no, double top, double bottom, double left, double right, double shear)
 			: base(top, bottom, left, right, shear)
 		{
 			this.line = line;
@@ -29,16 +30,18 @@ namespace HwrDataModel
 			leftStat = rightStat = topStat = botStat = TrackStatus.Initialized;
 		}
 
-		//public Word(Word toCopy)
-		//    : this(toCopy.line, toCopy.text, toCopy.no, toCopy.top, toCopy.bottom, toCopy.left, toCopy.right, toCopy.shear)
-		//{
-		//    leftStat = toCopy.leftStat;
-		//    rightStat = toCopy.rightStat;
-		//    topStat = toCopy.topStat;
-		//    botStat = toCopy.botStat;
+		//includes the endpoint for the preceeding space.
+		public IEnumerable<int> ManualEndPoints
+		{
+			get
+			{
+				return
+				(leftStat == Word.TrackStatus.Manual ? (int)(left + 0.5) : -1)
+					.Concat(Enumerable.Repeat(-1, text.Length - 1))
+					.Concat(rightStat == Word.TrackStatus.Manual ? (int)(right + 0.5) : -1);
+			}
+		}
 
-		//    symbolBasedLength = toCopy.symbolBasedLength;
-		//}
 		public Word(TextLine line, XElement fromXml)
 			: base(fromXml)
 		{
@@ -48,7 +51,8 @@ namespace HwrDataModel
 			leftStat = rightStat = topStat = botStat = TrackStatus.Calculated;//TODO, these should be saved in the XML
 
 		}
-		public void EstimateLength(Dictionary<char, GaussianEstimate> symbolWidths) {
+		public void EstimateLength(Dictionary<char, GaussianEstimate> symbolWidths)
+		{
 			symbolBasedLength = EstimateWordLength(text, symbolWidths);
 		}
 

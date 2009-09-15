@@ -73,6 +73,7 @@
     </Compile>
     <Compile Include="ShearedBox.cs" />
     <Compile Include="SymbolClass.cs" />
+    <Compile Include="SymbolClasses.cs" />
     <Compile Include="SymbolClassParser.cs" />
     <Compile Include="TextLine.cs" />
     <Compile Include="Word.cs" />

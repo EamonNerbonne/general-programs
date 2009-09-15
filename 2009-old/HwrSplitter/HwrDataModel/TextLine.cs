@@ -15,16 +15,22 @@ namespace HwrDataModel
 		public readonly Word[] words; //after construction, words are fixed - you can only recompute their positions.
 		public readonly int no;
 
-		public int[] computedCharEndpoints;
-
-		public int bodyTop, bodyTopAlt;
-		public int bodyBot, bodyBotAlt;
+		public int bodyTop, bodyTopAlt;//bodyTop/bodyBot are relative to line top, not to page top.
+		public int bodyBot, bodyBotAlt;//bodyTop/bodyBot are relative to line top, not to page top.
 
 		public double OuterExtremeLeft { get { return left + BottomXOffset - 10; } }
 		public double OuterExtremeRight { get { return right + 30; } } //hacky
 
+		int[] computedCharEndpoints;
+		double computedLikelihood = double.NaN;
+		public int[] ComputedCharEndpoints { get { return computedCharEndpoints; } }
+		public double ComputedLikelihood { get { return computedLikelihood; } }
+		public void SetComputedCharEndpoints(int[] endpoints,  double likelihood, Word.TrackStatus endpointSource)
+		{
 
-		public double ComputedLikelihood = double.NaN;
+			//TODO:implement
+		}
+
 
 		public TextLine() { }
 		public TextLine(string text, int no, double top, double bottom, double left, double right, double shear, Dictionary<char, GaussianEstimate> symbolWidths)
@@ -46,7 +52,17 @@ namespace HwrDataModel
 			}
 		}
 
-
+		public IEnumerable<int> ManualEndPoints
+		{
+			get
+			{
+				return
+				(-1) //startsymbol end
+					.Concat(words.SelectMany(word => word.ManualEndPoints)) //endpoints of each word and its preceeding space
+					.Concat(-1) //endpoint of final space
+					.Concat(-1); //endpoint of endsym
+			}
+		}
 
 		private void GuessWordsInString(Dictionary<char, GaussianEstimate> symbolWidths) {
 			foreach (var word in words)
