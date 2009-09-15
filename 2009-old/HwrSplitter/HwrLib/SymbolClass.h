@@ -1,6 +1,6 @@
 #pragma once
 #include "HwrConfig.h"
-#include "FeatureDistribution.h"
+#include "CombinedFeatureDistribution.h"
 
 class SymbolClass
 {
@@ -13,31 +13,11 @@ public:
 	SymbolClass(double meanLength, double varLength) : mLength(meanLength), wLength(100), sLength(varLength*100)	{ }
 	SymbolClass() : mLength(0.0), wLength(0.0), sLength(0.0) {}
 	
-	double meanLength() const {return mLength;}
-	double varLength() const {return sLength/wLength;}
-	double weightLength() const {return wLength;}
+	inline double LogLikelihoodLength(double length) const { return -0.5*sqr(length - mLength)/sLength*wLength; } //we can ignore the DC offset - after all this is constant for any length.
 
-	void ScaleWeightBy(double scaleFactor) {
-		wLength*=scaleFactor;
-		sLength*=scaleFactor;
-		for (int i=0;i<SUB_PHASE_COUNT;i++) 
-			phase[i].ScaleWeightBy(scaleFactor);
-	}
-
-	double LogLikelihoodLength(double length) const {
-		return -0.5*sqr(length - mLength)/sLength*wLength; //we can ignore the DC offset - after all this is constant for any length.
-	}
-
-	void LearnLength(double length, double weight) {
-		double newWeight = wLength + weight;
-		sLength = sLength + sqr(length - mLength)*wLength*weight/newWeight;
-		mLength = mLength + (length - mLength)*weight/newWeight;
-		wLength = newWeight;
-	}
-
-	void RecomputeDCoffset() {
-		for(int i=0;i<SUB_PHASE_COUNT;i++)
-			phase[i].RecomputeDCfactor();
-	}
+	void ScaleWeightBy(double scaleFactor);
+	void LearnLength(double length, double weight);
+	void RecomputeDCoffset();
 	void initializeRandomly();
+	void resetToZero();
 };

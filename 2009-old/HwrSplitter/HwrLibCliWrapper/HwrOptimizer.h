@@ -26,6 +26,8 @@ namespace HwrLibCliWrapper {
 
 		HwrOptimizer(array<HwrDataModel::SymbolClass^>^ symbolClasses) : symbols(new AllSymbolClasses(symbolClasses->Length )) {
 			GC::AddMemoryPressure(symbols->AllocatedSize());
+			
+			symbols->initializeRandomly(); //0 variances are not permitted
 			for(int i=0;i<symbolClasses->Length;i++) {
 				if(symbolClasses[i]->Code != i)
 					throw gcnew ArgumentException("Symbol position does not match its code");
@@ -56,11 +58,12 @@ namespace HwrLibCliWrapper {
 		//}
 
 		// block - the bit of the original (b/w) image, cropped to fit the line closely.
-		// sequenceToMatch - the sequence of symbolClass codes to match
-		// topOffRef - will be set to the amount of pixels the top row was shifted to account for shear
 		// shear - the angle of text shearing in the input
+		// sequenceToMatch - the sequence of symbolClass codes to match
+		// overrideEnds - a manually specified endpoint (relative to block's start) for each symbol, negative for those (common) symbols where no manually specified endpoint exists
+		// topOffRef - will be set to the amount of pixels the top row was shifted to account for shear
 		// learningIteration - the current learning iteration; used to decrease the weight of symbolclasses (for instance) and to improve 
-		array<int>^ SplitWords(ImageStruct<signed char> block, array<unsigned> ^ sequenceToMatch, array<int> ^ overrideEnds, float shear, int learningIteration, HwrDataModel::TextLine^ textLine, [Out] int % topOffRef, [Out] double % loglikelihood);
+		array<int>^ SplitWords(ImageStruct<signed char> block, float shear, array<unsigned> ^ sequenceToMatch, array<int> ^ overrideEnds,  int learningIteration, HwrDataModel::TextLine^ textLine, [Out] int % topOffRef, [Out] double % loglikelihood);
 	};
 }
 

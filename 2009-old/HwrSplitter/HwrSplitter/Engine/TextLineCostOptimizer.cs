@@ -32,7 +32,6 @@ namespace HwrSplitter.Engine
 		static TextLineCostOptimizer() {
 			FeatureDistributionEstimate.FeatureNames = FeatureToString.FeatureNames();
 		}
-		public const int CharPhases = 1;
 		HwrOptimizer nativeOptimizer;
 		SymbolClass[] symbolClasses;
 		int iteration = 0;

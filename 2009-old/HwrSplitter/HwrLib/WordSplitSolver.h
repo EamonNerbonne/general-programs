@@ -26,8 +26,13 @@ struct AllSymbolClasses {
 		for(int i=0;i<symbolCount;i++)
 			sym[i].initializeRandomly();
 	}
+	void resetToZero() {
+		for(int i=0;i<symbolCount;i++)
+			sym[i].resetToZero();
+	}
 
 	int AllocatedSize() const {return sizeof(AllSymbolClasses) + sizeof(SymbolClass)*symbolCount;}
+
 	//void RecomputeFeatureWeights(double minWeight){
 	//	minWeight = DYNAMIC_SYMBOL_WEIGHT*minWeight + (1.0 - DYNAMIC_SYMBOL_WEIGHT);
 	//	FeatureDistribution overall;

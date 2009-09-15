@@ -1,16 +1,12 @@
 #include "StdAfx.h"
 #include "FeatureDistribution.h"
 
-//to build boost threads lib, in boost_1_39_0 dir execute:
-//bjam --toolset=msvc --build-type=complete --with-thread link=static stage
-
 static const double scaleFactor() {return (double)std::pow(2.0*M_PI, -0.5*NUMBER_OF_FEATURES);}
 static const double logScaleFactor() {return (double)log(2.0*M_PI)*(-0.5*NUMBER_OF_FEATURES);}
 
 static const double scaleFactorC = scaleFactor();
 static const double logScaleFactorC = logScaleFactor();
 static const double mrV = 1.0000000001;
-
 
 //slight variant of CombineWith(vector, weight) to account for variance inside 
 void FeatureDistribution::CombineWithDistribution(FeatureDistribution const & other){
@@ -34,6 +30,20 @@ void FeatureDistribution::initRandom()
 	RecomputeDCfactor();
 }
 
+void FeatureDistribution::resetToZero()
+{
+	logDCfactor=0.0;
+	weightSum = 0.0;//essentially 10-100 lines of weight.
+	meanX.clear(0.0);
+	sX.clear(0.0);
+}
+
+void FeatureDistribution::ScaleWeightBy(double scaleFactor) { 
+	weightSum*=scaleFactor;
+	for (int i=0;i<NUMBER_OF_FEATURES;i++) 
+		sX[i]*=scaleFactor;
+}
+
 //D. H. D. West (1979). Communications of the ACM, 22, 9, 532-535: Updating Mean and Variance Estimates: An Improved Method
 //not going to bother with n/(n-1) factor; this is going to be virtually irrelevant anyhow.
 void FeatureDistribution::CombineWith(FeatureVector const & vect, double weight){
@@ -52,6 +62,5 @@ void FeatureDistribution::RecomputeDCfactor(){
 	logDCfactor = logScaleFactorC;
 	for(int i=0;i<NUMBER_OF_FEATURES;i++) 
 		logDCfactor+= -0.5*log( varX(i) );
-
 }
 

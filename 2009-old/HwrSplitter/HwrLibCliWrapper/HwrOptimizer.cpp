@@ -62,7 +62,7 @@ namespace HwrLibCliWrapper {
 	}
 
 
-	array<int>^ HwrOptimizer::SplitWords(ImageStruct<signed char> block, array<unsigned> ^ sequenceToMatch, array<int> ^ overrideEnds, float shear, int learningIteration, HwrDataModel::TextLine^ textLine,[Out] int % topOffRef, [Out] double % loglikelihood) {
+	array<int>^ HwrOptimizer::SplitWords(ImageStruct<signed char> block, float shear, array<unsigned> ^ sequenceToMatch, array<int> ^ overrideEnds,  int learningIteration, HwrDataModel::TextLine^ textLine, [Out] int % topOffRef, [Out] double % loglikelihood) {
 		using std::min;
 		using std::max;
 		using std::cout;
@@ -77,7 +77,6 @@ namespace HwrLibCliWrapper {
 		int winDensSize = int(winAngleSize*0.76);
 		double featureRelevance = FEATURE_SCALING * exp(-20*dampingFactor) ;
 
-
 		PamImage<BWPixel> shearedImg = ImageProcessor::StructToPamImage(block);
 		ImageBW unsheared = processAndUnshear(shearedImg,shear,textLine->bodyTop,textLine->bodyBot);
 		topOffRef = shearedImg.getWidth() - unsheared.getWidth();
@@ -90,7 +89,6 @@ namespace HwrLibCliWrapper {
 		int shearedH = shearedImg.getHeight();
 		int unshearedW = unsheared.getWidth();
 		int unshearedH = unsheared.getHeight();
-
 #endif
 
 		if(sequenceToMatch->Length != overrideEnds->Length)
