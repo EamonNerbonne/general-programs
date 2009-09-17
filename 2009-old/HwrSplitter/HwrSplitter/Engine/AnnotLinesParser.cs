@@ -80,7 +80,6 @@ namespace HwrSplitter.Engine
         }
         public static WordsImage GetGuessWord(FileInfo file, int pageNum , Dictionary<char, GaussianEstimate> symbolWidths) {
             return new AnnotLinesParser(file, x=>x==pageNum).GuessWords(symbolWidths)[pageNum];
-
         }
 
         public static AnnotLineSingle[] GetAnnotLines(FileInfo file) {

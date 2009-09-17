@@ -16,7 +16,7 @@ namespace HwrDataModel
 		/// </summary>
 		/// <param name="file"></param>
 		/// <returns></returns>
-		public static SymbolClass[] Parse(FileInfo file)
+		public static SymbolClasses Parse(FileInfo file)
 		{
 			//TODO: known limitation: culture-sensitive parsing.
 			Dictionary<char, SymbolClass> symbolsByChar;
@@ -44,7 +44,7 @@ namespace HwrDataModel
 			var symbolClasses = symbolsByChar.Values.OrderBy(c => c.Letter).ToArray();
 			for (int i = 0; i < symbolClasses.Length; i++)
 				symbolClasses[i].Code = (uint)i;
-			return symbolClasses;
+			return new SymbolClasses { Symbol = symbolClasses };
 		}
 	}
 }

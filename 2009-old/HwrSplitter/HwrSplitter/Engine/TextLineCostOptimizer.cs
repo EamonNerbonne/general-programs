@@ -3,65 +3,156 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Windows;
 using System.Windows.Media.Imaging;
+using System.Xml;
 using EmnExtensions;
 using EmnExtensions.DebugTools;
 using EmnExtensions.Filesystem;
 using HwrDataModel;
 using HwrLibCliWrapper;
 using MoreLinq;
-using System.Xml;
-using System.IO.Compression;
-using System.Text.RegularExpressions;
 
 namespace HwrSplitter.Engine
 {
-	public class SymbolClasses : XmlSerializableBase<SymbolClasses>
+	sealed class TextLineWorker : IDisposable
 	{
-		public int Iteration = -1;
-		public int LastPage = -1;
-		public SymbolClass[] Symbol;
+		sealed class Worker : IDisposable
+		{
+			TextLineWorker manager;
+			SymbolLearningData learningCache;
+			Thread thread;
+			public Worker(TextLineWorker manager) {
+				this.manager = manager;
+				learningCache = new SymbolLearningData(manager.optimizer.SymbolCount);
+				thread = new Thread(ProcessLines) { IsBackground = true, };
+				thread.Start();
+			}
+
+			private void ProcessLines() {
+				while (manager.Running) {
+					manager.workStart.WaitOne();
+					try {
+						if (manager.Running)
+							for (int i = manager.ClaimLine(); i < manager.currentLines.Length; i = manager.ClaimLine())
+								ProcessLine(manager.currentLines[i]);
+					} finally {
+						manager.workDone.Release();
+					}
+				}
+			}
+
+			void ProcessLine(TextLine line) {
+				string linetext = line.FullText;
+				if (linetext.Length < 30) {
+					Console.Write("skipped:len=={0}, ", linetext.Length);
+					return;
+				}
+
+#if LOGLINESPEED
+			NiceTimer timer = new NiceTimer();
+			timer.TimeMark("preparing lineguess");
+#endif
+
+				int x0 = Math.Max(0, (int)(line.OuterExtremeLeft + 0.5));
+				int x1 = Math.Min(manager.currentImage.Width, (int)(line.OuterExtremeRight + 0.5));
+				int y0 = (int)(line.top + 0.5);
+				int y1 = (int)(line.bottom + 0.5);
+
+				var croppedLine = manager.currentImage.Image.CropTo(x0, y0, x1, y1);
+#if LOGLINESPEED
+			timer.TimeMark(null);
+#endif
+				manager.optimizer.SplitWords(croppedLine, x0, line, learningCache); //TODO:null should be non-null
+
+				manager.lineDoneEvent(line);
+			}
+
+			public void Dispose() {
+				learningCache.Dispose();
+			}
+		}
+
+		HwrOptimizer optimizer;
+		Worker[] workers;
+		bool running = true;
+
+		HwrPageImage currentImage;
+		TextLine[] currentLines;
+		Action<TextLine> lineDoneEvent;
+		int nextLine = 0;
+		int linesDone = 0;
+
+		object sync = new object();
+		Semaphore workDone;
+		Semaphore workStart;
+
+
+
+		public TextLineWorker(HwrOptimizer optimizer) {
+			int parallelCount = Math.Max(1, System.Environment.ProcessorCount);
+			workers = new Worker[parallelCount];
+			workDone = new Semaphore(0, parallelCount);
+			workStart = new Semaphore(0, parallelCount);
+			for (int i = 0; i < parallelCount; i++)
+				workers[i] = new Worker(this);
+		}
+
+		public void Dispose() {
+			lock (sync) 
+				running = false;
+			workStart.Release(workers.Length);
+			for (int i = 0; i < workers.Length; i++)
+				workDone.WaitOne();
+
+			workDone.Close();
+			workStart.Close();
+		}
+
+		int ClaimLine() {
+			lock (sync)
+				return nextLine++;
+		}
+
+		bool Running { get { lock (sync) return running; } }
+
+		public void ImproveGuess(HwrPageImage image, WordsImage betterGuessWords, Action<TextLine> lineProcessed) {
+			currentImage = image;
+			currentLines = betterGuessWords.textlines;
+			lineDoneEvent = lineProcessed;
+			workStart.Release(workers.Length);
+			for (int i = 0; i < workers.Length; i++)
+				workDone.WaitOne();
+			//TODO: merge learning data back into model.
+		}
+
 	}
 
 	public class TextLineCostOptimizer
 	{
+		const int ThreadCount = 4;
 		static TextLineCostOptimizer() {
 			FeatureDistributionEstimate.FeatureNames = FeatureToString.FeatureNames();
 		}
 		HwrOptimizer nativeOptimizer;
-		SymbolClass[] symbolClasses;
+		SymbolClasses symbolClasses;
+		TextLineWorker[] learningCache;
 		int iteration = 0;
 		public int StartPastPage;
 
 		public TextLineCostOptimizer() {
-
-			if (HwrResources.SymbolsGZ != null) {
-				Console.WriteLine("Loading: {0}", HwrResources.SymbolsGZ.FullName);
-				using (var fileStream = HwrResources.SymbolsGZ.OpenRead())
-				using (var zipStream = new GZipStream(fileStream, CompressionMode.Decompress))
-				using (var xmlreader = XmlReader.Create(zipStream)) {
-					SymbolClasses fromDisk = SymbolClasses.Deserialize(xmlreader);
-					this.iteration = fromDisk.Iteration == -1 ? 0 : fromDisk.Iteration;
-					this.StartPastPage = fromDisk.LastPage;
-					this.symbolClasses = fromDisk.Symbol;
-				}
-			} else if (HwrResources.Symbols != null) {
-				Console.WriteLine("Loading: {0}", HwrResources.Symbols.FullName);
-				using (var fileStream = HwrResources.Symbols.OpenRead())
-				using (var xmlreader = XmlReader.Create(fileStream)) {
-					SymbolClasses fromDisk = SymbolClasses.Deserialize(xmlreader);
-					this.iteration = fromDisk.Iteration == -1 ? 0 : fromDisk.Iteration;
-					this.StartPastPage = fromDisk.LastPage;
-					this.symbolClasses = fromDisk.Symbol;
-				}
-			} else
-				this.symbolClasses = SymbolClassParser.Parse(HwrResources.CharWidthFile, TextLineCostOptimizer.CharPhases);
+			symbolClasses = SymbolClasses.LoadWithFallback(HwrResources.SymbolDir, HwrResources.CharWidthFile);
 
 			nativeOptimizer = new HwrOptimizer(symbolClasses);
+			learningCache = new TextLineWorker[ThreadCount];
+			for (int i = 0; i < ThreadCount; i++) {
+				learningCache[i] = new TextLineWorker(symbolClasses.Count);
+			}
 		}
 
 		static void BoxBlur(double[] arr, int window) {
@@ -86,11 +177,10 @@ namespace HwrSplitter.Engine
 			BoxBlur(image.XProjectionSmart, 4);
 			BoxBlur(image.XProjectionSmart, 4);//sideeffect!
 			LocateLineBodiesImpl(image.XProjectionSmart, betterGuessWords);
-
 		}
 
 		public struct Range { public int start, end;}
-		public void LocateLineBodiesImpl(double[] xProjection, WordsImage betterGuessWords) {
+		public static void LocateLineBodiesImpl(double[] xProjection, WordsImage betterGuessWords) {
 			double[] cum = new double[xProjection.Length + 1];
 			double sum = 0.0;
 			for (int i = 0; true; i++) {
@@ -133,7 +223,7 @@ namespace HwrSplitter.Engine
 				double highDensMean = (cum[highDens1] - cum[highDens0]) / (highDens1 - highDens0);
 				double emptyThreshold = 0.04 * highDensMean;
 
-				for (int y = highDens0 - xHeight * 3/2; y > y0; y--) {
+				for (int y = highDens0 - xHeight * 3 / 2; y > y0; y--) {
 					if (xProjection[y] <= emptyThreshold) {
 						y0 = y;
 						break;
@@ -216,22 +306,9 @@ namespace HwrSplitter.Engine
 		public void ImproveGuess(HwrPageImage image, WordsImage betterGuessWords, Action<TextLine> lineProcessed) {
 			for (int lineI = 0; lineI < betterGuessWords.textlines.Length; lineI++) {
 				var textLine = betterGuessWords.textlines[lineI];
-				StringBuilder linetextB = new StringBuilder();
-				textLine.words.ForEach(w => { linetextB.Append(w.text); linetextB.Append(' '); });
-				string linetext = linetextB.ToString();
-				if (linetext.Length < 30) {
-					Console.Write("skipped:len=={0}, ", linetext.Length);
-					continue;
-				}
 				//if (fractionRegex.IsMatch(linetext)) {
 				//    Console.Write("skipped:fraction, ", linetext.Length);
 				//    continue;
-				//}
-
-				//if (iteration % 100 == 0) {
-				//    nativeOptimizer.SaveToManaged(symbolClasses);
-				//    using (var stream = HwrResources.SymbolDir.GetRelativeFile("symbolsDebug-" + DateTime.Now.ToString("u", CultureInfo.InvariantCulture).Replace(' ', '_').Replace(':', '.') + ".xml").Open(FileMode.Create))
-				//        new SymbolClasses { Symbol = symbolClasses, Iteration = iteration, LastPage = betterGuessWords.pageNum }.SerializeTo(stream);
 				//}
 
 				ImproveLineGuessNew(image, textLine);
@@ -240,103 +317,21 @@ namespace HwrSplitter.Engine
 				Console.Write("{0}[p{1};l{2}=={3}], ", iteration, betterGuessWords.pageNum, textLine.no, textLine.ComputedLikelihood);
 
 			}
-			nativeOptimizer.SaveToManaged(symbolClasses);
-			using (var stream = HwrResources.SymbolDir.GetRelativeFile("symbols-" + DateTime.Now.ToString("u", CultureInfo.InvariantCulture).Replace(' ', '_').Replace(':', '.') + "-p" + betterGuessWords.pageNum + ".xml.gz").Open(FileMode.Create))
-			using (var zipStream = new GZipStream(stream, CompressionMode.Compress))
-				new SymbolClasses { Symbol = symbolClasses, Iteration = iteration, LastPage = betterGuessWords.pageNum }.SerializeTo(zipStream);
-			//Console.WriteLine();
-			//nativeOptimizer.GetFeatureWeights()
-			//    .Zip(FeatureDistributionEstimate.FeatureNames, (weight, name) => name + ": " + weight)
-			//    .Zip(nativeOptimizer.GetFeatureVariances(), (str, variance) => str + " (" + variance + ")")
-			//    .ForEach(Console.WriteLine);
-		}
-
-		private void ImproveLineGuessNew(HwrPageImage image, TextLine lineGuess) {
-#if LOGLINESPEED
-			NiceTimer timer = new NiceTimer();
-			timer.TimeMark("preparing lineguess");
-#endif
-			int topXoffset;
-
-			int x0Est = Math.Max(0, (int)(lineGuess.OuterExtremeLeft + 0.5));
-			int x1Est = Math.Min(image.Width, (int)(lineGuess.OuterExtremeRight + 0.5));
-			int y0 = (int)(lineGuess.top + 0.5);
-			int y1 = (int)(lineGuess.bottom + 0.5);
-
-			Func<char, bool> charKnown = c => symbolClasses.Where(sym => sym.Letter == c).Any();
-
-			var basicLine = lineGuess.TextWithTerminators.Select(letter => charKnown(letter) ? letter : (char)1).ToArray();
-
-			var overrideEnds = from word in lineGuess.words
-							   from oe in Enumerable.Repeat(-1, word.text.Length - 1)
-											.Prepend(word.leftStat == Word.TrackStatus.Manual ? (int)(word.left - x0Est + 0.5) : -1)
-											.Concat(word.rightStat == Word.TrackStatus.Manual ? (int)(word.right - x0Est + 0.5) : -1)
-							   //ok, each word has accounted for its preceeding space and itself
-							   select oe;
-			//we're missing the end of the startSymbol, and the ends of the final space and end symbol.
-
-			overrideEnds = (-1).Concat(overrideEnds).Concat(-1).Concat(-1).ToArray();
-
-			var phaseCodeSeq = (
-				from letter in basicLine
-				from phaseCode in symbolClasses.Where(sym => sym.Letter == letter).Select(sym => sym.Code).OrderBy(code => code)
-				select (uint)phaseCode
-				).ToArray();
-
-			var overrideEndsArray = (from end in overrideEnds
-									 from phase in Enumerable.Range(0, CharPhases)
-									 select phase == CharPhases - 1 ? end : -1).ToArray();
-
-			var croppedLine = image.Image.CropTo(x0Est, y0, x1Est, y1);
-#if LOGLINESPEED
-			timer.TimeMark(null);
-#endif
-
-			double likelihood;
-			int[] charEndPos = nativeOptimizer.SplitWords(
-									croppedLine,
-									phaseCodeSeq,
-									overrideEndsArray,
-									(float)lineGuess.shear, iteration++, lineGuess, out topXoffset, out likelihood);
-			lineGuess.ComputedLikelihood = likelihood;
-			int x0 = x0Est + topXoffset;
-
-			charEndPos = charEndPos.Where((pos, i) => i % CharPhases == CharPhases - 1).Select(x => x + x0).ToArray(); //correct for extra char phases.
-			int currWord = -1;
-
-			lineGuess.computedCharEndpoints = charEndPos;
-
-			char[] charValue = basicLine.ToArray();
-
-			for (int i = 0; i < charValue.Length; i++) {
-				if (charValue[i] == ' ') { //found word boundary
-					if (currWord >= 0) { //then the previous char was the rightmost character of the current word.
-						lineGuess.words[currWord].right = charEndPos[i - 1];
-						lineGuess.words[currWord].rightStat = Word.TrackStatus.Calculated;
-					}
-					currWord++;//space means new word
-					if (currWord < lineGuess.words.Length) //then the endpos of the space must be the beginning pos of the current word.
-					{
-						lineGuess.words[currWord].left = charEndPos[i];
-						lineGuess.words[currWord].leftStat = Word.TrackStatus.Calculated;
-					}
-				}
-			}
-			Debug.Assert(currWord == lineGuess.words.Length);
-
+			nativeOptimizer.SaveToManaged();
+			symbolClasses.Save(HwrResources.SymbolDir);
 		}
 
 		public void ComputeFeatures(HwrPageImage image, TextLine line, out BitmapSource featureImage, out Point offset) {
 			int topXoffset;
 
-			int x0Est = Math.Max(0, (int)(line.OuterExtremeLeft + 0.5));
-			int x1Est = Math.Min(image.Width, (int)(line.OuterExtremeRight + 0.5));
+			int x0 = Math.Max(0, (int)(line.OuterExtremeLeft + 0.5));
+			int x1 = Math.Min(image.Width, (int)(line.OuterExtremeRight + 0.5));
 			int y0 = (int)(line.top + 0.5);
 			int y1 = (int)(line.bottom + 0.5);
 
-			ImageStruct<float> data = ImageProcessor.ExtractFeatures(image.Image.CropTo(x0Est, y0, x1Est, y1), line, out topXoffset);
+			ImageStruct<float> data = ImageProcessor.ExtractFeatures(image.Image.CropTo(x0, y0, x1, y1), line, out topXoffset);
 			int featDataY = y0;
-			int featDataX = (int)x0Est + topXoffset;
+			int featDataX = (int)x0 + topXoffset;
 			var featImgRGB = data.MapTo(f => (byte)(255.9 * f)).MapTo(b => new PixelArgb32(255, b, b, b));
 			foreach (int wordBoundary in
 							from word in line.words
@@ -367,15 +362,6 @@ namespace HwrSplitter.Engine
 			offset = new Point(featDataX, featDataY);
 		}
 
-		public Dictionary<char, GaussianEstimate> MakeSymbolWidthEstimate() {
-			return (
-					from symbolClass in symbolClasses
-					group symbolClass.Length by symbolClass.Letter into symbolsByLetter
-					select symbolsByLetter
-				).ToDictionary(
-					symbolGroup => symbolGroup.Key,
-					symbolGroup => symbolGroup.Aggregate((a, b) => a + b)
-				);
-		}
+		public Dictionary<char, GaussianEstimate> MakeSymbolWidthEstimate() { return symbolClasses.Symbol.ToDictionary(sym => sym.Letter, sym => sym.Length); }
 	}
 }

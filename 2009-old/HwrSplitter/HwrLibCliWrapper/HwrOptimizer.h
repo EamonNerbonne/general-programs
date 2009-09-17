@@ -7,6 +7,7 @@
 #include "ImageProcessor.h"
 
 #include "WordSplitSolver.h"
+#include "SymbolLearningData.h"
 
 namespace HwrLibCliWrapper {
 	public ref class HwrOptimizer {
@@ -21,6 +22,7 @@ namespace HwrLibCliWrapper {
 		}
 		~HwrOptimizer() { this->!HwrOptimizer(); }
 	public:
+		property int SymbolCount {int get() {return managedSymbols->Count;}}
 		static void CopyToNative(HwrDataModel::SymbolClass ^ managedSymbol, SymbolClass & nativeSymbol);
 
 		static void CopyToManaged(SymbolClass const & nativeSymbol, HwrDataModel::SymbolClass^ managedSymbol);
@@ -66,7 +68,7 @@ namespace HwrLibCliWrapper {
 		// overrideEnds - a manually specified endpoint (relative to block's start) for each symbol, negative for those (common) symbols where no manually specified endpoint exists
 		// topOffRef - will be set to the amount of pixels the top row was shifted to account for shear
 		// learningIteration - the current learning iteration; used to decrease the weight of symbolclasses (for instance) and to improve 
-		array<int>^ HwrOptimizer::SplitWords(ImageStruct<signed char> block, int cropXoffset, HwrDataModel::TextLine^ textLine);
+		void HwrOptimizer::SplitWords(ImageStruct<signed char> block, int cropXoffset, HwrDataModel::TextLine^ textLine, SymbolLearningData ^ dataSink);
 	};
 }
 

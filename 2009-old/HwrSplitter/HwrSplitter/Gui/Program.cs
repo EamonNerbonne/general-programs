@@ -76,7 +76,7 @@ namespace HwrSplitter.Gui
 			LoadAnnot();
 
 
-			var imgNumStrs = (from filepath in HwrDataModel.HwrResources.ImageDir.GetFiles("NL_HaNa_H2_7823_*.tif")
+			var imgNumStrs = (from filepath in HwrResources.ImageDir.GetFiles("NL_HaNa_H2_7823_*.tif")
 							  let m = Regex.Match(filepath.Name, @"^NL_HaNa_H2_7823_(?<num>\d+).tif$")
 							  where m.Success
 							  let numstr = m.Groups["num"].Value
@@ -92,7 +92,7 @@ namespace HwrSplitter.Gui
 
 			while (true) {
 				foreach (var possiblePage in imgNumStrs) {
-					imageFileInfo = HwrDataModel.HwrResources.ImageDir.GetRelativeFile("NL_HaNa_H2_7823_" + possiblePage + ".tif");
+					imageFileInfo = HwrResources.ImageDir.GetRelativeFile("NL_HaNa_H2_7823_" + possiblePage + ".tif");
 
 					//Log("Chose page:" + int.Parse(possiblePage));
 

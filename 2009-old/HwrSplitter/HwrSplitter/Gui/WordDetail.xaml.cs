@@ -96,8 +96,8 @@ namespace HwrSplitter.Gui
 			foreach (var line in ToZoom.Children.OfType<FrameworkElement>().Where(line => line.Tag == this).ToArray())
 				ToZoom.Children.Remove(line);
 
-			if (textline.computedCharEndpoints != null)
-				foreach (var endX in textline.computedCharEndpoints) {
+			if (textline.ComputedCharEndpoints != null)
+				foreach (var endX in textline.ComputedCharEndpoints) {
 					ToZoom.Children.Add(new Line {//char separator
 						X1 = endX + textline.XOffsetForYOffset(textline.bodyTop),
 						X2 = endX + textline.XOffsetForYOffset(textline.bodyBot),

@@ -27,6 +27,31 @@ namespace HwrDataModel
 		public double ComputedLikelihood { get { return computedLikelihood; } }
 		public void SetComputedCharEndpoints(int[] endpoints,  double likelihood, Word.TrackStatus endpointSource)
 		{
+			//lineGuess.ComputedLikelihood = likelihood;
+			//int x0 = x0Est + topXoffset;
+
+			//charEndPos = charEndPos.Where((pos, i) => i % CharPhases == CharPhases - 1).Select(x => x + x0).ToArray(); //correct for extra char phases.
+			//int currWord = -1;
+
+			//lineGuess.computedCharEndpoints = charEndPos;
+
+			//char[] charValue = basicLine.ToArray();
+
+			//for (int i = 0; i < charValue.Length; i++) {
+			//    if (charValue[i] == ' ') { //found word boundary
+			//        if (currWord >= 0) { //then the previous char was the rightmost character of the current word.
+			//            lineGuess.words[currWord].right = charEndPos[i - 1];
+			//            lineGuess.words[currWord].rightStat = Word.TrackStatus.Calculated;
+			//        }
+			//        currWord++;//space means new word
+			//        if (currWord < lineGuess.words.Length) //then the endpos of the space must be the beginning pos of the current word.
+			//        {
+			//            lineGuess.words[currWord].left = charEndPos[i];
+			//            lineGuess.words[currWord].leftStat = Word.TrackStatus.Calculated;
+			//        }
+			//    }
+			//}
+			//Debug.Assert(currWord == lineGuess.words.Length);
 
 			//TODO:implement
 		}

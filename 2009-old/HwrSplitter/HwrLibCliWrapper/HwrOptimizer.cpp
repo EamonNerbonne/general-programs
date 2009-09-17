@@ -62,7 +62,7 @@ namespace HwrLibCliWrapper {
 	}
 
 
-	array<int>^ HwrOptimizer::SplitWords(ImageStruct<signed char> block, int cropXoffset, HwrDataModel::TextLine^ textLine) {
+	void HwrOptimizer::SplitWords(ImageStruct<signed char> block, int cropXoffset, HwrDataModel::TextLine^ textLine, SymbolLearningData ^ dataSink  ) {
 		using std::min;
 		using std::max;
 		using std::cout;
@@ -131,7 +131,7 @@ namespace HwrLibCliWrapper {
 
 		textLine->SetComputedCharEndpoints(absoluteEndpoints, computedLikelihood, HwrDataModel::Word::TrackStatus::Calculated);
 
-		splitSolve.Learn(dampingFactor); //TODO:fix up
-		return retval;
+		splitSolve.Learn(dampingFactor, *dataSink->DataSink()); //TODO:fix up
+		dataSink->IncIteration();
 	}
 }
