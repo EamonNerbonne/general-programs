@@ -1,4 +1,12 @@
-#include "stdafx.h"
+#define UNICODE 1
+// Exclude rarely used parts of the windows headers
+#define WIN32_LEAN_AND_MEAN
+#include <Windows.h>
+#include <stdio.h>
+#include <io.h>
+#include <fcntl.h>
+#include <ios>
+
 #include "StdoutRedirector.h"
 using namespace System::Threading;
 using namespace Microsoft::Win32::SafeHandles;

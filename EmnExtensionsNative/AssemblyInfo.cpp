@@ -1,5 +1,3 @@
-#include "stdafx.h"
-
 using namespace System;
 using namespace System::Reflection;
 using namespace System::Runtime::CompilerServices;
@@ -14,9 +12,9 @@ using namespace System::Security::Permissions;
 [assembly:AssemblyTitleAttribute("EmnExtensionsNative")];
 [assembly:AssemblyDescriptionAttribute("")];
 [assembly:AssemblyConfigurationAttribute("")];
-[assembly:AssemblyCompanyAttribute("Eamon Nerbonne")];
+[assembly:AssemblyCompanyAttribute("Microsoft")];
 [assembly:AssemblyProductAttribute("EmnExtensionsNative")];
-[assembly:AssemblyCopyrightAttribute("Copyright (c) Eamon Nerbonne 2008")];
+[assembly:AssemblyCopyrightAttribute("Copyright (c) Microsoft 2009")];
 [assembly:AssemblyTrademarkAttribute("")];
 [assembly:AssemblyCultureAttribute("")];
 

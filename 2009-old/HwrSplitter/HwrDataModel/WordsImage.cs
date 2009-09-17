@@ -42,6 +42,7 @@ namespace HwrDataModel
 		}
 
 		public IEnumerable<WordPair> MatchWordPairs(WordsImage other) {
+			
 			if (other == null)
 				return Enumerable.Empty<WordPair>();
 			return
@@ -54,7 +55,7 @@ namespace HwrDataModel
 				from otherWords in otherWordsByText
 				let myWords = myWordsByText[otherWords.Key]
 				where otherWords.Count() == myWords.Count()
-				from pair in otherWords.Zip(myWords, (otherW, myW) => new WordPair { Other = otherW, MyWord = myW })
+				from pair in MoreEnumerable.Zip(otherWords,myWords, (otherW, myW) => new WordPair { Other = otherW, MyWord = myW })
 				select pair;
 		}
 
@@ -100,7 +101,7 @@ namespace HwrDataModel
 					from trainWords in trainWordsByText
 					join myWords in myWordsByText on trainWords.Key equals myWords.Key
 					where trainWords.Count() == myWords.Count()
-					from pair in trainWords.Zip(myWords, (trainW, myW) => new { TrainWord = trainW, MyWord = myW })
+					from pair in MoreEnumerable.Zip(trainWords, myWords, (trainW, myW) => new { TrainWord = trainW, MyWord = myW })
 					select pair;
 
 				foreach (var pair in trainPairs) {

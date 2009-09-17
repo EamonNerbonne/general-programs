@@ -20,7 +20,10 @@
 
 #define WIN32_LEAN_AND_MEAN             // Exclude rarely-used stuff from Windows headers
 
-#pragma warning (disable:4996)
+#ifdef _MSC_VER
+#pragma warning(disable:4996) // deprecated
+#endif
+
 #define _USE_MATH_DEFINES
 #define _CRT_RAND_S
 #include <stdlib.h>
@@ -47,9 +50,5 @@
 #include <boost/random/variate_generator.hpp>
 #include <boost/random/mersenne_twister.hpp>
 
-
-#ifdef _MSC_VER
-#pragma warning(disable:4996) // deprecated
-#endif
 
 
