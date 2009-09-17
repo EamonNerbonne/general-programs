@@ -16,6 +16,6 @@ namespace HwrSplitter.Engine
 		public static DirectoryInfo WordsGuessDir { get { return DataDir.CreateSubdirectory("words-guess"); } }
 		public static DirectoryInfo WordsTrainDir { get { return DataDir.CreateSubdirectory("words-train"); } }
 		public static DirectoryInfo ImageDir { get { return HwrDir.CreateSubdirectory("Original"); } }
-		public static DirectoryInfo SymbolDir { get { return HwrDir.CreateSubdirectory("Symbols"); } }
+		public static DirectoryInfo SymbolOutputDir { get { return HwrDir.CreateSubdirectory("Symbols"); } }
 	}
 }

@@ -75,20 +75,19 @@ namespace HwrSplitter.Gui
 			manager.optimizer = new TextLineCostOptimizer();
 			LoadAnnot();
 
+			var imgNumStrs = (
+					from filepath in HwrResources.ImageDir.GetFiles("NL_HaNa_H2_7823_*.tif")
+					let m = Regex.Match(filepath.Name, @"^NL_HaNa_H2_7823_(?<num>\d+).tif$")
+					where m.Success
+					let numstr = m.Groups["num"].Value
+					let num = int.Parse(numstr)
+					where annot_lines.ContainsKey(num)
+					select numstr
+				).ToArray();
 
-			var imgNumStrs = (from filepath in HwrResources.ImageDir.GetFiles("NL_HaNa_H2_7823_*.tif")
-							  let m = Regex.Match(filepath.Name, @"^NL_HaNa_H2_7823_(?<num>\d+).tif$")
-							  where m.Success
-							  let numstr = m.Groups["num"].Value
-							  let num = int.Parse(numstr)
-							  where annot_lines.ContainsKey(num)
-							  select numstr).ToArray();
-
-			imgNumStrs = imgNumStrs.Where(page => int.Parse(page) > manager.optimizer.StartPastPage)
-				.Concat(imgNumStrs.Where(page => int.Parse(page) <= manager.optimizer.StartPastPage))
+			imgNumStrs = imgNumStrs.Where(page => int.Parse(page) >= manager.optimizer.NextPage)
+				.Concat(imgNumStrs.Where(page => int.Parse(page) <= manager.optimizer.NextPage))
 				.ToArray();//cycle the pages so we start learning past where we last learnt from.
-
-
 
 			while (true) {
 				foreach (var possiblePage in imgNumStrs) {
@@ -103,18 +102,18 @@ namespace HwrSplitter.Gui
 					manager.words = annot_lines[int.Parse(possiblePage)];
 
 
-					WordsImage handChecked=null;
+					WordsImage handChecked = null;
 					FileInfo trainFile = HwrResources.WordsTrainDir.GetRelativeFile("NL_HaNa_H2_7823_" + possiblePage + ".words");
 					try {
 						if (trainFile.Exists) {
 							handChecked = new WordsImage(trainFile);
-							foreach(var line in handChecked.textlines)
-								foreach (var word in line.words) 
+							foreach (var line in handChecked.textlines)
+								foreach (var word in line.words)
 									word.rightStat = word.leftStat = word.topStat = word.botStat = Word.TrackStatus.Manual;
 						}
 					} catch (Exception e) { Console.WriteLine(e.ToString()); }//if this fails, we don't use the manually entered xml.
 
-					manager.optimizer.LocateLineBodies(manager.PageImage, manager.words);
+					TextLineYPosition.LocateLineBodies(manager.PageImage, manager.words);
 
 					manager.words.SetFromManualExample(handChecked);
 

@@ -67,8 +67,8 @@ namespace HwrDataModel
 				: Load(newestFile);
 		}
 
-		public static SymbolClasses LoadWithFallback(DirectoryInfo symbolsDir, FileInfo charWidthFile) { 
-			return TryLoad(symbolsDir) ?? SymbolClassParser.Parse(charWidthFile); 
+		public static SymbolClasses LoadWithFallback(DirectoryInfo dataDir, FileInfo charWidthFile) { 
+			return TryLoad(dataDir) ?? SymbolClassParser.Parse(charWidthFile); 
 		}
 		public void Save(DirectoryInfo saveDir) {
 			using (var stream = saveDir.GetRelativeFile("symbols-" + DateTime.Now.ToString("u", CultureInfo.InvariantCulture).Replace(' ', '_').Replace(':', '.') + "-p" + nextPage + ".xml.gz").Open(FileMode.Create))
