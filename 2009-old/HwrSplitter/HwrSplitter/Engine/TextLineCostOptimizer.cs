@@ -27,29 +27,39 @@ namespace HwrSplitter.Engine
 			TextLineWorker manager;
 			SymbolLearningData learningCache;
 			Thread thread;
-			public Worker(TextLineWorker manager) {
+			public Worker(TextLineWorker manager)
+			{
 				this.manager = manager;
 				learningCache = new SymbolLearningData(manager.optimizer.SymbolCount);
 				thread = new Thread(ProcessLines) { IsBackground = true, };
 				thread.Start();
 			}
 
-			private void ProcessLines() {
-				while (manager.Running) {
+			private void ProcessLines()
+			{
+				while (true)
+				{
 					manager.workStart.WaitOne();
-					try {
+					try
+					{
 						if (manager.Running)
 							for (int i = manager.ClaimLine(); i < manager.currentLines.Length; i = manager.ClaimLine())
 								ProcessLine(manager.currentLines[i]);
-					} finally {
+						else
+							break;
+					}
+					finally
+					{
 						manager.workDone.Release();
 					}
 				}
 			}
 
-			void ProcessLine(TextLine line) {
+			void ProcessLine(TextLine line)
+			{
 				string linetext = line.FullText;
-				if (linetext.Length < 30) {
+				if (linetext.Length < 30)
+				{
 					Console.Write("skipped:len=={0}, ", linetext.Length);
 					return;
 				}
@@ -58,7 +68,6 @@ namespace HwrSplitter.Engine
 			NiceTimer timer = new NiceTimer();
 			timer.TimeMark("preparing lineguess");
 #endif
-
 				int x0 = Math.Max(0, (int)(line.OuterExtremeLeft + 0.5));
 				int x1 = Math.Min(manager.currentImage.Width, (int)(line.OuterExtremeRight + 0.5));
 				int y0 = (int)(line.top + 0.5);
@@ -73,7 +82,8 @@ namespace HwrSplitter.Engine
 				manager.lineDoneEvent(line);
 			}
 
-			public void Dispose() {
+			public void Dispose()
+			{
 				learningCache.Dispose();
 			}
 		}
@@ -94,7 +104,8 @@ namespace HwrSplitter.Engine
 
 
 
-		public TextLineWorker(HwrOptimizer optimizer) {
+		public TextLineWorker(HwrOptimizer optimizer)
+		{
 			int parallelCount = Math.Max(1, System.Environment.ProcessorCount);
 			workers = new Worker[parallelCount];
 			workDone = new Semaphore(0, parallelCount);
@@ -103,8 +114,9 @@ namespace HwrSplitter.Engine
 				workers[i] = new Worker(this);
 		}
 
-		public void Dispose() {
-			lock (sync) 
+		public void Dispose()
+		{
+			lock (sync)
 				running = false;
 			workStart.Release(workers.Length);
 			for (int i = 0; i < workers.Length; i++)
@@ -114,14 +126,16 @@ namespace HwrSplitter.Engine
 			workStart.Close();
 		}
 
-		int ClaimLine() {
+		int ClaimLine()
+		{
 			lock (sync)
 				return nextLine++;
 		}
 
 		bool Running { get { lock (sync) return running; } }
 
-		public void ImproveGuess(HwrPageImage image, WordsImage betterGuessWords, Action<TextLine> lineProcessed) {
+		public void ImproveGuess(HwrPageImage image, WordsImage betterGuessWords, Action<TextLine> lineProcessed)
+		{
 			currentImage = image;
 			currentLines = betterGuessWords.textlines;
 			lineDoneEvent = lineProcessed;
@@ -135,43 +149,42 @@ namespace HwrSplitter.Engine
 
 	public class TextLineCostOptimizer
 	{
-		const int ThreadCount = 4;
-		static TextLineCostOptimizer() {
+		static TextLineCostOptimizer()
+		{
 			FeatureDistributionEstimate.FeatureNames = FeatureToString.FeatureNames();
 		}
 		HwrOptimizer nativeOptimizer;
 		SymbolClasses symbolClasses;
-		TextLineWorker[] learningCache;
-		int iteration = 0;
-		public int StartPastPage;
+		TextLineWorker bgWorker;
 
-		public TextLineCostOptimizer() {
+		public TextLineCostOptimizer()
+		{
 			symbolClasses = SymbolClasses.LoadWithFallback(HwrResources.SymbolDir, HwrResources.CharWidthFile);
-
 			nativeOptimizer = new HwrOptimizer(symbolClasses);
-			learningCache = new TextLineWorker[ThreadCount];
-			for (int i = 0; i < ThreadCount; i++) {
-				learningCache[i] = new TextLineWorker(symbolClasses.Count);
-			}
+			bgWorker = new TextLineWorker(nativeOptimizer);
 		}
 
-		static void BoxBlur(double[] arr, int window) {
+		static void BoxBlur(double[] arr, int window)
+		{
 			double[] cum = new double[arr.Length + 1];
 			double sum = 0.0;
-			for (int i = 0; true; i++) {
+			for (int i = 0; true; i++)
+			{
 				cum[i] = sum;
 				if (i == arr.Length) break;
 				sum += arr[i];
 			}
 
 			int botWindow = window / 2, topWindow = (window + 1) / 2;
-			for (int i = 0; i < arr.Length; i++) {
+			for (int i = 0; i < arr.Length; i++)
+			{
 				int minI = Math.Max(0, i - botWindow), maxI = Math.Min(cum.Length - 1, i + topWindow);
 				arr[i] = (cum[maxI] - cum[minI]) / (maxI - minI);
 			}
 		}
 
-		public void LocateLineBodies(HwrPageImage image, WordsImage betterGuessWords) {
+		public void LocateLineBodies(HwrPageImage image, WordsImage betterGuessWords)
+		{
 			image.ComputeXProjection((int)(betterGuessWords.textlines[0].left + 0.5), (int)(betterGuessWords.textlines[0].right + 0.5));
 			BoxBlur(image.XProjectionSmart, 4);
 			BoxBlur(image.XProjectionSmart, 4);
@@ -179,17 +192,20 @@ namespace HwrSplitter.Engine
 			LocateLineBodiesImpl(image.XProjectionSmart, betterGuessWords);
 		}
 
-		public struct Range { public int start, end;}
-		public static void LocateLineBodiesImpl(double[] xProjection, WordsImage betterGuessWords) {
+		//public struct Range { public int start, end;}
+		static void LocateLineBodiesImpl(double[] xProjection, WordsImage betterGuessWords)
+		{
 			double[] cum = new double[xProjection.Length + 1];
 			double sum = 0.0;
-			for (int i = 0; true; i++) {
+			for (int i = 0; true; i++)
+			{
 				cum[i] = sum;
 				if (i == xProjection.Length) break;
 				sum += xProjection[i];
 			}
 
-			for (int lineI = 0; lineI < betterGuessWords.textlines.Length; lineI++) {
+			for (int lineI = 0; lineI < betterGuessWords.textlines.Length; lineI++)
+			{
 				TextLine textLine = betterGuessWords.textlines[lineI];
 				int y0 = (int)(textLine.top + 0.5);
 				int y1 = (int)(textLine.bottom + 0.5);
@@ -223,14 +239,18 @@ namespace HwrSplitter.Engine
 				double highDensMean = (cum[highDens1] - cum[highDens0]) / (highDens1 - highDens0);
 				double emptyThreshold = 0.04 * highDensMean;
 
-				for (int y = highDens0 - xHeight * 3 / 2; y > y0; y--) {
-					if (xProjection[y] <= emptyThreshold) {
+				for (int y = highDens0 - xHeight * 3 / 2; y > y0; y--)
+				{
+					if (xProjection[y] <= emptyThreshold)
+					{
 						y0 = y;
 						break;
 					}
 				}
-				for (int y = highDens1 + xHeight * 3 / 2; y < y1; y++) {
-					if (xProjection[y] <= emptyThreshold) {
+				for (int y = highDens1 + xHeight * 3 / 2; y < y1; y++)
+				{
+					if (xProjection[y] <= emptyThreshold)
+					{
 						y1 = y;
 						break;
 					}
@@ -239,18 +259,21 @@ namespace HwrSplitter.Engine
 				//now, we may need to move words and thus their x-coordinates as well.
 				double yShift = y0 - textLine.top; //shift line from textLine.top to y0 - usually negative, not always.
 				double xShift = textLine.XOffsetForYOffset(yShift);
-				foreach (var word in textLine.words) {
+				foreach (var word in textLine.words)
+				{
 					word.top = y0;
 					word.left += xShift;
 					word.right += xShift;
 					word.bottom = y1;
 				}
 
-				if (textLine.bodyTop != 0) {
+				if (textLine.bodyTop != 0)
+				{
 					textLine.bodyBot += -(int)(yShift + 0.5);//we shouldn't shift the body;
 					textLine.bodyTop += -(int)(yShift + 0.5);//we shouldn't shift the body;
 				}
-				if (textLine.bodyTopAlt != 0) {
+				if (textLine.bodyTopAlt != 0)
+				{
 					textLine.bodyBotAlt += -(int)(yShift + 0.5);//we shouldn't shift the body;
 					textLine.bodyTopAlt += -(int)(yShift + 0.5);//we shouldn't shift the body;
 				}
@@ -275,12 +298,15 @@ namespace HwrSplitter.Engine
 
 				bool improvement = true;
 
-				while (improvement) {
+				while (improvement)
+				{
 					improvement = false;
 					double bestRating = bodyRating0(bodyY0);
 
-					for (int newBY0 = y0 + 1; newBY0 < bodyY1; newBY0++) {
-						if (bodyRating0(newBY0) > bestRating) {
+					for (int newBY0 = y0 + 1; newBY0 < bodyY1; newBY0++)
+					{
+						if (bodyRating0(newBY0) > bestRating)
+						{
 							bodyY0 = newBY0;
 							bestRating = bodyRating0(newBY0);
 							improvement = true;
@@ -289,8 +315,10 @@ namespace HwrSplitter.Engine
 
 					bestRating = bodyRating1(bodyY1);
 
-					for (int newBY1 = bodyY0 + 1; newBY1 < y1; newBY1++) {
-						if (bodyRating1(newBY1) > bestRating) {
+					for (int newBY1 = bodyY0 + 1; newBY1 < y1; newBY1++)
+					{
+						if (bodyRating1(newBY1) > bestRating)
+						{
 							bodyY1 = newBY1;
 							bestRating = bodyRating1(newBY1);
 							improvement = true;
@@ -303,25 +331,20 @@ namespace HwrSplitter.Engine
 		}
 
 		static Regex fractionRegex = new Regex(@"\d/\d", RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.ExplicitCapture);
-		public void ImproveGuess(HwrPageImage image, WordsImage betterGuessWords, Action<TextLine> lineProcessed) {
-			for (int lineI = 0; lineI < betterGuessWords.textlines.Length; lineI++) {
-				var textLine = betterGuessWords.textlines[lineI];
-				//if (fractionRegex.IsMatch(linetext)) {
-				//    Console.Write("skipped:fraction, ", linetext.Length);
-				//    continue;
-				//}
+		public void ImproveGuess(HwrPageImage image, WordsImage betterGuessWords, Action<TextLine> lineProcessed)
+		{
+			bgWorker.ImproveGuess(image, betterGuessWords, line =>
+			{
+				Console.Write("[p{0};l{1}=={2}], ", betterGuessWords.pageNum, line.no, line.ComputedLikelihood);
+				lineProcessed(line);
+			});
 
-				ImproveLineGuessNew(image, textLine);
-
-				lineProcessed(textLine);
-				Console.Write("{0}[p{1};l{2}=={3}], ", iteration, betterGuessWords.pageNum, textLine.no, textLine.ComputedLikelihood);
-
-			}
-			nativeOptimizer.SaveToManaged();
+			nativeOptimizer.SaveToManaged(); //TODO: syncup!
 			symbolClasses.Save(HwrResources.SymbolDir);
 		}
 
-		public void ComputeFeatures(HwrPageImage image, TextLine line, out BitmapSource featureImage, out Point offset) {
+		public void ComputeFeatures(HwrPageImage image, TextLine line, out BitmapSource featureImage, out Point offset)
+		{
 			int topXoffset;
 
 			int x0 = Math.Max(0, (int)(line.OuterExtremeLeft + 0.5));
@@ -338,8 +361,10 @@ namespace HwrSplitter.Engine
 							from edge in new[] { word.left, word.right }
 							let edgeTrans = (int)(edge + 0.5) - featDataX
 							where edgeTrans >= 0 && edgeTrans < featImgRGB.Width
-							select edgeTrans) {
-				for (int y = 0; y < featImgRGB.Height; y++) {
+							select edgeTrans)
+			{
+				for (int y = 0; y < featImgRGB.Height; y++)
+				{
 					var pix = featImgRGB[wordBoundary, y];
 					pix.R = 255;
 					pix.B = 255;
@@ -347,7 +372,8 @@ namespace HwrSplitter.Engine
 				}
 			}
 
-			for (int x = 0; x < featImgRGB.Width; x++) { //only useful for scaled version, not for features!
+			for (int x = 0; x < featImgRGB.Width; x++)
+			{ //only useful for scaled version, not for features!
 				var pix = featImgRGB[x, line.bodyTop];
 				pix.G = 255;
 				featImgRGB[x, line.bodyTop] = pix;
