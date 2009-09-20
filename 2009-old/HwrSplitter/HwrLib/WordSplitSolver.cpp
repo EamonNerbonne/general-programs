@@ -294,7 +294,7 @@ void WordSplitSolver::init_P_x_u() {
 		std::cout<<"!!";
 	err=false;
 
-	P_x_u.resize(imageLen()*strLen()*SUB_PHASE_COUNT);
+	Pi_x_u_i.resize(imageLen()*strLen()*SUB_PHASE_COUNT);
 
 
 	for(short u=0; u<strLen(); u++) {
