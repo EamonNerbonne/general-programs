@@ -6,7 +6,6 @@
 #pragma once
 
 
-
 // The following macros define the minimum required platform.  The minimum required platform
 // is the earliest version of Windows, Internet Explorer etc. that has the necessary features to run 
 // your application.  The macros work by enabling all features available on platform versions up to and 
@@ -20,12 +19,19 @@
 
 #define WIN32_LEAN_AND_MEAN             // Exclude rarely-used stuff from Windows headers
 
+#define _USE_MATH_DEFINES
+#define _CRT_RAND_S
+
+#if defined(_MANAGED)
+#define NOMINMAX
+#include <windows.h>
+#define BOOST_USE_WINDOWS_H
+#endif
+
 #ifdef _MSC_VER
 #pragma warning(disable:4996) // deprecated
 #endif
 
-#define _USE_MATH_DEFINES
-#define _CRT_RAND_S
 #include <stdlib.h>
 #include <iostream>
 #include <iomanip>

@@ -182,6 +182,10 @@ void floodfill_border(PamImage<RGBPixel> const& im);
 void floodfill_corners(PamImage<RGBPixel> const& im);
 
 //rest
+#if _MANAGED
+#undef max
+#undef min
+#endif
 
 template<typename T>
 void fastblur(T& data, int dataCnt, int win,int iter, double blurRatio) {

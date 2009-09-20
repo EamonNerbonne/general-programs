@@ -27,18 +27,18 @@ namespace HwrLibCliWrapper {
 		double featureRelevance = FEATURE_SCALING * exp(-20*dampingFactor) ;
 
 		PamImage<BWPixel> shearedImg = ImageProcessor::StructToPamImage(block);
-		ImageBW unsheared = processAndUnshear(shearedImg, (float)textLine->shear, textLine->bodyTop,textLine->bodyBot);//bodyTop/bodyBot are relative to line top, not to page top.
-		int topShearOffset = unsheared.getWidth() - shearedImg.getWidth();
+		ImageBW deshearedImg = processAndUnshear(shearedImg, (float)textLine->shear, textLine->bodyTop,textLine->bodyBot);//bodyTop/bodyBot are relative to line top, not to page top.
+		int topShearOffset = shearedImg.getWidth() - deshearedImg.getWidth();
 
-		ImageFeatures feats(unsheared,textLine->bodyTop,textLine->bodyBot, winDensSize,winAngleSize,blurIter);
+		ImageFeatures feats(deshearedImg,textLine->bodyTop,textLine->bodyBot, winDensSize,winAngleSize,blurIter);
 		textLine->bodyBot = feats.baseline; //these should not have changed.
 		textLine->bodyTop = feats.topline; //these should not have changed.
 
 #ifdef _DEBUG
 		int shearedW = shearedImg.getWidth();
 		int shearedH = shearedImg.getHeight();
-		int unshearedW = unsheared.getWidth();
-		int unshearedH = unsheared.getHeight();
+		int unshearedW = deshearedImg.getWidth();
+		int unshearedH = deshearedImg.getHeight();
 #endif
 
 		array<wchar_t>^ textArray = Enumerable::ToArray(textLine->TextWithTerminators);

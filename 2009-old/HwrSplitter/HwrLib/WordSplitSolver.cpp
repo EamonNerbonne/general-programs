@@ -423,6 +423,12 @@ void WordSplitSolver::init_pf_x_u() {
 }
 
 
+#if _MANAGED
+#undef max
+#endif
+
+//double minimum
+
 void WordSplitSolver::init_opC_x_u_i(double featureRelevanceFactor) {
 	using namespace std;
 	opC_x_u_i.resize(strLen()*SUB_PHASE_COUNT*imageLen1);
@@ -434,7 +440,7 @@ void WordSplitSolver::init_opC_x_u_i(double featureRelevanceFactor) {
 			opC(0,u,i) =  0.0; //marginalize starting with 0
 
 	for(unsigned x=1;x<imageLen1;x++) {
-		double maxCL(-numeric_limits<double>::max());
+		double maxCL = -std::numeric_limits<double>::max();
 		for(short u=0;u<strLen();u++ )
 			for(short i=0;i<SUB_PHASE_COUNT;i++ ) {
 				opC(x,u,i) = op(x-1,u,i)  + opC(x-1,u,i); //marginalize

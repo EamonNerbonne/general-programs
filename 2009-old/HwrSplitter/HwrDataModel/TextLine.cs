@@ -24,37 +24,43 @@ namespace HwrDataModel
 		double computedLikelihood = double.NaN;
 		public int[] ComputedCharEndpoints { get { return computedCharEndpoints; } }
 		public double ComputedLikelihood { get { return computedLikelihood; } }
-		public void SetComputedCharEndpoints(int[] endpoints,  double likelihood, Word.TrackStatus endpointSource)
-		{
-			//don't overwrite manually set endpoints!!!!
+		public void SetComputedCharEndpoints(int[] endpoints, double likelihood, Word.TrackStatus endpointSource) {
+			//remember: don't overwrite manually set endpoints!!!!
 
-			//lineGuess.ComputedLikelihood = likelihood;
-			//int x0 = x0Est + topXoffset;
+			computedLikelihood = likelihood;
+			computedCharEndpoints = endpoints;
 
-			//charEndPos = charEndPos.Where((pos, i) => i % CharPhases == CharPhases - 1).Select(x => x + x0).ToArray(); //correct for extra char phases.
-			//int currWord = -1;
+			char[] textChars = TextWithTerminators.ToArray();
+			if (textChars.Length != endpoints.Length) throw new ArgumentException(string.Format("Passed {0} endspoints for {1} characters ({0}!={1})", endpoints.Length, textChars.Length));
 
-			//lineGuess.computedCharEndpoints = charEndPos;
+			int currWordI = -1; //start before the first word.
 
-			//char[] charValue = basicLine.ToArray();
-
-			//for (int i = 0; i < charValue.Length; i++) {
-			//    if (charValue[i] == ' ') { //found word boundary
-			//        if (currWord >= 0) { //then the previous char was the rightmost character of the current word.
-			//            lineGuess.words[currWord].right = charEndPos[i - 1];
-			//            lineGuess.words[currWord].rightStat = Word.TrackStatus.Calculated;
-			//        }
-			//        currWord++;//space means new word
-			//        if (currWord < lineGuess.words.Length) //then the endpos of the space must be the beginning pos of the current word.
-			//        {
-			//            lineGuess.words[currWord].left = charEndPos[i];
-			//            lineGuess.words[currWord].leftStat = Word.TrackStatus.Calculated;
-			//        }
-			//    }
-			//}
-			//Debug.Assert(currWord == lineGuess.words.Length);
-
-			//TODO:implement
+			for (int i = 0; i < textChars.Length; i++) {
+				if (textChars[i] == ' ') { //found word boundary
+					if (currWordI >= 0) { //then the character right before this space was the rightmost character of the previous word.
+						if (words[currWordI].rightStat != Word.TrackStatus.Manual) {
+							words[currWordI].right = endpoints[i - 1];
+							words[currWordI].rightStat = endpointSource;
+						} else {
+							if (Math.Abs(words[currWordI].right - endpoints[i - 1]) > 1)
+								throw new ApplicationException("calculated endpoint differs significantly from manual example!");
+						}
+					}
+					currWordI++;//space means new word
+					if (currWordI < words.Length) //then the endpos of the space must be the beginning pos of the new word.
+			        {
+						if (words[currWordI].leftStat != Word.TrackStatus.Manual) {
+							words[currWordI].left = endpoints[i];
+							words[currWordI].leftStat = endpointSource;
+						} else {
+							if (Math.Abs(words[currWordI].left - endpoints[i]) > 1)
+								throw new ApplicationException("calculated endpoint differs significantly from manual example!");
+						}
+					}
+				}
+			}
+			if (currWordI != words.Length)
+				throw new ApplicationException("programmer error: currWordI(" + currWordI + ") != words.Length (" + words.Length + ")");
 		}
 
 
@@ -64,7 +70,7 @@ namespace HwrDataModel
 			this.no = no;
 			this.words = text
 				.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)
-				.Select((t, i) => new Word(this,t, i + 1, top, bottom, left, left, shear))
+				.Select((t, i) => new Word(this, t, i + 1, top, bottom, left, left, shear))
 			.ToArray();
 		}
 
@@ -77,10 +83,8 @@ namespace HwrDataModel
 			}
 		}
 
-		public IEnumerable<int> ManualEndPoints
-		{
-			get
-			{
+		public IEnumerable<int> ManualEndPoints {
+			get {
 				return
 				(-1) //startsymbol end
 					.Concat(words.SelectMany(word => word.ManualEndPoints)) //endpoints of each word and its preceeding space
@@ -95,10 +99,10 @@ namespace HwrDataModel
 				start = symbolWidths[(char)0],
 				end = symbolWidths[(char)10];
 
-			var wordEstimates = 
-				new { Word = (Word)null, Length = start}
-				.Concat(	words.Select(word => new {Word=word, Length= word.EstimateLength(symbolWidths)}))
-				.Concat(new { Word = (Word)null, Length = end})
+			var wordEstimates =
+				new { Word = (Word)null, Length = start }
+				.Concat(words.Select(word => new { Word = word, Length = word.EstimateLength(symbolWidths) }))
+				.Concat(new { Word = (Word)null, Length = end })
 				.ToArray();
 
 			int currWordI = 0;

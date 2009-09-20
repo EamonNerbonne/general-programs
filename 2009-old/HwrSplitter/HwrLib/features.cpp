@@ -437,7 +437,7 @@ const FeatureVector& ImageFeatures::featAt(int x) const {
 	features[FEATURE_DENSITY_MID_FIX]       = featV(AVG_MID_FIXED,  x);
 	features[FEATURE_DENSITY_HIGH_NEAR_FIX] = featV(AVG_HIGH_FIXED_NEAR,  x);
 	features[FEATURE_DENSITY_HIGH_FAR_FIX]  = featV(AVG_HIGH_FIXED_FAR,  x);
-	features[FEATURE_DENSITY_HIGH_MIN_FIX]  = min(features[FEATURE_DENSITY_HIGH_NEAR_FIX],features[FEATURE_DENSITY_HIGH_FAR_FIX]);
+	features[FEATURE_DENSITY_HIGH_MIN_FIX]  = min(features[FEATURE_DENSITY_HIGH_NEAR_FIX], features[FEATURE_DENSITY_HIGH_FAR_FIX]);
 
 	#if USE_EDGES
 	features[FEATURE_DENSITY_LEFT_EDGE]  = featV(AVG_MID,  max(0,x1-USE_WIDE_EDGES), min(image_width,x1+USE_WIDE_EDGES)); // in the edge

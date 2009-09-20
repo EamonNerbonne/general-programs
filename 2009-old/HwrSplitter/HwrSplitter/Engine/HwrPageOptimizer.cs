@@ -25,25 +25,40 @@ namespace HwrSplitter.Engine
 		sealed class Worker : IDisposable
 		{
 			HwrPageOptimizer manager;
+			readonly int workerIndex;
 			public readonly SymbolLearningData learningCache;
 			public readonly Thread thread;
-			public Worker(HwrPageOptimizer manager) {
+			//bool active = false;
+			public Worker(HwrPageOptimizer manager, int workerIndex) {
 				this.manager = manager;
 				learningCache = manager.optimizer.ConstructLearningCache();
-				thread = new Thread(ProcessLines) { IsBackground = true, };
+				thread = new Thread(ProcessLines) { IsBackground = true, Priority = ThreadPriority.BelowNormal };
 				thread.Start();
+				this.workerIndex = workerIndex;
 			}
 
 			private void ProcessLines() {
 				while (true) {
+					//thread.Priority = workerIndex == 0 ? ThreadPriority.Normal : workerIndex == 1 ? ThreadPriority.BelowNormal : ThreadPriority.Lowest;
 					manager.workStart.WaitOne();
+					//lock (manager.sync)
+					//    active = true;
 					try {
 						if (manager.Running)
-							for (int i = manager.ClaimLine(); i < manager.currentLines.textlines .Length; i = manager.ClaimLine())
+							for (int i = manager.ClaimLine(); i < manager.currentLines.textlines.Length; i = manager.ClaimLine())
 								ProcessLine(manager.currentLines.textlines[i]);
 						else
 							break;
 					} finally {
+						//lock (manager.sync) {
+						//    active = false;
+						//    if (thread.Priority != ThreadPriority.Lowest)
+						//        for (int i = workerIndex + 1; i < manager.workers.Length; i++)
+						//            if (manager.workers[i].active) {
+						//                manager.workers[i].thread.Priority = thread.Priority;
+						//                break;
+						//            }
+						//}
 						manager.workDone.Release();
 					}
 				}
@@ -109,7 +124,7 @@ namespace HwrSplitter.Engine
 			workDone = new Semaphore(0, parallelCount);
 			workStart = new Semaphore(0, parallelCount);
 			for (int i = 0; i < parallelCount; i++)
-				workers[i] = new Worker(this);
+				workers[i] = new Worker(this, i);
 		}
 
 		public void Dispose() {
@@ -130,8 +145,9 @@ namespace HwrSplitter.Engine
 		public void ImproveGuess(HwrPageImage image, WordsImage betterGuessWords, Action<TextLine> lineProcessed) {
 			currentImage = image;
 			currentLines = betterGuessWords;
+			nextLine = 0;
 			lineDoneEvent = lineProcessed;
-#if !DEBUG
+#if true
 			workStart.Release(workers.Length);
 			for (int i = 0; i < workers.Length; i++)
 				workDone.WaitOne();

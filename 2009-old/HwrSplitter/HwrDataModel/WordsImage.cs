@@ -16,7 +16,7 @@ namespace HwrDataModel
 		public readonly int pageNum;
 		public readonly TextLine[] textlines;//textlines can be relayouted post-construction, but the actual line content and number of lines cannot be changed.
 
-		public WordsImage(FileInfo file, Word.TrackStatus wordSource = Word.TrackStatus.Uninitialized) : this(LoadXDoc(file).Root, wordSource) { }
+		public WordsImage(FileInfo file, Word.TrackStatus wordSource) : this(LoadXDoc(file).Root, wordSource) { }
 		private static XDocument LoadXDoc(FileInfo file) {
 			using (Stream stream = file.OpenRead())
 			using (XmlReader xmlreader = XmlReader.Create(stream))

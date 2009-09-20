@@ -9,7 +9,7 @@
 #define PAMIMAGE_H
 #include "../HwrConfig.h"
 #include <boost/multi_array.hpp>
-#include <boost/shared_ptr.hpp>
+//#include <boost/shared_ptr.hpp>
 #include <boost/shared_array.hpp>
 
 // ----------------------------------------------------------------------------- : Includes
