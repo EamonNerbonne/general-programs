@@ -276,7 +276,7 @@ class WordSplitSolver
 				
 				double prob = pC(x0, u);
 				if(u+1<strLen()) {
-					while(prob >= pC(x1, u+1) && x1 < imageLen1)
+					while( x1 < imageLen1 && prob >= pC(x1, u+1))
 						x1++;
 					x1p = x1==0? 0.0 : (double)x1 - (pC(x1, u+1) - prob) / (pC(x1, u+1) - pC(x1-1,u+1));
 					if(x1p>imageLen1 - 1) x1p = imageLen1 - 1;
