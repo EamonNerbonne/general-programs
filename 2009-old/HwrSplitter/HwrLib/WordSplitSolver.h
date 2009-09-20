@@ -1,58 +1,8 @@
 #pragma once
 #include "stdafx.h"
-#include <boost/scoped_array.hpp>
-#include "SymbolClass.h"
+#include "AllSymbolClasses.h"
 #include "feature/features.h"
 #include <limits.h>
-#include "LogNumber.h"
-
-struct AllSymbolClasses {
-	int symbolCount;
-	boost::scoped_array<SymbolClass> sym;
-	//FeatureVector featureWeights;
-	AllSymbolClasses(int symbolCount) 
-		: symbolCount(symbolCount)
-		, sym(new SymbolClass[symbolCount])
-	//	, featureWeights(1.0)
-	{}
-
-	SymbolClass & operator[](short symbol) {return sym[symbol];}
-	SymbolClass const & operator[](short symbol) const {return sym[symbol];}
-	SymbolClass & getSymbol(short symbol) {return sym[symbol];}
-	SymbolClass const & getSymbol(short symbol) const {return sym[symbol];}
-
-	short size() const {return symbolCount;}
-	void initializeRandomly() {
-		for(int i=0;i<symbolCount;i++)
-			sym[i].initializeRandomly();
-	}
-	void resetToZero() {
-		for(int i=0;i<symbolCount;i++)
-			sym[i].resetToZero();
-	}
-
-	int AllocatedSize() const {return sizeof(AllSymbolClasses) + sizeof(SymbolClass)*symbolCount;}
-
-	//void RecomputeFeatureWeights(double minWeight){
-	//	minWeight = DYNAMIC_SYMBOL_WEIGHT*minWeight + (1.0 - DYNAMIC_SYMBOL_WEIGHT);
-	//	FeatureDistribution overall;
-	//	FeatureDistribution means;
-	//	for(int i=0;i<size();i++) {
-	//		for(int j=0;j<SUB_SYMBOL_COUNT;j++) {
-	//			overall.CombineWith(sym[i].state[j]);
-	//			means.CombineWith(sym[i].state[j].meanX, sym[i].state[j].weightSum);
-	//		}
-	//	}
-	//	//OK, we have the overall variance and the variance of the means.  Where the means variance is high in relation to the overall variance, most variation is inter rather than intra-class.
-	//	double maxWeight=0.0;
-	//	for(int i=0;i<NUMBER_OF_FEATURES;i++) {
-	//		featureWeights[i] = means.varX(i) / overall.varX(i);
-	//		maxWeight = std::max(maxWeight,featureWeights[i]);
-	//	}
-	//	for(int i=0;i<NUMBER_OF_FEATURES;i++)
-	//		featureWeights[i]=featureWeights[i]/maxWeight*(1-minWeight) + minWeight;
-	//}
-};
 
 class WordSplitSolver
 {
@@ -399,7 +349,7 @@ class WordSplitSolver
 
 
 public:
-	WordSplitSolver(AllSymbolClasses & syms, ImageFeatures const & imageFeatures, std::vector<short> const & targetString, std::vector<int> const & overrideEnds, double featureRelevance) ;
+	WordSplitSolver(AllSymbolClasses const & syms, ImageFeatures const & imageFeatures, std::vector<short> const & targetString, std::vector<int> const & overrideEnds, double featureRelevance) ;
 	void Learn(double blurSymbols, AllSymbolClasses& learningTarget);
 	vector<int> MostLikelySplit(double & loglikelihood);
 };

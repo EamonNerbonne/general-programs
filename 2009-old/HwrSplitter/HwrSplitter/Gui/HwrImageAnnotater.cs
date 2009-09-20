@@ -40,7 +40,7 @@ namespace HwrSplitter.Gui
         public void ProcessLine(TextLine line) {
             ProcessWords(line.words);
         }
-        public void ProcessLines(IEnumerable<TextLine> lines) {
+        public void ProcessLines(IEnumerable<TextLine> lines) {//TODO:give better name
             ProcessWords(lines.SelectMany(tl => tl.words));
         }
         void ProcessWords(IEnumerable<Word> words) {

@@ -13,7 +13,7 @@ namespace HwrSplitter.Gui
 {
 	public class MainManager
 	{
-		public TextLineCostOptimizer optimizer;
+		public HwrPageOptimizer optimizer; //IDisposable
 
 		public Point LastClickPoint { get; private set; }
 		public WordsImage words;

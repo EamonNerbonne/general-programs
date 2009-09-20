@@ -36,3 +36,9 @@ void SymbolClass::RecomputeDCoffset() {
 	for(int i=0;i<SUB_PHASE_COUNT;i++)
 		phase[i].RecomputeDCfactor();
 }
+
+void SymbolClass::CombineWithDistribution(SymbolClass const & other) {
+	for(int i=0;i<SUB_PHASE_COUNT;i++)
+		phase[i].CombineWithDistribution(other.phase[i]);
+}
+

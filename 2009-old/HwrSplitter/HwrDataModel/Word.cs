@@ -13,7 +13,7 @@ namespace HwrDataModel
 		public TrackStatus leftStat, rightStat, topStat, botStat;
 		public enum TrackStatus { Uninitialized = 0, Initialized, Calculated, Manual }
 
-		public GaussianEstimate symbolBasedLength;
+		//public GaussianEstimate symbolBasedLength;
 		public object guiTag;
 		// public double cost = double.NaN;
 		public Word(TextLine line)
@@ -27,7 +27,15 @@ namespace HwrDataModel
 			this.line = line;
 			this.text = text;
 			this.no = no;
-			leftStat = rightStat = topStat = botStat = TrackStatus.Initialized;
+			leftStat = rightStat = topStat = botStat = TrackStatus.Uninitialized;
+		}
+		public Word(TextLine line, XElement fromXml,TrackStatus wordStatus)
+			: base(fromXml) {
+			this.line = line;
+			text = (string)fromXml.Attribute("text");
+			no = (int)fromXml.Attribute("no");
+			leftStat = rightStat = topStat = botStat = wordStatus;//TODO, these should be saved in the XML
+
 		}
 
 		//includes the endpoint for the preceeding space.
@@ -41,19 +49,10 @@ namespace HwrDataModel
 					.Concat(rightStat == Word.TrackStatus.Manual ? (int)(right + 0.5) : -1);
 			}
 		}
-
-		public Word(TextLine line, XElement fromXml)
-			: base(fromXml)
+		public GaussianEstimate symbolBasedLength { get; private set; }
+		public GaussianEstimate EstimateLength(Dictionary<char, GaussianEstimate> symbolWidths)
 		{
-			this.line = line;
-			text = (string)fromXml.Attribute("text");
-			no = (int)fromXml.Attribute("no");
-			leftStat = rightStat = topStat = botStat = TrackStatus.Calculated;//TODO, these should be saved in the XML
-
-		}
-		public void EstimateLength(Dictionary<char, GaussianEstimate> symbolWidths)
-		{
-			symbolBasedLength = EstimateWordLength(text, symbolWidths);
+			return (symbolBasedLength = EstimateWordLength(text, symbolWidths) + symbolWidths[(char)32]);
 		}
 
 

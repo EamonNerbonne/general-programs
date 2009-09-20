@@ -20,4 +20,5 @@ public:
 	void RecomputeDCoffset();
 	void initializeRandomly();
 	void resetToZero();
+	void CombineWithDistribution(SymbolClass const & other);
 };

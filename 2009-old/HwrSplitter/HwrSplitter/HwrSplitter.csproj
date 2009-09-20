@@ -142,12 +142,13 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Engine\AnnotLinesParser.cs" />
+    <Compile Include="Engine\EngineData.cs" />
     <Compile Include="Engine\TextLineYPosition.cs" />
     <Compile Include="Engine\HwrPageImage.cs" />
     <Compile Include="Engine\HwrResources.cs" />
     <Compile Include="Engine\ImageDataConversion.cs" />
     <Compile Include="Engine\PixelArgb32.cs" />
-    <Compile Include="Engine\TextLineCostOptimizer.cs" />
+    <Compile Include="Engine\HwrPageOptimizer.cs" />
     <Compile Include="Gui\ClickableTextBlock.cs" />
     <Compile Include="Gui\HwrImageAnnotater.cs" />
     <Compile Include="Gui\ImageAnnotControl.cs" />

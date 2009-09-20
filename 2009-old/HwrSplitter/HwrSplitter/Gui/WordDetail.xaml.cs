@@ -82,12 +82,12 @@ namespace HwrSplitter.Gui
 
 		Point featureComputeOffset;
 		SolidColorBrush highlightBrush = (SolidColorBrush)new SolidColorBrush(Color.FromArgb(100, 255, 255, 80)).GetAsFrozen();
-		public void DisplayLine(TextLineCostOptimizer tlco, HwrPageImage pageImage, TextLine textline, Word word) {
+		public void DisplayLine( HwrPageImage pageImage, TextLine textline, Word word) {
 			//intensBrush.ImageSource = ImgdataFromShearedSum(textline.words, word, textline.shearedsum);
 			//intensBodyBrush.ImageSource = ImgdataFromShearedSum(textline.words, word, textline.shearedbodysum);
 
 			BitmapSource bmp;
-			tlco.ComputeFeatures(pageImage, textline, out bmp, out featureComputeOffset);
+			pageImage.ComputeFeatures(textline, out bmp, out featureComputeOffset);
 			featuresGraphBrush.ImageSource = bmp;
 
 			lineProjection.ImageSource = ImgdataFromXProject(pageImage.XProjectionSmart, textline, textline.bodyTop, textline.bodyBot);

@@ -6,12 +6,20 @@ namespace HwrLibCliWrapper {
 		AllSymbolClasses* symbols;
 		!SymbolLearningData();
 		~SymbolLearningData();
-		int iteration;
+
+		static void CopyToNative(HwrDataModel::SymbolClass ^ managedSymbol, SymbolClass & nativeSymbol);
+		static void CopyToManaged(SymbolClass const & nativeSymbol, HwrDataModel::SymbolClass^ managedSymbol);
 	public:
 
-		SymbolLearningData(int symbolCount);
-		AllSymbolClasses* DataSink() {return symbols;}
+		AllSymbolClasses* GetSymbols() {return symbols;}
 		void Reset() { symbols->resetToZero(); }
-		void IncIteration() { iteration++; }
+		void Randomize() { symbols->initializeRandomly(); }
+
+		SymbolLearningData(int symbolCount);
+
+		void SaveToManaged(HwrDataModel::SymbolClasses^ managedSymbols);
+		void LoadFromManaged(HwrDataModel::SymbolClasses^ managedSymbols);
+
+		void MergeInLearningCache(SymbolLearningData^ other);
 	};
 }

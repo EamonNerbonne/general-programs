@@ -9,6 +9,7 @@ using System.Windows.Media;
 using System.IO;
 using HwrLibCliWrapper;
 using EmnExtensions.DebugTools;
+using HwrDataModel;
 
 namespace HwrSplitter.Engine
 {
@@ -34,8 +35,8 @@ namespace HwrSplitter.Engine
 			timer.TimeMark("Converting to array");
 #endif
 			var rawImg = new ImageStruct<uint>(original.PixelWidth, original.PixelHeight);
-			//Console.WriteLine("{0:X}", rawImg[1000, 2000]);//loading bug debug help
-			uint[] data = new uint[original.PixelWidth * original.PixelHeight];//TODO:these lines prevent some sort of loading bug ... that occurs sometimes...
+			//loading bug debug help: Console.WriteLine("{0:X}", rawImg[1000, 2000]);
+			uint[] data = new uint[original.PixelWidth * original.PixelHeight];//HACK:these lines prevent some sort of loading bug ... that occurs sometimes...
 			original.CopyPixels(data, original.PixelWidth * 4, 0);
 			original.CopyPixels(rawImg.RawData, rawImg.Stride, 0);
 
@@ -169,5 +170,45 @@ namespace HwrSplitter.Engine
 			XProjectionSmart = xProjectionSmart;
 		}
 
+		public void ComputeFeatures(TextLine line, out BitmapSource featureImage, out Point offset) {
+			int topXoffset;
+
+			int x0 = Math.Max(0, (int)(line.OuterExtremeLeft + 0.5));
+			int x1 = Math.Min(image.Width, (int)(line.OuterExtremeRight + 0.5));
+			int y0 = (int)(line.top + 0.5);
+			int y1 = (int)(line.bottom + 0.5);
+
+			ImageStruct<float> data = ImageProcessor.ExtractFeatures(this.Image.CropTo(x0, y0, x1, y1), line, out topXoffset);
+			int featDataY = y0;
+			int featDataX = (int)x0 + topXoffset;
+			var featImgRGB = data.MapTo(f => (byte)(255.9 * f)).MapTo(b => new PixelArgb32(255, b, b, b));
+			foreach (int wordBoundary in
+							from word in line.words
+							from edge in new[] { word.left, word.right }
+							let edgeTrans = (int)(edge + 0.5) - featDataX
+							where edgeTrans >= 0 && edgeTrans < featImgRGB.Width
+							select edgeTrans) {
+				for (int y = 0; y < featImgRGB.Height; y++) {
+					var pix = featImgRGB[wordBoundary, y];
+					pix.R = 255;
+					pix.B = 255;
+					featImgRGB[wordBoundary, y] = pix;
+				}
+			}
+
+			for (int x = 0; x < featImgRGB.Width; x++) { //only useful for scaled version, not for features!
+				var pix = featImgRGB[x, line.bodyTop];
+				pix.G = 255;
+				featImgRGB[x, line.bodyTop] = pix;
+				var pixB = featImgRGB[x, line.bodyBot];
+				pixB.G = 255;
+				featImgRGB[x, line.bodyBot] = pixB;
+			}
+
+
+			featureImage = featImgRGB.MapTo(p => p.Data).ToBitmap();
+			featureImage.Freeze();
+			offset = new Point(featDataX, featDataY);
+		}
 	}
 }

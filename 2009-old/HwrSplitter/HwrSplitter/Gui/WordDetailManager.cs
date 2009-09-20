@@ -30,7 +30,7 @@ namespace HwrSplitter.Gui
 
 		public void WordDisplay(Word word) {
 			currentTextLine = word.line;
-			wordDetail.DisplayLine(man.optimizer, man.PageImage, currentTextLine, word);
+			wordDetail.DisplayLine(man.PageImage, currentTextLine, word);
 
 			wordSelector.WireUpTextBlock(currentTextLine.words.Select(w => w.text).ToArray());
 			wordSelector.SelectedIndex = Enumerable.Range(0,currentTextLine.words.Length).Where(i=>currentTextLine.words[i]== word).Single();

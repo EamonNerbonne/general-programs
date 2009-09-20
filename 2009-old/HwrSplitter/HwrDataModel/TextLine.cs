@@ -26,6 +26,8 @@ namespace HwrDataModel
 		public double ComputedLikelihood { get { return computedLikelihood; } }
 		public void SetComputedCharEndpoints(int[] endpoints,  double likelihood, Word.TrackStatus endpointSource)
 		{
+			//don't overwrite manually set endpoints!!!!
+
 			//lineGuess.ComputedLikelihood = likelihood;
 			//int x0 = x0Est + topXoffset;
 
@@ -57,14 +59,13 @@ namespace HwrDataModel
 
 
 		public TextLine() { }
-		public TextLine(string text, int no, double top, double bottom, double left, double right, double shear, Dictionary<char, GaussianEstimate> symbolWidths)
+		public TextLine(string text, int no, double top, double bottom, double left, double right, double shear)
 			: base(top, bottom, left, right, shear) {
 			this.no = no;
 			this.words = text
 				.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)
-				.Select((t, i) => new Word(this,t, i + 1, top, bottom, 0.0, 0.0, shear))
+				.Select((t, i) => new Word(this,t, i + 1, top, bottom, left, left, shear))
 			.ToArray();
-			GuessWordsInString(symbolWidths);
 		}
 
 		public string FullText { get { return string.Join(" ", words.Select(w => w.text).ToArray()); } }
@@ -88,35 +89,77 @@ namespace HwrDataModel
 			}
 		}
 
-		private void GuessWordsInString(Dictionary<char, GaussianEstimate> symbolWidths) {
-			foreach (var word in words)
-				word.EstimateLength(symbolWidths);
-
-			var lengthEstimates = words.Select(word => word.symbolBasedLength);
+		public void EstimateWordBoundariesViaSymbolLength(Dictionary<char, GaussianEstimate> symbolWidths) {
 
 			GaussianEstimate
 				start = symbolWidths[(char)0],
 				end = symbolWidths[(char)10];
 
-			GaussianEstimate totalEstimate = start + lengthEstimates.Aggregate((a, b) => a + b) + end;
-			double wordwiseStddevTotal = start.StdDev + lengthEstimates.Select(est => est.StdDev).Sum() + end.StdDev;
+			var wordEstimates = 
+				new { Word = (Word)null, Length = start}
+				.Concat(	words.Select(word => new {Word=word, Length= word.EstimateLength(symbolWidths)}))
+				.Concat(new { Word = (Word)null, Length = end})
+				.ToArray();
 
-			//ok, so we have a total line length and a per word estimate
-			double correctionPerStdDev = (right - left - totalEstimate.Mean) / wordwiseStddevTotal;
-			double position = left + start.Mean + start.StdDev * correctionPerStdDev;
-			foreach (Word word in words) {
-				word.left = position;
-				position += word.symbolBasedLength.Mean + word.symbolBasedLength.StdDev * correctionPerStdDev;
-				word.right = position;
+			int currWordI = 0;
+			double edgeLeft = left;
+
+			Action<int, double> distributeWord = (nextWordI, edgeRight) => {
+				if (nextWordI != currWordI) {
+					//spread words [currWordI, i) over [edgeLeft, wordEstimates[i].Word.left]
+					var relevantEsts = wordEstimates.Skip(currWordI).Take(nextWordI - currWordI);
+					GaussianEstimate totalEstimate = relevantEsts.Select(w => w.Length).Aggregate((a, b) => a + b);
+					double wordwiseStddevTotal = relevantEsts.Select(w => w.Length).Select(est => est.StdDev).Sum();
+
+					double correctionPerStdDev = (edgeRight - edgeLeft - totalEstimate.Mean) / wordwiseStddevTotal;
+					double position = edgeLeft;
+
+					//ok, so we have a total segment length and a per word estimate
+					foreach (var wordEst in relevantEsts) {
+						Word word = wordEst.Word;
+						if (word == null) {
+							position += wordEst.Length.Mean + wordEst.Length.StdDev * correctionPerStdDev;
+						} else {
+							if (word.leftStat > Word.TrackStatus.Initialized) {
+								Debug.Assert(Math.Abs(position - word.left) < 1, "math error(left)");
+							} else {
+								word.left = position;
+								word.leftStat = Word.TrackStatus.Initialized;
+							}
+							position += wordEst.Length.Mean + wordEst.Length.StdDev * correctionPerStdDev;
+							if (word.rightStat > Word.TrackStatus.Initialized) {
+								Debug.Assert(Math.Abs(position - word.right) < 1, "math error(right)");
+							} else {
+								word.right = position;
+								word.rightStat = Word.TrackStatus.Initialized;
+							}
+						}
+					}
+					Debug.Assert(Math.Abs(position - edgeRight) < 1, "math error(term)");
+				}
+				currWordI = nextWordI;
+				edgeLeft = edgeRight;
+			};
+
+			for (int i = 0; i < wordEstimates.Length; i++) {
+				if (wordEstimates[i].Word == null)
+					continue;
+				if (wordEstimates[i].Word.leftStat == Word.TrackStatus.Calculated || wordEstimates[i].Word.leftStat == Word.TrackStatus.Manual) {
+					//spread words [currWordI, i) over [edgeLeft, wordEstimates[i].Word.left]
+					distributeWord(i, wordEstimates[i].Word.left);
+				}
+				if (wordEstimates[i].Word.rightStat == Word.TrackStatus.Calculated || wordEstimates[i].Word.rightStat == Word.TrackStatus.Manual) {
+					//spread words [currWordI, i+1) over [edgeLeft, wordEstimates[i].Word.right]
+					distributeWord(i + 1, wordEstimates[i].Word.right);
+				}
 			}
-			position += end.Mean + end.StdDev * correctionPerStdDev;
-			Debug.Assert(Math.Abs(position - right) < 1, "math error");
+			distributeWord(wordEstimates.Length, this.right);
 		}
 
-		public TextLine(XElement fromXml)
+		public TextLine(XElement fromXml, Word.TrackStatus wordSource)
 			: base(fromXml) {
 			no = (int)fromXml.Attribute("no");
-			words = fromXml.Elements("Word").Select(xmlWord => new Word(this, xmlWord)).ToArray();
+			words = fromXml.Elements("Word").Select(xmlWord => new Word(this, xmlWord, wordSource)).ToArray();
 		}
 
 		public XNode AsXml() {

@@ -8,58 +8,6 @@
 
 namespace HwrLibCliWrapper {
 
-	void HwrOptimizer::CopyToNative(HwrDataModel::SymbolClass ^ managedSymbol, SymbolClass & nativeSymbol) {
-		nativeSymbol.wLength = managedSymbol->Length->WeightSum;//1.0;//
-		nativeSymbol.mLength = managedSymbol->Length->Mean;
-		nativeSymbol.sLength = managedSymbol->Length->ScaledVariance;///managedSymbol->Length->WeightSum;
-		nativeSymbol.originalChar = managedSymbol->Letter;
-		if(managedSymbol->SubPhase!=nullptr && managedSymbol->SubPhase->Length == SUB_PHASE_COUNT) { //OK, we can deal with that...
-			for(int i=0;i<SUB_PHASE_COUNT;i++) {
-				if(managedSymbol->SubPhase[i] !=nullptr && managedSymbol->SubPhase[i]->Length > 0) {//OK, the sub-states look OK...
-					for(int j=0; j < SUB_STATE_COUNT; j++) {//foreach native substate
-						HwrDataModel::FeatureDistributionEstimate ^ mState = managedSymbol->SubPhase[i][j% managedSymbol->SubPhase[i]->Length]; //it's ok to have different numbers of states.
-						if(mState != nullptr 
-								&& mState->means != nullptr 
-								&& mState->means->Length == NUMBER_OF_FEATURES
-								&& mState->scaledVars != nullptr 
-								&& mState->scaledVars->Length == NUMBER_OF_FEATURES) {//looks like a valid featuredistribution!
-							FeatureDistribution & state = nativeSymbol.phase[i].state[j];
-							state.weightSum = mState->weightSum;// 1.0;//
-							for(int j=0;j<NUMBER_OF_FEATURES;j++) {
-								state.meanX[j] = mState->means[j];
-								state.sX[j] = mState->scaledVars[j]; /// mState->weightSum;
-							}
-							state.RecomputeDCfactor();
-						}//endif-valid-featuredistribution
-					}//end-foreach native substate
-				}//end-if substates OK
-			}//end-foreach phase
-		}//end-if subphases OK
-	}
-
-	void HwrOptimizer::CopyToManaged(SymbolClass const & nativeSymbol, HwrDataModel::SymbolClass^ managedSymbol){
-		using namespace HwrDataModel;
-		if(managedSymbol->Letter != nativeSymbol.originalChar)
-			throw gcnew ApplicationException("characters in C++ and C# out of sync");
-		managedSymbol->Length = gcnew GaussianEstimate(nativeSymbol.mLength,nativeSymbol.sLength,nativeSymbol.wLength);
-		managedSymbol->SubPhase = gcnew array<array<FeatureDistributionEstimate^>^>(SUB_PHASE_COUNT);
-		for(int i=0;i<SUB_PHASE_COUNT;i++) {
-			managedSymbol->SubPhase[i] = gcnew array<FeatureDistributionEstimate^>(SUB_STATE_COUNT);
-			for(int j=0; j < SUB_STATE_COUNT; j++) {
-				FeatureDistributionEstimate ^ mState = gcnew FeatureDistributionEstimate();
-				managedSymbol->SubPhase[i][j] = mState;
-				FeatureDistribution const & state = nativeSymbol.phase[i].state[j];
-				mState->weightSum = state.weightSum;
-				mState->means = gcnew array<double>(NUMBER_OF_FEATURES);
-				mState->scaledVars = gcnew array<double>(NUMBER_OF_FEATURES);
-
-				for(int k=0;k<NUMBER_OF_FEATURES;k++) {
-					mState->means[k] = state.meanX[k];
-					mState->scaledVars[k]=state.sX[k];
-				}
-			}
-		}
-	}
 
 
 	void HwrOptimizer::SplitWords(ImageStruct<signed char> block, int cropXoffset, HwrDataModel::TextLine^ textLine, SymbolLearningData ^ dataSink  ) {
@@ -119,7 +67,7 @@ namespace HwrLibCliWrapper {
 #if LOGLEVEL >=8
 		cout << "C++ textline prepare took " << t.elapsed() <<"\n";
 #endif
-		WordSplitSolver splitSolve(*symbols, feats, symbolCodeVector, manualEndsVector, featureRelevance); //computes various prob. distributions
+		WordSplitSolver splitSolve(*nativeSymbols->GetSymbols(), feats, symbolCodeVector, manualEndsVector, featureRelevance); //computes various prob. distributions
 		
 		double computedLikelihood;
 		vector<int> splits = splitSolve.MostLikelySplit(computedLikelihood);//these, of course, are computed relative to the sheared image, i.e. you need to add topShearOffset + cropXoffset for absolute coordinates.
@@ -131,7 +79,6 @@ namespace HwrLibCliWrapper {
 
 		textLine->SetComputedCharEndpoints(absoluteEndpoints, computedLikelihood, HwrDataModel::Word::TrackStatus::Calculated);
 
-		splitSolve.Learn(dampingFactor, *dataSink->DataSink()); //TODO:fix up
-		dataSink->IncIteration();
+		splitSolve.Learn(dampingFactor, *dataSink->GetSymbols());
 	}
 }

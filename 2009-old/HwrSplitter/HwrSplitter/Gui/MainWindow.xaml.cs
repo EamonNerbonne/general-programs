@@ -14,36 +14,31 @@ using EmnExtensions.Wpf;
 
 namespace HwrSplitter.Gui
 {
-    /// <summary>
-    /// Interaction logic for MainWindow.xaml
-    /// </summary>
-    public partial class MainWindow : Window {
-        MainManager manager;
-        public MainWindow() {
+	/// <summary>
+	/// Interaction logic for MainWindow.xaml
+	/// </summary>
+	public partial class MainWindow : Window
+	{
+		MainManager manager;
+		public MainWindow() {
 			this.WindowState = WindowState.Maximized;
-            InitializeComponent();
-			
-            zoomRect.ToZoom = imgViewbox.ImageCanvas;
-            wordDetail.ToZoom = imgViewbox.ImageCanvas;
-            manager = new MainManager(this);
-        }
+			InitializeComponent();
 
-        public MainManager Manager { get { return manager; } }
-        public ImageAnnotViewbox ImageAnnotViewbox { get { return imgViewbox; } }
-        public LogControl LogControl { get { return logControl; } }
-        public ZoomRect ZoomRect { get { return zoomRect; } }
-        public WordDetail WordDetail { get { return wordDetail; } }
-
-        private void Window_Loaded(object sender, RoutedEventArgs e) {
-//			this.WindowState = WindowState.Maximized;
-        }
-
-		private void pauseBox_Checked(object sender, RoutedEventArgs e) {
-			manager.Paused = true;
+			zoomRect.ToZoom = imgViewbox.ImageCanvas;
+			wordDetail.ToZoom = imgViewbox.ImageCanvas;
+			manager = new MainManager(this);
 		}
 
-		private void pauseBox_Unchecked(object sender, RoutedEventArgs e) {
-			manager.Paused = false;
-		}
-    }
+		public MainManager Manager { get { return manager; } }
+		public ImageAnnotViewbox ImageAnnotViewbox { get { return imgViewbox; } }
+		public LogControl LogControl { get { return logControl; } }
+		public ZoomRect ZoomRect { get { return zoomRect; } }
+		public WordDetail WordDetail { get { return wordDetail; } }
+
+		private void Window_Loaded(object sender, RoutedEventArgs e) { }
+
+		private void pauseBox_Checked(object sender, RoutedEventArgs e) { manager.Paused = true; }
+
+		private void pauseBox_Unchecked(object sender, RoutedEventArgs e) { manager.Paused = false; }
+	}
 }

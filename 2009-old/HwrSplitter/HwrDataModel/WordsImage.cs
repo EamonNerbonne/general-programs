@@ -16,16 +16,16 @@ namespace HwrDataModel
 		public readonly int pageNum;
 		public readonly TextLine[] textlines;//textlines can be relayouted post-construction, but the actual line content and number of lines cannot be changed.
 
-		public WordsImage(FileInfo file) : this(LoadXDoc(file).Root) { }
+		public WordsImage(FileInfo file, Word.TrackStatus wordSource = Word.TrackStatus.Uninitialized) : this(LoadXDoc(file).Root, wordSource) { }
 		private static XDocument LoadXDoc(FileInfo file) {
 			using (Stream stream = file.OpenRead())
 			using (XmlReader xmlreader = XmlReader.Create(stream))
 				return XDocument.Load(xmlreader);
 		}
-		public WordsImage(XElement fromXml) {
+		public WordsImage(XElement fromXml, Word.TrackStatus wordSource) {
 			name = (string)fromXml.Attribute("name");
 			pageNum = int.Parse(name.Substring(name.Length - 4, 4));
-			textlines = fromXml.Elements("TextLine").Select(xmlTextLine => new TextLine(xmlTextLine)).ToArray();
+			textlines = fromXml.Elements("TextLine").Select(xmlTextLine => new TextLine(xmlTextLine,wordSource)).ToArray();
 		}
 		public WordsImage(string name, int pageNum, TextLine[] textlines) { this.name = name; this.pageNum = pageNum; this.textlines = textlines; }
 
@@ -72,7 +72,6 @@ namespace HwrDataModel
 				select word
 				).FirstOrDefault();
 		}
-
 
 		public void SetFromManualExample(WordsImage handChecked) {
 			if (handChecked == null)
@@ -158,14 +157,13 @@ namespace HwrDataModel
 						else
 							maxX = word.left;
 					}
-
-
 				}
 			}
 		}
 
-		public void MarkIfManual(WordsImage handChecked) {
-			throw new NotImplementedException();
+		public void EstimateWordBoundariesViaSymbolLength(Dictionary<char, GaussianEstimate> symbolWidths) {
+			foreach (var line in textlines)
+				line.EstimateWordBoundariesViaSymbolLength(symbolWidths);
 		}
 	}
 }
