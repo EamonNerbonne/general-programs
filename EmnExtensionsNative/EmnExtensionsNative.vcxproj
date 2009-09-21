@@ -19,7 +19,7 @@
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGUID>{7CBC6D31-2104-4A4B-9FC2-D731E30103F5}</ProjectGUID>
-    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <Keyword>ManagedCProj</Keyword>
     <RootNamespace>EmnExtensionsNative</RootNamespace>
   </PropertyGroup>
@@ -125,22 +125,14 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <Reference Include="System">
-      <RequiredTargetFramework>v4.0</RequiredTargetFramework>
-    </Reference>
-    <Reference Include="System.Data">
-      <RequiredTargetFramework>v4.0</RequiredTargetFramework>
-    </Reference>
-    <Reference Include="System.Xml">
-      <RequiredTargetFramework>v4.0</RequiredTargetFramework>
-    </Reference>
-  </ItemGroup>
-  <ItemGroup>
     <ClCompile Include="AssemblyInfo.cpp" />
     <ClCompile Include="StdoutRedirector.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="StdoutRedirector.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="System" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
