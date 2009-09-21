@@ -2,6 +2,8 @@
 #include "WordSplitSolver.h"
 #include <boost/timer.hpp>
 
+using namespace std;
+
 WordSplitSolver::WordSplitSolver(AllSymbolClasses const & syms, ImageFeatures const & imageFeatures, std::vector<short> const & targetString,std::vector<int> const & overrideEnds, double featureRelevance) 
 	: syms(syms)
 	, imageFeatures(imageFeatures)
@@ -59,7 +61,6 @@ WordSplitSolver::WordSplitSolver(AllSymbolClasses const & syms, ImageFeatures co
 #if LOGLEVEL >=9
 	std::cout << ", final: " << overallTimer.elapsed()<<"\n";
 #endif
-
 }
 
 std::vector<int> WordSplitSolver::MostLikelySplit(double & loglikelihood) {
@@ -122,8 +123,11 @@ void WordSplitSolver::Learn(double blurSymbols, AllSymbolClasses& learningTarget
 		FeatureVector const & fv = imageFeatures.featAt(x);
 		for(int u=0;u<(int)strLen();u++) {
 			int c=targetString[u];
-			for(int i=0;i<SUB_PHASE_COUNT;i++) 
+			for(int i=0;i<SUB_PHASE_COUNT;i++) {
+				if(isnan(Pi(x,u,i)))
+					throw "Nan:Pi(x,u,i)";
 				syms[c].phase[i].CombineInto(fv, Pi(x,u,i), learningTarget[c].phase[i]);
+			}
 		}
 	}
 
@@ -140,7 +144,9 @@ void WordSplitSolver::Learn(double blurSymbols, AllSymbolClasses& learningTarget
 		SymbolClass & sc = learningTarget[targetString[0]];
 		SymbolClass const & scOrig =  syms[targetString[0]];
 		for(unsigned x1=0;x1<imageLen1;x1++) {
-			sc.LearnLength(double(x1), p(0,0) * p(x1,0+1) * exp(scOrig.LogLikelihoodLength(x1-0)) );
+			double ll = p(0,0) * p(x1,0+1) * exp(scOrig.LogLikelihoodLength(x1-0));
+			if(isnan(ll)) throw "Nan: sym0 length likelihood";
+			sc.LearnLength(double(x1), ll );
 		}
 	}
 #endif
@@ -154,6 +160,8 @@ void WordSplitSolver::Learn(double blurSymbols, AllSymbolClasses& learningTarget
 			double sum =0.0;
 			for(unsigned x0=0;x0<imageLen1-i;x0++) 
 				sum+= p(x0,u) * p(x0+i,u+1);
+			if(isnan(sum*lenFactor))
+				throw "Nan: sym length likelihood";
 			sc.LearnLength(double(i),sum*lenFactor);
 		}
 	}
@@ -162,8 +170,11 @@ void WordSplitSolver::Learn(double blurSymbols, AllSymbolClasses& learningTarget
 		int U = strLen()-1;
 		SymbolClass & sc =  learningTarget[targetString[U]];
 		SymbolClass const & scOrig =  syms[targetString[U]];
-		for(unsigned x0=0;x0<imageLen1;x0++) 
-			sc.LearnLength(double(imageLen()-x0), p(x0,U) * exp(scOrig.LogLikelihoodLength(imageLen()-x0) ));
+		for(unsigned x0=0;x0<imageLen1;x0++) {
+			double ll = p(x0,U) * exp(scOrig.LogLikelihoodLength(imageLen()-x0) );
+			if(isnan(ll)) throw "Nan: symZ length likelihood";
+			sc.LearnLength(double(imageLen()-x0), ll);
+		}
 	}
 #endif
 
@@ -190,7 +201,6 @@ void WordSplitSolver::Learn(double blurSymbols, AllSymbolClasses& learningTarget
 					learningTarget[i].phase[j].state[k].CombineWithDistribution(overall);
 					learningTarget[i].phase[j].state[k].ScaleWeightBy(1.0/(1.0+blurSymbols));
 				}
-
 	}//endif blursymbols>0
 
 #if LOGLEVEL >=9
@@ -283,6 +293,8 @@ void WordSplitSolver::init_P_x_u() {
 	for(unsigned x=0; x <imageLen(); x++) {
 		for(short u=0; u<U; u++) {
 			P(x,u) = pC(x,u) - pC(x,u+1); //should be positive.  Is it?
+			if(isnan( P(x,u)))
+				throw "P(x,u): NaN encountered; this should be impossible.";
 			if(P(x,u)<0.0) {
 				err=true;
 				P(x,u) = 0.0;
@@ -306,6 +318,9 @@ void WordSplitSolver::init_P_x_u() {
 					Pi(x,u,i) = pCi(x,u,i) - pCi(x,nextU,nextI);
 				else 
 					Pi(x,u,i) = pCi(x,u,i); //probability of pCi(x, strLen(), ?) -- i.e. of the symbol after the last in this string having started already -- is zero.
+
+				if(isnan( Pi(x,u,i) ))
+					throw "Pi(x,u,i): NaN encountered; this should be impossible.";
 				if(Pi(x,u,i)<0.0) { //should be positive.  Is it?
 					err=true;
 					Pi(x,u,i) = 0.0;

@@ -27,6 +27,9 @@
     <ClCompile Include="ImageProcessor.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="StdAfx.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="SymbolLearningData.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

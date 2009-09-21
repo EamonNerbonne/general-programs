@@ -113,7 +113,7 @@ namespace HwrSplitter.Engine
 
 		bool Running { get { lock (sync) return running; } }
 		static HwrPageOptimizer() { FeatureDistributionEstimate.FeatureNames = FeatureToString.FeatureNames(); } //handy before save for readability.
-		public HwrPageOptimizer(SymbolClasses symbolClasses = null) {
+		public HwrPageOptimizer(SymbolClasses symbolClasses ) {
 			if (symbolClasses == null)
 				symbolClasses = SymbolClasses.LoadWithFallback(HwrResources.DataDir, HwrResources.CharWidthFile);
 			optimizer = new HwrOptimizer(symbolClasses);
@@ -165,10 +165,10 @@ namespace HwrSplitter.Engine
 		}
 		public SymbolClasses SymbolClasses { get { return optimizer.ManagedSymbols; } }
 		public void SaveToManaged() { optimizer.SaveToManaged(); }
-		public void Save(DirectoryInfo dir = null) { SaveToManaged(); optimizer.ManagedSymbols.Save(dir ?? HwrResources.SymbolOutputDir); }
+		/// <param name="dir">null for default</param>
+		public void Save(DirectoryInfo dir) { SaveToManaged(); optimizer.ManagedSymbols.Save(dir ?? HwrResources.SymbolOutputDir); }
 
 		public int NextPage { get { return SymbolClasses.NextPage; } }
 		public Dictionary<char, GaussianEstimate> MakeSymbolWidthEstimate() { return SymbolClasses.Symbol.ToDictionary(sym => sym.Letter, sym => sym.Length); }
 	}
-
 }

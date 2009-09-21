@@ -21,4 +21,14 @@ public:
 	void initializeRandomly();
 	void resetToZero();
 	void CombineWithDistribution(SymbolClass const & other);
+	int CheckConsistency(){
+		int errs =0 ;
+		for(int i=0;i<SUB_PHASE_COUNT;i++)
+			errs+= phase[i].CheckConsistency();
+		errs += isnan(mLength)?1:0;
+		errs += isnan(sLength)?1:0;
+		errs += isnan(wLength)?1:0;
+		return errs;
+	}
+
 };

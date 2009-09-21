@@ -11,7 +11,7 @@ namespace HwrSplitter.Engine
 
 	public static class AnnotLinesParser
 	{
-		static IEnumerable<AnnotLineSingle> LoadAnnotLines(FileInfo file, Func<int, bool> pageFilter = null) {
+		static IEnumerable<AnnotLineSingle> LoadAnnotLines(FileInfo file, Func<int, bool> pageFilter) {
 			using (var reader = file.OpenText())
 				return AnnotLineSingle.FromString(reader.ReadToEnd(), pageFilter ?? (x => true)).ToArray();
 		}
@@ -38,7 +38,7 @@ namespace HwrSplitter.Engine
 		}
 
 		public static Dictionary<int, WordsImage> GetGuessWords(FileInfo file) {
-			return GuessWords(LoadAnnotLines(file));
+			return GuessWords(LoadAnnotLines(file,null));
 		}
 
 		public static WordsImage GetGuessWord(FileInfo file, int pageNum) {

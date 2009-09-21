@@ -58,10 +58,16 @@ namespace HwrLibCliWrapper {
 		if(!(
 			textArray->Length == manualEndsArray->Length
 			&& textArray->Length == symbolCodeVector.size()
-			&& textArray->Length == manualEndsVector.size()))
-			throw gcnew ApplicationException(
-									String::Format("Error: sequences are not of equal length; text:{0}, manualEnds:{1}, symbolCodeV:{2}, manualEndsV:{3}", gcnew array<Object^>{textArray->Length, manualEndsArray->Length, symbolCodeVector.size(), manualEndsVector.size()} )
-								);
+			&& textArray->Length == manualEndsVector.size())) {
+				throw gcnew ApplicationException(L"Error: sequences are not of equal length"
+#if 0
+					+L"; text:"+textArray->Length.ToString() 
+					+ L", manualEnds:"+manualEndsArray->Length.ToString()
+					+L", symbolCodeV: "+symbolCodeVector.size().ToString()
+					+L", manualEndsV:"+  manualEndsVector.size().ToString()
+#endif
+					);
+		}
 
 
 #if LOGLEVEL >=8
@@ -78,7 +84,10 @@ namespace HwrLibCliWrapper {
 			absoluteEndpoints[i] = splits[i] + topShearOffset + cropXoffset;
 
 		textLine->SetComputedCharEndpoints(absoluteEndpoints, computedLikelihood, HwrDataModel::Word::TrackStatus::Calculated);
-
+		if(dataSink->GetSymbols()->CheckConsistency() > 0)
+			gcnew ApplicationException("NaN's found in learning cache!");
 		splitSolve.Learn(dampingFactor, *dataSink->GetSymbols());
+		if(dataSink->GetSymbols()->CheckConsistency() > 0)
+			gcnew ApplicationException("NaN's found in learning cache after learning!");
 	}
 }

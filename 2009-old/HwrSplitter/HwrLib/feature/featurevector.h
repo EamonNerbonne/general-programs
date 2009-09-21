@@ -242,6 +242,13 @@ class FeatureVector {
 		}
 		return sum;
 	}
+	int CheckConsistency(){
+		int errs =0 ;
+		for(int i=0;i<size;i++)
+			errs+= isnan(features[i])?1:0;
+		return errs;
+	}
+
 };
 
 // ----------------------------------------------------------------------------- : EOF

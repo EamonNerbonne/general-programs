@@ -6,7 +6,7 @@
 inline static double sqr(double x) { return x*x; }
 
 #define LOGLEVEL 1
-#define LENGTH_WEIGHT_ON_TERMINATORS 1
+#define LENGTH_WEIGHT_ON_TERMINATORS 0
 
 #define SUB_STATE_COUNT 4 //more than one looks counter-productive - at least initially, hard to say about later
 #define SUB_PHASE_COUNT 3
@@ -20,4 +20,6 @@ double const DefaultFeatureVariance = sqr(1000);
 
 #define FEATURE_BLUR 1
 #define MIN_SYM_LENGTH 7
+inline bool isnan(double x) { return x != x; }
 #endif
+

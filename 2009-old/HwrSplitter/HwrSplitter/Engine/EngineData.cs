@@ -19,7 +19,7 @@ namespace HwrSplitter.Engine
 
 		public void Load() {
 			//TODO:parallelizable:
-			optimizer = new HwrPageOptimizer();
+			optimizer = new HwrPageOptimizer(null);//null==use default
 			annot_lines = AnnotLinesParser.GetGuessWords(HwrResources.LineAnnotFile);
 			WordsImage[] trainingData = HwrResources.WordsTrainingExamples.ToArray();
 			//barrier
@@ -49,7 +49,8 @@ namespace HwrSplitter.Engine
 				mainManager.ImageAnnotater.ProcessLine(line);
 			});
 
-			optimizer.Save();
+			optimizer.SymbolClasses.NextPage = page + 1;
+			optimizer.Save(null);//null == use default
 
 			using (Stream stream = HwrResources.WordsGuessFile(page).OpenWrite())
 			using (TextWriter writer = new StreamWriter(stream))
@@ -61,6 +62,7 @@ namespace HwrSplitter.Engine
 
 		public void StartLearning() {
 			int[] pagesInLearningOrder = pages.Where(pageNum => pageNum >= optimizer.NextPage).Concat(pages.Where(pageNum => pageNum < optimizer.NextPage)).ToArray();
+			optimizer.Save(null);//null == use default -- to check for initialization errors.
 
 			while (true) {
 				foreach (int pageNum in pagesInLearningOrder) {
