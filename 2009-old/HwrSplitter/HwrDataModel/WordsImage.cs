@@ -70,11 +70,10 @@ namespace HwrDataModel
 				from line in textlines
 				where line.ContainsPoint(point)
 				let lineMidpoint = line.bodyBot > 0 ? line.top + 0.5 * (line.bodyBot + line.bodyTop) : 0.5 * (line.top + line.bottom)
-				orderby Math.Abs(point.Y - lineMidpoint)
 				let correctedX = point.X + line.XOffsetForYOffset(line.top - point.Y)
 				from word in line.words
 				where word.left <= correctedX && correctedX < word.right
-				orderby Math.Abs(correctedX - 0.5 * (word.left + word.right))
+				orderby Math.Abs(point.Y - lineMidpoint), Math.Abs(correctedX - 0.5 * (word.left + word.right))
 				select word
 				).FirstOrDefault();
 		}
