@@ -19,7 +19,7 @@
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGUID>{7CBC6D31-2104-4A4B-9FC2-D731E30103F5}</ProjectGUID>
-    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <Keyword>ManagedCProj</Keyword>
     <RootNamespace>EmnExtensionsNative</RootNamespace>
   </PropertyGroup>
