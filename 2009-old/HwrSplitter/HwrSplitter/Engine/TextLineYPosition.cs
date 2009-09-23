@@ -68,7 +68,7 @@ namespace HwrSplitter.Engine
 					.Select((densityRunLength, relativeLineNum) => new { Line = y0 + relativeLineNum, DensityRunLength = densityRunLength }) //add line index
 					.Aggregate((lineA, lineB) => lineA.DensityRunLength > lineB.DensityRunLength ? lineA : lineB); //select maximal run of high-density lines.
 
-				int extraLength = Math.Max(40 - biggestHighDensitySection.DensityRunLength, 0);
+				int extraLength = Math.Max(30 - biggestHighDensitySection.DensityRunLength, 0);
 
 				int highDens0 = biggestHighDensitySection.Line + 1 - biggestHighDensitySection.DensityRunLength - (extraLength + 1) / 2;
 				int highDens1 = biggestHighDensitySection.Line + 1 + extraLength / 2;

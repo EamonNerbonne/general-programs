@@ -124,7 +124,7 @@ namespace HwrSplitter.Engine
 
 		bool Running { get { lock (sync) return running; } }
 		static HwrPageOptimizer() { FeatureDistributionEstimate.FeatureNames = FeatureToString.FeatureNames(); } //handy before save for readability.
-		public HwrPageOptimizer(SymbolClasses symbolClasses = null ) {
+		public HwrPageOptimizer(SymbolClasses symbolClasses) {
 			if (symbolClasses == null)
 				symbolClasses = SymbolClasses.LoadWithFallback(HwrResources.DataDir, HwrResources.CharWidthFile);
 			optimizer = new HwrOptimizer(symbolClasses);

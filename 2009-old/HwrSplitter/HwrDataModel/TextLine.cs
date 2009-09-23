@@ -13,6 +13,7 @@ namespace HwrDataModel
 	{
 		public readonly Word[] words; //after construction, words are fixed - you can only recompute their positions.
 		public readonly int no;
+		public readonly WordsImage Page;
 
 		public int bodyTop, bodyTopAlt;//bodyTop/bodyBot are relative to line top, not to page top.
 		public int bodyBot, bodyBotAlt;//bodyTop/bodyBot are relative to line top, not to page top.
@@ -24,7 +25,8 @@ namespace HwrDataModel
 		double computedLikelihood = double.NaN;
 		public int[] ComputedCharEndpoints { get { return computedCharEndpoints; } }
 		public double ComputedLikelihood { get { return computedLikelihood; } }
-		public void SetComputedCharEndpoints(int[] endpoints, double likelihood, Word.TrackStatus endpointSource) {
+		public void SetComputedCharEndpoints(int[] endpoints, double likelihood, Word.TrackStatus endpointSource)
+		{
 			//remember: don't overwrite manually set endpoints!!!!
 
 			computedLikelihood = likelihood;
@@ -35,24 +37,33 @@ namespace HwrDataModel
 
 			int currWordI = -1; //start before the first word.
 
-			for (int i = 0; i < textChars.Length; i++) {
-				if (textChars[i] == ' ') { //found word boundary
-					if (currWordI >= 0) { //then the character right before this space was the rightmost character of the previous word.
-						if (words[currWordI].rightStat != Word.TrackStatus.Manual) {
+			for (int i = 0; i < textChars.Length; i++)
+			{
+				if (textChars[i] == ' ')
+				{ //found word boundary
+					if (currWordI >= 0)
+					{ //then the character right before this space was the rightmost character of the previous word.
+						if (words[currWordI].rightStat != Word.TrackStatus.Manual)
+						{
 							words[currWordI].right = endpoints[i - 1];
 							words[currWordI].rightStat = endpointSource;
-						} else {
+						}
+						else
+						{
 							if (Math.Abs(words[currWordI].right - endpoints[i - 1]) > 1)
 								throw new ApplicationException("calculated endpoint differs significantly from manual example!");
 						}
 					}
 					currWordI++;//space means new word
 					if (currWordI < words.Length) //then the endpos of the space must be the beginning pos of the new word.
-			        {
-						if (words[currWordI].leftStat != Word.TrackStatus.Manual) {
+					{
+						if (words[currWordI].leftStat != Word.TrackStatus.Manual)
+						{
 							words[currWordI].left = endpoints[i];
 							words[currWordI].leftStat = endpointSource;
-						} else {
+						}
+						else
+						{
 							if (Math.Abs(words[currWordI].left - endpoints[i]) > 1)
 								throw new ApplicationException("calculated endpoint differs significantly from manual example!");
 						}
@@ -64,27 +75,41 @@ namespace HwrDataModel
 		}
 
 
-		public TextLine() { }
-		public TextLine(string text, int no, double top, double bottom, double left, double right, double shear)
-			: base(top, bottom, left, right, shear) {
+		public TextLine(WordsImage page) { this.Page = page; }
+		public TextLine(WordsImage page, string text, int no, double top, double bottom, double left, double right, double shear)
+			: base(top, bottom, left, right, shear)
+		{
+			this.Page = page;
 			this.no = no;
 			this.words = text
 				.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)
 				.Select((t, i) => new Word(this, t, i + 1, top, bottom, left, left, shear))
 			.ToArray();
 		}
+		public TextLine(WordsImage page, XElement fromXml, Word.TrackStatus wordSource)
+			: base(fromXml)
+		{
+			this.Page = page;
+			no = (int)fromXml.Attribute("no");
+			words = fromXml.Elements("Word").Select(xmlWord => new Word(this, xmlWord, wordSource)).ToArray();
+		}
+
 
 		public string FullText { get { return string.Join(" ", words.Select(w => w.text).ToArray()); } }
 
-		public IEnumerable<char> TextWithTerminators {
-			get {
+		public IEnumerable<char> TextWithTerminators
+		{
+			get
+			{
 				return
 					new char[] { (char)0, ' ' }.Concat(FullText).Concat(new char[] { ' ', (char)10 });
 			}
 		}
 
-		public IEnumerable<int> ManualEndPoints {
-			get {
+		public IEnumerable<int> ManualEndPoints
+		{
+			get
+			{
 				return
 				(-1) //startsymbol end
 					.Concat(words.SelectMany(word => word.ManualEndPoints)) //endpoints of each word and its preceeding space
@@ -93,7 +118,8 @@ namespace HwrDataModel
 			}
 		}
 
-		public void EstimateWordBoundariesViaSymbolLength(Dictionary<char, GaussianEstimate> symbolWidths) {
+		public void EstimateWordBoundariesViaSymbolLength(Dictionary<char, GaussianEstimate> symbolWidths)
+		{
 
 			GaussianEstimate
 				start = symbolWidths[(char)0],
@@ -108,8 +134,10 @@ namespace HwrDataModel
 			int currWordI = 0;
 			double edgeLeft = left;
 
-			Action<int, double> distributeWord = (nextWordI, edgeRight) => {
-				if (nextWordI != currWordI) {
+			Action<int, double> distributeWord = (nextWordI, edgeRight) =>
+			{
+				if (nextWordI != currWordI)
+				{
 					//spread words [currWordI, i) over [edgeLeft, wordEstimates[i].Word.left]
 					var relevantEsts = wordEstimates.Skip(currWordI).Take(nextWordI - currWordI);
 					GaussianEstimate totalEstimate = relevantEsts.Select(w => w.Length).Aggregate((a, b) => a + b);
@@ -119,21 +147,31 @@ namespace HwrDataModel
 					double position = edgeLeft;
 
 					//ok, so we have a total segment length and a per word estimate
-					foreach (var wordEst in relevantEsts) {
+					foreach (var wordEst in relevantEsts)
+					{
 						Word word = wordEst.Word;
-						if (word == null) {
+						if (word == null)
+						{
 							position += wordEst.Length.Mean + wordEst.Length.StdDev * correctionPerStdDev;
-						} else {
-							if (word.leftStat > Word.TrackStatus.Initialized) {
+						}
+						else
+						{
+							if (word.leftStat > Word.TrackStatus.Initialized)
+							{
 								Debug.Assert(Math.Abs(position - word.left) < 1, "math error(left)");
-							} else {
+							}
+							else
+							{
 								word.left = position;
 								word.leftStat = Word.TrackStatus.Initialized;
 							}
 							position += wordEst.Length.Mean + wordEst.Length.StdDev * correctionPerStdDev;
-							if (word.rightStat > Word.TrackStatus.Initialized) {
+							if (word.rightStat > Word.TrackStatus.Initialized)
+							{
 								Debug.Assert(Math.Abs(position - word.right) < 1, "math error(right)");
-							} else {
+							}
+							else
+							{
 								word.right = position;
 								word.rightStat = Word.TrackStatus.Initialized;
 							}
@@ -145,14 +183,17 @@ namespace HwrDataModel
 				edgeLeft = edgeRight;
 			};
 
-			for (int i = 0; i < wordEstimates.Length; i++) {
+			for (int i = 0; i < wordEstimates.Length; i++)
+			{
 				if (wordEstimates[i].Word == null)
 					continue;
-				if (wordEstimates[i].Word.leftStat == Word.TrackStatus.Calculated || wordEstimates[i].Word.leftStat == Word.TrackStatus.Manual) {
+				if (wordEstimates[i].Word.leftStat == Word.TrackStatus.Calculated || wordEstimates[i].Word.leftStat == Word.TrackStatus.Manual)
+				{
 					//spread words [currWordI, i) over [edgeLeft, wordEstimates[i].Word.left]
 					distributeWord(i, wordEstimates[i].Word.left);
 				}
-				if (wordEstimates[i].Word.rightStat == Word.TrackStatus.Calculated || wordEstimates[i].Word.rightStat == Word.TrackStatus.Manual) {
+				if (wordEstimates[i].Word.rightStat == Word.TrackStatus.Calculated || wordEstimates[i].Word.rightStat == Word.TrackStatus.Manual)
+				{
 					//spread words [currWordI, i+1) over [edgeLeft, wordEstimates[i].Word.right]
 					distributeWord(i + 1, wordEstimates[i].Word.right);
 				}
@@ -160,18 +201,14 @@ namespace HwrDataModel
 			distributeWord(wordEstimates.Length, this.right);
 		}
 
-		public TextLine(XElement fromXml, Word.TrackStatus wordSource)
-			: base(fromXml) {
-			no = (int)fromXml.Attribute("no");
-			words = fromXml.Elements("Word").Select(xmlWord => new Word(this, xmlWord, wordSource)).ToArray();
-		}
-
-		public XNode AsXml() {
-			return new XElement("TextLine",
-				new XAttribute("no", no),
-				base.MakeXAttrs(),
-				words.Select(word => word.AsXml())
-					);
+		public XNode AsXml()
+		{
+			return
+				new XElement("TextLine",
+					new XAttribute("no", no),
+					base.MakeXAttrs(),
+					words.Select(word => word.AsXml())
+				);
 		}
 	}
 }

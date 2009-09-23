@@ -23,7 +23,7 @@ namespace HwrSplitter.Engine
 				select new WordsImage(
 					string.Format("NL_HaNa_H2_7823_{0:D4}", pagegroup.Key),
 					pagegroup.Key,
-					(
+					pageObj=> (
 						from indexedLine in
 							(from annotline in pagegroup
 							 orderby annotline.par, annotline.line
@@ -31,7 +31,7 @@ namespace HwrSplitter.Engine
 						where !indexedLine.Line.text.Contains("\\n") //filter out potential nonsense lines AFTER indexing
 						let line = indexedLine.Line
 						let height = line.bottom - line.top
-						select new TextLine(line.text, indexedLine.Index, line.top, line.bottom, line.left, line.right + height, 45)
+						select new TextLine(pageObj, line.text, indexedLine.Index, line.top, line.bottom, line.left, line.right + height, 45)
 					).ToArray()//textlines in WordsImage
 				);
 			return wordsImages.ToDictionary(wordsImage => wordsImage.pageNum);

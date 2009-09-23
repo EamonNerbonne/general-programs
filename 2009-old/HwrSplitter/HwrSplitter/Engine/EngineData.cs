@@ -19,7 +19,7 @@ namespace HwrSplitter.Engine
 
 		public void Load() {
 			//TODO:parallelizable:
-			optimizer = new HwrPageOptimizer();//null==use default
+			optimizer = new HwrPageOptimizer(null);//null==use default
 			annot_lines = AnnotLinesParser.GetGuessWords(HwrResources.LineAnnotFile);
 			WordsImage[] trainingData = HwrResources.WordsTrainingExamples.ToArray();
 			//barrier
@@ -30,8 +30,6 @@ namespace HwrSplitter.Engine
 			var symbolWidthLookup = optimizer.MakeSymbolWidthEstimate();
 			foreach (var wordsImage in annot_lines.Values)
 				wordsImage.EstimateWordBoundariesViaSymbolLength(symbolWidthLookup);
-
-
 		}
 
 		public void LearnInBackground(int page) {
