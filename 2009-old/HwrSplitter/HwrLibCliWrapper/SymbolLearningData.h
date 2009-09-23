@@ -21,5 +21,6 @@ namespace HwrLibCliWrapper {
 		void LoadFromManaged(HwrDataModel::SymbolClasses^ managedSymbols);
 
 		void MergeInLearningCache(SymbolLearningData^ other);
+		void AssertConsistency(System::String^ message);
 	};
 }

@@ -15,6 +15,7 @@ void  AllSymbolClasses::initializeRandomly() {
 void AllSymbolClasses::resetToZero() {
 	for(int i=0;i<symbolCount;i++)
 		sym[i].resetToZero();
+	iteration = 0;
 }
 
 int AllSymbolClasses::AllocatedSize() const {return sizeof(AllSymbolClasses) + sizeof(SymbolClass)*symbolCount;}

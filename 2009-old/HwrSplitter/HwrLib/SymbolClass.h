@@ -21,7 +21,9 @@ public:
 	void initializeRandomly();
 	void resetToZero();
 	void CombineWithDistribution(SymbolClass const & other);
-	int CheckConsistency(){
+	inline int CheckConsistency(){
+		#if  DO_CHECK_CONSISTENCY
+
 		int errs =0 ;
 		for(int i=0;i<SUB_PHASE_COUNT;i++)
 			errs+= phase[i].CheckConsistency();
@@ -29,6 +31,9 @@ public:
 		errs += isnan(sLength)?1:0;
 		errs += isnan(wLength)?1:0;
 		return errs;
+#else
+		return 0;
+#endif
 	}
 
 };

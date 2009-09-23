@@ -47,6 +47,8 @@ void FeatureDistribution::ScaleWeightBy(double scaleFactor) {
 //D. H. D. West (1979). Communications of the ACM, 22, 9, 532-535: Updating Mean and Variance Estimates: An Improved Method
 //not going to bother with n/(n-1) factor; this is going to be virtually irrelevant anyhow.
 void FeatureDistribution::CombineWith(FeatureVector const & vect, double weight){
+	if(weight < std::numeric_limits<double>::min())
+		return;//ignore virtually zero-weight stuff...
 	double newWeightSum = weightSum + weight;
 	double mScale = weight/newWeightSum;
 	double sScale = weightSum*weight/newWeightSum;

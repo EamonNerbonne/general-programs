@@ -575,7 +575,7 @@ const FeatureVector& ImageFeatures::featAt(int x) const {
 	return features;
 }
 
-inline Feature ImageFeatures::featV(int cat, int x) const  {
+inline double ImageFeatures::featV(int cat, int x) const  {
 	return  cumsums[cat][x];
 }
 

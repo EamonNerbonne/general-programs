@@ -35,12 +35,16 @@ public:
 			distSqr += sqr(target[i]-meanX[i])/sX[i];
 		return /*logDCfactor*0.001 +*/ -0.5*distSqr*weightSum;
 	}
-	int CheckConsistency(){
+	inline int CheckConsistency(){
+#if  DO_CHECK_CONSISTENCY
 		int errs =0 ;
 		errs += meanX.CheckConsistency();
 		errs += sX.CheckConsistency();
 		errs += isnan(weightSum)?1:0;
 		return errs;
+#else 
+		return 0;
+#endif
 	}
 
 };

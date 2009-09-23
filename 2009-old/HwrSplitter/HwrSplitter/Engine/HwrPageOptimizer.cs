@@ -43,13 +43,24 @@ namespace HwrSplitter.Engine
 					manager.workStart.WaitOne();
 					//lock (manager.sync)
 					//    active = true;
-					try {
+					try
+					{
+						learningCache.AssertConsistency("Initialization.");
 						if (manager.Running)
 							for (int i = manager.ClaimLine(); i < manager.currentLines.textlines.Length; i = manager.ClaimLine())
+							{
 								ProcessLine(manager.currentLines.textlines[i]);
+								learningCache.AssertConsistency("Line: " + manager.currentLines.textlines[i].FullText);
+							}
 						else
 							break;
-					} finally {
+					}
+					catch (Exception e)
+					{
+						Console.WriteLine(e);
+					}
+					finally
+					{
 						//lock (manager.sync) {
 						//    active = false;
 						//    if (thread.Priority != ThreadPriority.Lowest)
@@ -113,7 +124,7 @@ namespace HwrSplitter.Engine
 
 		bool Running { get { lock (sync) return running; } }
 		static HwrPageOptimizer() { FeatureDistributionEstimate.FeatureNames = FeatureToString.FeatureNames(); } //handy before save for readability.
-		public HwrPageOptimizer(SymbolClasses symbolClasses ) {
+		public HwrPageOptimizer(SymbolClasses symbolClasses = null ) {
 			if (symbolClasses == null)
 				symbolClasses = SymbolClasses.LoadWithFallback(HwrResources.DataDir, HwrResources.CharWidthFile);
 			optimizer = new HwrOptimizer(symbolClasses);

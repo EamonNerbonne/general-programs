@@ -24,11 +24,15 @@ public:
 			ll = std::max(ll,state[i].LogProbDensityOf(target));
 		return ll;
 	}
-	int CheckConsistency(){
+	inline int CheckConsistency(){
+#if  DO_CHECK_CONSISTENCY
 		int errs =0 ;
 		for(int i=0;i<SUB_STATE_COUNT;i++)
 			errs+= state[i].CheckConsistency();
 		return errs;
+#else 
+		return 0;
+#endif
 	}
 
 

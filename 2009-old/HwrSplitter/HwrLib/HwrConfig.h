@@ -18,6 +18,8 @@ inline static double sqr(double x) { return x*x; }
 double const DefaultFeatureWeight = 1.0;
 double const DefaultFeatureVariance = sqr(1000);
 
+#define DO_CHECK_CONSISTENCY 1
+
 #define FEATURE_BLUR 1
 #define MIN_SYM_LENGTH 7
 inline bool isnan(double x) { return x != x; }

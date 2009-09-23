@@ -19,7 +19,7 @@ namespace HwrSplitter.Engine
 
 		public void Load() {
 			//TODO:parallelizable:
-			optimizer = new HwrPageOptimizer(null);//null==use default
+			optimizer = new HwrPageOptimizer();//null==use default
 			annot_lines = AnnotLinesParser.GetGuessWords(HwrResources.LineAnnotFile);
 			WordsImage[] trainingData = HwrResources.WordsTrainingExamples.ToArray();
 			//barrier

@@ -3,6 +3,29 @@
 #include <boost/timer.hpp>
 
 using namespace std;
+#ifndef NDEBUG
+#ifndef _DEBUG
+#define _DEBUG
+#endif
+#endif
+
+inline int FindFirstNan(vector<double> const & vec) {
+#if  DO_CHECK_CONSISTENCY
+	for(int i=0;i<vec.size();i++) {
+		if(isnan(vec[i]))
+			return i+1;
+	}
+#endif
+	return 0;
+}
+
+inline void ErrIfNan(vector<double> const & vec, char const * label) {
+#if  DO_CHECK_CONSISTENCY
+	int nanIdx = FindFirstNan(vec);
+	if(nanIdx >0)
+		cout<<label <<" contains NaN at index " << nanIdx-1 << endl;
+#endif
+}
 
 WordSplitSolver::WordSplitSolver(AllSymbolClasses const & syms, ImageFeatures const & imageFeatures, std::vector<short> const & targetString,std::vector<int> const & overrideEnds, double featureRelevance) 
 	: syms(syms)
@@ -110,7 +133,6 @@ std::vector<int> WordSplitSolver::MostLikelySplit(double & loglikelihood) {
 	return splits;
 }
 
-
 void WordSplitSolver::Learn(double blurSymbols, AllSymbolClasses& learningTarget){
 	using namespace std;
 	using namespace boost;
@@ -118,17 +140,54 @@ void WordSplitSolver::Learn(double blurSymbols, AllSymbolClasses& learningTarget
 	timer overallTimer;
 
 	//we need to "guess" the sub-state loglikelihoods: we've only the overall probability P(x,u)
+	if(learningTarget.CheckConsistency()>0) {
+		cout<<"err0"<<endl;
+		throw "err0";
+	}
+	
+#if  DO_CHECK_CONSISTENCY
+	if(FindFirstNan( this->op_x_u_i) >0||
+		FindFirstNan( this->opC_x_u_i) >0||
+		FindFirstNan( this->p_x_u) >0||
+		FindFirstNan( this->P_x_u) >0||
+		FindFirstNan( this->pb_x_u ) >0||
+		FindFirstNan( this->pC_x_u ) >0||
+		FindFirstNan( this->pCi_x_u_i ) >0||
+		FindFirstNan( this->pf_x_u ) >0||
+		FindFirstNan( this->Pi_x_u_i ) >0)
+		cout<<"Nan!\n";
+#endif
+
 
 	for(int x=0;x<(int)imageLen();x++) {
 		FeatureVector const & fv = imageFeatures.featAt(x);
+		if(fv.CheckConsistency() > 0) {
+			cout<<"invalid feature vector"<<endl;
+			cout.flush();
+			throw "invalid feature vector";
+		}
+
 		for(int u=0;u<(int)strLen();u++) {
 			int c=targetString[u];
 			for(int i=0;i<SUB_PHASE_COUNT;i++) {
-				if(isnan(Pi(x,u,i)))
-					throw "Nan:Pi(x,u,i)";
+				if(!(Pi(x,u,i)>=0) ) 
+					throw "NanOrNeg:Pi(x,u,i)";
+				if(learningTarget[c].phase[i].CheckConsistency()>0) {
+					cout<<"hmm: c:"<<c<<", i: "<<i<<endl;
+					//					throw "hmm";
+				}
 				syms[c].phase[i].CombineInto(fv, Pi(x,u,i), learningTarget[c].phase[i]);
+				if(learningTarget[c].phase[i].CheckConsistency()>0) {
+					cout<<"hmm: c:"<<c<<", i: "<<i<<endl;
+					//					throw "hmm";
+				}
 			}
 		}
+	}
+
+	if(learningTarget.CheckConsistency()>0) {
+		cout<<"err1"<<endl;
+		throw "err1";
 	}
 
 #if LOGLEVEL >= 9 
@@ -177,6 +236,10 @@ void WordSplitSolver::Learn(double blurSymbols, AllSymbolClasses& learningTarget
 		}
 	}
 #endif
+	if(learningTarget.CheckConsistency()>0) {
+		cout<<"err2"<<endl;
+		throw "err2";
+	}
 
 	if(blurSymbols != 0.0 ) {
 		FeatureDistribution overall;
@@ -203,6 +266,13 @@ void WordSplitSolver::Learn(double blurSymbols, AllSymbolClasses& learningTarget
 				}
 	}//endif blursymbols>0
 
+	if(learningTarget.CheckConsistency()>0) {
+		cout<<"err2"<<endl;
+		throw "err2";
+	} else{
+		cout<<"LEARN:OK"<<endl;
+	}
+
 #if LOGLEVEL >=9
 	cout<<"LengthLearning: "<<overallTimer.elapsed()<<endl;
 #endif
@@ -212,47 +282,53 @@ void WordSplitSolver::Learn(double blurSymbols, AllSymbolClasses& learningTarget
 void WordSplitSolver::init_pCi_x_u_i() {
 	using namespace std;
 	pCi_x_u_i.resize(imageLen1*SUB_PHASE_COUNT*strLen());
+	//for each phase, we want to count the number of previous writes to a particular pixel for averaging purposes.
+	vector<int> xWriteCounts[SUB_PHASE_COUNT];
+	for(int i=1;i<SUB_PHASE_COUNT;i++) //we don't actually use phase 0; that phase is after all equivalent to plain pC(x,u)
+		xWriteCounts[i].resize(imageLen1);
+
 	for(short u=0;u<strLen();u++) {
-		int xLastSet[SUB_PHASE_COUNT];
-		double xUpto[SUB_PHASE_COUNT];
-		for(int i=0;i<SUB_PHASE_COUNT;i++) {
-			xLastSet[i]=0;
-			xUpto[i]=0.0;
-		}
-		double lastProb = 0.0;
-		unsigned x1=0;
-		double x1p=0.0;
-		for(unsigned x0=0; x0<imageLen1; x0++) {
-			if(x1<x0) x1=x0;
-
-			double prob = pC(x0, u);
-			if(u+1<strLen()) {
-				while( x1 < imageLen1 && prob >= pC(x1, u+1))
-					x1++;
-				x1p = 
-					x1==0 ? 0.0 //happens when x0 == 0 and pC(0, u) < pC(0, u+1)
-					: x1 == imageLen1 ? imageLen1 - 1  //happens when pC(x0, u) >= pC(imageLen - 1, u+1) 
-					: (double)x1 - (pC(x1, u+1) - prob) / (pC(x1, u+1) - pC(x1-1,u+1));
-			} else
-				x1p = imageLen1 - 1;
-
-			// 0.0 <= x1p <= imageLen -1
-
-			for(int i=0;i<SUB_PHASE_COUNT;i++) {
-				double newPos = (x1p - x0)*i/double(SUB_PHASE_COUNT) + x0;
-				int xMaxSet =(int) (newPos+0.5);
-				for(int x=xLastSet[i];x <xMaxSet;x++) {
-					//linear interpolation so that pCi(xUpto[i],u,i) == lastProb and pCi(newPos,u,i) == prob
-					pCi(x,u,i) = (x - xUpto[i]) / (newPos - xUpto[i]) * (prob - lastProb) + lastProb;
-				}
-				xUpto[i] = newPos;
-				xLastSet[i] = xMaxSet;
+		for(int i=1;i<SUB_PHASE_COUNT;i++) {
+			for(unsigned x=0;x<imageLen1;x++) {
+				pCi(x,u,i) = 0.0;
+				xWriteCounts[i][x]=0;
 			}
 		}
-		for(int i=0;i<SUB_PHASE_COUNT;i++) 
-			for(int x=xLastSet[i];x<(int)imageLen1;x++)
-				pCi(x,u,i) = 1.0;
+		for(unsigned x=0;x<imageLen1;x++) {
+			pCi(x,u,0) = pC(x,u);
+		}
+
+		unsigned x0=0;
+		unsigned x1=0;
+		while(true) {
+			double probU0 = pC(x0,u);
+			double probU1 = u+1<strLen() ? pC(x1,u+1) : (x1<imageLen()?0.0:1.0); //prob of symbol u+1 having started at or before x1.  if u+1 is passed string end, prob == 0 unless x is passed image end.
+			double lowerProb = std::min(probU0, probU1);
+
+			//write prob.
+			for(int i=1;i<SUB_PHASE_COUNT;i++) {
+				int x =  ((SUB_PHASE_COUNT-i)*x0 + i*x1) / SUB_PHASE_COUNT;
+				pCi(x, u, i) = (pCi(x, u, i)*xWriteCounts[i][x]+ lowerProb)/(xWriteCounts[i][x]+1);
+				xWriteCounts[i][x]++;
+			}
+
+			//next, we raise the x with the lower prob (prefer raising x1?) but never beyond imageLen1-1
+			if(x0==imageLen()) { //can't raise x0
+				if(x1 == imageLen()) //ok, we're done!
+					break;
+				else
+					x1++;
+			} else if(x1 == imageLen()) { //can't raise x1, CAN raise x0.
+				x0++;
+			} else { //can raise both!
+				if(probU0 < probU1)
+					x0++;
+				else
+					x1++;
+			}
+		}
 	}
+	ErrIfNan(pCi_x_u_i, "pCi_x_u_i");
 }
 
 void WordSplitSolver::init_pC_x_u() {
@@ -278,9 +354,10 @@ void WordSplitSolver::init_pC_x_u() {
 
 		//sum = pC(imageLen1-1,u);
 
-		for(unsigned x=0;x<imageLen1;x++) 
+		for(unsigned x=0; x<imageLen1; x++) 
 			pC(x,u) /= sum; //scaled to 0..1
 	}
+	ErrIfNan(pC_x_u, "pC_x_u");
 }
 
 
@@ -305,6 +382,7 @@ void WordSplitSolver::init_P_x_u() {
 	if(err)
 		std::cout<<"!!";
 	err=false;
+	ErrIfNan(P_x_u, "P_x_u");
 
 	Pi_x_u_i.resize(imageLen()*strLen()*SUB_PHASE_COUNT);
 
@@ -330,6 +408,8 @@ void WordSplitSolver::init_P_x_u() {
 	}
 	if(err)
 		std::cout<<"!";
+	ErrIfNan(Pi_x_u_i, "Pi_x_u_i");
+
 }
 
 
@@ -353,6 +433,7 @@ void WordSplitSolver::init_p_x_u() {
 		for(unsigned x=0;x<imageLen1;x++) 
 			p(x,u) /= sumL; //density is scaled relative so that sum is (about) 1.0
 	}
+	ErrIfNan(p_x_u, "p_x_u");
 }
 
 void WordSplitSolver::init_pb_x_u() {
@@ -394,6 +475,7 @@ void WordSplitSolver::init_pb_x_u() {
 			//}
 		}
 	}
+	ErrIfNan(pb_x_u, "pb_x_u");
 }
 
 void WordSplitSolver::init_pf_x_u() {
@@ -435,6 +517,7 @@ void WordSplitSolver::init_pf_x_u() {
 			//}
 		}
 	}
+	ErrIfNan(pf_x_u, "pf_x_u");
 }
 
 
@@ -476,6 +559,8 @@ void WordSplitSolver::init_opC_x_u_i(double featureRelevanceFactor) {
 		for(short i=0;i<SUB_PHASE_COUNT;i++ )
 			for(unsigned x=0;x<imageLen1;x++)
 				opC(x,u,i) = exp(opC(x,u,i)*scaleFactor);
+	ErrIfNan(opC_x_u_i, "opC_x_u_i");
+
 }
 
 void WordSplitSolver::init_op_x_u_i(double featureRelevanceFactor) {
@@ -494,6 +579,7 @@ void WordSplitSolver::init_op_x_u_i(double featureRelevanceFactor) {
 			}
 		}
 	}
+	ErrIfNan(op_x_u_i, "op_x_u_i");
 }
 
 void WordSplitSolver::init_usedSymbols() { 
@@ -503,6 +589,6 @@ void WordSplitSolver::init_usedSymbols() {
 }
 
 void WordSplitSolver::init_symToStrIdx() { 
-		for(short u=0;u<strLen();u++) 
-			symToStrIdx[targetString[u]].push_back(u);
-	}
+	for(short u=0;u<strLen();u++) 
+		symToStrIdx[targetString[u]].push_back(u);
+}

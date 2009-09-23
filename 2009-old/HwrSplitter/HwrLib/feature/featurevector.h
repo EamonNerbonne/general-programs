@@ -194,9 +194,6 @@ enum FeatureTypes
 };
 
 // ----------------------------------------------------------------------------- : Feature vectors
-
-typedef double Feature;
-
 /// A vector of features. Each feature is a floating point number
 class FeatureVector {
   public:
@@ -204,33 +201,33 @@ class FeatureVector {
 	
 	/// The feature values
 	//  fixed size array has decent copy semantics - but this is a large struct!
-	Feature features[NUMBER_OF_FEATURES];
+	double features[NUMBER_OF_FEATURES];
 	
 	FeatureVector() {}
-	FeatureVector(Feature defaultVal);
+	FeatureVector(double defaultVal);
 	
-	inline Feature& operator[] (size_t index)       { return features[index]; }
-	inline Feature  operator[] (size_t index) const { return features[index]; }
+	inline double& operator[] (size_t index)       { return features[index]; }
+	inline double  operator[] (size_t index) const { return features[index]; }
 	
 	/// Fill with a default value
-	void clear(Feature defaultVal);
+	void clear(double defaultVal);
 	
 	inline void operator += (const FeatureVector& that) {
 		for (size_t i = 0 ; i < size ; ++i) {
 			features[i] += that[i];
 		}
 	}
-	inline void addMul(Feature c, const FeatureVector& that) {
+	inline void addMul(double c, const FeatureVector& that) {
 		for (size_t i = 0 ; i < size ; ++i) {
 			features[i] += c * that[i];
 		}
 	}
-	inline void operator /= (Feature v) {
+	inline void operator /= (double v) {
 		for (size_t i = 0 ; i < size ; ++i) {
 			features[i] /= v;
 		}
 	}
-	inline void pow (Feature p) {
+	inline void pow (double p) {
 		for (size_t i = 0 ; i < size ; ++i) {
 			features[i] = ::pow(features[i], p);
 		}
@@ -242,11 +239,15 @@ class FeatureVector {
 		}
 		return sum;
 	}
-	int CheckConsistency(){
+	inline int CheckConsistency() const {
+#if  DO_CHECK_CONSISTENCY
 		int errs =0 ;
 		for(int i=0;i<size;i++)
 			errs+= isnan(features[i])?1:0;
 		return errs;
+#else
+		return 0;
+#endif
 	}
 
 };

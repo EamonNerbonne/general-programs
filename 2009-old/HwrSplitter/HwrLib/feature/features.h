@@ -114,7 +114,7 @@ private:
 	floats cumsums[MAX_CAT];
 	
 	// return "mean(i = x, x < width) cat(i)"
-	inline Feature featV(int cat, int x) const;
+	inline double featV(int cat, int x) const;
 	void init(int winSizeDens,int winSizeAngle, int iter);
 	void blurEm(int winSizeDens,int winSizeAngle, int iter);
 	void blurHisto();

@@ -14,11 +14,11 @@ using namespace std;
 
 // ----------------------------------------------------------------------------- : Feature vectors
 
-FeatureVector::FeatureVector(Feature def) {
+FeatureVector::FeatureVector(double def) {
 	fill_n(features, size, def);
 }
 
-void FeatureVector::clear(Feature def) {
+void FeatureVector::clear(double def) {
 	fill_n(features, size, def);
 }
 

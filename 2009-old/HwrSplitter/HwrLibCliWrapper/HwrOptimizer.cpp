@@ -10,7 +10,7 @@ namespace HwrLibCliWrapper {
 
 
 
-	void HwrOptimizer::SplitWords(ImageStruct<signed char> block, int cropXoffset, HwrDataModel::TextLine^ textLine, SymbolLearningData ^ dataSink  ) {
+	void HwrOptimizer::SplitWords(ImageStruct<signed char> block, int cropXoffset, HwrDataModel::TextLine^ textLine, SymbolLearningData ^ learningCache  ) {
 		using std::min;
 		using std::max;
 		using std::cout;
@@ -84,10 +84,10 @@ namespace HwrLibCliWrapper {
 			absoluteEndpoints[i] = splits[i] + topShearOffset + cropXoffset;
 
 		textLine->SetComputedCharEndpoints(absoluteEndpoints, computedLikelihood, HwrDataModel::Word::TrackStatus::Calculated);
-		if(dataSink->GetSymbols()->CheckConsistency() > 0)
-			gcnew ApplicationException("NaN's found in learning cache!");
-		splitSolve.Learn(dampingFactor, *dataSink->GetSymbols());
-		if(dataSink->GetSymbols()->CheckConsistency() > 0)
-			gcnew ApplicationException("NaN's found in learning cache after learning!");
+		if(learningCache->GetSymbols()->CheckConsistency() > 0)
+			throw gcnew ApplicationException("NaN's found in learning cache: "+textLine->FullText);
+		splitSolve.Learn(dampingFactor, *learningCache->GetSymbols());
+		if(learningCache->GetSymbols()->CheckConsistency() > 0)
+			throw gcnew ApplicationException("NaN's found in learning cache after learning: "+textLine->FullText );
 	}
 }
