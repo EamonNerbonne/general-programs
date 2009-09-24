@@ -41,13 +41,10 @@ void CombinedFeatureDistribution::CombineInto(FeatureVector const & vect, double
 			maxLL = ll[i];
 		}
 	}
-	if(learningTarget.CheckConsistency()>0)
-		std::cout<<"inconsistent\n";
+	CheckSymConsistency(learningTarget);
 
 	for(int i=0;i<SUB_STATE_COUNT;i++) {
 		learningTarget.state[i].CombineWith(vect, occurenceProb * exp( ll[i] - maxLL + (i==maxLLi?0:-1)  )  );
-		if(learningTarget.CheckConsistency()>0)
-			std::cout<<"inconsistent\n";
-
+		CheckSymConsistency(learningTarget);
 	}
 }

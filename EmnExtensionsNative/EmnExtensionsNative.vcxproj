@@ -78,6 +78,8 @@
       <AdditionalDependencies>
       </AdditionalDependencies>
       <AssemblyDebug>true</AssemblyDebug>
+      <LinkErrorReporting>
+      </LinkErrorReporting>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|X64'">

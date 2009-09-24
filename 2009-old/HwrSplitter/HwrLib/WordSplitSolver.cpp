@@ -9,23 +9,28 @@ using namespace std;
 #endif
 #endif
 
-inline int FindFirstNan(vector<double> const & vec) {
 #if  DO_CHECK_CONSISTENCY
+inline int FindFirstNan(vector<double> const & vec) {
 	for(int i=0;i<vec.size();i++) {
 		if(isnan(vec[i]))
 			return i+1;
 	}
-#endif
 	return 0;
 }
+#endif
 
-inline void ErrIfNan(vector<double> const & vec, char const * label) {
+
 #if  DO_CHECK_CONSISTENCY
+
+inline void ErrIfNanImpl(vector<double> const & vec, char const * label) {
 	int nanIdx = FindFirstNan(vec);
 	if(nanIdx >0)
 		cout<<label <<" contains NaN at index " << nanIdx-1 << endl;
-#endif
 }
+#define ErrIfNan(x)  ErrIfNanImpl(x, #x)
+#else
+#define ErrIfNan(x) 
+#endif
 
 WordSplitSolver::WordSplitSolver(AllSymbolClasses const & syms, ImageFeatures const & imageFeatures, std::vector<short> const & targetString,std::vector<int> const & overrideEnds, double featureRelevance) 
 	: syms(syms)
@@ -140,10 +145,7 @@ void WordSplitSolver::Learn(double blurSymbols, AllSymbolClasses& learningTarget
 	timer overallTimer;
 
 	//we need to "guess" the sub-state loglikelihoods: we've only the overall probability P(x,u)
-	if(learningTarget.CheckConsistency()>0) {
-		cout<<"err0"<<endl;
-		throw "err0";
-	}
+	CheckSymConsistencyMsg(learningTarget, "before learning");
 	
 #if  DO_CHECK_CONSISTENCY
 	if(FindFirstNan( this->op_x_u_i) >0||
@@ -161,34 +163,20 @@ void WordSplitSolver::Learn(double blurSymbols, AllSymbolClasses& learningTarget
 
 	for(int x=0;x<(int)imageLen();x++) {
 		FeatureVector const & fv = imageFeatures.featAt(x);
-		if(fv.CheckConsistency() > 0) {
-			cout<<"invalid feature vector"<<endl;
-			cout.flush();
-			throw "invalid feature vector";
-		}
+		CheckSymConsistencyMsg(fv, "pix: " << x);
 
 		for(int u=0;u<(int)strLen();u++) {
 			int c=targetString[u];
 			for(int i=0;i<SUB_PHASE_COUNT;i++) {
 				if(!(Pi(x,u,i)>=0) ) 
 					throw "NanOrNeg:Pi(x,u,i)";
-				if(learningTarget[c].phase[i].CheckConsistency()>0) {
-					cout<<"hmm: c:"<<c<<", i: "<<i<<endl;
-					//					throw "hmm";
-				}
+				CheckSymConsistencyMsg(learningTarget[c].phase[i], "c:"<<c<<", i: "<<i);
 				syms[c].phase[i].CombineInto(fv, Pi(x,u,i), learningTarget[c].phase[i]);
-				if(learningTarget[c].phase[i].CheckConsistency()>0) {
-					cout<<"hmm: c:"<<c<<", i: "<<i<<endl;
-					//					throw "hmm";
-				}
+				CheckSymConsistencyMsg(learningTarget[c].phase[i], "c:"<<c<<", i: "<<i << " (after learning)");
 			}
 		}
 	}
-
-	if(learningTarget.CheckConsistency()>0) {
-		cout<<"err1"<<endl;
-		throw "err1";
-	}
+	CheckSymConsistencyMsg(learningTarget[c].phase[i], "after feature learning");
 
 #if LOGLEVEL >= 9 
 	cout<<"SymbolLearning: "<<overallTimer.elapsed()<<endl;
@@ -236,10 +224,7 @@ void WordSplitSolver::Learn(double blurSymbols, AllSymbolClasses& learningTarget
 		}
 	}
 #endif
-	if(learningTarget.CheckConsistency()>0) {
-		cout<<"err2"<<endl;
-		throw "err2";
-	}
+	CheckSymConsistencyMsg(learningTarget, "after length learning");
 
 	if(blurSymbols != 0.0 ) {
 		FeatureDistribution overall;
@@ -264,14 +249,9 @@ void WordSplitSolver::Learn(double blurSymbols, AllSymbolClasses& learningTarget
 					learningTarget[i].phase[j].state[k].CombineWithDistribution(overall);
 					learningTarget[i].phase[j].state[k].ScaleWeightBy(1.0/(1.0+blurSymbols));
 				}
-	}//endif blursymbols>0
+		CheckSymConsistencyMsg(learningTarget, "after blurring symbols");
 
-	if(learningTarget.CheckConsistency()>0) {
-		cout<<"err2"<<endl;
-		throw "err2";
-	} else{
-		cout<<"LEARN:OK"<<endl;
-	}
+	}//endif blursymbols>0
 
 #if LOGLEVEL >=9
 	cout<<"LengthLearning: "<<overallTimer.elapsed()<<endl;
@@ -328,7 +308,7 @@ void WordSplitSolver::init_pCi_x_u_i() {
 			}
 		}
 	}
-	ErrIfNan(pCi_x_u_i, "pCi_x_u_i");
+	ErrIfNan(pCi_x_u_i);
 }
 
 void WordSplitSolver::init_pC_x_u() {
@@ -357,7 +337,7 @@ void WordSplitSolver::init_pC_x_u() {
 		for(unsigned x=0; x<imageLen1; x++) 
 			pC(x,u) /= sum; //scaled to 0..1
 	}
-	ErrIfNan(pC_x_u, "pC_x_u");
+	ErrIfNan(pC_x_u);
 }
 
 
@@ -382,7 +362,7 @@ void WordSplitSolver::init_P_x_u() {
 	if(err)
 		std::cout<<"!!";
 	err=false;
-	ErrIfNan(P_x_u, "P_x_u");
+	ErrIfNan(P_x_u);
 
 	Pi_x_u_i.resize(imageLen()*strLen()*SUB_PHASE_COUNT);
 
@@ -408,7 +388,7 @@ void WordSplitSolver::init_P_x_u() {
 	}
 	if(err)
 		std::cout<<"!";
-	ErrIfNan(Pi_x_u_i, "Pi_x_u_i");
+	ErrIfNan(Pi_x_u_i);
 
 }
 
@@ -433,7 +413,7 @@ void WordSplitSolver::init_p_x_u() {
 		for(unsigned x=0;x<imageLen1;x++) 
 			p(x,u) /= sumL; //density is scaled relative so that sum is (about) 1.0
 	}
-	ErrIfNan(p_x_u, "p_x_u");
+	ErrIfNan(p_x_u);
 }
 
 void WordSplitSolver::init_pb_x_u() {
@@ -475,7 +455,7 @@ void WordSplitSolver::init_pb_x_u() {
 			//}
 		}
 	}
-	ErrIfNan(pb_x_u, "pb_x_u");
+	ErrIfNan(pb_x_u);
 }
 
 void WordSplitSolver::init_pf_x_u() {
@@ -517,7 +497,7 @@ void WordSplitSolver::init_pf_x_u() {
 			//}
 		}
 	}
-	ErrIfNan(pf_x_u, "pf_x_u");
+	ErrIfNan(pf_x_u);
 }
 
 
@@ -559,7 +539,7 @@ void WordSplitSolver::init_opC_x_u_i(double featureRelevanceFactor) {
 		for(short i=0;i<SUB_PHASE_COUNT;i++ )
 			for(unsigned x=0;x<imageLen1;x++)
 				opC(x,u,i) = exp(opC(x,u,i)*scaleFactor);
-	ErrIfNan(opC_x_u_i, "opC_x_u_i");
+	ErrIfNan(opC_x_u_i);
 
 }
 
@@ -579,7 +559,7 @@ void WordSplitSolver::init_op_x_u_i(double featureRelevanceFactor) {
 			}
 		}
 	}
-	ErrIfNan(op_x_u_i, "op_x_u_i");
+	ErrIfNan(op_x_u_i);
 }
 
 void WordSplitSolver::init_usedSymbols() { 

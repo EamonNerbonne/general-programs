@@ -21,14 +21,12 @@ struct AllSymbolClasses {
 
 	int AllocatedSize() const;
 	void CombineWithDistributions(AllSymbolClasses const & other);
-	inline int CheckConsistency(){
 #if  DO_CHECK_CONSISTENCY
+	inline int CheckConsistency(){
 		int errs =0 ;
 		for(int i=0;i<symbolCount;i++)
 			errs+= sym[i].CheckConsistency();
 		return errs;
-#else 
-		return 0;
-#endif
 	}
+#endif
 };

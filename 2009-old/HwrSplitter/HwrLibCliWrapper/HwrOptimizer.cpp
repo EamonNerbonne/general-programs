@@ -84,10 +84,14 @@ namespace HwrLibCliWrapper {
 			absoluteEndpoints[i] = splits[i] + topShearOffset + cropXoffset;
 
 		textLine->SetComputedCharEndpoints(absoluteEndpoints, computedLikelihood, HwrDataModel::Word::TrackStatus::Calculated);
+#if DO_CHECK_CONSISTENCY
 		if(learningCache->GetSymbols()->CheckConsistency() > 0)
 			throw gcnew ApplicationException("NaN's found in learning cache: "+textLine->FullText);
+#endif
 		splitSolve.Learn(dampingFactor, *learningCache->GetSymbols());
+#if DO_CHECK_CONSISTENCY
 		if(learningCache->GetSymbols()->CheckConsistency() > 0)
 			throw gcnew ApplicationException("NaN's found in learning cache after learning: "+textLine->FullText );
+#endif
 	}
 }

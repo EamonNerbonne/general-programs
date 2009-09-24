@@ -91,17 +91,24 @@ namespace HwrLibCliWrapper {
 	}
 
 	void SymbolLearningData::MergeInLearningCache(SymbolLearningData^ learningData) {
+#if DO_CHECK_CONSISTENCY
 		if(symbols->CheckConsistency() > 0)
 			throw gcnew ApplicationException("My symbols inconsistent");
 		if(learningData->symbols->CheckConsistency() > 0)
 			throw gcnew ApplicationException("learning symbols inconsistent");
+#endif
 		symbols->CombineWithDistributions(*learningData->symbols);
 		learningData->Reset();
+#if DO_CHECK_CONSISTENCY
 		if(symbols->CheckConsistency() > 0)
 			throw gcnew ApplicationException("learning result symbols inconsistent");
+#endif
 	}
+
 	void SymbolLearningData::AssertConsistency(System::String^ message) {
+#if DO_CHECK_CONSISTENCY
 		if(symbols->CheckConsistency() > 0)
 			throw gcnew ApplicationException("Symbols inconsistent:"+message);
+#endif
 	}
 }

@@ -239,17 +239,14 @@ class FeatureVector {
 		}
 		return sum;
 	}
-	inline int CheckConsistency() const {
 #if  DO_CHECK_CONSISTENCY
+	inline int CheckConsistency() const {
 		int errs =0 ;
 		for(int i=0;i<size;i++)
 			errs+= isnan(features[i])?1:0;
 		return errs;
-#else
-		return 0;
-#endif
 	}
-
+#endif
 };
 
 // ----------------------------------------------------------------------------- : EOF
