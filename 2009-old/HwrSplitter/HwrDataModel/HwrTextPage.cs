@@ -26,7 +26,7 @@ namespace HwrDataModel
 		public HwrTextPage(XElement fromXml, HwrEndpointStatus wordSource) {
 			name = (string)fromXml.Attribute("name");
 			pageNum = int.Parse(name.Substring(name.Length - 4, 4));
-			textlines = fromXml.Elements("HwrTextLine").Select(xmlTextLine => new HwrTextLine(this, xmlTextLine, wordSource)).ToArray();
+			textlines = fromXml.Elements("TextLine").Select(xmlTextLine => new HwrTextLine(this, xmlTextLine, wordSource)).ToArray();
 		}
 		public HwrTextPage(string name, int pageNum, Func<HwrTextPage, HwrTextLine[]> textlinesConstructor) { this.name = name; this.pageNum = pageNum; this.textlines = textlinesConstructor(this); }
 

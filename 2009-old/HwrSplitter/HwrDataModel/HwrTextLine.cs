@@ -91,7 +91,7 @@ namespace HwrDataModel
 		{
 			this.Page = page;
 			no = (int)fromXml.Attribute("no");
-			words = fromXml.Elements("HwrTextWord").Select(xmlWord => new HwrTextWord(this, xmlWord, wordSource)).ToArray();
+			words = fromXml.Elements("Word").Select(xmlWord => new HwrTextWord(this, xmlWord, wordSource)).ToArray();
 		}
 
 
@@ -204,7 +204,7 @@ namespace HwrDataModel
 		public XNode AsXml()
 		{
 			return
-				new XElement("HwrTextLine",
+				new XElement("TextLine",
 					new XAttribute("no", no),
 					base.MakeXAttrs(),
 					words.Select(word => word.AsXml())

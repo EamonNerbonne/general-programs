@@ -34,7 +34,6 @@ namespace HwrDataModel
 			text = (string)fromXml.Attribute("text");
 			no = (int)fromXml.Attribute("no");
 			leftStat = rightStat = topStat = botStat = wordStatus;//TODO, these should be saved in the XML
-
 		}
 
 		//includes the endpoint for the preceeding space.
@@ -57,7 +56,7 @@ namespace HwrDataModel
 
 		public XNode AsXml()
 		{
-			return new XElement("HwrTextWord",
+			return new XElement("Word",
 				new XAttribute("no", no),
 				base.MakeXAttrs(),
 				new XAttribute("text", text)
