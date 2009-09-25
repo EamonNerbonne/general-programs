@@ -34,26 +34,14 @@ namespace HwrSplitter.Gui
                 default: throw new NotImplementedException("This track status does not exist!");
             }
         }
-        public void ProcessWord(HwrTextWord word) {
-            ProcessWords(Enumerable.Repeat(word,1));
-        }
-        public void ProcessLine(HwrTextLine line) {
-            ProcessWords(line.words);
-        }
-        public void ProcessLines(IEnumerable<HwrTextLine> lines) {//TODO:give better name
-            ProcessWords(lines.SelectMany(tl => tl.words));
-        }
-        void ProcessWords(IEnumerable<HwrTextWord> words) {
-            imageView.Dispatcher.BeginInvoke(
-                DispatcherPriority.Normal,
-                new Action<IEnumerable<HwrTextWord>>(this.ProcessLinesUI),
-                words);
+        public void DrawWords(IEnumerable<HwrTextWord> words) {
+            foreach (HwrTextWord word in words)
+                DrawWordEdges(word);
         }
 
-        void ProcessLinesUI(IEnumerable<HwrTextWord> words) {
-            foreach (HwrTextWord word in words)
-                DrawWordLinesUI(word);
-        }
+		public void BackgroundLineUpdate(HwrTextLine line) {
+			man.Window.Dispatcher.BeginInvoke((Action)(()=>{DrawWords(line.words);}));
+		}
 
         private static void setLine(Line line, double x1, double y1, double x2, double y2, Brush brush) {
             line.Stroke = brush;
@@ -72,7 +60,7 @@ namespace HwrSplitter.Gui
         }
 
 
-        public void DrawWordLinesUI(HwrTextWord word) {
+        public void DrawWordEdges(HwrTextWord word) {
             LinePair lines;
             if (word.guiTag as LinePair != null)
                 lines = (LinePair)word.guiTag;

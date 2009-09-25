@@ -24,17 +24,10 @@ namespace HwrSplitter.Gui
             Stretch = Stretch.Uniform;
         }
 
-
 		public void SetImage(HwrPageImage image) {
-            Dispatcher.BeginInvoke(DispatcherPriority.Normal,
-				new Action<HwrPageImage>(SetImageUI), image);
-        }
-
-		void SetImageUI(HwrPageImage image) {
             ImageBrush brush = new ImageBrush {
                 TileMode = TileMode.None,
                 Stretch = Stretch.Fill,
-
                 ImageSource = image.BitmapSource
             };
             brush.Freeze();

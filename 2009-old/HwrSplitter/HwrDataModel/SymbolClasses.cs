@@ -17,13 +17,11 @@ namespace HwrDataModel
 		Dictionary<char, uint> lookupCode;
 		uint unknownCode;
 		SymbolClass[] symbols;
-		int iteration = 0;
-		int nextPage = 0;
-
+		
 
 		//XmlSerialized properties BEGIN ==============================================
-		public int Iteration { get { return iteration; } set { iteration = value; } }
-		public int NextPage { get { return nextPage; } set { nextPage = value; } }
+		public int Iteration { get;set;}
+		public int LastPage { get;set;}
 		public SymbolClass[] Symbol {
 			get { return symbols; }
 			set {
@@ -71,7 +69,7 @@ namespace HwrDataModel
 			return TryLoad(dataDir) ?? SymbolClassParser.Parse(charWidthFile); 
 		}
 		public void Save(DirectoryInfo saveDir) {
-			using (var stream = saveDir.GetRelativeFile("symbols-" + DateTime.Now.ToString("u", CultureInfo.InvariantCulture).Replace(' ', '_').Replace(':', '.') + "-p" + nextPage + ".xml.gz").Open(FileMode.Create))
+			using (var stream = saveDir.GetRelativeFile("symbols-" + DateTime.Now.ToString("u", CultureInfo.InvariantCulture).Replace(' ', '_').Replace(':', '.') + "-p" + LastPage + ".xml.gz").Open(FileMode.Create))
 			using (var zipStream = new GZipStream(stream, CompressionMode.Compress))
 				SerializeTo(zipStream);
 		}

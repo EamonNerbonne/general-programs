@@ -135,13 +135,12 @@ namespace HwrSplitter.Engine
 
 		public float Interpolate(double y, double x) { return ImageDataConversion.Interpolate((yI, xI) => (float)this[yI, xI], y, x); }
 		public ImageStruct<sbyte> Image { get { return image; } }
+		public HwrTextPage TextPage { get; set; }
 
 		public double[] XProjectionSmart { get; set; }
-		//public double[] XProjectionRaw { get; set; }
-
+		
 		public void ComputeXProjection(int x0, int x1) {
 			double[] xProjectionSmart = new double[Height];
-			//double[] xProjectionRaw = new double[Height];
 			for (int y = 0; y < Height; y++) {
 				int sum = 0;
 				int sumRaw = 0;

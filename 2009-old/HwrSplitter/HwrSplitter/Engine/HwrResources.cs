@@ -29,6 +29,7 @@ namespace HwrSplitter.Engine
 		public static DirectoryInfo ImageDir { get { return HwrDir.CreateSubdirectory("Original"); } }
 		public static FileInfo[] ImageFiles { get { return ImageDir.GetFiles("NL_HaNa_H2_7823_*.tif"); } }
 		public static HwrPageImage ImageFile(int pageNum) { return  new HwrPageImage(ImageDir.GetRelativeFile("NL_HaNa_H2_7823_" + pageNum.ToString("0000") + ".tif")); }
+		public static HwrPageImage ImageForText(HwrTextPage textPage) { var retval = ImageFile(textPage.pageNum); retval.TextPage = textPage; TextLineYPosition.LocateLineBodies(retval, retval.TextPage); return retval; } 
 		public static IEnumerable<int> ImagePages { get { return ImageFiles.Select(fi => imageFilenamePattern.Match(fi.Name)).Where(m => m.Success).Select(m => int.Parse(m.Groups["num"].Value)); } }
 		public static DirectoryInfo SymbolOutputDir { get { return HwrDir.CreateSubdirectory("Symbols"); } }
 

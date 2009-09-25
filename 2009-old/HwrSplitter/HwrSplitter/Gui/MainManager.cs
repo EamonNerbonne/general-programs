@@ -8,6 +8,7 @@ using System.Windows;
 using System.Windows.Threading;
 using HwrSplitter.Engine;
 using System.Threading;
+using EmnExtensions.DebugTools;
 
 namespace HwrSplitter.Gui
 {
@@ -15,46 +16,58 @@ namespace HwrSplitter.Gui
 	{
 		public HwrPageOptimizer optimizer; //IDisposable
 
-		public Point LastClickPoint { get; private set; }
-		public HwrTextPage words;
-
-
 		public MainManager(MainWindow mainWindow) {
 			Window = mainWindow;
 			ImageAnnotater = new HwrImageAnnotater(this, Window.ImageAnnotViewbox);
 			zoomRectMan = new ZoomRectManager(this, Window.ZoomRect);
 			wordDetailMan = new WordDetailManager(this, Window.WordDetail);
-
 		}
+
 		public MainWindow Window { get; private set; }
+		public Point LastClickPoint { get; private set; }
+		public HwrImageAnnotater ImageAnnotater { get; private set; }
+		public HwrPageImage PageImage { get; private set; }
+
 		ZoomRectManager zoomRectMan;
 		WordDetailManager wordDetailMan;
-
-		public HwrImageAnnotater ImageAnnotater { get; private set; }
-		HwrPageImage pageImage;
-		public HwrPageImage PageImage { get { return pageImage; } set { pageImage = value; Window.ImageAnnotViewbox.SetImage(pageImage); } }
-
-
-		public void SelectPoint(Point imagePoint) {
-			LastClickPoint = imagePoint;
-			if (words != null) {
-				HwrTextWord target = words.FindWord(imagePoint);
-				if (target != null) {
-					wordDetailMan.WordDisplay(target);
-				}
+		object pagesync = new object();
+		public void DisplayPage(HwrPageImage pageImage) {
+			lock (pagesync) {
+				PageImage = pageImage;
+				Window.Dispatcher.BeginInvoke((Action)UpdatePageUI);
 			}
 		}
 
-		object sync = new object(); //not truly crucial.
+		private void UpdatePageUI() {
+			lock (pagesync) {
+				Window.ImageAnnotViewbox.SetImage(PageImage);
+				ImageAnnotater.DrawWords(PageImage.TextPage.textlines.SelectMany(line => line.words));
+			}
+		}
+
+		public void SelectPoint(Point imagePoint) {
+			using (new DTimer("click"))
+				lock (pagesync) {
+					LastClickPoint = imagePoint;
+					HwrTextPage page = PageImage.TextPage;
+					if (page != null) {
+						HwrTextWord target = page.FindWord(imagePoint);
+						if (target != null)
+							wordDetailMan.WordDisplay(target);
+					}
+				}
+		}
+
+		object pausesync = new object(); //not truly crucial.
 		bool paused;
 		readonly object pausedSync = new object();//used to implement pausing of background thread;
 
 		public bool Paused {
 			get {
-				lock (sync) return paused;
+				lock (pausesync) return paused;
 			}
 			set {
-				lock (sync) {
+				lock (pausesync) {
 					if (paused == value)
 						return;
 					paused = value;
@@ -66,10 +79,6 @@ namespace HwrSplitter.Gui
 			}
 		}
 
-		public void WaitWhilePaused() {
-			lock (pausedSync) { }
-		}
-
-
+		public void WaitWhilePaused() { lock (pausedSync) { } }
 	}
 }

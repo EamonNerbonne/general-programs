@@ -44,25 +44,24 @@ namespace HwrSplitter.Engine
 					manager.workStart.WaitOne();
 					lock (manager.sync)
 						active = true;
-					try
-					{
+					try {
 						learningCache.AssertConsistency("Initialization.");
 						if (manager.Running)
-							for (int i = manager.ClaimLine(); i < manager.currentLines.textlines.Length; i = manager.ClaimLine())
-							{
+							for (int i = manager.ClaimLine(); i < manager.currentLines.textlines.Length; i = manager.ClaimLine()) {
 								ProcessLine(manager.currentLines.textlines[i]);
 								learningCache.AssertConsistency("Line: " + manager.currentLines.textlines[i].FullText);
-							}
-						else
+							} else
 							break;
-						//todo: preload next page here.
-					}
-					catch (Exception e)
-					{
+						HwrTextPage nextPage;
+						lock (manager.sync) {
+							nextPage = manager.nextPage;
+							manager.nextPage = null;
+						}
+						if (nextPage != null)
+							manager.cachedNextPage = HwrResources.ImageForText(nextPage);
+					} catch (Exception e) {
 						Console.WriteLine(e);
-					}
-					finally
-					{
+					} finally {
 						lock (manager.sync) {
 							active = false;
 							if (thread.Priority != ThreadPriority.Lowest)
@@ -79,9 +78,9 @@ namespace HwrSplitter.Engine
 
 			public void ProcessLine(HwrTextLine line) {
 				string linetext = line.FullText;
-				if (linetext.Length < 25 && ! line.words.Where(word=>word.leftStat== HwrEndpointStatus.Manual ||word.leftStat== HwrEndpointStatus.Manual).Any()  ) {
+				if (linetext.Length < 25 && !line.words.Where(word => word.leftStat == HwrEndpointStatus.Manual || word.leftStat == HwrEndpointStatus.Manual).Any()) {
 					line.ProcessorMessage = string.Format("skipped:len=={0}, ", linetext.Length);
-				    return;
+					return;
 				}
 
 #if LOGLINESPEED
@@ -154,35 +153,48 @@ namespace HwrSplitter.Engine
 				workers[i].Dispose();
 			optimizer.Dispose();
 		}
-
-		public void ImproveGuess(HwrPageImage image, HwrTextPage betterGuessWords, Action<HwrTextLine> lineProcessed) {
+		HwrTextPage nextPage;
+		HwrPageImage cachedNextPage;
+		public HwrPageImage ImproveGuess(HwrPageImage image, HwrTextPage betterGuessWords, HwrTextPage nextPage, Action<HwrTextLine> lineProcessed) {
 			currentImage = image;
 			currentLines = betterGuessWords;
+			this.nextPage = nextPage;
+			this.cachedNextPage = null;
 			nextLine = 0;
 			lineDoneEvent = lineProcessed;
 #if PARALLEL_LEARNING
 			workStart.Release(workers.Length);
+			SaveSymbols(null);//we save the results of the previous page while computing the current page null == use default
 			for (int i = 0; i < workers.Length; i++)
 				workDone.WaitOne();
 #else
+			SaveSymbols(null);//null == use default
 			while(nextLine <  betterGuessWords.textlines.Length)
 				workers[0].ProcessLine(betterGuessWords.textlines[nextLine]);
+			if(nextPage!=null)
+				cachedNextPage = HwrResources.ImageForText(nextPage);
 #endif
 			this.currentImage = null;
 			this.currentLines = null;
 			this.lineDoneEvent = null;
 
-			foreach (Worker worker in workers) {
+			//current page computed, next page image preloaded, current symbols saved, now time to update symbols!
+
+			//All SymbolClass modifications START!
+			foreach (Worker worker in workers)
 				optimizer.MergeInLearningCache(worker.learningCache); //this also resets the learning cache to 0;
-			}
+			SymbolClasses.LastPage = image.TextPage.pageNum;
+			//All SymbolClass modifications END!
+			//symbols will be saved during next page processing.
+			
 			Console.WriteLine("Finished page {0}; total lines learnt {1}.", betterGuessWords.pageNum, optimizer.ManagedSymbols.Iteration);
+			return cachedNextPage;
 		}
 		public SymbolClasses SymbolClasses { get { return optimizer.ManagedSymbols; } }
 		public void SaveToManaged() { optimizer.SaveToManaged(); }
 		/// <param name="dir">null for default</param>
-		public void Save(DirectoryInfo dir) { SaveToManaged(); optimizer.ManagedSymbols.Save(dir ?? HwrResources.SymbolOutputDir); }
+		public void SaveSymbols(DirectoryInfo dir) { SaveToManaged(); optimizer.ManagedSymbols.Save(dir ?? HwrResources.SymbolOutputDir); }
 
-		public int NextPage { get { return SymbolClasses.NextPage; } }
 		public Dictionary<char, GaussianEstimate> MakeSymbolWidthEstimate() { return SymbolClasses.Symbol.ToDictionary(sym => sym.Letter, sym => sym.Length); }
 	}
 }

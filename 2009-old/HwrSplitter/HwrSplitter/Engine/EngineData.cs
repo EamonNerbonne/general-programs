@@ -6,6 +6,9 @@ using HwrDataModel;
 using System.Text.RegularExpressions;
 using HwrSplitter.Gui;
 using System.IO;
+using System.Threading;
+using EmnExtensions.Threading;
+using EmnExtensions.DebugTools;
 
 namespace HwrSplitter.Engine
 {
@@ -14,16 +17,19 @@ namespace HwrSplitter.Engine
 		HwrPageOptimizer optimizer;
 		Dictionary<int, HwrTextPage> annot_lines;
 		int[] pages;
+		int pageIndex;
 		private MainManager mainManager;
 		public EngineData(MainManager mainManager) { this.mainManager = mainManager; }
 
 		public void Load() {
+			HwrTextPage[] trainingData = null;
 			//TODO:parallelizable:
-			optimizer = new HwrPageOptimizer(null);//null==use default
-			annot_lines = AnnotLinesParser.GetGuessWords(HwrResources.LineAnnotFile);
-			HwrTextPage[] trainingData = HwrResources.WordsTrainingExamples.ToArray();
-			//barrier
-			pages = HwrResources.ImagePages.Where(num => annot_lines.ContainsKey(num)).ToArray();
+			using (new DTimer("parInvoke"))
+				Par.Invoke(
+					() => { annot_lines = AnnotLinesParser.GetGuessWords(HwrResources.LineAnnotFile); pages = HwrResources.ImagePages.Where(num => annot_lines.ContainsKey(num)).ToArray(); },
+					() => { optimizer = new HwrPageOptimizer(null); },//null==use default
+					() => { trainingData = HwrResources.WordsTrainingExamples.ToArray(); });
+
 			foreach (var wordsImage in trainingData)
 				if (annot_lines.ContainsKey(wordsImage.pageNum))
 					annot_lines[wordsImage.pageNum].SetFromManualExample(wordsImage);
@@ -32,48 +38,46 @@ namespace HwrSplitter.Engine
 				wordsImage.EstimateWordBoundariesViaSymbolLength(symbolWidthLookup);
 		}
 
-		public void LearnInBackground(int page) {
-			HwrPageImage pageImage = HwrResources.ImageFile(page);
-			mainManager.PageImage = pageImage;
+		private HwrPageImage LearnInBackground(HwrPageImage currentPageImage, HwrTextPage nextPage) {
+			mainManager.DisplayPage(currentPageImage);
 
-			HwrTextPage words = annot_lines[page];
-			mainManager.words = words;
+			HwrPageImage precachedNextPage =
+				optimizer.ImproveGuess(currentPageImage, currentPageImage.TextPage, nextPage, line => {
+					mainManager.ImageAnnotater.BackgroundLineUpdate(line);
+				});
 
-			TextLineYPosition.LocateLineBodies(pageImage, words);
+			
 
-			mainManager.ImageAnnotater.ProcessLines(mainManager.words.textlines);
-
-			optimizer.ImproveGuess(pageImage, words, line => {
-				mainManager.ImageAnnotater.ProcessLine(line);
-			});
-
-			optimizer.SymbolClasses.NextPage = page + 1;
-			optimizer.Save(null);//null == use default
-
-			using (Stream stream = HwrResources.WordsGuessFile(page).OpenWrite())
+			using (Stream stream = HwrResources.WordsGuessFile(currentPageImage.TextPage.pageNum).OpenWrite())
 			using (TextWriter writer = new StreamWriter(stream))
-				writer.Write(words.AsXml().ToString());
+				writer.Write(currentPageImage.TextPage.AsXml().ToString());
+			return precachedNextPage;
 		}
 
 
 		public void Dispose() { if (optimizer != null) optimizer.Dispose(); }
 
 		public void StartLearning() {
-			int[] pagesInLearningOrder = pages.Where(pageNum => pageNum >= optimizer.NextPage).Concat(pages.Where(pageNum => pageNum < optimizer.NextPage)).ToArray();
-			optimizer.Save(null);//null == use default -- to check for initialization errors.
+			var firstPageIndex = pages.Select((pageNum, index) => new { PageNum = pageNum, Index = index }).FirstOrDefault(p => p.PageNum > optimizer.SymbolClasses.LastPage);
+			pageIndex = firstPageIndex == null ? 0 : firstPageIndex.Index;
+
+			HwrPageImage currentPageImage = HwrResources.ImageForText(annot_lines[pages[pageIndex]]);
 
 			while (true) {
-				foreach (int pageNum in pagesInLearningOrder) {
-					try {
-						LearnInBackground(pageNum);
-					} catch (Exception e) {
-						Console.WriteLine("Learning failed on page {0} with the following Exception:\n{1}", pageNum, e);
-					}
-					mainManager.WaitWhilePaused();
+				int nextPageIndex = (pageIndex + 1) % pages.Length;
+				HwrTextPage nextPage = annot_lines[pages[nextPageIndex]];
+
+				try {
+					currentPageImage = LearnInBackground(currentPageImage, nextPage);
+				} catch (Exception e) {
+					Console.WriteLine("Learning failed on page {0} with the following Exception:\n{1}", currentPageImage.TextPage.pageNum, e);
 				}
 
+				mainManager.WaitWhilePaused();
+				pageIndex = nextPageIndex;
 			}
 
 		}
+
 	}
 }

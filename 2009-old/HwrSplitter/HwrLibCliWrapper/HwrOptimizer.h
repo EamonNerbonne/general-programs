@@ -27,7 +27,7 @@ namespace HwrLibCliWrapper {
 
 		void SplitWords(ImageStruct<signed char> block, int cropXoffset, HwrDataModel::HwrTextLine^ textLine, SymbolLearningData ^ dataSink);
 
-		void MergeInLearningCache(SymbolLearningData^ learningCache) {nativeSymbols->MergeInLearningCache(learningCache);}
+		void MergeInLearningCache(SymbolLearningData^ learningCache) {nativeSymbols->MergeInLearningCache(learningCache); managedSymbols->Iteration = nativeSymbols->GetSymbols()->iteration; }
 	};
 }
 
