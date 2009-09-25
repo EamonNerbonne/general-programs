@@ -20,11 +20,11 @@ namespace HwrSplitter.Engine
 		public static DirectoryInfo WordsGuessDir { get { return DataDir.CreateSubdirectory("words-guess"); } }
 		public static FileInfo WordsGuessFile(int pageNum) { return WordsGuessDir.GetRelativeFile("NL_HaNa_H2_7823_" + pageNum.ToString("0000") + ".wordsguess"); }
 		public static DirectoryInfo WordsTrainDir { get { return DataDir.CreateSubdirectory("words-train"); } }
-		public static WordsImage WordsTrainingExample(int pageNum) {
+		public static HwrTextPage WordsTrainingExample(int pageNum) {
 			FileInfo wordFile = WordsTrainDir.GetRelativeFile("NL_HaNa_H2_7823_" + pageNum.ToString("0000") + ".words");
-			return wordFile.Exists ? new WordsImage(wordFile, Word.TrackStatus.Manual) : null;
+			return wordFile.Exists ? new HwrTextPage(wordFile, HwrEndpointStatus.Manual) : null;
 		}
-		public static IEnumerable<WordsImage> WordsTrainingExamples { get { return WordsTrainDir.GetFiles("NL_HaNa_H2_7823_*.words").Select(file => new WordsImage(file, Word.TrackStatus.Manual)); } }
+		public static IEnumerable<HwrTextPage> WordsTrainingExamples { get { return WordsTrainDir.GetFiles("NL_HaNa_H2_7823_*.words").Select(file => new HwrTextPage(file, HwrEndpointStatus.Manual)); } }
 
 		public static DirectoryInfo ImageDir { get { return HwrDir.CreateSubdirectory("Original"); } }
 		public static FileInfo[] ImageFiles { get { return ImageDir.GetFiles("NL_HaNa_H2_7823_*.tif"); } }

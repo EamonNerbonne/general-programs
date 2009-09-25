@@ -12,7 +12,7 @@ namespace HwrSplitter.Engine
 	public sealed class EngineData : IDisposable
 	{
 		HwrPageOptimizer optimizer;
-		Dictionary<int, WordsImage> annot_lines;
+		Dictionary<int, HwrTextPage> annot_lines;
 		int[] pages;
 		private MainManager mainManager;
 		public EngineData(MainManager mainManager) { this.mainManager = mainManager; }
@@ -21,7 +21,7 @@ namespace HwrSplitter.Engine
 			//TODO:parallelizable:
 			optimizer = new HwrPageOptimizer(null);//null==use default
 			annot_lines = AnnotLinesParser.GetGuessWords(HwrResources.LineAnnotFile);
-			WordsImage[] trainingData = HwrResources.WordsTrainingExamples.ToArray();
+			HwrTextPage[] trainingData = HwrResources.WordsTrainingExamples.ToArray();
 			//barrier
 			pages = HwrResources.ImagePages.Where(num => annot_lines.ContainsKey(num)).ToArray();
 			foreach (var wordsImage in trainingData)
@@ -36,7 +36,7 @@ namespace HwrSplitter.Engine
 			HwrPageImage pageImage = HwrResources.ImageFile(page);
 			mainManager.PageImage = pageImage;
 
-			WordsImage words = annot_lines[page];
+			HwrTextPage words = annot_lines[page];
 			mainManager.words = words;
 
 			TextLineYPosition.LocateLineBodies(pageImage, words);

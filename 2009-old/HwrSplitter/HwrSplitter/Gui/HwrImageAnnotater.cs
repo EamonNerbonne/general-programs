@@ -25,33 +25,33 @@ namespace HwrSplitter.Gui
             man.SelectPoint(e.MouseDevice.GetPosition(imageView.ImageCanvas));
         }
 
-        private static Brush stat2brush(Word.TrackStatus stat) {
+        private static Brush stat2brush(HwrEndpointStatus stat) {
             switch (stat) {
-				case Word.TrackStatus.Uninitialized: return Brushes.Pink;
-				case Word.TrackStatus.Initialized: return Brushes.Blue;
-				case Word.TrackStatus.Calculated: return Brushes.Purple;
-				case Word.TrackStatus.Manual: return Brushes.Red;
+				case HwrEndpointStatus.Uninitialized: return Brushes.Pink;
+				case HwrEndpointStatus.Initialized: return Brushes.Blue;
+				case HwrEndpointStatus.Calculated: return Brushes.Purple;
+				case HwrEndpointStatus.Manual: return Brushes.Red;
                 default: throw new NotImplementedException("This track status does not exist!");
             }
         }
-        public void ProcessWord(Word word) {
+        public void ProcessWord(HwrTextWord word) {
             ProcessWords(Enumerable.Repeat(word,1));
         }
-        public void ProcessLine(TextLine line) {
+        public void ProcessLine(HwrTextLine line) {
             ProcessWords(line.words);
         }
-        public void ProcessLines(IEnumerable<TextLine> lines) {//TODO:give better name
+        public void ProcessLines(IEnumerable<HwrTextLine> lines) {//TODO:give better name
             ProcessWords(lines.SelectMany(tl => tl.words));
         }
-        void ProcessWords(IEnumerable<Word> words) {
+        void ProcessWords(IEnumerable<HwrTextWord> words) {
             imageView.Dispatcher.BeginInvoke(
                 DispatcherPriority.Normal,
-                new Action<IEnumerable<Word>>(this.ProcessLinesUI),
+                new Action<IEnumerable<HwrTextWord>>(this.ProcessLinesUI),
                 words);
         }
 
-        void ProcessLinesUI(IEnumerable<Word> words) {
-            foreach (Word word in words)
+        void ProcessLinesUI(IEnumerable<HwrTextWord> words) {
+            foreach (HwrTextWord word in words)
                 DrawWordLinesUI(word);
         }
 
@@ -72,7 +72,7 @@ namespace HwrSplitter.Gui
         }
 
 
-        public void DrawWordLinesUI(Word word) {
+        public void DrawWordLinesUI(HwrTextWord word) {
             LinePair lines;
             if (word.guiTag as LinePair != null)
                 lines = (LinePair)word.guiTag;

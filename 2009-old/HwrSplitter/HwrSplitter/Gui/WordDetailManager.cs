@@ -13,7 +13,7 @@ namespace HwrSplitter.Gui
 		WordDetail wordDetail;
 
 		ClickableTextBlock wordSelector;
-		TextLine currentTextLine;
+		HwrTextLine currentTextLine;
 
 
 		public WordDetailManager(MainManager man, WordDetail wordDetail) {
@@ -28,7 +28,7 @@ namespace HwrSplitter.Gui
 			WordDisplay(currentTextLine.words[wordIndex]);
 		}
 
-		public void WordDisplay(Word word) {
+		public void WordDisplay(HwrTextWord word) {
 			currentTextLine = word.line;
 			wordDetail.DisplayLine(man.PageImage, currentTextLine, word);
 
@@ -46,10 +46,10 @@ namespace HwrSplitter.Gui
 			wordDetail.displayFeatures(currentTextLine);
 		}
 
-		private string DescribeLine(TextLine textline, Word word) {
+		private string DescribeLine(HwrTextLine textline, HwrTextWord word) {
 			StringBuilder sb = new StringBuilder();
 			sb.AppendFormat("Line: [{0:f2},{1:f2}), length={2:f2}, likelihood={3}\n", textline.left, textline.right, textline.right - textline.left,textline.ComputedLikelihood);
-			sb.AppendFormat("Word: [{0:f2},{1:f2}), length={2:f2}, est={3:f2} ~ {4:f2}\n", word.left, word.right, word.right - word.left, word.symbolBasedLength.Mean, Math.Sqrt(word.symbolBasedLength.Variance));
+			sb.AppendFormat("HwrTextWord: [{0:f2},{1:f2}), length={2:f2}, est={3:f2} ~ {4:f2}\n", word.left, word.right, word.right - word.left, word.symbolBasedLength.Mean, Math.Sqrt(word.symbolBasedLength.Variance));
 			return sb.ToString();
 		}
 	}

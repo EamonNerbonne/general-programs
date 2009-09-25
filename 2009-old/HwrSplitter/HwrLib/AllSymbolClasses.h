@@ -3,8 +3,7 @@
 #include "SymbolClass.h"
 
 struct AllSymbolClasses {
-	int symbolCount;
-	boost::scoped_array<SymbolClass> sym;
+	std::vector<SymbolClass> sym;
 	int iteration;
 
 	AllSymbolClasses(int symbolCount);
@@ -14,7 +13,7 @@ struct AllSymbolClasses {
 	inline SymbolClass const & operator[](short symbol) const {return sym[symbol];}
 	inline SymbolClass & getSymbol(short symbol) {return sym[symbol];}
 	inline SymbolClass const & getSymbol(short symbol) const {return sym[symbol];}
-	inline short size() const {return symbolCount;}
+	inline short size() const {return (short)sym.size();}
 
 	void initializeRandomly();
 	void resetToZero();
@@ -24,7 +23,7 @@ struct AllSymbolClasses {
 #if  DO_CHECK_CONSISTENCY
 	inline int CheckConsistency(){
 		int errs =0 ;
-		for(int i=0;i<symbolCount;i++)
+		for(int i=0;i<size();i++)
 			errs+= sym[i].CheckConsistency();
 		return errs;
 	}

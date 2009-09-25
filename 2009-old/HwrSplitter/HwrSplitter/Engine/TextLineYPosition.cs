@@ -28,7 +28,7 @@ namespace HwrSplitter.Engine
 			}
 		}
 
-		public static void LocateLineBodies(HwrPageImage image, WordsImage betterGuessWords)
+		public static void LocateLineBodies(HwrPageImage image, HwrTextPage betterGuessWords)
 		{
 			image.ComputeXProjection((int)(betterGuessWords.textlines[0].left + 0.5), (int)(betterGuessWords.textlines[0].right + 0.5));
 			BoxBlur(image.XProjectionSmart, 4);
@@ -38,7 +38,7 @@ namespace HwrSplitter.Engine
 		}
 
 		//public struct Range { public int start, end;}
-		static void LocateLineBodiesImpl(double[] xProjection, WordsImage betterGuessWords)
+		static void LocateLineBodiesImpl(double[] xProjection, HwrTextPage betterGuessWords)
 		{
 			double[] cum = new double[xProjection.Length + 1];
 			double sum = 0.0;
@@ -51,7 +51,7 @@ namespace HwrSplitter.Engine
 
 			for (int lineI = 0; lineI < betterGuessWords.textlines.Length; lineI++)
 			{
-				TextLine textLine = betterGuessWords.textlines[lineI];
+				HwrTextLine textLine = betterGuessWords.textlines[lineI];
 				int y0 = (int)(textLine.top + 0.5);
 				int y1 = (int)(textLine.bottom + 0.5);
 				var origProjection = xProjection.Skip(y0).Take(y1 - y0);
@@ -129,7 +129,7 @@ namespace HwrSplitter.Engine
 				textLine.left += xShift;
 				textLine.right += xShift;
 				textLine.bottom = y1;
-				Console.Write("{0}, ", highDens1 - highDens0);
+//				Console.Write("{0}, ", highDens1 - highDens0);
 
 				int bodyY0 = (y0 + y1) / 2;
 				int bodyY1 = (y0 + y1) / 2 + 1;

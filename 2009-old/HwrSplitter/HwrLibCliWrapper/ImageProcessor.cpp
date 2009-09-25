@@ -20,7 +20,7 @@ namespace HwrLibCliWrapper {
 		return PamImageToStruct(cProcImg);	
 	}
 
-	ImageStruct<float> ImageProcessor::ExtractFeatures(ImageStruct<signed char> block,HwrDataModel::TextLine^ line, [Out] int % topOffRef) {
+	ImageStruct<float> ImageProcessor::ExtractFeatures(ImageStruct<signed char> block,HwrDataModel::HwrTextLine^ line, [Out] int % topOffRef) {
 		using std::min;
 		using std::max;
 		PamImage<BWPixel> pi = StructToPamImage(block);

@@ -5,31 +5,30 @@ using System.Collections.Generic;
 
 namespace HwrDataModel
 {
-	public class Word : ShearedBox, IAsXml
+	public class HwrTextWord : ShearedBox, IAsXml
 	{
-		public readonly TextLine line;
+		public readonly HwrTextLine line;
 		public string text;
 		public int no;
-		public TrackStatus leftStat, rightStat, topStat, botStat;
-		public enum TrackStatus { Uninitialized = 0, Initialized, Calculated, Manual }
+		public HwrEndpointStatus leftStat, rightStat, topStat, botStat;
 
 		//public GaussianEstimate symbolBasedLength;
 		public object guiTag;
 		// public double cost = double.NaN;
-		public Word(TextLine line)
+		public HwrTextWord(HwrTextLine line)
 		{
 			this.line = line;
-			leftStat = rightStat = topStat = botStat = TrackStatus.Uninitialized;
+			leftStat = rightStat = topStat = botStat = HwrEndpointStatus.Uninitialized;
 		}
-		public Word(TextLine line, string text, int no, double top, double bottom, double left, double right, double shear)
+		public HwrTextWord(HwrTextLine line, string text, int no, double top, double bottom, double left, double right, double shear)
 			: base(top, bottom, left, right, shear)
 		{
 			this.line = line;
 			this.text = text;
 			this.no = no;
-			leftStat = rightStat = topStat = botStat = TrackStatus.Uninitialized;
+			leftStat = rightStat = topStat = botStat = HwrEndpointStatus.Uninitialized;
 		}
-		public Word(TextLine line, XElement fromXml,TrackStatus wordStatus)
+		public HwrTextWord(HwrTextLine line, XElement fromXml,HwrEndpointStatus wordStatus)
 			: base(fromXml) {
 			this.line = line;
 			text = (string)fromXml.Attribute("text");
@@ -44,9 +43,9 @@ namespace HwrDataModel
 			get
 			{
 				return
-				(leftStat == Word.TrackStatus.Manual ? (int)(left + 0.5) : -1)
+				(leftStat == HwrEndpointStatus.Manual ? (int)(left + 0.5) : -1)
 					.Concat(Enumerable.Repeat(-1, text.Length - 1))
-					.Concat(rightStat == Word.TrackStatus.Manual ? (int)(right + 0.5) : -1);
+					.Concat(rightStat == HwrEndpointStatus.Manual ? (int)(right + 0.5) : -1);
 			}
 		}
 		public GaussianEstimate symbolBasedLength { get; private set; }
@@ -58,7 +57,7 @@ namespace HwrDataModel
 
 		public XNode AsXml()
 		{
-			return new XElement("Word",
+			return new XElement("HwrTextWord",
 				new XAttribute("no", no),
 				base.MakeXAttrs(),
 				new XAttribute("text", text)

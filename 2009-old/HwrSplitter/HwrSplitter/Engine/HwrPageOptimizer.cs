@@ -1,4 +1,5 @@
-﻿using System;
+﻿#define PARALLEL_LEARNING
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
@@ -28,21 +29,21 @@ namespace HwrSplitter.Engine
 			readonly int workerIndex;
 			public readonly SymbolLearningData learningCache;
 			public readonly Thread thread;
-			//bool active = false;
+			bool active = false;
 			public Worker(HwrPageOptimizer manager, int workerIndex) {
 				this.manager = manager;
 				learningCache = manager.optimizer.ConstructLearningCache();
-				thread = new Thread(ProcessLines) { IsBackground = true, Priority = ThreadPriority.BelowNormal };
+				thread = new Thread(ProcessLines) { IsBackground = true };
 				thread.Start();
 				this.workerIndex = workerIndex;
 			}
 
 			private void ProcessLines() {
 				while (true) {
-					//thread.Priority = workerIndex == 0 ? ThreadPriority.Normal : workerIndex == 1 ? ThreadPriority.BelowNormal : ThreadPriority.Lowest;
+					thread.Priority = workerIndex == 0 ? ThreadPriority.Normal : workerIndex == 1 ? ThreadPriority.BelowNormal : ThreadPriority.Lowest;
 					manager.workStart.WaitOne();
-					//lock (manager.sync)
-					//    active = true;
+					lock (manager.sync)
+						active = true;
 					try
 					{
 						learningCache.AssertConsistency("Initialization.");
@@ -54,6 +55,7 @@ namespace HwrSplitter.Engine
 							}
 						else
 							break;
+						//todo: preload next page here.
 					}
 					catch (Exception e)
 					{
@@ -61,25 +63,25 @@ namespace HwrSplitter.Engine
 					}
 					finally
 					{
-						//lock (manager.sync) {
-						//    active = false;
-						//    if (thread.Priority != ThreadPriority.Lowest)
-						//        for (int i = workerIndex + 1; i < manager.workers.Length; i++)
-						//            if (manager.workers[i].active) {
-						//                manager.workers[i].thread.Priority = thread.Priority;
-						//                break;
-						//            }
-						//}
+						lock (manager.sync) {
+							active = false;
+							if (thread.Priority != ThreadPriority.Lowest)
+								for (int i = workerIndex + 1; i < manager.workers.Length; i++)
+									if (manager.workers[i].active) {
+										manager.workers[i].thread.Priority = thread.Priority;
+										break;
+									}
+						}
 						manager.workDone.Release();
 					}
 				}
 			}
 
-			public void ProcessLine(TextLine line) {
+			public void ProcessLine(HwrTextLine line) {
 				string linetext = line.FullText;
-				if (linetext.Length < 30) {
-					Console.Write("skipped:len=={0}, ", linetext.Length);
-					return;
+				if (linetext.Length < 25 && ! line.words.Where(word=>word.leftStat== HwrEndpointStatus.Manual ||word.leftStat== HwrEndpointStatus.Manual).Any()  ) {
+					line.ProcessorMessage = string.Format("skipped:len=={0}, ", linetext.Length);
+				    return;
 				}
 
 #if LOGLINESPEED
@@ -96,7 +98,7 @@ namespace HwrSplitter.Engine
 			timer.TimeMark(null);
 #endif
 				manager.optimizer.SplitWords(croppedLine, x0, line, learningCache);
-				Console.Write("[p{0};l{1}=={2}], ", manager.currentLines.pageNum, line.no, line.ComputedLikelihood);
+				//Console.Write("[p{0};l{1}=={2}], ", manager.currentLines.pageNum, line.no, line.ComputedLikelihood);
 				manager.lineDoneEvent(line);
 			}
 
@@ -110,9 +112,9 @@ namespace HwrSplitter.Engine
 		bool running = true;
 
 		HwrPageImage currentImage;
-		WordsImage currentLines;
+		HwrTextPage currentLines;
 		int nextLine = 0;
-		Action<TextLine> lineDoneEvent;
+		Action<HwrTextLine> lineDoneEvent;
 
 		object sync = new object();
 		Semaphore workDone;//IDisposable
@@ -153,18 +155,18 @@ namespace HwrSplitter.Engine
 			optimizer.Dispose();
 		}
 
-		public void ImproveGuess(HwrPageImage image, WordsImage betterGuessWords, Action<TextLine> lineProcessed) {
+		public void ImproveGuess(HwrPageImage image, HwrTextPage betterGuessWords, Action<HwrTextLine> lineProcessed) {
 			currentImage = image;
 			currentLines = betterGuessWords;
 			nextLine = 0;
 			lineDoneEvent = lineProcessed;
-#if true
+#if PARALLEL_LEARNING
 			workStart.Release(workers.Length);
 			for (int i = 0; i < workers.Length; i++)
 				workDone.WaitOne();
 #else
-			foreach (var line in betterGuessWords.textlines)
-				workers[0].ProcessLine(line);
+			while(nextLine <  betterGuessWords.textlines.Length)
+				workers[0].ProcessLine(betterGuessWords.textlines[nextLine]);
 #endif
 			this.currentImage = null;
 			this.currentLines = null;
@@ -173,6 +175,7 @@ namespace HwrSplitter.Engine
 			foreach (Worker worker in workers) {
 				optimizer.MergeInLearningCache(worker.learningCache); //this also resets the learning cache to 0;
 			}
+			Console.WriteLine("Finished page {0}; total lines learnt {1}.", betterGuessWords.pageNum, optimizer.ManagedSymbols.Iteration);
 		}
 		public SymbolClasses SymbolClasses { get { return optimizer.ManagedSymbols; } }
 		public void SaveToManaged() { optimizer.SaveToManaged(); }

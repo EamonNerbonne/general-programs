@@ -25,7 +25,7 @@ namespace HwrLibCliWrapper {
 
 		SymbolLearningData^ ConstructLearningCache() {return gcnew SymbolLearningData(nativeSymbols->GetSymbols()->size());}
 
-		void SplitWords(ImageStruct<signed char> block, int cropXoffset, HwrDataModel::TextLine^ textLine, SymbolLearningData ^ dataSink);
+		void SplitWords(ImageStruct<signed char> block, int cropXoffset, HwrDataModel::HwrTextLine^ textLine, SymbolLearningData ^ dataSink);
 
 		void MergeInLearningCache(SymbolLearningData^ learningCache) {nativeSymbols->MergeInLearningCache(learningCache);}
 	};

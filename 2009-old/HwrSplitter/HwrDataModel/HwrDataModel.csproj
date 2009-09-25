@@ -58,16 +58,16 @@
   <ItemGroup>
     <Compile Include="FeatureDistributionEstimate.cs" />
     <Compile Include="GaussianEstimate.cs" />
+    <Compile Include="HwrEndpointStatus.cs" />
     <Compile Include="IAsXml.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ShearedBox.cs" />
     <Compile Include="SymbolClass.cs" />
     <Compile Include="SymbolClasses.cs" />
     <Compile Include="SymbolClassParser.cs" />
-    <Compile Include="TextLine.cs" />
-    <Compile Include="TrackedDouble.cs" />
-    <Compile Include="Word.cs" />
-    <Compile Include="WordsImage.cs" />
+    <Compile Include="HwrTextLine.cs" />
+    <Compile Include="HwrTextWord.cs" />
+    <Compile Include="HwrTextPage.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\External\MoreLinq\MoreLinq\MoreLinq.csproj">

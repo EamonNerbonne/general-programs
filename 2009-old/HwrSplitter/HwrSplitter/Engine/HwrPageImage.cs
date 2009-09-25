@@ -15,7 +15,36 @@ namespace HwrSplitter.Engine
 {
 	public class HwrPageImage
 	{
-		const int SCALE = 64;
+		static void Fac16SumBlur(ImageStruct<int> img) {
+			for (int y = 0; y < img.Height; y++) {
+				for (int x = 0; x < img.Width - 1; x++)
+					img[x, y] = (img[x, y] + img[x + 1, y]);
+
+				img[img.Width - 1, y] *= 2;
+
+				for (int x = img.Width - 1; x > 0; x--)
+					img[x, y] = (img[x, y] + img[x - 1, y]);
+
+				img[0, y] *= 2;
+			}
+
+			for (int y = 0; y < img.Height - 1; y++)
+				for (int x = 0; x < img.Width; x++)
+					img[x, y] = (img[x, y] + img[x, y + 1]);
+
+			for (int x = 0; x < img.Width; x++)
+				img[x, img.Height - 1] *= 2;
+
+
+			for (int y = img.Height - 1; y > 0; y--)
+				for (int x = 0; x < img.Width; x++)
+					img[x, y] = (img[x, y] + img[x, y - 1]);
+
+			for (int x = 0; x < img.Width; x++)
+				img[x, 0] *= 2;
+		}
+
+		const int SCALE = 64;//not more than 256 due to overflow! 
 		ImageStruct<sbyte> image;
 		//BitmapImage original;
 		public HwrPageImage(FileInfo fileToLoad) {
@@ -28,7 +57,6 @@ namespace HwrSplitter.Engine
 			original.BeginInit();
 			original.UriSource = new Uri(fileToLoad.FullName);
 			original.EndInit();
-			//Console.WriteLine(original.IsDownloading);
 			original.Freeze();
 
 #if LOGSPEED
@@ -43,61 +71,30 @@ namespace HwrSplitter.Engine
 			var greyScale = rawImg.MapTo(nr => ((PixelArgb32)nr).R);
 			rawImg = default(ImageStruct<uint>);
 
-			var minSmall = new ImageStruct<ushort>((greyScale.Width + SCALE - 1) / SCALE, (greyScale.Height + SCALE - 1) / SCALE);
-			var maxSmall = new ImageStruct<ushort>((greyScale.Width + SCALE - 1) / SCALE, (greyScale.Height + SCALE - 1) / SCALE);
-			for (int y = 0; y < minSmall.Height; y++)
-				for (int x = 0; x < minSmall.Width; x++) {
-					minSmall[x, y] = 255;
+			var avgSmall = new ImageStruct<int>((greyScale.Width + SCALE - 1) / SCALE, greyScale.Height); //mean only over x-direction.
+			var maxSmall = new ImageStruct<int>((greyScale.Width + SCALE - 1) / SCALE, (greyScale.Height + SCALE - 1) / SCALE);
+			for (int y = 0; y < maxSmall.Height; y++)
+				for (int x = 0; x < maxSmall.Width; x++) 
 					maxSmall[x, y] = 0;
-				}
 
-			for (int y = 0; y < greyScale.Height; y++)
+			for (int y = 0; y < avgSmall.Height; y++)
+				for (int x = 0; x < avgSmall.Width; x++)
+					avgSmall[x, y] = 0;
+
+			for (int y = 0; y < greyScale.Height; y++) {
+				int sy = y / SCALE;
 				for (int x = 0; x < greyScale.Width; x++) {
 					int sx = x / SCALE;
-					int sy = y / SCALE;
-					minSmall[sx, sy] = Math.Min(minSmall[sx, sy], greyScale[x, y]);
+					avgSmall[sx, y] = avgSmall[sx, y] + (int) greyScale[x, y];
 					maxSmall[sx, sy] = Math.Max(maxSmall[sx, sy], greyScale[x, y]);
 				}
-
-
-
-			for (int y = 0; y < minSmall.Height; y++) {
-				for (int x = 0; x < minSmall.Width - 1; x++) {
-					minSmall[x, y] = (ushort)(minSmall[x, y] + minSmall[x + 1, y]);
-					maxSmall[x, y] = (ushort)(maxSmall[x, y] + maxSmall[x + 1, y]);
-				}
-				minSmall[minSmall.Width - 1, y] *= 2;
-				maxSmall[minSmall.Width - 1, y] *= 2;
-
-				for (int x = minSmall.Width - 1; x > 0; x--) {
-					minSmall[x, y] = (ushort)(minSmall[x, y] + minSmall[x - 1, y]);
-					maxSmall[x, y] = (ushort)(maxSmall[x, y] + maxSmall[x - 1, y]);
-				}
-				minSmall[0, y] *= 2;
-				maxSmall[0, y] *= 2;
+				int missingPix = avgSmall.Width * SCALE - greyScale.Width;
+				double scaleFac = SCALE /(double) (SCALE - missingPix);
+				avgSmall[avgSmall.Width - 1, y] = (int)(avgSmall[avgSmall.Width - 1, y] * scaleFac + 0.5);
 			}
 
-			for (int y = 0; y < minSmall.Height - 1; y++)
-				for (int x = 0; x < minSmall.Width; x++) {
-					minSmall[x, y] = (ushort)(minSmall[x, y] + minSmall[x, y + 1]);
-					maxSmall[x, y] = (ushort)(maxSmall[x, y] + maxSmall[x, y + 1]);
-				}
-			for (int x = 0; x < minSmall.Width; x++) {
-				minSmall[x, minSmall.Height - 1] *= 2;
-				maxSmall[x, minSmall.Height - 1] *= 2;
-			}
-
-			for (int y = minSmall.Height - 1; y > 0; y--)
-				for (int x = 0; x < minSmall.Width; x++) {
-					minSmall[x, y] = (ushort)(minSmall[x, y] + minSmall[x, y - 1]);
-					maxSmall[x, y] = (ushort)(maxSmall[x, y] + maxSmall[x, y - 1]);
-				}
-			for (int x = 0; x < minSmall.Width; x++) {
-				minSmall[x, 0] *= 2;
-				maxSmall[x, 0] *= 2;
-			}
-
-
+			Fac16SumBlur(maxSmall);
+			Fac16SumBlur(avgSmall);
 
 #if LOGSPEED
 			timer.TimeMark("threshholding");
@@ -109,7 +106,7 @@ namespace HwrSplitter.Engine
 				for (int x = 0; x < greyScale.Width; x++) {
 					int sx = x / SCALE;
 					int sy = y / SCALE;
-					byte threshold = (byte)(200.0*0.6+ 0.4*(minSmall[sx, sy] * (1 / 16.0) * 0.3 + maxSmall[sx, sy] * (1 / 16.0) * 0.7) + 0.5);
+					byte threshold = (byte)(200.0 * 0.1 + 0.5 * (maxSmall[sx, sy] * (1 / 16.0) * 0.9) +0.4* (avgSmall[sx, y] * (1  / (double)SCALE/16.0) *0.92  )   + 0.5);
 					image[x, y] = greyScale[x, y] > threshold ? (sbyte)0 : (sbyte)1;
 				}
 
@@ -170,7 +167,7 @@ namespace HwrSplitter.Engine
 			XProjectionSmart = xProjectionSmart;
 		}
 
-		public void ComputeFeatures(TextLine line, out BitmapSource featureImage, out Point offset) {
+		public void ComputeFeatures(HwrTextLine line, out BitmapSource featureImage, out Point offset) {
 			int topXoffset;
 
 			int x0 = Math.Max(0, (int)(line.OuterExtremeLeft + 0.5));

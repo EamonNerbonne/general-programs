@@ -7,10 +7,7 @@
 #include "image/transformations.h"
 
 namespace HwrLibCliWrapper {
-
-
-
-	void HwrOptimizer::SplitWords(ImageStruct<signed char> block, int cropXoffset, HwrDataModel::TextLine^ textLine, SymbolLearningData ^ learningCache  ) {
+	void HwrOptimizer::SplitWords(ImageStruct<signed char> block, int cropXoffset, HwrDataModel::HwrTextLine^ textLine, SymbolLearningData ^ learningCache  ) {
 		using std::min;
 		using std::max;
 		using std::cout;
@@ -20,7 +17,7 @@ namespace HwrLibCliWrapper {
 #endif
 		int learningIteration = managedSymbols->Iteration;
 		//based on learningIteration, set a few things:
-		double dampingFactor = 1.0 - min(learningIteration/200.0,1.0);
+		double dampingFactor = 1.0 - min(learningIteration/double(STARTUP_SMOOTH_ITERATIONS),1.0);
 		int blurIter = 3;
 		int winAngleSize = int(100.0*dampingFactor + 4);
 		int winDensSize = int(winAngleSize*0.76);
@@ -83,14 +80,15 @@ namespace HwrLibCliWrapper {
 		for(int i=0;i<(int)splits.size();i++) 
 			absoluteEndpoints[i] = splits[i] + topShearOffset + cropXoffset;
 
-		textLine->SetComputedCharEndpoints(absoluteEndpoints, computedLikelihood, HwrDataModel::Word::TrackStatus::Calculated);
+		textLine->SetComputedCharEndpoints(absoluteEndpoints, computedLikelihood, HwrDataModel::HwrEndpointStatus::Calculated);
+		AllSymbolClasses* learnSymbols = learningCache->GetSymbols();
 #if DO_CHECK_CONSISTENCY
-		if(learningCache->GetSymbols()->CheckConsistency() > 0)
+		if((*learnSymbols).CheckConsistency() > 0)
 			throw gcnew ApplicationException("NaN's found in learning cache: "+textLine->FullText);
 #endif
-		splitSolve.Learn(dampingFactor, *learningCache->GetSymbols());
+		splitSolve.Learn(dampingFactor, *learnSymbols);
 #if DO_CHECK_CONSISTENCY
-		if(learningCache->GetSymbols()->CheckConsistency() > 0)
+		if((*learnSymbols).CheckConsistency() > 0)
 			throw gcnew ApplicationException("NaN's found in learning cache after learning: "+textLine->FullText );
 #endif
 	}

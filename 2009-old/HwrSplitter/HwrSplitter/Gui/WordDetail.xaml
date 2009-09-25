@@ -19,7 +19,7 @@
                 <ColumnDefinition />
                 <ColumnDefinition />
             </Grid.ColumnDefinitions>
-            <Label Name="wordContent" Grid.ColumnSpan="2">Word-Stats</Label>
+            <Label Name="wordContent" Grid.ColumnSpan="2">HwrTextWord-Stats</Label>
         </Grid>
 
         <Rectangle Grid.Row="2" Name="lineView" Stroke="Black"  SizeChanged="lineView_SizeChanged">

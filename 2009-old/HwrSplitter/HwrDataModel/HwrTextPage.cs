@@ -1,4 +1,5 @@
-﻿#define LOG_OVERFLOWS
+﻿//#define LOG_OVERFLOWS
+
 using System.IO;
 using System.Linq;
 using MoreLinq;
@@ -10,25 +11,24 @@ using System.Windows;
 
 namespace HwrDataModel
 {
-
-	public class WordsImage : IAsXml
+	public class HwrTextPage : IAsXml
 	{
 		public readonly string name;
 		public readonly int pageNum;
-		public readonly TextLine[] textlines;//textlines can be relayouted post-construction, but the actual line content and number of lines cannot be changed.
+		public readonly HwrTextLine[] textlines;//textlines can be relayouted post-construction, but the actual line content and number of lines cannot be changed.
 
-		public WordsImage(FileInfo file, Word.TrackStatus wordSource) : this(LoadXDoc(file).Root, wordSource) { }
+		public HwrTextPage(FileInfo file, HwrEndpointStatus wordSource) : this(LoadXDoc(file).Root, wordSource) { }
 		private static XDocument LoadXDoc(FileInfo file) {
 			using (Stream stream = file.OpenRead())
 			using (XmlReader xmlreader = XmlReader.Create(stream))
 				return XDocument.Load(xmlreader);
 		}
-		public WordsImage(XElement fromXml, Word.TrackStatus wordSource) {
+		public HwrTextPage(XElement fromXml, HwrEndpointStatus wordSource) {
 			name = (string)fromXml.Attribute("name");
 			pageNum = int.Parse(name.Substring(name.Length - 4, 4));
-			textlines = fromXml.Elements("TextLine").Select(xmlTextLine => new TextLine(this, xmlTextLine, wordSource)).ToArray();
+			textlines = fromXml.Elements("HwrTextLine").Select(xmlTextLine => new HwrTextLine(this, xmlTextLine, wordSource)).ToArray();
 		}
-		public WordsImage(string name, int pageNum, Func<WordsImage, TextLine[]> textlinesConstructor) { this.name = name; this.pageNum = pageNum; this.textlines = textlinesConstructor(this); }
+		public HwrTextPage(string name, int pageNum, Func<HwrTextPage, HwrTextLine[]> textlinesConstructor) { this.name = name; this.pageNum = pageNum; this.textlines = textlinesConstructor(this); }
 
 		public XNode AsXml() {
 			return new XElement("Image",
@@ -39,10 +39,10 @@ namespace HwrDataModel
 
 		public struct WordPair
 		{
-			public Word MyWord, Other;
+			public HwrTextWord MyWord, Other;
 		}
 
-		public IEnumerable<WordPair> MatchWordPairs(WordsImage other) {
+		public IEnumerable<WordPair> MatchWordPairs(HwrTextPage other) {
 
 			if (other == null)
 				return Enumerable.Empty<WordPair>();
@@ -60,7 +60,7 @@ namespace HwrDataModel
 				select pair;
 		}
 
-		public Word FindWord(Point point) {
+		public HwrTextWord FindWord(Point point) {
 			return (
 				from line in textlines
 				where line.ContainsPoint(point)
@@ -73,13 +73,13 @@ namespace HwrDataModel
 				).FirstOrDefault();
 		}
 
-		public void SetFromManualExample(WordsImage handChecked) {
+		public void SetFromManualExample(HwrTextPage handChecked) {
 			if (handChecked == null)
 				return;
 
-			foreach (TextLine line in textlines) {
+			foreach (HwrTextLine line in textlines) {
 				var trainLines = handChecked.textlines.Where(trainline => trainline.ContainsPoint(line.CenterPoint) && line.ContainsPoint(trainline.CenterPoint)).ToArray();
-				TextLine trainLine;
+				HwrTextLine trainLine;
 				if (trainLines.Length == 0)
 					continue;
 				else if (trainLines.Length > 1) {
@@ -113,14 +113,14 @@ namespace HwrDataModel
 					select pair;
 
 				foreach (var pair in trainPairs) {
-					Word myWord = pair.MyWord;
-					Word trainWord = pair.TrainWord;
+					HwrTextWord myWord = pair.MyWord;
+					HwrTextWord trainWord = pair.TrainWord;
 					//we have a training example; now to correct for shear...
 					double yShift = myWord.top - trainWord.top;
 					double xShift = trainWord.XOffsetForYOffset(yShift);
 					myWord.left = trainWord.left + xShift;
 					myWord.right = trainWord.right + xShift;
-					myWord.leftStat = myWord.rightStat = Word.TrackStatus.Manual;
+					myWord.leftStat = myWord.rightStat = HwrEndpointStatus.Manual;
 					if (myWord.left < line.left) {
 						if (line.left - myWord.left < 150)
 							line.left = myWord.left;
@@ -146,33 +146,33 @@ namespace HwrDataModel
 				}
 				//unfortunately some training samples violate my assumption that words are non-overlapping.
 				double minX = 0;
-				foreach (Word word in line.words) {
-					if (word.leftStat == Word.TrackStatus.Manual || word.leftStat == Word.TrackStatus.Calculated) {
+				foreach (HwrTextWord word in line.words) {
+					if (word.leftStat == HwrEndpointStatus.Manual || word.leftStat == HwrEndpointStatus.Calculated) {
 						if (word.left < minX)
-							word.leftStat = Word.TrackStatus.Calculated; //don't regard as absolute truth.
+							word.leftStat = HwrEndpointStatus.Calculated; //don't regard as absolute truth.
 						else
 							minX = word.left;
 					}
 
-					if (word.rightStat == Word.TrackStatus.Manual || word.rightStat == Word.TrackStatus.Calculated) {
+					if (word.rightStat == HwrEndpointStatus.Manual || word.rightStat == HwrEndpointStatus.Calculated) {
 						if (word.right < minX)
-							word.rightStat = Word.TrackStatus.Calculated;
+							word.rightStat = HwrEndpointStatus.Calculated;
 						else
 							minX = word.right;
 					}
 				}
 				double maxX = double.MaxValue;
-				foreach (Word word in line.words.Reverse()) {
-					if (word.rightStat == Word.TrackStatus.Manual || word.rightStat == Word.TrackStatus.Calculated) {
+				foreach (HwrTextWord word in line.words.Reverse()) {
+					if (word.rightStat == HwrEndpointStatus.Manual || word.rightStat == HwrEndpointStatus.Calculated) {
 						if (word.right > maxX)
-							word.rightStat = Word.TrackStatus.Calculated;
+							word.rightStat = HwrEndpointStatus.Calculated;
 						else
 							maxX = word.right;
 					}
 
-					if (word.leftStat == Word.TrackStatus.Manual || word.leftStat == Word.TrackStatus.Calculated) {
+					if (word.leftStat == HwrEndpointStatus.Manual || word.leftStat == HwrEndpointStatus.Calculated) {
 						if (word.left > maxX)
-							word.leftStat = Word.TrackStatus.Calculated; //don't regard as absolute truth.
+							word.leftStat = HwrEndpointStatus.Calculated; //don't regard as absolute truth.
 						else
 							maxX = word.left;
 					}

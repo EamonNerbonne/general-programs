@@ -26,6 +26,7 @@ void SymbolClass::ScaleWeightBy(double scaleFactor) {
 }
 
 void SymbolClass::LearnLength(double length, double weight) {
+	if(weight==0) return;
 	double newWeight = wLength + weight;
 	sLength = sLength + sqr(length - mLength)*wLength*weight/newWeight;
 	mLength = mLength + (length - mLength)*weight/newWeight;

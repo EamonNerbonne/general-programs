@@ -51,9 +51,9 @@ namespace HwrSplitter.Gui
 			return imgData;
 		}
 
-		BitmapSource ImgdataFromShearedSum(Word[] linewords, Word targetword, double[] shearedsum) {
+		BitmapSource ImgdataFromShearedSum(HwrTextWord[] linewords, HwrTextWord targetword, double[] shearedsum) {
 			var imgData = ByteArrFromProjection(shearedsum, 1.0);
-			foreach (Word lineword in linewords) {
+			foreach (HwrTextWord lineword in linewords) {
 				var l = 4 * (int)lineword.left;
 				var r = 4 * (int)lineword.right;
 				imgData[l] = 0; imgData[l + 1] = 255; imgData[l + 2] = 0;
@@ -66,7 +66,7 @@ namespace HwrSplitter.Gui
 			return BitmapSource.Create(shearedsum.Length, 1, 96.0, 96.0, PixelFormats.Bgra32, null, imgData, imgData.Length); ;
 		}
 
-		BitmapSource ImgdataFromXProject(double[] data, TextLine line, int bodyTop, int bodyBot) {
+		BitmapSource ImgdataFromXProject(double[] data, HwrTextLine line, int bodyTop, int bodyBot) {
 			var imgData = ByteArrFromProjection(data, data.Skip((int)(line.top+0.5)).Take((int)(line.bottom-line.top+0.5)).Max());
 			int t = 4 * (int)line.top;
 			int tB = 4 * (int)(line.top + bodyTop);
@@ -82,7 +82,7 @@ namespace HwrSplitter.Gui
 
 		Point featureComputeOffset;
 		SolidColorBrush highlightBrush = (SolidColorBrush)new SolidColorBrush(Color.FromArgb(100, 255, 255, 80)).GetAsFrozen();
-		public void DisplayLine( HwrPageImage pageImage, TextLine textline, Word word) {
+		public void DisplayLine( HwrPageImage pageImage, HwrTextLine textline, HwrTextWord word) {
 			//intensBrush.ImageSource = ImgdataFromShearedSum(textline.words, word, textline.shearedsum);
 			//intensBodyBrush.ImageSource = ImgdataFromShearedSum(textline.words, word, textline.shearedbodysum);
 
@@ -241,7 +241,7 @@ namespace HwrSplitter.Gui
 			redisplay();
 		}
 
-		internal void displayFeatures(TextLine textline) {
+		internal void displayFeatures(HwrTextLine textline) {
 			//featuresGraphBrush.Viewbox(
 
 		}

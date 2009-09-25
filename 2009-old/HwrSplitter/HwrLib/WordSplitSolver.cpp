@@ -11,7 +11,7 @@ using namespace std;
 
 #if  DO_CHECK_CONSISTENCY
 inline int FindFirstNan(vector<double> const & vec) {
-	for(int i=0;i<vec.size();i++) {
+	for(int i=0;i<(int)vec.size();i++) {
 		if(isnan(vec[i]))
 			return i+1;
 	}
@@ -176,7 +176,7 @@ void WordSplitSolver::Learn(double blurSymbols, AllSymbolClasses& learningTarget
 			}
 		}
 	}
-	CheckSymConsistencyMsg(learningTarget[c].phase[i], "after feature learning");
+	CheckSymConsistencyMsg(learningTarget, "after feature learning");
 
 #if LOGLEVEL >= 9 
 	cout<<"SymbolLearning: "<<overallTimer.elapsed()<<endl;

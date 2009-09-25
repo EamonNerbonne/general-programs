@@ -10,7 +10,7 @@ namespace HwrLibCliWrapper {
 	public:
 		static ImageStruct<signed char> preprocess(ImageStruct<unsigned int> image);
 
-		static ImageStruct<float> ExtractFeatures(ImageStruct<signed char> block, HwrDataModel::TextLine^ line, [Out] int % topOffRef);
+		static ImageStruct<float> ExtractFeatures(ImageStruct<signed char> block, HwrDataModel::HwrTextLine^ line, [Out] int % topOffRef);
 
 		template<typename T> static ImageStruct<T> PamImageToStruct(PamImage<T> pi) {
 			ImageStruct<T> retval =  ImageStruct<T>(pi.getWidth(),pi.getHeight());

@@ -16,11 +16,11 @@ namespace HwrSplitter.Engine
 				return AnnotLineSingle.FromString(reader.ReadToEnd(), pageFilter ?? (x => true)).ToArray();
 		}
 
-		static Dictionary<int, WordsImage> GuessWords(IEnumerable<AnnotLineSingle> annotLines) {
+		static Dictionary<int, HwrTextPage> GuessWords(IEnumerable<AnnotLineSingle> annotLines) {
 			var wordsImages = //lazily evaluated query.
 				from annotline in annotLines
 				group annotline by annotline.pageNum into pagegroup
-				select new WordsImage(
+				select new HwrTextPage(
 					string.Format("NL_HaNa_H2_7823_{0:D4}", pagegroup.Key),
 					pagegroup.Key,
 					pageObj=> (
@@ -31,17 +31,17 @@ namespace HwrSplitter.Engine
 						where !indexedLine.Line.text.Contains("\\n") //filter out potential nonsense lines AFTER indexing
 						let line = indexedLine.Line
 						let height = line.bottom - line.top
-						select new TextLine(pageObj, line.text, indexedLine.Index, line.top, line.bottom, line.left, line.right + height, 45)
-					).ToArray()//textlines in WordsImage
+						select new HwrTextLine(pageObj, line.text, indexedLine.Index, line.top, line.bottom, line.left, line.right + height, 45)
+					).ToArray()//textlines in HwrTextPage
 				);
 			return wordsImages.ToDictionary(wordsImage => wordsImage.pageNum);
 		}
 
-		public static Dictionary<int, WordsImage> GetGuessWords(FileInfo file) {
+		public static Dictionary<int, HwrTextPage> GetGuessWords(FileInfo file) {
 			return GuessWords(LoadAnnotLines(file,null));
 		}
 
-		public static WordsImage GetGuessWord(FileInfo file, int pageNum) {
+		public static HwrTextPage GetGuessWord(FileInfo file, int pageNum) {
 			return GuessWords(LoadAnnotLines(file, x => x == pageNum))[pageNum];
 		}
 

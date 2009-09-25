@@ -9,11 +9,11 @@ using System.Windows.Media;
 
 namespace HwrDataModel
 {
-	public class TextLine : ShearedBox, IAsXml
+	public class HwrTextLine : ShearedBox, IAsXml
 	{
-		public readonly Word[] words; //after construction, words are fixed - you can only recompute their positions.
+		public readonly HwrTextWord[] words; //after construction, words are fixed - you can only recompute their positions.
 		public readonly int no;
-		public readonly WordsImage Page;
+		public readonly HwrTextPage Page;
 
 		public int bodyTop, bodyTopAlt;//bodyTop/bodyBot are relative to line top, not to page top.
 		public int bodyBot, bodyBotAlt;//bodyTop/bodyBot are relative to line top, not to page top.
@@ -25,7 +25,7 @@ namespace HwrDataModel
 		double computedLikelihood = double.NaN;
 		public int[] ComputedCharEndpoints { get { return computedCharEndpoints; } }
 		public double ComputedLikelihood { get { return computedLikelihood; } }
-		public void SetComputedCharEndpoints(int[] endpoints, double likelihood, Word.TrackStatus endpointSource)
+		public void SetComputedCharEndpoints(int[] endpoints, double likelihood, HwrEndpointStatus endpointSource)
 		{
 			//remember: don't overwrite manually set endpoints!!!!
 
@@ -43,7 +43,7 @@ namespace HwrDataModel
 				{ //found word boundary
 					if (currWordI >= 0)
 					{ //then the character right before this space was the rightmost character of the previous word.
-						if (words[currWordI].rightStat != Word.TrackStatus.Manual)
+						if (words[currWordI].rightStat != HwrEndpointStatus.Manual)
 						{
 							words[currWordI].right = endpoints[i - 1];
 							words[currWordI].rightStat = endpointSource;
@@ -57,7 +57,7 @@ namespace HwrDataModel
 					currWordI++;//space means new word
 					if (currWordI < words.Length) //then the endpos of the space must be the beginning pos of the new word.
 					{
-						if (words[currWordI].leftStat != Word.TrackStatus.Manual)
+						if (words[currWordI].leftStat != HwrEndpointStatus.Manual)
 						{
 							words[currWordI].left = endpoints[i];
 							words[currWordI].leftStat = endpointSource;
@@ -75,23 +75,23 @@ namespace HwrDataModel
 		}
 
 
-		public TextLine(WordsImage page) { this.Page = page; }
-		public TextLine(WordsImage page, string text, int no, double top, double bottom, double left, double right, double shear)
+		public HwrTextLine(HwrTextPage page) { this.Page = page; }
+		public HwrTextLine(HwrTextPage page, string text, int no, double top, double bottom, double left, double right, double shear)
 			: base(top, bottom, left, right, shear)
 		{
 			this.Page = page;
 			this.no = no;
 			this.words = text
 				.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)
-				.Select((t, i) => new Word(this, t, i + 1, top, bottom, left, left, shear))
+				.Select((t, i) => new HwrTextWord(this, t, i + 1, top, bottom, left, left, shear))
 			.ToArray();
 		}
-		public TextLine(WordsImage page, XElement fromXml, Word.TrackStatus wordSource)
+		public HwrTextLine(HwrTextPage page, XElement fromXml, HwrEndpointStatus wordSource)
 			: base(fromXml)
 		{
 			this.Page = page;
 			no = (int)fromXml.Attribute("no");
-			words = fromXml.Elements("Word").Select(xmlWord => new Word(this, xmlWord, wordSource)).ToArray();
+			words = fromXml.Elements("HwrTextWord").Select(xmlWord => new HwrTextWord(this, xmlWord, wordSource)).ToArray();
 		}
 
 
@@ -126,9 +126,9 @@ namespace HwrDataModel
 				end = symbolWidths[(char)10];
 
 			var wordEstimates =
-				new { Word = (Word)null, Length = start }
-				.Concat(words.Select(word => new { Word = word, Length = word.EstimateLength(symbolWidths) }))
-				.Concat(new { Word = (Word)null, Length = end })
+				new { HwrTextWord = (HwrTextWord)null, Length = start }
+				.Concat(words.Select(word => new { HwrTextWord = word, Length = word.EstimateLength(symbolWidths) }))
+				.Concat(new { HwrTextWord = (HwrTextWord)null, Length = end })
 				.ToArray();
 
 			int currWordI = 0;
@@ -138,7 +138,7 @@ namespace HwrDataModel
 			{
 				if (nextWordI != currWordI)
 				{
-					//spread words [currWordI, i) over [edgeLeft, wordEstimates[i].Word.left]
+					//spread words [currWordI, i) over [edgeLeft, wordEstimates[i].HwrTextWord.left]
 					var relevantEsts = wordEstimates.Skip(currWordI).Take(nextWordI - currWordI);
 					GaussianEstimate totalEstimate = relevantEsts.Select(w => w.Length).Aggregate((a, b) => a + b);
 					double wordwiseStddevTotal = relevantEsts.Select(w => w.Length).Select(est => est.StdDev).Sum();
@@ -149,31 +149,31 @@ namespace HwrDataModel
 					//ok, so we have a total segment length and a per word estimate
 					foreach (var wordEst in relevantEsts)
 					{
-						Word word = wordEst.Word;
+						HwrTextWord word = wordEst.HwrTextWord;
 						if (word == null)
 						{
 							position += wordEst.Length.Mean + wordEst.Length.StdDev * correctionPerStdDev;
 						}
 						else
 						{
-							if (word.leftStat > Word.TrackStatus.Initialized)
+							if (word.leftStat > HwrEndpointStatus.Initialized)
 							{
 								Debug.Assert(Math.Abs(position - word.left) < 1, "math error(left)");
 							}
 							else
 							{
 								word.left = position;
-								word.leftStat = Word.TrackStatus.Initialized;
+								word.leftStat = HwrEndpointStatus.Initialized;
 							}
 							position += wordEst.Length.Mean + wordEst.Length.StdDev * correctionPerStdDev;
-							if (word.rightStat > Word.TrackStatus.Initialized)
+							if (word.rightStat > HwrEndpointStatus.Initialized)
 							{
 								Debug.Assert(Math.Abs(position - word.right) < 1, "math error(right)");
 							}
 							else
 							{
 								word.right = position;
-								word.rightStat = Word.TrackStatus.Initialized;
+								word.rightStat = HwrEndpointStatus.Initialized;
 							}
 						}
 					}
@@ -185,17 +185,17 @@ namespace HwrDataModel
 
 			for (int i = 0; i < wordEstimates.Length; i++)
 			{
-				if (wordEstimates[i].Word == null)
+				if (wordEstimates[i].HwrTextWord == null)
 					continue;
-				if (wordEstimates[i].Word.leftStat == Word.TrackStatus.Calculated || wordEstimates[i].Word.leftStat == Word.TrackStatus.Manual)
+				if (wordEstimates[i].HwrTextWord.leftStat == HwrEndpointStatus.Calculated || wordEstimates[i].HwrTextWord.leftStat == HwrEndpointStatus.Manual)
 				{
-					//spread words [currWordI, i) over [edgeLeft, wordEstimates[i].Word.left]
-					distributeWord(i, wordEstimates[i].Word.left);
+					//spread words [currWordI, i) over [edgeLeft, wordEstimates[i].HwrTextWord.left]
+					distributeWord(i, wordEstimates[i].HwrTextWord.left);
 				}
-				if (wordEstimates[i].Word.rightStat == Word.TrackStatus.Calculated || wordEstimates[i].Word.rightStat == Word.TrackStatus.Manual)
+				if (wordEstimates[i].HwrTextWord.rightStat == HwrEndpointStatus.Calculated || wordEstimates[i].HwrTextWord.rightStat == HwrEndpointStatus.Manual)
 				{
-					//spread words [currWordI, i+1) over [edgeLeft, wordEstimates[i].Word.right]
-					distributeWord(i + 1, wordEstimates[i].Word.right);
+					//spread words [currWordI, i+1) over [edgeLeft, wordEstimates[i].HwrTextWord.right]
+					distributeWord(i + 1, wordEstimates[i].HwrTextWord.right);
 				}
 			}
 			distributeWord(wordEstimates.Length, this.right);
@@ -204,11 +204,13 @@ namespace HwrDataModel
 		public XNode AsXml()
 		{
 			return
-				new XElement("TextLine",
+				new XElement("HwrTextLine",
 					new XAttribute("no", no),
 					base.MakeXAttrs(),
 					words.Select(word => word.AsXml())
 				);
 		}
+
+		public string ProcessorMessage { get; set; }
 	}
 }

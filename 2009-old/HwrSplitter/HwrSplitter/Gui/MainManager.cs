@@ -16,7 +16,7 @@ namespace HwrSplitter.Gui
 		public HwrPageOptimizer optimizer; //IDisposable
 
 		public Point LastClickPoint { get; private set; }
-		public WordsImage words;
+		public HwrTextPage words;
 
 
 		public MainManager(MainWindow mainWindow) {
@@ -38,7 +38,7 @@ namespace HwrSplitter.Gui
 		public void SelectPoint(Point imagePoint) {
 			LastClickPoint = imagePoint;
 			if (words != null) {
-				Word target = words.FindWord(imagePoint);
+				HwrTextWord target = words.FindWord(imagePoint);
 				if (target != null) {
 					wordDetailMan.WordDisplay(target);
 				}
