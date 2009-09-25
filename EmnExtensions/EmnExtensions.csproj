@@ -134,6 +134,7 @@
     <Compile Include="Text\ParseString.cs" />
     <Compile Include="Text\StringFeatures.cs" />
     <Compile Include="Threading\BackgroundProcessor.cs" />
+    <Compile Include="Threading\Par.cs" />
     <Compile Include="Web\UriRequest.cs" />
     <Compile Include="XmlSerializableBase.cs" />
   </ItemGroup>
