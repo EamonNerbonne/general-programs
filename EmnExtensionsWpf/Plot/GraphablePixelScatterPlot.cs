@@ -10,13 +10,17 @@ namespace EmnExtensions.Wpf.Plot
 {
 	public class GraphablePixelScatterPlot : GraphableData
 	{
-		public GraphablePixelScatterPlot() { Margin = new Thickness(0.5); }
+		public GraphablePixelScatterPlot() { Margin = new Thickness(0.5); BitmapScalingMode = BitmapScalingMode.Linear; }
 		double m_dpiX = 96.0, m_dpiY = 96.0;
+		bool m_useDiamondPoints;
+		public bool UseDiamondPoints { get { return m_useDiamondPoints; } set { m_useDiamondPoints = value; OnChange(GraphChangeEffects.GraphProjection); } }
 		public double DpiX { get { return m_dpiX; } set { if (value != m_dpiX) { m_dpiX = value; OnChange(GraphChangeEffects.GraphProjection); } } }
 		public double DpiY { get { return m_dpiY; } set { if (value != m_dpiY) { m_dpiY = value; OnChange(GraphChangeEffects.GraphProjection); } } }
 		public BitmapScalingMode BitmapScalingMode { get { return RenderOptions.GetBitmapScalingMode(painting); } set { RenderOptions.SetBitmapScalingMode(painting, value); } }
 
 		DrawingGroup painting = new DrawingGroup();
+		WriteableBitmap bmp;
+		const int extraPix = 512;
 		Point[] m_points;
 		Rect m_outerBounds = Rect.Empty;
 		public Point[] Points { get { return m_points; } set { if (value != m_points) { m_points = value; DataBounds = ComputeBounds(); } } }
@@ -78,7 +82,20 @@ namespace EmnExtensions.Wpf.Plot
 				int x = (int)((displaypoint.X - outerDispBounds.X) * m_dpiX / 96.0);
 				int y = (int)((displaypoint.Y - outerDispBounds.Y) * m_dpiY / 96.0);
 				if (x >= 0 && x < pW && y >= 0 && y < pH)
+				{
 					image[x + pW * y]++;
+					if (UseDiamondPoints)
+					{
+						if (x - 1 >= 0)
+							image[x -1 + pW * y]++;
+						if (x +1 <pW)
+							image[x + 1 + pW * y]++;
+						if (y-1>=0)
+							image[x + pW * (y-1)]++;
+						if (y + 1  < pH)
+							image[x + pW * (y + 1)]++;
+					}
+				}
 			} // so now we've counted the number of pixels in each position...
 
 			uint maxOverlap = image.Max();
@@ -91,12 +108,27 @@ namespace EmnExtensions.Wpf.Plot
 			for (int pxI = 0; pxI < image.Length; pxI++)
 				image[pxI] = nativeColor | alphaLookup[image[pxI]]; // ((uint)((1.0 - Math.Pow(transparency, image[pxI])) * 255.5) << 24);
 
+			if (bmp == null || bmp.PixelWidth < pW || bmp.PixelWidth < pH)
+			{
+				bmp = new WriteableBitmap(pW + extraPix, pH + extraPix, m_dpiX, m_dpiY, PixelFormats.Bgra32, null);
+			}
+
+			try
+			{
+				bmp.Lock();
+				bmp.WritePixels(new Int32Rect(0, 0, pW, pH), image, pW * sizeof(uint), 0);
+			}
+			finally
+			{
+				bmp.Unlock();
+			}
+
 			using (var ctx = painting.Open()) {
-				ctx.DrawImage(BitmapSource.Create(pW, pH, m_dpiX, m_dpiY, PixelFormats.Bgra32, null, image, pW * sizeof(uint)),
-					new Rect(outerDispBounds.X, outerDispBounds.Y, pW * 96.0 / m_dpiX, pH * 96.0 / m_dpiY));
+				//WriteableBitmap bmp = new WriteableBitmap(pW, pH, 96.0, 96.0, PixelFormats.Bgra32, null);
+				//bmp.WritePixels(new Int32Rect(0, 0, pW, pH), image, pW * sizeof(uint), 0);
+				ctx.PushClip(new RectangleGeometry(displayClip));
+				ctx.DrawImage(	bmp,	new Rect(outerDispBounds.X, outerDispBounds.Y, bmp.Width,bmp.Height));
 				//very very slightly slower, but could in theory permit updates without updating the drawinggroup:
-				//			WriteableBitmap bmp = new WriteableBitmap(pW, pH, 96.0, 96.0, PixelFormats.Bgra32, null);
-				//			bmp.WritePixels(new Int32Rect(0, 0, pW, pH), image, pW * sizeof(uint), 0);
 			}
 		}
 	}

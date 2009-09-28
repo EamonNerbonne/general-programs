@@ -32,7 +32,8 @@ namespace LVQeamon
 	/// </summary>
 	public partial class MainWindow : Window// Window
 	{
-		public MainWindow() {
+		public MainWindow()
+		{
 			//this.WindowStyle = WindowStyle.None;
 			//this.AllowsTransparency = true; 
 			BorderBrush = Brushes.White;
@@ -48,10 +49,12 @@ namespace LVQeamon
 		public int? NumberOfSets { get { return textBoxNumberOfSets.Text.ParseAsInt32(); } }
 		public int? PointsPerSet { get { return textBoxPointsPerSet.Text.ParseAsInt32(); } }
 
-		private void buttonGeneratePointClouds_Click(object sender, RoutedEventArgs e) {
+		private void buttonGeneratePointClouds_Click(object sender, RoutedEventArgs e)
+		{
 			//plotControl.Graphs.Clear();
 			NiceTimer timer = new NiceTimer(); timer.TimeMark("making point clouds");
-			if (!NumberOfSets.HasValue || !PointsPerSet.HasValue) {
+			if (!NumberOfSets.HasValue || !PointsPerSet.HasValue)
+			{
 				Console.WriteLine("Invalid initialization values");
 				return;
 			}
@@ -64,8 +67,10 @@ namespace LVQeamon
 
 			MersenneTwister rndG = new MersenneTwister(123);
 
-			for (int si = 0; si < numSets; si++) {//create each point-set
-				ThreadPool.QueueUserWorkItem((index) => {
+			for (int si = 0; si < numSets; si++)
+			{//create each point-set
+				ThreadPool.QueueUserWorkItem((index) =>
+				{
 
 					MersenneTwister rnd;
 					lock (rndG)
@@ -76,7 +81,8 @@ namespace LVQeamon
 
 
 
-					Dispatcher.BeginInvoke((Action)(() => {
+					Dispatcher.BeginInvoke((Action)(() =>
+					{
 						var pointsIter = Enumerable.Range(0, pointsPerSet)
 							.Select(i => new Point(points[i, 0], points[i, 1]));
 
@@ -93,20 +99,25 @@ namespace LVQeamon
 						plotControl.AddPlot(new GraphableGeometry { Geometry = pointCloud, Pen = pen, XUnitLabel = "X axis", YUnitLabel = "Y axis" });
 #else
 						plotControl.AddPlot(
-							new GraphablePixelScatterPlot {
+							new GraphablePixelScatterPlot
+							{
 								PointColor = F.Create<Color, Color>((c) => { c.ScA = 0.3f; return c; })(GraphRandomPen.RandomGraphColor()),
 								XUnitLabel = "X axis",
 								YUnitLabel = "Y axis",
-								DpiX = 96.0,
-								DpiY = 96.0,
-								BitmapScalingMode = BitmapScalingMode.Linear,
+								DpiX = 192.0,
+								DpiY = 192.0,
+								//BitmapScalingMode = BitmapScalingMode.Linear,
 								CoverageRatio = 0.99,
+								 UseDiamondPoints = true,
 								Points = pointsIter.ToArray(),
+
 							});
 #endif
-						lock (sync) {
+						lock (sync)
+						{
 							done++;
-							if (done == numSets) {
+							if (done == numSets)
+							{
 								timer.TimeMark(null);
 								renderCount = 0;
 								Dispatcher.BeginInvoke((Action)DoSizingTest, DispatcherPriority.Loaded);
@@ -118,38 +129,45 @@ namespace LVQeamon
 			}
 		}
 		NiceTimer overall;
-		protected override void OnInitialized(EventArgs e) {
+		protected override void OnInitialized(EventArgs e)
+		{
 #if USEGEOMPLOT || DEBUG
 			textBoxPointsPerSet.Text = 10000.ToString();
 #else
-			textBoxPointsPerSet.Text = 1000000.ToString();
+			textBoxPointsPerSet.Text = 100000.ToString();
 #endif
 			base.OnInitialized(e);
 			//buttonGeneratePointClouds_Click(null, null);
-			Dispatcher.Invoke((Action)(() => {
-				ThreadPool.QueueUserWorkItem((ignore) => {
-					MatSpeedTest.Test();
-				});
-			}), DispatcherPriority.ApplicationIdle);
+			//Dispatcher.Invoke((Action)(() => {
+			//}), DispatcherPriority.ApplicationIdle);
+		//	ThreadPool.QueueUserWorkItem((ignore) => { MatSpeedTest.Test(); });
+
 		}
 
 		volatile int renderCount = 0;
 		bool completedTest = false;
 
-		void DoSizingTest() {
-			if (overall == null) {
+		void DoSizingTest()
+		{
+			if (overall == null)
+			{
 				overall = new NiceTimer();
 				overall.TimeMark("Sizing");
 			}
-			if (Width + Height > 2000) {
-				if (!completedTest) {
+			if (Width + Height > 2000)
+			{
+				if (!completedTest)
+				{
 					completedTest = true;
 					overall.TimeMark(null);
 					//Close();
 				}
-			} else {
+			}
+			else
+			{
 				renderCount++;
-				if (renderCount % 2 == 0) {
+				if (renderCount % 2 == 0)
+				{
 					if (Width > Height)
 						Height = Height + 30;
 					else
@@ -160,13 +178,16 @@ namespace LVQeamon
 		}
 
 		GeometryGroup smallerGeom;
-		private void buttonAddPoints_Click(object sender, RoutedEventArgs e) {
-			if (smallerGeom == null) {
+		private void buttonAddPoints_Click(object sender, RoutedEventArgs e)
+		{
+			if (smallerGeom == null)
+			{
 				smallerGeom = new GeometryGroup();
 			}
 			int pointsPerSet = PointsPerSet.Value / 100;
 
-			ThreadPool.QueueUserWorkItem((index) => {
+			ThreadPool.QueueUserWorkItem((index) =>
+			{
 
 				double[] mean = CreateGaussianCloud.RandomMean(2, RndHelper.ThreadLocalRandom);
 				double[,] trans = CreateGaussianCloud.RandomTransform(2, RndHelper.ThreadLocalRandom);

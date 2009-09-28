@@ -53,6 +53,7 @@ namespace EmnExtensions.Wpf.Plot
 			TickLength = 16;
 			LabelOffset = 1;
 			PixelsPerTick = 100;
+			AttemptBorderTicks = true;
 		}
 
 		protected override void OnInitialized(EventArgs e) {

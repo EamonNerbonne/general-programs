@@ -16,7 +16,7 @@
 			<ColumnDefinition Width="40*" />
 		</Grid.ColumnDefinitions>
 		<!--<emnOldGraph:PlotControl Name="plotControl" Grid.RowSpan="3"/>-->
-		<emnPlot:PlotControl Name="plotControl" Grid.RowSpan="3"/>
+		<emnPlot:PlotControl Name="plotControl" Grid.RowSpan="3"  />
 		<Grid Grid.Column="1" Margin="12" Name="grid1">
 			<Grid.ColumnDefinitions>
 				<ColumnDefinition Width="Auto" />
