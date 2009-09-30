@@ -1,13 +1,4 @@
-﻿//select one of three rendering methods:
-#define RENDER_VIA_BG_BRUSH //benchmarked: 20.2 sec or with MAKEDV: 23.5
-//#define RENDER_VIA_ONRENDER //benchmarked:24.3 sec
-//#define RENDER_VIA_CHILD_CONTROL //benchmarked:23.5
-
-#if RENDER_VIA_BG_BRUSH
-//#define MAKEDV //fastest without
-#endif
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -32,23 +23,29 @@ namespace EmnExtensions.Wpf.Plot
 		bool needRecomputeBounds = false;
 		List<GraphableData> graphs = new List<GraphableData>();
 		Dictionary<TickedAxisLocation, TickedAxis> axes;
-		public PlotControl() {
+		public PlotControl()
+		{
 			InitializeComponent();
 			axes = new[] { tickedAxisLft, tickedAxisBot, tickedAxisRgt, tickedAxisTop }.ToDictionary(axis => axis.AxisPos);
 		}
 
-		public void AddPlot(GraphableData newgraph) {
+		public void AddPlot(GraphableData newgraph)
+		{
 			graphs.Add(newgraph);
 			needRecomputeBounds = true;
 			needRedrawGraphs = true;
+			InvalidateMeasure();
 			InvalidateVisual();
+			Console.WriteLine("plot add");
 		}
 
 		private IEnumerable<TickedAxis> Axes { get { return new[] { tickedAxisLft, tickedAxisBot, tickedAxisRgt, tickedAxisTop }; } }
 
 		#region Static Helper Functions
-		private static IEnumerable<TickedAxisLocation> ProjectionCorners {
-			get {
+		private static IEnumerable<TickedAxisLocation> ProjectionCorners
+		{
+			get
+			{
 				yield return TickedAxisLocation.BelowGraph | TickedAxisLocation.LeftOfGraph;
 				yield return TickedAxisLocation.BelowGraph | TickedAxisLocation.RightOfGraph;
 				yield return TickedAxisLocation.AboveGraph | TickedAxisLocation.LeftOfGraph;
@@ -60,8 +57,11 @@ namespace EmnExtensions.Wpf.Plot
 		private static TickedAxisLocation ChooseProjection(GraphableData graph) { return ProjectionCorners.FirstOrDefault(corner => (graph.AxisBindings & corner) == corner); }
 		#endregion
 
-		private void RecomputeBounds() {
-			foreach (TickedAxis axis in Axes) {
+		private void RecomputeBounds()
+		{
+			Console.WriteLine("RecomputeBounds");
+			foreach (TickedAxis axis in Axes)
+			{
 				var boundGraphs = graphs.Where(graph => (graph.AxisBindings & axis.AxisPos) != TickedAxisLocation.None);
 				DimensionBounds bounds =
 					boundGraphs
@@ -79,41 +79,20 @@ namespace EmnExtensions.Wpf.Plot
 			}
 			needRecomputeBounds = false;
 		}
-		private void RedrawGraphs(TickedAxisLocation gridLineAxes) {
-#if RENDER_VIA_BG_BRUSH||RENDER_VIA_CHILD_CONTROL
-#if MAKEDV
-			DrawingVisual dv = new DrawingVisual();
-			using (var drawingContext = dv.RenderOpen()) {
-#else
-			DrawingGroup bg = new DrawingGroup();
-			using (var drawingContext = bg.Open()) {
-#endif
+
+		private void RedrawGraphs(TickedAxisLocation gridLineAxes)
+		{
+			Console.WriteLine("Redrawing Graphs");
+			using (var drawingContext = dg.Open())
+			{
 				RedrawScene(drawingContext, gridLineAxes);
 			}
 
-#if RENDER_VIA_BG_BRUSH
-			this.Background =
-#if MAKEDV
-				new VisualBrush(dv) {
-#else
- new DrawingBrush(bg) {
-#endif
-	 Stretch = Stretch.None, //No stretch since we want the ticked axis to determine stretch
-	 ViewboxUnits = BrushMappingMode.Absolute,
-	 Viewbox = new Rect(0, 0, 0, 0), //we want to to start displaying in the corner 0,0 - and width+height are irrelevant due to Stretch.None.
-	 AlignmentX = AlignmentX.Left, //and corner 0,0 is in the Top-Left!
-	 AlignmentY = AlignmentY.Top,
- };
-#endif
-#if RENDER_VIA_CHILD_CONTROL
-			graphDisp.GraphDrawing = bg;
-			graphDisp.Visibility = Visibility.Visible;
-#endif
-#endif
 			needRedrawGraphs = false;
 		}
 
-		private void RedrawScene(DrawingContext drawingContext, TickedAxisLocation gridLineAxes) {
+		private void RedrawScene(DrawingContext drawingContext, TickedAxisLocation gridLineAxes)
+		{
 			foreach (var axis in Axes)
 				if ((axis.AxisPos & gridLineAxes) != TickedAxisLocation.None)
 					drawingContext.DrawDrawing(axis.GridLines);
@@ -121,59 +100,55 @@ namespace EmnExtensions.Wpf.Plot
 				graph.DrawGraph(drawingContext);
 		}
 
-		#region Wpf Layout Overrides
-		protected override Size MeasureOverride(Size constraint) {
+		protected override Size MeasureOverride(Size constraint)
+		{
 			if (needRecomputeBounds) RecomputeBounds();
 			return base.MeasureOverride(constraint);
 		}
 
-		protected override void OnRender(DrawingContext drawingContext) {
+		DrawingGroup dg = new DrawingGroup();
+		protected override void OnRender(DrawingContext drawingContext)
+		{
+			Console.WriteLine("OnRender");
 
 			//axes which influence projection matrices:
 			TickedAxisLocation relevantAxes = graphs.Aggregate(TickedAxisLocation.None, (axisLoc, graph) => axisLoc | ChooseProjection(graph));
-
-			if (needRedrawGraphs) RedrawGraphs(relevantAxes);
-			base.OnRender(drawingContext);
-#if RENDER_VIA_ONRENDER
-		        RedrawScene(drawingContext,relevantAxes);
-#endif
-
-
-			var transforms = Axes
-				.Where(axis => (axis.AxisPos & relevantAxes) != TickedAxisLocation.None)
-				.Select(axis => new {
+			var transforms =
+				from axis in Axes
+				where (axis.AxisPos & relevantAxes) != TickedAxisLocation.None
+				select new
+				{
 					AxisPos = axis.AxisPos,
 					Transform = axis.DataToDisplayTransform,
 					HorizontalClip = axis.IsHorizontal ? axis.DisplayClippingBounds : DimensionBounds.Empty,
 					VerticalClip = axis.IsHorizontal ? DimensionBounds.Empty : axis.DisplayClippingBounds,
-				});
+				};
 
-			var cornerProjection = (from corner in ProjectionCorners
-									where corner == (corner & relevantAxes)
-									select corner
-								   ).ToDictionary(//we have only relevant corners...
-										corner => corner,
-										corner => (from transform in transforms
-												   where transform.AxisPos == (transform.AxisPos & corner)
-												   select transform
-												  ).Aggregate((t1, t2) => new {
-													  AxisPos = t1.AxisPos | t2.AxisPos,
-													  Transform = t1.Transform * t2.Transform,
-													  HorizontalClip = DimensionBounds.Merge(t1.HorizontalClip, t2.HorizontalClip),
-													  VerticalClip = DimensionBounds.Merge(t1.VerticalClip, t2.VerticalClip),
-												  })
-												 );
+			var cornerProjection =
+				ProjectionCorners
+					.Where(corner => corner == (corner & relevantAxes))
+					.ToDictionary(//we have only relevant corners...
+						corner => corner,
+						corner => transforms.Where(transform => transform.AxisPos == (transform.AxisPos & corner))
+										   .Aggregate((t1, t2) => new
+										   {
+											   AxisPos = t1.AxisPos | t2.AxisPos,
+											   Transform = t1.Transform * t2.Transform,
+											   HorizontalClip = DimensionBounds.Merge(t1.HorizontalClip, t2.HorizontalClip),
+											   VerticalClip = DimensionBounds.Merge(t1.VerticalClip, t2.VerticalClip),
+										   })
+					);
 
-			foreach (var graph in graphs) {
+			if (needRedrawGraphs) RedrawGraphs(relevantAxes);
+			drawingContext.DrawDrawing(dg);
+			base.OnRender(drawingContext);
+			foreach (var graph in graphs)
+			{
 				var trans = cornerProjection[ChooseProjection(graph)];
-				graph.SetTransform(trans.Transform, new Rect(new Point(trans.HorizontalClip.Start,trans.VerticalClip.Start),new Point(trans.HorizontalClip.End,trans.VerticalClip.End))  );
+				graph.SetTransform(trans.Transform, new Rect(new Point(trans.HorizontalClip.Start, trans.VerticalClip.Start), new Point(trans.HorizontalClip.End, trans.VerticalClip.End)));
 			}
 			foreach (var axis in Axes)
 				axis.SetGridLineExtent(RenderSize);
-
-
 		}
-		#endregion
-
 	}
 }

@@ -20,6 +20,7 @@ namespace EmnExtensions.Wpf.Plot
 
 		DrawingGroup painting = new DrawingGroup();
 		WriteableBitmap bmp;
+		Point bmpOffset;
 		const int extraPix = 512;
 		Point[] m_points;
 		Rect m_outerBounds = Rect.Empty;
@@ -60,6 +61,7 @@ namespace EmnExtensions.Wpf.Plot
 			context.PushGuidelineSet(new GuidelineSet(new[] { 0.0 }, new[] { 0.0 }));
 			context.DrawDrawing(painting);
 			context.Pop();
+			Console.WriteLine("redraw");
 		}
 
 		static Rect SnapRect(Rect r, double multX, double multY) { return new Rect(new Point(Math.Floor(r.Left / multX) * multX, Math.Floor(r.Top / multY) * multY), new Point(Math.Ceiling((r.Right + 0.01) / multX) * multX, Math.Ceiling((r.Bottom + 0.01) / multY) * multY)); }
@@ -111,6 +113,8 @@ namespace EmnExtensions.Wpf.Plot
 			if (bmp == null || bmp.PixelWidth < pW || bmp.PixelWidth < pH)
 			{
 				bmp = new WriteableBitmap(pW + extraPix, pH + extraPix, m_dpiX, m_dpiY, PixelFormats.Bgra32, null);
+				bmpOffset.X = outerDispBounds.X+1; //set not-equal.
+				Console.WriteLine("new WriteableBitmap");
 			}
 
 			try
@@ -123,13 +127,16 @@ namespace EmnExtensions.Wpf.Plot
 				bmp.Unlock();
 			}
 
-			using (var ctx = painting.Open()) {
-				//WriteableBitmap bmp = new WriteableBitmap(pW, pH, 96.0, 96.0, PixelFormats.Bgra32, null);
-				//bmp.WritePixels(new Int32Rect(0, 0, pW, pH), image, pW * sizeof(uint), 0);
-				ctx.PushClip(new RectangleGeometry(displayClip));
-				ctx.DrawImage(	bmp,	new Rect(outerDispBounds.X, outerDispBounds.Y, bmp.Width,bmp.Height));
-				//very very slightly slower, but could in theory permit updates without updating the drawinggroup:
-			}
+			if (bmpOffset.X != outerDispBounds.X || bmpOffset.Y != outerDispBounds.Y)
+				using (var ctx = painting.Open()) {
+					ctx.DrawImage(bmp, new Rect(outerDispBounds.X, outerDispBounds.Y, bmp.Width, bmp.Height));
+					Console.WriteLine("repaint: X: {0}->{1}, Y: {2}->{3}", bmpOffset.X, outerDispBounds.X, bmpOffset.Y,outerDispBounds.Y);
+					bmpOffset = outerDispBounds.TopLeft;
+				}
+
+			painting.ClipGeometry = new RectangleGeometry(displayClip);
+
+			Console.WriteLine("retransform");
 		}
 	}
 }

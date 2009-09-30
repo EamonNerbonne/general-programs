@@ -114,6 +114,8 @@
       <AdditionalDependencies>
       </AdditionalDependencies>
       <AssemblyDebug>true</AssemblyDebug>
+      <LinkErrorReporting>
+      </LinkErrorReporting>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -137,6 +139,8 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>
       </AdditionalDependencies>
+      <LinkErrorReporting>
+      </LinkErrorReporting>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|X64'">
@@ -160,6 +164,8 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>
       </AdditionalDependencies>
+      <LinkErrorReporting>
+      </LinkErrorReporting>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>

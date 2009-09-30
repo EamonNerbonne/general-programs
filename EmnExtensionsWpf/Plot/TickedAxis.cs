@@ -61,8 +61,10 @@ namespace EmnExtensions.Wpf.Plot
 			GuessNeighborsBasedOnAxisPos();
 		}
 
-		public DimensionBounds DataBound { get; set; }  //TODO:should invalidate measure/render
-		public DimensionMargins DataMargin { get; set; } //TODO:should invalidate measure/render
+		DimensionBounds m_DataBound;
+		DimensionMargins m_DataMargin;
+		public DimensionBounds DataBound { get { return m_DataBound; } set { m_DataBound = value; InvalidateMeasure(); } }  //TODO:should invalidate measure/render
+		public DimensionMargins DataMargin { get { return m_DataMargin; } set { m_DataMargin = value; InvalidateMeasure(); } } //TODO:should invalidate measure/render
 		public Brush Background { get; set; } //TODO:affectsrender
 
 		public TickedAxis ClockwisePrevAxis { get; set; }//TODO:should invalidate measure/render
@@ -257,6 +259,7 @@ namespace EmnExtensions.Wpf.Plot
 		}
 
 		protected override Size MeasureOverride(Size constraint) {
+			Console.WriteLine("MeasureOverride: " + this.AxisPos);
 			double origThickness = Thickness;
 			try {
 				if (IsCollapsedOrEmpty)
@@ -327,6 +330,7 @@ namespace EmnExtensions.Wpf.Plot
 		}
 
 		protected override Size ArrangeOverride(Size constraint) {
+			Console.WriteLine("Arrange: " + this.AxisPos);
 			double origThickness = Thickness;
 			try {
 
@@ -396,7 +400,6 @@ namespace EmnExtensions.Wpf.Plot
 			}
 		}
 
-
 		static Matrix MapBounds(DimensionBounds srcBounds, DimensionBounds dstBounds) {
 			if (dstBounds.IsEmpty || srcBounds.IsEmpty)
 				return Matrix.Identity;
@@ -453,11 +456,11 @@ namespace EmnExtensions.Wpf.Plot
 		public DimensionBounds DisplayedDataBounds { get { return m_ticks == null ? DataBound : DataBound.UnionWith(m_ticks.First().Value, m_ticks.Last().Value); } }
 
 		protected override void OnRender(DrawingContext drawingContext) {
-
 			drawingContext.DrawRectangle(Background, null, new Rect(m_bestGuessCurrentSize));
 			if (IsCollapsedOrEmpty || m_ticks == null)
 				return;
 
+			Console.WriteLine("Rendering ticks");
 			//We have a layout estimate.  We need to compute a transform from the data values to the axis position.
 			//We'll render everything as if horizontal and top-aligned, then transform to where we need to be.
 			//This means we need to make an "overall" bottom->where we really are transform, and two text transforms:
@@ -472,6 +475,7 @@ namespace EmnExtensions.Wpf.Plot
 			//next, we draw a streamgeometry of all the ticks using data->disp transform.
 			StreamGeometry tickGeometry = DrawTicksAlongX(m_ticks.Select((tick, idx) => new Tick { Value = idx, Rank = tick.Rank }), TickLength);// in disp-space due to accuracy.
 			tickGeometry.Transform = new MatrixTransform(TickIndexToDisplayX * alignToDisp);
+			tickGeometry.Freeze();
 			drawingContext.DrawGeometry(null, m_tickPen, tickGeometry);
 
 			if (m_redrawGridLines)
@@ -496,7 +500,6 @@ namespace EmnExtensions.Wpf.Plot
 			drawingContext.PushTransform(new MatrixTransform(AxisLegendToCenter(AxisPos, m_axisLegend.Bounds, axisLegendCenterPoint)));
 			drawingContext.DrawDrawing(m_axisLegend);
 			drawingContext.Pop();
-
 		}
 
 		private void RenderGridLines() {

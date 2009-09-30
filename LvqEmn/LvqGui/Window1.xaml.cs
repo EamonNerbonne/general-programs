@@ -1,6 +1,4 @@
-﻿#if DEBUG
-//#define USEGEOMPLOT
-#endif
+﻿#define USEGEOMPLOT
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -120,7 +118,7 @@ namespace LVQeamon
 							{
 								timer.TimeMark(null);
 								renderCount = 0;
-								Dispatcher.BeginInvoke((Action)DoSizingTest, DispatcherPriority.Loaded);
+								//Dispatcher.BeginInvoke((Action)DoSizingTest, DispatcherPriority.Loaded);
 							}
 						}
 					}));
@@ -132,9 +130,9 @@ namespace LVQeamon
 		protected override void OnInitialized(EventArgs e)
 		{
 #if USEGEOMPLOT || DEBUG
-			textBoxPointsPerSet.Text = 10000.ToString();
+			textBoxPointsPerSet.Text = 1000.ToString();
 #else
-			textBoxPointsPerSet.Text = 100000.ToString();
+			textBoxPointsPerSet.Text = 10000.ToString();
 #endif
 			base.OnInitialized(e);
 			//buttonGeneratePointClouds_Click(null, null);
