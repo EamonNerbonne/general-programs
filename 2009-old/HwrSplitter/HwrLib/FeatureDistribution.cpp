@@ -10,6 +10,7 @@ static const double mrV = 1.0000000001;
 
 //slight variant of CombineWith(vector, weight) to account for variance inside 
 void FeatureDistribution::CombineWithDistribution(FeatureDistribution const & other){
+	if(other.weightSum==0) return;
 	double newWeightSum = weightSum + other.weightSum;
 	double mScale = other.weightSum/newWeightSum;
 	double sScale = weightSum*other.weightSum/newWeightSum;
@@ -22,7 +23,7 @@ void FeatureDistribution::CombineWithDistribution(FeatureDistribution const & ot
 
 void FeatureDistribution::initRandom()
 {
-	weightSum = 1000.0;//essentially 10-100 lines of weight.
+	weightSum = 1.0;//essentially 1 lines of weight.
 	for(int i=0;i<NUMBER_OF_FEATURES;i++) {
 		meanX[i] = FloatRand()*1.0;
 		setVarX(i, 1.0);//		variance[i] = 1000.0;
@@ -47,8 +48,7 @@ void FeatureDistribution::ScaleWeightBy(double scaleFactor) {
 //D. H. D. West (1979). Communications of the ACM, 22, 9, 532-535: Updating Mean and Variance Estimates: An Improved Method
 //not going to bother with n/(n-1) factor; this is going to be virtually irrelevant anyhow.
 void FeatureDistribution::CombineWith(FeatureVector const & vect, double weight){
-	if(weight < std::numeric_limits<double>::min())
-		return;//ignore virtually zero-weight stuff...
+	if(weight ==0.0) return;//ignore zero-weight stuff...
 	double newWeightSum = weightSum + weight;
 	double mScale = weight/newWeightSum;
 	double sScale = weightSum*weight/newWeightSum;

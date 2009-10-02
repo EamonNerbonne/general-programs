@@ -41,5 +41,10 @@ void SymbolClass::RecomputeDCoffset() {
 void SymbolClass::CombineWithDistribution(SymbolClass const & other) {
 	for(int i=0;i<SUB_PHASE_COUNT;i++)
 		phase[i].CombineWithDistribution(other.phase[i]);
+	double newWeightLength = wLength + other.wLength;
+	double mScale = other.wLength/newWeightLength;
+	double sScale = wLength*other.wLength/newWeightLength;
+	wLength = newWeightLength;
+	sLength = sLength + other.sLength+ sqr(other.mLength - mLength)*sScale;
+	mLength = mLength + (other.mLength - mLength)*mScale;
 }
-

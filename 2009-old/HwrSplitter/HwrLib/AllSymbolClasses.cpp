@@ -25,6 +25,7 @@ void AllSymbolClasses::CombineWithDistributions(AllSymbolClasses const & other) 
 		throw "Error: SymbolCounts don't match!";
 	for(int i=0;i<size();i++) {
 		sym[i].CombineWithDistribution(other.sym[i]);
+		sym[i].RecomputeDCoffset();
 	}
 	iteration += other.iteration;
 }
