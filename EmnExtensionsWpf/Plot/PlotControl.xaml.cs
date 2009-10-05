@@ -36,7 +36,9 @@ namespace EmnExtensions.Wpf.Plot
 			needRedrawGraphs = true;
 			InvalidateMeasure();
 			InvalidateVisual();
+#if TRACE
 			Console.WriteLine("plot add");
+#endif
 		}
 
 		private IEnumerable<TickedAxis> Axes { get { return new[] { tickedAxisLft, tickedAxisBot, tickedAxisRgt, tickedAxisTop }; } }
@@ -59,7 +61,9 @@ namespace EmnExtensions.Wpf.Plot
 
 		private void RecomputeBounds()
 		{
+#if TRACE
 			Console.WriteLine("RecomputeBounds");
+#endif
 			foreach (TickedAxis axis in Axes)
 			{
 				var boundGraphs = graphs.Where(graph => (graph.AxisBindings & axis.AxisPos) != TickedAxisLocation.None);
@@ -82,7 +86,9 @@ namespace EmnExtensions.Wpf.Plot
 
 		private void RedrawGraphs(TickedAxisLocation gridLineAxes)
 		{
+#if TRACE
 			Console.WriteLine("Redrawing Graphs");
+#endif
 			using (var drawingContext = dg.Open())
 			{
 				RedrawScene(drawingContext, gridLineAxes);
@@ -109,7 +115,9 @@ namespace EmnExtensions.Wpf.Plot
 		DrawingGroup dg = new DrawingGroup();
 		protected override void OnRender(DrawingContext drawingContext)
 		{
-			Console.WriteLine("OnRender");
+#if TRACE
+			Console.WriteLine("PlotControl.OnRender");
+#endif
 
 			//axes which influence projection matrices:
 			TickedAxisLocation relevantAxes = graphs.Aggregate(TickedAxisLocation.None, (axisLoc, graph) => axisLoc | ChooseProjection(graph));

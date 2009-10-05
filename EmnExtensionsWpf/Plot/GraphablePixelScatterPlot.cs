@@ -135,6 +135,7 @@ namespace EmnExtensions.Wpf.Plot
 				}
 
 			painting.ClipGeometry = new RectangleGeometry(displayClip);
+			//painting.
 
 			Console.WriteLine("retransform");
 		}
