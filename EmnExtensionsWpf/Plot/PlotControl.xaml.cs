@@ -32,6 +32,7 @@ namespace EmnExtensions.Wpf.Plot
 		public void AddPlot(GraphableData newgraph)
 		{
 			graphs.Add(newgraph);
+			newgraph.Changed += new Action<GraphableData, GraphChangeEffects>(graphChanged);
 			needRecomputeBounds = true;
 			needRedrawGraphs = true;
 			InvalidateMeasure();
@@ -39,6 +40,14 @@ namespace EmnExtensions.Wpf.Plot
 #if TRACE
 			Console.WriteLine("plot add");
 #endif
+		}
+
+		void graphChanged(GraphableData graph, GraphChangeEffects graphChange)
+		{
+			if (graphChange == GraphChangeEffects.RedrawGraph)
+				needRedrawGraphs = true;
+			else if (graphChange == GraphChangeEffects.Labels || graphChange == GraphChangeEffects.GraphProjection)
+				needRecomputeBounds = true;
 		}
 
 		private IEnumerable<TickedAxis> Axes { get { return new[] { tickedAxisLft, tickedAxisBot, tickedAxisRgt, tickedAxisTop }; } }
@@ -90,10 +99,7 @@ namespace EmnExtensions.Wpf.Plot
 			Console.WriteLine("Redrawing Graphs");
 #endif
 			using (var drawingContext = dg.Open())
-			{
 				RedrawScene(drawingContext, gridLineAxes);
-			}
-
 			needRedrawGraphs = false;
 		}
 
@@ -147,9 +153,6 @@ namespace EmnExtensions.Wpf.Plot
 										   })
 					);
 
-			if (needRedrawGraphs) RedrawGraphs(relevantAxes);
-			drawingContext.DrawDrawing(dg);
-			base.OnRender(drawingContext);
 			foreach (var graph in graphs)
 			{
 				var trans = cornerProjection[ChooseProjection(graph)];
@@ -157,6 +160,10 @@ namespace EmnExtensions.Wpf.Plot
 			}
 			foreach (var axis in Axes)
 				axis.SetGridLineExtent(RenderSize);
+			if (needRedrawGraphs) RedrawGraphs(relevantAxes);
+			drawingContext.DrawDrawing(dg);
+			base.OnRender(drawingContext);
+
 		}
 	}
 }

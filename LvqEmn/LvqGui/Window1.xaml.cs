@@ -1,4 +1,4 @@
-﻿#define USEGEOMPLOT
+﻿//#define USEGEOMPLOT
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -102,8 +102,8 @@ namespace LVQeamon
 								PointColor = F.Create<Color, Color>((c) => { c.ScA = 0.3f; return c; })(GraphRandomPen.RandomGraphColor()),
 								XUnitLabel = "X axis",
 								YUnitLabel = "Y axis",
-								DpiX = 192.0,
-								DpiY = 192.0,
+								DpiX = 96.0,
+								DpiY = 96.0,
 								//BitmapScalingMode = BitmapScalingMode.Linear,
 								CoverageRatio = 0.99,
 								 UseDiamondPoints = true,

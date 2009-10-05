@@ -732,7 +732,7 @@ namespace EmnExtensions.Wpf.Plot
 		/// and slightly less when the actual number of slots greater than requested.</param>
 		public static void CalcTickPositions(DimensionBounds range, double preferredNum, ref bool attemptBorderTicks, out double slotSize, out int slotOrderOfMagnitude, out long firstTickAtSlotMultiple, out long lastTickAtSlotMultiple, out int[] ticks)
 		{
-			if (preferredNum < 1.5) attemptBorderTicks = false;
+			if (preferredNum < 4.5) attemptBorderTicks = false;
 			//if (attemptBorderTicks) preferredNum--;
 
 			double idealSlotSize = range.Length / preferredNum;
