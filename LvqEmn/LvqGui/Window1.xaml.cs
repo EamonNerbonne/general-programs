@@ -91,7 +91,7 @@ namespace LVQeamon
 						    //EndLineCap = PenLineCap.Round,	StartLineCap = PenLineCap.Round,
 						    EndLineCap = PenLineCap.Square,
 						    StartLineCap = PenLineCap.Square,
-						    Thickness = 1.0,
+						    Thickness = 2.0,
 						};
 						pen.Freeze();
 						plotControl.AddPlot(new GraphableGeometry { Geometry = pointCloud, Pen = pen, XUnitLabel = "X axis", YUnitLabel = "Y axis" });
@@ -102,11 +102,11 @@ namespace LVQeamon
 								PointColor = F.Create<Color, Color>((c) => { c.ScA = 0.3f; return c; })(GraphRandomPen.RandomGraphColor()),
 								XUnitLabel = "X axis",
 								YUnitLabel = "Y axis",
-								DpiX = 96.0,
-								DpiY = 96.0,
-								//BitmapScalingMode = BitmapScalingMode.Linear,
+								DpiX = 192.0,
+								DpiY = 192.0,
+								BitmapScalingMode = BitmapScalingMode.NearestNeighbor,
 								CoverageRatio = 0.99,
-								 UseDiamondPoints = true,
+								 UseDiamondPoints = false,
 								Points = pointsIter.ToArray(),
 
 							});

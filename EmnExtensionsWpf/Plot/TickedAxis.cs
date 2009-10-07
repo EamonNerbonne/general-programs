@@ -32,8 +32,6 @@ namespace EmnExtensions.Wpf.Plot
 		Pen m_tickPen;
 		Pen[] m_gridRankPen;
 
-
-
 		public TickedAxis()
 		{
 			m_tickPen = new Pen
@@ -46,7 +44,13 @@ namespace EmnExtensions.Wpf.Plot
 			m_tickPen.Freeze();
 			m_gridRankPen = Enumerable.Range(0, GridLineRanks)
 				.Select(rank => (GridLineRanks - rank) / (double)(GridLineRanks))
-				.Select(relevance => (Pen)new Pen { Brush = (Brush)new SolidColorBrush(new Color { ScA = (float)relevance }).GetAsFrozen(), Thickness = BaseTickWidth * relevance * Math.Sqrt(relevance) }.GetCurrentValueAsFrozen())
+				.Select(relevance => (Pen)new Pen { 
+						Brush = (Brush)new SolidColorBrush(new Color { ScA = (float)relevance }).GetAsFrozen(),
+						Thickness = BaseTickWidth * relevance * Math.Sqrt(relevance), 
+						EndLineCap = PenLineCap.Flat, 
+						StartLineCap = PenLineCap.Flat, 
+						LineJoin= PenLineJoin.Bevel
+					}.GetCurrentValueAsFrozen())
 				.ToArray();
 
 			DataBound = DimensionBounds.Empty;
@@ -567,9 +571,10 @@ namespace EmnExtensions.Wpf.Plot
 			drawingContext.DrawDrawing(m_axisLegend);
 			drawingContext.Pop();
 		}
-
+		
 		private void RenderGridLines()
 		{
+//			Console.Write(".");
 			var ticksByIdx = m_ticks.Select((tick, idx) => new Tick { Value = idx, Rank = tick.Rank });
 			using (var context = m_gridLines.Open())
 			{
@@ -734,6 +739,7 @@ namespace EmnExtensions.Wpf.Plot
 		{
 			if (preferredNum < 4.5) attemptBorderTicks = false;
 			//if (attemptBorderTicks) preferredNum--;
+			if (preferredNum > 10.0) preferredNum = Math.Sqrt(10 * preferredNum);
 
 			double idealSlotSize = range.Length / preferredNum;
 			slotOrderOfMagnitude = (int)Math.Floor(Math.Log10(idealSlotSize)); //i.e  for 143 or 971 this is 2

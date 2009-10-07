@@ -157,8 +157,9 @@ namespace EmnExtensions.Wpf.Plot
 
 			m_clipGeom.Rect = displayClip;
 			//painting.
-
+#if TRACE
 			Console.WriteLine("retransform");
+#endif
 		}
 	}
 }
