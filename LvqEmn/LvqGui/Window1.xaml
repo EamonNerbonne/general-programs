@@ -34,7 +34,9 @@
 			<TextBox Grid.Column="1" Margin="2" Name="textBoxNumberOfSets" TextChanged="textBoxNumberOfSets_TextChanged" Text="3" />
 			<Label Grid.Row="1"  HorizontalAlignment="Right" Margin="2" Name="label2">Points per Set</Label>
 			<TextBox Grid.Column="1"  Grid.Row="1" Margin="2" Name="textBoxPointsPerSet" TextChanged="textBoxPointsPerSet_TextChanged"  Text="10000" />
-		</Grid>
+            <Label Content="Show Grid" HorizontalAlignment="Right" Margin="2" Name="label3" Grid.Row="2" />
+            <CheckBox Grid.Column="1" Grid.Row="2" HorizontalAlignment="Left" Margin="2" Name="checkBox1" VerticalAlignment="Center" Checked="checkBox1Changed" Unchecked="checkBox1Changed" IsChecked="True"/>
+        </Grid>
 		<emn:LogControl Name="logControl" ClaimStandardOut="True" ClaimStandardError="True" Grid.Column="1" Grid.Row="1"/>
 		<GridSplitter Grid.Column="1" HorizontalAlignment="Left" VerticalAlignment="Stretch" Width="2"  Grid.RowSpan="3" ResizeDirection="Columns"/>
 		<Button Grid.Column="1" Grid.Row="2" Margin="12" Name="buttonGeneratePointClouds" HorizontalAlignment="Right" Click="buttonGeneratePointClouds_Click">Generate Point Clouds</Button>

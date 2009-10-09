@@ -93,7 +93,8 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x86'">
     <OutputPath>bin\x86\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
+    <DefineConstants>
+    </DefineConstants>
     <Optimize>true</Optimize>
     <DebugType>full</DebugType>
     <PlatformTarget>x86</PlatformTarget>
@@ -131,23 +132,13 @@
     <Compile Include="Colormaps.cs" />
     <Compile Include="DynamicBitmap.cs" />
     <Compile Include="LogControl.cs" />
-    <Compile Include="OldGraph\ColorMapLegend.xaml.cs">
-      <DependentUpon>ColorMapLegend.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="OldGraph\Graph2DControl.cs" />
-    <Compile Include="OldGraph\GraphControl.cs" />
-    <Compile Include="OldGraph\GraphDrawingControl.cs" />
-    <Compile Include="OldGraph\GraphGeometryControl.cs" />
     <Compile Include="OldGraph\GraphRandomPen.cs" />
-    <Compile Include="OldGraph\GraphUtils.cs" />
-    <Compile Include="OldGraph\PlotControl.xaml.cs">
-      <DependentUpon>PlotControl.xaml</DependentUpon>
+    <Compile Include="OldGraph\GraphUtils.cs">
+      <SubType>Code</SubType>
     </Compile>
-    <Compile Include="OldGraph\SimpleGraph.xaml.cs">
-      <DependentUpon>SimpleGraph.xaml</DependentUpon>
+    <Compile Include="OldGraph\WpfTools.cs">
+      <SubType>Code</SubType>
     </Compile>
-    <Compile Include="OldGraph\TickedLegendControl.cs" />
-    <Compile Include="OldGraph\WpfTools.cs" />
     <Compile Include="Plot\DimensionBounds.cs" />
     <Compile Include="Plot\DimensionMargins.cs" />
     <Compile Include="Plot\GraphableBitmap.cs" />
@@ -164,18 +155,6 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Page Include="OldGraph\ColorMapLegend.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="OldGraph\PlotControl.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="OldGraph\SimpleGraph.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
     <Page Include="Plot\PlotControl.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>

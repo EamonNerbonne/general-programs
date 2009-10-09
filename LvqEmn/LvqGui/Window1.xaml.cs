@@ -49,7 +49,7 @@ namespace LVQeamon
 
 		private void buttonGeneratePointClouds_Click(object sender, RoutedEventArgs e)
 		{
-			//plotControl.Graphs.Clear();
+			plotControl.Clear();
 			NiceTimer timer = new NiceTimer(); timer.TimeMark("making point clouds");
 			if (!NumberOfSets.HasValue || !PointsPerSet.HasValue)
 			{
@@ -102,11 +102,11 @@ namespace LVQeamon
 								PointColor = F.Create<Color, Color>((c) => { c.ScA = 0.3f; return c; })(GraphRandomPen.RandomGraphColor()),
 								XUnitLabel = "X axis",
 								YUnitLabel = "Y axis",
-								DpiX = 192.0,
-								DpiY = 192.0,
+								DpiX = 96.0,
+								DpiY = 96.0,
 								BitmapScalingMode = BitmapScalingMode.NearestNeighbor,
 								CoverageRatio = 0.99,
-								 UseDiamondPoints = false,
+								UseDiamondPoints = false,
 								Points = pointsIter.ToArray(),
 
 							});
@@ -223,6 +223,10 @@ namespace LVQeamon
 								}));*/
 
 			});
+		}
+
+		private void checkBox1Changed(object sender, RoutedEventArgs e) {
+			plotControl.ShowGridLines = checkBox1.IsChecked ?? plotControl.ShowGridLines;
 		}
 
 	}
