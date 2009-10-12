@@ -63,9 +63,15 @@ namespace EmnExtensions.Wpf.Plot
 
 		void graphChanged(GraphableData graph, GraphChangeEffects graphChange) {
 			if (graphChange == GraphChangeEffects.RedrawGraph)
+			{
 				needRedrawGraphs = true;
+				InvalidateVisual();
+			}
 			else if (graphChange == GraphChangeEffects.Labels || graphChange == GraphChangeEffects.GraphProjection)
+			{
 				needRecomputeBounds = true;
+				InvalidateMeasure();
+			}
 		}
 
 		private IEnumerable<TickedAxis> Axes { get { return new[] { tickedAxisLft, tickedAxisBot, tickedAxisRgt, tickedAxisTop }; } }
@@ -130,7 +136,7 @@ namespace EmnExtensions.Wpf.Plot
 			if (needRecomputeBounds) RecomputeBounds();
 			return base.MeasureOverride(constraint);
 		}
-
+    	
 		DrawingGroup dg = new DrawingGroup();
 		//DrawingVisual dv = new DrawingVisual();
 		protected override void OnRender(DrawingContext drawingContext) {
