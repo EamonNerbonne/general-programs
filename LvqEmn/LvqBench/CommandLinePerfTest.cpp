@@ -9,7 +9,7 @@ const int maxN = 10000000;
 
 int _tmain(int argc, _TCHAR* argv[])
 {
-#if 1
+#if 0
 	scoped_array<LogNumber> arr(new LogNumber[maxN]);
 	for(int i=0;i<maxN;i++){
 		arr[i] = LogNumber(double(i+1));
@@ -75,11 +75,11 @@ int _tmain(int argc, _TCHAR* argv[])
 #else
 
 #ifdef NDEBUG
-	const int iters = 500000;
+	const int iters = 10;
 #else
 	const int iters = 50;
 #endif
-	const int dims = 8;
+	const int dims = 500;
 	for(int i=0;i<3;i++){
 		{progress_timer t;
 		BoostMatrixTest::TestMultCustom(iters,dims);}
