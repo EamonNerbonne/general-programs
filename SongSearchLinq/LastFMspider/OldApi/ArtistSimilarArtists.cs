@@ -32,6 +32,5 @@ namespace LastFMspider.OldApi
 
         [XmlElement("artist")]
         public ArtistSimilarArtists[] artist;
-
     }
 }

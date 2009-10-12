@@ -37,7 +37,7 @@ namespace LfmApiSerializationTest
             serializerTI.Serialize(Console.Out, o);
             Console.ReadKey();*/
           //  var toptags=ApiClient.Track.GetTopTags("Madonna", "Borderline");
-            var similarartists = OldApiClient.Artist.GetSimilarArtistsRaw("Metallica");
+			ApiArtistSimilarArtists similarartists = OldApiClient.Artist.GetSimilarArtistsRaw("Metallica");
             similarartists.SerializeTo(Console.Out );
             Console.ReadKey();
         }

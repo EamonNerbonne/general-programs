@@ -4,7 +4,6 @@ using System.Linq;
 using System.Text;
 using System.IO;
 using System.Data.Common;
-using System.Data.SQLite;
 using LastFMspider.LastFMSQLiteBackend;
 using System.Xml.Linq;
 using SongDataLib;
