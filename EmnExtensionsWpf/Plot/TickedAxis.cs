@@ -547,9 +547,6 @@ namespace EmnExtensions.Wpf.Plot
 			tickGeometry.Freeze();
 			drawingContext.DrawGeometry(null, m_tickPen, tickGeometry);
 
-			if (m_redrawGridLines)
-				RenderGridLines();
-
 			var dispBounds = DisplayBounds;
 
 			drawingContext.DrawLine(m_tickPen, alignToDisp.Transform(new Point(dispBounds.End, m_tickPen.Thickness / 2.0)), alignToDisp.Transform(new Point(dispBounds.Start, m_tickPen.Thickness / 2.0)));
@@ -623,6 +620,9 @@ namespace EmnExtensions.Wpf.Plot
 		public void SetGridLineExtent(Size outerBounds)
 		{
 			if (m_ticks == null) return; //TODO; why is this test actually necessary?
+			if (m_redrawGridLines)
+				RenderGridLines();
+
 			bool oppFirst = AxisPos == TickedAxisLocation.BelowGraph || AxisPos == TickedAxisLocation.RightOfGraph;
 			var oppAxis = ClockwiseNextAxis.ClockwiseNextAxis ?? ClockwisePrevAxis.ClockwisePrevAxis;
 			double oppositeThickness = oppAxis != null ? oppAxis.EffectiveThickness : 0.0;

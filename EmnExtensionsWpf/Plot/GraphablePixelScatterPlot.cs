@@ -68,7 +68,9 @@ namespace EmnExtensions.Wpf.Plot
 			context.Pop();
 			context.Pop();
 			context.Pop();
+#if TRACE
 			Console.WriteLine("redraw");
+#endif
 		}
 
 		static Rect SnapRect(Rect r, double multX, double multY) { return new Rect(new Point(Math.Floor(r.Left / multX) * multX, Math.Floor(r.Top / multY) * multY), new Point(Math.Ceiling((r.Right + 0.01) / multX) * multX, Math.Ceiling((r.Bottom + 0.01) / multY) * multY)); }
@@ -137,9 +139,10 @@ namespace EmnExtensions.Wpf.Plot
 				m_bmp = new WriteableBitmap(width, height, m_dpiX, m_dpiY, PixelFormats.Bgra32, null);
 				RenderOptions.SetBitmapScalingMode(m_bmp, m_scalingMode);
 				OnChange(GraphChangeEffects.RedrawGraph);
-
+#if TRACE
 				Console.WriteLine("new WriteableBitmap");
-			}
+#endif
+				}
 
 			try {
 				m_bmp.Lock();
