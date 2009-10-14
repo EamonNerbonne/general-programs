@@ -15,6 +15,9 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="LvqDataSet.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="LvqGoodBadMatch.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -32,6 +35,9 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="LvqDataSet.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="LvqGoodBadMatch.h">
       <Filter>Header Files</Filter>
     </ClInclude>

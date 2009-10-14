@@ -10,9 +10,9 @@ class LvqModel
 	std::vector<LvqPrototype> prototype;
 public:
 	const int classCount;
-	
-	LvqModel(std::vector<int> protodistribution);
-	int classify(VectorXd unknownPoint) const;
-	void learnFrom(VectorXd newPoint, int classLabel, double lr_P, double lr_B, double lr_point);
+
+	LvqModel(std::vector<int> protodistribution, MatrixXd const & means);
+	int classify(VectorXd const & unknownPoint) const;
+	void learnFrom(VectorXd const & newPoint, int classLabel, double lr_P, double lr_B, double lr_point);
 };
 

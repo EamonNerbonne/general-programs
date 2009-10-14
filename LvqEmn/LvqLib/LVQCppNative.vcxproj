@@ -178,6 +178,7 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="LvqDataSet.cpp" />
     <ClCompile Include="LvqMatch.cpp" />
     <ClCompile Include="LvqModel.cpp" />
     <ClCompile Include="LvqPrototype.cpp" />
@@ -190,6 +191,7 @@
     <ClCompile Include="utils.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="LvqDataSet.h" />
     <ClInclude Include="LvqMatch.h" />
     <ClInclude Include="LvqModel.h" />
     <ClInclude Include="LvqPrototype.h" />

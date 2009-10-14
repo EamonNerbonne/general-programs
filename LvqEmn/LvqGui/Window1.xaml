@@ -40,6 +40,6 @@
 		<emn:LogControl Name="logControl" ClaimStandardOut="True" ClaimStandardError="True" Grid.Column="1" Grid.Row="1"/>
 		<GridSplitter Grid.Column="1" HorizontalAlignment="Left" VerticalAlignment="Stretch" Width="2"  Grid.RowSpan="3" ResizeDirection="Columns"/>
 		<Button Grid.Column="1" Grid.Row="2" Margin="12" Name="buttonGeneratePointClouds" HorizontalAlignment="Right" Click="buttonGeneratePointClouds_Click">Generate Point Clouds</Button>
-		<Button Grid.Column="1" Grid.Row="2" Height="23" HorizontalAlignment="Left" Margin="6,12,0,0" Name="buttonAddPoints" VerticalAlignment="Top" Padding="10 0" Click="buttonAddPoints_Click">Add a few points</Button>
+		<!--<Button Grid.Column="1" Grid.Row="2" Height="23" HorizontalAlignment="Left" Margin="6,12,0,0" Name="buttonAddPoints" VerticalAlignment="Top" Padding="10 0" Click="buttonAddPoints_Click">Add a few points</Button>-->
 	</Grid>
 </Window>
