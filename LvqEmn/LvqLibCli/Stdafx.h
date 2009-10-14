@@ -5,5 +5,6 @@
 #pragma once
 #pragma warning (disable:4996)
 
-#include <boost/numeric/ublas/matrix.hpp>
+#include <msclr/auto_handle.h>
 #include <iostream>
+#include "AutoNative.h"
