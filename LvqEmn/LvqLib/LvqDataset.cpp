@@ -2,7 +2,7 @@
 #include "LvqDataSet.h"
 #include "utils.h"
 
-LvqDataSet::LvqDataSet(MatrixXd points, vector<int> pointLabels, int classCountPar) 
+LvqDataSet::LvqDataSet(MatrixXd const & points, vector<int> pointLabels, int classCountPar) 
 	: trainPoints(points)
 	, trainPointLabels(pointLabels)
 	, classCount(classCountPar)
@@ -24,7 +24,7 @@ LvqDataSet::LvqDataSet(MatrixXd points, vector<int> pointLabels, int classCountP
 
 }
 
-LvqModel LvqDataSet::ConstructModel(vector<int> protodistribution) {
+LvqModel* LvqDataSet::ConstructModel(vector<int> protodistribution) const {
 	MatrixXd means( trainPoints.rows(), classCount);
 	means.setZero();
 	
@@ -36,7 +36,7 @@ LvqModel LvqDataSet::ConstructModel(vector<int> protodistribution) {
 			means.col(i) /= double(trainClassFrequency[i]);
 	}
 
-	return LvqModel(protodistribution, means);
+	return new LvqModel(protodistribution, means);
 }
 
 
@@ -57,3 +57,14 @@ void LvqDataSet::TrainModel(int iters, boost::mt19937 & randGen, LvqModel & mode
 	}
 }
 
+double LvqDataSet::Evaluate(LvqModel const & model)const {
+	int errs=0;
+	for(int i=0;i<(int)trainPointLabels.size();++i) 
+		if(model.classify(trainPoints.col(i)) != trainPointLabels[i])
+			errs++;
+	return errs / double(trainPointLabels.size());
+}
+
+PMatrix LvqDataSet::ProjectPoints(LvqModel const & model) const {
+	return model.getP() * trainPoints;
+}

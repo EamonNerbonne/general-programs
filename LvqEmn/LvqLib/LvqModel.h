@@ -10,6 +10,7 @@ class LvqModel
 	std::vector<LvqPrototype> prototype;
 public:
 	const int classCount;
+	PMatrix const & getP() const {return P;}
 
 	LvqModel(std::vector<int> protodistribution, MatrixXd const & means);
 	int classify(VectorXd const & unknownPoint) const;

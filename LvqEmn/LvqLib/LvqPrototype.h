@@ -18,5 +18,5 @@ public:
 
 	LvqPrototype(int protoLabel, int thisIndex, VectorXd const & initialVal);
 	~LvqPrototype(void);
-	double SqrDistanceTo(VectorXd otherPoint, PMatrix const & P ) const { return (B*(P*(point - otherPoint))).squaredNorm(); }
+	double SqrDistanceTo(VectorXd const & otherPoint, PMatrix const & P ) const { return (B*(P*(point - otherPoint))).squaredNorm(); }
 };
