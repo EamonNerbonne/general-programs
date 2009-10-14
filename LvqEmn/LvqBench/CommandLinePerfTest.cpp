@@ -75,11 +75,11 @@ int _tmain(int argc, _TCHAR* argv[])
 #else
 
 #ifdef NDEBUG
-	const int iters = 10;
+	const int iters = 10000000;
 #else
 	const int iters = 50;
 #endif
-	const int dims = 500;
+	const int dims = 4;
 	for(int i=0;i<3;i++){
 		{progress_timer t;
 		BoostMatrixTest::TestMultCustom(iters,dims);}
@@ -89,7 +89,17 @@ int _tmain(int argc, _TCHAR* argv[])
 		BoostMatrixTest::TestMult<row_major>(iters,dims);}
 		{progress_timer t;
 		BoostMatrixTest::TestMult<column_major>(iters,dims);}
+		{progress_timer t;
+		BoostMatrixTest::TestMultInline(iters,dims);}
+		{progress_timer t;
+		BoostMatrixTest::TestMultEigen(iters,dims);}
+		{progress_timer t;
+		BoostMatrixTest::TestMultEigenStatic<dims>(iters);}
+#ifdef EIGEN_VECTORIZE
+		cout << "eigen vectorized\n";
+#endif 
 #ifdef MTL_MTL_INCLUDE
+		cout << "mtl\n";
 		{progress_timer t;
 		BoostMatrixTest::TestMultMtl (iters,dims);}
 #endif
