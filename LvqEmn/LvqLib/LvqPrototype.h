@@ -15,7 +15,8 @@ public:
 	int ClassLabel() const {return classLabel;}
 	Matrix2d const & matB() const {return B;}
 	VectorXd const & position() const{return point;}
-
+	
+	LvqPrototype() :protoIndex(-1),classLabel(-1) {}
 	LvqPrototype(int protoLabel, int thisIndex, VectorXd const & initialVal);
 	~LvqPrototype(void);
 	double SqrDistanceTo(VectorXd const & otherPoint, PMatrix const & P ) const { return (B*(P*(point - otherPoint))).squaredNorm(); }

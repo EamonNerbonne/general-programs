@@ -7,23 +7,27 @@ LvqModel::LvqModel(std::vector<int> protodistribution, MatrixXd const & means)
 	: classCount((int)protodistribution.size())
 	, P(2,means.rows())
 {
-		using namespace std;
-		//		for (vector<int>::iterator it = protodistribution.begin(); it!=protodistribution.end(); ++it) {
-		for(int label=0; label< protodistribution.size();label++) {
-			int labelCount =protodistribution[label];
-			for(int i=0;i<labelCount;i++)
-				prototype.push_back(LvqPrototype(label, (int)prototype.size(), means.col(i) ));
+	using namespace std;
+	protoCount = sum(0,protodistribution);
+	prototype.reset(new LvqPrototype[protoCount]);
+	int protoIndex=0;
+	//		for (vector<int>::iterator it = protodistribution.begin(); it!=protodistribution.end(); ++it) {
+	for(int label=0; label <(int) protodistribution.size();label++) {
+		int labelCount =protodistribution[label];
+		for(int i=0;i<labelCount;i++) {
+			prototype[protoIndex] = LvqPrototype(label, protoIndex, means.col(i) );
+			protoIndex++;
 		}
-		assert(sum(0, protodistribution) == prototype.size());
+	}
+	assert(sum(0, protodistribution) == protoIndex);
 }
-
 
 int LvqModel::classify(VectorXd const & unknownPoint) const{
 	using namespace std;
 
 	Vector2d projectedPoint = P * unknownPoint;
 
-	LvqMatch bestMatch= accumulate(prototype.begin(), prototype.end(), LvqMatch(&P, unknownPoint), LvqMatch::AccumulateHelper);
+	LvqMatch bestMatch= accumulate(prototype.get(), prototype.get() +protoCount, LvqMatch(&P, unknownPoint), LvqMatch::AccumulateHelper);
 	assert(bestMatch.match != NULL);
 	return bestMatch.match->ClassLabel();
 }
@@ -34,7 +38,7 @@ void LvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel, double lr_
 	assert(lr_P>0&& lr_B>0 && lr_point>0);
 	Vector2d projectedPoint = P * trainPoint;
 
-	LvqGoodBadMatch matches = accumulate(prototype.begin(), prototype.end(), LvqGoodBadMatch(&P, trainPoint, trainLabel), LvqGoodBadMatch::AccumulateHelper);
+	LvqGoodBadMatch matches = accumulate(prototype.get(), prototype.get() +protoCount, LvqGoodBadMatch(&P, trainPoint, trainLabel), LvqGoodBadMatch::AccumulateHelper);
 
 	assert(matches.good !=NULL && matches.bad!=NULL);
 	//now matches.good is "J" and matches.bad is "K".

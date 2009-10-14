@@ -44,7 +44,7 @@ void LvqDataSet::TrainModel(int iters, boost::mt19937 & randGen, LvqModel & mode
 	vector<int> ordering;
 	for(int iter=0;iter<iters;iter++) {
 		makeRandomOrder(randGen, ordering, (int)trainPointLabels.size());
-		for(int tI=0;tI<ordering.size();++tI) {
+		for(int tI=0;tI<(int)ordering.size();++tI) {
 			int pointIndex = ordering[tI];
 			
 			int pointClass = trainPointLabels[pointIndex];

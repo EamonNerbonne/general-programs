@@ -29,7 +29,7 @@
 #include <boost/random/mersenne_twister.hpp>
 
 //#include <boost/numeric/ublas/matrix.hpp>
-//#include <boost/smart_ptr/scoped_array.hpp>
+#include <boost/smart_ptr/scoped_array.hpp>
 #ifdef _MSC_VER
 #include <C:\Program Files (Custom)\eigen2\Eigen\Core>
 #else

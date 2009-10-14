@@ -7,7 +7,8 @@ USING_PART_OF_NAMESPACE_EIGEN
 class LvqModel
 {
 	PMatrix P;
-	std::vector<LvqPrototype> prototype;
+	boost::scoped_array<LvqPrototype> prototype;
+	int protoCount;
 public:
 	const int classCount;
 	PMatrix const & getP() const {return P;}
