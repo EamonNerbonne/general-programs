@@ -22,10 +22,11 @@
 #include <vector>
 
 
+#include <boost/function.hpp>
+#include <boost/bind/bind.hpp>
 #include <boost/random/variate_generator.hpp>
 #include <boost/random/uniform_int.hpp>
 #include <boost/random/mersenne_twister.hpp>
-#include <boost/bind/bind.hpp>
 
 //#include <boost/numeric/ublas/matrix.hpp>
 //#include <boost/smart_ptr/scoped_array.hpp>

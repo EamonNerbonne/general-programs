@@ -14,8 +14,10 @@ void makeRandomOrder(boost::mt19937 & randGen, vector<int> toFill, int count){
 	toFill.resize(count);
 	for(int i=0;i<count;++i)
 		toFill[i]=i;
-	
-	random_shuffle(toFill.begin(),toFill.end(),bind(rnd_helper,randGen,_1));
+
+	boost::function<int (int max)> rnd = bind(rnd_helper, randGen, _1);
+
+	random_shuffle(toFill.begin(), toFill.end(), rnd);
 	assert(sum(0,toFill) == (sqr(count) - count) /2 );
 
 }

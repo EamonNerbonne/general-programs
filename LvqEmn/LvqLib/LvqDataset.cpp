@@ -57,6 +57,7 @@ void LvqDataSet::TrainModel(int iters, boost::mt19937 & randGen, LvqModel & mode
 	}
 }
 
+
 double LvqDataSet::Evaluate(LvqModel const & model)const {
 	int errs=0;
 	for(int i=0;i<(int)trainPointLabels.size();++i) 

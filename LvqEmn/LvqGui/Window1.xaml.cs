@@ -1,4 +1,4 @@
-﻿//#define USEGEOMPLOT
+﻿#define USEGEOMPLOT
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -30,6 +30,9 @@ namespace LVQeamon
 	/// </summary>
 	public partial class MainWindow : Window// Window
 	{
+		const int DIMS = 50;
+		
+
 		public MainWindow()
 		{
 			//this.WindowStyle = WindowStyle.None;
@@ -64,6 +67,7 @@ namespace LVQeamon
 
 
 			MersenneTwister rndG = new MersenneTwister(123);
+			List<double[,]> pointClounds = new List<double[,]>();
 
 			for (int si = 0; si < numSets; si++)
 			{//create each point-set
@@ -73,11 +77,9 @@ namespace LVQeamon
 					MersenneTwister rnd;
 					lock (rndG)
 						rnd = new MersenneTwister(rndG.Next());
-					double[] mean = CreateGaussianCloud.RandomMean(2, rnd);
-					double[,] trans = CreateGaussianCloud.RandomTransform(2, rnd);
-					double[,] points = CreateGaussianCloud.GaussianCloud(pointsPerSet, 2, trans, mean, rnd);
-
-
+					double[] mean = CreateGaussianCloud.RandomMean(DIMS, rnd);
+					double[,] trans = CreateGaussianCloud.RandomTransform(DIMS, rnd);
+					double[,] points = CreateGaussianCloud.GaussianCloud(pointsPerSet, DIMS, trans, mean, rnd);
 
 					Dispatcher.BeginInvoke((Action)(() =>
 					{
@@ -91,7 +93,7 @@ namespace LVQeamon
 						    //EndLineCap = PenLineCap.Round,	StartLineCap = PenLineCap.Round,
 						    EndLineCap = PenLineCap.Square,
 						    StartLineCap = PenLineCap.Square,
-						    Thickness = 2.0,
+						    Thickness = 1.5,
 						};
 						pen.Freeze();
 						plotControl.AddPlot(new GraphableGeometry { Geometry = pointCloud, Pen = pen, XUnitLabel = "X axis", YUnitLabel = "Y axis" });
