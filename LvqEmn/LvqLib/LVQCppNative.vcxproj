@@ -178,20 +178,23 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="BoostMatrixTest.cpp" />
-    <ClCompile Include="SimpleMatrix.cpp" />
+    <ClCompile Include="LvqMatch.cpp" />
+    <ClCompile Include="LvqModel.cpp" />
+    <ClCompile Include="LvqPrototype.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|X64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|X64'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="utils.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="BoostMatrixTest.h" />
-    <ClInclude Include="SimpleMatrix.h" />
+    <ClInclude Include="LvqMatch.h" />
+    <ClInclude Include="LvqModel.h" />
+    <ClInclude Include="LvqPrototype.h" />
     <ClInclude Include="stdafx.h" />
-    <ClInclude Include="targetver.h" />
+    <ClInclude Include="utils.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="ReadMe.txt" />

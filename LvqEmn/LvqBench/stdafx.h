@@ -4,14 +4,29 @@
 //
 
 #pragma once
+#define WIN32_LEAN_AND_MEAN             // Exclude rarely-used stuff from Windows headers
 
-#include "targetver.h"
+#ifndef _WIN32_WINNT            // Specifies that the minimum required platform is Windows Vista.
+#define _WIN32_WINNT 0x0600     // Change this to the appropriate value to target other versions of Windows.
+#endif
 
 #include <stdio.h>
 #include <tchar.h>
 
 
-#include "../LVQCppNative/BoostMatrixTest.h"
 #include <boost/timer.hpp>
 #include <boost/progress.hpp>
-// TODO: reference additional headers your program requires here
+
+#pragma warning (disable:4996)
+#pragma warning (disable:4099)
+
+#include <iostream>
+
+#include <boost/numeric/ublas/matrix.hpp>
+#include <boost/smart_ptr/scoped_array.hpp>
+#ifdef _MSC_VER
+#include <C:\Program Files (Custom)\eigen2\Eigen\Core>
+#else
+#include <Eigen/Core>
+#endif
+

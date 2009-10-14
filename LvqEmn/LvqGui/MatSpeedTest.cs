@@ -1,7 +1,7 @@
 ﻿//#define PRINTRESULT
 //#define DO_CS_VARIANTS
-#define DO_NATIVE_CPP
-//#define DO_CLI_CPP
+//#define DO_NATIVE_CPP
+#define DO_CLI_CPP
 //#define DO_dnA
 //#define IN_PARALLEL
 using System;

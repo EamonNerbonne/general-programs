@@ -3,7 +3,6 @@
 #include "stdafx.h"
 
 #include "LVQCppCli.h"
-#include "../LVQCppNative/BoostMatrixTest.h"
 
 namespace LVQCppCli {
 
@@ -15,7 +14,6 @@ namespace LVQCppCli {
 		for(int i=0;i<iters;i++)
 			a=prod(b,a);
 	}
-	void Class1::TestublasNative(int iters, int dims){BoostMatrixTest::TestMult<row_major>(iters,dims);}
-	void Class1::TestCustomNative(int iters, int dims){BoostMatrixTest::TestMultCustom(iters,dims);}
-
+//	void Class1::TestublasNative(int iters, int dims){BoostMatrixTest::TestMult<row_major>(iters,dims);}
+	//void Class1::TestCustomNative(int iters, int dims){BoostMatrixTest::TestMultCustom(iters,dims);}
 }

@@ -2,10 +2,11 @@
 //
 
 #include "stdafx.h"
-#include "LogNumber.h"
+#include "BoostMatrixTest.h"
 
 using namespace boost;
 const int maxN = 10000000;
+using namespace boost::numeric::ublas;
 
 int _tmain(int argc, _TCHAR* argv[])
 {
@@ -96,10 +97,10 @@ int _tmain(int argc, _TCHAR* argv[])
 		{progress_timer t;
 		BoostMatrixTest::TestMultEigenStatic<dims>(iters);}
 #ifdef EIGEN_VECTORIZE
-		cout << "eigen vectorized\n";
+		std::cout << "eigen vectorized\n";
 #endif 
 #ifdef MTL_MTL_INCLUDE
-		cout << "mtl\n";
+		std::cout << "mtl\n";
 		{progress_timer t;
 		BoostMatrixTest::TestMultMtl (iters,dims);}
 #endif

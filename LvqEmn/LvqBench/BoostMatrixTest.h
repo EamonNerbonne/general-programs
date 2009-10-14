@@ -1,8 +1,5 @@
 #pragma once
 #include "stdafx.h"
-using namespace boost::numeric::ublas;
-
-//template <class row_or_col_major = row_major>class BoostMatrixTest;
 
 class BoostMatrixTest
 {

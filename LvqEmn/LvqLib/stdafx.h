@@ -5,7 +5,9 @@
 
 #pragma once
 
-#include "targetver.h"
+#ifndef _WIN32_WINNT            // Specifies that the minimum required platform is Windows Vista.
+#define _WIN32_WINNT 0x0600     // Change this to the appropriate value to target other versions of Windows.
+#endif
 
 #define WIN32_LEAN_AND_MEAN             // Exclude rarely-used stuff from Windows headers
 #define BOOST_UBLAS_NDEBUG
@@ -14,17 +16,14 @@
 #pragma warning (disable:4099)
 
 #include <iostream>
-
-#pragma warning (push)
-#pragma warning (disable:4522)
-#pragma warning (disable:4355)
-#pragma warning (disable:4267)
-#include <boost/numeric/mtl/mtl.hpp>
-#pragma warning (pop)
+#include <assert.h>
+#include <algorithm>
+#include <numeric>
+#include <vector>
 
 
-#include <boost/numeric/ublas/matrix.hpp>
-#include <boost/smart_ptr/scoped_array.hpp>
+//#include <boost/numeric/ublas/matrix.hpp>
+//#include <boost/smart_ptr/scoped_array.hpp>
 #ifdef _MSC_VER
 #include <C:\Program Files (Custom)\eigen2\Eigen\Core>
 #else
