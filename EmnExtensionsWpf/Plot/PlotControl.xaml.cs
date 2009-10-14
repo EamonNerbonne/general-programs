@@ -48,6 +48,9 @@ namespace EmnExtensions.Wpf.Plot
 			Console.WriteLine("plot add");
 #endif
 		}
+		public GraphableData GetPlot(int it) {
+			return graphs[it];
+		}
 		
 		public void Clear() {
 			foreach(var graph in graphs) {

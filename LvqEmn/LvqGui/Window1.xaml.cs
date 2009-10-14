@@ -22,6 +22,8 @@ using EmnExtensions.Wpf.OldGraph;
 using EmnExtensions.Wpf.Plot;
 using System.Windows.Threading;
 using EmnExtensions;
+using LVQCppCli;
+using System.Diagnostics;
 
 namespace LVQeamon
 {
@@ -31,10 +33,9 @@ namespace LVQeamon
 	public partial class MainWindow : Window// Window
 	{
 		const int DIMS = 50;
-		
 
-		public MainWindow()
-		{
+
+		public MainWindow() {
 			//this.WindowStyle = WindowStyle.None;
 			//this.AllowsTransparency = true; 
 			BorderBrush = Brushes.White;
@@ -50,12 +51,11 @@ namespace LVQeamon
 		public int? NumberOfSets { get { return textBoxNumberOfSets.Text.ParseAsInt32(); } }
 		public int? PointsPerSet { get { return textBoxPointsPerSet.Text.ParseAsInt32(); } }
 
-		private void buttonGeneratePointClouds_Click(object sender, RoutedEventArgs e)
-		{
-			plotControl.Clear();
+		private void buttonGeneratePointClouds_Click(object sender, RoutedEventArgs e) {
+//			plotControl.Clear();
 			NiceTimer timer = new NiceTimer(); timer.TimeMark("making point clouds");
-			if (!NumberOfSets.HasValue || !PointsPerSet.HasValue)
-			{
+			
+			if (!NumberOfSets.HasValue || !PointsPerSet.HasValue) {
 				Console.WriteLine("Invalid initialization values");
 				return;
 			}
@@ -64,15 +64,13 @@ namespace LVQeamon
 			int done = 0;
 			int numSets = NumberOfSets.Value;
 			int pointsPerSet = PointsPerSet.Value;
-
+			SetupDisplay(numSets);
 
 			MersenneTwister rndG = new MersenneTwister(123);
-			List<double[,]> pointClounds = new List<double[,]>();
+			List<double[,]> pointClouds = new List<double[,]>();
 
-			for (int si = 0; si < numSets; si++)
-			{//create each point-set
-				ThreadPool.QueueUserWorkItem((index) =>
-				{
+			for (int si = 0; si < numSets; si++) {//create each point-set
+				ThreadPool.QueueUserWorkItem((index) => {
 
 					MersenneTwister rnd;
 					lock (rndG)
@@ -80,23 +78,56 @@ namespace LVQeamon
 					double[] mean = CreateGaussianCloud.RandomMean(DIMS, rnd);
 					double[,] trans = CreateGaussianCloud.RandomTransform(DIMS, rnd);
 					double[,] points = CreateGaussianCloud.GaussianCloud(pointsPerSet, DIMS, trans, mean, rnd);
+					lock (rndG)
+						pointClouds.Add(points);
 
-					Dispatcher.BeginInvoke((Action)(() =>
-					{
-						var pointsIter = Enumerable.Range(0, pointsPerSet)
-							.Select(i => new Point(points[i, 0], points[i, 1]));
+					lock (sync) {
+						done++;
+						if (done == numSets) {
+							timer.TimeMark(null);
+							renderCount = 0;
+							new Thread(() => { StartLvq(pointClouds); }) {
+								IsBackground = true,
+							}.Start();
+						}
+					}
+				}, si);
+			}
+		}
+
+		private void StartLvq(List<double[,]> pointClouds) {
+			double[,] allpoints = new double[ pointClouds.Sum(pc => pc.GetLength(0)), DIMS];
+			int[] pointLabels = new int[allpoints.GetLength(0)];
+			List<int> classBoundaries = new List<int> { 0 };
+			int pointI = 0;
+			int classLabel = 0;
+			foreach (var pointCloud in pointClouds) {
+				for (int i = 0; i < pointCloud.GetLength(0); i++) {
+					for (int j = 0; j < DIMS; j++)
+						allpoints[pointI,j] = pointCloud[i, j];
+					pointLabels[pointI] = classLabel;
+					pointI++;
+				}
+				classBoundaries.Add(pointI);
+				classLabel++;
+			}
+			Debug.Assert(pointI == allpoints.GetLength(0));
+			Debug.Assert(pointClouds[0].GetLength(1) == allpoints.GetLength(1));
+			this.classBoundaries = classBoundaries.ToArray();
+			lvqImpl = new LvqWrapper(allpoints, pointLabels, classLabel, 1);
+			UpdateDisplay();
+		}
+
+		private void UpdateDisplay() {
+			double[,] currPoints = lvqImpl.CurrentProjection();
+			Dispatcher.BeginInvoke((Action)(() => {
+				for (int i = 0; i < classBoundaries.Length - 1; i++) {
+
+					var pointsIter = Enumerable.Range(classBoundaries[i], classBoundaries[i + 1])
+												.Select(pi => new Point(currPoints[pi, 0], currPoints[pi, 1]));
 
 #if USEGEOMPLOT
-						Geometry pointCloud = GraphUtils.PointCloud(pointsIter);
-						Pen pen = new Pen {
-						    Brush = GraphRandomPen.RandomGraphBrush(),
-						    //EndLineCap = PenLineCap.Round,	StartLineCap = PenLineCap.Round,
-						    EndLineCap = PenLineCap.Square,
-						    StartLineCap = PenLineCap.Square,
-						    Thickness = 1.5,
-						};
-						pen.Freeze();
-						plotControl.AddPlot(new GraphableGeometry { Geometry = pointCloud, Pen = pen, XUnitLabel = "X axis", YUnitLabel = "Y axis" });
+					((GraphableGeometry)plotControl.GetPlot(i)).Geometry = GraphUtils.PointCloud(pointsIter);
 #else
 						plotControl.AddPlot(
 							new GraphablePixelScatterPlot
@@ -113,24 +144,48 @@ namespace LVQeamon
 
 							});
 #endif
-						lock (sync)
-						{
-							done++;
-							if (done == numSets)
-							{
-								timer.TimeMark(null);
-								renderCount = 0;
-								//Dispatcher.BeginInvoke((Action)DoSizingTest, DispatcherPriority.Loaded);
-							}
-						}
-					}));
-
-				}, si);
-			}
+				}
+			}));
 		}
+
+		private void SetupDisplay(int numClasses) {
+			Dispatcher.BeginInvoke((Action)(() => {
+				plotControl.Clear();
+
+#if USEGEOMPLOT
+				Pen pen = new Pen {
+					Brush = GraphRandomPen.RandomGraphBrush(),
+					//EndLineCap = PenLineCap.Round,	StartLineCap = PenLineCap.Round,
+					EndLineCap = PenLineCap.Square,
+					StartLineCap = PenLineCap.Square,
+					Thickness = 1.5,
+				};
+				pen.Freeze();
+				for (int i = 0; i < numClasses; i++)
+					plotControl.AddPlot(new GraphableGeometry { Geometry = GraphUtils.PointCloud(Enumerable.Empty<Point>()), Pen = pen, XUnitLabel = "X axis", YUnitLabel = "Y axis" });
+#else
+						plotControl.AddPlot(
+							new GraphablePixelScatterPlot
+							{
+								PointColor = F.Create<Color, Color>((c) => { c.ScA = 0.3f; return c; })(GraphRandomPen.RandomGraphColor()),
+								XUnitLabel = "X axis",
+								YUnitLabel = "Y axis",
+								DpiX = 96.0,
+								DpiY = 96.0,
+								BitmapScalingMode = BitmapScalingMode.NearestNeighbor,
+								CoverageRatio = 0.99,
+								UseDiamondPoints = false,
+								Points = pointsIter.ToArray(),
+
+							});
+#endif
+			}));
+		}
+
 		NiceTimer overall;
-		protected override void OnInitialized(EventArgs e)
-		{
+		int[] classBoundaries;
+		LvqWrapper lvqImpl;
+		protected override void OnInitialized(EventArgs e) {
 #if USEGEOMPLOT || DEBUG
 			textBoxPointsPerSet.Text = 1000.ToString();
 #else
@@ -140,34 +195,27 @@ namespace LVQeamon
 			//buttonGeneratePointClouds_Click(null, null);
 			//Dispatcher.Invoke((Action)(() => {
 			//}), DispatcherPriority.ApplicationIdle);
-		//	ThreadPool.QueueUserWorkItem((ignore) => { MatSpeedTest.Test(); });
+			//	ThreadPool.QueueUserWorkItem((ignore) => { MatSpeedTest.Test(); });
 
 		}
 
 		volatile int renderCount = 0;
 		bool completedTest = false;
 
-		void DoSizingTest()
-		{
-			if (overall == null)
-			{
+		void DoSizingTest() {
+			if (overall == null) {
 				overall = new NiceTimer();
 				overall.TimeMark("Sizing");
 			}
-			if (Width + Height > 2000)
-			{
-				if (!completedTest)
-				{
+			if (Width + Height > 2000) {
+				if (!completedTest) {
 					completedTest = true;
 					overall.TimeMark(null);
 					//Close();
 				}
-			}
-			else
-			{
+			} else {
 				renderCount++;
-				if (renderCount % 2 == 0)
-				{
+				if (renderCount % 2 == 0) {
 					if (Width > Height)
 						Height = Height + 30;
 					else

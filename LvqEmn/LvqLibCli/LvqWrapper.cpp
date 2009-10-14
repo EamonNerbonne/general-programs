@@ -3,19 +3,19 @@
 #include "LvqWrapper.h"
 namespace LVQCppCli {
 	MatrixXd arrayToMatrix(array<double,2>^ points) {
-		MatrixXd nPoints(points->GetLength(0), points->GetLength(1));
+		MatrixXd nPoints(points->GetLength(1), points->GetLength(0));
 		for(int i=0; i<points->GetLength(0); ++i)
 			for(int j=0; j<points->GetLength(1); ++j)
-				nPoints(i,j) = points[i, j];
+				nPoints(j,i) = points[i, j];
 
 		return nPoints;
 	}
 
 	array<double,2>^ matrixToArray(MatrixXd  const & matrix) {
-		array<double,2>^ points = gcnew array<double,2>(matrix.rows(),matrix.cols());
+		array<double,2>^ points = gcnew array<double,2>(matrix.cols(),matrix.rows());
 		for(int i=0; i<points->GetLength(0); ++i)
 			for(int j=0; j<points->GetLength(1); ++j)
-				points[i, j] = matrix(i,j);
+				points[i, j] = matrix(j,i);
 
 		return points;
 	}
