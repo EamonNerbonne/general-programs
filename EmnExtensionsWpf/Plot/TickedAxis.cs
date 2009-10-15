@@ -70,7 +70,7 @@ namespace EmnExtensions.Wpf.Plot
 
 		DimensionBounds m_DataBound;
 		DimensionMargins m_DataMargin;
-		public DimensionBounds DataBound { get { return m_DataBound; } set { m_DataBound = value; InvalidateMeasure(); Console.WriteLine("boundupdate"); } }  //TODO:should invalidate measure/render
+		public DimensionBounds DataBound { get { return m_DataBound; } set { m_DataBound = value; InvalidateMeasure();  } }  //TODO:should invalidate measure/render
 		public DimensionMargins DataMargin { get { return m_DataMargin; } set { m_DataMargin = value; InvalidateMeasure(); } } //TODO:should invalidate measure/render
 		public Brush Background { get; set; } //TODO:affectsrender
 
@@ -313,7 +313,6 @@ namespace EmnExtensions.Wpf.Plot
 			{
 				if (IsCollapsedOrEmpty)
 					return DontShow();
-				Console.WriteLine("MeasureCompute: " + this.AxisPos);
 				if (m_cachedCulture == null)
 					m_cachedCulture = CultureInfo.CurrentCulture;
 

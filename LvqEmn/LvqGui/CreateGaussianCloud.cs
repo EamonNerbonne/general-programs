@@ -49,10 +49,10 @@ namespace LVQeamon
 			return points;
 		}
 
-		public static double[] RandomMean(int numDimensions, MersenneTwister rand) {
+		public static double[] RandomMean(int numDimensions, MersenneTwister rand,double meandev) {
 			double[] mean = new double[numDimensions];
 			for (int i = 0; i < numDimensions; i++) {
-				mean[i] = 4*rand.NextNormal();
+				mean[i] = meandev * rand.NextNormal();
 			}
 			return mean;
 		}

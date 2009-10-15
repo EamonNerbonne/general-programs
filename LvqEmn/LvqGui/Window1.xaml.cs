@@ -32,7 +32,7 @@ namespace LVQeamon
 	/// </summary>
 	public partial class MainWindow : Window// Window
 	{
-		
+
 
 
 		public MainWindow() {
@@ -46,57 +46,66 @@ namespace LVQeamon
 
 		private void textBoxNumberOfSets_TextChanged(object sender, TextChangedEventArgs e) { DataVerifiers.VerifyTextBox((TextBox)sender, DataVerifiers.IsInt32Positive); }
 		private void textBoxPointsPerSet_TextChanged(object sender, TextChangedEventArgs e) { DataVerifiers.VerifyTextBox((TextBox)sender, DataVerifiers.IsInt32Positive); }
-		private void textBoxDims_TextChanged(object sender, TextChangedEventArgs e) { DataVerifiers.VerifyTextBox((TextBox)sender, s=>DataVerifiers.IsInt32Positive(s)&&Int32.Parse(s)>2 ); }
+		private void textBoxDims_TextChanged(object sender, TextChangedEventArgs e) { DataVerifiers.VerifyTextBox((TextBox)sender, s => DataVerifiers.IsInt32Positive(s) && Int32.Parse(s) > 2); }
 		private void textBoxEpochs_TextChanged(object sender, TextChangedEventArgs e) { DataVerifiers.VerifyTextBox((TextBox)sender, DataVerifiers.IsInt32Positive); }
-		
+		private void textBoxStddevMeans_TextChanged(object sender, TextChangedEventArgs e) { DataVerifiers.VerifyTextBox((TextBox)sender, DataVerifiers.IsDoublePositive); }
+
 
 		public int? NumberOfSets { get { return textBoxNumberOfSets.Text.ParseAsInt32(); } }
 		public int? PointsPerSet { get { return textBoxPointsPerSet.Text.ParseAsInt32(); } }
 		public int? Dimensions { get { return textBoxDims.Text.ParseAsInt32(); } }
 		public int? EpochsPerClick { get { return textBoxEpochs.Text.ParseAsInt32(); } }
+		public double? StddevMeans { get { return textBoxStddevMeans.Text.ParseAsDouble(); } }
 
 		private void buttonGeneratePointClouds_Click(object sender, RoutedEventArgs e) {
-			//			plotControl.Clear();
-			NiceTimer timer = new NiceTimer(); timer.TimeMark("making point clouds");
+			try {
+				//			plotControl.Clear();
+				NiceTimer timer = new NiceTimer(); timer.TimeMark("making point clouds");
 
-			if (!NumberOfSets.HasValue || !PointsPerSet.HasValue) {
-				Console.WriteLine("Invalid initialization values");
-				return;
-			}
+				if (!NumberOfSets.HasValue || !PointsPerSet.HasValue) {
+					Console.WriteLine("Invalid initialization values");
+					return;
+				}
 
-			object sync = new object();
-			int done = 0;
-			int numSets = NumberOfSets.Value;
-			int pointsPerSet = PointsPerSet.Value;
-			int DIMS = Dimensions.Value;
-			SetupDisplay(numSets);
+				object sync = new object();
+				int done = 0;
+				int numSets = NumberOfSets.Value;
+				int pointsPerSet = PointsPerSet.Value;
+				int DIMS = Dimensions.Value;
+				double stddevmeans = StddevMeans.Value;
+				SetupDisplay(numSets);
 
-			MersenneTwister rndG = new MersenneTwister(123);
-			List<double[,]> pointClouds = new List<double[,]>();
+				MersenneTwister rndG = RndHelper.ThreadLocalRandom;
+				List<double[,]> pointClouds = new List<double[,]>();
 
-			for (int si = 0; si < numSets; si++) {//create each point-set
-				ThreadPool.QueueUserWorkItem((index) => {
+				for (int si = 0; si < numSets; si++) {//create each point-set
+					ThreadPool.QueueUserWorkItem((index) => {
 
-					MersenneTwister rnd;
-					lock (rndG)
-						rnd = new MersenneTwister(rndG.Next());
-					double[] mean = CreateGaussianCloud.RandomMean(DIMS, rnd);
-					double[,] trans = CreateGaussianCloud.RandomTransform(DIMS, rnd);
-					double[,] points = CreateGaussianCloud.GaussianCloud(pointsPerSet, DIMS, trans, mean, rnd);
-					lock (rndG)
-						pointClouds.Add(points);
+						MersenneTwister rnd;
+						lock (rndG)
+							rnd = new MersenneTwister(rndG.Next());
+						double[] mean = CreateGaussianCloud.RandomMean(DIMS, rnd, stddevmeans);
+						double[,] trans = CreateGaussianCloud.RandomTransform(DIMS, rnd);
+						double[,] points = CreateGaussianCloud.GaussianCloud(pointsPerSet, DIMS, trans, mean, rnd);
+						lock (rndG)
+							pointClouds.Add(points);
 
-					lock (sync) {
-						done++;
-						if (done == numSets) {
-							timer.TimeMark(null);
-							renderCount = 0;
-							new Thread(() => { StartLvq(pointClouds); }) {
-								IsBackground = true,
-							}.Start();
+						lock (sync) {
+							done++;
+							if (done == numSets) {
+								timer.TimeMark(null);
+								renderCount = 0;
+								new Thread(() => { StartLvq(pointClouds); }) {
+									IsBackground = true,
+								}.Start();
+							}
 						}
-					}
-				}, si);
+					}, si);
+				}
+			} catch (Exception ex) {
+				Console.WriteLine("Error occured!");
+				Console.WriteLine(ex);
+				Console.WriteLine("\nerror ignored.");
 			}
 		}
 
@@ -142,7 +151,7 @@ namespace LVQeamon
 					var pointsIter = Enumerable.Range(classBoundaries[i], classBoundaries[i + 1] - classBoundaries[i])
 												.Select(pi => new Point(currPoints[pi, 0], currPoints[pi, 1]));
 
-					Console.WriteLine("Points in graph " + i + ": " + pointsIter.Count());
+					//Console.WriteLine("Points in graph " + i + ": " + pointsIter.Count());
 
 #if USEGEOMPLOT
 					((GraphableGeometry)plotControl.GetPlot(i)).Geometry = GraphUtils.PointCloud(pointsIter);
@@ -164,7 +173,6 @@ namespace LVQeamon
 #endif
 
 				}
-				Console.WriteLine("DispUpdate");
 			}));
 		}
 
@@ -176,13 +184,13 @@ namespace LVQeamon
 				for (int i = 0; i < numClasses; i++) {
 					Pen pen = new Pen {
 						Brush = GraphRandomPen.RandomGraphBrush(),
-						EndLineCap = PenLineCap.Round,						StartLineCap = PenLineCap.Round,
+						EndLineCap = PenLineCap.Round,
+						StartLineCap = PenLineCap.Round,
 						//EndLineCap = PenLineCap.Square,						StartLineCap = PenLineCap.Square,
 						Thickness = 4.0,
 					};
 					pen.Freeze();
 					plotControl.AddPlot(new GraphableGeometry { Geometry = GraphUtils.PointCloud(Enumerable.Empty<Point>()), Pen = pen, XUnitLabel = "X axis", YUnitLabel = "Y axis" });
-					Console.WriteLine("Added " + i);
 				}
 #else
 						plotControl.AddPlot(
@@ -250,15 +258,27 @@ namespace LVQeamon
 
 		private void doEpochButton_Click(object sender, RoutedEventArgs e) {
 			int epochsTodo = EpochsPerClick ?? 1;
-			Console.WriteLine("Click...");
 			ThreadPool.QueueUserWorkItem((index) => {
-				Console.WriteLine("Processing...");
 				lock (lvqSync) {
-					lvqImpl.TrainEpoch(epochsTodo);
+					using (new DTimer("Training " + epochsTodo + " epochs"))
+						lvqImpl.TrainEpoch(epochsTodo);
 					needUpdate = true;
 				}
 				UpdateDisplay();
 			});
+		}
+
+		private void checkBox2_Checked(object sender, RoutedEventArgs e) {
+			this.WindowState = WindowState.Normal;
+			this.WindowStyle = WindowStyle.None;
+			this.Topmost = true;
+			this.WindowState = WindowState.Maximized;
+		}
+
+		private void checkBox2_Unchecked(object sender, RoutedEventArgs e) {
+			this.Topmost = false;
+			this.WindowStyle = WindowStyle.SingleBorderWindow;
+			this.WindowState = WindowState.Normal;
 		}
 
 	}

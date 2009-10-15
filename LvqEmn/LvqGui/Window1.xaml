@@ -28,6 +28,7 @@
 				<RowDefinition Height="Auto" />
 				<RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 			
 			<Label  Margin="2" Name="label1" HorizontalAlignment="Right">Number of Sets</Label>
@@ -40,11 +41,14 @@
             <TextBox Grid.Row="3"  Grid.Column="1"  Margin="2" Name="textBoxDims" TextChanged="textBoxDims_TextChanged"  Text="50" />
             <Label Grid.Row="4"  HorizontalAlignment="Right" Margin="2">Epochs per Click</Label>
             <TextBox Grid.Row="4"  Grid.Column="1"  Margin="2" Name="textBoxEpochs" TextChanged="textBoxEpochs_TextChanged"  Text="100" />
+            <Label Grid.Row="5"  HorizontalAlignment="Right" Margin="2">Std-dev of means</Label>
+            <TextBox Grid.Row="5"  Grid.Column="1"  Margin="2" Name="textBoxStddevMeans" TextChanged="textBoxStddevMeans_TextChanged"  Text="5" />
         </Grid>
 		<emn:LogControl Name="logControl" ClaimStandardOut="True" ClaimStandardError="True" Grid.Column="1" Grid.Row="1"/>
 		<GridSplitter Grid.Column="1" HorizontalAlignment="Left" VerticalAlignment="Stretch" Width="2"  Grid.RowSpan="3" ResizeDirection="Columns"/>
 		<Button Grid.Column="1" Grid.Row="2" Margin="12" Name="buttonGeneratePointClouds" HorizontalAlignment="Right" Click="buttonGeneratePointClouds_Click">Generate Point Clouds</Button>
         <Button Content="DoEpoch" Grid.Column="1" Grid.Row="2" HorizontalAlignment="Left" Margin="12" Name="doEpochButton" Click="doEpochButton_Click" />
+        <CheckBox Content="FullScreen" Grid.Column="1" Grid.Row="2" Height="16" HorizontalAlignment="Left" Margin="72,18,0,0" Name="checkBox2" VerticalAlignment="Top" Checked="checkBox2_Checked" Unchecked="checkBox2_Unchecked"/>
         <!--<Button Grid.Column="1" Grid.Row="2" Height="23" HorizontalAlignment="Left" Margin="6,12,0,0" Name="buttonAddPoints" VerticalAlignment="Top" Padding="10 0" Click="buttonAddPoints_Click">Add a few points</Button>-->
 	</Grid>
 </Window>
