@@ -81,6 +81,13 @@ namespace EmnExtensions.Wpf.Plot
 
 		private IEnumerable<TickedAxis> Axes { get { return new[] { tickedAxisLft, tickedAxisBot, tickedAxisRgt, tickedAxisTop }; } }
 
+		public bool AttemptBorderTicks {
+			set {
+				foreach (var axis in Axes)
+					axis.AttemptBorderTicks = value;
+			}
+		}
+
 		#region Static Helper Functions
 		private static IEnumerable<TickedAxisLocation> ProjectionCorners {
 			get {

@@ -42,6 +42,7 @@ namespace LVQeamon
 
 			InitializeComponent();
 			this.Background = Brushes.White;
+			plotControl.AttemptBorderTicks = false;
 		}
 
 		private void textBoxNumberOfSets_TextChanged(object sender, TextChangedEventArgs e) { DataVerifiers.VerifyTextBox((TextBox)sender, DataVerifiers.IsInt32Positive); }
