@@ -6,10 +6,10 @@ LvqDataSet::LvqDataSet(MatrixXd const & points, vector<int> pointLabels, int cla
 	: trainPoints(points)
 	, trainPointLabels(pointLabels)
 	, classCount(classCountPar)
-	, decay_lr(1.0/sqrt(double(pointLabels.size())))
-	, lr_P(0.001)
-	, lr_B(0.001)
-	, lr_point(0.1)
+	, decay_lr(1.0/double(pointLabels.size()))
+	, lr_P(1.0)
+	, lr_B(1.0)
+	, lr_point(10.0)
 	, trainIter(0)
 {
 	assert(points.cols() == pointLabels.size());

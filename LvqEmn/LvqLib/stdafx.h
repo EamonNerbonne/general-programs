@@ -21,7 +21,8 @@
 #include <numeric>
 #include <vector>
 
-
+#include <boost/smart_ptr/scoped_array.hpp>
+#include <boost/smart_ptr/shared_ptr.hpp>
 #include <boost/function.hpp>
 #include <boost/bind/bind.hpp>
 #include <boost/random/variate_generator.hpp>
@@ -29,7 +30,6 @@
 #include <boost/random/mersenne_twister.hpp>
 
 //#include <boost/numeric/ublas/matrix.hpp>
-#include <boost/smart_ptr/scoped_array.hpp>
 #ifdef _MSC_VER
 #include <C:\Program Files (Custom)\eigen2\Eigen\Core>
 #else

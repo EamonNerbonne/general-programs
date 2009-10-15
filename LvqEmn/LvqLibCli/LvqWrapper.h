@@ -15,8 +15,8 @@ namespace LVQCppCli {
 
 		double Evaluate();
 		array<double,2>^ CurrentProjection();
-		void TrainEpoch() {
-			dataset->TrainModel(1,  *rnd, *model);
+		void TrainEpoch(int epochsToDo) {
+			dataset->TrainModel(epochsToDo,  *rnd, *model);
 		}
 	};
 }

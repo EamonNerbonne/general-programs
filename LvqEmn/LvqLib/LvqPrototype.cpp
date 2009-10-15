@@ -6,9 +6,9 @@ LvqPrototype::LvqPrototype(int protoLabel, int thisIndex, VectorXd const & initi
 	: classLabel(protoLabel)
 	, protoIndex(thisIndex)
 	, point(initialVal) 
-	, B()
+	, B(new Matrix2d())
 { 
-	B.setIdentity();
+	B->setIdentity();
 	point.setZero(); 
 }
 

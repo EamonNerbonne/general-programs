@@ -32,7 +32,7 @@ namespace LVQeamon
 	/// </summary>
 	public partial class MainWindow : Window// Window
 	{
-		const int DIMS = 50;
+		
 
 
 		public MainWindow() {
@@ -45,16 +45,20 @@ namespace LVQeamon
 		}
 
 		private void textBoxNumberOfSets_TextChanged(object sender, TextChangedEventArgs e) { DataVerifiers.VerifyTextBox((TextBox)sender, DataVerifiers.IsInt32Positive); }
-
 		private void textBoxPointsPerSet_TextChanged(object sender, TextChangedEventArgs e) { DataVerifiers.VerifyTextBox((TextBox)sender, DataVerifiers.IsInt32Positive); }
+		private void textBoxDims_TextChanged(object sender, TextChangedEventArgs e) { DataVerifiers.VerifyTextBox((TextBox)sender, s=>DataVerifiers.IsInt32Positive(s)&&Int32.Parse(s)>2 ); }
+		private void textBoxEpochs_TextChanged(object sender, TextChangedEventArgs e) { DataVerifiers.VerifyTextBox((TextBox)sender, DataVerifiers.IsInt32Positive); }
+		
 
 		public int? NumberOfSets { get { return textBoxNumberOfSets.Text.ParseAsInt32(); } }
 		public int? PointsPerSet { get { return textBoxPointsPerSet.Text.ParseAsInt32(); } }
+		public int? Dimensions { get { return textBoxDims.Text.ParseAsInt32(); } }
+		public int? EpochsPerClick { get { return textBoxEpochs.Text.ParseAsInt32(); } }
 
 		private void buttonGeneratePointClouds_Click(object sender, RoutedEventArgs e) {
-//			plotControl.Clear();
+			//			plotControl.Clear();
 			NiceTimer timer = new NiceTimer(); timer.TimeMark("making point clouds");
-			
+
 			if (!NumberOfSets.HasValue || !PointsPerSet.HasValue) {
 				Console.WriteLine("Invalid initialization values");
 				return;
@@ -64,6 +68,7 @@ namespace LVQeamon
 			int done = 0;
 			int numSets = NumberOfSets.Value;
 			int pointsPerSet = PointsPerSet.Value;
+			int DIMS = Dimensions.Value;
 			SetupDisplay(numSets);
 
 			MersenneTwister rndG = new MersenneTwister(123);
@@ -96,7 +101,8 @@ namespace LVQeamon
 		}
 
 		private void StartLvq(List<double[,]> pointClouds) {
-			double[,] allpoints = new double[ pointClouds.Sum(pc => pc.GetLength(0)), DIMS];
+			int DIMS = pointClouds[0].GetLength(1);
+			double[,] allpoints = new double[pointClouds.Sum(pc => pc.GetLength(0)), DIMS];
 			int[] pointLabels = new int[allpoints.GetLength(0)];
 			List<int> classBoundaries = new List<int> { 0 };
 			int pointI = 0;
@@ -104,7 +110,7 @@ namespace LVQeamon
 			foreach (var pointCloud in pointClouds) {
 				for (int i = 0; i < pointCloud.GetLength(0); i++) {
 					for (int j = 0; j < DIMS; j++)
-						allpoints[pointI,j] = pointCloud[i, j];
+						allpoints[pointI, j] = pointCloud[i, j];
 					pointLabels[pointI] = classLabel;
 					pointI++;
 				}
@@ -114,19 +120,29 @@ namespace LVQeamon
 			Debug.Assert(pointI == allpoints.GetLength(0));
 			Debug.Assert(pointClouds[0].GetLength(1) == allpoints.GetLength(1));
 			this.classBoundaries = classBoundaries.ToArray();
-			lvqImpl = new LvqWrapper(allpoints, pointLabels, classLabel, 1);
+			Debug.Assert(this.classBoundaries.Length == classLabel + 1);
+			lock (lvqSync) {
+				lvqImpl = new LvqWrapper(allpoints, pointLabels, classLabel, 1);
+				needUpdate = true;
+			}
 			UpdateDisplay();
 		}
 
 		private void UpdateDisplay() {
-			double[,] currPoints = lvqImpl.CurrentProjection();
+			double[,] currPoints = null;
+			lock (lvqSync) {
+				if (!needUpdate) return;
+				currPoints = lvqImpl.CurrentProjection();
+			}
 			Dispatcher.BeginInvoke((Action)(() => {
+				lock (lvqSync)
+					needUpdate = false;
 				for (int i = 0; i < classBoundaries.Length - 1; i++) {
 
 					var pointsIter = Enumerable.Range(classBoundaries[i], classBoundaries[i + 1] - classBoundaries[i])
 												.Select(pi => new Point(currPoints[pi, 0], currPoints[pi, 1]));
 
-					Console.WriteLine ("Points in graph " + i + ": " + pointsIter.Count());
+					Console.WriteLine("Points in graph " + i + ": " + pointsIter.Count());
 
 #if USEGEOMPLOT
 					((GraphableGeometry)plotControl.GetPlot(i)).Geometry = GraphUtils.PointCloud(pointsIter);
@@ -146,7 +162,9 @@ namespace LVQeamon
 
 							});
 #endif
+
 				}
+				Console.WriteLine("DispUpdate");
 			}));
 		}
 
@@ -158,10 +176,9 @@ namespace LVQeamon
 				for (int i = 0; i < numClasses; i++) {
 					Pen pen = new Pen {
 						Brush = GraphRandomPen.RandomGraphBrush(),
-						//EndLineCap = PenLineCap.Round,	StartLineCap = PenLineCap.Round,
-						EndLineCap = PenLineCap.Square,
-						StartLineCap = PenLineCap.Square,
-						Thickness = 1.5,
+						EndLineCap = PenLineCap.Round,						StartLineCap = PenLineCap.Round,
+						//EndLineCap = PenLineCap.Square,						StartLineCap = PenLineCap.Square,
+						Thickness = 4.0,
 					};
 					pen.Freeze();
 					plotControl.AddPlot(new GraphableGeometry { Geometry = GraphUtils.PointCloud(Enumerable.Empty<Point>()), Pen = pen, XUnitLabel = "X axis", YUnitLabel = "Y axis" });
@@ -187,20 +204,18 @@ namespace LVQeamon
 		}
 
 		NiceTimer overall;
+		object lvqSync = new object();
 		int[] classBoundaries;
+		bool needUpdate = false;
 		LvqWrapper lvqImpl;
+
 		protected override void OnInitialized(EventArgs e) {
 #if USEGEOMPLOT || DEBUG
-			textBoxPointsPerSet.Text = 1000.ToString();
+			textBoxPointsPerSet.Text = 200.ToString();
 #else
 			textBoxPointsPerSet.Text = 10000.ToString();
 #endif
 			base.OnInitialized(e);
-			//buttonGeneratePointClouds_Click(null, null);
-			//Dispatcher.Invoke((Action)(() => {
-			//}), DispatcherPriority.ApplicationIdle);
-			//	ThreadPool.QueueUserWorkItem((ignore) => { MatSpeedTest.Test(); });
-
 		}
 
 		volatile int renderCount = 0;
@@ -231,6 +246,19 @@ namespace LVQeamon
 
 		private void checkBox1Changed(object sender, RoutedEventArgs e) {
 			plotControl.ShowGridLines = checkBox1.IsChecked ?? plotControl.ShowGridLines;
+		}
+
+		private void doEpochButton_Click(object sender, RoutedEventArgs e) {
+			int epochsTodo = EpochsPerClick ?? 1;
+			Console.WriteLine("Click...");
+			ThreadPool.QueueUserWorkItem((index) => {
+				Console.WriteLine("Processing...");
+				lock (lvqSync) {
+					lvqImpl.TrainEpoch(epochsTodo);
+					needUpdate = true;
+				}
+				UpdateDisplay();
+			});
 		}
 
 	}

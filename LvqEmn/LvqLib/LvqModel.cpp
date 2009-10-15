@@ -59,11 +59,11 @@ void LvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel, double lr_
 	Vector2d P_vJ = P * vJ;
 	Vector2d P_vK = P * vK;
 
-	Vector2d Bj_P_vJ = J->B* P_vJ;
-	Vector2d Bk_P_vK = K->B * P_vK;
+	Vector2d Bj_P_vJ = (*J->B) * P_vJ;
+	Vector2d Bk_P_vK = (*K->B) * P_vK;
 
-	Vector2d BjT_Bj_P_vJ = J->B.transpose() * Bj_P_vJ;
-	Vector2d BkT_Bk_P_vK = K->B.transpose() * Bk_P_vK;
+	Vector2d BjT_Bj_P_vJ = J->B->transpose() * Bj_P_vJ;
+	Vector2d BkT_Bk_P_vK = K->B->transpose() * Bk_P_vK;
 
 	//TODO:performance: J->B, J->point, K->B, and K->point, are write only from hereon forward, so we _could_ fold the differential computation info the update statement (less intermediates, faster).
 
@@ -78,8 +78,8 @@ void LvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel, double lr_
 	J->point -= lr_point * dQdwJ;
 	K->point -= lr_point * dQdwJ;
 
-	J->B -= lr_B * dQdBj;
-	K->B -= lr_B * dQdBk;
+	*J->B -= lr_B * dQdBj;
+	*K->B -= lr_B * dQdBk;
 
 	P -= lr_P * dQdP;
 
