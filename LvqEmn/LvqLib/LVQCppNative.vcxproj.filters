@@ -18,7 +18,7 @@
     <ClCompile Include="LvqDataSet.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="LvqGoodBadMatch.cpp">
+    <ClCompile Include="LvqMatch.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="LvqModel.cpp">
@@ -38,7 +38,7 @@
     <ClInclude Include="LvqDataSet.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="LvqGoodBadMatch.h">
+    <ClInclude Include="LvqMatch.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="LvqModel.h">
@@ -53,8 +53,5 @@
     <ClInclude Include="utils.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="ReadMe.txt" />
   </ItemGroup>
 </Project>

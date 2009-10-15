@@ -123,8 +123,10 @@ namespace LVQeamon
 			Dispatcher.BeginInvoke((Action)(() => {
 				for (int i = 0; i < classBoundaries.Length - 1; i++) {
 
-					var pointsIter = Enumerable.Range(classBoundaries[i], classBoundaries[i + 1])
+					var pointsIter = Enumerable.Range(classBoundaries[i], classBoundaries[i + 1] - classBoundaries[i])
 												.Select(pi => new Point(currPoints[pi, 0], currPoints[pi, 1]));
+
+					Console.WriteLine ("Points in graph " + i + ": " + pointsIter.Count());
 
 #if USEGEOMPLOT
 					((GraphableGeometry)plotControl.GetPlot(i)).Geometry = GraphUtils.PointCloud(pointsIter);
@@ -153,16 +155,18 @@ namespace LVQeamon
 				plotControl.Clear();
 
 #if USEGEOMPLOT
-				Pen pen = new Pen {
-					Brush = GraphRandomPen.RandomGraphBrush(),
-					//EndLineCap = PenLineCap.Round,	StartLineCap = PenLineCap.Round,
-					EndLineCap = PenLineCap.Square,
-					StartLineCap = PenLineCap.Square,
-					Thickness = 1.5,
-				};
-				pen.Freeze();
-				for (int i = 0; i < numClasses; i++)
+				for (int i = 0; i < numClasses; i++) {
+					Pen pen = new Pen {
+						Brush = GraphRandomPen.RandomGraphBrush(),
+						//EndLineCap = PenLineCap.Round,	StartLineCap = PenLineCap.Round,
+						EndLineCap = PenLineCap.Square,
+						StartLineCap = PenLineCap.Square,
+						Thickness = 1.5,
+					};
+					pen.Freeze();
 					plotControl.AddPlot(new GraphableGeometry { Geometry = GraphUtils.PointCloud(Enumerable.Empty<Point>()), Pen = pen, XUnitLabel = "X axis", YUnitLabel = "Y axis" });
+					Console.WriteLine("Added " + i);
+				}
 #else
 						plotControl.AddPlot(
 							new GraphablePixelScatterPlot

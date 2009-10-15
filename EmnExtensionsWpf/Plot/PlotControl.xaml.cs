@@ -69,6 +69,7 @@ namespace EmnExtensions.Wpf.Plot
 			{
 				needRedrawGraphs = true;
 				InvalidateVisual();
+				Console.WriteLine("Invalidated!");
 			}
 			else if (graphChange == GraphChangeEffects.Labels || graphChange == GraphChangeEffects.GraphProjection)
 			{

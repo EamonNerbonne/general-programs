@@ -67,5 +67,8 @@ double LvqDataSet::Evaluate(LvqModel const & model)const {
 }
 
 PMatrix LvqDataSet::ProjectPoints(LvqModel const & model) const {
+	cout << trainPoints.col(0) <<endl;
+	cout << model.getP() <<endl<<endl;
+	cout<< model.getP()* trainPoints.col(0) <<endl;
 	return model.getP() * trainPoints;
 }

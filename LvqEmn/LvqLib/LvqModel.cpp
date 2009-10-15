@@ -7,6 +7,7 @@ LvqModel::LvqModel(std::vector<int> protodistribution, MatrixXd const & means)
 	: classCount((int)protodistribution.size())
 	, P(2,means.rows())
 {
+	P.setIdentity();
 	using namespace std;
 	protoCount = sum(0,protodistribution);
 	prototype.reset(new LvqPrototype[protoCount]);

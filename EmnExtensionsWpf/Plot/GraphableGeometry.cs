@@ -36,7 +36,6 @@ namespace EmnExtensions.Wpf.Plot
 			}
 		}
 
-
 		/// <summary>
 		/// Defaults to true.
 		/// </summary>
@@ -53,6 +52,7 @@ namespace EmnExtensions.Wpf.Plot
 					m_Geometry.Changed += m_Geometry_Changed;
 				RecomputeBoundsIfAuto();
 				OnChange(GraphChangeEffects.RedrawGraph);
+				Console.WriteLine("set1");
 			}
 		}
 
