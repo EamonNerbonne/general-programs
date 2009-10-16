@@ -25,6 +25,11 @@
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/smart_ptr/scoped_array.hpp>
 #include <boost/smart_ptr/scoped_ptr.hpp>
+#include <boost/random/variate_generator.hpp>
+#include <boost/random/uniform_int.hpp>
+#include <boost/random/normal_distribution.hpp>
+#include <boost/random/mersenne_twister.hpp>
+
 #ifdef _MSC_VER
 #include <C:\Program Files (Custom)\eigen2\Eigen\Core>
 #else
