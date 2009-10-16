@@ -29,7 +29,7 @@
 #include <boost/random/uniform_int.hpp>
 #include <boost/random/mersenne_twister.hpp>
 
-//#include <boost/numeric/ublas/matrix.hpp>
+//#define EIGEN_DONT_VECTORIZE
 #ifdef _MSC_VER
 #include <C:\Program Files (Custom)\eigen2\Eigen\Core>
 #else
