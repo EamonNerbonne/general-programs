@@ -8,7 +8,7 @@ using boost::variate_generator;
 USING_PART_OF_NAMESPACE_EIGEN
 
 	template<typename T>
-void rndSet(mt19937 & rng, T mat,double mean, double sigma) {
+void rndSet(mt19937 & rng, T& mat,double mean, double sigma) {
 	normal_distribution<> distrib(mean,sigma);
 	variate_generator<mt19937&, normal_distribution<> > rndGen(rng, distrib);
 	for(int j=0; j<mat.cols();j++)
@@ -16,13 +16,13 @@ void rndSet(mt19937 & rng, T mat,double mean, double sigma) {
 			mat(i,j) = rndGen();
 }
 
-#define DIMS 50
-#define POINTS 1000
+#define DIMS 5
+#define POINTS 10
 
 void EasyLvqTest() {
 	using std::vector;
 	using boost::scoped_ptr;
-	boost::mt19937 rndGen(42);
+	boost::mt19937 rndGen(347);
 
 	MatrixXd pAtrans(DIMS,DIMS);
 	MatrixXd pBtrans(DIMS,DIMS);
@@ -38,17 +38,22 @@ void EasyLvqTest() {
 	rndSet(rndGen,pointsB,0,1.0);
 	rndSet(rndGen,offsetA,0,1.0);
 	rndSet(rndGen,offsetB,0,1.0);
+	cout<<offsetA <<std::endl;
 
 	pointsA = pAtrans * pointsA + offsetA * VectorXd::Ones(POINTS).transpose();
 	pointsB = pBtrans * pointsB + offsetB * VectorXd::Ones(POINTS).transpose();
+
+	
 
 
 	MatrixXd allpoints(DIMS, pointsA.cols()+pointsB.cols());
 	allpoints.block(0,0,DIMS,pointsA.cols()) = pointsA;
 	allpoints.block(0,pointsA.cols(),DIMS,pointsB.cols()) = pointsB;
 
+	cout<<allpoints <<endl;
+
 	vector<int> trainingLabels(allpoints.cols());
-	for(int i=0; i<trainingLabels.size(); ++i)
+	for(int i=0; i<(int)trainingLabels.size(); ++i)
 		trainingLabels[i] = i/POINTS;
 
 	scoped_ptr<LvqDataSet> dataset( new LvqDataSet(allpoints, trainingLabels, 2)); //2: 2 classes.
@@ -58,6 +63,8 @@ void EasyLvqTest() {
 		protoDistrib.push_back(1);
 
 	scoped_ptr<LvqModel> model(dataset->ConstructModel(protoDistrib));
+	//cout << model->  prototype[0].point <<endl;
+	std::cout << dataset->Evaluate(*model.get())<< std::endl;
    
-	dataset->TrainModel(1,rndGen,*model);
+	//dataset->TrainModel(1,rndGen, *model.get() );
 }

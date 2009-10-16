@@ -30,6 +30,8 @@
 #include <boost/random/normal_distribution.hpp>
 #include <boost/random/mersenne_twister.hpp>
 
+//#define EIGEN_DONT_VECTORIZE
+
 #ifdef _MSC_VER
 #include <C:\Program Files (Custom)\eigen2\Eigen\Core>
 #else
