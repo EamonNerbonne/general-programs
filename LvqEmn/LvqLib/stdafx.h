@@ -23,6 +23,7 @@
 
 #include <boost/smart_ptr/scoped_array.hpp>
 #include <boost/smart_ptr/shared_ptr.hpp>
+#include <boost/smart_ptr/scoped_ptr.hpp>
 #include <boost/function.hpp>
 #include <boost/bind/bind.hpp>
 #include <boost/random/variate_generator.hpp>

@@ -87,15 +87,15 @@ int _tmain(int argc, _TCHAR* argv[])
 		{progress_timer t;
 		BoostMatrixTest::TestMultCustomColMajor(iters,dims);}
 		{progress_timer t;
-		BoostMatrixTest::TestMult<row_major>(iters,dims);}
+		BoostMatrixTest::TestMultRowMajor(iters,dims);}
 		{progress_timer t;
-		BoostMatrixTest::TestMult<column_major>(iters,dims);}
+		BoostMatrixTest::TestMultColMajor(iters,dims);}
 		{progress_timer t;
 		BoostMatrixTest::TestMultInline(iters,dims);}
 		{progress_timer t;
 		BoostMatrixTest::TestMultEigen(iters,dims);}
-		{progress_timer t;
-		BoostMatrixTest::TestMultEigenStatic<dims>(iters);}
+		//{progress_timer t;
+		//BoostMatrixTest::TestMultEigenStatic<dims>(iters);}
 #ifdef EIGEN_VECTORIZE
 		std::cout << "eigen vectorized\n";
 #endif 
