@@ -1,5 +1,6 @@
 #pragma once
 #include "stdafx.h"
+#include <boost/numeric/ublas/matrix.hpp>
 
 class BoostMatrixTest
 {
