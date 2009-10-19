@@ -16,12 +16,19 @@ void rndSet(mt19937 & rng, T& mat,double mean, double sigma) {
 			mat(i,j) = rndGen();
 }
 
-#define DIMS 5
-#define POINTS 10
+#define DIMS 4
+#define POINTS 5
 
 void EasyLvqTest() {
 	using std::vector;
 	using boost::scoped_ptr;
+	
+	Vector2d a,b;
+	a << 1,2;
+	b<< 3,5;
+	//c = a.transpose()*b;
+
+
 	boost::mt19937 rndGen(347);
 
 	MatrixXd pAtrans(DIMS,DIMS);
@@ -38,7 +45,7 @@ void EasyLvqTest() {
 	rndSet(rndGen,pointsB,0,1.0);
 	rndSet(rndGen,offsetA,0,1.0);
 	rndSet(rndGen,offsetB,0,1.0);
-	cout<<offsetA <<std::endl;
+	//cout<<offsetA <<std::endl;
 
 	pointsA = pAtrans * pointsA + offsetA * VectorXd::Ones(POINTS).transpose();
 	pointsB = pBtrans * pointsB + offsetB * VectorXd::Ones(POINTS).transpose();
@@ -50,7 +57,7 @@ void EasyLvqTest() {
 	allpoints.block(0,0,DIMS,pointsA.cols()) = pointsA;
 	allpoints.block(0,pointsA.cols(),DIMS,pointsB.cols()) = pointsB;
 
-	cout<<allpoints <<endl;
+//	cout<<allpoints <<endl;
 
 	vector<int> trainingLabels(allpoints.cols());
 	for(int i=0; i<(int)trainingLabels.size(); ++i)
@@ -63,8 +70,18 @@ void EasyLvqTest() {
 		protoDistrib.push_back(1);
 
 	scoped_ptr<LvqModel> model(dataset->ConstructModel(protoDistrib));
-	//cout << model->  prototype[0].point <<endl;
-	std::cout << dataset->Evaluate(*model.get())<< std::endl;
-   
-	//dataset->TrainModel(1,rndGen, *model.get() );
+
+
+	cout << model->Prototypes() [0].position() <<endl;
+	cout << model->Prototypes() [1].position() <<endl;
+	std::cout << "Before training: "<<dataset->ErrorRate(*model.get())<< std::endl;
+
+	dataset->TrainModel(1, rndGen, *model.get() );
+
+	std::cout << "After 1 epoch: "<<dataset->ErrorRate(*model.get())<< std::endl;
+
+	dataset->TrainModel(100, rndGen, *model.get() );
+
+	std::cout << "After training: "<<dataset->ErrorRate(*model.get())<< std::endl;
+
 }

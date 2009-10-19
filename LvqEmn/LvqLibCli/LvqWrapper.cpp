@@ -42,7 +42,7 @@ namespace LVQCppCli {
 		model = dataset->ConstructModel(protoDistrib);
 	}
 
-	double LvqWrapper::Evaluate() { return dataset->Evaluate(*model); }
+	double LvqWrapper::ErrorRate() { return dataset->ErrorRate(*model); }
 
 	array<double,2>^ LvqWrapper::CurrentProjection() {
 		return matrixToArray(dataset->ProjectPoints(*model));

@@ -13,7 +13,7 @@ namespace LVQCppCli {
 	public:
 		LvqWrapper(array<double,2>^ points, array<int>^ pointLabels, int classCount, int protosPerDistrib);
 
-		double Evaluate();
+		double ErrorRate();
 		array<double,2>^ CurrentProjection();
 		void TrainEpoch(int epochsToDo) {
 			dataset->TrainModel(epochsToDo,  *rnd, *model);

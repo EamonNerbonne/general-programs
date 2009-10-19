@@ -22,6 +22,6 @@ public:
 
 	void TrainModel(int iters, boost::mt19937 & randGen, LvqModel & model);
 
-	double Evaluate(LvqModel const & model) const;
+	double ErrorRate(LvqModel const & model) const;
 	PMatrix ProjectPoints(LvqModel const & model) const;
 };

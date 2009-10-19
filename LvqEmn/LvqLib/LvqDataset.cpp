@@ -39,7 +39,6 @@ LvqModel* LvqDataSet::ConstructModel(vector<int> protodistribution) const {
 	return new LvqModel(protodistribution, means);
 }
 
-
 void LvqDataSet::TrainModel(int iters, boost::mt19937 & randGen, LvqModel & model) {
 	vector<int> ordering;
 	for(int iter=0;iter<iters;iter++) {
@@ -57,8 +56,7 @@ void LvqDataSet::TrainModel(int iters, boost::mt19937 & randGen, LvqModel & mode
 	}
 }
 
-
-double LvqDataSet::Evaluate(LvqModel const & model)const {
+double LvqDataSet::ErrorRate(LvqModel const & model)const {
 	int errs=0;
 	for(int i=0;i<(int)trainPointLabels.size();++i) 
 		if(model.classify(trainPoints.col(i)) != trainPointLabels[i])
