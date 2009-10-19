@@ -1,25 +1,13 @@
+// EigenTest.cpp : Defines the entry point for the console application.
+//
+
 #include "stdafx.h"
-#include "vectorizationBug.h"
+#include <iostream>
+#include <Eigen/Core>
+#include <boost/smart_ptr/scoped_ptr.hpp>
+
+
 USING_PART_OF_NAMESPACE_EIGEN
-
-//struct TestA {
-//	int val;
-//	TestA():val(42){}
-//};
-//
-//struct TestB {
-//	TestB():ptr(new TestA){}
-//	~TestB(){delete ptr;} //don't do no copying, boy...
-//	TestA* getPtr() { return ptr;}
-//	TestA  * getPtr() const {return ptr;}
-//private:
-//	TestA *ptr;
-//};
-//
-//void TestIt(TestB const * refB) {
-//	refB->getPtr()->val = 43;
-//}
-
 
 struct BuggyAlignment {
 		int ignore;
@@ -29,7 +17,10 @@ struct BuggyAlignment {
 		BuggyAlignment(Matrix2d const & initializer) : mat(initializer){}
 };
 
-void VecTest() {
+
+
+int _tmain(int argc, _TCHAR* argv[])
+{
 		using namespace std;
 		using boost::scoped_ptr;
 		
@@ -50,4 +41,7 @@ void VecTest() {
 		cout<< w1 << endl;
 		w1 += B->mat * v; //alignement error works fine under debug mode.
 		cout<<"END-TEST\n\n\n";
-	}
+
+	return 0;
+}
+
