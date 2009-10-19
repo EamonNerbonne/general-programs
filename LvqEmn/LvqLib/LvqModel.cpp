@@ -62,16 +62,15 @@ void LvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel, double lr_
 	Vector2d P_vJ = P * vJ;
 	Vector2d P_vK = P * vK;
 
-	Vector2d Bj_P_vJ = (*J->B) * P_vJ;
-	Vector2d Bk_P_vK = (*K->B) * P_vK;
-
-	Vector2d muK2_BjT_Bj_P_vJ = mu_K * 2.0 * J->B->transpose() * Bj_P_vJ;
+	Vector2d Bj_P_vJ =  (*J->B) * P_vJ ;
+	Vector2d Bk_P_vK =  (*K->B) * P_vK;
+#if 0
+	Vector2d muK2_BjT_Bj_P_vJ = mu_K * 2.0 * J->B->transpose() * Bj_P_vJ;//this line causes errors with vectorization.
 	Vector2d muJ2_BkT_Bk_P_vK = mu_J * 2.0 * K->B->transpose() * Bk_P_vK;
 
 	//TODO:performance: J->B, J->point, K->B, and K->point, are write only from hereon forward, so we _could_ fold the differential computation info the update statement (less intermediates, faster).
-#if 0
 	VectorXd dQdwJ = P.transpose() *  muK2_BjT_Bj_P_vJ; //differential of cost function Q wrt w_J; i.e. wrt J->point.  Note mu_K(!) for differention wrt J(!)
-	VectorXd dQdwK = P.transpose() * muJ2_BkT_Bk_P_vK; //this line causes errors with vectorization.
+	VectorXd dQdwK = P.transpose() * muJ2_BkT_Bk_P_vK;
 
 	PMatrix dQdP = muK2_BjT_Bj_P_vJ * vJ.transpose() + muJ2_BkT_Bk_P_vK * vK.transpose(); //differential wrt. global projection matrix.
 

@@ -16,6 +16,8 @@ void rndSet(mt19937 & rng, T& mat,double mean, double sigma) {
 			mat(i,j) = rndGen();
 }
 
+#include "vectorizationBug.h"
+
 #define DIMS 4
 #define POINTS 5
 
@@ -23,11 +25,7 @@ void EasyLvqTest() {
 	using std::vector;
 	using boost::scoped_ptr;
 	
-	Vector2d a,b;
-	a << 1,2;
-	b<< 3,5;
-	//c = a.transpose()*b;
-
+	VecTest();
 
 	boost::mt19937 rndGen(347);
 
