@@ -25,7 +25,7 @@ void EasyLvqTest() {
 	using std::vector;
 	using boost::scoped_ptr;
 	
-	VecTest();
+	//VecTest();
 
 	boost::mt19937 rndGen(347);
 

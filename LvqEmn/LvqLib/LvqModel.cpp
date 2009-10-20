@@ -64,7 +64,7 @@ void LvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel, double lr_
 
 	Vector2d Bj_P_vJ =  (*J->B) * P_vJ ;
 	Vector2d Bk_P_vK =  (*K->B) * P_vK;
-#if 0
+
 	Vector2d muK2_BjT_Bj_P_vJ = mu_K * 2.0 * J->B->transpose() * Bj_P_vJ;//this line causes errors with vectorization.
 	Vector2d muJ2_BkT_Bk_P_vK = mu_J * 2.0 * K->B->transpose() * Bk_P_vK;
 
@@ -83,6 +83,5 @@ void LvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel, double lr_
 	*K->B -= lr_B * dQdBk;
 
 	P -= lr_P * dQdP;
-#endif
 	//TODO:etc.
 }
