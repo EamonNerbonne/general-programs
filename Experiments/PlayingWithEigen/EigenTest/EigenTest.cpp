@@ -18,21 +18,24 @@ struct BuggyAlignment {
 };
 
 
-
 int _tmain(int argc, _TCHAR* argv[])
 {
 		using namespace std;
 		using boost::scoped_ptr;
+
+#ifndef NDEBUG
+		cout << "DEBUG mode!\n";
+#endif
 		
 		Matrix2d A(Matrix2d::Identity());//value irrelevant
 
 		Vector2d v;
-		v<< 3,5;//irrelevant
+		v<< 3, 5;//irrelevant
 		
         cout <<"align(A):"<< long long(&A) %16<<endl; //0
 
 		cout<<"Trying:  A^T * v\n";
-		Vector2d w1 = A.transpose() * v; //fails in x64 with vectorization, succeeds in x64 without vectorization, succeeds in x86 with or without vectorization
+		Vector2d w1 = (A.transpose()).eval() * v; //fails in x64 with vectorization, succeeds in x64 without vectorization, succeeds in x86 with or without vectorization
 
 		cout<< w1 << endl;
 		cout<<"END-TEST\n\n\n";
