@@ -6,6 +6,11 @@
 LvqModel::LvqModel(std::vector<int> protodistribution, MatrixXd const & means) 
 	: classCount((int)protodistribution.size())
 	, P(2,means.rows())
+	, vJ(means.rows())
+	, vK(means.rows())
+	, dQdwJ(means.rows())
+	, dQdwK(means.rows())
+	, dQdP(2,means.rows())
 {
 	using namespace std;
 	P.setIdentity();
@@ -28,8 +33,6 @@ LvqModel::LvqModel(std::vector<int> protodistribution, MatrixXd const & means)
 int LvqModel::classify(VectorXd const & unknownPoint) const{
 	using namespace std;
 
-	Vector2d projectedPoint = P * unknownPoint;
-
 	LvqMatch bestMatch= accumulate(prototype.get(), prototype.get() +protoCount, LvqMatch(&P, unknownPoint), LvqMatch::AccumulateHelper);
 	assert(bestMatch.match != NULL);
 	return bestMatch.match->ClassLabel();
@@ -40,8 +43,6 @@ void LvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel, double lr_
 	using namespace std;
 	assert(lr_P>0&& lr_B>0 && lr_point>0);
 
-	Vector2d projectedPoint = P * trainPoint;
-
 	LvqGoodBadMatch matches = accumulate(prototype.get(), prototype.get() +protoCount, LvqGoodBadMatch(&P, trainPoint, trainLabel), LvqGoodBadMatch::AccumulateHelper);
 
 	assert(matches.good !=NULL && matches.bad!=NULL);
@@ -50,32 +51,34 @@ void LvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel, double lr_
 	double mu_J = -2.0*matches.distanceGood / (sqr( matches.distanceGood) + sqr(matches.distanceBad));
 	double mu_K = +2.0*matches.distanceBad / (sqr( matches.distanceGood) + sqr(matches.distanceBad));
 
-	LvqPrototype * J = & prototype[ matches.good->protoIndex];
-	LvqPrototype * K = & prototype[ matches.bad->protoIndex];
+	LvqPrototype *J = &prototype[matches.good->protoIndex];
+	LvqPrototype *K = &prototype[matches.bad->protoIndex];
 	assert(J == matches.good && K == matches.bad);
 
-	VectorXd vJ = matches.good->point - trainPoint;
-	VectorXd vK = matches.bad->point - trainPoint;
+	//VectorXd
+	vJ = (matches.good->point - trainPoint).lazy();
+	vK = (matches.bad->point - trainPoint).lazy();
 
 	//TODO:performance: make assignments lazy, via z = (x+y).lazy();  see http://eigen.tuxfamily.org/dox/TopicLazyEvaluation.html
 
-	Vector2d P_vJ = P * vJ;
-	Vector2d P_vK = P * vK;
+	Vector2d P_vJ = (P * vJ).lazy();
+	Vector2d P_vK = (P * vK).lazy();
 
-	Vector2d Bj_P_vJ =  (*J->B) * P_vJ ;
-	Vector2d Bk_P_vK =  (*K->B) * P_vK;
+	Vector2d Bj_P_vJ = ( (*J->B) * P_vJ ).lazy();
+	Vector2d Bk_P_vK = ( (*K->B) * P_vK).lazy();
 
-	Vector2d muK2_BjT_Bj_P_vJ = mu_K * 2.0 * J->B->transpose() * Bj_P_vJ;//this line causes errors with vectorization.
-	Vector2d muJ2_BkT_Bk_P_vK = mu_J * 2.0 * K->B->transpose() * Bk_P_vK;
+	Vector2d muK2_BjT_Bj_P_vJ = ((mu_K * 2.0) * (J->B->transpose() * Bj_P_vJ).lazy()).lazy();
+	Vector2d muJ2_BkT_Bk_P_vK = ((mu_J * 2.0) * (K->B->transpose() * Bk_P_vK).lazy()).lazy();
 
 	//TODO:performance: J->B, J->point, K->B, and K->point, are write only from hereon forward, so we _could_ fold the differential computation info the update statement (less intermediates, faster).
-	VectorXd dQdwJ = P.transpose() *  muK2_BjT_Bj_P_vJ; //differential of cost function Q wrt w_J; i.e. wrt J->point.  Note mu_K(!) for differention wrt J(!)
-	VectorXd dQdwK = P.transpose() * muJ2_BkT_Bk_P_vK;
+	//VectorXd 
+	dQdwJ = (P.transpose().lazy() *  muK2_BjT_Bj_P_vJ).lazy(); //differential of cost function Q wrt w_J; i.e. wrt J->point.  Note mu_K(!) for differention wrt J(!)
+	dQdwK = (P.transpose().lazy() * muJ2_BkT_Bk_P_vK).lazy();
 
-	PMatrix dQdP = muK2_BjT_Bj_P_vJ * vJ.transpose() + muJ2_BkT_Bk_P_vK * vK.transpose(); //differential wrt. global projection matrix.
+	dQdP = ((muK2_BjT_Bj_P_vJ * vJ.transpose()).lazy() + (muJ2_BkT_Bk_P_vK * vK.transpose()).lazy()).lazy(); //differential wrt. global projection matrix.
 
-	Matrix2d dQdBj = (mu_K * 2.0 * Bj_P_vJ) * P_vJ.transpose();
-	Matrix2d dQdBk = (mu_J * 2.0 * Bk_P_vK) * P_vK.transpose();
+	Matrix2d dQdBj = (((mu_K * 2.0) * Bj_P_vJ).lazy() * P_vJ.transpose()).lazy();
+	Matrix2d dQdBk = (((mu_J * 2.0) * Bk_P_vK).lazy() * P_vK.transpose()).lazy();
 	J->point -= lr_point * dQdwJ;
 	K->point -= lr_point * dQdwJ;
 

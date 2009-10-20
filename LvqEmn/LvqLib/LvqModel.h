@@ -9,6 +9,15 @@ class LvqModel
 	PMatrix P;
 	boost::scoped_array<LvqPrototype> prototype;
 	int protoCount;
+
+
+	//calls dimensionality of input-space DIMS
+	//we will preallocate a few vectors to reduce malloc/free overhead.
+
+	VectorXd vJ, vK, dQdwJ, dQdwK; //vectors of dimension DIMS
+	PMatrix dQdP;
+
+	
 public:
 	const int classCount;
 	PMatrix const & getP() const {return P;}

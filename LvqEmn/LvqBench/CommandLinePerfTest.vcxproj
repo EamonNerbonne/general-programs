@@ -226,16 +226,11 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|X64'">Create</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="vectorizationBug.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="EasyLvqTest.h" />
     <ClInclude Include="LogNumber.h" />
     <ClInclude Include="stdafx.h" />
-    <ClInclude Include="vectorizationBug.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\LVQCppNative\LVQCppNative.vcxproj">

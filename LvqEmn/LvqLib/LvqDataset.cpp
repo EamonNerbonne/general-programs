@@ -40,17 +40,21 @@ LvqModel* LvqDataSet::ConstructModel(vector<int> protodistribution) const {
 }
 
 void LvqDataSet::TrainModel(int iters, boost::mt19937 & randGen, LvqModel & model) {
-	vector<int> ordering;
-	for(int iter=0;iter<iters;iter++) {
-		makeRandomOrder(randGen, ordering, (int)trainPointLabels.size());
-		for(int tI=0;tI<(int)ordering.size();++tI) {
+	boost::scoped_array<int> ordering(new int[trainPointLabels.size()] );
+	VectorXd new_point(trainPoints.rows());
+	for(int iter=0; iter<iters; iter++) {
+
+		makeRandomOrder(randGen, ordering.get(), (int)trainPointLabels.size());
+		for(int tI=0; tI<(int)trainPointLabels.size(); ++tI) {
 			int pointIndex = ordering[tI];
 			
 			int pointClass = trainPointLabels[pointIndex];
 			
 			double overallLR = 1.0/(decay_lr*trainIter + 1.0)/trainClassFrequency[pointClass];
+			
+			new_point = trainPoints.col(pointIndex);
 
-			model.learnFrom(trainPoints.col(pointIndex), pointClass, lr_P*overallLR, lr_B*overallLR, lr_point*overallLR);
+			model.learnFrom(new_point, pointClass, lr_P*overallLR, lr_B*overallLR, lr_point*overallLR);
 			trainIter++;
 		}
 	}

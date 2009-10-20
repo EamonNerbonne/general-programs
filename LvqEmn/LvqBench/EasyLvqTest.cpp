@@ -16,12 +16,12 @@ void rndSet(mt19937 & rng, T& mat,double mean, double sigma) {
 			mat(i,j) = rndGen();
 }
 
-#include "vectorizationBug.h"
 
-#define DIMS 4
-#define POINTS 5
+#define DIMS 50
+#define POINTS 5000
 
 void EasyLvqTest() {
+	boost::progress_timer t;
 	using std::vector;
 	using boost::scoped_ptr;
 	
@@ -37,31 +37,26 @@ void EasyLvqTest() {
 	MatrixXd pointsA(DIMS,POINTS);
 	MatrixXd pointsB(DIMS,POINTS);
 
-	rndSet(rndGen,pAtrans,0,1.0);
-	rndSet(rndGen,pBtrans,0,1.0);
-	rndSet(rndGen,pointsA,0,1.0);
-	rndSet(rndGen,pointsB,0,1.0);
-	rndSet(rndGen,offsetA,0,1.0);
-	rndSet(rndGen,offsetB,0,1.0);
-	//cout<<offsetA <<std::endl;
+	rndSet(rndGen, pAtrans, 0, 1.0);
+	rndSet(rndGen, pBtrans, 0, 1.0);
+	rndSet(rndGen, pointsA, 0, 1.0);
+	rndSet(rndGen, pointsB, 0, 1.0);
+	rndSet(rndGen, offsetA, 0, 1.0);
+	rndSet(rndGen, offsetB, 0, 1.0);
 
 	pointsA = pAtrans * pointsA + offsetA * VectorXd::Ones(POINTS).transpose();
 	pointsB = pBtrans * pointsB + offsetB * VectorXd::Ones(POINTS).transpose();
-
-	
-
 
 	MatrixXd allpoints(DIMS, pointsA.cols()+pointsB.cols());
 	allpoints.block(0,0,DIMS,pointsA.cols()) = pointsA;
 	allpoints.block(0,pointsA.cols(),DIMS,pointsB.cols()) = pointsB;
 
-//	cout<<allpoints <<endl;
-
 	vector<int> trainingLabels(allpoints.cols());
 	for(int i=0; i<(int)trainingLabels.size(); ++i)
 		trainingLabels[i] = i/POINTS;
 
-	scoped_ptr<LvqDataSet> dataset( new LvqDataSet(allpoints, trainingLabels, 2)); //2: 2 classes.
+	t.restart();
+	scoped_ptr<LvqDataSet> dataset(new LvqDataSet(allpoints, trainingLabels, 2)); //2: 2 classes.
 
 	vector<int> protoDistrib;
 	for(int i=0;i<2;++i)
@@ -69,16 +64,16 @@ void EasyLvqTest() {
 
 	scoped_ptr<LvqModel> model(dataset->ConstructModel(protoDistrib));
 
+//	cout << model->Prototypes() [0].position() <<endl;
+//	cout << model->Prototypes() [1].position() <<endl;
 
-	cout << model->Prototypes() [0].position() <<endl;
-	cout << model->Prototypes() [1].position() <<endl;
 	std::cout << "Before training: "<<dataset->ErrorRate(*model.get())<< std::endl;
 
-	dataset->TrainModel(1, rndGen, *model.get() );
+//	dataset->TrainModel(100, rndGen, *model.get() );
 
-	std::cout << "After 1 epoch: "<<dataset->ErrorRate(*model.get())<< std::endl;
+	//std::cout << "After 1 epoch: "<<dataset->ErrorRate(*model.get())<< std::endl;
 
-	dataset->TrainModel(100, rndGen, *model.get() );
+	dataset->TrainModel(1000, rndGen, *model.get() );
 
 	std::cout << "After training: "<<dataset->ErrorRate(*model.get())<< std::endl;
 
