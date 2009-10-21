@@ -16,7 +16,7 @@
 #pragma warning (disable:4099)
 
 #include <iostream>
-#include <assert.h>
+//#include <assert.h>
 #include <algorithm>
 #include <numeric>
 #include <vector>
@@ -31,10 +31,8 @@
 #include <boost/random/mersenne_twister.hpp>
 
 //#define EIGEN_DONT_VECTORIZE
-#ifdef _MSC_VER
-#include <C:\Program Files (Custom)\eigen2\Eigen\Core>
-#else
 #include <Eigen/Core>
-#endif
 
+//#undef assert
+//#define assert(x) do {}while(0)
 // TODO: reference additional headers your program requires here

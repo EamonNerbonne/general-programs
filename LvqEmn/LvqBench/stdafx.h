@@ -32,9 +32,5 @@
 
 //#define EIGEN_DONT_VECTORIZE
 
-#ifdef _MSC_VER
-#include <C:\Program Files (Custom)\eigen2\Eigen\Core>
-#else
 #include <Eigen/Core>
-#endif
 

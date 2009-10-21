@@ -13,6 +13,7 @@ int _tmain(int argc, _TCHAR* argv[])
 {
 	progress_timer t;
 	EasyLvqTest();
+	//EigenBench();
 	return 0;
 }
 

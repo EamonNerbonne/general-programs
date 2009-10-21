@@ -17,8 +17,31 @@ void rndSet(mt19937 & rng, T& mat,double mean, double sigma) {
 }
 
 
-#define DIMS 50
+#define DIMS 32
 #define POINTS 5000
+#define ITERS 1000
+
+void EigenBench() {
+	double sink=0;
+	mt19937 rndGen(37);
+	Matrix<double,2,Eigen::Dynamic> A(2,DIMS);
+	VectorXd tmp(DIMS);
+	Vector2d tmp2;
+	MatrixXd points(DIMS,POINTS);
+	rndSet(rndGen,A,0,1.0);
+	rndSet(rndGen,points,0,1.0);
+	for(int i=0;i<ITERS;i++) {
+		tmp.setZero();
+		for(int k=0;k<POINTS;k++) {
+			tmp2 = (A * points.col(k)).lazy();
+			tmp += (A.transpose() * tmp2).lazy();
+		}
+		sink += tmp.sum();
+	}
+	cout <<sink<<endl;
+}
+
+
 
 void EasyLvqTest() {
 	boost::progress_timer t;
@@ -27,7 +50,7 @@ void EasyLvqTest() {
 	
 	//VecTest();
 
-	boost::mt19937 rndGen(347);
+	mt19937 rndGen(347);
 
 	MatrixXd pAtrans(DIMS,DIMS);
 	MatrixXd pBtrans(DIMS,DIMS);
@@ -73,7 +96,7 @@ void EasyLvqTest() {
 
 	//std::cout << "After 1 epoch: "<<dataset->ErrorRate(*model.get())<< std::endl;
 
-	dataset->TrainModel(1000, rndGen, *model.get() );
+	dataset->TrainModel(500, rndGen, *model.get() );
 
 	std::cout << "After training: "<<dataset->ErrorRate(*model.get())<< std::endl;
 

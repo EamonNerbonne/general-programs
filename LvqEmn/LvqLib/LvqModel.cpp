@@ -13,9 +13,9 @@ LvqModel::LvqModel(std::vector<int> protodistribution, MatrixXd const & means)
 	, dQdP(2,means.rows())
 {
 	using namespace std;
+	
 	P.setIdentity();
-	using namespace std;
-	protoCount = sum(0,protodistribution);
+	protoCount = accumulate(protodistribution.begin(),protodistribution.end(),0);
 	prototype.reset(new LvqPrototype[protoCount]);
 	int protoIndex=0;
 	//		for (vector<int>::iterator it = protodistribution.begin(); it!=protodistribution.end(); ++it) {
@@ -27,7 +27,7 @@ LvqModel::LvqModel(std::vector<int> protodistribution, MatrixXd const & means)
 			protoIndex++;
 		}
 	}
-	assert(sum(0, protodistribution) == protoIndex);
+	assert( accumulate(protodistribution.begin(),protodistribution.end(),0)== protoIndex);
 }
 
 int LvqModel::classify(VectorXd const & unknownPoint) const{
@@ -43,7 +43,9 @@ void LvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel, double lr_
 	using namespace std;
 	assert(lr_P>0&& lr_B>0 && lr_point>0);
 
-	LvqGoodBadMatch matches = accumulate(prototype.get(), prototype.get() +protoCount, LvqGoodBadMatch(&P, trainPoint, trainLabel), LvqGoodBadMatch::AccumulateHelper);
+	LvqGoodBadMatch matches(&P, &trainPoint, trainLabel);
+	for(int i=0;i<protoCount;i++)
+		matches.AccumulateMatch(prototype[i]);
 
 	assert(matches.good !=NULL && matches.bad!=NULL);
 	//now matches.good is "J" and matches.bad is "K".
@@ -61,11 +63,11 @@ void LvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel, double lr_
 
 	//TODO:performance: make assignments lazy, via z = (x+y).lazy();  see http://eigen.tuxfamily.org/dox/TopicLazyEvaluation.html
 
-	Vector2d P_vJ = (P * vJ).lazy();
-	Vector2d P_vK = (P * vK).lazy();
+	Vector2d P_vJ = ( P * vJ ).lazy();
+	Vector2d P_vK = ( P * vK ).lazy();
 
 	Vector2d Bj_P_vJ = ( (*J->B) * P_vJ ).lazy();
-	Vector2d Bk_P_vK = ( (*K->B) * P_vK).lazy();
+	Vector2d Bk_P_vK = ( (*K->B) * P_vK ).lazy();
 
 	Vector2d muK2_BjT_Bj_P_vJ = ((mu_K * 2.0) * (J->B->transpose() * Bj_P_vJ).lazy()).lazy();
 	Vector2d muJ2_BkT_Bk_P_vK = ((mu_J * 2.0) * (K->B->transpose() * Bk_P_vK).lazy()).lazy();
@@ -79,12 +81,13 @@ void LvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel, double lr_
 
 	Matrix2d dQdBj = (((mu_K * 2.0) * Bj_P_vJ).lazy() * P_vJ.transpose()).lazy();
 	Matrix2d dQdBk = (((mu_J * 2.0) * Bk_P_vK).lazy() * P_vK.transpose()).lazy();
-	J->point -= lr_point * dQdwJ;
-	K->point -= lr_point * dQdwJ;
 
-	*J->B -= lr_B * dQdBj;
-	*K->B -= lr_B * dQdBk;
+	J->point =( J->point - (lr_point * dQdwJ).lazy() ).lazy();
+	K->point =( K->point - (lr_point * dQdwJ).lazy() ).lazy();
 
-	P -= lr_P * dQdP;
+	*J->B =( *J->B - (lr_B * dQdBj).lazy() ).lazy();
+	*K->B =( *K->B - (lr_B * dQdBk).lazy() ).lazy();
+
+	P =( P - (lr_P * dQdP).lazy() ).lazy();
 	//TODO:etc.
 }

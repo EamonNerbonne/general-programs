@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "LvqMatch.h"
 
-LvqGoodBadMatch::LvqGoodBadMatch(PMatrix const * Pmat,VectorXd p, int classLabel) 
+LvqGoodBadMatch::LvqGoodBadMatch(PMatrix const * Pmat,VectorXd const * p, int classLabel) 
 	: P(Pmat)
 	, unknownPoint(p)
 	, actualClassLabel(classLabel)
@@ -12,7 +12,7 @@ LvqGoodBadMatch::LvqGoodBadMatch(PMatrix const * Pmat,VectorXd p, int classLabel
 { }
 
 void LvqGoodBadMatch::AccumulateMatch(LvqPrototype const & option) {
-	double optionDist = option.SqrDistanceTo(unknownPoint,*P);
+	double optionDist = option.SqrDistanceTo(*unknownPoint,*P);
 
 	assert(optionDist > 0);
 	assert(optionDist < std::numeric_limits<double>::infinity());
