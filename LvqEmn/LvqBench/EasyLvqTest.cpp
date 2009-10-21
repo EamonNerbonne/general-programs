@@ -19,7 +19,7 @@ void rndSet(mt19937 & rng, T& mat,double mean, double sigma) {
 
 #define DIMS 32
 #define POINTS 1000
-#define ITERS 1000
+#define ITERS 100
 
 void EigenBench() {
 	double sink=0;
@@ -88,9 +88,8 @@ void EasyLvqTest() {
 
 	std::cout << "Before training: "<<dataset->ErrorRate(*model.get())<< std::endl;
 
-	for(int i=0;i<10;i++) {
+	for(int i=0;i<40;i++) {
 		dataset->TrainModel(ITERS, rndGen, *model.get() );
 		std::cout << "After training for "<< dataset->trainIter <<" iterations: "<<dataset->ErrorRate(*model.get())<< std::endl;
 	}
-
 }

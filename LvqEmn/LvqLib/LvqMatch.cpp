@@ -11,8 +11,8 @@ LvqGoodBadMatch::LvqGoodBadMatch(PMatrix const * Pmat,VectorXd const * p, int cl
 	, bad(NULL)
 { }
 
-void LvqGoodBadMatch::AccumulateMatch(LvqPrototype const & option) {
-	double optionDist = option.SqrDistanceTo(*unknownPoint,*P);
+void LvqGoodBadMatch::AccumulateMatch(LvqPrototype const & option, VectorXd & tmp) {
+	double optionDist = option.SqrDistanceTo(*unknownPoint,*P,tmp);
 
 	assert(optionDist > 0);
 	assert(optionDist < std::numeric_limits<double>::infinity());
@@ -29,21 +29,15 @@ void LvqGoodBadMatch::AccumulateMatch(LvqPrototype const & option) {
 	}
 }
 
-
-LvqGoodBadMatch & LvqGoodBadMatch::AccumulateHelper(LvqGoodBadMatch & best, LvqPrototype const & option) {
-	best.AccumulateMatch(option);
-	return best;
-}
-
-LvqMatch::LvqMatch(PMatrix const * Pmat,VectorXd p) 
+LvqMatch::LvqMatch(PMatrix const * Pmat,VectorXd const * p) 
 	: P(Pmat)
 	, unknownPoint(p)
 	, distance(std::numeric_limits<double>::infinity()) 
 	, match(NULL)
 { }
 
-void LvqMatch::AccumulateMatch(LvqPrototype const & option) {
-	double optionDist = option.SqrDistanceTo(unknownPoint,*P);
+void LvqMatch::AccumulateMatch(LvqPrototype const & option, VectorXd & tmp) {
+	double optionDist = option.SqrDistanceTo(*unknownPoint,*P,tmp);
 
 	assert(optionDist > 0);
 	assert(optionDist < std::numeric_limits<double>::infinity());
@@ -53,7 +47,3 @@ void LvqMatch::AccumulateMatch(LvqPrototype const & option) {
 	}
 }
 
-LvqMatch & LvqMatch::AccumulateHelper(LvqMatch & best, LvqPrototype const & option) {
-	best.AccumulateMatch(option);
-	return best;
-}

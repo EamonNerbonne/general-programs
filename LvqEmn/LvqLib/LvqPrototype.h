@@ -12,7 +12,6 @@ class LvqPrototype
 	int classLabel; //only set during initialization.
 	int protoIndex;
 	//tmps:
-	VectorXd tmpDiff;
 
 public:
 	int ClassLabel() const {return classLabel;}
@@ -21,9 +20,8 @@ public:
 
 	LvqPrototype() :protoIndex(-1),classLabel(-1) {}
 	LvqPrototype(int protoLabel, int thisIndex, VectorXd const & initialVal);
-	inline double SqrDistanceTo(VectorXd const & otherPoint, PMatrix const & P ) const {
+	inline double SqrDistanceTo(VectorXd const & otherPoint, PMatrix const & P, VectorXd & tmp ) const {
 		//return ((*B)*(P*(point - otherPoint))).squaredNorm(); 
-		VectorXd & tmp = const_cast<LvqPrototype*>(this)->tmpDiff;
 		tmp = (point - otherPoint).lazy();
 		Vector2d projectedDiff  = (P * tmp).lazy();
 		Vector2d finalDiff = ((*B) * projectedDiff).lazy();

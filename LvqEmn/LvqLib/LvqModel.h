@@ -14,7 +14,7 @@ class LvqModel
 	//calls dimensionality of input-space DIMS
 	//we will preallocate a few vectors to reduce malloc/free overhead.
 
-	VectorXd vJ, vK, dQdwJ, dQdwK; //vectors of dimension DIMS
+	VectorXd vJ, vK, dQdwJ, dQdwK, tmp; //vectors of dimension DIMS
 	PMatrix dQdP;
 
 	

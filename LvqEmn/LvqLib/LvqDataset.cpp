@@ -7,9 +7,9 @@ LvqDataSet::LvqDataSet(MatrixXd const & points, vector<int> pointLabels, int cla
 	, trainPointLabels(pointLabels)
 	, classCount(classCountPar)
 	, decay_lr(1.0/double(pointLabels.size()))
-	, lr_P(0.005)
-	, lr_B(0.0005)
-	, lr_point(0.05)
+	, lr_P(0.1)
+	, lr_B(0.01)
+	, lr_point(1.0)
 	, trainIter(0)
 {
 	assert(points.cols() == pointLabels.size());
@@ -52,7 +52,7 @@ void LvqDataSet::TrainModel(int iters, boost::mt19937 & randGen, LvqModel & mode
 			
 			double baseLR = std::pow(decay_lr*trainIter + 1.0, - 0.65); 
 
-			double overallLR = baseLR * trainPointLabels.size()  / trainClassFrequency[pointClass];
+			double overallLR = baseLR  / trainClassFrequency[pointClass] * sqrt(double(trainPointLabels.size()));
 			
 			new_point = trainPoints.col(pointIndex);
 

@@ -13,19 +13,17 @@ struct LvqGoodBadMatch {
 
 	LvqGoodBadMatch(PMatrix const * Pmat, VectorXd const * p, int classLabel);
 	
-	void AccumulateMatch(LvqPrototype const & option);
-	static LvqGoodBadMatch & AccumulateHelper(LvqGoodBadMatch & best, LvqPrototype const & option); 
+	void AccumulateMatch(LvqPrototype const & option, VectorXd & tmp);
 };
 
 
 struct LvqMatch {
 	PMatrix const * P;
-	VectorXd unknownPoint;
+	VectorXd const * unknownPoint;
 
 	double distance;
 	LvqPrototype const * match;
 
-	LvqMatch(PMatrix const * Pmat ,VectorXd p);
-	void AccumulateMatch(LvqPrototype const & option);
-	static LvqMatch & AccumulateHelper(LvqMatch & best, LvqPrototype const & option); 
+	LvqMatch(PMatrix const * Pmat ,VectorXd const * p);
+	void AccumulateMatch(LvqPrototype const & option, VectorXd & tmp);
 };

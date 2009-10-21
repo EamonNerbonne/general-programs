@@ -6,6 +6,7 @@
 LvqModel::LvqModel(std::vector<int> protodistribution, MatrixXd const & means) 
 	: classCount((int)protodistribution.size())
 	, P(2,means.rows())
+	, tmp(means.rows())
 	, vJ(means.rows())
 	, vK(means.rows())
 	, dQdwJ(means.rows())
@@ -33,10 +34,14 @@ LvqModel::LvqModel(std::vector<int> protodistribution, MatrixXd const & means)
 
 int LvqModel::classify(VectorXd const & unknownPoint) const{
 	using namespace std;
+	VectorXd & tmp = const_cast<LvqModel*>(this)->tmp;
 
-	LvqMatch bestMatch= accumulate(prototype.get(), prototype.get() +protoCount, LvqMatch(&P, unknownPoint), LvqMatch::AccumulateHelper);
-	assert(bestMatch.match != NULL);
-	return bestMatch.match->ClassLabel();
+	LvqMatch matches(&P, &unknownPoint);
+	for(int i=0;i<protoCount;i++)
+		matches.AccumulateMatch(prototype[i],tmp);
+
+	assert(matches.match != NULL);
+	return matches.match->ClassLabel();
 }
 
 
@@ -46,7 +51,7 @@ void LvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel, double lr_
 
 	LvqGoodBadMatch matches(&P, &trainPoint, trainLabel);
 	for(int i=0;i<protoCount;i++)
-		matches.AccumulateMatch(prototype[i]);
+		matches.AccumulateMatch(prototype[i],tmp);
 
 	assert(matches.good !=NULL && matches.bad!=NULL);
 	//now matches.good is "J" and matches.bad is "K".
