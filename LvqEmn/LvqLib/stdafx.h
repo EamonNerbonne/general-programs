@@ -20,6 +20,7 @@
 #include <algorithm>
 #include <numeric>
 #include <vector>
+#include <math.h>
 
 #include <boost/smart_ptr/scoped_array.hpp>
 #include <boost/smart_ptr/shared_ptr.hpp>

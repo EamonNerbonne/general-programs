@@ -18,7 +18,7 @@ void rndSet(mt19937 & rng, T& mat,double mean, double sigma) {
 
 
 #define DIMS 32
-#define POINTS 5000
+#define POINTS 1000
 #define ITERS 1000
 
 void EigenBench() {
@@ -42,12 +42,11 @@ void EigenBench() {
 }
 
 
-
 void EasyLvqTest() {
 	boost::progress_timer t;
 	using std::vector;
 	using boost::scoped_ptr;
-	
+
 	//VecTest();
 
 	mt19937 rndGen(347);
@@ -83,21 +82,15 @@ void EasyLvqTest() {
 
 	vector<int> protoDistrib;
 	for(int i=0;i<2;++i)
-		protoDistrib.push_back(1);
+		protoDistrib.push_back(3);
 
 	scoped_ptr<LvqModel> model(dataset->ConstructModel(protoDistrib));
 
-//	cout << model->Prototypes() [0].position() <<endl;
-//	cout << model->Prototypes() [1].position() <<endl;
-
 	std::cout << "Before training: "<<dataset->ErrorRate(*model.get())<< std::endl;
 
-//	dataset->TrainModel(100, rndGen, *model.get() );
-
-	//std::cout << "After 1 epoch: "<<dataset->ErrorRate(*model.get())<< std::endl;
-
-	dataset->TrainModel(500, rndGen, *model.get() );
-
-	std::cout << "After training: "<<dataset->ErrorRate(*model.get())<< std::endl;
+	for(int i=0;i<10;i++) {
+		dataset->TrainModel(ITERS, rndGen, *model.get() );
+		std::cout << "After training for "<< dataset->trainIter <<" iterations: "<<dataset->ErrorRate(*model.get())<< std::endl;
+	}
 
 }

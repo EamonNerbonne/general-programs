@@ -4,4 +4,4 @@
 template <typename T> T sqr(T val) {return val*val;}
 
 
-void makeRandomOrder(boost::mt19937 & randGen, int* toFill, int count);
+void makeRandomOrder(boost::mt19937 & randGen, int*const toFill, int count);

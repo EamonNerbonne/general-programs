@@ -24,6 +24,7 @@ LvqModel::LvqModel(std::vector<int> protodistribution, MatrixXd const & means)
 		for(int i=0;i<labelCount;i++) {
 			prototype[protoIndex] = LvqPrototype(label, protoIndex, means.col(i) );
 			prototype[protoIndex].point = means.col(label);
+
 			protoIndex++;
 		}
 	}
