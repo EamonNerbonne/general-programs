@@ -91,21 +91,17 @@ void GsmLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel, double 
 	int K = matches.matchBad;
 
 	//VectorXd
-	vJ = (prototype.col(J) - trainPoint).lazy();
-	vK = (prototype.col(K) - trainPoint).lazy();
+	vJ = prototype.col(J) - trainPoint;
+	vK = prototype.col(K) - trainPoint;
 
-	Vector2d muK2_P_vJ = ((mu_K * 2.0) * ( P * vJ ).lazy()).lazy();
-	Vector2d muJ2_P_vK = ((mu_J * 2.0) * ( P * vK ).lazy()).lazy();
+	Vector2d muK2_P_vJ = (mu_K * 2.0 *  P * vJ ).lazy();
+	Vector2d muJ2_P_vK = (mu_J * 2.0 *  P * vK ).lazy();
 
-	//TODO:performance: J->B, J->point, K->B, and K->point, are write only from hereon forward, so we _could_ fold the differential computation info the update statement (less intermediates, faster).
-	//VectorXd 
-	dQdwJ = (P.transpose().lazy() *  muK2_P_vJ).lazy(); //differential of cost function Q wrt w_J; i.e. wrt J->point.  Note mu_K(!) for differention wrt J(!)
-	dQdwK = (P.transpose().lazy() * muJ2_P_vK).lazy();
+	dQdwJ = (P.transpose() *  muK2_P_vJ).lazy(); //differential of cost function Q wrt w_J; i.e. wrt J->point.  Note mu_K(!) for differention wrt J(!)
+	dQdwK = (P.transpose() * muJ2_P_vK).lazy();
+	prototype.col(J) = prototype.col(J) - lr_point * dQdwJ;
+	prototype.col(K) = prototype.col(K) - lr_point * dQdwK;
 
-	dQdP = ((muK2_P_vJ * vJ.transpose()).lazy() + (muJ2_P_vK * vK.transpose()).lazy()).lazy(); //differential wrt. global projection matrix.
-
-	prototype.col(J) = ( prototype.col(J) - (lr_point * dQdwJ).lazy() ).lazy();
-	prototype.col(K) = ( prototype.col(K) - (lr_point * dQdwJ).lazy() ).lazy();
-
-	P =( P - (lr_P * dQdP).lazy() ).lazy();
+	dQdP = (muK2_P_vJ * vJ.transpose()).lazy() + (muJ2_P_vK * vK.transpose()).lazy(); //differential wrt. global projection matrix.
+	P = P - lr_P * dQdP ;
 }
