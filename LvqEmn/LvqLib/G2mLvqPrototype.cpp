@@ -9,5 +9,4 @@ G2mLvqPrototype::G2mLvqPrototype(int protoLabel, int thisIndex, VectorXd const &
 	, B(new Matrix2d())
 { 
 	B->setIdentity();
-	point.setZero(); 
 }

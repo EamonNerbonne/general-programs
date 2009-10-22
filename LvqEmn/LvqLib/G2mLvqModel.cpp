@@ -23,8 +23,7 @@ G2mLvqModel::G2mLvqModel(std::vector<int> protodistribution, MatrixXd const & me
 	for(int label=0; label <(int) protodistribution.size();label++) {
 		int labelCount =protodistribution[label];
 		for(int i=0;i<labelCount;i++) {
-			prototype[protoIndex] = G2mLvqPrototype(label, protoIndex, means.col(i) );
-			prototype[protoIndex].point = means.col(label);
+			prototype[protoIndex] = G2mLvqPrototype(label, protoIndex, means.col(label) );
 
 			protoIndex++;
 		}

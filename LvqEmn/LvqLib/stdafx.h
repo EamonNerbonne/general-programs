@@ -34,6 +34,4 @@
 //#define EIGEN_DONT_VECTORIZE
 #include <Eigen/Core>
 
-//#undef assert
-//#define assert(x) do {}while(0)
-// TODO: reference additional headers your program requires here
+typedef Eigen::Matrix<double,2, Eigen::Dynamic> PMatrix;

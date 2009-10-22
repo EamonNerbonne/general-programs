@@ -28,8 +28,8 @@ void EigenBench() {
 	VectorXd tmp(DIMS);
 	Vector2d tmp2;
 	MatrixXd points(DIMS,POINTS);
-	rndSet(rndGen,A,0,1.0);
-	rndSet(rndGen,points,0,1.0);
+	rndSet(rndGen, A, 0, 1.0);
+	rndSet(rndGen, points, 0, 1.0);
 	for(int i=0;i<ITERS;i++) {
 		tmp.setZero();
 		for(int k=0;k<POINTS;k++) {

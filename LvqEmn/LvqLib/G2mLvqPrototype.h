@@ -2,7 +2,6 @@
 #include "stdafx.h"
 USING_PART_OF_NAMESPACE_EIGEN
 
-	typedef Matrix<double,2, Eigen::Dynamic> PMatrix;
 
 class G2mLvqPrototype
 {
@@ -27,5 +26,4 @@ public:
 		Vector2d finalDiff = ((*B) * projectedDiff).lazy();
 		return finalDiff.squaredNorm();
 	}
-
 };
