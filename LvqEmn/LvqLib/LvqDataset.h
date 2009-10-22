@@ -2,7 +2,7 @@
 #include "stdafx.h"
 USING_PART_OF_NAMESPACE_EIGEN
 
-#include "G2mLvqModel.h"
+#include "AbstractLvqModel.h"
 using namespace std;
 
 class LvqDataSet
@@ -12,14 +12,13 @@ public:
 	vector<int> trainPointLabels;
 	vector<int> trainClassFrequency;
 	int classCount;
-	int trainIter;
 
 	LvqDataSet(MatrixXd const & points, vector<int> pointLabels, int classCount);
 
-	G2mLvqModel* ConstructModel(vector<int> protodistribution) const;
+	MatrixXd ComputeClassMeans() const;
 
-	void TrainModel(int iters, boost::mt19937 & randGen, G2mLvqModel & model);
+	void TrainModel(int iters, boost::mt19937 & randGen, AbstractLvqModel * model) const;
 
-	double ErrorRate(G2mLvqModel const & model) const;
-	PMatrix ProjectPoints(G2mLvqModel const & model) const;
+	double ErrorRate(AbstractLvqModel const * model) const;
+	PMatrix ProjectPoints(AbstractProjectionLvqModel const * model) const;
 };

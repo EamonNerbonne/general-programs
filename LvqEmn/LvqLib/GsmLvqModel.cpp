@@ -6,11 +6,11 @@ GsmLvqModel::GsmLvqModel(std::vector<int> protodistribution, MatrixXd const & me
 	: classCount((int)protodistribution.size())
 	, lr_scale_P(0.1)
 	, P(2,means.rows())
-	//, vJ(means.rows())
-	//, vK(means.rows())
-	//, dQdwJ(means.rows())
-	//, dQdwK(means.rows())
-	//, dQdP(2,means.rows())
+	, vJ(means.rows())
+	, vK(means.rows())
+	, dQdwJ(means.rows())
+	, dQdwK(means.rows())
+	, dQdP(2,means.rows())
 {
 	using namespace std;
 
@@ -69,6 +69,7 @@ GsmLvqModel::GoodBadMatch GsmLvqModel::findMatches(VectorXd const & trainPoint, 
 	}
 	
 	assert( match.matchBad >= 0 && match.matchGood >=0 );
+	return match;
 }
 
 void GsmLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel, double learningRate, VectorXd & tmp) {

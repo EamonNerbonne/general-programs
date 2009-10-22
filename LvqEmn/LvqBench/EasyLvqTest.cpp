@@ -1,6 +1,9 @@
 #include "stdafx.h"
 #include "EasyLvqTest.h"
 #include "LvqDataSet.h"
+#include "G2mLvqModel.h"
+#include "GsmLvqModel.h"
+
 using boost::mt19937;
 using boost::normal_distribution;
 using boost::variate_generator;
@@ -17,8 +20,8 @@ void rndSet(mt19937 & rng, T& mat,double mean, double sigma) {
 
 
 #define DIMS 32
-#define POINTS 1000
-#define ITERS 100
+#define POINTS 100
+#define ITERS 10
 
 void EigenBench() {
 	double sink=0;
@@ -47,12 +50,12 @@ unsigned int secure_rand() {
 }
 
 void EasyLvqTest() {
-	boost::progress_timer t;
+
 	using std::vector;
 	using boost::scoped_ptr;
+	using boost::progress_timer;
 
 	//VecTest();
-	 //boost::random_device dev;
 
 	mt19937 rndGen(347);
 	rndGen.seed(secure_rand);
@@ -83,19 +86,44 @@ void EasyLvqTest() {
 	for(int i=0; i<(int)trainingLabels.size(); ++i)
 		trainingLabels[i] = i/POINTS;
 
-	t.restart();
 	scoped_ptr<LvqDataSet> dataset(new LvqDataSet(allpoints, trainingLabels, 2)); //2: 2 classes.
 
 	vector<int> protoDistrib;
 	for(int i=0;i<2;++i)
 		protoDistrib.push_back(3);
 
-	scoped_ptr<G2mLvqModel> model(dataset->ConstructModel(protoDistrib));
+	scoped_ptr<AbstractProjectionLvqModel> model;
 
-	std::cout << "Before training: "<<dataset->ErrorRate(*model.get())<< std::endl;
-
-	for(int i=0;i<40;i++) {
-		dataset->TrainModel(ITERS, rndGen, *model.get() );
-		std::cout << "After training for "<< dataset->trainIter <<" iterations: "<<dataset->ErrorRate(*model.get())<< std::endl;
+	{ 
+		progress_timer t;
+		model.reset(new G2mLvqModel(protoDistrib, dataset->ComputeClassMeans()));
+		cout<<"constructing G2mLvqModel: ";
 	}
+
+	std::cout << "Before training: "<<dataset->ErrorRate(model.get())<< std::endl;
+	{
+		progress_timer t;
+		for(int i=0;i<40;i++) {
+			dataset->TrainModel(ITERS, rndGen, model.get() );
+			std::cout << "After training for "<< model->trainIter <<" iterations: "<<dataset->ErrorRate(model.get())<< std::endl;
+		}
+		cout<<"training G2mLvqModel: ";
+	}
+	model.reset();
+	{ 
+		progress_timer t;
+		model.reset(new GsmLvqModel(protoDistrib, dataset->ComputeClassMeans()));
+		cout<<"constructing G2mLvqModel: ";
+	}
+
+	std::cout << "Before training: "<<dataset->ErrorRate(model.get())<< std::endl;
+	{
+		progress_timer t;
+		for(int i=0;i<40;i++) {
+			dataset->TrainModel(ITERS, rndGen, model.get() );
+			std::cout << "After training for "<< model->trainIter <<" iterations: "<<dataset->ErrorRate(model.get())<< std::endl;
+		}
+		cout<<"training GsmLvqModel: ";
+	}
+
 }

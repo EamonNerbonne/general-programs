@@ -1,16 +1,14 @@
 #pragma once
 #include "stdafx.h"
-USING_PART_OF_NAMESPACE_EIGEN
+#include "AbstractLvqModel.h"
 
-
-
-class GsmLvqModel
+class GsmLvqModel : public AbstractProjectionLvqModel
 {
-
 	PMatrix P;
 	MatrixXd prototype;
 	VectorXi pLabel;
 	double lr_scale_P;
+	const int classCount;
 
 	//calls dimensionality of input-space DIMS
 	//we will preallocate a few vectors to reduce malloc/free overhead.
@@ -37,7 +35,8 @@ class GsmLvqModel
 	GoodBadMatch findMatches(VectorXd const & trainPoint, int trainLabel, VectorXd & tmp); 
 
 public:
-	const int classCount;
+
+	PMatrix const & getProjection() const {return P; }
 
 	GsmLvqModel(std::vector<int> protodistribution, MatrixXd const & means);
 	int classify(VectorXd const & unknownPoint, VectorXd & tmp) const; //tmp must be just as large as unknownPoint, this is a malloc/free avoiding optimization.

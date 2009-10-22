@@ -1,6 +1,7 @@
 #include "stdafx.h"
 
 #include "LvqWrapper.h"
+#include "G2mLvqModel.h"
 namespace LVQCppCli {
 	MatrixXd arrayToMatrix(array<double,2>^ points) {
 		MatrixXd nPoints(points->GetLength(1), points->GetLength(0));
@@ -39,12 +40,12 @@ namespace LVQCppCli {
 		for(int i=0;i<classCount;++i)
 			protoDistrib.push_back(protosPerClass);
 
-		model = dataset->ConstructModel(protoDistrib);
+		model = new G2mLvqModel(protoDistrib, dataset->ComputeClassMeans()); 
 	}
 
-	double LvqWrapper::ErrorRate() { return dataset->ErrorRate(*model); }
+	double LvqWrapper::ErrorRate() { return dataset->ErrorRate(model); }
 
 	array<double,2>^ LvqWrapper::CurrentProjection() {
-		return matrixToArray(dataset->ProjectPoints(*model));
+		return matrixToArray(dataset->ProjectPoints(model));
 	}
 }

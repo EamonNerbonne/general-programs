@@ -41,6 +41,9 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="AbstractLvqModel.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="BoostMatrixTest.h">
       <Filter>Header Files</Filter>
     </ClInclude>
