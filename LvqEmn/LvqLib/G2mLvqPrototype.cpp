@@ -1,8 +1,8 @@
 #include "stdafx.h"
-#include "LvqPrototype.h"
+#include "G2mLvqPrototype.h"
 
 
-LvqPrototype::LvqPrototype(int protoLabel, int thisIndex, VectorXd const & initialVal) 
+G2mLvqPrototype::G2mLvqPrototype(int protoLabel, int thisIndex, VectorXd const & initialVal) 
 	: classLabel(protoLabel)
 	, protoIndex(thisIndex)
 	, point(initialVal) 

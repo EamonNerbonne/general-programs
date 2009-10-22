@@ -19,7 +19,7 @@ LvqDataSet::LvqDataSet(MatrixXd const & points, vector<int> pointLabels, int cla
 		trainClassFrequency[trainPointLabels[i]]++;
 }
 
-LvqModel* LvqDataSet::ConstructModel(vector<int> protodistribution) const {
+G2mLvqModel* LvqDataSet::ConstructModel(vector<int> protodistribution) const {
 	MatrixXd means( trainPoints.rows(), classCount);
 	means.setZero();
 	
@@ -31,10 +31,10 @@ LvqModel* LvqDataSet::ConstructModel(vector<int> protodistribution) const {
 			means.col(i) /= double(trainClassFrequency[i]);
 	}
 
-	return new LvqModel(protodistribution, means);
+	return new G2mLvqModel(protodistribution, means);
 }
 
-void LvqDataSet::TrainModel(int iters, boost::mt19937 & randGen, LvqModel & model) {
+void LvqDataSet::TrainModel(int iters, boost::mt19937 & randGen, G2mLvqModel & model) {
 	boost::scoped_array<int> ordering(new int[trainPointLabels.size()] );
 	VectorXd new_point(trainPoints.rows()), tmp_point(trainPoints.rows());
 	for(int iter=0; iter<iters; iter++) {
@@ -52,7 +52,7 @@ void LvqDataSet::TrainModel(int iters, boost::mt19937 & randGen, LvqModel & mode
 	}
 }
 
-double LvqDataSet::ErrorRate(LvqModel const & model)const {
+double LvqDataSet::ErrorRate(G2mLvqModel const & model)const {
 	VectorXd tmp_point(trainPoints.rows());
 	int errs=0;
 	for(int i=0;i<(int)trainPointLabels.size();++i) 
@@ -61,6 +61,6 @@ double LvqDataSet::ErrorRate(LvqModel const & model)const {
 	return errs / double(trainPointLabels.size());
 }
 
-PMatrix LvqDataSet::ProjectPoints(LvqModel const & model) const {
+PMatrix LvqDataSet::ProjectPoints(G2mLvqModel const & model) const {
 	return model.getP() * trainPoints;
 }

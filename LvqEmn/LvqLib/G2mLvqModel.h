@@ -2,12 +2,12 @@
 #include "stdafx.h"
 USING_PART_OF_NAMESPACE_EIGEN
 
-#include "LvqPrototype.h"
+#include "G2mLvqPrototype.h"
 
-class LvqModel
+class G2mLvqModel
 {
 	PMatrix P;
-	boost::scoped_array<LvqPrototype> prototype;
+	boost::scoped_array<G2mLvqPrototype> prototype;
 	int protoCount;
 	double lr_scale_P, lr_scale_B;
 
@@ -21,9 +21,9 @@ class LvqModel
 public:
 	const int classCount;
 	PMatrix const & getP() const {return P;}
-	LvqPrototype const * Prototypes() const {return prototype.get();}
+	G2mLvqPrototype const * Prototypes() const {return prototype.get();}
 
-	LvqModel(std::vector<int> protodistribution, MatrixXd const & means);
+	G2mLvqModel(std::vector<int> protodistribution, MatrixXd const & means);
 	int classify(VectorXd const & unknownPoint, VectorXd & tmp) const; //tmp must be just as large as unknownPoint, this is a malloc/free avoiding optimization.
 	void learnFrom(VectorXd const & newPoint, int classLabel, double learningRate, VectorXd & tmp);//tmp must be just as large as unknownPoint, this is a malloc/free avoiding optimization.
 };

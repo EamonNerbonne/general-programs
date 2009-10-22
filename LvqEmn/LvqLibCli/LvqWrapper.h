@@ -8,7 +8,7 @@ namespace LVQCppCli {
 	public ref class LvqWrapper
 	{
 		CAutoNativePtr<LvqDataSet> dataset;
-		CAutoNativePtr<LvqModel> model;
+		CAutoNativePtr<G2mLvqModel> model;
 		CAutoNativePtr<boost::mt19937> rnd;
 	public:
 		LvqWrapper(array<double,2>^ points, array<int>^ pointLabels, int classCount, int protosPerDistrib);

@@ -179,10 +179,10 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="BoostMatrixTest.cpp" />
+    <ClCompile Include="G2mLvqMatch.cpp" />
+    <ClCompile Include="G2mLvqModel.cpp" />
+    <ClCompile Include="G2mLvqPrototype.cpp" />
     <ClCompile Include="LvqDataSet.cpp" />
-    <ClCompile Include="LvqMatch.cpp" />
-    <ClCompile Include="LvqModel.cpp" />
-    <ClCompile Include="LvqPrototype.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|X64'">Create</PrecompiledHeader>
@@ -193,10 +193,10 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BoostMatrixTest.h" />
+    <ClInclude Include="G2mLvqMatch.h" />
+    <ClInclude Include="G2mLvqModel.h" />
+    <ClInclude Include="G2mLvqPrototype.h" />
     <ClInclude Include="LvqDataSet.h" />
-    <ClInclude Include="LvqMatch.h" />
-    <ClInclude Include="LvqModel.h" />
-    <ClInclude Include="LvqPrototype.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="utils.h" />
   </ItemGroup>

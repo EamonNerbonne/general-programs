@@ -84,7 +84,7 @@ void EasyLvqTest() {
 	for(int i=0;i<2;++i)
 		protoDistrib.push_back(3);
 
-	scoped_ptr<LvqModel> model(dataset->ConstructModel(protoDistrib));
+	scoped_ptr<G2mLvqModel> model(dataset->ConstructModel(protoDistrib));
 
 	std::cout << "Before training: "<<dataset->ErrorRate(*model.get())<< std::endl;
 

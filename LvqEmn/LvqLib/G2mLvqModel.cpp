@@ -1,9 +1,9 @@
 #include "stdafx.h"
-#include "LvqModel.h"
+#include "G2mLvqModel.h"
 #include "utils.h"
-#include "LvqMatch.h"
+#include "G2mLvqMatch.h"
 
-LvqModel::LvqModel(std::vector<int> protodistribution, MatrixXd const & means) 
+G2mLvqModel::G2mLvqModel(std::vector<int> protodistribution, MatrixXd const & means) 
 	: classCount((int)protodistribution.size())
 	, lr_scale_P(0.1)
 	, lr_scale_B(0.01)
@@ -18,12 +18,12 @@ LvqModel::LvqModel(std::vector<int> protodistribution, MatrixXd const & means)
 
 	P.setIdentity();
 	protoCount = accumulate(protodistribution.begin(),protodistribution.end(),0);
-	prototype.reset(new LvqPrototype[protoCount]);
+	prototype.reset(new G2mLvqPrototype[protoCount]);
 	int protoIndex=0;
 	for(int label=0; label <(int) protodistribution.size();label++) {
 		int labelCount =protodistribution[label];
 		for(int i=0;i<labelCount;i++) {
-			prototype[protoIndex] = LvqPrototype(label, protoIndex, means.col(i) );
+			prototype[protoIndex] = G2mLvqPrototype(label, protoIndex, means.col(i) );
 			prototype[protoIndex].point = means.col(label);
 
 			protoIndex++;
@@ -32,10 +32,10 @@ LvqModel::LvqModel(std::vector<int> protodistribution, MatrixXd const & means)
 	assert( accumulate(protodistribution.begin(),protodistribution.end(),0)== protoIndex);
 }
 
-int LvqModel::classify(VectorXd const & unknownPoint, VectorXd & tmp) const{
+int G2mLvqModel::classify(VectorXd const & unknownPoint, VectorXd & tmp) const{
 	using namespace std;
 
-	LvqMatch matches(&P, &unknownPoint);
+	G2mLvqMatch matches(&P, &unknownPoint);
 	for(int i=0;i<protoCount;i++)
 		matches.AccumulateMatch(prototype[i], tmp);
 
@@ -44,7 +44,7 @@ int LvqModel::classify(VectorXd const & unknownPoint, VectorXd & tmp) const{
 }
 
 
-void LvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel, double learningRate, VectorXd & tmp) {
+void G2mLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel, double learningRate, VectorXd & tmp) {
 	using namespace std;
 
 	double lr_point = learningRate,
@@ -54,7 +54,7 @@ void LvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel, double lea
 	assert(lr_P>0  &&  lr_B>0  &&  lr_point>0);
 
 
-	LvqGoodBadMatch matches(&P, &trainPoint, trainLabel);
+	G2mLvqGoodBadMatch matches(&P, &trainPoint, trainLabel);
 	for(int i=0;i<protoCount;i++)
 		matches.AccumulateMatch(prototype[i],tmp);
 
@@ -64,8 +64,8 @@ void LvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel, double lea
 	double mu_J = -2.0*matches.distanceGood / (sqr( matches.distanceGood) + sqr(matches.distanceBad));
 	double mu_K = +2.0*matches.distanceBad / (sqr( matches.distanceGood) + sqr(matches.distanceBad));
 
-	LvqPrototype *J = &prototype[matches.good->protoIndex];
-	LvqPrototype *K = &prototype[matches.bad->protoIndex];
+	G2mLvqPrototype *J = &prototype[matches.good->protoIndex];
+	G2mLvqPrototype *K = &prototype[matches.bad->protoIndex];
 	assert(J == matches.good && K == matches.bad);
 
 	//VectorXd

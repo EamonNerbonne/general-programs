@@ -18,16 +18,16 @@
     <ClCompile Include="BoostMatrixTest.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="G2mLvqMatch.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="G2mLvqModel.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="G2mLvqPrototype.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="LvqDataSet.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="LvqMatch.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="LvqModel.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="LvqPrototype.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="stdafx.cpp">
@@ -41,16 +41,16 @@
     <ClInclude Include="BoostMatrixTest.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="G2mLvqMatch.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="G2mLvqModel.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="G2mLvqPrototype.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="LvqDataSet.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="LvqMatch.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="LvqModel.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="LvqPrototype.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="stdafx.h">

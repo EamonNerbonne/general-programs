@@ -1,7 +1,7 @@
 #include "stdafx.h"
-#include "LvqMatch.h"
+#include "G2mLvqMatch.h"
 
-LvqGoodBadMatch::LvqGoodBadMatch(PMatrix const * Pmat,VectorXd const * p, int classLabel) 
+G2mLvqGoodBadMatch::G2mLvqGoodBadMatch(PMatrix const * Pmat,VectorXd const * p, int classLabel) 
 	: P(Pmat)
 	, unknownPoint(p)
 	, actualClassLabel(classLabel)
@@ -11,7 +11,7 @@ LvqGoodBadMatch::LvqGoodBadMatch(PMatrix const * Pmat,VectorXd const * p, int cl
 	, bad(NULL)
 { }
 
-void LvqGoodBadMatch::AccumulateMatch(LvqPrototype const & option, VectorXd & tmp) {
+void G2mLvqGoodBadMatch::AccumulateMatch(G2mLvqPrototype const & option, VectorXd & tmp) {
 	double optionDist = option.SqrDistanceTo(*unknownPoint,*P,tmp);
 
 	assert(optionDist > 0);
@@ -29,14 +29,14 @@ void LvqGoodBadMatch::AccumulateMatch(LvqPrototype const & option, VectorXd & tm
 	}
 }
 
-LvqMatch::LvqMatch(PMatrix const * Pmat,VectorXd const * p) 
+G2mLvqMatch::G2mLvqMatch(PMatrix const * Pmat,VectorXd const * p) 
 	: P(Pmat)
 	, unknownPoint(p)
 	, distance(std::numeric_limits<double>::infinity()) 
 	, match(NULL)
 { }
 
-void LvqMatch::AccumulateMatch(LvqPrototype const & option, VectorXd & tmp) {
+void G2mLvqMatch::AccumulateMatch(G2mLvqPrototype const & option, VectorXd & tmp) {
 	double optionDist = option.SqrDistanceTo(*unknownPoint,*P,tmp);
 
 	assert(optionDist > 0);
