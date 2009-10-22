@@ -18,13 +18,14 @@ GsmLvqModel::GsmLvqModel(std::vector<int> protodistribution, MatrixXd const & me
 	int protoCount = accumulate(protodistribution.begin(), protodistribution.end(), 0);
 	pLabel.resize(protoCount);
 
-	prototype.resize(means.rows(), protoCount);
+	prototype.reset(new VectorXd[protoCount]);
+
 
 	int protoIndex=0;
 	for(int label = 0; label <(int) protodistribution.size();label++) {
 		int labelCount =protodistribution[label];
 		for(int i=0;i<labelCount;i++) {
-			prototype.col(protoIndex) = means.col(label);
+			prototype[protoIndex] = means.col(label);
 			pLabel(protoIndex) = label;
 
 			protoIndex++;
@@ -38,7 +39,7 @@ int GsmLvqModel::classify(VectorXd const & unknownPoint, VectorXd & tmp) const{
 	double distance(std::numeric_limits<double>::infinity());
 	int match(-1);
 
-	for(int i=0;i<prototype.cols();i++) {
+	for(int i=0;i<pLabel.size();i++) {
 		double curDist = SqrDistanceTo(i,unknownPoint,tmp);
 		if(curDist < distance) {
 			match=i;
@@ -53,7 +54,7 @@ int GsmLvqModel::classify(VectorXd const & unknownPoint, VectorXd & tmp) const{
 GsmLvqModel::GoodBadMatch GsmLvqModel::findMatches(VectorXd const & trainPoint, int trainLabel, VectorXd & tmp) {
 	GoodBadMatch match;
 
-	for(int i=0;i<prototype.cols();i++) {
+	for(int i=0;i<pLabel.size();i++) {
 		double curDist = SqrDistanceTo(i,trainPoint,tmp);
 		if(pLabel(i) == trainLabel) {
 			if(curDist < match.distGood) {
@@ -91,17 +92,17 @@ void GsmLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel, double 
 	int K = matches.matchBad;
 
 	//VectorXd
-	vJ = prototype.col(J) - trainPoint;
-	vK = prototype.col(K) - trainPoint;
+	vJ = prototype[J] - trainPoint;
+	vK = prototype[K] - trainPoint;
 
 	Vector2d muK2_P_vJ = (mu_K * 2.0 *  P * vJ ).lazy();
 	Vector2d muJ2_P_vK = (mu_J * 2.0 *  P * vK ).lazy();
 
 	dQdwJ = (P.transpose() *  muK2_P_vJ).lazy(); //differential of cost function Q wrt w_J; i.e. wrt J->point.  Note mu_K(!) for differention wrt J(!)
 	dQdwK = (P.transpose() * muJ2_P_vK).lazy();
-	prototype.col(J) = prototype.col(J) - lr_point * dQdwJ;
-	prototype.col(K) = prototype.col(K) - lr_point * dQdwK;
+	prototype[J] -= lr_point * dQdwJ;
+	prototype[K] -= lr_point * dQdwK;
 
 	dQdP = (muK2_P_vJ * vJ.transpose()).lazy() + (muJ2_P_vK * vK.transpose()).lazy(); //differential wrt. global projection matrix.
-	P = P - lr_P * dQdP ;
+	P -= lr_P * dQdP ;
 }

@@ -94,7 +94,7 @@ void EasyLvqTest() {
 
 	scoped_ptr<AbstractProjectionLvqModel> model;
 
-/*	{ 
+	{ 
 		progress_timer t;
 		model.reset(new G2mLvqModel(protoDistrib, dataset->ComputeClassMeans()));
 		cout<<"constructing G2mLvqModel: ";
@@ -108,7 +108,7 @@ void EasyLvqTest() {
 			std::cout << "After training for "<< model->trainIter <<" iterations: "<<dataset->ErrorRate(model.get())<< std::endl;
 		}
 		cout<<"training G2mLvqModel: ";
-	}*/
+	}
 
 	//model.reset();
 	{ 

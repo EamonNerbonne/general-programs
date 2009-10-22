@@ -5,8 +5,8 @@
 class GsmLvqModel : public AbstractProjectionLvqModel
 {
 	PMatrix P;
-	MatrixXd prototype;
-	//boost::scoped_array<VectorXd> prototype;
+	//MatrixXd prototype;
+	boost::scoped_array<VectorXd> prototype;
 	VectorXi pLabel;
 	double lr_scale_P;
 	const int classCount;
@@ -19,7 +19,7 @@ class GsmLvqModel : public AbstractProjectionLvqModel
 
 	inline double SqrDistanceTo(int protoIndex, VectorXd const & otherPoint, VectorXd & tmp ) const {
 		//return ((*B)*(P*(point - otherPoint))).squaredNorm(); 
-		tmp = prototype.col(protoIndex) - otherPoint;
+		tmp = prototype[protoIndex] - otherPoint;
 		Vector2d proj = P * tmp;
 		return proj.squaredNorm();
 	}
