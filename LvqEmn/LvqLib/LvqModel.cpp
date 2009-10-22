@@ -5,8 +5,9 @@
 
 LvqModel::LvqModel(std::vector<int> protodistribution, MatrixXd const & means) 
 	: classCount((int)protodistribution.size())
+	, lr_scale_P(0.1)
+	, lr_scale_B(0.01)
 	, P(2,means.rows())
-	, tmp(means.rows())
 	, vJ(means.rows())
 	, vK(means.rows())
 	, dQdwJ(means.rows())
@@ -14,12 +15,11 @@ LvqModel::LvqModel(std::vector<int> protodistribution, MatrixXd const & means)
 	, dQdP(2,means.rows())
 {
 	using namespace std;
-	
+
 	P.setIdentity();
 	protoCount = accumulate(protodistribution.begin(),protodistribution.end(),0);
 	prototype.reset(new LvqPrototype[protoCount]);
 	int protoIndex=0;
-	//		for (vector<int>::iterator it = protodistribution.begin(); it!=protodistribution.end(); ++it) {
 	for(int label=0; label <(int) protodistribution.size();label++) {
 		int labelCount =protodistribution[label];
 		for(int i=0;i<labelCount;i++) {
@@ -32,22 +32,27 @@ LvqModel::LvqModel(std::vector<int> protodistribution, MatrixXd const & means)
 	assert( accumulate(protodistribution.begin(),protodistribution.end(),0)== protoIndex);
 }
 
-int LvqModel::classify(VectorXd const & unknownPoint) const{
+int LvqModel::classify(VectorXd const & unknownPoint, VectorXd & tmp) const{
 	using namespace std;
-	VectorXd & tmp = const_cast<LvqModel*>(this)->tmp;
 
 	LvqMatch matches(&P, &unknownPoint);
 	for(int i=0;i<protoCount;i++)
-		matches.AccumulateMatch(prototype[i],tmp);
+		matches.AccumulateMatch(prototype[i], tmp);
 
 	assert(matches.match != NULL);
 	return matches.match->ClassLabel();
 }
 
 
-void LvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel, double lr_P, double lr_B, double lr_point) {
+void LvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel, double learningRate, VectorXd & tmp) {
 	using namespace std;
-	assert(lr_P>0&& lr_B>0 && lr_point>0);
+
+	double lr_point = learningRate,
+		lr_P = learningRate * this->lr_scale_P,
+		lr_B = learningRate * this->lr_scale_B; 
+
+	assert(lr_P>0  &&  lr_B>0  &&  lr_point>0);
+
 
 	LvqGoodBadMatch matches(&P, &trainPoint, trainLabel);
 	for(int i=0;i<protoCount;i++)

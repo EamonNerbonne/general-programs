@@ -13,7 +13,6 @@ public:
 	vector<int> trainClassFrequency;
 	int classCount;
 	int trainIter;
-	double lr_P, lr_B, lr_point;
 	double decay_lr; //final lr then e.g. lr_P(trainIter) = lr_P/(decay_lr*trainIter + 1 )
 
 	LvqDataSet(MatrixXd const & points, vector<int> pointLabels, int classCount);
