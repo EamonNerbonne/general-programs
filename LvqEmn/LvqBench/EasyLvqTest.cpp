@@ -1,7 +1,6 @@
 #include "stdafx.h"
 #include "EasyLvqTest.h"
 #include "LvqDataSet.h"
-
 using boost::mt19937;
 using boost::normal_distribution;
 using boost::variate_generator;
@@ -41,6 +40,11 @@ void EigenBench() {
 	cout <<sink<<endl;
 }
 
+unsigned int secure_rand() {
+	unsigned int retval;
+	rand_s(&retval);
+	return retval;
+}
 
 void EasyLvqTest() {
 	boost::progress_timer t;
@@ -48,8 +52,10 @@ void EasyLvqTest() {
 	using boost::scoped_ptr;
 
 	//VecTest();
+	 //boost::random_device dev;
 
 	mt19937 rndGen(347);
+	rndGen.seed(secure_rand);
 
 	MatrixXd pAtrans(DIMS,DIMS);
 	MatrixXd pBtrans(DIMS,DIMS);

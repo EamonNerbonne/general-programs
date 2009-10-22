@@ -9,6 +9,7 @@
 #ifndef _WIN32_WINNT            // Specifies that the minimum required platform is Windows Vista.
 #define _WIN32_WINNT 0x0600     // Change this to the appropriate value to target other versions of Windows.
 #endif
+#define _CRT_RAND_S
 
 #include <stdio.h>
 #include <tchar.h>
@@ -29,6 +30,7 @@
 #include <boost/random/uniform_int.hpp>
 #include <boost/random/normal_distribution.hpp>
 #include <boost/random/mersenne_twister.hpp>
+#include <boost/nondet_random.hpp>
 
 //#define EIGEN_DONT_VECTORIZE
 
