@@ -20,8 +20,8 @@ void rndSet(mt19937 & rng, T& mat,double mean, double sigma) {
 
 
 #define DIMS 32
-#define POINTS 100
-#define ITERS 10
+#define POINTS 1000
+#define ITERS 100
 
 void EigenBench() {
 	double sink=0;
@@ -94,7 +94,7 @@ void EasyLvqTest() {
 
 	scoped_ptr<AbstractProjectionLvqModel> model;
 
-	{ 
+/*	{ 
 		progress_timer t;
 		model.reset(new G2mLvqModel(protoDistrib, dataset->ComputeClassMeans()));
 		cout<<"constructing G2mLvqModel: ";
@@ -108,12 +108,13 @@ void EasyLvqTest() {
 			std::cout << "After training for "<< model->trainIter <<" iterations: "<<dataset->ErrorRate(model.get())<< std::endl;
 		}
 		cout<<"training G2mLvqModel: ";
-	}
-	model.reset();
+	}*/
+
+	//model.reset();
 	{ 
 		progress_timer t;
 		model.reset(new GsmLvqModel(protoDistrib, dataset->ComputeClassMeans()));
-		cout<<"constructing G2mLvqModel: ";
+		cout<<"constructing GsmLvqModel: ";
 	}
 
 	std::cout << "Before training: "<<dataset->ErrorRate(model.get())<< std::endl;
