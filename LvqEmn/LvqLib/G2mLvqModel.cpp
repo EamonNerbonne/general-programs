@@ -76,28 +76,27 @@ void G2mLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel, double 
 	Vector2d P_vJ = ( P * vJ ).lazy();
 	Vector2d P_vK = ( P * vK ).lazy();
 
-	Vector2d Bj_P_vJ = ( (*J->B) * P_vJ ).lazy();
-	Vector2d Bk_P_vK = ( (*K->B) * P_vK ).lazy();
+	Vector2d muK2_Bj_P_vJ = mu_K * 2.0 * ( (*J->B) * P_vJ ).lazy();
+	Vector2d muJ2_Bk_P_vK = mu_J * 2.0 * ( (*K->B) * P_vK ).lazy();
 
-	Vector2d muK2_BjT_Bj_P_vJ = ((mu_K * 2.0) * (J->B->transpose() * Bj_P_vJ).lazy()).lazy();
-	Vector2d muJ2_BkT_Bk_P_vK = ((mu_J * 2.0) * (K->B->transpose() * Bk_P_vK).lazy()).lazy();
+	Vector2d muK2_BjT_Bj_P_vJ =  (J->B->transpose() * muK2_Bj_P_vJ).lazy();
+	Vector2d muJ2_BkT_Bk_P_vK = (K->B->transpose() * muJ2_Bk_P_vK).lazy();
 
 	//TODO:performance: J->B, J->point, K->B, and K->point, are write only from hereon forward, so we _could_ fold the differential computation info the update statement (less intermediates, faster).
-	//VectorXd 
-	dQdwJ = (P.transpose().lazy() *  muK2_BjT_Bj_P_vJ).lazy(); //differential of cost function Q wrt w_J; i.e. wrt J->point.  Note mu_K(!) for differention wrt J(!)
-	dQdwK = (P.transpose().lazy() * muJ2_BkT_Bk_P_vK).lazy();
 
-	dQdP = ((muK2_BjT_Bj_P_vJ * vJ.transpose()).lazy() + (muJ2_BkT_Bk_P_vK * vK.transpose()).lazy()).lazy(); //differential wrt. global projection matrix.
+	Matrix2d dQdBj = (muK2_Bj_P_vJ * P_vJ.transpose()).lazy();
+	Matrix2d dQdBk = (muJ2_Bk_P_vK * P_vK.transpose()).lazy();
+	*J->B = *J->B - lr_B * dQdBj ;
+	*K->B = *K->B - lr_B * dQdBk ;
 
-	Matrix2d dQdBj = (((mu_K * 2.0) * Bj_P_vJ).lazy() * P_vJ.transpose()).lazy();
-	Matrix2d dQdBk = (((mu_J * 2.0) * Bk_P_vK).lazy() * P_vK.transpose()).lazy();
 
-	J->point =( J->point - (lr_point * dQdwJ).lazy() ).lazy();
-	K->point =( K->point - (lr_point * dQdwJ).lazy() ).lazy();
+	dQdwJ = (P.transpose() *  muK2_BjT_Bj_P_vJ).lazy(); //differential of cost function Q wrt w_J; i.e. wrt J->point.  Note mu_K(!) for differention wrt J(!)
+	dQdwK = (P.transpose() * muJ2_BkT_Bk_P_vK).lazy();
+	J->point = J->point - lr_point * dQdwJ ;
+	K->point = K->point - lr_point * dQdwJ ;
 
-	*J->B =( *J->B - (lr_B * dQdBj).lazy() ).lazy();
-	*K->B =( *K->B - (lr_B * dQdBk).lazy() ).lazy();
 
-	P =( P - (lr_P * dQdP).lazy() ).lazy();
+	dQdP = (muK2_BjT_Bj_P_vJ * vJ.transpose()).lazy() + (muJ2_BkT_Bk_P_vK * vK.transpose()).lazy(); //differential wrt. global projection matrix.
+	P = P - lr_P * dQdP ;
 	//TODO:etc.
 }
