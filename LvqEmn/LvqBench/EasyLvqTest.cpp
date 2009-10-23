@@ -119,7 +119,7 @@ void EasyLvqTest() {
 
 	vector<int> protoDistrib;
 	for(int i=0;i<2;++i)
-		protoDistrib.push_back(1);
+		protoDistrib.push_back(3);
 
    TestModel<GmLvqModel>(rndGen,  dataset.get(), protoDistrib, (ITERS + DIMS -1)/DIMS);
    TestModel<G2mLvqModel>(rndGen, dataset.get(), protoDistrib, ITERS);
