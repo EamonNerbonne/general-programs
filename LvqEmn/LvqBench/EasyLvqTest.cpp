@@ -3,6 +3,7 @@
 #include "LvqDataSet.h"
 #include "G2mLvqModel.h"
 #include "GsmLvqModel.h"
+#include "GmLvqModel.h"
 
 using boost::mt19937;
 using boost::normal_distribution;
@@ -18,10 +19,16 @@ void rndSet(mt19937 & rng, T& mat,double mean, double sigma) {
 			mat(i,j) = rndGen();
 }
 
-
+#if NDEBUG
+#define DIMS 32
+#define POINTS 10000
+#define ITERS 100
+#else
 #define DIMS 32
 #define POINTS 1000
-#define ITERS 100
+#define ITERS 10
+#endif
+
 
 void EigenBench() {
 	double sink=0;
@@ -50,17 +57,7 @@ unsigned int secure_rand() {
 	return retval;
 }
 
-void EasyLvqTest() {
-
-	using std::vector;
-	using boost::scoped_ptr;
-	using boost::progress_timer;
-
-	//VecTest();
-
-	mt19937 rndGen(347);
-	rndGen.seed(secure_rand);
-
+LvqDataSet* ConstructDataSet(mt19937 & rndGen) {
 	MatrixXd pAtrans(DIMS,DIMS);
 	MatrixXd pBtrans(DIMS,DIMS);
 	VectorXd offsetA(DIMS);
@@ -87,45 +84,44 @@ void EasyLvqTest() {
 	for(int i=0; i<(int)trainingLabels.size(); ++i)
 		trainingLabels[i] = i/POINTS;
 
-	scoped_ptr<LvqDataSet> dataset(new LvqDataSet(allpoints, trainingLabels, 2)); //2: 2 classes.
+	return new LvqDataSet(allpoints, trainingLabels, 2); //2: 2 classes.
+}
+
+template <class T> void TestModel(mt19937 & rndGen, LvqDataSet * dataset, vector<int> const & protoDistrib, int iters) {
+	using boost::scoped_ptr;
+	using boost::progress_timer;
+	scoped_ptr<AbstractLvqModel> model;
+	{ 
+		progress_timer t;
+		model.reset(new T(protoDistrib, dataset->ComputeClassMeans()));
+		cout<<"constructing "<<typeid(T).name()<<": ";
+	}
+
+	std::cout << "Before training: "<<dataset->ErrorRate(model.get())<< std::endl;
+
+	{
+		progress_timer t;
+		for(int i=0;i<10;i++) {
+			dataset->TrainModel(iters, rndGen, model.get() );
+			std::cout << "After training for "<< model->trainIter <<" iterations: "<<dataset->ErrorRate(model.get())<< std::endl;
+		}
+		cout<<"training "<<typeid(T).name()<<": ";
+	}
+}
+
+void EasyLvqTest() {
+	using boost::scoped_ptr;
+
+	mt19937 rndGen(347);
+	rndGen.seed(secure_rand);
+
+	scoped_ptr<LvqDataSet> dataset(ConstructDataSet(rndGen)); //2: 2 classes.
 
 	vector<int> protoDistrib;
 	for(int i=0;i<2;++i)
-		protoDistrib.push_back(3);
+		protoDistrib.push_back(1);
 
-	scoped_ptr<AbstractProjectionLvqModel> model;
-
-	{ 
-		progress_timer t;
-		model.reset(new G2mLvqModel(protoDistrib, dataset->ComputeClassMeans()));
-		cout<<"constructing G2mLvqModel: ";
-	}
-
-	std::cout << "Before training: "<<dataset->ErrorRate(model.get())<< std::endl;
-	{
-		progress_timer t;
-		for(int i=0;i<40;i++) {
-			dataset->TrainModel(ITERS, rndGen, model.get() );
-			std::cout << "After training for "<< model->trainIter <<" iterations: "<<dataset->ErrorRate(model.get())<< std::endl;
-		}
-		cout<<"training G2mLvqModel: ";
-	}
-
-	//model.reset();
-	{ 
-		progress_timer t;
-		model.reset(new GsmLvqModel(protoDistrib, dataset->ComputeClassMeans()));
-		cout<<"constructing GsmLvqModel: ";
-	}
-
-	std::cout << "Before training: "<<dataset->ErrorRate(model.get())<< std::endl;
-	{
-		progress_timer t;
-		for(int i=0;i<40;i++) {
-			dataset->TrainModel(ITERS, rndGen, model.get() );
-			std::cout << "After training for "<< model->trainIter <<" iterations: "<<dataset->ErrorRate(model.get())<< std::endl;
-		}
-		cout<<"training GsmLvqModel: ";
-	}
-
+   TestModel<GmLvqModel>(rndGen,  dataset.get(), protoDistrib, (ITERS + DIMS -1)/DIMS);
+   TestModel<G2mLvqModel>(rndGen, dataset.get(), protoDistrib, ITERS);
+   TestModel<GsmLvqModel>(rndGen, dataset.get(), protoDistrib, ITERS);
 }

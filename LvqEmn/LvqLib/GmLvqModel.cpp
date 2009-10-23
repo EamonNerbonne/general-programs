@@ -28,7 +28,7 @@ GmLvqModel::GmLvqModel(std::vector<int> protodistribution, MatrixXd const & mean
 		int labelCount =protodistribution[label];
 		for(int i=0;i<labelCount;i++) {
 			prototype[protoIndex] = means.col(label);
-			P[protoIndex].setIdentity();
+			P[protoIndex].setIdentity(means.rows(), means.rows());
 			pLabel(protoIndex) = label;
 			protoIndex++;
 		}
@@ -101,8 +101,11 @@ void GmLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel, double l
 	vJ = prototype[J] - trainPoint;
 	vK = prototype[K] - trainPoint;
 
-	Vector2d muK2_Pj_vJ = (mu_K * 2.0 *  P[J] * vJ ).lazy();
-	Vector2d muJ2_Pk_vK = (mu_J * 2.0 *  P[K] * vK ).lazy();
+	VectorXd & muK2_Pj_vJ = tmpHelper1;
+	VectorXd & muJ2_Pk_vK = tmpHelper2;
+
+	muK2_Pj_vJ = (mu_K * 2.0 *  P[J] * vJ ).lazy();
+	muJ2_Pk_vK = (mu_J * 2.0 *  P[K] * vK ).lazy();
 
 	dQdwJ = (P[J].transpose() *  muK2_Pj_vJ).lazy(); //differential of cost function Q wrt w_J; i.e. wrt J->point.  Note mu_K(!) for differention wrt J(!)
 	dQdwK = (P[K].transpose() * muJ2_Pk_vK).lazy();
