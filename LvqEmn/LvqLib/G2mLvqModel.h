@@ -16,7 +16,7 @@ class G2mLvqModel : public AbstractProjectionLvqModel
 	//calls dimensionality of input-space DIMS
 	//we will preallocate a few vectors to reduce malloc/free overhead.
 
-	VectorXd vJ, vK, dQdwJ, dQdwK; //vectors of dimension DIMS
+	VectorXd vJ, vK, dQdwJ, dQdwK, tmpHelper; //vectors of dimension DIMS
 	PMatrix dQdP;
 
 	//struct trialStruct { trialStruct() {std::cout<<"trialStruct();\n";} ~trialStruct() {std::cout<<"~trialStruct();\n";}	} hidden;
@@ -26,7 +26,7 @@ public:
 	G2mLvqPrototype const * Prototypes() const {return prototype.get();}
 
 	G2mLvqModel(std::vector<int> protodistribution, MatrixXd const & means);
-	int classify(VectorXd const & unknownPoint, VectorXd & tmp) const; //tmp must be just as large as unknownPoint, this is a malloc/free avoiding optimization.
-	void learnFrom(VectorXd const & newPoint, int classLabel, double learningRate, VectorXd & tmp);//tmp must be just as large as unknownPoint, this is a malloc/free avoiding optimization.
+	int classify(VectorXd const & unknownPoint) const; //tmp must be just as large as unknownPoint, this is a malloc/free avoiding optimization.
+	void learnFrom(VectorXd const & newPoint, int classLabel, double learningRate);//tmp must be just as large as unknownPoint, this is a malloc/free avoiding optimization.
 };
 

@@ -27,6 +27,9 @@
     <ClCompile Include="G2mLvqPrototype.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="GmLvqModel.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="GsmLvqModel.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -54,6 +57,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="G2mLvqPrototype.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="GmLvqModel.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="GsmLvqModel.h">

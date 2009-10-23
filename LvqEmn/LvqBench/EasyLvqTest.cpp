@@ -40,7 +40,8 @@ void EigenBench() {
 		}
 		sink += tmp.sum();
 	}
-	cout <<sink<<endl;
+
+	cout << sink << endl;
 }
 
 unsigned int secure_rand() {

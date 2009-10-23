@@ -8,6 +8,7 @@ G2mLvqModel::G2mLvqModel(std::vector<int> protodistribution, MatrixXd const & me
 	, lr_scale_P(0.1)
 	, lr_scale_B(0.01)
 	, P(2,means.rows())
+	, tmpHelper(means.rows())
 	, vJ(means.rows())
 	, vK(means.rows())
 	, dQdwJ(means.rows())
@@ -28,11 +29,12 @@ G2mLvqModel::G2mLvqModel(std::vector<int> protodistribution, MatrixXd const & me
 			protoIndex++;
 		}
 	}
-	assert( accumulate(protodistribution.begin(),protodistribution.end(),0)== protoIndex);
+	assert( accumulate(protodistribution.begin(), protodistribution.end(), 0)== protoIndex);
 }
 
-int G2mLvqModel::classify(VectorXd const & unknownPoint, VectorXd & tmp) const{
+int G2mLvqModel::classify(VectorXd const & unknownPoint) const{
 	using namespace std;
+	VectorXd & tmp = const_cast<VectorXd &>(tmpHelper);
 
 	G2mLvqMatch matches(&P, &unknownPoint);
 	for(int i=0;i<protoCount;i++)
@@ -43,7 +45,7 @@ int G2mLvqModel::classify(VectorXd const & unknownPoint, VectorXd & tmp) const{
 }
 
 
-void G2mLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel, double learningRate, VectorXd & tmp) {
+void G2mLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel, double learningRate) {
 	using namespace std;
 
 	double lr_point = learningRate,
@@ -55,7 +57,7 @@ void G2mLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel, double 
 
 	G2mLvqGoodBadMatch matches(&P, &trainPoint, trainLabel);
 	for(int i=0;i<protoCount;i++)
-		matches.AccumulateMatch(prototype[i],tmp);
+		matches.AccumulateMatch(prototype[i], tmpHelper);
 
 	assert(matches.good !=NULL && matches.bad!=NULL);
 	//now matches.good is "J" and matches.bad is "K".

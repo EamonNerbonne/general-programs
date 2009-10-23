@@ -42,7 +42,7 @@ namespace LVQCppCli {
 		for(int i=0;i<classCount;++i)
 			protoDistrib.push_back(protosPerClass);
 
-		model = new GsmLvqModel(protoDistrib, dataset->ComputeClassMeans()); 
+		model = new G2mLvqModel(protoDistrib, dataset->ComputeClassMeans()); 
 	}
 
 	double LvqWrapper::ErrorRate() { return dataset->ErrorRate(model); }

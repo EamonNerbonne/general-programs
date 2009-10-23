@@ -1,25 +1,26 @@
 #include "StdAfx.h"
-#include "GsmLvqModel.h"
+#include "GmLvqModel.h"
 #include "utils.h"
 
-GsmLvqModel::GsmLvqModel(std::vector<int> protodistribution, MatrixXd const & means) 
+GmLvqModel::GmLvqModel(std::vector<int> protodistribution, MatrixXd const & means) 
 	: classCount((int)protodistribution.size())
 	, lr_scale_P(0.1)
-	, tmpHelper(means.rows())
-	, P(2,means.rows())
+	, tmpHelper1(means.rows())
+	, tmpHelper2(means.rows())
 	, vJ(means.rows())
 	, vK(means.rows())
 	, dQdwJ(means.rows())
 	, dQdwK(means.rows())
-	, dQdP(2,means.rows())
+	, dQdPj(means.rows(), means.rows())
+	, dQdPk(means.rows(), means.rows())
 {
 	using namespace std;
 
-	P.setIdentity();
 	int protoCount = accumulate(protodistribution.begin(), protodistribution.end(), 0);
 	pLabel.resize(protoCount);
 
 	prototype.reset(new VectorXd[protoCount]);
+	P.reset(new MatrixXd[protoCount]);
 
 
 	int protoIndex=0;
@@ -27,23 +28,24 @@ GsmLvqModel::GsmLvqModel(std::vector<int> protodistribution, MatrixXd const & me
 		int labelCount =protodistribution[label];
 		for(int i=0;i<labelCount;i++) {
 			prototype[protoIndex] = means.col(label);
+			P[protoIndex].setIdentity();
 			pLabel(protoIndex) = label;
-
 			protoIndex++;
 		}
 	}
 	assert( accumulate(protodistribution.begin(),protodistribution.end(),0)== protoIndex);
 }
 
-int GsmLvqModel::classify(VectorXd const & unknownPoint) const{
-	VectorXd & tmp = const_cast<VectorXd &>(tmpHelper);
-
+int GmLvqModel::classify(VectorXd const & unknownPoint) const{
 	using namespace std;
 	double distance(std::numeric_limits<double>::infinity());
 	int match(-1);
 
+	VectorXd & tmp = const_cast<VectorXd &>(tmpHelper1);
+	VectorXd & tmp2 = const_cast<VectorXd &>(tmpHelper2);
+
 	for(int i=0;i<pLabel.size();i++) {
-		double curDist = SqrDistanceTo(i,unknownPoint,tmp);
+		double curDist = SqrDistanceTo(i, unknownPoint, tmp, tmp2);
 		if(curDist < distance) {
 			match=i;
 			distance = curDist;
@@ -54,11 +56,11 @@ int GsmLvqModel::classify(VectorXd const & unknownPoint) const{
 }
 
 
-GsmLvqModel::GoodBadMatch GsmLvqModel::findMatches(VectorXd const & trainPoint, int trainLabel, VectorXd & tmp) {
+GmLvqModel::GoodBadMatch GmLvqModel::findMatches(VectorXd const & trainPoint, int trainLabel, VectorXd & tmp, VectorXd tmp2) {
 	GoodBadMatch match;
 
 	for(int i=0;i<pLabel.size();i++) {
-		double curDist = SqrDistanceTo(i,trainPoint,tmp);
+		double curDist = SqrDistanceTo(i, trainPoint, tmp, tmp2);
 		if(pLabel(i) == trainLabel) {
 			if(curDist < match.distGood) {
 				match.matchGood = i;
@@ -76,20 +78,21 @@ GsmLvqModel::GoodBadMatch GsmLvqModel::findMatches(VectorXd const & trainPoint, 
 	return match;
 }
 
-void GsmLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel, double learningRate) {
+void GmLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel, double learningRate) {
+	
 	using namespace std;
 
 	double lr_point = learningRate,
 		lr_P = learningRate * this->lr_scale_P;
 
-	assert(lr_P>0  &&  lr_point>0);
+	assert(lr_P>=0 && lr_point>=0);
 
-	GoodBadMatch matches = findMatches(trainPoint, trainLabel, tmpHelper);
+	GoodBadMatch matches = findMatches(trainPoint, trainLabel, tmpHelper1, tmpHelper2);
 
 	//now matches.good is "J" and matches.bad is "K".
 
-	double mu_J = -2.0*matches.distGood / (sqr( matches.distGood) + sqr(matches.distBad));
-	double mu_K = +2.0*matches.distBad / (sqr( matches.distGood) + sqr(matches.distBad));
+	double mu_J = -2.0 * matches.distGood / (sqr(matches.distGood) + sqr(matches.distBad));
+	double mu_K = +2.0 * matches.distBad / (sqr(matches.distGood) + sqr(matches.distBad));
 	
 	int J = matches.matchGood;
 	int K = matches.matchBad;
@@ -98,14 +101,16 @@ void GsmLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel, double 
 	vJ = prototype[J] - trainPoint;
 	vK = prototype[K] - trainPoint;
 
-	Vector2d muK2_P_vJ = (mu_K * 2.0 *  P * vJ ).lazy();
-	Vector2d muJ2_P_vK = (mu_J * 2.0 *  P * vK ).lazy();
+	Vector2d muK2_Pj_vJ = (mu_K * 2.0 *  P[J] * vJ ).lazy();
+	Vector2d muJ2_Pk_vK = (mu_J * 2.0 *  P[K] * vK ).lazy();
 
-	dQdwJ = (P.transpose() *  muK2_P_vJ).lazy(); //differential of cost function Q wrt w_J; i.e. wrt J->point.  Note mu_K(!) for differention wrt J(!)
-	dQdwK = (P.transpose() * muJ2_P_vK).lazy();
+	dQdwJ = (P[J].transpose() *  muK2_Pj_vJ).lazy(); //differential of cost function Q wrt w_J; i.e. wrt J->point.  Note mu_K(!) for differention wrt J(!)
+	dQdwK = (P[K].transpose() * muJ2_Pk_vK).lazy();
 	prototype[J] -= lr_point * dQdwJ;
 	prototype[K] -= lr_point * dQdwK;
 
-	dQdP = (muK2_P_vJ * vJ.transpose()).lazy() + (muJ2_P_vK * vK.transpose()).lazy(); //differential wrt. global projection matrix.
-	P -= lr_P * dQdP ;
+	dQdPj = (muK2_Pj_vJ * vJ.transpose()).lazy();//differential wrt. local projection matrix.
+	dQdPk =	(muJ2_Pk_vK * vK.transpose()).lazy(); 
+	P[J] -= lr_P * dQdPj ;
+	P[K] -= lr_P * dQdPk ;
 }

@@ -182,6 +182,7 @@
     <ClCompile Include="G2mLvqMatch.cpp" />
     <ClCompile Include="G2mLvqModel.cpp" />
     <ClCompile Include="G2mLvqPrototype.cpp" />
+    <ClCompile Include="GmLvqModel.cpp" />
     <ClCompile Include="GsmLvqModel.cpp" />
     <ClCompile Include="LvqDataSet.cpp" />
     <ClCompile Include="stdafx.cpp">
@@ -198,6 +199,7 @@
     <ClInclude Include="G2mLvqMatch.h" />
     <ClInclude Include="G2mLvqModel.h" />
     <ClInclude Include="G2mLvqPrototype.h" />
+    <ClInclude Include="GmLvqModel.h" />
     <ClInclude Include="GsmLvqModel.h" />
     <ClInclude Include="LvqDataSet.h" />
     <ClInclude Include="stdafx.h" />

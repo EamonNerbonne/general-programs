@@ -2,11 +2,13 @@
 #include "stdafx.h"
 #include "AbstractLvqModel.h"
 
-class GsmLvqModel : public AbstractProjectionLvqModel
+using boost::scoped_array;
+
+class GmLvqModel : public AbstractLvqModel
 {
-	PMatrix P;
+	scoped_array<MatrixXd> P;
 	//MatrixXd prototype;
-	boost::scoped_array<VectorXd> prototype;
+	scoped_array<VectorXd> prototype;
 	VectorXi pLabel;
 	double lr_scale_P;
 	const int classCount;
@@ -14,14 +16,13 @@ class GsmLvqModel : public AbstractProjectionLvqModel
 	//calls dimensionality of input-space DIMS
 	//we will preallocate a few vectors to reduce malloc/free overhead.
 
-	VectorXd vJ, vK, dQdwJ, dQdwK, tmpHelper; //vectors of dimension DIMS
-	PMatrix dQdP;
+	VectorXd vJ, vK, dQdwJ, dQdwK, tmpHelper1, tmpHelper2; //vectors of dimension DIMS
+	MatrixXd dQdPj, dQdPk;
 
-	inline double SqrDistanceTo(int protoIndex, VectorXd const & otherPoint, VectorXd & tmp ) const {
-		//return ((*B)*(P*(point - otherPoint))).squaredNorm(); 
+	inline double SqrDistanceTo(int protoIndex, VectorXd const & otherPoint, VectorXd & tmp, VectorXd tmp2) const {
 		tmp = prototype[protoIndex] - otherPoint;
-		Vector2d proj = P * tmp;
-		return proj.squaredNorm();
+		tmp2 = P[protoIndex] * tmp;
+		return tmp2.squaredNorm();
 	}
 	
 	struct GoodBadMatch {
@@ -34,14 +35,11 @@ class GsmLvqModel : public AbstractProjectionLvqModel
 			, matchBad(-1)
 		{}
 	};
-	GoodBadMatch findMatches(VectorXd const & trainPoint, int trainLabel, VectorXd & tmp); 
+	GoodBadMatch findMatches(VectorXd const & trainPoint, int trainLabel, VectorXd & tmp, VectorXd tmp2); 
 
 public:
 
-	PMatrix const & getProjection() const {return P; }
-
-	GsmLvqModel(std::vector<int> protodistribution, MatrixXd const & means);
+	GmLvqModel(std::vector<int> protodistribution, MatrixXd const & means);
 	int classify(VectorXd const & unknownPoint) const; //tmp must be just as large as unknownPoint, this is a malloc/free avoiding optimization.
 	void learnFrom(VectorXd const & newPoint, int classLabel, double learningRate);//tmp must be just as large as unknownPoint, this is a malloc/free avoiding optimization.
 };
-

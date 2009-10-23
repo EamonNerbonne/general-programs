@@ -35,7 +35,7 @@ MatrixXd LvqDataSet::ComputeClassMeans() const {
 
 void LvqDataSet::TrainModel(int epochs, boost::mt19937 & randGen, AbstractLvqModel * model) const {
 	boost::scoped_array<int> ordering(new int[trainPointLabels.size()] );
-	VectorXd new_point(trainPoints.rows()), tmp_point(trainPoints.rows());
+	VectorXd new_point(trainPoints.rows());
 	for(int epoch=0; epoch<epochs; ++epoch) {
 
 		makeRandomOrder(randGen, ordering.get(), (int)trainPointLabels.size());
@@ -45,7 +45,7 @@ void LvqDataSet::TrainModel(int epochs, boost::mt19937 & randGen, AbstractLvqMod
 			double baseLR = std::pow(model->trainIter/double(trainPointLabels.size()) + 1.0, - 0.65); 
 			double overallLR = baseLR  / trainClassFrequency[pointClass] * sqrt(double(trainPointLabels.size()));
 			new_point = trainPoints.col(pointIndex);
-			model->learnFrom(new_point, pointClass, overallLR, tmp_point);
+			model->learnFrom(new_point, pointClass, overallLR);
 			model->trainIter++;
 		}
 	}
@@ -55,7 +55,7 @@ double LvqDataSet::ErrorRate(AbstractLvqModel const * model)const {
 	VectorXd tmp_point(trainPoints.rows());
 	int errs=0;
 	for(int i=0;i<(int)trainPointLabels.size();++i) 
-		if(model->classify(trainPoints.col(i), tmp_point) != trainPointLabels[i])
+		if(model->classify(trainPoints.col(i)) != trainPointLabels[i])
 			errs++;
 	return errs / double(trainPointLabels.size());
 }
