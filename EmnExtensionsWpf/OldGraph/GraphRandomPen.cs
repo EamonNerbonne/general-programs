@@ -3,19 +3,23 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Windows.Media;
+using EmnExtensions.MathHelpers;
+using System.Collections;
 
 namespace EmnExtensions.Wpf.OldGraph
 {
 	public static class GraphRandomPen
 	{
 		static Random GraphColorRandom = new EmnExtensions.MathHelpers.MersenneTwister();
-		public static Brush RandomGraphBrush() {
+		public static Brush RandomGraphBrush()
+		{
 			SolidColorBrush brush = new SolidColorBrush(RandomGraphColor());
 			brush.Freeze();
 			return brush;
 		}
 
-		public static Color RandomGraphColor() {
+		public static Color RandomGraphColor()
+		{
 			double r, g, b, max, min, minV, maxV;
 			max = GraphColorRandom.NextDouble() * 0.5 + 0.5;
 			min = GraphColorRandom.NextDouble() * 0.5;
@@ -27,11 +31,13 @@ namespace EmnExtensions.Wpf.OldGraph
 			r = (r - minV) / (maxV - minV) * (max - min) + min;
 			g = (g - minV) / (maxV - minV) * (max - min) + min;
 			b = (b - minV) / (maxV - minV) * (max - min) + min;
-			if (r + g + b > 1.5) {
+			if (r + g + b > 1.5)
+			{
 				double scale = 1.5 / (r + g + b);
 				r *= scale; g *= scale; b *= scale;
 			}
-			return new Color {
+			return new Color
+			{
 				A = (byte)255,
 				R = (byte)(255 * r + 0.5),
 				G = (byte)(255 * g + 0.5),
@@ -39,7 +45,69 @@ namespace EmnExtensions.Wpf.OldGraph
 			};
 		}
 
-		public static Pen MakeDefaultPen(bool randomColor) {
+		struct ColorSimple
+		{
+			public double R, G, B;
+			public double Sum { get { return R + G + B; } }
+			public double SqrDistTo(ColorSimple other) { return sqr(R - other.R) + 0.8*sqr(G - other.G) + sqr(B - other.B) + 0.1*sqr(Sum - other.Sum); }
+			static double sqr(double x) { return x * x; }
+			public static ColorSimple Random(MersenneTwister rnd)
+			{
+				return new ColorSimple { R = rnd.NextDouble0To1(), G = rnd.NextDouble0To1(), B = rnd.NextDouble0To1() };
+			}
+			public void RepelFrom(ColorSimple other, double lr,MersenneTwister rnd)
+			{
+				double sqrdist = Math.Max(SqrDistTo(other), lr);
+				double force = lr / sqrdist;
+				R = Clamp(R + force * (R - other.R) + lr*(rnd.NextDouble0To1()-0.5) );
+				G = Clamp(G + force * (G - other.G) + lr *( rnd.NextDouble0To1()-0.5));
+				B = Clamp(B + force * (B - other.B) + lr * (rnd.NextDouble0To1()-0.5));
+			}
+			static double Clamp(double x)
+			{
+				return x < 0.0 ? 0.0 : x < 1.0 ? x : 1.0;
+			}
+			public Color ToWindowsColor() {
+				return Color.FromRgb((byte)(255*R+0.5), (byte)(255*G+0.5), (byte)(255*B+0.5));
+			}
+		}
+
+		public static Color[] MakeDistributedColors(int N)
+		{
+			MersenneTwister rnd = RndHelper.ThreadLocalRandom;
+			int M = N;
+			ColorSimple[] choices = Enumerable.Range(0, M).Select(i => ColorSimple.Random(rnd)).ToArray();
+			ColorSimple black = new ColorSimple { R = 0, G = 0, B = 0 };
+			ColorSimple white = new ColorSimple { R = 1, G = 1, B = 1 };
+
+
+			for (int iter = 0; iter < 2000 + N; iter++)
+			{
+				double lr = 0.001 /Math.Sqrt(0.1*iter+1);
+
+				for (int i = 0; i < M; i++)
+				{
+#if DEBUG
+					ColorSimple old = choices[i];
+#endif
+					choices[i].RepelFrom(white, lr,rnd);
+					int other = rnd.Next(M - 1);
+					if (other >= i) other++;
+					choices[i].RepelFrom(choices[other], lr, rnd);
+
+					choices[i].RepelFrom(black, lr, rnd);
+					choices[i].RepelFrom(white, lr, rnd);
+				}
+				if (M > N) M--;
+			}
+
+			return choices.Select(c => c.ToWindowsColor()).ToArray();
+			//if I think of RGB as a cube with sides of length , then
+		}
+
+
+		public static Pen MakeDefaultPen(bool randomColor)
+		{
 			var newPen = new Pen(randomColor ? RandomGraphBrush() : Brushes.Black, 1.0);
 			newPen.StartLineCap = PenLineCap.Round;
 			newPen.EndLineCap = PenLineCap.Round;

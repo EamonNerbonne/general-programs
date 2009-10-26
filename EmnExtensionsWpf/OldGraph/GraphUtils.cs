@@ -10,7 +10,6 @@ namespace EmnExtensions.Wpf
 {
 	public static class GraphUtils
 	{
-
 		public static bool IsFiniteNonEmpty(this Rect rect) { return rect.Width.IsFinite() && rect.Height.IsFinite() && rect.Height * rect.Width > 0; }
 
 		public static PathGeometry LineWithErrorBars(Point[] lineOfPoints, double[] ErrBars) {
@@ -101,8 +100,6 @@ namespace EmnExtensions.Wpf
 			return geom;
 		}
 
-
-
 		/// <summary>
 		/// Makes a filled-square based point cloud; radius is in data-space, so distorted (fast)
 		/// </summary>
@@ -174,8 +171,6 @@ namespace EmnExtensions.Wpf
 			return drawing;
 		}
 
-
-
 		public static IEnumerable<Point> PathFigurePoints(PathFigure fig) {
 			if (fig == null) yield break;
 			yield return fig.StartPoint;
@@ -205,7 +200,6 @@ namespace EmnExtensions.Wpf
 				lastFig.Segments.Add(new LineSegment(point, true));
 			};
 		}
-
 
 		public static Rect ExpandRect(this Rect src, Thickness withMargin) {
 			return new Rect(src.X - withMargin.Left, src.Y - withMargin.Top, src.Width + withMargin.Left + withMargin.Right, src.Height + withMargin.Top + withMargin.Bottom);
@@ -277,5 +271,4 @@ namespace EmnExtensions.Wpf
 			return retval;
 		}
 	}
-
 }

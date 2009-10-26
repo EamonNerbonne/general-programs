@@ -47,7 +47,7 @@ namespace EmnExtensions.Wpf
 			else hsl.H = 2.0/3.0;
 			
 
-			Color c = ColorConversion.HSL_to_RGB(hsl);
+			Color c = hsl.ToRGB();
 
 			return c;
 		}

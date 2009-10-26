@@ -14,7 +14,6 @@ namespace EmnExtensions.Wpf.OldGraph
 {
 	public class WpfTools
 	{
-
 		/// <summary>
 		/// Note that Xps actually reads the stream too, so the file cannot already exist and simply be overwritten
 		/// (unless it's a valid xps), and it in particular may not have 0 bytes unless you open it in FileMode.Create.
@@ -74,6 +73,5 @@ namespace EmnExtensions.Wpf.OldGraph
 					((UIElement)el.Parent).InvalidateArrange(); 
 			}
 		}
-
 	}
 }

@@ -174,9 +174,10 @@ namespace LVQeamon
 				plotControl.Clear();
 
 #if USEGEOMPLOT
+				Color[] plotcolors = GraphRandomPen.MakeDistributedColors(numClasses);
 				for (int i = 0; i < numClasses; i++) {
 					Pen pen = new Pen {
-						Brush = GraphRandomPen.RandomGraphBrush(),
+						Brush = new SolidColorBrush(plotcolors[i]),
 						EndLineCap = PenLineCap.Round,
 						StartLineCap = PenLineCap.Round,
 						//EndLineCap = PenLineCap.Square,						StartLineCap = PenLineCap.Square,

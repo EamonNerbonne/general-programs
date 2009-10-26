@@ -4,149 +4,118 @@ using System.Linq;
 using System.Text;
 using System.Windows.Media;
 
-//originally by Marten Veldthuis, with minor adaptations.
+//Loosely based on a version originally by Marten Veldthuis, with modifications by Eamon Nerbonne.
 namespace EmnExtensions.Wpf
 {
+	public struct HSL
+	{
+		double _h;
+		double _s;
+		double _l;
+		public double H { get { return _h; } set { _h = value % 1.0; } }
+		public double S { get { return _s; } set { _s = value > 1.0 ? 1.0 : value < 0.0 ? 0.0 : value; } }
+		public double L { get { return _l; } set { _l = value > 1.0 ? 1.0 : value < 0.0 ? 0.0 : value; } }
 
-    public class HSL {
-        public HSL() {
-            _h = 0;
-            _s = 0;
-            _l = 0;
-        }
-
-        double _h;
-        double _s;
-        double _l;
-
-        public double H {
-            get { return _h; }
-            set {
-                _h = value;
-                _h = _h % 1;
-            }
-        }
-
-        public double S {
-            get { return _s; }
-            set {
-                _s = value;
-                _s = _s > 1 ? 1 : _s < 0 ? 0 : _s;
-            }
-        }
-
-        public double L {
-            get { return _l; }
-            set {
-                _l = value;
-                _l = _l > 1 ? 1 : _l < 0 ? 0 : _l;
-            }
-        }
-    } 
-
-    public static class ColorConversion {
-
-        /// <summary> 
-        /// Converts RGB to HSL 
-        /// </summary> 
-        /// <param name="c">A Color to convert</param> 
-        /// <returns>An HSL value</returns> 
-        public static HSL RGB_to_HSL(Color c) {
-            HSL hsl =  new HSL();
-
-            int Max, Min, Diff, Sum;
-            // Of our RGB values, assign the highest value to Max, and the Smallest to Min
-            if (c.R > c.G) { Max = c.R; Min = c.G; } else { Max = c.G; Min = c.R; }
-            if (c.B > Max)
-                Max = c.B;
-            else if (c.B < Min)
-                Min = c.B;
-            Diff = Max - Min;
-            Sum = Max + Min;
-            // Luminance - a.k.a. Brightness - Adobe photoshop uses the logic that the
-            // site VBspeed regards (regarded) as too primitive = superior decides the 
-            // level of brightness.
-            hsl.L = (double)Max / 255;
-            // Saturation
-            if (Max == 0)
-                hsl.S = 0; // Protecting from the impossible operation of division by zero.
-            else
-                hsl.S = (double)Diff / Max; // The logic of Adobe Photoshops is this simple.
-            // Hue  R is situated at the angel of 360 eller noll degrees; 
-            //   G vid 120 degrees
-            //   B vid 240 degrees
-            double q;
-            if (Diff == 0)
-                q = 0; // Protecting from the impossible operation of division by zero.
-            else
-                q = (double)60 / Diff;
-
-            if (Max == c.R) {
-                if (c.G < c.B)
-                    hsl.H = (double)(360 + q * (c.G - c.B)) / 360;
-                else
-                    hsl.H = (double)(q * (c.G - c.B)) / 360;
-            } else if (Max == c.G)
-                hsl.H = (double)(120 + q * (c.B - c.R)) / 360;
-            else if (Max == c.B)
-                hsl.H = (double)(240 + q * (c.R - c.G)) / 360;
-            else
-                hsl.H = 0.0;
-            return hsl;
-        }
-
-		private static byte Round(double d) {
-			return (byte)(d + 0.5);
+		public HSL(Color c)
+		{
+			ColorStats stats = new ColorStats(c);
+			_l = stats.LuminenceMax / 255.0;
+			_s = stats.LuminenceMax == 0 ? 0.0 : stats.LuminenceRange / (double)stats.LuminenceMax; // Protecting from the impossible operation of division by zero.
+			_h = stats.LuminenceRange == 0 ? 0.0 : (stats.PrimaryColorOffset / 3.0 + stats.SecondaryChannelsDiff / 6.0 / stats.LuminenceRange) % 1.0;
 		}
-        /// <summary> 
-        /// Converts a colour from HSL to RGB 
-        /// </summary> 
-        /// <remarks>Adapted from the algoritm in Foley and Van-Dam</remarks> 
-        /// <param name="hsl">The HSL value</param> 
-        /// <returns>A Color structure containing the equivalent RGB values</returns> 
-        public static Color HSL_to_RGB(HSL hsl) {
-            byte Max, Mid, Min;
-            double q;
 
-            Max = Round(hsl.L * 255);
-            Min = Round((1.0 - hsl.S) * (hsl.L / 1.0) * 255);
-            q = (double)(Max - Min) / 255;
+		struct ColorStats
+		{
+			public int LuminenceMax, LuminenceRange, PrimaryColorOffset, SecondaryChannelsDiff;
+			public ColorStats(Color c)
+			{
+				int LuminenceMin;
+				if (c.R > c.G)
+				{
+					LuminenceMax = c.R; LuminenceMin = c.G;
+					PrimaryColorOffset = 3; //mathematically equivalent to 0, but we use 3 to enable modulo wrap-around without negative number issues.
+					SecondaryChannelsDiff = c.G - c.B;
+				}
+				else
+				{
+					LuminenceMax = c.G; LuminenceMin = c.R;
+					PrimaryColorOffset = 1;
+					SecondaryChannelsDiff = c.B - c.R;
+				}
 
-            if (hsl.H >= 0 && hsl.H <= (double)1 / 6) {
-                Mid = Round(((hsl.H - 0) * q) * 1530 + Min);
-                return Color.FromRgb(Max, Mid, Min);
-            } else if (hsl.H <= (double)1 / 3) {
-                Mid = Round(-((hsl.H - (double)1 / 6) * q) * 1530 + Max);
-                return Color.FromRgb(Mid, Max, Min);
-            } else if (hsl.H <= 0.5) {
-                Mid = Round(((hsl.H - (double)1 / 3) * q) * 1530 + Min);
-                return Color.FromRgb(Min, Max, Mid);
-            } else if (hsl.H <= (double)2 / 3) {
-                Mid = Round(-((hsl.H - 0.5) * q) * 1530 + Max);
-                return Color.FromRgb(Min, Mid, Max);
-            } else if (hsl.H <= (double)5 / 6) {
-                Mid = Round(((hsl.H - (double)2 / 3) * q) * 1530 + Min);
-                return Color.FromRgb(Mid, Min, Max);
-            } else if (hsl.H <= 1.0) {
-                Mid = Round(-((hsl.H - (double)5 / 6) * q) * 1530 + Max);
-                return Color.FromRgb(Max, Min, Mid);
-            } else
-                return Color.FromRgb(0, 0, 0);
-        }
+				if (c.B > LuminenceMax)
+				{
+					LuminenceMax = c.B;
+					PrimaryColorOffset = 2;
+					SecondaryChannelsDiff = c.R - c.G;
+				}
+				else if (c.B < LuminenceMin)
+				{
+					LuminenceMin = c.B;
+				}
+				LuminenceRange = LuminenceMax - LuminenceMin;
+			}
+		}
 
-        public static Color Desaturize(Color c, double saturation) {
-            HSL hsl = RGB_to_HSL(c);
-            hsl.S = saturation;
-            return HSL_to_RGB(hsl);
-        }
+		public Color ToRGB()
+		{
+			byte Max, Mid, Min;
+			double q;
 
-        public static Color HueShift(Color c, double shift) {
-            HSL hsl = RGB_to_HSL(c);
-            hsl.H += shift;
-            return HSL_to_RGB(hsl); 
-        }
+			Max = RoundToByte(L * 255);
+			Min = RoundToByte((1.0 - S) * (L / 1.0) * 255);
+			q = Max - Min;
 
-    }
+			double H6 = H * 6;
 
+			if (H6 <= 1.0)
+			{
+				Mid = RoundToByte((H6 - 0) * q + Min);
+				return Color.FromRgb(Max, Mid, Min);
+			}
+			else if (H6 <= 2.0)
+			{
+				Mid = RoundToByte(-(H6 - 1.0) * q + Max);
+				return Color.FromRgb(Mid, Max, Min);
+			}
+			else if (H6 <= 3.0)
+			{
+				Mid = RoundToByte((H6 - 2.0) * q + Min);
+				return Color.FromRgb(Min, Max, Mid);
+			}
+			else if (H6 <= 4.0)
+			{
+				Mid = RoundToByte(-(H - 3.0) * q + Max);
+				return Color.FromRgb(Min, Mid, Max);
+			}
+			else if (H6 <= 5.0)
+			{
+				Mid = RoundToByte((H6 - 4.0) * q + Min);
+				return Color.FromRgb(Mid, Min, Max);
+			}
+			else if (H6 <= 6.0)
+			{
+				Mid = RoundToByte(-(H6 - 5.0) * q + Max);
+				return Color.FromRgb(Max, Min, Mid);
+			}
+			else //???? should never happen.
+				return Color.FromRgb(0, 0, 0);
+		}
 
+		private static byte RoundToByte(double d) { return (byte)(d + 0.5); }
+
+		public static Color Desaturize(Color c, double saturation)
+		{
+			HSL hsl = new HSL(c);
+			hsl.S = saturation;
+			return hsl.ToRGB();
+		}
+
+		public static Color HueShift(Color c, double shift)
+		{
+			HSL hsl = new HSL(c);
+			hsl.H += shift;
+			return hsl.ToRGB();
+		}
+	}
 }
