@@ -21,20 +21,29 @@ namespace EmnExtensions.Web
 
 		private UriRequest() { }
 		static readonly Encoding FallbackEncoding = Encoding.UTF8;
-		public static UriRequest Execute(Uri uri) {
+		public static UriRequest Execute(Uri uri, CookieContainer cookies = null, Uri referer = null) {
 			if (uri.Scheme.ToUpperInvariant() != "HTTP")
 				throw new ArgumentException(string.Format(CultureInfo.InvariantCulture, "Scheme \"{0}\" is unknown in Uri \"{1}\".", uri.Scheme, uri));
 
 			var request = (HttpWebRequest)WebRequest.Create(uri);
+			request.CookieContainer = cookies;
+			request.Referer = referer == null ? null : referer.ToString();
+			//request.AllowAutoRedirect = true;//this is the default
+			request.Accept = "*/*";
+			request.Headers["Accept-Language"] = "en-US,en;q=0.8";
+			request.Headers["Accept-Charset"] = "utf-8,ISO-8859-1;q=0.7,*;q=0.3";
+			request.Headers["Accept-Encoding"] = "gzip,deflate";
+			request.UserAgent = "Mozilla/5.0 (Windows; U; Windows NT 6.1; en-US)";
+			request.AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate;
 
 			UriRequest retval = new UriRequest { Uri = uri };
 
 			using (var response = request.GetResponse()) {
-				var httpReponse = (HttpWebResponse)response;
-
-				string encodingName = httpReponse.ContentEncoding;
+				var httpResponse = (HttpWebResponse)response;
+				
+				string encodingName = httpResponse.ContentEncoding;
 				if (string.IsNullOrEmpty(encodingName))
-					encodingName = httpReponse.CharacterSet;
+					encodingName = httpResponse.CharacterSet;
 				if (string.IsNullOrEmpty(encodingName)) {
 					retval.EncodingName = null;
 					retval.Encoding = FallbackEncoding;
@@ -50,7 +59,7 @@ namespace EmnExtensions.Web
 
 
 				var buf = new byte[BUFSIZE];
-				using (var stream = httpReponse.GetResponseStream()) {
+				using (var stream = httpResponse.GetResponseStream()) {
 					int lastReadCount = stream.Read(buf, 0, BUFSIZE);
 					using (MemoryStream returnBuf = new MemoryStream(lastReadCount)) {
 						while (lastReadCount != 0) {
@@ -60,10 +69,13 @@ namespace EmnExtensions.Web
 						retval.Content = returnBuf.ToArray();
 					}
 				}
+
+				retval.StatusCode = httpResponse.StatusCode;
 			}
 
 			return retval;
-
 		}
+
+		public HttpStatusCode StatusCode { get; set; }
 	}
 }
