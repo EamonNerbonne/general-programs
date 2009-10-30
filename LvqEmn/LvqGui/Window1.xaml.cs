@@ -212,10 +212,9 @@ namespace LVQeamon
 		LvqWrapper lvqImpl;
 
 		protected override void OnInitialized(EventArgs e) {
-#if USEGEOMPLOT || DEBUG
-			textBoxPointsPerSet.Text = 200.ToString();
-#else
-			textBoxPointsPerSet.Text = 10000.ToString();
+#if  DEBUG
+			textBoxPointsPerSet.Text = 20.ToString();
+			textBoxDims.Text = 10.ToString();
 #endif
 			base.OnInitialized(e);
 		}
