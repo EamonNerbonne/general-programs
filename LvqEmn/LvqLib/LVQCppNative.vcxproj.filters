@@ -24,9 +24,6 @@
     <ClCompile Include="G2mLvqModel.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="G2mLvqPrototype.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="GmLvqModel.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

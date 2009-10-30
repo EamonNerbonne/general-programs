@@ -17,6 +17,11 @@ namespace EmnExtensions.Wpf.Plot
 		public static DimensionMargins FromThicknessY(Thickness thickness) { return new DimensionMargins { AtStart = thickness.Top, AtEnd = thickness.Bottom }; }
 		public static DimensionMargins Merge(DimensionMargins a, DimensionMargins b) { return new DimensionMargins { AtStart = Math.Max(a.AtStart, b.AtStart), AtEnd = Math.Max(a.AtEnd, b.AtEnd) }; }
 		public static DimensionMargins Undefined { get { return new DimensionMargins { AtStart = double.NegativeInfinity, AtEnd = double.NegativeInfinity }; } }
+
+		public static bool operator ==(DimensionMargins a, DimensionMargins b) { return a.AtStart == b.AtStart && a.AtEnd == b.AtEnd; }
+		public static bool operator !=(DimensionMargins a, DimensionMargins b) { return a.AtStart != b.AtStart || a.AtEnd != b.AtEnd; }
+		public override int GetHashCode() { return base.GetHashCode(); }
+		public override bool Equals(object obj) { return obj is DimensionMargins && this == (DimensionMargins)obj; }
 	}
 
 	public class DimensionMarginsConverter : TypeConverter

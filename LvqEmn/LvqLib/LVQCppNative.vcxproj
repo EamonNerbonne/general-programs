@@ -181,7 +181,6 @@
     <ClCompile Include="BoostMatrixTest.cpp" />
     <ClCompile Include="G2mLvqMatch.cpp" />
     <ClCompile Include="G2mLvqModel.cpp" />
-    <ClCompile Include="G2mLvqPrototype.cpp" />
     <ClCompile Include="GmLvqModel.cpp" />
     <ClCompile Include="GsmLvqModel.cpp" />
     <ClCompile Include="LvqDataSet.cpp" />

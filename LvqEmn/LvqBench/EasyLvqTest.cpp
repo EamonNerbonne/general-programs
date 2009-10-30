@@ -19,10 +19,11 @@ void rndSet(mt19937 & rng, T& mat,double mean, double sigma) {
 			mat(i,j) = rndGen();
 }
 
+#define MEANSEP 5.0
 #if NDEBUG
 #define DIMS 32
-#define POINTS 10000
-#define ITERS 100
+#define POINTS 5000
+#define ITERS 10
 #else
 #define DIMS 32
 #define POINTS 1000
@@ -57,34 +58,34 @@ unsigned int secure_rand() {
 	return retval;
 }
 
-LvqDataSet* ConstructDataSet(mt19937 & rndGen) {
-	MatrixXd pAtrans(DIMS,DIMS);
-	MatrixXd pBtrans(DIMS,DIMS);
-	VectorXd offsetA(DIMS);
-	VectorXd offsetB(DIMS);
+MatrixXd MakePointCloud(mt19937 & rndGen, int dims, int pointCount) {
+	MatrixXd P(dims, dims);
+	VectorXd offset(dims);
 
-	MatrixXd pointsA(DIMS,POINTS);
-	MatrixXd pointsB(DIMS,POINTS);
+	MatrixXd points(dims,pointCount);
 
-	rndSet(rndGen, pAtrans, 0, 1.0);
-	rndSet(rndGen, pBtrans, 0, 1.0);
-	rndSet(rndGen, pointsA, 0, 1.0);
-	rndSet(rndGen, pointsB, 0, 1.0);
-	rndSet(rndGen, offsetA, 0, 1.0);
-	rndSet(rndGen, offsetB, 0, 1.0);
+	rndSet(rndGen, P, 0, 1.0);
+	rndSet(rndGen, points, 0, 1.0);
+	rndSet(rndGen, offset, 0, MEANSEP);
 
-	pointsA = pAtrans * pointsA + offsetA * VectorXd::Ones(POINTS).transpose();
-	pointsB = pBtrans * pointsB + offsetB * VectorXd::Ones(POINTS).transpose();
+	return P * points + offset * VectorXd::Ones(pointCount).transpose();
+}
 
-	MatrixXd allpoints(DIMS, pointsA.cols()+pointsB.cols());
-	allpoints.block(0,0,DIMS,pointsA.cols()) = pointsA;
-	allpoints.block(0,pointsA.cols(),DIMS,pointsB.cols()) = pointsB;
+
+LvqDataSet* ConstructDataSet(mt19937 & rndGen, int numClasses) {
+	MatrixXd pointsA = MakePointCloud(rndGen, DIMS, POINTS);
+	MatrixXd pointsB = MakePointCloud(rndGen, DIMS, POINTS);
+
+	MatrixXd allpoints(DIMS, numClasses*POINTS);
+	for(int classLabel=0;classLabel < numClasses;classLabel++) {
+		allpoints.block(0,classLabel*POINTS,DIMS,POINTS) = MakePointCloud(rndGen, DIMS, POINTS);;
+	}
 
 	vector<int> trainingLabels(allpoints.cols());
-	for(int i=0; i<(int)trainingLabels.size(); ++i)
+	for(int i=0; i<(int)trainingLabels.size(); ++i) 
 		trainingLabels[i] = i/POINTS;
 
-	return new LvqDataSet(allpoints, trainingLabels, 2); //2: 2 classes.
+	return new LvqDataSet(allpoints, trainingLabels, numClasses); //2: 2 classes.
 }
 
 template <class T> void TestModel(mt19937 & rndGen, LvqDataSet * dataset, vector<int> const & protoDistrib, int iters) {
@@ -112,16 +113,19 @@ template <class T> void TestModel(mt19937 & rndGen, LvqDataSet * dataset, vector
 void EasyLvqTest() {
 	using boost::scoped_ptr;
 
-	mt19937 rndGen(347);
+	int classCount=10;
+	int protosPerClass=3;
+
+	mt19937 rndGen;
 	rndGen.seed(secure_rand);
 
-	scoped_ptr<LvqDataSet> dataset(ConstructDataSet(rndGen)); //2: 2 classes.
+	scoped_ptr<LvqDataSet> dataset(ConstructDataSet(rndGen, classCount)); 
 
 	vector<int> protoDistrib;
-	for(int i=0;i<2;++i)
-		protoDistrib.push_back(3);
+	for(int i=0;i<classCount;++i)
+		protoDistrib.push_back(protosPerClass);
 
-   TestModel<GmLvqModel>(rndGen,  dataset.get(), protoDistrib, (ITERS + DIMS -1)/DIMS);
+   //TestModel<GmLvqModel>(rndGen,  dataset.get(), protoDistrib, (ITERS + DIMS -1)/DIMS);
    TestModel<G2mLvqModel>(rndGen, dataset.get(), protoDistrib, ITERS);
-   TestModel<GsmLvqModel>(rndGen, dataset.get(), protoDistrib, ITERS);
+   //TestModel<GsmLvqModel>(rndGen, dataset.get(), protoDistrib, ITERS);
 }

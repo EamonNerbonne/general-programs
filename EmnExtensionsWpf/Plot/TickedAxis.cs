@@ -44,13 +44,14 @@ namespace EmnExtensions.Wpf.Plot
 			m_tickPen.Freeze();
 			m_gridRankPen = Enumerable.Range(0, GridLineRanks)
 				.Select(rank => (GridLineRanks - rank) / (double)(GridLineRanks))
-				.Select(relevance => (Pen)new Pen { 
-						Brush = (Brush)new SolidColorBrush(new Color { ScA = (float)relevance }).GetAsFrozen(),
-						Thickness = BaseTickWidth * relevance * Math.Sqrt(relevance), 
-						EndLineCap = PenLineCap.Flat, 
-						StartLineCap = PenLineCap.Flat, 
-						LineJoin= PenLineJoin.Bevel
-					}.GetCurrentValueAsFrozen())
+				.Select(relevance => (Pen)new Pen
+				{
+					Brush = (Brush)new SolidColorBrush(new Color { ScA = (float)relevance }).GetAsFrozen(),
+					Thickness = BaseTickWidth * relevance * Math.Sqrt(relevance),
+					EndLineCap = PenLineCap.Flat,
+					StartLineCap = PenLineCap.Flat,
+					LineJoin = PenLineJoin.Bevel
+				}.GetCurrentValueAsFrozen())
 				.ToArray();
 
 			DataBound = DimensionBounds.Empty;
@@ -70,8 +71,8 @@ namespace EmnExtensions.Wpf.Plot
 
 		DimensionBounds m_DataBound;
 		DimensionMargins m_DataMargin;
-		public DimensionBounds DataBound { get { return m_DataBound; } set { m_DataBound = value; InvalidateMeasure();  } }  //TODO:should invalidate measure/render
-		public DimensionMargins DataMargin { get { return m_DataMargin; } set { m_DataMargin = value; InvalidateMeasure(); } } //TODO:should invalidate measure/render
+		public DimensionBounds DataBound { get { return m_DataBound; } set { if (m_DataBound != value) { m_DataBound = value; InvalidateMeasure(); InvalidateVisual(); } } }
+		public DimensionMargins DataMargin { get { return m_DataMargin; } set { if (m_DataMargin != value) { m_DataMargin = value; InvalidateMeasure(); InvalidateVisual(); } } } //TODO:should invalidate measure/render
 		public Brush Background { get; set; } //TODO:affectsrender
 
 		public TickedAxis ClockwisePrevAxis { get; set; }//TODO:should invalidate measure/render
@@ -305,14 +306,15 @@ namespace EmnExtensions.Wpf.Plot
 
 		protected override Size MeasureOverride(Size constraint)
 		{
-#if TRACE
-			Console.WriteLine("MeasureOverride: " + this.AxisPos);
-#endif
 			double origThickness = Thickness;
+			double origAxisLen = AxisLengthGuess();
 			try
 			{
 				if (IsCollapsedOrEmpty)
 					return DontShow();
+#if TRACE
+				Console.WriteLine("MeasureOverride: " + this.AxisPos);
+#endif
 				if (m_cachedCulture == null)
 					m_cachedCulture = CultureInfo.CurrentCulture;
 
@@ -383,16 +385,15 @@ namespace EmnExtensions.Wpf.Plot
 
 		protected override Size ArrangeOverride(Size constraint)
 		{
-#if TRACE
-			Console.WriteLine("Arrange: " + this.AxisPos);
-#endif
 			double origThickness = Thickness;
 			try
 			{
-
 				m_bestGuessCurrentSize = constraint;
 				if (IsCollapsedOrEmpty)
 					return DontShow();
+#if TRACE
+				Console.WriteLine("Arrange: " + this.AxisPos);
+#endif
 
 				RecomputeTicks(false); //now with accurate info of actual size and an estimate of neighbors thicknesses.
 
@@ -531,7 +532,7 @@ namespace EmnExtensions.Wpf.Plot
 				return;
 
 #if TRACE
-			Console.WriteLine("Rendering ticks");
+			Console.WriteLine("Rendering ticks: " + AxisPos);
 #endif
 			//We have a layout estimate.  We need to compute a transform from the data values to the axis position.
 			//We'll render everything as if horizontal and top-aligned, then transform to where we need to be.
@@ -571,10 +572,10 @@ namespace EmnExtensions.Wpf.Plot
 			drawingContext.DrawDrawing(m_axisLegend);
 			drawingContext.Pop();
 		}
-		
+
 		private void RenderGridLines()
 		{
-//			Console.Write(".");
+			//			Console.Write(".");
 			var ticksByIdx = m_ticks.Select((tick, idx) => new Tick { Value = idx, Rank = tick.Rank });
 			using (var context = m_gridLines.Open())
 			{

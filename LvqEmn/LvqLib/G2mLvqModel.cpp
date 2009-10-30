@@ -56,6 +56,7 @@ void G2mLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel, double 
 
 
 	G2mLvqGoodBadMatch matches(&P, &trainPoint, trainLabel);
+
 	for(int i=0;i<protoCount;i++)
 		matches.AccumulateMatch(prototype[i], tmpHelper);
 
@@ -105,7 +106,8 @@ void G2mLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel, double 
 	J->point -=  lr_point * (P.transpose() *  muK2_BjT_Bj_P_vJ).lazy();
 	K->point -=  lr_point * (P.transpose() * muJ2_BkT_Bk_P_vK).lazy();
 	/**/
-
+	J->ComputePP(P);
+	K->ComputePP(P);
 
 	//*
 	dQdP = (muK2_BjT_Bj_P_vJ * vJ.transpose()).lazy() + (muJ2_BkT_Bk_P_vK * vK.transpose()).lazy(); //differential wrt. global projection matrix.
@@ -113,4 +115,18 @@ void G2mLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel, double 
 	/*/
 	P = P - lr_P * ( (muK2_BjT_Bj_P_vJ * vJ.transpose()).lazy() + (muJ2_BkT_Bk_P_vK * vK.transpose()).lazy()) ;
 	/**/
+}
+
+void G2mLvqModel::ClassBoundaryDiagram(double x0, double x1, double y0, double y1, MatrixXi & classDiagram) {
+	int cols = classDiagram.cols();
+	int rows = classDiagram.rows();
+	for(int xCol=0;  xCol < cols;  xCol++) {
+		double x = x0 + (x1-x0) * (xCol+0.5) / cols;
+		for(int yRow=0;  yRow < rows;  yRow++) {
+			double y = y0+(y1-y0) * (yRow+0.5) / rows;
+
+		}
+	}
+
+
 }

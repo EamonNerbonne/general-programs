@@ -1,4 +1,4 @@
-﻿#define USEGEOMPLOT
+﻿//#define USEGEOMPLOT
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -15,6 +15,7 @@ using EmnExtensions.Text;
 using EmnExtensions.Wpf;
 using EmnExtensions.Wpf.OldGraph;
 using EmnExtensions.Wpf.Plot;
+using EmnExtensions;
 using LVQCppCli;
 
 namespace LVQeamon
@@ -24,10 +25,8 @@ namespace LVQeamon
 	/// </summary>
 	public partial class MainWindow : Window// Window
 	{
-
-
-
-		public MainWindow() {
+		public MainWindow()
+		{
 			//this.WindowStyle = WindowStyle.None;
 			//this.AllowsTransparency = true; 
 			BorderBrush = Brushes.White;
@@ -50,12 +49,15 @@ namespace LVQeamon
 		public int? EpochsPerClick { get { return textBoxEpochs.Text.ParseAsInt32(); } }
 		public double? StddevMeans { get { return textBoxStddevMeans.Text.ParseAsDouble(); } }
 
-		private void buttonGeneratePointClouds_Click(object sender, RoutedEventArgs e) {
-			try {
+		private void buttonGeneratePointClouds_Click(object sender, RoutedEventArgs e)
+		{
+			try
+			{
 				//			plotControl.Clear();
 				NiceTimer timer = new NiceTimer(); timer.TimeMark("making point clouds");
 
-				if (!NumberOfSets.HasValue || !PointsPerSet.HasValue) {
+				if (!NumberOfSets.HasValue || !PointsPerSet.HasValue)
+				{
 					Console.WriteLine("Invalid initialization values");
 					return;
 				}
@@ -66,13 +68,15 @@ namespace LVQeamon
 				int pointsPerSet = PointsPerSet.Value;
 				int DIMS = Dimensions.Value;
 				double stddevmeans = StddevMeans.Value;
-				SetupDisplay(numSets);
+				SetupDisplay(numSets, pointsPerSet);
 
 				MersenneTwister rndG = RndHelper.ThreadLocalRandom;
 				List<double[,]> pointClouds = new List<double[,]>();
 
-				for (int si = 0; si < numSets; si++) {//create each point-set
-					ThreadPool.QueueUserWorkItem((index) => {
+				for (int si = 0; si < numSets; si++)
+				{//create each point-set
+					ThreadPool.QueueUserWorkItem((index) =>
+					{
 
 						MersenneTwister rnd;
 						lock (rndG)
@@ -83,34 +87,42 @@ namespace LVQeamon
 						lock (rndG)
 							pointClouds.Add(points);
 
-						lock (sync) {
+						lock (sync)
+						{
 							done++;
-							if (done == numSets) {
+							if (done == numSets)
+							{
 								timer.TimeMark(null);
 								renderCount = 0;
-								new Thread(() => { StartLvq(pointClouds); }) {
+								new Thread(() => { StartLvq(pointClouds); })
+								{
 									IsBackground = true,
 								}.Start();
 							}
 						}
 					}, si);
 				}
-			} catch (Exception ex) {
+			}
+			catch (Exception ex)
+			{
 				Console.WriteLine("Error occured!");
 				Console.WriteLine(ex);
 				Console.WriteLine("\nerror ignored.");
 			}
 		}
 
-		private void StartLvq(List<double[,]> pointClouds) {
+		private void StartLvq(List<double[,]> pointClouds)
+		{
 			int DIMS = pointClouds[0].GetLength(1);
 			double[,] allpoints = new double[pointClouds.Sum(pc => pc.GetLength(0)), DIMS];
 			int[] pointLabels = new int[allpoints.GetLength(0)];
 			List<int> classBoundaries = new List<int> { 0 };
 			int pointI = 0;
 			int classLabel = 0;
-			foreach (var pointCloud in pointClouds) {
-				for (int i = 0; i < pointCloud.GetLength(0); i++) {
+			foreach (var pointCloud in pointClouds)
+			{
+				for (int i = 0; i < pointCloud.GetLength(0); i++)
+				{
 					for (int j = 0; j < DIMS; j++)
 						allpoints[pointI, j] = pointCloud[i, j];
 					pointLabels[pointI] = classLabel;
@@ -123,23 +135,28 @@ namespace LVQeamon
 			Debug.Assert(pointClouds[0].GetLength(1) == allpoints.GetLength(1));
 			this.classBoundaries = classBoundaries.ToArray();
 			Debug.Assert(this.classBoundaries.Length == classLabel + 1);
-			lock (lvqSync) {
+			lock (lvqSync)
+			{
 				lvqImpl = new LvqWrapper(allpoints, pointLabels, classLabel, 3);
 				needUpdate = true;
 			}
 			UpdateDisplay();
 		}
 
-		private void UpdateDisplay() {
+		private void UpdateDisplay()
+		{
 			double[,] currPoints = null;
-			lock (lvqSync) {
+			lock (lvqSync)
+			{
 				if (!needUpdate) return;
 				currPoints = lvqImpl.CurrentProjection();
 			}
-			Dispatcher.BeginInvoke((Action)(() => {
+			Dispatcher.BeginInvoke((Action)(() =>
+			{
 				lock (lvqSync)
 					needUpdate = false;
-				for (int i = 0; i < classBoundaries.Length - 1; i++) {
+				for (int i = 0; i < classBoundaries.Length - 1; i++)
+				{
 
 					var pointsIter = Enumerable.Range(classBoundaries[i], classBoundaries[i + 1] - classBoundaries[i])
 												.Select(pi => new Point(currPoints[pi, 0], currPoints[pi, 1]));
@@ -149,59 +166,51 @@ namespace LVQeamon
 #if USEGEOMPLOT
 					((GraphableGeometry)plotControl.GetPlot(i)).Geometry = GraphUtils.PointCloud(pointsIter);
 #else
-						plotControl.AddPlot(
-							new GraphablePixelScatterPlot
-							{
-								PointColor = F.Create<Color, Color>((c) => { c.ScA = 0.3f; return c; })(GraphRandomPen.RandomGraphColor()),
-								XUnitLabel = "X axis",
-								YUnitLabel = "Y axis",
-								DpiX = 96.0,
-								DpiY = 96.0,
-								BitmapScalingMode = BitmapScalingMode.NearestNeighbor,
-								CoverageRatio = 0.99,
-								UseDiamondPoints = false,
-								Points = pointsIter.ToArray(),
-
-							});
+					((GraphablePixelScatterPlot)plotControl.GetPlot(i)).Points = pointsIter.ToArray();
 #endif
 
 				}
 			}));
 		}
 
-		private void SetupDisplay(int numClasses) {
-			Dispatcher.BeginInvoke((Action)(() => {
-				plotControl.Clear();
+		private void SetupDisplay(int numClasses, int pointsPerSetEstimate)
+		{
+			double thickness = 30.0 / (1 + Math.Log(Math.Max(pointsPerSetEstimate * numClasses, 1)));
+			var linecap = thickness > 3 ? PenLineCap.Round : PenLineCap.Square;
+			if (thickness <= 3) thickness *= 0.75;
 
-#if USEGEOMPLOT
+			Dispatcher.BeginInvoke((Action)(() =>
+			{
+				plotControl.Clear();
 				Color[] plotcolors = GraphRandomPen.MakeDistributedColors(numClasses);
-				for (int i = 0; i < numClasses; i++) {
+				for (int i = 0; i < numClasses; i++)
+				{
+#if USEGEOMPLOT
 					Pen pen = new Pen {
 						Brush = new SolidColorBrush(plotcolors[i]),
-						EndLineCap = PenLineCap.Round,
-						StartLineCap = PenLineCap.Round,
-						//EndLineCap = PenLineCap.Square,						StartLineCap = PenLineCap.Square,
-						Thickness = 4.0,
+						EndLineCap = linecap,
+						StartLineCap = linecap,
+						Thickness = thickness,
 					};
 					pen.Freeze();
 					plotControl.AddPlot(new GraphableGeometry { Geometry = GraphUtils.PointCloud(Enumerable.Empty<Point>()), Pen = pen, XUnitLabel = "X axis", YUnitLabel = "Y axis" });
-				}
 #else
-						plotControl.AddPlot(
-							new GraphablePixelScatterPlot
-							{
-								PointColor = F.Create<Color, Color>((c) => { c.ScA = 0.3f; return c; })(GraphRandomPen.RandomGraphColor()),
-								XUnitLabel = "X axis",
-								YUnitLabel = "Y axis",
-								DpiX = 96.0,
-								DpiY = 96.0,
-								BitmapScalingMode = BitmapScalingMode.NearestNeighbor,
-								CoverageRatio = 0.99,
-								UseDiamondPoints = false,
-								Points = pointsIter.ToArray(),
-
-							});
+					plotControl.AddPlot(
+						new GraphablePixelScatterPlot
+						{
+							PointColor = F.Create<Color, Color>((c) => { c.ScA = 0.5f; return c; })(plotcolors[i]),
+							XUnitLabel = "X axis",
+							YUnitLabel = "Y axis",
+							DpiX = 96.0,
+							DpiY = 96.0,
+							BitmapScalingMode = BitmapScalingMode.NearestNeighbor,
+							CoverageRatio = 0.999,
+							UseDiamondPoints = true,
+							Points = new Point[] { },
+						});
 #endif
+				}
+
 			}));
 		}
 
@@ -211,7 +220,8 @@ namespace LVQeamon
 		bool needUpdate = false;
 		LvqWrapper lvqImpl;
 
-		protected override void OnInitialized(EventArgs e) {
+		protected override void OnInitialized(EventArgs e)
+		{
 #if  DEBUG
 			textBoxPointsPerSet.Text = 20.ToString();
 			textBoxDims.Text = 10.ToString();
@@ -222,20 +232,27 @@ namespace LVQeamon
 		volatile int renderCount = 0;
 		bool completedTest = false;
 
-		void DoSizingTest() {
-			if (overall == null) {
+		void DoSizingTest()
+		{
+			if (overall == null)
+			{
 				overall = new NiceTimer();
 				overall.TimeMark("Sizing");
 			}
-			if (Width + Height > 2000) {
-				if (!completedTest) {
+			if (Width + Height > 2000)
+			{
+				if (!completedTest)
+				{
 					completedTest = true;
 					overall.TimeMark(null);
 					//Close();
 				}
-			} else {
+			}
+			else
+			{
 				renderCount++;
-				if (renderCount % 2 == 0) {
+				if (renderCount % 2 == 0)
+				{
 					if (Width > Height)
 						Height = Height + 30;
 					else
@@ -245,14 +262,18 @@ namespace LVQeamon
 			}
 		}
 
-		private void checkBox1Changed(object sender, RoutedEventArgs e) {
+		private void checkBox1Changed(object sender, RoutedEventArgs e)
+		{
 			plotControl.ShowGridLines = checkBox1.IsChecked ?? plotControl.ShowGridLines;
 		}
 
-		private void doEpochButton_Click(object sender, RoutedEventArgs e) {
+		private void doEpochButton_Click(object sender, RoutedEventArgs e)
+		{
 			int epochsTodo = EpochsPerClick ?? 1;
-			ThreadPool.QueueUserWorkItem((index) => {
-				lock (lvqSync) {
+			ThreadPool.QueueUserWorkItem((index) =>
+			{
+				lock (lvqSync)
+				{
 					using (new DTimer("Training " + epochsTodo + " epochs"))
 						lvqImpl.TrainEpoch(epochsTodo);
 					needUpdate = true;
@@ -261,14 +282,16 @@ namespace LVQeamon
 			});
 		}
 
-		private void checkBox2_Checked(object sender, RoutedEventArgs e) {
+		private void checkBox2_Checked(object sender, RoutedEventArgs e)
+		{
 			this.WindowState = WindowState.Normal;
 			this.WindowStyle = WindowStyle.None;
 			this.Topmost = true;
 			this.WindowState = WindowState.Maximized;
 		}
 
-		private void checkBox2_Unchecked(object sender, RoutedEventArgs e) {
+		private void checkBox2_Unchecked(object sender, RoutedEventArgs e)
+		{
 			this.Topmost = false;
 			this.WindowStyle = WindowStyle.SingleBorderWindow;
 			this.WindowState = WindowState.Normal;

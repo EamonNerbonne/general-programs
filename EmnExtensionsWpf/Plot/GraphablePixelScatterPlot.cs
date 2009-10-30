@@ -26,7 +26,7 @@ namespace EmnExtensions.Wpf.Plot
 		const int EXTRA_RESIZE_PIX = 256;
 		Point[] m_points;
 		Rect m_outerBounds = Rect.Empty;
-		public Point[] Points { get { return m_points; } set { if (value != m_points) { m_points = value; DataBounds = ComputeBounds(); } } }
+		public Point[] Points { get { return m_points; } set { if (value != m_points) { m_points = value; DataBounds = ComputeBounds(); OnChange(GraphChangeEffects.RedrawGraph); } } }
 		double m_coverage = 1.0;
 		public double CoverageRatio { get { return m_coverage; } set { if (value != m_coverage) { m_coverage = value; DataBounds = ComputeBounds(); } } }
 
