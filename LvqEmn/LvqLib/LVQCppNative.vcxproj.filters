@@ -18,9 +18,6 @@
     <ClCompile Include="BoostMatrixTest.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="G2mLvqMatch.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="G2mLvqModel.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

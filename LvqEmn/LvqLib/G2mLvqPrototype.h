@@ -36,14 +36,13 @@ public:
 		B.setIdentity();
 	}
 
-	inline double SqrDistanceTo(Vector2d const & projectedPoint) const {
+	inline double SqrDistanceTo(Vector2d const & P_testPoint) const {
 #ifdef BPROJ
-		Vector2d BTestPoint = (B*projectedPoint).lazy();
-		//Vector2d projDiff = (projectedPoint - P_point).lazy();
-		return (BTestPoint - P_point).squaredNorm();
+		Vector2d B_P_testPoint = (B * P_testPoint).lazy();
+		return (B_P_testPoint - P_point).squaredNorm();
 #else
-		Vector2d projDiff = (projectedPoint - P_point).lazy();
-		return (B * projDiff).lazy().squaredNorm();
+		Vector2d P_Diff = (P_testPoint - P_point).lazy();
+		return (B * P_Diff).lazy().squaredNorm();
 #endif
 	}
 

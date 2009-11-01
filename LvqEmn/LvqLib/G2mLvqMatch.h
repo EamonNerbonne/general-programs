@@ -39,20 +39,19 @@ struct G2mLvqGoodBadMatch {
 
 
 struct G2mLvqMatch {
-	Vector2d projectedPoint;
+	Vector2d const * P_testPoint;
 
 	double distance;
 	G2mLvqPrototype const * match;
 
-	G2mLvqMatch(PMatrix const * Pmat ,VectorXd const * testPoint)
+	G2mLvqMatch(Vector2d const * P_testPoint)
 		: distance(std::numeric_limits<double>::infinity()) 
 		, match(NULL)
-		, projectedPoint((*Pmat * *testPoint).lazy())
-
+		, P_testPoint(P_testPoint)
 	{ }
 
-	void AccumulateMatch(G2mLvqPrototype const & option){
-		double optionDist = option.SqrDistanceTo(projectedPoint);
+	void AccumulateMatch(G2mLvqPrototype const & option) {
+		double optionDist = option.SqrDistanceTo(*P_testPoint);
 		assert(optionDist > 0);
 		assert(optionDist < std::numeric_limits<double>::infinity());
 		if(optionDist < distance) {

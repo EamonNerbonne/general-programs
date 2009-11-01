@@ -179,7 +179,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="BoostMatrixTest.cpp" />
-    <ClCompile Include="G2mLvqMatch.cpp" />
     <ClCompile Include="G2mLvqModel.cpp" />
     <ClCompile Include="GmLvqModel.cpp" />
     <ClCompile Include="GsmLvqModel.cpp" />

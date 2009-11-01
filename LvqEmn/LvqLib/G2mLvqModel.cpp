@@ -34,8 +34,8 @@ G2mLvqModel::G2mLvqModel(std::vector<int> protodistribution, MatrixXd const & me
 
 int G2mLvqModel::classify(VectorXd const & unknownPoint) const{
 	using namespace std;
-
-	G2mLvqMatch matches(&P, &unknownPoint);
+	Vector2d P_unknownPoint = (P * unknownPoint).lazy();
+	G2mLvqMatch matches(&P_unknownPoint);
 
 	for(int i=0;i<protoCount;i++)
 		matches.AccumulateMatch(prototype[i]);
