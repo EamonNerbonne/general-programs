@@ -3,27 +3,64 @@
 #include "G2mLvqPrototype.h"
 USING_PART_OF_NAMESPACE_EIGEN
 struct G2mLvqGoodBadMatch {
-	PMatrix const * P;
-	VectorXd const * unknownPoint;
+	Vector2d const* projectedPoint;
 	int actualClassLabel;
 
-	double distanceGood,distanceBad;
+	double distanceGood, distanceBad;
 	G2mLvqPrototype const *good;
 	G2mLvqPrototype const *bad;
 
-	G2mLvqGoodBadMatch(PMatrix const * Pmat, VectorXd const * p, int classLabel);
-	
-	void AccumulateMatch(G2mLvqPrototype const & option, VectorXd & tmp);
+	G2mLvqGoodBadMatch(Vector2d const * projectedTestPoint, int classLabel)
+		: actualClassLabel(classLabel)
+		, distanceGood(std::numeric_limits<double>::infinity()) 
+		, distanceBad(std::numeric_limits<double>::infinity()) 
+		, good(NULL)
+		, bad(NULL)
+		, projectedPoint(projectedTestPoint)
+	{ }
+
+	void AccumulateMatch(G2mLvqPrototype const & option) {
+		double optionDist = option.SqrDistanceTo(*projectedPoint);
+		assert(optionDist > 0);
+		assert(optionDist < std::numeric_limits<double>::infinity());
+		if(option.ClassLabel() == actualClassLabel) {
+			if(optionDist < distanceGood) {
+				good = &option;
+				distanceGood = optionDist;
+			}
+		} else {
+			if(optionDist < distanceBad) {
+				bad = &option;
+				distanceBad = optionDist;
+			}
+		}
+	}
 };
 
 
 struct G2mLvqMatch {
-	PMatrix const * P;
-	VectorXd const * unknownPoint;
+	Vector2d projectedPoint;
 
 	double distance;
 	G2mLvqPrototype const * match;
 
-	G2mLvqMatch(PMatrix const * Pmat ,VectorXd const * p);
-	void AccumulateMatch(G2mLvqPrototype const & option, VectorXd & tmp);
+	G2mLvqMatch(PMatrix const * Pmat ,VectorXd const * testPoint)
+		: distance(std::numeric_limits<double>::infinity()) 
+		, match(NULL)
+		, projectedPoint((*Pmat * *testPoint).lazy())
+
+	{ }
+
+	void AccumulateMatch(G2mLvqPrototype const & option){
+		double optionDist = option.SqrDistanceTo(projectedPoint);
+		assert(optionDist > 0);
+		assert(optionDist < std::numeric_limits<double>::infinity());
+		if(optionDist < distance) {
+			match = &option;
+			distance = optionDist;
+		}
+	}
+
+
 };
+

@@ -7,6 +7,7 @@ class GsmLvqModel : public AbstractProjectionLvqModel
 	PMatrix P;
 	//MatrixXd prototype;
 	boost::scoped_array<VectorXd> prototype;
+	boost::scoped_array<Vector2d> P_prototype;
 	VectorXi pLabel;
 	double lr_scale_P;
 	const int classCount;
@@ -17,11 +18,8 @@ class GsmLvqModel : public AbstractProjectionLvqModel
 	VectorXd vJ, vK, dQdwJ, dQdwK, tmpHelper; //vectors of dimension DIMS
 	PMatrix dQdP;
 
-	inline double SqrDistanceTo(int protoIndex, VectorXd const & otherPoint, VectorXd & tmp ) const {
-		//return ((*B)*(P*(point - otherPoint))).squaredNorm(); 
-		tmp = prototype[protoIndex] - otherPoint;
-		Vector2d proj = P * tmp;
-		return proj.squaredNorm();
+	inline double SqrDistanceTo(int protoIndex, Vector2d const & P_otherPoint) const {
+		return (P_prototype[protoIndex] - P_otherPoint).squaredNorm();
 	}
 	
 	struct GoodBadMatch {
@@ -34,7 +32,9 @@ class GsmLvqModel : public AbstractProjectionLvqModel
 			, matchBad(-1)
 		{}
 	};
-	GoodBadMatch findMatches(VectorXd const & trainPoint, int trainLabel, VectorXd & tmp); 
+	GoodBadMatch findMatches(Vector2d const & P_trainPoint, int trainLabel);
+
+	void RecomputeProjection(int protoIndex);
 
 public:
 

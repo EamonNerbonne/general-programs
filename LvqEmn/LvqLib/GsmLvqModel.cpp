@@ -20,7 +20,7 @@ GsmLvqModel::GsmLvqModel(std::vector<int> protodistribution, MatrixXd const & me
 	pLabel.resize(protoCount);
 
 	prototype.reset(new VectorXd[protoCount]);
-
+	P_prototype.reset(new Vector2d[protoCount]);
 
 	int protoIndex=0;
 	for(int label = 0; label <(int) protodistribution.size();label++) {
@@ -28,6 +28,7 @@ GsmLvqModel::GsmLvqModel(std::vector<int> protodistribution, MatrixXd const & me
 		for(int i=0;i<labelCount;i++) {
 			prototype[protoIndex] = means.col(label);
 			pLabel(protoIndex) = label;
+			RecomputeProjection(protoIndex);
 
 			protoIndex++;
 		}
@@ -35,15 +36,19 @@ GsmLvqModel::GsmLvqModel(std::vector<int> protodistribution, MatrixXd const & me
 	assert( accumulate(protodistribution.begin(),protodistribution.end(),0)== protoIndex);
 }
 
+void GsmLvqModel::RecomputeProjection(int protoIndex) {
+	P_prototype[protoIndex] = (P * prototype[protoIndex]).lazy();
+}
+
 int GsmLvqModel::classify(VectorXd const & unknownPoint) const{
-	VectorXd & tmp = const_cast<VectorXd &>(tmpHelper);
+	Vector2d P_otherPoint = (P * unknownPoint).lazy();
 
 	using namespace std;
 	double distance(std::numeric_limits<double>::infinity());
 	int match(-1);
 
 	for(int i=0;i<pLabel.size();i++) {
-		double curDist = SqrDistanceTo(i,unknownPoint,tmp);
+		double curDist = SqrDistanceTo(i,P_otherPoint);
 		if(curDist < distance) {
 			match=i;
 			distance = curDist;
@@ -54,11 +59,11 @@ int GsmLvqModel::classify(VectorXd const & unknownPoint) const{
 }
 
 
-GsmLvqModel::GoodBadMatch GsmLvqModel::findMatches(VectorXd const & trainPoint, int trainLabel, VectorXd & tmp) {
+GsmLvqModel::GoodBadMatch GsmLvqModel::findMatches(Vector2d const & P_trainPoint, int trainLabel) {
 	GoodBadMatch match;
 
 	for(int i=0;i<pLabel.size();i++) {
-		double curDist = SqrDistanceTo(i,trainPoint,tmp);
+		double curDist = SqrDistanceTo(i,P_trainPoint);
 		if(pLabel(i) == trainLabel) {
 			if(curDist < match.distGood) {
 				match.matchGood = i;
@@ -82,14 +87,15 @@ void GsmLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel, double 
 	double lr_point = learningRate,
 		lr_P = learningRate * this->lr_scale_P;
 
-	assert(lr_P>0  &&  lr_point>0);
+	assert(lr_P>=0  &&  lr_point>=0);
 
-	GoodBadMatch matches = findMatches(trainPoint, trainLabel, tmpHelper);
+	Vector2d P_trainPoint = (P * trainPoint).lazy();
+	GoodBadMatch matches = findMatches(P_trainPoint, trainLabel);
 
 	//now matches.good is "J" and matches.bad is "K".
 
-	double mu_J = -2.0*matches.distGood / (sqr( matches.distGood) + sqr(matches.distBad));
-	double mu_K = +2.0*matches.distBad / (sqr( matches.distGood) + sqr(matches.distBad));
+	double mu_J = -2.0*matches.distGood / (sqr(matches.distGood) + sqr(matches.distBad));
+	double mu_K = +2.0*matches.distBad / (sqr(matches.distGood) + sqr(matches.distBad));
 	
 	int J = matches.matchGood;
 	int K = matches.matchBad;
@@ -98,16 +104,21 @@ void GsmLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel, double 
 	vJ = prototype[J] - trainPoint;
 	vK = prototype[K] - trainPoint;
 
-	Vector2d muK2_P_vJ = (mu_K * 2.0 *  P * vJ ).lazy();
-	Vector2d muJ2_P_vK = (mu_J * 2.0 *  P * vK ).lazy();
+//	Vector2d muK2_P_vJ = (mu_K * 2.0 * P * vJ ).lazy();
+//	Vector2d muJ2_P_vK = (mu_J * 2.0 * P * vK ).lazy();
+	Vector2d muK2_P_vJ = (mu_K * 2.0 * (P_prototype[J] - P_trainPoint) ).lazy();
+	Vector2d muJ2_P_vK = (mu_J * 2.0 * (P_prototype[K] - P_trainPoint) ).lazy();
 
-	dQdwJ = (P.transpose() *  muK2_P_vJ).lazy(); //differential of cost function Q wrt w_J; i.e. wrt J->point.  Note mu_K(!) for differention wrt J(!)
+	dQdwJ = (P.transpose() * muK2_P_vJ).lazy(); //differential of cost function Q wrt w_J; i.e. wrt J->point.  Note mu_K(!) for differention wrt J(!)
 	dQdwK = (P.transpose() * muJ2_P_vK).lazy();
 	prototype[J] -= lr_point * dQdwJ;
 	prototype[K] -= lr_point * dQdwK;
 
 	dQdP = (muK2_P_vJ * vJ.transpose()).lazy() + (muJ2_P_vK * vK.transpose()).lazy(); //differential wrt. global projection matrix.
-	P -= lr_P * dQdP ;
+	P -= lr_P * dQdP;
+
+	for(int i=0;i<pLabel.size();++i)
+		RecomputeProjection(i);
 }
 
 void GsmLvqModel::ClassBoundaryDiagram(double x0, double x1, double y0, double y1, MatrixXi & classDiagram) {

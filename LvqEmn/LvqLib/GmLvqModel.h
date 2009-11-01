@@ -9,6 +9,7 @@ class GmLvqModel : public AbstractLvqModel
 	scoped_array<MatrixXd> P;
 	//MatrixXd prototype;
 	scoped_array<VectorXd> prototype;
+	scoped_array<VectorXd> P_prototype;
 	VectorXi pLabel;
 	double lr_scale_P;
 	const int classCount;
@@ -36,6 +37,10 @@ class GmLvqModel : public AbstractLvqModel
 		{}
 	};
 	GoodBadMatch findMatches(VectorXd const & trainPoint, int trainLabel, VectorXd & tmp, VectorXd tmp2); 
+
+	void RecomputeProjection(int protoIndex) {
+		P_prototype[protoIndex] = (P[protoIndex] * prototype[protoIndex]).lazy();
+	}
 
 public:
 

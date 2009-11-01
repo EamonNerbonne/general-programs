@@ -3,8 +3,8 @@
 #include "AbstractLvqModel.h"
 
 USING_PART_OF_NAMESPACE_EIGEN
-#include "G2mLvqPrototype.h"
 
+class G2mLvqPrototype;
 class G2mLvqModel : public AbstractProjectionLvqModel
 {
 	PMatrix P;
@@ -16,7 +16,7 @@ class G2mLvqModel : public AbstractProjectionLvqModel
 	//calls dimensionality of input-space DIMS
 	//we will preallocate a few vectors to reduce malloc/free overhead.
 
-	VectorXd vJ, vK, dQdwJ, dQdwK, tmpHelper; //vectors of dimension DIMS
+	VectorXd vJ, vK, dQdwJ, dQdwK; //vectors of dimension DIMS
 	PMatrix dQdP;
 
 	//struct trialStruct { trialStruct() {std::cout<<"trialStruct();\n";} ~trialStruct() {std::cout<<"~trialStruct();\n";}	} hidden;

@@ -21,7 +21,7 @@ GmLvqModel::GmLvqModel(std::vector<int> protodistribution, MatrixXd const & mean
 
 	prototype.reset(new VectorXd[protoCount]);
 	P.reset(new MatrixXd[protoCount]);
-
+	P_prototype.reset(new VectorXd[protoCount]);
 
 	int protoIndex=0;
 	for(int label = 0; label <(int) protodistribution.size();label++) {
@@ -30,6 +30,8 @@ GmLvqModel::GmLvqModel(std::vector<int> protodistribution, MatrixXd const & mean
 			prototype[protoIndex] = means.col(label);
 			P[protoIndex].setIdentity(means.rows(), means.rows());
 			pLabel(protoIndex) = label;
+			RecomputeProjection(protoIndex);
+
 			protoIndex++;
 		}
 	}
@@ -43,6 +45,8 @@ int GmLvqModel::classify(VectorXd const & unknownPoint) const{
 
 	VectorXd & tmp = const_cast<VectorXd &>(tmpHelper1);
 	VectorXd & tmp2 = const_cast<VectorXd &>(tmpHelper2);
+
+	
 
 	for(int i=0;i<pLabel.size();i++) {
 		double curDist = SqrDistanceTo(i, unknownPoint, tmp, tmp2);

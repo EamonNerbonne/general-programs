@@ -19,15 +19,19 @@ void rndSet(mt19937 & rng, T& mat,double mean, double sigma) {
 			mat(i,j) = rndGen();
 }
 
-#define MEANSEP 5.0
+#define MEANSEP 2.0
 #if NDEBUG
-#define DIMS 32
-#define POINTS 5000
+#define DIMS 50
+#define POINTS 10000
 #define ITERS 10
+#define CLASSCOUNT 5
+#define PROTOSPERCLASS 3
 #else
-#define DIMS 32
-#define POINTS 1000
-#define ITERS 10
+#define DIMS 16
+#define POINTS 100
+#define ITERS 5
+#define CLASSCOUNT 3
+#define PROTOSPERCLASS 2
 #endif
 
 
@@ -113,8 +117,8 @@ template <class T> void TestModel(mt19937 & rndGen, LvqDataSet * dataset, vector
 void EasyLvqTest() {
 	using boost::scoped_ptr;
 
-	int classCount=10;
-	int protosPerClass=3;
+	int classCount=CLASSCOUNT;
+	int protosPerClass=PROTOSPERCLASS;
 
 	mt19937 rndGen;
 	rndGen.seed(secure_rand);
@@ -127,5 +131,5 @@ void EasyLvqTest() {
 
    //TestModel<GmLvqModel>(rndGen,  dataset.get(), protoDistrib, (ITERS + DIMS -1)/DIMS);
    TestModel<G2mLvqModel>(rndGen, dataset.get(), protoDistrib, ITERS);
-   //TestModel<GsmLvqModel>(rndGen, dataset.get(), protoDistrib, ITERS);
+   TestModel<GsmLvqModel>(rndGen, dataset.get(), protoDistrib, ITERS);
 }
