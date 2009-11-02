@@ -34,6 +34,8 @@ MatrixXd LvqDataSet::ComputeClassMeans() const {
 }
 
 void LvqDataSet::TrainModel(int epochs, boost::mt19937 & randGen, AbstractLvqModel * model) const {
+	double lrIterScale = model->iterationScaleFactor();
+
 	boost::scoped_array<int> ordering(new int[trainPointLabels.size()] );
 	VectorXd new_point(trainPoints.rows());
 	for(int epoch=0; epoch<epochs; ++epoch) {
@@ -42,8 +44,8 @@ void LvqDataSet::TrainModel(int epochs, boost::mt19937 & randGen, AbstractLvqMod
 		for(int tI=0; tI<(int)trainPointLabels.size(); ++tI) {
 			int pointIndex = ordering[tI];
 			int pointClass = trainPointLabels[pointIndex];
-			double baseLR = std::pow(model->trainIter/double(trainPointLabels.size()) + 1.0, - 0.65); 
-			double overallLR = baseLR  / trainClassFrequency[pointClass] * sqrt(double(trainPointLabels.size()));
+			double baseLR = std::pow(model->trainIter*lrIterScale + 1.0, - 0.65); 
+			double overallLR = baseLR * 0.3;//  / trainClassFrequency[pointClass] * sqrt(double(trainPointLabels.size()));
 			new_point = trainPoints.col(pointIndex);
 			model->learnFrom(new_point, pointClass, overallLR);
 			model->trainIter++;

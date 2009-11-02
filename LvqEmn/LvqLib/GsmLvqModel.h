@@ -37,6 +37,8 @@ class GsmLvqModel : public AbstractProjectionLvqModel
 	void RecomputeProjection(int protoIndex);
 
 public:
+	virtual double iterationScaleFactor() const {return 1.0/pLabel.size();}
+	virtual double projectionNorm() const { return (P.transpose() * P).lazy().diagonal().squaredNorm() ;}
 
 	PMatrix const & getProjection() const {return P; }
 

@@ -22,6 +22,9 @@ class G2mLvqModel : public AbstractProjectionLvqModel
 	//struct trialStruct { trialStruct() {std::cout<<"trialStruct();\n";} ~trialStruct() {std::cout<<"~trialStruct();\n";}	} hidden;
 	
 public:
+	virtual double iterationScaleFactor() const {return 1.0/protoCount;}
+	virtual double projectionNorm() const { return (P.transpose() * P).lazy().diagonal().squaredNorm() ;}
+
 	PMatrix const & getProjection() const {return P; }
 	G2mLvqPrototype const * Prototypes() const {return prototype.get();}
 

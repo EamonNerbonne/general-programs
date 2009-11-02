@@ -19,7 +19,7 @@ template<typename T> void rndSet(mt19937 & rng, T& mat,double mean, double sigma
 			mat(i,j) = rndGen();
 }
 
-#define MEANSEP 3.0
+#define MEANSEP 2.0
 #if NDEBUG
 #define DIMS 40
 #define POINTS 10000
@@ -91,7 +91,18 @@ LvqDataSet* ConstructDataSet(mt19937 & rndGen, int numClasses) {
 	return new LvqDataSet(allpoints, trainingLabels, numClasses); //2: 2 classes.
 }
 
-template <class T> void TestModel(mt19937 & rndGen, LvqDataSet * dataset, vector<int> const & protoDistrib, int iters) {
+void PrintModelStatus(AbstractLvqModel const * model,LvqDataSet const * dataset, char const * label) {
+	using namespace std;
+	cout << label<< ": "<<dataset->ErrorRate(model);
+	if(dynamic_cast<AbstractProjectionLvqModel const*>(model)) 
+		cout<<"   [norm: "<< dynamic_cast<AbstractProjectionLvqModel const*>(model)->projectionNorm() <<"]";
+
+	cout<<endl;
+}
+
+
+template <class T> void TestModel(mt19937  rndGenOrig, LvqDataSet * dataset, vector<int> const & protoDistrib, int iters) {
+	mt19937 rndGen(rndGenOrig);
 	using boost::scoped_ptr;
 	using boost::progress_timer;
 	scoped_ptr<AbstractLvqModel> model;
@@ -101,13 +112,13 @@ template <class T> void TestModel(mt19937 & rndGen, LvqDataSet * dataset, vector
 		cout<<"constructing "<<typeid(T).name()<<": ";
 	}
 
-	std::cout << "Before training: "<<dataset->ErrorRate(model.get())<< std::endl;
+	PrintModelStatus("Initial",model.get(),dataset);
 
 	{
 		progress_timer t;
 		for(int i=0;i<10;i++) {
 			dataset->TrainModel(iters, rndGen, model.get() );
-			std::cout << "After training for "<< model->trainIter <<" iterations: "<<dataset->ErrorRate(model.get())<< std::endl;
+			PrintModelStatus("Trained",model.get(),dataset);
 		}
 		cout<<"training "<<typeid(T).name()<<": ";
 	}
@@ -119,8 +130,10 @@ void EasyLvqTest() {
 	int classCount=CLASSCOUNT;
 	int protosPerClass=PROTOSPERCLASS;
 
-	mt19937 rndGen;
-	rndGen.seed(secure_rand);
+	mt19937 rndGen(347);
+	mt19937 rndGen2(37); //347: 50%, 37:
+
+	//rndGen.seed(secure_rand);
 
 	scoped_ptr<LvqDataSet> dataset(ConstructDataSet(rndGen, classCount)); 
 
@@ -128,7 +141,7 @@ void EasyLvqTest() {
 	for(int i=0;i<classCount;++i)
 		protoDistrib.push_back(protosPerClass);
 
-   //TestModel<GmLvqModel>(rndGen,  dataset.get(), protoDistrib, (ITERS + DIMS -1)/DIMS);
-   TestModel<G2mLvqModel>(rndGen, dataset.get(), protoDistrib, ITERS);
-   TestModel<GsmLvqModel>(rndGen, dataset.get(), protoDistrib, ITERS);
+   //TestModel<GmLvqModel>(rndGen2,  dataset.get(), protoDistrib, (ITERS + DIMS -1)/DIMS);
+   TestModel<G2mLvqModel>(rndGen2, dataset.get(), protoDistrib, ITERS);
+   TestModel<GsmLvqModel>(rndGen2, dataset.get(), protoDistrib, ITERS);
 }

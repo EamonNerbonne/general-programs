@@ -41,13 +41,14 @@ namespace LVQeamon
 		private void textBoxDims_TextChanged(object sender, TextChangedEventArgs e) { DataVerifiers.VerifyTextBox((TextBox)sender, s => DataVerifiers.IsInt32Positive(s) && Int32.Parse(s) > 2); }
 		private void textBoxEpochs_TextChanged(object sender, TextChangedEventArgs e) { DataVerifiers.VerifyTextBox((TextBox)sender, DataVerifiers.IsInt32Positive); }
 		private void textBoxStddevMeans_TextChanged(object sender, TextChangedEventArgs e) { DataVerifiers.VerifyTextBox((TextBox)sender, DataVerifiers.IsDoublePositive); }
-
+		private void textBoxProtoCount_TextChanged(object sender, TextChangedEventArgs e) { DataVerifiers.VerifyTextBox((TextBox)sender, DataVerifiers.IsInt32Positive); }
 
 		public int? NumberOfSets { get { return textBoxNumberOfSets.Text.ParseAsInt32(); } }
 		public int? PointsPerSet { get { return textBoxPointsPerSet.Text.ParseAsInt32(); } }
 		public int? Dimensions { get { return textBoxDims.Text.ParseAsInt32(); } }
 		public int? EpochsPerClick { get { return textBoxEpochs.Text.ParseAsInt32(); } }
 		public double? StddevMeans { get { return textBoxStddevMeans.Text.ParseAsDouble(); } }
+		public int? ProtoCount { get { return textBoxProtoCount.Text.ParseAsInt32(); } }
 
 		private void buttonGeneratePointClouds_Click(object sender, RoutedEventArgs e)
 		{
@@ -67,6 +68,7 @@ namespace LVQeamon
 				int numSets = NumberOfSets.Value;
 				int pointsPerSet = PointsPerSet.Value;
 				int DIMS = Dimensions.Value;
+				int protoCount = ProtoCount.Value;
 				double stddevmeans = StddevMeans.Value;
 				SetupDisplay(numSets, pointsPerSet);
 
@@ -94,7 +96,7 @@ namespace LVQeamon
 							{
 								timer.TimeMark(null);
 								renderCount = 0;
-								new Thread(() => { StartLvq(pointClouds); })
+								new Thread(() => { StartLvq(pointClouds,protoCount); })
 								{
 									IsBackground = true,
 								}.Start();
@@ -111,7 +113,7 @@ namespace LVQeamon
 			}
 		}
 
-		private void StartLvq(List<double[,]> pointClouds)
+		private void StartLvq(List<double[,]> pointClouds,int protoCount)
 		{
 			int DIMS = pointClouds[0].GetLength(1);
 			double[,] allpoints = new double[pointClouds.Sum(pc => pc.GetLength(0)), DIMS];
@@ -137,7 +139,7 @@ namespace LVQeamon
 			Debug.Assert(this.classBoundaries.Length == classLabel + 1);
 			lock (lvqSync)
 			{
-				lvqImpl = new LvqWrapper(allpoints, pointLabels, classLabel, 3);
+				lvqImpl = new LvqWrapper(allpoints, pointLabels, classLabel, protoCount);
 				needUpdate = true;
 			}
 			UpdateDisplay();
