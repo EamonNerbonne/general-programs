@@ -10,22 +10,22 @@ using boost::normal_distribution;
 using boost::variate_generator;
 USING_PART_OF_NAMESPACE_EIGEN
 
-	template<typename T>
-void rndSet(mt19937 & rng, T& mat,double mean, double sigma) {
+template<typename T> void rndSet(mt19937 & rng, T& mat,double mean, double sigma) {
 	normal_distribution<> distrib(mean,sigma);
 	variate_generator<mt19937&, normal_distribution<> > rndGen(rng, distrib);
-	for(int j=0; j<mat.cols();j++)
-		for(int i=0;i<mat.rows();i++)
+
+	for(int j=0; j<mat.cols(); j++)
+		for(int i=0; i<mat.rows(); i++)
 			mat(i,j) = rndGen();
 }
 
-#define MEANSEP 2.0
+#define MEANSEP 3.0
 #if NDEBUG
-#define DIMS 50
+#define DIMS 40
 #define POINTS 10000
-#define ITERS 10
-#define CLASSCOUNT 5
-#define PROTOSPERCLASS 3
+#define ITERS 20
+#define CLASSCOUNT 4
+#define PROTOSPERCLASS 4
 #else
 #define DIMS 16
 #define POINTS 100
@@ -33,7 +33,6 @@ void rndSet(mt19937 & rng, T& mat,double mean, double sigma) {
 #define CLASSCOUNT 3
 #define PROTOSPERCLASS 2
 #endif
-
 
 void EigenBench() {
 	double sink=0;

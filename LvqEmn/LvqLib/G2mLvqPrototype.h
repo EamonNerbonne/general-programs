@@ -32,7 +32,7 @@ public:
 	G2mLvqPrototype(int protoLabel, int thisIndex, VectorXd const & initialVal) 
 		: classLabel(protoLabel)
 		, point(initialVal) 
-	{ 
+	{
 		B.setIdentity();
 	}
 
