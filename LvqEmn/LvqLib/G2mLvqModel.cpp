@@ -119,6 +119,7 @@ void G2mLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel, double 
 	/*/
 	P = P - lr_P * ( (muK2_BjT_Bj_P_vJ * vJ.transpose()).lazy() + (muJ2_BkT_Bk_P_vK * vK.transpose()).lazy()) ;
 	/**/
+	P = 
 	for(int i=0;i<protoCount;i++)
 		prototype[i].ComputePP(P);
 }

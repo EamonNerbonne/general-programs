@@ -34,27 +34,6 @@ template<typename T> void rndSet(mt19937 & rng, T& mat,double mean, double sigma
 #define PROTOSPERCLASS 2
 #endif
 
-void EigenBench() {
-	double sink=0;
-	mt19937 rndGen(37);
-	Matrix<double,2,Eigen::Dynamic> A(2,DIMS);
-	VectorXd tmp(DIMS);
-	Vector2d tmp2;
-	MatrixXd points(DIMS,POINTS);
-	rndSet(rndGen, A, 0, 1.0);
-	rndSet(rndGen, points, 0, 1.0);
-	for(int i=0;i<ITERS;i++) {
-		tmp.setZero();
-		for(int k=0;k<POINTS;k++) {
-			tmp2 = (A * points.col(k)).lazy();
-			tmp += (A.transpose() * tmp2).lazy();
-		}
-		sink += tmp.sum();
-	}
-
-	cout << sink << endl;
-}
-
 unsigned int secure_rand() {
 	unsigned int retval;
 	rand_s(&retval);
@@ -91,7 +70,7 @@ LvqDataSet* ConstructDataSet(mt19937 & rndGen, int numClasses) {
 	return new LvqDataSet(allpoints, trainingLabels, numClasses); //2: 2 classes.
 }
 
-void PrintModelStatus(AbstractLvqModel const * model,LvqDataSet const * dataset, char const * label) {
+void PrintModelStatus(char const * label,AbstractLvqModel const * model,LvqDataSet const * dataset) {
 	using namespace std;
 	cout << label<< ": "<<dataset->ErrorRate(model);
 	if(dynamic_cast<AbstractProjectionLvqModel const*>(model)) 
