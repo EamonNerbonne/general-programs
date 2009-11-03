@@ -179,6 +179,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="BoostMatrixTest.cpp" />
+    <ClCompile Include="DataSetUtils.cpp" />
     <ClCompile Include="G2mLvqModel.cpp" />
     <ClCompile Include="GmLvqModel.cpp" />
     <ClCompile Include="GsmLvqModel.cpp" />
@@ -194,6 +195,7 @@
   <ItemGroup>
     <ClInclude Include="AbstractLvqModel.h" />
     <ClInclude Include="BoostMatrixTest.h" />
+    <ClInclude Include="DataSetUtils.h" />
     <ClInclude Include="G2mLvqMatch.h" />
     <ClInclude Include="G2mLvqModel.h" />
     <ClInclude Include="G2mLvqPrototype.h" />

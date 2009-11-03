@@ -37,24 +37,27 @@ namespace LVQeamon
 		}
 
 		private void textBoxNumberOfSets_TextChanged(object sender, TextChangedEventArgs e) { DataVerifiers.VerifyTextBox((TextBox)sender, DataVerifiers.IsInt32Positive); }
-		private void textBoxPointsPerSet_TextChanged(object sender, TextChangedEventArgs e) { DataVerifiers.VerifyTextBox((TextBox)sender, DataVerifiers.IsInt32Positive); }
-		private void textBoxDims_TextChanged(object sender, TextChangedEventArgs e) { DataVerifiers.VerifyTextBox((TextBox)sender, s => DataVerifiers.IsInt32Positive(s) && Int32.Parse(s) > 2); }
-		private void textBoxEpochs_TextChanged(object sender, TextChangedEventArgs e) { DataVerifiers.VerifyTextBox((TextBox)sender, DataVerifiers.IsInt32Positive); }
-		private void textBoxStddevMeans_TextChanged(object sender, TextChangedEventArgs e) { DataVerifiers.VerifyTextBox((TextBox)sender, DataVerifiers.IsDoublePositive); }
-		private void textBoxProtoCount_TextChanged(object sender, TextChangedEventArgs e) { DataVerifiers.VerifyTextBox((TextBox)sender, DataVerifiers.IsInt32Positive); }
-
 		public int? NumberOfSets { get { return textBoxNumberOfSets.Text.ParseAsInt32(); } }
+
+		private void textBoxPointsPerSet_TextChanged(object sender, TextChangedEventArgs e) { DataVerifiers.VerifyTextBox((TextBox)sender, DataVerifiers.IsInt32Positive); }
 		public int? PointsPerSet { get { return textBoxPointsPerSet.Text.ParseAsInt32(); } }
+
+		private void textBoxDims_TextChanged(object sender, TextChangedEventArgs e) { DataVerifiers.VerifyTextBox((TextBox)sender, s => DataVerifiers.IsInt32Positive(s) && Int32.Parse(s) > 2); }
 		public int? Dimensions { get { return textBoxDims.Text.ParseAsInt32(); } }
+
+		private void textBoxEpochs_TextChanged(object sender, TextChangedEventArgs e) { DataVerifiers.VerifyTextBox((TextBox)sender, DataVerifiers.IsInt32Positive); }
 		public int? EpochsPerClick { get { return textBoxEpochs.Text.ParseAsInt32(); } }
+
+		private void textBoxStddevMeans_TextChanged(object sender, TextChangedEventArgs e) { DataVerifiers.VerifyTextBox((TextBox)sender, DataVerifiers.IsDoublePositive); }
 		public double? StddevMeans { get { return textBoxStddevMeans.Text.ParseAsDouble(); } }
+
+		private void textBoxProtoCount_TextChanged(object sender, TextChangedEventArgs e) { DataVerifiers.VerifyTextBox((TextBox)sender, DataVerifiers.IsInt32Positive); }
 		public int? ProtoCount { get { return textBoxProtoCount.Text.ParseAsInt32(); } }
 
 		private void buttonGeneratePointClouds_Click(object sender, RoutedEventArgs e)
 		{
 			try
 			{
-				//			plotControl.Clear();
 				NiceTimer timer = new NiceTimer(); timer.TimeMark("making point clouds");
 
 				if (!NumberOfSets.HasValue || !PointsPerSet.HasValue)
@@ -95,7 +98,6 @@ namespace LVQeamon
 							if (done == numSets)
 							{
 								timer.TimeMark(null);
-								renderCount = 0;
 								new Thread(() => { StartLvq(pointClouds, protoCount); })
 								{
 									IsBackground = true,
@@ -264,7 +266,6 @@ namespace LVQeamon
 			}));
 		}
 
-		NiceTimer overall;
 		object lvqSync = new object();
 		int[] classBoundaries;
 		bool needUpdate = false;
@@ -277,39 +278,6 @@ namespace LVQeamon
 			textBoxDims.Text = 10.ToString();
 #endif
 			base.OnInitialized(e);
-		}
-
-		volatile int renderCount = 0;
-		bool completedTest = false;
-
-		void DoSizingTest()
-		{
-			if (overall == null)
-			{
-				overall = new NiceTimer();
-				overall.TimeMark("Sizing");
-			}
-			if (Width + Height > 2000)
-			{
-				if (!completedTest)
-				{
-					completedTest = true;
-					overall.TimeMark(null);
-					//Close();
-				}
-			}
-			else
-			{
-				renderCount++;
-				if (renderCount % 2 == 0)
-				{
-					if (Width > Height)
-						Height = Height + 30;
-					else
-						Width = Width + 30;
-				}
-				Dispatcher.BeginInvoke((Action)DoSizingTest);
-			}
 		}
 
 		private void doEpochButton_Click(object sender, RoutedEventArgs e)

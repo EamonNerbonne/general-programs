@@ -4,20 +4,13 @@
 #include "G2mLvqModel.h"
 #include "GsmLvqModel.h"
 #include "GmLvqModel.h"
+#include "DataSetUtils.h"
 
 using boost::mt19937;
 using boost::normal_distribution;
 using boost::variate_generator;
 USING_PART_OF_NAMESPACE_EIGEN
 
-template<typename T> void rndSet(mt19937 & rng, T& mat,double mean, double sigma) {
-	normal_distribution<> distrib(mean,sigma);
-	variate_generator<mt19937&, normal_distribution<> > rndGen(rng, distrib);
-
-	for(int j=0; j<mat.cols(); j++)
-		for(int i=0; i<mat.rows(); i++)
-			mat(i,j) = rndGen();
-}
 
 #define MEANSEP 2.0
 #define DETERMINISTIC_SEED 
@@ -25,8 +18,8 @@ template<typename T> void rndSet(mt19937 & rng, T& mat,double mean, double sigma
 
 #if NDEBUG
 #define DIMS 25
-#define POINTS 10000
-#define ITERS 200
+#define POINTS 1000
+#define ITERS 100
 #define CLASSCOUNT 3
 #define PROTOSPERCLASS 2
 #else
@@ -41,36 +34,6 @@ unsigned int secure_rand() {
 	unsigned int retval;
 	rand_s(&retval);
 	return retval;
-}
-
-MatrixXd MakePointCloud(mt19937 & rndGen, int dims, int pointCount) {
-	MatrixXd P(dims, dims);
-	VectorXd offset(dims);
-
-	MatrixXd points(dims,pointCount);
-
-	rndSet(rndGen, P, 0, 1.0);
-	rndSet(rndGen, points, 0, 1.0);
-	rndSet(rndGen, offset, 0, MEANSEP);
-
-	return P * points + offset * VectorXd::Ones(pointCount).transpose();
-}
-
-
-LvqDataSet* ConstructDataSet(mt19937 & rndGen, int numClasses) {
-	MatrixXd pointsA = MakePointCloud(rndGen, DIMS, POINTS);
-	MatrixXd pointsB = MakePointCloud(rndGen, DIMS, POINTS);
-
-	MatrixXd allpoints(DIMS, numClasses*POINTS);
-	for(int classLabel=0;classLabel < numClasses;classLabel++) {
-		allpoints.block(0,classLabel*POINTS,DIMS,POINTS) = MakePointCloud(rndGen, DIMS, POINTS);;
-	}
-
-	vector<int> trainingLabels(allpoints.cols());
-	for(int i=0; i<(int)trainingLabels.size(); ++i) 
-		trainingLabels[i] = i/POINTS;
-
-	return new LvqDataSet(allpoints, trainingLabels, numClasses); //2: 2 classes.
 }
 
 void PrintModelStatus(char const * label,AbstractLvqModel const * model,LvqDataSet const * dataset) {
@@ -109,9 +72,6 @@ template <class T> void TestModel(mt19937  rndGenOrig, LvqDataSet * dataset, vec
 void EasyLvqTest() {
 	using boost::scoped_ptr;
 
-	int classCount=CLASSCOUNT;
-	int protosPerClass=PROTOSPERCLASS;
-
 	mt19937 rndGen(347);
 	mt19937 rndGen2(37); //347: 50%, 37:
 #ifndef DETERMINISTIC_SEED
@@ -121,13 +81,13 @@ void EasyLvqTest() {
 	rndGen2.seed(secure_rand);
 #endif
 
-	scoped_ptr<LvqDataSet> dataset(ConstructDataSet(rndGen, classCount)); 
+	scoped_ptr<LvqDataSet> dataset(DataSetUtils::ConstructDataSet(rndGen, DIMS, POINTS,CLASSCOUNT,MEANSEP )); 
 
 	vector<int> protoDistrib;
-	for(int i=0;i<classCount;++i)
-		protoDistrib.push_back(protosPerClass);
+	for(int i=0;i<CLASSCOUNT;++i)
+		protoDistrib.push_back(PROTOSPERCLASS);
 
-   //TestModel<GmLvqModel>(rndGen2,  dataset.get(), protoDistrib, (ITERS + DIMS -1)/DIMS);
+   TestModel<GmLvqModel>(rndGen2,  dataset.get(), protoDistrib, (ITERS + DIMS -1)/DIMS);
    TestModel<G2mLvqModel>(rndGen2, dataset.get(), protoDistrib, ITERS);
    TestModel<GsmLvqModel>(rndGen2, dataset.get(), protoDistrib, ITERS);
 }

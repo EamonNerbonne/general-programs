@@ -18,6 +18,9 @@
     <ClCompile Include="BoostMatrixTest.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="DataSetUtils.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="G2mLvqModel.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -42,6 +45,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="BoostMatrixTest.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DataSetUtils.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="G2mLvqMatch.h">

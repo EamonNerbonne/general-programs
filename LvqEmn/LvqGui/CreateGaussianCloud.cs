@@ -43,13 +43,13 @@ namespace LVQeamon
 			double[,] points = new double[numDimensions, numDimensions];
 			for (int i = 0; i < numDimensions; i++) {
 				for (int j = 0; j < numDimensions; j++) {
-					points[i, j] = i == j ? rand.NextDouble0To1() + 0.2 : rand.NextNormal();
+					points[i, j] = rand.NextNormal();
 				}
 			}
 			return points;
 		}
 
-		public static double[] RandomMean(int numDimensions, MersenneTwister rand,double meandev) {
+		public static double[] RandomMean(int numDimensions, MersenneTwister rand, double meandev) {
 			double[] mean = new double[numDimensions];
 			for (int i = 0; i < numDimensions; i++) {
 				mean[i] = meandev * rand.NextNormal();
