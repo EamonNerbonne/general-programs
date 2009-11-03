@@ -75,11 +75,11 @@ namespace EmnExtensions.Wpf.OldGraph
 			}
 			public void ScaleBack(ColorSimple min, ColorSimple max) {
 				if (max.R > min.R) 
-					R = (R - min.R) / (max.R - min.R) ;
+					R = 0.95* (R - min.R) / (max.R - min.R) ;
 				if (max.G > min.G)
-					G = (G - min.G) / (max.G - min.G);
+					G = 0.95 * (G - min.G) / (max.G - min.G);
 				if (max.B > min.B)
-					B = (B - min.B) / (max.B - min.B);
+					B = 0.95 * (B - min.B) / (max.B - min.B);
 			}
 		}
 
