@@ -51,6 +51,17 @@ namespace EmnExtensions.Wpf.Plot
 		public GraphableData GetPlot(int it) {
 			return graphs[it];
 		}
+		public int PlotCount { get { return graphs.Count; } }
+		public void RemovePlot(int indexOfPlot)
+		{
+			GraphableData graph = graphs[indexOfPlot];
+			graph.Changed -= new Action<GraphableData, GraphChangeEffects>(graphChanged);
+			graphs.RemoveAt(indexOfPlot);
+			needRecomputeBounds = true;
+			needRedrawGraphs = true;
+			InvalidateMeasure();
+			InvalidateVisual();
+		}
 		
 		public void Clear() {
 			foreach(var graph in graphs) {
@@ -140,7 +151,7 @@ namespace EmnExtensions.Wpf.Plot
 				foreach (var axis in Axes)
 					if ((axis.AxisPos & gridLineAxes) != TickedAxisLocation.None)
 						drawingContext.DrawDrawing(axis.GridLines);
-			foreach (var graph in graphs)
+			foreach (var graph in graphs.AsEnumerable().Reverse())
 				graph.DrawGraph(drawingContext);
 		}
 
