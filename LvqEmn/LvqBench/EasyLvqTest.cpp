@@ -20,12 +20,15 @@ template<typename T> void rndSet(mt19937 & rng, T& mat,double mean, double sigma
 }
 
 #define MEANSEP 2.0
+#define DETERMINISTIC_SEED 
+//#define DETERMINISTIC_ORDER 
+
 #if NDEBUG
-#define DIMS 40
+#define DIMS 25
 #define POINTS 10000
-#define ITERS 20
-#define CLASSCOUNT 4
-#define PROTOSPERCLASS 4
+#define ITERS 200
+#define CLASSCOUNT 3
+#define PROTOSPERCLASS 2
 #else
 #define DIMS 16
 #define POINTS 100
@@ -111,8 +114,12 @@ void EasyLvqTest() {
 
 	mt19937 rndGen(347);
 	mt19937 rndGen2(37); //347: 50%, 37:
-
-	//rndGen.seed(secure_rand);
+#ifndef DETERMINISTIC_SEED
+	rndGen.seed(secure_rand);
+#endif
+#ifndef DETERMINISTIC_ORDER
+	rndGen2.seed(secure_rand);
+#endif
 
 	scoped_ptr<LvqDataSet> dataset(ConstructDataSet(rndGen, classCount)); 
 
