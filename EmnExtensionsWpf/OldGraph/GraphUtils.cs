@@ -238,10 +238,11 @@ namespace EmnExtensions.Wpf
 		public static uint ToNativeColor(this Color colorstruct) {
 			return ((uint)colorstruct.A << 24) | ((uint)colorstruct.R << 16) | ((uint)colorstruct.G << 8) | ((uint)colorstruct.B);
 		}
-		public static BitmapSource MakeColormappedBitmap(double[,] image, Func<double, Color> colormap) {
+		
+		public static BitmapSource MakeColormappedBitmap<T>(T[,] image, Func<T, Color> colormap) {
 			return MakeColormappedBitmap(image, colormap, 1);
 		}
-		public static BitmapSource MakeColormappedBitmap(double[,] image, Func<double, Color> colormap, int sampleFactor) {
+		public static BitmapSource MakeColormappedBitmap<T>(T[,] image, Func<T, Color> colormap, int sampleFactor) {
 			int w = image.GetLength(1) * sampleFactor, h = image.GetLength(0) * sampleFactor;
 			uint[] inlinearray = new uint[w * h];
 			int i = 0;
