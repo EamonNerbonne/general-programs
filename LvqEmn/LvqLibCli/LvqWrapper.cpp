@@ -25,24 +25,16 @@ namespace LVQCppCli {
 
 		return points;
 	}
-	//MatrixXd arrayToMatrix(array<double,2>^ points) {
-	//	MatrixXd nPoints(points->GetLength(1), points->GetLength(0));
-	//	for(int i=0; i<points->GetLength(0); ++i)
-	//		for(int j=0; j<points->GetLength(1); ++j)
-	//			nPoints(j,i) = points[i, j];
 
-	//	return nPoints;
-	//}
+	template<typename T, int rowsDEF, int colsDEF>
+	array<T,2>^ matrixToArrayNOFLIP(Matrix<T,rowsDEF,colsDEF>  const & matrix) {
+		array<T,2>^ points = gcnew array<T,2>(matrix.rows(),matrix.cols());
+		for(int i=0; i<points->GetLength(0); ++i)
+			for(int j=0; j<points->GetLength(1); ++j)
+				points[i, j] = matrix(i,j);
 
-	//array<double,2>^ matrixToArray(MatrixXd  const & matrix) {
-	//	array<double,2>^ points = gcnew array<double,2>(matrix.cols(),matrix.rows());
-	//	for(int i=0; i<points->GetLength(0); ++i)
-	//		for(int j=0; j<points->GetLength(1); ++j)
-	//			points[i, j] = matrix(j,i);
-
-	//	return points;
-	//}
-
+		return points;
+	}
 
 	LvqWrapper::LvqWrapper(array<double,2>^ points, array<int>^ pointLabels, int classCount,int protosPerClass)
 		: dataset(NULL)
@@ -74,7 +66,7 @@ namespace LVQCppCli {
 	array<int,2>^ LvqWrapper::ClassBoundaries(double x0, double x1, double y0, double y1,int xCols, int yRows) {
 		MatrixXi classDiagram(yRows,xCols);
 		model->ClassBoundaryDiagram(x0,x1,y0,y1,classDiagram);
-		return matrixToArray(classDiagram);
+		return matrixToArrayNOFLIP(classDiagram);
 	}
 
 }
