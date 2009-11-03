@@ -110,6 +110,11 @@ void G2mLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel) {
 	Matrix2d dQdBk = (muJ2_Bk_P_vK * P_vK.transpose()).lazy();
 	J->B = J->B - lr_B * dQdBj ;
 	K->B = K->B - lr_B * dQdBk ;
+	//double jBnormScale =1.0 / ( (J->B.transpose() * J->B).lazy().diagonal().sum());
+	//J->B *= jBnormScale;
+	//double kBnormScale =1.0 / ( (K->B.transpose() * K->B).lazy().diagonal().sum());
+	//K->B *= kBnormScale;
+
 	/*/
 	J->B = J->B - lr_B * (muK2_Bj_P_vJ * P_vJ.transpose()).lazy();
 	K->B = K->B - lr_B * (muJ2_Bk_P_vK * P_vK.transpose()).lazy();
@@ -147,7 +152,7 @@ void G2mLvqModel::ClassBoundaryDiagram(double x0, double x1, double y0, double y
 		for(int yRow=0;  yRow < rows;  yRow++) {
 			double y = y0+(y1-y0) * (yRow+0.5) / rows;
 			Vector2d vec(x,y);
-			classDiagram(yRow,xCol) = classifyProjectedInternal(vec);
+			classDiagram(yRow, xCol) = classifyProjectedInternal(vec);
 		}
 	}
 }
