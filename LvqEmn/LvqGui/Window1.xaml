@@ -8,16 +8,19 @@
     <Grid>
 		<Grid.RowDefinitions>
 			<RowDefinition Height="Auto" />
-			<RowDefinition Height="1*" />
-			<RowDefinition Height="Auto" MinHeight="46" />
+			<RowDefinition Height="1*" MinHeight="46" />
 		</Grid.RowDefinitions>
 		<Grid.ColumnDefinitions>
 			<ColumnDefinition Width="60*" />
 			<ColumnDefinition Width="40*" />
 		</Grid.ColumnDefinitions>
-		<!--<emnOldGraph:PlotControl Name="plotControl" Grid.RowSpan="3"/>-->
-		<emnPlot:PlotControl Name="plotControl" Grid.RowSpan="3"  />
-		<Grid Grid.Column="1" Margin="12" Name="grid1">
+		<emnPlot:PlotControl Name="plotControl" Grid.RowSpan="2"  />
+        
+        <StackPanel Grid.Row="0" Grid.Column="1" >
+            
+            <CheckBox Margin="2" Content="Full Screen" Name="checkBoxFullScreen" Checked="checkBoxFullScreen_Checked" Unchecked="checkBoxFullScreen_Unchecked"/>
+            <CheckBox Margin="2" Content="Show Grid" Name="checkBoxShowGrid"  Checked="checkBoxShowGridChanged" Unchecked="checkBoxShowGridChanged"/>
+            <Grid Margin="12" >
 			<Grid.ColumnDefinitions>
 				<ColumnDefinition Width="Auto" />
 				<ColumnDefinition Width="121.353*" />
@@ -31,27 +34,41 @@
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
-			
-			<Label  Margin="2" Name="label1" HorizontalAlignment="Right">Number of Sets</Label>
-			<TextBox Grid.Column="1" Margin="2" Name="textBoxNumberOfSets" TextChanged="textBoxNumberOfSets_TextChanged" Text="4" />
-			<Label Grid.Row="1"  HorizontalAlignment="Right" Margin="2" Name="label2">Points per Set</Label>
-			<TextBox  Grid.Row="1" Grid.Column="1"  Margin="2" Name="textBoxPointsPerSet" TextChanged="textBoxPointsPerSet_TextChanged"  Text="2000" />
-            <Label Grid.Row="2" Content="Show Grid" HorizontalAlignment="Right" Margin="2" Name="label3" />
-            <CheckBox Grid.Row="2" Grid.Column="1" HorizontalAlignment="Left" Margin="2" Name="checkBox1" VerticalAlignment="Center" Checked="checkBox1Changed" Unchecked="checkBox1Changed" IsChecked="True"/>
-            <Label Grid.Row="3"  HorizontalAlignment="Right" Margin="2">Dimensions</Label>
-            <TextBox Grid.Row="3"  Grid.Column="1"  Margin="2" Name="textBoxDims" TextChanged="textBoxDims_TextChanged"  Text="50" />
-            <Label Grid.Row="4"  HorizontalAlignment="Right" Margin="2">Epochs per Click</Label>
-            <TextBox Grid.Row="4"  Grid.Column="1"  Margin="2" Name="textBoxEpochs" TextChanged="textBoxEpochs_TextChanged"  Text="10" />
-            <Label Grid.Row="5"  HorizontalAlignment="Right" Margin="2">Std-dev of means</Label>
-            <TextBox Grid.Row="5"  Grid.Column="1"  Margin="2" Name="textBoxStddevMeans" TextChanged="textBoxStddevMeans_TextChanged"  Text="3" />
-            <Label Grid.Row="6"  HorizontalAlignment="Right" Margin="2">Prototypes-per-class</Label>
-            <TextBox Grid.Row="6"  Grid.Column="1"  Margin="2" Name="textBoxProtoCount" TextChanged="textBoxProtoCount_TextChanged"  Text="3" />
+
+            <Label Grid.Row="0"  HorizontalAlignment="Right" Margin="2">Dimensions</Label>
+            <TextBox Grid.Row="0"  Grid.Column="1"  Margin="2" Name="textBoxDims" TextChanged="textBoxDims_TextChanged"  Text="50" />
+            
+            <Label Grid.Row="1"    Margin="2" Name="label1" HorizontalAlignment="Right">Number of Sets</Label>
+			<TextBox Grid.Row="1"  Grid.Column="1" Margin="2" Name="textBoxNumberOfSets" TextChanged="textBoxNumberOfSets_TextChanged" Text="4" />
+
+            <Label Grid.Row="2"  HorizontalAlignment="Right" Margin="2">Std-dev of cloud centers</Label>
+            <TextBox Grid.Row="2"  Grid.Column="1"  Margin="2" Name="textBoxStddevMeans" TextChanged="textBoxStddevMeans_TextChanged"  Text="3" />
+            
+            <Label Grid.Row="3"  HorizontalAlignment="Right" Margin="2" Name="label2">Points per cloud</Label>
+			<TextBox  Grid.Row="3" Grid.Column="1"  Margin="2" Name="textBoxPointsPerSet" TextChanged="textBoxPointsPerSet_TextChanged"  Text="2000" />
+
+            <Label Grid.Row="4"  HorizontalAlignment="Right" Margin="2">Prototypes per class</Label>
+            <TextBox Grid.Row="4"  Grid.Column="1"  Margin="2" Name="textBoxProtoCount" TextChanged="textBoxProtoCount_TextChanged"  Text="3" />
+
+            <Button  Grid.Row="5" Grid.Column="0" Grid.ColumnSpan="2" Margin="2" Name="buttonGeneratePointClouds" HorizontalAlignment="Right" Click="buttonGeneratePointClouds_Click">Generate Point Clouds</Button>
         </Grid>
-		<emn:LogControl Name="logControl" ClaimStandardOut="True" ClaimStandardError="True" Grid.Column="1" Grid.Row="1"/>
-		<GridSplitter Grid.Column="1" HorizontalAlignment="Left" VerticalAlignment="Stretch" Width="2"  Grid.RowSpan="3" ResizeDirection="Columns"/>
-		<Button Grid.Column="1" Grid.Row="2" Margin="12" Name="buttonGeneratePointClouds" HorizontalAlignment="Right" Click="buttonGeneratePointClouds_Click">Generate Point Clouds</Button>
-        <Button Content="DoEpoch" Grid.Column="1" Grid.Row="2" HorizontalAlignment="Left" Margin="12" Name="doEpochButton" Click="doEpochButton_Click" />
-        <CheckBox Content="FullScreen" Grid.Column="1" Grid.Row="2" Height="16" HorizontalAlignment="Left" Margin="72,18,0,0" Name="checkBox2" VerticalAlignment="Top" Checked="checkBox2_Checked" Unchecked="checkBox2_Unchecked"/>
-        <!--<Button Grid.Column="1" Grid.Row="2" Height="23" HorizontalAlignment="Left" Margin="6,12,0,0" Name="buttonAddPoints" VerticalAlignment="Top" Padding="10 0" Click="buttonAddPoints_Click">Add a few points</Button>-->
+        <Grid Grid.Row="1" Grid.Column="1" Margin="12" >
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="121.353*" />
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+            <Label Grid.Row="0"  HorizontalAlignment="Right" Margin="2">Epochs per Click</Label>
+            <TextBox Grid.Row="0"  Grid.Column="1"  Margin="2" Name="textBoxEpochs" TextChanged="textBoxEpochs_TextChanged"  Text="10" />
+            
+            <Button Grid.Row="1" Grid.ColumnSpan="2" Content="DoEpoch"  HorizontalAlignment="Right" Margin="2" Name="doEpochButton" Click="doEpochButton_Click" />
+
+            </Grid>
+        </StackPanel>
+		<emn:LogControl  Grid.Column="1" Grid.Row="1" Name="logControl" ClaimStandardOut="True" ClaimStandardError="True"/>
+		<GridSplitter Grid.Column="1" Grid.RowSpan="2" HorizontalAlignment="Left" VerticalAlignment="Stretch" Width="2"  ResizeDirection="Columns"/>
 	</Grid>
 </Window>

@@ -96,7 +96,7 @@ namespace LVQeamon
 							{
 								timer.TimeMark(null);
 								renderCount = 0;
-								new Thread(() => { StartLvq(pointClouds,protoCount); })
+								new Thread(() => { StartLvq(pointClouds, protoCount); })
 								{
 									IsBackground = true,
 								}.Start();
@@ -113,7 +113,7 @@ namespace LVQeamon
 			}
 		}
 
-		private void StartLvq(List<double[,]> pointClouds,int protoCount)
+		private void StartLvq(List<double[,]> pointClouds, int protoCount)
 		{
 			int DIMS = pointClouds[0].GetLength(1);
 			double[,] allpoints = new double[pointClouds.Sum(pc => pc.GetLength(0)), DIMS];
@@ -148,6 +148,7 @@ namespace LVQeamon
 		private void UpdateDisplay()
 		{
 			double[,] currPoints = null;
+			int[,] closestClass = null;
 			lock (lvqSync)
 			{
 				if (!needUpdate) return;
@@ -157,6 +158,7 @@ namespace LVQeamon
 			{
 				lock (lvqSync)
 					needUpdate = false;
+				Rect bounds = Rect.Empty;
 				for (int i = 0; i < classBoundaries.Length - 1; i++)
 				{
 
@@ -165,52 +167,98 @@ namespace LVQeamon
 
 					//Console.WriteLine("Points in graph " + i + ": " + pointsIter.Count());
 
-#if USEGEOMPLOT
-					((GraphableGeometry)plotControl.GetPlot(i)).Geometry = GraphUtils.PointCloud(pointsIter);
-#else
-					((GraphablePixelScatterPlot)plotControl.GetPlot(i)).Points = pointsIter.ToArray();
-#endif
+					if (plotControl.GetPlot(i) is GraphableGeometry)
+						((GraphableGeometry)plotControl.GetPlot(i)).Geometry = GraphUtils.PointCloud(pointsIter);
+					else
+						((GraphablePixelScatterPlot)plotControl.GetPlot(i)).Points = pointsIter.ToArray();
+					bounds = Rect.Union(plotControl.GetPlot(i).DataBounds, bounds);
+				}
+				lock (lvqSync)
+				{
+					double width = plotControl.ActualWidth, height = plotControl.ActualHeight;
+					closestClass = lvqImpl.ClassBoundaries(bounds.Left, bounds.Right, bounds.Top, bounds.Bottom, (int)Math.Ceiling(width), (int)Math.Ceiling(height));
+					if (plotControl.PlotCount > classBoundaries.Length - 1)
+					{
+						plotControl.RemovePlot(classBoundaries.Length - 1);
+					}
+					Color[] colors = Enumerable.Range(0, plotControl.PlotCount)
+						.Select(i => plotControl.GetPlot(i))
+						.Select(graph => graph is GraphablePixelScatterPlot ? ((GraphablePixelScatterPlot)graph).PointColor : ((SolidColorBrush)((GraphableGeometry)graph).Pen.Brush).Color)
+						.Select(c => { c.ScA = 0.1f; return c; })
+						.Concat(Enumerable.Repeat(Color.FromRgb(0, 0, 0), 1))
+						.ToArray();
+					var edges = new List<Tuple<int, int>>();
+					for (int y = 1; y < closestClass.GetLength(0) - 1; y++)
+						for (int x = 1; x < closestClass.GetLength(1) - 1; x++)
+						{
+							if (false
+								//								closestClass[y, x] != closestClass[y + 1, x + 1]
+								|| closestClass[y, x] != closestClass[y + 1, x]
+								//							|| closestClass[y, x] != closestClass[y + 1, x - 1]
+								|| closestClass[y, x] != closestClass[y, x + 1]
+								|| closestClass[y, x] != closestClass[y, x - 1]
+								//						|| closestClass[y, x] != closestClass[y - 1, x + 1]
+								|| closestClass[y, x] != closestClass[y - 1, x]
+								//					|| closestClass[y, x] != closestClass[y - 1, x - 1]
+								)
+								edges.Add(Tuple.Create(y, x));
+						}
+					foreach (var coord in edges)
+						closestClass[coord.Item1, coord.Item2] = colors.Length - 1;
 
+					plotControl.AddPlot(
+						new GraphableBitmap
+						{
+							Bitmap = GraphUtils.MakeColormappedBitmap(closestClass, cLabel => colors[cLabel]),
+							InnerDataBounds = bounds,
+							XUnitLabel = "X axis",
+							YUnitLabel = "Y axis",
+						}
+						);
 				}
 			}));
 		}
 
 		private void SetupDisplay(int numClasses, int pointsPerSetEstimate)
 		{
-			double thickness = 30.0 / (1 + Math.Log(Math.Max(pointsPerSetEstimate * numClasses, 1)));
+			double thickness = 40.0 / (1 + Math.Log(Math.Max(pointsPerSetEstimate * numClasses, 1)));
 			var linecap = thickness > 3 ? PenLineCap.Round : PenLineCap.Square;
 			if (thickness <= 3) thickness *= 0.75;
-
+			bool useGeom = numClasses * pointsPerSetEstimate < 20000;
 			Dispatcher.BeginInvoke((Action)(() =>
 			{
 				plotControl.Clear();
 				Color[] plotcolors = GraphRandomPen.MakeDistributedColors(numClasses);
 				for (int i = 0; i < numClasses; i++)
 				{
-#if USEGEOMPLOT
-					Pen pen = new Pen {
-						Brush = new SolidColorBrush(plotcolors[i]),
-						EndLineCap = linecap,
-						StartLineCap = linecap,
-						Thickness = thickness,
-					};
-					pen.Freeze();
-					plotControl.AddPlot(new GraphableGeometry { Geometry = GraphUtils.PointCloud(Enumerable.Empty<Point>()), Pen = pen, XUnitLabel = "X axis", YUnitLabel = "Y axis" });
-#else
-					plotControl.AddPlot(
-						new GraphablePixelScatterPlot
+					if (useGeom)
+					{
+						Pen pen = new Pen
 						{
-							PointColor = F.Create<Color, Color>((c) => { c.ScA = 0.5f; return c; })(plotcolors[i]),
-							XUnitLabel = "X axis",
-							YUnitLabel = "Y axis",
-							DpiX = 96.0,
-							DpiY = 96.0,
-							BitmapScalingMode = BitmapScalingMode.NearestNeighbor,
-							CoverageRatio = 0.999,
-							UseDiamondPoints = true,
-							Points = new Point[] { },
-						});
-#endif
+							Brush = new SolidColorBrush(plotcolors[i]),
+							EndLineCap = linecap,
+							StartLineCap = linecap,
+							Thickness = thickness,
+						};
+						pen.Freeze();
+						plotControl.AddPlot(new GraphableGeometry { Geometry = GraphUtils.PointCloud(Enumerable.Empty<Point>()), Pen = pen, XUnitLabel = "X axis", YUnitLabel = "Y axis" });
+					}
+					else
+					{
+						plotControl.AddPlot(
+							new GraphablePixelScatterPlot
+							{
+								PointColor = F.Create<Color, Color>((c) => { c.ScA = 0.7f; return c; })(plotcolors[i]),
+								XUnitLabel = "X axis",
+								YUnitLabel = "Y axis",
+								DpiX = 96.0,
+								DpiY = 96.0,
+								BitmapScalingMode = BitmapScalingMode.NearestNeighbor,
+								CoverageRatio = 0.999,
+								UseDiamondPoints = true,
+								Points = new Point[] { },
+							});
+					}
 				}
 
 			}));
@@ -264,11 +312,6 @@ namespace LVQeamon
 			}
 		}
 
-		private void checkBox1Changed(object sender, RoutedEventArgs e)
-		{
-			plotControl.ShowGridLines = checkBox1.IsChecked ?? plotControl.ShowGridLines;
-		}
-
 		private void doEpochButton_Click(object sender, RoutedEventArgs e)
 		{
 			int epochsTodo = EpochsPerClick ?? 1;
@@ -284,7 +327,9 @@ namespace LVQeamon
 			});
 		}
 
-		private void checkBox2_Checked(object sender, RoutedEventArgs e)
+		private void checkBoxShowGridChanged(object o, RoutedEventArgs e) { plotControl.ShowGridLines = checkBoxShowGrid.IsChecked ?? plotControl.ShowGridLines; }
+
+		private void checkBoxFullScreen_Checked(object sender, RoutedEventArgs e)
 		{
 			this.WindowState = WindowState.Normal;
 			this.WindowStyle = WindowStyle.None;
@@ -292,12 +337,11 @@ namespace LVQeamon
 			this.WindowState = WindowState.Maximized;
 		}
 
-		private void checkBox2_Unchecked(object sender, RoutedEventArgs e)
+		private void checkBoxFullScreen_Unchecked(object sender, RoutedEventArgs e)
 		{
 			this.Topmost = false;
 			this.WindowStyle = WindowStyle.SingleBorderWindow;
 			this.WindowState = WindowState.Normal;
 		}
-
 	}
 }
