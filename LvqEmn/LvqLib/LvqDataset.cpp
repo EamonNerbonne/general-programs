@@ -44,11 +44,8 @@ void LvqDataSet::TrainModel(int epochs, boost::mt19937 & randGen, AbstractLvqMod
 		for(int tI=0; tI<(int)trainPointLabels.size(); ++tI) {
 			int pointIndex = ordering[tI];
 			int pointClass = trainPointLabels[pointIndex];
-			double baseLR = std::pow(model->trainIter*lrIterScale*0.001 + 1.0, - 0.51); 
-			double overallLR = baseLR * 0.2;//  / trainClassFrequency[pointClass] * sqrt(double(trainPointLabels.size()));
 			new_point = trainPoints.col(pointIndex);
-			model->learnFrom(new_point, pointClass, overallLR);
-			model->trainIter++;
+			model->learnFrom(new_point, pointClass);
 		}
 	}
 }

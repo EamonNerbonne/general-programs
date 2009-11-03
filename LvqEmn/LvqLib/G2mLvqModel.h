@@ -20,17 +20,19 @@ class G2mLvqModel : public AbstractProjectionLvqModel
 	PMatrix dQdP;
 
 	//struct trialStruct { trialStruct() {std::cout<<"trialStruct();\n";} ~trialStruct() {std::cout<<"~trialStruct();\n";}	} hidden;
+	inline int classifyProjectedInternal(Vector2d const & unknownProjectedPoint) const;
 	
 public:
 	virtual double iterationScaleFactor() const {return 1.0/protoCount;}
-	virtual double projectionNorm() const { return (P.transpose() * P).lazy().diagonal().squaredNorm() ;}
+	virtual double projectionNorm() const { return (P.transpose() * P).lazy().diagonal().sum() ;}
 
 	PMatrix const & getProjection() const {return P; }
 	G2mLvqPrototype const * Prototypes() const {return prototype.get();}
 
 	G2mLvqModel(std::vector<int> protodistribution, MatrixXd const & means);
-	int classify(VectorXd const & unknownPoint) const; //tmp must be just as large as unknownPoint, this is a malloc/free avoiding optimization.
-	void learnFrom(VectorXd const & newPoint, int classLabel, double learningRate);//tmp must be just as large as unknownPoint, this is a malloc/free avoiding optimization.
-	virtual void ClassBoundaryDiagram(double x0, double x1, double y0, double y1, MatrixXi & classDiagram);
+	int classify(VectorXd const & unknownPoint) const;
+	int classifyProjected(Vector2d const & unknownProjectedPoint) const {return classifyProjectedInternal(unknownProjectedPoint);}
+	void learnFrom(VectorXd const & newPoint, int classLabel);
+	virtual void ClassBoundaryDiagram(double x0, double x1, double y0, double y1, MatrixXi & classDiagram) const;
 };
 

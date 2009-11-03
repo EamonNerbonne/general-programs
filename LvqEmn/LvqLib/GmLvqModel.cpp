@@ -82,8 +82,10 @@ GmLvqModel::GoodBadMatch GmLvqModel::findMatches(VectorXd const & trainPoint, in
 	return match;
 }
 
-void GmLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel, double learningRate) {
-	
+void GmLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel) {
+	double learningRate = getLearningRate();
+	incLearningIterationCount();
+
 	using namespace std;
 
 	double lr_point = learningRate,

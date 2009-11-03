@@ -58,6 +58,22 @@ int GsmLvqModel::classify(VectorXd const & unknownPoint) const{
 	return this->pLabel(match);
 }
 
+int GsmLvqModel::classifyProjectedInternal(Vector2d const & P_otherPoint) const{
+	using namespace std;
+	double distance(std::numeric_limits<double>::infinity());
+	int match(-1);
+
+	for(int i=0;i<pLabel.size();i++) {
+		double curDist = SqrDistanceTo(i, P_otherPoint);
+		if(curDist < distance) {
+			match=i;
+			distance = curDist;
+		}
+	}
+	assert( match >= 0 );
+	return this->pLabel(match);
+}
+
 
 GsmLvqModel::GoodBadMatch GsmLvqModel::findMatches(Vector2d const & P_trainPoint, int trainLabel) {
 	GoodBadMatch match;
@@ -81,7 +97,10 @@ GsmLvqModel::GoodBadMatch GsmLvqModel::findMatches(Vector2d const & P_trainPoint
 	return match;
 }
 
-void GsmLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel, double learningRate) {
+void GsmLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel) {
+	double learningRate = getLearningRate();
+	incLearningIterationCount();
+
 	using namespace std;
 
 	double lr_point = learningRate,
@@ -116,19 +135,23 @@ void GsmLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel, double 
 
 	dQdP = (muK2_P_vJ * vJ.transpose()).lazy() + (muJ2_P_vK * vK.transpose()).lazy(); //differential wrt. global projection matrix.
 	P -= lr_P * dQdP;
+	
+	double pNormScale =1.0 / ( (P.transpose() * P).lazy().diagonal().sum());
+	P *= pNormScale;
 
 	for(int i=0;i<pLabel.size();++i)
 		RecomputeProjection(i);
 }
 
-void GsmLvqModel::ClassBoundaryDiagram(double x0, double x1, double y0, double y1, MatrixXi & classDiagram) {
+void GsmLvqModel::ClassBoundaryDiagram(double x0, double x1, double y0, double y1, MatrixXi & classDiagram) const {
 	int cols = classDiagram.cols();
 	int rows = classDiagram.rows();
 	for(int xCol=0;  xCol < cols;  xCol++) {
 		double x = x0 + (x1-x0) * (xCol+0.5) / cols;
 		for(int yRow=0;  yRow < rows;  yRow++) {
 			double y = y0+(y1-y0) * (yRow+0.5) / rows;
-
+			Vector2d vec(x,y);
+			classDiagram(yRow,xCol) = classifyProjectedInternal(vec);
 		}
 	}
 }

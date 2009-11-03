@@ -6,7 +6,7 @@
 G2mLvqModel::G2mLvqModel(std::vector<int> protodistribution, MatrixXd const & means) 
 	: classCount((int)protodistribution.size())
 	, lr_scale_P(0.1)
-	, lr_scale_B(0.01)
+	, lr_scale_B(0.1)
 	, P(2,means.rows())
 	, vJ(means.rows())
 	, vK(means.rows())
@@ -44,9 +44,22 @@ int G2mLvqModel::classify(VectorXd const & unknownPoint) const{
 	return matches.match->ClassLabel();
 }
 
-
-void G2mLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel, double learningRate) {
+int G2mLvqModel::classifyProjectedInternal(Vector2d const & P_unknownPoint) const{
 	using namespace std;
+	G2mLvqMatch matches(&P_unknownPoint);
+
+	for(int i=0;i<protoCount;i++)
+		matches.AccumulateMatch(prototype[i]);
+
+	assert(matches.match != NULL);
+	return matches.match->ClassLabel();
+}
+
+
+void G2mLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel) {
+	using namespace std;
+	double learningRate = getLearningRate();
+	incLearningIterationCount();
 
 	double lr_point = learningRate,
 		lr_P = learningRate * this->lr_scale_P,
@@ -119,18 +132,22 @@ void G2mLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel, double 
 	/*/
 	P = P - lr_P * ( (muK2_BjT_Bj_P_vJ * vJ.transpose()).lazy() + (muJ2_BkT_Bk_P_vK * vK.transpose()).lazy()) ;
 	/**/
-	P = 
+	double pNormScale =1.0 / ( (P.transpose() * P).lazy().diagonal().sum());
+	P *= pNormScale;
+
 	for(int i=0;i<protoCount;i++)
 		prototype[i].ComputePP(P);
 }
 
-void G2mLvqModel::ClassBoundaryDiagram(double x0, double x1, double y0, double y1, MatrixXi & classDiagram) {
+void G2mLvqModel::ClassBoundaryDiagram(double x0, double x1, double y0, double y1, MatrixXi & classDiagram) const {
 	int cols = classDiagram.cols();
 	int rows = classDiagram.rows();
 	for(int xCol=0;  xCol < cols;  xCol++) {
 		double x = x0 + (x1-x0) * (xCol+0.5) / cols;
 		for(int yRow=0;  yRow < rows;  yRow++) {
 			double y = y0+(y1-y0) * (yRow+0.5) / rows;
+			Vector2d vec(x,y);
+			classDiagram(yRow,xCol) = classifyProjectedInternal(vec);
 		}
 	}
 }
