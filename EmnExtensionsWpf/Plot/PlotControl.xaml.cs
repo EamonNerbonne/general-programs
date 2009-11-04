@@ -58,7 +58,7 @@ namespace EmnExtensions.Wpf.Plot
 
 		void graphs_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
 		{
-			if(e.OldItems!=null)
+			if (e.OldItems != null)
 				UnregisterChanged(e.OldItems.Cast<GraphableData>());
 			if (e.NewItems != null)
 				RegisterChanged(e.NewItems.Cast<GraphableData>());
@@ -94,9 +94,7 @@ namespace EmnExtensions.Wpf.Plot
 		{
 			set
 			{
-				if (value.HasValue)
-					foreach (var axis in Axes)
-						axis.AttemptBorderTicks = value.Value;
+				if (value.HasValue) foreach (var axis in Axes) axis.AttemptBorderTicks = value.Value;
 			}
 			get
 			{
@@ -123,9 +121,7 @@ namespace EmnExtensions.Wpf.Plot
 
 		private void RecomputeBounds()
 		{
-#if TRACE
-			Console.WriteLine("RecomputeBounds");
-#endif
+			Trace.WriteLine("RecomputeBounds");
 			foreach (TickedAxis axis in Axes)
 			{
 				var boundGraphs = graphs.Where(graph => (graph.AxisBindings & axis.AxisPos) != TickedAxisLocation.None);
@@ -148,9 +144,7 @@ namespace EmnExtensions.Wpf.Plot
 
 		private void RedrawGraphs(TickedAxisLocation gridLineAxes)
 		{
-#if TRACE
-			Console.WriteLine("Redrawing Graphs");
-#endif
+			Trace.WriteLine("Redrawing Graphs");
 			using (var drawingContext = dg.Open())
 				RedrawScene(drawingContext, gridLineAxes);
 			needRedrawGraphs = false;
