@@ -22,6 +22,7 @@ namespace EmnExtensions.Wpf.Plot
 		public Rect DataBounds { get { return m_DataBounds; } set { if (m_DataBounds != value) { m_DataBounds = value; OnChange(GraphChangeEffects.GraphProjection); } } }
 		public Thickness Margin { get { return m_Margin; } set { if (m_Margin != value) { m_Margin = value; OnChange(GraphChangeEffects.GraphProjection); } } }
 		public TickedAxisLocation AxisBindings { get { return m_axisBindings; } set { if (m_axisBindings != value) { m_axisBindings = value; OnChange(GraphChangeEffects.GraphProjection); } } }
+		public object Tag { get; set; }
 
 		protected void OnChange(GraphChangeEffects changeType) {
 			var handler = Changed;
