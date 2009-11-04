@@ -92,10 +92,7 @@ namespace EmnExtensions.Wpf.Plot
 
 		public bool? AttemptBorderTicks
 		{
-			set
-			{
-				if (value.HasValue) foreach (var axis in Axes) axis.AttemptBorderTicks = value.Value;
-			}
+			set { if (value.HasValue) foreach (var axis in Axes) axis.AttemptBorderTicks = value.Value; }
 			get
 			{
 				bool[] vals = Axes.Select(axis => axis.AttemptBorderTicks).Distinct().ToArray();
@@ -171,9 +168,7 @@ namespace EmnExtensions.Wpf.Plot
 
 		protected override void OnRender(DrawingContext drawingContext)
 		{
-#if TRACE
-			Console.WriteLine("PlotControl.OnRender");
-#endif
+			Trace.WriteLine("PlotControl.OnRender");
 
 			//axes which influence projection matrices:
 			TickedAxisLocation relevantAxes = graphs.Aggregate(TickedAxisLocation.None, (axisLoc, graph) => axisLoc | ChooseProjection(graph));

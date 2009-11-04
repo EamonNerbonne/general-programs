@@ -146,6 +146,7 @@
     <Compile Include="Plot\GraphableBitmap.cs" />
     <Compile Include="Plot\GraphableData.cs" />
     <Compile Include="Plot\GraphableDrawing.cs" />
+    <Compile Include="Plot\GraphableResizeableBitmap.cs" />
     <Compile Include="Plot\GraphableGeometry.cs" />
     <Compile Include="Plot\GraphablePixelScatterPlot.cs" />
     <Compile Include="Plot\GraphChangeEffects.cs" />

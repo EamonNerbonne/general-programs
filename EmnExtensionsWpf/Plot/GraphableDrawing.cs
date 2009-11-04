@@ -30,7 +30,6 @@ namespace EmnExtensions.Wpf.Plot
 			}
 		}
 
-
 		public override sealed void SetTransform(Matrix dataToDisplay, Rect displayClip) {
 			m_drawingToDisplay.Matrix = GraphUtils.TransformShape(DrawingRect, DataBounds, false) * dataToDisplay;
 		}
