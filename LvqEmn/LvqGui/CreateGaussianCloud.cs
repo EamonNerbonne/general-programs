@@ -43,7 +43,7 @@ namespace LVQeamon
 			double[,] points = new double[numDimensions, numDimensions];
 			for (int i = 0; i < numDimensions; i++) {
 				for (int j = 0; j < numDimensions; j++) {
-					points[i, j] = rand.NextNormal();
+					points[i, j] = Math.Pow( rand.NextNormal(),2);
 				}
 			}
 			return points;

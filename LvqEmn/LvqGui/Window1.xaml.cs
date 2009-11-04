@@ -169,22 +169,23 @@ namespace LVQeamon
 
 					//Console.WriteLine("Points in graph " + i + ": " + pointsIter.Count());
 
-					if (plotControl.GetPlot(i) is GraphableGeometry)
-						((GraphableGeometry)plotControl.GetPlot(i)).Geometry = GraphUtils.PointCloud(pointsIter);
+					if (plotControl.Graphs[i] is GraphableGeometry)
+						((GraphableGeometry)plotControl.Graphs[i]).Geometry = GraphUtils.PointCloud(pointsIter);
 					else
-						((GraphablePixelScatterPlot)plotControl.GetPlot(i)).Points = pointsIter.ToArray();
-					bounds = Rect.Union(plotControl.GetPlot(i).DataBounds, bounds);
+						((GraphablePixelScatterPlot)plotControl.Graphs[i]).Points = pointsIter.ToArray();
+					bounds = Rect.Union(plotControl.Graphs[i].DataBounds, bounds);
 				}
 				lock (lvqSync)
 				{
 					double width = plotControl.ActualWidth, height = plotControl.ActualHeight;
 					closestClass = lvqImpl.ClassBoundaries(bounds.Left, bounds.Right, bounds.Top, bounds.Bottom, (int)Math.Ceiling(width), (int)Math.Ceiling(height));
-					if (plotControl.PlotCount > classBoundaries.Length - 1)
+					if (plotControl.Graphs.Count > classBoundaries.Length - 1)
 					{
-						plotControl.RemovePlot(classBoundaries.Length - 1);
+						plotControl.Graphs.RemoveAt(classBoundaries.Length - 1);
 					}
-					Color[] colors = Enumerable.Range(0, plotControl.PlotCount)
-						.Select(i => plotControl.GetPlot(i))
+					
+					Color[] colors = Enumerable.Range(0, plotControl.Graphs.Count)
+						.Select(i => plotControl.Graphs[i])
 						.Select(graph => graph is GraphablePixelScatterPlot ? ((GraphablePixelScatterPlot)graph).PointColor : ((SolidColorBrush)((GraphableGeometry)graph).Pen.Brush).Color)
 						.Select(c => { c.ScA = 0.1f; return c; })
 						.Concat(Enumerable.Repeat(Color.FromRgb(0, 0, 0), 1))
@@ -208,7 +209,7 @@ namespace LVQeamon
 					foreach (var coord in edges)
 						closestClass[coord.Item1, coord.Item2] = colors.Length - 1;
 
-					plotControl.AddPlot(
+					plotControl.Graphs.Add(
 						new GraphableBitmap
 						{
 							Bitmap = GraphUtils.MakeColormappedBitmap(closestClass, cLabel => colors[cLabel]),
@@ -229,7 +230,7 @@ namespace LVQeamon
 			bool useGeom = numClasses * pointsPerSetEstimate < 20000;
 			Dispatcher.BeginInvoke((Action)(() =>
 			{
-				plotControl.Clear();
+				plotControl.Graphs.Clear();
 				Color[] plotcolors = GraphRandomPen.MakeDistributedColors(numClasses);
 				for (int i = 0; i < numClasses; i++)
 				{
@@ -243,11 +244,11 @@ namespace LVQeamon
 							Thickness = thickness,
 						};
 						pen.Freeze();
-						plotControl.AddPlot(new GraphableGeometry { Geometry = GraphUtils.PointCloud(Enumerable.Empty<Point>()), Pen = pen, XUnitLabel = "X axis", YUnitLabel = "Y axis" });
+						plotControl.Graphs.Add(new GraphableGeometry { Geometry = GraphUtils.PointCloud(Enumerable.Empty<Point>()), Pen = pen, XUnitLabel = "X axis", YUnitLabel = "Y axis" });
 					}
 					else
 					{
-						plotControl.AddPlot(
+						plotControl.Graphs.Add(
 							new GraphablePixelScatterPlot
 							{
 								PointColor = F.Create<Color, Color>((c) => { c.ScA = 0.7f; return c; })(plotcolors[i]),

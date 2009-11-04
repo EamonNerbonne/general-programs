@@ -45,7 +45,6 @@ void PrintModelStatus(char const * label,AbstractLvqModel const * model,LvqDataS
 	cout<<endl;
 }
 
-
 template <class T> void TestModel(mt19937  rndGenOrig, LvqDataSet * dataset, vector<int> const & protoDistrib, int iters) {
 	mt19937 rndGen(rndGenOrig);
 	using boost::scoped_ptr;
