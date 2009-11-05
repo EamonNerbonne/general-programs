@@ -19,8 +19,8 @@ GsmLvqModel::GsmLvqModel(std::vector<int> protodistribution, MatrixXd const & me
 	int protoCount = accumulate(protodistribution.begin(), protodistribution.end(), 0);
 	pLabel.resize(protoCount);
 
-	prototype.reset(new VectorXd[protoCount]);
-	P_prototype.reset(new Vector2d[protoCount]);
+	prototype.resize(protoCount);
+	P_prototype.resize(protoCount);
 
 	int protoIndex=0;
 	for(int label = 0; label <(int) protodistribution.size();label++) {

@@ -5,9 +5,9 @@
 class GsmLvqModel : public AbstractProjectionLvqModel
 {
 	PMatrix P;
-	//MatrixXd prototype;
-	boost::scoped_array<VectorXd> prototype;
-	boost::scoped_array<Vector2d> P_prototype;
+	//boost::scoped_array<VectorXd> prototype;
+	std::vector<VectorXd> prototype;
+	std::vector<Vector2d, Eigen::aligned_allocator<Vector2d>  > P_prototype;
 	VectorXi pLabel;
 	double lr_scale_P;
 	const int classCount;
@@ -49,6 +49,8 @@ public:
 
 	void learnFrom(VectorXd const & newPoint, int classLabel);
 	virtual void ClassBoundaryDiagram(double x0, double x1, double y0, double y1, MatrixXi & classDiagram) const;
-
+	virtual AbstractLvqModel* clone() {
+		return new GsmLvqModel(*this);
+	}
 };
 

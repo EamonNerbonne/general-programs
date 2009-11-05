@@ -18,7 +18,8 @@ G2mLvqModel::G2mLvqModel(std::vector<int> protodistribution, MatrixXd const & me
 
 	P.setIdentity();
 	protoCount = accumulate(protodistribution.begin(),protodistribution.end(),0);
-	prototype.reset(new G2mLvqPrototype[protoCount]);
+	//prototype.reset(new G2mLvqPrototype[protoCount]);
+	prototype.resize(protoCount);
 	int protoIndex=0;
 	for(int label=0; label <(int) protodistribution.size();label++) {
 		int labelCount =protodistribution[label];

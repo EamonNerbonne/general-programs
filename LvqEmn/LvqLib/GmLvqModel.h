@@ -3,13 +3,13 @@
 #include "AbstractLvqModel.h"
 
 using boost::scoped_array;
-
+using std::vector;
 class GmLvqModel : public AbstractLvqModel
 {
-	scoped_array<MatrixXd> P;
+	vector<MatrixXd> P;
 	//MatrixXd prototype;
-	scoped_array<VectorXd> prototype;
-	scoped_array<VectorXd> P_prototype;
+	vector<VectorXd> prototype;
+	vector<VectorXd> P_prototype;
 	VectorXi pLabel;
 	double lr_scale_P;
 	const int classCount;
@@ -47,4 +47,7 @@ public:
 	GmLvqModel(std::vector<int> protodistribution, MatrixXd const & means);
 	int classify(VectorXd const & unknownPoint) const; //tmp must be just as large as unknownPoint, this is a malloc/free avoiding optimization.
 	void learnFrom(VectorXd const & newPoint, int classLabel);//tmp must be just as large as unknownPoint, this is a malloc/free avoiding optimization.
+	virtual AbstractLvqModel* clone() { 
+		return new GmLvqModel(*this); 
+	}
 };

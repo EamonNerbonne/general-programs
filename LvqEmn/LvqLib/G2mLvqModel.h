@@ -8,7 +8,8 @@ class G2mLvqPrototype;
 class G2mLvqModel : public AbstractProjectionLvqModel
 {
 	PMatrix P;
-	boost::scoped_array<G2mLvqPrototype> prototype;
+	std::vector<G2mLvqPrototype, Eigen::aligned_allocator<G2mLvqPrototype> > prototype;
+	//boost::scoped_array<G2mLvqPrototype> prototype;
 	int protoCount;
 	double lr_scale_P, lr_scale_B;
 	const int classCount;
@@ -27,12 +28,15 @@ public:
 	virtual double projectionNorm() const { return (P.transpose() * P).lazy().diagonal().sum() ;}
 
 	PMatrix const & getProjection() const {return P; }
-	G2mLvqPrototype const * Prototypes() const {return prototype.get();}
 
 	G2mLvqModel(std::vector<int> protodistribution, MatrixXd const & means);
 	int classify(VectorXd const & unknownPoint) const;
 	int classifyProjected(Vector2d const & unknownProjectedPoint) const {return classifyProjectedInternal(unknownProjectedPoint);}
 	void learnFrom(VectorXd const & newPoint, int classLabel);
 	virtual void ClassBoundaryDiagram(double x0, double x1, double y0, double y1, MatrixXi & classDiagram) const;
+	virtual AbstractLvqModel* clone() {
+		return new G2mLvqModel(*this);
+	
+	}
 };
 

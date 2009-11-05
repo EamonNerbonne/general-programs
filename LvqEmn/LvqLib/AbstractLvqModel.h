@@ -18,6 +18,8 @@ public:
 	double getLearningRate() {
 		return 0.3*std::pow(trainIter*iterationScaleFactor()*0.01 + 1.0, - 0.75); 
 	}
+
+	virtual AbstractLvqModel* clone()=0;
 };
 
 class AbstractProjectionLvqModel : public AbstractLvqModel {

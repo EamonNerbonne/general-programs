@@ -15,12 +15,14 @@
 #pragma warning (disable:4996)
 #pragma warning (disable:4099)
 
+#include <Eigen/StdVector>
 #include <iostream>
 //#include <assert.h>
 #include <algorithm>
 #include <numeric>
 #include <vector>
 #include <math.h>
+
 
 #include <boost/smart_ptr/scoped_array.hpp>
 #include <boost/smart_ptr/shared_ptr.hpp>
@@ -37,4 +39,7 @@
 //#define EIGEN_DONT_VECTORIZE
 #include <Eigen/Core>
 
+
 typedef Eigen::Matrix<double,2, Eigen::Dynamic> PMatrix;
+
+
