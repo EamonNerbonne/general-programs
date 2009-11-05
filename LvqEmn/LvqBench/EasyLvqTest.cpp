@@ -19,7 +19,7 @@ USING_PART_OF_NAMESPACE_EIGEN
 #if NDEBUG
 #define DIMS 25
 #define POINTS 10000
-#define ITERS 100
+#define ITERS 20
 #define CLASSCOUNT 3
 #define PROTOSPERCLASS 2
 #else

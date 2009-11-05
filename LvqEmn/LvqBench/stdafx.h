@@ -11,9 +11,9 @@
 #endif
 #define _CRT_RAND_S
 
+#include <Eigen/StdVector>
 #include <stdio.h>
 #include <tchar.h>
-
 
 #include <boost/timer.hpp>
 #include <boost/progress.hpp>
