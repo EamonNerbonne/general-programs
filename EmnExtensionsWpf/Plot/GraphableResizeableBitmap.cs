@@ -9,7 +9,7 @@ using System.Diagnostics;
 
 namespace EmnExtensions.Wpf.Plot
 {
-	class GraphableResizeableBitmap : GraphableData
+	public abstract class GraphableResizeableBitmap : GraphableData
 	{
 
 		public GraphableResizeableBitmap() { BitmapScalingMode = BitmapScalingMode.Linear; }
