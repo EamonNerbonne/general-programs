@@ -132,7 +132,7 @@
   <ItemGroup>
     <Compile Include="ColorConversion.cs" />
     <Compile Include="Colormaps.cs" />
-    <Compile Include="Plot\DynamicBitmap.cs" />
+    <Compile Include="DynamicBitmap.cs" />
     <Compile Include="LogControl.cs" />
     <Compile Include="OldGraph\GraphRandomPen.cs" />
     <Compile Include="OldGraph\GraphUtils.cs">

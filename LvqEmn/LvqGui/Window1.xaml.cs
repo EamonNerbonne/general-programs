@@ -17,6 +17,7 @@ using EmnExtensions.Wpf.OldGraph;
 using EmnExtensions.Wpf.Plot;
 using EmnExtensions;
 using LVQCppCli;
+using System.Windows.Media.Imaging;
 
 namespace LVQeamon
 {
@@ -115,6 +116,7 @@ namespace LVQeamon
 			}
 		}
 
+		
 		private void StartLvq(List<double[,]> pointClouds, int protoCount)
 		{
 			int DIMS = pointClouds[0].GetLength(1);
@@ -139,27 +141,20 @@ namespace LVQeamon
 			Debug.Assert(pointClouds[0].GetLength(1) == allpoints.GetLength(1));
 			this.classBoundaries = classBoundaries.ToArray();
 			Debug.Assert(this.classBoundaries.Length == classLabel + 1);
-			lock (lvqSync)
-			{
-				lvqImpl = new LvqWrapper(allpoints, pointLabels, classLabel, protoCount);
-				needUpdate = true;
-			}
+			lvqImpl = new LvqWrapper(allpoints, pointLabels, classLabel, protoCount);
+			needUpdate = true;
 			UpdateDisplay();
 		}
 
 		private void UpdateDisplay()
 		{
 			double[,] currPoints = null;
-			int[,] closestClass = null;
-			lock (lvqSync)
-			{
-				if (!needUpdate) return;
-				currPoints = lvqImpl.CurrentProjection();
-			}
+			//int[,] closestClass = null;
+			if (!needUpdate) return;
+			currPoints = lvqImpl.CurrentProjection();
 			Dispatcher.BeginInvoke((Action)(() =>
 			{
-				lock (lvqSync)
-					needUpdate = false;
+				needUpdate = false;
 				Rect bounds = Rect.Empty;
 				for (int i = 0; i < classBoundaries.Length - 1; i++)
 				{
@@ -175,53 +170,11 @@ namespace LVQeamon
 						((GraphablePixelScatterPlot)plotControl.Graphs[i]).Points = pointsIter.ToArray();
 					bounds = Rect.Union(plotControl.Graphs[i].DataBounds, bounds);
 				}
-				lock (lvqSync)
-				{
-					double width = plotControl.ActualWidth, height = plotControl.ActualHeight;
-					closestClass = lvqImpl.ClassBoundaries(bounds.Left, bounds.Right, bounds.Top, bounds.Bottom, (int)Math.Ceiling(width), (int)Math.Ceiling(height));
-					if (plotControl.Graphs.Count > classBoundaries.Length - 1)
-					{
-						plotControl.Graphs.RemoveAt(classBoundaries.Length - 1);
-					}
-					
-					Color[] colors = Enumerable.Range(0, plotControl.Graphs.Count)
-						.Select(i => plotControl.Graphs[i])
-						.Select(graph => graph is GraphablePixelScatterPlot ? ((GraphablePixelScatterPlot)graph).PointColor : ((SolidColorBrush)((GraphableGeometry)graph).Pen.Brush).Color)
-						.Select(c => { c.ScA = 0.1f; return c; })
-						.Concat(Enumerable.Repeat(Color.FromRgb(0, 0, 0), 1))
-						.ToArray();
-					var edges = new List<Tuple<int, int>>();
-					for (int y = 1; y < closestClass.GetLength(0) - 1; y++)
-						for (int x = 1; x < closestClass.GetLength(1) - 1; x++)
-						{
-							if (false
-								//								closestClass[y, x] != closestClass[y + 1, x + 1]
-								|| closestClass[y, x] != closestClass[y + 1, x]
-								//							|| closestClass[y, x] != closestClass[y + 1, x - 1]
-								|| closestClass[y, x] != closestClass[y, x + 1]
-								|| closestClass[y, x] != closestClass[y, x - 1]
-								//						|| closestClass[y, x] != closestClass[y - 1, x + 1]
-								|| closestClass[y, x] != closestClass[y - 1, x]
-								//					|| closestClass[y, x] != closestClass[y - 1, x - 1]
-								)
-								edges.Add(Tuple.Create(y, x));
-						}
-					foreach (var coord in edges)
-						closestClass[coord.Item1, coord.Item2] = colors.Length - 1;
-
-					plotControl.Graphs.Add(
-						new GraphableBitmap
-						{
-							Bitmap = GraphUtils.MakeColormappedBitmap(closestClass, cLabel => colors[cLabel]),
-							InnerDataBounds = bounds,
-							XUnitLabel = "X axis",
-							YUnitLabel = "Y axis",
-						}
-						);
-				}
 			}));
 		}
 
+		int currentClassCount = 0;
+		struct ClassTag { public int Label; public ClassTag(int label) { Label = label; } }
 		private void SetupDisplay(int numClasses, int pointsPerSetEstimate)
 		{
 			double thickness = 40.0 / (1 + Math.Log(Math.Max(pointsPerSetEstimate * numClasses, 1)));
@@ -230,6 +183,7 @@ namespace LVQeamon
 			bool useGeom = numClasses * pointsPerSetEstimate < 20000;
 			Dispatcher.BeginInvoke((Action)(() =>
 			{
+				currentClassCount = numClasses;
 				plotControl.Graphs.Clear();
 				Color[] plotcolors = GraphRandomPen.MakeDistributedColors(numClasses);
 				for (int i = 0; i < numClasses; i++)
@@ -244,7 +198,7 @@ namespace LVQeamon
 							Thickness = thickness,
 						};
 						pen.Freeze();
-						plotControl.Graphs.Add(new GraphableGeometry { Geometry = GraphUtils.PointCloud(Enumerable.Empty<Point>()), Pen = pen, XUnitLabel = "X axis", YUnitLabel = "Y axis" });
+						plotControl.Graphs.Add(new GraphableGeometry { Geometry = GraphUtils.PointCloud(Enumerable.Empty<Point>()), Pen = pen, Tag = new ClassTag(i) });
 					}
 					else
 					{
@@ -252,24 +206,71 @@ namespace LVQeamon
 							new GraphablePixelScatterPlot
 							{
 								PointColor = F.Create<Color, Color>((c) => { c.ScA = 0.7f; return c; })(plotcolors[i]),
-								XUnitLabel = "X axis",
-								YUnitLabel = "Y axis",
 								DpiX = 96.0,
 								DpiY = 96.0,
 								BitmapScalingMode = BitmapScalingMode.NearestNeighbor,
 								CoverageRatio = 0.999,
 								UseDiamondPoints = true,
 								Points = new Point[] { },
+								Tag = new ClassTag(i),
 							});
 					}
 				}
-
+				plotControl.Graphs.Add(new GraphableBitmapDelegate { UpdateBitmapDelegate = UpdateClassBoundaries });
 			}));
 		}
 
-		object lvqSync = new object();
+		void UpdateClassBoundaries(WriteableBitmap bmp, Matrix dataToBmp, int width, int height)
+		{
+			if (lvqImpl == null) return;
+			Matrix bmpToData = dataToBmp;
+			bmpToData.Invert();
+			Point topLeft = bmpToData.Transform(new Point(0.0,0.0));
+			Point botRight = bmpToData.Transform(new Point(width,height));
+			int[,] closestClass = lvqImpl.ClassBoundaries(topLeft.X, botRight.X, topLeft.Y, botRight.Y, width, height);
+
+			uint[] nativeColor =(
+				from graph in plotControl.Graphs
+				where graph.Tag is ClassTag
+				let label = ((ClassTag)graph.Tag).Label
+				orderby label
+				select graph is GraphablePixelScatterPlot ? ((GraphablePixelScatterPlot)graph).PointColor : ((SolidColorBrush)((GraphableGeometry)graph).Pen.Brush).Color
+				)
+				.Select(c => { c.ScA = 0.1f; return c; })
+				.Concat(Enumerable.Repeat(Color.FromRgb(0, 0, 0), 1))
+				.Select(c => c.ToNativeColor())
+				.ToArray();
+
+			var edges = new List<Tuple<int, int>>();
+			for (int y = 1; y < closestClass.GetLength(0) - 1; y++)
+				for (int x = 1; x < closestClass.GetLength(1) - 1; x++)
+				{
+					if (false
+						//								closestClass[y, x] != closestClass[y + 1, x + 1]
+						|| closestClass[y, x] != closestClass[y + 1, x]
+						//							|| closestClass[y, x] != closestClass[y + 1, x - 1]
+						|| closestClass[y, x] != closestClass[y, x + 1]
+						|| closestClass[y, x] != closestClass[y, x - 1]
+						//						|| closestClass[y, x] != closestClass[y - 1, x + 1]
+						|| closestClass[y, x] != closestClass[y - 1, x]
+						//					|| closestClass[y, x] != closestClass[y - 1, x - 1]
+						)
+						edges.Add(Tuple.Create(y, x));
+				}
+			foreach (var coord in edges)
+				closestClass[coord.Item1, coord.Item2] = nativeColor.Length - 1;
+			uint[] classboundaries = new uint[width*height];
+			int px = 0;
+			for (int y = 0; y < height; y++)
+				for (int x = 0; x < width; x++)
+					classboundaries[px++] = nativeColor[closestClass[y,x]];
+			bmp.WritePixels(new Int32Rect(0, 0, width, height), classboundaries, width*4, 0);
+			//return BitmapSource.Create(w, h, 96.0, 96.0, PixelFormats.Bgra32, null, inlinearray, w * 4);
+		}
+
+		//object lvqSync = new object();
 		int[] classBoundaries;
-		bool needUpdate = false;
+		volatile bool needUpdate = false;
 		LvqWrapper lvqImpl;
 
 		protected override void OnInitialized(EventArgs e)
@@ -286,12 +287,10 @@ namespace LVQeamon
 			int epochsTodo = EpochsPerClick ?? 1;
 			ThreadPool.QueueUserWorkItem((index) =>
 			{
-				lock (lvqSync)
-				{
+				lock (lvqImpl.UpdateSyncObject)
 					using (new DTimer("Training " + epochsTodo + " epochs"))
 						lvqImpl.TrainEpoch(epochsTodo);
-					needUpdate = true;
-				}
+				needUpdate = true;
 				UpdateDisplay();
 			});
 		}

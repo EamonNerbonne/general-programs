@@ -49,8 +49,6 @@ public:
 
 	void learnFrom(VectorXd const & newPoint, int classLabel);
 	virtual void ClassBoundaryDiagram(double x0, double x1, double y0, double y1, MatrixXi & classDiagram) const;
-	virtual AbstractLvqModel* clone() {
-		return new GsmLvqModel(*this);
-	}
+	virtual AbstractLvqModel* clone(); 
 };
 

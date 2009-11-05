@@ -11,6 +11,7 @@
 #endif
 #define _CRT_RAND_S
 
+#define EIGEN_USE_NEW_STDVECTOR
 #include <Eigen/StdVector>
 #include <stdio.h>
 #include <tchar.h>

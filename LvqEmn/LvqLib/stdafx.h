@@ -15,6 +15,7 @@
 #pragma warning (disable:4996)
 #pragma warning (disable:4099)
 
+#define EIGEN_USE_NEW_STDVECTOR
 #include <Eigen/StdVector>
 #include <iostream>
 //#include <assert.h>

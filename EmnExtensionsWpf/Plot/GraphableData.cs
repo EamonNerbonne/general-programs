@@ -12,7 +12,7 @@ namespace EmnExtensions.Wpf.Plot
 	{
 		public event Action<GraphableData, GraphChangeEffects> Changed;
 		string m_xUnitLabel, m_yUnitLabel, m_DataLabel;
-		Rect m_DataBounds;
+		Rect m_DataBounds = Rect.Empty;
 		Thickness m_Margin;
 		TickedAxisLocation m_axisBindings = TickedAxisLocation.LeftOfGraph | TickedAxisLocation.BelowGraph ;
 

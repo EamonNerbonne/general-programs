@@ -155,3 +155,5 @@ void GsmLvqModel::ClassBoundaryDiagram(double x0, double x1, double y0, double y
 		}
 	}
 }
+
+AbstractLvqModel* GsmLvqModel::clone() { return new GsmLvqModel(*this);	}

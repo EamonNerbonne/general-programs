@@ -39,7 +39,10 @@ namespace LVQCppCli {
 	LvqWrapper::LvqWrapper(array<double,2>^ points, array<int>^ pointLabels, int classCount,int protosPerClass)
 		: dataset(NULL)
 		, model(NULL)
+		, modelCopy(NULL)
 		, rnd(new boost::mt19937(42))
+		, mainSync(gcnew Object())
+		, backupSync(gcnew Object())
 	{
 		MatrixXd nPoints = arrayToMatrix(points);
 
@@ -55,18 +58,31 @@ namespace LVQCppCli {
 			protoDistrib.push_back(protosPerClass);
 
 		model = new G2mLvqModel(protoDistrib, dataset->ComputeClassMeans()); 
+		BackupModel();
 	}
 
-	double LvqWrapper::ErrorRate() { return dataset->ErrorRate(model); }
+	double LvqWrapper::ErrorRate() { 
+		msclr::lock l(backupSync);
+		return dataset->ErrorRate(modelCopy); 
+	}
 
-	array<double,2>^ LvqWrapper::CurrentProjection() {
-		return matrixToArray(dataset->ProjectPoints(model));
+	array<double,2>^ LvqWrapper::CurrentProjection() { 
+		msclr::lock l(backupSync);
+		return matrixToArray(dataset->ProjectPoints(modelCopy)); 
 	}
 
 	array<int,2>^ LvqWrapper::ClassBoundaries(double x0, double x1, double y0, double y1,int xCols, int yRows) {
 		MatrixXi classDiagram(yRows,xCols);
-		model->ClassBoundaryDiagram(x0,x1,y0,y1,classDiagram);
+		{
+			msclr::lock l(backupSync);
+			modelCopy->ClassBoundaryDiagram(x0,x1,y0,y1,classDiagram);
+		}
 		return matrixToArrayNOFLIP(classDiagram);
 	}
 
+	void LvqWrapper::TrainEpoch(int epochsToDo) {
+		msclr::lock l(mainSync);
+		dataset->TrainModel(epochsToDo,  *rnd, model);
+		BackupModel();
+	}
 }

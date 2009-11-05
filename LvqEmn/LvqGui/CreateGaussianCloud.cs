@@ -42,8 +42,9 @@ namespace LVQeamon
 		public static double[,] RandomTransform(int numDimensions, MersenneTwister rand) {
 			double[,] points = new double[numDimensions, numDimensions];
 			for (int i = 0; i < numDimensions; i++) {
+				double k = rand.NextNormal();
 				for (int j = 0; j < numDimensions; j++) {
-					points[i, j] = Math.Pow( rand.NextNormal(),2);
+					points[i, j] = k*Math.Pow( rand.NextNormal(),1);
 				}
 			}
 			return points;

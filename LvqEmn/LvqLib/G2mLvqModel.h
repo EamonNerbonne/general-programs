@@ -1,6 +1,7 @@
 #pragma once
 #include "stdafx.h"
 #include "AbstractLvqModel.h"
+#include "G2mLvqPrototype.h"
 
 USING_PART_OF_NAMESPACE_EIGEN
 
@@ -34,9 +35,6 @@ public:
 	int classifyProjected(Vector2d const & unknownProjectedPoint) const {return classifyProjectedInternal(unknownProjectedPoint);}
 	void learnFrom(VectorXd const & newPoint, int classLabel);
 	virtual void ClassBoundaryDiagram(double x0, double x1, double y0, double y1, MatrixXi & classDiagram) const;
-	virtual AbstractLvqModel* clone() {
-		return new G2mLvqModel(*this);
-	
-	}
+	virtual AbstractLvqModel* clone();
 };
 
