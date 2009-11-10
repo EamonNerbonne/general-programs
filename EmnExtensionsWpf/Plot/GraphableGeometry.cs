@@ -20,7 +20,7 @@ namespace EmnExtensions.Wpf.Plot
 
 		static Pen defaultPen = (Pen)new Pen { Brush = Brushes.Black, EndLineCap = PenLineCap.Square, StartLineCap = PenLineCap.Square, Thickness=1.5 }.GetAsFrozen();
 
-		public Brush Fill { get { return m_Fill; } set { if (m_Fill != value) { m_Fill = value; OnChange(GraphChangeEffects.RedrawGraph); } } }
+		public Brush Fill { get { return m_Fill; } set { if (m_Fill != value) { m_Fill = value; OnChange(GraphChange.Drawing); } } }
 		public Pen Pen {
 			get { return m_Pen; }
 			set {
@@ -30,8 +30,8 @@ namespace EmnExtensions.Wpf.Plot
 					m_Pen = value;
 					if (m_Pen != null && !m_Pen.IsFrozen)
 						m_Pen.Changed += m_Pen_Changed;
+					OnChange(GraphChange.Drawing);
 					RecomputeBoundsIfAuto();
-					OnChange(GraphChangeEffects.RedrawGraph);
 				}
 			}
 		}
@@ -51,7 +51,7 @@ namespace EmnExtensions.Wpf.Plot
 				if (m_Geometry != null && !m_Geometry.IsFrozen)
 					m_Geometry.Changed += m_Geometry_Changed;
 				RecomputeBoundsIfAuto();
-				OnChange(GraphChangeEffects.RedrawGraph);
+				OnChange(GraphChange.Drawing);
 			}
 		}
 
@@ -75,7 +75,6 @@ namespace EmnExtensions.Wpf.Plot
 			changingGeometry = true; 
 			m_ProjectionTransform.Matrix = m_geomToAxis * axisToDisplay;
 			changingGeometry = false;
-			OnChange(GraphChangeEffects.DrawingInternals); 
 		}
 
 		public override void DrawGraph(DrawingContext context) {

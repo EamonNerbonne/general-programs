@@ -5,12 +5,8 @@ using System.Text;
 
 namespace EmnExtensions.Wpf.Plot
 {
-	public enum GraphChangeEffects
+	public class PlotData<T> : BasePlotData
 	{
-		NoChange,
-		DrawingInternals,
-		GraphProjection,
-		Labels,
-		RedrawGraph,
+
 	}
 }

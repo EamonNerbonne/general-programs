@@ -22,7 +22,8 @@ namespace EmnExtensions.Wpf.Plot
 				if (bmp != value) {
 					
 					bmp = value;
-					OnChange(GraphChangeEffects.RedrawGraph);
+					OnChange(GraphChange.Drawing);
+					OnChange(GraphChange.Projection);
 				}
 			}
 		}

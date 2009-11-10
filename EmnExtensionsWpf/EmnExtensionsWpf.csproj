@@ -9,7 +9,7 @@
     <AssemblyName>EmnExtensionsWpf</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
-    <RootNamespace>EmnExtensionsWpf</RootNamespace>
+    <RootNamespace>EmnExtensions.Wpf</RootNamespace>
     <TargetFrameworkProfile />
     <PublishUrl>publish\</PublishUrl>
     <Install>true</Install>
@@ -150,11 +150,15 @@
     <Compile Include="Plot\GraphableResizeableBitmap.cs" />
     <Compile Include="Plot\GraphableGeometry.cs" />
     <Compile Include="Plot\GraphablePixelScatterPlot.cs" />
-    <Compile Include="Plot\GraphChangeEffects.cs" />
+    <Compile Include="Plot\GraphChange.cs" />
     <Compile Include="Plot\GraphDisplayControl.cs" />
     <Compile Include="Plot\PlotControl.xaml.cs">
       <DependentUpon>PlotControl.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Plot\BasePlotData.cs" />
+    <Compile Include="Plot\PlotData.cs" />
+    <Compile Include="Plot\PlotViz.cs" />
+    <Compile Include="Plot\PlotMetaData.cs" />
     <Compile Include="Plot\TickedAxis.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

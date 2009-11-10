@@ -16,7 +16,7 @@ using System.Globalization;
 namespace EmnExtensions.Wpf.Plot
 {
 	[Flags]
-	public enum TickedAxisLocation { None = 0, LeftOfGraph = 1, AboveGraph = 2, RightOfGraph = 4, BelowGraph = 8 }
+	public enum TickedAxisLocation { None = 0, LeftOfGraph = 1, AboveGraph = 2, RightOfGraph = 4, BelowGraph = 8, Any = 15, Auto = 16, Default = LeftOfGraph | BelowGraph | Auto }
 
 	public class TickedAxis : FrameworkElement
 	{
@@ -124,13 +124,13 @@ namespace EmnExtensions.Wpf.Plot
 		public double LabelOffset { get; set; } //TODO:should invalidate measure/render
 		public double PixelsPerTick { get; set; } //TODO:should invalidate measure/render
 
-		TickedAxisLocation m_axisPos;
+		TickedAxisLocation m_axisPos=0;
 		public TickedAxisLocation AxisPos
 		{ //TODO: make DependancyProperty
 			get { return m_axisPos; }
 			set
 			{
-				if (!Enum.GetValues(typeof(TickedAxisLocation)).Cast<TickedAxisLocation>().Contains(value))
+				if (value != TickedAxisLocation.AboveGraph && value != TickedAxisLocation.BelowGraph && value!=TickedAxisLocation.LeftOfGraph && value != TickedAxisLocation.RightOfGraph)
 					throw new ArgumentException("A Ticked Axis must be along precisely one side");
 				m_axisPos = value;
 				VerticalAlignment = m_axisPos == TickedAxisLocation.BelowGraph ? VerticalAlignment.Bottom : VerticalAlignment.Top;
@@ -143,15 +143,14 @@ namespace EmnExtensions.Wpf.Plot
 
 		private void GuessNeighborsBasedOnAxisPos()
 		{
-			if (AxisPos == TickedAxisLocation.None)
+			if ((AxisPos & TickedAxisLocation.Any) == 0)
 			{
 				ClockwiseNextAxis = ClockwisePrevAxis = null;
 			}
 			else
 			{
-
-				TickedAxisLocation next = (TickedAxisLocation)(Math.Max(((int)AxisPos) * 2 % 16, 1));
-				TickedAxisLocation prev = (TickedAxisLocation)(((int)AxisPos) * 17 / 2 % 16);
+				TickedAxisLocation next = (TickedAxisLocation)Math.Max((int)TickedAxisLocation.Any * 2 & (int)AxisPos, 1);
+				TickedAxisLocation prev = (TickedAxisLocation)((int)AxisPos * 17 / 2 & (int)TickedAxisLocation.Any);
 				foreach (object sibling in LogicalTreeHelper.GetChildren(Parent))
 				{
 					TickedAxis siblingAxis = sibling as TickedAxis;

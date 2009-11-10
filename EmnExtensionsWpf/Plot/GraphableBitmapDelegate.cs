@@ -13,7 +13,7 @@ namespace EmnExtensions.Wpf.Plot
 		public GraphableBitmapDelegate() { UpdateBitmapDelegate = DefaultUpdateBitmapDelegate; }
 		static void DefaultUpdateBitmapDelegate(WriteableBitmap bmp, Matrix mat, int pixelWidth, int pixelHeight) { }
 		protected override System.Windows.Rect? OuterDataBound { get { return m_OuterDataBound; } }
-		public Rect? MaximalDataBound { get { return m_OuterDataBound; } set { m_OuterDataBound = value; OnChange(GraphChangeEffects.GraphProjection); } }
+		public Rect? MaximalDataBound { get { return m_OuterDataBound; } set { m_OuterDataBound = value; OnChange(GraphChange.Projection); } }
 		Rect? m_OuterDataBound;
 		/// <summary>
 		/// This delegate is called whenever the bitmap needs to be updated.

@@ -47,13 +47,13 @@ namespace EmnExtensions.Wpf.Plot
 		void RegisterChanged(IEnumerable<GraphableData> newGraphs)
 		{
 			foreach (GraphableData newgraph in newGraphs)
-				newgraph.Changed += new Action<GraphableData, GraphChangeEffects>(graphChanged);
+				newgraph.Changed += new Action<GraphableData, GraphChange>(graphChanged);
 		}
 
 		void UnregisterChanged(IEnumerable<GraphableData> oldGraphs)
 		{
 			foreach (GraphableData oldgraph in oldGraphs)
-				oldgraph.Changed -= new Action<GraphableData, GraphChangeEffects>(graphChanged);
+				oldgraph.Changed -= new Action<GraphableData, GraphChange>(graphChanged);
 		}
 
 		void graphs_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
@@ -74,14 +74,14 @@ namespace EmnExtensions.Wpf.Plot
 			InvalidateVisual();//todo; flag and InvalidateVisual always together?
 		}
 
-		void graphChanged(GraphableData graph, GraphChangeEffects graphChange)
+		void graphChanged(GraphableData graph, GraphChange graphChange)
 		{
-			if (graphChange == GraphChangeEffects.RedrawGraph)
+			if (graphChange == GraphChange.Drawing)
 			{
 				needRedrawGraphs = true;
 				InvalidateVisual();
 			}
-			else if (graphChange == GraphChangeEffects.Labels || graphChange == GraphChangeEffects.GraphProjection)
+			else if (graphChange == GraphChange.Labels || graphChange == GraphChange.Projection)
 			{
 				needRecomputeBounds = true;
 				InvalidateMeasure();
@@ -121,7 +121,7 @@ namespace EmnExtensions.Wpf.Plot
 			Trace.WriteLine("RecomputeBounds");
 			foreach (TickedAxis axis in Axes)
 			{
-				var boundGraphs = graphs.Where(graph => (graph.AxisBindings & axis.AxisPos) != TickedAxisLocation.None);
+				var boundGraphs = graphs.Where(graph => (graph.AxisBindings & axis.AxisPos) != 0);
 				DimensionBounds bounds =
 					boundGraphs
 					.Select(graph => ToDimBounds(graph.DataBounds, axis.IsHorizontal))
@@ -130,7 +130,7 @@ namespace EmnExtensions.Wpf.Plot
 					boundGraphs
 					.Select(graph => ToDimMargins(graph.Margin, axis.IsHorizontal))
 					.Aggregate(DimensionMargins.Undefined, (m1, m2) => DimensionMargins.Merge(m1, m2));
-				string dataUnits = string.Join(", ", graphs.Select(graph => axis.IsHorizontal ? graph.XUnitLabel : graph.YUnitLabel).Distinct().Where(s=>!string.IsNullOrWhiteSpace(s)).ToArray());
+				string dataUnits = string.Join(", ", graphs.Select(graph => axis.IsHorizontal ? graph.XUnitLabel : graph.YUnitLabel).Distinct().Where(s => !string.IsNullOrWhiteSpace(s)).ToArray());
 
 				axis.DataBound = bounds;
 				axis.DataMargin = margin;
@@ -152,7 +152,7 @@ namespace EmnExtensions.Wpf.Plot
 		{
 			if (showGridLines)
 				foreach (var axis in Axes)
-					if ((axis.AxisPos & gridLineAxes) != TickedAxisLocation.None)
+					if ((axis.AxisPos & gridLineAxes) != 0)
 						drawingContext.DrawDrawing(axis.GridLines);
 			foreach (var graph in graphs.AsEnumerable().Reverse())
 				graph.DrawGraph(drawingContext);
@@ -174,7 +174,7 @@ namespace EmnExtensions.Wpf.Plot
 			TickedAxisLocation relevantAxes = graphs.Aggregate(TickedAxisLocation.None, (axisLoc, graph) => axisLoc | ChooseProjection(graph));
 			var transforms =
 				from axis in Axes
-				where (axis.AxisPos & relevantAxes) != TickedAxisLocation.None
+				where (axis.AxisPos & relevantAxes) != 0
 				select new
 				{
 					AxisPos = axis.AxisPos,
