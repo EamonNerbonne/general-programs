@@ -21,12 +21,14 @@ namespace EmnExtensions.Wpf.Plot
 		public Rect DataBounds { get { return m_DataBounds; } set { if (m_DataBounds != value) { m_DataBounds = value; OnChange(GraphChange.Projection); } } }
 		public Thickness Margin { get { return m_Margin; } set { if (m_Margin != value) { m_Margin = value; OnChange(GraphChange.Projection); } } }
 		public TickedAxisLocation AxisBindings { get { return m_axisBindings; } set { if (m_axisBindings != value) { m_axisBindings = value; OnChange(GraphChange.Projection); } } }
+
 		public object Tag { get; set; }
 
 		public event Action<GraphableData, GraphChange> Changed;
 		protected void OnChange(GraphChange changeType)
 		{
 			var handler = Changed;
+			
 			if (handler != null) handler(this, changeType);
 		}
 
