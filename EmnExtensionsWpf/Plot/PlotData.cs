@@ -13,15 +13,23 @@ namespace EmnExtensions.Wpf.Plot
 		object RawData { get; set; }
 	}
 
-	public class PlotData<T> : IPlotData
+	internal interface IPlotDataInternal : IPlotData
+	{
+		void OnChange(GraphChange changeType);
+	}
+
+	public class PlotData<T> : IPlotDataInternal
 	{
 		public event Action<IPlotData, GraphChange> Changed;
 		internal void OnChange(GraphChange changeType) { if (Changed != null) Changed(this, changeType); }
+		void IPlotDataInternal.OnChange(GraphChange changeType) { OnChange(changeType); }
 
 		PlotMetaData m_MetaData = PlotMetaData.Default;
-		public PlotMetaData MetaData {
+		public PlotMetaData MetaData
+		{
 			get { return m_MetaData; }
-			set {
+			set
+			{
 				if (value.owner != null) throw new ArgumentException("Cannot share metadata between plots");
 				value.owner = this;
 				m_MetaData = value;
@@ -30,7 +38,7 @@ namespace EmnExtensions.Wpf.Plot
 			}
 		}
 
-		public abstract T Data { get; set; }
+		public T Data { get; set; }
 		object IPlotData.RawData { get { return Data; } set { Data = (T)value; } }
 	}
 }
