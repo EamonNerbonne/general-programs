@@ -155,7 +155,6 @@
     <Compile Include="Plot\PlotControl.xaml.cs">
       <DependentUpon>PlotControl.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Plot\BasePlotData.cs" />
     <Compile Include="Plot\PlotData.cs" />
     <Compile Include="Plot\PlotViz.cs" />
     <Compile Include="Plot\PlotMetaData.cs" />

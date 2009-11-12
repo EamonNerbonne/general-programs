@@ -7,9 +7,9 @@ namespace EmnExtensions.Wpf.Plot
 {
 	public enum PlotClass { Auto, PointCloud, Line }
 
-	public class PlotMetaData : ICloneable
+	public class PlotMetaData<T> : ICloneable
 	{
-		internal BasePlotData owner;
+		internal PlotData<T> owner;
 		string m_xUnitLabel, m_yUnitLabel, m_DataLabel;
 		TickedAxisLocation m_axisBindings = TickedAxisLocation.LeftOfGraph | TickedAxisLocation.BelowGraph;
 		PlotClass m_PlotClass;
@@ -24,7 +24,7 @@ namespace EmnExtensions.Wpf.Plot
 		void OnChange(GraphChange changeType) { if (owner != null) owner.OnChange(changeType); }
 
 
-		public PlotMetaData Clone()
+		public PlotMetaData<T> Clone()
 		{
 			return new PlotMetaData
 			{
@@ -37,11 +37,11 @@ namespace EmnExtensions.Wpf.Plot
 			};
 		}
 		object ICloneable.Clone() { return Clone(); }
-		public static PlotMetaData Default
+		public static PlotMetaData<T> Default
 		{
 			get
 			{
-				return new PlotMetaData
+				return new PlotMetaData<T>
 				{
 					m_axisBindings = TickedAxisLocation.Default,
 					m_DataLabel = "",

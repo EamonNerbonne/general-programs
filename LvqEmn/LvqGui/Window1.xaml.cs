@@ -177,10 +177,10 @@ namespace LVQeamon
 		struct ClassTag { public int Label; public ClassTag(int label) { Label = label; } }
 		private void SetupDisplay(int numClasses, int pointsPerSetEstimate)
 		{
-			double thickness = 40.0 / (1 + Math.Log(Math.Max(pointsPerSetEstimate * numClasses, 1)));
+			double thickness = 30.0 / (0.5 + Math.Log(Math.Max(pointsPerSetEstimate * numClasses, 1)));
 			var linecap = thickness > 3 ? PenLineCap.Round : PenLineCap.Square;
 			if (thickness <= 3) thickness *= 0.75;
-			bool useGeom = numClasses * pointsPerSetEstimate < 20000;
+			bool useGeom = numClasses * pointsPerSetEstimate < 30000;
 			Dispatcher.BeginInvoke((Action)(() =>
 			{
 				currentClassCount = numClasses;
