@@ -15,14 +15,14 @@ namespace EmnExtensions.Wpf.Plot
 
 	internal interface IPlotDataInternal : IPlotData
 	{
-		void OnChange(GraphChange changeType);
+		void TriggerChange(GraphChange changeType);
 	}
 
 	public class PlotData<T> : IPlotDataInternal
 	{
 		public event Action<IPlotData, GraphChange> Changed;
 		internal void OnChange(GraphChange changeType) { if (Changed != null) Changed(this, changeType); }
-		void IPlotDataInternal.OnChange(GraphChange changeType) { OnChange(changeType); }
+		void IPlotDataInternal.TriggerChange(GraphChange changeType) { OnChange(changeType); }
 
 		PlotMetaData m_MetaData = PlotMetaData.Default;
 		public PlotMetaData MetaData
