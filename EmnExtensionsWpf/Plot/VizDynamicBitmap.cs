@@ -2,17 +2,16 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Windows.Media.Imaging;
 using System.Windows.Media;
+using System.Windows.Media.Imaging;
 using System.Windows;
 using System.Diagnostics;
 
 namespace EmnExtensions.Wpf.Plot
 {
-	public abstract class GraphableResizeableBitmap : GraphableData
+	public abstract class VizDynamicBitmap : PlotViz
 	{
-
-		public GraphableResizeableBitmap() { BitmapScalingMode = BitmapScalingMode.Linear; }
+		public VizDynamicBitmap(PlotDataBase owner):base(owner) { BitmapScalingMode = BitmapScalingMode.Linear; }
 		public BitmapScalingMode BitmapScalingMode { get { return m_scalingMode; } set { m_scalingMode = value; if (m_drawing != null) RenderOptions.SetBitmapScalingMode(m_drawing, value); } }
 		BitmapScalingMode m_scalingMode;
 
@@ -23,18 +22,15 @@ namespace EmnExtensions.Wpf.Plot
 		RectangleGeometry m_clipGeom = new RectangleGeometry();
 		TranslateTransform m_offsetTransform = new TranslateTransform();
 		DrawingGroup m_drawing = new DrawingGroup();
-		Rect m_outerBounds = Rect.Empty;
 
-		public override void DrawGraph(DrawingContext context) {
+		public sealed override void DrawGraph(DrawingContext context) {
 			context.DrawDrawing(m_drawing);
 			Trace.WriteLine("redraw");
 		}
 
-		protected abstract Rect? OuterDataBound { get; }
-
 		static Rect SnapRect(Rect r, double multX, double multY) { return new Rect(new Point(Math.Floor(r.Left / multX) * multX, Math.Floor(r.Top / multY) * multY), new Point(Math.Ceiling((r.Right + 0.01) / multX) * multX, Math.Ceiling((r.Bottom + 0.01) / multY) * multY)); }
 
-		public override void SetTransform(Matrix dataToDisplay, Rect displayClip) {
+		public sealed override void SetTransform(Matrix dataToDisplay, Rect displayClip) {
 			if (dataToDisplay.IsIdentity) //TODO: is this a good test for no-show?
 				using(m_drawing.Open())
 					return;
@@ -82,5 +78,7 @@ namespace EmnExtensions.Wpf.Plot
 		}
 
 		protected abstract void UpdateBitmap(int pW, int pH, Matrix dataToBitmap);
+		protected abstract Rect? OuterDataBound { get; }
+		
 	}
 }

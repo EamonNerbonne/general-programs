@@ -5,40 +5,46 @@ using System.Text;
 
 namespace EmnExtensions.Wpf.Plot
 {
+	public enum PlotClass { Auto, PointCloud, Line }
+
 
 	public interface IPlotData
 	{
-		PlotMetaData MetaData { get; set; }
 		event Action<IPlotData, GraphChange> Changed;
 		object RawData { get; set; }
 	}
-
-	internal interface IPlotDataInternal : IPlotData
-	{
-		void TriggerChange(GraphChange changeType);
-	}
-
-	public class PlotData<T> : IPlotDataInternal
+	
+	public abstract class PlotDataBase : IPlotData
 	{
 		public event Action<IPlotData, GraphChange> Changed;
-		internal void OnChange(GraphChange changeType) { if (Changed != null) Changed(this, changeType); }
-		void IPlotDataInternal.TriggerChange(GraphChange changeType) { OnChange(changeType); }
+		internal protected void TriggerChange(GraphChange changeType) { if (Changed != null) Changed(this, changeType); }
 
-		PlotMetaData m_MetaData = PlotMetaData.Default;
-		public PlotMetaData MetaData
+		string m_xUnitLabel, m_yUnitLabel, m_DataLabel;
+		public string XUnitLabel { get { return m_xUnitLabel; } set { if (m_xUnitLabel != value) { m_xUnitLabel = value; TriggerChange(GraphChange.Labels); } } }
+		public string YUnitLabel { get { return m_yUnitLabel; } set { if (m_yUnitLabel != value) { m_yUnitLabel = value; TriggerChange(GraphChange.Labels); } } }
+		public string DataLabel { get { return m_DataLabel; } set { if (m_DataLabel != value) { m_DataLabel = value; TriggerChange(GraphChange.Labels); } } }
+
+		TickedAxisLocation m_axisBindings = TickedAxisLocation.Default;
+		public TickedAxisLocation AxisBindings { get { return m_axisBindings; } set { if (m_axisBindings != value) { m_axisBindings = value; TriggerChange(GraphChange.Projection); } } }
+		public object Tag { get; set; }
+		PlotClass m_PlotClass;
+		public PlotClass PlotClass { get { return m_PlotClass; } set { if (m_PlotClass != value) { m_PlotClass = value; vizEngine = null; TriggerChange(GraphChange.Drawing); } }	}
+
+		PlotViz vizEngine;
+		public PlotViz Visualizer
 		{
-			get { return m_MetaData; }
-			set
-			{
-				if (value.owner != null) throw new ArgumentException("Cannot share metadata between plots");
-				value.owner = this;
-				m_MetaData = value;
-				OnChange(GraphChange.Projection);
-				OnChange(GraphChange.Labels);
-			}
+			get { vizEngine = vizEngine ?? ConstructEngine(); return vizEngine; }
+			set { vizEngine = value; TriggerChange(GraphChange.Drawing); }
 		}
 
-		public T Data { get; set; }
-		object IPlotData.RawData { get { return Data; } set { Data = (T)value; } }
+		private PlotViz ConstructEngine()
+		{
+			switch (m_PlotClass)
+			{
+				default:
+					throw new NotImplementedException();
+			}
+		}
+		public object RawData { get;set;}//TODO
 	}
 }
