@@ -13,10 +13,17 @@ namespace EmnExtensions.Wpf.Plot
 		Thickness m_Margin;
 		protected readonly PlotDataBase m_owner;
 
-		public Rect DataBounds { get { return m_DataBounds; } set { if (m_DataBounds != value) { m_DataBounds = value; OnChange(GraphChange.Projection); } } }
+		public Rect DataBounds {
+			get { return m_owner.OverrideBounds ?? m_DataBounds; }
+			set {
+				bool boundsChanged = !m_owner.OverrideBounds.HasValue && m_DataBounds != value;
+				m_DataBounds = value;
+				if (boundsChanged) OnChange(GraphChange.Projection);
+			}
+		}
 		public Thickness Margin { get { return m_Margin; } set { if (m_Margin != value) { m_Margin = value; OnChange(GraphChange.Projection); } } }
 
-		protected void OnChange(GraphChange changeType)	{ m_owner.TriggerChange(changeType); }
+		protected void OnChange(GraphChange changeType) { m_owner.TriggerChange(changeType); }
 		public PlotViz(PlotDataBase owner) { m_owner = owner; }
 
 		public abstract void DrawGraph(DrawingContext context);

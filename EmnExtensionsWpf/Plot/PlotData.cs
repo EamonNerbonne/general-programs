@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Windows;
 
 namespace EmnExtensions.Wpf.Plot
 {
@@ -26,7 +27,12 @@ namespace EmnExtensions.Wpf.Plot
 
 		TickedAxisLocation m_axisBindings = TickedAxisLocation.Default;
 		public TickedAxisLocation AxisBindings { get { return m_axisBindings; } set { if (m_axisBindings != value) { m_axisBindings = value; TriggerChange(GraphChange.Projection); } } }
+		
+		Rect? m_OverrideBounds;
+		public Rect? OverrideBounds { get { return m_OverrideBounds; } set { if (m_OverrideBounds != value) { m_OverrideBounds = value; TriggerChange(GraphChange.Projection); } } }
+		
 		public object Tag { get; set; }
+		
 		PlotClass m_PlotClass;
 		public PlotClass PlotClass { get { return m_PlotClass; } set { if (m_PlotClass != value) { m_PlotClass = value; vizEngine = null; TriggerChange(GraphChange.Drawing); } }	}
 
