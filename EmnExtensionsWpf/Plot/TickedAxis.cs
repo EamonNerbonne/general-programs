@@ -149,7 +149,7 @@ namespace EmnExtensions.Wpf.Plot
 			}
 			else
 			{
-				TickedAxisLocation next = (TickedAxisLocation)Math.Max((int)TickedAxisLocation.Any * 2 & (int)AxisPos, 1);
+				TickedAxisLocation next = (TickedAxisLocation)Math.Max((int)TickedAxisLocation.Any & (int)AxisPos * 2, 1);
 				TickedAxisLocation prev = (TickedAxisLocation)((int)AxisPos * 17 / 2 & (int)TickedAxisLocation.Any);
 				foreach (object sibling in LogicalTreeHelper.GetChildren(Parent))
 				{
