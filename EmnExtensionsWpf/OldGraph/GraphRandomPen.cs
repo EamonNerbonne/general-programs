@@ -74,8 +74,8 @@ namespace EmnExtensions.Wpf.OldGraph
 				B = Math.Max(B, other.B);
 			}
 			public void ScaleBack(ColorSimple min, ColorSimple max) {
-				if (max.R > min.R) 
-					R = 0.95* (R - min.R) / (max.R - min.R) ;
+				if (max.R > min.R)
+					R = 0.95 * (R - min.R) / (max.R - min.R);
 				if (max.G > min.G)
 					G = 0.95 * (G - min.G) / (max.G - min.G);
 				if (max.B > min.B)
@@ -90,7 +90,6 @@ namespace EmnExtensions.Wpf.OldGraph
 			ColorSimple black = new ColorSimple { R = 0, G = 0, B = 0 };
 			ColorSimple white = new ColorSimple { R = 1, G = 1, B = 1 };
 
-
 			for (int iter = 0; iter < 2000 + N; iter++) {
 				double lr = 0.001 / Math.Sqrt(0.1 * iter + 1);
 				ColorSimple min = new ColorSimple { R = double.MaxValue, G = double.MaxValue, B = double.MaxValue };
@@ -102,12 +101,14 @@ namespace EmnExtensions.Wpf.OldGraph
 					choices[i].RepelFrom(white, lr, rnd);
 					int other = rnd.Next(M - 1); //rand other in [0..M-1)
 					if (other >= i) other++; //rand other in [0..M) with other != i
-					choices[i].RepelFrom(choices[other], lr, rnd);
-
+					if (N > 1)
+						choices[i].RepelFrom(choices[other], lr, rnd);
+					else
+						choices[i].RepelFrom(black, lr * 0.1, rnd);
 					min.Min(choices[i]);
 					max.Max(choices[i]);
 				}
-				for (int i = 0; i < M; i++) 
+				for (int i = 0; i < M; i++)
 					choices[i].ScaleBack(min, max);
 
 				if (M > N) M--;
