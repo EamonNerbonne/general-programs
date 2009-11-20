@@ -78,6 +78,13 @@ namespace EmnExtensions.Wpf.Plot
 		}
 
 		protected abstract void UpdateBitmap(int pW, int pH, Matrix dataToBitmap);
+
+		//DataBound includes the portion of the data to display; may exclude irrelevant portions.  
+		//The actual display may be larger due to various reasons and that can be inefficient.
+		//We can't clip to DataBound, however, since _if_ there's more space leaving out irrelevant portions is misleading (cut-off scatter plots, etc.)
+		//OuterDataBound is the utmost outer bound:
+		//providing one is an optimization that permits using a smaller bitmap; the rest of the drawing is just left blank then.
+		//if you don't provide an OuterDataBound, the entire display clip will be available as a WriteableBitmap.
 		protected abstract Rect? OuterDataBound { get; }
 		
 	}
