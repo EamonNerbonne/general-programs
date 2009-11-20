@@ -21,108 +21,133 @@ namespace EmnExtensions.Wpf.Plot
 		protected override Rect? OuterDataBound { get { return m_outerBounds; } }
 
 		double m_coverage = 1.0;
-		public double CoverageRatio { get { return m_coverage; } set { if (value != m_coverage) { m_coverage = value; DataBounds = ComputeBounds(); } } }
-		private Rect ComputeBounds()
-		{
-			Point[] points = Points;
-			if (points == null || points.Length == 0)
-				return Rect.Empty;
-			else
-			{
-				int cutoff = (int)(0.5 + 0.5 * (1.0 - m_coverage) * points.Length);
-				m_outerBounds = Rect.Empty;
-				foreach (var point in points)
-					m_outerBounds.Union(point);
-				if (cutoff == 0)
-				{
-					return m_outerBounds;
-				}
-				else if (cutoff * 2 >= points.Length)
-				{
-					return Rect.Empty;
-				}
-				else
-				{
-					double[] xs = new double[points.Length];
-					double[] ys = new double[points.Length];
-					for (int i = 0; i < points.Length; i++)
-					{
-						xs[i] = points[i].X;
-						ys[i] = points[i].Y;
-					}
-					Array.Sort(xs);
-					Array.Sort(ys);
-					return new Rect(new Point(xs[cutoff], ys[cutoff]), new Point(xs[points.Length - 1 - cutoff], ys[points.Length - 1 - cutoff]));
-				}
+		public double CoverageRatio { get { return m_coverage; } set { if (value != m_coverage) { m_coverage = value; RecomputeBounds(); } } }
+		private void RecomputeBounds() {
+			if (!HasPoints())
+				DataBounds = m_outerBounds = Rect.Empty;
+			else {
+				m_outerBounds = ComputeOuterBounds(Points);
+				DataBounds = ComputeInnerBoundsByRatio(Points, m_coverage, m_outerBounds);
 			}
 		}
 
+		private bool HasPoints() { return Points != null && Points.Length > 0; }
+
+		private static Rect ComputeOuterBounds(Point[] points) {
+			Rect outerBounds = Rect.Empty;
+			foreach (var point in points)
+				outerBounds.Union(point);
+			return outerBounds;
+		}
+
+		private static Rect ComputeInnerBoundsByRatio(Point[] points, double coverageRatio, Rect completeBounds) {
+			int cutoffEachSide = (int)(0.5 * (1.0 - coverageRatio) * points.Length + 0.5);
+			return
+				cutoffEachSide == 0 ? completeBounds :
+				cutoffEachSide * 2 >= points.Length ? Rect.Empty :
+				ComputeInnerBoundsByCutoff(points, cutoffEachSide);
+		}
+
+		private static Rect ComputeInnerBoundsByCutoff(Point[] points, int cutoffEachSide) {
+			double[] xs = new double[points.Length];
+			double[] ys = new double[points.Length];
+			for (int i = 0; i < points.Length; i++) {
+				xs[i] = points[i].X;
+				ys[i] = points[i].Y;
+			}
+			Array.Sort(xs);
+			Array.Sort(ys);
+			int firstIndex = cutoffEachSide;
+			int lastIndex = points.Length - 1 - cutoffEachSide;
+			return new Rect(
+					new Point(xs[firstIndex], ys[firstIndex]),
+					new Point(xs[lastIndex], ys[lastIndex])
+				);
+		}
 
 		Color m_pointColor;
 		public Color PointColor { get { return m_pointColor; } set { if (value != m_pointColor) { m_pointColor = value; OnChange(GraphChange.Projection); } } }
 
-		uint[] image;
+		uint[] m_image;
 
-		protected override void UpdateBitmap(int pW, int pH, Matrix dataToBitmap)
-		{
-			if (dataToBitmap.IsIdentity)
-				return;//TODO: clear bitmap??
 
-			if (image == null || image.Length < pW * pH)
-				image = new uint[pW * pH];
-			else
-				for (int i = 0; i < pW * pH; i++)
-					image[i] = 0;
-
-			if (UseDiamondPoints) //for performance, if-lifted out of loop.
-				foreach (var point in Points)
-				{
-					var displaypoint = dataToBitmap.Transform(point);
-
-					int x = (int)(displaypoint.X);
-					int y = (int)(displaypoint.Y);
-					if (x >= 1 && x < pW - 1 && y >= 1 && y < pH - 1)
-					{
-						image[x + pW * y]++;
-						image[x - 1 + pW * y]++;
-						image[x + 1 + pW * y]++;
-						image[x + pW * (y - 1)]++;
-						image[x + pW * (y + 1)]++;
-					}
-				}
-			else //non-diamond case 
-				foreach (var point in Points)
-				{
-					var displaypoint = dataToBitmap.Transform(point);
-					int x = (int)(displaypoint.X);
-					int y = (int)(displaypoint.Y);
-					if (x >= 0 && x < pW && y >= 0 && y < pH)
-						image[x + pW * y]++;
-				} // so now we've counted the number of pixels in each position...
-
-			uint maxOverlap = 0;
-			for (int i = 0; i < pW * pH; i++)
-				if (image[i] > maxOverlap)
-					maxOverlap = image[i];
-			uint[] alphaLookup = new uint[maxOverlap + 1];
-			for (int i = 0; i < alphaLookup.Length; i++)
-				alphaLookup[i] = ((uint)((1.0 - Math.Pow(1.0 - PointColor.ScA, i)) * 255.5) << 24);
-
-			uint nativeColor = PointColor.ToNativeColor() & 0x00ffffff;
-			double transparency = 1.0 - PointColor.ScA;
-			for (int pxI = 0; pxI < pW * pH; pxI++)
-				image[pxI] = nativeColor | alphaLookup[image[pxI]]; // ((uint)((1.0 - Math.Pow(transparency, image[pxI])) * 255.5) << 24);
-
-			m_bmp.WritePixels(new Int32Rect(0, 0, pW, pH), image, pW * sizeof(uint), 0, 0);
-
-			//painting.
-			Trace.WriteLine("retransform");
+		protected override void UpdateBitmap(int pW, int pH, Matrix dataToBitmap) {
+			if (dataToBitmap.IsIdentity) return;//TODO: should I clear the bitmap when no meaningful transform??
+			Trace.WriteLine("UpdateBitmap");
+			ClearImageSquare(pW, pH);
+			CreateHistogramImage(pW, pH, dataToBitmap);
+			ConvertHistogramToColorDensityImage(pW, pH);
+			m_bmp.WritePixels(new Int32Rect(0, 0, pW, pH), m_image, pW * sizeof(uint), 0, 0);
 		}
 
-		public override void DataChanged(object newData)
-		{
-			DataBounds = ComputeBounds();
-			OnChange(GraphChange.Projection);
+		private void CreateHistogramImage(int pW, int pH, Matrix dataToBitmap) {
+			if (UseDiamondPoints)
+				CreateDiamondPointHistogram(pW, pH, dataToBitmap);
+			else
+				CreateSinglePointHistogram(pW, pH, dataToBitmap);
+		}
+
+		private void CreateDiamondPointHistogram(int pW, int pH, Matrix dataToBitmap) {
+			foreach (var point in Points) {
+				var displaypoint = dataToBitmap.Transform(point);
+				int x = (int)(displaypoint.X);
+				int y = (int)(displaypoint.Y);
+				if (x >= 1 && x < pW - 1 && y >= 1 && y < pH - 1) {
+					m_image[x + pW * y]++;
+					m_image[x - 1 + pW * y]++;
+					m_image[x + 1 + pW * y]++;
+					m_image[x + pW * (y - 1)]++;
+					m_image[x + pW * (y + 1)]++;
+				}
+			}
+		}
+
+		private void CreateSinglePointHistogram(int pW, int pH, Matrix dataToBitmap) {
+			foreach (var point in Points) {
+				var displaypoint = dataToBitmap.Transform(point);
+				int x = (int)(displaypoint.X);
+				int y = (int)(displaypoint.Y);
+				if (x >= 0 && x < pW && y >= 0 && y < pH)
+					m_image[x + pW * y]++;
+			}
+		}
+
+		private void ConvertHistogramToColorDensityImage(int pW, int pH) {
+			int numPixels = pW * pH;
+			uint maxCount = MaxCount(m_image, 0, numPixels);
+			uint[] alphaLookup = MakeAlphaLookup(maxCount, PointColor.ScA);
+			uint nativeColorWithoutAlpha = PointColor.ToNativeColor() & 0x00ffffff;
+			for (int pxI = 0; pxI < numPixels; pxI++)
+				m_image[pxI] = nativeColorWithoutAlpha | alphaLookup[m_image[pxI]];
+		}
+
+		private static uint[] MakeAlphaLookup(uint maxOverlap, double alpha) {
+			double transparency = 1.0 - alpha;
+			uint[] alphaLookup = new uint[maxOverlap + 1];
+			for (int i = 0; i < alphaLookup.Length; i++)
+				alphaLookup[i] = ((uint)((1.0 - Math.Pow(transparency, i)) * 255.5) << 24);
+			return alphaLookup;
+		}
+
+		private void ClearImageSquare(int pW, int pH) {
+			if (m_image == null || m_image.Length < pW * pH)
+				m_image = new uint[pW * pH];
+			else
+				for (int i = 0; i < pW * pH; i++)
+					m_image[i] = 0;
+		}
+
+		private static uint MaxCount(uint[] m_image, int start, int end) {
+			uint maxCount = 0;
+			for (int i = start; i < end; i++)
+				if (m_image[i] > maxCount)
+					maxCount = m_image[i];
+			return maxCount;
+		}
+
+		public override void DataChanged(object newData) {
+			RecomputeBounds();
+			OnChange(GraphChange.Projection); //because we need to relayout the points in the plot
 		}
 	}
 }
