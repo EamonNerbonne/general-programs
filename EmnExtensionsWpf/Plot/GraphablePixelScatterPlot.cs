@@ -20,7 +20,6 @@ namespace EmnExtensions.Wpf.Plot
 		public BitmapScalingMode BitmapScalingMode { get { return m_scalingMode; } set { m_scalingMode = value; if (m_bmp != null) RenderOptions.SetBitmapScalingMode(m_bmp, value); } }
 		BitmapScalingMode m_scalingMode;
 
-		//DrawingGroup painting = new DrawingGroup();
 		WriteableBitmap m_bmp;
 		RectangleGeometry m_clipGeom = new RectangleGeometry();
 		TranslateTransform m_offsetTransform = new TranslateTransform();

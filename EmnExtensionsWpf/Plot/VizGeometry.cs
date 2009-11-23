@@ -6,15 +6,12 @@ namespace EmnExtensions.Wpf.Plot
 {
 	public class VizGeometry : PlotViz
 	{
-		public VizGeometry(PlotDataBase owner) : base(owner) { }
 		Geometry m_Geometry;
 		MatrixTransform m_ProjectionTransform = new MatrixTransform();
 		bool m_AutosizeBounds = true;
 		Brush m_Fill = Brushes.Black;
 		Pen m_Pen = defaultPen;
 		Matrix m_geomToAxis = Matrix.Identity;
-
-		//public GraphableGeometry
 
 		static Pen defaultPen = (Pen)new Pen { Brush = Brushes.Black, EndLineCap = PenLineCap.Square, StartLineCap = PenLineCap.Square, Thickness = 1.5 }.GetAsFrozen();
 

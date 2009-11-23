@@ -10,24 +10,22 @@ namespace EmnExtensions.Wpf.Plot
 {
 	public class VizPixelScatterBitmap : VizDynamicBitmap
 	{
-		public VizPixelScatterBitmap(PlotDataBase owner) : base(owner) { }
-
 		bool m_useDiamondPoints;
 		public bool UseDiamondPoints { get { return m_useDiamondPoints; } set { m_useDiamondPoints = value; OnChange(GraphChange.Projection); } }
 
-		Point[] Points { get { return (Point[])m_owner.RawData; } }
+		Point[] Points { get { return (Point[])Owner.RawData; } }
 
-		Rect m_outerBounds = Rect.Empty;
-		protected override Rect? OuterDataBound { get { return m_outerBounds; } }
+		Rect m_OuterDataBounds = Rect.Empty;
+		protected override Rect? OuterDataBound { get { return m_OuterDataBounds; } }
 
-		double m_coverage = 1.0;
-		public double CoverageRatio { get { return m_coverage; } set { if (value != m_coverage) { m_coverage = value; RecomputeBounds(); } } }
+		double m_CoverageRatio = 1.0;
+		public double CoverageRatio { get { return m_CoverageRatio; } set { if (value != m_CoverageRatio) { m_CoverageRatio = value; RecomputeBounds(); } } }
 		private void RecomputeBounds() {
 			if (!HasPoints())
-				DataBounds = m_outerBounds = Rect.Empty;
+				DataBounds = m_OuterDataBounds = Rect.Empty;
 			else {
-				m_outerBounds = ComputeOuterBounds(Points);
-				DataBounds = ComputeInnerBoundsByRatio(Points, m_coverage, m_outerBounds);
+				m_OuterDataBounds = ComputeOuterBounds(Points);
+				DataBounds = ComputeInnerBoundsByRatio(Points, m_CoverageRatio, m_OuterDataBounds);
 			}
 		}
 

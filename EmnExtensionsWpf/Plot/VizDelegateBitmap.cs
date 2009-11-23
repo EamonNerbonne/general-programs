@@ -10,7 +10,7 @@ namespace EmnExtensions.Wpf.Plot
 {
 	public class VizDelegateBitmap : VizDynamicBitmap
 	{
-		public VizDelegateBitmap(PlotDataBase owner) : base(owner) { UpdateBitmapDelegate = DefaultUpdateBitmapDelegate; }
+		public VizDelegateBitmap() { UpdateBitmapDelegate = DefaultUpdateBitmapDelegate; }
 		static void DefaultUpdateBitmapDelegate(WriteableBitmap bmp, Matrix mat, int pixelWidth, int pixelHeight, object data) { }
 		protected override Rect? OuterDataBound { get { return m_OuterDataBound; } }
 		public Rect? MaximalDataBound { get { return m_OuterDataBound; } set { m_OuterDataBound = value; OnChange(GraphChange.Projection); } }
@@ -25,7 +25,7 @@ namespace EmnExtensions.Wpf.Plot
 		/// </summary>
 		public Action<WriteableBitmap, Matrix, int, int, object> UpdateBitmapDelegate { get; set; }
 
-		protected override void UpdateBitmap(int pW, int pH, Matrix dataToBitmap) { UpdateBitmapDelegate(m_bmp, dataToBitmap, pW, pH, m_owner.RawData); }
+		protected override void UpdateBitmap(int pW, int pH, Matrix dataToBitmap) { UpdateBitmapDelegate(m_bmp, dataToBitmap, pW, pH, Owner.RawData); }
 		public override void DataChanged(object newData) { OnChange(GraphChange.Projection); }
 	}
 }

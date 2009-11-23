@@ -156,6 +156,7 @@
     </Compile>
     <Compile Include="Plot\PlotData.cs" />
     <Compile Include="Plot\PlotViz.cs" />
+    <Compile Include="Plot\PlotVizException.cs" />
     <Compile Include="Plot\TickedAxis.cs" />
     <Compile Include="Plot\VizDelegateBitmap.cs" />
     <Compile Include="Plot\VizDynamicBitmap.cs" />

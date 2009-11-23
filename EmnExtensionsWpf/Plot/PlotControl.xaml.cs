@@ -169,7 +169,6 @@ namespace EmnExtensions.Wpf.Plot
 		protected override void OnRender(DrawingContext drawingContext)
 		{
 			Trace.WriteLine("PlotControl.OnRender");
-
 			//axes which influence projection matrices:
 			TickedAxisLocation relevantAxes = graphs.Aggregate(TickedAxisLocation.None, (axisLoc, graph) => axisLoc | ChooseProjection(graph));
 			var transforms =

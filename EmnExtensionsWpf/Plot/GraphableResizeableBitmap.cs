@@ -16,7 +16,6 @@ namespace EmnExtensions.Wpf.Plot
 		public BitmapScalingMode BitmapScalingMode { get { return m_scalingMode; } set { m_scalingMode = value; if (m_drawing != null) RenderOptions.SetBitmapScalingMode(m_drawing, value); } }
 		BitmapScalingMode m_scalingMode;
 
-		//DrawingGroup painting = new DrawingGroup();
 		const int EXTRA_RESIZE_PIX = 256;
 		double m_dpiX = 96.0, m_dpiY = 96.0;
 		protected WriteableBitmap m_bmp;

@@ -11,7 +11,7 @@ namespace EmnExtensions.Wpf.Plot
 {
 	public abstract class VizDynamicBitmap : PlotViz
 	{
-		public VizDynamicBitmap(PlotDataBase owner):base(owner) { BitmapScalingMode = BitmapScalingMode.Linear; }
+		public VizDynamicBitmap() { BitmapScalingMode = BitmapScalingMode.Linear; }
 		public BitmapScalingMode BitmapScalingMode { get { return m_scalingMode; } set { m_scalingMode = value; if (m_drawing != null) RenderOptions.SetBitmapScalingMode(m_drawing, value); } }
 		BitmapScalingMode m_scalingMode;
 
@@ -23,16 +23,18 @@ namespace EmnExtensions.Wpf.Plot
 		TranslateTransform m_offsetTransform = new TranslateTransform();
 		DrawingGroup m_drawing = new DrawingGroup();
 
-		public sealed override void DrawGraph(DrawingContext context) {
+		public sealed override void DrawGraph(DrawingContext context)
+		{
 			context.DrawDrawing(m_drawing);
 			Trace.WriteLine("redraw");
 		}
 
 		static Rect SnapRect(Rect r, double multX, double multY) { return new Rect(new Point(Math.Floor(r.Left / multX) * multX, Math.Floor(r.Top / multY) * multY), new Point(Math.Ceiling((r.Right + 0.01) / multX) * multX, Math.Ceiling((r.Bottom + 0.01) / multY) * multY)); }
 
-		public sealed override void SetTransform(Matrix dataToDisplay, Rect displayClip) {
+		public sealed override void SetTransform(Matrix dataToDisplay, Rect displayClip)
+		{
 			if (dataToDisplay.IsIdentity) //TODO: is this a good test for no-show?
-				using(m_drawing.Open())
+				using (m_drawing.Open())
 					return;
 			Rect drawingClip = displayClip;
 			Rect? outerDataBound = OuterDataBound;
@@ -55,7 +57,8 @@ namespace EmnExtensions.Wpf.Plot
 			m_clipGeom.Rect = snappedDrawingClip;//TODO: maybe better to clip after transform and then to clip to pW/pH?
 			//TODO2: this clips to nearest pixel boundary; but a tighter clip is possible to sub-pixel accuracy.
 
-			if (m_bmp == null || m_bmp.PixelWidth < pW || m_bmp.PixelHeight < pH) {
+			if (m_bmp == null || m_bmp.PixelWidth < pW || m_bmp.PixelHeight < pH)
+			{
 				int width = Math.Max(m_bmp == null ? 1 : m_bmp.PixelWidth, pW + (int)(EXTRA_RESIZE_PIX));
 				int height = Math.Max(m_bmp == null ? 1 : m_bmp.PixelHeight, pH + (int)(EXTRA_RESIZE_PIX));
 				m_bmp = new WriteableBitmap(width, height, m_dpiX, m_dpiY, PixelFormats.Bgra32, null);
@@ -86,6 +89,6 @@ namespace EmnExtensions.Wpf.Plot
 		//providing one is an optimization that permits using a smaller bitmap; the rest of the drawing is just left blank then.
 		//if you don't provide an OuterDataBound, the entire display clip will be available as a WriteableBitmap.
 		protected abstract Rect? OuterDataBound { get; }
-		
+
 	}
 }
