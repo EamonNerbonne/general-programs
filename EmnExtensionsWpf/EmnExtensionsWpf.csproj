@@ -134,24 +134,27 @@
     <Compile Include="Colormaps.cs" />
     <Compile Include="DynamicBitmap.cs" />
     <Compile Include="LogControl.cs" />
-    <Compile Include="OldGraph\GraphRandomPen.cs" />
-    <Compile Include="OldGraph\GraphUtils.cs">
+    <Compile Include="GraphRandomPen.cs" />
+    <Compile Include="GraphUtils.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="OldGraph\WpfTools.cs">
+    <Compile Include="Plot\NewPlotControl.xaml.cs">
+      <DependentUpon>NewPlotControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="WpfTools.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Plot\DimensionBounds.cs" />
     <Compile Include="Plot\DimensionMargins.cs" />
-    <Compile Include="Plot\GraphableBitmap.cs" />
-    <Compile Include="Plot\GraphableBitmapDelegate.cs" />
-    <Compile Include="Plot\GraphableData.cs" />
-    <Compile Include="Plot\GraphableDrawing.cs" />
-    <Compile Include="Plot\GraphableResizeableBitmap.cs" />
-    <Compile Include="Plot\GraphableGeometry.cs" />
-    <Compile Include="Plot\GraphablePixelScatterPlot.cs" />
+    <Compile Include="OldGraph\GraphableBitmap.cs" />
+    <Compile Include="OldGraph\GraphableBitmapDelegate.cs" />
+    <Compile Include="OldGraph\GraphableData.cs" />
+    <Compile Include="OldGraph\GraphableDrawing.cs" />
+    <Compile Include="OldGraph\GraphableResizeableBitmap.cs" />
+    <Compile Include="OldGraph\GraphableGeometry.cs" />
+    <Compile Include="OldGraph\GraphablePixelScatterPlot.cs" />
     <Compile Include="Plot\GraphChange.cs" />
-    <Compile Include="Plot\PlotControl.xaml.cs">
+    <Compile Include="OldGraph\PlotControl.xaml.cs">
       <DependentUpon>PlotControl.xaml</DependentUpon>
     </Compile>
     <Compile Include="Plot\PlotData.cs" />
@@ -161,11 +164,16 @@
     <Compile Include="Plot\VizDelegateBitmap.cs" />
     <Compile Include="Plot\VizDynamicBitmap.cs" />
     <Compile Include="Plot\VizGeometry.cs" />
+    <Compile Include="Plot\VizNone.cs" />
     <Compile Include="Plot\VizPixelScatterBitmap.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Page Include="Plot\PlotControl.xaml">
+    <Page Include="Plot\NewPlotControl.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="OldGraph\PlotControl.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
