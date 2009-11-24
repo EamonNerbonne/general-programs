@@ -49,8 +49,8 @@ namespace EmnExtensions.Wpf.Plot
 		PlotClass m_PlotClass;
 		public PlotClass PlotClass { get { return m_PlotClass; } set { if (m_PlotClass != value) { m_PlotClass = value; vizEngine = null; TriggerChange(GraphChange.Drawing); } } }
 
-		PlotViz vizEngine;
-		public PlotViz Visualizer
+		IPlotViz vizEngine;
+		public IPlotViz Visualizer
 		{
 			get { EnsureEngineExists(); return vizEngine; }
 			set { vizEngine = value; TriggerChange(GraphChange.Drawing); }
@@ -67,7 +67,7 @@ namespace EmnExtensions.Wpf.Plot
 			}
 		}
 
-		Func<PlotViz> ChooseVizFactory()
+		Func<IPlotViz> ChooseVizFactory()
 		{
 			throw new NotImplementedException();
 		}

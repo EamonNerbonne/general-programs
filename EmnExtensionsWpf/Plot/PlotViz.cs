@@ -17,7 +17,6 @@ namespace EmnExtensions.Wpf.Plot
 		void SetOwner(IPlotVizOwner owner);
 	}
 
-
 	public abstract class PlotViz : IPlotViz
 	{
 

@@ -5,11 +5,5 @@ using System.Text;
 
 namespace EmnExtensions.Wpf.Plot
 {
-	public enum GraphChange
-	{
-		NoChange,
-		Labels,
-		Projection,
-		Drawing,
-	}
+	public enum GraphChange { NoChange, Labels, Projection, Drawing, }
 }
