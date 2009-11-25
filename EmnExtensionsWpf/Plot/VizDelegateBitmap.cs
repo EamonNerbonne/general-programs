@@ -8,10 +8,11 @@ using System.Windows;
 
 namespace EmnExtensions.Wpf.Plot
 {
-	public class VizDelegateBitmap : VizDynamicBitmap
+	public class VizDelegateBitmap<T> : VizDynamicBitmap<T>
 	{
-		public VizDelegateBitmap() { UpdateBitmapDelegate = DefaultUpdateBitmapDelegate; }
-		static void DefaultUpdateBitmapDelegate(WriteableBitmap bmp, Matrix mat, int pixelWidth, int pixelHeight, object data) { }
+		public VizDelegateBitmap() { UpdateBitmapDelegate = DefaultUpdateBitmapDelegate; ComputeBounds = DefaultComputeBounds; }
+		static void DefaultUpdateBitmapDelegate(WriteableBitmap bmp, Matrix mat, int pixelWidth, int pixelHeight, T data) { }
+		static Rect DefaultComputeBounds(T data) { return Rect.Empty; }
 		protected override Rect? OuterDataBound { get { return m_OuterDataBound; } }
 		public Rect? MaximalDataBound { get { return m_OuterDataBound; } set { m_OuterDataBound = value; OnChange(GraphChange.Projection); } }
 		Rect? m_OuterDataBound;
@@ -23,9 +24,10 @@ namespace EmnExtensions.Wpf.Plot
 		/// The third and forth parater are the width and height (respectively) of the region in the bitmap that is onscreen.  This region may be smaller than the overall writeable bitmap, and always starts at 0,0.
 		/// The final parameter is the data to be plotted - this is simply IPlotData.RawData passed for convenience
 		/// </summary>
-		public Action<WriteableBitmap, Matrix, int, int, object> UpdateBitmapDelegate { get; set; }
+		public Action<WriteableBitmap, Matrix, int, int, T> UpdateBitmapDelegate { get; set; }
+		public Func<T, Rect> ComputeBounds { get; set; }
 
-		protected override void UpdateBitmap(int pW, int pH, Matrix dataToBitmap) { UpdateBitmapDelegate(m_bmp, dataToBitmap, pW, pH, Owner.RawData); }
-		public override void DataChanged(object newData) { OnChange(GraphChange.Projection); }
+		protected override void UpdateBitmap(int pW, int pH, Matrix dataToBitmap) { UpdateBitmapDelegate(m_bmp, dataToBitmap, pW, pH, Owner.Data); }
+		public override void DataChanged(T newData) { DataBounds = ComputeBounds(newData); OnChange(GraphChange.Projection); }
 	}
 }

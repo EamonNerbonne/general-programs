@@ -9,7 +9,7 @@ using System.Diagnostics;
 
 namespace EmnExtensions.Wpf.Plot
 {
-	public abstract class VizDynamicBitmap : PlotViz
+	public abstract class VizDynamicBitmap<T> : PlotViz<T>
 	{
 		public VizDynamicBitmap() { BitmapScalingMode = BitmapScalingMode.Linear; }
 		public BitmapScalingMode BitmapScalingMode { get { return m_scalingMode; } set { m_scalingMode = value; if (m_drawing != null) RenderOptions.SetBitmapScalingMode(m_drawing, value); } }

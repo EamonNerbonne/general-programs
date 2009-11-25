@@ -4,7 +4,7 @@ using System.Windows.Media;
 
 namespace EmnExtensions.Wpf.Plot
 {
-	public class VizGeometry : PlotViz
+	public class VizGeometry : PlotViz<Geometry>
 	{
 		Geometry m_Geometry;
 		MatrixTransform m_ProjectionTransform = new MatrixTransform();
@@ -39,15 +39,14 @@ namespace EmnExtensions.Wpf.Plot
 		/// </summary>
 		public bool AutosizeBounds { get { return m_AutosizeBounds; } set { m_AutosizeBounds = value; RecomputeBoundsIfAuto(); } }
 
-		public override void DataChanged(object newData)
+		public override void DataChanged(Geometry newData)
 		{
-			Geometry value = (Geometry)newData;
-			if (value == m_Geometry)
+			if (newData == m_Geometry)
 				return;
 			if (m_Geometry != null && !m_Geometry.IsFrozen)
 				m_Geometry.Changed -= m_Geometry_Changed;
-			m_geomToAxis = value.Transform.Value;
-			m_Geometry = value;
+			m_geomToAxis = newData.Transform.Value;
+			m_Geometry = newData;
 			if (m_Geometry != null && !m_Geometry.IsFrozen)
 				m_Geometry.Changed += m_Geometry_Changed;
 			RecomputeBoundsIfAuto();

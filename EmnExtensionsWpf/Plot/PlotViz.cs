@@ -13,11 +13,16 @@ namespace EmnExtensions.Wpf.Plot
 		Thickness Margin { get; }
 		void DrawGraph(DrawingContext context);
 		void SetTransform(Matrix boundsToDisplay, Rect displayClip);
-		void DataChanged(object newData);
-		void SetOwner(IPlotVizOwner owner);
 	}
 
-	public abstract class PlotViz : IPlotViz
+
+	public interface IPlotViz<in T> : IPlotViz
+	{
+		void DataChanged(T newData);
+		void SetOwner(IPlot<T> owner);
+	}
+
+	public abstract class PlotViz<T> : IPlotViz<T>
 	{
 
 		Rect m_DataBounds = Rect.Empty;
@@ -29,6 +34,7 @@ namespace EmnExtensions.Wpf.Plot
 				bool boundsChanged = !m_owner.OverrideBounds.HasValue && m_DataBounds != value;
 				m_DataBounds = value;
 				if (boundsChanged) OnChange(GraphChange.Projection);
+				
 			}
 		}
 		protected Rect InternalDataBounds { get { return m_DataBounds; } }
@@ -40,10 +46,10 @@ namespace EmnExtensions.Wpf.Plot
 
 		public abstract void DrawGraph(DrawingContext context);
 		public abstract void SetTransform(Matrix boundsToDisplay, Rect displayClip);
-		public abstract void DataChanged(object newData);
+		public abstract void DataChanged(T newData);
 
-		IPlotVizOwner m_owner = null;
-		protected IPlotVizOwner Owner { get { return m_owner; } }
-		public void SetOwner(IPlotVizOwner owner) { if (owner != null)	throw new PlotVizException("Owner already set"); m_owner = owner; }
+		IPlot<T> m_owner = null;
+		protected IPlot<T> Owner { get { return m_owner; } }
+		public void SetOwner(IPlot<T> owner) { if (owner != null)	throw new PlotVizException("Owner already set"); m_owner = owner; }
 	}
 }

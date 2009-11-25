@@ -141,6 +141,7 @@
     <Compile Include="Plot\NewPlotControl.xaml.cs">
       <DependentUpon>NewPlotControl.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Plot\VizDrawing.cs" />
     <Compile Include="WpfTools.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -157,7 +158,7 @@
     <Compile Include="OldGraph\PlotControl.xaml.cs">
       <DependentUpon>PlotControl.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Plot\PlotData.cs" />
+    <Compile Include="Plot\PlotDataBase.cs" />
     <Compile Include="Plot\PlotViz.cs" />
     <Compile Include="Plot\PlotVizException.cs" />
     <Compile Include="Plot\TickedAxis.cs" />

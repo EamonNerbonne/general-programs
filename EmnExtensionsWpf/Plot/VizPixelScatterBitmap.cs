@@ -8,12 +8,12 @@ using System.Diagnostics;
 
 namespace EmnExtensions.Wpf.Plot
 {
-	public class VizPixelScatterBitmap : VizDynamicBitmap
+	public class VizPixelScatterBitmap : VizDynamicBitmap<Point[]> //for efficiency reasons, we do Point array typing rather than the more general IEnumerable<Point>  might be worth revisiting this decision later, not worth the bother now.
 	{
 		bool m_useDiamondPoints;
 		public bool UseDiamondPoints { get { return m_useDiamondPoints; } set { m_useDiamondPoints = value; OnChange(GraphChange.Projection); } }
 
-		Point[] Points { get { return (Point[])Owner.RawData; } }
+		Point[] Points { get { return Owner.Data; } }
 
 		Rect m_OuterDataBounds = Rect.Empty;
 		protected override Rect? OuterDataBound { get { return m_OuterDataBounds; } }
@@ -143,7 +143,7 @@ namespace EmnExtensions.Wpf.Plot
 			return maxCount;
 		}
 
-		public override void DataChanged(object newData) {
+		public override void DataChanged(Point[] newData) {
 			RecomputeBounds();
 			OnChange(GraphChange.Projection); //because we need to relayout the points in the plot
 		}

@@ -3,8 +3,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:emnExt="clr-namespace:EmnExtensions.Wpf"
     xmlns:emnPlot="clr-namespace:EmnExtensions.Wpf.Plot"
-			 IsHitTestVisible="False"
-			 >
+	IsHitTestVisible="False">
 	<Grid>
 		<emnPlot:TickedAxis x:Name="tickedAxisBot" AxisPos="BelowGraph"/>
 		<emnPlot:TickedAxis x:Name="tickedAxisLft" AxisPos="LeftOfGraph"/>

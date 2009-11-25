@@ -7,7 +7,7 @@ using System.Windows.Media;
 
 namespace EmnExtensions.Wpf.Plot
 {
-	public class VizNone : IPlotViz
+	public class VizNone : IPlotViz<object>
 	{
 		private VizNone() { }
 		private static readonly VizNone singleton = new VizNone();
@@ -17,6 +17,6 @@ namespace EmnExtensions.Wpf.Plot
 		public void DrawGraph(DrawingContext context) { }
 		public void SetTransform(Matrix boundsToDisplay, Rect displayClip) { }
 		public void DataChanged(object newData) { }
-		public void SetOwner(IPlotVizOwner owner) { }
+		public void SetOwner(IPlot<object> owner) { }
 	}
 }

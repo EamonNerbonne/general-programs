@@ -22,8 +22,8 @@ namespace EmnExtensions.Wpf.Plot
 		bool needRedrawGraphs = false;
 		bool needRecomputeBounds = false;
 		bool showGridLines = false;
-		ObservableCollection<GraphableData> graphs = new ObservableCollection<GraphableData>();
-		public ObservableCollection<GraphableData> Graphs { get { return graphs; } }
+		ObservableCollection<IPlotView> graphs = new ObservableCollection<IPlotView>();
+		public ObservableCollection<IPlotView> Graphs { get { return graphs; } }
 		Dictionary<TickedAxisLocation, TickedAxis> axes;
 		public NewPlotControl()
 		{
@@ -41,24 +41,24 @@ namespace EmnExtensions.Wpf.Plot
 			};
 		}
 
-		void RegisterChanged(IEnumerable<GraphableData> newGraphs)
+		void RegisterChanged(IEnumerable<IPlotView> newGraphs)
 		{
-			foreach (GraphableData newgraph in newGraphs)
-				newgraph.Changed += new Action<GraphableData, GraphChange>(graphChanged);
+			foreach (IPlotView newgraph in newGraphs)
+				newgraph.Changed += new Action<IPlotView, GraphChange>(graphChanged);
 		}
 
-		void UnregisterChanged(IEnumerable<GraphableData> oldGraphs)
+		void UnregisterChanged(IEnumerable<IPlotView> oldGraphs)
 		{
-			foreach (GraphableData oldgraph in oldGraphs)
-				oldgraph.Changed -= new Action<GraphableData, GraphChange>(graphChanged);
+			foreach (IPlotView oldgraph in oldGraphs)
+				oldgraph.Changed -= new Action<IPlotView, GraphChange>(graphChanged);
 		}
 
 		void graphs_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
 		{
 			if (e.OldItems != null)
-				UnregisterChanged(e.OldItems.Cast<GraphableData>());
+				UnregisterChanged(e.OldItems.Cast<IPlotView>());
 			if (e.NewItems != null)
-				RegisterChanged(e.NewItems.Cast<GraphableData>());
+				RegisterChanged(e.NewItems.Cast<IPlotView>());
 			RequireRedisplay();
 		}
 
@@ -71,7 +71,7 @@ namespace EmnExtensions.Wpf.Plot
 			InvalidateVisual();//todo; flag and InvalidateVisual always together?
 		}
 
-		void graphChanged(GraphableData graph, GraphChange graphChange)
+		void graphChanged(IPlotView graph, GraphChange graphChange)
 		{
 			if (graphChange == GraphChange.Drawing)
 			{
@@ -110,7 +110,7 @@ namespace EmnExtensions.Wpf.Plot
 		}
 		private static DimensionBounds ToDimBounds(Rect bounds, bool isHorizontal) { return isHorizontal ? DimensionBounds.FromRectX(bounds) : DimensionBounds.FromRectY(bounds); }
 		private static DimensionMargins ToDimMargins(Thickness margins, bool isHorizontal) { return isHorizontal ? DimensionMargins.FromThicknessX(margins) : DimensionMargins.FromThicknessY(margins); }
-		private static TickedAxisLocation ChooseProjection(GraphableData graph) { return ProjectionCorners.FirstOrDefault(corner => (graph.AxisBindings & corner) == corner); }
+		private static TickedAxisLocation ChooseProjection(IPlotView graph) { return ProjectionCorners.FirstOrDefault(corner => (graph.AxisBindings & corner) == corner); }
 		#endregion
 
 		private void RecomputeBounds()
@@ -121,11 +121,11 @@ namespace EmnExtensions.Wpf.Plot
 				var boundGraphs = graphs.Where(graph => (graph.AxisBindings & axis.AxisPos) != 0);
 				DimensionBounds bounds =
 					boundGraphs
-					.Select(graph => ToDimBounds(graph.DataBounds, axis.IsHorizontal))
+					.Select(graph => ToDimBounds(graph.PlotVisualizer.DataBounds, axis.IsHorizontal))
 					.Aggregate(DimensionBounds.Empty, (bounds1, bounds2) => DimensionBounds.Merge(bounds1, bounds2));
 				DimensionMargins margin =
 					boundGraphs
-					.Select(graph => ToDimMargins(graph.Margin, axis.IsHorizontal))
+					.Select(graph => ToDimMargins(graph.PlotVisualizer.Margin, axis.IsHorizontal))
 					.Aggregate(DimensionMargins.Undefined, (m1, m2) => DimensionMargins.Merge(m1, m2));
 				string dataUnits = string.Join(", ", graphs.Select(graph => axis.IsHorizontal ? graph.XUnitLabel : graph.YUnitLabel).Distinct().Where(s => !string.IsNullOrWhiteSpace(s)).ToArray());
 
@@ -152,7 +152,7 @@ namespace EmnExtensions.Wpf.Plot
 					if ((axis.AxisPos & gridLineAxes) != 0)
 						drawingContext.DrawDrawing(axis.GridLines);
 			foreach (var graph in graphs.AsEnumerable().Reverse())
-				graph.DrawGraph(drawingContext);
+				graph.PlotVisualizer.DrawGraph(drawingContext);
 		}
 
 		protected override Size MeasureOverride(Size constraint)
@@ -198,7 +198,7 @@ namespace EmnExtensions.Wpf.Plot
 			{
 				var trans = cornerProjection[ChooseProjection(graph)];
 				Rect bounds = new Rect(new Point(trans.HorizontalClip.Start, trans.VerticalClip.Start), new Point(trans.HorizontalClip.End, trans.VerticalClip.End));
-				graph.SetTransform(trans.Transform, bounds);
+				graph.PlotVisualizer.SetTransform(trans.Transform, bounds);
 			}
 			foreach (var axis in Axes)
 				axis.SetGridLineExtent(RenderSize);
@@ -206,6 +206,5 @@ namespace EmnExtensions.Wpf.Plot
 			//	drawingContext.DrawDrawing(dg);
 			base.OnRender(drawingContext);
 		}
-
 	}
 }
