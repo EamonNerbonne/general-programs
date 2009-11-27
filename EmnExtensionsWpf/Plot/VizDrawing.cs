@@ -27,6 +27,7 @@ namespace EmnExtensions.Wpf.Plot
 
 		public override void DataChanged(Drawing newData) {
 			DataBounds = newData.Bounds;
+			OnChange(GraphChange.Drawing);
 		}
 	}
 }

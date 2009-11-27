@@ -39,12 +39,12 @@ namespace EmnExtensions.Wpf.Plot
 		new T Data { get; set; }
 	}
 
-	public interface IPlotVisualizerFactory
+	public interface IPlotVisualizerFactory<in T>
 	{
-		IPlotViz<T> ChooseVisualizer<T>(T data);
+		IPlotViz<T> ChooseVisualizer(T data, PlotClass plotClass);
 	}
 
-	class PlotDataImplementation<T, TVizFactory> : IPlotControl<T> where TVizFactory : IPlotVisualizerFactory, new()
+	class PlotDataImplementation<T, TVizFactory> : IPlotControl<T> where TVizFactory : IPlotVisualizerFactory<T>, new()
 	{
 		public event Action<IPlotView, GraphChange> Changed;
 		internal protected void TriggerChange(GraphChange changeType) { if (Changed != null) Changed(this, changeType); }
@@ -80,12 +80,40 @@ namespace EmnExtensions.Wpf.Plot
 			if (vizEngine == null)
 			{
 				var vizFactory = new TVizFactory();
-				var newVizEngine = vizFactory.ChooseVisualizer(Data);
+				var newVizEngine = vizFactory.ChooseVisualizer(Data, PlotClass);
 				newVizEngine.SetOwner(this);
 				vizEngine = newVizEngine;
+				TriggerDataChange();
 			}
 		}
 
-		public T Data { get; set; }//TODO
+		T m_Data;
+		public T Data { get { return m_Data; } set { m_Data = value; TriggerDataChange(); } }
+		private void TriggerDataChange() { if (vizEngine != null) vizEngine.DataChanged(m_Data); }
+		public PlotDataImplementation(T data = default(T)) { Data = data; }
+	}
+
+	public static class PlotData
+	{
+
+		class FacPointArr : IPlotVisualizerFactory<Point[]>
+		{
+			public FacPointArr() { }
+			public IPlotViz<Point[]> ChooseVisualizer(Point[] data, PlotClass plotClass)
+			{
+				if (plotClass == PlotClass.Line)
+					throw new NotImplementedException();
+				else
+					return new VizPixelScatterBitmap();
+			}
+		}
+
+
+		//public static IPlotControl<T> Create<T>(T Data)
+		//{
+		//    return new PlotDataImplementation<Point[], FacPointArr>();
+		//}
+		public static IPlotControl<Point[]> Create(Point[] Data) { return new PlotDataImplementation<Point[], FacPointArr>(Data); }
+
 	}
 }
