@@ -5,7 +5,7 @@ using System.Text;
 using System.Windows;
 using System.Windows.Media;
 
-namespace EmnExtensions.Wpf.Plot
+namespace EmnExtensions.Wpf.Plot.VizEngines
 {
 	public class VizNone : IPlotViz<object>
 	{

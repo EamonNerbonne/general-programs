@@ -6,7 +6,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Media;
 using System.Windows;
 
-namespace EmnExtensions.Wpf.Plot
+namespace EmnExtensions.Wpf.Plot.VizEngines
 {
 	public class VizDelegateBitmap<T> : VizDynamicBitmap<T>
 	{

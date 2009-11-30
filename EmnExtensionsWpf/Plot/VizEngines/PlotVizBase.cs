@@ -5,34 +5,9 @@ using System.Text;
 using System.Windows;
 using System.Windows.Media;
 
-namespace EmnExtensions.Wpf.Plot
+namespace EmnExtensions.Wpf.Plot.VizEngines
 {
-	public interface IPlotViz
-	{
-		Rect DataBounds { get; }
-		Thickness Margin { get; }
-		void DrawGraph(DrawingContext context);
-		void SetTransform(Matrix boundsToDisplay, Rect displayClip);
-	}
-
-
-	public interface IPlotViz<in T> : IPlotViz
-	{
-		void DataChanged(T newData);
-		void SetOwner(IPlot<T> owner);
-		//IPlot<T> Owner { get; }
-	}
-	//public interface IVizEngine<in T>
-	//{
-	//    Rect GetDataBounds(IPlot<T> owner);
-	//    Thickness GetMargin(IPlot<T> owner);
-	//    void DrawGraph(IPlot<T> owner, DrawingContext context);
-	//    void SetTransform(IPlot<T> owner, Matrix boundsToDisplay, Rect displayClip);
-	//    void DataChanged(IPlot<T> owner);
-	//}
-
-
-	public abstract class PlotViz<T> : IPlotViz<T>
+	public abstract class PlotVizBase<T> : IPlotViz<T>
 	{
 		Rect m_DataBounds = Rect.Empty;
 		public Rect DataBounds

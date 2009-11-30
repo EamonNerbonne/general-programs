@@ -104,7 +104,7 @@ namespace EmnExtensions.Wpf.Plot
 				if (plotClass == PlotClass.Line)
 					throw new NotImplementedException();
 				else
-					return new VizPixelScatterBitmap();
+					return new VizEngines.VizPixelScatterBitmap();
 			}
 		}
 

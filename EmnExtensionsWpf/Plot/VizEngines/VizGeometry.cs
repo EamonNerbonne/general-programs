@@ -2,9 +2,9 @@
 using System.Windows;
 using System.Windows.Media;
 
-namespace EmnExtensions.Wpf.Plot
+namespace EmnExtensions.Wpf.Plot.VizEngines
 {
-	public class VizGeometry : PlotViz<Geometry>
+	public class VizGeometry : PlotVizBase<Geometry>
 	{
 		Geometry m_Geometry;
 		MatrixTransform m_ProjectionTransform = new MatrixTransform();

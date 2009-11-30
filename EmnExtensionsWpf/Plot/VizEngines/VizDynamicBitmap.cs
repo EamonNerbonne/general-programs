@@ -7,9 +7,9 @@ using System.Windows.Media.Imaging;
 using System.Windows;
 using System.Diagnostics;
 
-namespace EmnExtensions.Wpf.Plot
+namespace EmnExtensions.Wpf.Plot.VizEngines
 {
-	public abstract class VizDynamicBitmap<T> : PlotViz<T>
+	public abstract class VizDynamicBitmap<T> : PlotVizBase<T>
 	{
 		public VizDynamicBitmap() { BitmapScalingMode = BitmapScalingMode.Linear; }
 		public BitmapScalingMode BitmapScalingMode { get { return m_scalingMode; } set { m_scalingMode = value; if (m_drawing != null) RenderOptions.SetBitmapScalingMode(m_drawing, value); } }

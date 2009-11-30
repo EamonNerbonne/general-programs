@@ -5,9 +5,9 @@ using System.Text;
 using System.Windows.Media;
 using System.Windows;
 
-namespace EmnExtensions.Wpf.Plot
+namespace EmnExtensions.Wpf.Plot.VizEngines
 {
-	public class VizDrawing : PlotViz<Drawing>
+	public class VizDrawing : PlotVizBase<Drawing>
 	{
 		MatrixTransform m_trans = new MatrixTransform();
 		RectangleGeometry m_clip = new RectangleGeometry();

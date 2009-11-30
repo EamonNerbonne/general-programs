@@ -141,7 +141,8 @@
     <Compile Include="Plot\NewPlotControl.xaml.cs">
       <DependentUpon>NewPlotControl.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Plot\VizDrawing.cs" />
+    <Compile Include="Plot\VizEngines\IPlotViz.cs" />
+    <Compile Include="Plot\VizEngines\VizDrawing.cs" />
     <Compile Include="WpfTools.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -159,14 +160,14 @@
       <DependentUpon>PlotControl.xaml</DependentUpon>
     </Compile>
     <Compile Include="Plot\PlotDataBase.cs" />
-    <Compile Include="Plot\PlotViz.cs" />
-    <Compile Include="Plot\PlotVizException.cs" />
+    <Compile Include="Plot\VizEngines\PlotVizBase.cs" />
+    <Compile Include="Plot\VizEngines\PlotVizException.cs" />
     <Compile Include="Plot\TickedAxis.cs" />
-    <Compile Include="Plot\VizDelegateBitmap.cs" />
-    <Compile Include="Plot\VizDynamicBitmap.cs" />
-    <Compile Include="Plot\VizGeometry.cs" />
-    <Compile Include="Plot\VizNone.cs" />
-    <Compile Include="Plot\VizPixelScatterBitmap.cs" />
+    <Compile Include="Plot\VizEngines\VizDelegateBitmap.cs" />
+    <Compile Include="Plot\VizEngines\VizDynamicBitmap.cs" />
+    <Compile Include="Plot\VizEngines\VizGeometry.cs" />
+    <Compile Include="Plot\VizEngines\VizNone.cs" />
+    <Compile Include="Plot\VizEngines\VizPixelScatterBitmap.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

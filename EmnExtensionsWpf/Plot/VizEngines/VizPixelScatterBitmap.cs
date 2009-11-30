@@ -6,7 +6,7 @@ using System.Windows;
 using System.Windows.Media;
 using System.Diagnostics;
 
-namespace EmnExtensions.Wpf.Plot
+namespace EmnExtensions.Wpf.Plot.VizEngines
 {
 	public class VizPixelScatterBitmap : VizDynamicBitmap<Point[]> //for efficiency reasons, we do Point array typing rather than the more general IEnumerable<Point>  might be worth revisiting this decision later, not worth the bother now.
 	{
