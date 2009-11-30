@@ -11,7 +11,7 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
 	{
 		private VizNone() { }
 		private static readonly VizNone singleton = new VizNone();
-		public VizNone Singleton { get { return singleton; } }
+		public static VizNone Singleton { get { return singleton; } }
 		public Rect DataBounds { get { return Rect.Empty; } }
 		public Thickness Margin { get { return new Thickness(0.0); } }
 		public void DrawGraph(DrawingContext context) { }

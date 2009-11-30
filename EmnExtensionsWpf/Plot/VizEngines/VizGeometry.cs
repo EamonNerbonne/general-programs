@@ -66,8 +66,8 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
 				m_Geometry.Transform = new MatrixTransform(m_geomToAxis);
 				DataBounds = m_Geometry.Bounds;//this will trigger OnChanged if neeeded.
 				m_Geometry.Transform = m_ProjectionTransform;
-				changingGeometry = false;
 				Margin = new Thickness(Pen.Thickness / 2.0);//this will trigger OnChanged if neeeded.
+				changingGeometry = false;
 			}
 		}
 
