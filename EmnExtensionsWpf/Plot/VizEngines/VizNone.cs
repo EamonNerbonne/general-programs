@@ -7,16 +7,13 @@ using System.Windows.Media;
 
 namespace EmnExtensions.Wpf.Plot.VizEngines
 {
-	public class VizNone : IPlotViz<object>
+	public class VizNone : IVizEngine<object>
 	{
-		private VizNone() { }
-		private static readonly VizNone singleton = new VizNone();
-		public static VizNone Singleton { get { return singleton; } }
-		public Rect DataBounds { get { return Rect.Empty; } }
-		public Thickness Margin { get { return new Thickness(0.0); } }
-		public void DrawGraph(DrawingContext context) { }
-		public void SetTransform(Matrix boundsToDisplay, Rect displayClip) { }
-		public void DataChanged(object newData) { }
-		public void SetOwner(IPlot<object> owner) { }
+		public Rect DataBounds(object data) { return Rect.Empty; }
+		public Thickness Margin(object data) { return new Thickness(0.0); }
+		public void DrawGraph(object data, DrawingContext context) { }
+		public void SetTransform(object data, Matrix boundsToDisplay, Rect displayClip) { }
+		public void DataChanged(object data) { }
+		public IPlot Owner { get; set; }
 	}
 }

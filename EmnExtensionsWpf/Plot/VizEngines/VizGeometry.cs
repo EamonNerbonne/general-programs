@@ -15,7 +15,19 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
 
 		static Pen defaultPen = (Pen)new Pen { Brush = Brushes.Black, EndLineCap = PenLineCap.Square, StartLineCap = PenLineCap.Square, Thickness = 1.5 }.GetAsFrozen();
 
-		public Brush Fill { get { return m_Fill; } set { if (m_Fill != value) { m_Fill = value; OnChange(GraphChange.Drawing); } } }
+		public Brush Fill
+		{
+			get { return m_Fill; }
+			set
+			{
+				if (m_Fill != value)
+				{
+					m_Fill = value;
+					TriggerChange(GraphChange.Drawing);
+				}
+			}
+		}
+
 		public Pen Pen
 		{
 			get { return m_Pen; }
@@ -28,7 +40,7 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
 					m_Pen = value;
 					if (m_Pen != null && !m_Pen.IsFrozen)
 						m_Pen.Changed += m_Pen_Changed;
-					OnChange(GraphChange.Drawing);
+					TriggerChange(GraphChange.Drawing);
 					RecomputeBoundsIfAuto();
 				}
 			}
@@ -50,7 +62,7 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
 			if (m_Geometry != null && !m_Geometry.IsFrozen)
 				m_Geometry.Changed += m_Geometry_Changed;
 			RecomputeBoundsIfAuto();
-			OnChange(GraphChange.Drawing);
+			TriggerChange(GraphChange.Drawing);
 		}
 
 		void m_Pen_Changed(object sender, EventArgs e) { RecomputeBoundsIfAuto(); }

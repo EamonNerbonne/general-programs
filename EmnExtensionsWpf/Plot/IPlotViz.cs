@@ -14,10 +14,4 @@ namespace EmnExtensions.Wpf.Plot
 		void DrawGraph(DrawingContext context);
 		void SetTransform(Matrix boundsToDisplay, Rect displayClip);
 	}
-
-	public interface IPlotViz<in T> : IPlotViz
-	{
-		void DataChanged(T newData);
-		void SetOwner(IPlot<T> owner);
-	}
 }

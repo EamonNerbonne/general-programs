@@ -7,33 +7,31 @@ using System.Windows.Media;
 
 namespace EmnExtensions.Wpf.Plot.VizEngines
 {
-	public abstract class PlotVizBase<T> : IPlotViz<T>
+	public abstract class PlotVizBase<T> : IVizEngine<T>
 	{
+		protected IPlot m_owner;
+
 		Rect m_DataBounds = Rect.Empty;
-		public Rect DataBounds
+		public Rect DataBounds(T data) { return m_DataBounds; }
+		protected void SetDataBounds(Rect newBounds)
 		{
-			get { return m_owner.OverrideBounds ?? m_DataBounds; }
-			protected set
-			{
-				bool boundsChanged = !m_owner.OverrideBounds.HasValue && m_DataBounds != value;
-				m_DataBounds = value;
-				if (boundsChanged) OnChange(GraphChange.Projection);
-			}
+			bool boundsChanged = !m_owner.OverrideBounds.HasValue && m_DataBounds != newBounds;
+			m_DataBounds = newBounds;
+			if (boundsChanged) TriggerChange(GraphChange.Projection);
 		}
+
+		protected void TriggerChange(GraphChange graphChange) { m_owner.TriggerChange(graphChange); }
+
 		protected Rect InternalDataBounds { get { return m_DataBounds; } }
 
 		Thickness m_Margin;
-		public Thickness Margin { get { return m_Margin; } protected set { if (m_Margin != value) { m_Margin = value; OnChange(GraphChange.Projection); } } }
+		public Thickness Margin(T data) { return m_Margin; }
+		protected void SetMargin(Thickness newMargin) { if (m_Margin != newMargin) { m_Margin = newMargin; TriggerChange(GraphChange.Projection); } }
 
-		protected void OnChange(GraphChange changeType) { m_owner.TriggerChange(changeType); }
+		public abstract void DrawGraph(T data, DrawingContext context);
+		public abstract void SetTransform(T data, Matrix boundsToDisplay, Rect displayClip);
+		public abstract void DataChanged(T data);
 
-		public abstract void DrawGraph(DrawingContext context);
-		public abstract void SetTransform(Matrix boundsToDisplay, Rect displayClip);
-		public abstract void DataChanged(T newData);
-
-		IPlot<T> m_owner = null;
-		protected IPlot<T> Owner { get { return m_owner; } }
-		public void SetOwner(IPlot<T> owner) { if (owner != null)	throw new PlotVizException("Owner already set"); m_owner = owner; }
 	}
 
 }

@@ -7,34 +7,36 @@ using System.Windows.Media;
 
 namespace EmnExtensions.Wpf.Plot.VizEngines
 {
-	public abstract class PlotVizDynamic<T> : IPlotViz<T>
+	public class PlotVizDynamic<T> : IVizEngine<T>
 	{
-		IPlot<T> m_owner = null;
-		protected IPlot<T> Owner { get { return m_owner; } }
+		Func<IPlot, T, IVizEngine<T>, IVizEngine<T>> implChooser;
+		public PlotVizDynamic(Func<IPlot, T, IVizEngine<T>, IVizEngine<T>> engineSelector) { implChooser = engineSelector; }
 
-		private IPlotViz<T> underlyingImpl = (IPlotViz<T>)VizNone.Singleton;
-		public IPlotViz<T> UnderlyingPlotImpl
+		private IVizEngine<T> underlyingImpl = (IVizEngine<T>)new VizNone();
+		public IVizEngine<T> UnderlyingPlotImpl { get { return underlyingImpl; } }
+		public void SetPlotImpl(T data, IVizEngine<T> impl)
 		{
-			get { return underlyingImpl; }
-			set { underlyingImpl = value; Owner.TriggerChange(GraphChange.Projection); Owner.TriggerChange(GraphChange.Drawing); }
+			var owner = Owner;
+			impl.Owner = owner;
+			underlyingImpl.Owner = null;
+			underlyingImpl = impl;
+			owner.TriggerChange(GraphChange.Projection);
+			owner.TriggerChange(GraphChange.Drawing);
 		}
 
-		public void DataChanged(T newData)
+		public Rect DataBounds(T data) { return underlyingImpl.DataBounds( data); }
+		public Thickness Margin(T data) { return underlyingImpl.Margin( data); }
+		public void DrawGraph(T data, DrawingContext context) { underlyingImpl.DrawGraph( data, context); }
+		public void SetTransform(T data, Matrix boundsToDisplay, Rect displayClip) { underlyingImpl.SetTransform( data, boundsToDisplay, displayClip); }
+		public void DataChanged(T data) { ChooseImplementation( data); underlyingImpl.DataChanged( data); }
+		void ChooseImplementation(T data)
 		{
-			ChooseImplementation(newData);
-			UnderlyingPlotImpl.DataChanged(newData);
+			var newImpl = implChooser(Owner, data, UnderlyingPlotImpl);
+			if ((newImpl ?? UnderlyingPlotImpl) != newImpl)
+				SetPlotImpl( data, newImpl);
 		}
 
-		protected abstract void ChooseImplementation(T newData);
-		public void SetOwner(IPlot<T> owner)
-		{
-			m_owner = owner;
-			if (UnderlyingPlotImpl != null)
-				UnderlyingPlotImpl.SetOwner(owner);
-		}
-		public Rect DataBounds { get { return UnderlyingPlotImpl.DataBounds; } }
-		public Thickness Margin { get { return UnderlyingPlotImpl.Margin; } }
-		public void DrawGraph(DrawingContext context) { UnderlyingPlotImpl.DrawGraph(context); }
-		public void SetTransform(Matrix boundsToDisplay, Rect displayClip) { UnderlyingPlotImpl.SetTransform(boundsToDisplay, displayClip); }
+		public IPlot Owner { get { return underlyingImpl.Owner; } set { underlyingImpl.Owner = value; } }
+
 	}
 }

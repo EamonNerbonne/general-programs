@@ -23,15 +23,15 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
 		TranslateTransform m_offsetTransform = new TranslateTransform();
 		DrawingGroup m_drawing = new DrawingGroup();
 
-		public sealed override void DrawGraph(DrawingContext context)
+		public sealed override void DrawGraph(Drawing data, DrawingContext context)
 		{
-			context.DrawDrawing(m_drawing);
 			Trace.WriteLine("redraw");
+			context.DrawDrawing(m_drawing);
 		}
 
 		static Rect SnapRect(Rect r, double multX, double multY) { return new Rect(new Point(Math.Floor(r.Left / multX) * multX, Math.Floor(r.Top / multY) * multY), new Point(Math.Ceiling((r.Right + 0.01) / multX) * multX, Math.Ceiling((r.Bottom + 0.01) / multY) * multY)); }
 
-		public sealed override void SetTransform(Matrix dataToDisplay, Rect displayClip)
+		public sealed override void SetTransform(Drawing data, Matrix dataToDisplay, Rect displayClip)
 		{
 			if (dataToDisplay.IsIdentity) //TODO: is this a good test for no-show?
 				using (m_drawing.Open())

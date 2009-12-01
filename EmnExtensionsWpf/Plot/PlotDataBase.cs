@@ -6,49 +6,17 @@ using System.Windows;
 
 namespace EmnExtensions.Wpf.Plot
 {
-	public enum PlotClass { Auto, PointCloud, Line }
-
-	public interface IPlotView
-	{
-		string XUnitLabel { get; }
-		string YUnitLabel { get; }
-		string DataLabel { get; }
-		object Tag { get; }
-
-		event Action<IPlotView, GraphChange> Changed;
-		TickedAxisLocation AxisBindings { get; set; }
-		IPlotViz PlotVisualizer { get; }
-	}
-
-	public interface IPlot<out T> : IPlotView
-	{
-		Rect? OverrideBounds { get; }
-		PlotClass PlotClass { get; }
-		T Data { get; }
-		void TriggerChange(GraphChange changeType);
-	}
-
-	public interface IPlotControl<T> : IPlot<T>
-	{
-		new string XUnitLabel { get; set; }
-		new string YUnitLabel { get; set; }
-		new string DataLabel { get; set; }
-		new Rect? OverrideBounds { get; set; }
-		new PlotClass PlotClass { get; set; }
-		new object Tag { get; set; }
-		new T Data { get; set; }
-	}
 
 	public interface IPlotVisualizerFactory<in T>
 	{
-		IPlotViz<T> ChooseVisualizer(T data, PlotClass plotClass);
+		IVizEngine<T> ChooseVisualizer(T data, PlotClass plotClass);
 	}
 
 	class PlotDataImplementation<T, TVizFactory> : IPlotControl<T> where TVizFactory : IPlotVisualizerFactory<T>, new()
 	{
 		public event Action<IPlotView, GraphChange> Changed;
 		internal protected void TriggerChange(GraphChange changeType) { if (Changed != null) Changed(this, changeType); }
-		void IPlot<T>.TriggerChange(GraphChange changeType) { TriggerChange(changeType); }
+		void IPlot.TriggerChange(GraphChange changeType) { TriggerChange(changeType); }
 
 		string m_xUnitLabel, m_yUnitLabel, m_DataLabel;
 		public string XUnitLabel { get { return m_xUnitLabel; } set { if (m_xUnitLabel != value) { m_xUnitLabel = value; TriggerChange(GraphChange.Labels); } } }
@@ -66,13 +34,13 @@ namespace EmnExtensions.Wpf.Plot
 		PlotClass m_PlotClass;
 		public PlotClass PlotClass { get { return m_PlotClass; } set { if (m_PlotClass != value) { m_PlotClass = value; vizEngine = null; TriggerChange(GraphChange.Drawing); } } }
 
-		IPlotViz<T> vizEngine;
-		public IPlotViz<T> Visualizer
+		IVizEngine<T> vizEngine;
+		public IVizEngine<T> Visualizer
 		{
 			get { EnsureEngineExists(); return vizEngine; }
 			set { vizEngine = value; TriggerChange(GraphChange.Drawing); }
 		}
-		IPlotViz IPlotView.PlotVisualizer { get { return Visualizer; } }
+		IPlotViz IPlotView.PlotVisualizer { get { return PlotViz.Wrap(this, Data, Visualizer); } }
 
 
 		void EnsureEngineExists()
@@ -81,7 +49,6 @@ namespace EmnExtensions.Wpf.Plot
 			{
 				var vizFactory = new TVizFactory();
 				var newVizEngine = vizFactory.ChooseVisualizer(Data, PlotClass);
-				newVizEngine.SetOwner(this);
 				vizEngine = newVizEngine;
 				TriggerDataChange();
 			}
@@ -89,8 +56,10 @@ namespace EmnExtensions.Wpf.Plot
 
 		T m_Data;
 		public T Data { get { return m_Data; } set { m_Data = value; TriggerDataChange(); } }
-		private void TriggerDataChange() { if (vizEngine != null) vizEngine.DataChanged(m_Data); }
+		private void TriggerDataChange() { if (vizEngine != null) vizEngine.DataChanged(this); }
 		public PlotDataImplementation(T data = default(T)) { Data = data; }
+
+		IPlot IPlotData<T>.Plot { get { return this; } }
 	}
 
 	public static class PlotData
@@ -99,7 +68,7 @@ namespace EmnExtensions.Wpf.Plot
 		class FacPointArr : IPlotVisualizerFactory<Point[]>
 		{
 			public FacPointArr() { }
-			public IPlotViz<Point[]> ChooseVisualizer(Point[] data, PlotClass plotClass)
+			public IVizEngine<Point[]> ChooseVisualizer(Point[] data, PlotClass plotClass)
 			{
 				if (plotClass == PlotClass.Line)
 					throw new NotImplementedException();

@@ -18,10 +18,10 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
 		uint[] m_image;
 		Point[] Points { get { return Owner.Data; } }
 
-		public bool UseDiamondPoints { get { return m_useDiamondPoints; } set { m_useDiamondPoints = value; OnChange(GraphChange.Projection); } }
+		public bool UseDiamondPoints { get { return m_useDiamondPoints; } set { m_useDiamondPoints = value; TriggerChange(GraphChange.Projection); } }
 		protected override Rect? OuterDataBound { get { return m_OuterDataBounds; } }
 		public double CoverageRatio { get { return m_CoverageRatio; } set { if (value != m_CoverageRatio) { m_CoverageRatio = value; RecomputeBounds(); } } }
-		public Color PointColor { get { return m_pointColor; } set { if (value != m_pointColor) { m_pointColor = value; OnChange(GraphChange.Projection); } } }
+		public Color PointColor { get { return m_pointColor; } set { if (value != m_pointColor) { m_pointColor = value; TriggerChange(GraphChange.Projection); } } }
 
 		protected override void UpdateBitmap(int pW, int pH, Matrix dataToBitmap)
 		{
@@ -135,7 +135,7 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
 		public override void DataChanged(Point[] newData)
 		{
 			RecomputeBounds();
-			OnChange(GraphChange.Projection); //because we need to relayout the points in the plot
+			TriggerChange(GraphChange.Projection); //because we need to relayout the points in the plot
 		}
 
 		void RecomputeBounds()
