@@ -8,7 +8,7 @@ using System.Diagnostics;
 
 namespace EmnExtensions.Wpf.Plot.VizEngines
 {
-	public class VizPixelScatterBitmap : VizDynamicBitmap<Point[]>
+	public class VizPixelScatterBitmap : VizDynamicBitmap<Point[]>, IVizPixelScatter
 	//for efficiency reasons, we accept data in a Point[] rather than the more general IEnumerable<Point>
 	{
 		bool m_useDiamondPoints = true;
@@ -16,14 +16,14 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
 		double m_CoverageRatio = 1.0;
 		Color m_pointColor;
 		uint[] m_image;
-		Point[] Points { get { return Owner.Data; } }
+		Point[] currentPoints;
 
 		public bool UseDiamondPoints { get { return m_useDiamondPoints; } set { m_useDiamondPoints = value; TriggerChange(GraphChange.Projection); } }
 		protected override Rect? OuterDataBound { get { return m_OuterDataBounds; } }
-		public double CoverageRatio { get { return m_CoverageRatio; } set { if (value != m_CoverageRatio) { m_CoverageRatio = value; RecomputeBounds(); } } }
+		public double CoverageRatio { get { return m_CoverageRatio; } set { if (value != m_CoverageRatio) { m_CoverageRatio = value; RecomputeBounds(currentPoints); } } }
 		public Color PointColor { get { return m_pointColor; } set { if (value != m_pointColor) { m_pointColor = value; TriggerChange(GraphChange.Projection); } } }
 
-		protected override void UpdateBitmap(int pW, int pH, Matrix dataToBitmap)
+		protected override void UpdateBitmap(Point[] data, int pW, int pH, Matrix dataToBitmap)
 		{
 			Trace.WriteLine("UpdateBitmap");
 
@@ -56,7 +56,7 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
 
 		void MakeDiamondPoint2dHistogram(int pW, int pH, Matrix dataToBitmap)
 		{
-			foreach (var point in Points)
+			foreach (var point in currentPoints)
 			{
 				Point displaypoint = dataToBitmap.Transform(point);
 				int x = (int)(displaypoint.X);
@@ -74,7 +74,7 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
 
 		void MakeSinglePoint2dHistogram(int pW, int pH, Matrix dataToBitmap)
 		{
-			foreach (var point in Points)
+			foreach (var point in currentPoints)
 			{
 				Point displaypoint = dataToBitmap.Transform(point);
 				int x = (int)(displaypoint.X);
@@ -134,60 +134,16 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
 
 		public override void DataChanged(Point[] newData)
 		{
-			RecomputeBounds();
+			currentPoints = newData;
+			RecomputeBounds(newData);
 			TriggerChange(GraphChange.Projection); //because we need to relayout the points in the plot
 		}
 
-		void RecomputeBounds()
+		void RecomputeBounds(Point[] points)
 		{
-			if (HasPoints())
-			{
-				m_OuterDataBounds = ComputeOuterBounds(Points);
-				DataBounds = ComputeInnerBoundsByRatio(Points, m_CoverageRatio, m_OuterDataBounds);
-			}
-			else
-				DataBounds = m_OuterDataBounds = Rect.Empty;
+			Rect innerBounds;
+			VizPixelScatterHelpers.RecomputeBounds(points, CoverageRatio, out m_OuterDataBounds, out innerBounds);
+			SetDataBounds(innerBounds);
 		}
-
-		#region RecomputeBounds Helpers
-		bool HasPoints() { return Points != null && Points.Length > 0; }
-
-		static Rect ComputeOuterBounds(Point[] points)
-		{
-			Rect outerBounds = Rect.Empty;
-			foreach (var point in points)
-				outerBounds.Union(point);
-			return outerBounds;
-		}
-
-		static Rect ComputeInnerBoundsByRatio(Point[] points, double coverageRatio, Rect completeBounds)
-		{
-			int cutoffEachSide = (int)(0.5 * (1.0 - coverageRatio) * points.Length + 0.5);
-			return
-				cutoffEachSide == 0 ? completeBounds :
-				cutoffEachSide * 2 >= points.Length ? Rect.Empty :
-				ComputeInnerBoundsByCutoff(points, cutoffEachSide);
-		}
-
-		static Rect ComputeInnerBoundsByCutoff(Point[] points, int cutoffEachSide)
-		{
-			double[] xs = new double[points.Length];
-			double[] ys = new double[points.Length];
-			for (int i = 0; i < points.Length; i++)
-			{
-				xs[i] = points[i].X;
-				ys[i] = points[i].Y;
-			}
-			Array.Sort(xs);
-			Array.Sort(ys);
-			int firstIndex = cutoffEachSide;
-			int lastIndex = points.Length - 1 - cutoffEachSide;
-			return new Rect(
-					new Point(xs[firstIndex], ys[firstIndex]),
-					new Point(xs[lastIndex], ys[lastIndex])
-				);
-		}
-		#endregion
-
 	}
 }

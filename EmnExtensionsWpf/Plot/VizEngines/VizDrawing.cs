@@ -15,7 +15,7 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
 		{
 			context.PushClip(m_clip);
 			context.PushTransform(m_trans);
-			context.DrawDrawing(plot.Data);
+			context.DrawDrawing(data);
 			context.Pop();
 			context.Pop();
 		}
@@ -28,7 +28,7 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
 
 		public override void DataChanged(Drawing data)
 		{
-			SetDataBounds(plot, plot.Data.Bounds);
+			SetDataBounds(data.Bounds);
 			TriggerChange(GraphChange.Drawing);
 		}
 	}

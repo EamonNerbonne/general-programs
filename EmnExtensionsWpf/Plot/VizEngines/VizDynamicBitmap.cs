@@ -23,7 +23,7 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
 		TranslateTransform m_offsetTransform = new TranslateTransform();
 		DrawingGroup m_drawing = new DrawingGroup();
 
-		public sealed override void DrawGraph(Drawing data, DrawingContext context)
+		public sealed override void DrawGraph(T data, DrawingContext context)
 		{
 			Trace.WriteLine("redraw");
 			context.DrawDrawing(m_drawing);
@@ -31,7 +31,7 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
 
 		static Rect SnapRect(Rect r, double multX, double multY) { return new Rect(new Point(Math.Floor(r.Left / multX) * multX, Math.Floor(r.Top / multY) * multY), new Point(Math.Ceiling((r.Right + 0.01) / multX) * multX, Math.Ceiling((r.Bottom + 0.01) / multY) * multY)); }
 
-		public sealed override void SetTransform(Drawing data, Matrix dataToDisplay, Rect displayClip)
+		public sealed override void SetTransform(T data, Matrix dataToDisplay, Rect displayClip)
 		{
 			if (dataToDisplay.IsIdentity) //TODO: is this a good test for no-show?
 				using (m_drawing.Open())
@@ -75,12 +75,12 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
 				Trace.WriteLine("new WriteableBitmap");
 			}
 
-			UpdateBitmap(pW, pH, dataToBitmap);
+			UpdateBitmap(data, pW, pH, dataToBitmap);
 			//painting.
 			Trace.WriteLine("retransform");
 		}
 
-		protected abstract void UpdateBitmap(int pW, int pH, Matrix dataToBitmap);
+		protected abstract void UpdateBitmap(T data, int pW, int pH, Matrix dataToBitmap);
 
 		//DataBound includes the portion of the data to display; may exclude irrelevant portions.  
 		//The actual display may be larger due to various reasons and that can be inefficient.

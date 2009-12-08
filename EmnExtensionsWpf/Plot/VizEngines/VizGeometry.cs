@@ -76,21 +76,21 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
 				changingGeometry = true;
 
 				m_Geometry.Transform = new MatrixTransform(m_geomToAxis);
-				DataBounds = m_Geometry.Bounds;//this will trigger OnChanged if neeeded.
+				SetDataBounds(m_Geometry.Bounds);//this will trigger OnChanged if neeeded.
 				m_Geometry.Transform = m_ProjectionTransform;
-				Margin = new Thickness(Pen.Thickness / 2.0);//this will trigger OnChanged if neeeded.
+				SetMargin(new Thickness(Pen.Thickness / 2.0));//this will trigger OnChanged if neeeded.
 				changingGeometry = false;
 			}
 		}
 
-		public override void SetTransform(Matrix axisToDisplay, Rect displayClip)
+		public override void SetTransform(Geometry data, Matrix axisToDisplay, Rect displayClip)
 		{
 			changingGeometry = true;
 			m_ProjectionTransform.Matrix = m_geomToAxis * axisToDisplay;
 			changingGeometry = false;
 		}
 
-		public override void DrawGraph(DrawingContext context)
+		public override void DrawGraph(Geometry data, DrawingContext context)
 		{
 			context.DrawGeometry(m_Fill, m_Pen, m_Geometry);
 		}

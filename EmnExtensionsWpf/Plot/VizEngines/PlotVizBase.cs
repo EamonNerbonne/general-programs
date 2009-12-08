@@ -10,6 +10,8 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
 	public abstract class PlotVizBase<T> : IVizEngine<T>
 	{
 		protected IPlot m_owner;
+		public IPlot Owner { get { return m_owner; } set { m_owner = value; } }
+
 
 		Rect m_DataBounds = Rect.Empty;
 		public Rect DataBounds(T data) { return m_DataBounds; }
@@ -29,9 +31,10 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
 		protected void SetMargin(Thickness newMargin) { if (m_Margin != newMargin) { m_Margin = newMargin; TriggerChange(GraphChange.Projection); } }
 
 		public abstract void DrawGraph(T data, DrawingContext context);
-		public abstract void SetTransform(T data, Matrix boundsToDisplay, Rect displayClip);
-		public abstract void DataChanged(T data);
 
+		public abstract void SetTransform(T data, Matrix boundsToDisplay, Rect displayClip);
+
+		public abstract void DataChanged(T data);
 	}
 
 }

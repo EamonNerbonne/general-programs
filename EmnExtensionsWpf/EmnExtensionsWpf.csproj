@@ -146,9 +146,11 @@
       <DependentUpon>NewPlotControl.xaml</DependentUpon>
     </Compile>
     <Compile Include="Plot\IPlotViz.cs" />
-    <Compile Include="Plot\VizEngines\PlotVizDynamic.cs" />
+    <Compile Include="Plot\VizEngines\PlotVizTransform.cs" />
     <Compile Include="Plot\VizEngines\VizDrawing.cs" />
+    <Compile Include="Plot\VizEngines\VizPixelScatter.cs" />
     <Compile Include="Plot\VizEngines\VizPixelScatterGeom.cs" />
+    <Compile Include="Plot\VizEngines\VizPixelScatterSmart.cs" />
     <Compile Include="Plot\VizEngineWrapper.cs" />
     <Compile Include="WpfTools.cs">
       <SubType>Code</SubType>

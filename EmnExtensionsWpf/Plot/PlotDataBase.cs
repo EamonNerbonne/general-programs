@@ -56,10 +56,8 @@ namespace EmnExtensions.Wpf.Plot
 
 		T m_Data;
 		public T Data { get { return m_Data; } set { m_Data = value; TriggerDataChange(); } }
-		private void TriggerDataChange() { if (vizEngine != null) vizEngine.DataChanged(this); }
+		private void TriggerDataChange() { if (vizEngine != null) vizEngine.DataChanged(Data); }
 		public PlotDataImplementation(T data = default(T)) { Data = data; }
-
-		IPlot IPlotData<T>.Plot { get { return this; } }
 	}
 
 	public static class PlotData

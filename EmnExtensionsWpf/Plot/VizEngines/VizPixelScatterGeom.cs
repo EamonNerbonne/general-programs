@@ -1,45 +1,59 @@
-﻿//using System;
-//using System.Collections.Generic;
-//using System.Linq;
-//using System.Text;
-//using System.Windows;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Windows;
+using System.Windows.Media;
 
-//namespace EmnExtensions.Wpf.Plot.VizEngines
-//{
-//    class VizPixelScatterGeom : IPlotViz<Point[]>
-//    {
-//        VizGeometry impl;
-//        public void DataChanged(Point[] newData)		{			impl.DataChanged(GraphUtils.PointCloud(newData));		}
+namespace EmnExtensions.Wpf.Plot.VizEngines
+{
+	public class VizPixelScatterGeom : PlotVizTransform<Point[], StreamGeometry>, IVizPixelScatter
+	{
+		VizGeometry impl = new VizGeometry();
 
-//        public void SetOwner(IPlot<Point[]> owner)
-//        {
-//            impl.SetOwner(owner);
-//        }
+		Point[] oldData;
+		StreamGeometry transformedData;
+		protected override StreamGeometry TransformedData(Point[] inputData) { return transformedData; }
+		public override void DataChanged(Point[] newData)
+		{
+			oldData = newData;
+			transformedData = GraphUtils.PointCloud(newData);
+			RecomputeBounds(newData);
+			impl.DataChanged(transformedData);
+		}
 
-//        #endregion
 
-//        #region IPlotViz Members
 
-//        public Rect DataBounds
-//        {
-//            get { throw new NotImplementedException(); }
-//        }
+		double m_Coverage = 1.0;
+		public double CoverageRatio { get { return m_Coverage; } set { m_Coverage = value; RecomputeBounds(oldData); } }
 
-//        public Thickness Margin
-//        {
-//            get { throw new NotImplementedException(); }
-//        }
+		private void RecomputeBounds(Point[] oldData)
+		{
+			Rect innerBounds, outerBounds;
+			VizPixelScatterHelpers.RecomputeBounds(oldData, CoverageRatio, out outerBounds, out innerBounds);
+			if (innerBounds != m_InnerBounds)
+			{
+				m_InnerBounds = innerBounds;
+				Owner.TriggerChange(GraphChange.Projection);
+			}
+		}
+		Rect m_InnerBounds;
+		public override Rect DataBounds(Point[] data) { return m_InnerBounds; }
 
-//        public void DrawGraph(System.Windows.Media.DrawingContext context)
-//        {
-//            throw new NotImplementedException();
-//        }
-
-//        public void SetTransform(System.Windows.Media.Matrix boundsToDisplay, Rect displayClip)
-//        {
-//            throw new NotImplementedException();
-//        }
-
-//        #endregion
-//    }
-//}
+		public Color PointColor
+		{
+			get
+			{
+				return ((SolidColorBrush)impl.Pen.Brush).Color;
+			}
+			set
+			{
+				Pen penCopy = impl.Pen.CloneCurrentValue();
+				penCopy.Brush = new SolidColorBrush(value);
+				penCopy.Freeze();
+				impl.Pen = penCopy;
+			}
+		}
+		protected override IVizEngine<StreamGeometry> Implementation { get { return impl; } }
+	}
+}
