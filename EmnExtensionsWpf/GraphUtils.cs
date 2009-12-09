@@ -63,7 +63,20 @@ namespace EmnExtensions.Wpf
 			return geom;
 		}
 
-		public static StreamGeometry Line(IEnumerable<Point> lineOfPoints) {
+		public static StreamGeometry Line(IEnumerable<Point> lineOfPoints)
+		{
+			Rect dataBounds = lineOfPoints.Aggregate(Rect.Empty, (bound, point) => Rect.Union(bound, point));
+			double maxSafe = Int32.MaxValue/2.0;
+			Rect safeBounds = new Rect(new Point(-maxSafe, -maxSafe), new Point(maxSafe, maxSafe));
+			Matrix dataToGeom = TransformShape(dataBounds, safeBounds, flipVertical: false);
+			Matrix geomToData = TransformShape(safeBounds, dataBounds, flipVertical: false);
+			var scaledPoints = lineOfPoints.Select(p=>dataToGeom.Transform(p));
+			var scaledGeom = LineUnscaled(scaledPoints);
+			scaledGeom.Transform = new MatrixTransform(geomToData);
+			return scaledGeom;
+		}
+
+		public static StreamGeometry LineUnscaled(IEnumerable<Point> lineOfPoints) {
 			StreamGeometry geom = new StreamGeometry();
 			using (var context = geom.Open()) {
 				bool wasOK = false;
