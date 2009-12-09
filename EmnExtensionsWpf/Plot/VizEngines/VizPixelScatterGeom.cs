@@ -16,15 +16,34 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
 		protected override StreamGeometry TransformedData(Point[] inputData) { return transformedData; }
 		public override void DataChanged(Point[] newData)
 		{
+
 			oldData = newData;
 			transformedData = GraphUtils.PointCloud(newData);
 			RecomputeBounds(newData);
 			impl.DataChanged(transformedData);
+			SetPenSize(newData.Length);
+		}
+
+		private void SetPenSize(int pointCount)
+		{
+			double thickness = 25.0 / (0.5 + Math.Log(Math.Max(pointCount, 1)));
+
+			var linecap =PenLineCap.Round ;
+
+			if (thickness <= 3) {
+				linecap = PenLineCap.Square;
+				thickness *= 0.75;
+			}
+			Pen penCopy = impl.Pen.CloneCurrentValue();
+			penCopy.EndLineCap = linecap;
+			penCopy.Thickness = thickness;
+			penCopy.Freeze();
+			impl.Pen = penCopy;
 		}
 
 
 
-		double m_Coverage = 1.0;
+		double m_Coverage = 0.9999;
 		public double CoverageRatio { get { return m_Coverage; } set { m_Coverage = value; RecomputeBounds(oldData); } }
 
 		private void RecomputeBounds(Point[] oldData)

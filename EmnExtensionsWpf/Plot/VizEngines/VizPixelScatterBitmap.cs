@@ -13,7 +13,7 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
 	{
 		bool m_useDiamondPoints = true;
 		Rect m_OuterDataBounds = Rect.Empty;
-		double m_CoverageRatio = 1.0;
+		double m_CoverageRatio = 0.9999;
 		Color m_pointColor;
 		uint[] m_image;
 		Point[] currentPoints;
