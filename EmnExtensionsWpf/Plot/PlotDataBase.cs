@@ -14,6 +14,7 @@ namespace EmnExtensions.Wpf.Plot
 
 	class PlotDataImplementation<T> : IPlotControl<T>
 	{
+		public static IVizEngine<T> DefaultChooser(T data, PlotClass plotClass) { return (IVizEngine<T>)new VizEngines.VizNone(); }
 		public event Action<IPlotView, GraphChange> Changed;
 		internal protected void TriggerChange(GraphChange changeType) { if (Changed != null) Changed(this, changeType); }
 		void IPlot.TriggerChange(GraphChange changeType) { TriggerChange(changeType); }
@@ -37,52 +38,37 @@ namespace EmnExtensions.Wpf.Plot
 		IVizEngine<T> vizEngine;
 		public IVizEngine<T> Visualizer
 		{
-			get { EnsureEngineExists(); return vizEngine; }
-			set { vizEngine = value; TriggerChange(GraphChange.Drawing); }
+			get { 
+				if(vizEngine == null)
+					Visualizer = ChooseVisualizer(Data, PlotClass);
+				return vizEngine;
+				}
+			set { vizEngine = value; vizEngine.Owner = this; vizEngine.DataChanged(Data); TriggerChange(GraphChange.Drawing); }
 		}
 		IPlotViz IPlotView.PlotVisualizer { get { return PlotViz.Wrap(this, Data, Visualizer); } }
 
-		public Func<T, PlotClass, IVizEngine<T>> ChooseVisualizer
-
-		void EnsureEngineExists()
-		{
-			if (vizEngine == null)
-			{
-				var vizFactory = new TVizFactory();
-				var newVizEngine = vizFactory.ChooseVisualizer(Data, PlotClass);
-				vizEngine = newVizEngine;
-				TriggerDataChange();
-			}
-		}
+		/// <summary>
+		/// Called to construct a visualizer whenever one is necessary an none currently is set (i.e. when needing to measure or render the graph and Visualizer == null).
+		/// This should return a value
+		/// </summary>
+		public Func<T, PlotClass, IVizEngine<T>> ChooseVisualizer { get; set; }
 
 		T m_Data;
-		public T Data { get { return m_Data; } set { m_Data = value; TriggerDataChange(); } }
-		private void TriggerDataChange() { if (vizEngine != null) vizEngine.DataChanged(Data); }
-		public PlotDataImplementation(T data = default(T)) { Data = data; }
+		public T Data { get { return m_Data; } set { m_Data = value; if (vizEngine != null) vizEngine.DataChanged(Data); } }
+
+		public PlotDataImplementation(T data = default(T)) { ChooseVisualizer = DefaultChooser;  Data = data; }
 	}
 
 	public static class PlotData
 	{
-
-		class FacPointArr : IPlotVisualizerFactory<Point[]>
+		public static  IVizEngine<Point[]> PointArrayVisualizers(Point[] data, PlotClass plotClass)
 		{
-			public FacPointArr() { }
-			public IVizEngine<Point[]> ChooseVisualizer(Point[] data, PlotClass plotClass)
-			{
-				if (plotClass == PlotClass.Line)
-					throw new NotImplementedException();
-				else
-					return new VizEngines.VizPixelScatterBitmap();
-			}
+			if (plotClass == PlotClass.Line)
+				return new VizEngines.VizLineSegments();
+			else
+				return new VizEngines.VizPixelScatterSmart();
 		}
 
-
-		//public static IPlotControl<T> Create<T>(T Data)
-		//{
-		//    return new PlotDataImplementation<Point[], FacPointArr>();
-		//}
-		public static IPlotControl<Point[]> Create(Point[] Data) { return new PlotDataImplementation<Point[], FacPointArr>(Data); }
-		public static IVizEngine<T> NoViz<T>(T data, PlotClass plotClass) { return (IVizEngine<T>)new VizEngines.VizNone(); }
-
+		public static IPlotControl<Point[]> Create(Point[] Data) { return new PlotDataImplementation<Point[]>(Data) { ChooseVisualizer = PointArrayVisualizers }; }
 	}
 }
