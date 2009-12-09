@@ -12,7 +12,7 @@ namespace EmnExtensions.Wpf.Plot
 		IVizEngine<T> ChooseVisualizer(T data, PlotClass plotClass);
 	}
 
-	class PlotDataImplementation<T, TVizFactory> : IPlotControl<T> where TVizFactory : IPlotVisualizerFactory<T>, new()
+	class PlotDataImplementation<T> : IPlotControl<T>
 	{
 		public event Action<IPlotView, GraphChange> Changed;
 		internal protected void TriggerChange(GraphChange changeType) { if (Changed != null) Changed(this, changeType); }
@@ -42,6 +42,7 @@ namespace EmnExtensions.Wpf.Plot
 		}
 		IPlotViz IPlotView.PlotVisualizer { get { return PlotViz.Wrap(this, Data, Visualizer); } }
 
+		public Func<T, PlotClass, IVizEngine<T>> ChooseVisualizer
 
 		void EnsureEngineExists()
 		{
@@ -81,6 +82,7 @@ namespace EmnExtensions.Wpf.Plot
 		//    return new PlotDataImplementation<Point[], FacPointArr>();
 		//}
 		public static IPlotControl<Point[]> Create(Point[] Data) { return new PlotDataImplementation<Point[], FacPointArr>(Data); }
+		public static IVizEngine<T> NoViz<T>(T data, PlotClass plotClass) { return (IVizEngine<T>)new VizEngines.VizNone(); }
 
 	}
 }
