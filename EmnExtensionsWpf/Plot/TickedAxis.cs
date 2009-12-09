@@ -265,7 +265,7 @@ namespace EmnExtensions.Wpf.Plot
 		{
 			get
 			{
-				return Math.Max(PixelsPerTick, m_ticks == null ? 0.0 : TickLabelSizeGuess.Width * Math.Sqrt(10) / 2.0 + 4); //factor sqrt(10)/2 since actual tick distance may be off by that much from the preferred quantity.
+				return m_ticks == null ? PixelsPerTick : Math.Max((PixelsPerTick + CondTranspose(TickLabelSizeGuess).Width) / 2.0, CondTranspose(TickLabelSizeGuess).Width * Math.Sqrt(10) / 2.0 + 4); //factor sqrt(10)/2 since actual tick distance may be off by that much from the preferred quantity.
 			}
 		}
 		static Size Transpose(Size size) { return new Size(size.Height, size.Width); }
@@ -651,7 +651,7 @@ namespace EmnExtensions.Wpf.Plot
 
 		FormattedText MakeText(double val)
 		{
-			string numericValueString = (val).ToString("f" + Math.Max(0, m_dataOrderOfMagnitude - m_slotOrderOfMagnitude));
+			string numericValueString = (val * Math.Pow(10.0,-m_dataOrderOfMagnitude)).ToString("f" + Math.Max(0, m_dataOrderOfMagnitude - m_slotOrderOfMagnitude));
 			return new FormattedText(numericValueString, m_cachedCulture, FlowDirection.LeftToRight, m_typeface, m_fontSize, Brushes.Black);
 		}
 
@@ -740,8 +740,6 @@ namespace EmnExtensions.Wpf.Plot
 		/// and slightly less when the actual number of slots greater than requested.</param>
 		public static void CalcTickPositions(DimensionBounds range, double preferredNum, ref bool attemptBorderTicks, out double slotSize, out int slotOrderOfMagnitude, out long firstTickAtSlotMultiple, out long lastTickAtSlotMultiple, out int[] ticks)
 		{
-			if (preferredNum < 4.5) attemptBorderTicks = false;
-			//if (attemptBorderTicks) preferredNum--;
 			if (preferredNum > 10.0) preferredNum = Math.Sqrt(10 * preferredNum);
 
 			double idealSlotSize = range.Length / preferredNum;
@@ -776,6 +774,10 @@ namespace EmnExtensions.Wpf.Plot
 			slotSize = fixedSlot * baseSize;
 			firstTickAtSlotMultiple = (long)Math.Floor(range.Start / slotSize + permittedErrorRatio);
 			lastTickAtSlotMultiple = (long)Math.Ceiling(range.End / slotSize - permittedErrorRatio);
+
+			double effectiveStart = firstTickAtSlotMultiple * slotSize;
+			double effectiveEnd = lastTickAtSlotMultiple * slotSize;
+			if (effectiveEnd - effectiveStart > 1.15 * range.Length) attemptBorderTicks = false;
 		}
 	}
 }
