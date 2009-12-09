@@ -12,7 +12,7 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
 		const int MaxPointsInStreamGeometry = 25000;
 
 		protected override Point[] TransformedData(Point[] inputData) { return inputData; }
-		IVizPixelScatter engine;
+		IVizPixelScatter engine = new VizPixelScatterGeom();
 		protected override IVizEngine<Point[]> Implementation { get { return engine; } }
 
 		public override void DataChanged(Point[] newData)
@@ -23,9 +23,9 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
 			if (reconstructEngine)
 			{
 				IVizPixelScatter newImplementation = useBmpPlot ? (IVizPixelScatter)new VizPixelScatterBitmap() : new VizPixelScatterGeom();
+				newImplementation.Owner = Owner;
 				newImplementation.PointColor = PointColor;
 				newImplementation.CoverageRatio = CoverageRatio;
-				newImplementation.Owner = Owner;
 				engine = newImplementation;
 				Owner.TriggerChange(GraphChange.Projection);
 				Owner.TriggerChange(GraphChange.Drawing);
