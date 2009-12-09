@@ -22,8 +22,8 @@ namespace EmnExtensions.Wpf.Plot
 		bool needRedrawGraphs = false;
 		bool needRecomputeBounds = false;
 		bool showGridLines = false;
-		ObservableCollection<IPlotView> graphs = new ObservableCollection<IPlotView>();
-		public ObservableCollection<IPlotView> Graphs { get { return graphs; } }
+		ObservableCollection<IPlotViewOnly> graphs = new ObservableCollection<IPlotViewOnly>();
+		public ObservableCollection<IPlotViewOnly> Graphs { get { return graphs; } }
 		Dictionary<TickedAxisLocation, TickedAxis> axes;
 		public NewPlotControl()
 		{
@@ -41,24 +41,39 @@ namespace EmnExtensions.Wpf.Plot
 			};
 		}
 
-		void RegisterChanged(IEnumerable<IPlotView> newGraphs)
+		void RegisterChanged(IEnumerable<IPlotViewOnly> newGraphs)
 		{
-			foreach (IPlotView newgraph in newGraphs)
-				newgraph.Changed += new Action<IPlotView, GraphChange>(graphChanged);
+			foreach (IPlotViewOnly newgraph in newGraphs)
+				newgraph.Changed += new Action<IPlotViewOnly, GraphChange>(graphChanged);
 		}
 
-		void UnregisterChanged(IEnumerable<IPlotView> oldGraphs)
+		public void AutoPickColors()
 		{
-			foreach (IPlotView oldgraph in oldGraphs)
-				oldgraph.Changed -= new Action<IPlotView, GraphChange>(graphChanged);
+			var ColoredPlots = (
+									from graph in Graphs
+									let plotWithSettings = graph as IPlotWithSettings
+									where plotWithSettings != null && plotWithSettings.VizSupportsColor
+									select plotWithSettings
+							   ).ToArray();
+			var randomColors = EmnExtensions.Wpf.OldGraph.GraphRandomPen.MakeDistributedColors(ColoredPlots.Length);
+			foreach (var plotAndColor in ColoredPlots.Zip(randomColors, (a, b) => Tuple.Create(a, b)))
+			{
+				plotAndColor.Item1.RenderColor = plotAndColor.Item2;
+			}
+		}
+
+		void UnregisterChanged(IEnumerable<IPlotViewOnly> oldGraphs)
+		{
+			foreach (IPlotViewOnly oldgraph in oldGraphs)
+				oldgraph.Changed -= new Action<IPlotViewOnly, GraphChange>(graphChanged);
 		}
 
 		void graphs_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
 		{
 			if (e.OldItems != null)
-				UnregisterChanged(e.OldItems.Cast<IPlotView>());
+				UnregisterChanged(e.OldItems.Cast<IPlotViewOnly>());
 			if (e.NewItems != null)
-				RegisterChanged(e.NewItems.Cast<IPlotView>());
+				RegisterChanged(e.NewItems.Cast<IPlotViewOnly>());
 			RequireRedisplay();
 		}
 
@@ -71,7 +86,7 @@ namespace EmnExtensions.Wpf.Plot
 			InvalidateVisual();//todo; flag and InvalidateVisual always together?
 		}
 
-		void graphChanged(IPlotView graph, GraphChange graphChange)
+		void graphChanged(IPlotViewOnly graph, GraphChange graphChange)
 		{
 			if (graphChange == GraphChange.Drawing)
 			{
@@ -110,7 +125,7 @@ namespace EmnExtensions.Wpf.Plot
 		}
 		private static DimensionBounds ToDimBounds(Rect bounds, bool isHorizontal) { return isHorizontal ? DimensionBounds.FromRectX(bounds) : DimensionBounds.FromRectY(bounds); }
 		private static DimensionMargins ToDimMargins(Thickness margins, bool isHorizontal) { return isHorizontal ? DimensionMargins.FromThicknessX(margins) : DimensionMargins.FromThicknessY(margins); }
-		private static TickedAxisLocation ChooseProjection(IPlotView graph) { return ProjectionCorners.FirstOrDefault(corner => (graph.AxisBindings & corner) == corner); }
+		private static TickedAxisLocation ChooseProjection(IPlotViewOnly graph) { return ProjectionCorners.FirstOrDefault(corner => (graph.AxisBindings & corner) == corner); }
 		#endregion
 
 		private void RecomputeBounds()

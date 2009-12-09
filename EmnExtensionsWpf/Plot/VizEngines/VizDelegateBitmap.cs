@@ -29,5 +29,7 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
 
 		protected override void UpdateBitmap(T data, int pW, int pH, Matrix dataToBitmap) { UpdateBitmapDelegate(m_bmp, dataToBitmap, pW, pH, data); }
 		public override void DataChanged(T data) { SetDataBounds(ComputeBounds(data)); TriggerChange(GraphChange.Projection); }
+
+		public override void RenderOptionsChanged()		{	} //we don't use color changes.
 	}
 }

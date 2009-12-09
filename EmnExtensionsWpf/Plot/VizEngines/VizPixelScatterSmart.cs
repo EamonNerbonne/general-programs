@@ -24,7 +24,6 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
 			{
 				IVizPixelScatter newImplementation = useBmpPlot ? (IVizPixelScatter)new VizPixelScatterBitmap() : new VizPixelScatterGeom();
 				newImplementation.Owner = Owner;
-				newImplementation.PointColor = PointColor;
 				newImplementation.CoverageRatio = CoverageRatio;
 				engine = newImplementation;
 				Owner.TriggerChange(GraphChange.Projection);
@@ -34,6 +33,5 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
 		}
 
 		public double CoverageRatio { get { return engine.CoverageRatio; } set { engine.CoverageRatio = value; } }
-		public Color PointColor { get { return engine.PointColor; } set { engine.PointColor = value; } }
 	}
 }

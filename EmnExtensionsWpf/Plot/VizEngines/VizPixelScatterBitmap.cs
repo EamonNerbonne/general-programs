@@ -14,14 +14,12 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
 		bool m_useDiamondPoints = true;
 		Rect m_OuterDataBounds = Rect.Empty;
 		double m_CoverageRatio = 0.9999;
-		Color m_pointColor;
 		uint[] m_image;
 		Point[] currentPoints;
 
 		public bool UseDiamondPoints { get { return m_useDiamondPoints; } set { m_useDiamondPoints = value; TriggerChange(GraphChange.Projection); } }
 		protected override Rect? OuterDataBound { get { return m_OuterDataBounds; } }
 		public double CoverageRatio { get { return m_CoverageRatio; } set { if (value != m_CoverageRatio) { m_CoverageRatio = value; RecomputeBounds(currentPoints); } } }
-		public Color PointColor { get { return m_pointColor; } set { if (value != m_pointColor) { m_pointColor = value; TriggerChange(GraphChange.Projection); } } }
 
 		protected override void UpdateBitmap(Point[] data, int pW, int pH, Matrix dataToBitmap)
 		{
@@ -84,11 +82,14 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
 			}
 		}
 
+
 		void ConvertHistogramToColorDensityImage(int pW, int pH)
 		{
+			Color pointColor =  Owner.RenderColor ?? Colors.Black; 
+
 			int numPixels = pW * pH;
-			uint[] alphaLookup = PregenerateAlphaLookup(PointColor.ScA, m_image, numPixels);
-			uint nativeColorWithoutAlpha = PointColor.ToNativeColor() & 0x00ffffff;
+			uint[] alphaLookup = PregenerateAlphaLookup(pointColor.ScA, m_image, numPixels);
+			uint nativeColorWithoutAlpha = pointColor.ToNativeColor() & 0x00ffffff;
 
 			for (int pxI = 0; pxI < numPixels; pxI++)
 				m_image[pxI] = nativeColorWithoutAlpha | alphaLookup[m_image[pxI]];
@@ -145,5 +146,14 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
 			VizPixelScatterHelpers.RecomputeBounds(points, CoverageRatio, out m_OuterDataBounds, out innerBounds);
 			SetDataBounds(innerBounds);
 		}
+
+		public override void RenderOptionsChanged()
+		{
+			TriggerChange(GraphChange.Projection); // because we need to relayout the points in the plot.
+		}
+
+		public override bool SupportsThickness { get { return false; } }
+		public override bool SupportsColor { get { return true; } }
+
 	}
 }

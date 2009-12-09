@@ -16,6 +16,10 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
 		public virtual void DrawGraph(TIn data, DrawingContext context) { Implementation.DrawGraph(TransformedData(data), context); }
 		public virtual void SetTransform(TIn data, Matrix boundsToDisplay, Rect displayClip) { Implementation.SetTransform(TransformedData(data), boundsToDisplay, displayClip); }
 		public abstract void DataChanged(TIn newData);
+		public virtual void RenderOptionsChanged() { Implementation.RenderOptionsChanged(); }
 		public IPlot Owner { get { return Implementation.Owner; } set { Implementation.Owner = value; } }
+
+		public virtual bool SupportsThickness { get { return Implementation.SupportsThickness; } }
+		public virtual bool SupportsColor { get { return Implementation.SupportsColor; } }
 	}
 }

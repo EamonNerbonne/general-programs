@@ -139,8 +139,6 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Plot\IPlot.cs" />
-    <Compile Include="Plot\IPlotControl.cs" />
-    <Compile Include="Plot\IPlotView.cs" />
     <Compile Include="Plot\IVizEngine.cs" />
     <Compile Include="Plot\NewPlotControl.xaml.cs">
       <DependentUpon>NewPlotControl.xaml</DependentUpon>

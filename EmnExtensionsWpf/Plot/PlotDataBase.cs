@@ -3,19 +3,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Windows;
+using System.Windows.Media;
 
 namespace EmnExtensions.Wpf.Plot
 {
-
-	public interface IPlotVisualizerFactory<in T>
-	{
-		IVizEngine<T> ChooseVisualizer(T data, PlotClass plotClass);
-	}
-
-	class PlotDataImplementation<T> : IPlotControl<T>
+	class PlotDataImplementation<T> : IPlotWriteable<T>
 	{
 		public static IVizEngine<T> DefaultChooser(T data, PlotClass plotClass) { return (IVizEngine<T>)new VizEngines.VizNone(); }
-		public event Action<IPlotView, GraphChange> Changed;
+		public event Action<IPlotViewOnly, GraphChange> Changed;
 		internal protected void TriggerChange(GraphChange changeType) { if (Changed != null) Changed(this, changeType); }
 		void IPlot.TriggerChange(GraphChange changeType) { TriggerChange(changeType); }
 
@@ -35,17 +30,24 @@ namespace EmnExtensions.Wpf.Plot
 		PlotClass m_PlotClass;
 		public PlotClass PlotClass { get { return m_PlotClass; } set { if (m_PlotClass != value) { m_PlotClass = value; vizEngine = null; TriggerChange(GraphChange.Drawing); } } }
 
+		Color? m_PrimaryColor;
+		public Color? RenderColor { get { return m_PrimaryColor; } set { m_PrimaryColor = value; if (vizEngine != null) vizEngine.RenderOptionsChanged(); } }
+
+		double? m_Thickness;
+		public double? RenderThickness { get { return m_Thickness; } set { m_Thickness = value; if (vizEngine != null) vizEngine.RenderOptionsChanged(); } }
+
 		IVizEngine<T> vizEngine;
 		public IVizEngine<T> Visualizer
 		{
-			get { 
-				if(vizEngine == null)
+			get
+			{
+				if (vizEngine == null)
 					Visualizer = ChooseVisualizer(Data, PlotClass);
 				return vizEngine;
-				}
+			}
 			set { vizEngine = value; vizEngine.Owner = this; vizEngine.DataChanged(Data); TriggerChange(GraphChange.Drawing); }
 		}
-		IPlotViz IPlotView.PlotVisualizer { get { return PlotViz.Wrap(this, Data, Visualizer); } }
+		IPlotWithViz IPlotViewOnly.PlotVisualizer { get { return PlotViz.Wrap(this, Data, Visualizer); } }
 
 		/// <summary>
 		/// Called to construct a visualizer whenever one is necessary an none currently is set (i.e. when needing to measure or render the graph and Visualizer == null).
@@ -56,12 +58,15 @@ namespace EmnExtensions.Wpf.Plot
 		T m_Data;
 		public T Data { get { return m_Data; } set { m_Data = value; if (vizEngine != null) vizEngine.DataChanged(Data); } }
 
-		public PlotDataImplementation(T data = default(T)) { ChooseVisualizer = DefaultChooser;  Data = data; }
+		public PlotDataImplementation(T data = default(T)) { ChooseVisualizer = DefaultChooser; Data = data; }
+		public bool VizSupportsColor { get { return Visualizer.SupportsColor; } }
+
+		public bool VizSupportsThickness { get { return Visualizer.SupportsThickness; } }
 	}
 
 	public static class PlotData
 	{
-		public static  IVizEngine<Point[]> PointArrayVisualizers(Point[] data, PlotClass plotClass)
+		public static IVizEngine<Point[]> PointArrayVisualizers(Point[] data, PlotClass plotClass)
 		{
 			if (plotClass == PlotClass.Line)
 				return new VizEngines.VizLineSegments();
@@ -69,6 +74,6 @@ namespace EmnExtensions.Wpf.Plot
 				return new VizEngines.VizPixelScatterSmart();
 		}
 
-		public static IPlotControl<Point[]> Create(Point[] Data) { return new PlotDataImplementation<Point[]>(Data) { ChooseVisualizer = PointArrayVisualizers }; }
+		public static IPlotWriteable<Point[]> Create(Point[] Data) { return new PlotDataImplementation<Point[]>(Data) { ChooseVisualizer = PointArrayVisualizers }; }
 	}
 }

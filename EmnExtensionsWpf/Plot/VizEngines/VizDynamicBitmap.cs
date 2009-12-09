@@ -89,6 +89,9 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
 		//providing one is an optimization that permits using a smaller bitmap; the rest of the drawing is just left blank then.
 		//if you don't provide an OuterDataBound, the entire display clip will be available as a WriteableBitmap.
 		protected abstract Rect? OuterDataBound { get; }
+		
+		public override bool SupportsThickness { get { return false; } }
+		public override bool SupportsColor { get { return false; } }
 
 	}
 }

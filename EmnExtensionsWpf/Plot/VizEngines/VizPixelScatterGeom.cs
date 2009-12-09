@@ -59,20 +59,6 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
 		Rect m_InnerBounds;
 		public override Rect DataBounds(Point[] data) { return m_InnerBounds; }
 
-		public Color PointColor
-		{
-			get
-			{
-				return ((SolidColorBrush)impl.Pen.Brush).Color;
-			}
-			set
-			{
-				Pen penCopy = impl.Pen.CloneCurrentValue();
-				penCopy.Brush = new SolidColorBrush(value);
-				penCopy.Freeze();
-				impl.Pen = penCopy;
-			}
-		}
 		protected override IVizEngine<StreamGeometry> Implementation { get { return impl; } }
 	}
 }

@@ -10,8 +10,6 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
 	public interface IVizPixelScatter :IVizEngine<Point[]>
 	{
 		double CoverageRatio { get; set; }
-		Color PointColor { get;set; }
-
 	}
 	public static class VizPixelScatterHelpers
 	{

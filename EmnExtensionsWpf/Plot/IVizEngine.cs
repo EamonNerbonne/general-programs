@@ -14,6 +14,10 @@ namespace EmnExtensions.Wpf.Plot
 		void DrawGraph(T data, DrawingContext context);
 		void SetTransform(T data, Matrix boundsToDisplay, Rect displayClip);
 		void DataChanged(T data);
+		void RenderOptionsChanged();
 		IPlot Owner { get; set; } //this will always be set before any usage other of this interface
+		bool SupportsThickness { get; }
+		bool SupportsColor { get; }
 	}
+
 }

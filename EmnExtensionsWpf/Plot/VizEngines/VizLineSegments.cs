@@ -17,7 +17,7 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
 
 		public override void DataChanged(Point[] newData)
 		{
-			geomCache = GraphUtils.LineUnscaled (newData);
+			geomCache = GraphUtils.Line(newData);
 			impl.DataChanged(geomCache);
 		}
 	}

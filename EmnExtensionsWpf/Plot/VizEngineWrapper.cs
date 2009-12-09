@@ -7,7 +7,7 @@ using System.Windows.Media;
 
 namespace EmnExtensions.Wpf.Plot
 {
-	class PlotVizEngineWrapper<T> : IPlotViz
+	class PlotVizEngineWrapper<T> : IPlotWithViz
 	{
 		readonly IVizEngine<T> m_engine;
 		readonly T m_data;
@@ -28,6 +28,6 @@ namespace EmnExtensions.Wpf.Plot
 
 	public static class PlotViz
 	{
-		public static IPlotViz Wrap<T>(IPlot plot, T data, IVizEngine<T> engine) { return new PlotVizEngineWrapper<T>(plot, data, engine); }
+		public static IPlotWithViz Wrap<T>(IPlot plot, T data, IVizEngine<T> engine) { return new PlotVizEngineWrapper<T>(plot, data, engine); }
 	}
 }

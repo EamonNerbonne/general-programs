@@ -61,6 +61,7 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
 			m_Geometry = newData;
 			if (m_Geometry != null && !m_Geometry.IsFrozen)
 				m_Geometry.Changed += m_Geometry_Changed;
+			RecreatePen();
 			RecomputeBoundsIfAuto();
 			TriggerChange(GraphChange.Drawing);
 		}
@@ -94,5 +95,26 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
 		{
 			context.DrawGeometry(m_Fill, m_Pen, m_Geometry);
 		}
+
+		public override void RenderOptionsChanged() { RecreatePen(); }
+
+		private void RecreatePen()
+		{
+			Color currentColor = ((SolidColorBrush)m_Pen.Brush).Color;
+			double currentThickness = m_Pen.Thickness;
+			Color newColor = Owner.RenderColor ?? currentColor;
+			double newThickness = Owner.RenderThickness ?? currentThickness;
+			if (newThickness != currentThickness || newColor != currentColor)
+			{
+				Pen newPen = m_Pen.CloneCurrentValue();
+				newPen.Brush = new SolidColorBrush(newColor);
+				newPen.Thickness = newThickness;
+				newPen.Freeze();
+				Pen = newPen;
+			}
+		}
+		public override bool SupportsThickness { get { return true; } }
+		public override bool SupportsColor { get { return true; } }
+
 	}
 }

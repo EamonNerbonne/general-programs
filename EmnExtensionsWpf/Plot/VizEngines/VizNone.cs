@@ -15,5 +15,8 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
 		public void SetTransform(object data, Matrix boundsToDisplay, Rect displayClip) { }
 		public void DataChanged(object data) { }
 		public IPlot Owner { get; set; }
+		public void RenderOptionsChanged() { }
+		public bool SupportsThickness { get { return false; } }
+		public bool SupportsColor { get { return false; } }
 	}
 }

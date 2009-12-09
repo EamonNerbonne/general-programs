@@ -59,6 +59,7 @@ namespace QuickPlotTest
 						plot.YUnitLabel = "x^2";
 					})
 				);
+			newPlotControl1.AutoPickColors();
 		}
 	}
 }

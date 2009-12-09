@@ -7,7 +7,7 @@ using System.Windows.Media;
 
 namespace EmnExtensions.Wpf.Plot
 {
-	public interface IPlotViz
+	public interface IPlotWithViz
 	{
 		Rect DataBounds { get; }
 		Thickness Margin { get; }
