@@ -148,6 +148,7 @@
     <Compile Include="Plot\IPlotViz.cs" />
     <Compile Include="Plot\VizEngines\PlotVizTransform.cs" />
     <Compile Include="Plot\VizEngines\VizDrawing.cs" />
+    <Compile Include="Plot\VizEngines\VizLineSegments.cs" />
     <Compile Include="Plot\VizEngines\VizPixelScatter.cs" />
     <Compile Include="Plot\VizEngines\VizPixelScatterGeom.cs" />
     <Compile Include="Plot\VizEngines\VizPixelScatterSmart.cs" />
