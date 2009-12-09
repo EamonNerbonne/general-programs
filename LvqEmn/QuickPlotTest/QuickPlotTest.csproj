@@ -133,6 +133,10 @@
       <Project>{F50CC07F-68F1-455A-BE8D-A64D827F1A5C}</Project>
       <Name>EmnExtensionsWpf</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\EmnExtensions\EmnExtensions.csproj">
+      <Project>{2F0A3E48-CD06-43BB-BFC6-6B6F568232B9}</Project>
+      <Name>EmnExtensions</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
