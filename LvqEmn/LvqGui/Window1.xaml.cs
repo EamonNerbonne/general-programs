@@ -55,6 +55,12 @@ namespace LVQeamon
 		private void textBoxProtoCount_TextChanged(object sender, TextChangedEventArgs e) { DataVerifiers.VerifyTextBox((TextBox)sender, DataVerifiers.IsInt32Positive); }
 		public int? ProtoCount { get { return textBoxProtoCount.Text.ParseAsInt32(); } }
 
+		private void textBoxStarTailCount_TextChanged(object sender, TextChangedEventArgs e) { DataVerifiers.VerifyTextBox((TextBox)sender, s => DataVerifiers.IsInt32Positive(s) && Int32.Parse(s) > 1); }
+		public int? StarTailCount { get { return textBoxStarTailCount.Text.ParseAsInt32(); } }
+
+		private void textBoxStarRelDistance_TextChanged(object sender, TextChangedEventArgs e) { DataVerifiers.VerifyTextBox((TextBox)sender,DataVerifiers.IsDoublePositive); }
+		public double? StarRelDistance { get { return textBoxStarRelDistance.Text.ParseAsDouble(); } }
+
 		private void buttonGeneratePointClouds_Click(object sender, RoutedEventArgs e)
 		{
 			try
@@ -78,7 +84,7 @@ namespace LVQeamon
 
 				MersenneTwister rndG = RndHelper.ThreadLocalRandom;
 				List<double[,]> pointClouds = new List<double[,]>();
-
+				transformBeforeLvq = null;
 				for (int si = 0; si < numSets; si++)
 				{//create each point-set
 					ThreadPool.QueueUserWorkItem((index) =>
@@ -116,7 +122,77 @@ namespace LVQeamon
 			}
 		}
 
-		
+		double[,] transformBeforeLvq = null;
+
+		private void buttonGenerateStar_Click(object sender, RoutedEventArgs e)
+		{
+			try
+			{
+				NiceTimer timer = new NiceTimer(); timer.TimeMark("making star clouds");
+
+				if (!NumberOfSets.HasValue || !PointsPerSet.HasValue)
+				{
+					Console.WriteLine("Invalid initialization values");
+					return;
+				}
+
+				object sync = new object();
+				int done = 0;
+				int numSets = NumberOfSets.Value;
+				int pointsPerSet = PointsPerSet.Value;
+				int DIMS = Dimensions.Value;
+				int protoCount = ProtoCount.Value;
+				double stddevmeans = StddevMeans.Value;
+				double starRelDist = StarRelDistance.Value;
+				int starTailCount = StarTailCount.Value;
+
+				SetupDisplay(numSets, pointsPerSet);
+
+				MersenneTwister rndG = RndHelper.ThreadLocalRandom;
+				List<double[,]> pointClouds = new List<double[,]>();
+
+				double[][,] transformMatrices;
+				double[][] means;
+				CreateGaussianCloud.InitStarSettings(starTailCount, DIMS, stddevmeans * starRelDist, rndG, out transformMatrices, out means, out transformBeforeLvq);
+
+
+				for (int si = 0; si < numSets; si++)
+				{//create each point-set
+					ThreadPool.QueueUserWorkItem((index) =>
+					{
+						MersenneTwister rnd;
+						lock (rndG)
+							rnd = new MersenneTwister(rndG.Next());
+
+						double[,] points = CreateGaussianCloud.RandomStar(pointsPerSet, DIMS, transformMatrices, means, stddevmeans, rnd);
+						
+						lock (rndG)
+							pointClouds.Add(points);
+
+						lock (sync)
+						{
+							done++;
+							if (done == numSets)
+							{
+								timer.TimeMark(null);
+								new Thread(() => { StartLvq(pointClouds, protoCount); })
+								{
+									IsBackground = true,
+								}.Start();
+							}
+						}
+					}, si);
+				}
+			}
+			catch (Exception ex)
+			{
+				Console.WriteLine("Error occured!");
+				Console.WriteLine(ex);
+				Console.WriteLine("\nerror ignored.");
+			}
+		}
+
+
 		private void StartLvq(List<double[,]> pointClouds, int protoCount)
 		{
 			int DIMS = pointClouds[0].GetLength(1);
@@ -155,7 +231,6 @@ namespace LVQeamon
 			Dispatcher.BeginInvoke((Action)(() =>
 			{
 				needUpdate = false;
-				Rect bounds = Rect.Empty;
 				for (int i = 0; i < classBoundaries.Length - 1; i++)
 				{
 
@@ -163,13 +238,9 @@ namespace LVQeamon
 												.Select(pi => new Point(currPoints[pi, 0], currPoints[pi, 1]));
 
 					//Console.WriteLine("Points in graph " + i + ": " + pointsIter.Count());
-
-					if (plotControl.Graphs[i] is GraphableGeometry)
-						((GraphableGeometry)plotControl.Graphs[i]).Geometry = GraphUtils.PointCloud(pointsIter);
-					else
-						((GraphablePixelScatterPlot)plotControl.Graphs[i]).Points = pointsIter.ToArray();
-					bounds = Rect.Union(plotControl.Graphs[i].DataBounds, bounds);
+					((IPlotWriteable<Point[]>)plotControl.Graphs[i]).Data = pointsIter.ToArray();
 				}
+				((IPlotWriteable<LvqWrapper>)plotControl.Graphs[classBoundaries.Length-1]) .TriggerDataChanged();
 			}));
 		}
 
@@ -177,50 +248,23 @@ namespace LVQeamon
 		struct ClassTag { public int Label; public ClassTag(int label) { Label = label; } }
 		private void SetupDisplay(int numClasses, int pointsPerSetEstimate)
 		{
-			double thickness = 30.0 / (0.5 + Math.Log(Math.Max(pointsPerSetEstimate * numClasses, 1)));
-			var linecap = thickness > 3 ? PenLineCap.Round : PenLineCap.Square;
-			if (thickness <= 3) thickness *= 0.75;
-			bool useGeom = numClasses * pointsPerSetEstimate < 30000;
 			Dispatcher.BeginInvoke((Action)(() =>
 			{
 				currentClassCount = numClasses;
 				plotControl.Graphs.Clear();
-				Color[] plotcolors = GraphRandomPen.MakeDistributedColors(numClasses);
 				for (int i = 0; i < numClasses; i++)
 				{
-					if (useGeom)
-					{
-						Pen pen = new Pen
-						{
-							Brush = new SolidColorBrush(plotcolors[i]),
-							EndLineCap = linecap,
-							StartLineCap = linecap,
-							Thickness = thickness,
-						};
-						pen.Freeze();
-						plotControl.Graphs.Add(new GraphableGeometry { Geometry = GraphUtils.PointCloud(Enumerable.Empty<Point>()), Pen = pen, Tag = new ClassTag(i) });
-					}
-					else
-					{
-						plotControl.Graphs.Add(
-							new GraphablePixelScatterPlot
-							{
-								PointColor = F.Create<Color, Color>((c) => { c.ScA = 0.7f; return c; })(plotcolors[i]),
-								DpiX = 96.0,
-								DpiY = 96.0,
-								BitmapScalingMode = BitmapScalingMode.NearestNeighbor,
-								CoverageRatio = 0.999,
-								UseDiamondPoints = true,
-								Points = new Point[] { },
-								Tag = new ClassTag(i),
-							});
-					}
+						var plot = PlotData.Create(new Point[] { });
+						plot.Tag = new ClassTag(i);
+						plotControl.Graphs.Add(plot);
 				}
-				plotControl.Graphs.Add(new GraphableBitmapDelegate { UpdateBitmapDelegate = UpdateClassBoundaries });
+				plotControl.Graphs.Add(
+					PlotData.Create(lvqImpl,UpdateClassBoundaries));
+				plotControl.AutoPickColors();
 			}));
 		}
 
-		void UpdateClassBoundaries(WriteableBitmap bmp, Matrix dataToBmp, int width, int height)
+		void UpdateClassBoundaries(WriteableBitmap bmp, Matrix dataToBmp, int width, int height, LvqWrapper ignore)
 		{
 			if (lvqImpl == null) return;
 			Matrix bmpToData = dataToBmp;
@@ -230,11 +274,11 @@ namespace LVQeamon
 			int[,] closestClass = lvqImpl.ClassBoundaries(topLeft.X, botRight.X, topLeft.Y, botRight.Y, width, height);
 
 			uint[] nativeColor =(
-				from graph in plotControl.Graphs
-				where graph.Tag is ClassTag
+				from graph in plotControl.Graphs.Cast<IPlotWithSettings>()
+				where graph.Tag is ClassTag && graph.VizSupportsColor
 				let label = ((ClassTag)graph.Tag).Label
 				orderby label
-				select graph is GraphablePixelScatterPlot ? ((GraphablePixelScatterPlot)graph).PointColor : ((SolidColorBrush)((GraphableGeometry)graph).Pen.Brush).Color
+				select graph.RenderColor ?? Colors.Black
 				)
 				.Select(c => { c.ScA = 0.1f; return c; })
 				.Concat(Enumerable.Repeat(Color.FromRgb(0, 0, 0), 1))
@@ -284,6 +328,7 @@ namespace LVQeamon
 
 		private void doEpochButton_Click(object sender, RoutedEventArgs e)
 		{
+			
 			int epochsTodo = EpochsPerClick ?? 1;
 			ThreadPool.QueueUserWorkItem((index) =>
 			{
@@ -311,5 +356,6 @@ namespace LVQeamon
 			this.WindowStyle = WindowStyle.SingleBorderWindow;
 			this.WindowState = WindowState.Normal;
 		}
+
 	}
 }

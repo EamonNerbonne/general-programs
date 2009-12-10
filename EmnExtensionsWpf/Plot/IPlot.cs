@@ -41,6 +41,7 @@ namespace EmnExtensions.Wpf.Plot
 		new double? RenderThickness { get; set; }
 		bool VizSupportsColor { get; }
 		bool VizSupportsThickness { get; }
+		void TriggerDataChanged();
 	}
 
 	public interface IPlotWriteable<T> : IPlotWithSettings

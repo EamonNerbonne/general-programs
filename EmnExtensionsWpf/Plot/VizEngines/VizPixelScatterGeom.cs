@@ -36,6 +36,7 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
 			}
 			Pen penCopy = impl.Pen.CloneCurrentValue();
 			penCopy.EndLineCap = linecap;
+			penCopy.StartLineCap = linecap;
 			penCopy.Thickness = thickness;
 			penCopy.Freeze();
 			impl.Pen = penCopy;

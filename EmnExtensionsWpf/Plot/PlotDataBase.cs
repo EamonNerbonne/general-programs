@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Windows;
 using System.Windows.Media;
+using System.Windows.Media.Imaging;
 
 namespace EmnExtensions.Wpf.Plot
 {
@@ -56,11 +57,11 @@ namespace EmnExtensions.Wpf.Plot
 		public Func<T, PlotClass, IVizEngine<T>> ChooseVisualizer { get; set; }
 
 		T m_Data;
-		public T Data { get { return m_Data; } set { m_Data = value; if (vizEngine != null) vizEngine.DataChanged(Data); } }
+		public T Data { get { return m_Data; } set { m_Data = value; TriggerDataChanged(); } }
+		public void TriggerDataChanged() { if (vizEngine != null) vizEngine.DataChanged(Data); }
 
 		public PlotDataImplementation(T data = default(T)) { ChooseVisualizer = DefaultChooser; Data = data; }
 		public bool VizSupportsColor { get { return Visualizer.SupportsColor; } }
-
 		public bool VizSupportsThickness { get { return Visualizer.SupportsThickness; } }
 	}
 
@@ -75,5 +76,12 @@ namespace EmnExtensions.Wpf.Plot
 		}
 
 		public static IPlotWriteable<Point[]> Create(Point[] Data) { return new PlotDataImplementation<Point[]>(Data) { ChooseVisualizer = PointArrayVisualizers }; }
+
+		public static IPlotWriteable<T> Create<T>(T Data, Action<WriteableBitmap, Matrix, int, int, T> displayFunc, Func<T, Rect> boundsFunc = null)
+		{
+			var visualizer = new VizEngines.VizDelegateBitmap<T> { UpdateBitmapDelegate = displayFunc };
+			if (boundsFunc != null) visualizer.ComputeBounds = boundsFunc;
+			return new PlotDataImplementation<T>(Data) { Visualizer = visualizer };
+		}
 	}
 }

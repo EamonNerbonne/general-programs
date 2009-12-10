@@ -50,7 +50,7 @@ namespace EmnExtensions.Wpf.OldGraph
 			public static ColorSimple Random(MersenneTwister rnd) {
 				return new ColorSimple { R = rnd.NextDouble0To1(), G = rnd.NextDouble0To1(), B = rnd.NextDouble0To1() };
 			}
-			public void RepelFrom(ColorSimple other, double lr, MersenneTwister rnd) {
+			public void RepelFrom(ColorSimple other, double lr) {
 				double sqrdist = Math.Max(SqrDistTo(other), lr);
 				double force = lr / sqrdist;
 				R = R + force * (R - other.R);
@@ -73,13 +73,16 @@ namespace EmnExtensions.Wpf.OldGraph
 				G = Math.Max(G, other.G);
 				B = Math.Max(B, other.B);
 			}
-			public void ScaleBack(ColorSimple min, ColorSimple max) {
+			public void ScaleBack(ColorSimple min, ColorSimple max, MersenneTwister rnd)
+			{
 				if (max.R > min.R)
 					R = 0.95 * (R - min.R) / (max.R - min.R);
 				if (max.G > min.G)
 					G = 0.95 * (G - min.G) / (max.G - min.G);
 				if (max.B > min.B)
 					B = 0.95 * (B - min.B) / (max.B - min.B);
+				if (R == G && G == B)
+					this = Random(rnd);
 			}
 		}
 
@@ -98,18 +101,18 @@ namespace EmnExtensions.Wpf.OldGraph
 #if DEBUG
 					ColorSimple old = choices[i];
 #endif
-					choices[i].RepelFrom(white, lr, rnd);
+					choices[i].RepelFrom(white, lr);
 					int other = rnd.Next(M - 1); //rand other in [0..M-1)
 					if (other >= i) other++; //rand other in [0..M) with other != i
 					if (N > 1)
-						choices[i].RepelFrom(choices[other], lr, rnd);
+						choices[i].RepelFrom(choices[other], lr);
 					else
-						choices[i].RepelFrom(black, lr * 0.1, rnd);
+						choices[i].RepelFrom(black, lr * 0.1);
 					min.Min(choices[i]);
 					max.Max(choices[i]);
 				}
 				for (int i = 0; i < M; i++)
-					choices[i].ScaleBack(min, max);
+					choices[i].ScaleBack(min, max,rnd);
 
 				if (M > N) M--;
 			}
