@@ -80,6 +80,8 @@ namespace LVQeamon
 				int DIMS = Dimensions.Value;
 				int protoCount = ProtoCount.Value;
 				double stddevmeans = StddevMeans.Value;
+				bool useGsm = checkBoxLvqGsm.IsChecked ?? false;
+
 				SetupDisplay(numSets, pointsPerSet);
 
 				MersenneTwister rndG = RndHelper.ThreadLocalRandom;
@@ -105,7 +107,7 @@ namespace LVQeamon
 							if (done == numSets)
 							{
 								timer.TimeMark(null);
-								new Thread(() => { StartLvq(pointClouds, protoCount); })
+								new Thread(() => { StartLvq(pointClouds, protoCount, useGsm); })
 								{
 									IsBackground = true,
 								}.Start();
@@ -145,6 +147,8 @@ namespace LVQeamon
 				double stddevmeans = StddevMeans.Value;
 				double starRelDist = StarRelDistance.Value;
 				int starTailCount = StarTailCount.Value;
+				bool useGsm = checkBoxLvqGsm.IsChecked ?? false;
+
 
 				SetupDisplay(numSets, pointsPerSet);
 
@@ -175,7 +179,7 @@ namespace LVQeamon
 							if (done == numSets)
 							{
 								timer.TimeMark(null);
-								new Thread(() => { StartLvq(pointClouds, protoCount); })
+								new Thread(() => { StartLvq(pointClouds, protoCount, useGsm); })
 								{
 									IsBackground = true,
 								}.Start();
@@ -193,7 +197,7 @@ namespace LVQeamon
 		}
 
 
-		private void StartLvq(List<double[,]> pointClouds, int protoCount)
+		private void StartLvq(List<double[,]> pointClouds, int protoCount, bool useGsm)
 		{
 			int DIMS = pointClouds[0].GetLength(1);
 			double[,] allpoints = new double[pointClouds.Sum(pc => pc.GetLength(0)), DIMS];
@@ -217,7 +221,7 @@ namespace LVQeamon
 			Debug.Assert(pointClouds[0].GetLength(1) == allpoints.GetLength(1));
 			this.classBoundaries = classBoundaries.ToArray();
 			Debug.Assert(this.classBoundaries.Length == classLabel + 1);
-			lvqImpl = new LvqWrapper(allpoints, pointLabels, classLabel, protoCount);
+			lvqImpl = new LvqWrapper(allpoints, pointLabels, classLabel, protoCount, useGsm);
 			needUpdate = true;
 			UpdateDisplay();
 		}

@@ -36,7 +36,7 @@ namespace LVQCppCli {
 		return points;
 	}
 
-	LvqWrapper::LvqWrapper(array<double,2>^ points, array<int>^ pointLabels, int classCount,int protosPerClass)
+	LvqWrapper::LvqWrapper(array<double,2>^ points, array<int>^ pointLabels, int classCount,int protosPerClass, bool useGsm)
 		: dataset(NULL)
 		, model(NULL)
 		, modelCopy(NULL)
@@ -57,7 +57,11 @@ namespace LVQCppCli {
 		for(int i=0;i<classCount;++i)
 			protoDistrib.push_back(protosPerClass);
 
-		model = new G2mLvqModel(protoDistrib, dataset->ComputeClassMeans()); 
+        if(useGsm)
+		 	model = new GsmLvqModel(protoDistrib, dataset->ComputeClassMeans()); 
+		else 
+			model = new G2mLvqModel(protoDistrib, dataset->ComputeClassMeans()); 
+
 		BackupModel();
 	}
 

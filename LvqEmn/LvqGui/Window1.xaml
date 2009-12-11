@@ -35,32 +35,38 @@
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
-                <Label Grid.Row="0"  HorizontalAlignment="Right" Margin="2">Dimensions</Label>
-                <TextBox Grid.Row="0"  Grid.Column="1"  Margin="2" Name="textBoxDims" TextChanged="textBoxDims_TextChanged"  Text="50" />
-
-                <Label Grid.Row="1"    Margin="2" Name="label1" HorizontalAlignment="Right">Number of Sets</Label>
-                <TextBox Grid.Row="1"  Grid.Column="1" Margin="2" Name="textBoxNumberOfSets" TextChanged="textBoxNumberOfSets_TextChanged" Text="4" />
-
-                <Label Grid.Row="2"  HorizontalAlignment="Right" Margin="2">Std-dev of cloud centers</Label>
-                <TextBox Grid.Row="2"  Grid.Column="1"  Margin="2" Name="textBoxStddevMeans" TextChanged="textBoxStddevMeans_TextChanged"  Text="3" />
-
-                <Label Grid.Row="3"  HorizontalAlignment="Right" Margin="2" Name="label2">Points per cloud</Label>
-                <TextBox  Grid.Row="3" Grid.Column="1"  Margin="2" Name="textBoxPointsPerSet" TextChanged="textBoxPointsPerSet_TextChanged"  Text="2000" />
-
-                <Label Grid.Row="4"  HorizontalAlignment="Right" Margin="2">Prototypes per class</Label>
-                <TextBox Grid.Row="4"  Grid.Column="1"  Margin="2" Name="textBoxProtoCount" TextChanged="textBoxProtoCount_TextChanged"  Text="3" />
-
-                <Button  Grid.Row="5" Grid.Column="0" Grid.ColumnSpan="2" Margin="2" Name="buttonGeneratePointClouds" HorizontalAlignment="Right" Click="buttonGeneratePointClouds_Click">Generate Point Clouds</Button>
-
-                <Label Grid.Row="6"  HorizontalAlignment="Right" Margin="2">Number of Star Tails</Label>
-                <TextBox Grid.Row="6"  Grid.Column="1"  Margin="2" Name="textBoxStarTailCount" TextChanged="textBoxStarTailCount_TextChanged"  Text="3" />
+                <Label Grid.Row="0"  HorizontalAlignment="Right" Margin="2">Lvq style</Label>
                 
-                <Label Grid.Row="7"  HorizontalAlignment="Right" Margin="2">Relative Star Tail Distance</Label>
-                <TextBox Grid.Row="7"  Grid.Column="1"  Margin="2" Name="textBoxStarRelDistance" TextChanged="textBoxStarRelDistance_TextChanged"  Text="10" />
+                <CheckBox Grid.Row="0" Grid.Column="1" Margin="2" Content="Use Single-Matrix Model" Name="checkBoxLvqGsm"/>
 
-                <Button  Grid.Row="8" Grid.Column="0" Grid.ColumnSpan="2" Margin="2" Name="buttonGenerateStar" HorizontalAlignment="Right" Click="buttonGenerateStar_Click">Generate "Stars"</Button>
+
+                <Label Grid.Row="1"  HorizontalAlignment="Right" Margin="2">Dimensions</Label>
+                <TextBox Grid.Row="1"  Grid.Column="1"  Margin="2" Name="textBoxDims" TextChanged="textBoxDims_TextChanged"  Text="50" />
+
+                <Label Grid.Row="2"    Margin="2" Name="label1" HorizontalAlignment="Right">Number of Sets</Label>
+                <TextBox Grid.Row="2"  Grid.Column="1" Margin="2" Name="textBoxNumberOfSets" TextChanged="textBoxNumberOfSets_TextChanged" Text="4" />
+
+                <Label Grid.Row="3"  HorizontalAlignment="Right" Margin="2">Std-dev of cloud centers</Label>
+                <TextBox Grid.Row="3"  Grid.Column="1"  Margin="2" Name="textBoxStddevMeans" TextChanged="textBoxStddevMeans_TextChanged"  Text="3" />
+
+                <Label Grid.Row="4"  HorizontalAlignment="Right" Margin="2" Name="label2">Points per cloud</Label>
+                <TextBox  Grid.Row="4" Grid.Column="1"  Margin="2" Name="textBoxPointsPerSet" TextChanged="textBoxPointsPerSet_TextChanged"  Text="2000" />
+
+                <Label Grid.Row="5"  HorizontalAlignment="Right" Margin="2">Prototypes per class</Label>
+                <TextBox Grid.Row="5"  Grid.Column="1"  Margin="2" Name="textBoxProtoCount" TextChanged="textBoxProtoCount_TextChanged"  Text="3" />
+
+                <Button  Grid.Row="6" Grid.Column="0" Grid.ColumnSpan="2" Margin="2" Name="buttonGeneratePointClouds" HorizontalAlignment="Right" Click="buttonGeneratePointClouds_Click">Generate Point Clouds</Button>
+
+                <Label Grid.Row="7"  HorizontalAlignment="Right" Margin="2">Number of Star Tails</Label>
+                <TextBox Grid.Row="7"  Grid.Column="1"  Margin="2" Name="textBoxStarTailCount" TextChanged="textBoxStarTailCount_TextChanged"  Text="3" />
+                
+                <Label Grid.Row="8"  HorizontalAlignment="Right" Margin="2">Relative Star Tail Distance</Label>
+                <TextBox Grid.Row="8"  Grid.Column="1"  Margin="2" Name="textBoxStarRelDistance" TextChanged="textBoxStarRelDistance_TextChanged"  Text="10" />
+
+                <Button  Grid.Row="9" Grid.Column="0" Grid.ColumnSpan="2" Margin="2" Name="buttonGenerateStar" HorizontalAlignment="Right" Click="buttonGenerateStar_Click">Generate "Stars"</Button>
 
             </Grid>
             <Grid Grid.Row="1" Grid.Column="1" Margin="12" >

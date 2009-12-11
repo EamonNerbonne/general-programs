@@ -26,13 +26,13 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
 
 		private void SetPenSize(int pointCount)
 		{
-			double thickness = 25.0 / (0.5 + Math.Log(Math.Max(pointCount, 1)));
+			double thickness = VizPixelScatterHelpers.PointCountToThickness(pointCount);
 
 			var linecap =PenLineCap.Round ;
 
 			if (thickness <= 3) {
 				linecap = PenLineCap.Square;
-				thickness *= 0.75;
+				thickness *= VizPixelScatterHelpers.SquareSidePerThickness;
 			}
 			Pen penCopy = impl.Pen.CloneCurrentValue();
 			penCopy.EndLineCap = linecap;

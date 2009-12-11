@@ -57,7 +57,7 @@ namespace EmnExtensions.Wpf.Plot
 		public Func<T, PlotClass, IVizEngine<T>> ChooseVisualizer { get; set; }
 
 		T m_Data;
-		public T Data { get { return m_Data; } set { m_Data = value; TriggerDataChanged(); } }
+		public T Data { get { return m_Data; } set { m_Data = value; TriggerDataChanged(); TriggerChange(GraphChange.Drawing); } } //TODO: workaround for graphchange.drawing...
 		public void TriggerDataChanged() { if (vizEngine != null) vizEngine.DataChanged(Data); }
 
 		public PlotDataImplementation(T data = default(T)) { ChooseVisualizer = DefaultChooser; Data = data; }

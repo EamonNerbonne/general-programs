@@ -5,8 +5,8 @@
 
 G2mLvqModel::G2mLvqModel(std::vector<int> protodistribution, MatrixXd const & means) 
 	: classCount((int)protodistribution.size())
-	, lr_scale_P(0.01)
-	, lr_scale_B(0.001)
+	, lr_scale_P(0.1)
+	, lr_scale_B(0.03)
 	, P(2,means.rows())
 	, vJ(means.rows())
 	, vK(means.rows())

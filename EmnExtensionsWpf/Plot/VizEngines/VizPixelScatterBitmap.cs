@@ -11,13 +11,11 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
 	public class VizPixelScatterBitmap : VizDynamicBitmap<Point[]>, IVizPixelScatter
 	//for efficiency reasons, we accept data in a Point[] rather than the more general IEnumerable<Point>
 	{
-		bool m_useDiamondPoints = true;
 		Rect m_OuterDataBounds = Rect.Empty;
 		double m_CoverageRatio = 0.9999;
 		uint[] m_image;
 		Point[] currentPoints;
 
-		public bool UseDiamondPoints { get { return m_useDiamondPoints; } set { m_useDiamondPoints = value; TriggerChange(GraphChange.Projection); } }
 		protected override Rect? OuterDataBound { get { return m_OuterDataBounds; } }
 		public double CoverageRatio { get { return m_CoverageRatio; } set { if (value != m_CoverageRatio) { m_CoverageRatio = value; RecomputeBounds(currentPoints); } } }
 
@@ -27,17 +25,33 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
 
 			if (dataToBitmap.IsIdentity) return;//this is the default mapping; it may occur when generating a scatter plot without data - don't bother plotting.
 
-			Make2dHistogramInRegion(pW, pH, dataToBitmap);
-			ConvertHistogramToColorDensityImage(pW, pH);
+			double thickness = Owner.RenderThickness ?? VizPixelScatterHelpers.PointCountToThickness(data.Length);
+			Tuple<double, bool> thicknessTranslation = DecodeThickness(thickness);
+
+			Make2dHistogramInRegion(pW, pH, dataToBitmap, thicknessTranslation.Item2);
+			ConvertHistogramToColorDensityImage(pW, pH, thicknessTranslation.Item1);
 			CopyImageRegionToWriteableBitmap(pW, pH);
 		}
 
+		private Tuple<double, bool> DecodeThickness(double thickness)
+		{
+			double thicknessOfSquare = VizPixelScatterHelpers.SquareSidePerThickness * thickness;
+			//thicknessOfSquare 1.0 is equivalent to a 1x1 opaque pixel square.
+			double alpha = thicknessOfSquare * thicknessOfSquare;
+
+			bool useDiamondPoints = alpha > 0.5;
+			if (useDiamondPoints)
+				alpha = Math.Min(1.0, alpha / 5.0);
+
+			return new Tuple<double, bool>(alpha, useDiamondPoints);
+		}
+
 		#region UpdateBitmap Helpers
-		void Make2dHistogramInRegion(int pW, int pH, Matrix dataToBitmap)
+		void Make2dHistogramInRegion(int pW, int pH, Matrix dataToBitmap, bool useDiamondPoints)
 		{
 			MakeVisibleRegionEmpty(pW, pH);
 
-			if (UseDiamondPoints)
+			if (useDiamondPoints)
 				MakeDiamondPoint2dHistogram(pW, pH, dataToBitmap);
 			else
 				MakeSinglePoint2dHistogram(pW, pH, dataToBitmap);
@@ -82,13 +96,12 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
 			}
 		}
 
-
-		void ConvertHistogramToColorDensityImage(int pW, int pH)
+		void ConvertHistogramToColorDensityImage(int pW, int pH, double alpha)
 		{
-			Color pointColor =  Owner.RenderColor ?? Colors.Black; 
+			Color pointColor = Owner.RenderColor ?? Colors.Black;
 
 			int numPixels = pW * pH;
-			uint[] alphaLookup = PregenerateAlphaLookup(pointColor.ScA, m_image, numPixels);
+			uint[] alphaLookup = PregenerateAlphaLookup(alpha, m_image, numPixels, pointColor.ScA);
 			uint nativeColorWithoutAlpha = pointColor.ToNativeColor() & 0x00ffffff;
 
 			for (int pxI = 0; pxI < numPixels; pxI++)
@@ -105,19 +118,19 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
 				destinationY: 0);
 		}
 
-		static uint[] PregenerateAlphaLookup(double alpha, uint[] image, int numPixels)
+		static uint[] PregenerateAlphaLookup(double alpha, uint[] image, int numPixels, double overallAlpha)
 		{
 			uint maximalOverlapCount = ValueOfMax(image, 0, numPixels);
-			return MakeAlphaLookupUpto(alpha, maximalOverlapCount);
+			return MakeAlphaLookupUpto(alpha, maximalOverlapCount, overallAlpha);
 		}
 
-		static uint[] MakeAlphaLookupUpto(double alpha, uint maxOverlap)
+		static uint[] MakeAlphaLookupUpto(double alpha, uint maxOverlap, double overallAlpha)
 		{
 			double transparencyPerOverlap = 1.0 - alpha;
 			uint[] alphaLookup = new uint[maxOverlap + 1];
 			for (int overlap = 0; overlap < alphaLookup.Length; overlap++)
 			{
-				double overlappingAlpha = 1.0 - Math.Pow(transparencyPerOverlap, overlap);
+				double overlappingAlpha = overallAlpha * (1.0 - Math.Pow(transparencyPerOverlap, overlap));
 				alphaLookup[overlap] = (uint)(overlappingAlpha * 255.5) << 24;
 			}
 			return alphaLookup;
@@ -152,7 +165,7 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
 			TriggerChange(GraphChange.Projection); // because we need to relayout the points in the plot.
 		}
 
-		public override bool SupportsThickness { get { return false; } }
+		public override bool SupportsThickness { get { return true; } }
 		public override bool SupportsColor { get { return true; } }
 
 	}

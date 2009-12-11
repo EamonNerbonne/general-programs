@@ -7,12 +7,15 @@ using System.Windows.Media;
 
 namespace EmnExtensions.Wpf.Plot.VizEngines
 {
-	public interface IVizPixelScatter :IVizEngine<Point[]>
+	public interface IVizPixelScatter : IVizEngine<Point[]>
 	{
 		double CoverageRatio { get; set; }
 	}
 	public static class VizPixelScatterHelpers
 	{
+		public const double SquareSidePerThickness = Math.PI / 4.0;
+		public static double PointCountToThickness(int pointCount) { return 25.0 / (0.5 + Math.Log(Math.Max(pointCount, 1))); }
+
 		public static void RecomputeBounds(Point[] points, double coverage, out Rect outerBounds, out Rect coveredBounds)
 		{
 			if (HasPoints(points))

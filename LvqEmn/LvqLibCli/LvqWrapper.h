@@ -21,7 +21,7 @@ namespace LVQCppCli {
 		}
 
 	public:
-		LvqWrapper(array<double,2>^ points, array<int>^ pointLabels, int classCount, int protosPerDistrib);
+		LvqWrapper(array<double,2>^ points, array<int>^ pointLabels, int classCount, int protosPerDistrib, bool useGsm);
 		property Object^ UpdateSyncObject { Object ^ get(){return mainSync;} }
 		double ErrorRate();
 		array<double,2>^ CurrentProjection();
