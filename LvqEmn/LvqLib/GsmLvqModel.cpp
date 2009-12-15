@@ -1,17 +1,18 @@
 #include "StdAfx.h"
 #include "GsmLvqModel.h"
 #include "utils.h"
+#include "LvqConstants.h"
 
 GsmLvqModel::GsmLvqModel(std::vector<int> protodistribution, MatrixXd const & means) 
 	: classCount((int)protodistribution.size())
-	, lr_scale_P(0.1)
+	, lr_scale_P(LVQ_LrScaleP)
 	, tmpHelper(means.rows())
-	, P(2,means.rows())
+	, P(LVQ_LOW_DIM_SPACE,means.rows())
 	, vJ(means.rows())
 	, vK(means.rows())
 	, dQdwJ(means.rows())
 	, dQdwK(means.rows())
-	, dQdP(2,means.rows())
+	, dQdP(LVQ_LOW_DIM_SPACE,means.rows())
 {
 	using namespace std;
 

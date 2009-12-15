@@ -236,6 +236,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="LvqDataSetCli.cpp" />
     <ClCompile Include="LvqWrapper.cpp" />
     <ClCompile Include="Stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
@@ -246,8 +247,10 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AutoNative.h" />
+    <ClInclude Include="LvqDataSetCli.h" />
     <ClInclude Include="LvqWrapper.h" />
     <ClInclude Include="Stdafx.h" />
+    <ClInclude Include="WrappingUtils.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\LVQCppNative\LVQCppNative.vcxproj">

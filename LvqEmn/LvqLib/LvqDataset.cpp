@@ -34,7 +34,6 @@ MatrixXd LvqDataSet::ComputeClassMeans() const {
 }
 
 void LvqDataSet::TrainModel(int epochs, boost::mt19937 & randGen, AbstractLvqModel * model) const {
-	double lrIterScale = model->iterationScaleFactor();
 
 	boost::scoped_array<int> ordering(new int[trainPointLabels.size()] );
 	VectorXd new_point(trainPoints.rows());

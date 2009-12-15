@@ -221,7 +221,8 @@ namespace LVQeamon
 			Debug.Assert(pointClouds[0].GetLength(1) == allpoints.GetLength(1));
 			this.classBoundaries = classBoundaries.ToArray();
 			Debug.Assert(this.classBoundaries.Length == classLabel + 1);
-			lvqImpl = new LvqWrapper(allpoints, pointLabels, classLabel, protoCount, useGsm);
+			LvqDataSet = new LvqDataSetCli(allpoints, pointLabels, classLabel);
+			LvqModel = new LvqWrapper(LvqDataSet, protoCount, useGsm);
 			needUpdate = true;
 			UpdateDisplay();
 		}
@@ -231,7 +232,7 @@ namespace LVQeamon
 			double[,] currPoints = null;
 			//int[,] closestClass = null;
 			if (!needUpdate) return;
-			currPoints = lvqImpl.CurrentProjection();
+			currPoints = LvqModel.CurrentProjection();
 			Dispatcher.BeginInvoke((Action)(() =>
 			{
 				needUpdate = false;
@@ -263,19 +264,19 @@ namespace LVQeamon
 						plotControl.Graphs.Add(plot);
 				}
 				plotControl.Graphs.Add(
-					PlotData.Create(lvqImpl,UpdateClassBoundaries));
+					PlotData.Create(LvqModel,UpdateClassBoundaries));
 				plotControl.AutoPickColors();
 			}));
 		}
 
 		void UpdateClassBoundaries(WriteableBitmap bmp, Matrix dataToBmp, int width, int height, LvqWrapper ignore)
 		{
-			if (lvqImpl == null) return;
+			if (LvqModel == null) return;
 			Matrix bmpToData = dataToBmp;
 			bmpToData.Invert();
 			Point topLeft = bmpToData.Transform(new Point(0.0,0.0));
 			Point botRight = bmpToData.Transform(new Point(width,height));
-			int[,] closestClass = lvqImpl.ClassBoundaries(topLeft.X, botRight.X, topLeft.Y, botRight.Y, width, height);
+			int[,] closestClass = LvqModel.ClassBoundaries(topLeft.X, botRight.X, topLeft.Y, botRight.Y, width, height);
 
 			uint[] nativeColor =(
 				from graph in plotControl.Graphs.Cast<IPlotWithSettings>()
@@ -319,7 +320,38 @@ namespace LVQeamon
 		//object lvqSync = new object();
 		int[] classBoundaries;
 		volatile bool needUpdate = false;
-		LvqWrapper lvqImpl;
+		LvqWrapper m_LvqModel;
+		LvqWrapper LvqModel
+		{
+			get { return m_LvqModel; }
+			set
+			{
+				if (m_LvqModel != null)
+				{
+					var oldval = m_LvqModel;
+					m_LvqModel = null;
+					oldval.Dispose();
+				}
+				m_LvqModel = value;
+			}
+		}
+		LvqDataSetCli m_LvqDataSet;
+		LvqDataSetCli LvqDataSet
+		{
+			get { return m_LvqDataSet; }
+			set
+			{
+				if (m_LvqDataSet != null)
+				{
+					var oldval = m_LvqDataSet;
+					m_LvqDataSet = null;
+					oldval.Dispose();
+				}
+				m_LvqDataSet = value;
+			}
+		}
+
+
 
 		protected override void OnInitialized(EventArgs e)
 		{
@@ -336,9 +368,9 @@ namespace LVQeamon
 			int epochsTodo = EpochsPerClick ?? 1;
 			ThreadPool.QueueUserWorkItem((index) =>
 			{
-				lock (lvqImpl.UpdateSyncObject)
+				lock (LvqModel.UpdateSyncObject)
 					using (new DTimer("Training " + epochsTodo + " epochs"))
-						lvqImpl.TrainEpoch(epochsTodo);
+						LvqModel.TrainEpoch(epochsTodo);
 				needUpdate = true;
 				UpdateDisplay();
 			});

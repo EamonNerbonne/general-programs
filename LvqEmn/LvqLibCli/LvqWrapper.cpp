@@ -3,76 +3,40 @@
 #include "LvqWrapper.h"
 #include "G2mLvqModel.h"
 #include "GsmLvqModel.h"
+#include "WrappingUtils.h"
 
 namespace LVQCppCli {
-	
-	template<typename T>
-	Matrix<T,Eigen::Dynamic,Eigen::Dynamic> arrayToMatrix(array<T,2>^ points) {
-		Matrix<T,Eigen::Dynamic,Eigen::Dynamic> nPoints(points->GetLength(1), points->GetLength(0));
-		for(int i=0; i<points->GetLength(0); ++i)
-			for(int j=0; j<points->GetLength(1); ++j)
-				nPoints(j,i) = points[i, j];
 
-		return nPoints;
-	}
-
-	template<typename T, int rowsDEF, int colsDEF>
-	array<T,2>^ matrixToArray(Matrix<T,rowsDEF,colsDEF>  const & matrix) {
-		array<T,2>^ points = gcnew array<T,2>(matrix.cols(),matrix.rows());
-		for(int i=0; i<points->GetLength(0); ++i)
-			for(int j=0; j<points->GetLength(1); ++j)
-				points[i, j] = matrix(j,i);
-
-		return points;
-	}
-
-	template<typename T, int rowsDEF, int colsDEF>
-	array<T,2>^ matrixToArrayNOFLIP(Matrix<T,rowsDEF,colsDEF>  const & matrix) {
-		array<T,2>^ points = gcnew array<T,2>(matrix.rows(),matrix.cols());
-		for(int i=0; i<points->GetLength(0); ++i)
-			for(int j=0; j<points->GetLength(1); ++j)
-				points[i, j] = matrix(i,j);
-
-		return points;
-	}
-
-	LvqWrapper::LvqWrapper(array<double,2>^ points, array<int>^ pointLabels, int classCount,int protosPerClass, bool useGsm)
-		: dataset(NULL)
+	LvqWrapper::LvqWrapper(LvqDataSetCli^ dataset, int protosPerClass, bool useGsm)
+		: dataset(dataset)
 		, model(NULL)
 		, modelCopy(NULL)
 		, rnd(new boost::mt19937(42))
 		, mainSync(gcnew Object())
 		, backupSync(gcnew Object())
 	{
-		MatrixXd nPoints = arrayToMatrix(points);
-
-		vector<int> trainingLabels(pointLabels->Length);
-
-		for(int i=0; i<pointLabels->Length; ++i)
-			trainingLabels[i] = pointLabels[i];
-
-		dataset = new LvqDataSet(nPoints, trainingLabels, classCount);
+		int classCount = dataset->GetDataSet()->classCount;
 		
 		vector<int> protoDistrib;
 		for(int i=0;i<classCount;++i)
 			protoDistrib.push_back(protosPerClass);
 
         if(useGsm)
-		 	model = new GsmLvqModel(protoDistrib, dataset->ComputeClassMeans()); 
+		 	model = new GsmLvqModel(protoDistrib, dataset->GetDataSet()->ComputeClassMeans()); 
 		else 
-			model = new G2mLvqModel(protoDistrib, dataset->ComputeClassMeans()); 
+			model = new G2mLvqModel(protoDistrib, dataset->GetDataSet()->ComputeClassMeans()); 
 
 		BackupModel();
 	}
 
 	double LvqWrapper::ErrorRate() { 
 		msclr::lock l(backupSync);
-		return dataset->ErrorRate(modelCopy); 
+		return dataset->GetDataSet()->ErrorRate(modelCopy); 
 	}
 
 	array<double,2>^ LvqWrapper::CurrentProjection() { 
 		msclr::lock l(backupSync);
-		return matrixToArray(dataset->ProjectPoints(modelCopy)); 
+		return matrixToArray(dataset->GetDataSet()->ProjectPoints(modelCopy)); 
 	}
 
 	array<int,2>^ LvqWrapper::ClassBoundaries(double x0, double x1, double y0, double y1,int xCols, int yRows) {
@@ -86,7 +50,7 @@ namespace LVQCppCli {
 
 	void LvqWrapper::TrainEpoch(int epochsToDo) {
 		msclr::lock l(mainSync);
-		dataset->TrainModel(epochsToDo,  *rnd, model);
+		dataset->GetDataSet()->TrainModel(epochsToDo,  *rnd, model);
 		BackupModel();
 	}
 }

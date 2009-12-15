@@ -2,12 +2,13 @@
 using namespace System;
 #include "stdafx.h"
 #include "LvqDataSet.h"
+#include "LvqDataSetCli.h"
 
 namespace LVQCppCli {
 
 	public ref class LvqWrapper
 	{
-		CAutoNativePtr<LvqDataSet> dataset;
+		LvqDataSetCli^ dataset;
 		CAutoNativePtr<AbstractProjectionLvqModel> model;
 		CAutoNativePtr<AbstractProjectionLvqModel> modelCopy;
 		CAutoNativePtr<boost::mt19937> rnd;
@@ -21,7 +22,7 @@ namespace LVQCppCli {
 		}
 
 	public:
-		LvqWrapper(array<double,2>^ points, array<int>^ pointLabels, int classCount, int protosPerDistrib, bool useGsm);
+		LvqWrapper(LvqDataSetCli^ dataset, int protosPerClass, bool useGsm);
 		property Object^ UpdateSyncObject { Object ^ get(){return mainSync;} }
 		double ErrorRate();
 		array<double,2>^ CurrentProjection();

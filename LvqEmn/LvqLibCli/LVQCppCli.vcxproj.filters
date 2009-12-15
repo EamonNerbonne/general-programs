@@ -11,6 +11,9 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="LvqDataSetCli.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="LvqWrapper.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -22,10 +25,16 @@
     <ClInclude Include="AutoNative.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="LvqDataSetCli.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="LvqWrapper.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Stdafx.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="WrappingUtils.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

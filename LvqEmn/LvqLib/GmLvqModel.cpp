@@ -1,10 +1,11 @@
 #include "StdAfx.h"
 #include "GmLvqModel.h"
 #include "utils.h"
+#include "LvqConstants.h"
 
 GmLvqModel::GmLvqModel(std::vector<int> protodistribution, MatrixXd const & means) 
 	: classCount((int)protodistribution.size())
-	, lr_scale_P(0.1)
+	, lr_scale_P(LVQ_LrScaleP)
 	, tmpHelper1(means.rows())
 	, tmpHelper2(means.rows())
 	, vJ(means.rows())

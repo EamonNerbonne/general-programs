@@ -65,6 +65,9 @@
     <ClInclude Include="GsmLvqModel.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="LvqConstants.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="LvqDataSet.h">
       <Filter>Header Files</Filter>
     </ClInclude>

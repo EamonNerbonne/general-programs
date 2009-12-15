@@ -201,6 +201,7 @@
     <ClInclude Include="G2mLvqPrototype.h" />
     <ClInclude Include="GmLvqModel.h" />
     <ClInclude Include="GsmLvqModel.h" />
+    <ClInclude Include="LvqConstants.h" />
     <ClInclude Include="LvqDataSet.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="utils.h" />
