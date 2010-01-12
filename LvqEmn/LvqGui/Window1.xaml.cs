@@ -18,6 +18,8 @@ using EmnExtensions.Wpf.Plot;
 using EmnExtensions;
 using LVQCppCli;
 using System.Windows.Media.Imaging;
+using Microsoft.Win32;
+using System.IO;
 
 namespace LVQeamon
 {
@@ -82,7 +84,7 @@ namespace LVQeamon
 				double stddevmeans = StddevMeans.Value;
 				bool useGsm = checkBoxLvqGsm.IsChecked ?? false;
 
-				SetupDisplay(numSets, pointsPerSet);
+				SetupDisplay(numSets);
 
 				MersenneTwister rndG = RndHelper.ThreadLocalRandom;
 				List<double[,]> pointClouds = new List<double[,]>();
@@ -150,7 +152,7 @@ namespace LVQeamon
 				bool useGsm = checkBoxLvqGsm.IsChecked ?? false;
 
 
-				SetupDisplay(numSets, pointsPerSet);
+				SetupDisplay(numSets);
 
 				MersenneTwister rndG = RndHelper.ThreadLocalRandom;
 				List<double[,]> pointClouds = new List<double[,]>();
@@ -196,8 +198,42 @@ namespace LVQeamon
 			}
 		}
 
+		private void buttonLoadData_Click(object sender, RoutedEventArgs e)
+		{
+			int protoCount = ProtoCount.Value;
+							bool useGsm = checkBoxLvqGsm.IsChecked ?? false;
 
-		private void StartLvq(List<double[,]> pointClouds, int protoCount, bool useGsm)
+			new Thread(() =>
+			{
+				OpenFileDialog dataFileOpenDialog = new OpenFileDialog();
+				//dataFileOpenDialog.Filter = "*.data";
+
+				if (dataFileOpenDialog.ShowDialog() == true)
+				{
+					FileInfo selectedFile = new FileInfo(dataFileOpenDialog.FileName);
+					FileInfo labelFile = new FileInfo(selectedFile.Directory + @"\"+Path.GetFileNameWithoutExtension( selectedFile.Name) +".label");
+					FileInfo dataFile = new FileInfo(selectedFile.Directory + @"\" + Path.GetFileNameWithoutExtension(selectedFile.Name) + ".data");
+					if(dataFile.Exists && labelFile.Exists)
+					{
+						var pointclouds = DataSetLoader.LoadDataset(dataFile, labelFile);
+						Dispatcher.Invoke((Action)(() =>
+						{
+							SetupDisplay(pointclouds.Count);
+						}));
+						StartLvq(pointclouds, protoCount, useGsm);
+					}
+				}
+			})
+			{ ApartmentState = ApartmentState.STA, IsBackground = true }
+			.Start();
+
+
+		}
+
+
+
+
+		private void StartLvq(List<double[,]> pointClouds, int protoCount, bool useGsm, List<double[,]> pointTestClouds = null)
 		{
 			int DIMS = pointClouds[0].GetLength(1);
 			double[,] allpoints = new double[pointClouds.Sum(pc => pc.GetLength(0)), DIMS];
@@ -251,7 +287,7 @@ namespace LVQeamon
 
 		int currentClassCount = 0;
 		struct ClassTag { public int Label; public ClassTag(int label) { Label = label; } }
-		private void SetupDisplay(int numClasses, int pointsPerSetEstimate)
+		private void SetupDisplay(int numClasses)
 		{
 			Dispatcher.BeginInvoke((Action)(() =>
 			{

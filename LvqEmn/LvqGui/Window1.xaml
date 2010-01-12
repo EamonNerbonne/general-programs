@@ -36,6 +36,7 @@
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
                 <Label Grid.Row="0"  HorizontalAlignment="Right" Margin="2">Lvq style</Label>
@@ -67,6 +68,9 @@
                 <TextBox Grid.Row="8"  Grid.Column="1"  Margin="2" Name="textBoxStarRelDistance" TextChanged="textBoxStarRelDistance_TextChanged"  Text="3" />
 
                 <Button  Grid.Row="9" Grid.Column="0" Grid.ColumnSpan="2" Margin="2" Name="buttonGenerateStar" HorizontalAlignment="Right" Click="buttonGenerateStar_Click">Generate "Stars"</Button>
+
+                <Button  Grid.Row="10" Grid.Column="0" Grid.ColumnSpan="2" Margin="2" Name="buttonLoadData" HorizontalAlignment="Right" Click="buttonLoadData_Click">Load other data</Button>
+
 
             </Grid>
             <Grid Grid.Row="1" Grid.Column="1" Margin="12" >

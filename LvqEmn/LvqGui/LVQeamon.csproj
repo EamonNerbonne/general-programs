@@ -116,6 +116,7 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="CreateGaussianCloud.cs" />
+    <Compile Include="DataSetLoader.cs" />
     <Compile Include="DataVerifiers.cs" />
     <Compile Include="MatSpeedTest.cs" />
     <Compile Include="Window1.xaml.cs">
