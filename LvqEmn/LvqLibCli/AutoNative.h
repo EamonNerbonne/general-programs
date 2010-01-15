@@ -45,7 +45,7 @@ public:
 
 	!CAutoNativePtr()
 	{	
-		delete _ptr;
+		Destroy();//Eamon: was "delete _ptr;"; this is better for debugging since nullref's are easier to detect.
 	}
 
 	~CAutoNativePtr()
