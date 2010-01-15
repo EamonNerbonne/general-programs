@@ -22,7 +22,7 @@ GmLvqModel::GmLvqModel(std::vector<int> protodistribution, MatrixXd const & mean
 
 	prototype.resize(protoCount);
 	P.resize(protoCount);
-	P_prototype.resize(protoCount);
+	//P_prototype.resize(protoCount);
 
 	int protoIndex=0;
 	for(int label = 0; label <(int) protodistribution.size();label++) {
@@ -31,7 +31,7 @@ GmLvqModel::GmLvqModel(std::vector<int> protodistribution, MatrixXd const & mean
 			prototype[protoIndex] = means.col(label);
 			P[protoIndex].setIdentity(means.rows(), means.rows());
 			pLabel(protoIndex) = label;
-			RecomputeProjection(protoIndex);
+			//RecomputeProjection(protoIndex);
 
 			protoIndex++;
 		}

@@ -21,4 +21,5 @@ public:
 
 	double ErrorRate(AbstractLvqModel const * model) const;
 	PMatrix ProjectPoints(AbstractProjectionLvqModel const * model) const;
+	size_t MemAllocEstimate() const;
 };

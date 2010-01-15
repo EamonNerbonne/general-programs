@@ -10,7 +10,6 @@ class G2mLvqModel : public AbstractProjectionLvqModel
 {
 	PMatrix P;
 	std::vector<G2mLvqPrototype, Eigen::aligned_allocator<G2mLvqPrototype> > prototype;
-	//boost::scoped_array<G2mLvqPrototype> prototype;
 	int protoCount;
 	double lr_scale_P, lr_scale_B;
 	const int classCount;
@@ -25,6 +24,18 @@ class G2mLvqModel : public AbstractProjectionLvqModel
 	inline int classifyProjectedInternal(Vector2d const & unknownProjectedPoint) const;
 	
 public:
+	virtual size_t MemAllocEstimate() const {
+		return 
+		sizeof(G2mLvqModel) +
+		sizeof(double) * (P.size() + dQdP.size()) +
+		sizeof(double) * (vJ.size()*4) + //various temps
+		sizeof(G2mLvqPrototype)*prototype.size() + //prototypes; part statically allocated
+		sizeof(double) * (prototype.size() * vJ.size()) + //prototypes; part dynamically allocated
+		(16/2) * (4+prototype.size()*2);//estimate for alignment mucking.
+	}
+
+
+
 	virtual double iterationScaleFactor() const {return 1.0/protoCount;}
 	virtual double projectionNorm() const { return (P.transpose() * P).lazy().diagonal().sum() ;}
 

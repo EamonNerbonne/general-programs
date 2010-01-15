@@ -5,7 +5,6 @@
 class GsmLvqModel : public AbstractProjectionLvqModel
 {
 	PMatrix P;
-	//boost::scoped_array<VectorXd> prototype;
 	std::vector<VectorXd> prototype;
 	std::vector<Vector2d, Eigen::aligned_allocator<Vector2d>  > P_prototype;
 	VectorXi pLabel;
@@ -38,6 +37,19 @@ class GsmLvqModel : public AbstractProjectionLvqModel
 	inline int classifyProjectedInternal(Vector2d const & unknownProjectedPoint) const;
 
 public:
+	virtual size_t MemAllocEstimate() const {
+		return 
+		sizeof(GsmLvqModel) + //base structure size
+		sizeof(int)*pLabel.size() + //dyn.alloc labels
+		sizeof(double) * (P.size() + dQdP.size()) + //dyn alloc transform + temp transform
+		sizeof(double) * (vJ.size()*5) + //various vector temps
+		sizeof(VectorXd) *prototype.size() +//dyn alloc prototype base overhead
+		sizeof(double) * (prototype.size() * vJ.size()) + //dyn alloc prototype data
+		sizeof(Vector2d) * P_prototype.size() + //cache of pretransformed prototypes
+		(16/2) * (5+prototype.size()*2);//estimate for alignment mucking.
+	}
+
+
 	virtual double iterationScaleFactor() const {return 1.0/pLabel.size();}
 	virtual double projectionNorm() const { return (P.transpose() * P).lazy().diagonal().sum() ;}
 

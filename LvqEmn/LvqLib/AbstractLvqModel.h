@@ -20,6 +20,7 @@ public:
 	}
 
 	virtual AbstractLvqModel* clone()=0;
+	virtual size_t MemAllocEstimate() const=0;
 };
 
 class AbstractProjectionLvqModel : public AbstractLvqModel {

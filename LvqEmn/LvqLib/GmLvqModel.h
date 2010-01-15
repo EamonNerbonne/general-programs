@@ -9,7 +9,7 @@ class GmLvqModel : public AbstractLvqModel
 	vector<MatrixXd> P;
 	//MatrixXd prototype;
 	vector<VectorXd> prototype;
-	vector<VectorXd> P_prototype;
+	//vector<VectorXd> P_prototype;
 	VectorXi pLabel;
 	double lr_scale_P;
 	const int classCount;
@@ -38,11 +38,24 @@ class GmLvqModel : public AbstractLvqModel
 	};
 	GoodBadMatch findMatches(VectorXd const & trainPoint, int trainLabel, VectorXd & tmp, VectorXd tmp2); 
 
-	void RecomputeProjection(int protoIndex) {
-		P_prototype[protoIndex] = (P[protoIndex] * prototype[protoIndex]).lazy();
-	}
+	//void RecomputeProjection(int protoIndex) {
+	//	P_prototype[protoIndex] = (P[protoIndex] * prototype[protoIndex]).lazy();
+	//}
 
 public:
+	virtual size_t MemAllocEstimate() const {
+		return 
+		sizeof(GmLvqModel) + //base structure size
+		sizeof(int)*pLabel.size() + //dyn.alloc labels
+		sizeof(double) * (dQdPj.size() + dQdPk.size()) + //dyn alloc temp transforms
+		sizeof(double) * (dQdPj.size() * P.size()) + //dyn alloc prototype transforms
+		sizeof(double) * (vJ.size()*6) + //various vector temps
+		sizeof(VectorXd) *prototype.size() +//dyn alloc prototype base overhead
+		sizeof(double) * (prototype.size() * vJ.size()) + //dyn alloc prototype data
+		(16/2) * (6+prototype.size()*2);//estimate for alignment mucking.
+	}
+
+
 	virtual double iterationScaleFactor() const {return 0.1/pLabel.size();}
 	GmLvqModel(std::vector<int> protodistribution, MatrixXd const & means);
 	int classify(VectorXd const & unknownPoint) const; //tmp must be just as large as unknownPoint, this is a malloc/free avoiding optimization.

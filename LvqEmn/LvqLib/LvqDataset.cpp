@@ -16,6 +16,8 @@ LvqDataSet::LvqDataSet(MatrixXd const & points, vector<int> pointLabels, int cla
 		trainClassFrequency[i]=0;
 	for(int i=0;i<(int)trainPointLabels.size();i++)
 		trainClassFrequency[trainPointLabels[i]]++;
+	trainClassFrequency.shrink_to_fit();
+	trainPointLabels.shrink_to_fit();
 }
 
 MatrixXd LvqDataSet::ComputeClassMeans() const {
@@ -29,8 +31,12 @@ MatrixXd LvqDataSet::ComputeClassMeans() const {
 		if(trainClassFrequency[i] >0)
 			means.col(i) /= double(trainClassFrequency[i]);
 	}
-
 	return means;
+}
+
+
+size_t LvqDataSet::MemAllocEstimate() const {
+	return sizeof(LvqDataSet) + sizeof(int) * (trainPointLabels.size() + trainClassFrequency.size()) + sizeof(double)*trainPoints.size();
 }
 
 void LvqDataSet::TrainModel(int epochs, boost::mt19937 & randGen, AbstractLvqModel * model) const {
