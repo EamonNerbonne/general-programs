@@ -151,7 +151,6 @@ namespace LVQeamon
 				int starTailCount = StarTailCount.Value;
 				bool useGsm = checkBoxLvqGsm.IsChecked ?? false;
 
-
 				SetupDisplay(numSets);
 
 				MersenneTwister rndG = RndHelper.ThreadLocalRandom;
@@ -307,12 +306,19 @@ namespace LVQeamon
 
 		void UpdateClassBoundaries(WriteableBitmap bmp, Matrix dataToBmp, int width, int height, LvqWrapper ignore)
 		{
+#if DEBUG
+			int renderwidth = (width + 7) / 8;
+			int renderheight = (height + 7) / 8;
+#else
+			int renderwidth = width ;
+			int renderheight = height ;
+#endif
 			if (LvqModel == null) return;
 			Matrix bmpToData = dataToBmp;
 			bmpToData.Invert();
 			Point topLeft = bmpToData.Transform(new Point(0.0,0.0));
 			Point botRight = bmpToData.Transform(new Point(width,height));
-			int[,] closestClass = LvqModel.ClassBoundaries(topLeft.X, botRight.X, topLeft.Y, botRight.Y, width, height);
+			int[,] closestClass = LvqModel.ClassBoundaries(topLeft.X, botRight.X, topLeft.Y, botRight.Y, renderwidth, renderheight);
 
 			uint[] nativeColor =(
 				from graph in plotControl.Graphs.Cast<IPlotWithSettings>()
@@ -348,7 +354,7 @@ namespace LVQeamon
 			int px = 0;
 			for (int y = 0; y < height; y++)
 				for (int x = 0; x < width; x++)
-					classboundaries[px++] = nativeColor[closestClass[y,x]];
+					classboundaries[px++] = nativeColor[closestClass[y * renderheight / height, x * renderwidth / width]];
 			bmp.WritePixels(new Int32Rect(0, 0, width, height), classboundaries, width*4, 0);
 			//return BitmapSource.Create(w, h, 96.0, 96.0, PixelFormats.Bgra32, null, inlinearray, w * 4);
 		}
@@ -356,36 +362,9 @@ namespace LVQeamon
 		//object lvqSync = new object();
 		int[] classBoundaries;
 		volatile bool needUpdate = false;
-		LvqWrapper m_LvqModel;
-		LvqWrapper LvqModel
-		{
-			get { return m_LvqModel; }
-			set
-			{
-				if (m_LvqModel != null)
-				{
-					var oldval = m_LvqModel;
-					m_LvqModel = null;
-					oldval.Dispose();
-				}
-				m_LvqModel = value;
-			}
-		}
-		LvqDataSetCli m_LvqDataSet;
-		LvqDataSetCli LvqDataSet
-		{
-			get { return m_LvqDataSet; }
-			set
-			{
-				if (m_LvqDataSet != null)
-				{
-					var oldval = m_LvqDataSet;
-					m_LvqDataSet = null;
-					oldval.Dispose();
-				}
-				m_LvqDataSet = value;
-			}
-		}
+		LvqWrapper LvqModel;
+
+		LvqDataSetCli LvqDataSet;
 
 
 
