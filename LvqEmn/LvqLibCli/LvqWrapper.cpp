@@ -14,6 +14,7 @@ namespace LVQCppCli {
 		, rnd(new boost::mt19937(42))
 		, mainSync(gcnew Object())
 		, backupSync(gcnew Object())
+		, nativeAllocEstimate(0)
 	{
 		int classCount = dataset->GetDataSet()->classCount;
 		
@@ -27,7 +28,14 @@ namespace LVQCppCli {
 			model = new G2mLvqModel(protoDistrib, dataset->GetDataSet()->ComputeClassMeans()); 
 
 		BackupModel();
+		
+		nativeAllocEstimate = model->MemAllocEstimate() *2 +sizeof(boost::mt19937);
+
+		GC::AddMemoryPressure(nativeAllocEstimate);
 	}
+
+	LvqWrapper::!LvqWrapper() {GC::RemoveMemoryPressure(nativeAllocEstimate);}
+
 
 	double LvqWrapper::ErrorRate() { 
 		msclr::lock l(backupSync);

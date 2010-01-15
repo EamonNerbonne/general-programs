@@ -5,6 +5,7 @@ namespace LVQCppCli {
 
 	LvqDataSetCli::LvqDataSetCli(array<double,2>^ points, array<int>^ pointLabels, int classCount)
 			: dataset(NULL)
+			, nativeAllocEstimate(0)
 	{
 		MatrixXd nPoints = arrayToMatrix(points);
 
@@ -14,5 +15,11 @@ namespace LVQCppCli {
 			trainingLabels[i] = pointLabels[i];
 
 		dataset = new LvqDataSet(nPoints, trainingLabels, classCount);
+
+		nativeAllocEstimate = dataset->MemAllocEstimate();
+		GC::AddMemoryPressure(nativeAllocEstimate);
 	}
+
+	LvqDataSetCli::!LvqDataSetCli() { GC::RemoveMemoryPressure(nativeAllocEstimate);}
+
 }

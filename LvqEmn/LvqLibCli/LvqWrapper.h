@@ -14,6 +14,7 @@ namespace LVQCppCli {
 		CAutoNativePtr<boost::mt19937> rnd;
 		System::Object^ backupSync;
 		System::Object^ mainSync;
+		size_t nativeAllocEstimate;
 
 		void BackupModel() {
 			AbstractProjectionLvqModel* newCopy = dynamic_cast<AbstractProjectionLvqModel*>(model->clone());
@@ -21,6 +22,7 @@ namespace LVQCppCli {
 			modelCopy = newCopy;
 		}
 
+		!LvqWrapper();
 	public:
 		LvqWrapper(LvqDataSetCli^ dataset, int protosPerClass, bool useGsm);
 		property Object^ UpdateSyncObject { Object ^ get(){return mainSync;} }
