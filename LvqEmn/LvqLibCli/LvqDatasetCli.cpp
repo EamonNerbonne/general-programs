@@ -21,5 +21,4 @@ namespace LVQCppCli {
 	}
 
 	LvqDataSetCli::!LvqDataSetCli() { GC::RemoveMemoryPressure(nativeAllocEstimate);}
-
 }
