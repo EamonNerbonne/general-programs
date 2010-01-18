@@ -21,11 +21,14 @@ public:
 
 	G2mLvqPrototype() : classLabel(-1) {}
 	
-	G2mLvqPrototype(int protoLabel, int thisIndex, VectorXd const & initialVal) 
+	G2mLvqPrototype(boost::mt19937 & rng, bool randInit, int protoLabel, int thisIndex, VectorXd const & initialVal) 
 		: classLabel(protoLabel)
 		, point(initialVal) 
 	{
-		B.setIdentity();
+		if(randInit)
+			projectionRandomizeUniformScaled(rng, B);	
+		else 
+			B.setIdentity();
 	}
 
 	inline double SqrDistanceTo(Vector2d const & P_testPoint) const {

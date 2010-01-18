@@ -22,10 +22,12 @@ namespace LVQCppCli {
 		for(int i=0;i<classCount;++i)
 			protoDistrib.push_back(protosPerClass);
 
+		boost::mt19937 forkedRng(*rnd);//this approach deterministically advances the rnd internal counter to aid in reproducability; it's not stochastically ideal though.
+
         if(useGsm)
-		 	model = new GsmLvqModel(protoDistrib, dataset->GetDataSet()->ComputeClassMeans()); 
+		 	model = new GsmLvqModel(forkedRng, true, protoDistrib, dataset->GetDataSet()->ComputeClassMeans()); 
 		else 
-			model = new G2mLvqModel(protoDistrib, dataset->GetDataSet()->ComputeClassMeans()); 
+			model = new G2mLvqModel(forkedRng, true, protoDistrib, dataset->GetDataSet()->ComputeClassMeans()); 
 
 		BackupModel();
 		

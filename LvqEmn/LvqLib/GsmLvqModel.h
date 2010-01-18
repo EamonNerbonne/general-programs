@@ -4,7 +4,7 @@
 
 class GsmLvqModel : public AbstractProjectionLvqModel
 {
-	PMatrix P;
+	//PMatrix P; //in base class
 	std::vector<VectorXd> prototype;
 	std::vector<Vector2d, Eigen::aligned_allocator<Vector2d>  > P_prototype;
 	VectorXi pLabel;
@@ -51,11 +51,8 @@ public:
 
 
 	virtual double iterationScaleFactor() const {return 1.0/pLabel.size();}
-	virtual double projectionNorm() const { return (P.transpose() * P).lazy().diagonal().sum() ;}
 
-	PMatrix const & getProjection() const {return P; }
-
-	GsmLvqModel(std::vector<int> protodistribution, MatrixXd const & means);
+	GsmLvqModel(boost::mt19937 & rng, bool randInit, std::vector<int> protodistribution, MatrixXd const & means);
 	int classify(VectorXd const & unknownPoint) const;
 	int classifyProjected(Vector2d const & unknownProjectedPoint) const{return classifyProjectedInternal(unknownProjectedPoint);}
 

@@ -12,16 +12,16 @@ using boost::variate_generator;
 USING_PART_OF_NAMESPACE_EIGEN
 
 
-#define MEANSEP 2.0
+#define MEANSEP 1.9
 #define DETERMINISTIC_SEED 
-//#define DETERMINISTIC_ORDER 
+#define DETERMINISTIC_ORDER 
 
 #if NDEBUG
 #define DIMS 25
-#define POINTS 10000
-#define ITERS 20
+#define POINTS 1000000
+#define ITERS 5
 #define CLASSCOUNT 3
-#define PROTOSPERCLASS 2
+#define PROTOSPERCLASS 1
 #else
 #define DIMS 16
 #define POINTS 100
@@ -44,24 +44,37 @@ void PrintModelStatus(char const * label,AbstractLvqModel const * model,LvqDataS
 	cout<<endl;
 }
 
-template <class T> void TestModel(mt19937  rndGenOrig, LvqDataSet * dataset, vector<int> const & protoDistrib, int iters) {
-	mt19937 rndGen(rndGenOrig);
+template <class T> void TestModel(mt19937 & rndGenOrig, bool randInit, LvqDataSet * dataset, vector<int> const & protoDistrib, int iters) {
+	mt19937 rndGenCopy = rndGenOrig;
+
+	mt19937 rndGen(rndGenCopy); //we do this to avoid changing the original rng, so we can rerun tests with the same sequence of random numbers generated.
+
 	using boost::scoped_ptr;
 	using boost::progress_timer;
 	scoped_ptr<AbstractLvqModel> model;
 	{ 
 		progress_timer t;
-		model.reset(new T(protoDistrib, dataset->ComputeClassMeans()));
-		cout<<"constructing "<<typeid(T).name()<<": ";
+		model.reset(new T(rndGen, randInit, protoDistrib, dataset->ComputeClassMeans()));
+		cout<<"constructing "<<typeid(T).name()<<" ";
+		if(randInit)
+			cout<<"(random proj. init)";
+		else
+			cout<<"(identity proj. init)";
 	}
 
-	PrintModelStatus("Initial",model.get(),dataset);
+	PrintModelStatus("Initial", model.get(), dataset);
 
 	{
 		progress_timer t;
-		for(int i=0;i<10;i++) {
-			dataset->TrainModel(iters, rndGen, model.get() );
-			PrintModelStatus("Trained",model.get(),dataset);
+		int num_groups=5;
+		for(int i=0;i<num_groups;i++) {
+			int itersDone=iters*i/num_groups;
+			int itersUpto=iters*(i+1)/num_groups;
+			int itersTodo = itersUpto-itersDone;
+			if(itersTodo>0) {
+				dataset->TrainModel(iters, rndGen, model.get() );
+				PrintModelStatus("Trained",model.get(),dataset);
+			}
 		}
 		cout<<"training "<<typeid(T).name()<<": ";
 	}
@@ -85,7 +98,12 @@ void EasyLvqTest() {
 	for(int i=0;i<CLASSCOUNT;++i)
 		protoDistrib.push_back(PROTOSPERCLASS);
 
-   TestModel<GmLvqModel>(rndGen2,  dataset.get(), protoDistrib, (ITERS + DIMS -1)/DIMS);
-   TestModel<G2mLvqModel>(rndGen2, dataset.get(), protoDistrib, ITERS);
-   TestModel<GsmLvqModel>(rndGen2, dataset.get(), protoDistrib, ITERS);
+   TestModel<GmLvqModel>(rndGen2, true,  dataset.get(), protoDistrib, (ITERS + DIMS -1)*3/2/DIMS);
+   TestModel<GmLvqModel>(rndGen2, false,  dataset.get(), protoDistrib, (ITERS + DIMS -1)*3/2/DIMS);
+
+   TestModel<G2mLvqModel>(rndGen2, true, dataset.get(), protoDistrib, ITERS);
+   TestModel<G2mLvqModel>(rndGen2, false, dataset.get(), protoDistrib, ITERS);
+
+   TestModel<GsmLvqModel>(rndGen2, true, dataset.get(), protoDistrib, ITERS);
+   TestModel<GsmLvqModel>(rndGen2, false, dataset.get(), protoDistrib, ITERS);
 }

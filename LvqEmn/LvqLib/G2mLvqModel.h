@@ -8,7 +8,6 @@ USING_PART_OF_NAMESPACE_EIGEN
 class G2mLvqPrototype;
 class G2mLvqModel : public AbstractProjectionLvqModel
 {
-	PMatrix P;
 	std::vector<G2mLvqPrototype, Eigen::aligned_allocator<G2mLvqPrototype> > prototype;
 	int protoCount;
 	double lr_scale_P, lr_scale_B;
@@ -35,11 +34,8 @@ public:
 	}
 
 	virtual double iterationScaleFactor() const {return 1.0/protoCount;}
-	virtual double projectionNorm() const { return (P.transpose() * P).lazy().diagonal().sum() ;}
 
-	PMatrix const & getProjection() const {return P; }
-
-	G2mLvqModel(std::vector<int> protodistribution, MatrixXd const & means);
+	G2mLvqModel(boost::mt19937 & rng, bool randInit, std::vector<int> protodistribution, MatrixXd const & means);
 	int classify(VectorXd const & unknownPoint) const;
 	int classifyProjected(Vector2d const & unknownProjectedPoint) const {return classifyProjectedInternal(unknownProjectedPoint);}
 	void learnFrom(VectorXd const & newPoint, int classLabel);

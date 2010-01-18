@@ -1,5 +1,6 @@
 #pragma once
 #include "stdafx.h"
+#include "utils.h"
 USING_PART_OF_NAMESPACE_EIGEN
 
 class AbstractLvqModel
@@ -15,9 +16,7 @@ public:
 	AbstractLvqModel() : trainIter(0) { }
 	virtual ~AbstractLvqModel() {	}
 	
-	double getLearningRate() {
-		return 0.3*std::pow(trainIter*iterationScaleFactor()*0.01 + 1.0, - 0.75); 
-	}
+	double getLearningRate() {	return 0.5*std::pow(trainIter*iterationScaleFactor()*0.01 + 1.0, - 0.65); }
 
 	virtual AbstractLvqModel* clone()=0;
 	virtual size_t MemAllocEstimate() const=0;
@@ -25,12 +24,14 @@ public:
 };
 
 class AbstractProjectionLvqModel : public AbstractLvqModel {
+protected:
+	AbstractProjectionLvqModel(int input_dims) : P(LVQ_LOW_DIM_SPACE, input_dims)  {	P.setIdentity(); }
+	PMatrix P;
 public:
-	virtual PMatrix const & getProjection() const = 0;
 	virtual ~AbstractProjectionLvqModel() { }
-	virtual double projectionNorm() const=0;
-//	virtual void normalizeProjection()=0;
-
+	PMatrix const & projectionMatrix() const {return P;}
+	double projectionNorm() const { return projectionSquareNorm(P);  }
+	void normalizeProjection() { normalizeMatrix(P); }
 	virtual void ClassBoundaryDiagram(double x0, double x1, double y0, double y1, MatrixXi & classDiagram) const=0;
 	virtual int classifyProjected(Vector2d const & unknownProjectedPoint) const=0;
 };

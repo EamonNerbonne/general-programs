@@ -49,12 +49,9 @@ public:
 		(16/2) * (6+prototype.size()*2);//estimate for alignment mucking.
 	}
 
-
 	virtual double iterationScaleFactor() const {return 0.1/pLabel.size();}
-	GmLvqModel(std::vector<int> protodistribution, MatrixXd const & means);
+	GmLvqModel(boost::mt19937 & rng,  bool randInit, std::vector<int> protodistribution, MatrixXd const & means);
 	int classify(VectorXd const & unknownPoint) const; //tmp must be just as large as unknownPoint, this is a malloc/free avoiding optimization.
 	void learnFrom(VectorXd const & newPoint, int classLabel);//tmp must be just as large as unknownPoint, this is a malloc/free avoiding optimization.
-	virtual AbstractLvqModel* clone() { 
-		return new GmLvqModel(*this); 
-	}
+	virtual AbstractLvqModel* clone() { return new GmLvqModel(*this); }
 };

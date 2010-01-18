@@ -4,11 +4,11 @@
 #include "G2mLvqMatch.h"
 #include "LvqConstants.h"
 
-G2mLvqModel::G2mLvqModel(std::vector<int> protodistribution, MatrixXd const & means) 
-	: classCount((int)protodistribution.size())
+G2mLvqModel::G2mLvqModel(boost::mt19937 & rng,  bool randInit, std::vector<int> protodistribution, MatrixXd const & means) 
+	: AbstractProjectionLvqModel(means.rows()) 
+	, classCount((int)protodistribution.size())
 	, lr_scale_P(LVQ_LrScaleP)
 	, lr_scale_B(LVQ_LrScaleB)
-	, P(LVQ_LOW_DIM_SPACE,means.rows())
 	, vJ(means.rows())
 	, vK(means.rows())
 	, dQdwJ(means.rows())
@@ -17,15 +17,18 @@ G2mLvqModel::G2mLvqModel(std::vector<int> protodistribution, MatrixXd const & me
 {
 	using namespace std;
 
-	P.setIdentity();
+	if(randInit)
+		projectionRandomizeUniformScaled(rng, P);
+	else
+		P.setIdentity();
+
 	protoCount = accumulate(protodistribution.begin(),protodistribution.end(),0);
-	//prototype.reset(new G2mLvqPrototype[protoCount]);
 	prototype.resize(protoCount);
 	int protoIndex=0;
 	for(int label=0; label <(int) protodistribution.size();label++) {
 		int labelCount =protodistribution[label];
 		for(int i=0;i<labelCount;i++) {
-			prototype[protoIndex] = G2mLvqPrototype(label, protoIndex, means.col(label) );
+			prototype[protoIndex] = G2mLvqPrototype(rng,randInit, label, protoIndex, means.col(label) );
 			prototype[protoIndex].ComputePP(P);
 
 			protoIndex++;

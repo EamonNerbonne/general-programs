@@ -202,7 +202,7 @@ namespace LVQeamon
 			int protoCount = ProtoCount.Value;
 							bool useGsm = checkBoxLvqGsm.IsChecked ?? false;
 
-			new Thread(() =>
+			var fileOpenThread = new Thread(() =>
 			{
 				OpenFileDialog dataFileOpenDialog = new OpenFileDialog();
 				//dataFileOpenDialog.Filter = "*.data";
@@ -222,9 +222,10 @@ namespace LVQeamon
 						StartLvq(pointclouds, protoCount, useGsm);
 					}
 				}
-			})
-			{ ApartmentState = ApartmentState.STA, IsBackground = true }
-			.Start();
+			});
+			fileOpenThread.SetApartmentState(ApartmentState.STA);
+			fileOpenThread.IsBackground = true;
+			fileOpenThread.Start();
 
 
 		}

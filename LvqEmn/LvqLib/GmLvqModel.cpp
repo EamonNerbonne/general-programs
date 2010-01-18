@@ -3,7 +3,7 @@
 #include "utils.h"
 #include "LvqConstants.h"
 
-GmLvqModel::GmLvqModel(std::vector<int> protodistribution, MatrixXd const & means) 
+GmLvqModel::GmLvqModel(boost::mt19937 & rng, bool randInit, std::vector<int> protodistribution, MatrixXd const & means) 
 	: classCount((int)protodistribution.size())
 	, lr_scale_P(LVQ_LrScaleP)
 	, tmpHelper1(means.rows())
@@ -29,6 +29,9 @@ GmLvqModel::GmLvqModel(std::vector<int> protodistribution, MatrixXd const & mean
 		for(int i=0;i<labelCount;i++) {
 			prototype[protoIndex] = means.col(label);
 			P[protoIndex].setIdentity(means.rows(), means.rows());
+			if(randInit)
+				projectionRandomizeUniformScaled(rng, P[protoIndex]);
+
 			pLabel(protoIndex) = label;
 
 			protoIndex++;

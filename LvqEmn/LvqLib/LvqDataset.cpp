@@ -65,5 +65,5 @@ double LvqDataSet::ErrorRate(AbstractLvqModel const * model)const {
 }
 
 PMatrix LvqDataSet::ProjectPoints(AbstractProjectionLvqModel const * model) const {
-	return model->getProjection() * trainPoints;
+	return model->projectionMatrix() * trainPoints;
 }

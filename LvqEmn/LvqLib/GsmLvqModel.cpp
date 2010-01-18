@@ -3,11 +3,11 @@
 #include "utils.h"
 #include "LvqConstants.h"
 
-GsmLvqModel::GsmLvqModel(std::vector<int> protodistribution, MatrixXd const & means) 
-	: classCount((int)protodistribution.size())
+GsmLvqModel::GsmLvqModel(boost::mt19937 & rng,  bool randInit, std::vector<int> protodistribution, MatrixXd const & means) 
+	: AbstractProjectionLvqModel(means.rows()) 
+	, classCount((int)protodistribution.size())
 	, lr_scale_P(LVQ_LrScaleP)
 	, tmpHelper(means.rows())
-	, P(LVQ_LOW_DIM_SPACE, means.rows())
 	, vJ(means.rows())
 	, vK(means.rows())
 	, dQdwJ(means.rows())
@@ -16,7 +16,12 @@ GsmLvqModel::GsmLvqModel(std::vector<int> protodistribution, MatrixXd const & me
 {
 	using namespace std;
 
-	P.setIdentity();
+	if(randInit)
+		projectionRandomizeUniformScaled(rng, P);
+	else
+		P.setIdentity();
+
+
 	int protoCount = accumulate(protodistribution.begin(), protodistribution.end(), 0);
 	pLabel.resize(protoCount);
 
