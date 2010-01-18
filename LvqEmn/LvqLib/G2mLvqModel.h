@@ -34,8 +34,6 @@ public:
 		(16/2) * (4+prototype.size()*2);//estimate for alignment mucking.
 	}
 
-
-
 	virtual double iterationScaleFactor() const {return 1.0/protoCount;}
 	virtual double projectionNorm() const { return (P.transpose() * P).lazy().diagonal().sum() ;}
 

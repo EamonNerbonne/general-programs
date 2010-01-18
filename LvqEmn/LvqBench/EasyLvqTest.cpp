@@ -41,7 +41,6 @@ void PrintModelStatus(char const * label,AbstractLvqModel const * model,LvqDataS
 	cout << label<< ": "<<dataset->ErrorRate(model);
 	if(dynamic_cast<AbstractProjectionLvqModel const*>(model)) 
 		cout<<"   [norm: "<< dynamic_cast<AbstractProjectionLvqModel const*>(model)->projectionNorm() <<"]";
-
 	cout<<endl;
 }
 
