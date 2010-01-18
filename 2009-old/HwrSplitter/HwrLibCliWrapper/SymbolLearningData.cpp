@@ -9,6 +9,7 @@ namespace HwrLibCliWrapper {
 			symbols = NULL;
 		}
 	}
+
 	SymbolLearningData::~SymbolLearningData() { this->!SymbolLearningData(); }
 	SymbolLearningData::SymbolLearningData(int symbolCount) 
 		: symbols(new AllSymbolClasses(symbolCount ))
