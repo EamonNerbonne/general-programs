@@ -156,17 +156,7 @@
     </Compile>
     <Compile Include="Plot\DimensionBounds.cs" />
     <Compile Include="Plot\DimensionMargins.cs" />
-    <Compile Include="OldGraph\GraphableBitmap.cs" />
-    <Compile Include="OldGraph\GraphableBitmapDelegate.cs" />
-    <Compile Include="OldGraph\GraphableData.cs" />
-    <Compile Include="OldGraph\GraphableDrawing.cs" />
-    <Compile Include="OldGraph\GraphableResizeableBitmap.cs" />
-    <Compile Include="OldGraph\GraphableGeometry.cs" />
-    <Compile Include="OldGraph\GraphablePixelScatterPlot.cs" />
     <Compile Include="Plot\GraphChange.cs" />
-    <Compile Include="OldGraph\PlotControl.xaml.cs">
-      <DependentUpon>PlotControl.xaml</DependentUpon>
-    </Compile>
     <Compile Include="Plot\PlotDataBase.cs" />
     <Compile Include="Plot\VizEngines\PlotVizBase.cs" />
     <Compile Include="Plot\VizEngines\PlotVizException.cs" />
@@ -180,10 +170,6 @@
   </ItemGroup>
   <ItemGroup>
     <Page Include="Plot\NewPlotControl.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="OldGraph\PlotControl.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
@@ -204,6 +190,9 @@
       <ProductName>.NET Framework 3.5 SP1</ProductName>
       <Install>false</Install>
     </BootstrapperPackage>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="OldGraph\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSHARP.Targets" />
   <ProjectExtensions>
