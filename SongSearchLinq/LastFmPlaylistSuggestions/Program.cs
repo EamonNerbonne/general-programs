@@ -358,7 +358,7 @@ namespace LastFmPlaylistSuggestions
 
 
 			for (int i = 0; i < 8; i++) {
-				new Thread(bgLookup) { IsBackground = true, Priority = ThreadPriority.BelowNormal }.Start();
+				new Thread(bgLookup) { Priority = ThreadPriority.BelowNormal }.Start();
 			}
 
 			Func<SongRef, SongSimilarityList> lookupParallel = songref => {
@@ -397,8 +397,9 @@ namespace LastFmPlaylistSuggestions
 			try {
 				while (similarList.Count < MaxSuggestionLookupCount && knownTracks.Count < SuggestionCountTarget) {
 					SongWithCost currentSong;
-					if (!songCosts.RemoveTop(out currentSong))
-						break;
+					lock (sync)
+						if (!songCosts.RemoveTop(out currentSong))
+							break;
 					if (!playlistSongRefs.Contains(currentSong.songref)) {
 						similarList.Add(currentSong);
 						if (tools.Lookup.dataByRef.ContainsKey(currentSong.songref))
@@ -432,9 +433,11 @@ namespace LastFmPlaylistSuggestions
 							similarSong.cost = directCost;
 							foreach (var baseSong in currentSong.basedOn)
 								similarSong.basedOn.Add(baseSong);
-							songCosts.Add(similarSong);
+							lock (sync)
+								songCosts.Add(similarSong);
 						} else {
-							songCosts.Delete(similarSong.index);
+							lock (sync)
+								songCosts.Delete(similarSong.index);
 							similarSong.index = -1;
 							//new cost should be somewhere between next.cost, and min(old-cost, direct-cost)
 							double oldOffset = similarSong.cost - currentSong.cost;
@@ -443,7 +446,8 @@ namespace LastFmPlaylistSuggestions
 							similarSong.cost = currentSong.cost + combinedOffset;
 							foreach (var baseSong in currentSong.basedOn)
 								similarSong.basedOn.Add(baseSong);
-							songCosts.Add(similarSong);
+							lock (sync)
+								songCosts.Add(similarSong);
 						}
 					}
 					int newPercent = Math.Max((similarList.Count * 100) / MaxSuggestionLookupCount, (knownTracks.Count * 100) / SuggestionCountTarget);
