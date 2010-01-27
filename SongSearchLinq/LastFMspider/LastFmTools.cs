@@ -99,24 +99,24 @@ namespace LastFMspider
 			int hits = 0;
 			Parallel.ForEach(songsToDownload, songref => {
 				//foreach (SongRef songref in songsToDownload) {
-				try {
-					lock (songsToDownload) progressCount++;
-					var similar = SimilarSongs.Lookup(songref, TimeSpan.FromDays(100.0));//precache the last.fm data.  unsure - NOT REALLY necessary?
-					lock (songsToDownload) {
-						similarityCount += similar.similartracks.Length;
-						if (similar != null)
-							hits++;
-						Console.WriteLine("{0,3} - tot={4} in hits={5}, with relTo={3} in \"{1} - {2}\"",
-							100 * progressCount / (double)total,
-							songref.Artist,
-							songref.Title,
-							similar.similartracks.Length,
-							(double)similarityCount,
-							hits);
-					}
-				} catch (Exception e) {
-					Console.WriteLine("Exception: {0}", e.ToString());
-				}//ignore all errors.
+				//try {
+				lock (songsToDownload) progressCount++;
+				var similar = SimilarSongs.Lookup(songref, TimeSpan.FromDays(100.0));//precache the last.fm data.  unsure - NOT REALLY necessary?
+				lock (songsToDownload) {
+					similarityCount += similar.similartracks.Length;
+					if (similar != null)
+						hits++;
+					Console.WriteLine("{0,3} - tot={4} in hits={5}, with relTo={3} in \"{1} - {2}\"",
+						100 * progressCount / (double)total,
+						songref.Artist,
+						songref.Title,
+						similar.similartracks.Length,
+						(double)similarityCount,
+						hits);
+				}
+				//} catch (Exception e) {
+				//    Console.WriteLine("Exception: {0}", e.ToString());
+				//}//ignore all errors.
 			});
 			Console.WriteLine("Done precaching.");
 		}
@@ -182,9 +182,11 @@ namespace LastFMspider
 
 
 		public int PrecacheArtistSimilarity() {
+			DateTime minAge = DateTime.UtcNow - TimeSpan.FromDays(365.0);
+
 			int artistsCached = 0;
 			Console.WriteLine("Finding artists without similarities");
-			var artistsToGo = SimilarSongs.backingDB.ArtistsWithoutSimilarityList.Execute(1000000);
+			var artistsToGo = SimilarSongs.backingDB.ArtistsWithoutSimilarityList.Execute(1000000, minAge );
 #if !DEBUG
 			artistsToGo.Shuffle();
 #endif
@@ -195,7 +197,7 @@ namespace LastFMspider
 				try {
 					msg.AppendFormat("SimTo:{0,-30}", artist.ArtistName.Substring(0, Math.Min(artist.ArtistName.Length, 30)));
 					ArtistQueryInfo info = SimilarSongs.backingDB.LookupArtistSimilarityListAge.Execute(artist.ArtistName);
-					if (info.LookupTimestamp.HasValue || info.IsAlternateOf.HasValue) {
+					if ((info.LookupTimestamp.HasValue && info.LookupTimestamp.Value > minAge ) || info.IsAlternateOf.HasValue) {
 						msg.AppendFormat("done.");
 					} else {
 						ArtistSimilarityList newEntry = OldApiClient.Artist.GetSimilarArtists(artist.ArtistName);

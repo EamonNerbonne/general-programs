@@ -42,8 +42,9 @@ namespace LastFMspider
 		public SongSimilarityList Lookup(SongRef songref, TimeSpan maxAge) {
 			TrackSimilarityListInfo cachedVersion = backingDB.LookupSimilarityListAge.Execute(songref);
 			if (!cachedVersion.ListID.HasValue || !cachedVersion.LookupTimestamp.HasValue || cachedVersion.LookupTimestamp.Value < DateTime.UtcNow - maxAge) { //get online version
-				Console.Write("?");
+				Console.Write("?"+songref);
 				var retval = OldApiClient.Track.GetSimilarTracks(songref);
+				Console.WriteLine(" [" + retval.similartracks.Length + "]");
 				try {
 					backingDB.InsertSimilarityList.Execute(retval);
 				} catch {//retry; might be a locking issue.  only retry once.
