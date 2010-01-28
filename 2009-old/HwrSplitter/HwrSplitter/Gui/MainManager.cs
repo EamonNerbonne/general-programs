@@ -68,13 +68,14 @@ namespace HwrSplitter.Gui
 			}
 			set {
 				lock (pausesync) {
-					if (paused == value)
-						return;
-					paused = value;
-					if (paused)
-						Monitor.Enter(pausedSync);
+					if (paused == value) return;
+					if (value)
+						Monitor.Enter(pausedSync, ref paused);
 					else
+					{
 						Monitor.Exit(pausedSync);
+						paused = false;
+					}
 				}
 			}
 		}
