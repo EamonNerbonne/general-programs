@@ -43,12 +43,11 @@ GsmLvqModel::GsmLvqModel(boost::mt19937 & rng,  bool randInit, std::vector<int> 
 }
 
 void GsmLvqModel::RecomputeProjection(int protoIndex) {
-	P_prototype[protoIndex].noalias() = P * prototype[protoIndex];
+	P_prototype[protoIndex] = (P * prototype[protoIndex]).lazy();
 }
 
 int GsmLvqModel::classify(VectorXd const & unknownPoint) const{
-	Vector2d P_otherPoint;
-	P_otherPoint.noalias() = P * unknownPoint;
+	Vector2d P_otherPoint = (P * unknownPoint).lazy();
 
 	using namespace std;
 	double distance(std::numeric_limits<double>::infinity());
@@ -115,8 +114,7 @@ void GsmLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel) {
 
 	assert(lr_P>=0  &&  lr_point>=0);
 
-	Vector2d P_trainPoint;
-	P_trainPoint.noalias() = P * trainPoint;
+	Vector2d P_trainPoint = (P * trainPoint).lazy();
 	GoodBadMatch matches = findMatches(P_trainPoint, trainLabel);
 
 	//now matches.good is "J" and matches.bad is "K".
@@ -133,20 +131,18 @@ void GsmLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel) {
 
 //	Vector2d muK2_P_vJ = (mu_K * 2.0 * P * vJ ).lazy();
 //	Vector2d muJ2_P_vK = (mu_J * 2.0 * P * vK ).lazy();
-	Vector2d muK2_P_vJ;
-	muK2_P_vJ.noalias() = mu_K * 2.0 * (P_prototype[J] - P_trainPoint) ;
-	Vector2d muJ2_P_vK ;
-	muJ2_P_vK.noalias() = mu_J * 2.0 * (P_prototype[K] - P_trainPoint);
+	Vector2d muK2_P_vJ = (mu_K * 2.0 * (P_prototype[J] - P_trainPoint) ).lazy();
+	Vector2d muJ2_P_vK = (mu_J * 2.0 * (P_prototype[K] - P_trainPoint) ).lazy();
 
-	dQdwJ.noalias() = P.transpose() * muK2_P_vJ; //differential of cost function Q wrt w_J; i.e. wrt J->point.  Note mu_K(!) for differention wrt J(!)
-	dQdwK.noalias() = P.transpose() * muJ2_P_vK;
-	prototype[J].noalias() -= lr_point * dQdwJ;
-	prototype[K].noalias() -= lr_point * dQdwK;
+	dQdwJ = (P.transpose() * muK2_P_vJ).lazy(); //differential of cost function Q wrt w_J; i.e. wrt J->point.  Note mu_K(!) for differention wrt J(!)
+	dQdwK = (P.transpose() * muJ2_P_vK).lazy();
+	prototype[J] -= lr_point * dQdwJ;
+	prototype[K] -= lr_point * dQdwK;
 
-	dQdP.noalias() = muK2_P_vJ * vJ.transpose() + muJ2_P_vK * vK.transpose(); //differential wrt. global projection matrix.
-	P.noalias() -= lr_P * dQdP;
+	dQdP = (muK2_P_vJ * vJ.transpose()).lazy() + (muJ2_P_vK * vK.transpose()).lazy(); //differential wrt. global projection matrix.
+	P -= lr_P * dQdP;
 	
-	double pNormScale =1.0 / ( (P.transpose() * P).diagonal().sum());
+	double pNormScale =1.0 / ( (P.transpose() * P).lazy().diagonal().sum());
 	P *= pNormScale;
 
 	for(int i=0;i<pLabel.size();++i)
