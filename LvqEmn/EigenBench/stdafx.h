@@ -33,7 +33,7 @@
 
 //#define EIGEN_DONT_VECTORIZE
 
-
+#include <boost/progress.hpp>
 #include <Eigen/Core>
 #include <Eigen/Array>
 //#include <Bench/BenchTimer.h>
