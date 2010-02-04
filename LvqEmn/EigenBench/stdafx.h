@@ -11,8 +11,6 @@
 #endif
 #define _CRT_RAND_S
 
-#define EIGEN_USE_NEW_STDVECTOR
-#include <Eigen/StdVector>
 #include <stdio.h>
 #include <tchar.h>
 
@@ -35,5 +33,7 @@
 
 //#define EIGEN_DONT_VECTORIZE
 
-#include <Eigen/Core>
 
+#include <Eigen/Core>
+#include <Eigen/Array>
+//#include <Bench/BenchTimer.h>

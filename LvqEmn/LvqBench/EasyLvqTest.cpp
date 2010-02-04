@@ -18,7 +18,7 @@ USING_PART_OF_NAMESPACE_EIGEN
 
 #if NDEBUG
 #define DIMS 25
-#define POINTS 1000000
+#define POINTS 100000
 #define ITERS 5
 #define CLASSCOUNT 3
 #define PROTOSPERCLASS 1
@@ -98,12 +98,12 @@ void EasyLvqTest() {
 	for(int i=0;i<CLASSCOUNT;++i)
 		protoDistrib.push_back(PROTOSPERCLASS);
 
-   TestModel<GmLvqModel>(rndGen2, true,  dataset.get(), protoDistrib, (ITERS + DIMS -1)*3/2/DIMS);
-   TestModel<GmLvqModel>(rndGen2, false,  dataset.get(), protoDistrib, (ITERS + DIMS -1)*3/2/DIMS);
+   //TestModel<GmLvqModel>(rndGen2, true,  dataset.get(), protoDistrib, (ITERS + DIMS -1)*3/2/DIMS);
+   //TestModel<GmLvqModel>(rndGen2, false,  dataset.get(), protoDistrib, (ITERS + DIMS -1)*3/2/DIMS);
 
    TestModel<G2mLvqModel>(rndGen2, true, dataset.get(), protoDistrib, ITERS);
-   TestModel<G2mLvqModel>(rndGen2, false, dataset.get(), protoDistrib, ITERS);
+   //TestModel<G2mLvqModel>(rndGen2, false, dataset.get(), protoDistrib, ITERS);
 
-   TestModel<GsmLvqModel>(rndGen2, true, dataset.get(), protoDistrib, ITERS);
-   TestModel<GsmLvqModel>(rndGen2, false, dataset.get(), protoDistrib, ITERS);
+   //TestModel<GsmLvqModel>(rndGen2, true, dataset.get(), protoDistrib, ITERS);
+   //TestModel<GsmLvqModel>(rndGen2, false, dataset.get(), protoDistrib, ITERS);
 }
