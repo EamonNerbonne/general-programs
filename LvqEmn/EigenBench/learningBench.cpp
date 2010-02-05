@@ -1,5 +1,8 @@
 #include "EigenBench.h"
 
+//typedef Matrix<double, Dynamic,1,2,50,1> VectorSmall;
+//typedef Matrix<double,2,Dynamic,2,2,50> Matrix2Small;
+
 double run_test(
   const Vector2d& mu_vJ, const Vector2d& mu_vK,
   const VectorXd& vJ, const VectorXd& vK,
@@ -16,9 +19,17 @@ double run_test(
   /**/
   return pNormScale;
 #else
+	/*
   P.noalias() -= lr_P * ( mu_vJ * vJ.transpose() + mu_vK * vK.transpose());
   double pNormScale = 1.0 / ( (P.transpose() * P).diagonal().sum());
   return pNormScale;
+  /*/
+	Vector2d tmpJ = lr_P * mu_vJ;
+	Vector2d tmpK = lr_P * mu_vK;
+    P.noalias() -= tmpJ * vJ.transpose();
+    P.noalias() -= tmpK * vK.transpose();
+	return 1.0 / ( (P.transpose() * P).diagonal().sum());
+	/**/
 #endif
 }
 
