@@ -5,4 +5,5 @@
 
 using namespace Eigen;
 using namespace boost;
+
 void mulBench(void);
