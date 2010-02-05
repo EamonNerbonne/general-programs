@@ -1,6 +1,6 @@
 //#define DIMS 16
 //#define ITERS 1000000
-USING_PART_OF_NAMESPACE_EIGEN
+//USING_PART_OF_NAMESPACE_EIGEN
 //
 //MatrixXd DoTest(MatrixXd A, MatrixXd C) {
 //	MatrixXd B,D;

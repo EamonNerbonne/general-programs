@@ -221,7 +221,7 @@
   <ItemGroup>
     <ClCompile Include="DoTest.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="eigenbenchB.cpp" />
+    <ClCompile Include="learningBench.cpp" />
     <ClCompile Include="mulBench.cpp" />
   </ItemGroup>
   <ItemGroup>

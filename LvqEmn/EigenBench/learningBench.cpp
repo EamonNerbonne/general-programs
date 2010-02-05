@@ -1,12 +1,11 @@
 #include "EigenBench.h"
 
-EIGEN_DONT_INLINE double run_test(
+double run_test(
   const Vector2d& mu_vJ, const Vector2d& mu_vK,
   const VectorXd& vJ, const VectorXd& vK,
   const double lr_P,
   Matrix<double,2,Dynamic>& P)
 {
-#if 0
 #if EIGENV2
   //*
   P -=  lr_P * (( mu_vJ * vJ.transpose()).lazy() +( mu_vK * vK.transpose()).lazy() );
@@ -21,16 +20,9 @@ EIGEN_DONT_INLINE double run_test(
   double pNormScale = 1.0 / ( (P.transpose() * P).diagonal().sum());
   return pNormScale;
 #endif
-#else
-	double bla= mu_vK.dot(P * vK);
-	return bla;
-  //P -=  lr_P * (( mu_vJ * vJ.transpose()).lazy() +( mu_vK * vK.transpose()).lazy() );
-  //double pNormScale = 1.0 /  (P.transpose() * P).lazy().diagonal().sum();
-
-#endif
 }
 
-void eigentest()
+void learningBench()
 {
   Vector2d mu_vJ = Vector2d::Random();
   Vector2d mu_vK = Vector2d::Random();
@@ -41,7 +33,7 @@ void eigentest()
 
   progress_timer t;
 
-  const int num_runs = 50000000;
+  const int num_runs = 5000000;
 
   double sum = 0.0;
   for (int i=0; i<num_runs; ++i) {
@@ -49,14 +41,5 @@ void eigentest()
 	  sum += run_test(mu_vJ, mu_vK, vJ, vK, lr_P, P);
   }
   std::cout << sum<<std::endl;
-}
-
-
-
-int _tmain(int argc, _TCHAR* argv[])
-{
-	eigentest();
-
-	return 0;
 }
 

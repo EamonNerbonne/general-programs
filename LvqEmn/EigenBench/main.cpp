@@ -1,6 +1,7 @@
 #include "EigenBench.h"
 
 int main(int argc, char* argv[]){ 
-    mulBench(); 
+    //mulBench(); 
+	learningBench();
     return 0; 
 }
