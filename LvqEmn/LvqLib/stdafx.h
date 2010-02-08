@@ -38,7 +38,7 @@
 #include <boost/random/normal_distribution.hpp>
 #include <boost/random/mersenne_twister.hpp>
 
-//#define EIGEN_DONT_VECTORIZE
+//#define EIGEN_DONT_VECTORIZE 1
 #include <Eigen/Core>
 #define LVQ_LOW_DIM_SPACE 2
 

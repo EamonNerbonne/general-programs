@@ -6,13 +6,21 @@ template <typename T> T sqr(T val) {return val*val;}
 void makeRandomOrder(boost::mt19937 & randGen, int*const toFill, int count);
 
 template <typename T> double projectionSquareNorm(T const & projectionMatrix) {
+#if EIGEN3
+	return (projectionMatrix.transpose() * projectionMatrix).diagonal().sum();
+#else
 	return (projectionMatrix.transpose() * projectionMatrix).lazy().diagonal().sum();
+#endif
 }
 
 template <typename T> void normalizeMatrix(T & projectionMatrix) {
 	double norm = projectionSquareNorm(projectionMatrix);
 	double scaleBy = 1.0 / sqrt(norm);
-	projectionMatrix = (scaleBy * projectionMatrix).lazy(); 
+#if EIGEN3
+	projectionMatrix *= scaleBy; 
+#else
+	projectionMatrix = (scaleBy * projectionMatrix).lazy(); //TODO:can't I just use the eigen3 path here?
+#endif
 }
 
 USING_PART_OF_NAMESPACE_EIGEN

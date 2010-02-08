@@ -43,11 +43,20 @@ GsmLvqModel::GsmLvqModel(boost::mt19937 & rng,  bool randInit, std::vector<int> 
 }
 
 void GsmLvqModel::RecomputeProjection(int protoIndex) {
+#if EIGEN3
+	P_prototype[protoIndex].noalias() = P * prototype[protoIndex];
+#else
 	P_prototype[protoIndex] = (P * prototype[protoIndex]).lazy();
+#endif
 }
 
 int GsmLvqModel::classify(VectorXd const & unknownPoint) const{
-	Vector2d P_otherPoint = (P * unknownPoint).lazy();
+	Vector2d P_otherPoint;
+#if EIGEN3
+	P_otherPoint.noalias() = P * unknownPoint;
+#else
+	P_otherPoint = (P * unknownPoint).lazy();
+#endif
 
 	using namespace std;
 	double distance(std::numeric_limits<double>::infinity());
@@ -114,7 +123,12 @@ void GsmLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel) {
 
 	assert(lr_P>=0  &&  lr_point>=0);
 
-	Vector2d P_trainPoint = (P * trainPoint).lazy();
+	Vector2d P_trainPoint;
+#if EIGEN3
+	P_trainPoint.noalias() = P * trainPoint;
+#else
+	P_trainPoint = (P * trainPoint).lazy();
+#endif
 	GoodBadMatch matches = findMatches(P_trainPoint, trainLabel);
 
 	//now matches.good is "J" and matches.bad is "K".
@@ -126,11 +140,22 @@ void GsmLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel) {
 	int K = matches.matchBad;
 
 	//VectorXd
+#if EIGEN3
+	Vector2d muK2_P_vJ, muJ2_P_vK;
+	muK2_P_vJ.noalias() = mu_K * 2.0 * (P_prototype[J] - P_trainPoint) ;
+	muJ2_P_vK.noalias() = mu_J * 2.0 * (P_prototype[K] - P_trainPoint);
+
+	dQdwJ.noalias() = P.transpose() * muK2_P_vJ; //differential of cost function Q wrt w_J; i.e. wrt J->point.  Note mu_K(!) for differention wrt J(!)
+	dQdwK.noalias() = P.transpose() * muJ2_P_vK;
+	prototype[J].noalias() -= lr_point * dQdwJ;
+	prototype[K].noalias() -= lr_point * dQdwK;
+
+	dQdP.noalias() = muK2_P_vJ * vJ.transpose() + muJ2_P_vK * vK.transpose(); //differential wrt. global projection matrix.
+	P.noalias() -= lr_P * dQdP;
+#else
 	vJ = prototype[J] - trainPoint;
 	vK = prototype[K] - trainPoint;
 
-//	Vector2d muK2_P_vJ = (mu_K * 2.0 * P * vJ ).lazy();
-//	Vector2d muJ2_P_vK = (mu_J * 2.0 * P * vK ).lazy();
 	Vector2d muK2_P_vJ = (mu_K * 2.0 * (P_prototype[J] - P_trainPoint) ).lazy();
 	Vector2d muJ2_P_vK = (mu_J * 2.0 * (P_prototype[K] - P_trainPoint) ).lazy();
 
@@ -141,8 +166,13 @@ void GsmLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel) {
 
 	dQdP = (muK2_P_vJ * vJ.transpose()).lazy() + (muJ2_P_vK * vK.transpose()).lazy(); //differential wrt. global projection matrix.
 	P -= lr_P * dQdP;
-	
+#endif
+
+#if EIGEN3
+	double pNormScale =1.0 / ( (P.transpose() * P).diagonal().sum());
+#else
 	double pNormScale =1.0 / ( (P.transpose() * P).lazy().diagonal().sum());
+#endif
 	P *= pNormScale;
 
 	for(int i=0;i<pLabel.size();++i)

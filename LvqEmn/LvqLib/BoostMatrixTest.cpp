@@ -124,7 +124,11 @@ void BoostMatrixTest::TestMultEigen(int iters, int dims) {
 	}
 
 	for(int i=0;i<iters;i++){
+#if EIGEN3
+		(*tmp).noalias() = *b * *a;
+#else
 		*tmp = (*b * *a).lazy();
+#endif
 		swap(a, tmp);
 	}
 

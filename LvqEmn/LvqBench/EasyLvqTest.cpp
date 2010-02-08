@@ -17,8 +17,8 @@ USING_PART_OF_NAMESPACE_EIGEN
 #define DETERMINISTIC_ORDER 
 
 #if NDEBUG
-#define DIMS 25
-#define POINTS 100000
+#define DIMS 16
+#define POINTS 50000
 #define ITERS 5
 #define CLASSCOUNT 3
 #define PROTOSPERCLASS 1
@@ -81,6 +81,13 @@ template <class T> void TestModel(mt19937 & rndGenOrig, bool randInit, LvqDataSe
 }
 
 void EasyLvqTest() {
+#if EIGEN3
+	cout<< "[EIGEN3]";
+#endif
+#if EIGEN_DONT_VECTORIZE
+	cout<<"[NOVECTOR]";
+#endif
+	cout<<endl;
 	using boost::scoped_ptr;
 
 	mt19937 rndGen(347);

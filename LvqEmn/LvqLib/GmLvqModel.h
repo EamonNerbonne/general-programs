@@ -19,8 +19,13 @@ class GmLvqModel : public AbstractLvqModel
 	MatrixXd dQdPj, dQdPk;
 
 	inline double SqrDistanceTo(int protoIndex, VectorXd const & otherPoint, VectorXd & tmp, VectorXd tmp2) const {
+#if EIGEN3
+		tmp.noalias() = prototype[protoIndex] - otherPoint;
+		tmp2.noalias() = P[protoIndex] * tmp;
+#else
 		tmp = prototype[protoIndex] - otherPoint;
 		tmp2 = P[protoIndex] * tmp;
+#endif
 		return tmp2.squaredNorm();
 	}
 	

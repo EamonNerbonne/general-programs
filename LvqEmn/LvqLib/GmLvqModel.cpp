@@ -48,7 +48,7 @@ int GmLvqModel::classify(VectorXd const & unknownPoint) const{
 	VectorXd & tmp = const_cast<VectorXd &>(tmpHelper1);
 	VectorXd & tmp2 = const_cast<VectorXd &>(tmpHelper2);
 
-	
+
 
 	for(int i=0;i<pLabel.size();i++) {
 		double curDist = SqrDistanceTo(i, unknownPoint, tmp, tmp2);
@@ -79,7 +79,7 @@ GmLvqModel::GoodBadMatch GmLvqModel::findMatches(VectorXd const & trainPoint, in
 			}
 		}
 	}
-	
+
 	assert( match.matchBad >= 0 && match.matchGood >=0 );
 	return match;
 }
@@ -101,10 +101,30 @@ void GmLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel) {
 
 	double mu_J = -2.0 * matches.distGood / (sqr(matches.distGood) + sqr(matches.distBad));
 	double mu_K = +2.0 * matches.distBad / (sqr(matches.distGood) + sqr(matches.distBad));
-	
+
 	int J = matches.matchGood;
 	int K = matches.matchBad;
 
+#if EIGEN3
+	vJ.noalias() = prototype[J] - trainPoint;
+	vK.noalias() = prototype[K] - trainPoint;
+
+	VectorXd & muK2_Pj_vJ = tmpHelper1;
+	VectorXd & muJ2_Pk_vK = tmpHelper2;
+
+	muK2_Pj_vJ.noalias() = mu_K * 2.0 *  P[J] * vJ;
+	muJ2_Pk_vK.noalias() = mu_J * 2.0 *  P[K] * vK;
+
+	dQdwJ.noalias() = P[J].transpose() *  muK2_Pj_vJ; //differential of cost function Q wrt w_J; i.e. wrt J->point.  Note mu_K(!) for differention wrt J(!)
+	dQdwK.noalias() = P[K].transpose() * muJ2_Pk_vK;
+	prototype[J].noalias() -= lr_point * dQdwJ;
+	prototype[K].noalias() -= lr_point * dQdwK;
+
+	dQdPj.noalias() = muK2_Pj_vJ * vJ.transpose();//differential wrt. local projection matrix.
+	dQdPk.noalias() =	muJ2_Pk_vK * vK.transpose(); 
+	P[J].noalias() -= lr_P * dQdPj ;
+	P[K].noalias() -= lr_P * dQdPk ;
+#else
 	//VectorXd
 	vJ = prototype[J] - trainPoint;
 	vK = prototype[K] - trainPoint;
@@ -117,11 +137,12 @@ void GmLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel) {
 
 	dQdwJ = (P[J].transpose() *  muK2_Pj_vJ).lazy(); //differential of cost function Q wrt w_J; i.e. wrt J->point.  Note mu_K(!) for differention wrt J(!)
 	dQdwK = (P[K].transpose() * muJ2_Pk_vK).lazy();
-	prototype[J] -= lr_point * dQdwJ;
-	prototype[K] -= lr_point * dQdwK;
+	prototype[J] -= ( lr_point * dQdwJ).lazy();
+	prototype[K] -= ( lr_point * dQdwK).lazy();
 
 	dQdPj = (muK2_Pj_vJ * vJ.transpose()).lazy();//differential wrt. local projection matrix.
 	dQdPk =	(muJ2_Pk_vK * vK.transpose()).lazy(); 
-	P[J] -= lr_P * dQdPj ;
-	P[K] -= lr_P * dQdPk ;
+	P[J] -= (lr_P * dQdPj ).lazy();
+	P[K] -= (lr_P * dQdPk ).lazy();
+#endif
 }

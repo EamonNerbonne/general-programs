@@ -39,7 +39,12 @@ G2mLvqModel::G2mLvqModel(boost::mt19937 & rng,  bool randInit, std::vector<int> 
 
 int G2mLvqModel::classify(VectorXd const & unknownPoint) const{
 	using namespace std;
+#if EIGEN3
+	Vector2d P_unknownPoint;
+	P_unknownPoint.noalias() = P * unknownPoint;
+#else
 	Vector2d P_unknownPoint = (P * unknownPoint).lazy();
+#endif
 	G2mLvqMatch matches(&P_unknownPoint);
 
 	for(int i=0;i<protoCount;i++)
@@ -72,7 +77,12 @@ void G2mLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel) {
 
 	assert(lr_P>=0  &&  lr_B>=0  &&  lr_point>=0);
 
+#if EIGEN3
+	Vector2d projectedTrainPoint;
+	projectedTrainPoint.noalias() = P * trainPoint;
+#else
 	Vector2d projectedTrainPoint = (P * trainPoint).lazy();
+#endif
 
 	G2mLvqGoodBadMatch matches(&projectedTrainPoint, trainLabel);
 
@@ -90,59 +100,85 @@ void G2mLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel) {
 	assert(J == matches.good && K == matches.bad);
 
 	//VectorXd
+#if EIGEN3
+	vJ.noalias() = J->point - trainPoint;
+	vK.noalias() = K->point - trainPoint;
+#else
 	vJ = (J->point - trainPoint).lazy();
 	vK = (K->point - trainPoint).lazy();
+
+#endif
 
 #ifdef BPROJ
 	Vector2d P_vJ = ( P * vJ ).lazy();
 	Vector2d P_vK =( P * vK ).lazy();
 #else
+#if EIGEN3
+	Vector2d P_vJ;
+	P_vJ.noalias() = J->P_point - projectedTrainPoint;
+	Vector2d P_vK;
+	P_vK.noalias() = K->P_point - projectedTrainPoint;
+#else
 	Vector2d P_vJ = J->P_point - projectedTrainPoint;
 	Vector2d P_vK = K->P_point - projectedTrainPoint;
 #endif
+#endif
 
-	Vector2d muK2_Bj_P_vJ = mu_K * 2.0 * ( J->B * P_vJ ).lazy();
-	Vector2d muJ2_Bk_P_vK = mu_J * 2.0 * ( K->B * P_vK ).lazy();
-
-	Vector2d muK2_BjT_Bj_P_vJ =  (J->B.transpose() * muK2_Bj_P_vJ).lazy();
-	Vector2d muJ2_BkT_Bk_P_vK = (K->B.transpose() * muJ2_Bk_P_vK).lazy();
-
+	Vector2d muK2_Bj_P_vJ, muJ2_Bk_P_vK,muK2_BjT_Bj_P_vJ,muJ2_BkT_Bk_P_vK;
+#if EIGEN3
+	muK2_Bj_P_vJ.noalias() = mu_K * 2.0 *  J->B * P_vJ ;
+	muJ2_Bk_P_vK.noalias() = mu_J * 2.0 *  K->B * P_vK ;
+	muK2_BjT_Bj_P_vJ.noalias() =  J->B.transpose() * muK2_Bj_P_vJ;
+	muJ2_BkT_Bk_P_vK.noalias() = K->B.transpose() * muJ2_Bk_P_vK;
+#else
+	muK2_Bj_P_vJ = mu_K * 2.0 * ( J->B * P_vJ ).lazy();
+	muJ2_Bk_P_vK = mu_J * 2.0 * ( K->B * P_vK ).lazy();
+	muK2_BjT_Bj_P_vJ =  (J->B.transpose() * muK2_Bj_P_vJ).lazy();
+	muJ2_BkT_Bk_P_vK = (K->B.transpose() * muJ2_Bk_P_vK).lazy();
+#endif
 	//performance: J->B, J->point, K->B, and K->point, are write only from hereon forward, so we _could_ fold the differential computation info the update statement (less intermediates, but strangely not faster).
 
 	
-	//*
-	Matrix2d dQdBj = (muK2_Bj_P_vJ * P_vJ.transpose()).lazy();
-	Matrix2d dQdBk = (muJ2_Bk_P_vK * P_vK.transpose()).lazy();
-	J->B = J->B - lr_B * dQdBj ;
-	K->B = K->B - lr_B * dQdBk ;
+	Matrix2d dQdBj, dQdBk;
+#if EIGEN3
+	dQdBj.noalias() = muK2_Bj_P_vJ * P_vJ.transpose();
+	dQdBk.noalias() = muJ2_Bk_P_vK * P_vK.transpose();
+	J->B.noalias() -= lr_B * dQdBj ;
+	K->B.noalias() -= lr_B * dQdBk ;
+#else
+	dQdBj = (muK2_Bj_P_vJ * P_vJ.transpose()).lazy();
+	dQdBk = (muJ2_Bk_P_vK * P_vK.transpose()).lazy();
+	J->B -= (lr_B * dQdBj ).lazy();
+	K->B -= (lr_B * dQdBk ).lazy();
+#endif
+
 	//double jBnormScale =1.0 / ( (J->B.transpose() * J->B).lazy().diagonal().sum());
 	//J->B *= jBnormScale;
 	//double kBnormScale =1.0 / ( (K->B.transpose() * K->B).lazy().diagonal().sum());
 	//K->B *= kBnormScale;
 
-	/*/
-	J->B = J->B - lr_B * (muK2_Bj_P_vJ * P_vJ.transpose()).lazy();
-	K->B = K->B - lr_B * (muJ2_Bk_P_vK * P_vK.transpose()).lazy();
-	/**/
 
-
-	//*
+#if EIGEN3
+		dQdwJ.noalias() = P.transpose() *  muK2_BjT_Bj_P_vJ; //differential of cost function Q wrt w_J; i.e. wrt J->point.  Note mu_K(!) for differention wrt J(!)
+	dQdwK.noalias() = P.transpose() * muJ2_BkT_Bk_P_vK;
+	J->point.noalias() -=  lr_point * dQdwJ ;
+	K->point.noalias() -=  lr_point * dQdwK ;
+#else
 	dQdwJ = (P.transpose() *  muK2_BjT_Bj_P_vJ).lazy(); //differential of cost function Q wrt w_J; i.e. wrt J->point.  Note mu_K(!) for differention wrt J(!)
 	dQdwK = (P.transpose() * muJ2_BkT_Bk_P_vK).lazy();
 	J->point = J->point - lr_point * dQdwJ ;
 	K->point = K->point - lr_point * dQdwK ;
-	/*/
-	J->point = J->point - lr_point * (P.transpose() *  muK2_BjT_Bj_P_vJ).lazy();
-	K->point = K->point - lr_point * (P.transpose() * muJ2_BkT_Bk_P_vK).lazy();
-	/**/
+#endif
 
-	/*
-	dQdP = (muK2_BjT_Bj_P_vJ * vJ.transpose()).lazy() + (muJ2_BkT_Bk_P_vK * vK.transpose()).lazy(); //differential wrt. global projection matrix.
-	P = P - lr_P * dQdP ;
-	/*/
+	//dQdP = (muK2_BjT_Bj_P_vJ * vJ.transpose()).lazy() + (muJ2_BkT_Bk_P_vK * vK.transpose()).lazy(); //differential wrt. global projection matrix.
+	//P = P - lr_P * dQdP ;
+#if EIGEN3
+	P.noalias() -= lr_P * ( muK2_BjT_Bj_P_vJ * vJ.transpose() + muJ2_BkT_Bk_P_vK * vK.transpose()) ;
+	double pNormScale =1.0 /  (P.transpose() * P).diagonal().sum();
+#else
 	P = P - lr_P * ( (muK2_BjT_Bj_P_vJ * vJ.transpose()).lazy() + (muJ2_BkT_Bk_P_vK * vK.transpose()).lazy()) ;
-	/**/
-	double pNormScale =1.0 / ( (P.transpose() * P).lazy().diagonal().sum());
+	double pNormScale =1.0 /  (P.transpose() * P).lazy().diagonal().sum();
+#endif
 	P *= pNormScale;
 
 	for(int i=0;i<protoCount;i++)
