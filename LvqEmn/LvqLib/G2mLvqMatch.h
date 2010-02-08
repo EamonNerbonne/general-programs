@@ -4,19 +4,22 @@
 USING_PART_OF_NAMESPACE_EIGEN
 struct G2mLvqGoodBadMatch {
 	Vector2d const* projectedPoint;
+
 	int actualClassLabel;
 
 	double distanceGood, distanceBad;
 	G2mLvqPrototype const *good;
 	G2mLvqPrototype const *bad;
 
+
 	G2mLvqGoodBadMatch(Vector2d const * projectedTestPoint, int classLabel)
-		: actualClassLabel(classLabel)
+		: projectedPoint(projectedTestPoint)
+		, actualClassLabel(classLabel)
 		, distanceGood(std::numeric_limits<double>::infinity()) 
 		, distanceBad(std::numeric_limits<double>::infinity()) 
 		, good(NULL)
 		, bad(NULL)
-		, projectedPoint(projectedTestPoint)
+		
 	{ }
 
 	void AccumulateMatch(G2mLvqPrototype const & option) {
@@ -45,9 +48,9 @@ struct G2mLvqMatch {
 	G2mLvqPrototype const * match;
 
 	G2mLvqMatch(Vector2d const * P_testPoint)
-		: distance(std::numeric_limits<double>::infinity()) 
+		: P_testPoint(P_testPoint)
+		, distance(std::numeric_limits<double>::infinity()) 
 		, match(NULL)
-		, P_testPoint(P_testPoint)
 	{ }
 
 	void AccumulateMatch(G2mLvqPrototype const & option) {

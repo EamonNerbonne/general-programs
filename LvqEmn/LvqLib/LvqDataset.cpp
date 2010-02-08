@@ -16,8 +16,8 @@ LvqDataSet::LvqDataSet(MatrixXd const & points, vector<int> pointLabels, int cla
 		trainClassFrequency[i]=0;
 	for(int i=0;i<(int)trainPointLabels.size();i++)
 		trainClassFrequency[trainPointLabels[i]]++;
-	trainClassFrequency.shrink_to_fit();
-	trainPointLabels.shrink_to_fit();
+	//trainClassFrequency.shrink_to_fit();
+	//trainPointLabels.shrink_to_fit();
 }
 
 MatrixXd LvqDataSet::ComputeClassMeans() const {

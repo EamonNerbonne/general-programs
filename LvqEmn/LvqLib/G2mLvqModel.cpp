@@ -6,9 +6,9 @@
 
 G2mLvqModel::G2mLvqModel(boost::mt19937 & rng,  bool randInit, std::vector<int> protodistribution, MatrixXd const & means) 
 	: AbstractProjectionLvqModel(means.rows()) 
-	, classCount((int)protodistribution.size())
 	, lr_scale_P(LVQ_LrScaleP)
 	, lr_scale_B(LVQ_LrScaleB)
+	, classCount((int)protodistribution.size())
 	, vJ(means.rows())
 	, vK(means.rows())
 	, dQdwJ(means.rows())

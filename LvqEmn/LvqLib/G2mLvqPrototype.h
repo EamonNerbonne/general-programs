@@ -26,8 +26,8 @@ public:
 	G2mLvqPrototype() : classLabel(-1) {}
 
 	G2mLvqPrototype(boost::mt19937 & rng, bool randInit, int protoLabel, int thisIndex, VectorXd const & initialVal) 
-		: classLabel(protoLabel)
-		, point(initialVal) 
+		: point(initialVal) 
+		, classLabel(protoLabel)
 	{
 		if(randInit)
 			projectionRandomizeUniformScaled(rng, B);	

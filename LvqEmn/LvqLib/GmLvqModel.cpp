@@ -4,14 +4,14 @@
 #include "LvqConstants.h"
 
 GmLvqModel::GmLvqModel(boost::mt19937 & rng, bool randInit, std::vector<int> protodistribution, MatrixXd const & means) 
-	: classCount((int)protodistribution.size())
-	, lr_scale_P(LVQ_LrScaleP)
-	, tmpHelper1(means.rows())
-	, tmpHelper2(means.rows())
+	: lr_scale_P(LVQ_LrScaleP)
+	, classCount((int)protodistribution.size())
 	, vJ(means.rows())
 	, vK(means.rows())
 	, dQdwJ(means.rows())
 	, dQdwK(means.rows())
+	, tmpHelper1(means.rows())
+	, tmpHelper2(means.rows())
 	, dQdPj(means.rows(), means.rows())
 	, dQdPk(means.rows(), means.rows())
 {

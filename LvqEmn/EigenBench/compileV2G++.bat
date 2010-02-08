@@ -4,7 +4,7 @@ REM -floop-interchange -floop-strip-mine -floop-block
 
 REM C:\MinGW-TDM\bin\
 
-g++ -I "C:\Program Files (Custom)\boost_1_41_0" -I "C:\Program Files (Custom)\eigen2" -march=core2 -m64 -O2 -DEIGEN_DONT_VECTORIZE  -DNDEBUG -DEIGENV2  -o benchV2  DoTest.cpp learningBench.cpp  mulBench.cpp main.cpp
+g++ -I "C:\Program Files (Custom)\boost_1_41_0" -I "C:\Program Files (Custom)\eigen2" -march=core2 -m64 -O2 -DEIGEN_DONT_VECTORIZE  -DNDEBUG   -o benchV2  DoTest.cpp learningBench.cpp  mulBench.cpp main.cpp
 
 REM -DEIGEN_DONT_VECTORIZE
 REM -march=core2     

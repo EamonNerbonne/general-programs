@@ -5,13 +5,13 @@
 
 GsmLvqModel::GsmLvqModel(boost::mt19937 & rng,  bool randInit, std::vector<int> protodistribution, MatrixXd const & means) 
 	: AbstractProjectionLvqModel(means.rows()) 
-	, classCount((int)protodistribution.size())
 	, lr_scale_P(LVQ_LrScaleP)
-	, tmpHelper(means.rows())
+	, classCount((int)protodistribution.size())
 	, vJ(means.rows())
 	, vK(means.rows())
 	, dQdwJ(means.rows())
 	, dQdwK(means.rows())
+	, tmpHelper(means.rows())
 	, dQdP(LVQ_LOW_DIM_SPACE, means.rows())
 {
 	using namespace std;
