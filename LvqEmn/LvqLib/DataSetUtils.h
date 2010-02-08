@@ -4,7 +4,6 @@
 
 class DataSetUtils
 {
-	
 	DataSetUtils(void) {}
 	DataSetUtils(DataSetUtils const &) {}
 public:
