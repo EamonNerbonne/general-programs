@@ -2,7 +2,7 @@
 //#define EIGEN_DONT_VECTORIZE 1
 #include <boost/progress.hpp>
 #include <Eigen/Core>
-#if EIGENV2
+#if !EIGEN3
 #include <Eigen/Array>
 #endif
 
