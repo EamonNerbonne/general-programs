@@ -19,7 +19,5 @@ public:
 				mat(i,j) = rndGen();
 	}
 
-
 	static LvqDataSet* ConstructDataSet(boost::mt19937 & rndGen, int dims, int pointCount, int classCount, double meansep);
 };
-
