@@ -36,6 +36,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
+    <DeployIisAppPath>Default Web Site/SongSearchSite</DeployIisAppPath>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -59,7 +60,9 @@
     <Content Include="batmomultiplayer.js" />
     <Content Include="Default.aspx" />
     <Content Include="IndexStatus.aspx" />
-    <Content Include="Web.config" />
+    <Content Include="Web.config">
+      <SubType>Designer</SubType>
+    </Content>
     <Content Include="tableview.xsl" />
   </ItemGroup>
   <ItemGroup>
@@ -130,7 +133,7 @@
           <AutoAssignPort>True</AutoAssignPort>
           <DevelopmentServerPort>48188</DevelopmentServerPort>
           <DevelopmentServerVPath>/</DevelopmentServerVPath>
-          <IISUrl>http://localhost/SongSearchSite</IISUrl>
+          <IISUrl>http://localhost/SongSearchSite_Dev</IISUrl>
           <NTLMAuthentication>False</NTLMAuthentication>
           <UseCustomServer>False</UseCustomServer>
           <CustomServerUrl>

@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <publishData>
-  <publishProfile publishUrl="C:\inetpub\wwwroot\SongSearchSite" deleteExistingFiles="True" ftpAnonymousLogin="False" ftpPassiveMode="False" msdeploySite="localhost/SongSearchSite" msdeploySiteID="" msdeployRemoteSitePhysicalPath="" msdeployAllowUntrustedCertificate="False" msdeploySkipExtraFilesOnServer="False" msdeployMarkAsApp="True" profileName="Profile1" publishMethod="FileSystem" replaceMatchingFiles="False" userName="" savePWD="False" userPWD="" SelectedForPublish="True" useFpForLocalhost="0">
+  <publishProfile publishUrl="EamonQuad" deleteExistingFiles="True" ftpAnonymousLogin="False" ftpPassiveMode="False" msdeploySite="Default Web Site/SongSearchSite" msdeploySiteID="" msdeployRemoteSitePhysicalPath="" msdeployAllowUntrustedCertificate="False" msdeploySkipExtraFilesOnServer="False" msdeployMarkAsApp="True" profileName="Profile1" publishMethod="MSDeploy" replaceMatchingFiles="False" userName="" savePWD="False" userPWD="" SelectedForPublish="True">
     <file relUrl="Web.config" publishTime="01/27/2010 23:04:03" />
     <file relUrl="bin/CassiniTest.exe" publishTime="01/27/2010 20:47:51" />
     <file relUrl="bin/SongData.dll" publishTime="01/27/2010 22:07:39" />
