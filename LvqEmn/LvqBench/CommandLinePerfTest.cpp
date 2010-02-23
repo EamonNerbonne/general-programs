@@ -1,6 +1,3 @@
-// CommandLinePerfTest.cpp : Defines the entry point for the console application.
-//
-
 #include "stdafx.h"
 #include "BoostMatrixTest.h"
 #include "EasyLvqTest.h"
@@ -9,11 +6,9 @@ using namespace boost;
 const int maxN = 10000000;
 using namespace boost::numeric::ublas;
 
-int _tmain(int argc, _TCHAR* argv[])
-{
+int main(int argc, char* argv[]){ 
 	progress_timer t;
 	EasyLvqTest();
-	//EigenBench();
 	return 0;
 }
 

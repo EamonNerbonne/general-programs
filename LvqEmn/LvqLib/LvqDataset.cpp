@@ -49,7 +49,11 @@ void LvqDataSet::TrainModel(int epochs, boost::mt19937 & randGen, AbstractLvqMod
 		for(int tI=0; tI<(int)trainPointLabels.size(); ++tI) {
 			int pointIndex = ordering[tI];
 			int pointClass = trainPointLabels[pointIndex];
-			new_point = trainPoints.col(pointIndex);
+#if EIGEN3
+			new_point.noalias() = trainPoints.col(pointIndex);
+#else
+			new_point = trainPoints.col(pointIndex).lazy();
+#endif
 			model->learnFrom(new_point, pointClass);
 		}
 	}

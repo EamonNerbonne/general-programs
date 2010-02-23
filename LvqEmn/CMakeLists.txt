@@ -9,7 +9,7 @@ message("Using build type ${CMAKE_BUILD_TYPE}")
 
 if(CMAKE_COMPILER_IS_GNUCXX)
 	message("Compiler is Gcc")
-	set(CMAKE_CXX_FLAGS_RELEASE "-O3 -march=native -mtune=native -m64 -fomit-frame-pointer -DNDEBUG")
+	set(CMAKE_CXX_FLAGS_RELEASE "-m64 -O2 -march=native -mtune=native  -fomit-frame-pointer -maccumulate-outgoing-args -msahf   -fomit-frame-pointer -ftracer -DNDEBUG")
 	set(CMAKE_CSS_FLAGS_DEBUG "-g3")
 	set(INCL_FLAG "-I")
 elseif(MSVC)

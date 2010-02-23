@@ -78,8 +78,8 @@ void G2mLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel) {
 	assert(lr_P>=0  &&  lr_B>=0  &&  lr_point>=0);
 
 #if EIGEN3
-	Vector2d projectedTrainPoint;
-	projectedTrainPoint.noalias() = P * trainPoint;
+	Vector2d projectedTrainPoint = P * trainPoint;
+	//projectedTrainPoint.noalias() = P * trainPoint;
 #else
 	Vector2d projectedTrainPoint = (P * trainPoint).lazy();
 #endif

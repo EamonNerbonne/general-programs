@@ -32,7 +32,7 @@ namespace BoostMatrixTest
 		double matS=0;
 		for(int i=0;i<dims*dims;i++)
 			matS+=a.data()[i];
-		printf("%f\nEigen<%s> prod took: ",matS,typeid(a).name());
+		std::cout << matS << "\nEigen<"<<typeid(a).name()<<"> prod took: ";
 	}
 
 

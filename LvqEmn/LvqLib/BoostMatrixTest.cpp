@@ -40,7 +40,7 @@ void BoostMatrixTest::TestMultCustom(int iters, int dims) {
 	double matS=0;
 	for(int i=0;i<dims*dims;i++)
 		matS+=a[i];
-	printf("%f\nArray based mult took: ",matS);
+	std::cout<<matS<<"\nArray based mult took: ";
 }
 
 void BoostMatrixTest::TestMultCustomColMajor(int iters, int dims) {
@@ -80,7 +80,8 @@ void BoostMatrixTest::TestMultCustomColMajor(int iters, int dims) {
 	double matS=0;
 	for(int i=0;i<dims*dims;i++)
 		matS+=a[i];
-	printf("%f\nArray based mult (col-major) took: ",matS);
+	
+	std::cout<<matS<<"\nArray based mult (col-major) took: ";
 }
 
 void BoostMatrixTest::TestMultInline(int iters, int dims) {
@@ -102,10 +103,7 @@ void BoostMatrixTest::TestMultInline(int iters, int dims) {
 	double matS=0;
 	for(int i=0;i<dims*dims;i++)
 		matS+=a.data()[i];
-	printf("%f\nBoost<%s> prod took: ",matS,typeid(a).name());
-	//	cout<<matS<<endl;
-
-	//return 
+	std::cout<<matS<<"\nBoost<"<<typeid(a).name()<<"> prod took: ";
 }
 
 void BoostMatrixTest::TestMultEigen(int iters, int dims) {
@@ -135,7 +133,7 @@ void BoostMatrixTest::TestMultEigen(int iters, int dims) {
 	double matS=0;
 	for(int i=0;i<dims*dims;i++)
 		matS+=a->data()[i];
-	printf("%f\nEigen<%s> prod took: ", matS, typeid(a).name());
+	std::cout<<matS<<"\nEigen<"<<typeid(a).name()<<"> prod took: ";
 }
 
 template <class row_or_col_major> void BoostTestMult(int iters, int dims) {
@@ -157,7 +155,7 @@ template <class row_or_col_major> void BoostTestMult(int iters, int dims) {
 	double matS=0;
 	for(int i=0;i<dims*dims;i++)
 		matS+=a.data()[i];
-	printf("%f\nBoost<%s> prod took: ",matS,typeid(row_or_col_major).name());
+	std::cout<<matS<<"\nBoost<" << typeid(row_or_col_major).name()<<"> prod took: ";
 }
 
 void BoostMatrixTest::TestMultRowMajor(int iters, int dims) { 
@@ -188,6 +186,6 @@ void BoostMatrixTest::TestMultMtl(int iters, int dims) {
 	for(int i=0;i<dims;i++)
 		for(int j=0;j<dims;j++)
 			matS+=a(i,j);
-	printf("%f\nMTL prod took: ",matS);
+	std::cout <<matS<<"\nMTL prod took: ";
 }
 #endif

@@ -30,11 +30,23 @@ USING_PART_OF_NAMESPACE_EIGEN
 #define PROTOSPERCLASS 2
 #endif
 
+#ifndef _MSC_VER
+#include<cstdlib>
+
+unsigned int secure_rand() {
+	static int rand_init =0;
+	if(!rand_init)
+		srand(time(0)); 
+	return rand();
+}
+
+#else
 unsigned int secure_rand() {
 	unsigned int retval;
 	rand_s(&retval);
 	return retval;
 }
+#endif
 
 void PrintModelStatus(char const * label,AbstractLvqModel const * model,LvqDataSet const * dataset) {
 	using namespace std;
