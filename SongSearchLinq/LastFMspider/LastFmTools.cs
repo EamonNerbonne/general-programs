@@ -65,7 +65,7 @@ namespace LastFMspider
         /// </summary>
         /// <param name="shuffle">Whether to perform the precaching in a random order.  Doing so slows down the precaching when almost all
         /// items are already downloaded, but permits multiple download threads to run in parallel without duplicating downloads.</param>
-        public void PrecacheLocalFiles(bool shuffle) { ToolsInternal.PrecacheLocalFiles(this, shuffle); }
+        public void PrecacheLocalFiles(bool shuffle = false) { ToolsInternal.PrecacheLocalFiles(this, shuffle); }
 
         public void EnsureLocalFilesInDB() { ToolsInternal.EnsureLocalFilesInDB(this); }
 

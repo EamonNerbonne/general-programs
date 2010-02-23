@@ -22,7 +22,7 @@ namespace LastFMspider
 #endif
             artistsToGo = artistsToGo.Take(100000).ToArray();
             Console.WriteLine("Looking up top-tracks for {0} artists...", artistsToGo.Length);
-            Parallel.ForEach(artistsToGo, artist => {
+            Parallel.ForEach(artistsToGo, new ParallelOptions { MaxDegreeOfParallelism = 10 }, artist => {
                 StringBuilder msg = new StringBuilder();
 
                 try {

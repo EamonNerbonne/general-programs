@@ -21,7 +21,7 @@ namespace LastFMspider
 #endif
             tracksToGo = tracksToGo.Take(300000).ToArray();
             Console.WriteLine("Looking up similarities for {0} tracks...", tracksToGo.Length);
-            Parallel.ForEach(tracksToGo, track => {
+            Parallel.ForEach(tracksToGo, new ParallelOptions { MaxDegreeOfParallelism = 10 }, track => {
                 StringBuilder msg = new StringBuilder();
                 try {
                     string trackStr = track.SongRef.ToString();

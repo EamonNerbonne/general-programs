@@ -24,7 +24,7 @@ namespace LastFMspider
 #endif
 			artistsToGo = artistsToGo.Take(100000).ToArray();
 			Console.WriteLine("Looking up similarities for {0} artists...", artistsToGo.Length);
-			Parallel.ForEach(artistsToGo, artist => {
+            Parallel.ForEach(artistsToGo, new ParallelOptions { MaxDegreeOfParallelism = 10 }, artist => {
 				StringBuilder msg = new StringBuilder();
 				try {
 					msg.AppendFormat("SimTo:{0,-30}", artist.ArtistName.Substring(0, Math.Min(artist.ArtistName.Length, 30)));

@@ -30,11 +30,16 @@ namespace LastFMspider
             int total = songsToDownload.Length;
             long similarityCount = 0;
             int hits = 0;
-            Parallel.ForEach(songsToDownload, songref => {
+            Parallel.ForEach(songsToDownload, new ParallelOptions { MaxDegreeOfParallelism = 10 }, songref => {
                 //foreach (SongRef songref in songsToDownload) {
                 //try {
-                lock (songsToDownload)
+                lock (songsToDownload) {
                     progressCount++;
+                    //if (100 * (progressCount - 1) / (double)total < 3.0 && 100 * progressCount / (double)total >= 3.0) {
+                    //    Console.WriteLine("3%!");
+                    //    Console.ReadKey();
+                    //}
+                }
                 var similar = SimilarSongs.Lookup(songref, TimeSpan.FromDays(100.0));//precache the last.fm data.  unsure - NOT REALLY necessary?
                 lock (songsToDownload) {
                     similarityCount += similar.similartracks.Length;

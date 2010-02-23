@@ -24,28 +24,34 @@ namespace LastFMspider
     }
 
     [Serializable]
-    public class SongRef
+    public sealed class SongRef
     {
-
-
-        private string artist;
+        private readonly string artist;
         public string Artist { get { return artist; } }
-        private string title;
+        private readonly string title;
         public string Title { get { return title; } }
         public readonly int hashcode;
 
+        //static int LastMs =(int)( DateTime.Now.Ticks/10000 -1);
+        //static int cleanups=0;
+        //~SongRef() {
+        //    cleanups++;
+        //    int curMs =(int)( DateTime.Now.Ticks / 10000);
+        //    if (curMs != LastMs) { Console.WriteLine("\nCLEANUPS:{0}", cleanups); cleanups = 0; }
+        //    LastMs = curMs;
+        //}
 
-        public static SongRef Create(string artist, string title) {
-            return Cache<SongRef>.Unique(new SongRef(artist, title), s => s.OptimalVersion());
-        }
+        public static SongRef Create(string artist, string title) { return new SongRef(artist, title); } // Cache<SongRef>.Unique(new SongRef(artist, title), s => s.OptimalVersion()); }
 
 
         public static SongRef Create(SongData song) {
-            if (song.performer == null || song.title == null) return null;//TODO - add error handling or simply remove from db?
+            if (song.performer == null || song.title == null)
+                return null;//TODO - add error handling or simply remove from db?
             return Create(song.performer, song.title);
         }
         public override bool Equals(object obj) {
-            if (!(obj is SongRef)) return false;
+            if (!(obj is SongRef))
+                return false;
             SongRef other = ((SongRef)obj);
             return other.hashcode == hashcode && other.Artist.ToLatinLowercase().Equals(Artist.ToLatinLowercase()) && Title.ToLatinLowercase().Equals(other.Title.ToLatinLowercase());
         }
@@ -71,12 +77,14 @@ namespace LastFMspider
         }
         private static class Cache<T>
         {
-            public static int nextClearIn = 10000;
+            public static int nextClearIn = 1000000;
             public static double clearScaleFactor = 0.5;
             private static Dictionary<int, WeakReference[]> cache = new Dictionary<int, WeakReference[]>();
             public static T Unique(T item, Func<T, T> optimize) {
+                string.Equals("", "", StringComparison.OrdinalIgnoreCase);
                 lock (cache) {
                     if (nextClearIn <= 0) {
+                        System.GC.Collect();
                         var keys = cache.Keys.ToArray();
                         foreach (var key in keys) {
                             var liverefs = cache[key].Where(wk => wk.Target != null).ToArray();
@@ -88,7 +96,8 @@ namespace LastFMspider
                         nextClearIn = (int)(clearScaleFactor * cache.Count);
                     } else
                         nextClearIn--;
-                    if (optimize == null) optimize = x => x;
+                    if (optimize == null)
+                        optimize = x => x;
                     int code = item.GetHashCode();
                     if (cache.ContainsKey(code)) {
                         var items = cache[code].Select(w => w.Target).Where(o => o != null).Cast<T>();
