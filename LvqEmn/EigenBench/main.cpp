@@ -12,6 +12,9 @@ int main(int argc, char* argv[]){
 #if EIGEN2
 	cout<< "EIGEN2\n";
 #endif
+#ifdef NDEBUG
+	cout<< "NDEBUG\n";
+#endif
 	learningBench();
     return 0; 
 }

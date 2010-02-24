@@ -54,7 +54,7 @@ int G2mLvqModel::classify(VectorXd const & unknownPoint) const{
 	return matches.match->ClassLabel();
 }
 
-int G2mLvqModel::classifyProjectedInternal(Vector2d const & P_unknownPoint) const{
+int G2mLvqModel::classifyProjectedInternal(Vector2d const & P_unknownPoint) const {
 	using namespace std;
 	G2mLvqMatch matches(&P_unknownPoint);
 
@@ -114,10 +114,8 @@ void G2mLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel) {
 	Vector2d P_vK =( P * vK ).lazy();
 #else
 #if EIGEN3
-	Vector2d P_vJ;
-	P_vJ.noalias() = J->P_point - projectedTrainPoint;
-	Vector2d P_vK;
-	P_vK.noalias() = K->P_point - projectedTrainPoint;
+	Vector2d P_vJ= J->P_point - projectedTrainPoint;
+	Vector2d P_vK = K->P_point - projectedTrainPoint;
 #else
 	Vector2d P_vJ = J->P_point - projectedTrainPoint;
 	Vector2d P_vK = K->P_point - projectedTrainPoint;
@@ -159,7 +157,7 @@ void G2mLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel) {
 
 
 #if EIGEN3
-		dQdwJ.noalias() = P.transpose() *  muK2_BjT_Bj_P_vJ; //differential of cost function Q wrt w_J; i.e. wrt J->point.  Note mu_K(!) for differention wrt J(!)
+	dQdwJ.noalias() = P.transpose() *  muK2_BjT_Bj_P_vJ; //differential of cost function Q wrt w_J; i.e. wrt J->point.  Note mu_K(!) for differention wrt J(!)
 	dQdwK.noalias() = P.transpose() * muJ2_BkT_Bk_P_vK;
 	J->point.noalias() -=  lr_point * dQdwJ ;
 	K->point.noalias() -=  lr_point * dQdwK ;
@@ -176,7 +174,7 @@ void G2mLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel) {
 	P.noalias() -= lr_P * ( muK2_BjT_Bj_P_vJ * vJ.transpose() + muJ2_BkT_Bk_P_vK * vK.transpose()) ;
 	double pNormScale =1.0 /  (P.transpose() * P).diagonal().sum();
 #else
-	P = P - lr_P * ( (muK2_BjT_Bj_P_vJ * vJ.transpose()).lazy() + (muJ2_BkT_Bk_P_vK * vK.transpose()).lazy()) ;
+	P =P-  lr_P * ( (muK2_BjT_Bj_P_vJ * vJ.transpose()).lazy() + (muJ2_BkT_Bk_P_vK * vK.transpose()).lazy()) ;
 	double pNormScale =1.0 /  (P.transpose() * P).lazy().diagonal().sum();
 #endif
 	P *= pNormScale;

@@ -1,0 +1,18 @@
+cmake_minimum_required(VERSION 2.8)
+project(LvqEamonVersions)
+
+set(EigenVersion 2)
+set(EigenVectorize OFF)
+add_subdirectory("../" "build2")
+
+set(EigenVersion 2)
+set(EigenVectorize ON)
+add_subdirectory("../" "build2v")
+
+set(EigenVersion 3)
+set(EigenVectorize OFF)
+add_subdirectory("../" "build3")
+
+set(EigenVersion 3)
+set(EigenVectorize ON)
+add_subdirectory("../" "build3v")

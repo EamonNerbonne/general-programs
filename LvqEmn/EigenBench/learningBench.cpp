@@ -10,14 +10,16 @@ double run_test(
 	Matrix<double,2,Dynamic>& P)
 {
 #if EIGEN3
-	Vector2d tmpJ = lr_P * mu_vJ;
-	Vector2d tmpK = lr_P * mu_vK;
-	P.noalias() -= tmpJ * vJ.transpose();
-	P.noalias() -= tmpK * vK.transpose();
-	//P.noalias() -= lr_P * ( mu_vJ * vJ.transpose() + mu_vK * vK.transpose());
+	//Vector2d tmpJ = lr_P * mu_vJ;
+	//Vector2d tmpK = lr_P * mu_vK;
+	//P.noalias() -=  ( tmpJ * vJ.transpose() + tmpK * vK.transpose());
+	P.noalias() -= lr_P * ( mu_vJ * vJ.transpose() + mu_vK * vK.transpose());
+	//P.noalias() -=  tmpJ* vJ.transpose();
+	//P.noalias() -=  tmpK * vK.transpose();
+
 	return 1.0 / ( (P.transpose() * P).diagonal().sum());
 #else
-	P -=  lr_P * (( mu_vJ * vJ.transpose()).lazy() +( mu_vK * vK.transpose()).lazy() );
+	P = P-  lr_P * (( mu_vJ * vJ.transpose()).lazy() +( mu_vK * vK.transpose()).lazy() );
 	return 1.0 /  (P.transpose() * P).lazy().diagonal().sum();
 #endif
 }
@@ -33,7 +35,7 @@ void learningBench()
 
 	progress_timer t;
 
-	const int num_runs = 5000000;
+	const int num_runs = 10000000;
 
 	double sum = 0.0;
 	for (int i=0; i<num_runs; ++i) {
