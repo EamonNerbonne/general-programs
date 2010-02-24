@@ -6,6 +6,10 @@ cmake -G "Visual Studio 10 Win64" ..\..\allconfigs
 "C:\Windows\Microsoft.NET\Framework64\v4.0.30128\MSBuild.exe" /property:Configuration=Release /maxcpucount ALL_BUILD.vcxproj
 set benchHelper=%~dp0\benchAllConfigs.bat
 
-echo. >>benchlog.log
-echo ===============================================MICROSOFT COMPILER!!!!!!!!!! >> benchlog.log
-call %benchHelper% EigenBench Release benchlog.log
+set logtarget=%~dp0\bench-msc.log
+echo ===============================================MICROSOFT COMPILER!!!!!!!!!! >> %logtarget%
+date >>%logtarget%
+date /t >> %logtarget%
+echo. >>%logtarget%
+
+call %benchHelper% EigenBench Release %logtarget%

@@ -6,5 +6,5 @@ if(NOT build_suffix)
 endif()
 
 set(exeName "EigenBench${build_suffix}")
-set(sources DoTest.cpp learningBench.cpp)
+set(sources DoTest.cpp EigenBench.cpp)
 add_executable(${exeName}  ${sources})

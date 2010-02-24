@@ -52,7 +52,7 @@ void mulBench(void) {
 	const int num_runs = 50000000;
 	double sum = 0.0;
 
-	progress_timer t;
+	progress_timer t(cerr);
 	for (int i=0; i<num_runs; ++i) {
 		P(num_runs%2, (num_runs/2)%25) = 1.0; //vs. optimizer
 		sum +=  mu_vK.dot(P * vK);
@@ -61,24 +61,23 @@ void mulBench(void) {
 }
 
 int main(int argc, char* argv[]){ 
-    //mulBench(); 
-	cout<<"EigenBench";
+	cerr<<"EigenBench";
 #if EIGEN3
-	cout<< "3";
+	cerr<< "3";
 #else
 #if EIGEN2
-	cout<< "2";
+	cerr<< "2";
 #else
-	cout<<"????";
+	cerr<<"????";
 #endif
 #endif
 #ifndef EIGEN_DONT_VECTORIZE
-	cout<< "v";
+	cerr<< "v";
 #endif
 #ifndef NDEBUG
-	cout<< "[DEBUG]";
+	cerr<< "[DEBUG]";
 #endif
-	cout<<": ";
+	cerr<<": ";
 	learningBench();
     return 0; 
 }

@@ -6,6 +6,10 @@ cmake -G "MinGW Makefiles" ..\..\allconfigs
 make -j
 set benchHelper=%~dp0\benchAllConfigs.bat
 
-echo. >>benchlog.log
-echo ===============================================MINGW COMPILER!!!!!!!!!! >> benchlog.log
-call %benchHelper% EigenBench . benchlog.log
+set logtarget=%~dp0\bench-mingw.log
+echo ===============================================MINGW COMPILER!!!!!!!!!! >> %logtarget%
+date >>%logtarget%
+date /t >> %logtarget%
+echo. >>%logtarget%
+
+call %benchHelper% EigenBench . %logtarget%
