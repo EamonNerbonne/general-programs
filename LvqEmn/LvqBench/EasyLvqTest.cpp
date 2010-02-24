@@ -93,13 +93,6 @@ template <class T> void TestModel(mt19937 & rndGenOrig, bool randInit, LvqDataSe
 }
 
 void EasyLvqTest() {
-#if EIGEN3
-	cout<< "[EIGEN3]";
-#endif
-#if EIGEN_DONT_VECTORIZE
-	cout<<"[NOVECTOR]";
-#endif
-	cout<<endl;
 	using boost::scoped_ptr;
 
 	mt19937 rndGen(347);
@@ -116,7 +109,8 @@ void EasyLvqTest() {
 	vector<int> protoDistrib;
 	for(int i=0;i<CLASSCOUNT;++i)
 		protoDistrib.push_back(PROTOSPERCLASS);
-
+	
+	{boost::progress_timer t(std::cerr);
    //TestModel<GmLvqModel>(rndGen2, true,  dataset.get(), protoDistrib, (ITERS + DIMS -1)*3/2/DIMS);
    //TestModel<GmLvqModel>(rndGen2, false,  dataset.get(), protoDistrib, (ITERS + DIMS -1)*3/2/DIMS);
 
@@ -125,4 +119,5 @@ void EasyLvqTest() {
 
    //TestModel<GsmLvqModel>(rndGen2, true, dataset.get(), protoDistrib, ITERS);
    //TestModel<GsmLvqModel>(rndGen2, false, dataset.get(), protoDistrib, ITERS);
+	}
 }

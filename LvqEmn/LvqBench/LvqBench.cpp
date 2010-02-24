@@ -6,9 +6,30 @@ using namespace boost;
 const int maxN = 10000000;
 using namespace boost::numeric::ublas;
 
+
 int main(int argc, char* argv[]){ 
+	using std::cerr;
+	cerr<<"LvqBench";
+#if EIGEN3
+	cerr<< "3";
+#else
+#if EIGEN2
+	cerr<< "2";
+#else
+	cerr<<"????";
+#endif
+#endif
+#ifndef EIGEN_DONT_VECTORIZE
+	cerr<< "v";
+#endif
+#ifndef NDEBUG
+	cerr<< "[DEBUG]";
+#endif
+	cerr<<": ";
+
 	progress_timer t;
 	EasyLvqTest();
+	std::cout<<"Total time:";
 	return 0;
 }
 
