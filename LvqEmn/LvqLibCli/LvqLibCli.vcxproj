@@ -44,7 +44,7 @@
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGUID>{A4353940-C302-4556-BA67-3C4E977D1948}</ProjectGUID>
-    <RootNamespace>LVQCppCli</RootNamespace>
+    <RootNamespace>LvqLibCli</RootNamespace>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <Keyword>ManagedCProj</Keyword>
   </PropertyGroup>
@@ -144,7 +144,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>..\LVQCppNative</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\LvqLib</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <PrecompiledHeader>Use</PrecompiledHeader>
@@ -156,7 +156,7 @@
       <AdditionalOptions>/MP4</AdditionalOptions>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>LVQCppNative.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>LvqLib.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(SolutionDir)$(Platform)\$(Configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AssemblyDebug>true</AssemblyDebug>
@@ -171,7 +171,7 @@
     </Midl>
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>..\LVQCppNative</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\LvqLib</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <PrecompiledHeader>Use</PrecompiledHeader>
@@ -183,7 +183,7 @@
       <AdditionalOptions>/MP4</AdditionalOptions>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>LVQCppNative.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>LvqLib.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(SolutionDir)$(Platform)\$(Configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AssemblyDebug>true</AssemblyDebug>
@@ -199,7 +199,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <OmitFramePointers>true</OmitFramePointers>
-      <AdditionalIncludeDirectories>..\LVQCppNative</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\LvqLib</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <BufferSecurityCheck>false</BufferSecurityCheck>
@@ -212,7 +212,7 @@
       <AdditionalOptions>/MP4</AdditionalOptions>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>LVQCppNative.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>LvqLib.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(SolutionDir)$(Platform)\$(Configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <TargetMachine>MachineX86</TargetMachine>
@@ -227,7 +227,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <OmitFramePointers>true</OmitFramePointers>
-      <AdditionalIncludeDirectories>..\LVQCppNative</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\LvqLib</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <BufferSecurityCheck>false</BufferSecurityCheck>
@@ -240,7 +240,7 @@
       <AdditionalOptions>/MP4</AdditionalOptions>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>LVQCppNative.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>LvqLib.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(SolutionDir)$(Platform)\$(Configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <TargetMachine>MachineX86</TargetMachine>
@@ -253,7 +253,7 @@
       <TargetEnvironment>X64</TargetEnvironment>
     </Midl>
     <ClCompile>
-      <AdditionalIncludeDirectories>..\LVQCppNative</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\LvqLib</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>EIGEN3;WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <PrecompiledHeader>Use</PrecompiledHeader>
@@ -271,7 +271,7 @@
       <AdditionalOptions>/MP4</AdditionalOptions>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>LVQCppNative.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>LvqLib.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(SolutionDir)$(Platform)\$(Configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <TargetMachine>MachineX64</TargetMachine>
@@ -284,7 +284,7 @@
       <TargetEnvironment>X64</TargetEnvironment>
     </Midl>
     <ClCompile>
-      <AdditionalIncludeDirectories>..\LVQCppNative</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\LvqLib</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <PrecompiledHeader>Use</PrecompiledHeader>
@@ -303,7 +303,7 @@
       <FunctionLevelLinking>false</FunctionLevelLinking>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>LVQCppNative.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>LvqLib.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(SolutionDir)$(Platform)\$(Configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <TargetMachine>MachineX64</TargetMachine>
@@ -351,7 +351,7 @@
     <ClInclude Include="WrappingUtils.h" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\LVQCppNative\LVQCppNative.vcxproj">
+    <ProjectReference Include="..\LvqLib\LvqLib.vcxproj">
       <Project>{2783a490-0407-4758-9531-b2950f3058d5}</Project>
     </ProjectReference>
   </ItemGroup>

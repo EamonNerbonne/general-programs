@@ -44,7 +44,7 @@
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGUID>{250D79C5-12D3-48EE-83A4-2F11627C0EF4}</ProjectGUID>
-    <RootNamespace>CommandLinePerfTest</RootNamespace>
+    <RootNamespace>LvqBench</RootNamespace>
     <Keyword>Win32Proj</Keyword>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -133,7 +133,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>..\LVQCppNative</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\LvqLib</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>false</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
@@ -145,7 +145,7 @@
       <FloatingPointModel>Fast</FloatingPointModel>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>LVQCppNative.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>LvqLib.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(SolutionDir)$(Platform)\$(Configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Console</SubSystem>
@@ -160,7 +160,7 @@
     </Midl>
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>..\LVQCppNative</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\LvqLib</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>false</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
@@ -172,7 +172,7 @@
       <FloatingPointModel>Fast</FloatingPointModel>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>LVQCppNative.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>LvqLib.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(SolutionDir)$(Platform)\$(Configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Console</SubSystem>
@@ -188,7 +188,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <OmitFramePointers>true</OmitFramePointers>
-      <AdditionalIncludeDirectories>..\LVQCppNative</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\LvqLib</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
@@ -202,7 +202,7 @@
       <ExceptionHandling>Async</ExceptionHandling>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>LVQCppNative.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>LvqLib.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(SolutionDir)$(Platform)\$(Configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Console</SubSystem>
@@ -220,7 +220,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <OmitFramePointers>true</OmitFramePointers>
-      <AdditionalIncludeDirectories>..\LVQCppNative</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\LvqLib</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
@@ -234,7 +234,7 @@
       <ExceptionHandling>Async</ExceptionHandling>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>LVQCppNative.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>LvqLib.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(SolutionDir)$(Platform)\$(Configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Console</SubSystem>
@@ -255,7 +255,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <OmitFramePointers>true</OmitFramePointers>
-      <AdditionalIncludeDirectories>..\LVQCppNative</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\LvqLib</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>EIGEN3;WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <BufferSecurityCheck>false</BufferSecurityCheck>
@@ -268,7 +268,7 @@
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>LVQCppNative.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>LvqLib.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(SolutionDir)$(Platform)\$(Configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Console</SubSystem>
@@ -289,7 +289,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <OmitFramePointers>true</OmitFramePointers>
-      <AdditionalIncludeDirectories>..\LVQCppNative</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\LvqLib</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <BufferSecurityCheck>false</BufferSecurityCheck>
@@ -303,7 +303,7 @@
       <FunctionLevelLinking>false</FunctionLevelLinking>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>LVQCppNative.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>LvqLib.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(SolutionDir)$(Platform)\$(Configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Console</SubSystem>
@@ -315,7 +315,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="CommandLinePerfTest.cpp" />
+    <ClCompile Include="LvqBench.cpp" />
     <ClCompile Include="EasyLvqTest.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
@@ -332,7 +332,7 @@
     <ClInclude Include="stdafx.h" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\LVQCppNative\LVQCppNative.vcxproj">
+    <ProjectReference Include="..\LvqLib\LvqLib.vcxproj">
       <Project>{2783a490-0407-4758-9531-b2950f3058d5}</Project>
     </ProjectReference>
   </ItemGroup>

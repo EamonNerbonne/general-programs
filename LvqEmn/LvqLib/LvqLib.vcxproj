@@ -44,7 +44,7 @@
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGUID>{2783A490-0407-4758-9531-B2950F3058D5}</ProjectGUID>
-    <RootNamespace>LVQCppNative</RootNamespace>
+    <RootNamespace>LvqLib</RootNamespace>
     <Keyword>Win32Proj</Keyword>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
