@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8)
-project(LvqEamonVersions)
+project(LvqEamonAllconfigs)
 
 set(EigenVersion 2)
 set(EigenVectorize OFF)
