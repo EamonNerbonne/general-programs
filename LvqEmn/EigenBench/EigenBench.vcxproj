@@ -226,13 +226,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="DoTest.cpp" />
-    <ClCompile Include="main.cpp" />
     <ClCompile Include="learningBench.cpp" />
-    <ClCompile Include="mulBench.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="EigenBench.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -1,22 +1,23 @@
-#include "EigenBench.h"
+#include <boost/progress.hpp>
+#include <Eigen/Core>
+#if !EIGEN3
+#include <Eigen/Array>
+#endif
 
-//typedef Matrix<double, Dynamic,1,2,50,1> VectorSmall;
-//typedef Matrix<double,2,Dynamic,2,2,50> Matrix2Small;
+using namespace Eigen;
+using namespace boost;
+using namespace std;
+
+void mulBench(void);
+void learningBench(void);
 
 double run_test(
-	const Vector2d& mu_vJ, const Vector2d& mu_vK,
-	const VectorXd& vJ, const VectorXd& vK,
-	const double lr_P,
-	Matrix<double,2,Dynamic>& P)
-{
+		const Vector2d& mu_vJ, const Vector2d& mu_vK,
+		const VectorXd& vJ, const VectorXd& vK,
+		const double lr_P,
+		Matrix<double,2,Dynamic>& P) {
 #if EIGEN3
-	//Vector2d tmpJ = lr_P * mu_vJ;
-	//Vector2d tmpK = lr_P * mu_vK;
-	//P.noalias() -=  ( tmpJ * vJ.transpose() + tmpK * vK.transpose());
 	P.noalias() -= lr_P * ( mu_vJ * vJ.transpose() + mu_vK * vK.transpose());
-	//P.noalias() -=  tmpJ* vJ.transpose();
-	//P.noalias() -=  tmpK * vK.transpose();
-
 	return 1.0 / ( (P.transpose() * P).diagonal().sum());
 #else
 	P = P-  lr_P * (( mu_vJ * vJ.transpose()).lazy() +( mu_vK * vK.transpose()).lazy() );
@@ -24,8 +25,7 @@ double run_test(
 #endif
 }
 
-void learningBench()
-{
+void learningBench() {
 	Vector2d mu_vJ = Vector2d::Random();
 	Vector2d mu_vK = Vector2d::Random();
 	VectorXd vJ = VectorXd::Random(25);
@@ -34,14 +34,51 @@ void learningBench()
 	double lr_P = ei_random<double>();
 
 	progress_timer t;
-
-	const int num_runs = 10000000;
-
 	double sum = 0.0;
+	const int num_runs = 10000000;
 	for (int i=0; i<num_runs; ++i) {
 		P(num_runs%2, (num_runs/2)%25) = 1.0;
 		sum += run_test(mu_vJ, mu_vK, vJ, vK, lr_P, P);
 	}
-	std::cout << sum<<std::endl;
+	cout <<"(" << sum<<") ";
 }
 
+void mulBench(void) {
+	using namespace std;
+
+	Vector2d mu_vK = Vector2d::Random();
+	VectorXd vK = VectorXd::Random(25);
+	Matrix<double,2,Dynamic> P = Matrix<double,2,Dynamic>::Random(2,25);
+	const int num_runs = 50000000;
+	double sum = 0.0;
+
+	progress_timer t;
+	for (int i=0; i<num_runs; ++i) {
+		P(num_runs%2, (num_runs/2)%25) = 1.0; //vs. optimizer
+		sum +=  mu_vK.dot(P * vK);
+	}
+	cout << sum<<endl;//vs. optimizer
+}
+
+int main(int argc, char* argv[]){ 
+    //mulBench(); 
+	cout<<"EigenBench";
+#if EIGEN3
+	cout<< "3";
+#else
+#if EIGEN2
+	cout<< "2";
+#else
+	cout<<"????";
+#endif
+#endif
+#ifndef EIGEN_DONT_VECTORIZE
+	cout<< "v";
+#endif
+#ifndef NDEBUG
+	cout<< "[DEBUG]";
+#endif
+	cout<<": ";
+	learningBench();
+    return 0; 
+}
