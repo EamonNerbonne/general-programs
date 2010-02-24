@@ -3,16 +3,16 @@ project(LvqEamonVersions)
 
 set(EigenVersion 2)
 set(EigenVectorize OFF)
-add_subdirectory("../" "build2")
+add_subdirectory("singleconfig" "build2")
 
 set(EigenVersion 2)
 set(EigenVectorize ON)
-add_subdirectory("../" "build2v")
+add_subdirectory("singleconfig" "build2v")
 
 set(EigenVersion 3)
 set(EigenVectorize OFF)
-add_subdirectory("../" "build3")
+add_subdirectory("singleconfig" "build3")
 
 set(EigenVersion 3)
 set(EigenVectorize ON)
-add_subdirectory("../" "build3v")
+add_subdirectory("singleconfig" "build3v")
