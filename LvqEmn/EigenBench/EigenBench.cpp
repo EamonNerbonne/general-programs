@@ -35,7 +35,7 @@ void learningBench() {
 
 	progress_timer t(cerr);
 	double sum = 0.0;
-	const int num_runs = 10000000;
+	const int num_runs = 5000000; //5 000 000 was what I used for the forum threads.
 	for (int i=0; i<num_runs; ++i) {
 		P(num_runs%2, (num_runs/2)%25) = 1.0;
 		sum += run_test(mu_vJ, mu_vK, vJ, vK, lr_P, P);
