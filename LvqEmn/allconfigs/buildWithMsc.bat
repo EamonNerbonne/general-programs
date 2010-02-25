@@ -8,8 +8,8 @@ set benchHelper=%~dp0\benchAllConfigs.bat
 
 set logtarget=%~dp0\bench-msc.log
 echo ===============================================MICROSOFT COMPILER!!!!!!!!!! >> %logtarget%
-date >>%logtarget%
-date /t >> %logtarget%
+date /t >>%logtarget%
+time /t >> %logtarget%
 echo. >>%logtarget%
 
 call %benchHelper% EigenBench Release %logtarget%

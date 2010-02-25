@@ -33,7 +33,7 @@ void learningBench() {
 	Matrix<double,2,Dynamic> P = Matrix<double,2,Dynamic>::Random(2,25);
 	double lr_P = ei_random<double>();
 
-	progress_timer t;
+	progress_timer t(cerr);
 	double sum = 0.0;
 	const int num_runs = 10000000;
 	for (int i=0; i<num_runs; ++i) {

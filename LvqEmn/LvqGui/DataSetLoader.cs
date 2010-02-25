@@ -27,7 +27,6 @@ namespace LVQeamon
 				for (int j = 0; j < innerLen; j++)
 					retval[i, j] = row[j];
 			}
-
 			return retval;
 		}
 

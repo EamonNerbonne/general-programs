@@ -8,8 +8,8 @@ set benchHelper=%~dp0\benchAllConfigs.bat
 
 set logtarget=%~dp0\bench-mingw.log
 echo ===============================================MINGW COMPILER!!!!!!!!!! >> %logtarget%
-date >>%logtarget%
-date /t >> %logtarget%
+date /t >>%logtarget%
+time /t >> %logtarget%
 echo. >>%logtarget%
 
 call %benchHelper% EigenBench . %logtarget%
