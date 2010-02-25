@@ -228,6 +228,12 @@
   <ItemGroup>
     <ClCompile Include="EigenBench.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="diagUpdateBench.h" />
+    <ClInclude Include="mulBench.h" />
+    <ClInclude Include="projectionBench.h" />
+    <ClInclude Include="standard.h" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

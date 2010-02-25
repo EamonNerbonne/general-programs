@@ -19,4 +19,18 @@
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="standard.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="mulBench.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="diagUpdateBench.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="projectionBench.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
 </Project>
