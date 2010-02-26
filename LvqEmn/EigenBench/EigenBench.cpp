@@ -3,6 +3,8 @@
 #include "diagUpdateBench.h"
 
 #include "projectionBench.h"
+#include "subtractBench.h"
+
 
 int main(int argc, char* argv[]){ 
 	cerr<<"EigenBench";
@@ -23,7 +25,7 @@ int main(int argc, char* argv[]){
 #endif
 	cerr<<": ";
 
-	projectionTest();
-
+	//projectionTest();
+	subtractTest();
 	return 0; 
 }

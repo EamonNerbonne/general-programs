@@ -32,5 +32,8 @@
     <ClInclude Include="projectionBench.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="subtractBench.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
