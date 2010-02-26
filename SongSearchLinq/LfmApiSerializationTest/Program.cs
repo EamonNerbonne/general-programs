@@ -9,7 +9,6 @@ using System.Xml.Serialization;
 using LastFMspider.LfmApi;
 using System.Xml;
 using LastFMspider.OldApi;
-using System.Diagnostics;
 namespace LfmApiSerializationTest
 {
     class Program
@@ -23,7 +22,6 @@ namespace LfmApiSerializationTest
             XmlSerializer serializerTT = ApiTrackGetTopTags.MakeSerializer();
             XmlSerializer serializerST = ApiTrackGetSimilar.MakeSerializer();
             XmlSerializer serializerTI = ApiTrackGetInfo.MakeSerializer();
-            
 //            XmlDocument doc = new XmlDocument();
  //           doc.Load(getsimilarFI.OpenRead());
 /*            object o;
@@ -38,7 +36,7 @@ namespace LfmApiSerializationTest
             o = serializerTI.Deserialize(getinfoFI.OpenRead());
             serializerTI.Serialize(Console.Out, o);
             Console.ReadKey();*/
-          //  var toptags=ApiClient.Track.GetTopTags("Madonna", "Borderline");
+         //  var toptags=ApiClient.Track.GetTopTags("Madonna", "Borderline");
 			ApiArtistSimilarArtists similarartists = OldApiClient.Artist.GetSimilarArtistsRaw("Metallica");
             similarartists.SerializeTo(Console.Out );
             Console.ReadKey();

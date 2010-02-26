@@ -69,7 +69,8 @@ namespace LastFMspider.OldApi
 				try {
 					var req = MakeUriRequest("artist", "toptracks", artist);
 					var xmlReader = XmlReader.Create(new StringReader(ConvertControlChars(req.ContentAsString)), xmlSettings);
-					return XmlSerializableBase<ApiArtistTopTracks>.Deserialize(xmlReader);
+					return ApiArtistTopTracks.Deserialize(xmlReader);
+					
 				} catch (WebException we) { //if for some reason the server ain't happy...
 					HttpWebResponse wr = we.Response as HttpWebResponse;
 					if (wr.StatusCode == HttpStatusCode.NotFound)
@@ -112,7 +113,7 @@ namespace LastFMspider.OldApi
 				try {
 					var req = MakeUriRequest("artist", "similar", artist);
 					var xmlReader = XmlReader.Create(new StringReader(ConvertControlChars(req.ContentAsString)), xmlSettings);
-					return XmlSerializableBase<ApiArtistSimilarArtists>.Deserialize(xmlReader);
+					return ApiArtistSimilarArtists.Deserialize(xmlReader);
 				} catch (WebException we) { //if for some reason the server ain't happy...
 					HttpWebResponse wr = we.Response as HttpWebResponse;
 					if (wr != null && wr.StatusCode == HttpStatusCode.NotFound)
@@ -157,7 +158,7 @@ namespace LastFMspider.OldApi
 				try {
 					var req = MakeUriRequest("track", "similar", songref.Artist, songref.Title);
 					var xmlReader = XmlReader.Create(new StringReader(ConvertControlChars(req.ContentAsString)), xmlSettings);
-					return XmlSerializableBase<ApiTrackSimilarTracks>.Deserialize(xmlReader);
+					return ApiTrackSimilarTracks.Deserialize(xmlReader);
 				} catch (WebException we) { //if for some reason the server ain't happy...
 					HttpWebResponse wr = we.Response as HttpWebResponse;
 					if (wr != null && wr.StatusCode == HttpStatusCode.NotFound)
