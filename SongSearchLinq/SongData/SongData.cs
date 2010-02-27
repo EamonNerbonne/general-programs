@@ -104,9 +104,9 @@ namespace SongDataLib
 			);
 		}
 
-		public IEnumerable<string> Values {//only yield "distinctive search values
+		public IEnumerable<string> Values {//only yield "distinctive" search values
 			get {
-				yield return HttpUtility.UrlDecode(songuri);
+				yield return Uri.UnescapeDataString(songuri);
 				yield return title;
 				yield return performer;
 				yield return composer;

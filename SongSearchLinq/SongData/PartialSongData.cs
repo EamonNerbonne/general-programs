@@ -15,7 +15,7 @@ namespace SongDataLib
 		public override string FullInfo {
 			get {
 				if(label == null) return SongPath;
-				else return HttpUtility.UrlDecode( SongPath) + "\n" + label;
+				else return Uri.UnescapeDataString(SongPath) + "\n" + label;
 			}
 		}
 

@@ -11,7 +11,7 @@ namespace SongDataLib
     {
         protected string songuri;
         protected bool isLocal;
-        public virtual string FullInfo { get { return HttpUtility.UrlDecode(songuri); } }
+        public virtual string FullInfo { get { return Uri.UnescapeDataString(songuri); } }
 
         protected XAttribute makeUriAttribute(Func<string, string> urlTranslator) {
             if (!IsLocal) {
@@ -36,7 +36,7 @@ namespace SongDataLib
         public virtual string HumanLabel {
             get {
                 Uri uri = new Uri(songuri, UriKind.Absolute);
-                return HttpUtility.UrlDecode(uri.Host + uri.AbsolutePath);//adhoc best guess.//TODO improve: goes wrong on things like http://whee/boom.mp3#testtest
+                return Uri.UnescapeDataString(uri.Host + uri.AbsolutePath);//adhoc best guess.//TODO improve: goes wrong on things like http://whee/boom.mp3#testtest
             }
         }
 
