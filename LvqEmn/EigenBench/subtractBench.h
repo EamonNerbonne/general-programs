@@ -20,18 +20,18 @@ void subtractTest() {
 
 	progress_timer t(cerr);
 	double sum = 0.0;
-	const int num_runs = 30000000; //30000000 was what I used for the forum threads.
+	const int num_runs = 100000000; //30000000 was what I used for the forum threads.
 	for (int i=0; i<num_runs; ++i) {
 #if EIGEN3
 		if(i%2==0)
-			c = a - b;
+			c = a  - b;
 		else
 			b  = a - c;
 #else
 		if(i%2==0)
-			c = a - b;
+			c = (a - b);
 		else
-			b  = a - c;
+			b  = (a - c);
 #endif
 
 	}
