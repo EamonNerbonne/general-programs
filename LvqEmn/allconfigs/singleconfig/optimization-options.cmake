@@ -7,7 +7,8 @@ if(CMAKE_COMPILER_IS_GNUCXX)
 	message("Compiler is Gcc")
 	set(CMAKE_CXX_FLAGS_RELEASE "-DNDEBUG -m64 -O3 -march=native -mtune=native ")
   set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -ftree-loop-linear -ftree-loop-distribution -ftree-loop-im -ftree-loop-ivcanon -fivopts")#*slightly* good for build3v
-
+  set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -fassociative-math -fno-trapping-math -fno-signed-zeros -ffinite-math-only")
+  
   #set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -funroll-loops") #bad for build3,good for build3v
   #set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -ffast-math") #bad for build3,*slightly* good for build3v
 
