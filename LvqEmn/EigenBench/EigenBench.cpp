@@ -4,28 +4,38 @@
 
 #include "projectionBench.h"
 #include "subtractBench.h"
-
+#include "matmulTest.h"
 
 int main(int argc, char* argv[]){ 
-	cerr<<"EigenBench";
+	cout<<"EigenBench";
 #if EIGEN3
-	cerr<< "3";
+	cout<< "3";
 #else
 #if EIGEN2
-	cerr<< "2";
+	cout<< "2";
 #else
-	cerr<<"????";
+	cout<<"????";
 #endif
 #endif
 #ifndef EIGEN_DONT_VECTORIZE
-	cerr<< "v";
+	cout<< "v";
 #endif
 #ifndef NDEBUG
-	cerr<< "[DEBUG]";
+	cout<< "[DEBUG]";
 #endif
-	cerr<<": ";
+#ifdef _MSC_VER
+	cout << " on MSC";
+#else
+#ifdef __GNUC__
+	cout << " on GCC";
+#else
+	cout << " on ???";
+#endif
+#endif
+	cout<<": ";
 
 	//projectionTest();
-	subtractTest();
+	//subtractTest();
+	cout << matmulTest() <<"s\n";
 	return 0; 
 }

@@ -306,6 +306,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="diagUpdateBench.h" />
+    <ClInclude Include="matmulTest.h" />
     <ClInclude Include="mulBench.h" />
     <ClInclude Include="projectionBench.h" />
     <ClInclude Include="standard.h" />

@@ -35,5 +35,8 @@
     <ClInclude Include="subtractBench.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="matmulTest.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
