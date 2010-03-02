@@ -37,6 +37,9 @@ double matmulTest() {
 		}
 		t.stop();
 	}
+#if TRANSPOSED
+	cout <<"t";
+#endif
 	cout <<"(" << sum <<") ";
 	return t.best();
 }

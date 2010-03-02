@@ -5,7 +5,9 @@ ENDIF(NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
 message("Using build type ${CMAKE_BUILD_TYPE}")
 if(CMAKE_COMPILER_IS_GNUCXX)
 	message("Compiler is Gcc")
-	set(CMAKE_CXX_FLAGS_RELEASE "-DNDEBUG -m64 -O3 -march=native -mtune=native ")
+	set(CMAKE_CXX_FLAGS_RELEASE "-DNDEBUG -m64 -march=native -mtune=native ")
+	#set(CMAKE_CXX_FLAGS_RELEASE "-DNDEBUG -O2 ")
+	set(CMAKE_CXX_FLAGS_RELEASE "-DNDEBUG -O3 ")
   set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -ftree-loop-linear -ftree-loop-distribution -ftree-loop-im -ftree-loop-ivcanon -fivopts")#*slightly* good for build3v
   set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -fassociative-math -fno-trapping-math -fno-signed-zeros -ffinite-math-only")
   
