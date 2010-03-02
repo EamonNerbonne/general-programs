@@ -8,28 +8,37 @@ using namespace boost::numeric::ublas;
 
 
 int main(int argc, char* argv[]){ 
-	using std::cerr;
-	cerr<<"LvqBench";
+	using std::cout;
+	cout<<"LvqBench";
 #if EIGEN3
-	cerr<< "3";
+	cout<< "3";
 #else
 #if EIGEN2
-	cerr<< "2";
+	cout<< "2";
 #else
-	cerr<<"????";
+	cout<<"????";
 #endif
 #endif
 #ifndef EIGEN_DONT_VECTORIZE
-	cerr<< "v";
+	cout<< "v";
 #endif
 #ifndef NDEBUG
-	cerr<< "[DEBUG]";
+	cout<< "[DEBUG]";
 #endif
-	cerr<<": ";
+#ifdef _MSC_VER
+	cout << " on MSC";
+#else
+#ifdef __GNUC__
+	cout << " on GCC";
+#else
+	cout << " on ???";
+#endif
+#endif
+	cout<<": ";
 
-	progress_timer t;
+	progress_timer t(std::cerr);
 	EasyLvqTest();
-	std::cout<<"Total time:";
+	std::cerr<<"Total time:";
 	return 0;
 }
 

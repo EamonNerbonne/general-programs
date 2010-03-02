@@ -33,30 +33,30 @@ USING_PART_OF_NAMESPACE_EIGEN
 #ifndef _MSC_VER
 #include<cstdlib>
 
-unsigned int secure_rand() {
-	static int rand_init =0;
-	if(!rand_init)
-		srand(time(0)); 
-	return rand();
+	unsigned int secure_rand() {
+		static int rand_init =0;
+		if(!rand_init)
+			srand(time(0)); 
+		return rand();
 }
 
 #else
-unsigned int secure_rand() {
-	unsigned int retval;
-	rand_s(&retval);
-	return retval;
+	unsigned int secure_rand() {
+		unsigned int retval;
+		rand_s(&retval);
+		return retval;
 }
 #endif
 
 void PrintModelStatus(char const * label,AbstractLvqModel const * model,LvqDataSet const * dataset) {
 	using namespace std;
-	cout << label<< ": "<<dataset->ErrorRate(model);
+	cerr << label<< ": "<<dataset->ErrorRate(model);
 	if(dynamic_cast<AbstractProjectionLvqModel const*>(model)) 
-		cout<<"   [norm: "<< dynamic_cast<AbstractProjectionLvqModel const*>(model)->projectionNorm() <<"]";
-	cout<<endl;
+		cerr<<"   [norm: "<< dynamic_cast<AbstractProjectionLvqModel const*>(model)->projectionNorm() <<"]";
+	cerr<<endl;
 }
 
-template <class T> void TestModel(mt19937 & rndGenOrig, bool randInit, LvqDataSet * dataset, vector<int> const & protoDistrib, int iters) {
+template <class T> void TestModel(mt19937 & rndGenOrig, bool randInit, LvqDataSet const  * dataset, vector<int> const & protoDistrib, int iters) {
 	mt19937 rndGenCopy = rndGenOrig;
 
 	mt19937 rndGen(rndGenCopy); //we do this to avoid changing the original rng, so we can rerun tests with the same sequence of random numbers generated.
@@ -65,19 +65,19 @@ template <class T> void TestModel(mt19937 & rndGenOrig, bool randInit, LvqDataSe
 	using boost::progress_timer;
 	scoped_ptr<AbstractLvqModel> model;
 	{ 
-		progress_timer t;
+		progress_timer t(cerr);
 		model.reset(new T(rndGen, randInit, protoDistrib, dataset->ComputeClassMeans()));
-		cout<<"constructing "<<typeid(T).name()<<" ";
+		cerr<<"constructing "<<typeid(T).name()<<" ";
 		if(randInit)
-			cout<<"(random proj. init)";
+			cerr<<"(random proj. init)";
 		else
-			cout<<"(identity proj. init)";
+			cerr<<"(identity proj. init)";
 	}
 
 	PrintModelStatus("Initial", model.get(), dataset);
 
 	{
-		progress_timer t;
+		progress_timer t(cerr);
 		int num_groups=5;
 		for(int i=0;i<num_groups;i++) {
 			int itersDone=iters*i/num_groups;
@@ -88,10 +88,11 @@ template <class T> void TestModel(mt19937 & rndGenOrig, bool randInit, LvqDataSe
 				PrintModelStatus("Trained",model.get(),dataset);
 			}
 		}
-		cout<<"training "<<typeid(T).name()<<": ";
+		cerr<<"training "<<typeid(T).name()<<": ";
 	}
 }
 
+#define BENCH_RUNS 5
 void EasyLvqTest() {
 	using boost::scoped_ptr;
 
@@ -109,15 +110,21 @@ void EasyLvqTest() {
 	vector<int> protoDistrib;
 	for(int i=0;i<CLASSCOUNT;++i)
 		protoDistrib.push_back(PROTOSPERCLASS);
-	
-	{boost::progress_timer t(std::cerr);
-   //TestModel<GmLvqModel>(rndGen2, true,  dataset.get(), protoDistrib, (ITERS + DIMS -1)*3/2/DIMS);
-   //TestModel<GmLvqModel>(rndGen2, false,  dataset.get(), protoDistrib, (ITERS + DIMS -1)*3/2/DIMS);
 
-   TestModel<G2mLvqModel>(rndGen2, true, dataset.get(), protoDistrib, ITERS);
-   //TestModel<G2mLvqModel>(rndGen2, false, dataset.get(), protoDistrib, ITERS);
+	Eigen::BenchTimer t;
 
-   //TestModel<GsmLvqModel>(rndGen2, true, dataset.get(), protoDistrib, ITERS);
-   //TestModel<GsmLvqModel>(rndGen2, false, dataset.get(), protoDistrib, ITERS);
+	for(int bI=0;bI<BENCH_RUNS;++bI)
+	{
+		t.start();
+		//TestModel<GmLvqModel>(rndGen2, true,  dataset.get(), protoDistrib, (ITERS + DIMS -1)*3/2/DIMS);
+		//TestModel<GmLvqModel>(rndGen2, false,  dataset.get(), protoDistrib, (ITERS + DIMS -1)*3/2/DIMS);
+
+		TestModel<G2mLvqModel>(rndGen2, true, dataset.get(), protoDistrib, ITERS);
+		//TestModel<G2mLvqModel>(rndGen2, false, dataset.get(), protoDistrib, ITERS);
+
+		//TestModel<GsmLvqModel>(rndGen2, true, dataset.get(), protoDistrib, ITERS);
+		//TestModel<GsmLvqModel>(rndGen2, false, dataset.get(), protoDistrib, ITERS);
+		t.stop();
 	}
+	cout<<t.best()<<"s\n";
 }

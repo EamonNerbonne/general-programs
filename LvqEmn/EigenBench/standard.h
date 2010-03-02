@@ -1,7 +1,9 @@
 #pragma once
+#pragma warning(disable:4505)
+
 #include <iostream>
-#include <Eigen/Core>
 #include <Bench/BenchTimer.h>
+#include <Eigen/Core>
 #if !EIGEN3
 #include <Eigen/Array>
 #endif

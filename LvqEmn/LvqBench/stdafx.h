@@ -22,9 +22,7 @@
 #include <boost/random/uniform_int.hpp>
 #include <boost/random/normal_distribution.hpp>
 #include <boost/random/mersenne_twister.hpp>
-//#include <boost/nondet_random.hpp>
 
-//#define EIGEN_DONT_VECTORIZE
-
+#include <bench/BenchTimer.h>
 #include <Eigen/Core>
 

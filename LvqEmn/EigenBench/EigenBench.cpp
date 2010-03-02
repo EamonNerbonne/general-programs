@@ -6,7 +6,7 @@
 #include "subtractBench.h"
 #include "matmulTest.h"
 
-int main(int argc, char* argv[]){ 
+int main(int , char* []){ 
 	cout<<"EigenBench";
 #if EIGEN3
 	cout<< "3";
