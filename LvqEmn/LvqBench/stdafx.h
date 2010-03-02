@@ -7,6 +7,7 @@
 #pragma warning (disable:4099)
 #endif
 
+#include <bench/BenchTimer.h>
 #define EIGEN_USE_NEW_STDVECTOR
 #include <Eigen/StdVector>
 
@@ -23,6 +24,5 @@
 #include <boost/random/normal_distribution.hpp>
 #include <boost/random/mersenne_twister.hpp>
 
-#include <bench/BenchTimer.h>
 #include <Eigen/Core>
 
