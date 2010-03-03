@@ -1,13 +1,20 @@
 #include "stdafx.h"
-#include "BoostMatrixTest.h"
 #include "EasyLvqTest.h"
+#include <fstream>
 
-using namespace boost;
-const int maxN = 10000000;
-using namespace boost::numeric::ublas;
+//from http://www.codeproject.com/KB/files/filesize.aspx
+int file_size(const char* sFileName)
+{
+  std::ifstream f;
+  f.open(sFileName, std::ios_base::binary | std::ios_base::in);
+  if (!f.good() || f.eof() || !f.is_open()) { return 0; }
+  f.seekg(0, std::ios_base::beg);
+  std::ifstream::pos_type begin_pos = f.tellg();
+  f.seekg(0, std::ios_base::end);
+  return static_cast<int>(f.tellg() - begin_pos);
+}
 
-
-int main(int argc, char* argv[]){ 
+int main(int , char*argv []){ 
 	using std::cout;
 	cout<<"LvqBench";
 #if EIGEN3
@@ -36,38 +43,12 @@ int main(int argc, char* argv[]){
 #endif
 	cout<<": ";
 
-	progress_timer t(std::cerr);
+	Eigen::BenchTimer t;
+	t.start();
 	EasyLvqTest();
-	std::cerr<<"Total time:";
+	t.stop();
+	cout<<"; "<< file_size(argv[0])/1024 <<"KB\n";
+	std::cerr<<"Total time:"<<t.value()<<"s\n";
+
 	return 0;
 }
-
-void MatrixSpeedTest() {
-	const int iters = 10000000;
-	const int dims = 4;
-	for(int i=0;i<3;i++){
-		{progress_timer t;
-		BoostMatrixTest::TestMultCustom(iters,dims);}
-		{progress_timer t;
-		BoostMatrixTest::TestMultCustomColMajor(iters,dims);}
-		{progress_timer t;
-		BoostMatrixTest::TestMultRowMajor(iters,dims);}
-		{progress_timer t;
-		BoostMatrixTest::TestMultColMajor(iters,dims);}
-		{progress_timer t;
-		BoostMatrixTest::TestMultInline(iters,dims);}
-		{progress_timer t;
-		BoostMatrixTest::TestMultEigen(iters,dims);}
-		//{progress_timer t;
-		//BoostMatrixTest::TestMultEigenStatic<dims>(iters);}
-#ifdef EIGEN_VECTORIZE
-		std::cout << "eigen vectorized\n";
-#endif 
-#ifdef MTL_MTL_INCLUDE
-		std::cout << "mtl\n";
-		{progress_timer t;
-		BoostMatrixTest::TestMultMtl (iters,dims);}
-#endif
-	}
-}
-

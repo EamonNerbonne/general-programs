@@ -13,7 +13,7 @@ double matmulTest() {
 #else
 		QMatrix Q = QMatrix::Random(DIMS,2);
 #endif
-		Vector2d v = Vector2d::Random(DIMS);
+		Vector2d v = Vector2d::Random();
 		VectorXd r = VectorXd::Random(DIMS);
 
 		const int num_runs = 10000000; //30000000 was what I used for the forum threads.

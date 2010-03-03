@@ -6,7 +6,7 @@ if(NOT build_suffix)
 endif()
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON) 
-set(sources BoostMatrixTest.cpp DataSetUtils.cpp G2mLvqModel.cpp GmLvqModel.cpp GsmLvqModel.cpp LvqDataSet.cpp utils.cpp)
+set(sources DataSetUtils.cpp G2mLvqModel.cpp GmLvqModel.cpp GsmLvqModel.cpp LvqDataSet.cpp utils.cpp)
 
 set(libName "LvqLib${build_suffix}")
 ADD_LIBRARY(${libName} STATIC ${sources})

@@ -24,6 +24,7 @@ GsmLvqModel::GsmLvqModel(boost::mt19937 & rng,  bool randInit, std::vector<int> 
 
 	int protoCount = accumulate(protodistribution.begin(), protodistribution.end(), 0);
 	pLabel.resize(protoCount);
+	iterationScaleFactor/=protoCount;
 
 	prototype.resize(protoCount);
 	P_prototype.resize(protoCount);
@@ -42,7 +43,7 @@ GsmLvqModel::GsmLvqModel(boost::mt19937 & rng,  bool randInit, std::vector<int> 
 	assert( accumulate(protodistribution.begin(),protodistribution.end(),0)== protoIndex);
 }
 
-void GsmLvqModel::RecomputeProjection(int protoIndex) {
+inline void GsmLvqModel::RecomputeProjection(int protoIndex) {
 #if EIGEN3
 	P_prototype[protoIndex].noalias() = P * prototype[protoIndex];
 #else
@@ -139,6 +140,9 @@ void GsmLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel) {
 	int J = matches.matchGood;
 	int K = matches.matchBad;
 
+	vJ = prototype[J] - trainPoint;
+	vK = prototype[K] - trainPoint;
+
 	//VectorXd
 #if EIGEN3
 	Vector2d muK2_P_vJ, muJ2_P_vK;
@@ -153,9 +157,6 @@ void GsmLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel) {
 	dQdP.noalias() = muK2_P_vJ * vJ.transpose() + muJ2_P_vK * vK.transpose(); //differential wrt. global projection matrix.
 	P.noalias() -= lr_P * dQdP;
 #else
-	vJ = prototype[J] - trainPoint;
-	vK = prototype[K] - trainPoint;
-
 	Vector2d muK2_P_vJ = (mu_K * 2.0 * (P_prototype[J] - P_trainPoint) ).lazy();
 	Vector2d muJ2_P_vK = (mu_J * 2.0 * (P_prototype[K] - P_trainPoint) ).lazy();
 

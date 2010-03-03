@@ -5,8 +5,23 @@
 #include "projectionBench.h"
 #include "subtractBench.h"
 #include "matmulTest.h"
+#include "copyVecTest.h"
 
-int main(int , char* []){ 
+#include <fstream>
+//from http://www.codeproject.com/KB/files/filesize.aspx
+int file_size(const char* sFileName)
+{
+  std::ifstream f;
+  f.open(sFileName, std::ios_base::binary | std::ios_base::in);
+  if (!f.good() || f.eof() || !f.is_open()) { return 0; }
+  f.seekg(0, std::ios_base::beg);
+  std::ifstream::pos_type begin_pos = f.tellg();
+  f.seekg(0, std::ios_base::end);
+  return static_cast<int>(f.tellg() - begin_pos);
+}
+
+
+int main(int , char*argv []){ 
 	cout<<"EigenBench";
 #if EIGEN3
 	cout<< "3";
@@ -36,6 +51,6 @@ int main(int , char* []){
 
 	//projectionTest();
 	//subtractTest();
-	cout << matmulTest() <<"s\n";
+	cout << copyVecTest() <<"s; "<< file_size(argv[0])/1024 <<"KB\n";
 	return 0; 
 }

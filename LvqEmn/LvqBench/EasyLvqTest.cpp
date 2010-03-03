@@ -17,12 +17,14 @@ USING_PART_OF_NAMESPACE_EIGEN
 #define DETERMINISTIC_ORDER 
 
 #if NDEBUG
-#define DIMS 50
-#define POINTS 50000
-#define ITERS 5
+#define BENCH_RUNS 6
+#define DIMS 32
+#define POINTS 5000
+#define ITERS 30
 #define CLASSCOUNT 3
 #define PROTOSPERCLASS 1
 #else
+#define BENCH_RUNS 3
 #define DIMS 16
 #define POINTS 100
 #define ITERS 5
@@ -32,6 +34,7 @@ USING_PART_OF_NAMESPACE_EIGEN
 
 #ifndef _MSC_VER
 #include<cstdlib>
+#include<ctime>
 
 	unsigned int secure_rand() {
 		static int rand_init =0;
@@ -57,42 +60,35 @@ void PrintModelStatus(char const * label,AbstractLvqModel const * model,LvqDataS
 }
 
 template <class T> void TestModel(mt19937 & rndGenOrig, bool randInit, LvqDataSet const  * dataset, vector<int> const & protoDistrib, int iters) {
+	Eigen::BenchTimer t;
 	mt19937 rndGenCopy = rndGenOrig;
 
 	mt19937 rndGen(rndGenCopy); //we do this to avoid changing the original rng, so we can rerun tests with the same sequence of random numbers generated.
 
 	using boost::scoped_ptr;
-	using boost::progress_timer;
 	scoped_ptr<AbstractLvqModel> model;
-	{ 
-		progress_timer t(cerr);
-		model.reset(new T(rndGen, randInit, protoDistrib, dataset->ComputeClassMeans()));
-		cerr<<"constructing "<<typeid(T).name()<<" ";
-		if(randInit)
-			cerr<<"(random proj. init)";
-		else
-			cerr<<"(identity proj. init)";
-	}
+	t.start();
+	model.reset(new T(rndGen, randInit, protoDistrib, dataset->ComputeClassMeans()));
+	t.stop();
+	cerr<<"constructing "<<typeid(T).name()<<" ("<<(randInit?"random":"identity")<<" proj. init)"<<t.value()<<"s\n";
 
 	PrintModelStatus("Initial", model.get(), dataset);
 
-	{
-		progress_timer t(cerr);
-		int num_groups=5;
-		for(int i=0;i<num_groups;i++) {
-			int itersDone=iters*i/num_groups;
-			int itersUpto=iters*(i+1)/num_groups;
-			int itersTodo = itersUpto-itersDone;
-			if(itersTodo>0) {
-				dataset->TrainModel(iters, rndGen, model.get() );
-				PrintModelStatus("Trained",model.get(),dataset);
-			}
+	t.start();
+	int num_groups=3;
+	for(int i=0;i<num_groups;i++) {
+		int itersDone=iters*i/num_groups;
+		int itersUpto=iters*(i+1)/num_groups;
+		int itersTodo = itersUpto-itersDone;
+		if(itersTodo>0) {
+			dataset->TrainModel(itersTodo, rndGen, model.get() );
+			PrintModelStatus("Trained",model.get(),dataset);
 		}
-		cerr<<"training "<<typeid(T).name()<<": ";
 	}
+	t.stop();
+	cerr<<"training "<<typeid(T).name()<<": "<<t.value()<<"s\n";
 }
 
-#define BENCH_RUNS 5
 void EasyLvqTest() {
 	using boost::scoped_ptr;
 
@@ -112,19 +108,19 @@ void EasyLvqTest() {
 		protoDistrib.push_back(PROTOSPERCLASS);
 
 	Eigen::BenchTimer t;
-
+	
 	for(int bI=0;bI<BENCH_RUNS;++bI)
 	{
 		t.start();
-		//TestModel<GmLvqModel>(rndGen2, true,  dataset.get(), protoDistrib, (ITERS + DIMS -1)*3/2/DIMS);
+		TestModel<GmLvqModel>(rndGen2, true,  dataset.get(), protoDistrib, (ITERS + DIMS -1)*3/2/DIMS);
 		//TestModel<GmLvqModel>(rndGen2, false,  dataset.get(), protoDistrib, (ITERS + DIMS -1)*3/2/DIMS);
 
 		TestModel<G2mLvqModel>(rndGen2, true, dataset.get(), protoDistrib, ITERS);
 		//TestModel<G2mLvqModel>(rndGen2, false, dataset.get(), protoDistrib, ITERS);
 
-		//TestModel<GsmLvqModel>(rndGen2, true, dataset.get(), protoDistrib, ITERS);
+		TestModel<GsmLvqModel>(rndGen2, true, dataset.get(), protoDistrib, ITERS);
 		//TestModel<GsmLvqModel>(rndGen2, false, dataset.get(), protoDistrib, ITERS);
 		t.stop();
 	}
-	cout<<t.best()<<"s\n";
+	cout<<t.best()<<"s";
 }

@@ -22,13 +22,15 @@ G2mLvqModel::G2mLvqModel(boost::mt19937 & rng,  bool randInit, std::vector<int> 
 	else
 		P.setIdentity();
 
-	protoCount = accumulate(protodistribution.begin(),protodistribution.end(),0);
+	int protoCount = accumulate(protodistribution.begin(),protodistribution.end(),0);
+	iterationScaleFactor/=protoCount;
 	prototype.resize(protoCount);
+
 	int protoIndex=0;
 	for(int label=0; label <(int) protodistribution.size();label++) {
 		int labelCount =protodistribution[label];
 		for(int i=0;i<labelCount;i++) {
-			prototype[protoIndex] = G2mLvqPrototype(rng,randInit, label, protoIndex, means.col(label) );
+			prototype[protoIndex] = G2mLvqPrototype(rng,randInit, label, means.col(label) );
 			prototype[protoIndex].ComputePP(P);
 
 			protoIndex++;
@@ -47,7 +49,7 @@ int G2mLvqModel::classify(VectorXd const & unknownPoint) const{
 #endif
 	G2mLvqMatch matches(&P_unknownPoint);
 
-	for(int i=0;i<protoCount;i++)
+	for(int i=0;i<prototype.size();++i)
 		matches.AccumulateMatch(prototype[i]);
 
 	assert(matches.match != NULL);
@@ -58,7 +60,7 @@ int G2mLvqModel::classifyProjectedInternal(Vector2d const & P_unknownPoint) cons
 	using namespace std;
 	G2mLvqMatch matches(&P_unknownPoint);
 
-	for(int i=0;i<protoCount;i++)
+	for(int i=0;i<prototype.size(); ++ i)
 		matches.AccumulateMatch(prototype[i]);
 
 	assert(matches.match != NULL);
@@ -86,7 +88,7 @@ void G2mLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel) {
 
 	G2mLvqGoodBadMatch matches(&projectedTrainPoint, trainLabel);
 
-	for(int i=0;i<protoCount;i++)
+	for(int i=0;i<prototype.size();i++)
 		matches.AccumulateMatch(prototype[i]);
 
 	assert(matches.good !=NULL && matches.bad!=NULL);
@@ -179,7 +181,7 @@ void G2mLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel) {
 #endif
 	P *= pNormScale;
 
-	for(int i=0;i<protoCount;i++)
+	for(int i=0;i<prototype.size();++i)
 		prototype[i].ComputePP(P);
 }
 

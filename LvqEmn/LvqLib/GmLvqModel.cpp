@@ -19,6 +19,7 @@ GmLvqModel::GmLvqModel(boost::mt19937 & rng, bool randInit, std::vector<int> pro
 
 	int protoCount = accumulate(protodistribution.begin(), protodistribution.end(), 0);
 	pLabel.resize(protoCount);
+	iterationScaleFactor/=protoCount;
 
 	prototype.resize(protoCount);
 	P.resize(protoCount);

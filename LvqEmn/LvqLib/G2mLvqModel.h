@@ -9,7 +9,6 @@ class G2mLvqPrototype;
 class G2mLvqModel : public AbstractProjectionLvqModel
 {
 	std::vector<G2mLvqPrototype, Eigen::aligned_allocator<G2mLvqPrototype> > prototype;
-	int protoCount;
 	double lr_scale_P, lr_scale_B;
 	const int classCount;
 
@@ -20,7 +19,7 @@ class G2mLvqModel : public AbstractProjectionLvqModel
 	PMatrix dQdP;
 
 	//struct trialStruct { trialStruct() {std::cout<<"trialStruct();\n";} ~trialStruct() {std::cout<<"~trialStruct();\n";}	} hidden;
-	inline int classifyProjectedInternal(Vector2d const & unknownProjectedPoint) const;
+	int classifyProjectedInternal(Vector2d const & unknownProjectedPoint) const;
 	
 public:
 	virtual size_t MemAllocEstimate() const {
@@ -32,8 +31,6 @@ public:
 		sizeof(double) * (prototype.size() * vJ.size()) + //prototypes; part dynamically allocated
 		(16/2) * (4+prototype.size()*2);//estimate for alignment mucking.
 	}
-
-	virtual double iterationScaleFactor() const {return 1.0/protoCount;}
 
 	G2mLvqModel(boost::mt19937 & rng, bool randInit, std::vector<int> protodistribution, MatrixXd const & means);
 	int classify(VectorXd const & unknownPoint) const;

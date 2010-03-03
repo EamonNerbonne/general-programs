@@ -15,9 +15,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="BoostMatrixTest.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="DataSetUtils.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -42,9 +39,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AbstractLvqModel.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="BoostMatrixTest.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="DataSetUtils.h">

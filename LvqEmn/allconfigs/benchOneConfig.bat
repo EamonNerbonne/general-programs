@@ -1,8 +1,10 @@
 @echo off
 
 set buildVariant=build%3
-set benchExe=%buildVariant%\%1\%2\%1%3.exe
+set benchExe=%2\%1%3.exe
 
 echo %buildVariant%
+cd %buildVariant%\%1\
 %benchExe% >>%4
+cd ..\..\
 

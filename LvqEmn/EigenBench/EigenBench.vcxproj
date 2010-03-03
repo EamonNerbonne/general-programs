@@ -160,9 +160,9 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|X64'">
     <ClCompile>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <WarningLevel>Level3</WarningLevel>
+      <WarningLevel>Level4</WarningLevel>
       <MinimalRebuild>true</MinimalRebuild>
-      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <Optimization>Disabled</Optimization>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
@@ -305,6 +305,7 @@
     <ClCompile Include="EigenBench.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="copyVecTest.h" />
     <ClInclude Include="diagUpdateBench.h" />
     <ClInclude Include="matmulTest.h" />
     <ClInclude Include="mulBench.h" />

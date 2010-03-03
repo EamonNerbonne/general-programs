@@ -10,7 +10,7 @@ class G2mLvqPrototype
 	int classLabel; //only set during initialization.
 	//tmps:
 	Vector2d P_point;
-	void ComputePP( PMatrix const & P) {
+	EIGEN_STRONG_INLINE void ComputePP( PMatrix const & P) {
 #if EIGEN3
 		P_point.noalias() = P  * point;
 #else
@@ -25,7 +25,7 @@ public:
 
 	G2mLvqPrototype() : classLabel(-1) {}
 
-	G2mLvqPrototype(boost::mt19937 & rng, bool randInit, int protoLabel, int thisIndex, VectorXd const & initialVal) 
+	G2mLvqPrototype(boost::mt19937 & rng, bool randInit, int protoLabel, VectorXd const & initialVal) 
 		: point(initialVal) 
 		, classLabel(protoLabel)
 	{

@@ -33,8 +33,8 @@ class GsmLvqModel : public AbstractProjectionLvqModel
 	};
 	GoodBadMatch findMatches(Vector2d const & P_trainPoint, int trainLabel);
 
-	inline void RecomputeProjection(int protoIndex);
-	inline int classifyProjectedInternal(Vector2d const & unknownProjectedPoint) const;
+	void RecomputeProjection(int protoIndex);
+	int classifyProjectedInternal(Vector2d const & unknownProjectedPoint) const;
 
 public:
 	virtual size_t MemAllocEstimate() const {
@@ -49,8 +49,6 @@ public:
 		(16/2) * (5+prototype.size()*2);//estimate for alignment mucking.
 	}
 
-
-	virtual double iterationScaleFactor() const {return 1.0/pLabel.size();}
 
 	GsmLvqModel(boost::mt19937 & rng, bool randInit, std::vector<int> protodistribution, MatrixXd const & means);
 	int classify(VectorXd const & unknownPoint) const;
