@@ -18,7 +18,6 @@ class G2mLvqModel : public AbstractProjectionLvqModel
 	VectorXd vJ, vK, dQdwJ, dQdwK; //vectors of dimension DIMS
 	PMatrix dQdP;
 
-	//struct trialStruct { trialStruct() {std::cout<<"trialStruct();\n";} ~trialStruct() {std::cout<<"~trialStruct();\n";}	} hidden;
 	int classifyProjectedInternal(Vector2d const & unknownProjectedPoint) const;
 	
 public:

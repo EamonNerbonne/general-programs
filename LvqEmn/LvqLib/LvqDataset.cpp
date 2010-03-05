@@ -90,9 +90,10 @@ void LvqDataSet::TrainModel(int epochs, boost::mt19937 & randGen, AbstractLvqMod
 }
 
 double LvqDataSet::ErrorRate(AbstractLvqModel const * model)const {
+	VectorXd a;
 	int errs=0;
 	for(int i=0;i<(int)trainPointLabels.size();++i) 
-		if(model->classify(trainPoints.col(i)) != trainPointLabels[i])
+		if(model->classify(a=trainPoints.col(i)) != trainPointLabels[i])
 			errs++;
 	return errs / double(trainPointLabels.size());
 }

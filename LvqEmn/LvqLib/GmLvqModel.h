@@ -6,7 +6,7 @@ using boost::scoped_array;
 using std::vector;
 class GmLvqModel : public AbstractLvqModel
 {
-	vector<MatrixXd> P;
+	vector<MatrixXd > P; //<double,Eigen::Dynamic,Eigen::Dynamic,Eigen::ColMajor,Eigen::Dynamic,Eigen::Dynamic>
 	vector<VectorXd> prototype;
 	VectorXi pLabel;
 	double lr_scale_P;
@@ -18,15 +18,16 @@ class GmLvqModel : public AbstractLvqModel
 	VectorXd vJ, vK, dQdwJ, dQdwK, tmpHelper1, tmpHelper2; //vectors of dimension DIMS
 	MatrixXd dQdPj, dQdPk;
 
-	inline double SqrDistanceTo(int protoIndex, VectorXd const & otherPoint, VectorXd & tmp, VectorXd tmp2) const {
+	EIGEN_STRONG_INLINE double SqrDistanceTo(int protoIndex, VectorXd const & otherPoint, VectorXd & tmp, VectorXd tmp2) const {
 #if EIGEN3
 		tmp.noalias() = prototype[protoIndex] - otherPoint;
-		tmp2.noalias() = P[protoIndex] * tmp;
+		return (P[protoIndex] * tmp).squaredNorm();
 #else
 		tmp = prototype[protoIndex] - otherPoint;
 		tmp2 = P[protoIndex] * tmp;
-#endif
 		return tmp2.squaredNorm();
+#endif
+		
 	}
 	
 	struct GoodBadMatch {

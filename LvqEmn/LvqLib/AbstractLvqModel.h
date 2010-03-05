@@ -18,11 +18,10 @@ public:
 	AbstractLvqModel() : trainIter(0), iterationScaleFactor(0.01){ }
 	virtual ~AbstractLvqModel() {	}
 	
-	double getLearningRate() {	return 0.5*std::pow(trainIter*iterationScaleFactor + 1.0, - 0.65); }
+	inline double getLearningRate() {	return 0.5*std::pow(trainIter*iterationScaleFactor + 1.0, - 0.65); }
 
 	virtual AbstractLvqModel* clone()=0;
 	virtual size_t MemAllocEstimate() const=0;
-	//virtual void normalizeEverything()=0;
 };
 
 class AbstractProjectionLvqModel : public AbstractLvqModel {

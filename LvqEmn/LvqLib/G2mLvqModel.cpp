@@ -39,7 +39,7 @@ G2mLvqModel::G2mLvqModel(boost::mt19937 & rng,  bool randInit, std::vector<int> 
 	assert( accumulate(protodistribution.begin(), protodistribution.end(), 0)== protoIndex);
 }
 
-int G2mLvqModel::classify(VectorXd const & unknownPoint) const{
+inline int G2mLvqModel::classify(VectorXd const & unknownPoint) const{
 	using namespace std;
 #if EIGEN3
 	Vector2d P_unknownPoint;
