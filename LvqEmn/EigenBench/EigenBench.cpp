@@ -6,6 +6,7 @@
 #include "subtractBench.h"
 #include "matmulTest.h"
 #include "copyVecTest.h"
+#include "prodNormTest.h"
 
 #include <fstream>
 //from http://www.codeproject.com/KB/files/filesize.aspx
@@ -49,8 +50,18 @@ int main(int , char*argv []){
 #endif
 	cout<<": ";
 
-	//projectionTest();
-	//subtractTest();
-	cout << copyVecTest() <<"s; "<< file_size(argv[0])/1024 <<"KB\n";
+	cout << prodNormTest() <<"s; "<< file_size(argv[0])/1024 <<"KB\n";
+	//Matrix<double,Dynamic,Dynamic,0,16,16> test= MatrixXd::Random(3,17);
+	//Matrix4d b,c,d;
+	//b.setZero();
+	//c.setIdentity();
+	//d.setConstant(0.5);
+	//test = MatrixXd::Random(3,17);
+	//cerr << "test:"<<test<<"\n\n";
+	//cerr << "b:"<<b<<"\n\n";
+	//cerr << "c:"<<c<<"\n\n";
+	//cerr << "d:"<<d<<"\n\n";
+	//cerr<< "sizeof(test)" <<sizeof(test) <<"\n";
+
 	return 0; 
 }
