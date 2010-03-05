@@ -43,75 +43,7 @@ GsmLvqModel::GsmLvqModel(boost::mt19937 & rng,  bool randInit, std::vector<int> 
 	assert( accumulate(protodistribution.begin(),protodistribution.end(),0)== protoIndex);
 }
 
-inline void GsmLvqModel::RecomputeProjection(int protoIndex) {
-#if EIGEN3
-	P_prototype[protoIndex].noalias() = P * prototype[protoIndex];
-#else
-	P_prototype[protoIndex] = (P * prototype[protoIndex]).lazy();
-#endif
-}
 
-int GsmLvqModel::classify(VectorXd const & unknownPoint) const{
-	Vector2d P_otherPoint;
-#if EIGEN3
-	P_otherPoint.noalias() = P * unknownPoint;
-#else
-	P_otherPoint = (P * unknownPoint).lazy();
-#endif
-
-	using namespace std;
-	double distance(std::numeric_limits<double>::infinity());
-	int match(-1);
-
-	for(int i=0;i<pLabel.size();i++) {
-		double curDist = SqrDistanceTo(i,P_otherPoint);
-		if(curDist < distance) {
-			match=i;
-			distance = curDist;
-		}
-	}
-	assert( match >= 0 );
-	return this->pLabel(match);
-}
-
-int GsmLvqModel::classifyProjectedInternal(Vector2d const & P_otherPoint) const{
-	using namespace std;
-	double distance(std::numeric_limits<double>::infinity());
-	int match(-1);
-
-	for(int i=0;i<pLabel.size();i++) {
-		double curDist = SqrDistanceTo(i, P_otherPoint);
-		if(curDist < distance) {
-			match=i;
-			distance = curDist;
-		}
-	}
-	assert( match >= 0 );
-	return this->pLabel(match);
-}
-
-
-GsmLvqModel::GoodBadMatch GsmLvqModel::findMatches(Vector2d const & P_trainPoint, int trainLabel) {
-	GoodBadMatch match;
-
-	for(int i=0;i<pLabel.size();i++) {
-		double curDist = SqrDistanceTo(i,P_trainPoint);
-		if(pLabel(i) == trainLabel) {
-			if(curDist < match.distGood) {
-				match.matchGood = i;
-				match.distGood = curDist;
-			}
-		} else {
-			if(curDist < match.distBad) {
-				match.matchBad = i;
-				match.distBad = curDist;
-			}
-		}
-	}
-	
-	assert( match.matchBad >= 0 && match.matchGood >=0 );
-	return match;
-}
 
 void GsmLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel) {
 	double learningRate = getLearningRate();
@@ -188,9 +120,76 @@ void GsmLvqModel::ClassBoundaryDiagram(double x0, double x1, double y0, double y
 		for(int yRow=0;  yRow < rows;  yRow++) {
 			double y = y0+(y1-y0) * (yRow+0.5) / rows;
 			Vector2d vec(x,y);
-			classDiagram(yRow,xCol) = classifyProjectedInternal(vec);
+			classDiagram(yRow,xCol) = classifyProjected(vec);
 		}
 	}
 }
 
 AbstractLvqModel* GsmLvqModel::clone() { return new GsmLvqModel(*this);	}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

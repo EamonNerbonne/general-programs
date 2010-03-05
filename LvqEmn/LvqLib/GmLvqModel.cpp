@@ -41,49 +41,7 @@ GmLvqModel::GmLvqModel(boost::mt19937 & rng, bool randInit, std::vector<int> pro
 	assert( accumulate(protodistribution.begin(),protodistribution.end(),0)== protoIndex);
 }
 
-int GmLvqModel::classify(VectorXd const & unknownPoint) const{
-	using namespace std;
-	double distance(std::numeric_limits<double>::infinity());
-	int match(-1);
 
-	VectorXd & tmp = const_cast<VectorXd &>(tmpHelper1);
-	VectorXd & tmp2 = const_cast<VectorXd &>(tmpHelper2);
-
-
-
-	for(int i=0;i<pLabel.size();i++) {
-		double curDist = SqrDistanceTo(i, unknownPoint, tmp, tmp2);
-		if(curDist < distance) {
-			match=i;
-			distance = curDist;
-		}
-	}
-	assert( match >= 0 );
-	return this->pLabel(match);
-}
-
-
-GmLvqModel::GoodBadMatch GmLvqModel::findMatches(VectorXd const & trainPoint, int trainLabel, VectorXd & tmp, VectorXd tmp2) {
-	GoodBadMatch match;
-
-	for(int i=0;i<pLabel.size();i++) {
-		double curDist = SqrDistanceTo(i, trainPoint, tmp, tmp2);
-		if(pLabel(i) == trainLabel) {
-			if(curDist < match.distGood) {
-				match.matchGood = i;
-				match.distGood = curDist;
-			}
-		} else {
-			if(curDist < match.distBad) {
-				match.matchBad = i;
-				match.distBad = curDist;
-			}
-		}
-	}
-
-	assert( match.matchBad >= 0 && match.matchGood >=0 );
-	return match;
-}
 
 void GmLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel) {
 	double learningRate = getLearningRate();

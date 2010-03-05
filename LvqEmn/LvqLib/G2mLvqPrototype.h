@@ -19,13 +19,13 @@ class G2mLvqPrototype
 	}
 
 public:
-	int ClassLabel() const {return classLabel;}
-	Matrix2d const & matB() const {return B;}
-	VectorXd const & position() const{return point;}
+	inline int ClassLabel() const {return classLabel;}
+	inline Matrix2d const & matB() const {return B;}
+	inline VectorXd const & position() const{return point;}
 
-	G2mLvqPrototype() : classLabel(-1) {}
+	inline G2mLvqPrototype() : classLabel(-1) {}
 
-	G2mLvqPrototype(boost::mt19937 & rng, bool randInit, int protoLabel, VectorXd const & initialVal) 
+	inline G2mLvqPrototype(boost::mt19937 & rng, bool randInit, int protoLabel, VectorXd const & initialVal) 
 		: point(initialVal) 
 		, classLabel(protoLabel)
 	{

@@ -12,7 +12,7 @@ struct G2mLvqGoodBadMatch {
 	G2mLvqPrototype const *bad;
 
 
-	G2mLvqGoodBadMatch(Vector2d const * projectedTestPoint, int classLabel)
+	inline G2mLvqGoodBadMatch(Vector2d const * projectedTestPoint, int classLabel)
 		: projectedPoint(projectedTestPoint)
 		, actualClassLabel(classLabel)
 		, distanceGood(std::numeric_limits<double>::infinity()) 
@@ -22,7 +22,7 @@ struct G2mLvqGoodBadMatch {
 		
 	{ }
 
-	void AccumulateMatch(G2mLvqPrototype const & option) {
+	inline void AccumulateMatch(G2mLvqPrototype const & option) {
 		double optionDist = option.SqrDistanceTo(*projectedPoint);
 		assert(optionDist > 0);
 		assert(optionDist < std::numeric_limits<double>::infinity());
@@ -47,13 +47,13 @@ struct G2mLvqMatch {
 	double distance;
 	G2mLvqPrototype const * match;
 
-	G2mLvqMatch(Vector2d const * P_testPoint)
+	inline G2mLvqMatch(Vector2d const * P_testPoint)
 		: P_testPoint(P_testPoint)
 		, distance(std::numeric_limits<double>::infinity()) 
 		, match(NULL)
 	{ }
 
-	void AccumulateMatch(G2mLvqPrototype const & option) {
+	inline void AccumulateMatch(G2mLvqPrototype const & option) {
 		double optionDist = option.SqrDistanceTo(*P_testPoint);
 		assert(optionDist > 0);
 		assert(optionDist < std::numeric_limits<double>::infinity());
@@ -62,7 +62,5 @@ struct G2mLvqMatch {
 			distance = optionDist;
 		}
 	}
-
-
 };
 

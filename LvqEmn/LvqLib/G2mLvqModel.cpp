@@ -39,33 +39,6 @@ G2mLvqModel::G2mLvqModel(boost::mt19937 & rng,  bool randInit, std::vector<int> 
 	assert( accumulate(protodistribution.begin(), protodistribution.end(), 0)== protoIndex);
 }
 
-inline int G2mLvqModel::classify(VectorXd const & unknownPoint) const{
-	using namespace std;
-#if EIGEN3
-	Vector2d P_unknownPoint;
-	P_unknownPoint.noalias() = P * unknownPoint;
-#else
-	Vector2d P_unknownPoint = (P * unknownPoint).lazy();
-#endif
-	G2mLvqMatch matches(&P_unknownPoint);
-
-	for(int i=0;i<prototype.size();++i)
-		matches.AccumulateMatch(prototype[i]);
-
-	assert(matches.match != NULL);
-	return matches.match->ClassLabel();
-}
-
-int G2mLvqModel::classifyProjectedInternal(Vector2d const & P_unknownPoint) const {
-	using namespace std;
-	G2mLvqMatch matches(&P_unknownPoint);
-
-	for(int i=0;i<prototype.size(); ++ i)
-		matches.AccumulateMatch(prototype[i]);
-
-	assert(matches.match != NULL);
-	return matches.match->ClassLabel();
-}
 
 
 void G2mLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel) {
@@ -193,7 +166,7 @@ void G2mLvqModel::ClassBoundaryDiagram(double x0, double x1, double y0, double y
 		for(int yRow=0;  yRow < rows;  yRow++) {
 			double y = y0+(y1-y0) * (yRow+0.5) / rows;
 			Vector2d vec(x,y);
-			classDiagram(yRow, xCol) = classifyProjectedInternal(vec);
+			classDiagram(yRow, xCol) = classifyProjected(vec);
 		}
 	}
 }

@@ -2,6 +2,7 @@
 #include "stdafx.h"
 #include "AbstractLvqModel.h"
 #include "G2mLvqPrototype.h"
+#include "G2mLvqMatch.h"
 
 USING_PART_OF_NAMESPACE_EIGEN
 
@@ -18,7 +19,6 @@ class G2mLvqModel : public AbstractProjectionLvqModel
 	VectorXd vJ, vK, dQdwJ, dQdwK; //vectors of dimension DIMS
 	PMatrix dQdP;
 
-	int classifyProjectedInternal(Vector2d const & unknownProjectedPoint) const;
 	
 public:
 	virtual size_t MemAllocEstimate() const {
@@ -32,10 +32,38 @@ public:
 	}
 
 	G2mLvqModel(boost::mt19937 & rng, bool randInit, std::vector<int> protodistribution, MatrixXd const & means);
-	int classify(VectorXd const & unknownPoint) const;
-	int classifyProjected(Vector2d const & unknownProjectedPoint) const {return classifyProjectedInternal(unknownProjectedPoint);}
+	inline int classify(VectorXd const & unknownPoint) const;
+	inline int classifyProjected(Vector2d const & unknownProjectedPoint) const;
 	void learnFrom(VectorXd const & newPoint, int classLabel);
 	virtual void ClassBoundaryDiagram(double x0, double x1, double y0, double y1, MatrixXi & classDiagram) const;
 	virtual AbstractLvqModel* clone();
 };
 
+
+inline int G2mLvqModel::classifyProjected(Vector2d const & P_unknownPoint) const {
+	using namespace std;
+	G2mLvqMatch matches(&P_unknownPoint);
+
+	for(int i=0;i<prototype.size(); ++ i)
+		matches.AccumulateMatch(prototype[i]);
+
+	assert(matches.match != NULL);
+	return matches.match->ClassLabel();
+}
+
+inline int G2mLvqModel::classify(VectorXd const & unknownPoint) const{
+	using namespace std;
+#if EIGEN3
+	Vector2d P_unknownPoint;
+	P_unknownPoint.noalias() = P * unknownPoint;
+#else
+	Vector2d P_unknownPoint = (P * unknownPoint).lazy();
+#endif
+	G2mLvqMatch matches(&P_unknownPoint);
+
+	for(int i=0;i<prototype.size();++i)
+		matches.AccumulateMatch(prototype[i]);
+
+	assert(matches.match != NULL);
+	return matches.match->ClassLabel();
+}

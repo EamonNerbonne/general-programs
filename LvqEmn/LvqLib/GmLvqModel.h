@@ -33,14 +33,14 @@ class GmLvqModel : public AbstractLvqModel
 	struct GoodBadMatch {
 		double distGood, distBad;
 		int matchGood, matchBad;
-		GoodBadMatch()
+		inline GoodBadMatch()
 			: distGood(std::numeric_limits<double>::infinity())
 			, distBad(std::numeric_limits<double>::infinity())
 			, matchGood(-1)
 			, matchBad(-1)
 		{}
 	};
-	GoodBadMatch findMatches(VectorXd const & trainPoint, int trainLabel, VectorXd & tmp, VectorXd tmp2); 
+	inline GoodBadMatch findMatches(VectorXd const & trainPoint, int trainLabel, VectorXd & tmp, VectorXd tmp2); 
 
 public:
 	virtual size_t MemAllocEstimate() const {
@@ -56,7 +56,50 @@ public:
 	}
 
 	GmLvqModel(boost::mt19937 & rng,  bool randInit, std::vector<int> protodistribution, MatrixXd const & means);
-	int classify(VectorXd const & unknownPoint) const; //tmp must be just as large as unknownPoint, this is a malloc/free avoiding optimization.
+	inline int classify(VectorXd const & unknownPoint) const; //tmp must be just as large as unknownPoint, this is a malloc/free avoiding optimization.
 	void learnFrom(VectorXd const & newPoint, int classLabel);//tmp must be just as large as unknownPoint, this is a malloc/free avoiding optimization.
 	virtual AbstractLvqModel* clone() { return new GmLvqModel(*this); }
 };
+
+inline int GmLvqModel::classify(VectorXd const & unknownPoint) const{
+	using namespace std;
+	double distance(std::numeric_limits<double>::infinity());
+	int match(-1);
+
+	VectorXd & tmp = const_cast<VectorXd &>(tmpHelper1);
+	VectorXd & tmp2 = const_cast<VectorXd &>(tmpHelper2);
+
+
+
+	for(int i=0;i<pLabel.size();i++) {
+		double curDist = SqrDistanceTo(i, unknownPoint, tmp, tmp2);
+		if(curDist < distance) {
+			match=i;
+			distance = curDist;
+		}
+	}
+	assert( match >= 0 );
+	return this->pLabel(match);
+}
+
+inline GmLvqModel::GoodBadMatch GmLvqModel::findMatches(VectorXd const & trainPoint, int trainLabel, VectorXd & tmp, VectorXd tmp2) {
+	GoodBadMatch match;
+
+	for(int i=0;i<pLabel.size();i++) {
+		double curDist = SqrDistanceTo(i, trainPoint, tmp, tmp2);
+		if(pLabel(i) == trainLabel) {
+			if(curDist < match.distGood) {
+				match.matchGood = i;
+				match.distGood = curDist;
+			}
+		} else {
+			if(curDist < match.distBad) {
+				match.matchBad = i;
+				match.distBad = curDist;
+			}
+		}
+	}
+
+	assert( match.matchBad >= 0 && match.matchGood >=0 );
+	return match;
+}
