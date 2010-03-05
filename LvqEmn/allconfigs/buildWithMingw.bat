@@ -2,5 +2,5 @@
 mkdir %~dp0\..\build\mingw
 cd %~dp0\..\build\mingw
 
-cmake -G "MinGW Makefiles" ..\..\allconfigs
-mingw32-make -j
+start /belownormal /wait /B cmake -G "MinGW Makefiles" ..\..\allconfigs
+start /belownormal /wait /B mingw32-make -j

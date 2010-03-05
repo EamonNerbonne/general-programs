@@ -2,6 +2,7 @@
 
 set benchHelper1=%~dp0\benchOneConfig.bat
 
+echo. >> %3
 call %benchHelper1% %1 %2 2 %3
 call %benchHelper1% %1 %2 2v %3
 call %benchHelper1% %1 %2 3 %3
