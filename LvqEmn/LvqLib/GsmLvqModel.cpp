@@ -68,7 +68,7 @@ void GsmLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel) {
 
 	double mu_J = -2.0*matches.distGood / (sqr(matches.distGood) + sqr(matches.distBad));
 	double mu_K = +2.0*matches.distBad / (sqr(matches.distGood) + sqr(matches.distBad));
-	
+
 	int J = matches.matchGood;
 	int K = matches.matchBad;
 
@@ -120,7 +120,7 @@ void GsmLvqModel::ClassBoundaryDiagram(double x0, double x1, double y0, double y
 		for(int yRow=0;  yRow < rows;  yRow++) {
 			double y = y0+(y1-y0) * (yRow+0.5) / rows;
 			Vector2d vec(x,y);
-			classDiagram(yRow,xCol) = classifyProjected(vec);
+			classDiagram(yRow,xCol) = classifyProjectedInternal(vec);
 		}
 	}
 }
@@ -129,7 +129,17 @@ AbstractLvqModel* GsmLvqModel::clone() { return new GsmLvqModel(*this);	}
 
 
 
-
+size_t GsmLvqModel::MemAllocEstimate() const {
+	return 
+		sizeof(GsmLvqModel) + //base structure size
+		sizeof(int)*pLabel.size() + //dyn.alloc labels
+		sizeof(double) * (P.size() + dQdP.size()) + //dyn alloc transform + temp transform
+		sizeof(double) * (vJ.size()*5) + //various vector temps
+		sizeof(VectorXd) *prototype.size() +//dyn alloc prototype base overhead
+		sizeof(double) * (prototype.size() * vJ.size()) + //dyn alloc prototype data
+		sizeof(Vector2d) * P_prototype.size() + //cache of pretransformed prototypes
+		(16/2) * (5+prototype.size()*2);//estimate for alignment mucking.
+}
 
 
 

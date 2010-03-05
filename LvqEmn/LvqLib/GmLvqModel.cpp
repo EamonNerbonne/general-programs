@@ -105,3 +105,16 @@ void GmLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel) {
 	P[K] -= (lr_P * dQdPk ).lazy();
 #endif
 }
+
+
+size_t GmLvqModel::MemAllocEstimate() const {
+	return 
+		sizeof(GmLvqModel) + //base structure size
+		sizeof(int)*pLabel.size() + //dyn.alloc labels
+		sizeof(double) * (dQdPj.size() + dQdPk.size()) + //dyn alloc temp transforms
+		sizeof(double) * (dQdPj.size() * P.size()) + //dyn alloc prototype transforms
+		sizeof(double) * (vJ.size()*6) + //various vector temps
+		sizeof(VectorXd) *prototype.size() +//dyn alloc prototype base overhead
+		sizeof(double) * (prototype.size() * vJ.size()) + //dyn alloc prototype data
+		(16/2) * (6+prototype.size()*2);//estimate for alignment mucking.
+}
