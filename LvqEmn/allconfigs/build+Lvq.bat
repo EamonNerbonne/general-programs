@@ -1,8 +1,8 @@
 @echo off
-start /low /wait cmd /C %~dp0\buildWithMingw.bat
-start /low /wait cmd /C %~dp0\buildWithMsc.bat
+start "Mingw Build" /low /B /wait cmd /C %~dp0\buildWithMingw.bat
+start "Msc Build" /low /B /wait cmd /C %~dp0\buildWithMsc.bat
 
-start  cmd /C %~dp0\lvqBenchMingw.bat
-start cmd /C %~dp0\lvqBenchMsc.bat
+start "Mingw Lvq Bench" /abovenormal /min cmd /C %~dp0\lvqBenchMingw.bat
+start "Msc Lvq Bench" /abovenormal /min cmd /C %~dp0\lvqBenchMsc.bat
 
 

@@ -4,4 +4,4 @@ cd %~dp0\..\build\mingw
 
 REM start /belownormal /wait /B
 cmake -G "MinGW Makefiles" ..\..\allconfigs
-mingw32-make -j
+start "MsBuild" /low /B /wait mingw32-make -j

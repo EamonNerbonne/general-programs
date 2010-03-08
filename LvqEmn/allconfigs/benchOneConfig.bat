@@ -5,6 +5,6 @@ set benchExe=%2\%1%3.exe
 
 echo %buildVariant%
 cd %buildVariant%\%1\
-%benchExe% >>%4
+start /high /B /wait %benchExe% >>%4
 cd ..\..\
 
