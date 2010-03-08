@@ -19,6 +19,9 @@ namespace LastFMspider
 		const string DatabaseDef = @"
 PRAGMA journal_mode = PERSIST;
 
+DROP INDEX IF EXISTS [IDX_SimilarTrackList_LookupTimestamp]; 
+DROP INDEX IF EXISTS [IDX_SimilarTrackList_TrackID];
+
 
 
 CREATE TABLE IF NOT EXISTS [Artist] (
@@ -47,11 +50,8 @@ CREATE TABLE IF NOT EXISTS [SimilarArtistList] (
 [StatusCode] INTEGER,
 CONSTRAINT fk_artist FOREIGN KEY(ArtistID) REFERENCES Artist(ArtistID)
 );
-CREATE INDEX IF NOT EXISTS [IDX_SimilarArtistList_ArtistID] ON [SimilarArtistList](
-  [ArtistID]  ASC
-);
-CREATE INDEX IF NOT EXISTS [IDX_SimilarArtistList_LookupTimestamp] ON [SimilarArtistList](
-  [LookupTimestamp]  ASC
+CREATE INDEX IF NOT EXISTS [IDX_SimilarArtistList_ArtistID_LookupTimestamp] ON [SimilarArtistList](
+  [ArtistID]  ASC, [LookupTimestamp]  ASC
 );
 
 
@@ -68,12 +68,11 @@ CREATE UNIQUE INDEX  IF NOT EXISTS [Unique_SimilarArtist_ArtistA_ArtistB] ON [Si
   [ListID]  ASC,
   [ArtistB]  ASC
 );
-CREATE INDEX  IF NOT EXISTS [IDX_SimilarArtist_ArtistB] ON [SimilarArtist](
-  [ArtistB]  ASC
-);
-CREATE INDEX  IF NOT EXISTS [IDX_SimilarArtist_Rating] ON [SimilarArtist](
-  [Rating]  DESC
-);
+
+DROP INDEX IF EXISTS [IDX_SimilarArtist_Rating];
+
+
+
 
 
 
@@ -108,10 +107,10 @@ CREATE TABLE IF NOT EXISTS [SimilarTrackList] (
 [StatusCode] INTEGER,
 	CONSTRAINT fk_of_track FOREIGN KEY(TrackID) REFERENCES Track(TrackID)
 );
-CREATE INDEX  IF NOT EXISTS [IDX_SimilarTrackList_TrackID] ON [SimilarTrackList](
-  [TrackID]  ASC
-);
-CREATE INDEX IF NOT EXISTS [IDX_SimilarTrackList_LookupTimestamp] ON [SimilarTrackList](
+DROP INDEX IF EXISTS [IDX_SimilarTrackList_LookupTimestamp]; 
+DROP INDEX IF EXISTS [IDX_SimilarTrackList_TrackID];
+CREATE INDEX  IF NOT EXISTS [IDX_SimilarTrackList_TrackID_LookupTimestamp] ON [SimilarTrackList](
+  [TrackID]  ASC, 
   [LookupTimestamp]  ASC
 );
 
@@ -129,12 +128,10 @@ CREATE UNIQUE INDEX  IF NOT EXISTS [Unique_SimilarTrack_TrackA_TrackB] ON [Simil
   [ListID]  ASC,
   [TrackB]  ASC
 );
-CREATE INDEX  IF NOT EXISTS [IDX_SimilarTrack_TrackB] ON [SimilarTrack](
-  [TrackB]  ASC
-);
-CREATE INDEX  IF NOT EXISTS [IDX_SimilarTrack_Rating] ON [SimilarTrack](
-  [Rating]  DESC
-);
+--CREATE INDEX  IF NOT EXISTS [IDX_SimilarTrack_TrackB] ON [SimilarTrack]([TrackB]  ASC);
+DROP INDEX IF EXISTS [IDX_SimilarTrack_TrackB];
+--CREATE INDEX  IF NOT EXISTS [IDX_SimilarTrack_Rating] ON [SimilarTrack]([Rating]  DESC);
+DROP INDEX IF EXISTS [IDX_SimilarTrack_Rating];
 
 
 
@@ -145,10 +142,10 @@ CREATE TABLE IF NOT EXISTS [TopTracksList] (
 [StatusCode] INTEGER,
 CONSTRAINT fk_owner_artist FOREIGN KEY(ArtistID) REFERENCES Artist(ArtistID)
 );
-CREATE INDEX IF NOT EXISTS [IDX_TopTracksList_ArtistID] ON [TopTracksList](
-  [ArtistID]  ASC
-);
-CREATE INDEX IF NOT EXISTS [IDX_TopTracksList_LookupTimestamp] ON [TopTracksList](
+DROP INDEX IF EXISTS [IDX_TopTracksList_LookupTimestamp];
+DROP INDEX IF EXISTS [IDX_TopTracksList_ArtistID];
+CREATE INDEX IF NOT EXISTS [IDX_TopTracksList_ArtistID_LookupTimestamp] ON [TopTracksList](
+  [ArtistID]  ASC,
   [LookupTimestamp]  ASC
 );
 
@@ -166,12 +163,10 @@ CREATE UNIQUE INDEX  IF NOT EXISTS [Unique_TopTracks_ListID_TrackID] ON [TopTrac
   [ListID]  ASC,
   [TrackID]  ASC
 );
-CREATE INDEX  IF NOT EXISTS [IDX_TopTracks_TrackID] ON [TopTracks](
-  [TrackID]  DESC
-);
-CREATE INDEX  IF NOT EXISTS [IDX_TopTracks_Reach] ON [TopTracks](
-  [Reach]  DESC
-);
+--CREATE INDEX  IF NOT EXISTS [IDX_TopTracks_TrackID] ON [TopTracks](  [TrackID]  DESC);
+DROP INDEX IF EXISTS [IDX_TopTracks_TrackID];
+CREATE INDEX  IF NOT EXISTS [IDX_TopTracks_Reach] ON [TopTracks](  [Reach]  DESC);
+
 ";
 //CREATE TRIGGER IF NOT EXISTS Artist_Ignore_Duplicates BEFORE INSERT ON Artist
 //FOR EACH ROW BEGIN 
@@ -266,11 +261,14 @@ CREATE INDEX  IF NOT EXISTS [IDX_TrackInfo_Playcount] ON [TrackInfo](
 		}
 
 		public static void CreateTables(DbConnection lfmDbConnection) {
-			using (DbTransaction trans = lfmDbConnection.BeginTransaction())
+			//using (DbTransaction trans = lfmDbConnection.BeginTransaction())
 			using (DbCommand createComm = lfmDbConnection.CreateCommand()) {
 				createComm.CommandText = DatabaseDef;
+				createComm.CommandTimeout = 0;
+				//createComm.Prepare()
+				
 				createComm.ExecuteNonQuery();
-				trans.Commit();
+	//			trans.Commit();
 			}
 		}
 		const string filename = "lastFMcache.s3db";

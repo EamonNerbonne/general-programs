@@ -36,14 +36,14 @@ namespace LastFMspider.LastFMSQLiteBackend
 				return @"
 SELECT B.FullTitle, T.Reach
 FROM Artist A 
-join TopTracksList L on A.ArtistID = L.ArtistID
-join TopTracks T on L.ListID = T.ListID
-join Track B on T.TrackID = B.TrackID
+join TopTracksList L on L.ArtistID = A.ArtistID
+join TopTracks T on T.ListID = L.ListID
+join Track B on B.TrackID = T.TrackID
 WHERE A.LowercaseArtist = @lowerArtist
 AND L.LookupTimestamp = @ticks
 ";
 			}
-		}
+		}//TODO: make faster?
 		DbParameter lowerArtist, ticks;
 
 		public ArtistTopTracksList Execute(string artist) {

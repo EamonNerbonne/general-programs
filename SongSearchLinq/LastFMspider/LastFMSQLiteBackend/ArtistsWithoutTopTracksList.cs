@@ -28,7 +28,7 @@ LIMIT @limitRowCount
                         tracks.Add(new CachedArtist {
                             ArtistID = (int)(long)reader[0],
                             ArtistName = (string)reader[1],
-                            LookupTimestamp = reader[2].CastDbObjectAsDateTime() //should be NULL
+                            LookupTimestamp = null
                         });
 
                 }

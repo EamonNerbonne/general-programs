@@ -46,13 +46,13 @@ namespace LastFMspider.LastFMSQLiteBackend
                 return @"
 SELECT B.FullArtist, S.Rating
 FROM Artist A 
-join SimilarArtistList L on A.ArtistID = L.ArtistID
-join SimilarArtist S on L.ListID = S.ListID
-join Artist B on S.ArtistB = B.ArtistID
+join SimilarArtistList L on L.ArtistID = A.ArtistID
+join SimilarArtist S on S.ListID = L.ListID
+join Artist B on B.ArtistID = S.ArtistB
 WHERE A.LowercaseArtist = @lowerArtist
 AND L.LookupTimestamp = @ticks
 ";
-            }
+            } //TODO: make this faster?
         }
         DbParameter lowerArtist,ticks;
 
