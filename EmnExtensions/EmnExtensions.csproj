@@ -122,10 +122,6 @@
     <Compile Include="MathHelpers\RndHelper.cs" />
     <Compile Include="MathHelpers\Statistics.cs" />
     <Compile Include="MathHelpers\VectorHelpers.cs" />
-    <Compile Include="PersistantCache\DelegateCacheMapper.cs" />
-    <Compile Include="PersistantCache\IPersistantCacheMapper.cs" />
-    <Compile Include="PersistantCache\PersistantCache.cs" />
-    <Compile Include="PersistantCache\PersistantCacheException.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Text\AbstractTextWriter.cs" />
     <Compile Include="Text\BlockingReader.cs" />
@@ -133,7 +129,6 @@
     <Compile Include="Text\DelegateTextWriter.cs" />
     <Compile Include="Text\ParseString.cs" />
     <Compile Include="Text\StringFeatures.cs" />
-    <Compile Include="Threading\BackgroundProcessor.cs" />
     <Compile Include="Threading\Par.cs" />
     <Compile Include="Web\UriRequest.cs" />
     <Compile Include="XmlSerializableBase.cs" />
