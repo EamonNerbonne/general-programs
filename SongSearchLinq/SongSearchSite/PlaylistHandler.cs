@@ -211,11 +211,9 @@ namespace SongSearchSite
 			SongDatabaseConfigFile dcf = new SongDatabaseConfigFile(true);
 			List<ISongData> tmpSongs = new List<ISongData>();
 			dcf.Load(delegate(ISongData aSong, double ratio) {
-				if (aSong.UppercaseExtension() == ".MP3")
 					tmpSongs.Add(aSong);
 			});
-			db = new SongDB(tmpSongs // .Where((s,si)=>si==0||((int)Math.Sqrt(si-1) != (int)Math.Sqrt(si)) ) 
-				);
+			db = new SongDB(tmpSongs);
 			dcf = null;
 			tmpSongs = null;
 			foreach (ISongData song in db.songs.Where(s => s.IsLocal)) {
