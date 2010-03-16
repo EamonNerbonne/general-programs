@@ -28,7 +28,7 @@ AND L.LookupTimestamp = @lookupTimestamp
             }
         }
 
-        public void Execute(SongSimilarityList simList) {
+        public TrackSimilarityListInfo Execute(SongSimilarityList simList) {
             lock (SyncRoot) {
                 using (DbTransaction trans = Connection.BeginTransaction()) {
                     long listID;
@@ -53,6 +53,7 @@ AND L.LookupTimestamp = @lookupTimestamp
                         lfmCache.UpdateTrackCasing.Execute(similarTrack.similarsong);
                     }
                     trans.Commit();
+					return new TrackSimilarityListInfo(simList.songref, listID, simList.LookupTimestamp, simList.StatusCode);
                 }
             }
         }

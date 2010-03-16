@@ -11,7 +11,7 @@ namespace LastFMspider.LfmApi
 
     public class ApiClient
     {
-        static readonly TimeSpan minReqDelta = new TimeSpan(0, 0, 0, 1);//no more than one request per second.
+        static readonly TimeSpan minReqDelta = new TimeSpan(0, 0, 0, 0,750);//no more than two requests per second.
         static DateTime nextRequestWhenInternal = DateTime.Now;
         static object syncRoot = new object();
 
@@ -24,7 +24,9 @@ namespace LastFMspider.LfmApi
                     if (nextRequestWhen > now) {
                         sleepSpan = nextRequestWhen - now;
                     } else {
-                        nextRequestWhenInternal = now + minReqDelta;//TODO: consider replacing now with the old time.
+						nextRequestWhenInternal = nextRequestWhen + minReqDelta;
+						if (nextRequestWhenInternal < now)
+							nextRequestWhenInternal = now;
                         break;
                     }
                 }
@@ -72,7 +74,7 @@ namespace LastFMspider.LfmApi
             }
         }
 
-        //todo:
+        //not yet implemented
         //http://www.last.fm/api/show?service=356 (getinfo)
         //http://www.last.fm/api/show?service=319 (getsimilar)
     }

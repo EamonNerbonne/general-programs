@@ -30,7 +30,6 @@ VALUES(@listID , @trackB , @rating )
 		DbParameter listID, trackB, rating;
 
 
-		//TODO fix call
 		public void Execute(long listID, SongRef songRefB, double rating) {
 			lock (SyncRoot) {
 				using (DbTransaction trans = Connection.BeginTransaction()) {

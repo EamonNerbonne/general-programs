@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System;
 using System.Linq;
 using System.Runtime.Serialization;
+using System.Text;
 namespace LastFMspider
 {
     public static class SongRefUtils
@@ -13,12 +14,17 @@ namespace LastFMspider
         /// Last.FM only lowercases normal latin characters.
         /// </summary>
         static public string ToLatinLowercase(this string orig) {
-            var chars = orig.ToCharArray();
-            for (int i = 0; i < chars.Length; i++) {
-                if (chars[i] >= 'A' && chars[i] <= 'Z')
-                    chars[i] = (char)((int)chars[i] + charDiff);
+			var retval = new StringBuilder(orig.Length);
+			retval.Length = orig.Length;
+
+			for (int i = 0; i < orig.Length; i++) {
+				char c = orig[i];
+				retval[i] = 
+					(c >= 'A' && c <= 'Z')
+					?(char)((int)c + charDiff)
+					:c;
             }
-            return new string(chars);
+			return retval.ToString();
         }
 
     }
@@ -46,7 +52,7 @@ namespace LastFMspider
 
         public static SongRef Create(SongData song) {
             if (song.performer == null || song.title == null)
-                return null;//TODO - add error handling or simply remove from db?
+                return null;
             return Create(song.performer, song.title);
         }
         public override bool Equals(object obj) {

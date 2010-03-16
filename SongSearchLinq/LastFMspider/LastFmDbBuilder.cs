@@ -19,8 +19,6 @@ namespace LastFMspider
 		const string DatabaseDef = @"
 PRAGMA journal_mode = PERSIST;
 
-DROP INDEX IF EXISTS [IDX_SimilarTrackList_LookupTimestamp]; 
-DROP INDEX IF EXISTS [IDX_SimilarTrackList_TrackID];
 
 
 
@@ -35,9 +33,7 @@ CREATE TABLE IF NOT EXISTS [Artist] (
   CONSTRAINT fk_cur_sal_simart FOREIGN KEY(CurrentSimilarArtistList) REFERENCES SimilarArtistList(ListID),
   CONSTRAINT fk_cur_ttl_toptracks FOREIGN KEY(CurrentTopTracksList) REFERENCES TopTracksList(ListID)
 );
-CREATE UNIQUE INDEX IF NOT EXISTS [Unique_Artist_LowercaseArtist] ON [Artist](
-  [LowercaseArtist]  ASC
-);
+CREATE UNIQUE INDEX IF NOT EXISTS [Unique_Artist_LowercaseArtist] ON [Artist]([LowercaseArtist]  ASC);
 
 
 
@@ -50,9 +46,7 @@ CREATE TABLE IF NOT EXISTS [SimilarArtistList] (
 [StatusCode] INTEGER,
 CONSTRAINT fk_artist FOREIGN KEY(ArtistID) REFERENCES Artist(ArtistID)
 );
-CREATE INDEX IF NOT EXISTS [IDX_SimilarArtistList_ArtistID_LookupTimestamp] ON [SimilarArtistList](
-  [ArtistID]  ASC, [LookupTimestamp]  ASC
-);
+CREATE INDEX IF NOT EXISTS [IDX_SimilarArtistList_ArtistID_LookupTimestamp] ON [SimilarArtistList]([ArtistID]  ASC, [LookupTimestamp]  ASC);
 
 
 
@@ -64,12 +58,9 @@ CREATE TABLE IF NOT EXISTS [SimilarArtist] (
 CONSTRAINT fk_other_artist FOREIGN KEY(ArtistB) REFERENCES Artist(ArtistID),
   CONSTRAINT fk_sal_owner FOREIGN KEY(ListID) REFERENCES SimilarArtistList(ListID)
 );
-CREATE UNIQUE INDEX  IF NOT EXISTS [Unique_SimilarArtist_ArtistA_ArtistB] ON [SimilarArtist](
-  [ListID]  ASC,
-  [ArtistB]  ASC
-);
-
+DROP INDEX IF EXISTS [Unique_SimilarArtist_ArtistA_ArtistB];
 DROP INDEX IF EXISTS [IDX_SimilarArtist_Rating];
+CREATE INDEX  IF NOT EXISTS [IDX_SimilarArtist_ListID] ON [SimilarArtist]([ListID]  ASC);
 
 
 
@@ -85,10 +76,7 @@ CREATE TABLE IF NOT EXISTS  [Track] (
 	CONSTRAINT fk_of_artist FOREIGN KEY(ArtistID) REFERENCES Artist(ArtistID),
 	CONSTRAINT fk_cur_stl FOREIGN KEY(CurrentSimilarTrackList) REFERENCES SimilarTrackList(ListID)
 );
-CREATE UNIQUE INDEX IF NOT EXISTS [Unique_Track_ArtistID_LowercaseTitle] ON [Track](
-  [ArtistID]  ASC,
-  [LowercaseTitle]  ASC
-);
+CREATE UNIQUE INDEX IF NOT EXISTS [Unique_Track_ArtistID_LowercaseTitle] ON [Track]([ArtistID]  ASC,  [LowercaseTitle]  ASC);
 --CREATE TRIGGER IF NOT EXISTS Track_Ignore_Duplicates BEFORE INSERT ON Track
 --FOR EACH ROW BEGIN 
    --INSERT OR IGNORE 
@@ -124,14 +112,10 @@ CREATE TABLE IF NOT EXISTS [SimilarTrack] (
 CONSTRAINT fk_owning_stl FOREIGN KEY(ListID) REFERENCES SimilarTrackList(ListID),
 CONSTRAINT fk_other_track FOREIGN KEY(TrackB) REFERENCES Track(TrackID)
 );
-CREATE UNIQUE INDEX  IF NOT EXISTS [Unique_SimilarTrack_TrackA_TrackB] ON [SimilarTrack](
-  [ListID]  ASC,
-  [TrackB]  ASC
-);
---CREATE INDEX  IF NOT EXISTS [IDX_SimilarTrack_TrackB] ON [SimilarTrack]([TrackB]  ASC);
+DROP INDEX IF EXISTS [Unique_SimilarTrack_TrackA_TrackB];
 DROP INDEX IF EXISTS [IDX_SimilarTrack_TrackB];
---CREATE INDEX  IF NOT EXISTS [IDX_SimilarTrack_Rating] ON [SimilarTrack]([Rating]  DESC);
 DROP INDEX IF EXISTS [IDX_SimilarTrack_Rating];
+CREATE INDEX  IF NOT EXISTS [IDX_SimilarTrack_ListID] ON [SimilarTrack]([ListID]  ASC);
 
 
 
@@ -144,10 +128,7 @@ CONSTRAINT fk_owner_artist FOREIGN KEY(ArtistID) REFERENCES Artist(ArtistID)
 );
 DROP INDEX IF EXISTS [IDX_TopTracksList_LookupTimestamp];
 DROP INDEX IF EXISTS [IDX_TopTracksList_ArtistID];
-CREATE INDEX IF NOT EXISTS [IDX_TopTracksList_ArtistID_LookupTimestamp] ON [TopTracksList](
-  [ArtistID]  ASC,
-  [LookupTimestamp]  ASC
-);
+CREATE INDEX IF NOT EXISTS [IDX_TopTracksList_ArtistID_LookupTimestamp] ON [TopTracksList](  [ArtistID]  ASC,  [LookupTimestamp]  ASC);
 
 
 
@@ -159,12 +140,9 @@ CREATE TABLE IF NOT EXISTS [TopTracks] (
 CONSTRAINT fk_of_ttl FOREIGN KEY(ListID) REFERENCES TopTracksList(ListID),
 CONSTRAINT fk_has_track FOREIGN KEY(TrackID) REFERENCES Track(TrackID)
 );
-CREATE UNIQUE INDEX  IF NOT EXISTS [Unique_TopTracks_ListID_TrackID] ON [TopTracks](
-  [ListID]  ASC,
-  [TrackID]  ASC
-);
---CREATE INDEX  IF NOT EXISTS [IDX_TopTracks_TrackID] ON [TopTracks](  [TrackID]  DESC);
+DROP INDEX IF EXISTS [Unique_TopTracks_ListID_TrackID];
 DROP INDEX IF EXISTS [IDX_TopTracks_TrackID];
+CREATE INDEX  IF NOT EXISTS [IDX_TopTracks_ListID] ON [TopTracks](  [ListID]  ASC);
 CREATE INDEX  IF NOT EXISTS [IDX_TopTracks_Reach] ON [TopTracks](  [Reach]  DESC);
 
 ";
@@ -261,14 +239,14 @@ CREATE INDEX  IF NOT EXISTS [IDX_TrackInfo_Playcount] ON [TrackInfo](
 		}
 
 		public static void CreateTables(DbConnection lfmDbConnection) {
-			//using (DbTransaction trans = lfmDbConnection.BeginTransaction())
+			using (DbTransaction trans = lfmDbConnection.BeginTransaction())
 			using (DbCommand createComm = lfmDbConnection.CreateCommand()) {
 				createComm.CommandText = DatabaseDef;
 				createComm.CommandTimeout = 0;
 				//createComm.Prepare()
 				
 				createComm.ExecuteNonQuery();
-	//			trans.Commit();
+				trans.Commit();
 			}
 		}
 		const string filename = "lastFMcache.s3db";

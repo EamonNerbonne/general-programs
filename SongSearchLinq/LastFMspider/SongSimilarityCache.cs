@@ -34,16 +34,19 @@ namespace LastFMspider
 
 		private void Init(SongDatabaseConfigFile configFile) {
 			Console.WriteLine("Initializing sqlite db");
-			backingDB = new LastFMSQLiteCache(configFile);//TODO decide what kind of DB we really want...
+			backingDB = new LastFMSQLiteCache(configFile);
 		}
 
 		public SongSimilarityList Lookup(SongRef songref) { return Lookup(songref, TimeSpan.FromDays(365.0)); }
 
 		public SongSimilarityList Lookup(SongRef songref, TimeSpan maxAge) {
-			TrackSimilarityListInfo cachedVersion = backingDB.LookupSimilarityListAge.Execute(songref);
+			return Lookup(backingDB.LookupSimilarityListAge.Execute(songref), maxAge);
+		}
+
+		public SongSimilarityList Lookup(TrackSimilarityListInfo cachedVersion, TimeSpan maxAge) {
 			if (!cachedVersion.ListID.HasValue || !cachedVersion.LookupTimestamp.HasValue || cachedVersion.LookupTimestamp.Value < DateTime.UtcNow - maxAge) { //get online version
-				Console.Write("?"+songref);
-				var retval = OldApiClient.Track.GetSimilarTracks(songref);
+				Console.Write("?" + cachedVersion.SongRef);
+				var retval = OldApiClient.Track.GetSimilarTracks(cachedVersion.SongRef);
 				Console.WriteLine(" [" + retval.similartracks.Length + "]");
 				try {
 					backingDB.InsertSimilarityList.Execute(retval);
@@ -53,8 +56,27 @@ namespace LastFMspider
 				}
 				return retval;
 			} else {
-				return backingDB.LookupSimilarityList.Execute( cachedVersion);
+				return backingDB.LookupSimilarityList.Execute(cachedVersion);
 			}
 		}
+
+		public Tuple<TrackSimilarityListInfo,SongSimilarityList> EnsureCurrent(SongRef songref, TimeSpan maxAge) {
+			TrackSimilarityListInfo cachedVersion = backingDB.LookupSimilarityListAge.Execute(songref);
+			if (!cachedVersion.ListID.HasValue || !cachedVersion.LookupTimestamp.HasValue || cachedVersion.LookupTimestamp.Value < DateTime.UtcNow - maxAge) { //get online version
+				Console.Write("?" + songref);
+				var retval = OldApiClient.Track.GetSimilarTracks(songref);
+				Console.WriteLine(" [" + retval.similartracks.Length + "]");
+				try {
+					return Tuple.Create( backingDB.InsertSimilarityList.Execute(retval),retval);
+				} catch {//retry; might be a locking issue.  only retry once.
+					System.Threading.Thread.Sleep(100);
+					return Tuple.Create(backingDB.InsertSimilarityList.Execute(retval), retval);
+				}
+			} else
+				return Tuple.Create(cachedVersion,default(SongSimilarityList));
+		}
+
+
+
 	}
 }

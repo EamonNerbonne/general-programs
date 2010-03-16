@@ -43,7 +43,7 @@ WHERE A.LowercaseArtist = @lowerArtist
 AND L.LookupTimestamp = @ticks
 ";
 			}
-		}//TODO: make faster?
+		} //TODO: make this faster: if I write the where clause +implicit where clause of the joins in another order, is that more efficient?  Also: maybe encode sim-lists as one column
 		DbParameter lowerArtist, ticks;
 
 		public ArtistTopTracksList Execute(string artist) {
