@@ -8,8 +8,9 @@
 </head>
 <body>
     <form id="form1" runat="server">
-    <div>
-    <i>TODO</i>
+    <div id="audio-container">
+    
+    <i>Click on a song to play it here... (HTML 5 required)</i>
     </div>
     </form>
 </body>

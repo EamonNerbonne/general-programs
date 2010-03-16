@@ -68,10 +68,25 @@
 			m3uEl.href = extm3ulink + encodeURIComponent(lastquery);
 			var m3u8El = document.getElementById("m3u8");
 			m3u8El.href = extm3u8link + encodeURIComponent(lastquery);
-		}
+}
+function BatPop(songlabel, songfilename, songurl, imgObj) {
+    var idxDoc = window.idxStatus.document;
+    var audioContainer = idxDoc.getElementById("audio-container");
+
+    var audioEl = idxDoc.createElement("audio");
+    audioEl.setAttribute("autoplay", "autoplay");
+    audioEl.setAttribute("controls", "controls");
+    audioEl.setAttribute("src", songurl);
+    while (audioContainer.childNodes.length > 0)
+        audioContainer.removeChild(audioContainer.childNodes[0]);
+    audioContainer.appendChild(idxDoc.createTextNode(songlabel));
+    audioContainer.appendChild(idxDoc.createElement("br"));
+    audioContainer.appendChild(idxDoc.createTextNode(songfilename));
+    audioContainer.appendChild(audioEl);
+}
 	</script>
 
-	<script type="text/javascript" src="batmomultiplayer.js"></script>
+	<!--<script type="text/javascript" src="batmomultiplayer.js"></script>-->
 
 </head>
 <body>
