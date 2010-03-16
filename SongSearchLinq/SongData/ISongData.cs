@@ -6,8 +6,6 @@ namespace SongDataLib
 	public static class ISongDataMethods
 	{
 		public static string UppercaseExtension(this ISongData song) { return System.IO.Path.GetExtension((song.IsLocal ? song.SongPath : new Uri(song.SongPath).AbsolutePath)).ToUpperInvariant(); }
-		public static bool IsEamonTranscoded(this ISongData song) { return song.SongPath.Contains("._@X.mp3"); } 
-
 	}
 
 	public interface ISongData
