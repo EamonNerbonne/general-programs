@@ -38,7 +38,7 @@ namespace EmnExtensions.PersistantCache
 		//int lastSave = 0;
 		//public int storeEach = 10000;
         
-        Dictionary<TKey, Timestamped<TItem>> memCache = new Dictionary<TKey, Timestamped<TItem>>(); //used to be serialized at:Path.Combine(cacheDir.FullName,"%%%"+ext+".bin")
+        Dictionary<TKey, Timestamped<TItem>> memCache = new Dictionary<TKey, Timestamped<TItem>>();
 		private void AssertKeyStringValid(string key) {
 			if(key.Length > maxKeyLength) throw new PersistantCacheException("Key too long, may be at most 259 chars including directory, directory separator, and extension.\n In this case that means at most " + maxKeyLength + " chars long.");
 			if(key.IndexOfAny(invalidKeyChars)>=0) {
@@ -49,7 +49,7 @@ namespace EmnExtensions.PersistantCache
 
 		private FileInfo getFileStoreLocation(string key) {
 			AssertKeyStringValid(key);
-			return new FileInfo(Path.Combine(filesDir.FullName, key + ext));//TODO: provide fallback?
+			return new FileInfo(Path.Combine(filesDir.FullName, key + ext));
 		}
 		public IEnumerable<string> GetDiskCacheContents() {return filesDir.GetFiles("*" + ext).Select(fi=>fi.Name.Substring(0,fi.Name.Length - ext.Length)) ; }
 		public Dictionary<TKey,Timestamped<TItem>> MemoryCache { get { return memCache; } }
