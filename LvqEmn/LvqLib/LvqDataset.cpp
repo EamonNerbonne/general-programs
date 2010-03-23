@@ -57,34 +57,12 @@ void LvqDataSet::TrainModel(int epochs, boost::mt19937 & randGen, AbstractLvqMod
 		makeRandomOrder(randGen, ordering.get(), (int)trainPointLabels.size());
 		pointA=trainPoints.col(ordering[0]);
 		for(int tI=0; tI<(int)trainPointLabels.size(); ++tI) {
+		//	_mm_prefetch((char*)model,_MM_HINT_T0);
 			int pointIndex = ordering[tI];
 			int pointClass = trainPointLabels[pointIndex];
-
-#if 1
 			pointA = trainPoints.col(pointIndex);
 			prefetch( &trainPoints.coeff (0, ordering[tI+1]) ,cacheLines);
-			//_mm_prefetch( (const char*)&trainPoints(0, ordering[tI+1]), _MM_HINT_T1);
 			model->learnFrom(pointA, pointClass);
-			
-#else
-
-			if(tI+1<(int)trainPointLabels.size()){
-				if(tI%2==0) {
-					pointB = trainPoints.col(ordering[tI+1]);
-					model->learnFrom(pointA, pointClass);
-				} else {
-					pointA = trainPoints.col(ordering[tI+1]);
-					model->learnFrom(pointB, pointClass);
-				}
-			} else {
-				if(tI%2==0) {
-					model->learnFrom(pointA, pointClass);
-				} else {
-					model->learnFrom(pointB, pointClass);
-				}
-			}
-#endif
-
 		}
 	}
 }
