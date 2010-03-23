@@ -1,20 +1,35 @@
  
-LvqBench2 on MSC: 2.13401s; 124KB
-LvqBench2v on MSC: 1.37167s; 129KB
-LvqBench3 on MSC: 1.80105s; 131KB
-LvqBench3v on MSC: 1.12673s; 139KB
+LvqBench2 on MSC: 1.86s; 123KB
+LvqBench2v on MSC: 1.13s; 128KB
+LvqBench3 on MSC: 1.06s; 137KB
+LvqBench3v on MSC: 0.806s; 150KB
  
-LvqBench2 on MSC: 2.14313s; 124KB
-LvqBench2v on MSC: 1.33104s; 129KB
-LvqBench3 on MSC: 1.33521s; 136KB
-LvqBench3v on MSC: 1.03305s; 146KB
+LvqBench2 on MSC: 1.45s; 123KB
+LvqBench2v on MSC: 0.897s; 128KB
+LvqBench3 on MSC: 0.897s; 137KB
+LvqBench3v on MSC: 0.686s; 150KB
  
-LvqBench2 on MSC: 2.12992s; 124KB
-LvqBench2v on MSC: 1.33944s; 129KB
-LvqBench3 on MSC: 1.47042s; 144KB
-LvqBench3v on MSC: 1.02902s; 160KB
+LvqBench2 on MSC: 2.22s; 123KB
+LvqBench2v on MSC: 1.33s; 128KB
+LvqBench3 on MSC: 1.29s; 137KB
+LvqBench3v on MSC: 0.964s; 150KB
  
-LvqBench2 on MSC: 2.13693s; 124KB
-LvqBench2v on MSC: 1.33835s; 129KB
-LvqBench3 on MSC: 1.4832s; 148KB
-LvqBench3v on MSC: 1.01377s; 163KB
+LvqBench2 on MSC: 2.2s; 123KB
+LvqBench2v on MSC: 1.32s; 128KB
+LvqBench3 on MSC: 1.81s; 130KB
+LvqBench3v on MSC: 1.04s; 136KB
+ 
+LvqBench2 on MSC: 2.18s; 123KB
+LvqBench2v on MSC: 1.33s; 128KB
+LvqBench3 on MSC: 1.82s; 130KB
+LvqBench3v on MSC: 1.05s; 136KB
+ 
+LvqBench2 on MSC: 2.17s; 123KB
+LvqBench2v on MSC: 1.37s; 128KB
+LvqBench3 on MSC: 1.82s; 130KB
+LvqBench3v on MSC: 1.07s; 136KB
+ 
+LvqBench2 on MSC: 2.2s; 123KB
+LvqBench2v on MSC: 1.39s; 128KB
+LvqBench3 on MSC: 1.82s; 130KB
+LvqBench3v on MSC: 1.04s; 136KB

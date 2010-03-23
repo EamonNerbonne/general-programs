@@ -10,17 +10,19 @@ using boost::mt19937;
 using boost::normal_distribution;
 using boost::variate_generator;
 USING_PART_OF_NAMESPACE_EIGEN
-
-
 #define MEANSEP 1.9
 #define DETERMINISTIC_SEED 
 #define DETERMINISTIC_ORDER 
 
 #if NDEBUG
+//#define BENCH_RUNS 5
+//#define DIMS 21
+//#define POINTS 500
+//#define ITERS 20
 #define BENCH_RUNS 10
 #define DIMS 31
 #define POINTS 3000
-#define ITERS 30
+#define ITERS 40
 #define CLASSCOUNT 3
 #define PROTOSPERCLASS 1
 #else
@@ -101,26 +103,29 @@ void EasyLvqTest() {
 	rndGen2.seed(secure_rand);
 #endif
 
-	scoped_ptr<LvqDataSet> dataset(DataSetUtils::ConstructDataSet(rndGen, DIMS, POINTS,CLASSCOUNT,MEANSEP )); 
-
 	vector<int> protoDistrib;
 	for(int i=0;i<CLASSCOUNT;++i)
 		protoDistrib.push_back(PROTOSPERCLASS);
 
 	Eigen::BenchTimer t;
+	scoped_ptr<LvqDataSet> dataset(DataSetUtils::ConstructDataSet(rndGen, DIMS, POINTS,CLASSCOUNT,MEANSEP )); 
 	
 	for(int bI=0;bI<BENCH_RUNS;++bI)
 	{
 		t.start();
-		TestModel<GmLvqModel>(rndGen2, true,  dataset.get(), protoDistrib, (ITERS + DIMS -1)*3/2/DIMS);
-		//TestModel<GmLvqModel>(rndGen2, false,  dataset.get(), protoDistrib, (ITERS + DIMS -1)*3/2/DIMS);
+		//TestModel<GmLvqModel>(rndGen2, true,  dataset.get(), protoDistrib, (ITERS + DIMS -1)/DIMS);
+		//TestModel<GmLvqModel>(rndGen2, false,  dataset.get(), protoDistrib, (ITERS + DIMS -1)/DIMS);
 
 		TestModel<G2mLvqModel>(rndGen2, true, dataset.get(), protoDistrib, ITERS);
-		//TestModel<G2mLvqModel>(rndGen2, false, dataset.get(), protoDistrib, ITERS);
+		TestModel<G2mLvqModel>(rndGen2, false, dataset.get(), protoDistrib, ITERS);
 
-		TestModel<GsmLvqModel>(rndGen2, true, dataset.get(), protoDistrib, ITERS);
+		//TestModel<GsmLvqModel>(rndGen2, true, dataset.get(), protoDistrib, ITERS);
 		//TestModel<GsmLvqModel>(rndGen2, false, dataset.get(), protoDistrib, ITERS);
+
+		cerr<<"\n";
 		t.stop();
 	}
+	
+	cout.precision(3);
 	cout<<t.best()<<"s";
 }
