@@ -4,8 +4,9 @@
 #include "G2mLvqMatch.h"
 #include "LvqConstants.h"
 
+
 G2mLvqModel::G2mLvqModel(boost::mt19937 & rng,  bool randInit, std::vector<int> protodistribution, MatrixXd const & means) 
-	: AbstractProjectionLvqModel(means.rows()) 
+	: AbstractProjectionLvqModel<G2mLvqModel>(means.rows()) 
 	, lr_scale_P(LVQ_LrScaleP)
 	, lr_scale_B(LVQ_LrScaleB)
 	, classCount((int)protodistribution.size())

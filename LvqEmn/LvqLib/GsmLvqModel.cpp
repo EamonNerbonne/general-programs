@@ -4,7 +4,7 @@
 #include "LvqConstants.h"
 
 GsmLvqModel::GsmLvqModel(boost::mt19937 & rng,  bool randInit, std::vector<int> protodistribution, MatrixXd const & means) 
-	: AbstractProjectionLvqModel(means.rows()) 
+	: AbstractProjectionLvqModel<GsmLvqModel>(means.rows()) 
 	, lr_scale_P(LVQ_LrScaleP)
 	, classCount((int)protodistribution.size())
 	, vJ(means.rows())

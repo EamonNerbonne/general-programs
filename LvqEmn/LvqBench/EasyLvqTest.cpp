@@ -70,7 +70,7 @@ void TestModel(mt19937 & rndGenOrig, bool randInit, LvqDataSet const  * dataset,
 	mt19937 rndGen(rndGenCopy); //we do this to avoid changing the original rng, so we can rerun tests with the same sequence of random numbers generated.
 
 	using boost::scoped_ptr;
-	scoped_ptr<AbstractLvqModel<DerivedModel>> model;
+	scoped_ptr<AbstractLvqModel<DerivedModel> > model;
 	t.start();
 	model.reset(new DerivedModel(rndGen, randInit, protoDistrib, dataset->ComputeClassMeans()));
 	t.stop();

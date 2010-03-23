@@ -24,7 +24,7 @@ public:
 	inline int classify(VectorXd const & unknownPoint) const {return static_cast<DerivedModel const*>(this)->classifyImpl(unknownPoint); }
 	inline void learnFrom(VectorXd const & newPoint, int classLabel)  {static_cast<DerivedModel*>(this)->learnFromImpl(newPoint,classLabel); }
 	
-	AbstractLvqModel<DerivedModel> * clone() const {return new DerivelModel(static_cast<DerivedModel const&>(*this)  );}
+	AbstractLvqModel<DerivedModel> * clone() const {return new DerivedModel(static_cast<DerivedModel const&>(*this)  );}
 	inline size_t MemAllocEstimate() const {return static_cast<DerivedModel const*>(this)->MemAllocEstimateImpl(); }
 };
 
