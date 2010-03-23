@@ -1,5 +1,7 @@
 #pragma once
 #include "stdafx.h"
+#include <xmmintrin.h>
+
 USING_PART_OF_NAMESPACE_EIGEN
 
 #include "AbstractLvqModel.h"
