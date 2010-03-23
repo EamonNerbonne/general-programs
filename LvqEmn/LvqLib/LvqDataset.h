@@ -40,6 +40,7 @@ inline void LvqDataSet::TrainModel(int epochs, boost::mt19937 & randGen, Abstrac
 	int dims = trainPoints.rows();
 	boost::scoped_array<int> ordering(new int[trainPointLabels.size()+1] );
 	ordering[trainPointLabels.size()] = 0;
+	//for(int tI=0; tI<(int)trainPointLabels.size(); ++tI) 	ordering[tI]=tI;
 	VectorXd pointA(dims);
 	VectorXd pointB(dims);
 	int cacheLines = (dims*sizeof(trainPoints(0,0) ) +63)/ 64 ;

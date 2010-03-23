@@ -3,3 +3,59 @@ LvqBench2 on GCC: 1.02s; 769KB
 LvqBench2v on GCC: 0.667s; 781KB
 LvqBench3 on GCC: 0.685s; 798KB
 LvqBench3v on GCC: 0.571s; 799KB
+ 
+LvqBench2 on GCC: 1.03s; 751KB
+LvqBench2v on GCC: 0.688s; 764KB
+LvqBench3 on GCC: 0.844s; 765KB
+LvqBench3v on GCC: 0.674s; 770KB
+ 
+LvqBench2 on GCC: 1.03s; 750KB
+LvqBench2v on GCC: 0.675s; 763KB
+LvqBench3 on GCC: 0.848s; 765KB
+LvqBench3v on GCC: 0.678s; 769KB
+ 
+LvqBench2 on GCC: 0.0215s; 737KB
+LvqBench2v on GCC: 0.0213s; 749KB
+LvqBench3 on GCC: 0.0188s; 752KB
+LvqBench3v on GCC: 0.0182s; 755KB
+ 
+LvqBench2 on GCC: 0.994s; 740KB
+LvqBench2v on GCC: 0.64s; 752KB
+LvqBench3 on GCC: 0.817s; 754KB
+LvqBench3v on GCC: 0.635s; 759KB
+ 
+LvqBench2 on GCC: 1.03s; 751KB
+LvqBench2v on GCC: 0.692s; 764KB
+LvqBench3 on GCC: 0.85s; 765KB
+LvqBench3v on GCC: 0.676s; 770KB
+ 
+LvqBench2 on GCC: 1.03s; 751KB
+LvqBench2v on GCC: 0.691s; 764KB
+LvqBench3 on GCC: 0.841s; 765KB
+LvqBench3v on GCC: 0.674s; 770KB
+ 
+LvqBench2 on GCC: 1.06s; 757KB
+LvqBench2v on GCC: 0.717s; 775KB
+LvqBench3 on GCC: 0.86s; 764KB
+LvqBench3v on GCC: 0.691s; 770KB
+ 
+ 
+LvqBench2 on GCC: 0.644s; 5249KB
+LvqBench2v on GCC: 0.508s; 5270KB
+LvqBench3 on GCC: 0.698s; 5273KB
+LvqBench3v on GCC: 0.6s; 5280KB
+ 
+LvqBench2 on GCC: 0.643s; 5232KB
+LvqBench2v on GCC: 0.493s; 5247KB
+LvqBench3 on GCC: 0.687s; 5242KB
+LvqBench3v on GCC: 0.596s; 5253KB
+ 
+LvqBench2 on GCC: 0.69s; 5187KB
+LvqBench2v on GCC: 0.503s; 5192KB
+LvqBench3 on GCC: 0.723s; 5194KB
+LvqBench3v on GCC: 0.607s; 5196KB
+ 
+LvqBench2 on GCC: 0.692s; 5187KB
+LvqBench2v on GCC: 0.498s; 5192KB
+LvqBench3 on GCC: 0.724s; 5194KB
+LvqBench3v on GCC: 0.605s; 5196KB

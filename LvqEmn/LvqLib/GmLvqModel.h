@@ -46,7 +46,7 @@ public:
 	size_t MemAllocEstimateImpl() const;
 
 	int classifyImpl(VectorXd const & unknownPoint) const; //tmp must be just as large as unknownPoint, this is a malloc/free avoiding optimization.
-	void learnFromImpl(VectorXd const & newPoint, int classLabel);//tmp must be just as large as unknownPoint, this is a malloc/free avoiding optimization.
+	EIGEN_DONT_INLINE void learnFromImpl(VectorXd const & newPoint, int classLabel);//tmp must be just as large as unknownPoint, this is a malloc/free avoiding optimization.
 
 	GmLvqModel(boost::mt19937 & rng,  bool randInit, std::vector<int> protodistribution, MatrixXd const & means);
 };

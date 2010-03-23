@@ -35,7 +35,7 @@ public:
 	G2mLvqModel(boost::mt19937 & rng, bool randInit, std::vector<int> protodistribution, MatrixXd const & means);
 
 	size_t MemAllocEstimateImpl() const;
-	void learnFromImpl(VectorXd const & newPoint, int classLabel);
+	EIGEN_DONT_INLINE void learnFromImpl(VectorXd const & newPoint, int classLabel);
 	void ClassBoundaryDiagramImpl(double x0, double x1, double y0, double y1, MatrixXi & classDiagram) const;
 };
 

@@ -42,7 +42,7 @@ G2mLvqModel::G2mLvqModel(boost::mt19937 & rng,  bool randInit, std::vector<int> 
 
 
 
-void G2mLvqModel::learnFromImpl(VectorXd const & trainPoint, int trainLabel) {
+EIGEN_DONT_INLINE void G2mLvqModel::learnFromImpl(VectorXd const & trainPoint, int trainLabel) {
 
 	using namespace std;
 	//double learningRate = getLearningRate();
