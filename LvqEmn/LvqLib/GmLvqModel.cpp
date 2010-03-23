@@ -43,7 +43,7 @@ GmLvqModel::GmLvqModel(boost::mt19937 & rng, bool randInit, std::vector<int> pro
 
 
 
-void GmLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel) {
+void GmLvqModel::learnFromImpl(VectorXd const & trainPoint, int trainLabel) {
 	//double learningRate = getLearningRate();
 	//incLearningIterationCount();
 	double learningRate = stepLearningRate();
@@ -107,7 +107,7 @@ void GmLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel) {
 }
 
 
-size_t GmLvqModel::MemAllocEstimate() const {
+size_t GmLvqModel::MemAllocEstimateImpl() const {
 	return 
 		sizeof(GmLvqModel) + //base structure size
 		sizeof(int)*pLabel.size() + //dyn.alloc labels

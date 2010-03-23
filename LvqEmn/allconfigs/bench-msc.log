@@ -1,5 +1,5 @@
- 
-LvqBench2 on MSC: 1.38s; 82KB
-LvqBench2v on MSC: 0.891s; 84KB
+Before CRTP: 
+LvqBench2 on MSC: 1.37s; 82KB
+LvqBench2v on MSC: 0.851s; 84KB
 LvqBench3 on MSC: 0.887s; 86KB
-LvqBench3v on MSC: 0.69s; 88KB
+LvqBench3v on MSC: 0.672s; 88KB

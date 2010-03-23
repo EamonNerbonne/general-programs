@@ -41,7 +41,7 @@ G2mLvqModel::G2mLvqModel(boost::mt19937 & rng,  bool randInit, std::vector<int> 
 
 
 
-void G2mLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel) {
+void G2mLvqModel::learnFromImpl(VectorXd const & trainPoint, int trainLabel) {
 
 	using namespace std;
 	//double learningRate = getLearningRate();
@@ -162,7 +162,7 @@ void G2mLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel) {
 		prototype[i].ComputePP(P);
 }
 
-void G2mLvqModel::ClassBoundaryDiagram(double x0, double x1, double y0, double y1, MatrixXi & classDiagram) const {
+void G2mLvqModel::ClassBoundaryDiagramImpl(double x0, double x1, double y0, double y1, MatrixXi & classDiagram) const {
 	int cols = classDiagram.cols();
 	int rows = classDiagram.rows();
 	for(int xCol=0;  xCol < cols;  xCol++) {
@@ -170,16 +170,13 @@ void G2mLvqModel::ClassBoundaryDiagram(double x0, double x1, double y0, double y
 		for(int yRow=0;  yRow < rows;  yRow++) {
 			double y = y0+(y1-y0) * (yRow+0.5) / rows;
 			Vector2d vec(x,y);
-			classDiagram(yRow, xCol) = classifyProjectedInternal(vec);
+			classDiagram(yRow, xCol) = classifyProjectedImpl(vec);
 		}
 	}
 }
 
-AbstractLvqModel* G2mLvqModel::clone() { return new G2mLvqModel(*this); }
 
-
-
-size_t G2mLvqModel::MemAllocEstimate() const {
+size_t G2mLvqModel::MemAllocEstimateImpl() const {
 	return 
 		sizeof(G2mLvqModel) +
 		sizeof(double) * (P.size() + dQdP.size()) +
@@ -188,65 +185,4 @@ size_t G2mLvqModel::MemAllocEstimate() const {
 		sizeof(double) * (prototype.size() * vJ.size()) + //prototypes; part dynamically allocated
 		(16/2) * (4+prototype.size()*2);//estimate for alignment mucking.
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

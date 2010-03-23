@@ -5,41 +5,38 @@ USING_PART_OF_NAMESPACE_EIGEN
 
 #pragma intrinsic(pow)
 
-
+template<class DerivedModel>
 class AbstractLvqModel
 {
+	virtual void ignore(){}
 	int trainIter;
 protected:
 	double iterationScaleFactor;
 	inline double stepLearningRate() {
 		double scaledIter = trainIter*iterationScaleFactor + 1.0;
-		trainIter++;
+		++trainIter;
 		return 0.5/ sqrt(scaledIter*sqrt(scaledIter)); //*exp(-0.65*log(scaledIter));  
 	}
 
-
 public:
-
-	virtual int classify(VectorXd const & unknownPoint) const=0; 
-	virtual void learnFrom(VectorXd const & newPoint, int classLabel)=0;
-	//virtual double iterationScaleFactor() const=0;//says how the # of iterations must be scaled before computing the learning rate.  More complex models (with more prototypes) need to learn more slowly.
 	AbstractLvqModel() : trainIter(0), iterationScaleFactor(0.01){ }
-	virtual ~AbstractLvqModel() {	}
+
+	inline int classify(VectorXd const & unknownPoint) const {return static_cast<DerivedModel const*>(this)->classifyImpl(unknownPoint); }
+	inline void learnFrom(VectorXd const & newPoint, int classLabel)  {static_cast<DerivedModel*>(this)->learnFromImpl(newPoint,classLabel); }
 	
-	//virtual normalizeProject
-	virtual AbstractLvqModel* clone()=0;
-	virtual size_t MemAllocEstimate() const=0;
+	AbstractLvqModel<DerivedModel> * clone() const {return new DerivelModel(static_cast<DerivedModel const&>(*this)  );}
+	inline size_t MemAllocEstimate() const {return static_cast<DerivedModel*>(this)->MemAllocEstimateImpl(); }
 };
 
-class AbstractProjectionLvqModel : public AbstractLvqModel {
+template<class DerivedModel>
+class AbstractProjectionLvqModel : public AbstractLvqModel<DerivedModel> {
 protected:
 	AbstractProjectionLvqModel(int input_dims) : P(LVQ_LOW_DIM_SPACE, input_dims)  {	P.setIdentity(); }
 	PMatrix P;
 public:
-	virtual ~AbstractProjectionLvqModel() { }
 	PMatrix const & projectionMatrix() const {return P;}
 	double projectionNorm() const { return projectionSquareNorm(P);  }
 	void normalizeProjection() { normalizeMatrix(P); }
-	virtual void ClassBoundaryDiagram(double x0, double x1, double y0, double y1, MatrixXi & classDiagram) const=0;
-	//virtual int classifyProjected(Vector2d const & unknownProjectedPoint) const=0;
+	void ClassBoundaryDiagram(double x0, double x1, double y0, double y1, MatrixXi & classDiagram) const { return static_cast<DerivelModel*>(this)->ClassBoundaryDiagramImpl(x0,x1,y0,y1,classDiagram);}
+	inline int classifyProjected(Vector2d const & unknownProjectedPoint) const {return static_cast<DerivedModel*>(this)->classifyProjectedImpl(unknownProjectedPoint); }
 };

@@ -2,7 +2,7 @@
 #include "stdafx.h"
 #include "AbstractLvqModel.h"
 
-class GsmLvqModel : public AbstractProjectionLvqModel
+class GsmLvqModel : public AbstractProjectionLvqModel<GsmLvqModel>
 {
 	//PMatrix P; //in base class
 	std::vector<VectorXd> prototype;
@@ -63,7 +63,11 @@ class GsmLvqModel : public AbstractProjectionLvqModel
 #endif
 	}
 
-	inline int classifyProjectedInternal(Vector2d const & P_otherPoint) const{
+
+
+
+public:
+	inline int classifyProjectedImpl(Vector2d const & P_otherPoint) const{
 		using namespace std;
 		double distance(std::numeric_limits<double>::infinity());
 		int match(-1);
@@ -79,38 +83,21 @@ class GsmLvqModel : public AbstractProjectionLvqModel
 		return this->pLabel(match);
 	}
 
-	inline int classifyInternal(VectorXd const & unknownPoint) const{
+	inline int classifyImpl(VectorXd const & unknownPoint) const{
 		Vector2d P_otherPoint;
 #if EIGEN3
 		P_otherPoint.noalias() = P * unknownPoint;
 #else
 		P_otherPoint = (P * unknownPoint).lazy();
 #endif
-
-		using namespace std;
-		double distance(std::numeric_limits<double>::infinity());
-		int match(-1);
-
-		for(int i=0;i<pLabel.size();i++) {
-			double curDist = SqrDistanceTo(i,P_otherPoint);
-			if(curDist < distance) {
-				match=i;
-				distance = curDist;
-			}
-		}
-		assert( match >= 0 );
-		return this->pLabel(match);
+		return classifyProjectedImpl(P_otherPoint);
 	}
 
+	size_t MemAllocEstimateImpl() const;
 
-public:
-	virtual size_t MemAllocEstimate() const;
+	void learnFromImpl(VectorXd const & newPoint, int classLabel);
+    void ClassBoundaryDiagramImpl(double x0, double x1, double y0, double y1, MatrixXi & classDiagram) const;
 
 	GsmLvqModel(boost::mt19937 & rng, bool randInit, std::vector<int> protodistribution, MatrixXd const & means);
-	int classify(VectorXd const & unknownPoint) const {return classifyInternal(unknownPoint);}
-	int classifyProjected(Vector2d const & unknownProjectedPoint) const {return classifyProjectedInternal(unknownProjectedPoint);}
-	void learnFrom(VectorXd const & newPoint, int classLabel);
-	virtual void ClassBoundaryDiagram(double x0, double x1, double y0, double y1, MatrixXi & classDiagram) const;
-	virtual AbstractLvqModel* clone(); 
 };
 

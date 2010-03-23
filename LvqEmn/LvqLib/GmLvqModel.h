@@ -4,7 +4,7 @@
 
 using boost::scoped_array;
 using std::vector;
-class GmLvqModel : public AbstractLvqModel
+class GmLvqModel : public AbstractLvqModel<GmLvqModel>
 {
 	vector<MatrixXd > P; //<double,Eigen::Dynamic,Eigen::Dynamic,Eigen::ColMajor,Eigen::Dynamic,Eigen::Dynamic>
 	vector<VectorXd> prototype;
@@ -43,15 +43,15 @@ class GmLvqModel : public AbstractLvqModel
 	inline GoodBadMatch findMatches(VectorXd const & trainPoint, int trainLabel, VectorXd & tmp, VectorXd tmp2); 
 
 public:
-	virtual size_t MemAllocEstimate() const;
+	size_t MemAllocEstimateImpl() const;
+
+	int classifyImpl(VectorXd const & unknownPoint) const; //tmp must be just as large as unknownPoint, this is a malloc/free avoiding optimization.
+	void learnFromImpl(VectorXd const & newPoint, int classLabel);//tmp must be just as large as unknownPoint, this is a malloc/free avoiding optimization.
 
 	GmLvqModel(boost::mt19937 & rng,  bool randInit, std::vector<int> protodistribution, MatrixXd const & means);
-	virtual int classify(VectorXd const & unknownPoint) const; //tmp must be just as large as unknownPoint, this is a malloc/free avoiding optimization.
-	virtual void learnFrom(VectorXd const & newPoint, int classLabel);//tmp must be just as large as unknownPoint, this is a malloc/free avoiding optimization.
-	virtual AbstractLvqModel* clone() { return new GmLvqModel(*this); }
 };
 
-inline int GmLvqModel::classify(VectorXd const & unknownPoint) const{
+inline int GmLvqModel::classifyImpl(VectorXd const & unknownPoint) const{
 	using namespace std;
 	double distance(std::numeric_limits<double>::infinity());
 	int match(-1);

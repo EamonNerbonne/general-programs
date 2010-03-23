@@ -7,7 +7,7 @@
 USING_PART_OF_NAMESPACE_EIGEN
 
 class G2mLvqPrototype;
-class G2mLvqModel : public AbstractProjectionLvqModel
+class G2mLvqModel : public AbstractProjectionLvqModel<G2mLvqModel>
 {
 	std::vector<G2mLvqPrototype, Eigen::aligned_allocator<G2mLvqPrototype> > prototype;
 	double lr_scale_P, lr_scale_B;
@@ -19,24 +19,9 @@ class G2mLvqModel : public AbstractProjectionLvqModel
 	VectorXd vJ, vK, dQdwJ, dQdwK; //vectors of dimension DIMS
 	PMatrix dQdP;
 
-	inline int classifyInternal(VectorXd const & unknownPoint) const{
-		using namespace std;
-#if EIGEN3
-		Vector2d P_unknownPoint;
-		P_unknownPoint.noalias() = P * unknownPoint;
-#else
-		Vector2d P_unknownPoint = (P * unknownPoint).lazy();
-#endif
-		G2mLvqMatch matches(&P_unknownPoint);
 
-		for(int i=0;i<prototype.size();++i)
-			matches.AccumulateMatch(prototype[i]);
-
-		assert(matches.match != NULL);
-		return matches.match->ClassLabel();
-	}
-
-	inline int classifyProjectedInternal(Vector2d const & P_unknownPoint) const {
+public:
+	inline int classifyProjectedImpl(Vector2d const & P_unknownPoint) const {
 		using namespace std;
 		G2mLvqMatch matches(&P_unknownPoint);
 
@@ -47,15 +32,22 @@ class G2mLvqModel : public AbstractProjectionLvqModel
 		return matches.match->ClassLabel();
 	}
 
-public:
+	inline int classifyImpl(VectorXd const & unknownPoint) const{
+		using namespace std;
+#if EIGEN3
+		Vector2d P_unknownPoint;//TODO:test if this really is faster.
+		P_unknownPoint.noalias() = P * unknownPoint;
+#else
+		Vector2d P_unknownPoint = (P * unknownPoint).lazy();
+#endif
+		return classifyProjectedImpl(P_unknownPoint);
+	}
 
 	G2mLvqModel(boost::mt19937 & rng, bool randInit, std::vector<int> protodistribution, MatrixXd const & means);
-	virtual size_t MemAllocEstimate() const;
-	int classify(VectorXd const & unknownPoint) const {return classifyInternal(unknownPoint);}
-	int classifyProjected(Vector2d const & unknownProjectedPoint) const { return classifyProjectedInternal(unknownProjectedPoint);}
-	void learnFrom(VectorXd const & newPoint, int classLabel);
-	virtual void ClassBoundaryDiagram(double x0, double x1, double y0, double y1, MatrixXi & classDiagram) const;
-	virtual AbstractLvqModel* clone();
+
+	size_t MemAllocEstimateImpl() const;
+	void learnFromImpl(VectorXd const & newPoint, int classLabel);
+	void ClassBoundaryDiagramImpl(double x0, double x1, double y0, double y1, MatrixXi & classDiagram) const;
 };
 
 
