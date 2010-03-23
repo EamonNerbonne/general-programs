@@ -32,17 +32,6 @@ public:
 		return matches.match->ClassLabel();
 	}
 
-	inline int classifyImpl(VectorXd const & unknownPoint) const{
-		using namespace std;
-#if EIGEN3
-		Vector2d P_unknownPoint;//TODO:test if this really is faster.
-		P_unknownPoint.noalias() = P * unknownPoint;
-#else
-		Vector2d P_unknownPoint = (P * unknownPoint).lazy();
-#endif
-		return classifyProjectedImpl(P_unknownPoint);
-	}
-
 	G2mLvqModel(boost::mt19937 & rng, bool randInit, std::vector<int> protodistribution, MatrixXd const & means);
 
 	size_t MemAllocEstimateImpl() const;

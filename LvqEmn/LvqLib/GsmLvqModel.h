@@ -83,20 +83,9 @@ public:
 		return this->pLabel(match);
 	}
 
-	inline int classifyImpl(VectorXd const & unknownPoint) const{
-		Vector2d P_otherPoint;
-#if EIGEN3
-		P_otherPoint.noalias() = P * unknownPoint;
-#else
-		P_otherPoint = (P * unknownPoint).lazy();
-#endif
-		return classifyProjectedImpl(P_otherPoint);
-	}
-
 	size_t MemAllocEstimateImpl() const;
 
 	void learnFromImpl(VectorXd const & newPoint, int classLabel);
-    void ClassBoundaryDiagramImpl(double x0, double x1, double y0, double y1, MatrixXi & classDiagram) const;
 
 	GsmLvqModel(boost::mt19937 & rng, bool randInit, std::vector<int> protodistribution, MatrixXd const & means);
 };

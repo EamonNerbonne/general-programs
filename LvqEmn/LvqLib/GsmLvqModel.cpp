@@ -113,19 +113,6 @@ void GsmLvqModel::learnFromImpl(VectorXd const & trainPoint, int trainLabel) {
 		RecomputeProjection(i);
 }
 
-void GsmLvqModel::ClassBoundaryDiagramImpl(double x0, double x1, double y0, double y1, MatrixXi & classDiagram) const {
-	int cols = classDiagram.cols();
-	int rows = classDiagram.rows();
-	for(int xCol=0;  xCol < cols;  xCol++) {
-		double x = x0 + (x1-x0) * (xCol+0.5) / cols;
-		for(int yRow=0;  yRow < rows;  yRow++) {
-			double y = y0+(y1-y0) * (yRow+0.5) / rows;
-			Vector2d vec(x,y);
-			classDiagram(yRow,xCol) = classifyProjectedImpl(vec);
-		}
-	}
-}
-
 
 
 
