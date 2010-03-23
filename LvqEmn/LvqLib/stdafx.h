@@ -10,14 +10,17 @@
 #pragma warning(push,3)
 #endif
 
-
+#define EIGEN_VECTORIZE_SSE3
+#define EIGEN_VECTORIZE_SSSE3
+#define EIGEN_VECTORIZE_SSE4_1
 #define EIGEN_USE_NEW_STDVECTOR
+
 #include <Eigen/StdVector>
 #include <iostream>
 #include <algorithm>
 #include <numeric>
 #include <vector>
-//#include <math.h>
+#include <math.h>
 
 #include <boost/smart_ptr/scoped_array.hpp>
 //#include <boost/smart_ptr/shared_ptr.hpp>
