@@ -3,23 +3,30 @@
 #include "utils.h"
 USING_PART_OF_NAMESPACE_EIGEN
 
+#pragma intrinsic(pow)
+
+
 class AbstractLvqModel
 {
 	int trainIter;
 protected:
 	double iterationScaleFactor;
+	inline double stepLearningRate() {
+		double scaledIter = trainIter*iterationScaleFactor + 1.0;
+		trainIter++;
+		return 0.5/ sqrt(scaledIter*sqrt(scaledIter)); //*exp(-0.65*log(scaledIter));  
+	}
+
 
 public:
-	int getLearningIterationCount() {return trainIter;}
-	void incLearningIterationCount() {trainIter++;}
+
 	virtual int classify(VectorXd const & unknownPoint) const=0; 
 	virtual void learnFrom(VectorXd const & newPoint, int classLabel)=0;
 	//virtual double iterationScaleFactor() const=0;//says how the # of iterations must be scaled before computing the learning rate.  More complex models (with more prototypes) need to learn more slowly.
 	AbstractLvqModel() : trainIter(0), iterationScaleFactor(0.01){ }
 	virtual ~AbstractLvqModel() {	}
 	
-	inline double getLearningRate() {	return 0.5*std::pow(trainIter*iterationScaleFactor + 1.0, - 0.65); }
-
+	//virtual normalizeProject
 	virtual AbstractLvqModel* clone()=0;
 	virtual size_t MemAllocEstimate() const=0;
 };

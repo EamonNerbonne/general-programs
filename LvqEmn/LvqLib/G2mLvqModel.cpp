@@ -30,7 +30,7 @@ G2mLvqModel::G2mLvqModel(boost::mt19937 & rng,  bool randInit, std::vector<int> 
 	for(int label=0; label <(int) protodistribution.size();label++) {
 		int labelCount =protodistribution[label];
 		for(int i=0;i<labelCount;i++) {
-			prototype[protoIndex] = G2mLvqPrototype(rng,randInit, label, means.col(label) );
+			prototype[protoIndex] = G2mLvqPrototype(rng,false, label, means.col(label) );//TODO:experiment with random projection initialization.
 			prototype[protoIndex].ComputePP(P);
 
 			protoIndex++;
@@ -42,9 +42,11 @@ G2mLvqModel::G2mLvqModel(boost::mt19937 & rng,  bool randInit, std::vector<int> 
 
 
 void G2mLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel) {
+
 	using namespace std;
-	double learningRate = getLearningRate();
-	incLearningIterationCount();
+	//double learningRate = getLearningRate();
+	//incLearningIterationCount();
+	double learningRate = stepLearningRate();
 
 	double lr_point = learningRate,
 		lr_P = learningRate * this->lr_scale_P,
@@ -147,12 +149,14 @@ void G2mLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel) {
 	//P = P - lr_P * dQdP ;
 #if EIGEN3
 	P.noalias() -= lr_P * ( muK2_BjT_Bj_P_vJ * vJ.transpose() + muJ2_BkT_Bk_P_vK * vK.transpose()) ;
-	double pNormScale =1.0 /  (P.transpose() * P).diagonal().sum();
+//	double pNormScale =1.0 /  (P.transpose() * P).diagonal().sum();
 #else
 	P =P-  lr_P * ( (muK2_BjT_Bj_P_vJ * vJ.transpose()).lazy() + (muJ2_BkT_Bk_P_vK * vK.transpose()).lazy()) ;
-	double pNormScale =1.0 /  (P.transpose() * P).lazy().diagonal().sum();
+//	double pNormScale =1.0 /  (P.transpose() * P).lazy().diagonal().sum();
 #endif
-	P *= pNormScale;
+//	P *= pNormScale;
+
+	
 
 	for(int i=0;i<prototype.size();++i)
 		prototype[i].ComputePP(P);

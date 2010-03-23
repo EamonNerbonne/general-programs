@@ -44,9 +44,9 @@ GmLvqModel::GmLvqModel(boost::mt19937 & rng, bool randInit, std::vector<int> pro
 
 
 void GmLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel) {
-	double learningRate = getLearningRate();
-	incLearningIterationCount();
-
+	//double learningRate = getLearningRate();
+	//incLearningIterationCount();
+	double learningRate = stepLearningRate();
 	using namespace std;
 
 	double lr_point = learningRate,

@@ -46,8 +46,9 @@ GsmLvqModel::GsmLvqModel(boost::mt19937 & rng,  bool randInit, std::vector<int> 
 
 
 void GsmLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel) {
-	double learningRate = getLearningRate();
-	incLearningIterationCount();
+	//double learningRate = getLearningRate();
+	//incLearningIterationCount();
+	double learningRate = stepLearningRate();
 
 	using namespace std;
 
@@ -101,12 +102,12 @@ void GsmLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel) {
 	P -= lr_P * dQdP;
 #endif
 
-#if EIGEN3
-	double pNormScale =1.0 / ( (P.transpose() * P).diagonal().sum());
-#else
-	double pNormScale =1.0 / ( (P.transpose() * P).lazy().diagonal().sum());
-#endif
-	P *= pNormScale;
+//#if EIGEN3
+//	double pNormScale =1.0 / ( (P.transpose() * P).diagonal().sum());
+//#else
+//	double pNormScale =1.0 / ( (P.transpose() * P).lazy().diagonal().sum());
+//#endif
+//	P *= pNormScale;
 
 	for(int i=0;i<pLabel.size();++i)
 		RecomputeProjection(i);
