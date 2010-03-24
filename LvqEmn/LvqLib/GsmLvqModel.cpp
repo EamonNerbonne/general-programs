@@ -9,10 +9,6 @@ GsmLvqModel::GsmLvqModel(boost::mt19937 & rng,  bool randInit, std::vector<int> 
 	, classCount((int)protodistribution.size())
 	, vJ(means.rows())
 	, vK(means.rows())
-	, dQdwJ(means.rows())
-	, dQdwK(means.rows())
-	, tmpHelper(means.rows())
-	, dQdP(LVQ_LOW_DIM_SPACE, means.rows())
 {
 	using namespace std;
 
@@ -81,6 +77,7 @@ void GsmLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel) {
 	Vector2d muK2_P_vJ = mu_K * 2.0 * (P_prototype[J] - P_trainPoint) ;
 	Vector2d muJ2_P_vK = mu_J * 2.0 * (P_prototype[K] - P_trainPoint);
 
+	//differential of cost function Q wrt w_J; i.e. wrt J->point.  Note mu_K(!) for differention wrt J(!)
 	prototype[J].noalias() -= P.transpose() * (lr_point * muK2_P_vJ);
 	prototype[K].noalias() -= P.transpose() * (lr_point *muJ2_P_vK);
 
@@ -90,13 +87,10 @@ void GsmLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel) {
 	Vector2d muK2_P_vJ = (mu_K * 2.0 * (P_prototype[J] - P_trainPoint) ).lazy();
 	Vector2d muJ2_P_vK = (mu_J * 2.0 * (P_prototype[K] - P_trainPoint) ).lazy();
 
-	dQdwJ = (P.transpose() * muK2_P_vJ).lazy(); //differential of cost function Q wrt w_J; i.e. wrt J->point.  Note mu_K(!) for differention wrt J(!)
-	dQdwK = (P.transpose() * muJ2_P_vK).lazy();
-	prototype[J] -= lr_point * dQdwJ;
-	prototype[K] -= lr_point * dQdwK;
+	prototype[J] -= ( P.transpose() * (lr_point * muK2_P_vJ) ).lazy();
+	prototype[K] -= ( P.transpose() * (lr_point *muJ2_P_vK) ).lazy();
 
-	dQdP = (muK2_P_vJ * vJ.transpose()).lazy() + (muJ2_P_vK * vK.transpose()).lazy(); //differential wrt. global projection matrix.
-	P -= lr_P * dQdP;
+	P -= ((lr_P * muK2_P_vJ) * vJ.transpose()).lazy() + ((lr_P * muJ2_P_vK) * vK.transpose()).lazy();
 #endif
 
 //#if EIGEN3
@@ -131,73 +125,11 @@ size_t GsmLvqModel::MemAllocEstimate() const {
 	return 
 		sizeof(GsmLvqModel) + //base structure size
 		sizeof(int)*pLabel.size() + //dyn.alloc labels
-		sizeof(double) * (P.size() + dQdP.size()) + //dyn alloc transform + temp transform
-		sizeof(double) * (vJ.size()*5) + //various vector temps
+		sizeof(double) * (P.size() ) + //dyn alloc transform + temp transform
+		sizeof(double) * (vJ.size()*3) + //various vector temps
 		sizeof(VectorXd) *prototype.size() +//dyn alloc prototype base overhead
 		sizeof(double) * (prototype.size() * vJ.size()) + //dyn alloc prototype data
 		sizeof(Vector2d) * P_prototype.size() + //cache of pretransformed prototypes
 		(16/2) * (5+prototype.size()*2);//estimate for alignment mucking.
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
