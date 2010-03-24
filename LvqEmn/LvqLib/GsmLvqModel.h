@@ -14,7 +14,7 @@ class GsmLvqModel : public AbstractProjectionLvqModel
 	//calls dimensionality of input-space DIMS
 	//we will preallocate a few vectors to reduce malloc/free overhead.
 
-	VectorXd vJ, vK,  tmpHelper; //vectors of dimension DIMS
+	VectorXd vJ, vK; //vectors of dimension DIMS
 
 	inline double SqrDistanceTo(int protoIndex, Vector2d const & P_otherPoint) const {
 		return (P_prototype[protoIndex] - P_otherPoint).squaredNorm();

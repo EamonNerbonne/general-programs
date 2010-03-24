@@ -15,13 +15,15 @@ class GmLvqModel : public AbstractLvqModel
 	//calls dimensionality of input-space DIMS
 	//we will preallocate a few vectors to reduce malloc/free overhead.
 
-	VectorXd vJ, vK, dQdwJ, dQdwK, tmpHelper1, tmpHelper2; //vectors of dimension DIMS
+	VectorXd vJ, vK, dQdwJ, dQdwK;
+	mutable VectorXd tmpHelper1, tmpHelper2; //vectors of dimension DIMS
 	MatrixXd dQdPj, dQdPk;
 
-	EIGEN_STRONG_INLINE double SqrDistanceTo(int protoIndex, VectorXd const & otherPoint, VectorXd & tmp, VectorXd tmp2) const {
+	EIGEN_STRONG_INLINE double SqrDistanceTo(int protoIndex, VectorXd const & otherPoint) const {
 #if EIGEN3
-		tmp.noalias() = prototype[protoIndex] - otherPoint;
-		return (P[protoIndex] * tmp).squaredNorm();
+		tmpHelper1.noalias() = prototype[protoIndex] - otherPoint;
+		tmpHelper2.noalias() = P[protoIndex] * tmpHelper1;
+		return tmpHelper2.squaredNorm();
 #else
 		tmp = prototype[protoIndex] - otherPoint;
 		tmp2 = P[protoIndex] * tmp;
@@ -40,41 +42,11 @@ class GmLvqModel : public AbstractLvqModel
 			, matchBad(-1)
 		{}
 	};
-	inline GoodBadMatch findMatches(VectorXd const & trainPoint, int trainLabel, VectorXd & tmp, VectorXd tmp2); 
-
-public:
-	virtual size_t MemAllocEstimate() const;
-
-	GmLvqModel(boost::mt19937 & rng,  bool randInit, std::vector<int> protodistribution, MatrixXd const & means);
-	virtual int classify(VectorXd const & unknownPoint) const; //tmp must be just as large as unknownPoint, this is a malloc/free avoiding optimization.
-	virtual void learnFrom(VectorXd const & newPoint, int classLabel);//tmp must be just as large as unknownPoint, this is a malloc/free avoiding optimization.
-	virtual AbstractLvqModel* clone() { return new GmLvqModel(*this); }
-};
-
-inline int GmLvqModel::classify(VectorXd const & unknownPoint) const{
-	using namespace std;
-	double distance(std::numeric_limits<double>::infinity());
-	int match(-1);
-
-	VectorXd & tmp = const_cast<VectorXd &>(tmpHelper1);
-	VectorXd & tmp2 = const_cast<VectorXd &>(tmpHelper2);
-
-	for(int i=0;i<pLabel.size();++i) {
-		double curDist = SqrDistanceTo(i, unknownPoint, tmp, tmp2);
-		if(curDist < distance) {
-			match=i;
-			distance = curDist;
-		}
-	}
-	assert( match >= 0 );
-	return this->pLabel(match);
-}
-
-inline GmLvqModel::GoodBadMatch GmLvqModel::findMatches(VectorXd const & trainPoint, int trainLabel, VectorXd & tmp, VectorXd tmp2) {
+	EIGEN_STRONG_INLINE GoodBadMatch findMatches(VectorXd const & trainPoint, int trainLabel) const {
 	GoodBadMatch match;
 
 	for(int i=0;i<pLabel.size();i++) {
-		double curDist = SqrDistanceTo(i, trainPoint, tmp, tmp2);
+		double curDist = SqrDistanceTo(i, trainPoint);
 		if(pLabel(i) == trainLabel) {
 			if(curDist < match.distGood) {
 				match.matchGood = i;
@@ -91,3 +63,29 @@ inline GmLvqModel::GoodBadMatch GmLvqModel::findMatches(VectorXd const & trainPo
 	assert( match.matchBad >= 0 && match.matchGood >=0 );
 	return match;
 }
+
+public:
+	virtual size_t MemAllocEstimate() const;
+
+	GmLvqModel(boost::mt19937 & rng,  bool randInit, std::vector<int> protodistribution, MatrixXd const & means);
+	virtual int classify(VectorXd const & unknownPoint) const; //tmp must be just as large as unknownPoint, this is a malloc/free avoiding optimization.
+	virtual void learnFrom(VectorXd const & newPoint, int classLabel);//tmp must be just as large as unknownPoint, this is a malloc/free avoiding optimization.
+	virtual AbstractLvqModel* clone() { return new GmLvqModel(*this); }
+};
+
+inline int GmLvqModel::classify(VectorXd const & unknownPoint) const{
+	using namespace std;
+	double distance(std::numeric_limits<double>::infinity());
+	int match(-1);
+
+	for(int i=0;i<pLabel.size();++i) {
+		double curDist = SqrDistanceTo(i, unknownPoint);
+		if(curDist < distance) {
+			match=i;
+			distance = curDist;
+		}
+	}
+	assert( match >= 0 );
+	return this->pLabel(match);
+}
+

@@ -54,7 +54,7 @@ void GmLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel) {
 
 	assert(lr_P>=0 && lr_point>=0);
 
-	GoodBadMatch matches = findMatches(trainPoint, trainLabel, tmpHelper1, tmpHelper2);
+	GoodBadMatch matches = findMatches(trainPoint, trainLabel);
 
 	//now matches.good is "J" and matches.bad is "K".
 
@@ -68,21 +68,21 @@ void GmLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel) {
 	vJ = prototype[J] - trainPoint;
 	vK = prototype[K] - trainPoint;
 
-	VectorXd & muK2_Pj_vJ = tmpHelper1;
-	VectorXd & muJ2_Pk_vK = tmpHelper2;
+	VectorXd & lrX_muK2_Pj_vJ = tmpHelper1;
+	VectorXd & lrX_muJ2_Pk_vK = tmpHelper2;
 
-	muK2_Pj_vJ.noalias() = (mu_K * 2.0) *  (P[J] * vJ);
-	muJ2_Pk_vK.noalias() = (mu_J * 2.0) *  (P[K] * vK);
+	lrX_muK2_Pj_vJ.noalias() =P[J] * vJ;
+	lrX_muK2_Pj_vJ *= lr_point * mu_K * 2.0;
+	lrX_muJ2_Pk_vK.noalias() = P[K] * vK;
+	lrX_muJ2_Pk_vK *= lr_point * mu_J * 2.0;
 
-	//dQdwJ.noalias() = P[J].transpose() *  muK2_Pj_vJ; //differential of cost function Q wrt w_J; i.e. wrt J->point.  Note mu_K(!) for differention wrt J(!)
-	//dQdwK.noalias() = P[K].transpose() * muJ2_Pk_vK;
-	prototype[J].noalias() -= lr_point * (P[J].transpose() *  muK2_Pj_vJ);
-	prototype[K].noalias() -= lr_point *  (P[K].transpose() * muJ2_Pk_vK);
+	prototype[J].noalias() -= P[J].transpose() *  lrX_muK2_Pj_vJ;
+	prototype[K].noalias() -= P[K].transpose() * lrX_muJ2_Pk_vK;
 
-	muK2_Pj_vJ *= lr_P;
-	muJ2_Pk_vK *= lr_P;
-	P[J].noalias() -=  muK2_Pj_vJ * vJ.transpose() ;
-	P[K].noalias() -= muJ2_Pk_vK * vK.transpose() ;
+	lrX_muK2_Pj_vJ *= lr_P / lr_point;
+	lrX_muJ2_Pk_vK *= lr_P / lr_point;
+	P[J].noalias() -=  lrX_muK2_Pj_vJ * vJ.transpose() ;
+	P[K].noalias() -= lrX_muJ2_Pk_vK * vK.transpose() ;
 #else
 	//VectorXd
 	vJ = prototype[J] - trainPoint;
