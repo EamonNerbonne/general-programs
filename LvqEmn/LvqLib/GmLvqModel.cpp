@@ -74,15 +74,15 @@ void GmLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel) {
 	muK2_Pj_vJ.noalias() = (mu_K * 2.0) *  (P[J] * vJ);
 	muJ2_Pk_vK.noalias() = (mu_J * 2.0) *  (P[K] * vK);
 
-	dQdwJ.noalias() = P[J].transpose() *  muK2_Pj_vJ; //differential of cost function Q wrt w_J; i.e. wrt J->point.  Note mu_K(!) for differention wrt J(!)
-	dQdwK.noalias() = P[K].transpose() * muJ2_Pk_vK;
-	prototype[J] -= lr_point * dQdwJ;
-	prototype[K] -= lr_point * dQdwK;
+	//dQdwJ.noalias() = P[J].transpose() *  muK2_Pj_vJ; //differential of cost function Q wrt w_J; i.e. wrt J->point.  Note mu_K(!) for differention wrt J(!)
+	//dQdwK.noalias() = P[K].transpose() * muJ2_Pk_vK;
+	prototype[J].noalias() -= lr_point * (P[J].transpose() *  muK2_Pj_vJ);
+	prototype[K].noalias() -= lr_point *  (P[K].transpose() * muJ2_Pk_vK);
 
-	dQdPj.noalias() = muK2_Pj_vJ * vJ.transpose();//differential wrt. local projection matrix.
-	dQdPk.noalias() =	muJ2_Pk_vK * vK.transpose(); 
-	P[J] -= lr_P * dQdPj ;
-	P[K] -= lr_P * dQdPk ;
+	muK2_Pj_vJ *= lr_P;
+	muJ2_Pk_vK *= lr_P;
+	P[J].noalias() -=  muK2_Pj_vJ * vJ.transpose() ;
+	P[K].noalias() -= muJ2_Pk_vK * vK.transpose() ;
 #else
 	//VectorXd
 	vJ = prototype[J] - trainPoint;
