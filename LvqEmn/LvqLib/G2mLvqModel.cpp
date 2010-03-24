@@ -9,11 +9,11 @@ G2mLvqModel::G2mLvqModel(boost::mt19937 & rng,  bool randInit, std::vector<int> 
 	, lr_scale_P(LVQ_LrScaleP)
 	, lr_scale_B(LVQ_LrScaleB)
 	, classCount((int)protodistribution.size())
-	, vJ(means.rows())
-	, vK(means.rows())
-	, dQdwJ(means.rows())
-	, dQdwK(means.rows())
-	, dQdP(LVQ_LOW_DIM_SPACE,means.rows())
+	, m_vJ(means.rows())
+	, m_vK(means.rows())
+	, m_dQdwJ(means.rows())
+	, m_dQdwK(means.rows())
+	, m_dQdP(LVQ_LOW_DIM_SPACE,means.rows())
 {
 	using namespace std;
 
@@ -40,6 +40,8 @@ G2mLvqModel::G2mLvqModel(boost::mt19937 & rng,  bool randInit, std::vector<int> 
 }
 
 
+typedef Eigen::Map<VectorXd,Eigen::Aligned  > MVectorXd;
+typedef Eigen::Map<PMatrix> MPMatrix;
 
 void G2mLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel) {
 
@@ -75,8 +77,12 @@ void G2mLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel) {
 	G2mLvqPrototype *J = const_cast<G2mLvqPrototype *>(matches.good);
 	G2mLvqPrototype *K = const_cast<G2mLvqPrototype *>(matches.bad);
 	assert(J == matches.good && K == matches.bad);
-
+	
+	
 	//VectorXd
+	MVectorXd vJ(m_vJ.data(),m_vJ.size());
+	MVectorXd vK(m_vK.data(),m_vK.size());
+
 #if EIGEN3
 	vJ = J->point - trainPoint;
 	vK = K->point - trainPoint;
@@ -132,12 +138,15 @@ void G2mLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel) {
 	//double kBnormScale =1.0 / ( (K->B.transpose() * K->B).lazy().diagonal().sum());
 	//K->B *= kBnormScale;
 
+	
+	//MVectorXd dQdwJ(m_dQdwJ.data(),m_dQdwJ.size());
+	//MVectorXd dQdwK(m_dQdwK.data(),m_dQdwK.size());
 
 #if EIGEN3
-	dQdwJ.noalias() = P.transpose() *  muK2_BjT_Bj_P_vJ; //differential of cost function Q wrt w_J; i.e. wrt J->point.  Note mu_K(!) for differention wrt J(!)
-	dQdwK.noalias() = P.transpose() * muJ2_BkT_Bk_P_vK;
-	J->point -=  lr_point * dQdwJ ;
-	K->point -=  lr_point * dQdwK ;
+	//dQdwJ.noalias() = P.transpose() *  muK2_BjT_Bj_P_vJ; //differential of cost function Q wrt w_J; i.e. wrt J->point.  Note mu_K(!) for differention wrt J(!)
+	//dQdwK.noalias() = P.transpose() * muJ2_BkT_Bk_P_vK;
+	J->point.noalias() -=  P.transpose() *  (lr_point * muK2_BjT_Bj_P_vJ );
+	K->point.noalias() -=   P.transpose() *(lr_point * muJ2_BkT_Bk_P_vK );
 #else
 	dQdwJ = (P.transpose() *  muK2_BjT_Bj_P_vJ).lazy(); //differential of cost function Q wrt w_J; i.e. wrt J->point.  Note mu_K(!) for differention wrt J(!)
 	dQdwK = (P.transpose() * muJ2_BkT_Bk_P_vK).lazy();
@@ -148,7 +157,8 @@ void G2mLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel) {
 	//dQdP = (muK2_BjT_Bj_P_vJ * vJ.transpose()).lazy() + (muJ2_BkT_Bk_P_vK * vK.transpose()).lazy(); //differential wrt. global projection matrix.
 	//P = P - lr_P * dQdP ;
 #if EIGEN3
-	P.noalias() -= lr_P * ( muK2_BjT_Bj_P_vJ * vJ.transpose() + muJ2_BkT_Bk_P_vK * vK.transpose()) ;
+	P.noalias() -= (lr_P *  muK2_BjT_Bj_P_vJ) * vJ.transpose();
+	P.noalias() -= (lr_P *  muJ2_BkT_Bk_P_vK) * vK.transpose() ;
 //	double pNormScale =1.0 /  (P.transpose() * P).diagonal().sum();
 #else
 	P =P-  lr_P * ( (muK2_BjT_Bj_P_vJ * vJ.transpose()).lazy() + (muJ2_BkT_Bk_P_vK * vK.transpose()).lazy()) ;
@@ -182,10 +192,10 @@ AbstractLvqModel* G2mLvqModel::clone() { return new G2mLvqModel(*this); }
 size_t G2mLvqModel::MemAllocEstimate() const {
 	return 
 		sizeof(G2mLvqModel) +
-		sizeof(double) * (P.size() + dQdP.size()) +
-		sizeof(double) * (vJ.size()*4) + //various temps
+		sizeof(double) * (P.size() + m_dQdP.size()) +
+		sizeof(double) * (m_vJ.size()*4) + //various temps
 		sizeof(G2mLvqPrototype)*prototype.size() + //prototypes; part statically allocated
-		sizeof(double) * (prototype.size() * vJ.size()) + //prototypes; part dynamically allocated
+		sizeof(double) * (prototype.size() * m_vJ.size()) + //prototypes; part dynamically allocated
 		(16/2) * (4+prototype.size()*2);//estimate for alignment mucking.
 }
 
