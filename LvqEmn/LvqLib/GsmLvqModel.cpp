@@ -57,11 +57,11 @@ void GsmLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel) {
 
 	assert(lr_P>=0  &&  lr_point>=0);
 
-	Vector2d P_trainPoint;
 #if EIGEN3
+	Vector2d P_trainPoint;
 	P_trainPoint.noalias() = P * trainPoint;
 #else
-	P_trainPoint = (P * trainPoint).lazy();
+	Vector2d P_trainPoint = (P * trainPoint).lazy();
 #endif
 	GoodBadMatch matches = findMatches(P_trainPoint, trainLabel);
 

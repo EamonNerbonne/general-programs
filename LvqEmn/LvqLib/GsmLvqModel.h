@@ -64,43 +64,18 @@ class GsmLvqModel : public AbstractProjectionLvqModel
 	}
 
 	inline int classifyProjectedInternal(Vector2d const & P_otherPoint) const{
-		using namespace std;
 		double distance(std::numeric_limits<double>::infinity());
 		int match(-1);
 
 		for(int i=0;i<pLabel.size();i++) {
 			double curDist = SqrDistanceTo(i, P_otherPoint);
-			if(curDist < distance) {
-				match=i;
-				distance = curDist;
-			}
+			if(curDist < distance) { match=i; distance = curDist; }
 		}
 		assert( match >= 0 );
 		return this->pLabel(match);
 	}
 
-	inline int classifyInternal(VectorXd const & unknownPoint) const{
-		Vector2d P_otherPoint;
-#if EIGEN3
-		P_otherPoint.noalias() = P * unknownPoint;
-#else
-		P_otherPoint = (P * unknownPoint).lazy();
-#endif
-
-		using namespace std;
-		double distance(std::numeric_limits<double>::infinity());
-		int match(-1);
-
-		for(int i=0;i<pLabel.size();i++) {
-			double curDist = SqrDistanceTo(i,P_otherPoint);
-			if(curDist < distance) {
-				match=i;
-				distance = curDist;
-			}
-		}
-		assert( match >= 0 );
-		return this->pLabel(match);
-	}
+	inline int classifyInternal(VectorXd const & unknownPoint) const { return classifyProjectedInternal(P * unknownPoint); }
 
 
 public:

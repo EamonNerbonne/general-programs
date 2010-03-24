@@ -13,35 +13,17 @@ class G2mLvqModel : public AbstractProjectionLvqModel
 	double lr_scale_P, lr_scale_B;
 	const int classCount;
 
-	//calls dimensionality of input-space DIMS
-	//we will preallocate a few vectors to reduce malloc/free overhead.
-
-	VectorXd m_vJ, m_vK; //vectors of dimension DIMS
+	//we will preallocate a few temp vectors to reduce malloc/free overhead.
+	VectorXd m_vJ, m_vK;
 
 	inline int classifyProjectedInternal(Vector2d const & P_unknownPoint) const {
-		using namespace std;
 		G2mLvqMatch matches(&P_unknownPoint);
-
-		for(int i=0;i<prototype.size(); ++ i)
-			matches.AccumulateMatch(prototype[i]);
-
+		for(int i=0;i<prototype.size(); ++ i)	matches.AccumulateMatch(prototype[i]);
 		assert(matches.match != NULL);
 		return matches.match->ClassLabel();
 	}
 
-
-	inline int classifyInternal(VectorXd const & unknownPoint) const{
-		using namespace std;
-#if EIGEN3
-		Vector2d P_unknownPoint;
-		P_unknownPoint.noalias() = P * unknownPoint;
-#else
-		Vector2d P_unknownPoint = (P * unknownPoint).lazy();
-#endif
-		return classifyProjectedInternal(P_unknownPoint);
-	}
-
-
+	inline int classifyInternal(VectorXd const & unknownPoint) const { return classifyProjectedInternal(P * unknownPoint); }
 public:
 
 	G2mLvqModel(boost::mt19937 & rng, bool randInit, std::vector<int> protodistribution, MatrixXd const & means);
