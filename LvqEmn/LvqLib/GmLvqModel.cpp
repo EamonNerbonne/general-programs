@@ -8,12 +8,8 @@ GmLvqModel::GmLvqModel(boost::mt19937 & rng, bool randInit, std::vector<int> pro
 	, classCount((int)protodistribution.size())
 	, vJ(means.rows())
 	, vK(means.rows())
-	, dQdwJ(means.rows())
-	, dQdwK(means.rows())
 	, tmpHelper1(means.rows())
 	, tmpHelper2(means.rows())
-	, dQdPj(means.rows(), means.rows())
-	, dQdPk(means.rows(), means.rows())
 {
 	using namespace std;
 
@@ -88,33 +84,31 @@ void GmLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel) {
 	vJ = prototype[J] - trainPoint;
 	vK = prototype[K] - trainPoint;
 
-	VectorXd & muK2_Pj_vJ = tmpHelper1;
-	VectorXd & muJ2_Pk_vK = tmpHelper2;
+	VectorXd & lrX_muK2_Pj_vJ = tmpHelper1;
+	VectorXd & lrX_muJ2_Pk_vK = tmpHelper2;
 
-	muK2_Pj_vJ = (mu_K * 2.0 *  P[J] * vJ ).lazy();
-	muJ2_Pk_vK = (mu_J * 2.0 *  P[K] * vK ).lazy();
+	lrX_muK2_Pj_vJ = ( P[J] * vJ ).lazy();
+	lrX_muK2_Pj_vJ *=lr_point* mu_K * 2.0;
+	lrX_muJ2_Pk_vK = ( P[K] * vK ).lazy();
+	lrX_muJ2_Pk_vK *= lr_point* mu_J * 2.0;
 
-	dQdwJ = (P[J].transpose() *  muK2_Pj_vJ).lazy(); //differential of cost function Q wrt w_J; i.e. wrt J->point.  Note mu_K(!) for differention wrt J(!)
-	dQdwK = (P[K].transpose() * muJ2_Pk_vK).lazy();
-	prototype[J] -= ( lr_point * dQdwJ).lazy();
-	prototype[K] -= ( lr_point * dQdwK).lazy();
+	prototype[J] -= (  P[J].transpose() *  lrX_muK2_Pj_vJ).lazy();
+	prototype[K] -= (  P[K].transpose() * lrX_muJ2_Pk_vK).lazy();
 
-	dQdPj = (muK2_Pj_vJ * vJ.transpose()).lazy();//differential wrt. local projection matrix.
-	dQdPk =	(muJ2_Pk_vK * vK.transpose()).lazy(); 
-	P[J] -= (lr_P * dQdPj ).lazy();
-	P[K] -= (lr_P * dQdPk ).lazy();
+	lrX_muK2_Pj_vJ *= lr_P / lr_point;
+	lrX_muJ2_Pk_vK *= lr_P / lr_point;
+
+	P[J] -= ( lrX_muK2_Pj_vJ * vJ.transpose() ).lazy();
+	P[K] -= ( lrX_muJ2_Pk_vK * vK.transpose() ).lazy();
 #endif
 }
-
 
 size_t GmLvqModel::MemAllocEstimate() const {
 	return 
 		sizeof(GmLvqModel) + //base structure size
 		sizeof(int)*pLabel.size() + //dyn.alloc labels
-		sizeof(double) * (dQdPj.size() + dQdPk.size()) + //dyn alloc temp transforms
-		sizeof(double) * (dQdPj.size() * P.size()) + //dyn alloc prototype transforms
-		sizeof(double) * (vJ.size()*6) + //various vector temps
-		sizeof(VectorXd) *prototype.size() +//dyn alloc prototype base overhead
-		sizeof(double) * (prototype.size() * vJ.size()) + //dyn alloc prototype data
-		(16/2) * (6+prototype.size()*2);//estimate for alignment mucking.
+		(sizeof(double) * P[0].size() + sizeof(MatrixXd)) * P.size() + //dyn alloc prototype transforms
+		sizeof(double) * (vJ.size() + vK.size() + tmpHelper1.size() + tmpHelper2.size()) + //various vector temps
+		(sizeof(VectorXd) + sizeof(double)*prototype[0].size()) *prototype.size() +//dyn alloc prototypes
+		(16/2) * (4+prototype.size()*2);//estimate for alignment mucking.
 }

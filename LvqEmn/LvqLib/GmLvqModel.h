@@ -15,9 +15,8 @@ class GmLvqModel : public AbstractLvqModel
 	//calls dimensionality of input-space DIMS
 	//we will preallocate a few vectors to reduce malloc/free overhead.
 
-	VectorXd vJ, vK, dQdwJ, dQdwK;
+	VectorXd vJ, vK;
 	mutable VectorXd tmpHelper1, tmpHelper2; //vectors of dimension DIMS
-	MatrixXd dQdPj, dQdPk;
 
 	EIGEN_STRONG_INLINE double SqrDistanceTo(int protoIndex, VectorXd const & otherPoint) const {
 #if EIGEN3
@@ -25,9 +24,9 @@ class GmLvqModel : public AbstractLvqModel
 		tmpHelper2.noalias() = P[protoIndex] * tmpHelper1;
 		return tmpHelper2.squaredNorm();
 #else
-		tmp = prototype[protoIndex] - otherPoint;
-		tmp2 = P[protoIndex] * tmp;
-		return tmp2.squaredNorm();
+		tmpHelper1 = prototype[protoIndex] - otherPoint;
+		tmpHelper2 = (P[protoIndex] * tmpHelper1).lazy();
+		return tmpHelper2.squaredNorm();
 #endif
 		
 	}
@@ -88,4 +87,3 @@ inline int GmLvqModel::classify(VectorXd const & unknownPoint) const{
 	assert( match >= 0 );
 	return this->pLabel(match);
 }
-
