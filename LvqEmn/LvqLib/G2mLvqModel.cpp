@@ -74,65 +74,43 @@ void G2mLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel) {
 	G2mLvqPrototype *K = const_cast<G2mLvqPrototype *>(matches.bad);
 	assert(J == matches.good && K == matches.bad);
 	
-	
-	//VectorXd
 	MVectorXd vJ(m_vJ.data(),m_vJ.size());
 	MVectorXd vK(m_vK.data(),m_vK.size());
 
 	vJ = J->point - trainPoint;
 	vK = K->point - trainPoint;
-
-#if EIGEN3
 	Vector2d P_vJ= J->P_point - projectedTrainPoint;
 	Vector2d P_vK = K->P_point - projectedTrainPoint;
-#else
-	Vector2d P_vJ = J->P_point - projectedTrainPoint;
-	Vector2d P_vK = K->P_point - projectedTrainPoint;
-#endif
 
 	Vector2d muK2_Bj_P_vJ, muJ2_Bk_P_vK,muK2_BjT_Bj_P_vJ,muJ2_BkT_Bk_P_vK;
+
 #if EIGEN3
 	muK2_Bj_P_vJ.noalias() = (mu_K * 2.0) *  (J->B * P_vJ) ;
 	muJ2_Bk_P_vK.noalias() = (mu_J * 2.0) *  (K->B * P_vK) ;
-	muK2_BjT_Bj_P_vJ.noalias() =  J->B.transpose() * muK2_Bj_P_vJ;
-	muJ2_BkT_Bk_P_vK.noalias() = K->B.transpose() * muJ2_Bk_P_vK;
+	muK2_BjT_Bj_P_vJ.noalias() =  J->B.transpose() * muK2_Bj_P_vJ ;
+	muJ2_BkT_Bk_P_vK.noalias() = K->B.transpose() * muJ2_Bk_P_vK ;
+	J->B.noalias() -= lr_B * muK2_Bj_P_vJ * P_vJ.transpose() ;
+	K->B.noalias() -= lr_B * muJ2_Bk_P_vK * P_vK.transpose() ;
+	J->point.noalias() -=  P.transpose() * (lr_point * muK2_BjT_Bj_P_vJ) ;
+	K->point.noalias() -=   P.transpose() * (lr_point * muJ2_BkT_Bk_P_vK) ;
+	P.noalias() -= (lr_P * muK2_BjT_Bj_P_vJ) * vJ.transpose() + (lr_P * muJ2_BkT_Bk_P_vK) * vK.transpose() ;
+	//	double pNormScale =1.0 /  (P.transpose() * P).diagonal().sum();
+	//	P *= pNormScale;
 #else
 	muK2_Bj_P_vJ = mu_K * 2.0 * ( J->B * P_vJ ).lazy();
 	muJ2_Bk_P_vK = mu_J * 2.0 * ( K->B * P_vK ).lazy();
 	muK2_BjT_Bj_P_vJ =  (J->B.transpose() * muK2_Bj_P_vJ).lazy();
 	muJ2_BkT_Bk_P_vK = (K->B.transpose() * muJ2_Bk_P_vK).lazy();
-#endif
-	//performance: J->B, J->point, K->B, and K->point, are write only from hereon forward, so we _could_ fold the differential computation info the update statement (less intermediates, but strangely not faster).
-
-
-#if EIGEN3
-	J->B.noalias() -= lr_B * muK2_Bj_P_vJ * P_vJ.transpose() ;
-	K->B.noalias() -= lr_B * muJ2_Bk_P_vK * P_vK.transpose() ;
-#else
 	Matrix2d dQdBj = (muK2_Bj_P_vJ * P_vJ.transpose()).lazy();
 	Matrix2d dQdBk = (muJ2_Bk_P_vK * P_vK.transpose()).lazy();
 	J->B -= lr_B * dQdBj;
 	K->B -= lr_B * dQdBk;
-#endif
-
-#if EIGEN3
-	J->point.noalias() -=  P.transpose() * (lr_point * muK2_BjT_Bj_P_vJ );
-	K->point.noalias() -=   P.transpose() * (lr_point * muJ2_BkT_Bk_P_vK );
-#else
 	J->point -= (P.transpose() * (lr_point * muK2_BjT_Bj_P_vJ )).lazy();
 	K->point -= (P.transpose() * (lr_point * muJ2_BkT_Bk_P_vK )).lazy();
-#endif
-
-#if EIGEN3
-	P.noalias() -= (lr_P * muK2_BjT_Bj_P_vJ) * vJ.transpose() + (lr_P * muJ2_BkT_Bk_P_vK) * vK.transpose();
-	//	double pNormScale =1.0 /  (P.transpose() * P).diagonal().sum();
-#else
 	P -=  ((lr_P * muK2_BjT_Bj_P_vJ) * vJ.transpose()).lazy() + ((lr_P * muJ2_BkT_Bk_P_vK) * vK.transpose()).lazy();
     //double pNormScale =1.0 /  (P.transpose() * P).lazy().diagonal().sum();
-#endif
 	//	P *= pNormScale;
-
-	
+#endif
 
 	for(int i=0;i<prototype.size();++i)
 		prototype[i].ComputePP(P);
