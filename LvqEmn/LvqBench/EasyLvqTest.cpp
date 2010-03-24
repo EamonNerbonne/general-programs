@@ -116,11 +116,11 @@ void EasyLvqTest() {
 		//TestModel<GmLvqModel>(rndGen2, true,  dataset.get(), protoDistrib, (ITERS + DIMS -1)/DIMS);
 		//TestModel<GmLvqModel>(rndGen2, false,  dataset.get(), protoDistrib, (ITERS + DIMS -1)/DIMS);
 
-		TestModel<G2mLvqModel>(rndGen2, true, dataset.get(), protoDistrib, ITERS);
-		TestModel<G2mLvqModel>(rndGen2, false, dataset.get(), protoDistrib, ITERS);
+		//TestModel<G2mLvqModel>(rndGen2, true, dataset.get(), protoDistrib, ITERS);
+		//TestModel<G2mLvqModel>(rndGen2, false, dataset.get(), protoDistrib, ITERS);
 
-		//TestModel<GsmLvqModel>(rndGen2, true, dataset.get(), protoDistrib, ITERS);
-		//TestModel<GsmLvqModel>(rndGen2, false, dataset.get(), protoDistrib, ITERS);
+		TestModel<GsmLvqModel>(rndGen2, true, dataset.get(), protoDistrib, ITERS);
+		TestModel<GsmLvqModel>(rndGen2, false, dataset.get(), protoDistrib, ITERS);
 
 		cerr<<"\n";
 		t.stop();

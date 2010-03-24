@@ -83,26 +83,15 @@ void G2mLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel) {
 	MVectorXd vJ(m_vJ.data(),m_vJ.size());
 	MVectorXd vK(m_vK.data(),m_vK.size());
 
-#if EIGEN3
-	vJ = J->point - trainPoint;
-	vK = K->point - trainPoint;
-#else
 	vJ = J->point - trainPoint;
 	vK = K->point - trainPoint;
 
-#endif
-
-#ifdef BPROJ
-	Vector2d P_vJ = ( P * vJ ).lazy();
-	Vector2d P_vK =( P * vK ).lazy();
-#else
 #if EIGEN3
 	Vector2d P_vJ= J->P_point - projectedTrainPoint;
 	Vector2d P_vK = K->P_point - projectedTrainPoint;
 #else
 	Vector2d P_vJ = J->P_point - projectedTrainPoint;
 	Vector2d P_vK = K->P_point - projectedTrainPoint;
-#endif
 #endif
 
 	Vector2d muK2_Bj_P_vJ, muJ2_Bk_P_vK,muK2_BjT_Bj_P_vJ,muJ2_BkT_Bk_P_vK;
@@ -120,31 +109,20 @@ void G2mLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel) {
 	//performance: J->B, J->point, K->B, and K->point, are write only from hereon forward, so we _could_ fold the differential computation info the update statement (less intermediates, but strangely not faster).
 
 
-	Matrix2d dQdBj, dQdBk;
 #if EIGEN3
-	dQdBj.noalias() = muK2_Bj_P_vJ * P_vJ.transpose();
-	dQdBk.noalias() = muJ2_Bk_P_vK * P_vK.transpose();
-	J->B -= lr_B * dQdBj ;
-	K->B -= lr_B * dQdBk ;
+	//Matrix2d dQdBj, dQdBk;
+	//dQdBj.noalias() = muK2_Bj_P_vJ * P_vJ.transpose();
+	//dQdBk.noalias() = muJ2_Bk_P_vK * P_vK.transpose();
+	J->B.noalias() -= lr_B * muK2_Bj_P_vJ * P_vJ.transpose() ;
+	K->B.noalias() -= lr_B * muJ2_Bk_P_vK * P_vK.transpose() ;
 #else
-	dQdBj = (muK2_Bj_P_vJ * P_vJ.transpose()).lazy();
-	dQdBk = (muJ2_Bk_P_vK * P_vK.transpose()).lazy();
+	Matrix2d dQdBj = (muK2_Bj_P_vJ * P_vJ.transpose()).lazy();
+	Matrix2d dQdBk = (muJ2_Bk_P_vK * P_vK.transpose()).lazy();
 	J->B -= lr_B * dQdBj;
 	K->B -= lr_B * dQdBk;
 #endif
 
-	//double jBnormScale =1.0 / ( (J->B.transpose() * J->B).lazy().diagonal().sum());
-	//J->B *= jBnormScale;
-	//double kBnormScale =1.0 / ( (K->B.transpose() * K->B).lazy().diagonal().sum());
-	//K->B *= kBnormScale;
-
-	
-	//MVectorXd dQdwJ(m_dQdwJ.data(),m_dQdwJ.size());
-	//MVectorXd dQdwK(m_dQdwK.data(),m_dQdwK.size());
-
 #if EIGEN3
-	//dQdwJ.noalias() = P.transpose() *  muK2_BjT_Bj_P_vJ; //differential of cost function Q wrt w_J; i.e. wrt J->point.  Note mu_K(!) for differention wrt J(!)
-	//dQdwK.noalias() = P.transpose() * muJ2_BkT_Bk_P_vK;
 	J->point.noalias() -=  P.transpose() *  (lr_point * muK2_BjT_Bj_P_vJ );
 	K->point.noalias() -=   P.transpose() *(lr_point * muJ2_BkT_Bk_P_vK );
 #else
@@ -157,9 +135,11 @@ void G2mLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel) {
 	//dQdP = (muK2_BjT_Bj_P_vJ * vJ.transpose()).lazy() + (muJ2_BkT_Bk_P_vK * vK.transpose()).lazy(); //differential wrt. global projection matrix.
 	//P = P - lr_P * dQdP ;
 #if EIGEN3
-	P.noalias() -= (lr_P *  muK2_BjT_Bj_P_vJ) * vJ.transpose();
-	P.noalias() -= (lr_P *  muJ2_BkT_Bk_P_vK) * vK.transpose() ;
-//	double pNormScale =1.0 /  (P.transpose() * P).diagonal().sum();
+	P.noalias() -= lr_P * ( muK2_BjT_Bj_P_vJ * vJ.transpose() + muJ2_BkT_Bk_P_vK * vK.transpose()) ;
+	//P.noalias() -= (lr_P *  muK2_BjT_Bj_P_vJ) * vJ.transpose();
+	//P.noalias() -= (lr_P *  muJ2_BkT_Bk_P_vK) * vK.transpose() ;
+
+	//	double pNormScale =1.0 /  (P.transpose() * P).diagonal().sum();
 #else
 	P =P-  lr_P * ( (muK2_BjT_Bj_P_vJ * vJ.transpose()).lazy() + (muJ2_BkT_Bk_P_vK * vK.transpose()).lazy()) ;
 //	double pNormScale =1.0 /  (P.transpose() * P).lazy().diagonal().sum();
