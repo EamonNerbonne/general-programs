@@ -16,8 +16,7 @@ class G2mLvqModel : public AbstractProjectionLvqModel
 	//calls dimensionality of input-space DIMS
 	//we will preallocate a few vectors to reduce malloc/free overhead.
 
-	VectorXd m_vJ, m_vK, m_dQdwJ, m_dQdwK; //vectors of dimension DIMS
-	PMatrix m_dQdP;
+	VectorXd m_vJ, m_vK; //vectors of dimension DIMS
 
 	inline int classifyProjectedInternal(Vector2d const & P_unknownPoint) const {
 		using namespace std;
