@@ -78,17 +78,14 @@ void GsmLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel) {
 
 	//VectorXd
 #if EIGEN3
-	Vector2d muK2_P_vJ, muJ2_P_vK;
-	muK2_P_vJ.noalias() = mu_K * 2.0 * (P_prototype[J] - P_trainPoint) ;
-	muJ2_P_vK.noalias() = mu_J * 2.0 * (P_prototype[K] - P_trainPoint);
+	Vector2d muK2_P_vJ = mu_K * 2.0 * (P_prototype[J] - P_trainPoint) ;
+	Vector2d muJ2_P_vK = mu_J * 2.0 * (P_prototype[K] - P_trainPoint);
 
-	dQdwJ.noalias() = P.transpose() * muK2_P_vJ; //differential of cost function Q wrt w_J; i.e. wrt J->point.  Note mu_K(!) for differention wrt J(!)
-	dQdwK.noalias() = P.transpose() * muJ2_P_vK;
-	prototype[J].noalias() -= lr_point * dQdwJ;
-	prototype[K].noalias() -= lr_point * dQdwK;
+	prototype[J].noalias() -= P.transpose() * (lr_point * muK2_P_vJ);
+	prototype[K].noalias() -= P.transpose() * (lr_point *muJ2_P_vK);
 
-	dQdP.noalias() = muK2_P_vJ * vJ.transpose() + muJ2_P_vK * vK.transpose(); //differential wrt. global projection matrix.
-	P.noalias() -= lr_P * dQdP;
+	//differential wrt. global projection matrix is subtracted...
+	P.noalias() -= (lr_P * muK2_P_vJ) * vJ.transpose() + (lr_P * muJ2_P_vK) * vK.transpose();
 #else
 	Vector2d muK2_P_vJ = (mu_K * 2.0 * (P_prototype[J] - P_trainPoint) ).lazy();
 	Vector2d muJ2_P_vK = (mu_J * 2.0 * (P_prototype[K] - P_trainPoint) ).lazy();

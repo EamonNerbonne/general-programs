@@ -55,7 +55,7 @@ class GsmLvqModel : public AbstractProjectionLvqModel
 
 
 
-	inline void RecomputeProjection(int protoIndex) {
+	EIGEN_STRONG_INLINE void RecomputeProjection(int protoIndex) {
 #if EIGEN3
 		P_prototype[protoIndex].noalias() = P * prototype[protoIndex];
 #else
