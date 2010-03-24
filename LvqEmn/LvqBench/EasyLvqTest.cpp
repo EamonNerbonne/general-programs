@@ -53,28 +53,26 @@ USING_PART_OF_NAMESPACE_EIGEN
 }
 #endif
 
-template <class DerivedModel>
-void PrintModelStatus(char const * label,AbstractLvqModel<DerivedModel> const * model,LvqDataSet const * dataset) {
+void PrintModelStatus(char const * label,AbstractLvqModel const * model,LvqDataSet const * dataset) {
 	using namespace std;
 	cerr << label<< ": "<<dataset->ErrorRate(model);
-	if(dynamic_cast<AbstractProjectionLvqModel<DerivedModel> const*>(model)) 
-		cerr<<"   [norm: "<< dynamic_cast<AbstractProjectionLvqModel<DerivedModel> const*>(model)->projectionNorm() <<"]";
+	if(dynamic_cast<AbstractProjectionLvqModel const*>(model)) 
+		cerr<<"   [norm: "<< dynamic_cast<AbstractProjectionLvqModel const*>(model)->projectionNorm() <<"]";
 	cerr<<endl;
 }
 
-template <class DerivedModel>
-void TestModel(mt19937 & rndGenOrig, bool randInit, LvqDataSet const  * dataset, vector<int> const & protoDistrib, int iters) {
+template <class T> void TestModel(mt19937 & rndGenOrig, bool randInit, LvqDataSet const  * dataset, vector<int> const & protoDistrib, int iters) {
 	Eigen::BenchTimer t;
 	mt19937 rndGenCopy = rndGenOrig;
 
 	mt19937 rndGen(rndGenCopy); //we do this to avoid changing the original rng, so we can rerun tests with the same sequence of random numbers generated.
 
 	using boost::scoped_ptr;
-	scoped_ptr<AbstractLvqModel<DerivedModel> > model;
+	scoped_ptr<AbstractLvqModel> model;
 	t.start();
-	model.reset(new DerivedModel(rndGen, randInit, protoDistrib, dataset->ComputeClassMeans()));
+	model.reset(new T(rndGen, randInit, protoDistrib, dataset->ComputeClassMeans()));
 	t.stop();
-	cerr<<"constructing "<<typeid(DerivedModel).name()<<" ("<<(randInit?"random":"identity")<<" proj. init)"<<t.value()<<"s\n";
+	cerr<<"constructing "<<typeid(T).name()<<" ("<<(randInit?"random":"identity")<<" proj. init)"<<t.value()<<"s\n";
 
 	PrintModelStatus("Initial", model.get(), dataset);
 
@@ -90,7 +88,7 @@ void TestModel(mt19937 & rndGenOrig, bool randInit, LvqDataSet const  * dataset,
 		}
 	}
 	t.stop();
-	cerr<<"training "<<typeid(DerivedModel).name()<<": "<<t.value()<<"s\n";
+	cerr<<"training "<<typeid(T).name()<<": "<<t.value()<<"s\n";
 }
 
 void EasyLvqTest() {

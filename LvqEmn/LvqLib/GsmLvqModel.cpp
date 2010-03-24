@@ -4,7 +4,7 @@
 #include "LvqConstants.h"
 
 GsmLvqModel::GsmLvqModel(boost::mt19937 & rng,  bool randInit, std::vector<int> protodistribution, MatrixXd const & means) 
-	: AbstractProjectionLvqModel<GsmLvqModel>(means.rows()) 
+	: AbstractProjectionLvqModel(means.rows()) 
 	, lr_scale_P(LVQ_LrScaleP)
 	, classCount((int)protodistribution.size())
 	, vJ(means.rows())
@@ -45,7 +45,7 @@ GsmLvqModel::GsmLvqModel(boost::mt19937 & rng,  bool randInit, std::vector<int> 
 
 
 
-void GsmLvqModel::learnFromImpl(VectorXd const & trainPoint, int trainLabel) {
+void GsmLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel) {
 	//double learningRate = getLearningRate();
 	//incLearningIterationCount();
 	double learningRate = stepLearningRate();
@@ -113,10 +113,24 @@ void GsmLvqModel::learnFromImpl(VectorXd const & trainPoint, int trainLabel) {
 		RecomputeProjection(i);
 }
 
+void GsmLvqModel::ClassBoundaryDiagram(double x0, double x1, double y0, double y1, MatrixXi & classDiagram) const {
+	int cols = classDiagram.cols();
+	int rows = classDiagram.rows();
+	for(int xCol=0;  xCol < cols;  xCol++) {
+		double x = x0 + (x1-x0) * (xCol+0.5) / cols;
+		for(int yRow=0;  yRow < rows;  yRow++) {
+			double y = y0+(y1-y0) * (yRow+0.5) / rows;
+			Vector2d vec(x,y);
+			classDiagram(yRow,xCol) = classifyProjectedInternal(vec);
+		}
+	}
+}
+
+AbstractLvqModel* GsmLvqModel::clone() { return new GsmLvqModel(*this);	}
 
 
 
-size_t GsmLvqModel::MemAllocEstimateImpl() const {
+size_t GsmLvqModel::MemAllocEstimate() const {
 	return 
 		sizeof(GsmLvqModel) + //base structure size
 		sizeof(int)*pLabel.size() + //dyn.alloc labels
@@ -127,4 +141,66 @@ size_t GsmLvqModel::MemAllocEstimateImpl() const {
 		sizeof(Vector2d) * P_prototype.size() + //cache of pretransformed prototypes
 		(16/2) * (5+prototype.size()*2);//estimate for alignment mucking.
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

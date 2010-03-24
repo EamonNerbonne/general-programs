@@ -4,7 +4,7 @@
 
 using boost::scoped_array;
 using std::vector;
-class GmLvqModel : public AbstractLvqModel<GmLvqModel>
+class GmLvqModel : public AbstractLvqModel
 {
 	vector<MatrixXd > P; //<double,Eigen::Dynamic,Eigen::Dynamic,Eigen::ColMajor,Eigen::Dynamic,Eigen::Dynamic>
 	vector<VectorXd> prototype;
@@ -18,7 +18,7 @@ class GmLvqModel : public AbstractLvqModel<GmLvqModel>
 	VectorXd vJ, vK, dQdwJ, dQdwK, tmpHelper1, tmpHelper2; //vectors of dimension DIMS
 	MatrixXd dQdPj, dQdPk;
 
-	double SqrDistanceTo(int protoIndex, VectorXd const & otherPoint, VectorXd & tmp, VectorXd tmp2) const {
+	EIGEN_STRONG_INLINE double SqrDistanceTo(int protoIndex, VectorXd const & otherPoint, VectorXd & tmp, VectorXd tmp2) const {
 #if EIGEN3
 		tmp.noalias() = prototype[protoIndex] - otherPoint;
 		return (P[protoIndex] * tmp).squaredNorm();
@@ -43,15 +43,15 @@ class GmLvqModel : public AbstractLvqModel<GmLvqModel>
 	inline GoodBadMatch findMatches(VectorXd const & trainPoint, int trainLabel, VectorXd & tmp, VectorXd tmp2); 
 
 public:
-	size_t MemAllocEstimateImpl() const;
-
-	int classifyImpl(VectorXd const & unknownPoint) const; //tmp must be just as large as unknownPoint, this is a malloc/free avoiding optimization.
-	EIGEN_DONT_INLINE void learnFromImpl(VectorXd const & newPoint, int classLabel);//tmp must be just as large as unknownPoint, this is a malloc/free avoiding optimization.
+	virtual size_t MemAllocEstimate() const;
 
 	GmLvqModel(boost::mt19937 & rng,  bool randInit, std::vector<int> protodistribution, MatrixXd const & means);
+	virtual int classify(VectorXd const & unknownPoint) const; //tmp must be just as large as unknownPoint, this is a malloc/free avoiding optimization.
+	virtual void learnFrom(VectorXd const & newPoint, int classLabel);//tmp must be just as large as unknownPoint, this is a malloc/free avoiding optimization.
+	virtual AbstractLvqModel* clone() { return new GmLvqModel(*this); }
 };
 
-inline int GmLvqModel::classifyImpl(VectorXd const & unknownPoint) const{
+inline int GmLvqModel::classify(VectorXd const & unknownPoint) const{
 	using namespace std;
 	double distance(std::numeric_limits<double>::infinity());
 	int match(-1);

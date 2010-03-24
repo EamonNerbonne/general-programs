@@ -19,9 +19,10 @@ struct G2mLvqGoodBadMatch {
 		, distanceBad(std::numeric_limits<double>::infinity()) 
 		, good(NULL)
 		, bad(NULL)
+		
 	{ }
 
-	EIGEN_STRONG_INLINE void AccumulateMatch(G2mLvqPrototype const & option) {
+	inline void AccumulateMatch(G2mLvqPrototype const & option) {
 		double optionDist = option.SqrDistanceTo(*projectedPoint);
 		assert(optionDist > 0);
 		assert(optionDist < std::numeric_limits<double>::infinity());
@@ -52,7 +53,7 @@ struct G2mLvqMatch {
 		, match(NULL)
 	{ }
 
-	void AccumulateMatch(G2mLvqPrototype const & option) {
+	inline void AccumulateMatch(G2mLvqPrototype const & option) {
 		double optionDist = option.SqrDistanceTo(*P_testPoint);
 		assert(optionDist > 0);
 		assert(optionDist < std::numeric_limits<double>::infinity());
