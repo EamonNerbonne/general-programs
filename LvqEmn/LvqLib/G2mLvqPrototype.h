@@ -35,7 +35,7 @@ public:
 			B.setIdentity();
 	}
 
-	EIGEN_STRONG_INLINE double SqrDistanceTo(Vector2d const & P_testPoint) const {
+	double SqrDistanceTo(Vector2d const & P_testPoint) const {
 		Vector2d P_Diff;
 #if EIGEN3
 		P_Diff.noalias() = P_testPoint - P_point;

@@ -52,7 +52,7 @@ struct G2mLvqMatch {
 		, match(NULL)
 	{ }
 
-	EIGEN_STRONG_INLINE void AccumulateMatch(G2mLvqPrototype const & option) {
+	void AccumulateMatch(G2mLvqPrototype const & option) {
 		double optionDist = option.SqrDistanceTo(*P_testPoint);
 		assert(optionDist > 0);
 		assert(optionDist < std::numeric_limits<double>::infinity());
