@@ -39,7 +39,7 @@ public:
 	}
 
 	template<typename TDERIVED> 
-		CAutoNativePtr(CAutoNativePtr<TDERIVED>% an) : _ptr(an.Detach())
+	CAutoNativePtr(CAutoNativePtr<TDERIVED>% an) : _ptr(an.Detach())
 	{
 	}
 

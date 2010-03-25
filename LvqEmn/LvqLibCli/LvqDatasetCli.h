@@ -11,9 +11,13 @@ namespace LVQCppCli {
 		CAutoNativePtr<LvqDataSet> dataset;
 		size_t nativeAllocEstimate;
 		!LvqDataSetCli();
+
+		LvqDataSetCli(LvqDataSet * newDataset);
 public:
-		LvqDataSetCli(array<double,2>^ points, array<int>^ pointLabels, int classCount);
 		LvqDataSet const * GetDataSet() {return dataset;}
+
+		static LvqDataSetCli ^ ConstructFromArray(array<double,2>^ points, array<int>^ pointLabels, int classCount);
+		static LvqDataSetCli^ MakeGaussianClouds(Func<unsigned int>^ rng,int dims, int pointCount, int classCount, double meansep);
 	};
 }
 

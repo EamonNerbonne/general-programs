@@ -64,7 +64,6 @@ void PrintModelStatus(char const * label,AbstractLvqModel const * model,LvqDataS
 template <class T> void TestModel(mt19937 & rndGenOrig, bool randInit, LvqDataSet const  * dataset, vector<int> const & protoDistrib, int iters) {
 	Eigen::BenchTimer t;
 	mt19937 rndGenCopy = rndGenOrig;
-
 	mt19937 rndGen(rndGenCopy); //we do this to avoid changing the original rng, so we can rerun tests with the same sequence of random numbers generated.
 
 	using boost::scoped_ptr;

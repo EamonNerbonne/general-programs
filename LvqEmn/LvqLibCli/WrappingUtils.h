@@ -30,4 +30,20 @@ namespace LVQCppCli {
 
 		return points;
 	}
+
+	template<typename T>
+	std::vector<T>  cliToStl(array<T>^ arr) {
+		std::vector<T> retval(arr->Length);
+		for(int i=0;i<arr->Length;++i)
+			retval[i]=arr[i];
+		return retval;
+	}
+
+	template<typename T>
+	array<T>^ stlToClil(std::vector<T> const & vec ) {
+		array<T>^ arr = gcnew array<T>(vec.size());
+		for(int i=0;i<vec.size();++i)
+			arr[i]=retval[i];
+	}
+
 }

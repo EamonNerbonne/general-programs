@@ -226,8 +226,6 @@ namespace LVQeamon
 			fileOpenThread.SetApartmentState(ApartmentState.STA);
 			fileOpenThread.IsBackground = true;
 			fileOpenThread.Start();
-
-
 		}
 
 
@@ -257,7 +255,7 @@ namespace LVQeamon
 			Debug.Assert(pointClouds[0].GetLength(1) == allpoints.GetLength(1));
 			this.classBoundaries = classBoundaries.ToArray();
 			Debug.Assert(this.classBoundaries.Length == classLabel + 1);
-			LvqDataSet = new LvqDataSetCli(allpoints, pointLabels, classLabel);
+			LvqDataSet = LvqDataSetCli.ConstructFromArray (allpoints, pointLabels, classLabel);
 			LvqModel = new LvqWrapper(LvqDataSet, protoCount, useGsm);
 			needUpdate = true;
 			UpdateDisplay();
