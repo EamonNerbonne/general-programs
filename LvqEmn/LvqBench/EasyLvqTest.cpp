@@ -20,10 +20,9 @@ USING_PART_OF_NAMESPACE_EIGEN
 //#define POINTS 500
 //#define ITERS 20
 #define BENCH_RUNS 10
-#define DIMS 32
-#define ROUNDUPDIMS ((DIMS+1) & (~1))
+#define DIMS 31
 #define POINTS 3000
-#define ITERS 39
+#define ITERS 40
 #define CLASSCOUNT 3
 #define PROTOSPERCLASS 1
 #else
@@ -69,7 +68,7 @@ template <class T> void TestModel(mt19937 & rndGenOrig, bool randInit, LvqDataSe
 	mt19937 rndGen(rndGenCopy); //we do this to avoid changing the original rng, so we can rerun tests with the same sequence of random numbers generated.
 
 	using boost::scoped_ptr;
-	scoped_ptr<T> model;
+	scoped_ptr<AbstractLvqModel> model;
 	t.start();
 	model.reset(new T(rndGen, randInit, protoDistrib, dataset->ComputeClassMeans()));
 	t.stop();
@@ -91,9 +90,6 @@ template <class T> void TestModel(mt19937 & rndGenOrig, bool randInit, LvqDataSe
 	t.stop();
 	cerr<<"training "<<typeid(T).name()<<": "<<t.value()<<"s\n";
 }
-
-
-typedef G2mLvqModel<2,DIMS,2,DIMS> MyG2mLvqModel;
 
 void EasyLvqTest() {
 	using boost::scoped_ptr;
@@ -117,11 +113,11 @@ void EasyLvqTest() {
 	for(int bI=0;bI<BENCH_RUNS;++bI)
 	{
 		t.start();
-		//TestModel<GmLvqModel>(rndGen2, true, dataset.get(), protoDistrib, (ITERS + DIMS -1)/DIMS);
-		//TestModel<GmLvqModel>(rndGen2, false,  dataset.get(), protoDistrib, (ITERS + DIMS -1)/DIMS);
+		TestModel<GmLvqModel>(rndGen2, true,  dataset.get(), protoDistrib, (ITERS + DIMS -1)/DIMS);
+		TestModel<GmLvqModel>(rndGen2, false,  dataset.get(), protoDistrib, (ITERS + DIMS -1)/DIMS);
 
-		TestModel<MyG2mLvqModel>(rndGen2, true, dataset.get(), protoDistrib, ITERS);
-		TestModel<MyG2mLvqModel>(rndGen2, false, dataset.get(), protoDistrib, ITERS);
+		//TestModel<G2mLvqModel>(rndGen2, true, dataset.get(), protoDistrib, ITERS);
+		//TestModel<G2mLvqModel>(rndGen2, false, dataset.get(), protoDistrib, ITERS);
 
 		//TestModel<GsmLvqModel>(rndGen2, true, dataset.get(), protoDistrib, ITERS);
 		//TestModel<GsmLvqModel>(rndGen2, false, dataset.get(), protoDistrib, ITERS);

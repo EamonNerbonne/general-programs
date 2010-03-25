@@ -50,6 +50,9 @@
     <ClInclude Include="G2mLvqModel.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="G2mLvqPrototype.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="GmLvqModel.h">
       <Filter>Header Files</Filter>
     </ClInclude>
