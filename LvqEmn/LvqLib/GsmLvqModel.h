@@ -62,7 +62,8 @@ class GsmLvqModel : public AbstractProjectionLvqModel
 #endif
 	}
 
-	inline int classifyProjectedInternal(Vector2d const & P_otherPoint) const{
+	template <typename DerivedMatrix>
+	inline int classifyProjectedInternal(MatrixBase<DerivedMatrix> const & P_otherPoint) const{
 		double distance(std::numeric_limits<double>::infinity());
 		int match(-1);
 
@@ -74,7 +75,8 @@ class GsmLvqModel : public AbstractProjectionLvqModel
 		return this->pLabel(match);
 	}
 
-	inline int classifyInternal(VectorXd const & unknownPoint) const { return classifyProjectedInternal(P * unknownPoint); }
+	template <typename DerivedMatrix>
+	inline int classifyInternal(MatrixBase<DerivedMatrix> const & unknownPoint) const { return classifyProjectedInternal(P * unknownPoint); }
 
 
 public:

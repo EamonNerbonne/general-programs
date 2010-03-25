@@ -427,7 +427,6 @@
     <ClInclude Include="DataSetUtils.h" />
     <ClInclude Include="G2mLvqMatch.h" />
     <ClInclude Include="G2mLvqModel.h" />
-    <ClInclude Include="G2mLvqPrototype.h" />
     <ClInclude Include="GmLvqModel.h" />
     <ClInclude Include="GsmLvqModel.h" />
     <ClInclude Include="LvqConstants.h" />
