@@ -11,6 +11,6 @@ function(build_project Name)
   add_subdirectory("${solution_dir}${Name}" "${Name}")
 endfunction(build_project)
 
-#build_project(EigenBench)
+build_project(EigenBench)
 build_project(LvqLib)
 build_project(LvqBench)

@@ -375,6 +375,7 @@
     <ClInclude Include="mulBench.h" />
     <ClInclude Include="prodNormTest.h" />
     <ClInclude Include="projectionBench.h" />
+    <ClInclude Include="resizeTest.h" />
     <ClInclude Include="standard.h" />
     <ClInclude Include="subtractBench.h" />
   </ItemGroup>

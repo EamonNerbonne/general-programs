@@ -11,7 +11,7 @@
 
 #define EIGEN_VECTORIZE_SSE3
 #define EIGEN_VECTORIZE_SSSE3
-#define EIGEN_VECTORIZE_SSE4_1
+//#define EIGEN_VECTORIZE_SSE4_1
 #define EIGEN_USE_NEW_STDVECTOR
 
 #include <bench/BenchTimer.h>

@@ -44,5 +44,8 @@
     <ClInclude Include="prodNormTest.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="resizeTest.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
