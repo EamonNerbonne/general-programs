@@ -28,8 +28,7 @@ namespace LVQeamon
 	/// </summary>
 	public partial class MainWindow : Window// Window
 	{
-		public MainWindow()
-		{
+		public MainWindow() {
 			//this.WindowStyle = WindowStyle.None;
 			//this.AllowsTransparency = true; 
 			BorderBrush = Brushes.White;
@@ -60,17 +59,15 @@ namespace LVQeamon
 		private void textBoxStarTailCount_TextChanged(object sender, TextChangedEventArgs e) { DataVerifiers.VerifyTextBox((TextBox)sender, s => DataVerifiers.IsInt32Positive(s) && Int32.Parse(s) > 1); }
 		public int? StarTailCount { get { return textBoxStarTailCount.Text.ParseAsInt32(); } }
 
-		private void textBoxStarRelDistance_TextChanged(object sender, TextChangedEventArgs e) { DataVerifiers.VerifyTextBox((TextBox)sender,DataVerifiers.IsDoublePositive); }
+		private void textBoxStarRelDistance_TextChanged(object sender, TextChangedEventArgs e) { DataVerifiers.VerifyTextBox((TextBox)sender, DataVerifiers.IsDoublePositive); }
 		public double? StarRelDistance { get { return textBoxStarRelDistance.Text.ParseAsDouble(); } }
 
-		private void buttonGeneratePointClouds_Click(object sender, RoutedEventArgs e)
-		{
-			try
-			{
-				NiceTimer timer = new NiceTimer(); timer.TimeMark("making point clouds");
+		private void buttonGeneratePointClouds_Click(object sender, RoutedEventArgs e) {
+			try {
+				NiceTimer timer = new NiceTimer();
+				timer.TimeMark("making point clouds");
 
-				if (!NumberOfSets.HasValue || !PointsPerSet.HasValue)
-				{
+				if (!NumberOfSets.HasValue || !PointsPerSet.HasValue) {
 					Console.WriteLine("Invalid initialization values");
 					return;
 				}
@@ -89,10 +86,8 @@ namespace LVQeamon
 				MersenneTwister rndG = RndHelper.ThreadLocalRandom;
 				List<double[,]> pointClouds = new List<double[,]>();
 				transformBeforeLvq = null;
-				for (int si = 0; si < numSets; si++)
-				{//create each point-set
-					ThreadPool.QueueUserWorkItem((index) =>
-					{
+				for (int si = 0; si < numSets; si++) {//create each point-set
+					ThreadPool.QueueUserWorkItem((index) => {
 
 						MersenneTwister rnd;
 						lock (rndG)
@@ -103,23 +98,18 @@ namespace LVQeamon
 						lock (rndG)
 							pointClouds.Add(points);
 
-						lock (sync)
-						{
+						lock (sync) {
 							done++;
-							if (done == numSets)
-							{
+							if (done == numSets) {
 								timer.TimeMark(null);
-								new Thread(() => { StartLvq(pointClouds, protoCount, useGsm); })
-								{
+								new Thread(() => { StartLvq(pointClouds, protoCount, useGsm); }) {
 									IsBackground = true,
 								}.Start();
 							}
 						}
 					}, si);
 				}
-			}
-			catch (Exception ex)
-			{
+			} catch (Exception ex) {
 				Console.WriteLine("Error occured!");
 				Console.WriteLine(ex);
 				Console.WriteLine("\nerror ignored.");
@@ -128,14 +118,12 @@ namespace LVQeamon
 
 		double[,] transformBeforeLvq = null;
 
-		private void buttonGenerateStar_Click(object sender, RoutedEventArgs e)
-		{
-			try
-			{
-				NiceTimer timer = new NiceTimer(); timer.TimeMark("making star clouds");
+		private void buttonGenerateStar_Click(object sender, RoutedEventArgs e) {
+			try {
+				NiceTimer timer = new NiceTimer();
+				timer.TimeMark("making star clouds");
 
-				if (!NumberOfSets.HasValue || !PointsPerSet.HasValue)
-				{
+				if (!NumberOfSets.HasValue || !PointsPerSet.HasValue) {
 					Console.WriteLine("Invalid initialization values");
 					return;
 				}
@@ -161,62 +149,50 @@ namespace LVQeamon
 				CreateGaussianCloud.InitStarSettings(starTailCount, DIMS, stddevmeans * starRelDist, rndG, out transformMatrices, out means, out transformBeforeLvq);
 
 
-				for (int si = 0; si < numSets; si++)
-				{//create each point-set
-					ThreadPool.QueueUserWorkItem((index) =>
-					{
+				for (int si = 0; si < numSets; si++) {//create each point-set
+					ThreadPool.QueueUserWorkItem((index) => {
 						MersenneTwister rnd;
 						lock (rndG)
 							rnd = new MersenneTwister(rndG.Next());
 
 						double[,] points = CreateGaussianCloud.RandomStar(pointsPerSet, DIMS, transformMatrices, means, stddevmeans, rnd);
-						
+
 						lock (rndG)
 							pointClouds.Add(points);
 
-						lock (sync)
-						{
+						lock (sync) {
 							done++;
-							if (done == numSets)
-							{
+							if (done == numSets) {
 								timer.TimeMark(null);
-								new Thread(() => { StartLvq(pointClouds, protoCount, useGsm); })
-								{
+								new Thread(() => { StartLvq(pointClouds, protoCount, useGsm); }) {
 									IsBackground = true,
 								}.Start();
 							}
 						}
 					}, si);
 				}
-			}
-			catch (Exception ex)
-			{
+			} catch (Exception ex) {
 				Console.WriteLine("Error occured!");
 				Console.WriteLine(ex);
 				Console.WriteLine("\nerror ignored.");
 			}
 		}
 
-		private void buttonLoadData_Click(object sender, RoutedEventArgs e)
-		{
+		private void buttonLoadData_Click(object sender, RoutedEventArgs e) {
 			int protoCount = ProtoCount.Value;
-							bool useGsm = checkBoxLvqGsm.IsChecked ?? false;
+			bool useGsm = checkBoxLvqGsm.IsChecked ?? false;
 
-			var fileOpenThread = new Thread(() =>
-			{
+			var fileOpenThread = new Thread(() => {
 				OpenFileDialog dataFileOpenDialog = new OpenFileDialog();
 				//dataFileOpenDialog.Filter = "*.data";
 
-				if (dataFileOpenDialog.ShowDialog() == true)
-				{
+				if (dataFileOpenDialog.ShowDialog() == true) {
 					FileInfo selectedFile = new FileInfo(dataFileOpenDialog.FileName);
-					FileInfo labelFile = new FileInfo(selectedFile.Directory + @"\"+Path.GetFileNameWithoutExtension( selectedFile.Name) +".label");
+					FileInfo labelFile = new FileInfo(selectedFile.Directory + @"\" + Path.GetFileNameWithoutExtension(selectedFile.Name) + ".label");
 					FileInfo dataFile = new FileInfo(selectedFile.Directory + @"\" + Path.GetFileNameWithoutExtension(selectedFile.Name) + ".data");
-					if(dataFile.Exists && labelFile.Exists)
-					{
+					if (dataFile.Exists && labelFile.Exists) {
 						var pointclouds = DataSetLoader.LoadDataset(dataFile, labelFile);
-						Dispatcher.Invoke((Action)(() =>
-						{
+						Dispatcher.Invoke((Action)(() => {
 							SetupDisplay(pointclouds.Count);
 						}));
 						StartLvq(pointclouds, protoCount, useGsm);
@@ -231,95 +207,81 @@ namespace LVQeamon
 
 
 
-		private void StartLvq(List<double[,]> pointClouds, int protoCount, bool useGsm, List<double[,]> pointTestClouds = null)
-		{
+		private void StartLvq(List<double[,]> pointClouds, int protoCount, bool useGsm, List<double[,]> pointTestClouds = null) {
 			int DIMS = pointClouds[0].GetLength(1);
 			double[,] allpoints = new double[pointClouds.Sum(pc => pc.GetLength(0)), DIMS];
 			int[] pointLabels = new int[allpoints.GetLength(0)];
-			List<int> classBoundaries = new List<int> { 0 };
 			int pointI = 0;
 			int classLabel = 0;
-			foreach (var pointCloud in pointClouds)
-			{
-				for (int i = 0; i < pointCloud.GetLength(0); i++)
-				{
+			foreach (var pointCloud in pointClouds) {
+				for (int i = 0; i < pointCloud.GetLength(0); i++) {
 					for (int j = 0; j < DIMS; j++)
 						allpoints[pointI, j] = pointCloud[i, j];
 					pointLabels[pointI] = classLabel;
 					pointI++;
 				}
-				classBoundaries.Add(pointI);
 				classLabel++;
 			}
 			Debug.Assert(pointI == allpoints.GetLength(0));
 			Debug.Assert(pointClouds[0].GetLength(1) == allpoints.GetLength(1));
-			this.classBoundaries = classBoundaries.ToArray();
-			Debug.Assert(this.classBoundaries.Length == classLabel + 1);
-			LvqDataSet = LvqDataSetCli.ConstructFromArray (allpoints, pointLabels, classLabel);
+			LvqDataSet = LvqDataSetCli.ConstructFromArray(allpoints, pointLabels, classLabel);
 			LvqModel = new LvqWrapper(LvqDataSet, protoCount, useGsm);
 			needUpdate = true;
 			UpdateDisplay();
 		}
 
-		private void UpdateDisplay()
-		{
-			double[,] currPoints = null;
-			//int[,] closestClass = null;
-			if (!needUpdate) return;
-			currPoints = LvqModel.CurrentProjection();
-			Dispatcher.BeginInvoke((Action)(() =>
-			{
+		private void UpdateDisplay() {
+			if (!needUpdate)
+				return;
+			double[,] currPoints = LvqModel.CurrentProjection();
+			int[] labels = LvqModel.TrainingSet.ClassLabels();
+			Dictionary<int, Point[]> projectedPointsByLabel =
+				labels
+				.Select((label, i) => new { Label = label, Point = new Point(currPoints[i, 0], currPoints[i, 1]) })
+				.GroupBy(labelledPoint => labelledPoint.Label, labelledPoint => labelledPoint.Point)
+				.ToDictionary(group => group.Key, group => group.ToArray());
+			Dispatcher.BeginInvoke((Action)(() => {
 				needUpdate = false;
-				for (int i = 0; i < classBoundaries.Length - 1; i++)
-				{
-
-					var pointsIter = Enumerable.Range(classBoundaries[i], classBoundaries[i + 1] - classBoundaries[i])
-												.Select(pi => new Point(currPoints[pi, 0], currPoints[pi, 1]));
-
-					//Console.WriteLine("Points in graph " + i + ": " + pointsIter.Count());
-					((IPlotWriteable<Point[]>)plotControl.Graphs[i]).Data = pointsIter.ToArray();
-				}
-				((IPlotWriteable<LvqWrapper>)plotControl.Graphs[classBoundaries.Length-1]) .TriggerDataChanged();
+				foreach (var pointGroup in projectedPointsByLabel)
+					((IPlotWriteable<Point[]>)plotControl.Graphs[pointGroup.Key]).Data = pointGroup.Value;
+				((IPlotWriteable<LvqWrapper>)plotControl.Graphs[LvqModel.TrainingSet.ClassCount]).TriggerDataChanged();
 			}));
 		}
 
 		int currentClassCount = 0;
 		struct ClassTag { public int Label; public ClassTag(int label) { Label = label; } }
-		private void SetupDisplay(int numClasses)
-		{
-			Dispatcher.BeginInvoke((Action)(() =>
-			{
+		private void SetupDisplay(int numClasses) {
+			Dispatcher.BeginInvoke((Action)(() => {
 				currentClassCount = numClasses;
 				plotControl.Graphs.Clear();
-				for (int i = 0; i < numClasses; i++)
-				{
-						var plot = PlotData.Create(new Point[] { });
-						plot.Tag = new ClassTag(i);
-						plotControl.Graphs.Add(plot);
+				for (int i = 0; i < numClasses; i++) {
+					var plot = PlotData.Create(new Point[] { });
+					plot.Tag = new ClassTag(i);
+					plotControl.Graphs.Add(plot);
 				}
 				plotControl.Graphs.Add(
-					PlotData.Create(LvqModel,UpdateClassBoundaries));
+					PlotData.Create(LvqModel, UpdateClassBoundaries));
 				plotControl.AutoPickColors();
 			}));
 		}
 
-		void UpdateClassBoundaries(WriteableBitmap bmp, Matrix dataToBmp, int width, int height, LvqWrapper ignore)
-		{
+		void UpdateClassBoundaries(WriteableBitmap bmp, Matrix dataToBmp, int width, int height, LvqWrapper ignore) {
 #if DEBUG
 			int renderwidth = (width + 7) / 8;
 			int renderheight = (height + 7) / 8;
 #else
-			int renderwidth = width ;
-			int renderheight = height ;
+			int renderwidth = width;
+			int renderheight = height;
 #endif
-			if (LvqModel == null) return;
+			if (LvqModel == null)
+				return;
 			Matrix bmpToData = dataToBmp;
 			bmpToData.Invert();
-			Point topLeft = bmpToData.Transform(new Point(0.0,0.0));
-			Point botRight = bmpToData.Transform(new Point(width,height));
+			Point topLeft = bmpToData.Transform(new Point(0.0, 0.0));
+			Point botRight = bmpToData.Transform(new Point(width, height));
 			int[,] closestClass = LvqModel.ClassBoundaries(topLeft.X, botRight.X, topLeft.Y, botRight.Y, renderwidth, renderheight);
 
-			uint[] nativeColor =(
+			uint[] nativeColor = (
 				from graph in plotControl.Graphs.Cast<IPlotWithSettings>()
 				where graph.Tag is ClassTag && graph.VizSupportsColor
 				let label = ((ClassTag)graph.Tag).Label
@@ -333,8 +295,7 @@ namespace LVQeamon
 
 			var edges = new List<Tuple<int, int>>();
 			for (int y = 1; y < closestClass.GetLength(0) - 1; y++)
-				for (int x = 1; x < closestClass.GetLength(1) - 1; x++)
-				{
+				for (int x = 1; x < closestClass.GetLength(1) - 1; x++) {
 					if (false
 						//								closestClass[y, x] != closestClass[y + 1, x + 1]
 						|| closestClass[y, x] != closestClass[y + 1, x]
@@ -349,17 +310,16 @@ namespace LVQeamon
 				}
 			foreach (var coord in edges)
 				closestClass[coord.Item1, coord.Item2] = nativeColor.Length - 1;
-			uint[] classboundaries = new uint[width*height];
+			uint[] classboundaries = new uint[width * height];
 			int px = 0;
 			for (int y = 0; y < height; y++)
 				for (int x = 0; x < width; x++)
 					classboundaries[px++] = nativeColor[closestClass[y * renderheight / height, x * renderwidth / width]];
-			bmp.WritePixels(new Int32Rect(0, 0, width, height), classboundaries, width*4, 0);
+			bmp.WritePixels(new Int32Rect(0, 0, width, height), classboundaries, width * 4, 0);
 			//return BitmapSource.Create(w, h, 96.0, 96.0, PixelFormats.Bgra32, null, inlinearray, w * 4);
 		}
 
 		//object lvqSync = new object();
-		int[] classBoundaries;
 		volatile bool needUpdate = false;
 		LvqWrapper LvqModel;
 
@@ -367,8 +327,7 @@ namespace LVQeamon
 
 
 
-		protected override void OnInitialized(EventArgs e)
-		{
+		protected override void OnInitialized(EventArgs e) {
 #if  DEBUG
 			textBoxPointsPerSet.Text = 20.ToString();
 			textBoxDims.Text = 10.ToString();
@@ -376,12 +335,10 @@ namespace LVQeamon
 			base.OnInitialized(e);
 		}
 
-		private void doEpochButton_Click(object sender, RoutedEventArgs e)
-		{
-			
+		private void doEpochButton_Click(object sender, RoutedEventArgs e) {
+
 			int epochsTodo = EpochsPerClick ?? 1;
-			ThreadPool.QueueUserWorkItem((index) =>
-			{
+			ThreadPool.QueueUserWorkItem((index) => {
 				lock (LvqModel.UpdateSyncObject)
 					using (new DTimer("Training " + epochsTodo + " epochs"))
 						LvqModel.TrainEpoch(epochsTodo);
@@ -392,16 +349,14 @@ namespace LVQeamon
 
 		private void checkBoxShowGridChanged(object o, RoutedEventArgs e) { plotControl.ShowGridLines = checkBoxShowGrid.IsChecked ?? plotControl.ShowGridLines; }
 
-		private void checkBoxFullScreen_Checked(object sender, RoutedEventArgs e)
-		{
+		private void checkBoxFullScreen_Checked(object sender, RoutedEventArgs e) {
 			this.WindowState = WindowState.Normal;
 			this.WindowStyle = WindowStyle.None;
 			this.Topmost = true;
 			this.WindowState = WindowState.Maximized;
 		}
 
-		private void checkBoxFullScreen_Unchecked(object sender, RoutedEventArgs e)
-		{
+		private void checkBoxFullScreen_Unchecked(object sender, RoutedEventArgs e) {
 			this.Topmost = false;
 			this.WindowStyle = WindowStyle.SingleBorderWindow;
 			this.WindowState = WindowState.Normal;

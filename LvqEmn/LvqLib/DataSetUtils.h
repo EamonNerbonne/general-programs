@@ -20,4 +20,5 @@ public:
 	}
 
 	static LvqDataSet* ConstructDataSet(boost::mt19937 & rndGen, int dims, int pointCount, int classCount, double meansep);
+	static LvqDataSet* ConstructRandomStar(boost::mt19937 & rndGen, int numStarTails, int dims, int pointCount, int classCount, double meansep);
 };

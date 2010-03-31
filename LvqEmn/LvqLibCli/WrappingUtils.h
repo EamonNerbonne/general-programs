@@ -40,10 +40,11 @@ namespace LVQCppCli {
 	}
 
 	template<typename T>
-	array<T>^ stlToClil(std::vector<T> const & vec ) {
-		array<T>^ arr = gcnew array<T>(vec.size());
+	array<T>^ stlToCli(std::vector<T> const & vec ) {
+		array<T>^ arr = gcnew array<T>((int)vec.size());
 		for(int i=0;i<vec.size();++i)
-			arr[i]=retval[i];
+			arr[i]=vec[i];
+		return arr;
 	}
 
 }

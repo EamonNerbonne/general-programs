@@ -30,5 +30,6 @@ namespace LVQCppCli {
 		array<double,2>^ CurrentProjection();
 		array<int,2>^ ClassBoundaries(double x0, double x1, double y0, double y1,int xCols, int yRows);
 		void TrainEpoch(int epochsToDo); 
+		property LvqDataSetCli^ TrainingSet {LvqDataSetCli^ get(){return dataset;} }
 	};
 }
