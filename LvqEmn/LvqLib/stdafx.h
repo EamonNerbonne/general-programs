@@ -30,7 +30,7 @@
 #include <boost/bind/bind.hpp>
 
 #include <boost/random/variate_generator.hpp>
-//#include <boost/random/uniform_int.hpp>
+#include <boost/random/uniform_int.hpp>
 //#include <boost/random/uniform_real.hpp>
 #include <boost/random/normal_distribution.hpp>
 #include <boost/random/mersenne_twister.hpp>

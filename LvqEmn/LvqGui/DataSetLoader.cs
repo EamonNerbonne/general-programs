@@ -16,45 +16,60 @@ namespace LVQeamon
 		public static T[,] ToRectangularArray<T>(this T[][] jaggedArray)
 		{
 			int outerLen = jaggedArray.Length;
-			Debug.Assert(outerLen > 0);
+
+			if (outerLen == 0)
+				throw new FileFormatException("No data!");
+
 			int innerLen = jaggedArray[0].Length;
 
 			T[,] retval = new T[outerLen, innerLen];
 			for (int i = 0; i < outerLen; i++)
 			{
 				T[] row = jaggedArray[i];
-				Debug.Assert(row.Length == innerLen);
+				if (row.Length != innerLen) 
+					throw new FileFormatException("Vectors are of inconsistent lengths");
+				
 				for (int j = 0; j < innerLen; j++)
 					retval[i, j] = row[j];
 			}
 			return retval;
 		}
 
-		public static List<double[,]> LoadDataset(FileInfo datafile, FileInfo labelfile)
+		public static Tuple<double[,],int[],int> LoadDataset(FileInfo datafile, FileInfo labelfile)
 		{
 			var dataVectors = 
-				from dataline in datafile.GetLines()
+				(from dataline in datafile.GetLines()
 				select (
 					from dataDim in dataline.Split(dimSep)
 					select double.Parse(dataDim, CultureInfo.InvariantCulture)
+					).ToArray()
+				).ToArray();
+
+			var itemLabels = (
+					from labelline in labelfile.GetLines()
+					select int.Parse(labelline, CultureInfo.InvariantCulture)
 					).ToArray();
 
-			int dimensionality = dataVectors.First().Length;
+			var denseLabelLookup = 
+				itemLabels
+				.Distinct()
+				.OrderBy(label=>label)
+				.Select( (OldLabel,Index) => new { OldLabel, NewLabel=Index})
+				.ToDictionary( a=>a.OldLabel, a=>a.NewLabel);
 
-			var itemLabels = 
-					from labelline in labelfile.GetLines()
-					select int.Parse(labelline, CultureInfo.InvariantCulture);
+			itemLabels = 
+				itemLabels
+				.Select(oldlabel => denseLabelLookup[oldlabel])
+				.ToArray();
 
-			var dataVectorsByClass = 
-			 	dataVectors
-				.Zip(itemLabels, (vector, label) => new { Data = vector, Label = label })
-				.ToLookup(tuple => tuple.Label, tuple => tuple.Data);
+			var labelSet = new HashSet<int>(itemLabels);
+			int minLabel = labelSet.Min();
+			int maxLabel = labelSet.Max();
+			int labelCount = labelSet.Count;
+			if (labelCount != maxLabel + 1 || minLabel != 0) 
+				throw new FileFormatException("Class labels must be consecutive integers starting at 0");
 
-			return
-				(from classVectors in dataVectorsByClass
-				 orderby classVectors.Key //just to be nice
-				 select classVectors.ToArray().ToRectangularArray()
-				).ToList();
+			return Tuple.Create(dataVectors.ToRectangularArray(), itemLabels, labelCount);
 		}
 	}
 }

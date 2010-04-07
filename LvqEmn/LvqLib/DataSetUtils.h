@@ -9,7 +9,7 @@ class DataSetUtils
 public:
 	static Eigen::MatrixXd MakePointCloud(boost::mt19937 & rndGen, int dims, int pointCount, double meansep);
 
-	template<typename T>static  void RandomMatrixInit(boost::mt19937 & rng, T& mat, double mean, double sigma) {
+	template<typename T>static  void RandomMatrixInit(boost::mt19937 & rng, MatrixBase< T>& mat, double mean, double sigma) {
 		using namespace boost;
 		normal_distribution<> distrib(mean,sigma);
 		variate_generator<mt19937&, normal_distribution<> > rndGen(rng, distrib);
@@ -19,6 +19,6 @@ public:
 				mat(i,j) = rndGen();
 	}
 
-	static LvqDataSet* ConstructDataSet(boost::mt19937 & rndGen, int dims, int pointCount, int classCount, double meansep);
-	static LvqDataSet* ConstructRandomStar(boost::mt19937 & rndGen, int numStarTails, int dims, int pointCount, int classCount, double meansep);
+	static LvqDataSet* ConstructGaussianClouds(boost::mt19937 & rndGen, int dims, int classCount, int pointsPerClass, double meansep);
+	static LvqDataSet* ConstructStarDataset(boost::mt19937 & rndGen, int dims, int starDims, int numStarTails,  int classCount, int pointsPerClass, double starMeanSep, double starClassRelOffset);
 };

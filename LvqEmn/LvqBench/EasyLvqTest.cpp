@@ -17,18 +17,18 @@ USING_PART_OF_NAMESPACE_EIGEN
 #if NDEBUG
 //#define BENCH_RUNS 5
 //#define DIMS 21
-//#define POINTS 500
+//#define POINTS_PER_CLASS 500
 //#define ITERS 20
 #define BENCH_RUNS 10
 #define DIMS 31
-#define POINTS 3000
+#define POINTS_PER_CLASS 3000
 #define ITERS 40
 #define CLASSCOUNT 3
 #define PROTOSPERCLASS 1
 #else
 #define BENCH_RUNS 3
 #define DIMS 16
-#define POINTS 100
+#define POINTS_PER_CLASS 100
 #define ITERS 5
 #define CLASSCOUNT 3
 #define PROTOSPERCLASS 2
@@ -107,7 +107,7 @@ void EasyLvqTest() {
 		protoDistrib.push_back(PROTOSPERCLASS);
 
 	Eigen::BenchTimer t;
-	scoped_ptr<LvqDataSet> dataset(DataSetUtils::ConstructDataSet(rndGen, DIMS, POINTS,CLASSCOUNT,MEANSEP )); 
+	scoped_ptr<LvqDataSet> dataset(DataSetUtils::ConstructGaussianClouds(rndGen, DIMS, CLASSCOUNT, POINTS_PER_CLASS, MEANSEP)); 
 	
 	for(int bI=0;bI<BENCH_RUNS;++bI)
 	{

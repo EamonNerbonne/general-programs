@@ -17,8 +17,15 @@ namespace LVQCppCli {
 
 	LvqDataSetCli::!LvqDataSetCli() { GC::RemoveMemoryPressure(nativeAllocEstimate);}
 
-	LvqDataSetCli^ LvqDataSetCli::MakeGaussianClouds( Func<unsigned int>^ rng, int dims, int pointCount, int classCount, double meansep) {
+	LvqDataSetCli^ LvqDataSetCli::ConstructGaussianClouds( Func<unsigned int>^ rng, int dims, int classCount, int pointsPerClass, double meansep) {
 		boost::mt19937 internalRnd(rng);
-		return gcnew LvqDataSetCli(DataSetUtils::ConstructDataSet(internalRnd,dims,pointCount,classCount,meansep));
+		return gcnew LvqDataSetCli(DataSetUtils::ConstructGaussianClouds(internalRnd, dims, classCount, pointsPerClass, meansep));
 	}
+
+	LvqDataSetCli^ LvqDataSetCli::ConstructStarDataset(Func<unsigned int>^ rng, int dims, int starDims, int numStarTails,int classCount, int pointsPerClass, double starMeanSep, double starClassRelOffset) {
+		boost::mt19937 internalRnd(rng);
+		printf("%d\n",rng());
+		return gcnew LvqDataSetCli(DataSetUtils::ConstructStarDataset(internalRnd, dims, starDims, numStarTails, classCount, pointsPerClass, starMeanSep, starClassRelOffset));
+	}
+
 }

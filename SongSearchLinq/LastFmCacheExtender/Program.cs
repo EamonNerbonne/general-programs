@@ -16,8 +16,8 @@ namespace LastFmCacheExtender
             var config = new SongDatabaseConfigFile(false);
             Console.WriteLine("Loading song similarity...");
             tools = new LastFmTools(config);
-			tools.PrecacheLocalFiles();//might want to do this first, but...
-//			tools.EnsureLocalFilesInDB();//this is much faster, of course.
+//			tools.PrecacheLocalFiles();//might want to do this first, but...
+			tools.EnsureLocalFilesInDB();//this is much faster, of course.
             tools.UnloadDB();
             Console.WriteLine("go!");
             ExtendSimilarities();
@@ -29,8 +29,8 @@ namespace LastFmCacheExtender
             while (run&&errCount<10) {
                 try {
                     run = false;
-                    run = 0 < tools.PrecacheArtistSimilarity()||run;
-                    run = 0 < tools.PrecacheArtistTopTracks()||run;
+					run = 0 < tools.PrecacheArtistTopTracks() || run;
+					run = 0 < tools.PrecacheArtistSimilarity() || run;
                     run = 0 < tools.PrecacheSongSimilarity()||run;
                 } catch {
                     run = true;

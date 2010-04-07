@@ -15,57 +15,63 @@ MatrixXd DataSetUtils::MakePointCloud(boost::mt19937 & rndGen, int dims, int poi
 	return P * points + offset * VectorXd::Ones(pointCount).transpose();
 }
 
-LvqDataSet* DataSetUtils::ConstructDataSet(boost::mt19937 & rndGen, int dims, int pointCount, int classCount, double meansep){
+LvqDataSet* DataSetUtils::ConstructGaussianClouds(boost::mt19937 & rndGen, int dims, int classCount, int pointsPerClass, double meansep){
 
-	MatrixXd allpoints(dims, classCount*pointCount);
+	MatrixXd allpoints(dims, classCount*pointsPerClass);
 	for(int classLabel=0;classLabel < classCount; classLabel++) {
-		allpoints.block(0, classLabel*pointCount, dims, pointCount) = DataSetUtils::MakePointCloud(rndGen, dims, pointCount, meansep);
+		allpoints.block(0, classLabel*pointsPerClass, dims, pointsPerClass) = DataSetUtils::MakePointCloud(rndGen, dims, pointsPerClass, meansep);
 	}
 
 	vector<int> trainingLabels(allpoints.cols());
 	for(int i=0; i<(int)trainingLabels.size(); ++i) 
-		trainingLabels[i] = i/pointCount;
+		trainingLabels[i] = i/pointsPerClass;
 
 	return new LvqDataSet(allpoints, trainingLabels, classCount); 
 }
 
-LvqDataSet* DataSetUtils::ConstructRandomStar(boost::mt19937 & rndGen, int numStarTails, int dims, int pointCount, int classCount, double meansep){
-	const int starDim=2;
+MatrixXd MakeTailMeans(boost::mt19937 & rndGen, int numStarTails, int starDim, double meansep) {
+	MatrixXd tailMeans(starDim,numStarTails);
+	DataSetUtils::RandomMatrixInit(rndGen,tailMeans,0,meansep);
+	return tailMeans;
+}
+vector<MatrixXd> MakeTailTransforms(boost::mt19937 & rndGen, int numStarTails, int starDim) {
 	vector<MatrixXd> tailTransforms;
-	vector<VectorXd> tailMeans;
 	for(int i=0;i<numStarTails;i++) {
 		MatrixXd t(starDim,starDim);
-		VectorXd m(starDim);
-		RandomMatrixInit(rndGen,t,0,1.0);
-		RandomMatrixInit(rndGen,m,0,meansep);
+		DataSetUtils::RandomMatrixInit(rndGen,t,0,1.0);
+		normalizeMatrix(t);
 		tailTransforms.push_back(t);
-		tailMeans.push_back(m);
 	}
-	MatrixXd finalTransform(dims,dims);
-	RandomMatrixInit(rndGen,finalTransform,0,1.0);
+	return tailTransforms;
+}
+
+typedef boost::uniform_int<> starChoiceDistrib;
+typedef boost::variate_generator<boost::mt19937 &, starChoiceDistrib> starChoiceGen;
+
+LvqDataSet* DataSetUtils::ConstructStarDataset(boost::mt19937 & rndGen, int dims, int starDims, int numStarTails, int classCount,  int pointsPerClass,  double starMeanSep, double starClassRelOffset){
+	vector<MatrixXd> tailTransforms = MakeTailTransforms(rndGen, numStarTails, starDims);
+	MatrixXd tailMeans = MakeTailMeans(rndGen, numStarTails, starDims, starMeanSep);
+	
+	starChoiceGen starRndChoose(rndGen, starChoiceDistrib(0, numStarTails -1));
+
+	VectorXd starRaw(starDims);
+	MatrixXd points(dims, pointsPerClass * classCount);
+	vector<int> pointLabels(points.cols());
+	int pointIndex=0;
 
 	for(int label=0;label<classCount;++label) {
-//		vector<VectorXd
-		for(int i=0;i<numStarTails;i++) {
-			MatrixXd t(starDim,starDim);
-			VectorXd m(starDim);
-			RandomMatrixInit(rndGen,t,0,1.0);
-			RandomMatrixInit(rndGen,m,0,meansep);
-			tailTransforms.push_back(t);
-			tailMeans.push_back(m);
+		MatrixXd currentTailMeans = tailMeans + MakeTailMeans(rndGen, numStarTails, starDims, starMeanSep * starClassRelOffset);
+		for(int i=0;i<pointsPerClass;++i) {
+			int starIdx = starRndChoose();
+			RandomMatrixInit(rndGen, starRaw, 0, 1.0);
+			points.block(0, pointIndex, starDims, 1) = currentTailMeans.col(starIdx) + tailTransforms[starIdx] * starRaw;
+			Eigen::Block<MatrixXd> restBlock(points.block(starDims, pointIndex, dims - starDims, 1));
+			RandomMatrixInit(rndGen, restBlock,0,1.0);
+			pointLabels[pointIndex] = label;
+			pointIndex++;
 		}
-
 	}
-
-	MatrixXd allpoints(dims, classCount*pointCount);
-	for(int classLabel=0;classLabel < classCount; classLabel++) {
-		allpoints.block(0, classLabel*pointCount, dims, pointCount) = DataSetUtils::MakePointCloud(rndGen, dims, pointCount, meansep);
-	}
-
-	vector<int> trainingLabels(allpoints.cols());
-	for(int i=0; i<(int)trainingLabels.size(); ++i) 
-		trainingLabels[i] = i/pointCount;
-
-	return new LvqDataSet(allpoints, trainingLabels, classCount); 
+	assert(pointIndex == pointsPerClass * classCount);
+	return new LvqDataSet(points, pointLabels, classCount); 
 }
 

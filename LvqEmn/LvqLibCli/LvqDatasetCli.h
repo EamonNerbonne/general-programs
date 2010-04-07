@@ -19,7 +19,8 @@ public:
 		property int ClassCount {int get(){return dataset->classCount;}}
 
 		static LvqDataSetCli ^ ConstructFromArray(array<double,2>^ points, array<int>^ pointLabels, int classCount);
-		static LvqDataSetCli^ MakeGaussianClouds(Func<unsigned int>^ rng,int dims, int pointCount, int classCount, double meansep);
+		static LvqDataSetCli^ ConstructGaussianClouds(Func<unsigned int>^ rng, int dims, int classCount, int pointsPerClass, double meansep);
+		static LvqDataSetCli^ ConstructStarDataset(Func<unsigned int>^ rng, int dims, int starDims, int numStarTails,int classCount, int pointsPerClass, double starMeanSep, double starClassRelOffset);
 	};
 }
 

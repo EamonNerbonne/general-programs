@@ -72,8 +72,6 @@ namespace LVQeamon
 					return;
 				}
 
-				object sync = new object();
-				int done = 0;
 				int numSets = NumberOfSets.Value;
 				int pointsPerSet = PointsPerSet.Value;
 				int DIMS = Dimensions.Value;
@@ -83,32 +81,13 @@ namespace LVQeamon
 
 				SetupDisplay(numSets);
 
-				MersenneTwister rndG = RndHelper.ThreadLocalRandom;
-				List<double[,]> pointClouds = new List<double[,]>();
-				transformBeforeLvq = null;
-				for (int si = 0; si < numSets; si++) {//create each point-set
-					ThreadPool.QueueUserWorkItem((index) => {
+				ThreadPool.QueueUserWorkItem((ignore) => {
 
-						MersenneTwister rnd;
-						lock (rndG)
-							rnd = new MersenneTwister(rndG.Next());
-						double[] mean = CreateGaussianCloud.RandomMean(DIMS, rnd, stddevmeans);
-						double[,] trans = CreateGaussianCloud.RandomTransform(DIMS, rnd);
-						double[,] points = CreateGaussianCloud.GaussianCloud(pointsPerSet, DIMS, trans, mean, rnd);
-						lock (rndG)
-							pointClouds.Add(points);
-
-						lock (sync) {
-							done++;
-							if (done == numSets) {
-								timer.TimeMark(null);
-								new Thread(() => { StartLvq(pointClouds, protoCount, useGsm); }) {
-									IsBackground = true,
-								}.Start();
-							}
-						}
-					}, si);
-				}
+					LvqDataSetCli dataset = LvqDataSetCli.ConstructGaussianClouds(
+						RndHelper.MakeSecureUInt, DIMS, numSets, pointsPerSet, stddevmeans);
+					timer.TimeMark(null);
+					StartLvq(dataset, protoCount, useGsm);
+				}, 0);
 			} catch (Exception ex) {
 				Console.WriteLine("Error occured!");
 				Console.WriteLine(ex);
@@ -116,7 +95,6 @@ namespace LVQeamon
 			}
 		}
 
-		double[,] transformBeforeLvq = null;
 
 		private void buttonGenerateStar_Click(object sender, RoutedEventArgs e) {
 			try {
@@ -128,8 +106,6 @@ namespace LVQeamon
 					return;
 				}
 
-				object sync = new object();
-				int done = 0;
 				int numSets = NumberOfSets.Value;
 				int pointsPerSet = PointsPerSet.Value;
 				int DIMS = Dimensions.Value;
@@ -141,36 +117,14 @@ namespace LVQeamon
 
 				SetupDisplay(numSets);
 
-				MersenneTwister rndG = RndHelper.ThreadLocalRandom;
-				List<double[,]> pointClouds = new List<double[,]>();
+				ThreadPool.QueueUserWorkItem((ignore) => {
 
-				double[][,] transformMatrices;
-				double[][] means;
-				CreateGaussianCloud.InitStarSettings(starTailCount, DIMS, stddevmeans * starRelDist, rndG, out transformMatrices, out means, out transformBeforeLvq);
+					LvqDataSetCli dataset = LvqDataSetCli.ConstructStarDataset(
+						RndHelper.MakeSecureUInt, DIMS, 2, starTailCount, numSets, pointsPerSet, stddevmeans * starRelDist, 1.0 / starRelDist);
+					timer.TimeMark(null);
+					StartLvq(dataset, protoCount, useGsm);
+				}, 0);
 
-
-				for (int si = 0; si < numSets; si++) {//create each point-set
-					ThreadPool.QueueUserWorkItem((index) => {
-						MersenneTwister rnd;
-						lock (rndG)
-							rnd = new MersenneTwister(rndG.Next());
-
-						double[,] points = CreateGaussianCloud.RandomStar(pointsPerSet, DIMS, transformMatrices, means, stddevmeans, rnd);
-
-						lock (rndG)
-							pointClouds.Add(points);
-
-						lock (sync) {
-							done++;
-							if (done == numSets) {
-								timer.TimeMark(null);
-								new Thread(() => { StartLvq(pointClouds, protoCount, useGsm); }) {
-									IsBackground = true,
-								}.Start();
-							}
-						}
-					}, si);
-				}
 			} catch (Exception ex) {
 				Console.WriteLine("Error occured!");
 				Console.WriteLine(ex);
@@ -191,11 +145,14 @@ namespace LVQeamon
 					FileInfo labelFile = new FileInfo(selectedFile.Directory + @"\" + Path.GetFileNameWithoutExtension(selectedFile.Name) + ".label");
 					FileInfo dataFile = new FileInfo(selectedFile.Directory + @"\" + Path.GetFileNameWithoutExtension(selectedFile.Name) + ".data");
 					if (dataFile.Exists && labelFile.Exists) {
-						var pointclouds = DataSetLoader.LoadDataset(dataFile, labelFile);
-						Dispatcher.Invoke((Action)(() => {
-							SetupDisplay(pointclouds.Count);
-						}));
-						StartLvq(pointclouds, protoCount, useGsm);
+						try {
+							var pointclouds = DataSetLoader.LoadDataset(dataFile, labelFile);
+							SetupDisplay(pointclouds.Item3);
+							var dataset = LvqDataSetCli.ConstructFromArray(pointclouds.Item1, pointclouds.Item2, pointclouds.Item3);
+							StartLvq(dataset, protoCount, useGsm);
+						} catch (FileFormatException fe) {
+							Console.WriteLine("Can't load file: {0}", fe.ToString());
+						}
 					}
 				}
 			});
@@ -207,25 +164,9 @@ namespace LVQeamon
 
 
 
-		private void StartLvq(List<double[,]> pointClouds, int protoCount, bool useGsm, List<double[,]> pointTestClouds = null) {
-			int DIMS = pointClouds[0].GetLength(1);
-			double[,] allpoints = new double[pointClouds.Sum(pc => pc.GetLength(0)), DIMS];
-			int[] pointLabels = new int[allpoints.GetLength(0)];
-			int pointI = 0;
-			int classLabel = 0;
-			foreach (var pointCloud in pointClouds) {
-				for (int i = 0; i < pointCloud.GetLength(0); i++) {
-					for (int j = 0; j < DIMS; j++)
-						allpoints[pointI, j] = pointCloud[i, j];
-					pointLabels[pointI] = classLabel;
-					pointI++;
-				}
-				classLabel++;
-			}
-			Debug.Assert(pointI == allpoints.GetLength(0));
-			Debug.Assert(pointClouds[0].GetLength(1) == allpoints.GetLength(1));
-			LvqDataSet = LvqDataSetCli.ConstructFromArray(allpoints, pointLabels, classLabel);
-			LvqModel = new LvqWrapper(LvqDataSet, protoCount, useGsm);
+		private void StartLvq(LvqDataSetCli newDataset, int protosPerClass, bool useGsm, LvqDataSetCli testDataset = null) {
+			LvqDataSet = newDataset;
+			LvqModel = new LvqWrapper(newDataset, protosPerClass, useGsm);
 			needUpdate = true;
 			UpdateDisplay();
 		}
@@ -260,7 +201,7 @@ namespace LVQeamon
 					plotControl.Graphs.Add(plot);
 				}
 				plotControl.Graphs.Add(
-					PlotData.Create(LvqModel, UpdateClassBoundaries));
+					PlotData.Create(default(LvqWrapper), UpdateClassBoundaries));
 				plotControl.AutoPickColors();
 			}));
 		}

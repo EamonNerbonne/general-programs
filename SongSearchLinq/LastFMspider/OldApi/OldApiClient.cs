@@ -49,9 +49,23 @@ namespace LastFMspider.OldApi
 		}
 
 		public static UriRequest MakeUriRequest(string category, string method, params string[] otherParams) {
+			int retryCount=0;
+			while(true)
+				try { return MakeUriRequestNoRetry(category, method, otherParams); } catch (WebException we) {
+					retryCount++;
+					if (retryCount > 5)
+						throw;
+					HttpWebResponse wr = we.Response as HttpWebResponse;
+					if (wr != null && wr.StatusCode == HttpStatusCode.NotFound)
+						throw;
+				}
+		}
+
+		public static UriRequest MakeUriRequestNoRetry(string category, string method, params string[] otherParams) {
 			waitUntilFree();
 			return UriRequest.Execute(MakeUri(category, method, otherParams));
 		}
+
 
 		static XmlReaderSettings xmlSettings = new XmlReaderSettings { CheckCharacters = false, };
 		static string ConvertControlChars(string xmlString) {//unfortunately necessary for the last.fm old-style webservices, since those contain invalid chars.
