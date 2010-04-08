@@ -1,7 +1,7 @@
 #include "StdAfx.h"
 #include "LvqDataSetCli.h"
 #include "DataSetUtils.h"
-namespace LVQCppCli {
+namespace LvqLibCli {
 	LvqDataSetCli ^ LvqDataSetCli::ConstructFromArray(array<double,2>^ points, array<int>^ pointLabels, int classCount)
 	{
 		return gcnew LvqDataSetCli(new LvqDataSet(cliToCpp(points),cliToCpp(pointLabels),classCount));

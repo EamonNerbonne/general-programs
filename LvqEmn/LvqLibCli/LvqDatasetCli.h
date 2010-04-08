@@ -4,7 +4,7 @@ using namespace System;
 #include "LvqDataSet.h"
 #include "WrappingUtils.h"
 
-namespace LVQCppCli {
+namespace LvqLibCli {
 
 	public ref class LvqDataSetCli
 	{

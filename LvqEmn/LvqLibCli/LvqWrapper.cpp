@@ -5,7 +5,7 @@
 #include "GsmLvqModel.h"
 #include "WrappingUtils.h"
 
-namespace LVQCppCli {
+namespace LvqLibCli {
 
 	LvqWrapper::LvqWrapper(LvqDataSetCli^ dataset, int protosPerClass, bool useGsm)
 		: dataset(dataset)

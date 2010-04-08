@@ -89,13 +89,13 @@ namespace LVQeamon
 #endif
 
 #if DO_CLI_CPP
-			ParallelTime("Mult(uBlas)", parallelFactor, () => {				LVQCppCli.Class1.Testublas(iters, dims);			});
+			ParallelTime("Mult(uBlas)", parallelFactor, () => {				LvqLibCli.Class1.Testublas(iters, dims);			});
 #endif
 #if DO_NATIVE_CPP
-			ParallelTime("CustomNative", parallelFactor, () => { LVQCppCli.Class1.TestCustomNative(iters, dims); });
-			ParallelTime("ublasNative", parallelFactor, () => { LVQCppCli.Class1.TestublasNative(iters, dims); });
-			ParallelTime("CustomNative", parallelFactor, () => { LVQCppCli.Class1.TestCustomNative(iters, dims); });
-			ParallelTime("ublasNative", parallelFactor, () => { LVQCppCli.Class1.TestublasNative(iters, dims); });
+			ParallelTime("CustomNative", parallelFactor, () => { LvqLibCli.Class1.TestCustomNative(iters, dims); });
+			ParallelTime("ublasNative", parallelFactor, () => { LvqLibCli.Class1.TestublasNative(iters, dims); });
+			ParallelTime("CustomNative", parallelFactor, () => { LvqLibCli.Class1.TestCustomNative(iters, dims); });
+			ParallelTime("ublasNative", parallelFactor, () => { LvqLibCli.Class1.TestublasNative(iters, dims); });
 #endif
 		}
 
