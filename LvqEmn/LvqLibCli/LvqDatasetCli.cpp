@@ -4,7 +4,7 @@
 namespace LVQCppCli {
 	LvqDataSetCli ^ LvqDataSetCli::ConstructFromArray(array<double,2>^ points, array<int>^ pointLabels, int classCount)
 	{
-		return gcnew LvqDataSetCli(new LvqDataSet(arrayToMatrix(points),cliToStl(pointLabels),classCount));
+		return gcnew LvqDataSetCli(new LvqDataSet(cliToCpp(points),cliToCpp(pointLabels),classCount));
 	}
 
 	LvqDataSetCli::LvqDataSetCli(LvqDataSet * newDataset) : dataset(NULL), nativeAllocEstimate(0)

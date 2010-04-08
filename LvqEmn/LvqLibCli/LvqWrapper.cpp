@@ -38,7 +38,6 @@ namespace LVQCppCli {
 
 	LvqWrapper::!LvqWrapper() {GC::RemoveMemoryPressure(nativeAllocEstimate);}
 
-
 	double LvqWrapper::ErrorRate() { 
 		msclr::lock l(backupSync);
 		return dataset->GetDataSet()->ErrorRate(modelCopy); 
@@ -46,7 +45,7 @@ namespace LVQCppCli {
 
 	array<double,2>^ LvqWrapper::CurrentProjection() { 
 		msclr::lock l(backupSync);
-		return matrixToArray(dataset->GetDataSet()->ProjectPoints(modelCopy)); 
+		return cppToCli(dataset->GetDataSet()->ProjectPoints(modelCopy)); 
 	}
 
 	array<int,2>^ LvqWrapper::ClassBoundaries(double x0, double x1, double y0, double y1,int xCols, int yRows) {
@@ -55,7 +54,7 @@ namespace LVQCppCli {
 			msclr::lock l(backupSync);
 			modelCopy->ClassBoundaryDiagram(x0,x1,y0,y1,classDiagram);
 		}
-		return matrixToArrayNOFLIP(classDiagram);
+		return cppToCli(classDiagram.transpose());
 	}
 
 	void LvqWrapper::TrainEpoch(int epochsToDo) {

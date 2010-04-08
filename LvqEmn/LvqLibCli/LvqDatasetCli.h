@@ -15,7 +15,7 @@ namespace LVQCppCli {
 		LvqDataSetCli(LvqDataSet * newDataset);
 public:
 		LvqDataSet const * GetDataSet() {return dataset;}
-		array<int>^ ClassLabels(){return stlToCli(dataset->trainPointLabels);}
+		array<int>^ ClassLabels(){return cppToCli(dataset->trainPointLabels);}
 		property int ClassCount {int get(){return dataset->classCount;}}
 
 		static LvqDataSetCli ^ ConstructFromArray(array<double,2>^ points, array<int>^ pointLabels, int classCount);
