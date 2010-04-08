@@ -4,7 +4,10 @@
 #include "G2mLvqMatch.h"
 #include "LvqConstants.h"
 
-G2mLvqModel::G2mLvqModel(boost::mt19937 & rng,  bool randInit, std::vector<int> protodistribution, MatrixXd const & means) 
+using namespace std;
+using namespace Eigen;
+
+G2mLvqModel::G2mLvqModel(boost::mt19937 & rng,  bool randInit, vector<int> protodistribution, MatrixXd const & means) 
 	: AbstractProjectionLvqModel(means.rows()) 
 	, lr_scale_P(LVQ_LrScaleP)
 	, lr_scale_B(LVQ_LrScaleB)
@@ -37,7 +40,7 @@ G2mLvqModel::G2mLvqModel(boost::mt19937 & rng,  bool randInit, std::vector<int> 
 }
 
 
-typedef Eigen::Map<VectorXd,Eigen::Aligned  > MVectorXd;
+typedef Map<VectorXd,  Aligned> MVectorXd;
 
 void G2mLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel) {
 
@@ -141,3 +144,16 @@ size_t G2mLvqModel::MemAllocEstimate() const {
 		(16/2) * (4+prototype.size()*2);//estimate for alignment mucking.
 }
 
+MatrixXd G2mLvqModel::GetProjectedPrototypes() const {
+	MatrixXd retval(LVQ_LOW_DIM_SPACE, static_cast<int>(prototype.size()));
+	for(int i=0;i<prototype.size();++i)
+		retval.col(i) = prototype[i].projectedPosition();
+	return retval;
+}
+
+vector<int> G2mLvqModel::GetPrototypeLabels() const {
+	vector<int> retval(prototype.size());
+	for(int i=0;i<prototype.size();++i)
+		retval[i] = prototype[i].label();
+	return retval;
+}

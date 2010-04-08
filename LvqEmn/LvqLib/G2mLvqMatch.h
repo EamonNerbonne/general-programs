@@ -26,7 +26,7 @@ struct G2mLvqGoodBadMatch {
 		double optionDist = option.SqrDistanceTo(*projectedPoint);
 		assert(optionDist > 0);
 		assert(optionDist < std::numeric_limits<double>::infinity());
-		if(option.ClassLabel() == actualClassLabel) {
+		if(option.label() == actualClassLabel) {
 			if(optionDist < distanceGood) {
 				good = &option;
 				distanceGood = optionDist;

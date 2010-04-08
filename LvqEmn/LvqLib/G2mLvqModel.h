@@ -20,7 +20,7 @@ class G2mLvqModel : public AbstractProjectionLvqModel
 		G2mLvqMatch matches(&P_unknownPoint);
 		for(int i=0;i<prototype.size(); ++ i)	matches.AccumulateMatch(prototype[i]);
 		assert(matches.match != NULL);
-		return matches.match->ClassLabel();
+		return matches.match->label();
 	}
 
 	inline int classifyInternal(VectorXd const & unknownPoint) const { return classifyProjectedInternal(P * unknownPoint); }
@@ -33,4 +33,7 @@ public:
 	void learnFrom(VectorXd const & newPoint, int classLabel);
 	virtual void ClassBoundaryDiagram(double x0, double x1, double y0, double y1, MatrixXi & classDiagram) const;
 	virtual AbstractLvqModel* clone();
+
+	virtual MatrixXd GetProjectedPrototypes() const;
+	virtual std::vector<int> GetPrototypeLabels() const;
 };

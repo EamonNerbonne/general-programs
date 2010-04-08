@@ -3,15 +3,15 @@
 #include "utils.h"
 #include "LvqConstants.h"
 
-GsmLvqModel::GsmLvqModel(boost::mt19937 & rng,  bool randInit, std::vector<int> protodistribution, MatrixXd const & means) 
+using namespace std;
+
+GsmLvqModel::GsmLvqModel(boost::mt19937 & rng,  bool randInit, vector<int> protodistribution, MatrixXd const & means) 
 	: AbstractProjectionLvqModel(means.rows()) 
 	, lr_scale_P(LVQ_LrScaleP)
 	, classCount((int)protodistribution.size())
 	, vJ(means.rows())
 	, vK(means.rows())
 {
-	using namespace std;
-
 	if(randInit)
 		projectionRandomizeUniformScaled(rng, P);
 	else
@@ -133,3 +133,16 @@ size_t GsmLvqModel::MemAllocEstimate() const {
 		(16/2) * (5+prototype.size()*2);//estimate for alignment mucking.
 }
 
+MatrixXd GsmLvqModel::GetProjectedPrototypes() const {
+	MatrixXd retval(LVQ_LOW_DIM_SPACE, static_cast<int>(prototype.size()));
+	for(int i=0;i<prototype.size();++i)
+		retval.col(i) = P_prototype[i];
+	return retval;
+}
+
+vector<int> GsmLvqModel::GetPrototypeLabels() const {
+	vector<int> retval(prototype.size());
+	for(int i=0;i<prototype.size();++i)
+		retval[i] = pLabel[i];
+	return retval;
+}

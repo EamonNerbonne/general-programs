@@ -10,6 +10,7 @@ class G2mLvqPrototype
 	int classLabel; //only set during initialization.
 	//tmps:
 	Vector2d P_point;
+
 	EIGEN_STRONG_INLINE void ComputePP( PMatrix const & P) {
 #if EIGEN3
 		P_point.noalias() = P  * point;
@@ -19,9 +20,10 @@ class G2mLvqPrototype
 	}
 
 public:
-	inline int ClassLabel() const {return classLabel;}
+	inline int label() const {return classLabel;}
 	inline Matrix2d const & matB() const {return B;}
 	inline VectorXd const & position() const{return point;}
+	inline Vector2d const & projectedPosition() const{return P_point;}
 
 	inline G2mLvqPrototype() : classLabel(-1) {}
 
