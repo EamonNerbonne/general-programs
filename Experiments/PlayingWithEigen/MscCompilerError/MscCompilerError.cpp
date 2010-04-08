@@ -7,34 +7,34 @@ struct GeneralBase  {
 };
 
 
-template<typename TDerived>
-struct ContainerBase : GeneralBase<TDerived> {
-	typedef GeneralBase<TDerived> Base;
+template <int val>
+struct Container : GeneralBase<Container<val > > {
+	typedef GeneralBase<Container<val > > Base;
 	using Base::IsVector; //causes ICE!
 	//doesn't cause ICE:
-	//enum{ IsVector = Params<TDerived>::IsVector  };
-	
+	//enum{ IsVector = Params<Base>::IsVector  };
+	int getSize() {return val;}
 };
 
-template < int dims>
-struct Container : ContainerBase<Container< dims> > {
-	int getSize() {return dims;}
+template <typename TDerived>
+struct Params<GeneralBase<TDerived> > {
+	enum{ IsVector = Params<TDerived>::IsVector };
 };
 
-template < int dims>
-struct Params<Container< dims> > {
-	enum{ IsVector = (dims == 1) };
+template <int val>
+struct Params<Container< val> > {
+	enum{ IsVector = (val == 1) };
 };
 
-template<typename TDerived>
-Container</*required for ICE:*/ (ContainerBase<TDerived>::IsVector?1:2)> ConvertX(ContainerBase<TDerived> const & x){ 
-	Container<(ContainerBase<TDerived>::IsVector?1:2)> nx;
+template<int val>
+Container</*required for ICE:*/ (Container<val>::IsVector?1:2)> ConvertX(Container<val> const & x){ 
+	Container<(Container<val>::IsVector?1:2)> nx;
 	return nx;
 }
 
 int main()
 {
-	ContainerBase<Container<2>> v2i;
+	Container<2> v2i;
 	printf("%d\n", ConvertX(v2i).getSize() ); //8
 
     return 0;
