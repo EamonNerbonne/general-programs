@@ -181,10 +181,19 @@ namespace LVQeamon
 				.Select((label, i) => new { Label = label, Point = new Point(currPoints[i, 0], currPoints[i, 1]) })
 				.GroupBy(labelledPoint => labelledPoint.Label, labelledPoint => labelledPoint.Point)
 				.ToDictionary(group => group.Key, group => group.ToArray());
+
+			var prototypePositionsRaw = LvqModel.PrototypePositions().Item1;
+			var prototypePositions =
+				Enumerable.Range(0, prototypePositionsRaw.GetLength(0))
+				.Select(i => new Point(prototypePositionsRaw[i, 0], prototypePositionsRaw[i, 1]))
+				.ToArray();
+
+			
 			Dispatcher.BeginInvoke((Action)(() => {
 				needUpdate = false;
 				foreach (var pointGroup in projectedPointsByLabel)
 					((IPlotWriteable<Point[]>)plotControl.Graphs[pointGroup.Key]).Data = pointGroup.Value;
+				((IPlotWriteable<Point[]>)plotControl.Graphs[LvqModel.TrainingSet.ClassCount+1]).Data = prototypePositions;
 				((IPlotWriteable<LvqWrapper>)plotControl.Graphs[LvqModel.TrainingSet.ClassCount]).TriggerDataChanged();
 			}));
 		}
@@ -200,9 +209,15 @@ namespace LVQeamon
 					plot.Tag = new ClassTag(i);
 					plotControl.Graphs.Add(plot);
 				}
-				plotControl.Graphs.Add(
-					PlotData.Create(default(LvqWrapper), UpdateClassBoundaries));
 				plotControl.AutoPickColors();
+
+				plotControl.Graphs.Add(PlotData.Create(default(LvqWrapper), UpdateClassBoundaries));
+				var prototypePositions = PlotData.Create(new Point[] { });
+				prototypePositions.ZIndex = 1;
+				var prototypePositionsVisualizer = new EmnExtensions.Wpf.Plot.VizEngines.VizPixelScatterGeom();
+				prototypePositionsVisualizer.OverridePointCountEstimate = 100;
+				prototypePositions.Visualizer = prototypePositionsVisualizer;
+				plotControl.Graphs.Add(prototypePositions); //prototype centers.
 			}));
 		}
 

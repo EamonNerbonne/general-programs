@@ -62,4 +62,9 @@ namespace LvqLibCli {
 		dataset->GetDataSet()->TrainModel(epochsToDo,  *rnd, model);
 		BackupModel();
 	}
+	
+	Tuple<array<double,2>^, array<int>^>^ LvqWrapper:: PrototypePositions() {
+		msclr::lock l(backupSync);
+		return Tuple::Create(cppToCli( modelCopy->GetProjectedPrototypes()), cppToCli(modelCopy->GetPrototypeLabels()));
+	}
 }
