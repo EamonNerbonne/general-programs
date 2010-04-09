@@ -10,7 +10,6 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
 	public class VizPixelScatterGeom : PlotVizTransform<Point[], StreamGeometry>, IVizPixelScatter
 	{
 		VizGeometry impl = new VizGeometry();
-
 		Point[] oldData;
 		StreamGeometry transformedData;
 		protected override StreamGeometry TransformedData(Point[] inputData) { return transformedData; }
@@ -21,8 +20,9 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
 			transformedData = GraphUtils.PointCloud(newData);
 			RecomputeBounds(newData);
 			impl.DataChanged(transformedData);
-			SetPenSize(newData.Length);
+			SetPenSize(OverridePointCountEstimate??newData.Length);
 		}
+		public int? OverridePointCountEstimate { get; set; }
 
 		private void SetPenSize(int pointCount)
 		{

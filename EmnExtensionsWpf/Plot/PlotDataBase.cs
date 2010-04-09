@@ -34,6 +34,9 @@ namespace EmnExtensions.Wpf.Plot
 		Color? m_PrimaryColor;
 		public Color? RenderColor { get { return m_PrimaryColor; } set { m_PrimaryColor = value; if (vizEngine != null) vizEngine.RenderOptionsChanged(); } }
 
+		int  zIndex;
+		public int ZIndex { get { return zIndex; } set { zIndex = value; TriggerChange(GraphChange.Drawing); } }
+
 		double? m_Thickness;
 		public double? RenderThickness { get { return m_Thickness; } set { m_Thickness = value; if (vizEngine != null) vizEngine.RenderOptionsChanged(); } }
 

@@ -39,7 +39,7 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
 			//thicknessOfSquare 1.0 is equivalent to a 1x1 opaque pixel square.
 			double alpha = thicknessOfSquare * thicknessOfSquare;
 
-			bool useDiamondPoints = alpha > 0.5;
+			bool useDiamondPoints = alpha > 1.0;
 			if (useDiamondPoints)
 				alpha = Math.Min(1.0, alpha / 5.0);
 

@@ -13,6 +13,7 @@ namespace EmnExtensions.Wpf.Plot
 		string YUnitLabel { get; }
 		string DataLabel { get; }
 		object Tag { get; }
+		int ZIndex { get; }
 
 		event Action<IPlotViewOnly, GraphChange> Changed;
 		TickedAxisLocation AxisBindings { get; set; }
@@ -41,6 +42,7 @@ namespace EmnExtensions.Wpf.Plot
 		new double? RenderThickness { get; set; }
 		bool VizSupportsColor { get; }
 		bool VizSupportsThickness { get; }
+		new int ZIndex { get; set;}
 		void TriggerDataChanged();
 	}
 
