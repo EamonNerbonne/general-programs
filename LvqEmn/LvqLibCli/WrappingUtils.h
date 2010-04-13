@@ -32,7 +32,7 @@ namespace LvqLibCli {
 	template<typename T> 
 	inline array<T>^ cppToCli(std::vector<T> const & vec) {
 		array<T>^ arr = gcnew array<T>((int)vec.size());
-		for(int i=0;i<vec.size();++i)
+		for(unsigned i=0;i<vec.size();++i)
 			arr[i]=cppToCli(vec[i]);
 		return arr;
 	}
@@ -72,8 +72,14 @@ namespace LvqLibCli {
 		}
 	};
 
+#ifdef EIGEN3
+#define MSC_ANTI_ICE ::Base
+#else
+#define MSC_ANTI_ICE 
+#endif
+
 	template<typename TDerived>
-	inline array<typename MatrixBase<TDerived>::Scalar,(MatrixBase<TDerived>::Base::IsVectorAtCompileTime?1: 2) >^ cppToCli(MatrixBase<TDerived>  const & matrix) {
+	inline array<typename MatrixBase<TDerived>::Scalar, (MatrixBase<TDerived>MSC_ANTI_ICE::IsVectorAtCompileTime?1: 2) >^ cppToCli(MatrixBase<TDerived> const & matrix) {
 		return cppToCli_MatrixOrVectorChooser<TDerived>::cppToCliHelper<MatrixBase<TDerived>::IsVectorAtCompileTime>(matrix);
 	}
 }
