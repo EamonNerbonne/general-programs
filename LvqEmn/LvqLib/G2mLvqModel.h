@@ -18,7 +18,7 @@ class G2mLvqModel : public AbstractProjectionLvqModel
 
 	inline int classifyProjectedInternal(Vector2d const & P_unknownPoint) const {
 		G2mLvqMatch matches(&P_unknownPoint);
-		for(int i=0;i<prototype.size(); ++ i)	matches.AccumulateMatch(prototype[i]);
+		for(size_t i=0;i<prototype.size(); ++ i)	matches.AccumulateMatch(prototype[i]);
 		assert(matches.match != NULL);
 		return matches.match->label();
 	}

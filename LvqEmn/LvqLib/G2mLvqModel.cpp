@@ -64,7 +64,7 @@ void G2mLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel) {
 
 	G2mLvqGoodBadMatch matches(&projectedTrainPoint, trainLabel);
 
-	for(int i=0;i<prototype.size();i++)
+	for(size_t i=0;i<prototype.size();i++)
 		matches.AccumulateMatch(prototype[i]);
 
 	assert(matches.good !=NULL && matches.bad!=NULL);
@@ -115,7 +115,7 @@ void G2mLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel) {
 	//	P *= pNormScale;
 #endif
 
-	for(int i=0;i<prototype.size();++i)
+	for(size_t i=0;i<prototype.size();++i)
 		prototype[i].ComputePP(P);
 }
 
@@ -146,14 +146,14 @@ size_t G2mLvqModel::MemAllocEstimate() const {
 
 MatrixXd G2mLvqModel::GetProjectedPrototypes() const {
 	MatrixXd retval(LVQ_LOW_DIM_SPACE, static_cast<int>(prototype.size()));
-	for(int i=0;i<prototype.size();++i)
+	for(unsigned i=0;i<prototype.size();++i)
 		retval.col(i) = prototype[i].projectedPosition();
 	return retval;
 }
 
 vector<int> G2mLvqModel::GetPrototypeLabels() const {
 	vector<int> retval(prototype.size());
-	for(int i=0;i<prototype.size();++i)
+	for(unsigned i=0;i<prototype.size();++i)
 		retval[i] = prototype[i].label();
 	return retval;
 }

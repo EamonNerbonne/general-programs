@@ -135,14 +135,14 @@ size_t GsmLvqModel::MemAllocEstimate() const {
 
 MatrixXd GsmLvqModel::GetProjectedPrototypes() const {
 	MatrixXd retval(LVQ_LOW_DIM_SPACE, static_cast<int>(prototype.size()));
-	for(int i=0;i<prototype.size();++i)
+	for(unsigned i=0;i<prototype.size();++i)
 		retval.col(i) = P_prototype[i];
 	return retval;
 }
 
 vector<int> GsmLvqModel::GetPrototypeLabels() const {
 	vector<int> retval(prototype.size());
-	for(int i=0;i<prototype.size();++i)
+	for(unsigned i=0;i<prototype.size();++i)
 		retval[i] = pLabel[i];
 	return retval;
 }
