@@ -16,32 +16,25 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
 		public const double SquareSidePerThickness = Math.PI / 4.0;
 		public static double PointCountToThickness(int pointCount) { return 25.0 / (0.5 + Math.Log(Math.Max(pointCount, 1))); }
 
-		public static void RecomputeBounds(Point[] points, double coverage, out Rect outerBounds, out Rect coveredBounds)
-		{
-			if (HasPoints(points))
-			{
+		public static void RecomputeBounds(Point[] points, double coverage, out Rect outerBounds, out Rect coveredBounds) {
+			if (HasPoints(points)) {
 				outerBounds = ComputeOuterBounds(points);
 				coveredBounds = ComputeInnerBoundsByRatio(points, coverage, outerBounds);
-			}
-			else
-			{
+			} else {
 				coveredBounds = outerBounds = Rect.Empty;
 			}
 		}
-
 		#region RecomputeBounds Helpers
 		static bool HasPoints(Point[] points) { return points != null && points.Length > 0; }
 
-		static Rect ComputeOuterBounds(Point[] points)
-		{
+		static Rect ComputeOuterBounds(Point[] points) {
 			Rect outerBounds = Rect.Empty;
 			foreach (var point in points)
 				outerBounds.Union(point);
 			return outerBounds;
 		}
 
-		static Rect ComputeInnerBoundsByRatio(Point[] points, double coverageRatio, Rect completeBounds)
-		{
+		static Rect ComputeInnerBoundsByRatio(Point[] points, double coverageRatio, Rect completeBounds) {
 			int cutoffEachSide = (int)(0.5 * (1.0 - coverageRatio) * points.Length + 0.5);
 			return
 				cutoffEachSide == 0 ? completeBounds :
@@ -49,12 +42,10 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
 				ComputeInnerBoundsByCutoff(points, cutoffEachSide);
 		}
 
-		static Rect ComputeInnerBoundsByCutoff(Point[] points, int cutoffEachSide)
-		{
+		static Rect ComputeInnerBoundsByCutoff(Point[] points, int cutoffEachSide) {
 			double[] xs = new double[points.Length];
 			double[] ys = new double[points.Length];
-			for (int i = 0; i < points.Length; i++)
-			{
+			for (int i = 0; i < points.Length; i++) {
 				xs[i] = points[i].X;
 				ys[i] = points[i].Y;
 			}
@@ -68,6 +59,5 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
 				);
 		}
 		#endregion
-
 	}
 }
