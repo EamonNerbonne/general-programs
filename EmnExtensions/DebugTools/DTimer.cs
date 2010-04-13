@@ -8,7 +8,6 @@ namespace EmnExtensions.DebugTools
 {
 	public sealed class DTimer : IDisposable
 	{
-
 		public DTimer(string actionLabel) { Start(actionLabel); }
 		public DTimer(Action<TimeSpan> resultSink) { Start(resultSink); }
 
@@ -25,5 +24,10 @@ namespace EmnExtensions.DebugTools
 
 		Action<TimeSpan> resultSink;
 		Stopwatch underlyingTimer;
+
+
+		public static T TimeFunc<T>(Func<T> f, string actionLabel) { using (new DTimer(actionLabel)) return f(); }
+		public static T TimeFunc<T>(Func<T> f, Action<TimeSpan> resultSink) { using (new DTimer(resultSink)) return f(); }
+
 	}
 }

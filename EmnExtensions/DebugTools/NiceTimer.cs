@@ -21,16 +21,14 @@ namespace EmnExtensions.DebugTools
 		}
 		Stopwatch sw;
 		string oldmsg;
-		public TimingResults TimeMark(string msg)
-		{
+		public TimingResults TimeMark(string msg) {
 			sw.Stop();
-			double sec =  ((TimeSpan)sw.Elapsed).TotalSeconds;
+			double sec = ((TimeSpan)sw.Elapsed).TotalSeconds;
 			TimingResults retval = new TimingResults { ActionName = oldmsg, ElapsedSeconds = sec };
-			if (Writer != null)
-			{
+			if (Writer != null) {
 				if (oldmsg != null)
 					Writer.WriteLine(retval);
-			//	Writer.WriteLine("MB alloc'd: {0}", System.GC.GetTotalMemory(false) >> 20);
+				//	Writer.WriteLine("MB alloc'd: {0}", System.GC.GetTotalMemory(false) >> 20);
 				if (msg != null)
 					Writer.WriteLine("TIMING: " + msg);
 			}
@@ -53,8 +51,7 @@ namespace EmnExtensions.DebugTools
 		/// Initialize a nicetimer sending timing logging info to the provided logger.
 		/// </summary>
 		/// <param name="writer">The TextWriter to log timing info to, or null to disable logging.</param>
-		public NiceTimer(TextWriter writer)
-		{
+		public NiceTimer(TextWriter writer) {
 			writer = writer ?? Console.Out;
 			sw = new Stopwatch();
 			//oldmsg = null;
@@ -66,13 +63,13 @@ namespace EmnExtensions.DebugTools
 		/// Times a particular action for a number of runs.  
 		/// Low overhead.
 		/// </summary>
-		public TimingResults TimeAction(string actionName, int testCount, Action testRun)
-		{
+		public TimingResults TimeAction(string actionName, int testCount, Action testRun) {
 			TimeMark(null);
 			if (Writer != null)
 				Writer.Write("Timing " + testCount + " runs of " + actionName + ":");
 			DateTime start = DateTime.Now;
-			for (int i = 0; i < testCount; i++) testRun();
+			for (int i = 0; i < testCount; i++)
+				testRun();
 			DateTime end = DateTime.Now;
 			double elapsedPerTest = (end - start).TotalSeconds / (double)testCount;
 			if (Writer != null)
@@ -83,8 +80,7 @@ namespace EmnExtensions.DebugTools
 		/// Times a particular action for (at least) a certain length of time.  
 		/// Slightly higher overhead due to timer use in the inner loop.
 		/// </summary>
-		public TimingResults TimeAction(string actionName, TimeSpan testDuration, Action testRun)
-		{
+		public TimingResults TimeAction(string actionName, TimeSpan testDuration, Action testRun) {
 			TimeMark(null);
 			if (Writer != null)
 				Writer.Write("Timing " + actionName + " for " + testDuration + ":");
@@ -100,28 +96,27 @@ namespace EmnExtensions.DebugTools
 			return new TimingResults { ActionName = actionName, ElapsedSeconds = elapsedPerTest };
 		}
 
-		public static TimingResults Time(string actionName, Action toPerform)
-		{
-			return new NiceTimer().TimeAction(actionName, toPerform);
-		}
 
-		public static TimingResultsAndValue<T> Time<T>(string actionName, Func<T> toPerform)
-		{
-			TimingResultsAndValue<T> retval = default(TimingResultsAndValue<T>);
-			retval.Timing=new NiceTimer().TimeAction(actionName, () => { retval.Value = toPerform(); });
-			return retval;
-		}
-
-		public TimingResults TimeAction(string actionName, Action toPerform)
-		{
+		public TimingResults TimeAction(string actionName, Action toPerform) {
 			TimeMark(actionName);
 			toPerform();
 			return TimeMark(null);
 		}
 
-		public TimingResults Done()
-		{
+		public TimingResults Done() {
 			return TimeMark(null);
 		}
+
+		public static TimingResults Time(string actionName, Action toPerform) {
+			return new NiceTimer().TimeAction(actionName, toPerform);
+		}
+
+
+		public static TimingResultsAndValue<T> Time<T>(string actionName, Func<T> toPerform) {
+			TimingResultsAndValue<T> retval = default(TimingResultsAndValue<T>);
+			retval.Timing = new NiceTimer().TimeAction(actionName, () => { retval.Value = toPerform(); });
+			return retval;
+		}
+
 	}
 }
