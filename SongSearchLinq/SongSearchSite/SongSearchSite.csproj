@@ -60,6 +60,7 @@
     <Content Include="batmomultiplayer.js" />
     <Content Include="Default.aspx" />
     <Content Include="IndexStatus.aspx" />
+    <Content Include="player_mp3_maxi.swf" />
     <Content Include="Web.config">
       <SubType>Designer</SubType>
     </Content>

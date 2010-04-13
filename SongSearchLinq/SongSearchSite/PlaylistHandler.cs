@@ -37,6 +37,7 @@ namespace SongSearchSite
 				enc = Encoding.UTF8;
 			} else if (extension == ".m3u") {
 				enc = Encoding.GetEncoding(1252);
+				
 				res.MimeType = "audio/x-mpegurl";
 			} else if (extension == ".xml") {
 				enc = Encoding.UTF8;
@@ -59,6 +60,10 @@ namespace SongSearchSite
 			searchterms = searchterms.Concat(queryParam.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries));
 			searchterms = searchterms.Select(s => Canonicalize.Basic(s)).ToArray();
 			searchQuery = string.Join(" ", searchterms.ToArray());
+
+			if (extension == ".m3u" || extension == ".m3u8")
+				context.Response.Headers["Content-Disposition"] = "attachment; filename=" + Uri.EscapeDataString( "playlist_" + searchQuery + extension); //searchquery has been canonicalized: no dangerous injection possible.
+
 			res.ETag = ResourceInfo.GenerateETagFrom(searchQuery, includeRemote, extm3u, isXml, extension, context.Request.QueryString["top"]);
 			res.ResourceLength = null;//unknown
 			res.TimeStamp = startup;
@@ -74,17 +79,17 @@ namespace SongSearchSite
 			get { return false; }
 		}
 
-		public void WriteByteRange(Range range) {
-			throw new NotImplementedException();
-		}
+		public void WriteByteRange(Range range) { throw new NotImplementedException(); }
 
 		public void WriteEntireContent() {
 			HttpContext context = helper.Context;
 
-			if (extm3u && !isXml) context.Response.Write("#EXTM3U\n");
+			if (extm3u && !isXml)
+				context.Response.Write("#EXTM3U\n");
 			string serverName = context.Request.Headers["Host"];
 			string appName = context.Request.ApplicationPath;
-			if (appName == "/") appName = "";
+			if (appName == "/")
+				appName = "";
 			string urlprefix = "http://" + serverName + appName + "/songs/";
 			//			urlprefix = "http://home.nerbonne.org/";
 
@@ -103,7 +108,8 @@ namespace SongSearchSite
 				XmlWriter xmlOut = XmlWriter.Create(context.Response.Output, settings);
 
 				xmlOut.WriteStartDocument();
-				if (context.Request.QueryString["view"] == "xslt") xmlOut.WriteProcessingInstruction("xml-stylesheet", "type=\"text/xsl\"  href=\"tableview.xsl\"");
+				if (context.Request.QueryString["view"] == "xslt")
+					xmlOut.WriteProcessingInstruction("xml-stylesheet", "type=\"text/xsl\"  href=\"tableview.xsl\"");
 				xmlOut.WriteStartElement("songs");
 				foreach (ISongData s in searchResults) {
 					s.ConvertToXml(UrlTranslator(urlprefix)).WriteTo(xmlOut);
@@ -120,15 +126,18 @@ namespace SongSearchSite
 		}
 		static string makeM3UEntry(ISongData song, bool extm3u, string urlprefix) {
 			string url = makeUrl(urlprefix, song);
-			if (extm3u) return "#EXTINF:" + song.Length + "," + song.HumanLabel + "\n" + url + "\n";
-			else return url + "?_=" + HttpUtility.UrlEncode(song.HumanLabel) + "\n";
+			if (extm3u)
+				return "#EXTINF:" + song.Length + "," + song.HumanLabel + "\n" + url + "\n";
+			else
+				return url + "?_=" + HttpUtility.UrlEncode(song.HumanLabel) + "\n";
 		}
 
 		static string makeUrl(string urlprefix, ISongData song) {
 			if (song.IsLocal) { //http://www.albionresearch.com/misc/urlencode.php
 				//http://www.blooberry.com/indexdot/html/topics/urlencoding.htm
 				return UrlTranslator(urlprefix, song.SongPath);
-			} else return song.SongPath;
+			} else
+				return song.SongPath;
 		}
 
 
@@ -139,7 +148,6 @@ namespace SongSearchSite
 		static Func<string, string> UrlTranslator(string urlprefix) {
 			return s => UrlTranslator(urlprefix, s);
 		}
-
 	}
 
 	public class PlaylistHandler : IHttpHandler
@@ -185,7 +193,8 @@ namespace SongSearchSite
 		}
 
 		public static string NormalizeSongPath(ISongData localSong) {
-			if (!localSong.IsLocal) throw new ArgumentException("This is only meaningful for local files.");
+			if (!localSong.IsLocal)
+				throw new ArgumentException("This is only meaningful for local files.");
 			return NormalizeSongPath(localSong.SongPath);
 		}
 
@@ -196,7 +205,8 @@ namespace SongSearchSite
 					SongContainer retval;
 					if (context.Application["SongContainer"] == null)
 						context.Application["SongContainer"] = retval = new SongContainer();
-					else retval = (SongContainer)context.Application["SongContainer"];
+					else
+						retval = (SongContainer)context.Application["SongContainer"];
 					return retval;
 				}
 			}
@@ -211,7 +221,7 @@ namespace SongSearchSite
 			SongDatabaseConfigFile dcf = new SongDatabaseConfigFile(true);
 			List<ISongData> tmpSongs = new List<ISongData>();
 			dcf.Load(delegate(ISongData aSong, double ratio) {
-					tmpSongs.Add(aSong);
+				tmpSongs.Add(aSong);
 			});
 			db = new SongDB(tmpSongs);
 			dcf = null;
@@ -230,7 +240,8 @@ namespace SongSearchSite
 		/// <returns></returns>
 		public static ISongData GetSongByNormalizedPath(string path) {
 			ISongData retval;
-			if (!Singleton.localSongs.TryGetValue(path, out retval)) retval = null;
+			if (!Singleton.localSongs.TryGetValue(path, out retval))
+				retval = null;
 			return retval;
 		}
 	}
