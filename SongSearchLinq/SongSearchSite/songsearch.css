@@ -1,0 +1,98 @@
+﻿#Text1
+{
+    width: 310px;
+}
+#searchquery
+{
+    width: 186px;
+}
+body, html, #form1
+{
+    width: 100%;
+    padding: 0;
+    margin: 0;
+    position: relative;
+    height: 100%;
+}
+body
+{
+    font-family: Segoe UI, Calibri, Helvetica, Arial, Sans-Serif;
+    font-size: 12pt;
+}
+table#pagetable
+{
+    border-collapse: collapse;
+    border: none;
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+}
+
+iframe
+{
+    border: 0;
+}
+.searchSect
+{
+    background: #c4ddd5;
+    padding: 0.5em;
+    width: 35em;
+    float:left;
+    margin-right:0.5em;
+}
+
+.searchSect a
+{
+    color: #084;
+}
+
+.searchSect a:visited
+{
+    color: #444;
+}
+
+.searchSect a:after
+{
+    font-weight: bold;
+    font-family: Comic Sans MS;
+    content: " \2193 ";
+}
+
+input 
+{
+    background: rgba(255,255,255,0.85);
+    border:1px inset #c4ddd5 ;
+}
+
+input:focus
+{
+    -moz-box-shadow: 0 0 2em white, 0 0 0.5em white;
+    -webkit-box-shadow: 0 0 2em white, 0 0 0.5em white;
+    box-shadow:  0 0 2em white, 0 0 0.5em white;
+    outline: none;
+    background:white;
+}
+
+a:focus
+{
+    -moz-box-shadow: 0 0 2em white, 0 0 0.5em white, inset  0 0 0.5em white;
+    -webkit-box-shadow: 0 0 2em white, 0 0 0.5em white, inset  0 0 0.5em white;
+    box-shadow:  0 0 2em white, 0 0 0.5em white, inset  0 0 0.5em white;
+    outline: none;
+    color:black !important;
+    background: rgba(255,255,255,0.15);
+}
+
+#audio-container
+{
+    padding: 0.5em;
+    font-size: 80%;
+    
+}
+#audio-container audio 
+{
+    display:block;
+}
+h3 {font-size:13pt; margin:0 0 0.5em 0; color:Gray;}
+td{padding:0;

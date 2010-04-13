@@ -1,73 +1,12 @@
 ﻿<?xml version="1.0" encoding="UTF-8" ?>
 <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
-	<xsl:output doctype-public="html" />
+	<xsl:output doctype-public="-//W3C//DTD XHTML 1.0 Transitional//EN" method="html"/>
 	<xsl:template match="/">
 		<html>
 			<head>
-				<style type="text/css">
-					body,html{
-					width:100%;
-					padding:0;
-					margin:0;
-					position:relative;
-					}
-					table {
-					border-collapse:collapse;
-					width:100%;
-					}
-					tr{
-					border: solid #8ba;
-					border-width: 1px 0;
-					}
-
-					body {
-					font-family:  Segoe UI,Calibri,Helvetica,Arial, Sans-Serif;
-					font-size:10pt;
-					}
-					tr:nth-child(2n) {
-					background: #e2eeea;
-					}
-					tr > *:nth-child(2) {
-					font-style:italic;
-					}
-					td>div {
-					overflow:hidden;
-					max-height: 1.28em;
-					max-width:100%;
-					position:relative;
-					}
-					td>div>span {
-					position:relative;
-					z-index:1;
-					}
-
-					tr td>div>span {
-					background:#fff;
-					}
-
-					tr:nth-child(2n) td>div>span {
-					background:#e2eeea;
-					}
-
-					td>div>i {
-					float:right;
-					position:relative;
-					white-space:nowrap;
-					width:0;
-					overflow:show;
-					background:red;
-					z-index:0;
-					}
-					td>div>i>i {
-					position:absolute;
-					bottom:0.0ex;
-					font-weight:bold;
-					right:0;
-					color:#aaa;
-					}
-
-				</style>
-				<!--#8ba;#c4ddd5;#e2eeea-->
+        <link rel="Stylesheet" type="text/css" href="songsearch.css" />
+        <link rel="Stylesheet" type="text/css" href="tableview.css" />
+        <!--#8ba;#c4ddd5;#e2eeea-->
 			</head>
 			<body>
 				<table>
@@ -103,8 +42,7 @@
 		<xsl:variable name="songlabel">
 			<xsl:apply-templates select="." mode="makelabel" />
 		</xsl:variable>
-		<tr onclick="parent.BatPop(this.getAttribute('songlabel'),decodeURIComponent(this.getAttribute('href').substring(this.getAttribute('href').lastIndexOf('/')+1)), this.getAttribute('href'), null);" style="cursor:pointer;" href="{@songuri}" songlabel="{$songlabel}">
-			<!-- onclick="top.frames['idxStatus'].location.href='{@songuri}'" -->
+		<tr onclick="parent.PlaySong(this.getAttribute('songlabel'),decodeURIComponent(this.getAttribute('href').substring(this.getAttribute('href').lastIndexOf('/')+1)), this.getAttribute('href'), null);" style="cursor:pointer;" href="{@songuri}" songlabel="{$songlabel}">
 			<xsl:choose>
 				<xsl:when test="@artist">
 					<td>

@@ -109,7 +109,7 @@ namespace SongSearchSite
 
 				xmlOut.WriteStartDocument();
 				if (context.Request.QueryString["view"] == "xslt")
-					xmlOut.WriteProcessingInstruction("xml-stylesheet", "type=\"text/xsl\"  href=\"tableview.xsl\"");
+					xmlOut.WriteProcessingInstruction("xml-stylesheet", "type=\"text/xsl\"  href=\"searchresult.xsl\"");
 				xmlOut.WriteStartElement("songs");
 				foreach (ISongData s in searchResults) {
 					s.ConvertToXml(UrlTranslator(urlprefix)).WriteTo(xmlOut);

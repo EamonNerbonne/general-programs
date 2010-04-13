@@ -57,14 +57,17 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="batmomultiplayer.js" />
     <Content Include="Default.aspx" />
-    <Content Include="IndexStatus.aspx" />
+    <Content Include="emnicon.png" />
     <Content Include="player_mp3_maxi.swf" />
+    <Content Include="songsearch.css" />
+    <Content Include="songsearch.js" />
+    <Content Include="tableview.css" />
     <Content Include="Web.config">
       <SubType>Designer</SubType>
     </Content>
-    <Content Include="tableview.xsl" />
+    <Content Include="searchresult.xsl" />
+    <Content Include="xspf_player_slim.swf" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Default.aspx.cs">
@@ -73,13 +76,6 @@
     </Compile>
     <Compile Include="Default.aspx.designer.cs">
       <DependentUpon>Default.aspx</DependentUpon>
-    </Compile>
-    <Compile Include="IndexStatus.aspx.cs">
-      <DependentUpon>IndexStatus.aspx</DependentUpon>
-      <SubType>ASPXCodeBehind</SubType>
-    </Compile>
-    <Compile Include="IndexStatus.aspx.designer.cs">
-      <DependentUpon>IndexStatus.aspx</DependentUpon>
     </Compile>
     <Compile Include="PlaylistHandler.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
