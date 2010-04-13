@@ -64,8 +64,6 @@ namespace LVQeamon
 
 		private void buttonGeneratePointClouds_Click(object sender, RoutedEventArgs e) {
 			try {
-				NiceTimer timer = new NiceTimer();
-				timer.TimeMark("making point clouds");
 
 				if (!NumberOfSets.HasValue || !PointsPerSet.HasValue) {
 					Console.WriteLine("Invalid initialization values");
@@ -74,7 +72,7 @@ namespace LVQeamon
 
 				int numSets = NumberOfSets.Value;
 				int pointsPerSet = PointsPerSet.Value;
-				int DIMS = Dimensions.Value;
+				int dims = Dimensions.Value;
 				int protoCount = ProtoCount.Value;
 				double stddevmeans = StddevMeans.Value;
 				bool useGsm = checkBoxLvqGsm.IsChecked ?? false;
@@ -82,9 +80,11 @@ namespace LVQeamon
 				SetupDisplay(numSets);
 
 				ThreadPool.QueueUserWorkItem((ignore) => {
+					NiceTimer timer = new NiceTimer();
+					timer.TimeMark("making point clouds");
 
 					LvqDataSetCli dataset = LvqDataSetCli.ConstructGaussianClouds(
-						RndHelper.MakeSecureUInt, DIMS, numSets, pointsPerSet, stddevmeans);
+						RndHelper.MakeSecureUInt, dims, numSets, pointsPerSet, stddevmeans);
 					timer.TimeMark(null);
 					StartLvq(dataset, protoCount, useGsm);
 				}, 0);
@@ -98,8 +98,6 @@ namespace LVQeamon
 
 		private void buttonGenerateStar_Click(object sender, RoutedEventArgs e) {
 			try {
-				NiceTimer timer = new NiceTimer();
-				timer.TimeMark("making star clouds");
 
 				if (!NumberOfSets.HasValue || !PointsPerSet.HasValue) {
 					Console.WriteLine("Invalid initialization values");
@@ -108,7 +106,7 @@ namespace LVQeamon
 
 				int numSets = NumberOfSets.Value;
 				int pointsPerSet = PointsPerSet.Value;
-				int DIMS = Dimensions.Value;
+				int dims = Dimensions.Value;
 				int protoCount = ProtoCount.Value;
 				double stddevmeans = StddevMeans.Value;
 				double starRelDist = StarRelDistance.Value;
@@ -119,9 +117,10 @@ namespace LVQeamon
 
 				ThreadPool.QueueUserWorkItem((ignore) => {
 
-					LvqDataSetCli dataset = LvqDataSetCli.ConstructStarDataset(
-						RndHelper.MakeSecureUInt, DIMS, 2, starTailCount, numSets, pointsPerSet, stddevmeans * starRelDist, 1.0 / starRelDist);
-					timer.TimeMark(null);
+					LvqDataSetCli dataset =
+						DTimer.TimeFunc(() => LvqDataSetCli.ConstructStarDataset(
+						RndHelper.MakeSecureUInt, dims, 2, starTailCount, numSets, pointsPerSet, stddevmeans * starRelDist, 1.0 / starRelDist), "making star clouds");
+
 					StartLvq(dataset, protoCount, useGsm);
 				}, 0);
 
@@ -161,9 +160,6 @@ namespace LVQeamon
 			fileOpenThread.Start();
 		}
 
-
-
-
 		private void StartLvq(LvqDataSetCli newDataset, int protosPerClass, bool useGsm, LvqDataSetCli testDataset = null) {
 			LvqDataSet = newDataset;
 			LvqModel = new LvqWrapper(newDataset, protosPerClass, useGsm);
@@ -188,12 +184,12 @@ namespace LVQeamon
 				.Select(i => new Point(prototypePositionsRaw[i, 0], prototypePositionsRaw[i, 1]))
 				.ToArray();
 
-			
+
 			Dispatcher.BeginInvoke((Action)(() => {
 				needUpdate = false;
 				foreach (var pointGroup in projectedPointsByLabel)
 					((IPlotWriteable<Point[]>)plotControl.Graphs[pointGroup.Key]).Data = pointGroup.Value;
-				((IPlotWriteable<Point[]>)plotControl.Graphs[LvqModel.TrainingSet.ClassCount+1]).Data = prototypePositions;
+				((IPlotWriteable<Point[]>)plotControl.Graphs[LvqModel.TrainingSet.ClassCount + 1]).Data = prototypePositions;
 				((IPlotWriteable<LvqWrapper>)plotControl.Graphs[LvqModel.TrainingSet.ClassCount]).TriggerDataChanged();
 			}));
 		}
