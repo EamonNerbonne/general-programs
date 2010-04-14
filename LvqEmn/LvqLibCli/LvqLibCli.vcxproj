@@ -535,6 +535,9 @@
     <ClInclude Include="WrappingUtils.h" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\LvqDataModel\LvqDataModel.csproj">
+      <Project>{90409c58-9a0e-43b1-b2af-ec569eb4d287}</Project>
+    </ProjectReference>
     <ProjectReference Include="..\LvqLib\LvqLib.vcxproj">
       <Project>{2783a490-0407-4758-9531-b2950f3058d5}</Project>
     </ProjectReference>
