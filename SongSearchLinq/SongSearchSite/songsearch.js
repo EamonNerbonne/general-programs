@@ -44,6 +44,8 @@ function getExtension(url) {
 
 function htmlAudioSupported(type) {
     try {
+        if (!Audio)
+            return false;
         var audioStub = new Audio("");
         if (!(audioStub.canPlayType))
             return false;
