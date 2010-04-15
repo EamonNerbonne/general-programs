@@ -73,9 +73,14 @@ function PlaySong(songlabel, songfilename, songurl, imgObj) {
         audioEl.setAttribute("type", "application/x-shockwave-flash");
         audioEl.setAttribute("data", movieUrl);
         audioEl.setAttribute("width", "100%");
-        audioEl.setAttribute("style", "width:100%");
 
         audioEl.setAttribute("height", "16");
+        
+        var paramEl = idxDoc.createElement("param");
+        paramEl.setAttribute("name", "movie");
+        paramEl.setAttribute("value", movieUrl);
+        audioEl.appendChild(paramEl);
+
     }
 
     while (audioContainer.childNodes.length > 0)
