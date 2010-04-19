@@ -2,13 +2,70 @@
 using System.IO;
 using System.Web;
 //using System.Web.SessionState;
+using System.Linq;
 using HttpHeaderHelper;
 using SongDataLib;
 using System.Diagnostics;
 using System.Threading;
+using System.Collections.Generic;
 
 namespace SongSearchSite
 {
+	public class ServingActivity
+	{
+		public sealed class ServedFileStatus : IDisposable
+		{
+			public readonly DateTime StartedAt;
+			public readonly string remoteAddr;
+			public readonly int MaxBytesPerSecond;
+			public readonly string ServedFile;
+
+			//threadsafe since atomic:
+			volatile public uint Duration;//int ticks of 1/10000 seconds
+			volatile public uint ServedBytes;
+			volatile public bool Done;
+
+			public ServedFileStatus(string path, string remoteAddr, int maxBps) {
+				this.StartedAt = DateTime.Now;
+				this.remoteAddr = remoteAddr;
+				this.MaxBytesPerSecond = maxBps;
+				this.ServedFile = path;
+				ServingActivity.Enqueue(this);
+			}
+
+			public void Dispose() { Done = true; }
+		}
+
+		ServedFileStatus[] lastRequests;
+		int nextWriteIdx;
+		private ServingActivity(int history) {
+			lastRequests = new ServedFileStatus[history];
+		}
+
+		private void EnqueueM(ServedFileStatus file) {
+			lock (this) {
+				lastRequests[nextWriteIdx] = file;
+				nextWriteIdx = (nextWriteIdx + 1) % lastRequests.Length;
+			}
+		}
+
+		private IEnumerable<ServedFileStatus> HistoryM {
+			get {
+				int idx;
+				lock (this) idx = nextWriteIdx;
+				for (int i = 0; i < lastRequests.Length; i++) {
+					int curIdx = (idx + lastRequests.Length - 1 - i) % lastRequests.Length;
+					yield return lastRequests[curIdx];
+				}
+			}
+		}
+
+		static ServingActivity log = new ServingActivity(256);
+
+		public static void Enqueue(ServedFileStatus file) { log.EnqueueM(file); }
+		public static IEnumerable<ServedFileStatus> History { get { return log.HistoryM.Where(s => s != null); } }
+	}
+
 	public class SongServeRequestProcessor : IHttpRequestProcessor
 	{
 		public readonly static string prefix = "~/songs/";
@@ -16,7 +73,7 @@ namespace SongSearchSite
 		ISongData song = null;
 		public SongServeRequestProcessor(HttpRequestHelper helper) { this.helper = helper; }
 
-		public void ProcessingStart() {	}
+		public void ProcessingStart() { }
 
 		public PotentialResourceInfo DetermineResource() {
 			string reqPath = helper.Context.Request.AppRelativeCurrentExecutionFilePath;
@@ -66,43 +123,45 @@ namespace SongSearchSite
 
 		public void WriteByteRange(Range range) { WriteHelper(range); }
 
-
-
 		public void WriteEntireContent() { WriteHelper(null); }
 
-		public void WriteHelper(Range? range) {
+		private void WriteHelper(Range? range) {
 			//400kbps //alternative: extract from tag using taglib.  However, this isn't always the right (VBR) bitrate, and may thus fail.
 			const int window = 4096;
-			long fileByteCount =  new FileInfo(song.SongPath).Length;
+			long fileByteCount = new FileInfo(song.SongPath).Length;
 			double songSeconds = Math.Max(1.0, TagLib.File.Create(song.SongPath).Properties.Duration.TotalSeconds);
-			int maxBytesPerSec =(int)( Math.Max(128 * 1024 / 8, Math.Min(fileByteCount / songSeconds, 320 * 1024 / 8)) * 1.25);
+			int maxBytesPerSec = (int)(Math.Max(128 * 1024 / 8, Math.Min(fileByteCount / songSeconds, 320 * 1024 / 8)) * 1.25);
 
-			const int fastStartSec = 2;
-			byte[] buffer = new byte[window];
-			Stopwatch timer = Stopwatch.StartNew();
-			helper.Context.Response.Buffer = false;
-			long end = range.HasValue ? range.Value.start + range.Value.length : fileByteCount;
-			long start = range.HasValue ? range.Value.start : 0;
-			bool streamEnded = false;
-			using (var stream = new FileStream(song.SongPath, FileMode.Open, FileAccess.Read, FileShare.Read)) {
-				stream.Seek(start, SeekOrigin.Begin);
-				while (!streamEnded && stream.Position < end && helper.Context.Response.IsClientConnected) {
-					long maxPos = start + (long)(timer.Elapsed.TotalSeconds * maxBytesPerSec) + fastStartSec*maxBytesPerSec;
-					long excessBytes = stream.Position - maxPos;
-					if (excessBytes > 0) 
-						Thread.Sleep(TimeSpan.FromSeconds(excessBytes / (double)maxBytesPerSec));
-					
-					int bytesToRead = (int)Math.Min((long)window, end - stream.Position);
-					int i = 0;
-					while (i < bytesToRead && helper.Context.Response.IsClientConnected) {
-						int bytesRead = stream.Read(buffer, i, bytesToRead - i);
-						if (bytesRead == 0) {
-							//this is odd; normally it shouldn't be possible to have an "end" that's beyond the stream end, but whatever.
-							streamEnded = true;
-							break;
+			using (var servingStatus = new ServingActivity.ServedFileStatus(song.SongPath, helper.Context.Request.UserHostAddress, maxBytesPerSec)) {
+				const int fastStartSec = 2;
+				byte[] buffer = new byte[window];
+				Stopwatch timer = Stopwatch.StartNew();
+				helper.Context.Response.Buffer = false;
+				long end = range.HasValue ? range.Value.start + range.Value.length : fileByteCount;
+				long start = range.HasValue ? range.Value.start : 0;
+				bool streamEnded = false;
+				using (var stream = new FileStream(song.SongPath, FileMode.Open, FileAccess.Read, FileShare.Read)) {
+					stream.Seek(start, SeekOrigin.Begin);
+					while (!streamEnded && stream.Position < end && helper.Context.Response.IsClientConnected) {
+						long maxPos = start + (long)(timer.Elapsed.TotalSeconds * maxBytesPerSec) + fastStartSec * maxBytesPerSec;
+						long excessBytes = stream.Position - maxPos;
+						if (excessBytes > 0)
+							Thread.Sleep(TimeSpan.FromSeconds(excessBytes / (double)maxBytesPerSec));
+
+						int bytesToRead = (int)Math.Min((long)window, end - stream.Position);
+						int i = 0;
+						while (i < bytesToRead && helper.Context.Response.IsClientConnected) {
+							int bytesRead = stream.Read(buffer, i, bytesToRead - i);
+							if (bytesRead == 0) {
+								//this is odd; normally it shouldn't be possible to have an "end" that's beyond the stream end, but whatever.
+								streamEnded = true;
+								break;
+							}
+							helper.Context.Response.OutputStream.Write(buffer, i, bytesRead);
+							i += bytesToRead;
+							servingStatus.Duration = (uint)(timer.Elapsed.TotalSeconds * 10000);
+							servingStatus.ServedBytes = (uint)(stream.Position - start);
 						}
-						helper.Context.Response.OutputStream.Write(buffer, i, bytesRead);
-						i += bytesToRead;
 					}
 				}
 			}

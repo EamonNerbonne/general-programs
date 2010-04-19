@@ -58,6 +58,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="DebugStatus.aspx" />
     <Content Include="Default.aspx" />
     <Content Include="emnicon.png" />
     <Content Include="Jplayer.swf" />
@@ -75,6 +76,13 @@
     <Content Include="xspf_player_slim.swf" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DebugStatus.aspx.cs">
+      <DependentUpon>DebugStatus.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="DebugStatus.aspx.designer.cs">
+      <DependentUpon>DebugStatus.aspx</DependentUpon>
+    </Compile>
     <Compile Include="Default.aspx.cs">
       <SubType>ASPXCodeBehind</SubType>
       <DependentUpon>Default.aspx</DependentUpon>
