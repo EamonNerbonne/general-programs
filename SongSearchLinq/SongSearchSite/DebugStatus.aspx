@@ -1,12 +1,12 @@
 ﻿<%@ Page Language="C#" AutoEventWireup="true" CodeBehind="DebugStatus.aspx.cs" Inherits="SongSearchSite.DebugStatus" %>
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head runat="server">
-    <title></title>
+	<title>Status</title>
+	<meta http-equiv="refresh" content="5" />
 </head>
 <body>
-    	<%    		WriteRows();    		 %>
+	<%    		WriteRows();    		 %>
 </body>
 </html>
