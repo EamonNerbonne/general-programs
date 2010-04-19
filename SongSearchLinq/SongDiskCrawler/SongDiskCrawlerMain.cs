@@ -33,14 +33,6 @@ namespace SongDiskCrawlerMain
 		static NiceTimer timer;
 		static void Main(string[] args) {
 
-			TagLib.File test;
-			string title;
-			test = TagLib.File.Create(@"E:\Music\2004-03-08\10 DOUBLE.mp3");
-			title = test.Tag.Title;
-			test = TagLib.File.Create(@"E:\Music\2004-03-08\BoA - Rock with you.mp3");
-			title = test.Tag.Title;
-			test = TagLib.File.Create(@"E:\Music\2003-05-01\Donovan - Essence To Essence - 01 - Operating Maunal For Spaceship Earth.mp3");
-			title = test.Tag.Title;
 
 #if !DEBUG
 			try {
