@@ -1,25 +1,58 @@
 ﻿var lastquery = "";
-var lasttop = "20";
-function queryUrl(topNr, query) {
-    return "list.xml?top=" + encodeURIComponent(topNr) +
-                    "&view=xslt&remote=allow&q=" + encodeURIComponent(query);
+var lasttop = "";
+
+function encodeQuery(str) {
+    return encodeURIComponent(str.replace(/^\s+|\s+$/g, "").toLowerCase());
 }
-var extm3ulink = "list.m3u?extm3u=true&remote=allow&q=";
-var extm3u8link = "list.m3u8?extm3u=true&remote=allow&q=";
+
 function updateResults() {
-    var newquery;
-    newquery = document.getElementById("searchquery").value;
-    newquery = newquery.replace(/^\s+|\s+$/g, "");
-    newquery = newquery.toLowerCase();
-    var topNr = document.getElementById("shownumber").value;
+    var qHash = window.location.hash.substring(1), qInput = document.getElementById("searchquery").value;
+    try {
+        qHash = decodeURIComponent(qHash);
+    } catch (e) { }
+    var newquery = qInput == lastquery ? qHash : qInput;
+    var topNr = $("#shownumber").attr("value");
     if (newquery == lastquery && topNr == lasttop) return;
     lastquery = newquery;
     lasttop = topNr;
-    window.frames["resultsview"].location.href = queryUrl(lasttop, lastquery);
-    var m3uEl = document.getElementById("m3u");
-    m3uEl.href = extm3ulink + encodeURIComponent(lastquery);
-    var m3u8El = document.getElementById("m3u8");
-    m3u8El.href = extm3u8link + encodeURIComponent(lastquery);
+    for (var i = 0; i < queryTargets.length; i++)
+        queryTargets[i].update(newquery, topNr);
+    $("#searchForm").submit();
+}
+
+
+function QueryTarget(el, attrName, pattern, avoidEncode) {
+    this.el = el;
+    this.attrName = attrName;
+    this.pattern = pattern ? pattern : el[attrName] + "{0}";
+    this.avoidEncode = avoidEncode;
+    this.update = function QueryTarget_update() {
+        var newval = this.pattern;
+        for (var i = 0; i < arguments.length; i++)
+            newval =
+                newval.replace(
+                    "{" + i + "}",
+                    this.avoidEncode ? arguments[i] : encodeQuery(arguments[i])
+                );
+        if (this.el[this.attrName] != newval) this.el[this.attrName] = newval;
+    };
+}
+
+var queryTargets = [];
+
+function init() {
+    var searchqueryEl = $("#searchquery")[0];
+    queryTargets.push(new QueryTarget(searchqueryEl, "value", "{0}", true));
+    queryTargets.push(new QueryTarget(window.location, "hash", "{0}", true));
+    $("a.matchLink").each(function (aEl) { queryTargets.push(new QueryTarget(aEl, "href")); });
+
+
+
+    $("#searchForm input").keyup(updateResults);
+    window.onhashchange = updateResults;
+
+    updateResults();
+    searchqueryEl.focus();
 }
 
 function guessMime(extension) {
@@ -57,41 +90,21 @@ function htmlAudioSupported(type) {
 }
 
 function PlaySong(songlabel, songfilename, songurl, imgObj) {
-    var idxDoc = window.document;
-    var audioContainer = idxDoc.getElementById("audio-container");
-
     var type = guessMime(getExtension(songurl));
     var audioEl;
     if (htmlAudioSupported(type)) {
-        audioEl = idxDoc.createElement("audio");
-        audioEl.setAttribute("autoplay", "autoplay");
-        audioEl.setAttribute("controls", "controls");
-        audioEl.setAttribute("src", songurl);
+        audioEl = $("<audio autoplay controls>").attr("src", songurl);
     } else if (type == "audio/mpeg") {
-        var audioEl = idxDoc.createElement("object");
         var movieUrl = "xspf_player_slim.swf?autoplay=true&song_url=" + songurl + "&song_title=" + encodeURIComponent(songlabel);
-        audioEl.setAttribute("type", "application/x-shockwave-flash");
-        audioEl.setAttribute("data", movieUrl);
-        audioEl.setAttribute("width", "100%");
-
-        audioEl.setAttribute("height", "16");
-        
-        var paramEl = idxDoc.createElement("param");
-        paramEl.setAttribute("name", "movie");
-        paramEl.setAttribute("value", movieUrl);
-        audioEl.appendChild(paramEl);
-
+        audioEl = 
+            $("<object type='application/x-shockwave-flash' width='400' height='16'><param name='movie'/></object>")
+            .attr("data", movieUrl)
+            .find("param").attr("value", movieUrl).end()
+            ;
+    } else {
+        audioEl = $("<b>UNSUPPORTED</b>");
     }
-
-    while (audioContainer.childNodes.length > 0)
-        audioContainer.removeChild(audioContainer.childNodes[0]);
-    audioContainer.appendChild(idxDoc.createTextNode(songlabel));
-    if (audioEl)
-        audioContainer.appendChild(audioEl);
-    else {
-        var bEl = idxDoc.createElement("b");
-        bEl.appendChild(idxDoc.createTextNode("UNSUPPORTED"));
-        audioContainer.appendChild(bEl);
-    }
+    $("#audio-container").text(songlabel).append(audioEl);
 }
 
+$(document).ready(init);

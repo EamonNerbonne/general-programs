@@ -29,7 +29,7 @@
     <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>pdbonly</DebugType>
+    <DebugType>full</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
@@ -37,6 +37,7 @@
     <WarningLevel>4</WarningLevel>
     <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
     <DeployIisAppPath>Default Web Site/SongSearchSite</DeployIisAppPath>
+    <DebugSymbols>true</DebugSymbols>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -59,7 +60,11 @@
   <ItemGroup>
     <Content Include="Default.aspx" />
     <Content Include="emnicon.png" />
-    <Content Include="player_mp3_maxi.swf" />
+    <Content Include="Jplayer.swf" />
+    <Content Include="jquery-1.4.2.min.js" />
+    <Content Include="jquery.jplayer-1.1.0.min.js" />
+    <Content Include="jquery.jplayer.js" />
+    <Content Include="Loading.html" />
     <Content Include="songsearch.css" />
     <Content Include="songsearch.js" />
     <Content Include="tableview.css" />
@@ -85,17 +90,13 @@
     <Service Include="{B4F97281-0DBD-4835-9ED8-7DFB966E87FF}" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\..\External\taglib-sharp\taglib-sharp.csproj">
+      <Project>{4CC18776-125E-4318-9D24-D60110AD9697}</Project>
+      <Name>taglib-sharp</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\EmnExtensions\EmnExtensions.csproj">
       <Project>{1FC71689-B62E-4831-9558-70D1ED971DEC}</Project>
       <Name>EmnExtensions</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\CassiniTest\CassiniTest.csproj">
-      <Project>{1AE2B905-EF2F-45FC-AF04-432C70D8DF9F}</Project>
-      <Name>CassiniTest</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Cassini\Cassini.csproj">
-      <Project>{5341706E-042C-4FFF-A00B-ED2F6C9B598A}</Project>
-      <Name>Cassini</Name>
     </ProjectReference>
     <ProjectReference Include="..\HttpHeaderHelper\HttpHeaderHelper.csproj">
       <Project>{74874CAF-777F-4961-AB3D-57BB8B28CDF7}</Project>

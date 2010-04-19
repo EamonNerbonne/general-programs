@@ -47,7 +47,7 @@ namespace SongSearchSite
 
 
 			includeRemote = context.Request.QueryString["remote"] == "allow";
-			extm3u = context.Request.QueryString["extm3u"] == "true";
+			extm3u = context.Request.QueryString["extm3u"] != "false";
 
 
 			var path = context.Request.AppRelativeCurrentExecutionFilePath.Split('/');
@@ -72,7 +72,7 @@ namespace SongSearchSite
 		}
 
 		public DateTime? DetermineExpiryDate() {
-			return DateTime.Now.AddDays(1);
+			return DateTime.Now.AddHours(1);
 		}
 
 		public bool SupportRangeRequests {

@@ -33,13 +33,18 @@ iframe
 {
     border: 0;
 }
+.searchAndPlayerRow
+{
+    position:relative;
+    height:6em;
+    max-height:6em;
+}
 .searchSect
 {
     background: #c4ddd5;
-    padding: 0.5em;
     width: 35em;
-    float:left;
-    margin-right:0.5em;
+    height: 5em;
+    padding: 0.5em;
 }
 
 .searchSect a
@@ -59,28 +64,28 @@ iframe
     content: " \2193 ";
 }
 
-input 
+input
 {
     background: rgba(255,255,255,0.85);
-    border:1px inset #c4ddd5 ;
+    border: 1px inset #c4ddd5;
 }
 
 input:focus
 {
     -moz-box-shadow: 0 0 2em white, 0 0 0.5em white;
     -webkit-box-shadow: 0 0 2em white, 0 0 0.5em white;
-    box-shadow:  0 0 2em white, 0 0 0.5em white;
+    box-shadow: 0 0 2em white, 0 0 0.5em white;
     outline: none;
-    background:white;
+    background: white;
 }
 
 a:focus
 {
-    -moz-box-shadow: 0 0 2em white, 0 0 0.5em white, inset  0 0 0.5em white;
-    -webkit-box-shadow: 0 0 2em white, 0 0 0.5em white, inset  0 0 0.5em white;
-    box-shadow:  0 0 2em white, 0 0 0.5em white, inset  0 0 0.5em white;
+    -moz-box-shadow: 0 0 2em white, 0 0 0.5em white, inset 0 0 0.5em white;
+    -webkit-box-shadow: 0 0 2em white, 0 0 0.5em white, inset 0 0 0.5em white;
+    box-shadow: 0 0 2em white, 0 0 0.5em white, inset 0 0 0.5em white;
     outline: none;
-    color:black !important;
+    color: black !important;
     background: rgba(255,255,255,0.15);
 }
 
@@ -88,11 +93,25 @@ a:focus
 {
     padding: 0.5em;
     font-size: 80%;
-    
 }
-#audio-container audio 
+#audio-container audio
 {
-    display:block;
+    display: block;
+     width:100%;
 }
-h3 {font-size:13pt; margin:0 0 0.5em 0; color:Gray;}
-td{padding:0;
+#audio-container object 
+{
+      display: block;
+      width:100%;
+      margin-top:0.5em;
+}
+h3
+{
+    font-size: 13pt;
+    margin: 0 0 0.5em 0;
+    color: Gray;
+}
+td
+{
+    padding: 0;
+}

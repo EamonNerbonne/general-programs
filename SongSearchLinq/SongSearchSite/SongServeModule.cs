@@ -16,8 +16,7 @@ namespace SongSearchSite
 		ISongData song = null;
 		public SongServeRequestProcessor(HttpRequestHelper helper) { this.helper = helper; }
 
-		public void ProcessingStart() {
-		}
+		public void ProcessingStart() {	}
 
 		public PotentialResourceInfo DetermineResource() {
 			string reqPath = helper.Context.Request.AppRelativeCurrentExecutionFilePath;
@@ -55,8 +54,6 @@ namespace SongSearchSite
 					MimeType = guessMIME(Path.GetExtension(song.SongPath)),
 					ResourceLength = (ulong)fi.Length
 				};
-
-
 		}
 
 		public DateTime? DetermineExpiryDate() {
@@ -74,28 +71,33 @@ namespace SongSearchSite
 		public void WriteEntireContent() { WriteHelper(null); }
 
 		public void WriteHelper(Range? range) {
-			const int maxBytePerSec = 51200;//400kbps //alternative: extract from tag using taglib.  However, this isn't always the right (VBR) bitrate, and may thus fail.
+			//400kbps //alternative: extract from tag using taglib.  However, this isn't always the right (VBR) bitrate, and may thus fail.
 			const int window = 4096;
+			long fileByteCount =  new FileInfo(song.SongPath).Length;
+			double songSeconds = Math.Max(1.0, TagLib.File.Create(song.SongPath).Properties.Duration.TotalSeconds);
+			int maxBytesPerSec =(int)( Math.Max(128 * 1024 / 8, Math.Min(fileByteCount / songSeconds, 320 * 1024 / 8)) * 1.25);
+
+			const int fastStartSec = 2;
 			byte[] buffer = new byte[window];
 			Stopwatch timer = Stopwatch.StartNew();
 			helper.Context.Response.Buffer = false;
-			long end = range.HasValue ? range.Value.start + range.Value.length : long.MaxValue;
+			long end = range.HasValue ? range.Value.start + range.Value.length : fileByteCount;
 			long start = range.HasValue ? range.Value.start : 0;
 			bool streamEnded = false;
 			using (var stream = new FileStream(song.SongPath, FileMode.Open, FileAccess.Read, FileShare.Read)) {
 				stream.Seek(start, SeekOrigin.Begin);
 				while (!streamEnded && stream.Position < end && helper.Context.Response.IsClientConnected) {
-					long maxPos = start + (long)(timer.Elapsed.TotalSeconds * maxBytePerSec)+window*4;
+					long maxPos = start + (long)(timer.Elapsed.TotalSeconds * maxBytesPerSec) + fastStartSec*maxBytesPerSec;
 					long excessBytes = stream.Position - maxPos;
-					if (excessBytes > 0) {
-						Thread.Sleep(TimeSpan.FromSeconds(excessBytes / (double)maxBytePerSec));
-					}
-
+					if (excessBytes > 0) 
+						Thread.Sleep(TimeSpan.FromSeconds(excessBytes / (double)maxBytesPerSec));
+					
 					int bytesToRead = (int)Math.Min((long)window, end - stream.Position);
 					int i = 0;
 					while (i < bytesToRead && helper.Context.Response.IsClientConnected) {
 						int bytesRead = stream.Read(buffer, i, bytesToRead - i);
-						if (bytesToRead == 0) {
+						if (bytesRead == 0) {
+							//this is odd; normally it shouldn't be possible to have an "end" that's beyond the stream end, but whatever.
 							streamEnded = true;
 							break;
 						}
