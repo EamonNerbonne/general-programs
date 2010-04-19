@@ -45,7 +45,7 @@
     <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>pdbonly</DebugType>
+    <DebugType>full</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
@@ -53,6 +53,7 @@
     <WarningLevel>4</WarningLevel>
     <NoWarn>1607</NoWarn>
     <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
+    <DebugSymbols>true</DebugSymbols>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -63,10 +64,6 @@
     <Reference Include="System.XML" />
     <Reference Include="System.Xml.Linq">
       <RequiredTargetFramework>3.5</RequiredTargetFramework>
-    </Reference>
-    <Reference Include="taglib-sharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=db62eba44689b5b0, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\TagLibBin\Release\taglib-sharp.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
@@ -130,6 +127,10 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\..\External\taglib-sharp\taglib-sharp.csproj">
+      <Project>{4CC18776-125E-4318-9D24-D60110AD9697}</Project>
+      <Name>taglib-sharp</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\EmnExtensions\EmnExtensions.csproj">
       <Project>{1FC71689-B62E-4831-9558-70D1ED971DEC}</Project>
       <Name>EmnExtensions</Name>
