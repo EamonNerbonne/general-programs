@@ -59,6 +59,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="DebugStatus.aspx" />
+    <Content Include="DebugStatus.css" />
     <Content Include="Default.aspx" />
     <Content Include="emnicon.png" />
     <Content Include="Jplayer.swf" />

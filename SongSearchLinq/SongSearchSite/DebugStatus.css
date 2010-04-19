@@ -1,0 +1,15 @@
+﻿body {
+   font-family: Calibri, Helvetica, Arial, Sans-Serif;
+   font-size:small;
+}
+
+table {
+    border-collapse:collapse;
+    border:2px solid black;
+}
+
+td
+{
+    border:1px solid #ccc;
+    padding:1px 0.5em;
+}    

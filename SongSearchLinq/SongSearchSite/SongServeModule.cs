@@ -19,17 +19,19 @@ namespace SongSearchSite
 			public readonly string remoteAddr;
 			public readonly int MaxBytesPerSecond;
 			public readonly string ServedFile;
+			public readonly Range? ByteRange;
 
 			//threadsafe since atomic:
 			volatile public uint Duration;//int ticks of 1/10000 seconds
 			volatile public uint ServedBytes;
 			volatile public bool Done;
 
-			public ServedFileStatus(string path, string remoteAddr, int maxBps) {
+			public ServedFileStatus(string path,Range? byteRange, string remoteAddr, int maxBps) {
 				this.StartedAt = DateTime.Now;
 				this.remoteAddr = remoteAddr;
 				this.MaxBytesPerSecond = maxBps;
 				this.ServedFile = path;
+				this.ByteRange = byteRange;
 				ServingActivity.Enqueue(this);
 			}
 
@@ -132,13 +134,14 @@ namespace SongSearchSite
 			double songSeconds = Math.Max(1.0, TagLib.File.Create(song.SongPath).Properties.Duration.TotalSeconds);
 			int maxBytesPerSec = (int)(Math.Max(128 * 1024 / 8, Math.Min(fileByteCount / songSeconds, 320 * 1024 / 8)) * 1.25);
 
-			using (var servingStatus = new ServingActivity.ServedFileStatus(song.SongPath, helper.Context.Request.UserHostAddress, maxBytesPerSec)) {
+			using (var servingStatus = new ServingActivity.ServedFileStatus(song.SongPath,range, helper.Context.Request.UserHostAddress, maxBytesPerSec)) {
 				const int fastStartSec = 2;
 				byte[] buffer = new byte[window];
 				Stopwatch timer = Stopwatch.StartNew();
 				helper.Context.Response.Buffer = false;
 				long end = range.HasValue ? range.Value.start + range.Value.length : fileByteCount;
 				long start = range.HasValue ? range.Value.start : 0;
+
 				bool streamEnded = false;
 				using (var stream = new FileStream(song.SongPath, FileMode.Open, FileAccess.Read, FileShare.Read)) {
 					stream.Seek(start, SeekOrigin.Begin);
