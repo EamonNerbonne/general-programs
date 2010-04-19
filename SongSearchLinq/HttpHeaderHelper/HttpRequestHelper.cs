@@ -159,6 +159,18 @@ namespace HttpHeaderHelper
 			}
 		}
 
+		static void IgnoreDisconnectionExceptions(Action a) {
+			try {
+				a();
+			} catch (SocketException) {
+			} catch (System.Runtime.InteropServices.COMException) { //IIS7
+			} catch (HttpException e) {
+				if ((uint)e.ErrorCode != 0x800703E3) throw; //IIS7.5?
+			}
+
+
+		}
+
 		private void Step7aPerformRangeRequests() {
 
 			SetFinalStatus(206);//Successful Range Request
@@ -176,12 +188,9 @@ namespace HttpHeaderHelper
 
 
 			if(method == HttpMethod.GET) {
-				context.Response.Buffer = false;
-				try {
-					reqProc.WriteByteRange(requestedRanges[0]);
-				} catch(SocketException) {
-					return; //The client has cancelled the download while still in progress.
-				}
+				IgnoreDisconnectionExceptions(() => {
+					reqProc.WriteByteRange(requestedRanges[0]); 
+				});
 			} else if(method == HttpMethod.HEAD) {
 				//do nothing.
 			} else {
@@ -197,14 +206,10 @@ namespace HttpHeaderHelper
 				context.Response.ContentType = resource.MimeType;
 
 			if(method == HttpMethod.GET) {
-                try {
-                    reqProc.WriteEntireContent();
-                } catch (SocketException) {
-                    return; //The client has cancelled the download while still in progress.
-                } catch (System.Runtime.InteropServices.COMException) {
-                    return; //The client has cancelled the download while still in progress; server is IIS7.
-                }
-			} else if(method == HttpMethod.HEAD) {
+				IgnoreDisconnectionExceptions(() => {
+					reqProc.WriteEntireContent();
+				});
+			} else if (method == HttpMethod.HEAD) {
 				//do nothing
 			} else {
 				throw new Exception("Unsupported http method:" + method);
