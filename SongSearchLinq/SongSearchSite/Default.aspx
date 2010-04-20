@@ -18,7 +18,7 @@
             Search:
             <input id="searchquery" type="text" name="q" autocomplete="off"/>
             with at most
-            <input id="shownumber" type="text" value="20" name="top" />
+            <input id="shownumber" type="text" value="50" name="top" />
             results.<br />
             </form>
             matches: <a class="matchLink" href="playlist.m3u?q=" target="_blank">m3u</a> <a class="matchLink"
