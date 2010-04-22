@@ -9,6 +9,8 @@
 #include "prodNormTest.h"
 #include "resizeTest.h"
 
+#include <Eigen/StdVector>
+#include <vector>
 #include <fstream>
 //from http://www.codeproject.com/KB/files/filesize.aspx
 int file_size(const char* sFileName)
@@ -23,7 +25,15 @@ int file_size(const char* sFileName)
 }
 
 
+//class TestIt {
+//public:
+//	int whatever;
+//	Vector2d P_point;
+//	EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+//};
+
 int main(int , char*argv []){ 
+	//std::vector<Vector2d> stlvec;
 	cout<<"EigenBench";
 #if EIGEN3
 	cout<< "3";

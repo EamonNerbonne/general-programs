@@ -32,7 +32,7 @@ namespace LVQeamon
 			//this.WindowStyle = WindowStyle.None;
 			//this.AllowsTransparency = true; 
 			BorderBrush = Brushes.White;
-
+			
 			InitializeComponent();
 			this.Background = Brushes.White;
 			plotControl.AttemptBorderTicks = false;

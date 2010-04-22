@@ -5,7 +5,11 @@ using System.Text;
 
 namespace LvqDataModel
 {
-	public class Class1
+	public class PointCloudSettings
 	{
+		public int Dimensions { get; set; }
+		public int NumberOfSets { get; set; }
+		public double StddevOfCloudCenters { get; set; }
+		public int PointsPerCloud { get; set; }
 	}
 }
