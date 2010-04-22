@@ -83,7 +83,7 @@ namespace SongSearchSite
 				throw new Exception("Whoops, illegal request routing...  this should not be routed to this class!");
 
 			string songNormedPath = reqPath.Substring(prefix.Length);
-			song = SongContainer.GetSongByNormalizedPath(songNormedPath);
+			song = SongDbContainer.GetSongByNormalizedPath(songNormedPath);
 			if (song == null)
 				return new ResourceError() {
 					Code = 404,
@@ -166,6 +166,9 @@ namespace SongSearchSite
 							servingStatus.ServedBytes = (uint)(stream.Position - start);
 						}
 					}
+					helper.Context.Response.OutputStream.Flush();
+					servingStatus.Duration = (uint)(timer.Elapsed.TotalSeconds * 10000);
+					servingStatus.ServedBytes = (uint)(stream.Position - start);
 				}
 			}
 		}

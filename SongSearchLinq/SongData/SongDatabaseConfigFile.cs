@@ -91,8 +91,7 @@ namespace SongDataLib
 			foreach(var local in locals) local.RescanAndSave(filter, handler);
 			if(remotes!=null) foreach(var remote in remotes) remote.RescanAndSave(filter, handler);
 		}
-		internal string configPath { get { return configFile == null ? "<null>" : configFile.FullName; } }
+		internal string configPathReadable { get { return configFile == null ? "<null>" : configFile.FullName; } }
+		public FileInfo ConfigFile { get { return configFile; } }
 	}
-
-
 }

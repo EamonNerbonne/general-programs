@@ -37,5 +37,5 @@
 </body>
 <script type="text/javascript" src="jquery-1.4.2.min.js"></script>
 <script type="text/javascript" src="jquery.jplayer-1.1.0.min.js"></script>
-<script type="text/javascript" src="songsearch.js" defer="defer"></script>
+<script type="text/javascript" src="songsearch.js?" defer="defer"></script>
 </html>

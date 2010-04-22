@@ -68,9 +68,6 @@ namespace SongDataLib
 			this.dcf = dcf;
 			name = (string)xEl.Attribute("name");
 			dbFile = new FileInfo(Path.Combine(dcf.dataDirectory.FullName + Path.DirectorySeparatorChar, name + ".xml"));
-
 		}
-
 	}
-
 }

@@ -44,7 +44,7 @@ function init() {
     var searchqueryEl = $("#searchquery")[0];
     queryTargets.push(new QueryTarget(searchqueryEl, "value", "{0}", true));
     queryTargets.push(new QueryTarget(window.location, "hash", "{0}", true));
-    $("a.matchLink").each(function (aEl) { queryTargets.push(new QueryTarget(aEl, "href")); });
+    $("a.matchLink").each(function (idx,aEl) { queryTargets.push(new QueryTarget(aEl, "href")); });
 
 
 
