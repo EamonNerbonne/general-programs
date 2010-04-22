@@ -22,17 +22,6 @@
 
     <StackPanel Margin="20">
         <TextBlock>Enter your age:</TextBlock>
-        <TextBox Style="{StaticResource textBoxInError}">
-            <TextBox.Text>
-                <!-- Setting the ValidatesOnDataErrors to true enables to the Binding to check for
-                    errors raised by the IDataErrorInfo implementation.
-                    Alternatively, you can add DataErrorValidationRule to <Binding.ValidationRules/>-->
-                <Binding Path="Age" Source="{StaticResource data}"
-                         ValidatesOnDataErrors="True"
-                         ValidatesOnExceptions="True"
-                         UpdateSourceTrigger="PropertyChanged">
-                </Binding>
-            </TextBox.Text>
-        </TextBox>
+        <TextBox Style="{StaticResource textBoxInError}" Text="{Binding Path=Age, ValidatesOnDataErrors=True, UpdateSourceTrigger=PropertyChanged, ValidatesOnExceptions=True, Source={StaticResource data}}"/>
     </StackPanel>
 </Window>
