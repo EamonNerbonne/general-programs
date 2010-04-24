@@ -65,7 +65,7 @@ namespace PlaylistFixer
 										Console.WriteLine("XXX:({1}) {0}  ===  {2}\n", NormalizedFileName(song.SongPath), song.length, song.HumanLabel);
 										File.AppendAllText("m3ufixer-err.log", SongMatch.ToString(song));
 										nulls2++;
-									} else if (best.Cost > 8) {
+									} else if (best.Cost > 7.5) {
 										Console.WriteLine("!!!{4}:({2}) {0}\n Is:({3}) {1}\n", NormalizedFileName(song.SongPath) + ": " + song.HumanLabel, NormalizedFileName(best.SongData.SongPath) + ": " + best.SongData.HumanLabel, song.length, best.SongData.Length, best.Cost);
 										toobadL.Add(best);
 
@@ -131,7 +131,7 @@ namespace PlaylistFixer
 		{
 			public static SongMatch? Compare(PartialSongData src, string filename, string normlabel, SongData opt) {
 				double lenC = Math.Abs(src.Length - opt.Length);
-				if (lenC > 5) return null;
+				if (lenC > 15) return null;
 				string optFileName = Path.GetFileName(opt.SongPath);
 				string optBasicLabel = Canonicalize.Basic(opt.HumanLabel);
 				double nameC = filename.LevenshteinDistance(optFileName) / (double)(filename.Length + optFileName.Length);
@@ -142,7 +142,7 @@ namespace PlaylistFixer
 					LenC = lenC,
 					NameC = nameC,
 					TagC = labelC,
-					Cost = lenC / 2.0 + Math.Sqrt(50 * Math.Min(nameC, labelC)) + Math.Sqrt(50 * labelC)
+					Cost = lenC / 5.0 + Math.Sqrt(50 * Math.Min(nameC, labelC)) + Math.Sqrt(50 * labelC)
 				};
 			}
 			public SongData SongData;
