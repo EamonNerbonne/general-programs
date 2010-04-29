@@ -39,10 +39,17 @@
             </ul>
         </div>
     </div>
+    <div id="logbox">
+    </div>
 </body>
 <script type="text/javascript" src="jquery-1.4.2.min.js"></script>
+<script type="text/javascript">
+    function logtobox(msg) {
+        $("#logbox").append(msg + "\n");
+    }
+</script>
 <script type="text/javascript" src="jquery.jplayer.js"></script>
-<script>
+<script type="text/javascript">
 
     $(document).ready(function () {
 
