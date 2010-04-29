@@ -23,7 +23,7 @@ template <typename T> void normalizeMatrix(T & projectionMatrix) {
 #endif
 }
 
-USING_PART_OF_NAMESPACE_EIGEN
+using namespace Eigen;
 
 template <typename T> void projectionRandomizeUniformScaled(boost::mt19937 & randGen, T & projectionMatrix) { //initializes all coefficients randomly to -1..1, then normalizes.
 	boost::uniform_01<boost::mt19937> uniform01_rand(randGen);

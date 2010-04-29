@@ -4,7 +4,7 @@
 #include "G2mLvqPrototype.h"
 #include "G2mLvqMatch.h"
 
-USING_PART_OF_NAMESPACE_EIGEN
+using namespace Eigen;
 
 class G2mLvqPrototype;
 class G2mLvqModel : public AbstractProjectionLvqModel

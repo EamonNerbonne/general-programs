@@ -1,7 +1,6 @@
 #pragma once
 #include "stdafx.h"
 #include "utils.h"
-USING_PART_OF_NAMESPACE_EIGEN
 
 #pragma intrinsic(pow)
 

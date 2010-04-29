@@ -1,7 +1,6 @@
 #include "StdAfx.h"
 #include "DataSetUtils.h"
 
-USING_PART_OF_NAMESPACE_EIGEN
 MatrixXd DataSetUtils::MakePointCloud(boost::mt19937 & rndGen, int dims, int pointCount, double meansep) {
 	MatrixXd P(dims, dims);
 	VectorXd offset(dims);

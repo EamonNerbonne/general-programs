@@ -9,7 +9,7 @@
 using boost::mt19937;
 using boost::normal_distribution;
 using boost::variate_generator;
-USING_PART_OF_NAMESPACE_EIGEN
+using namespace Eigen;
 #define MEANSEP 1.9
 #define DETERMINISTIC_SEED 
 #define DETERMINISTIC_ORDER 
