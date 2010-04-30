@@ -193,13 +193,13 @@
             }
             var audioTypes = ["audio/mpeg", "audio/ogg"];
             var backendSupport = { flash: flashWillPlayType, html5: html5WillPlayType };
-            var backendByPref = ["flash","html5"];
+            var backendByPref = ["flash", "html5"];
             var support = {};
             $.each(audioTypes, function (i, audioType) {
-                var tSupport = {any:false};
+                var tSupport = { any: false };
                 $.each(backendByPref, function (j, backend) {
                     tSupport[backend] = backendSupport[backend](audioType);
-                    if(tSupport[backend])
+                    if (tSupport[backend])
                         tSupport.any = backend;
                 });
                 support[audioType] = tSupport;
@@ -212,7 +212,7 @@
                 logtobox("mp3:" + this.config.support["audio/mpeg"].any + " / ogg:" + this.config.support["audio/ogg"].any);
 
             $.extend(this.config, {
-                html5: this.config.support["audio/mpeg"].any=="html5"||this.config.support["audio/ogg"].any=="html5"
+                html5: this.config.support["audio/mpeg"].any == "html5" || this.config.support["audio/ogg"].any == "html5"
             });
 
             $.extend(this.config, {
@@ -221,7 +221,7 @@
             });
 
             var events = {
-                setButtons: function (e, playing) {
+                setButtons: function (playing) {
                     self.config.diag.isPlaying = playing;
                     if (self.config.cssId.play != undefined && self.config.cssId.pause != undefined) {
                         if (playing) {
@@ -240,58 +240,58 @@
             };
 
             var eventsForFlash = {
-                setFile: function (e, mp3, ogg) {
+                setFile: function (mp3, ogg) {
                     try {
                         self._getMovie().fl_setFile_mp3(mp3);
                         self.config.diag.src = mp3;
                         self.config.isFileSet = true; // Set here for conformity, but the flash handles this internally and through return values.
-                        element.trigger("jPlayer.setButtons", false);
+                        self.handlers.setButtons(false);
                     } catch (err) { self._flashError(err); }
                 },
-                clearFile: function (e) {
+                clearFile: function () {
                     try {
-                        element.trigger("jPlayer.setButtons", false); // Before flash method so states correct for when onProgressChange is called
+                        self.handlers.setButtons(false);
                         self._getMovie().fl_clearFile_mp3();
                         self.config.diag.src = "";
                         self.config.isFileSet = false;
                     } catch (err) { self._flashError(err); }
                 },
-                play: function (e) {
+                play: function () {
                     try {
                         if (self._getMovie().fl_play_mp3()) {
-                            element.trigger("jPlayer.setButtons", true);
+                            self.handlers.setButtons(true);
                         }
                     } catch (err) { self._flashError(err); }
                 },
-                pause: function (e) {
+                pause: function () {
                     try {
                         if (self._getMovie().fl_pause_mp3()) {
-                            element.trigger("jPlayer.setButtons", false);
+                            self.handlers.setButtons(false);
                         }
                     } catch (err) { self._flashError(err); }
                 },
-                stop: function (e) {
+                stop: function () {
                     try {
                         if (self._getMovie().fl_stop_mp3()) {
-                            element.trigger("jPlayer.setButtons", false);
+                            self.handlers.setButtons(false);
                         }
                     } catch (err) { self._flashError(err); }
                 },
-                playHead: function (e, p) {
+                playHead: function (p) {
                     try {
                         if (self._getMovie().fl_play_head_mp3(p)) {
-                            element.trigger("jPlayer.setButtons", true);
+                            self.handlers.setButtons(true);
                         }
                     } catch (err) { self._flashError(err); }
                 },
-                playHeadTime: function (e, t) {
+                playHeadTime: function (t) {
                     try {
                         if (self._getMovie().fl_play_head_time_mp3(t)) {
-                            element.trigger("jPlayer.setButtons", true);
+                            self.handlers.setButtons(true);
                         }
                     } catch (err) { self._flashError(err); }
                 },
-                volume: function (e, v) {
+                volume: function (v) {
                     self.config.volume = v;
                     try {
                         self._getMovie().fl_volume_mp3(v);
@@ -300,7 +300,7 @@
             };
 
             var eventsForHtmlAudio = {
-                setFile: function (e, mp3, ogg) {
+                setFile: function (mp3, ogg) {
                     self.config.audio = new Audio();
                     self.config.audio.id = self.config.aid;
                     self.config.aSel.replaceWith(self.config.audio);
@@ -312,25 +312,25 @@
                     }
                     self.config.isWaitingForPlay = true;
                     self.config.isFileSet = true;
-                    element.trigger("jPlayer.setButtons", false);
+                    self.handlers.setButtons(false);
                     self.jPlayerOnProgressChange(0, 0, 0, 0, 0);
                     clearInterval(self.config.jPlayerControllerId);
                     self.config.audio.addEventListener("canplay", function () {
                         self.config.audio.volume = self.config.volume / 100; // Fix for Chrome 4: Event solves initial volume not being set correctly.
                     }, false);
                 },
-                clearFile: function (e) {
+                clearFile: function () {
                     self.setFile("", "");
                     self.config.isWaitingForPlay = false;
                     self.config.isFileSet = false;
                 },
-                play: function (e) {
+                play: function () {
                     if (self.config.isFileSet) {
                         if (self.config.isWaitingForPlay) {
                             self.config.audio.src = self.config.diag.src;
                         }
                         self.config.audio.play();
-                        element.trigger("jPlayer.setButtons", true);
+                        self.handlers.setButtons(true);
                         clearInterval(self.config.jPlayerControllerId);
                         self.config.jPlayerControllerId = window.setInterval(function () {
                             self.jPlayerController(false);
@@ -338,17 +338,17 @@
                         clearInterval(self.config.delayedCommandId);
                     }
                 },
-                pause: function (e) {
+                pause: function () {
                     if (self.config.isFileSet) {
                         self.config.audio.pause();
-                        element.trigger("jPlayer.setButtons", false);
+                        self.handlers.setButtons(false);
                     }
                 },
-                stop: function (e) {
+                stop: function () {
                     if (self.config.isFileSet) {
                         try {
                             self.config.audio.currentTime = 0;
-                            element.trigger("jPlayer.pause");
+                            self.handlers.pause();
                             clearInterval(self.config.jPlayerControllerId);
                             self.config.jPlayerControllerId = window.setInterval(function () {
                                 self.jPlayerController(true); // With override true
@@ -362,7 +362,7 @@
                         }
                     }
                 },
-                playHead: function (e, p) {
+                playHead: function (p) {
                     if (self.config.isFileSet) {
                         try {
                             if ((typeof self.config.audio.buffered == "object") && (self.config.audio.buffered.length > 0)) {
@@ -370,7 +370,7 @@
                             } else {
                                 self.config.audio.currentTime = p * self.config.audio.duration / 100;
                             }
-                            element.trigger("jPlayer.play");
+                            self.handlers.play();
                         } catch (err) {
                             clearInterval(self.config.delayedCommandId);
                             self.config.delayedCommandId = window.setTimeout(function () {
@@ -379,11 +379,11 @@
                         }
                     }
                 },
-                playHeadTime: function (e, t) {
+                playHeadTime: function (t) {
                     if (self.config.isFileSet) {
                         try {
                             self.config.audio.currentTime = t / 1000;
-                            element.trigger("jPlayer.play");
+                            self.handlers.play();
                         } catch (err) {
                             clearInterval(self.config.delayedCommandId);
                             self.config.delayedCommandId = window.setTimeout(function () {
@@ -392,7 +392,7 @@
                         }
                     }
                 },
-                volume: function (e, v) {
+                volume: function (v) {
                     self.config.volume = v;
                     self.config.audio.volume = v / 100;
                     self.jPlayerVolume(v);
@@ -405,11 +405,7 @@
                 $.extend(events, eventsForHtmlAudio);
             }
 
-            for (var event in events) {
-                var e = "jPlayer." + event;
-                this.element.unbind(e);
-                this.element.bind(e, events[event]);
-            }
+            self.handlers = events;
 
             if (this.config.usingFlash) {
                 if (this._checkForFlash(8)) {
@@ -488,29 +484,29 @@
             // Replaced by ready function from options in _init()
         },
         setFile: function (mp3, ogg) {
-            this.element.trigger("jPlayer.setFile", [mp3, ogg]);
+            this.handlers.setFile(mp3, ogg);
         },
         clearFile: function () {
-            this.element.trigger("jPlayer.clearFile");
+            this.handlers.clearFile();
         },
         play: function () {
-            this.element.trigger("jPlayer.play");
+            this.handlers.play();
         },
         pause: function () {
-            this.element.trigger("jPlayer.pause");
+            this.handlers.pause();
         },
         stop: function () {
-            this.element.trigger("jPlayer.stop");
+            this.handlers.stop();
         },
         playHead: function (p) {
-            this.element.trigger("jPlayer.playHead", [p]);
+            this.handlers.playHead(p);
         },
         playHeadTime: function (t) {
-            this.element.trigger("jPlayer.playHeadTime", [t]);
+            this.handlers.playHeadTime(t);
         },
         volume: function (v) {
             v = this._limitValue(v, 0, 100);
-            this.element.trigger("jPlayer.volume", [v]);
+            this.handlers.volume(v);
         },
         cssId: function (fn, id) {
             var self = this;
@@ -640,7 +636,7 @@
             // Replaced in onSoundComplete()
         },
         jPlayerOnSoundComplete: function () { // Called from Flash / HTML5 interval
-            this.element.trigger("jPlayer.setButtons", false);
+            this.handlers.setButtons(false);
             this.onSoundCompleteCustom();
         },
         getData: function (name) {
