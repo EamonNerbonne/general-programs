@@ -87,7 +87,8 @@
                 displayPlayList();
                 playListInit(true); // Parameter is a boolean for autoplay.
             },
-            oggSupport: true
+            oggSupport: true,
+            swfPath: ""
         })
 	.jPlayer("onProgressChange", function (loadPercent, playedPercentRelative, playedPercentAbsolute, playedTime, totalTime) {
 	    jpPlayTime.text($.jPlayer.convertTime(playedTime));
