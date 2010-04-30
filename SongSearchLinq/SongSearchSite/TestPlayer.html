@@ -39,7 +39,7 @@
             </ul>
         </div>
     </div>
-    <div id="logbox" style="font-family:Calibri">
+    <div id="logbox" style="font-family: Calibri">
     </div>
 </body>
 <script type="text/javascript" src="jquery-1.4.2.min.js"></script>
@@ -55,7 +55,7 @@
 
         var playItem = 0;
 
-        var emnPlaylist = [
+        var myPlayList = [
             { name: "Mylo - Guilty of Love", uris: [{ type: "audio/mpeg", src: "http://home.nerbonne.org/SongSearchSite_Dev/songs/E!3a/Music/2004-08-27/Mylo-Destroy%20Rock%20!26%20Roll-06-Guilty%20of%20Love%20(1).mp3"}] },
             { name: "Mylo - In My Arms (Jules Chase Extended Edit)", uris: [{ type: "audio/mpeg", src: "http://home.nerbonne.org/SongSearchSite_Dev/songs/E!3a/Music/2005-09-07/Mylo%20-%20In%20My%20Arms%20(Jules%20Chase%20Extended%20Edit).mp3"}] },
             { name: "Razorlight - In the Morning", uris: [{ type: "application/ogg", src: "http://home.nerbonne.org/SongSearchSite_Dev/songs/E!3a/Music/2009-02-11/POP%20ROCK%20HITS%2026%20by%20vertigo%20(8-2006)/19%20Pista%2019.ogg"}] },
@@ -65,7 +65,7 @@
 
 
 
-        var myPlayList = [
+        var myPlayList2 = [
     		{ name: "Tempered Song", mp3: "http://www.miaowmusic.com/mp3/Miaow-01-Tempered-song.mp3", ogg: "http://www.miaowmusic.com/ogg/Miaow-01-Tempered-song.ogg" },
     		{ name: "Hidden", mp3: "http://www.miaowmusic.com/mp3/Miaow-02-Hidden.mp3", ogg: "http://www.miaowmusic.com/ogg/Miaow-02-Hidden.ogg" },
     		{ name: "Lentement", mp3: "http://www.miaowmusic.com/mp3/Miaow-03-Lentement.mp3", ogg: "http://www.miaowmusic.com/ogg/Miaow-03-Lentement.ogg" },
@@ -134,7 +134,10 @@
             $("#jplayer_playlist_item_" + playItem).removeClass("jplayer_playlist_current");
             $("#jplayer_playlist_item_" + index).addClass("jplayer_playlist_current");
             playItem = index;
-            $("#jquery_jplayer").jPlayer("setFile", myPlayList[playItem].mp3, myPlayList[playItem].ogg);
+            if (myPlayList[playItem].uris)
+                $("#jquery_jplayer").jPlayer("loadSong", myPlayList[playItem].uris);
+            else
+                $("#jquery_jplayer").jPlayer("setFile", myPlayList[playItem].mp3, myPlayList[playItem].ogg);
         }
 
         function playListChange(index) {
