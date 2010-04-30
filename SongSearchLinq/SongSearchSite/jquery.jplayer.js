@@ -16,6 +16,18 @@
 */
 
 (function ($) {
+    function objKeys(obj) {
+        var keys = [];
+        for (var key in obj)
+            keys.push(key);
+    }
+    function objAll(obj, test) {
+        for (var key in obj)
+            if (!test(obj[key], key))
+                return false;
+        return true;
+    }
+
 
     // Adapted from ui.core.js (1.7.2)
     function getter(plugin, method, args) {
@@ -187,43 +199,8 @@
                 this.config.audio = {};
             }
 
-            function html5WillPlayType(type) {
-                var canplay = self.config.nativeSupport && self.config.audio.canPlayType && self.config.audio.canPlayType(type);
-                return !!(canplay && canplay != "no");
-            }
-            function flashWillPlayType(type) {
-                return self.config.flashSupport && type == "audio/mpeg";
-            }
-            var audioTypes = ["audio/mpeg", "audio/ogg"];
-            var backendSupport = { flash: flashWillPlayType, html5: html5WillPlayType };
-            var backendByPref = ["flash", "html5"];
-            var support = {};
-            $.each(audioTypes, function (i, audioType) {
-                var tSupport = { any: false };
-                $.each(backendByPref, function (j, backend) {
-                    tSupport[backend] = backendSupport[backend](audioType);
-                    if (tSupport[backend])
-                        tSupport.any = backend;
-                });
-                support[audioType] = tSupport;
-            });
-
-
-            $.extend(this.config, { support: support, aSel: $("#" + this.config.aid) });
-
-            if (logtobox)
-                logtobox("mp3:" + this.config.support["audio/mpeg"].any + " / ogg:" + this.config.support["audio/ogg"].any);
-
-            $.extend(this.config, {
-                html5: this.config.support["audio/mpeg"].any == "html5" || this.config.support["audio/ogg"].any == "html5"
-            });
-
-            $.extend(this.config, {
-                usingFlash: !(this.config.html5 && this.config.nativeSupport),
-                usingMP3: !this.config.support["audio/ogg"].any
-            });
-
-            var events = {
+            var handlers = {
+                current: false,
                 setButtons: function (playing) {
                     self.config.diag.isPlaying = playing;
                     if (self.config.cssId.play != undefined && self.config.cssId.pause != undefined) {
@@ -238,81 +215,73 @@
                     if (playing) {
                         self.config.isWaitingForPlay = false;
                     }
-
                 }
             };
 
-            var eventsForFlash = {
-                setFile: function (mp3, ogg) {
-                    try {
-                        self._getMovie().fl_setFile_mp3(mp3);
-                        self.config.diag.src = mp3;
-                        self.config.isFileSet = true; // Set here for conformity, but the flash handles this internally and through return values.
-                        self.handlers.setButtons(false);
-                    } catch (err) { self._flashError(err); }
+            handlers.flash = {
+                willPlayType: function (type) {
+                    return self.config.flashSupport && type == "audio/mpeg";
+                },
+                loadSong: function (type, src) {
+                    self._getMovie().fl_setFile_mp3(src);
+                    self._getMovie().fl_volume_mp3(self.config.volume);
+                    self.config.diag.src = src;
+                    self.config.isFileSet = true; // Set here for conformity, but the flash handles this internally and through return values.
+                    self.handlers.setButtons(false);
                 },
                 clearFile: function () {
-                    try {
-                        self.handlers.setButtons(false);
-                        self._getMovie().fl_clearFile_mp3();
-                        self.config.diag.src = "";
-                        self.config.isFileSet = false;
-                    } catch (err) { self._flashError(err); }
+                    self.handlers.setButtons(false);
+                    self._getMovie().fl_clearFile_mp3();
+                    self.config.diag.src = "";
+                    self.config.isFileSet = false;
                 },
                 play: function () {
-                    try {
-                        if (self._getMovie().fl_play_mp3()) {
-                            self.handlers.setButtons(true);
-                        }
-                    } catch (err) { self._flashError(err); }
+                    if (self._getMovie().fl_play_mp3())
+                        self.handlers.setButtons(true);
                 },
                 pause: function () {
-                    try {
-                        if (self._getMovie().fl_pause_mp3()) {
-                            self.handlers.setButtons(false);
-                        }
-                    } catch (err) { self._flashError(err); }
+                    if (self._getMovie().fl_pause_mp3())
+                        self.handlers.setButtons(false);
                 },
                 stop: function () {
-                    try {
-                        if (self._getMovie().fl_stop_mp3()) {
-                            self.handlers.setButtons(false);
-                        }
-                    } catch (err) { self._flashError(err); }
+                    if (self._getMovie().fl_stop_mp3())
+                        self.handlers.setButtons(false);
                 },
                 playHead: function (p) {
-                    try {
-                        if (self._getMovie().fl_play_head_mp3(p)) {
-                            self.handlers.setButtons(true);
-                        }
-                    } catch (err) { self._flashError(err); }
+                    if (self._getMovie().fl_play_head_mp3(p))
+                        self.handlers.setButtons(true);
                 },
                 playHeadTime: function (t) {
-                    try {
-                        if (self._getMovie().fl_play_head_time_mp3(t)) {
-                            self.handlers.setButtons(true);
-                        }
-                    } catch (err) { self._flashError(err); }
+                    if (self._getMovie().fl_play_head_time_mp3(t))
+                        self.handlers.setButtons(true);
                 },
                 volume: function (v) {
                     self.config.volume = v;
-                    try {
-                        self._getMovie().fl_volume_mp3(v);
-                    } catch (err) { self._flashError(err); }
+                    self._getMovie().fl_volume_mp3(v);
                 }
             };
 
-            var eventsForHtmlAudio = {
-                setFile: function (mp3, ogg) {
+            function trycatch(func, onerr) {
+                return function () {
+                    try {
+                        return func.apply(this, arguments);
+                    } catch (err) { return onerr(err); }
+                };
+            }
+
+            for (var handlerName in handlers.flash) handlers.flash[handlerName] = trycatch(handlers.flash[handlerName], self._flashError);
+
+            handlers.html5 = {
+                willPlayType: function (type) {
+                    var canplay = self.config.nativeSupport && self.config.audio.canPlayType && self.config.audio.canPlayType(type);
+                    return !!(canplay && canplay != "no");
+                },
+                loadSong: function (type, src) {
                     self.config.audio = new Audio();
                     self.config.audio.id = self.config.aid;
                     self.config.aSel.replaceWith(self.config.audio);
                     self.config.aSel = $("#" + self.config.aid);
-                    if (self.config.usingMP3) {
-                        self.config.diag.src = mp3;
-                    } else {
-                        self.config.diag.src = ogg;
-                    }
+                    self.config.diag.src = src;
                     self.config.isWaitingForPlay = true;
                     self.config.isFileSet = true;
                     self.handlers.setButtons(false);
@@ -323,7 +292,7 @@
                     }, false);
                 },
                 clearFile: function () {
-                    self.setFile("", "");
+                    this.loadSong("", "");
                     self.config.isWaitingForPlay = false;
                     self.config.isFileSet = false;
                 },
@@ -351,7 +320,7 @@
                     if (self.config.isFileSet) {
                         try {
                             self.config.audio.currentTime = 0;
-                            self.handlers.pause();
+                            this.pause();
                             clearInterval(self.config.jPlayerControllerId);
                             self.config.jPlayerControllerId = window.setInterval(function () {
                                 self.jPlayerController(true); // With override true
@@ -373,7 +342,7 @@
                             } else {
                                 self.config.audio.currentTime = p * self.config.audio.duration / 100;
                             }
-                            self.handlers.play();
+                            this.play();
                         } catch (err) {
                             clearInterval(self.config.delayedCommandId);
                             self.config.delayedCommandId = window.setTimeout(function () {
@@ -386,7 +355,7 @@
                     if (self.config.isFileSet) {
                         try {
                             self.config.audio.currentTime = t / 1000;
-                            self.handlers.play();
+                            this.play();
                         } catch (err) {
                             clearInterval(self.config.delayedCommandId);
                             self.config.delayedCommandId = window.setTimeout(function () {
@@ -402,15 +371,31 @@
                 }
             };
 
-            if (this.config.usingFlash) {
-                $.extend(events, eventsForFlash);
-            } else {
-                $.extend(events, eventsForHtmlAudio);
-            }
+            var audioTypes = ["application/ogg", "audio/mpeg"];
+            var backends = ["html5", "flash"];
+            var support = {};
+            $.each(audioTypes, function (i, audioType) {
+                support[audioType] = $.grep(backends, function (backend, j) {
+                    return handlers[backend].willPlayType(audioType);
+                });
+                logtobox(audioType + ": " + support[audioType][0]);
+            });
 
-            self.handlers = events;
+            $.extend(this.config, { support: support, aSel: $("#" + this.config.aid) });
 
-            if (this.config.usingFlash) {
+
+            var usingBackends = {};
+            $.each(
+            //used backends are: all backends such that there exists an audioType such that for that audioType the backend is preferred.
+                $.grep(backends, function (backend, i) { return $.grep(audioTypes, function (type, i) { return support[type][0] == backend; }).length > 0; }),
+                function (i, backend) { usingBackends[backend] = 1; }
+            );
+
+            this.config.usingBackends = usingBackends;
+
+            self.handlers = handlers;
+
+            if (this.config.usingBackends.flash) {
                 if (this._checkForFlash(8)) {
                     if ($.browser.msie) {
                         var html_obj = '<object id="' + this.config.fid + '"';
@@ -464,52 +449,79 @@
                 });
             }
 
-            if (!this.config.usingFlash) { // Emulate initial flash call after 100ms
+            if (this.config.usingBackends.html5) { // Emulate initial flash call after 100ms
                 this.element.css({ 'left': '-9999px' }); // Mobile Safari always shows the <audio> controls, so hide them.
                 window.setTimeout(function () {
                     self.volume(self.config.volume);
-                    self.jPlayerReady();
+                    self._jPlayerReadyBackend("html5");
                 }, 100);
             }
         },
         jPlayerReady: function (swfVersion) { // Called from Flash / HTML5 interval
-            if (this.config.usingFlash) {
-                this.config.swfVersion = swfVersion;
-                if (this.config.swfVersionRequired != this.config.swfVersion) {
-                    this._error("jPlayer's JavaScript / SWF version mismatch!\n\nJavaScript requires SWF : " + this.config.swfVersionRequired + "\nThe Jplayer.swf used is : " + this.config.swfVersion);
-                }
-            } else {
-                this.config.swfVersion = "n/a";
+            this.config.swfVersion = swfVersion;
+            if (this.config.swfVersionRequired != this.config.swfVersion) {
+                this._error("jPlayer's JavaScript / SWF version mismatch!\n\nJavaScript requires SWF : " + this.config.swfVersionRequired + "\nThe Jplayer.swf used is : " + this.config.swfVersion);
             }
-            this.jPlayerReadyCustom();
+            this._jPlayerReadyBackend("flash");
         },
+        _jPlayerReadyBackend: function (backend) {
+            if (this.config.usingBackends[backend] == 1) {
+                this.config.usingBackends[backend] = 2;
+                if (objAll(this.config.usingBackends, function (status, aBackend) { return status > 1; }))
+                    this.jPlayerReadyCustom();
+            }
+        },
+
         jPlayerReadyCustom: function () {
             // Replaced by ready function from options in _init()
         },
         setFile: function (mp3, ogg) {
-            this.handlers.setFile(mp3, ogg);
+            this.loadSong([{ type: "application/ogg", src: ogg }, { type: "audio/mpeg", src: mp3}]);
+        },
+        loadSong: function (song) {
+            var self = this;
+            $.each(song, function (i, songOption) {
+                var backendsForType = self.config.support[songOption.type];
+                if (backendsForType.length == 0) return true; //continue looking...
+                var newBackend = backendsForType[0];
+                if (self.handlers.current != newBackend) {
+                    if (self.handlers.current)
+                        self.handlers[self.handlers.current].clearFile(); //will stop.
+                    self.handlers.current = newBackend;
+                }
+                logtobox("Using " + songOption.type + " on " + newBackend + " for " + songOption.src);
+                self.handlers[self.handlers.current].loadSong(songOption.type, songOption.src);
+                return false; //no need to continue;
+            });
         },
         clearFile: function () {
-            this.handlers.clearFile();
+            if (this.handlers.current)
+                this.handlers[this.handlers.current].clearFile();
         },
         play: function () {
-            this.handlers.play();
+            if (this.handlers.current)
+                this.handlers[this.handlers.current].play();
         },
         pause: function () {
-            this.handlers.pause();
+            if (this.handlers.current)
+                this.handlers[this.handlers.current].pause();
         },
         stop: function () {
-            this.handlers.stop();
+            if (this.handlers.current)
+                this.handlers[this.handlers.current].stop();
         },
         playHead: function (p) {
-            this.handlers.playHead(p);
+            if (this.handlers.current)
+                this.handlers[this.handlers.current].playHead(p);
         },
         playHeadTime: function (t) {
-            this.handlers.playHeadTime(t);
+            if (this.handlers.current)
+                this.handlers[this.handlers.current].playHeadTime(t);
         },
         volume: function (v) {
             v = this._limitValue(v, 0, 100);
-            this.handlers.volume(v);
+            if (this.handlers.current)
+                this.handlers[this.handlers.current].volume(v);
         },
         cssId: function (fn, id) {
             var self = this;
