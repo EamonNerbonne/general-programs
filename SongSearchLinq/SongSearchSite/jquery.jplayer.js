@@ -1,15 +1,18 @@
 /*
-* jPlayer Plugin for jQuery JavaScript Library
-* http://www.happyworm.com/jquery/jplayer
-*
-* Copyright (c) 2009 - 2010 Happyworm Ltd
+* Copyright (c) 2010 Eamon Nerbonne
 * Dual licensed under the MIT and GPL licenses.
 *  - http://www.opensource.org/licenses/mit-license.php
 *  - http://www.gnu.org/copyleft/gpl.html
 *
-* Author: Mark J Panaghiston
-* Version: 1.1.0
-* Date: 26th March 2010
+* Author: Eamon Nerbonne
+* Date: 2010-04-30
+*
+* Based on:
+*    jPlayer Plugin for jQuery JavaScript Library
+*    http://www.happyworm.com/jquery/jplayer
+*    Author: Mark J Panaghiston
+*    Version: 1.1.0
+*    Date: 26th March 2010
 */
 
 (function ($) {
