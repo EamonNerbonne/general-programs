@@ -416,14 +416,14 @@
                         for (var i = 0; i < obj_param.length; i++) {
                             ie_dom.appendChild(document.createElement(obj_param[i]));
                         }
-                        this.element.html(ie_dom);
+                        this.element.append(ie_dom);
                     } else {
                         var html_embed = '<embed name="' + this.config.fid + '" id="' + this.config.fid + '" src="' + this.config.swf + '"';
                         html_embed += ' width="' + this.config.width + '" height="' + this.config.height + '" bgcolor="' + this.config.bgcolor + '"';
                         html_embed += ' quality="high" FlashVars="id=' + escape(this.config.id) + '&fid=' + escape(this.config.fid) + '&vol=' + this.config.volume + '"';
                         html_embed += ' allowScriptAccess="always"';
                         html_embed += ' type="application/x-shockwave-flash" pluginspage="http://www.macromedia.com/go/getflashplayer" />';
-                        this.element.html(html_embed);
+                        this.element.append(html_embed);
                     }
 
                 } else {
