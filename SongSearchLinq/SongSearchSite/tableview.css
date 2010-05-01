@@ -8,6 +8,7 @@ tr
 {
     border: solid #8ba;
     border-width: 1px 0;
+    cursor:pointer;
 }
 
 tr:nth-child(2n)

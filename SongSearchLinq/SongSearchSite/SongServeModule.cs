@@ -9,12 +9,9 @@ using System.Diagnostics;
 using System.Threading;
 using System.Collections.Generic;
 
-namespace SongSearchSite
-{
-	public class ServingActivity
-	{
-		public sealed class ServedFileStatus : IDisposable
-		{
+namespace SongSearchSite {
+	public class ServingActivity {
+		public sealed class ServedFileStatus : IDisposable {
 			public readonly DateTime StartedAt;
 			public readonly string remoteAddr;
 			public readonly int MaxBytesPerSecond;
@@ -26,7 +23,7 @@ namespace SongSearchSite
 			volatile public uint ServedBytes;
 			volatile public bool Done;
 
-			public ServedFileStatus(string path,Range? byteRange, string remoteAddr, int maxBps) {
+			public ServedFileStatus(string path, Range? byteRange, string remoteAddr, int maxBps) {
 				this.StartedAt = DateTime.Now;
 				this.remoteAddr = remoteAddr;
 				this.MaxBytesPerSecond = maxBps;
@@ -68,8 +65,7 @@ namespace SongSearchSite
 		public static IEnumerable<ServedFileStatus> History { get { return log.HistoryM.Where(s => s != null); } }
 	}
 
-	public class SongServeRequestProcessor : IHttpRequestProcessor
-	{
+	public class SongServeRequestProcessor : IHttpRequestProcessor {
 		public readonly static string prefix = "~/songs/";
 		HttpRequestHelper helper;
 		ISongData song = null;
@@ -134,7 +130,7 @@ namespace SongSearchSite
 			double songSeconds = Math.Max(1.0, TagLib.File.Create(song.SongPath).Properties.Duration.TotalSeconds);
 			int maxBytesPerSec = (int)(Math.Max(128 * 1024 / 8, Math.Min(fileByteCount / songSeconds, 320 * 1024 / 8)) * 1.25);
 
-			using (var servingStatus = new ServingActivity.ServedFileStatus(song.SongPath,range, helper.Context.Request.UserHostAddress, maxBytesPerSec)) {
+			using (var servingStatus = new ServingActivity.ServedFileStatus(song.SongPath, range, helper.Context.Request.UserHostAddress, maxBytesPerSec)) {
 				const int fastStartSec = 2;
 				byte[] buffer = new byte[window];
 				Stopwatch timer = Stopwatch.StartNew();
@@ -176,20 +172,14 @@ namespace SongSearchSite
 
 		public static string guessMIME(string extension) {
 			switch (extension.ToLowerInvariant()) {
-				case ".mp3":
-					return "audio/mpeg";
-				case ".wma":
-					return "audio/x-ms-wma";
-				case ".wav":
-					return "audio/wav";
-				case ".ogg":
-					return "application/ogg";
+				case ".mp3": return "audio/mpeg";
+				case ".wma": return "audio/x-ms-wma";
+				case ".wav": return "audio/wav";
+				case ".ogg": return "audio/ogg";
 				case ".mpc":
 				case ".mpp":
-				case ".mp+":
-					return "audio/x-musepack";
-				default:
-					return "application/octet-stream";//TODO fix!
+				case ".mp+": return "audio/x-musepack";
+				default: return "application/octet-stream";//TODO fix!
 			}
 		}
 
@@ -198,8 +188,7 @@ namespace SongSearchSite
 	/// <summary>
 	/// Summary description for SongServeModule
 	/// </summary>
-	public class SongServeHandler : IHttpHandler
-	{
+	public class SongServeHandler : IHttpHandler {
 		public bool IsReusable { get { return true; } }
 
 		public void ProcessRequest(HttpContext context) {

@@ -157,6 +157,14 @@
         return (($.jPlayer.timeFormat.showHour) ? strHour + $.jPlayer.timeFormat.sepHour : "") + (($.jPlayer.timeFormat.showMin) ? strMin + $.jPlayer.timeFormat.sepMin : "") + (($.jPlayer.timeFormat.showSec) ? strSec + $.jPlayer.timeFormat.sepSec : "");
     };
 
+    function passToHandler(func) {
+        return function () {
+            if (this.handlers.current) {
+                func.apply(this, $.merge([this.handlers[this.handlers.current]], arguments));
+            }
+        };
+    }
+
     $.jPlayer.prototype = {
         _init: function () {
             var self = this;
@@ -371,14 +379,13 @@
                 }
             };
 
-            var audioTypes = ["application/ogg", "audio/mpeg"];
+            var audioTypes = ["audio/ogg", "application/ogg", "audio/mpeg"];
             var backends = ["html5", "flash"];
             var support = {};
             $.each(audioTypes, function (i, audioType) {
                 support[audioType] = $.grep(backends, function (backend, j) {
                     return handlers[backend].willPlayType(audioType);
                 });
-                logtobox(audioType + ": " + support[audioType][0]);
             });
 
             $.extend(this.config, { support: support, aSel: $("#" + this.config.aid) });
@@ -476,7 +483,7 @@
             // Replaced by ready function from options in _init()
         },
         setFile: function (mp3, ogg) {
-            this.loadSong([{ type: "application/ogg", src: ogg }, { type: "audio/mpeg", src: mp3}]);
+            this.loadSong([{ type: "audio/ogg", src: ogg }, { type: "audio/mpeg", src: mp3}]);
         },
         loadSong: function (song) {
             var self = this;
@@ -489,40 +496,17 @@
                         self.handlers[self.handlers.current].clearFile(); //will stop.
                     self.handlers.current = newBackend;
                 }
-                logtobox("Using " + songOption.type + " on " + newBackend + " for " + songOption.src);
                 self.handlers[self.handlers.current].loadSong(songOption.type, songOption.src);
                 return false; //no need to continue;
             });
         },
-        clearFile: function () {
-            if (this.handlers.current)
-                this.handlers[this.handlers.current].clearFile();
-        },
-        play: function () {
-            if (this.handlers.current)
-                this.handlers[this.handlers.current].play();
-        },
-        pause: function () {
-            if (this.handlers.current)
-                this.handlers[this.handlers.current].pause();
-        },
-        stop: function () {
-            if (this.handlers.current)
-                this.handlers[this.handlers.current].stop();
-        },
-        playHead: function (p) {
-            if (this.handlers.current)
-                this.handlers[this.handlers.current].playHead(p);
-        },
-        playHeadTime: function (t) {
-            if (this.handlers.current)
-                this.handlers[this.handlers.current].playHeadTime(t);
-        },
-        volume: function (v) {
-            v = this._limitValue(v, 0, 100);
-            if (this.handlers.current)
-                this.handlers[this.handlers.current].volume(v);
-        },
+        clearFile: passToHandler(function (h) { h.clearFile(); }),
+        play: passToHandler(function (h) { h.play(); }),
+        pause: passToHandler(function (h) { h.pause(); }),
+        stop: passToHandler(function (h) { h.stop(); }),
+        playHead: passToHandler(function (h, p) { h.playHead(p); }),
+        playHeadTime: passToHandler(function (h, t) { h.playHeadTime(t); }),
+        volume: passToHandler(function (h, v) { h.volume(this._limitValue(v, 0, 100)); }),
         cssId: function (fn, id) {
             var self = this;
             if (typeof id == 'string') {

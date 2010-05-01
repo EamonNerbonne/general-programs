@@ -34,9 +34,7 @@
             </div>
         </div>
         <div id="jplayer_playlist" class="jp-playlist">
-            <ul>
-                <!-- The function displayPlayList() uses this unordered list -->
-            </ul>
+                <!-- The function displayPlayList() uses an unordered list here -->
         </div>
     </div>
     <div id="logbox" style="font-family: Calibri">
@@ -55,17 +53,30 @@
 
         var playItem = 0;
 
-        var myPlayList = [
+        var myPlayListEmn = [
             { name: "Mylo - Guilty of Love", uris: [{ type: "audio/mpeg", src: "http://home.nerbonne.org/SongSearchSite_Dev/songs/E!3a/Music/2004-08-27/Mylo-Destroy%20Rock%20!26%20Roll-06-Guilty%20of%20Love%20(1).mp3"}] },
             { name: "Mylo - In My Arms (Jules Chase Extended Edit)", uris: [{ type: "audio/mpeg", src: "http://home.nerbonne.org/SongSearchSite_Dev/songs/E!3a/Music/2005-09-07/Mylo%20-%20In%20My%20Arms%20(Jules%20Chase%20Extended%20Edit).mp3"}] },
             { name: "Razorlight - In the Morning", uris: [{ type: "application/ogg", src: "http://home.nerbonne.org/SongSearchSite_Dev/songs/E!3a/Music/2009-02-11/POP%20ROCK%20HITS%2026%20by%20vertigo%20(8-2006)/19%20Pista%2019.ogg"}] },
-            { name: "Phoenix - One Time Too Many", uris: [{ type: "application/ogg", src: "http://home.nerbonne.org/SongSearchSite_Dev/songs/E!3a/Music/2009-02-11/POP%20ROCK%20HITS%2026%20by%20vertigo%20(8-2006)/18%20Pista%2018.ogg"}] }
+            { name: "Phoenix - One Time Too Many", uris: [{ type: "audio/ogg", src: "http://home.nerbonne.org/SongSearchSite_Dev/songs/E!3a/Music/2009-02-11/POP%20ROCK%20HITS%2026%20by%20vertigo%20(8-2006)/18%20Pista%2018.ogg"}] }
         ];
 
 
 
 
-        var myPlayList2 = [
+        var myPlayListNew = [
+    		{ name: "Tempered Song (old-style)", mp3: "http://www.miaowmusic.com/mp3/Miaow-01-Tempered-song.mp3", ogg: "http://www.miaowmusic.com/ogg/Miaow-01-Tempered-song.ogg" },
+    		{ name: "Hidden (new; mp3>ogg)", uris: [{ type: "audio/mpeg", src: "http://www.miaowmusic.com/mp3/Miaow-02-Hidden.mp3" }, { type: "application/ogg", src: "http://www.miaowmusic.com/ogg/Miaow-02-Hidden.ogg"}] },
+    		{ name: "Lentement (new; mp3 only)", uris: [{ type: "audio/mpeg", src: "http://www.miaowmusic.com/mp3/Miaow-03-Lentement.mp3"}] },
+    		{ name: "Lismore (new; ogg onlye)", uris: [{ type: "audio/ogg", src: "http://www.miaowmusic.com/ogg/Miaow-04-Lismore.ogg"}] },
+    		{ name: "The Separation (new; mp3<ogg)", uris: [{ type: "audio/ogg", src: "http://www.miaowmusic.com/ogg/Miaow-05-The-separation.ogg" }, { type: "audio/mpeg", src: "http://www.miaowmusic.com/mp3/Miaow-05-The-separation.mp3"}] },
+    		{ name: "Beside Me", mp3: "http://www.miaowmusic.com/mp3/Miaow-06-Beside-me.mp3", ogg: "http://www.miaowmusic.com/ogg/Miaow-06-Beside-me.ogg" },
+    		{ name: "Bubble", mp3: "http://www.miaowmusic.com/mp3/Miaow-07-Bubble.mp3", ogg: "http://www.miaowmusic.com/ogg/Miaow-07-Bubble.ogg" },
+    		{ name: "Stirring of a Fool", mp3: "http://www.miaowmusic.com/mp3/Miaow-08-Stirring-of-a-fool.mp3", ogg: "http://www.miaowmusic.com/ogg/Miaow-08-Stirring-of-a-fool.ogg" },
+    		{ name: "Partir", mp3: "http://www.miaowmusic.com/mp3/Miaow-09-Partir.mp3", ogg: "http://www.miaowmusic.com/ogg/Miaow-09-Partir.ogg" },
+    		{ name: "Thin Ice", mp3: "http://www.miaowmusic.com/mp3/Miaow-10-Thin-ice.mp3", ogg: "http://www.miaowmusic.com/ogg/Miaow-10-Thin-ice.ogg" }
+    	];
+
+        var myPlayListOld = [
     		{ name: "Tempered Song", mp3: "http://www.miaowmusic.com/mp3/Miaow-01-Tempered-song.mp3", ogg: "http://www.miaowmusic.com/ogg/Miaow-01-Tempered-song.ogg" },
     		{ name: "Hidden", mp3: "http://www.miaowmusic.com/mp3/Miaow-02-Hidden.mp3", ogg: "http://www.miaowmusic.com/ogg/Miaow-02-Hidden.ogg" },
     		{ name: "Lentement", mp3: "http://www.miaowmusic.com/mp3/Miaow-03-Lentement.mp3", ogg: "http://www.miaowmusic.com/ogg/Miaow-03-Lentement.ogg" },
@@ -77,6 +88,7 @@
     		{ name: "Partir", mp3: "http://www.miaowmusic.com/mp3/Miaow-09-Partir.mp3", ogg: "http://www.miaowmusic.com/ogg/Miaow-09-Partir.ogg" },
     		{ name: "Thin Ice", mp3: "http://www.miaowmusic.com/mp3/Miaow-10-Thin-ice.mp3", ogg: "http://www.miaowmusic.com/ogg/Miaow-10-Thin-ice.ogg" }
     	];
+        myPlayList = myPlayListNew;
 
         // Local copy of jQuery selectors, for performance.
         var jpPlayTime = $("#jplayer_play_time");
@@ -108,18 +120,19 @@
             return false;
         });
 
-        function displayPlayList() {
-            for (i = 0; i < myPlayList.length; i++) {
-                $("#jplayer_playlist ul").append("<li id='jplayer_playlist_item_" + i + "'>" + myPlayList[i].name + "</li>");
-                $("#jplayer_playlist_item_" + i).data("index", i).click(function () {
-                    var index = $(this).data("index");
-                    if (playItem != index) {
-                        playListChange(index);
-                    } else {
-                        $("#jquery_jplayer").jPlayer("play");
-                    }
-                });
+        function playlistClick() {
+            var index = $(this).data("index");
+            if (playItem != index) {
+                playListChange(index);
+            } else {
+                $("#jquery_jplayer").jPlayer("play");
             }
+        }
+        function displayPlayList() {
+            var playlistEl = $(document.createElement("ul"));
+            for (i = 0; i < myPlayList.length; i++)
+                $("<li id='jplayer_playlist_item_" + i + "'/>").text(myPlayList[i].name).data("index", i).click(playlistClick).appendTo(playlistEl);
+            $("#jplayer_playlist").empty().append(playlistEl);
         }
 
         function playListInit(autoplay) {
