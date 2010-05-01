@@ -29,7 +29,6 @@ $(document).ready(function () {
     $("#jquery_jplayer").jPlayer({
         ready: function () {
             displayPlayList();
-            playListInit(true); // Parameter is a boolean for autoplay.
         },
         oggSupport: true,
         swfPath: ""
@@ -64,16 +63,13 @@ $(document).ready(function () {
 
     }
     function makeListItem(song) { return $(document.createElement("li")).text(song.name).data("songdata", song); }
-    function addToPlaylist(song) { makeListItem(song).appendTo($("#jplayer_playlist ol")); }
-    function displayPlayList() { $("#jplayer_playlist").empty().append($(document.createElement("ol")).click(playlistClick)); }
-
-
-    function playListInit(autoplay) {
-        if (autoplay)
-            playListChange(playListItem);
-        else
-            playListConfig(playListItem);
+    function addToPlaylist(song) {
+        var listEl = $("#jplayer_playlist ol");
+        var listItem = makeListItem(song).appendTo(listEl);
+        if (listEl.children().length == 1)
+            playListChange(listItem[0]);
     }
+    function displayPlayList() { $("#jplayer_playlist").empty().append($(document.createElement("ol")).click(playlistClick)); }
 
     function playListConfig(listItem) {
         if (playListItem)
@@ -91,9 +87,9 @@ $(document).ready(function () {
             $("#jquery_jplayer").jPlayer("play");
     }
 
-    function playListNext() { playListChange($(playListItem).next()); }
+    function playListNext() { playListChange($(playListItem).next()[0]); }
 
-    function playListPrev() { playListChange($(playListItem).prev()); }
+    function playListPrev() { playListChange($(playListItem).prev()[0]); }
 
     function SearchListClicked_impl(e) {
         if (!e) var e = window.event;

@@ -6,15 +6,18 @@
 
 tr
 {
-    border: solid #8ba;
-    border-width: 1px 0;
+    border: solid #e2eeea;
+    border-width: 1px 0 0 0;
     cursor:pointer;
 }
 
-tr:nth-child(2n)
+tr:nth-child(5n)
 {
+    border: solid #8ba;
+    border-width: 1px 0;
     background: #e2eeea;
 }
+
 tr > *:nth-child(2)
 {
     font-style: italic;
@@ -32,15 +35,7 @@ td > div > span
     z-index: 1;
 }
 
-tr td > div > span
-{
-    background: #fff;
-}
 
-tr:nth-child(2n) td > div > span
-{
-    background: #e2eeea;
-}
 
 td > div > i
 {
