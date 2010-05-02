@@ -104,17 +104,17 @@ namespace SongDataLib
 			);
 		}
 
-		public IEnumerable<string> Values {//only yield "distinctive" search values
+		IEnumerable<string> Values {//only yield "distinctive" search values
 			get {
 				yield return Uri.IsWellFormedUriString(songuri,UriKind.RelativeOrAbsolute)? Uri.UnescapeDataString(songuri):songuri;
 				yield return title;
 				yield return performer;
 				yield return composer;
 				yield return album;
-				yield return comment;
-				yield return genre;
-				yield return year.ToStringOrNull();
-				yield return track.ToStringOrNull();
+				//yield return comment;
+				//yield return genre;
+				//yield return year.ToStringOrNull();
+				//yield return track.ToStringOrNull();
 			}
 		}
 
