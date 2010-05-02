@@ -59,7 +59,7 @@ td > div > i > i
 
 body
 {
-    font-family: Segoe UI, Calibri, Bitstream Vera Sans, Gill Sans, Verdana, Sans-Serif;
+    font-family: Segoe UI, Arial, Sans-Serif; /* Segoe UI, Calibri, Bitstream Vera Sans, Gill Sans, Verdana, Sans-Serif;*/
     font-size: 10pt;
     padding: 0;
     margin: 0;

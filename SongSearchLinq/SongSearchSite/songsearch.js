@@ -44,7 +44,8 @@
     ];
     $("a.matchLink").each(function (idx, aEl) { queryTargets.push(new QueryTarget(aEl, "href")); });
     $("#searchForm input").keyup(updateResults);
-    $(window).bind("hashchange",updateResults);
+    $(window).bind("hashchange", updateResults);
     updateResults();
-    searchqueryEl.focus();
+    if (!document.createElement("input").autofocus) $("[autofocus='autofocus']").first().each(function (i) { this.focus(); });
+
 });

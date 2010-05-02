@@ -131,7 +131,7 @@ namespace SongSearchSite {
 			int maxBytesPerSec = (int)(Math.Max(128 * 1024 / 8, Math.Min(fileByteCount / songSeconds, 320 * 1024 / 8)) * 1.25);
 
 			using (var servingStatus = new ServingActivity.ServedFileStatus(song.SongPath, range, helper.Context.Request.UserHostAddress, maxBytesPerSec)) {
-				const int fastStartSec = 2;
+				const int fastStartSec = 10;
 				byte[] buffer = new byte[window];
 				Stopwatch timer = Stopwatch.StartNew();
 				helper.Context.Response.Buffer = false;
@@ -163,6 +163,7 @@ namespace SongSearchSite {
 						}
 					}
 					helper.Context.Response.OutputStream.Flush();
+					helper.Context.Response.Flush();
 					servingStatus.Duration = (uint)(timer.Elapsed.TotalSeconds * 10000);
 					servingStatus.ServedBytes = (uint)(stream.Position - start);
 				}

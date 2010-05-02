@@ -24,7 +24,7 @@ body, html, #form1
 }
 body
 {
-    font-family: Segoe UI, Calibri, Bitstream Vera Sans, Gill Sans, Verdana, Sans-Serif;
+    font-family: Segoe UI, Lucida Sans Unicode, Lucida Grande, Arial, Sans-Serif;
     font-size: 12pt;
     overflow:hidden;
 }
@@ -36,32 +36,49 @@ iframe
 #searchResultDiv
 {
     position: absolute;
-    height: 30em;
+    height: 50%;
     left: 0;
     right: 0;
     bottom: 0;
     border: none;
     padding: 0;
 }
+#shownumber{    width:3em;}
+#searchquery{width:15em;}
 
 .searchSect
 {
     position: absolute;
     height: 5em;
     max-height: 5em;
-    bottom: 30em;
+    bottom: 50%;
     left: 0;
     width: 35em;
     height: 5em;
     padding: 0.5em;
     background: #c4ddd5;
+    white-space:nowrap;
+    overflow:hidden;
 }
+
+#optionsBox 
+{
+    max-width:33em;
+    padding:0.5em;
+    margin:0.5em;
+    border:1px solid #e2eeea;
+}
+#optionsBox table 
+{
+    font-size:10pt;
+}
+
 .playerSect
 {
     position: absolute;
     left: 36em;
     right: 0;
-    bottom: 30em;
+    bottom: 50%;
     top: 0;
     padding: 0;
     margin: 0;
@@ -84,7 +101,7 @@ iframe
     padding:0;
     margin:0;
 }
-.jp-playlist ol 
+.jp-playlist ul 
 {
     left:0;
     right:0;
@@ -94,7 +111,7 @@ iframe
     overflow-y:auto;
 }
 
-
+.deleteButton {color:Red;font-weight:bold; float:right; padding:0 0.5em; background:#ccc; font-style:normal;}
 
 .searchSect a
 {
@@ -164,3 +181,5 @@ td
 {
     padding: 0;
 }
+
+.OptionsBuilder-uninitialized {display:none;}

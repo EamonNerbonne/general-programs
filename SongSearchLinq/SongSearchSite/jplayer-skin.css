@@ -122,28 +122,39 @@ div.jp-total-time
     text-align: right;
 }
 
-div.jp-playlist ol 
+div.jp-playlist ul 
 {
     line-height: 1.3;
     color: #666;
     font-size:80%;
     margin:0;
     padding:0 0.3em;
+    
 }
 
 div.jp-playlist li
 {
-    padding: 0.1em 0 0.1em 0;
-    border-bottom: 1px solid #e2eeea;
+    padding: 0.1em 0 0.1em 1.5em;
+    border:1px solid #e2eeea;
+    margin-bottom:-1px;
+    
     cursor: pointer;
     list-style-position:inside;
+    list-style-type:none;
+    background:white;
+}
+div.jp-playlist li:hover
+{
+    background:#eee;
 }
 
 div.jp-playlist li.jplayer_playlist_current
 {
+    padding-left:0.5em;
     font-weight:bold;
     font-style:italic;
     color: #445E55;
+    list-style-type:square;
     cursor: default;
 }
 

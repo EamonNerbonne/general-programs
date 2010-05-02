@@ -28,7 +28,6 @@
         return true;
     }
 
-
     // Adapted from ui.core.js (1.7.2)
     function getter(plugin, method, args) {
         function getMethods(type) {

@@ -8,6 +8,9 @@
     <link rel="Stylesheet" href="ui-lightness/jquery-ui-1.8.1.custom.css" type="text/css" />
 </head>
 <body>
+    <fieldset id="optionsBox" class="OptionsBuilder-uninitialized">
+        <legend>Options</legend>
+    </fieldset>
     <div class="playerSect">
         <div id="jplayer_playlist" class="jp-playlist">
             <!-- The function displayPlayList() uses an unordered list here -->
@@ -51,12 +54,11 @@
     </div>
     <div class="searchAndPlayerRow">
         <div class="searchSect">
-            <h3>
-                SongSearch - a site for searching &amp; playing distributed song db&#39;s.</h3>
+            <h3>SongSearch - search &amp; play from distributed song db&#39;s.</h3>
             <form method="get" action="list.xml" id="searchForm" target="resultsview">
             <input type="hidden" name="view" value="xslt" />
             Search:
-            <input id="searchquery" type="text" name="q" autocomplete="off" />
+            <input id="searchquery" type="text" name="q" autocomplete="off" placeholder="Search for Music..." autofocus="autofocus"/>
             with at most
             <input id="shownumber" type="text" value="40" name="top" />
             results.<br />
@@ -71,6 +73,7 @@
     </div>
 </body>
 <script type="text/javascript" src="jquery-1.4.2.min.js"></script>
+<script type="text/javascript" src="OptionsBuilder.js"></script>
 <script type="text/javascript" src="jquery-ui-1.8.1.custom.min.js"></script>
 <script type="text/javascript" src="jquery.jplayer.js"></script>
 <script type="text/javascript" src="songsearch.js"></script>
