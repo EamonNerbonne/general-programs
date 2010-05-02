@@ -1,4 +1,12 @@
-﻿#Text1
+﻿/*
+#e2eeea
+#c4ddd5
+#8ba
+#445E55
+
+#840 (links)
+*/
+#Text1
 {
     width: 310px;
 }
@@ -18,6 +26,7 @@ body
 {
     font-family: Segoe UI, Calibri, Bitstream Vera Sans, Gill Sans, Verdana, Sans-Serif;
     font-size: 12pt;
+    overflow:hidden;
 }
 
 iframe
@@ -27,7 +36,7 @@ iframe
 #searchResultDiv
 {
     position: absolute;
-    top: 15em;
+    height: 30em;
     left: 0;
     right: 0;
     bottom: 0;
@@ -35,19 +44,57 @@ iframe
     padding: 0;
 }
 
-.searchAndPlayerRow
-{
-    position: relative;
-    height: 15em;
-    max-height: 15em;
-}
 .searchSect
 {
-    background: #c4ddd5;
+    position: absolute;
+    height: 5em;
+    max-height: 5em;
+    bottom: 30em;
+    left: 0;
     width: 35em;
     height: 5em;
     padding: 0.5em;
+    background: #c4ddd5;
 }
+.playerSect
+{
+    position: absolute;
+    left: 36em;
+    right: 0;
+    bottom: 30em;
+    top: 0;
+    padding: 0;
+    margin: 0;
+    width:auto;
+}
+.jp-playlist-player 
+{
+    position:absolute;
+    bottom:0;
+    left:0;
+    right:0;
+}
+.jp-playlist 
+{
+    position:absolute;
+    top:0;
+    bottom:3.5em;
+    left:0;
+    right:0;
+    padding:0;
+    margin:0;
+}
+.jp-playlist ol 
+{
+    left:0;
+    right:0;
+    position:absolute;
+    max-height:100%;
+    bottom:0;
+    overflow-y:auto;
+}
+
+
 
 .searchSect a
 {

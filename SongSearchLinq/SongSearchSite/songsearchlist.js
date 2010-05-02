@@ -25,10 +25,24 @@ $(document).ready(function () {
     // Local copy of jQuery selectors, for performance.
     var jpPlayTime = $("#jplayer_play_time");
     var jpTotalTime = $("#jplayer_total_time");
+    function playlistClick(e) {
+        if (!e) var e = window.event;
+        var target = e.target || e.srcElement;
+        var clickedListItem = $(target).parents().andSelf().filter("li").first()[0];
+
+        if (clickedListItem != playListItem)
+            playListChange(clickedListItem);
+        else
+            $("#jquery_jplayer").jPlayer("play");
+    }
+    var playListElem = null;
 
     $("#jquery_jplayer").jPlayer({
         ready: function () {
-            displayPlayList();
+            playListElem =
+                $(document.createElement("ol"))
+                    .appendTo($("#jplayer_playlist").empty());
+            playListElem.sortable().disableSelection();
         },
         oggSupport: true,
         swfPath: ""
@@ -51,25 +65,19 @@ $(document).ready(function () {
         return false;
     });
 
-    function playlistClick(e) {
-        if (!e) var e = window.event;
-        var target = e.target || e.srcElement;
-        var clickedListItem = $(target).parents().andSelf().filter("li").first()[0];
-
-        if (clickedListItem != playListItem)
-            playListChange(clickedListItem);
-        else
-            $("#jquery_jplayer").jPlayer("play");
-
+    function makeListItem(song) {
+        return $(document.createElement("li")).addClass("ui-state-default").text(song.name).data("songdata", song);
     }
-    function makeListItem(song) { return $(document.createElement("li")).text(song.name).data("songdata", song); }
     function addToPlaylist(song) {
-        var listEl = $("#jplayer_playlist ol");
-        var listItem = makeListItem(song).appendTo(listEl);
-        if (listEl.children().length == 1)
+
+        var listItem = makeListItem(song);
+        //.click(playlistClick)
+
+        listItem.appendTo(playListElem);
+        playListElem.sortable("refresh");
+        if (playListElem.children().length == 1)
             playListChange(listItem[0]);
     }
-    function displayPlayList() { $("#jplayer_playlist").empty().append($(document.createElement("ol")).click(playlistClick)); }
 
     function playListConfig(listItem) {
         if (playListItem)

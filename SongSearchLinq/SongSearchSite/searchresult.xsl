@@ -4,7 +4,6 @@
   <xsl:template match="/">
     <html>
       <head>
-        <link rel="Stylesheet" type="text/css" href="songsearch.css" />
         <link rel="Stylesheet" type="text/css" href="tableview.css" />
         <!--#8ba;#c4ddd5;#e2eeea-->
       </head>

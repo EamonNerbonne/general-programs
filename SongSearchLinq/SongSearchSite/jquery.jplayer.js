@@ -38,7 +38,9 @@
         var methods = getMethods('getter');
         return ($.inArray(method, methods) != -1);
     }
-
+    function limitValue(value, min, max) {
+        return (value < min) ? min : ((value > max) ? max : value);
+    }
     // Adapted from ui.core.js (1.7.2) $.widget() "create plugin method"
     // $.data() info at http://docs.jquery.com/Internals/jQuery.data
     $.fn.jPlayer = function (options) {
@@ -165,6 +167,7 @@
         };
     }
 
+
     $.jPlayer.prototype = {
         _init: function () {
             var self = this;
@@ -186,7 +189,7 @@
                 aid: this.config.cssPrefix + "_audio_" + $.jPlayer.count,
                 hid: this.config.cssPrefix + "_force_" + $.jPlayer.count,
                 i: $.jPlayer.count,
-                volume: this._limitValue(this.config.volume, 0, 100)
+                volume: limitValue(this.config.volume, 0, 100)
             });
 
             $.jPlayer.count++;
@@ -238,10 +241,10 @@
                     self.handlers.setButtons(false);
                 },
                 clearFile: function () {
-                    self.handlers.setButtons(false);
                     self._getMovie().fl_clearFile_mp3();
                     self.config.diag.src = "";
                     self.config.isFileSet = false;
+                    self.handlers.setButtons(false);
                 },
                 play: function () {
                     if (self._getMovie().fl_play_mp3())
@@ -292,12 +295,12 @@
                     self.config.diag.src = src;
                     self.config.isWaitingForPlay = true;
                     self.config.isFileSet = true;
-                    self.handlers.setButtons(false);
                     self.jPlayerOnProgressChange(0, 0, 0, 0, 0);
                     clearInterval(self.config.jPlayerControllerId);
                     self.config.audio.addEventListener("canplay", function () {
                         self.config.audio.volume = self.config.volume / 100; // Fix for Chrome 4: Event solves initial volume not being set correctly.
                     }, false);
+                    self.handlers.setButtons(false);
                 },
                 clearFile: function () {
                     this.loadSong("", "");
@@ -306,16 +309,15 @@
                 },
                 play: function () {
                     if (self.config.isFileSet) {
-                        if (self.config.isWaitingForPlay) {
+                        if (self.config.isWaitingForPlay)
                             self.config.audio.src = self.config.diag.src;
-                        }
                         self.config.audio.play();
-                        self.handlers.setButtons(true);
                         clearInterval(self.config.jPlayerControllerId);
                         self.config.jPlayerControllerId = window.setInterval(function () {
                             self.jPlayerController(false);
                         }, 100);
                         clearInterval(self.config.delayedCommandId);
+                        self.handlers.setButtons(true);
                     }
                 },
                 pause: function () {
@@ -506,30 +508,23 @@
         stop: passToHandler(function (h) { h.stop(); }),
         playHead: passToHandler(function (h, p) { h.playHead(p); }),
         playHeadTime: passToHandler(function (h, t) { h.playHeadTime(t); }),
-        volume: passToHandler(function (h, v) { h.volume(this._limitValue(v, 0, 100)); }),
+        volume: passToHandler(function (h, v) { h.volume(limitValue(v, 0, 100)); }),
         cssId: function (fn, id) {
-            var self = this;
-            if (typeof id == 'string') {
-                if ($.jPlayer._cssId[fn]) {
-                    if (this.config.cssId[fn] != undefined) {
-                        this.config.cssSelector[fn].unbind("click", this.config.clickHandler[fn]);
-                    }
-                    this.config.cssId[fn] = id;
-                    this.config.cssSelector[fn] = $("#" + id);
-                    this.config.clickHandler[fn] = function (e) {
-                        self[fn](e);
-                        return false;
-                    }
-                    this.config.cssSelector[fn].click(this.config.clickHandler[fn]);
-                    this.config.cssDisplay[fn] = this.config.cssSelector[fn].css("display");
-                    if (fn == "pause") {
-                        this.config.cssSelector[fn].css("display", "none");
-                    }
-                } else {
-                    this._warning("Unknown/Illegal function in cssId\n\njPlayer('cssId', '" + fn + "', '" + id + "')");
-                }
-            } else {
+            if (typeof id != 'string')
                 this._warning("cssId CSS Id must be a string\n\njPlayer('cssId', '" + fn + "', " + id + ")");
+            else if (!$.jPlayer._cssId[fn])
+                this._warning("Unknown/Illegal function in cssId\n\njPlayer('cssId', '" + fn + "', '" + id + "')");
+            else {
+                if (this.config.cssId[fn] != undefined)
+                    this.config.cssSelector[fn].unbind("click", this.config.clickHandler[fn]);
+                var self = this;
+                this.config.clickHandler[fn] = function (e) { self[fn](e); return false; };
+                this.config.cssId[fn] = id;
+                this.config.cssSelector[fn] = $("#" + id).click(this.config.clickHandler[fn]);
+                this.config.cssDisplay[fn] = this.config.cssSelector[fn].css("display");
+                if (fn == "pause") {
+                    this.config.cssSelector[fn].css("display", "none");
+                }
             }
         },
         loadBar: function (e) { // Handles clicks on the loadBar
@@ -545,60 +540,50 @@
             this.loadBar(e);
         },
         onProgressChange: function (fn) {
-            if ($.isFunction(fn)) {
+            if ($.isFunction(fn))
                 this.onProgressChangeCustom = fn;
-            } else {
+            else
                 this._warning("onProgressChange parameter is not a function.");
-            }
         },
-        onProgressChangeCustom: function () {
-            // Replaced in onProgressChange()
-        },
+        onProgressChangeCustom: function () { }, // Replaced in onProgressChange()
         jPlayerOnProgressChange: function (lp, ppr, ppa, pt, tt) { // Called from Flash / HTML5 interval
-            this.config.diag.loadPercent = lp;
-            this.config.diag.playedPercentRelative = ppr;
-            this.config.diag.playedPercentAbsolute = ppa;
-            this.config.diag.playedTime = pt;
-            this.config.diag.totalTime = tt;
-
-            if (this.config.cssId.loadBar != undefined) {
-                this.config.cssSelector.loadBar.width(lp + "%");
-            }
-            if (this.config.cssId.playBar != undefined) {
-                this.config.cssSelector.playBar.width(ppr + "%");
-            }
-
+            var diag = this.config.diag;
+            diag.loadPercent = lp;
+            diag.playedPercentRelative = ppr;
+            diag.playedPercentAbsolute = ppa;
+            diag.playedTime = pt;
+            diag.totalTime = tt;
+            this.config.cssSelector.loadBar.width(lp + "%"); //if loadBar doesn't exist, this doesn't do anything.
+            this.config.cssSelector.playBar.width(ppr + "%");
             this.onProgressChangeCustom(lp, ppr, ppa, pt, tt);
             this._forceUpdate();
         },
         jPlayerController: function (override) { // The HTML5 interval function.
             var pt = 0, tt = 0, ppa = 0, lp = 0, ppr = 0;
+            var audio = this.config.audio;
             if (this.config.audio.readyState >= 1) {
-                pt = this.config.audio.currentTime * 1000; // milliSeconds
-                tt = this.config.audio.duration * 1000; // milliSeconds
+                pt = audio.currentTime * 1000; // milliSeconds
+                tt = audio.duration * 1000; // milliSeconds
                 tt = isNaN(tt) ? 0 : tt; // Clean up duration in Firefox 3.5+
                 ppa = (tt > 0) ? 100 * pt / tt : 0;
-                if ((typeof this.config.audio.buffered == "object") && (this.config.audio.buffered.length > 0)) {
-                    lp = 100 * this.config.audio.buffered.end(this.config.audio.buffered.length - 1) / this.config.audio.duration;
-                    ppr = 100 * this.config.audio.currentTime / this.config.audio.buffered.end(this.config.audio.buffered.length - 1);
+                if (typeof audio.buffered == "object" && audio.buffered.length > 0) {
+                    lp = 100 * audio.buffered.end(audio.buffered.length - 1) / audio.duration;
+                    ppr = 100 * audio.currentTime / audio.buffered.end(audio.buffered.length - 1);
                 } else {
                     lp = 100;
                     ppr = ppa;
                 }
             }
 
-            if (this.config.audio.ended) {
+            if (audio.ended) {
                 clearInterval(this.config.jPlayerControllerId);
                 this.jPlayerOnSoundComplete();
             } else if (!this.config.diag.isPlaying && lp >= 100) {
                 clearInterval(this.config.jPlayerControllerId);
             }
 
-            if (override) {
-                this.jPlayerOnProgressChange(lp, 0, 0, 0, tt);
-            } else {
-                this.jPlayerOnProgressChange(lp, ppr, ppa, pt, tt);
-            }
+            if (override) ppr = ppa = pt = 0;
+            this.jPlayerOnProgressChange(lp, ppr, ppa, pt, tt);
         },
         volumeMin: function () {
             this.volume(0);
@@ -608,11 +593,8 @@
         },
         volumeBar: function (e) { // Handles clicks on the volumeBar
             if (this.config.cssId.volumeBar != undefined) {
-                var offset = this.config.cssSelector.volumeBar.offset();
-                var x = e.pageX - offset.left;
-                var w = this.config.cssSelector.volumeBar.width();
-                var p = 100 * x / w;
-                this.volume(p);
+                var barEl = this.config.cssSelector.volumeBar;
+                this.volume(100 * (e.pageX - barEl.offset().left) / barEl.width());
             }
         },
         volumeBarValue: function (e) { // Handles clicks on the volumeBarValue
@@ -625,31 +607,25 @@
             }
         },
         onSoundComplete: function (fn) {
-            if ($.isFunction(fn)) {
+            if ($.isFunction(fn))
                 this.onSoundCompleteCustom = fn;
-            } else {
+            else
                 this._warning("onSoundComplete parameter is not a function.");
-            }
         },
-        onSoundCompleteCustom: function () {
-            // Replaced in onSoundComplete()
-        },
+        onSoundCompleteCustom: function () { }, // Replaced in onSoundComplete()
         jPlayerOnSoundComplete: function () { // Called from Flash / HTML5 interval
             this.handlers.setButtons(false);
             this.onSoundCompleteCustom();
         },
         getData: function (name) {
-            var n = name.split(".");
-            var p = this.config;
-            for (var i = 0; i < n.length; i++) {
-                if (p[n[i]] != undefined) {
-                    p = p[n[i]];
-                } else {
-                    this._warning("Undefined data requested.\n\njPlayer('getData', '" + name + "')");
-                    return undefined;
-                }
-            }
-            return p;
+            var val = this.config;
+            $.each(name.split("."), function (i, part) {
+                if (val != undefined)
+                    val = val[part];
+            });
+            if (val == undefined)
+                this._warning("Undefined data requested.\n\njPlayer('getData', '" + name + "')");
+            return val;
         },
         _getMovie: function () {
             return document[this.config.fid];
@@ -680,25 +656,19 @@
             return flashIsInstalled;
         },
         _forceUpdate: function () { // For Safari and Chrome
-            if (this.config.graphicsFix) {
+            if (this.config.graphicsFix)
                 this.config.hSel.text("" + Math.random());
-            }
-        },
-        _limitValue: function (value, min, max) {
-            return (value < min) ? min : ((value > max) ? max : value);
         },
         _flashError: function (e) {
             this._error("Problem with Flash component.\n\nCheck the swfPath points at the Jplayer.swf path.\n\nswfPath = " + this.config.swfPath + "\nurl: " + this.config.swf + "\n\nError: " + e.message);
         },
         _error: function (msg) {
-            if (this.config.errorAlerts) {
+            if (this.config.errorAlerts)
                 this._alert("Error!\n\n" + msg);
-            }
         },
         _warning: function (msg) {
-            if (this.config.warningAlerts) {
+            if (this.config.warningAlerts)
                 this._alert("Warning!\n\n" + msg);
-            }
         },
         _alert: function (msg) {
             alert("jPlayer " + this.config.version + " : id='" + this.config.id + "' : " + msg);

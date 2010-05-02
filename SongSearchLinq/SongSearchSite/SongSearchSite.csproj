@@ -60,24 +60,28 @@
   <ItemGroup>
     <Content Include="DebugStatus.aspx" />
     <Content Include="DebugStatus.css" />
-    <Content Include="Default.aspx" />
+    <Content Include="img\pause.png" />
+    <Content Include="img\play.png" />
+    <Content Include="img\previous.png" />
+    <Content Include="img\next.png" />
+    <Content Include="img\stop.png" />
+    <Content Include="img\volume.png" />
+    <Content Include="index.html" />
     <Content Include="emnicon.png" />
-    <Content Include="jplayer.blue.monday.css" />
-    <Content Include="jplayer.blue.monday.jpg" />
+    <Content Include="jplayer-skin.css" />
     <Content Include="Jplayer.swf" />
     <Content Include="jquery-1.4.2.min.js" />
-    <Content Include="jquery.jplayer-1.1.0.min.js" />
     <Content Include="jquery.jplayer.js" />
     <Content Include="Loading.html" />
     <Content Include="songsearch.css" />
     <Content Include="songsearch.js" />
+    <Content Include="songsearchlist.js" />
     <Content Include="tableview.css" />
     <Content Include="TestPlayer.html" />
     <Content Include="Web.config">
       <SubType>Designer</SubType>
     </Content>
     <Content Include="searchresult.xsl" />
-    <Content Include="xspf_player_slim.swf" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DebugStatus.aspx.cs">
@@ -86,13 +90,6 @@
     </Compile>
     <Compile Include="DebugStatus.aspx.designer.cs">
       <DependentUpon>DebugStatus.aspx</DependentUpon>
-    </Compile>
-    <Compile Include="Default.aspx.cs">
-      <SubType>ASPXCodeBehind</SubType>
-      <DependentUpon>Default.aspx</DependentUpon>
-    </Compile>
-    <Compile Include="Default.aspx.designer.cs">
-      <DependentUpon>Default.aspx</DependentUpon>
     </Compile>
     <Compile Include="PlaylistHandler.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

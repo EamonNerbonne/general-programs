@@ -1,17 +1,11 @@
-
-div.jp-single-player, div.jp-playlist-player
-{
-    line-height: 1.3;
-    color: #666;
-}
 div.jp-interface
 {
     position: relative;
     background-color: #eee;
     min-width: 20em;
-    -moz-box-shadow: 0 0 2em white inset, 0 0 1em white inset;
-    -webkit-box-shadow: 0 0 2em white inset, 0 0 1em white inset;
-    box-shadow: 0 0 2em white inset, 0 0 1em white inset;
+    -moz-box-shadow: 0 0 2.5em white inset, 0 0 1.5em white inset,0 0 0.5em white inset;
+    -webkit-box-shadow: 0 0 2.5em white inset, 0 0 1.5em white inset,0 0 0.5em white inset;
+    box-shadow: 0 0 2.5em white inset, 0 0 1.5em white inset,0 0 0.5em white inset;
 }
 div.jp-single-player div.jp-interface
 {
@@ -127,30 +121,33 @@ div.jp-total-time
 {
     text-align: right;
 }
-div.jp-playlist-player div.jp-playlist ol 
+
+div.jp-playlist ol 
 {
-    padding:0;
+    line-height: 1.3;
+    color: #666;
     font-size:80%;
-    margin:0.3em 0 0 0.3em;
-    max-height:12.5em;
-    overflow-y:scroll;
+    margin:0;
+    padding:0 0.3em;
 }
 
-div.jp-playlist-player div.jp-playlist li
+div.jp-playlist li
 {
     padding: 0.1em 0 0.1em 0;
-    border-bottom: 1px solid #eee;
+    border-bottom: 1px solid #e2eeea;
     cursor: pointer;
     list-style-position:inside;
 }
-div.jp-playlist-player div.jp-playlist li.jplayer_playlist_current
+
+div.jp-playlist li.jplayer_playlist_current
 {
     font-weight:bold;
     font-style:italic;
-    color: #484;
+    color: #445E55;
     cursor: default;
 }
-div.jp-playlist-player div.jp-playlist li:hover
+
+div.jp-playlist li:hover
 {
-    color: #484;
+    color: #445E55;
 }

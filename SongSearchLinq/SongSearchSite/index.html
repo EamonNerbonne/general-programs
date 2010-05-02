@@ -4,9 +4,51 @@
     <title>Song Search Linq</title>
     <link rel="shortcut icon" type="image/png" href="emnicon.png" />
     <link rel="Stylesheet" type="text/css" href="songsearch.css" />
-    <link rel="Stylesheet" href="jplayer.blue.monday.css" type="text/css" />
+    <link rel="Stylesheet" href="jplayer-skin.css" type="text/css" />
+    <link rel="Stylesheet" href="ui-lightness/jquery-ui-1.8.1.custom.css" type="text/css" />
 </head>
 <body>
+    <div class="playerSect">
+        <div id="jplayer_playlist" class="jp-playlist">
+            <!-- The function displayPlayList() uses an unordered list here -->
+        </div>
+        <div class="jp-playlist-player">
+            <div class="jp-interface">
+                <ul class="jp-controls">
+                    <li id="jplayer_previous" class="jp-previous">
+                        <img src="img/previous.png" alt="previous" /></li>
+                    <li id="jplayer_play" class="jp-play">
+                        <img src="img/play.png" alt="play" /></li>
+                    <li id="jplayer_pause" class="jp-pause">
+                        <img src="img/pause.png" alt="pause" /></li>
+                    <li id="jplayer_stop" class="jp-stop">
+                        <img src="img/stop.png" alt="stop" /></li>
+                    <li id="jplayer_next" class="jp-next">
+                        <img src="img/next.png" alt="previous" /></li>
+                    <li class="jp-progress">
+                        <div id="jplayer_load_bar" class="jp-load-bar">
+                            <div id="jplayer_play_bar" class="jp-play-bar">
+                            </div>
+                        </div>
+                        <div id="jplayer_play_time" class="jp-play-time">
+                        </div>
+                        <div id="jplayer_total_time" class="jp-total-time">
+                        </div>
+                    </li>
+                    <li id="jplayer_volume_min" class="jp-volume-min">
+                        <img src="img/volume.png" alt="min volume" /></li>
+                    <li id="jplayer_volume_bar" class="jp-volume-bar">
+                        <div id="jplayer_volume_bar_value" class="jp-volume-bar-value">
+                        </div>
+                    </li>
+                    <li id="jplayer_volume_max" class="jp-volume-max">
+                        <img src="img/volume.png" alt="max volume" /></li>
+                </ul>
+            </div>
+        </div>
+        <div id="jquery_jplayer">
+        </div>
+    </div>
     <div class="searchAndPlayerRow">
         <div class="searchSect">
             <h3>
@@ -16,52 +58,11 @@
             Search:
             <input id="searchquery" type="text" name="q" autocomplete="off" />
             with at most
-            <input id="shownumber" type="text" value="50" name="top" />
+            <input id="shownumber" type="text" value="40" name="top" />
             results.<br />
             </form>
             matches: <a class="matchLink" href="playlist.m3u?q=" target="_blank">m3u</a> <a class="matchLink"
                 href="playlist.m3u8?q=" target="_blank">m3u8</a>
-        </div>
-        <div style="position: absolute; left: 36em; right: 0; top: 0; bottom: 0;">
-            <div id="jquery_jplayer">
-            </div>
-            <div class="jp-playlist-player">
-                <div class="jp-interface">
-                    <ul class="jp-controls">
-                        <li id="jplayer_previous" class="jp-previous">
-                            <img src="img/previous.png" alt="previous" /></li>
-                        <li id="jplayer_play" class="jp-play">
-                            <img src="img/play.png" alt="play" /></li>
-                        <li id="jplayer_pause" class="jp-pause">
-                            <img src="img/pause.png" alt="pause" /></li>
-                        <li id="jplayer_stop" class="jp-stop">
-                            <img src="img/stop.png" alt="stop" /></li>
-                        <li id="jplayer_next" class="jp-next">
-                            <img src="img/next.png" alt="previous" /></li>
-                        <li class="jp-progress">
-                            <div id="jplayer_load_bar" class="jp-load-bar">
-                                <div id="jplayer_play_bar" class="jp-play-bar">
-                                </div>
-                            </div>
-                            <div id="jplayer_play_time" class="jp-play-time">
-                            </div>
-                            <div id="jplayer_total_time" class="jp-total-time">
-                            </div>
-                        </li>
-                        <li id="jplayer_volume_min" class="jp-volume-min">
-                            <img src="img/volume.png" alt="min volume" /></li>
-                        <li id="jplayer_volume_bar" class="jp-volume-bar">
-                            <div id="jplayer_volume_bar_value" class="jp-volume-bar-value">
-                            </div>
-                        </li>
-                        <li id="jplayer_volume_max" class="jp-volume-max">
-                            <img src="img/volume.png" alt="max volume" /></li>
-                    </ul>
-                </div>
-                <div id="jplayer_playlist" class="jp-playlist">
-                    <!-- The function displayPlayList() uses an unordered list here -->
-                </div>
-            </div>
         </div>
     </div>
     <div id="searchResultDiv">
@@ -70,6 +71,7 @@
     </div>
 </body>
 <script type="text/javascript" src="jquery-1.4.2.min.js"></script>
+<script type="text/javascript" src="jquery-ui-1.8.1.custom.min.js"></script>
 <script type="text/javascript" src="jquery.jplayer.js"></script>
 <script type="text/javascript" src="songsearch.js"></script>
 <script type="text/javascript" src="songsearchlist.js"></script>
