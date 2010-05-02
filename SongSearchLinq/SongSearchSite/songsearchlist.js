@@ -39,10 +39,10 @@ $(document).ready(function () {
 
     $("#jquery_jplayer").jPlayer({
         ready: function () {
-            playListElem =
-                $(document.createElement("ol"))
-                    .appendTo($("#jplayer_playlist").empty());
-            playListElem.sortable().disableSelection();
+            playListElem = $(document.createElement("ol"))
+                    .appendTo($("#jplayer_playlist").empty())
+                    .click(playlistClick)
+                    .sortable().disableSelection();
         },
         oggSupport: true,
         swfPath: ""
@@ -66,12 +66,11 @@ $(document).ready(function () {
     });
 
     function makeListItem(song) {
-        return $(document.createElement("li")).addClass("ui-state-default").text(song.name).data("songdata", song);
+        return $(document.createElement("li")).text(song.name).data("songdata", song);
     }
     function addToPlaylist(song) {
 
         var listItem = makeListItem(song);
-        //.click(playlistClick)
 
         listItem.appendTo(playListElem);
         playListElem.sortable("refresh");

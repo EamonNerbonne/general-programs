@@ -392,12 +392,11 @@
 
             $.extend(this.config, { support: support, aSel: $("#" + this.config.aid) });
 
-
             var usingBackends = {};
             $.each(
             //used backends are: all backends such that there exists an audioType such that for that audioType the backend is preferred.
                 $.grep(backends, function (backend, i) { return $.grep(audioTypes, function (type, i) { return support[type][0] == backend; }).length > 0; }),
-                function (i, backend) { usingBackends[backend] = 1; }
+                function (i, backend) { usingBackends[backend] = 1; handlers.current = handlers.current || backend; }
             );
 
             this.config.usingBackends = usingBackends;
@@ -494,7 +493,7 @@
                 if (backendsForType.length == 0) return true; //continue looking...
                 var newBackend = backendsForType[0];
                 if (self.handlers.current != newBackend) {
-                    if (self.handlers.current)
+                    if (self.config.isFileSet)
                         self.handlers[self.handlers.current].clearFile(); //will stop.
                     self.handlers.current = newBackend;
                 }
