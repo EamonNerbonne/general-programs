@@ -1,0 +1,16 @@
+﻿
+ - from search results, export all meta-data
+ - make songsearchlist function to convert current playlist into saveble form: extm3u m3u based playlist (must include length of song too!)
+ - make songsearchlist function to convert saved playlist into html-ized list.
+	
+ - make httphandler to allow posting of m3u	and returning it "fixed up" for current server.
+	- use this to allow loading playlist
+	- also use this to allow saving playlist by
+		- make link that posts current playlist and returns variant with content-disposition attachment
+ 
+ - make httphandler to allow posting of m3u and return suggestions.
+	- use this to display suggestions in UI; clickable to allow inclusion in playlist.
+
+ - SongData: shorten search result idx by allowing exclusion of path prefix.
+ - change normalized path to only include filename, hash, artist+title+duration (brevity + similarity)
+ 

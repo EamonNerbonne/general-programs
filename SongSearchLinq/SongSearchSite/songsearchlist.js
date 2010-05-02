@@ -104,10 +104,9 @@ $(document).ready(function ($) {
             $(document.createElement("div")).text("x").addClass("deleteButton")
         );
     }
+
     function addToPlaylist(song) {
-
         var listItem = makeListItem(song);
-
         listItem.appendTo(playListElem);
         playListElem.sortable("refresh");
         if (playListElem.children().length == 1)
@@ -153,3 +152,4 @@ $(document).ready(function ($) {
         addToPlaylist({ name: songLabel, uris: [{ type: songType, src: songUri}] });
     };
 });
+
