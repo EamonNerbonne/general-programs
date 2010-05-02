@@ -33,6 +33,6 @@ namespace HttpHeaderHelper
 				return null;
 		}
 
-		public override string ToString() { return start.ToString() + "-" + (start + length-1).ToString(); }
+		public override string ToString() { return start.ToString() + "-" + lastByte.ToString(); }
 	}
 }
