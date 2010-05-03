@@ -26,6 +26,7 @@ namespace SongSearchSite
 					case '%':
 					case '*':
 					case '&':
+					case '+':
 					case ':':
 					case '!':
 						//we filter out %*&: to avoid triggering IIS7 "bad request bug" bug: http://support.microsoft.com/default.aspx?scid=kb;EN-US;826437

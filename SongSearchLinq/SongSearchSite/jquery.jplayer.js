@@ -166,7 +166,6 @@
         };
     }
 
-
     $.jPlayer.prototype = {
         _init: function () {
             var self = this;
@@ -381,7 +380,7 @@
             };
 
             var audioTypes = ["audio/ogg", "application/ogg", "audio/mpeg"];
-            var backends = ["html5", "flash"];
+            var backends = ["flash", "html5"]; //chrome's mp3 streaming support isn't too stellar; prefer flash.
             var support = {};
             $.each(audioTypes, function (i, audioType) {
                 support[audioType] = $.grep(backends, function (backend, j) {
@@ -459,7 +458,6 @@
             if (this.config.usingBackends.html5) { // Emulate initial flash call after 100ms
                 this.element.css({ 'left': '-9999px' }); // Mobile Safari always shows the <audio> controls, so hide them.
                 window.setTimeout(function () {
-                    self.volume(self.config.volume);
                     self._jPlayerReadyBackend("html5");
                 }, 100);
             }
@@ -474,8 +472,9 @@
         _jPlayerReadyBackend: function (backend) {
             if (this.config.usingBackends[backend] == 1) {
                 this.config.usingBackends[backend] = 2;
-                if (objAll(this.config.usingBackends, function (status, aBackend) { return status > 1; }))
+                if (objAll(this.config.usingBackends, function (status, aBackend) { return status > 1; })) {
                     this.jPlayerReadyCustom();
+                }
             }
         },
 

@@ -2,172 +2,94 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
     <title></title>
-    <link rel="Stylesheet" href="jplayer.blue.monday.css" type="text/css" />
+    <link rel="Stylesheet" href="jplayer-skin.css" type="text/css" />
+    <style type="text/css">
+        .OptionsBuilder-uninitialized
+        {
+            display: none;
+        }
+        .deleteButton
+        {
+            color: Red;
+            font-weight: bold;
+            float: right;
+            padding: 0 0.5em;
+            background: #ccc;
+            font-style: normal;
+        }
+        
+#optionsBox 
+{
+    max-width:33em;
+    padding:0.5em;
+    margin:0.5em;
+    border:1px solid #e2eeea;
+}
+#optionsBox table 
+{
+    font-size:10pt;
+}
+
+.jp-playlist ul li
+{
+    pointer:cursor;
+}
+
+body
+{
+    font-family: Segoe UI, Lucida Sans Unicode, Lucida Grande, Arial, Sans-Serif;
+    font-size: 12pt;
+}
+
+    </style>
 </head>
 <body>
-    <div id="jquery_jplayer">
-    </div>
+    <fieldset id="optionsBox" class="OptionsBuilder-uninitialized">
+        <legend>Options</legend>
+    </fieldset>
     <div class="jp-playlist-player">
         <div class="jp-interface">
             <ul class="jp-controls">
-                <li id="jplayer_play" class="jp-play">play</li>
-                <li id="jplayer_pause" class="jp-pause">pause</li>
-                <li id="jplayer_stop" class="jp-stop">stop</li>
-                <li id="jplayer_volume_min" class="jp-volume-min">min volume</li>
-                <li id="jplayer_volume_max" class="jp-volume-max">max volume</li>
-                <li id="jplayer_previous" class="jp-previous">previous</li>
-                <li id="jplayer_next" class="jp-next">next</li>
-            </ul>
-            <div class="jp-progress">
-                <div id="jplayer_load_bar" class="jp-load-bar">
-                    <div id="jplayer_play_bar" class="jp-play-bar">
+                <li id="jplayer_previous" class="jp-previous">
+                    <img src="img/previous.png" alt="previous" /></li>
+                <li id="jplayer_play" class="jp-play">
+                    <img src="img/play.png" alt="play" /></li>
+                <li id="jplayer_pause" class="jp-pause">
+                    <img src="img/pause.png" alt="pause" /></li>
+                <li id="jplayer_stop" class="jp-stop">
+                    <img src="img/stop.png" alt="stop" /></li>
+                <li id="jplayer_next" class="jp-next">
+                    <img src="img/next.png" alt="previous" /></li>
+                <li class="jp-progress">
+                    <div id="jplayer_load_bar" class="jp-load-bar">
+                        <div id="jplayer_play_bar" class="jp-play-bar">
+                        </div>
                     </div>
-                </div>
-            </div>
-            <div id="jplayer_volume_bar" class="jp-volume-bar">
-                <div id="jplayer_volume_bar_value" class="jp-volume-bar-value">
-                </div>
-            </div>
-            <div id="jplayer_play_time" class="jp-play-time">
-            </div>
-            <div id="jplayer_total_time" class="jp-total-time">
-            </div>
-        </div>
-        <div id="jplayer_playlist" class="jp-playlist">
-                <!-- The function displayPlayList() uses an unordered list here -->
+                    <div id="jplayer_play_time" class="jp-play-time">
+                    </div>
+                    <div id="jplayer_total_time" class="jp-total-time">
+                    </div>
+                </li>
+                <li id="jplayer_volume_min" class="jp-volume-min">
+                    <img src="img/volume.png" alt="min volume" /></li>
+                <li id="jplayer_volume_bar" class="jp-volume-bar">
+                    <div id="jplayer_volume_bar_value" class="jp-volume-bar-value">
+                    </div>
+                </li>
+                <li id="jplayer_volume_max" class="jp-volume-max">
+                    <img src="img/volume.png" alt="max volume" /></li>
+            </ul>
         </div>
     </div>
-    <div id="logbox" style="font-family: Calibri">
+    <div id="jplayer_playlist" class="jp-playlist">
+        <!-- The function displayPlayList() uses an unordered list here -->
+    </div>
+    <div id="jquery_jplayer">
     </div>
 </body>
 <script type="text/javascript" src="jquery-1.4.2.min.js"></script>
-<script type="text/javascript">
-    function logtobox(msg) {
-        $("#logbox").append(msg + "<br/>");
-    }
-</script>
 <script type="text/javascript" src="jquery.jplayer.js"></script>
-<script type="text/javascript">
-
-    $(document).ready(function () {
-
-        var playItem = 0;
-
-        var myPlayListEmn = [
-            { name: "Mylo - Guilty of Love", uris: [{ type: "audio/mpeg", src: "http://home.nerbonne.org/SongSearchSite_Dev/songs/E!3a/Music/2004-08-27/Mylo-Destroy%20Rock%20!26%20Roll-06-Guilty%20of%20Love%20(1).mp3"}] },
-            { name: "Mylo - In My Arms (Jules Chase Extended Edit)", uris: [{ type: "audio/mpeg", src: "http://home.nerbonne.org/SongSearchSite_Dev/songs/E!3a/Music/2005-09-07/Mylo%20-%20In%20My%20Arms%20(Jules%20Chase%20Extended%20Edit).mp3"}] },
-            { name: "Razorlight - In the Morning", uris: [{ type: "application/ogg", src: "http://home.nerbonne.org/SongSearchSite_Dev/songs/E!3a/Music/2009-02-11/POP%20ROCK%20HITS%2026%20by%20vertigo%20(8-2006)/19%20Pista%2019.ogg"}] },
-            { name: "Phoenix - One Time Too Many", uris: [{ type: "audio/ogg", src: "http://home.nerbonne.org/SongSearchSite_Dev/songs/E!3a/Music/2009-02-11/POP%20ROCK%20HITS%2026%20by%20vertigo%20(8-2006)/18%20Pista%2018.ogg"}] }
-        ];
-
-
-
-
-        var myPlayListNew = [
-    		{ name: "Tempered Song (old-style)", mp3: "http://www.miaowmusic.com/mp3/Miaow-01-Tempered-song.mp3", ogg: "http://www.miaowmusic.com/ogg/Miaow-01-Tempered-song.ogg" },
-    		{ name: "Hidden (new; mp3>ogg)", uris: [{ type: "audio/mpeg", src: "http://www.miaowmusic.com/mp3/Miaow-02-Hidden.mp3" }, { type: "application/ogg", src: "http://www.miaowmusic.com/ogg/Miaow-02-Hidden.ogg"}] },
-    		{ name: "Lentement (new; mp3 only)", uris: [{ type: "audio/mpeg", src: "http://www.miaowmusic.com/mp3/Miaow-03-Lentement.mp3"}] },
-    		{ name: "Lismore (new; ogg onlye)", uris: [{ type: "audio/ogg", src: "http://www.miaowmusic.com/ogg/Miaow-04-Lismore.ogg"}] },
-    		{ name: "The Separation (new; mp3<ogg)", uris: [{ type: "audio/ogg", src: "http://www.miaowmusic.com/ogg/Miaow-05-The-separation.ogg" }, { type: "audio/mpeg", src: "http://www.miaowmusic.com/mp3/Miaow-05-The-separation.mp3"}] },
-    		{ name: "Beside Me", mp3: "http://www.miaowmusic.com/mp3/Miaow-06-Beside-me.mp3", ogg: "http://www.miaowmusic.com/ogg/Miaow-06-Beside-me.ogg" },
-    		{ name: "Bubble", mp3: "http://www.miaowmusic.com/mp3/Miaow-07-Bubble.mp3", ogg: "http://www.miaowmusic.com/ogg/Miaow-07-Bubble.ogg" },
-    		{ name: "Stirring of a Fool", mp3: "http://www.miaowmusic.com/mp3/Miaow-08-Stirring-of-a-fool.mp3", ogg: "http://www.miaowmusic.com/ogg/Miaow-08-Stirring-of-a-fool.ogg" },
-    		{ name: "Partir", mp3: "http://www.miaowmusic.com/mp3/Miaow-09-Partir.mp3", ogg: "http://www.miaowmusic.com/ogg/Miaow-09-Partir.ogg" },
-    		{ name: "Thin Ice", mp3: "http://www.miaowmusic.com/mp3/Miaow-10-Thin-ice.mp3", ogg: "http://www.miaowmusic.com/ogg/Miaow-10-Thin-ice.ogg" }
-    	];
-
-        var myPlayListOld = [
-    		{ name: "Tempered Song", mp3: "http://www.miaowmusic.com/mp3/Miaow-01-Tempered-song.mp3", ogg: "http://www.miaowmusic.com/ogg/Miaow-01-Tempered-song.ogg" },
-    		{ name: "Hidden", mp3: "http://www.miaowmusic.com/mp3/Miaow-02-Hidden.mp3", ogg: "http://www.miaowmusic.com/ogg/Miaow-02-Hidden.ogg" },
-    		{ name: "Lentement", mp3: "http://www.miaowmusic.com/mp3/Miaow-03-Lentement.mp3", ogg: "http://www.miaowmusic.com/ogg/Miaow-03-Lentement.ogg" },
-    		{ name: "Lismore", mp3: "http://www.miaowmusic.com/mp3/Miaow-04-Lismore.mp3", ogg: "http://www.miaowmusic.com/ogg/Miaow-04-Lismore.ogg" },
-    		{ name: "The Separation", mp3: "http://www.miaowmusic.com/mp3/Miaow-05-The-separation.mp3", ogg: "http://www.miaowmusic.com/ogg/Miaow-05-The-separation.ogg" },
-    		{ name: "Beside Me", mp3: "http://www.miaowmusic.com/mp3/Miaow-06-Beside-me.mp3", ogg: "http://www.miaowmusic.com/ogg/Miaow-06-Beside-me.ogg" },
-    		{ name: "Bubble", mp3: "http://www.miaowmusic.com/mp3/Miaow-07-Bubble.mp3", ogg: "http://www.miaowmusic.com/ogg/Miaow-07-Bubble.ogg" },
-    		{ name: "Stirring of a Fool", mp3: "http://www.miaowmusic.com/mp3/Miaow-08-Stirring-of-a-fool.mp3", ogg: "http://www.miaowmusic.com/ogg/Miaow-08-Stirring-of-a-fool.ogg" },
-    		{ name: "Partir", mp3: "http://www.miaowmusic.com/mp3/Miaow-09-Partir.mp3", ogg: "http://www.miaowmusic.com/ogg/Miaow-09-Partir.ogg" },
-    		{ name: "Thin Ice", mp3: "http://www.miaowmusic.com/mp3/Miaow-10-Thin-ice.mp3", ogg: "http://www.miaowmusic.com/ogg/Miaow-10-Thin-ice.ogg" }
-    	];
-        myPlayList = myPlayListNew;
-
-        // Local copy of jQuery selectors, for performance.
-        var jpPlayTime = $("#jplayer_play_time");
-        var jpTotalTime = $("#jplayer_total_time");
-
-        $("#jquery_jplayer").jPlayer({
-            ready: function () {
-                displayPlayList();
-                playListInit(true); // Parameter is a boolean for autoplay.
-            },
-            oggSupport: true,
-            swfPath: ""
-        })
-	.jPlayer("onProgressChange", function (loadPercent, playedPercentRelative, playedPercentAbsolute, playedTime, totalTime) {
-	    jpPlayTime.text($.jPlayer.convertTime(playedTime));
-	    jpTotalTime.text($.jPlayer.convertTime(totalTime));
-	})
-	.jPlayer("onSoundComplete", function () {
-	    playListNext();
-	});
-
-        $("#jplayer_previous").click(function () {
-            playListPrev();
-            return false;
-        });
-
-        $("#jplayer_next").click(function () {
-            playListNext();
-            return false;
-        });
-
-        function playlistClick() {
-            var index = $(this).data("index");
-            if (playItem != index) {
-                playListChange(index);
-            } else {
-                $("#jquery_jplayer").jPlayer("play");
-            }
-        }
-        function displayPlayList() {
-            var playlistEl = $(document.createElement("ul"));
-            for (i = 0; i < myPlayList.length; i++)
-                $("<li id='jplayer_playlist_item_" + i + "'/>").text(myPlayList[i].name).data("index", i).click(playlistClick).appendTo(playlistEl);
-            $("#jplayer_playlist").empty().append(playlistEl);
-        }
-
-        function playListInit(autoplay) {
-            if (autoplay) {
-                playListChange(playItem);
-            } else {
-                playListConfig(playItem);
-            }
-        }
-
-        function playListConfig(index) {
-            $("#jplayer_playlist_item_" + playItem).removeClass("jplayer_playlist_current");
-            $("#jplayer_playlist_item_" + index).addClass("jplayer_playlist_current");
-            playItem = index;
-            if (myPlayList[playItem].uris)
-                $("#jquery_jplayer").jPlayer("loadSong", myPlayList[playItem].uris);
-            else
-                $("#jquery_jplayer").jPlayer("setFile", myPlayList[playItem].mp3, myPlayList[playItem].ogg);
-        }
-
-        function playListChange(index) {
-            playListConfig(index);
-            $("#jquery_jplayer").jPlayer("play");
-        }
-
-        function playListNext() {
-            var index = (playItem + 1 < myPlayList.length) ? playItem + 1 : 0;
-            playListChange(index);
-        }
-
-        function playListPrev() {
-            var index = (playItem - 1 >= 0) ? playItem - 1 : myPlayList.length - 1;
-            playListChange(index);
-        }
-    });
-
-</script>
+<script type="text/javascript" src="jquery-ui-1.8.1.custom.min.js"></script>
+<script type="text/javascript" src="OptionsBuilder.js"></script>
+<script type="text/javascript" src="TestPlayer.js"></script>
 </html>

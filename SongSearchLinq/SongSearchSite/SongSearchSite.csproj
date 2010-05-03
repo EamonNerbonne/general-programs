@@ -73,6 +73,7 @@
     <Content Include="jquery-1.4.2.min.js" />
     <Content Include="jquery-ui-1.8.1.custom.min.js" />
     <Content Include="jquery.jplayer.js" />
+    <Content Include="TestPlayer.js" />
     <Content Include="Loading.html" />
     <Content Include="OptionsBuilder.js" />
     <Content Include="songsearch.css" />
