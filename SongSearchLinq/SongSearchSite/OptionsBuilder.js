@@ -2,13 +2,19 @@
 
 (function ($) {
     var makeType = {
-        checkbox: function (opt) { return $("<input type='checkbox'/>"); }
+        checkbox: function (opt) { return $("<input type='checkbox'/>"); },
+        textarea: function (opt) { return $("<textarea/>"); },
+        textbox: function (opt) { return $("<input type='text'/>"); }
     };
     var getValue = {
-        checkbox: function (el) { return el.attr("checked"); }
+        checkbox: function (el) { return el.attr("checked"); },
+        textarea: function (el) { return el.attr("value"); },
+        textbox: function (el) { return el.attr("value"); }
     };
     var setValue = {
-        checkbox: function (el, val) { el.attr("checked", val); }
+        checkbox: function (el, val) { el.attr("checked", val); },
+        textarea: function (el,val) { el.text(val); },
+        textbox: function (el, val) { el.attr("value", val); }
     };
 
     function generalSet(val) { //in context of option
