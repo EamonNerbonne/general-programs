@@ -7,17 +7,11 @@ using System.Text;
 namespace SongDataLib {
 
 	public class MinimalSongData : ISongData {
-		protected Uri songuri;
-		protected bool isLocal;
+		Uri songuri;
 		public virtual string FullInfo { get { return Uri.UnescapeDataString(songuri.Host + songuri.PathAndQuery); } }
 
 		protected XAttribute makeUriAttribute(Func<Uri, string> urlTranslator) {
-			if (!IsLocal || urlTranslator == null) {
-				return new XAttribute("songuri", songuri);
-			}
-			else {
-				return new XAttribute("songuri", urlTranslator(songuri));
-			}
+			return new XAttribute("songuri", !IsLocal || urlTranslator == null ? songuri.ToString() : urlTranslator(songuri));
 		}
 
 		public virtual XElement ConvertToXml(Func<Uri, string> urlTranslator) {
@@ -26,36 +20,31 @@ namespace SongDataLib {
 
 		public virtual int Length { get { return 0; } }
 
-		public virtual Uri SongUri { get { return songuri; } }
+		public Uri SongUri { get { return songuri; } }
 
-		public virtual bool IsLocal { get { return isLocal; } }
+		public bool IsLocal { get { return songuri.IsFile; } }
 
-		public virtual string HumanLabel {
-			get {
-				return FullInfo;
-			}
-		}
+		public virtual string HumanLabel { get { return FullInfo; } }
 
-		protected static XAttribute MakeAttributeOrNull(XName attrname, object data) {	return data == null ? null : new XAttribute(attrname, data);}
+		protected static XAttribute MakeAttributeOrNull(XName attrname, object data) { return data == null ? null : new XAttribute(attrname, data); }
 		protected static XAttribute MakeAttributeOrNull(XName attrname, int data) { return data == 0 ? null : new XAttribute(attrname, data); }
 
-		public MinimalSongData(Uri songuri, bool? isLocal) {
+		public MinimalSongData(Uri songuri, bool? mustBeLocal) {
 			if (songuri == null) throw new ArgumentNullException("songuri");
 			if (!songuri.IsAbsoluteUri) throw new ArgumentOutOfRangeException("songuri", "uri must be absolute");
-			this.isLocal = songuri.IsFile;
+			if (mustBeLocal.HasValue && mustBeLocal != songuri.IsFile)
+				throw new Exception("Supposedly " + (mustBeLocal.Value ? "" : "non-") + "local song isn't: " + songuri);
 			this.songuri = songuri;
-			if (isLocal.HasValue && isLocal != this.isLocal)
-				throw new Exception("Supposedly " + (isLocal.Value ? "" : "non-") + "local song isn't: " + songuri);
 		}
 
-		static Uri loadUri(XElement from, bool isLocal) {
-			string tmp = (string)from.Attribute("uriUtfB64");//preferred place to put base64 data
-			if (tmp != null)
-				return new Uri(Encoding.UTF8.GetString(Convert.FromBase64String(tmp)), UriKind.Absolute);
-			return new Uri((string)from.Attribute("songuri"), UriKind.Absolute);//old versions stuck base64 data in songuri
-		}
+		//static Uri loadUri(XElement from, bool isLocal) {
+		//    string tmp = (string)from.Attribute("uriUtfB64");//preferred place to put base64 data
+		//    if (tmp != null)
+		//        return new Uri(Encoding.UTF8.GetString(Convert.FromBase64String(tmp)), UriKind.Absolute);
+		//    return ;//old versions stuck base64 data in songuri
+		//}
 
-		public MinimalSongData(XElement xEl, bool? isLocal) : this(loadUri(xEl, isLocal == true), isLocal) { }
+		public MinimalSongData(XElement xEl, bool? isLocal) : this(new Uri((string)xEl.Attribute("songuri"), UriKind.Absolute), isLocal) { }
 	}
 
 }

@@ -111,7 +111,7 @@ namespace SongDataLib {
 
 		IEnumerable<string> Values {//only yield "distinctive" search values
 			get {
-				yield return Uri.UnescapeDataString(songuri.ToString());
+				yield return Uri.UnescapeDataString(SongUri.ToString());
 				yield return title;
 				yield return performer;
 				yield return composer;
