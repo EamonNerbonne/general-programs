@@ -14,7 +14,7 @@ namespace SongDiskCrawlerMain {
 		static Dictionary<string, ISongData> songs = new Dictionary<string, ISongData>();
 		static void SongHandler(ISongData song, double ratio) {
 			if (song.IsLocal)
-				songs[song.SongUri.LocalPath] = song;
+				songs[song.SongUri.ToString()] = song;
 			counter++;
 			double seconds = (timer.ElapsedSinceMark.TotalSeconds - lastmark);
 			if (seconds > 10.0) {
@@ -25,7 +25,7 @@ namespace SongDiskCrawlerMain {
 		}
 		static ISongData LookupSong(string localSongPath) {
 			ISongData retval = null;
-			songs.TryGetValue(localSongPath, out retval);
+			songs.TryGetValue( new Uri(localSongPath).ToString(), out retval);
 			if (retval == null) newsongs++;
 			return retval;
 		}

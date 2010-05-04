@@ -52,7 +52,11 @@ namespace SongDataLib
 			Console.WriteLine("Scanning of DB " + name + " complete.");
 		}
 		protected static bool isExtensionOK(FileInfo fi) {
-			string extension = fi.Extension.ToLowerInvariant();
+			return isExtensionOK(fi.Extension);
+		}
+
+		protected static bool isExtensionOK(string extension) {
+			extension = extension.ToLowerInvariant();
 			return extension == ".mp3"
 				|| extension == ".ogg"
 				|| extension == ".mpc"

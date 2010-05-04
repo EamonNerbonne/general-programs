@@ -23,14 +23,25 @@ namespace SongDataLib
 		protected override void ScanSongs(FileKnownFilter filter, SongDataLoadDelegate handler) {
 			Console.WriteLine("Scanning " + localSearchPath + "...");
             if (!localSearchPath.Exists) throw new DirectoryNotFoundException("Local search path doesn't exist: " + localSearchPath.FullName); //TODO: do this during init instead?
-            FileInfo[] newFiles = localSearchPath.DescendantFiles().Where(fi => isExtensionOK(fi)).ToArray();
-			Console.WriteLine("{0} potential songs found.", newFiles.Length);
+			//string[] newFiles = Directory.GetFiles (localSearchPath.FullName, "*", SearchOption.AllDirectories).Where(s => isExtensionOK(Path.GetExtension(s))).ToArray();
+            //var newFiles = localSearchPath.DescendantFiles().ToArray();
+			var newFiles = localSearchPath.GetFiles("*", SearchOption.AllDirectories);//.Where(fi => isExtensionOK(fi)).ToArray();
 
-			for(int i = 0; i < newFiles.Length; i++) {
-				FileInfo newfile = newFiles[i];
-				ISongData song = F.Swallow(()=>filter(newfile.FullName),()=>null);//TODO:need fullname?
-				if(song == null || (song is SongData && ((SongData)song).lastWriteTime < newfile.LastWriteTimeUtc))
-					song = F.Swallow(() => SongDataFactory.ConstructFromFile(newfile), () => null);
+
+			//Console.WriteLine("{0} potential songs found.", newFiles.Length);
+			var i = 0;
+			foreach(var newfile in newFiles) {
+				i++;
+				if (!isExtensionOK(newfile))
+					continue;
+				ISongData song = filter(newfile.FullName);
+
+				if (song == null || (song is SongData && ((SongData)song).lastWriteTime < newfile.LastWriteTimeUtc))
+					try {
+						song = null;
+						song = SongDataFactory.ConstructFromFile(newfile);
+					}
+					catch (Exception) { }
 				if(song != null) {
 					handler(song, (double)i / (double)newFiles.Length);
 				}

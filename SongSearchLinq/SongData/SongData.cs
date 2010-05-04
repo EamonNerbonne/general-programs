@@ -61,13 +61,13 @@ namespace SongDataLib {
 
 		internal SongData(XElement from, bool? isLocal)
 			: base(from, isLocal) {
-			title = toSafeString(from.Attribute("title"));
+			title = (string)from.Attribute("title");
 
-			performer = toSafeString(from.Attribute("performer") ?? from.Attribute("artist"));//TODO - decide on this, already.
-			composer = toSafeString(from.Attribute("composer"));//TODO - why bother?
-			album = toSafeString(from.Attribute("album"));
-			comment = toSafeString(from.Attribute("comment"));//TODO - why bother?
-			genre = toSafeString(from.Attribute("genre"));
+			performer = (string)from.Attribute("performer");//TODO - decide on this, already.
+			composer = (string)from.Attribute("composer");//TODO - why bother?
+			album = (string)from.Attribute("album");
+			comment = (string)from.Attribute("comment");//TODO - why bother?
+			genre = (string)from.Attribute("genre");
 			year = ((int?)from.Attribute("year")) ?? 0;
 			track = ((int?)from.Attribute("track")) ?? 0;
 			trackcount = ((int?)from.Attribute("trackcount")) ?? 0;
