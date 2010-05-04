@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Diagnostics;
 
 namespace EmnExtensions.DebugTools
 {
@@ -9,19 +10,19 @@ namespace EmnExtensions.DebugTools
 	{
 		public static T Time<T>(this Func<T> function, Action<TimeSpan> resultsSink)
 		{
-			DateTime start = DateTime.Now;
+			Stopwatch timer = Stopwatch.StartNew();
 			var result = function();
-			DateTime end = DateTime.Now;
-			resultsSink(end - start);
+			timer.Stop();
+			resultsSink(timer.Elapsed);
 			return result;
 		}
 
 		public static T Time<T,M>(this Func<T> function, M key, Action<M,TimeSpan> resultsSink)
 		{
-			DateTime start = DateTime.Now;
+			Stopwatch timer = Stopwatch.StartNew();
 			var result = function();
-			DateTime end = DateTime.Now;
-			resultsSink(key, end - start);
+			timer.Stop();
+			resultsSink(key, timer.Elapsed);
 			return result;
 		}
 	}
