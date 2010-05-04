@@ -132,7 +132,7 @@
       <Name>taglib-sharp</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\EmnExtensions\EmnExtensions.csproj">
-      <Project>{1FC71689-B62E-4831-9558-70D1ED971DEC}</Project>
+      <Project>{2F0A3E48-CD06-43BB-BFC6-6B6F568232B9}</Project>
       <Name>EmnExtensions</Name>
     </ProjectReference>
   </ItemGroup>

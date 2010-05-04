@@ -17,7 +17,7 @@ namespace SongDataLib
 
 
 		protected override void ScanSongs(FileKnownFilter filter, SongDataLoadDelegate handler) {
-			if(dbFile.LastWriteTime.AddDays(7) > DateTime.Now)
+			if(dbFile.LastWriteTimeUtc.AddDays(7) > DateTime.UtcNow)
 				return;//TODO: note that this means that SongDataLoadDelegate isn't called for each song, which might break application assumptions.
 			try {
 				SongDataFactory.LoadSongsFromPathOrUrl(href, delegate(ISongData newsong, double estimatedCompletion) {

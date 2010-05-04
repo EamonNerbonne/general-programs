@@ -4,30 +4,29 @@ using EmnExtensions;
 using SongDataLib;
 using EmnExtensions.DebugTools;
 
-namespace SongDiskCrawlerMain
-{
+namespace SongDiskCrawlerMain {
 
-	class Program
-	{
+	class Program {
 		static int counter = 0;
 		static int newsongs = 0;
 		static double lastmark = 0;
 		static int lastcounter = 0;
 		static Dictionary<string, ISongData> songs = new Dictionary<string, ISongData>();
 		static void SongHandler(ISongData song, double ratio) {
-			songs[song.SongPath] = song;
+			if (song.IsLocal)
+				songs[song.SongUri.LocalPath] = song;
 			counter++;
 			double seconds = (timer.ElapsedSinceMark.TotalSeconds - lastmark);
-			if(seconds > 10.0) {
+			if (seconds > 10.0) {
 				lastmark = timer.ElapsedSinceMark.TotalSeconds;
 				Console.WriteLine("{0:f1}%, at {1:f1} nodes/sec: ", ratio * 100, (counter - lastcounter) / seconds);
 				lastcounter = counter;
 			}
 		}
-		static ISongData LookupSong(string url) {
-			ISongData retval=null;
-			songs.TryGetValue(url, out retval);
-			if(retval == null) newsongs++;
+		static ISongData LookupSong(string localSongPath) {
+			ISongData retval = null;
+			songs.TryGetValue(localSongPath, out retval);
+			if (retval == null) newsongs++;
 			return retval;
 		}
 		static NiceTimer timer;
@@ -51,7 +50,8 @@ namespace SongDiskCrawlerMain
 				Console.WriteLine("Songs found: " + counter + " of which " + newsongs + " new.");
 				timer.TimeMark(null);
 #if !DEBUG
-			} catch(Exception e) {
+			}
+			catch (Exception e) {
 				Console.WriteLine("==========================");
 				Console.WriteLine("===TERMINAL ERROR=========");
 				Console.WriteLine("==========================");

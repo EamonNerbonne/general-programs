@@ -7,7 +7,7 @@ using EmnExtensions;
 
 namespace SongDataLib
 {
-	public delegate ISongData FileKnownFilter(string songUri);
+	public delegate ISongData FileKnownFilter(string localSongPath);
 	public class SongDatabaseConfigFile : ISongDatabaseSection
 	{
 		FileInfo configFile;

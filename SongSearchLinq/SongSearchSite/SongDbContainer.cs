@@ -16,9 +16,9 @@ namespace SongSearchSite
 
 	public sealed class SongDbContainer : IDisposable
 	{
-		public static string NormalizeSongPath(string localSongPath) {
+		public static string NormalizeSongPath(Uri localSongPath) {
 			StringBuilder sb = new StringBuilder();
-			foreach (char c in localSongPath) {
+			foreach (char c in localSongPath.LocalPath) {
 				switch (c) {
 					case '\\':
 						sb.Append('/');
@@ -47,7 +47,7 @@ namespace SongSearchSite
 		public static string NormalizeSongPath(ISongData localSong) {
 			if (!localSong.IsLocal)
 				throw new ArgumentException("This is only meaningful for local files.");
-			return NormalizeSongPath(localSong.SongPath);
+			return NormalizeSongPath(localSong.SongUri);
 		}
 
 		static SongDbContainer Singleton {
@@ -109,7 +109,7 @@ namespace SongSearchSite
 					fsWatcher.Renamed += (o, e) => { DbUpdated(); };
 					fsWatcher.Error += (o, e) => { DbUpdated(); };
 					fsWatcher.Deleted += (o, e) => { DbUpdated(); };
-					fsWatcher.EnableRaisingEvents = true;
+					//fsWatcher.EnableRaisingEvents = true;//TODO
 				}
 			}
 		}

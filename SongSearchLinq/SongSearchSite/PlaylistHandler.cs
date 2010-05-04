@@ -14,7 +14,7 @@ namespace SongSearchSite
 		HttpRequestHelper helper;
 		public PlaylistRequestProcessor(HttpRequestHelper helper) { this.helper = helper; }
 		public void ProcessingStart() { }
-		static DateTime startup = DateTime.Now;
+		static DateTime startupUtc = DateTime.UtcNow;
 
 		bool isXml, includeRemote, extm3u;
 		Encoding enc;
@@ -62,13 +62,13 @@ namespace SongSearchSite
 
 			res.ETag = ResourceInfo.GenerateETagFrom(searchQuery, includeRemote, extm3u, isXml, extension, context.Request.QueryString["top"]);
 			res.ResourceLength = null;//unknown
-			res.TimeStamp = startup;
+			res.TimeStamp = startupUtc;
 			Console.WriteLine("Request Determined: [" + (isXml ? 'X' : ' ') + (includeRemote ? 'R' : ' ') + (enc == Encoding.UTF8 ? 'U' : ' ') + (extm3u ? 'E' : ' ') + "] q=" + searchQuery);
 			return res;
 		}
 
 		public DateTime? DetermineExpiryDate() {
-			return DateTime.Now.AddHours(1);
+			return DateTime.UtcNow.AddHours(1);
 		}
 
 		public bool SupportRangeRequests {
@@ -131,17 +131,17 @@ namespace SongSearchSite
 		static string makeUrl(string urlprefix, ISongData song) {
 			if (song.IsLocal) { //http://www.albionresearch.com/misc/urlencode.php
 				//http://www.blooberry.com/indexdot/html/topics/urlencoding.htm
-				return UrlTranslator(urlprefix, song.SongPath);
+				return UrlTranslator(urlprefix, song.SongUri).ToString();
 			} else
-				return song.SongPath;
+				return song.SongUri.ToString();
 		}
 
 
-		static string UrlTranslator(string urlprefix, string songpath) {
+		static string UrlTranslator(string urlprefix, Uri songpath) {
 			return urlprefix + System.Uri.EscapeDataString(SongDbContainer.NormalizeSongPath(songpath)).Replace("%2F", "/");
 		}
 
-		static Func<string, string> UrlTranslator(string urlprefix) {
+		static Func<Uri, string> UrlTranslator(string urlprefix) {
 			return s => UrlTranslator(urlprefix, s);
 		}
 	}

@@ -12,7 +12,7 @@ using System.Collections.Generic;
 namespace SongSearchSite {
 	public class ServingActivity {
 		public sealed class ServedFileStatus : IDisposable {
-			public readonly DateTime StartedAt;
+			public readonly DateTime StartedAtLocalTime;
 			public readonly string remoteAddr;
 			public readonly int MaxBytesPerSecond;
 			public readonly string ServedFile;
@@ -24,7 +24,7 @@ namespace SongSearchSite {
 			volatile public bool Done;
 
 			public ServedFileStatus(string path, Range? byteRange, string remoteAddr, int maxBps) {
-				this.StartedAt = DateTime.Now;
+				this.StartedAtLocalTime = DateTime.Now;
 				this.remoteAddr = remoteAddr;
 				this.MaxBytesPerSecond = maxBps;
 				this.ServedFile = path;
@@ -86,33 +86,33 @@ namespace SongSearchSite {
 					Message = "Could not find file '" + songNormedPath + "'.  Path is not indexed."
 				};
 
-			FileInfo fi = new FileInfo(song.SongPath);
+			FileInfo fi = new FileInfo(song.SongUri.LocalPath);
 
 			if (!fi.Exists)
 				return new ResourceError() {
 					Code = 404,
-					Message = "Could not find file '" + song.SongPath + "' even though it's indexed as '" + songNormedPath + "'. Sorry.\n"
+					Message = "Could not find file '" + song.SongUri + "' even though it's indexed as '" + songNormedPath + "'. Sorry.\n"
 				};
 
 			if (fi.Length > Int32.MaxValue)
 				return new ResourceError() {
 					Code = 413,
-					Message = "Requested File " + song.SongPath + " is too large!"
+					Message = "Requested File " + song.SongUri + " is too large!"
 				};	//should now actually support Int64's, but to be extra cautious
 			//this should never happen, and never be necessary, but just to be sure...
 
 
 			return
 				new ResourceInfo {
-					TimeStamp = File.GetLastWriteTimeUtc(song.SongPath),
+					TimeStamp = File.GetLastWriteTimeUtc(song.SongUri.LocalPath),
 					ETag = ResourceInfo.GenerateETagFrom(fi.FullName, fi.Length, fi.LastWriteTimeUtc.Ticks, song.ConvertToXml(null)),
-					MimeType = guessMIME(Path.GetExtension(song.SongPath)),
+					MimeType = guessMIME(Path.GetExtension(song.SongUri.LocalPath)),
 					ResourceLength = (ulong)fi.Length
 				};
 		}
 
 		public DateTime? DetermineExpiryDate() {
-			return DateTime.Now.AddMonths(1);
+			return DateTime.UtcNow.AddMonths(1);
 		}
 
 		public bool SupportRangeRequests {
@@ -126,11 +126,11 @@ namespace SongSearchSite {
 		private void WriteHelper(Range? range) {
 			//400kbps //alternative: extract from tag using taglib.  However, this isn't always the right (VBR) bitrate, and may thus fail.
 			const int window = 4096;
-			long fileByteCount = new FileInfo(song.SongPath).Length;
-			double songSeconds = Math.Max(1.0, TagLib.File.Create(song.SongPath).Properties.Duration.TotalSeconds);
+			long fileByteCount = new FileInfo(song.SongUri.LocalPath).Length;
+			double songSeconds = Math.Max(1.0, TagLib.File.Create(song.SongUri.LocalPath).Properties.Duration.TotalSeconds);
 			int maxBytesPerSec = (int)(Math.Max(128 * 1024 / 8, Math.Min(fileByteCount / songSeconds, 320 * 1024 / 8)) * 1.25);
 
-			using (var servingStatus = new ServingActivity.ServedFileStatus(song.SongPath, range, helper.Context.Request.UserHostAddress, maxBytesPerSec)) {
+			using (var servingStatus = new ServingActivity.ServedFileStatus(song.SongUri.LocalPath, range, helper.Context.Request.UserHostAddress, maxBytesPerSec)) {
 				const int fastStartSec = 10;
 				byte[] buffer = new byte[window];
 				Stopwatch timer = Stopwatch.StartNew();
@@ -139,7 +139,7 @@ namespace SongSearchSite {
 				long start = range.HasValue ? range.Value.start : 0;
 
 				bool streamEnded = false;
-				using (var stream = new FileStream(song.SongPath, FileMode.Open, FileAccess.Read, FileShare.Read)) {
+				using (var stream = new FileStream(song.SongUri.LocalPath, FileMode.Open, FileAccess.Read, FileShare.Read)) {
 					stream.Seek(start, SeekOrigin.Begin);
 					while (!streamEnded && stream.Position < end && helper.Context.Response.IsClientConnected) {
 						long maxPos = start + (long)(timer.Elapsed.TotalSeconds * maxBytesPerSec) + fastStartSec * maxBytesPerSec;

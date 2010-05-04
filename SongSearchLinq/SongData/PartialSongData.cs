@@ -14,16 +14,16 @@ namespace SongDataLib
 
 		public override string FullInfo {
 			get {
-				if(label == null) return SongPath;
-				else return Uri.UnescapeDataString(SongPath) + "\n" + label;
+				if(label == null) return base.FullInfo;
+				else return base.FullInfo + "\n" + label;
 			}
 		}
 
-		public override XElement ConvertToXml(Func<string, string> urlTranslator) {
+		public override XElement ConvertToXml(Func<Uri, string> urlTranslator) {
 			return new XElement("partsong",
 				makeUriAttribute(urlTranslator),
-				label == null ? null : new XAttribute("label", label),
-				length == 0 ? null : new XAttribute("length", length.ToString())
+				MakeAttributeOrNull("label", label),
+				MakeAttributeOrNull("length", length)
 				);
 		}
 		public override int Length { get { return length; } }
@@ -33,10 +33,10 @@ namespace SongDataLib
 		internal PartialSongData(XElement xEl, bool? isLocal)
 			: base(xEl, isLocal) {
 			label = (string)xEl.Attribute("label");//might even be null!
-			length = ParseString.ParseAsInt32((string)xEl.Attribute("length")) ??0;//might even be null!
+			length = ((int?)xEl.Attribute("length")) ??0;//might even be null!
 		}
 
-		internal PartialSongData(string extm3ustr, string url, bool? isLocal)
+		internal PartialSongData(string extm3ustr, Uri url, bool? isLocal)
 			: base(url, isLocal) {
 			Match m;
 			lock(extm3uPattern) m = extm3uPattern.Match(extm3ustr);

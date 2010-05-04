@@ -4,70 +4,58 @@ using System.Xml.Linq;
 using EmnExtensions.Filesystem;
 using System.Text;
 
-namespace SongDataLib
-{
+namespace SongDataLib {
 
-    public class MinimalSongData : ISongData
-    {
-        protected string songuri;
-        protected bool isLocal;
-        public virtual string FullInfo { get { return Uri.UnescapeDataString(songuri); } }
+	public class MinimalSongData : ISongData {
+		protected Uri songuri;
+		protected bool isLocal;
+		public virtual string FullInfo { get { return Uri.UnescapeDataString(songuri.Host + songuri.PathAndQuery); } }
 
-        protected XAttribute makeUriAttribute(Func<string, string> urlTranslator) {
-            if (!IsLocal) {
-                return new XAttribute("songuri", songuri);
-            } else if (urlTranslator == null) {
-                return new XAttribute("uriUtfB64", Convert.ToBase64String(Encoding.UTF8.GetBytes(songuri)));
-            } else {
-                return new XAttribute("songuri", urlTranslator(songuri));
-            }
-        }
+		protected XAttribute makeUriAttribute(Func<Uri, string> urlTranslator) {
+			if (!IsLocal || urlTranslator == null) {
+				return new XAttribute("songuri", songuri);
+			}
+			else {
+				return new XAttribute("songuri", urlTranslator(songuri));
+			}
+		}
 
-        public virtual XElement ConvertToXml(Func<string, string> urlTranslator) {
-            return new XElement("songref", makeUriAttribute(urlTranslator));
-        }
+		public virtual XElement ConvertToXml(Func<Uri, string> urlTranslator) {
+			return new XElement("songref", makeUriAttribute(urlTranslator));
+		}
 
-        public virtual int Length { get { return 0; } }
+		public virtual int Length { get { return 0; } }
 
-        public virtual string SongPath { get { return songuri; } }
+		public virtual Uri SongUri { get { return songuri; } }
 
-        public virtual bool IsLocal { get { return isLocal; } }
+		public virtual bool IsLocal { get { return isLocal; } }
 
-        public virtual string HumanLabel {
-            get {
-                Uri uri = new Uri(songuri, UriKind.Absolute);
-                return Uri.UnescapeDataString(uri.Host + uri.AbsolutePath);//adhoc best guess.//TODO improve: goes wrong on things like http://whee/boom.mp3#testtest
-            }
-        }
+		public virtual string HumanLabel {
+			get {
+				return FullInfo;
+			}
+		}
 
-        public MinimalSongData(string songuri, bool? isLocal) {
-            if (songuri == null || songuri.Length == 0) throw new ArgumentNullException(songuri);
-            bool pathSeemsLocal = FSUtil.IsValidAbsolutePath(songuri) == true;
-            if (isLocal == null) this.isLocal = pathSeemsLocal;
-            else if (isLocal != pathSeemsLocal)
-                throw new Exception("Supposedly " + (pathSeemsLocal ? "" : "non-") + "local song isn't: " + songuri);
-            else this.isLocal = isLocal.Value;
+		protected static XAttribute MakeAttributeOrNull(XName attrname, object data) {	return data == null ? null : new XAttribute(attrname, data);}
+		protected static XAttribute MakeAttributeOrNull(XName attrname, int data) { return data == 0 ? null : new XAttribute(attrname, data); }
 
-            this.songuri = songuri;
-        }
+		public MinimalSongData(Uri songuri, bool? isLocal) {
+			if (songuri == null) throw new ArgumentNullException("songuri");
+			if (!songuri.IsAbsoluteUri) throw new ArgumentOutOfRangeException("songuri", "uri must be absolute");
+			this.isLocal = songuri.IsFile;
+			this.songuri = songuri;
+			if (isLocal.HasValue && isLocal != this.isLocal)
+				throw new Exception("Supposedly " + (isLocal.Value ? "" : "non-") + "local song isn't: " + songuri);
+		}
 
-        static string loadUri(XElement from, bool isLocal) {
-            if (isLocal == true) {
-                string tmp = (string)from.Attribute("uriUtfB64");//preferred place to put base64 data
-                if (tmp != null)
-                    return Encoding.UTF8.GetString(Convert.FromBase64String(tmp));
-                string retval = (string)from.Attribute("songuri");//old versions stuck base64 data in songuri
-                try {
-                    return Encoding.UTF8.GetString(Convert.FromBase64String(retval));
-                } catch (FormatException) {
-                    return retval;
-                }//if this isn't a base64string, just assume it's a normal string.
-            } else {
-                return (string)from.Attribute("songuri") ?? (string)from.Attribute("filepath");//songuri is preferred non-base64 data, but old versions sometimes used filepath
-            }
-        }
+		static Uri loadUri(XElement from, bool isLocal) {
+			string tmp = (string)from.Attribute("uriUtfB64");//preferred place to put base64 data
+			if (tmp != null)
+				return new Uri(Encoding.UTF8.GetString(Convert.FromBase64String(tmp)), UriKind.Absolute);
+			return new Uri((string)from.Attribute("songuri"), UriKind.Absolute);//old versions stuck base64 data in songuri
+		}
 
-        public MinimalSongData(XElement xEl, bool? isLocal) : this(loadUri(xEl, isLocal == true), isLocal) { }
-    }
+		public MinimalSongData(XElement xEl, bool? isLocal) : this(loadUri(xEl, isLocal == true), isLocal) { }
+	}
 
 }

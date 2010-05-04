@@ -29,7 +29,7 @@ namespace SongDataLib
 					try {
 						writer.WriteLine(song.ConvertToXml(null).ToString());
 						handler(song, ratio);
-					} catch (Exception e) { Console.WriteLine("Non-fatal error while writing XML of file: " + song.SongPath + "\nException:\n" + e); }
+					} catch (Exception e) { Console.WriteLine("Non-fatal error while writing XML of file: " + song.SongUri + "\nException:\n" + e); }
 				});
 				writer.WriteLine("</songs>");
 			}

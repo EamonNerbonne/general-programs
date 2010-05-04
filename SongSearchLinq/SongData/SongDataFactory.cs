@@ -82,10 +82,17 @@ namespace SongDataLib
 					nextLine = tr.ReadLine();
 				}
 				if(nextLine == null) break;
+				
+				Uri songUri;
+				if (!Uri.TryCreate(nextLine, UriKind.Absolute, out songUri))
+					if (!Uri.TryCreate(Path.GetFullPath(nextLine), UriKind.Absolute, out songUri))
+						throw new Exception("Can't parse m3u's paths!");
+				
+				
 				if(extm3u && metaLine != null ) {
-					song = new PartialSongData(metaLine, nextLine, songsLocal);
+					song = new PartialSongData(metaLine, songUri, songsLocal);
 				} else {
-					song = new MinimalSongData(nextLine, songsLocal);
+					song = new MinimalSongData(songUri, songsLocal);
 				}
 				songCount++;
 				double ratioDone =

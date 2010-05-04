@@ -35,7 +35,7 @@ namespace SongSearchSite
 						sAct.ByteRange.HasValue ? " [" + sAct.ByteRange.Value.ToString() + "]" : null
 						),
 					new XElement("td", sAct.remoteAddr),
-					new XElement("td", sAct.StartedAt.Date == DateTime.Now.Date? sAct.StartedAt.ToString ("T") : sAct.StartedAt.ToShortDateString() ),
+					new XElement("td", sAct.StartedAtLocalTime.ToLocalTime().Date == DateTime.Now.Date? sAct.StartedAtLocalTime.ToString ("T") : sAct.StartedAtLocalTime.ToShortDateString() ),
 					new XElement("td", sAct.MaxBytesPerSecond * 8 / 1024),
 					new XElement("td", sAct.ServedBytes/1024),
 					new XElement("td", (sAct.Duration / 10000.0).ToString("N1") ),

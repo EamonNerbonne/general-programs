@@ -8,20 +8,20 @@ using EmnExtensions;
 using System.Text;
 using EmnExtensions.Text;
 using System.Web;
+using System.Text.RegularExpressions;
 
 
-namespace SongDataLib
-{
+namespace SongDataLib {
 
 
 	/// <summary>
 	/// Represent all relevent meta-data about a Song.  If this data can't be determined, use PartialSongData instead.
 	/// </summary>
-	public class SongData : MinimalSongData
-	{
+	public class SongData : MinimalSongData {
 		public string title, performer, composer, album, comment, genre;
 		public int year, track, trackcount, bitrate, length, samplerate, channels;
-		public DateTime lastWriteTime;
+		DateTime m_lastWriteTime;
+		public DateTime lastWriteTime { get { return m_lastWriteTime; } set { m_lastWriteTime = value.ToUniversalTime(); } }
 
 		static string strNullIfEmpty(string str) { return str == null || str.Length == 0 ? null : string.Intern(str); }//string.Intern is slow but saves memory for identical strings.
 
@@ -29,14 +29,15 @@ namespace SongDataLib
 		static string toSafeString(string data) { return strNullIfEmpty(Canonicalize.MakeSafe(data)); }
 
 		internal SongData(FileInfo fileObj)
-			: base(fileObj.FullName, true) {
+			: base(new Uri(fileObj.FullName, UriKind.Absolute), true) {
 			TagLib.File file;
 			try {
 				file = TagLib.File.Create(fileObj.FullName);
-			} catch(Exception e) {
+			}
+			catch (Exception e) {
 				Console.WriteLine("Unable to process " + fileObj.FullName);
-				Console.WriteLine("Error type: "+e.GetType().Name);
-				if(e.Message != null) Console.WriteLine("Error message: " + e.Message);
+				Console.WriteLine("Error type: " + e.GetType().Name);
+				if (e.Message != null) Console.WriteLine("Error message: " + e.Message);
 				throw;
 			}
 			title = toSafeString(file.Tag.Title);
@@ -55,8 +56,8 @@ namespace SongDataLib
 			channels = file.Properties == null ? 0 : file.Properties.AudioChannels;
 		}
 
-		private const string isoDateString = "yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'fffffffzz";			//we use an explicit format string so MONO can parse it... it barfed on the auto-recognition.
-
+		//private const string isoDateString = "yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'fffffffzz";			//we use an explicit format string so MONO can parse it... it barfed on the auto-recognition.
+		//private const Regex isoDateRegex = "([0-9]{4})-([0-9]{2})-([0-9]{2})T([0-9]{2}):([0-9]{2}):([0-9]{2}).([0-9]+)
 
 		internal SongData(XElement from, bool? isLocal)
 			: base(from, isLocal) {
@@ -67,46 +68,50 @@ namespace SongDataLib
 			album = toSafeString(from.Attribute("album"));
 			comment = toSafeString(from.Attribute("comment"));//TODO - why bother?
 			genre = toSafeString(from.Attribute("genre"));
-			year = ParseInt((string)from.Attribute("year"));
-			track = ParseInt((string)from.Attribute("track"));
-			trackcount = ParseInt((string)from.Attribute("trackcount"));
-			bitrate = ParseInt((string)from.Attribute("bitrate"));
-			length = ParseInt((string)from.Attribute("length"));
-			samplerate = ParseInt((string)from.Attribute("samplerate"));
-			channels = ParseInt((string)from.Attribute("channels"));
-			string dateTimeString = (string)from.Attribute("lastmodified");
-			DateTime.TryParseExact(dateTimeString,isoDateString , null, DateTimeStyles.None, out lastWriteTime);
+			year = ((int?)from.Attribute("year")) ?? 0;
+			track = ((int?)from.Attribute("track")) ?? 0;
+			trackcount = ((int?)from.Attribute("trackcount")) ?? 0;
+			bitrate = ((int?)from.Attribute("bitrate")) ?? 0;
+			length = ((int?)from.Attribute("length")) ?? 0;
+			samplerate = ((int?)from.Attribute("samplerate")) ?? 0;
+			channels = ((int?)from.Attribute("channels")) ?? 0;
+			long? lastmodifiedTicks = (long?)from.Attribute("lastmodifiedTicks");
+
+			if (lastmodifiedTicks.HasValue)
+				lastWriteTime = new DateTime(lastmodifiedTicks.Value, DateTimeKind.Utc);
+			//else {
+			//    string dateTimeString = (string)from.Attribute("lastmodified");
+			//    DateTime timestamp;
+			//    if (DateTime.TryParseExact(dateTimeString, "o", CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind, out timestamp))
+			//        lastWriteTime = timestamp;
+			//}
 		}
 
-		internal static int ParseInt(string num) {
-			int retval;
-			int.TryParse(num, out retval);//used to deal with nullables, but no longer necessary...
-			return retval;
-		}
-		public override XElement ConvertToXml(Func<string, string> urlTranslator) {
+		public override XElement ConvertToXml(Func<Uri, string> urlTranslator) {
 			return new XElement("song",
 				 makeUriAttribute(urlTranslator),
-				 title == null ? null : new XAttribute("title", title),
-				 performer == null ? null : new XAttribute("artist", performer),
-				 //TODO rename to "performer", this is just legacy support
-				 composer == null ? null : new XAttribute("composer", composer),
-				 album == null ? null : new XAttribute("album", album),
-				 comment == null ? null : new XAttribute("comment", comment),
-				 genre == null ? null : new XAttribute("genre", genre),
-				 year == 0 ? null : new XAttribute("year", year.ToStringOrNull()),
-				 track == 0 ? null : new XAttribute("track", track.ToStringOrNull()),
-				 trackcount == 0 ? null : new XAttribute("trackcount", trackcount.ToStringOrNull()),
-				 bitrate == 0 ? null : new XAttribute("bitrate", bitrate.ToStringOrNull()),
-				 length == 0 ? null : new XAttribute("length", length.ToStringOrNull()),
-				 samplerate == 0 ? null : new XAttribute("samplerate", samplerate.ToStringOrNull()),
-				 channels == 0 ? null : new XAttribute("channels", channels.ToStringOrNull()),
-				lastWriteTime == default(DateTime) ? null : new XAttribute("lastmodified", lastWriteTime.ToString(isoDateString))
+				 MakeAttributeOrNull("title", title),
+				 MakeAttributeOrNull("performer", performer),
+				//TODO rename to "performer", this is just legacy support
+				 MakeAttributeOrNull("composer", composer),
+				 MakeAttributeOrNull("album", album),
+				 MakeAttributeOrNull("comment", comment),
+				 MakeAttributeOrNull("genre", genre),
+				 MakeAttributeOrNull("year", year),
+				 MakeAttributeOrNull("track", track),
+				 MakeAttributeOrNull("trackcount", trackcount),
+				 MakeAttributeOrNull("bitrate", bitrate),
+				 MakeAttributeOrNull("length", length),
+				 MakeAttributeOrNull("samplerate", samplerate),
+				 MakeAttributeOrNull("channels", channels),
+				 MakeAttributeOrNull("lastmodifiedTicks", lastWriteTime == default(DateTime) ? default(long?) : lastWriteTime.Ticks)
+				//lastWriteTime == default(DateTime).ToUniversalTime() ? null : new XAttribute("lastmodified", lastWriteTime.ToString("o", CultureInfo.InvariantCulture))
 			);
 		}
 
 		IEnumerable<string> Values {//only yield "distinctive" search values
 			get {
-				yield return Uri.IsWellFormedUriString(songuri,UriKind.RelativeOrAbsolute)? Uri.UnescapeDataString(songuri):songuri;
+				yield return Uri.UnescapeDataString(songuri.ToString());
 				yield return title;
 				yield return performer;
 				yield return composer;
@@ -122,7 +127,7 @@ namespace SongDataLib
 		public override int Length { get { return length; } }
 		public override string HumanLabel {
 			get {
-				if(title == null)
+				if (title == null)
 					return base.HumanLabel;
 				else {
 					return

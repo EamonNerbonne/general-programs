@@ -5,7 +5,7 @@ namespace SongDataLib
 {
 	public static class ISongDataMethods
 	{
-		public static string UppercaseExtension(this ISongData song) { return System.IO.Path.GetExtension((song.IsLocal ? song.SongPath : new Uri(song.SongPath).AbsolutePath)).ToUpperInvariant(); }
+		public static string UppercaseExtension(this ISongData song) { return System.IO.Path.GetExtension(song.SongUri.AbsolutePath ).ToUpperInvariant(); }
 	}
 
 	public interface ISongData
@@ -20,11 +20,11 @@ namespace SongDataLib
 		/// Converts to xml.  The class should be able to load from xml too then, and supply the appropriate constructor.
 		/// </summary>
 		/// <returns>A sufficiently complete XML representation such that the object could load from it.</returns>
-		XElement ConvertToXml(Func<string, string> urlTranslator);
+		XElement ConvertToXml(Func<Uri, string> urlTranslator);
 		/// <summary>
 		/// The path to the song.  This property mixes local path's and remote uri's, to differentiate, use the IsLocal Property.
 		/// </summary>
-		string SongPath { get; }//untranslated, mixes URL's and local filesystem path's willy-nilly!
+		Uri SongUri { get; }//untranslated, mixes URL's and local filesystem path's willy-nilly!
 		/// <summary>
 		/// This is a security-sensitive property!
 		/// Returns whether this song is a local song.  A local song's SongPath property will potentially be resolved and the song file it points to used.
