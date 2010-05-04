@@ -24,7 +24,23 @@ $(document).ready(function ($) {
 
     var useNotifications = window.webkitNotifications && window.webkitNotifications.checkPermission() == 0;
     var hasBeenNotified = false;
-    var userOptions = {};
+    var userOptions = {
+        saver: {
+            label: "Save",
+            type: "textbox",
+            initialValue: ""
+        },
+        loader: {
+            label: "Load",
+            type: "textbox",
+            initialValue: "",
+            onchange: function (newval, e) {
+                var val = false;
+                try { val = JSON.parse(newval) } catch (e) { }
+                if (val) loadPlaylist(val);
+            }
+        }
+    };
 
     if (window.webkitNotifications) {
         userOptions.notifications = {
@@ -41,8 +57,17 @@ $(document).ready(function ($) {
             }
         }
     }
-    if (!$.isEmptyObject(userOptions))
+    if (!$.isEmptyObject(userOptions)) {
         $("#optionsBox").OptionsBuilder(userOptions);
+        userOptions.saver.element.focus(function () {
+            userOptions.saver.setValue(JSON.stringify(savePlaylist()));
+            userOptions.saver.element.select();
+        });
+        userOptions.loader.element.focus(function () {
+            userOptions.loader.element.select();
+        });
+    }
+
 
 
     // Local copy of jQuery selectors, for performance.
@@ -99,6 +124,20 @@ $(document).ready(function ($) {
         return false;
     });
 
+    function emptyPlaylist() {
+        playListChange(null);
+        playListElem.empty();
+        playListElem.sortable("refresh");
+    }
+    function loadPlaylist(list) {
+        emptyPlaylist();
+        for (i = 0; i < list.length; i++)
+            addToPlaylist(list[i]);
+    }
+    function savePlaylist() {
+        return $("#jplayer_playlist ul li").map(function (i, e) { return $(e).data("songdata"); }).get();
+    }
+
     function makeListItem(song) {
         return $(document.createElement("li")).text(song.name).data("songdata", song).append(
             $(document.createElement("div")).text("x").addClass("deleteButton")
@@ -111,6 +150,7 @@ $(document).ready(function ($) {
         playListElem.sortable("refresh");
         if (playListElem.children().length == 1)
             playListChange(listItem[0]);
+        userOptions.saver.setValue(JSON.stringify(savePlaylist()));
     }
 
     function playListConfig(listItem) {
