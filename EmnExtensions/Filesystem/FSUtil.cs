@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using System;
 
 namespace EmnExtensions.Filesystem
 {
@@ -14,9 +15,11 @@ namespace EmnExtensions.Filesystem
 		/// </summary>
 		/// <param name="path">The Path to test</param>
 		/// <returns>null when invalid, false when path is relative, true when path is absolute.</returns>
-		public static bool? IsValidAbsolutePath(string path) {
-			if(!IsValidPath(path)) return null;
-			return Path.IsPathRooted(path);
+		public static bool IsValidAbsolutePath(string path) {
+			Uri pathUri;
+			if (!Uri.TryCreate(path, UriKind.Absolute, out pathUri))
+				return false;
+			return pathUri.IsFile;
 		}
 
 	}
