@@ -138,7 +138,7 @@ namespace HttpHeaderHelper
 		private void Step3SetCachingHeaders() {
 			HeaderUtility.SetPublicCache(context, resource);
 			DateTime? expiresAt = reqProc.DetermineExpiryDate();
-			if(expiresAt.HasValue) context.Response.Cache.SetExpires(expiresAt.Value);
+			if(expiresAt.HasValue) context.Response.Cache.SetExpires(expiresAt.Value.ToUniversalTime());
 		}
 
 		private void Step4Check304() {

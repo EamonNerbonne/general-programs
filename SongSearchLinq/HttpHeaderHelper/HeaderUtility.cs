@@ -62,7 +62,7 @@ namespace HttpHeaderHelper
 
 			//shouldn't be set if response code is 206 and If-Range was present and If-Range used a weak validator 
 			DateTime? lastModified = resource.RoundedHttpTimeStamp;
-			if(lastModified != null) context.Response.Cache.SetLastModified(lastModified.Value);
+			if(lastModified != null) context.Response.Cache.SetLastModified(lastModified.Value.ToUniversalTime());
 
 			string etag = resource.ETag;
 			if(etag != null) context.Response.Cache.SetETag(etag);//TODO deal with \" char's - seems to be fine as is?
