@@ -229,7 +229,7 @@
 
             handlers.flash = {
                 willPlayType: function (type) {
-                    return self.config.flashSupport && type == "audio/mpeg";
+                    return self.config.flashSupport && type == "audio/mpeg" && self._checkForFlash(8);
                 },
                 loadSong: function (type, src) {
                     self._getMovie().fl_setFile_mp3(src);
