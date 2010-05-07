@@ -180,7 +180,7 @@ namespace SongSearchSite {
 				case ".mpc":
 				case ".mpp":
 				case ".mp+": return "audio/x-musepack";
-				default: return "application/octet-stream";//TODO fix!
+				default: return "application/octet-stream";
 			}
 		}
 

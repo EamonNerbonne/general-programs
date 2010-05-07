@@ -100,7 +100,9 @@
     <Content Include="Web.config">
       <SubType>Designer</SubType>
     </Content>
-    <Content Include="searchresult.xsl" />
+    <Content Include="searchresult.xsl">
+      <SubType>Designer</SubType>
+    </Content>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DebugStatus.aspx.cs">

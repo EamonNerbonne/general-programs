@@ -20,8 +20,9 @@
             <tr>
               <th>Artist</th>
               <th>Title</th>
-              <th>#</th>
+              <th>Rating</th>
               <th>Time</th>
+              <th>#</th>
               <th>Album</th>
             </tr>
           </thead>
@@ -31,7 +32,7 @@
         </table>
       </body>
       <script type="text/javascript">
-        
+
         document.getElementById("listdata").addEventListener('click', parent.SearchListClicked, true);
       </script>
     </html>
@@ -41,17 +42,29 @@
     <xsl:apply-templates select="*"/>
   </xsl:template>
 
+
+  <xsl:template name="stars">
+    <xsl:param name="num" select="0"/>
+    <xsl:if test="$num &gt; 0.5">
+      <xsl:text>&#9733;</xsl:text>
+      <xsl:call-template name="stars">
+        <xsl:with-param name="num" select="$num - 1"/>
+      </xsl:call-template>
+    </xsl:if>
+
+  </xsl:template>
+
   <xsl:template match="partsong|songref|song">
     <xsl:variable name="songlabel">
       <xsl:apply-templates select="." mode="makelabel" />
     </xsl:variable>
     <tr data-href="{@songuri}" data-songlabel="{$songlabel}">
       <xsl:choose>
-        <xsl:when test="@artist">
+        <xsl:when test="@performer">
           <td>
             <div>
               <span>
-                <xsl:value-of select="@artist"/>
+                <xsl:value-of select="@performer"/>
               </span>
               <i>
                 <i>
@@ -73,9 +86,16 @@
             </div>
           </td>
           <td>
+            <xsl:if test="@rating">
+              <xsl:call-template name="stars">
+                <xsl:with-param name="num" select="number(@rating) "/>
+              </xsl:call-template>
+            </xsl:if>
+          </td>
+          <td>
             <div style="text-align:right;margin-right:0.5em;">
               <span>
-                <xsl:value-of select="@track"/>
+                <xsl:value-of select="concat(number(floor(number(@length) div 60)),':',substring('0',floor(number(@length) mod 60 div 10) +1), string(number(@length) mod 60))"/>
               </span>
               <i>
                 <i>
@@ -87,7 +107,7 @@
           <td>
             <div style="text-align:right;margin-right:0.5em;">
               <span>
-                <xsl:value-of select="concat(number(floor(number(@length) div 60)),':',substring('0',floor(number(@length) mod 60 div 10) +1), string(number(@length) mod 60))"/>
+                <xsl:value-of select="@track"/>
               </span>
               <i>
                 <i>
@@ -136,8 +156,8 @@
 
   <xsl:template match="partsong|songref|song" mode="makelabel">
     <xsl:choose>
-      <xsl:when test="@artist">
-        <xsl:value-of select="concat(@artist,' - ',@title)"/>
+      <xsl:when test="@performer">
+        <xsl:value-of select="concat(@performer,' - ',@title)"/>
       </xsl:when>
       <xsl:otherwise>
         <xsl:value-of select="@label"/>
