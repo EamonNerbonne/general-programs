@@ -2,6 +2,8 @@
 using System.IO;
 using System.Xml;
 using System.Xml.Linq;
+using System.Collections.Generic;
+using System.Text;
 
 namespace SongDataLib
 {
@@ -18,20 +20,34 @@ namespace SongDataLib
 				using (Stream stream = dbFile.OpenRead())
 					SongDataFactory.LoadSongsFromXmlFrag(stream, handler, IsLocal);
 		}
+		static XmlWriterSettings settings = new XmlWriterSettings {
+			 CheckCharacters = false,
+			  Indent= true,
+			    //Encoding = Encoding.UTF8,
+				 
+		};
 
 		public void RescanAndSave(FileKnownFilter filter, SongDataLoadDelegate handler) {
 			FileInfo tmpFile = new FileInfo(dbFile.FullName + ".tmp");
+			FileInfo errFile = new FileInfo(dbFile.FullName + ".err");
 			using (Stream stream = tmpFile.Open(FileMode.Create))
-			using (StreamWriter writer = new StreamWriter(stream)) {
-				writer.WriteLine("<songs>");//we're not using an XmlWriter so that if part of the writer throws an unexpected exception, the writer isn't left in an invalid state.
+			using (StreamWriter writer = new StreamWriter(stream))
+			using (Stream streamErr = errFile.Open(FileMode.Create))
+			using (StreamWriter writerErr = new StreamWriter(streamErr))
+			using (XmlWriter xw = XmlWriter.Create(writer, settings))
+			{
+				List<XElement> els = new List<XElement>();
+				//writer.WriteLine("<songs>");//we're not using an XmlWriter so that if part of the writer throws an unexpected exception, the writer isn't left in an invalid state.
 				ScanSongs(filter, delegate(ISongData song, double ratio) {
-					//Console.WriteLine(song.SongPath);
-					try {
-						writer.WriteLine(song.ConvertToXml(null).ToString());
-						handler(song, ratio);
-					} catch (Exception e) { Console.WriteLine("Non-fatal error while writing XML of file: " + song.SongUri + "\nException:\n" + e); }
-				});
-				writer.WriteLine("</songs>");
+					els.Add(song.ConvertToXml(null));
+					handler(song, ratio);
+				}, err => {
+					Console.WriteLine(err);
+					writerErr.WriteLine(err);
+				}
+				);
+				//writer.WriteLine("</songs>");
+				new XElement("songs", els).WriteTo(xw);
 			}
 
 
@@ -66,7 +82,7 @@ namespace SongDataLib
 				|| extension == "._@mp3";
 		}
 
-		protected abstract void ScanSongs(FileKnownFilter filter, SongDataLoadDelegate handler);
+		protected abstract void ScanSongs(FileKnownFilter filter, SongDataLoadDelegate handler, Action<string> errSink);
 
 		protected AbstractSongDatabaseSection(XElement xEl, SongDatabaseConfigFile dcf) {
 			this.dcf = dcf;

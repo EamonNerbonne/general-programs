@@ -53,8 +53,8 @@ namespace PlaylistFixer
 						int idx = 0;
 						foreach (var songMin in playlist) {
 							MinimalSongData decentMatch = null;
-							if (tools.Lookup.dataByPath.ContainsKey(songMin.SongPath))
-								decentMatch = tools.Lookup.dataByPath[songMin.SongPath];
+							if (tools.Lookup.dataByPath.ContainsKey(songMin.SongUri.ToString()))
+								decentMatch = tools.Lookup.dataByPath[songMin.SongUri.ToString()];
 							else if (songMin is PartialSongData) {
 								PartialSongData song = (PartialSongData)songMin;
 								SongMatch best = FindBestMatch(tools, song);
@@ -62,28 +62,28 @@ namespace PlaylistFixer
 
 									best = FindBestMatch2(tools, song);
 									if (best.SongData == null) {
-										Console.WriteLine("XXX:({1}) {0}  ===  {2}\n", NormalizedFileName(song.SongPath), song.length, song.HumanLabel);
+										Console.WriteLine("XXX:({1}) {0}  ===  {2}\n", NormalizedFileName(song.SongUri.LocalPath), song.length, song.HumanLabel);
 										File.AppendAllText("m3ufixer-err.log", SongMatch.ToString(song));
 										nulls2++;
 									} else if (best.Cost > 7.5) {
-										Console.WriteLine("!!!{4}:({2}) {0}\n Is:({3}) {1}\n", NormalizedFileName(song.SongPath) + ": " + song.HumanLabel, NormalizedFileName(best.SongData.SongPath) + ": " + best.SongData.HumanLabel, song.length, best.SongData.Length, best.Cost);
+										Console.WriteLine("!!!{4}:({2}) {0}\n Is:({3}) {1}\n", NormalizedFileName(song.SongUri.LocalPath) + ": " + song.HumanLabel, NormalizedFileName(best.SongData.SongUri.LocalPath) + ": " + best.SongData.HumanLabel, song.length, best.SongData.Length, best.Cost);
 										toobadL.Add(best);
 
 										best = new SongMatch { SongData = null };
 									} else {
-										Console.WriteLine("___:({2}) {0}\n Is:({3}) {1}\n", NormalizedFileName(song.SongPath) + ": " + song.HumanLabel, NormalizedFileName(best.SongData.SongPath) + ": " + best.SongData.HumanLabel, song.length, best.SongData.Length);
+										Console.WriteLine("___:({2}) {0}\n Is:({3}) {1}\n", NormalizedFileName(song.SongUri.LocalPath) + ": " + song.HumanLabel, NormalizedFileName(best.SongData.SongUri.LocalPath) + ": " + best.SongData.HumanLabel, song.length, best.SongData.Length);
 										hmmL.Add(best);
 									}
 								} else {
 									fine++;
-									File.AppendAllText("m3ufixer-ok.log", NormalizedFileName(song.SongPath) + "(" + TimeSpan.FromSeconds(song.Length).ToString() + "): " + song.HumanLabel + "\t==>\t" + NormalizedFileName(best.SongData.SongPath) + "(" + TimeSpan.FromSeconds(best.SongData.Length).ToString() + "): " + best.SongData.HumanLabel + "\n");
+									File.AppendAllText("m3ufixer-ok.log", NormalizedFileName(song.SongUri.LocalPath) + "(" + TimeSpan.FromSeconds(song.Length).ToString() + "): " + song.HumanLabel + "\t==>\t" + NormalizedFileName(best.SongData.SongUri.LocalPath) + "(" + TimeSpan.FromSeconds(best.SongData.Length).ToString() + "): " + best.SongData.HumanLabel + "\n");
 
 									//  Console.WriteLine("Was:({2}) {0}\n Is:({3}) {1}\n", NormalizedFileName(song.SongPath), NormalizedFileName(best.SongPath), song.length, best.Length);
 								}
 
 								decentMatch = best.SongData;
 							} else {
-								SongData[] exactFilenameMatch = tools.DB.Songs.Where(sd => Path.GetFileName(sd.SongPath) == Path.GetFileName(songMin.SongPath)).ToArray();
+								SongData[] exactFilenameMatch = tools.DB.Songs.Where(sd => Path.GetFileName(sd.SongUri.ToString()) == Path.GetFileName(songMin.SongUri.ToString())).ToArray();
 								if (exactFilenameMatch.Length == 1)
 									decentMatch = exactFilenameMatch[0];
 							}
@@ -96,7 +96,7 @@ namespace PlaylistFixer
 						using (var writer = new StreamWriter(stream, Encoding.GetEncoding(1252))) {
 							writer.WriteLine("#EXTM3U");
 							foreach (var track in playlistfixed) {
-								writer.WriteLine("#EXTINF:" + track.Length + "," + track.HumanLabel + "\r\n" + track.SongPath);
+								writer.WriteLine("#EXTINF:" + track.Length + "," + track.HumanLabel + "\r\n" + track.SongUri.ToString());
 							}
 						}
 						hmmL.Sort((a, b) => b.Cost.CompareTo(a.Cost));
@@ -132,7 +132,7 @@ namespace PlaylistFixer
 			public static SongMatch? Compare(PartialSongData src, string filename, string normlabel, SongData opt) {
 				double lenC = Math.Abs(src.Length - opt.Length);
 				if (lenC > 15) return null;
-				string optFileName = Path.GetFileName(opt.SongPath);
+				string optFileName = Path.GetFileName(opt.SongUri.ToString());
 				string optBasicLabel = Canonicalize.Basic(opt.HumanLabel);
 				double nameC = filename.LevenshteinDistance(optFileName) / (double)(filename.Length + optFileName.Length);
 				double labelC = optBasicLabel.LevenshteinDistance(normlabel) / (double)(normlabel.Length + optBasicLabel.Length);
@@ -152,7 +152,7 @@ namespace PlaylistFixer
 				return string.Format("{0,7:g5} {1,7:g5} {2,7:g5} {3,7:g5} {4} ==> {5} ", Cost, LenC, NameC, TagC, ToString(Orig), ToString(SongData));
 			}
 			public static string ToString(ISongData song) {
-				return NormalizedFileName(song.SongPath) + ": " + song.HumanLabel + " (" + TimeSpan.FromSeconds(song.Length) + ")";
+				return NormalizedFileName(song.SongUri.ToString()) + ": " + song.HumanLabel + " (" + TimeSpan.FromSeconds(song.Length) + ")";
 			}
 		}
 
@@ -161,12 +161,12 @@ namespace PlaylistFixer
 					where tools.Lookup.dataByRef.ContainsKey(songrefOpt)
 					from songdataOpt in tools.Lookup.dataByRef[songrefOpt]
 					let lengthDiff = Math.Abs(songToFind.Length - songdataOpt.Length)
-					let filenameDiff = NormalizedFileName(songToFind.SongPath).LevenshteinDistance(NormalizedFileName(songdataOpt.SongPath))
+					let filenameDiff = NormalizedFileName(songToFind.SongUri.ToString()).LevenshteinDistance(NormalizedFileName(songdataOpt.SongUri.ToString()))
 					select new SongMatch { SongData = songdataOpt, Orig = songToFind, Cost = lengthDiff * 0.5 + filenameDiff * 0.2 };
 			return q.Aggregate(new SongMatch { SongData = (SongData)null, Cost = int.MaxValue }, (a, b) => a.Cost < b.Cost ? a : b);
 		}
 		static SongMatch FindBestMatch2(LastFmTools tools, PartialSongData songToFind) {
-			string fileName = NormalizedFileName(songToFind.SongPath);
+			string fileName = NormalizedFileName(songToFind.SongUri.ToString());
 			string basicLabel = Canonicalize.Basic(songToFind.HumanLabel);
 			var q = from songdataOpt in tools.DB.Songs
 					let songmatch = SongMatch.Compare(songToFind, fileName, basicLabel, songdataOpt)

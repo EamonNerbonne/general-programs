@@ -15,7 +15,7 @@ namespace LastFMspider
 		public int SondDataCount {get{return dataByPath.Count;}}
 
 		bool AddSongLookup(SongData song,Func<SongRef,bool> filter) {
-			dataByPath[song.SongPath] = song;
+			dataByPath[song.SongUri.ToString()] = song;
 			SongRef songref = SongRef.Create(song);
 			if(songref == null || (filter!=null && !filter(songref))) return false;
 

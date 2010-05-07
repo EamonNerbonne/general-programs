@@ -238,10 +238,10 @@ namespace LastFmPlaylistSuggestions
 		static void FindPlaylistSongLocally(LastFmTools tools, ISongData playlistEntry, Action<SongData> ifFound, Action<SongRef> ifNotFound, Action<ISongData> cannotParse) {
 			SongData bestMatch = null;
 			int artistTitleSplitIndex = playlistEntry.HumanLabel.IndexOf(" - ");
-			if (tools.Lookup.dataByPath.ContainsKey(playlistEntry.SongPath))
-				ifFound(tools.Lookup.dataByPath[playlistEntry.SongPath]);
-			else if (playlistEntry.IsLocal && File.Exists(playlistEntry.SongPath)) {
-				ifFound((SongData)SongDataFactory.ConstructFromFile(new FileInfo(playlistEntry.SongPath)));
+			if (tools.Lookup.dataByPath.ContainsKey(playlistEntry.SongUri.ToString()))
+				ifFound(tools.Lookup.dataByPath[playlistEntry.SongUri.ToString()]);
+			else if (playlistEntry.IsLocal && File.Exists(playlistEntry.SongUri.LocalPath)) {
+				ifFound((SongData)SongDataFactory.ConstructFromFile(new FileInfo(playlistEntry.SongUri.LocalPath)));
 			} else if (playlistEntry is PartialSongData) {
 				int bestMatchVal = Int32.MaxValue;
 				while (artistTitleSplitIndex != -1) {
@@ -300,7 +300,7 @@ namespace LastFmPlaylistSuggestions
 				FindPlaylistSongLocally(tools, song,
 					(songData) => { known.Add(songData); },
 					(songRef) => { unknown.Add(songRef); },
-					(oopsSong) => { Console.WriteLine("Can't deal with: " + oopsSong.HumanLabel + "\nat:" + oopsSong.SongPath); }
+					(oopsSong) => { Console.WriteLine("Can't deal with: " + oopsSong.HumanLabel + "\nat:" + oopsSong.SongUri.ToString()); }
 				);
 			//OK, so we now have the playlist in the var "playlist" with knowns in "known" except for the unknowns, which are in "unknown" as far as possible.
 
@@ -469,7 +469,7 @@ namespace LastFmPlaylistSuggestions
 			using (var writer = new StreamWriter(stream, Encoding.GetEncoding(1252))) {
 				writer.WriteLine("#EXTM3U");
 				foreach (var track in knownTracks) {
-					writer.WriteLine("#EXTINF:" + track.Length + "," + track.HumanLabel + "\n" + track.SongPath);
+					writer.WriteLine("#EXTINF:" + track.Length + "," + track.HumanLabel + "\n" + track.SongUri.LocalPath);
 				}
 			}
 			FileInfo outputsimtracks = new FileInfo(Path.Combine(m3uDir.FullName, Path.GetFileNameWithoutExtension(m3ufile.Name) + "-similar.txt"));

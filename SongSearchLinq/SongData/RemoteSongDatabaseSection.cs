@@ -16,7 +16,7 @@ namespace SongDataLib
 		}
 
 
-		protected override void ScanSongs(FileKnownFilter filter, SongDataLoadDelegate handler) {
+		protected override void ScanSongs(FileKnownFilter filter, SongDataLoadDelegate handler, Action<string> errSink) {
 			if(dbFile.LastWriteTimeUtc.AddDays(7) > DateTime.UtcNow)
 				return;//TODO: note that this means that SongDataLoadDelegate isn't called for each song, which might break application assumptions.
 			try {
@@ -24,8 +24,7 @@ namespace SongDataLib
 					handler(newsong, estimatedCompletion);
 				}, false,login,pass);
 			} catch(Exception e) {
-				Console.WriteLine("Exception while scanning:");
-				Console.WriteLine(e.ToString());
+				errSink("Exception while scanning:\n"+e.ToString());
 			}
 		}
 		protected override bool IsLocal { get { return false; } }
