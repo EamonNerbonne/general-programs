@@ -8,6 +8,18 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
     mc:Ignorable="d" 
     Title="Eamon's LVQ test App"   d:DesignHeight="550" d:DesignWidth="650">
+    <Window.Resources>
+        <Style TargetType="{x:Type Label}">
+            <Setter Property="HorizontalAlignment" Value="Right" />
+            <Setter Property="Margin" Value="2" />
+        </Style>
+        <Style TargetType="{x:Type TextBox}">
+            <Setter Property="Margin" Value="2" />
+        </Style>
+        <Style TargetType="{x:Type Button}">
+            <Setter Property="HorizontalAlignment" Value="Right" />
+        </Style>
+    </Window.Resources>
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
@@ -21,8 +33,8 @@
 
         <StackPanel Grid.Row="0" Grid.Column="1" >
 
-            <CheckBox Margin="2" Content="Full Screen" Name="checkBoxFullScreen" Checked="checkBoxFullScreen_Checked" Unchecked="checkBoxFullScreen_Unchecked"/>
-            <CheckBox Margin="2" Content="Show Grid" Name="checkBoxShowGrid"  Checked="checkBoxShowGridChanged" Unchecked="checkBoxShowGridChanged"/>
+            <CheckBox Content="Full Screen" Name="checkBoxFullScreen" Checked="checkBoxFullScreen_Checked" Unchecked="checkBoxFullScreen_Unchecked"/>
+            <CheckBox Content="Show Grid" Name="checkBoxShowGrid"  Checked="checkBoxShowGridChanged" Unchecked="checkBoxShowGridChanged"/>
             <Grid Margin="12,6" >
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto" />
@@ -42,38 +54,38 @@
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
-                <Label Grid.Row="0"  HorizontalAlignment="Right" Margin="2">Lvq style</Label>
+                <Label Grid.Row="0"  >Lvq style</Label>
 
-                <CheckBox Grid.Row="0" Grid.Column="1" Margin="2" Content="Use Single-Matrix Model" Name="checkBoxLvqGsm" VerticalAlignment="Center"/>
+                <CheckBox Grid.Row="0" Grid.Column="1" Content="Use Single-Matrix Model" Name="checkBoxLvqGsm" VerticalAlignment="Center"/>
 
 
-                <Label Grid.Row="1"  HorizontalAlignment="Right" Margin="2">Dimensions</Label>
-                <TextBox Grid.Row="1"  Grid.Column="1"  Margin="2" Name="textBoxDims" TextChanged="textBoxDims_TextChanged"  Text="50" />
+                <Label Grid.Row="1"  >Dimensions</Label>
+                <TextBox Grid.Row="1"  Grid.Column="1"  Name="textBoxDims" TextChanged="textBoxDims_TextChanged"  Text="50" />
 
-                <Label Grid.Row="2"    Margin="2" Name="label1" HorizontalAlignment="Right">Number of Sets</Label>
-                <TextBox Grid.Row="2"  Grid.Column="1" Margin="2" Name="textBoxNumberOfSets" TextChanged="textBoxNumberOfSets_TextChanged" Text="4" />
+                <Label Grid.Row="2">Number of Sets</Label>
+                <TextBox Grid.Row="2"  Grid.Column="1" Name="textBoxNumberOfSets" TextChanged="textBoxNumberOfSets_TextChanged" Text="4" />
 
-                <Label Grid.Row="3"  HorizontalAlignment="Right" Margin="2">Std-dev of cloud centers</Label>
-                <TextBox Grid.Row="3"  Grid.Column="1"  Margin="2" Name="textBoxStddevMeans" TextChanged="textBoxStddevMeans_TextChanged"  Text="3" />
+                <Label Grid.Row="3"  >Std-dev of cloud centers</Label>
+                <TextBox Grid.Row="3"  Grid.Column="1"  Name="textBoxStddevMeans" TextChanged="textBoxStddevMeans_TextChanged"  Text="3" />
 
-                <Label Grid.Row="4"  HorizontalAlignment="Right" Margin="2" Name="label2">Points per cloud</Label>
-                <TextBox  Grid.Row="4" Grid.Column="1"  Margin="2" Name="textBoxPointsPerSet" TextChanged="textBoxPointsPerSet_TextChanged"  Text="2000" />
+                <Label Grid.Row="4"   Name="label2">Points per cloud</Label>
+                <TextBox  Grid.Row="4" Grid.Column="1"  Name="textBoxPointsPerSet" TextChanged="textBoxPointsPerSet_TextChanged"  Text="2000" />
 
-                <Label Grid.Row="5"  HorizontalAlignment="Right" Margin="2">Prototypes per class</Label>
-                <TextBox Grid.Row="5"  Grid.Column="1"  Margin="2" Name="textBoxProtoCount" TextChanged="textBoxProtoCount_TextChanged"  Text="1" />
+                <Label Grid.Row="5"  >Prototypes per class</Label>
+                <TextBox Grid.Row="5"  Grid.Column="1"  Name="textBoxProtoCount" TextChanged="textBoxProtoCount_TextChanged"  Text="1" />
 
-                <Button  Grid.Row="6" Grid.Column="0" Grid.ColumnSpan="2" Margin="2" Name="buttonGeneratePointClouds" HorizontalAlignment="Right" Click="buttonGeneratePointClouds_Click">Generate Point Clouds</Button>
+                <Button  Grid.Row="6" Grid.Column="0" Grid.ColumnSpan="2" Name="buttonGeneratePointClouds" Click="buttonGeneratePointClouds_Click">Generate Point Clouds</Button>
 
-                <Label Grid.Row="7"  HorizontalAlignment="Right" Margin="2">Number of Star Tails</Label>
-                <TextBox Grid.Row="7"  Grid.Column="1"  Margin="2" Name="textBoxStarTailCount" TextChanged="textBoxStarTailCount_TextChanged"  Text="3" />
+                <Label Grid.Row="7"  >Number of Star Tails</Label>
+                <TextBox Grid.Row="7"  Grid.Column="1"  Name="textBoxStarTailCount" TextChanged="textBoxStarTailCount_TextChanged"  Text="3" />
 
-                <Label Grid.Row="8"  HorizontalAlignment="Right" Margin="2">Relative Star Tail Distance</Label>
-                <TextBox Grid.Row="8"  Grid.Column="1"  Margin="2" Name="textBoxStarRelDistance" TextChanged="textBoxStarRelDistance_TextChanged"  Text="3" />
+                <Label Grid.Row="8"  >Relative Star Tail Distance</Label>
+                <TextBox Grid.Row="8"  Grid.Column="1"  Name="textBoxStarRelDistance" TextChanged="textBoxStarRelDistance_TextChanged"  Text="3" />
 
-                <StackPanel Grid.Row="9" Grid.Column="0" Grid.ColumnSpan="2"   Orientation="Horizontal" HorizontalAlignment="Right" >
-                <Button Margin="2" Name="buttonGenerateStar" HorizontalAlignment="Right" Click="buttonGenerateStar_Click">Generate "Stars"</Button>
-               <Button Margin="2" Name="buttonLoadData" HorizontalAlignment="Right" Click="buttonLoadData_Click">Load other data</Button>
-                    </StackPanel>
+                <StackPanel Grid.Row="9" Grid.Column="0" Grid.ColumnSpan="2"   Orientation="Horizontal" HorizontalAlignment="Right">
+                    <Button Name="buttonGenerateStar" Click="buttonGenerateStar_Click">Generate "Stars"</Button>
+                    <Button Name="buttonLoadData" Click="buttonLoadData_Click">Load other data</Button>
+                </StackPanel>
 
             </Grid>
             <Grid Grid.Row="1" Grid.Column="1" Margin="12,6" >
@@ -85,10 +97,10 @@
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
-                <Label Grid.Row="0"  HorizontalAlignment="Right" Margin="2">Epochs per Click</Label>
-                <TextBox Grid.Row="0"  Grid.Column="1"  Margin="2" Name="textBoxEpochs" TextChanged="textBoxEpochs_TextChanged"  Text="10" />
+                <Label Grid.Row="0"  >Epochs per Click</Label>
+                <TextBox Grid.Row="0"  Grid.Column="1"  Name="textBoxEpochs" TextChanged="textBoxEpochs_TextChanged"  Text="10" />
 
-                <Button Grid.Row="1" Grid.ColumnSpan="2" Content="DoEpoch"  HorizontalAlignment="Right" Margin="2" Name="doEpochButton" Click="doEpochButton_Click" />
+                <Button Grid.Row="1" Grid.ColumnSpan="2" Content="DoEpoch"   Name="doEpochButton" Click="doEpochButton_Click" />
 
             </Grid>
         </StackPanel>
