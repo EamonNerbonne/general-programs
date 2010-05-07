@@ -23,9 +23,9 @@ namespace SongDiskCrawlerMain {
 				lastcounter = counter;
 			}
 		}
-		static ISongData LookupSong(string localSongPath) {
+		static ISongData LookupSong(Uri localSongPath) {
 			ISongData retval = null;
-			songs.TryGetValue( new Uri(localSongPath).ToString(), out retval);
+			songs.TryGetValue( localSongPath.ToString(), out retval);
 			if (retval == null) newsongs++;
 			return retval;
 		}
