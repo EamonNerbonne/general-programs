@@ -65,7 +65,7 @@ namespace HttpHeaderHelper
 			if(lastModified != null) context.Response.Cache.SetLastModified(lastModified.Value.ToUniversalTime());
 
 			string etag = resource.ETag;
-			if(etag != null) context.Response.Cache.SetETag(etag);//TODO deal with \" char's - seems to be fine as is?
+			if(etag != null) context.Response.Cache.SetETag(etag);//should I deal with \" char's - seems to be fine as is?
 		}
 
 
