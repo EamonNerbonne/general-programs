@@ -109,7 +109,7 @@ namespace SongSearchSite
 					fsWatcher.Renamed += (o, e) => { DbUpdated(); };
 					fsWatcher.Error += (o, e) => { DbUpdated(); };
 					fsWatcher.Deleted += (o, e) => { DbUpdated(); };
-					//fsWatcher.EnableRaisingEvents = true;//TODO
+					fsWatcher.EnableRaisingEvents = true;
 				}
 			}
 		}
