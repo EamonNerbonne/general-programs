@@ -100,7 +100,7 @@ namespace SongSearchSite
 
 			if (isXml) {
 				XmlWriterSettings settings = new XmlWriterSettings();
-				settings.Indent = true;
+				//settings.Indent = true;
 				XmlWriter xmlOut = XmlWriter.Create(context.Response.Output, settings);
 
 				xmlOut.WriteStartDocument();
