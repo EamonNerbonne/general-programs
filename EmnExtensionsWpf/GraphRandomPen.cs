@@ -76,11 +76,11 @@ namespace EmnExtensions.Wpf.OldGraph
 			public void ScaleBack(ColorSimple min, ColorSimple max, MersenneTwister rnd)
 			{
 				if (max.R > min.R)
-					R = 0.95 * (R - min.R) / (max.R - min.R);
+					R = 0.025 + 0.95 * (R - min.R) / (max.R - min.R);
 				if (max.G > min.G)
-					G = 0.95 * (G - min.G) / (max.G - min.G);
+					G = 0.025 + 0.95 * (G - min.G) / (max.G - min.G);
 				if (max.B > min.B)
-					B = 0.95 * (B - min.B) / (max.B - min.B);
+					B = 0.025 + 0.95 * (B - min.B) / (max.B - min.B);
 				if (R == G && G == B)
 					this = Random(rnd);
 			}
@@ -106,8 +106,7 @@ namespace EmnExtensions.Wpf.OldGraph
 					if (other >= i) other++; //rand other in [0..M) with other != i
 					if (N > 1)
 						choices[i].RepelFrom(choices[other], lr);
-					else
-						choices[i].RepelFrom(black, lr * 0.1);
+					choices[i].RepelFrom(black, lr * 0.1);
 					min.Min(choices[i]);
 					max.Max(choices[i]);
 				}
