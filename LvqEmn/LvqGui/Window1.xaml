@@ -9,16 +9,9 @@
     mc:Ignorable="d" 
     Title="Eamon's LVQ test App"   d:DesignHeight="550" d:DesignWidth="650">
     <Window.Resources>
-        <Style TargetType="{x:Type Label}">
-            <Setter Property="HorizontalAlignment" Value="Right" />
-            <Setter Property="Margin" Value="2" />
-        </Style>
-        <Style TargetType="{x:Type TextBox}">
-            <Setter Property="Margin" Value="2" />
-        </Style>
-        <Style TargetType="{x:Type Button}">
-            <Setter Property="HorizontalAlignment" Value="Right" />
-        </Style>
+        <Style TargetType="{x:Type Label}" BasedOn="{StaticResource PropLabel}"/>
+        <Style TargetType="{x:Type TextBox}" BasedOn="{StaticResource PropBox}"/>
+        <Style TargetType="{x:Type Button}" BasedOn="{StaticResource PropButton}"/>
     </Window.Resources>
     <Grid>
         <Grid.RowDefinitions>

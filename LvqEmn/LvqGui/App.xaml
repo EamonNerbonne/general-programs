@@ -3,6 +3,15 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 			 Startup="Application_Startup" >
 	<Application.Resources>
-
-	</Application.Resources>
+        <Style  x:Key="PropLabel">
+            <Setter Property="Control.HorizontalAlignment" Value="Right" />
+            <Setter Property="Control.Margin" Value="2" />
+        </Style>
+        <Style x:Key="PropBox">
+            <Setter Property="Control.Margin" Value="2" />
+        </Style>
+        <Style x:Key="PropButton">
+            <Setter Property="Control.HorizontalAlignment" Value="Right" />
+        </Style>
+    </Application.Resources>
 </Application>
