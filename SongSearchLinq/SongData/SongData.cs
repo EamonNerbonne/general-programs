@@ -22,6 +22,7 @@ namespace SongDataLib {
 		public int year, track, trackcount, bitrate, length, samplerate, channels;
 		public int? rating;
 		DateTime m_lastWriteTime;
+		//public Popularity popularity = new Popularity { ArtistPopularity = 0, TitlePopularity = 0 };
 		public DateTime lastWriteTime { get { return m_lastWriteTime; } set { m_lastWriteTime = value.ToUniversalTime(); } }
 
 		static string strNullIfEmpty(string str) { return str == null || str.Length == 0 ? null : str; }//string.Intern is slow but saves memory for identical strings.
@@ -68,7 +69,7 @@ namespace SongDataLib {
 		}
 
 		//faster to not recreate XNames.
-		static XName songN = "song", titleN = "title", artistN="artist", performerN = "performer", composerN = "composer", albumN = "album", commentN = "comment", genreN = "genre", yearN = "year", trackN = "track", trackcountN = "trackcount", bitrateN = "bitrate", lengthN = "length", samplerateN = "samplerate", channelsN = "channels", lastmodifiedTicksN = "lastmodifiedTicks", ratingN = "rating";
+		static XName songN = "song", titleN = "title", artistN = "artist", performerN = "performer", composerN = "composer", albumN = "album", commentN = "comment", genreN = "genre", yearN = "year", trackN = "track", trackcountN = "trackcount", bitrateN = "bitrate", lengthN = "length", samplerateN = "samplerate", channelsN = "channels", lastmodifiedTicksN = "lastmodifiedTicks", ratingN = "rating", artistpopularityN = "popA", titlepopularityN = "popT";
 
 		internal SongData(XElement from, bool? isLocal)
 			: base(from, isLocal) {
@@ -87,6 +88,8 @@ namespace SongDataLib {
 			samplerate = ((int?)from.Attribute(samplerateN)) ?? 0;
 			channels = ((int?)from.Attribute(channelsN)) ?? 0;
 			rating = (int?)from.Attribute(ratingN);
+			//popularity.ArtistPopularity = ((int?)from.Attribute(artistpopularityN)) ?? 0;
+			//popularity.TitlePopularity = ((int?)from.Attribute(titlepopularityN)) ?? 0;
 
 			long? lastmodifiedTicks = (long?)from.Attribute(lastmodifiedTicksN);
 			if (lastmodifiedTicks.HasValue) lastWriteTime = new DateTime(lastmodifiedTicks.Value, DateTimeKind.Utc);
@@ -111,6 +114,8 @@ namespace SongDataLib {
 				 MakeAttributeOrNull(samplerateN, samplerate),
 				 MakeAttributeOrNull(channelsN, channels),
 				 MakeAttributeOrNull(ratingN, rating),
+				 //MakeAttributeOrNull(artistpopularityN, popularity.ArtistPopularity),
+				 //MakeAttributeOrNull(titlepopularityN, popularity.TitlePopularity),
 				 MakeAttributeOrNull(lastmodifiedTicksN, lastWriteTime == default(DateTime) ? default(long?) : lastWriteTime.Ticks)
 			);
 		}
@@ -123,7 +128,7 @@ namespace SongDataLib {
 				yield return composer;
 				yield return album;
 				//yield return comment;
-				//yield return genre;
+				yield return genre;
 				//yield return year.ToStringOrNull();
 				//yield return track.ToStringOrNull();
 			}

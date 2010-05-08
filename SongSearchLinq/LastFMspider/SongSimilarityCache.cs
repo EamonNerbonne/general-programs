@@ -77,6 +77,21 @@ namespace LastFMspider
 		}
 
 
+		public ArtistTopTracksList LookupTopTracks(string artist) {
+			//artist = artist.ToLatinLowercase();
+			var toptracks = backingDB.LookupArtistTopTracksList.Execute(artist);
+			if (toptracks != null) return toptracks;
+			try {
+				toptracks = OldApiClient.Artist.GetTopTracks(artist);
+				if (artist.ToLatinLowercase() != toptracks.Artist.ToLatinLowercase())
+					backingDB.SetArtistAlternate.Execute(artist, toptracks.Artist);
+			} catch (Exception) {
+				toptracks = ArtistTopTracksList.CreateErrorList(artist, 1);
+			}
+			backingDB.InsertArtistTopTracksList.Execute(toptracks);
+			return toptracks;
+
+		}
 
 	}
 }

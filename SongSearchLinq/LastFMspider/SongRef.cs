@@ -34,9 +34,11 @@ namespace LastFMspider
     {
         private readonly string artist;
         public string Artist { get { return artist; } }
+		public string GetLowerArtist() { return artist.ToLatinLowercase(); }
         private readonly string title;
         public string Title { get { return title; } }
-        public readonly int hashcode;
+		public string GetLowerTitle() { return title.ToLatinLowercase(); }
+		public readonly int hashcode;
 
         //static int LastMs =(int)( DateTime.Now.Ticks/10000 -1);
         //static int cleanups=0;

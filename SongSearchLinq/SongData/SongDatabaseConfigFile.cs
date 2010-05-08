@@ -5,15 +5,13 @@ using System.Xml;
 using System.Xml.Linq;
 using EmnExtensions;
 
-namespace SongDataLib
-{
+namespace SongDataLib {
 	public delegate ISongData FileKnownFilter(Uri localSongPath);
-	public class SongDatabaseConfigFile : ISongDatabaseSection
-	{
+	public class SongDatabaseConfigFile : ISongDatabaseSection {
 		FileInfo configFile;
 		internal DirectoryInfo dataDirectory;
 		List<LocalSongDatabaseSection> locals = new List<LocalSongDatabaseSection>();
-		List<RemoteSongDatabaseSection> remotes=null;
+		List<RemoteSongDatabaseSection> remotes = null;
 		const string defaultConfigFileName = "SongSearch.config";
 		const string defaultConfigDir = "SongSearch";
 		/// <summary>
@@ -21,55 +19,56 @@ namespace SongDataLib
 		/// - ApplicationData (per-user)
 		/// - CommonApplicationData (windows: "All Users\Application Data", unix: "/usr/share")
 		/// </summary>
-		public SongDatabaseConfigFile(bool allowRemote) {
+		public SongDatabaseConfigFile(bool allowRemote, IPopularityEstimator popEst = null) {
 			string configRel = Path.DirectorySeparatorChar.ToString() + defaultConfigDir + Path.DirectorySeparatorChar + defaultConfigFileName;
 			string userPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + configRel;
 			string globalPath = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData) + configRel;
-			if(File.Exists(userPath))
+			if (File.Exists(userPath))
 				configFile = new FileInfo(userPath);
-			else if(File.Exists(globalPath))
+			else if (File.Exists(globalPath))
 				configFile = new FileInfo(globalPath);
 			else
 				throw new FileNotFoundException("Could not find config file, looked in '" + userPath + "' and '" + globalPath + "'.");
-			Init(allowRemote);
+			Init(allowRemote, popEst);
 		}
 		public DirectoryInfo DataDirectory { get { return dataDirectory; } }
-		public SongDatabaseConfigFile(FileInfo configFile,bool allowRemote) {
-			if(configFile == null) throw new ArgumentNullException("configFile", "A database config file was not specified");
-			if(!configFile.Exists) throw new FileNotFoundException("The specified configuration file wasn't found", configFile.FullName);
+		public SongDatabaseConfigFile(FileInfo configFile, bool allowRemote, IPopularityEstimator popEst = null) {
+			if (configFile == null) throw new ArgumentNullException("configFile", "A database config file was not specified");
+			if (!configFile.Exists) throw new FileNotFoundException("The specified configuration file wasn't found", configFile.FullName);
 			this.configFile = configFile;
-			Init(allowRemote);
+			Init(allowRemote, popEst);
 		}
-		void Init(bool allowRemote) {
-			if(allowRemote) remotes= new List<RemoteSongDatabaseSection>();
+		void Init(bool allowRemote, IPopularityEstimator popEst) {
+			PopularityEstimator = popEst ?? new NullPopularityEstimator();
+			if (allowRemote) remotes = new List<RemoteSongDatabaseSection>();
 			Console.WriteLine("Loading config file from " + configFile.FullName);
-			using(Stream stream = configFile.OpenRead())
+			using (Stream stream = configFile.OpenRead())
 				try {
 					XDocument doc = XDocument.Load(XmlReader.Create(stream));
 
 					XElement xRoot = doc.Root;
-					if(xRoot.Name != "SongDataConfig") throw new SongDatabaseConfigException(this, "Invalid Root Element Name " + ((xRoot.Name.ToStringOrNull()) ?? "?"));
-					if((string)xRoot.Attribute("version") != "1.0") throw new SongDatabaseConfigException(this, "Invalid Config Version " + (((string)xRoot.Attribute("version")) ?? "?"));
+					if (xRoot.Name != "SongDataConfig") throw new SongDatabaseConfigException(this, "Invalid Root Element Name " + ((xRoot.Name.ToStringOrNull()) ?? "?"));
+					if ((string)xRoot.Attribute("version") != "1.0") throw new SongDatabaseConfigException(this, "Invalid Config Version " + (((string)xRoot.Attribute("version")) ?? "?"));
 
 					string dataDirAttr = (string)xRoot.Element("general").Attribute("dataDirectory");
 					dataDirectory = new DirectoryInfo(Path.Combine(configFile.Directory.FullName + Path.DirectorySeparatorChar, dataDirAttr));
-					if(!dataDirectory.Exists) {
+					if (!dataDirectory.Exists) {
 
 						dataDirectory.Create();
 					}
 					HashSet<string> names = new HashSet<string>();
-					foreach(XElement xe in xRoot.Elements()) {
+					foreach (XElement xe in xRoot.Elements()) {
 						string dbType = xe.Name.ToStringOrNull();
-						switch(dbType) {
+						switch (dbType) {
 							case "localDB":
 								locals.Add(new LocalSongDatabaseSection(xe, this));
-								if(!names.Add(locals[locals.Count - 1].name))
+								if (!names.Add(locals[locals.Count - 1].name))
 									throw new SongDatabaseConfigException(this, "Cannot have multiple DB's identically named '" + locals[locals.Count - 1].name + "'.");
 								break;
 							case "remoteDB":
-								if(remotes == null) break;
+								if (remotes == null) break;
 								remotes.Add(new RemoteSongDatabaseSection(xe, this));
-								if(!names.Add(remotes[remotes.Count - 1].name))
+								if (!names.Add(remotes[remotes.Count - 1].name))
 									throw new SongDatabaseConfigException(this, "Cannot have multiple DB's identically named '" + remotes[remotes.Count - 1].name + "'.");
 
 								break;
@@ -79,19 +78,20 @@ namespace SongDataLib
 								throw new SongDatabaseConfigException(this, "Unknown db type: " + dbType);
 						}
 					}
-				} catch(SongDatabaseConfigException) { throw; } catch(Exception e) { throw new SongDatabaseConfigException(this, e); }
+				} catch (SongDatabaseConfigException) { throw; } catch (Exception e) { throw new SongDatabaseConfigException(this, e); }
 		}
 
 		public void Load(SongDataLoadDelegate handler) {
-			foreach(var local in locals) local.Load(handler);
-			if(remotes!=null) foreach(var remote in remotes) remote.Load(handler);
+			foreach (var local in locals) local.Load(handler);
+			if (remotes != null) foreach (var remote in remotes) remote.Load(handler);
 		}
 
 		public void RescanAndSave(FileKnownFilter filter, SongDataLoadDelegate handler) {//TODO: add logic to prevent rescanning remote dirs too frequently.
-			foreach(var local in locals) local.RescanAndSave(filter, handler);
-			if(remotes!=null) foreach(var remote in remotes) remote.RescanAndSave(filter, handler);
+			foreach (var local in locals) local.RescanAndSave(filter, handler);
+			if (remotes != null) foreach (var remote in remotes) remote.RescanAndSave(filter, handler);
 		}
 		internal string configPathReadable { get { return configFile == null ? "<null>" : configFile.FullName; } }
 		public FileInfo ConfigFile { get { return configFile; } }
+		public IPopularityEstimator PopularityEstimator { get; set; }
 	}
 }

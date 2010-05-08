@@ -4,12 +4,10 @@ using System.Xml;
 using System.Xml.Linq;
 using System.Collections.Generic;
 using System.Text;
+using System.Linq;
+namespace SongDataLib {
 
-namespace SongDataLib
-{
-
-	abstract class AbstractSongDatabaseSection : ISongDatabaseSection
-	{
+	abstract class AbstractSongDatabaseSection : ISongDatabaseSection {
 		protected SongDatabaseConfigFile dcf;
 		public string name;
 		protected FileInfo dbFile;
@@ -21,10 +19,10 @@ namespace SongDataLib
 					SongDataFactory.LoadSongsFromXmlFrag(stream, handler, IsLocal);
 		}
 		static XmlWriterSettings settings = new XmlWriterSettings {
-			 CheckCharacters = false,
-			  Indent= true,
-			    //Encoding = Encoding.UTF8,
-				 
+			CheckCharacters = false,
+			Indent = true,
+			//Encoding = Encoding.UTF8,
+
 		};
 
 		public void RescanAndSave(FileKnownFilter filter, SongDataLoadDelegate handler) {
@@ -34,12 +32,15 @@ namespace SongDataLib
 			using (StreamWriter writer = new StreamWriter(stream))
 			using (Stream streamErr = errFile.Open(FileMode.Create))
 			using (StreamWriter writerErr = new StreamWriter(streamErr))
-			using (XmlWriter xw = XmlWriter.Create(writer, settings))
-			{
-				List<XElement> els = new List<XElement>();
+			using (XmlWriter xw = XmlWriter.Create(writer, settings)) {
+				List<ISongData> songs = new List<ISongData>();
 				//writer.WriteLine("<songs>");//we're not using an XmlWriter so that if part of the writer throws an unexpected exception, the writer isn't left in an invalid state.
-				ScanSongs(filter, delegate(ISongData song, double ratio) {
-					els.Add(song.ConvertToXml(null));
+				ScanSongs(filter, (song, ratio) => {
+					//var songdata =song as SongData;
+					//if (songdata !=null) 
+					//    songdata.popularity = dcf.PopularityEstimator.EstimatePopularity (songdata.artist, songdata.title);
+
+					songs.Add(song);
 					handler(song, ratio);
 				}, err => {
 					Console.WriteLine(err);
@@ -47,7 +48,7 @@ namespace SongDataLib
 				}
 				);
 				//writer.WriteLine("</songs>");
-				new XElement("songs", els).WriteTo(xw);
+				new XStreamingElement("songs", songs.Select(song=>song.ConvertToXml(null)) ).WriteTo(xw);
 			}
 
 
