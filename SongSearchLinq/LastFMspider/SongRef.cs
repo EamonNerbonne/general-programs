@@ -51,9 +51,9 @@ namespace LastFMspider
 
 
         public static SongRef Create(SongData song) {
-            if (song.performer == null || song.title == null)
+            if (song.artist == null || song.title == null)
                 return null;
-            return Create(song.performer, song.title);
+            return Create(song.artist, song.title);
         }
         public override bool Equals(object obj) {
             if (!(obj is SongRef))

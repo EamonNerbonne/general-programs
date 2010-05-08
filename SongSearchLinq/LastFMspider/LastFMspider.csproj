@@ -108,6 +108,13 @@
   <ItemGroup>
     <Compile Include="ArbitraryTrackMapper.cs" />
     <Compile Include="CachedDistanceMatrix.cs" />
+    <Compile Include="FindSimilarPlaylist\FindSimilarPlaylist.cs" />
+    <Compile Include="FindSimilarPlaylist\SongWithCost.cs" />
+    <Compile Include="FindSimilarPlaylist\SongWithCostCache.cs" />
+    <Compile Include="FuzzySongSearcher\CharMap.cs" />
+    <Compile Include="FuzzySongSearcher\FuzzySongSearcher.cs" />
+    <Compile Include="FuzzySongSearcher\SongMatch.cs" />
+    <Compile Include="FuzzySongSearcher\Trigrammer.cs" />
     <Compile Include="LastFmDbBuilder.cs" />
     <Compile Include="LastFMSQLiteBackend\AbstractLfmCacheOperation.cs" />
     <Compile Include="LastFMSQLiteBackend\AbstractLfmCacheQuery.cs" />

@@ -14,6 +14,8 @@ namespace PlaylistFixer
 {
 	class Program
 	{
+		
+
 		static void Main(string[] args) {
 			if (args.Length == 1 && Directory.Exists(args[0])) {
 
@@ -33,99 +35,99 @@ namespace PlaylistFixer
 
 			foreach (var m3ufilename in args) {
 				try {
-					Console.WriteLine("\nprocessing: {0}", m3ufilename);
-					FileInfo fi = new FileInfo(m3ufilename);
-					if (!fi.Exists) {
-						Console.WriteLine("Not found");
-					} else {
-						if (fi.Name.EndsWith("-fixed.m3u")) {
-							string newPath = Path.Combine(
-								fi.Directory.FullName,
-								fi.Name.Substring(0, fi.Name.Length - "-fixed.m3u".Length)
-								+ ".m3u");
-							if (!File.Exists(newPath))
-								fi.MoveTo(newPath);
-						}
-
-						MinimalSongData[] playlistfixed;
-						MinimalSongData[] playlist = LoadExtM3U(fi);
-						playlistfixed = new MinimalSongData[playlist.Length];
-						int idx = 0;
-						foreach (var songMin in playlist) {
-							MinimalSongData decentMatch = null;
-							if (tools.Lookup.dataByPath.ContainsKey(songMin.SongUri.ToString()))
-								decentMatch = tools.Lookup.dataByPath[songMin.SongUri.ToString()];
-							else if (songMin is PartialSongData) {
-								PartialSongData song = (PartialSongData)songMin;
-								SongMatch best = FindBestMatch(tools, song);
-								if (best.SongData == null) {
-
-									best = FindBestMatch2(tools, song);
-									if (best.SongData == null) {
-										Console.WriteLine("XXX:({1}) {0}  ===  {2}\n", NormalizedFileName(song.SongUri.LocalPath), song.length, song.HumanLabel);
-										File.AppendAllText("m3ufixer-err.log", SongMatch.ToString(song));
-										nulls2++;
-									} else if (best.Cost > 7.5) {
-										Console.WriteLine("!!!{4}:({2}) {0}\n Is:({3}) {1}\n", NormalizedFileName(song.SongUri.LocalPath) + ": " + song.HumanLabel, NormalizedFileName(best.SongData.SongUri.LocalPath) + ": " + best.SongData.HumanLabel, song.length, best.SongData.Length, best.Cost);
-										toobadL.Add(best);
-
-										best = new SongMatch { SongData = null };
-									} else {
-										Console.WriteLine("___:({2}) {0}\n Is:({3}) {1}\n", NormalizedFileName(song.SongUri.LocalPath) + ": " + song.HumanLabel, NormalizedFileName(best.SongData.SongUri.LocalPath) + ": " + best.SongData.HumanLabel, song.length, best.SongData.Length);
-										hmmL.Add(best);
-									}
-								} else {
-									fine++;
-									File.AppendAllText("m3ufixer-ok.log", NormalizedFileName(song.SongUri.LocalPath) + "(" + TimeSpan.FromSeconds(song.Length).ToString() + "): " + song.HumanLabel + "\t==>\t" + NormalizedFileName(best.SongData.SongUri.LocalPath) + "(" + TimeSpan.FromSeconds(best.SongData.Length).ToString() + "): " + best.SongData.HumanLabel + "\n");
-
-									//  Console.WriteLine("Was:({2}) {0}\n Is:({3}) {1}\n", NormalizedFileName(song.SongPath), NormalizedFileName(best.SongPath), song.length, best.Length);
-								}
-
-								decentMatch = best.SongData;
-							} else {
-								SongData[] exactFilenameMatch = tools.DB.Songs.Where(sd => Path.GetFileName(sd.SongUri.ToString()) == Path.GetFileName(songMin.SongUri.ToString())).ToArray();
-								if (exactFilenameMatch.Length == 1)
-									decentMatch = exactFilenameMatch[0];
-							}
-							playlistfixed[idx++] = decentMatch ?? songMin;
-						}
-
-						Console.WriteLine("Fine: {0}, Rough: {1}, Too bad: {2},  No-match: {3}", fine, hmmL.Count, toobadL.Count, nulls2);
-						FileInfo outputplaylist = new FileInfo(Path.Combine(fi.DirectoryName, Path.GetFileNameWithoutExtension(fi.Name) + ".m3u"));
-						using (var stream = outputplaylist.Open(FileMode.Create, FileAccess.Write))
-						using (var writer = new StreamWriter(stream, Encoding.GetEncoding(1252))) {
-							writer.WriteLine("#EXTM3U");
-							foreach (var track in playlistfixed) {
-								writer.WriteLine("#EXTINF:" + track.Length + "," + track.HumanLabel + "\r\n" + track.SongUri.ToString());
-							}
-						}
-						hmmL.Sort((a, b) => b.Cost.CompareTo(a.Cost));
-						toobadL.Sort((a, b) => a.Cost.CompareTo(b.Cost));
-						using (var stream = File.Open("m3ufixer-hmm.log", FileMode.Create, FileAccess.Write))
-						using (var writer = new StreamWriter(stream))
-							foreach (var match in hmmL)
-								writer.WriteLine(match.ToString());
-						using (var stream = File.Open("m3ufixer-toobad.log", FileMode.Create, FileAccess.Write))
-						using (var writer = new StreamWriter(stream))
-							foreach (var match in toobadL)
-								writer.WriteLine(match.ToString());
-
-
-
-
-					}
+					ProcessM3U(tools, m3ufilename, () => { nulls2++; }, toobadL.Add, hmmL.Add, () => { fine++; });
 				} catch (Exception e) {
 					Console.WriteLine(e.ToString());
 					Console.WriteLine("(Press any key to continue)");
 					Console.ReadKey();
 				}
+				Console.WriteLine("Fine: {0}, Rough: {1}, Too bad: {2},  No-match: {3}", fine, hmmL.Count, toobadL.Count, nulls2);
 
 			};
+			hmmL.Sort((a, b) => b.Cost.CompareTo(a.Cost));
+			toobadL.Sort((a, b) => a.Cost.CompareTo(b.Cost));
+			using (var stream = File.Open("m3ufixer-hmm.log", FileMode.Create, FileAccess.Write))
+			using (var writer = new StreamWriter(stream))
+				foreach (var match in hmmL)
+					writer.WriteLine(match.ToString());
+			using (var stream = File.Open("m3ufixer-toobad.log", FileMode.Create, FileAccess.Write))
+			using (var writer = new StreamWriter(stream))
+				foreach (var match in toobadL)
+					writer.WriteLine(match.ToString());
+
 
 			Console.WriteLine("done! (Press any key to close this window)");
 			Console.ReadKey();
 		}
 
+		static void ProcessM3U(LastFmTools tools, string m3ufilename, Action nomatch, Action<SongMatch> toobad, Action<SongMatch> iffy,Action matchfound) {
+			Console.WriteLine("\nprocessing: {0}", m3ufilename);
+			FileInfo fi = new FileInfo(m3ufilename);
+			if (!fi.Exists) {
+				Console.WriteLine("Not found");
+			} else {
+				if (fi.Name.EndsWith("-fixed.m3u")) {
+					string newPath = Path.Combine(
+						fi.Directory.FullName,
+						fi.Name.Substring(0, fi.Name.Length - "-fixed.m3u".Length)
+						+ ".m3u");
+					if (!File.Exists(newPath))
+						fi.MoveTo(newPath);
+				}
+
+				MinimalSongData[] playlistfixed;
+				MinimalSongData[] playlist = LoadExtM3U(fi);
+				playlistfixed = new MinimalSongData[playlist.Length];
+				int idx = 0;
+				foreach (var songMin in playlist) {
+					MinimalSongData decentMatch = null;
+					if (tools.Lookup.dataByPath.ContainsKey(songMin.SongUri.ToString()))
+						decentMatch = tools.Lookup.dataByPath[songMin.SongUri.ToString()];
+					else if (songMin is PartialSongData) {
+						PartialSongData song = (PartialSongData)songMin;
+						SongMatch best = FindBestMatch(tools, song);
+						if (best.SongData == null) {
+
+							best = FindBestMatch2(tools, song);
+							if (best.SongData == null) {
+								Console.WriteLine("XXX:({1}) {0}  ===  {2}\n", NormalizedFileName(song.SongUri.LocalPath), song.length, song.HumanLabel);
+								File.AppendAllText("m3ufixer-err.log", SongMatch.ToString(song));
+								nomatch();
+							} else if (best.Cost > 7.5) {
+								Console.WriteLine("!!!{4}:({2}) {0}\n Is:({3}) {1}\n", NormalizedFileName(song.SongUri.LocalPath) + ": " + song.HumanLabel, NormalizedFileName(best.SongData.SongUri.LocalPath) + ": " + best.SongData.HumanLabel, song.length, best.SongData.Length, best.Cost);
+								toobad(best);
+
+								best = new SongMatch { SongData = null };
+							} else {
+								Console.WriteLine("___:({2}) {0}\n Is:({3}) {1}\n", NormalizedFileName(song.SongUri.LocalPath) + ": " + song.HumanLabel, NormalizedFileName(best.SongData.SongUri.LocalPath) + ": " + best.SongData.HumanLabel, song.length, best.SongData.Length);
+								iffy(best);
+							}
+						} else {
+							matchfound();
+							File.AppendAllText("m3ufixer-ok.log", NormalizedFileName(song.SongUri.LocalPath) + "(" + TimeSpan.FromSeconds(song.Length).ToString() + "): " + song.HumanLabel + "\t==>\t" + NormalizedFileName(best.SongData.SongUri.LocalPath) + "(" + TimeSpan.FromSeconds(best.SongData.Length).ToString() + "): " + best.SongData.HumanLabel + "\n");
+
+							//  Console.WriteLine("Was:({2}) {0}\n Is:({3}) {1}\n", NormalizedFileName(song.SongPath), NormalizedFileName(best.SongPath), song.length, best.Length);
+						}
+
+						decentMatch = best.SongData;
+					} else {
+						SongData[] exactFilenameMatch = tools.DB.Songs.Where(sd => Path.GetFileName(sd.SongUri.ToString()) == Path.GetFileName(songMin.SongUri.ToString())).ToArray();
+						if (exactFilenameMatch.Length == 1)
+							decentMatch = exactFilenameMatch[0];
+					}
+					playlistfixed[idx++] = decentMatch ?? songMin;
+				}
+
+				FileInfo outputplaylist = new FileInfo(Path.Combine(fi.DirectoryName, Path.GetFileNameWithoutExtension(fi.Name) + ".m3u"));
+				using (var stream = outputplaylist.Open(FileMode.Create, FileAccess.Write))
+				using (var writer = new StreamWriter(stream, Encoding.GetEncoding(1252))) {
+					writer.WriteLine("#EXTM3U");
+					foreach (var track in playlistfixed) {
+						writer.WriteLine("#EXTINF:" + track.Length + "," + track.HumanLabel + "\r\n" + track.SongUri.ToString());
+					}
+				}
+			}
+		}
 
 		struct SongMatch
 		{
