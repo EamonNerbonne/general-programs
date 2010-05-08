@@ -71,6 +71,10 @@
       <Project>{1FC71689-B62E-4831-9558-70D1ED971DEC}</Project>
       <Name>EmnExtensions</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\SongSpider\LastFMspider\LastFMspider\LastFMspider.csproj">
+      <Project>{6AFF4733-511B-4EE5-8A5F-6B11A894E0D7}</Project>
+      <Name>LastFMspider</Name>
+    </ProjectReference>
     <ProjectReference Include="..\SongData\SongData.csproj">
       <Project>{171E7F71-DB67-47CA-82BC-C63681BF2733}</Project>
       <Name>SongData</Name>

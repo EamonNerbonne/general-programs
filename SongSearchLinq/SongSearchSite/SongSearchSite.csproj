@@ -40,12 +40,19 @@
     <DebugSymbols>true</DebugSymbols>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>..\Json.NET\Bin\DotNet\Newtonsoft.Json.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core">
       <RequiredTargetFramework>3.5</RequiredTargetFramework>
     </Reference>
     <Reference Include="System.Data" />
     <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="System.Data.SQLite, Version=1.0.65.0, Culture=neutral, PublicKeyToken=db937bc2d44ff139, processorArchitecture=AMD64">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\Sqlite.netBin\x64\System.Data.SQLite.DLL</HintPath>
+    </Reference>
     <Reference Include="System.Drawing" />
     <Reference Include="System.Web.ApplicationServices" />
     <Reference Include="System.Web.DynamicData" />
@@ -114,6 +121,7 @@
     </Compile>
     <Compile Include="PlaylistHandler.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SimilarPlaylist.cs" />
     <Compile Include="SongDbContainer.cs" />
     <Compile Include="SongServeModule.cs" />
   </ItemGroup>
@@ -128,6 +136,10 @@
     <ProjectReference Include="..\..\EmnExtensions\EmnExtensions.csproj">
       <Project>{1FC71689-B62E-4831-9558-70D1ED971DEC}</Project>
       <Name>EmnExtensions</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\SongSpider\LastFMspider\LastFMspider\LastFMspider.csproj">
+      <Project>{6AFF4733-511B-4EE5-8A5F-6B11A894E0D7}</Project>
+      <Name>LastFMspider</Name>
     </ProjectReference>
     <ProjectReference Include="..\HttpHeaderHelper\HttpHeaderHelper.csproj">
       <Project>{74874CAF-777F-4961-AB3D-57BB8B28CDF7}</Project>

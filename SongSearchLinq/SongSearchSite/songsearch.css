@@ -6,14 +6,6 @@
 
 #840 (links)
 */
-#Text1
-{
-    width: 310px;
-}
-#searchquery
-{
-    width: 186px;
-}
 body, html, #form1
 {
     width: 100%;
@@ -26,13 +18,14 @@ body
 {
     font-family: Segoe UI, Lucida Sans Unicode, Lucida Grande, Arial, Sans-Serif;
     font-size: 12pt;
-    overflow:hidden;
+    overflow: hidden;
 }
 
 iframe
 {
     border: 0;
 }
+
 #searchResultDiv
 {
     position: absolute;
@@ -43,8 +36,20 @@ iframe
     border: none;
     padding: 0;
 }
-#shownumber{    width:3em;}
-#searchquery{width:15em;}
+#shownumber
+{
+    width: 3em;
+}
+#searchquery
+{
+    width: 15em;
+}
+#similar ul {display:block;margin:0;padding:0;}
+#similar li {display:block; font-size:10pt;}
+#similar .unknown {float:left;width:35%; color:#ccc;}
+#similar .known {float:right;width:60%;}
+#similar .known li {cursor:pointer;border-bottom:1px solid #e2eeea}
+
 
 .searchSect
 {
@@ -57,20 +62,37 @@ iframe
     height: 5em;
     padding: 0.5em;
     background: #c4ddd5;
-    white-space:nowrap;
-    overflow:hidden;
+    white-space: nowrap;
+    overflow: hidden;
 }
 
-#optionsBox 
+.processing
 {
-    max-width:33em;
-    padding:0.5em;
-    margin:0.5em;
-    border:1px solid #e2eeea;
+    background:#ddd;
+    color:#333;
 }
-#optionsBox table 
+
+#optionsBox
 {
-    font-size:10pt;
+    max-width: 33em;
+    padding: 0.5em;
+    margin: 0.5em;
+    border: 1px solid #e2eeea;
+}
+#optionsBox table
+{
+    font-size: 10pt;
+}
+
+.leftCol
+{
+    position: absolute;
+    left: 0;
+    width: 36em;
+    bottom: 50%;
+    top: 0;
+    margin-bottom: 6em;
+    overflow-y:auto;
 }
 
 .playerSect
@@ -82,36 +104,44 @@ iframe
     top: 0;
     padding: 0;
     margin: 0;
-    width:auto;
+    width: auto;
 }
-.jp-playlist-player 
+.jp-playlist-player
 {
-    position:absolute;
-    bottom:0;
-    left:0;
-    right:0;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
 }
-.jp-playlist 
+.jp-playlist
 {
-    position:absolute;
-    top:0;
-    bottom:3.5em;
-    left:0;
-    right:0;
-    padding:0;
-    margin:0;
+    position: absolute;
+    top: 0;
+    bottom: 3.5em;
+    left: 0;
+    right: 0;
+    padding: 0;
+    margin: 0;
 }
-.jp-playlist ul 
+.jp-playlist ul
 {
-    left:0;
-    right:0;
-    position:absolute;
-    max-height:100%;
-    bottom:0;
-    overflow-y:auto;
+    left: 0;
+    right: 0;
+    position: absolute;
+    max-height: 100%;
+    bottom: 0;
+    overflow-y: auto;
 }
 
-.deleteButton {color:Red;font-weight:bold; float:right; padding:0 0.5em; background:#ccc; font-style:normal;}
+.deleteButton
+{
+    color: Red;
+    font-weight: bold;
+    float: right;
+    padding: 0 0.5em;
+    background: #ccc;
+    font-style: normal;
+}
 
 .searchSect a
 {
@@ -182,4 +212,7 @@ td
     padding: 0;
 }
 
-.OptionsBuilder-uninitialized {display:none;}
+.OptionsBuilder-uninitialized
+{
+    display: none;
+}

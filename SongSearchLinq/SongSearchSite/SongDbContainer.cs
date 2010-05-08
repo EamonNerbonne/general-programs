@@ -10,6 +10,7 @@ using System.Globalization;
 using System.IO;
 using System.Threading;
 using System.Diagnostics;
+using LastFMspider;
 
 namespace SongSearchSite
 {
@@ -65,10 +66,11 @@ namespace SongSearchSite
 		}
 		SearchableSongDB searchEngine;
 		SongDB db;
+		LastFmTools tools;
+		FuzzySongSearcher fuzzySearcher;
 
 		Dictionary<string, ISongData> localSongs = new Dictionary<string, ISongData>();
 		object syncroot = new object();
-		object initLock = new object();
 		FileSystemWatcher fsWatcher;
 		public void Dispose() {
 			if (fsWatcher != null)
@@ -78,25 +80,20 @@ namespace SongSearchSite
 		bool isFresh;
 
 		private void Init() {
-			lock (initLock) {
+			lock (syncroot) {
 				if (isFresh)
 					return;
 				isFresh = true;
 				SongDatabaseConfigFile dcf = new SongDatabaseConfigFile(true);
-				List<ISongData> tmpSongs = new List<ISongData>();
-				dcf.Load(delegate(ISongData aSong, double ratio) {
-					tmpSongs.Add(aSong);
-				});
-				var new_db = new SongDB(tmpSongs);
-				tmpSongs = null;
-				var new_localSongs = new_db.songs.Where(s => s.IsLocal).ToDictionary(song => NormalizeSongPath(song));
-				var new_searchEngine = new SearchableSongDB(new_db, new SuffixTreeSongSearcher());
+				tools = new LastFmTools(dcf);
+				 
 
-				lock (syncroot) {
-					db = new_db;
-					localSongs = new_localSongs;
-					searchEngine = new_searchEngine;
-				}
+				db = new SongDB(tools.DB.Songs);
+				fuzzySearcher = new FuzzySongSearcher(tools);
+
+				localSongs = db.songs.Where(s => s.IsLocal).ToDictionary(song => NormalizeSongPath(song));
+				searchEngine = new SearchableSongDB(db, new SuffixTreeSongSearcher());
+
 
 				if (fsWatcher == null) {
 					fsWatcher = new FileSystemWatcher {
@@ -126,6 +123,9 @@ namespace SongSearchSite
 
 		private SongDbContainer() { Init(); }
 		public static SearchableSongDB SearchableSongDB { get { var sdc = Singleton; lock (sdc.syncroot) return sdc.searchEngine; } }
+		public static FuzzySongSearcher FuzzySongSearcher { get { var sdc = Singleton; lock (sdc.syncroot) return sdc.fuzzySearcher; } }
+		public static LastFmTools LastFmTools { get { var sdc = Singleton; lock (sdc.syncroot) return sdc.tools; } }
+
 		/// <summary>
 		/// Determines whether a given path maps to an indexed, local song.  If it doesn't, it returns null.  If it does, it returns the meta data known about the song, including the song's "real" path.
 		/// </summary>
@@ -141,5 +141,20 @@ namespace SongSearchSite
 				retval = null;//not really necessary.
 			return retval;
 		}
+
+		/// <summary>
+		/// Determines whether a given path maps to an indexed, local song.  If it doesn't, it returns null.  If it does, it returns the meta data known about the song, including the song's "real" path.
+		/// </summary>
+		/// <param name="path">Application relative request path</param>
+		/// <returns></returns>
+		const string servePrefix = "~/songs/";
+		public static ISongData GetSongFromFullUri(string reqPath) {
+			if (!reqPath.StartsWith(servePrefix))
+				throw new Exception("Whoops, illegal request routing...  this should not be routed to this class!");
+
+			string songNormedPath = reqPath.Substring(servePrefix.Length);
+			return GetSongByNormalizedPath(songNormedPath);
+		}
+
 	}
 }

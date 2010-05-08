@@ -1,12 +1,17 @@
 ﻿
 $(document).ready(function ($) {
     function GetExtension(url) {
+        var qIdx = url.indexOf("?");
+        if (qIdx != -1) url = url.substring(0, qIdx);
+        var hIdx = url.indexOf("#");
+        if (hIdx != -1) url = url.substring(0, hIdx);
+        url = decodeURIComponent(url);
         dotIdx = url.lastIndexOf(".");
         if (dotIdx == -1) return null;
         else return url.substring(dotIdx);
     }
 
-    function GuessMime(extension) {
+    function GuessMimeFromExtension(extension) {
         if (extension)
             switch (extension.toLowerCase()) {
             case ".mp3": return "audio/mpeg";
@@ -19,6 +24,8 @@ $(document).ready(function ($) {
         }
         return null;
     }
+
+    function UriToMime(uri) { return GuessMimeFromExtension(GetExtension(uri)); }
 
     var playListItem = null;
 
@@ -83,6 +90,8 @@ $(document).ready(function ($) {
             playListDelete(clickedListItem);
         else playListChange(clickedListItem);
     }
+
+
     var playListElem = null;
 
     $("#jquery_jplayer").jPlayer({
@@ -91,6 +100,7 @@ $(document).ready(function ($) {
                     .appendTo($("#jplayer_playlist").empty())
                     .click(playlistClick)
                     .sortable().disableSelection();
+            $("#similar .known").click(knownClick);
         },
         oggSupport: true,
         swfPath: ""
@@ -129,28 +139,54 @@ $(document).ready(function ($) {
         playListElem.empty();
         playListElem.sortable("refresh");
     }
+
     function loadPlaylist(list) {
         emptyPlaylist();
         for (i = 0; i < list.length; i++)
-            addToPlaylist(list[i]);
+            addToPlaylistRaw(list[i]);
+        playlistRefreshUi();
     }
     function savePlaylist() {
         return $("#jplayer_playlist ul li").map(function (i, e) { return $(e).data("songdata"); }).get();
     }
 
     function makeListItem(song) {
-        return $(document.createElement("li")).text(song.name).data("songdata", song).append(
+        return $(document.createElement("li")).text(song.label).data("songdata", song).append(
             $(document.createElement("div")).text("x").addClass("deleteButton")
         );
     }
 
     function addToPlaylist(song) {
+        var shouldStart = playListElem.children().length == 0;
+        addToPlaylistRaw(song);
+        if (shouldStart) playListChange($("#jplayer_playlist ul li")[0]);
+        playlistRefreshUi();
+    }
+
+    function playlistRefreshUi() {
+        playListElem.sortable("refresh");
+        userOptions.saver.setValue(JSON.stringify(savePlaylist()));
+        getSimilar();
+    }
+
+    function getSimilar() {
+        $("#similar").addClass("processing");
+        $.post("similar-to", { playlist: JSON.stringify(savePlaylist()) }, function (data) {
+            var known = data.known, unknown = data.unknown;
+            var knownEl = $("#similar .known").empty(), unknownEl = $("#similar .unknown").empty();
+            for (var i = 0; i < unknown.length; i++) {
+                unknownEl.append($(document.createElement("li")).text(unknown[i]));
+            }
+            for (var i = 0; i < known.length; i++) {
+                $(document.createElement("li")).text(known[i].label).data("songdata", known[i]).appendTo(knownEl);
+            }
+            $("#similar").removeClass("processing");
+        });
+    }
+
+    function addToPlaylistRaw(song) {
         var listItem = makeListItem(song);
         listItem.appendTo(playListElem);
-        playListElem.sortable("refresh");
-        if (playListElem.children().length == 1)
-            playListChange(listItem[0]);
-        userOptions.saver.setValue(JSON.stringify(savePlaylist()));
     }
 
     function playListConfig(listItem) {
@@ -160,7 +196,8 @@ $(document).ready(function ($) {
         if (playListItem) {
             $(playListItem).addClass("jplayer_playlist_current");
             hasBeenNotified = false;
-            $("#jquery_jplayer").jPlayer("loadSong", $(playListItem).data("songdata").uris);
+            var songHref = $(playListItem).data("songdata").href;
+            $("#jquery_jplayer").jPlayer("loadSong", [{ type: UriToMime(songHref), src: songHref}]);
         }
     }
 
@@ -170,6 +207,7 @@ $(document).ready(function ($) {
         if (playListItem)
             $("#jquery_jplayer").jPlayer("play");
     }
+
     function playListDelete(listItem) {
         if (listItem == playListItem)
             playListChange(null);
@@ -180,16 +218,20 @@ $(document).ready(function ($) {
 
     function playListPrev() { playListChange($(playListItem).prev()[0]); }
 
+    function knownClick(e) {
+        if (!e) var e = window.event;
+        var target = e.target || e.srcElement;
+        var clickedListItem = $(target).parents().andSelf().filter("li").first();
+        addToPlaylist(clickedListItem.data("songdata"));
+    }
+
     window.SearchListClicked = function SearchListClicked_impl(e) {
         if (!e) var e = window.event;
         var target = e.target || e.srcElement;
         var clickedRow = $(target).parents("tr");
         if (clickedRow.length != 1)
             return;
-        var songUri = clickedRow.attr("data-href");
-        var songLabel = clickedRow.attr("data-songlabel");
-        var songType = GuessMime(GetExtension(songUri));
-        addToPlaylist({ name: songLabel, uris: [{ type: songType, src: songUri}] });
+        addToPlaylist({ label: clickedRow.attr("data-label"), href: clickedRow.attr("data-href"), length: clickedRow.attr("data-length") });
     };
 });
 

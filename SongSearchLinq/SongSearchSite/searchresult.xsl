@@ -32,8 +32,9 @@
         </table>
       </body>
       <script type="text/javascript">
-
+        ( function () {
         document.getElementById("listdata").addEventListener('click', parent.SearchListClicked, true);
+        })();
       </script>
     </html>
   </xsl:template>
@@ -51,20 +52,19 @@
         <xsl:with-param name="num" select="$num - 1"/>
       </xsl:call-template>
     </xsl:if>
-
   </xsl:template>
 
   <xsl:template match="partsong|songref|song">
     <xsl:variable name="songlabel">
       <xsl:apply-templates select="." mode="makelabel" />
     </xsl:variable>
-    <tr data-href="{@songuri}" data-songlabel="{$songlabel}">
+    <tr data-href="{@songuri}" data-label="{$songlabel}" data-length="{@length}">
       <xsl:choose>
-        <xsl:when test="@performer">
+        <xsl:when test="@artist">
           <td>
             <div>
               <span>
-                <xsl:value-of select="@performer"/>
+                <xsl:value-of select="@artist"/>
               </span>
               <i>
                 <i>
@@ -156,8 +156,8 @@
 
   <xsl:template match="partsong|songref|song" mode="makelabel">
     <xsl:choose>
-      <xsl:when test="@performer">
-        <xsl:value-of select="concat(@performer,' - ',@title)"/>
+      <xsl:when test="@artist">
+        <xsl:value-of select="concat(@artist,' - ',@title)"/>
       </xsl:when>
       <xsl:otherwise>
         <xsl:value-of select="@label"/>

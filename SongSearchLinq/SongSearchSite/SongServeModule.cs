@@ -74,16 +74,11 @@ namespace SongSearchSite {
 		public void ProcessingStart() { }
 
 		public PotentialResourceInfo DetermineResource() {
-			string reqPath = helper.Context.Request.AppRelativeCurrentExecutionFilePath;
-			if (!reqPath.StartsWith(prefix))
-				throw new Exception("Whoops, illegal request routing...  this should not be routed to this class!");
-
-			string songNormedPath = reqPath.Substring(prefix.Length);
-			song = SongDbContainer.GetSongByNormalizedPath(songNormedPath);
+			song = SongDbContainer.GetSongFromFullUri(helper.Context.Request.AppRelativeCurrentExecutionFilePath);
 			if (song == null)
 				return new ResourceError() {
 					Code = 404,
-					Message = "Could not find file '" + songNormedPath + "'.  Path is not indexed."
+					Message = "Could not find file '" + helper.Context.Request.AppRelativeCurrentExecutionFilePath + "'.  Path is not indexed."
 				};
 
 			FileInfo fi = new FileInfo(song.SongUri.LocalPath);
@@ -91,7 +86,7 @@ namespace SongSearchSite {
 			if (!fi.Exists)
 				return new ResourceError() {
 					Code = 404,
-					Message = "Could not find file '" + song.SongUri + "' even though it's indexed as '" + songNormedPath + "'. Sorry.\n"
+					Message = "Could not find file '" + song.SongUri + "' even though it's indexed as '" + helper.Context.Request.AppRelativeCurrentExecutionFilePath + "'. Sorry.\n"
 				};
 
 			if (fi.Length > Int32.MaxValue)

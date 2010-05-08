@@ -18,7 +18,7 @@ namespace SongDataLib {
 	/// Represent all relevent meta-data about a Song.  If this data can't be determined, use PartialSongData instead.
 	/// </summary>
 	public class SongData : MinimalSongData {
-		public string title, performer, composer, album, comment, genre;
+		public string title, artist, composer, album, comment, genre;
 		public int year, track, trackcount, bitrate, length, samplerate, channels;
 		public int? rating;
 		DateTime m_lastWriteTime;
@@ -33,7 +33,7 @@ namespace SongDataLib {
 			TagLib.File file;
 			file = TagLib.File.Create(fileObj.FullName);
 			title = toSafeString(file.Tag.Title);
-			performer = toSafeString(file.Tag.JoinedPerformers);
+			artist = toSafeString(file.Tag.JoinedPerformers);
 			composer = toSafeString(file.Tag.JoinedComposers);
 			album = toSafeString(file.Tag.Album);
 			comment = toSafeString(file.Tag.Comment);
@@ -68,13 +68,13 @@ namespace SongDataLib {
 		}
 
 		//faster to not recreate XNames.
-		static XName songN = "song", titleN = "title", performerN = "performer", composerN = "composer", albumN = "album", commentN = "comment", genreN = "genre", yearN = "year", trackN = "track", trackcountN = "trackcount", bitrateN = "bitrate", lengthN = "length", samplerateN = "samplerate", channelsN = "channels", lastmodifiedTicksN = "lastmodifiedTicks", ratingN = "rating";
+		static XName songN = "song", titleN = "title", artistN="artist", performerN = "performer", composerN = "composer", albumN = "album", commentN = "comment", genreN = "genre", yearN = "year", trackN = "track", trackcountN = "trackcount", bitrateN = "bitrate", lengthN = "length", samplerateN = "samplerate", channelsN = "channels", lastmodifiedTicksN = "lastmodifiedTicks", ratingN = "rating";
 
 		internal SongData(XElement from, bool? isLocal)
 			: base(from, isLocal) {
 			title = (string)from.Attribute(titleN);
 
-			performer = (string)from.Attribute(performerN);
+			artist = (string)from.Attribute(artistN) ?? (string)from.Attribute(performerN);
 			composer = (string)from.Attribute(composerN);
 			album = (string)from.Attribute(albumN);
 			comment = (string)from.Attribute(commentN);
@@ -97,7 +97,7 @@ namespace SongDataLib {
 			return new XElement(songN,
 				 makeUriAttribute(urlTranslator),
 				 MakeAttributeOrNull(titleN, title),
-				 MakeAttributeOrNull(performerN, performer),
+				 MakeAttributeOrNull(artistN, artist),
 				//TODO rename to NperformerN, this is just legacy support
 				 MakeAttributeOrNull(composerN, composer),
 				 MakeAttributeOrNull(albumN, album),
@@ -119,7 +119,7 @@ namespace SongDataLib {
 			get {
 				yield return Uri.UnescapeDataString(SongUri.ToString());
 				yield return title;
-				yield return performer;
+				yield return artist;
 				yield return composer;
 				yield return album;
 				//yield return comment;
@@ -137,7 +137,7 @@ namespace SongDataLib {
 					return base.HumanLabel;
 				else {
 					return
-						(performer != null ? performer.TrimEnd() + " - " : "") +
+						(artist != null ? artist.TrimEnd() + " - " : "") +
 						title.TrimEnd();
 				}
 			}
