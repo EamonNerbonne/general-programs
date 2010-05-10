@@ -10,10 +10,11 @@
       <body>
         <table>
           <colgroup>
-            <col/>
+            <col  />
             <col />
-            <col align="right" style="width:2em; text-align:right;" />
+            <col />
             <col align="char" char=":" style="width:3em"/>
+            <col align="right" style="width:2em; text-align:right;" />
             <col />
           </colgroup>
           <thead>
@@ -54,6 +55,25 @@
     </xsl:if>
   </xsl:template>
 
+  <xsl:template name="stringEllipses">
+    <xsl:param name="str"/>
+    <div>
+      <span>
+        <xsl:value-of select="$str"/>
+      </span>
+      <i>
+        <i>
+          ............ ?<br/>............ ?<br/>............ ?
+        </i>
+      </i>
+    </div>
+  </xsl:template>
+
+  <xsl:template name="stringNoEllipses">
+    <xsl:param name="str"/>
+    <xsl:value-of select="$str"/>
+  </xsl:template>
+
   <xsl:template match="partsong|songref|song">
     <xsl:variable name="songlabel">
       <xsl:apply-templates select="." mode="makelabel" />
@@ -62,28 +82,14 @@
       <xsl:choose>
         <xsl:when test="@artist">
           <td>
-            <div>
-              <span>
-                <xsl:value-of select="@artist"/>
-              </span>
-              <i>
-                <i>
-                  ............ ?<br/>............ ?<br/>............ ?
-                </i>
-              </i>
-            </div>
+            <xsl:call-template name="stringNoEllipses">
+              <xsl:with-param name="str" select="@artist"/>
+            </xsl:call-template>
           </td>
           <td>
-            <div>
-              <span>
-                <xsl:value-of select="@title"/>
-              </span>
-              <i>
-                <i>
-                  ............ ?<br/>............ ?<br/>............ ?
-                </i>
-              </i>
-            </div>
+            <xsl:call-template name="stringNoEllipses">
+              <xsl:with-param name="str" select="@title"/>
+            </xsl:call-template>
           </td>
           <td>
             <xsl:if test="@rating">
@@ -92,45 +98,24 @@
               </xsl:call-template>
             </xsl:if>
           </td>
-          <td>
-            <div style="text-align:right;margin-right:0.5em;">
-              <span>
-                <xsl:value-of select="concat(number(floor(number(@length) div 60)),':',substring('0',floor(number(@length) mod 60 div 10) +1), string(number(@length) mod 60))"/>
-              </span>
-              <i>
-                <i>
-                  ............ ?<br/>............ ?<br/>............ ?
-                </i>
-              </i>
-            </div>
+          <td  style="text-align:right;padding-right:0.5em;">
+            <xsl:call-template name="stringNoEllipses">
+              <xsl:with-param name="str" select="concat(number(floor(number(@length) div 60)),':',substring('0',floor(number(@length) mod 60 div 10) +1), string(number(@length) mod 60))"/>
+            </xsl:call-template>
+          </td>
+          <td  style="text-align:right;padding-right:0.5em;">
+            <xsl:call-template name="stringNoEllipses">
+              <xsl:with-param name="str" select="@track"/>
+            </xsl:call-template>
           </td>
           <td>
-            <div style="text-align:right;margin-right:0.5em;">
-              <span>
-                <xsl:value-of select="@track"/>
-              </span>
-              <i>
-                <i>
-                  ............ ?<br/>............ ?<br/>............ ?
-                </i>
-              </i>
-            </div>
-          </td>
-          <td>
-            <div>
-              <span>
-                <xsl:value-of select="@album"/>
-              </span>
-              <i>
-                <i>
-                  ............ ?<br/>............ ?<br/>............ ?
-                </i>
-              </i>
-            </div>
+            <xsl:call-template name="stringNoEllipses">
+              <xsl:with-param name="str" select="@album"/>
+            </xsl:call-template>
           </td>
         </xsl:when>
         <xsl:otherwise>
-          <td colspan="5" >
+          <td colspan="6" >
             <xsl:choose>
               <xsl:when test="string-length(@label) &gt; 0">
                 <xsl:value-of select="@label"/>
