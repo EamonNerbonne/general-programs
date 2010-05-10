@@ -27,50 +27,54 @@
                 return false;
         return true;
     }
+    function passToHandler(func) {
+        return function () {
+            if (this.handlers.current)
+                func.apply(this, $.merge([this.handlers[this.handlers.current]], arguments));
+        };
+    }
+    function trycatch(func, onerr) {
+        return function () {
+            try {
+                return func.apply(this, arguments);
+            } catch (err) { return onerr(err); }
+        };
+    }
 
-    // Adapted from ui.core.js (1.7.2)
-    function getter(plugin, method, args) {
-        function getMethods(type) {
-            var methods = $[plugin][type] || [];
-            return (typeof methods == 'string' ? methods.split(/,?\s+/) : methods);
-        }
-        var methods = getMethods('getter');
-        return ($.inArray(method, methods) != -1);
-    }
-    function limitValue(value, min, max) {
-        return (value < min) ? min : ((value > max) ? max : value);
-    }
+    function limitValue(value, min, max) { return Math.min(Math.max(min, value), max); }
+
+    var validGetters = ["jPlayerOnProgressChange", "jPlayerOnSoundComplete", "jPlayerVolume", "jPlayerReady", "getData", "jPlayerController"];
     // Adapted from ui.core.js (1.7.2) $.widget() "create plugin method"
     // $.data() info at http://docs.jquery.com/Internals/jQuery.data
-    $.fn.jPlayer = function (options) {
+    $.fn.jPlayer = function (member) {
 
-        var name = "jPlayer";
-        var isMethodCall = (typeof options == 'string');
+        var pluginName = "jPlayer";
+        var isMethodCall = (typeof member == 'string');
         var args = Array.prototype.slice.call(arguments, 1);
 
         // prevent calls to internal methods
-        if (isMethodCall && options.substring(0, 1) == '_') {
+        if (isMethodCall && member.substring(0, 1) == '_') {
             return this;
         }
+        var isGetter = isMethodCall && -1 != $.inArray(member, validGetters);
 
         // handle getter methods
-        if (isMethodCall && getter(name, options, args)) {
-            var instance = $.data(this[0], name);
-            return (instance ? instance[options].apply(instance, args) : undefined);
+        if (isGetter) {
+            var instance = $.data(this[0], pluginName);
+            return instance && instance[member].apply(instance, args);
         }
 
         // handle initialization and non-getter methods
         return this.each(function () {
-            var instance = $.data(this, name);
+            var instance = $.data(this, pluginName);
 
             // constructor
             if (!instance && !isMethodCall) {
-                $.data(this, name, new $[name](this, options))._init();
+                $.data(this, pluginName, new $[pluginName](this, member))._init();
             }
 
             // method call
-            (instance && isMethodCall && $.isFunction(instance[options]) &&
-				instance[options].apply(instance, args));
+            instance && isMethodCall && $.isFunction(instance[member]) && instance[member].apply(instance, args);
         });
     };
 
@@ -78,8 +82,6 @@
         this.options = $.extend({}, options);
         this.element = $(element);
     };
-
-    $.jPlayer.getter = "jPlayerOnProgressChange jPlayerOnSoundComplete jPlayerVolume jPlayerReady getData jPlayerController";
 
     $.jPlayer.defaults = {
         cssPrefix: "jqjp",
@@ -101,7 +103,7 @@
         bgcolor: "#ffffff"
     };
 
-    $.jPlayer._config = {
+    var _configOverride = {
         version: "1.1.0",
         swfVersionRequired: "1.1.0",
         swfVersion: "unknown",
@@ -111,7 +113,7 @@
         isFileSet: false
     };
 
-    $.jPlayer._diag = {
+    var _diagInit = {
         isPlaying: false,
         src: "",
         loadPercent: 0,
@@ -121,7 +123,7 @@
         totalTime: 0
     };
 
-    $.jPlayer._cssId = {
+    var _cssIdDefaultsForActions = {
         play: "jplayer_play",
         pause: "jplayer_pause",
         stop: "jplayer_stop",
@@ -133,7 +135,7 @@
         volumeBarValue: "jplayer_volume_bar_value"
     };
 
-    $.jPlayer.count = 0;
+    var instanceCount = 0;
 
     $.jPlayer.timeFormat = {
         showHour: false,
@@ -158,21 +160,14 @@
         return (($.jPlayer.timeFormat.showHour) ? strHour + $.jPlayer.timeFormat.sepHour : "") + (($.jPlayer.timeFormat.showMin) ? strMin + $.jPlayer.timeFormat.sepMin : "") + (($.jPlayer.timeFormat.showSec) ? strSec + $.jPlayer.timeFormat.sepSec : "");
     };
 
-    function passToHandler(func) {
-        return function () {
-            if (this.handlers.current) {
-                func.apply(this, $.merge([this.handlers[this.handlers.current]], arguments));
-            }
-        };
-    }
 
     $.jPlayer.prototype = {
         _init: function () {
             var self = this;
             var element = this.element;
 
-            this.config = $.extend({}, $.jPlayer.defaults, this.options, $.jPlayer._config);
-            this.config.diag = $.extend({}, $.jPlayer._diag);
+            this.config = $.extend({}, $.jPlayer.defaults, this.options, _configOverride);
+            this.config.diag = $.extend({}, _diagInit);
             this.config.cssId = {};
             this.config.cssSelector = {};
             this.config.cssDisplay = {};
@@ -183,14 +178,14 @@
             $.extend(this.config, {
                 id: this.element.attr("id"),
                 swf: this.config.swfPath + ((this.config.swfPath != "" && this.config.swfPath.slice(-1) != "/") ? "/" : "") + "Jplayer.swf",
-                fid: this.config.cssPrefix + "_flash_" + $.jPlayer.count,
-                aid: this.config.cssPrefix + "_audio_" + $.jPlayer.count,
-                hid: this.config.cssPrefix + "_force_" + $.jPlayer.count,
-                i: $.jPlayer.count,
+                fid: this.config.cssPrefix + "_flash_" + instanceCount,
+                aid: this.config.cssPrefix + "_audio_" + instanceCount,
+                hid: this.config.cssPrefix + "_force_" + instanceCount,
+                i: instanceCount,
                 volume: limitValue(this.config.volume, 0, 100)
             });
 
-            $.jPlayer.count++;
+            instanceCount++;
 
             if (this.config.ready != undefined) {
                 if ($.isFunction(this.config.ready)) {
@@ -270,13 +265,6 @@
                 }
             };
 
-            function trycatch(func, onerr) {
-                return function () {
-                    try {
-                        return func.apply(this, arguments);
-                    } catch (err) { return onerr(err); }
-                };
-            }
 
             for (var handlerName in handlers.flash) handlers.flash[handlerName] = trycatch(handlers.flash[handlerName], self._flashError);
 
@@ -380,7 +368,7 @@
             };
 
             var audioTypes = ["audio/ogg", "application/ogg", "audio/mpeg"];
-            var backends = ["flash", "html5"]; //chrome's mp3 streaming support isn't too stellar; prefer flash.
+            var backends = ["html5", "flash"]; //chrome's mp3 streaming support isn't too stellar; prefer flash.
             var support = {};
             $.each(audioTypes, function (i, audioType) {
                 support[audioType] = $.grep(backends, function (backend, j) {
@@ -388,7 +376,8 @@
                 });
             });
 
-            $.extend(this.config, { support: support, aSel: $("#" + this.config.aid) });
+            this.config.support = support;
+            this.config.aSel = $("#" + this.config.aid);
 
             var usingBackends = {};
             $.each(
@@ -450,7 +439,7 @@
             }
 
             if (!this.config.customCssIds) {
-                $.each($.jPlayer._cssId, function (name, id) {
+                $.each(_cssIdDefaultsForActions, function (name, id) {
                     self.cssId(name, id);
                 });
             }
@@ -509,7 +498,7 @@
         cssId: function (fn, id) {
             if (typeof id != 'string')
                 this._warning("cssId CSS Id must be a string\n\njPlayer('cssId', '" + fn + "', " + id + ")");
-            else if (!$.jPlayer._cssId[fn])
+            else if (!_cssIdDefaultsForActions[fn])
                 this._warning("Unknown/Illegal function in cssId\n\njPlayer('cssId', '" + fn + "', '" + id + "')");
             else {
                 if (this.config.cssId[fn] != undefined)
