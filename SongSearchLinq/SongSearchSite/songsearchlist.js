@@ -1,14 +1,25 @@
 ﻿
 $(document).ready(function ($) {
-    function GetExtension(url) {
+    function StripUriQueryHash(url) {
         var qIdx = url.indexOf("?");
         if (qIdx != -1) url = url.substring(0, qIdx);
         var hIdx = url.indexOf("#");
         if (hIdx != -1) url = url.substring(0, hIdx);
-        url = decodeURIComponent(url);
+        return url;
+    }
+    function GetExtension(url) {
+        url = decodeURIComponent(StripUriQueryHash(url));
         dotIdx = url.lastIndexOf(".");
         if (dotIdx == -1) return null;
         else return url.substring(dotIdx);
+    }
+    function GetFileName(url) {
+        url = decodeURIComponent(StripUriQueryHash(url));
+        var dotIdx = url.lastIndexOf(".");
+        if (dotIdx != -1) url = url.substring(0, dotIdx);
+        var slashIdx = url.lastIndexOf("/");
+        if (slashIdx != -1) url = url.substring(slashIdx);
+        return url;
     }
 
     function GuessMimeFromExtension(extension) {
@@ -32,16 +43,12 @@ $(document).ready(function ($) {
     var useNotifications = window.webkitNotifications && window.webkitNotifications.checkPermission() == 0;
     var hasBeenNotified = false;
     var userOptions = {
-        saver: {
-            label: "Save",
-            type: "textbox",
-            initialValue: ""
-        },
-        loader: {
-            label: "Load",
+        serializedList: {
+            label: "Serialized Playlist",
             type: "textbox",
             initialValue: "",
-            onchange: function (newval, e) {
+            onchange: function (newval, codeTriggered, e) {
+                if (codeTriggered) return;
                 var val = false;
                 try { val = JSON.parse(newval) } catch (e) { }
                 if (val) loadPlaylist(val);
@@ -54,7 +61,7 @@ $(document).ready(function ($) {
             label: "Desktop Notification",
             type: "checkbox",
             initialValue: useNotifications,
-            onchange: function (newval, e) {
+            onchange: function (newval, codeTriggered, e) {
                 if (newval && window.webkitNotifications.checkPermission() != 0) {
                     var opt = this;
                     window.webkitNotifications.requestPermission(function () { useNotifications = window.webkitNotifications.checkPermission() == 0; opt.setValue(useNotifications); });
@@ -66,12 +73,8 @@ $(document).ready(function ($) {
     }
     if (!$.isEmptyObject(userOptions)) {
         $("#optionsBox").OptionsBuilder(userOptions);
-        userOptions.saver.element.focus(function () {
-            userOptions.saver.setValue(JSON.stringify(savePlaylist()));
-            userOptions.saver.element.select();
-        });
-        userOptions.loader.element.focus(function () {
-            userOptions.loader.element.select();
+        userOptions.serializedList.element.focus(function () {
+            userOptions.serializedList.element.select();
         });
     }
 
@@ -92,12 +95,14 @@ $(document).ready(function ($) {
     }
 
 
+
+    var playlistContainer = $("#jplayer_playlist");
     var playListElem = null;
 
     $("#jquery_jplayer").jPlayer({
         ready: function () {
             playListElem = $(document.createElement("ul"))
-                    .appendTo($("#jplayer_playlist").empty())
+                    .appendTo(playlistContainer.empty())
                     .click(playlistClick)
                     .sortable().disableSelection();
             $("#similar .known").click(knownClick);
@@ -137,13 +142,15 @@ $(document).ready(function ($) {
     function emptyPlaylist() {
         playListChange(null);
         playListElem.empty();
-        playListElem.sortable("refresh");
+        playlistRefreshUi();
     }
 
     function loadPlaylist(list) {
-        emptyPlaylist();
+        playListElem.empty();
         for (i = 0; i < list.length; i++)
             addToPlaylistRaw(list[i]);
+        if (list.length > 0) playListChange($("#jplayer_playlist ul li")[0]);
+        else $("#jquery_jplayer").jPlayer("stop");
         playlistRefreshUi();
     }
     function savePlaylist() {
@@ -156,37 +163,93 @@ $(document).ready(function ($) {
         );
     }
 
+    function addToPlaylistRaw(song) {
+        var listItem = makeListItem(song);
+        listItem.appendTo(playListElem);
+        return listItem[0];
+    }
+
+
     function addToPlaylist(song) {
         var shouldStart = playListElem.children().length == 0;
-        addToPlaylistRaw(song);
-        if (shouldStart) playListChange($("#jplayer_playlist ul li")[0]);
+        var newItem = addToPlaylistRaw(song);
         playlistRefreshUi();
+        if (shouldStart) playListChange(newItem);
+        else scrollIntoMiddleView(newItem);
     }
 
     function playlistRefreshUi() {
         playListElem.sortable("refresh");
-        userOptions.saver.setValue(JSON.stringify(savePlaylist()));
-        getSimilar();
+        userOptions.serializedList.setValue(JSON.stringify(savePlaylist()));
+        simStateSet.getting();
     }
 
-    function getSimilar() {
-        $("#similar").addClass("processing");
-        $.post("similar-to", { playlist: JSON.stringify(savePlaylist()) }, function (data) {
-            var known = data.known, unknown = data.unknown;
-            var knownEl = $("#similar .known").empty(), unknownEl = $("#similar .unknown").empty();
-            for (var i = 0; i < unknown.length; i++) {
-                unknownEl.append($(document.createElement("li")).text(unknown[i]));
+    var isGetQueued = false;
+    var leftColSel = $(".leftCol"), knownSel = $("#similar .known"), unknownSel = $("#similar .unknown");
+    var simStateSet = {
+        getting: function () {
+            if (simStateSet.current == "getting")
+                isGetQueued = true;
+            else {
+                isGetQueued = false;
+                simStateSet.current = "getting";
+                leftColSel.removeClass("proc-error");
+                leftColSel.addClass("processing");
+                getSimilarImpl();
             }
-            for (var i = 0; i < known.length; i++) {
-                $(document.createElement("li")).text(known[i].label).data("songdata", known[i]).appendTo(knownEl);
+        },
+        done: function () {
+            if (simStateSet.current == "done") return;
+            simStateSet.current = "done";
+            leftColSel.removeClass("proc-error");
+            leftColSel.removeClass("processing");
+            if (isGetQueued)
+                simStateSet.getting();
+        },
+        error: function () {
+            if (simStateSet.current == "error") return;
+            simStateSet.current = "error";
+            leftColSel.addClass("proc-error");
+            leftColSel.removeClass("processing");
+            if (isGetQueued)
+                simStateSet.getting();
+        },
+        current: "done"
+    }
+
+    function getSimilarImpl() {
+        $.ajax({
+            type: "POST",
+            url: "similar-to",
+            data: { playlist: JSON.stringify(savePlaylist()) },
+            timeout: 10000,
+            success: function (data) {
+                var known = data.known, unknown = data.unknown;
+                unknownSel.empty();
+                for (var i = 0; i < unknown.length; i++)
+                    unknownSel.append($(document.createElement("li")).text(unknown[i]));
+                knownSel.empty();
+                for (var i = 0; i < known.length; i++)
+                    knownSel.append($(document.createElement("li")).text(known[i].label).data("songdata", known[i]));
+                simStateSet.done();
+            },
+            error: function (xhr, status, errorThrown) {
+                if (status == "timeout")
+                    isGetQueued = true;
+                simStateSet.error();
             }
-            $("#similar").removeClass("processing");
         });
     }
 
-    function addToPlaylistRaw(song) {
-        var listItem = makeListItem(song);
-        listItem.appendTo(playListElem);
+    function scrollIntoMiddleView(listItemElem) {
+        var s0 = playlistContainer[0].scrollTop;
+        var sD = playlistContainer[0].clientHeight;
+        var i0 = listItemElem.offsetTop;
+        var iD = listItemElem.clientHeight;
+        if (i0 < s0 || i0 + iD > s0 + sD) {//not entirely in view
+            //middle: s0 + sD/2 == i0+iD/2  ==> s0 = i0+iD/2-sD/2
+            playlistContainer[0].scrollTop = i0 + (iD - sD) / 2;
+        }
     }
 
     function playListConfig(listItem) {
@@ -198,20 +261,26 @@ $(document).ready(function ($) {
             hasBeenNotified = false;
             var songHref = $(playListItem).data("songdata").href;
             $("#jquery_jplayer").jPlayer("loadSong", [{ type: UriToMime(songHref), src: songHref}]);
+            scrollIntoMiddleView(playListItem);
         }
     }
+
+
 
     function playListChange(listItem) {
         if (listItem != playListItem)
             playListConfig(listItem);
         if (playListItem)
             $("#jquery_jplayer").jPlayer("play");
+        else
+            $("#jquery_jplayer").jPlayer("stop");
     }
 
     function playListDelete(listItem) {
         if (listItem == playListItem)
             playListChange(null);
         $(listItem).remove();
+        playlistRefreshUi();
     }
 
     function playListNext() { playListChange($(playListItem).next()[0]); }
@@ -231,7 +300,7 @@ $(document).ready(function ($) {
         var clickedRow = $(target).parents("tr");
         if (clickedRow.length != 1)
             return;
-        addToPlaylist({ label: clickedRow.attr("data-label"), href: clickedRow.attr("data-href"), length: clickedRow.attr("data-length") });
+        addToPlaylist({ label: clickedRow.attr("data-label") || GetFileName(clickedRow.attr("data-href")), href: clickedRow.attr("data-href"), length: clickedRow.attr("data-length") });
     };
 });
 
