@@ -6,6 +6,11 @@
 
 #840 (links)
 */
+iframe
+{
+    border: 0;
+}
+
 body, html, #form1
 {
     width: 100%;
@@ -21,43 +26,57 @@ body
     overflow: hidden;
 }
 
-iframe
-{
-    border: 0;
-}
-
 #searchResultDiv
 {
     position: absolute;
-    height: 50%;
+    top: 25%;
+    margin-top:6em;
     left: 0;
     right: 0;
     bottom: 0;
     border: none;
     padding: 0;
 }
-#shownumber
-{
-    width: 3em;
-}
-#searchquery
-{
-    width: 15em;
-}
-#similar ul {display:block;margin:0;padding:0;}
-#similar li {display:block; font-size:10pt;}
-#similar .unknown {float:left;width:35%; color:#ccc;}
-#similar .known {float:right;width:60%;}
-#similar .known li {cursor:pointer;border-bottom:1px solid #e2eeea}
 
+.leftCol
+{
+    position: absolute;
+    left: 0;
+    width: 36em;
+    bottom: 75%;
+    top: 0;
+}
+.scrollable 
+{
+    position:absolute;
+    overflow-y: auto;
+    top:0;
+    bottom:0;
+    left:0;
+    right:0;
+}
+
+.playerSect
+{
+    position: absolute;
+    left: 36em;
+    right: 0;
+    bottom: 75%;
+    top: 0;
+    padding: 0;
+    margin: 0;
+    margin-bottom:-6em;
+    width: auto;
+}
 
 .searchSect
 {
     position: absolute;
     height: 5em;
     max-height: 5em;
-    bottom: 50%;
+    bottom: 75%;
     left: 0;
+    margin-bottom:-6em;
     width: 35em;
     height: 5em;
     padding: 0.5em;
@@ -66,11 +85,77 @@ iframe
     overflow: hidden;
 }
 
-.processing
+
+#shownumber
 {
-    background:#ddd;
-    color:#333;
+    width: 3em;
 }
+#searchquery
+{
+    width: 15em;
+}
+
+#similar ul
+{
+    display: block;
+    margin: 0;
+    padding: 0;
+    padding-left:1%;
+    padding-right:1%;
+}
+#similar li
+{
+    display: block;
+    font-size: 10pt;
+}
+#similar .unknown
+{
+    float: left;
+    width: 35%;
+    color: #ccc;
+}
+#similar .known
+{
+    float: right;
+    width: 60%;
+}
+#similar .known li
+{
+    cursor: pointer;
+    border-bottom: 1px solid #e2eeea;
+}
+
+.leftCol:before 
+{
+    display: block;
+    position: absolute;
+    top: 50%;
+    width:100%;
+    text-align:center;
+    font-size: 30pt;
+    font-weight: bold;
+    
+    z-index: -1;
+    color: #eee;
+    content: "Similar Tracks";
+}
+
+.processing:before 
+{
+    content: "Getting Similar Tracks...";
+}
+
+.proc-error:before 
+{
+    color: #c99;
+    content: "Error (timeout?)";
+}
+
+/*.forOptions
+{
+    background: white;
+    padding: 1px;
+}*/
 
 #optionsBox
 {
@@ -84,63 +169,28 @@ iframe
     font-size: 10pt;
 }
 
-.leftCol
+.jp-playlist ul li
 {
-    position: absolute;
-    left: 0;
-    width: 36em;
-    bottom: 50%;
-    top: 0;
-    margin-bottom: 6em;
-    overflow-y:auto;
-}
-
-.playerSect
-{
-    position: absolute;
-    left: 36em;
-    right: 0;
-    bottom: 50%;
-    top: 0;
-    padding: 0;
-    margin: 0;
-    width: auto;
-}
-.jp-playlist-player
-{
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-}
-.jp-playlist
-{
-    position: absolute;
-    top: 0;
-    bottom: 3.5em;
-    left: 0;
-    right: 0;
-    padding: 0;
-    margin: 0;
-}
-.jp-playlist ul
-{
-    left: 0;
-    right: 0;
-    position: absolute;
-    max-height: 100%;
-    bottom: 0;
-    overflow-y: auto;
+    margin-right: 1.3em;
 }
 
 .deleteButton
 {
+    -moz-border-radius: 1em;
+    -webkit-border-radius: 1em;
+    border-radius: 1em;
     color: Red;
     font-weight: bold;
     float: right;
-    padding: 0 0.5em;
-    background: #ccc;
+    position: relative;
+    left: 1.8em;
+    text-transform: uppercase;
+    font-size: 70%;
+    padding: 0.2em 0.4em 0.4em 0.4em;
+    background: #eee;
+    border: 1px solid #bbb;
     font-style: normal;
+    margin-bottom: -0.5em;
 }
 
 .searchSect a
