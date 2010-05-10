@@ -13,12 +13,14 @@
     };
     var setValue = {
         checkbox: function (el, val) { el.attr("checked", val); },
-        textarea: function (el,val) { el.text(val); },
+        textarea: function (el, val) { el.text(val); },
         textbox: function (el, val) { el.attr("value", val); }
     };
 
     function generalSet(val) { //in context of option
+        this.inSet = true;
         setValue[this.type](this.element, val);
+        this.inSet = false;
     }
     function generalGet() {
         return setValue[this.type](this.element);
@@ -27,7 +29,7 @@
     function changeHandler(e) {
         var sel = $(this);
         var opt = sel.data("OptionsBuilderOpt");
-        if (opt.onchange) opt.onchange(getValue[opt.type](sel), e);
+        if (opt.onchange) opt.onchange(getValue[opt.type](sel),opt.inSet, e);
     }
 
     function procOpts(optionsEl, options) {
@@ -42,6 +44,7 @@
                 .appendTo($(document.createElement("td")).appendTo(row));
             opt.setValue = generalSet;
             opt.getValue = generalGet;
+            opt.inSet=false;
             opt.setValue(opt.initialValue);
             row.appendTo(tab);
             opt.element.change(changeHandler);
