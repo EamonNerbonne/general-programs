@@ -229,7 +229,9 @@ CREATE INDEX  IF NOT EXISTS [IDX_TrackInfo_Playcount] ON [TrackInfo](
 		public static DbConnection ConstructConnection(FileInfo dbFile) {
 			DbConnection conn = null;
 			try {
-				conn = DbProviderFactories.GetFactory(DataProvider).CreateConnection();
+
+				conn = System.Data.SQLite.SQLiteFactory.Instance.CreateConnection();
+					//DbProviderFactories.GetFactory(DataProvider).CreateConnection();
 				conn.ConnectionString = ConnectionString(dbFile);
 				return conn;
 			} catch { if (conn != null) conn.Dispose(); throw; }
