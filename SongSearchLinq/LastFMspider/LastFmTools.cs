@@ -43,8 +43,8 @@ namespace LastFMspider
             }
         }
 
-        public LastFmTools(SongDatabaseConfigFile configFile) {
-            this.configFile = configFile;
+        public LastFmTools(SongDatabaseConfigFile configFile=null) {
+            this.configFile = configFile ?? new SongDatabaseConfigFile(true);
         }
 
 
