@@ -48,7 +48,7 @@ namespace SongDataLib {
 				}
 				);
 				//writer.WriteLine("</songs>");
-				new XStreamingElement("songs", songs.Select(song=>song.ConvertToXml(null)) ).WriteTo(xw);
+				new XStreamingElement("songs", songs.Select(song=>song.ConvertToXml(null,false)) ).WriteTo(xw);
 			}
 
 

@@ -74,7 +74,7 @@ namespace SongSearchSite {
 		public void ProcessingStart() { }
 
 		public PotentialResourceInfo DetermineResource() {
-			song = SongDbContainer.GetSongFromFullUri(helper.Context.Request.AppRelativeCurrentExecutionFilePath);
+			song = SongDbContainer.GetSongFromFullUri(helper.Context.Request.AppRelativeCurrentExecutionFilePath.Substring(2));
 			if (song == null)
 				return new ResourceError() {
 					Code = 404,
@@ -100,7 +100,7 @@ namespace SongSearchSite {
 			return
 				new ResourceInfo {
 					TimeStamp = File.GetLastWriteTimeUtc(song.SongUri.LocalPath),
-					ETag = ResourceInfo.GenerateETagFrom(fi.FullName, fi.Length, fi.LastWriteTimeUtc.Ticks, song.ConvertToXml(null)),
+					ETag = ResourceInfo.GenerateETagFrom(fi.FullName, fi.Length, fi.LastWriteTimeUtc.Ticks),
 					MimeType = guessMIME(Path.GetExtension(song.SongUri.LocalPath)),
 					ResourceLength = (ulong)fi.Length
 				};

@@ -6,11 +6,10 @@ using System.Xml;
 using EmnExtensions.Text;
 using HttpHeaderHelper;
 using SongDataLib;
+using System.Xml.Linq;
 
-namespace SongSearchSite
-{
-	public class PlaylistRequestProcessor : IHttpRequestProcessor
-	{
+namespace SongSearchSite {
+	public class PlaylistRequestProcessor : IHttpRequestProcessor {
 		HttpRequestHelper helper;
 		public PlaylistRequestProcessor(HttpRequestHelper helper) { this.helper = helper; }
 		public void ProcessingStart() { }
@@ -33,7 +32,7 @@ namespace SongSearchSite
 				enc = Encoding.UTF8;
 			} else if (extension == ".m3u") {
 				enc = Encoding.GetEncoding(1252);
-				
+
 				res.MimeType = "audio/x-mpegurl";
 			} else if (extension == ".xml") {
 				enc = Encoding.UTF8;
@@ -58,9 +57,9 @@ namespace SongSearchSite
 			searchQuery = string.Join(" ", searchterms.ToArray());
 
 			if (extension == ".m3u" || extension == ".m3u8")
-				context.Response.Headers["Content-Disposition"] = "attachment; filename=" + Uri.EscapeDataString( "playlist_" + searchQuery + extension); //searchquery has been canonicalized: no dangerous injection possible.
+				context.Response.Headers["Content-Disposition"] = "attachment; filename=" + Uri.EscapeDataString("playlist_" + searchQuery + extension); //searchquery has been canonicalized: no dangerous injection possible.
 
-			res.ETag = ResourceInfo.GenerateETagFrom(searchQuery, includeRemote, extm3u, isXml, extension, context.Request.QueryString["top"]);
+			res.ETag = ResourceInfo.GenerateETagFrom(searchQuery, includeRemote, extm3u, isXml, extension, context.Request.QueryString["top"], startupUtc);
 			res.ResourceLength = null;//unknown
 			res.TimeStamp = startupUtc;
 			Console.WriteLine("Request Determined: [" + (isXml ? 'X' : ' ') + (includeRemote ? 'R' : ' ') + (enc == Encoding.UTF8 ? 'U' : ' ') + (extm3u ? 'E' : ' ') + "] q=" + searchQuery);
@@ -84,9 +83,13 @@ namespace SongSearchSite
 				context.Response.Write("#EXTM3U\n");
 			string serverName = context.Request.Headers["Host"];
 			string appName = context.Request.ApplicationPath;
+
 			if (appName == "/")
 				appName = "";
-			string urlprefix = "http://" + serverName + appName + "/songs/";
+			string songsprefix = "http://" + serverName + appName + "/songs/";
+			Uri songsAbsolute = new Uri(songsprefix);
+			Uri currentUrl = context.Request.Url;
+
 			//			urlprefix = "http://home.nerbonne.org/";
 
 			var searchResults = SongDbContainer.SearchableSongDB.Search(searchQuery);
@@ -99,55 +102,35 @@ namespace SongSearchSite
 			}
 
 			if (isXml) {
-				XmlWriterSettings settings = new XmlWriterSettings();
-				//settings.Indent = true;
-				XmlWriter xmlOut = XmlWriter.Create(context.Response.Output, settings);
-
-				xmlOut.WriteStartDocument();
-				if (context.Request.QueryString["view"] == "xslt")
-					xmlOut.WriteProcessingInstruction("xml-stylesheet", "type=\"text/xsl\"  href=\"searchresult.xsl\"");
-				xmlOut.WriteStartElement("songs");
-				foreach (ISongData s in searchResults) {
-					s.ConvertToXml(UrlTranslator(urlprefix)).WriteTo(xmlOut);
-				}
-				xmlOut.WriteEndElement();
-				xmlOut.WriteEndDocument();
-
-				xmlOut.Close();
+				bool useXslt = context.Request.QueryString["view"] == "xslt";
+				bool coreAttrsOnly = context.Request.QueryString["fulldata"] != "true";
+				var uriMapper = coreAttrsOnly ? SongDbContainer.LocalSongPathToAppRelativeMapper(context)
+					: SongDbContainer.LocalSongPathToAbsolutePathMapper(context);
+				new XDocument(
+					useXslt ? new XProcessingInstruction("xml-stylesheet", "type=\"text/xsl\"  href=\"searchresult.xsl\"") : null,
+					new XElement("songs",
+						new XAttribute("base", currentUrl),
+						from s in searchResults
+						select s.ConvertToXml(uri => uriMapper(uri).ToString(), coreAttrsOnly)
+					)
+				).Save(context.Response.Output);
 			} else {
-				foreach (ISongData songdata in searchResults) {
-					context.Response.Write(makeM3UEntry(songdata, extm3u, urlprefix));
-				}
+				var uriMapper = SongDbContainer.LocalSongPathToAbsolutePathMapper(context);
+				foreach (ISongData songdata in searchResults)
+					context.Response.Write(makeM3UEntry(songdata, extm3u, uriMapper));
 			}
 		}
-		static string makeM3UEntry(ISongData song, bool extm3u, string urlprefix) {
-			string url = makeUrl(urlprefix, song);
+
+		static string makeM3UEntry(ISongData song, bool extm3u, Func<Uri, Uri> makeAbsolute) {
+			string url = makeAbsolute(song.SongUri).ToString();
 			if (extm3u)
 				return "#EXTINF:" + song.Length + "," + song.HumanLabel + "\n" + url + "\n";
 			else
-				return url + "?_=" + HttpUtility.UrlEncode(song.HumanLabel) + "\n";
-		}
-
-		static string makeUrl(string urlprefix, ISongData song) {
-			if (song.IsLocal) { //http://www.albionresearch.com/misc/urlencode.php
-				//http://www.blooberry.com/indexdot/html/topics/urlencoding.htm
-				return UrlTranslator(urlprefix, song.SongUri).ToString();
-			} else
-				return song.SongUri.ToString();
-		}
-
-
-		static string UrlTranslator(string urlprefix, Uri songpath) {
-			return urlprefix + System.Uri.EscapeDataString(SongDbContainer.NormalizeSongPath(songpath)).Replace("%2F", "/");
-		}
-
-		static Func<Uri, string> UrlTranslator(string urlprefix) {
-			return s => UrlTranslator(urlprefix, s);
+				return url + "?" + HttpUtility.UrlEncode(song.HumanLabel) + "\n";
 		}
 	}
 
-	public class PlaylistHandler : IHttpHandler
-	{
+	public class PlaylistHandler : IHttpHandler {
 
 		public bool IsReusable { get { return false; } }
 

@@ -14,7 +14,7 @@ namespace SongDataLib {
 			return new XAttribute("songuri", !IsLocal || urlTranslator == null ? songuri.ToString() : urlTranslator(songuri));
 		}
 
-		public virtual XElement ConvertToXml(Func<Uri, string> urlTranslator) {
+		public virtual XElement ConvertToXml(Func<Uri, string> urlTranslator, bool coreAttrsOnly) {
 			return new XElement("songref", makeUriAttribute(urlTranslator));
 		}
 
@@ -24,7 +24,7 @@ namespace SongDataLib {
 
 		public bool IsLocal { get { return songuri.IsFile; } }
 
-		public virtual string HumanLabel { get { return FullInfo; } }
+		public virtual string HumanLabel { get { return System.IO.Path.GetFileNameWithoutExtension(songuri.LocalPath); } }
 
 		protected static XAttribute MakeAttributeOrNull(XName attrname, object data) { return data == null ? null : new XAttribute(attrname, data); }
 		protected static XAttribute MakeAttributeOrNull(XName attrname, int data) { return data == 0 ? null : new XAttribute(attrname, data); }

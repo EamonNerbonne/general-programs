@@ -14,35 +14,34 @@ namespace SongSearchSite {
 			public string label = null, href = null;
 			public int length = 0;
 		}
-
+		static object syncroot = new object();
 		public void ProcessRequest(HttpContext context) {
 
 			PlaylistEntryJson[] playlistFromJson = JsonConvert.DeserializeObject<PlaylistEntryJson[]>(context.Request["playlist"]);
 			List<SongData> songs = (
 				from entry in playlistFromJson
-				let uri = new Uri(entry.href)
-				let path = Uri.UnescapeDataString( VirtualPathUtility.ToAppRelative(uri.AbsolutePath))
+				let path = Uri.UnescapeDataString(entry.href)
 				let songdata = SongDbContainer.GetSongFromFullUri(path) as SongData
 				where songdata != null
 				select songdata).ToList();
 
 			List<SongRef> unknownSongs = new List<SongRef>();
+			FindSimilarPlaylist.SimilarPlaylistResults res=null;
+			lock (syncroot) {
+				if (!context.Response.IsClientConnected)
+					return;
+				res = FindSimilarPlaylist.ProcessPlaylist(SongDbContainer.LastFmTools,
+					// sr=>null,
+					SongDbContainer.FuzzySongSearcher.FindBestMatch,
+					 songs, unknownSongs, 100, 40);
+			}
 
-			var res = FindSimilarPlaylist.ProcessPlaylist(SongDbContainer.LastFmTools,
-				// sr=>null,
-				SongDbContainer.FuzzySongSearcher.FindBestMatch,
-				 songs, unknownSongs, Math.Min(Math.Max(10,songs.Count * 2), 100), 50);
-
-			string serverName = context.Request.Headers["Host"];
-			string appName = context.Request.ApplicationPath;
-			if (appName == "/")
-				appName = "";
-			string urlprefix = "http://" + serverName + appName + "/songs/";
+			var uriMapper = SongDbContainer.LocalSongPathToAppRelativeMapper(context);
 
 			PlaylistEntryJson[] knownForJson =
 				(from knownSong in res.knownTracks
 				 select new PlaylistEntryJson {
-					 href = urlprefix +SongDbContainer.NormalizeSongPath(knownSong),
+					 href = uriMapper(knownSong.SongUri).ToString(),
 					 label = knownSong.HumanLabel,
 					 length = knownSong.Length
 				 }).ToArray();

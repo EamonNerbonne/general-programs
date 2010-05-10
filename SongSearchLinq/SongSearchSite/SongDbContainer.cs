@@ -12,12 +12,11 @@ using System.Threading;
 using System.Diagnostics;
 using LastFMspider;
 
-namespace SongSearchSite
-{
+namespace SongSearchSite {
 
-	public sealed class SongDbContainer : IDisposable
-	{
-		public static string NormalizeSongPath(Uri localSongPath) {
+	public sealed class SongDbContainer : IDisposable {
+		const string songsPrefix = "songs/";
+		public static string CanonicalRelativeSongPath(Uri localSongPath) {
 			StringBuilder sb = new StringBuilder();
 			foreach (char c in localSongPath.LocalPath) {
 				switch (c) {
@@ -45,11 +44,19 @@ namespace SongSearchSite
 			return sb.ToString();
 		}
 
-		public static string NormalizeSongPath(ISongData localSong) {
-			if (!localSong.IsLocal)
-				throw new ArgumentException("This is only meaningful for local files.");
-			return NormalizeSongPath(localSong.SongUri);
+		public static Func<Uri, Uri> LocalSongPathToAbsolutePathMapper(HttpContext context) {
+			return local2absHelper(new Uri(context.Request.Url, context.Request.ApplicationPath + "/" + songsPrefix));
 		}
+		static Func<Uri, Uri> local2absHelper(Uri songsBaseUri) {
+			return localSongUri => localSongUri.IsFile ? new Uri(songsBaseUri, CanonicalRelativeSongPath(localSongUri)) : localSongUri;
+		}
+		public static Func<Uri, Uri> LocalSongPathToAppRelativeMapper(HttpContext context) {
+			return local2relHelper(new Uri(context.Request.Url, context.Request.ApplicationPath + "/" + songsPrefix), new Uri(context.Request.Url, context.Request.ApplicationPath + "/"));
+		}
+		static Func<Uri, Uri> local2relHelper(Uri songsBaseUri, Uri appBaseUri) {
+			return localSongUri => localSongUri.IsFile ? appBaseUri.MakeRelativeUri(new Uri(songsBaseUri, CanonicalRelativeSongPath(localSongUri))) : localSongUri;
+		}
+
 
 		static SongDbContainer Singleton {
 			get {
@@ -86,12 +93,12 @@ namespace SongSearchSite
 				isFresh = true;
 				SongDatabaseConfigFile dcf = new SongDatabaseConfigFile(true);
 				tools = new LastFmTools(dcf);
-				 
+
 
 				db = new SongDB(tools.DB.Songs);
 				fuzzySearcher = new FuzzySongSearcher(tools);
 
-				localSongs = db.songs.Where(s => s.IsLocal).ToDictionary(song => NormalizeSongPath(song));
+				localSongs = db.songs.Where(s => s.IsLocal).ToDictionary(song => CanonicalRelativeSongPath(song.SongUri));
 				searchEngine = new SearchableSongDB(db, new SuffixTreeSongSearcher());
 
 
@@ -115,7 +122,7 @@ namespace SongSearchSite
 		void DbUpdated() {
 
 			isFresh = false;
-			ThreadPool.QueueUserWorkItem(o => { 
+			ThreadPool.QueueUserWorkItem(o => {
 				Thread.Sleep(5000);
 				Init();
 			});
@@ -134,11 +141,8 @@ namespace SongSearchSite
 		public static ISongData GetSongByNormalizedPath(string path) {
 			ISongData retval;
 			var sdc = Singleton;
-			Dictionary<string, ISongData> locals;
 			lock (sdc.syncroot)
-				locals = sdc.localSongs;
-			if (!locals.TryGetValue(path, out retval))
-				retval = null;//not really necessary.
+				sdc.localSongs.TryGetValue(path, out retval);
 			return retval;
 		}
 
@@ -147,14 +151,12 @@ namespace SongSearchSite
 		/// </summary>
 		/// <param name="path">Application relative request path</param>
 		/// <returns></returns>
-		const string servePrefix = "~/songs/";
 		public static ISongData GetSongFromFullUri(string reqPath) {
-			if (!reqPath.StartsWith(servePrefix))
+			if (!reqPath.StartsWith(songsPrefix))
 				throw new Exception("Whoops, illegal request routing...  this should not be routed to this class!");
 
-			string songNormedPath = reqPath.Substring(servePrefix.Length);
+			string songNormedPath = reqPath.Substring(songsPrefix.Length);
 			return GetSongByNormalizedPath(songNormedPath);
 		}
-
 	}
 }

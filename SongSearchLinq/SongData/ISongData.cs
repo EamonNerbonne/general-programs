@@ -20,7 +20,7 @@ namespace SongDataLib
 		/// Converts to xml.  The class should be able to load from xml too then, and supply the appropriate constructor.
 		/// </summary>
 		/// <returns>A sufficiently complete XML representation such that the object could load from it.</returns>
-		XElement ConvertToXml(Func<Uri, string> urlTranslator);
+		XElement ConvertToXml(Func<Uri, string> urlTranslator,bool coreAttrOnly);
 		/// <summary>
 		/// The path to the song.  This property mixes local path's and remote uri's, to differentiate, use the IsLocal Property.
 		/// </summary>

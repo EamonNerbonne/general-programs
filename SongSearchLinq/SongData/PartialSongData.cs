@@ -19,7 +19,7 @@ namespace SongDataLib
 			}
 		}
 
-		public override XElement ConvertToXml(Func<Uri, string> urlTranslator) {
+		public override XElement ConvertToXml(Func<Uri, string> urlTranslator,bool coreAttrsOnly) {
 			return new XElement("partsong",
 				makeUriAttribute(urlTranslator),
 				MakeAttributeOrNull("label", label),

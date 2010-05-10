@@ -96,27 +96,27 @@ namespace SongDataLib {
 
 		}
 
-		public override XElement ConvertToXml(Func<Uri, string> urlTranslator) {
+		public override XElement ConvertToXml(Func<Uri, string> urlTranslator, bool coreOnly) {
 			return new XElement(songN,
 				 makeUriAttribute(urlTranslator),
 				 MakeAttributeOrNull(titleN, title),
 				 MakeAttributeOrNull(artistN, artist),
-				//TODO rename to NperformerN, this is just legacy support
-				 MakeAttributeOrNull(composerN, composer),
+				 coreOnly ? null : MakeAttributeOrNull(composerN, composer),
 				 MakeAttributeOrNull(albumN, album),
-				 MakeAttributeOrNull(commentN, comment),
-				 MakeAttributeOrNull(genreN, genre),
-				 MakeAttributeOrNull(yearN, year),
+				 coreOnly ? null : MakeAttributeOrNull(commentN, comment),
+				 coreOnly ? null : MakeAttributeOrNull(genreN, genre),
+				 coreOnly ? null : MakeAttributeOrNull(yearN, year),
 				 MakeAttributeOrNull(trackN, track),
-				 MakeAttributeOrNull(trackcountN, trackcount),
-				 MakeAttributeOrNull(bitrateN, bitrate),
+				 coreOnly ? null : MakeAttributeOrNull(trackcountN, trackcount),
+				 coreOnly ? null : MakeAttributeOrNull(bitrateN, bitrate),
 				 MakeAttributeOrNull(lengthN, length),
-				 MakeAttributeOrNull(samplerateN, samplerate),
-				 MakeAttributeOrNull(channelsN, channels),
+				 coreOnly ? null : MakeAttributeOrNull(samplerateN, samplerate),
+				 coreOnly ? null : MakeAttributeOrNull(channelsN, channels),
+				 coreOnly && artist == null ? new XAttribute("label", HumanLabel) : null,
 				 MakeAttributeOrNull(ratingN, rating),
-				 //MakeAttributeOrNull(artistpopularityN, popularity.ArtistPopularity),
-				 //MakeAttributeOrNull(titlepopularityN, popularity.TitlePopularity),
-				 MakeAttributeOrNull(lastmodifiedTicksN, lastWriteTime == default(DateTime) ? default(long?) : lastWriteTime.Ticks)
+				//MakeAttributeOrNull(artistpopularityN, popularity.ArtistPopularity),
+				//MakeAttributeOrNull(titlepopularityN, popularity.TitlePopularity),
+				 coreOnly ? null : MakeAttributeOrNull(lastmodifiedTicksN, lastWriteTime == default(DateTime) ? default(long?) : lastWriteTime.Ticks)
 			);
 		}
 
