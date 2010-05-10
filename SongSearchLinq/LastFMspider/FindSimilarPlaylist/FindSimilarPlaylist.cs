@@ -152,18 +152,19 @@ namespace LastFMspider {
 							lock (sync)
 								songCosts.Add(similarSong);
 						} else {
-							lock (sync)
+							lock (sync) {
 								songCosts.Delete(similarSong.index);
-							similarSong.index = -1;
-							//new cost should be somewhere between next.cost, and min(old-cost, direct-cost)
-							double oldOffset = similarSong.cost - currentSong.cost;
-							double newOffset = directCost - currentSong.cost;
-							double combinedOffset = 1.0 / (1.0 / oldOffset + 1.0 / newOffset);
-							similarSong.cost = currentSong.cost + combinedOffset;
-							foreach (var baseSong in currentSong.basedOn)
-								similarSong.basedOn.Add(baseSong);
-							lock (sync)
+								similarSong.index = -1;
+
+								//new cost should be somewhere between next.cost, and min(old-cost, direct-cost)
+								double oldOffset = similarSong.cost - currentSong.cost;
+								double newOffset = directCost - currentSong.cost;
+								double combinedOffset = 1.0 / (1.0 / oldOffset + 1.0 / newOffset);
+								similarSong.cost = currentSong.cost + combinedOffset;
+								foreach (var baseSong in currentSong.basedOn)
+									similarSong.basedOn.Add(baseSong);
 								songCosts.Add(similarSong);
+							}
 						}
 					}
 					int newPercent = Math.Max((res.similarList.Count * 100) / MaxSuggestionLookupCount, (res.knownTracks.Count * 100) / SuggestionCountTarget);
