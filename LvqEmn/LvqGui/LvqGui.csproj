@@ -139,6 +139,7 @@
     </Compile>
     <Compile Include="DataSetLoader.cs" />
     <Compile Include="DataVerifiers.cs" />
+    <Compile Include="MakeSeed.cs" />
     <Compile Include="MatSpeedTest.cs" />
     <Compile Include="Window1.xaml.cs">
       <DependentUpon>Window1.xaml</DependentUpon>

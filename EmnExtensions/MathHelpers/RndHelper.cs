@@ -37,11 +37,14 @@ namespace EmnExtensions.MathHelpers
             return MakeNormal(MakeSecureDouble(), MakeSecureDouble());
         }
 
+		public static int usages = 0;
+
 		[CLSCompliant(false)]
         public static uint MakeSecureUInt() {
             byte[] bytes = new byte[4];
             cryptGen.GetBytes(bytes);
             uint retval = (uint)bytes[0] + ((uint)bytes[1] << 8) + ((uint)bytes[2] << 16) + ((uint)bytes[3] << 24);
+			usages++;
             return retval;
         }
 

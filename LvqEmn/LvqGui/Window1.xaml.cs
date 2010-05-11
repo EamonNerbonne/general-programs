@@ -1,25 +1,21 @@
 ﻿//#define USEGEOMPLOT
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Documents;
 using System.Windows.Media;
+using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 using EmnExtensions.DebugTools;
 using EmnExtensions.MathHelpers;
 using EmnExtensions.Text;
 using EmnExtensions.Wpf;
-using EmnExtensions.Wpf.OldGraph;
 using EmnExtensions.Wpf.Plot;
-using EmnExtensions;
 using LvqLibCli;
-using System.Windows.Media.Imaging;
 using Microsoft.Win32;
-using System.IO;
 
 namespace LVQeamon
 {
@@ -76,15 +72,12 @@ namespace LVQeamon
 				int protoCount = ProtoCount.Value;
 				double stddevmeans = StddevMeans.Value;
 				bool useGsm = checkBoxLvqGsm.IsChecked ?? false;
-
-				SetupDisplay(numSets);
-
 				ThreadPool.QueueUserWorkItem((ignore) => {
 					NiceTimer timer = new NiceTimer();
 					timer.TimeMark("making point clouds");
-
 					LvqDataSetCli dataset = LvqDataSetCli.ConstructGaussianClouds(
 						RndHelper.MakeSecureUInt, dims, numSets, pointsPerSet, stddevmeans);
+					Console.WriteLine("RngUsed: " + RndHelper.usages);
 					timer.TimeMark(null);
 					StartLvq(dataset, protoCount, useGsm);
 				}, 0);

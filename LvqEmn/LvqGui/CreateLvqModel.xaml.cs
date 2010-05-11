@@ -11,6 +11,8 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using System.Globalization;
+using System.IO;
 
 namespace LvqGui {
 
@@ -22,7 +24,7 @@ namespace LvqGui {
 	public partial class CreateLvqModel : UserControl {
 		public ModelType[] ModelTypes { get { return (ModelType[])Enum.GetValues(typeof(ModelType)); } }
 		public CreateLvqModel() {
-			this.DataContext = new LvqModelParams();
+			this.DataContext = new LvqModelParams { Seed = SeedMaker.MakeSeed() };
 			InitializeComponent();
 		}
 
@@ -34,6 +36,6 @@ namespace LvqGui {
 		public ModelType ModelType { get; set; }
 		public int Dimensionality { get; set; }
 		public int PrototypesPerClass { get; set; }
+		public uint[] Seed { get; set; }
 	}
-
 }

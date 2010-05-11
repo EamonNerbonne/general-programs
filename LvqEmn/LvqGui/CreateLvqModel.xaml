@@ -4,7 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              mc:Ignorable="d" 
-             d:DesignHeight="300" d:DesignWidth="300">
+             d:DesignHeight="150" d:DesignWidth="300">
     <UserControl.Resources>
         <Style TargetType="{x:Type Label}" BasedOn="{StaticResource PropLabel}"/>
         <Style TargetType="{x:Type TextBox}" BasedOn="{StaticResource PropBox}"/>
@@ -29,6 +29,9 @@
         <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding PrototypesPerClass, Mode=TwoWay, ValidatesOnExceptions=True}" />
         <Label Grid.Row="2">Dimensionality of Model</Label>
         <TextBox Grid.Row="2" Grid.Column="2" Text="{Binding Dimensionality, Mode=TwoWay, ValidatesOnExceptions=True}"/>
+        <Label Grid.Row="3">Random Seed</Label>
+        <TextBox Grid.Row="3" Grid.Column="2" Text="{Binding Seed, Mode=TwoWay, ValidatesOnExceptions=True, Converter={StaticResource ByteArrConverter}}"/>
+        <Button Grid.Row="4" Grid.ColumnSpan="2" >Initialize Model</Button>
 
     </Grid>
 </UserControl>
