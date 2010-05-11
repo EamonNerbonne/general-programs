@@ -7,7 +7,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
     mc:Ignorable="d" 
-    Title="Eamon's LVQ test App"   d:DesignHeight="550" d:DesignWidth="650">
+    Title="Eamon's LVQ test App"   d:DesignHeight="550" d:DesignWidth="650" xmlns:my="clr-namespace:LvqGui">
     <Window.Resources>
         <Style TargetType="{x:Type Label}" BasedOn="{StaticResource PropLabel}"/>
         <Style TargetType="{x:Type TextBox}" BasedOn="{StaticResource PropBox}"/>
@@ -25,9 +25,9 @@
         <emnPlot:NewPlotControl Name="plotControl" Grid.RowSpan="2"  />
 
         <StackPanel Grid.Row="0" Grid.Column="1" >
-
-            <CheckBox Content="Full Screen" Name="checkBoxFullScreen" Checked="checkBoxFullScreen_Checked" Unchecked="checkBoxFullScreen_Unchecked"/>
-            <CheckBox Content="Show Grid" Name="checkBoxShowGrid"  Checked="checkBoxShowGridChanged" Unchecked="checkBoxShowGridChanged"/>
+            <my:CreateLvqModel x:Name="createLvqModel1" />
+            <CheckBox Content="Full Screen" Name="checkBoxFullScreen"  Checked="checkBoxFullScreen_Checked" Unchecked="checkBoxFullScreen_Unchecked"/>
+            <CheckBox Content="Show Grid" Name="checkBoxShowGrid"  IsChecked="{Binding ElementName=plotControl, Path=ShowGridLines, Mode=TwoWay}" />
             <Grid Margin="12,6" >
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto" />

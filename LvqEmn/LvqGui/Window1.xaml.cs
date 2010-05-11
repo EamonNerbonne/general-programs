@@ -299,9 +299,9 @@ namespace LVQeamon
 			});
 		}
 
-		private void checkBoxShowGridChanged(object o, RoutedEventArgs e) { plotControl.ShowGridLines = checkBoxShowGrid.IsChecked ?? plotControl.ShowGridLines; }
-
+		private WindowState lastState = WindowState.Normal;
 		private void checkBoxFullScreen_Checked(object sender, RoutedEventArgs e) {
+			lastState = this.WindowState;
 			this.WindowState = WindowState.Normal;
 			this.WindowStyle = WindowStyle.None;
 			this.Topmost = true;
@@ -311,7 +311,7 @@ namespace LVQeamon
 		private void checkBoxFullScreen_Unchecked(object sender, RoutedEventArgs e) {
 			this.Topmost = false;
 			this.WindowStyle = WindowStyle.SingleBorderWindow;
-			this.WindowState = WindowState.Normal;
+			this.WindowState = lastState;
 		}
 
 	}

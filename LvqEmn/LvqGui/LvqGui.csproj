@@ -115,6 +115,10 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="CreateLvqModel.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Window1.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -130,6 +134,9 @@
       <DependentUpon>CreateDataSetStar.xaml</DependentUpon>
     </Compile>
     <Compile Include="CreateGaussianCloud.cs" />
+    <Compile Include="CreateLvqModel.xaml.cs">
+      <DependentUpon>CreateLvqModel.xaml</DependentUpon>
+    </Compile>
     <Compile Include="DataSetLoader.cs" />
     <Compile Include="DataVerifiers.cs" />
     <Compile Include="MatSpeedTest.cs" />
