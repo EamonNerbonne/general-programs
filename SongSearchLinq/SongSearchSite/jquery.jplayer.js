@@ -368,7 +368,7 @@
             };
 
             var audioTypes = ["audio/ogg", "application/ogg", "audio/mpeg"];
-            var backends = ["html5", "flash"]; //chrome's mp3 streaming support isn't too stellar; prefer flash.
+            var backends = [ "flash","html5"]; //chrome's mp3 streaming support isn't too stellar; prefer flash.
             var support = {};
             $.each(audioTypes, function (i, audioType) {
                 support[audioType] = $.grep(backends, function (backend, j) {
