@@ -7,6 +7,7 @@ using System.Data.Common;
 using LastFMspider.LastFMSQLiteBackend;
 using System.Xml.Linq;
 using SongDataLib;
+using System.Data.SQLite;
 
 namespace LastFMspider
 {
@@ -53,7 +54,11 @@ namespace LastFMspider
 		public LastFMSQLiteCache(FileInfo dbFile) {
 			Connection = LastFmDbBuilder.ConstructConnection(dbFile);
 			Connection.Open();
-			LastFmDbBuilder.CreateTables(Connection);
+			try
+			{
+				LastFmDbBuilder.CreateTables(Connection);
+			}
+			catch (SQLiteException) { }//if we can't create, we just hope the tables are already OK.
 			PrepareSql();
 		}
 

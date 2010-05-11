@@ -244,7 +244,7 @@ CREATE INDEX  IF NOT EXISTS [IDX_TrackInfo_Playcount] ON [TrackInfo](
 			using (DbTransaction trans = lfmDbConnection.BeginTransaction())
 			using (DbCommand createComm = lfmDbConnection.CreateCommand()) {
 				createComm.CommandText = DatabaseDef;
-				createComm.CommandTimeout = 0;
+				createComm.CommandTimeout = 5;
 				//createComm.Prepare()
 				
 				createComm.ExecuteNonQuery();
