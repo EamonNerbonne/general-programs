@@ -65,6 +65,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="braindead.js" />
     <Content Include="DebugStatus.aspx" />
     <Content Include="DebugStatus.css" />
     <Content Include="img\pause.png" />

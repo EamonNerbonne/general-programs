@@ -2,6 +2,9 @@
 {
     border-collapse: collapse;
     width: 100%;
+    font-size:83.4%;
+    line-height:0.9;
+    vertical-align:middle;
 }
 
 tr
@@ -9,6 +12,7 @@ tr
     border: solid #e2eeea;
     border-width: 1px 0 0 0;
     cursor: pointer;
+    height:1.5em;
 }
 
 tr:nth-child(5n)
@@ -60,7 +64,7 @@ td > div > i > i
 body
 {
     font-family: Segoe UI, Arial, Sans-Serif; /* Segoe UI, Calibri, Bitstream Vera Sans, Gill Sans, Verdana, Sans-Serif;*/
-    font-size: 10pt;
+    font-size: 12pt;
     padding: 0;
     margin: 0;
 }

@@ -106,7 +106,7 @@ body
 #similar li
 {
     display: block;
-    font-size: 10pt;
+    font-size: 83.4%;
 }
 #similar .unknown
 {
@@ -132,7 +132,7 @@ body
     top: 50%;
     width:100%;
     text-align:center;
-    font-size: 30pt;
+    font-size: 250%;
     font-weight: bold;
     
     z-index: -1;
@@ -166,7 +166,7 @@ body
 }
 #optionsBox table
 {
-    font-size: 10pt;
+    font-size: 80%;
 }
 
 .jp-playlist ul li
@@ -214,6 +214,7 @@ input
 {
     background: rgba(255,255,255,0.85);
     border: 1px inset #c4ddd5;
+    font-size:100%;
 }
 
 input:focus
@@ -253,9 +254,10 @@ a:focus
 }
 h3
 {
-    font-size: 13pt;
+    font-size: 110%;
     margin: 0 0 0.5em 0;
     color: Gray;
+    cursor:help;
 }
 td
 {
