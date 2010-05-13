@@ -5,15 +5,12 @@ using System.Text;
 using System.Data.Common;
 using System.Data.SQLite;
 
-namespace LastFMspider.LastFMSQLiteBackend
-{
-	public struct ArtistTopTrack
-	{
+namespace LastFMspider.LastFMSQLiteBackend {
+	public struct ArtistTopTrack {
 		public string Track;
 		public long Reach;
 	}
-	public class ArtistTopTracksList
-	{
+	public class ArtistTopTracksList {
 		public DateTime LookupTimestamp;
 		public string Artist;
 		public ArtistTopTrack[] TopTracks;
@@ -24,8 +21,7 @@ namespace LastFMspider.LastFMSQLiteBackend
 		}
 	}
 
-	public class LookupArtistTopTracksList : AbstractLfmCacheQuery
-	{
+	public class LookupArtistTopTracksList : AbstractLfmCacheQuery {
 		public LookupArtistTopTracksList(LastFMSQLiteCache lfmCache)
 			: base(lfmCache) {
 			lowerArtist = DefineParameter("@lowerArtist");
@@ -52,7 +48,7 @@ AND L.LookupTimestamp = @ticks
 				using (var trans = Connection.BeginTransaction()) {
 					ArtistQueryInfo info = lfmCache.LookupArtistTopTracksListAge.Execute(artist);
 					if (info.IsAlternateOf.HasValue)
-						return Execute(lfmCache.LookupArtist.Execute(info.IsAlternateOf.Value));
+						return Execute(lfmCache.LookupArtist.Execute(info.IsAlternateOf));
 					if (!info.LookupTimestamp.HasValue)
 						return null;
 					DateTime age = info.LookupTimestamp.Value;

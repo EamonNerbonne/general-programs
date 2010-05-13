@@ -9,10 +9,8 @@ using System.Xml.Linq;
 using SongDataLib;
 using System.Data.SQLite;
 
-namespace LastFMspider
-{
-	public sealed class LastFMSQLiteCache : IDisposable
-	{
+namespace LastFMspider {
+	public sealed class LastFMSQLiteCache : IDisposable {
 		public readonly object SyncRoot = new object();
 
 		public DbConnection Connection { get; private set; }
@@ -54,11 +52,9 @@ namespace LastFMspider
 		public LastFMSQLiteCache(FileInfo dbFile) {
 			Connection = LastFmDbBuilder.ConstructConnection(dbFile);
 			Connection.Open();
-			try
-			{
+			try {
 				LastFmDbBuilder.CreateTables(Connection);
-			}
-			catch (SQLiteException) { }//if we can't create, we just hope the tables are already OK.
+			} catch (SQLiteException) { }//if we can't create, we just hope the tables are already OK.
 			PrepareSql();
 		}
 

@@ -6,10 +6,8 @@ using System.IO;
 using System.Data.Common;
 using SongDataLib;
 
-namespace LastFMspider
-{
-	public static class LastFmDbBuilder
-	{
+namespace LastFMspider {
+	public static class LastFmDbBuilder {
 		//we set legacy format to false for better storage efficiency
 		//we set datetime format to ticks for better efficiency (internally just stored as Int64)
 		//rating is stored as a REAL which is a float in C#.
@@ -44,6 +42,7 @@ CREATE TABLE IF NOT EXISTS [SimilarArtistList] (
 [ArtistID] INTEGER  NOT NULL,
 [LookupTimestamp] INTEGER NOT NULL,
 [StatusCode] INTEGER,
+[SimilarArtists] BLOB,
 CONSTRAINT fk_artist FOREIGN KEY(ArtistID) REFERENCES Artist(ArtistID)
 );
 CREATE INDEX IF NOT EXISTS [IDX_SimilarArtistList_ArtistID_LookupTimestamp] ON [SimilarArtistList]([ArtistID]  ASC, [LookupTimestamp]  ASC);
@@ -93,6 +92,7 @@ CREATE TABLE IF NOT EXISTS [SimilarTrackList] (
 [TrackID] INTEGER  NOT NULL,
 [LookupTimestamp] INTEGER NOT NULL,
 [StatusCode] INTEGER,
+[SimilarTracks] BLOB,
 	CONSTRAINT fk_of_track FOREIGN KEY(TrackID) REFERENCES Track(TrackID)
 );
 DROP INDEX IF EXISTS [IDX_SimilarTrackList_LookupTimestamp]; 
@@ -124,6 +124,7 @@ CREATE TABLE IF NOT EXISTS [TopTracksList] (
 [ArtistID] INTEGER  NOT NULL,
 [LookupTimestamp] INTEGER NOT NULL,
 [StatusCode] INTEGER,
+[TopTracks] BLOB,
 CONSTRAINT fk_owner_artist FOREIGN KEY(ArtistID) REFERENCES Artist(ArtistID)
 );
 DROP INDEX IF EXISTS [IDX_TopTracksList_LookupTimestamp];
@@ -146,22 +147,22 @@ CREATE INDEX  IF NOT EXISTS [IDX_TopTracks_ListID] ON [TopTracks](  [ListID]  AS
 CREATE INDEX  IF NOT EXISTS [IDX_TopTracks_Reach] ON [TopTracks](  [Reach]  DESC);
 
 ";
-//CREATE TRIGGER IF NOT EXISTS Artist_Ignore_Duplicates BEFORE INSERT ON Artist
-//FOR EACH ROW BEGIN 
-//   INSERT OR IGNORE 
-//      INTO Artist (ArtistID, FullArtist, LowercaseArtist, IsAlternateOf, CurrentSimilarArtistList, CurrentTopTracksList) 
-//      VALUES (NEW.ArtistId, NEW.FullArtist, NEW.LowercaseArtist, NEW.IsAlternateOf, NEW.CurrentSimilarArtistList, NEW.CurrentTopTracksList);
-//   select RAISE(IGNORE);
-//END;
-//CREATE TRIGGER IF NOT EXISTS Track_Ignore_Duplicates BEFORE INSERT ON Track
-//FOR EACH ROW BEGIN 
-//   INSERT OR IGNORE 
-//      INTO Track (TrackID, ArtistID, FullTitle, LowercaseTitle, CurrentSimilarTrackList) 
-//      VALUES (NEW.TrackID, NEW.ArtistID, NEW.FullTitle, NEW.LowercaseTitle, NEW.CurrentSimilarTrackList);
-//   select RAISE(IGNORE);
-//END;
+		//CREATE TRIGGER IF NOT EXISTS Artist_Ignore_Duplicates BEFORE INSERT ON Artist
+		//FOR EACH ROW BEGIN 
+		//   INSERT OR IGNORE 
+		//      INTO Artist (ArtistID, FullArtist, LowercaseArtist, IsAlternateOf, CurrentSimilarArtistList, CurrentTopTracksList) 
+		//      VALUES (NEW.ArtistId, NEW.FullArtist, NEW.LowercaseArtist, NEW.IsAlternateOf, NEW.CurrentSimilarArtistList, NEW.CurrentTopTracksList);
+		//   select RAISE(IGNORE);
+		//END;
+		//CREATE TRIGGER IF NOT EXISTS Track_Ignore_Duplicates BEFORE INSERT ON Track
+		//FOR EACH ROW BEGIN 
+		//   INSERT OR IGNORE 
+		//      INTO Track (TrackID, ArtistID, FullTitle, LowercaseTitle, CurrentSimilarTrackList) 
+		//      VALUES (NEW.TrackID, NEW.ArtistID, NEW.FullTitle, NEW.LowercaseTitle, NEW.CurrentSimilarTrackList);
+		//   select RAISE(IGNORE);
+		//END;
 
-		
+
 		/*
 CREATE TABLE IF NOT EXISTS  [Tag] (
   [TagID] INTEGER NOT NULL PRIMARY KEY,
@@ -220,7 +221,7 @@ CREATE INDEX  IF NOT EXISTS [IDX_TrackInfo_Playcount] ON [TrackInfo](
   [Playcount] DESC
 );
 ";*/
-		public static string ConnectionString(FileInfo dbFile) { return String.Format(DataConnectionString, dbFile.FullName); } 
+		public static string ConnectionString(FileInfo dbFile) { return String.Format(DataConnectionString, dbFile.FullName); }
 
 
 		/// <summary>
@@ -231,7 +232,7 @@ CREATE INDEX  IF NOT EXISTS [IDX_TrackInfo_Playcount] ON [TrackInfo](
 			try {
 
 				conn = System.Data.SQLite.SQLiteFactory.Instance.CreateConnection();
-					//DbProviderFactories.GetFactory(DataProvider).CreateConnection();
+				//DbProviderFactories.GetFactory(DataProvider).CreateConnection();
 				conn.ConnectionString = ConnectionString(dbFile);
 				return conn;
 			} catch { if (conn != null) conn.Dispose(); throw; }
@@ -246,7 +247,7 @@ CREATE INDEX  IF NOT EXISTS [IDX_TrackInfo_Playcount] ON [TrackInfo](
 				createComm.CommandText = DatabaseDef;
 				createComm.CommandTimeout = 5;
 				//createComm.Prepare()
-				
+
 				createComm.ExecuteNonQuery();
 				trans.Commit();
 			}

@@ -107,6 +107,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ArbitraryTrackMapper.cs" />
+    <Compile Include="ArtistSimilarityList.cs" />
     <Compile Include="CachedDistanceMatrix.cs" />
     <Compile Include="FindSimilarPlaylist\FindSimilarPlaylist.cs" />
     <Compile Include="FindSimilarPlaylist\SongWithCost.cs" />
@@ -124,6 +125,7 @@
     <Compile Include="LastFMSQLiteBackend\ArtistSetCurrentSimList.cs" />
     <Compile Include="LastFMSQLiteBackend\ArtistSetCurrentTopTracks.cs" />
     <Compile Include="LastFMSQLiteBackend\DbUtil.cs" />
+    <Compile Include="LastFMSQLiteBackend\Ids.cs" />
     <Compile Include="LastFMSQLiteBackend\TrackSetCurrentSimList.cs" />
     <Compile Include="LastFMSQLiteBackend\CountRoughtSimilarities.cs" />
     <Compile Include="LastFMSQLiteBackend\InsertArtistSimilarity.cs" />

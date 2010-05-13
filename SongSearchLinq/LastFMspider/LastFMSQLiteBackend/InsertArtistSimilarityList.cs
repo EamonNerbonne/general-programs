@@ -8,10 +8,8 @@ using System.Reflection;
 using System.Diagnostics;
 using System.Net;
 
-namespace LastFMspider.LastFMSQLiteBackend
-{
-	public class InsertArtistSimilarityList : AbstractLfmCacheQuery
-	{
+namespace LastFMspider.LastFMSQLiteBackend {
+	public class InsertArtistSimilarityList : AbstractLfmCacheQuery {
 		public InsertArtistSimilarityList(LastFMSQLiteCache lfm)
 			: base(lfm) {
 			lowerArtist = DefineParameter("@lowerArtist");
@@ -43,13 +41,13 @@ AND L.LookupTimestamp = @lookupTimestamp
 				using (DbTransaction trans = Connection.BeginTransaction()) {
 					lfmCache.InsertArtist.Execute(simList.Artist);
 					lfmCache.UpdateArtistCasing.Execute(simList.Artist);
-					long listID;
+					SimilarArtistsListId listID;
 					lowerArtist.Value = simList.Artist.ToLatinLowercase();
 					lookupTimestamp.Value = simList.LookupTimestamp.Ticks;
 					statusCode.Value = simList.StatusCode;
 					using (var reader = CommandObj.ExecuteReader()) {
 						if (reader.Read()) { //might need to do reader.NextResult();
-							listID = (int)(long)reader[0];
+							listID = new SimilarArtistsListId((long)reader[0]);
 						} else {
 							throw new Exception("Command failed???");
 						}
@@ -74,8 +72,7 @@ AND L.LookupTimestamp = @lookupTimestamp
 
 
 	public delegate void DynamicAction(params object[] parameters);
-	static class DynamicActionBuilder
-	{
+	static class DynamicActionBuilder {
 		public static void PerformAction0(Action a, object[] pars) { a(); }
 		public static void PerformAction1<T1>(Action<T1> a, object[] pars) {
 			a((T1)pars[0]);
@@ -100,8 +97,7 @@ AND L.LookupTimestamp = @lookupTimestamp
 		}
 	}
 
-	static class TestDab
-	{
+	static class TestDab {
 		public static void PrintTwo(int a, int b) {
 			Console.WriteLine("{0} {1}", a, b);
 			Trace.WriteLine(string.Format("{0} {1}", a, b));//for immediate window.

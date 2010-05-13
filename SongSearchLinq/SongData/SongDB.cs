@@ -2,10 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace SongDataLib
-{
-	public class SongDB
-	{
+namespace SongDataLib {
+	public class SongDB {
 		public ISongData[] songs;
 		byte[] normed;//all normalized songs as one big string!
 		public byte[] NormedSongs { get { return normed; } }
@@ -15,8 +13,8 @@ namespace SongDataLib
 
 
 		public IEnumerable<int> GetSongIndexes(List<Suffix> suffixList) {
-			if(suffixList.Count < 2) {
-				if(suffixList.Count == 1) yield return GetSongIndex(suffixList[0]);
+			if (suffixList.Count < 2) {
+				if (suffixList.Count == 1) yield return GetSongIndex(suffixList[0]);
 			} else {
 				int sufI = 0;
 				Suffix sufCurr = suffixList[sufI];
@@ -27,23 +25,23 @@ namespace SongDataLib
 
 				sufI++;
 				sufCurr = suffixList[sufI];
-				while(sufCurr < sufLast) {
+				while (sufCurr < sufLast) {
 					int siNew = GetSongIndex(sufCurr, siCurr, siLast);
-					if(siNew != siCurr) {
+					if (siNew != siCurr) {
 						yield return siNew;
 						siCurr = siNew;
 					}
 					sufI++;
 					sufCurr = suffixList[sufI];
 				}
-				if(siLast != siCurr) yield return siLast;
+				if (siLast != siCurr) yield return siLast;
 			}
 		}
 		internal IEnumerable<int> GetSongIndexesIter(IEnumerable<Suffix> increasingCharPos) {
 			int songIndex = 0;
 			Suffix minSufPos = (Suffix)0;
-			foreach(Suffix suf in increasingCharPos) {
-				if(suf < minSufPos) continue;
+			foreach (Suffix suf in increasingCharPos) {
+				if (suf < minSufPos) continue;
 				songIndex = GetSongIndex(suf, songIndex);
 				yield return songIndex;
 				songIndex++;
@@ -72,7 +70,7 @@ namespace SongDataLib
 			Suffix start = songBoundaries[startI];
 			Suffix end = songBoundaries[endI];
 
-			if(target >= end || target < start) throw new IndexOutOfRangeException("Bounds invalid.");
+			if (target >= end || target < start) throw new IndexOutOfRangeException("Bounds invalid.");
 
 			//calling songBoundaries f then:
 			//INVARIANT:
@@ -80,7 +78,7 @@ namespace SongDataLib
 			// end == f( endI)
 			//start == f(startI);
 
-			while(startI + 1 != endI) {
+			while (startI + 1 != endI) {
 				int valueRange = end - start;
 				int indexRange = endI - startI - 1;//is at least  1
 				int targetOffset = target - start;//targetOffset < valueRange,but positive
@@ -89,7 +87,7 @@ namespace SongDataLib
 				int trialI = startI + 1 + (int)((ulong)targetOffset * (ulong)indexRange / (uint)valueRange);
 				//rounds down, so startI+1<=trialI < startI +1 + indexRange ==EQUIV== startI<trialI<endI
 				Suffix trial = songBoundaries[trialI];
-				if(target < trial) { //trial is new end!
+				if (target < trial) { //trial is new end!
 					end = trial;
 					endI = trialI;
 				} else { // trial <= target, so trial is new start!
@@ -111,7 +109,7 @@ namespace SongDataLib
 			int songCount = 0;
 			songBoundaries[0] = (Suffix)0;
 			List<byte> normedConstructor = new List<byte>();
-			foreach(byte[] normSong in songs.Select(song => SongUtil.CanonicalizedSearchStr(song.FullInfo))) {
+			foreach (byte[] normSong in songs.Select(song => SongUtil.CanonicalizedSearchStr(song.FullInfo))) {
 				normedConstructor.AddRange(normSong);
 				normedConstructor.Add(SongUtil.TERMINATOR);
 				songBoundaries[++songCount] = (Suffix)normedConstructor.Count;

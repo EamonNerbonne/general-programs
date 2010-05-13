@@ -6,30 +6,27 @@ using EmnExtensions.Algorithms;
 using LastFMspider.LastFMSQLiteBackend;
 using LastFMspider.OldApi;
 
-namespace LastFMspider
-{
-    internal static partial class ToolsInternal
-    {
+namespace LastFMspider {
+	internal static partial class ToolsInternal {
 
-        public static int PrecacheArtistSimilarity(LastFmTools tools)
-        {
-            var SimilarSongs = tools.SimilarSongs;
+		public static int PrecacheArtistSimilarity(LastFmTools tools) {
+			var SimilarSongs = tools.SimilarSongs;
 			DateTime minAge = DateTime.UtcNow - TimeSpan.FromDays(365.0);
 
 			int artistsCached = 0;
 			Console.WriteLine("Finding artists without similarities");
-			var artistsToGo = SimilarSongs.backingDB.ArtistsWithoutSimilarityList.Execute(1000000, minAge );
+			var artistsToGo = SimilarSongs.backingDB.ArtistsWithoutSimilarityList.Execute(1000000, minAge);
 #if !DEBUG
 			artistsToGo.Shuffle();
 #endif
 			artistsToGo = artistsToGo.Take(100000).ToArray();
 			Console.WriteLine("Looking up similarities for {0} artists...", artistsToGo.Length);
-            Parallel.ForEach(artistsToGo, new ParallelOptions { MaxDegreeOfParallelism = 10 }, artist => {
+			Parallel.ForEach(artistsToGo, new ParallelOptions { MaxDegreeOfParallelism = 10 }, artist => {
 				StringBuilder msg = new StringBuilder();
 				try {
 					msg.AppendFormat("SimTo:{0,-30}", artist.ArtistName.Substring(0, Math.Min(artist.ArtistName.Length, 30)));
 					ArtistQueryInfo info = SimilarSongs.backingDB.LookupArtistSimilarityListAge.Execute(artist.ArtistName);
-					if ((info.LookupTimestamp.HasValue && info.LookupTimestamp.Value > minAge ) || info.IsAlternateOf.HasValue) {
+					if ((info.LookupTimestamp.HasValue && info.LookupTimestamp.Value > minAge) || info.IsAlternateOf.HasValue) {
 						msg.AppendFormat("done.");
 					} else {
 						ArtistSimilarityList newEntry = OldApiClient.Artist.GetSimilarArtists(artist.ArtistName);
@@ -54,6 +51,6 @@ namespace LastFMspider
 			});
 			return artistsCached;
 
-        }
-    }
+		}
+	}
 }

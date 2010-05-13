@@ -4,10 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Data.Common;
 
-namespace LastFMspider.LastFMSQLiteBackend
-{
-	public class InsertSimilarity : AbstractLfmCacheQuery
-	{
+namespace LastFMspider.LastFMSQLiteBackend {
+	public class InsertSimilarity : AbstractLfmCacheQuery {
 		public InsertSimilarity(LastFMSQLiteCache lfm)
 			: base(lfm) {
 
@@ -30,13 +28,13 @@ VALUES(@listID , @trackB , @rating )
 		DbParameter listID, trackB, rating;
 
 
-		public void Execute(long listID, SongRef songRefB, double rating) {
+		public void Execute(SimilarTracksListId listID, SongRef songRefB, double rating) {
 			lock (SyncRoot) {
 				using (DbTransaction trans = Connection.BeginTransaction()) {
 
 					int trackID = lfmCache.InsertTrack.Execute(songRefB);
 					this.rating.Value = rating;
-					this.listID.Value = listID;
+					this.listID.Value = listID.Id;
 					this.trackB.Value = trackID;
 					CommandObj.ExecuteNonQuery();
 

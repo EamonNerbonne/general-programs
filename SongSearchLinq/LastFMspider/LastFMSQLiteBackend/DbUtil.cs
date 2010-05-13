@@ -3,10 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace LastFMspider.LastFMSQLiteBackend
-{
-	internal static class DbUtil
-	{
+namespace LastFMspider.LastFMSQLiteBackend {
+	internal static class DbUtil {
 		//throws an exception when casting DbNull to non-nullable type.
 		public static T CastDbObjectAs<T>(this object dbObject) {
 			return (T)(
@@ -16,8 +14,8 @@ namespace LastFMspider.LastFMSQLiteBackend
 		}
 		//converts ticks to UtcDateTime
 		public static DateTime? CastDbObjectAsDateTime(this object dbObject) {
-			return dbObject== DBNull.Value
-				? (DateTime?) null
+			return dbObject == DBNull.Value
+				? (DateTime?)null
 				: new DateTime((long)dbObject, DateTimeKind.Utc);
 		}
 	}

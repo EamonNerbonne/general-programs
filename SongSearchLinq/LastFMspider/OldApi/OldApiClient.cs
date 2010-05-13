@@ -10,11 +10,9 @@ using System.Net;
 using System.Diagnostics;
 using LastFMspider.LastFMSQLiteBackend;
 
-namespace LastFMspider.OldApi
-{
-	public class OldApiClient
-	{
-		static readonly TimeSpan minReqDelta = new TimeSpan(0, 0, 0, 0,750);//no more than one request per second.
+namespace LastFMspider.OldApi {
+	public class OldApiClient {
+		static readonly TimeSpan minReqDelta = new TimeSpan(0, 0, 0, 0, 750);//no more than one request per second.
 		static DateTime nextRequestWhenInternal = DateTime.Now;
 		static object syncRoot = new object();
 
@@ -41,7 +39,7 @@ namespace LastFMspider.OldApi
 
 
 		const string baseApiUrl = "http://ws.audioscrobbler.com/1.0/";
-		
+
 		public static Uri MakeUri(string category, string method, params string[] otherParams) {
 			//double-escape data strings!!! LFM bug.
 			return new Uri(baseApiUrl + category + "/" + string.Join("",
@@ -49,8 +47,8 @@ namespace LastFMspider.OldApi
 		}
 
 		public static UriRequest MakeUriRequest(string category, string method, params string[] otherParams) {
-			int retryCount=0;
-			while(true)
+			int retryCount = 0;
+			while (true)
 				try { return MakeUriRequestNoRetry(category, method, otherParams); } catch (WebException we) {
 					retryCount++;
 					if (retryCount > 5)
@@ -80,14 +78,13 @@ namespace LastFMspider.OldApi
 			return newStr.ToString();
 		}
 
-		public static class Artist
-		{
+		public static class Artist {
 			public static ApiArtistTopTracks GetTopTracksRaw(string artist) {
 				try {
 					var req = MakeUriRequest("artist", "toptracks", artist);
 					var xmlReader = XmlReader.Create(new StringReader(ConvertControlChars(req.ContentAsString)), xmlSettings);
 					return ApiArtistTopTracks.Deserialize(xmlReader);
-					
+
 				} catch (WebException we) { //if for some reason the server ain't happy...
 					HttpWebResponse wr = we.Response as HttpWebResponse;
 					if (wr.StatusCode == HttpStatusCode.NotFound)
@@ -101,7 +98,7 @@ namespace LastFMspider.OldApi
 				try {
 					ApiArtistTopTracks artistTopTracks = OldApiClient.Artist.GetTopTracksRaw(artist);
 					return artistTopTracks == null
-						? ArtistTopTracksList.CreateErrorList(artist,-1)
+						? ArtistTopTracksList.CreateErrorList(artist, -1)
 						: new ArtistTopTracksList {
 							Artist = artistTopTracks.artist,
 							LookupTimestamp = DateTime.UtcNow,
@@ -169,8 +166,7 @@ namespace LastFMspider.OldApi
 
 			}
 		}
-		public static class Track
-		{
+		public static class Track {
 			public static ApiTrackSimilarTracks GetSimilarTracksRaw(SongRef songref) {
 				try {
 					var req = MakeUriRequest("track", "similar", songref.Artist, songref.Title);

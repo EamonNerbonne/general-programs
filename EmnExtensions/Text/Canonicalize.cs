@@ -4,22 +4,20 @@ using System;
 using System.Linq;
 using System.Collections;
 
-namespace EmnExtensions.Text
-{
-	public static class Canonicalize
-	{
+namespace EmnExtensions.Text {
+	public static class Canonicalize {
 		private static byte[] categorycache;
 		private static BitArray reasonablechar;
 		[System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1065:DoNotRaiseExceptionsInUnexpectedLocations"), System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1810:InitializeReferenceTypeStaticFieldsInline")]
 		static Canonicalize() {
-			foreach(UnicodeCategory cat in Enum.GetValues(typeof(UnicodeCategory))) {
+			foreach (UnicodeCategory cat in Enum.GetValues(typeof(UnicodeCategory))) {
 				int val = (int)cat;
-				if(val < 0 || val > 255) throw new ApplicationException("Programming Error: Invalid category number!  Can't cache in byte: " + cat);
+				if (val < 0 || val > 255) throw new ApplicationException("Programming Error: Invalid category number!  Can't cache in byte: " + cat);
 			}
 			categorycache = new byte[(int)char.MaxValue + 1];
 			reasonablechar = new BitArray((int)char.MaxValue + 1);
 			//translatedchar = new char[(int)char.MaxValue + 1];
-			foreach(int c in Enumerable.Range(0, (int)char.MaxValue + 1)) {
+			foreach (int c in Enumerable.Range(0, (int)char.MaxValue + 1)) {
 				UnicodeCategory cat = CharUnicodeInfo.GetUnicodeCategory((char)c);
 				categorycache[c] = (byte)(int)cat;
 				reasonablechar[c] = IsSafeChar((char)c) && cat != UnicodeCategory.Format && cat != UnicodeCategory.Control && cat != UnicodeCategory.OtherNotAssigned && cat != UnicodeCategory.PrivateUse;
@@ -39,12 +37,12 @@ namespace EmnExtensions.Text
 		/// </summary>
 		public static bool IsSafeChar(char c) {
 			int val = (int)c;// this function could technically be a oneliner but I want a particular order of comparisons for performance, and hence the explicit "return true" to make this obvious.
-			if(val < 0x20) {
-				if(val == (int)'\n') return true;
-				else if(val == (int)'\t') return true;
-				else if(val == (int)'\r') return true; //technically allowed, though why you should use it....
+			if (val < 0x20) {
+				if (val == (int)'\n') return true;
+				else if (val == (int)'\t') return true;
+				else if (val == (int)'\r') return true; //technically allowed, though why you should use it....
 				else return false;
-			} else if(val < 0xfffe) return true;//don't allow 0xfffe and 0xffff!, but do allow 0xd800<0xdc00<0xe000 surrogates
+			} else if (val < 0xfffe) return true;//don't allow 0xfffe and 0xffff!, but do allow 0xd800<0xdc00<0xe000 surrogates
 			else return false;
 		}
 
@@ -60,29 +58,29 @@ namespace EmnExtensions.Text
 		/// Strips all characters deemed unsafe by IsSafeChar.  Returns null if the input is null.
 		/// </summary>
 		public static string MakeSafe(string input) {
-			if(input == null) return null;
+			if (input == null) return null;
 			char[] retval = new char[input.Length];
 			int pos = 0;
-			foreach(char c in input)
-				if(IsSafeChar(c))
+			foreach (char c in input)
+				if (IsSafeChar(c))
 					retval[pos++] = c;
 			return new string(retval, 0, pos);
 		}
 
-		public static string CanonicalizeBasic(this string input) {return Basic(input);	}
+		public static string CanonicalizeBasic(this string input) { return Basic(input); }
 
 		[System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Maintainability", "CA1502:AvoidExcessiveComplexity")]
 		public static string Basic(string input) {
 			//splits accents and the likes from the characters.  FormKD even splits a single char ¾ into 3/4.
 			string temp = input.ToLowerInvariant().Normalize(NormalizationForm.FormD);//Normalize is fast! Much faster than ToLower for instance.
 			StringBuilder output = new StringBuilder(temp.Length);
-			foreach(char c in temp) {
-				if(c >= 'a' && c <= 'z') output.Append(c);
-				else if(c >= '1' && c <= '9') output.Append(c);
-				else if(c == '\t' || c == ' ') output.Append(' ');
-				else if(c == '\n') output.Append('\n');
-				else if(c == '0') output.Append('o');//normalize the number 0 and the letter 'o' - controversial.
-				else switch(FastGetUnicodeCategory(c)) {
+			foreach (char c in temp) {
+				if (c >= 'a' && c <= 'z') output.Append(c);
+				else if (c >= '1' && c <= '9') output.Append(c);
+				else if (c == '\t' || c == ' ') output.Append(' ');
+				else if (c == '\n') output.Append('\n');
+				else if (c == '0') output.Append('o');//normalize the number 0 and the letter 'o' - controversial.
+				else switch (FastGetUnicodeCategory(c)) {
 						case UnicodeCategory.NonSpacingMark:
 						case UnicodeCategory.Control:
 							continue;
@@ -97,7 +95,7 @@ namespace EmnExtensions.Text
 							output.Append(')');
 							break;
 						default:
-							switch(c) {
+							switch (c) {
 								case '\"':
 								case '`':
 								case (char)180: output.Append('\''); break; //180 '''
@@ -129,14 +127,14 @@ namespace EmnExtensions.Text
 								case 'º': output.Append('o'); break;//use letter, not number, for canonicalization purposes.
 								case '$': output.Append('s'); break;
 								case '\\': output.Append('/'); break;//for stupid path stuff
-                                case '<': output.Append('('); break;
-                                case '>': output.Append(')'); break;
+								case '<': output.Append('('); break;
+								case '>': output.Append(')'); break;
 								case '÷': output.Append('/'); break;
 								case (char)173: output.Append('-'); break;
 								case '¡': output.Append('!'); break;//this one's difficult
 								case (char)169: output.Append('c'); break;//169 'c'
 								default:
-									if(c < 128) output.Append(c); break;
+									if (c < 128) output.Append(c); break;
 							}//Unclear: should I normalize any of:  | # % & * + ; : = ? @ ~
 							break;
 					}

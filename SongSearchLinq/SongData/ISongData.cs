@@ -1,15 +1,12 @@
 ﻿using System;
 using System.Xml.Linq;
 
-namespace SongDataLib
-{
-	public static class ISongDataMethods
-	{
-		public static string UppercaseExtension(this ISongData song) { return System.IO.Path.GetExtension(song.SongUri.AbsolutePath ).ToUpperInvariant(); }
+namespace SongDataLib {
+	public static class ISongDataMethods {
+		public static string UppercaseExtension(this ISongData song) { return System.IO.Path.GetExtension(song.SongUri.AbsolutePath).ToUpperInvariant(); }
 	}
 
-	public interface ISongData
-	{
+	public interface ISongData {
 		/// <summary>
 		/// String representation of all meta-data a user is likely to search for.   This will be indexed for searching purposes - i.e it should include certainly the track title,
 		/// and perhaps the year released, but certainly not the song length in seconds.
@@ -20,7 +17,7 @@ namespace SongDataLib
 		/// Converts to xml.  The class should be able to load from xml too then, and supply the appropriate constructor.
 		/// </summary>
 		/// <returns>A sufficiently complete XML representation such that the object could load from it.</returns>
-		XElement ConvertToXml(Func<Uri, string> urlTranslator,bool coreAttrOnly);
+		XElement ConvertToXml(Func<Uri, string> urlTranslator, bool coreAttrOnly);
 		/// <summary>
 		/// The path to the song.  This property mixes local path's and remote uri's, to differentiate, use the IsLocal Property.
 		/// </summary>

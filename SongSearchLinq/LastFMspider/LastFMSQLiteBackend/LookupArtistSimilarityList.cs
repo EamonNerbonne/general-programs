@@ -5,45 +5,17 @@ using System.Text;
 using System.Data.Common;
 using System.Data.SQLite;
 
-namespace LastFMspider.LastFMSQLiteBackend
-{
-    public struct SimilarArtist:IComparable<SimilarArtist>
-    {
-        public string Artist;
-        public double Rating;
+namespace LastFMspider.LastFMSQLiteBackend {
 
-
-        public int CompareTo(SimilarArtist other) {
-            return other.Rating.CompareTo(Rating);
-        }
-    }
-    public class ArtistSimilarityList
-    {
-        public DateTime LookupTimestamp;
-        public string Artist;
-        public SimilarArtist[] Similar;
-        public int? StatusCode;
-
-		public static ArtistSimilarityList CreateErrorList(string artist, int errCode) {
-			return new ArtistSimilarityList {
-				Artist = artist,
-				LookupTimestamp = DateTime.UtcNow,
-				Similar = new SimilarArtist[] { },
-				StatusCode = errCode,
-			};
+	public class LookupArtistSimilarityList : AbstractLfmCacheQuery {
+		public LookupArtistSimilarityList(LastFMSQLiteCache lfmCache)
+			: base(lfmCache) {
+			lowerArtist = DefineParameter("@lowerArtist");
+			ticks = DefineParameter("@ticks");
 		}
-	}
-
-    public class LookupArtistSimilarityList : AbstractLfmCacheQuery
-    {
-        public LookupArtistSimilarityList(LastFMSQLiteCache lfmCache)
-            : base(lfmCache) {
-            lowerArtist = DefineParameter("@lowerArtist");
-            ticks = DefineParameter("@ticks");
-        }
-        protected override string CommandText {
-            get {
-                return @"
+		protected override string CommandText {
+			get {
+				return @"
 SELECT B.FullArtist, S.Rating
 FROM Artist A 
 join SimilarArtistList L on L.ArtistID = A.ArtistID
@@ -52,45 +24,45 @@ join Artist B on B.ArtistID = S.ArtistB
 WHERE A.LowercaseArtist = @lowerArtist
 AND L.LookupTimestamp = @ticks
 ";
-            } //TODO: make this faster: if I write the where clause +implicit where clause of the joins in another order, is that more efficient?  Also: maybe encode sim-lists as one column
-        }
-        DbParameter lowerArtist,ticks;
+			} //TODO: make this faster: if I write the where clause +implicit where clause of the joins in another order, is that more efficient?  Also: maybe encode sim-lists as one column
+		}
+		DbParameter lowerArtist, ticks;
 
-        public ArtistSimilarityList Execute(string artist) {
-            lock (SyncRoot) {
+		public ArtistSimilarityList Execute(string artist) {
+			lock (SyncRoot) {
 
-                using (var trans = Connection.BeginTransaction()) {
-                    ArtistQueryInfo
-                        info = lfmCache.LookupArtistSimilarityListAge.Execute(artist);
-                    if (info.IsAlternateOf.HasValue)
-                        return Execute(lfmCache.LookupArtist.Execute(info.IsAlternateOf.Value));
-                    if (!info.LookupTimestamp.HasValue)
-                        return null;
-                    DateTime age = info.LookupTimestamp.Value;
+				using (var trans = Connection.BeginTransaction()) {
+					ArtistQueryInfo
+						info = lfmCache.LookupArtistSimilarityListAge.Execute(artist);
+					if (info.IsAlternateOf.HasValue)
+						return Execute(lfmCache.LookupArtist.Execute(info.IsAlternateOf));
+					if (!info.LookupTimestamp.HasValue)
+						return null;
+					DateTime age = info.LookupTimestamp.Value;
 
-                    lowerArtist.Value = artist.ToLatinLowercase();
-                    ticks.Value = age.Ticks;//we want the newest one!
+					lowerArtist.Value = artist.ToLatinLowercase();
+					ticks.Value = age.Ticks;//we want the newest one!
 
-                    List<SimilarArtist> similarto = new List<SimilarArtist>();
-                    using (var reader = CommandObj.ExecuteReader()) {
-                        while (reader.Read())
-                            similarto.Add(new SimilarArtist {
-                                Artist = (string)reader[0],
-                                Rating = (float)reader[1],
-                            });
-                    }
-                    var retval = new ArtistSimilarityList {
-                        Artist = artist,
-                        Similar = similarto.ToArray(),
-                        LookupTimestamp = age,
-                        StatusCode = info.StatusCode,
+					List<SimilarArtist> similarto = new List<SimilarArtist>();
+					using (var reader = CommandObj.ExecuteReader()) {
+						while (reader.Read())
+							similarto.Add(new SimilarArtist {
+								Artist = (string)reader[0],
+								Rating = (float)reader[1],
+							});
+					}
+					var retval = new ArtistSimilarityList {
+						Artist = artist,
+						Similar = similarto.ToArray(),
+						LookupTimestamp = age,
+						StatusCode = info.StatusCode,
 
-                    };
-                    return retval;
-                }
-            }
-        }
+					};
+					return retval;
+				}
+			}
+		}
 
 
-    }
+	}
 }
