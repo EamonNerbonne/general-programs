@@ -17,7 +17,10 @@ namespace LastFMspider.LastFMSQLiteBackend
             get {
                 return @"
 UPDATE Artist 
-SET IsAlternateOf = (SELECT A.ArtistID FROM Artist A WHERE A.LowercaseArtist = @lowerAltArtist)
+SET 
+	IsAlternateOf = (SELECT A.ArtistID FROM Artist A WHERE A.LowercaseArtist = @lowerAltArtist),
+	CurrentSimilarArtistList = NULL,
+	CurrentTopTracksList = NULL
 WHERE LowercaseArtist = @lowerArtist
 ";
             }

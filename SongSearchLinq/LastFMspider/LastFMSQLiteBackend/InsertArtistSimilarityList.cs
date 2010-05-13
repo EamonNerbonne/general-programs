@@ -1,119 +1,61 @@
-﻿
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Data.Common;
-using System.Reflection;
-using System.Diagnostics;
-using System.Net;
+using System.Data;
 
 namespace LastFMspider.LastFMSQLiteBackend {
+
 	public class InsertArtistSimilarityList : AbstractLfmCacheQuery {
-		public InsertArtistSimilarityList(LastFMSQLiteCache lfm)
-			: base(lfm) {
-			lowerArtist = DefineParameter("@lowerArtist");
+		public InsertArtistSimilarityList(LastFMSQLiteCache lfmCache)
+			: base(lfmCache) {
+			artistID = DefineParameter("@artistID");
 			lookupTimestamp = DefineParameter("@lookupTimestamp");
 			statusCode = DefineParameter("@statusCode");
+			listBlob = DefineParameter("@listBlob", DbType.Binary);
 		}
+		DbParameter artistID, lookupTimestamp, statusCode, listBlob;
 		protected override string CommandText {
 			get {
 				return @"
-INSERT INTO [SimilarArtistList] (ArtistID, LookupTimestamp,StatusCode) 
-SELECT A.ArtistID, (@lookupTimestamp) AS LookupTimestamp, (@statusCode) AS StatusCode
-FROM Artist A
-WHERE A.LowercaseArtist = @lowerArtist;
+INSERT INTO [SimilarArtistList] (ArtistID, LookupTimestamp,StatusCode,SimilarTracks) 
+VALUES (@artistID, @lookupTimestamp, @statusCode, @listBlob);
 
 SELECT L.ListID
-FROM SimilarArtistList L, Artist A
-WHERE A.LowercaseArtist = @lowerArtist
-AND L.ArtistID = A.ArtistID
+FROM SimilarArtistList L
+WHERE L.ArtistID = @artistID
 AND L.LookupTimestamp = @lookupTimestamp
+LIMIT 1
 ";
-			}
+			} //TODO: make this faster: if I write the where clause +implicit where clause of the joins in another order, is that more efficient?  Also: maybe encode sim-lists as one column
 		}
 
-		DbParameter lowerArtist, lookupTimestamp, statusCode;
-
-
-		public void Execute(ArtistSimilarityList simList) {
+		public ArtistSimilarityListInfo Execute(ArtistSimilarityList simList) {
 			lock (SyncRoot) {
-				using (DbTransaction trans = Connection.BeginTransaction()) {
-					lfmCache.InsertArtist.Execute(simList.Artist);
-					lfmCache.UpdateArtistCasing.Execute(simList.Artist);
-					SimilarArtistsListId listID;
-					lowerArtist.Value = simList.Artist.ToLatinLowercase();
-					lookupTimestamp.Value = simList.LookupTimestamp.Ticks;
+				using (var trans = Connection.BeginTransaction()) {
+					ArtistId baseId = lfmCache.InsertArtist.Execute(simList.Artist);
+					var listImpl = new SimilarityList<ArtistId, ArtistId.Factory>(
+							from simArtist in simList.Similar
+							select new SimilarityTo<ArtistId>(lfmCache.UpdateArtistCasing.Execute(simArtist.Artist), (float)simArtist.Rating)
+						);
+
+					artistID.Value = baseId.Id;
+					lookupTimestamp.Value = simList.LookupTimestamp;
 					statusCode.Value = simList.StatusCode;
-					using (var reader = CommandObj.ExecuteReader()) {
-						if (reader.Read()) { //might need to do reader.NextResult();
-							listID = new SimilarArtistsListId((long)reader[0]);
-						} else {
-							throw new Exception("Command failed???");
-						}
-					}
-					if (simList.LookupTimestamp > DateTime.Now - TimeSpan.FromDays(1.0)) {
-						lfmCache.ArtistSetCurrentSimList.Execute(listID); //presume if this is recently downloaded, then it's the most current.
-					}
+					listBlob.Value = listImpl.encodedSims;
+					SimilarArtistsListId listId = new SimilarArtistsListId(CommandObj.ExecuteScalar().CastDbObjectAs<long>());
+
+					if (simList.LookupTimestamp.ToUniversalTime() > DateTime.UtcNow - TimeSpan.FromDays(1.0))
+						lfmCache.ArtistSetCurrentSimList.Execute(listId); //presume if this is recently downloaded, then it's the most current.
 
 
-					foreach (var similarArtist in simList.Similar) {
-						lfmCache.InsertArtistSimilarity.Execute(listID, similarArtist.Artist, similarArtist.Rating);
-						lfmCache.UpdateArtistCasing.Execute(similarArtist.Artist);
-					}
 					trans.Commit();
+					return new ArtistSimilarityListInfo(listId, new ArtistInfo { ArtistId = baseId, Artist = simList.Artist }, simList.LookupTimestamp, simList.StatusCode, listImpl);
 				}
 			}
 		}
 
 
-
-	}
-
-
-	public delegate void DynamicAction(params object[] parameters);
-	static class DynamicActionBuilder {
-		public static void PerformAction0(Action a, object[] pars) { a(); }
-		public static void PerformAction1<T1>(Action<T1> a, object[] pars) {
-			a((T1)pars[0]);
-		}
-		public static void PerformAction2<T1, T2>(Action<T1, T2> a, object[] pars) {
-			a((T1)pars[0], (T2)pars[1]);
-		}
-		//etc...
-
-		public static DynamicAction MakeAction(object target, MethodInfo mi) {
-			Type[] typeArgs =
-				mi.GetParameters().Select(pi => pi.ParameterType).ToArray();
-			string perfActName = "PerformAction" + typeArgs.Length;
-			MethodInfo performAction =
-				typeof(DynamicActionBuilder).GetMethod(perfActName);
-			if (typeArgs.Length != 0)
-				performAction = performAction.MakeGenericMethod(typeArgs);
-			Type actionType = performAction.GetParameters()[0].ParameterType;
-			Delegate action = Delegate.CreateDelegate(actionType, target, mi);
-			return (DynamicAction)
-				Delegate.CreateDelegate(typeof(DynamicAction), action, performAction);
-		}
-	}
-
-	static class TestDab {
-		public static void PrintTwo(int a, int b) {
-			Console.WriteLine("{0} {1}", a, b);
-			Trace.WriteLine(string.Format("{0} {1}", a, b));//for immediate window.
-		}
-		public static void PrintHelloWorld() {
-			Console.WriteLine("Hello World!");
-			Trace.WriteLine("Hello World!");//for immediate window.
-		}
-
-		public static void TestIt() {
-			var dynFunc = DynamicActionBuilder.MakeAction(null,
-				typeof(TestDab).GetMethod("PrintTwo"));
-			dynFunc(3, 4);
-			var dynFunc2 = DynamicActionBuilder.MakeAction(null,
-				typeof(TestDab).GetMethod("PrintHelloWorld"));
-			dynFunc2(3, 4); //3, 4 are ignored, you may want code to forbid this.
-		}
 	}
 }

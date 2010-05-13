@@ -12,29 +12,28 @@ namespace LastFMspider.LastFMSQLiteBackend {
 
 			lowerTitle = DefineParameter("@lowerTitle");
 
-			lowerArtist = DefineParameter("@lowerArtist");
+			artistId = DefineParameter("@artistId");
 		}
 		protected override string CommandText {
 			get {
 				return @"
 INSERT OR IGNORE INTO [Track] (ArtistID, FullTitle, LowercaseTitle)
-SELECT ArtistID, @fullTitle, @lowerTitle FROM [Artist]
-WHERE LowercaseArtist = @lowerArtist
-;
-SELECT TrackID FROM [Track] NATURAL join [Artist] WHERE LowercaseArtist = @lowerArtist AND LowercaseTitle = @lowerTitle
+VALUES (@artistId, @fullTitle, @lowerTitle);
+
+SELECT TrackID FROM [Track] ArtistID=@artistId  AND LowercaseTitle = @lowerTitle
 ";
 			}
 		}
-		DbParameter fullTitle, lowerTitle, lowerArtist;
+		DbParameter fullTitle, lowerTitle, artistId;
 
 		public TrackId Execute(SongRef songref) {
 			lock (SyncRoot) {
-				lfmCache.InsertArtist.Execute(songref.Artist);
-				fullTitle.Value = songref.Title;
-				lowerTitle.Value = songref.Title.ToLatinLowercase();
-				lowerArtist.Value = songref.Artist.ToLatinLowercase();
 				using (DbTransaction trans = Connection.BeginTransaction()) {
-					var retval  =  new TrackId((long)CommandObj.ExecuteScalar());
+					ArtistId artId = lfmCache.InsertArtist.Execute(songref.Artist);
+					fullTitle.Value = songref.Title;
+					lowerTitle.Value = songref.Title.ToLatinLowercase();
+					artistId.Value = artId.Id;
+					var retval = new TrackId((long)CommandObj.ExecuteScalar());
 					trans.Commit();
 					return retval;
 				}

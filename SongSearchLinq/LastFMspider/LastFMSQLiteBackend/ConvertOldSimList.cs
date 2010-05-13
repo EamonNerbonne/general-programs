@@ -16,15 +16,15 @@ namespace LastFMspider.LastFMSQLiteBackend {
 		protected override string CommandText {
 			get {
 				return @"
-UPDATE SimilarArtistList SET SimilarArtists = @listBlob WHERE ListID=@listId;
-DELETE FROM SimilarArtist WHERE ListID=@listId;
+UPDATE TopTracksList SET TopTracks = @listBlob WHERE ListID=@listId;
+DELETE FROM TopTracks WHERE ListID=@listId;
 ";
 			}
 		}
 		DbParameter listBlob;
 		DbParameter listId;
 
-		public void Execute(SimilarityList<ArtistId,ArtistId.Factory> newlist,SimilarArtistsListId listId) {
+		public void Execute(ReachList<TrackId, TrackId.Factory> newlist, TopTracksListId listId) {
 			if (!listId.HasValue)
 				throw new ArgumentException("List Id must be set to use this operation");
 			lock (SyncRoot) {

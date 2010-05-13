@@ -13,7 +13,6 @@ namespace LastFMspider.LastFMSQLiteBackend {
 			lookupTimestamp = DefineParameter("@lookupTimestamp");
 			statusCode = DefineParameter("@statusCode");
 			listBlob = DefineParameter("@listBlob", DbType.Binary);
-
 		}
 		DbParameter trackID, lookupTimestamp, statusCode,listBlob;
 		protected override string CommandText {

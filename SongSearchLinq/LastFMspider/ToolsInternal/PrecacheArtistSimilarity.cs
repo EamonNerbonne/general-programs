@@ -25,8 +25,8 @@ namespace LastFMspider {
 				StringBuilder msg = new StringBuilder();
 				try {
 					msg.AppendFormat("SimTo:{0,-30}", artist.ArtistName.Substring(0, Math.Min(artist.ArtistName.Length, 30)));
-					ArtistQueryInfo info = SimilarSongs.backingDB.LookupArtistSimilarityListAge.Execute(artist.ArtistName);
-					if ((info.LookupTimestamp.HasValue && info.LookupTimestamp.Value > minAge) || info.IsAlternateOf.HasValue) {
+					ArtistSimilarityListInfo info = SimilarSongs.backingDB.LookupArtistSimilarityListAge.Execute(artist.ArtistName);
+					if ((info.LookupTimestamp.HasValue && info.LookupTimestamp.Value > minAge) || info.ArtistInfo.IsAlternateOf.HasValue) {
 						msg.AppendFormat("done.");
 					} else {
 						ArtistSimilarityList newEntry = OldApiClient.Artist.GetSimilarArtists(artist.ArtistName);

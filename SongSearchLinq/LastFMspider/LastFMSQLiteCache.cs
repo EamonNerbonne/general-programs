@@ -30,15 +30,14 @@ namespace LastFMspider {
 		public UpdateArtistCasing UpdateArtistCasing { get; private set; }
 		public LookupArtistSimilarityList LookupArtistSimilarityList { get; private set; }
 		public LookupArtistSimilarityListAge LookupArtistSimilarityListAge { get; private set; }
-		public InsertArtistSimilarity InsertArtistSimilarity { get; private set; }
 		public InsertArtistSimilarityList InsertArtistSimilarityList { get; private set; }
 		public ArtistsWithoutSimilarityList ArtistsWithoutSimilarityList { get; private set; }
 		public ArtistsWithoutTopTracksList ArtistsWithoutTopTracksList { get; private set; }
 		public LookupArtistTopTracksListAge LookupArtistTopTracksListAge { get; private set; }
 		public LookupArtistTopTracksList LookupArtistTopTracksList { get; private set; }
-		public InsertArtistTopTrack InsertArtistTopTrack { get; private set; }
 		public InsertArtistTopTracksList InsertArtistTopTracksList { get; private set; }
 		public SetArtistAlternate SetArtistAlternate { get; private set; }
+		public LookupArtistInfo LookupArtistInfo { get; private set; }
 		internal LoadOldSimList LoadOldSimList { get; private set; }
 		internal ConvertOldSimList ConvertOldSimList { get; private set; }
 		internal TrackSetCurrentSimList TrackSetCurrentSimList { get; private set; }
@@ -74,12 +73,10 @@ namespace LastFMspider {
 			LookupArtistSimilarityListAge = new LookupArtistSimilarityListAge(this);
 			LookupArtistSimilarityList = new LookupArtistSimilarityList(this);
 			InsertArtistSimilarityList = new InsertArtistSimilarityList(this);
-			InsertArtistSimilarity = new InsertArtistSimilarity(this);
 			ArtistsWithoutSimilarityList = new ArtistsWithoutSimilarityList(this);
 			ArtistsWithoutTopTracksList = new ArtistsWithoutTopTracksList(this);
 			LookupArtistTopTracksListAge = new LookupArtistTopTracksListAge(this);
 			LookupArtistTopTracksList = new LookupArtistTopTracksList(this);
-			InsertArtistTopTrack = new InsertArtistTopTrack(this);
 			InsertArtistTopTracksList = new InsertArtistTopTracksList(this);
 			SetArtistAlternate = new SetArtistAlternate(this);
 			TrackSetCurrentSimList = new TrackSetCurrentSimList(this);
@@ -87,6 +84,7 @@ namespace LastFMspider {
 			ArtistSetCurrentSimList = new ArtistSetCurrentSimList(this);
 			LoadOldSimList = new LoadOldSimList(this);
 			ConvertOldSimList = new ConvertOldSimList(this);
+			LookupArtistInfo = new LookupArtistInfo(this);
 		}
 
 

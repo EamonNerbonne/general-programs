@@ -15,6 +15,8 @@ namespace LastFMspider
         public static int PrecacheArtistTopTracks(LastFmTools tools) {
             var SimilarSongs = tools.SimilarSongs;
             int artistsCached = 0;
+			DateTime minAge = DateTime.UtcNow - TimeSpan.FromDays(365.0);
+
             Console.WriteLine("Finding artists without toptracks");
             var artistsToGo = SimilarSongs.backingDB.ArtistsWithoutTopTracksList.Execute(1000000);
 #if !DEBUG
@@ -27,8 +29,8 @@ namespace LastFMspider
 
                 try {
                     msg.AppendFormat("TopOf:{0,-30}", artist.ArtistName.Substring(0, Math.Min(artist.ArtistName.Length, 30)));
-                    ArtistQueryInfo info = SimilarSongs.backingDB.LookupArtistTopTracksListAge.Execute(artist.ArtistName);
-                    if (info.LookupTimestamp.HasValue || info.IsAlternateOf.HasValue) {
+					ArtistTopTracksListInfo info = SimilarSongs.backingDB.LookupArtistTopTracksListAge.Execute(artist.ArtistName);
+                    if((info.LookupTimestamp.HasValue && info.LookupTimestamp.Value > minAge) || info.ArtistInfo.IsAlternateOf.HasValue) {
                         msg.AppendFormat("done.");
                     } else {
 

@@ -50,6 +50,7 @@ namespace LastFMspider.LastFMSQLiteBackend {
 		internal struct Factory : IIdFactory<SimilarArtistsListId> { public SimilarArtistsListId Cast(uint id) { return new SimilarArtistsListId(id); } }
 	}
 	public struct TopTracksListId : IId {
+		//TODO:be consistent: why is this not ArtistTopTracksListId
 		internal readonly uint id;
 		public uint Id { get { return id; } }
 		public bool HasValue { get { return id != 0; } }

@@ -9,35 +9,47 @@ namespace LastFMspider.LastFMSQLiteBackend {
 	public class LookupArtistTopTracksListAge : AbstractLfmCacheQuery {
 		public LookupArtistTopTracksListAge(LastFMSQLiteCache lfmCache)
 			: base(lfmCache) {
-			lowerArtist = DefineParameter("@lowerArtist");
+			artistId = DefineParameter("@artistId");
 		}
 		protected override string CommandText {
 			get {
 				return @"
-SELECT A.IsAlternateOf, L.LookupTimestamp, L.StatusCode 
-FROM Artist A, TopTracksList L 
-WHERE A.LowercaseArtist = @lowerArtist
-AND L.ListID = A.CurrentTopTracksList
-";//we want the biggest timestamp first!
+SELECT L.ListID, L.ArtistId, L.LookupTimestamp, L.StatusCode, L.TopTracks
+FROM Artist A, TopTracksList L
+WHERE A.ArtistID = @artistId
+AND  L.ListID = A.CurrentTopTracksList
+";
 			}
 		}
-		DbParameter lowerArtist;
+		DbParameter artistId;
 
-		public ArtistQueryInfo Execute(string artist) {
+		public ArtistTopTracksListInfo Execute(string artist) {
 			lock (SyncRoot) {
+				//TODO:IsAlternateOf
+				using (var trans = Connection.BeginTransaction()) {
+					ArtistTopTracksListInfo retval;
+					var artistInfo = lfmCache.LookupArtistInfo.Execute(artist);
+					if (artistInfo.IsAlternateOf.HasValue)
+						retval = ArtistTopTracksListInfo.CreateUnknown(artistInfo);
+					else {
+						artistId.Value = artistInfo.ArtistId;
 
-				lowerArtist.Value = artist.ToLatinLowercase();
-				using (var reader = CommandObj.ExecuteReader())//no transaction needed for a single select!
-                {
-					//we expect exactly one hit - or none
-					if (reader.Read()) {
-						return new ArtistQueryInfo(
-							IsAlternateOf: new ArtistId(reader[0].CastDbObjectAs<long?>()),
-							LookupTimestamp: reader[1].CastDbObjectAsDateTime(),
-							StatusCode: (int?)reader[2].CastDbObjectAs<long?>()
-						);
-					} else
-						return ArtistQueryInfo.Default;
+						using (var reader = CommandObj.ExecuteReader()) {
+							//we expect exactly one hit - or none
+							if (reader.Read())
+								retval = new ArtistTopTracksListInfo(
+									listID: new TopTracksListId((long)reader[0]),
+									artistInfo:artistInfo,
+									lookupTimestamp: reader[2].CastDbObjectAsDateTime().Value,
+									statusCode: (int?)reader[3].CastDbObjectAs<long?>(),
+									rankings: new ReachList<TrackId, TrackId.Factory>(reader[4].CastDbObjectAs<byte[]>() ?? new byte[] { })
+									);
+							else
+								retval = ArtistTopTracksListInfo.CreateUnknown(artistInfo);
+						}
+					}
+					trans.Commit();
+					return retval;
 				}
 			}
 		}

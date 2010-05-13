@@ -79,15 +79,16 @@ namespace LastFMspider
 
 		public ArtistTopTracksList LookupTopTracks(string artist) {
 			//artist = artist.ToLatinLowercase();
-			var toptracks = backingDB.LookupArtistTopTracksList.Execute(artist);
-			if (toptracks != null) return toptracks;
+			var toptracksInfo = backingDB.LookupArtistTopTracksListAge.Execute(artist);
+			if (toptracksInfo.IsKnown) return backingDB.LookupArtistTopTracksList.Execute(toptracksInfo);
+			ArtistTopTracksList toptracks;
 			try {
 				toptracks = OldApiClient.Artist.GetTopTracks(artist);
-				if (artist.ToLatinLowercase() != toptracks.Artist.ToLatinLowercase())
-					backingDB.SetArtistAlternate.Execute(artist, toptracks.Artist);
 			} catch (Exception) {
-				toptracks = ArtistTopTracksList.CreateErrorList(artist, 1);
+				toptracks = ArtistTopTracksList.CreateErrorList(artist, 1);//TODO:statuscodes...
 			}
+			if (artist.ToLatinLowercase() != toptracks.Artist.ToLatinLowercase())
+				backingDB.SetArtistAlternate.Execute(artist, toptracks.Artist);
 			backingDB.InsertArtistTopTracksList.Execute(toptracks);
 			return toptracks;
 

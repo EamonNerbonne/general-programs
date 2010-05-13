@@ -15,12 +15,9 @@ namespace LastFMspider.LastFMSQLiteBackend {
 			get {
 				return @"
 SELECT L.ListID, L.TrackId, L.LookupTimestamp, L.StatusCode, L.SimilarTracks
-FROM Artist A,
-     Track T, 
-     SimilarTrackList L
+FROM Artist A, Track T, SimilarTrackList L
 WHERE A.LowercaseArtist = @lowerArtist
-AND T.ArtistID=A.ArtistID
-AND T.LowercaseTitle = @lowerTitle
+AND T.ArtistID=A.ArtistID AND T.LowercaseTitle = @lowerTitle
 AND L.ListID = T.CurrentSimilarTrackList
 ";
 			}

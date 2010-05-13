@@ -7,7 +7,10 @@ using System.Data.Common;
 namespace LastFMspider.LastFMSQLiteBackend {
 	public class InsertArtist : AbstractLfmCacheQuery {
 		protected override string CommandText {
-			get { return @"INSERT OR IGNORE INTO [Artist](FullArtist, LowercaseArtist) VALUES (@fullname,@lowername)"; }
+			get { return @"
+INSERT OR IGNORE INTO [Artist](FullArtist, LowercaseArtist) VALUES (@fullname,@lowername);
+SELECT ArtistID FROM [Artist] WHERE LowercaseArtist = @lowerArtist
+"; }
 		}
 		public InsertArtist(LastFMSQLiteCache lfm)
 			: base(lfm) {
@@ -16,11 +19,11 @@ namespace LastFMspider.LastFMSQLiteBackend {
 		}
 
 		DbParameter fullname, lowername;
-		public void Execute(string artist) {
+		public ArtistId Execute(string artist) {
 			lock (SyncRoot) {
 				fullname.Value = artist;
 				lowername.Value = artist.ToLatinLowercase();
-				CommandObj.ExecuteNonQuery();
+				return new ArtistId(CommandObj.ExecuteScalar().CastDbObjectAs<long>());
 			}
 		}
 

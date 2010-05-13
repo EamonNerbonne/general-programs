@@ -15,18 +15,18 @@ namespace LastFMspider.LastFMSQLiteBackend {
 		protected override string CommandText {
 			get {
 				return @"
-SELECT S.ListID,S.ArtistB, S.Rating
-FROM SimilarArtist S
-WHERE S.ListID >= @listIdA
-AND S.ListID < @listIdB
+SELECT TT.ListID, TT.TrackID, TT.Reach
+FROM TopTracks TT
+WHERE TT.ListID >= @listIdA
+AND TT.ListID < @listIdB
 ";
 			}
 		}
 		DbParameter listIdA;
 		DbParameter listIdB;
 
-		struct entry { public uint listid; public uint elemid; public float rating;}
-		public Tuple<SimilarityList<ArtistId,ArtistId.Factory>, SimilarArtistsListId>[] Execute(uint listIdStart, uint listIdEnd) {
+		struct entry { public uint listid; public uint elemid; public long reach;}
+		public Tuple<ReachList<TrackId, TrackId.Factory>, TopTracksListId>[] Execute(uint listIdStart, uint listIdEnd) {
 			List<entry> entries = new List<entry>();
 			lock (SyncRoot) {
 				using (var trans = Connection.BeginTransaction()) {
@@ -37,7 +37,7 @@ AND S.ListID < @listIdB
 							entries.Add(new entry {
 								listid = (uint)(long)reader[0],
 								elemid = (uint)(long)reader[1],
-								rating = (float)reader[2]
+								reach = (long)reader[2]
 							});
 					}
 				}
@@ -47,11 +47,11 @@ AND S.ListID < @listIdB
 				 group e by e.listid into list
 				 select
 						Tuple.Create(
-							new SimilarityList<ArtistId,ArtistId.Factory>(
+							new ReachList<TrackId, TrackId.Factory>(
 								from e in list
-								select new SimilarityTo<ArtistId>(new ArtistId(e.elemid), e.rating)
+								select new HasReach<TrackId>(new TrackId(e.elemid), e.reach)
 							)
-							, new SimilarArtistsListId(list.Key)
+							, new TopTracksListId(list.Key)
 						)
 				).ToArray();
 		}

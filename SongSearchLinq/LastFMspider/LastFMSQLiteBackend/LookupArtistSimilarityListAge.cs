@@ -5,55 +5,48 @@ using System.Text;
 using System.Data.Common;
 
 namespace LastFMspider.LastFMSQLiteBackend {
-	public struct ArtistQueryInfo {
-		public readonly ArtistId IsAlternateOf;
-		public readonly DateTime? LookupTimestamp;
-		public readonly int? StatusCode;
-
-		public ArtistQueryInfo(ArtistId IsAlternateOf, DateTime? LookupTimestamp, int? StatusCode) {
-			this.IsAlternateOf = IsAlternateOf; this.LookupTimestamp = LookupTimestamp; this.StatusCode = StatusCode;
-		}
-		public static ArtistQueryInfo Default { get { return default(ArtistQueryInfo); } }
-		// negative: non-problematic error (-1 == http404)
-		// 0: no error, list is accurate
-		// positive: list request error; list is empty but that might be an error.
-		// 1: unknown exception occurred (DB locked?)
-		// 2-22: WebException occured
-		// 32: InvalidOperationException occurred.
-	}
-
 	public class LookupArtistSimilarityListAge : AbstractLfmCacheQuery {
 		public LookupArtistSimilarityListAge(LastFMSQLiteCache lfmCache)
 			: base(lfmCache) {
-			lowerArtist = DefineParameter("@lowerArtist");
+			artistId = DefineParameter("@artistId");
 		}
 		protected override string CommandText {
 			get {
 				return @"
-SELECT A.IsAlternateOf, L.LookupTimestamp, L.StatusCode
-FROM Artist A 
-left join SimilarArtistList L on A.CurrentSimilarArtistList = L.ListID
-WHERE A.LowercaseArtist = @lowerArtist
+SELECT L.ListID, L.ArtistId, L.LookupTimestamp, L.StatusCode, L.SimilarTracks
+FROM Artist A, SimilarArtistList L
+WHERE A.ArtistID = @artistId
+AND  L.ListID = A.CurrentSimilarArtistList
 ";
 			}
 		}
-		DbParameter lowerArtist;
+		DbParameter artistId;
 
-		public ArtistQueryInfo Execute(string artist) {
+		public ArtistSimilarityListInfo Execute(string artist) {
 			lock (SyncRoot) {
-
-				lowerArtist.Value = artist.ToLatinLowercase();
-				using (var reader = CommandObj.ExecuteReader())//no transaction needed for a single select!
-                {
-					//we expect exactly one hit - or none
-					if (reader.Read()) {
-						return new ArtistQueryInfo(
-							IsAlternateOf: new ArtistId(reader[0].CastDbObjectAs<long?>()),
-							LookupTimestamp: reader[1].CastDbObjectAsDateTime(),
-							StatusCode: (int?)reader[0].CastDbObjectAs<int?>()
-						);
-					} else
-						return ArtistQueryInfo.Default;
+				//TODO:IsAlternateOf
+				using (var trans = Connection.BeginTransaction()) {
+					ArtistSimilarityListInfo retval;
+					var artistInfo = lfmCache.LookupArtistInfo.Execute(artist);
+					if (artistInfo.IsAlternateOf.HasValue)
+						retval = ArtistSimilarityListInfo.CreateUnknown(artistInfo);
+					else {
+						artistId.Value = artistInfo.ArtistId;
+						using (var reader = CommandObj.ExecuteReader()) {
+							//we expect exactly one hit - or none
+							if (reader.Read())
+								retval= new ArtistSimilarityListInfo(
+									listID: new SimilarArtistsListId((long)reader[0]),
+									artistInfo: artistInfo,
+									lookupTimestamp: reader[2].CastDbObjectAsDateTime().Value,
+									statusCode: (int?)reader[3].CastDbObjectAs<long?>(),
+									similarArtists: new SimilarityList<ArtistId, ArtistId.Factory>(reader[4].CastDbObjectAs<byte[]>()) );
+							else
+								retval = ArtistSimilarityListInfo.CreateUnknown(artistInfo);
+						}
+					}
+					trans.Commit();
+					return retval;
 				}
 			}
 		}
