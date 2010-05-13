@@ -25,7 +25,7 @@ WHERE ArtistID=(select ArtistID from SimilarArtistList where ListID = @listId)
 
 		public void Execute(SimilarArtistsListId listID) {
 			lock (SyncRoot) {
-				listId.Value = listID.Id;
+				listId.Value = listID.id;
 				CommandObj.ExecuteNonQuery();
 			}
 		}

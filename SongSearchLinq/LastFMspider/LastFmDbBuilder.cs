@@ -18,8 +18,6 @@ namespace LastFMspider {
 PRAGMA journal_mode = PERSIST;
 
 
-
-
 CREATE TABLE IF NOT EXISTS [Artist] (
   [ArtistID] INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
   [FullArtist] TEXT  NOT NULL,
@@ -101,21 +99,6 @@ CREATE INDEX  IF NOT EXISTS [IDX_SimilarTrackList_TrackID_LookupTimestamp] ON [S
   [TrackID]  ASC, 
   [LookupTimestamp]  ASC
 );
-
-
-
-CREATE TABLE IF NOT EXISTS [SimilarTrack] (
-  [SimilarTrackID] INTEGER  NOT NULL PRIMARY KEY AUTOINCREMENT,
-  [ListID] INTEGER  NOT NULL,
-  [TrackB] INTEGER  NOT NULL,
-  [Rating] REAL NOT NULL,
-CONSTRAINT fk_owning_stl FOREIGN KEY(ListID) REFERENCES SimilarTrackList(ListID),
-CONSTRAINT fk_other_track FOREIGN KEY(TrackB) REFERENCES Track(TrackID)
-);
-DROP INDEX IF EXISTS [Unique_SimilarTrack_TrackA_TrackB];
-DROP INDEX IF EXISTS [IDX_SimilarTrack_TrackB];
-DROP INDEX IF EXISTS [IDX_SimilarTrack_Rating];
-CREATE INDEX  IF NOT EXISTS [IDX_SimilarTrack_ListID] ON [SimilarTrack]([ListID]  ASC);
 
 
 

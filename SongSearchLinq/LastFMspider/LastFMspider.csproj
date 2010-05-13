@@ -108,7 +108,6 @@
   <ItemGroup>
     <Compile Include="ArbitraryTrackMapper.cs" />
     <Compile Include="ArtistSimilarityList.cs" />
-    <Compile Include="CachedDistanceMatrix.cs" />
     <Compile Include="FindSimilarPlaylist\FindSimilarPlaylist.cs" />
     <Compile Include="FindSimilarPlaylist\SongWithCost.cs" />
     <Compile Include="FindSimilarPlaylist\SongWithCostCache.cs" />
@@ -124,17 +123,16 @@
     <Compile Include="LastFMSQLiteBackend\ArtistsWithoutTopTracksList.cs" />
     <Compile Include="LastFMSQLiteBackend\ArtistSetCurrentSimList.cs" />
     <Compile Include="LastFMSQLiteBackend\ArtistSetCurrentTopTracks.cs" />
+    <Compile Include="LastFMSQLiteBackend\ConvertOldSimList.cs" />
     <Compile Include="LastFMSQLiteBackend\DbUtil.cs" />
     <Compile Include="LastFMSQLiteBackend\Ids.cs" />
+    <Compile Include="LastFMSQLiteBackend\LoadOldSimList.cs" />
     <Compile Include="LastFMSQLiteBackend\TrackSetCurrentSimList.cs" />
-    <Compile Include="LastFMSQLiteBackend\CountRoughtSimilarities.cs" />
     <Compile Include="LastFMSQLiteBackend\InsertArtistSimilarity.cs" />
     <Compile Include="LastFMSQLiteBackend\InsertArtistSimilarityList.cs" />
     <Compile Include="LastFMSQLiteBackend\InsertArtistTopTrack.cs" />
     <Compile Include="LastFMSQLiteBackend\InsertArtistTopTracksList.cs" />
-    <Compile Include="LastFMSQLiteBackend\CountSimilarities.cs" />
     <Compile Include="LastFMSQLiteBackend\InsertArtist.cs" />
-    <Compile Include="LastFMSQLiteBackend\InsertSimilarity.cs" />
     <Compile Include="LastFMSQLiteBackend\InsertSimilarityList.cs" />
     <Compile Include="LastFMSQLiteBackend\InsertTrack.cs" />
     <Compile Include="LastFMSQLiteBackend\LookupArtist.cs" />
@@ -147,7 +145,6 @@
     <Compile Include="LastFMSQLiteBackend\LookupTrack.cs" />
     <Compile Include="LastFMSQLiteBackend\LookupTrackID.cs" />
     <Compile Include="LastFMSQLiteBackend\RawArtists.cs" />
-    <Compile Include="LastFMSQLiteBackend\RawSimilarTracks.cs" />
     <Compile Include="LastFMSQLiteBackend\RawTracks.cs" />
     <Compile Include="LastFMSQLiteBackend\SetArtistAlternate.cs" />
     <Compile Include="LastFMSQLiteBackend\TracksWithoutSimilarityList.cs" />
@@ -170,9 +167,7 @@
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
       <DependentUpon>Settings.settings</DependentUpon>
     </Compile>
-    <Compile Include="SimCacheManager.cs" />
     <Compile Include="SimilarTrack.cs" />
-    <Compile Include="SimilarTracks.cs" />
     <Compile Include="SongDataLookups.cs" />
     <Compile Include="SongRef.cs" />
     <Compile Include="SongSimilarityCache.cs" />

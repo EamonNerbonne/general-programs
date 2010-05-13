@@ -36,7 +36,7 @@ WHERE B.LowercaseArtist= @lowerArtistB
 				lfmCache.InsertArtist.Execute(artistB);//we could also replace casing... whatever...
 
 				this.rating.Value = rating;
-				this.listID.Value = listID.Id;
+				this.listID.Value = listID.id;
 				this.lowerArtistB.Value = artistB.ToLatinLowercase();
 				CommandObj.ExecuteNonQuery();
 			}

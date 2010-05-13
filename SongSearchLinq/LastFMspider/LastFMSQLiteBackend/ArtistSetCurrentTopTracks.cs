@@ -25,7 +25,7 @@ WHERE ArtistID=(select ArtistID from TopTracksList where ListID = @listId)
 
 		public void Execute(TopTracksListId listIdArg) {
 			lock (SyncRoot) {
-				listIdQueryParam.Value = listIdArg.Id;
+				listIdQueryParam.Value = listIdArg.id;
 				CommandObj.ExecuteNonQuery();
 			}
 		}

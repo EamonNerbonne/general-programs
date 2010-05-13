@@ -34,8 +34,5 @@ namespace LastFMspider
 					ignoreCount++;
 			Console.WriteLine("Ignored {0} songs with incomplete tags", ignoreCount);
 		}
-
 	}
-
-
 }

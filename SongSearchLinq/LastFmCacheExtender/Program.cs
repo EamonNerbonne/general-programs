@@ -17,13 +17,14 @@ namespace LastFmCacheExtender
             Console.WriteLine("Loading song similarity...");
             tools = new LastFmTools(config);
 //			tools.PrecacheLocalFiles();//might want to do this first, but...
-			tools.EnsureLocalFilesInDB();//this is much faster, of course.
-            tools.UnloadDB();
+//			tools.EnsureLocalFilesInDB();//this is much faster, of course.
+            //tools.UnloadDB();
             Console.WriteLine("go!");
-            ExtendSimilarities();
+            //ExtendSimilarities();
+			tools.SimilarSongs.PortSimilarArtists();
         }
 
-        static void ExtendSimilarities() {
+		static void ExtendSimilarities() {
             bool run = true;
             int errCount = 0;
             while (run&&errCount<10) {

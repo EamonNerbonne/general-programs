@@ -9,31 +9,32 @@ namespace LastFMspider.LastFMSQLiteBackend {
         public UpdateTrackCasing(LastFMSQLiteCache lfm)
             : base(lfm) {
             lowerTitle = DefineParameter("@lowerTitle");
-            lowerArtist = DefineParameter("@lowerArtist");
             fullTitle = DefineParameter("@fullTitle");
-            fullArtist = DefineParameter("@fullArtist");
-        }
+			artistId = DefineParameter("@artistId");
+		}
         protected override string CommandText {
             get {
                 return @"
-UPDATE Artist SET FullArtist = @fullArtist WHERE LowercaseArtist=@lowerArtist;
-UPDATE Track SET FullTitle = @fullTitle WHERE LowercaseTitle=@lowerTitle AND ArtistID = (SELECT ArtistID FROM Artist WHERE LowercaseArtist = @lowerArtist)
+UPDATE Track SET FullTitle = @fullTitle WHERE ArtistID = @artistId AND LowercaseTitle=@lowerTitle;
+
+INSERT OR IGNORE INTO [Track] (ArtistID, FullTitle, LowercaseTitle)
+VALUES (@artistId, @fullTitle, @lowerTitle);
+
+SELECT TrackID FROM Track  where ArtistID = @artistId AND AND LowercaseTitle=@lowerTitle
 ";
             }
         }
         
 
-        DbParameter lowerTitle, lowerArtist, fullTitle,fullArtist;
+        DbParameter lowerTitle,  fullTitle, artistId;
 
 
-        public void Execute(SongRef songRef) {
+        public TrackId Execute(SongRef songRef) {
             lock (SyncRoot) {
-
-                lowerArtist.Value = songRef.Artist.ToLatinLowercase();
+				artistId.Value = lfmCache.UpdateArtistCasing.Execute(songRef.Artist).id;
                 lowerTitle.Value = songRef.Title.ToLatinLowercase();
                 fullTitle.Value = songRef.Title;
-                fullArtist.Value = songRef.Artist;
-                CommandObj.ExecuteNonQuery();
+				return new TrackId(CommandObj.ExecuteNonQuery().CastDbObjectAs<long>());
             }
         }
 

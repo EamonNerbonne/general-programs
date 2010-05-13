@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Data.Common;
 using System.Data.SQLite;
+using System.Data;
 
 namespace LastFMspider.LastFMSQLiteBackend
 {
@@ -16,9 +17,10 @@ namespace LastFMspider.LastFMSQLiteBackend
             CommandObj.CommandText = CommandText;
         }
         protected abstract string CommandText { get; }
-        protected DbParameter DefineParameter(string name) {
+        protected DbParameter DefineParameter(string name,DbType type = DbType.Object) {
             DbParameter param = CommandObj.CreateParameter();
             param.ParameterName = name;
+			param.DbType = type;
             CommandObj.Parameters.Add(param);
             return param;
         }

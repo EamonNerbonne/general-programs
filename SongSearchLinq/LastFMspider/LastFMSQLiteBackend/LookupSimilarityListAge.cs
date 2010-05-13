@@ -5,13 +5,6 @@ using System.Text;
 using System.Data.Common;
 
 namespace LastFMspider.LastFMSQLiteBackend {
-	public struct TrackSimilarityListInfo {
-		public readonly SongRef SongRef;
-		public readonly SimilarTracksListId ListID;
-		public readonly DateTime? LookupTimestamp;
-		public readonly int? StatusCode;
-		public TrackSimilarityListInfo(SongRef songref, SimilarTracksListId listID, DateTime? lookupTimestamp, int? statusCode) { this.SongRef = songref; this.ListID = listID; this.LookupTimestamp = lookupTimestamp; this.StatusCode = statusCode; }
-	}
 	public class LookupSimilarityListAge : AbstractLfmCacheQuery {
 		public LookupSimilarityListAge(LastFMSQLiteCache lfmCache)
 			: base(lfmCache) {
@@ -21,7 +14,7 @@ namespace LastFMspider.LastFMSQLiteBackend {
 		protected override string CommandText {
 			get {
 				return @"
-SELECT L.LookupTimestamp, L.StatusCode, L.ListID
+SELECT L.ListID, L.TrackId, L.LookupTimestamp, L.StatusCode, L.SimilarTracks
 FROM Artist A,
      Track T, 
      SimilarTrackList L
@@ -43,9 +36,23 @@ AND L.ListID = T.CurrentSimilarTrackList
                 {
 					//we expect exactly one hit - or none
 					if (reader.Read())
-						return new TrackSimilarityListInfo(songref, new SimilarTracksListId(reader[2].CastDbObjectAs<long?>()), reader[0].CastDbObjectAsDateTime().Value, (int?)reader[1].CastDbObjectAs<long?>());
+						return new TrackSimilarityListInfo(
+							listID:new SimilarTracksListId((long)reader[0]),
+							trackId: new TrackId((long)reader[1]),
+							songref:songref,
+							lookupTimestamp:  reader[2].CastDbObjectAsDateTime().Value,
+							statusCode: (int?)reader[3].CastDbObjectAs<long?>(),
+							sims: reader[4].CastDbObjectAs<byte[]>());
 					else
-						return new TrackSimilarityListInfo(songref, default(SimilarTracksListId), null, null);
+												return new TrackSimilarityListInfo(
+							listID:new SimilarTracksListId((long)reader[0]),
+							trackId: new TrackId((long)reader[1]),
+							songref:songref,
+							lookupTimestamp:  reader[2].CastDbObjectAsDateTime().Value,
+							statusCode: (int?)reader[3].CastDbObjectAs<long?>(),
+							sims: reader[4].CastDbObjectAs<byte[]>());
+
+						return TrackSimilarityListInfo.CreateUnknown(songref);
 				}
 			}
 		}

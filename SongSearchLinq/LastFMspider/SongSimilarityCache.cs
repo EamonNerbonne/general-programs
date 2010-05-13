@@ -93,5 +93,25 @@ namespace LastFMspider
 
 		}
 
+		public void PortSimilarArtists() {
+			uint missedCounts = 0;
+			uint perTime = 10000;
+			uint startIndex = 0;
+			while (missedCounts < 1000000000) {
+
+				var simlists = backingDB.LoadOldSimList.Execute(startIndex, startIndex + perTime);
+				if (simlists.Length == 0)
+					missedCounts += perTime;
+				lock (backingDB.SyncRoot) {
+					using (var trans = backingDB.Connection.BeginTransaction()) {
+						foreach (var list in simlists) {
+							backingDB.ConvertOldSimList.Execute(list.Item1,list.Item2);
+						}
+						trans.Commit();
+					}
+				}
+				startIndex += perTime;
+			}
+		}
 	}
 }

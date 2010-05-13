@@ -25,7 +25,7 @@ WHERE TrackID=(select TrackID from SimilarTrackList where ListID = @listId)
 
 		public void Execute(SimilarTracksListId ListID) {
 			lock (SyncRoot) {
-				listId.Value = ListID.Id;
+				listId.Value = ListID.id;
 				CommandObj.ExecuteNonQuery();
 			}
 		}

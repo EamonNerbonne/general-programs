@@ -6,7 +6,6 @@ using System.Runtime.Serialization;
 using LastFMspider.LastFMSQLiteBackend;
 
 namespace LastFMspider {
-	[Serializable]
 	public struct SimilarTrack {
 		public double similarity;
 		public SongRef similarsong;

@@ -17,6 +17,11 @@ namespace LastFMspider.LastFMSQLiteBackend
             get {
                 return @"
 UPDATE Artist SET FullArtist = @fullArtist WHERE LowercaseArtist=@lowerArtist;
+
+INSERT OR IGNORE INTO [Artist] (FullArtist, LowercaseArtist)
+VALUES (@fullTitle, @lowerTitle);
+
+SELECT ArtistID FROM Artist where LowercaseArtist=@lowerArtist
 ";
             }
         }
@@ -25,11 +30,11 @@ UPDATE Artist SET FullArtist = @fullArtist WHERE LowercaseArtist=@lowerArtist;
         DbParameter  lowerArtist,  fullArtist;
 
 
-        public void Execute(string artistName) {
+        public ArtistId Execute(string artistName) {
             lock (SyncRoot) {
                 lowerArtist.Value = artistName.ToLatinLowercase();
                 fullArtist.Value = artistName;
-                CommandObj.ExecuteNonQuery();
+                return new ArtistId( CommandObj.ExecuteScalar().CastDbObjectAs<long>());
             }
         }
 

@@ -22,7 +22,7 @@ SELECT FullArtist FROM [Artist] WHERE ArtistID = @artistID
 		public string Execute(ArtistId ArtistID) {
 			lock (SyncRoot) {
 
-				artistID.Value = ArtistID.Id;
+				artistID.Value = ArtistID.id;
 				using (var reader = CommandObj.ExecuteReader())//no transaction needed for a single select!
                 {
 					//we expect exactly one hit - or none

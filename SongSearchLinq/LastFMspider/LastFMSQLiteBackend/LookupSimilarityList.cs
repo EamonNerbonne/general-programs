@@ -28,11 +28,12 @@ ORDER BY S.Rating DESC
 		DbParameter listId;
 
 		public SongSimilarityList Execute(TrackSimilarityListInfo list) {
+			throw new NotImplementedException("TODO");
 			if (!list.ListID.HasValue || list.SongRef == null) return null;
 
 			lock (SyncRoot) {
 				using (var trans = Connection.BeginTransaction()) {
-					listId.Value = list.ListID.Id;
+					listId.Value = list.ListID.id;
 
 					List<SimilarTrack> similarto = new List<SimilarTrack>();
 					using (var reader = CommandObj.ExecuteReader()) {
