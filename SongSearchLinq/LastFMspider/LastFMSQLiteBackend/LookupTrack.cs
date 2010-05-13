@@ -19,10 +19,10 @@ SELECT FullArtist, FullTitle FROM [Track] NATURAL join [Artist] WHERE TrackID = 
 		}
 		DbParameter trackID;
 
-		public SongRef Execute(int TrackID) {
+		public SongRef Execute(TrackId TrackID) {
 			lock (SyncRoot) {
 
-				trackID.Value = TrackID;
+				trackID.Value = TrackID.Id;
 				using (var reader = CommandObj.ExecuteReader())//no transaction needed for a single select!
                 {
 					//we expect exactly one hit - or none

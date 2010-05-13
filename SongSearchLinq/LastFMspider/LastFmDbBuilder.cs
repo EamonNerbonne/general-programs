@@ -32,9 +32,6 @@ CREATE TABLE IF NOT EXISTS [Artist] (
 CREATE UNIQUE INDEX IF NOT EXISTS [Unique_Artist_LowercaseArtist] ON [Artist]([LowercaseArtist]  ASC);
 
 
-
-
-
 CREATE TABLE IF NOT EXISTS [SimilarArtistList] (
 [ListID] INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
 [ArtistID] INTEGER  NOT NULL,
@@ -44,23 +41,6 @@ CREATE TABLE IF NOT EXISTS [SimilarArtistList] (
 CONSTRAINT fk_artist FOREIGN KEY(ArtistID) REFERENCES Artist(ArtistID)
 );
 CREATE INDEX IF NOT EXISTS [IDX_SimilarArtistList_ArtistID_LookupTimestamp] ON [SimilarArtistList]([ArtistID]  ASC, [LookupTimestamp]  ASC);
-
-
-
-CREATE TABLE IF NOT EXISTS [SimilarArtist] (
-[SimilarArtistID] INTEGER  NOT NULL PRIMARY KEY AUTOINCREMENT,
-[ListID] INTEGER  NOT NULL,
-[ArtistB] INTEGER  NOT NULL,
-[Rating] REAL NOT NULL,
-CONSTRAINT fk_other_artist FOREIGN KEY(ArtistB) REFERENCES Artist(ArtistID),
-  CONSTRAINT fk_sal_owner FOREIGN KEY(ListID) REFERENCES SimilarArtistList(ListID)
-);
-DROP INDEX IF EXISTS [Unique_SimilarArtist_ArtistA_ArtistB];
-DROP INDEX IF EXISTS [IDX_SimilarArtist_Rating];
-CREATE INDEX  IF NOT EXISTS [IDX_SimilarArtist_ListID] ON [SimilarArtist]([ListID]  ASC);
-
-
-
 
 
 
@@ -81,7 +61,6 @@ CREATE UNIQUE INDEX IF NOT EXISTS [Unique_Track_ArtistID_LowercaseTitle] ON [Tra
       --VALUES (NEW.TrackID, NEW.ArtistID, NEW.FullTitle, NEW.LowercaseTitle, NEW.CurrentSimilarTrackList);
    --select RAISE(IGNORE);
 --END;
-
 
 
 
@@ -113,21 +92,6 @@ CONSTRAINT fk_owner_artist FOREIGN KEY(ArtistID) REFERENCES Artist(ArtistID)
 DROP INDEX IF EXISTS [IDX_TopTracksList_LookupTimestamp];
 DROP INDEX IF EXISTS [IDX_TopTracksList_ArtistID];
 CREATE INDEX IF NOT EXISTS [IDX_TopTracksList_ArtistID_LookupTimestamp] ON [TopTracksList](  [ArtistID]  ASC,  [LookupTimestamp]  ASC);
-
-
-
-CREATE TABLE IF NOT EXISTS [TopTracks] (
-[TopTrackID] INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-[TrackID] INTEGER  NOT NULL,
-[ListID] INTEGER  NOT NULL,
-[Reach] INTEGER NOT NULL,
-CONSTRAINT fk_of_ttl FOREIGN KEY(ListID) REFERENCES TopTracksList(ListID),
-CONSTRAINT fk_has_track FOREIGN KEY(TrackID) REFERENCES Track(TrackID)
-);
-DROP INDEX IF EXISTS [Unique_TopTracks_ListID_TrackID];
-DROP INDEX IF EXISTS [IDX_TopTracks_TrackID];
-CREATE INDEX  IF NOT EXISTS [IDX_TopTracks_ListID] ON [TopTracks](  [ListID]  ASC);
-CREATE INDEX  IF NOT EXISTS [IDX_TopTracks_Reach] ON [TopTracks](  [Reach]  DESC);
 
 ";
 		//CREATE TRIGGER IF NOT EXISTS Artist_Ignore_Duplicates BEFORE INSERT ON Artist

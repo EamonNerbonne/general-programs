@@ -21,7 +21,7 @@ SELECT TrackID FROM [Track] NATURAL join [Artist] WHERE LowercaseArtist = @lower
 		}
 		DbParameter lowerTitle, lowerArtist;
 
-		public int? Execute(SongRef songref) {
+		public TrackId Execute(SongRef songref) {
 			lock (SyncRoot) {
 
 				lowerTitle.Value = songref.Title.ToLatinLowercase();
@@ -30,9 +30,9 @@ SELECT TrackID FROM [Track] NATURAL join [Artist] WHERE LowercaseArtist = @lower
                 {
 					//we expect exactly one hit - or none
 					if (reader.Read()) {
-						return (int)(long)reader[0];
+						return new TrackId(reader[0].CastDbObjectAs<long>());
 					} else
-						return null;
+						return default(TrackId);
 				}
 			}
 		}

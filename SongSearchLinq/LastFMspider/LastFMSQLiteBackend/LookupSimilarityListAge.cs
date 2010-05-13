@@ -37,21 +37,13 @@ AND L.ListID = T.CurrentSimilarTrackList
 					//we expect exactly one hit - or none
 					if (reader.Read())
 						return new TrackSimilarityListInfo(
-							listID:new SimilarTracksListId((long)reader[0]),
+							listID: new SimilarTracksListId((long)reader[0]),
 							trackId: new TrackId((long)reader[1]),
-							songref:songref,
-							lookupTimestamp:  reader[2].CastDbObjectAsDateTime().Value,
+							songref: songref,
+							lookupTimestamp: reader[2].CastDbObjectAsDateTime().Value,
 							statusCode: (int?)reader[3].CastDbObjectAs<long?>(),
 							sims: reader[4].CastDbObjectAs<byte[]>());
 					else
-												return new TrackSimilarityListInfo(
-							listID:new SimilarTracksListId((long)reader[0]),
-							trackId: new TrackId((long)reader[1]),
-							songref:songref,
-							lookupTimestamp:  reader[2].CastDbObjectAsDateTime().Value,
-							statusCode: (int?)reader[3].CastDbObjectAs<long?>(),
-							sims: reader[4].CastDbObjectAs<byte[]>());
-
 						return TrackSimilarityListInfo.CreateUnknown(songref);
 				}
 			}

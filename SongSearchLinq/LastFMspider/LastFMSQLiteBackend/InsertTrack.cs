@@ -27,18 +27,17 @@ SELECT TrackID FROM [Track] NATURAL join [Artist] WHERE LowercaseArtist = @lower
 		}
 		DbParameter fullTitle, lowerTitle, lowerArtist;
 
-		public int Execute(SongRef songref) {
+		public TrackId Execute(SongRef songref) {
 			lock (SyncRoot) {
 				lfmCache.InsertArtist.Execute(songref.Artist);
 				fullTitle.Value = songref.Title;
 				lowerTitle.Value = songref.Title.ToLatinLowercase();
 				lowerArtist.Value = songref.Artist.ToLatinLowercase();
-				int trackID = -1;
 				using (DbTransaction trans = Connection.BeginTransaction()) {
-					trackID = (int)(long)CommandObj.ExecuteScalar();
+					var retval  =  new TrackId((long)CommandObj.ExecuteScalar());
 					trans.Commit();
+					return retval;
 				}
-				return trackID;
 			}
 		}
 
