@@ -19,7 +19,7 @@ namespace LastFMspider.LastFMSQLiteBackend
 UPDATE Artist SET FullArtist = @fullArtist WHERE LowercaseArtist=@lowerArtist;
 
 INSERT OR IGNORE INTO [Artist] (FullArtist, LowercaseArtist)
-VALUES (@fullTitle, @lowerTitle);
+VALUES (@fullArtist, @lowerArtist);
 
 SELECT ArtistID FROM Artist where LowercaseArtist=@lowerArtist
 ";
