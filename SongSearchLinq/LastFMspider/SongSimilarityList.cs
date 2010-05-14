@@ -45,8 +45,8 @@ namespace LastFMspider {
 			this.SongRef = songref; this.TrackId = trackId; this.ListID = listID; this.LookupTimestamp = lookupTimestamp;
 			this.StatusCode = statusCode; this._SimilarTracks = new SimilarityList<TrackId, TrackId.Factory>(sims ?? new byte[] { });
 		}
-		public static TrackSimilarityListInfo CreateUnknown(SongRef song) {
-			return new TrackSimilarityListInfo(default(SimilarTracksListId), default(TrackId), song, null, null, default(byte[]));
+		public static TrackSimilarityListInfo CreateUnknown(SongRef song,TrackId trackId) {
+			return new TrackSimilarityListInfo(default(SimilarTracksListId), trackId, song, null, null, default(byte[]));
 		}
 	}
 }

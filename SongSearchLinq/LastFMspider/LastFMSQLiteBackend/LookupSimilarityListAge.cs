@@ -8,42 +8,44 @@ namespace LastFMspider.LastFMSQLiteBackend {
 	public class LookupSimilarityListAge : AbstractLfmCacheQuery {
 		public LookupSimilarityListAge(LastFMSQLiteCache lfmCache)
 			: base(lfmCache) {
-			lowerArtist = DefineParameter("@lowerArtist");
-			lowerTitle = DefineParameter("@lowerTitle");
+			trackId = DefineParameter("@trackId");
 		}
 		protected override string CommandText {
 			get {
 				return @"
-SELECT L.ListID, L.TrackId, L.LookupTimestamp, L.StatusCode, L.SimilarTracks
-FROM Artist A, Track T, SimilarTrackList L
-WHERE A.LowercaseArtist = @lowerArtist
-AND T.ArtistID=A.ArtistID AND T.LowercaseTitle = @lowerTitle
+SELECT L.ListID, L.LookupTimestamp, L.StatusCode, L.SimilarTracks
+FROM Track T, SimilarTrackList L
+WHERE T.TrackID=@trackId
 AND L.ListID = T.CurrentSimilarTrackList
 ";
 			}
 		}
-		DbParameter lowerTitle, lowerArtist;
+		DbParameter trackId;
 
 		public TrackSimilarityListInfo Execute(SongRef songref) {
-			lock (SyncRoot) {
-
-				lowerArtist.Value = songref.Artist.ToLatinLowercase();
-				lowerTitle.Value = songref.Title.ToLatinLowercase();
-				using (var reader = CommandObj.ExecuteReader())//no transaction needed for a single select!
-                {
-					//we expect exactly one hit - or none
-					if (reader.Read())
-						return new TrackSimilarityListInfo(
-							listID: new SimilarTracksListId((long)reader[0]),
-							trackId: new TrackId((long)reader[1]),
-							songref: songref,
-							lookupTimestamp: reader[2].CastDbObjectAsDateTime().Value,
-							statusCode: (int?)reader[3].CastDbObjectAs<long?>(),
-							sims: reader[4].CastDbObjectAs<byte[]>());
-					else
-						return TrackSimilarityListInfo.CreateUnknown(songref);
-				}
-			}
+			return DoInLockedTransaction(() => ExecuteImpl(songref, lfmCache.LookupTrackID.Execute(songref)));
 		}
+		public TrackSimilarityListInfo Execute(TrackId id) {
+			if (!id.HasValue) return TrackSimilarityListInfo.CreateUnknown(null, id);
+			return DoInLockedTransaction(() => ExecuteImpl(lfmCache.LookupTrack.Execute(id), id));
+		}
+		public TrackSimilarityListInfo Execute(SongRef songref, TrackId id) {
+			if (!id.HasValue) return TrackSimilarityListInfo.CreateUnknown(songref, id);
+			return DoInLockedTransaction(() => ExecuteImpl(songref, id));
+		}
+		TrackSimilarityListInfo ExecuteImpl(SongRef songref, TrackId id) {
+			trackId.Value = id.Id;
+			var vals = CommandObj.ExecuteGetTopRow();
+			//we expect exactly one hit - or none
+			if (vals == null) return TrackSimilarityListInfo.CreateUnknown(songref, id);
+			return new TrackSimilarityListInfo(
+				listID: new SimilarTracksListId((long)vals[0]),
+				trackId: id,
+				songref: songref,
+				lookupTimestamp: vals[1].CastDbObjectAsDateTime().Value,
+				statusCode: (int?)vals[2].CastDbObjectAs<long?>(),
+				sims: vals[3].CastDbObjectAs<byte[]>());
+		}
+
 	}
 }
