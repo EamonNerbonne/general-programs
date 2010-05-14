@@ -125,6 +125,13 @@ body
     border-bottom: 1px solid #e2eeea;
 }
 
+#similar .waiting
+{
+    background:rgba(255,100,0,0.15);
+}
+
+
+
 .leftCol:before 
 {
     display: block;

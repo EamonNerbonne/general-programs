@@ -186,6 +186,7 @@ $(document).ready(function ($) {
 
     var isGetQueued = false;
     var leftColSel = $(".leftCol"), knownSel = $("#similar .known"), unknownSel = $("#similar .unknown");
+
     var simStateSet = {
         getting: function () {
             if (simStateSet.current == "getting")
@@ -217,6 +218,27 @@ $(document).ready(function ($) {
         current: "done"
     }
 
+    var simDispDataWait = null;
+
+    var mouseInSimilar = false;
+    knownSel.hover(function (e) { mouseInSimilar = true; }, function (e) {
+        mouseInSimilar = false;
+        if (simDispDataWait) {
+            updateSimilarDisplay(simDispDataWait);
+            simDispDataWait = null;
+        }
+    });
+
+    function updateSimilarDisplay(data) {
+        var known = data.known, unknown = data.unknown;
+        unknownSel.empty();
+        for (var i = 0; i < unknown.length; i++)
+            unknownSel.append($(document.createElement("li")).text(unknown[i]));
+        knownSel.empty().removeClass("waiting");
+        for (var i = 0; i < known.length; i++)
+            knownSel.append($(document.createElement("li")).text(known[i].label).data("songdata", known[i]));
+    }
+
     function getSimilarImpl() {
         $.ajax({
             type: "POST",
@@ -224,13 +246,11 @@ $(document).ready(function ($) {
             data: { playlist: JSON.stringify(savePlaylist()) },
             timeout: 10000,
             success: function (data) {
-                var known = data.known, unknown = data.unknown;
-                unknownSel.empty();
-                for (var i = 0; i < unknown.length; i++)
-                    unknownSel.append($(document.createElement("li")).text(unknown[i]));
-                knownSel.empty();
-                for (var i = 0; i < known.length; i++)
-                    knownSel.append($(document.createElement("li")).text(known[i].label).data("songdata", known[i]));
+                if (mouseInSimilar) {
+                    simDispDataWait = data;
+                    knownSel.addClass("waiting")
+                } else
+                    updateSimilarDisplay(data);
                 simStateSet.done();
             },
             error: function (xhr, status, errorThrown) {
