@@ -16,9 +16,11 @@ namespace LastFMspider.LastFMSQLiteBackend {
 
 					var rankings =
 						from toptrack in artistTTinfo.TopTracks
+						let track = lfmCache.LookupTrack.Execute(toptrack.ForId)
+						where track!=null
 						select new ArtistTopTrack {
 							Reach = toptrack.Reach,
-							Track = lfmCache.LookupTrack.Execute(toptrack.ForId).Title,
+							Track = track.Title,
 						};
 
 					return new ArtistTopTracksList {

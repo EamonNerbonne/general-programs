@@ -15,10 +15,12 @@ namespace LastFMspider.LastFMSQLiteBackend {
 				using (var trans = Connection.BeginTransaction()) {
 					var similarto =
 						from simTrack in list.SimilarTracks
+						let similarsong = lfmCache.LookupTrack.Execute(simTrack.OtherId)
+						where similarsong != null
 						select new SimilarTrack {
 							id = simTrack.OtherId,
 							similarity = simTrack.Similarity,
-							similarsong = lfmCache.LookupTrack.Execute(simTrack.OtherId)
+							similarsong = similarsong
 						};
 
 					return new SongSimilarityList {
