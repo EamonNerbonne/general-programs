@@ -5,6 +5,7 @@ using System.Linq;
 using LastFMspider;
 using SongDataLib;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace SongSearchSite {
 	public class SimilarPlaylist : IHttpHandler {
@@ -26,20 +27,22 @@ namespace SongSearchSite {
 				select songdata).ToList();
 
 			List<SongRef> unknownSongs = new List<SongRef>();
-			FindSimilarPlaylist.SimilarPlaylistResults res=null;
-			lock (syncroot) {
-				if (!context.Response.IsClientConnected)
-					return;
-				res = FindSimilarPlaylist.ProcessPlaylist(SongDbContainer.LastFmTools,
-					// sr=>null,
-					SongDbContainer.FuzzySongSearcher.FindBestMatch,
-					 songs, unknownSongs, 100, 40);
-			}
+			FindSimilarPlaylist.SimilarPlaylistResults res = null;
+			Stopwatch timer = Stopwatch.StartNew();
+			res = FindSimilarPlaylist.ProcessPlaylist(SongDbContainer.LastFmTools,
+				// sr=>null,
+				SongDbContainer.FuzzySongSearcher.FindBestMatch,
+				 songs, unknownSongs, 1000, 40, () => !context.Response.IsClientConnected || timer.ElapsedMilliseconds > 5000 );
+
+			if (!context.Response.IsClientConnected)
+				return;
 
 			var uriMapper = SongDbContainer.LocalSongPathToAppRelativeMapper(context);
 
 			PlaylistEntryJson[] knownForJson =
 				(from knownSong in res.knownTracks
+				 let mime= SongServeRequestProcessor.guessMIME(knownSong)
+				 where mime == SongServeRequestProcessor.MIME_MP3 || mime == SongServeRequestProcessor.MIME_OGG
 				 select new PlaylistEntryJson {
 					 href = uriMapper(knownSong.SongUri).ToString(),
 					 label = knownSong.HumanLabel,
@@ -47,7 +50,11 @@ namespace SongSearchSite {
 				 }).ToArray();
 			string[] unknownForJson =
 				(from unknownSong in res.unknownTracks
-				 select unknownSong.ToString()).ToArray();
+				 select unknownSong.ToString())
+				 .Concat(from knownSong in res.knownTracks
+				 let mime= SongServeRequestProcessor.guessMIME(knownSong)
+				 where mime != SongServeRequestProcessor.MIME_MP3 && mime != SongServeRequestProcessor.MIME_OGG
+				 select knownSong.HumanLabel)		 .ToArray();
 
 			context.Response.ContentType = "application/json";
 			context.Response.Output.Write(

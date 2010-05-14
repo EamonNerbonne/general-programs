@@ -15,7 +15,8 @@ namespace SongSearchSite {
 		public void ProcessingStart() { }
 		static DateTime startupUtc = DateTime.UtcNow;
 
-		bool isXml, includeRemote, extm3u;
+		bool isXml, includeRemote, extm3u, coreAttrsOnly, viewXslt;
+		int? topLimit;
 		Encoding enc;
 		string searchQuery;
 		public PotentialResourceInfo DetermineResource() {
@@ -43,7 +44,9 @@ namespace SongSearchSite {
 
 			includeRemote = context.Request.QueryString["remote"] == "allow";
 			extm3u = context.Request.QueryString["extm3u"] != "false";
-
+			coreAttrsOnly = context.Request.QueryString["fulldata"] != "true";
+			topLimit = context.Request.QueryString["top"].ParseAsInt32();
+			viewXslt = context.Request.QueryString["view"] == "xslt";
 
 			var path = context.Request.AppRelativeCurrentExecutionFilePath.Split('/');
 			var searchterms = from pathpart in path.Skip(1).Take(path.Length - 2) select pathpart;
@@ -59,7 +62,7 @@ namespace SongSearchSite {
 			if (extension == ".m3u" || extension == ".m3u8")
 				context.Response.Headers["Content-Disposition"] = "attachment; filename=" + Uri.EscapeDataString("playlist_" + searchQuery + extension); //searchquery has been canonicalized: no dangerous injection possible.
 
-			res.ETag = ResourceInfo.GenerateETagFrom(searchQuery, includeRemote, extm3u, isXml, extension, context.Request.QueryString["top"], startupUtc);
+			res.ETag = ResourceInfo.GenerateETagFrom(searchQuery, includeRemote, extm3u, isXml, coreAttrsOnly, extension, topLimit, startupUtc, viewXslt);
 			res.ResourceLength = null;//unknown
 			res.TimeStamp = startupUtc;
 			Console.WriteLine("Request Determined: [" + (isXml ? 'X' : ' ') + (includeRemote ? 'R' : ' ') + (enc == Encoding.UTF8 ? 'U' : ' ') + (extm3u ? 'E' : ' ') + "] q=" + searchQuery);
@@ -92,22 +95,21 @@ namespace SongSearchSite {
 
 			//			urlprefix = "http://home.nerbonne.org/";
 
+
 			var searchResults = SongDbContainer.SearchableSongDB.Search(searchQuery);
+			if (coreAttrsOnly)
+				searchResults = searchResults.Where(song => { var mime = SongServeRequestProcessor.guessMIME(song); return mime == SongServeRequestProcessor.MIME_MP3 || mime == SongServeRequestProcessor.MIME_OGG; });
 			if (!includeRemote)
 				searchResults = searchResults.Where(song => song.IsLocal);
-
-			int onlyTop;
-			if (int.TryParse(context.Request.QueryString["top"], out onlyTop)) {
-				searchResults = searchResults.Take(onlyTop);
-			}
+			if (topLimit.HasValue)
+				searchResults = searchResults.Take(topLimit.Value);
 
 			if (isXml) {
-				bool useXslt = context.Request.QueryString["view"] == "xslt";
-				bool coreAttrsOnly = context.Request.QueryString["fulldata"] != "true";
+
 				var uriMapper = coreAttrsOnly ? SongDbContainer.LocalSongPathToAppRelativeMapper(context)
 					: SongDbContainer.LocalSongPathToAbsolutePathMapper(context);
 				new XDocument(
-					useXslt ? new XProcessingInstruction("xml-stylesheet", "type=\"text/xsl\"  href=\"searchresult.xsl\"") : null,
+					viewXslt ? new XProcessingInstruction("xml-stylesheet", "type=\"text/xsl\"  href=\"searchresult.xsl\"") : null,
 					new XElement("songs",
 						new XAttribute("base", currentUrl),
 						from s in searchResults
