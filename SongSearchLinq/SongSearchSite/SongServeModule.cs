@@ -165,19 +165,27 @@ namespace SongSearchSite {
 			}
 		}
 
+		public const string MIME_MP3 = "audio/mpeg";
+		public const string MIME_WMA = "audio/x-ms-wma";
+		public const string MIME_WAV = "audio/wav";
+		public const string MIME_OGG =  "audio/ogg";
+		public const string MIME_MPC = "audio/x-musepack";
+		public const string MIME_BINARY = "application/octet-stream";
+
 
 		public static string guessMIME(string extension) {
 			switch (extension.ToLowerInvariant()) {
-				case ".mp3": return "audio/mpeg";
-				case ".wma": return "audio/x-ms-wma";
-				case ".wav": return "audio/wav";
-				case ".ogg": return "audio/ogg";
+				case ".mp3": return MIME_MP3;
+				case ".wma": return MIME_WMA;
+				case ".wav": return MIME_WAV;
+				case ".ogg": return MIME_OGG;
 				case ".mpc":
 				case ".mpp":
-				case ".mp+": return "audio/x-musepack";
-				default: return "application/octet-stream";
+				case ".mp+": return MIME_MPC;
+				default: return MIME_BINARY;
 			}
 		}
+		public static string guessMIME(ISongData song) { return guessMIME(Path.GetExtension(song.SongUri.LocalPath)); }
 
 	}
 
@@ -186,9 +194,7 @@ namespace SongSearchSite {
 	/// </summary>
 	public class SongServeHandler : IHttpHandler {
 		public bool IsReusable { get { return true; } }
-
 		public void ProcessRequest(HttpContext context) {
-
 			HttpRequestHelper helper = new HttpRequestHelper(context);
 			SongServeRequestProcessor processor = new SongServeRequestProcessor(helper);
 			helper.Process(processor);
