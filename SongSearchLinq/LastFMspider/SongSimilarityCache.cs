@@ -14,11 +14,10 @@ using EmnExtensions;
 using System.Diagnostics;
 using SongDataLib;
 using LastFMspider.OldApi;
+using System.Threading;
 
-namespace LastFMspider
-{
-	public class SongSimilarityCache
-	{
+namespace LastFMspider {
+	public class SongSimilarityCache {
 		public LastFMSQLiteCache backingDB { get; private set; }
 
 		public SongSimilarityCache(SongDatabaseConfigFile configFile) {
@@ -37,43 +36,112 @@ namespace LastFMspider
 			backingDB = new LastFMSQLiteCache(configFile);
 		}
 
-		public SongSimilarityList Lookup(SongRef songref) { return Lookup(songref, TimeSpan.FromDays(365.0)); }
+		static TimeSpan normalMaxAge = TimeSpan.FromDays(365.0);
 
-		public SongSimilarityList Lookup(SongRef songref, TimeSpan maxAge) {
-			return Lookup(backingDB.LookupSimilarityListAge.Execute(songref), maxAge);
+		public SongSimilarityList LookupMaybe(SongRef songref, TimeSpan maxAge = default(TimeSpan)) {
+			if (maxAge == default(TimeSpan)) maxAge = normalMaxAge;
+			var songSimListAge = backingDB.LookupSimilarityListAge.Execute(songref);
+			if (!IsFresh(songSimListAge, maxAge))
+				QueueWebRequest(songref);
+
+			return backingDB.LookupSimilarityList.Execute(songSimListAge);
 		}
 
-		public SongSimilarityList Lookup(TrackSimilarityListInfo cachedVersion, TimeSpan maxAge) {
-			if (!cachedVersion.ListID.HasValue || !cachedVersion.LookupTimestamp.HasValue || cachedVersion.LookupTimestamp.Value < DateTime.UtcNow - maxAge) { //get online version
-				Console.Write("?" + cachedVersion.SongRef);
-				var retval = OldApiClient.Track.GetSimilarTracks(cachedVersion.SongRef);
-				Console.WriteLine(" [" + retval.similartracks.Length + "]");
-				try {
-					backingDB.InsertSimilarityList.Execute(retval);
-				} catch {//retry; might be a locking issue.  only retry once.
-					System.Threading.Thread.Sleep(100);
-					backingDB.InsertSimilarityList.Execute(retval);
+		private void QueueWebRequest(SongRef songref) {
+			lock (syncTodoReq) {
+				todoReq.Add(songref);
+				if (todoReq.Count == 1) //I'm the first, start processing!
+					ThreadPool.QueueUserWorkItem(ProcessQueuedLookups);
+			}
+		}
+		void ProcessQueuedLookups(object ignore) {
+			while (true) {
+				SongRef next;
+				lock (syncTodoReq)
+					next = todoReq.FirstOrDefault();
+				var simInfo = backingDB.LookupSimilarityListAge.Execute(next);
+				if (!IsFresh(simInfo, TimeSpan.FromDays(2.0)))
+					DoWebLookup(backingDB, next);
+				lock (syncTodoReq) {
+					todoReq.Remove(next);
+					if (todoReq.Count == 0)
+						break;
 				}
-				return retval;
-			} else {
-				return backingDB.LookupSimilarityList.Execute(cachedVersion);
 			}
 		}
 
-		public Tuple<TrackSimilarityListInfo,SongSimilarityList> EnsureCurrent(SongRef songref, TimeSpan maxAge) {
+		public SongSimilarityList Lookup(SongRef songref, TimeSpan maxAge = default(TimeSpan)) {
+			if (maxAge == default(TimeSpan)) maxAge = normalMaxAge;
+			return Lookup(backingDB.LookupSimilarityListAge.Execute(songref), maxAge);
+		}
+
+		static object syncSongSimLookup = new object();
+		class Syncer {
+			public int InUse = 0;
+			public SongSimilarityList retval;
+			public bool IsInUse { get { return InUse > 0; } }
+			public void Claim() { lock (this) InUse++; }
+			public void Release() { lock (this) InUse--; }
+		}
+		static Dictionary<SongRef, Syncer> inFlight = new Dictionary<SongRef, Syncer>();
+		object syncTodoReq = new object();
+		static HashSet<SongRef> todoReq = new HashSet<SongRef>();
+
+		static SongSimilarityList DoWebLookup(LastFMSQLiteCache backingDB, SongRef songref) {
+			Syncer sync = null;
+			lock (syncSongSimLookup) {
+				if (!inFlight.TryGetValue(songref, out sync))
+					inFlight[songref] = sync = new Syncer();
+			}
+			try {
+				sync.Claim();
+				Console.Write("?" + songref);
+				lock (sync) {
+					if (sync.retval == null) {
+						sync.retval = OldApiClient.Track.GetSimilarTracks(songref);
+						Console.WriteLine(" [" + sync.retval.similartracks.Length + "]");
+						try {
+							backingDB.InsertSimilarityList.Execute(sync.retval);
+						} catch {//retry; might be a locking issue.  only retry once.
+							System.Threading.Thread.Sleep(100);
+							backingDB.InsertSimilarityList.Execute(sync.retval);
+						}
+					}
+					return sync.retval;
+				}
+			} finally {
+				sync.Release();
+				lock (syncSongSimLookup)
+					if (!sync.IsInUse)
+						inFlight.Remove(songref);//OK to repeat
+			}
+		}
+
+		static bool IsFresh(TrackSimilarityListInfo cachedVersion, TimeSpan maxAge) {
+			return cachedVersion.ListID.HasValue && cachedVersion.LookupTimestamp.HasValue && cachedVersion.LookupTimestamp.Value >= DateTime.UtcNow - maxAge;
+		}
+
+		public SongSimilarityList Lookup(TrackSimilarityListInfo cachedVersion, TimeSpan maxAge) {
+			if (!IsFresh(cachedVersion, maxAge))  //get online version
+				return DoWebLookup(backingDB, cachedVersion.SongRef);
+			else
+				return backingDB.LookupSimilarityList.Execute(cachedVersion);
+		}
+
+		public Tuple<TrackSimilarityListInfo, SongSimilarityList> EnsureCurrent(SongRef songref, TimeSpan maxAge) {
 			TrackSimilarityListInfo cachedVersion = backingDB.LookupSimilarityListAge.Execute(songref);
 			if (!cachedVersion.ListID.HasValue || !cachedVersion.LookupTimestamp.HasValue || cachedVersion.LookupTimestamp.Value < DateTime.UtcNow - maxAge) { //get online version
 				Console.Write("?" + songref);
 				var retval = OldApiClient.Track.GetSimilarTracks(songref);
 				Console.WriteLine(" [" + retval.similartracks.Length + "]");
 				try {
-					return Tuple.Create( backingDB.InsertSimilarityList.Execute(retval),retval);
+					return Tuple.Create(backingDB.InsertSimilarityList.Execute(retval), retval);
 				} catch {//retry; might be a locking issue.  only retry once.
 					System.Threading.Thread.Sleep(100);
 					return Tuple.Create(backingDB.InsertSimilarityList.Execute(retval), retval);
 				}
 			} else
-				return Tuple.Create(cachedVersion,default(SongSimilarityList));
+				return Tuple.Create(cachedVersion, default(SongSimilarityList));
 		}
 
 
@@ -92,27 +160,6 @@ namespace LastFMspider
 			backingDB.InsertArtistTopTracksList.Execute(toptracks);
 			return toptracks;
 
-		}
-
-		public void PortSimilarArtists() {
-			uint missedCounts = 0;
-			uint perTime = 10000;
-			uint startIndex = 0;
-			while (missedCounts < 1000000000) {
-
-				var simlists = backingDB.LoadOldSimList.Execute(startIndex, startIndex + perTime);
-				if (simlists.Length == 0)
-					missedCounts += perTime;
-				lock (backingDB.SyncRoot) {
-					using (var trans = backingDB.Connection.BeginTransaction()) {
-						foreach (var list in simlists) {
-							backingDB.ConvertOldSimList.Execute(list.Item1,list.Item2);
-						}
-						trans.Commit();
-					}
-				}
-				startIndex += perTime;
-			}
 		}
 	}
 }
