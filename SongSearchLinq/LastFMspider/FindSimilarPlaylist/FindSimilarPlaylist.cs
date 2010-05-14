@@ -15,21 +15,22 @@ namespace LastFMspider {
 			public readonly List<SongRef> unknownTracks = new List<SongRef>();
 			public readonly List<SongWithCost> similarList = new List<SongWithCost>();
 		}
+		static bool NeverAbort() { return false; }
 
 		public static SimilarPlaylistResults ProcessPlaylist(LastFmTools tools, Func<SongRef, SongMatch> fuzzySearch, List<SongData> known, List<SongRef> unknown,
-			int MaxSuggestionLookupCount = 20, int SuggestionCountTarget = 100
+			int MaxSuggestionLookupCount = 20, int SuggestionCountTarget = 100, Func<bool> shouldAbort = null
 			) {
 			//OK, so we now have the playlist in the var "playlist" with knowns in "known" except for the unknowns, which are in "unknown" as far as possible.
-
+			shouldAbort = shouldAbort ?? NeverAbort;
 			var playlistSongRefs = new HashSet<SongRef>(known.Select(sd => SongRef.Create(sd)).Where(sr => sr != null).Cast<SongRef>().Concat(unknown));
 			SimilarPlaylistResults res = new SimilarPlaylistResults();
 
 			SongWithCostCache songCostCache = new SongWithCostCache();
 			Heap<SongWithCost> songCosts = new Heap<SongWithCost>((sc, index) => { sc.index = index; });
 
-			HashSet<SongRef> lookupsStarted = new HashSet<SongRef>();
-			Dictionary<SongRef, SongSimilarityList> cachedLookup = new Dictionary<SongRef, SongSimilarityList>();
-			Queue<SongRef> cacheOrder = new Queue<SongRef>();
+			HashSet<SongRef> lookupQueue = new HashSet<SongRef>();
+			Dictionary<SongRef, SongSimilarityList> lookupCache = new Dictionary<SongRef, SongSimilarityList>();
+			Queue<SongRef> lookupCacheOrder = new Queue<SongRef>();
 			HashSet<SongRef> lookupsDeleted = new HashSet<SongRef>();
 
 			object ignore = tools.SimilarSongs;//ensure similarsongs loaded.
@@ -47,19 +48,19 @@ namespace LastFMspider {
 						nextToLookup =
 							songCosts.ElementsInRoughOrder
 							.Select(sc => sc.songref)
-							.Where(songref => !lookupsStarted.Contains(songref))
+							.Where(songref => !lookupQueue.Contains(songref))
 							.FirstOrDefault();
 						if (nextToLookup != null)
-							lookupsStarted.Add(nextToLookup);
+							lookupQueue.Add(nextToLookup);
 					}
 					if (nextToLookup != null) {
-						simList = tools.SimilarSongs.Lookup(nextToLookup);
+						simList = tools.SimilarSongs.LookupMaybe(nextToLookup);
 						lock (sync) {
-							cachedLookup[nextToLookup] = simList;
-							cacheOrder.Enqueue(nextToLookup);
-							while (cacheOrder.Count > 10000) {
-								SongRef toRemove = cacheOrder.Dequeue();
-								cachedLookup.Remove(cacheOrder.Dequeue());
+							lookupCache[nextToLookup] = simList;
+							lookupCacheOrder.Enqueue(nextToLookup);
+							while (lookupCacheOrder.Count > 10000) {
+								SongRef toRemove = lookupCacheOrder.Dequeue();
+								lookupCache.Remove(lookupCacheOrder.Dequeue());
 								lookupsDeleted.Add(toRemove);
 							}
 							//todo:notify
@@ -73,7 +74,7 @@ namespace LastFMspider {
 			};
 
 
-			for (int i = 0; i < 8; i++) {
+			for (int i = 0; i < 3; i++) {
 				new Thread(bgLookup) { Priority = ThreadPriority.BelowNormal }.Start();
 			}
 
@@ -83,17 +84,17 @@ namespace LastFMspider {
 				bool alreadyDeleted;
 				while (true) {
 					lock (sync) {
-						if (cachedLookup.TryGetValue(songref, out retval))
+						if (lookupCache.TryGetValue(songref, out retval))
 							return retval; //easy case
 						alreadyDeleted = lookupsDeleted.Contains(songref);
-						notInQueue = !lookupsStarted.Contains(songref);
+						notInQueue = !lookupQueue.Contains(songref);
 						if (notInQueue)
-							lookupsStarted.Add(songref);
+							lookupQueue.Add(songref);
 					}
 					if (alreadyDeleted)
-						return tools.SimilarSongs.Lookup(songref);
+						return tools.SimilarSongs.LookupMaybe(songref);
 					if (notInQueue) {
-						retval = tools.SimilarSongs.Lookup(songref);
+						retval = tools.SimilarSongs.LookupMaybe(songref);
 						lock (sync) lookupsDeleted.Add(songref);
 					}
 					//OK, so song is in queue, not in cache but not deleted from cache: song must be in flight: we wait and then try again.
@@ -111,7 +112,7 @@ namespace LastFMspider {
 
 			int lastPercent = 0;
 			try {
-				while (res.similarList.Count < MaxSuggestionLookupCount && res.knownTracks.Count < SuggestionCountTarget) {
+				while (!shouldAbort() && res.similarList.Count < MaxSuggestionLookupCount && res.knownTracks.Count < SuggestionCountTarget) {
 					SongWithCost currentSong;
 					lock (sync)
 						if (!songCosts.RemoveTop(out currentSong))
@@ -132,7 +133,6 @@ namespace LastFMspider {
 								res.unknownTracks.Add(currentSong.songref);
 						}
 					}
-
 
 					var nextSimlist = lookupParallel(currentSong.songref);
 					if (nextSimlist == null)
@@ -173,12 +173,10 @@ namespace LastFMspider {
 						string msg = "[" + songCosts.Count + ";" + newPercent + "%]";
 						Console.Write(msg.PadRight(16, ' '));
 					}
-
 				}
 			} finally {
 				lock (sync) done = true;
 			}
-
 			Console.WriteLine("{0} similar tracks generated, of which {1} found locally.", res.similarList.Count, res.knownTracks.Count);
 			return res;
 		}
