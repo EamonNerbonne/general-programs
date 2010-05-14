@@ -122,15 +122,15 @@ namespace SongDataLib {
 
 		IEnumerable<string> Values {//only yield "distinctive" search values
 			get {
-				yield return Uri.UnescapeDataString(SongUri.ToString());
+				yield return Path.GetFileName(SongUri.LocalPath);
 				yield return title;
 				yield return artist;
-				yield return composer;
+				//yield return composer;
 				yield return album;
 				//yield return comment;
-				yield return genre;
+				//yield return genre;
 				//yield return year.ToStringOrNull();
-				//yield return track.ToStringOrNull();
+				yield return track.ToStringOrNull();
 			}
 		}
 
