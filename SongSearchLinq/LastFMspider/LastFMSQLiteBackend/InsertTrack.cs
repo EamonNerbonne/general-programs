@@ -20,7 +20,7 @@ namespace LastFMspider.LastFMSQLiteBackend {
 INSERT OR IGNORE INTO [Track] (ArtistID, FullTitle, LowercaseTitle)
 VALUES (@artistId, @fullTitle, @lowerTitle);
 
-SELECT TrackID FROM [Track] ArtistID=@artistId  AND LowercaseTitle = @lowerTitle
+SELECT TrackID FROM [Track] WHERE ArtistID=@artistId  AND LowercaseTitle = @lowerTitle
 ";
 			}
 		}
