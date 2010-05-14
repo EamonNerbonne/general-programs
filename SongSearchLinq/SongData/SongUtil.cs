@@ -20,7 +20,7 @@ namespace SongDataLib
 				else if(b == 63 || b == 64) bytArr.Add((byte)(b - 36));//27-28	==9586 - ?, @
 				else if(b == 35) bytArr.Add(2);//2										==4073 - #
 				else if(b == 61) bytArr.Add(26);//26									==1380 - '='
-				else if(b == 126) bytArr.Add(56);//55									==561 - '~'
+				else if(b == 126) bytArr.Add(56);//56									==561 - '~'
 				else if(b == 124) bytArr.Add(55);//55									==544 - '|'
 				else bytArr.Add(57);//should never happen, separator!
 			}

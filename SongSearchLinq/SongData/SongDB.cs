@@ -117,7 +117,6 @@ namespace SongDataLib {
 			normed = normedConstructor.ToArray();
 			normedConstructor = null;
 			//OK byte array 'normed' is constructed.
-
 		}
 
 		public byte[] NormalizedSong(int si) {

@@ -38,8 +38,6 @@ namespace LastFMspider {
 		public InsertArtistTopTracksList InsertArtistTopTracksList { get; private set; }
 		public SetArtistAlternate SetArtistAlternate { get; private set; }
 		public LookupArtistInfo LookupArtistInfo { get; private set; }
-		internal LoadOldSimList LoadOldSimList { get; private set; }
-		internal ConvertOldSimList ConvertOldSimList { get; private set; }
 		internal TrackSetCurrentSimList TrackSetCurrentSimList { get; private set; }
 		internal ArtistSetCurrentTopTracks ArtistSetCurrentTopTracks { get; private set; }
 		internal ArtistSetCurrentSimList ArtistSetCurrentSimList { get; private set; }
@@ -82,8 +80,6 @@ namespace LastFMspider {
 			TrackSetCurrentSimList = new TrackSetCurrentSimList(this);
 			ArtistSetCurrentTopTracks = new ArtistSetCurrentTopTracks(this);
 			ArtistSetCurrentSimList = new ArtistSetCurrentSimList(this);
-			LoadOldSimList = new LoadOldSimList(this);
-			ConvertOldSimList = new ConvertOldSimList(this);
 			LookupArtistInfo = new LookupArtistInfo(this);
 		}
 

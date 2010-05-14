@@ -124,10 +124,8 @@
     <Compile Include="LastFMSQLiteBackend\ArtistsWithoutTopTracksList.cs" />
     <Compile Include="LastFMSQLiteBackend\ArtistSetCurrentSimList.cs" />
     <Compile Include="LastFMSQLiteBackend\ArtistSetCurrentTopTracks.cs" />
-    <Compile Include="LastFMSQLiteBackend\ConvertOldSimList.cs" />
     <Compile Include="LastFMSQLiteBackend\DbUtil.cs" />
     <Compile Include="LastFMSQLiteBackend\Ids.cs" />
-    <Compile Include="LastFMSQLiteBackend\LoadOldSimList.cs" />
     <Compile Include="LastFMSQLiteBackend\LookupArtistInfo.cs" />
     <Compile Include="LastFMSQLiteBackend\TrackSetCurrentSimList.cs" />
     <Compile Include="LastFMSQLiteBackend\InsertArtistSimilarityList.cs" />

@@ -51,7 +51,7 @@ namespace SuffixTreeLib
 
 		public SearchResult Match(SuffixTreeSongSearcher sssm, int curdepth, byte[] query) {
 			if(query.Length == curdepth) {
-				return new SearchResult { cost = this.size, songIndexes = GetAllSongs(sssm) };//TODO improve using  ordering.
+				return new SearchResult { cost = this.size, songIndexes = GetAllSongs(sssm) };//TODO improve using ordering.
 			} else
 				return
 						  children.ContainsKey(query[curdepth]) ?
