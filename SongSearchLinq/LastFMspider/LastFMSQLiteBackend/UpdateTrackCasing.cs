@@ -20,7 +20,7 @@ UPDATE Track SET FullTitle = @fullTitle WHERE ArtistID = @artistId AND Lowercase
 INSERT OR IGNORE INTO [Track] (ArtistID, FullTitle, LowercaseTitle)
 VALUES (@artistId, @fullTitle, @lowerTitle);
 
-SELECT TrackID FROM Track  where ArtistID = @artistId AND AND LowercaseTitle=@lowerTitle
+SELECT TrackID FROM Track  where ArtistID = @artistId AND LowercaseTitle=@lowerTitle
 ";
             }
         }
@@ -34,7 +34,7 @@ SELECT TrackID FROM Track  where ArtistID = @artistId AND AND LowercaseTitle=@lo
 				artistId.Value = lfmCache.UpdateArtistCasing.Execute(songRef.Artist).id;
                 lowerTitle.Value = songRef.Title.ToLatinLowercase();
                 fullTitle.Value = songRef.Title;
-				return new TrackId(CommandObj.ExecuteNonQuery().CastDbObjectAs<long>());
+				return new TrackId(CommandObj.ExecuteScalar().CastDbObjectAs<long>());
             }
         }
 
