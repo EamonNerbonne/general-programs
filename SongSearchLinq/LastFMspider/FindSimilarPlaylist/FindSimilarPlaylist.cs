@@ -74,9 +74,6 @@ namespace LastFMspider {
 			};
 
 
-			for (int i = 0; i < 3; i++) {
-				new Thread(bgLookup) { Priority = ThreadPriority.BelowNormal }.Start();
-			}
 
 			Func<SongRef, SongSimilarityList> lookupParallel = songref => {
 				SongSimilarityList retval;
@@ -109,6 +106,7 @@ namespace LastFMspider {
 				songCosts.Add(songcost);
 			}
 
+			for (int i = 0; i < 3; i++) { new Thread(bgLookup) { Priority = ThreadPriority.BelowNormal }.Start(); }
 
 			int lastPercent = 0;
 			try {
@@ -157,10 +155,11 @@ namespace LastFMspider {
 								similarSong.index = -1;
 
 								//new cost should be somewhere between next.cost, and min(old-cost, direct-cost)
-								double oldOffset = similarSong.cost - currentSong.cost;
-								double newOffset = directCost - currentSong.cost;
-								double combinedOffset = 1.0 / (1.0 / oldOffset + 1.0 / newOffset);
-								similarSong.cost = currentSong.cost + combinedOffset;
+								//double oldOffset = similarSong.cost - currentSong.cost;
+								//double newOffset = directCost - currentSong.cost;
+								//double combinedOffset = 1.0 / (1.0 / oldOffset + 1.0 / newOffset);
+								//similarSong.cost = currentSong.cost + combinedOffset;
+								similarSong.cost = Math.Min(similarSong.cost, directCost);
 								foreach (var baseSong in currentSong.basedOn)
 									similarSong.basedOn.Add(baseSong);
 								songCosts.Add(similarSong);
