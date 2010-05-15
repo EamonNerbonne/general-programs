@@ -6,6 +6,8 @@ div.jp-interface
     -moz-box-shadow: 0 0 2.5em white inset, 0 0 1.5em white inset,0 0 0.5em white inset;
     -webkit-box-shadow: 0 0 2.5em white inset, 0 0 1.5em white inset,0 0 0.5em white inset;
     box-shadow: 0 0 2.5em white inset, 0 0 1.5em white inset,0 0 0.5em white inset;
+    border-radius: 2.5em;
+    -moz-border-radius: 2.5em;
 }
 div.jp-single-player div.jp-interface
 {
@@ -164,11 +166,10 @@ div.jp-playlist li
     cursor:default;
     list-style-position:inside;
     list-style-type:none;
-    background:white;
 }
 div.jp-playlist li:hover
 {
-    background:#eee;
+    background:#eee;/*needed also to avoid dragging transparency!*/
 }
 
 div.jp-playlist li.jplayer_playlist_current

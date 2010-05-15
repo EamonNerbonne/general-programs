@@ -39,8 +39,8 @@ body
 #searchResultDiv
 {
     position: absolute;
-    top: 25%;
-    margin-top: 6em;
+    top: 51%;
+    margin-top: 3em;
     left: 0;
     right: 0;
     bottom: 0;
@@ -51,23 +51,23 @@ body
 .similarItemsDisplay
 {
     position: absolute;
-    left: 0;
-    width: 36em;
-    bottom: 75%;
+    left: 30em;
+    right:0;
+    bottom: 49%;
+    margin-bottom:-3em;
     top: 2.5em;
 }
 
 .playerSect
 {
-    position: absolute;
-    left: 36em;
-    right: 0;
-    bottom: 75%;
-    top: 0;
     padding: 0;
     margin: 0;
-    margin-bottom: -6em;
-    width: auto;
+    position: absolute;
+    left: 0;
+    width:30em;
+    bottom: 49%;
+    top: 0;
+    margin-bottom:3em;
     z-index: 2;
 }
 
@@ -76,15 +76,17 @@ body
     position: absolute;
     height: 5em;
     max-height: 5em;
-    bottom: 75%;
+    bottom: 49%;
     left: 0;
-    margin-bottom: -6em;
-    width: 35em;
+    margin-bottom: -3em;
+    width: 29em;
     height: 5em;
     padding: 0.5em;
     background: #c4ddd5;
     white-space: nowrap;
     overflow: hidden;
+    border-radius: 0 1.0em 0 0;
+    -moz-border-radius: 0 1.0em 0 0;
 }
 
 
@@ -93,14 +95,14 @@ body
     position: absolute;
     z-index: 3;
     overflow: hidden;
-    left: 0;
+    right:0;
     width: 20em;
     top: 0;
     height: 2.2em;
     background:  #DEEDDF;
-    -moz-border-radius:0 0 1em 0;
-    -webkit-border-radius:0 0 1em 0;
-    border-radius:0 0 1em 0;
+    -moz-border-radius:0 0 0 1em;
+    -webkit-border-radius:0 0  0 1em;
+    border-radius:0 0 0 1em;
     -moz-box-shadow: inset 0 0 2px rgba(0,0,0,0.15), 0 0 1.5em rgba(0,0,0,0.35);
     -webkit-box-shadow: 0 0 1.5em rgba(0,0,0,0.35);
     box-shadow: 0 0 1.5em rgba(0,0,0,0.35);
@@ -153,6 +155,20 @@ body
 }
 
 
+.jp-playlistBox:before 
+{
+    display: block;
+    position: absolute;
+    top: 50%;
+    width: 100%;
+    text-align: center;
+    font-size: 250%;
+    font-weight: bold;
+    margin-top:-1em;
+    z-index: -1;
+    color: #eee;
+    content: "Playlist";
+}
 
 .similarItemsDisplay:before
 {
