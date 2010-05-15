@@ -1,51 +1,41 @@
 ﻿$(document).ready(function ($) {
     var lastquery = "";
     var lasttop = "";
+    var lastQHash = "";
+    var searchqueryEl = $("#searchquery")[0];
 
-    function encodeQuery(str) { return encodeURIComponent(str.replace(/^\s+|\s+$/g, "").toLowerCase()); }
+    function encodeQuery(str) { return encodeURIComponent(str.replace(/^\s+|\s+(?=\s|$)/g, "").toLowerCase()); }
 
     function updateResults() {
-        var qHash = window.location.hash.substring(1), qInput = document.getElementById("searchquery").value;
+        var qHash = window.location.hash.substring(1), qInput = searchqueryEl.value;
         try {
             qHash = decodeURIComponent(qHash);
         } catch (e) { }
-        var newquery = qInput == lastquery ? qHash : qInput;
+        var newquery = qInput == lastquery && lastQHash != qHash ? qHash : qInput;
+        lastQHash = qHash;
         var topNr = $("#shownumber").attr("value");
         if (newquery == lastquery && topNr == lasttop) return;
-        lastquery = newquery;
         lasttop = topNr;
-        for (var i = 0; i < queryTargets.length; i++)
-            queryTargets[i].update(newquery, topNr);
+        if (newquery != lastquery) {
+            lastquery = newquery;
+            for (var i = 0; i < queryTargets.length; i++)
+                queryTargets[i](newquery, topNr);
+        }
         $("#searchForm").submit();
     }
 
-    function QueryTarget(el, attrName, pattern, avoidEncode) {
-        this.el = el;
-        this.attrName = attrName;
-        this.pattern = pattern ? pattern : el[attrName] + "{0}";
-        this.avoidEncode = avoidEncode;
-        this.update = function QueryTarget_update() {
-            var newval = this.pattern;
-            for (var i = 0; i < arguments.length; i++)
-                newval =
-                newval.replace(
-                    "{" + i + "}",
-                    this.avoidEncode ? arguments[i] : encodeQuery(arguments[i])
-                );
-            if (this.el[this.attrName] != newval) this.el[this.attrName] = newval;
-        };
+    function QueryTarget(el, attrName, prefix, avoidEncode) {
+        return function (search) { el[attrName] = (prefix || "") + (avoidEncode ? search : encodeQuery(search)); };
     }
 
+    function updateHash() { window.location.hash = "#" + lastquery; }
 
-    var searchqueryEl = $("#searchquery")[0];
-    var queryTargets = [
-        new QueryTarget(searchqueryEl, "value", "{0}", true),
-        new QueryTarget(window.location, "hash", "{0}", true),
+    var queryTargets = [QueryTarget(searchqueryEl, "value", null, true),
+        function (newsearch) { window.setTimeout(function () { if (newsearch == lastquery) updateHash(); }, 10000); }
     ];
-    $("a.matchLink").each(function (idx, aEl) { queryTargets.push(new QueryTarget(aEl, "href")); });
-    $("#searchForm input").keyup(updateResults);
+    $("a.matchLink").each(function (idx, aEl) { queryTargets.push(QueryTarget(aEl, "href", aEl.href, false)); });
+    $("#searchForm input").keyup(updateResults).blur(updateHash);
     $(window).bind("hashchange", updateResults);
     updateResults();
     if (!document.createElement("input").autofocus) $("[autofocus='autofocus']").first().each(function (i) { this.focus(); });
-
 });

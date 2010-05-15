@@ -161,8 +161,7 @@ div.jp-playlist li
 {
     padding: 0.1em 0 0.1em 1.5em;
     border-bottom:1px solid #e2eeea;
-    
-    cursor: pointer;
+    cursor:default;
     list-style-position:inside;
     list-style-type:none;
     background:white;
@@ -179,7 +178,6 @@ div.jp-playlist li.jplayer_playlist_current
     font-style:italic;
     color: #445E55;
     list-style-type:square;
-    cursor: default;
 }
 
 div.jp-playlist li:hover

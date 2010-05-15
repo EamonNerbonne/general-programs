@@ -8,19 +8,14 @@
     <link rel="Stylesheet" href="ui-lightness/jquery-ui-1.8.1.custom.css" type="text/css" />
 </head>
 <body>
-    <div class="leftCol">
+    <div class="similarItemsDisplay">
         <div class="scrollable">
-        <div class="forOptions">
-            <fieldset id="optionsBox" class="OptionsBuilder-uninitialized">
-                <legend>Options</legend>
-            </fieldset>
-        </div>
-        <div id="similar">
-            <ul class="known">
-            </ul>
-            <ul class="unknown">
-            </ul>
-        </div>
+            <div id="similar">
+                <ul class="known">
+                </ul>
+                <ul class="unknown">
+                </ul>
+            </div>
         </div>
     </div>
     <div class="playerSect">
@@ -80,6 +75,19 @@
         </form>
         matches: <a class="matchLink" href="playlist.m3u?q=" target="_blank">m3u</a> <a class="matchLink"
             href="playlist.m3u8?q=" target="_blank">m3u8</a>
+    </div>
+    <div class="forOptions">
+        <fieldset id="optionsBox" class="OptionsBuilder-uninitialized">
+            <legend>Options &amp; Help</legend>
+            <ol>
+                <li>Enter search terms in the search box</li>
+                <li>Click on a search-result to add it to the playlist</li>
+                <li><b>Double-click</b> a playlist track to play it; <b>drag&amp;drop</b> tracks to change order</li>
+                <li>Suggested tracks based on the current playlist are displayed beneath this box.  You can click on black tracks to add them to the playlist.</li>
+                <li>You can save a playlist for later by copying the serialized playlist below.  Load such a playlist by pasting it back into the same box.</li>
+            </ol>
+         
+        </fieldset>
     </div>
     <div id="searchResultDiv">
         <iframe frameborder="0" style="height: 100%; width: 100%; border: none;" id="resultsview"

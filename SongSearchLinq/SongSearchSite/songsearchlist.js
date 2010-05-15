@@ -73,8 +73,9 @@ $(document).ready(function ($) {
     }
     if (!$.isEmptyObject(userOptions)) {
         $("#optionsBox").OptionsBuilder(userOptions);
-        userOptions.serializedList.element.focus(function () {
+        userOptions.serializedList.element.click(function (e) {
             userOptions.serializedList.element.select();
+            return false;
         });
     }
 
@@ -91,7 +92,16 @@ $(document).ready(function ($) {
 
         if (clickedDelete)
             playListDelete(clickedListItem);
-        else playListChange(clickedListItem);
+        else if (e.type == "dblclick") {
+            if (document.selection && document.selection.empty)
+                document.selection.empty();
+            else if (window.getSelection) {
+                var selection = window.getSelection();
+                if (selection && selection.removeAllRanges)
+                    selection.removeAllRanges();
+            }
+            playListChange(clickedListItem);
+        }
     }
 
 
@@ -103,7 +113,7 @@ $(document).ready(function ($) {
         ready: function () {
             playListElem = $(document.createElement("ul"))
                     .appendTo(playlistContainer.empty())
-                    .click(playlistClick)
+                    .click(playlistClick).dblclick(playlistClick)
                     .sortable().disableSelection();
             $("#similar .known").click(knownClick);
         },
@@ -160,7 +170,7 @@ $(document).ready(function ($) {
     function makeListItem(song) {
         return $(document.createElement("li")).text(song.label).data("songdata", song).append(
             $(document.createElement("div")).text("x").addClass("deleteButton")
-        );
+        ).disableSelection();
     }
 
     function addToPlaylistRaw(song) {
@@ -185,7 +195,7 @@ $(document).ready(function ($) {
     }
 
     var isGetQueued = false;
-    var leftColSel = $(".leftCol"), knownSel = $("#similar .known"), unknownSel = $("#similar .unknown");
+    var leftColSel = $(".similarItemsDisplay"), knownSel = $("#similar .known"), unknownSel = $("#similar .unknown");
 
     var simStateSet = {
         getting: function () {
