@@ -29,7 +29,7 @@ namespace LastFmPlaylistSuggestions {
 			var m3us = args.Length == 0 ? dir.GetFiles("*.m3u?") : args.Select(s => new FileInfo(s)).Where(f => f.Exists);
 			DirectoryInfo m3uDir = args.Length == 0 ? tools.DB.DatabaseDirectory.CreateSubdirectory("similarlists") : new DirectoryInfo(System.Environment.GetFolderPath(Environment.SpecialFolder.Desktop));
 
-			FuzzySongSearcher searchEngine = new FuzzySongSearcher(tools);
+			FuzzySongSearcher searchEngine = new FuzzySongSearcher(tools.DB.Songs);
 
 			foreach (var m3ufile in m3us) {
 				try {

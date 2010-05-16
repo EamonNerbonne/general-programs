@@ -14,9 +14,9 @@ namespace LastFMspider {
 		int[][] songsByTrigram;
 		int[] trigramCountBySong;
 		List<SongData> songs;
-		public FuzzySongSearcher(LastFmTools tools) {
+		public FuzzySongSearcher(List<SongData>songs) {
 			using (new DTimer("Constructing FuzzySongSearcher")) {
-				songs = tools.DB.Songs;
+				this.songs = songs;
 				uint[][] trigramsBySong = new uint[songs.Count][];
 				trigramCountBySong = new int[songs.Count];
 				int[] trigramOccurenceCount = new int[Trigrammer.TrigramCount];
