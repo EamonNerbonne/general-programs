@@ -70,7 +70,7 @@ namespace SongSearchSite {
 		}
 
 		public DateTime? DetermineExpiryDate() {
-			return DateTime.UtcNow.AddHours(1);
+			return null;//DateTime.UtcNow.AddHours(1);
 		}
 
 		public bool SupportRangeRequests {
