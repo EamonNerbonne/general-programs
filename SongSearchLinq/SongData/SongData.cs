@@ -20,6 +20,7 @@ namespace SongDataLib {
 	public class SongData : MinimalSongData {
 		public string title, artist, composer, album, comment, genre;
 		public int year, track, trackcount, bitrate, length, samplerate, channels;
+		public double? track_gain;
 		public int? rating;
 		DateTime m_lastWriteTime;
 		//public Popularity popularity = new Popularity { ArtistPopularity = 0, TitlePopularity = 0 };
@@ -31,8 +32,8 @@ namespace SongDataLib {
 
 		internal SongData(FileInfo fileObj)
 			: base(new Uri(fileObj.FullName, UriKind.Absolute), true) {
-			TagLib.File file;
-			file = TagLib.File.Create(fileObj.FullName);
+			TagLib.File file = TagLib.File.Create(fileObj.FullName);
+			var customtags = GetCustomTags(file);
 			title = toSafeString(file.Tag.Title);
 			artist = toSafeString(file.Tag.JoinedPerformers);
 			composer = toSafeString(file.Tag.JoinedComposers);
@@ -47,29 +48,37 @@ namespace SongDataLib {
 			length = file.Properties == null ? 0 : (int)Math.Round(file.Properties.Duration.TotalSeconds);
 			samplerate = file.Properties == null ? 0 : file.Properties.AudioSampleRate;
 			channels = file.Properties == null ? 0 : file.Properties.AudioChannels;
-			rating = GetRatingFrom(file);
+			rating = customtags.ContainsKey("rating") ? customtags["rating"].ParseAsInt32() : null;
+			string track_gain_str;
+			if (customtags.TryGetValue("replaygain_track_gain", out track_gain_str)) 
+				track_gain_str = track_gain_str.Replace("dB", "").Replace("db", "").Trim();
+			track_gain = track_gain_str.ParseAsDouble();
 		}
 
-		static int? GetRatingFrom(TagLib.File file) {
+		static Dictionary<string, string> GetCustomTags(TagLib.File file) {
 			TagLib.TagTypes types = file.TagTypes;
 			if (types.HasFlag(TagLib.TagTypes.Xiph)) {
-				var tag = file.GetTag(TagLib.TagTypes.Xiph, false) as TagLib.Ogg.XiphComment;
-				return tag.GetField("RATING").FirstOrDefault().ParseAsInt32();
+				var filetag = (file.GetTag(TagLib.TagTypes.Xiph, false) as TagLib.Ogg.XiphComment);
+				return filetag.ToDictionary(key => key.ToLowerInvariant(), key => filetag.GetField(key).First());
 			} else if (types.HasFlag(TagLib.TagTypes.Id3v2)) {
-				var foobarRating = ((TagLib.Id3v2.Tag)file.GetTag(TagLib.TagTypes.Id3v2, false)).GetFrames("TXXX").Cast<TagLib.Id3v2.UserTextInformationFrame>().Where(uf => uf.Description.ToLowerInvariant() == "rating").FirstOrDefault();
-				return foobarRating == null ? default(int?) : foobarRating.Text.First().ParseAsInt32();
-			} else if (types == TagLib.TagTypes.None) {
-				return default(int?);
+				return ((TagLib.Id3v2.Tag)file.GetTag(TagLib.TagTypes.Id3v2, false))
+					.GetFrames("TXXX").Cast<TagLib.Id3v2.UserTextInformationFrame>()
+					.ToDictionary(frame => frame.Description.ToLowerInvariant(), frame => frame.Text.FirstOrDefault());
 			} else if (types.HasFlag(TagLib.TagTypes.Ape)) {
-				var foobarRating = (file.GetTag(TagLib.TagTypes.Ape, false) as TagLib.Ape.Tag).GetItem("rating");
-				return foobarRating == null ? default(int?) : foobarRating.ToStringArray().First().ParseAsInt32();
-			} else {
+				var filetag = (file.GetTag(TagLib.TagTypes.Ape, false) as TagLib.Ape.Tag);
+				return filetag.ToDictionary(key => key.ToLowerInvariant(), key => filetag.GetItem(key).ToStringArray().FirstOrDefault());
+			} else if (types == TagLib.TagTypes.None || types == TagLib.TagTypes.Id3v1) {
+				return new Dictionary<string,string>();
+			} else if(types.HasFlag(TagLib.TagTypes.Asf))  {
+				var filetag = file.GetTag(TagLib.TagTypes.Asf, false) as TagLib.Asf.Tag;
+				return filetag.Where(desc =>desc.Type==TagLib.Asf.DataType.Unicode) 
+					.ToDictionary(key=>key.Name.ToLowerInvariant(), key => key.ToString());
+			} else
 				throw new NotImplementedException();
-			}
 		}
 
 		//faster to not recreate XNames.
-		static XName songN = "song", titleN = "title", artistN = "artist", performerN = "performer", composerN = "composer", albumN = "album", commentN = "comment", genreN = "genre", yearN = "year", trackN = "track", trackcountN = "trackcount", bitrateN = "bitrate", lengthN = "length", samplerateN = "samplerate", channelsN = "channels", lastmodifiedTicksN = "lastmodifiedTicks", ratingN = "rating", artistpopularityN = "popA", titlepopularityN = "popT";
+		static XName songN = "song", titleN = "title", artistN = "artist", performerN = "performer", composerN = "composer", albumN = "album", commentN = "comment", genreN = "genre", yearN = "year", trackN = "track", trackcountN = "trackcount", bitrateN = "bitrate", lengthN = "length", samplerateN = "samplerate", channelsN = "channels", lastmodifiedTicksN = "lastmodifiedTicks", ratingN = "rating", artistpopularityN = "popA", titlepopularityN = "popT", trackGainN="Tgain";
 
 		internal SongData(XElement from, bool? isLocal)
 			: base(from, isLocal) {
@@ -88,6 +97,7 @@ namespace SongDataLib {
 			samplerate = ((int?)from.Attribute(samplerateN)) ?? 0;
 			channels = ((int?)from.Attribute(channelsN)) ?? 0;
 			rating = (int?)from.Attribute(ratingN);
+			track_gain = (double?)from.Attribute(trackGainN);
 			//popularity.ArtistPopularity = ((int?)from.Attribute(artistpopularityN)) ?? 0;
 			//popularity.TitlePopularity = ((int?)from.Attribute(titlepopularityN)) ?? 0;
 
@@ -114,6 +124,7 @@ namespace SongDataLib {
 				 coreOnly ? null : MakeAttributeOrNull(channelsN, channels),
 				 coreOnly && artist == null ? new XAttribute("label", HumanLabel) : null,
 				 MakeAttributeOrNull(ratingN, rating),
+				 MakeAttributeOrNull(trackGainN, track_gain),
 				//MakeAttributeOrNull(artistpopularityN, popularity.ArtistPopularity),
 				//MakeAttributeOrNull(titlepopularityN, popularity.TitlePopularity),
 				 coreOnly ? null : MakeAttributeOrNull(lastmodifiedTicksN, lastWriteTime == default(DateTime) ? default(long?) : lastWriteTime.Ticks)
