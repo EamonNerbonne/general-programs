@@ -289,8 +289,8 @@ $(document).ready(function ($) {
         if (playListItem) {
             $(playListItem).addClass("jplayer_playlist_current");
             hasBeenNotified = false;
-            var songHref = $(playListItem).data("songdata").href;
-            $("#jquery_jplayer").jPlayer("loadSong", [{ type: UriToMime(songHref), src: songHref}]);
+            var songdata = $(playListItem).data("songdata");
+            $("#jquery_jplayer").jPlayer("loadSong", [{ type: UriToMime(songdata.href), src: songdata.href, replaygain: songdata.replaygain }]);
             scrollIntoMiddleView(playListItem);
         }
     }
@@ -330,7 +330,7 @@ $(document).ready(function ($) {
         var clickedRow = $(target).parents("tr");
         if (clickedRow.length != 1)
             return;
-        addToPlaylist({ label: clickedRow.attr("data-label") || GetFileName(clickedRow.attr("data-href")), href: clickedRow.attr("data-href"), length: clickedRow.attr("data-length") });
+        addToPlaylist({ label: clickedRow.attr("data-label") || GetFileName(clickedRow.attr("data-href")), href: clickedRow.attr("data-href"), length: clickedRow.attr("data-length"), replaygain: Number(clickedRow.attr("data-replaygain"))||0 });
     };
 });
 

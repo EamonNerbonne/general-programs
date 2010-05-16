@@ -14,6 +14,7 @@ namespace SongSearchSite {
 		class PlaylistEntryJson {
 			public string label = null, href = null;
 			public int length = 0;
+			public double? replaygain;
 		}
 		static object syncroot = new object();
 		public void ProcessRequest(HttpContext context) {
@@ -46,7 +47,8 @@ namespace SongSearchSite {
 				 select new PlaylistEntryJson {
 					 href = uriMapper(knownSong.SongUri).ToString(),
 					 label = knownSong.HumanLabel,
-					 length = knownSong.Length
+					 length = knownSong.Length,
+					 replaygain = knownSong.track_gain
 				 }).ToArray();
 			string[] unknownForJson =
 				(from unknownSong in res.unknownTracks

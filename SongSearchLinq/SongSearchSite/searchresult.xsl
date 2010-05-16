@@ -78,7 +78,7 @@
     <xsl:variable name="songlabel">
       <xsl:apply-templates select="." mode="makelabel" />
     </xsl:variable>
-    <tr data-href="{@songuri}" data-label="{$songlabel}" data-length="{@length}">
+    <tr data-href="{@songuri}" data-label="{$songlabel}" data-length="{@length}" data-replaygain="{@Tgain}">
       <xsl:choose>
         <xsl:when test="@artist">
           <td>
