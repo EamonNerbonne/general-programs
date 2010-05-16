@@ -22,8 +22,9 @@ namespace LastFMspider {
 		public SimilarityList(IEnumerable<SimilarityTo<T>> sims) { encodedSims = EncodeRatingBlob(sims); }
 
 		static IEnumerable<SimilarityTo<T>> DecodeRatingBlob(byte[] arr) {
-			F factory = default(F);
+			if (arr == null) yield break;
 
+			F factory = default(F);
 			using (var ms = new MemoryStream(arr))
 			using (var br = new BinaryReader(ms))
 				while (ms.Position < ms.Length) {

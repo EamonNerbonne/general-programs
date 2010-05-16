@@ -5,8 +5,8 @@ using System.Text;
 using System.Data.Common;
 
 namespace LastFMspider.LastFMSQLiteBackend {
-	public class LookupSimilarityListAge : AbstractLfmCacheQuery {
-		public LookupSimilarityListAge(LastFMSQLiteCache lfmCache)
+	public class LookupSimilarityListInfo : AbstractLfmCacheQuery {
+		public LookupSimilarityListInfo(LastFMSQLiteCache lfmCache)
 			: base(lfmCache) {
 			trackId = DefineParameter("@trackId");
 		}

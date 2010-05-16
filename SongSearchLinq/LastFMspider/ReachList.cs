@@ -22,6 +22,7 @@ namespace LastFMspider {
 		public ReachList(IEnumerable<HasReach<T>> sims) { encodedSims = EncodeRatingBlob(sims); }
 
 		static IEnumerable<HasReach<T>> DecodeRatingBlob(byte[] arr) {
+			if (arr == null) yield break;
 			F factory = default(F);
 
 			using (var ms = new MemoryStream(arr))

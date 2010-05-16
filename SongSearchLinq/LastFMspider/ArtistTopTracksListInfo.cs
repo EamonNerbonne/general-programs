@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using LastFMspider.LastFMSQLiteBackend;
+using ArtistTopTracksStore = LastFMspider.ReachList<LastFMspider.LastFMSQLiteBackend.TrackId, LastFMspider.LastFMSQLiteBackend.TrackId.Factory>;
 
 namespace LastFMspider {
 	public struct ArtistTopTrack {
@@ -30,7 +31,7 @@ namespace LastFMspider {
 		readonly DateTime? _LookupTimestamp;
 		public DateTime? LookupTimestamp { get { return _LookupTimestamp; } }
 
-		readonly ReachList<TrackId, TrackId.Factory> _TopTracks;
+		readonly ArtistTopTracksStore _TopTracks;
 		public IEnumerable<HasReach<TrackId>> TopTracks { get { return _TopTracks.Rankings; } }
 
 		readonly int? _StatusCode;
@@ -42,7 +43,7 @@ namespace LastFMspider {
 			this._StatusCode = statusCode; this._TopTracks = rankings;
 		}
 		public static ArtistTopTracksListInfo CreateUnknown(ArtistInfo artistInfo) {
-			return new ArtistTopTracksListInfo(default(TopTracksListId), artistInfo, null, null, new ReachList<TrackId, TrackId.Factory>(new byte[] { }));
+			return new ArtistTopTracksListInfo(default(TopTracksListId), artistInfo, null, null, default(ArtistTopTracksStore));
 		}
 		public bool IsKnown { get { return ListID.HasValue; } }
 	}

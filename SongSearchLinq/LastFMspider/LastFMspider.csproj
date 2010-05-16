@@ -132,11 +132,11 @@
     <Compile Include="LastFMSQLiteBackend\InsertTrack.cs" />
     <Compile Include="LastFMSQLiteBackend\LookupArtist.cs" />
     <Compile Include="LastFMSQLiteBackend\LookupArtistSimilarityList.cs" />
-    <Compile Include="LastFMSQLiteBackend\LookupArtistSimilarityListAge.cs" />
+    <Compile Include="LastFMSQLiteBackend\LookupArtistSimilarityListInfo.cs" />
     <Compile Include="LastFMSQLiteBackend\LookupArtistTopTracksList.cs" />
-    <Compile Include="LastFMSQLiteBackend\LookupArtistTopTracksListAge.cs" />
+    <Compile Include="LastFMSQLiteBackend\LookupArtistTopTracksListInfo.cs" />
     <Compile Include="LastFMSQLiteBackend\LookupSimilarityList.cs" />
-    <Compile Include="LastFMSQLiteBackend\LookupSimilarityListAge.cs" />
+    <Compile Include="LastFMSQLiteBackend\LookupSimilarityListInfo.cs" />
     <Compile Include="LastFMSQLiteBackend\LookupTrack.cs" />
     <Compile Include="LastFMSQLiteBackend\LookupTrackID.cs" />
     <Compile Include="LastFMSQLiteBackend\RawArtists.cs" />

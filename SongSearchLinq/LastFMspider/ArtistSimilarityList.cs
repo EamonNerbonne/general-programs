@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using LastFMspider.LastFMSQLiteBackend;
+using ArtistSimListStore = LastFMspider.SimilarityList<LastFMspider.LastFMSQLiteBackend.ArtistId, LastFMspider.LastFMSQLiteBackend.ArtistId.Factory>;
 
 namespace LastFMspider {
 	public struct SimilarArtist : IComparable<SimilarArtist> {
@@ -28,6 +29,7 @@ namespace LastFMspider {
 	}
 
 	public struct ArtistSimilarityListInfo :ICachedInfo<ArtistSimilarityListInfo,SimilarArtistsListId>{
+
 		public readonly ArtistInfo ArtistInfo;
 
 		readonly SimilarArtistsListId _ListID;
@@ -36,7 +38,7 @@ namespace LastFMspider {
 		readonly DateTime? _LookupTimestamp;
 		public DateTime? LookupTimestamp { get { return _LookupTimestamp; } }
 
-		readonly SimilarityList<ArtistId, ArtistId.Factory> _SimilarArtists;
+		readonly ArtistSimListStore _SimilarArtists;
 		public IEnumerable<SimilarityTo<ArtistId>> SimilarArtists { get { return _SimilarArtists.Similarities; } }
 
 		readonly int? _StatusCode;
@@ -48,7 +50,7 @@ namespace LastFMspider {
 			this._StatusCode = statusCode; this._SimilarArtists = similarArtists;
 		}
 		public static ArtistSimilarityListInfo CreateUnknown(ArtistInfo artist) {
-			return new ArtistSimilarityListInfo(default(SimilarArtistsListId), artist, null, null, new SimilarityList<ArtistId, ArtistId.Factory>(new byte[]{}) );
+			return new ArtistSimilarityListInfo(default(SimilarArtistsListId), artist, null, null, default(ArtistSimListStore));
 		}
 	}
 }

@@ -15,7 +15,7 @@ namespace LastFMspider {
 
 		public DbConnection Connection { get; private set; }
 		public LookupSimilarityList LookupSimilarityList { get; private set; }
-		public LookupSimilarityListAge LookupSimilarityListAge { get; private set; }
+		public LookupSimilarityListInfo LookupSimilarityListAge { get; private set; }
 		public InsertArtist InsertArtist { get; private set; }
 		public InsertTrack InsertTrack { get; private set; }
 		public LookupTrack LookupTrack { get; private set; }
@@ -29,11 +29,11 @@ namespace LastFMspider {
 		public UpdateTrackCasing UpdateTrackCasing { get; private set; }
 		public UpdateArtistCasing UpdateArtistCasing { get; private set; }
 		public LookupArtistSimilarityList LookupArtistSimilarityList { get; private set; }
-		public LookupArtistSimilarityListAge LookupArtistSimilarityListAge { get; private set; }
+		public LookupArtistSimilarityListInfo LookupArtistSimilarityListAge { get; private set; }
 		public InsertArtistSimilarityList InsertArtistSimilarityList { get; private set; }
 		public ArtistsWithoutSimilarityList ArtistsWithoutSimilarityList { get; private set; }
 		public ArtistsWithoutTopTracksList ArtistsWithoutTopTracksList { get; private set; }
-		public LookupArtistTopTracksListAge LookupArtistTopTracksListAge { get; private set; }
+		public LookupArtistTopTracksListInfo LookupArtistTopTracksListAge { get; private set; }
 		public LookupArtistTopTracksList LookupArtistTopTracksList { get; private set; }
 		public InsertArtistTopTracksList InsertArtistTopTracksList { get; private set; }
 		public SetArtistAlternate SetArtistAlternate { get; private set; }
@@ -61,19 +61,19 @@ namespace LastFMspider {
 			InsertSimilarityList = new InsertSimilarityList(this);
 			InsertArtist = new InsertArtist(this);
 			LookupSimilarityList = new LookupSimilarityList(this);
-			LookupSimilarityListAge = new LookupSimilarityListAge(this);
+			LookupSimilarityListAge = new LookupSimilarityListInfo(this);
 			AllTracks = new AllTracks(this);
 			RawTracks = new RawTracks(this);
 			RawArtists = new RawArtists(this);
 			UpdateTrackCasing = new UpdateTrackCasing(this);
 			UpdateArtistCasing = new UpdateArtistCasing(this);
 			TracksWithoutSimilarityList = new TracksWithoutSimilarityList(this);
-			LookupArtistSimilarityListAge = new LookupArtistSimilarityListAge(this);
+			LookupArtistSimilarityListAge = new LookupArtistSimilarityListInfo(this);
 			LookupArtistSimilarityList = new LookupArtistSimilarityList(this);
 			InsertArtistSimilarityList = new InsertArtistSimilarityList(this);
 			ArtistsWithoutSimilarityList = new ArtistsWithoutSimilarityList(this);
 			ArtistsWithoutTopTracksList = new ArtistsWithoutTopTracksList(this);
-			LookupArtistTopTracksListAge = new LookupArtistTopTracksListAge(this);
+			LookupArtistTopTracksListAge = new LookupArtistTopTracksListInfo(this);
 			LookupArtistTopTracksList = new LookupArtistTopTracksList(this);
 			InsertArtistTopTracksList = new InsertArtistTopTracksList(this);
 			SetArtistAlternate = new SetArtistAlternate(this);

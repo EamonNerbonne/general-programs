@@ -7,6 +7,7 @@ using System.Xml.Linq;
 using EmnExtensions.Text;
 using System.Runtime.Serialization;
 using LastFMspider.LastFMSQLiteBackend;
+using TrackSimListStore = LastFMspider.SimilarityList<LastFMspider.LastFMSQLiteBackend.TrackId, LastFMspider.LastFMSQLiteBackend.TrackId.Factory>;
 
 namespace LastFMspider {
 	// status codes:
@@ -28,9 +29,6 @@ namespace LastFMspider {
 	}
 
 
-	
-
-
 	public struct TrackSimilarityListInfo : ICachedInfo<TrackSimilarityListInfo,SimilarTracksListId> {
 		public readonly SongRef SongRef;
 		public readonly TrackId TrackId;
@@ -41,7 +39,7 @@ namespace LastFMspider {
 		readonly DateTime? _LookupTimestamp;
 		public DateTime? LookupTimestamp { get { return _LookupTimestamp; } }
 
-		readonly SimilarityList<TrackId, TrackId.Factory> _SimilarTracks;
+		readonly TrackSimListStore _SimilarTracks;
 		public IEnumerable<SimilarityTo<TrackId>> SimilarTracks { get { return _SimilarTracks.Similarities; } }
 
 		readonly int? _StatusCode;
@@ -53,7 +51,7 @@ namespace LastFMspider {
 			this._StatusCode = statusCode; this._SimilarTracks = similarTracks;
 		}
 		public static TrackSimilarityListInfo CreateUnknown(SongRef song, TrackId trackId) {
-			return new TrackSimilarityListInfo(default(SimilarTracksListId), trackId, song, null, null, new SimilarityList<TrackId, TrackId.Factory>(new byte[] { }));
+			return new TrackSimilarityListInfo(default(SimilarTracksListId), trackId, song, null, null, default(TrackSimListStore));
 		}
 	}
 }
