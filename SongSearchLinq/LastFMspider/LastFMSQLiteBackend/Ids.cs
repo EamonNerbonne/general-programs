@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Diagnostics;
 
 namespace LastFMspider.LastFMSQLiteBackend {
 	internal interface IId {
@@ -13,6 +14,7 @@ namespace LastFMspider.LastFMSQLiteBackend {
 		T Cast(uint id);
 	}
 
+	[DebuggerDisplay("Id={id}")]
 	public struct TrackId : IId {
 		internal readonly uint id;
 		public uint Id { get { return id; } }
@@ -22,6 +24,8 @@ namespace LastFMspider.LastFMSQLiteBackend {
 		public override string ToString() { throw new NotImplementedException("May not use ToString - returns nonsense in db queries!"); }
 		internal struct Factory : IIdFactory<TrackId> { public TrackId Cast(uint id) { return new TrackId(id); } }
 	}
+
+	[DebuggerDisplay("Id={id}")]
 	public struct ArtistId : IId {
 		internal readonly uint id;
 		public uint Id { get { return id; } }
@@ -31,6 +35,8 @@ namespace LastFMspider.LastFMSQLiteBackend {
 		public override string ToString() { throw new NotImplementedException("May not use ToString - returns nonsense in db queries!"); }
 		internal struct Factory : IIdFactory<ArtistId> { public ArtistId Cast(uint id) { return new ArtistId(id); } }
 	}
+
+	[DebuggerDisplay("Id={id}")]
 	public struct SimilarTracksListId : IId {
 		internal readonly uint id;
 		public uint Id { get { return id; } }
@@ -40,6 +46,8 @@ namespace LastFMspider.LastFMSQLiteBackend {
 		public override string ToString() { throw new NotImplementedException("May not use ToString - returns nonsense in db queries!"); }
 		internal struct Factory : IIdFactory<SimilarTracksListId> { public SimilarTracksListId Cast(uint id) { return new SimilarTracksListId(id); } }
 	}
+
+	[DebuggerDisplay("Id={id}")]
 	public struct SimilarArtistsListId : IId {
 		internal readonly uint id;
 		public uint Id { get { return id; } }
@@ -49,6 +57,8 @@ namespace LastFMspider.LastFMSQLiteBackend {
 		public override string ToString() { throw new NotImplementedException("May not use ToString - returns nonsense in db queries!"); }
 		internal struct Factory : IIdFactory<SimilarArtistsListId> { public SimilarArtistsListId Cast(uint id) { return new SimilarArtistsListId(id); } }
 	}
+
+	[DebuggerDisplay("Id={id}")]
 	public struct TopTracksListId : IId {
 		//TODO:be consistent: why is this not ArtistTopTracksListId
 		internal readonly uint id;
