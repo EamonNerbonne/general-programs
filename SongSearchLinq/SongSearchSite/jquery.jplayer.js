@@ -120,7 +120,8 @@
         playedPercentRelative: 0,
         playedPercentAbsolute: 0,
         playedTime: 0,
-        totalTime: 0
+        totalTime: 0,
+        gainScale: 0.3
     };
 
     var _cssIdDefaultsForActions = {
@@ -226,9 +227,10 @@
                 willPlayType: function (type) {
                     return self.config.flashSupport && type == "audio/mpeg" && self._checkForFlash(8);
                 },
-                loadSong: function (type, src) {
+                loadSong: function (type, src, replaygain) {
+                   self.config.diag.gainScale = Math.sqrt( Math.min(1.0, 0.5 * Math.pow(10, (replaygain || 0.0) / 20.0)));
                     self._getMovie().fl_setFile_mp3(src);
-                    self._getMovie().fl_volume_mp3(self.config.volume);
+                    self._getMovie().fl_volume_mp3(self.config.volume * self.config.diag.gainScale);
                     self.config.diag.src = src;
                     self.config.isFileSet = true; // Set here for conformity, but the flash handles this internally and through return values.
                     self.handlers.setButtons(false);
@@ -261,7 +263,7 @@
                 },
                 volume: function (v) {
                     self.config.volume = v;
-                    self._getMovie().fl_volume_mp3(v);
+                    self._getMovie().fl_volume_mp3(v * self.config.diag.gainScale);
                 }
             };
 
@@ -273,7 +275,9 @@
                     var canplay = self.config.nativeSupport && self.config.audio.canPlayType && self.config.audio.canPlayType(type);
                     return !!(canplay && canplay != "no");
                 },
-                loadSong: function (type, src) {
+                loadSong: function (type, src,replaygain) {
+                    self.config.diag.gainScale = Math.min(1.0, 0.5 * Math.pow(10, (replaygain || 0.0) / 20.0));
+
                     self.config.audio = new Audio();
                     self.config.audio.id = self.config.aid;
                     self.config.aSel.replaceWith(self.config.audio);
@@ -284,7 +288,7 @@
                     self.jPlayerOnProgressChange(0, 0, 0, 0, 0);
                     clearInterval(self.config.jPlayerControllerId);
                     self.config.audio.addEventListener("canplay", function () {
-                        self.config.audio.volume = self.config.volume / 100; // Fix for Chrome 4: Event solves initial volume not being set correctly.
+                        self.config.audio.volume = self.config.volume * self.config.diag.gainScale / 100; // Fix for Chrome 4: Event solves initial volume not being set correctly.
                     }, false);
                     self.handlers.setButtons(false);
                 },
@@ -362,13 +366,13 @@
                 },
                 volume: function (v) {
                     self.config.volume = v;
-                    self.config.audio.volume = v / 100;
+                    self.config.audio.volume = v * self.config.diag.gainScale / 100;
                     self.jPlayerVolume(v);
                 }
             };
 
             var audioTypes = ["audio/ogg", "application/ogg", "audio/mpeg"];
-            var backends = [ "flash","html5"]; //chrome's mp3 streaming support isn't too stellar; prefer flash.
+            var backends = ["flash", "html5"]; //chrome's mp3 streaming support isn't too stellar; prefer flash.
             var support = {};
             $.each(audioTypes, function (i, audioType) {
                 support[audioType] = $.grep(backends, function (backend, j) {
@@ -403,7 +407,7 @@
                         var obj_param = new Array();
                         obj_param[0] = '<param name="movie" value="' + this.config.swf + '" />';
                         obj_param[1] = '<param name="quality" value="high" />';
-                        obj_param[2] = '<param name="FlashVars" value="id=' + escape(this.config.id) + '&fid=' + escape(this.config.fid) + '&vol=' + this.config.volume + '" />';
+                        obj_param[2] = '<param name="FlashVars" value="id=' + escape(this.config.id) + '&fid=' + escape(this.config.fid) + '&vol=' + (this.config.volume* self.config.diag.gainScale) + '" />';
                         obj_param[3] = '<param name="allowScriptAccess" value="always" />';
                         obj_param[4] = '<param name="bgcolor" value="' + this.config.bgcolor + '" />';
 
@@ -415,7 +419,7 @@
                     } else {
                         var html_embed = '<embed name="' + this.config.fid + '" id="' + this.config.fid + '" src="' + this.config.swf + '"';
                         html_embed += ' width="' + this.config.width + '" height="' + this.config.height + '" bgcolor="' + this.config.bgcolor + '"';
-                        html_embed += ' quality="high" FlashVars="id=' + escape(this.config.id) + '&fid=' + escape(this.config.fid) + '&vol=' + this.config.volume + '"';
+                        html_embed += ' quality="high" FlashVars="id=' + escape(this.config.id) + '&fid=' + escape(this.config.fid) + '&vol=' + (this.config.volume * self.config.diag.gainScale) + '"';
                         html_embed += ' allowScriptAccess="always"';
                         html_embed += ' type="application/x-shockwave-flash" pluginspage="http://www.macromedia.com/go/getflashplayer" />';
                         this.element.append(html_embed);
@@ -484,7 +488,7 @@
                         self.handlers[self.handlers.current].clearFile(); //will stop.
                     self.handlers.current = newBackend;
                 }
-                self.handlers[self.handlers.current].loadSong(songOption.type, songOption.src);
+                self.handlers[self.handlers.current].loadSong(songOption.type, songOption.src, songOption.replaygain);
                 return false; //no need to continue;
             });
         },
@@ -588,7 +592,7 @@
         },
         jPlayerVolume: function (v) { // Called from Flash / HTML5 event
             if (this.config.cssId.volumeBarValue != null) {
-                this.config.cssSelector.volumeBarValue.width(v + "%");
+                this.config.cssSelector.volumeBarValue.width(Math.min(100.0,v/this.config.diag.gainScale) + "%");
                 this._forceUpdate();
             }
         },
