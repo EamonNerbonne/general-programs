@@ -26,8 +26,10 @@ namespace EmnExtensions.DebugTools
 		Stopwatch underlyingTimer;
 
 
-		public static T TimeFunc<T>(Func<T> f, string actionLabel) { using (new DTimer(actionLabel)) return f(); }
-		public static T TimeFunc<T>(Func<T> f, Action<TimeSpan> resultSink) { using (new DTimer(resultSink)) return f(); }
-
+	}
+	public static class Timer {
+		public static T TimeFunc<T>(this Func<T> f, string actionLabel) { using (new DTimer(actionLabel)) return f(); }
+		public static T TimeFunc<T>(this Func<T> f, Action<TimeSpan> resultSink) { using (new DTimer(resultSink)) return f(); }
+		public static T TimeFunc<T, M>(this Func<T> f, M key, Action<M, TimeSpan> resultsSink) { using (new DTimer(t => { resultsSink(key, t); })) return f(); }
 	}
 }

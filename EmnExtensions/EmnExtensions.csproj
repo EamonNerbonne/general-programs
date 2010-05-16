@@ -101,8 +101,6 @@
     <Compile Include="Collections\SymmetricDistanceMatrix.cs" />
     <Compile Include="DebugTools\ConsoleExtension.cs" />
     <Compile Include="DebugTools\DTimer.cs" />
-    <Compile Include="DebugTools\FuncTimerExtension.cs" />
-    <Compile Include="DebugTools\NiceTimer.cs" />
     <Compile Include="F.cs" />
     <Compile Include="FastSerializer\FastSerializer.cs" />
     <Compile Include="Filesystem\DescendantDirsExtension.cs" />
