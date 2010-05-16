@@ -64,7 +64,7 @@
     <div class="searchSect">
         <h3>
             SongSearch - search &amp; play from distributed song db&#39;s.</h3>
-        <form method="get" action="list.xml" id="searchForm" target="resultsview">
+        <form method="get" action="pl.xml" id="searchForm" target="resultsview">
         <input type="hidden" name="view" value="xslt" />
         Find:
         <input id="searchquery" type="text" name="q" autocomplete="off" placeholder="Search for Music..."
@@ -88,6 +88,8 @@
             </ol>
          
         </fieldset>
+    </div>
+    <div id="searchResultShadow">
     </div>
     <div id="searchResultDiv">
         <iframe frameborder="0" style="height: 100%; width: 100%; border: none;" id="resultsview"
