@@ -13,15 +13,26 @@ namespace LastFMspider
 	{
 
 		public static void PrecacheLocalFiles(LastFmTools tools, bool shuffle) {
-			var DB = tools.DB;
 			var SimilarSongs = tools.SimilarSongs;
 			var Lookup = tools.Lookup;
+			int ttCount = 0; object sync = new object();
+			Console.WriteLine("Caching Top tracks");
+			var artists = tools.DB.Songs.Select(song => song.artist).Distinct().ToArray();
+			Parallel.ForEach(artists, new ParallelOptions { MaxDegreeOfParallelism = 10, }, artist => {
+				var ttList = SimilarSongs.LookupTopTracks(artist, TimeSpan.FromDays(100.0));
+				var saList = SimilarSongs.LookupSimilaArtists(artist, TimeSpan.FromDays(100.0));
+				lock (sync) {
+					ttCount++;
+					if (100 * (ttCount - 1) / artists.Length != 100 * ttCount / artists.Length)
+						Console.WriteLine("{0}%", 100 * ttCount / artists.Length);
+				}
+			});
 
 			Console.WriteLine("Loading song database...");
-			if (DB.InvalidDataCount != 0)
-				Console.WriteLine("Ignored {0} songs with unknown tags (should be 0).", DB.InvalidDataCount);
-			Console.WriteLine("Taking those {0} songs and indexing em by artist/title...", DB.Songs.Count);
-			SongRef[] songsToDownload = Lookup.dataByRef.Keys.ToArray();
+			if (tools.DB.InvalidDataCount != 0)
+				Console.WriteLine("Ignored {0} songs with unknown tags (should be 0).", tools.DB.InvalidDataCount);
+			Console.WriteLine("Taking those {0} songs and indexing em by artist/title...", tools.DB.Songs.Count);
+			SongRef[] songsToDownload = tools.DB.Songs.Select(SongRef.Create).ToArray();
 			if (shuffle)
 				songsToDownload.Shuffle();
 			tools.UnloadDB();
@@ -59,6 +70,7 @@ namespace LastFMspider
 				}
 			}
 			);
+
 			Console.WriteLine("Done precaching.");
 		}
 	}
