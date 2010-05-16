@@ -30,19 +30,26 @@ namespace LastFMspider {
 	public struct TrackSimilarityListInfo {
 		public readonly SongRef SongRef;
 		public readonly TrackId TrackId;
-		public readonly SimilarTracksListId ListID;
-		public readonly DateTime? LookupTimestamp;
+		
+		readonly SimilarTracksListId _ListID;
+		public SimilarTracksListId ListID { get { return _ListID; } }
+
+		readonly DateTime? _LookupTimestamp;
+		public DateTime? LookupTimestamp { get { return _LookupTimestamp; } }
+
 		readonly SimilarityList<TrackId, TrackId.Factory> _SimilarTracks;
 		public IEnumerable<SimilarityTo<TrackId>> SimilarTracks { get { return _SimilarTracks.Similarities; } }
+
 		public readonly int? StatusCode;
+
 		public TrackSimilarityListInfo(SimilarTracksListId listID, TrackId trackId, SongRef songref, DateTime? lookupTimestamp, int? statusCode,
 			IEnumerable<SimilarityTo<TrackId>> sims) {
-			this.SongRef = songref; this.TrackId = trackId; this.ListID = listID; this.LookupTimestamp = lookupTimestamp;
+			this.SongRef = songref; this.TrackId = trackId; this._ListID = listID; this._LookupTimestamp = lookupTimestamp;
 			this.StatusCode = statusCode; this._SimilarTracks = new SimilarityList<TrackId, TrackId.Factory>(sims);
 		}
 		public TrackSimilarityListInfo(SimilarTracksListId listID, TrackId trackId, SongRef songref, DateTime? lookupTimestamp, int? statusCode,
 			byte[] sims) {
-			this.SongRef = songref; this.TrackId = trackId; this.ListID = listID; this.LookupTimestamp = lookupTimestamp;
+			this.SongRef = songref; this.TrackId = trackId; this._ListID = listID; this._LookupTimestamp = lookupTimestamp;
 			this.StatusCode = statusCode; this._SimilarTracks = new SimilarityList<TrackId, TrackId.Factory>(sims ?? new byte[] { });
 		}
 		public static TrackSimilarityListInfo CreateUnknown(SongRef song,TrackId trackId) {
