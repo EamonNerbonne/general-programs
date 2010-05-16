@@ -145,10 +145,15 @@ namespace LastFMspider {
 		}
 
 
-		public ArtistTopTracksList LookupTopTracks(string artist) {
+		public ArtistTopTracksList LookupTopTracks(string artist, TimeSpan maxAge = default(TimeSpan)) {
 			//artist = artist.ToLatinLowercase();
+			if (maxAge == default(TimeSpan)) maxAge = normalMaxAge;
 			var toptracksInfo = backingDB.LookupArtistTopTracksListAge.Execute(artist);
-			if (toptracksInfo.IsKnown) return backingDB.LookupArtistTopTracksList.Execute(toptracksInfo);
+			if (toptracksInfo.IsKnown && toptracksInfo.LookupTimestamp.HasValue && toptracksInfo.LookupTimestamp.Value >= DateTime.UtcNow - maxAge) 
+				return backingDB.LookupArtistTopTracksList.Execute(toptracksInfo);
+			if (toptracksInfo.ArtistInfo.IsAlternateOf.HasValue)	
+				return LookupTopTracks(backingDB.LookupArtist.Execute(toptracksInfo.ArtistInfo.IsAlternateOf), maxAge);
+
 			ArtistTopTracksList toptracks;
 			try {
 				toptracks = OldApiClient.Artist.GetTopTracks(artist);
@@ -159,7 +164,6 @@ namespace LastFMspider {
 				backingDB.SetArtistAlternate.Execute(artist, toptracks.Artist);
 			backingDB.InsertArtistTopTracksList.Execute(toptracks);
 			return toptracks;
-
 		}
 	}
 }
