@@ -13,7 +13,7 @@ namespace LastFMspider.LastFMSQLiteBackend {
 		protected override string CommandText {
 			get {
 				return @"
-SELECT L.ListID, L.ArtistId, L.LookupTimestamp, L.StatusCode, L.SimilarTracks
+SELECT L.ListID, L.ArtistId, L.LookupTimestamp, L.StatusCode, L.SimilarArtists
 FROM Artist A, SimilarArtistList L
 WHERE A.ArtistID = @artistId
 AND  L.ListID = A.CurrentSimilarArtistList
@@ -31,7 +31,7 @@ AND  L.ListID = A.CurrentSimilarArtistList
 					if (artistInfo.IsAlternateOf.HasValue)
 						retval = ArtistSimilarityListInfo.CreateUnknown(artistInfo);
 					else {
-						artistId.Value = artistInfo.ArtistId;
+						artistId.Value = artistInfo.ArtistId.Id;
 						using (var reader = CommandObj.ExecuteReader()) {
 							//we expect exactly one hit - or none
 							if (reader.Read())

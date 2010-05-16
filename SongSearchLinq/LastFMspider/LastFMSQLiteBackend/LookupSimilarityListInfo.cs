@@ -46,6 +46,5 @@ AND L.ListID = T.CurrentSimilarTrackList
 				statusCode: (int?)vals[2].CastDbObjectAs<long?>(),
 				similarTracks: new SimilarityList<TrackId,TrackId.Factory>(vals[3].CastDbObjectAs<byte[]>()) );
 		}
-
 	}
 }

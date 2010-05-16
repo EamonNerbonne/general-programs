@@ -19,7 +19,7 @@ namespace LastFMspider.LastFMSQLiteBackend {
 		protected override string CommandText {
 			get {
 				return @"
-INSERT INTO [SimilarArtistList] (ArtistID, LookupTimestamp,StatusCode,SimilarTracks) 
+INSERT INTO [SimilarArtistList] (ArtistID, LookupTimestamp,StatusCode,SimilarArtists) 
 VALUES (@artistID, @lookupTimestamp, @statusCode, @listBlob);
 
 SELECT L.ListID
