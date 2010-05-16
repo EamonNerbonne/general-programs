@@ -27,7 +27,17 @@ namespace LastFMspider {
 		public static SongSimilarityList CreateErrorList(SongRef songref, int errorCode) { return new SongSimilarityList { LookupTimestamp = DateTime.UtcNow, StatusCode = errorCode, similartracks = new SimilarTrack[0], songref = songref }; }
 	}
 
-	public struct TrackSimilarityListInfo {
+
+	public interface ICachedInfo<TSelf, TSelfId>
+		where TSelfId : IId
+		where TSelf : ICachedInfo<TSelf, TSelfId> {
+		TSelfId ListID { get; }
+		DateTime? LookupTimestamp { get; }
+		int? StatusCode { get; }
+	}
+
+
+	public struct TrackSimilarityListInfo : ICachedInfo<TrackSimilarityListInfo,SimilarTracksListId> {
 		public readonly SongRef SongRef;
 		public readonly TrackId TrackId;
 

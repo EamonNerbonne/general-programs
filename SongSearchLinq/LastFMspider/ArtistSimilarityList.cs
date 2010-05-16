@@ -27,7 +27,7 @@ namespace LastFMspider {
 		}
 	}
 
-	public struct ArtistSimilarityListInfo {
+	public struct ArtistSimilarityListInfo :ICachedInfo<ArtistSimilarityListInfo,SimilarArtistsListId>{
 		public readonly ArtistInfo ArtistInfo;
 
 		readonly SimilarArtistsListId _ListID;
