@@ -11,6 +11,7 @@ using System.IO;
 using System.Threading;
 using System.Diagnostics;
 using LastFMspider;
+using System.Threading.Tasks;
 
 namespace SongSearchSite {
 
@@ -44,17 +45,22 @@ namespace SongSearchSite {
 			return sb.ToString();
 		}
 
+		public static string EscapedRelativeSongPath(Uri localSongPath) {//failure to manually escape this means .NET interprets ? + # as valid uri segments and generates a valid uri - but not the one intended.
+			return Uri.EscapeDataString(CanonicalRelativeSongPath(localSongPath)).Replace("%2F", "/");
+		}
+
+
 		public static Func<Uri, Uri> LocalSongPathToAbsolutePathMapper(HttpContext context) {
 			return local2absHelper(new Uri(context.Request.Url, context.Request.ApplicationPath + "/" + songsPrefix));
 		}
 		static Func<Uri, Uri> local2absHelper(Uri songsBaseUri) {
-			return localSongUri => localSongUri.IsFile ? new Uri(songsBaseUri, CanonicalRelativeSongPath(localSongUri)) : localSongUri;
+			return localSongUri => localSongUri.IsFile ? new Uri(songsBaseUri, EscapedRelativeSongPath(localSongUri)) : localSongUri;
 		}
 		public static Func<Uri, Uri> LocalSongPathToAppRelativeMapper(HttpContext context) {
 			return local2relHelper(new Uri(context.Request.Url, context.Request.ApplicationPath + "/" + songsPrefix), new Uri(context.Request.Url, context.Request.ApplicationPath + "/"));
 		}
 		static Func<Uri, Uri> local2relHelper(Uri songsBaseUri, Uri appBaseUri) {
-			return localSongUri => localSongUri.IsFile ? appBaseUri.MakeRelativeUri(new Uri(songsBaseUri, CanonicalRelativeSongPath(localSongUri))) : localSongUri;
+			return localSongUri => localSongUri.IsFile ? appBaseUri.MakeRelativeUri(new Uri(songsBaseUri, EscapedRelativeSongPath(localSongUri))) : localSongUri;
 		}
 
 
@@ -72,11 +78,10 @@ namespace SongSearchSite {
 			}
 		}
 		SearchableSongDB searchEngine;
-		SongDB db;
 		LastFmTools tools;
 		FuzzySongSearcher fuzzySearcher;
 
-		Dictionary<string, ISongData> localSongs = new Dictionary<string, ISongData>();
+		Dictionary<string, SongData> localSongs = new Dictionary<string, SongData>();
 		object syncroot = new object();
 		FileSystemWatcher fsWatcher;
 		public void Dispose() {
@@ -94,14 +99,11 @@ namespace SongSearchSite {
 				SongDatabaseConfigFile dcf = new SongDatabaseConfigFile(true);
 				tools = new LastFmTools(dcf);
 
-
-				db = new SongDB(tools.DB.Songs);
-				fuzzySearcher = new FuzzySongSearcher(tools);
-
-				localSongs = db.songs.Where(s => s.IsLocal).ToDictionary(song => CanonicalRelativeSongPath(song.SongUri));
-				searchEngine = new SearchableSongDB(db, new SuffixTreeSongSearcher());
-
-
+				var allSongs = tools.DB.Songs;
+				Parallel.Invoke(
+					() => { fuzzySearcher = new FuzzySongSearcher(allSongs); },
+					() => { searchEngine = new SearchableSongDB(new SongDB(allSongs), new SuffixTreeSongSearcher()); },
+					() => { localSongs = allSongs.Where(s => s.IsLocal).ToDictionary(song => CanonicalRelativeSongPath(song.SongUri)); });
 				if (fsWatcher == null) {
 					fsWatcher = new FileSystemWatcher {
 						Path = dcf.DataDirectory.FullName,
@@ -139,7 +141,7 @@ namespace SongSearchSite {
 		/// <param name="path">The normalized path </param>
 		/// <returns></returns>
 		public static ISongData GetSongByNormalizedPath(string path) {
-			ISongData retval;
+			SongData retval;
 			var sdc = Singleton;
 			lock (sdc.syncroot)
 				sdc.localSongs.TryGetValue(path, out retval);
