@@ -13,7 +13,7 @@ namespace LastFMspider.LastFMSQLiteBackend {
 	public class LookupArtistInfo : AbstractLfmCacheQuery {
 		public LookupArtistInfo(LastFMSQLiteCache lfm)
 			: base(lfm) {
-				lowerArtist = DefineParameter("@lowerArtist");
+			lowerArtist = DefineParameter("@lowerArtist");
 		}
 		protected override string CommandText {
 			get {
@@ -28,14 +28,10 @@ SELECT ArtistID, IsAlternateOf FROM [Artist] WHERE LowercaseArtist = @lowerArtis
 			lock (SyncRoot) {
 
 				this.lowerArtist.Value = artist.ToLatinLowercase();
-				using (var reader = CommandObj.ExecuteReader())//no transaction needed for a single select!
-                {
-					//we expect exactly one hit - or none
-					if (reader.Read())
-						return new ArtistInfo { Artist = artist, ArtistId = new ArtistId((long)reader[0]), IsAlternateOf = new ArtistId((long)reader[1]) };
-					else
-						return new ArtistInfo { Artist = artist };
-				}
+				var res = CommandObj.ExecuteGetTopRow();
+				return res == null
+					? new ArtistInfo { Artist = artist }
+					: new ArtistInfo { Artist = artist, ArtistId = new ArtistId((long)res[0]), IsAlternateOf = new ArtistId(res[1].CastDbObjectAs<long?>() ) };
 			}
 		}
 	}

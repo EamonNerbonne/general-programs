@@ -23,7 +23,7 @@ VALUES (@artistID, @lookupTimestamp, @statusCode, @listBlob);
 
 SELECT L.ListID
 FROM TopTracksList L
-AND L.ArtistID = @artistID
+WHERE L.ArtistID = @artistID
 AND L.LookupTimestamp = @lookupTimestamp
 LIMIT 1
 ";

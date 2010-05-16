@@ -32,7 +32,7 @@ AND  L.ListID = A.CurrentTopTracksList
 					if (artistInfo.IsAlternateOf.HasValue)
 						retval = ArtistTopTracksListInfo.CreateUnknown(artistInfo);
 					else {
-						artistId.Value = artistInfo.ArtistId;
+						artistId.Value = artistInfo.ArtistId.Id;
 
 						using (var reader = CommandObj.ExecuteReader()) {
 							//we expect exactly one hit - or none
