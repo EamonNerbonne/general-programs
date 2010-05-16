@@ -130,15 +130,11 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\..\External\MoreLinq\MoreLinq\MoreLinq.csproj">
-      <Project>{8642E81B-3414-4C13-914F-05A4E600FE49}</Project>
-      <Name>MoreLinq</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\EmnExtensions\EmnExtensions.csproj">
+    <ProjectReference Include="..\..\EmnExtensions\EmnExtensions.csproj">
       <Project>{2F0A3E48-CD06-43BB-BFC6-6B6F568232B9}</Project>
       <Name>EmnExtensions</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\SongSearchLinq\SongData\SongData.csproj">
+    <ProjectReference Include="..\SongData\SongData.csproj">
       <Project>{171E7F71-DB67-47CA-82BC-C63681BF2733}</Project>
       <Name>SongData</Name>
     </ProjectReference>

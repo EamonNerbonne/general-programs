@@ -28,13 +28,7 @@ namespace LastFMspider {
 	}
 
 
-	public interface ICachedInfo<TSelf, TSelfId>
-		where TSelfId : IId
-		where TSelf : ICachedInfo<TSelf, TSelfId> {
-		TSelfId ListID { get; }
-		DateTime? LookupTimestamp { get; }
-		int? StatusCode { get; }
-	}
+	
 
 
 	public struct TrackSimilarityListInfo : ICachedInfo<TrackSimilarityListInfo,SimilarTracksListId> {

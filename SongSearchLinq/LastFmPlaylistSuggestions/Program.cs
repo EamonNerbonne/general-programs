@@ -10,7 +10,6 @@ using EmnExtensions.Collections;
 using EmnExtensions.DebugTools;
 using EmnExtensions.Text;
 using LastFMspider;
-using MoreLinq;
 using SongDataLib;
 
 namespace LastFmPlaylistSuggestions {

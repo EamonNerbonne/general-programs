@@ -57,9 +57,6 @@
     <Reference Include="System.Core">
       <RequiredTargetFramework>3.5</RequiredTargetFramework>
     </Reference>
-    <Reference Include="System.Data.SQLite">
-      <HintPath>..\Sqlite.netBin\x64\System.Data.SQLite.DLL</HintPath>
-    </Reference>
     <Reference Include="System.Xml" />
     <Reference Include="System.Xml.Linq">
       <RequiredTargetFramework>3.5</RequiredTargetFramework>
@@ -75,7 +72,7 @@
       <Project>{1FC71689-B62E-4831-9558-70D1ED971DEC}</Project>
       <Name>EmnExtensions</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\SongSpider\LastFMspider\LastFMspider\LastFMspider.csproj">
+    <ProjectReference Include="..\LastFMspider\LastFMspider.csproj">
       <Project>{6AFF4733-511B-4EE5-8A5F-6B11A894E0D7}</Project>
       <Name>LastFMspider</Name>
     </ProjectReference>

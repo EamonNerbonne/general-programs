@@ -19,5 +19,6 @@ var tools = new LastFmTools();
 var simLookup = tools.SimilarSongs;
 var db = simLookup.backingDB;
 //db.LookupTrack.Execute(new TrackId(1149200)).Dump();
-simLookup.Lookup(SongRef.Create("Stereo Total","Ringo, I Love you")).Dump();
+simLookup.LookupTopTracks("Lady Gaga").Dump();
+//simLookup.Lookup(SongRef.Create("Stereo Total","Ringo, I Love you")).Dump();
 //TrackId: 1149163
