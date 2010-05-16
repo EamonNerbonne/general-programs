@@ -81,6 +81,7 @@
     <Content Include="jquery-1.4.2.min.js" />
     <Content Include="jquery-ui-1.8.1.custom.min.js" />
     <Content Include="jquery.jplayer.js" />
+    <Content Include="logon.aspx" />
     <Content Include="TestPlayer.js" />
     <Content Include="Loading.html" />
     <Content Include="OptionsBuilder.js" />
@@ -119,6 +120,13 @@
     </Compile>
     <Compile Include="DebugStatus.aspx.designer.cs">
       <DependentUpon>DebugStatus.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="logon.aspx.cs">
+      <DependentUpon>logon.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="logon.aspx.designer.cs">
+      <DependentUpon>logon.aspx</DependentUpon>
     </Compile>
     <Compile Include="PlaylistHandler.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
