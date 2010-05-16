@@ -44,7 +44,7 @@ AND L.ListID = T.CurrentSimilarTrackList
 				songref: songref,
 				lookupTimestamp: vals[1].CastDbObjectAsDateTime().Value,
 				statusCode: (int?)vals[2].CastDbObjectAs<long?>(),
-				sims: vals[3].CastDbObjectAs<byte[]>());
+				similarTracks: new SimilarityList<TrackId,TrackId.Factory>(vals[3].CastDbObjectAs<byte[]>()) );
 		}
 
 	}

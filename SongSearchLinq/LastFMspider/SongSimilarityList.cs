@@ -30,7 +30,7 @@ namespace LastFMspider {
 	public struct TrackSimilarityListInfo {
 		public readonly SongRef SongRef;
 		public readonly TrackId TrackId;
-		
+
 		readonly SimilarTracksListId _ListID;
 		public SimilarTracksListId ListID { get { return _ListID; } }
 
@@ -40,20 +40,16 @@ namespace LastFMspider {
 		readonly SimilarityList<TrackId, TrackId.Factory> _SimilarTracks;
 		public IEnumerable<SimilarityTo<TrackId>> SimilarTracks { get { return _SimilarTracks.Similarities; } }
 
-		public readonly int? StatusCode;
+		readonly int? _StatusCode;
+		public int? StatusCode { get { return _StatusCode; } }
 
-		public TrackSimilarityListInfo(SimilarTracksListId listID, TrackId trackId, SongRef songref, DateTime? lookupTimestamp, int? statusCode,
-			IEnumerable<SimilarityTo<TrackId>> sims) {
+		internal TrackSimilarityListInfo(SimilarTracksListId listID, TrackId trackId, SongRef songref, DateTime? lookupTimestamp, int? statusCode,
+			SimilarityList<TrackId, TrackId.Factory> similarTracks) {
 			this.SongRef = songref; this.TrackId = trackId; this._ListID = listID; this._LookupTimestamp = lookupTimestamp;
-			this.StatusCode = statusCode; this._SimilarTracks = new SimilarityList<TrackId, TrackId.Factory>(sims);
+			this._StatusCode = statusCode; this._SimilarTracks = similarTracks;
 		}
-		public TrackSimilarityListInfo(SimilarTracksListId listID, TrackId trackId, SongRef songref, DateTime? lookupTimestamp, int? statusCode,
-			byte[] sims) {
-			this.SongRef = songref; this.TrackId = trackId; this._ListID = listID; this._LookupTimestamp = lookupTimestamp;
-			this.StatusCode = statusCode; this._SimilarTracks = new SimilarityList<TrackId, TrackId.Factory>(sims ?? new byte[] { });
-		}
-		public static TrackSimilarityListInfo CreateUnknown(SongRef song,TrackId trackId) {
-			return new TrackSimilarityListInfo(default(SimilarTracksListId), trackId, song, null, null, default(byte[]));
+		public static TrackSimilarityListInfo CreateUnknown(SongRef song, TrackId trackId) {
+			return new TrackSimilarityListInfo(default(SimilarTracksListId), trackId, song, null, null, new SimilarityList<TrackId, TrackId.Factory>(new byte[] { }));
 		}
 	}
 }

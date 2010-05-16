@@ -23,15 +23,23 @@ namespace LastFMspider {
 
 	public struct ArtistTopTracksListInfo {//TODO: this should be a class?
 		public readonly ArtistInfo ArtistInfo;
-		public readonly TopTracksListId ListID;
-		public readonly DateTime? LookupTimestamp;
+
+		readonly TopTracksListId _ListID;
+		public TopTracksListId ListID {get{return _ListID;}}
+
+		readonly DateTime? _LookupTimestamp;
+		public DateTime? LookupTimestamp { get { return _LookupTimestamp; } }
+
 		readonly ReachList<TrackId, TrackId.Factory> _TopTracks;
 		public IEnumerable<HasReach<TrackId>> TopTracks { get { return _TopTracks.Rankings; } }
-		public readonly int? StatusCode;
+
+		readonly int? _StatusCode;
+		public int? StatusCode { get { return _StatusCode; } }
+
 		internal ArtistTopTracksListInfo(TopTracksListId listID, ArtistInfo artistInfo,  DateTime? lookupTimestamp,
 			int? statusCode, ReachList<TrackId, TrackId.Factory> rankings) {
-			this.ArtistInfo = artistInfo; this.ListID = listID; this.LookupTimestamp = lookupTimestamp;
-			this.StatusCode = statusCode; this._TopTracks = rankings;
+			this.ArtistInfo = artistInfo; this._ListID = listID; this._LookupTimestamp = lookupTimestamp;
+			this._StatusCode = statusCode; this._TopTracks = rankings;
 		}
 		public static ArtistTopTracksListInfo CreateUnknown(ArtistInfo artistInfo) {
 			return new ArtistTopTracksListInfo(default(TopTracksListId), artistInfo, null, null, new ReachList<TrackId, TrackId.Factory>(new byte[] { }));

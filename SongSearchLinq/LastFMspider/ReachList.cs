@@ -29,7 +29,7 @@ namespace LastFMspider {
 				while (ms.Position < ms.Length) {
 					var id = br.ReadUInt32();
 					var reach = br.ReadInt64();
-					yield return new HasReach<T>(factory.Cast(id), reach);
+					yield return new HasReach<T>(factory.CastToId(id), reach);
 				}
 		}
 

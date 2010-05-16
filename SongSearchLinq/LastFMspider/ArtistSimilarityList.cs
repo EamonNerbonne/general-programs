@@ -29,15 +29,23 @@ namespace LastFMspider {
 
 	public struct ArtistSimilarityListInfo {
 		public readonly ArtistInfo ArtistInfo;
-		public readonly SimilarArtistsListId ListID;
-		public readonly DateTime? LookupTimestamp;
+
+		readonly SimilarArtistsListId _ListID;
+		public SimilarArtistsListId ListID { get { return _ListID; } }
+
+		readonly DateTime? _LookupTimestamp;
+		public DateTime? LookupTimestamp { get { return _LookupTimestamp; } }
+
 		readonly SimilarityList<ArtistId, ArtistId.Factory> _SimilarArtists;
 		public IEnumerable<SimilarityTo<ArtistId>> SimilarArtists { get { return _SimilarArtists.Similarities; } }
-		public readonly int? StatusCode;
+
+		readonly int? _StatusCode;
+		public int? StatusCode { get { return _StatusCode; } }
+
 		internal ArtistSimilarityListInfo(SimilarArtistsListId listID, ArtistInfo artistInfo, DateTime? lookupTimestamp,
 			int? statusCode, SimilarityList<ArtistId, ArtistId.Factory> similarArtists) {
-			this.ArtistInfo = artistInfo;  this.ListID = listID; this.LookupTimestamp = lookupTimestamp;
-			this.StatusCode = statusCode; this._SimilarArtists = similarArtists;
+			this.ArtistInfo = artistInfo;  this._ListID = listID; this._LookupTimestamp = lookupTimestamp;
+			this._StatusCode = statusCode; this._SimilarArtists = similarArtists;
 		}
 		public static ArtistSimilarityListInfo CreateUnknown(ArtistInfo artist) {
 			return new ArtistSimilarityListInfo(default(SimilarArtistsListId), artist, null, null, new SimilarityList<ArtistId, ArtistId.Factory>(new byte[]{}) );

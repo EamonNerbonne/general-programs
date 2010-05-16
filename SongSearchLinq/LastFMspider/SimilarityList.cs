@@ -29,7 +29,7 @@ namespace LastFMspider {
 				while (ms.Position < ms.Length) {
 					var id = br.ReadUInt32();
 					var sim = br.ReadSingle();
-					yield return new SimilarityTo<T>(factory.Cast(id), sim);
+					yield return new SimilarityTo<T>(factory.CastToId(id), sim);
 				}
 		}
 

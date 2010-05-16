@@ -5,13 +5,13 @@ using System.Text;
 using System.Diagnostics;
 
 namespace LastFMspider.LastFMSQLiteBackend {
-	internal interface IId {
+	public interface IId {
 		uint Id { get; }
 		bool HasValue { get; }
 	}
 
-	internal interface IIdFactory<T> {
-		T Cast(uint id);
+	public interface IIdFactory<T> {
+		T CastToId(uint id);
 	}
 
 	[DebuggerDisplay("Id={id}")]
@@ -22,7 +22,7 @@ namespace LastFMspider.LastFMSQLiteBackend {
 		public TrackId(uint id) { this.id = id; }
 		internal TrackId(long? id) { this.id = (uint)(id ?? 0); }
 		public override string ToString() { throw new NotImplementedException("May not use ToString - returns nonsense in db queries!"); }
-		internal struct Factory : IIdFactory<TrackId> { public TrackId Cast(uint id) { return new TrackId(id); } }
+		internal struct Factory : IIdFactory<TrackId> { public TrackId CastToId(uint id) { return new TrackId(id); } }
 	}
 
 	[DebuggerDisplay("Id={id}")]
@@ -33,7 +33,7 @@ namespace LastFMspider.LastFMSQLiteBackend {
 		public ArtistId(uint Id) { this.id = Id; }
 		internal ArtistId(long? Id) { this.id = (uint)(Id ?? 0); }
 		public override string ToString() { throw new NotImplementedException("May not use ToString - returns nonsense in db queries!"); }
-		internal struct Factory : IIdFactory<ArtistId> { public ArtistId Cast(uint id) { return new ArtistId(id); } }
+		internal struct Factory : IIdFactory<ArtistId> { public ArtistId CastToId(uint id) { return new ArtistId(id); } }
 	}
 
 	[DebuggerDisplay("Id={id}")]
@@ -44,7 +44,7 @@ namespace LastFMspider.LastFMSQLiteBackend {
 		public SimilarTracksListId(uint Id) { this.id = Id; }
 		internal SimilarTracksListId(long? Id) { this.id = (uint)(Id ?? 0); }
 		public override string ToString() { throw new NotImplementedException("May not use ToString - returns nonsense in db queries!"); }
-		internal struct Factory : IIdFactory<SimilarTracksListId> { public SimilarTracksListId Cast(uint id) { return new SimilarTracksListId(id); } }
+		internal struct Factory : IIdFactory<SimilarTracksListId> { public SimilarTracksListId CastToId(uint id) { return new SimilarTracksListId(id); } }
 	}
 
 	[DebuggerDisplay("Id={id}")]
@@ -55,7 +55,7 @@ namespace LastFMspider.LastFMSQLiteBackend {
 		public SimilarArtistsListId(uint Id) { this.id = Id; }
 		internal SimilarArtistsListId(long? Id) { this.id = (uint)(Id ?? 0); }
 		public override string ToString() { throw new NotImplementedException("May not use ToString - returns nonsense in db queries!"); }
-		internal struct Factory : IIdFactory<SimilarArtistsListId> { public SimilarArtistsListId Cast(uint id) { return new SimilarArtistsListId(id); } }
+		internal struct Factory : IIdFactory<SimilarArtistsListId> { public SimilarArtistsListId CastToId(uint id) { return new SimilarArtistsListId(id); } }
 	}
 
 	[DebuggerDisplay("Id={id}")]
@@ -67,6 +67,6 @@ namespace LastFMspider.LastFMSQLiteBackend {
 		public TopTracksListId(uint Id) { this.id = Id; }
 		internal TopTracksListId(long? Id) { this.id = (uint)(Id ?? 0); }
 		public override string ToString() { throw new NotImplementedException("May not use ToString - returns nonsense in db queries!"); }
-		internal struct Factory : IIdFactory<TopTracksListId> { public TopTracksListId Cast(uint id) { return new TopTracksListId(id); } }
+		internal struct Factory : IIdFactory<TopTracksListId> { public TopTracksListId CastToId(uint id) { return new TopTracksListId(id); } }
 	}
 }
