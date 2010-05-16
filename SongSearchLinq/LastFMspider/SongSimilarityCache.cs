@@ -165,5 +165,26 @@ namespace LastFMspider {
 			backingDB.InsertArtistTopTracksList.Execute(toptracks);
 			return toptracks;
 		}
+
+		public ArtistSimilarityList LookupSimilaArtists(string artist, TimeSpan maxAge = default(TimeSpan)) {
+			if (maxAge == default(TimeSpan)) maxAge = normalMaxAge;
+			var simartistInfo = backingDB.LookupArtistSimilarityListAge.Execute(artist);
+			if (simartistInfo.ListID.HasValue && simartistInfo.LookupTimestamp.HasValue && simartistInfo.LookupTimestamp.Value >= DateTime.UtcNow - maxAge)
+				return backingDB.LookupArtistSimilarityList.Execute(simartistInfo);
+			if (simartistInfo.ArtistInfo.IsAlternateOf.HasValue)
+				return LookupSimilaArtists(backingDB.LookupArtist.Execute(simartistInfo.ArtistInfo.IsAlternateOf), maxAge);
+
+			ArtistSimilarityList simartists;
+			try {
+				simartists = OldApiClient.Artist.GetSimilarArtists(artist);
+			} catch (Exception) {
+				simartists = ArtistSimilarityList.CreateErrorList(artist, 1);//TODO:statuscodes...
+			}
+			if (artist.ToLatinLowercase() != simartists.Artist.ToLatinLowercase())
+				backingDB.SetArtistAlternate.Execute(artist, simartists.Artist);
+			backingDB.InsertArtistSimilarityList.Execute(simartists);
+			return simartists;
+
+		}
 	}
 }
