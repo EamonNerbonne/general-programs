@@ -42,8 +42,6 @@ namespace LvqGui
 		}
 	}
 
-
-
 	[ValueConversion(typeof(uint[]), typeof(string))]
 	public class ByteArrayConverter : IValueConverter
 	{
@@ -84,6 +82,4 @@ namespace LvqGui
 			return retval;
 		}
 	}
-
-
 }

@@ -24,11 +24,12 @@ namespace LVQeamon
 	/// </summary>
 	public partial class MainWindow : Window// Window
 	{
-		public MainWindow() {
+		public MainWindow()
+		{
 			//this.WindowStyle = WindowStyle.None;
 			//this.AllowsTransparency = true; 
 			BorderBrush = Brushes.White;
-			
+
 			InitializeComponent();
 			this.Background = Brushes.White;
 			plotControl.AttemptBorderTicks = false;
@@ -58,10 +59,13 @@ namespace LVQeamon
 		private void textBoxStarRelDistance_TextChanged(object sender, TextChangedEventArgs e) { DataVerifiers.VerifyTextBox((TextBox)sender, DataVerifiers.IsDoublePositive); }
 		public double? StarRelDistance { get { return textBoxStarRelDistance.Text.ParseAsDouble(); } }
 
-		private void buttonGeneratePointClouds_Click(object sender, RoutedEventArgs e) {
-			try {
+		private void buttonGeneratePointClouds_Click(object sender, RoutedEventArgs e)
+		{
+			try
+			{
 
-				if (!NumberOfSets.HasValue || !PointsPerSet.HasValue) {
+				if (!NumberOfSets.HasValue || !PointsPerSet.HasValue)
+				{
 					Console.WriteLine("Invalid initialization values");
 					return;
 				}
@@ -72,16 +76,17 @@ namespace LVQeamon
 				int protoCount = ProtoCount.Value;
 				double stddevmeans = StddevMeans.Value;
 				bool useGsm = checkBoxLvqGsm.IsChecked ?? false;
-				ThreadPool.QueueUserWorkItem((ignore) => {
-					NiceTimer timer = new NiceTimer();
-					timer.TimeMark("making point clouds");
-					LvqDataSetCli dataset = LvqDataSetCli.ConstructGaussianClouds(
-						RndHelper.MakeSecureUInt, dims, numSets, pointsPerSet, stddevmeans);
+				ThreadPool.QueueUserWorkItem((ignore) =>
+				{
+					LvqDataSetCli dataset = DTimer.TimeFunc(() => LvqDataSetCli.ConstructGaussianClouds(
+						RndHelper.MakeSecureUInt, dims, numSets, pointsPerSet, stddevmeans), "Constructing dataset");
+
 					Console.WriteLine("RngUsed: " + RndHelper.usages);
-					timer.TimeMark(null);
 					StartLvq(dataset, protoCount, useGsm);
 				}, 0);
-			} catch (Exception ex) {
+			}
+			catch (Exception ex)
+			{
 				Console.WriteLine("Error occured!");
 				Console.WriteLine(ex);
 				Console.WriteLine("\nerror ignored.");
@@ -89,10 +94,13 @@ namespace LVQeamon
 		}
 
 
-		private void buttonGenerateStar_Click(object sender, RoutedEventArgs e) {
-			try {
+		private void buttonGenerateStar_Click(object sender, RoutedEventArgs e)
+		{
+			try
+			{
 
-				if (!NumberOfSets.HasValue || !PointsPerSet.HasValue) {
+				if (!NumberOfSets.HasValue || !PointsPerSet.HasValue)
+				{
 					Console.WriteLine("Invalid initialization values");
 					return;
 				}
@@ -108,7 +116,8 @@ namespace LVQeamon
 
 				SetupDisplay(numSets);
 
-				ThreadPool.QueueUserWorkItem((ignore) => {
+				ThreadPool.QueueUserWorkItem((ignore) =>
+				{
 
 					LvqDataSetCli dataset =
 						DTimer.TimeFunc(() => LvqDataSetCli.ConstructStarDataset(
@@ -117,32 +126,41 @@ namespace LVQeamon
 					StartLvq(dataset, protoCount, useGsm);
 				}, 0);
 
-			} catch (Exception ex) {
+			}
+			catch (Exception ex)
+			{
 				Console.WriteLine("Error occured!");
 				Console.WriteLine(ex);
 				Console.WriteLine("\nerror ignored.");
 			}
 		}
 
-		private void buttonLoadData_Click(object sender, RoutedEventArgs e) {
+		private void buttonLoadData_Click(object sender, RoutedEventArgs e)
+		{
 			int protoCount = ProtoCount.Value;
 			bool useGsm = checkBoxLvqGsm.IsChecked ?? false;
 
-			var fileOpenThread = new Thread(() => {
+			var fileOpenThread = new Thread(() =>
+			{
 				OpenFileDialog dataFileOpenDialog = new OpenFileDialog();
 				//dataFileOpenDialog.Filter = "*.data";
 
-				if (dataFileOpenDialog.ShowDialog() == true) {
+				if (dataFileOpenDialog.ShowDialog() == true)
+				{
 					FileInfo selectedFile = new FileInfo(dataFileOpenDialog.FileName);
 					FileInfo labelFile = new FileInfo(selectedFile.Directory + @"\" + Path.GetFileNameWithoutExtension(selectedFile.Name) + ".label");
 					FileInfo dataFile = new FileInfo(selectedFile.Directory + @"\" + Path.GetFileNameWithoutExtension(selectedFile.Name) + ".data");
-					if (dataFile.Exists && labelFile.Exists) {
-						try {
+					if (dataFile.Exists && labelFile.Exists)
+					{
+						try
+						{
 							var pointclouds = DataSetLoader.LoadDataset(dataFile, labelFile);
 							SetupDisplay(pointclouds.Item3);
 							var dataset = LvqDataSetCli.ConstructFromArray(pointclouds.Item1, pointclouds.Item2, pointclouds.Item3);
 							StartLvq(dataset, protoCount, useGsm);
-						} catch (FileFormatException fe) {
+						}
+						catch (FileFormatException fe)
+						{
 							Console.WriteLine("Can't load file: {0}", fe.ToString());
 						}
 					}
@@ -153,14 +171,16 @@ namespace LVQeamon
 			fileOpenThread.Start();
 		}
 
-		private void StartLvq(LvqDataSetCli newDataset, int protosPerClass, bool useGsm, LvqDataSetCli testDataset = null) {
+		private void StartLvq(LvqDataSetCli newDataset, int protosPerClass, bool useGsm, LvqDataSetCli testDataset = null)
+		{
 			LvqDataSet = newDataset;
 			LvqModel = new LvqWrapper(newDataset, protosPerClass, useGsm);
 			needUpdate = true;
 			UpdateDisplay();
 		}
 
-		private void UpdateDisplay() {
+		private void UpdateDisplay()
+		{
 			if (!needUpdate)
 				return;
 			double[,] currPoints = LvqModel.CurrentProjection();
@@ -178,7 +198,8 @@ namespace LVQeamon
 				.ToArray();
 
 
-			Dispatcher.BeginInvoke((Action)(() => {
+			Dispatcher.BeginInvoke((Action)(() =>
+			{
 				needUpdate = false;
 				foreach (var pointGroup in projectedPointsByLabel)
 					((IPlotWriteable<Point[]>)plotControl.Graphs[pointGroup.Key]).Data = pointGroup.Value;
@@ -189,11 +210,14 @@ namespace LVQeamon
 
 		int currentClassCount = 0;
 		struct ClassTag { public int Label; public ClassTag(int label) { Label = label; } }
-		private void SetupDisplay(int numClasses) {
-			Dispatcher.BeginInvoke((Action)(() => {
+		private void SetupDisplay(int numClasses)
+		{
+			Dispatcher.BeginInvoke((Action)(() =>
+			{
 				currentClassCount = numClasses;
 				plotControl.Graphs.Clear();
-				for (int i = 0; i < numClasses; i++) {
+				for (int i = 0; i < numClasses; i++)
+				{
 					var plot = PlotData.Create(new Point[] { });
 					plot.Tag = new ClassTag(i);
 					plotControl.Graphs.Add(plot);
@@ -210,7 +234,8 @@ namespace LVQeamon
 			}));
 		}
 
-		void UpdateClassBoundaries(WriteableBitmap bmp, Matrix dataToBmp, int width, int height, LvqWrapper ignore) {
+		void UpdateClassBoundaries(WriteableBitmap bmp, Matrix dataToBmp, int width, int height, LvqWrapper ignore)
+		{
 #if DEBUG
 			int renderwidth = (width + 7) / 8;
 			int renderheight = (height + 7) / 8;
@@ -240,7 +265,8 @@ namespace LVQeamon
 
 			var edges = new List<Tuple<int, int>>();
 			for (int y = 1; y < closestClass.GetLength(0) - 1; y++)
-				for (int x = 1; x < closestClass.GetLength(1) - 1; x++) {
+				for (int x = 1; x < closestClass.GetLength(1) - 1; x++)
+				{
 					if (false
 						//								closestClass[y, x] != closestClass[y + 1, x + 1]
 						|| closestClass[y, x] != closestClass[y + 1, x]
@@ -272,7 +298,8 @@ namespace LVQeamon
 
 
 
-		protected override void OnInitialized(EventArgs e) {
+		protected override void OnInitialized(EventArgs e)
+		{
 #if  DEBUG
 			textBoxPointsPerSet.Text = 20.ToString();
 			textBoxDims.Text = 10.ToString();
@@ -280,10 +307,12 @@ namespace LVQeamon
 			base.OnInitialized(e);
 		}
 
-		private void doEpochButton_Click(object sender, RoutedEventArgs e) {
+		private void doEpochButton_Click(object sender, RoutedEventArgs e)
+		{
 
 			int epochsTodo = EpochsPerClick ?? 1;
-			ThreadPool.QueueUserWorkItem((index) => {
+			ThreadPool.QueueUserWorkItem((index) =>
+			{
 				lock (LvqModel.UpdateSyncObject)
 					using (new DTimer("Training " + epochsTodo + " epochs"))
 						LvqModel.TrainEpoch(epochsTodo);
@@ -293,7 +322,8 @@ namespace LVQeamon
 		}
 
 		private WindowState lastState = WindowState.Normal;
-		private void checkBoxFullScreen_Checked(object sender, RoutedEventArgs e) {
+		private void checkBoxFullScreen_Checked(object sender, RoutedEventArgs e)
+		{
 			lastState = this.WindowState;
 			this.WindowState = WindowState.Normal;
 			this.WindowStyle = WindowStyle.None;
@@ -301,7 +331,8 @@ namespace LVQeamon
 			this.WindowState = WindowState.Maximized;
 		}
 
-		private void checkBoxFullScreen_Unchecked(object sender, RoutedEventArgs e) {
+		private void checkBoxFullScreen_Unchecked(object sender, RoutedEventArgs e)
+		{
 			this.Topmost = false;
 			this.WindowStyle = WindowStyle.SingleBorderWindow;
 			this.WindowState = lastState;

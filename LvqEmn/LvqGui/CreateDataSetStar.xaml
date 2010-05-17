@@ -28,32 +28,36 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
         <Label Grid.Row="0">Dimensions</Label>
-        <TextBox Grid.Row="0"  Grid.Column="1"  Name="textBoxDims" Text="50" />
+        <TextBox Grid.Row="0"  Grid.Column="1"  Text="{Binding Dimensions, Mode=TwoWay, ValidatesOnExceptions=True}" />
 
         <Label Grid.Row="1" >Number of Classes</Label>
-        <TextBox Grid.Row="1"  Grid.Column="1" Name="textBoxNumberOfSets"  Text="3" />
+        <TextBox Grid.Row="1"  Grid.Column="1"  Text="{Binding NumberOfClasses, Mode=TwoWay, ValidatesOnExceptions=True}" />
 
         <Label Grid.Row="2"   Name="label2">Points per Class</Label>
-        <TextBox  Grid.Row="2" Grid.Column="1"  Name="textBoxPointsPerSet" Text="3000" />
+        <TextBox  Grid.Row="2" Grid.Column="1" Text="{Binding PointsPerClass, Mode=TwoWay, ValidatesOnExceptions=True}" />
 
         <Label Grid.Row="3" >Number of Clusters</Label>
-        <TextBox Grid.Row="3"  Grid.Column="1" Name="textBoxNumberOfClusters"  Text="3" />
+        <TextBox Grid.Row="3"  Grid.Column="1" Text="{Binding NumberOfClusters, Mode=TwoWay, ValidatesOnExceptions=True}" />
 
         <Label Grid.Row="4" >Dimensionality of Clusters</Label>
-        <TextBox Grid.Row="4"  Grid.Column="1" Name="textBoxNumberOfClusterDims"  Text="2" />
+        <TextBox Grid.Row="4"  Grid.Column="1"  Text="{Binding ClusterDimensionality, Mode=TwoWay, ValidatesOnExceptions=True}" />
 
         <Label Grid.Row="5"  >Inter-cluster distance</Label>
-        <TextBox Grid.Row="5"  Grid.Column="1" Name="textBoxStddevClusterMeans"  Text="2.5" />
+        <TextBox Grid.Row="5"  Grid.Column="1"  Text="{Binding ClusterCenterDeviation, Mode=TwoWay, ValidatesOnExceptions=True}" />
 
         <Label Grid.Row="6"  >Relative inter-class distance</Label>
-        <TextBox Grid.Row="6"  Grid.Column="1" Name="textBoxStddevMeans"  Text="0.33" />
+        <TextBox Grid.Row="6"  Grid.Column="1"  Text="{Binding IntraClusterClassRelDev, Mode=TwoWay, ValidatesOnExceptions=True}" />
 
         <Label Grid.Row="7"  >Randomly transform dataset</Label>
-        <CheckBox  Grid.Row="7" Grid.Column="1" IsChecked="True" />
+        <CheckBox  Grid.Row="7" Grid.Column="1" IsChecked="{Binding RandomlyTransformFirst, Mode=TwoWay, ValidatesOnExceptions=True}" />
+        
+        <Label Grid.Row="8"  >Random Seed</Label>
+        <TextBox Grid.Row="8"  Grid.Column="1"  Text="{Binding Seed, Mode=TwoWay, ValidatesOnExceptions=True}" />
 
-        <Button  Grid.Row="8" Grid.Column="0" Grid.ColumnSpan="2" Name="buttonGenerateDataset" >Generate Star Dataset</Button>
+        <Button  Grid.Row="9" Grid.Column="0" Grid.ColumnSpan="2" Name="buttonGenerateDataset" >Generate Star Dataset</Button>
     </Grid>
 </UserControl>

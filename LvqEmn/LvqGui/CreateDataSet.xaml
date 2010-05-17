@@ -3,7 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-             mc:Ignorable="d" d:DesignHeight="160" d:DesignWidth="300">
+             mc:Ignorable="d" d:DesignHeight="180" d:DesignWidth="300">
     <UserControl.Resources>
         <Style TargetType="{x:Type Label}" BasedOn="{StaticResource PropLabel}"/>
         <Style TargetType="{x:Type TextBox}" BasedOn="{StaticResource PropBox}"/>
@@ -20,20 +20,24 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
         <Label Grid.Row="0">Dimensions</Label>
-        <TextBox Grid.Row="0"  Grid.Column="1"  Name="textBoxDims" Text="50" />
+        <TextBox Grid.Row="0"  Grid.Column="1" Text="{Binding Dimensions, Mode=TwoWay, ValidatesOnExceptions=True}" />
 
         <Label Grid.Row="1" >Number of Classes</Label>
-        <TextBox Grid.Row="1"  Grid.Column="1" Name="textBoxNumberOfSets"  Text="3" />
+        <TextBox Grid.Row="1"  Grid.Column="1"  Text="{Binding NumberOfClasses, Mode=TwoWay, ValidatesOnExceptions=True}" />
 
         <Label Grid.Row="2"   Name="label2">Points per Class</Label>
-        <TextBox  Grid.Row="2" Grid.Column="1"  Name="textBoxPointsPerSet" Text="3000" />
+        <TextBox  Grid.Row="2" Grid.Column="1" Text="{Binding PointsPerClass, Mode=TwoWay, ValidatesOnExceptions=True}" />
 
-        <Label Grid.Row="3"  >Stddev of Class means</Label>
-        <TextBox Grid.Row="3"  Grid.Column="1" Name="textBoxStddevMeans"  Text="2.5" />
+        <Label Grid.Row="3"  >Inter-class distance</Label>
+        <TextBox Grid.Row="3"  Grid.Column="1" Text="{Binding ClassCenterDeviation, Mode=TwoWay, ValidatesOnExceptions=True}" />
 
-        <Button  Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="2" Name="buttonGeneratePointClouds" >Generate Point Clouds</Button>
+        <Label Grid.Row="4"  >Random Seed</Label>
+        <TextBox Grid.Row="4"  Grid.Column="1" Text="{Binding Seed, Mode=TwoWay, ValidatesOnExceptions=True}" />
+
+        <Button  Grid.Row="5" Grid.Column="0" Grid.ColumnSpan="2"  >Generate Point Clouds</Button>
     </Grid>
 </UserControl>
