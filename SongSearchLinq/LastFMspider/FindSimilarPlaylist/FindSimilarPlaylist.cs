@@ -15,10 +15,10 @@ namespace LastFMspider {
 			public readonly List<SongRef> unknownTracks = new List<SongRef>();
 			public readonly List<SongWithCost> similarList = new List<SongWithCost>();
 		}
-		static bool NeverAbort() { return false; }
+		static bool NeverAbort(int i) { return false; }
 
 		public static SimilarPlaylistResults ProcessPlaylist(LastFmTools tools, Func<SongRef, SongMatch> fuzzySearch, List<SongData> known, List<SongRef> unknown,
-			int MaxSuggestionLookupCount = 20, int SuggestionCountTarget = 100, Func<bool> shouldAbort = null
+			int MaxSuggestionLookupCount = 20, int SuggestionCountTarget = 100, Func<int,bool> shouldAbort = null
 			) {
 			//OK, so we now have the playlist in the var "playlist" with knowns in "known" except for the unknowns, which are in "unknown" as far as possible.
 			shouldAbort = shouldAbort ?? NeverAbort;
@@ -110,7 +110,7 @@ namespace LastFMspider {
 
 			int lastPercent = 0;
 			try {
-				while (!shouldAbort() && res.similarList.Count < MaxSuggestionLookupCount && res.knownTracks.Count < SuggestionCountTarget) {
+				while (!shouldAbort(res.similarList.Count) && res.similarList.Count < MaxSuggestionLookupCount && res.knownTracks.Count < SuggestionCountTarget) {
 					SongWithCost currentSong;
 					lock (sync)
 						if (!songCosts.RemoveTop(out currentSong))

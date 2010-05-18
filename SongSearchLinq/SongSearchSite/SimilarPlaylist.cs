@@ -33,7 +33,7 @@ namespace SongSearchSite {
 			res = FindSimilarPlaylist.ProcessPlaylist(SongDbContainer.LastFmTools,
 				// sr=>null,
 				SongDbContainer.FuzzySongSearcher.FindBestMatch,
-				 songs, unknownSongs, 1000, 40, () => !context.Response.IsClientConnected || timer.ElapsedMilliseconds > 5000 );
+				 songs, unknownSongs, 1000, 50, count => !context.Response.IsClientConnected || (timer.ElapsedMilliseconds > 5000 && count >10) );
 
 			if (!context.Response.IsClientConnected)
 				return;
@@ -56,7 +56,7 @@ namespace SongSearchSite {
 				 .Concat(from knownSong in res.knownTracks
 				 let mime= SongServeRequestProcessor.guessMIME(knownSong)
 				 where mime != SongServeRequestProcessor.MIME_MP3 && mime != SongServeRequestProcessor.MIME_OGG
-				 select knownSong.HumanLabel)		 .ToArray();
+				 select knownSong.HumanLabel).Take(50)		 .ToArray();
 
 			context.Response.ContentType = "application/json";
 			context.Response.Output.Write(
