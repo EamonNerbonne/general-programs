@@ -529,6 +529,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AutoNative.h" />
+    <ClInclude Include="GcPtr.h" />
     <ClInclude Include="LvqDataSetCli.h" />
     <ClInclude Include="LvqModelCli.h" />
     <ClInclude Include="Stdafx.h" />

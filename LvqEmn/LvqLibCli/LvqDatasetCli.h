@@ -8,9 +8,7 @@ namespace LvqLibCli {
 
 	public ref class LvqDataSetCli
 	{
-		CAutoNativePtr<LvqDataSet> dataset;
-		size_t nativeAllocEstimate;
-		!LvqDataSetCli();
+		GcPtr<LvqDataSet> dataset;
 		String^ label;
 		LvqDataSetCli(String^label,LvqDataSet * newDataset);
 public:

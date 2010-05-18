@@ -37,5 +37,8 @@
     <ClInclude Include="LvqModelCli.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="GcPtr.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
