@@ -8,25 +8,18 @@ namespace LvqLibCli {
 
 	public ref class LvqModelCli
 	{
-		CAutoNativePtr<AbstractProjectionLvqModel> model;
-		CAutoNativePtr<AbstractProjectionLvqModel> modelCopy;
-		CAutoNativePtr<boost::mt19937> rngParam,rngIter;
-		System::Object^ backupSync;
-		System::Object^ mainSync;
-		size_t nativeAllocEstimate;
 		int dims,classCount,protosPerClass,modelType;
+		GcPtr<AbstractProjectionLvqModel>^ model;
+		GcPtr<AbstractProjectionLvqModel>^ modelCopy;
+		GcPtr<boost::mt19937> rngParam, rngIter;
+		Object^ backupSync;
+		Object^ mainSync;
 		void BackupModel() {
-			AbstractProjectionLvqModel* newCopy = dynamic_cast<AbstractProjectionLvqModel*>(model->clone());
+			AbstractProjectionLvqModel* newCopy = dynamic_cast<AbstractProjectionLvqModel*>(model->get()->clone());
 			msclr::lock l(backupSync);
-			modelCopy = newCopy;
+			modelCopy = GcPtrHelp::Create(newCopy, newCopy->MemAllocEstimate());
 		}
-
-		!LvqModelCli();
-
-		void ReleaseModels();
-		void AddPressure(size_t size);
-		void RemovePressure(size_t size);
-	public:
+		public:
 		LvqModelCli(Func<unsigned int>^ paramSeed, Func<unsigned int>^ iterSeed, int dims, int classCount, int protosPerClass,  int modelType);
 		void Init(LvqDataSetCli^ trainingSet);
 
