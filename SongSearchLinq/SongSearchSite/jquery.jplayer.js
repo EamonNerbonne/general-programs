@@ -43,7 +43,7 @@
 
     function limitValue(value, min, max) { return Math.min(Math.max(min, value), max); }
 
-    var validGetters = ["jPlayerOnProgressChange", "jPlayerOnSoundComplete", "jPlayerVolume", "jPlayerReady", "getData", "jPlayerController"];
+    var validGetters = ["jPlayerOnProgressChange", "jPlayerOnSoundComplete", "jPlayerVolume", "jPlayerVolumeRaw", "jPlayerReady", "getData", "jPlayerController"];
     // Adapted from ui.core.js (1.7.2) $.widget() "create plugin method"
     // $.data() info at http://docs.jquery.com/Internals/jQuery.data
     $.fn.jPlayer = function (member) {
@@ -228,9 +228,9 @@
                     return self.config.flashSupport && type == "audio/mpeg" && self._checkForFlash(8);
                 },
                 loadSong: function (type, src, replaygain) {
-                   self.config.diag.gainScale = Math.sqrt( Math.min(1.0, 0.5 * Math.pow(10, (replaygain || 0.0) / 20.0)));
+                    self.config.diag.gainScale = Math.min(1.0, 0.5 * Math.pow(10, (replaygain || 0.0) / 20.0));
                     self._getMovie().fl_setFile_mp3(src);
-                    self._getMovie().fl_volume_mp3(self.config.volume * self.config.diag.gainScale);
+                    self._getMovie().fl_volume_mp3(Math.sqrt(100 * self.config.volume * self.config.diag.gainScale));
                     self.config.diag.src = src;
                     self.config.isFileSet = true; // Set here for conformity, but the flash handles this internally and through return values.
                     self.handlers.setButtons(false);
@@ -263,7 +263,7 @@
                 },
                 volume: function (v) {
                     self.config.volume = v;
-                    self._getMovie().fl_volume_mp3(v * self.config.diag.gainScale);
+                    self._getMovie().fl_volume_mp3(Math.sqrt(100 * v * self.config.diag.gainScale));
                 }
             };
 
@@ -275,7 +275,7 @@
                     var canplay = self.config.nativeSupport && self.config.audio.canPlayType && self.config.audio.canPlayType(type);
                     return !!(canplay && canplay != "no");
                 },
-                loadSong: function (type, src,replaygain) {
+                loadSong: function (type, src, replaygain) {
                     self.config.diag.gainScale = Math.min(1.0, 0.5 * Math.pow(10, (replaygain || 0.0) / 20.0));
 
                     self.config.audio = new Audio();
@@ -367,7 +367,7 @@
                 volume: function (v) {
                     self.config.volume = v;
                     self.config.audio.volume = v * self.config.diag.gainScale / 100;
-                    self.jPlayerVolume(v);
+                    self.jPlayerVolumeRaw(v * self.config.diag.gainScale);
                 }
             };
 
@@ -407,7 +407,7 @@
                         var obj_param = new Array();
                         obj_param[0] = '<param name="movie" value="' + this.config.swf + '" />';
                         obj_param[1] = '<param name="quality" value="high" />';
-                        obj_param[2] = '<param name="FlashVars" value="id=' + escape(this.config.id) + '&fid=' + escape(this.config.fid) + '&vol=' + (this.config.volume* self.config.diag.gainScale) + '" />';
+                        obj_param[2] = '<param name="FlashVars" value="id=' + escape(this.config.id) + '&fid=' + escape(this.config.fid) + '&vol=' + Math.sqrt(100 * this.config.volume * self.config.diag.gainScale) + '" />';
                         obj_param[3] = '<param name="allowScriptAccess" value="always" />';
                         obj_param[4] = '<param name="bgcolor" value="' + this.config.bgcolor + '" />';
 
@@ -419,7 +419,7 @@
                     } else {
                         var html_embed = '<embed name="' + this.config.fid + '" id="' + this.config.fid + '" src="' + this.config.swf + '"';
                         html_embed += ' width="' + this.config.width + '" height="' + this.config.height + '" bgcolor="' + this.config.bgcolor + '"';
-                        html_embed += ' quality="high" FlashVars="id=' + escape(this.config.id) + '&fid=' + escape(this.config.fid) + '&vol=' + (this.config.volume * self.config.diag.gainScale) + '"';
+                        html_embed += ' quality="high" FlashVars="id=' + escape(this.config.id) + '&fid=' + escape(this.config.fid) + '&vol=' + Math.sqrt(100 * this.config.volume * self.config.diag.gainScale) + '"';
                         html_embed += ' allowScriptAccess="always"';
                         html_embed += ' type="application/x-shockwave-flash" pluginspage="http://www.macromedia.com/go/getflashplayer" />';
                         this.element.append(html_embed);
@@ -590,9 +590,12 @@
         volumeBarValue: function (e) { // Handles clicks on the volumeBarValue
             this.volumeBar(e);
         },
-        jPlayerVolume: function (v) { // Called from Flash / HTML5 event
+        jPlayerVolume: function (v) { // Called from Flash 
+            this.jPlayerVolumeRaw(v * v / 100.0);
+        },
+        jPlayerVolumeRaw: function (v) { // Called from Flash / HTML5 event
             if (this.config.cssId.volumeBarValue != null) {
-                this.config.cssSelector.volumeBarValue.width(Math.min(100.0,v/this.config.diag.gainScale) + "%");
+                this.config.cssSelector.volumeBarValue.width(Math.min(100.0, v / this.config.diag.gainScale) + "%");
                 this._forceUpdate();
             }
         },
