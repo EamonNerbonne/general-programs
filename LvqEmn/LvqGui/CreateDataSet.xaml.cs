@@ -63,6 +63,10 @@ namespace LvqGui {
 		}
 		private uint _Seed;
 
+		public string CreateLabel() {
+			return "ds-" + Dimensions + "D-" + NumberOfClasses + "*" + PointsPerClass + ":" + ClassCenterDeviation.ToString("f1");
+		}
+
 		public DataSetParams() {
 			_PointsPerClass = 2000;
 			_NumberOfClasses = 3;

@@ -25,6 +25,8 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
         <Label Grid.Row="0">Full Screen</Label>
@@ -33,23 +35,29 @@
         <Label Grid.Row="1">Show Grid</Label>
         <CheckBox Grid.Row="1" Grid.Column="1"  />
 
-        <Label Grid.Row="2">Select DataSet</Label>
-        <ComboBox Grid.Row="2" Grid.Column="1"  />
+        <Label Grid.Row="2">Global Param Seed</Label>
+        <TextBox Grid.Row="2" Grid.Column="1"  />
 
-        <Label Grid.Row="3">Select Model</Label>
-        <ComboBox Grid.Row="3" Grid.Column="1"  />
+        <Label Grid.Row="3">Global Inst Seed</Label>
+        <TextBox Grid.Row="3" Grid.Column="1"  />
 
-        <StackPanel Grid.Row="4"  Orientation="Horizontal" HorizontalAlignment="Right">
+        <Label Grid.Row="4">Select DataSet</Label>
+        <ComboBox Grid.Row="4" Grid.Column="1"  />
+
+        <Label Grid.Row="5">Select Model</Label>
+        <ComboBox Grid.Row="5" Grid.Column="1"  />
+
+        <StackPanel Grid.Row="6"  Orientation="Horizontal" HorizontalAlignment="Right">
             <Button Content="Train"/>
             <Label Content="for"/>
         </StackPanel>
 
-        <StackPanel Grid.Row="4" Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Stretch">
+        <StackPanel Grid.Row="6" Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Stretch">
             <TextBox Width="60" />
             <Label Content="epochs" HorizontalAlignment="Right"/>
         </StackPanel>
 
-        <StackPanel Grid.Row="5" Grid.Column="0" Grid.ColumnSpan="2"   Orientation="Horizontal" HorizontalAlignment="Right">
+        <StackPanel Grid.Row="7" Grid.Column="0" Grid.ColumnSpan="2"   Orientation="Horizontal" HorizontalAlignment="Right">
             <Button Content="Reset LR"/>
         </StackPanel>
 

@@ -89,6 +89,5 @@ namespace LvqGui {
 		public event PropertyChangedEventHandler PropertyChanged;
 
 		private void _propertyChanged(String propertyName) { if (PropertyChanged != null) PropertyChanged(this, new PropertyChangedEventArgs(propertyName)); }
-
 	}
 }

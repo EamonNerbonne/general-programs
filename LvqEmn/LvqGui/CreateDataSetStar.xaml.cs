@@ -91,6 +91,10 @@ namespace LvqGui {
 		}
 		private uint _Seed;
 
+		public string CreateLabel() {
+			return "star-" + Dimensions + "D-" + NumberOfClasses + "*" + PointsPerClass + ":" + NumberOfClusters+"(" +ClusterDimensionality+ "D"+(RandomlyTransformFirst?"?":"")+")*"+ ClusterCenterDeviation.ToString("f1")+"~"+IntraClusterClassRelDev.ToString("f1");
+		}
+
 		public DataSetStarParams() {
 			_ClusterCenterDeviation = 2.5;
 			_ClusterDimensionality = 2;
@@ -102,5 +106,7 @@ namespace LvqGui {
 			_RandomlyTransformFirst = true;
 			this.Reseed();
 		}
+
+
 	}
 }
