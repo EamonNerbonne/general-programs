@@ -76,6 +76,7 @@ namespace LVQeamon
 				int protoCount = ProtoCount.Value;
 				double stddevmeans = StddevMeans.Value;
 				bool useGsm = checkBoxLvqGsm.IsChecked ?? false;
+				SetupDisplay(numSets);
 				ThreadPool.QueueUserWorkItem((ignore) =>
 				{
 					LvqDataSetCli dataset = DTimer.TimeFunc(() => LvqDataSetCli.ConstructGaussianClouds("oldstyle-dataset",
@@ -211,13 +212,11 @@ namespace LVQeamon
 			}));
 		}
 
-		int currentClassCount = 0;
 		struct ClassTag { public int Label; public ClassTag(int label) { Label = label; } }
 		private void SetupDisplay(int numClasses)
 		{
 			Dispatcher.BeginInvoke((Action)(() =>
 			{
-				currentClassCount = numClasses;
 				plotControl.Graphs.Clear();
 				for (int i = 0; i < numClasses; i++)
 				{
