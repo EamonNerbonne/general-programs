@@ -10,7 +10,7 @@ namespace LvqLibCli {
 	{
 		CAutoNativePtr<AbstractProjectionLvqModel> model;
 		CAutoNativePtr<AbstractProjectionLvqModel> modelCopy;
-		CAutoNativePtr<boost::mt19937> rnd;
+		CAutoNativePtr<boost::mt19937> rngParam,rngIter;
 		System::Object^ backupSync;
 		System::Object^ mainSync;
 		size_t nativeAllocEstimate;
@@ -27,7 +27,7 @@ namespace LvqLibCli {
 		void AddPressure(size_t size);
 		void RemovePressure(size_t size);
 	public:
-		LvqModelCli(Func<unsigned int>^ rngSeed,int dims, int classCount, int protosPerClass,  int modelType);
+		LvqModelCli(Func<unsigned int>^ paramSeed, Func<unsigned int>^ iterSeed, int dims, int classCount, int protosPerClass,  int modelType);
 		void Init(LvqDataSetCli^ trainingSet);
 
 		property Object^ UpdateSyncObject { Object ^ get(){return mainSync;} }

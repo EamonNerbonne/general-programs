@@ -174,7 +174,8 @@ namespace LVQeamon
 		private void StartLvq(LvqDataSetCli newDataset, int protosPerClass, bool useGsm, LvqDataSetCli testDataset = null)
 		{
 			LvqDataSet = newDataset;
-			LvqModel = new LvqModelCli(RndHelper.MakeSecureUInt, newDataset.Dimensions, newDataset.ClassCount ,protosPerClass, useGsm ? LvqModelCli.GSM_TYPE:LvqModelCli.G2M_TYPE);
+			LvqModel = new LvqModelCli(RndHelper.MakeSecureUInt, RndHelper.MakeSecureUInt, newDataset.Dimensions, newDataset.ClassCount, protosPerClass, useGsm ? LvqModelCli.GSM_TYPE : LvqModelCli.G2M_TYPE);
+			//LvqModel
 			needUpdate = true;
 			UpdateDisplay();
 		}
@@ -184,6 +185,8 @@ namespace LVQeamon
 			if (!needUpdate)
 				return;
 			double[,] currPoints = LvqModel.CurrentProjectionOf(LvqDataSet);
+			if (currPoints == null) return;//model not initialized
+
 			int[] labels = LvqDataSet.ClassLabels();
 			Dictionary<int, Point[]> projectedPointsByLabel =
 				labels

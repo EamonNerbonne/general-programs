@@ -36,7 +36,7 @@ namespace LvqGui {
 		}
 	}
 	public enum ModelType {
-		G2m, Gsm, Gm
+		G2m=0, Gsm=1, Gm=2
 	}
 	public class LvqModelParams : INotifyPropertyChanged, IHasSeed {
 
@@ -107,8 +107,15 @@ namespace LvqGui {
 		private void _propertyChanged(String propertyName) { if (PropertyChanged != null) PropertyChanged(this, new PropertyChangedEventArgs(propertyName)); }
 
 
-		//public LvqModelCli CreateModel(uint globalPS, uint globalIS) {
-		//    new LvqModelCli(
-		//}
+		public LvqModelCli CreateModel(uint globalPS, uint globalIS) {
+			return new LvqModelCli(
+				paramSeed:SeedUtils.MakeSeedFunc(new[] { Seed, globalPS }),
+				iterSeed: SeedUtils.MakeSeedFunc(new[] { Seed, globalIS }),
+				dims:Dimensions,
+				classCount:ClassCount,
+				protosPerClass:PrototypesPerClass,
+				modelType:(int)ModelType
+				);
+		}
 	}
 }

@@ -20,6 +20,18 @@
 
 #pragma once
 
+//template<typename T> ref class NativeGcPtr{
+//	T* ptr;
+//	size_t size;
+//public:
+//	NativeGcPtr(T*ptr,size_t size) : ptr(ptr),size(size){
+//		GC::AddMemoryPressure(size);
+//	}
+//
+//
+//}
+
+
 template<typename T> ref class CAutoNativePtr
 {
 private:
@@ -120,6 +132,4 @@ public:
 		delete _ptr;
 		_ptr = nullptr;
 	}
-
-
 };
