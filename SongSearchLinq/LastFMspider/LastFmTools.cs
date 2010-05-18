@@ -11,6 +11,9 @@ using LastFMspider.OldApi;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Security.Cryptography;
+using EmnExtensions.MathHelpers;
+using System.Reflection;
 
 namespace LastFMspider {
 	public class LastFmTools {
@@ -72,5 +75,26 @@ namespace LastFMspider {
 		public int PrecacheArtistSimilarity() { return ToolsInternal.PrecacheArtistSimilarity(this); }
 
 		public int PrecacheArtistTopTracks() { return ToolsInternal.PrecacheArtistTopTracks(this); }
+
+
+		internal void LogNonFatalError(string message, Exception e) {
+			string errstring = "err" + DateTime.UtcNow.Ticks + ".log";
+			string fullpath = Path.Combine(ConfigFile.DataDirectory.FullName, errstring);
+			int triesToGo = 10;
+			while (true)
+				try {
+					using (var stream = File.Open(fullpath, FileMode.Append))
+					using (var writer = new StreamWriter(stream)) {
+						writer.WriteLine("\n{1}\nAt date: {0}", DateTime.Now, message ?? "<nullmessage>");
+						writer.WriteLine("Error Occured in " + Assembly.GetEntryAssembly().FullName);
+						if (e != null) writer.WriteLine(e.ToString());
+					}
+				} catch (IOException ioe) {
+					if (triesToGo > 0) {
+						triesToGo--;
+						Thread.Sleep((int)RndHelper.MakeSecureUInt() % 100);
+					} else throw new Exception("Logging IOException:"+ioe,e);
+				}
+		}
 	}
 }
