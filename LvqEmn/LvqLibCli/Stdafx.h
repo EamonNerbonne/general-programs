@@ -9,5 +9,4 @@
 #include <msclr/auto_handle.h>
 #include <msclr/lock.h>  
 #include <iostream>
-#include "GcPtr.h"
-#include "AutoNative.h"
+#include "GcAutoPtr.h"

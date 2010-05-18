@@ -37,7 +37,7 @@
     <ClInclude Include="LvqModelCli.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="GcPtr.h">
+    <ClInclude Include="GcAutoPtr.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

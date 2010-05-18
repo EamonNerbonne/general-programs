@@ -39,7 +39,7 @@ namespace LvqLibCli {
 		else if(modelType == LvqModelCli::G2M_TYPE)
 			newmodel = new G2mLvqModel(*rngParam, true, protoDistrib, trainingSet->GetDataSet()->ComputeClassMeans()); 
 		else return;
-		model =GcPtrHelp::Create(newmodel,newmodel->MemAllocEstimate());
+		model =GcPtr::Create(newmodel,newmodel->MemAllocEstimate());
 
 		BackupModel();
 	}

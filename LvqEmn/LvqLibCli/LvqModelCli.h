@@ -9,15 +9,15 @@ namespace LvqLibCli {
 	public ref class LvqModelCli
 	{
 		int dims,classCount,protosPerClass,modelType;
-		GcPtr<AbstractProjectionLvqModel>^ model;
-		GcPtr<AbstractProjectionLvqModel>^ modelCopy;
-		GcPtr<boost::mt19937> rngParam, rngIter;
+		GcAutoPtr<AbstractProjectionLvqModel>^ model;
+		GcAutoPtr<AbstractProjectionLvqModel>^ modelCopy;
+		GcAutoPtr<boost::mt19937> rngParam, rngIter;
 		Object^ backupSync;
 		Object^ mainSync;
 		void BackupModel() {
 			AbstractProjectionLvqModel* newCopy = dynamic_cast<AbstractProjectionLvqModel*>(model->get()->clone());
 			msclr::lock l(backupSync);
-			modelCopy = GcPtrHelp::Create(newCopy, newCopy->MemAllocEstimate());
+			modelCopy = GcPtr::Create(newCopy, newCopy->MemAllocEstimate());
 		}
 		public:
 		LvqModelCli(Func<unsigned int>^ paramSeed, Func<unsigned int>^ iterSeed, int dims, int classCount, int protosPerClass,  int modelType);
