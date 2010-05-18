@@ -8,14 +8,13 @@ namespace LvqLibCli {
 
 	public ref class LvqModelCli
 	{
-		LvqDataSetCli^ dataset;
 		CAutoNativePtr<AbstractProjectionLvqModel> model;
 		CAutoNativePtr<AbstractProjectionLvqModel> modelCopy;
 		CAutoNativePtr<boost::mt19937> rnd;
 		System::Object^ backupSync;
 		System::Object^ mainSync;
 		size_t nativeAllocEstimate;
-
+		int dims,classCount,protosPerClass,modelType;
 		void BackupModel() {
 			AbstractProjectionLvqModel* newCopy = dynamic_cast<AbstractProjectionLvqModel*>(model->clone());
 			msclr::lock l(backupSync);
@@ -23,14 +22,23 @@ namespace LvqLibCli {
 		}
 
 		!LvqModelCli();
+
+		void ReleaseModels();
+		void AddPressure(size_t size);
+		void RemovePressure(size_t size);
 	public:
-		LvqModelCli(LvqDataSetCli^ dataset, int protosPerClass, bool useGsm);
+		LvqModelCli(Func<unsigned int>^ rngSeed,int dims, int classCount, int protosPerClass,  int modelType);
+		void Init(LvqDataSetCli^ trainingSet);
+
 		property Object^ UpdateSyncObject { Object ^ get(){return mainSync;} }
-		double ErrorRate();
-		array<double,2>^ CurrentProjection();
+		double ErrorRate(LvqDataSetCli^testSet);
+		array<double,2>^ CurrentProjectionOf(LvqDataSetCli^ dataset);
 		Tuple<array<double,2>^,array<int>^>^ PrototypePositions();
 		array<int,2>^ ClassBoundaries(double x0, double x1, double y0, double y1,int xCols, int yRows);
-		void TrainEpoch(int epochsToDo); 
-		property LvqDataSetCli^ TrainingSet {LvqDataSetCli^ get(){return dataset;} }
+		void Train(int epochsToDo,LvqDataSetCli^ trainingSet); 
+
+		static const int G2M_TYPE =0;
+		static const int GSM_TYPE =1;
+		static const int GM_TYPE =2;
 	};
 }

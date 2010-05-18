@@ -174,7 +174,7 @@ namespace LVQeamon
 		private void StartLvq(LvqDataSetCli newDataset, int protosPerClass, bool useGsm, LvqDataSetCli testDataset = null)
 		{
 			LvqDataSet = newDataset;
-			LvqModel = new LvqModelCli(newDataset, protosPerClass, useGsm);
+			LvqModel = new LvqModelCli(RndHelper.MakeSecureUInt, newDataset.Dimensions, newDataset.ClassCount ,protosPerClass, useGsm ? LvqModelCli.GSM_TYPE:LvqModelCli.G2M_TYPE);
 			needUpdate = true;
 			UpdateDisplay();
 		}
@@ -183,8 +183,8 @@ namespace LVQeamon
 		{
 			if (!needUpdate)
 				return;
-			double[,] currPoints = LvqModel.CurrentProjection();
-			int[] labels = LvqModel.TrainingSet.ClassLabels();
+			double[,] currPoints = LvqModel.CurrentProjectionOf(LvqDataSet);
+			int[] labels = LvqDataSet.ClassLabels();
 			Dictionary<int, Point[]> projectedPointsByLabel =
 				labels
 				.Select((label, i) => new { Label = label, Point = new Point(currPoints[i, 0], currPoints[i, 1]) })
@@ -203,8 +203,8 @@ namespace LVQeamon
 				needUpdate = false;
 				foreach (var pointGroup in projectedPointsByLabel)
 					((IPlotWriteable<Point[]>)plotControl.Graphs[pointGroup.Key]).Data = pointGroup.Value;
-				((IPlotWriteable<Point[]>)plotControl.Graphs[LvqModel.TrainingSet.ClassCount + 1]).Data = prototypePositions;
-				((IPlotWriteable<LvqModelCli>)plotControl.Graphs[LvqModel.TrainingSet.ClassCount]).TriggerDataChanged();
+				((IPlotWriteable<Point[]>)plotControl.Graphs[LvqDataSet.ClassCount + 1]).Data = prototypePositions;
+				((IPlotWriteable<LvqModelCli>)plotControl.Graphs[LvqDataSet.ClassCount]).TriggerDataChanged();
 			}));
 		}
 
@@ -315,7 +315,7 @@ namespace LVQeamon
 			{
 				lock (LvqModel.UpdateSyncObject)
 					using (new DTimer("Training " + epochsTodo + " epochs"))
-						LvqModel.TrainEpoch(epochsTodo);
+						LvqModel.Train(epochsTodo, LvqDataSet);
 				needUpdate = true;
 				UpdateDisplay();
 			});

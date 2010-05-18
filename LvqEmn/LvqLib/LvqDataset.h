@@ -10,7 +10,7 @@ class LvqDataSet
 public:
 	MatrixXd trainPoints; //one dimension per row, one point per column
 	vector<int> trainPointLabels;
-	vector<int> trainClassFrequency;
+	vector<int> trainClassFrequency; //TODO: rename, these datasets aren't necessarily training sets.
 	int classCount;
 
 	LvqDataSet(MatrixXd const & points, vector<int> pointLabels, int classCount);
@@ -22,4 +22,5 @@ public:
 	double ErrorRate(AbstractLvqModel const * model) const;
 	PMatrix ProjectPoints(AbstractProjectionLvqModel const * model) const;
 	size_t MemAllocEstimate() const;
+	int dimensions() const { return trainPoints.rows();}
 };

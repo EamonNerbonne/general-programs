@@ -90,6 +90,12 @@ public:
 		return t;
 	}
 
+	T* get()
+	{
+		return _ptr;
+	}
+
+
 	void Attach(T* t)
 	{
 		if(t)
@@ -114,4 +120,6 @@ public:
 		delete _ptr;
 		_ptr = nullptr;
 	}
+
+
 };

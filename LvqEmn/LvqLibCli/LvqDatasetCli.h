@@ -17,6 +17,7 @@ public:
 		LvqDataSet const * GetDataSet() {return dataset;}
 		array<int>^ ClassLabels(){return cppToCli(dataset->trainPointLabels);}
 		property int ClassCount {int get(){return dataset->classCount;}}
+		property int Dimensions {int get(){return dataset->dimensions();}}
 		property String^ DataSetLabel {String^ get(){return label;}}
 
 		static LvqDataSetCli ^ ConstructFromArray(String^ label,array<double,2>^ points, array<int>^ pointLabels, int classCount);
