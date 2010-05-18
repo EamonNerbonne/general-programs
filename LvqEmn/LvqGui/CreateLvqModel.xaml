@@ -4,7 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              mc:Ignorable="d" 
-             d:DesignHeight="150" d:DesignWidth="300">
+             d:DesignHeight="230" d:DesignWidth="300">
     <UserControl.Resources>
         <Style TargetType="{x:Type Label}" BasedOn="{StaticResource PropLabel}"/>
         <Style TargetType="{x:Type TextBox}" BasedOn="{StaticResource PropBox}"/>
@@ -22,16 +22,18 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
-        <Label Grid.Row="0">Model Type</Label>
-        <ComboBox Grid.Row="0"  Grid.Column="1"  Name="modelType" SelectedItem="{Binding ModelType, Mode=TwoWay, ValidatesOnExceptions=True}" ItemsSource="{Binding  RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type UserControl} }, Path=ModelTypes}"/>
-        <Label Grid.Row="1">Prototypes per class</Label>
-        <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding PrototypesPerClass, Mode=TwoWay, ValidatesOnExceptions=True}" />
-        <Label Grid.Row="2">Dimensionality of Model</Label>
-        <TextBox Grid.Row="2" Grid.Column="2" Text="{Binding Dimensionality, Mode=TwoWay, ValidatesOnExceptions=True}"/>
-        <Label Grid.Row="3">Random Seed</Label>
-        <TextBox Grid.Row="3" Grid.Column="2" Text="{Binding Seed, Mode=TwoWay, ValidatesOnExceptions=True, Converter={StaticResource ByteArrConverter}}"/>
-        <Button Grid.Row="4" Grid.ColumnSpan="2" >Initialize Model</Button>
-
+        <Label Grid.Row="0">Dimensions</Label>
+        <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding Dimensions, Mode=TwoWay, ValidatesOnExceptions=True}"/>
+        <Label Grid.Row="1">Model Type</Label>
+        <ComboBox Grid.Row="1"  Grid.Column="1"  Name="modelType" SelectedItem="{Binding ModelType, Mode=TwoWay, ValidatesOnExceptions=True}" ItemsSource="{Binding  RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type UserControl} }, Path=ModelTypes}"/>
+        <Label Grid.Row="2">Prototypes per class</Label>
+        <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding PrototypesPerClass, Mode=TwoWay, ValidatesOnExceptions=True}" />
+        <Label Grid.Row="3">Internal Dimensionality</Label>
+        <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding Dimensionality, Mode=TwoWay, ValidatesOnExceptions=True}"/>
+        <Button Grid.Row="4" Content="Reset Random Seed" Click="Button_Click" />
+        <TextBox Grid.Row="4" Grid.Column="1" Text="{Binding Seed, Mode=TwoWay, ValidatesOnExceptions=True}" Margin="2,2,2,2" />
+        <Button Grid.Row="5" Grid.ColumnSpan="2" >Initialize Model</Button>
     </Grid>
 </UserControl>

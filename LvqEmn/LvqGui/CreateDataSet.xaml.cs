@@ -22,14 +22,16 @@ namespace LvqGui {
 		public CreateDataSet() {
 			InitializeComponent();
 		}
+
+		private void Button_Click(object sender, RoutedEventArgs e) {
+			((IHasSeed)DataContext).Reseed();
+		}
 	}
 
-	class DataSetParams : INotifyPropertyChanged {
+	class DataSetParams : INotifyPropertyChanged, IHasSeed {
 		public event PropertyChangedEventHandler PropertyChanged;
 
-
 		private void _propertyChanged(String propertyName) { if (PropertyChanged != null) PropertyChanged(this, new PropertyChangedEventArgs(propertyName)); }
-
 
 		public int Dimensions {
 			get { return _Dimensions; }
@@ -37,22 +39,17 @@ namespace LvqGui {
 		}
 		private int _Dimensions;
 
-
-
 		public int NumberOfClasses {
 			get { return _NumberOfClasses; }
 			set { if (value < 2) throw new ArgumentException("Cannot meaningfully train classifier on fewer than 2 classes"); if (!_NumberOfClasses.Equals(value)) { _NumberOfClasses = value; _propertyChanged("NumberOfClasses"); } }
 		}
 		private int _NumberOfClasses;
 
-
-
 		public int PointsPerClass {
 			get { return _PointsPerClass; }
 			set { if (value < 1) throw new ArgumentException("Each class needs at least 1 training sample"); if (!_PointsPerClass.Equals(value)) { _PointsPerClass = value; _propertyChanged("PointsPerClass"); } }
 		}
 		private int _PointsPerClass;
-
 
 		public double ClassCenterDeviation {
 			get { return _ClassCenterDeviation; }
@@ -67,11 +64,11 @@ namespace LvqGui {
 		private uint _Seed;
 
 		public DataSetParams() {
-			_Seed = RndHelper.MakeSecureUInt();
 			_PointsPerClass = 2000;
 			_NumberOfClasses = 3;
 			_Dimensions = 16;
 			_ClassCenterDeviation = 2.5;
+			this.Reseed();
 		}
 	}
 }

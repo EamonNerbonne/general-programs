@@ -3,7 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-             mc:Ignorable="d" d:DesignHeight="180" d:DesignWidth="300">
+             mc:Ignorable="d" d:DesignHeight="230" d:DesignWidth="300">
     <UserControl.Resources>
         <Style TargetType="{x:Type Label}" BasedOn="{StaticResource PropLabel}"/>
         <Style TargetType="{x:Type TextBox}" BasedOn="{StaticResource PropBox}"/>
@@ -35,7 +35,7 @@
         <Label Grid.Row="3"  >Inter-class distance</Label>
         <TextBox Grid.Row="3"  Grid.Column="1" Text="{Binding ClassCenterDeviation, Mode=TwoWay, ValidatesOnExceptions=True}" />
 
-        <Label Grid.Row="4"  >Random Seed</Label>
+        <Button Content="Reset Random Seed" Grid.Row="4" Click="Button_Click" />
         <TextBox Grid.Row="4"  Grid.Column="1" Text="{Binding Seed, Mode=TwoWay, ValidatesOnExceptions=True}" />
 
         <Button  Grid.Row="5" Grid.Column="0" Grid.ColumnSpan="2"  >Generate Point Clouds</Button>

@@ -23,9 +23,13 @@ namespace LvqGui {
 			InitializeComponent();
 			DataContext = new DataSetStarParams();
 		}
+
+		private void Button_Click(object sender, RoutedEventArgs e) {
+			((IHasSeed)DataContext).Reseed();
+		}
 	}
 
-	public class DataSetStarParams : INotifyPropertyChanged {
+	public class DataSetStarParams : INotifyPropertyChanged,IHasSeed {
 
 		public event PropertyChangedEventHandler PropertyChanged;
 
@@ -39,13 +43,11 @@ namespace LvqGui {
 		}
 		private int _Dimensions;
 
-
 		public int NumberOfClasses {
 			get { return _NumberOfClasses; }
 			set { if (value < 2) throw new ArgumentException("Need at least 2 classes to meaningfully train"); if (!_NumberOfClasses.Equals(value)) { _NumberOfClasses = value; _propertyChanged("NumberOfClasses"); } }
 		}
 		private int _NumberOfClasses;
-
 
 		public int PointsPerClass {
 			get { return _PointsPerClass; }
@@ -53,13 +55,11 @@ namespace LvqGui {
 		}
 		private int _PointsPerClass;
 
-
 		public int NumberOfClusters {
 			get { return _NumberOfClusters; }
 			set { if (value < 1) throw new ArgumentException("Need a positive number of clusters"); if (!_NumberOfClusters.Equals(value)) { _NumberOfClusters = value; _propertyChanged("NumberOfClusters"); } }
 		}
 		private int _NumberOfClusters;
-
 
 		public int ClusterDimensionality {
 			get { return _ClusterDimensionality; }
@@ -67,13 +67,11 @@ namespace LvqGui {
 		}
 		private int _ClusterDimensionality;
 
-
 		public double ClusterCenterDeviation {
 			get { return _ClusterCenterDeviation; }
 			set { if (value < 0.0) throw new ArgumentException("Deviation must be positive"); if (!_ClusterCenterDeviation.Equals(value)) { _ClusterCenterDeviation = value; _propertyChanged("ClusterCenterDeviation"); } }
 		}
 		private double _ClusterCenterDeviation;
-
 
 		public double IntraClusterClassRelDev {
 			get { return _IntraClusterClassRelDev; }
@@ -81,13 +79,11 @@ namespace LvqGui {
 		}
 		private double _IntraClusterClassRelDev;
 
-
 		public bool RandomlyTransformFirst {
 			get { return _RandomlyTransformFirst; }
 			set { if (!_RandomlyTransformFirst.Equals(value)) { _RandomlyTransformFirst = value; _propertyChanged("RandomlyTransformFirst"); } }
 		}
 		private bool _RandomlyTransformFirst;
-
 
 		public uint Seed {
 			get { return _Seed; }
@@ -104,7 +100,7 @@ namespace LvqGui {
 			_NumberOfClusters = 3;
 			_PointsPerClass = 3000;
 			_RandomlyTransformFirst = true;
-			_Seed = RndHelper.MakeSecureUInt();
+			this.Reseed();
 		}
 	}
 }
