@@ -13,6 +13,7 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.ComponentModel;
 using EmnExtensions.MathHelpers;
+using LvqLibCli;
 
 namespace LvqGui {
 	/// <summary>
@@ -74,5 +75,18 @@ namespace LvqGui {
 			_ClassCenterDeviation = 2.5;
 			this.Reseed();
 		}
+
+
+		public LvqDataSetCli CreateDataset(uint globalPS, uint globalIS) {
+			return LvqDataSetCli.ConstructGaussianClouds(CreateLabel(),
+			rng:SeedUtils.MakeSeedFunc(new[] { Seed, globalPS }),
+				dims: Dimensions,
+				classCount: NumberOfClasses,
+				pointsPerClass: PointsPerClass,
+				meansep:ClassCenterDeviation
+				);
+			//TODO:use instance seed.
+		}
+
 	}
 }

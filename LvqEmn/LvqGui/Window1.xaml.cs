@@ -78,7 +78,7 @@ namespace LVQeamon
 				bool useGsm = checkBoxLvqGsm.IsChecked ?? false;
 				ThreadPool.QueueUserWorkItem((ignore) =>
 				{
-					LvqDataSetCli dataset = DTimer.TimeFunc(() => LvqDataSetCli.ConstructGaussianClouds(
+					LvqDataSetCli dataset = DTimer.TimeFunc(() => LvqDataSetCli.ConstructGaussianClouds("oldstyle-dataset",
 						RndHelper.MakeSecureUInt, dims, numSets, pointsPerSet, stddevmeans), "Constructing dataset");
 
 					Console.WriteLine("RngUsed: " + RndHelper.usages);
@@ -120,7 +120,7 @@ namespace LVQeamon
 				{
 
 					LvqDataSetCli dataset =
-						DTimer.TimeFunc(() => LvqDataSetCli.ConstructStarDataset(
+						DTimer.TimeFunc(() => LvqDataSetCli.ConstructStarDataset("oldstyle-dataset",
 						RndHelper.MakeSecureUInt, dims, 2, starTailCount, numSets, pointsPerSet, stddevmeans * starRelDist, 1.0 / starRelDist), "making star clouds");
 
 					StartLvq(dataset, protoCount, useGsm);
@@ -156,7 +156,7 @@ namespace LVQeamon
 						{
 							var pointclouds = DataSetLoader.LoadDataset(dataFile, labelFile);
 							SetupDisplay(pointclouds.Item3);
-							var dataset = LvqDataSetCli.ConstructFromArray(pointclouds.Item1, pointclouds.Item2, pointclouds.Item3);
+							var dataset = LvqDataSetCli.ConstructFromArray(dataFile.Name, pointclouds.Item1, pointclouds.Item2, pointclouds.Item3);
 							StartLvq(dataset, protoCount, useGsm);
 						}
 						catch (FileFormatException fe)

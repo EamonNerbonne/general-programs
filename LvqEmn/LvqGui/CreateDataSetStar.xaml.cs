@@ -13,6 +13,7 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.ComponentModel;
 using EmnExtensions.MathHelpers;
+using LvqLibCli;
 
 namespace LvqGui {
 	/// <summary>
@@ -29,7 +30,7 @@ namespace LvqGui {
 		}
 	}
 
-	public class DataSetStarParams : INotifyPropertyChanged,IHasSeed {
+	public class DataSetStarParams : INotifyPropertyChanged, IHasSeed {
 
 		public event PropertyChangedEventHandler PropertyChanged;
 
@@ -92,7 +93,7 @@ namespace LvqGui {
 		private uint _Seed;
 
 		public string CreateLabel() {
-			return "star-" + Dimensions + "D-" + NumberOfClasses + "*" + PointsPerClass + ":" + NumberOfClusters+"(" +ClusterDimensionality+ "D"+(RandomlyTransformFirst?"?":"")+")*"+ ClusterCenterDeviation.ToString("f1")+"~"+IntraClusterClassRelDev.ToString("f1");
+			return "star-" + Dimensions + "D-" + NumberOfClasses + "*" + PointsPerClass + ":" + NumberOfClusters + "(" + ClusterDimensionality + "D" + (RandomlyTransformFirst ? "?" : "") + ")*" + ClusterCenterDeviation.ToString("f1") + "~" + IntraClusterClassRelDev.ToString("f1");
 		}
 
 		public DataSetStarParams() {
@@ -107,6 +108,18 @@ namespace LvqGui {
 			this.Reseed();
 		}
 
-
+		public LvqDataSetCli CreateDataset(uint globalPS, uint globalIS) {
+			return LvqDataSetCli.ConstructStarDataset(CreateLabel(),
+				SeedUtils.MakeSeedFunc(new[] { Seed, globalPS }),
+				dims:Dimensions,
+				starDims:ClusterDimensionality,
+				numStarTails: NumberOfClusters,
+				classCount:NumberOfClasses,
+				pointsPerClass: PointsPerClass,
+				starMeanSep: ClusterCenterDeviation,
+				starClassRelOffset: IntraClusterClassRelDev); 
+			//TODO:randomTransform option.
+			//TODO:use instance seed.
+		}
 	}
 }

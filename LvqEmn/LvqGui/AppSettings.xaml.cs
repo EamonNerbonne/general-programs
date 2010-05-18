@@ -44,7 +44,5 @@ namespace LvqGui {
 			set { if (!_GlobalInstSeed.Equals(value)) { _GlobalInstSeed = value; _propertyChanged("GlobalInstSeed"); } }
 		}
 		private uint _GlobalInstSeed;
-
 	}
-
 }

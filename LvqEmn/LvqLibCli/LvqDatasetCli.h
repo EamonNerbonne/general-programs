@@ -11,16 +11,17 @@ namespace LvqLibCli {
 		CAutoNativePtr<LvqDataSet> dataset;
 		size_t nativeAllocEstimate;
 		!LvqDataSetCli();
-
-		LvqDataSetCli(LvqDataSet * newDataset);
+		String^ label;
+		LvqDataSetCli(String^label,LvqDataSet * newDataset);
 public:
 		LvqDataSet const * GetDataSet() {return dataset;}
 		array<int>^ ClassLabels(){return cppToCli(dataset->trainPointLabels);}
 		property int ClassCount {int get(){return dataset->classCount;}}
+		property String^ DataSetLabel {String^ get(){return label;}}
 
-		static LvqDataSetCli ^ ConstructFromArray(array<double,2>^ points, array<int>^ pointLabels, int classCount);
-		static LvqDataSetCli^ ConstructGaussianClouds(Func<unsigned int>^ rng, int dims, int classCount, int pointsPerClass, double meansep);
-		static LvqDataSetCli^ ConstructStarDataset(Func<unsigned int>^ rng, int dims, int starDims, int numStarTails,int classCount, int pointsPerClass, double starMeanSep, double starClassRelOffset);
+		static LvqDataSetCli ^ ConstructFromArray(String^ label,array<double,2>^ points, array<int>^ pointLabels, int classCount);
+		static LvqDataSetCli^ ConstructGaussianClouds(String^ label,Func<unsigned int>^ rng, int dims, int classCount, int pointsPerClass, double meansep);
+		static LvqDataSetCli^ ConstructStarDataset(String^ label,Func<unsigned int>^ rng, int dims, int starDims, int numStarTails,int classCount, int pointsPerClass, double starMeanSep, double starClassRelOffset);
 	};
 }
 

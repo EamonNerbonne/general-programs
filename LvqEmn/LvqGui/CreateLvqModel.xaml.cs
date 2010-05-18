@@ -15,6 +15,7 @@ using System.Globalization;
 using System.IO;
 using EmnExtensions.MathHelpers;
 using System.ComponentModel;
+using LvqLibCli;
 
 namespace LvqGui {
 
@@ -39,6 +40,13 @@ namespace LvqGui {
 	}
 	public class LvqModelParams : INotifyPropertyChanged, IHasSeed {
 
+		public int ClassCount {
+			get { return _ClassCount; }
+			set { if (!_ClassCount.Equals(value)) { _ClassCount = value; _propertyChanged("ClassCount"); } }
+		}
+		private int _ClassCount;
+
+
 
 		public int Dimensions {
 			get { return _Dimensions; }
@@ -60,8 +68,9 @@ namespace LvqGui {
 			get { return _Dimensionality; }
 			set {
 				if (value < 1 || value > Dimensions) throw new ArgumentException("Internal dimensionality must be between 1 and the dimensions of the data.");
-				if (_ModelType != LvqGui.ModelType.Gm && value !=2) throw new ArgumentException("2D Projection models must have exactly 2 internal dimensions.");
-				if (!_Dimensionality.Equals(value)) { _Dimensionality = value; _propertyChanged("Dimensionality"); } }
+				if (_ModelType != LvqGui.ModelType.Gm && value != 2) throw new ArgumentException("2D Projection models must have exactly 2 internal dimensions.");
+				if (!_Dimensionality.Equals(value)) { _Dimensionality = value; _propertyChanged("Dimensionality"); }
+			}
 		}
 		private int _Dimensionality;
 
@@ -77,7 +86,6 @@ namespace LvqGui {
 		}
 		private uint _Seed;
 
-
 		public LvqModelParams() {
 			_ModelType = ModelType.G2m;
 			_Dimensionality = 2;
@@ -86,8 +94,21 @@ namespace LvqGui {
 			this.Reseed();
 		}
 
+		public string CreateLabel() {
+			return ModelType.ToString()
+				+ (ModelType == LvqGui.ModelType.Gm ? "[" + Dimensionality + "]" : "")
+				+ "-" + Dimensions + "D:"
+				+ ClassCount
+				+ "*" + PrototypesPerClass;
+		}
+
 		public event PropertyChangedEventHandler PropertyChanged;
 
 		private void _propertyChanged(String propertyName) { if (PropertyChanged != null) PropertyChanged(this, new PropertyChangedEventArgs(propertyName)); }
+
+
+		//public LvqWrapper CreateModel(uint globalPS, uint globalIS) {
+		//    new LvqWrapper(
+		//}
 	}
 }
