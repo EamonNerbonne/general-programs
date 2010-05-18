@@ -42,34 +42,36 @@ namespace LvqGui
 		public ModelType ModelType
 		{
 			get { return _ModelType; }
-			set { if (!_ModelType.Equals(value)) { if (value != LvqGui.ModelType.Gm) Dimensionality = 2; _ModelType = value; PropertyChanged(this, new PropertyChangedEventArgs("ModelType")); } }
+			set { if (!_ModelType.Equals(value)) { if (value != LvqGui.ModelType.Gm) Dimensionality = 2; _ModelType = value; _propertyChanged("ModelType"); } }
 		}
 		private ModelType _ModelType;
-		
 
 		public int Dimensionality
 		{
 			get { return _Dimensionality; }
-			set { if (!_Dimensionality.Equals(value)) { _Dimensionality = value; PropertyChanged(this, new PropertyChangedEventArgs("Dimensionality")); } }
+			set { if (!_Dimensionality.Equals(value)) { _Dimensionality = value; _propertyChanged("Dimensionality"); } }
 		}
 		private int _Dimensionality;
 
 		public int PrototypesPerClass
 		{
 			get { return _PrototypesPerClass; }
-			set { if (!_PrototypesPerClass.Equals(value)) { _PrototypesPerClass = value; PropertyChanged(this, new PropertyChangedEventArgs("PrototypesPerClass")); } }
+			set { if (!_PrototypesPerClass.Equals(value)) { _PrototypesPerClass = value; _propertyChanged("PrototypesPerClass"); } }
 		}
 		private int _PrototypesPerClass;
 
 		public uint Seed
 		{
 			get { return _Seed; }
-			set { if (!_Seed.Equals(value)) { _Seed = value; PropertyChanged(this, new PropertyChangedEventArgs("Seed")); } }
+			set { if (!_Seed.Equals(value)) { _Seed = value; _propertyChanged("Seed"); } }
 		}
 		private uint _Seed;
 
-		public LvqModelParams() { Seed = RndHelper.MakeSecureUInt(); ModelType = ModelType.G2m; Dimensionality = 2; PrototypesPerClass = 3; }
+		public LvqModelParams() {  Seed = RndHelper.MakeSecureUInt(); ModelType = ModelType.G2m; Dimensionality = 2; PrototypesPerClass = 3; }
 
 		public event PropertyChangedEventHandler PropertyChanged;
+
+		private void _propertyChanged(String propertyName) { if (PropertyChanged != null) PropertyChanged(this, new PropertyChangedEventArgs(propertyName)); }
+
 	}
 }
