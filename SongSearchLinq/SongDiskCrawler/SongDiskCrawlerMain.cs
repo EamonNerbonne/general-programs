@@ -45,6 +45,7 @@ namespace SongDiskCrawler {
 			try {
 #endif
 			SongDatabaseConfigFile dcf = F.Create(() => new SongDatabaseConfigFile(true)).TimeFunc("Loading Config file...");
+			dcf.PopularityEstimator = new LastFmPopularityEstimator(new LastFmTools(dcf));
 			//dcf.PopularityEstimator = new LastFmPopularityEstimator(new LastFmTools(dcf));
 
 			timer = Stopwatch.StartNew();

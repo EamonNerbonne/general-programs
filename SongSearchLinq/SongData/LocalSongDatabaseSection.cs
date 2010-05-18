@@ -36,7 +36,7 @@ namespace SongDataLib {
 				ISongData song = filter(songUri);
 				if (song == null || (song is SongData && ((SongData)song).lastWriteTime < newfile.LastWriteTimeUtc))
 					try {
-						song = SongDataFactory.ConstructFromFile(newfile);
+						song = SongDataFactory.ConstructFromFile(newfile,dcf.PopularityEstimator);
 					} catch (Exception e) {
 						errSink("Non-fatal error while generating XML of file: " + songUri + "\nException:\n" + e); song = null;
 					}

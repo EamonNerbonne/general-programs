@@ -13,10 +13,11 @@ namespace SongDiskCrawler {
 		Dictionary<string, ArtistTopTracksList> toptracksCache = new Dictionary<string, ArtistTopTracksList>();
 		LastFmTools tools;
 		public LastFmPopularityEstimator(LastFmTools tools) { this.tools = tools; }
-		public Popularity EstimatePopularity(string artist, string track) {
-			var song = SongRef.Create(artist, track);
+		public Popularity EstimatePopularity(string artist, string title) {
+			if (artist == null || title == null) return default(Popularity);
+			var song = SongRef.Create(artist, title);
 			var canonicalArtist = song.GetLowerArtist();
-			var canonicalTrack = track.ToLatinLowercase();
+			var canonicalTrack = title.ToLatinLowercase();
 			ArtistTopTracksList toptracks;
 			if (!toptracksCache.TryGetValue(canonicalArtist, out toptracks)) {
 				 toptracks = tools.SimilarSongs.LookupTopTracks(artist);

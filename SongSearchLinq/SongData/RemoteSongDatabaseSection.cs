@@ -22,7 +22,7 @@ namespace SongDataLib
 			try {
 				SongDataFactory.LoadSongsFromPathOrUrl(href, delegate(ISongData newsong, double estimatedCompletion) {
 					handler(newsong, estimatedCompletion);
-				}, false,login,pass);
+				}, false,login,pass,dcf.PopularityEstimator);
 			} catch(Exception e) {
 				errSink("Exception while scanning:\n"+e.ToString());
 			}

@@ -16,7 +16,7 @@ namespace SongDataLib {
 		public void Load(SongDataLoadDelegate handler) {
 			if (dbFile.Exists)
 				using (Stream stream = dbFile.OpenRead())
-					SongDataFactory.LoadSongsFromXmlFrag(stream, handler, IsLocal);
+					SongDataFactory.LoadSongsFromXmlFrag(stream, handler, IsLocal,dcf.PopularityEstimator);
 		}
 		static XmlWriterSettings settings = new XmlWriterSettings {
 			CheckCharacters = false,

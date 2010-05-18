@@ -23,14 +23,14 @@ namespace SongDataLib {
 		public double? track_gain;
 		public int? rating;
 		DateTime m_lastWriteTime;
-		//public Popularity popularity = new Popularity { ArtistPopularity = 0, TitlePopularity = 0 };
+		public Popularity popularity = new Popularity { ArtistPopularity = 0, TitlePopularity = 0 };
 		public DateTime lastWriteTime { get { return m_lastWriteTime; } set { m_lastWriteTime = value.ToUniversalTime(); } }
 
 		static string strNullIfEmpty(string str) { return str == null || str.Length == 0 ? null : str; }//string.Intern is slow but saves memory for identical strings.
 
 		static string toSafeString(string data) { return strNullIfEmpty(Canonicalize.MakeSafe(data)); }
 
-		internal SongData(FileInfo fileObj)
+		internal SongData(FileInfo fileObj, IPopularityEstimator popEst)
 			: base(new Uri(fileObj.FullName, UriKind.Absolute), true) {
 			TagLib.File file = TagLib.File.Create(fileObj.FullName);
 			var customtags = GetCustomTags(file);
@@ -50,9 +50,11 @@ namespace SongDataLib {
 			channels = file.Properties == null ? 0 : file.Properties.AudioChannels;
 			rating = customtags.ContainsKey("rating") ? customtags["rating"].ParseAsInt32() : null;
 			string track_gain_str;
-			if (customtags.TryGetValue("replaygain_track_gain", out track_gain_str)) 
+			if (customtags.TryGetValue("replaygain_track_gain", out track_gain_str))
 				track_gain_str = track_gain_str.Replace("dB", "").Replace("db", "").Trim();
 			track_gain = track_gain_str.ParseAsDouble();
+
+			popularity = popEst == null ? default(Popularity) : popEst.EstimatePopularity(artist, title);
 		}
 
 		static Dictionary<string, string> GetCustomTags(TagLib.File file) {
@@ -68,19 +70,22 @@ namespace SongDataLib {
 				var filetag = (file.GetTag(TagLib.TagTypes.Ape, false) as TagLib.Ape.Tag);
 				return filetag.ToDictionary(key => key.ToLowerInvariant(), key => filetag.GetItem(key).ToStringArray().FirstOrDefault());
 			} else if (types == TagLib.TagTypes.None || types == TagLib.TagTypes.Id3v1) {
-				return new Dictionary<string,string>();
-			} else if(types.HasFlag(TagLib.TagTypes.Asf))  {
+				return new Dictionary<string, string>();
+			} else if (types.HasFlag(TagLib.TagTypes.Asf)) {
 				var filetag = file.GetTag(TagLib.TagTypes.Asf, false) as TagLib.Asf.Tag;
-				return filetag.Where(desc =>desc.Type==TagLib.Asf.DataType.Unicode) 
-					.ToDictionary(key=>key.Name.ToLowerInvariant(), key => key.ToString());
+				return filetag.Where(desc => desc.Type == TagLib.Asf.DataType.Unicode)
+					.ToDictionary(key => key.Name.ToLowerInvariant(), key => key.ToString());
 			} else
 				throw new NotImplementedException();
 		}
 
 		//faster to not recreate XNames.
-		static XName songN = "song", titleN = "title", artistN = "artist", performerN = "performer", composerN = "composer", albumN = "album", commentN = "comment", genreN = "genre", yearN = "year", trackN = "track", trackcountN = "trackcount", bitrateN = "bitrate", lengthN = "length", samplerateN = "samplerate", channelsN = "channels", lastmodifiedTicksN = "lastmodifiedTicks", ratingN = "rating", artistpopularityN = "popA", titlepopularityN = "popT", trackGainN="Tgain";
+		static XName songN = "song", titleN = "title", artistN = "artist", performerN = "performer", composerN = "composer", albumN = "album",
+			commentN = "comment", genreN = "genre", yearN = "year", trackN = "track", trackcountN = "trackcount", bitrateN = "bitrate",
+			lengthN = "length", samplerateN = "samplerate", channelsN = "channels", lastmodifiedTicksN = "lastmodifiedTicks",
+			ratingN = "rating", artistpopularityN = "popA", titlepopularityN = "popT", trackGainN = "Tgain";
 
-		internal SongData(XElement from, bool? isLocal)
+		internal SongData(XElement from, bool? isLocal, IPopularityEstimator popEst)
 			: base(from, isLocal) {
 			title = (string)from.Attribute(titleN);
 
@@ -98,8 +103,15 @@ namespace SongDataLib {
 			channels = ((int?)from.Attribute(channelsN)) ?? 0;
 			rating = (int?)from.Attribute(ratingN);
 			track_gain = (double?)from.Attribute(trackGainN);
-			//popularity.ArtistPopularity = ((int?)from.Attribute(artistpopularityN)) ?? 0;
-			//popularity.TitlePopularity = ((int?)from.Attribute(titlepopularityN)) ?? 0;
+			int? aPop = (int?)from.Attribute(artistpopularityN);
+			int? tPop = (int?)from.Attribute(titlepopularityN);
+
+			//if (aPop.HasValue || popEst == null) {
+			popularity.ArtistPopularity = aPop ?? 0;
+			popularity.TitlePopularity = tPop ?? 0;
+			//} else {
+			//    popularity = popEst.EstimatePopularity(artist, title);
+			//}
 
 			long? lastmodifiedTicks = (long?)from.Attribute(lastmodifiedTicksN);
 			if (lastmodifiedTicks.HasValue) lastWriteTime = new DateTime(lastmodifiedTicks.Value, DateTimeKind.Utc);
@@ -125,8 +137,12 @@ namespace SongDataLib {
 				 coreOnly && artist == null ? new XAttribute("label", HumanLabel) : null,
 				 MakeAttributeOrNull(ratingN, rating),
 				 MakeAttributeOrNull(trackGainN, track_gain),
-				//MakeAttributeOrNull(artistpopularityN, popularity.ArtistPopularity),
-				//MakeAttributeOrNull(titlepopularityN, popularity.TitlePopularity),
+				 coreOnly
+				 ? MakeAttributeOrNull(artistpopularityN, Math.Sqrt(popularity.ArtistPopularity / 350000.0))
+				 : MakeAttributeOrNull(artistpopularityN, popularity.ArtistPopularity),
+				 coreOnly
+				 ? MakeAttributeOrNull(titlepopularityN, popularity.TitlePopularity / Math.Max(1.0, popularity.ArtistPopularity * 0.95 + 0.05 * 365000))
+				 : MakeAttributeOrNull(titlepopularityN, popularity.TitlePopularity),
 				 coreOnly ? null : MakeAttributeOrNull(lastmodifiedTicksN, lastWriteTime == default(DateTime) ? default(long?) : lastWriteTime.Ticks)
 			);
 		}

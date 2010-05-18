@@ -28,6 +28,7 @@ namespace SongDataLib {
 
 		protected static XAttribute MakeAttributeOrNull(XName attrname, object data) { return data == null ? null : new XAttribute(attrname, data); }
 		protected static XAttribute MakeAttributeOrNull(XName attrname, int data) { return data == 0 ? null : new XAttribute(attrname, data); }
+		protected static XAttribute MakeAttributeOrNull(XName attrname, double data) { return data == 0.0 ? null : new XAttribute(attrname, data); }
 
 		public MinimalSongData(Uri songuri, bool? mustBeLocal) {
 			if (songuri == null) throw new ArgumentNullException("songuri");
