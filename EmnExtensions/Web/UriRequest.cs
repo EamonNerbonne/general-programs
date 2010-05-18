@@ -6,10 +6,8 @@ using System.Net;
 using System.IO;
 using System.Globalization;
 
-namespace EmnExtensions.Web
-{
-	public class UriRequest
-	{
+namespace EmnExtensions.Web {
+	public class UriRequest {
 		public byte[] Content { get; private set; }
 		public Uri Uri { get; private set; }
 		public string EncodingName { get; private set; }
@@ -21,11 +19,13 @@ namespace EmnExtensions.Web
 
 		private UriRequest() { }
 		static readonly Encoding FallbackEncoding = Encoding.UTF8;
-		public static UriRequest Execute(Uri uri, CookieContainer cookies = null, Uri referer = null) {
+		public static UriRequest Execute(Uri uri, CookieContainer cookies = null, Uri referer = null, string UserAgent = null, string PostData=null) {
 			if (uri.Scheme.ToUpperInvariant() != "HTTP")
 				throw new ArgumentException(string.Format(CultureInfo.InvariantCulture, "Scheme \"{0}\" is unknown in Uri \"{1}\".", uri.Scheme, uri));
 
 			var request = (HttpWebRequest)WebRequest.Create(uri);
+			if (UserAgent != null)
+				request.UserAgent = UserAgent;
 			request.CookieContainer = cookies;
 			request.Referer = referer == null ? null : referer.ToString();
 			//request.AllowAutoRedirect = true;//this is the default
@@ -33,14 +33,23 @@ namespace EmnExtensions.Web
 			request.Headers["Accept-Language"] = "en-US,en;q=0.8";
 			request.Headers["Accept-Charset"] = "utf-8,ISO-8859-1;q=0.7,*;q=0.3";
 			request.Headers["Accept-Encoding"] = "gzip,deflate";
-			request.UserAgent = "Mozilla/5.0 (Windows; U; Windows NT 6.1; en-US)";
+			//request.UserAgent = "Mozilla/5.0 (Windows; U; Windows NT 6.1; en-US)";
 			request.AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate;
+			if (PostData != null) {
+				request.Method = "POST";
+				request.ContentType = "application/x-www-form-urlencoded";
+
+				byte[] contentBytes = FallbackEncoding.GetBytes(PostData);
+				request.ContentLength = contentBytes.Length;
+				using (var reqStream = request.GetRequestStream())
+					reqStream.Write(contentBytes, 0, contentBytes.Length);
+			}
 
 			UriRequest retval = new UriRequest { Uri = uri };
 
 			using (var response = request.GetResponse()) {
 				var httpResponse = (HttpWebResponse)response;
-				
+
 				string encodingName = httpResponse.ContentEncoding;
 				if (string.IsNullOrEmpty(encodingName))
 					encodingName = httpResponse.CharacterSet;
