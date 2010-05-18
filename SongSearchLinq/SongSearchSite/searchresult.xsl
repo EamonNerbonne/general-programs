@@ -19,9 +19,9 @@
           </colgroup>
           <thead>
             <tr>
+              <th>Rating</th>
               <th>Artist</th>
               <th>Title</th>
-              <th>Rating</th>
               <th>Time</th>
               <th>#</th>
               <th>Album</th>
@@ -81,6 +81,28 @@
     <tr data-href="{@songuri}" data-label="{$songlabel}" data-length="{@length}" data-replaygain="{@Tgain}">
       <xsl:choose>
         <xsl:when test="@artist">
+          <td >
+            <div style="position:relative; width:5em;top:0;left:0;background:none;">
+              <div style="position:relative; z-index:1;">
+              <xsl:if test="@rating">
+                <xsl:call-template name="stars">
+                  <xsl:with-param name="num" select="number(@rating) "/>
+                </xsl:call-template>
+              </xsl:if>
+              <xsl:if test="not(@rating)">
+                &#160;
+              </xsl:if>
+              </div>
+              <xsl:if test="@popA">
+                <xsl:variable name="width" select="number(@popA) *5"/>
+                <div class="popAbar" style="width: {$width}em"/>
+              </xsl:if>
+              <xsl:if test="@popT">
+                <xsl:variable name="width" select="number(@popT) *5"/>
+                <div class="popTbar" style="width: {$width}em"/>
+              </xsl:if>
+            </div>
+          </td>
           <td>
             <xsl:call-template name="stringNoEllipses">
               <xsl:with-param name="str" select="@artist"/>
@@ -90,13 +112,6 @@
             <xsl:call-template name="stringNoEllipses">
               <xsl:with-param name="str" select="@title"/>
             </xsl:call-template>
-          </td>
-          <td>
-            <xsl:if test="@rating">
-              <xsl:call-template name="stars">
-                <xsl:with-param name="num" select="number(@rating) "/>
-              </xsl:call-template>
-            </xsl:if>
           </td>
           <td  style="text-align:right;padding-right:0.5em;">
             <xsl:call-template name="stringNoEllipses">

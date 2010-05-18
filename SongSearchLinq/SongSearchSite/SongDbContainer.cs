@@ -100,6 +100,7 @@ namespace SongSearchSite {
 				tools = new LastFmTools(dcf);
 
 				var allSongs = tools.DB.Songs;
+				allSongs.Sort((a, b) => b.popularity.TitlePopularity.CompareTo(a.popularity.TitlePopularity));
 				Parallel.Invoke(
 					() => { fuzzySearcher = new FuzzySongSearcher(allSongs); },
 					() => { searchEngine = new SearchableSongDB(new SongDB(allSongs), new SuffixTreeSongSearcher()); },
