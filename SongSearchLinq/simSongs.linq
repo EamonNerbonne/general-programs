@@ -19,8 +19,13 @@ var tools = new LastFmTools();
 var simLookup = tools.SimilarSongs;
 var db = simLookup.backingDB;
 
-var songs = tools.DB.Songs.Select(song=>song.artist).Distinct().Count().Dump();
+var songs = tools.DB.Songs
+.Where(song=>song.artist =="The Beatles" && !song.SongUri.LocalPath.EndsWith(".mpc")).Dump();
+//.Where(song=>song.popularity.TitlePopularity<0).Take(1000).Dump(); 
+//.Where(song=>song.popularity.ArtistPopularity>350000).Dump(); 
+//.Select(song=>song.popularity.TitlePopularity).Max().Dump();
+//.Count(pop=>pop>200000).Dump();
 //db.LookupTrack.Execute(new TrackId(1149200)).Dump();
-simLookup.LookupTopTracks("Lady Gaga").Dump();
+//simLookup.LookupTopTracks("Lady Gaga").Dump();
 //simLookup.Lookup(SongRef.Create("Stereo Total","Ringo, I Love you")).Dump();
 //TrackId: 1149163
