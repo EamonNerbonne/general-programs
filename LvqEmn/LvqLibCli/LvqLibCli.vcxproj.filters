@@ -14,10 +14,10 @@
     <ClCompile Include="LvqDataSetCli.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="LvqWrapper.cpp">
+    <ClCompile Include="Stdafx.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Stdafx.cpp">
+    <ClCompile Include="LvqModelCli.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -28,13 +28,13 @@
     <ClInclude Include="LvqDataSetCli.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="LvqWrapper.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Stdafx.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="WrappingUtils.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="LvqModelCli.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

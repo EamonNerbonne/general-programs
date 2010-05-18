@@ -6,7 +6,7 @@ using namespace System;
 
 namespace LvqLibCli {
 
-	public ref class LvqWrapper
+	public ref class LvqModelCli
 	{
 		LvqDataSetCli^ dataset;
 		CAutoNativePtr<AbstractProjectionLvqModel> model;
@@ -22,9 +22,9 @@ namespace LvqLibCli {
 			modelCopy = newCopy;
 		}
 
-		!LvqWrapper();
+		!LvqModelCli();
 	public:
-		LvqWrapper(LvqDataSetCli^ dataset, int protosPerClass, bool useGsm);
+		LvqModelCli(LvqDataSetCli^ dataset, int protosPerClass, bool useGsm);
 		property Object^ UpdateSyncObject { Object ^ get(){return mainSync;} }
 		double ErrorRate();
 		array<double,2>^ CurrentProjection();

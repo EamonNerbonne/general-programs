@@ -174,7 +174,7 @@ namespace LVQeamon
 		private void StartLvq(LvqDataSetCli newDataset, int protosPerClass, bool useGsm, LvqDataSetCli testDataset = null)
 		{
 			LvqDataSet = newDataset;
-			LvqModel = new LvqWrapper(newDataset, protosPerClass, useGsm);
+			LvqModel = new LvqModelCli(newDataset, protosPerClass, useGsm);
 			needUpdate = true;
 			UpdateDisplay();
 		}
@@ -204,7 +204,7 @@ namespace LVQeamon
 				foreach (var pointGroup in projectedPointsByLabel)
 					((IPlotWriteable<Point[]>)plotControl.Graphs[pointGroup.Key]).Data = pointGroup.Value;
 				((IPlotWriteable<Point[]>)plotControl.Graphs[LvqModel.TrainingSet.ClassCount + 1]).Data = prototypePositions;
-				((IPlotWriteable<LvqWrapper>)plotControl.Graphs[LvqModel.TrainingSet.ClassCount]).TriggerDataChanged();
+				((IPlotWriteable<LvqModelCli>)plotControl.Graphs[LvqModel.TrainingSet.ClassCount]).TriggerDataChanged();
 			}));
 		}
 
@@ -224,7 +224,7 @@ namespace LVQeamon
 				}
 				plotControl.AutoPickColors();
 
-				plotControl.Graphs.Add(PlotData.Create(default(LvqWrapper), UpdateClassBoundaries));
+				plotControl.Graphs.Add(PlotData.Create(default(LvqModelCli), UpdateClassBoundaries));
 				var prototypePositions = PlotData.Create(new Point[] { });
 				prototypePositions.ZIndex = 1;
 				var prototypePositionsVisualizer = new EmnExtensions.Wpf.Plot.VizEngines.VizPixelScatterGeom();
@@ -234,7 +234,7 @@ namespace LVQeamon
 			}));
 		}
 
-		void UpdateClassBoundaries(WriteableBitmap bmp, Matrix dataToBmp, int width, int height, LvqWrapper ignore)
+		void UpdateClassBoundaries(WriteableBitmap bmp, Matrix dataToBmp, int width, int height, LvqModelCli ignore)
 		{
 #if DEBUG
 			int renderwidth = (width + 7) / 8;
@@ -292,7 +292,7 @@ namespace LVQeamon
 
 		//object lvqSync = new object();
 		volatile bool needUpdate = false;
-		LvqWrapper LvqModel;
+		LvqModelCli LvqModel;
 
 		LvqDataSetCli LvqDataSet;
 

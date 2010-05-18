@@ -1,13 +1,13 @@
 #include "stdafx.h"
 
-#include "LvqWrapper.h"
+#include "LvqModelCli.h"
 #include "G2mLvqModel.h"
 #include "GsmLvqModel.h"
 #include "WrappingUtils.h"
 
 namespace LvqLibCli {
 
-	LvqWrapper::LvqWrapper(LvqDataSetCli^ dataset, int protosPerClass, bool useGsm)
+	LvqModelCli::LvqModelCli(LvqDataSetCli^ dataset, int protosPerClass, bool useGsm)
 		: dataset(dataset)
 		, model(NULL)
 		, modelCopy(NULL)
@@ -36,19 +36,19 @@ namespace LvqLibCli {
 		GC::AddMemoryPressure(nativeAllocEstimate);
 	}
 
-	LvqWrapper::!LvqWrapper() {GC::RemoveMemoryPressure(nativeAllocEstimate);}
+	LvqModelCli::!LvqModelCli() {GC::RemoveMemoryPressure(nativeAllocEstimate);}
 
-	double LvqWrapper::ErrorRate() { 
+	double LvqModelCli::ErrorRate() { 
 		msclr::lock l(backupSync);
 		return dataset->GetDataSet()->ErrorRate(modelCopy); 
 	}
 
-	array<double,2>^ LvqWrapper::CurrentProjection() { 
+	array<double,2>^ LvqModelCli::CurrentProjection() { 
 		msclr::lock l(backupSync);
 		return cppToCli(dataset->GetDataSet()->ProjectPoints(modelCopy)); 
 	}
 
-	array<int,2>^ LvqWrapper::ClassBoundaries(double x0, double x1, double y0, double y1,int xCols, int yRows) {
+	array<int,2>^ LvqModelCli::ClassBoundaries(double x0, double x1, double y0, double y1,int xCols, int yRows) {
 		MatrixXi classDiagram(yRows,xCols);
 		{
 			msclr::lock l(backupSync);
@@ -57,13 +57,13 @@ namespace LvqLibCli {
 		return cppToCli(classDiagram.transpose());
 	}
 
-	void LvqWrapper::TrainEpoch(int epochsToDo) {
+	void LvqModelCli::TrainEpoch(int epochsToDo) {
 		msclr::lock l(mainSync);
 		dataset->GetDataSet()->TrainModel(epochsToDo,  *rnd, model);
 		BackupModel();
 	}
 	
-	Tuple<array<double,2>^, array<int>^>^ LvqWrapper:: PrototypePositions() {
+	Tuple<array<double,2>^, array<int>^>^ LvqModelCli:: PrototypePositions() {
 		msclr::lock l(backupSync);
 		return Tuple::Create(cppToCli( modelCopy->GetProjectedPrototypes()), cppToCli(modelCopy->GetPrototypeLabels()));
 	}

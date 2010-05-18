@@ -107,8 +107,8 @@ namespace LvqGui {
 		private void _propertyChanged(String propertyName) { if (PropertyChanged != null) PropertyChanged(this, new PropertyChangedEventArgs(propertyName)); }
 
 
-		//public LvqWrapper CreateModel(uint globalPS, uint globalIS) {
-		//    new LvqWrapper(
+		//public LvqModelCli CreateModel(uint globalPS, uint globalIS) {
+		//    new LvqModelCli(
 		//}
 	}
 }
