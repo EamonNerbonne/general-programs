@@ -27,8 +27,26 @@ public:
 	static operator T*(GcAutoPtr<T>% gcPtr) { return gcPtr.ptr; }
 };
 
+template<typename T> ref class GcPlainPtr sealed {
+	T*  ptr;
+public:
+	GcPlainPtr(T*ptr): ptr(ptr) { GC::AddMemoryPressure(sizeof(T)); }
+
+	!GcPlainPtr() { GC::RemoveMemoryPressure(sizeof(T)); delete ptr; ptr= nullptr;	}
+
+	~GcPlainPtr() { this->!GcPlainPtr();} //mostly just to avoid C4461
+
+	T* get() {return ptr;}
+
+	static T* operator->(GcPlainPtr<T>% gcPtr) { return gcPtr.ptr;}
+	static operator T*(GcPlainPtr<T>% gcPtr) { return gcPtr.ptr; }
+};
+
 class GcPtr {
 public:
 	template<typename T>
 	static GcAutoPtr<T>^ Create(T* ptr, size_t size) {return gcnew GcAutoPtr<T>(ptr,size);}
+
+	template<typename T>
+	static GcAutoPtr<T>^ Create(T* ptr) {return gcnew GcAutoPtr<T>(ptr,ptr->MemAllocEstimate());}
 };

@@ -15,8 +15,8 @@ namespace LvqLibCli {
 		, modelType(modelType)
 		, model(nullptr)
 		, modelCopy(nullptr)
-		, rngParam(new mt19937(paramSeed), sizeof(mt19937))
-		, rngIter(new mt19937(iterSeed), sizeof(mt19937))
+		, rngParam(new mt19937(paramSeed))
+		, rngIter(new mt19937(iterSeed))
 		, mainSync(gcnew Object())
 		, backupSync(gcnew Object())
 	{ }
@@ -39,7 +39,7 @@ namespace LvqLibCli {
 		else if(modelType == LvqModelCli::G2M_TYPE)
 			newmodel = new G2mLvqModel(*rngParam, true, protoDistrib, trainingSet->GetDataSet()->ComputeClassMeans()); 
 		else return;
-		model =GcPtr::Create(newmodel,newmodel->MemAllocEstimate());
+		model = GcPtr::Create(newmodel);
 
 		BackupModel();
 	}

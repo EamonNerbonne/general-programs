@@ -42,10 +42,9 @@ namespace LvqGui {
 
 		public int ClassCount {
 			get { return _ClassCount; }
-			set { if (!_ClassCount.Equals(value)) { _ClassCount = value; _propertyChanged("ClassCount"); } }
+			set { if (value < 2) throw new ArgumentException("Need at least 2 classes to meaningfully classify"); if (!_ClassCount.Equals(value)) { _ClassCount = value; _propertyChanged("ClassCount"); } }
 		}
 		private int _ClassCount;
-
 
 
 		public int Dimensions {
@@ -91,6 +90,7 @@ namespace LvqGui {
 			_Dimensionality = 2;
 			_Dimensions = 50;
 			_PrototypesPerClass = 3;
+			_ClassCount = 3;
 			this.Reseed();
 		}
 

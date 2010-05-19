@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Configuration;
 using System.Linq;
 using System.Windows;
+using LvqGui;
 
 namespace LVQeamon
 {
@@ -16,6 +17,8 @@ namespace LVQeamon
 			//win2.Show();
 			var win1 = new MainWindow();
 			win1.Show();
+
+			new LvqWindow().Show();
 		}
 	}
 }
