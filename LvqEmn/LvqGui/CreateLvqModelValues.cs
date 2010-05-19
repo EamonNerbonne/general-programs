@@ -9,6 +9,10 @@ namespace LvqGui {
 	public enum ModelType { G2m = 0, Gsm = 1, Gm = 2 }
 
 	public class CreateLvqModelValues : INotifyPropertyChanged, IHasSeed {
+		readonly LvqWindowValues owner;
+		public event PropertyChangedEventHandler PropertyChanged;
+		private void _propertyChanged(String propertyName) { if (PropertyChanged != null) PropertyChanged(this, new PropertyChangedEventArgs(propertyName)); }
+
 
 		public int ClassCount {
 			get { return _ClassCount; }
@@ -55,14 +59,6 @@ namespace LvqGui {
 		}
 		private uint _Seed;
 
-		public CreateLvqModelValues() {
-			_ModelType = ModelType.G2m;
-			_Dimensionality = 2;
-			_Dimensions = 50;
-			_PrototypesPerClass = 3;
-			_ClassCount = 3;
-			this.Reseed();
-		}
 
 		public string CreateLabel() {
 			return ModelType.ToString()
@@ -72,10 +68,16 @@ namespace LvqGui {
 				+ "*" + PrototypesPerClass;
 		}
 
-		public event PropertyChangedEventHandler PropertyChanged;
 
-		private void _propertyChanged(String propertyName) { if (PropertyChanged != null) PropertyChanged(this, new PropertyChangedEventArgs(propertyName)); }
-
+		public CreateLvqModelValues(LvqWindowValues owner) {
+			this.owner = owner;
+			_ModelType = ModelType.G2m;
+			_Dimensionality = 2;
+			_Dimensions = 50;
+			_PrototypesPerClass = 3;
+			_ClassCount = 3;
+			this.Reseed();
+		}
 
 		public LvqModelCli CreateModel(uint globalPS, uint globalIS) {
 			return new LvqModelCli(

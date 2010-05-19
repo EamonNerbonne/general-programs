@@ -8,6 +8,8 @@ using EmnExtensions.MathHelpers;
 namespace LvqGui {
 
 	public class AppSettingsValues : INotifyPropertyChanged {
+		readonly LvqWindowValues owner;
+
 		public event PropertyChangedEventHandler PropertyChanged;
 		private void _propertyChanged(String propertyName) { if (PropertyChanged != null) PropertyChanged(this, new PropertyChangedEventArgs(propertyName)); }
 
@@ -35,7 +37,8 @@ namespace LvqGui {
 		}
 		private bool _ShowGridLines;
 
-		public AppSettingsValues() {
+		public AppSettingsValues(LvqWindowValues owner) {
+			this.owner = owner;
 			GlobalInstSeed = RndHelper.MakeSecureUInt();
 			GlobalParamSeed = RndHelper.MakeSecureUInt();
 		}

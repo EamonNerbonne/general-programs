@@ -147,7 +147,6 @@
     </Compile>
     <Compile Include="CreateDataSetStarValues.cs" />
     <Compile Include="CreateDataSetValues.cs" />
-    <Compile Include="CreateGaussianCloud.cs" />
     <Compile Include="CreateLvqModel.xaml.cs">
       <DependentUpon>CreateLvqModel.xaml</DependentUpon>
     </Compile>

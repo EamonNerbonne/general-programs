@@ -8,8 +8,8 @@ using LvqLibCli;
 namespace LvqGui {
 
 	public class CreateDataSetValues : INotifyPropertyChanged, IHasSeed {
+		readonly LvqWindowValues owner;
 		public event PropertyChangedEventHandler PropertyChanged;
-
 		private void _propertyChanged(String propertyName) { if (PropertyChanged != null) PropertyChanged(this, new PropertyChangedEventArgs(propertyName)); }
 
 		public int Dimensions {
@@ -46,7 +46,8 @@ namespace LvqGui {
 			return "ds-" + Dimensions + "D-" + NumberOfClasses + "*" + PointsPerClass + ":" + ClassCenterDeviation.ToString("f1");
 		}
 
-		public CreateDataSetValues() {
+		public CreateDataSetValues(LvqWindowValues owner) {
+			this.owner = owner;
 			_PointsPerClass = 2000;
 			_NumberOfClasses = 3;
 			_Dimensions = 16;
@@ -54,16 +55,17 @@ namespace LvqGui {
 			this.Reseed();
 		}
 
-		public LvqDataSetCli CreateDataset(uint globalPS, uint globalIS) {
+		LvqDataSetCli CreateDataset() {
 			return LvqDataSetCli.ConstructGaussianClouds(CreateLabel(),
-			rngParamsSeed: SeedUtils.MakeSeedFunc(new[] { Seed, globalPS }),
-			rngInstSeed: SeedUtils.MakeSeedFunc(new[] { Seed, globalIS }),
+				rngParamsSeed: this.MakeParamsSeed(owner),
+				rngInstSeed: this.MakeInstSeed(owner),
 				dims: Dimensions,
 				classCount: NumberOfClasses,
 				pointsPerClass: PointsPerClass,
 				meansep: ClassCenterDeviation
 				);
-			//TODO:use instance seed.
 		}
+
+		
 	}
 }

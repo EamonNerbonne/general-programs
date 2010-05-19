@@ -8,6 +8,7 @@ using System.ComponentModel;
 namespace LvqGui {
 
 	public class CreateDataSetStarValues : INotifyPropertyChanged, IHasSeed {
+		readonly LvqWindowValues owner;
 
 		public event PropertyChangedEventHandler PropertyChanged;
 
@@ -73,7 +74,8 @@ namespace LvqGui {
 			return "star-" + Dimensions + "D-" + NumberOfClasses + "*" + PointsPerClass + ":" + NumberOfClusters + "(" + ClusterDimensionality + "D" + (RandomlyTransformFirst ? "?" : "") + ")*" + ClusterCenterDeviation.ToString("f1") + "~" + IntraClusterClassRelDev.ToString("f1");
 		}
 
-		public CreateDataSetStarValues() {
+		public CreateDataSetStarValues(LvqWindowValues owner) {
+			this.owner = owner;
 			_ClusterCenterDeviation = 2.5;
 			_ClusterDimensionality = 2;
 			_Dimensions = 50;
@@ -85,10 +87,10 @@ namespace LvqGui {
 			this.Reseed();
 		}
 
-		public LvqDataSetCli CreateDataset(uint globalPS, uint globalIS) {
+		public LvqDataSetCli CreateDataset() {
 			return LvqDataSetCli.ConstructStarDataset(CreateLabel(),
-			rngParamsSeed: SeedUtils.MakeSeedFunc(new[] { Seed, globalPS }),
-			rngInstSeed: SeedUtils.MakeSeedFunc(new[] { Seed, globalIS }),
+				rngParamsSeed: this.MakeParamsSeed(owner),
+				rngInstSeed: this.MakeInstSeed(owner),
 				dims: Dimensions,
 				starDims: ClusterDimensionality,
 				numStarTails: NumberOfClusters,
@@ -97,7 +99,6 @@ namespace LvqGui {
 				starMeanSep: ClusterCenterDeviation,
 				starClassRelOffset: IntraClusterClassRelDev);
 			//TODO:randomTransform option.
-			//TODO:use instance seed.
 		}
 	}
 }

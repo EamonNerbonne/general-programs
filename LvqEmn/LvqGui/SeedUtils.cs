@@ -9,5 +9,14 @@ namespace LvqGui {
 			int i = 0;
 			return () => i < seeds.Length ? seeds[i++] : 0;
 		}
+
+		public static Func<uint> MakeInstSeed(this IHasSeed hasSeed, LvqWindowValues owner) {
+			return MakeSeedFunc(new uint[] { hasSeed.Seed, owner.AppSettingsValues.GlobalInstSeed });
+		}
+
+		public static Func<uint> MakeParamsSeed(this IHasSeed hasSeed, LvqWindowValues owner) {
+			return MakeSeedFunc(new uint[] { hasSeed.Seed, owner.AppSettingsValues.GlobalParamSeed });
+		}
+
 	}
 }
