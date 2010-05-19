@@ -18,15 +18,13 @@ using LvqLibCli;
 using Microsoft.Win32;
 using System.Diagnostics;
 
-namespace LVQeamon
-{
+namespace LVQeamon {
 	/// <summary>
 	/// Interaction logic for MainWindow.xaml
 	/// </summary>
 	public partial class MainWindow : Window// Window
 	{
-		public MainWindow()
-		{
+		public MainWindow() {
 			//this.WindowStyle = WindowStyle.None;
 			//this.AllowsTransparency = true; 
 			BorderBrush = Brushes.White;
@@ -60,13 +58,10 @@ namespace LVQeamon
 		private void textBoxStarRelDistance_TextChanged(object sender, TextChangedEventArgs e) { DataVerifiers.VerifyTextBox((TextBox)sender, DataVerifiers.IsDoublePositive); }
 		public double? StarRelDistance { get { return textBoxStarRelDistance.Text.ParseAsDouble(); } }
 
-		private void buttonGeneratePointClouds_Click(object sender, RoutedEventArgs e)
-		{
-			try
-			{
+		private void buttonGeneratePointClouds_Click(object sender, RoutedEventArgs e) {
+			try {
 
-				if (!NumberOfSets.HasValue || !PointsPerSet.HasValue)
-				{
+				if (!NumberOfSets.HasValue || !PointsPerSet.HasValue) {
 					Console.WriteLine("Invalid initialization values");
 					return;
 				}
@@ -78,17 +73,14 @@ namespace LVQeamon
 				double stddevmeans = StddevMeans.Value;
 				bool useGsm = checkBoxLvqGsm.IsChecked ?? false;
 				SetupDisplay(numSets);
-				ThreadPool.QueueUserWorkItem((ignore) =>
-				{
+				ThreadPool.QueueUserWorkItem((ignore) => {
 					LvqDataSetCli dataset = DTimer.TimeFunc(() => LvqDataSetCli.ConstructGaussianClouds("oldstyle-dataset",
-						RndHelper.MakeSecureUInt,RndHelper.MakeSecureUInt, dims, numSets, pointsPerSet, stddevmeans), "Constructing dataset");
+						RndHelper.MakeSecureUInt, RndHelper.MakeSecureUInt, dims, numSets, pointsPerSet, stddevmeans), "Constructing dataset");
 
 					Console.WriteLine("RngUsed: " + RndHelper.usages);
 					StartLvq(dataset, protoCount, useGsm);
 				}, 0);
-			}
-			catch (Exception ex)
-			{
+			} catch (Exception ex) {
 				Console.WriteLine("Error occured!");
 				Console.WriteLine(ex);
 				Console.WriteLine("\nerror ignored.");
@@ -96,13 +88,10 @@ namespace LVQeamon
 		}
 
 
-		private void buttonGenerateStar_Click(object sender, RoutedEventArgs e)
-		{
-			try
-			{
+		private void buttonGenerateStar_Click(object sender, RoutedEventArgs e) {
+			try {
 
-				if (!NumberOfSets.HasValue || !PointsPerSet.HasValue)
-				{
+				if (!NumberOfSets.HasValue || !PointsPerSet.HasValue) {
 					Console.WriteLine("Invalid initialization values");
 					return;
 				}
@@ -118,8 +107,7 @@ namespace LVQeamon
 
 				SetupDisplay(numSets);
 
-				ThreadPool.QueueUserWorkItem((ignore) =>
-				{
+				ThreadPool.QueueUserWorkItem((ignore) => {
 
 					LvqDataSetCli dataset =
 						DTimer.TimeFunc(() => LvqDataSetCli.ConstructStarDataset("oldstyle-dataset",
@@ -128,41 +116,32 @@ namespace LVQeamon
 					StartLvq(dataset, protoCount, useGsm);
 				}, 0);
 
-			}
-			catch (Exception ex)
-			{
+			} catch (Exception ex) {
 				Console.WriteLine("Error occured!");
 				Console.WriteLine(ex);
 				Console.WriteLine("\nerror ignored.");
 			}
 		}
 
-		private void buttonLoadData_Click(object sender, RoutedEventArgs e)
-		{
+		private void buttonLoadData_Click(object sender, RoutedEventArgs e) {
 			int protoCount = ProtoCount.Value;
 			bool useGsm = checkBoxLvqGsm.IsChecked ?? false;
 
-			var fileOpenThread = new Thread(() =>
-			{
+			var fileOpenThread = new Thread(() => {
 				OpenFileDialog dataFileOpenDialog = new OpenFileDialog();
 				//dataFileOpenDialog.Filter = "*.data";
 
-				if (dataFileOpenDialog.ShowDialog() == true)
-				{
+				if (dataFileOpenDialog.ShowDialog() == true) {
 					FileInfo selectedFile = new FileInfo(dataFileOpenDialog.FileName);
 					FileInfo labelFile = new FileInfo(selectedFile.Directory + @"\" + Path.GetFileNameWithoutExtension(selectedFile.Name) + ".label");
 					FileInfo dataFile = new FileInfo(selectedFile.Directory + @"\" + Path.GetFileNameWithoutExtension(selectedFile.Name) + ".data");
-					if (dataFile.Exists && labelFile.Exists)
-					{
-						try
-						{
+					if (dataFile.Exists && labelFile.Exists) {
+						try {
 							var pointclouds = DataSetLoader.LoadDataset(dataFile, labelFile);
 							SetupDisplay(pointclouds.Item3);
 							var dataset = LvqDataSetCli.ConstructFromArray(dataFile.Name, pointclouds.Item1, pointclouds.Item2, pointclouds.Item3);
 							StartLvq(dataset, protoCount, useGsm);
-						}
-						catch (FileFormatException fe)
-						{
+						} catch (FileFormatException fe) {
 							Console.WriteLine("Can't load file: {0}", fe.ToString());
 						}
 					}
@@ -173,54 +152,60 @@ namespace LVQeamon
 			fileOpenThread.Start();
 		}
 
-		private void StartLvq(LvqDataSetCli newDataset, int protosPerClass, bool useGsm, LvqDataSetCli testDataset = null)
-		{
-			LvqDataSet = newDataset;
-			LvqModel = new LvqModelCli("oldmodel", RndHelper.MakeSecureUInt, RndHelper.MakeSecureUInt, newDataset.Dimensions, newDataset.ClassCount, protosPerClass, useGsm ? LvqModelCli.GSM_TYPE : LvqModelCli.G2M_TYPE);
-			//LvqModel
-			needUpdate = true;
-			UpdateDisplay();
+		private void StartLvq(LvqDataSetCli newDataset, int protosPerClass, bool useGsm, LvqDataSetCli testDataset = null) {
+			lock (updateDispSync)
+			lock (lvqSync) {
+				LvqDataSet = newDataset;
+				LvqModel = new LvqModelCli("oldmodel", RndHelper.MakeSecureUInt, RndHelper.MakeSecureUInt, newDataset.Dimensions, newDataset.ClassCount, protosPerClass, useGsm ? LvqModelCli.GSM_TYPE : LvqModelCli.G2M_TYPE);
+				LvqModel.Init(LvqDataSet);
+				//LvqModel
+				UpdateDisplay();
+			}
 		}
 
-		private void UpdateDisplay()
-		{
-			if (!needUpdate)
-				return;
-			double[,] currPoints = LvqModel.CurrentProjectionOf(LvqDataSet);
-			if (currPoints == null) return;//model not initialized
+		object updateDispSync = new object();
+		volatile bool updateQueued = false;
 
-			int[] labels = LvqDataSet.ClassLabels();
-			Dictionary<int, Point[]> projectedPointsByLabel =
-				labels
-				.Select((label, i) => new { Label = label, Point = new Point(currPoints[i, 0], currPoints[i, 1]) })
-				.GroupBy(labelledPoint => labelledPoint.Label, labelledPoint => labelledPoint.Point)
-				.ToDictionary(group => group.Key, group => group.ToArray());
+		private void UpdateDisplay() {
+			if (updateQueued) return;
+			//if (!needUpdate)	return;
+			updateQueued = true;
+			lock (updateDispSync) {
+				if (!updateQueued) return;
+				updateQueued = false;
+				double[,] currPoints = LvqModel.CurrentProjectionOf(LvqDataSet);
+				if (currPoints == null) return;//model not initialized
 
-			var prototypePositionsRaw = LvqModel.PrototypePositions().Item1;
-			var prototypePositions =
-				Enumerable.Range(0, prototypePositionsRaw.GetLength(0))
-				.Select(i => new Point(prototypePositionsRaw[i, 0], prototypePositionsRaw[i, 1]))
-				.ToArray();
+				int[] labels = LvqDataSet.ClassLabels();
+				Dictionary<int, Point[]> projectedPointsByLabel =
+					labels
+					.Select((label, i) => new { Label = label, Point = new Point(currPoints[i, 0], currPoints[i, 1]) })
+					.GroupBy(labelledPoint => labelledPoint.Label, labelledPoint => labelledPoint.Point)
+					.ToDictionary(group => group.Key, group => group.ToArray());
 
+				var prototypePositionsRaw = LvqModel.PrototypePositions().Item1;
+				var prototypePositions =
+					Enumerable.Range(0, prototypePositionsRaw.GetLength(0))
+					.Select(i => new Point(prototypePositionsRaw[i, 0], prototypePositionsRaw[i, 1]))
+					.ToArray();
 
-			Dispatcher.BeginInvoke((Action)(() =>
-			{
-				needUpdate = false;
-				foreach (var pointGroup in projectedPointsByLabel)
-					((IPlotWriteable<Point[]>)plotControl.Graphs[pointGroup.Key]).Data = pointGroup.Value;
-				((IPlotWriteable<Point[]>)plotControl.Graphs[LvqDataSet.ClassCount + 1]).Data = prototypePositions;
-				((IPlotWriteable<LvqModelCli>)plotControl.Graphs[LvqDataSet.ClassCount]).TriggerDataChanged();
-			}));
+				Dispatcher.BeginInvoke((Action)(() => {
+					lock (updateDispSync) {
+						foreach (var pointGroup in projectedPointsByLabel)
+							((IPlotWriteable<Point[]>)plotControl.Graphs[pointGroup.Key]).Data = pointGroup.Value;
+						((IPlotWriteable<Point[]>)plotControl.Graphs[LvqDataSet.ClassCount + 1]).Data = prototypePositions;
+						((IPlotWriteable<LvqModelCli>)plotControl.Graphs[LvqDataSet.ClassCount]).TriggerDataChanged();
+					}
+				}), DispatcherPriority.ContextIdle);
+
+			}
 		}
 
 		struct ClassTag { public int Label; public ClassTag(int label) { Label = label; } }
-		private void SetupDisplay(int numClasses)
-		{
-			Dispatcher.BeginInvoke((Action)(() =>
-			{
+		private void SetupDisplay(int numClasses) {
+			Dispatcher.BeginInvoke((Action)(() => {
 				plotControl.Graphs.Clear();
-				for (int i = 0; i < numClasses; i++)
-				{
+				for (int i = 0; i < numClasses; i++) {
 					var plot = PlotData.Create(new Point[] { });
 					plot.Tag = new ClassTag(i);
 					plotControl.Graphs.Add(plot);
@@ -237,8 +222,7 @@ namespace LVQeamon
 			}));
 		}
 
-		void UpdateClassBoundaries(WriteableBitmap bmp, Matrix dataToBmp, int width, int height, LvqModelCli ignore)
-		{
+		void UpdateClassBoundaries(WriteableBitmap bmp, Matrix dataToBmp, int width, int height, LvqModelCli ignore) {
 #if DEBUG
 			int renderwidth = (width + 7) / 8;
 			int renderheight = (height + 7) / 8;
@@ -246,14 +230,17 @@ namespace LVQeamon
 			int renderwidth = width;
 			int renderheight = height;
 #endif
-			if (LvqModel == null)
+			var curModel = LvqModel;
+
+			if (curModel == null)
 				return;
 			Matrix bmpToData = dataToBmp;
 			bmpToData.Invert();
 			Point topLeft = bmpToData.Transform(new Point(0.0, 0.0));
 			Point botRight = bmpToData.Transform(new Point(width, height));
-			int[,] closestClass = LvqModel.ClassBoundaries(topLeft.X, botRight.X, topLeft.Y, botRight.Y, renderwidth, renderheight);
-
+			int[,] closestClass = curModel.ClassBoundaries(topLeft.X, botRight.X, topLeft.Y, botRight.Y, renderwidth, renderheight);
+			if (closestClass == null) //uninitialized
+				return;
 			uint[] nativeColor = (
 				from graph in plotControl.Graphs.Cast<IPlotWithSettings>()
 				where graph.Tag is ClassTag && graph.VizSupportsColor
@@ -268,8 +255,7 @@ namespace LVQeamon
 
 			var edges = new List<Tuple<int, int>>();
 			for (int y = 1; y < closestClass.GetLength(0) - 1; y++)
-				for (int x = 1; x < closestClass.GetLength(1) - 1; x++)
-				{
+				for (int x = 1; x < closestClass.GetLength(1) - 1; x++) {
 					if (false
 						//								closestClass[y, x] != closestClass[y + 1, x + 1]
 						|| closestClass[y, x] != closestClass[y + 1, x]
@@ -293,16 +279,12 @@ namespace LVQeamon
 			//return BitmapSource.Create(w, h, 96.0, 96.0, PixelFormats.Bgra32, null, inlinearray, w * 4);
 		}
 
-		//object lvqSync = new object();
-		volatile bool needUpdate = false;
+		object lvqSync = new object();
 		LvqModelCli LvqModel;
 
 		LvqDataSetCli LvqDataSet;
 
-
-
-		protected override void OnInitialized(EventArgs e)
-		{
+		protected override void OnInitialized(EventArgs e) {
 #if  DEBUG
 			textBoxPointsPerSet.Text = 20.ToString();
 			textBoxDims.Text = 10.ToString();
@@ -310,23 +292,19 @@ namespace LVQeamon
 			base.OnInitialized(e);
 		}
 
-		private void doEpochButton_Click(object sender, RoutedEventArgs e)
-		{
+		private void doEpochButton_Click(object sender, RoutedEventArgs e) {
 
 			int epochsTodo = EpochsPerClick ?? 1;
-			ThreadPool.QueueUserWorkItem((index) =>
-			{
-				lock (LvqModel.UpdateSyncObject)
+			ThreadPool.QueueUserWorkItem((index) => {
+				lock (lvqSync)
 					using (new DTimer("Training " + epochsTodo + " epochs"))
 						LvqModel.Train(epochsTodo, LvqDataSet);
-				needUpdate = true;
 				UpdateDisplay();
 			});
 		}
 
 		private WindowState lastState = WindowState.Normal;
-		private void checkBoxFullScreen_Checked(object sender, RoutedEventArgs e)
-		{
+		private void checkBoxFullScreen_Checked(object sender, RoutedEventArgs e) {
 			lastState = this.WindowState;
 			this.WindowState = WindowState.Normal;
 			this.WindowStyle = WindowStyle.None;
@@ -334,36 +312,37 @@ namespace LVQeamon
 			this.WindowState = WindowState.Maximized;
 		}
 
-		private void checkBoxFullScreen_Unchecked(object sender, RoutedEventArgs e)
-		{
+		private void checkBoxFullScreen_Unchecked(object sender, RoutedEventArgs e) {
 			this.Topmost = false;
 			this.WindowStyle = WindowStyle.SingleBorderWindow;
 			this.WindowState = lastState;
 		}
 
-		object aniSync=new object();
+		object aniSync = new object();
 		bool animate = false;
 		private void CheckBox_Checked(object sender, RoutedEventArgs e) {
-			lock(aniSync)
+			lock (aniSync)
 				animate = true;
 			int epochsTodo = EpochsPerClick ?? 1;
 			ThreadPool.QueueUserWorkItem(DoAniStep, epochsTodo);
 		}
 
 		void DoAniStep(object epochsTodoO) {
+			lock (aniSync) if (!animate) return;
+
 			Stopwatch t = Stopwatch.StartNew();
 			int epochsTodo = (int)epochsTodoO;
-			lock(aniSync) if (!animate) return;
-			lock (LvqModel.UpdateSyncObject)
+
+			lock (lvqSync)
 				using (new DTimer("Training " + epochsTodo + " epochs"))
 					LvqModel.Train(epochsTodo, LvqDataSet);
-			needUpdate = true;
 			UpdateDisplay();
 			Thread.Sleep((int)Math.Max(0, 16 - t.ElapsedMilliseconds));
 			Dispatcher.BeginInvoke((Action)(() => {
+
 				int epochsTodoN = EpochsPerClick ?? 1;
 				ThreadPool.QueueUserWorkItem(DoAniStep, epochsTodoN);
-			}));
+			}),DispatcherPriority.ApplicationIdle);
 		}
 
 		private void CheckBox_Unchecked(object sender, RoutedEventArgs e) {
