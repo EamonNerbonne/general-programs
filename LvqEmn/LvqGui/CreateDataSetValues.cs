@@ -66,6 +66,8 @@ namespace LvqGui {
 				);
 		}
 
-		public void ConfirmCreation() { owner.DataSets.Add(CreateDataset()); }
+		public void ConfirmCreation() {
+			owner.Dispatcher.BeginInvoke(owner.DataSets.Add, CreateDataset());
+		}
 	}
 }

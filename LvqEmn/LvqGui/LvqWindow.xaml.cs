@@ -21,8 +21,6 @@ namespace LvqGui {
 			InitializeComponent();
 		}
 
-
-
 		public bool Fullscreen {
 			get { return (bool)GetValue(FullscreenProperty); }
 			set { SetValue(FullscreenProperty, value); }

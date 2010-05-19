@@ -58,8 +58,8 @@ namespace LvqGui {
 		public void ConfirmCreation() {
 			var fileOpenThread = new Thread(() => {
 				var dataset = CreateDataset();
-				if(dataset!=null)
-					owner.DataSets.Add(dataset); 
+				if (dataset != null)
+					owner.Dispatcher.BeginInvoke(owner.DataSets.Add, dataset);
 			});
 			fileOpenThread.SetApartmentState(ApartmentState.STA);
 			fileOpenThread.IsBackground = true;

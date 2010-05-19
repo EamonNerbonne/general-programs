@@ -89,5 +89,12 @@ namespace LvqGui {
 				modelType: (int)ModelType
 				);
 		}
+
+		public void ConfirmCreation() {
+			var newmodel = CreateModel();
+			owner.Dispatcher.BeginInvoke(() => {
+				owner.LvqModels.Add(newmodel);
+			});
+		}
 	}
 }
