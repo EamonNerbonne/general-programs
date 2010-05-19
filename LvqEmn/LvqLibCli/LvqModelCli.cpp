@@ -8,11 +8,12 @@
 namespace LvqLibCli {
 	using boost::mt19937;
 
-	LvqModelCli::LvqModelCli(Func<unsigned int>^ paramSeed, Func<unsigned int>^ iterSeed, int dims, int classCount, int protosPerClass, int modelType)
+	LvqModelCli::LvqModelCli(String^ label,Func<unsigned int>^ paramSeed, Func<unsigned int>^ iterSeed, int dims, int classCount, int protosPerClass, int modelType)
 		: dims(dims)
 		, classCount(classCount)
 		, protosPerClass(protosPerClass)
 		, modelType(modelType)
+		, label(label)
 		, model(nullptr)
 		, modelCopy(nullptr)
 		, rngParam(new mt19937(paramSeed))
@@ -74,6 +75,7 @@ namespace LvqLibCli {
 
 	void LvqModelCli::Train(int epochsToDo,LvqDataSetCli^ trainingSet){
 		msclr::lock l(mainSync);
+		trainingSet->LastModel = this;
 		if(modelCopy==nullptr)
 			Init(trainingSet);
 

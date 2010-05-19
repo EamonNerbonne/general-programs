@@ -11,6 +11,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using System.Threading;
 
 namespace LvqGui {
 	/// <summary>
@@ -19,6 +20,12 @@ namespace LvqGui {
 	public partial class TrainingControl : UserControl {
 		public TrainingControl() {
 			InitializeComponent();
+		}
+
+		private void Button_Click(object sender, RoutedEventArgs e) {
+			ThreadPool.QueueUserWorkItem(o => {
+				((TrainingControlValues)o).ConfirmTraining();
+			}, DataContext);
 		}
 	}
 }

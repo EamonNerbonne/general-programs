@@ -90,7 +90,9 @@
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
                 <Label Grid.Row="0"  >Epochs per Click</Label>
-                <TextBox Grid.Row="0"  Grid.Column="1"  Name="textBoxEpochs" TextChanged="textBoxEpochs_TextChanged"  Text="10" />
+                <TextBox Grid.Row="0"  Grid.Column="1"  Name="textBoxEpochs" TextChanged="textBoxEpochs_TextChanged"  Text="1" />
+                
+                <CheckBox Grid.Row="1" Grid.ColumnSpan="2" Content="Animate" Checked="CheckBox_Checked" Unchecked="CheckBox_Unchecked" />
 
                 <Button Grid.Row="1" Grid.ColumnSpan="2" Content="DoEpoch"   Name="doEpochButton" Click="doEpochButton_Click" />
 

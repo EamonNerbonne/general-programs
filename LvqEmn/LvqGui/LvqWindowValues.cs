@@ -17,18 +17,21 @@ namespace LvqGui {
 		public CreateDataSetValues CreateDataSetValues { get; private set; }
 		public CreateDataSetStarValues CreateDataSetStarValues { get; private set; }
 		public CreateLvqModelValues CreateLvqModelValues { get; private set; }
+		public TrainingControlValues TrainingControlValues { get; private set; }
 
 		public ObservableCollection<LvqDataSetCli> DataSets { get; private set; }
 		public ObservableCollection<LvqModelCli> LvqModels { get; private set; }
 
 		public LvqDataSetCli LastDataSet {
 			get { return _LastDataSet; }
-			set { if (!_LastDataSet.Equals(value)) { _LastDataSet = value; _propertyChanged("LastDataSet"); } }
+			set { if (!object.Equals(_LastDataSet,value)) { _LastDataSet = value; _propertyChanged("LastDataSet"); } }
 		}
 		private LvqDataSetCli _LastDataSet;
 		public readonly Dispatcher Dispatcher;
 
 		public LvqWindowValues(Dispatcher dispatcher) {
+			if (dispatcher == null) throw new ArgumentNullException("dispatcher");
+			this.Dispatcher = dispatcher;
 			DataSets = new ObservableCollection<LvqDataSetCli>();
 			LvqModels = new ObservableCollection<LvqModelCli>();
 
@@ -36,6 +39,7 @@ namespace LvqGui {
 			CreateDataSetValues = new CreateDataSetValues(this);
 			CreateDataSetStarValues = new CreateDataSetStarValues(this);
 			CreateLvqModelValues = new CreateLvqModelValues(this);
+			TrainingControlValues = new TrainingControlValues(this);
 
 			DataSets.CollectionChanged += new System.Collections.Specialized.NotifyCollectionChangedEventHandler(DataSets_CollectionChanged);
 		}

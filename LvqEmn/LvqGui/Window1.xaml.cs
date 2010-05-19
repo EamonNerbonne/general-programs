@@ -16,6 +16,7 @@ using EmnExtensions.Wpf;
 using EmnExtensions.Wpf.Plot;
 using LvqLibCli;
 using Microsoft.Win32;
+using System.Diagnostics;
 
 namespace LVQeamon
 {
@@ -175,7 +176,7 @@ namespace LVQeamon
 		private void StartLvq(LvqDataSetCli newDataset, int protosPerClass, bool useGsm, LvqDataSetCli testDataset = null)
 		{
 			LvqDataSet = newDataset;
-			LvqModel = new LvqModelCli(RndHelper.MakeSecureUInt, RndHelper.MakeSecureUInt, newDataset.Dimensions, newDataset.ClassCount, protosPerClass, useGsm ? LvqModelCli.GSM_TYPE : LvqModelCli.G2M_TYPE);
+			LvqModel = new LvqModelCli("oldmodel", RndHelper.MakeSecureUInt, RndHelper.MakeSecureUInt, newDataset.Dimensions, newDataset.ClassCount, protosPerClass, useGsm ? LvqModelCli.GSM_TYPE : LvqModelCli.G2M_TYPE);
 			//LvqModel
 			needUpdate = true;
 			UpdateDisplay();
@@ -338,6 +339,36 @@ namespace LVQeamon
 			this.Topmost = false;
 			this.WindowStyle = WindowStyle.SingleBorderWindow;
 			this.WindowState = lastState;
+		}
+
+		object aniSync=new object();
+		bool animate = false;
+		private void CheckBox_Checked(object sender, RoutedEventArgs e) {
+			lock(aniSync)
+				animate = true;
+			int epochsTodo = EpochsPerClick ?? 1;
+			ThreadPool.QueueUserWorkItem(DoAniStep, epochsTodo);
+		}
+
+		void DoAniStep(object epochsTodoO) {
+			Stopwatch t = Stopwatch.StartNew();
+			int epochsTodo = (int)epochsTodoO;
+			lock(aniSync) if (!animate) return;
+			lock (LvqModel.UpdateSyncObject)
+				using (new DTimer("Training " + epochsTodo + " epochs"))
+					LvqModel.Train(epochsTodo, LvqDataSet);
+			needUpdate = true;
+			UpdateDisplay();
+			Thread.Sleep((int)Math.Max(0, 16 - t.ElapsedMilliseconds));
+			Dispatcher.BeginInvoke((Action)(() => {
+				int epochsTodoN = EpochsPerClick ?? 1;
+				ThreadPool.QueueUserWorkItem(DoAniStep, epochsTodoN);
+			}));
+		}
+
+		private void CheckBox_Unchecked(object sender, RoutedEventArgs e) {
+			lock (aniSync)
+				animate = false;
 		}
 	}
 }

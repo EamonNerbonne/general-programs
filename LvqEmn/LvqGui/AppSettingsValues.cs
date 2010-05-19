@@ -18,7 +18,7 @@ namespace LvqGui {
 		/// </summary>
 		public uint GlobalParamSeed {
 			get { return _GlobalParamSeed; }
-			set { if (!_GlobalParamSeed.Equals(value)) { _GlobalParamSeed = value; _propertyChanged("GlobalParamSeed"); } }
+			set { if (!object.Equals(_GlobalParamSeed,value)) { _GlobalParamSeed = value; _propertyChanged("GlobalParamSeed"); } }
 		}
 		private uint _GlobalParamSeed;
 
@@ -27,13 +27,13 @@ namespace LvqGui {
 		/// </summary>
 		public uint GlobalInstSeed {
 			get { return _GlobalInstSeed; }
-			set { if (!_GlobalInstSeed.Equals(value)) { _GlobalInstSeed = value; _propertyChanged("GlobalInstSeed"); } }
+			set { if (!object.Equals(_GlobalInstSeed,value)) { _GlobalInstSeed = value; _propertyChanged("GlobalInstSeed"); } }
 		}
 		private uint _GlobalInstSeed;
 
 		public bool ShowGridLines {
 			get { return _ShowGridLines; }
-			set { if (!_ShowGridLines.Equals(value)) { _ShowGridLines = value; _propertyChanged("ShowGridLines"); } }
+			set { if (!object.Equals(_ShowGridLines,value)) { _ShowGridLines = value; _propertyChanged("ShowGridLines"); } }
 		}
 		private bool _ShowGridLines;
 

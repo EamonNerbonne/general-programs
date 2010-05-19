@@ -17,7 +17,7 @@ namespace LvqGui {
 
 		public uint Seed {
 			get { return _Seed; }
-			set { if (!_Seed.Equals(value)) { _Seed = value; _propertyChanged("Seed"); } }
+			set { if (!object.Equals(_Seed,value)) { _Seed = value; _propertyChanged("Seed"); } }
 		}
 		private uint _Seed;
 
@@ -66,5 +66,4 @@ namespace LvqGui {
 			fileOpenThread.Start();
 		}
 	}
-
 }

@@ -24,6 +24,7 @@
             <TabItem Header="Create Dataset" Name="datasetTabs">
                 <TabControl >
                     <TabItem Header="Load Data">
+                        <my:LoadDataSet DataContext="{Binding LoadDataSetValues}"/>
                     </TabItem>
                     <TabItem Header="Gaussian Clouds">
                         <my:CreateDataSet DataContext="{Binding CreateDataSetValues}"/>
@@ -38,7 +39,7 @@
                 <my:CreateLvqModel DataContext="{Binding CreateLvqModelValues}"/>
             </TabItem>
             <TabItem Header="Train Model">
-                <my:TrainingControl/> 
+                <my:TrainingControl DataContext="{Binding TrainingControlValues}"/> 
             </TabItem>
         </TabControl>
     </Grid>

@@ -9,6 +9,7 @@ namespace LvqLibCli {
 	public ref class LvqModelCli
 	{
 		int dims,classCount,protosPerClass,modelType;
+		String^ label;
 		GcAutoPtr<AbstractProjectionLvqModel>^ model;
 		GcAutoPtr<AbstractProjectionLvqModel>^ modelCopy;
 		GcPlainPtr<boost::mt19937> rngParam, rngIter;
@@ -20,7 +21,10 @@ namespace LvqLibCli {
 			modelCopy = GcPtr::Create(newCopy);
 		}
 		public:
-		LvqModelCli(Func<unsigned int>^ rngParamsSeed, Func<unsigned int>^ rngInstSeed, int dims, int classCount, int protosPerClass,  int modelType);
+
+		property String^ ModelLabel {String^ get(){return label;}}
+
+		LvqModelCli(String^ label, Func<unsigned int>^ rngParamsSeed, Func<unsigned int>^ rngInstSeed, int dims, int classCount, int protosPerClass, int modelType);
 		void Init(LvqDataSetCli^ trainingSet);
 
 		property Object^ UpdateSyncObject { Object ^ get(){return mainSync;} }

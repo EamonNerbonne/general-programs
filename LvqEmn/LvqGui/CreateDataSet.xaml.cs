@@ -14,6 +14,7 @@ using System.Windows.Shapes;
 using System.ComponentModel;
 using EmnExtensions.MathHelpers;
 using LvqLibCli;
+using System.Threading;
 
 namespace LvqGui {
 	/// <summary>
@@ -29,6 +30,12 @@ namespace LvqGui {
 		}
 		public event Action CreateDataSetConfirmed;
 
-		private void CreateDataSetButtonPress(object sender, RoutedEventArgs e) { if (CreateDataSetConfirmed != null)	 CreateDataSetConfirmed(); }
+		private void CreateDataSetButtonPress(object sender, RoutedEventArgs e) { 
+			if (CreateDataSetConfirmed != null)	 CreateDataSetConfirmed();
+
+			ThreadPool.QueueUserWorkItem(o => {
+				((CreateDataSetValues)o).ConfirmCreation();
+			},DataContext);
+		}
 	}
 }

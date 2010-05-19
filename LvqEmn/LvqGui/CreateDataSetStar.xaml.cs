@@ -14,6 +14,7 @@ using System.Windows.Shapes;
 using System.ComponentModel;
 using EmnExtensions.MathHelpers;
 using LvqLibCli;
+using System.Threading;
 
 namespace LvqGui {
 	/// <summary>
@@ -28,6 +29,12 @@ namespace LvqGui {
 
 		public event Action CreateDataSetStarConfirmed;
 
-		private void buttonGenerateDataset_Click(object sender, RoutedEventArgs e) { if (CreateDataSetStarConfirmed != null) CreateDataSetStarConfirmed(); }
+		private void buttonGenerateDataset_Click(object sender, RoutedEventArgs e) {
+			if (CreateDataSetStarConfirmed != null) CreateDataSetStarConfirmed();
+			ThreadPool.QueueUserWorkItem(o => {
+				((CreateDataSetStarValues)o).ConfirmCreation();
+			},DataContext);
+
+		}
 	}
 }

@@ -16,6 +16,7 @@ using System.IO;
 using EmnExtensions.MathHelpers;
 using System.ComponentModel;
 using LvqLibCli;
+using System.Threading;
 
 namespace LvqGui {
 
@@ -33,6 +34,12 @@ namespace LvqGui {
 		}
 		public event Action CreateLvqModelConfirmed;
 
-		private void Button_Click_1(object sender, RoutedEventArgs e) { if (CreateLvqModelConfirmed != null) CreateLvqModelConfirmed(); }
+		private void Button_Click_1(object sender, RoutedEventArgs e) {
+			if (CreateLvqModelConfirmed != null) CreateLvqModelConfirmed();
+			ThreadPool.QueueUserWorkItem(o => {
+				((CreateLvqModelValues)o).ConfirmCreation();
+			},DataContext);
+
+		}
 	}
 }

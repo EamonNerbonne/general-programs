@@ -16,7 +16,7 @@ namespace LvqGui {
 
 		public int ClassCount {
 			get { return _ClassCount; }
-			set { if (value < 2) throw new ArgumentException("Need at least 2 classes to meaningfully classify"); if (!_ClassCount.Equals(value)) { _ClassCount = value; _propertyChanged("ClassCount"); } }
+			set { if (value < 2) throw new ArgumentException("Need at least 2 classes to meaningfully classify"); if (!object.Equals(_ClassCount,value)) { _ClassCount = value; _propertyChanged("ClassCount"); } }
 		}
 		private int _ClassCount;
 
@@ -25,7 +25,7 @@ namespace LvqGui {
 			get { return _Dimensions; }
 			set {
 				if (value < Dimensionality) throw new ArgumentException("Data dimensions must be no fewer than internal dimensions");
-				if (!_Dimensions.Equals(value)) { _Dimensions = value; _propertyChanged("Dimensions"); }
+				if (!object.Equals(_Dimensions,value)) { _Dimensions = value; _propertyChanged("Dimensions"); }
 			}
 		}
 		private int _Dimensions;
@@ -33,7 +33,7 @@ namespace LvqGui {
 
 		public ModelType ModelType {
 			get { return _ModelType; }
-			set { if (!_ModelType.Equals(value)) { if (value != LvqGui.ModelType.Gm) Dimensionality = 2; _ModelType = value; _propertyChanged("ModelType"); } }
+			set { if (!object.Equals(_ModelType,value)) { if (value != LvqGui.ModelType.Gm) Dimensionality = 2; _ModelType = value; _propertyChanged("ModelType"); } }
 		}
 		private ModelType _ModelType;
 
@@ -42,20 +42,20 @@ namespace LvqGui {
 			set {
 				if (value < 1 || value > Dimensions) throw new ArgumentException("Internal dimensionality must be between 1 and the dimensions of the data.");
 				if (_ModelType != LvqGui.ModelType.Gm && value != 2) throw new ArgumentException("2D Projection models must have exactly 2 internal dimensions.");
-				if (!_Dimensionality.Equals(value)) { _Dimensionality = value; _propertyChanged("Dimensionality"); }
+				if (!object.Equals(_Dimensionality,value)) { _Dimensionality = value; _propertyChanged("Dimensionality"); }
 			}
 		}
 		private int _Dimensionality;
 
 		public int PrototypesPerClass {
 			get { return _PrototypesPerClass; }
-			set { if (!_PrototypesPerClass.Equals(value)) { _PrototypesPerClass = value; _propertyChanged("PrototypesPerClass"); } }
+			set { if (!object.Equals(_PrototypesPerClass,value)) { _PrototypesPerClass = value; _propertyChanged("PrototypesPerClass"); } }
 		}
 		private int _PrototypesPerClass;
 
 		public uint Seed {
 			get { return _Seed; }
-			set { if (!_Seed.Equals(value)) { _Seed = value; _propertyChanged("Seed"); } }
+			set { if (!object.Equals(_Seed,value)) { _Seed = value; _propertyChanged("Seed"); } }
 		}
 		private uint _Seed;
 
@@ -80,7 +80,7 @@ namespace LvqGui {
 		}
 
 		public LvqModelCli CreateModel() {
-			return new LvqModelCli(
+			return new LvqModelCli( CreateLabel(),
 				rngParamsSeed: this.MakeParamsSeed(owner),
 				rngInstSeed: this.MakeInstSeed(owner),
 				dims: Dimensions,

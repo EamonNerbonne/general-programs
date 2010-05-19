@@ -18,55 +18,55 @@ namespace LvqGui {
 
 		public int Dimensions {
 			get { return _Dimensions; }
-			set { if (value < _ClusterDimensionality) throw new ArgumentException("Data needs at least one dimension and no fewer than the clusters' dimensions"); if (!_Dimensions.Equals(value)) { _Dimensions = value; _propertyChanged("Dimensions"); } }
+			set { if (value < _ClusterDimensionality) throw new ArgumentException("Data needs at least one dimension and no fewer than the clusters' dimensions"); if (!object.Equals(_Dimensions,value)) { _Dimensions = value; _propertyChanged("Dimensions"); } }
 		}
 		private int _Dimensions;
 
 		public int NumberOfClasses {
 			get { return _NumberOfClasses; }
-			set { if (value < 2) throw new ArgumentException("Need at least 2 classes to meaningfully train"); if (!_NumberOfClasses.Equals(value)) { _NumberOfClasses = value; _propertyChanged("NumberOfClasses"); } }
+			set { if (value < 2) throw new ArgumentException("Need at least 2 classes to meaningfully train"); if (!object.Equals(_NumberOfClasses,value)) { _NumberOfClasses = value; _propertyChanged("NumberOfClasses"); } }
 		}
 		private int _NumberOfClasses;
 
 		public int PointsPerClass {
 			get { return _PointsPerClass; }
-			set { if (value < 1) throw new ArgumentException("Need a positive number of points"); if (!_PointsPerClass.Equals(value)) { _PointsPerClass = value; _propertyChanged("PointsPerClass"); } }
+			set { if (value < 1) throw new ArgumentException("Need a positive number of points"); if (!object.Equals(_PointsPerClass,value)) { _PointsPerClass = value; _propertyChanged("PointsPerClass"); } }
 		}
 		private int _PointsPerClass;
 
 		public int NumberOfClusters {
 			get { return _NumberOfClusters; }
-			set { if (value < 1) throw new ArgumentException("Need a positive number of clusters"); if (!_NumberOfClusters.Equals(value)) { _NumberOfClusters = value; _propertyChanged("NumberOfClusters"); } }
+			set { if (value < 1) throw new ArgumentException("Need a positive number of clusters"); if (!object.Equals(_NumberOfClusters,value)) { _NumberOfClusters = value; _propertyChanged("NumberOfClusters"); } }
 		}
 		private int _NumberOfClusters;
 
 		public int ClusterDimensionality {
 			get { return _ClusterDimensionality; }
-			set { if (value < 1 || value > _Dimensions) throw new ArgumentException("Cluster dimensionality must be a positive number less than the absolute dimensionality"); if (!_ClusterDimensionality.Equals(value)) { _ClusterDimensionality = value; _propertyChanged("ClusterDimensionality"); } }
+			set { if (value < 1 || value > _Dimensions) throw new ArgumentException("Cluster dimensionality must be a positive number less than the absolute dimensionality"); if (!object.Equals(_ClusterDimensionality,value)) { _ClusterDimensionality = value; _propertyChanged("ClusterDimensionality"); } }
 		}
 		private int _ClusterDimensionality;
 
 		public double ClusterCenterDeviation {
 			get { return _ClusterCenterDeviation; }
-			set { if (value < 0.0) throw new ArgumentException("Deviation must be positive"); if (!_ClusterCenterDeviation.Equals(value)) { _ClusterCenterDeviation = value; _propertyChanged("ClusterCenterDeviation"); } }
+			set { if (value < 0.0) throw new ArgumentException("Deviation must be positive"); if (!object.Equals(_ClusterCenterDeviation,value)) { _ClusterCenterDeviation = value; _propertyChanged("ClusterCenterDeviation"); } }
 		}
 		private double _ClusterCenterDeviation;
 
 		public double IntraClusterClassRelDev {
 			get { return _IntraClusterClassRelDev; }
-			set { if (value < 0.0) throw new ArgumentException("Deviation must be positive"); if (!_IntraClusterClassRelDev.Equals(value)) { _IntraClusterClassRelDev = value; _propertyChanged("IntraClusterClassRelDev"); } }
+			set { if (value < 0.0) throw new ArgumentException("Deviation must be positive"); if (!object.Equals(_IntraClusterClassRelDev,value)) { _IntraClusterClassRelDev = value; _propertyChanged("IntraClusterClassRelDev"); } }
 		}
 		private double _IntraClusterClassRelDev;
 
 		public bool RandomlyTransformFirst {
 			get { return _RandomlyTransformFirst; }
-			set { if (!_RandomlyTransformFirst.Equals(value)) { _RandomlyTransformFirst = value; _propertyChanged("RandomlyTransformFirst"); } }
+			set { if (!object.Equals(_RandomlyTransformFirst,value)) { _RandomlyTransformFirst = value; _propertyChanged("RandomlyTransformFirst"); } }
 		}
 		private bool _RandomlyTransformFirst;
 
 		public uint Seed {
 			get { return _Seed; }
-			set { if (!_Seed.Equals(value)) { _Seed = value; _propertyChanged("Seed"); } }
+			set { if (!object.Equals(_Seed,value)) { _Seed = value; _propertyChanged("Seed"); } }
 		}
 		private uint _Seed;
 
@@ -78,11 +78,16 @@ namespace LvqGui {
 			this.owner = owner;
 			_ClusterCenterDeviation = 2.5;
 			_ClusterDimensionality = 2;
-			_Dimensions = 50;
 			_IntraClusterClassRelDev = 0.33;
 			_NumberOfClasses = 3;
 			_NumberOfClusters = 3;
+#if DEBUG
+			_Dimensions = 8;
+			_PointsPerClass = 100;
+#else
+			_Dimensions = 50;
 			_PointsPerClass = 3000;
+#endif
 			_RandomlyTransformFirst = true;
 			this.Reseed();
 		}
