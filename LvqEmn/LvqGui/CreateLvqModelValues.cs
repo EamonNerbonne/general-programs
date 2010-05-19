@@ -79,10 +79,10 @@ namespace LvqGui {
 			this.Reseed();
 		}
 
-		public LvqModelCli CreateModel(uint globalPS, uint globalIS) {
+		public LvqModelCli CreateModel() {
 			return new LvqModelCli(
-				paramSeed: SeedUtils.MakeSeedFunc(new[] { Seed, globalPS }),
-				iterSeed: SeedUtils.MakeSeedFunc(new[] { Seed, globalIS }),
+				rngParamsSeed: this.MakeParamsSeed(owner),
+				rngInstSeed: this.MakeInstSeed(owner),
 				dims: Dimensions,
 				classCount: ClassCount,
 				protosPerClass: PrototypesPerClass,

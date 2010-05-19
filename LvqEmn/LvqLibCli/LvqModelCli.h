@@ -20,7 +20,7 @@ namespace LvqLibCli {
 			modelCopy = GcPtr::Create(newCopy);
 		}
 		public:
-		LvqModelCli(Func<unsigned int>^ paramSeed, Func<unsigned int>^ iterSeed, int dims, int classCount, int protosPerClass,  int modelType);
+		LvqModelCli(Func<unsigned int>^ rngParamsSeed, Func<unsigned int>^ rngInstSeed, int dims, int classCount, int protosPerClass,  int modelType);
 		void Init(LvqDataSetCli^ trainingSet);
 
 		property Object^ UpdateSyncObject { Object ^ get(){return mainSync;} }
