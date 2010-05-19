@@ -21,7 +21,6 @@ namespace EmnExtensions.Wpf.Plot
 	{
 		bool needRedrawGraphs = false;
 		bool needRecomputeBounds = false;
-		bool showGridLines = false;
 		ObservableCollection<IPlotViewOnly> graphs = new ObservableCollection<IPlotViewOnly>();
 		public ObservableCollection<IPlotViewOnly> Graphs { get { return graphs; } }
 		Dictionary<TickedAxisLocation, TickedAxis> axes;
@@ -158,11 +157,25 @@ namespace EmnExtensions.Wpf.Plot
 				RedrawScene(drawingContext, gridLineAxes);
 			needRedrawGraphs = false;
 		}
-		public bool ShowGridLines { get { return showGridLines; } set { if (showGridLines != value) { showGridLines = value; needRedrawGraphs = true; InvalidateVisual(); } } }
+
+		public bool ShowGridLines {
+			get { return (bool)GetValue(ShowGridLinesProperty); }
+			set { SetValue(ShowGridLinesProperty, value); }
+		}
+
+		// Using a DependencyProperty as the backing store for ShowGridLines.  This enables animation, styling, binding, etc...
+		public static readonly DependencyProperty ShowGridLinesProperty =
+			DependencyProperty.Register("ShowGridLines", typeof(bool), typeof(NewPlotControl), new UIPropertyMetadata(false,
+				(o, e) => {
+					((NewPlotControl)o).needRedrawGraphs = true;
+					((NewPlotControl)o).InvalidateVisual();
+				}
+				));
+
 
 		private void RedrawScene(DrawingContext drawingContext, TickedAxisLocation gridLineAxes)
 		{
-			if (showGridLines)
+			if (ShowGridLines)
 				foreach (var axis in Axes)
 					if ((axis.AxisPos & gridLineAxes) != 0)
 						drawingContext.DrawDrawing(axis.GridLines);

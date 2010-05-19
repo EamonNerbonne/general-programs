@@ -339,6 +339,5 @@ namespace LVQeamon
 			this.WindowStyle = WindowStyle.SingleBorderWindow;
 			this.WindowState = lastState;
 		}
-
 	}
 }

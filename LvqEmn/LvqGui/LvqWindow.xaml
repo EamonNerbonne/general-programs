@@ -4,60 +4,45 @@
        	xmlns:emnPlot="clr-namespace:EmnExtensions.Wpf.Plot;assembly=EmnExtensionsWpf"
 
         Title="LvqWindow" Height="600" Width="800" xmlns:my="clr-namespace:LvqGui">
-    <Grid>
+    <Window.Resources>
+        <my:LvqWindowValues x:Key="windowValues"/>
+    </Window.Resources>
+    <Grid DataContext="{StaticResource ResourceKey=windowValues}">
+        
         <Grid.RowDefinitions>
             <RowDefinition Height="1*" />
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="60*" />
+            <ColumnDefinition Width="50*" />
             <ColumnDefinition Width="Auto" />
-            <ColumnDefinition Width="40*" />
+            <ColumnDefinition Width="50*" />
         </Grid.ColumnDefinitions>
-        <emnPlot:NewPlotControl Name="plotControl"  />
+        <emnPlot:NewPlotControl Name="plotControl" ShowGridLines="{Binding ElementName=generalOptions, Path=Values.ShowGridLines, Mode=TwoWay}"   />
 
-        <GridSplitter Grid.Column="1"  VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Width="2"  ResizeDirection="Columns"/>
-        <ScrollViewer Grid.Row="0" Grid.Column="2" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto" >
-            <TreeView>
-                <TreeViewItem Header="General Options" IsExpanded="True" HorizontalAlignment="Stretch">
-                    <my:AppSettings VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Width="Auto"/>
-                </TreeViewItem>
-                <TreeViewItem Header="Create Dataset" IsExpanded="True">
-                    <TreeViewItem Header="Load Data">
-                    </TreeViewItem>
-                    <TreeViewItem Header="Make Gaussian Clouds" IsExpanded="True">
-                        <my:CreateDataSet  />
-                    </TreeViewItem>
-                    <TreeViewItem Header="Make Star-tailed Clouds" IsExpanded="True">
-                        <my:CreateDataSetStar  />
-                    </TreeViewItem>
-                </TreeViewItem>
-                <TreeViewItem Header="Create Lvq Model">
-                    <my:CreateLvqModel/>
-                </TreeViewItem>
-                <TreeViewItem Header="Train Model">
-                    <my:TrainingControl/>
-                </TreeViewItem>
-            </TreeView>
-        </ScrollViewer>
-        <!--
-        <TabControl Grid.Row="0" Grid.Column="2" Visibility="Hidden" >
+        <GridSplitter Grid.Column="1"  VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Width="3"  ResizeDirection="Columns"/>
+        <TabControl Grid.Row="0" Grid.Column="2">
+            <TabItem Header="General Options">
+                <my:AppSettings VerticalAlignment="Stretch" x:Name="generalOptions" />
+            </TabItem>
             <TabItem Header="Create Dataset" Name="datasetTabs">
                 <TabControl >
                     <TabItem Header="Load Data">
-                        <Grid />
                     </TabItem>
                     <TabItem Header="Gaussian Clouds">
-                        <Grid>
-                        </Grid>
+                        <my:CreateDataSet DataContext="{Binding CreateDataSetParams}"/>
                     </TabItem>
                     <TabItem Header="Star Dataset">
-                        <Grid>
-                            <my:CreateDataSetStar  />
-                        </Grid>
+                        <my:CreateDataSetStar  />
                     </TabItem>
                 </TabControl>
             </TabItem>
+
+            <TabItem Header="Create Lvq Model">
+                <my:CreateLvqModel/>
+            </TabItem>
+            <TabItem Header="Train Model">
+                <my:TrainingControl/>
+            </TabItem>
         </TabControl>
-    -->
     </Grid>
 </Window>

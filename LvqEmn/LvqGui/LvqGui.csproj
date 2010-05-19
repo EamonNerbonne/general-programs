@@ -138,22 +138,27 @@
     <Compile Include="AppSettings.xaml.cs">
       <DependentUpon>AppSettings.xaml</DependentUpon>
     </Compile>
+    <Compile Include="AppSettingsValues.cs" />
     <Compile Include="CreateDataSet.xaml.cs">
       <DependentUpon>CreateDataSet.xaml</DependentUpon>
     </Compile>
     <Compile Include="CreateDataSetStar.xaml.cs">
       <DependentUpon>CreateDataSetStar.xaml</DependentUpon>
     </Compile>
+    <Compile Include="CreateDataSetStarValues.cs" />
+    <Compile Include="CreateDataSetValues.cs" />
     <Compile Include="CreateGaussianCloud.cs" />
     <Compile Include="CreateLvqModel.xaml.cs">
       <DependentUpon>CreateLvqModel.xaml</DependentUpon>
     </Compile>
+    <Compile Include="CreateLvqModelValues.cs" />
     <Compile Include="DataSetLoader.cs" />
     <Compile Include="DataVerifiers.cs" />
     <Compile Include="IHasSeed.cs" />
     <Compile Include="LvqWindow.xaml.cs">
       <DependentUpon>LvqWindow.xaml</DependentUpon>
     </Compile>
+    <Compile Include="LvqWindowValues.cs" />
     <Compile Include="MakeSeed.cs" />
     <Compile Include="MatSpeedTest.cs" />
     <Compile Include="SeedUtils.cs" />
