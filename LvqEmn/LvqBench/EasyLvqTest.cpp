@@ -107,7 +107,7 @@ void EasyLvqTest() {
 		protoDistrib.push_back(PROTOSPERCLASS);
 
 	Eigen::BenchTimer t;
-	scoped_ptr<LvqDataSet> dataset(DataSetUtils::ConstructGaussianClouds(rndGen, DIMS, CLASSCOUNT, POINTS_PER_CLASS, MEANSEP)); 
+	scoped_ptr<LvqDataSet> dataset(DataSetUtils::ConstructGaussianClouds(rndGen,rndGen, DIMS, CLASSCOUNT, POINTS_PER_CLASS, MEANSEP)); 
 	
 	for(int bI=0;bI<BENCH_RUNS;++bI)
 	{

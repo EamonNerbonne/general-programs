@@ -31,5 +31,8 @@ namespace LvqGui {
 		private void Button_Click(object sender, RoutedEventArgs e) {
 			((IHasSeed)DataContext).Reseed();
 		}
+		public event Action CreateLvqModelConfirmed;
+
+		private void Button_Click_1(object sender, RoutedEventArgs e) { if (CreateLvqModelConfirmed != null) CreateLvqModelConfirmed(); }
 	}
 }

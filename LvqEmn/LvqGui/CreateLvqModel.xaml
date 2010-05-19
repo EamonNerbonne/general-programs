@@ -37,6 +37,6 @@
         <TextBox Grid.Row="4" Grid.Column="1" Text="{Binding PrototypesPerClass, Mode=TwoWay, ValidatesOnExceptions=True}" />
         <Button Grid.Row="5" Content="Reset Random Seed" Click="Button_Click" />
         <TextBox Grid.Row="5" Grid.Column="1" Text="{Binding Seed, Mode=TwoWay, ValidatesOnExceptions=True}" Margin="2,2,2,2" />
-        <Button Grid.Row="6" Grid.ColumnSpan="2" >Initialize Model</Button>
+        <Button Grid.Row="6" Grid.ColumnSpan="2" Click="Button_Click_1">Initialize Model</Button>
     </Grid>
 </UserControl>

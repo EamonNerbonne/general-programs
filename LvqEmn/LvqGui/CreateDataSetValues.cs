@@ -54,10 +54,10 @@ namespace LvqGui {
 			this.Reseed();
 		}
 
-
 		public LvqDataSetCli CreateDataset(uint globalPS, uint globalIS) {
 			return LvqDataSetCli.ConstructGaussianClouds(CreateLabel(),
-			rng: SeedUtils.MakeSeedFunc(new[] { Seed, globalPS }),
+			rngParamsSeed: SeedUtils.MakeSeedFunc(new[] { Seed, globalPS }),
+			rngInstSeed: SeedUtils.MakeSeedFunc(new[] { Seed, globalIS }),
 				dims: Dimensions,
 				classCount: NumberOfClasses,
 				pointsPerClass: PointsPerClass,
@@ -65,6 +65,5 @@ namespace LvqGui {
 				);
 			//TODO:use instance seed.
 		}
-
 	}
 }

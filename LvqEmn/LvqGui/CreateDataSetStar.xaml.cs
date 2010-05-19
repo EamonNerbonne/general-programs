@@ -24,8 +24,10 @@ namespace LvqGui {
 			InitializeComponent();
 		}
 
-		private void Button_Click(object sender, RoutedEventArgs e) {
-			((IHasSeed)DataContext).Reseed();
-		}
+		private void Button_Click(object sender, RoutedEventArgs e) { ((IHasSeed)DataContext).Reseed(); }
+
+		public event Action CreateDataSetStarConfirmed;
+
+		private void buttonGenerateDataset_Click(object sender, RoutedEventArgs e) { if (CreateDataSetStarConfirmed != null) CreateDataSetStarConfirmed(); }
 	}
 }

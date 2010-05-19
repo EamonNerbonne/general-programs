@@ -22,26 +22,26 @@
         <GridSplitter Grid.Column="1"  VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Width="3"  ResizeDirection="Columns"/>
         <TabControl Grid.Row="0" Grid.Column="2">
             <TabItem Header="General Options">
-                <my:AppSettings VerticalAlignment="Stretch" x:Name="generalOptions" />
+                <my:AppSettings DataContext="{Binding AppSettingsValues}" />
             </TabItem>
             <TabItem Header="Create Dataset" Name="datasetTabs">
                 <TabControl >
                     <TabItem Header="Load Data">
                     </TabItem>
                     <TabItem Header="Gaussian Clouds">
-                        <my:CreateDataSet DataContext="{Binding CreateDataSetParams}"/>
+                        <my:CreateDataSet DataContext="{Binding CreateDataSetValues}"/>
                     </TabItem>
                     <TabItem Header="Star Dataset">
-                        <my:CreateDataSetStar  />
+                        <my:CreateDataSetStar DataContext="{Binding CreateDataSetStarValues}" />
                     </TabItem>
                 </TabControl>
             </TabItem>
 
             <TabItem Header="Create Lvq Model">
-                <my:CreateLvqModel/>
+                <my:CreateLvqModel DataContext="{Binding CreateLvqModelValues}"/>
             </TabItem>
             <TabItem Header="Train Model">
-                <my:TrainingControl/>
+                <my:TrainingControl/> 
             </TabItem>
         </TabControl>
     </Grid>

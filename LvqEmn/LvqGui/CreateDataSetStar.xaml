@@ -58,6 +58,6 @@
         <Button Content="Reset Random Seed" Grid.Row="8" Click="Button_Click" />
         <TextBox Grid.Row="8"  Grid.Column="1"  Text="{Binding Seed, Mode=TwoWay, ValidatesOnExceptions=True}" />
 
-        <Button  Grid.Row="9" Grid.Column="0" Grid.ColumnSpan="2" Name="buttonGenerateDataset" >Generate Star Dataset</Button>
+        <Button  Grid.Row="9" Grid.Column="0" Grid.ColumnSpan="2" Name="buttonGenerateDataset" Click="buttonGenerateDataset_Click">Generate Star Dataset</Button>
     </Grid>
 </UserControl>

@@ -87,7 +87,8 @@ namespace LvqGui {
 
 		public LvqDataSetCli CreateDataset(uint globalPS, uint globalIS) {
 			return LvqDataSetCli.ConstructStarDataset(CreateLabel(),
-				SeedUtils.MakeSeedFunc(new[] { Seed, globalPS }),
+			rngParamsSeed: SeedUtils.MakeSeedFunc(new[] { Seed, globalPS }),
+			rngInstSeed: SeedUtils.MakeSeedFunc(new[] { Seed, globalIS }),
 				dims: Dimensions,
 				starDims: ClusterDimensionality,
 				numStarTails: NumberOfClusters,

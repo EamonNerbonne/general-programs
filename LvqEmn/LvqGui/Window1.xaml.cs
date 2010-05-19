@@ -80,7 +80,7 @@ namespace LVQeamon
 				ThreadPool.QueueUserWorkItem((ignore) =>
 				{
 					LvqDataSetCli dataset = DTimer.TimeFunc(() => LvqDataSetCli.ConstructGaussianClouds("oldstyle-dataset",
-						RndHelper.MakeSecureUInt, dims, numSets, pointsPerSet, stddevmeans), "Constructing dataset");
+						RndHelper.MakeSecureUInt,RndHelper.MakeSecureUInt, dims, numSets, pointsPerSet, stddevmeans), "Constructing dataset");
 
 					Console.WriteLine("RngUsed: " + RndHelper.usages);
 					StartLvq(dataset, protoCount, useGsm);
@@ -122,7 +122,7 @@ namespace LVQeamon
 
 					LvqDataSetCli dataset =
 						DTimer.TimeFunc(() => LvqDataSetCli.ConstructStarDataset("oldstyle-dataset",
-						RndHelper.MakeSecureUInt, dims, 2, starTailCount, numSets, pointsPerSet, stddevmeans * starRelDist, 1.0 / starRelDist), "making star clouds");
+						RndHelper.MakeSecureUInt, RndHelper.MakeSecureUInt, dims, 2, starTailCount, numSets, pointsPerSet, stddevmeans * starRelDist, 1.0 / starRelDist), "making star clouds");
 
 					StartLvq(dataset, protoCount, useGsm);
 				}, 0);

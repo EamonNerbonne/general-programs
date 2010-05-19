@@ -27,5 +27,8 @@ namespace LvqGui {
 		private void Button_Click(object sender, RoutedEventArgs e) {
 			((IHasSeed)DataContext).Reseed();
 		}
+		public event Action CreateDataSetConfirmed;
+
+		private void CreateDataSetButtonPress(object sender, RoutedEventArgs e) { if (CreateDataSetConfirmed != null)	 CreateDataSetConfirmed(); }
 	}
 }

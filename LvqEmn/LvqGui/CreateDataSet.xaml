@@ -38,6 +38,6 @@
         <Button Content="Reset Random Seed" Grid.Row="4" Click="Button_Click" />
         <TextBox Grid.Row="4"  Grid.Column="1" Text="{Binding Seed, Mode=TwoWay, ValidatesOnExceptions=True}" />
 
-        <Button  Grid.Row="5" Grid.Column="0" Grid.ColumnSpan="2"  >Generate Point Clouds</Button>
+        <Button  Grid.Row="5" Grid.Column="0" Grid.ColumnSpan="2" Click="CreateDataSetButtonPress">Generate Point Clouds</Button>
     </Grid>
 </UserControl>

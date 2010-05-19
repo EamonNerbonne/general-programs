@@ -45,7 +45,5 @@ namespace LvqGui {
 						win.WindowState = win.lastState;
 					}
 				})));
-
-
 	}
 }
