@@ -17,6 +17,7 @@ namespace LvqGui {
 	/// </summary>
 	public partial class LvqWindow : Window {
 		public LvqWindow() {
+			this.DataContext = new LvqWindowValues(this.Dispatcher);
 			InitializeComponent();
 		}
 

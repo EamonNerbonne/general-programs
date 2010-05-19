@@ -100,5 +100,7 @@ namespace LvqGui {
 				starClassRelOffset: IntraClusterClassRelDev);
 			//TODO:randomTransform option.
 		}
+
+		public void ConfirmCreation() { owner.DataSets.Add(CreateDataset()); }
 	}
 }

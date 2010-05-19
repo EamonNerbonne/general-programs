@@ -119,6 +119,10 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="LoadDataSet.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="LvqWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -154,6 +158,10 @@
     <Compile Include="DataSetLoader.cs" />
     <Compile Include="DataVerifiers.cs" />
     <Compile Include="IHasSeed.cs" />
+    <Compile Include="LoadDataSet.xaml.cs">
+      <DependentUpon>LoadDataSet.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="LoadDataSetValues.cs" />
     <Compile Include="LvqWindow.xaml.cs">
       <DependentUpon>LvqWindow.xaml</DependentUpon>
     </Compile>
@@ -164,6 +172,7 @@
     <Compile Include="TrainingControl.xaml.cs">
       <DependentUpon>TrainingControl.xaml</DependentUpon>
     </Compile>
+    <Compile Include="TrainingControlValues.cs" />
     <Compile Include="Window1.xaml.cs">
       <DependentUpon>Window1.xaml</DependentUpon>
       <SubType>Code</SubType>

@@ -1,0 +1,27 @@
+﻿<UserControl x:Class="LvqGui.LoadDataSet"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             mc:Ignorable="d" 
+             d:DesignHeight="100" d:DesignWidth="300">
+    <UserControl.Resources>
+        <Style TargetType="{x:Type Label}" BasedOn="{StaticResource PropLabel}"/>
+        <Style TargetType="{x:Type TextBox}" BasedOn="{StaticResource PropBox}"/>
+        <Style TargetType="{x:Type Button}" BasedOn="{StaticResource PropButton}"/>
+    </UserControl.Resources>
+    <Grid>
+
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="121.353*" />
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        <Button  Grid.Row="0" Content="Reset Random Seed" Click="Button_Click" />
+        <TextBox Grid.Row="0"  Grid.Column="1" Text="{Binding Seed, Mode=TwoWay, ValidatesOnExceptions=True}" />
+        <Button  Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2">Load Data Set</Button>
+    </Grid>
+</UserControl>

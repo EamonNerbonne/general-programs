@@ -4,10 +4,7 @@
        	xmlns:emnPlot="clr-namespace:EmnExtensions.Wpf.Plot;assembly=EmnExtensionsWpf"
 
         Title="LvqWindow" Height="600" Width="800" xmlns:my="clr-namespace:LvqGui">
-    <Window.Resources>
-        <my:LvqWindowValues x:Key="windowValues"/>
-    </Window.Resources>
-    <Grid DataContext="{StaticResource ResourceKey=windowValues}">
+    <Grid >
         
         <Grid.RowDefinitions>
             <RowDefinition Height="1*" />
