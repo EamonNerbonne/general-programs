@@ -149,7 +149,7 @@ namespace SongDataLib {
 
 		IEnumerable<string> Values {//only yield "distinctive" search values
 			get {
-				yield return Path.GetFileName(SongUri.LocalPath);
+				yield return SongUri.LocalPath;
 				yield return title;
 				yield return artist;
 				//yield return composer;

@@ -155,7 +155,7 @@ div.jp-playlist ul
     line-height: 1.3;
     color: #666;
     font-size:80%;
-    margin:0;
+    margin:0.5em;
     padding:0.3em;
 }
 
@@ -167,11 +167,6 @@ div.jp-playlist li
     list-style-position:inside;
     list-style-type:none;
 }
-div.jp-playlist li:hover
-{
-    background:#eee;/*needed also to avoid dragging transparency!*/
-}
-
 div.jp-playlist li.jplayer_playlist_current
 {
     padding-left:0.5em;
@@ -184,4 +179,8 @@ div.jp-playlist li.jplayer_playlist_current
 div.jp-playlist li:hover
 {
     color: #445E55;
+    background:#eee;/*needed also to avoid dragging transparency!*/
+    -moz-box-shadow:  0 0 0.5em #eee;
+    -webkit-box-shadow:  0 0 0.5em #eee;
+    box-shadow:  0 0 0.5em #eee;
 }

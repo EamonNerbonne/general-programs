@@ -38,7 +38,7 @@ $(document).ready(function ($) {
 
     function UriToMime(uri) { return GuessMimeFromExtension(GetExtension(uri)); }
 
-    var playListItem = null;
+    var playlistItem = null;
 
     var useNotifications = window.webkitNotifications && window.webkitNotifications.checkPermission() == 0;
     var hasBeenNotified = false;
@@ -91,7 +91,7 @@ $(document).ready(function ($) {
         var clickedDelete = $(target).parents().andSelf().filter(".deleteButton").length > 0;
 
         if (clickedDelete)
-            playListDelete(clickedListItem);
+            playlistDelete(clickedListItem);
         else if (e.type == "dblclick") {
             if (document.selection && document.selection.empty)
                 document.selection.empty();
@@ -100,18 +100,18 @@ $(document).ready(function ($) {
                 if (selection && selection.removeAllRanges)
                     selection.removeAllRanges();
             }
-            playListChange(clickedListItem);
+            playlistChange(clickedListItem);
         }
     }
 
 
 
     var playlistContainer = $("#jplayer_playlist");
-    var playListElem = null;
+    var playlistElem = null;
 
     $("#jquery_jplayer").jPlayer({
         ready: function () {
-            playListElem = $(document.createElement("ul"))
+            playlistElem = $(document.createElement("ul"))
                     .appendTo(playlistContainer.empty())
                     .click(playlistClick).dblclick(playlistClick)
                     .sortable().disableSelection();
@@ -128,7 +128,7 @@ $(document).ready(function ($) {
 	        if (window.webkitNotifications.checkPermission() != 0)
 	            userOptions.notifications.setValue(useNotifications = false);
 	        else {
-	            var songTitle = $(playListItem).contents(":empty").text();
+	            var songTitle = $(playlistItem).contents(":empty").text();
 	            var popup = window.webkitNotifications.createNotification("emnicon.png", songTitle, songTitle);
 	            popup.ondisplay = function () { setTimeout(function () { popup.cancel(); }, 5000); }
 	            popup.show();
@@ -136,30 +136,30 @@ $(document).ready(function ($) {
 	    }
 	})
 	.jPlayer("onSoundComplete", function () {
-	    playListNext();
+	    playlistNext();
 	});
 
     $("#jplayer_previous").click(function () {
-        playListPrev();
+        playlistPrev();
         return false;
     });
 
     $("#jplayer_next").click(function () {
-        playListNext();
+        playlistNext();
         return false;
     });
 
     function emptyPlaylist() {
-        playListChange(null);
-        playListElem.empty();
+        playlistChange(null);
+        playlistElem.empty();
         playlistRefreshUi();
     }
 
     function loadPlaylist(list) {
-        playListElem.empty();
+        playlistElem.empty();
         for (i = 0; i < list.length; i++)
             addToPlaylistRaw(list[i]);
-        if (list.length > 0) playListChange($("#jplayer_playlist ul li")[0]);
+        if (list.length > 0) playlistChange($("#jplayer_playlist ul li")[0]);
         else $("#jquery_jplayer").jPlayer("stop");
         playlistRefreshUi();
     }
@@ -175,21 +175,21 @@ $(document).ready(function ($) {
 
     function addToPlaylistRaw(song) {
         var listItem = makeListItem(song);
-        listItem.appendTo(playListElem);
+        listItem.appendTo(playlistElem);
         return listItem[0];
     }
 
 
     function addToPlaylist(song) {
-        var shouldStart = playListElem.children().length == 0;
+        var shouldStart = playlistElem.children().length == 0;
         var newItem = addToPlaylistRaw(song);
         playlistRefreshUi();
-        if (shouldStart) playListChange(newItem);
+        if (shouldStart) playlistChange(newItem);
         else scrollIntoMiddleView(newItem);
     }
 
     function playlistRefreshUi() {
-        playListElem.sortable("refresh");
+        playlistElem.sortable("refresh");
         userOptions.serializedList.setValue(JSON.stringify(savePlaylist()));
         simStateSet.getting();
     }
@@ -244,7 +244,8 @@ $(document).ready(function ($) {
         unknownSel.empty();
         for (var i = 0; i < unknown.length; i++)
             unknownSel.append($(document.createElement("li")).text(unknown[i]));
-        knownSel.empty().removeClass("waiting");
+        knownSel.empty();
+        leftColSel.removeClass("waiting");
         for (var i = 0; i < known.length; i++)
             knownSel.append($(document.createElement("li")).text(known[i].label).data("songdata", known[i]));
     }
@@ -258,7 +259,7 @@ $(document).ready(function ($) {
             success: function (data) {
                 if (mouseInSimilar) {
                     simDispDataWait = data;
-                    knownSel.addClass("waiting")
+                    leftColSel.addClass("waiting")
                 } else
                     updateSimilarDisplay(data);
                 simStateSet.done();
@@ -282,40 +283,40 @@ $(document).ready(function ($) {
         }
     }
 
-    function playListConfig(listItem) {
-        if (playListItem)
-            $(playListItem).removeClass("jplayer_playlist_current");
-        playListItem = listItem;
-        if (playListItem) {
-            $(playListItem).addClass("jplayer_playlist_current");
+    function playlistConfig(listItem) {
+        if (playlistItem)
+            $(playlistItem).removeClass("jplayer_playlist_current");
+        playlistItem = listItem;
+        if (playlistItem) {
+            $(playlistItem).addClass("jplayer_playlist_current");
             hasBeenNotified = false;
-            var songdata = $(playListItem).data("songdata");
+            var songdata = $(playlistItem).data("songdata");
             $("#jquery_jplayer").jPlayer("loadSong", [{ type: UriToMime(songdata.href), src: songdata.href, replaygain: songdata.replaygain }]);
-            scrollIntoMiddleView(playListItem);
+            scrollIntoMiddleView(playlistItem);
         }
     }
 
 
 
-    function playListChange(listItem) {
-        if (listItem != playListItem)
-            playListConfig(listItem);
-        if (playListItem)
+    function playlistChange(newCurrentItem) {
+        if (newCurrentItem != playlistItem)
+            playlistConfig(newCurrentItem);
+        if (playlistItem)
             $("#jquery_jplayer").jPlayer("play");
         else
             $("#jquery_jplayer").jPlayer("stop");
     }
 
-    function playListDelete(listItem) {
-        if (listItem == playListItem)
-            playListChange(null);
+    function playlistDelete(listItem) {
+        if (listItem == playlistItem)
+            playlistChange(null);
         $(listItem).remove();
         playlistRefreshUi();
     }
 
-    function playListNext() { playListChange($(playListItem).next()[0]); }
+    function playlistNext() { playlistChange($(playlistItem).next()[0]); }
 
-    function playListPrev() { playListChange($(playListItem).prev()[0]); }
+    function playlistPrev() { playlistChange($(playlistItem).prev()[0]); }
 
     function knownClick(e) {
         if (!e) var e = window.event;
