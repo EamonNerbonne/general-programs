@@ -6,10 +6,8 @@ using System.Windows.Media;
 using System.Windows;
 using System.Windows.Media.Imaging;
 
-namespace EmnExtensions.Wpf
-{
-	public static class GraphUtils
-	{
+namespace EmnExtensions.Wpf {
+	public static class GraphUtils {
 		public static bool IsFiniteNonEmpty(this Rect rect) { return rect.Width.IsFinite() && rect.Height.IsFinite() && rect.Height * rect.Width > 0; }
 
 		public static PathGeometry LineWithErrorBars(Point[] lineOfPoints, double[] ErrBars) {
@@ -63,14 +61,13 @@ namespace EmnExtensions.Wpf
 			return geom;
 		}
 
-		public static StreamGeometry LineScaled(IEnumerable<Point> lineOfPoints)
-		{
+		public static StreamGeometry LineScaled(IEnumerable<Point> lineOfPoints) {
 			Rect dataBounds = lineOfPoints.Aggregate(Rect.Empty, (bound, point) => Rect.Union(bound, point));
-			double maxSafe = Int32.MaxValue/2.0;
+			double maxSafe = Int32.MaxValue / 2.0;
 			Rect safeBounds = new Rect(new Point(-maxSafe, -maxSafe), new Point(maxSafe, maxSafe));
 			Matrix dataToGeom = TransformShape(dataBounds, safeBounds, flipVertical: false);
 			Matrix geomToData = TransformShape(safeBounds, dataBounds, flipVertical: false);
-			var scaledPoints = lineOfPoints.Select(p=>dataToGeom.Transform(p));
+			var scaledPoints = lineOfPoints.Select(p => dataToGeom.Transform(p));
 			var scaledGeom = Line(scaledPoints);
 			scaledGeom.Transform = new MatrixTransform(geomToData);
 			return scaledGeom;
@@ -98,17 +95,16 @@ namespace EmnExtensions.Wpf
 		/// Makes a StreamGeometry based point-cloud (quite fast).
 		/// </summary>
 		public static StreamGeometry PointCloud(IEnumerable<Point> setOfPoints) {
-
 			StreamGeometry geom = new StreamGeometry();
-			using (var context = geom.Open()) {
-				foreach (var point in setOfPoints) {
-					if (IsOK(point)) {
-						context.BeginFigure(point, false, false);
+			if (setOfPoints != null)
+				using (var context = geom.Open())
+					foreach (var point in setOfPoints)
+						if (IsOK(point)) {
+							context.BeginFigure(point, false, false);
+							context.LineTo(point, true, false);
+						}
 
-						context.LineTo(point, true, false);
-					}
-				}
-			}
+
 			//geom.Freeze();//can't freeze since that breaks transform changes.
 			return geom;
 		}
@@ -251,7 +247,7 @@ namespace EmnExtensions.Wpf
 		public static uint ToNativeColor(this Color colorstruct) {
 			return ((uint)colorstruct.A << 24) | ((uint)colorstruct.R << 16) | ((uint)colorstruct.G << 8) | ((uint)colorstruct.B);
 		}
-		
+
 		public static BitmapSource MakeColormappedBitmap<T>(T[,] image, Func<T, Color> colormap) {
 			return MakeColormappedBitmap(image, colormap, 1);
 		}

@@ -41,19 +41,23 @@ namespace LvqGui {
 			CreateLvqModelValues = new CreateLvqModelValues(this);
 			TrainingControlValues = new TrainingControlValues(this);
 
-			DataSets.CollectionChanged += new System.Collections.Specialized.NotifyCollectionChangedEventHandler(DataSets_CollectionChanged);
+			DataSets.CollectionChanged += DataSets_CollectionChanged;
+			LvqModels.CollectionChanged += LvqModels_CollectionChanged;
+		}
+
+		void LvqModels_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e) {
+			if (e.Action == NotifyCollectionChangedAction.Add && e.NewItems.Count > 0) {
+				var newModel = e.NewItems.Cast<LvqModelCli>().First();
+				TrainingControlValues.SelectedDataSet = newModel.InitSet;
+				TrainingControlValues.SelectedLvqModel = newModel;
+			}
 		}
 
 		void DataSets_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e) {
 			if (e.Action == NotifyCollectionChangedAction.Add && e.NewItems.Count > 0) {
 				LastDataSet = e.NewItems.Cast<LvqDataSetCli>().First();
-				CreateLvqModelValues.ClassCount = LastDataSet.ClassCount;
-				CreateLvqModelValues.Dimensions = LastDataSet.Dimensions;
+				CreateLvqModelValues.ForDataset = LastDataSet;
 			}
 		}
-
-
-
-		
 	}
 }

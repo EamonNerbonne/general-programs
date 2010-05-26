@@ -11,7 +11,7 @@ public:
 	MatrixXd trainPoints; //one dimension per row, one point per column
 	vector<int> trainPointLabels;
 	vector<int> trainClassFrequency; //TODO: rename, these datasets aren't necessarily training sets.
-	int classCount;
+	const int classCount;
 
 	LvqDataSet(MatrixXd const & points, vector<int> pointLabels, int classCount);
 

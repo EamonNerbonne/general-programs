@@ -35,7 +35,7 @@
         </ComboBox>
 
         <Label Grid.Row="1">Select Model</Label>
-        <ComboBox Grid.Row="1" Grid.Column="1" ItemsSource="{Binding Owner.LvqModels}" SelectedItem="{Binding SelectedLvqModel}">
+        <ComboBox Grid.Row="1" Grid.Column="1" ItemsSource="{Binding MatchingLvqModels}" SelectedItem="{Binding SelectedLvqModel}">
             <ComboBox.ItemTemplate>
                 <DataTemplate>
                     <TextBlock Text="{Binding ModelLabel}"/>

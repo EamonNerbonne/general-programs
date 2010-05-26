@@ -10,6 +10,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
+using LvqLibCli;
 
 namespace LvqGui {
 	/// <summary>
@@ -17,8 +18,21 @@ namespace LvqGui {
 	/// </summary>
 	public partial class LvqWindow : Window {
 		public LvqWindow() {
-			this.DataContext = new LvqWindowValues(this.Dispatcher);
+			var windowValues = new LvqWindowValues(this.Dispatcher);
+			this.DataContext = windowValues;
 			InitializeComponent();
+			windowValues.TrainingControlValues.ModelSelected += TrainingControlValues_ModelSelected;
+		}
+
+		LvqScatterPlot plotData;
+		void TrainingControlValues_ModelSelected(LvqDataSetCli dataset, LvqModelCli model) {
+			if (plotData == null || plotData.dataset != dataset) {
+				plotData = new LvqScatterPlot(dataset, Dispatcher);
+				plotControl.Graphs.Clear();
+				foreach (var subplot in plotData.Plots)
+					plotControl.Graphs.Add(subplot);
+			}
+			plotData.SetModel(model);
 		}
 
 		public bool Fullscreen {

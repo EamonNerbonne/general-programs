@@ -8,29 +8,34 @@
 namespace LvqLibCli {
 	using boost::mt19937;
 
-	LvqModelCli::LvqModelCli(String^ label,Func<unsigned int>^ paramSeed, Func<unsigned int>^ iterSeed, int dims, int classCount, int protosPerClass, int modelType)
-		: dims(dims)
-		, classCount(classCount)
-		, protosPerClass(protosPerClass)
+	LvqModelCli::LvqModelCli(String^ label, array<unsigned int>^ rngParamsSeed, array<unsigned int>^ rngInstSeed, int protosPerClass, int modelType,LvqDataSetCli^ trainingSet)
+		: protosPerClass(protosPerClass)
 		, modelType(modelType)
 		, label(label)
 		, model(nullptr)
 		, modelCopy(nullptr)
-		, rngParam(new mt19937(paramSeed))
-		, rngIter(new mt19937(iterSeed))
+		, rngParam(new mt19937())
+		, rngIter(new mt19937())
 		, mainSync(gcnew Object())
 		, backupSync(gcnew Object())
-	{ }
+	{ 
+		vector<unsigned> ps(cliToCpp(rngParamsSeed));
+		vector<unsigned> is(cliToCpp(rngInstSeed));
+		rngParam->seed(ps.begin(),ps.end());
+		rngIter->seed(is.begin(),is.end());
+		Init(trainingSet);
+	}
 
 	void LvqModelCli::Init(LvqDataSetCli^ trainingSet)
 	{
 		vector<int> protoDistrib;
-		for(int i=0;i<classCount;++i)
+		for(int i=0;i<trainingSet->ClassCount;++i)
 			protoDistrib.push_back(protosPerClass);
 
 
 		msclr::lock l(backupSync);
 		msclr::lock l2(mainSync);
+		initSet = trainingSet;
 		model=nullptr;
 		modelCopy=nullptr;
 
@@ -66,7 +71,7 @@ namespace LvqLibCli {
 		{
 			msclr::lock l(backupSync);
 			if(modelCopy==nullptr)
-				return nullptr;
+				return nullptr; //TODO: should never happen?
 
 			modelCopy->get()->ClassBoundaryDiagram(x0,x1,y0,y1,classDiagram);
 		}

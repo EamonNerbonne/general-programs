@@ -6,9 +6,8 @@
 using namespace std;
 
 GsmLvqModel::GsmLvqModel(boost::mt19937 & rng,  bool randInit, vector<int> protodistribution, MatrixXd const & means) 
-	: AbstractProjectionLvqModel(means.rows()) 
+	: AbstractProjectionLvqModel(means.rows(),(int)protodistribution.size()) 
 	, lr_scale_P(LVQ_LrScaleP)
-	, classCount((int)protodistribution.size())
 	, vJ(means.rows())
 	, vK(means.rows())
 {

@@ -8,9 +8,7 @@ template<typename T> ref class GcAutoPtr sealed {
 	T*  ptr;
 	size_t  size;
 public:
-	GcAutoPtr(T*ptr,size_t size) : ptr(ptr),size(size){
-		GC::AddMemoryPressure(size);
-	}
+	GcAutoPtr(T*ptr,size_t size) : ptr(ptr),size(size){ GC::AddMemoryPressure(size); }
 
 	!GcAutoPtr() {
 		GC::RemoveMemoryPressure(size);
@@ -32,7 +30,7 @@ template<typename T> ref class GcPlainPtr sealed {
 public:
 	GcPlainPtr(T*ptr): ptr(ptr) { GC::AddMemoryPressure(sizeof(T)); }
 
-	!GcPlainPtr() { GC::RemoveMemoryPressure(sizeof(T)); delete ptr; ptr= nullptr;	}
+	!GcPlainPtr() { GC::RemoveMemoryPressure(sizeof(T)); delete ptr; ptr= nullptr; }
 
 	~GcPlainPtr() { this->!GcPlainPtr();} //mostly just to avoid C4461
 

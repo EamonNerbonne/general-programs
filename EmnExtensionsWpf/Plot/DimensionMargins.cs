@@ -16,7 +16,7 @@ namespace EmnExtensions.Wpf.Plot
 		public static DimensionMargins FromThicknessX(Thickness thickness) { return new DimensionMargins { AtStart = thickness.Left, AtEnd = thickness.Right }; }
 		public static DimensionMargins FromThicknessY(Thickness thickness) { return new DimensionMargins { AtStart = thickness.Top, AtEnd = thickness.Bottom }; }
 		public static DimensionMargins Merge(DimensionMargins a, DimensionMargins b) { return new DimensionMargins { AtStart = Math.Max(a.AtStart, b.AtStart), AtEnd = Math.Max(a.AtEnd, b.AtEnd) }; }
-		public static DimensionMargins Undefined { get { return new DimensionMargins { AtStart = double.NegativeInfinity, AtEnd = double.NegativeInfinity }; } }
+		public static DimensionMargins Empty { get { return new DimensionMargins { AtStart = 0.0, AtEnd = 0.0 }; } }
 
 		public static bool operator ==(DimensionMargins a, DimensionMargins b) { return a.AtStart == b.AtStart && a.AtEnd == b.AtEnd; }
 		public static bool operator !=(DimensionMargins a, DimensionMargins b) { return a.AtStart != b.AtStart || a.AtEnd != b.AtEnd; }

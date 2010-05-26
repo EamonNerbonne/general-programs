@@ -10,7 +10,6 @@ class GmLvqModel : public AbstractLvqModel
 	vector<VectorXd> prototype;
 	VectorXi pLabel;
 	double lr_scale_P;
-	const int classCount;
 
 	//calls dimensionality of input-space DIMS
 	//we will preallocate a few vectors to reduce malloc/free overhead.
@@ -65,6 +64,8 @@ class GmLvqModel : public AbstractLvqModel
 
 public:
 	virtual size_t MemAllocEstimate() const;
+	virtual int Dimensions() const {return P[0].cols();}
+
 
 	GmLvqModel(boost::mt19937 & rng,  bool randInit, std::vector<int> protodistribution, MatrixXd const & means);
 	virtual int classify(VectorXd const & unknownPoint) const; //tmp must be just as large as unknownPoint, this is a malloc/free avoiding optimization.

@@ -8,7 +8,7 @@ namespace LvqLibCli {
 
 	public ref class LvqModelCli
 	{
-		int dims,classCount,protosPerClass,modelType;
+		int protosPerClass,modelType;
 		String^ label;
 		GcAutoPtr<AbstractProjectionLvqModel>^ model;
 		GcAutoPtr<AbstractProjectionLvqModel>^ modelCopy;
@@ -20,17 +20,25 @@ namespace LvqLibCli {
 			msclr::lock l(backupSync);
 			modelCopy = GcPtr::Create(newCopy);
 		}
+		void Init(LvqDataSetCli^ trainingSet);
+		LvqDataSetCli^ initSet;
 		public:
 
+		property int ClassCount {int get(){return model->get()->ClassCount();}}
+		property int Dimensions {int get(){return model->get()->Dimensions();}}
 		property String^ ModelLabel {String^ get(){return label;}}
+		property LvqDataSetCli^ InitSet {LvqDataSetCli^ get(){return initSet;}}
 
-		LvqModelCli(String^ label, Func<unsigned int>^ rngParamsSeed, Func<unsigned int>^ rngInstSeed, int dims, int classCount, int protosPerClass, int modelType);
-		void Init(LvqDataSetCli^ trainingSet);
+		LvqModelCli(String^ label, array<unsigned int>^ rngParamsSeed, array<unsigned int>^ rngInstSeed, int protosPerClass, int modelType,LvqDataSetCli^ trainingSet);
+
+		bool FitsDataShape(LvqDataSetCli^ dataset) {return dataset!=nullptr && dataset->ClassCount == this->ClassCount && dataset->Dimensions == this->Dimensions;}
 
 		property Object^ UpdateSyncObject { Object ^ get(){return mainSync;} }
 		double ErrorRate(LvqDataSetCli^testSet);
 		array<double,2>^ CurrentProjectionOf(LvqDataSetCli^ dataset);
+		
 		Tuple<array<double,2>^,array<int>^>^ PrototypePositions();
+
 		array<int,2>^ ClassBoundaries(double x0, double x1, double y0, double y1,int xCols, int yRows);
 		void Train(int epochsToDo,LvqDataSetCli^ trainingSet); 
 

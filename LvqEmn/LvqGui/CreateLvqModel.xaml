@@ -25,10 +25,14 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
-        <Label Grid.Row="0">Number of Classes</Label>
-        <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding ClassCount, Mode=TwoWay, ValidatesOnExceptions=True}"/>
-        <Label Grid.Row="1">Dimensions</Label>
-        <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding Dimensions, Mode=TwoWay, ValidatesOnExceptions=True}"/>
+        <Label Grid.Row="0">For Dataset</Label>
+        <ComboBox Grid.Row="0" Grid.Column="1" ItemsSource="{Binding Owner.DataSets}" SelectedItem="{Binding ForDataset}">
+            <ComboBox.ItemTemplate>
+                <DataTemplate>
+                    <TextBlock Text="{Binding DataSetLabel}"/>
+                </DataTemplate>
+            </ComboBox.ItemTemplate>
+        </ComboBox>
         <Label Grid.Row="2">Model Type</Label>
         <ComboBox Grid.Row="2"  Grid.Column="1"  Name="modelType" SelectedItem="{Binding ModelType, Mode=TwoWay, ValidatesOnExceptions=True}" ItemsSource="{Binding  RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type UserControl} }, Path=ModelTypes}"/>
         <Label Grid.Row="3">Internal Dimensionality</Label>

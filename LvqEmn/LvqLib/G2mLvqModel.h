@@ -11,7 +11,6 @@ class G2mLvqModel : public AbstractProjectionLvqModel
 {
 	std::vector<G2mLvqPrototype, Eigen::aligned_allocator<G2mLvqPrototype> > prototype;
 	double lr_scale_P, lr_scale_B;
-	const int classCount;
 
 	//we will preallocate a few temp vectors to reduce malloc/free overhead.
 	VectorXd m_vJ, m_vK;

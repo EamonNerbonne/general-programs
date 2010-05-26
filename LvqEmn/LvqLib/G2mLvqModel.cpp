@@ -8,10 +8,9 @@ using namespace std;
 using namespace Eigen;
 
 G2mLvqModel::G2mLvqModel(boost::mt19937 & rng,  bool randInit, vector<int> protodistribution, MatrixXd const & means) 
-	: AbstractProjectionLvqModel(means.rows()) 
+	: AbstractProjectionLvqModel(means.rows(),(int)protodistribution.size()) 
 	, lr_scale_P(LVQ_LrScaleP)
 	, lr_scale_B(LVQ_LrScaleB)
-	, classCount((int)protodistribution.size())
 	, m_vJ(means.rows())
 	, m_vK(means.rows())
 {

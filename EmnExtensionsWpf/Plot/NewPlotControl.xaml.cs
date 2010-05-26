@@ -140,7 +140,7 @@ namespace EmnExtensions.Wpf.Plot
 				DimensionMargins margin =
 					boundGraphs
 					.Select(graph => ToDimMargins(graph.PlotVisualizer.Margin, axis.IsHorizontal))
-					.Aggregate(DimensionMargins.Undefined, (m1, m2) => DimensionMargins.Merge(m1, m2));
+					.Aggregate(DimensionMargins.Empty, (m1, m2) => DimensionMargins.Merge(m1, m2));
 				string dataUnits = string.Join(", ", graphs.Select(graph => axis.IsHorizontal ? graph.XUnitLabel : graph.YUnitLabel).Distinct().Where(s => !string.IsNullOrWhiteSpace(s)).ToArray());
 
 				axis.DataBound = bounds;

@@ -31,6 +31,8 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
 			Rect outerBounds = Rect.Empty;
 			foreach (var point in points)
 				outerBounds.Union(point);
+			if(double.IsNaN(outerBounds.Width) || double.IsNaN(outerBounds.Height))
+				throw new ArgumentException("Invalid point array!" + outerBounds);
 			return outerBounds;
 		}
 
@@ -53,10 +55,14 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
 			Array.Sort(ys);
 			int firstIndex = cutoffEachSide;
 			int lastIndex = points.Length - 1 - cutoffEachSide;
-			return new Rect(
+			Rect retval= new Rect(
 					new Point(xs[firstIndex], ys[firstIndex]),
 					new Point(xs[lastIndex], ys[lastIndex])
 				);
+			if (double.IsNaN(retval.Width) || double.IsNaN(retval.Height))
+				throw new ArgumentException("Invalid point array!" + retval);
+
+			return retval;
 		}
 		#endregion
 	}

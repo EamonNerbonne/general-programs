@@ -9,7 +9,6 @@ class GsmLvqModel : public AbstractProjectionLvqModel
 	std::vector<Vector2d, Eigen::aligned_allocator<Vector2d>  > P_prototype;
 	VectorXi pLabel;
 	double lr_scale_P;
-	const int classCount;
 
 	//calls dimensionality of input-space DIMS
 	//we will preallocate a few vectors to reduce malloc/free overhead.

@@ -75,7 +75,9 @@ namespace LVQeamon {
 				SetupDisplay(numSets);
 				ThreadPool.QueueUserWorkItem((ignore) => {
 					LvqDataSetCli dataset = DTimer.TimeFunc(() => LvqDataSetCli.ConstructGaussianClouds("oldstyle-dataset",
-						RndHelper.MakeSecureUInt, RndHelper.MakeSecureUInt, dims, numSets, pointsPerSet, stddevmeans), "Constructing dataset");
+						Enumerable.Range(0,1000).Select(i=>RndHelper.MakeSecureUInt()).ToArray(),
+						Enumerable.Range(0, 1000).Select(i => RndHelper.MakeSecureUInt()).ToArray(),
+						dims, numSets, pointsPerSet, stddevmeans), "Constructing dataset");
 
 					Console.WriteLine("RngUsed: " + RndHelper.usages);
 					StartLvq(dataset, protoCount, useGsm);
@@ -111,7 +113,9 @@ namespace LVQeamon {
 
 					LvqDataSetCli dataset =
 						DTimer.TimeFunc(() => LvqDataSetCli.ConstructStarDataset("oldstyle-dataset",
-						RndHelper.MakeSecureUInt, RndHelper.MakeSecureUInt, dims, 2, starTailCount, numSets, pointsPerSet, stddevmeans * starRelDist, 1.0 / starRelDist), "making star clouds");
+						Enumerable.Range(0, 1000).Select(i => RndHelper.MakeSecureUInt()).ToArray(),
+						Enumerable.Range(0, 1000).Select(i => RndHelper.MakeSecureUInt()).ToArray(),
+						dims, 2, starTailCount, numSets, pointsPerSet, stddevmeans * starRelDist, 1.0 / starRelDist), "making star clouds");
 
 					StartLvq(dataset, protoCount, useGsm);
 				}, 0);
@@ -156,9 +160,9 @@ namespace LVQeamon {
 			lock (updateDispSync)
 			lock (lvqSync) {
 				LvqDataSet = newDataset;
-				LvqModel = new LvqModelCli("oldmodel", RndHelper.MakeSecureUInt, RndHelper.MakeSecureUInt, newDataset.Dimensions, newDataset.ClassCount, protosPerClass, useGsm ? LvqModelCli.GSM_TYPE : LvqModelCli.G2M_TYPE);
-				LvqModel.Init(LvqDataSet);
-				//LvqModel
+				LvqModel = new LvqModelCli("oldmodel", Enumerable.Range(0, 1000).Select(i => RndHelper.MakeSecureUInt()).ToArray(), 
+					Enumerable.Range(0, 1000).Select(i => RndHelper.MakeSecureUInt()).ToArray(), 
+					protosPerClass, useGsm ? LvqModelCli.GSM_TYPE : LvqModelCli.G2M_TYPE, newDataset);
 				UpdateDisplay();
 			}
 		}
@@ -257,14 +261,10 @@ namespace LVQeamon {
 			for (int y = 1; y < closestClass.GetLength(0) - 1; y++)
 				for (int x = 1; x < closestClass.GetLength(1) - 1; x++) {
 					if (false
-						//								closestClass[y, x] != closestClass[y + 1, x + 1]
 						|| closestClass[y, x] != closestClass[y + 1, x]
-						//							|| closestClass[y, x] != closestClass[y + 1, x - 1]
 						|| closestClass[y, x] != closestClass[y, x + 1]
 						|| closestClass[y, x] != closestClass[y, x - 1]
-						//						|| closestClass[y, x] != closestClass[y - 1, x + 1]
 						|| closestClass[y, x] != closestClass[y - 1, x]
-						//					|| closestClass[y, x] != closestClass[y - 1, x - 1]
 						)
 						edges.Add(Tuple.Create(y, x));
 				}

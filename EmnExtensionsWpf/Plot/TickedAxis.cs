@@ -511,7 +511,7 @@ namespace EmnExtensions.Wpf.Plot
 			get
 			{
 				Matrix dataToDispX = DataToDisplayAlongXTransform;
-				if (!IsHorizontal)
+				if (!IsHorizontal && !dataToDispX.IsIdentity)
 				{
 					dataToDispX.M22 = dataToDispX.M11;
 					dataToDispX.M11 = 1.0;

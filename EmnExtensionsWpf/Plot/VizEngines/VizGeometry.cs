@@ -75,7 +75,6 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
 			if (m_AutosizeBounds)
 			{
 				changingGeometry = true;
-
 				m_Geometry.Transform = new MatrixTransform(m_geomToAxis);
 				SetDataBounds(m_Geometry.Bounds);//this will trigger OnChanged if neeeded.
 				m_Geometry.Transform = m_ProjectionTransform;
