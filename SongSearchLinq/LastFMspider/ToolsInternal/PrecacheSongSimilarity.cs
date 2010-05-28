@@ -15,11 +15,11 @@ namespace LastFMspider
             var SimilarSongs= tools.SimilarSongs;
             int songsCached = 0;
             Console.WriteLine("Finding songs without similarities");
-            var tracksToGo = SimilarSongs.backingDB.TracksWithoutSimilarityList.Execute(900000);
+            var tracksToGo = SimilarSongs.backingDB.TracksWithoutSimilarityList.Execute(300000);
 #if !DEBUG
             tracksToGo.Shuffle();
 #endif
-            tracksToGo = tracksToGo.Take(300000).ToArray();
+            tracksToGo = tracksToGo.Take(30000).ToArray();
             Console.WriteLine("Looking up similarities for {0} tracks...", tracksToGo.Length);
             Parallel.ForEach(tracksToGo, new ParallelOptions { MaxDegreeOfParallelism = 10 }, track => {
                 StringBuilder msg = new StringBuilder();
