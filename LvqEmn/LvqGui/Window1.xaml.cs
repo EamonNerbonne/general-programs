@@ -75,8 +75,8 @@ namespace LVQeamon {
 				SetupDisplay(numSets);
 				ThreadPool.QueueUserWorkItem((ignore) => {
 					LvqDataSetCli dataset = DTimer.TimeFunc(() => LvqDataSetCli.ConstructGaussianClouds("oldstyle-dataset",
-						Enumerable.Range(0,1000).Select(i=>RndHelper.MakeSecureUInt()).ToArray(),
-						Enumerable.Range(0, 1000).Select(i => RndHelper.MakeSecureUInt()).ToArray(),
+						RndHelper.MakeSecureUInt(),
+						RndHelper.MakeSecureUInt(),
 						dims, numSets, pointsPerSet, stddevmeans), "Constructing dataset");
 
 					Console.WriteLine("RngUsed: " + RndHelper.usages);
@@ -113,8 +113,8 @@ namespace LVQeamon {
 
 					LvqDataSetCli dataset =
 						DTimer.TimeFunc(() => LvqDataSetCli.ConstructStarDataset("oldstyle-dataset",
-						Enumerable.Range(0, 1000).Select(i => RndHelper.MakeSecureUInt()).ToArray(),
-						Enumerable.Range(0, 1000).Select(i => RndHelper.MakeSecureUInt()).ToArray(),
+						RndHelper.MakeSecureUInt(),
+						RndHelper.MakeSecureUInt(),
 						dims, 2, starTailCount, numSets, pointsPerSet, stddevmeans * starRelDist, 1.0 / starRelDist), "making star clouds");
 
 					StartLvq(dataset, protoCount, useGsm);
@@ -160,8 +160,8 @@ namespace LVQeamon {
 			lock (updateDispSync)
 			lock (lvqSync) {
 				LvqDataSet = newDataset;
-				LvqModel = new LvqModelCli("oldmodel", Enumerable.Range(0, 1000).Select(i => RndHelper.MakeSecureUInt()).ToArray(), 
-					Enumerable.Range(0, 1000).Select(i => RndHelper.MakeSecureUInt()).ToArray(), 
+				LvqModel = new LvqModelCli("oldmodel", RndHelper.MakeSecureUInt(), 
+					RndHelper.MakeSecureUInt(), 
 					protosPerClass, useGsm ? LvqModelCli.GSM_TYPE : LvqModelCli.G2M_TYPE, newDataset);
 				UpdateDisplay();
 			}

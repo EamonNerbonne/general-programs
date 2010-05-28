@@ -7,7 +7,7 @@ using System.ComponentModel;
 
 namespace LvqGui {
 
-	public class CreateDataSetStarValues : INotifyPropertyChanged, IHasSeed {
+	public class CreateDataSetStarValues : INotifyPropertyChanged,IHasSeed {
 		readonly LvqWindowValues owner;
 
 		public event PropertyChangedEventHandler PropertyChanged;
@@ -70,6 +70,14 @@ namespace LvqGui {
 		}
 		private uint _Seed;
 
+		public uint InstSeed {
+			get { return _InstSeed; }
+			set { if (!_InstSeed.Equals(value)) { _InstSeed = value; _propertyChanged("InstSeed"); } }
+		}
+		private uint _InstSeed;
+
+		
+
 		public string CreateLabel() {
 			return "star-" + Dimensions + "D-" + NumberOfClasses + "*" + PointsPerClass + ":" + NumberOfClusters + "(" + ClusterDimensionality + "D" + (RandomlyTransformFirst ? "?" : "") + ")*" + ClusterCenterDeviation.ToString("f1") + "~" + IntraClusterClassRelDev.ToString("f1");
 		}
@@ -94,8 +102,8 @@ namespace LvqGui {
 
 		public LvqDataSetCli CreateDataset() {
 			return LvqDataSetCli.ConstructStarDataset(CreateLabel(),
-				rngParamsSeed: this.MakeParamsSeed(owner),
-				rngInstSeed: this.MakeInstSeed(owner),
+				rngParamsSeed: Seed,
+				rngInstSeed: InstSeed,
 				dims: Dimensions,
 				starDims: ClusterDimensionality,
 				numStarTails: NumberOfClusters,

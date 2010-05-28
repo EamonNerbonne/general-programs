@@ -1,17 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using EmnExtensions.Wpf.Plot;
+using System.Threading;
 using System.Windows;
-using LvqLibCli;
 using System.Windows.Media;
-using EmnExtensions.Wpf.Plot.VizEngines;
-using EmnExtensions.Wpf;
-using EmnExtensions.Wpf.Plot;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
-using System.Threading;
+using EmnExtensions.Wpf;
+using EmnExtensions.Wpf.Plot;
+using EmnExtensions.Wpf.Plot.VizEngines;
+using LvqLibCli;
 
 namespace LvqGui {
 	public class LvqScatterPlot {

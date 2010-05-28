@@ -7,8 +7,9 @@ using EmnExtensions.MathHelpers;
 namespace LvqGui {
 	public interface IHasSeed {
 		uint Seed { get; set; }
+		uint InstSeed { get; set; }
 	}
 	public static class IHasSeedExtensions {
-		public static void Reseed(this IHasSeed seededObj) { seededObj.Seed = RndHelper.MakeSecureUInt(); }
+		public static void Reseed(this IHasSeed seededObj) { seededObj.Seed = RndHelper.MakeSecureUInt(); seededObj.InstSeed = RndHelper.MakeSecureUInt(); }
 	}
 }

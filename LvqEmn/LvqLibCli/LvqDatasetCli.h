@@ -28,8 +28,8 @@ public:
 
 
 		static LvqDataSetCli^ ConstructFromArray(String^ label,array<double,2>^ points, array<int>^ pointLabels, int classCount);
-		static LvqDataSetCli^ ConstructGaussianClouds(String^ label, array<unsigned int>^ rngParamsSeed, array<unsigned int>^ rngInstSeed, int dims, int classCount, int pointsPerClass, double meansep);
-		static LvqDataSetCli^ ConstructStarDataset(String^ label, array<unsigned int>^  rngParamsSeed, array<unsigned int>^ rngInstSeed, int dims, int starDims, int numStarTails,int classCount, int pointsPerClass, double starMeanSep, double starClassRelOffset);
+		static LvqDataSetCli^ ConstructGaussianClouds(String^ label, unsigned rngParamsSeed, unsigned  rngInstSeed, int dims, int classCount, int pointsPerClass, double meansep);
+		static LvqDataSetCli^ ConstructStarDataset(String^ label, unsigned rngParamsSeed, unsigned rngInstSeed, int dims, int starDims, int numStarTails,int classCount, int pointsPerClass, double starMeanSep, double starClassRelOffset);
 	};
 }
 

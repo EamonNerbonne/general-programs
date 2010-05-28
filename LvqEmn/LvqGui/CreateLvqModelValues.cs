@@ -48,6 +48,13 @@ namespace LvqGui {
 		}
 		private uint _Seed;
 
+		public uint InstSeed {
+			get { return _InstSeed; }
+			set { if (!_InstSeed.Equals(value)) { _InstSeed = value; _propertyChanged("InstSeed"); } }
+		}
+		private uint _InstSeed;
+
+		
 
 		public string CreateLabel() {
 			return
@@ -68,8 +75,8 @@ namespace LvqGui {
 
 		public LvqModelCli CreateModel() {
 			return new LvqModelCli(CreateLabel(),
-				rngParamsSeed: this.MakeParamsSeed(owner),
-				rngInstSeed: this.MakeInstSeed(owner),
+				rngParamsSeed:Seed,
+				rngInstSeed: InstSeed,
 				protosPerClass: PrototypesPerClass,
 				modelType: (int)ModelType,
 				trainingSet:ForDataset

@@ -22,14 +22,14 @@ namespace LvqLibCli {
 		}
 		void Init(LvqDataSetCli^ trainingSet);
 		LvqDataSetCli^ initSet;
-		public:
+	public:
 
 		property int ClassCount {int get(){return model->get()->ClassCount();}}
 		property int Dimensions {int get(){return model->get()->Dimensions();}}
 		property String^ ModelLabel {String^ get(){return label;}}
 		property LvqDataSetCli^ InitSet {LvqDataSetCli^ get(){return initSet;}}
 
-		LvqModelCli(String^ label, array<unsigned int>^ rngParamsSeed, array<unsigned int>^ rngInstSeed, int protosPerClass, int modelType,LvqDataSetCli^ trainingSet);
+		LvqModelCli(String^ label, unsigned rngParamsSeed, unsigned rngInstSeed, int protosPerClass, int modelType,LvqDataSetCli^ trainingSet);
 
 		bool FitsDataShape(LvqDataSetCli^ dataset) {return dataset!=nullptr && dataset->ClassCount == this->ClassCount && dataset->Dimensions == this->Dimensions;}
 

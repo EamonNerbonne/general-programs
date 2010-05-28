@@ -8,21 +8,17 @@
 namespace LvqLibCli {
 	using boost::mt19937;
 
-	LvqModelCli::LvqModelCli(String^ label, array<unsigned int>^ rngParamsSeed, array<unsigned int>^ rngInstSeed, int protosPerClass, int modelType,LvqDataSetCli^ trainingSet)
+	LvqModelCli::LvqModelCli(String^ label, unsigned rngParamsSeed, unsigned rngInstSeed, int protosPerClass, int modelType,LvqDataSetCli^ trainingSet)
 		: protosPerClass(protosPerClass)
 		, modelType(modelType)
 		, label(label)
 		, model(nullptr)
 		, modelCopy(nullptr)
-		, rngParam(new mt19937())
-		, rngIter(new mt19937())
+		, rngParam(new mt19937(rngParamsSeed))
+		, rngIter(new mt19937(rngInstSeed))
 		, mainSync(gcnew Object())
 		, backupSync(gcnew Object())
 	{ 
-		vector<unsigned> ps(cliToCpp(rngParamsSeed));
-		vector<unsigned> is(cliToCpp(rngInstSeed));
-		rngParam->seed(ps.begin(),ps.end());
-		rngIter->seed(is.begin(),is.end());
 		Init(trainingSet);
 	}
 

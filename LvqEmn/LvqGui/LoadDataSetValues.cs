@@ -21,6 +21,13 @@ namespace LvqGui {
 		}
 		private uint _Seed;
 
+		public uint InstSeed {
+			get { return _InstSeed; }
+			set { if (!_InstSeed.Equals(value)) { _InstSeed = value; _propertyChanged("InstSeed"); } }
+		}
+		private uint _InstSeed;
+
+		
 
 		public LoadDataSetValues(LvqWindowValues owner) {
 			this.owner = owner;

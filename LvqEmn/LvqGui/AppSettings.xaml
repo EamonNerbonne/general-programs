@@ -33,13 +33,5 @@
         <Label Grid.Row="1">Show Grid</Label>
         <CheckBox Grid.Row="1" Grid.Column="1"   HorizontalAlignment="Left" x:Name="ShowGridCheckbox" />
 
-        <Label Grid.Row="2">Global Parameter Seed</Label>
-        <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding GlobalParamSeed,ValidatesOnExceptions=True}"/>
-
-        <Label Grid.Row="3">Global Instantiation Seed</Label>
-        <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding GlobalInstSeed,ValidatesOnExceptions=True}"/>
-
-
-
     </Grid>
 </UserControl>
