@@ -15,9 +15,6 @@ namespace LVQeamon
 		private void Application_Startup(object sender, StartupEventArgs e) {
 			//var win2 = new Window2();
 			//win2.Show();
-			var win1 = new MainWindow();
-			win1.Show();
-
 			new LvqWindow().Show();
 		}
 	}

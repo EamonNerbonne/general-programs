@@ -9,17 +9,11 @@ namespace LvqGui {
 		public ModelType[] ModelTypes { get { return (ModelType[])Enum.GetValues(typeof(ModelType)); } }
 		public CreateLvqModel() { InitializeComponent(); }
 
-		private void Button_Click(object sender, RoutedEventArgs e) {
-			((IHasSeed)DataContext).Reseed();
-		}
+		private void ReseedParam(object sender, RoutedEventArgs e) { ((IHasSeed)DataContext).ReseedParam(); }
+		private void ReseedInst(object sender, RoutedEventArgs e) { ((IHasSeed)DataContext).ReseedParam(); }
 
-		public event Action CreateLvqModelConfirmed;
-
-		private void Button_Click_1(object sender, RoutedEventArgs e) {
-			if (CreateLvqModelConfirmed != null) CreateLvqModelConfirmed();
-			ThreadPool.QueueUserWorkItem(o => {
-				((CreateLvqModelValues)o).ConfirmCreation();
-			},DataContext);
+		private void InitializeModel(object sender, RoutedEventArgs e) {
+			ThreadPool.QueueUserWorkItem(o => { ((CreateLvqModelValues)o).ConfirmCreation(); }, DataContext);
 		}
 	}
 }

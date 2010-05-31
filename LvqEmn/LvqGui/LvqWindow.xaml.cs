@@ -22,9 +22,17 @@ namespace LvqGui {
 			this.DataContext = windowValues;
 			InitializeComponent();
 			windowValues.TrainingControlValues.ModelSelected += TrainingControlValues_ModelSelected;
+			windowValues.TrainingControlValues.SelectedModelUpdatedInBackgroundThread += TrainingControlValues_SelectedModelUpdatedInBackgroundThread;
 		}
 
 		LvqScatterPlot plotData;
+		void TrainingControlValues_SelectedModelUpdatedInBackgroundThread(LvqDataSetCli dataset, LvqModelCli model) {
+			Dispatcher.BeginInvoke(() => {
+				if (plotData != null && plotData.dataset == dataset && plotData.LvqModel == model) 
+					plotData.QueueUpdate();
+			});
+		}
+
 		void TrainingControlValues_ModelSelected(LvqDataSetCli dataset, LvqModelCli model) {
 			if (plotData == null || plotData.dataset != dataset) {
 				plotData = new LvqScatterPlot(dataset, Dispatcher);
@@ -32,7 +40,7 @@ namespace LvqGui {
 				foreach (var subplot in plotData.Plots)
 					plotControl.Graphs.Add(subplot);
 			}
-			plotData.SetModel(model);
+			plotData.LvqModel = model;
 		}
 
 		public bool Fullscreen {

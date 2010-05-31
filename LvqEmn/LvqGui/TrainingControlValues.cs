@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.ComponentModel;
 using LvqLibCli;
+using EmnExtensions.DebugTools;
 
 namespace LvqGui {
 	public class TrainingControlValues : INotifyPropertyChanged {
@@ -12,6 +13,8 @@ namespace LvqGui {
 
 		public event PropertyChangedEventHandler PropertyChanged;
 		public event Action<LvqDataSetCli, LvqModelCli> ModelSelected;
+		public event Action<LvqDataSetCli, LvqModelCli> SelectedModelUpdatedInBackgroundThread;
+
 
 		private void _propertyChanged(String propertyName) { if (PropertyChanged != null) PropertyChanged(this, new PropertyChangedEventArgs(propertyName)); }
 
@@ -45,8 +48,16 @@ namespace LvqGui {
 			_propertyChanged("MatchingLvqModels");
 		}
 
+
 		public void ConfirmTraining() {
-			Console.WriteLine("supposedly training");
+			var selectedDataset = SelectedDataSet;
+			var selectedModel = SelectedLvqModel;
+			int epochsToTrainFor = EpochsPerClick;
+			lock (selectedModel.UpdateSyncObject) //not needed for safety, just for accurate timing
+				using (new DTimer("Training " + epochsToTrainFor + " epochs"))
+					selectedModel.Train(epochsToDo: epochsToTrainFor, trainingSet: SelectedDataSet);
+			if (selectedModel == SelectedLvqModel && selectedDataset == SelectedDataSet && SelectedModelUpdatedInBackgroundThread != null)
+				SelectedModelUpdatedInBackgroundThread(selectedDataset, selectedModel);
 		}
 	}
 }

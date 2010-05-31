@@ -12,9 +12,7 @@ namespace LvqGui {
 
 		public event PropertyChangedEventHandler PropertyChanged;
 
-
 		private void _propertyChanged(String propertyName) { if (PropertyChanged != null) PropertyChanged(this, new PropertyChangedEventArgs(propertyName)); }
-
 
 		public int Dimensions {
 			get { return _Dimensions; }
@@ -76,8 +74,6 @@ namespace LvqGui {
 		}
 		private uint _InstSeed;
 
-		
-
 		public string CreateLabel() {
 			return "star-" + Dimensions + "D-" + NumberOfClasses + "*" + PointsPerClass + ":" + NumberOfClusters + "(" + ClusterDimensionality + "D" + (RandomlyTransformFirst ? "?" : "") + ")*" + ClusterCenterDeviation.ToString("f1") + "~" + IntraClusterClassRelDev.ToString("f1");
 		}
@@ -97,7 +93,7 @@ namespace LvqGui {
 			_PointsPerClass = 3000;
 #endif
 			_RandomlyTransformFirst = true;
-			this.Reseed();
+			this.ReseedBoth();
 		}
 
 		public LvqDataSetCli CreateDataset() {

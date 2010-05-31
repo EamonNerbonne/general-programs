@@ -66,7 +66,7 @@ namespace LvqGui {
 			_PointsPerClass = 3000;
 #endif
 
-			this.Reseed();
+			this.ReseedBoth();
 		}
 
 		LvqDataSetCli CreateDataset() {

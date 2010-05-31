@@ -21,20 +21,13 @@ namespace LvqGui {
 	/// Interaction logic for CreateDataSetStar.xaml
 	/// </summary>
 	public partial class CreateDataSetStar : UserControl {
-		public CreateDataSetStar() {
-			InitializeComponent();
-		}
+		public CreateDataSetStar() { InitializeComponent(); }
 
-		private void Button_Click(object sender, RoutedEventArgs e) { ((IHasSeed)DataContext).Reseed(); }
-
-		public event Action CreateDataSetStarConfirmed;
+		private void ReseedParam(object sender, RoutedEventArgs e) { ((IHasSeed)DataContext).ReseedParam(); }
+		private void ReseedInst(object sender, RoutedEventArgs e) { ((IHasSeed)DataContext).ReseedParam(); }
 
 		private void buttonGenerateDataset_Click(object sender, RoutedEventArgs e) {
-			if (CreateDataSetStarConfirmed != null) CreateDataSetStarConfirmed();
-			ThreadPool.QueueUserWorkItem(o => {
-				((CreateDataSetStarValues)o).ConfirmCreation();
-			},DataContext);
-
+			ThreadPool.QueueUserWorkItem(o => { ((CreateDataSetStarValues)o).ConfirmCreation(); }, DataContext);
 		}
 	}
 }

@@ -44,7 +44,7 @@
         </ComboBox>
 
         <StackPanel Grid.Row="2"  Orientation="Horizontal" HorizontalAlignment="Right">
-            <Button Content="Train" Click="Button_Click" />
+            <Button Content="Train" Click="StartTraining" />
             <Label Content="for"/>
         </StackPanel>
 

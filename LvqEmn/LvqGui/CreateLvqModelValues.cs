@@ -54,7 +54,7 @@ namespace LvqGui {
 		}
 		private uint _InstSeed;
 
-		
+
 
 		public string CreateLabel() {
 			return
@@ -70,24 +70,21 @@ namespace LvqGui {
 			_ModelType = ModelType.G2m;
 			_Dimensionality = 2;
 			_PrototypesPerClass = 3;
-			this.Reseed();
+			this.ReseedBoth();
 		}
 
 		public LvqModelCli CreateModel() {
 			return new LvqModelCli(CreateLabel(),
-				rngParamsSeed:Seed,
+				rngParamsSeed: Seed,
 				rngInstSeed: InstSeed,
 				protosPerClass: PrototypesPerClass,
 				modelType: (int)ModelType,
-				trainingSet:ForDataset
+				trainingSet: ForDataset
 				);
 		}
 
 		public void ConfirmCreation() {
-			var newmodel = CreateModel();
-			owner.Dispatcher.BeginInvoke(() => {
-				owner.LvqModels.Add(newmodel);
-			});
+			owner.Dispatcher.BeginInvoke(owner.LvqModels.Add, CreateModel());
 		}
 	}
 }

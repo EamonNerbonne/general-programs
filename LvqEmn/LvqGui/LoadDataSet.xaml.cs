@@ -20,12 +20,8 @@ namespace LvqGui {
 	public partial class LoadDataSet : UserControl {
 		public LoadDataSet() { InitializeComponent(); }
 
-		private void Button_Click(object sender, RoutedEventArgs e) { ((IHasSeed)DataContext).Reseed(); }
-
-		private void Button_Click_1(object sender, RoutedEventArgs e) {
-			ThreadPool.QueueUserWorkItem(o => {
-				((LoadDataSetValues)o).ConfirmCreation();
-			},DataContext);
+		private void LoadDataset(object sender, RoutedEventArgs e) {
+			ThreadPool.QueueUserWorkItem(o => { ((LoadDataSetValues)o).ConfirmCreation(); }, DataContext);
 		}
 	}
 }

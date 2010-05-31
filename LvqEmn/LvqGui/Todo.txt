@@ -1,0 +1,5 @@
+﻿Bug: crash on training without model selected
+Bug: model list doesn't update on first model added ... why?
+
+
+Missing feature: can't deselect model, can't view dataset without model selected

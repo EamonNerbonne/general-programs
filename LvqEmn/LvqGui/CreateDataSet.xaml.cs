@@ -25,17 +25,11 @@ namespace LvqGui {
 			InitializeComponent();
 		}
 
-		private void Button_Click(object sender, RoutedEventArgs e) {
-			((IHasSeed)DataContext).Reseed();
-		}
-		public event Action CreateDataSetConfirmed;
+		private void ReseedParam(object sender, RoutedEventArgs e) { ((IHasSeed)DataContext).ReseedParam(); }
+		private void ReseedInst(object sender, RoutedEventArgs e) { ((IHasSeed)DataContext).ReseedParam(); }
 
-		private void CreateDataSetButtonPress(object sender, RoutedEventArgs e) { 
-			if (CreateDataSetConfirmed != null)	 CreateDataSetConfirmed();
-
-			ThreadPool.QueueUserWorkItem(o => {
-				((CreateDataSetValues)o).ConfirmCreation();
-			},DataContext);
+		private void CreateDataSetButtonPress(object sender, RoutedEventArgs e) {
+			ThreadPool.QueueUserWorkItem(o => { ((CreateDataSetValues)o).ConfirmCreation(); }, DataContext);
 		}
 	}
 }

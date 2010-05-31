@@ -22,7 +22,7 @@ namespace LvqGui {
 		readonly Dispatcher dispatcher;
 
 		bool busy, updateQueued;
-		object syncroot=new object();
+		object syncroot = new object();
 
 		public LvqScatterPlot(LvqDataSetCli dataset, Dispatcher dispatcher) {
 			this.dataset = dataset;
@@ -36,7 +36,8 @@ namespace LvqGui {
 				return graphplot;
 			}).ToArray();
 		}
-		
+
+		public LvqModelCli LvqModel { set { this.currentModel = value; QueueUpdate(); } get { return currentModel; } }
 
 		public IEnumerable<IPlotWithSettings> Plots {
 			get {
@@ -84,15 +85,9 @@ namespace LvqGui {
 			}), DispatcherPriority.Background);
 		}
 
-		void QueueUpdate() {
-			ThreadPool.QueueUserWorkItem(o => { UpdateDisplay(); });
-		}
+		public void QueueUpdate() { ThreadPool.QueueUserWorkItem(o => { UpdateDisplay(); }); }
 
 
-		public void SetModel(LvqModelCli model) {
-			this.currentModel = model;
-			QueueUpdate();
-		}
 
 		void UpdateClassBoundaries(WriteableBitmap bmp, Matrix dataToBmp, int width, int height, object ignore) {
 #if DEBUG

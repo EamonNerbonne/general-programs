@@ -10,6 +10,8 @@ namespace LvqGui {
 		uint InstSeed { get; set; }
 	}
 	public static class IHasSeedExtensions {
-		public static void Reseed(this IHasSeed seededObj) { seededObj.Seed = RndHelper.MakeSecureUInt(); seededObj.InstSeed = RndHelper.MakeSecureUInt(); }
+		public static void ReseedBoth(this IHasSeed seededObj) { seededObj.ReseedParam(); seededObj.ReseedInst(); }
+		public static void ReseedParam(this IHasSeed seededObj) { seededObj.Seed = RndHelper.MakeSecureUInt(); }
+		public static void ReseedInst(this IHasSeed seededObj) { seededObj.InstSeed = RndHelper.MakeSecureUInt(); }
 	}
 }

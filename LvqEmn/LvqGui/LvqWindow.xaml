@@ -2,11 +2,13 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
        	xmlns:emnPlot="clr-namespace:EmnExtensions.Wpf.Plot;assembly=EmnExtensionsWpf"
+       	xmlns:emn="clr-namespace:EmnExtensions.Wpf;assembly=EmnExtensionsWpf"
 
         Title="LvqWindow" Height="600" Width="800" xmlns:my="clr-namespace:LvqGui">
     <Grid >
         
         <Grid.RowDefinitions>
+            <RowDefinition Height="1*" />
             <RowDefinition Height="1*" />
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
@@ -14,9 +16,9 @@
             <ColumnDefinition Width="Auto" />
             <ColumnDefinition Width="50*" />
         </Grid.ColumnDefinitions>
-        <emnPlot:NewPlotControl Name="plotControl" ShowGridLines="{Binding ElementName=generalOptions, Path=Values.ShowGridLines, Mode=TwoWay}"   />
+        <emnPlot:NewPlotControl Grid.RowSpan="2"  Name="plotControl" ShowGridLines="{Binding ElementName=generalOptions, Path=Values.ShowGridLines, Mode=TwoWay}"   />
 
-        <GridSplitter Grid.Column="1"  VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Width="3"  ResizeDirection="Columns"/>
+        <GridSplitter Grid.Column="1" Grid.RowSpan="2" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Width="3"  ResizeDirection="Columns"/>
         <TabControl Grid.Row="0" Grid.Column="2">
             <TabItem Header="General Options">
                 <my:AppSettings DataContext="{Binding AppSettingsValues}" />
@@ -42,5 +44,9 @@
                 <my:TrainingControl DataContext="{Binding TrainingControlValues}"/> 
             </TabItem>
         </TabControl>
+
+        <emn:LogControl  Grid.Column="2" Grid.Row="1" Name="logControl" ClaimStandardOut="True" ClaimStandardError="True"/>
+        <GridSplitter Grid.Column="2" Grid.RowSpan="2" HorizontalAlignment="Left" VerticalAlignment="Stretch" Width="2"  ResizeDirection="Columns"/>
+
     </Grid>
 </Window>

@@ -24,6 +24,7 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
@@ -55,9 +56,11 @@
         <Label Grid.Row="7"  >Randomly transform dataset</Label>
         <CheckBox  Grid.Row="7" Grid.Column="1" IsChecked="{Binding RandomlyTransformFirst, Mode=TwoWay, ValidatesOnExceptions=True}" />
 
-        <Button Content="Reset Random Seed" Grid.Row="8" Click="Button_Click" />
+        <Button Content="Reset Parameter Seed" Grid.Row="8" Click="ReseedParam" />
         <TextBox Grid.Row="8"  Grid.Column="1"  Text="{Binding Seed, Mode=TwoWay, ValidatesOnExceptions=True}" />
+        <Button Content="Reset Instantiation Seed" Grid.Row="9" Click="ReseedInst"/>
+        <TextBox Grid.Row="9"  Grid.Column="1"  Text="{Binding Seed, Mode=TwoWay, ValidatesOnExceptions=True}" />
 
-        <Button  Grid.Row="9" Grid.Column="0" Grid.ColumnSpan="2" Name="buttonGenerateDataset" Click="buttonGenerateDataset_Click">Generate Star Dataset</Button>
+        <Button  Grid.Row="10" Grid.Column="0" Grid.ColumnSpan="2" Name="buttonGenerateDataset" Click="buttonGenerateDataset_Click">Generate Star Dataset</Button>
     </Grid>
 </UserControl>
