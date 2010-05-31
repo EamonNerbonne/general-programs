@@ -59,5 +59,11 @@ namespace LvqGui {
 				CreateLvqModelValues.ForDataset = LastDataSet;
 			}
 		}
+
+		int datasetCount=0;
+		internal string MakeDatasetLabel() {
+			datasetCount++;
+			return ((char)('A' + (datasetCount-1))).ToString();
+		}
 	}
 }
