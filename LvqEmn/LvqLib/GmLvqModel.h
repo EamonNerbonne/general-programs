@@ -64,7 +64,7 @@ class GmLvqModel : public AbstractLvqModel
 
 public:
 	virtual size_t MemAllocEstimate() const;
-	virtual int Dimensions() const {return P[0].cols();}
+	virtual int Dimensions() const {return static_cast<int>(P[0].cols());}
 
 
 	GmLvqModel(boost::mt19937 & rng,  bool randInit, std::vector<int> protodistribution, MatrixXd const & means);

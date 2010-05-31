@@ -6,7 +6,7 @@
 using namespace std;
 
 GsmLvqModel::GsmLvqModel(boost::mt19937 & rng,  bool randInit, vector<int> protodistribution, MatrixXd const & means) 
-	: AbstractProjectionLvqModel(means.rows(),(int)protodistribution.size()) 
+	: AbstractProjectionLvqModel(static_cast<int>(means.rows()),static_cast<int>(protodistribution.size())) 
 	, lr_scale_P(LVQ_LrScaleP)
 	, vJ(means.rows())
 	, vK(means.rows())
@@ -104,8 +104,8 @@ void GsmLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel) {
 }
 
 void GsmLvqModel::ClassBoundaryDiagram(double x0, double x1, double y0, double y1, MatrixXi & classDiagram) const {
-	int cols = classDiagram.cols();
-	int rows = classDiagram.rows();
+	int cols = static_cast<int>(classDiagram.cols());
+	int rows = static_cast<int>(classDiagram.rows());
 	for(int xCol=0;  xCol < cols;  xCol++) {
 		double x = x0 + (x1-x0) * (xCol+0.5) / cols;
 		for(int yRow=0;  yRow < rows;  yRow++) {

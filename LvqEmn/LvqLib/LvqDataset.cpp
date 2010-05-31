@@ -46,7 +46,7 @@ void EIGEN_STRONG_INLINE prefetch(void const * start,int lines) {
 }
 
 void LvqDataSet::TrainModel(int epochs, boost::mt19937 & randGen, AbstractLvqModel * model) const {
-	int dims = trainPoints.rows();
+	int dims = static_cast<int>(trainPoints.rows());
 	boost::scoped_array<int> ordering(new int[trainPointLabels.size()+1] );
 	ordering[trainPointLabels.size()] = 0;
 	VectorXd pointA(dims);

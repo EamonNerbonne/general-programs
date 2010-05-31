@@ -8,7 +8,7 @@ using namespace std;
 using namespace Eigen;
 
 G2mLvqModel::G2mLvqModel(boost::mt19937 & rng,  bool randInit, vector<int> protodistribution, MatrixXd const & means) 
-	: AbstractProjectionLvqModel(means.rows(),(int)protodistribution.size()) 
+	: AbstractProjectionLvqModel(static_cast<int>(means.rows()),static_cast<int>(protodistribution.size())) 
 	, lr_scale_P(LVQ_LrScaleP)
 	, lr_scale_B(LVQ_LrScaleB)
 	, m_vJ(means.rows())
@@ -29,7 +29,7 @@ G2mLvqModel::G2mLvqModel(boost::mt19937 & rng,  bool randInit, vector<int> proto
 	for(int label=0; label <(int) protodistribution.size();label++) {
 		int labelCount =protodistribution[label];
 		for(int i=0;i<labelCount;i++) {
-			prototype[protoIndex] = G2mLvqPrototype(rng,false, label, means.col(label) );//TODO:experiment with random projection initialization.
+			prototype[protoIndex] = G2mLvqPrototype(rng, false, label, means.col(label));//TODO:experiment with random projection initialization.
 			prototype[protoIndex].ComputePP(P);
 
 			protoIndex++;
@@ -119,8 +119,8 @@ void G2mLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel) {
 }
 
 void G2mLvqModel::ClassBoundaryDiagram(double x0, double x1, double y0, double y1, MatrixXi & classDiagram) const {
-	int cols = classDiagram.cols();
-	int rows = classDiagram.rows();
+	int cols = static_cast<int>(classDiagram.cols());
+	int rows = static_cast<int>(classDiagram.rows());
 	for(int xCol=0;  xCol < cols;  xCol++) {
 		double x = x0 + (x1-x0) * (xCol+0.5) / cols;
 		for(int yRow=0;  yRow < rows;  yRow++) {

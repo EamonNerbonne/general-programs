@@ -64,7 +64,7 @@ namespace LvqLibCli {
 		template<>
 		static inline array<typename MatrixBase<TDerived>::Scalar, 2>^ cppToCliHelper<false>(MatrixBase<TDerived>  const & matrix) {
 			typedef MatrixBase<TDerived>::Scalar T;
-			array<T, 2>^ points =  gcnew array<T,2>(matrix.cols(),matrix.rows());
+			array<T, 2>^ points =  gcnew array<T,2>(static_cast<int>(matrix.cols()),static_cast<int>(matrix.rows()));
 			for(int i=0; i<points->GetLength(0); ++i)
 				for(int j=0; j<points->GetLength(1); ++j)
 					points[i, j] = cppToCli(matrix(j,i));
