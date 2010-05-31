@@ -179,7 +179,7 @@ namespace EmnExtensions.Wpf.Plot
 				foreach (var axis in Axes)
 					if ((axis.AxisPos & gridLineAxes) != 0)
 						drawingContext.DrawDrawing(axis.GridLines);
-			foreach (var graph in graphs.AsEnumerable().Reverse().OrderBy(g => g.ZIndex))
+			foreach (var graph in graphs.OrderBy(g => g.ZIndex))
 				graph.PlotVisualizer.DrawGraph(drawingContext);
 		}
 

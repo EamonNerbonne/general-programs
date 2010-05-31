@@ -43,7 +43,7 @@ namespace LvqGui {
 			get {
 				yield return classBoundaries;
 				foreach (var plot in classPlots) yield return plot;
-				yield return classBoundaries;
+				yield return prototypePositionsPlot;
 			}
 		}
 
