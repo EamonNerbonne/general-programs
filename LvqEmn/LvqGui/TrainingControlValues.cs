@@ -53,11 +53,17 @@ namespace LvqGui {
 			var selectedDataset = SelectedDataSet;
 			var selectedModel = SelectedLvqModel;
 			int epochsToTrainFor = EpochsPerClick;
-			lock (selectedModel.UpdateSyncObject) //not needed for safety, just for accurate timing
-				using (new DTimer("Training " + epochsToTrainFor + " epochs"))
-					selectedModel.Train(epochsToDo: epochsToTrainFor, trainingSet: SelectedDataSet);
-			if (selectedModel == SelectedLvqModel && selectedDataset == SelectedDataSet && SelectedModelUpdatedInBackgroundThread != null)
-				SelectedModelUpdatedInBackgroundThread(selectedDataset, selectedModel);
+			if (selectedDataset == null)
+				Console.WriteLine("Training aborted, no dataset selected.");
+			else if (selectedModel == null)
+				Console.WriteLine("Training aborted, no model selected.");
+			else {
+				lock (selectedModel.UpdateSyncObject) //not needed for safety, just for accurate timing
+					using (new DTimer("Training " + epochsToTrainFor + " epochs"))
+						selectedModel.Train(epochsToDo: epochsToTrainFor, trainingSet: SelectedDataSet);
+				if (selectedModel == SelectedLvqModel && selectedDataset == SelectedDataSet && SelectedModelUpdatedInBackgroundThread != null)
+					SelectedModelUpdatedInBackgroundThread(selectedDataset, selectedModel);
+			}
 		}
 	}
 }
