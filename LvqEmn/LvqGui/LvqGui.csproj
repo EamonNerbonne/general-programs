@@ -79,6 +79,9 @@
     <NoWarn>1668, 1607</NoWarn>
     <DebugSymbols>true</DebugSymbols>
   </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationIcon>SampleIcon.ico</ApplicationIcon>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Xaml" />
@@ -213,6 +216,9 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Todo.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="SampleIcon.ico" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
