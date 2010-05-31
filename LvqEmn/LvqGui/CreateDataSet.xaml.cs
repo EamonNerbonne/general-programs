@@ -26,7 +26,7 @@ namespace LvqGui {
 		}
 
 		private void ReseedParam(object sender, RoutedEventArgs e) { ((IHasSeed)DataContext).ReseedParam(); }
-		private void ReseedInst(object sender, RoutedEventArgs e) { ((IHasSeed)DataContext).ReseedParam(); }
+		private void ReseedInst(object sender, RoutedEventArgs e) { ((IHasSeed)DataContext).ReseedInst(); }
 
 		private void CreateDataSetButtonPress(object sender, RoutedEventArgs e) {
 			ThreadPool.QueueUserWorkItem(o => { ((CreateDataSetValues)o).ConfirmCreation(); }, DataContext);

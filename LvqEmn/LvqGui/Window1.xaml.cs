@@ -339,7 +339,6 @@ namespace LVQeamon {
 			UpdateDisplay();
 			Thread.Sleep((int)Math.Max(0, 16 - t.ElapsedMilliseconds));
 			Dispatcher.BeginInvoke((Action)(() => {
-
 				int epochsTodoN = EpochsPerClick ?? 1;
 				ThreadPool.QueueUserWorkItem(DoAniStep, epochsTodoN);
 			}),DispatcherPriority.ApplicationIdle);

@@ -35,7 +35,7 @@ namespace LvqGui {
 
 		void TrainingControlValues_ModelSelected(LvqDataSetCli dataset, LvqModelCli model) {
 			if (plotData == null || plotData.dataset != dataset) {
-				plotData = new LvqScatterPlot(dataset, Dispatcher);
+				plotData = new LvqScatterPlot(dataset, Dispatcher,((LvqWindowValues)DataContext).TrainingControlValues);
 				plotControl.Graphs.Clear();
 				foreach (var subplot in plotData.Plots)
 					plotControl.Graphs.Add(subplot);

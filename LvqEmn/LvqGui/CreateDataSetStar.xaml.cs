@@ -24,7 +24,7 @@ namespace LvqGui {
 		public CreateDataSetStar() { InitializeComponent(); }
 
 		private void ReseedParam(object sender, RoutedEventArgs e) { ((IHasSeed)DataContext).ReseedParam(); }
-		private void ReseedInst(object sender, RoutedEventArgs e) { ((IHasSeed)DataContext).ReseedParam(); }
+		private void ReseedInst(object sender, RoutedEventArgs e) { ((IHasSeed)DataContext).ReseedInst(); }
 
 		private void buttonGenerateDataset_Click(object sender, RoutedEventArgs e) {
 			ThreadPool.QueueUserWorkItem(o => { ((CreateDataSetStarValues)o).ConfirmCreation(); }, DataContext);

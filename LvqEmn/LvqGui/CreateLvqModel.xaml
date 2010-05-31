@@ -42,9 +42,9 @@
         <TextBox Grid.Row="4" Grid.Column="1" Text="{Binding PrototypesPerClass, Mode=TwoWay, ValidatesOnExceptions=True}" />
         
         <Button Grid.Row="5" Content="Reset Initialization Seed" Click="ReseedParam" />
-        <TextBox Grid.Row="5" Grid.Column="1" Text="{Binding Seed, Mode=TwoWay, ValidatesOnExceptions=True}" Margin="2,2,2,2" />
+        <TextBox Grid.Row="5" Grid.Column="1" Text="{Binding Seed, Mode=TwoWay, ValidatesOnExceptions=True}"  />
         <Button Grid.Row="6" Content="Reset Iteration Seed" Click="ReseedInst" />
-        <TextBox Grid.Row="6" Grid.Column="1" Text="{Binding Seed, Mode=TwoWay, ValidatesOnExceptions=True}" Margin="2,2,2,2" />
+        <TextBox Grid.Row="6" Grid.Column="1" Text="{Binding InstSeed, Mode=TwoWay, ValidatesOnExceptions=True}" />
 
         <Button Grid.Row="7" Grid.ColumnSpan="2" Click="InitializeModel">Initialize Model</Button>
     </Grid>

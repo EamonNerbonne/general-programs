@@ -23,8 +23,10 @@ namespace LvqGui {
 
 		bool busy, updateQueued;
 		object syncroot = new object();
+		public readonly TrainingControlValues trainingController;
 
-		public LvqScatterPlot(LvqDataSetCli dataset, Dispatcher dispatcher) {
+		public LvqScatterPlot(LvqDataSetCli dataset, Dispatcher dispatcher, TrainingControlValues trainingController ) {
+			this.trainingController = trainingController;
 			this.dataset = dataset;
 			this.dispatcher = dispatcher;
 			prototypePositionsPlot = PlotData.Create(default(Point[]));
@@ -77,11 +79,16 @@ namespace LvqGui {
 					classPlots[pointGroup.Key].Data = pointGroup.Value;
 				prototypePositionsPlot.Data = prototypePositions;
 				classBoundaries.TriggerDataChanged();
+				bool isIdle = false;
 				lock (syncroot) {
 					busy = false;
 					if (updateQueued)
 						QueueUpdate();
+					else
+						isIdle = true;
 				}
+				if (isIdle)
+					trainingController.OnIdle();
 			}), DispatcherPriority.Background);
 		}
 
