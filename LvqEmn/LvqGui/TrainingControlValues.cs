@@ -6,6 +6,7 @@ using System.ComponentModel;
 using LvqLibCli;
 using EmnExtensions.DebugTools;
 using System.Threading;
+using System.Collections.ObjectModel;
 
 namespace LvqGui {
 	public class TrainingControlValues : INotifyPropertyChanged {
@@ -16,16 +17,16 @@ namespace LvqGui {
 		public event Action<LvqDataSetCli, LvqModelCli> ModelSelected;
 		public event Action<LvqDataSetCli, LvqModelCli> SelectedModelUpdatedInBackgroundThread;
 
-
 		private void _propertyChanged(String propertyName) { if (PropertyChanged != null) PropertyChanged(this, new PropertyChangedEventArgs(propertyName)); }
 
 		public LvqDataSetCli SelectedDataSet {
 			get { return _SelectedDataSet; }
-			set { if (!object.Equals(_SelectedDataSet, value)) { _SelectedDataSet = value; _propertyChanged("SelectedDataSet"); SelectedLvqModel = _SelectedDataSet.LastModel; AnimateTraining = false; } }
+			set { if (!object.Equals(_SelectedDataSet, value)) { _SelectedDataSet = value; _propertyChanged("SelectedDataSet"); _propertyChanged("MatchingLvqModels"); SelectedLvqModel = _SelectedDataSet.LastModel; AnimateTraining = false; } }
 		}
 		private LvqDataSetCli _SelectedDataSet;
 
-		public IEnumerable<LvqModelCli> MatchingLvqModels { get { return Owner.LvqModels.Where(model => model.FitsDataShape(SelectedDataSet)); } }
+		//ObservableCollection<LvqModelCli>
+		public IEnumerable<LvqModelCli> MatchingLvqModels { get { return Owner.LvqModels.Where(model => model==null|| model.FitsDataShape(SelectedDataSet)); } }
 
 		public LvqModelCli SelectedLvqModel {
 			get { return _SelectedLvqModel; }
