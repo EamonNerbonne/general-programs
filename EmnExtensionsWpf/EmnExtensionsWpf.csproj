@@ -140,8 +140,8 @@
     </Compile>
     <Compile Include="Plot\IPlot.cs" />
     <Compile Include="Plot\IVizEngine.cs" />
-    <Compile Include="Plot\NewPlotControl.xaml.cs">
-      <DependentUpon>NewPlotControl.xaml</DependentUpon>
+    <Compile Include="Plot\PlotControl.xaml.cs">
+      <DependentUpon>PlotControl.xaml</DependentUpon>
     </Compile>
     <Compile Include="Plot\IPlotViz.cs" />
     <Compile Include="Plot\VizEngines\PlotVizTransform.cs" />
@@ -169,7 +169,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Page Include="Plot\NewPlotControl.xaml">
+    <Page Include="Plot\PlotControl.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>

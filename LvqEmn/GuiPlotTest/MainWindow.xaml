@@ -3,6 +3,6 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="MainWindow" Height="350" Width="525" xmlns:my="clr-namespace:EmnExtensions.Wpf.Plot;assembly=EmnExtensionsWpf" Loaded="Window_Loaded">
     <Grid>
-        <my:NewPlotControl Name="newPlotControl1" />
+        <my:PlotControl Name="plotControl1" />
     </Grid>
 </Window>

@@ -17,14 +17,14 @@ using System.Diagnostics;
 
 namespace EmnExtensions.Wpf.Plot
 {
-	public partial class NewPlotControl : UserControl
+	public partial class PlotControl : UserControl
 	{
 		bool needRedrawGraphs = false;
 		bool needRecomputeBounds = false;
 		ObservableCollection<IPlotViewOnly> graphs = new ObservableCollection<IPlotViewOnly>();
 		public ObservableCollection<IPlotViewOnly> Graphs { get { return graphs; } }
 		Dictionary<TickedAxisLocation, TickedAxis> axes;
-		public NewPlotControl()
+		public PlotControl()
 		{
 			graphs.CollectionChanged += new NotifyCollectionChangedEventHandler(graphs_CollectionChanged);
 			InitializeComponent();
@@ -165,10 +165,10 @@ namespace EmnExtensions.Wpf.Plot
 
 		// Using a DependencyProperty as the backing store for ShowGridLines.  This enables animation, styling, binding, etc...
 		public static readonly DependencyProperty ShowGridLinesProperty =
-			DependencyProperty.Register("ShowGridLines", typeof(bool), typeof(NewPlotControl), new UIPropertyMetadata(false,
+			DependencyProperty.Register("ShowGridLines", typeof(bool), typeof(PlotControl), new UIPropertyMetadata(false,
 				(o, e) => {
-					((NewPlotControl)o).needRedrawGraphs = true;
-					((NewPlotControl)o).InvalidateVisual();
+					((PlotControl)o).needRedrawGraphs = true;
+					((PlotControl)o).InvalidateVisual();
 				}
 				));
 

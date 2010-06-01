@@ -30,7 +30,7 @@ namespace QuickPlotTest
 		private void Window_Loaded(object sender, RoutedEventArgs e)
 		{
 			Random r = new MersenneTwister(37);
-			newPlotControl1.Graphs.Add(
+			plotControl1.Graphs.Add(
 				PlotData.Create(
 						(from index in Enumerable.Range(0, 1000)
 						 let x = index
@@ -45,7 +45,7 @@ namespace QuickPlotTest
 					)
 				);
 
-			newPlotControl1.Graphs.Add(
+			plotControl1.Graphs.Add(
 				PlotData.Create(
 						(from index in Enumerable.Range(0, 1000)
 						 from tries in Enumerable.Range(0, 500)
@@ -59,7 +59,7 @@ namespace QuickPlotTest
 						plot.YUnitLabel = "x^2";
 					})
 				);
-			newPlotControl1.AutoPickColors();
+			plotControl1.AutoPickColors();
 		}
 	}
 }
