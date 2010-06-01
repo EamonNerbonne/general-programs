@@ -51,7 +51,13 @@ namespace LvqGui {
 		
 
 		public string CreateLabel() {
-			return owner.MakeDatasetLabel()+ "_ds-" + Dimensions + "D-" + NumberOfClasses + "*" + PointsPerClass + ":" + ClassCenterDeviation.ToString("f1");
+			return "_ds-" + Dimensions + "D-" + NumberOfClasses + "*" + PointsPerClass + ":" + ClassCenterDeviation.ToString("f1") + "[" + Convert.ToString(Seed, 16) + MakeCounterLabel()+ "]";
+		}
+
+		int datasetCount = 0;
+		string MakeCounterLabel() {
+			datasetCount++;
+			return ((char)('A' + datasetCount - 1)).ToString();
 		}
 
 		public CreateDataSetValues(LvqWindowValues owner) {

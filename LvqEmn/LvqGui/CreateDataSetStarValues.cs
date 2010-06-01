@@ -75,8 +75,14 @@ namespace LvqGui {
 		private uint _InstSeed;
 
 		public string CreateLabel() {
-			return "star-" + Dimensions + "D-" + NumberOfClasses + "*" + PointsPerClass + ":" + NumberOfClusters + "(" + ClusterDimensionality + "D" + (RandomlyTransformFirst ? "?" : "") + ")*" + ClusterCenterDeviation.ToString("f1") + "~" + IntraClusterClassRelDev.ToString("f1");
+			return "star-" + Dimensions + "D-" + NumberOfClasses + "*" + PointsPerClass + ":" + NumberOfClusters + "(" + ClusterDimensionality + "D" + (RandomlyTransformFirst ? "?" : "") + ")*" + ClusterCenterDeviation.ToString("f1") + "~" + IntraClusterClassRelDev.ToString("f1") + "[" + Convert.ToString(Seed, 16) + MakeCounterLabel() + "]";
 		}
+		int datasetCount = 0;
+		string MakeCounterLabel() {
+			datasetCount++;
+			return ((char)('A' + datasetCount - 1)).ToString();
+		}
+
 
 		public CreateDataSetStarValues(LvqWindowValues owner) {
 			this.owner = owner;

@@ -9,7 +9,7 @@ using System.ComponentModel;
 using System.Windows.Threading;
 
 namespace LvqGui {
-	public class LvqWindowValues : INotifyPropertyChanged	 {
+	public class LvqWindowValues : INotifyPropertyChanged {
 		public event PropertyChangedEventHandler PropertyChanged;
 		private void _propertyChanged(String propertyName) { if (PropertyChanged != null) PropertyChanged(this, new PropertyChangedEventArgs(propertyName)); }
 
@@ -24,7 +24,7 @@ namespace LvqGui {
 
 		public LvqDataSetCli LastDataSet {
 			get { return _LastDataSet; }
-			set { if (!object.Equals(_LastDataSet,value)) { _LastDataSet = value; _propertyChanged("LastDataSet"); } }
+			set { if (!object.Equals(_LastDataSet, value)) { _LastDataSet = value; _propertyChanged("LastDataSet"); } }
 		}
 		private LvqDataSetCli _LastDataSet;
 		public readonly Dispatcher Dispatcher;
@@ -60,10 +60,5 @@ namespace LvqGui {
 			}
 		}
 
-		int datasetCount=0;
-		internal string MakeDatasetLabel() {
-			datasetCount++;
-			return ((char)('A' + (datasetCount-1))).ToString();
-		}
 	}
 }

@@ -61,8 +61,14 @@ namespace LvqGui {
 				ForDataset.DataSetLabel
 				+ "--" + ModelType.ToString()
 				+ (ModelType == LvqGui.ModelType.Gm ? "[" + Dimensionality + "]" : "")
-				+ "," + PrototypesPerClass;
+				+ "," + PrototypesPerClass + "[" + Convert.ToString(Seed, 16) + MakeCounterLabel() + "]";
 		}
+		int datasetCount = 0;
+		string MakeCounterLabel() {
+			datasetCount++;
+			return ((char)('A' + datasetCount - 1)).ToString();
+		}
+
 
 
 		public CreateLvqModelValues(LvqWindowValues owner) {
