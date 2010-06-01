@@ -74,7 +74,7 @@ namespace LVQeamon {
 				bool useGsm = checkBoxLvqGsm.IsChecked ?? false;
 				SetupDisplay(numSets);
 				ThreadPool.QueueUserWorkItem((ignore) => {
-					LvqDataSetCli dataset = DTimer.TimeFunc(() => LvqDataSetCli.ConstructGaussianClouds("oldstyle-dataset",
+					LvqDatasetCli dataset = DTimer.TimeFunc(() => LvqDatasetCli.ConstructGaussianClouds("oldstyle-dataset",
 						RndHelper.MakeSecureUInt(),
 						RndHelper.MakeSecureUInt(),
 						dims, numSets, pointsPerSet, stddevmeans), "Constructing dataset");
@@ -111,8 +111,8 @@ namespace LVQeamon {
 
 				ThreadPool.QueueUserWorkItem((ignore) => {
 
-					LvqDataSetCli dataset =
-						DTimer.TimeFunc(() => LvqDataSetCli.ConstructStarDataset("oldstyle-dataset",
+					LvqDatasetCli dataset =
+						DTimer.TimeFunc(() => LvqDatasetCli.ConstructStarDataset("oldstyle-dataset",
 						RndHelper.MakeSecureUInt(),
 						RndHelper.MakeSecureUInt(),
 						dims, 2, starTailCount, numSets, pointsPerSet, stddevmeans * starRelDist, 1.0 / starRelDist), "making star clouds");
@@ -141,9 +141,9 @@ namespace LVQeamon {
 					FileInfo dataFile = new FileInfo(selectedFile.Directory + @"\" + Path.GetFileNameWithoutExtension(selectedFile.Name) + ".data");
 					if (dataFile.Exists && labelFile.Exists) {
 						try {
-							var pointclouds = DataSetLoader.LoadDataset(dataFile, labelFile);
+							var pointclouds = DatasetLoader.LoadDataset(dataFile, labelFile);
 							SetupDisplay(pointclouds.Item3);
-							var dataset = LvqDataSetCli.ConstructFromArray(dataFile.Name, pointclouds.Item1, pointclouds.Item2, pointclouds.Item3);
+							var dataset = LvqDatasetCli.ConstructFromArray(dataFile.Name, pointclouds.Item1, pointclouds.Item2, pointclouds.Item3);
 							StartLvq(dataset, protoCount, useGsm);
 						} catch (FileFormatException fe) {
 							Console.WriteLine("Can't load file: {0}", fe.ToString());
@@ -156,10 +156,10 @@ namespace LVQeamon {
 			fileOpenThread.Start();
 		}
 
-		private void StartLvq(LvqDataSetCli newDataset, int protosPerClass, bool useGsm, LvqDataSetCli testDataset = null) {
+		private void StartLvq(LvqDatasetCli newDataset, int protosPerClass, bool useGsm, LvqDatasetCli testDataset = null) {
 			lock (updateDispSync)
 			lock (lvqSync) {
-				LvqDataSet = newDataset;
+				LvqDataset = newDataset;
 				LvqModel = new LvqModelCli("oldmodel", RndHelper.MakeSecureUInt(), 
 					RndHelper.MakeSecureUInt(), 
 					protosPerClass, useGsm ? LvqModelCli.GSM_TYPE : LvqModelCli.G2M_TYPE, newDataset);
@@ -177,10 +177,10 @@ namespace LVQeamon {
 			lock (updateDispSync) {
 				if (!updateQueued) return;
 				updateQueued = false;
-				double[,] currPoints = LvqModel.CurrentProjectionOf(LvqDataSet);
+				double[,] currPoints = LvqModel.CurrentProjectionOf(LvqDataset);
 				if (currPoints == null) return;//model not initialized
 
-				int[] labels = LvqDataSet.ClassLabels();
+				int[] labels = LvqDataset.ClassLabels();
 				Dictionary<int, Point[]> projectedPointsByLabel =
 					labels
 					.Select((label, i) => new { Label = label, Point = new Point(currPoints[i, 0], currPoints[i, 1]) })
@@ -197,8 +197,8 @@ namespace LVQeamon {
 					lock (updateDispSync) {
 						foreach (var pointGroup in projectedPointsByLabel)
 							((IPlotWriteable<Point[]>)plotControl.Graphs[pointGroup.Key]).Data = pointGroup.Value;
-						((IPlotWriteable<Point[]>)plotControl.Graphs[LvqDataSet.ClassCount + 1]).Data = prototypePositions;
-						((IPlotWriteable<LvqModelCli>)plotControl.Graphs[LvqDataSet.ClassCount]).TriggerDataChanged();
+						((IPlotWriteable<Point[]>)plotControl.Graphs[LvqDataset.ClassCount + 1]).Data = prototypePositions;
+						((IPlotWriteable<LvqModelCli>)plotControl.Graphs[LvqDataset.ClassCount]).TriggerDataChanged();
 					}
 				}), DispatcherPriority.ContextIdle);
 
@@ -282,7 +282,7 @@ namespace LVQeamon {
 		object lvqSync = new object();
 		LvqModelCli LvqModel;
 
-		LvqDataSetCli LvqDataSet;
+		LvqDatasetCli LvqDataset;
 
 		protected override void OnInitialized(EventArgs e) {
 #if  DEBUG
@@ -298,7 +298,7 @@ namespace LVQeamon {
 			ThreadPool.QueueUserWorkItem((index) => {
 				lock (lvqSync)
 					using (new DTimer("Training " + epochsTodo + " epochs"))
-						LvqModel.Train(epochsTodo, LvqDataSet);
+						LvqModel.Train(epochsTodo, LvqDataset);
 				UpdateDisplay();
 			});
 		}
@@ -335,7 +335,7 @@ namespace LVQeamon {
 
 			lock (lvqSync)
 				using (new DTimer("Training " + epochsTodo + " epochs"))
-					LvqModel.Train(epochsTodo, LvqDataSet);
+					LvqModel.Train(epochsTodo, LvqDataset);
 			UpdateDisplay();
 			Thread.Sleep((int)Math.Max(0, 16 - t.ElapsedMilliseconds));
 			Dispatcher.BeginInvoke((Action)(() => {

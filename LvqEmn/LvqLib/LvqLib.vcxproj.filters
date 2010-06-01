@@ -15,7 +15,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="DataSetUtils.cpp">
+    <ClCompile Include="DatasetUtils.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="G2mLvqModel.cpp">
@@ -27,7 +27,7 @@
     <ClCompile Include="GsmLvqModel.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="LvqDataSet.cpp">
+    <ClCompile Include="LvqDataset.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="stdafx.cpp">
@@ -41,7 +41,7 @@
     <ClInclude Include="AbstractLvqModel.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="DataSetUtils.h">
+    <ClInclude Include="DatasetUtils.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="G2mLvqMatch.h">
@@ -62,7 +62,7 @@
     <ClInclude Include="LvqConstants.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="LvqDataSet.h">
+    <ClInclude Include="LvqDataset.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="stdafx.h">
