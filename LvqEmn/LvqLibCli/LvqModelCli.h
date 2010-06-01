@@ -1,8 +1,8 @@
 #pragma once
 using namespace System;
 #include "stdafx.h"
-#include "LvqDataSet.h"
-#include "LvqDataSetCli.h"
+#include "LvqDataset.h"
+#include "LvqDatasetCli.h"
 
 namespace LvqLibCli {
 
@@ -20,27 +20,27 @@ namespace LvqLibCli {
 			msclr::lock l(backupSync);
 			modelCopy = GcPtr::Create(newCopy);
 		}
-		void Init(LvqDataSetCli^ trainingSet);
-		LvqDataSetCli^ initSet;
+		void Init(LvqDatasetCli^ trainingSet);
+		LvqDatasetCli^ initSet;
 	public:
 
 		property int ClassCount {int get(){return model->get()->ClassCount();}}
 		property int Dimensions {int get(){return model->get()->Dimensions();}}
 		property String^ ModelLabel {String^ get(){return label;}}
-		property LvqDataSetCli^ InitSet {LvqDataSetCli^ get(){return initSet;}}
+		property LvqDatasetCli^ InitSet {LvqDatasetCli^ get(){return initSet;}}
 
-		LvqModelCli(String^ label, unsigned rngParamsSeed, unsigned rngInstSeed, int protosPerClass, int modelType,LvqDataSetCli^ trainingSet);
+		LvqModelCli(String^ label, unsigned rngParamsSeed, unsigned rngInstSeed, int protosPerClass, int modelType,LvqDatasetCli^ trainingSet);
 
-		bool FitsDataShape(LvqDataSetCli^ dataset) {return dataset!=nullptr && dataset->ClassCount == this->ClassCount && dataset->Dimensions == this->Dimensions;}
+		bool FitsDataShape(LvqDatasetCli^ dataset) {return dataset!=nullptr && dataset->ClassCount == this->ClassCount && dataset->Dimensions == this->Dimensions;}
 
 		property Object^ UpdateSyncObject { Object ^ get(){return mainSync;} }
-		double ErrorRate(LvqDataSetCli^testSet);
-		array<double,2>^ CurrentProjectionOf(LvqDataSetCli^ dataset);
+		double ErrorRate(LvqDatasetCli^testSet);
+		array<double,2>^ CurrentProjectionOf(LvqDatasetCli^ dataset);
 		
 		Tuple<array<double,2>^,array<int>^>^ PrototypePositions();
 
 		array<int,2>^ ClassBoundaries(double x0, double x1, double y0, double y1,int xCols, int yRows);
-		void Train(int epochsToDo,LvqDataSetCli^ trainingSet); 
+		void Train(int epochsToDo,LvqDatasetCli^ trainingSet); 
 
 		static const int G2M_TYPE =0;
 		static const int GSM_TYPE =1;

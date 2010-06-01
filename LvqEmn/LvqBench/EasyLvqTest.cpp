@@ -1,10 +1,10 @@
 #include "stdafx.h"
 #include "EasyLvqTest.h"
-#include "LvqDataSet.h"
+#include "LvqDataset.h"
 #include "G2mLvqModel.h"
 #include "GsmLvqModel.h"
 #include "GmLvqModel.h"
-#include "DataSetUtils.h"
+#include "DatasetUtils.h"
 
 using boost::mt19937;
 using boost::normal_distribution;
@@ -38,22 +38,21 @@ using namespace Eigen;
 #include<cstdlib>
 #include<ctime>
 
-	unsigned int secure_rand() {
-		static int rand_init =0;
-		if(!rand_init)
-			srand(time(0)); 
-		return rand();
+unsigned int secure_rand() {
+	static int rand_init =0;
+	if(!rand_init)
+		srand(time(0)); 
+	return rand();
 }
-
 #else
-	unsigned int secure_rand() {
-		unsigned int retval;
-		rand_s(&retval);
-		return retval;
+unsigned int secure_rand() {
+	unsigned int retval;
+	rand_s(&retval);
+	return retval;
 }
 #endif
 
-void PrintModelStatus(char const * label,AbstractLvqModel const * model,LvqDataSet const * dataset) {
+void PrintModelStatus(char const * label,AbstractLvqModel const * model,LvqDataset const * dataset) {
 	using namespace std;
 	cerr << label<< ": "<<dataset->ErrorRate(model);
 	if(dynamic_cast<AbstractProjectionLvqModel const*>(model)) 
@@ -61,7 +60,7 @@ void PrintModelStatus(char const * label,AbstractLvqModel const * model,LvqDataS
 	cerr<<endl;
 }
 
-template <class T> void TestModel(mt19937 & rndGenOrig, bool randInit, LvqDataSet const  * dataset, vector<int> const & protoDistrib, int iters) {
+template <class T> void TestModel(mt19937 & rndGenOrig, bool randInit, LvqDataset const  * dataset, vector<int> const & protoDistrib, int iters) {
 	Eigen::BenchTimer t;
 	mt19937 rndGenCopy = rndGenOrig;
 	mt19937 rndGen(rndGenCopy); //we do this to avoid changing the original rng, so we can rerun tests with the same sequence of random numbers generated.
@@ -107,7 +106,7 @@ void EasyLvqTest() {
 		protoDistrib.push_back(PROTOSPERCLASS);
 
 	Eigen::BenchTimer t;
-	scoped_ptr<LvqDataSet> dataset(DataSetUtils::ConstructGaussianClouds(rndGen,rndGen, DIMS, CLASSCOUNT, POINTS_PER_CLASS, MEANSEP)); 
+	scoped_ptr<LvqDataset> dataset(DatasetUtils::ConstructGaussianClouds(rndGen,rndGen, DIMS, CLASSCOUNT, POINTS_PER_CLASS, MEANSEP)); 
 	
 	for(int bI=0;bI<BENCH_RUNS;++bI)
 	{

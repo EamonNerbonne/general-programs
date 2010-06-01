@@ -7,7 +7,7 @@ using System.ComponentModel;
 
 namespace LvqGui {
 
-	public class CreateDataSetStarValues : INotifyPropertyChanged,IHasSeed {
+	public class CreateDatasetStarValues : INotifyPropertyChanged,IHasSeed {
 		readonly LvqWindowValues owner;
 
 		public event PropertyChangedEventHandler PropertyChanged;
@@ -84,7 +84,7 @@ namespace LvqGui {
 		}
 
 
-		public CreateDataSetStarValues(LvqWindowValues owner) {
+		public CreateDatasetStarValues(LvqWindowValues owner) {
 			this.owner = owner;
 			_ClusterCenterDeviation = 2.5;
 			_ClusterDimensionality = 2;
@@ -102,8 +102,8 @@ namespace LvqGui {
 			this.ReseedBoth();
 		}
 
-		public LvqDataSetCli CreateDataset() {
-			return LvqDataSetCli.ConstructStarDataset(CreateLabel(),
+		public LvqDatasetCli CreateDataset() {
+			return LvqDatasetCli.ConstructStarDataset(CreateLabel(),
 				rngParamsSeed: Seed,
 				rngInstSeed: InstSeed,
 				dims: Dimensions,
@@ -117,7 +117,7 @@ namespace LvqGui {
 		}
 
 		public void ConfirmCreation() {
-			owner.Dispatcher.BeginInvoke(owner.DataSets.Add, CreateDataset());
+			owner.Dispatcher.BeginInvoke(owner.Datasets.Add, CreateDataset());
 		}
 	}
 }

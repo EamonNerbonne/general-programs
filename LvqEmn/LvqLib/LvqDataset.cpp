@@ -1,9 +1,9 @@
 #include "stdafx.h"
-#include "LvqDataSet.h"
+#include "LvqDataset.h"
 #include "utils.h"
 #include <xmmintrin.h>
 
-LvqDataSet::LvqDataSet(MatrixXd const & points, vector<int> pointLabels, int classCountPar) 
+LvqDataset::LvqDataset(MatrixXd const & points, vector<int> pointLabels, int classCountPar) 
 	: trainPoints(points)
 	, trainPointLabels(pointLabels)
 	, classCount(classCountPar)
@@ -21,7 +21,7 @@ LvqDataSet::LvqDataSet(MatrixXd const & points, vector<int> pointLabels, int cla
 	//trainPointLabels.shrink_to_fit();
 }
 
-MatrixXd LvqDataSet::ComputeClassMeans() const {
+MatrixXd LvqDataset::ComputeClassMeans() const {
 	MatrixXd means( trainPoints.rows(), classCount);
 	means.setZero();
 	
@@ -36,8 +36,8 @@ MatrixXd LvqDataSet::ComputeClassMeans() const {
 }
 
 
-size_t LvqDataSet::MemAllocEstimate() const {
-	return sizeof(LvqDataSet) + sizeof(int) * (trainPointLabels.size() + trainClassFrequency.size()) + sizeof(double)*trainPoints.size();
+size_t LvqDataset::MemAllocEstimate() const {
+	return sizeof(LvqDataset) + sizeof(int) * (trainPointLabels.size() + trainClassFrequency.size()) + sizeof(double)*trainPoints.size();
 }
 
 void EIGEN_STRONG_INLINE prefetch(void const * start,int lines) {
@@ -45,7 +45,7 @@ void EIGEN_STRONG_INLINE prefetch(void const * start,int lines) {
 		_mm_prefetch( (const char*)start + 64*i, _MM_HINT_NTA);//_MM_HINT_T0
 }
 
-void LvqDataSet::TrainModel(int epochs, boost::mt19937 & randGen, AbstractLvqModel * model) const {
+void LvqDataset::TrainModel(int epochs, boost::mt19937 & randGen, AbstractLvqModel * model) const {
 	int dims = static_cast<int>(trainPoints.rows());
 	boost::scoped_array<int> ordering(new int[trainPointLabels.size()+1] );
 	ordering[trainPointLabels.size()] = 0;
@@ -67,7 +67,7 @@ void LvqDataSet::TrainModel(int epochs, boost::mt19937 & randGen, AbstractLvqMod
 	}
 }
 
-double LvqDataSet::ErrorRate(AbstractLvqModel const * model)const {
+double LvqDataset::ErrorRate(AbstractLvqModel const * model)const {
 	VectorXd a;
 	int errs=0;
 	for(int i=0;i<(int)trainPointLabels.size();++i) 
@@ -76,6 +76,6 @@ double LvqDataSet::ErrorRate(AbstractLvqModel const * model)const {
 	return errs / double(trainPointLabels.size());
 }
 
-PMatrix LvqDataSet::ProjectPoints(AbstractProjectionLvqModel const * model) const {
+PMatrix LvqDataset::ProjectPoints(AbstractProjectionLvqModel const * model) const {
 	return model->projectionMatrix() * trainPoints;
 }

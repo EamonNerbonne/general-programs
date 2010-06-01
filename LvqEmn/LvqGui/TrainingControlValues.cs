@@ -14,23 +14,23 @@ namespace LvqGui {
 		public LvqWindowValues Owner { get { return owner; } }
 
 		public event PropertyChangedEventHandler PropertyChanged;
-		public event Action<LvqDataSetCli, LvqModelCli> ModelSelected;
-		public event Action<LvqDataSetCli, LvqModelCli> SelectedModelUpdatedInBackgroundThread;
+		public event Action<LvqDatasetCli, LvqModelCli> ModelSelected;
+		public event Action<LvqDatasetCli, LvqModelCli> SelectedModelUpdatedInBackgroundThread;
 
 		private void _propertyChanged(String propertyName) { if (PropertyChanged != null) PropertyChanged(this, new PropertyChangedEventArgs(propertyName)); }
 
-		public LvqDataSetCli SelectedDataSet {
-			get { return _SelectedDataSet; }
-			set { if (!object.Equals(_SelectedDataSet, value)) { _SelectedDataSet = value; _propertyChanged("SelectedDataSet"); _propertyChanged("MatchingLvqModels"); SelectedLvqModel = _SelectedDataSet.LastModel; AnimateTraining = false; } }
+		public LvqDatasetCli SelectedDataset {
+			get { return _SelectedDataset; }
+			set { if (!object.Equals(_SelectedDataset, value)) { _SelectedDataset = value; _propertyChanged("SelectedDataset"); _propertyChanged("MatchingLvqModels"); SelectedLvqModel = _SelectedDataset.LastModel; AnimateTraining = false; } }
 		}
-		private LvqDataSetCli _SelectedDataSet;
+		private LvqDatasetCli _SelectedDataset;
 
 		//ObservableCollection<LvqModelCli>
-		public IEnumerable<LvqModelCli> MatchingLvqModels { get { return Owner.LvqModels.Where(model => model==null|| model.FitsDataShape(SelectedDataSet)); } }
+		public IEnumerable<LvqModelCli> MatchingLvqModels { get { return Owner.LvqModels.Where(model => model==null|| model.FitsDataShape(SelectedDataset)); } }
 
 		public LvqModelCli SelectedLvqModel {
 			get { return _SelectedLvqModel; }
-			set { if (!object.Equals(_SelectedLvqModel, value)) { _SelectedLvqModel = value; _propertyChanged("SelectedLvqModel"); ModelSelected(_SelectedDataSet, _SelectedLvqModel); AnimateTraining = false; } }
+			set { if (!object.Equals(_SelectedLvqModel, value)) { _SelectedLvqModel = value; _propertyChanged("SelectedLvqModel"); ModelSelected(_SelectedDataset, _SelectedLvqModel); AnimateTraining = false; } }
 		}
 		private LvqModelCli _SelectedLvqModel;
 
@@ -50,7 +50,7 @@ namespace LvqGui {
 			get { return _AnimateTraining; }
 			set {
 				if (!object.Equals(_AnimateTraining, value)) {
-					if (value && (SelectedLvqModel == null || SelectedDataSet == null))
+					if (value && (SelectedLvqModel == null || SelectedDataset == null))
 						throw new ArgumentException("Can't animate; dataset or model is not set");
 					_AnimateTraining = value; _propertyChanged("AnimateTraining");
 					if (_AnimateTraining)
@@ -62,7 +62,7 @@ namespace LvqGui {
 
 		public void OnIdle() {
 			if (!AnimateTraining) {
-			} else if (SelectedLvqModel == null || SelectedDataSet == null) {
+			} else if (SelectedLvqModel == null || SelectedDataset == null) {
 				AnimateTraining = false;
 			} else {
 				ThreadPool.QueueUserWorkItem(o => { ConfirmTraining(); });
@@ -80,7 +80,7 @@ namespace LvqGui {
 
 
 		public void ConfirmTraining() {
-			var selectedDataset = SelectedDataSet;
+			var selectedDataset = SelectedDataset;
 			var selectedModel = SelectedLvqModel;
 			int epochsToTrainFor = EpochsPerClick;
 			if (selectedDataset == null)
@@ -94,7 +94,7 @@ namespace LvqGui {
 					lock (selectedModel.UpdateSyncObject) //not needed for safety, just for accurate timing
 						using (new DTimer("Training " + epochsToTrainFor + " epochs"))
 							selectedModel.Train(epochsToDo: epochsToTrainFor, trainingSet: selectedDataset);
-				if (selectedModel == SelectedLvqModel && selectedDataset == SelectedDataSet && SelectedModelUpdatedInBackgroundThread != null)
+				if (selectedModel == SelectedLvqModel && selectedDataset == SelectedDataset && SelectedModelUpdatedInBackgroundThread != null)
 					SelectedModelUpdatedInBackgroundThread(selectedDataset, selectedModel);
 			}
 		}

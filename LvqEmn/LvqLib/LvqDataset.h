@@ -5,7 +5,7 @@ using namespace Eigen;
 #include "AbstractLvqModel.h"
 using namespace std;
 
-class LvqDataSet
+class LvqDataset
 {
 public:
 	MatrixXd trainPoints; //one dimension per row, one point per column
@@ -13,7 +13,7 @@ public:
 	vector<int> trainClassFrequency; //TODO: rename, these datasets aren't necessarily training sets.
 	const int classCount;
 
-	LvqDataSet(MatrixXd const & points, vector<int> pointLabels, int classCount);
+	LvqDataset(MatrixXd const & points, vector<int> pointLabels, int classCount);
 
 	MatrixXd ComputeClassMeans() const;
 

@@ -26,14 +26,14 @@ namespace LvqGui {
 		}
 
 		LvqScatterPlot plotData;
-		void TrainingControlValues_SelectedModelUpdatedInBackgroundThread(LvqDataSetCli dataset, LvqModelCli model) {
+		void TrainingControlValues_SelectedModelUpdatedInBackgroundThread(LvqDatasetCli dataset, LvqModelCli model) {
 			Dispatcher.BeginInvoke(() => {
 				if (plotData != null && plotData.dataset == dataset && plotData.LvqModel == model) 
 					plotData.QueueUpdate();
 			});
 		}
 
-		void TrainingControlValues_ModelSelected(LvqDataSetCli dataset, LvqModelCli model) {
+		void TrainingControlValues_ModelSelected(LvqDatasetCli dataset, LvqModelCli model) {
 			if (plotData == null || plotData.dataset != dataset) {
 				plotData = new LvqScatterPlot(dataset, Dispatcher,((LvqWindowValues)DataContext).TrainingControlValues);
 				plotControl.Graphs.Clear();

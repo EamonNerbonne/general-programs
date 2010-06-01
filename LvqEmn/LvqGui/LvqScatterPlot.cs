@@ -17,7 +17,7 @@ namespace LvqGui {
 		IPlotWriteable<Point[]>[] classPlots;
 		IPlotWriteable<object> classBoundaries;
 
-		public readonly LvqDataSetCli dataset;
+		public readonly LvqDatasetCli dataset;
 		LvqModelCli currentModel;
 		readonly Dispatcher dispatcher;
 
@@ -25,7 +25,7 @@ namespace LvqGui {
 		object syncroot = new object();
 		public readonly TrainingControlValues trainingController;
 
-		public LvqScatterPlot(LvqDataSetCli dataset, Dispatcher dispatcher, TrainingControlValues trainingController ) {
+		public LvqScatterPlot(LvqDatasetCli dataset, Dispatcher dispatcher, TrainingControlValues trainingController ) {
 			this.trainingController = trainingController;
 			this.dataset = dataset;
 			this.dispatcher = dispatcher;

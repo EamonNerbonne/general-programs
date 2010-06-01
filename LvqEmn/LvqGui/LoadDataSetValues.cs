@@ -10,7 +10,7 @@ using System.IO;
 using LVQeamon;
 
 namespace LvqGui {
-	public class LoadDataSetValues : INotifyPropertyChanged, IHasSeed {
+	public class LoadDatasetValues : INotifyPropertyChanged, IHasSeed {
 		readonly LvqWindowValues owner;
 		public event PropertyChangedEventHandler PropertyChanged;
 		private void _propertyChanged(String propertyName) { if (PropertyChanged != null) PropertyChanged(this, new PropertyChangedEventArgs(propertyName)); }
@@ -29,12 +29,12 @@ namespace LvqGui {
 
 		
 
-		public LoadDataSetValues(LvqWindowValues owner) {
+		public LoadDatasetValues(LvqWindowValues owner) {
 			this.owner = owner;
 			this.ReseedBoth();
 		}
 
-		LvqDataSetCli CreateDataset() {
+		LvqDatasetCli CreateDataset() {
 			OpenFileDialog dataFileOpenDialog = new OpenFileDialog();
 			//dataFileOpenDialog.Filter = "*.data";
 
@@ -44,14 +44,14 @@ namespace LvqGui {
 				FileInfo dataFile = new FileInfo(selectedFile.Directory + @"\" + Path.GetFileNameWithoutExtension(selectedFile.Name) + ".data");
 				if (dataFile.Exists && labelFile.Exists) {
 					try {
-						var pointclouds = DataSetLoader.LoadDataset(dataFile, labelFile);
+						var pointclouds = DatasetLoader.LoadDataset(dataFile, labelFile);
 						double[,] pointArray = pointclouds.Item1;
 						int[] labelArray = pointclouds.Item2;
 						int classCount = pointclouds.Item3;
 
 						string name = dataFile.Name + "-" + pointArray.GetLength(1) + "D-" + classCount + "*" + pointArray.GetLength(0);
 
-						return LvqDataSetCli.ConstructFromArray(name, pointArray, labelArray, classCount);
+						return LvqDatasetCli.ConstructFromArray(name, pointArray, labelArray, classCount);
 
 
 					} catch (FileFormatException fe) {
@@ -66,7 +66,7 @@ namespace LvqGui {
 			var fileOpenThread = new Thread(() => {
 				var dataset = CreateDataset();
 				if (dataset != null)
-					owner.Dispatcher.BeginInvoke(owner.DataSets.Add, dataset);
+					owner.Dispatcher.BeginInvoke(owner.Datasets.Add, dataset);
 			});
 			fileOpenThread.SetApartmentState(ApartmentState.STA);
 			fileOpenThread.IsBackground = true;

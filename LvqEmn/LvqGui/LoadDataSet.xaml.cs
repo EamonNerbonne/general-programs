@@ -14,14 +14,11 @@ using System.Windows.Shapes;
 using System.Threading;
 
 namespace LvqGui {
-	/// <summary>
-	/// Interaction logic for LoadDataSet.xaml
-	/// </summary>
-	public partial class LoadDataSet : UserControl {
-		public LoadDataSet() { InitializeComponent(); }
+	public partial class LoadDataset : UserControl {
+		public LoadDataset() { InitializeComponent(); }
 
-		private void LoadDataset(object sender, RoutedEventArgs e) {
-			ThreadPool.QueueUserWorkItem(o => { ((LoadDataSetValues)o).ConfirmCreation(); }, DataContext);
+		private void ConfirmLoadDataset(object sender, RoutedEventArgs e) {
+			ThreadPool.QueueUserWorkItem(o => { ((LoadDatasetValues)o).ConfirmCreation(); }, DataContext);
 		}
 	}
 }

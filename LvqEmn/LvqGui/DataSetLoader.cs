@@ -9,7 +9,7 @@ using System.Diagnostics;
 
 namespace LVQeamon
 {
-	public static class DataSetLoader
+	public static class DatasetLoader
 	{
 		static char[] dimSep = new[] { ',' };
 

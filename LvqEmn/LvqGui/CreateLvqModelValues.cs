@@ -14,11 +14,11 @@ namespace LvqGui {
 		public event PropertyChangedEventHandler PropertyChanged;
 		private void _propertyChanged(String propertyName) { if (PropertyChanged != null) PropertyChanged(this, new PropertyChangedEventArgs(propertyName)); }
 
-		public LvqDataSetCli ForDataset {
+		public LvqDatasetCli ForDataset {
 			get { return _ForDataset; }
 			set { if (!object.Equals(_ForDataset, value)) { _ForDataset = value; _propertyChanged("ForDataset"); } }
 		}
-		private LvqDataSetCli _ForDataset;
+		private LvqDatasetCli _ForDataset;
 
 		public ModelType ModelType {
 			get { return _ModelType; }
@@ -58,7 +58,7 @@ namespace LvqGui {
 
 		public string CreateLabel() {
 			return
-				ForDataset.DataSetLabel
+				ForDataset.DatasetLabel
 				+ "--" + ModelType.ToString()
 				+ (ModelType == LvqGui.ModelType.Gm ? "[" + Dimensionality + "]" : "")
 				+ "," + PrototypesPerClass + "[" + Convert.ToString(Seed, 16) + MakeCounterLabel() + "]";

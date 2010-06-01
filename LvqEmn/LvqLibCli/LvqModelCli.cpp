@@ -8,7 +8,7 @@
 namespace LvqLibCli {
 	using boost::mt19937;
 
-	LvqModelCli::LvqModelCli(String^ label, unsigned rngParamsSeed, unsigned rngInstSeed, int protosPerClass, int modelType,LvqDataSetCli^ trainingSet)
+	LvqModelCli::LvqModelCli(String^ label, unsigned rngParamsSeed, unsigned rngInstSeed, int protosPerClass, int modelType,LvqDatasetCli^ trainingSet)
 		: protosPerClass(protosPerClass)
 		, modelType(modelType)
 		, label(label)
@@ -22,7 +22,7 @@ namespace LvqLibCli {
 		Init(trainingSet);
 	}
 
-	void LvqModelCli::Init(LvqDataSetCli^ trainingSet)
+	void LvqModelCli::Init(LvqDatasetCli^ trainingSet)
 	{
 		vector<int> protoDistrib;
 		for(int i=0;i<trainingSet->ClassCount;++i)
@@ -37,29 +37,29 @@ namespace LvqLibCli {
 
 		AbstractProjectionLvqModel* newmodel;
         if(modelType == LvqModelCli::GSM_TYPE)
-		 	newmodel = new GsmLvqModel(*rngParam, true, protoDistrib, trainingSet->GetDataSet()->ComputeClassMeans()); 
+		 	newmodel = new GsmLvqModel(*rngParam, true, protoDistrib, trainingSet->GetDataset()->ComputeClassMeans()); 
 		else if(modelType == LvqModelCli::G2M_TYPE)
-			newmodel = new G2mLvqModel(*rngParam, true, protoDistrib, trainingSet->GetDataSet()->ComputeClassMeans()); 
+			newmodel = new G2mLvqModel(*rngParam, true, protoDistrib, trainingSet->GetDataset()->ComputeClassMeans()); 
 		else return;
 		model = GcPtr::Create(newmodel);
 
 		BackupModel();
 	}
 
-	double LvqModelCli::ErrorRate(LvqDataSetCli^testSet) {
+	double LvqModelCli::ErrorRate(LvqDatasetCli^testSet) {
 		msclr::lock l(backupSync);
 		if(modelCopy==nullptr)
 			return 1.0;
 
-		return testSet->GetDataSet()->ErrorRate(modelCopy->get()); 
+		return testSet->GetDataset()->ErrorRate(modelCopy->get()); 
 	}
 
-	array<double,2>^ LvqModelCli::CurrentProjectionOf(LvqDataSetCli^ dataset) { 
+	array<double,2>^ LvqModelCli::CurrentProjectionOf(LvqDatasetCli^ dataset) { 
 		msclr::lock l(backupSync);
 		if(modelCopy==nullptr)
 			return nullptr;
 
-		return cppToCli(dataset->GetDataSet()->ProjectPoints(modelCopy->get())); 
+		return cppToCli(dataset->GetDataset()->ProjectPoints(modelCopy->get())); 
 	}
 
 	array<int,2>^ LvqModelCli::ClassBoundaries(double x0, double x1, double y0, double y1,int xCols, int yRows) {
@@ -74,13 +74,13 @@ namespace LvqLibCli {
 		return cppToCli(classDiagram.transpose());
 	}
 
-	void LvqModelCli::Train(int epochsToDo,LvqDataSetCli^ trainingSet){
+	void LvqModelCli::Train(int epochsToDo,LvqDatasetCli^ trainingSet){
 		msclr::lock l(mainSync);
 		trainingSet->LastModel = this;
 		if(modelCopy==nullptr)
 			Init(trainingSet);
 
-		trainingSet->GetDataSet()->TrainModel(epochsToDo,  *rngIter, model->get());
+		trainingSet->GetDataset()->TrainModel(epochsToDo,  *rngIter, model->get());
 		BackupModel();
 	}
 	

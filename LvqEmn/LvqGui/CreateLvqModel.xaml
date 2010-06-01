@@ -27,10 +27,10 @@
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
         <Label Grid.Row="0">For Dataset</Label>
-        <ComboBox Grid.Row="0" Grid.Column="1" ItemsSource="{Binding Owner.DataSets}" SelectedItem="{Binding ForDataset}">
+        <ComboBox Grid.Row="0" Grid.Column="1" ItemsSource="{Binding Owner.Datasets}" SelectedItem="{Binding ForDataset}">
             <ComboBox.ItemTemplate>
                 <DataTemplate>
-                    <TextBlock Text="{Binding DataSetLabel}"/>
+                    <TextBlock Text="{Binding DatasetLabel}"/>
                 </DataTemplate>
             </ComboBox.ItemTemplate>
         </ComboBox>

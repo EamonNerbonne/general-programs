@@ -1,7 +1,7 @@
 #include "StdAfx.h"
-#include "DataSetUtils.h"
+#include "DatasetUtils.h"
 
-MatrixXd DataSetUtils::MakePointCloud(boost::mt19937 & rngParams, boost::mt19937 & rngInst, int dims, int pointCount, double meansep) {
+MatrixXd DatasetUtils::MakePointCloud(boost::mt19937 & rngParams, boost::mt19937 & rngInst, int dims, int pointCount, double meansep) {
 	MatrixXd P(dims, dims);
 	RandomMatrixInit(rngParams, P, 0, 1.0);
 
@@ -14,30 +14,30 @@ MatrixXd DataSetUtils::MakePointCloud(boost::mt19937 & rngParams, boost::mt19937
 	return P * points + offset * VectorXd::Ones(pointCount).transpose();
 }
 
-LvqDataSet* DataSetUtils::ConstructGaussianClouds(boost::mt19937 & rngParams, boost::mt19937 & rngInst, int dims, int classCount, int pointsPerClass, double meansep){
+LvqDataset* DatasetUtils::ConstructGaussianClouds(boost::mt19937 & rngParams, boost::mt19937 & rngInst, int dims, int classCount, int pointsPerClass, double meansep){
 
 	MatrixXd allpoints(dims, classCount*pointsPerClass);
 	for(int classLabel=0;classLabel < classCount; classLabel++) {
-		allpoints.block(0, classLabel*pointsPerClass, dims, pointsPerClass) = DataSetUtils::MakePointCloud(rngParams,rngInst, dims, pointsPerClass, meansep);
+		allpoints.block(0, classLabel*pointsPerClass, dims, pointsPerClass) = DatasetUtils::MakePointCloud(rngParams,rngInst, dims, pointsPerClass, meansep);
 	}
 
 	vector<int> trainingLabels(allpoints.cols());
 	for(int i=0; i<(int)trainingLabels.size(); ++i) 
 		trainingLabels[i] = i/pointsPerClass;
 
-	return new LvqDataSet(allpoints, trainingLabels, classCount); 
+	return new LvqDataset(allpoints, trainingLabels, classCount); 
 }
 
 MatrixXd MakeTailMeans(boost::mt19937 & rndGen, int numStarTails, int starDim, double meansep) {
 	MatrixXd tailMeans(starDim,numStarTails);
-	DataSetUtils::RandomMatrixInit(rndGen,tailMeans,0,meansep);
+	DatasetUtils::RandomMatrixInit(rndGen,tailMeans,0,meansep);
 	return tailMeans;
 }
 vector<MatrixXd> MakeTailTransforms(boost::mt19937 & rndGen, int numStarTails, int starDim) {
 	vector<MatrixXd> tailTransforms;
 	for(int i=0;i<numStarTails;i++) {
 		MatrixXd t(starDim,starDim);
-		DataSetUtils::RandomMatrixInit(rndGen,t,0,1.0);
+		DatasetUtils::RandomMatrixInit(rndGen,t,0,1.0);
 		normalizeMatrix(t);
 		tailTransforms.push_back(t);
 	}
@@ -47,7 +47,7 @@ vector<MatrixXd> MakeTailTransforms(boost::mt19937 & rndGen, int numStarTails, i
 typedef boost::uniform_int<> starChoiceDistrib;
 typedef boost::variate_generator<boost::mt19937 &, starChoiceDistrib> starChoiceGen;
 
-LvqDataSet* DataSetUtils::ConstructStarDataset(boost::mt19937 & rngParams, boost::mt19937 & rngInst, int dims, int starDims, int numStarTails, int classCount,  int pointsPerClass,  double starMeanSep, double starClassRelOffset){
+LvqDataset* DatasetUtils::ConstructStarDataset(boost::mt19937 & rngParams, boost::mt19937 & rngInst, int dims, int starDims, int numStarTails, int classCount,  int pointsPerClass,  double starMeanSep, double starClassRelOffset){
 	vector<MatrixXd> tailTransforms = MakeTailTransforms(rngParams, numStarTails, starDims);
 	MatrixXd tailMeans = MakeTailMeans(rngParams, numStarTails, starDims, starMeanSep);
 	
@@ -71,6 +71,6 @@ LvqDataSet* DataSetUtils::ConstructStarDataset(boost::mt19937 & rngParams, boost
 		}
 	}
 	assert(pointIndex == pointsPerClass * classCount);
-	return new LvqDataSet(points, pointLabels, classCount); 
+	return new LvqDataset(points, pointLabels, classCount); 
 }
 

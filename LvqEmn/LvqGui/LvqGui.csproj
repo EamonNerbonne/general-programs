@@ -110,11 +110,11 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="CreateDataSet.xaml">
+    <Page Include="CreateDataset.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="CreateDataSetStar.xaml">
+    <Page Include="CreateDatasetStar.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -122,7 +122,7 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="LoadDataSet.xaml">
+    <Page Include="LoadDataset.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -142,25 +142,25 @@
       <DependentUpon>AppSettings.xaml</DependentUpon>
     </Compile>
     <Compile Include="AppSettingsValues.cs" />
-    <Compile Include="CreateDataSet.xaml.cs">
-      <DependentUpon>CreateDataSet.xaml</DependentUpon>
+    <Compile Include="CreateDataset.xaml.cs">
+      <DependentUpon>CreateDataset.xaml</DependentUpon>
     </Compile>
-    <Compile Include="CreateDataSetStar.xaml.cs">
-      <DependentUpon>CreateDataSetStar.xaml</DependentUpon>
+    <Compile Include="CreateDatasetStar.xaml.cs">
+      <DependentUpon>CreateDatasetStar.xaml</DependentUpon>
     </Compile>
-    <Compile Include="CreateDataSetStarValues.cs" />
-    <Compile Include="CreateDataSetValues.cs" />
+    <Compile Include="CreateDatasetStarValues.cs" />
+    <Compile Include="CreateDatasetValues.cs" />
     <Compile Include="CreateLvqModel.xaml.cs">
       <DependentUpon>CreateLvqModel.xaml</DependentUpon>
     </Compile>
     <Compile Include="CreateLvqModelValues.cs" />
-    <Compile Include="DataSetLoader.cs" />
+    <Compile Include="DatasetLoader.cs" />
     <Compile Include="DataVerifiers.cs" />
     <Compile Include="IHasSeed.cs" />
-    <Compile Include="LoadDataSet.xaml.cs">
-      <DependentUpon>LoadDataSet.xaml</DependentUpon>
+    <Compile Include="LoadDataset.xaml.cs">
+      <DependentUpon>LoadDataset.xaml</DependentUpon>
     </Compile>
-    <Compile Include="LoadDataSetValues.cs" />
+    <Compile Include="LoadDatasetValues.cs" />
     <Compile Include="LvqScatterPlot.cs" />
     <Compile Include="LvqWindow.xaml.cs">
       <DependentUpon>LvqWindow.xaml</DependentUpon>
@@ -192,6 +192,7 @@
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
     </EmbeddedResource>
     <None Include="app.config" />
     <None Include="Properties\Settings.settings">

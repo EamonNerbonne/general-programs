@@ -7,7 +7,7 @@ using LvqLibCli;
 
 namespace LvqGui {
 
-	public class CreateDataSetValues : INotifyPropertyChanged, IHasSeed {
+	public class CreateDatasetValues : INotifyPropertyChanged, IHasSeed {
 		readonly LvqWindowValues owner;
 		public event PropertyChangedEventHandler PropertyChanged;
 		private void _propertyChanged(String propertyName) { if (PropertyChanged != null) PropertyChanged(this, new PropertyChangedEventArgs(propertyName)); }
@@ -51,7 +51,7 @@ namespace LvqGui {
 		
 
 		public string CreateLabel() {
-			return "_ds-" + Dimensions + "D-" + NumberOfClasses + "*" + PointsPerClass + ":" + ClassCenterDeviation.ToString("f1") + "[" + Convert.ToString(Seed, 16) + MakeCounterLabel()+ "]";
+			return "norm-" + Dimensions + "D-" + NumberOfClasses + "*" + PointsPerClass + ":" + ClassCenterDeviation.ToString("f1") + "[" + Convert.ToString(Seed, 16) + MakeCounterLabel()+ "]";
 		}
 
 		int datasetCount = 0;
@@ -60,7 +60,7 @@ namespace LvqGui {
 			return ((char)('A' + datasetCount - 1)).ToString();
 		}
 
-		public CreateDataSetValues(LvqWindowValues owner) {
+		public CreateDatasetValues(LvqWindowValues owner) {
 			this.owner = owner;
 			_NumberOfClasses = 3;
 			_ClassCenterDeviation = 2.5;
@@ -75,8 +75,8 @@ namespace LvqGui {
 			this.ReseedBoth();
 		}
 
-		LvqDataSetCli CreateDataset() {
-			return LvqDataSetCli.ConstructGaussianClouds(CreateLabel(),
+		LvqDatasetCli CreateDataset() {
+			return LvqDatasetCli.ConstructGaussianClouds(CreateLabel(),
 				rngParamsSeed:Seed,
 				rngInstSeed:InstSeed,
 				dims: Dimensions,
@@ -87,7 +87,7 @@ namespace LvqGui {
 		}
 
 		public void ConfirmCreation() {
-			owner.Dispatcher.BeginInvoke(owner.DataSets.Add, CreateDataset());
+			owner.Dispatcher.BeginInvoke(owner.Datasets.Add, CreateDataset());
 		}
 	}
 }

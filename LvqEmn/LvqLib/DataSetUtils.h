@@ -1,11 +1,11 @@
 #pragma once
 #include "stdafx.h"
-#include "LvqDataSet.h"
+#include "LvqDataset.h"
 
-class DataSetUtils
+class DatasetUtils
 {
-	DataSetUtils(void) {}
-	DataSetUtils(DataSetUtils const &) {}
+	DatasetUtils(void) {}
+	DatasetUtils(DatasetUtils const &) {}
 public:
 	static Eigen::MatrixXd MakePointCloud(boost::mt19937 & rngParams, boost::mt19937 & rngInst, int dims, int pointCount, double meansep);
 
@@ -19,6 +19,6 @@ public:
 				mat(i,j) = rndGen();
 	}
 
-	static LvqDataSet* ConstructGaussianClouds(boost::mt19937 & rngParams, boost::mt19937 & rngInst, int dims, int classCount, int pointsPerClass, double meansep);
-	static LvqDataSet* ConstructStarDataset(boost::mt19937 & rngParams, boost::mt19937 & rngInst, int dims, int starDims, int numStarTails,  int classCount, int pointsPerClass, double starMeanSep, double starClassRelOffset);
+	static LvqDataset* ConstructGaussianClouds(boost::mt19937 & rngParams, boost::mt19937 & rngInst, int dims, int classCount, int pointsPerClass, double meansep);
+	static LvqDataset* ConstructStarDataset(boost::mt19937 & rngParams, boost::mt19937 & rngInst, int dims, int starDims, int numStarTails,  int classCount, int pointsPerClass, double starMeanSep, double starClassRelOffset);
 };
