@@ -24,6 +24,7 @@ namespace LvqLibCli {
 		LvqDatasetCli^ initSet;
 	public:
 
+		void ResetLearningRate() {msclr::lock l2(mainSync); model->get()->resetLearningRate();}
 		property int ClassCount {int get(){return model->get()->ClassCount();}}
 		property int Dimensions {int get(){return model->get()->Dimensions();}}
 		property String^ ModelLabel {String^ get(){return label;}}

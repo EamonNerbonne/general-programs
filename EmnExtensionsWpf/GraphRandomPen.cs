@@ -6,10 +6,8 @@ using System.Windows.Media;
 using EmnExtensions.MathHelpers;
 using System.Collections;
 
-namespace EmnExtensions.Wpf.OldGraph
-{
-	public static class GraphRandomPen
-	{
+namespace EmnExtensions.Wpf {
+	public static class GraphRandomPen {
 		static Random GraphColorRandom = new EmnExtensions.MathHelpers.MersenneTwister();
 		public static Brush RandomGraphBrush() {
 			SolidColorBrush brush = new SolidColorBrush(RandomGraphColor());
@@ -41,8 +39,7 @@ namespace EmnExtensions.Wpf.OldGraph
 			};
 		}
 
-		struct ColorSimple
-		{
+		struct ColorSimple {
 			public double R, G, B;
 			public double Sum { get { return R + G + B; } }
 			public double SqrDistTo(ColorSimple other) { return sqr(R - other.R) + sqr(G - other.G) + sqr(B - other.B) - 0.1 * sqr(Sum - other.Sum); }
@@ -73,8 +70,7 @@ namespace EmnExtensions.Wpf.OldGraph
 				G = Math.Max(G, other.G);
 				B = Math.Max(B, other.B);
 			}
-			public void ScaleBack(ColorSimple min, ColorSimple max, MersenneTwister rnd)
-			{
+			public void ScaleBack(ColorSimple min, ColorSimple max, MersenneTwister rnd) {
 				if (max.R > min.R)
 					R = 0.025 + 0.95 * (R - min.R) / (max.R - min.R);
 				if (max.G > min.G)
@@ -111,7 +107,7 @@ namespace EmnExtensions.Wpf.OldGraph
 					max.Max(choices[i]);
 				}
 				for (int i = 0; i < M; i++)
-					choices[i].ScaleBack(min, max,rnd);
+					choices[i].ScaleBack(min, max, rnd);
 
 				if (M > N) M--;
 			}

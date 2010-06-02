@@ -10,7 +10,7 @@ using System.Windows.Xps;
 using System.Windows;
 using System.IO;
 
-namespace EmnExtensions.Wpf.OldGraph
+namespace EmnExtensions.Wpf
 {
 	public class WpfTools
 	{

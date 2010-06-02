@@ -19,6 +19,7 @@ protected:
 	const int classCount;
 
 public:
+	void resetLearningRate() {trainIter=0;}
 	virtual int classify(VectorXd const & unknownPoint) const=0; 
 	virtual void learnFrom(VectorXd const & newPoint, int classLabel)=0;
 	AbstractLvqModel(int classCount) : trainIter(0), iterationScaleFactor(0.01),classCount(classCount){ }

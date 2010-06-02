@@ -12,5 +12,9 @@ namespace LvqGui {
 		private void StartTraining(object sender, RoutedEventArgs e) {
 			ThreadPool.QueueUserWorkItem(o => { ((TrainingControlValues)o).ConfirmTraining(); }, DataContext);
 		}
+		private void ResetLearningRate(object sender, RoutedEventArgs e) {
+			ThreadPool.QueueUserWorkItem(o => { ((TrainingControlValues)o).ResetLearningRate(); }, DataContext);
+		}
+
 	}
 }

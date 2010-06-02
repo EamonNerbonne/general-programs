@@ -98,5 +98,10 @@ namespace LvqGui {
 					SelectedModelUpdatedInBackgroundThread(selectedDataset, selectedModel);
 			}
 		}
+
+		public void ResetLearningRate() {
+			var selectedModel = SelectedLvqModel;
+			if (selectedModel != null) selectedModel.ResetLearningRate();
+		}
 	}
 }

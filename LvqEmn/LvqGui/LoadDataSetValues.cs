@@ -1,14 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.ComponentModel;
+using System.IO;
+using System.Threading;
+using EmnExtensions.Wpf;
+using LVQeamon;
 using LvqLibCli;
 using Microsoft.Win32;
-using System.Threading;
-using System.IO;
-using LVQeamon;
-using EmnExtensions.Wpf.OldGraph;
 
 namespace LvqGui {
 	public class LoadDatasetValues : INotifyPropertyChanged, IHasSeed {

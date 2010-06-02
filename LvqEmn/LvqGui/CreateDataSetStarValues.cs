@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using LvqLibCli;
 using System.ComponentModel;
-using EmnExtensions.Wpf.OldGraph;
+using EmnExtensions.Wpf;
 
 namespace LvqGui {
 

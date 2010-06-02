@@ -14,7 +14,6 @@ using System.Windows.Shapes;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Diagnostics;
-using EmnExtensions.Wpf.OldGraph;
 using Microsoft.Win32;
 using System.IO;
 
@@ -57,7 +56,7 @@ namespace EmnExtensions.Wpf.Plot
 									where plotWithSettings != null && plotWithSettings.VizSupportsColor
 									select plotWithSettings
 							   ).ToArray();
-			var randomColors = EmnExtensions.Wpf.OldGraph.GraphRandomPen.MakeDistributedColors(ColoredPlots.Length);
+			var randomColors = EmnExtensions.Wpf.GraphRandomPen.MakeDistributedColors(ColoredPlots.Length);
 			foreach (var plotAndColor in ColoredPlots.Zip(randomColors, (a, b) => Tuple.Create(a, b)))
 			{
 				plotAndColor.Item1.RenderColor = plotAndColor.Item2;
