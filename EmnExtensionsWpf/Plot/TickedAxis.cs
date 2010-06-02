@@ -143,7 +143,7 @@ namespace EmnExtensions.Wpf.Plot
 
 		private void GuessNeighborsBasedOnAxisPos()
 		{
-			if ((AxisPos & TickedAxisLocation.Any) == 0)
+			if ((AxisPos & TickedAxisLocation.Any) == 0 || Parent==null) //check for parent==null to permit usage in designer.
 			{
 				ClockwiseNextAxis = ClockwisePrevAxis = null;
 			}
