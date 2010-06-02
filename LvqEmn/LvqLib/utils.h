@@ -13,6 +13,59 @@ template <typename T> double projectionSquareNorm(T const & projectionMatrix) {
 #endif
 }
 
+template<typename T>  void RandomMatrixInit(boost::mt19937 & rng, Eigen::MatrixBase< T>& mat, double mean, double sigma) {
+	using namespace boost;
+	normal_distribution<> distrib(mean,sigma);
+	variate_generator<mt19937&, normal_distribution<> > rndGen(rng, distrib);
+
+	for(int j=0; j<mat.cols(); j++)
+		for(int i=0; i<mat.rows(); i++)
+			mat(i,j) = rndGen();
+}
+
+template <typename T>  T randomOrthogonalMatrix(boost::mt19937 & rngParams, int dims) {
+	T P(dims,dims);
+	double Pdet = 0.0;
+	while(!(abs(Pdet) >0.1 && abs(Pdet) < 10)) {
+		RandomMatrixInit(rngParams, P, 0, 1.0);
+		Pdet = P.determinant();
+		if(Pdet == 0.0) continue;//exceedingly unlikely.
+		
+		//cout<< "Determinant: "<<Pdet<<"\n";
+		HouseholderQR<MatrixXd> qrOfP(P);
+		P = qrOfP.householderQ();
+		Pdet = P.determinant();
+		if(Pdet < 0.0) {
+			P.col(0) *=-1;
+			Pdet = P.determinant();
+		}
+
+//		cout<<"New determinant: "<<Pdet<<endl;
+	}
+	return P;
+}
+
+template <typename T>  T randomUnscalingMatrix(boost::mt19937 & rngParams, int dims) {
+	T P(dims, dims);
+	double Pdet = 0.0;
+	while(!(Pdet >0.1 &&Pdet < 10)) {
+		RandomMatrixInit(rngParams, P, 0, 1.0);
+		Pdet = P.determinant();
+		if(Pdet == 0.0) continue;//exceedingly unlikely.
+		cout<< "Determinant: "<<Pdet<<"\n";
+		double scale= pow(abs(Pdet),-1.0/dims);
+		if(Pdet < 0.0) {//sign doesn't _really_ matter.
+			P.col(0) *=-1;
+			Pdet = P.determinant();
+		}
+		cout<< "Scale: "<<scale<<"\n";
+		P = scale*P;
+		Pdet = P.determinant();
+		cout<<"New determinant: "<<Pdet<<"\n";
+	}
+	return P;
+}
+
 template <typename T> void normalizeMatrix(T & projectionMatrix) {
 	double norm = projectionSquareNorm(projectionMatrix);
 	double scaleBy = 1.0 / sqrt(norm);
