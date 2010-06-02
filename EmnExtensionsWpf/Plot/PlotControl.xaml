@@ -3,16 +3,21 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:emnExt="clr-namespace:EmnExtensions.Wpf"
     xmlns:emnPlot="clr-namespace:EmnExtensions.Wpf.Plot"
-	><!--IsHitTestVisible="False"-->
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+    mc:Ignorable="d" d:DesignHeight="300" d:DesignWidth="300">
+
+    <!--IsHitTestVisible="False"-->
     <UserControl.ContextMenu>
         <ContextMenu>
-            <MenuItem Header="Save as Pdf"/>
+            <MenuItem Header="Save as Pdf" Click="ExportGraph" />
         </ContextMenu>
     </UserControl.ContextMenu>
     <Grid>
+
         <emnPlot:TickedAxis x:Name="tickedAxisBot" AxisPos="BelowGraph"/>
-		<emnPlot:TickedAxis x:Name="tickedAxisLft" AxisPos="LeftOfGraph"/>
-		<emnPlot:TickedAxis x:Name="tickedAxisTop" AxisPos="AboveGraph" />
-		<emnPlot:TickedAxis x:Name="tickedAxisRgt" AxisPos="RightOfGraph"/>
-	</Grid>
+        <emnPlot:TickedAxis x:Name="tickedAxisLft" AxisPos="LeftOfGraph"/>
+        <emnPlot:TickedAxis x:Name="tickedAxisTop" AxisPos="AboveGraph" />
+        <emnPlot:TickedAxis x:Name="tickedAxisRgt" AxisPos="RightOfGraph"/>
+    </Grid>
 </UserControl>

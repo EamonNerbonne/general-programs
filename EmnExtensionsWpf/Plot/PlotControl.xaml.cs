@@ -14,6 +14,9 @@ using System.Windows.Shapes;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Diagnostics;
+using EmnExtensions.Wpf.OldGraph;
+using Microsoft.Win32;
+using System.IO;
 
 namespace EmnExtensions.Wpf.Plot
 {
@@ -240,6 +243,14 @@ namespace EmnExtensions.Wpf.Plot
 			if (needRedrawGraphs) RedrawGraphs(relevantAxes);
 			//	drawingContext.DrawDrawing(dg);
 			base.OnRender(drawingContext);
+		}
+
+		private void ExportGraph(object sender, RoutedEventArgs e) {
+			using(MemoryStream ms = new MemoryStream()) {
+
+				WpfTools.PrintXPS(this, 1000, 1000, 1.0, ms, FileMode.Create, FileAccess.ReadWrite);
+				Console.WriteLine("Seems to work");
+			}
 		}
 	}
 }
