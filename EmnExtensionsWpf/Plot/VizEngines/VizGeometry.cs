@@ -12,6 +12,7 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
 		Brush m_Fill = Brushes.Black;
 		Pen m_Pen = defaultPen;
 		Matrix m_geomToAxis = Matrix.Identity;
+		RectangleGeometry clipRectangle = new RectangleGeometry();
 
 		static Pen defaultPen = (Pen)new Pen { Brush = Brushes.Black, EndLineCap = PenLineCap.Square, StartLineCap = PenLineCap.Square, Thickness = 1.5 }.GetAsFrozen();
 
@@ -86,13 +87,16 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
 		public override void SetTransform(Geometry data, Matrix axisToDisplay, Rect displayClip)
 		{
 			changingGeometry = true;
+			clipRectangle.Rect = displayClip;
 			m_ProjectionTransform.Matrix = m_geomToAxis * axisToDisplay;
 			changingGeometry = false;
 		}
 
 		public override void DrawGraph(Geometry data, DrawingContext context)
 		{
+			context.PushClip(clipRectangle);
 			context.DrawGeometry(m_Fill, m_Pen, m_Geometry);
+			context.Pop();
 		}
 
 		public override void RenderOptionsChanged() { RecreatePen(); }
