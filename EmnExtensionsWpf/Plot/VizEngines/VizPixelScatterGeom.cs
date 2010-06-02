@@ -42,9 +42,9 @@ namespace EmnExtensions.Wpf.Plot.VizEngines {
 		double m_Coverage = 0.9999;
 		public double CoverageRatio { get { return m_Coverage; } set { m_Coverage = value; RecomputeBounds(oldData); } }
 
-		private void RecomputeBounds(Point[] oldData) {
+		private void RecomputeBounds(Point[] newData) {
 			Rect innerBounds, outerBounds;
-			VizPixelScatterHelpers.RecomputeBounds(oldData, CoverageRatio, out outerBounds, out innerBounds);
+			VizPixelScatterHelpers.RecomputeBounds(newData, CoverageRatio, out outerBounds, out innerBounds);
 			if (innerBounds != m_InnerBounds) {
 				m_InnerBounds = innerBounds;
 				Owner.TriggerChange(GraphChange.Projection);
