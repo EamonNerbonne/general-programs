@@ -42,7 +42,7 @@
         <TextBox  Grid.Row="2" Grid.Column="1" Text="{Binding PointsPerClass, Mode=TwoWay, ValidatesOnExceptions=True}" />
 
         <Label Grid.Row="3" >Number of Clusters</Label>
-        <TextBox Grid.Row="3"  Grid.Column="1" Text="{Binding NumberOfClusters, Mode=TwoWay, ValidatesOnExceptions=True}" />
+        <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding NumberOfClusters, Mode=TwoWay, ValidatesOnExceptions=True}" />
 
         <Label Grid.Row="4" >Dimensionality of Clusters</Label>
         <TextBox Grid.Row="4"  Grid.Column="1"  Text="{Binding ClusterDimensionality, Mode=TwoWay, ValidatesOnExceptions=True}" />

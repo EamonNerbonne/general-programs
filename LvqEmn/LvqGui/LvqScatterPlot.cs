@@ -34,6 +34,7 @@ namespace LvqGui {
 			classBoundaries = PlotData.Create(default(object), UpdateClassBoundaries);
 			classPlots = Enumerable.Range(0, dataset.ClassCount).Select(i => {
 				var graphplot = PlotData.Create(default(Point[]));
+				((IVizPixelScatter)graphplot.Visualizer).CoverageRatio = 0.999;
 				graphplot.RenderColor = dataset.ClassColors[i];
 				return graphplot;
 			}).ToArray();

@@ -16,7 +16,7 @@
             <ColumnDefinition Width="Auto" />
             <ColumnDefinition Width="50*" />
         </Grid.ColumnDefinitions>
-        <emnPlot:PlotControl Grid.RowSpan="2"  Name="plotControl" ShowGridLines="{Binding ElementName=generalOptions, Path=Values.ShowGridLines, Mode=TwoWay}"   />
+        <emnPlot:PlotControl Grid.RowSpan="2"  Name="plotControl" ShowGridLines="{Binding ElementName=generalOptions, Path=Values.ShowGridLines, Mode=TwoWay}"  AttemptBorderTicks="False" />
 
         <GridSplitter Grid.Column="1" Grid.RowSpan="2" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Width="3"  ResizeDirection="Columns"/>
         <TabControl Grid.Row="0" Grid.Column="2">
