@@ -8,6 +8,7 @@ using Microsoft.Win32;
 using System.Threading;
 using System.IO;
 using LVQeamon;
+using EmnExtensions.Wpf.OldGraph;
 
 namespace LvqGui {
 	public class LoadDatasetValues : INotifyPropertyChanged, IHasSeed {
@@ -51,7 +52,7 @@ namespace LvqGui {
 
 						string name = dataFile.Name + "-" + pointArray.GetLength(1) + "D-" + classCount + "*" + pointArray.GetLength(0);
 
-						return LvqDatasetCli.ConstructFromArray(name, pointArray, labelArray, classCount);
+						return LvqDatasetCli.ConstructFromArray(name, colors: GraphRandomPen.MakeDistributedColors(classCount),points: pointArray, pointLabels: labelArray, classCount:classCount);
 
 
 					} catch (FileFormatException fe) {

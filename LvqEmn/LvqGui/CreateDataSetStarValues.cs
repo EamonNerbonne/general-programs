@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using LvqLibCli;
 using System.ComponentModel;
+using EmnExtensions.Wpf.OldGraph;
 
 namespace LvqGui {
 
@@ -104,6 +105,7 @@ namespace LvqGui {
 
 		public LvqDatasetCli CreateDataset() {
 			return LvqDatasetCli.ConstructStarDataset(CreateLabel(),
+			colors:GraphRandomPen.MakeDistributedColors(NumberOfClasses),
 				rngParamsSeed: Seed,
 				rngInstSeed: InstSeed,
 				dims: Dimensions,

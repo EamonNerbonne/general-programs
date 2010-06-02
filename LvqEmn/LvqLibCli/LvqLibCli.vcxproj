@@ -536,11 +536,6 @@
     <ClInclude Include="Stdafx.h" />
     <ClInclude Include="WrappingUtils.h" />
   </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\EmnExtensionsWpf\EmnExtensionsWpf.csproj">
-      <Project>{f50cc07f-68f1-455a-be8d-a64d827f1a5c}</Project>
-    </ProjectReference>
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.ComponentModel;
 using LvqLibCli;
+using EmnExtensions.Wpf.OldGraph;
 
 namespace LvqGui {
 
@@ -77,6 +78,7 @@ namespace LvqGui {
 
 		LvqDatasetCli CreateDataset() {
 			return LvqDatasetCli.ConstructGaussianClouds(CreateLabel(),
+				colors: GraphRandomPen.MakeDistributedColors(NumberOfClasses),
 				rngParamsSeed:Seed,
 				rngInstSeed:InstSeed,
 				dims: Dimensions,
