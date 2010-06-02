@@ -37,11 +37,15 @@
 
 #ifdef _MSC_VER
 #pragma warning(pop)
+//#pragma warning(push,3)
+#pragma warning(disable: 4714) //OK to ignore __forceinline
 #endif
 #include <Eigen/Core>
 #include <Eigen/LU> 
 #include <Eigen/QR> 
-
+#ifdef _MSC_VER
+//#pragma warning(pop)
+#endif
 #define LVQ_LOW_DIM_SPACE 2
 
 typedef Eigen::Matrix<double,LVQ_LOW_DIM_SPACE, Eigen::Dynamic> PMatrix;

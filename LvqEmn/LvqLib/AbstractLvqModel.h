@@ -13,7 +13,7 @@ protected:
 	inline double stepLearningRate() {
 		double scaledIter = trainIter*iterationScaleFactor + 1.0;
 		++trainIter;
-		return 0.5/ sqrt(scaledIter*sqrt(scaledIter)); //*exp(-0.65*log(scaledIter));  
+		return 0.5/ sqrt(scaledIter*sqrt(sqrt(scaledIter))); // faster than exp(-0.625*log(scaledIter));  
 	}
 
 	const int classCount;

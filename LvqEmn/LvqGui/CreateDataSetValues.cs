@@ -63,7 +63,7 @@ namespace LvqGui {
 		public CreateDatasetValues(LvqWindowValues owner) {
 			this.owner = owner;
 			_NumberOfClasses = 3;
-			_ClassCenterDeviation = 2.5;
+			_ClassCenterDeviation = 1.0;
 #if DEBUG
 			_Dimensions = 8;
 			_PointsPerClass = 100;
