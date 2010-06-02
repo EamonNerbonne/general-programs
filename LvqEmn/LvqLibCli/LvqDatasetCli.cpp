@@ -20,6 +20,6 @@ namespace LvqLibCli {
 	LvqDatasetCli^ LvqDatasetCli::ConstructStarDataset(String^label,unsigned rngParamsSeed, unsigned rngInstSeed, int dims, int starDims, int numStarTails,int classCount, int pointsPerClass, double starMeanSep, double starClassRelOffset) {
 		mt19937 rngParam(rngParamsSeed);
 		mt19937 rngIter(rngInstSeed);
-		return gcnew LvqDatasetCli(label,DatasetUtils::ConstructStarDataset(rngParam,rngIter, dims, starDims, numStarTails, classCount, pointsPerClass, starMeanSep, starClassRelOffset));
+		return gcnew LvqDatasetCli(label,DatasetUtils::ConstructStarDataset(rngParam,rngIter, dims, starDims, numStarTails, classCount, pointsPerClass, starMeanSep, starClassRelOffset,true));
 	}
 }
