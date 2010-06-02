@@ -4,6 +4,9 @@
     xmlns:emnExt="clr-namespace:EmnExtensions.Wpf"
     xmlns:emnPlot="clr-namespace:EmnExtensions.Wpf.Plot"
 	IsHitTestVisible="False">
+    <!--<UserControl.ContextMenu>
+        
+    </UserControl.ContextMenu>-->
 	<Grid>
 		<emnPlot:TickedAxis x:Name="tickedAxisBot" AxisPos="BelowGraph"/>
 		<emnPlot:TickedAxis x:Name="tickedAxisLft" AxisPos="LeftOfGraph"/>

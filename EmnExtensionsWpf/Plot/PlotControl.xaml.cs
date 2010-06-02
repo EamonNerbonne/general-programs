@@ -175,12 +175,14 @@ namespace EmnExtensions.Wpf.Plot
 
 		private void RedrawScene(DrawingContext drawingContext, TickedAxisLocation gridLineAxes)
 		{
+			drawingContext.PushClip(overallClipRect);
 			if (ShowGridLines)
 				foreach (var axis in Axes)
 					if ((axis.AxisPos & gridLineAxes) != 0)
 						drawingContext.DrawDrawing(axis.GridLines);
 			foreach (var graph in graphs.OrderBy(g => g.ZIndex))
 				graph.PlotVisualizer.DrawGraph(drawingContext);
+			drawingContext.Pop();
 		}
 
 		protected override Size MeasureOverride(Size constraint)
@@ -188,7 +190,7 @@ namespace EmnExtensions.Wpf.Plot
 			if (needRecomputeBounds) RecomputeBounds();
 			return base.MeasureOverride(constraint);
 		}
-
+		RectangleGeometry overallClipRect = new RectangleGeometry();
 		DrawingGroup dg = new DrawingGroup();
 
 		protected override void OnRender(DrawingContext drawingContext)
@@ -221,6 +223,11 @@ namespace EmnExtensions.Wpf.Plot
 											   VerticalClip = DimensionBounds.Merge(t1.VerticalClip, t2.VerticalClip),
 										   })
 					);
+
+			Rect overallClip=
+			cornerProjection.Values.Select(trans => new Rect(new Point(trans.HorizontalClip.Start, trans.VerticalClip.Start), new Point(trans.HorizontalClip.End, trans.VerticalClip.End)))
+				.Aggregate(Rect.Empty, (rect1, rect2) => Rect.Union(rect1, rect2));
+			overallClipRect.Rect = overallClip;
 
 			foreach (var graph in graphs)
 			{
