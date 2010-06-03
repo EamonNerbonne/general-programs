@@ -1,4 +1,5 @@
-﻿using System;
+﻿//#define USE_PAGED_XPS_SAVE
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -9,6 +10,7 @@ using System.Windows.Documents;
 using System.Windows.Xps;
 using System.Windows;
 using System.IO;
+using System.Printing;
 
 namespace EmnExtensions.Wpf
 {
@@ -32,7 +34,9 @@ namespace EmnExtensions.Wpf
 			double curHeight = el.DesiredSize.Height;
 
 			try {
+#if USE_PAGED_XPS_SAVE
 				VisualBrush brush = new VisualBrush(el);
+#endif
 				el.Width = reqWidth;
 				el.Height = reqHeight;
 
@@ -51,16 +55,28 @@ namespace EmnExtensions.Wpf
 				}
 
 				el.Arrange(new Rect(el.DesiredSize));
+				el.InvalidateVisual();
 				el.UpdateLayout();
+				
 
+#if USE_PAGED_XPS_SAVE
 				FixedPage page = new FixedPage();
 				page.Width = el.ActualWidth*scaleFactor;
 				page.Height = el.ActualHeight*scaleFactor;
 				page.Background = brush;
+#endif
+
 				using (Package packInto = Package.Open(toStream, fileMode, fileAccess))
 				using (XpsDocument doc = new XpsDocument(packInto)) {
+
 					XpsDocumentWriter writer = XpsDocument.CreateXpsDocumentWriter(doc);
+					
+					
+#if USE_PAGED_XPS_SAVE
 					writer.Write(page);
+#else
+					writer.Write(el, new PrintTicket { OutputQuality = OutputQuality.High });
+#endif
 				}
 			} finally {
 				el.Width = oldWidth;
