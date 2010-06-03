@@ -5,10 +5,20 @@
 #pragma intrinsic(pow)
 
 class LvqDataset;
+struct LvqTrainingStat {
+	int trainingIter;
+	double elapsedSeconds;
+	double trainingError;
+	double trainingCost;
+	double testError;
+	double testCost;
+};
 
 class AbstractLvqModel
 {
 	int trainIter;
+	int totalIter;
+	double totalElapsed;
 protected:
 	double iterationScaleFactor;
 	inline double stepLearningRate() {
@@ -18,14 +28,17 @@ protected:
 	}
 
 	const int classCount;
-
+	
 public:
+	std::vector<LvqTrainingStat> trainingStats;
 	void resetLearningRate() {trainIter=0;}
 	virtual int classify(VectorXd const & unknownPoint) const=0; 
+	virtual double costFunction(VectorXd const & unknownPoint, int pointLabel) const=0; 
 	virtual void learnFrom(VectorXd const & newPoint, int classLabel)=0;
-	AbstractLvqModel(int classCount) : trainIter(0), iterationScaleFactor(0.01),classCount(classCount){ }
+	AbstractLvqModel(int classCount) : trainIter(0), totalIter(0), totalElapsed(0.0), iterationScaleFactor(0.01),classCount(classCount){ }
 	virtual ~AbstractLvqModel() {	}
-	
+	void AddTrainingStat(LvqDataset const * trainingSet, LvqDataset const * testSet, int iterInc, double elapsedInc);
+
 	virtual AbstractLvqModel* clone()=0;
 	virtual size_t MemAllocEstimate() const=0;
 	int ClassCount() const { return classCount; }

@@ -403,6 +403,7 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="AbstractLvqModel.cpp" />
     <ClCompile Include="DatasetUtils.cpp" />
     <ClCompile Include="G2mLvqModel.cpp" />
     <ClCompile Include="GmLvqModel.cpp" />
