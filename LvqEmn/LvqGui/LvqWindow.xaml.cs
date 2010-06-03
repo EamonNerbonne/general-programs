@@ -61,13 +61,15 @@ namespace LvqGui {
 
 			if (model != null) {
 				var statPlots = new PlotControl();
+				statPlots.ShowGridLines = true;
 				var trainErr = PlotData.Create(model.TrainingStats.Select(stat => new Point(stat.trainingIter, stat.trainingError)).ToArray());
 				trainErr.PlotClass = PlotClass.Line;
 				trainErr.DataLabel = "Training error-rate";
 				trainErr.RenderColor = Colors.Red;
 				trainErr.XUnitLabel = "Training iterations";
 				trainErr.YUnitLabel = "Training error-rate";
-				((IVizLineSegments)trainErr.Visualizer).CoverageRatioY = 0.99;
+				trainErr.AxisBindings = TickedAxisLocation.BelowGraph | TickedAxisLocation.RightOfGraph;
+				((IVizLineSegments)trainErr.Visualizer).CoverageRatioY = 0.98;
 
 				var trainCost = PlotData.Create(model.TrainingStats.Select(stat => new Point(stat.trainingIter, stat.trainingCost)).ToArray());
 				trainCost.PlotClass = PlotClass.Line;
@@ -75,8 +77,7 @@ namespace LvqGui {
 				trainCost.RenderColor = Colors.Blue;
 				trainCost.XUnitLabel = "Training iterations";
 				trainCost.YUnitLabel = "Training cost-function";
-				trainCost.AxisBindings = TickedAxisLocation.BelowGraph | TickedAxisLocation.RightOfGraph;
-				((IVizLineSegments)trainErr.Visualizer).CoverageRatioX = 0.99;
+				((IVizLineSegments)trainCost.Visualizer).CoverageRatioY = 0.98;
 
 				statPlots.Graphs.Add(trainErr);
 				statPlots.Graphs.Add(trainCost);
