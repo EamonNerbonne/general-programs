@@ -16,10 +16,10 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
 		public const double SquareSidePerThickness = Math.PI / 4.0;
 		public static double PointCountToThickness(int pointCount) { return 25.0 / (0.5 + Math.Log(Math.Max(pointCount, 1))); }
 
-		public static void RecomputeBounds(Point[] points, double coverage, out Rect outerBounds, out Rect coveredBounds) {
+		public static void RecomputeBounds(Point[] points, double coverageX,double coverageY, out Rect outerBounds, out Rect coveredBounds) {
 			if (HasPoints(points)) {
 				outerBounds = ComputeOuterBounds(points);
-				coveredBounds = ComputeInnerBoundsByRatio(points, coverage, outerBounds);
+				coveredBounds = ComputeInnerBoundsByRatio(points, coverageX,coverageY, outerBounds);
 			} else {
 				coveredBounds = outerBounds = Rect.Empty;
 			}
@@ -36,15 +36,16 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
 			return outerBounds;
 		}
 
-		static Rect ComputeInnerBoundsByRatio(Point[] points, double coverageRatio, Rect completeBounds) {
-			int cutoffEachSide = (int)(0.5 * (1.0 - coverageRatio) * points.Length + 0.5);
+		static Rect ComputeInnerBoundsByRatio(Point[] points, double coverageX, double coverageY, Rect completeBounds) {
+			int cutoffEachSideX = (int)(0.5 * (1.0 - coverageX) * points.Length + 0.5);
+			int cutoffEachSideY = (int)(0.5 * (1.0 - coverageY) * points.Length + 0.5);
 			return
-				cutoffEachSide == 0 ? completeBounds :
-				cutoffEachSide * 2 >= points.Length ? Rect.Empty :
-				ComputeInnerBoundsByCutoff(points, cutoffEachSide);
+				cutoffEachSideX == 0 && cutoffEachSideY ==0? completeBounds :
+				Math.Max(cutoffEachSideX,cutoffEachSideY) * 2 >= points.Length ? Rect.Empty :
+				ComputeInnerBoundsByCutoff(points, cutoffEachSideX, cutoffEachSideY);
 		}
 
-		static Rect ComputeInnerBoundsByCutoff(Point[] points, int cutoffEachSide) {
+		static Rect ComputeInnerBoundsByCutoff(Point[] points, int cutoffEachSideX, int cutoffEachSideY) {
 			double[] xs = new double[points.Length];
 			double[] ys = new double[points.Length];
 			for (int i = 0; i < points.Length; i++) {
@@ -53,11 +54,13 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
 			}
 			Array.Sort(xs);
 			Array.Sort(ys);
-			int firstIndex = cutoffEachSide;
-			int lastIndex = points.Length - 1 - cutoffEachSide;
-			Rect retval= new Rect(
-					new Point(xs[firstIndex], ys[firstIndex]),
-					new Point(xs[lastIndex], ys[lastIndex])
+			int firstIndexX = cutoffEachSideX;
+			int firstIndexY = cutoffEachSideY;
+			int lastIndexX = points.Length - 1 - cutoffEachSideX;
+			int lastIndexY = points.Length - 1 - cutoffEachSideY;
+			Rect retval = new Rect(
+					new Point(xs[firstIndexX], ys[firstIndexY]),
+					new Point(xs[lastIndexX], ys[lastIndexY])
 				);
 			if (double.IsNaN(retval.Width) || double.IsNaN(retval.Height))
 				throw new ArgumentException("Invalid point array!" + retval);

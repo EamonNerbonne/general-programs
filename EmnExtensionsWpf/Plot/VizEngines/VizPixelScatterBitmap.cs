@@ -156,7 +156,7 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
 		void RecomputeBounds(Point[] points)
 		{
 			Rect innerBounds;
-			VizPixelScatterHelpers.RecomputeBounds(points, CoverageRatio, out m_OuterDataBounds, out innerBounds);
+			VizPixelScatterHelpers.RecomputeBounds(points, CoverageRatio, CoverageRatio,out m_OuterDataBounds, out innerBounds);
 			SetDataBounds(innerBounds);
 		}
 

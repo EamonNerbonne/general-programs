@@ -90,6 +90,7 @@ namespace EmnExtensions.Wpf.Plot {
 				UnregisterChanged(e.OldItems.Cast<IPlotViewOnly>());
 			if (e.NewItems != null)
 				RegisterChanged(e.NewItems.Cast<IPlotViewOnly>());
+			//RecomputeAutoAxis();
 			RequireRedisplay();
 		}
 
