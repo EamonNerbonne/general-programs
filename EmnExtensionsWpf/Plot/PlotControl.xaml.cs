@@ -28,12 +28,10 @@ namespace EmnExtensions.Wpf.Plot {
 		bool needRecomputeBounds = false;
 		ObservableCollection<IPlotViewOnly> graphs = new ObservableCollection<IPlotViewOnly>();
 		public ObservableCollection<IPlotViewOnly> Graphs { get { return graphs; } }
-		Dictionary<TickedAxisLocation, TickedAxis> axes;
 		DrawingBrush bgBrush;
 		public PlotControl() {
 			graphs.CollectionChanged += new NotifyCollectionChangedEventHandler(graphs_CollectionChanged);
 			InitializeComponent();
-			axes = new[] { tickedAxisLft, tickedAxisBot, tickedAxisRgt, tickedAxisTop }.ToDictionary(axis => axis.AxisPos);
 			RenderOptions.SetBitmapScalingMode(dg, BitmapScalingMode.Linear);
 			bgBrush = new DrawingBrush(dg) {
 				Stretch = Stretch.None, //No stretch since we want the ticked axis to determine stretch
@@ -53,10 +51,15 @@ namespace EmnExtensions.Wpf.Plot {
 
 		// Using a DependencyProperty as the backing store for ShowAxes.  This enables animation, styling, binding, etc...
 		public static readonly DependencyProperty ShowAxesProperty =
-			DependencyProperty.Register("ShowAxes", typeof(bool), typeof(PlotControl), new UIPropertyMetadata(true,new PropertyChangedCallback(ShowAxesSet)));
+			DependencyProperty.Register("ShowAxes", typeof(bool), typeof(PlotControl), new UIPropertyMetadata(true, new PropertyChangedCallback(ShowAxesSet)));
 
 		private static void ShowAxesSet(DependencyObject d, DependencyPropertyChangedEventArgs e) {
+			((PlotControl)d).SetAxesShow((bool)e.NewValue);
+		}
 
+		void SetAxesShow(bool showAxes) {
+			foreach (var axis in Axes)
+				axis.Visibility = showAxes ? Visibility.Visible : Visibility.Collapsed;
 		}
 
 		void RegisterChanged(IEnumerable<IPlotViewOnly> newGraphs) {
@@ -108,7 +111,7 @@ namespace EmnExtensions.Wpf.Plot {
 			}
 		}
 
-		private IEnumerable<TickedAxis> Axes { get { return new[] { tickedAxisLft, tickedAxisBot, tickedAxisRgt, tickedAxisTop }; } }
+		private IEnumerable<TickedAxis> Axes { get { yield return tickedAxisLft; yield return tickedAxisBot; yield return tickedAxisRgt; yield return tickedAxisTop; } }
 
 		public bool? AttemptBorderTicks {
 			set { if (value.HasValue) foreach (var axis in Axes) axis.AttemptBorderTicks = value.Value; }
@@ -291,7 +294,7 @@ namespace EmnExtensions.Wpf.Plot {
 			byte[] xpsData = PrintToByteArray();
 
 			var printThread = new Thread(() => {
-				string tempFile= System.IO.Path.GetTempFileName();
+				string tempFile = System.IO.Path.GetTempFileName();
 				try {
 					File.WriteAllBytes(tempFile, xpsData);
 					using (LocalPrintServer localPrintServer = new LocalPrintServer())
