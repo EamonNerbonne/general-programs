@@ -31,7 +31,7 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
 		protected void SetMargin(Thickness newMargin) { if (m_Margin != newMargin) { m_Margin = newMargin; TriggerChange(GraphChange.Projection); } }
 
 		public abstract void DrawGraph(T data, DrawingContext context);
-		public abstract void SetTransform(T data, Matrix boundsToDisplay, Rect displayClip);
+		public abstract void SetTransform(T data, Matrix boundsToDisplay, Rect displayClip, double forDpiX, double forDpiY);
 		public abstract void DataChanged(T data);
 		public abstract void RenderOptionsChanged();
 		public abstract bool SupportsThickness { get; }

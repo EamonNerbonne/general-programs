@@ -84,7 +84,7 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
 			}
 		}
 
-		public override void SetTransform(Geometry data, Matrix axisToDisplay, Rect displayClip)
+		public override void SetTransform(Geometry data, Matrix axisToDisplay, Rect displayClip, double forDpiX, double forDpiY)
 		{
 			changingGeometry = true;
 			clipRectangle.Rect = displayClip;

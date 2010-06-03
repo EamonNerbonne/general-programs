@@ -10,7 +10,8 @@
     <!--IsHitTestVisible="False"-->
     <UserControl.ContextMenu>
         <ContextMenu>
-            <MenuItem Header="Save as Pdf" Click="ExportGraph" />
+            <MenuItem Header="Export to Xps" Click="ExportGraph" />
+            <MenuItem Header="Print" Click="PrintGraph" />
         </ContextMenu>
     </UserControl.ContextMenu>
     <Grid>

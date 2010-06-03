@@ -7,10 +7,8 @@ using System.Windows.Media.Imaging;
 using System.Windows;
 using System.Diagnostics;
 
-namespace EmnExtensions.Wpf.Plot.VizEngines
-{
-	public abstract class VizDynamicBitmap<T> : PlotVizBase<T>
-	{
+namespace EmnExtensions.Wpf.Plot.VizEngines {
+	public abstract class VizDynamicBitmap<T> : PlotVizBase<T> {
 		public VizDynamicBitmap() { BitmapScalingMode = BitmapScalingMode.Linear; }
 		public BitmapScalingMode BitmapScalingMode { get { return m_scalingMode; } set { m_scalingMode = value; if (m_drawing != null) RenderOptions.SetBitmapScalingMode(m_drawing, value); } }
 		BitmapScalingMode m_scalingMode;
@@ -23,47 +21,47 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
 		TranslateTransform m_offsetTransform = new TranslateTransform();
 		DrawingGroup m_drawing = new DrawingGroup();
 
-		public sealed override void DrawGraph(T data, DrawingContext context)
-		{
+		public sealed override void DrawGraph(T data, DrawingContext context) {
 			Trace.WriteLine("redraw");
 			context.DrawDrawing(m_drawing);
 		}
 
 		static Rect SnapRect(Rect r, double multX, double multY) { return new Rect(new Point(Math.Floor(r.Left / multX) * multX, Math.Floor(r.Top / multY) * multY), new Point(Math.Ceiling((r.Right + 0.01) / multX) * multX, Math.Ceiling((r.Bottom + 0.01) / multY) * multY)); }
 
-		public sealed override void SetTransform(T data, Matrix dataToDisplay, Rect displayClip)
-		{
+		public sealed override void SetTransform(T data, Matrix dataToDisplay, Rect displayClip, double forDpiX, double forDpiY) {
 			if (dataToDisplay.IsIdentity) //TODO: is this a good test for no-show?
 				using (m_drawing.Open())
 					return;
+			if (m_dpiX != forDpiX || m_dpiY != forDpiY) {
+				m_dpiX = forDpiX;
+				m_dpiY = forDpiY;
+				m_bmp = null;
+			}
 			Rect drawingClip = displayClip;
 			Rect? outerDataBound = OuterDataBound;
 			if (outerDataBound.HasValue)
 				drawingClip.Intersect(Rect.Transform(outerDataBound.Value, dataToDisplay));
 
 			Rect snappedDrawingClip = SnapRect(drawingClip, 96.0 / m_dpiX, 96.0 / m_dpiY);
-			int pW = (int)Math.Ceiling(snappedDrawingClip.Width * m_dpiX / 96.0);
-			int pH = (int)Math.Ceiling(snappedDrawingClip.Height * m_dpiY / 96.0);
+			int pW = (int)(0.5 + snappedDrawingClip.Width * m_dpiX / 96.0);
+			int pH = (int)(0.5 + snappedDrawingClip.Height * m_dpiY / 96.0);
 
 			Matrix dataToBitmap = dataToDisplay;
 			dataToBitmap.Translate(-snappedDrawingClip.X, -snappedDrawingClip.Y);
 			dataToBitmap.Scale(m_dpiX / 96.0, m_dpiY / 96.0);
 
-			if (m_offsetTransform.X != snappedDrawingClip.X || m_offsetTransform.Y != snappedDrawingClip.Y)
-			{
+			if (m_offsetTransform.X != snappedDrawingClip.X || m_offsetTransform.Y != snappedDrawingClip.Y) {
 				m_offsetTransform.X = snappedDrawingClip.X;
 				m_offsetTransform.Y = snappedDrawingClip.Y;
 			}
 			m_clipGeom.Rect = snappedDrawingClip;//TODO: maybe better to clip after transform and then to clip to pW/pH?
 			//TODO2: this clips to nearest pixel boundary; but a tighter clip is possible to sub-pixel accuracy.
 
-			if (m_bmp == null || m_bmp.PixelWidth < pW || m_bmp.PixelHeight < pH)
-			{
+			if (m_bmp == null || m_bmp.PixelWidth < pW || m_bmp.PixelHeight < pH) {
 				int width = Math.Max(m_bmp == null ? 1 : m_bmp.PixelWidth, pW + (int)(EXTRA_RESIZE_PIX));
 				int height = Math.Max(m_bmp == null ? 1 : m_bmp.PixelHeight, pH + (int)(EXTRA_RESIZE_PIX));
 				m_bmp = new WriteableBitmap(width, height, m_dpiX, m_dpiY, PixelFormats.Bgra32, null);
-				using (var context = m_drawing.Open())
-				{
+				using (var context = m_drawing.Open()) {
 					context.PushGuidelineSet(new GuidelineSet(new[] { 0.0 }, new[] { 0.0 }));
 					context.PushClip(m_clipGeom);
 					context.PushTransform(m_offsetTransform);
@@ -89,7 +87,7 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
 		//providing one is an optimization that permits using a smaller bitmap; the rest of the drawing is just left blank then.
 		//if you don't provide an OuterDataBound, the entire display clip will be available as a WriteableBitmap.
 		protected abstract Rect? OuterDataBound { get; }
-		
+
 		public override bool SupportsThickness { get { return false; } }
 		public override bool SupportsColor { get { return false; } }
 

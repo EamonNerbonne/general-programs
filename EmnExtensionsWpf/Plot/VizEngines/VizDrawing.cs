@@ -20,7 +20,7 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
 			context.Pop();
 		}
 
-		public override void SetTransform(Drawing data, Matrix boundsToDisplay, Rect displayClip)
+		public override void SetTransform(Drawing data, Matrix boundsToDisplay, Rect displayClip, double forDpiX, double forDpiY)
 		{
 			m_trans.Matrix = boundsToDisplay;
 			m_clip.Rect = displayClip;

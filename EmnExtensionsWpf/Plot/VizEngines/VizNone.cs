@@ -12,7 +12,7 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
 		public Rect DataBounds(object data) { return Rect.Empty; }
 		public Thickness Margin(object data) { return new Thickness(0.0); }
 		public void DrawGraph(object data, DrawingContext context) { }
-		public void SetTransform(object data, Matrix boundsToDisplay, Rect displayClip) { }
+		public void SetTransform(object data, Matrix boundsToDisplay, Rect displayClip, double forDpiX, double forDpiY) { }
 		public void DataChanged(object data) { }
 		public IPlot Owner { get; set; }
 		public void RenderOptionsChanged() { }

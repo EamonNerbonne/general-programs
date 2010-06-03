@@ -12,6 +12,6 @@ namespace EmnExtensions.Wpf.Plot
 		Rect DataBounds { get; }
 		Thickness Margin { get; }
 		void DrawGraph(DrawingContext context);
-		void SetTransform(Matrix boundsToDisplay, Rect displayClip);
+		void SetTransform(Matrix boundsToDisplay, Rect displayClip, double forDpiX, double forDpiY);
 	}
 }

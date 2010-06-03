@@ -12,7 +12,7 @@ namespace EmnExtensions.Wpf.Plot
 		Rect DataBounds(T data);
 		Thickness Margin(T data);
 		void DrawGraph(T data, DrawingContext context);
-		void SetTransform(T data, Matrix boundsToDisplay, Rect displayClip);
+		void SetTransform(T data, Matrix boundsToDisplay, Rect displayClip, double forDpiX, double forDpiY);
 		void DataChanged(T data);
 		void RenderOptionsChanged();
 		IPlot Owner { get; set; } //this will always be set before any usage other of this interface

@@ -23,7 +23,7 @@ namespace EmnExtensions.Wpf.Plot
 		public Rect DataBounds { get { return m_plot.OverrideBounds ?? m_engine.DataBounds(m_data); } }
 		public Thickness Margin { get { return m_engine.Margin(m_data); } }
 		public void DrawGraph(DrawingContext context) { m_engine.DrawGraph(m_data, context); }
-		public void SetTransform(Matrix boundsToDisplay, Rect displayClip) { m_engine.SetTransform(m_data, boundsToDisplay, displayClip); }
+		public void SetTransform(Matrix boundsToDisplay, Rect displayClip, double forDpiX, double forDpiY) { m_engine.SetTransform(m_data, boundsToDisplay, displayClip, forDpiX,  forDpiY); }
 	}
 
 	public static class PlotViz
