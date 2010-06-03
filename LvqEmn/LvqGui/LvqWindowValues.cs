@@ -18,6 +18,7 @@ namespace LvqGui {
 		public CreateDatasetStarValues CreateDatasetStarValues { get; private set; }
 		public CreateLvqModelValues CreateLvqModelValues { get; private set; }
 		public TrainingControlValues TrainingControlValues { get; private set; }
+		public LoadDatasetValues LoadDatasetValues { get; private set; }
 
 		public ObservableCollection<LvqDatasetCli> Datasets { get; private set; }
 		public ObservableCollection<LvqModelCli> LvqModels { get; private set; }
@@ -40,6 +41,7 @@ namespace LvqGui {
 			CreateDatasetStarValues = new CreateDatasetStarValues(this);
 			CreateLvqModelValues = new CreateLvqModelValues(this);
 			TrainingControlValues = new TrainingControlValues(this);
+			LoadDatasetValues = new LoadDatasetValues(this);
 
 			Datasets.CollectionChanged += Datasets_CollectionChanged;
 			LvqModels.CollectionChanged += LvqModels_CollectionChanged;
