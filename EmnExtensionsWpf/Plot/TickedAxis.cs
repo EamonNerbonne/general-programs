@@ -552,7 +552,7 @@ namespace EmnExtensions.Wpf.Plot
 
 			var dispBounds = DisplayBounds;
 
-			drawingContext.DrawLine(m_tickPen, alignToDisp.Transform(new Point(dispBounds.End, m_tickPen.Thickness / 2.0)), alignToDisp.Transform(new Point(dispBounds.Start, m_tickPen.Thickness / 2.0)));
+			drawingContext.DrawLine(m_tickPen, alignToDisp.Transform(new Point(dispBounds.End, m_tickPen.Thickness / 4.0)), alignToDisp.Transform(new Point(dispBounds.Start, m_tickPen.Thickness / 4.0)));
 
 			//then we draw all labels, computing the label center point accounting for horizontal/vertical alignment, and using data->disp to position that center point.
 			foreach (var labelledValue in F.ZipWith(Rank1Values, m_rank1Labels, (val, label) => new { Value = val, Label = label }))
