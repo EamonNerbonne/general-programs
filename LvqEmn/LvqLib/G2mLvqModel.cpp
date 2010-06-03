@@ -37,12 +37,9 @@ G2mLvqModel::G2mLvqModel(boost::mt19937 & rng,  bool randInit, vector<int> proto
 	}
 	assert( accumulate(protodistribution.begin(), protodistribution.end(), 0)== protoIndex);
 }
-
-
 typedef Map<VectorXd,  Aligned> MVectorXd;
 
 void G2mLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel) {
-
 	using namespace std;
 	//double learningRate = getLearningRate();
 	//incLearningIterationCount();
@@ -116,6 +113,25 @@ void G2mLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel) {
 
 	for(size_t i=0;i<prototype.size();++i)
 		prototype[i].ComputePP(P);
+}
+
+
+double G2mLvqModel::costFunction(VectorXd const & unknownPoint, int pointLabel) const {
+	#if EIGEN3
+	Vector2d projectedTrainPoint = P * unknownPoint;
+#else
+	Vector2d projectedTrainPoint = (P * unknownPoint).lazy();
+#endif
+
+	G2mLvqGoodBadMatch matches(&projectedTrainPoint, pointLabel);
+
+	for(size_t i=0;i<prototype.size();i++)
+		matches.AccumulateMatch(prototype[i]);
+
+	assert(matches.good !=NULL && matches.bad!=NULL);
+	//now matches.good is "J" and matches.bad is "K".
+	
+	return (matches.distanceGood - matches.distanceBad)/(matches.distanceGood+matches.distanceBad);
 }
 
 void G2mLvqModel::ClassBoundaryDiagram(double x0, double x1, double y0, double y1, MatrixXi & classDiagram) const {
