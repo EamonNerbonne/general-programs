@@ -42,6 +42,7 @@ namespace LvqLibCli {
 			newmodel = new G2mLvqModel(*rngParam, true, protoDistrib, trainingSet->GetDataset()->ComputeClassMeans()); 
 		else return;
 		model = GcPtr::Create(newmodel);
+		model->get()->AddTrainingStat( trainingSet->GetDataset(),0,0,0.0);
 
 		BackupModel();
 	}

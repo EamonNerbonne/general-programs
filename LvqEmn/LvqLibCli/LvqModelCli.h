@@ -1,13 +1,13 @@
 #pragma once
-using namespace System;
+
 #include "stdafx.h"
 #include "LvqDataset.h"
 #include "LvqDatasetCli.h"
 
+using namespace System;
 namespace LvqLibCli {
 
-	public ref class LvqModelCli
-	{
+	public ref class LvqModelCli {
 		int protosPerClass,modelType;
 		String^ label;
 		GcAutoPtr<AbstractProjectionLvqModel>^ model;
@@ -29,6 +29,7 @@ namespace LvqLibCli {
 		property int Dimensions {int get(){return model->get()->Dimensions();}}
 		property String^ ModelLabel {String^ get(){return label;}}
 		property LvqDatasetCli^ InitSet {LvqDatasetCli^ get(){return initSet;}}
+		property array<LvqTrainingStatCli>^ TrainingStats {array<LvqTrainingStatCli>^ get(){msclr::lock l2(backupSync);array<LvqTrainingStatCli>^retval;cppToCli(modelCopy->get()->trainingStats,retval); return retval;}}
 
 		LvqModelCli(String^ label, unsigned rngParamsSeed, unsigned rngInstSeed, int protosPerClass, int modelType,LvqDatasetCli^ trainingSet);
 
