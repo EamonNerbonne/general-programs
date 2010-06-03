@@ -515,6 +515,7 @@
   <ItemGroup>
     <ClCompile Include="LvqDatasetCli.cpp" />
     <ClCompile Include="LvqModelCli.cpp" />
+    <ClCompile Include="LvqTrainingStatCli.cpp" />
     <ClCompile Include="Stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug2|Win32'">Create</PrecompiledHeader>
@@ -533,6 +534,7 @@
     <ClInclude Include="GcAutoPtr.h" />
     <ClInclude Include="LvqDatasetCli.h" />
     <ClInclude Include="LvqModelCli.h" />
+    <ClInclude Include="LvqTrainingStatCli.h" />
     <ClInclude Include="Stdafx.h" />
     <ClInclude Include="WrappingUtils.h" />
   </ItemGroup>

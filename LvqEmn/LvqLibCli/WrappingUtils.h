@@ -1,4 +1,5 @@
 #pragma once
+#include "LvqTrainingStatCli.h"
 
 #define MAKE_NOOP_CONVERSION(T) \
 		 inline T cliToCpp(T  val) {return val;} \
@@ -8,7 +9,7 @@
 namespace LvqLibCli {
 	//template<typename TIn, typename TOut> TOut cliToCpp(TIn arr);
 	//template<typename TIn, typename TOut> TOut cppToCli(TIn const & arr);
-
+	using namespace std;
 
 	MAKE_NOOP_CONVERSION(int)
 	MAKE_NOOP_CONVERSION(unsigned int)
@@ -35,6 +36,30 @@ namespace LvqLibCli {
 		for(unsigned i=0;i<vec.size();++i)
 			arr[i]=cppToCli(vec[i]);
 		return arr;
+	}
+	
+	template<typename T,typename S>
+	inline void cliToCpp(array<T>^ arr, vector<S> &vec) {
+		vec = vector<S>(arr->Length);
+		for(int i=0;i<arr->Length;++i)
+			cliToCpp(arr[i], vec[i]);
+	}
+
+	template<typename T,typename S> 
+	inline void cppToCli(std::vector<T> const & vec, array<S>^% arr) {
+		arr = gcnew array<S>((int)vec.size());
+		for(unsigned i=0;i<vec.size();++i)
+			cppToCli(vec[i],arr[i]);
+	}
+
+//	template<typename T>
+	inline void cliToCpp(LvqTrainingStatCli % stat,LvqTrainingStat &retval) {
+		retval = LvqTrainingStatCli::toCpp(stat);
+	}
+
+//	template<typename T> 
+	inline void cppToCli(LvqTrainingStat const & stat,LvqTrainingStatCli% retval) {
+		retval = LvqTrainingStatCli::toCli(stat);
 	}
 
 	template <typename T>
