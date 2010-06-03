@@ -45,6 +45,20 @@ namespace EmnExtensions.Wpf.Plot {
 			Background = bgBrush;
 		}
 
+
+		public bool ShowAxes {
+			get { return (bool)GetValue(ShowAxesProperty); }
+			set { SetValue(ShowAxesProperty, value); }
+		}
+
+		// Using a DependencyProperty as the backing store for ShowAxes.  This enables animation, styling, binding, etc...
+		public static readonly DependencyProperty ShowAxesProperty =
+			DependencyProperty.Register("ShowAxes", typeof(bool), typeof(PlotControl), new UIPropertyMetadata(true,new PropertyChangedCallback(ShowAxesSet)));
+
+		private static void ShowAxesSet(DependencyObject d, DependencyPropertyChangedEventArgs e) {
+
+		}
+
 		void RegisterChanged(IEnumerable<IPlotViewOnly> newGraphs) {
 			foreach (IPlotViewOnly newgraph in newGraphs)
 				newgraph.Changed += new Action<IPlotViewOnly, GraphChange>(graphChanged);
