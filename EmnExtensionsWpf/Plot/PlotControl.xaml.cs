@@ -59,7 +59,7 @@ namespace EmnExtensions.Wpf.Plot {
 
 		void SetAxesShow(bool showAxes) {
 			foreach (var axis in Axes)
-				axis.Visibility = showAxes ? Visibility.Visible : Visibility.Collapsed;
+				axis.HideAxis = !showAxes;
 		}
 
 		void RegisterChanged(IEnumerable<IPlotViewOnly> newGraphs) {
