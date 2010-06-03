@@ -4,9 +4,11 @@ using System.ComponentModel;
 using System.Globalization;
 using EmnExtensions.Text;
 using System.Linq;
+using System.Diagnostics;
 
 namespace EmnExtensions.Wpf.Plot
 {
+	[DebuggerDisplay("{AtStart} [] {AtEnd}")]
 	[TypeConverter(typeof(DimensionMarginsConverter))]
 	public struct DimensionMargins
 	{

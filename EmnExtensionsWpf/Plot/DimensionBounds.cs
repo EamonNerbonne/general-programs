@@ -5,10 +5,12 @@ using EmnExtensions.Text;
 using System.Linq;
 using System.Globalization;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 
 namespace EmnExtensions.Wpf.Plot
 {
+	[DebuggerDisplay("[{Start}, {End}]")]
 	[TypeConverter(typeof(DimensionBoundsConverter))]
 	public struct DimensionBounds
 	{
