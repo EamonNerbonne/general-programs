@@ -103,6 +103,20 @@ void GsmLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel) {
 		RecomputeProjection(i);
 }
 
+
+double GsmLvqModel::costFunction(VectorXd const & unknownPoint, int pointLabel) const {
+	#if EIGEN3
+	Vector2d projectedTrainPoint = P * unknownPoint;
+#else
+	Vector2d projectedTrainPoint = (P * unknownPoint).lazy();
+#endif
+
+	GoodBadMatch matches = findMatches(projectedTrainPoint, pointLabel);
+
+	return (matches.distGood - matches.distBad)/(matches.distGood+matches.distBad);
+}
+
+
 void GsmLvqModel::ClassBoundaryDiagram(double x0, double x1, double y0, double y1, MatrixXi & classDiagram) const {
 	int cols = static_cast<int>(classDiagram.cols());
 	int rows = static_cast<int>(classDiagram.rows());

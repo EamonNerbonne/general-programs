@@ -20,7 +20,7 @@ class GsmLvqModel : public AbstractProjectionLvqModel
 	}
 
 	struct GoodBadMatch {
-		double distGood, distBad;
+		double distGood, distBad; //TODO:name consistently across various LVQ model types.
 		int matchGood, matchBad;
 		inline GoodBadMatch()
 			: distGood(std::numeric_limits<double>::infinity())
@@ -29,7 +29,8 @@ class GsmLvqModel : public AbstractProjectionLvqModel
 			, matchBad(-1)
 		{}
 	};
-	inline GsmLvqModel::GoodBadMatch findMatches(Vector2d const & P_trainPoint, int trainLabel) {
+	inline GsmLvqModel::GoodBadMatch findMatches(Vector2d const & P_trainPoint, int trainLabel) const {
+		//TODO:this findMatches method should be as similar as possible across LVQ model types.
 		GoodBadMatch match;
 
 		for(int i=0;i<pLabel.size();i++) {
@@ -80,6 +81,7 @@ public:
 	virtual size_t MemAllocEstimate() const;
 
 	GsmLvqModel(boost::mt19937 & rng, bool randInit, std::vector<int> protodistribution, MatrixXd const & means);
+	double costFunction(VectorXd const & unknownPoint, int pointLabel) const; 
 	int classify(VectorXd const & unknownPoint) const {return classifyInternal(unknownPoint);}
 	int classifyProjected(Vector2d const & unknownProjectedPoint) const {return classifyProjectedInternal(unknownProjectedPoint);}
 	void learnFrom(VectorXd const & newPoint, int classLabel);
