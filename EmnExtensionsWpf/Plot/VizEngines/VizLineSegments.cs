@@ -29,7 +29,7 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
 		public override void DataChanged(Point[] newData)
 		{
 			currentPoints = newData;
-			geomCache = GraphUtils.Line(newData);
+			geomCache = GraphUtils.LineScaled(newData);
 			RecomputeBounds(currentPoints);
 			impl.DataChanged(geomCache);
 		}
