@@ -148,7 +148,7 @@ namespace EmnExtensions.Wpf.Plot {
 					boundGraphs
 					.Select(graph => ToDimMargins(graph.PlotVisualizer.Margin, axis.IsHorizontal))
 					.Aggregate(DimensionMargins.Empty, (m1, m2) => DimensionMargins.Merge(m1, m2));
-				string dataUnits = string.Join(", ", graphs.Select(graph => axis.IsHorizontal ? graph.XUnitLabel : graph.YUnitLabel).Distinct().Where(s => !string.IsNullOrWhiteSpace(s)).ToArray());
+				string dataUnits = string.Join(", ", boundGraphs.Select(graph => axis.IsHorizontal ? graph.XUnitLabel : graph.YUnitLabel).Distinct().Where(s => !string.IsNullOrWhiteSpace(s)).ToArray());
 
 				axis.DataBound = bounds;
 				axis.DataMargin = margin;
@@ -198,7 +198,7 @@ namespace EmnExtensions.Wpf.Plot {
 		DrawingGroup dg = new DrawingGroup();
 
 		protected override void OnRender(DrawingContext drawingContext) {
-			Trace.WriteLine("NewPlotControl.OnRender");
+			Trace.WriteLine("PlotControl.OnRender");
 			//axes which influence projection matrices:
 			TickedAxisLocation relevantAxes = graphs.Aggregate(TickedAxisLocation.None, (axisLoc, graph) => axisLoc | ChooseProjection(graph));
 			var transforms =
