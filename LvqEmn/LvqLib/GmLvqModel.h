@@ -68,6 +68,7 @@ public:
 
 
 	GmLvqModel(boost::mt19937 & rng,  bool randInit, std::vector<int> protodistribution, MatrixXd const & means);
+	double costFunction(VectorXd const & unknownPoint, int pointLabel) const; 
 	virtual int classify(VectorXd const & unknownPoint) const; //tmp must be just as large as unknownPoint, this is a malloc/free avoiding optimization.
 	virtual void learnFrom(VectorXd const & newPoint, int classLabel);//tmp must be just as large as unknownPoint, this is a malloc/free avoiding optimization.
 	virtual AbstractLvqModel* clone() { return new GmLvqModel(*this); }

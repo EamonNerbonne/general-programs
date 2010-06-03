@@ -103,6 +103,12 @@ void GmLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel) {
 #endif
 }
 
+double GmLvqModel::costFunction(VectorXd const & unknownPoint, int pointLabel) const {
+	GoodBadMatch matches = findMatches(unknownPoint, pointLabel);
+	return (matches.distGood - matches.distBad)/(matches.distGood+matches.distBad);
+}
+
+
 size_t GmLvqModel::MemAllocEstimate() const {
 	return 
 		sizeof(GmLvqModel) + //base structure size
