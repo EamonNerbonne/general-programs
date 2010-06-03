@@ -54,8 +54,6 @@ namespace LvqGui {
 		}
 		private uint _InstSeed;
 
-
-
 		public string CreateLabel() {
 			return
 				ForDataset.DatasetLabel
@@ -69,13 +67,11 @@ namespace LvqGui {
 			return ((char)('A' + datasetCount - 1)).ToString();
 		}
 
-
-
 		public CreateLvqModelValues(LvqWindowValues owner) {
 			this.owner = owner;
 			_ModelType = ModelType.G2m;
 			_Dimensionality = 2;
-			_PrototypesPerClass = 3;
+			_PrototypesPerClass = 1;
 			this.ReseedBoth();
 		}
 

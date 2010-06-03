@@ -1,4 +1,7 @@
-﻿using System;
+﻿//#define PERMIT_SQUARE_CAPS
+//using square line caps breaks ghostscript's gxps conversion; disabled.
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -24,11 +27,12 @@ namespace EmnExtensions.Wpf.Plot.VizEngines {
 			double thickness = VizPixelScatterHelpers.PointCountToThickness(pointCount);
 
 			var linecap = PenLineCap.Round;
-
-			if (thickness <= 3) {
+#if PERMIT_SQUARE_CAPS
+			if (thickness <= 3) { 
 				linecap = PenLineCap.Square;
 				thickness *= VizPixelScatterHelpers.SquareSidePerThickness;
 			}
+#endif
 			Pen penCopy = impl.Pen.CloneCurrentValue();
 			penCopy.EndLineCap = linecap;
 			penCopy.StartLineCap = linecap;
