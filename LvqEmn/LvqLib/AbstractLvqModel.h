@@ -4,6 +4,7 @@
 
 #pragma intrinsic(pow)
 
+class LvqDataset;
 
 class AbstractLvqModel
 {
