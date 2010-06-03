@@ -15,6 +15,7 @@
 //#define EIGEN_VECTORIZE_SSE4_1
 #define EIGEN_USE_NEW_STDVECTOR
 
+#include <Bench/BenchTimer.h>
 #include <Eigen/StdVector>
 #include <iostream>
 #include <algorithm>

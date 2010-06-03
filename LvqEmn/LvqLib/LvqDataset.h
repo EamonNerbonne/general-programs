@@ -17,9 +17,11 @@ public:
 
 	MatrixXd ComputeClassMeans() const;
 
-	void TrainModel(int iters, boost::mt19937 & randGen, AbstractLvqModel * model) const;
+	void TrainModel(int epochs, boost::mt19937 & randGen, AbstractLvqModel * model) const;
 
 	double ErrorRate(AbstractLvqModel const * model) const;
+	double CostFunction(AbstractLvqModel const * model) const;
+
 	PMatrix ProjectPoints(AbstractProjectionLvqModel const * model) const;
 	size_t MemAllocEstimate() const;
 	int dimensions() const { return static_cast<int>(trainPoints.rows());}
