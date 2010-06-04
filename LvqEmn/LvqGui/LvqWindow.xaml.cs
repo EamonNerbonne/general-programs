@@ -68,9 +68,9 @@ namespace LvqGui {
 				trainErr.RenderColor = Colors.Red;
 				trainErr.XUnitLabel = "Training iterations";
 				trainErr.YUnitLabel = "Training error-rate";
-				trainErr.MinimalBounds = new Rect(new Point(0, 0.001), new Point(0, 0));
+				//trainErr.MinimalBounds = new Rect(new Point(0, 0.001), new Point(0, 0));
 				trainErr.AxisBindings = TickedAxisLocation.BelowGraph | TickedAxisLocation.RightOfGraph;
-				((IVizLineSegments)trainErr.Visualizer).CoverageRatioY = 0.98;
+				((IVizLineSegments)trainErr.Visualizer).CoverageRatioY = 0.90;
 
 				var trainCost = PlotData.Create(model.TrainingStats.Select(stat => new Point(stat.trainingIter, stat.trainingCost)).ToArray());
 				trainCost.PlotClass = PlotClass.Line;
@@ -78,7 +78,7 @@ namespace LvqGui {
 				trainCost.RenderColor = Colors.Blue;
 				trainCost.XUnitLabel = "Training iterations";
 				trainCost.YUnitLabel = "Training cost-function";
-				((IVizLineSegments)trainCost.Visualizer).CoverageRatioY = 0.98;
+				((IVizLineSegments)trainCost.Visualizer).CoverageRatioY = 0.90;
 
 				statPlots.Graphs.Add(trainErr);
 				statPlots.Graphs.Add(trainCost);
