@@ -26,6 +26,9 @@ namespace EmnExtensions.Wpf.Plot
 		Rect? m_OverrideBounds;
 		public Rect? OverrideBounds { get { return m_OverrideBounds; } set { if (m_OverrideBounds != value) { m_OverrideBounds = value; TriggerChange(GraphChange.Projection); } } }
 
+		Rect? m_MinimalBounds;
+		public Rect? MinimalBounds { get { return m_MinimalBounds; } set { if (m_MinimalBounds != value) { m_MinimalBounds = value; TriggerChange(GraphChange.Projection); } } }
+
 		public object Tag { get; set; }
 
 		PlotClass m_PlotClass;

@@ -24,6 +24,7 @@ namespace EmnExtensions.Wpf.Plot
 	public interface IPlot : IPlotViewOnly
 	{
 		Rect? OverrideBounds { get; }
+		Rect? MinimalBounds { get; }
 		PlotClass PlotClass { get; }
 		Color? RenderColor { get; }
 		double? RenderThickness { get; }
@@ -36,6 +37,7 @@ namespace EmnExtensions.Wpf.Plot
 		new string YUnitLabel { get; set; }
 		new string DataLabel { get; set; }
 		new Rect? OverrideBounds { get; set; }
+		new Rect? MinimalBounds { get; set; }
 		new PlotClass PlotClass { get; set; }
 		new object Tag { get; set; }
 		new Color? RenderColor { get; set; }
