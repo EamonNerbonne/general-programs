@@ -26,7 +26,7 @@ namespace LvqGui {
 		private LvqDatasetCli _SelectedDataset;
 
 		//ObservableCollection<LvqModelCli>
-		public IEnumerable<LvqModelCli> MatchingLvqModels { get { return Owner.LvqModels.Where(model => model==null|| model.FitsDataShape(SelectedDataset)); } }
+		public IEnumerable<LvqModelCli> MatchingLvqModels { get { return Owner.LvqModels.Where(model => model == null || model.FitsDataShape(SelectedDataset)); } }
 
 		public LvqModelCli SelectedLvqModel {
 			get { return _SelectedLvqModel; }
@@ -54,19 +54,22 @@ namespace LvqGui {
 						throw new ArgumentException("Can't animate; dataset or model is not set");
 					_AnimateTraining = value; _propertyChanged("AnimateTraining");
 					if (_AnimateTraining)
-						ThreadPool.QueueUserWorkItem(o => { ConfirmTraining(); });
+						new Thread(o => { DoAnimatedTraining(); }) {
+							IsBackground = true,
+							Priority = ThreadPriority.BelowNormal
+						}.Start();
 				}
 			}
 		}
 		private bool _AnimateTraining;
 
 		public void OnIdle() {
-			if (!AnimateTraining) {
-			} else if (SelectedLvqModel == null || SelectedDataset == null) {
-				AnimateTraining = false;
-			} else {
-				ThreadPool.QueueUserWorkItem(o => { ConfirmTraining(); });
-			}
+			//if (!AnimateTraining) {
+			//} else if (SelectedLvqModel == null || SelectedDataset == null) {
+			//    AnimateTraining = false;
+			//} else {
+			//    ThreadPool.QueueUserWorkItem(o => { ConfirmTraining(); });
+			//}
 		}
 
 		//			Dispatcher.BeginInvoke((Action)(() => {
@@ -88,15 +91,40 @@ namespace LvqGui {
 			else if (selectedModel == null)
 				Console.WriteLine("Training aborted, no model selected.");
 			else {
-				if (_AnimateTraining)
-					selectedModel.Train(epochsToDo: epochsToTrainFor, trainingSet: selectedDataset);
-				else
-					lock (selectedModel.UpdateSyncObject) //not needed for safety, just for accurate timing
-						using (new DTimer("Training " + epochsToTrainFor + " epochs"))
-							selectedModel.Train(epochsToDo: epochsToTrainFor, trainingSet: selectedDataset);
-				if (selectedModel == SelectedLvqModel && selectedDataset == SelectedDataset && SelectedModelUpdatedInBackgroundThread != null)
-					SelectedModelUpdatedInBackgroundThread(selectedDataset, selectedModel);
+				lock (selectedModel.UpdateSyncObject) //not needed for safety, just for accurate timing
+					using (new DTimer("Training " + epochsToTrainFor + " epochs"))
+						selectedModel.Train(epochsToDo: epochsToTrainFor, trainingSet: selectedDataset);
+				PotentialUpdate(selectedDataset, selectedModel);
 			}
+		}
+
+		bool isAnimating;
+		public void DoAnimatedTraining() {
+			if (isAnimating) return;
+			double totalTime = 0.0;
+			int epochsTrained = 0;
+			try {
+				isAnimating = true;
+				while (_AnimateTraining) {
+					var selectedDataset = SelectedDataset;
+					var selectedModel = SelectedLvqModel;
+					int epochsToTrainFor = EpochsPerClick;
+					if (selectedDataset == null || selectedModel == null || epochsToTrainFor < 1) {
+						owner.Dispatcher.BeginInvoke(() => { AnimateTraining = false; });
+						break;
+					}
+
+					lock (selectedModel.UpdateSyncObject) //not needed for thread safety, just for accurate timing
+						using (new DTimer(ts => { totalTime += ts.TotalSeconds; epochsTrained += epochsToTrainFor; }))
+							selectedModel.Train(epochsToDo: epochsToTrainFor, trainingSet: selectedDataset);
+					PotentialUpdate(selectedDataset, selectedModel);
+				}
+			} finally { isAnimating = false; Console.WriteLine("Tooks {0}s per epoch for {1} epochs", totalTime / epochsTrained, epochsTrained); }
+		}
+
+		private void PotentialUpdate(LvqDatasetCli selectedDataset, LvqModelCli selectedModel) {
+			if (selectedModel == SelectedLvqModel && selectedDataset == SelectedDataset && SelectedModelUpdatedInBackgroundThread != null)
+				SelectedModelUpdatedInBackgroundThread(selectedDataset, selectedModel);
 		}
 
 		public void ResetLearningRate() {
