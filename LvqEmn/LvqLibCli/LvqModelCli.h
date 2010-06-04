@@ -8,17 +8,18 @@ using namespace System;
 namespace LvqLibCli {
 
 	public ref class LvqModelCli {
+		typedef GcAutoPtr<AbstractProjectionLvqModel> WrappedModel;
 		int protosPerClass,modelType;
 		String^ label;
-		GcAutoPtr<AbstractProjectionLvqModel>^ model;
-		GcAutoPtr<AbstractProjectionLvqModel>^ modelCopy;
+		WrappedModel^ model;
+		WrappedModel^ modelCopy;
 		GcPlainPtr<boost::mt19937> rngParam, rngIter;
-		Object^ backupSync;
 		Object^ mainSync;
 		void BackupModel() {
 			AbstractProjectionLvqModel* newCopy = dynamic_cast<AbstractProjectionLvqModel*>(model->get()->clone());
-			msclr::lock l(backupSync);
-			modelCopy = GcPtr::Create(newCopy);
+			GcAutoPtr<AbstractProjectionLvqModel>^ newBackup = GcPtr::Create(newCopy);
+			msclr::lock l(newBackup);
+			modelCopy = newBackup;
 		}
 		void Init(LvqDatasetCli^ trainingSet);
 		LvqDatasetCli^ initSet;
@@ -29,7 +30,15 @@ namespace LvqLibCli {
 		property int Dimensions {int get(){return model->get()->Dimensions();}}
 		property String^ ModelLabel {String^ get(){return label;}}
 		property LvqDatasetCli^ InitSet {LvqDatasetCli^ get(){return initSet;}}
-		property array<LvqTrainingStatCli>^ TrainingStats {array<LvqTrainingStatCli>^ get(){msclr::lock l2(backupSync);array<LvqTrainingStatCli>^retval;cppToCli(modelCopy->get()->trainingStats,retval); return retval;}}
+		property array<LvqTrainingStatCli>^ TrainingStats {
+			array<LvqTrainingStatCli>^ get(){
+				WrappedModel^ currentBackup = modelCopy;
+				msclr::lock l2(currentBackup);
+				array<LvqTrainingStatCli>^retval;
+				cppToCli(currentBackup->get()->trainingStats,retval);
+				return retval;
+			}
+		}
 
 		LvqModelCli(String^ label, unsigned rngParamsSeed, unsigned rngInstSeed, int protosPerClass, int modelType,LvqDatasetCli^ trainingSet);
 

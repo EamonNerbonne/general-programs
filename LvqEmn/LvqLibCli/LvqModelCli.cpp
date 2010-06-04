@@ -17,7 +17,6 @@ namespace LvqLibCli {
 		, rngParam(new mt19937(rngParamsSeed))
 		, rngIter(new mt19937(rngInstSeed))
 		, mainSync(gcnew Object())
-		, backupSync(gcnew Object())
 	{ 
 		Init(trainingSet);
 	}
@@ -29,7 +28,6 @@ namespace LvqLibCli {
 			protoDistrib.push_back(protosPerClass);
 
 
-		msclr::lock l(backupSync);
 		msclr::lock l2(mainSync);
 		initSet = trainingSet;
 		model=nullptr;
@@ -48,29 +46,34 @@ namespace LvqLibCli {
 	}
 
 	double LvqModelCli::ErrorRate(LvqDatasetCli^testSet) {
-		msclr::lock l(backupSync);
-		if(modelCopy==nullptr)
+		WrappedModel^ currentBackup = modelCopy;
+		if(currentBackup==nullptr)
 			return 1.0;
+		msclr::lock l(currentBackup);
 
-		return testSet->GetDataset()->ErrorRate(modelCopy->get()); 
+		return testSet->GetDataset()->ErrorRate(currentBackup->get()); 
 	}
 
 	array<double,2>^ LvqModelCli::CurrentProjectionOf(LvqDatasetCli^ dataset) { 
-		msclr::lock l(backupSync);
-		if(modelCopy==nullptr)
-			return nullptr;
+		WrappedModel^ currentBackup = modelCopy;
 
-		return cppToCli(dataset->GetDataset()->ProjectPoints(modelCopy->get())); 
+		if(currentBackup==nullptr)
+			return nullptr;
+		msclr::lock l(currentBackup);
+
+		return cppToCli(dataset->GetDataset()->ProjectPoints(currentBackup->get())); 
 	}
 
 	array<int,2>^ LvqModelCli::ClassBoundaries(double x0, double x1, double y0, double y1,int xCols, int yRows) {
 		MatrixXi classDiagram(yRows,xCols);
 		{
-			msclr::lock l(backupSync);
-			if(modelCopy==nullptr)
+			WrappedModel^ currentBackup = modelCopy;
+
+			if(currentBackup==nullptr)
 				return nullptr; //TODO: should never happen?
 
-			modelCopy->get()->ClassBoundaryDiagram(x0,x1,y0,y1,classDiagram);
+			msclr::lock l(currentBackup);
+			currentBackup->get()->ClassBoundaryDiagram(x0,x1,y0,y1,classDiagram);
 		}
 		return cppToCli(classDiagram.transpose());
 	}
@@ -86,7 +89,8 @@ namespace LvqLibCli {
 	}
 	
 	Tuple<array<double,2>^, array<int>^>^ LvqModelCli::PrototypePositions() {
-		msclr::lock l(backupSync);
-		return Tuple::Create(cppToCli( modelCopy->get()->GetProjectedPrototypes()), cppToCli(modelCopy->get()->GetPrototypeLabels()));
+		WrappedModel^ currentBackup = modelCopy;
+		msclr::lock l(currentBackup);
+		return Tuple::Create(cppToCli( currentBackup->get()->GetProjectedPrototypes()), cppToCli(currentBackup->get()->GetPrototypeLabels()));
 	}
 }
