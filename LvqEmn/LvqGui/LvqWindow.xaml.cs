@@ -68,6 +68,7 @@ namespace LvqGui {
 				trainErr.RenderColor = Colors.Red;
 				trainErr.XUnitLabel = "Training iterations";
 				trainErr.YUnitLabel = "Training error-rate";
+				trainErr.MinimalBounds = new Rect(new Point(0, 0.001), new Point(0, 0));
 				trainErr.AxisBindings = TickedAxisLocation.BelowGraph | TickedAxisLocation.RightOfGraph;
 				((IVizLineSegments)trainErr.Visualizer).CoverageRatioY = 0.98;
 
