@@ -171,13 +171,15 @@ namespace EmnExtensions.Wpf.Plot {
 
 		// Using a DependencyProperty as the backing store for ShowGridLines.  This enables animation, styling, binding, etc...
 		public static readonly DependencyProperty ShowGridLinesProperty =
-			DependencyProperty.Register("ShowGridLines", typeof(bool), typeof(PlotControl), new UIPropertyMetadata(false,
-				(o, e) => {
-					((PlotControl)o).needRedrawGraphs = true;
-					((PlotControl)o).InvalidateVisual();
-				}
-				));
+			DependencyProperty.Register("ShowGridLines", typeof(bool), typeof(PlotControl), new UIPropertyMetadata(false, ShowGridLinesChanged));
 
+		static void ShowGridLinesChanged(DependencyObject o, DependencyPropertyChangedEventArgs e) {
+			PlotControl self = (PlotControl)o;
+			foreach (var axis in self.Axes)
+				axis.MatchOppositeTicks = (bool)e.NewValue;
+			self.needRedrawGraphs = true;
+			self.InvalidateVisual();
+		}
 
 		private void RedrawScene(DrawingContext drawingContext, TickedAxisLocation gridLineAxes) {
 			//drawingContext.PushClip(overallClipRect);
