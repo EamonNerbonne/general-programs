@@ -26,6 +26,9 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
 		double m_CoverageRatioX = 1.0;
 		public double CoverageRatioX { get { return m_CoverageRatioX; } set { if (value != m_CoverageRatioX) { m_CoverageRatioX = value; RecomputeBounds(currentPoints); } } }
 
+		double m_CoverageRatioGrad = 2.0;
+		public double CoverageRatioGrad { get { return m_CoverageRatioGrad; } set { if (value != m_CoverageRatioGrad) { m_CoverageRatioGrad = value; RecomputeBounds(currentPoints); } } }
+
 		public override void DataChanged(Point[] newData)
 		{
 			currentPoints = newData;
@@ -36,7 +39,7 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
 
 		private void RecomputeBounds(Point[] newData) {
 			Rect innerBounds, outerBounds;
-			VizPixelScatterHelpers.RecomputeBounds(newData, CoverageRatioX, CoverageRatioY, out outerBounds, out innerBounds);
+			VizPixelScatterHelpers.RecomputeBounds(newData, CoverageRatioX, CoverageRatioY,CoverageRatioGrad, out outerBounds, out innerBounds);
 			if (innerBounds != m_InnerBounds) {
 				m_InnerBounds = innerBounds;
 				Owner.TriggerChange(GraphChange.Projection);

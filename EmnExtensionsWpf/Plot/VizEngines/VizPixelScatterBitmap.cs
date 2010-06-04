@@ -12,12 +12,16 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
 	//for efficiency reasons, we accept data in a Point[] rather than the more general IEnumerable<Point>
 	{
 		Rect m_OuterDataBounds = Rect.Empty;
-		double m_CoverageRatio = 0.9999;
 		uint[] m_image;
 		Point[] currentPoints;
 
 		protected override Rect? OuterDataBound { get { return m_OuterDataBounds; } }
+		double m_CoverageRatio = 0.9999;
 		public double CoverageRatio { get { return m_CoverageRatio; } set { if (value != m_CoverageRatio) { m_CoverageRatio = value; RecomputeBounds(currentPoints); } } }
+
+		double m_CoverageGradient = 5.0;
+		public double CoverageGradient { get { return m_CoverageGradient; } set { m_CoverageGradient = value; RecomputeBounds(currentPoints); } }
+
 
 		protected override void UpdateBitmap(Point[] data, int pW, int pH, Matrix dataToBitmap)
 		{
@@ -156,7 +160,7 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
 		void RecomputeBounds(Point[] points)
 		{
 			Rect innerBounds;
-			VizPixelScatterHelpers.RecomputeBounds(points, CoverageRatio, CoverageRatio,out m_OuterDataBounds, out innerBounds);
+			VizPixelScatterHelpers.RecomputeBounds(points, CoverageRatio, CoverageRatio, CoverageGradient, out m_OuterDataBounds, out innerBounds);
 			SetDataBounds(innerBounds);
 		}
 
