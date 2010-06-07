@@ -24,7 +24,7 @@ protected:
 	inline double stepLearningRate() {
 		double scaledIter = trainIter*iterationScaleFactor + 1.0;
 		++trainIter;
-		return 0.5/ sqrt(scaledIter*sqrt(sqrt(scaledIter))); // faster than exp(-0.625*log(scaledIter));  
+		return 0.1/ sqrt(scaledIter*sqrt(sqrt(scaledIter))); // faster than exp(-0.625*log(scaledIter));  
 	}
 
 	const int classCount;
@@ -35,7 +35,7 @@ public:
 	virtual int classify(VectorXd const & unknownPoint) const=0; 
 	virtual double costFunction(VectorXd const & unknownPoint, int pointLabel) const=0; 
 	virtual void learnFrom(VectorXd const & newPoint, int classLabel)=0;
-	AbstractLvqModel(int classCount) : trainIter(0), totalIter(0), totalElapsed(0.0), iterationScaleFactor(0.01),classCount(classCount){ }
+	AbstractLvqModel(int classCount) : trainIter(0), totalIter(0), totalElapsed(0.0), iterationScaleFactor(0.001/classCount),classCount(classCount){ }
 	virtual ~AbstractLvqModel() {	}
 	void AddTrainingStat(LvqDataset const * trainingSet, LvqDataset const * testSet, int iterInc, double elapsedInc);
 
