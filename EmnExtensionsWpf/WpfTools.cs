@@ -12,10 +12,9 @@ using System.Windows;
 using System.IO;
 using System.Printing;
 
-namespace EmnExtensions.Wpf
-{
-	public class WpfTools
-	{
+namespace EmnExtensions.Wpf {
+	public static class WpfTools {
+		public static T AsFrozen<T>(this T freezable) where T : Freezable { return (T)freezable.GetAsFrozen(); }
 		/// <summary>
 		/// Note that Xps actually reads the stream too, so the file cannot already exist and simply be overwritten
 		/// (unless it's a valid xps), and it in particular may not have 0 bytes unless you open it in FileMode.Create.
@@ -30,7 +29,7 @@ namespace EmnExtensions.Wpf
 			Transform oldLayout = el.LayoutTransform;
 			double oldWidth = el.Width;
 			double oldHeight = el.Height;
-			double curWidth =el.DesiredSize.Width;
+			double curWidth = el.DesiredSize.Width;
 			double curHeight = el.DesiredSize.Height;
 
 			try {
@@ -46,7 +45,7 @@ namespace EmnExtensions.Wpf
 				//Doing this fixes bugs in saving complex grid layouts that probably are doing some layout calcs outside of
 				//in UpdateLayout  but aren't influenced by our .Measure and .Arrange calls (which is nasty, but seems to be
 				//a real issue).
-				if ( curHeight.IsFinite() && curWidth.IsFinite() && curHeight > 0 && curWidth > 0) {
+				if (curHeight.IsFinite() && curWidth.IsFinite() && curHeight > 0 && curWidth > 0) {
 					el.LayoutTransform = new ScaleTransform(curWidth / reqWidth, curHeight / reqHeight);
 					el.Measure(new Size(curWidth, curHeight));
 				} else {
@@ -57,7 +56,7 @@ namespace EmnExtensions.Wpf
 				el.Arrange(new Rect(el.DesiredSize));
 				el.InvalidateVisual();
 				el.UpdateLayout();
-				
+
 
 #if USE_PAGED_XPS_SAVE
 				FixedPage page = new FixedPage();
@@ -70,8 +69,8 @@ namespace EmnExtensions.Wpf
 				using (XpsDocument doc = new XpsDocument(packInto)) {
 
 					XpsDocumentWriter writer = XpsDocument.CreateXpsDocumentWriter(doc);
-					
-					
+
+
 #if USE_PAGED_XPS_SAVE
 					writer.Write(page);
 #else
@@ -86,7 +85,7 @@ namespace EmnExtensions.Wpf
 				// this item may be confused about it's position within the parent.  The following is probably imperfect, but
 				//a reasonable attempt to ensure the item is really relayouted.
 				if (el.Parent is UIElement)
-					((UIElement)el.Parent).InvalidateArrange(); 
+					((UIElement)el.Parent).InvalidateArrange();
 			}
 		}
 	}
