@@ -62,6 +62,7 @@ namespace EmnExtensions.Wpf {
 		}
 
 		public static StreamGeometry LineScaled(IEnumerable<Point> lineOfPoints) {
+			if (lineOfPoints == null) return null;
 			Rect dataBounds = lineOfPoints.Aggregate(Rect.Empty, (bound, point) => Rect.Union(bound, point));
 			double maxSafe = Int32.MaxValue / 2.0;
 			Rect safeBounds = new Rect(new Point(-maxSafe, -maxSafe), new Point(maxSafe, maxSafe));
