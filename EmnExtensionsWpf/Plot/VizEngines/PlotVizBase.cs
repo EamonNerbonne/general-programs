@@ -36,6 +36,8 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
 		public abstract void RenderOptionsChanged();
 		public abstract bool SupportsThickness { get; }
 		public abstract bool SupportsColor { get; }
+
+		public virtual Drawing SampleDrawing { get { return Owner == null || Owner.RenderColor == null ? null : new GeometryDrawing(new SolidColorBrush(Owner.RenderColor.Value).AsFrozen(), null, new RectangleGeometry(new Rect(0, 0, 10, 10))); } }
 	}
 
 }

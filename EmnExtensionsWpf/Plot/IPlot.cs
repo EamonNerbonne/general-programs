@@ -12,6 +12,7 @@ namespace EmnExtensions.Wpf.Plot
 		string XUnitLabel { get; }
 		string YUnitLabel { get; }
 		string DataLabel { get; }
+		Drawing SampleDrawing { get; }
 		object Tag { get; }
 		int ZIndex { get; }
 

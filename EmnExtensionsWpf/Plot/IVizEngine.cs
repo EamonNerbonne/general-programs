@@ -18,6 +18,7 @@ namespace EmnExtensions.Wpf.Plot
 		IPlot Owner { get; set; } //this will always be set before any usage other of this interface
 		bool SupportsThickness { get; }
 		bool SupportsColor { get; }
+		Drawing SampleDrawing { get; }
 	}
 
 }

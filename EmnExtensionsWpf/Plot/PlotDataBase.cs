@@ -40,6 +40,8 @@ namespace EmnExtensions.Wpf.Plot
 		int  zIndex;
 		public int ZIndex { get { return zIndex; } set { zIndex = value; TriggerChange(GraphChange.Drawing); } }
 
+		public Drawing SampleDrawing { get { return Visualizer.SampleDrawing; } }
+
 		double? m_Thickness;
 		public double? RenderThickness { get { return m_Thickness; } set { m_Thickness = value; if (vizEngine != null) vizEngine.RenderOptionsChanged(); } }
 

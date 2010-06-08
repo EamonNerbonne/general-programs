@@ -5,10 +5,8 @@ using System.Text;
 using System.Windows;
 using System.Windows.Media;
 
-namespace EmnExtensions.Wpf.Plot.VizEngines
-{
-	public class VizNone : IVizEngine<object>
-	{
+namespace EmnExtensions.Wpf.Plot.VizEngines {
+	public class VizNone : IVizEngine<object> {
 		public Rect DataBounds(object data) { return Rect.Empty; }
 		public Thickness Margin(object data) { return new Thickness(0.0); }
 		public void DrawGraph(object data, DrawingContext context) { }
@@ -18,5 +16,7 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
 		public void RenderOptionsChanged() { }
 		public bool SupportsThickness { get { return false; } }
 		public bool SupportsColor { get { return false; } }
+		public virtual Drawing SampleDrawing { get { return null; } }
+
 	}
 }
