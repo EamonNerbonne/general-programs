@@ -20,3 +20,4 @@ void makeRandomOrder(boost::mt19937 & randGen, int* const toFill, int count){
 	random_shuffle(toFill, toFill +count, rnd);
 	assert(accumulate(toFill,toFill+count,0) == (sqr(count) - count) /2 );
 }
+

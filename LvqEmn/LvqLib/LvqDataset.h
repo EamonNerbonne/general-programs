@@ -16,14 +16,16 @@ public:
 	int getClassCount()const {return classCount;}
 	int getPointCount()const {return static_cast<int>(pointLabels.size());}
 
+	std::vector<int> entireSet() const {std::vector<int> idxs((size_t)getPointCount()); for(int i=0;i<getPointCount();i++) idxs[i]=i; return idxs; }
+
+
 	LvqDataset(MatrixXd const & points, std::vector<int> pointLabels, int classCount);
+	MatrixXd ComputeClassMeans(std::vector<int> const & subset) const;
 
-	MatrixXd ComputeClassMeans() const;
+	void TrainModel(int epochs, boost::mt19937 & randGen, AbstractLvqModel * model, std::vector<int> const  & trainingSubset, LvqDataset const * testData, std::vector<int> const  & testSubset) const;
 
-	void TrainModel(int epochs, boost::mt19937 & randGen, AbstractLvqModel * model) const;
-
-	double ErrorRate(AbstractLvqModel const * model) const;
-	double CostFunction(AbstractLvqModel const * model) const;
+	double ErrorRate(std::vector<int> const & subset, AbstractLvqModel const * model) const;
+	double CostFunction(std::vector<int> const & subset, AbstractLvqModel const * model) const;
 
 	PMatrix ProjectPoints(AbstractProjectionLvqModel const * model) const;
 	size_t MemAllocEstimate() const;

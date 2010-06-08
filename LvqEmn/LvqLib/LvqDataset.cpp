@@ -15,15 +15,15 @@ LvqDataset::LvqDataset(MatrixXd const & points, vector<int> pointLabels, int cla
 	//pointLabels.shrink_to_fit();
 }
 
-MatrixXd LvqDataset::ComputeClassMeans() const {
+MatrixXd LvqDataset::ComputeClassMeans(std::vector<int> const & subset) const {
 	MatrixXd means( points.rows(), classCount);
 	means.setZero();
 	boost::scoped_array<int> freq(new int[classCount]);
 	for(int i=0;i<classCount;++i) freq[i]=0;
 
-	for(int i=0;i<(int)pointLabels.size();++i) {
-		means.col(pointLabels[i]) += points.col(i);
-		freq[pointLabels[i]]++;
+	for(int i=0;i<(int)subset.size();++i) {
+		means.col(pointLabels[subset[i]]) += points.col(subset[i]);
+		freq[pointLabels[subset[i]]]++;
 	}
 	for(int i=0;i<classCount;i++) {
 		if(freq[i] >0)
@@ -42,45 +42,45 @@ void EIGEN_STRONG_INLINE prefetch(void const * start,int lines) {
 		_mm_prefetch( (const char*)start + 64*i, _MM_HINT_NTA);//_MM_HINT_T0
 }
 
-void LvqDataset::TrainModel(int epochs, boost::mt19937 & randGen, AbstractLvqModel * model) const {
+
+void LvqDataset::TrainModel(int epochs, boost::mt19937 & randGen, AbstractLvqModel * model, vector<int> const  & trainingSubset, LvqDataset const * testData, std::vector<int> const  & testSubset) const {
 	BenchTimer t;
 	t.start();
 	int dims = static_cast<int>(points.rows());
-	boost::scoped_array<int> ordering(new int[pointLabels.size()+1] );
-	ordering[pointLabels.size()] = 0;
+	vector<int> shuffledOrder(trainingSubset);
 	VectorXd pointA(dims);
 	int cacheLines = (dims*sizeof(points(0,0) ) +63)/ 64 ;
 
 	for(int epoch=0; epoch<epochs; ++epoch) {
-		makeRandomOrder(randGen, ordering.get(), (int)pointLabels.size());
-		pointA=points.col(ordering[0]);
+		shuffle(randGen, shuffledOrder.begin(), shuffledOrder.end());
+		
 		for(int tI=0; tI<(int)pointLabels.size(); ++tI) {
 		//	_mm_prefetch((char*)model,_MM_HINT_T0);
-			int pointIndex = ordering[tI];
+			int pointIndex = shuffledOrder[tI];
 			int pointClass = pointLabels[pointIndex];
 			pointA = points.col(pointIndex);
-			prefetch( &points.coeff (0, ordering[tI+1]) ,cacheLines);
+			prefetch( &points.coeff (0, shuffledOrder[(tI+1)%shuffledOrder.size()]), cacheLines);
 			model->learnFrom(pointA, pointClass);
 		}
 	}
 	t.stop();
-	model->AddTrainingStat(this, 0, (int)(epochs*pointLabels.size()), t.getCpuTime());
+	model->AddTrainingStat(this,trainingSubset, testData,testSubset, (int)(epochs*pointLabels.size()), t.getCpuTime());
 }
 
-double LvqDataset::ErrorRate(AbstractLvqModel const * model)const {
+double LvqDataset::ErrorRate(std::vector<int> const & subset,AbstractLvqModel const * model)const {
 	int errs=0;
-	for(int i=0;i<(int)pointLabels.size();++i) 
-		if(model->classify(points.col(i)) != pointLabels[i])
+	for(int i=0;i<(int)subset.size();++i) 
+		if(model->classify(points.col(subset[i])) != pointLabels[subset[i]])
 			errs++;
-	return errs / double(pointLabels.size());
+	return errs / double(subset.size());
 }
 
-double LvqDataset::CostFunction(AbstractLvqModel const * model)const {
+double LvqDataset::CostFunction(std::vector<int> const & subset,AbstractLvqModel const * model)const {
 	VectorXd a;
 	double totalCost=0;
-	for(int i=0;i<(int)pointLabels.size();++i) 
-		totalCost+=model->costFunction(points.col(i), pointLabels[i]);
-	return totalCost / double(pointLabels.size());
+	for(int i=0;i<(int)subset.size();++i) 
+		totalCost+=model->costFunction(points.col(subset[i]), pointLabels[subset[i]]);
+	return totalCost / double(subset.size());
 }
 
 PMatrix LvqDataset::ProjectPoints(AbstractProjectionLvqModel const * model) const {

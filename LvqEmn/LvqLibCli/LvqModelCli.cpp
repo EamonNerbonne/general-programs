@@ -110,7 +110,7 @@ namespace LvqLibCli {
 		if(modelCopy==nullptr)
 			Init(trainingSet);
 
-		trainingSet->GetDataset()->TrainModel(epochsToDo,  *rngIter, model->get());
+		trainingSet->GetDataset()->TrainModel(epochsToDo,  *rngIter, model->get(), trainingSet->GetDataset()->entireSet(), 0, vector<int>());
 		BackupModel();
 	}
 	

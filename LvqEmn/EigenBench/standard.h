@@ -2,7 +2,7 @@
 #pragma warning(disable:4505)
 
 #include <iostream>
-#include <Bench/BenchTimer.h>
+#include <bench/BenchTimer.h>
 #include <Eigen/Core>
 #if !EIGEN3
 #include <Eigen/Array>

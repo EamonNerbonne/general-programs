@@ -56,7 +56,7 @@ unsigned int secure_rand() {
 
 void PrintModelStatus(char const * label,AbstractLvqModel const * model,LvqDataset const * dataset) {
 	using namespace std;
-	cerr << label<< ": "<<dataset->ErrorRate(model);
+	cerr << label<< ": "<<dataset->ErrorRate(dataset->entireSet(), model);
 	if(dynamic_cast<AbstractProjectionLvqModel const*>(model)) 
 		cerr<<"   [norm: "<< dynamic_cast<AbstractProjectionLvqModel const*>(model)->projectionNorm() <<"]";
 	cerr<<endl;
@@ -70,7 +70,7 @@ template <class T> void TestModel(mt19937 & rndGenOrig, bool randInit, LvqDatase
 	using boost::scoped_ptr;
 	scoped_ptr<AbstractLvqModel> model;
 	t.start();
-	model.reset(new T(rndGen, randInit, protoDistrib, dataset->ComputeClassMeans()));
+	model.reset(new T(rndGen, randInit, protoDistrib, dataset->ComputeClassMeans(dataset->entireSet())));
 	t.stop();
 	cerr<<"constructing "<<typeid(T).name()<<" ("<<(randInit?"random":"identity")<<" proj. init)"<<t.value()<<"s\n";
 
@@ -83,7 +83,7 @@ template <class T> void TestModel(mt19937 & rndGenOrig, bool randInit, LvqDatase
 		int itersUpto=iters*(i+1)/num_groups;
 		int itersTodo = itersUpto-itersDone;
 		if(itersTodo>0) {
-			dataset->TrainModel(itersTodo, rndGen, model.get() );
+			dataset->TrainModel(itersTodo, rndGen, model.get(),dataset->entireSet(), 0,vector<int>() );
 			PrintModelStatus("Trained",model.get(),dataset);
 		}
 	}
