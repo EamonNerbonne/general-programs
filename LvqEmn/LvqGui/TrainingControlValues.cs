@@ -63,20 +63,6 @@ namespace LvqGui {
 		}
 		private bool _AnimateTraining;
 
-		public void OnIdle() {
-			//if (!AnimateTraining) {
-			//} else if (SelectedLvqModel == null || SelectedDataset == null) {
-			//    AnimateTraining = false;
-			//} else {
-			//    ThreadPool.QueueUserWorkItem(o => { ConfirmTraining(); });
-			//}
-		}
-
-		//			Dispatcher.BeginInvoke((Action)(() => {
-		//    int epochsTodoN = EpochsPerClick ?? 1;
-		//    ThreadPool.QueueUserWorkItem(DoAniStep, epochsTodoN);
-		//}),DispatcherPriority.ApplicationIdle);
-
 		void LvqModels_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e) {
 			_propertyChanged("MatchingLvqModels");
 		}
