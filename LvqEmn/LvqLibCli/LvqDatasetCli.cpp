@@ -15,9 +15,9 @@ namespace LvqLibCli {
 		return gcnew LvqDatasetCli(label,colors,DatasetUtils::ConstructGaussianClouds(rngParam,rngIter, dims, classCount, pointsPerClass, meansep));
 	}
 
-	LvqDatasetCli^ LvqDatasetCli::ConstructStarDataset(String^label,ColorArray^ colors,unsigned rngParamsSeed, unsigned rngInstSeed, int dims, int starDims, int numStarTails,int classCount, int pointsPerClass, double starMeanSep, double starClassRelOffset) {
+	LvqDatasetCli^ LvqDatasetCli::ConstructStarDataset(String^label,ColorArray^ colors,unsigned rngParamsSeed, unsigned rngInstSeed, int dims, int starDims, int numStarTails,int classCount, int pointsPerClass, double starMeanSep, double starClassRelOffset, bool randomlyTransform) {
 		mt19937 rngParam(rngParamsSeed);
 		mt19937 rngIter(rngInstSeed);
-		return gcnew LvqDatasetCli(label,colors,DatasetUtils::ConstructStarDataset(rngParam,rngIter, dims, starDims, numStarTails, classCount, pointsPerClass, starMeanSep, starClassRelOffset,true));
+		return gcnew LvqDatasetCli(label,colors,DatasetUtils::ConstructStarDataset(rngParam,rngIter, dims, starDims, numStarTails, classCount, pointsPerClass, starMeanSep, starClassRelOffset,randomlyTransform));
 	}
 }

@@ -114,7 +114,9 @@ namespace LvqGui {
 				classCount: NumberOfClasses,
 				pointsPerClass: PointsPerClass,
 				starMeanSep: ClusterCenterDeviation,
-				starClassRelOffset: IntraClusterClassRelDev);
+				starClassRelOffset: IntraClusterClassRelDev,
+				randomlyTransform: RandomlyTransformFirst
+				);
 			//TODO:randomTransform option.
 		}
 
