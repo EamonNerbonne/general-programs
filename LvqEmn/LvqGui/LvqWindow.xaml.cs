@@ -13,6 +13,7 @@ using System.Windows.Shapes;
 using LvqLibCli;
 using EmnExtensions.Wpf.Plot;
 using EmnExtensions.Wpf.Plot.VizEngines;
+using System.ComponentModel;
 
 namespace LvqGui {
 	/// <summary>
@@ -25,66 +26,50 @@ namespace LvqGui {
 			InitializeComponent();
 			windowValues.TrainingControlValues.ModelSelected += TrainingControlValues_ModelSelected;
 			windowValues.TrainingControlValues.SelectedModelUpdatedInBackgroundThread += TrainingControlValues_SelectedModelUpdatedInBackgroundThread;
+			trainingStatWindow = new Window {
+				Width = Application.Current.MainWindow.Width * 0.5,
+				Height = Application.Current.MainWindow.Height * 0.8,
+				Title = "Training statistics",
+				Content = new PlotControl() {
+					ShowGridLines = true,
+				}
+			};
+			trainingStatWindow.Closing += HideNotClose;
+			pNormWindow = new Window {
+				Width = Application.Current.MainWindow.Width * 0.5,
+				Height = Application.Current.MainWindow.Height * 0.8,
+				Title = "Model project norms",
+				Content = new PlotControl() {
+					ShowGridLines = true,
+				}
+			};
 		}
+
+		static void HideNotClose(object sender, CancelEventArgs e) {
+			Window win = (Window) sender;
+			e.Cancel = true;
+			win.Dispatcher.BeginInvoke(win.Hide);
+		}
+
+		
+
+		Window trainingStatWindow, pNormWindow;
 
 		LvqScatterPlot plotData;
 		void TrainingControlValues_SelectedModelUpdatedInBackgroundThread(LvqDatasetCli dataset, LvqModelCli model) {
 			Dispatcher.BeginInvoke(() => {
-				if (plotData != null && plotData.dataset == dataset && plotData.LvqModel == model)
+				if (plotData != null && plotData.dataset == dataset && plotData.model == model)
 					plotData.QueueUpdate();
-				if (trainingStatWindow != null && trainingStatWindow.IsLoaded && model != null) {
-					var trainErrData = model.TrainingStats.Select(stat => new Point(stat.trainingIter, stat.trainingError)).ToArray();
-					var trainCostData = model.TrainingStats.Select(stat => new Point(stat.trainingIter, stat.trainingCost)).ToArray();
-					((IPlotWriteable<Point[]>)((PlotControl)trainingStatWindow.Content).Graphs[0]).Data = trainErrData;
-					((IPlotWriteable<Point[]>)((PlotControl)trainingStatWindow.Content).Graphs[1]).Data = trainCostData;
-				}
 			});
 		}
 
-		Window trainingStatWindow;
 		void TrainingControlValues_ModelSelected(LvqDatasetCli dataset, LvqModelCli model) {
-			if (plotData == null || plotData.dataset != dataset) {
-				plotData = new LvqScatterPlot(dataset, Dispatcher, ((LvqWindowValues)DataContext).TrainingControlValues);
-				plotControl.Graphs.Clear();
-				foreach (var subplot in plotData.Plots)
-					plotControl.Graphs.Add(subplot);
+			if (plotData == null || plotData.dataset != dataset || plotData.model != model) {
+				plotData = new LvqScatterPlot(dataset, model, Dispatcher, plotControl, (PlotControl)trainingStatWindow.Content, (PlotControl)pNormWindow.Content);
 			}
-			plotData.LvqModel = model;
-
-			if (trainingStatWindow == null || !trainingStatWindow.IsLoaded) {
-				trainingStatWindow = new Window();
-				trainingStatWindow.Width = this.ActualWidth * 0.5;
-				trainingStatWindow.Height = this.ActualHeight * 0.8;
-				trainingStatWindow.Title = "Training statistics";
-				trainingStatWindow.Show();
-			}
-
-			if (model != null) {
-				var statPlots = new PlotControl();
-				statPlots.ShowGridLines = true;
-				var trainErr = PlotData.Create(model.TrainingStats.Select(stat => new Point(stat.trainingIter, stat.trainingError)).ToArray());
-				trainErr.PlotClass = PlotClass.Line;
-				trainErr.DataLabel = "Training error-rate";
-				trainErr.RenderColor = Colors.Red;
-				trainErr.XUnitLabel = "Training iterations";
-				trainErr.YUnitLabel = "Training error-rate";
-				//trainErr.MinimalBounds = new Rect(new Point(0, 0.001), new Point(0, 0));
-				trainErr.AxisBindings = TickedAxisLocation.BelowGraph | TickedAxisLocation.RightOfGraph;
-				((IVizLineSegments)trainErr.Visualizer).CoverageRatioY = 0.90;
-
-				var trainCost = PlotData.Create(model.TrainingStats.Select(stat => new Point(stat.trainingIter, stat.trainingCost)).ToArray());
-				trainCost.PlotClass = PlotClass.Line;
-				trainCost.DataLabel = "Training cost-function";
-				trainCost.RenderColor = Colors.Blue;
-				trainCost.XUnitLabel = "Training iterations";
-				trainCost.YUnitLabel = "Training cost-function";
-				((IVizLineSegments)trainCost.Visualizer).CoverageRatioY = 0.90;
-
-				statPlots.Graphs.Add(trainErr);
-				statPlots.Graphs.Add(trainCost);
-
-				trainingStatWindow.Content = statPlots;
-			}
+			pNormWindow.Show();
+			trainingStatWindow.Show();
+			
 		}
 
 		public bool Fullscreen {

@@ -6,7 +6,7 @@
 
         Title="LvqWindow" Height="600" Width="800" xmlns:my="clr-namespace:LvqGui">
     <Grid >
-        
+
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="1*" />
@@ -16,6 +16,7 @@
             <ColumnDefinition Width="Auto" />
             <ColumnDefinition Width="50*" />
         </Grid.ColumnDefinitions>
+
         <emnPlot:PlotControl Grid.RowSpan="2"  Name="plotControl" ShowAxes="false"  ShowGridLines="{Binding ElementName=generalOptions, Path=Values.ShowGridLines, Mode=TwoWay}"  AttemptBorderTicks="False" />
 
         <GridSplitter Grid.Column="1" Grid.RowSpan="2" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Width="3"  ResizeDirection="Columns"/>

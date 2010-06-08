@@ -17,18 +17,31 @@ namespace LvqGui {
 		IPlotWriteable<Point[]>[] classPlots;
 		IPlotWriteable<object> classBoundaries;
 
+		IPlotWriteable<Point[]> trainErr, trainCost, pNorm;
+		IPlotWriteable<Point[]>[] otherStats;
+
+
 		public readonly LvqDatasetCli dataset;
-		LvqModelCli currentModel;
+		public readonly LvqModelCli model;
 		readonly Dispatcher dispatcher;
 
 		bool busy, updateQueued;
 		object syncroot = new object();
-		public readonly TrainingControlValues trainingController;
-
-		public LvqScatterPlot(LvqDatasetCli dataset, Dispatcher dispatcher, TrainingControlValues trainingController ) {
-			this.trainingController = trainingController;
+		public LvqScatterPlot(LvqDatasetCli dataset, LvqModelCli model, Dispatcher dispatcher, PlotControl scatterPlotControl, PlotControl trainingStatsControl, PlotControl trainingNormPlotControl) {
 			this.dataset = dataset;
+			this.model = model;
 			this.dispatcher = dispatcher;
+
+			MakeScatterPlots(scatterPlotControl);
+
+			MakeTrainingStatsPlots(trainingStatsControl);
+			MakeNormPlots(trainingNormPlotControl);
+
+			QueueUpdate();
+		}
+
+
+		private void MakeScatterPlots(PlotControl plotControl) {
 			prototypePositionsPlot = PlotData.Create(default(Point[]));
 			prototypePositionsPlot.Visualizer = new VizPixelScatterGeom { OverridePointCountEstimate = 50, };
 			classBoundaries = PlotData.Create(default(object), UpdateClassBoundaries);
@@ -38,9 +51,63 @@ namespace LvqGui {
 				graphplot.RenderColor = dataset.ClassColors[i];
 				return graphplot;
 			}).ToArray();
+
+			plotControl.Graphs.Clear();
+			foreach (var subplot in Plots)
+				plotControl.Graphs.Add(subplot);
 		}
 
-		public LvqModelCli LvqModel { set { this.currentModel = value; QueueUpdate(); } get { return currentModel; } }
+
+		private void MakeTrainingStatsPlots(PlotControl trainingStatsControl) {
+			trainErr = PlotData.Create(default(Point[]));
+			trainErr.PlotClass = PlotClass.Line;
+			trainErr.DataLabel = "Training error-rate";
+			trainErr.RenderColor = Colors.Red;
+			trainErr.XUnitLabel = "Training iterations";
+			trainErr.YUnitLabel = "Training error-rate";
+			//trainErr.MinimalBounds = new Rect(new Point(0, 0.001), new Point(0, 0));
+			trainErr.AxisBindings = TickedAxisLocation.BelowGraph | TickedAxisLocation.RightOfGraph;
+			((IVizLineSegments)trainErr.Visualizer).CoverageRatioY = 0.95;
+			((IVizLineSegments)trainErr.Visualizer).CoverageRatioGrad = 10.0;
+
+			trainCost = PlotData.Create(default(Point[]));
+			trainCost.PlotClass = PlotClass.Line;
+			trainCost.DataLabel = "Training cost-function";
+			trainCost.RenderColor = Colors.Blue;
+			trainCost.XUnitLabel = "Training iterations";
+			trainCost.YUnitLabel = "Training cost-function";
+			((IVizLineSegments)trainCost.Visualizer).CoverageRatioY = 0.95;
+			((IVizLineSegments)trainCost.Visualizer).CoverageRatioGrad = 5.0;
+
+			trainingStatsControl.Graphs.Clear();
+			trainingStatsControl.Graphs.Add(trainCost);
+			trainingStatsControl.Graphs.Add(trainErr);
+
+		}
+
+		private void MakeNormPlots(PlotControl trainingNormPlotControl) {
+			pNorm = PlotData.Create(default(Point[]));
+			pNorm.PlotClass = PlotClass.Line;
+			pNorm.DataLabel = "(mean) Projection norm";
+			pNorm.XUnitLabel = "Training iterations";
+			pNorm.YUnitLabel = "norm";
+			pNorm.RenderColor = Colors.Green;
+
+			otherStats = Enumerable.Range(0, model.OtherStatCount()).Select(i => {
+				var extraPlot = PlotData.Create(default(Point[]));
+				extraPlot.PlotClass = PlotClass.Line;
+				extraPlot.DataLabel = "extra data";
+				extraPlot.XUnitLabel = "Training iterations";
+				extraPlot.YUnitLabel = "norm";
+				extraPlot.RenderColor = Colors.LightGreen;
+				return extraPlot;
+			}).ToArray();
+			
+			trainingNormPlotControl.Graphs.Clear();
+			foreach (var plot in otherStats) trainingNormPlotControl.Graphs.Add(plot);
+			trainingNormPlotControl.Graphs.Add(pNorm);
+		}
+
 
 		public IEnumerable<IPlotWithSettings> Plots {
 			get {
@@ -50,51 +117,57 @@ namespace LvqGui {
 			}
 		}
 
-		private void UpdateDisplay() {
-			if (currentModel == null) return;
-
+		bool AcquireUpdateLock() {
 			lock (syncroot)
-				if (busy) {
-					updateQueued = true;
-					return;
-				} else {
-					busy = true;
-					updateQueued = false;
-				}
+				if (busy) { updateQueued = true; return false; } else { busy = true; updateQueued = false; return true; }
+		}
 
-			double[,] currPoints = currentModel.CurrentProjectionOf(dataset);
-			if (currPoints == null) return;//model not initialized
+		void ReleaseUpdateLock() {
+			lock (syncroot) {
+				busy = false;
+				if (updateQueued)
+					QueueUpdate();
+			}
+		}
 
-			int[] labels = dataset.ClassLabels();
+		private void UpdateDisplay() {
+			if (model == null) return;
+
+			if (!AcquireUpdateLock()) return;
+			
+			
+			var trainingStats = model.TrainingStats;
+			var currProjection = model.CurrentProjectionAndPrototypes(dataset);
+
 
 			Dictionary<int, Point[]> projectedPointsByLabel =
-				Points.ToMediaPoints(currPoints)
-				.Zip(labels, (point, label) => new { Point = point, Label = label })
+				!currProjection.IsOk ? Enumerable.Range(0, classPlots.Length).ToDictionary(i => i, i => default(Point[])) :
+				Points.ToMediaPoints(currProjection.Data.Points)
+				.Zip(currProjection.Data.ClassLabels, (point, label) => new { Point = point, Label = label })
 				.GroupBy(labelledPoint => labelledPoint.Label, labelledPoint => labelledPoint.Point)
 				.ToDictionary(group => group.Key, group => group.ToArray());
 
-			Point[] prototypePositions = Points.ToMediaPoints(currentModel.PrototypePositions().Item1).ToArray();
+			Point[] prototypePositions =
+				!currProjection.IsOk ? default(Point[]) :
+				Points.ToMediaPoints(currProjection.Prototypes.Points).ToArray();
 
 			dispatcher.BeginInvoke((Action)(() => {
 				foreach (var pointGroup in projectedPointsByLabel)
 					classPlots[pointGroup.Key].Data = pointGroup.Value;
 				prototypePositionsPlot.Data = prototypePositions;
 				classBoundaries.TriggerDataChanged();
-				bool isIdle = false;
-				lock (syncroot) {
-					busy = false;
-					if (updateQueued)
-						QueueUpdate();
-					else
-						isIdle = true;
-				}
-				if (isIdle)
-					trainingController.OnIdle();
+
+				trainErr.Data = trainingStats.Select(stat => new Point(stat.trainingIter, stat.trainingError)).ToArray(); 
+				trainCost.Data = trainingStats.Select(stat => new Point(stat.trainingIter, stat.trainingCost)).ToArray(); 
+				pNorm.Data = trainingStats.Select(stat => new Point(stat.trainingIter, stat.pNorm)).ToArray();
+				for (int i = 0; i < otherStats.Length; i++) 
+					otherStats[i].Data = trainingStats.Select(stat => new Point(stat.trainingIter, stat.otherStats[i])).ToArray();
+				
+				ReleaseUpdateLock();
 			}), DispatcherPriority.Background);
 		}
 
 		public void QueueUpdate() { ThreadPool.QueueUserWorkItem(o => { UpdateDisplay(); }); }
-
 
 
 		void UpdateClassBoundaries(WriteableBitmap bmp, Matrix dataToBmp, int width, int height, object ignore) {
@@ -105,7 +178,7 @@ namespace LvqGui {
 			int renderwidth = width;
 			int renderheight = height;
 #endif
-			var curModel = currentModel;
+			var curModel = model;
 
 			if (curModel == null)
 				return;
