@@ -303,7 +303,7 @@ namespace EmnExtensions.Wpf.Plot {
 			double origThickness = Thickness;
 			double origAxisLen = AxisLengthGuess();
 			try {
-				m_minReqTickCount = OppositeAxis.IsCollapsedOrEmpty ? 0 : OppositeAxis.m_wantsTickCount;
+				m_minReqTickCount = OppositeAxis==null|| OppositeAxis.IsCollapsedOrEmpty ? 0 : OppositeAxis.m_wantsTickCount;
 				if (IsCollapsedOrEmpty)
 					return DontShow(constraint);
 #if TRACE
@@ -736,7 +736,7 @@ namespace EmnExtensions.Wpf.Plot {
 			double effectiveStart = firstTickAtSlotMultiple * slotSize;
 			double effectiveEnd = lastTickAtSlotMultiple * slotSize;
 			if (minReqTickCount > 0) attemptBorderTicks = true;
-			else if (effectiveEnd - effectiveStart > 1.15 * range.Length) attemptBorderTicks = false;
+			else if (effectiveEnd - effectiveStart > 1.35 * range.Length) attemptBorderTicks = false;
 		}
 	}
 }
