@@ -18,10 +18,10 @@ namespace LvqLibCli {
 		LvqDatasetCli(String^label, ColorArray^ colors, LvqDataset * newDataset);
 public:
 		LvqDataset const * GetDataset() {return dataset;}
-		array<int>^ ClassLabels(){return cppToCli(dataset->trainPointLabels);}
-		array<double,2>^ RawPoints() {return cppToCli(dataset->trainPoints);}
+		array<int>^ ClassLabels(){return cppToCli(dataset->getPointLabels());}
+		array<double,2>^ RawPoints() {return cppToCli(dataset->getPoints());}
 		property ColorArray^ ClassColors { ColorArray^ get(){return colors;} void set(ColorArray^ newcolors){colors=newcolors;}}
-		property int ClassCount {int get(){return dataset->classCount;}}
+		property int ClassCount {int get(){return dataset->getClassCount();}}
 		property int Dimensions {int get(){return dataset->dimensions();}}
 		property String^ DatasetLabel {String^ get(){return label;}}
 		property LvqModelCli^ LastModel { LvqModelCli^ get(){return lastModel;} void set(LvqModelCli^ newval){lastModel = newval;}}

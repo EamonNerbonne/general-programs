@@ -9,6 +9,8 @@
 using boost::mt19937;
 using boost::normal_distribution;
 using boost::variate_generator;
+using std::cerr;
+using std::cout;
 using namespace Eigen;
 #define MEANSEP 1.9
 #define DETERMINISTIC_SEED 

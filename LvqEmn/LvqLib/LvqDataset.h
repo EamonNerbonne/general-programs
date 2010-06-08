@@ -3,17 +3,20 @@
 using namespace Eigen;
 
 #include "AbstractLvqModel.h"
-using namespace std;
+
 
 class LvqDataset
 {
-public:
-	MatrixXd trainPoints; //one dimension per row, one point per column
-	vector<int> trainPointLabels;
-	vector<int> trainClassFrequency; //TODO: rename, these datasets aren't necessarily training sets.
+	MatrixXd points; //one dimension per row, one point per column
+	std::vector<int> pointLabels;
 	const int classCount;
+public:
+	MatrixXd const & getPoints()const {return points;}
+	std::vector<int> const & getPointLabels()const {return pointLabels;}
+	int getClassCount()const {return classCount;}
+	int getPointCount()const {return static_cast<int>(pointLabels.size());}
 
-	LvqDataset(MatrixXd const & points, vector<int> pointLabels, int classCount);
+	LvqDataset(MatrixXd const & points, std::vector<int> pointLabels, int classCount);
 
 	MatrixXd ComputeClassMeans() const;
 
@@ -24,5 +27,5 @@ public:
 
 	PMatrix ProjectPoints(AbstractProjectionLvqModel const * model) const;
 	size_t MemAllocEstimate() const;
-	int dimensions() const { return static_cast<int>(trainPoints.rows());}
+	int dimensions() const { return static_cast<int>(points.rows());}
 };

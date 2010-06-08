@@ -2,42 +2,39 @@
 #include "LvqDataset.h"
 #include "utils.h"
 #include <xmmintrin.h>
-
+using namespace std;
 LvqDataset::LvqDataset(MatrixXd const & points, vector<int> pointLabels, int classCountPar) 
-	: trainPoints(points)
-	, trainPointLabels(pointLabels)
+	: points(points)
+	, pointLabels(pointLabels)
 	, classCount(classCountPar)
 {
 	assert(points.cols() == pointLabels.size());
 	assert(*std::max_element(pointLabels.begin(),pointLabels.end()) < classCount);
 	assert(*std::min_element(pointLabels.begin(),pointLabels.end()) >= 0);
 	
-	trainClassFrequency.resize(classCount);
-	for(int i=0;i<classCount;i++)
-		trainClassFrequency[i]=0;
-	for(int i=0;i<(int)trainPointLabels.size();i++)
-		trainClassFrequency[trainPointLabels[i]]++;
-	//trainClassFrequency.shrink_to_fit();
-	//trainPointLabels.shrink_to_fit();
+	//pointLabels.shrink_to_fit();
 }
 
 MatrixXd LvqDataset::ComputeClassMeans() const {
-	MatrixXd means( trainPoints.rows(), classCount);
+	MatrixXd means( points.rows(), classCount);
 	means.setZero();
-	
-	for(int i=0;i<(int)trainPointLabels.size();++i) {
-		means.col(trainPointLabels[i]) += trainPoints.col(i);
+	boost::scoped_array<int> freq(new int[classCount]);
+	for(int i=0;i<classCount;++i) freq[i]=0;
+
+	for(int i=0;i<(int)pointLabels.size();++i) {
+		means.col(pointLabels[i]) += points.col(i);
+		freq[pointLabels[i]]++;
 	}
 	for(int i=0;i<classCount;i++) {
-		if(trainClassFrequency[i] >0)
-			means.col(i) /= double(trainClassFrequency[i]);
+		if(freq[i] >0)
+			means.col(i) /= double(freq[i]);
 	}
 	return means;
 }
 
 
 size_t LvqDataset::MemAllocEstimate() const {
-	return sizeof(LvqDataset) + sizeof(int) * (trainPointLabels.size() + trainClassFrequency.size()) + sizeof(double)*trainPoints.size();
+	return sizeof(LvqDataset) + sizeof(int) * pointLabels.size()  + sizeof(double)*points.size();
 }
 
 void EIGEN_STRONG_INLINE prefetch(void const * start,int lines) {
@@ -48,44 +45,44 @@ void EIGEN_STRONG_INLINE prefetch(void const * start,int lines) {
 void LvqDataset::TrainModel(int epochs, boost::mt19937 & randGen, AbstractLvqModel * model) const {
 	BenchTimer t;
 	t.start();
-	int dims = static_cast<int>(trainPoints.rows());
-	boost::scoped_array<int> ordering(new int[trainPointLabels.size()+1] );
-	ordering[trainPointLabels.size()] = 0;
+	int dims = static_cast<int>(points.rows());
+	boost::scoped_array<int> ordering(new int[pointLabels.size()+1] );
+	ordering[pointLabels.size()] = 0;
 	VectorXd pointA(dims);
-	int cacheLines = (dims*sizeof(trainPoints(0,0) ) +63)/ 64 ;
+	int cacheLines = (dims*sizeof(points(0,0) ) +63)/ 64 ;
 
 	for(int epoch=0; epoch<epochs; ++epoch) {
-		makeRandomOrder(randGen, ordering.get(), (int)trainPointLabels.size());
-		pointA=trainPoints.col(ordering[0]);
-		for(int tI=0; tI<(int)trainPointLabels.size(); ++tI) {
+		makeRandomOrder(randGen, ordering.get(), (int)pointLabels.size());
+		pointA=points.col(ordering[0]);
+		for(int tI=0; tI<(int)pointLabels.size(); ++tI) {
 		//	_mm_prefetch((char*)model,_MM_HINT_T0);
 			int pointIndex = ordering[tI];
-			int pointClass = trainPointLabels[pointIndex];
-			pointA = trainPoints.col(pointIndex);
-			prefetch( &trainPoints.coeff (0, ordering[tI+1]) ,cacheLines);
+			int pointClass = pointLabels[pointIndex];
+			pointA = points.col(pointIndex);
+			prefetch( &points.coeff (0, ordering[tI+1]) ,cacheLines);
 			model->learnFrom(pointA, pointClass);
 		}
 	}
 	t.stop();
-	model->AddTrainingStat(this, 0, (int)(epochs*trainPointLabels.size()), t.getCpuTime());
+	model->AddTrainingStat(this, 0, (int)(epochs*pointLabels.size()), t.getCpuTime());
 }
 
 double LvqDataset::ErrorRate(AbstractLvqModel const * model)const {
 	int errs=0;
-	for(int i=0;i<(int)trainPointLabels.size();++i) 
-		if(model->classify(trainPoints.col(i)) != trainPointLabels[i])
+	for(int i=0;i<(int)pointLabels.size();++i) 
+		if(model->classify(points.col(i)) != pointLabels[i])
 			errs++;
-	return errs / double(trainPointLabels.size());
+	return errs / double(pointLabels.size());
 }
 
 double LvqDataset::CostFunction(AbstractLvqModel const * model)const {
 	VectorXd a;
 	double totalCost=0;
-	for(int i=0;i<(int)trainPointLabels.size();++i) 
-		totalCost+=model->costFunction(trainPoints.col(i), trainPointLabels[i]);
-	return totalCost / double(trainPointLabels.size());
+	for(int i=0;i<(int)pointLabels.size();++i) 
+		totalCost+=model->costFunction(points.col(i), pointLabels[i]);
+	return totalCost / double(pointLabels.size());
 }
 
 PMatrix LvqDataset::ProjectPoints(AbstractProjectionLvqModel const * model) const {
-	return model->projectionMatrix() * trainPoints;
+	return model->projectionMatrix() * points;
 }

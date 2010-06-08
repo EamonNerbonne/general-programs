@@ -1,6 +1,7 @@
 #include "stdafx.h"
 
 #include "DatasetUtils.h"
+using namespace std;
 
 MatrixXd DatasetUtils::MakePointCloud(boost::mt19937 & rngParams, boost::mt19937 & rngInst, int dims, int pointCount, double meansep) {
 	MatrixXd P = randomUnscalingMatrix<MatrixXd>(rngParams, dims);
