@@ -25,7 +25,6 @@ using System.IO.Packaging;
 namespace EmnExtensions.Wpf.Plot {
 	public partial class PlotControl : UserControl {
 		bool needRedrawGraphs = false;
-		bool needRecomputeBounds = false;
 		ObservableCollection<IPlotViewOnly> graphs = new ObservableCollection<IPlotViewOnly>();
 		public ObservableCollection<IPlotViewOnly> Graphs { get { return graphs; } }
 		DrawingBrush bgBrush;
@@ -95,11 +94,22 @@ namespace EmnExtensions.Wpf.Plot {
 		}
 
 		private void RequireRedisplay() {
-			needRecomputeBounds = true;
 			InvalidateMeasure(); //todo; flag and invalidatemeasure always together?
 
 			needRedrawGraphs = true;
 			InvalidateVisual();//todo; flag and InvalidateVisual always together?
+
+			labelarea.Children.Clear();
+			foreach (var graph in Graphs) {
+				if (graph.DataLabel == null) continue;
+				TextBlock label = new TextBlock();
+				label.Inlines.Add(new Image { 
+					Source = new DrawingImage(graph.SampleDrawing).AsFrozen(), 
+					Stretch = Stretch.None, 
+					Margin = new Thickness(2, 0, 2, 0) });
+				label.Inlines.Add(graph.DataLabel);
+				labelarea.Children.Add(label);
+			}
 		}
 
 		void graphChanged(IPlotViewOnly graph, GraphChange graphChange) {
@@ -107,7 +117,6 @@ namespace EmnExtensions.Wpf.Plot {
 				needRedrawGraphs = true;
 				InvalidateVisual();
 			} else if (graphChange == GraphChange.Labels || graphChange == GraphChange.Projection) {
-				needRecomputeBounds = true;
 				InvalidateMeasure();
 			}
 		}
@@ -154,7 +163,6 @@ namespace EmnExtensions.Wpf.Plot {
 				axis.DataMargin = margin;
 				axis.DataUnits = dataUnits;
 			}
-			needRecomputeBounds = false;
 		}
 
 		private void RedrawGraphs(TickedAxisLocation gridLineAxes) {
@@ -193,7 +201,7 @@ namespace EmnExtensions.Wpf.Plot {
 		}
 
 		protected override Size MeasureOverride(Size constraint) {
-			if (needRecomputeBounds) RecomputeBounds();
+			RecomputeBounds();
 			return base.MeasureOverride(constraint);
 		}
 		RectangleGeometry overallClipRect = new RectangleGeometry();
@@ -237,8 +245,9 @@ namespace EmnExtensions.Wpf.Plot {
 				Rect bounds = new Rect(new Point(trans.HorizontalClip.Start, trans.VerticalClip.Start), new Point(trans.HorizontalClip.End, trans.VerticalClip.End));
 				graph.PlotVisualizer.SetTransform(trans.Transform, bounds, m_dpiX, m_dpiY);
 			}
+			Rect axisBounds = Axes.Aggregate(Rect.Empty, (bound, axis) => Rect.Union(bound, new Rect(axis.RenderSize)));
 			foreach (var axis in Axes)
-				axis.SetGridLineExtent(RenderSize);
+				axis.SetGridLineExtent(axisBounds.Size);
 			if (needRedrawGraphs) RedrawGraphs(relevantAxes);
 			if (manualRender) {
 				drawingContext.DrawDrawing(dg);

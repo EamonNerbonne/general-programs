@@ -15,10 +15,19 @@
         </ContextMenu>
     </UserControl.ContextMenu>
     <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="1*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="1*" />
+        </Grid.ColumnDefinitions>
 
         <emnPlot:TickedAxis x:Name="tickedAxisBot" AxisPos="BelowGraph"/>
         <emnPlot:TickedAxis x:Name="tickedAxisLft" AxisPos="LeftOfGraph"/>
         <emnPlot:TickedAxis x:Name="tickedAxisTop" AxisPos="AboveGraph" />
         <emnPlot:TickedAxis x:Name="tickedAxisRgt" AxisPos="RightOfGraph"/>
+        <StackPanel x:Name="labelarea" Grid.Row="1">
+        </StackPanel>
     </Grid>
 </UserControl>
