@@ -46,5 +46,8 @@
     <ClInclude Include="LvqTrainingStatCli.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="PointSet.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

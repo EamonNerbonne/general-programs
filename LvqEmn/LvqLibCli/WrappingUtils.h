@@ -1,5 +1,5 @@
 #pragma once
-#include "LvqTrainingStatCli.h"
+#include "stdafx.h"
 
 #define MAKE_NOOP_CONVERSION(T) \
 		 inline T cliToCpp(T  val) {return val;} \
@@ -7,6 +7,9 @@
 
 
 namespace LvqLibCli {
+
+	value class LvqTrainingStatCli;
+
 	//template<typename TIn, typename TOut> TOut cliToCpp(TIn arr);
 	//template<typename TIn, typename TOut> TOut cppToCli(TIn const & arr);
 	using namespace std;
@@ -53,14 +56,14 @@ namespace LvqLibCli {
 	}
 
 //	template<typename T>
-	inline void cliToCpp(LvqTrainingStatCli % stat,LvqTrainingStat &retval) {
-		retval = LvqTrainingStatCli::toCpp(stat);
-	}
-
-//	template<typename T> 
-	inline void cppToCli(LvqTrainingStat const & stat,LvqTrainingStatCli% retval) {
-		retval = LvqTrainingStatCli::toCli(stat);
-	}
+//	inline void cliToCpp(LvqTrainingStatCli % stat,LvqTrainingStat &retval) {
+//		retval = LvqTrainingStatCli::toCpp(stat);
+//	}
+//
+////	template<typename T> 
+//	inline void cppToCli(LvqTrainingStat const & stat,LvqTrainingStatCli% retval) {
+//		retval = LvqTrainingStatCli::toCli(stat);
+//	}
 
 	template <typename T>
 	inline Eigen::Matrix<T,Eigen::Dynamic,Eigen::Dynamic> cliToCpp(array<T,2>^ matrix) {
@@ -108,3 +111,4 @@ namespace LvqLibCli {
 		return cppToCli_MatrixOrVectorChooser<TDerived>::cppToCliHelper<MatrixBase<TDerived>::IsVectorAtCompileTime>(matrix);
 	}
 }
+

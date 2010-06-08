@@ -3,6 +3,8 @@
 #include "LvqModelCli.h"
 #include "G2mLvqModel.h"
 #include "GsmLvqModel.h"
+#include "GmLvqModel.h"
+
 #include "WrappingUtils.h"
 
 namespace LvqLibCli {
@@ -33,12 +35,15 @@ namespace LvqLibCli {
 		model=nullptr;
 		modelCopy=nullptr;
 
-		AbstractProjectionLvqModel* newmodel;
+		AbstractLvqModel* newmodel;
         if(modelType == LvqModelCli::GSM_TYPE)
 		 	newmodel = new GsmLvqModel(*rngParam, true, protoDistrib, trainingSet->GetDataset()->ComputeClassMeans()); 
 		else if(modelType == LvqModelCli::G2M_TYPE)
 			newmodel = new G2mLvqModel(*rngParam, true, protoDistrib, trainingSet->GetDataset()->ComputeClassMeans()); 
-		else return;
+		else  if(modelType == LvqModelCli::GM_TYPE)
+			newmodel = new GmLvqModel(*rngParam, true, protoDistrib, trainingSet->GetDataset()->ComputeClassMeans()); 
+		else
+			return;
 		model = GcPtr::Create(newmodel);
 		model->get()->AddTrainingStat( trainingSet->GetDataset(),0,0,0.0);
 
@@ -60,9 +65,28 @@ namespace LvqLibCli {
 		if(currentBackup==nullptr)
 			return nullptr;
 		msclr::lock l(currentBackup);
+		AbstractProjectionLvqModel* projectionModel = dynamic_cast<AbstractProjectionLvqModel*>( currentBackup->get());
 
-		return cppToCli(dataset->GetDataset()->ProjectPoints(currentBackup->get())); 
+		return projectionModel? cppToCli(dataset->GetDataset()->ProjectPoints(projectionModel)):nullptr ; 
 	}
+
+	ModelProjection LvqModelCli::CurrentProjectionAndPrototypes(LvqDatasetCli^ dataset){
+		ModelProjection retval;
+		WrappedModel^ currentBackup = modelCopy;
+		if(currentBackup != nullptr) {
+			msclr::lock l(currentBackup);
+			retval.Data.Points = CurrentProjectionOf(dataset);
+			if(retval.Data.Points ==  nullptr)
+				return retval;
+			retval.Data.ClassLabels = dataset->ClassLabels();
+			Tuple<array<double,2>^,array<int>^>^ protos = PrototypePositions();
+			retval.Prototypes.Points = protos->Item1;
+			retval.Prototypes.ClassLabels = protos->Item2;
+			retval.IsOk = true;
+		}
+		return retval;
+	}
+
 
 	array<int,2>^ LvqModelCli::ClassBoundaries(double x0, double x1, double y0, double y1,int xCols, int yRows) {
 		MatrixXi classDiagram(yRows,xCols);
@@ -73,7 +97,9 @@ namespace LvqLibCli {
 				return nullptr; //TODO: should never happen?
 
 			msclr::lock l(currentBackup);
-			currentBackup->get()->ClassBoundaryDiagram(x0,x1,y0,y1,classDiagram);
+			AbstractProjectionLvqModel* projectionModel = dynamic_cast<AbstractProjectionLvqModel*>( currentBackup->get());
+			if(!projectionModel) return nullptr;
+			projectionModel->ClassBoundaryDiagram(x0,x1,y0,y1,classDiagram);
 		}
 		return cppToCli(classDiagram.transpose());
 	}
@@ -91,6 +117,8 @@ namespace LvqLibCli {
 	Tuple<array<double,2>^, array<int>^>^ LvqModelCli::PrototypePositions() {
 		WrappedModel^ currentBackup = modelCopy;
 		msclr::lock l(currentBackup);
-		return Tuple::Create(cppToCli( currentBackup->get()->GetProjectedPrototypes()), cppToCli(currentBackup->get()->GetPrototypeLabels()));
+		AbstractProjectionLvqModel* projectionModel = dynamic_cast<AbstractProjectionLvqModel*>( currentBackup->get());
+		if(!projectionModel) return nullptr;
+		return Tuple::Create(cppToCli(projectionModel->GetProjectedPrototypes()), cppToCli(projectionModel->GetPrototypeLabels()));
 	}
 }

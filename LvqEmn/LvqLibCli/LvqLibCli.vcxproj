@@ -535,6 +535,7 @@
     <ClInclude Include="LvqDatasetCli.h" />
     <ClInclude Include="LvqModelCli.h" />
     <ClInclude Include="LvqTrainingStatCli.h" />
+    <ClInclude Include="PointSet.h" />
     <ClInclude Include="Stdafx.h" />
     <ClInclude Include="WrappingUtils.h" />
   </ItemGroup>

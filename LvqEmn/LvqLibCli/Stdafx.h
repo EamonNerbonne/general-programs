@@ -10,3 +10,4 @@
 #include <msclr/lock.h>  
 #include <iostream>
 #include "GcAutoPtr.h"
+#include "AbstractLvqModel.h"
