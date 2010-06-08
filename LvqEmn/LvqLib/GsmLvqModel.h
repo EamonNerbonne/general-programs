@@ -29,6 +29,7 @@ class GsmLvqModel : public AbstractProjectionLvqModel
 			, matchBad(-1)
 		{}
 	};
+
 	inline GsmLvqModel::GoodBadMatch findMatches(Vector2d const & P_trainPoint, int trainLabel) const {
 		//TODO:this findMatches method should be as similar as possible across LVQ model types.
 		GoodBadMatch match;

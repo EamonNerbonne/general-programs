@@ -65,7 +65,8 @@ class GmLvqModel : public AbstractLvqModel
 public:
 	virtual size_t MemAllocEstimate() const;
 	virtual int Dimensions() const {return static_cast<int>(P[0].cols());}
-
+	virtual double meanProjectionNorm() const;
+	virtual vector<double> otherStats() const; 
 
 	GmLvqModel(boost::mt19937 & rng,  bool randInit, std::vector<int> protodistribution, MatrixXd const & means);
 	double costFunction(VectorXd const & unknownPoint, int pointLabel) const; 

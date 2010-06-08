@@ -93,8 +93,6 @@ void G2mLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel) {
 	J->point.noalias() -=  P.transpose() * (lr_point * muK2_BjT_Bj_P_vJ) ;
 	K->point.noalias() -=   P.transpose() * (lr_point * muJ2_BkT_Bk_P_vK) ;
 	P.noalias() -= (lr_P * muK2_BjT_Bj_P_vJ) * vJ.transpose() + (lr_P * muJ2_BkT_Bk_P_vK) * vK.transpose() ;
-	//	double pNormScale =1.0 /  (P.transpose() * P).diagonal().sum();
-	//	P *= pNormScale;
 #else
 	muK2_Bj_P_vJ = mu_K * 2.0 * ( J->B * P_vJ ).lazy();
 	muJ2_Bk_P_vK = mu_J * 2.0 * ( K->B * P_vK ).lazy();
@@ -107,17 +105,17 @@ void G2mLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel) {
 	J->point -= (P.transpose() * (lr_point * muK2_BjT_Bj_P_vJ )).lazy();
 	K->point -= (P.transpose() * (lr_point * muJ2_BkT_Bk_P_vK )).lazy();
 	P -=  ((lr_P * muK2_BjT_Bj_P_vJ) * vJ.transpose()).lazy() + ((lr_P * muJ2_BkT_Bk_P_vK) * vK.transpose()).lazy();
-    //double pNormScale =1.0 /  (P.transpose() * P).lazy().diagonal().sum();
-	//	P *= pNormScale;
 #endif
 
+	//	double pNormScale =1.0 / projectionNorm();
+	//	P *= pNormScale;
 	for(size_t i=0;i<prototype.size();++i)
 		prototype[i].ComputePP(P);
 }
 
 
 double G2mLvqModel::costFunction(VectorXd const & unknownPoint, int pointLabel) const {
-	#if EIGEN3
+#if EIGEN3
 	Vector2d projectedTrainPoint = P * unknownPoint;
 #else
 	Vector2d projectedTrainPoint = (P * unknownPoint).lazy();
@@ -171,4 +169,22 @@ vector<int> G2mLvqModel::GetPrototypeLabels() const {
 	for(unsigned i=0;i<prototype.size();++i)
 		retval[i] = prototype[i].label();
 	return retval;
+}
+
+vector<double> G2mLvqModel::otherStats() const {
+	double minNorm=std::numeric_limits<double>::max();
+	double maxNorm=0.0;
+	double sumNorm=0.0;
+
+	for(size_t i=0;i<prototype.size();++i) {
+		double norm = projectionSquareNorm(prototype[i].B);
+		sumNorm +=norm;
+		if(norm <minNorm) minNorm = norm;
+		if(norm > maxNorm) maxNorm = norm;
+	}
+	vector<double> norms;
+	norms.push_back(minNorm);
+	norms.push_back(sumNorm/prototype.size());
+	norms.push_back(maxNorm);
+	return norms;
 }

@@ -12,6 +12,8 @@ struct LvqTrainingStat {
 	double trainingCost;
 	double testError;
 	double testCost;
+	double pNorm;
+	std::vector<double> otherStats;
 };
 
 class AbstractLvqModel
@@ -34,6 +36,9 @@ public:
 	void resetLearningRate() {trainIter=0;}
 	virtual int classify(VectorXd const & unknownPoint) const=0; 
 	virtual double costFunction(VectorXd const & unknownPoint, int pointLabel) const=0; 
+	virtual double meanProjectionNorm() const=0; 
+	virtual std::vector<double> otherStats() const{std::vector<double> nothing; return nothing; }
+
 	virtual void learnFrom(VectorXd const & newPoint, int classLabel)=0;
 	AbstractLvqModel(int classCount) : trainIter(0), totalIter(0), totalElapsed(0.0), iterationScaleFactor(0.001/classCount),classCount(classCount){ }
 	virtual ~AbstractLvqModel() {	}
@@ -53,6 +58,7 @@ public:
 	virtual ~AbstractProjectionLvqModel() { }
 	PMatrix const & projectionMatrix() const {return P;}
 	double projectionNorm() const { return projectionSquareNorm(P);  }
+	virtual double meanProjectionNorm() const {return projectionNorm();}
 	void normalizeProjection() { normalizeMatrix(P); }
 	virtual int Dimensions() const {return static_cast<int>(P.cols());}
 

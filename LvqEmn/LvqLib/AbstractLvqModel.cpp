@@ -13,6 +13,8 @@ void AbstractLvqModel::AddTrainingStat(LvqDataset const * trainingSet, LvqDatase
 	LvqTrainingStat trainingStat;
 	trainingStat.trainingIter=totalIter;
 	trainingStat.elapsedSeconds = totalElapsed;
+	trainingStat.pNorm = this->meanProjectionNorm();
+	trainingStat.otherStats = this->otherStats();
 	if(trainingSet) {
 		trainingStat.trainingError = trainingSet->ErrorRate(this);
 		trainingStat.trainingCost = trainingSet->CostFunction(this);
