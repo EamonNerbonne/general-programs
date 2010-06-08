@@ -10,6 +10,7 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
 	public interface IVizLineSegments : IVizEngine<Point[]> {
 		double CoverageRatioY { get; set; }
 		double CoverageRatioX { get; set; }
+		double CoverageRatioGrad { get; set; }
 	}
 
 	class VizLineSegments : PlotVizTransform<Point[], StreamGeometry>, IVizLineSegments
