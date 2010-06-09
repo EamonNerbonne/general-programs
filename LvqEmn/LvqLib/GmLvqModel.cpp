@@ -3,8 +3,8 @@
 #include "utils.h"
 #include "LvqConstants.h"
 
-GmLvqModel::GmLvqModel(boost::mt19937 & rng, bool randInit, std::vector<int> protodistribution, MatrixXd const & means) 
-	: AbstractLvqModel((int)protodistribution.size())
+GmLvqModel::GmLvqModel(boost::mt19937 & rngParams, boost::mt19937 & rngIter,  bool randInit, std::vector<int> protodistribution, MatrixXd const & means)
+	: AbstractLvqModel(rngIter,(int)protodistribution.size())
 	, lr_scale_P(LVQ_LrScaleP)
 	, vJ(means.rows())
 	, vK(means.rows())
@@ -27,7 +27,7 @@ GmLvqModel::GmLvqModel(boost::mt19937 & rng, bool randInit, std::vector<int> pro
 			prototype[protoIndex] = means.col(label);
 			P[protoIndex].setIdentity(means.rows(), means.rows());
 			if(randInit)
-				projectionRandomizeUniformScaled(rng, P[protoIndex]);
+				projectionRandomizeUniformScaled(rngParams, P[protoIndex]);
 
 			pLabel(protoIndex) = label;
 
@@ -125,7 +125,7 @@ double GmLvqModel::meanProjectionNorm() const {
 	return normsum/P.size();
 }
 
-vector<double> GmLvqModel::otherStats() const {
+VectorXd GmLvqModel::otherStats() const {
 	double minNorm=std::numeric_limits<double>::max();
 	double maxNorm=0.0;
 
@@ -134,8 +134,8 @@ vector<double> GmLvqModel::otherStats() const {
 		if(norm <minNorm) minNorm = norm;
 		if(norm > maxNorm) maxNorm = norm;
 	}
-	vector<double> norms;
-	norms.push_back(minNorm);
-	norms.push_back(maxNorm);
-	return norms;
+	VectorXd stats = VectorXd::Zero(LvqTrainingStats::Extra+2);
+	stats(LvqTrainingStats::Extra+0) = minNorm;
+	stats(LvqTrainingStats::Extra+1) = maxNorm;
+	return stats;
 }

@@ -25,6 +25,7 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
         <Label Grid.Row="0">For Dataset</Label>
         <ComboBox Grid.Row="0" Grid.Column="1" ItemsSource="{Binding Owner.Datasets}" SelectedItem="{Binding ForDataset}">
@@ -46,6 +47,9 @@
         <Button Grid.Row="6" Content="Reset Iteration Seed" Click="ReseedInst" />
         <TextBox Grid.Row="6" Grid.Column="1" Text="{Binding InstSeed, Mode=TwoWay, ValidatesOnExceptions=True}" />
 
-        <Button Grid.Row="7" Grid.ColumnSpan="2" Click="InitializeModel">Initialize Model</Button>
+        <Label Grid.Row="7">Parallel models</Label>
+        <TextBox Grid.Row="7" Grid.Column="1" Text="{Binding ParallelModels, Mode=TwoWay, ValidatesOnExceptions=True}" />
+
+        <Button Grid.Row="8" Grid.ColumnSpan="2" Click="InitializeModel">Initialize Model</Button>
     </Grid>
 </UserControl>

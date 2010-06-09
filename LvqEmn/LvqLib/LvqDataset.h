@@ -22,7 +22,7 @@ public:
 	LvqDataset(MatrixXd const & points, std::vector<int> pointLabels, int classCount);
 	MatrixXd ComputeClassMeans(std::vector<int> const & subset) const;
 
-	void TrainModel(int epochs, boost::mt19937 & randGen, AbstractLvqModel * model, std::vector<int> const  & trainingSubset, LvqDataset const * testData, std::vector<int> const  & testSubset) const;
+	void TrainModel(int epochs, AbstractLvqModel * model, std::vector<int> const  & trainingSubset, LvqDataset const * testData, std::vector<int> const  & testSubset) const;
 
 	double ErrorRate(std::vector<int> const & subset, AbstractLvqModel const * model) const;
 	double CostFunction(std::vector<int> const & subset, AbstractLvqModel const * model) const;

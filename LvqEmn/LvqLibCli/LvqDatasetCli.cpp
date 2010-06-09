@@ -4,7 +4,11 @@
 namespace LvqLibCli {
 	using boost::mt19937;
 	LvqDatasetCli ^ LvqDatasetCli::ConstructFromArray(String^ label,ColorArray^ colors, array<double,2>^ points, array<int>^ pointLabels, int classCount) {
-		return gcnew LvqDatasetCli(label,colors, new LvqDataset(cliToCpp(points),cliToCpp(pointLabels),classCount));
+		vector<int> cppLabels;
+		MatrixXd cppPoints;
+		cliToCpp(points,cppPoints);
+		cliToCpp(pointLabels,cppLabels);
+		return gcnew LvqDatasetCli(label,colors, new LvqDataset(cppPoints,cppLabels,classCount));
 	}
 
 	LvqDatasetCli::LvqDatasetCli(String^label, ColorArray^ colors, LvqDataset * newDataset) : colors(colors),label(label), dataset(newDataset,newDataset->MemAllocEstimate()) { }

@@ -42,6 +42,17 @@ namespace LvqGui {
 		}
 		private int _PrototypesPerClass;
 
+		public int ParallelModels {
+			get { return _ParallelModels; }
+			set {
+				if (value < 1 || value > 100) throw new ArgumentException("# of models must be in range [1,100]");
+				if (!_ParallelModels.Equals(value)) { _ParallelModels = value; _propertyChanged("ParallelModels"); }
+			}
+		}
+		private int _ParallelModels;
+
+
+
 		public uint Seed {
 			get { return _Seed; }
 			set { if (!object.Equals(_Seed, value)) { _Seed = value; _propertyChanged("Seed"); } }
@@ -72,6 +83,7 @@ namespace LvqGui {
 			_ModelType = ModelType.G2m;
 			_Dimensionality = 2;
 			_PrototypesPerClass = 1;
+			_ParallelModels = 1;
 			this.ReseedBoth();
 		}
 
@@ -81,6 +93,7 @@ namespace LvqGui {
 				rngInstSeed: InstSeed,
 				protosPerClass: PrototypesPerClass,
 				modelType: (int)ModelType,
+				parallelModels:ParallelModels,
 				trainingSet: ForDataset
 				);
 		}

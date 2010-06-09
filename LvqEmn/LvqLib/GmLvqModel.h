@@ -66,9 +66,9 @@ public:
 	virtual size_t MemAllocEstimate() const;
 	virtual int Dimensions() const {return static_cast<int>(P[0].cols());}
 	virtual double meanProjectionNorm() const;
-	virtual vector<double> otherStats() const; 
+	virtual VectorXd otherStats() const; 
 
-	GmLvqModel(boost::mt19937 & rng,  bool randInit, std::vector<int> protodistribution, MatrixXd const & means);
+	GmLvqModel(boost::mt19937 & rngParams, boost::mt19937 & rngIter,  bool randInit, std::vector<int> protodistribution, MatrixXd const & means);
 	double costFunction(VectorXd const & unknownPoint, int pointLabel) const; 
 	virtual int classify(VectorXd const & unknownPoint) const; //tmp must be just as large as unknownPoint, this is a malloc/free avoiding optimization.
 	virtual void learnFrom(VectorXd const & newPoint, int classLabel);//tmp must be just as large as unknownPoint, this is a malloc/free avoiding optimization.

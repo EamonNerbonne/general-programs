@@ -11,3 +11,4 @@
 #include <iostream>
 #include "GcAutoPtr.h"
 #include "AbstractLvqModel.h"
+#include "WrappingUtils.h"

@@ -4,51 +4,52 @@
 #include "LvqDataset.h"
 #include "LvqDatasetCli.h"
 #include "LvqTrainingStatCli.h"
+#include "SmartSum.h"
 
+// array of model, modelCopy's.
+//on training, train all models (parallel for)
+//on projecting project first?
+//on stats:
 
 using namespace System;
 namespace LvqLibCli {
 
 	public ref class LvqModelCli {
 		typedef GcAutoPtr<AbstractLvqModel> WrappedModel;
+		typedef array<WrappedModel^> WrappedModelArray;
 		int protosPerClass,modelType;
 		String^ label;
-		WrappedModel^ model;
-		WrappedModel^ modelCopy;
-		GcPlainPtr<boost::mt19937> rngParam, rngIter;
+		WrappedModelArray^ model;
+		WrappedModelArray^ modelCopy;
 		Object^ mainSync;
+		LvqDatasetCli^ initSet;
 		void BackupModel() {
-			WrappedModel^ newBackup = GcPtr::Create(model->get()->clone());
-			msclr::lock l(newBackup);
+			msclr::lock l2(mainSync); 
+			WrappedModelArray^ newBackup = gcnew WrappedModelArray(model->Length);
+			for(int i=0;i<newBackup->Length;i++)
+				newBackup[i] = GcPtr::Create(model[i]->get()->clone());
+			msclr::lock l(newBackup);//necessary?
 			modelCopy = newBackup;
 		}
-		void Init(LvqDatasetCli^ trainingSet);
-		LvqDatasetCli^ initSet;
 	public:
 
-		void ResetLearningRate() {msclr::lock l2(mainSync); model->get()->resetLearningRate();}
-		property int ClassCount {int get(){return model->get()->ClassCount();}}
-		property int Dimensions {int get(){return model->get()->Dimensions();}}
+		property int ClassCount {int get(){return model[0]->get()->ClassCount();}}
+		property int Dimensions {int get(){return model[0]->get()->Dimensions();}}
+		property bool IsMultiModel {bool get(){return model->Length > 1;}}
+
 		property String^ ModelLabel {String^ get(){return label;}}
+
 		property LvqDatasetCli^ InitSet {LvqDatasetCli^ get(){return initSet;}}
-		property array<LvqTrainingStatCli>^ TrainingStats {
-			array<LvqTrainingStatCli>^ get(){
-				WrappedModel^ currentBackup = modelCopy;
-				msclr::lock l2(currentBackup);
-				array<LvqTrainingStatCli>^retval;
-				cppToCli(currentBackup->get()->trainingStats,retval);
-				return retval;
-			}
-		}
+		property array<LvqTrainingStatCli>^ TrainingStats {	array<LvqTrainingStatCli>^ get();}
+		void ResetLearningRate();
+		int OtherStatCount();
 
-		int OtherStatCount() {WrappedModel^ backupCopy=modelCopy;msclr::lock l(backupCopy); return static_cast<int>( backupCopy->get()->otherStats().size());}
-
-		LvqModelCli(String^ label, unsigned rngParamsSeed, unsigned rngInstSeed, int protosPerClass, int modelType,LvqDatasetCli^ trainingSet);
+		LvqModelCli(String^ label, unsigned rngParamsSeed, unsigned rngInstSeed, int protosPerClass, int modelType,int parallelModels,LvqDatasetCli^ trainingSet);
 
 		bool FitsDataShape(LvqDatasetCli^ dataset) {return dataset!=nullptr && dataset->ClassCount == this->ClassCount && dataset->Dimensions == this->Dimensions;}
 
 		property Object^ UpdateSyncObject { Object ^ get(){return mainSync;} }
-		double ErrorRate(LvqDatasetCli^testSet);
+		//double ErrorRate(LvqDatasetCli^testSet);
 
 		array<double,2>^ CurrentProjectionOf(LvqDatasetCli^ dataset);
 		Tuple<array<double,2>^,array<int>^>^ PrototypePositions();

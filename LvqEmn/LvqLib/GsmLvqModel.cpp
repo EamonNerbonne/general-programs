@@ -5,14 +5,15 @@
 
 using namespace std;
 
-GsmLvqModel::GsmLvqModel(boost::mt19937 & rng,  bool randInit, vector<int> protodistribution, MatrixXd const & means) 
-	: AbstractProjectionLvqModel(static_cast<int>(means.rows()),static_cast<int>(protodistribution.size())) 
+
+GsmLvqModel::GsmLvqModel(boost::mt19937 & rngParams, boost::mt19937 & rngIter, bool randInit, std::vector<int> protodistribution, MatrixXd const & means)
+	: AbstractProjectionLvqModel(rngIter, static_cast<int>(means.rows()),static_cast<int>(protodistribution.size())) 
 	, lr_scale_P(LVQ_LrScaleP)
 	, vJ(means.rows())
 	, vK(means.rows())
 {
 	if(randInit)
-		projectionRandomizeUniformScaled(rng, P);
+		projectionRandomizeUniformScaled(rngParams, P);
 	else
 		P.setIdentity();
 

@@ -12,22 +12,17 @@ void AbstractLvqModel::AddTrainingStat(LvqDataset const * trainingSet, vector<in
 
 	LvqTrainingStat trainingStat;
 	trainingStat.trainingIter=totalIter;
-	trainingStat.elapsedSeconds = totalElapsed;
-	trainingStat.pNorm = this->meanProjectionNorm();
-	trainingStat.otherStats = this->otherStats();
+	trainingStat.values = this->otherStats();
+	trainingStat.values(LvqTrainingStats::ElapsedSeconds) = totalElapsed;
+	trainingStat.values(LvqTrainingStats::PNorm) = this->meanProjectionNorm();
+
 	if(trainingSet) {
-		trainingStat.trainingError = trainingSet->ErrorRate(trainingSubset,this);
-		trainingStat.trainingCost = trainingSet->CostFunction(trainingSubset,this);
-	} else {
-		trainingStat.trainingError = 0;
-		trainingStat.trainingCost = 0;
-	}
+		trainingStat.values(LvqTrainingStats::TrainingError) = trainingSet->ErrorRate(trainingSubset,this);
+		trainingStat.values(LvqTrainingStats::TrainingCost) = trainingSet->CostFunction(trainingSubset,this);
+	} 
 	if(testSet) {
-		trainingStat.testError = testSet->ErrorRate(testSubset,this);
-		trainingStat.testCost = testSet->CostFunction(testSubset,this);
-	} else {
-		trainingStat.testError = 0;
-		trainingStat.testCost = 0;
-	}
+		trainingStat.values(LvqTrainingStats::TestError) = testSet->ErrorRate(testSubset,this);
+		trainingStat.values(LvqTrainingStats::TestCost) = testSet->CostFunction(testSubset,this);
+	} 
 	this->trainingStats.push_back(trainingStat);
 }

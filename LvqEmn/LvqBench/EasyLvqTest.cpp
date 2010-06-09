@@ -70,7 +70,7 @@ template <class T> void TestModel(mt19937 & rndGenOrig, bool randInit, LvqDatase
 	using boost::scoped_ptr;
 	scoped_ptr<AbstractLvqModel> model;
 	t.start();
-	model.reset(new T(rndGen, randInit, protoDistrib, dataset->ComputeClassMeans(dataset->entireSet())));
+	model.reset(new T(rndGen,rndGen, randInit, protoDistrib, dataset->ComputeClassMeans(dataset->entireSet())));
 	t.stop();
 	cerr<<"constructing "<<typeid(T).name()<<" ("<<(randInit?"random":"identity")<<" proj. init)"<<t.value()<<"s\n";
 
@@ -83,7 +83,7 @@ template <class T> void TestModel(mt19937 & rndGenOrig, bool randInit, LvqDatase
 		int itersUpto=iters*(i+1)/num_groups;
 		int itersTodo = itersUpto-itersDone;
 		if(itersTodo>0) {
-			dataset->TrainModel(itersTodo, rndGen, model.get(),dataset->entireSet(), 0,vector<int>() );
+			dataset->TrainModel(itersTodo, model.get(),dataset->entireSet(), 0,vector<int>() );
 			PrintModelStatus("Trained",model.get(),dataset);
 		}
 	}

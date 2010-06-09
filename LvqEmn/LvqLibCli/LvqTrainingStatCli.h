@@ -1,45 +1,44 @@
 #pragma once
 #include "stdafx.h"
-#include "WrappingUtils.h"
 
 using namespace System;
 
 namespace LvqLibCli {
 	public value class LvqTrainingStatCli {
 	public:
+		literal int ElapsedSecondsStat = LvqTrainingStats::ElapsedSeconds;
+		literal int TrainingErrorStat = LvqTrainingStats::TrainingError;
+		literal int TrainingCostStat = LvqTrainingStats::TrainingCost;
+		literal int TestErrorStat = LvqTrainingStats::TestError;
+		literal int TestCostStat = LvqTrainingStats::TestCost;
+		literal int PNormStat = LvqTrainingStats::PNorm;
+		literal int ExtraStat = LvqTrainingStats::Extra;
+		
 		int trainingIter;
-		double elapsedSeconds;
-		double trainingError;
-		double trainingCost;
-		double testError;
-		double testCost;
-		double pNorm;
-		array<double>^ otherStats;
+		array<double>^ values;
+		array<double>^ variances;
 
+		
 		static LvqTrainingStatCli toCli(LvqTrainingStat cppVal) {
 			LvqTrainingStatCli cliVal;
 			cliVal.trainingIter = cppVal.trainingIter;
-			cliVal.elapsedSeconds = cppVal.elapsedSeconds;
-			cliVal.trainingError = cppVal.trainingError;
-			cliVal.trainingCost = cppVal.trainingCost;
-			cliVal.testError = cppVal.testError;
-			cliVal.testCost = cppVal.testCost;
-			cliVal.pNorm = cppVal.pNorm;
-			cliVal.otherStats = cppToCli(cppVal.otherStats);
+			cppToCli(cppVal.values, cliVal.values);
 			return cliVal;
 		}
+
+		static LvqTrainingStatCli toCli(int trainingIter, Eigen::VectorXd const &  values, Eigen::VectorXd const & variances) {
+			LvqTrainingStatCli cliVal;
+			cliVal.trainingIter = trainingIter;
+			cppToCli(values, cliVal.values);
+			cppToCli(variances,cliVal.variances);
+			return cliVal;
+		}
+
 
 		static LvqTrainingStat toCpp(LvqTrainingStatCli cliVal) {
 			LvqTrainingStat cppVal;
 			cppVal.trainingIter = cliVal.trainingIter;
-			cppVal.elapsedSeconds = cliVal.elapsedSeconds;
-			cppVal.trainingError = cliVal.trainingError;
-			cppVal.trainingCost = cliVal.trainingCost;
-			cppVal.testError = cliVal.testError;
-			cppVal.testCost = cliVal.testCost;
-
-			cppVal.pNorm = cliVal.pNorm;
-			cppVal.otherStats = cliToCpp(cliVal.otherStats);
+			cliToCpp(cliVal.values,cppVal.values);
 			return cppVal;
 		}
 	};
@@ -51,5 +50,4 @@ namespace LvqLibCli {
 	inline void cppToCli(LvqTrainingStat const & stat,LvqTrainingStatCli% retval) {
 		retval = LvqTrainingStatCli::toCli(stat);
 	}
-
 }

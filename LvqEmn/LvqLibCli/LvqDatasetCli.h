@@ -2,7 +2,7 @@
 using namespace System;
 #include "stdafx.h"
 #include "LvqDataset.h"
-#include "WrappingUtils.h"
+//#include "WrappingUtils.h"
 
 namespace LvqLibCli {
 	ref class LvqModelCli;
@@ -18,8 +18,8 @@ namespace LvqLibCli {
 		LvqDatasetCli(String^label, ColorArray^ colors, LvqDataset * newDataset);
 public:
 		LvqDataset const * GetDataset() {return dataset;}
-		array<int>^ ClassLabels(){return cppToCli(dataset->getPointLabels());}
-		array<double,2>^ RawPoints() {return cppToCli(dataset->getPoints());}
+		array<int>^ ClassLabels(){ array<int>^ retval; cppToCli(dataset->getPointLabels(), retval); return retval;}
+		array<double,2>^ RawPoints() { array<double,2>^ retval; cppToCli(dataset->getPoints(), retval); return retval;}
 		property ColorArray^ ClassColors { ColorArray^ get(){return colors;} void set(ColorArray^ newcolors){colors=newcolors;}}
 		property int ClassCount {int get(){return dataset->getClassCount();}}
 		property int Dimensions {int get(){return dataset->dimensions();}}

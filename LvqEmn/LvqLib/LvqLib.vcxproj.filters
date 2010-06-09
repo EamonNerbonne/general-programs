@@ -39,9 +39,6 @@
     <ClCompile Include="AbstractLvqModel.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="LvqDatasetView.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AbstractLvqModel.h">
@@ -74,7 +71,13 @@
     <ClInclude Include="utils.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="LvqDatasetView.h">
+    <ClInclude Include="LvqDataset.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SmartSum.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="LvqTrainingStat.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

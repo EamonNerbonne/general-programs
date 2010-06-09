@@ -7,8 +7,8 @@
 using namespace std;
 using namespace Eigen;
 
-G2mLvqModel::G2mLvqModel(boost::mt19937 & rng,  bool randInit, vector<int> protodistribution, MatrixXd const & means) 
-	: AbstractProjectionLvqModel(static_cast<int>(means.rows()),static_cast<int>(protodistribution.size())) 
+G2mLvqModel::G2mLvqModel(boost::mt19937 & rngParams,boost::mt19937 & rngIter, bool randInit, std::vector<int> protodistribution, MatrixXd const & means)
+	: AbstractProjectionLvqModel(rngIter,static_cast<int>(means.rows()),static_cast<int>(protodistribution.size())) 
 	, lr_scale_P(LVQ_LrScaleP)
 	, lr_scale_B(LVQ_LrScaleB)
 	, m_vJ(means.rows())
@@ -17,7 +17,7 @@ G2mLvqModel::G2mLvqModel(boost::mt19937 & rng,  bool randInit, vector<int> proto
 	using namespace std;
 
 	if(randInit)
-		projectionRandomizeUniformScaled(rng, P);
+		projectionRandomizeUniformScaled(rngParams, P);
 	else
 		P.setIdentity();
 
@@ -29,7 +29,7 @@ G2mLvqModel::G2mLvqModel(boost::mt19937 & rng,  bool randInit, vector<int> proto
 	for(int label=0; label <(int) protodistribution.size();label++) {
 		int labelCount =protodistribution[label];
 		for(int i=0;i<labelCount;i++) {
-			prototype[protoIndex] = G2mLvqPrototype(rng, false, label, means.col(label));//TODO:experiment with random projection initialization.
+			prototype[protoIndex] = G2mLvqPrototype(rngParams, false, label, means.col(label));//TODO:experiment with random projection initialization.
 			prototype[protoIndex].ComputePP(P);
 
 			protoIndex++;
@@ -171,7 +171,7 @@ vector<int> G2mLvqModel::GetPrototypeLabels() const {
 	return retval;
 }
 
-vector<double> G2mLvqModel::otherStats() const {
+VectorXd G2mLvqModel::otherStats() const {
 	double minNorm=std::numeric_limits<double>::max();
 	double maxNorm=0.0;
 	double sumNorm=0.0;
@@ -182,9 +182,9 @@ vector<double> G2mLvqModel::otherStats() const {
 		if(norm <minNorm) minNorm = norm;
 		if(norm > maxNorm) maxNorm = norm;
 	}
-	vector<double> norms;
-	norms.push_back(minNorm);
-	norms.push_back(sumNorm/prototype.size());
-	norms.push_back(maxNorm);
-	return norms;
+	VectorXd stats = VectorXd::Zero(LvqTrainingStats::Extra+3);
+	stats(LvqTrainingStats::Extra+0) = minNorm;
+	stats(LvqTrainingStats::Extra+1) = sumNorm/prototype.size();
+	stats(LvqTrainingStats::Extra+2) = maxNorm;
+	return stats;
 }

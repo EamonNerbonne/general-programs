@@ -81,7 +81,7 @@ class GsmLvqModel : public AbstractProjectionLvqModel
 public:
 	virtual size_t MemAllocEstimate() const;
 
-	GsmLvqModel(boost::mt19937 & rng, bool randInit, std::vector<int> protodistribution, MatrixXd const & means);
+	GsmLvqModel(boost::mt19937 & rngParams, boost::mt19937 & rngIter, bool randInit, std::vector<int> protodistribution, MatrixXd const & means);
 	double costFunction(VectorXd const & unknownPoint, int pointLabel) const; 
 	int classify(VectorXd const & unknownPoint) const {return classifyInternal(unknownPoint);}
 	int classifyProjected(Vector2d const & unknownProjectedPoint) const {return classifyProjectedInternal(unknownProjectedPoint);}

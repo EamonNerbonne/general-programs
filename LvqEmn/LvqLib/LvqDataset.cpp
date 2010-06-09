@@ -43,7 +43,7 @@ void EIGEN_STRONG_INLINE prefetch(void const * start,int lines) {
 }
 
 
-void LvqDataset::TrainModel(int epochs, boost::mt19937 & randGen, AbstractLvqModel * model, vector<int> const  & trainingSubset, LvqDataset const * testData, std::vector<int> const  & testSubset) const {
+void LvqDataset::TrainModel(int epochs, AbstractLvqModel * model, std::vector<int> const  & trainingSubset, LvqDataset const * testData, std::vector<int> const  & testSubset) const {
 	BenchTimer t;
 	t.start();
 	int dims = static_cast<int>(points.rows());
@@ -52,7 +52,7 @@ void LvqDataset::TrainModel(int epochs, boost::mt19937 & randGen, AbstractLvqMod
 	int cacheLines = (dims*sizeof(points(0,0) ) +63)/ 64 ;
 
 	for(int epoch=0; epoch<epochs; ++epoch) {
-		shuffle(randGen, shuffledOrder.begin(), shuffledOrder.end());
+		shuffle(model->RngIter(), shuffledOrder.begin(), shuffledOrder.end());
 		
 		for(int tI=0; tI<(int)pointLabels.size(); ++tI) {
 		//	_mm_prefetch((char*)model,_MM_HINT_T0);

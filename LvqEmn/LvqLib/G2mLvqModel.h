@@ -25,11 +25,11 @@ class G2mLvqModel : public AbstractProjectionLvqModel
 	inline int classifyInternal(VectorXd const & unknownPoint) const { return classifyProjectedInternal(P * unknownPoint); }
 public:
 
-	G2mLvqModel(boost::mt19937 & rng, bool randInit, std::vector<int> protodistribution, MatrixXd const & means);
+	G2mLvqModel(boost::mt19937 & rngParams,boost::mt19937 & rngIter, bool randInit, std::vector<int> protodistribution, MatrixXd const & means);
 	virtual size_t MemAllocEstimate() const;
 	int classify(VectorXd const & unknownPoint) const {return classifyInternal(unknownPoint);}
 	double costFunction(VectorXd const & unknownPoint, int pointLabel) const; 
-	virtual std::vector<double> otherStats() const; 
+	virtual VectorXd otherStats() const; 
 	int classifyProjected(Vector2d const & unknownProjectedPoint) const { return classifyProjectedInternal(unknownProjectedPoint);}
 	void learnFrom(VectorXd const & newPoint, int classLabel);
 	virtual void ClassBoundaryDiagram(double x0, double x1, double y0, double y1, MatrixXi & classDiagram) const;

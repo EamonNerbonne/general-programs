@@ -1,26 +1,16 @@
 #pragma once
 #include "stdafx.h"
 #include "utils.h"
-
+#include "LvqTrainingStat.h"
 #pragma intrinsic(pow)
 
 class LvqDataset;
-struct LvqTrainingStat {
-	int trainingIter;
-	double elapsedSeconds;
-	double trainingError;
-	double trainingCost;
-	double testError;
-	double testCost;
-	double pNorm;
-	std::vector<double> otherStats;
-};
-
 class AbstractLvqModel
 {
 	int trainIter;
 	int totalIter;
 	double totalElapsed;
+	boost::mt19937 rngIter;
 protected:
 	double iterationScaleFactor;
 	inline double stepLearningRate() {
@@ -32,15 +22,16 @@ protected:
 	const int classCount;
 	
 public:
+	boost::mt19937 & RngIter() {return rngIter;}
 	std::vector<LvqTrainingStat> trainingStats;
 	void resetLearningRate() {trainIter=0;}
 	virtual int classify(VectorXd const & unknownPoint) const=0; 
 	virtual double costFunction(VectorXd const & unknownPoint, int pointLabel) const=0; 
 	virtual double meanProjectionNorm() const=0; 
-	virtual std::vector<double> otherStats() const{std::vector<double> nothing; return nothing; }
+	virtual VectorXd otherStats() const { return VectorXd::Zero((int)LvqTrainingStats::Extra); }
 
 	virtual void learnFrom(VectorXd const & newPoint, int classLabel)=0;
-	AbstractLvqModel(int classCount) : trainIter(0), totalIter(0), totalElapsed(0.0), iterationScaleFactor(0.001/classCount),classCount(classCount){ }
+	AbstractLvqModel(boost::mt19937 & rngIter,int classCount) : trainIter(0), totalIter(0), totalElapsed(0.0), rngIter(rngIter), iterationScaleFactor(0.001/classCount),classCount(classCount){ }
 	virtual ~AbstractLvqModel() {	}
 	void AddTrainingStat(LvqDataset const * trainingSet, std::vector<int>const & trainingSubset, LvqDataset const * testSet,  std::vector<int>const & testSubset, int iterInc, double elapsedInc);
 
@@ -52,7 +43,7 @@ public:
 
 class AbstractProjectionLvqModel : public AbstractLvqModel {
 protected:
-	AbstractProjectionLvqModel(int input_dims, int classCount) :AbstractLvqModel(classCount), P(LVQ_LOW_DIM_SPACE, input_dims)  {	P.setIdentity(); }
+	AbstractProjectionLvqModel(boost::mt19937 & rngIter,int input_dims, int classCount) :AbstractLvqModel(rngIter,classCount), P(LVQ_LOW_DIM_SPACE, input_dims)  {	P.setIdentity(); }
 	PMatrix P;
 public:
 	virtual ~AbstractProjectionLvqModel() { }

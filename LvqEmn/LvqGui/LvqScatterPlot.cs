@@ -17,8 +17,46 @@ namespace LvqGui {
 		IPlotWriteable<Point[]>[] classPlots;
 		IPlotWriteable<object> classBoundaries;
 
-		IPlotWriteable<Point[]> trainErr, trainCost, pNorm;
-		IPlotWriteable<Point[]>[] otherStats;
+		struct StatPlot {
+			public IPlotWriteable<Point[]> plot;
+			public Func<LvqTrainingStatCli, Point> extractor;
+
+			public static Point PlainStat(LvqTrainingStatCli info, int statIdx) { return new Point(info.trainingIter, info.values[statIdx]); }
+			public static Point UpperStat(LvqTrainingStatCli info, int statIdx) { return new Point(info.trainingIter, info.values[statIdx] + Math.Sqrt(info.variances[statIdx])); }
+			public static Point LowerStat(LvqTrainingStatCli info, int statIdx) { return new Point(info.trainingIter, info.values[statIdx] - Math.Sqrt(info.variances[statIdx])); }
+
+			static StatPlot MakePlot(string dataLabel, string yunitLabel, bool isRight, Color color, int statIdx, int variant) {
+				//variant 0 is plain, 1 is upper, -1 is lower.
+				var statPlot = PlotData.Create(default(Point[]));
+				statPlot.PlotClass = PlotClass.Line;
+				statPlot.DataLabel = dataLabel;
+				statPlot.RenderColor = color;
+				statPlot.XUnitLabel = "Training iterations";
+				statPlot.YUnitLabel = yunitLabel;
+				//trainErr.MinimalBounds = new Rect(new Point(0, 0.001), new Point(0, 0));
+				statPlot.AxisBindings = TickedAxisLocation.BelowGraph | (isRight ? TickedAxisLocation.RightOfGraph : TickedAxisLocation.LeftOfGraph);
+				((IVizLineSegments)statPlot.Visualizer).CoverageRatioY = 0.95;
+				((IVizLineSegments)statPlot.Visualizer).CoverageRatioGrad = 10.0;
+
+				return new StatPlot {
+					plot = statPlot,
+					extractor =
+						variant == 0 ? (info => PlainStat(info, statIdx)) :
+						variant == 1 ? (info => UpperStat(info, statIdx)) :
+						(Func<LvqTrainingStatCli, Point>)(info => LowerStat(info, statIdx))
+				};
+			}
+			public static IEnumerable<StatPlot> MakePlots(string dataLabel, string yunitLabel, bool isRight, Color color, int statIdx, bool doVariants) {
+				yield return MakePlot(dataLabel, yunitLabel, isRight, color, statIdx, 0);
+				if (doVariants) {
+					yield return MakePlot(null, yunitLabel, isRight, color * 0.5f + Colors.White * 0.5f, statIdx, 1);
+					yield return MakePlot(null, yunitLabel, isRight, color * 0.5f + Colors.White * 0.5f, statIdx, -1);
+				}
+			}
+
+		}
+
+		StatPlot[] statPlots;
 
 
 		public readonly LvqDatasetCli dataset;
@@ -34,8 +72,8 @@ namespace LvqGui {
 
 			MakeScatterPlots(scatterPlotControl);
 
-			MakeTrainingStatsPlots(trainingStatsControl);
-			MakeNormPlots(trainingNormPlotControl);
+			statPlots = MakeTrainingStatsPlots(trainingStatsControl).Concat(
+					MakeNormPlots(trainingNormPlotControl)).ToArray();
 
 			QueueUpdate();
 		}
@@ -58,54 +96,34 @@ namespace LvqGui {
 		}
 
 
-		private void MakeTrainingStatsPlots(PlotControl trainingStatsControl) {
-			trainErr = PlotData.Create(default(Point[]));
-			trainErr.PlotClass = PlotClass.Line;
-			trainErr.DataLabel = "Training error-rate";
-			trainErr.RenderColor = Colors.Red;
-			trainErr.XUnitLabel = "Training iterations";
-			trainErr.YUnitLabel = "Training error-rate";
-			//trainErr.MinimalBounds = new Rect(new Point(0, 0.001), new Point(0, 0));
-			trainErr.AxisBindings = TickedAxisLocation.BelowGraph | TickedAxisLocation.RightOfGraph;
-			((IVizLineSegments)trainErr.Visualizer).CoverageRatioY = 0.95;
-			((IVizLineSegments)trainErr.Visualizer).CoverageRatioGrad = 10.0;
 
-			trainCost = PlotData.Create(default(Point[]));
-			trainCost.PlotClass = PlotClass.Line;
-			trainCost.DataLabel = "Training cost-function";
-			trainCost.RenderColor = Colors.Blue;
-			trainCost.XUnitLabel = "Training iterations";
-			trainCost.YUnitLabel = "Training cost-function";
-			((IVizLineSegments)trainCost.Visualizer).CoverageRatioY = 0.95;
-			((IVizLineSegments)trainCost.Visualizer).CoverageRatioGrad = 5.0;
-
+		private IEnumerable<StatPlot> MakeTrainingStatsPlots(PlotControl trainingStatsControl) {
 			trainingStatsControl.Graphs.Clear();
-			trainingStatsControl.Graphs.Add(trainCost);
-			trainingStatsControl.Graphs.Add(trainErr);
-
+			foreach (StatPlot plot in
+				new[]{
+				StatPlot.MakePlots("Training error-rate", "error-rate", true, Colors.Red, LvqTrainingStatCli.TrainingErrorStat, model.IsMultiModel),
+				StatPlot.MakePlots("Training cost-function","cost-function", false, Colors.Blue, LvqTrainingStatCli.TrainingCostStat, model.IsMultiModel),
+				StatPlot.MakePlots("Test error-rate", "error-rate", true, Colors.Green, LvqTrainingStatCli.TestErrorStat, model.IsMultiModel),
+				StatPlot.MakePlots("Test cost-function","cost-function", false, Colors.DarkCyan, LvqTrainingStatCli.TestCostStat, model.IsMultiModel),
+				}.SelectMany(s => s)) {
+				trainingStatsControl.Graphs.Add(plot.plot);
+				yield return plot;
+			}
 		}
 
-		private void MakeNormPlots(PlotControl trainingNormPlotControl) {
-			pNorm = PlotData.Create(default(Point[]));
-			pNorm.PlotClass = PlotClass.Line;
-			pNorm.DataLabel = "(mean) Projection norm";
-			pNorm.XUnitLabel = "Training iterations";
-			pNorm.YUnitLabel = "norm";
-			pNorm.RenderColor = Colors.Green;
-
-			otherStats = Enumerable.Range(0, model.OtherStatCount()).Select(i => {
-				var extraPlot = PlotData.Create(default(Point[]));
-				extraPlot.PlotClass = PlotClass.Line;
-				extraPlot.DataLabel = "extra data";
-				extraPlot.XUnitLabel = "Training iterations";
-				extraPlot.YUnitLabel = "norm";
-				extraPlot.RenderColor = Colors.LightGreen;
-				return extraPlot;
-			}).ToArray();
-			
+		private IEnumerable<StatPlot> MakeNormPlots(PlotControl trainingNormPlotControl) {
 			trainingNormPlotControl.Graphs.Clear();
-			foreach (var plot in otherStats) trainingNormPlotControl.Graphs.Add(plot);
-			trainingNormPlotControl.Graphs.Add(pNorm);
+			int extraStatCount = model.OtherStatCount();
+			Color[] cols = GraphRandomPen.MakeDistributedColors(extraStatCount + 1);
+			foreach (StatPlot plot in
+				StatPlot.MakePlots("(mean) Projection norm", "norm", true, cols[extraStatCount], LvqTrainingStatCli.PNormStat, model.IsMultiModel)
+				.Concat(
+					Enumerable.Range(0, model.OtherStatCount()).SelectMany(i =>
+						StatPlot.MakePlots("extra data " + i, "extra data", false, cols[i], LvqTrainingStatCli.ExtraStat + i, false))
+						)) {
+				trainingNormPlotControl.Graphs.Add(plot.plot);
+				yield return plot;
+			}
 		}
 
 
@@ -134,9 +152,10 @@ namespace LvqGui {
 			if (model == null) return;
 
 			if (!AcquireUpdateLock()) return;
-			
-			
+
+
 			var trainingStats = model.TrainingStats;
+			var statPlotData = Enumerable.Range(0, statPlots.Length).Select(si => trainingStats.Select(statPlots[si].extractor).ToArray()).ToArray();
 			var currProjection = model.CurrentProjectionAndPrototypes(dataset);
 
 
@@ -157,12 +176,8 @@ namespace LvqGui {
 				prototypePositionsPlot.Data = prototypePositions;
 				classBoundaries.TriggerDataChanged();
 
-				trainErr.Data = trainingStats.Select(stat => new Point(stat.trainingIter, stat.trainingError)).ToArray(); 
-				trainCost.Data = trainingStats.Select(stat => new Point(stat.trainingIter, stat.trainingCost)).ToArray(); 
-				pNorm.Data = trainingStats.Select(stat => new Point(stat.trainingIter, stat.pNorm)).ToArray();
-				for (int i = 0; i < otherStats.Length; i++) 
-					otherStats[i].Data = trainingStats.Select(stat => new Point(stat.trainingIter, stat.otherStats[i])).ToArray();
-				
+				for (int i = 0; i < statPlots.Length; i++)
+					statPlots[i].plot.Data = statPlotData[i];
 				ReleaseUpdateLock();
 			}), DispatcherPriority.Background);
 		}
