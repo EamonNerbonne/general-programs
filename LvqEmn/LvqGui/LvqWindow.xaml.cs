@@ -43,15 +43,16 @@ namespace LvqGui {
 					ShowGridLines = true,
 				}
 			};
+			this.Closing += (o, e) => { windowValues.TrainingControlValues.AnimateTraining = false; };
 		}
 
 		static void HideNotClose(object sender, CancelEventArgs e) {
-			Window win = (Window) sender;
+			Window win = (Window)sender;
 			e.Cancel = true;
 			win.Dispatcher.BeginInvoke(win.Hide);
 		}
 
-		
+
 
 		Window trainingStatWindow, pNormWindow;
 
@@ -69,7 +70,7 @@ namespace LvqGui {
 			}
 			pNormWindow.Show();
 			trainingStatWindow.Show();
-			
+
 		}
 
 		public bool Fullscreen {
