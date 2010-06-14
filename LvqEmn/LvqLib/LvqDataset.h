@@ -15,6 +15,7 @@ public:
 	std::vector<int> const & getPointLabels()const {return pointLabels;}
 	int getClassCount()const {return classCount;}
 	int getPointCount()const {return static_cast<int>(pointLabels.size());}
+	void shufflePoints(boost::mt19937& rng);
 
 	std::vector<int> entireSet() const {std::vector<int> idxs((size_t)getPointCount()); for(int i=0;i<getPointCount();i++) idxs[i]=i; return idxs; }
 

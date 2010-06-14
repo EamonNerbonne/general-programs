@@ -43,9 +43,25 @@ void EIGEN_STRONG_INLINE prefetch(void const * start,int lines) {
 }
 
 
+void LvqDataset::shufflePoints(boost::mt19937& rng) {
+	vector<int> shufLabels(getPointCount());
+	MatrixXd shufPoints(points.rows(),points.cols());
+		
+	using boost::scoped_array;
+	scoped_array<int> idxs(new int[getPointCount()]);
+	makeRandomOrder(rng,idxs.get(),static_cast<int>(points.cols()));
+	
+	for(int colI=0;colI<points.cols();++colI) {
+		shufPoints.col(idxs[colI]) = points.col(colI);
+		shufLabels[idxs[colI]] = pointLabels[colI];
+	}
+	points = shufPoints;
+	pointLabels = shufLabels;
+}
+
+
+
 void LvqDataset::TrainModel(int epochs, AbstractLvqModel * model, std::vector<int> const  & trainingSubset, LvqDataset const * testData, std::vector<int> const  & testSubset) const {
-	BenchTimer t;
-	t.start();
 	int dims = static_cast<int>(points.rows());
 	vector<int> shuffledOrder(trainingSubset);
 	VectorXd pointA(dims);
@@ -53,18 +69,18 @@ void LvqDataset::TrainModel(int epochs, AbstractLvqModel * model, std::vector<in
 
 	for(int epoch=0; epoch<epochs; ++epoch) {
 		shuffle(model->RngIter(), shuffledOrder.begin(), shuffledOrder.end());
-		
-		for(int tI=0; tI<(int)pointLabels.size(); ++tI) {
-		//	_mm_prefetch((char*)model,_MM_HINT_T0);
+		BenchTimer t;
+		t.start();
+		for(int tI=0; tI<(int)shuffledOrder.size(); ++tI) {
 			int pointIndex = shuffledOrder[tI];
 			int pointClass = pointLabels[pointIndex];
 			pointA = points.col(pointIndex);
 			prefetch( &points.coeff (0, shuffledOrder[(tI+1)%shuffledOrder.size()]), cacheLines);
 			model->learnFrom(pointA, pointClass);
 		}
+		t.stop();
+		model->AddTrainingStat(this,trainingSubset, testData,testSubset, (int)(1*shuffledOrder.size()), t.value(CPU_TIMER));
 	}
-	t.stop();
-	model->AddTrainingStat(this,trainingSubset, testData,testSubset, (int)(epochs*pointLabels.size()), t.getCpuTime());
 }
 
 double LvqDataset::ErrorRate(std::vector<int> const & subset,AbstractLvqModel const * model)const {
