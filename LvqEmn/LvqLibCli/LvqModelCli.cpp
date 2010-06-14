@@ -22,21 +22,24 @@ namespace LvqLibCli {
 
 		msclr::lock l2(mainSync);
 		initSet = trainingSet;
+		#pragma omp parallel for
 		for(int i=0;i<model->Length;i++) {
-			AbstractLvqModel* newmodel;
+			AbstractLvqModel* newmodel=0;
 			if(modelType == LvqModelCli::GSM_TYPE)
-		 		newmodel = new GsmLvqModel(mt19937(rngParamsSeed+i),mt19937(rngInstSeed+i), true, protoDistrib, trainingSet->GetDataset()->ComputeClassMeans( trainingSet->GetDataset()->entireSet() )); 
+		 		newmodel = new GsmLvqModel(mt19937(rngParamsSeed+i),mt19937(rngInstSeed+i), true, protoDistrib, trainingSet->GetDataset()->ComputeClassMeans( trainingSet->GetTrainingSubset(i) )); 
 			else if(modelType == LvqModelCli::G2M_TYPE)
-				newmodel = new G2mLvqModel(mt19937(rngParamsSeed+i),mt19937(rngInstSeed+i), true, protoDistrib, trainingSet->GetDataset()->ComputeClassMeans(trainingSet->GetDataset()->entireSet())); 
+				newmodel = new G2mLvqModel(mt19937(rngParamsSeed+i),mt19937(rngInstSeed+i), true, protoDistrib, trainingSet->GetDataset()->ComputeClassMeans(trainingSet->GetTrainingSubset(i))); 
 			else  if(modelType == LvqModelCli::GM_TYPE)
-				newmodel = new GmLvqModel(mt19937(rngParamsSeed+i),mt19937(rngInstSeed+i), true, protoDistrib, trainingSet->GetDataset()->ComputeClassMeans(trainingSet->GetDataset()->entireSet())); 
-			else
-				return;
-			model[i] = GcPtr::Create(newmodel);
-			model[i]->get()->AddTrainingStat( trainingSet->GetDataset(),trainingSet->GetDataset()->entireSet(),(LvqDataset*) 0, vector<int>(),0,0.0);
+				newmodel = new GmLvqModel(mt19937(rngParamsSeed+i),mt19937(rngInstSeed+i), true, protoDistrib, trainingSet->GetDataset()->ComputeClassMeans(trainingSet->GetTrainingSubset(i))); 
+			if(newmodel) {
+				WrappedModel^ m = GcPtr::Create(newmodel);
+				m->get()->AddTrainingStat(trainingSet->GetDataset(),trainingSet->GetTrainingSubset(i), trainingSet->GetDataset(), trainingSet->GetTestSubset(i),0,0.0);
+				model[i] = m;
+			}
 		}
 		BackupModel();
 	}
+
 	array<LvqTrainingStatCli>^ LvqModelCli :: TrainingStats::get(){
 		using System::Collections::Generic::List;
 		WrappedModelArray^ currentBackup = modelCopy;
@@ -47,14 +50,15 @@ namespace LvqLibCli {
 			return ToCli<array<LvqTrainingStatCli>^>::From(currentBackup[0]->get()->trainingStats);
 		}
 		Eigen::VectorXd zero = VectorXd::Zero(statDim);
-		List<LvqTrainingStatCli>^ retval = gcnew List<LvqTrainingStatCli>();
+		array<LvqTrainingStatCli>^ retval = gcnew array<LvqTrainingStatCli>(statCount);
 		for(int si=0;si<statCount;++si) {
 			SmartSum<Eigen::VectorXd> stat(zero);
-				for each(WrappedModel^ m in currentBackup)
-					stat.CombineWith(m->get()->trainingStats[si].values,1.0);
-				retval->Add(LvqTrainingStatCli::toCli(currentBackup[0]->get()->trainingStats[si].trainingIter, stat.GetMean(),stat.GetVariance()));
+			for each(WrappedModel^ m in currentBackup)
+				stat.CombineWith(m->get()->trainingStats[si].values,1.0);
+			retval[si] = LvqTrainingStatCli::toCli(currentBackup[0]->get()->trainingStats[si].trainingIter, stat.GetMean(), (stat.GetSampleVariance().array().sqrt() * (1.0/sqrt(stat.GetWeight()))).matrix() );
 		}
-		return retval->ToArray();
+		GC::KeepAlive(currentBackup);
+		return retval;
 	}
 
 	void LvqModelCli::ResetLearningRate() {
@@ -92,6 +96,14 @@ namespace LvqLibCli {
 		return retval;
 	}
 
+	void LvqModelCli::BackupModel() {
+		msclr::lock l2(mainSync); 
+		WrappedModelArray^ newBackup = gcnew WrappedModelArray(model->Length);
+		msclr::lock l(newBackup);//necessary?
+		for(int i=0;i<newBackup->Length;i++)
+			newBackup[i] = GcPtr::Create(model[i]->get()->clone());
+		modelCopy = newBackup;
+	}
 
 	array<int,2>^ LvqModelCli::ClassBoundaries(double x0, double x1, double y0, double y1,int xCols, int yRows) {
 		MatrixXi classDiagram(yRows,xCols);
@@ -109,12 +121,12 @@ namespace LvqLibCli {
 		return ToCli<array<int,2>^>::From(classDiagram.transpose());
 	}
 
-	void LvqModelCli::Train(int epochsToDo,LvqDatasetCli^ trainingSet){
+	void LvqModelCli::Train(int epochsToDo,LvqDatasetCli^ dataSet){
 		msclr::lock l(mainSync);
-		trainingSet->LastModel = this;
-#pragma omp parallel for
+		dataSet->LastModel = this;
+		#pragma omp parallel for
 		for(int i=0;i<model->Length;i++)
-		trainingSet->GetDataset()->TrainModel(epochsToDo,  model[i]->get(), trainingSet->GetDataset()->entireSet(), 0, vector<int>());
+			dataSet->GetDataset()->TrainModel(epochsToDo,  model[i]->get(), dataSet->GetTrainingSubset(i), dataSet->GetDataset(), dataSet->GetTestSubset(i));
 		BackupModel();
 	}
 

@@ -23,14 +23,7 @@ namespace LvqLibCli {
 		WrappedModelArray^ modelCopy;
 		Object^ mainSync;
 		LvqDatasetCli^ initSet;
-		void BackupModel() {
-			msclr::lock l2(mainSync); 
-			WrappedModelArray^ newBackup = gcnew WrappedModelArray(model->Length);
-			for(int i=0;i<newBackup->Length;i++)
-				newBackup[i] = GcPtr::Create(model[i]->get()->clone());
-			msclr::lock l(newBackup);//necessary?
-			modelCopy = newBackup;
-		}
+		void BackupModel(); 
 	public:
 
 		property int ClassCount {int get(){return model[0]->get()->ClassCount();}}
