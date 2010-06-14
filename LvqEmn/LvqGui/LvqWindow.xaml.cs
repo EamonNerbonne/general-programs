@@ -26,23 +26,10 @@ namespace LvqGui {
 			InitializeComponent();
 			windowValues.TrainingControlValues.ModelSelected += TrainingControlValues_ModelSelected;
 			windowValues.TrainingControlValues.SelectedModelUpdatedInBackgroundThread += TrainingControlValues_SelectedModelUpdatedInBackgroundThread;
-			trainingStatWindow = new Window {
-				Width = Application.Current.MainWindow.Width * 0.5,
-				Height = Application.Current.MainWindow.Height * 0.8,
-				Title = "Training statistics",
-				Content = new PlotControl() {
-					ShowGridLines = true,
-				}
-			};
-			trainingStatWindow.Closing += HideNotClose;
-			pNormWindow = new Window {
-				Width = Application.Current.MainWindow.Width * 0.5,
-				Height = Application.Current.MainWindow.Height * 0.8,
-				Title = "Model project norms",
-				Content = new PlotControl() {
-					ShowGridLines = true,
-				}
-			};
+			errorRateWindow = MakeSubWin ("Error Rate");
+			costFuncWindow = MakeSubWin("Cost Function");
+			pNormWindow = MakeSubWin("Model project norms");
+			extraWindow = MakeSubWin("Extra data");
 			this.Closing += (o, e) => { windowValues.TrainingControlValues.AnimateTraining = false; };
 		}
 
@@ -52,9 +39,20 @@ namespace LvqGui {
 			win.Dispatcher.BeginInvoke(win.Hide);
 		}
 
+		Window MakeSubWin(string title) {
+			var win= new Window {
+				Width = Application.Current.MainWindow.Width * 0.5,
+				Height = Application.Current.MainWindow.Height * 0.8,
+				Title = title,
+				Content = new PlotControl() {
+					ShowGridLines = true,
+				}
+			};
+			win.Closing += HideNotClose;
+			return win;
+		}
 
-
-		Window trainingStatWindow, pNormWindow;
+		Window errorRateWindow, costFuncWindow, pNormWindow,extraWindow;
 
 		LvqScatterPlot plotData;
 		void TrainingControlValues_SelectedModelUpdatedInBackgroundThread(LvqDatasetCli dataset, LvqModelCli model) {
@@ -65,12 +63,19 @@ namespace LvqGui {
 		}
 
 		void TrainingControlValues_ModelSelected(LvqDatasetCli dataset, LvqModelCli model) {
-			if (plotData == null || plotData.dataset != dataset || plotData.model != model) {
-				plotData = new LvqScatterPlot(dataset, model, Dispatcher, plotControl, (PlotControl)trainingStatWindow.Content, (PlotControl)pNormWindow.Content);
+			if (dataset == null || model == null) {
+				pNormWindow.Hide();
+				errorRateWindow.Hide();
+				costFuncWindow.Hide();
+				extraWindow.Hide();
+			} else {
+				if (plotData == null || plotData.dataset != dataset || plotData.model != model)
+					plotData = new LvqScatterPlot(dataset, model, Dispatcher, plotControl, (PlotControl)errorRateWindow.Content, (PlotControl)costFuncWindow.Content,  (PlotControl)pNormWindow.Content, (PlotControl)extraWindow.Content);
+				pNormWindow.Show();
+				errorRateWindow.Show();
+				costFuncWindow.Show();
+				extraWindow.Show();
 			}
-			pNormWindow.Show();
-			trainingStatWindow.Show();
-
 		}
 
 		public bool Fullscreen {

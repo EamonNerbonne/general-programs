@@ -16,7 +16,7 @@ namespace LvqLibCli {
 		
 		int trainingIter;
 		array<double>^ values;
-		array<double>^ variances;
+		array<double>^ stderror;
 
 		
 		static LvqTrainingStatCli toCli(LvqTrainingStat cppVal) {
@@ -26,11 +26,11 @@ namespace LvqLibCli {
 			return cliVal;
 		}
 
-		static LvqTrainingStatCli toCli(int trainingIter, Eigen::VectorXd const &  values, Eigen::VectorXd const & variances) {
+		static LvqTrainingStatCli toCli(int trainingIter, Eigen::VectorXd const &  values, Eigen::VectorXd const & stderror) {
 			LvqTrainingStatCli cliVal;
 			cliVal.trainingIter = trainingIter;
 			cppToCli(values, cliVal.values);
-			cppToCli(variances,cliVal.variances);
+			cppToCli(stderror,cliVal.stderror);
 			return cliVal;
 		}
 
