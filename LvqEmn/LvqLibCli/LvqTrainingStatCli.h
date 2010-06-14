@@ -34,7 +34,6 @@ namespace LvqLibCli {
 			return cliVal;
 		}
 
-
 		static LvqTrainingStat toCpp(LvqTrainingStatCli cliVal) {
 			LvqTrainingStat cppVal;
 			cppVal.trainingIter = cliVal.trainingIter;
