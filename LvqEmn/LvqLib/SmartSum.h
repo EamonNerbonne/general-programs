@@ -17,7 +17,7 @@ public:
 		TScalar sScale = weightSum * weight / newWeightSum;
 		weightSum = newWeightSum;
 		sX.array() += (val.array() - meanX.array()).square() * sScale;
-		meanX += (val - meanX) * sScale;
+		meanX += (val - meanX) * mScale;
 		
 	}
 
@@ -28,10 +28,12 @@ public:
 		TScalar sScale = weightSum * other.weightSum / newWeightSum;
 		weightSum = newWeightSum;
 		sX.array() += other.sX +  (other.meanX.array() - meanX.array()).square() * sScale;
-		meanX += (val - meanX) * sScale;
+		meanX += (val - meanX) * mScale;
 	}
 
 	T const & GetMean()const {return meanX;}
 	T GetVariance()const {return sX / weightSum;}
+	T GetSampleVariance()const {return sX / (weightSum-1);}
+	TScalar GetWeight() const {return weightSum;}
 };
 
