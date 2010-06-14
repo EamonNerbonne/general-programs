@@ -60,6 +60,7 @@ namespace EmnExtensions.Wpf {
 			public Color ToWindowsColor() {
 				return Color.FromRgb((byte)(255 * R + 0.5), (byte)(255 * G + 0.5), (byte)(255 * B + 0.5));
 			}
+
 			public void Min(ColorSimple other) {
 				R = Math.Min(R, other.R);
 				G = Math.Min(G, other.G);
@@ -70,13 +71,15 @@ namespace EmnExtensions.Wpf {
 				G = Math.Max(G, other.G);
 				B = Math.Max(B, other.B);
 			}
+			static double scaled(double val, double min, double max) {
+				return  max <= min || max < 0.99 && min >0.01
+					? val
+					: 0.01 + 0.98 * (val - min) / (max - min);
+			}
 			public void ScaleBack(ColorSimple min, ColorSimple max, MersenneTwister rnd) {
-				if (max.R > min.R)
-					R = 0.025 + 0.95 * (R - min.R) / (max.R - min.R);
-				if (max.G > min.G)
-					G = 0.025 + 0.95 * (G - min.G) / (max.G - min.G);
-				if (max.B > min.B)
-					B = 0.025 + 0.95 * (B - min.B) / (max.B - min.B);
+				R = scaled(R, min.R, max.R);
+				G = scaled(G, min.G, max.G);
+				B = scaled(B, min.B, max.B);
 				if (R == G && G == B)
 					this = Random(rnd);
 			}
@@ -102,7 +105,7 @@ namespace EmnExtensions.Wpf {
 					if (other >= i) other++; //rand other in [0..M) with other != i
 					if (N > 1)
 						choices[i].RepelFrom(choices[other], lr);
-					choices[i].RepelFrom(black, lr * 0.1);
+					choices[i].RepelFrom(black, lr * 0.3);
 					min.Min(choices[i]);
 					max.Max(choices[i]);
 				}
