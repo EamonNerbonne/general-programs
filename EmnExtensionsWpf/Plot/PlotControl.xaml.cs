@@ -39,7 +39,7 @@ namespace EmnExtensions.Wpf.Plot {
 				AlignmentX = AlignmentX.Left, //and corner 0,0 is in the Top-Left!
 				AlignmentY = AlignmentY.Top,
 			};
-			Background = bgBrush;
+			plotArea.Background = bgBrush;
 		}
 
 
@@ -60,6 +60,19 @@ namespace EmnExtensions.Wpf.Plot {
 			foreach (var axis in Axes)
 				axis.HideAxis = !showAxes;
 		}
+
+
+
+		public string Title {
+			get { return (string)GetValue(TitleProperty); }
+			set { SetValue(TitleProperty, value); }
+		}
+
+		// Using a DependencyProperty as the backing store for Title.  This enables animation, styling, binding, etc...
+		public static readonly DependencyProperty TitleProperty =
+			DependencyProperty.Register("Title", typeof(string), typeof(PlotControl), new UIPropertyMetadata(null));
+
+		
 
 		void RegisterChanged(IEnumerable<IPlotViewOnly> newGraphs) {
 			foreach (IPlotViewOnly newgraph in newGraphs)
@@ -250,10 +263,12 @@ namespace EmnExtensions.Wpf.Plot {
 				axis.SetGridLineExtent(axisBounds.Size);
 			if (needRedrawGraphs) RedrawGraphs(relevantAxes);
 			if (manualRender) {
+				drawingContext.PushTransform((Transform)plotArea.TransformToVisual(this));
 				drawingContext.DrawDrawing(dg);
-				Background = null;
+				drawingContext.Pop();
+				plotArea.Background = null;
 			} else if (Background == null)
-				Background = bgBrush;
+				plotArea.Background = bgBrush;
 
 			base.OnRender(drawingContext);
 		}

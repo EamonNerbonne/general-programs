@@ -5,7 +5,7 @@
     xmlns:emnPlot="clr-namespace:EmnExtensions.Wpf.Plot"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-    mc:Ignorable="d" d:DesignHeight="300" d:DesignWidth="300">
+    mc:Ignorable="d" d:DesignHeight="300" d:DesignWidth="300" UseLayoutRounding="True">
 
     <!--IsHitTestVisible="False"-->
     <UserControl.ContextMenu>
@@ -16,18 +16,20 @@
     </UserControl.ContextMenu>
     <Grid>
         <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="1*" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="1*" />
         </Grid.ColumnDefinitions>
-
+        <TextBox IsReadOnly="True" BorderThickness="0" Background="Transparent" FontSize="9" Margin="0" Text="{Binding RelativeSource={RelativeSource  Mode=FindAncestor, AncestorType={x:Type UserControl}}, Path=Title, Mode=OneWay}" HorizontalAlignment="Center" />
+        <Grid x:Name="plotArea" Grid.Row="1" UseLayoutRounding="False">
         <emnPlot:TickedAxis x:Name="tickedAxisBot" AxisPos="BelowGraph"/>
-        <emnPlot:TickedAxis x:Name="tickedAxisLft" AxisPos="LeftOfGraph"/>
-        <emnPlot:TickedAxis x:Name="tickedAxisTop" AxisPos="AboveGraph" />
+        <emnPlot:TickedAxis x:Name="tickedAxisLft" AxisPos="LeftOfGraph" />
+        <emnPlot:TickedAxis x:Name="tickedAxisTop" AxisPos="AboveGraph"/>
         <emnPlot:TickedAxis x:Name="tickedAxisRgt" AxisPos="RightOfGraph"/>
-        <StackPanel x:Name="labelarea" Grid.Row="1">
-        </StackPanel>
+        </Grid>
+        <StackPanel x:Name="labelarea" Grid.Row="2"/>
     </Grid>
 </UserControl>
