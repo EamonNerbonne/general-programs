@@ -16,7 +16,7 @@ protected:
 	inline double stepLearningRate() {
 		double scaledIter = trainIter*iterationScaleFactor + 1.0;
 		++trainIter;
-		return 0.1/ sqrt(scaledIter*sqrt(sqrt(scaledIter))); // faster than exp(-0.625*log(scaledIter));  
+		return 0.2/ sqrt(scaledIter*sqrt(scaledIter)); // significantly faster than exp(-0.75*log(scaledIter)) due to fewer cache misses;  
 	}
 
 	const int classCount;
@@ -31,7 +31,7 @@ public:
 	virtual VectorXd otherStats() const { return VectorXd::Zero((int)LvqTrainingStats::Extra); }
 
 	virtual void learnFrom(VectorXd const & newPoint, int classLabel)=0;
-	AbstractLvqModel(boost::mt19937 & rngIter,int classCount) : trainIter(0), totalIter(0), totalElapsed(0.0), rngIter(rngIter), iterationScaleFactor(0.001/classCount),classCount(classCount){ }
+	AbstractLvqModel(boost::mt19937 & rngIter,int classCount) : trainIter(0), totalIter(0), totalElapsed(0.0), rngIter(rngIter), iterationScaleFactor(0.005/classCount),classCount(classCount){ }
 	virtual ~AbstractLvqModel() {	}
 	void AddTrainingStat(LvqDataset const * trainingSet, std::vector<int>const & trainingSubset, LvqDataset const * testSet,  std::vector<int>const & testSubset, int iterInc, double elapsedInc);
 
