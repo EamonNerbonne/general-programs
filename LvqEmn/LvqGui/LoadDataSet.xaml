@@ -18,7 +18,14 @@
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
-        <Button  Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" Click="ConfirmLoadDataset">Load Dataset</Button>
+        <Button Content="Reset Shuffling Seed" Grid.Row="0" Click="ReseedInst"/>
+        <TextBox  Grid.Row="0" Grid.Column="1" Text="{Binding InstSeed, Mode=TwoWay, ValidatesOnExceptions=True}" />
+        <Label Grid.Row="1">Split folds</Label>
+        <TextBox  Grid.Row="1" Grid.Column="1" Text="{Binding Folds, Mode=TwoWay, ValidatesOnExceptions=True}" />
+        <Button  Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" Click="ConfirmLoadDataset">Load Dataset</Button>
+
     </Grid>
 </UserControl>

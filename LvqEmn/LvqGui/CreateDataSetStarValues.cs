@@ -5,67 +5,68 @@ using System.Text;
 using LvqLibCli;
 using System.ComponentModel;
 using EmnExtensions.Wpf;
+using System.Text.RegularExpressions;
 
 namespace LvqGui {
 
-	public class CreateDatasetStarValues : INotifyPropertyChanged,IHasSeed {
+	public class CreateDatasetStarValues : INotifyPropertyChanged, IHasSeed {
 		readonly LvqWindowValues owner;
 
 		public event PropertyChangedEventHandler PropertyChanged;
 
-		private void _propertyChanged(String propertyName) { if (PropertyChanged != null) PropertyChanged(this, new PropertyChangedEventArgs(propertyName)); }
+		private void _propertyChanged(String propertyName) { if (PropertyChanged != null) { PropertyChanged(this, new PropertyChangedEventArgs(propertyName)); PropertyChanged(this, new PropertyChangedEventArgs("Shorthand")); } }
 
 		public int Dimensions {
 			get { return _Dimensions; }
-			set { if (value < _ClusterDimensionality) throw new ArgumentException("Data needs at least one dimension and no fewer than the clusters' dimensions"); if (!object.Equals(_Dimensions,value)) { _Dimensions = value; _propertyChanged("Dimensions"); } }
+			set { if (value < _ClusterDimensionality) throw new ArgumentException("Data needs at least one dimension and no fewer than the clusters' dimensions"); if (!object.Equals(_Dimensions, value)) { _Dimensions = value; _propertyChanged("Dimensions"); } }
 		}
 		private int _Dimensions;
 
 		public int NumberOfClasses {
 			get { return _NumberOfClasses; }
-			set { if (value < 2) throw new ArgumentException("Need at least 2 classes to meaningfully train"); if (!object.Equals(_NumberOfClasses,value)) { _NumberOfClasses = value; _propertyChanged("NumberOfClasses"); } }
+			set { if (value < 2) throw new ArgumentException("Need at least 2 classes to meaningfully train"); if (!object.Equals(_NumberOfClasses, value)) { _NumberOfClasses = value; _propertyChanged("NumberOfClasses"); } }
 		}
 		private int _NumberOfClasses;
 
 		public int PointsPerClass {
 			get { return _PointsPerClass; }
-			set { if (value < 1) throw new ArgumentException("Need a positive number of points"); if (!object.Equals(_PointsPerClass,value)) { _PointsPerClass = value; _propertyChanged("PointsPerClass"); } }
+			set { if (value < 1) throw new ArgumentException("Need a positive number of points"); if (!object.Equals(_PointsPerClass, value)) { _PointsPerClass = value; _propertyChanged("PointsPerClass"); } }
 		}
 		private int _PointsPerClass;
 
 		public int NumberOfClusters {
 			get { return _NumberOfClusters; }
-			set { if (value < 1) throw new ArgumentException("Need a positive number of clusters"); if (!object.Equals(_NumberOfClusters,value)) { _NumberOfClusters = value; _propertyChanged("NumberOfClusters"); } }
+			set { if (value < 1) throw new ArgumentException("Need a positive number of clusters"); if (!object.Equals(_NumberOfClusters, value)) { _NumberOfClusters = value; _propertyChanged("NumberOfClusters"); } }
 		}
 		private int _NumberOfClusters;
 
 		public int ClusterDimensionality {
 			get { return _ClusterDimensionality; }
-			set { if (value < 1 || value > _Dimensions) throw new ArgumentException("Cluster dimensionality must be a positive number less than the absolute dimensionality"); if (!object.Equals(_ClusterDimensionality,value)) { _ClusterDimensionality = value; _propertyChanged("ClusterDimensionality"); } }
+			set { if (value < 1 || value > _Dimensions) throw new ArgumentException("Cluster dimensionality must be a positive number less than the absolute dimensionality"); if (!object.Equals(_ClusterDimensionality, value)) { _ClusterDimensionality = value; _propertyChanged("ClusterDimensionality"); } }
 		}
 		private int _ClusterDimensionality;
 
+		public bool RandomlyTransformFirst {
+			get { return _RandomlyTransformFirst; }
+			set { if (!object.Equals(_RandomlyTransformFirst, value)) { _RandomlyTransformFirst = value; _propertyChanged("RandomlyTransformFirst"); } }
+		}
+		private bool _RandomlyTransformFirst;
+
 		public double ClusterCenterDeviation {
 			get { return _ClusterCenterDeviation; }
-			set { if (value < 0.0) throw new ArgumentException("Deviation must be positive"); if (!object.Equals(_ClusterCenterDeviation,value)) { _ClusterCenterDeviation = value; _propertyChanged("ClusterCenterDeviation"); } }
+			set { if (value < 0.0) throw new ArgumentException("Deviation must be positive"); if (!object.Equals(_ClusterCenterDeviation, value)) { _ClusterCenterDeviation = value; _propertyChanged("ClusterCenterDeviation"); } }
 		}
 		private double _ClusterCenterDeviation;
 
 		public double IntraClusterClassRelDev {
 			get { return _IntraClusterClassRelDev; }
-			set { if (value < 0.0) throw new ArgumentException("Deviation must be positive"); if (!object.Equals(_IntraClusterClassRelDev,value)) { _IntraClusterClassRelDev = value; _propertyChanged("IntraClusterClassRelDev"); } }
+			set { if (value < 0.0) throw new ArgumentException("Deviation must be positive"); if (!object.Equals(_IntraClusterClassRelDev, value)) { _IntraClusterClassRelDev = value; _propertyChanged("IntraClusterClassRelDev"); } }
 		}
 		private double _IntraClusterClassRelDev;
 
-		public bool RandomlyTransformFirst {
-			get { return _RandomlyTransformFirst; }
-			set { if (!object.Equals(_RandomlyTransformFirst,value)) { _RandomlyTransformFirst = value; _propertyChanged("RandomlyTransformFirst"); } }
-		}
-		private bool _RandomlyTransformFirst;
-
 		public uint Seed {
 			get { return _Seed; }
-			set { if (!object.Equals(_Seed,value)) { _Seed = value; _propertyChanged("Seed"); } }
+			set { if (!object.Equals(_Seed, value)) { _Seed = value; _propertyChanged("Seed"); } }
 		}
 		private uint _Seed;
 
@@ -75,18 +76,40 @@ namespace LvqGui {
 		}
 		private uint _InstSeed;
 
-		public string CreateLabel() {
-			return "star-" + Dimensions + "D-" + NumberOfClasses + "*" + PointsPerClass + ":" + NumberOfClusters + "(" + ClusterDimensionality + "D" + (RandomlyTransformFirst ? "?" : "") + ")*" + ClusterCenterDeviation.ToString("f1") + "~" + IntraClusterClassRelDev.ToString("f1") + "[" + Convert.ToString(Seed, 16) + MakeCounterLabel() + "]";
+		public int Folds {
+			get { return _Folds; }
+			set { if (value != 0 && value < 2) throw new ArgumentException("Must have no folds (no test data) or at least 2"); if (!_Folds.Equals(value)) { _Folds = value; _propertyChanged("Folds"); } }
 		}
-		int datasetCount = 0;
-		string MakeCounterLabel() {
-			datasetCount++;
-			return ((char)('A' + datasetCount - 1)).ToString();
-		}
+		private int _Folds;
 
+
+		static Regex shR =
+			new Regex(@"^\s*(.*--)?star-(?<Dimensions>\d+)D-(?<NumberOfClasses>\d+)\*(?<PointsPerClass>\d+):(?<NumberOfClusters>\d+)\((?<ClusterDimensionality>\d+)D(?<RandomlyTransformFirst>\??)\)\*(?<ClusterCenterDeviation>[^~]+)\~(?<IntraClusterClassRelDev>[^\[]+)\[(?<Seed>\d+):(?<InstSeed>\d+)\]/(?<Folds>\d+)\s*$",
+				RegexOptions.Compiled | RegexOptions.ExplicitCapture);
+
+		static object[] empty = new object[] { };
+		public string Shorthand {
+			get {
+				return "star-" + Dimensions + "D-" + NumberOfClasses + "*" + PointsPerClass + ":" + NumberOfClusters + "(" + ClusterDimensionality + "D" + (RandomlyTransformFirst ? "?" : "") + ")*" + ClusterCenterDeviation.ToString("r") + "~" + IntraClusterClassRelDev.ToString("r") + "[" + Seed + ":" + InstSeed + "]/" + Folds;
+			}
+			set {
+				if (!shR.IsMatch(value)) throw new ArgumentException("can't parse shorthand - enter manually?");
+				var groups = shR.Match(value).Groups.Cast<Group>().ToArray();
+				for (int i = 0; i < groups.Length; i++) {
+					if (!groups[i].Success) continue;
+					var prop = GetType().GetProperty(shR.GroupNameFromNumber(i));
+					if (prop != null) {
+						var val = prop.PropertyType.Equals(typeof(bool)) ? groups[i].Value == "?"
+							: TypeDescriptor.GetConverter(prop.PropertyType).ConvertFromString(groups[i].Value);
+						prop.SetValue(this, val, empty);
+					}
+				}
+			}
+		}
 
 		public CreateDatasetStarValues(LvqWindowValues owner) {
 			this.owner = owner;
+			_Folds = 10;
 			_ClusterCenterDeviation = 2.5;
 			_ClusterDimensionality = 2;
 			_IntraClusterClassRelDev = 0.33;
@@ -104,8 +127,10 @@ namespace LvqGui {
 		}
 
 		public LvqDatasetCli CreateDataset() {
-			return LvqDatasetCli.ConstructStarDataset(CreateLabel(),
-			colors:GraphRandomPen.MakeDistributedColors(NumberOfClasses),
+			Console.WriteLine("Created: "+Shorthand);
+			return LvqDatasetCli.ConstructStarDataset(Shorthand,
+				folds: _Folds,
+				colors: GraphRandomPen.MakeDistributedColors(NumberOfClasses),
 				rngParamsSeed: Seed,
 				rngInstSeed: InstSeed,
 				dims: Dimensions,
@@ -117,7 +142,6 @@ namespace LvqGui {
 				starClassRelOffset: IntraClusterClassRelDev,
 				randomlyTransform: RandomlyTransformFirst
 				);
-			//TODO:randomTransform option.
 		}
 
 		public void ConfirmCreation() {
