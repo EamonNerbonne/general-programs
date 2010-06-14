@@ -11,7 +11,7 @@ namespace EmnExtensions.Wpf.Plot.VizEngines {
 	}
 	public static class VizPixelScatterHelpers {
 		public const double SquareSidePerThickness = Math.PI / 4.0;
-		public static double PointCountToThickness(int pointCount) { return 25.0 / (0.5 + Math.Log(Math.Max(pointCount, 1))); }
+		public static double PointCountToThickness(int pointCount) { return 15.0 / (0.5 + Math.Log(Math.Max(pointCount, 1))); }
 
 		public static void RecomputeBounds(Point[] points, double coverageX, double coverageY, double coverageGrad, out Rect outerBounds, out Rect coveredBounds) {
 			if (HasPoints(points)) {
