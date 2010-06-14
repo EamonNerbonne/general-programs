@@ -30,7 +30,6 @@ template <typename T>  T randomOrthogonalMatrix(boost::mt19937 & rngParams, int 
 		RandomMatrixInit(rngParams, P, 0, 1.0);
 		Pdet = P.determinant();
 		if(Pdet == 0.0) continue;//exceedingly unlikely.
-		
 		//cout<< "Determinant: "<<Pdet<<"\n";
 		HouseholderQR<MatrixXd> qrOfP(P);
 		P = qrOfP.householderQ();
@@ -39,7 +38,6 @@ template <typename T>  T randomOrthogonalMatrix(boost::mt19937 & rngParams, int 
 			P.col(0) *=-1;
 			Pdet = P.determinant();
 		}
-
 //		cout<<"New determinant: "<<Pdet<<endl;
 	}
 	return P;
@@ -52,16 +50,16 @@ template <typename T>  T randomUnscalingMatrix(boost::mt19937 & rngParams, int d
 		RandomMatrixInit(rngParams, P, 0, 1.0);
 		Pdet = P.determinant();
 		if(Pdet == 0.0) continue;//exceedingly unlikely.
-		cout<< "Determinant: "<<Pdet<<"\n";
+		//cout<< "Determinant: "<<Pdet<<"\n";
 		double scale= pow(abs(Pdet),-1.0/dims);
 		if(Pdet < 0.0) {//sign doesn't _really_ matter.
 			P.col(0) *=-1;
 			Pdet = P.determinant();
 		}
-		cout<< "Scale: "<<scale<<"\n";
+		//cout<< "Scale: "<<scale<<"\n";
 		P = scale*P;
 		Pdet = P.determinant();
-		cout<<"New determinant: "<<Pdet<<"\n";
+		//cout<<"New determinant: "<<Pdet<<"\n";
 	}
 	return P;
 }
@@ -103,3 +101,6 @@ void shuffle(boost::mt19937 & randGen, iterT start, iterT end){
 
 	random_shuffle(start, end, rnd);
 }
+
+
+Eigen::MatrixXd shuffleMatrixCols(boost::mt19937 & randGen, Eigen::MatrixXd const & src);
