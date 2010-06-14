@@ -40,8 +40,8 @@ namespace EmnExtensions.Wpf.Plot {
 			m_tickPen.Freeze();
 			m_gridRankPen = Enumerable.Range(0, GridLineRanks)
 				.Select(rank => (GridLineRanks - rank) / (double)(GridLineRanks))
-				.Select(relevance => (Pen)new Pen {
-					Brush = (Brush)new SolidColorBrush(new Color { ScA = (float)relevance }).GetAsFrozen(),
+				.Select(relevance => (Pen) new Pen {
+					Brush = (Brush)new SolidColorBrush(Color.FromScRgb(1.0f,(float)(1.0-relevance),(float)(1.0-relevance),(float)(1.0-relevance))).GetAsFrozen(),
 					Thickness = BaseTickWidth * relevance * Math.Sqrt(relevance),
 					EndLineCap = PenLineCap.Flat,
 					StartLineCap = PenLineCap.Flat,
