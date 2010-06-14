@@ -41,7 +41,7 @@ namespace LvqLibCli {
 	}
 
 
-	template<typename TDerived> struct cppToCli_MatrixOrVectorChooser {
+	template<typename TDerived> struct MatrixOrVectorChooser {
 		template<bool isVector >
 		static inline array<typename MatrixBase<TDerived>::Scalar, (isVector?1: 2) >^ cppToCliHelper(MatrixBase<TDerived>  const & matrix);
 		template<>
@@ -63,16 +63,16 @@ namespace LvqLibCli {
 		}
 
 		template<bool isVector >
-		static inline MatrixBase<TDerived> cliToCppHelper(array<typename MatrixBase<TDerived>::Scalar, (isVector?1: 2)>^ cliarr);
+		static inline TDerived cliToCppHelper(array<typename MatrixBase<TDerived>::Scalar, (isVector?1: 2)>^ cliarr);
 		template<>
-		static inline MatrixBase<TDerived> cliToCppHelper<true>(array<typename MatrixBase<TDerived>::Scalar, 1>^ cliarr){
+		static inline TDerived cliToCppHelper<true>(array<typename MatrixBase<TDerived>::Scalar, 1>^ cliarr){
 			TDerived retval(cliarr->Length);
-			for(int i=0; i < matrix->Length; ++i)
+			for(int i=0; i < cliarr->Length; ++i)
 				cliToCpp(cliarr[i],retval(i));
 			return retval;
 		}
 		template<>
-		static inline MatrixBase<TDerived> cliToCppHelper<false>(array<typename MatrixBase<TDerived>::Scalar, 2>^ cliarr){
+		static inline TDerived cliToCppHelper<false>(array<typename MatrixBase<TDerived>::Scalar, 2>^ cliarr){
 			TDerived retval(cliarr->GetLength(1), cliarr->GetLength(0));
 			for(int i=0; i < cliarr->GetLength(0); ++i)
 				for(int j=0; j < cliarr->GetLength(1); ++j)
@@ -91,12 +91,12 @@ namespace LvqLibCli {
 
 	template<typename TDerived>
 	inline void cppToCli(MatrixBase<TDerived> const & matrix,array<typename MatrixBase<TDerived>::Scalar, (MatrixBase<TDerived>MSC_ANTI_ICE::IsVectorAtCompileTime?1: 2) >^% retval ) {
-		retval= cppToCli_MatrixOrVectorChooser<TDerived>::cppToCliHelper<MatrixBase<TDerived>::IsVectorAtCompileTime>(matrix);
+		retval= MatrixOrVectorChooser<TDerived>::cppToCliHelper<MatrixBase<TDerived>::IsVectorAtCompileTime>(matrix);
 	}
 
 	template<typename TDerived>
-	inline void cliToCpp(array<typename MatrixBase<TDerived>::Scalar, (MatrixBase<TDerived>MSC_ANTI_ICE::IsVectorAtCompileTime?1: 2) >^ retval, MatrixBase<TDerived> & matrix) {
-		retval= cppToCli_MatrixOrVectorChooser<TDerived>::cppToCliHelper<MatrixBase<TDerived>::IsVectorAtCompileTime>(matrix);
+	inline void cliToCpp(array<typename MatrixBase<TDerived>::Scalar, (MatrixBase<TDerived>MSC_ANTI_ICE::IsVectorAtCompileTime?1: 2) >^ cliarr, MatrixBase<TDerived> & retval) {
+		retval= MatrixOrVectorChooser<TDerived>::cliToCppHelper<MatrixBase<TDerived>::IsVectorAtCompileTime>(cliarr);
 	}
 
 	template<typename S>
