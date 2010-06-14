@@ -9,13 +9,13 @@ MatrixXd DatasetUtils::MakePointCloud(boost::mt19937 & rngParams, boost::mt19937
 	P*=exp(uniform01_rand()*2.0-1.0);
 
 	VectorXd offset(dims);
-	RandomMatrixInit(rngParams, offset, 0, meansep);
+	RandomMatrixInit(rngParams, offset, 0, meansep/sqrt(static_cast<double>(dims)));
 
 	MatrixXd points(dims,pointCount);
 	  
 	RandomMatrixInit(rngInst, points, 0, 1.0);
-	cout<< "Norm pretransform: "<<projectionSquareNorm(points)<<"\n";
-	cout<< "Norm posttransform: "<<projectionSquareNorm(P * points)<<"\n";
+	//cout<< "Norm pretransform: "<<projectionSquareNorm(points)<<"\n";
+	//cout<< "Norm posttransform: "<<projectionSquareNorm(P * points)<<"\n";
 	
 	return P * points + offset * VectorXd::Ones(pointCount).transpose();
 }
