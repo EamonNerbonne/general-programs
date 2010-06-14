@@ -79,7 +79,7 @@ void GsmLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel) {
 
 	//differential of cost function Q wrt w_J; i.e. wrt J->point.  Note mu_K(!) for differention wrt J(!)
 	prototype[J].noalias() -= P.transpose() * (lr_point * muK2_P_vJ);
-	prototype[K].noalias() -= P.transpose() * (lr_point *muJ2_P_vK);
+	prototype[K].noalias() -= P.transpose() * (LVQ_LrScaleBad*lr_point *muJ2_P_vK);
 
 	//differential wrt. global projection matrix is subtracted...
 	P.noalias() -= (lr_P * muK2_P_vJ) * vJ.transpose() + (lr_P * muJ2_P_vK) * vK.transpose();
@@ -88,13 +88,13 @@ void GsmLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel) {
 	Vector2d muJ2_P_vK = (mu_J * 2.0 * (P_prototype[K] - P_trainPoint) ).lazy();
 
 	prototype[J] -= ( P.transpose() * (lr_point * muK2_P_vJ) ).lazy();
-	prototype[K] -= ( P.transpose() * (lr_point *muJ2_P_vK) ).lazy();
+	prototype[K] -= ( P.transpose() * (LVQ_LrScaleBad*lr_point *muJ2_P_vK) ).lazy();
 
 	P -= ((lr_P * muK2_P_vJ) * vJ.transpose()).lazy() + ((lr_P * muJ2_P_vK) * vK.transpose()).lazy();
 #endif
 
-//	double pNormScale =1.0 / projectionNorm();
-//	P *= pNormScale;
+	//double pNormScale =1.0 / projectionNorm();
+	//P *= pNormScale;
 
 	for(int i=0;i<pLabel.size();++i)
 		RecomputeProjection(i);

@@ -70,13 +70,13 @@ void GmLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel) {
 	lrX_muK2_Pj_vJ.noalias() =P[J] * vJ;
 	lrX_muK2_Pj_vJ *= lr_point * mu_K * 2.0;
 	lrX_muJ2_Pk_vK.noalias() = P[K] * vK;
-	lrX_muJ2_Pk_vK *= lr_point * mu_J * 2.0;
+	lrX_muJ2_Pk_vK *= LVQ_LrScaleBad*lr_point * mu_J * 2.0;
 
 	prototype[J].noalias() -= P[J].transpose() *  lrX_muK2_Pj_vJ;
 	prototype[K].noalias() -= P[K].transpose() * lrX_muJ2_Pk_vK;
 
 	lrX_muK2_Pj_vJ *= lr_P / lr_point;
-	lrX_muJ2_Pk_vK *= lr_P / lr_point;
+	lrX_muJ2_Pk_vK *= lr_P / lr_point/LVQ_LrScaleBad;
 	P[J].noalias() -=  lrX_muK2_Pj_vJ * vJ.transpose() ;
 	P[K].noalias() -= lrX_muJ2_Pk_vK * vK.transpose() ;
 #else
@@ -90,13 +90,13 @@ void GmLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel) {
 	lrX_muK2_Pj_vJ = ( P[J] * vJ ).lazy();
 	lrX_muK2_Pj_vJ *=lr_point* mu_K * 2.0;
 	lrX_muJ2_Pk_vK = ( P[K] * vK ).lazy();
-	lrX_muJ2_Pk_vK *= lr_point* mu_J * 2.0;
+	lrX_muJ2_Pk_vK *= LVQ_LrScaleBad*lr_point* mu_J * 2.0;
 
 	prototype[J] -= (  P[J].transpose() *  lrX_muK2_Pj_vJ).lazy();
 	prototype[K] -= (  P[K].transpose() * lrX_muJ2_Pk_vK).lazy();
 
 	lrX_muK2_Pj_vJ *= lr_P / lr_point;
-	lrX_muJ2_Pk_vK *= lr_P / lr_point;
+	lrX_muJ2_Pk_vK *= lr_P / lr_point/LVQ_LrScaleBad;
 
 	P[J] -= ( lrX_muK2_Pj_vJ * vJ.transpose() ).lazy();
 	P[K] -= ( lrX_muJ2_Pk_vK * vK.transpose() ).lazy();

@@ -75,7 +75,7 @@ void G2mLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel) {
 	
 	MVectorXd vJ(m_vJ.data(),m_vJ.size());
 	MVectorXd vK(m_vK.data(),m_vK.size());
-
+//	vJ.array()
 	vJ = J->point - trainPoint;
 	vK = K->point - trainPoint;
 	Vector2d P_vJ= J->P_point - projectedTrainPoint;
@@ -91,7 +91,7 @@ void G2mLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel) {
 	J->B.noalias() -= lr_B * muK2_Bj_P_vJ * P_vJ.transpose() ;
 	K->B.noalias() -= lr_B * muJ2_Bk_P_vK * P_vK.transpose() ;
 	J->point.noalias() -=  P.transpose() * (lr_point * muK2_BjT_Bj_P_vJ) ;
-	K->point.noalias() -=   P.transpose() * (lr_point * muJ2_BkT_Bk_P_vK) ;
+	K->point.noalias() -=   P.transpose() * (LVQ_LrScaleBad*lr_point * muJ2_BkT_Bk_P_vK) ;
 	P.noalias() -= (lr_P * muK2_BjT_Bj_P_vJ) * vJ.transpose() + (lr_P * muJ2_BkT_Bk_P_vK) * vK.transpose() ;
 #else
 	muK2_Bj_P_vJ = mu_K * 2.0 * ( J->B * P_vJ ).lazy();
@@ -103,12 +103,12 @@ void G2mLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel) {
 	J->B -= lr_B * dQdBj;
 	K->B -= lr_B * dQdBk;
 	J->point -= (P.transpose() * (lr_point * muK2_BjT_Bj_P_vJ )).lazy();
-	K->point -= (P.transpose() * (lr_point * muJ2_BkT_Bk_P_vK )).lazy();
+	K->point -= (P.transpose() * (LVQ_LrScaleBad*lr_point * muJ2_BkT_Bk_P_vK )).lazy();
 	P -=  ((lr_P * muK2_BjT_Bj_P_vJ) * vJ.transpose()).lazy() + ((lr_P * muJ2_BkT_Bk_P_vK) * vK.transpose()).lazy();
 #endif
 
-	//	double pNormScale =1.0 / projectionNorm();
-	//	P *= pNormScale;
+	//double pNormScale =1.0 / projectionNorm();
+	//P *= pNormScale;
 	for(size_t i=0;i<prototype.size();++i)
 		prototype[i].ComputePP(P);
 }
