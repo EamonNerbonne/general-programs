@@ -80,6 +80,7 @@ namespace LvqGui {
 				lock (selectedModel.UpdateSyncObject) //not needed for safety, just for accurate timing
 					using (new DTimer("Training " + epochsToTrainFor + " epochs"))
 						selectedModel.Train(epochsToDo: epochsToTrainFor, trainingSet: selectedDataset);
+				PrintModelTimings(selectedModel);
 				PotentialUpdate(selectedDataset, selectedModel);
 			}
 		}
@@ -89,11 +90,11 @@ namespace LvqGui {
 			if (isAnimating) return;
 			double totalTime = 0.0;
 			int epochsTrained = 0;
+			var selectedDataset = SelectedDataset;
+			var selectedModel = SelectedLvqModel;
 			try {
 				isAnimating = true;
 				while (_AnimateTraining) {
-					var selectedDataset = SelectedDataset;
-					var selectedModel = SelectedLvqModel;
 					int epochsToTrainFor = EpochsPerClick;
 					if (selectedDataset == null || selectedModel == null || epochsToTrainFor < 1) {
 						owner.Dispatcher.BeginInvoke(() => { AnimateTraining = false; });
@@ -105,7 +106,23 @@ namespace LvqGui {
 							selectedModel.Train(epochsToDo: epochsToTrainFor, trainingSet: selectedDataset);
 					PotentialUpdate(selectedDataset, selectedModel);
 				}
-			} finally { isAnimating = false; Console.WriteLine("Tooks {0}s per epoch for {1} epochs", totalTime / epochsTrained, epochsTrained); }
+			} finally {
+				isAnimating = false;
+				Console.WriteLine("Overall took {0}s per epoch for {1} epochs", totalTime / epochsTrained, epochsTrained);
+				PrintModelTimings(selectedModel);
+			}
+		}
+
+		static void PrintModelTimings(LvqModelCli model) {
+			var trainingStats = model.TrainingStats;
+			if (trainingStats.Length >= 2) {
+				var lastStat = trainingStats[trainingStats.Length - 1];
+				Console.WriteLine("Avg cpu seconds per iter: {0}{1}",
+					lastStat.values[LvqTrainingStatCli.ElapsedSecondsStat] / lastStat.trainingIter,
+					lastStat.stderror != null
+						? " ~ " + (lastStat.stderror[LvqTrainingStatCli.ElapsedSecondsStat] / lastStat.trainingIter)
+						: "");
+			}
 		}
 
 		private void PotentialUpdate(LvqDatasetCli selectedDataset, LvqModelCli selectedModel) {

@@ -15,6 +15,5 @@ namespace LvqGui {
 		private void ResetLearningRate(object sender, RoutedEventArgs e) {
 			ThreadPool.QueueUserWorkItem(o => { ((TrainingControlValues)o).ResetLearningRate(); }, DataContext);
 		}
-
 	}
 }
