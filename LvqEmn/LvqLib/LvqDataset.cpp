@@ -63,11 +63,11 @@ void LvqDataset::shufflePoints(boost::mt19937& rng) {
 
 void LvqDataset::TrainModel(int epochs, AbstractLvqModel * model, std::vector<int> const  & trainingSubset, LvqDataset const * testData, std::vector<int> const  & testSubset) const {
 	int dims = static_cast<int>(points.rows());
-	vector<int> shuffledOrder(trainingSubset);
 	VectorXd pointA(dims);
 	int cacheLines = (dims*sizeof(points(0,0) ) +63)/ 64 ;
 
 	for(int epoch=0; epoch<epochs; ++epoch) {
+		vector<int> shuffledOrder(trainingSubset);
 		shuffle(model->RngIter(), shuffledOrder.begin(), shuffledOrder.end());
 		BenchTimer t;
 		t.start();
