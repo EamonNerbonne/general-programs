@@ -38,7 +38,8 @@ namespace LvqGui {
 				//trainErr.MinimalBounds = new Rect(new Point(0, 0.001), new Point(0, 0));
 				statPlot.AxisBindings = TickedAxisLocation.BelowGraph | (isRight ? TickedAxisLocation.RightOfGraph : TickedAxisLocation.LeftOfGraph);
 				((IVizLineSegments)statPlot.Visualizer).CoverageRatioY = 0.95;
-				((IVizLineSegments)statPlot.Visualizer).CoverageRatioGrad = 10.0;
+				((IVizLineSegments)statPlot.Visualizer).CoverageRatioGrad = 20.0;
+				
 
 				return new StatPlot {
 					plot = statPlot,
