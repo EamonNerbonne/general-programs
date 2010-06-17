@@ -59,7 +59,6 @@ namespace LvqGui {
 				}
 				yield return MakePlot(dataLabel, yunitLabel, isRight, color, statIdx, 0);
 			}
-
 		}
 
 		StatPlot[] statPlots;

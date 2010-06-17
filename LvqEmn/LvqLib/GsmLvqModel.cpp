@@ -41,7 +41,7 @@ GsmLvqModel::GsmLvqModel(boost::mt19937 & rngParams, boost::mt19937 & rngIter, b
 
 
 
-void GsmLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel) {
+void GsmLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel, bool *wasError, double* hadCost) {
 	//double learningRate = getLearningRate();
 	//incLearningIterationCount();
 	double learningRate = stepLearningRate();
@@ -62,6 +62,10 @@ void GsmLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel) {
 	GoodBadMatch matches = findMatches(P_trainPoint, trainLabel);
 
 	//now matches.good is "J" and matches.bad is "K".
+
+	if(wasError) *wasError = matches.IsErr();
+	if(hadCost) *hadCost = matches.CostFunc();
+
 
 	double mu_J = -2.0*matches.distGood / (sqr(matches.distGood) + sqr(matches.distBad));
 	double mu_K = +2.0*matches.distBad / (sqr(matches.distGood) + sqr(matches.distBad));
@@ -101,16 +105,11 @@ void GsmLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel) {
 }
 
 
-double GsmLvqModel::costFunction(VectorXd const & unknownPoint, int pointLabel) const {
-	#if EIGEN3
-	Vector2d projectedTrainPoint = P * unknownPoint;
-#else
-	Vector2d projectedTrainPoint = (P * unknownPoint).lazy();
-#endif
+void GsmLvqModel::computeCostAndError(VectorXd const & unknownPoint, int pointLabel,bool&err,double&cost) const {
 
-	GoodBadMatch matches = findMatches(projectedTrainPoint, pointLabel);
-
-	return (matches.distGood - matches.distBad)/(matches.distGood+matches.distBad);
+	GoodBadMatch matches = findMatches(P * unknownPoint, pointLabel);
+	err=matches.IsErr();
+	cost=matches.CostFunc();
 }
 
 

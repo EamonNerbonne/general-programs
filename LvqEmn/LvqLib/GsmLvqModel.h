@@ -28,6 +28,10 @@ class GsmLvqModel : public AbstractProjectionLvqModel
 			, matchGood(-1)
 			, matchBad(-1)
 		{}
+
+		double CostFunc() const { return (distGood - distBad)/(distGood+distBad); }
+		bool IsErr()const{return distGood > distBad;}
+
 	};
 
 	inline GsmLvqModel::GoodBadMatch findMatches(Vector2d const & P_trainPoint, int trainLabel) const {
@@ -82,10 +86,10 @@ public:
 	virtual size_t MemAllocEstimate() const;
 
 	GsmLvqModel(boost::mt19937 & rngParams, boost::mt19937 & rngIter, bool randInit, std::vector<int> protodistribution, MatrixXd const & means);
-	double costFunction(VectorXd const & unknownPoint, int pointLabel) const; 
+	void computeCostAndError(VectorXd const & unknownPoint, int pointLabel,bool&err,double&cost) const;
 	int classify(VectorXd const & unknownPoint) const {return classifyInternal(unknownPoint);}
 	int classifyProjected(Vector2d const & unknownProjectedPoint) const {return classifyProjectedInternal(unknownProjectedPoint);}
-	void learnFrom(VectorXd const & newPoint, int classLabel);
+	void learnFrom(VectorXd const & newPoint, int classLabel, bool *wasError, double* hadCost);
 	virtual void ClassBoundaryDiagram(double x0, double x1, double y0, double y1, MatrixXi & classDiagram) const;
 	virtual AbstractLvqModel* clone(); 
 

@@ -19,8 +19,10 @@ struct G2mLvqGoodBadMatch {
 		, distanceBad(std::numeric_limits<double>::infinity()) 
 		, good(NULL)
 		, bad(NULL)
-		
 	{ }
+
+	double CostFunc() const{return (distanceGood - distanceBad)/(distanceGood+distanceBad);	}
+	bool IsErr()const {return distanceGood > distanceBad;}
 
 	inline void AccumulateMatch(G2mLvqPrototype const & option) {
 		double optionDist = option.SqrDistanceTo(*projectedPoint);

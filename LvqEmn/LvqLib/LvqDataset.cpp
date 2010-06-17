@@ -67,36 +67,41 @@ void LvqDataset::TrainModel(int epochs, AbstractLvqModel * model, std::vector<in
 	int cacheLines = (dims*sizeof(points(0,0) ) +63)/ 64 ;
 
 	for(int epoch=0; epoch<epochs; ++epoch) {
+		double pointCostSum=0;
+		int errs=0;
 		vector<int> shuffledOrder(trainingSubset);
 		shuffle(model->RngIter(), shuffledOrder.begin(), shuffledOrder.end());
 		BenchTimer t;
 		t.start();
 		for(int tI=0; tI<(int)shuffledOrder.size(); ++tI) {
+			bool wasErr=false;
+			double pointCost=0;
 			int pointIndex = shuffledOrder[tI];
 			int pointClass = pointLabels[pointIndex];
 			pointA = points.col(pointIndex);
 			prefetch( &points.coeff (0, shuffledOrder[(tI+1)%shuffledOrder.size()]), cacheLines);
-			model->learnFrom(pointA, pointClass);
+			model->learnFrom(pointA, pointClass,&wasErr,&pointCost);
+			errs+=wasErr?1:0;
+			pointCostSum+=pointCost;
 		}
 		t.stop();
-		model->AddTrainingStat(this,trainingSubset, testData,testSubset, (int)(1*shuffledOrder.size()), t.value(CPU_TIMER));
+		model->AddTrainingStatFast(pointCostSum/double(shuffledOrder.size()),errs/double(shuffledOrder.size()), testData,testSubset, (int)(1*shuffledOrder.size()), t.value(CPU_TIMER));
 	}
 }
 
-double LvqDataset::ErrorRate(std::vector<int> const & subset,AbstractLvqModel const * model)const {
-	int errs=0;
-	for(int i=0;i<(int)subset.size();++i) 
-		if(model->classify(points.col(subset[i])) != pointLabels[subset[i]])
-			errs++;
-	return errs / double(subset.size());
-}
-
-double LvqDataset::CostFunction(std::vector<int> const & subset,AbstractLvqModel const * model)const {
+void LvqDataset::ComputeCostAndErrorRate(std::vector<int> const & subset, AbstractLvqModel const * model,double &meanCost,double & errorRate) const{
 	VectorXd a;
 	double totalCost=0;
-	for(int i=0;i<(int)subset.size();++i) 
-		totalCost+=model->costFunction(points.col(subset[i]), pointLabels[subset[i]]);
-	return totalCost / double(subset.size());
+	int errs=0;
+	for(int i=0;i<(int)subset.size();++i) {
+		bool isErr;
+		double pointCost;
+		model->computeCostAndError(points.col(subset[i]), pointLabels[subset[i]],isErr,pointCost);
+		totalCost+=pointCost;
+		errs+=isErr?1:0;
+	}
+	meanCost = totalCost / double(subset.size());
+	errorRate = errs/double(subset.size());
 }
 
 PMatrix LvqDataset::ProjectPoints(AbstractProjectionLvqModel const * model) const {

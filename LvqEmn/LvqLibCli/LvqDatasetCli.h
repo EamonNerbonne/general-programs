@@ -18,32 +18,9 @@ namespace LvqLibCli {
 		LvqDatasetCli(String^label,int folds, ColorArray^ colors,  LvqDataset * newDataset,boost::mt19937& rngOrder);
 	public:
 		bool IsFolded() {return folds!=0;}
-		std::vector<int> GetTrainingSubset(int fold) {
-			if(!IsFolded()) return dataset->entireSet();
-			fold = fold % folds;
-			int pointCount = dataset->getPointCount();
-			int foldStart = fold * pointCount / folds;
-			int foldEnd = (fold+1) * pointCount / folds;
+		std::vector<int> GetTrainingSubset(int fold) { return dataset->GetTrainingSubset(fold,folds); }
 
-			std::vector<int> retval;
-			for(int i=0;i<foldStart;++i)
-				retval.push_back(i);
-			for(int i=foldEnd;i<pointCount;++i)
-				retval.push_back(i);
-			return retval;
-		}
-
-		std::vector<int> GetTestSubset(int fold) {
-			if(!IsFolded()) return vector<int>();
-			fold = fold % folds;
-			int pointCount = dataset->getPointCount();
-			int foldStart = fold * pointCount / folds;
-			int foldEnd = (fold+1) * pointCount / folds;
-			std::vector<int> retval;
-			for(int i=foldStart;i<foldEnd;++i)
-				retval.push_back(i);
-			return retval;
-		}
+		std::vector<int> GetTestSubset(int fold) { return dataset->GetTestSubset(fold,folds); }
 		LvqDataset const * GetDataset() {return dataset;}
 		array<int>^ ClassLabels(){ array<int>^ retval; cppToCli(dataset->getPointLabels(), retval); return retval;}
 		array<double,2>^ RawPoints() { array<double,2>^ retval; cppToCli(dataset->getPoints(), retval); return retval;}

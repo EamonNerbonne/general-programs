@@ -28,10 +28,10 @@ public:
 	G2mLvqModel(boost::mt19937 & rngParams,boost::mt19937 & rngIter, bool randInit, std::vector<int> protodistribution, MatrixXd const & means);
 	virtual size_t MemAllocEstimate() const;
 	int classify(VectorXd const & unknownPoint) const {return classifyInternal(unknownPoint);}
-	double costFunction(VectorXd const & unknownPoint, int pointLabel) const; 
+    void computeCostAndError(VectorXd const & unknownPoint, int pointLabel,bool&err,double&cost) const;
 	virtual VectorXd otherStats() const; 
 	int classifyProjected(Vector2d const & unknownProjectedPoint) const { return classifyProjectedInternal(unknownProjectedPoint);}
-	void learnFrom(VectorXd const & newPoint, int classLabel);
+	void learnFrom(VectorXd const & newPoint, int classLabel, bool *wasError, double* hadCost);
 	virtual void ClassBoundaryDiagram(double x0, double x1, double y0, double y1, MatrixXi & classDiagram) const;
 	virtual AbstractLvqModel* clone();
 

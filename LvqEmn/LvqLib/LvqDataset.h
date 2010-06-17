@@ -4,6 +4,7 @@ using namespace Eigen;
 
 #include "AbstractLvqModel.h"
 
+//TODO: make explicit subset classes for training/test stuff.
 
 class LvqDataset
 {
@@ -17,18 +18,46 @@ public:
 	int getPointCount()const {return static_cast<int>(pointLabels.size());}
 	void shufflePoints(boost::mt19937& rng);
 
-	std::vector<int> entireSet() const {std::vector<int> idxs((size_t)getPointCount()); for(int i=0;i<getPointCount();i++) idxs[i]=i; return idxs; }
-
 
 	LvqDataset(MatrixXd const & points, std::vector<int> pointLabels, int classCount);
 	MatrixXd ComputeClassMeans(std::vector<int> const & subset) const;
 
 	void TrainModel(int epochs, AbstractLvqModel * model, std::vector<int> const  & trainingSubset, LvqDataset const * testData, std::vector<int> const  & testSubset) const;
 
-	double ErrorRate(std::vector<int> const & subset, AbstractLvqModel const * model) const;
-	double CostFunction(std::vector<int> const & subset, AbstractLvqModel const * model) const;
+	void ComputeCostAndErrorRate(std::vector<int> const & subset, AbstractLvqModel const * model,double &cost,double &errorRate) const;
+
 
 	PMatrix ProjectPoints(AbstractProjectionLvqModel const * model) const;
 	size_t MemAllocEstimate() const;
 	int dimensions() const { return static_cast<int>(points.rows());}
+
+	std::vector<int> GetTrainingSubset(int fold, int foldcount) const {
+			if(foldcount==0) {
+				std::vector<int> idxs((size_t)getPointCount());
+				for(int i=0;i<getPointCount();i++) idxs[i]=i; return idxs; 
+			}
+			fold = fold % foldcount;
+			int pointCount = getPointCount();
+			int foldStart = fold * pointCount / foldcount;
+			int foldEnd = (fold+1) * pointCount / foldcount;
+
+			std::vector<int> retval;
+			for(int i=0;i<foldStart;++i)
+				retval.push_back(i);
+			for(int i=foldEnd;i<pointCount;++i)
+				retval.push_back(i);
+			return retval;
+		}
+
+		std::vector<int> GetTestSubset(int fold, int foldcount) const {
+			if(foldcount==0) return std::vector<int>();
+			fold = fold % foldcount;
+			int pointCount = getPointCount();
+			int foldStart = fold * pointCount / foldcount;
+			int foldEnd = (fold+1) * pointCount / foldcount;
+			std::vector<int> retval;
+			for(int i=foldStart;i<foldEnd;++i)
+				retval.push_back(i);
+			return retval;
+		}
 };

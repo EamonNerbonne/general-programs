@@ -39,7 +39,7 @@ G2mLvqModel::G2mLvqModel(boost::mt19937 & rngParams,boost::mt19937 & rngIter, bo
 }
 typedef Map<VectorXd,  Aligned> MVectorXd;
 
-void G2mLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel) {
+void G2mLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel, bool *wasError, double* hadCost) {
 	using namespace std;
 	//double learningRate = getLearningRate();
 	//incLearningIterationCount();
@@ -65,6 +65,10 @@ void G2mLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel) {
 
 	assert(matches.good !=NULL && matches.bad!=NULL);
 	//now matches.good is "J" and matches.bad is "K".
+	if(wasError)
+		*wasError = matches.IsErr();
+	if(hadCost)
+		*hadCost = matches.CostFunc();
 
 	double mu_J = -2.0*matches.distanceGood / (sqr( matches.distanceGood) + sqr(matches.distanceBad));
 	double mu_K = +2.0*matches.distanceBad / (sqr( matches.distanceGood) + sqr(matches.distanceBad));
@@ -114,7 +118,7 @@ void G2mLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel) {
 }
 
 
-double G2mLvqModel::costFunction(VectorXd const & unknownPoint, int pointLabel) const {
+void G2mLvqModel::computeCostAndError(VectorXd const & unknownPoint, int pointLabel,bool&err,double&cost) const {
 #if EIGEN3
 	Vector2d projectedTrainPoint = P * unknownPoint;
 #else
@@ -129,7 +133,8 @@ double G2mLvqModel::costFunction(VectorXd const & unknownPoint, int pointLabel) 
 	assert(matches.good !=NULL && matches.bad!=NULL);
 	//now matches.good is "J" and matches.bad is "K".
 	
-	return (matches.distanceGood - matches.distanceBad)/(matches.distanceGood+matches.distanceBad);
+	cost= matches.CostFunc();
+	err=matches.IsErr();
 }
 
 void G2mLvqModel::ClassBoundaryDiagram(double x0, double x1, double y0, double y1, MatrixXi & classDiagram) const {

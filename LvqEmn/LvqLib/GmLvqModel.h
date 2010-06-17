@@ -39,6 +39,8 @@ class GmLvqModel : public AbstractLvqModel
 			, matchGood(-1)
 			, matchBad(-1)
 		{}
+		double CostFunc() const { return (distGood - distBad)/(distGood+distBad); }
+		bool IsErr()const{return distGood > distBad;}
 	};
 	EIGEN_STRONG_INLINE GoodBadMatch findMatches(VectorXd const & trainPoint, int trainLabel) const {
 	GoodBadMatch match;
@@ -69,9 +71,9 @@ public:
 	virtual VectorXd otherStats() const; 
 
 	GmLvqModel(boost::mt19937 & rngParams, boost::mt19937 & rngIter,  bool randInit, std::vector<int> protodistribution, MatrixXd const & means);
-	double costFunction(VectorXd const & unknownPoint, int pointLabel) const; 
-	virtual int classify(VectorXd const & unknownPoint) const; //tmp must be just as large as unknownPoint, this is a malloc/free avoiding optimization.
-	virtual void learnFrom(VectorXd const & newPoint, int classLabel);//tmp must be just as large as unknownPoint, this is a malloc/free avoiding optimization.
+	void computeCostAndError(VectorXd const & unknownPoint, int pointLabel,bool&err,double&cost) const;
+	virtual int classify(VectorXd const & unknownPoint) const; 
+	virtual void learnFrom(VectorXd const & newPoint, int classLabel, bool *wasError, double* hadCost);
 	virtual AbstractLvqModel* clone() { return new GmLvqModel(*this); }
 };
 
