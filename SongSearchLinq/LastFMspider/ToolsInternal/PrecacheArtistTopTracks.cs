@@ -6,12 +6,10 @@ using EmnExtensions.Algorithms;
 using LastFMspider.LastFMSQLiteBackend;
 using LastFMspider.OldApi;
 
-
 namespace LastFMspider
 {
     internal static partial class ToolsInternal
     {
-
         public static int PrecacheArtistTopTracks(LastFmTools tools) {
             var SimilarSongs = tools.SimilarSongs;
             int artistsCached = 0;
@@ -33,7 +31,6 @@ namespace LastFMspider
                     if((info.LookupTimestamp.HasValue && info.LookupTimestamp.Value > minAge) || info.ArtistInfo.IsAlternateOf.HasValue) {
                         msg.AppendFormat("done.");
                     } else {
-
                         var newEntry = OldApiClient.Artist.GetTopTracks(artist.ArtistName);
                         msg.AppendFormat("={0,3} ", newEntry.TopTracks.Length);
                         if (newEntry.TopTracks.Length > 0)
