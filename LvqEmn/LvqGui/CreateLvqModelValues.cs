@@ -67,7 +67,7 @@ namespace LvqGui {
 		private uint _InstSeed;
 
 		static Regex shR =
-	new Regex(@"^\s*(?<ModelType>(G2m|Gsm|Gm))(\[(?<Dimensionality>[^\]]+)\])?,(?<PrototypesPerClass>\d+)\[(?<Seed>\d+):(?<InstSeed>\d+)\]/(?<ParallelModels>\d+)(--.*)?\s*$",
+	new Regex(@"^(\w|\s)*\:?\s*(?<ModelType>(G2m|Gsm|Gm))(\[(?<Dimensionality>[^\]]+)\])?,(?<PrototypesPerClass>\d+)\[(?<Seed>\d+):(?<InstSeed>\d+)\]/(?<ParallelModels>\d+)(--.*)?\s*$",
 		RegexOptions.Compiled | RegexOptions.ExplicitCapture);
 
 		static object[] empty = new object[] { };
