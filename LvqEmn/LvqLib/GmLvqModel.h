@@ -30,39 +30,37 @@ class GmLvqModel : public AbstractLvqModel
 		
 	}
 	
-	struct GoodBadMatch {
-		double distGood, distBad;
-		int matchGood, matchBad;
-		inline GoodBadMatch()
-			: distGood(std::numeric_limits<double>::infinity())
-			, distBad(std::numeric_limits<double>::infinity())
-			, matchGood(-1)
-			, matchBad(-1)
-		{}
-		double CostFunc() const { return (distGood - distBad)/(distGood+distBad); }
-		bool IsErr()const{return distGood > distBad;}
-	};
+#pragma warning (disable: 4127)
+#define ASSTRING(X) #X
+#define DBG(X) do{cout<<ASSTRING(X)<<": "<<X<<"\n";} while(false)
 	EIGEN_STRONG_INLINE GoodBadMatch findMatches(VectorXd const & trainPoint, int trainLabel) const {
-	GoodBadMatch match;
+		using std::cout;
+		GoodBadMatch match;
 
-	for(int i=0;i<pLabel.size();i++) {
-		double curDist = SqrDistanceTo(i, trainPoint);
-		if(pLabel(i) == trainLabel) {
-			if(curDist < match.distGood) {
-				match.matchGood = i;
-				match.distGood = curDist;
-			}
-		} else {
-			if(curDist < match.distBad) {
-				match.matchBad = i;
-				match.distBad = curDist;
+		for(int i=0;i<pLabel.size();i++) {
+			double curDist = SqrDistanceTo(i, trainPoint);
+			if(pLabel(i) == trainLabel) {
+				if(curDist < match.distGood) {
+					match.matchGood = i;
+					match.distGood = curDist;
+				}
+			} else {
+				if(curDist < match.distBad) {
+					match.matchBad = i;
+					match.distBad = curDist;
+				}
 			}
 		}
+		if(match.matchBad < 0 ||match.matchGood <0) {
+			assert( match.matchBad >= 0 && match.matchGood >=0 );
+			DBG(match.matchBad);
+			DBG(match.matchGood);
+			DBG(match.distBad);
+			DBG(match.distGood);
+			DBG(pLabel.size());//WTF: this statement impacts gcc _correctness_?
+		}
+		return match;
 	}
-
-	assert( match.matchBad >= 0 && match.matchGood >=0 );
-	return match;
-}
 
 public:
 	virtual size_t MemAllocEstimate() const;

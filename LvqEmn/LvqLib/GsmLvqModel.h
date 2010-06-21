@@ -19,25 +19,8 @@ class GsmLvqModel : public AbstractProjectionLvqModel
 		return (P_prototype[protoIndex] - P_otherPoint).squaredNorm();
 	}
 
-	struct GoodBadMatch {
-		double distGood, distBad; //TODO:name consistently across various LVQ model types.
-		int matchGood, matchBad;
-		inline GoodBadMatch()
-			: distGood(std::numeric_limits<double>::infinity())
-			, distBad(std::numeric_limits<double>::infinity())
-			, matchGood(-1)
-			, matchBad(-1)
-		{}
-
-		double CostFunc() const { return (distGood - distBad)/(distGood+distBad); }
-		bool IsErr()const{return distGood > distBad;}
-
-	};
-
-	inline GsmLvqModel::GoodBadMatch findMatches(Vector2d const & P_trainPoint, int trainLabel) const {
-		//TODO:this findMatches method should be as similar as possible across LVQ model types.
+	inline GoodBadMatch findMatches(Vector2d const & P_trainPoint, int trainLabel) const {
 		GoodBadMatch match;
-
 		for(int i=0;i<pLabel.size();i++) {
 			double curDist = SqrDistanceTo(i,P_trainPoint);
 			if(pLabel(i) == trainLabel) {

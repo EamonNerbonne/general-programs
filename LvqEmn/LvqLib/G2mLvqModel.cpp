@@ -45,8 +45,8 @@ void G2mLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel, bool *w
 	double learningRate = stepLearningRate();
 
 	double lr_point = learningRate,
-		lr_P = learningRate * this->lr_scale_P,
-		lr_B = learningRate * this->lr_scale_B; 
+		lr_P = learningRate * lr_scale_P,
+		lr_B = learningRate * lr_scale_B; 
 
 	assert(lr_P>=0  &&  lr_B>=0  &&  lr_point>=0);
 
@@ -57,56 +57,50 @@ void G2mLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel, bool *w
 	Vector2d projectedTrainPoint = (P * trainPoint).lazy();
 #endif
 
-	G2mLvqGoodBadMatch matches(&projectedTrainPoint, trainLabel);
+	GoodBadMatch matches = findMatches(projectedTrainPoint, trainLabel);
 
-	for(size_t i=0;i<prototype.size();i++)
-		matches.AccumulateMatch(prototype[i]);
-
-	assert(matches.good !=NULL && matches.bad!=NULL);
 	//now matches.good is "J" and matches.bad is "K".
 	if(wasError)
 		*wasError = matches.IsErr();
 	if(hadCost)
 		*hadCost = matches.CostFunc();
 
-	double mu_J = -2.0*matches.distanceGood / (sqr( matches.distanceGood) + sqr(matches.distanceBad));
-	double mu_K = +2.0*matches.distanceBad / (sqr( matches.distanceGood) + sqr(matches.distanceBad));
+	double mu_J = -2.0*matches.distGood / (sqr( matches.distGood) + sqr(matches.distBad));
+	double mu_K = +2.0*matches.distBad / (sqr( matches.distGood) + sqr(matches.distBad));
 
-	G2mLvqPrototype *J = const_cast<G2mLvqPrototype *>(matches.good);
-	G2mLvqPrototype *K = const_cast<G2mLvqPrototype *>(matches.bad);
-	assert(J == matches.good && K == matches.bad);
+	G2mLvqPrototype &J = prototype[matches.matchGood];
+	G2mLvqPrototype &K = prototype[matches.matchBad];
 	
 	MVectorXd vJ(m_vJ.data(),m_vJ.size());
 	MVectorXd vK(m_vK.data(),m_vK.size());
-//	vJ.array()
-	vJ = J->point - trainPoint;
-	vK = K->point - trainPoint;
-	Vector2d P_vJ= J->P_point - projectedTrainPoint;
-	Vector2d P_vK = K->P_point - projectedTrainPoint;
+	vJ = J.point - trainPoint;
+	vK = K.point - trainPoint;
+	Vector2d P_vJ= J.P_point - projectedTrainPoint;
+	Vector2d P_vK = K.P_point - projectedTrainPoint;
 
 	Vector2d muK2_Bj_P_vJ, muJ2_Bk_P_vK,muK2_BjT_Bj_P_vJ,muJ2_BkT_Bk_P_vK;
 
 #if EIGEN3
-	muK2_Bj_P_vJ.noalias() = (mu_K * 2.0) *  (J->B * P_vJ) ;
-	muJ2_Bk_P_vK.noalias() = (mu_J * 2.0) *  (K->B * P_vK) ;
-	muK2_BjT_Bj_P_vJ.noalias() =  J->B.transpose() * muK2_Bj_P_vJ ;
-	muJ2_BkT_Bk_P_vK.noalias() = K->B.transpose() * muJ2_Bk_P_vK ;
-	J->B.noalias() -= lr_B * muK2_Bj_P_vJ * P_vJ.transpose() ;
-	K->B.noalias() -= lr_B * muJ2_Bk_P_vK * P_vK.transpose() ;
-	J->point.noalias() -=  P.transpose() * (lr_point * muK2_BjT_Bj_P_vJ) ;
-	K->point.noalias() -=   P.transpose() * (LVQ_LrScaleBad*lr_point * muJ2_BkT_Bk_P_vK) ;
+	muK2_Bj_P_vJ.noalias() = (mu_K * 2.0) *  (J.B * P_vJ) ;
+	muJ2_Bk_P_vK.noalias() = (mu_J * 2.0) *  (K.B * P_vK) ;
+	muK2_BjT_Bj_P_vJ.noalias() =  J.B.transpose() * muK2_Bj_P_vJ ;
+	muJ2_BkT_Bk_P_vK.noalias() = K.B.transpose() * muJ2_Bk_P_vK ;
+	J.B.noalias() -= lr_B * muK2_Bj_P_vJ * P_vJ.transpose() ;
+	K.B.noalias() -= lr_B * muJ2_Bk_P_vK * P_vK.transpose() ;
+	J.point.noalias() -=  P.transpose() * (lr_point * muK2_BjT_Bj_P_vJ) ;
+	K.point.noalias() -=   P.transpose() * (LVQ_LrScaleBad*lr_point * muJ2_BkT_Bk_P_vK) ;
 	P.noalias() -= (lr_P * muK2_BjT_Bj_P_vJ) * vJ.transpose() + (lr_P * muJ2_BkT_Bk_P_vK) * vK.transpose() ;
 #else
-	muK2_Bj_P_vJ = mu_K * 2.0 * ( J->B * P_vJ ).lazy();
-	muJ2_Bk_P_vK = mu_J * 2.0 * ( K->B * P_vK ).lazy();
-	muK2_BjT_Bj_P_vJ =  (J->B.transpose() * muK2_Bj_P_vJ).lazy();
-	muJ2_BkT_Bk_P_vK = (K->B.transpose() * muJ2_Bk_P_vK).lazy();
+	muK2_Bj_P_vJ = mu_K * 2.0 * ( J.B * P_vJ ).lazy();
+	muJ2_Bk_P_vK = mu_J * 2.0 * ( K.B * P_vK ).lazy();
+	muK2_BjT_Bj_P_vJ =  (J.B.transpose() * muK2_Bj_P_vJ).lazy();
+	muJ2_BkT_Bk_P_vK = (K.B.transpose() * muJ2_Bk_P_vK).lazy();
 	Matrix2d dQdBj = (muK2_Bj_P_vJ * P_vJ.transpose()).lazy();
 	Matrix2d dQdBk = (muJ2_Bk_P_vK * P_vK.transpose()).lazy();
-	J->B -= lr_B * dQdBj;
-	K->B -= lr_B * dQdBk;
-	J->point -= (P.transpose() * (lr_point * muK2_BjT_Bj_P_vJ )).lazy();
-	K->point -= (P.transpose() * (LVQ_LrScaleBad*lr_point * muJ2_BkT_Bk_P_vK )).lazy();
+	J.B -= lr_B * dQdBj;
+	K.B -= lr_B * dQdBk;
+	J.point -= (P.transpose() * (lr_point * muK2_BjT_Bj_P_vJ )).lazy();
+	K.point -= (P.transpose() * (LVQ_LrScaleBad*lr_point * muJ2_BkT_Bk_P_vK )).lazy();
 	P -=  ((lr_P * muK2_BjT_Bj_P_vJ) * vJ.transpose()).lazy() + ((lr_P * muJ2_BkT_Bk_P_vK) * vK.transpose()).lazy();
 #endif
 
@@ -124,14 +118,8 @@ void G2mLvqModel::computeCostAndError(VectorXd const & unknownPoint, int pointLa
 	Vector2d projectedTrainPoint = (P * unknownPoint).lazy();
 #endif
 
-	G2mLvqGoodBadMatch matches(&projectedTrainPoint, pointLabel);
+	GoodBadMatch matches = findMatches(projectedTrainPoint, pointLabel);
 
-	for(size_t i=0;i<prototype.size();i++)
-		matches.AccumulateMatch(prototype[i]);
-
-	assert(matches.good !=NULL && matches.bad!=NULL);
-	//now matches.good is "J" and matches.bad is "K".
-	
 	cost= matches.CostFunc();
 	err=matches.IsErr();
 }

@@ -60,3 +60,16 @@ public:
 	virtual std::vector<int> GetPrototypeLabels() const=0;
 	virtual void ClassBoundaryDiagram(double x0, double x1, double y0, double y1, MatrixXi & classDiagram) const=0;
 };
+
+struct GoodBadMatch {
+	double distGood, distBad;
+	int matchGood, matchBad;
+	inline GoodBadMatch()
+		: distGood(std::numeric_limits<double>::infinity())
+		, distBad(std::numeric_limits<double>::infinity())
+		, matchGood(-1)
+		, matchBad(-1)
+	{}
+	double CostFunc() const { return (distGood - distBad)/(distGood+distBad); }
+	bool IsErr()const{return distGood > distBad;}
+};

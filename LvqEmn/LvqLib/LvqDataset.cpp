@@ -8,7 +8,7 @@ LvqDataset::LvqDataset(MatrixXd const & points, vector<int> pointLabels, int cla
 	, pointLabels(pointLabels)
 	, classCount(classCountPar)
 {
-	assert(points.cols() == pointLabels.size());
+	assert(points.cols() == int(pointLabels.size()));
 	assert(*std::max_element(pointLabels.begin(),pointLabels.end()) < classCount);
 	assert(*std::min_element(pointLabels.begin(),pointLabels.end()) >= 0);
 	

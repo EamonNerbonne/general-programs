@@ -29,11 +29,11 @@ using namespace Eigen;
 #define PROTOSPERCLASS 1
 #else
 #define BENCH_RUNS 3
-#define DIMS 16
+#define DIMS 32
 #define POINTS_PER_CLASS 100
-#define ITERS 5
+#define ITERS 40
 #define CLASSCOUNT 3
-#define PROTOSPERCLASS 2
+#define PROTOSPERCLASS 1
 #endif
 
 #ifndef _MSC_VER

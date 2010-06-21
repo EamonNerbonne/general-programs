@@ -7,53 +7,34 @@ using namespace Eigen;
 
 class G2mLvqModel : public AbstractProjectionLvqModel
 {
-	std::vector<G2mLvqPrototype, Eigen::aligned_allocator<G2mLvqPrototype> > prototype;
+	typedef std::vector<G2mLvqPrototype, Eigen::aligned_allocator<G2mLvqPrototype> > protoList;
+
+	protoList prototype;
 	double lr_scale_P, lr_scale_B;
 
 	//we will preallocate a few temp vectors to reduce malloc/free overhead.
 	VectorXd m_vJ, m_vK;
 
-	struct G2mLvqGoodBadMatch {
-		Vector2d const* projectedPoint;
 
-		int actualClassLabel;
-
-		double distanceGood, distanceBad;
-		G2mLvqPrototype const *good;
-		G2mLvqPrototype const *bad;
-
-
-		inline G2mLvqGoodBadMatch(Vector2d const * projectedTestPoint, int classLabel)
-			: projectedPoint(projectedTestPoint)
-			, actualClassLabel(classLabel)
-			, distanceGood(std::numeric_limits<double>::infinity()) 
-			, distanceBad(std::numeric_limits<double>::infinity()) 
-			, good(NULL)
-			, bad(NULL)
-		{ }
-
-		double CostFunc() const{return (distanceGood - distanceBad)/(distanceGood+distanceBad);	}
-		bool IsErr()const {return distanceGood > distanceBad;}
-
-		inline void AccumulateMatch(G2mLvqPrototype const & option) {
-			double optionDist = option.SqrDistanceTo(*projectedPoint);
-			assert(optionDist > 0);
-			assert(optionDist < std::numeric_limits<double>::infinity());
-			if(option.label() == actualClassLabel) {
-				if(optionDist < distanceGood) {
-					good = &option;
-					distanceGood = optionDist;
+	inline GoodBadMatch findMatches(Vector2d const & P_trainPoint, int trainLabel) const {
+		GoodBadMatch match;
+		for(int i=0;i<prototype.size();i++) {
+			double curDist = prototype[i].SqrDistanceTo(P_trainPoint);
+			if(prototype[i].classLabel == trainLabel) {
+				if(curDist < match.distGood) {
+					match.matchGood = i;
+					match.distGood = curDist;
 				}
 			} else {
-				if(optionDist < distanceBad) {
-					bad = &option;
-					distanceBad = optionDist;
+				if(curDist < match.distBad) {
+					match.matchBad = i;
+					match.distBad = curDist;
 				}
 			}
 		}
-	};
-
-
+		assert( matchBad >= 0 && matchGood >=0 );
+		return match;
+	}
 
 
 	inline int classifyProjectedInternal(Vector2d const & P_unknownPoint) const {
