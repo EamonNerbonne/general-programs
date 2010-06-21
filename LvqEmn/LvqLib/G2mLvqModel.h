@@ -2,11 +2,9 @@
 #include "stdafx.h"
 #include "AbstractLvqModel.h"
 #include "G2mLvqPrototype.h"
-#include "G2mLvqMatch.h"
 
 using namespace Eigen;
 
-class G2mLvqPrototype;
 class G2mLvqModel : public AbstractProjectionLvqModel
 {
 	std::vector<G2mLvqPrototype, Eigen::aligned_allocator<G2mLvqPrototype> > prototype;
@@ -15,11 +13,59 @@ class G2mLvqModel : public AbstractProjectionLvqModel
 	//we will preallocate a few temp vectors to reduce malloc/free overhead.
 	VectorXd m_vJ, m_vK;
 
+	struct G2mLvqGoodBadMatch {
+		Vector2d const* projectedPoint;
+
+		int actualClassLabel;
+
+		double distanceGood, distanceBad;
+		G2mLvqPrototype const *good;
+		G2mLvqPrototype const *bad;
+
+
+		inline G2mLvqGoodBadMatch(Vector2d const * projectedTestPoint, int classLabel)
+			: projectedPoint(projectedTestPoint)
+			, actualClassLabel(classLabel)
+			, distanceGood(std::numeric_limits<double>::infinity()) 
+			, distanceBad(std::numeric_limits<double>::infinity()) 
+			, good(NULL)
+			, bad(NULL)
+		{ }
+
+		double CostFunc() const{return (distanceGood - distanceBad)/(distanceGood+distanceBad);	}
+		bool IsErr()const {return distanceGood > distanceBad;}
+
+		inline void AccumulateMatch(G2mLvqPrototype const & option) {
+			double optionDist = option.SqrDistanceTo(*projectedPoint);
+			assert(optionDist > 0);
+			assert(optionDist < std::numeric_limits<double>::infinity());
+			if(option.label() == actualClassLabel) {
+				if(optionDist < distanceGood) {
+					good = &option;
+					distanceGood = optionDist;
+				}
+			} else {
+				if(optionDist < distanceBad) {
+					bad = &option;
+					distanceBad = optionDist;
+				}
+			}
+		}
+	};
+
+
+
+
 	inline int classifyProjectedInternal(Vector2d const & P_unknownPoint) const {
-		G2mLvqMatch matches(&P_unknownPoint);
-		for(size_t i=0;i<prototype.size(); ++ i)	matches.AccumulateMatch(prototype[i]);
-		assert(matches.match != NULL);
-		return matches.match->label();
+		double distance(std::numeric_limits<double>::infinity());
+		int match(-1);
+
+		for(int i=0;i<prototype.size();i++) {
+			double curDist = prototype[i].SqrDistanceTo(P_unknownPoint);
+			if(curDist < distance) { match=i; distance = curDist; }
+		}
+		assert( match >= 0 );
+		return prototype[match].classLabel;
 	}
 
 	inline int classifyInternal(VectorXd const & unknownPoint) const { return classifyProjectedInternal(P * unknownPoint); }

@@ -31,14 +31,14 @@ template <typename T>  T randomOrthogonalMatrix(boost::mt19937 & rngParams, int 
 		Pdet = P.determinant();
 		if(Pdet == 0.0) continue;//exceedingly unlikely.
 		//cout<< "Determinant: "<<Pdet<<"\n";
-		HouseholderQR<MatrixXd> qrOfP(P);
+		Eigen::HouseholderQR<Eigen::MatrixXd> qrOfP(P);
 		P = qrOfP.householderQ();
 		Pdet = P.determinant();
 		if(Pdet < 0.0) {
 			P.col(0) *=-1;
 			Pdet = P.determinant();
 		}
-//		cout<<"New determinant: "<<Pdet<<endl;
+		//cout<<"New determinant: "<<Pdet<<endl;
 	}
 	return P;
 }

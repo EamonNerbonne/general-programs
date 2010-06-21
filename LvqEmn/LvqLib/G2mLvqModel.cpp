@@ -1,7 +1,6 @@
 #include "stdafx.h"
 #include "G2mLvqModel.h"
 #include "utils.h"
-#include "G2mLvqMatch.h"
 #include "LvqConstants.h"
 
 using namespace std;
