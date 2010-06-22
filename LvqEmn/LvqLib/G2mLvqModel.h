@@ -46,7 +46,7 @@ public:
 
 	void learnFrom(VectorXd const & newPoint, int classLabel, bool *wasError, double* hadCost);
 	void ClassBoundaryDiagram(double x0, double x1, double y0, double y1, MatrixXi & classDiagram) const;
-	virtual AbstractLvqModel* clone() const ;
+	virtual LvqModel* clone() const ;
 
 	MatrixXd GetProjectedPrototypes() const;
 	std::vector<int> GetPrototypeLabels() const;

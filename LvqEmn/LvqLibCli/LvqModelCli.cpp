@@ -24,7 +24,7 @@ namespace LvqLibCli {
 		initSet = trainingSet;
 		#pragma omp parallel for
 		for(int i=0;i<model->Length;i++) {
-			AbstractLvqModel* newmodel=0;
+			LvqModel* newmodel=0;
 			if(modelType == LvqModelCli::GSM_TYPE)
 		 		newmodel = new GsmLvqModel(mt19937(rngParamsSeed+i),mt19937(rngInstSeed+i), true, protoDistrib, trainingSet->GetDataset()->ComputeClassMeans( trainingSet->GetTrainingSubset(i) )); 
 			else if(modelType == LvqModelCli::G2M_TYPE)

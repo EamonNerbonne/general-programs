@@ -5,9 +5,9 @@
 #include "LvqConstants.h"
 #include "GoodBadMatch.h"
 #pragma intrinsic(pow)
-   
+
 class LvqDataset;
-class AbstractLvqModel
+class LvqModel
 {
 	unsigned long long trainIter;
 	unsigned long long totalIter;
@@ -27,20 +27,20 @@ public:
 	boost::mt19937 & RngIter() {return rngIter;}
 	std::vector<LvqTrainingStat> trainingStats;
 	void resetLearningRate() {trainIter=0;}
+
+	LvqModel(boost::mt19937 & rngIter,int classCount) : trainIter(0), totalIter(0), totalElapsed(0.0), rngIter(rngIter), iterationScaleFactor(LVQ_PERCLASSITERFACTOR/classCount),classCount(classCount){ }
+	void AddTrainingStat(double trainingMeanCost,double trainingErrorRate, LvqDataset const * testSet,  std::vector<int>const & testSubset, int iterInc, double elapsedInc);
+	void AddTrainingStat(LvqDataset const * trainingSet,  std::vector<int>const & trainingSubset, LvqDataset const * testSet,  std::vector<int>const & testSubset, int iterInc, double elapsedInc);
+	int ClassCount() const { return classCount; }
+
 	virtual int classify(VectorXd const & unknownPoint) const=0; 
 	virtual void computeCostAndError(VectorXd const & unknownPoint, int pointLabel,bool&err,double&cost) const=0;
-
 	virtual double meanProjectionNorm() const=0; 
 	virtual VectorXd otherStats() const { return VectorXd::Zero((int)LvqTrainingStats::Extra); }
-
 	virtual void learnFrom(VectorXd const & newPoint, int classLabel, bool *wasError, double* hadCost)=0;
-	AbstractLvqModel(boost::mt19937 & rngIter,int classCount) : trainIter(0), totalIter(0), totalElapsed(0.0), rngIter(rngIter), iterationScaleFactor(LVQ_PERCLASSITERFACTOR/classCount),classCount(classCount){ }
-	virtual ~AbstractLvqModel() {	}
-	void AddTrainingStat(LvqDataset const * trainingSet, std::vector<int>const & trainingSubset, LvqDataset const * testSet,  std::vector<int>const & testSubset, int iterInc, double elapsedInc);
-	void AddTrainingStatFast(double trainingMeanCost,double trainingErrorRate, LvqDataset const * testSet,  std::vector<int>const & testSubset, int iterInc, double elapsedInc);
-	virtual AbstractLvqModel* clone() const=0;
+	virtual ~LvqModel() {	}
+	virtual LvqModel* clone() const=0;
 	virtual size_t MemAllocEstimate() const=0;
-	int ClassCount() const { return classCount; }
 	virtual int Dimensions() const =0;
 };
 

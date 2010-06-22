@@ -15,7 +15,7 @@ using namespace System;
 namespace LvqLibCli {
 
 	public ref class LvqModelCli {
-		typedef GcAutoPtr<AbstractLvqModel> WrappedModel;
+		typedef GcAutoPtr<LvqModel> WrappedModel;
 		typedef array<WrappedModel^> WrappedModelArray;
 		int protosPerClass,modelType;
 		String^ label;

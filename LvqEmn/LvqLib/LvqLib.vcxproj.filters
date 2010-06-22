@@ -36,14 +36,11 @@
     <ClCompile Include="utils.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="AbstractLvqModel.cpp">
+    <ClCompile Include="LvqModel.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="AbstractLvqModel.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="DatasetUtils.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -81,6 +78,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="GoodBadMatch.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="LvqModel.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -2,13 +2,13 @@
 #include "stdafx.h"
 #include "LvqConstants.h"
 #include "utils.h"
-#include "AbstractLvqModel.h"
+#include "LvqModel.h"
 #include "LvqTrainingStat.h"
 
 
-class AbstractProjectionLvqModel : public AbstractLvqModel {
+class AbstractProjectionLvqModel : public LvqModel {
 protected:
-	AbstractProjectionLvqModel(boost::mt19937 & rngIter,int input_dims, int classCount) :AbstractLvqModel(rngIter,classCount), P(LVQ_LOW_DIM_SPACE, input_dims)  {	P.setIdentity(); }
+	AbstractProjectionLvqModel(boost::mt19937 & rngIter,int input_dims, int classCount) :LvqModel(rngIter,classCount), P(LVQ_LOW_DIM_SPACE, input_dims)  {	P.setIdentity(); }
 	PMatrix P;
 	template <typename T>
 	static void ClassBoundaryDiagramImpl(T const &self, double x0, double x1, double y0, double y1, MatrixXi & classDiagram) {

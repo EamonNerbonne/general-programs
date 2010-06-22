@@ -130,7 +130,7 @@ void G2mLvqModel::ClassBoundaryDiagram(double x0, double x1, double y0, double y
 	}
 }
 
-AbstractLvqModel* G2mLvqModel::clone() const { return new G2mLvqModel(*this); }
+LvqModel* G2mLvqModel::clone() const { return new G2mLvqModel(*this); }
 
 size_t G2mLvqModel::MemAllocEstimate() const {
 	return 

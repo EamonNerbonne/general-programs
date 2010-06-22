@@ -2,7 +2,7 @@
 #include "stdafx.h"
 using namespace Eigen;
 
-#include "AbstractLvqModel.h"
+#include "LvqModel.h"
 #include "AbstractProjectionLvqModel.h"
 
 //TODO: make explicit subset classes for training/test stuff.
@@ -23,9 +23,9 @@ public:
 	LvqDataset(MatrixXd const & points, std::vector<int> pointLabels, int classCount);
 	MatrixXd ComputeClassMeans(std::vector<int> const & subset) const;
 
-	void TrainModel(int epochs, AbstractLvqModel * model, std::vector<int> const  & trainingSubset, LvqDataset const * testData, std::vector<int> const  & testSubset) const;
+	void TrainModel(int epochs, LvqModel * model, std::vector<int> const  & trainingSubset, LvqDataset const * testData, std::vector<int> const  & testSubset) const;
 
-	void ComputeCostAndErrorRate(std::vector<int> const & subset, AbstractLvqModel const * model,double &cost,double &errorRate) const;
+	void ComputeCostAndErrorRate(std::vector<int> const & subset, LvqModel const * model,double &cost,double &errorRate) const;
 
 
 	PMatrix ProjectPoints(AbstractProjectionLvqModel const * model) const;

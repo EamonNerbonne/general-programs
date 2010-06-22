@@ -61,7 +61,7 @@ void LvqDataset::shufflePoints(boost::mt19937& rng) {
 
 
 
-void LvqDataset::TrainModel(int epochs, AbstractLvqModel * model, std::vector<int> const  & trainingSubset, LvqDataset const * testData, std::vector<int> const  & testSubset) const {
+void LvqDataset::TrainModel(int epochs, LvqModel * model, std::vector<int> const  & trainingSubset, LvqDataset const * testData, std::vector<int> const  & testSubset) const {
 	int dims = static_cast<int>(points.rows());
 	VectorXd pointA(dims);
 	int cacheLines = (dims*sizeof(points(0,0) ) +63)/ 64 ;
@@ -85,11 +85,11 @@ void LvqDataset::TrainModel(int epochs, AbstractLvqModel * model, std::vector<in
 			pointCostSum+=pointCost;
 		}
 		t.stop();
-		model->AddTrainingStatFast(pointCostSum/double(shuffledOrder.size()),errs/double(shuffledOrder.size()), testData,testSubset, (int)(1*shuffledOrder.size()), t.value(CPU_TIMER));
+		model->AddTrainingStat(pointCostSum/double(shuffledOrder.size()),errs/double(shuffledOrder.size()), testData,testSubset, (int)(1*shuffledOrder.size()), t.value(CPU_TIMER));
 	}
 }
 
-void LvqDataset::ComputeCostAndErrorRate(std::vector<int> const & subset, AbstractLvqModel const * model,double &meanCost,double & errorRate) const{
+void LvqDataset::ComputeCostAndErrorRate(std::vector<int> const & subset, LvqModel const * model,double &meanCost,double & errorRate) const{
 	VectorXd a;
 	double totalCost=0;
 	int errs=0;

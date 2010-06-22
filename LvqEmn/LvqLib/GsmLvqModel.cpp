@@ -111,7 +111,7 @@ void GsmLvqModel::computeCostAndError(VectorXd const & unknownPoint, int pointLa
 	cost=matches.CostFunc();
 }
 
-AbstractLvqModel* GsmLvqModel::clone() const { return new GsmLvqModel(*this);	}
+LvqModel* GsmLvqModel::clone() const { return new GsmLvqModel(*this);	}
 
 
 

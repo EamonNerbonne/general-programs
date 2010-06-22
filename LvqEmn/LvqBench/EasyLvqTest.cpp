@@ -54,7 +54,7 @@ unsigned int secure_rand() {
 }
 #endif
 
-void PrintModelStatus(char const * label,AbstractLvqModel const * model,LvqDataset const * dataset) {
+void PrintModelStatus(char const * label,LvqModel const * model,LvqDataset const * dataset) {
 	using namespace std;
 	double meanCost=0,errorRate=0;
 	dataset->ComputeCostAndErrorRate(dataset->GetTrainingSubset(0,0),model,meanCost,errorRate);
@@ -71,7 +71,7 @@ template <class T> void TestModel(mt19937 & rndGenOrig, bool randInit, LvqDatase
 	mt19937 rndGen(rndGenCopy); //we do this to avoid changing the original rng, so we can rerun tests with the same sequence of random numbers generated.
 
 	using boost::scoped_ptr;
-	scoped_ptr<AbstractLvqModel> model;
+	scoped_ptr<LvqModel> model;
 	t.start();
 	model.reset(new T(rndGen,rndGen, randInit, protoDistrib, dataset->ComputeClassMeans(dataset->GetTrainingSubset(0,0))));
 	t.stop();

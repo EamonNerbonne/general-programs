@@ -4,7 +4,7 @@
 #include "LvqConstants.h"
 
 GmLvqModel::GmLvqModel(boost::mt19937 & rngParams, boost::mt19937 & rngIter,  bool randInit, std::vector<int> protodistribution, MatrixXd const & means)
-	: AbstractLvqModel(rngIter,(int)protodistribution.size())
+	: LvqModel(rngIter,(int)protodistribution.size())
 	, lr_scale_P(LVQ_LrScaleP)
 	, vJ(means.rows())
 	, vK(means.rows())

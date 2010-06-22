@@ -1,11 +1,11 @@
 #pragma once
 #include "stdafx.h"
-#include "AbstractLvqModel.h"
+#include "LvqModel.h"
 #include "GoodBadMatch.h"
 
 using boost::scoped_array;
 using std::vector;
-class GmLvqModel : public AbstractLvqModel, public AbstractLvqModelBase<GmLvqModel,VectorXd>
+class GmLvqModel : public LvqModel, public AbstractLvqModelBase<GmLvqModel,VectorXd>
 {
 	vector<MatrixXd > P; //<double,Eigen::Dynamic,Eigen::Dynamic,Eigen::ColMajor,Eigen::Dynamic,Eigen::Dynamic>
 	vector<VectorXd> prototype;
