@@ -44,18 +44,18 @@ namespace LvqLibCli {
 		using System::Collections::Generic::List;
 		WrappedModelArray^ currentBackup = modelCopy;
 		msclr::lock l2(currentBackup);
-		int statCount =int( currentBackup[0]->get()->trainingStats.size());
-		int statDim = statCount==0?0:  int(currentBackup[0]->get()->trainingStats[0].values.size());
+		int statCount =int( currentBackup[0]->get()->TrainingStats().size());
+		int statDim = statCount==0?0:  int(currentBackup[0]->get()->TrainingStats()[0].values.size());
 		if(currentBackup->Length ==1) {
-			return ToCli<array<LvqTrainingStatCli>^>::From(currentBackup[0]->get()->trainingStats);
+			return ToCli<array<LvqTrainingStatCli>^>::From(currentBackup[0]->get()->TrainingStats());
 		}
 		Eigen::VectorXd zero = VectorXd::Zero(statDim);
 		array<LvqTrainingStatCli>^ retval = gcnew array<LvqTrainingStatCli>(statCount);
 		for(int si=0;si<statCount;++si) {
 			SmartSum<Eigen::VectorXd> stat(zero);
 			for each(WrappedModel^ m in currentBackup)
-				stat.CombineWith(m->get()->trainingStats[si].values,1.0);
-			retval[si] = LvqTrainingStatCli::toCli(currentBackup[0]->get()->trainingStats[si].trainingIter, stat.GetMean(), (stat.GetSampleVariance().array().sqrt() * (1.0/sqrt(stat.GetWeight()))).matrix() );
+				stat.CombineWith(m->get()->TrainingStats()[si].values,1.0);
+			retval[si] = LvqTrainingStatCli::toCli(currentBackup[0]->get()->TrainingStats()[si].trainingIter, stat.GetMean(), (stat.GetSampleVariance().array().sqrt() * (1.0/sqrt(stat.GetWeight()))).matrix() );
 		}
 		GC::KeepAlive(currentBackup);
 		return retval;

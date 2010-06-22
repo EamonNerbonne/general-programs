@@ -6,6 +6,9 @@
 using namespace std;
 using namespace Eigen;
 
+LvqModel::LvqModel(boost::mt19937 & rngIter,int classCount) : trainIter(0), totalIter(0), totalElapsed(0.0), rngIter(rngIter), iterationScaleFactor(LVQ_PERCLASSITERFACTOR/classCount),classCount(classCount){ }
+
+
 void LvqModel::AddTrainingStat(double trainingMeanCost,double trainingErrorRate, LvqDataset const * testSet,  vector<int>const & testSubset, int iterInc, double elapsedInc) {
 	this->totalIter+=iterInc;
 	this->totalElapsed+=elapsedInc;

@@ -13,7 +13,7 @@ class LvqModel
 	unsigned long long totalIter;
 	double totalElapsed;
 	boost::mt19937 rngIter;
-
+	std::vector<LvqTrainingStat> trainingStats;
 protected:
 	double iterationScaleFactor;
 	inline double stepLearningRate() {
@@ -25,13 +25,13 @@ protected:
 	const int classCount;
 public:
 	boost::mt19937 & RngIter() {return rngIter;}
-	std::vector<LvqTrainingStat> trainingStats;
 	void resetLearningRate() {trainIter=0;}
+	int ClassCount() const { return classCount; }
+	std::vector<LvqTrainingStat> const & TrainingStats() {return trainingStats;}
 
-	LvqModel(boost::mt19937 & rngIter,int classCount) : trainIter(0), totalIter(0), totalElapsed(0.0), rngIter(rngIter), iterationScaleFactor(LVQ_PERCLASSITERFACTOR/classCount),classCount(classCount){ }
+	LvqModel(boost::mt19937 & rngIter,int classCount);
 	void AddTrainingStat(double trainingMeanCost,double trainingErrorRate, LvqDataset const * testSet,  std::vector<int>const & testSubset, int iterInc, double elapsedInc);
 	void AddTrainingStat(LvqDataset const * trainingSet,  std::vector<int>const & trainingSubset, LvqDataset const * testSet,  std::vector<int>const & testSubset, int iterInc, double elapsedInc);
-	int ClassCount() const { return classCount; }
 
 	virtual int classify(VectorXd const & unknownPoint) const=0; 
 	virtual void computeCostAndError(VectorXd const & unknownPoint, int pointLabel,bool&err,double&cost) const=0;
