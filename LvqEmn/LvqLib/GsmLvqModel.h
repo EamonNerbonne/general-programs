@@ -1,9 +1,8 @@
 #pragma once
 #include "stdafx.h"
-#include "LvqProjectionModel.h"
-#include "LvqModelFindMatches.h"
+#include "LvqProjectionModelBase.h"
 
-class GsmLvqModel : public LvqProjectionModel, public LvqModelFindMatches<GsmLvqModel,Vector2d>
+class GsmLvqModel : public LvqProjectionModelBase<GsmLvqModel>
 {
 	//PMatrix P; //in base class
 	std::vector<VectorXd> prototype;
@@ -38,9 +37,8 @@ public:
 	virtual size_t MemAllocEstimate() const;
 
 	GsmLvqModel(boost::mt19937 & rngParams, boost::mt19937 & rngIter, bool randInit, std::vector<int> protodistribution, MatrixXd const & means);
-	void computeCostAndError(VectorXd const & unknownPoint, int pointLabel,bool&err,double&cost) const;
-	int classify(VectorXd const & unknownPoint) const {return classifyProjectedInline(P * unknownPoint);}
-	int classifyProjected(Vector2d const & unknownProjectedPoint) const {return classifyProjectedInline(unknownProjectedPoint);}
+	virtual int classify(VectorXd const & unknownPoint) const {return classifyProjectedInline(P * unknownPoint);}
+	virtual int classifyProjected(Vector2d const & unknownProjectedPoint) const {return classifyProjectedInline(unknownProjectedPoint);}
 	inline int classifyProjectedInline(Vector2d const & P_otherPoint) const{
 		double distance(std::numeric_limits<double>::infinity());
 		int match(-1);
@@ -53,8 +51,7 @@ public:
 		return this->pLabel(match);
 	}
 	
-	void learnFrom(VectorXd const & newPoint, int classLabel, bool *wasError, double* hadCost);
-	void ClassBoundaryDiagram(double x0, double x1, double y0, double y1, MatrixXi & classDiagram) const {ClassBoundaryDiagramImpl(*this,x0,x1,y0,y1,classDiagram);}
+	GoodBadMatch learnFrom(VectorXd const & newPoint, int classLabel);
 	LvqModel* clone() const; 
 
 	MatrixXd GetProjectedPrototypes() const;

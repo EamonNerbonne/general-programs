@@ -1,27 +1,9 @@
 #pragma once
 #include "stdafx.h"
-
-struct GoodBadMatch {
-	double distGood, distBad;
-	int matchGood, matchBad;
-	inline GoodBadMatch()
-		: distGood(std::numeric_limits<double>::infinity())
-		, distBad(std::numeric_limits<double>::infinity())
-#ifndef NDEBUG
-		, matchGood(-1)
-		, matchBad(-1)
-#endif
-	{}
-	double CostFunc() const { return (distGood - distBad)/(distGood+distBad); }
-	bool IsErr()const{return distGood > distBad;}
-};
-
+#include "GoodBadMatch.h"
 
 template<typename TDerivedModel, typename TProcessedPoint> class LvqModelFindMatches {
 protected:
-#pragma warning (disable: 4127)
-#define ASSTRING(X) #X
-#define DBG(X) (cout<<ASSTRING(X)<<": "<<X<<"\n")
 
 	EIGEN_STRONG_INLINE GoodBadMatch findMatches(TProcessedPoint const & trainPoint, int trainLabel) const {
 		using std::cout;

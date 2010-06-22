@@ -7,7 +7,7 @@ using namespace std;
 using namespace Eigen;
 
 G2mLvqModel::G2mLvqModel(boost::mt19937 & rngParams,boost::mt19937 & rngIter, bool randInit, std::vector<int> protodistribution, MatrixXd const & means)
-	: LvqProjectionModel(rngIter,static_cast<int>(means.rows()),static_cast<int>(protodistribution.size())) 
+	: LvqProjectionModelBase(rngIter,static_cast<int>(means.rows()),static_cast<int>(protodistribution.size())) 
 	, lr_scale_P(LVQ_LrScaleP)
 	, lr_scale_B(LVQ_LrScaleB)
 	, m_vJ(means.rows())
@@ -38,7 +38,7 @@ G2mLvqModel::G2mLvqModel(boost::mt19937 & rngParams,boost::mt19937 & rngIter, bo
 }
 typedef Map<VectorXd,  Aligned> MVectorXd;
 
-void G2mLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel, bool *wasError, double* hadCost) {
+GoodBadMatch G2mLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel) {
 	using namespace std;
 	//double learningRate = getLearningRate();
 	//incLearningIterationCount();
@@ -60,10 +60,6 @@ void G2mLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel, bool *w
 	GoodBadMatch matches = findMatches(projectedTrainPoint, trainLabel);
 
 	//now matches.good is "J" and matches.bad is "K".
-	if(wasError)
-		*wasError = matches.IsErr();
-	if(hadCost)
-		*hadCost = matches.CostFunc();
 
 	double mu_J = -2.0*matches.distGood / (sqr( matches.distGood) + sqr(matches.distBad));
 	double mu_K = +2.0*matches.distBad / (sqr( matches.distGood) + sqr(matches.distBad));
@@ -108,27 +104,9 @@ void G2mLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel, bool *w
 	//P *= pNormScale;
 	for(size_t i=0;i<prototype.size();++i)
 		prototype[i].ComputePP(P);
+	return matches;
 }
 
-
-void G2mLvqModel::computeCostAndError(VectorXd const & unknownPoint, int pointLabel,bool&err,double&cost) const {
-	GoodBadMatch matches = findMatches(P * unknownPoint, pointLabel);
-	cost= matches.CostFunc();
-	err=matches.IsErr();
-}
-
-void G2mLvqModel::ClassBoundaryDiagram(double x0, double x1, double y0, double y1, MatrixXi & classDiagram) const {
-	int cols = static_cast<int>(classDiagram.cols());
-	int rows = static_cast<int>(classDiagram.rows());
-	for(int xCol=0;  xCol < cols;  xCol++) {
-		double x = x0 + (x1-x0) * (xCol+0.5) / cols;
-		for(int yRow=0;  yRow < rows;  yRow++) {
-			double y = y0+(y1-y0) * (yRow+0.5) / rows;
-			Vector2d vec(x,y);
-			classDiagram(yRow, xCol) = classifyProjectedInline(vec);
-		}
-	}
-}
 
 LvqModel* G2mLvqModel::clone() const { return new G2mLvqModel(*this); }
 

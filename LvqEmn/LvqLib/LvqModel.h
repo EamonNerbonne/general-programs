@@ -3,6 +3,8 @@
 #include "utils.h"
 #include "LvqTrainingStat.h"
 #include "LvqConstants.h"
+#include "GoodBadMatch.h"
+
 #pragma intrinsic(pow)
 
 class LvqDataset;
@@ -33,10 +35,10 @@ public:
 	void AddTrainingStat(LvqDataset const * trainingSet,  std::vector<int>const & trainingSubset, LvqDataset const * testSet,  std::vector<int>const & testSubset, int iterInc, double elapsedInc);
 
 	virtual int classify(VectorXd const & unknownPoint) const=0; 
-	virtual void computeCostAndError(VectorXd const & unknownPoint, int pointLabel,bool&err,double&cost) const=0;
+	virtual GoodBadMatch ComputeMatches(VectorXd const & unknownPoint, int pointLabel) const=0;
 	virtual double meanProjectionNorm() const=0; 
 	virtual VectorXd otherStats() const { return VectorXd::Zero((int)LvqTrainingStats::Extra); }
-	virtual void learnFrom(VectorXd const & newPoint, int classLabel, bool *wasError, double* hadCost)=0;
+	virtual GoodBadMatch learnFrom(VectorXd const & newPoint, int classLabel)=0;
 	virtual ~LvqModel() {	}
 	virtual LvqModel* clone() const=0;
 	virtual size_t MemAllocEstimate() const=0;

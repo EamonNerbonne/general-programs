@@ -45,9 +45,9 @@ public:
 	virtual VectorXd otherStats() const; 
 
 	GmLvqModel(boost::mt19937 & rngParams, boost::mt19937 & rngIter,  bool randInit, std::vector<int> protodistribution, MatrixXd const & means);
-	void computeCostAndError(VectorXd const & unknownPoint, int pointLabel,bool&err,double&cost) const;
+	virtual GoodBadMatch ComputeMatches(VectorXd const & unknownPoint, int pointLabel) const;
 	virtual int classify(VectorXd const & unknownPoint) const; 
-	virtual void learnFrom(VectorXd const & newPoint, int classLabel, bool *wasError, double* hadCost);
+	virtual GoodBadMatch learnFrom(VectorXd const & newPoint, int classLabel);
 	virtual GmLvqModel* clone() const { return new GmLvqModel(*this); }
 };
 

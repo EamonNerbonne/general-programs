@@ -504,9 +504,11 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release3NoVec|X64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release2|X64'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="TrivialVector.cpp" />
     <ClCompile Include="utils.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="GoodBadMatch.h" />
     <ClInclude Include="LvqModel.h" />
     <ClInclude Include="LvqProjectionModel.h" />
     <ClInclude Include="DatasetUtils.h" />
@@ -517,6 +519,7 @@
     <ClInclude Include="GsmLvqModel.h" />
     <ClInclude Include="LvqConstants.h" />
     <ClInclude Include="LvqDataset.h" />
+    <ClInclude Include="LvqProjectionModelBase.h" />
     <ClInclude Include="LvqTrainingStat.h" />
     <ClInclude Include="SmartSum.h" />
     <ClInclude Include="stdafx.h" />

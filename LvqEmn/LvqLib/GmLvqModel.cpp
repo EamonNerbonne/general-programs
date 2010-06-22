@@ -39,7 +39,7 @@ GmLvqModel::GmLvqModel(boost::mt19937 & rngParams, boost::mt19937 & rngIter,  bo
 
 
 
-void GmLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel, bool *wasError, double* hadCost) {
+GoodBadMatch GmLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel) {
 	//double learningRate = getLearningRate();
 	//incLearningIterationCount();
 	double learningRate = stepLearningRate();
@@ -51,10 +51,6 @@ void GmLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel, bool *wa
 	assert(lr_P>=0 && lr_point>=0);
 
 	GoodBadMatch matches = findMatches(trainPoint, trainLabel);
-
-	if(wasError) *wasError = matches.IsErr();
-	if(hadCost) *hadCost = matches.CostFunc();
-
 
 	//now matches.good is "J" and matches.bad is "K".
 
@@ -105,14 +101,10 @@ void GmLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel, bool *wa
 	P[J] -= ( lrX_muK2_Pj_vJ * vJ.transpose() ).lazy();
 	P[K] -= ( lrX_muJ2_Pk_vK * vK.transpose() ).lazy();
 #endif
+	return matches;
 }
 
-void GmLvqModel::computeCostAndError(VectorXd const & unknownPoint, int pointLabel,bool&err,double&cost) const {
-	GoodBadMatch matches = findMatches(unknownPoint, pointLabel);
-	err = matches.IsErr();
-	cost = matches.CostFunc();
-}
-
+GoodBadMatch GmLvqModel::ComputeMatches(VectorXd const & unknownPoint, int pointLabel) const {return findMatches(unknownPoint,pointLabel);}
 
 size_t GmLvqModel::MemAllocEstimate() const {
 	return 
