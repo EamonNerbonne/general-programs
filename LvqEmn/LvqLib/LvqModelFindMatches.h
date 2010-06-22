@@ -25,15 +25,16 @@ protected:
 			}
 		}
 
+#ifndef NDEBUG
 		if(match.matchBad < 0 ||match.matchGood <0) {
-			assert( match.matchBad >= 0 && match.matchGood >=0 );
 			DBG(match.matchBad);
 			DBG(match.matchGood);
 			DBG(match.distBad);
 			DBG(match.distGood);
-			DBG(self.PrototypeCount());//WTF: this statement impacts gcc _correctness_?
+			DBG(self.PrototypeCount());
+			assert( match.matchBad >= 0 && match.matchGood >=0 );
 		}
+#endif
 		return match;
 	}
-
 };

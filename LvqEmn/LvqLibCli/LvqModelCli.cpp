@@ -76,7 +76,7 @@ namespace LvqLibCli {
 		msclr::lock l(currentBackup);
 		LvqProjectionModel* projectionModel = dynamic_cast<LvqProjectionModel*>( currentBackup[0]->get());
 
-		return projectionModel? ToCli<array<double,2>^>::From(dataset->GetDataset()->ProjectPoints(projectionModel)):nullptr ; 
+		return projectionModel ? ToCli<array<double,2>^>::From(dataset->GetDataset()->ProjectPoints(projectionModel)) : nullptr ; 
 	}
 
 	ModelProjection LvqModelCli::CurrentProjectionAndPrototypes(LvqDatasetCli^ dataset){

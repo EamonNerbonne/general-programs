@@ -60,8 +60,9 @@ void PrintModelStatus(char const * label,LvqModel const * model,LvqDataset const
 	dataset->ComputeCostAndErrorRate(dataset->GetTrainingSubset(0,0),model,meanCost,errorRate);
 
 	cerr << label<< ": "<<errorRate << ", "<<meanCost;
-	if(dynamic_cast<LvqProjectionModel const*>(model)) 
-		cerr<<"   [norm: "<< dynamic_cast<LvqProjectionModel const*>(model)->projectionNorm() <<"]";
+	LvqProjectionModel const * projectionModel = dynamic_cast<LvqProjectionModel const*>(model);
+	if(projectionModel) 
+		cerr<<"   [norm: "<< projectionModel->projectionNorm() <<"]";
 	cerr<<endl;
 }
 

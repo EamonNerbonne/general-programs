@@ -100,18 +100,6 @@ GoodBadMatch GsmLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel)
 
 LvqModel* GsmLvqModel::clone() const { return new GsmLvqModel(*this);	}
 
-size_t GsmLvqModel::MemAllocEstimate() const {
-	return 
-		sizeof(GsmLvqModel) + //base structure size
-		sizeof(int)*pLabel.size() + //dyn.alloc labels
-		sizeof(double) * (P.size() ) + //dyn alloc transform + temp transform
-		sizeof(double) * (vJ.size()*3) + //various vector temps
-		sizeof(VectorXd) *prototype.size() +//dyn alloc prototype base overhead
-		sizeof(double) * (prototype.size() * vJ.size()) + //dyn alloc prototype data
-		sizeof(Vector2d) * P_prototype.size() + //cache of pretransformed prototypes
-		(16/2) * (5+prototype.size()*2);//estimate for alignment mucking.
-}
-
 MatrixXd GsmLvqModel::GetProjectedPrototypes() const {
 	MatrixXd retval(LVQ_LOW_DIM_SPACE, static_cast<int>(prototype.size()));
 	for(unsigned i=0;i<prototype.size();++i)
@@ -124,4 +112,16 @@ vector<int> GsmLvqModel::GetPrototypeLabels() const {
 	for(unsigned i=0;i<prototype.size();++i)
 		retval[i] = pLabel[i];
 	return retval;
+}
+
+size_t GsmLvqModel::MemAllocEstimate() const {
+	return 
+		sizeof(GsmLvqModel) + //base structure size
+		sizeof(int)*pLabel.size() + //dyn.alloc labels
+		sizeof(double) * (P.size() ) + //dyn alloc transform + temp transform
+		sizeof(double) * (vJ.size()*3) + //various vector temps
+		sizeof(VectorXd) *prototype.size() +//dyn alloc prototype base overhead
+		sizeof(double) * (prototype.size() * vJ.size()) + //dyn alloc prototype data
+		sizeof(Vector2d) * P_prototype.size() + //cache of pretransformed prototypes
+		(16/2) * (5+prototype.size()*2);//estimate for alignment mucking.
 }
