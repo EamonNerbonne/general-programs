@@ -508,12 +508,12 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="LvqModel.h" />
-    <ClInclude Include="AbstractProjectionLvqModel.h" />
+    <ClInclude Include="LvqProjectionModel.h" />
     <ClInclude Include="DatasetUtils.h" />
     <ClInclude Include="G2mLvqModel.h" />
     <ClInclude Include="G2mLvqPrototype.h" />
     <ClInclude Include="GmLvqModel.h" />
-    <ClInclude Include="GoodBadMatch.h" />
+    <ClInclude Include="LvqModelFindMatches.h" />
     <ClInclude Include="GsmLvqModel.h" />
     <ClInclude Include="LvqConstants.h" />
     <ClInclude Include="LvqDataset.h" />

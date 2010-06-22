@@ -74,13 +74,13 @@
     <ClInclude Include="LvqTrainingStat.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="AbstractProjectionLvqModel.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="GoodBadMatch.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="LvqModel.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="LvqProjectionModel.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="LvqModelFindMatches.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

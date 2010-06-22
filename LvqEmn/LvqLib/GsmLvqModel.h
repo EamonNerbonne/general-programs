@@ -1,9 +1,9 @@
 #pragma once
 #include "stdafx.h"
-#include "AbstractProjectionLvqModel.h"
-#include "GoodBadMatch.h"
+#include "LvqProjectionModel.h"
+#include "LvqModelFindMatches.h"
 
-class GsmLvqModel : public AbstractProjectionLvqModel, public AbstractLvqModelBase<GsmLvqModel,Vector2d>
+class GsmLvqModel : public LvqProjectionModel, public LvqModelFindMatches<GsmLvqModel,Vector2d>
 {
 	//PMatrix P; //in base class
 	std::vector<VectorXd> prototype;

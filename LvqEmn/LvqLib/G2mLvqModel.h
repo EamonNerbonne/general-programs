@@ -1,12 +1,12 @@
 #pragma once
 #include "stdafx.h"
-#include "AbstractProjectionLvqModel.h"
+#include "LvqProjectionModel.h"
 #include "G2mLvqPrototype.h"
-#include "GoodBadMatch.h"
+#include "LvqModelFindMatches.h"
 
 using namespace Eigen;
 
-class G2mLvqModel : public AbstractProjectionLvqModel, public AbstractLvqModelBase<G2mLvqModel, Vector2d>
+class G2mLvqModel : public LvqProjectionModel, public LvqModelFindMatches<G2mLvqModel, Vector2d>
 {
 	typedef std::vector<G2mLvqPrototype, Eigen::aligned_allocator<G2mLvqPrototype> > protoList;
 

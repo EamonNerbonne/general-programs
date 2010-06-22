@@ -3,7 +3,7 @@
 using namespace Eigen;
 
 #include "LvqModel.h"
-#include "AbstractProjectionLvqModel.h"
+#include "LvqProjectionModel.h"
 
 //TODO: make explicit subset classes for training/test stuff.
 
@@ -28,7 +28,7 @@ public:
 	void ComputeCostAndErrorRate(std::vector<int> const & subset, LvqModel const * model,double &cost,double &errorRate) const;
 
 
-	PMatrix ProjectPoints(AbstractProjectionLvqModel const * model) const;
+	PMatrix ProjectPoints(LvqProjectionModel const * model) const;
 	size_t MemAllocEstimate() const;
 	int dimensions() const { return static_cast<int>(points.rows());}
 

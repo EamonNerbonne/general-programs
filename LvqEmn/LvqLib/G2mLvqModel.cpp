@@ -7,7 +7,7 @@ using namespace std;
 using namespace Eigen;
 
 G2mLvqModel::G2mLvqModel(boost::mt19937 & rngParams,boost::mt19937 & rngIter, bool randInit, std::vector<int> protodistribution, MatrixXd const & means)
-	: AbstractProjectionLvqModel(rngIter,static_cast<int>(means.rows()),static_cast<int>(protodistribution.size())) 
+	: LvqProjectionModel(rngIter,static_cast<int>(means.rows()),static_cast<int>(protodistribution.size())) 
 	, lr_scale_P(LVQ_LrScaleP)
 	, lr_scale_B(LVQ_LrScaleB)
 	, m_vJ(means.rows())

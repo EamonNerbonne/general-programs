@@ -104,6 +104,6 @@ void LvqDataset::ComputeCostAndErrorRate(std::vector<int> const & subset, LvqMod
 	errorRate = errs/double(subset.size());
 }
 
-PMatrix LvqDataset::ProjectPoints(AbstractProjectionLvqModel const * model) const {
+PMatrix LvqDataset::ProjectPoints(LvqProjectionModel const * model) const {
 	return model->projectionMatrix() * points;
 }

@@ -6,9 +6,9 @@
 #include "LvqTrainingStat.h"
 
 
-class AbstractProjectionLvqModel : public LvqModel {
+class LvqProjectionModel : public LvqModel {
 protected:
-	AbstractProjectionLvqModel(boost::mt19937 & rngIter,int input_dims, int classCount) :LvqModel(rngIter,classCount), P(LVQ_LOW_DIM_SPACE, input_dims)  {	P.setIdentity(); }
+	LvqProjectionModel(boost::mt19937 & rngIter,int input_dims, int classCount) :LvqModel(rngIter,classCount), P(LVQ_LOW_DIM_SPACE, input_dims)  {	P.setIdentity(); }
 	PMatrix P;
 	template <typename T>
 	static void ClassBoundaryDiagramImpl(T const &self, double x0, double x1, double y0, double y1, MatrixXi & classDiagram) {
@@ -25,7 +25,7 @@ protected:
 	}
 
 public:
-	virtual ~AbstractProjectionLvqModel() { }
+	virtual ~LvqProjectionModel() { }
 	PMatrix const & projectionMatrix() const {return P;}
 	double projectionNorm() const { return projectionSquareNorm(P);  }
 	virtual double meanProjectionNorm() const {return projectionNorm();}

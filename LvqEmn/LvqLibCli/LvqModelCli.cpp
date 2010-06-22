@@ -74,7 +74,7 @@ namespace LvqLibCli {
 		if(currentBackup==nullptr)
 			return nullptr;
 		msclr::lock l(currentBackup);
-		AbstractProjectionLvqModel* projectionModel = dynamic_cast<AbstractProjectionLvqModel*>( currentBackup[0]->get());
+		LvqProjectionModel* projectionModel = dynamic_cast<LvqProjectionModel*>( currentBackup[0]->get());
 
 		return projectionModel? ToCli<array<double,2>^>::From(dataset->GetDataset()->ProjectPoints(projectionModel)):nullptr ; 
 	}
@@ -114,7 +114,7 @@ namespace LvqLibCli {
 				return nullptr; //TODO: should never happen?
 
 			msclr::lock l(currentBackup);
-			AbstractProjectionLvqModel* projectionModel = dynamic_cast<AbstractProjectionLvqModel*>( currentBackup[0]->get());
+			LvqProjectionModel* projectionModel = dynamic_cast<LvqProjectionModel*>( currentBackup[0]->get());
 			if(!projectionModel) return nullptr;
 			projectionModel->ClassBoundaryDiagram(x0,x1,y0,y1,classDiagram);
 		}
@@ -140,7 +140,7 @@ namespace LvqLibCli {
 	Tuple<array<double,2>^, array<int>^>^ LvqModelCli::PrototypePositions() {
 		WrappedModelArray^ currentBackup = modelCopy;
 		msclr::lock l(currentBackup);
-		AbstractProjectionLvqModel* projectionModel = dynamic_cast<AbstractProjectionLvqModel*>( currentBackup[0]->get());
+		LvqProjectionModel* projectionModel = dynamic_cast<LvqProjectionModel*>( currentBackup[0]->get());
 		if(!projectionModel) return nullptr;
 		return Tuple::Create(ToCli<array<double,2>^>::From(projectionModel->GetProjectedPrototypes()), ToCli<array<int>^>::From(projectionModel->GetPrototypeLabels()));
 	}
