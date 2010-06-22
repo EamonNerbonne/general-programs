@@ -106,27 +106,12 @@ void GsmLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel, bool *w
 
 
 void GsmLvqModel::computeCostAndError(VectorXd const & unknownPoint, int pointLabel,bool&err,double&cost) const {
-
 	GoodBadMatch matches = findMatches(P * unknownPoint, pointLabel);
 	err=matches.IsErr();
 	cost=matches.CostFunc();
 }
 
-
-void GsmLvqModel::ClassBoundaryDiagram(double x0, double x1, double y0, double y1, MatrixXi & classDiagram) const {
-	int cols = static_cast<int>(classDiagram.cols());
-	int rows = static_cast<int>(classDiagram.rows());
-	for(int xCol=0;  xCol < cols;  xCol++) {
-		double x = x0 + (x1-x0) * (xCol+0.5) / cols;
-		for(int yRow=0;  yRow < rows;  yRow++) {
-			double y = y0+(y1-y0) * (yRow+0.5) / rows;
-			Vector2d vec(x,y);
-			classDiagram(yRow,xCol) = classifyProjectedInternal(vec);
-		}
-	}
-}
-
-AbstractLvqModel* GsmLvqModel::clone() { return new GsmLvqModel(*this);	}
+AbstractLvqModel* GsmLvqModel::clone() const { return new GsmLvqModel(*this);	}
 
 
 

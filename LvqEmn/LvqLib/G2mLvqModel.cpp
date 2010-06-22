@@ -112,14 +112,7 @@ void G2mLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel, bool *w
 
 
 void G2mLvqModel::computeCostAndError(VectorXd const & unknownPoint, int pointLabel,bool&err,double&cost) const {
-#if EIGEN3
-	Vector2d projectedTrainPoint = P * unknownPoint;
-#else
-	Vector2d projectedTrainPoint = (P * unknownPoint).lazy();
-#endif
-
-	GoodBadMatch matches = findMatches(projectedTrainPoint, pointLabel);
-
+	GoodBadMatch matches = findMatches(P * unknownPoint, pointLabel);
 	cost= matches.CostFunc();
 	err=matches.IsErr();
 }
@@ -132,12 +125,12 @@ void G2mLvqModel::ClassBoundaryDiagram(double x0, double x1, double y0, double y
 		for(int yRow=0;  yRow < rows;  yRow++) {
 			double y = y0+(y1-y0) * (yRow+0.5) / rows;
 			Vector2d vec(x,y);
-			classDiagram(yRow, xCol) = classifyProjectedInternal(vec);
+			classDiagram(yRow, xCol) = classifyProjectedInline(vec);
 		}
 	}
 }
 
-AbstractLvqModel* G2mLvqModel::clone() { return new G2mLvqModel(*this); }
+AbstractLvqModel* G2mLvqModel::clone() const { return new G2mLvqModel(*this); }
 
 size_t G2mLvqModel::MemAllocEstimate() const {
 	return 

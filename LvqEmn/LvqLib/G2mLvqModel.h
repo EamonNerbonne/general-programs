@@ -1,11 +1,12 @@
 #pragma once
 #include "stdafx.h"
-#include "AbstractLvqModel.h"
+#include "AbstractProjectionLvqModel.h"
 #include "G2mLvqPrototype.h"
+#include "GoodBadMatch.h"
 
 using namespace Eigen;
 
-class G2mLvqModel : public AbstractProjectionLvqModel
+class G2mLvqModel : public AbstractProjectionLvqModel, public AbstractLvqModelBase<G2mLvqModel, Vector2d>
 {
 	typedef std::vector<G2mLvqPrototype, Eigen::aligned_allocator<G2mLvqPrototype> > protoList;
 
@@ -15,29 +16,23 @@ class G2mLvqModel : public AbstractProjectionLvqModel
 	//we will preallocate a few temp vectors to reduce malloc/free overhead.
 	VectorXd m_vJ, m_vK;
 
+public:
+		//for templates:
 
-	inline GoodBadMatch findMatches(Vector2d const & P_trainPoint, int trainLabel) const {
-		GoodBadMatch match;
-		for(int i=0;i<prototype.size();i++) {
-			double curDist = prototype[i].SqrDistanceTo(P_trainPoint);
-			if(prototype[i].classLabel == trainLabel) {
-				if(curDist < match.distGood) {
-					match.matchGood = i;
-					match.distGood = curDist;
-				}
-			} else {
-				if(curDist < match.distBad) {
-					match.matchBad = i;
-					match.distBad = curDist;
-				}
-			}
-		}
-		assert( matchBad >= 0 && matchGood >=0 );
-		return match;
-	}
+	inline int PrototypeLabel(int protoIndex) const {return prototype[protoIndex].label();}
+	inline int PrototypeCount() const {return static_cast<int>(prototype.size());}
+	inline double SqrDistanceTo(int protoIndex, Vector2d const & P_otherPoint) const { return prototype[protoIndex].SqrDistanceTo(P_otherPoint); }
+
+//end for templates
 
 
-	inline int classifyProjectedInternal(Vector2d const & P_unknownPoint) const {
+	G2mLvqModel(boost::mt19937 & rngParams,boost::mt19937 & rngIter, bool randInit, std::vector<int> protodistribution, MatrixXd const & means);
+	size_t MemAllocEstimate() const;
+    void computeCostAndError(VectorXd const & unknownPoint, int pointLabel,bool&err,double&cost) const;
+	VectorXd otherStats() const; 
+	int classify(VectorXd const & unknownPoint) const {return classifyProjectedInline(P * unknownPoint);}
+	int classifyProjected(Vector2d const & unknownProjectedPoint) const { return classifyProjectedInline(unknownProjectedPoint);}
+	inline int classifyProjectedInline(Vector2d const & P_unknownPoint) const {
 		double distance(std::numeric_limits<double>::infinity());
 		int match(-1);
 
@@ -49,19 +44,10 @@ class G2mLvqModel : public AbstractProjectionLvqModel
 		return prototype[match].classLabel;
 	}
 
-	inline int classifyInternal(VectorXd const & unknownPoint) const { return classifyProjectedInternal(P * unknownPoint); }
-public:
-
-	G2mLvqModel(boost::mt19937 & rngParams,boost::mt19937 & rngIter, bool randInit, std::vector<int> protodistribution, MatrixXd const & means);
-	virtual size_t MemAllocEstimate() const;
-	int classify(VectorXd const & unknownPoint) const {return classifyInternal(unknownPoint);}
-    void computeCostAndError(VectorXd const & unknownPoint, int pointLabel,bool&err,double&cost) const;
-	virtual VectorXd otherStats() const; 
-	int classifyProjected(Vector2d const & unknownProjectedPoint) const { return classifyProjectedInternal(unknownProjectedPoint);}
 	void learnFrom(VectorXd const & newPoint, int classLabel, bool *wasError, double* hadCost);
-	virtual void ClassBoundaryDiagram(double x0, double x1, double y0, double y1, MatrixXi & classDiagram) const;
-	virtual AbstractLvqModel* clone();
+	void ClassBoundaryDiagram(double x0, double x1, double y0, double y1, MatrixXi & classDiagram) const;
+	virtual AbstractLvqModel* clone() const ;
 
-	virtual MatrixXd GetProjectedPrototypes() const;
-	virtual std::vector<int> GetPrototypeLabels() const;
+	MatrixXd GetProjectedPrototypes() const;
+	std::vector<int> GetPrototypeLabels() const;
 };

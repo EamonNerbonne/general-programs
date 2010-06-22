@@ -1,10 +1,11 @@
 #pragma once
 #include "stdafx.h"
 #include "AbstractLvqModel.h"
+#include "GoodBadMatch.h"
 
 using boost::scoped_array;
 using std::vector;
-class GmLvqModel : public AbstractLvqModel
+class GmLvqModel : public AbstractLvqModel, public AbstractLvqModelBase<GmLvqModel,VectorXd>
 {
 	vector<MatrixXd > P; //<double,Eigen::Dynamic,Eigen::Dynamic,Eigen::ColMajor,Eigen::Dynamic,Eigen::Dynamic>
 	vector<VectorXd> prototype;
@@ -17,6 +18,11 @@ class GmLvqModel : public AbstractLvqModel
 	VectorXd vJ, vK;
 	mutable VectorXd tmpHelper1, tmpHelper2; //vectors of dimension DIMS
 
+public:
+//for templates:
+	inline int PrototypeLabel(int protoIndex) const {return pLabel(protoIndex);}
+	inline int PrototypeCount() const {return static_cast<int>(pLabel.size());}
+
 	EIGEN_STRONG_INLINE double SqrDistanceTo(int protoIndex, VectorXd const & otherPoint) const {
 #if EIGEN3
 		tmpHelper1.noalias() = prototype[protoIndex] - otherPoint;
@@ -27,42 +33,12 @@ class GmLvqModel : public AbstractLvqModel
 		tmpHelper2 = (P[protoIndex] * tmpHelper1).lazy();
 		return tmpHelper2.squaredNorm();
 #endif
-		
 	}
-	
-#pragma warning (disable: 4127)
-#define ASSTRING(X) #X
-#define DBG(X) do{cout<<ASSTRING(X)<<": "<<X<<"\n";} while(false)
-	EIGEN_STRONG_INLINE GoodBadMatch findMatches(VectorXd const & trainPoint, int trainLabel) const {
-		using std::cout;
-		GoodBadMatch match;
+	//end for templates
 
-		for(int i=0;i<pLabel.size();i++) {
-			double curDist = SqrDistanceTo(i, trainPoint);
-			if(pLabel(i) == trainLabel) {
-				if(curDist < match.distGood) {
-					match.matchGood = i;
-					match.distGood = curDist;
-				}
-			} else {
-				if(curDist < match.distBad) {
-					match.matchBad = i;
-					match.distBad = curDist;
-				}
-			}
-		}
-		if(match.matchBad < 0 ||match.matchGood <0) {
-			assert( match.matchBad >= 0 && match.matchGood >=0 );
-			DBG(match.matchBad);
-			DBG(match.matchGood);
-			DBG(match.distBad);
-			DBG(match.distGood);
-			DBG(pLabel.size());//WTF: this statement impacts gcc _correctness_?
-		}
-		return match;
-	}
 
-public:
+
+
 	virtual size_t MemAllocEstimate() const;
 	virtual int Dimensions() const {return static_cast<int>(P[0].cols());}
 	virtual double meanProjectionNorm() const;
@@ -72,7 +48,7 @@ public:
 	void computeCostAndError(VectorXd const & unknownPoint, int pointLabel,bool&err,double&cost) const;
 	virtual int classify(VectorXd const & unknownPoint) const; 
 	virtual void learnFrom(VectorXd const & newPoint, int classLabel, bool *wasError, double* hadCost);
-	virtual AbstractLvqModel* clone() { return new GmLvqModel(*this); }
+	virtual GmLvqModel* clone() const { return new GmLvqModel(*this); }
 };
 
 inline int GmLvqModel::classify(VectorXd const & unknownPoint) const{

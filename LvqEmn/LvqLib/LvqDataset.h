@@ -3,6 +3,7 @@
 using namespace Eigen;
 
 #include "AbstractLvqModel.h"
+#include "AbstractProjectionLvqModel.h"
 
 //TODO: make explicit subset classes for training/test stuff.
 

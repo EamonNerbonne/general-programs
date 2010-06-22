@@ -14,7 +14,7 @@ namespace LvqLibCli {
 		literal int PNormStat = LvqTrainingStats::PNorm;
 		literal int ExtraStat = LvqTrainingStats::Extra;
 		
-		int trainingIter;
+		unsigned long long trainingIter;
 		array<double>^ values;
 		array<double>^ stderror;
 
@@ -26,7 +26,7 @@ namespace LvqLibCli {
 			return cliVal;
 		}
 
-		static LvqTrainingStatCli toCli(int trainingIter, Eigen::VectorXd const &  values, Eigen::VectorXd const & stderror) {
+		static LvqTrainingStatCli toCli(unsigned long long trainingIter, Eigen::VectorXd const &  values, Eigen::VectorXd const & stderror) {
 			LvqTrainingStatCli cliVal;
 			cliVal.trainingIter = trainingIter;
 			cppToCli(values, cliVal.values);

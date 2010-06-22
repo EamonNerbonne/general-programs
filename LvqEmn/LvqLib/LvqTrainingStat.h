@@ -14,7 +14,7 @@ enum LvqTrainingStatsEnum {
 }; };
 
 struct LvqTrainingStat {
-	int trainingIter;
+	unsigned long long trainingIter;
 	VectorXd values;
 };
 

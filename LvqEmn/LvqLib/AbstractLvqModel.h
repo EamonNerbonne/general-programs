@@ -3,13 +3,14 @@
 #include "utils.h"
 #include "LvqTrainingStat.h"
 #include "LvqConstants.h"
+#include "GoodBadMatch.h"
 #pragma intrinsic(pow)
-
+   
 class LvqDataset;
 class AbstractLvqModel
 {
-	int trainIter;
-	int totalIter;
+	unsigned long long trainIter;
+	unsigned long long totalIter;
 	double totalElapsed;
 	boost::mt19937 rngIter;
 
@@ -22,7 +23,6 @@ protected:
 	}
 
 	const int classCount;
-	
 public:
 	boost::mt19937 & RngIter() {return rngIter;}
 	std::vector<LvqTrainingStat> trainingStats;
@@ -38,38 +38,50 @@ public:
 	virtual ~AbstractLvqModel() {	}
 	void AddTrainingStat(LvqDataset const * trainingSet, std::vector<int>const & trainingSubset, LvqDataset const * testSet,  std::vector<int>const & testSubset, int iterInc, double elapsedInc);
 	void AddTrainingStatFast(double trainingMeanCost,double trainingErrorRate, LvqDataset const * testSet,  std::vector<int>const & testSubset, int iterInc, double elapsedInc);
-	virtual AbstractLvqModel* clone()=0;
+	virtual AbstractLvqModel* clone() const=0;
 	virtual size_t MemAllocEstimate() const=0;
 	int ClassCount() const { return classCount; }
 	virtual int Dimensions() const =0;
 };
 
-class AbstractProjectionLvqModel : public AbstractLvqModel {
+
+
+
+template<typename TDerivedModel, typename TProcessedPoint> class AbstractLvqModelBase {
 protected:
-	AbstractProjectionLvqModel(boost::mt19937 & rngIter,int input_dims, int classCount) :AbstractLvqModel(rngIter,classCount), P(LVQ_LOW_DIM_SPACE, input_dims)  {	P.setIdentity(); }
-	PMatrix P;
-public:
-	virtual ~AbstractProjectionLvqModel() { }
-	PMatrix const & projectionMatrix() const {return P;}
-	double projectionNorm() const { return projectionSquareNorm(P);  }
-	virtual double meanProjectionNorm() const {return projectionNorm();}
-	void normalizeProjection() { normalizeMatrix(P); }
-	virtual int Dimensions() const {return static_cast<int>(P.cols());}
+#pragma warning (disable: 4127)
+#define ASSTRING(X) #X
+#define DBG(X) (cout<<ASSTRING(X)<<": "<<X<<"\n")
 
-	virtual MatrixXd GetProjectedPrototypes() const=0;
-	virtual std::vector<int> GetPrototypeLabels() const=0;
-	virtual void ClassBoundaryDiagram(double x0, double x1, double y0, double y1, MatrixXi & classDiagram) const=0;
-};
+	EIGEN_STRONG_INLINE GoodBadMatch findMatches(TProcessedPoint const & trainPoint, int trainLabel) const {
+		using std::cout;
+		GoodBadMatch match;
+		TDerivedModel const & self = static_cast<TDerivedModel const &>(*this);
 
-struct GoodBadMatch {
-	double distGood, distBad;
-	int matchGood, matchBad;
-	inline GoodBadMatch()
-		: distGood(std::numeric_limits<double>::infinity())
-		, distBad(std::numeric_limits<double>::infinity())
-		, matchGood(-1)
-		, matchBad(-1)
-	{}
-	double CostFunc() const { return (distGood - distBad)/(distGood+distBad); }
-	bool IsErr()const{return distGood > distBad;}
+		for(int i=0;i<self.PrototypeCount();i++) {
+			double curDist = self.SqrDistanceTo(i, trainPoint);
+			if(self.PrototypeLabel(i) == trainLabel) {
+				if(curDist < match.distGood) {
+					match.matchGood = i;
+					match.distGood = curDist;
+				}
+			} else {
+				if(curDist < match.distBad) {
+					match.matchBad = i;
+					match.distBad = curDist;
+				}
+			}
+		}
+
+		if(match.matchBad < 0 ||match.matchGood <0) {
+			assert( match.matchBad >= 0 && match.matchGood >=0 );
+			DBG(match.matchBad);
+			DBG(match.matchGood);
+			DBG(match.distBad);
+			DBG(match.distGood);
+			DBG(self.PrototypeCount());//WTF: this statement impacts gcc _correctness_?
+		}
+		return match;
+	}
+
 };

@@ -77,5 +77,11 @@
     <ClInclude Include="LvqTrainingStat.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="AbstractProjectionLvqModel.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="GoodBadMatch.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
