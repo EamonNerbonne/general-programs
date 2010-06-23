@@ -13,7 +13,9 @@ namespace LastFMspider.LastFMSQLiteBackend {
 		protected override string CommandText {
 			get {
 				return @"
-UPDATE Artist SET CurrentSimilarArtistList = @listId 
+UPDATE Artist SET 
+	CurrentSimilarArtistList = @listId,
+	CurrentSimilarArtistListTimestamp = (select LookupTimestamp from SimilarArtistList where ListID = @listId)
 WHERE ArtistID=(select ArtistID from SimilarArtistList where ListID = @listId) 
 ";
 			}
@@ -21,7 +23,6 @@ WHERE ArtistID=(select ArtistID from SimilarArtistList where ListID = @listId)
 
 
 		DbParameter listId;
-
 
 		public void Execute(SimilarArtistsListId listID) {
 			lock (SyncRoot) {

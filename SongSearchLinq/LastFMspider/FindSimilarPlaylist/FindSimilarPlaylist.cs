@@ -18,7 +18,7 @@ namespace LastFMspider {
 		static bool NeverAbort(int i) { return false; }
 
 		public static SimilarPlaylistResults ProcessPlaylist(LastFmTools tools, Func<SongRef, SongMatch> fuzzySearch, List<SongData> known, List<SongRef> unknown,
-			int MaxSuggestionLookupCount = 20, int SuggestionCountTarget = 100, Func<int,bool> shouldAbort = null
+			int MaxSuggestionLookupCount = 100, int SuggestionCountTarget = 50, Func<int,bool> shouldAbort = null
 			) {
 			//OK, so we now have the playlist in the var "playlist" with knowns in "known" except for the unknowns, which are in "unknown" as far as possible.
 			shouldAbort = shouldAbort ?? NeverAbort;
@@ -75,11 +75,12 @@ namespace LastFMspider {
 
 
 
-			Func<SongRef, SongSimilarityList> lookupParallel = songref => {
+			Func<SongRef,int, SongSimilarityList> lookupParallel = (songref,curcount) => {
 				SongSimilarityList retval;
 				bool notInQueue;
 				bool alreadyDeleted;
 				while (true) {
+
 					lock (sync) {
 						if (lookupCache.TryGetValue(songref, out retval))
 							return retval; //easy case
@@ -96,6 +97,7 @@ namespace LastFMspider {
 					}
 					//OK, so song is in queue, not in cache but not deleted from cache: song must be in flight: we wait and then try again.
 					Thread.Sleep(10);
+					if (shouldAbort(curcount)) return null;
 				}
 			};
 
@@ -132,7 +134,7 @@ namespace LastFMspider {
 						}
 					}
 
-					var nextSimlist = lookupParallel(currentSong.songref);
+					var nextSimlist = lookupParallel(currentSong.songref, res.similarList.Count);
 					if (nextSimlist == null)
 						continue;
 

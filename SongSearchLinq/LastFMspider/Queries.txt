@@ -1,0 +1,7 @@
+﻿UPDATE Artist SET 
+	CurrentSimilarArtistListTimestamp = (select LookupTimestamp from SimilarArtistList where ListID = CurrentSimilarArtistList)
+WHERE CurrentSimilarArtistList IS NOT NULL
+;
+UPDATE Artist SET 
+	CurrentTopTracksListTimestamp= (select LookupTimestamp from TopTracksList where ListID = CurrentTopTracksList)
+WHERE CurrentTopTracksList IS NOT NULL

@@ -12,45 +12,41 @@ namespace LastFMspider.LastFMSQLiteBackend {
 		public ArtistsWithoutSimilarityList(LastFMSQLiteCache lfm)
 			: base(lfm) {
 			limitRowCount = DefineParameter("@limitRowCount");
-			minAge = DefineParameter("@minAge");
+			maxDate = DefineParameter("@maxDate");
 		}
-		DbParameter limitRowCount, minAge;
+		DbParameter limitRowCount, maxDate;
 		protected override string CommandText {
 			get {
 				return @"
-SELECT A.ArtistID, A.FullArtist
-FROM Artist A 
-WHERE A.IsAlternateOf IS NULL AND 
-    (
-      A.CurrentSimilarArtistList IS NULL 
-    OR
-      @minAge >= (
-          SELECT L.LookupTimestamp
-          FROM SimilarArtistList L 
-          WHERE A.CurrentSimilarArtistList = L.ListID)
-    )
-LIMIT @limitRowCount
+	SELECT A.ArtistID, A.FullArtist, A.CurrentSimilarArtistListTimestamp
+	FROM Artist A 
+	WHERE A.IsAlternateOf IS NULL AND A.CurrentSimilarArtistListTimestamp IS NULL
+LIMIT @limitRowCount;
+	SELECT A.ArtistID, A.FullArtist, A.CurrentSimilarArtistListTimestamp
+	FROM Artist A 
+	WHERE A.IsAlternateOf IS NULL AND A.CurrentSimilarArtistListTimestamp <= @maxDate
+LIMIT @limitRowCount;
 ";
 			}
 		}
 
-		public CachedArtist[] Execute(int limitRowCount, DateTime minAge) {
-			List<CachedArtist> tracks = new List<CachedArtist>();
+		public CachedArtist[] Execute(int limitRowCount, DateTime maxDate) {
+			List<CachedArtist> artists = new List<CachedArtist>();
 			lock (SyncRoot) {
 				this.limitRowCount.Value = limitRowCount;
-				this.minAge.Value = minAge.ToUniversalTime().Ticks; //should be in universal time anyhow...
+				this.maxDate.Value = maxDate.ToUniversalTime().Ticks; //should be in universal time anyhow...
 
-				using (var reader = CommandObj.ExecuteReader()) {//no transaction needed for a single select!
-					while (reader.Read())
-						tracks.Add(new CachedArtist {
+				using (var reader = CommandObj.ExecuteReader()) {
+					while (artists.Count < limitRowCount && (reader.Read() || (reader.NextResult() && reader.Read())))
+						artists.Add(new CachedArtist {
 							ArtistID = new ArtistId((long)reader[0]),
 							ArtistName = (string)reader[1],
-							LookupTimestamp = null
+							LookupTimestamp = reader[2].CastDbObjectAsDateTime()
 						});
 
 				}
 			}
-			return tracks.ToArray();
+			return artists.ToArray();
 		}
 	}
 }

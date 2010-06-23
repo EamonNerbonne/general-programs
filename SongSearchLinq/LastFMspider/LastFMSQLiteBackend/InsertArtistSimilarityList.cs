@@ -19,7 +19,7 @@ namespace LastFMspider.LastFMSQLiteBackend {
 		protected override string CommandText {
 			get {
 				return @"
-INSERT INTO [SimilarArtistList] (ArtistID, LookupTimestamp,StatusCode,SimilarArtists) 
+INSERT INTO [SimilarArtistList] (ArtistID, LookupTimestamp, StatusCode,SimilarArtists) 
 VALUES (@artistID, @lookupTimestamp, @statusCode, @listBlob);
 
 SELECT L.ListID
@@ -41,7 +41,7 @@ LIMIT 1
 						);
 
 					artistID.Value = baseId.Id;
-					lookupTimestamp.Value = simList.LookupTimestamp;
+					lookupTimestamp.Value = simList.LookupTimestamp.ToUniversalTime().Ticks;
 					statusCode.Value = simList.StatusCode;
 					listBlob.Value = listImpl.encodedSims;
 					SimilarArtistsListId listId = new SimilarArtistsListId(CommandObj.ExecuteScalar().CastDbObjectAs<long>());
@@ -51,7 +51,7 @@ LIMIT 1
 
 
 					trans.Commit();
-					return new ArtistSimilarityListInfo(listId, new ArtistInfo { ArtistId = baseId, Artist = simList.Artist }, simList.LookupTimestamp, simList.StatusCode, listImpl);
+					return new ArtistSimilarityListInfo(listId, new ArtistInfo { ArtistId = baseId, Artist = simList.Artist }, simList.LookupTimestamp.ToUniversalTime(), simList.StatusCode, listImpl);
 				}
 			}
 		}

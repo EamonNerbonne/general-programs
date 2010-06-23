@@ -13,7 +13,7 @@ namespace LastFMspider {
 		//rating is stored as a REAL which is a float in C#.
 
 		const string DataProvider = "System.Data.SQLite";
-		const string DataConnectionString = "page size=4096;cache size=100000;datetimeformat=Ticks;Legacy Format=False;Synchronous=Normal;Journal Mode=Persist;Default Timeout=300;data source=\"{0}\"";
+		const string DataConnectionString = "page size=4096;cache size=100000;datetimeformat=Ticks;Legacy Format=False;Synchronous=Normal;Journal Mode=Persist;Default Timeout=30;data source=\"{0}\"";
 		const string DatabaseDef = @"
 PRAGMA journal_mode = PERSIST;
 
@@ -25,11 +25,16 @@ CREATE TABLE IF NOT EXISTS [Artist] (
   [IsAlternateOf] INTEGER NULL,
   [CurrentSimilarArtistList] INTEGER NULL,
   [CurrentTopTracksList] INTEGER NULL,
-  CONSTRAINT fk_is_alt_artist FOREIGN KEY(IsAlternateOf) REFERENCES Artist(ArtistID),
+  [CurrentSimilarArtistListTimestamp] INTEGER NULL,
+  [CurrentTopTracksListTimestamp] INTEGER NULL,
+
+CONSTRAINT fk_is_alt_artist FOREIGN KEY(IsAlternateOf) REFERENCES Artist(ArtistID),
   CONSTRAINT fk_cur_sal_simart FOREIGN KEY(CurrentSimilarArtistList) REFERENCES SimilarArtistList(ListID),
   CONSTRAINT fk_cur_ttl_toptracks FOREIGN KEY(CurrentTopTracksList) REFERENCES TopTracksList(ListID)
 );
 CREATE UNIQUE INDEX IF NOT EXISTS [Unique_Artist_LowercaseArtist] ON [Artist]([LowercaseArtist]  ASC);
+CREATE INDEX IF NOT EXISTS [IDX_Artist_CurrentSimilarArtistListTimestamp] ON [Artist]([IsAlternateOf] ASC, [CurrentSimilarArtistListTimestamp]  ASC);
+CREATE INDEX IF NOT EXISTS [IDX_Artist_CurrentTopTracksListTimestamp] ON [Artist]([IsAlternateOf] ASC, [CurrentTopTracksListTimestamp]  ASC);
 
 
 CREATE TABLE IF NOT EXISTS [SimilarArtistList] (
@@ -50,17 +55,12 @@ CREATE TABLE IF NOT EXISTS  [Track] (
   [FullTitle] TEXT  NOT NULL,
   [LowercaseTitle] TEXT  NOT NULL,
   [CurrentSimilarTrackList] INTEGER NULL,
+  [CurrentSimilarTrackListTimestamp] INTEGER NULL,
 	CONSTRAINT fk_of_artist FOREIGN KEY(ArtistID) REFERENCES Artist(ArtistID),
 	CONSTRAINT fk_cur_stl FOREIGN KEY(CurrentSimilarTrackList) REFERENCES SimilarTrackList(ListID)
 );
 CREATE UNIQUE INDEX IF NOT EXISTS [Unique_Track_ArtistID_LowercaseTitle] ON [Track]([ArtistID]  ASC,  [LowercaseTitle]  ASC);
---CREATE TRIGGER IF NOT EXISTS Track_Ignore_Duplicates BEFORE INSERT ON Track
---FOR EACH ROW BEGIN 
-   --INSERT OR IGNORE 
-      --INTO Track (TrackID, ArtistID, FullTitle, LowercaseTitle, CurrentSimilarTrackList) 
-      --VALUES (NEW.TrackID, NEW.ArtistID, NEW.FullTitle, NEW.LowercaseTitle, NEW.CurrentSimilarTrackList);
-   --select RAISE(IGNORE);
---END;
+CREATE INDEX IF NOT EXISTS [IDX_Track_CurrentSimilarTrackListTimestamp] ON [Track]([CurrentSimilarTrackListTimestamp]  ASC);
 
 
 
@@ -92,82 +92,8 @@ CONSTRAINT fk_owner_artist FOREIGN KEY(ArtistID) REFERENCES Artist(ArtistID)
 DROP INDEX IF EXISTS [IDX_TopTracksList_LookupTimestamp];
 DROP INDEX IF EXISTS [IDX_TopTracksList_ArtistID];
 CREATE INDEX IF NOT EXISTS [IDX_TopTracksList_ArtistID_LookupTimestamp] ON [TopTracksList](  [ArtistID]  ASC,  [LookupTimestamp]  ASC);
-
 ";
-		//CREATE TRIGGER IF NOT EXISTS Artist_Ignore_Duplicates BEFORE INSERT ON Artist
-		//FOR EACH ROW BEGIN 
-		//   INSERT OR IGNORE 
-		//      INTO Artist (ArtistID, FullArtist, LowercaseArtist, IsAlternateOf, CurrentSimilarArtistList, CurrentTopTracksList) 
-		//      VALUES (NEW.ArtistId, NEW.FullArtist, NEW.LowercaseArtist, NEW.IsAlternateOf, NEW.CurrentSimilarArtistList, NEW.CurrentTopTracksList);
-		//   select RAISE(IGNORE);
-		//END;
-		//CREATE TRIGGER IF NOT EXISTS Track_Ignore_Duplicates BEFORE INSERT ON Track
-		//FOR EACH ROW BEGIN 
-		//   INSERT OR IGNORE 
-		//      INTO Track (TrackID, ArtistID, FullTitle, LowercaseTitle, CurrentSimilarTrackList) 
-		//      VALUES (NEW.TrackID, NEW.ArtistID, NEW.FullTitle, NEW.LowercaseTitle, NEW.CurrentSimilarTrackList);
-		//   select RAISE(IGNORE);
-		//END;
 
-
-		/*
-CREATE TABLE IF NOT EXISTS  [Tag] (
-  [TagID] INTEGER NOT NULL PRIMARY KEY,
-  [LowercaseTag] TEXT  NOT NULL
-);
-CREATE UNIQUE INDEX  IF NOT EXISTS [Unique_Tag_LowercaseTag] ON [Tag](
-  [LowercaseTag]  ASC
-);
-
-CREATE TABLE IF NOT EXISTS  [TrackTag] (
-  [TrackTagID] INTEGER NOT NULL PRIMARY KEY,
-  [TagID] INTEGER NOT NULL,
-  [TrackID] INTEGER NOT NULL,
-  [TagCount] INTEGER NOT NULL
-);
-CREATE UNIQUE INDEX  IF NOT EXISTS [Unique_TrackTag_TrackID_TagID] ON [TrackTag](
-  [TrackID]  ASC,
-  [TagID] ASC
-);
-CREATE INDEX  IF NOT EXISTS [IDX_TrackTag_TagID] ON [TrackTag](
-  [TagID] ASC
-);
-CREATE INDEX  IF NOT EXISTS [IDX_TrackTag_TagCount] ON [TrackTag](
-  [TagCount] DESC
-);
-
-
-
-CREATE TABLE IF NOT EXISTS  [Mbid] (
-  [MbidID] INTEGER NOT NULL PRIMARY KEY,
-  [LowercaseMbid] TEXT NOT NULL
-);
-CREATE UNIQUE INDEX  IF NOT EXISTS [Unique_Mbid_LowercaseMbid] ON [Mbid](
-  [LowercaseMbid]  ASC
-);
-
-
-
-CREATE TABLE IF NOT EXISTS  [TrackInfo] (
-  [TrackID] INTEGER NOT NULL PRIMARY KEY,
-  [InfoTimestamp] INTEGER NOT NULL,
-  [Listeners] INTEGER NULL,
-  [Playcount] INTEGER NULL,
-  [Duration] INTEGER NULL,
-  [ArtistMbidID] INTEGER NULL,
-  [TrackMbidID] INTEGER NULL,
-  [LastFmId] INTEGER NULL
-);
-CREATE INDEX  IF NOT EXISTS [IDX_TrackInfo_InfoTimestamp] ON [TrackInfo](
-  [InfoTimestamp] ASC
-);
-CREATE INDEX  IF NOT EXISTS [IDX_TrackInfo_Listeners] ON [TrackInfo](
-  [Listeners] DESC
-);
-CREATE INDEX  IF NOT EXISTS [IDX_TrackInfo_Playcount] ON [TrackInfo](
-  [Playcount] DESC
-);
-";*/
 		public static string ConnectionString(FileInfo dbFile) { return String.Format(DataConnectionString, dbFile.FullName); }
 
 

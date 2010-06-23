@@ -26,7 +26,7 @@ namespace LastFMspider.LastFMSQLiteBackend {
 					return new ArtistTopTracksList {
 						TopTracks = rankings.ToArray(),
 						Artist = artistTTinfo.ArtistInfo.Artist,
-						LookupTimestamp = artistTTinfo.LookupTimestamp.Value,
+						LookupTimestamp = artistTTinfo.LookupTimestamp.Value.ToUniversalTime(),
 						StatusCode = artistTTinfo.StatusCode,
 					};
 				}

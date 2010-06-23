@@ -33,7 +33,7 @@ namespace SongSearchSite {
 			res = FindSimilarPlaylist.ProcessPlaylist(SongDbContainer.LastFmTools,
 				// sr=>null,
 				SongDbContainer.FuzzySongSearcher.FindBestMatch,
-				 songs, unknownSongs, 1000, 50, count => !context.Response.IsClientConnected || (timer.ElapsedMilliseconds > 5000 && count >10) );
+				 songs, unknownSongs, 1000, 50, count => !context.Response.IsClientConnected || (timer.Elapsed.TotalMilliseconds + count*100 > 7000) );
 
 			if (!context.Response.IsClientConnected)
 				return;

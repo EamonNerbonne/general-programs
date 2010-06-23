@@ -13,7 +13,9 @@ namespace LastFMspider.LastFMSQLiteBackend {
 		protected override string CommandText {
 			get {
 				return @"
-UPDATE Track SET CurrentSimilarTrackList = @listId 
+UPDATE Track SET 
+	CurrentSimilarTrackList = @listId,
+	CurrentSimilarTrackListTimestamp = (select LookupTimestamp from SimilarTrackList where ListID = @listId) 
 WHERE TrackID=(select TrackID from SimilarTrackList where ListID = @listId) 
 ";
 			}

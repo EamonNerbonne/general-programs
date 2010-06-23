@@ -27,7 +27,7 @@ namespace LastFMspider.LastFMSQLiteBackend {
 						id = list.ListID,
 						songref = list.SongRef,
 						similartracks = similarto.ToArray(),
-						LookupTimestamp = list.LookupTimestamp.Value,
+						LookupTimestamp = list.LookupTimestamp.Value.ToUniversalTime(),
 						StatusCode = list.StatusCode,
 					};
 				}

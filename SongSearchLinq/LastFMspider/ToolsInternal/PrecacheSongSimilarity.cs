@@ -10,12 +10,13 @@ namespace LastFMspider
 {
     internal static partial class ToolsInternal
     {
-
         public static int PrecacheSongSimilarity(LastFmTools tools) {
             var SimilarSongs= tools.SimilarSongs;
             int songsCached = 0;
+			DateTime maxDate = DateTime.UtcNow - TimeSpan.FromDays(365.0);
+
             Console.WriteLine("Finding songs without similarities");
-            var tracksToGo = SimilarSongs.backingDB.TracksWithoutSimilarityList.Execute(300000);
+            var tracksToGo = SimilarSongs.backingDB.TracksWithoutSimilarityList.Execute(300000,maxDate);
 #if !DEBUG
             tracksToGo.Shuffle();
 #endif
@@ -26,8 +27,8 @@ namespace LastFMspider
                 try {
                     string trackStr = track.SongRef.ToString();
                     msg.AppendFormat("SimTo:{0,-30}", trackStr.Substring(0, Math.Min(trackStr.Length, 30)));
-                    TrackSimilarityListInfo listStatus = SimilarSongs.backingDB.LookupSimilarityListAge.Execute(track.SongRef);
-                    if (listStatus.LookupTimestamp.HasValue) {
+                    TrackSimilarityListInfo info = SimilarSongs.backingDB.LookupSimilarityListAge.Execute(track.SongRef);
+					if (info.LookupTimestamp.HasValue && info.LookupTimestamp.Value > maxDate) {
                         msg.AppendFormat("done.");
                     } else {
                         var newEntry = OldApiClient.Track.GetSimilarTracks(track.SongRef);

@@ -46,16 +46,16 @@ LIMIT 1
 								)
 						);
 					artistID.Value = baseId.Id;
-					lookupTimestamp.Value = toptracksList.LookupTimestamp;
+					lookupTimestamp.Value = toptracksList.LookupTimestamp.ToUniversalTime().Ticks;
 					statusCode.Value = toptracksList.StatusCode;
 					listBlob.Value = listImpl.encodedSims;
 					TopTracksListId listId = new TopTracksListId(CommandObj.ExecuteScalar().CastDbObjectAs<long>());
 
-					if (toptracksList.LookupTimestamp > DateTime.Now - TimeSpan.FromDays(1.0))
+					if (toptracksList.LookupTimestamp.ToUniversalTime() > DateTime.UtcNow - TimeSpan.FromDays(1.0))
 						lfmCache.ArtistSetCurrentTopTracks.Execute(listId); //presume if this is recently downloaded, then it's the most current.
 
 					trans.Commit();
-					return new ArtistTopTracksListInfo(listId, new ArtistInfo { ArtistId = baseId, Artist = toptracksList.Artist }, toptracksList.LookupTimestamp, toptracksList.StatusCode, listImpl);
+					return new ArtistTopTracksListInfo(listId, new ArtistInfo { ArtistId = baseId, Artist = toptracksList.Artist }, toptracksList.LookupTimestamp.ToUniversalTime(), toptracksList.StatusCode, listImpl);
 				}
 			}
 		}

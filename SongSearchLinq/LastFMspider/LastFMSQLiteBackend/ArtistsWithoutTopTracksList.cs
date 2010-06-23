@@ -6,34 +6,41 @@ namespace LastFMspider.LastFMSQLiteBackend {
 		public ArtistsWithoutTopTracksList(LastFMSQLiteCache lfm)
 			: base(lfm) {
 			limitRowCount = DefineParameter("@limitRowCount");
+			maxDate = DefineParameter("@maxDate");
 		}
-		DbParameter limitRowCount;
+		DbParameter limitRowCount, maxDate;
 		protected override string CommandText {
 			get {
 				return @"
-SELECT A.ArtistID, A.FullArtist
-FROM Artist A 
-WHERE A.CurrentTopTracksList IS NULL AND A.IsAlternateOf IS NULL
-LIMIT @limitRowCount
+	SELECT A.ArtistID, A.FullArtist, A.CurrentTopTracksListTimestamp
+	FROM Artist A 
+	WHERE A.CurrentTopTracksListTimestamp IS NULL AND A.IsAlternateOf IS NULL
+LIMIT @limitRowCount;
+	SELECT A.ArtistID, A.FullArtist, A.CurrentTopTracksListTimestamp
+	FROM Artist A 
+	WHERE A.CurrentTopTracksListTimestamp <= @maxDate AND A.IsAlternateOf IS NULL
+LIMIT @limitRowCount;
 ";
 			}
 		}
 
-		public CachedArtist[] Execute(int limitRowCount) {
-			List<CachedArtist> tracks = new List<CachedArtist>();
+		public CachedArtist[] Execute(int limitRowCount, DateTime maxDate) {
+			List<CachedArtist> artists = new List<CachedArtist>();
 			lock (SyncRoot) {
 				this.limitRowCount.Value = limitRowCount;
-				using (var reader = CommandObj.ExecuteReader()) {//no transaction needed for a single select!
-					while (reader.Read())
-						tracks.Add(new CachedArtist {
+				this.maxDate.Value = maxDate.ToUniversalTime().Ticks;
+
+				using (var reader = CommandObj.ExecuteReader()) {
+					while (artists.Count < limitRowCount && (reader.Read() || (reader.NextResult() && reader.Read())))
+						artists.Add(new CachedArtist {
 							ArtistID = new ArtistId((long)reader[0]),
 							ArtistName = (string)reader[1],
-							LookupTimestamp = null
+							LookupTimestamp = reader[2].CastDbObjectAsDateTime()
 						});
 
 				}
 			}
-			return tracks.ToArray();
+			return artists.ToArray();
 		}
 	}
 }

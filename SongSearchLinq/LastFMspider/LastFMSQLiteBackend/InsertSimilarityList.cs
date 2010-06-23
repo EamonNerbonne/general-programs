@@ -40,7 +40,7 @@ LIMIT 1
 						);
 					
 					trackID.Value = baseTrackId.Id;
-					lookupTimestamp.Value = simList.LookupTimestamp;
+					lookupTimestamp.Value = simList.LookupTimestamp.ToUniversalTime().Ticks;
 					statusCode.Value = simList.StatusCode;
 					listBlob.Value = listImpl.encodedSims;
 					SimilarTracksListId listId = new SimilarTracksListId(CommandObj.ExecuteScalar().CastDbObjectAs<long>());
@@ -50,7 +50,7 @@ LIMIT 1
 					
 
 					trans.Commit();
-					return new TrackSimilarityListInfo(listId, baseTrackId, simList.songref, simList.LookupTimestamp, simList.StatusCode, listImpl);
+					return new TrackSimilarityListInfo(listId, baseTrackId, simList.songref, simList.LookupTimestamp.ToUniversalTime(), simList.StatusCode, listImpl);
 				}
 			}
 		}

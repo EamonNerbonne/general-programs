@@ -11,11 +11,11 @@ namespace LastFMspider {
 
 		public static int PrecacheArtistSimilarity(LastFmTools tools) {
 			var SimilarSongs = tools.SimilarSongs;
-			DateTime minAge = DateTime.UtcNow - TimeSpan.FromDays(365.0);
+			DateTime maxDate = DateTime.UtcNow - TimeSpan.FromDays(365.0);
 
 			int artistsCached = 0;
 			Console.WriteLine("Finding artists without similarities");
-			var artistsToGo = SimilarSongs.backingDB.ArtistsWithoutSimilarityList.Execute(1000000, minAge);
+			var artistsToGo = SimilarSongs.backingDB.ArtistsWithoutSimilarityList.Execute(1000000, maxDate);
 #if !DEBUG
 			artistsToGo.Shuffle();
 #endif
@@ -26,7 +26,7 @@ namespace LastFMspider {
 				try {
 					msg.AppendFormat("SimTo:{0,-30}", artist.ArtistName.Substring(0, Math.Min(artist.ArtistName.Length, 30)));
 					ArtistSimilarityListInfo info = SimilarSongs.backingDB.LookupArtistSimilarityListAge.Execute(artist.ArtistName);
-					if ((info.LookupTimestamp.HasValue && info.LookupTimestamp.Value > minAge) || info.ArtistInfo.IsAlternateOf.HasValue) {
+					if ((info.LookupTimestamp.HasValue && info.LookupTimestamp.Value > maxDate) || info.ArtistInfo.IsAlternateOf.HasValue) {
 						msg.AppendFormat("done.");
 					} else {
 						ArtistSimilarityList newEntry = OldApiClient.Artist.GetSimilarArtists(artist.ArtistName);

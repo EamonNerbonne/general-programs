@@ -30,7 +30,6 @@ INNER JOIN Track T ON A.ArtistID = T.ArtistID
 							ID = new TrackId(reader[0].CastDbObjectAs<long>()),
 							SongRef = SongRef.Create((string)reader[1], (string)reader[2]),
 						});
-
 				}
 			}
 			return tracks.ToArray();

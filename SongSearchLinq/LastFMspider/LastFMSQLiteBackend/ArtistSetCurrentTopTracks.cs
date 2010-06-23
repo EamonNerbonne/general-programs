@@ -13,7 +13,9 @@ namespace LastFMspider.LastFMSQLiteBackend {
 		protected override string CommandText {
 			get {
 				return @"
-UPDATE Artist SET CurrentTopTracksList = @listId 
+UPDATE Artist SET 
+	CurrentTopTracksList = @listId,
+	CurrentTopTracksListTimestamp = (select LookupTimestamp from TopTracksList where ListID = @listId)
 WHERE ArtistID=(select ArtistID from TopTracksList where ListID = @listId) 
 ";
 			}

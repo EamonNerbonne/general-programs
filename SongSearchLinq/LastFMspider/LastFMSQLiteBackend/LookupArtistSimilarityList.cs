@@ -25,7 +25,7 @@ namespace LastFMspider.LastFMSQLiteBackend {
 					return new ArtistSimilarityList {
 						 Artist = list.ArtistInfo.Artist,
 						Similar = similarto.ToArray(),						
-						LookupTimestamp = list.LookupTimestamp.Value,
+						LookupTimestamp = list.LookupTimestamp.Value.ToUniversalTime(),
 						StatusCode = list.StatusCode,
 						
 					};

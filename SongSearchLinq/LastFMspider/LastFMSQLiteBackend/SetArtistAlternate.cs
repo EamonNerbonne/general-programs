@@ -20,7 +20,9 @@ UPDATE Artist
 SET 
 	IsAlternateOf = (SELECT A.ArtistID FROM Artist A WHERE A.LowercaseArtist = @lowerAltArtist),
 	CurrentSimilarArtistList = NULL,
-	CurrentTopTracksList = NULL
+	CurrentSimilarArtistListTimestamp = NULL,
+	CurrentTopTracksList = NULL,
+	CurrentTopTracksListTimestamp = NULL,
 WHERE LowercaseArtist = @lowerArtist
 ";
             }

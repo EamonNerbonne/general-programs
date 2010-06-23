@@ -14,6 +14,7 @@ namespace LastFMspider.LastFMSQLiteBackend
         public AbstractLfmCacheQuery(LastFMSQLiteCache lfmCache)
             : base(lfmCache) {
             CommandObj = Connection.CreateCommand();
+			
             CommandObj.CommandText = CommandText;
         }
         protected abstract string CommandText { get; }
@@ -24,6 +25,5 @@ namespace LastFMspider.LastFMSQLiteBackend
             CommandObj.Parameters.Add(param);
             return param;
         }
-
     }
 }
