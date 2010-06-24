@@ -22,5 +22,6 @@ public:
 	virtual std::vector<int> GetPrototypeLabels() const=0;
 	virtual int classifyProjected(Vector2d const & unknownProjectedPoint) const=0;
 	virtual void ClassBoundaryDiagram(double x0, double x1, double y0, double y1, MatrixXi & classDiagram) const=0;
+
 };
 

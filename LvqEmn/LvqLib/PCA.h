@@ -1,15 +1,20 @@
 #pragma once
 #include "stdafx.h"
+#include "Eigen/EigenValues"
+
+typedef Eigen::Matrix2d TMatrix;
+typedef PMatrix TPoints;
+typedef Eigen::Vector2d TPoint;
 
 
-template <typename TPoints,typename TMatrix, typename TPoint>
+//template <typename TPoints,typename TMatrix, typename TPoint>
 class PrincipalComponentAnalysis {
-	using namespace Eigen;
+	
 public:
-	static TPoint MeanPoint(MatrixBase<TPoints>const & points) {
+	static TPoint MeanPoint(Eigen::MatrixBase<TPoints>const & points) {
 		return points.rowwise().sum() * (1.0/points.cols());
 	}
-	static TMatrix Covariance(MatrixBase<TPoints>const & points, TPoint const & mean) {
+	static TMatrix Covariance(Eigen::MatrixBase<TPoints>const & points, TPoint const & mean) {
 		TPoint diff = TPoint::Zero(points.rows());
 		TMatrix cov = TMatrix::Zero(points.rows(),points.rows());
 		for(int i=0;i<points.cols();++i) {
@@ -20,17 +25,20 @@ public:
 	}
 
 
-	static TPoint MeanPoint(MatrixBase<TPoints>const & points) {
-		TPoint mean = TPoint::Zero(points.rows());
-		for(int i=0;i<points.cols();++i)
-			mean+=points.col(i);
-		return mean * (1.0/points.cols());
+	//static TPoint MeanPoint(Eigen::MatrixBase<TPoints>const & points) {
+	//	TPoint mean = TPoint::Zero(points.rows());
+	//	for(int i=0;i<points.cols();++i)
+	//		mean+=points.col(i);
+	//	return mean * (1.0/points.cols());
+	//}
+
+	static void DoPca(Eigen::MatrixBase<TPoints>const & points ) {
+		TPoint mean = MeanPoint(points);
+		TMatrix covarianceMatrix = Covariance(points, mean);
+
+		Eigen::EigenSolver<TMatrix> solver(covarianceMatrix, true);
+
+
 	}
 
-	static void DoPca(MatrixBase<TPoints>const & points ) {
-		int dims = points.rows();
-
-
-	}
-
-}
+};

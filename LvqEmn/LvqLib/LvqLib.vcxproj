@@ -490,6 +490,7 @@
     <ClCompile Include="GmLvqModel.cpp" />
     <ClCompile Include="GsmLvqModel.cpp" />
     <ClCompile Include="LvqDataset.cpp" />
+    <ClCompile Include="PCA.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug2|Win32'">Create</PrecompiledHeader>
@@ -520,6 +521,7 @@
     <ClInclude Include="LvqDataset.h" />
     <ClInclude Include="LvqProjectionModelBase.h" />
     <ClInclude Include="LvqTrainingStat.h" />
+    <ClInclude Include="PCA.h" />
     <ClInclude Include="SmartSum.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="utils.h" />
