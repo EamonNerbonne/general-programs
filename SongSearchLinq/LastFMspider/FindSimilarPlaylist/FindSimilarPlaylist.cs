@@ -32,6 +32,7 @@ namespace LastFMspider {
 			Dictionary<SongRef, SongSimilarityList> lookupCache = new Dictionary<SongRef, SongSimilarityList>();
 			Queue<SongRef> lookupCacheOrder = new Queue<SongRef>();
 			HashSet<SongRef> lookupsDeleted = new HashSet<SongRef>();
+			Dictionary<SongRef, int> usages = playlistSongRefs.ToDictionary(s => s, s => 0);
 
 			object ignore = tools.SimilarSongs;//ensure similarsongs loaded.
 			object sync = new object();
@@ -134,14 +135,22 @@ namespace LastFMspider {
 						}
 					}
 
+
 					var nextSimlist = lookupParallel(currentSong.songref, res.similarList.Count);
 					if (nextSimlist == null)
 						continue;
 
+					double usageMean = 0.0;
+					foreach (var srcSong in currentSong.basedOn) {
+						usageMean += (100.0 + usages[srcSong]);
+						usages[srcSong] += nextSimlist.similartracks.Length;
+					}
+					usageMean /= currentSong.basedOn.Count;
+
 					int simRank = 0;
 					foreach (var similarTrack in nextSimlist.similartracks) {
 						SongWithCost similarSong = songCostCache.Lookup(similarTrack.similarsong);
-						double directCost = currentSong.cost + 1.0 + simRank / 20.0;
+						double directCost = currentSong.cost + 0.01 + simRank / 20.0 + usageMean/200.0;
 						simRank++;
 						if (similarSong.cost <= currentSong.cost) //well, either we've already been processed, or we're already at the top spot in the heap: ignore.
 							continue;
@@ -157,11 +166,11 @@ namespace LastFMspider {
 								similarSong.index = -1;
 
 								//new cost should be somewhere between next.cost, and min(old-cost, direct-cost)
-								//double oldOffset = similarSong.cost - currentSong.cost;
-								//double newOffset = directCost - currentSong.cost;
-								//double combinedOffset = 1.0 / (1.0 / oldOffset + 1.0 / newOffset);
-								//similarSong.cost = currentSong.cost + combinedOffset;
-								similarSong.cost = Math.Min(similarSong.cost, directCost);
+								double oldOffset = similarSong.cost - currentSong.cost;
+								double newOffset = directCost - currentSong.cost;
+								double combinedOffset = 1.0 / Math.Sqrt(1.0 / oldOffset * oldOffset + 1.0 / newOffset * newOffset);
+								similarSong.cost = currentSong.cost + combinedOffset;
+								//similarSong.cost = Math.Min(similarSong.cost, directCost);
 								foreach (var baseSong in currentSong.basedOn)
 									similarSong.basedOn.Add(baseSong);
 								songCosts.Add(similarSong);
