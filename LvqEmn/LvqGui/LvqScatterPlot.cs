@@ -227,7 +227,7 @@ namespace LvqGui {
 #endif
 			var curModel = model;
 
-			if (curModel == null)
+			if (curModel == null || width < 1 || height < 1)
 				return;
 			Matrix bmpToData = dataToBmp;
 			bmpToData.Invert();
