@@ -6,6 +6,7 @@ namespace LastFMspider {
 			public SongRef songref;
 			public double cost = double.PositiveInfinity;
 			public int index = -1;
+			public int graphDist = -1;
 			public HashSet<SongRef> basedOn = new HashSet<SongRef>();
 
 			public int CompareTo(SongWithCost other) { return cost.CompareTo(other.cost); }
