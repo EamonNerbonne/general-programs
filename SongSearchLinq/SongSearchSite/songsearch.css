@@ -231,7 +231,7 @@ body
 .proc-error:before
 {
     color: #c99;
-    content: "Error (timeout?)";
+    content: "Error (" attr(data-status) ")";
 }
 
 

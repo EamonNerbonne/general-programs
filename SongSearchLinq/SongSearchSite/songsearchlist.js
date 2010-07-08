@@ -197,6 +197,18 @@ $(document).ready(function ($) {
     var isGetQueued = false;
     var leftColSel = $(".similarItemsDisplay"), knownSel = $("#similar .known"), unknownSel = $("#similar .unknown");
 
+    function updateSimilarDisplay(data) {
+        var known = data.known, unknown = data.unknown;
+        unknownSel.empty();
+        for (var i = 0; i < unknown.length; i++)
+            unknownSel.append($(document.createElement("li")).text(unknown[i]));
+        knownSel.empty();
+        leftColSel.removeClass("waiting");
+        for (var i = 0; i < known.length; i++)
+            knownSel.append($(document.createElement("li")).text(known[i].label).data("songdata", known[i]));
+    }
+
+
     var simStateSet = {
         getting: function () {
             if (simStateSet.current == "getting")
@@ -209,15 +221,25 @@ $(document).ready(function ($) {
                 getSimilarImpl();
             }
         },
-        done: function () {
-            if (simStateSet.current == "done") return;
-            simStateSet.current = "done";
-            leftColSel.removeClass("proc-error");
-            leftColSel.removeClass("processing");
-            if (isGetQueued)
-                simStateSet.getting();
+        done: function (data) {
+            if (!data || !data.known || !data.unknown) { this.error("data-error", false); }
+            else {
+
+                if (mouseInSimilar) { simDispDataWait = data; leftColSel.addClass("waiting"); }
+                else updateSimilarDisplay(data);
+
+                if (simStateSet.current == "done") return;
+                simStateSet.current = "done";
+                leftColSel.removeClass("proc-error");
+                leftColSel.removeClass("processing");
+                if (isGetQueued)
+                    simStateSet.getting();
+            }
         },
-        error: function () {
+        error: function (status, retry) {
+            dataStatus = status || dataStatus;
+            isGetQueued = isGetQueued || retry;
+            leftColSel.attr("data-status", dataStatus);
             if (simStateSet.current == "error") return;
             simStateSet.current = "error";
             leftColSel.addClass("proc-error");
@@ -228,7 +250,7 @@ $(document).ready(function ($) {
         current: "done"
     }
 
-    var simDispDataWait = null;
+    var simDispDataWait = null, dataStatus = null;
 
     var mouseInSimilar = false;
     knownSel.hover(function (e) { mouseInSimilar = true; }, function (e) {
@@ -239,16 +261,6 @@ $(document).ready(function ($) {
         }
     });
 
-    function updateSimilarDisplay(data) {
-        var known = data.known, unknown = data.unknown;
-        unknownSel.empty();
-        for (var i = 0; i < unknown.length; i++)
-            unknownSel.append($(document.createElement("li")).text(unknown[i]));
-        knownSel.empty();
-        leftColSel.removeClass("waiting");
-        for (var i = 0; i < known.length; i++)
-            knownSel.append($(document.createElement("li")).text(known[i].label).data("songdata", known[i]));
-    }
 
     function getSimilarImpl() {
         $.ajax({
@@ -256,19 +268,8 @@ $(document).ready(function ($) {
             url: "similar-to",
             data: { playlist: JSON.stringify(savePlaylist()) },
             timeout: 10000,
-            success: function (data) {
-                if (mouseInSimilar) {
-                    simDispDataWait = data;
-                    leftColSel.addClass("waiting")
-                } else
-                    updateSimilarDisplay(data);
-                simStateSet.done();
-            },
-            error: function (xhr, status, errorThrown) {
-                if (status == "timeout")
-                    isGetQueued = true;
-                simStateSet.error();
-            }
+            success: function (data) { simStateSet.done(data); },
+            error: function (xhr, status, errorThrown) { simStateSet.error(status, status == "timeout"); }
         });
     }
 
@@ -291,7 +292,7 @@ $(document).ready(function ($) {
             $(playlistItem).addClass("jplayer_playlist_current");
             hasBeenNotified = false;
             var songdata = $(playlistItem).data("songdata");
-            $("#jquery_jplayer").jPlayer("loadSong", [{ type: UriToMime(songdata.href), src: songdata.href, replaygain: songdata.replaygain }]);
+            $("#jquery_jplayer").jPlayer("loadSong", [{ type: UriToMime(songdata.href), src: songdata.href, replaygain: songdata.replaygain}]);
             scrollIntoMiddleView(playlistItem);
         }
     }
@@ -331,7 +332,7 @@ $(document).ready(function ($) {
         var clickedRow = $(target).parents("tr");
         if (clickedRow.length != 1)
             return;
-        addToPlaylist({ label: clickedRow.attr("data-label") || GetFileName(clickedRow.attr("data-href")), href: clickedRow.attr("data-href"), length: clickedRow.attr("data-length"), replaygain: Number(clickedRow.attr("data-replaygain"))||0 });
+        addToPlaylist({ label: clickedRow.attr("data-label") || GetFileName(clickedRow.attr("data-href")), href: clickedRow.attr("data-href"), length: clickedRow.attr("data-length"), replaygain: Number(clickedRow.attr("data-replaygain")) || 0 });
     };
 });
 

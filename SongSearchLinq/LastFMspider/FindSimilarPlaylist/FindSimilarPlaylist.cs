@@ -23,7 +23,8 @@ namespace LastFMspider {
 			//OK, so we now have the playlist in the var "playlist" with knowns in "known" except for the unknowns, which are in "unknown" as far as possible.
 			shouldAbort = shouldAbort ?? NeverAbort;
 
-			Dictionary<SongRef, HashSet<SongRef>> playlistSongRefs = known.Select(sd => SongRef.Create(sd)).Where(sr => sr != null).Cast<SongRef>().Concat(unknown).ToDictionary(sr => sr, sr => new HashSet<SongRef>());
+			var playlistSongs = known.Select(sd => SongRef.Create(sd)).Where(sr => sr != null).Cast<SongRef>().Concat(unknown).Reverse();
+			Dictionary<SongRef, HashSet<SongRef>> playlistSongRefs = playlistSongs.ToDictionary(sr => sr, sr => new HashSet<SongRef>());
 			SimilarPlaylistResults res = new SimilarPlaylistResults();
 
 			SongWithCostCache songCostCache = new SongWithCostCache();
@@ -103,7 +104,7 @@ namespace LastFMspider {
 			};
 
 
-			foreach (var songcost in playlistSongRefs.Keys.Select(songref => songCostCache.Lookup(songref))) {
+			foreach (var songcost in playlistSongs.Select(songref => songCostCache.Lookup(songref))) {
 				songcost.cost = 0.0;
 				songcost.graphDist = 0;
 				songcost.basedOn.Add(songcost.songref);
@@ -119,6 +120,7 @@ namespace LastFMspider {
 					lock (sync)
 						if (!songCosts.RemoveTop(out currentSong))
 							break;
+					currentSong.index = -1;
 					if (!playlistSongRefs.ContainsKey(currentSong.songref)) {
 						res.similarList.Add(currentSong);
 						if (tools.Lookup.dataByRef.ContainsKey(currentSong.songref))
@@ -147,7 +149,7 @@ namespace LastFMspider {
 						SongWithCost similarSong = songCostCache.Lookup(similarTrack.similarsong);
 						foreach (var baseSong in currentSong.basedOn)
 							similarSong.basedOn.Add(baseSong);
-						double directCost = (simRank + similarSong.basedOn.Select(baseSong => playlistSongRefs[baseSong].Count + 50).Sum()) / (double)similarSong.basedOn.Count;
+						double directCost = (simRank + similarSong.basedOn.Select(baseSong => playlistSongRefs[baseSong].Count + 50).Sum()) / (similarSong.basedOn.Count * Math.Sqrt(similarSong.basedOn.Count));
 						simRank++;
 						if (similarSong.index == -1 && similarSong.cost < double.PositiveInfinity) //not in heap but with cost: we've already been fully processed!
 							continue;
