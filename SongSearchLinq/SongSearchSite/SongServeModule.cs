@@ -139,7 +139,7 @@ namespace SongSearchSite {
 					while (!streamEnded && stream.Position < end && helper.Context.Response.IsClientConnected) {
 						long maxPos = start + (long)(timer.Elapsed.TotalSeconds * maxBytesPerSec) + fastStartSec * maxBytesPerSec;
 						long excessBytes = stream.Position - maxPos;
-						if (excessBytes > 0)
+						if (excessBytes > 0 && !this.helper.Context.Request.IsLocal)
 							Thread.Sleep(TimeSpan.FromSeconds(excessBytes / (double)maxBytesPerSec));
 
 						int bytesToRead = (int)Math.Min((long)window, end - stream.Position);
