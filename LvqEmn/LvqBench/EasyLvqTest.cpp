@@ -17,10 +17,6 @@ using namespace Eigen;
 #define DETERMINISTIC_ORDER 
 
 #if NDEBUG
-//#define BENCH_RUNS 5
-//#define DIMS 21
-//#define POINTS_PER_CLASS 500
-//#define ITERS 20
 #define BENCH_RUNS 10
 #define DIMS 31
 #define POINTS_PER_CLASS 3000
@@ -29,7 +25,7 @@ using namespace Eigen;
 #define PROTOSPERCLASS 1
 #else
 #define BENCH_RUNS 3
-#define DIMS 8
+#define DIMS 31
 #define POINTS_PER_CLASS 300
 #define ITERS 40
 #define CLASSCOUNT 3

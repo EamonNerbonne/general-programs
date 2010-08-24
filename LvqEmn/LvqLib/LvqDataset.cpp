@@ -93,6 +93,7 @@ void LvqDataset::ComputeCostAndErrorRate(std::vector<int> const & subset, LvqMod
 	double totalCost=0;
 	int errs=0;
 	for(int i=0;i<(int)subset.size();++i) {
+		assert(points.sum() == points.sum());
 		GoodBadMatch match = model->ComputeMatches(points.col(subset[i]), pointLabels[subset[i]]);
 		totalCost += match.CostFunc();
 		errs += match.IsErr()?1:0;

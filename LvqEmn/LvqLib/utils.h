@@ -25,7 +25,7 @@ template<typename T>  void RandomMatrixInit(boost::mt19937 & rng, Eigen::MatrixB
 template <typename T>  T randomOrthogonalMatrix(boost::mt19937 & rngParams, int dims) {
 	T P(dims,dims);
 	double Pdet = 0.0;
-	while(!(abs(Pdet) >0.1 && abs(Pdet) < 10)) {
+	while(!(fabs(Pdet) >0.1 && fabs(Pdet) < 10)) {
 		RandomMatrixInit(rngParams, P, 0, 1.0);
 		Pdet = P.determinant();
 		if(Pdet == 0.0) continue;//exceedingly unlikely.
@@ -50,20 +50,18 @@ template <typename T>  T randomUnscalingMatrix(boost::mt19937 & rngParams, int d
 		RandomMatrixInit(rngParams, P, 0, 1.0);
 		Pdet = P.determinant();
 		assert(Pdet!=0);
-#ifndef NDEBUG
-		std::cout<< "Determinant: "<<Pdet<<"\n";
-#endif
+		DEBUGPRINT(Pdet);
 		if(Pdet == 0.0)  continue;//exceedingly unlikely.
 		
-		double scale= pow(abs(Pdet),-1.0/dims);
-		if(Pdet < 0.0) {//sign doesn't _really_ matter.
+		if(Pdet < 0.0) //sign doesn't _really_ matter.
 			P.col(0) *=-1;
-			Pdet = P.determinant();
-		}
-		//cout<< "Scale: "<<scale<<"\n";
+		double scale= pow (fabs(Pdet),-1.0/double(dims));
+		assert(scale==scale);
+
 		P = scale*P;
 		Pdet = P.determinant();
-		//cout<<"New determinant: "<<Pdet<<"\n";
+		assert(Pdet==Pdet);
+		DEBUGPRINT(Pdet);
 	}
 	return P;
 }

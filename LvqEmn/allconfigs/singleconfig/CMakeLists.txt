@@ -5,6 +5,7 @@ include("optimization-options.cmake")
 include("choose-eigen-variant.cmake")
 
 include_directories($ENV{BOOST_DIR})
+message("Using Boost dir: $ENV{BOOST_DIR}")
 
 set(solution_dir "../../")
 function(build_project Name)
