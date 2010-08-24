@@ -4,7 +4,7 @@ project(LvqEamon)
 include("optimization-options.cmake")
 include("choose-eigen-variant.cmake")
 
-include_directories("C:/Program Files (Custom)/boost_1_41_0")
+include_directories($ENV{BOOST_DIR})
 
 set(solution_dir "../../")
 function(build_project Name)

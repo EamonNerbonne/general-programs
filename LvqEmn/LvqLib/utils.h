@@ -17,7 +17,6 @@ template<typename T>  void RandomMatrixInit(boost::mt19937 & rng, Eigen::MatrixB
 	using namespace boost;
 	normal_distribution<> distrib(mean,sigma);
 	variate_generator<mt19937&, normal_distribution<> > rndGen(rng, distrib);
-
 	for(int j=0; j<mat.cols(); j++)
 		for(int i=0; i<mat.rows(); i++)
 			mat(i,j) = rndGen();
@@ -46,11 +45,16 @@ template <typename T>  T randomOrthogonalMatrix(boost::mt19937 & rngParams, int 
 template <typename T>  T randomUnscalingMatrix(boost::mt19937 & rngParams, int dims) {
 	T P(dims, dims);
 	double Pdet = 0.0;
+	//std::cout<<"RND-mat"<< rngParams()<<","<<rngParams()<<","<<rngParams()<<"\n";
 	while(!(Pdet >0.1 &&Pdet < 10)) {
 		RandomMatrixInit(rngParams, P, 0, 1.0);
 		Pdet = P.determinant();
-		if(Pdet == 0.0) continue;//exceedingly unlikely.
-		//cout<< "Determinant: "<<Pdet<<"\n";
+		assert(Pdet!=0);
+#ifndef NDEBUG
+		std::cout<< "Determinant: "<<Pdet<<"\n";
+#endif
+		if(Pdet == 0.0)  continue;//exceedingly unlikely.
+		
 		double scale= pow(abs(Pdet),-1.0/dims);
 		if(Pdet < 0.0) {//sign doesn't _really_ matter.
 			P.col(0) *=-1;

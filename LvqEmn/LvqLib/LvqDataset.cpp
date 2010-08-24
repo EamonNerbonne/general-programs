@@ -88,6 +88,7 @@ void LvqDataset::TrainModel(int epochs, LvqModel * model, std::vector<int> const
 }
 
 void LvqDataset::ComputeCostAndErrorRate(std::vector<int> const & subset, LvqModel const * model,double &meanCost,double & errorRate) const{
+	assert(subset.size() > 0);
 	VectorXd a;
 	double totalCost=0;
 	int errs=0;

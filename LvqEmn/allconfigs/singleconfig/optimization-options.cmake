@@ -6,6 +6,8 @@ message("Using build type ${CMAKE_BUILD_TYPE}")
 if(CMAKE_COMPILER_IS_GNUCXX)
 	message("Compiler is Gcc")
 
+	set(CMAKE_CXX_FLAGS_DEBUG " -m64 -march=native -mtune=native -O2 ")
+
 	#set(CMAKE_CXX_FLAGS_RELEASE " -m64 -march=native -mtune=native -O3 ")
 	set(CMAKE_CXX_FLAGS_RELEASE "-DNDEBUG -m64 -march=native -mtune=native -O3")
 

@@ -32,8 +32,8 @@ protected:
 			DBG(match.distBad);
 			DBG(match.distGood);
 			DBG(self.PrototypeCount());
-			assert( match.matchBad >= 0 && match.matchGood >=0 );
 		}
+		assert( match.matchBad >= 0 && match.matchGood >=0 );
 #endif
 		return match;
 	}

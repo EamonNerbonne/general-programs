@@ -29,8 +29,8 @@ using namespace Eigen;
 #define PROTOSPERCLASS 1
 #else
 #define BENCH_RUNS 3
-#define DIMS 32
-#define POINTS_PER_CLASS 100
+#define DIMS 8
+#define POINTS_PER_CLASS 300
 #define ITERS 40
 #define CLASSCOUNT 3
 #define PROTOSPERCLASS 1
@@ -98,6 +98,7 @@ template <class T> void TestModel(mt19937 & rndGenOrig, bool randInit, LvqDatase
 void EasyLvqTest() {
 	using boost::scoped_ptr;
 
+
 	mt19937 rndGen(347);
 	mt19937 rndGen2(37); //347: 50%, 37:
 #ifndef DETERMINISTIC_SEED
@@ -113,18 +114,18 @@ void EasyLvqTest() {
 
 	Eigen::BenchTimer t;
 	scoped_ptr<LvqDataset> dataset(DatasetUtils::ConstructGaussianClouds(rndGen,rndGen, DIMS, CLASSCOUNT, POINTS_PER_CLASS, MEANSEP)); 
-	
+
 	for(int bI=0;bI<BENCH_RUNS;++bI)
 	{
 		t.start();
 		TestModel<GmLvqModel>(rndGen2, true,  dataset.get(), protoDistrib, (ITERS + DIMS -1)/DIMS);
 		TestModel<GmLvqModel>(rndGen2, false,  dataset.get(), protoDistrib, (ITERS + DIMS -1)/DIMS);
 
-		//TestModel<G2mLvqModel>(rndGen2, true, dataset.get(), protoDistrib, ITERS);
-		//TestModel<G2mLvqModel>(rndGen2, false, dataset.get(), protoDistrib, ITERS);
+		TestModel<G2mLvqModel>(rndGen2, true, dataset.get(), protoDistrib, ITERS);
+		TestModel<G2mLvqModel>(rndGen2, false, dataset.get(), protoDistrib, ITERS);
 
-		//TestModel<GsmLvqModel>(rndGen2, true, dataset.get(), protoDistrib, ITERS);
-		//TestModel<GsmLvqModel>(rndGen2, false, dataset.get(), protoDistrib, ITERS);
+		TestModel<GsmLvqModel>(rndGen2, true, dataset.get(), protoDistrib, ITERS);
+		TestModel<GsmLvqModel>(rndGen2, false, dataset.get(), protoDistrib, ITERS);
 
 		cerr<<"\n";
 		t.stop();
