@@ -54,13 +54,15 @@ namespace SongSearchSite {
 			return local2absHelper(new Uri(context.Request.Url, context.Request.ApplicationPath + "/" + songsPrefix));
 		}
 		static Func<Uri, Uri> local2absHelper(Uri songsBaseUri) {
-			return localSongUri => localSongUri.IsFile ? new Uri(songsBaseUri, EscapedRelativeSongPath(localSongUri)) : localSongUri;
+			return localSongUri => 
+				localSongUri.IsFile ? new Uri(songsBaseUri, EscapedRelativeSongPath(localSongUri)) : localSongUri;
 		}
 		public static Func<Uri, Uri> LocalSongPathToAppRelativeMapper(HttpContext context) {
 			return local2relHelper(new Uri(context.Request.Url, context.Request.ApplicationPath + "/" + songsPrefix), new Uri(context.Request.Url, context.Request.ApplicationPath + "/"));
 		}
 		static Func<Uri, Uri> local2relHelper(Uri songsBaseUri, Uri appBaseUri) {
-			return localSongUri => localSongUri.IsFile ? appBaseUri.MakeRelativeUri(new Uri(songsBaseUri, EscapedRelativeSongPath(localSongUri))) : localSongUri;
+			return localSongUri => 
+				localSongUri.IsFile ? appBaseUri.MakeRelativeUri(new Uri(songsBaseUri, EscapedRelativeSongPath(localSongUri))) : localSongUri;
 		}
 
 

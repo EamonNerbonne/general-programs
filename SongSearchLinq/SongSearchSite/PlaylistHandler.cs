@@ -33,13 +33,14 @@ namespace SongSearchSite {
 				enc = Encoding.UTF8;
 			} else if (extension == ".m3u") {
 				enc = Encoding.GetEncoding(1252);
-
 				res.MimeType = "audio/x-mpegurl";
 			} else if (extension == ".xml") {
 				enc = Encoding.UTF8;
 				res.MimeType = "text/xml";
 				isXml = true;
 			}
+			context.Response.ContentEncoding = enc;
+			
 
 
 			includeRemote = context.Request.QueryString["remote"] == "allow";
@@ -124,7 +125,7 @@ namespace SongSearchSite {
 		}
 
 		static string makeM3UEntry(ISongData song, bool extm3u, Func<Uri, Uri> makeAbsolute) {
-			string url = makeAbsolute(song.SongUri).ToString();
+			string url = makeAbsolute(song.SongUri).AbsoluteUri;//absoluteuri include escape sequences.
 			if (extm3u)
 				return "#EXTINF:" + song.Length + "," + song.HumanLabel + "\n" + url + "\n";
 			else
