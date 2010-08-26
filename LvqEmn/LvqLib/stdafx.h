@@ -60,3 +60,8 @@ typedef Eigen::Matrix<double,LVQ_LOW_DIM_SPACE, Eigen::Dynamic> PMatrix;
 #else
 #define DEBUGPRINT(X) DBG(X)
 #endif
+
+
+#if !defined(EIGEN3) && !defined(EIGEN2)
+#define EIGEN3 1
+#endif
