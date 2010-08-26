@@ -1,7 +1,1 @@
-@echo off
-mkdir %~dp0\..\build\mingw
-cd %~dp0\..\build\mingw
-
-set benchHelper=%~dp0\benchAllConfigs.bat
-set logtarget=%~dp0\bench-mingw.log
-call %benchHelper% EigenBench . %logtarget%
+@call "%~dp0\benchAllConfigs.bat" EigenBench mingw
