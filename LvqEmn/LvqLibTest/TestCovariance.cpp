@@ -22,12 +22,9 @@ BOOST_AUTO_TEST_CASE( covariance_test )
 	if( !PrincipalComponentAnalysis::Covariance(points).isApprox(PrincipalComponentAnalysis::CovarianceB(points))) {
 		cout << PrincipalComponentAnalysis::Covariance(points).sum() <<"\n";
 		cout << PrincipalComponentAnalysis::CovarianceB(points).sum() <<"\n";
-		MatrixXd target;
-		PrincipalComponentAnalysis::CovarianceInto(points,target);
-		cout << target.sum() <<"\n";
 		cout << (PrincipalComponentAnalysis::CovarianceB(points) - PrincipalComponentAnalysis::Covariance(points)).sum() <<"\n";
 	}
-	Eigen::BenchTimer t, tB,tI;
+	Eigen::BenchTimer t, tB;
 	double ignore=0;
 	t.start();
 	for(int i=0;i<100;i++) {
@@ -41,13 +38,4 @@ BOOST_AUTO_TEST_CASE( covariance_test )
 	}
 	tB.stop();
 	cout<< tB.total()<<"\n";
-	tI.start();
-	MatrixXd target;
-	for(int i=0;i<100;i++) {
-		
-		PrincipalComponentAnalysis::CovarianceInto(points,target);
-		ignore+=target.sum();
-	}
-	tI.stop();
-	cout<< tI.total()<<"\n";
 }

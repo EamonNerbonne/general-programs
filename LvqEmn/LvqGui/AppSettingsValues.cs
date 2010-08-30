@@ -15,7 +15,7 @@ namespace LvqGui {
 
 		public bool ShowGridLines {
 			get { return _ShowGridLines; }
-			set { if (!object.Equals(_ShowGridLines,value)) { _ShowGridLines = value; _propertyChanged("ShowGridLines"); } }
+			set { if (!object.Equals(_ShowGridLines, value)) { _ShowGridLines = value; _propertyChanged("ShowGridLines"); } }
 		}
 		private bool _ShowGridLines;
 

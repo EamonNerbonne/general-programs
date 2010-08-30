@@ -24,8 +24,5 @@
     <ClCompile Include="TestCovariance.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="CovarianceStandalone.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
 </Project>

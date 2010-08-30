@@ -229,7 +229,6 @@
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="CovarianceStandalone.cpp" />
     <ClCompile Include="driver.cpp" />
     <ClCompile Include="Sample.cpp" />
     <ClCompile Include="TestCovariance.cpp" />

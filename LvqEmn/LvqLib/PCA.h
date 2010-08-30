@@ -13,30 +13,24 @@ class PrincipalComponentAnalysis {
 typedef Eigen::MatrixXd TPoints;
 typedef Eigen::VectorXd TPoint;
 
+   struct EigenValueSortHelper {
+	   TPoint const & eigenvalues;
+   public:
+	   EigenValueSortHelper(TPoint const & eigenvalues) : eigenvalues(eigenvalues) {}
+	   bool operator()(int a, int b) {return eigenvalues(a) > eigenvalues(b); }
+   };
+
 public:
 	static TPoint MeanPoint(Eigen::MatrixBase<TPoints>const & points) {
 		return points.rowwise().sum() * (1.0/points.cols());
 	}
 
-	static void CovarianceInto(Eigen::MatrixBase<TPoints>const & points, TMatrix & into) {
-		CovarianceInto(points,MeanPoint(points),into);
-	}
-	static void CovarianceInto(Eigen::MatrixBase<TPoints> const & points, TPoint const & mean,TMatrix & into) {
-		into.noalias() = (points.colwise() - mean) * (points.colwise() - mean).transpose() * (1.0/(points.cols()-1.0)) ;
-	}
-
-
 	static TMatrix Covariance(Eigen::MatrixBase<TPoints>const & points) {
 		return Covariance(points,MeanPoint(points));
 	}
 	static TMatrix Covariance(Eigen::MatrixBase<TPoints> const & points, TPoint const & mean) {
-		return (points.colwise() - mean) * (points.colwise() - mean).transpose() * (1.0/(points.cols()-1.0))  ;
+		return (points.colwise() - mean) * (1.0/(points.cols()-1.0)) * (points.colwise() - mean).transpose()   ;
 	}
-
-		//	TMatrix retval;
-		//retval.noalias() = 
-		// (points.colwise() - mean) * (points.colwise() - mean).transpose() * (1.0/(points.cols()-1.0));
-		//return retval;
 
 
 	//equiv possibly faster version:
@@ -53,21 +47,32 @@ public:
 		return cov * (1.0/(points.cols()-1.0));
 	}
 
-	//static TPoint MeanPoint(Eigen::MatrixBase<TPoints>const & points) {
-	//	TPoint mean = TPoint::Zero(points.rows());
-	//	for(int i=0;i<points.cols();++i)
-	//		mean+=points.col(i);
-	//	return mean * (1.0/points.cols());
-	//}
+
 
 	static void DoPca(Eigen::MatrixBase<TPoints>const & points ) {
 		TPoint mean = MeanPoint(points);
-		TMatrix covarianceMatrix = Covariance(points, mean);
+		TPoints meanCenteredPoints = points.colwise() - mean;
+		TMatrix covarianceMatrix =  (1.0/(points.cols()-1.0)) * meanCenteredPoints *  meanCenteredPoints.transpose() ;
 		
 		Eigen::SelfAdjointEigenSolver<TMatrix> eigenSolver(covarianceMatrix, true);
-		//Eigen::EigenSolver<TMatrix> solver(covarianceMatrix, true); //less efficient that specific function above.
+		TPoint eigenvalues = eigenSolver.eigenvalues();
+		std::vector<int> v;
+		for(int i=0;i<eigenvalues.size();++i)
+			v.push_back(i);
 
+		std::sort(v.begin(),v.end(), EigenValueSortHelper(eigenvalues));
+		TMatrix eigVec = eigenSolver.eigenvectors();
+		TMatrix eigVecSorted = eigVec;
+		TPoint eigenvaluesSorted = eigenvalues;
+
+		for(int i=0;i<eigenvalues.size();++i) {
+			eigVecSorted.col(v[i]).noalias() = eigVec.col(i);
+			eigenvaluesSorted(v[i]) = eigenvalues(i);
+		}
+
+		//now eigVecSorted.transpose() is an orthonormal projection matrix from data space to PCA space
+		//eigenvaluesSorted tells you how important the various dimensions are, we care mostly about the first 2...
+		//and then we could transform the data too ...
 
 	}
-
 };
