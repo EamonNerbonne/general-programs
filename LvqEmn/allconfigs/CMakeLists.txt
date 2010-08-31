@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 2.8)
 project(LvqEamonAllconfigs)
 
+message("Using compiler at ${CMAKE_CXX_COMPILER}")
+
 #set(EigenVersion 2)
 #set(EigenVectorize OFF)
 #add_subdirectory("singleconfig" "build2")

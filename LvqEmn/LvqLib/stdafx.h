@@ -15,8 +15,6 @@
 //#define EIGEN_VECTORIZE_SSE4_1
 #define EIGEN_USE_NEW_STDVECTOR
 
-#include <Bench/BenchTimer.h>
-#include <Eigen/StdVector>
 #include <iostream>
 #include <algorithm>
 #include <numeric>
@@ -44,10 +42,15 @@
 #include <Eigen/Core>
 #include <Eigen/LU> 
 #include <Eigen/QR> 
+#include <Eigen/StdVector>
+#include <Bench/BenchTimer.h>
+
 #ifdef _MSC_VER
 //#pragma warning(pop)
 #endif
 #define LVQ_LOW_DIM_SPACE 2
+
+
 
 typedef Eigen::Matrix<double,LVQ_LOW_DIM_SPACE, Eigen::Dynamic> PMatrix;
 
