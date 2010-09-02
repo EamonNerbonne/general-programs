@@ -18,24 +18,30 @@ BOOST_AUTO_TEST_CASE( covariance_test )
 	Eigen::MatrixXd points = DatasetUtils::MakePointCloud(rng,rng,DIMS,1000,2);
 	
 
-	BOOST_CHECK(PrincipalComponentAnalysis::Covariance(points).isApprox(PrincipalComponentAnalysis::CovarianceB(points)));
-	if( !PrincipalComponentAnalysis::Covariance(points).isApprox(PrincipalComponentAnalysis::CovarianceB(points))) {
-		cout << PrincipalComponentAnalysis::Covariance(points).sum() <<"\n";
-		cout << PrincipalComponentAnalysis::CovarianceB(points).sum() <<"\n";
-		cout << (PrincipalComponentAnalysis::CovarianceB(points) - PrincipalComponentAnalysis::Covariance(points)).sum() <<"\n";
+	BOOST_CHECK(PcaHighDim::Covariance(points).isApprox(PcaHighDim::CovarianceB(points)));
+	if( !PcaHighDim::Covariance(points).isApprox(PcaHighDim::CovarianceB(points))) {
+		cout << PcaHighDim::Covariance(points).sum() <<"\n";
+		cout << PcaHighDim::CovarianceB(points).sum() <<"\n";
+		cout << (PcaHighDim::CovarianceB(points) - PcaHighDim::Covariance(points)).sum() <<"\n";
 	}
 	Eigen::BenchTimer t, tB;
 	double ignore=0;
 	t.start();
 	for(int i=0;i<100;i++) {
-		ignore+=PrincipalComponentAnalysis::Covariance(points).sum();
+		ignore+=PcaHighDim::Covariance(points).sum();
 	}
 	t.stop();
 	cout<< t.total()<<"\n";
 	tB.start();
 	for(int i=0;i<100;i++) {
-		ignore+=PrincipalComponentAnalysis::CovarianceB(points).sum();
+		ignore+=PcaHighDim::CovarianceB(points).sum();
 	}
 	tB.stop();
 	cout<< tB.total()<<"\n";
+}
+
+
+BOOST_AUTO_TEST_CASE( pca_vs_svd_test )
+{
+
 }

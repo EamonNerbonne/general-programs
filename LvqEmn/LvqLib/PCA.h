@@ -4,15 +4,13 @@
 
 
 
-//template <typename TPoints,typename TMatrix, typename TPoint>
-class PrincipalComponentAnalysis {
-//typedef Eigen::Matrix2d TMatrix;
-//typedef PMatrix TPoints;
-//typedef Eigen::Vector2d TPoint;
-	typedef Eigen::MatrixXd TMatrix;
-typedef Eigen::MatrixXd TPoints;
-typedef Eigen::VectorXd TPoint;
-
+template <typename TPoints>
+class PrincipalComponentAnalysisTemplate {
+public:
+		typedef Eigen::Matrix<typename TPoints::Scalar,TPoints::RowsAtCompileTime,1> TPoint;
+		typedef Eigen::Matrix<typename TPoints::Scalar,TPoints::RowsAtCompileTime,TPoints::RowsAtCompileTime> TMatrix;
+private:
+	
    struct EigenValueSortHelper {
 	   TPoint const & eigenvalues;
    public:
@@ -76,3 +74,6 @@ public:
 
 	}
 };
+
+typedef PrincipalComponentAnalysisTemplate<Eigen::MatrixXd> PcaHighDim;
+typedef PrincipalComponentAnalysisTemplate<PMatrix> PcaLowDim;
