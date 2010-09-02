@@ -6,8 +6,11 @@
 
 #define BOOST_TEST_INCLUDED
 #include <boost/test/unit_test.hpp>
+#include <Eigen/SVD>
 
-#define DIMS 7
+#define DIMS 5
+
+using namespace Eigen;
 
 BOOST_AUTO_TEST_CASE( covariance_test )
 {
@@ -15,7 +18,7 @@ BOOST_AUTO_TEST_CASE( covariance_test )
 	using std::cout;
 	using std::cerr;
 	mt19937 rng(37);
-	Eigen::MatrixXd points = DatasetUtils::MakePointCloud(rng,rng,DIMS,1000,2);
+	MatrixXd points = DatasetUtils::MakePointCloud(rng,rng,DIMS,10000,2.3456);
 	
 
 	BOOST_CHECK(PcaHighDim::Covariance(points).isApprox(PcaHighDim::CovarianceB(points)));
@@ -31,17 +34,65 @@ BOOST_AUTO_TEST_CASE( covariance_test )
 		ignore+=PcaHighDim::Covariance(points).sum();
 	}
 	t.stop();
-	cout<< t.total()<<"\n";
+	cout<<"Covariance duration:"<< t.total()<<"s\n";
 	tB.start();
 	for(int i=0;i<100;i++) {
 		ignore+=PcaHighDim::CovarianceB(points).sum();
 	}
 	tB.stop();
-	cout<< tB.total()<<"\n";
+	cout<<"CovarianceB duration:"<< tB.total()<<"s\n";
 }
+
+
+BOOST_AUTO_TEST_CASE( covariance_lowdim_test )
+{
+	using boost::mt19937;
+	using std::cout;
+	using std::cerr;
+	mt19937 rng(37);
+	PMatrix points = DatasetUtils::MakePointCloud(rng,rng,LVQ_LOW_DIM_SPACE,10000,2.3456);
+	
+
+	BOOST_CHECK(PcaLowDim::Covariance(points).isApprox(PcaLowDim::CovarianceB(points)));
+	if( !PcaLowDim::Covariance(points).isApprox(PcaLowDim::CovarianceB(points))) {
+		cout << PcaLowDim::Covariance(points).sum() <<"\n";
+		cout << PcaLowDim::CovarianceB(points).sum() <<"\n";
+		cout << (PcaLowDim::CovarianceB(points) - PcaLowDim::Covariance(points)).sum() <<"\n";
+	}
+	Eigen::BenchTimer t, tB;
+	double ignore=0;
+	t.start();
+	for(int i=0;i<100;i++) {
+		ignore+=PcaLowDim::Covariance(points).sum();
+	}
+	t.stop();
+	cout<<"LCovariance duration:"<< t.total()<<"s\n";
+	tB.start();
+	for(int i=0;i<100;i++) {
+		ignore+=PcaLowDim::CovarianceB(points).sum();
+	}
+	tB.stop();
+	cout<<"LCovarianceB duration:"<< tB.total()<<"s\n";
+}
+
 
 
 BOOST_AUTO_TEST_CASE( pca_vs_svd_test )
 {
+	using boost::mt19937;
+	using std::cout;
+	using std::cerr;
+	mt19937 rng(1338);
+	MatrixXd points = DatasetUtils::MakePointCloud(rng,rng,DIMS,1000,2);
+
+	MatrixXd transform;
+	VectorXd eigenvalues;
+	PcaHighDim::DoPca(points, transform, eigenvalues);
+
+	MatrixXd newCov = PcaHighDim::Covariance(transform * points);
+
+	BOOST_CHECK(newCov.isDiagonal());
+	cout<<eigenvalues<< "\n";
+	cout<<newCov<<"\n";
 
 }

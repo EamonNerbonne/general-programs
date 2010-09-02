@@ -57,7 +57,7 @@ typedef Eigen::Matrix<double,LVQ_LOW_DIM_SPACE, Eigen::Dynamic> PMatrix;
 
 #pragma warning (disable: 4127)
 #define ASSTRING(X) #X
-#define DBG(X) (std::cout<<ASSTRING(X)<<": "<<(X)<<"\n")
+#define DBG(X) (std::cout<<ASSTRING(X)<<":\n"<<(X)<<"\n")
 #ifdef NDEBUG
 #define DEBUGPRINT(X) ((void)0)
 #else
