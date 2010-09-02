@@ -232,6 +232,10 @@
     <ClCompile Include="driver.cpp" />
     <ClCompile Include="Sample.cpp" />
     <ClCompile Include="TestCovariance.cpp" />
+    <ClCompile Include="TestPca.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="CMakeLists.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

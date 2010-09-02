@@ -2,7 +2,7 @@
 #include "stdafx.h"
 #include "Eigen/EigenValues"
 
-
+#include "CovarianceAndMean.h"
 
 template <typename TPoints>
 class PrincipalComponentAnalysisTemplate {
@@ -19,38 +19,9 @@ private:
    };
 
 public:
-	static TPoint MeanPoint(Eigen::MatrixBase<TPoints>const & points) {
-		return points.rowwise().sum() * (1.0/points.cols());
-	}
-
-	static TMatrix Covariance(Eigen::MatrixBase<TPoints>const & points) {
-		return Covariance(points,MeanPoint(points));
-	}
-	static TMatrix Covariance(Eigen::MatrixBase<TPoints> const & points, TPoint const & mean) {
-		return (points.colwise() - mean) *  (points.colwise() - mean).transpose()  *(1.0/(points.cols()-1.0)) ;
-	}
-
-
-	//equiv possibly faster version:
-	static TMatrix CovarianceB(Eigen::MatrixBase<TPoints>const & points) {
-		return CovarianceB(points,MeanPoint(points));
-	}
-	static TMatrix CovarianceB(Eigen::MatrixBase<TPoints>const & points, TPoint const & mean) {
-		TPoint diff = TPoint::Zero(points.rows());
-		TMatrix cov = TMatrix::Zero(points.rows(),points.rows());
-		for(int i=0;i<points.cols();++i) {
-			diff.noalias() = points.col(i) - mean;
-			cov.noalias() += diff * diff.transpose();
-		}
-		return cov * (1.0/(points.cols()-1.0));
-	}
-
-
 
 	static void DoPca(Eigen::MatrixBase<TPoints>const & points, TMatrix & transform, TPoint & eigenvalues ) {
-		TPoint mean = MeanPoint(points);
-		TPoints meanCenteredPoints = points.colwise() - mean;
-		TMatrix covarianceMatrix =  (1.0/(points.cols()-1.0)) * meanCenteredPoints *  meanCenteredPoints.transpose() ;
+		TMatrix covarianceMatrix = Covariance::Compute( points);
 		
 		Eigen::SelfAdjointEigenSolver<TMatrix> eigenSolver(covarianceMatrix, Eigen::ComputeEigenvectors);
 		TPoint eigenvaluesUnsorted = eigenSolver.eigenvalues();
@@ -61,9 +32,6 @@ public:
 		for(int i=0;i<eigenvaluesUnsorted.size();++i)
 			v.push_back(i);
 		std::sort(v.begin(),v.end(), EigenValueSortHelper(eigenvaluesUnsorted));
-
-
-
 
 		TMatrix eigVec = eigVecUnsorted;
 		eigenvalues = eigenvaluesUnsorted;
@@ -81,6 +49,7 @@ public:
 
 	}
 };
+
 
 typedef PrincipalComponentAnalysisTemplate<Eigen::MatrixXd> PcaHighDim;
 typedef PrincipalComponentAnalysisTemplate<PMatrix> PcaLowDim;
