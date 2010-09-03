@@ -37,28 +37,14 @@ struct PrincipalComponentAnalysisTemplate {
 			v.push_back(i);
 		std::sort(v.begin(),v.end(), EigenValueSortHelper(eigenvaluesUnsorted));
 
-		TMatrix eigVec = eigVecUnsorted;
+		assert(eigVecUnsorted.cols() ==eigVecUnsorted.rows());
 		transform.resize(eigVecUnsorted.cols(),eigVecUnsorted.rows());
 		eigenvalues.resize(eigenvaluesUnsorted.size());
 
 		for(int i=0;i<eigenvalues.size();++i) {
-			eigVec.col(i).noalias() = eigVecUnsorted.col(v[i]);
 			transform.row(i) = eigVecUnsorted.col(v[i]);
 			eigenvalues(i) = eigenvaluesUnsorted(v[i]);
 		}
-
-		if(!transform.isApprox(eigVec.transpose())) {
-			DBG(transform);
-			DBG(eigVec.transpose());
-			throw "This isn't good!";
-		}
-
-		transform = eigVec.transpose();
-		assert(eigVecUnsorted.cols() ==eigVecUnsorted.rows());
-
-
-		
-
 		//now eigVecSorted.transpose() is an orthonormal projection matrix from data space to PCA space
 		//eigenvaluesSorted tells you how important the various dimensions are, we care mostly about the first 2...
 		//and then we could transform the data too ...

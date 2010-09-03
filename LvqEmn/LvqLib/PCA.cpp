@@ -9,7 +9,7 @@ using namespace Eigen;
 		SelfAdjointEigenSolver<MatrixXd> eigenSolver(covarianceMatrix, ComputeEigenvectors);
 		VectorXd eigenvaluesUnsorted = eigenSolver.eigenvalues();
 		MatrixXd eigVecUnsorted = eigenSolver.eigenvectors();
-
+		assert(eigenvaluesUnsorted.size() >=2);
 
 		std::vector<int> v;
 		for(int i=0;i<eigenvaluesUnsorted.size();++i)
@@ -18,13 +18,8 @@ using namespace Eigen;
 
 		PMatrix eigVec(2,points.rows());
 
-		for(int i=0;i<2;++i) {
+		for(int i=0;i<2;++i) 
 			eigVec.row(i).noalias() = eigVecUnsorted.col(v[i]);
-		}
-
+		
 		return eigVec;
-
-		//now eigVecSorted.transpose() is an orthonormal projection matrix from data space to PCA space
-		//eigenvaluesSorted tells you how important the various dimensions are, we care mostly about the first 2...
-		//and then we could transform the data too ...
 	}

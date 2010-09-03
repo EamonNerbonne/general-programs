@@ -1,15 +1,12 @@
-
+#include "stdafx.h"
 #include <boost/random/mersenne_twister.hpp>
 #include "CovarianceAndMean.h"
 #include "DatasetUtils.h"
 
 
-#define BOOST_TEST_INCLUDED
-#include <boost/test/unit_test.hpp>
 
 #define DIMS 5
 
-using namespace Eigen;
 
 BOOST_AUTO_TEST_CASE( covariance_test )
 {
@@ -29,27 +26,27 @@ BOOST_AUTO_TEST_CASE( covariance_test )
 		cout << CovHD::CovarianceB(points).sum() <<"\n";
 		cout << (CovHD::CovarianceB(points) - CovHD::CovarianceA(points)).sum() <<"\n";
 	}
-	Eigen::BenchTimer tA, tB,t;
+	Eigen::BenchTimer tA, tB, t;
 	double ignore=0;
 	tA.start();
-	for(int i=0;i<100;i++) {
+	for(int i=0;i<100;i++) 
 		ignore+=CovHD::CovarianceA(points).sum();
-	}
+	
 	tA.stop();
-	cout<<"CovarianceA duration:"<< tA.total()<<"s\n";
+//	cout<<"CovarianceA duration:"<< tA.total()<<"s\n";
 	tB.start();
-	for(int i=0;i<100;i++) {
+	for(int i=0;i<100;i++) 
 		ignore+=CovHD::CovarianceB(points).sum();
-	}
+	
 	tB.stop();
-	cout<<"CovarianceB duration:"<< tB.total()<<"s\n";
+//	cout<<"CovarianceB duration:"<< tB.total()<<"s\n";
 	t.start();
-	for(int i=0;i<100;i++) {
+	for(int i=0;i<100;i++) 
 		ignore+=Covariance::Compute(points).sum();
-	}
+	
 	t.stop();
-	cout<<"Covariance duration:"<< t.total()<<"s ("<<ignore<<")\n";
-
+//	cout<<"Covariance duration:"<< t.total()<<"s ("<<ignore<<")\n";
+	BOOST_CHECK(tA.total()+tB.total() >= 2*t.total());
 }
 
 
@@ -76,19 +73,20 @@ BOOST_AUTO_TEST_CASE( covariance_lowdim_test )
 		ignore+=CovLD::CovarianceA(points).sum();
 	}
 	tA.stop();
-	cout<<"LCovarianceA duration:"<< tA.total()<<"s\n";
+//	cout<<"LCovarianceA duration:"<< tA.total()<<"s\n";
 	tB.start();
 	for(int i=0;i<100;i++) {
 		ignore+=CovLD::CovarianceB(points).sum();
 	}
 	tB.stop();
-	cout<<"LCovarianceB duration:"<< tB.total()<<"s\n";
+//	cout<<"LCovarianceB duration:"<< tB.total()<<"s\n";
 		t.start();
 	for(int i=0;i<100;i++) {
 		ignore+=Covariance::Compute(points).sum();
 	}
 	t.stop();
-	cout<<"LCovariance duration:"<< t.total()<<"s ("<<ignore<<")\n";
+//	cout<<"LCovariance duration:"<< t.total()<<"s ("<<ignore<<")\n";
+	BOOST_CHECK(tA.total()+tB.total() >= 2*t.total());
 
 }
 

@@ -1,6 +1,4 @@
-
-#include <Eigen/Core>
-using namespace Eigen;
+#include "stdafx.h"
 
 bool rowFromCol() {
 	MatrixXd matA, matB;
@@ -44,8 +42,6 @@ bool colFromRowNoalias() {
 
 
 #ifndef STANDALONE
-#define BOOST_TEST_INCLUDED
-#include <boost/test/unit_test.hpp>
 
 BOOST_AUTO_TEST_CASE( rowColMixedTest )
 {
@@ -56,15 +52,12 @@ BOOST_AUTO_TEST_CASE( rowColMixedTest )
 }
 #else
 #include <iostream>
-static bool failed = false;
-#define ASSTRING(X) #X
-#define DBG(X) do {bool ok=(X);failed |= !ok; std::cout<<ASSTRING(X)<<":\n"<<ok<<"\n"; } while(false)
 
 int main(int argc, char *argv[] ) {
-	DBG(rowFromCol());
-	DBG(rowFromColNoalias());
-	DBG(colFromRow());
-	DBG(colFromRowNoalias());
+	VERIFY(rowFromCol());
+	VERIFY(rowFromColNoalias());
+	VERIFY(colFromRow());
+	VERIFY(colFromRowNoalias());
 
 	return failed;
 }
