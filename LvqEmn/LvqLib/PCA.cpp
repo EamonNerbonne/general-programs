@@ -2,7 +2,6 @@
 #include "PCA.h"
 
 using namespace Eigen;
-
 	 PMatrix PcaProjectInto2d(Eigen::MatrixBase<Eigen::MatrixXd>const & points) {
 		MatrixXd covarianceMatrix = Covariance::Compute( points);
 		

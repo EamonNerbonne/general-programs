@@ -17,7 +17,6 @@ struct PrincipalComponentAnalysisTemplate {
 	   bool operator()(int a, int b) {return eigenvalues(a) > eigenvalues(b); }
    };
 
-
 	static void DoPca(Eigen::MatrixBase<TPoints>const & points, TMatrix & transform, TPoint & eigenvalues ) {
 		TMatrix covarianceMatrix = Covariance::Compute( points);
 		
@@ -42,7 +41,7 @@ struct PrincipalComponentAnalysisTemplate {
 		eigenvalues.resize(eigenvaluesUnsorted.size());
 
 		for(int i=0;i<eigenvalues.size();++i) {
-			transform.row(i) = eigVecUnsorted.col(v[i]);
+			transform.row(i).noalias() = eigVecUnsorted.col(v[i]);
 			eigenvalues(i) = eigenvaluesUnsorted(v[i]);
 		}
 		//now eigVecSorted.transpose() is an orthonormal projection matrix from data space to PCA space
