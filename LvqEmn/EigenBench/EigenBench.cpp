@@ -8,6 +8,7 @@
 #include "copyVecTest.h"
 #include "prodNormTest.h"
 #include "resizeTest.h"
+#include "covarience.h"
 
 #include <Eigen/StdVector>
 #include <vector>
@@ -61,7 +62,9 @@ int main(int , char*argv []){
 #endif
 	cout<<": ";
 
-	cout << resizeTest() <<"s; "<< file_size(argv[0])/1024 <<"KB\n";
+	cout <<  file_size(argv[0])/1024 <<"KB\n"; //resizeTest() <<"s; "
 
-	return 0; 
+
+	return 	docovbench();
+
 }

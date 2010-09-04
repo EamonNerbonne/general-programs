@@ -47,6 +47,9 @@
     <ClInclude Include="resizeTest.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="covarience.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="CMakeLists.txt" />

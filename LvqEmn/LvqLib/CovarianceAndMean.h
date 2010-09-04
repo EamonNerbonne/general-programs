@@ -9,14 +9,14 @@ static Eigen::Matrix<typename TPoints::Scalar,TPoints::RowsAtCompileTime,1> Mean
 template <typename TPoints>
 struct CovarianceImpl {
 public:
-		typedef Eigen::Matrix<typename TPoints::Scalar,TPoints::RowsAtCompileTime,1> TPoint;
-		typedef Eigen::Matrix<typename TPoints::Scalar,TPoints::RowsAtCompileTime,TPoints::RowsAtCompileTime> TMatrix;
+	typedef Eigen::Matrix<typename TPoints::Scalar,TPoints::RowsAtCompileTime,1> TPoint;
+	typedef Eigen::Matrix<typename TPoints::Scalar,TPoints::RowsAtCompileTime,TPoints::RowsAtCompileTime> TMatrix;
 
 	inline static TMatrix CovarianceA(Eigen::MatrixBase<TPoints>const & points) {
 		return CovarianceA(points,MeanPoint(points));
 	}
 	inline static TMatrix CovarianceA(Eigen::MatrixBase<TPoints> const & points, TPoint const & mean) {
-		return (points.colwise() - mean) *  (points.colwise() - mean).transpose()  *(1.0/(points.cols()-1.0)) ;
+		return (points.colwise() - mean) *  (points.colwise() - mean).transpose()  * (1.0/(points.cols()-1.0)) ;
 	}
 
 
@@ -27,10 +27,16 @@ public:
 	inline static TMatrix CovarianceB(Eigen::MatrixBase<TPoints>const & points, TPoint const & mean) {
 		TPoint diff = TPoint::Zero(points.rows());
 		TMatrix cov = TMatrix::Zero(points.rows(),points.rows());
+		typename TMatrix::Index dims = points.rows();
 		for(int i=0;i<points.cols();++i) {
 			diff.noalias() = points.col(i) - mean;
-			cov.noalias() += diff * diff.transpose();
+			cov.noalias() += diff * diff.transpose(); //.template triangularView<Eigen::Upper>()
+			//for(int j=0;j<dims;++j)
+			//	for(int k=j;k<dims;++k) 
+			//		cov.coeffRef(k,j) += diff.coeff(j) *diff.coeff(k);
 		}
+		
+		//cov.template triangularView<Eigen::StrictlyUpper>() = cov.transpose();
 		return cov * (1.0/(points.cols()-1.0));
 	}
 };

@@ -229,6 +229,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="copyVecTest.h" />
+    <ClInclude Include="covarience.h" />
     <ClInclude Include="diagUpdateBench.h" />
     <ClInclude Include="matmulTest.h" />
     <ClInclude Include="mulBench.h" />

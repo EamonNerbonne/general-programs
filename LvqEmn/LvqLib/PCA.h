@@ -54,4 +54,5 @@ struct PrincipalComponentAnalysisTemplate {
 typedef PrincipalComponentAnalysisTemplate<Eigen::MatrixXd> PcaHighDim;
 typedef PrincipalComponentAnalysisTemplate<PMatrix> PcaLowDim;
 
- PMatrix PcaProjectInto2d(Eigen::MatrixBase<Eigen::MatrixXd>const & points) ;
+ PMatrix Pca2dFromCov(Eigen::MatrixBase<Eigen::MatrixXd>const & covarianceMatrix) ;
+inline PMatrix PcaProjectInto2d(Eigen::MatrixBase<Eigen::MatrixXd>const & points) { return Pca2dFromCov( Covariance::Compute(points) ); }

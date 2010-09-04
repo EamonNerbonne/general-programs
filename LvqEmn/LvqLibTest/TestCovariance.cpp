@@ -5,14 +5,13 @@
 
 
 
-#define DIMS 5
-
-
-BOOST_AUTO_TEST_CASE( covariance_test )
-{
+#define DIMS 50
 	using boost::mt19937;
 	using std::cout;
 	using std::cerr;
+
+BOOST_AUTO_TEST_CASE( covariance_test )
+{
 	typedef CovarianceImpl<MatrixXd> CovHD;
 	mt19937 rng(37);
 	MatrixXd points = DatasetUtils::MakePointCloud(rng,rng,DIMS,10000,2.3456);
@@ -33,28 +32,31 @@ BOOST_AUTO_TEST_CASE( covariance_test )
 		ignore+=CovHD::CovarianceA(points).sum();
 	
 	tA.stop();
-//	cout<<"CovarianceA duration:"<< tA.total()<<"s\n";
+#ifdef PRINTPERF
+	cout<<"CovarianceA duration:"<< tA.total()<<"s\n";
+#endif
 	tB.start();
 	for(int i=0;i<100;i++) 
 		ignore+=CovHD::CovarianceB(points).sum();
 	
 	tB.stop();
-//	cout<<"CovarianceB duration:"<< tB.total()<<"s\n";
+#ifdef PRINTPERF
+	cout<<"CovarianceB duration:"<< tB.total()<<"s\n";
+#endif
 	t.start();
 	for(int i=0;i<100;i++) 
 		ignore+=Covariance::Compute(points).sum();
 	
 	t.stop();
-//	cout<<"Covariance duration:"<< t.total()<<"s ("<<ignore<<")\n";
+#ifdef PRINTPERF
+	cout<<"Covariance duration:"<< t.total()<<"s ("<<ignore<<")\n";
+#endif
 	BOOST_CHECK(tA.total()+tB.total() >= 2*t.total());
 }
 
 
 BOOST_AUTO_TEST_CASE( covariance_lowdim_test )
 {
-	using boost::mt19937;
-	using std::cout;
-	using std::cerr;
 	typedef CovarianceImpl<PMatrix> CovLD;
 	mt19937 rng(37);
 	PMatrix points = DatasetUtils::MakePointCloud(rng,rng,LVQ_LOW_DIM_SPACE,10000,2.3456);
@@ -73,20 +75,24 @@ BOOST_AUTO_TEST_CASE( covariance_lowdim_test )
 		ignore+=CovLD::CovarianceA(points).sum();
 	}
 	tA.stop();
-//	cout<<"LCovarianceA duration:"<< tA.total()<<"s\n";
+#ifdef PRINTPERF
+	cout<<"LCovarianceA duration:"<< tA.total()<<"s\n";
+#endif
 	tB.start();
 	for(int i=0;i<100;i++) {
 		ignore+=CovLD::CovarianceB(points).sum();
 	}
 	tB.stop();
-//	cout<<"LCovarianceB duration:"<< tB.total()<<"s\n";
+#ifdef PRINTPERF
+	cout<<"LCovarianceB duration:"<< tB.total()<<"s\n";
+#endif
 		t.start();
 	for(int i=0;i<100;i++) {
 		ignore+=Covariance::Compute(points).sum();
 	}
 	t.stop();
-//	cout<<"LCovariance duration:"<< t.total()<<"s ("<<ignore<<")\n";
+#ifdef PRINTPERF
+	cout<<"LCovariance duration:"<< t.total()<<"s ("<<ignore<<")\n";
+#endif
 	BOOST_CHECK(tA.total()+tB.total() >= 2*t.total());
-
 }
-
