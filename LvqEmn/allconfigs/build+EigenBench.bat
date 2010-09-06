@@ -1,5 +1,3 @@
 @echo off
-call %~dp0\build[Mingw].bat
-call %~dp0\build[Msc].bat
-start "Mingw Eigen Bench" /abovenormal /min cmd /C %~dp0\eigenBenchMingw.bat
-start "Msc Eigen Bench" /abovenormal /min cmd /C %~dp0\eigenBenchMsc.bat
+start "Mingw Eigen Build" /min cmd /C ""%~dp0\build[Mingw].bat" "%~dp0\EigenBench[Mingw].bat""
+start "Msc Eigen Build"  /min cmd /C ""%~dp0\build[Msc].bat" "%~dp0\EigenBench[Msc].bat""

@@ -1,8 +1,2 @@
-@echo off
-start "Mingw Build" /low /B /wait cmd /C "%~dp0\build[Mingw].bat"
-start "Msc Build" /low /B /wait cmd /C "%~dp0\build[Msc].bat"
-
-set benchHelper=%~dp0\benchAllConfigs.bat
-
-call "%benchHelper%" LvqLibTest msc errlog
-call "%benchHelper%" LvqLibTest mingw errlog
+@start "Mingw Eigen Build" /min cmd /C ""%~dp0\build[Mingw].bat" "%~dp0\LvqLibTest[Mingw].bat""
+@start "Msc Eigen Build"  /min cmd /C ""%~dp0\build[Msc].bat" "%~dp0\LvqLibTest[Msc].bat""

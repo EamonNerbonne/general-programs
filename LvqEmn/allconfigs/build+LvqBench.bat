@@ -1,8 +1,4 @@
-REM @echo off
-start "Mingw Build" /low /B /wait cmd /C "%~dp0\build[Mingw].bat"
-start "Msc Build" /low /B /wait cmd /C "%~dp0\build[Msc].bat"
-
-start "Mingw Lvq Bench" /abovenormal /min cmd /C "%~dp0\LvqBench[Mingw].bat"
-start "Msc Lvq Bench" /abovenormal /min cmd /C "%~dp0\LvqBench[Msc].bat"
-
+@echo off
+start "Mingw Eigen Build" /min cmd /C ""%~dp0\build[Mingw].bat" "%~dp0\LvqBench[Mingw].bat""
+start "Msc Eigen Build"  /min cmd /C ""%~dp0\build[Msc].bat" "%~dp0\LvqBench[Msc].bat""
 
