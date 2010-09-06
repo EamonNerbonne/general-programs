@@ -4,95 +4,69 @@
 #include "DatasetUtils.h"
 
 
-
+#define PRINTPERF 1
 #define DIMS 50
 	using boost::mt19937;
 	using std::cout;
 	using std::cerr;
 
+#ifdef PRINTPERF
+#define BENCHRET(timer,tries,repeat,code) \
+	do { \
+	BENCH(timer,tries,repeat,code); \
+	cout<<"Duration:"<< timer.best()<<"s\n"; \
+	} while(false);
+#else
+#define BENCHRET(timer,tries,repeat,code) \
+	BENCH(timer,tries,repeat,code)
+#endif
 BOOST_AUTO_TEST_CASE( covariance_test )
 {
 	typedef CovarianceImpl<MatrixXd> CovHD;
-	mt19937 rng(37);
+	mt19937 rng(1337);
 	MatrixXd points = DatasetUtils::MakePointCloud(rng,rng,DIMS,10000,2.3456);
 	
 
+	VectorXd mean = MeanPoint(points);
 
-
-	BOOST_CHECK(CovHD::CovarianceA(points).isApprox(CovHD::CovarianceB(points)));
-	if( !CovHD::CovarianceA(points).isApprox(CovHD::CovarianceB(points))) {
-		cout << CovHD::CovarianceA(points).sum() <<"\n";
-		cout << CovHD::CovarianceB(points).sum() <<"\n";
-		cout << (CovHD::CovarianceB(points) - CovHD::CovarianceA(points)).sum() <<"\n";
+	BOOST_CHECK(CovHD::CovarianceA(points,mean).isApprox(CovHD::CovarianceB(points,mean)));
+	BOOST_CHECK(CovHD::CovarianceA(points,mean).isApprox(CovHD::CovarianceC(points,mean)));
+	if( !CovHD::CovarianceA(points,mean).isApprox(CovHD::CovarianceC(points,mean))) {
+		cout << CovHD::CovarianceA(points,mean).sum() <<"\n";
+		cout << CovHD::CovarianceC(points,mean).sum() <<"\n";
+		cout << (CovHD::CovarianceC(points,mean) - CovHD::CovarianceA(points,mean)).sum() <<"\n";
 	}
-	Eigen::BenchTimer tA, tB, t;
+	Eigen::BenchTimer tA, tB,tC,tD, t;
 	double ignore=0;
-	tA.start();
-	for(int i=0;i<100;i++) 
-		ignore+=CovHD::CovarianceA(points).sum();
-	
-	tA.stop();
-#ifdef PRINTPERF
-	cout<<"CovarianceA duration:"<< tA.total()<<"s\n";
-#endif
-	tB.start();
-	for(int i=0;i<100;i++) 
-		ignore+=CovHD::CovarianceB(points).sum();
-	
-	tB.stop();
-#ifdef PRINTPERF
-	cout<<"CovarianceB duration:"<< tB.total()<<"s\n";
-#endif
-	t.start();
-	for(int i=0;i<100;i++) 
-		ignore+=Covariance::Compute(points).sum();
-	
-	t.stop();
-#ifdef PRINTPERF
-	cout<<"Covariance duration:"<< t.total()<<"s ("<<ignore<<")\n";
-#endif
-	BOOST_CHECK(tA.total()+tB.total() >= 2*t.total());
+	BENCHRET(tA,10,10,ignore+=CovHD::CovarianceA(points,mean).sum());
+	BENCHRET(tB,10,10,ignore+=CovHD::CovarianceB(points,mean).sum());
+	BENCHRET(tC,10,10,ignore+=CovHD::CovarianceC(points,mean).sum());
+	BENCHRET(tD,10,10,ignore+=CovHD::CovarianceD(points,mean).sum());
+	BENCHRET(t,10,10,ignore+=Covariance::Compute<MatrixXd>(points,mean).sum());
+	BOOST_CHECK(t.best()<= 1.05 * std::min(tA.best(),std::min(tB.best(),std::min(tC.best(),tD.best()))));
 }
 
 
 BOOST_AUTO_TEST_CASE( covariance_lowdim_test )
 {
 	typedef CovarianceImpl<PMatrix> CovLD;
-	mt19937 rng(37);
+	mt19937 rng(1337);
 	PMatrix points = DatasetUtils::MakePointCloud(rng,rng,LVQ_LOW_DIM_SPACE,10000,2.3456);
-	
+	Vector2d mean = MeanPoint(points);
 
-	BOOST_CHECK(CovLD::CovarianceA(points).isApprox(CovLD::CovarianceB(points)));
-	if( !CovLD::CovarianceA(points).isApprox(CovLD::CovarianceB(points))) {
-		cout << CovLD::CovarianceA(points).sum() <<"\n";
-		cout << CovLD::CovarianceB(points).sum() <<"\n";
-		cout << (CovLD::CovarianceB(points) - CovLD::CovarianceA(points)).sum() <<"\n";
+	BOOST_CHECK(CovLD::CovarianceA(points,mean).isApprox(CovLD::CovarianceB(points,mean)));
+	BOOST_CHECK(CovLD::CovarianceA(points,mean).isApprox(CovLD::CovarianceC(points,mean)));
+	if( !CovLD::CovarianceA(points,mean).isApprox(CovLD::CovarianceC(points,mean)) ) {
+		cout << CovLD::CovarianceA(points,mean) <<"\n";
+		cout << CovLD::CovarianceC(points,mean) <<"\n";
+		cout << (CovLD::CovarianceC(points,mean) - CovLD::CovarianceA(points,mean)).sum() <<"\n";
 	}
-	Eigen::BenchTimer tA, tB,t;
+	Eigen::BenchTimer tA, tB,tC,tD,t;
 	double ignore=0;
-	tA.start();
-	for(int i=0;i<100;i++) {
-		ignore+=CovLD::CovarianceA(points).sum();
-	}
-	tA.stop();
-#ifdef PRINTPERF
-	cout<<"LCovarianceA duration:"<< tA.total()<<"s\n";
-#endif
-	tB.start();
-	for(int i=0;i<100;i++) {
-		ignore+=CovLD::CovarianceB(points).sum();
-	}
-	tB.stop();
-#ifdef PRINTPERF
-	cout<<"LCovarianceB duration:"<< tB.total()<<"s\n";
-#endif
-		t.start();
-	for(int i=0;i<100;i++) {
-		ignore+=Covariance::Compute(points).sum();
-	}
-	t.stop();
-#ifdef PRINTPERF
-	cout<<"LCovariance duration:"<< t.total()<<"s ("<<ignore<<")\n";
-#endif
-	BOOST_CHECK(tA.total()+tB.total() >= 2*t.total());
+	BENCHRET(tA,10,10,ignore+=CovLD::CovarianceA(points,mean).sum());
+	BENCHRET(tB,10,10,ignore+=CovLD::CovarianceB(points,mean).sum());
+	BENCHRET(tC,10,10,ignore+=CovLD::CovarianceC(points,mean).sum());
+	BENCHRET(tD,10,10,ignore+=CovLD::CovarianceD(points,mean).sum());
+	BENCHRET(t,10,10,ignore+=Covariance::Compute<PMatrix>(points,mean).sum());
+	BOOST_CHECK(t.best()<= 1.05 * std::min(tA.best(),std::min(tB.best(),std::min(tC.best(),tD.best()))));
 }

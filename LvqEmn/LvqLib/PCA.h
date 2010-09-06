@@ -18,7 +18,7 @@ struct PrincipalComponentAnalysisTemplate {
    };
 
 	static void DoPca(Eigen::MatrixBase<TPoints>const & points, TMatrix & transform, TPoint & eigenvalues ) {
-		TMatrix covarianceMatrix = Covariance::Compute( points);
+		TMatrix covarianceMatrix = Covariance::ComputeAutoMean( points);
 		
 		Eigen::SelfAdjointEigenSolver<TMatrix> eigenSolver(covarianceMatrix, Eigen::ComputeEigenvectors);
 		TPoint eigenvaluesUnsorted = eigenSolver.eigenvalues();
@@ -54,5 +54,5 @@ struct PrincipalComponentAnalysisTemplate {
 typedef PrincipalComponentAnalysisTemplate<Eigen::MatrixXd> PcaHighDim;
 typedef PrincipalComponentAnalysisTemplate<PMatrix> PcaLowDim;
 
- PMatrix Pca2dFromCov(Eigen::MatrixBase<Eigen::MatrixXd>const & covarianceMatrix) ;
-inline PMatrix PcaProjectInto2d(Eigen::MatrixBase<Eigen::MatrixXd>const & points) { return Pca2dFromCov( Covariance::Compute(points) ); }
+ PMatrix Pca2dFromCov(Eigen::MatrixXd const & covarianceMatrix) ;
+inline PMatrix PcaProjectInto2d(Eigen::MatrixXd const & points) { return Pca2dFromCov( Covariance::ComputeAutoMean(points) ); }
