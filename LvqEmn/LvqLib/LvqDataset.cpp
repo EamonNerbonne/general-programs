@@ -32,6 +32,101 @@ MatrixXd LvqDataset::ComputeClassMeans(std::vector<int> const & subset) const {
 	return means;
 }
 
+void LvqDataset::Extract(std::vector<int> const & subset,MatrixXd & extracted_points,std::vector<int>  & extracted_labels) const {
+	extracted_points.resize(points.rows(),subset.size());
+	extracted_labels.resize(subset.size());
+	for(int i=0;i<(int)subset.size();++i) {
+		int pI = subset[i];
+		extracted_points.col(i).noalias() = points.col(pI);
+		extracted_labels[i] = pointLabels[pI];
+	}
+}
+
+
+int LvqDataset::NearestNeighborClassify(std::vector<int> const & subset, Eigen::VectorXd point) const {
+	double distance(std::numeric_limits<double>::infinity());
+	int match(-1);
+
+	for(int i=0;i<(int)subset.size();++i) {
+		int pI = subset[i];
+		double pDist = (points.col(pI) - point).squaredNorm();
+		if(pDist < distance) {
+			match = pointLabels[pI];
+			distance = pDist;
+		}
+	}
+	return match;
+}
+
+int LvqDataset::NearestNeighborClassify(std::vector<int> const & subset, PMatrix projection, Eigen::Vector2d projected_point) const {
+	double distance(std::numeric_limits<double>::infinity());
+	int match(-1);
+
+	for(int i=0;i<(int)subset.size();++i) {
+		int pI = subset[i];
+		double pDist = (projection*points.col(pI) - projected_point).squaredNorm();
+		if(pDist < distance) {
+			match = pointLabels[pI];
+			distance = pDist;
+		}
+	}
+	return match;
+}
+
+double LvqDataset::NearestNeighborErrorRate(std::vector<int> const & neighborhood,std::vector<int> const & testSet, PMatrix projection) const {
+	std::vector<int> neighborLabels;
+	PMatrix neighbors;
+
+	neighbors.resize(projection.rows(),neighborhood.size());
+	neighborLabels.resize(neighborhood.size());
+	for(int i=0;i<(int)neighborhood.size();++i) {
+		int pI = neighborhood[i];
+		neighbors.col(i).noalias() = projection * points.col(pI);
+		neighborLabels[i] = pointLabels[pI];
+	}
+	Vector2d testPoint;
+	int errs =0;
+	for(int i=0;i<(int)testSet.size();++i) {
+		int testI = testSet[i];
+		testPoint.noalias() = projection * points.col(testI);
+
+		MatrixXd::Index neighborI;
+
+		(neighbors.colwise() - testPoint).colwise().squaredNorm().minCoeff(&neighborI);
+		
+		if(neighborLabels[neighborI] != pointLabels[testI]) 
+			errs++;
+	}
+	return double(errs) / double(testSet.size());
+}
+
+
+double LvqDataset::NearestNeighborErrorRate(std::vector<int> const & neighborhood,std::vector<int> const & testSet) const {
+	std::vector<int> neighborLabels;
+	MatrixXd neighbors;
+
+	neighbors.resize(points.rows(),neighborhood.size());
+	neighborLabels.resize(neighborhood.size());
+	for(int i=0;i<(int)neighborhood.size();++i) {
+		int pI = neighborhood[i];
+		neighbors.col(i).noalias() = points.col(pI);
+		neighborLabels[i] = pointLabels[pI];
+	}
+	VectorXd testPoint;
+	int errs =0;
+	for(int i=0;i<(int)testSet.size();++i) {
+		int testI = testSet[i];
+		testPoint.noalias() =  points.col(testI);
+
+		MatrixXd::Index neighborI;
+		(neighbors.colwise() - testPoint).colwise().squaredNorm().minCoeff(&neighborI);
+		
+		if(neighborLabels[neighborI] != pointLabels[testI]) 
+			errs++;
+	}
+	return double(errs) / double(testSet.size());
+}
+
 
 size_t LvqDataset::MemAllocEstimate() const {
 	return sizeof(LvqDataset) + sizeof(int) * pointLabels.size()  + sizeof(double)*points.size();
