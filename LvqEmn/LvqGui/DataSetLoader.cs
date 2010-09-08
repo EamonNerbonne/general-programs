@@ -26,23 +26,23 @@ namespace LVQeamon
 			for (int i = 0; i < outerLen; i++)
 			{
 				T[] row = jaggedArray[i];
-				if (row.Length != innerLen) 
+				if (row.Length != innerLen)
 					throw new FileFormatException("Vectors are of inconsistent lengths");
-				
+
 				for (int j = 0; j < innerLen; j++)
 					retval[i, j] = row[j];
 			}
 			return retval;
 		}
 
-		public static Tuple<double[,],int[],int> LoadDataset(FileInfo datafile, FileInfo labelfile)
+		public static Tuple<double[,], int[], int> LoadDataset(FileInfo datafile, FileInfo labelfile)
 		{
-			var dataVectors = 
+			var dataVectors =
 				(from dataline in datafile.GetLines()
-				select (
-					from dataDim in dataline.Split(dimSep)
-					select double.Parse(dataDim, CultureInfo.InvariantCulture)
-					).ToArray()
+				 select (
+					 from dataDim in dataline.Split(dimSep)
+					 select double.Parse(dataDim, CultureInfo.InvariantCulture)
+					 ).ToArray()
 				).ToArray();
 
 			var itemLabels = (
@@ -50,14 +50,14 @@ namespace LVQeamon
 					select int.Parse(labelline, CultureInfo.InvariantCulture)
 					).ToArray();
 
-			var denseLabelLookup = 
+			var denseLabelLookup =
 				itemLabels
 				.Distinct()
-				.OrderBy(label=>label)
-				.Select( (OldLabel,Index) => new { OldLabel, NewLabel=Index})
-				.ToDictionary( a=>a.OldLabel, a=>a.NewLabel);
+				.OrderBy(label => label)
+				.Select((OldLabel, Index) => new { OldLabel, NewLabel = Index })
+				.ToDictionary(a => a.OldLabel, a => a.NewLabel);
 
-			itemLabels = 
+			itemLabels =
 				itemLabels
 				.Select(oldlabel => denseLabelLookup[oldlabel])
 				.ToArray();
@@ -66,7 +66,7 @@ namespace LVQeamon
 			int minLabel = labelSet.Min();
 			int maxLabel = labelSet.Max();
 			int labelCount = labelSet.Count;
-			if (labelCount != maxLabel + 1 || minLabel != 0) 
+			if (labelCount != maxLabel + 1 || minLabel != 0)
 				throw new FileFormatException("Class labels must be consecutive integers starting at 0");
 
 			return Tuple.Create(dataVectors.ToRectangularArray(), itemLabels, labelCount);
