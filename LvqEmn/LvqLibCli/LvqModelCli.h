@@ -50,7 +50,6 @@ namespace LvqLibCli {
 
 		ModelProjection CurrentProjectionAndPrototypes(LvqDatasetCli^ dataset);
 
-
 		void Train(int epochsToDo,LvqDatasetCli^ trainingSet); 
 
 		static const int G2M_TYPE =0;

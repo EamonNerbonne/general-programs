@@ -25,9 +25,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="AutoNative.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="LvqDatasetCli.h">
       <Filter>Header Files</Filter>
     </ClInclude>
