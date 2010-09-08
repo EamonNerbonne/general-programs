@@ -236,6 +236,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="TestCovariance.cpp" />
+    <ClCompile Include="TestNN.cpp" />
     <ClCompile Include="TestPca.cpp" />
   </ItemGroup>
   <ItemGroup>
