@@ -4,11 +4,12 @@
 #include "DatasetUtils.h"
 
 
-#define PRINTPERF 1
-#define DIMS 50
+#define DIMS 17
 	using boost::mt19937;
 	using std::cout;
 	using std::cerr;
+
+//#define PRINTPERF 1
 
 #ifdef PRINTPERF
 #define BENCHRET(timer,tries,repeat,code) \
@@ -24,7 +25,7 @@ BOOST_AUTO_TEST_CASE( covariance_test )
 {
 	typedef CovarianceImpl<MatrixXd> CovHD;
 	mt19937 rng(1337);
-	MatrixXd points = DatasetUtils::MakePointCloud(rng,rng,DIMS,10000,2.3456);
+	MatrixXd points = DatasetUtils::MakePointCloud(rng,rng,DIMS,1000,2.3456);
 	
 
 	VectorXd mean = MeanPoint(points);
