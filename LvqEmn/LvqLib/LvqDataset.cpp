@@ -14,6 +14,36 @@ LvqDataset::LvqDataset(MatrixXd const & points, vector<int> pointLabels, int cla
 	
 	//pointLabels.shrink_to_fit();
 }
+LvqDataset::LvqDataset(LvqDataset const & src, std::vector<int> const & subset)
+	: points(src.points.rows(),subset.size())
+	, pointLabels(subset.size())
+	, classCount(src.classCount)
+{
+	for(int i=0;i<(int)subset.size();++i) {
+		int pI = subset[i];
+		points.col(i).noalias() = src.points.col(pI);
+		pointLabels[i] = src.pointLabels[pI];
+	}
+}
+
+MatrixXd LvqDataset::ExtractPoints(std::vector<int> const & subset) const {
+	MatrixXd retval(points.rows(),subset.size());
+	for(int i=0;i<(int)subset.size();++i) {
+		int pI = subset[i];
+		retval.col(i).noalias() = points.col(pI);
+	}
+	return retval;
+}
+
+vector<int> LvqDataset::ExtractLabels(std::vector<int> const & subset) const {
+	vector<int> retval(subset.size());
+	for(int i=0;i<(int)subset.size();++i) {
+		int pI = subset[i];
+		retval[i] = pointLabels[pI];
+	}
+	return retval;
+}
+
 
 MatrixXd LvqDataset::ComputeClassMeans(std::vector<int> const & subset) const {
 	MatrixXd means( points.rows(), classCount);
@@ -32,14 +62,8 @@ MatrixXd LvqDataset::ComputeClassMeans(std::vector<int> const & subset) const {
 	return means;
 }
 
-void LvqDataset::Extract(std::vector<int> const & subset,MatrixXd & extracted_points,std::vector<int>  & extracted_labels) const {
-	extracted_points.resize(points.rows(),subset.size());
-	extracted_labels.resize(subset.size());
-	for(int i=0;i<(int)subset.size();++i) {
-		int pI = subset[i];
-		extracted_points.col(i).noalias() = points.col(pI);
-		extracted_labels[i] = pointLabels[pI];
-	}
+LvqDataset * LvqDataset::Extract(std::vector<int> const & subset) const {
+	return new LvqDataset(*this,subset);
 }
 
 

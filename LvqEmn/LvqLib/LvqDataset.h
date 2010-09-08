@@ -12,6 +12,7 @@ class LvqDataset
 	MatrixXd points; //one dimension per row, one point per column
 	std::vector<int> pointLabels;
 	const int classCount;
+	LvqDataset(LvqDataset const & src, std::vector<int> const & subset);
 public:
 	MatrixXd const & getPoints()const {return points;}
 	std::vector<int> const & getPointLabels()const {return pointLabels;}
@@ -19,7 +20,9 @@ public:
 	int getPointCount()const {return static_cast<int>(pointLabels.size());}
 	void shufflePoints(boost::mt19937& rng);
 
-	void Extract(std::vector<int> const & subset,MatrixXd & extracted_points,std::vector<int>  & extracted_labels) const;
+	LvqDataset* Extract(std::vector<int> const & subset) const;
+	MatrixXd ExtractPoints(std::vector<int> const & subset) const;
+	std::vector<int> ExtractLabels(std::vector<int> const & subset) const;
 
 	LvqDataset(MatrixXd const & points, std::vector<int> pointLabels, int classCount);
 	MatrixXd ComputeClassMeans(std::vector<int> const & subset) const;
