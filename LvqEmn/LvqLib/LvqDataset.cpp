@@ -2,6 +2,7 @@
 #include "LvqDataset.h"
 #include "utils.h"
 #include <xmmintrin.h>
+#include "PCA.h"
 using namespace std;
 LvqDataset::LvqDataset(MatrixXd const & points, vector<int> pointLabels, int classCountPar) 
 	: points(points)
@@ -97,7 +98,7 @@ int LvqDataset::NearestNeighborClassify(std::vector<int> const & subset, PMatrix
 	return match;
 }
 
-double LvqDataset::NearestNeighborErrorRate(std::vector<int> const & neighborhood,std::vector<int> const & testSet, PMatrix projection) const {
+double LvqDataset::NearestNeighborErrorRate(std::vector<int> const & neighborhood,LvqDataset const* testData, std::vector<int> const & testSet, PMatrix projection) const {
 	std::vector<int> neighborLabels;
 	PMatrix neighbors;
 
@@ -112,20 +113,22 @@ double LvqDataset::NearestNeighborErrorRate(std::vector<int> const & neighborhoo
 	int errs =0;
 	for(int i=0;i<(int)testSet.size();++i) {
 		int testI = testSet[i];
-		testPoint.noalias() = projection * points.col(testI);
+		testPoint.noalias() = projection * testData->points.col(testI);
 
 		MatrixXd::Index neighborI;
 
 		(neighbors.colwise() - testPoint).colwise().squaredNorm().minCoeff(&neighborI);
 		
-		if(neighborLabels[neighborI] != pointLabels[testI]) 
+		if(neighborLabels[neighborI] != testData->pointLabels[testI]) 
 			errs++;
 	}
 	return double(errs) / double(testSet.size());
 }
 
-
-double LvqDataset::NearestNeighborErrorRate(std::vector<int> const & neighborhood,std::vector<int> const & testSet) const {
+double LvqDataset::NearestNeighborPcaErrorRate(std::vector<int> const & neighborhood, LvqDataset const* testData, std::vector<int> const & testSet) const {
+	return NearestNeighborErrorRate(neighborhood,testData,testSet,PcaProjectInto2d(ExtractPoints(neighborhood)));
+}
+double LvqDataset::NearestNeighborErrorRate(std::vector<int> const & neighborhood, LvqDataset const* testData, std::vector<int> const & testSet) const {
 	std::vector<int> neighborLabels;
 	MatrixXd neighbors;
 
@@ -136,16 +139,17 @@ double LvqDataset::NearestNeighborErrorRate(std::vector<int> const & neighborhoo
 		neighbors.col(i).noalias() = points.col(pI);
 		neighborLabels[i] = pointLabels[pI];
 	}
+
 	VectorXd testPoint;
 	int errs =0;
 	for(int i=0;i<(int)testSet.size();++i) {
 		int testI = testSet[i];
-		testPoint.noalias() =  points.col(testI);
+		testPoint.noalias() =  testData->points.col(testI);
 
 		MatrixXd::Index neighborI;
 		(neighbors.colwise() - testPoint).colwise().squaredNorm().minCoeff(&neighborI);
 		
-		if(neighborLabels[neighborI] != pointLabels[testI]) 
+		if(neighborLabels[neighborI] != testData->pointLabels[testI]) 
 			errs++;
 	}
 	return double(errs) / double(testSet.size());

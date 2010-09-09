@@ -42,7 +42,7 @@ BOOST_AUTO_TEST_CASE( nn_test )
 		vector<int> trainingSet(dataset->GetTrainingSubset(fold,FOLDS));
 
 		timeRawNN.start();
-		double rawErrorRate = dataset->NearestNeighborErrorRate(trainingSet,testSet);
+		double rawErrorRate = dataset->NearestNeighborErrorRate(trainingSet,dataset.get(),testSet);
 		timeRawNN.stop();
 		cout<<"Raw: "<<rawErrorRate;
 
@@ -55,7 +55,7 @@ BOOST_AUTO_TEST_CASE( nn_test )
 		dataset->ComputeCostAndErrorRate(testSet,&model,ignore,g2mRate);
 		cout<<",  G2m: "<<g2mRate ;
 
-		double g2mNNrate = dataset->NearestNeighborErrorRate(trainingSet,testSet, model.projectionMatrix() );
+		double g2mNNrate = dataset->NearestNeighborErrorRate(trainingSet,dataset.get(),testSet, model.projectionMatrix() );
 		cout<<",  G2mNN: "<<g2mNNrate ;
 
 		timePca.start();
@@ -63,13 +63,13 @@ BOOST_AUTO_TEST_CASE( nn_test )
 		timePca.stop();
 
 		timePcaNN.start();
-		double pcaErrorRate = dataset->NearestNeighborErrorRate(trainingSet,testSet,transform);
+		double pcaErrorRate = dataset->NearestNeighborErrorRate(trainingSet,dataset.get(),testSet,transform);
 		timePcaNN.stop();
 
 		BOOST_CHECK(pcaErrorRate >= rawErrorRate);
 		cout<<",  PcaNN: "<<pcaErrorRate ;
 
-		double identTransRate = dataset->NearestNeighborErrorRate(trainingSet,testSet, checkerbox);
+		double identTransRate = dataset->NearestNeighborErrorRate(trainingSet,dataset.get(),testSet, checkerbox);
 		BOOST_CHECK(identTransRate >= pcaErrorRate);
 		BOOST_CHECK(identTransRate >= g2mNNrate);
 		cout<<",  identNN: "<<identTransRate <<"\n";
