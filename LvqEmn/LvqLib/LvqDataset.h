@@ -42,33 +42,6 @@ public:
 	size_t MemAllocEstimate() const;
 	int dimensions() const { return static_cast<int>(points.rows());}
 
-	std::vector<int> GetTrainingSubset(int fold, int foldcount) const {
-			if(foldcount==0) {
-				std::vector<int> idxs((size_t)getPointCount());
-				for(int i=0;i<getPointCount();i++) idxs[i]=i; return idxs; 
-			}
-			fold = fold % foldcount;
-			int pointCount = getPointCount();
-			int foldStart = fold * pointCount / foldcount;
-			int foldEnd = (fold+1) * pointCount / foldcount;
-
-			std::vector<int> retval;
-			for(int i=0;i<foldStart;++i)
-				retval.push_back(i);
-			for(int i=foldEnd;i<pointCount;++i)
-				retval.push_back(i);
-			return retval;
-		}
-
-		std::vector<int> GetTestSubset(int fold, int foldcount) const {
-			if(foldcount==0) return std::vector<int>();
-			fold = fold % foldcount;
-			int pointCount = getPointCount();
-			int foldStart = fold * pointCount / foldcount;
-			int foldEnd = (fold+1) * pointCount / foldcount;
-			std::vector<int> retval;
-			for(int i=foldStart;i<foldEnd;++i)
-				retval.push_back(i);
-			return retval;
-		}
+	std::vector<int> GetTrainingSubset(int fold, int foldcount) const;
+	std::vector<int> GetTestSubset(int fold, int foldcount) const;
 };
