@@ -52,7 +52,7 @@ namespace LvqLibCli {
 		Eigen::VectorXd zero = VectorXd::Zero(statDim);
 		array<LvqTrainingStatCli>^ retval = gcnew array<LvqTrainingStatCli>(statCount);
 		for(int si=0;si<statCount;++si) {
-			SmartSum<Eigen::VectorXd> stat(zero);
+			SmartSum<Eigen::ArrayXd> stat(zero);
 			for each(WrappedModel^ m in currentBackup)
 				stat.CombineWith(m->get()->TrainingStats()[si].values,1.0);
 			retval[si] = LvqTrainingStatCli::toCli(currentBackup[0]->get()->TrainingStats()[si].trainingIter, stat.GetMean(), (stat.GetSampleVariance().array().sqrt() * (1.0/sqrt(stat.GetWeight()))).matrix() );

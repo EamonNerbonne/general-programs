@@ -1,6 +1,7 @@
 #include "StdAfx.h"
 #include "LvqDatasetCli.h"
 #include "DatasetUtils.h"
+#include "SmartSum.h"
 namespace LvqLibCli {
 	using boost::mt19937;
 
@@ -31,5 +32,20 @@ namespace LvqLibCli {
 		mt19937 rngParam(rngParamsSeed);
 		mt19937 rngInst(rngInstSeed);
 		return gcnew LvqDatasetCli(label,folds,colors,DatasetUtils::ConstructStarDataset(rngParam,rngInst, dims, starDims, numStarTails, classCount, pointsPerClass, starMeanSep, starClassRelOffset,randomlyTransform),rngInst);
+	}
+
+	Tuple<double,double> ^ LvqDatasetCli::GetPcaNnErrorRate()  {
+		SmartSum<double> nnErrorRate(0.0);
+		for(int fold=0;fold<folds;++fold) {
+			nnErrorRate.CombineWith(
+				dataset->NearestNeighborPcaErrorRate(
+					dataset->GetTrainingSubset(fold,folds),
+					dataset.get(),
+					dataset->GetTestSubset(fold,folds)
+				),
+				1.0
+			);
+		}
+		return Tuple::Create(nnErrorRate.GetMean(),nnErrorRate.GetSampleVariance());
 	}
 }
