@@ -17,7 +17,7 @@ BOOST_AUTO_TEST_CASE( pca_vs_svd_test )
 	VectorXd eigenvalues;
 	PcaHighDim::DoPca(points, transform, eigenvalues);
 
-	MatrixXd newCov = Covariance::ComputeAutoMean( transform * points );
+	MatrixXd newCov = Covariance::ComputeWithMean( transform * points );
 
 	BOOST_CHECK(newCov.isDiagonal());
 	BOOST_CHECK(newCov.diagonal().isApprox(eigenvalues));
