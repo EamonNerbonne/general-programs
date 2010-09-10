@@ -122,7 +122,7 @@ double GmLvqModel::meanProjectionNorm() const {
 	return normsum/P.size();
 }
 
-VectorXd GmLvqModel::otherStats() const {
+VectorXd GmLvqModel::otherStats(LvqDataset const * trainingSet,  std::vector<int>const & trainingSubset, LvqDataset const * testSet,  std::vector<int>const & testSubset) const {
 	double minNorm=std::numeric_limits<double>::max();
 	double maxNorm=0.0;
 

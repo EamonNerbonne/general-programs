@@ -27,14 +27,14 @@ public:
 
 	G2mLvqModel(boost::mt19937 & rngParams,boost::mt19937 & rngIter, bool randInit, std::vector<int> protodistribution, MatrixXd const & means);
 	virtual size_t MemAllocEstimate() const;
-	virtual VectorXd otherStats() const; 
+	virtual VectorXd otherStats(LvqDataset const * trainingSet,  std::vector<int>const & trainingSubset, LvqDataset const * testSet,  std::vector<int>const & testSubset) const; 
 	virtual int classify(VectorXd const & unknownPoint) const {return classifyProjectedInline(P * unknownPoint);}
 	virtual int classifyProjected(Vector2d const & unknownProjectedPoint) const { return classifyProjectedInline(unknownProjectedPoint);}
 	inline int classifyProjectedInline(Vector2d const & P_unknownPoint) const {
 		double distance(std::numeric_limits<double>::infinity());
 		int match(-1);
 
-		for(int i=0;i<prototype.size();i++) {
+		for(int i=0;i<int(prototype.size());i++) {
 			double curDist = prototype[i].SqrDistanceTo(P_unknownPoint);
 			if(curDist < distance) { match=i; distance = curDist; }
 		}

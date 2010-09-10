@@ -55,7 +55,15 @@ namespace LvqGui {
 
 						string name = dataFile.Name + "-" + pointArray.GetLength(1) + "D-" + classCount + ":" + pointArray.GetLength(0)+"["+seed+"]/"+folds;
 						Console.WriteLine("Created: " + name);
-						return LvqDatasetCli.ConstructFromArray(rngInstSeed:seed, label:name,folds:folds, colors: GraphRandomPen.MakeDistributedColors(classCount), points: pointArray, pointLabels: labelArray, classCount: classCount);
+						return LvqDatasetCli.ConstructFromArray(
+							rngInstSeed:seed,
+							label:name,
+							extend: owner.ExtendDatasetOnCreation,
+							folds:folds,
+							colors: GraphRandomPen.MakeDistributedColors(classCount), 
+							points: pointArray, 
+							pointLabels: labelArray, 
+							classCount: classCount);
 
 
 					} catch (FileFormatException fe) {

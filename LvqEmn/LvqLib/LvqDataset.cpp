@@ -83,7 +83,7 @@ int LvqDataset::NearestNeighborClassify(std::vector<int> const & subset, Eigen::
 	return match;
 }
 
-int LvqDataset::NearestNeighborClassify(std::vector<int> const & subset, PMatrix projection, Eigen::Vector2d projected_point) const {
+int LvqDataset::NearestNeighborClassify(std::vector<int> const & subset, PMatrix projection, Eigen::Vector2d & projected_point) const {
 	double distance(std::numeric_limits<double>::infinity());
 	int match(-1);
 
@@ -206,8 +206,17 @@ void LvqDataset::TrainModel(int epochs, LvqModel * model, std::vector<int> const
 			pointCostSum += trainingMatch.CostFunc();
 		}
 		t.stop();
-		model->AddTrainingStat(pointCostSum/double(shuffledOrder.size()),errs/double(shuffledOrder.size()), testData,testSubset, (int)(1*shuffledOrder.size()), t.value(CPU_TIMER));
+		model->AddTrainingStat(this,trainingSubset,pointCostSum/double(shuffledOrder.size()),errs/double(shuffledOrder.size()), testData,testSubset, (int)(1*shuffledOrder.size()), t.value(CPU_TIMER));
 	}
+}
+
+void LvqDataset::ExtendByCorrelations() {
+	int oldDims = points.rows();
+	points.conservativeResize(oldDims + oldDims*oldDims, NoChange);
+	for(int pI=0;pI<points.cols();++pI) 
+		for(int i=0;i<oldDims;++i)
+			for(int j=0;j<oldDims;++j) 
+				points(oldDims + oldDims*i + j,pI) = points(i,pI)*points(j,pI);
 }
 
 void LvqDataset::ComputeCostAndErrorRate(std::vector<int> const & subset, LvqModel const * model,double &meanCost,double & errorRate) const{

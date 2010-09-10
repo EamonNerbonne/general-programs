@@ -133,7 +133,7 @@ namespace LvqLibCli {
 	int LvqModelCli::OtherStatCount() {
 		WrappedModelArray^ backupCopy=modelCopy;
 		msclr::lock l(backupCopy); 
-		return static_cast<int>(backupCopy[0]->get()->otherStats().size() - LvqTrainingStats::Extra );
+		return static_cast<int>(backupCopy[0]->get()->otherStats(nullptr,vector<int>(),nullptr,vector<int>() ).size() - LvqTrainingStats::Extra );
 	}
 
 	

@@ -131,6 +131,7 @@ namespace LvqGui {
 			return LvqDatasetCli.ConstructStarDataset(Shorthand,
 				folds: _Folds,
 				colors: GraphRandomPen.MakeDistributedColors(NumberOfClasses),
+				extend: owner.ExtendDatasetOnCreation,
 				rngParamsSeed: Seed,
 				rngInstSeed: InstSeed,
 				dims: Dimensions,

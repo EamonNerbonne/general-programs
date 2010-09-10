@@ -2,7 +2,7 @@
 #include "GsmLvqModel.h"
 #include "utils.h"
 #include "LvqConstants.h"
-
+#include "LvqDataset.h"
 using namespace std;
 
 GsmLvqModel::GsmLvqModel(boost::mt19937 & rngParams, boost::mt19937 & rngIter, bool randInit, std::vector<int> protodistribution, MatrixXd const & means)
@@ -124,4 +124,27 @@ size_t GsmLvqModel::MemAllocEstimate() const {
 		sizeof(double) * (prototype.size() * vJ.size()) + //dyn alloc prototype data
 		sizeof(Vector2d) * P_prototype.size() + //cache of pretransformed prototypes
 		(16/2) * (5+prototype.size()*2);//estimate for alignment mucking.
+}
+
+VectorXd GsmLvqModel::otherStats(LvqDataset const * trainingSet,  std::vector<int>const & trainingSubset, LvqDataset const * testSet,  std::vector<int>const & testSubset) const {
+	VectorXd stats = VectorXd::Zero(LvqTrainingStats::Extra+1);
+	if(trainingSet)
+		stats(LvqTrainingStats::Extra) = trainingSet->NearestNeighborErrorRate(trainingSubset,testSet,testSubset,this->P);
+	return stats;
+
+	//double minNorm=std::numeric_limits<double>::max();
+	//double maxNorm=0.0;
+	//double sumNorm=0.0;
+
+	//for(size_t i=0;i<prototype.size();++i) {
+	//	double norm = projectionSquareNorm(prototype[i].B);
+	//	sumNorm +=norm;
+	//	if(norm <minNorm) minNorm = norm;
+	//	if(norm > maxNorm) maxNorm = norm;
+	//}
+	//VectorXd stats = VectorXd::Zero(LvqTrainingStats::Extra+3);
+	//stats(LvqTrainingStats::Extra+0) = minNorm;
+	//stats(LvqTrainingStats::Extra+1) = sumNorm/prototype.size();
+	//stats(LvqTrainingStats::Extra+2) = maxNorm;
+	//return stats;
 }

@@ -2,7 +2,7 @@
 #include "G2mLvqModel.h"
 #include "utils.h"
 #include "LvqConstants.h"
-
+#include "LvqDataset.h"
 using namespace std;
 using namespace Eigen;
 
@@ -134,20 +134,25 @@ vector<int> G2mLvqModel::GetPrototypeLabels() const {
 	return retval;
 }
 
-VectorXd G2mLvqModel::otherStats() const {
-	double minNorm=std::numeric_limits<double>::max();
-	double maxNorm=0.0;
-	double sumNorm=0.0;
-
-	for(size_t i=0;i<prototype.size();++i) {
-		double norm = projectionSquareNorm(prototype[i].B);
-		sumNorm +=norm;
-		if(norm <minNorm) minNorm = norm;
-		if(norm > maxNorm) maxNorm = norm;
-	}
-	VectorXd stats = VectorXd::Zero(LvqTrainingStats::Extra+3);
-	stats(LvqTrainingStats::Extra+0) = minNorm;
-	stats(LvqTrainingStats::Extra+1) = sumNorm/prototype.size();
-	stats(LvqTrainingStats::Extra+2) = maxNorm;
+VectorXd G2mLvqModel::otherStats(LvqDataset const * trainingSet,  std::vector<int>const & trainingSubset, LvqDataset const * testSet,  std::vector<int>const & testSubset) const {
+	VectorXd stats = VectorXd::Zero(LvqTrainingStats::Extra+1);
+	if(trainingSet)
+		stats(LvqTrainingStats::Extra) = trainingSet->NearestNeighborErrorRate(trainingSubset,testSet,testSubset,this->P);
 	return stats;
+
+	//double minNorm=std::numeric_limits<double>::max();
+	//double maxNorm=0.0;
+	//double sumNorm=0.0;
+
+	//for(size_t i=0;i<prototype.size();++i) {
+	//	double norm = projectionSquareNorm(prototype[i].B);
+	//	sumNorm +=norm;
+	//	if(norm <minNorm) minNorm = norm;
+	//	if(norm > maxNorm) maxNorm = norm;
+	//}
+	//VectorXd stats = VectorXd::Zero(LvqTrainingStats::Extra+3);
+	//stats(LvqTrainingStats::Extra+0) = minNorm;
+	//stats(LvqTrainingStats::Extra+1) = sumNorm/prototype.size();
+	//stats(LvqTrainingStats::Extra+2) = maxNorm;
+	//return stats;
 }

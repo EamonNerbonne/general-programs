@@ -31,20 +31,17 @@ public:
 	std::vector<LvqTrainingStat> const & TrainingStats() {return trainingStats;}
 
 	LvqModel(boost::mt19937 & rngIter,int classCount);
-	void AddTrainingStat(double trainingMeanCost,double trainingErrorRate, LvqDataset const * testSet,  std::vector<int>const & testSubset, int iterInc, double elapsedInc);
+	void AddTrainingStat(LvqDataset const * trainingSet,  std::vector<int>const & trainingSubset, double trainingMeanCost,double trainingErrorRate, LvqDataset const * testSet,  std::vector<int>const & testSubset, int iterInc, double elapsedInc);
 	void AddTrainingStat(LvqDataset const * trainingSet,  std::vector<int>const & trainingSubset, LvqDataset const * testSet,  std::vector<int>const & testSubset, int iterInc, double elapsedInc);
 
 	virtual int classify(VectorXd const & unknownPoint) const=0; 
 	virtual GoodBadMatch ComputeMatches(VectorXd const & unknownPoint, int pointLabel) const=0;
 	virtual double meanProjectionNorm() const=0; 
-	virtual VectorXd otherStats() const { return VectorXd::Zero((int)LvqTrainingStats::Extra); }
+	virtual VectorXd otherStats(LvqDataset const * trainingSet,  std::vector<int>const & trainingSubset, LvqDataset const * testSet,  std::vector<int>const & testSubset) const { return VectorXd::Zero((int)LvqTrainingStats::Extra); }
 	virtual GoodBadMatch learnFrom(VectorXd const & newPoint, int classLabel)=0;
 	virtual ~LvqModel() {	}
 	virtual LvqModel* clone() const=0;
 	virtual size_t MemAllocEstimate() const=0;
 	virtual int Dimensions() const =0;
 };
-
-
-
 

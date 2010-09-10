@@ -102,6 +102,7 @@ namespace LvqGui {
 
 			return LvqDatasetCli.ConstructGaussianClouds(Shorthand,
 				folds: _Folds,
+				extend: owner.ExtendDatasetOnCreation,
 				colors: GraphRandomPen.MakeDistributedColors(NumberOfClasses),
 				rngParamsSeed: Seed,
 				rngInstSeed: InstSeed,

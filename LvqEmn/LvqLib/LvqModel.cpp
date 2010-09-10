@@ -9,13 +9,13 @@ using namespace Eigen;
 LvqModel::LvqModel(boost::mt19937 & rngIter,int classCount) : trainIter(0), totalIter(0), totalElapsed(0.0), rngIter(rngIter), iterationScaleFactor(LVQ_PERCLASSITERFACTOR/classCount),classCount(classCount){ }
 
 
-void LvqModel::AddTrainingStat(double trainingMeanCost,double trainingErrorRate, LvqDataset const * testSet,  vector<int>const & testSubset, int iterInc, double elapsedInc) {
+void LvqModel::AddTrainingStat(LvqDataset const * trainingSet,  std::vector<int>const & trainingSubset, double trainingMeanCost,double trainingErrorRate, LvqDataset const * testSet,  vector<int>const & testSubset, int iterInc, double elapsedInc) {
 	this->totalIter+=iterInc;
 	this->totalElapsed+=elapsedInc;
 
 	LvqTrainingStat trainingStat;
 	trainingStat.trainingIter=totalIter;
-	trainingStat.values = this->otherStats();
+	trainingStat.values = this->otherStats(trainingSet,trainingSubset,testSet,testSubset);
 	trainingStat.values(LvqTrainingStats::ElapsedSeconds) = totalElapsed;
 	trainingStat.values(LvqTrainingStats::PNorm) = this->meanProjectionNorm();
 
@@ -34,5 +34,5 @@ void LvqModel::AddTrainingStat(LvqDataset const * trainingSet,  vector<int>const
 	double meanCost=0,errorRate=0;
 	if(trainingSet) 
 		trainingSet->ComputeCostAndErrorRate(trainingSubset,this,meanCost,errorRate);
-	this->AddTrainingStat(meanCost,errorRate,testSet,testSubset,iterInc,elapsedInc);
+	this->AddTrainingStat(trainingSet,trainingSubset,meanCost,errorRate,testSet,testSubset,iterInc,elapsedInc);
 }

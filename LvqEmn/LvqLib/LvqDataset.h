@@ -19,6 +19,7 @@ public:
 	int getClassCount()const {return classCount;}
 	int getPointCount()const {return static_cast<int>(pointLabels.size());}
 	void shufflePoints(boost::mt19937& rng);
+	void ExtendByCorrelations();
 
 	LvqDataset* Extract(std::vector<int> const & subset) const;
 	MatrixXd ExtractPoints(std::vector<int> const & subset) const;
@@ -28,7 +29,7 @@ public:
 	MatrixXd ComputeClassMeans(std::vector<int> const & subset) const;
 
 	int NearestNeighborClassify(std::vector<int> const & subset, Eigen::VectorXd point) const;
-	int NearestNeighborClassify(std::vector<int> const & subset, PMatrix projection, Eigen::Vector2d point) const;
+	int NearestNeighborClassify(std::vector<int> const & subset, PMatrix projection, Eigen::Vector2d & point) const;
 
 	double NearestNeighborErrorRate(std::vector<int> const & neighborhood, LvqDataset const* testData, std::vector<int> const & testSet, PMatrix projection) const;
 	double NearestNeighborPcaErrorRate(std::vector<int> const & neighborhood, LvqDataset const* testData, std::vector<int> const & testSet) const;

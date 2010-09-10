@@ -19,6 +19,7 @@ namespace LvqGui {
 		public CreateLvqModelValues CreateLvqModelValues { get; private set; }
 		public TrainingControlValues TrainingControlValues { get; private set; }
 		public LoadDatasetValues LoadDatasetValues { get; private set; }
+		public bool ExtendDatasetOnCreation { get; set; }
 
 		public ObservableCollection<LvqDatasetCli> Datasets { get; private set; }
 		public ObservableCollection<LvqModelCli> LvqModels { get; private set; }
