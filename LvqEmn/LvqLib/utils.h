@@ -12,6 +12,10 @@ template <typename T> double projectionSquareNorm(T const & projectionMatrix) {
 	return (projectionMatrix.transpose() * projectionMatrix).lazy().diagonal().sum();
 #endif
 }
+template <typename T> void normalizeProjection(T & projectionMatrix) {
+	projectionMatrix *= 1.0/sqrt(projectionSquareNorm(projectionMatrix));
+}
+
 
 template<typename T>  void RandomMatrixInit(boost::mt19937 & rng, Eigen::MatrixBase< T>& mat, double mean, double sigma) {
 	using namespace boost;
@@ -66,14 +70,6 @@ template <typename T>  T randomUnscalingMatrix(boost::mt19937 & rngParams, int d
 	return P;
 }
 
-template <typename T> void normalizeMatrix(T & projectionMatrix) {
-	double norm = projectionSquareNorm(projectionMatrix);
-	double scaleBy = 1.0 / sqrt(norm);
-	projectionMatrix *= scaleBy; 
-}
-
-using namespace Eigen;
-
 template <typename T> void projectionRandomizeUniformScaled(boost::mt19937 & randGen, T & projectionMatrix) { //initializes all coefficients randomly to -1..1, then normalizes.
 	boost::uniform_01<boost::mt19937> uniform01_rand(randGen);
 
@@ -81,7 +77,7 @@ template <typename T> void projectionRandomizeUniformScaled(boost::mt19937 & ran
 		for(int row=0; row < projectionMatrix.rows(); row++)  //column-major storage
 			projectionMatrix(row,col) = uniform01_rand()*2.0-1.0;
 		
-	normalizeMatrix(projectionMatrix);
+	normalizeProjection(projectionMatrix);
 }
 
 

@@ -115,12 +115,6 @@ size_t GmLvqModel::MemAllocEstimate() const {
 		(sizeof(VectorXd) + sizeof(double)*prototype[0].size()) *prototype.size() +//dyn alloc prototypes
 		(16/2) * (4+prototype.size()*2);//estimate for alignment mucking.
 }
-double GmLvqModel::meanProjectionNorm() const {
-	double normsum=0.0;
-	for(size_t i=0;i<P.size();++i)
-		normsum+=projectionSquareNorm(P[i]);
-	return normsum/P.size();
-}
 
 void GmLvqModel::AppendTrainingStatNames(std::vector<std::wstring> & retval) const {
 	LvqModel::AppendTrainingStatNames(retval);

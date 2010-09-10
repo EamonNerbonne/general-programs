@@ -42,7 +42,6 @@ public:
 
 	virtual int classify(VectorXd const & unknownPoint) const=0; 
 	virtual GoodBadMatch ComputeMatches(VectorXd const & unknownPoint, int pointLabel) const=0;
-	virtual double meanProjectionNorm() const=0; 
 	virtual GoodBadMatch learnFrom(VectorXd const & newPoint, int classLabel)=0;
 	virtual ~LvqModel() {	}
 	virtual LvqModel* clone() const=0;

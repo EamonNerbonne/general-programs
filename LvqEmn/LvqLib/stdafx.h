@@ -45,19 +45,21 @@
 #include <Eigen/StdVector>
 #include <Bench/BenchTimer.h>
 
+#define LVQ_LOW_DIM_SPACE 2
+using Eigen::MatrixBase;
+using Eigen::VectorXd;
+using Eigen::Vector2d;
+using Eigen::VectorXi;
+using Eigen::MatrixXd;
+using Eigen::MatrixXi;
+typedef Eigen::Matrix<double,LVQ_LOW_DIM_SPACE, Eigen::Dynamic> PMatrix;
+
 #ifdef _MSC_VER
 //#pragma warning(pop)
 #endif
-#define LVQ_LOW_DIM_SPACE 2
-
-
-
-typedef Eigen::Matrix<double,LVQ_LOW_DIM_SPACE, Eigen::Dynamic> PMatrix;
-
 
 #pragma warning (disable: 4127)
-#define ASSTRING(X) #X
-#define DBG(X) (std::cout<<ASSTRING(X)<<":\n"<<(X)<<"\n")
+#define DBG(X) (std::cout<< #X <<":\n"<<(X)<<"\n")
 #ifdef NDEBUG
 #define DEBUGPRINT(X) ((void)0)
 #else

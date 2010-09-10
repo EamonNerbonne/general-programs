@@ -44,7 +44,7 @@ vector<MatrixXd> MakeTailTransforms(boost::mt19937 & rndGen, int numStarTails, i
 	for(int i=0;i<numStarTails;i++) {
 		MatrixXd t(starDim,starDim);
 		RandomMatrixInit(rndGen,t,0,1.0);
-		normalizeMatrix(t);
+		normalizeProjection(t);
 		tailTransforms.push_back(t);
 	}
 	return tailTransforms;

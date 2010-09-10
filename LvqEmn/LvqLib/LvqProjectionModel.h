@@ -16,9 +16,7 @@ protected:
 public:
 	virtual ~LvqProjectionModel() { }
 	PMatrix const & projectionMatrix() const {return P;}
-	double projectionNorm() const { return projectionSquareNorm(P);  }
-	void normalizeProjection() { normalizeMatrix(P); }
-	virtual double meanProjectionNorm() const {return projectionNorm();}
+	
 	virtual int Dimensions() const {return static_cast<int>(P.cols());}
 
 	virtual MatrixXd GetProjectedPrototypes() const=0;

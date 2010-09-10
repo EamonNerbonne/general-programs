@@ -50,7 +50,7 @@ namespace LvqLibCli {
 		dst = msclr::interop::marshal_as<wstring>(src);
 	}
 
-
+	
 	template<typename TDerived> struct MatrixOrVectorChooser {
 		template<bool isVector >
 		static inline array<typename MatrixBase<TDerived>::Scalar, (isVector?1: 2) >^ cppToCliHelper(MatrixBase<TDerived>  const & matrix);

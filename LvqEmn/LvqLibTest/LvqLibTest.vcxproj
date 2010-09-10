@@ -238,6 +238,7 @@
     <ClCompile Include="TestCovariance.cpp" />
     <ClCompile Include="TestNN.cpp" />
     <ClCompile Include="TestPca.cpp" />
+    <ClCompile Include="TestUtils.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="CMakeLists.txt" />

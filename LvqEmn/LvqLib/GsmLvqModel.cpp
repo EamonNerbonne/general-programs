@@ -90,8 +90,7 @@ GoodBadMatch GsmLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel)
 	P -= ((lr_P * muK2_P_vJ) * vJ.transpose()).lazy() + ((lr_P * muJ2_P_vK) * vK.transpose()).lazy();
 #endif
 
-	//double pNormScale =1.0 / projectionNorm();
-	//P *= pNormScale;
+	//normalizeProjection(P);
 
 	for(int i=0;i<pLabel.size();++i)
 		RecomputeProjection(i);

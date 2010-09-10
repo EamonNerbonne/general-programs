@@ -100,8 +100,7 @@ GoodBadMatch G2mLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel)
 	P -=  ((lr_P * muK2_BjT_Bj_P_vJ) * vJ.transpose()).lazy() + ((lr_P * muJ2_BkT_Bk_P_vK) * vK.transpose()).lazy();
 #endif
 
-	//double pNormScale =1.0 / projectionNorm();
-	//P *= pNormScale;
+	//normalizeProjection(P);
 	for(size_t i=0;i<prototype.size();++i)
 		prototype[i].ComputePP(P);
 	return matches;
