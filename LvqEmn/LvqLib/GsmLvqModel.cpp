@@ -50,12 +50,7 @@ GoodBadMatch GsmLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel)
 
 	assert(lr_P>=0  &&  lr_point>=0);
 
-#if EIGEN3
-	Vector2d P_trainPoint;
-	P_trainPoint.noalias() = P * trainPoint;
-#else
-	Vector2d P_trainPoint = (P * trainPoint).lazy();
-#endif
+	Vector2d P_trainPoint(P * trainPoint);
 	GoodBadMatch matches = findMatches(P_trainPoint, trainLabel);
 
 	//now matches.good is "J" and matches.bad is "K".
@@ -70,9 +65,8 @@ GoodBadMatch GsmLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel)
 	vK = prototype[K] - trainPoint;
 
 	//VectorXd
-#if EIGEN3
-	Vector2d muK2_P_vJ = mu_K * 2.0 * (P_prototype[J] - P_trainPoint) ;
-	Vector2d muJ2_P_vK = mu_J * 2.0 * (P_prototype[K] - P_trainPoint);
+	Vector2d muK2_P_vJ(mu_K * 2.0 * (P_prototype[J] - P_trainPoint) );
+	Vector2d muJ2_P_vK(mu_J * 2.0 * (P_prototype[K] - P_trainPoint) );
 
 	//differential of cost function Q wrt w_J; i.e. wrt J->point.  Note mu_K(!) for differention wrt J(!)
 	prototype[J].noalias() -= P.transpose() * (lr_point * muK2_P_vJ);
@@ -80,15 +74,6 @@ GoodBadMatch GsmLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel)
 
 	//differential wrt. global projection matrix is subtracted...
 	P.noalias() -= (lr_P * muK2_P_vJ) * vJ.transpose() + (lr_P * muJ2_P_vK) * vK.transpose();
-#else
-	Vector2d muK2_P_vJ = (mu_K * 2.0 * (P_prototype[J] - P_trainPoint) ).lazy();
-	Vector2d muJ2_P_vK = (mu_J * 2.0 * (P_prototype[K] - P_trainPoint) ).lazy();
-
-	prototype[J] -= ( P.transpose() * (lr_point * muK2_P_vJ) ).lazy();
-	prototype[K] -= ( P.transpose() * (LVQ_LrScaleBad*lr_point *muJ2_P_vK) ).lazy();
-
-	P -= ((lr_P * muK2_P_vJ) * vJ.transpose()).lazy() + ((lr_P * muJ2_P_vK) * vK.transpose()).lazy();
-#endif
 
 	//normalizeProjection(P);
 

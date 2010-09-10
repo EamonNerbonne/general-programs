@@ -17,17 +17,10 @@ int file_size(const char* sFileName)
 int main(int , char*argv []){ 
 	using std::cout;
 	cout<<"LvqBench";
-#if EIGEN3
-	cout<< "3";
+#ifdef EIGEN_DONT_VECTORIZE
+	cout<< "NV";
 #else
-#if EIGEN2
-	cout<< "2";
-#else
-	cout<<"????";
-#endif
-#endif
-#ifndef EIGEN_DONT_VECTORIZE
-	cout<< "v";
+	cout<< "V";
 #endif
 #ifndef NDEBUG
 	cout<< "[DEBUG]";

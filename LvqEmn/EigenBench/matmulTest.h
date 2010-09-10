@@ -19,18 +19,10 @@ double matmulTest() {
 		const int num_runs = 10000000; //30000000 was what I used for the forum threads.
 		t.start();
 		for (int i=0; i<num_runs; ++i) {
-#if EIGEN3
 #if TRANSPOSED
 			r.noalias() = P.transpose() * v;
 #else
 			r.noalias() = Q * v;
-#endif
-#else
-#if TRANSPOSED
-			r = (P.transpose() * v).lazy();
-#else
-			r = (Q * v).lazy();
-#endif
 #endif
 			v(i%2)=0.5*(v(i%2)+ (i%DIMS));
 			sum+=r.sum()*0.0000001;

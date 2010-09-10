@@ -4,9 +4,6 @@
 #include <iostream>
 #include <bench/BenchTimer.h>
 #include <Eigen/Core>
-#if !EIGEN3
-#include <Eigen/Array>
-#endif
 
 using namespace Eigen;
 using namespace std;

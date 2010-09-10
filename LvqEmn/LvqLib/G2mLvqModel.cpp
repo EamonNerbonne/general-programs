@@ -50,12 +50,8 @@ GoodBadMatch G2mLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel)
 
 	assert(lr_P>=0  &&  lr_B>=0  &&  lr_point>=0);
 
-#if EIGEN3
-	Vector2d projectedTrainPoint = P * trainPoint;
+	Vector2d projectedTrainPoint( P * trainPoint );
 	//projectedTrainPoint.noalias() = P * trainPoint;
-#else
-	Vector2d projectedTrainPoint = (P * trainPoint).lazy();
-#endif
 
 	GoodBadMatch matches = findMatches(projectedTrainPoint, trainLabel);
 
@@ -76,7 +72,6 @@ GoodBadMatch G2mLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel)
 
 	Vector2d muK2_Bj_P_vJ, muJ2_Bk_P_vK,muK2_BjT_Bj_P_vJ,muJ2_BkT_Bk_P_vK;
 
-#if EIGEN3
 	muK2_Bj_P_vJ.noalias() = (mu_K * 2.0) *  (J.B * P_vJ) ;
 	muJ2_Bk_P_vK.noalias() = (mu_J * 2.0) *  (K.B * P_vK) ;
 	muK2_BjT_Bj_P_vJ.noalias() =  J.B.transpose() * muK2_Bj_P_vJ ;
@@ -86,19 +81,6 @@ GoodBadMatch G2mLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel)
 	J.point.noalias() -=  P.transpose() * (lr_point * muK2_BjT_Bj_P_vJ) ;
 	K.point.noalias() -=   P.transpose() * (LVQ_LrScaleBad*lr_point * muJ2_BkT_Bk_P_vK) ;
 	P.noalias() -= (lr_P * muK2_BjT_Bj_P_vJ) * vJ.transpose() + (lr_P * muJ2_BkT_Bk_P_vK) * vK.transpose() ;
-#else
-	muK2_Bj_P_vJ = mu_K * 2.0 * ( J.B * P_vJ ).lazy();
-	muJ2_Bk_P_vK = mu_J * 2.0 * ( K.B * P_vK ).lazy();
-	muK2_BjT_Bj_P_vJ =  (J.B.transpose() * muK2_Bj_P_vJ).lazy();
-	muJ2_BkT_Bk_P_vK = (K.B.transpose() * muJ2_Bk_P_vK).lazy();
-	Matrix2d dQdBj = (muK2_Bj_P_vJ * P_vJ.transpose()).lazy();
-	Matrix2d dQdBk = (muJ2_Bk_P_vK * P_vK.transpose()).lazy();
-	J.B -= lr_B * dQdBj;
-	K.B -= lr_B * dQdBk;
-	J.point -= (P.transpose() * (lr_point * muK2_BjT_Bj_P_vJ )).lazy();
-	K.point -= (P.transpose() * (LVQ_LrScaleBad*lr_point * muJ2_BkT_Bk_P_vK )).lazy();
-	P -=  ((lr_P * muK2_BjT_Bj_P_vJ) * vJ.transpose()).lazy() + ((lr_P * muJ2_BkT_Bk_P_vK) * vK.transpose()).lazy();
-#endif
 
 	//normalizeProjection(P);
 	for(size_t i=0;i<prototype.size();++i)

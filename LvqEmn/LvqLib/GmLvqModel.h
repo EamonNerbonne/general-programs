@@ -24,22 +24,14 @@ protected:
 
 
 public:
-//for templates:
 	inline int PrototypeLabel(int protoIndex) const {return pLabel(protoIndex);}
 	inline int PrototypeCount() const {return static_cast<int>(pLabel.size());}
 
 	EIGEN_STRONG_INLINE double SqrDistanceTo(int protoIndex, VectorXd const & otherPoint) const {
-#if EIGEN3
 		tmpHelper1.noalias() = prototype[protoIndex] - otherPoint;
 		tmpHelper2.noalias() = P[protoIndex] * tmpHelper1;
 		return tmpHelper2.squaredNorm();
-#else
-		tmpHelper1 = prototype[protoIndex] - otherPoint;
-		tmpHelper2 = (P[protoIndex] * tmpHelper1).lazy();
-		return tmpHelper2.squaredNorm();
-#endif
 	}
-	//end for templates
 
 
 

@@ -2,14 +2,10 @@
 #include "standard.h"
 
 EIGEN_DONT_INLINE
-	double projectionTestIter(
+double projectionTestIter(
 	const VectorXd& point, 
 	Matrix<double,2,Dynamic>& P) {
-#if EIGEN3
 		Vector2d P_point = P*point;
-#else
-		Vector2d P_point = (P*point).lazy();
-#endif
 		return P_point.sum();
 }
 

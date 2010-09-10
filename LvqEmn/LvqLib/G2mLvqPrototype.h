@@ -12,11 +12,7 @@ class G2mLvqPrototype
 	Vector2d P_point;
 
 	EIGEN_STRONG_INLINE void ComputePP( PMatrix const & P) {
-#if EIGEN3
 		P_point.noalias() = P  * point;
-#else
-		P_point = (P  * point).lazy();
-#endif
 	}
 
 public:
@@ -38,14 +34,8 @@ public:
 	}
 
 	inline double SqrDistanceTo(Vector2d const & P_testPoint) const {
-		Vector2d P_Diff;
-#if EIGEN3
-		P_Diff.noalias() = P_testPoint - P_point;
+		Vector2d P_Diff = P_testPoint - P_point;
 		return (B * P_Diff).squaredNorm();//waslazy
-#else
-		P_Diff = (P_testPoint - P_point).lazy();
-		return (B * P_Diff).lazy().squaredNorm();
-#endif
 	}
 
 	EIGEN_MAKE_ALIGNED_OPERATOR_NEW

@@ -16,11 +16,7 @@ class GsmLvqModel : public LvqProjectionModelBase<GsmLvqModel>
 	VectorXd vJ, vK; //vectors of dimension DIMS
 
 	EIGEN_STRONG_INLINE void RecomputeProjection(int protoIndex) {
-#if EIGEN3
 		P_prototype[protoIndex].noalias() = P * prototype[protoIndex];
-#else
-		P_prototype[protoIndex] = (P * prototype[protoIndex]).lazy();
-#endif
 	}
 
 protected:

@@ -16,10 +16,10 @@
     message(FATAL_ERROR "Invalid Eigen version.")
   endif()
   
-  set(build_suffix ${EigenVersion})
   if(EigenVectorize)
-  	set(build_suffix "${build_suffix}v")
+  	set(build_suffix "V")
     remove_definitions(-DEIGEN_DONT_VECTORIZE)
   else()
+  	set(build_suffix "NV")
     add_definitions(-DEIGEN_DONT_VECTORIZE)
   endif()

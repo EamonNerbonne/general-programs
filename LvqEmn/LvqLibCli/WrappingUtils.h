@@ -92,20 +92,13 @@ namespace LvqLibCli {
 
 	};
 
-#ifdef EIGEN3
-#define MSC_ANTI_ICE ::Base
-#else
-#define MSC_ANTI_ICE 
-#endif
-
-
 	template<typename TDerived>
-	inline void cppToCli(MatrixBase<TDerived> const & matrix,array<typename MatrixBase<TDerived>::Scalar, (MatrixBase<TDerived>MSC_ANTI_ICE::IsVectorAtCompileTime?1: 2) >^% retval ) {
+	inline void cppToCli(MatrixBase<TDerived> const & matrix,array<typename MatrixBase<TDerived>::Scalar, (MatrixBase<TDerived>::Base::IsVectorAtCompileTime?1: 2) >^% retval ) {
 		retval= MatrixOrVectorChooser<TDerived>::cppToCliHelper<MatrixBase<TDerived>::IsVectorAtCompileTime>(matrix);
 	}
 
 	template<typename TDerived>
-	inline void cliToCpp(array<typename MatrixBase<TDerived>::Scalar, (MatrixBase<TDerived>MSC_ANTI_ICE::IsVectorAtCompileTime?1: 2) >^ cliarr, MatrixBase<TDerived> & retval) {
+	inline void cliToCpp(array<typename MatrixBase<TDerived>::Scalar, (MatrixBase<TDerived>::Base::IsVectorAtCompileTime?1: 2) >^ cliarr, MatrixBase<TDerived> & retval) {
 		retval= MatrixOrVectorChooser<TDerived>::cliToCppHelper<MatrixBase<TDerived>::IsVectorAtCompileTime>(cliarr);
 	}
 

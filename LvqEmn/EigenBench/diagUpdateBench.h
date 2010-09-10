@@ -6,20 +6,8 @@ double diagTestIter(
 	const VectorXd& vJ, const VectorXd& vK,
 	const double lr_P,
 	Matrix<double,2,Dynamic>& P) {
-#if EIGEN3
-		//Vector2d lrmu_vJ  =lr_P * mu_vJ;
-		//Vector2d lrmu_vK =lr_P * mu_vK;
-		//P.noalias() -= lrmu_vJ.eval() * vJ.transpose();
-		//P.noalias() -= lrmu_vK.eval() * vK.transpose();
-
-		//P.noalias() -= (lr_P * mu_vJ).eval() * vJ.transpose();
-		//P.noalias() -= (lr_P * mu_vK).eval() * vK.transpose();
 		P.noalias() -= lr_P * ( mu_vJ * vJ.transpose() + mu_vK * vK.transpose());
 		return 1.0 / ( (P.transpose() * P).diagonal().sum());
-#else
-		P = P-  lr_P * (( mu_vJ * vJ.transpose()).lazy() +( mu_vK * vK.transpose()).lazy() );
-		return 1.0 /  (P.transpose() * P).lazy().diagonal().sum();
-#endif
 }
 
 double diagTest() {

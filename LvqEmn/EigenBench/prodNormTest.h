@@ -12,11 +12,7 @@ double prodNormTest() {
 		const int num_runs = 20000000/DIMS ;// 20000000;
 		t.start();
 		for (int i=0; i<num_runs; ++i) {
-#if EIGEN3
 			sum += (mat*a).squaredNorm();
-#else
-			sum += (mat*a).squaredNorm();
-#endif
 			a(i%DIMS) *= 0.5;
 		}
 		t.stop();

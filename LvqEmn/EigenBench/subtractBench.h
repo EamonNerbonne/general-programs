@@ -13,18 +13,10 @@ double subtractTest() {
 		const int num_runs = 100000000; //30000000 was what I used for the forum threads.
 		t.start();
 		for (int i=0; i<num_runs; ++i) {
-#if EIGEN3
 			if(i%2==0)
 				c = a  - b;
 			else
 				b  = a - c;
-#else
-			if(i%2==0)
-				c = (a - b);
-			else
-				b  = (a - c);
-#endif
-
 		}
 		t.stop();
 		sum+=c.sum();
