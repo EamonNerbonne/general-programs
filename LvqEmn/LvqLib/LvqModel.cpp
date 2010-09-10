@@ -8,26 +8,31 @@ using namespace Eigen;
 
 LvqModel::LvqModel(boost::mt19937 & rngIter,int classCount) : trainIter(0), totalIter(0), totalElapsed(0.0), rngIter(rngIter), iterationScaleFactor(LVQ_PERCLASSITERFACTOR/classCount),classCount(classCount){ }
 
+static VectorXd fromStlVector(vector<double> const & vec) {
+	VectorXd retval(vec.size());
+	for(size_t i=0;i<vec.size();++i)
+		retval(i) = vec[i];
+	return retval;
+}
 
 void LvqModel::AddTrainingStat(LvqDataset const * trainingSet,  std::vector<int>const & trainingSubset, double trainingMeanCost,double trainingErrorRate, LvqDataset const * testSet,  vector<int>const & testSubset, int iterInc, double elapsedInc) {
 	this->totalIter+=iterInc;
 	this->totalElapsed+=elapsedInc;
 
-	LvqTrainingStat trainingStat;
-	trainingStat.trainingIter=totalIter;
-	trainingStat.values = this->otherStats(trainingSet,trainingSubset,testSet,testSubset);
-	trainingStat.values(LvqTrainingStats::ElapsedSeconds) = totalElapsed;
-	trainingStat.values(LvqTrainingStats::PNorm) = this->meanProjectionNorm();
+	vector<double> stats;
 
-	trainingStat.values(LvqTrainingStats::TrainingError) =trainingErrorRate;
-	trainingStat.values(LvqTrainingStats::TrainingCost) = trainingMeanCost;
-	if(testSet) {
-		double meanCost=0,errorRate=0;
+	stats.push_back(double(totalIter));
+	stats.push_back(totalElapsed);
+	stats.push_back(trainingErrorRate);
+	stats.push_back(trainingMeanCost);
+	double meanCost=0,errorRate=0;
+	if(testSet) 
 		testSet->ComputeCostAndErrorRate(testSubset,this,meanCost,errorRate);
-		trainingStat.values(LvqTrainingStats::TestError) = errorRate;
-		trainingStat.values(LvqTrainingStats::TestCost) = meanCost;
-	} 
-	this->trainingStats.push_back(trainingStat);
+	stats.push_back(errorRate);
+	stats.push_back(meanCost);
+	this->AppendOtherStats(stats, trainingSet,trainingSubset,testSet,testSubset);
+	
+	this->trainingStats.push_back(fromStlVector(stats) );
 }
 
 void LvqModel::AddTrainingStat(LvqDataset const * trainingSet,  vector<int>const & trainingSubset, LvqDataset const * testSet,  vector<int>const & testSubset, int iterInc, double elapsedInc) {
@@ -36,3 +41,15 @@ void LvqModel::AddTrainingStat(LvqDataset const * trainingSet,  vector<int>const
 		trainingSet->ComputeCostAndErrorRate(trainingSubset,this,meanCost,errorRate);
 	this->AddTrainingStat(trainingSet,trainingSubset,meanCost,errorRate,testSet,testSubset,iterInc,elapsedInc);
 }
+
+	std::vector<std::wstring> LvqModel::TrainingStatNames()  {
+		std::vector<std::wstring> retval;
+		retval.push_back(L"Training Iterations|iterations");
+		retval.push_back(L"Elapsed Seconds|seconds");
+		retval.push_back(L"Training Error|error rate");
+		retval.push_back(L"Training Cost|cost function");
+		retval.push_back(L"Test Error|error rate");
+		retval.push_back(L"Test Cost|cost function");
+		AppendTrainingStatNames(retval); 
+		return retval;
+	}

@@ -122,17 +122,26 @@ double GmLvqModel::meanProjectionNorm() const {
 	return normsum/P.size();
 }
 
-VectorXd GmLvqModel::otherStats(LvqDataset const * trainingSet,  std::vector<int>const & trainingSubset, LvqDataset const * testSet,  std::vector<int>const & testSubset) const {
+void GmLvqModel::AppendTrainingStatNames(std::vector<std::wstring> & retval) const {
+	LvqModel::AppendTrainingStatNames(retval);
+	retval.push_back(L"Projection Norm Minimum|norm");
+	retval.push_back(L"Projection Norm Mean|norm");
+	retval.push_back(L"Projection Norm Maximum|norm");
+}
+void GmLvqModel::AppendOtherStats(std::vector<double> & stats, LvqDataset const * trainingSet,  std::vector<int>const & trainingSubset, LvqDataset const * testSet,  std::vector<int>const & testSubset) const {
+	LvqModel::AppendOtherStats(stats,trainingSet,trainingSubset,testSet,testSubset);
 	double minNorm=std::numeric_limits<double>::max();
 	double maxNorm=0.0;
+	double normSum=0.0;
 
 	for(size_t i=0;i<P.size();++i) {
 		double norm = projectionSquareNorm(P[i]);
 		if(norm <minNorm) minNorm = norm;
 		if(norm > maxNorm) maxNorm = norm;
+		normSum+=norm;
 	}
-	VectorXd stats = VectorXd::Zero(LvqTrainingStats::Extra+2);
-	stats(LvqTrainingStats::Extra+0) = minNorm;
-	stats(LvqTrainingStats::Extra+1) = maxNorm;
-	return stats;
+
+	stats.push_back(minNorm);
+	stats.push_back(normSum / P.size());
+	stats.push_back(maxNorm);
 }

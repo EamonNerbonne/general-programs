@@ -5,6 +5,7 @@
 		 inline void cliToCpp(T  val, T& retval) {retval=val;} \
 		inline void cppToCli(T const & val, T%retval) {retval= val;} 
 
+#include <msclr/marshal_cppstd.h>
 
 namespace LvqLibCli {
 
@@ -13,6 +14,7 @@ namespace LvqLibCli {
 	//template<typename TIn, typename TOut> TOut cliToCpp(TIn arr);
 	//template<typename TIn, typename TOut> TOut cppToCli(TIn const & arr);
 	using namespace std;
+	using namespace System;
 
 	MAKE_NOOP_CONVERSION(int)
 	MAKE_NOOP_CONVERSION(unsigned int)
@@ -38,6 +40,14 @@ namespace LvqLibCli {
 		arr = gcnew array<S>((int)vec.size());
 		for(unsigned i=0;i<vec.size();++i)
 			cppToCli(vec[i], arr[i]);
+	}
+
+	inline void cppToCli(wstring const & src, String^% dst) {
+		dst = gcnew String(src.c_str());
+	}
+
+	inline void cliToCpp(String^ src, wstring & dst) {
+		dst = msclr::interop::marshal_as<wstring>(src);
 	}
 
 

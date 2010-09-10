@@ -34,8 +34,10 @@ namespace LvqLibCli {
 
 		property LvqDatasetCli^ InitSet {LvqDatasetCli^ get(){return initSet;}}
 		property array<LvqTrainingStatCli>^ TrainingStats {	array<LvqTrainingStatCli>^ get();}
+		property array<String^>^ TrainingStatNames { array<String^>^ get();}
+
 		void ResetLearningRate();
-		int OtherStatCount();
+		
 
 		LvqModelCli(String^ label, unsigned rngParamsSeed, unsigned rngInstSeed, int protosPerClass, int modelType,int parallelModels,LvqDatasetCli^ trainingSet);
 

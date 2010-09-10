@@ -3,13 +3,16 @@
 #include "LvqConstants.h"
 #include "utils.h"
 #include "LvqModel.h"
-#include "LvqTrainingStat.h"
 
 
 class LvqProjectionModel : public LvqModel {
 protected:
 	LvqProjectionModel(boost::mt19937 & rngIter,int input_dims, int classCount) :LvqModel(rngIter,classCount), P(LVQ_LOW_DIM_SPACE, input_dims)  {	P.setIdentity(); }
 	PMatrix P;
+
+	virtual void AppendTrainingStatNames(std::vector<std::wstring> & retval) const;
+	virtual void AppendOtherStats(std::vector<double> & stats, LvqDataset const * trainingSet,  std::vector<int>const & trainingSubset, LvqDataset const * testSet,  std::vector<int>const & testSubset) const;
+
 public:
 	virtual ~LvqProjectionModel() { }
 	PMatrix const & projectionMatrix() const {return P;}

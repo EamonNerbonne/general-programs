@@ -42,6 +42,9 @@
     <ClCompile Include="PCA.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="LvqProjectionModel.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DatasetUtils.h">
@@ -72,9 +75,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="SmartSum.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="LvqTrainingStat.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="LvqModel.h">

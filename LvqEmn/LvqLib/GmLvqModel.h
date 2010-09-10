@@ -18,6 +18,11 @@ class GmLvqModel : public LvqModel, public LvqModelFindMatches<GmLvqModel,Vector
 	VectorXd vJ, vK;
 	mutable VectorXd tmpHelper1, tmpHelper2; //vectors of dimension DIMS
 
+protected:
+	virtual void AppendTrainingStatNames(std::vector<std::wstring> & retval) const;
+	virtual void AppendOtherStats(std::vector<double> & stats, LvqDataset const * trainingSet,  std::vector<int>const & trainingSubset, LvqDataset const * testSet,  std::vector<int>const & testSubset) const;
+
+
 public:
 //for templates:
 	inline int PrototypeLabel(int protoIndex) const {return pLabel(protoIndex);}
@@ -42,7 +47,6 @@ public:
 	virtual size_t MemAllocEstimate() const;
 	virtual int Dimensions() const {return static_cast<int>(P[0].cols());}
 	virtual double meanProjectionNorm() const;
-	virtual VectorXd otherStats(LvqDataset const * trainingSet,  std::vector<int>const & trainingSubset, LvqDataset const * testSet,  std::vector<int>const & testSubset) const; 
 
 	GmLvqModel(boost::mt19937 & rngParams, boost::mt19937 & rngIter,  bool randInit, std::vector<int> protodistribution, MatrixXd const & means);
 	virtual GoodBadMatch ComputeMatches(VectorXd const & unknownPoint, int pointLabel) const;

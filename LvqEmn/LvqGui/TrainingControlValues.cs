@@ -118,9 +118,9 @@ namespace LvqGui {
 			if (trainingStats.Length >= 2) {
 				var lastStat = trainingStats[trainingStats.Length - 1];
 				Console.WriteLine("Avg cpu seconds per iter: {0}{1}",
-					lastStat.values[LvqTrainingStatCli.ElapsedSecondsStat] / lastStat.trainingIter,
+					lastStat.values[LvqTrainingStatCli.ElapsedSecondsI] / lastStat.values[LvqTrainingStatCli.TrainingIterationI],
 					lastStat.stderror != null
-						? " ~ " + (lastStat.stderror[LvqTrainingStatCli.ElapsedSecondsStat] / lastStat.trainingIter)
+						? " ~ " + (lastStat.stderror[LvqTrainingStatCli.ElapsedSecondsI] / lastStat.values[LvqTrainingStatCli.TrainingIterationI])
 						: "");
 			}
 		}

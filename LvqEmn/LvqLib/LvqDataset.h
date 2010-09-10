@@ -6,6 +6,7 @@ using namespace Eigen;
 #include "LvqProjectionModel.h"
 
 //TODO: make explicit subset classes for training/test stuff.
+//TODO: rather than pass around vector<int> to identify subsets, make a DatasetView and have it include the vector and a pointer to the dataset.
 
 class LvqDataset
 {

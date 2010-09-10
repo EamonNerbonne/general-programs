@@ -45,7 +45,7 @@ namespace LvqLibCli {
 		WrappedModelArray^ currentBackup = modelCopy;
 		msclr::lock l2(currentBackup);
 		int statCount =int( currentBackup[0]->get()->TrainingStats().size());
-		int statDim = statCount==0?0:  int(currentBackup[0]->get()->TrainingStats()[0].values.size());
+		int statDim = statCount==0?0:  int(currentBackup[0]->get()->TrainingStatNames().size());
 		if(currentBackup->Length ==1) {
 			return ToCli<array<LvqTrainingStatCli>^>::From(currentBackup[0]->get()->TrainingStats());
 		}
@@ -54,8 +54,8 @@ namespace LvqLibCli {
 		for(int si=0;si<statCount;++si) {
 			SmartSum<Eigen::ArrayXd> stat(zero);
 			for each(WrappedModel^ m in currentBackup)
-				stat.CombineWith(m->get()->TrainingStats()[si].values,1.0);
-			retval[si] = LvqTrainingStatCli::toCli(currentBackup[0]->get()->TrainingStats()[si].trainingIter, stat.GetMean(), (stat.GetSampleVariance().array().sqrt() * (1.0/sqrt(stat.GetWeight()))).matrix() );
+				stat.CombineWith(m->get()->TrainingStats()[si],1.0);
+			retval[si] = LvqTrainingStatCli::toCli(stat.GetMean(), (stat.GetSampleVariance().array().sqrt() * (1.0/sqrt(stat.GetWeight()))).matrix() );
 		}
 		GC::KeepAlive(currentBackup);
 		return retval;
@@ -130,10 +130,10 @@ namespace LvqLibCli {
 		BackupModel();
 	}
 
-	int LvqModelCli::OtherStatCount() {
+	array<String^>^ LvqModelCli::TrainingStatNames::get() {
 		WrappedModelArray^ backupCopy=modelCopy;
 		msclr::lock l(backupCopy); 
-		return static_cast<int>(backupCopy[0]->get()->otherStats(nullptr,vector<int>(),nullptr,vector<int>() ).size() - LvqTrainingStats::Extra );
+		return ToCli<array<String^>^>::From(backupCopy[0]->get()->TrainingStatNames());
 	}
 
 	

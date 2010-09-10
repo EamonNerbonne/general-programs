@@ -23,6 +23,9 @@ class GsmLvqModel : public LvqProjectionModelBase<GsmLvqModel>
 #endif
 	}
 
+protected:
+	virtual void AppendTrainingStatNames(std::vector<std::wstring> & retval) const;
+	virtual void AppendOtherStats(std::vector<double> & stats, LvqDataset const * trainingSet,  std::vector<int>const & trainingSubset, LvqDataset const * testSet,  std::vector<int>const & testSubset) const;
 
 public:
 	//for templates:
@@ -35,7 +38,6 @@ public:
 
 //end for templates
 	virtual size_t MemAllocEstimate() const;
-	virtual VectorXd otherStats(LvqDataset const * trainingSet,  std::vector<int>const & trainingSubset, LvqDataset const * testSet,  std::vector<int>const & testSubset) const; 
 
 	GsmLvqModel(boost::mt19937 & rngParams, boost::mt19937 & rngIter, bool randInit, std::vector<int> protodistribution, MatrixXd const & means);
 	virtual int classify(VectorXd const & unknownPoint) const {return classifyProjectedInline(P * unknownPoint);}

@@ -21,9 +21,9 @@ namespace LvqGui {
 			public IPlotWriteable<Point[]> plot;
 			public Func<LvqTrainingStatCli, Point> extractor;
 
-			public static Point PlainStat(LvqTrainingStatCli info, int statIdx) { return new Point(info.trainingIter, info.values[statIdx]); }
-			public static Point UpperStat(LvqTrainingStatCli info, int statIdx) { return new Point(info.trainingIter, info.values[statIdx] + info.stderror[statIdx]); }
-			public static Point LowerStat(LvqTrainingStatCli info, int statIdx) { return new Point(info.trainingIter, info.values[statIdx] - info.stderror[statIdx]); }
+			public static Point PlainStat(LvqTrainingStatCli info, int statIdx) { return new Point(info.values[LvqTrainingStatCli.TrainingIterationI], info.values[statIdx]); }
+			public static Point UpperStat(LvqTrainingStatCli info, int statIdx) { return new Point(info.values[LvqTrainingStatCli.TrainingIterationI], info.values[statIdx] + info.stderror[statIdx]); }
+			public static Point LowerStat(LvqTrainingStatCli info, int statIdx) { return new Point(info.values[LvqTrainingStatCli.TrainingIterationI], info.values[statIdx] - info.stderror[statIdx]); }
 
 			static StatPlot MakePlot(string dataLabel, string yunitLabel, bool isRight, Color color, int statIdx, int variant) {
 				//variant 0 is plain, 1 is upper, -1 is lower.
@@ -83,8 +83,8 @@ namespace LvqGui {
 				new[]{
 				MakeErrorRatePlots(errorRatePlot, model.IsMultiModel,dataset.IsFolded()),
 				MakeCostPlots(costFuncPlot, model.IsMultiModel,dataset.IsFolded()),
-				MakeNormPlots(projectionNormPlot, model.IsMultiModel),
-				MakeExtraPlots(extraPlot, model.IsMultiModel, extraStatCount:model.OtherStatCount()),
+				MakeExtraPlots(projectionNormPlot, model.IsMultiModel,model.TrainingStatNames,name=>name.EndsWith("|norm") ),
+				MakeExtraPlots(extraPlot, model.IsMultiModel,model.TrainingStatNames,name=>name.Contains("NN") ),
 				}.SelectMany(s => s).ToArray();
 
 			Func<FrameworkElement, Window> getWin = dp => { while (!(dp is Window)) dp = (FrameworkElement)dp.Parent; return (Window)dp; };
@@ -116,8 +116,8 @@ namespace LvqGui {
 			plotControl.Graphs.Clear();
 			foreach (StatPlot statGraph in
 				new[]{
-				StatPlot.MakePlots("Training error-rate", "error-rate", false, Colors.Red, LvqTrainingStatCli.TrainingErrorStat, isMultiModel),
-				!hasTestSet?null: StatPlot.MakePlots("Test error-rate", "error-rate", false, Color.FromRgb(0x8b,0x8b,0), LvqTrainingStatCli.TestErrorStat, isMultiModel),
+				StatPlot.MakePlots("Training error-rate", "error-rate", false, Colors.Red, LvqTrainingStatCli.TrainingErrorI, isMultiModel),
+				!hasTestSet?null: StatPlot.MakePlots("Test error-rate", "error-rate", false, Color.FromRgb(0x8b,0x8b,0), LvqTrainingStatCli.TestErrorI, isMultiModel),
 				}.Where(s => s != null).SelectMany(s => s)) {
 				plotControl.Graphs.Add(statGraph.plot);
 				yield return statGraph;
@@ -128,36 +128,50 @@ namespace LvqGui {
 			plotControl.Graphs.Clear();
 			foreach (StatPlot plot in
 				new[]{
-				StatPlot.MakePlots("Training cost-function","cost-function", false, Colors.Blue, LvqTrainingStatCli.TrainingCostStat, isMultiModel),
-				!hasTestSet?null: StatPlot.MakePlots("Test cost-function","cost-function", false, Colors.DarkCyan, LvqTrainingStatCli.TestCostStat, isMultiModel),
+				StatPlot.MakePlots("Training cost-function","cost-function", false, Colors.Blue, LvqTrainingStatCli.TrainingCostI, isMultiModel),
+				!hasTestSet?null: StatPlot.MakePlots("Test cost-function","cost-function", false, Colors.DarkCyan, LvqTrainingStatCli.TestCostI, isMultiModel),
 				}.Where(s => s != null).SelectMany(s => s)) {
 				plotControl.Graphs.Add(plot.plot);
 				yield return plot;
 			}
 		}
 
-		private static IEnumerable<StatPlot> MakeNormPlots(PlotControl plotControl, bool isMultiModel) {
+		//private static IEnumerable<StatPlot> MakeNormPlots(PlotControl plotControl, bool isMultiModel) {
+		//    plotControl.Graphs.Clear();
+		//    foreach (StatPlot plot in
+		//        StatPlot.MakePlots("(mean) Projection norm", "norm", false, Colors.Green, LvqTrainingStatCli.PNormStat, isMultiModel)
+		//        ) {
+		//        plotControl.Graphs.Add(plot.plot);
+		//        yield return plot;
+		//    }
+		//}
+
+		static string DataNameFromStat(string statName) {
+			int idx= statName.IndexOf('|');
+			return idx >= 0 ? statName.Substring(0, idx) : statName;
+		}
+		static string UnitNameFromStat(string statName) {
+			int idx = statName.IndexOf('|');
+			return idx >= 0 ? statName.Substring(idx+1) : statName;
+		}
+
+
+		private static IEnumerable<StatPlot> MakeExtraPlots(PlotControl plotControl, bool isMultiModel, string[] statNames, Func<string,bool> filter) {
 			plotControl.Graphs.Clear();
+			
+			var selectedStats = statNames.Select((name, idx) => new { StatName = name, Idx = idx }).Where(stat => filter(stat.StatName)).ToArray();
+
+			Color[] cols = GraphRandomPen.MakeDistributedColors(selectedStats.Length);
+
 			foreach (StatPlot plot in
-				StatPlot.MakePlots("(mean) Projection norm", "norm", false, Colors.Green, LvqTrainingStatCli.PNormStat, isMultiModel)
+					selectedStats.SelectMany((stat,i) =>
+						StatPlot.MakePlots(DataNameFromStat( stat.StatName), UnitNameFromStat(stat.StatName), false, cols[i],stat.Idx, isMultiModel))
 				) {
 				plotControl.Graphs.Add(plot.plot);
 				yield return plot;
 			}
 		}
-		private static IEnumerable<StatPlot> MakeExtraPlots(PlotControl plotControl, bool isMultiModel, int extraStatCount) {
-			plotControl.Graphs.Clear();
 
-			Color[] cols = GraphRandomPen.MakeDistributedColors(extraStatCount+1);
-
-			foreach (StatPlot plot in
-					Enumerable.Range(0, extraStatCount).SelectMany(i =>
-						StatPlot.MakePlots("extra data " + i, "extra data", false, cols[i], LvqTrainingStatCli.ExtraStat + i, isMultiModel))
-				) {
-				plotControl.Graphs.Add(plot.plot);
-				yield return plot;
-			}
-		}
 
 
 		public IEnumerable<IPlotWithSettings> Plots {
