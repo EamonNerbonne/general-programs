@@ -82,7 +82,7 @@ template <typename T> void projectionRandomizeUniformScaled(boost::mt19937 & ran
 
 
 
-static int shuffle_rnd_helper(boost::mt19937 & randGen, int options) {
+inline int shuffle_rnd_helper(boost::mt19937 & randGen, int options) {
 	return randGen()%options; //slightly biased since randGen generates random _bits_ and the highest modulo wrapping may not "fill" the last options batch.  This is very minor; I don't care.
 }
 
