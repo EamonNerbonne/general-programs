@@ -82,7 +82,7 @@ namespace LvqGui {
 		}
 		private int _Folds;
 
-		public bool ExtendByCorrelation { set { owner.ExtendDataByCorrelation = value; } }
+		public bool ExtendByCorrelation { get { return owner.ExtendDataByCorrelation; } set { owner.ExtendDataByCorrelation = value; } }
 
 		static Regex shR =
 			new Regex(@"^\s*(.*--)?star-(?<Dimensions>\d+)D(?<ExtendByCorrelation>\*?)-(?<NumberOfClasses>\d+)\*(?<PointsPerClass>\d+):(?<NumberOfClusters>\d+)\((?<ClusterDimensionality>\d+)D(?<RandomlyTransformFirst>\??)\)\*(?<ClusterCenterDeviation>[^~]+)\~(?<IntraClusterClassRelDev>[^\[]+)\[(?<Seed>\d+):(?<InstSeed>\d+)\]/(?<Folds>\d+)\s*$",
@@ -110,6 +110,7 @@ namespace LvqGui {
 
 		public CreateDatasetStarValues(LvqWindowValues owner) {
 			this.owner = owner;
+			owner.PropertyChanged += (o, e) => { if (e.PropertyName == "ExtendDataByCorrelation") _propertyChanged("ExtendDataByCorrelation"); };
 			_Folds = 10;
 			_ClusterCenterDeviation = 2.5;
 			_ClusterDimensionality = 2;
@@ -126,6 +127,7 @@ namespace LvqGui {
 			_RandomlyTransformFirst = true;
 			this.ReseedBoth();
 		}
+
 
 		public LvqDatasetCli CreateDataset() {
 			Console.WriteLine("Created: "+Shorthand);

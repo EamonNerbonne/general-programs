@@ -57,7 +57,7 @@ namespace LvqGui {
 		}
 		private int _Folds;
 
-		public bool ExtendByCorrelation { set { owner.ExtendDataByCorrelation = value; } }
+		public bool ExtendByCorrelation { get { return owner.ExtendDataByCorrelation; } set { owner.ExtendDataByCorrelation = value; } }
 
 		static Regex shR =
 			new Regex(@"^\s*(.*--)?nrm-(?<Dimensions>\d+)D(?<ExtendByCorrelation>\*?)-(?<NumberOfClasses>\d+)\*(?<PointsPerClass>\d+):(?<ClassCenterDeviation>[^\[]+)\[(?<Seed>\d+):(?<InstSeed>\d+)\]/(?<Folds>\d+)\s*$",
@@ -85,6 +85,7 @@ namespace LvqGui {
 
 		public CreateDatasetValues(LvqWindowValues owner) {
 			this.owner = owner;
+			owner.PropertyChanged += (o, e) => { if (e.PropertyName == "ExtendDataByCorrelation") _propertyChanged("ExtendDataByCorrelation"); };
 			_Folds = 10;
 			_NumberOfClasses = 3;
 			_ClassCenterDeviation = 5.0;
