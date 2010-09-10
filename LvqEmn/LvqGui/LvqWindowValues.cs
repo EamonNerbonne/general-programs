@@ -19,7 +19,13 @@ namespace LvqGui {
 		public CreateLvqModelValues CreateLvqModelValues { get; private set; }
 		public TrainingControlValues TrainingControlValues { get; private set; }
 		public LoadDatasetValues LoadDatasetValues { get; private set; }
-		public bool ExtendDatasetOnCreation { get; set; }
+
+		public bool ExtendDataByCorrelation {
+			get { return _ExtendDatasetOnCreation; }
+			set { if (!_ExtendDatasetOnCreation.Equals(value)) { _ExtendDatasetOnCreation = value; _propertyChanged("ExtendDatasetOnCreation"); } }
+		}
+		private bool _ExtendDatasetOnCreation;
+
 
 		public ObservableCollection<LvqDatasetCli> Datasets { get; private set; }
 		public ObservableCollection<LvqModelCli> LvqModels { get; private set; }

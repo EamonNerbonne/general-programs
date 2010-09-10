@@ -69,11 +69,7 @@ template <typename T>  T randomUnscalingMatrix(boost::mt19937 & rngParams, int d
 template <typename T> void normalizeMatrix(T & projectionMatrix) {
 	double norm = projectionSquareNorm(projectionMatrix);
 	double scaleBy = 1.0 / sqrt(norm);
-#if EIGEN3
 	projectionMatrix *= scaleBy; 
-#else
-	projectionMatrix = (scaleBy * projectionMatrix).lazy(); //TODO:can't I just use the eigen3 path here?
-#endif
 }
 
 using namespace Eigen;

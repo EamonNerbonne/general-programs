@@ -53,12 +53,12 @@ namespace LvqGui {
 						int[] labelArray = pointclouds.Item2;
 						int classCount = pointclouds.Item3;
 
-						string name = dataFile.Name + "-" + pointArray.GetLength(1) + "D-" + classCount + ":" + pointArray.GetLength(0)+"["+seed+"]/"+folds;
+						string name = dataFile.Name + "-" + pointArray.GetLength(1) + "D" + (owner.ExtendDataByCorrelation ? "*" : "") + "-" + classCount + ":" + pointArray.GetLength(0) + "[" + seed + "]/" + folds;
 						Console.WriteLine("Created: " + name);
 						return LvqDatasetCli.ConstructFromArray(
 							rngInstSeed:seed,
 							label:name,
-							extend: owner.ExtendDatasetOnCreation,
+							extend: owner.ExtendDataByCorrelation,
 							folds:folds,
 							colors: GraphRandomPen.MakeDistributedColors(classCount), 
 							points: pointArray, 

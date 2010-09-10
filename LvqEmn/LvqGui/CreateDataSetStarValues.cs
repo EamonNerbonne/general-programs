@@ -82,15 +82,16 @@ namespace LvqGui {
 		}
 		private int _Folds;
 
+		public bool ExtendByCorrelation { set { owner.ExtendDataByCorrelation = value; } }
 
 		static Regex shR =
-			new Regex(@"^\s*(.*--)?star-(?<Dimensions>\d+)D-(?<NumberOfClasses>\d+)\*(?<PointsPerClass>\d+):(?<NumberOfClusters>\d+)\((?<ClusterDimensionality>\d+)D(?<RandomlyTransformFirst>\??)\)\*(?<ClusterCenterDeviation>[^~]+)\~(?<IntraClusterClassRelDev>[^\[]+)\[(?<Seed>\d+):(?<InstSeed>\d+)\]/(?<Folds>\d+)\s*$",
+			new Regex(@"^\s*(.*--)?star-(?<Dimensions>\d+)D(?<ExtendByCorrelation>\*?)-(?<NumberOfClasses>\d+)\*(?<PointsPerClass>\d+):(?<NumberOfClusters>\d+)\((?<ClusterDimensionality>\d+)D(?<RandomlyTransformFirst>\??)\)\*(?<ClusterCenterDeviation>[^~]+)\~(?<IntraClusterClassRelDev>[^\[]+)\[(?<Seed>\d+):(?<InstSeed>\d+)\]/(?<Folds>\d+)\s*$",
 				RegexOptions.Compiled | RegexOptions.ExplicitCapture);
 
 		static object[] empty = new object[] { };
 		public string Shorthand {
 			get {
-				return "star-" + Dimensions + "D-" + NumberOfClasses + "*" + PointsPerClass + ":" + NumberOfClusters + "(" + ClusterDimensionality + "D" + (RandomlyTransformFirst ? "?" : "") + ")*" + ClusterCenterDeviation.ToString("r") + "~" + IntraClusterClassRelDev.ToString("r") + "[" + Seed + ":" + InstSeed + "]/" + Folds;
+				return "star-" + Dimensions + "D"+(owner.ExtendDataByCorrelation?"*":"")+"-" + NumberOfClasses + "*" + PointsPerClass + ":" + NumberOfClusters + "(" + ClusterDimensionality + "D" + (RandomlyTransformFirst ? "?" : "") + ")*" + ClusterCenterDeviation.ToString("r") + "~" + IntraClusterClassRelDev.ToString("r") + "[" + Seed + ":" + InstSeed + "]/" + Folds;
 			}
 			set {
 				if (!shR.IsMatch(value)) throw new ArgumentException("can't parse shorthand - enter manually?");
@@ -99,7 +100,7 @@ namespace LvqGui {
 					if (!groups[i].Success) continue;
 					var prop = GetType().GetProperty(shR.GroupNameFromNumber(i));
 					if (prop != null) {
-						var val = prop.PropertyType.Equals(typeof(bool)) ? groups[i].Value == "?"
+						var val = prop.PropertyType.Equals(typeof(bool)) ? groups[i].Value != ""
 							: TypeDescriptor.GetConverter(prop.PropertyType).ConvertFromString(groups[i].Value);
 						prop.SetValue(this, val, empty);
 					}
@@ -131,7 +132,7 @@ namespace LvqGui {
 			return LvqDatasetCli.ConstructStarDataset(Shorthand,
 				folds: _Folds,
 				colors: GraphRandomPen.MakeDistributedColors(NumberOfClasses),
-				extend: owner.ExtendDatasetOnCreation,
+				extend: owner.ExtendDataByCorrelation,
 				rngParamsSeed: Seed,
 				rngInstSeed: InstSeed,
 				dims: Dimensions,
