@@ -26,7 +26,7 @@
             </TabItem>
             <TabItem Header="Create Dataset" Name="datasetTabs">
                 <StackPanel>
-                <CheckBox Content="Extend by correlation" IsChecked="{Binding ExtendDatasetOnCreation}"/>
+                    <CheckBox Content="Extend data by correlation" IsChecked="{Binding ExtendDataByCorrelation, Mode=TwoWay}"/>
 
                 <TabControl >
                     <TabItem Header="Load Data">

@@ -82,10 +82,10 @@ namespace LvqGui {
 		}
 		private int _Folds;
 
-		public bool ExtendByCorrelation { get { return owner.ExtendDataByCorrelation; } set { owner.ExtendDataByCorrelation = value; } }
+		public bool ExtendDataByCorrelation { get { return owner.ExtendDataByCorrelation; } set { owner.ExtendDataByCorrelation = value; } }
 
 		static Regex shR =
-			new Regex(@"^\s*(.*--)?star-(?<Dimensions>\d+)D(?<ExtendByCorrelation>\*?)-(?<NumberOfClasses>\d+)\*(?<PointsPerClass>\d+):(?<NumberOfClusters>\d+)\((?<ClusterDimensionality>\d+)D(?<RandomlyTransformFirst>\??)\)\*(?<ClusterCenterDeviation>[^~]+)\~(?<IntraClusterClassRelDev>[^\[]+)\[(?<Seed>\d+):(?<InstSeed>\d+)\]/(?<Folds>\d+)\s*$",
+			new Regex(@"^\s*(.*--)?star-(?<Dimensions>\d+)D(?<ExtendDataByCorrelation>\*?)-(?<NumberOfClasses>\d+)\*(?<PointsPerClass>\d+):(?<NumberOfClusters>\d+)\((?<ClusterDimensionality>\d+)D(?<RandomlyTransformFirst>\??)\)\*(?<ClusterCenterDeviation>[^~]+)\~(?<IntraClusterClassRelDev>[^\[]+)\[(?<Seed>\d+):(?<InstSeed>\d+)\]/(?<Folds>\d+)\s*$",
 				RegexOptions.Compiled | RegexOptions.ExplicitCapture);
 
 		static object[] empty = new object[] { };

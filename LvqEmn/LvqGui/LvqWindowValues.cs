@@ -21,10 +21,10 @@ namespace LvqGui {
 		public LoadDatasetValues LoadDatasetValues { get; private set; }
 
 		public bool ExtendDataByCorrelation {
-			get { return _ExtendDatasetOnCreation; }
-			set { if (!_ExtendDatasetOnCreation.Equals(value)) { _ExtendDatasetOnCreation = value; _propertyChanged("ExtendDatasetOnCreation"); } }
+			get { return _ExtendDataByCorrelation; }
+			set { if (!_ExtendDataByCorrelation.Equals(value)) { _ExtendDataByCorrelation = value; _propertyChanged("ExtendDataByCorrelation"); } }
 		}
-		private bool _ExtendDatasetOnCreation;
+		private bool _ExtendDataByCorrelation;
 
 
 		public ObservableCollection<LvqDatasetCli> Datasets { get; private set; }

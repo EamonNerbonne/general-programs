@@ -57,10 +57,10 @@ namespace LvqGui {
 		}
 		private int _Folds;
 
-		public bool ExtendByCorrelation { get { return owner.ExtendDataByCorrelation; } set { owner.ExtendDataByCorrelation = value; } }
+		public bool ExtendDataByCorrelation { get { return owner.ExtendDataByCorrelation; } set { owner.ExtendDataByCorrelation = value; } }
 
 		static Regex shR =
-			new Regex(@"^\s*(.*--)?nrm-(?<Dimensions>\d+)D(?<ExtendByCorrelation>\*?)-(?<NumberOfClasses>\d+)\*(?<PointsPerClass>\d+):(?<ClassCenterDeviation>[^\[]+)\[(?<Seed>\d+):(?<InstSeed>\d+)\]/(?<Folds>\d+)\s*$",
+			new Regex(@"^\s*(.*--)?nrm-(?<Dimensions>\d+)D(?<ExtendDataByCorrelation>\*?)-(?<NumberOfClasses>\d+)\*(?<PointsPerClass>\d+):(?<ClassCenterDeviation>[^\[]+)\[(?<Seed>\d+):(?<InstSeed>\d+)\]/(?<Folds>\d+)\s*$",
 				RegexOptions.Compiled | RegexOptions.ExplicitCapture);
 
 		static object[] empty = new object[] { };
