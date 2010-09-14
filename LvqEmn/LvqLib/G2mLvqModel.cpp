@@ -48,17 +48,16 @@ GoodBadMatch G2mLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel)
 		lr_P = learningRate * lr_scale_P,
 		lr_B = learningRate * lr_scale_B; 
 
-	assert(lr_P>=0  &&  lr_B>=0  &&  lr_point>=0);
+	assert(lr_P>=0 && lr_B>=0 && lr_point>=0);
 
 	Vector2d projectedTrainPoint( P * trainPoint );
-	//projectedTrainPoint.noalias() = P * trainPoint;
 
 	GoodBadMatch matches = findMatches(projectedTrainPoint, trainLabel);
 
 	//now matches.good is "J" and matches.bad is "K".
 
-	double mu_J = -2.0*matches.distGood / (sqr( matches.distGood) + sqr(matches.distBad));
-	double mu_K = +2.0*matches.distBad / (sqr( matches.distGood) + sqr(matches.distBad));
+	double mu_J = -2.0*matches.distGood / (sqr(matches.distGood) + sqr(matches.distBad));
+	double mu_K = +2.0*matches.distBad / (sqr(matches.distGood) + sqr(matches.distBad));
 
 	G2mLvqPrototype &J = prototype[matches.matchGood];
 	G2mLvqPrototype &K = prototype[matches.matchBad];

@@ -26,13 +26,6 @@ int file_size(const char* sFileName)
 }
 
 
-//class TestIt {
-//public:
-//	int whatever;
-//	Vector2d P_point;
-//	EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-//};
-
 int main(int , char*argv []){ 
 	//std::vector<Vector2d> stlvec;
 	cout<<"EigenBench";
