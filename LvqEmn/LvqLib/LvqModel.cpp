@@ -46,10 +46,10 @@ void LvqModel::AddTrainingStat(LvqDataset const * trainingSet,  vector<int>const
 		std::vector<std::wstring> retval;
 		retval.push_back(L"Training Iterations|iterations");
 		retval.push_back(L"Elapsed Seconds|seconds");
-		retval.push_back(L"Training Error|error rate");
-		retval.push_back(L"Training Cost|cost function");
-		retval.push_back(L"Test Error|error rate");
-		retval.push_back(L"Test Cost|cost function");
+		retval.push_back(L"Training Error|error rate|Error Rates");
+		retval.push_back(L"Training Cost|cost function|Cost Function");
+		retval.push_back(L"Test Error|error rate|Error Rates");
+		retval.push_back(L"Test Cost|cost function|Cost Function");
 		AppendTrainingStatNames(retval); 
 		return retval;
 	}

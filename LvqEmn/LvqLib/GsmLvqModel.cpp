@@ -2,7 +2,6 @@
 #include "GsmLvqModel.h"
 #include "utils.h"
 #include "LvqConstants.h"
-#include "LvqDataset.h"
 using namespace std;
 
 GsmLvqModel::GsmLvqModel(boost::mt19937 & rngParams, boost::mt19937 & rngIter, bool randInit, std::vector<int> protodistribution, MatrixXd const & means)
@@ -39,8 +38,6 @@ GsmLvqModel::GsmLvqModel(boost::mt19937 & rngParams, boost::mt19937 & rngIter, b
 }
 
 GoodBadMatch GsmLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel) {
-	//double learningRate = getLearningRate();
-	//incLearningIterationCount();
 	double learningRate = stepLearningRate();
 
 	using namespace std;
@@ -110,34 +107,3 @@ size_t GsmLvqModel::MemAllocEstimate() const {
 		(16/2) * (5+prototype.size()*2);//estimate for alignment mucking.
 }
 
-//VectorXd GsmLvqModel::otherStats(LvqDataset const * trainingSet,  std::vector<int>const & trainingSubset, LvqDataset const * testSet,  std::vector<int>const & testSubset) const {
-
-	//double minNorm=std::numeric_limits<double>::max();
-	//double maxNorm=0.0;
-	//double sumNorm=0.0;
-
-	//for(size_t i=0;i<prototype.size();++i) {
-	//	double norm = projectionSquareNorm(prototype[i].B);
-	//	sumNorm +=norm;
-	//	if(norm <minNorm) minNorm = norm;
-	//	if(norm > maxNorm) maxNorm = norm;
-	//}
-	//VectorXd stats = VectorXd::Zero(LvqTrainingStats::Extra+3);
-	//stats(LvqTrainingStats::Extra+0) = minNorm;
-	//stats(LvqTrainingStats::Extra+1) = sumNorm/prototype.size();
-	//stats(LvqTrainingStats::Extra+2) = maxNorm;
-	//return stats;
-//}
-
-
-void GsmLvqModel::AppendTrainingStatNames(std::vector<std::wstring> & retval) const {
-	LvqProjectionModel::AppendTrainingStatNames(retval);
-	retval.push_back(L"Projected NN Error Rate|error rate");
-}
-void GsmLvqModel::AppendOtherStats(std::vector<double> & stats, LvqDataset const * trainingSet,  std::vector<int>const & trainingSubset, LvqDataset const * testSet,  std::vector<int>const & testSubset) const {
-	LvqProjectionModel::AppendOtherStats(stats,trainingSet,trainingSubset,testSet,testSubset);
-	stats.push_back(
-		trainingSet
-		?trainingSet->NearestNeighborErrorRate(trainingSubset,testSet,testSubset,this->P)
-		:0.0);
-}

@@ -2,7 +2,6 @@
 #include "G2mLvqModel.h"
 #include "utils.h"
 #include "LvqConstants.h"
-#include "LvqDataset.h"
 using namespace std;
 using namespace Eigen;
 
@@ -40,8 +39,6 @@ typedef Map<VectorXd,  Aligned> MVectorXd;
 
 GoodBadMatch G2mLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel) {
 	using namespace std;
-	//double learningRate = getLearningRate();
-	//incLearningIterationCount();
 	double learningRate = stepLearningRate();
 
 	double lr_point = learningRate,
@@ -114,31 +111,26 @@ vector<int> G2mLvqModel::GetPrototypeLabels() const {
 	return retval;
 }
 
-//VectorXd G2mLvqModel::otherStats(LvqDataset const * trainingSet,  std::vector<int>const & trainingSubset, LvqDataset const * testSet,  std::vector<int>const & testSubset) const {
-	//double minNorm=std::numeric_limits<double>::max();
-	//double maxNorm=0.0;
-	//double sumNorm=0.0;
-
-	//for(size_t i=0;i<prototype.size();++i) {
-	//	double norm = projectionSquareNorm(prototype[i].B);
-	//	sumNorm +=norm;
-	//	if(norm <minNorm) minNorm = norm;
-	//	if(norm > maxNorm) maxNorm = norm;
-	//}
-	//VectorXd stats = VectorXd::Zero(LvqTrainingStats::Extra+3);
-	//stats(LvqTrainingStats::Extra+0) = minNorm;
-	//stats(LvqTrainingStats::Extra+1) = sumNorm/prototype.size();
-	//stats(LvqTrainingStats::Extra+2) = maxNorm;
-	//return stats;
-//}
 void G2mLvqModel::AppendTrainingStatNames(std::vector<std::wstring> & retval) const {
 	LvqProjectionModel::AppendTrainingStatNames(retval);
-	retval.push_back(L"Projected NN Error Rate|error rate");
+	retval.push_back(L"Border matrix norm min|norm|Border Matrix");
+	retval.push_back(L"Border matrix norm mean|norm|Border Matrix");
+	retval.push_back(L"Border matrix norm max|norm|Border Matrix");
 }
 void G2mLvqModel::AppendOtherStats(std::vector<double> & stats, LvqDataset const * trainingSet,  std::vector<int>const & trainingSubset, LvqDataset const * testSet,  std::vector<int>const & testSubset) const {
 	LvqProjectionModel::AppendOtherStats(stats,trainingSet,trainingSubset,testSet,testSubset);
-	stats.push_back(
-		trainingSet
-		?trainingSet->NearestNeighborErrorRate(trainingSubset,testSet,testSubset,this->P)
-		:0.0);
+
+	double minNorm=std::numeric_limits<double>::max();
+	double maxNorm=0.0;
+	double sumNorm=0.0;
+
+	for(size_t i=0;i<prototype.size();++i) {
+		double norm = projectionSquareNorm(prototype[i].B);
+		sumNorm +=norm;
+		if(norm <minNorm) minNorm = norm;
+		if(norm > maxNorm) maxNorm = norm;
+	}
+	stats.push_back(minNorm);
+	stats.push_back(sumNorm/prototype.size());
+	stats.push_back(maxNorm);
 }

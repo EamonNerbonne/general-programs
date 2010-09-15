@@ -10,6 +10,8 @@ using EmnExtensions.Wpf;
 using EmnExtensions.Wpf.Plot;
 using EmnExtensions.Wpf.Plot.VizEngines;
 using LvqLibCli;
+using System.ComponentModel;
+using System.Diagnostics;
 
 namespace LvqGui {
 	public class LvqScatterPlot {
@@ -39,7 +41,7 @@ namespace LvqGui {
 				statPlot.AxisBindings = TickedAxisLocation.BelowGraph | (isRight ? TickedAxisLocation.RightOfGraph : TickedAxisLocation.LeftOfGraph);
 				((IVizLineSegments)statPlot.Visualizer).CoverageRatioY = 0.95;
 				((IVizLineSegments)statPlot.Visualizer).CoverageRatioGrad = 20.0;
-				
+
 
 				return new StatPlot {
 					plot = statPlot,
@@ -68,31 +70,68 @@ namespace LvqGui {
 		public readonly LvqModelCli model;
 		readonly Dispatcher dispatcher;
 
+		static void PlotWindowClosing(object sender, CancelEventArgs e) {
+			Window win = (Window)sender;
+		}
+
+		static Window MakeSubWin(string title) {
+			var win = new Window {
+				Width = Application.Current.MainWindow.Width * 0.5,
+				Height = Application.Current.MainWindow.Height * 0.8,
+				Title = title,
+				Content = new PlotControl() {
+					ShowGridLines = true,
+				}
+			};
+			win.Closing += PlotWindowClosing;
+			return win;
+		}
+
+		class TrainingStatName {
+			public readonly string TrainingStatLabel, UnitLabel, StatGroup;
+			public readonly int Index;
+			public TrainingStatName(string compoundName, int index) {
+				if (index < 0) throw new ArgumentException("index must be positive");
+				Index = index;
+				string[] splitName = compoundName.Split('|');
+				if (splitName.Length < 2) throw new ArgumentException("compound name has too few components");
+				if (splitName.Length > 3) throw new ArgumentException("compound name has too many components");
+				TrainingStatLabel = splitName[0];
+				UnitLabel = splitName[1];
+				StatGroup = splitName.Length > 2 ? splitName[2] : null;
+			}
+			public static TrainingStatName Create(string compoundName, int index) { return new TrainingStatName(compoundName, index); }
+		}
+
 		bool busy, updateQueued;
 		object syncroot = new object();
 		public LvqScatterPlot(LvqDatasetCli dataset, LvqModelCli model, Dispatcher dispatcher,
-			PlotControl scatterPlotControl, PlotControl errorRatePlot, PlotControl costFuncPlot, PlotControl projectionNormPlot, PlotControl extraPlot
+			PlotControl scatterPlotControl
 			) {
 			this.dataset = dataset;
 			this.model = model;
 			this.dispatcher = dispatcher;
 
 			MakeScatterPlots(scatterPlotControl);
-
-			statPlots =
-				new[]{
-				MakeErrorRatePlots(errorRatePlot, model.IsMultiModel,dataset.IsFolded()),
-				MakeCostPlots(costFuncPlot, model.IsMultiModel,dataset.IsFolded()),
-				MakeExtraPlots(projectionNormPlot, model.IsMultiModel,model.TrainingStatNames,name=>name.EndsWith("|norm") ),
-				MakeExtraPlots(extraPlot, model.IsMultiModel,model.TrainingStatNames,name=>name.Contains("NN") ),
-				}.SelectMany(s => s).ToArray();
-
-			Func<FrameworkElement, Window> getWin = dp => { while (!(dp is Window)) dp = (FrameworkElement)dp.Parent; return (Window)dp; };
-
-			foreach (var plot in new[] { errorRatePlot, costFuncPlot, projectionNormPlot, extraPlot }) {
-				plot.Title = getWin(plot).Title + ": " + model.ModelLabel;
-			}
 			scatterPlotControl.Title = "ScatterPlot: " + model.ModelLabel;
+
+			TrainingStatName[] statnames = model.TrainingStatNames.Select(TrainingStatName.Create).ToArray();
+			TrainingStatName xAxis = statnames.Single(statname => statname.UnitLabel == "iterations");
+			List<StatPlot> allplots = new List<StatPlot>();
+			foreach (var statgroup in
+				from statname in statnames
+				where statname.StatGroup != null
+				group statname by new { statname.UnitLabel, statname.StatGroup }) {
+				var win = MakeSubWin(statgroup.Key.StatGroup);
+				var plotControl = (PlotControl)win.Content;
+				plotControl.Title = statgroup.Key.StatGroup + ": " + model.ModelLabel;
+				var plotsForGroup = MakePlots(statgroup.Key.StatGroup, statgroup, model.IsMultiModel, dataset.IsFolded()).ToArray();
+				foreach (var plot in plotsForGroup)
+					plotControl.Graphs.Add(plot.plot);
+				allplots.AddRange(plotsForGroup);
+				win.Show();
+			}
+			statPlots = allplots.ToArray();
 			QueueUpdate();
 		}
 
@@ -110,6 +149,21 @@ namespace LvqGui {
 			plotControl.Graphs.Clear();
 			foreach (var subplot in Plots)
 				plotControl.Graphs.Add(subplot);
+		}
+
+		static Color[] errorColors = new[] { Colors.Red, Color.FromRgb(0x8b, 0x8b, 0), };
+		static Color[] costColors = new[] { Colors.Blue, Colors.DarkCyan, };
+
+		private static IEnumerable<StatPlot> MakePlots(string windowTitle, IEnumerable<TrainingStatName> stats, bool isMultiModel, bool hasTestSet) {
+			var usedStats = (hasTestSet ? stats : stats.Where(stat => !stat.TrainingStatLabel.StartsWith("Training"))).ToArray();
+
+			Color[] colors =
+				windowTitle == "Error Rates" ? errorColors :
+				windowTitle == "Cost Function" ? costColors :
+				GraphRandomPen.MakeDistributedColors(usedStats.Length);
+			return
+			usedStats.Zip(colors, (stat, color) => StatPlot.MakePlots(stat.TrainingStatLabel, stat.UnitLabel, false, color, stat.Index, isMultiModel))
+				.SelectMany(s => s);
 		}
 
 		private static IEnumerable<StatPlot> MakeErrorRatePlots(PlotControl plotControl, bool isMultiModel, bool hasTestSet) {
@@ -136,36 +190,26 @@ namespace LvqGui {
 			}
 		}
 
-		//private static IEnumerable<StatPlot> MakeNormPlots(PlotControl plotControl, bool isMultiModel) {
-		//    plotControl.Graphs.Clear();
-		//    foreach (StatPlot plot in
-		//        StatPlot.MakePlots("(mean) Projection norm", "norm", false, Colors.Green, LvqTrainingStatCli.PNormStat, isMultiModel)
-		//        ) {
-		//        plotControl.Graphs.Add(plot.plot);
-		//        yield return plot;
-		//    }
-		//}
-
 		static string DataNameFromStat(string statName) {
-			int idx= statName.IndexOf('|');
+			int idx = statName.IndexOf('|');
 			return idx >= 0 ? statName.Substring(0, idx) : statName;
 		}
 		static string UnitNameFromStat(string statName) {
 			int idx = statName.IndexOf('|');
-			return idx >= 0 ? statName.Substring(idx+1) : statName;
+			return idx >= 0 ? statName.Substring(idx + 1) : statName;
 		}
 
 
-		private static IEnumerable<StatPlot> MakeExtraPlots(PlotControl plotControl, bool isMultiModel, string[] statNames, Func<string,bool> filter) {
+		private static IEnumerable<StatPlot> MakeExtraPlots(PlotControl plotControl, bool isMultiModel, string[] statNames, Func<string, bool> filter) {
 			plotControl.Graphs.Clear();
-			
+
 			var selectedStats = statNames.Select((name, idx) => new { StatName = name, Idx = idx }).Where(stat => filter(stat.StatName)).ToArray();
 
 			Color[] cols = GraphRandomPen.MakeDistributedColors(selectedStats.Length);
 
 			foreach (StatPlot plot in
-					selectedStats.SelectMany((stat,i) =>
-						StatPlot.MakePlots(DataNameFromStat( stat.StatName), UnitNameFromStat(stat.StatName), false, cols[i],stat.Idx, isMultiModel))
+					selectedStats.SelectMany((stat, i) =>
+						StatPlot.MakePlots(DataNameFromStat(stat.StatName), UnitNameFromStat(stat.StatName), false, cols[i], stat.Idx, isMultiModel))
 				) {
 				plotControl.Graphs.Add(plot.plot);
 				yield return plot;
@@ -275,6 +319,10 @@ namespace LvqGui {
 				for (int x = 0; x < width; x++)
 					classboundaries[px++] = nativeColor[closestClass[y * renderheight / height, x * renderwidth / width]];
 			bmp.WritePixels(new Int32Rect(0, 0, width, height), classboundaries, width * 4, 0);
+		}
+
+		internal void ClosePlots() {
+			throw new NotImplementedException();
 		}
 	}
 }
