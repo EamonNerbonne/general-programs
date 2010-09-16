@@ -16,9 +16,6 @@ using EmnExtensions.Wpf.Plot.VizEngines;
 using System.ComponentModel;
 
 namespace LvqGui {
-	/// <summary>
-	/// Interaction logic for LvqWindow.xaml
-	/// </summary>
 	public partial class LvqWindow : Window {
 		public LvqWindow() {
 			var windowValues = new LvqWindowValues(this.Dispatcher);
@@ -28,7 +25,6 @@ namespace LvqGui {
 			windowValues.TrainingControlValues.SelectedModelUpdatedInBackgroundThread += TrainingControlValues_SelectedModelUpdatedInBackgroundThread;
 			this.Closing += (o, e) => { windowValues.TrainingControlValues.AnimateTraining = false; };
 		}
-
 
 		LvqScatterPlot plotData;
 		void TrainingControlValues_SelectedModelUpdatedInBackgroundThread(LvqDatasetCli dataset, LvqModelCli model) {

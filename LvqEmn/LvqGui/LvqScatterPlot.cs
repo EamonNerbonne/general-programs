@@ -105,9 +105,7 @@ namespace LvqGui {
 
 		bool busy, updateQueued;
 		object syncroot = new object();
-		public LvqScatterPlot(LvqDatasetCli dataset, LvqModelCli model, Dispatcher dispatcher,
-			PlotControl scatterPlotControl
-			) {
+		public LvqScatterPlot(LvqDatasetCli dataset, LvqModelCli model, Dispatcher dispatcher,	PlotControl scatterPlotControl) {
 			this.dataset = dataset;
 			this.model = model;
 			this.dispatcher = dispatcher;
@@ -147,7 +145,7 @@ namespace LvqGui {
 			}).ToArray();
 
 			plotControl.Graphs.Clear();
-			foreach (var subplot in Plots)
+			foreach (var subplot in ScatterPlots)
 				plotControl.Graphs.Add(subplot);
 		}
 
@@ -166,59 +164,7 @@ namespace LvqGui {
 				.SelectMany(s => s);
 		}
 
-		private static IEnumerable<StatPlot> MakeErrorRatePlots(PlotControl plotControl, bool isMultiModel, bool hasTestSet) {
-			plotControl.Graphs.Clear();
-			foreach (StatPlot statGraph in
-				new[]{
-				StatPlot.MakePlots("Training error-rate", "error-rate", false, Colors.Red, LvqTrainingStatCli.TrainingErrorI, isMultiModel),
-				!hasTestSet?null: StatPlot.MakePlots("Test error-rate", "error-rate", false, Color.FromRgb(0x8b,0x8b,0), LvqTrainingStatCli.TestErrorI, isMultiModel),
-				}.Where(s => s != null).SelectMany(s => s)) {
-				plotControl.Graphs.Add(statGraph.plot);
-				yield return statGraph;
-			}
-		}
-
-		private static IEnumerable<StatPlot> MakeCostPlots(PlotControl plotControl, bool isMultiModel, bool hasTestSet) {
-			plotControl.Graphs.Clear();
-			foreach (StatPlot plot in
-				new[]{
-				StatPlot.MakePlots("Training cost-function","cost-function", false, Colors.Blue, LvqTrainingStatCli.TrainingCostI, isMultiModel),
-				!hasTestSet?null: StatPlot.MakePlots("Test cost-function","cost-function", false, Colors.DarkCyan, LvqTrainingStatCli.TestCostI, isMultiModel),
-				}.Where(s => s != null).SelectMany(s => s)) {
-				plotControl.Graphs.Add(plot.plot);
-				yield return plot;
-			}
-		}
-
-		static string DataNameFromStat(string statName) {
-			int idx = statName.IndexOf('|');
-			return idx >= 0 ? statName.Substring(0, idx) : statName;
-		}
-		static string UnitNameFromStat(string statName) {
-			int idx = statName.IndexOf('|');
-			return idx >= 0 ? statName.Substring(idx + 1) : statName;
-		}
-
-
-		private static IEnumerable<StatPlot> MakeExtraPlots(PlotControl plotControl, bool isMultiModel, string[] statNames, Func<string, bool> filter) {
-			plotControl.Graphs.Clear();
-
-			var selectedStats = statNames.Select((name, idx) => new { StatName = name, Idx = idx }).Where(stat => filter(stat.StatName)).ToArray();
-
-			Color[] cols = GraphRandomPen.MakeDistributedColors(selectedStats.Length);
-
-			foreach (StatPlot plot in
-					selectedStats.SelectMany((stat, i) =>
-						StatPlot.MakePlots(DataNameFromStat(stat.StatName), UnitNameFromStat(stat.StatName), false, cols[i], stat.Idx, isMultiModel))
-				) {
-				plotControl.Graphs.Add(plot.plot);
-				yield return plot;
-			}
-		}
-
-
-
-		public IEnumerable<IPlotWithSettings> Plots {
+		public IEnumerable<IPlotWithSettings> ScatterPlots {
 			get {
 				yield return classBoundaries;
 				foreach (var plot in classPlots) yield return plot;
