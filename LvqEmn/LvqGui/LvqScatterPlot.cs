@@ -65,16 +65,13 @@ namespace LvqGui {
 
 		StatPlot[] statPlots;
 
-
 		public readonly LvqDatasetCli dataset;
 		public readonly LvqModelCli model;
 		readonly Dispatcher dispatcher;
 
-		static void PlotWindowClosing(object sender, CancelEventArgs e) {
-			Window win = (Window)sender;
-		}
 
-		static Window MakeSubWin(string title) {
+		HashSet<Window> plotWindows = new HashSet<Window>();
+		Window MakeSubWin(string title) {
 			var win = new Window {
 				Width = Application.Current.MainWindow.Width * 0.5,
 				Height = Application.Current.MainWindow.Height * 0.8,
@@ -84,8 +81,14 @@ namespace LvqGui {
 				}
 			};
 			win.Closing += PlotWindowClosing;
+			plotWindows.Add(win);
 			return win;
 		}
+		void PlotWindowClosing(object sender, CancelEventArgs e) {
+			Window win = (Window)sender;
+			plotWindows.Remove(win);
+		}
+
 
 		class TrainingStatName {
 			public readonly string TrainingStatLabel, UnitLabel, StatGroup;
@@ -267,8 +270,12 @@ namespace LvqGui {
 			bmp.WritePixels(new Int32Rect(0, 0, width, height), classboundaries, width * 4, 0);
 		}
 
-		internal void ClosePlots() {
-			throw new NotImplementedException();
+		public void ClosePlots() {
+			foreach (Window win in plotWindows.ToArray()) {
+				win.Close();
+			}
+			Console.WriteLine("registered windows:" + plotWindows.Count);
+			
 		}
 	}
 }
