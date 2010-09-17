@@ -2,7 +2,10 @@
 
 #ifndef STANDALONE
 #define BOOST_TEST_INCLUDED
+#pragma warning (push)
+#pragma warning (disable: 4702)
 #include <boost/test/unit_test.hpp>
+#pragma warning (pop)
 #endif
 #include <Eigen/Core>
 using namespace Eigen;
