@@ -26,7 +26,6 @@ using std::vector;
 #define LOG(X) 0;
 #endif
 
-template <typename T> T & temp(T && temporary_value) {return temporary_value;}
 
 BOOST_AUTO_TEST_CASE( nn_test )
 {
@@ -57,7 +56,7 @@ BOOST_AUTO_TEST_CASE( nn_test )
 		LOG("Raw: "<<rawErrorRate);
 
 		timeG2m.start();
-		G2mLvqModel model(temp(LvqModelSettings(LvqModelSettings::AutoModelType,rng,rng,protoDistrib,dataset->ComputeClassMeans(trainingSet))));
+		G2mLvqModel model(as_lvalue(LvqModelSettings(LvqModelSettings::AutoModelType,rng,rng,protoDistrib,dataset->ComputeClassMeans(trainingSet))));
 		dataset->TrainModel(25,&model,trainingSet,dataset.get() ,testSet);
 		timeG2m.stop();
 
