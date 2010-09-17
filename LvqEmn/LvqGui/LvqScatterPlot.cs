@@ -12,6 +12,7 @@ using EmnExtensions.Wpf.Plot.VizEngines;
 using LvqLibCli;
 using System.ComponentModel;
 using System.Diagnostics;
+using EmnExtensions.MathHelpers;
 
 namespace LvqGui {
 	public class LvqScatterPlot {
@@ -161,7 +162,7 @@ namespace LvqGui {
 			Color[] colors =
 				windowTitle == "Error Rates" ? errorColors :
 				windowTitle == "Cost Function" ? costColors :
-				GraphRandomPen.MakeDistributedColors(usedStats.Length);
+				GraphRandomPen.MakeDistributedColors(usedStats.Length,new MersenneTwister(1+windowTitle.GetHashCode()) );
 			return
 			usedStats.Zip(colors, (stat, color) => StatPlot.MakePlots(stat.TrainingStatLabel, stat.UnitLabel, false, color, stat.Index, isMultiModel))
 				.SelectMany(s => s);
