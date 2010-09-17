@@ -42,7 +42,7 @@ namespace EmnExtensions.Wpf {
 		struct ColorSimple {
 			public double R, G, B;
 			public double Sum { get { return R + G + B; } }
-			public double SqrDistTo(ColorSimple other) { return sqr(R - other.R) + sqr(G - other.G) + sqr(B - other.B) - 0.1 * sqr(Sum - other.Sum); }
+			public double SqrDistTo(ColorSimple other) { return 0.7*sqr(R - other.R) + sqr(G - other.G) + 0.3*sqr(B - other.B) - 0.07 * sqr(Sum - other.Sum); }
 			static double sqr(double x) { return x * x; }
 			public static ColorSimple Random(MersenneTwister rnd) {
 				return new ColorSimple { R = rnd.NextDouble0To1(), G = rnd.NextDouble0To1(), B = rnd.NextDouble0To1() };
@@ -85,12 +85,14 @@ namespace EmnExtensions.Wpf {
 			}
 		}
 
-		public static Color[] MakeDistributedColors(int N) {
-			MersenneTwister rnd = RndHelper.ThreadLocalRandom;
-			int M = N;
+		public static Color[] MakeDistributedColors(int N, MersenneTwister rnd=null) {
+			rnd = rnd ?? RndHelper.ThreadLocalRandom;
+			int M = 2*N;
 			ColorSimple[] choices = Enumerable.Range(0, M).Select(i => ColorSimple.Random(rnd)).ToArray();
 			ColorSimple black = new ColorSimple { R = 0, G = 0, B = 0 };
 			ColorSimple white = new ColorSimple { R = 1, G = 1, B = 1 };
+			ColorSimple yellow = new ColorSimple { R = 1, G = 1, B = 0.5 };
+			ColorSimple green = new ColorSimple { R = 0.5, G = 1, B = 0.5 };
 
 			for (int iter = 0; iter < 2000 + N; iter++) {
 				double lr = 0.001 / Math.Sqrt(0.1 * iter + 1);
@@ -100,12 +102,13 @@ namespace EmnExtensions.Wpf {
 #if DEBUG
 					ColorSimple old = choices[i];
 #endif
-					choices[i].RepelFrom(white, lr);
+					choices[i].RepelFrom(yellow, lr*0.5);
+					choices[i].RepelFrom(green, lr * 0.2);
 					int other = rnd.Next(M - 1); //rand other in [0..M-1)
 					if (other >= i) other++; //rand other in [0..M) with other != i
 					if (N > 1)
 						choices[i].RepelFrom(choices[other], lr);
-					choices[i].RepelFrom(black, lr * 0.3);
+					choices[i].RepelFrom(black, lr * 0.5);
 					min.Min(choices[i]);
 					max.Max(choices[i]);
 				}
@@ -115,7 +118,7 @@ namespace EmnExtensions.Wpf {
 				if (M > N) M--;
 			}
 
-			return choices.Select(c => c.ToWindowsColor()).ToArray();
+			return choices.Take(N).Select(c => c.ToWindowsColor()).ToArray();
 		}
 
 

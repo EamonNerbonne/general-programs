@@ -21,6 +21,7 @@ using System.Printing;
 using System.Windows.Xps;
 using System.Windows.Xps.Packaging;
 using System.IO.Packaging;
+using EmnExtensions.MathHelpers;
 
 namespace EmnExtensions.Wpf.Plot {
 	public partial class PlotControl : UserControl {
@@ -79,14 +80,14 @@ namespace EmnExtensions.Wpf.Plot {
 				newgraph.Changed += new Action<IPlotViewOnly, GraphChange>(graphChanged);
 		}
 
-		public void AutoPickColors() {
+		public void AutoPickColors(MersenneTwister rnd=null) {
 			var ColoredPlots = (
 									from graph in Graphs
 									let plotWithSettings = graph as IPlotWithSettings
 									where plotWithSettings != null && plotWithSettings.VizSupportsColor
 									select plotWithSettings
 							   ).ToArray();
-			var randomColors = EmnExtensions.Wpf.GraphRandomPen.MakeDistributedColors(ColoredPlots.Length);
+			var randomColors = EmnExtensions.Wpf.GraphRandomPen.MakeDistributedColors(ColoredPlots.Length, rnd);
 			foreach (var plotAndColor in ColoredPlots.Zip(randomColors, (a, b) => Tuple.Create(a, b))) {
 				plotAndColor.Item1.RenderColor = plotAndColor.Item2;
 			}
