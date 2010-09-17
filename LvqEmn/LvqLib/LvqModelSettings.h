@@ -2,6 +2,7 @@
 #include <vector>
 #include <boost/random/mersenne_twister.hpp>
 #include <Eigen/Core>
+
 class LvqModelRuntimeSettings
 {
 public:
@@ -27,7 +28,7 @@ public:
 	LvqModelRuntimeSettings RuntimeSettings;
 	std::vector<int> PrototypeDistribution;
 	Eigen::MatrixXd PerClassMeans;
-	LvqModelSettings(LvqModelType modelType, boost::mt19937 & rngParams, boost::mt19937 & rngIter, std::vector<int> protodistrib, MatrixXd const & means) 
+	LvqModelSettings(LvqModelType modelType, boost::mt19937 & rngParams, boost::mt19937 & rngIter, std::vector<int> protodistrib, Eigen::MatrixXd const & means) 
 		: RandomInitialProjection(true)
 		, RandomInitialBorders(false) 
 		, RngParams(rngParams)

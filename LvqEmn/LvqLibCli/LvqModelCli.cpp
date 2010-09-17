@@ -2,6 +2,10 @@
 
 #include "LvqModelCli.h"
 #include "LvqModelSettingsCli.h"
+#include "LvqProjectionModel.h"
+#include "LvqDatasetCli.h"
+#include "LvqDataset.h"
+#include "SmartSum.h"
 
 namespace LvqLibCli {
 	using boost::mt19937;
@@ -127,4 +131,10 @@ namespace LvqLibCli {
 		if(!projectionModel) return nullptr;
 		return Tuple::Create(ToCli<array<double,2>^>::From(projectionModel->GetProjectedPrototypes()), ToCli<array<int>^>::From(projectionModel->GetPrototypeLabels()));
 	}
+
+	int LvqModelCli::ClassCount::get(){return model[0]->get()->ClassCount();}
+	int LvqModelCli::Dimensions::get(){return model[0]->get()->Dimensions();}
+	bool LvqModelCli::IsMultiModel::get(){return model->Length > 1;}
+	bool LvqModelCli::FitsDataShape(LvqDatasetCli^ dataset) {return dataset!=nullptr && dataset->ClassCount == this->ClassCount && dataset->Dimensions == this->Dimensions;}
+
 }

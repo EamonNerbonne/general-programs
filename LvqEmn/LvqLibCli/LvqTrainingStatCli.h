@@ -1,9 +1,7 @@
 #pragma once
-#include "stdafx.h"
-
-using namespace System;
-
+#include <Eigen/Core>
 namespace LvqLibCli {
+	using namespace System;
 	public value class LvqTrainingStatCli {
 	public:
 		literal int TrainingIterationI = 0;

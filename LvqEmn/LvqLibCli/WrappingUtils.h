@@ -1,12 +1,6 @@
 #pragma once
-#include "stdafx.h"
-
-#define MAKE_NOOP_CONVERSION(T) \
-		 inline void cliToCpp(T  val, T& retval) {retval=val;} \
-		inline void cppToCli(T const & val, T%retval) {retval= val;} 
-
 #include <msclr/marshal_cppstd.h>
-
+#include <Eigen/Core>
 namespace LvqLibCli {
 
 	value class LvqTrainingStatCli;
@@ -15,6 +9,11 @@ namespace LvqLibCli {
 	//template<typename TIn, typename TOut> TOut cppToCli(TIn const & arr);
 	using namespace std;
 	using namespace System;
+	using namespace Eigen;
+
+#define MAKE_NOOP_CONVERSION(T) \
+		 inline void cliToCpp(T  val, T& retval) {retval=val;} \
+		inline void cppToCli(T const & val, T%retval) {retval= val;} 
 
 	MAKE_NOOP_CONVERSION(int)
 	MAKE_NOOP_CONVERSION(unsigned int)

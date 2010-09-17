@@ -1,6 +1,8 @@
 #include "StdAfx.h"
 #include "LvqModelSettingsCli.h"
 #include "LvqDatasetCli.h"
+#include "LvqDataset.h"
+#include "utils.h"
 namespace LvqLibCli {
 	LvqModelSettings LvqModelSettingsCli::ToNativeSettings(LvqDatasetCli^ trainingSet, int modelFold) {
 		using boost::mt19937;

@@ -1,20 +1,20 @@
 #pragma once
-#include "stdafx.h"
 #include "PointSet.h"
-#include "LvqDataset.h"
-#include "LvqDatasetCli.h"
 #include "LvqTrainingStatCli.h"
-#include "SmartSum.h"
 
 
 // array of model, modelCopy's.
 //on training, train all models (parallel for)
 //on projecting project first?
 //on stats:
+class LvqModel;
 
-using namespace System;
 namespace LvqLibCli {
+	using namespace System;
 	ref class LvqModelSettingsCli;
+	ref class LvqDatasetCli;
+
+
 	public ref class LvqModelCli {
 		typedef GcAutoPtr<LvqModel> WrappedModel;
 		typedef array<WrappedModel^> WrappedModelArray;
@@ -26,9 +26,9 @@ namespace LvqLibCli {
 		void BackupModel(); 
 	public:
 
-		property int ClassCount {int get(){return model[0]->get()->ClassCount();}}
-		property int Dimensions {int get(){return model[0]->get()->Dimensions();}}
-		property bool IsMultiModel {bool get(){return model->Length > 1;}}
+		property int ClassCount {int get();}
+		property int Dimensions {int get();}
+		property bool IsMultiModel {bool get();}
 
 		property String^ ModelLabel {String^ get(){return label;}}
 
@@ -41,7 +41,7 @@ namespace LvqLibCli {
 
 		LvqModelCli(String^ label, int parallelModels, LvqDatasetCli^ trainingSet, LvqModelSettingsCli^ modelSettings);
 
-		bool FitsDataShape(LvqDatasetCli^ dataset) {return dataset!=nullptr && dataset->ClassCount == this->ClassCount && dataset->Dimensions == this->Dimensions;}
+		bool FitsDataShape(LvqDatasetCli^ dataset);
 
 		property Object^ UpdateSyncObject { Object ^ get(){return mainSync;} }
 		//double ErrorRate(LvqDatasetCli^testSet);
@@ -54,8 +54,5 @@ namespace LvqLibCli {
 
 		void Train(int epochsToDo,LvqDatasetCli^ trainingSet); 
 
-		literal int G2M_TYPE = LvqModelSettings::G2mModelType;
-		literal int GSM_TYPE = LvqModelSettings::GsmModelType;
-		literal int GM_TYPE = LvqModelSettings::GmModelType;
 	};
 }

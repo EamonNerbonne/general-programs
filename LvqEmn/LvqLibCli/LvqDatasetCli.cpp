@@ -2,6 +2,8 @@
 #include "LvqDatasetCli.h"
 #include "DatasetUtils.h"
 #include "SmartSum.h"
+#include "LvqDataset.h"
+
 namespace LvqLibCli {
 	using boost::mt19937;
 
@@ -48,4 +50,12 @@ namespace LvqLibCli {
 		}
 		return Tuple::Create(nnErrorRate.GetMean(),nnErrorRate.GetSampleVariance());
 	}
+
+	array<int>^ LvqDatasetCli::ClassLabels(){ array<int>^ retval; cppToCli(dataset->getPointLabels(), retval); return retval;}
+	array<double,2>^ LvqDatasetCli::RawPoints() { array<double,2>^ retval; cppToCli(dataset->getPoints(), retval); return retval;}
+	vector<int> LvqDatasetCli::GetTrainingSubset(int fold) { return dataset->GetTrainingSubset(fold,folds); }
+	vector<int> LvqDatasetCli::GetTestSubset(int fold) { return dataset->GetTestSubset(fold,folds); }
+	int LvqDatasetCli::ClassCount::get(){return dataset->getClassCount();}
+	int LvqDatasetCli::Dimensions::get(){return dataset->dimensions();}
+
 }
