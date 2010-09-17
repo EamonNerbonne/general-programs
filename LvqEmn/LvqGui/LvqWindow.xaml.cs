@@ -35,12 +35,15 @@ namespace LvqGui {
 		}
 
 		void TrainingControlValues_ModelSelected(LvqDatasetCli dataset, LvqModelCli model) {
-
 			if (plotData == null || plotData.dataset != dataset || plotData.model != model) {
-				if (plotData != null) 
+				//something's different
+				if (plotData != null) {
 					plotData.ClosePlots();
-
-				plotData = new LvqScatterPlot(dataset, model, Dispatcher, plotControl);
+					plotData = null;
+				}
+				if (dataset != null && model != null) {
+					plotData = new LvqScatterPlot(dataset, model, Dispatcher, plotControl);
+				}
 			}
 		}
 
