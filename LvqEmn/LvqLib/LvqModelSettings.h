@@ -6,6 +6,7 @@ class LvqModelRuntimeSettings
 {
 public:
 	bool TrackProjectionQuality;
+
 	int ClassCount;
 	boost::mt19937 RngIter;
 	LvqModelRuntimeSettings(int classCount, boost::mt19937 & rngIter) 
@@ -17,16 +18,15 @@ public:
 class LvqModelSettings
 {
 public:
-	enum LvqModelType {
-		AutoModelType, GmModelType, GsmModelType, G2mModelType
-	};
 	bool RandomInitialProjection;
 	bool RandomInitialBorders;
+
+	enum LvqModelType {	 AutoModelType, GmModelType, GsmModelType, G2mModelType };
+	LvqModelType ModelType;
 	boost::mt19937 RngParams;
+	LvqModelRuntimeSettings RuntimeSettings;
 	std::vector<int> PrototypeDistribution;
 	Eigen::MatrixXd PerClassMeans;
-	LvqModelType ModelType;
-	LvqModelRuntimeSettings RuntimeSettings;
 	LvqModelSettings(LvqModelType modelType, boost::mt19937 & rngParams, boost::mt19937 & rngIter, std::vector<int> protodistrib, MatrixXd const & means) 
 		: RandomInitialProjection(true)
 		, RandomInitialBorders(false) 
