@@ -9,7 +9,7 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 include_directories(../LvqLib)
 
-set(sources driver.cpp TestCovariance.cpp TestPca.cpp RowColAssignments.cpp TestNN.cpp TestUtils.cpp)
+set(sources driver.cpp TestCovariance.cpp TestPca.cpp RowColAssignments.cpp TestNN.cpp TestUtils.cpp RandomAssumptions.cpp)
 
 set(exeName "LvqLibTest${build_suffix}")
 add_executable(${exeName}  ${sources})
