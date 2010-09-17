@@ -20,6 +20,7 @@ protected:
 
 
 public:
+	static const LvqModelInitSettings::LvqModelType ThisModelType = LvqModelInitSettings::G2mModelType;
 		//for templates:
 
 	inline int PrototypeLabel(int protoIndex) const {return prototype[protoIndex].label();}
@@ -29,7 +30,7 @@ public:
 //end for templates
 
 
-	G2mLvqModel(boost::mt19937 & rngParams,boost::mt19937 & rngIter, bool randInit, std::vector<int> protodistribution, MatrixXd const & means);
+	G2mLvqModel(LvqModelInitSettings & initSettings);
 	virtual size_t MemAllocEstimate() const;
 	virtual int classify(VectorXd const & unknownPoint) const {return classifyProjectedInline(P * unknownPoint);}
 	virtual int classifyProjected(Vector2d const & unknownProjectedPoint) const { return classifyProjectedInline(unknownProjectedPoint);}

@@ -18,6 +18,16 @@ using std::vector;
 #define PROTOSPERCLASS 3
 #define FOLDS 5
 
+#define PRINTLOG 0
+
+#if PRINTLOG
+#define LOG(X) (cout<<X)
+#else
+#define LOG(X) 0;
+#endif
+
+template <typename T> T & temp(T && temporary_value) {return temporary_value;}
+
 BOOST_AUTO_TEST_CASE( nn_test )
 {
 	mt19937 rng(1337);
@@ -27,8 +37,7 @@ BOOST_AUTO_TEST_CASE( nn_test )
 	vector<int> protoDistrib;
 	for(int i=0;i<CLASSES;++i)
 		protoDistrib.push_back(PROTOSPERCLASS);
-
-	cout<<"Random guess accuracy: "<<(1.0-1.0/CLASSES)<<"\n";
+	LOG("Random guess accuracy: "<<(1.0-1.0/CLASSES)<<"\n");
 
 	PMatrix checkerbox(2,DIMS);
 	//Vector2d::LinSpaced(2,0,1) * VectorXd::Ones(DIMS).transpose() + Vector2d::Ones() * VectorXd::LinSpaced(DIMS,0,DIMS-1).transpose()
@@ -44,19 +53,20 @@ BOOST_AUTO_TEST_CASE( nn_test )
 		timeRawNN.start();
 		double rawErrorRate = dataset->NearestNeighborErrorRate(trainingSet,dataset.get(),testSet);
 		timeRawNN.stop();
-		cout<<"Raw: "<<rawErrorRate;
+
+		LOG("Raw: "<<rawErrorRate);
 
 		timeG2m.start();
-		G2mLvqModel model(rng,rng,true,protoDistrib,dataset->ComputeClassMeans(trainingSet));
+		G2mLvqModel model(temp(LvqModelInitSettings(LvqModelInitSettings::AutoModelType,rng,rng,protoDistrib,dataset->ComputeClassMeans(trainingSet))));
 		dataset->TrainModel(25,&model,trainingSet,dataset.get() ,testSet);
 		timeG2m.stop();
 
 		double ignore, g2mRate;
 		dataset->ComputeCostAndErrorRate(testSet,&model,ignore,g2mRate);
-		cout<<",  G2m: "<<g2mRate ;
+		LOG(",  G2m: "<<g2mRate );
 
 		double g2mNNrate = dataset->NearestNeighborErrorRate(trainingSet,dataset.get(),testSet, model.projectionMatrix() );
-		cout<<",  G2mNN: "<<g2mNNrate ;
+		LOG(",  G2mNN: "<<g2mNNrate );
 
 		timePca.start();
 		PMatrix transform= PcaProjectInto2d(dataset->ExtractPoints(trainingSet) );
@@ -67,14 +77,14 @@ BOOST_AUTO_TEST_CASE( nn_test )
 		timePcaNN.stop();
 
 		BOOST_CHECK(pcaErrorRate >= rawErrorRate);
-		cout<<",  PcaNN: "<<pcaErrorRate ;
+		LOG(",  PcaNN: "<<pcaErrorRate );
 
 		double identTransRate = dataset->NearestNeighborErrorRate(trainingSet,dataset.get(),testSet, checkerbox);
 		BOOST_CHECK(identTransRate >= pcaErrorRate);
 		BOOST_CHECK(identTransRate >= g2mNNrate);
-		cout<<",  identNN: "<<identTransRate <<"\n";
+		LOG(",  identNN: "<<identTransRate <<"\n");
 		
 	}
 
-	cout<<"RawNN time: "<<timeRawNN.best()<<", Pca time: "<<timePca.best()<<", PcaNN time: "<<timePcaNN.best() <<", G2m time: "<<timeG2m.best() <<"\n\n";
+	LOG("RawNN time: "<<timeRawNN.best()<<", Pca time: "<<timePca.best()<<", PcaNN time: "<<timePcaNN.best() <<", G2m time: "<<timeG2m.best() <<"\n\n");
 }

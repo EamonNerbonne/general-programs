@@ -5,7 +5,7 @@
 
 template<typename TDerivedModel> class LvqProjectionModelBase : public LvqProjectionModel, public LvqModelFindMatches<TDerivedModel, Vector2d> {
 protected:
-	LvqProjectionModelBase(boost::mt19937 & rngIter,int input_dims, int classCount) :LvqProjectionModel(rngIter,input_dims,classCount){}
+	LvqProjectionModelBase(LvqModelInitSettings & initSettings) : LvqProjectionModel(initSettings) { }
 public:
 	void ClassBoundaryDiagram(double x0, double x1, double y0, double y1, MatrixXi & classDiagram) const {
 		TDerivedModel const & self = static_cast<TDerivedModel const &>(*this);

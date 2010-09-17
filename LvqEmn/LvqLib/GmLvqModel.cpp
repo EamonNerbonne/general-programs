@@ -3,17 +3,19 @@
 #include "utils.h"
 #include "LvqConstants.h"
 
-GmLvqModel::GmLvqModel(boost::mt19937 & rngParams, boost::mt19937 & rngIter,  bool randInit, std::vector<int> protodistribution, MatrixXd const & means)
-	: LvqModel(rngIter,(int)protodistribution.size())
+GmLvqModel::GmLvqModel( LvqModelInitSettings & initSettings)
+	: LvqModel(initSettings)
 	, lr_scale_P(LVQ_LrScaleP)
-	, vJ(means.rows())
-	, vK(means.rows())
-	, tmpHelper1(means.rows())
-	, tmpHelper2(means.rows())
+	, vJ(initSettings.Dimensions())
+	, vK(initSettings.Dimensions())
+	, tmpHelper1(initSettings.Dimensions())
+	, tmpHelper2(initSettings.Dimensions())
 {
+	initSettings.AssertModelIsOfRightType(this);
+
 	using namespace std;
 
-	int protoCount = accumulate(protodistribution.begin(), protodistribution.end(), 0);
+	int protoCount = accumulate(initSettings.PrototypeDistribution.begin(), initSettings.PrototypeDistribution.end(), 0);
 	pLabel.resize(protoCount);
 	iterationScaleFactor/=protoCount;
 
@@ -21,20 +23,20 @@ GmLvqModel::GmLvqModel(boost::mt19937 & rngParams, boost::mt19937 & rngIter,  bo
 	P.resize(protoCount);
 
 	int protoIndex=0;
-	for(int label = 0; label <(int) protodistribution.size();label++) {
-		int labelCount =protodistribution[label];
+	for(int label = 0; label <(int) initSettings.PrototypeDistribution.size();label++) {
+		int labelCount =initSettings.PrototypeDistribution[label];
 		for(int i=0;i<labelCount;i++) {
-			prototype[protoIndex] = means.col(label);
-			P[protoIndex].setIdentity(means.rows(), means.rows());
-			if(randInit)
-				projectionRandomizeUniformScaled(rngParams, P[protoIndex]);
+			prototype[protoIndex] = initSettings.PerClassMeans.col(label);
+			P[protoIndex].setIdentity(initSettings.Dimensions(), initSettings.Dimensions());
+			if(initSettings.RandomInitialProjection)
+				projectionRandomizeUniformScaled(initSettings.RngParams, P[protoIndex]);
 
 			pLabel(protoIndex) = label;
 
 			protoIndex++;
 		}
 	}
-	assert( accumulate(protodistribution.begin(),protodistribution.end(),0)== protoIndex);
+	assert( accumulate(initSettings.PrototypeDistribution.begin(),initSettings.PrototypeDistribution.end(),0)== protoIndex);
 }
 
 
@@ -46,7 +48,7 @@ GoodBadMatch GmLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel) 
 	using namespace std;
 
 	double lr_point = learningRate,
-		lr_P = learningRate * this->lr_scale_P;
+		lr_P = learningRate * lr_scale_P;
 
 	assert(lr_P>=0 && lr_point>=0);
 

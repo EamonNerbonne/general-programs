@@ -62,17 +62,19 @@ void PrintModelStatus(char const * label,LvqModel const * model,LvqDataset const
 	cerr<<endl;
 }
 
-template <class T> void TestModel(mt19937 & rndGenOrig, bool randInit, LvqDataset const  * dataset, vector<int> const & protoDistrib, int iters) {
+void TestModel(LvqModelInitSettings::LvqModelType modelType, mt19937 & rndGenOrig, bool randInit, LvqDataset const  * dataset, vector<int> const & protoDistrib, int iters) {
 	Eigen::BenchTimer t;
-	mt19937 rndGenCopy = rndGenOrig;
-	mt19937 rndGen(rndGenCopy); //we do this to avoid changing the original rng, so we can rerun tests with the same sequence of random numbers generated.
+	mt19937 rndGen = rndGenOrig;//we do this to avoid changing the original rng, so we can rerun tests with the same sequence of random numbers generated.
+	
+	LvqModelInitSettings initSettings(modelType,rndGen,rndGen,protoDistrib,dataset->ComputeClassMeans(dataset->GetTrainingSubset(0,0)));
+	initSettings.RandomInitialProjection = randInit;
 
 	using boost::scoped_ptr;
 	scoped_ptr<LvqModel> model;
 	t.start();
-	model.reset(new T(rndGen,rndGen, randInit, protoDistrib, dataset->ComputeClassMeans(dataset->GetTrainingSubset(0,0))));
+	model.reset(ConstructLvqModel(initSettings));
 	t.stop();
-	cerr<<"constructing "<<typeid(T).name()<<" ("<<(randInit?"random":"identity")<<" proj. init)"<<t.value()<<"s\n";
+	cerr<<"constructing "<<typeid(*model).name()<<" ("<<(randInit?"random":"identity")<<" proj. init)"<<t.value()<<"s\n";
 
 	PrintModelStatus("Initial", model.get(), dataset);
 
@@ -88,13 +90,13 @@ template <class T> void TestModel(mt19937 & rndGenOrig, bool randInit, LvqDatase
 		}
 	}
 	t.stop();
-	cerr<<"training "<<typeid(T).name()<<": "<<t.value()<<"s\n";
+	cerr<<"training "<<typeid(*model).name()<<": "<<t.value()<<"s\n";
 }
 
 void EasyLvqTest() {
 	using boost::scoped_ptr;
 
-
+	
 	mt19937 rndGen(347);
 	mt19937 rndGen2(37); //347: 50%, 37:
 #ifndef DETERMINISTIC_SEED
@@ -114,14 +116,14 @@ void EasyLvqTest() {
 	for(int bI=0;bI<BENCH_RUNS;++bI)
 	{
 		t.start();
-		TestModel<GmLvqModel>(rndGen2, true,  dataset.get(), protoDistrib, (ITERS + DIMS -1)/DIMS);
-		TestModel<GmLvqModel>(rndGen2, false,  dataset.get(), protoDistrib, (ITERS + DIMS -1)/DIMS);
+		TestModel(LvqModelInitSettings::GmModelType, rndGen2, true,  dataset.get(), protoDistrib, (ITERS + DIMS -1)/DIMS);
+		TestModel(LvqModelInitSettings::GmModelType, rndGen2, false,  dataset.get(), protoDistrib, (ITERS + DIMS -1)/DIMS);
 
-		TestModel<G2mLvqModel>(rndGen2, true, dataset.get(), protoDistrib, ITERS);
-		TestModel<G2mLvqModel>(rndGen2, false, dataset.get(), protoDistrib, ITERS);
+		TestModel(LvqModelInitSettings::G2mModelType, rndGen2, true, dataset.get(), protoDistrib, ITERS);
+		TestModel(LvqModelInitSettings::G2mModelType, rndGen2, false, dataset.get(), protoDistrib, ITERS);
 
-		TestModel<GsmLvqModel>(rndGen2, true, dataset.get(), protoDistrib, ITERS);
-		TestModel<GsmLvqModel>(rndGen2, false, dataset.get(), protoDistrib, ITERS);
+		TestModel(LvqModelInitSettings::GsmModelType, rndGen2, true, dataset.get(), protoDistrib, ITERS);
+		TestModel(LvqModelInitSettings::GsmModelType, rndGen2, false, dataset.get(), protoDistrib, ITERS);
 
 		cerr<<"\n";
 		t.stop();

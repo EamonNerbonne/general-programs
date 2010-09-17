@@ -4,19 +4,15 @@
 #include "LvqConstants.h"
 using namespace std;
 
-GsmLvqModel::GsmLvqModel(boost::mt19937 & rngParams, boost::mt19937 & rngIter, bool randInit, std::vector<int> protodistribution, MatrixXd const & means)
-	: LvqProjectionModelBase(rngIter, static_cast<int>(means.rows()),static_cast<int>(protodistribution.size())) 
+GsmLvqModel::GsmLvqModel(LvqModelInitSettings & initSettings)
+	: LvqProjectionModelBase(initSettings) 
 	, lr_scale_P(LVQ_LrScaleP)
-	, vJ(means.rows())
-	, vK(means.rows())
+	, vJ(initSettings.Dimensions())
+	, vK(initSettings.Dimensions())
 {
-	if(randInit)
-		projectionRandomizeUniformScaled(rngParams, P);
-	else
-		P.setIdentity();
+	initSettings.AssertModelIsOfRightType(this);
 
-
-	int protoCount = accumulate(protodistribution.begin(), protodistribution.end(), 0);
+	int protoCount = accumulate(initSettings.PrototypeDistribution.begin(), initSettings.PrototypeDistribution.end(), 0);
 	pLabel.resize(protoCount);
 	iterationScaleFactor/=protoCount;
 
@@ -24,17 +20,17 @@ GsmLvqModel::GsmLvqModel(boost::mt19937 & rngParams, boost::mt19937 & rngIter, b
 	P_prototype.resize(protoCount);
 
 	int protoIndex=0;
-	for(int label = 0; label <(int) protodistribution.size();label++) {
-		int labelCount =protodistribution[label];
+	for(int label = 0; label <(int) initSettings.PrototypeDistribution.size();label++) {
+		int labelCount =initSettings.PrototypeDistribution[label];
 		for(int i=0;i<labelCount;i++) {
-			prototype[protoIndex] = means.col(label);
+			prototype[protoIndex] = initSettings.PerClassMeans.col(label);
 			pLabel(protoIndex) = label;
 			RecomputeProjection(protoIndex);
 
 			protoIndex++;
 		}
 	}
-	assert( accumulate(protodistribution.begin(),protodistribution.end(),0)== protoIndex);
+	assert( accumulate(initSettings.PrototypeDistribution.begin(),initSettings.PrototypeDistribution.end(),0)== protoIndex);
 }
 
 GoodBadMatch GsmLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel) {

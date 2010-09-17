@@ -5,35 +5,31 @@
 using namespace std;
 using namespace Eigen;
 
-G2mLvqModel::G2mLvqModel(boost::mt19937 & rngParams,boost::mt19937 & rngIter, bool randInit, std::vector<int> protodistribution, MatrixXd const & means)
-	: LvqProjectionModelBase(rngIter,static_cast<int>(means.rows()),static_cast<int>(protodistribution.size())) 
+G2mLvqModel::G2mLvqModel(LvqModelInitSettings & initSettings)
+	: LvqProjectionModelBase(initSettings)
 	, lr_scale_P(LVQ_LrScaleP)
 	, lr_scale_B(LVQ_LrScaleB)
-	, m_vJ(means.rows())
-	, m_vK(means.rows())
+	, m_vJ(initSettings.Dimensions())
+	, m_vK(initSettings.Dimensions())
 {
 	using namespace std;
+	initSettings.AssertModelIsOfRightType(this);
 
-	if(randInit)
-		projectionRandomizeUniformScaled(rngParams, P);
-	else
-		P.setIdentity();
 
-	int protoCount = accumulate(protodistribution.begin(),protodistribution.end(),0);
+	int protoCount = accumulate(initSettings.PrototypeDistribution.begin(),initSettings.PrototypeDistribution.end(),0);
 	iterationScaleFactor/=protoCount;
 	prototype.resize(protoCount);
 
 	int protoIndex=0;
-	for(int label=0; label <(int) protodistribution.size();label++) {
-		int labelCount =protodistribution[label];
+	for(int label=0; label <(int) initSettings.PrototypeDistribution.size();label++) {
+		int labelCount =initSettings.PrototypeDistribution[label];
 		for(int i=0;i<labelCount;i++) {
-			prototype[protoIndex] = G2mLvqPrototype(rngParams, false, label, means.col(label));//TODO:experiment with random projection initialization.
+			prototype[protoIndex] = G2mLvqPrototype(initSettings.RngParams, initSettings.RandomInitialBorders, label, initSettings.PerClassMeans.col(label));//TODO:experiment with random projection initialization.
 			prototype[protoIndex].ComputePP(P);
-
 			protoIndex++;
 		}
 	}
-	assert( accumulate(protodistribution.begin(), protodistribution.end(), 0)== protoIndex);
+	assert( accumulate(initSettings.PrototypeDistribution.begin(), initSettings.PrototypeDistribution.end(), 0)== protoIndex);
 }
 typedef Map<VectorXd,  Aligned> MVectorXd;
 

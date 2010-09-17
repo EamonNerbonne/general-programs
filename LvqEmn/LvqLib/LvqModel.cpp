@@ -6,7 +6,13 @@
 using namespace std;
 using namespace Eigen;
 
-LvqModel::LvqModel(boost::mt19937 & rngIter,int classCount) : trainIter(0), totalIter(0), totalElapsed(0.0), rngIter(rngIter), iterationScaleFactor(LVQ_PERCLASSITERFACTOR/classCount),classCount(classCount){ }
+LvqModel::LvqModel(LvqModelInitSettings & initSettings)
+	: settings(initSettings.RuntimeSettings)
+	, trainIter(0)
+	, totalIter(0)
+	, totalElapsed(0.0)
+	, iterationScaleFactor(LVQ_PERCLASSITERFACTOR/static_cast<double>(initSettings.RuntimeSettings.ClassCount))
+	{ }
 
 static VectorXd fromStlVector(vector<double> const & vec) {
 	VectorXd retval(vec.size());

@@ -7,7 +7,7 @@ using boost::scoped_array;
 using std::vector;
 class GmLvqModel : public LvqModel, public LvqModelFindMatches<GmLvqModel,VectorXd>
 {
-	vector<MatrixXd > P; //<double,Eigen::Dynamic,Eigen::Dynamic,Eigen::ColMajor,Eigen::Dynamic,Eigen::Dynamic>
+	vector<MatrixXd > P; 
 	vector<VectorXd> prototype;
 	VectorXi pLabel;
 	double lr_scale_P;
@@ -24,6 +24,7 @@ protected:
 
 
 public:
+	static const LvqModelInitSettings::LvqModelType ThisModelType = LvqModelInitSettings::GmModelType;
 	inline int PrototypeLabel(int protoIndex) const {return pLabel(protoIndex);}
 	inline int PrototypeCount() const {return static_cast<int>(pLabel.size());}
 
@@ -33,13 +34,10 @@ public:
 		return tmpHelper2.squaredNorm();
 	}
 
-
-
-
 	virtual size_t MemAllocEstimate() const;
 	virtual int Dimensions() const {return static_cast<int>(P[0].cols());}
 
-	GmLvqModel(boost::mt19937 & rngParams, boost::mt19937 & rngIter,  bool randInit, std::vector<int> protodistribution, MatrixXd const & means);
+	GmLvqModel(LvqModelInitSettings & initSettings);
 	virtual GoodBadMatch ComputeMatches(VectorXd const & unknownPoint, int pointLabel) const;
 	virtual int classify(VectorXd const & unknownPoint) const; 
 	virtual GoodBadMatch learnFrom(VectorXd const & newPoint, int classLabel);

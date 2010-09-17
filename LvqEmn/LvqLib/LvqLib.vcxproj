@@ -414,6 +414,7 @@
     <ClCompile Include="GmLvqModel.cpp" />
     <ClCompile Include="GsmLvqModel.cpp" />
     <ClCompile Include="LvqDataset.cpp" />
+    <ClCompile Include="LvqModelSettings.cpp" />
     <ClCompile Include="LvqProjectionModel.cpp" />
     <ClCompile Include="PCA.cpp" />
     <ClCompile Include="stdafx.cpp">
@@ -434,6 +435,7 @@
     <ClInclude Include="CovarianceAndMean.h" />
     <ClInclude Include="GoodBadMatch.h" />
     <ClInclude Include="LvqModel.h" />
+    <ClInclude Include="LvqModelSettings.h" />
     <ClInclude Include="LvqProjectionModel.h" />
     <ClInclude Include="DatasetUtils.h" />
     <ClInclude Include="G2mLvqModel.h" />

@@ -8,7 +8,7 @@
 namespace LvqLibCli {
 	using boost::mt19937;
 
-	LvqModelCli::LvqModelCli(String^ label, unsigned rngParamsSeed, unsigned rngInstSeed, int protosPerClass, int modelType,int parallelModels,LvqDatasetCli^ trainingSet)
+	LvqModelCli::LvqModelCli(String^ label, unsigned rngParamsSeed, unsigned rngInstSeed, int protosPerClass, int modelType, int parallelModels, LvqDatasetCli^ trainingSet)
 		: protosPerClass(protosPerClass)
 		, modelType(modelType)
 		, label(label)
@@ -24,18 +24,10 @@ namespace LvqLibCli {
 		initSet = trainingSet;
 		#pragma omp parallel for
 		for(int i=0;i<model->Length;i++) {
-			LvqModel* newmodel=0;
-			if(modelType == LvqModelCli::GSM_TYPE)
-		 		newmodel = new GsmLvqModel(mt19937(rngParamsSeed+i),mt19937(rngInstSeed+i), true, protoDistrib, trainingSet->GetDataset()->ComputeClassMeans( trainingSet->GetTrainingSubset(i) )); 
-			else if(modelType == LvqModelCli::G2M_TYPE)
-				newmodel = new G2mLvqModel(mt19937(rngParamsSeed+i),mt19937(rngInstSeed+i), true, protoDistrib, trainingSet->GetDataset()->ComputeClassMeans(trainingSet->GetTrainingSubset(i))); 
-			else  if(modelType == LvqModelCli::GM_TYPE)
-				newmodel = new GmLvqModel(mt19937(rngParamsSeed+i),mt19937(rngInstSeed+i), true, protoDistrib, trainingSet->GetDataset()->ComputeClassMeans(trainingSet->GetTrainingSubset(i))); 
-			if(newmodel) {
-				WrappedModel^ m = GcPtr::Create(newmodel);
-				m->get()->AddTrainingStat(trainingSet->GetDataset(),trainingSet->GetTrainingSubset(i), trainingSet->GetDataset(), trainingSet->GetTestSubset(i),0,0.0);
-				model[i] = m;
-			}
+			LvqModelInitSettings initSettings(LvqModelInitSettings::LvqModelType(modelType), mt19937(rngParamsSeed+i), mt19937(rngInstSeed+i), protoDistrib, trainingSet->GetDataset()->ComputeClassMeans( trainingSet->GetTrainingSubset(i)));
+			WrappedModel^ m = GcPtr::Create(ConstructLvqModel(initSettings));
+			m->get()->AddTrainingStat(trainingSet->GetDataset(),trainingSet->GetTrainingSubset(i), trainingSet->GetDataset(), trainingSet->GetTestSubset(i),0,0.0);
+			model[i] = m;
 		}
 		BackupModel();
 	}

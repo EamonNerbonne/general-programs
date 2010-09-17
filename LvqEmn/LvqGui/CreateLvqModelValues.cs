@@ -7,7 +7,7 @@ using LvqLibCli;
 using System.Text.RegularExpressions;
 
 namespace LvqGui {
-	public enum ModelType { G2m = 0, Gsm = 1, Gm = 2 }
+	public enum ModelType { G2m = LvqModelCli.G2M_TYPE, Gsm = LvqModelCli.GSM_TYPE, Gm = LvqModelCli.GM_TYPE }
 
 	public class CreateLvqModelValues : INotifyPropertyChanged, IHasSeed {
 		readonly LvqWindowValues owner;

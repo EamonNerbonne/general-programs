@@ -45,6 +45,9 @@
     <ClCompile Include="LvqProjectionModel.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="LvqModelSettings.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DatasetUtils.h">
@@ -96,6 +99,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="CovarianceAndMean.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="LvqModelSettings.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

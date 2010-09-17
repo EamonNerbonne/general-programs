@@ -54,8 +54,8 @@ namespace LvqLibCli {
 
 		void Train(int epochsToDo,LvqDatasetCli^ trainingSet); 
 
-		static const int G2M_TYPE =0;
-		static const int GSM_TYPE =1;
-		static const int GM_TYPE =2;
+		literal int G2M_TYPE = LvqModelInitSettings::G2mModelType;
+		literal int GSM_TYPE = LvqModelInitSettings::GsmModelType;
+		literal int GM_TYPE = LvqModelInitSettings::GmModelType;
 	};
 }
