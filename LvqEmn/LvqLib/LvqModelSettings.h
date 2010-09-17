@@ -2,19 +2,19 @@
 #include <vector>
 #include <boost/random/mersenne_twister.hpp>
 #include <Eigen/Core>
-class LvqModelSettings
+class LvqModelRuntimeSettings
 {
 public:
 	bool TrackProjectionQuality;
 	int ClassCount;
 	boost::mt19937 RngIter;
-	LvqModelSettings(int classCount, boost::mt19937 & rngIter) 
+	LvqModelRuntimeSettings(int classCount, boost::mt19937 & rngIter) 
 		: TrackProjectionQuality(false)
 		, ClassCount(classCount)
 		, RngIter(rngIter) { }
 };
 
-class LvqModelInitSettings
+class LvqModelSettings
 {
 public:
 	enum LvqModelType {
@@ -26,8 +26,8 @@ public:
 	std::vector<int> PrototypeDistribution;
 	Eigen::MatrixXd PerClassMeans;
 	LvqModelType ModelType;
-	LvqModelSettings RuntimeSettings;
-	LvqModelInitSettings(LvqModelType modelType, boost::mt19937 & rngParams, boost::mt19937 & rngIter, std::vector<int> protodistrib, MatrixXd const & means) 
+	LvqModelRuntimeSettings RuntimeSettings;
+	LvqModelSettings(LvqModelType modelType, boost::mt19937 & rngParams, boost::mt19937 & rngIter, std::vector<int> protodistrib, MatrixXd const & means) 
 		: RandomInitialProjection(true)
 		, RandomInitialBorders(false) 
 		, RngParams(rngParams)
@@ -47,9 +47,9 @@ public:
 			throw "Invalid Model Type!";
 	}
 
-	LvqModelInitSettings& self(){return *this;}
+	LvqModelSettings& self(){return *this;}
 };
 
 class LvqModel;
 
-LvqModel* ConstructLvqModel(LvqModelInitSettings & initSettings);
+LvqModel* ConstructLvqModel(LvqModelSettings & initSettings);

@@ -14,7 +14,7 @@ void LvqProjectionModel::AppendOtherStats(std::vector<double> & stats, LvqDatase
 		stats.push_back(trainingSet ? trainingSet->NearestNeighborErrorRate(trainingSubset,testSet,testSubset,this->P) : 0.0);
 }
 
-LvqProjectionModel::LvqProjectionModel(LvqModelInitSettings & initSettings) 
+LvqProjectionModel::LvqProjectionModel(LvqModelSettings & initSettings) 
 	: LvqModel(initSettings)
 	, P(LVQ_LOW_DIM_SPACE, initSettings.Dimensions()) 
 {

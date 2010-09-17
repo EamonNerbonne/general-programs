@@ -24,7 +24,7 @@ protected:
 
 
 public:
-	static const LvqModelInitSettings::LvqModelType ThisModelType = LvqModelInitSettings::GmModelType;
+	static const LvqModelSettings::LvqModelType ThisModelType = LvqModelSettings::GmModelType;
 	inline int PrototypeLabel(int protoIndex) const {return pLabel(protoIndex);}
 	inline int PrototypeCount() const {return static_cast<int>(pLabel.size());}
 
@@ -37,7 +37,7 @@ public:
 	virtual size_t MemAllocEstimate() const;
 	virtual int Dimensions() const {return static_cast<int>(P[0].cols());}
 
-	GmLvqModel(LvqModelInitSettings & initSettings);
+	GmLvqModel(LvqModelSettings & initSettings);
 	virtual GoodBadMatch ComputeMatches(VectorXd const & unknownPoint, int pointLabel) const;
 	virtual int classify(VectorXd const & unknownPoint) const; 
 	virtual GoodBadMatch learnFrom(VectorXd const & newPoint, int classLabel);

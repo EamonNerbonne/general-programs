@@ -62,11 +62,11 @@ void PrintModelStatus(char const * label,LvqModel const * model,LvqDataset const
 	cerr<<endl;
 }
 
-void TestModel(LvqModelInitSettings::LvqModelType modelType, mt19937 & rndGenOrig, bool randInit, LvqDataset const  * dataset, vector<int> const & protoDistrib, int iters) {
+void TestModel(LvqModelSettings::LvqModelType modelType, mt19937 & rndGenOrig, bool randInit, LvqDataset const  * dataset, vector<int> const & protoDistrib, int iters) {
 	Eigen::BenchTimer t;
 	mt19937 rndGen = rndGenOrig;//we do this to avoid changing the original rng, so we can rerun tests with the same sequence of random numbers generated.
 	
-	LvqModelInitSettings initSettings(modelType,rndGen,rndGen,protoDistrib,dataset->ComputeClassMeans(dataset->GetTrainingSubset(0,0)));
+	LvqModelSettings initSettings(modelType,rndGen,rndGen,protoDistrib,dataset->ComputeClassMeans(dataset->GetTrainingSubset(0,0)));
 	initSettings.RandomInitialProjection = randInit;
 
 	using boost::scoped_ptr;
@@ -116,14 +116,14 @@ void EasyLvqTest() {
 	for(int bI=0;bI<BENCH_RUNS;++bI)
 	{
 		t.start();
-		TestModel(LvqModelInitSettings::GmModelType, rndGen2, true,  dataset.get(), protoDistrib, (ITERS + DIMS -1)/DIMS);
-		TestModel(LvqModelInitSettings::GmModelType, rndGen2, false,  dataset.get(), protoDistrib, (ITERS + DIMS -1)/DIMS);
+		TestModel(LvqModelSettings::GmModelType, rndGen2, true,  dataset.get(), protoDistrib, (ITERS + DIMS -1)/DIMS);
+		TestModel(LvqModelSettings::GmModelType, rndGen2, false,  dataset.get(), protoDistrib, (ITERS + DIMS -1)/DIMS);
 
-		TestModel(LvqModelInitSettings::G2mModelType, rndGen2, true, dataset.get(), protoDistrib, ITERS);
-		TestModel(LvqModelInitSettings::G2mModelType, rndGen2, false, dataset.get(), protoDistrib, ITERS);
+		TestModel(LvqModelSettings::G2mModelType, rndGen2, true, dataset.get(), protoDistrib, ITERS);
+		TestModel(LvqModelSettings::G2mModelType, rndGen2, false, dataset.get(), protoDistrib, ITERS);
 
-		TestModel(LvqModelInitSettings::GsmModelType, rndGen2, true, dataset.get(), protoDistrib, ITERS);
-		TestModel(LvqModelInitSettings::GsmModelType, rndGen2, false, dataset.get(), protoDistrib, ITERS);
+		TestModel(LvqModelSettings::GsmModelType, rndGen2, true, dataset.get(), protoDistrib, ITERS);
+		TestModel(LvqModelSettings::GsmModelType, rndGen2, false, dataset.get(), protoDistrib, ITERS);
 
 		cerr<<"\n";
 		t.stop();

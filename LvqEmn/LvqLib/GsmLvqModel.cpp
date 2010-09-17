@@ -4,7 +4,7 @@
 #include "LvqConstants.h"
 using namespace std;
 
-GsmLvqModel::GsmLvqModel(LvqModelInitSettings & initSettings)
+GsmLvqModel::GsmLvqModel(LvqModelSettings & initSettings)
 	: LvqProjectionModelBase(initSettings) 
 	, lr_scale_P(LVQ_LrScaleP)
 	, vJ(initSettings.Dimensions())

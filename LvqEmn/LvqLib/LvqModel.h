@@ -18,7 +18,7 @@ class LvqModel
 	
 	std::vector<VectorXd> trainingStats;
 protected:
-	LvqModelSettings settings;
+	LvqModelRuntimeSettings settings;
 	double iterationScaleFactor;//TODO:make private;
 	inline double stepLearningRate() {
 		double scaledIter = trainIter*iterationScaleFactor + 1.0;
@@ -30,7 +30,7 @@ protected:
 	virtual void AppendTrainingStatNames(std::vector<std::wstring> & retval) const { }
 	//subclasses must append the stats and the base-classe implementation in the same order as they did for AppendTrainingStatNames
 	virtual void AppendOtherStats(std::vector<double> & stats, LvqDataset const * trainingSet,  std::vector<int>const & trainingSubset, LvqDataset const * testSet,  std::vector<int>const & testSubset) const { }
-	LvqModel(LvqModelInitSettings & initSettings);
+	LvqModel(LvqModelSettings & initSettings);
 
 public:
 	boost::mt19937 & RngIter() {return settings.RngIter;}//TODO:remove.

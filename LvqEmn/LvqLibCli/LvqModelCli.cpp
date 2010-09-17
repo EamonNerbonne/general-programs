@@ -24,7 +24,7 @@ namespace LvqLibCli {
 		initSet = trainingSet;
 		#pragma omp parallel for
 		for(int i=0;i<model->Length;i++) {
-			LvqModelInitSettings initSettings(LvqModelInitSettings::LvqModelType(modelType), mt19937(rngParamsSeed+i), mt19937(rngInstSeed+i), protoDistrib, trainingSet->GetDataset()->ComputeClassMeans( trainingSet->GetTrainingSubset(i)));
+			LvqModelSettings initSettings(LvqModelSettings::LvqModelType(modelType), mt19937(rngParamsSeed+i), mt19937(rngInstSeed+i), protoDistrib, trainingSet->GetDataset()->ComputeClassMeans( trainingSet->GetTrainingSubset(i)));
 			WrappedModel^ m = GcPtr::Create(ConstructLvqModel(initSettings));
 			m->get()->AddTrainingStat(trainingSet->GetDataset(),trainingSet->GetTrainingSubset(i), trainingSet->GetDataset(), trainingSet->GetTestSubset(i),0,0.0);
 			model[i] = m;

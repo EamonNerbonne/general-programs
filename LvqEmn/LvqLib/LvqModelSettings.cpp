@@ -6,15 +6,15 @@
 #include "GmLvqModel.h"
 #include "GsmLvqModel.h"
 
-LvqModel* ConstructLvqModel(LvqModelInitSettings & initSettings) {
+LvqModel* ConstructLvqModel(LvqModelSettings & initSettings) {
 	switch(initSettings.ModelType) {
-	case LvqModelInitSettings::GmModelType:
+	case LvqModelSettings::GmModelType:
 		return new GmLvqModel(initSettings);
 		break;
-	case LvqModelInitSettings::GsmModelType:
+	case LvqModelSettings::GsmModelType:
 		return new GsmLvqModel(initSettings);
 		break;
-	case LvqModelInitSettings::G2mModelType:
+	case LvqModelSettings::G2mModelType:
 		return new G2mLvqModel(initSettings);
 		break;
 	default:

@@ -23,7 +23,7 @@ class GsmLvqModel : public LvqProjectionModelBase<GsmLvqModel>
 public:
 	//for templates:
 	
-	static const LvqModelInitSettings::LvqModelType ThisModelType = LvqModelInitSettings::GsmModelType;
+	static const LvqModelSettings::LvqModelType ThisModelType = LvqModelSettings::GsmModelType;
 	inline int PrototypeLabel(int protoIndex) const {return pLabel(protoIndex);}
 	inline int PrototypeCount() const {return static_cast<int>(pLabel.size());}
 	inline double SqrDistanceTo(int protoIndex, Vector2d const & P_otherPoint) const {
@@ -33,7 +33,7 @@ public:
 //end for templates
 	virtual size_t MemAllocEstimate() const;
 
-	GsmLvqModel(LvqModelInitSettings & initSettings);
+	GsmLvqModel(LvqModelSettings & initSettings);
 	virtual int classify(VectorXd const & unknownPoint) const {return classifyProjectedInline(P * unknownPoint);}
 	virtual int classifyProjected(Vector2d const & unknownProjectedPoint) const {return classifyProjectedInline(unknownProjectedPoint);}
 	inline int classifyProjectedInline(Vector2d const & P_otherPoint) const{

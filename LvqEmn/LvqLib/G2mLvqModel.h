@@ -20,7 +20,7 @@ protected:
 
 
 public:
-	static const LvqModelInitSettings::LvqModelType ThisModelType = LvqModelInitSettings::G2mModelType;
+	static const LvqModelSettings::LvqModelType ThisModelType = LvqModelSettings::G2mModelType;
 		//for templates:
 
 	inline int PrototypeLabel(int protoIndex) const {return prototype[protoIndex].label();}
@@ -30,7 +30,7 @@ public:
 //end for templates
 
 
-	G2mLvqModel(LvqModelInitSettings & initSettings);
+	G2mLvqModel(LvqModelSettings & initSettings);
 	virtual size_t MemAllocEstimate() const;
 	virtual int classify(VectorXd const & unknownPoint) const {return classifyProjectedInline(P * unknownPoint);}
 	virtual int classifyProjected(Vector2d const & unknownProjectedPoint) const { return classifyProjectedInline(unknownProjectedPoint);}

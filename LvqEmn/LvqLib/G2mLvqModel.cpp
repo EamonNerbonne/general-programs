@@ -5,7 +5,7 @@
 using namespace std;
 using namespace Eigen;
 
-G2mLvqModel::G2mLvqModel(LvqModelInitSettings & initSettings)
+G2mLvqModel::G2mLvqModel(LvqModelSettings & initSettings)
 	: LvqProjectionModelBase(initSettings)
 	, lr_scale_P(LVQ_LrScaleP)
 	, lr_scale_B(LVQ_LrScaleB)

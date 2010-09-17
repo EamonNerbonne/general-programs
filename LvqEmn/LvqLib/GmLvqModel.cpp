@@ -3,7 +3,7 @@
 #include "utils.h"
 #include "LvqConstants.h"
 
-GmLvqModel::GmLvqModel( LvqModelInitSettings & initSettings)
+GmLvqModel::GmLvqModel( LvqModelSettings & initSettings)
 	: LvqModel(initSettings)
 	, lr_scale_P(LVQ_LrScaleP)
 	, vJ(initSettings.Dimensions())

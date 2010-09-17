@@ -6,7 +6,7 @@
 using namespace std;
 using namespace Eigen;
 
-LvqModel::LvqModel(LvqModelInitSettings & initSettings)
+LvqModel::LvqModel(LvqModelSettings & initSettings)
 	: settings(initSettings.RuntimeSettings)
 	, trainIter(0)
 	, totalIter(0)
