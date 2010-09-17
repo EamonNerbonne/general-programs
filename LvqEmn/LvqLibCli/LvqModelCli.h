@@ -6,6 +6,7 @@
 #include "LvqTrainingStatCli.h"
 #include "SmartSum.h"
 
+
 // array of model, modelCopy's.
 //on training, train all models (parallel for)
 //on projecting project first?
@@ -13,11 +14,10 @@
 
 using namespace System;
 namespace LvqLibCli {
-
+	ref class LvqModelSettingsCli;
 	public ref class LvqModelCli {
 		typedef GcAutoPtr<LvqModel> WrappedModel;
 		typedef array<WrappedModel^> WrappedModelArray;
-		int protosPerClass,modelType;
 		String^ label;
 		WrappedModelArray^ model;
 		WrappedModelArray^ modelCopy;
@@ -39,7 +39,7 @@ namespace LvqLibCli {
 		void ResetLearningRate();
 		
 
-		LvqModelCli(String^ label, unsigned rngParamsSeed, unsigned rngInstSeed, int protosPerClass, int modelType,int parallelModels,LvqDatasetCli^ trainingSet);
+		LvqModelCli(String^ label, int parallelModels, LvqDatasetCli^ trainingSet, LvqModelSettingsCli^ modelSettings);
 
 		bool FitsDataShape(LvqDatasetCli^ dataset) {return dataset!=nullptr && dataset->ClassCount == this->ClassCount && dataset->Dimensions == this->Dimensions;}
 

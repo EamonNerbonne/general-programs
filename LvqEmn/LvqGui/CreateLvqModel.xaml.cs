@@ -2,11 +2,12 @@
 using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
+using LvqLibCli;
 
 namespace LvqGui {
 
 	public partial class CreateLvqModel : UserControl {
-		public ModelType[] ModelTypes { get { return (ModelType[])Enum.GetValues(typeof(ModelType)); } }
+		public LvqModelType[] ModelTypes { get { return (LvqModelType[])Enum.GetValues(typeof(LvqModelType)); } }
 		public CreateLvqModel() { InitializeComponent(); }
 
 		private void ReseedParam(object sender, RoutedEventArgs e) { ((IHasSeed)DataContext).ReseedParam(); }

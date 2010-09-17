@@ -23,6 +23,9 @@
     <ClCompile Include="LvqTrainingStatCli.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="LvqModelSettingsCli.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="LvqDatasetCli.h">
@@ -44,6 +47,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="PointSet.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="LvqModelSettingsCli.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

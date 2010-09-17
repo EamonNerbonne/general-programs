@@ -7,8 +7,6 @@ using LvqLibCli;
 using System.Text.RegularExpressions;
 
 namespace LvqGui {
-	public enum ModelType { G2m = LvqModelCli.G2M_TYPE, Gsm = LvqModelCli.GSM_TYPE, Gm = LvqModelCli.GM_TYPE }
-
 	public class CreateLvqModelValues : INotifyPropertyChanged, IHasSeed {
 		readonly LvqWindowValues owner;
 		public LvqWindowValues Owner { get { return owner; } }
@@ -21,17 +19,17 @@ namespace LvqGui {
 		}
 		private LvqDatasetCli _ForDataset;
 
-		public ModelType ModelType {
+		public LvqModelType ModelType {
 			get { return _ModelType; }
-			set { if (!object.Equals(_ModelType, value)) { if (value != LvqGui.ModelType.Gm) Dimensionality = 2; _ModelType = value; _propertyChanged("ModelType"); } }
+			set { if (!object.Equals(_ModelType, value)) { if (value != LvqModelType.GmModelType) Dimensionality = 2; _ModelType = value; _propertyChanged("ModelType"); } }
 		}
-		private ModelType _ModelType;
+		private LvqModelType _ModelType;
 
 		public int Dimensionality {
 			get { return _Dimensionality; }
 			set {
-				if (value < 1 || (ForDataset!=null&&value > ForDataset.Dimensions)) throw new ArgumentException("Internal dimensionality must be between 1 and the dimensions of the data.");
-				if (_ModelType != LvqGui.ModelType.Gm && value != 2) throw new ArgumentException("2D Projection models must have exactly 2 internal dimensions.");
+				if (value < 1 || (ForDataset != null && value > ForDataset.Dimensions)) throw new ArgumentException("Internal dimensionality must be between 1 and the dimensions of the data.");
+				if (_ModelType != LvqModelType.GmModelType && value != 2) throw new ArgumentException("2D Projection models must have exactly 2 internal dimensions.");
 				if (!object.Equals(_Dimensionality, value)) { _Dimensionality = value; _propertyChanged("Dimensionality"); }
 			}
 		}
@@ -74,9 +72,9 @@ namespace LvqGui {
 		public string Shorthand {
 			get {
 				return ModelType.ToString()
-				+ (ModelType == LvqGui.ModelType.Gm ? "[" + Dimensionality + "]" : "")
+				+ (ModelType == LvqModelType.GmModelType ? "[" + Dimensionality + "]" : "")
 				+ "," + PrototypesPerClass + "[" + Seed + ":" + InstSeed + "]/" + ParallelModels
-				+(ForDataset ==null?"": "--" + ForDataset.DatasetLabel);
+				+ (ForDataset == null ? "" : "--" + ForDataset.DatasetLabel);
 			}
 			set {
 				if (!shR.IsMatch(value)) throw new ArgumentException("can't parse shorthand - enter manually?");
@@ -95,7 +93,7 @@ namespace LvqGui {
 
 		public CreateLvqModelValues(LvqWindowValues owner) {
 			this.owner = owner;
-			_ModelType = ModelType.G2m;
+			_ModelType = LvqModelType.G2mModelType;
 			_Dimensionality = 2;
 			_PrototypesPerClass = 1;
 			_ParallelModels = 10;
@@ -106,13 +104,14 @@ namespace LvqGui {
 			Console.WriteLine("Created: " + Shorthand);
 
 			return new LvqModelCli(Shorthand,
-				rngParamsSeed: Seed,
-				rngInstSeed: InstSeed,
-				protosPerClass: PrototypesPerClass,
-				modelType: (int)ModelType,
-				parallelModels:ParallelModels,
-				trainingSet: ForDataset
-				);
+				parallelModels: ParallelModels,
+				trainingSet: ForDataset,
+				modelSettings: new LvqModelSettingsCli {
+					ModelType = ModelType,
+					RngIterSeed = InstSeed,
+					PrototypesPerClass = PrototypesPerClass,
+					RngParamsSeed = this.Seed,
+				});
 		}
 
 		public void ConfirmCreation() {

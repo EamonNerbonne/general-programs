@@ -1,31 +1,22 @@
 #include "stdafx.h"
 
 #include "LvqModelCli.h"
-#include "G2mLvqModel.h"
-#include "GsmLvqModel.h"
-#include "GmLvqModel.h"
+#include "LvqModelSettingsCli.h"
 
 namespace LvqLibCli {
 	using boost::mt19937;
 
-	LvqModelCli::LvqModelCli(String^ label, unsigned rngParamsSeed, unsigned rngInstSeed, int protosPerClass, int modelType, int parallelModels, LvqDatasetCli^ trainingSet)
-		: protosPerClass(protosPerClass)
-		, modelType(modelType)
-		, label(label)
+	LvqModelCli::LvqModelCli(String^ label, int parallelModels, LvqDatasetCli^ trainingSet, LvqModelSettingsCli^ modelSettings)
+		: label(label)
 		, model(gcnew WrappedModelArray(parallelModels) )
 		, modelCopy(nullptr)
 		, mainSync(gcnew Object())
+		, initSet(trainingSet)
 	{ 
-		vector<int> protoDistrib;
-		for(int i=0;i<trainingSet->ClassCount;++i)
-			protoDistrib.push_back(protosPerClass);
-
 		msclr::lock l2(mainSync);
-		initSet = trainingSet;
 		#pragma omp parallel for
 		for(int i=0;i<model->Length;i++) {
-			LvqModelSettings initSettings(LvqModelSettings::LvqModelType(modelType), mt19937(rngParamsSeed+i), mt19937(rngInstSeed+i), protoDistrib, trainingSet->GetDataset()->ComputeClassMeans( trainingSet->GetTrainingSubset(i)));
-			WrappedModel^ m = GcPtr::Create(ConstructLvqModel(initSettings));
+			WrappedModel^ m = GcPtr::Create(ConstructLvqModel(modelSettings->ToNativeSettings(trainingSet, i)));
 			m->get()->AddTrainingStat(trainingSet->GetDataset(),trainingSet->GetTrainingSubset(i), trainingSet->GetDataset(), trainingSet->GetTestSubset(i),0,0.0);
 			model[i] = m;
 		}
