@@ -48,14 +48,17 @@ void LvqModel::AddTrainingStat(LvqDataset const * trainingSet,  vector<int>const
 	this->AddTrainingStat(trainingSet,trainingSubset,meanCost,errorRate,testSet,testSubset,iterInc,elapsedInc);
 }
 
-	std::vector<std::wstring> LvqModel::TrainingStatNames()  {
-		std::vector<std::wstring> retval;
-		retval.push_back(L"Training Iterations|iterations");
-		retval.push_back(L"Elapsed Seconds|seconds");
-		retval.push_back(L"Training Error|error rate|Error Rates");
-		retval.push_back(L"Training Cost|cost function|Cost Function");
-		retval.push_back(L"Test Error|error rate|Error Rates");
-		retval.push_back(L"Test Cost|cost function|Cost Function");
-		AppendTrainingStatNames(retval); 
-		return retval;
-	}
+std::vector<std::wstring> LvqModel::TrainingStatNames()  {
+	std::vector<std::wstring> retval;
+	retval.push_back(L"Training Iterations|iterations");
+	retval.push_back(L"Elapsed Seconds|seconds");
+	retval.push_back(L"Training Error|error rate|Error Rates");
+	retval.push_back(L"Training Cost|cost function|Cost Function");
+	retval.push_back(L"Test Error|error rate|Error Rates");
+	retval.push_back(L"Test Cost|cost function|Cost Function");
+	AppendTrainingStatNames(retval); 
+	return retval;
+}
+
+void LvqModel::AppendTrainingStatNames(std::vector<std::wstring> & retval) const { }
+void LvqModel::AppendOtherStats(std::vector<double> & stats, LvqDataset const * trainingSet,  std::vector<int>const & trainingSubset, LvqDataset const * testSet,  std::vector<int>const & testSubset) const { }

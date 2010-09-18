@@ -446,6 +446,7 @@
     <ClInclude Include="LvqConstants.h" />
     <ClInclude Include="LvqDataset.h" />
     <ClInclude Include="LvqProjectionModelBase.h" />
+    <ClInclude Include="LvqTypedefs.h" />
     <ClInclude Include="PCA.h" />
     <ClInclude Include="SmartSum.h" />
     <ClInclude Include="stdafx.h" />

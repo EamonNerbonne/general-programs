@@ -1,8 +1,10 @@
 #include "stdafx.h"
+#include <Eigen/Core>
+#include <bench/BenchTimer.h>
 #include <boost/random/mersenne_twister.hpp>
 #include "CovarianceAndMean.h"
 #include "DatasetUtils.h"
-
+#include "LvqTypedefs.h"
 
 #define DIMS 17
 	using boost::mt19937;

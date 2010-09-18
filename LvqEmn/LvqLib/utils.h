@@ -1,5 +1,19 @@
 #pragma once
-#include "stdafx.h"
+#include <Eigen/Core>
+#include <Eigen/QR> 
+#include <boost/random/variate_generator.hpp>
+#include <boost/random/mersenne_twister.hpp>
+#include <boost/random/uniform_int.hpp>
+#include <boost/random/normal_distribution.hpp>
+#include <boost/function.hpp>
+#include <boost/bind/bind.hpp>
+
+#ifdef NDEBUG
+#define DEBUGPRINT(X) ((void)0)
+#else
+#define DEBUGPRINT(X) DBG(X)
+#endif
+
 
 template <typename T> T & as_lvalue(T && temporary_value) {return temporary_value;}
 

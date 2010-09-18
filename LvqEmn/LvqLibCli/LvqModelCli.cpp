@@ -6,6 +6,7 @@
 #include "LvqDatasetCli.h"
 #include "LvqDataset.h"
 #include "SmartSum.h"
+#include "utils.h"
 
 namespace LvqLibCli {
 	using boost::mt19937;
@@ -20,7 +21,7 @@ namespace LvqLibCli {
 		msclr::lock l2(mainSync);
 		#pragma omp parallel for
 		for(int i=0;i<model->Length;i++) {
-			WrappedModel^ m = GcPtr::Create(ConstructLvqModel(modelSettings->ToNativeSettings(trainingSet, i)));
+			WrappedModel^ m = GcPtr::Create(ConstructLvqModel(as_lvalue( modelSettings->ToNativeSettings(trainingSet, i))));
 			m->get()->AddTrainingStat(trainingSet->GetDataset(),trainingSet->GetTrainingSubset(i), trainingSet->GetDataset(), trainingSet->GetTestSubset(i),0,0.0);
 			model[i] = m;
 		}

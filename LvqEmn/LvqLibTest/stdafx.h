@@ -12,3 +12,6 @@ using namespace Eigen;
 static bool failed = false;
 #define ASSTRING(X) #X
 #define VERIFY(X) do {bool ok=(X);failed |= !ok; std::cout<<ASSTRING(X)<<":\n"<<ok<<"\n"; } while(false)
+
+#pragma warning(disable: 4512)
+

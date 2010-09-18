@@ -1,7 +1,8 @@
 #pragma once
-#include "stdafx.h"
-#include "LvqDataset.h"
+#include <boost/random/mersenne_twister.hpp>
+#include <Eigen/Core>
 
+class LvqDataset;
 class DatasetUtils
 {
 	DatasetUtils(void) {}

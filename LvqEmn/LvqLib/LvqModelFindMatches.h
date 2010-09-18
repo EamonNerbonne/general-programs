@@ -1,5 +1,4 @@
 #pragma once
-#include "stdafx.h"
 #include "GoodBadMatch.h"
 
 template<typename TDerivedModel, typename TProcessedPoint> class LvqModelFindMatches {

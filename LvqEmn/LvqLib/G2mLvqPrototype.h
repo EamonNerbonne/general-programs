@@ -1,6 +1,7 @@
 #pragma once
-#include "stdafx.h"
+#include <Eigen/Core>
 using namespace Eigen;
+#include "utils.h"
 
 class G2mLvqPrototype
 {

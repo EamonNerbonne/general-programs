@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "LvqProjectionModel.h"
 #include "LvqDataset.h"
+#include "utils.h"
 void LvqProjectionModel::AppendTrainingStatNames(std::vector<std::wstring> & retval) const { 
 	LvqModel::AppendTrainingStatNames(retval);
 	retval.push_back(L"Projection Norm|norm|Projection Matrix");

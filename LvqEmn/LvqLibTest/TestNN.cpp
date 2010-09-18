@@ -1,7 +1,9 @@
 #include "stdafx.h"
 #include <boost/random/mersenne_twister.hpp>
 #include <boost/scoped_ptr.hpp>
+#include <bench/BenchTimer.h>
 #include "DatasetUtils.h"
+#include "LvqDataset.h"
 #include "PCA.h"
 #include "G2mLvqModel.h"
 
@@ -18,7 +20,7 @@ using std::vector;
 #define PROTOSPERCLASS 3
 #define FOLDS 5
 
-#define PRINTLOG 0
+#define PRINTLOG 1
 
 #if PRINTLOG
 #define LOG(X) (cout<<X)

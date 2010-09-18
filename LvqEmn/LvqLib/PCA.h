@@ -1,7 +1,6 @@
 #pragma once
-#include "stdafx.h"
 #include "Eigen/EigenValues"
-
+#include "LvqTypedefs.h"
 #include "CovarianceAndMean.h"
 
 template <typename TPoints>

@@ -1,6 +1,8 @@
 #include "stdafx.h"
 
 #include "DatasetUtils.h"
+#include "LvqDataset.h"
+#include "utils.h"
 using namespace std;
 
 MatrixXd DatasetUtils::MakePointCloud(boost::mt19937 & rngParams, boost::mt19937 & rngInst, int dims, int pointCount, double meansep) {

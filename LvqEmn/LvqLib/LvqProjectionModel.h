@@ -1,9 +1,8 @@
 #pragma once
-#include "stdafx.h"
-#include "LvqConstants.h"
-#include "utils.h"
-#include "LvqModel.h"
+#include <Eigen/Core>
 
+#include "LvqModel.h"
+#include "LvqTypedefs.h"
 
 class LvqProjectionModel : public LvqModel {
 protected:

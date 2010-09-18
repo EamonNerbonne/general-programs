@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "LvqDataset.h"
+#include "LvqProjectionModel.h"
 #include "utils.h"
 #include <xmmintrin.h>
 #include "PCA.h"

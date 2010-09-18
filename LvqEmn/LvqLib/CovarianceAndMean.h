@@ -1,5 +1,5 @@
 #pragma once
-#include "stdafx.h"
+#include <Eigen/Core>
 
 template <typename TPoints>
 static Eigen::Matrix<typename TPoints::Scalar,TPoints::RowsAtCompileTime,1> MeanPoint(Eigen::MatrixBase<TPoints>const & points) {
@@ -21,7 +21,6 @@ public:
 	inline static TMatrix CovarianceB(Eigen::MatrixBase<TPoints>const & points, TPoint const & mean) {
 		TPoint diff = TPoint::Zero(points.rows());
 		TMatrix cov = TMatrix::Zero(points.rows(),points.rows());
-		typename TMatrix::Index dims = points.rows();
 		for(int i=0;i<points.cols();++i) {
 			diff.noalias() = points.col(i) - mean;
 			cov.noalias() += diff * diff.transpose(); 
@@ -41,7 +40,6 @@ public:
 	inline static TMatrix CovarianceD(Eigen::MatrixBase<TPoints>const & points, TPoint const & mean) {
 		TPoint diff = TPoint::Zero(points.rows());
 		TMatrix cov = TMatrix::Zero(points.rows(),points.rows());
-		typename TMatrix::Index dims = points.rows();
 		for(int i=0;i<points.cols();++i) {
 			diff.noalias() = points.col(i) - mean;
 			cov.template triangularView<Eigen::Lower>() += diff * diff.adjoint();

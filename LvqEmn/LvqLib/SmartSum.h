@@ -1,8 +1,7 @@
 #pragma once
-#include "stdafx.h"
+
+
 using namespace Eigen;
-
-
 
 template<typename T>
 class SmartSum {

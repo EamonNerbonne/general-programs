@@ -30,7 +30,6 @@
 
 #include <boost/random/variate_generator.hpp>
 #include <boost/random/uniform_int.hpp>
-//#include <boost/random/uniform_real.hpp>
 #include <boost/random/normal_distribution.hpp>
 #include <boost/random/mersenne_twister.hpp>
 
@@ -45,14 +44,13 @@
 #include <Eigen/StdVector>
 #include <Bench/BenchTimer.h>
 
-#define LVQ_LOW_DIM_SPACE 2
 using Eigen::MatrixBase;
 using Eigen::VectorXd;
 using Eigen::Vector2d;
 using Eigen::VectorXi;
 using Eigen::MatrixXd;
 using Eigen::MatrixXi;
-typedef Eigen::Matrix<double,LVQ_LOW_DIM_SPACE, Eigen::Dynamic> PMatrix;
+
 
 #ifdef _MSC_VER
 //#pragma warning(pop)
@@ -60,8 +58,3 @@ typedef Eigen::Matrix<double,LVQ_LOW_DIM_SPACE, Eigen::Dynamic> PMatrix;
 
 #pragma warning (disable: 4127)
 #define DBG(X) (std::cout<< #X <<":\n"<<(X)<<"\n")
-#ifdef NDEBUG
-#define DEBUGPRINT(X) ((void)0)
-#else
-#define DEBUGPRINT(X) DBG(X)
-#endif
