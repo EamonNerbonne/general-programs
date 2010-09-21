@@ -1,6 +1,5 @@
 #pragma once
-
-
+#include <Eigen/Core>
 using namespace Eigen;
 
 template<typename T>

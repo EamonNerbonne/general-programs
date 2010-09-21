@@ -22,7 +22,6 @@
 #include <math.h>
 
 #include <boost/smart_ptr/scoped_array.hpp>
-//#include <boost/smart_ptr/shared_ptr.hpp>
 #include <boost/smart_ptr/scoped_ptr.hpp>
 
 #include <boost/function.hpp>
