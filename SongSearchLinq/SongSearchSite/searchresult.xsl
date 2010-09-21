@@ -4,6 +4,7 @@
   <xsl:template match="/">
     <html>
       <head>
+        <link rel="shortcut icon" type="image/ico" href="emnicon.ico" />
         <link rel="Stylesheet" type="text/css" href="tableview.css" />
         <!--#8ba;#c4ddd5;#e2eeea-->
       </head>
