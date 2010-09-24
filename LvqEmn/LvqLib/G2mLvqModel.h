@@ -33,7 +33,7 @@ public:
 	virtual size_t MemAllocEstimate() const;
 	virtual int classify(VectorXd const & unknownPoint) const {return classifyProjectedInline(P * unknownPoint);}
 	virtual int classifyProjected(Vector2d const & unknownProjectedPoint) const { return classifyProjectedInline(unknownProjectedPoint);}
-	inline int classifyProjectedInline(Vector2d const & P_unknownPoint) const {
+	EIGEN_STRONG_INLINE int classifyProjectedInline(Vector2d const & P_unknownPoint) const {
 		double distance(std::numeric_limits<double>::infinity());
 		int match(-1);
 

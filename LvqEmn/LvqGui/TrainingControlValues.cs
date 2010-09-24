@@ -7,6 +7,7 @@ using LvqLibCli;
 using EmnExtensions.DebugTools;
 using System.Threading;
 using System.Collections.ObjectModel;
+using System.Windows;
 
 namespace LvqGui {
 	public class TrainingControlValues : INotifyPropertyChanged {
@@ -105,6 +106,9 @@ namespace LvqGui {
 						using (new DTimer(ts => { totalTime += ts.TotalSeconds; epochsTrained += epochsToTrainFor; }))
 							selectedModel.Train(epochsToDo: epochsToTrainFor, trainingSet: selectedDataset);
 					PotentialUpdate(selectedDataset, selectedModel);
+#if BENCHMARK
+					if (epochsTrained >= 100) owner.Dispatcher.BeginInvokeBackground(() => { Application.Current.Shutdown(); });
+#endif
 				}
 			} finally {
 				isAnimating = false;

@@ -14,6 +14,8 @@ using LvqLibCli;
 using EmnExtensions.Wpf.Plot;
 using EmnExtensions.Wpf.Plot.VizEngines;
 using System.ComponentModel;
+using System.Threading;
+using System.Windows.Threading;
 
 namespace LvqGui {
 	public partial class LvqWindow : Window {
@@ -24,6 +26,34 @@ namespace LvqGui {
 			windowValues.TrainingControlValues.ModelSelected += TrainingControlValues_ModelSelected;
 			windowValues.TrainingControlValues.SelectedModelUpdatedInBackgroundThread += TrainingControlValues_SelectedModelUpdatedInBackgroundThread;
 			this.Closing += (o, e) => { windowValues.TrainingControlValues.AnimateTraining = false; };
+#if BENCHMARK
+			this.Loaded += (o, e) => { DoBenchmark(); };
+#endif
+		}
+
+		private void DoBenchmark() {
+			ThreadPool.QueueUserWorkItem(o => {
+				LvqWindowValues values = ((LvqWindowValues)o);
+				values.CreateDatasetStarValues.Seed = 1337;
+				values.CreateDatasetStarValues.InstSeed = 37;
+				values.CreateDatasetStarValues.ClusterDimensionality = 10;
+				values.CreateDatasetStarValues.Dimensions = 24;
+				values.CreateDatasetStarValues.NumberOfClasses = 5;
+
+				values.CreateLvqModelValues.Seed = 42;
+				values.CreateLvqModelValues.InstSeed = 1234;
+				values.CreateLvqModelValues.PrototypesPerClass = 3;
+
+				values.CreateDatasetStarValues.ConfirmCreation();
+				Dispatcher.BeginInvokeBackground(() => {
+					ThreadPool.QueueUserWorkItem(o2 => {
+						values.CreateLvqModelValues.ConfirmCreation();
+						Dispatcher.BeginInvokeBackground(() => {
+							values.TrainingControlValues.AnimateTraining = true;
+						});
+					});
+				});
+			}, DataContext);
 		}
 
 		LvqScatterPlot plotData;

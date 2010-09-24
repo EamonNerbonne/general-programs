@@ -35,7 +35,7 @@ public:
 	GsmLvqModel(LvqModelSettings & initSettings);
 	virtual int classify(VectorXd const & unknownPoint) const {return classifyProjectedInline(P * unknownPoint);}
 	virtual int classifyProjected(Vector2d const & unknownProjectedPoint) const {return classifyProjectedInline(unknownProjectedPoint);}
-	inline int classifyProjectedInline(Vector2d const & P_otherPoint) const{
+	EIGEN_STRONG_INLINE int classifyProjectedInline(Vector2d const & P_otherPoint) const{
 		double distance(std::numeric_limits<double>::infinity());
 		int match(-1);
 
