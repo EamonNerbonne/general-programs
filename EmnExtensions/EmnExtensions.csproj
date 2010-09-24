@@ -114,6 +114,7 @@
     <Compile Include="Algorithms\Dijkstra.cs" />
     <Compile Include="Algorithms\Histogrammer.cs" />
     <Compile Include="Algorithms\Levenshtein.cs" />
+    <Compile Include="Algorithms\QuickSelect.cs" />
     <Compile Include="Algorithms\ShuffleAlgorithm.cs" />
     <Compile Include="Collections\Edge.cs" />
     <Compile Include="Collections\HashMultiMap.cs" />

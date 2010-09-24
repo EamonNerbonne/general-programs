@@ -23,7 +23,5 @@ namespace EmnExtensions.Algorithms
                 stats.AddValue(f);
             return stats;
         }
-
-        
     }
 }

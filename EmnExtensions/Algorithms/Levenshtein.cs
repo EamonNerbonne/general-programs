@@ -3,10 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace EmnExtensions.Algorithms
-{
-	public static class Levenshtein
-	{
+namespace EmnExtensions.Algorithms {
+	public static class Levenshtein {
 		//modified from:http://www.merriampark.com/ldcsharp.htm
 		public static int LevenshteinDistance(this string s, string t) {
 			int n = s.Length; //length of s
@@ -33,7 +31,7 @@ namespace EmnExtensions.Algorithms
 			return d[n, m];
 		}
 		public static double LevenshteinDistanceScaled(this string s, string t) {
-			return LevenshteinDistance(s, t) / (double)Math.Max(1,Math.Max(s.Length, t.Length));
+			return LevenshteinDistance(s, t) / (double)Math.Max(1, Math.Max(s.Length, t.Length));
 		}
 	}
 }
