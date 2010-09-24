@@ -7,14 +7,11 @@ using EmnExtensions.Filesystem;
 using System.Globalization;
 using System.Diagnostics;
 
-namespace LVQeamon
-{
-	public static class DatasetLoader
-	{
+namespace LVQeamon {
+	public static class DatasetLoader {
 		static char[] dimSep = new[] { ',' };
 
-		public static T[,] ToRectangularArray<T>(this T[][] jaggedArray)
-		{
+		public static T[,] ToRectangularArray<T>(this T[][] jaggedArray) {
 			int outerLen = jaggedArray.Length;
 
 			if (outerLen == 0)
@@ -23,8 +20,7 @@ namespace LVQeamon
 			int innerLen = jaggedArray[0].Length;
 
 			T[,] retval = new T[outerLen, innerLen];
-			for (int i = 0; i < outerLen; i++)
-			{
+			for (int i = 0; i < outerLen; i++) {
 				T[] row = jaggedArray[i];
 				if (row.Length != innerLen)
 					throw new FileFormatException("Vectors are of inconsistent lengths");
@@ -35,8 +31,7 @@ namespace LVQeamon
 			return retval;
 		}
 
-		public static Tuple<double[,], int[], int> LoadDataset(FileInfo datafile, FileInfo labelfile)
-		{
+		public static Tuple<double[,], int[], int> LoadDataset(FileInfo datafile, FileInfo labelfile) {
 			var dataVectors =
 				(from dataline in datafile.GetLines()
 				 select (
