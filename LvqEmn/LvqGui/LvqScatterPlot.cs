@@ -109,7 +109,7 @@ namespace LvqGui {
 
 		bool busy, updateQueued;
 		object syncroot = new object();
-		public LvqScatterPlot(LvqDatasetCli dataset, LvqModelCli model, Dispatcher dispatcher,	PlotControl scatterPlotControl) {
+		public LvqScatterPlot(LvqDatasetCli dataset, LvqModelCli model, Dispatcher dispatcher, PlotControl scatterPlotControl) {
 			this.dataset = dataset;
 			this.model = model;
 			this.dispatcher = dispatcher;
@@ -139,7 +139,7 @@ namespace LvqGui {
 
 		private void MakeScatterPlots(PlotControl plotControl) {
 			prototypePositionsPlot = PlotData.Create(default(Point[]));
-			prototypePositionsPlot.Visualizer = new VizPixelScatterGeom { OverridePointCountEstimate = 50, };
+			prototypePositionsPlot.Visualizer = new VizPixelScatterGeom { OverridePointCountEstimate = 40, };
 			classBoundaries = PlotData.Create(default(object), UpdateClassBoundaries);
 			classPlots = Enumerable.Range(0, dataset.ClassCount).Select(i => {
 				var graphplot = PlotData.Create(default(Point[]));
@@ -162,7 +162,7 @@ namespace LvqGui {
 			Color[] colors =
 				windowTitle == "Error Rates" ? errorColors :
 				windowTitle == "Cost Function" ? costColors :
-				GraphRandomPen.MakeDistributedColors(usedStats.Length,new MersenneTwister(1+windowTitle.GetHashCode()) );
+				GraphRandomPen.MakeDistributedColors(usedStats.Length, new MersenneTwister(1 + windowTitle.GetHashCode()));
 			return
 			usedStats.Zip(colors, (stat, color) => StatPlot.MakePlots(stat.TrainingStatLabel, stat.UnitLabel, false, color, stat.Index, isMultiModel))
 				.SelectMany(s => s);
@@ -199,20 +199,25 @@ namespace LvqGui {
 			var statPlotData = Enumerable.Range(0, statPlots.Length).Select(si => trainingStats.Select(statPlots[si].extractor).ToArray()).ToArray();
 			var currProjection = model.CurrentProjectionAndPrototypes(dataset);
 
-			Dictionary<int, Point[]> projectedPointsByLabel =
-				!currProjection.IsOk ? Enumerable.Range(0, classPlots.Length).ToDictionary(i => i, i => default(Point[])) :
-				Points.ToMediaPoints(currProjection.Data.Points)
-				.Zip(currProjection.Data.ClassLabels, (point, label) => new { Point = point, Label = label })
-				.GroupBy(labelledPoint => labelledPoint.Label, labelledPoint => labelledPoint.Point)
-				.ToDictionary(group => group.Key, group => group.ToArray());
+			Point[] prototypePositions = !currProjection.IsOk ? default(Point[]) : Points.ToMediaPoints(currProjection.Prototypes.Points);
+			Point[] points = Points.ToMediaPoints(currProjection.Data.Points);
+			int[] pointCountPerClass = new int[classPlots.Length];
+			if (currProjection.IsOk)
+				for (int i = 0; i < currProjection.Data.ClassLabels.Length; ++i)
+					pointCountPerClass[currProjection.Data.ClassLabels[i]]++;
 
-			Point[] prototypePositions =
-				!currProjection.IsOk ? default(Point[]) :
-				Points.ToMediaPoints(currProjection.Prototypes.Points).ToArray();
+			Point[][] projectedPointsByLabel = Enumerable.Range(0, classPlots.Length).Select(i => new Point[pointCountPerClass[i]]).ToArray();
+			int[] pointIndexPerClass = new int[classPlots.Length];
+			if (currProjection.IsOk)
+				for (int i = 0; i < points.Length; ++i) {
+					int label = currProjection.Data.ClassLabels[i];
+					projectedPointsByLabel[label][pointIndexPerClass[label]++] = points[i];
+				}
+
 
 			dispatcher.BeginInvoke((Action)(() => {
-				foreach (var pointGroup in projectedPointsByLabel)
-					classPlots[pointGroup.Key].Data = pointGroup.Value;
+				for (int i = 0; i < classPlots.Length; ++i)
+					classPlots[i].Data = projectedPointsByLabel[i];
 				prototypePositionsPlot.Data = prototypePositions;
 				classBoundaries.TriggerDataChanged();
 
@@ -276,7 +281,7 @@ namespace LvqGui {
 				win.Close();
 			}
 			Console.WriteLine("registered windows:" + plotWindows.Count);
-			
+
 		}
 	}
 }
