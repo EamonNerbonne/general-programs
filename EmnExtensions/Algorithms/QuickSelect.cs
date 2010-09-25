@@ -61,6 +61,12 @@ namespace EmnExtensions.Algorithms {
 			return list[k];
 		}
 
+		public static double[] AsSorted(this double[] arr) {
+			var retval = (double[])arr.Clone();
+			Array.Sort(retval);
+			return retval;
+		}
+
 		[TestFixture]
 		class SelectTest {
 			const int MaxSize = 2000000;
@@ -71,30 +77,35 @@ namespace EmnExtensions.Algorithms {
 
 			[Test, TestCaseSource("Sizes")]
 			public void RndTest(int size) {
-				double[] list = Enumerable.Repeat(0, size).Select(x => RndHelper.ThreadLocalRandom.NextNormal()).ToArray();
-				int k = RndHelper.ThreadLocalRandom.Next(size);
-				Assert.AreEqual(QuickSelect(list, k), SlowSelect(list, k));
+				for (int i = 0; i < MaxSize / size; i++) {
+					double[] list = Enumerable.Repeat(0, size).Select(x => RndHelper.ThreadLocalRandom.NextNormal()).ToArray();
+					double[] listB = list.ToArray();
+					int k = RndHelper.ThreadLocalRandom.Next(size);
+					Assert.AreEqual(QuickSelect(list, k), SlowSelect(listB, k));
+					Array.Sort(list);
+					Assert.That(list, Is.EqualTo(listB));
+				}
 			}
 
 
 			[Test]
 			public void SpeedTest() {
-				var list0 = Enumerable.Repeat(0, MaxSize).Select(x => RndHelper.ThreadLocalRandom.NextNormal()).ToArray();
-				//Array.Sort(list0);
-				var list = list0.ToArray();
-				int kf = RndHelper.ThreadLocalRandom.Next();
+				MersenneTwister rnd = RndHelper.ThreadLocalRandom;
+				double[] list0 = Enumerable.Repeat(0, MaxSize).Select(x => rnd.NextNormal()).ToArray();
+				int kf = rnd.Next();
 				double ignoreQ = 0, ignoreS = 0;
-				TimeSpan durationQ = DTimer.TimeAction(() => {
-					foreach (int size in Sizes())
-						ignoreQ += QuickSelect(list, kf % size, 0, size);
-				});
-				list = list0.ToArray();
-				TimeSpan durationS = DTimer.TimeAction(() => {
-					foreach (int size in Sizes())
-						ignoreS += SlowSelect(list, kf % size, 0, size);
-				});
-				Assert.AreEqual(ignoreQ, ignoreS);
-				Assert.Greater(durationQ, durationS);
+				var listQ = list0.ToArray();
+				var listS = list0.ToArray();
+				foreach (int size in Sizes()) {
+					double durationS_ms = DTimer.BenchmarkAction(() => { ignoreS += SlowSelect(listS, kf % size, 0, size); }, 10).TotalMilliseconds;
+					double durationQ_ms = DTimer.BenchmarkAction(() => { ignoreQ += QuickSelect(listQ, kf % size, 0, size); }, 10).TotalMilliseconds;
+					string details = "kf % size: " + kf % size + "\nsize: " + size;
+					Assert.AreEqual(ignoreQ, ignoreS);
+					Assert.LessOrEqual(durationQ_ms, durationS_ms, details);
+					double scaling = 1 + 2 * (Math.Log(Math.E * Math.E * Math.E * Math.E + size) - 4);
+					Assert.That(scaling, Is.GreaterThanOrEqualTo(1.0));
+					Assert.LessOrEqual(durationQ_ms - TimeSpan.FromTicks(1).TotalMilliseconds, durationS_ms / scaling, "scaling: " + scaling + "\n" + details);
+				}
 			}
 		}
 	}
