@@ -130,8 +130,10 @@ namespace EmnExtensions.Wpf.Plot {
 			if (graphChange == GraphChange.Drawing) {
 				needRedrawGraphs = true;
 				InvalidateVisual();
-			} else if (graphChange == GraphChange.Labels || graphChange == GraphChange.Projection) {
+			} else if (graphChange == GraphChange.Projection) {
 				InvalidateMeasure();
+			} else if (graphChange == GraphChange.Labels) {
+				RequireRedisplay();
 			}
 		}
 

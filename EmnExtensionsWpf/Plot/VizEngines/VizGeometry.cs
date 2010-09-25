@@ -109,6 +109,9 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
 			double newThickness = Owner.RenderThickness ?? currentThickness;
 			if (newThickness != currentThickness || newColor != currentColor)
 			{
+				if (newColor != currentColor)
+					TriggerChange(GraphChange.Labels);
+
 				Pen newPen = m_Pen.CloneCurrentValue();
 				newPen.Brush = new SolidColorBrush(newColor);
 				newPen.Thickness = newThickness;
