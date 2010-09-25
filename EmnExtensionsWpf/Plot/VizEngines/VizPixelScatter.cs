@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Windows;
 using System.Windows.Media;
+using EmnExtensions.Algorithms;
 
 namespace EmnExtensions.Wpf.Plot.VizEngines {
 	public interface IVizPixelScatter : IVizEngine<Point[]> {
@@ -25,9 +26,14 @@ namespace EmnExtensions.Wpf.Plot.VizEngines {
 		static bool HasPoints(Point[] points) { return points != null && points.Length > 0; }
 
 		static Rect ComputeOuterBounds(Point[] points) {
-			Rect outerBounds = Rect.Empty;
-			foreach (var point in points)
-				outerBounds.Union(point);
+			double xmin = double.MaxValue, ymin = double.MaxValue, ymax = double.MinValue, xmax = double.MinValue;
+			foreach (var point in points) {
+				xmin = Math.Min(xmin, point.X);
+				ymin = Math.Min(ymin, point.Y);
+				xmax = Math.Max(xmax, point.X);
+				ymax = Math.Max(ymax, point.Y);
+			}
+			Rect outerBounds = new Rect(xmin, ymin, xmax - xmin, ymax - ymin);
 			if (double.IsNaN(outerBounds.Width) || double.IsNaN(outerBounds.Height))
 				throw new ArgumentException("Invalid point array!" + outerBounds);
 			return outerBounds;
@@ -42,15 +48,23 @@ namespace EmnExtensions.Wpf.Plot.VizEngines {
 		}
 
 		static Rect ComputeInnerBoundsByCutoff(Point[] points, int cutoffEachSideX, int cutoffEachSideY, double coverageGrad) {
-			double[] xs = new double[points.Length];
-			double[] ys = new double[points.Length];
-			for (int i = 0; i < points.Length; i++) {
-				xs[i] = points[i].X;
-				ys[i] = points[i].Y;
-			}
-			DimensionBounds
-				xBounds = TrimWithMinimumGradient(xs, cutoffEachSideX, coverageGrad),
-				yBounds = TrimWithMinimumGradient(ys, cutoffEachSideY, coverageGrad);
+			//double[] xs = new double[points.Length];
+			//double[] ys = new double[points.Length];
+			//for (int i = 0; i < points.Length; i++) {
+			//    xs[i] = points[i].X;
+			//    ys[i] = points[i].Y;
+			//}
+
+			//DimensionBounds
+			//    xBounds = TrimWithMinimumGradient(xs, cutoffEachSideX, coverageGrad),
+			//    yBounds = TrimWithMinimumGradient(ys, cutoffEachSideY, coverageGrad);
+
+			double[] vals = new double[points.Length];
+			for (int i = 0; i < points.Length; i++) vals[i] = points[i].X;
+			DimensionBounds xBounds = TrimWithMinimumGradient(vals, cutoffEachSideX, coverageGrad);
+			for (int i = 0; i < points.Length; i++) vals[i] = points[i].Y;
+			DimensionBounds yBounds = TrimWithMinimumGradient(vals, cutoffEachSideY, coverageGrad);
+
 
 			if (xBounds.IsEmpty || yBounds.IsEmpty) return Rect.Empty;
 			else if (!xBounds.Length.IsFinite() || !yBounds.Length.IsFinite()) throw new ArgumentException("Invalid point array!");
@@ -59,7 +73,14 @@ namespace EmnExtensions.Wpf.Plot.VizEngines {
 
 		static DimensionBounds TrimWithMinimumGradient(double[] data, int maxCutoff, double requiredGradient) {
 			if (data.Length == 0) return DimensionBounds.Empty;
-			Array.Sort(data);
+			if (maxCutoff < data.Length * 0.3) {
+				SelectionAlgorithm.QuickSelect(data, data.Length - 1 - maxCutoff);
+				SelectionAlgorithm.QuickSelect(data, maxCutoff);
+				Array.Sort(data, 0, maxCutoff);
+				Array.Sort(data, data.Length - maxCutoff, maxCutoff);
+			} else {
+				Array.Sort(data);
+			}
 			double xLen = data[data.Length - 1] - data[0];
 			if (xLen == 0.0) return new DimensionBounds { Start = data[0], End = data[data.Length - 1] };
 			int startCutoff = maxCutoff;
