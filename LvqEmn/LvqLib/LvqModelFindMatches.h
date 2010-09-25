@@ -1,5 +1,6 @@
 #pragma once
 #include "GoodBadMatch.h"
+#define DBG(X) (std::cout<< #X <<":\n"<<(X)<<"\n")
 
 template<typename TDerivedModel, typename TProcessedPoint> class LvqModelFindMatches {
 protected:
