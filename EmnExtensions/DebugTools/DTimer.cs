@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Diagnostics;
+using EmnExtensions.Algorithms;
 
 namespace EmnExtensions.DebugTools
 {
@@ -27,7 +28,16 @@ namespace EmnExtensions.DebugTools
 		public static T TimeFunc<T>( Func<T> f, string actionLabel) { using (new DTimer(actionLabel)) return f(); }
 		public static T TimeFunc<T>( Func<T> f, Action<TimeSpan> resultSink) { using (new DTimer(resultSink)) return f(); }
 		public static T TimeFunc<T, M>( Func<T> f, M key, Action<M, TimeSpan> resultsSink) { using (new DTimer(t => { resultsSink(key, t); })) return f(); }
-		public static TimeSpan TimeAction(Action a) { Stopwatch w = Stopwatch.StartNew(); a(); return w.Elapsed; }
+		public static TimeSpan BenchmarkAction(Action a,int repeats) {
+			long[] times = new long[repeats];
+			for (int i = 0; i < repeats; i++) {
+				Stopwatch w = Stopwatch.StartNew(); 
+				a(); 
+				times[i]=w.ElapsedTicks;
+			}
+			Array.Sort(times);
+			return new TimeSpan(times[repeats/4]);
+		}
 	}
 
 	public static class DTimerExtensions {
