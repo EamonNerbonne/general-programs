@@ -22,7 +22,6 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
 		double m_CoverageGradient = 5.0;
 		public double CoverageGradient { get { return m_CoverageGradient; } set { m_CoverageGradient = value; RecomputeBounds(currentPoints); } }
 
-
 		protected override void UpdateBitmap(Point[] data, int pW, int pH, Matrix dataToBitmap)
 		{
 			Trace.WriteLine("UpdateBitmap");

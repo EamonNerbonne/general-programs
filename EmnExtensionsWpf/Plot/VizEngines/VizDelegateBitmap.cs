@@ -6,10 +6,8 @@ using System.Windows.Media.Imaging;
 using System.Windows.Media;
 using System.Windows;
 
-namespace EmnExtensions.Wpf.Plot.VizEngines
-{
-	public class VizDelegateBitmap<T> : VizDynamicBitmap<T>
-	{
+namespace EmnExtensions.Wpf.Plot.VizEngines {
+	public class VizDelegateBitmap<T> : VizDynamicBitmap<T> {
 		public VizDelegateBitmap() { UpdateBitmapDelegate = DefaultUpdateBitmapDelegate; ComputeBounds = DefaultComputeBounds; }
 		static void DefaultUpdateBitmapDelegate(WriteableBitmap bmp, Matrix mat, int pixelWidth, int pixelHeight, T data) { }
 		static Rect DefaultComputeBounds(T data) { return Rect.Empty; }
@@ -30,6 +28,6 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
 		protected override void UpdateBitmap(T data, int pW, int pH, Matrix dataToBitmap) { UpdateBitmapDelegate(m_bmp, dataToBitmap, pW, pH, data); }
 		public override void DataChanged(T data) { SetDataBounds(ComputeBounds(data)); TriggerChange(GraphChange.Projection); }
 
-		public override void RenderOptionsChanged()		{	} //we don't use color changes.
+		public override void RenderOptionsChanged() { } //we don't use color changes.
 	}
 }

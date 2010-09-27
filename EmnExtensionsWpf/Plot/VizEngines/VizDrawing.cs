@@ -32,7 +32,6 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
 			TriggerChange(GraphChange.Drawing);
 		}
 
-
 		public override void RenderOptionsChanged() { } //doesn't use primary color at all.
 		public override bool SupportsThickness { get { return false; } }
 		public override bool SupportsColor { get { return false; } }
