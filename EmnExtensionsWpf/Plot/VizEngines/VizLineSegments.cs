@@ -15,7 +15,7 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
 
 	class VizLineSegments : PlotVizTransform<Point[], StreamGeometry>, IVizLineSegments
 	{
-		IVizEngine<StreamGeometry> impl = new VizGeometry();
+		IVizEngine<StreamGeometry> impl = new VizGeometry { AutosizeBounds = false };
 		StreamGeometry geomCache;
 		Point[] currentPoints;
 		protected override StreamGeometry TransformedData(Point[] inputData) { return geomCache; }
@@ -48,6 +48,5 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
 		}
 		Rect m_InnerBounds;
 		public override Rect DataBounds(Point[] data) { return m_InnerBounds; }
-
 	}
 }

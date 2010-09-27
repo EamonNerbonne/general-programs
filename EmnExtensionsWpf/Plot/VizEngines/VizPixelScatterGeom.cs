@@ -10,7 +10,7 @@ using System.Windows.Media;
 
 namespace EmnExtensions.Wpf.Plot.VizEngines {
 	public class VizPixelScatterGeom : PlotVizTransform<Point[], StreamGeometry>, IVizPixelScatter {
-		VizGeometry impl = new VizGeometry();
+		VizGeometry impl = new VizGeometry { AutosizeBounds = false };
 		Point[] currentData;
 		StreamGeometry transformedData;
 		protected override StreamGeometry TransformedData(Point[] inputData) { return transformedData; }
