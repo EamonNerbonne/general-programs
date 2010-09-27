@@ -10,7 +10,7 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
 	public abstract class PlotVizBase<T> : IVizEngine<T>
 	{
 		protected IPlot m_owner;
-		public IPlot Owner { get { return m_owner; } set { m_owner = value; } }
+		public IPlot Owner { get { return m_owner; } set { m_owner = value; RenderOptionsChanged(); } }
 
 
 		Rect m_DataBounds = Rect.Empty;
@@ -22,7 +22,7 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
 			if (boundsChanged) TriggerChange(GraphChange.Projection);
 		}
 
-		protected void TriggerChange(GraphChange graphChange) { m_owner.TriggerChange(graphChange); }
+		protected void TriggerChange(GraphChange graphChange) { if(m_owner!=null) m_owner.TriggerChange(graphChange); }
 
 		protected Rect InternalDataBounds { get { return m_DataBounds; } }
 
