@@ -5,6 +5,7 @@ using System.Text;
 using System.Windows.Media;
 using System.Windows;
 using System.Windows.Media.Imaging;
+using EmnExtensions.Wpf.Plot.VizEngines;
 
 namespace EmnExtensions.Wpf {
 	public static class GraphUtils {
@@ -61,16 +62,19 @@ namespace EmnExtensions.Wpf {
 			return geom;
 		}
 
-		public static StreamGeometry LineScaled(IEnumerable<Point> lineOfPoints) {
+		public static StreamGeometry LineScaled(Point[] lineOfPoints) {
 			if (lineOfPoints == null) return null;
-			Rect dataBounds = lineOfPoints.Aggregate(Rect.Empty, (bound, point) => Rect.Union(bound, point));
+			
+			Rect dataBounds = VizPixelScatterHelpers.ComputeOuterBounds(lineOfPoints);
 			double maxSafe = Int32.MaxValue / 2.0;
 			Rect safeBounds = new Rect(new Point(-maxSafe, -maxSafe), new Point(maxSafe, maxSafe));
 			Matrix dataToGeom = TransformShape(dataBounds, safeBounds, flipVertical: false);
 			Matrix geomToData = TransformShape(safeBounds, dataBounds, flipVertical: false);
-			var scaledPoints = lineOfPoints.Select(p => dataToGeom.Transform(p));
+			var scaledPoints = lineOfPoints.Select(p => 
+				dataToGeom.Transform(p)
+				);
 			var scaledGeom = Line(scaledPoints);
-			scaledGeom.Transform = new MatrixTransform(geomToData);
+			scaledGeom.Transform = new MatrixTransform(geomToData).AsFrozen();
 			return scaledGeom;
 		}
 
