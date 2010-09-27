@@ -23,8 +23,8 @@ namespace EmnExtensions.Algorithms {
 				else //if (k == splitI)
 					return list[k];
 			}
+			//when this returns, all elements of list[i] <= list[k] iif i <= k
 		}
-
 		static int partition(double[] list, int startI, int endI, int pivotI) {
 			double pivotValue = list[pivotI];
 			list[pivotI] = list[startI];
@@ -43,7 +43,7 @@ namespace EmnExtensions.Algorithms {
 			int newPivotI = storeI - 1;
 			list[startI] = list[newPivotI];
 			list[newPivotI] = pivotValue;
-			//now [startI, newPivotI] are <= to pivotValue && list[newPivotI] contains storeI-th order statistic.
+			//now [startI, newPivotI] are <= to pivotValue && list[newPivotI] contains newPivotI-th order statistic (zero based).
 			return newPivotI;
 		}
 		static void swap_elems(this double[] list, int i, int j) {
