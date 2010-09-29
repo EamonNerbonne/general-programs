@@ -114,6 +114,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Algorithms\BasicStats.cs" />
+    <Compile Include="Algorithms\DeepEquals.cs" />
     <Compile Include="Algorithms\Dijkstra.cs" />
     <Compile Include="Algorithms\Histogrammer.cs" />
     <Compile Include="Algorithms\Levenshtein.cs" />
