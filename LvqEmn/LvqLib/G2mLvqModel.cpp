@@ -70,7 +70,8 @@ GoodBadMatch G2mLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel)
 	muJ2_BkT_Bk_P_vK.noalias() = K.B.transpose() * muJ2_Bk_P_vK ;
 	J.B.noalias() -= lr_B * muK2_Bj_P_vJ * P_vJ.transpose() ;
 	K.B.noalias() -= lr_B * muJ2_Bk_P_vK * P_vK.transpose() ;
-	J.point.noalias() -=  P.transpose() * (lr_point * muK2_BjT_Bj_P_vJ) ;
+	Vector2d lr_muK2_Bj_P_vJ = lr_point * muK2_BjT_Bj_P_vJ;
+	J.point.noalias() -=  ( lr_muK2_Bj_P_vJ.transpose() * P).transpose();
 	K.point.noalias() -=   P.transpose() * (LVQ_LrScaleBad*lr_point * muJ2_BkT_Bk_P_vK) ;
 	P.noalias() -= (lr_P * muK2_BjT_Bj_P_vJ) * vJ.transpose() + (lr_P * muJ2_BkT_Bk_P_vK) * vK.transpose() ;
 
