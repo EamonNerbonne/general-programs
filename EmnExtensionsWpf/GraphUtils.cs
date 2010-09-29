@@ -64,35 +64,27 @@ namespace EmnExtensions.Wpf {
 
 		public static StreamGeometry LineScaled(Point[] lineOfPoints) {
 			if (lineOfPoints == null) return null;
-			
+
 			Rect dataBounds = VizPixelScatterHelpers.ComputeOuterBounds(lineOfPoints);
 			double maxSafe = Int32.MaxValue / 2.0;
 			Rect safeBounds = new Rect(new Point(-maxSafe, -maxSafe), new Point(maxSafe, maxSafe));
 			Matrix dataToGeom = TransformShape(dataBounds, safeBounds, flipVertical: false);
 			Matrix geomToData = TransformShape(safeBounds, dataBounds, flipVertical: false);
-			var scaledPoints = lineOfPoints.Select(p => 
-				dataToGeom.Transform(p)
-				);
-			var scaledGeom = Line(scaledPoints);
-			scaledGeom.Transform = new MatrixTransform(geomToData).AsFrozen();
-			return scaledGeom;
+			var scaledPoints = lineOfPoints.Select(p => dataToGeom.Transform(p));
+			return Line(scaledPoints, new MatrixTransform(geomToData));
 		}
 
-		public static StreamGeometry Line(IEnumerable<Point> lineOfPoints) {
+		public static StreamGeometry Line(IEnumerable<Point> lineOfPoints, MatrixTransform withTransform = null) {
 			StreamGeometry geom = new StreamGeometry();
-			using (var context = geom.Open()) {
-				bool wasOK = false;
-				foreach (var point in lineOfPoints) {
-					if (IsOK(point)) {
-						if (wasOK)
-							context.LineTo(point, true, true);
-						else
-							context.BeginFigure(point, false, false);
-						wasOK = true;
-					} else wasOK = false;
-				}
-			}
-			//geom.Freeze();//can't freeze since that breaks transform changes.
+			bool wasOK = false;
+			using (var context = geom.Open())
+				foreach (var point in lineOfPoints)
+					if (!IsOK(point)) wasOK = false;
+					else if (wasOK) context.LineTo(point, true, true);
+					else { context.BeginFigure(point, false, false); wasOK = true; }
+			if (withTransform != null)
+				geom.Transform = withTransform;
+			geom.Freeze();//can't freeze since that breaks transform changes.
 			return geom;
 		}
 
@@ -110,7 +102,7 @@ namespace EmnExtensions.Wpf {
 						}
 
 
-			//geom.Freeze();//can't freeze since that breaks transform changes.
+			geom.Freeze();//can't freeze since that breaks transform changes.
 			return geom;
 		}
 
