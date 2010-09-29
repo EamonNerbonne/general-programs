@@ -11,6 +11,7 @@ class LvqModel;
 
 namespace LvqLibCli {
 	using namespace System;
+	using namespace System::Collections::Generic;
 	ref class LvqModelSettingsCli;
 	ref class LvqDatasetCli;
 
@@ -24,6 +25,7 @@ namespace LvqLibCli {
 		Object^ mainSync;
 		LvqDatasetCli^ initSet;
 		void BackupModel(); 
+		List<LvqTrainingStatCli>^ cachedTrainingStats;
 	public:
 
 		property int ClassCount {int get();}
@@ -33,7 +35,7 @@ namespace LvqLibCli {
 		property String^ ModelLabel {String^ get(){return label;}}
 
 		property LvqDatasetCli^ InitSet {LvqDatasetCli^ get(){return initSet;}}
-		property array<LvqTrainingStatCli>^ TrainingStats {	array<LvqTrainingStatCli>^ get();}
+		property IEnumerable<LvqTrainingStatCli>^ TrainingStats {	IEnumerable<LvqTrainingStatCli>^ get();}
 		property array<String^>^ TrainingStatNames { array<String^>^ get();}
 
 		void ResetLearningRate();

@@ -214,7 +214,6 @@ namespace LvqGui {
 					projectedPointsByLabel[label][pointIndexPerClass[label]++] = points[i];
 				}
 
-
 			dispatcher.BeginInvoke((Action)(() => {
 				for (int i = 0; i < classPlots.Length; ++i)
 					classPlots[i].Data = projectedPointsByLabel[i];

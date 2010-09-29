@@ -17,6 +17,7 @@ namespace LvqLibCli {
 		, modelCopy(nullptr)
 		, mainSync(gcnew Object())
 		, initSet(trainingSet)
+		, cachedTrainingStats(gcnew List<LvqTrainingStatCli>())
 	{ 
 		msclr::lock l2(mainSync);
 		#pragma omp parallel for
@@ -28,25 +29,30 @@ namespace LvqLibCli {
 		BackupModel();
 	}
 
-	array<LvqTrainingStatCli>^ LvqModelCli :: TrainingStats::get(){
+	IEnumerable<LvqTrainingStatCli>^ LvqModelCli :: TrainingStats::get(){
 		using System::Collections::Generic::List;
 		WrappedModelArray^ currentBackup = modelCopy;
 		msclr::lock l2(currentBackup);
-		int statCount =int( currentBackup[0]->get()->TrainingStats().size());
-		int statDim = statCount==0?0:  int(currentBackup[0]->get()->TrainingStatNames().size());
+		int statCount =int(currentBackup[0]->get()->TrainingStats().size());
+		int statDim = statCount==0  ?  0  : int(currentBackup[0]->get()->TrainingStatNames().size());
 		if(currentBackup->Length ==1) {
-			return ToCli<array<LvqTrainingStatCli>^>::From(currentBackup[0]->get()->TrainingStats());
+			auto const & trainingStats = currentBackup[0]->get()->TrainingStats();
+			for(int si=cachedTrainingStats->Count;si<statCount;++si) 
+				cachedTrainingStats->Add(LvqTrainingStatCli::toCli(trainingStats[si]));
+			return cachedTrainingStats;
 		}
 		Eigen::VectorXd zero = VectorXd::Zero(statDim);
-		array<LvqTrainingStatCli>^ retval = gcnew array<LvqTrainingStatCli>(statCount);
-		for(int si=0;si<statCount;++si) {
+		
+		for(int si=cachedTrainingStats->Count;si<statCount;++si) {
 			SmartSum<Eigen::ArrayXd> stat(zero);
 			for each(WrappedModel^ m in currentBackup)
 				stat.CombineWith(m->get()->TrainingStats()[si],1.0);
-			retval[si] = LvqTrainingStatCli::toCli(stat.GetMean(), (stat.GetSampleVariance().array().sqrt() * (1.0/sqrt(stat.GetWeight()))).matrix() );
+			cachedTrainingStats->Add(
+				LvqTrainingStatCli::toCli(stat.GetMean(), (stat.GetSampleVariance().array().sqrt() * (1.0/sqrt(stat.GetWeight()))).matrix() )
+				);
 		}
 		GC::KeepAlive(currentBackup);
-		return retval;
+		return cachedTrainingStats;
 	}
 
 	void LvqModelCli::ResetLearningRate() {

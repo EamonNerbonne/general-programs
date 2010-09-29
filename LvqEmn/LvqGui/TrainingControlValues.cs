@@ -118,7 +118,7 @@ namespace LvqGui {
 		}
 
 		static void PrintModelTimings(LvqModelCli model) {
-			var trainingStats = model.TrainingStats;
+			var trainingStats = model.TrainingStats.ToArray();
 			if (trainingStats.Length >= 2) {
 				var lastStat = trainingStats[trainingStats.Length - 1];
 				Console.WriteLine("Avg cpu seconds per iter: {0}{1}",
