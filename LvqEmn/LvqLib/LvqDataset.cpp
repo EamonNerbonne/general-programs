@@ -259,12 +259,14 @@ std::vector<int> LvqDataset::GetTrainingSubset(int fold, int foldcount) const {
 	int pointCount = getPointCount();
 	int foldStart = fold * pointCount / foldcount;
 	int foldEnd = (fold+1) * pointCount / foldcount;
+	int totalLength = foldStart + pointCount - foldEnd;
 
-	std::vector<int> retval;
+	std::vector<int> retval(totalLength);
+	int j=0;
 	for(int i=0;i<foldStart;++i)
-		retval.push_back(i);
+		retval[j++] = i;
 	for(int i=foldEnd;i<pointCount;++i)
-		retval.push_back(i);
+		retval[j++]=i;
 	return retval;
 }
 
@@ -274,8 +276,8 @@ std::vector<int> LvqDataset::GetTestSubset(int fold, int foldcount) const {
 	int pointCount = getPointCount();
 	int foldStart = fold * pointCount / foldcount;
 	int foldEnd = (fold+1) * pointCount / foldcount;
-	std::vector<int> retval;
-	for(int i=foldStart;i<foldEnd;++i)
-		retval.push_back(i);
+	std::vector<int> retval(foldEnd-foldStart);
+	for(int i=0;i<retval.size();++i)
+		retval[i] = foldStart + i;
 	return retval;
 }
