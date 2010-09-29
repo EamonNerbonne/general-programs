@@ -6,12 +6,13 @@ namespace EmnExtensions.Wpf.Plot.VizEngines {
 	public class VizGeometry : PlotVizBase<Geometry> {
 		Geometry m_Geometry;
 		MatrixTransform m_ProjectionTransform = new MatrixTransform();
+		GeometryGroup combinesGeom = new GeometryGroup();
 		bool m_AutosizeBounds = true;
 		Brush m_Fill = Brushes.Black;
 		Pen m_Pen = defaultPen;
-		Matrix m_geomToAxis = Matrix.Identity;
 		RectangleGeometry clipRectangle = new RectangleGeometry();
 		public VizGeometry() {
+			combinesGeom.Transform = m_ProjectionTransform;
 			SetMargin(new Thickness(Pen.Thickness / 2.0));//this will trigger OnChanged if neeeded.
 		}
 
@@ -49,16 +50,14 @@ namespace EmnExtensions.Wpf.Plot.VizEngines {
 				return;
 			if (m_Geometry != null && !m_Geometry.IsFrozen)
 				m_Geometry.Changed -= m_Geometry_Changed;
-			m_geomToAxis = newData.Transform.Value;
 			m_Geometry = newData;
+			if (combinesGeom.Children.Count > 0)
+				combinesGeom.Children[0] = newData;
+			else
+				combinesGeom.Children.Add(newData);
 			if (m_Geometry != null && !m_Geometry.IsFrozen)
 				m_Geometry.Changed += m_Geometry_Changed;
-			if (m_AutosizeBounds) {
-				SetDataBounds(m_Geometry.Bounds);//this will trigger OnChanged if neeeded.
-			}
-			changingGeometry = true;
-			m_Geometry.Transform = m_ProjectionTransform;
-			changingGeometry = false;
+			RecomputeBoundsIfAuto();
 			TriggerChange(GraphChange.Drawing);
 		}
 
@@ -66,29 +65,20 @@ namespace EmnExtensions.Wpf.Plot.VizEngines {
 			TriggerChange(GraphChange.Drawing);
 			SetMargin(new Thickness(Pen.Thickness / 2.0));//this will trigger OnChanged if neeeded.
 		}
-		void m_Geometry_Changed(object sender, EventArgs e) { if (!changingGeometry) RecomputeBoundsIfAuto(); }
-		bool changingGeometry = false;
+		void m_Geometry_Changed(object sender, EventArgs e) { RecomputeBoundsIfAuto(); }
 
 		void RecomputeBoundsIfAuto() {
-			if (m_AutosizeBounds) {
-				changingGeometry = true;
-				m_Geometry.Transform = new MatrixTransform(m_geomToAxis);
-				SetDataBounds(m_Geometry.Bounds);//this will trigger OnChanged if neeeded.
-				m_Geometry.Transform = m_ProjectionTransform;
-				changingGeometry = false;
-			}
+			if (m_AutosizeBounds) SetDataBounds(m_Geometry.Bounds);//this will trigger OnChanged if neeeded.
 		}
 
 		public override void SetTransform(Geometry data, Matrix axisToDisplay, Rect displayClip, double forDpiX, double forDpiY) {
-			changingGeometry = true;
 			clipRectangle.Rect = displayClip;
-			m_ProjectionTransform.Matrix = m_geomToAxis * axisToDisplay;
-			changingGeometry = false;
+			m_ProjectionTransform.Matrix = axisToDisplay;
 		}
 
 		public override void DrawGraph(Geometry data, DrawingContext context) {
 			context.PushClip(clipRectangle);
-			context.DrawGeometry(m_Fill, m_Pen, m_Geometry);
+			context.DrawGeometry(m_Fill, m_Pen, combinesGeom);
 			context.Pop();
 		}
 
