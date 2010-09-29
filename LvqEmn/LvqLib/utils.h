@@ -90,19 +90,25 @@ template <typename T> void projectionRandomizeUniformScaled(boost::mt19937 & ran
 }
 
 
+struct shuffle_rnd_helper {
+	boost::mt19937 & randGen;
+	int options;
+	shuffle_rnd_helper(boost::mt19937 & randGen) : randGen(randGen) {}
+	int operator()(int max) {return randGen()%max;}
+};
 
-inline int shuffle_rnd_helper(boost::mt19937 & randGen, int options) {
-	return randGen()%options; //slightly biased since randGen generates random _bits_ and the highest modulo wrapping may not "fill" the last options batch.  This is very minor; I don't care.
-}
+//inline int shuffle_rnd_helper(boost::mt19937 & randGen, int options) {
+//	return randGen()%options; //slightly biased since randGen generates random _bits_ and the highest modulo wrapping may not "fill" the last options batch.  This is very minor; I don't care.
+//}
 
 template<typename iterT>
 void shuffle(boost::mt19937 & randGen, iterT start, iterT end){
 	using std::random_shuffle;
 	using std::accumulate;
 	using boost::bind;
-	boost::function<int (int max)> rnd = bind(shuffle_rnd_helper, randGen, _1);
+	//boost::function<int (int max)> rnd = bind(shuffle_rnd_helper, randGen, _1);
 
-	random_shuffle(start, end, rnd);
+	random_shuffle(start, end, shuffle_rnd_helper(randGen) );
 }
 
 Eigen::MatrixXd shuffleMatrixCols(boost::mt19937 & randGen, Eigen::MatrixXd const & src);
