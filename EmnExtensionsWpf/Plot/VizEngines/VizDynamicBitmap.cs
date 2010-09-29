@@ -14,11 +14,10 @@ namespace EmnExtensions.Wpf.Plot.VizEngines {
 		BitmapScalingMode m_scalingMode;
 
 		//DrawingGroup painting = new DrawingGroup();
-		const int EXTRA_RESIZE_PIX = 256;
-		double m_dpiX = 96.0, m_dpiY = 96.0;
+		const int EXTRA_RESIZE_PIX = 128;
 		protected WriteableBitmap m_bmp;
 		RectangleGeometry m_clipGeom = new RectangleGeometry();
-		TranslateTransform m_offsetTransform = new TranslateTransform();
+		MatrixTransform m_bitmapToDisplayTransform = new MatrixTransform();
 		DrawingGroup m_drawing = new DrawingGroup();
 
 		public sealed override void DrawGraph(T data, DrawingContext context) {
@@ -28,43 +27,36 @@ namespace EmnExtensions.Wpf.Plot.VizEngines {
 
 		static Rect SnapRect(Rect r, double multX, double multY) { return new Rect(new Point(Math.Floor(r.Left / multX) * multX, Math.Floor(r.Top / multY) * multY), new Point(Math.Ceiling((r.Right + 0.01) / multX) * multX, Math.Ceiling((r.Bottom + 0.01) / multY) * multY)); }
 
-		public sealed override void SetTransform(T data, Matrix dataToDisplay, Rect displayClip, double forDpiX, double forDpiY) {
+		public sealed override void SetTransform(T data, Matrix dataToDisplay, Rect displayClip, double dpiX, double dpiY) {
 			if (dataToDisplay.IsIdentity) //TODO: is this a good test for no-show?
 				using (m_drawing.Open())
 					return;
-			if (m_dpiX != forDpiX || m_dpiY != forDpiY) {
-				m_dpiX = forDpiX;
-				m_dpiY = forDpiY;
-				m_bmp = null;
-			}
-			Rect drawingClip = displayClip;
-			Rect? outerDataBound = OuterDataBound;
-			if (outerDataBound.HasValue)
-				drawingClip.Intersect(Rect.Transform(outerDataBound.Value, dataToDisplay));
 
-			Rect snappedDrawingClip = SnapRect(drawingClip, 96.0 / m_dpiX, 96.0 / m_dpiY);
-			int pW = (int)(0.5 + snappedDrawingClip.Width * m_dpiX / 96.0);
-			int pH = (int)(0.5 + snappedDrawingClip.Height * m_dpiY / 96.0);
 
-			Matrix dataToBitmap = dataToDisplay;
-			dataToBitmap.Translate(-snappedDrawingClip.X, -snappedDrawingClip.Y);
-			dataToBitmap.Scale(m_dpiX / 96.0, m_dpiY / 96.0);
+			Rect drawingClip = ComputeRelevantDisplay(displayClip, OuterDataBound, dataToDisplay);
 
-			if (m_offsetTransform.X != snappedDrawingClip.X || m_offsetTransform.Y != snappedDrawingClip.Y) {
-				m_offsetTransform.X = snappedDrawingClip.X;
-				m_offsetTransform.Y = snappedDrawingClip.Y;
-			}
-			m_clipGeom.Rect = snappedDrawingClip;//TODO: maybe better to clip after transform and then to clip to pW/pH?
-			//TODO2: this clips to nearest pixel boundary; but a tighter clip is possible to sub-pixel accuracy.
+			Rect snappedDrawingClip = SnapRect(drawingClip, 96.0 / dpiX, 96.0 / dpiY);
 
+
+			var dataToBitmapToDisplay = SplitDataToDisplay(dataToDisplay, snappedDrawingClip, dpiX, dpiY);
+
+			m_bitmapToDisplayTransform.Matrix = dataToBitmapToDisplay.Item2;
+
+			m_clipGeom.Rect = snappedDrawingClip;
+			//TODO: maybe better to clip after transform and then to clip to pW/pH?
+			//Also, this clips to nearest pixel boundary; but a tighter clip is possible to sub-pixel accuracy:
+			//m_clipGeom.Rect = drawingClip;
+
+			int pW = (int)(0.5 + snappedDrawingClip.Width * dpiX / 96.0);
+			int pH = (int)(0.5 + snappedDrawingClip.Height * dpiY / 96.0);
 			if (m_bmp == null || m_bmp.PixelWidth < pW || m_bmp.PixelHeight < pH) {
 				int width = Math.Max(m_bmp == null ? 1 : m_bmp.PixelWidth, pW + (int)(EXTRA_RESIZE_PIX));
 				int height = Math.Max(m_bmp == null ? 1 : m_bmp.PixelHeight, pH + (int)(EXTRA_RESIZE_PIX));
-				m_bmp = new WriteableBitmap(width, height, m_dpiX, m_dpiY, PixelFormats.Bgra32, null);
+				m_bmp = new WriteableBitmap(width, height, dpiX, dpiY, PixelFormats.Bgra32, null);
 				using (var context = m_drawing.Open()) {
 					context.PushGuidelineSet(new GuidelineSet(new[] { 0.0 }, new[] { 0.0 }));
 					context.PushClip(m_clipGeom);
-					context.PushTransform(m_offsetTransform);
+					context.PushTransform(m_bitmapToDisplayTransform);
 					context.DrawImage(m_bmp, new Rect(0, 0, m_bmp.Width, m_bmp.Height));
 					context.Pop();
 					context.Pop();
@@ -73,9 +65,28 @@ namespace EmnExtensions.Wpf.Plot.VizEngines {
 				Trace.WriteLine("new WriteableBitmap");
 			}
 
-			UpdateBitmap(data, pW, pH, dataToBitmap);
+			UpdateBitmap(data, pW, pH, dataToBitmapToDisplay.Item1);
 			//painting.
 			Trace.WriteLine("retransform");
+		}
+
+		static Rect ComputeRelevantDisplay(Rect clip, Rect? dataBounds, Matrix dataToDisplay) {
+			if (dataBounds.HasValue)
+				clip.Intersect(Rect.Transform(dataBounds.Value, dataToDisplay));
+			return clip;
+		}
+
+		static Tuple<Matrix, Matrix> SplitDataToDisplay(Matrix dataToDisplay, Rect snappedDrawingClip, double dpiX, double dpiY) {
+
+			Matrix dataToBitmap = dataToDisplay;
+			dataToBitmap.Translate(-snappedDrawingClip.X, -snappedDrawingClip.Y); //transform real-location --> coordinates
+			dataToBitmap.Scale(dpiX / 96.0, dpiY / 96.0); //transform from abstract units --> pixels
+
+			Matrix bitmapToDisplay = Matrix.Identity;
+			dataToBitmap.Scale(96.0 / dpiX, 96.0 / dpiY); //transform pixels --> abstract units
+			bitmapToDisplay.Translate(snappedDrawingClip.X, snappedDrawingClip.Y); //transform coordinates --> real-location
+
+			return Tuple.Create(dataToBitmap, bitmapToDisplay);
 		}
 
 		protected abstract void UpdateBitmap(T data, int pW, int pH, Matrix dataToBitmap);
