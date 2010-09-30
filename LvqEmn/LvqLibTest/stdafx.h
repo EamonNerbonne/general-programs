@@ -14,4 +14,5 @@ static bool failed = false;
 #define VERIFY(X) do {bool ok=(X);failed |= !ok; std::cout<<ASSTRING(X)<<":\n"<<ok<<"\n"; } while(false)
 
 #pragma warning(disable: 4512)
+#pragma warning(disable: 4714) //OK to ignore __forceinline
 
