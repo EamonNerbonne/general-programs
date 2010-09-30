@@ -18,7 +18,7 @@ namespace LvqGui {
 	public class LvqScatterPlot {
 		IPlotWriteable<Point[]> prototypePositionsPlot;
 		IPlotWriteable<Point[]>[] classPlots;
-		IPlotWriteable<object> classBoundaries;
+		IPlotWriteable<int> classBoundaries;
 
 		struct StatPlot {
 			public IPlotWriteable<Point[]> plot;
@@ -109,7 +109,8 @@ namespace LvqGui {
 
 		bool busy, updateQueued;
 		object syncroot = new object();
-		public LvqScatterPlot(LvqDatasetCli dataset, LvqModelCli model, Dispatcher dispatcher, PlotControl scatterPlotControl) {
+		public LvqScatterPlot(LvqDatasetCli dataset, LvqModelCli model, Dispatcher dispatcher, PlotControl scatterPlotControl,int selectedSubModel) {
+			this.subModelIdx = selectedSubModel;
 			this.dataset = dataset;
 			this.model = model;
 			this.dispatcher = dispatcher;
@@ -140,7 +141,7 @@ namespace LvqGui {
 		private void MakeScatterPlots(PlotControl plotControl) {
 			prototypePositionsPlot = PlotData.Create(default(Point[]));
 			prototypePositionsPlot.Visualizer = new VizPixelScatterGeom { OverridePointCountEstimate = 40, };
-			classBoundaries = PlotData.Create(default(object), UpdateClassBoundaries);
+			classBoundaries = PlotData.Create(subModelIdx, UpdateClassBoundaries);
 			classPlots = Enumerable.Range(0, dataset.ClassCount).Select(i => {
 				var graphplot = PlotData.Create(default(Point[]));
 				((IVizPixelScatter)graphplot.Visualizer).CoverageRatio = 0.999;
@@ -188,16 +189,25 @@ namespace LvqGui {
 					QueueUpdate();
 			}
 		}
+		int subModelIdx=0;
+		public int SubModelIndex {
+			get { return subModelIdx; }
+			set {
+				if (value == subModelIdx) return;
+				subModelIdx = value;
+				QueueUpdate();
+			}
+		}
 
 		private void UpdateDisplay() {
 			if (model == null) return;
 
 			if (!AcquireUpdateLock()) return;
-
+			int currentSubModelIdx = subModelIdx;
 
 			var trainingStats = model.TrainingStats;
 			var statPlotData = Enumerable.Range(0, statPlots.Length).Select(si => trainingStats.Select(statPlots[si].extractor).ToArray()).ToArray();
-			var currProjection = model.CurrentProjectionAndPrototypes(dataset);
+			var currProjection = model.CurrentProjectionAndPrototypes(currentSubModelIdx,dataset);
 
 			Point[] prototypePositions = !currProjection.IsOk ? default(Point[]) : Points.ToMediaPoints(currProjection.Prototypes.Points);
 			Point[] points = Points.ToMediaPoints(currProjection.Data.Points);
@@ -218,7 +228,8 @@ namespace LvqGui {
 				for (int i = 0; i < classPlots.Length; ++i)
 					classPlots[i].Data = projectedPointsByLabel[i];
 				prototypePositionsPlot.Data = prototypePositions;
-				classBoundaries.TriggerDataChanged();
+				classBoundaries.Data = currentSubModelIdx;
+				classBoundaries.TriggerDataChanged(); //even if same index, underlying model _has_ changed.
 
 				for (int i = 0; i < statPlots.Length; i++)
 					statPlots[i].plot.Data = statPlotData[i];
@@ -229,7 +240,7 @@ namespace LvqGui {
 		public void QueueUpdate() { ThreadPool.QueueUserWorkItem(o => { UpdateDisplay(); }); }
 
 
-		void UpdateClassBoundaries(WriteableBitmap bmp, Matrix dataToBmp, int width, int height, object ignore) {
+		void UpdateClassBoundaries(WriteableBitmap bmp, Matrix dataToBmp, int width, int height, int subModelIdx) {
 #if DEBUG
 			int renderwidth = (width + 7) / 8;
 			int renderheight = (height + 7) / 8;
@@ -245,7 +256,7 @@ namespace LvqGui {
 			bmpToData.Invert();
 			Point topLeft = bmpToData.Transform(new Point(0.0, 0.0));
 			Point botRight = bmpToData.Transform(new Point(width, height));
-			int[,] closestClass = curModel.ClassBoundaries(topLeft.X, botRight.X, topLeft.Y, botRight.Y, renderwidth, renderheight);
+			int[,] closestClass = curModel.ClassBoundaries(subModelIdx,topLeft.X, botRight.X, topLeft.Y, botRight.Y, renderwidth, renderheight);
 			if (closestClass == null) //uninitialized
 				return;
 			uint[] nativeColor = dataset.ClassColors

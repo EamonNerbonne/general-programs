@@ -30,6 +30,7 @@ namespace LvqLibCli {
 
 		property int ClassCount {int get();}
 		property int Dimensions {int get();}
+		property int ModelCount {int get();}
 		property bool IsMultiModel {bool get();}
 
 		property String^ ModelLabel {String^ get(){return label;}}
@@ -40,19 +41,17 @@ namespace LvqLibCli {
 
 		void ResetLearningRate();
 		
-
 		LvqModelCli(String^ label, int parallelModels, LvqDatasetCli^ trainingSet, LvqModelSettingsCli^ modelSettings);
 
 		bool FitsDataShape(LvqDatasetCli^ dataset);
 
 		property Object^ UpdateSyncObject { Object ^ get(){return mainSync;} }
-		//double ErrorRate(LvqDatasetCli^testSet);
 
-		array<double,2>^ CurrentProjectionOf(LvqDatasetCli^ dataset);
-		Tuple<array<double,2>^,array<int>^>^ PrototypePositions();
-		array<int,2>^ ClassBoundaries(double x0, double x1, double y0, double y1,int xCols, int yRows);
+		array<double,2>^ CurrentProjectionOf(int modelIdx,LvqDatasetCli^ dataset);
+		Tuple<array<double,2>^,array<int>^>^ PrototypePositions(int modelIdx);
+		array<int,2>^ ClassBoundaries(int modelIdx, double x0, double x1, double y0, double y1,int xCols, int yRows);
 
-		ModelProjection CurrentProjectionAndPrototypes(LvqDatasetCli^ dataset);
+		ModelProjection CurrentProjectionAndPrototypes(int modelIdx, LvqDatasetCli^ dataset);
 
 		void Train(int epochsToDo,LvqDatasetCli^ trainingSet); 
 

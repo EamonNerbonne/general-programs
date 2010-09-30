@@ -62,27 +62,27 @@ namespace LvqLibCli {
 	}
 
 
-	array<double,2>^ LvqModelCli::CurrentProjectionOf(LvqDatasetCli^ dataset) { 
+	array<double,2>^ LvqModelCli::CurrentProjectionOf(int modelIdx, LvqDatasetCli^ dataset) { 
 		WrappedModelArray^ currentBackup = modelCopy;
 
 		if(currentBackup==nullptr)
 			return nullptr;
 		msclr::lock l(currentBackup);
-		LvqProjectionModel* projectionModel = dynamic_cast<LvqProjectionModel*>( currentBackup[0]->get());
+		LvqProjectionModel* projectionModel = dynamic_cast<LvqProjectionModel*>( currentBackup[modelIdx]->get());
 
 		return projectionModel ? ToCli<array<double,2>^>::From(dataset->GetDataset()->ProjectPoints(projectionModel)) : nullptr ; 
 	}
 
-	ModelProjection LvqModelCli::CurrentProjectionAndPrototypes(LvqDatasetCli^ dataset){
+	ModelProjection LvqModelCli::CurrentProjectionAndPrototypes(int modelIdx, LvqDatasetCli^ dataset){
 		ModelProjection retval;
 		WrappedModelArray^ currentBackup = modelCopy;
 		if(currentBackup != nullptr) {
 			msclr::lock l(currentBackup);
-			retval.Data.Points = CurrentProjectionOf(dataset);
+			retval.Data.Points = CurrentProjectionOf(modelIdx,dataset);
 			if(retval.Data.Points ==  nullptr)
 				return retval;
 			retval.Data.ClassLabels = dataset->ClassLabels();
-			Tuple<array<double,2>^,array<int>^>^ protos = PrototypePositions();
+			Tuple<array<double,2>^,array<int>^>^ protos = PrototypePositions(modelIdx);
 			retval.Prototypes.Points = protos->Item1;
 			retval.Prototypes.ClassLabels = protos->Item2;
 			retval.IsOk = true;
@@ -99,7 +99,7 @@ namespace LvqLibCli {
 		modelCopy = newBackup;
 	}
 
-	array<int,2>^ LvqModelCli::ClassBoundaries(double x0, double x1, double y0, double y1,int xCols, int yRows) {
+	array<int,2>^ LvqModelCli::ClassBoundaries(int modelIdx, double x0, double x1, double y0, double y1,int xCols, int yRows) {
 		MatrixXi classDiagram(yRows,xCols);
 		{
 			WrappedModelArray^ currentBackup = modelCopy;
@@ -108,7 +108,7 @@ namespace LvqLibCli {
 				return nullptr; //TODO: should never happen?
 
 			msclr::lock l(currentBackup);
-			LvqProjectionModel* projectionModel = dynamic_cast<LvqProjectionModel*>( currentBackup[0]->get());
+			LvqProjectionModel* projectionModel = dynamic_cast<LvqProjectionModel*>( currentBackup[modelIdx]->get());
 			if(!projectionModel) return nullptr;
 			projectionModel->ClassBoundaryDiagram(x0,x1,y0,y1,classDiagram);
 		}
@@ -131,10 +131,10 @@ namespace LvqLibCli {
 	}
 
 	
-	Tuple<array<double,2>^, array<int>^>^ LvqModelCli::PrototypePositions() {
+	Tuple<array<double,2>^, array<int>^>^ LvqModelCli::PrototypePositions(int modelIdx) {
 		WrappedModelArray^ currentBackup = modelCopy;
 		msclr::lock l(currentBackup);
-		LvqProjectionModel* projectionModel = dynamic_cast<LvqProjectionModel*>( currentBackup[0]->get());
+		LvqProjectionModel* projectionModel = dynamic_cast<LvqProjectionModel*>(currentBackup[modelIdx]->get());
 		if(!projectionModel) return nullptr;
 		return Tuple::Create(ToCli<array<double,2>^>::From(projectionModel->GetProjectedPrototypes()), ToCli<array<int>^>::From(projectionModel->GetPrototypeLabels()));
 	}
@@ -142,6 +142,8 @@ namespace LvqLibCli {
 	int LvqModelCli::ClassCount::get(){return model[0]->get()->ClassCount();}
 	int LvqModelCli::Dimensions::get(){return model[0]->get()->Dimensions();}
 	bool LvqModelCli::IsMultiModel::get(){return model->Length > 1;}
+	int LvqModelCli::ModelCount::get() {return model->Length;}
+
 	bool LvqModelCli::FitsDataShape(LvqDatasetCli^ dataset) {return dataset!=nullptr && dataset->ClassCount == this->ClassCount && dataset->Dimensions == this->Dimensions;}
 
 }

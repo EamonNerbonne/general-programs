@@ -64,7 +64,7 @@ namespace LvqGui {
 			});
 		}
 
-		void TrainingControlValues_ModelSelected(LvqDatasetCli dataset, LvqModelCli model) {
+		void TrainingControlValues_ModelSelected(LvqDatasetCli dataset, LvqModelCli model, int subModelIdx) {
 			if (plotData == null || plotData.dataset != dataset || plotData.model != model) {
 				//something's different
 				if (plotData != null) {
@@ -72,9 +72,10 @@ namespace LvqGui {
 					plotData = null;
 				}
 				if (dataset != null && model != null) {
-					plotData = new LvqScatterPlot(dataset, model, Dispatcher, plotControl);
+					plotData = new LvqScatterPlot(dataset, model, Dispatcher, plotControl,subModelIdx);
 				}
-			}
+			} else// implies (plotData != null) 
+				plotData.SubModelIndex = subModelIdx;
 		}
 
 		public bool Fullscreen {

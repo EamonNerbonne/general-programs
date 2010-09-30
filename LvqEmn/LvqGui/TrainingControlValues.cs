@@ -15,10 +15,10 @@ namespace LvqGui {
 		public LvqWindowValues Owner { get { return owner; } }
 
 		public event PropertyChangedEventHandler PropertyChanged;
-		public event Action<LvqDatasetCli, LvqModelCli> ModelSelected;
+		public event Action<LvqDatasetCli, LvqModelCli,int> ModelSelected;
 		public event Action<LvqDatasetCli, LvqModelCli> SelectedModelUpdatedInBackgroundThread;
 
-		private void _propertyChanged(String propertyName) { if (PropertyChanged != null) PropertyChanged(this, new PropertyChangedEventArgs(propertyName)); }
+		private void _propertyChanged(string propertyName) { if (PropertyChanged != null) PropertyChanged(this, new PropertyChangedEventArgs(propertyName)); }
 
 		public LvqDatasetCli SelectedDataset {
 			get { return _SelectedDataset; }
@@ -31,9 +31,22 @@ namespace LvqGui {
 
 		public LvqModelCli SelectedLvqModel {
 			get { return _SelectedLvqModel; }
-			set { if (!object.Equals(_SelectedLvqModel, value)) { _SelectedLvqModel = value; _propertyChanged("SelectedLvqModel"); ModelSelected(_SelectedDataset, _SelectedLvqModel); AnimateTraining = false; } }
+			set { if (!object.Equals(_SelectedLvqModel, value)) { _SelectedLvqModel = value; _propertyChanged("SelectedLvqModel"); _propertyChanged("ModelIndexes"); ModelSelected(_SelectedDataset, _SelectedLvqModel, _SubModelIndex); AnimateTraining = false; SubModelIndex = 0; } }
 		}
 		private LvqModelCli _SelectedLvqModel;
+
+		//ObservableCollection<LvqModelCli>
+		public IEnumerable<int> ModelIndexes { get { return Enumerable.Range(0,SelectedLvqModel == null?0:SelectedLvqModel.ModelCount) ; } }
+
+		public int SubModelIndex {
+			get { return _SubModelIndex; }
+			set {
+				if (SelectedLvqModel != null && (value < 0 || value >= SelectedLvqModel.ModelCount))
+					throw new ArgumentException("Model only has " + SelectedLvqModel.ModelCount + " sub-models.");
+				if (!_SubModelIndex.Equals(value)) { _SubModelIndex = value; ModelSelected(_SelectedDataset, _SelectedLvqModel, _SubModelIndex); _propertyChanged("SubModelIndex"); }
+			}
+		}
+		private int _SubModelIndex;
 
 		public int EpochsPerClick {
 			get { return _EpochsPerClick; }
