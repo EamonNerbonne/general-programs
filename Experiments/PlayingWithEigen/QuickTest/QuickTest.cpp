@@ -1,40 +1,11 @@
-
+#pragma warning(disable:4820)
+#pragma warning(disable:4986)
+#pragma warning(disable:4626)
+#pragma warning(disable:4365)
+#pragma warning(disable:4514)
+#pragma warning(disable:4710)
 #include <iostream>
 #include <Eigen/Core>
-/*
-template <int N>
-struct S
-{
- Eigen::Matrix<double,2*N,2*N> m;
-
- void F();
-};
-
-template <int N>
-void S<N>::F()
-{
- (m.block<N,N>(0,0)).setIdentity();
- (m.block<N,N>(0,N)).setIdentity();
-};
-
-// Here comes a bogus specialization of Eigen::Matrix:
-namespace Eigen {
-template<>
-struct Matrix<double, 8, 8, 0, 8, 8>{
- struct bogus{
-   bogus& operator<(int n) { std::cout << "<" << n; return *this;}
-   bogus& operator,(bool f) { std::cout << "," << f; return *this;}
-   void setIdentity() {std::cout << "setIdentity()\n"; }
- } block;
-};
-}
-
-int main()
-{
- S<4> s;
- s.F();
-}
-*/
 
 using namespace Eigen;
 
@@ -42,12 +13,41 @@ int main(int, char* []) {
 	VectorXd vec = VectorXd::Random(10);
 	Vector2d small = Vector2d::Random();
 	Matrix<double,2,Dynamic> P = Matrix<double,2,Dynamic>::Random(2,10);
+	Matrix<double,Dynamic,2> Pt = P.transpose();
 
 	double scalar = 1.234;
 
+	//vec = Pt*small;
+	//vec = Pt*(scalar*small);
+	//vec = scalar*Pt*small;
 
+	//vec -= Pt*small;
+	//vec -= Pt*(scalar*small);
+	//vec -= scalar*Pt*small;
 
-	vec -=   P.transpose() * (scalar * small) ;
+	//vec = P.transpose()*small;
+	//vec = P.transpose()*(scalar*small);
+	//vec = scalar*P.transpose()*small;
+
+	//vec -= P.transpose()*small;
+	//vec -= P.transpose()*(scalar*small);
+	//vec -= scalar*P.transpose()*small;
+
+	vec.noalias() = Pt*small;
+	vec.noalias() = Pt*(scalar*small);
+	vec.noalias() = scalar*Pt*small;
+
+	vec.noalias() -= Pt*small;
+	vec.noalias() -= Pt*(scalar*small);
+	vec.noalias() -= scalar*Pt*small;
+
+	vec.noalias() = P.transpose()*small;
+	vec.noalias() = P.transpose()*(scalar*small);
+	vec.noalias() = scalar*P.transpose()*small;
+
+	vec.noalias() -= P.transpose()*small;
+	vec.noalias() -= P.transpose()*(scalar*small);
+	vec.noalias() -= scalar*P.transpose()*small;
 
 }
 
