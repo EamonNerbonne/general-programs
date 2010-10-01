@@ -50,7 +50,11 @@ namespace LvqGui {
 		}
 		private int _ParallelModels;
 
-
+		public bool TrackProjectionQuality {
+			get { return _TrackProjectionQuality; }
+			set { if (!_TrackProjectionQuality.Equals(value)) { _TrackProjectionQuality = value; _propertyChanged("TrackProjectionQuality"); } }
+		}
+		private bool _TrackProjectionQuality;
 
 		public uint Seed {
 			get { return _Seed; }
@@ -111,6 +115,7 @@ namespace LvqGui {
 					RngIterSeed = InstSeed,
 					PrototypesPerClass = PrototypesPerClass,
 					RngParamsSeed = this.Seed,
+					TrackProjectionQuality = TrackProjectionQuality
 				});
 		}
 
