@@ -29,9 +29,10 @@ namespace EmnExtensions.Wpf.Plot {
 		ObservableCollection<IPlotViewOnly> graphs = new ObservableCollection<IPlotViewOnly>();
 		public ObservableCollection<IPlotViewOnly> Graphs { get { return graphs; } }
 		DrawingBrush bgBrush;
+		static object syncType = new object();
 		public PlotControl() {
 			graphs.CollectionChanged += new NotifyCollectionChangedEventHandler(graphs_CollectionChanged);
-			InitializeComponent();
+			lock(syncType) InitializeComponent();//Apparently InitializeComponent isn't thread safe.
 			RenderOptions.SetBitmapScalingMode(dg, BitmapScalingMode.Linear);
 			bgBrush = new DrawingBrush(dg) {
 				Stretch = Stretch.None, //No stretch since we want the ticked axis to determine stretch
@@ -42,7 +43,6 @@ namespace EmnExtensions.Wpf.Plot {
 			};
 			plotArea.Background = bgBrush;
 		}
-
 
 		public bool ShowAxes {
 			get { return (bool)GetValue(ShowAxesProperty); }
