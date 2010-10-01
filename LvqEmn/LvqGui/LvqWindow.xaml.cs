@@ -72,7 +72,7 @@ namespace LvqGui {
 					plotData = null;
 				}
 				if (dataset != null && model != null) {
-					plotData = new LvqScatterPlot(dataset, model, Dispatcher, plotControl,subModelIdx);
+					plotData = new LvqScatterPlot(dataset, model, subModelIdx);
 				}
 			} else// implies (plotData != null) 
 				plotData.SubModelIndex = subModelIdx;

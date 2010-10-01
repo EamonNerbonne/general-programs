@@ -13,7 +13,7 @@ namespace LvqGui {
 		public event PropertyChangedEventHandler PropertyChanged;
 		private void _propertyChanged(String propertyName) { if (PropertyChanged != null) PropertyChanged(this, new PropertyChangedEventArgs(propertyName)); }
 
-		public AppSettingsValues AppSettingsValues { get; private set; }
+		//public AppSettingsValues AppSettingsValues { get; private set; }
 		public CreateDatasetValues CreateDatasetValues { get; private set; }
 		public CreateDatasetStarValues CreateDatasetStarValues { get; private set; }
 		public CreateLvqModelValues CreateLvqModelValues { get; private set; }
@@ -43,7 +43,7 @@ namespace LvqGui {
 			Datasets = new ObservableCollection<LvqDatasetCli>();
 			LvqModels = new ObservableCollection<LvqModelCli>();
 
-			AppSettingsValues = new AppSettingsValues(this);
+			//AppSettingsValues = new AppSettingsValues(this);
 			CreateDatasetValues = new CreateDatasetValues(this);
 			CreateDatasetStarValues = new CreateDatasetStarValues(this);
 			CreateLvqModelValues = new CreateLvqModelValues(this);
@@ -68,6 +68,5 @@ namespace LvqGui {
 				CreateLvqModelValues.ForDataset = LastDataset;
 			}
 		}
-
 	}
 }

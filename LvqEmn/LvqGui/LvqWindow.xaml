@@ -8,7 +8,6 @@
     <Grid >
 
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
             <RowDefinition Height="1*" />
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
@@ -17,13 +16,11 @@
             <ColumnDefinition Width="50*" />
         </Grid.ColumnDefinitions>
 
-        <emnPlot:PlotControl Grid.RowSpan="2"  Name="plotControl" ShowAxes="false"  ShowGridLines="{Binding ElementName=generalOptions, Path=Values.ShowGridLines, Mode=TwoWay}"  AttemptBorderTicks="False" />
-
-        <GridSplitter Grid.Column="1" Grid.RowSpan="2" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Width="3"  ResizeDirection="Columns"/>
+        <GridSplitter Grid.Column="1" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Width="3"  ResizeDirection="Columns"/>
         <TabControl Grid.Row="0" Grid.Column="2">
-            <TabItem Header="General Options">
+            <!--<TabItem Header="General Options">
                 <my:AppSettings DataContext="{Binding AppSettingsValues}" />
-            </TabItem>
+            </TabItem>-->
             <TabItem Header="Create Dataset" Name="datasetTabs">
                 <StackPanel>
                     <CheckBox Content="Extend data by correlation" IsChecked="{Binding ExtendDataByCorrelation, Mode=TwoWay}"/>
@@ -49,6 +46,6 @@
                 <my:TrainingControl DataContext="{Binding TrainingControlValues}"/> 
             </TabItem>
         </TabControl>
-        <emn:LogControl  Grid.Column="2" Grid.Row="1" Name="logControl" ClaimStandardOut="True" ClaimStandardError="True"/>
+        <emn:LogControl Name="logControl" ClaimStandardOut="True" ClaimStandardError="True"/>
     </Grid>
 </Window>

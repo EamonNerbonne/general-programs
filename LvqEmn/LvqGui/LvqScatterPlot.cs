@@ -13,6 +13,7 @@ using LvqLibCli;
 using System.ComponentModel;
 using System.Diagnostics;
 using EmnExtensions.MathHelpers;
+using System.Threading.Tasks;
 
 namespace LvqGui {
 	public class LvqScatterPlot {
@@ -20,15 +21,15 @@ namespace LvqGui {
 		IPlotWriteable<Point[]>[] classPlots;
 		IPlotWriteable<int> classBoundaries;
 
-		struct StatPlot {
+		class StatPlot {
 			public IPlotWriteable<Point[]> plot;
 			public Func<LvqTrainingStatCli, Point> extractor;
-
+			public Dispatcher dispatcher;
 			public static Point PlainStat(LvqTrainingStatCli info, int statIdx) { return new Point(info.values[LvqTrainingStatCli.TrainingIterationI], info.values[statIdx]); }
 			public static Point UpperStat(LvqTrainingStatCli info, int statIdx) { return new Point(info.values[LvqTrainingStatCli.TrainingIterationI], info.values[statIdx] + info.stderror[statIdx]); }
 			public static Point LowerStat(LvqTrainingStatCli info, int statIdx) { return new Point(info.values[LvqTrainingStatCli.TrainingIterationI], info.values[statIdx] - info.stderror[statIdx]); }
 
-			static StatPlot MakePlot(string dataLabel, string yunitLabel, bool isRight, Color color, int statIdx, int variant) {
+			static StatPlot MakePlot(Dispatcher dispatcher, string dataLabel, string yunitLabel, bool isRight, Color color, int statIdx, int variant) {
 				//variant 0 is plain, 1 is upper, -1 is lower.
 				var statPlot = PlotData.Create(default(Point[]));
 				statPlot.PlotClass = PlotClass.Line;
@@ -46,6 +47,7 @@ namespace LvqGui {
 
 				return new StatPlot {
 					plot = statPlot,
+					dispatcher = dispatcher,
 					extractor =
 						variant == 0 ? (info => PlainStat(info, statIdx)) :
 						variant == 1 ? (info => UpperStat(info, statIdx)) :
@@ -55,39 +57,49 @@ namespace LvqGui {
 			static Color Blend(Color a, Color b) {
 				return Color.FromArgb((byte)(a.A + b.A + 1 >> 1), (byte)(a.R + b.R + 1 >> 1), (byte)(a.G + b.G + 1 >> 1), (byte)(a.B + b.B + 1 >> 1));
 			}
-			public static IEnumerable<StatPlot> MakePlots(string dataLabel, string yunitLabel, bool isRight, Color color, int statIdx, bool doVariants) {
+			public static IEnumerable<StatPlot> MakePlots(Dispatcher dispatcher, string dataLabel, string yunitLabel, bool isRight, Color color, int statIdx, bool doVariants) {
 				if (doVariants) {
-					yield return MakePlot(null, yunitLabel, isRight, Blend(color, Colors.White), statIdx, 1);
-					yield return MakePlot(null, yunitLabel, isRight, Blend(color, Colors.White), statIdx, -1);
+					yield return MakePlot(dispatcher, null, yunitLabel, isRight, Blend(color, Colors.White), statIdx, 1);
+					yield return MakePlot(dispatcher, null, yunitLabel, isRight, Blend(color, Colors.White), statIdx, -1);
 				}
-				yield return MakePlot(dataLabel, yunitLabel, isRight, color, statIdx, 0);
+				yield return MakePlot(dispatcher, dataLabel, yunitLabel, isRight, color, statIdx, 0);
 			}
 		}
 
-		StatPlot[] statPlots;
+		List<StatPlot> statPlots = new List<StatPlot>();
 
 		public readonly LvqDatasetCli dataset;
 		public readonly LvqModelCli model;
-		readonly Dispatcher dispatcher;
+		Dispatcher scatterPlotDispatcher;
 
-
-		HashSet<Window> plotWindows = new HashSet<Window>();
-		Window MakeSubWin(string title) {
-			var win = new Window {
-				Width = Application.Current.MainWindow.Width * 0.5,
-				Height = Application.Current.MainWindow.Height * 0.8,
-				Title = title,
-				Content = new PlotControl() {
-					ShowGridLines = true,
+		object syncPlotWindows = new object();
+		int plotsTodo;
+		List<Window> plotWindows = new List<Window>();
+		void MakeSubWin(string title, Action<PlotControl> bgThreadInit) {
+			plotsTodo++;
+			double width = Application.Current.MainWindow.Width * 0.5;
+			double height = Application.Current.MainWindow.Height * 0.8;
+			var winThread = new Thread(() => {
+				PlotControl plot;
+				var win = new Window {
+					Width = width,
+					Height = height,
+					Title = title,
+					Content = plot = new PlotControl() {
+						ShowGridLines = true,
+					}
+				};
+				bgThreadInit(plot);
+				lock (syncPlotWindows) {
+					plotWindows.Add(win);
+					plotsTodo--;
 				}
-			};
-			win.Closing += PlotWindowClosing;
-			plotWindows.Add(win);
-			return win;
-		}
-		void PlotWindowClosing(object sender, CancelEventArgs e) {
-			Window win = (Window)sender;
-			plotWindows.Remove(win);
+				win.ShowDialog(); //doesn't exit until window is closed - needed to sustain the message pump.
+				win.Dispatcher.InvokeShutdown();
+				Console.WriteLine("Exited " + title);
+			}) { IsBackground = true, Priority = ThreadPriority.BelowNormal };
+			winThread.SetApartmentState(ApartmentState.STA);
+			winThread.Start();
 		}
 
 
@@ -108,39 +120,41 @@ namespace LvqGui {
 		}
 
 		bool busy, updateQueued;
-		object syncroot = new object();
-		public LvqScatterPlot(LvqDatasetCli dataset, LvqModelCli model, Dispatcher dispatcher, PlotControl scatterPlotControl,int selectedSubModel) {
+		object syncUpdates = new object();
+		public LvqScatterPlot(LvqDatasetCli dataset, LvqModelCli model, int selectedSubModel) {
 			this.subModelIdx = selectedSubModel;
 			this.dataset = dataset;
 			this.model = model;
-			this.dispatcher = dispatcher;
 
-			MakeScatterPlots(scatterPlotControl);
-			scatterPlotControl.Title = "ScatterPlot: " + model.ModelLabel;
+			MakeSubWin("ScatterPlot", MakeScatterPlots);
 
-			TrainingStatName[] statnames = model.TrainingStatNames.Select(TrainingStatName.Create).ToArray();
-			TrainingStatName xAxis = statnames.Single(statname => statname.UnitLabel == "iterations");
-			List<StatPlot> allplots = new List<StatPlot>();
-			foreach (var statgroup in
-				from statname in statnames
+			foreach (var statgroupRangeVar in
+				from statname in model.TrainingStatNames.Select(TrainingStatName.Create)
 				where statname.StatGroup != null
 				group statname by new { statname.UnitLabel, statname.StatGroup }) {
-				var win = MakeSubWin(statgroup.Key.StatGroup);
-				var plotControl = (PlotControl)win.Content;
-				plotControl.Title = statgroup.Key.StatGroup + ": " + model.ModelLabel;
-				var plotsForGroup = MakePlots(statgroup.Key.StatGroup, statgroup, model.IsMultiModel, dataset.IsFolded()).ToArray();
-				foreach (var plot in plotsForGroup)
-					plotControl.Graphs.Add(plot.plot);
-				allplots.AddRange(plotsForGroup);
-				win.Show();
+				var statgroup = statgroupRangeVar;//to enable thread-safe closing.
+				MakeSubWin(statgroup.Key.StatGroup, plotControl => {
+					plotControl.Title = statgroup.Key.StatGroup + ": " + model.ModelLabel;
+					var plotsForGroup = MakePlots(plotControl.Dispatcher, statgroup.Key.StatGroup, statgroup, model.IsMultiModel, dataset.IsFolded()).ToArray();
+					foreach (var plot in plotsForGroup)
+						plotControl.Graphs.Add(plot.plot);
+					lock (statPlots)
+						statPlots.AddRange(plotsForGroup);
+				});
 			}
-			statPlots = allplots.ToArray();
 			QueueUpdate();
 		}
 
+
 		private void MakeScatterPlots(PlotControl plotControl) {
+			scatterPlotDispatcher = plotControl.Dispatcher;
+			plotControl.ShowAxes = false;
+			plotControl.AttemptBorderTicks = false;
+			plotControl.ShowGridLines = false;
+			plotControl.Title = "ScatterPlot: " + model.ModelLabel;
+
 			prototypePositionsPlot = PlotData.Create(default(Point[]));
-			prototypePositionsPlot.Visualizer = new VizPixelScatterGeom { OverridePointCountEstimate = 40, };
+			prototypePositionsPlot.Visualizer = new VizPixelScatterGeom { OverridePointCountEstimate = 35, };
 			classBoundaries = PlotData.Create(subModelIdx, UpdateClassBoundaries);
 			classPlots = Enumerable.Range(0, dataset.ClassCount).Select(i => {
 				var graphplot = PlotData.Create(default(Point[]));
@@ -150,14 +164,15 @@ namespace LvqGui {
 			}).ToArray();
 
 			plotControl.Graphs.Clear();
-			foreach (var subplot in ScatterPlots)
-				plotControl.Graphs.Add(subplot);
+			plotControl.Graphs.Add(classBoundaries);
+			foreach (var classPlot in classPlots) plotControl.Graphs.Add(classPlot);
+			plotControl.Graphs.Add(prototypePositionsPlot);
 		}
 
 		static Color[] errorColors = new[] { Colors.Red, Color.FromRgb(0x8b, 0x8b, 0), };
 		static Color[] costColors = new[] { Colors.Blue, Colors.DarkCyan, };
 
-		private static IEnumerable<StatPlot> MakePlots(string windowTitle, IEnumerable<TrainingStatName> stats, bool isMultiModel, bool hasTestSet) {
+		private static IEnumerable<StatPlot> MakePlots(Dispatcher dispatcher, string windowTitle, IEnumerable<TrainingStatName> stats, bool isMultiModel, bool hasTestSet) {
 			var usedStats = (hasTestSet ? stats : stats.Where(stat => !stat.TrainingStatLabel.StartsWith("Training"))).ToArray();
 
 			Color[] colors =
@@ -165,31 +180,25 @@ namespace LvqGui {
 				windowTitle == "Cost Function" ? costColors :
 				GraphRandomPen.MakeDistributedColors(usedStats.Length, new MersenneTwister(1 + windowTitle.GetHashCode()));
 			return
-			usedStats.Zip(colors, (stat, color) => StatPlot.MakePlots(stat.TrainingStatLabel, stat.UnitLabel, false, color, stat.Index, isMultiModel))
+			usedStats.Zip(colors, (stat, color) => StatPlot.MakePlots(dispatcher, stat.TrainingStatLabel, stat.UnitLabel, false, color, stat.Index, isMultiModel))
 				.SelectMany(s => s);
 		}
 
-		public IEnumerable<IPlotWithSettings> ScatterPlots {
-			get {
-				yield return classBoundaries;
-				foreach (var plot in classPlots) yield return plot;
-				yield return prototypePositionsPlot;
+		bool UpdateIsBusy() {
+			lock (syncUpdates) {
+				updateQueued = busy;
+				busy = true;
+				return updateQueued;
 			}
 		}
 
-		bool AcquireUpdateLock() {
-			lock (syncroot)
-				if (busy) { updateQueued = true; return false; } else { busy = true; updateQueued = false; return true; }
-		}
-
-		void ReleaseUpdateLock() {
-			lock (syncroot) {
+		bool UpdateIsFree() {
+			lock (syncUpdates) {
 				busy = false;
-				if (updateQueued)
-					QueueUpdate();
+				return !updateQueued;
 			}
 		}
-		int subModelIdx=0;
+		int subModelIdx = 0;
 		public int SubModelIndex {
 			get { return subModelIdx; }
 			set {
@@ -201,46 +210,76 @@ namespace LvqGui {
 
 		private void UpdateDisplay() {
 			if (model == null) return;
+			while (true) {
+				if (UpdateIsBusy()) return;
+				int currentSubModelIdx = subModelIdx;
 
-			if (!AcquireUpdateLock()) return;
-			int currentSubModelIdx = subModelIdx;
+				var trainingStats = model.TrainingStats;
+				StatPlot[] currentStatPlots;
+				lock (statPlots)
+					currentStatPlots = statPlots.ToArray();
+				var statPlotData = Enumerable.Range(0, currentStatPlots.Length).Select(si => trainingStats.Select(currentStatPlots[si].extractor).ToArray()).ToArray();
+				var currProjection = model.CurrentProjectionAndPrototypes(currentSubModelIdx, dataset);
 
-			var trainingStats = model.TrainingStats;
-			var statPlotData = Enumerable.Range(0, statPlots.Length).Select(si => trainingStats.Select(statPlots[si].extractor).ToArray()).ToArray();
-			var currProjection = model.CurrentProjectionAndPrototypes(currentSubModelIdx,dataset);
+				Point[] prototypePositions = !currProjection.IsOk ? default(Point[]) : Points.ToMediaPoints(currProjection.Prototypes.Points);
+				Point[] points = Points.ToMediaPoints(currProjection.Data.Points);
+				int[] pointCountPerClass = new int[dataset.ClassCount];
+				if (currProjection.IsOk)
+					for (int i = 0; i < currProjection.Data.ClassLabels.Length; ++i)
+						pointCountPerClass[currProjection.Data.ClassLabels[i]]++;
 
-			Point[] prototypePositions = !currProjection.IsOk ? default(Point[]) : Points.ToMediaPoints(currProjection.Prototypes.Points);
-			Point[] points = Points.ToMediaPoints(currProjection.Data.Points);
-			int[] pointCountPerClass = new int[classPlots.Length];
-			if (currProjection.IsOk)
-				for (int i = 0; i < currProjection.Data.ClassLabels.Length; ++i)
-					pointCountPerClass[currProjection.Data.ClassLabels[i]]++;
+				Point[][] projectedPointsByLabel = Enumerable.Range(0, dataset.ClassCount).Select(i => new Point[pointCountPerClass[i]]).ToArray();
+				int[] pointIndexPerClass = new int[dataset.ClassCount];
+				if (currProjection.IsOk)
+					for (int i = 0; i < points.Length; ++i) {
+						int label = currProjection.Data.ClassLabels[i];
+						projectedPointsByLabel[label][pointIndexPerClass[label]++] = points[i];
+					}
 
-			Point[][] projectedPointsByLabel = Enumerable.Range(0, classPlots.Length).Select(i => new Point[pointCountPerClass[i]]).ToArray();
-			int[] pointIndexPerClass = new int[classPlots.Length];
-			if (currProjection.IsOk)
-				for (int i = 0; i < points.Length; ++i) {
-					int label = currProjection.Data.ClassLabels[i];
-					projectedPointsByLabel[label][pointIndexPerClass[label]++] = points[i];
+				using (var sem = new SemaphoreSlim(0, currentStatPlots.Length + 1)) {
+					object sync = new object();
+					int startedCount = 0;
+					if (IsDispatcherOK(scatterPlotDispatcher))
+						scatterPlotDispatcher.BeginInvoke((Action)(() => {
+							lock (sync) startedCount++;
+							for (int i = 0; i < classPlots.Length; ++i)
+								classPlots[i].Data = projectedPointsByLabel[i];
+							prototypePositionsPlot.Data = prototypePositions;
+							classBoundaries.Data = currentSubModelIdx;
+							classBoundaries.TriggerDataChanged(); //even if same index, underlying model _has_ changed.
+							sem.Release();
+						}), DispatcherPriority.Background);
+
+					for (int i = 0; i < currentStatPlots.Length; i++)
+						if (IsDispatcherOK(currentStatPlots[i].dispatcher))
+							currentStatPlots[i].dispatcher.BeginInvoke((Action<int>)(idx => {
+								lock (sync) startedCount++;
+								currentStatPlots[idx].plot.Data = statPlotData[idx];
+								sem.Release();
+							}), i);
+
+					while (true) {
+						int liveThreads = (IsDispatcherOK(scatterPlotDispatcher) ? 1 : 0) + currentStatPlots.Count(plot => IsDispatcherOK(plot.dispatcher));
+						if (startedCount == liveThreads)
+							break;
+						else
+							Thread.Sleep(1);
+					}
+						
+					for (int i = 0; i < startedCount; i++)
+							sem.Wait();
+					if (UpdateIsFree()) return;
 				}
-
-			dispatcher.BeginInvoke((Action)(() => {
-				for (int i = 0; i < classPlots.Length; ++i)
-					classPlots[i].Data = projectedPointsByLabel[i];
-				prototypePositionsPlot.Data = prototypePositions;
-				classBoundaries.Data = currentSubModelIdx;
-				classBoundaries.TriggerDataChanged(); //even if same index, underlying model _has_ changed.
-
-				for (int i = 0; i < statPlots.Length; i++)
-					statPlots[i].plot.Data = statPlotData[i];
-				ReleaseUpdateLock();
-			}), DispatcherPriority.Background);
+			}
+		}
+		static bool IsDispatcherOK(Dispatcher disp) {
+			return disp != null && !disp.HasShutdownStarted && disp.Thread.IsAlive;
 		}
 
 		public void QueueUpdate() { ThreadPool.QueueUserWorkItem(o => { UpdateDisplay(); }); }
 
-
 		void UpdateClassBoundaries(WriteableBitmap bmp, Matrix dataToBmp, int width, int height, int subModelIdx) {
+
 #if DEBUG
 			int renderwidth = (width + 7) / 8;
 			int renderheight = (height + 7) / 8;
@@ -256,7 +295,7 @@ namespace LvqGui {
 			bmpToData.Invert();
 			Point topLeft = bmpToData.Transform(new Point(0.0, 0.0));
 			Point botRight = bmpToData.Transform(new Point(width, height));
-			int[,] closestClass = curModel.ClassBoundaries(subModelIdx,topLeft.X, botRight.X, topLeft.Y, botRight.Y, renderwidth, renderheight);
+			int[,] closestClass = curModel.ClassBoundaries(subModelIdx, topLeft.X, botRight.X, topLeft.Y, botRight.Y, renderwidth, renderheight);
 			if (closestClass == null) //uninitialized
 				return;
 			uint[] nativeColor = dataset.ClassColors
@@ -268,11 +307,10 @@ namespace LvqGui {
 			var edges = new List<Tuple<int, int>>();
 			for (int y = 1; y < closestClass.GetLength(0) - 1; y++)
 				for (int x = 1; x < closestClass.GetLength(1) - 1; x++) {
-					if (false
-						|| closestClass[y, x] != closestClass[y + 1, x]
+					if (closestClass[y, x] != closestClass[y, x - 1]
 						|| closestClass[y, x] != closestClass[y, x + 1]
-						|| closestClass[y, x] != closestClass[y, x - 1]
 						|| closestClass[y, x] != closestClass[y - 1, x]
+						|| closestClass[y, x] != closestClass[y + 1, x]
 						)
 						edges.Add(Tuple.Create(y, x));
 				}
@@ -287,11 +325,13 @@ namespace LvqGui {
 		}
 
 		public void ClosePlots() {
-			foreach (Window win in plotWindows.ToArray()) {
-				win.Close();
+			lock (syncPlotWindows) {
+				plotWindows.ForEach(win => {
+					win.Dispatcher.BeginInvoke(() => { win.Close(); });
+				});
+				plotWindows.Clear();
 			}
-			Console.WriteLine("registered windows:" + plotWindows.Count);
-
 		}
+
 	}
 }
