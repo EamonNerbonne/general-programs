@@ -51,10 +51,11 @@ namespace EmnExtensions.Wpf.Plot.VizEngines {
 		static int hitcount = 0;
 		static DateTime start = DateTime.Now;
 		static VizPixelScatterHelpers() {
-			Application.Current.Exit += (o, e) => {
+			AppDomain.CurrentDomain.ProcessExit += (o, e) => {
 				File.AppendAllText(@"C:\tmplog.log", "HitCount: " + hitcount + ", time:" + (DateTime.Now - start) + "\n");
 			};
 		}
+
 #if SHAREMEM
 		static object sync = new object();
 		static double[] vals = new double[0];
