@@ -41,10 +41,10 @@ namespace LvqLibCli {
 				cachedTrainingStats->Add(LvqTrainingStatCli::toCli(trainingStats[si]));
 			return cachedTrainingStats;
 		}
-		Eigen::VectorXd zero = VectorXd::Zero(statDim);
 		
+		SmartSum<Eigen::Dynamic> stat(statDim);
 		for(int si=cachedTrainingStats->Count;si<statCount;++si) {
-			SmartSum<Eigen::ArrayXd> stat(zero);
+			stat.Reset();	
 			for each(WrappedModel^ m in currentBackup)
 				stat.CombineWith(m->get()->TrainingStats()[si],1.0);
 			cachedTrainingStats->Add(
@@ -100,7 +100,7 @@ namespace LvqLibCli {
 	}
 
 	array<int,2>^ LvqModelCli::ClassBoundaries(int modelIdx, double x0, double x1, double y0, double y1,int xCols, int yRows) {
-		MatrixXi classDiagram(yRows,xCols);
+		LvqProjectionModel::ClassDiagramT classDiagram(yRows,xCols);
 		{
 			WrappedModelArray^ currentBackup = modelCopy;
 

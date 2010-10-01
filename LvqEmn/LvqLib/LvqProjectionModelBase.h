@@ -6,17 +6,23 @@ template<typename TDerivedModel> class LvqProjectionModelBase : public LvqProjec
 protected:
 	LvqProjectionModelBase(LvqModelSettings & initSettings) : LvqProjectionModel(initSettings) { }
 public:
-	void ClassBoundaryDiagram(double x0, double x1, double y0, double y1, MatrixXi & classDiagram) const {
+	virtual void ClassBoundaryDiagram(double x0, double x1, double y0, double y1, LvqProjectionModel::ClassDiagramT & classDiagram) const {
 		TDerivedModel const & self = static_cast<TDerivedModel const &>(*this);
 		int cols = static_cast<int>(classDiagram.cols());
 		int rows = static_cast<int>(classDiagram.rows());
-		for(int xCol=0;  xCol < cols;  xCol++) {
-			double x = x0 + (x1-x0) * (xCol+0.5) / cols;
-			for(int yRow=0;  yRow < rows;  yRow++) {
-				double y = y0+(y1-y0) * (yRow+0.5) / rows;
-				Vector2d vec(x,y);
-				classDiagram(yRow,xCol) = self.classifyProjectedInline(vec);
+		double xDelta = (x1-x0) / cols;
+		double yDelta = (y1-y0) / rows;
+		double xBase = x0+xDelta*0.5;
+		double yBase = y0+yDelta*0.5;
+
+		double y = yBase;
+		for(int yRow=0;  yRow < rows;  yRow++) {
+			double x = xBase;
+			for(int xCol=0;  xCol < cols;  xCol++) {
+				classDiagram(yRow,xCol) = self.classifyProjectedInline(Vector2d(x,y));
+				x+=xDelta;
 			}
+			y+=yDelta;
 		}
 	}
 

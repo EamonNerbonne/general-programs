@@ -103,3 +103,33 @@ size_t GsmLvqModel::MemAllocEstimate() const {
 		(16/2) * (5+prototype.size()*2);//estimate for alignment mucking.
 }
 
+void GsmLvqModel::ClassBoundaryDiagram(double x0, double x1, double y0, double y1, LvqProjectionModel::ClassDiagramT & classDiagram) const {
+	int cols = static_cast<int>(classDiagram.cols());
+	int rows = static_cast<int>(classDiagram.rows());
+	double xDelta = (x1-x0) / cols;
+	double yDelta = (y1-y0) / rows;
+	double xBase = x0+xDelta*0.5;
+	double yBase = y0+yDelta*0.5;
+
+	PMatrix diff_x0_y(LVQ_LOW_DIM_SPACE,PrototypeCount()); //Contains (testPoint[x, y0] - P*proto_i)  for all proto's i
+	//will update to include changes to X.
+
+	for(int pi=0; pi < this->PrototypeCount(); ++pi) 
+		diff_x0_y.col(pi).noalias() =  Vector2d(xBase,yBase) - this->P_prototype[pi];
+	
+
+	for(int yRow=0;  yRow < rows;  yRow++) {
+		PMatrix diff_x_y(diff_x0_y); //copy that includes changes to Y as well.
+		for(int xCol=0;  xCol < cols;  xCol++) {
+
+			// x = xBase + xCol * xDelta;  y = yBase + yCol * yDelta;
+			MatrixXd::Index bestProtoI;
+			diff_x_y.colwise().squaredNorm().minCoeff(&bestProtoI);
+			classDiagram(yRow, xCol) = this->pLabel[bestProtoI];
+
+			diff_x_y.row(0).array() += xDelta;
+		}
+		diff_x0_y.row(1).array() += yDelta;
+	}
+}
+

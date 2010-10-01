@@ -50,4 +50,6 @@ public:
 
 	virtual MatrixXd GetProjectedPrototypes() const;
 	virtual std::vector<int> GetPrototypeLabels() const;
+
+	virtual void ClassBoundaryDiagram(double x0, double x1, double y0, double y1, LvqProjectionModel::ClassDiagramT & classDiagram) const;
 };

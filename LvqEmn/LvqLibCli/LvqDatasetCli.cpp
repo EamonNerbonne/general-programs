@@ -37,7 +37,7 @@ namespace LvqLibCli {
 	}
 
 	Tuple<double,double> ^ LvqDatasetCli::GetPcaNnErrorRate()  {
-		SmartSum<double> nnErrorRate(0.0);
+		SmartSum<1> nnErrorRate(1);
 		for(int fold=0;fold<folds;++fold) {
 			nnErrorRate.CombineWith(
 				dataset->NearestNeighborPcaErrorRate(
@@ -48,7 +48,7 @@ namespace LvqLibCli {
 				1.0
 			);
 		}
-		return Tuple::Create(nnErrorRate.GetMean(),nnErrorRate.GetSampleVariance());
+		return Tuple::Create(nnErrorRate.GetMean()(0,0),nnErrorRate.GetSampleVariance()(0,0));
 	}
 
 	array<int>^ LvqDatasetCli::ClassLabels(){ array<int>^ retval; cppToCli(dataset->getPointLabels(), retval); return retval;}

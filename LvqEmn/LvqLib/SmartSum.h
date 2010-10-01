@@ -2,28 +2,30 @@
 #include <Eigen/Core>
 using namespace Eigen;
 
-template<typename T>
+template<int CompileTimeDims>
 class SmartSum {
-	
-
-	T meanX, sX;
+	typedef Eigen::Array<double,CompileTimeDims,1> ArrayT;
+	ArrayT meanX, sX;
 	double weightSum;
 public:
-	SmartSum(T const & zero) : meanX(zero), sX(zero), weightSum(0.0) {}
+	SmartSum(int dims) : meanX(ArrayT::Zero(dims) ), sX(ArrayT::Zero(dims)), weightSum(0.0) {}
 
-	void CombineWith(T const & val, double weight) {
+	void CombineWith(double val, double weight) {
+		assert(CompileTimeDims == 1);
+		ArrayT valA(1);
+		valA(0,0) = val;
+		CombineWith(valA, weight);
+	}
+
+	void CombineWith(ArrayT const & val, double weight) {
 		if(weight == 0.0) return;//ignore zero-weight stuff...
 		double newWeightSum = weightSum + weight;
 		double mScale = weight / newWeightSum;
 		double sScale = weightSum * weight / newWeightSum;
 		weightSum = newWeightSum;
-		sX += (val - meanX)*(val - meanX) * sScale;
+		sX += (val - meanX) *(val - meanX) * sScale;
 		meanX += (val - meanX) * mScale;
 	}
-	//void CombineWith(T const val, double weight) {
-	//	CombineWith(val,weight);
-	//}
-
 
 	void CombineWithSum(SmartSum const & other) {
 		if(weight == 0.0) return;//ignore zero-weight stuff...
@@ -35,9 +37,14 @@ public:
 		meanX += (val - meanX) * mScale;
 	}
 
-	T const & GetMean()const {return meanX;}
-	T GetVariance() const {return sX / weightSum;}
-	T GetSampleVariance() const {return sX / (weightSum-1);}
+	ArrayT const & GetMean()const {return meanX;}
+	ArrayT GetVariance() const {return sX / weightSum;}
+	ArrayT GetSampleVariance() const {return sX / (weightSum-1);}
 	double GetWeight() const {return weightSum;}
+	void Reset() { 
+		meanX  = ArrayT::Zero(meanX.size());
+		sX = ArrayT::Zero(sX.size());
+		weightSum = 0.0;
+	}
 };
 

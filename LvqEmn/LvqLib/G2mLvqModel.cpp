@@ -131,3 +131,38 @@ void G2mLvqModel::AppendOtherStats(std::vector<double> & stats, LvqDataset const
 	stats.push_back(sumNorm/prototype.size());
 	stats.push_back(maxNorm);
 }
+
+
+void G2mLvqModel::ClassBoundaryDiagram(double x0, double x1, double y0, double y1, LvqProjectionModel::ClassDiagramT & classDiagram) const {
+	int cols = static_cast<int>(classDiagram.cols());
+	int rows = static_cast<int>(classDiagram.rows());
+	double xDelta = (x1-x0) / cols;
+	double yDelta = (y1-y0) / rows;
+	double xBase = x0+xDelta*0.5;
+	double yBase = y0+yDelta*0.5;
+
+	PMatrix B_diff_x0_y(LVQ_LOW_DIM_SPACE,PrototypeCount()); //Contains B_i * (testPoint[x, y0] - P*proto_i)  for all proto's i
+	//will update to include changes to X.
+	PMatrix B_xDelta(LVQ_LOW_DIM_SPACE,PrototypeCount());//Contains B_i * (xDelta, 0)  for all proto's i
+	PMatrix B_yDelta(LVQ_LOW_DIM_SPACE,PrototypeCount());//Contains B_i * (0 , yDelta)  for all proto's i
+
+	for(int pi=0; pi < this->PrototypeCount(); ++pi) {
+		auto & current_proto = this->prototype[pi];
+		B_diff_x0_y.col(pi).noalias() =  current_proto.B * ( Vector2d(xBase,yBase) - current_proto.P_point);
+		B_xDelta.col(pi).noalias() =  current_proto.B * Vector2d(xDelta,0.0);
+		B_yDelta.col(pi).noalias() =  current_proto.B * Vector2d(0.0,yDelta);
+	}
+
+	for(int yRow=0;  yRow < rows;  yRow++) {
+		PMatrix B_diff_x_y(B_diff_x0_y); //copy that includes changes to X as well.
+		for(int xCol=0;  xCol < cols;  xCol++) {
+			// x = xBase + xCol * xDelta;  y = yBase + yCol * yDelta;
+			MatrixXd::Index bestProtoI;
+			B_diff_x_y.colwise().squaredNorm().minCoeff(&bestProtoI);
+			classDiagram(yRow, xCol) = this->prototype[bestProtoI].classLabel;
+
+			B_diff_x_y.noalias() += B_xDelta;
+		}
+		B_diff_x0_y.noalias() += B_yDelta;
+	}
+}
