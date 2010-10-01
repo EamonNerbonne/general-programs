@@ -51,10 +51,15 @@ namespace EmnExtensions.Wpf.Plot.VizEngines {
 			if (m_Geometry != null && !m_Geometry.IsFrozen)
 				m_Geometry.Changed -= m_Geometry_Changed;
 			m_Geometry = newData;
-			if (combinesGeom.Children.Count > 0)
-				combinesGeom.Children[0] = newData;
+
+			if (m_Geometry == null)
+				combinesGeom.Children.Clear();
+			else if (combinesGeom.Children.Count > 0 && combinesGeom.Children[0] != m_Geometry)
+				combinesGeom.Children[0] = m_Geometry;
 			else
-				combinesGeom.Children.Add(newData);
+				combinesGeom.Children.Add(m_Geometry);
+
+
 			if (m_Geometry != null && !m_Geometry.IsFrozen)
 				m_Geometry.Changed += m_Geometry_Changed;
 			RecomputeBoundsIfAuto();
