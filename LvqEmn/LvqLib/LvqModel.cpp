@@ -62,3 +62,23 @@ std::vector<std::wstring> LvqModel::TrainingStatNames()  {
 
 void LvqModel::AppendTrainingStatNames(std::vector<std::wstring> & retval) const { }
 void LvqModel::AppendOtherStats(std::vector<double> & stats, LvqDataset const * trainingSet,  std::vector<int>const & trainingSubset, LvqDataset const * testSet,  std::vector<int>const & testSubset) const { }
+
+static const __m128d lr0 = _mm_set_sd(LVQ_LR0);
+
+
+//double LvqModel::stepLearningRate()
+// {
+//	 //__m128d scaledIter = _mm_add_sd(_mm_mul_sd( _mm_set_sd(double(trainIter)) ,  _mm_set_sd(iterationScaleFactor) ),  _mm_set_sd(1.0));
+//		////return LVQ_LR0/scaledIter; // significantly faster than exp(-0.75*log(scaledIter)) 
+//		//++trainIter;
+//		//double retval;
+//		//_mm_store_sd(&retval,_mm_div_sd(lr0,  _mm_sqrt_sd (lr0,
+//		//				_mm_mul_sd(scaledIter, _mm_sqrt_sd(lr0,scaledIter))
+//		//				)));
+//		//return retval;
+//		double scaledIter = trainIter*iterationScaleFactor+1.0;
+//		++trainIter;
+//		return LVQ_LR0/ sqrt(scaledIter*sqrt(scaledIter)); // significantly faster than exp(-0.75*log(scaledIter)) 
+//	//	return scaledIter < 1.02  ?  LVQ_LR0  :  LVQ_LR0*exp(-0.75*log(scaledIter));// /sqrt(scaledIter*sqrt(scaledIter)); // significantly faster than exp(-0.75*log(scaledIter)) due to fewer cache misses;  
+//	}
+	
