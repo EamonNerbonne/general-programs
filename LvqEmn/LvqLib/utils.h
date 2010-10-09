@@ -63,7 +63,6 @@ template <typename T>  T randomUnscalingMatrix(boost::mt19937 & rngParams, int d
 		RandomMatrixInit(rngParams, P, 0, 1.0);
 		Pdet = P.determinant();
 		assert(Pdet!=0);
-		DEBUGPRINT(Pdet);
 		if(Pdet == 0.0)  continue;//exceedingly unlikely.
 		
 		if(Pdet < 0.0) //sign doesn't _really_ matter.
@@ -74,7 +73,6 @@ template <typename T>  T randomUnscalingMatrix(boost::mt19937 & rngParams, int d
 		P = scale*P;
 		Pdet = P.determinant();
 		assert(Pdet==Pdet);
-		DEBUGPRINT(Pdet);
 	}
 	return P;
 }
@@ -90,25 +88,27 @@ template <typename T> void projectionRandomizeUniformScaled(boost::mt19937 & ran
 }
 
 
-struct shuffle_rnd_helper {
-	boost::mt19937 & randGen;
-	int options;
-	shuffle_rnd_helper(boost::mt19937 & randGen) : randGen(randGen) {}
-	int operator()(int max) {return randGen()%max;}
-};
 
-//inline int shuffle_rnd_helper(boost::mt19937 & randGen, int options) {
-//	return randGen()%options; //slightly biased since randGen generates random _bits_ and the highest modulo wrapping may not "fill" the last options batch.  This is very minor; I don't care.
-//}
-
-template<typename iterT>
-void shuffle(boost::mt19937 & randGen, iterT start, iterT end){
+template<typename arrayT>
+void shuffle(boost::mt19937 & randGen, arrayT arr, size_t size){
 	using std::random_shuffle;
 	using std::accumulate;
 	using boost::bind;
-	//boost::function<int (int max)> rnd = bind(shuffle_rnd_helper, randGen, _1);
+	
+	for(size_t i = 0; i<size;++i)
+		swap(arr[i],arr[i+randGen() %(size-i)]);
 
-	random_shuffle(start, end, shuffle_rnd_helper(randGen) );
 }
+
+// (Slower) alternative is something like:
+//	random_shuffle(start, end, shuffle_rnd_helper(randGen) );
+//
+//struct shuffle_rnd_helper {
+//	boost::mt19937 & randGen;
+//	int options;
+//	shuffle_rnd_helper(boost::mt19937 & randGen) : randGen(randGen) {}
+//	int operator()(int max) {return randGen()%max;}
+//};
+
 
 Eigen::MatrixXd shuffleMatrixCols(boost::mt19937 & randGen, Eigen::MatrixXd const & src);
