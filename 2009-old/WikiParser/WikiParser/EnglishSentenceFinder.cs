@@ -15,8 +15,6 @@ namespace WikiParser
                 select m.Groups["sentence"].Value;
         }
 
-        
-        
         const RegexOptions options = RegexOptions.Compiled | RegexOptions.ExplicitCapture | RegexOptions.Multiline | RegexOptions.Singleline | RegexOptions.CultureInvariant;
         static Regex sentenceFinder = new Regex(sentenceRegex, options);
     }

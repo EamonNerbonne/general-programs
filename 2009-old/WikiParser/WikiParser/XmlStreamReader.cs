@@ -9,7 +9,7 @@ namespace WikiParser
         {
             public struct XmlElementInfo
             {
-                private XmlReader r;
+                private readonly XmlReader r;
                 public string QualifiedName { get { return r.Name; } }
                 public string LocalName { get { return r.LocalName; } }
                 public string NamespaceURI { get { return r.NamespaceURI; } }

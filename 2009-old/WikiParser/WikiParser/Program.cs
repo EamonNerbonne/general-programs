@@ -91,7 +91,7 @@ namespace WikiParser
             var xmlPagesInParallel = reader
                 .StreamElements(el => el.LocalName == "page")
                 .Select((pageXml, i) => new { Page = pageXml, Index = i })
-                .AsParallel()//PARALLELIZATION: comment out this line to disable parallel processing.
+                .AsParallel()
                 ;
 
             //The following query composes the various components into one big function.
