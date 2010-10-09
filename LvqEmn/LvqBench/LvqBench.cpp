@@ -1,6 +1,10 @@
 #include "stdafx.h"
 #include "EasyLvqTest.h"
 #include <fstream>
+#include "G2mLvqModel.h"
+#include "GsmLvqModel.h"
+#include "GmLvqModel.h"
+
 
 //from http://www.codeproject.com/KB/files/filesize.aspx
 int file_size(const char* sFileName)
@@ -35,7 +39,9 @@ int main(int , char*argv []){
 #endif
 #endif
 	cout<<": ";
-
+	std::cerr<<" ("<<sizeof(G2mLvqModel) <<") ";
+	std::cerr<<" ("<<sizeof(GsmLvqModel) <<") ";
+	std::cerr<<" ("<<sizeof(GmLvqModel) <<") ";
 	Eigen::BenchTimer t;
 	t.start();
 	EasyLvqTest();
