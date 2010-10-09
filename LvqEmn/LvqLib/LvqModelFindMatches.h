@@ -6,7 +6,6 @@ template<typename TDerivedModel, typename TProcessedPoint> class LvqModelFindMat
 protected:
 
 	EIGEN_STRONG_INLINE GoodBadMatch findMatches(TProcessedPoint const & trainPoint, int trainLabel) const {
-		using std::cout;
 		GoodBadMatch match;
 		TDerivedModel const & self = static_cast<TDerivedModel const &>(*this);
 		assert( match.matchBad <0 && match.matchGood <0 );

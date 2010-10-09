@@ -178,8 +178,13 @@ void LvqDataset::shufflePoints(boost::mt19937& rng) {
 
 static void EIGEN_STRONG_INLINE prefetch(void const * start,int lines) {
 	for(int i=0;i<lines;i++)
-		_mm_prefetch( (const char*)start + 64*i, _MM_HINT_NTA);//_MM_HINT_T0
+		_mm_prefetch( (const char*)start + 64*i, _MM_HINT_T0);//_MM_HINT_T0 or _MM_HINT_NTA
 }
+static void EIGEN_STRONG_INLINE prefetchStream(void const * start,int lines) {
+	for(int i=0;i<lines;i++)
+		_mm_prefetch( (const char*)start + 64*i, _MM_HINT_NTA);//_MM_HINT_T0 or _MM_HINT_NTA
+}
+
 
 void LvqDataset::TrainModel(int epochs, LvqModel * model, std::vector<int> const  & trainingSubset, LvqDataset const * testData, std::vector<int> const  & testSubset) const {
 	int dims = static_cast<int>(points.rows());
@@ -189,8 +194,9 @@ void LvqDataset::TrainModel(int epochs, LvqModel * model, std::vector<int> const
 	for(int epoch=0; epoch<epochs; ++epoch) {
 		double pointCostSum=0;
 		int errs=0;
+		prefetchStream(&(model->RngIter()), (sizeof(boost::mt19937) +63)/ 64);
 		vector<int> shuffledOrder(trainingSubset);
-		shuffle(model->RngIter(), shuffledOrder.begin(), shuffledOrder.end());
+		shuffle(model->RngIter(), shuffledOrder, shuffledOrder.size());
 		BenchTimer t;
 		t.start();
 		for(int tI=0; tI<(int)shuffledOrder.size(); ++tI) {

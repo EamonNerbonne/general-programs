@@ -2,18 +2,22 @@
 #include <vector>
 #include <boost/random/mersenne_twister.hpp>
 #include <Eigen/Core>
+#include <boost/scoped_ptr.hpp>
 
 class LvqModelRuntimeSettings
 {
 public:
 	bool TrackProjectionQuality;
-
 	int ClassCount;
-	boost::mt19937 RngIter;
+	boost::scoped_ptr<boost::mt19937> RngIter;
 	LvqModelRuntimeSettings(int classCount, boost::mt19937 & rngIter) 
 		: TrackProjectionQuality(false)
 		, ClassCount(classCount)
-		, RngIter(rngIter) { }
+		, RngIter(new boost::mt19937(rngIter)) { }
+	LvqModelRuntimeSettings(LvqModelRuntimeSettings const & toCopy) 
+		: TrackProjectionQuality(toCopy.TrackProjectionQuality)
+		, ClassCount(toCopy.ClassCount)
+		, RngIter(new boost::mt19937(*toCopy.RngIter)) { }
 };
 
 class LvqModelSettings

@@ -9,11 +9,11 @@
 
 using namespace Eigen;
 class LvqDataset;
+
 class LvqModel
 {
-	
-	unsigned long long trainIter;
-	unsigned long long totalIter;
+	double trainIter;
+	double totalIter;
 	double totalElapsed;
 	
 	
@@ -21,12 +21,11 @@ class LvqModel
 protected:
 	LvqModelRuntimeSettings settings;
 	double iterationScaleFactor;//TODO:make private;
-	inline double stepLearningRate() {
-		double scaledIter = trainIter*iterationScaleFactor + 1.0;
+	double stepLearningRate() {
+		double scaledIter = trainIter*iterationScaleFactor+1.0;
 		++trainIter;
-		return LVQ_LR0 /sqrt(scaledIter*sqrt(scaledIter)); // significantly faster than exp(-0.75*log(scaledIter)) due to fewer cache misses;  
+		return LVQ_LR0 / sqrt(scaledIter*sqrt(scaledIter)); // significantly faster than exp(-0.75*log(scaledIter)) 
 	}
-	
 	//subclasses must append the stats they intend to collect and call their base-classes AppendTrainingStatNames
 	virtual void AppendTrainingStatNames(std::vector<std::wstring> & retval) const;
 	//subclasses must append the stats and the base-classe implementation in the same order as they did for AppendTrainingStatNames
@@ -34,7 +33,7 @@ protected:
 	LvqModel(LvqModelSettings & initSettings);
 
 public:
-	boost::mt19937 & RngIter() {return settings.RngIter;}//TODO:remove.
+	boost::mt19937 & RngIter() {return *settings.RngIter;}//TODO:remove.
 	void resetLearningRate() {trainIter=0;}
 	std::vector<Eigen::VectorXd> const & TrainingStats() {return trainingStats;}
 	std::vector<std::wstring> TrainingStatNames();
