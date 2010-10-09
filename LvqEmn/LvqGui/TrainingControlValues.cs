@@ -102,7 +102,6 @@ namespace LvqGui {
 		bool isAnimating;
 		public void DoAnimatedTraining() {
 			if (isAnimating) return;
-			double totalTime = 0.0;
 			int epochsTrained = 0;
 			var selectedDataset = SelectedDataset;
 			var selectedModel = SelectedLvqModel;
@@ -115,9 +114,8 @@ namespace LvqGui {
 						break;
 					}
 
-					lock (selectedModel.UpdateSyncObject) //not needed for thread safety, just for accurate timing
-						using (new DTimer(ts => { totalTime += ts.TotalSeconds; epochsTrained += epochsToTrainFor; }))
-							selectedModel.Train(epochsToDo: epochsToTrainFor, trainingSet: selectedDataset);
+					selectedModel.Train(epochsToDo: epochsToTrainFor, trainingSet: selectedDataset);
+					epochsTrained += epochsToTrainFor;
 					PotentialUpdate(selectedDataset, selectedModel);
 #if BENCHMARK
 					if (epochsTrained >= 100) owner.Dispatcher.BeginInvokeBackground(() => { Application.Current.Shutdown(); });
@@ -125,7 +123,6 @@ namespace LvqGui {
 				}
 			} finally {
 				isAnimating = false;
-				Console.WriteLine("Overall took {0}s per epoch for {1} epochs", totalTime / epochsTrained, epochsTrained);
 				PrintModelTimings(selectedModel);
 			}
 		}

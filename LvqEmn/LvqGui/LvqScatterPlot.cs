@@ -31,8 +31,7 @@ namespace LvqGui {
 
 			static StatPlot MakePlot(Dispatcher dispatcher, string dataLabel, string yunitLabel, bool isRight, Color color, int statIdx, int variant) {
 				//variant 0 is plain, 1 is upper, -1 is lower.
-				var statPlot = PlotData.Create(default(Point[]));
-				statPlot.PlotClass = PlotClass.Line;
+				var statPlot = PlotData.Create(default(Point[]), PlotClass.Line);
 				statPlot.DataLabel = dataLabel;
 				statPlot.RenderColor = color;
 				statPlot.XUnitLabel = "Training iterations";
@@ -96,8 +95,7 @@ namespace LvqGui {
 				}
 				win.ShowDialog(); //doesn't exit until window is closed - needed to sustain the message pump.
 				win.Dispatcher.InvokeShutdown();
-				Console.WriteLine("Exited " + title);
-			}) { IsBackground = true, Priority = ThreadPriority.BelowNormal };
+			}) { IsBackground = true };
 			winThread.SetApartmentState(ApartmentState.STA);
 			winThread.Start();
 		}
@@ -153,11 +151,10 @@ namespace LvqGui {
 			plotControl.ShowGridLines = false;
 			plotControl.Title = "ScatterPlot: " + model.ModelLabel;
 
-			prototypePositionsPlot = PlotData.Create(default(Point[]));
-			prototypePositionsPlot.Visualizer = new VizPixelScatterGeom { OverridePointCountEstimate = 35, };
+			prototypePositionsPlot = PlotData.Create(new VizPixelScatterGeom { OverridePointCountEstimate = 35, });
 			classBoundaries = PlotData.Create(subModelIdx, UpdateClassBoundaries);
 			classPlots = Enumerable.Range(0, dataset.ClassCount).Select(i => {
-				var graphplot = PlotData.Create(default(Point[]));
+				var graphplot = PlotData.Create(default(Point[]), PlotClass.PointCloud);
 				((IVizPixelScatter)graphplot.Visualizer).CoverageRatio = 0.999;
 				graphplot.RenderColor = dataset.ClassColors[i];
 				return graphplot;
@@ -265,9 +262,9 @@ namespace LvqGui {
 						else
 							Thread.Sleep(1);
 					}
-						
+
 					for (int i = 0; i < startedCount; i++)
-							sem.Wait();
+						sem.Wait();
 					if (UpdateIsFree()) return;
 				}
 			}

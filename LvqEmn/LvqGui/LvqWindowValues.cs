@@ -66,6 +66,10 @@ namespace LvqGui {
 			if (e.Action == NotifyCollectionChangedAction.Add && e.NewItems.Count > 0) {
 				LastDataset = e.NewItems.Cast<LvqDatasetCli>().First();
 				CreateLvqModelValues.ForDataset = LastDataset;
+				foreach (LvqDatasetCli dataset in e.NewItems) {
+					var errorRateAndVar = dataset.GetPcaNnErrorRate();
+					Console.WriteLine("NN error rate under PCA: {0} ~ {1}", errorRateAndVar.Item1, Math.Sqrt(errorRateAndVar.Item2));
+				}
 			}
 		}
 	}
