@@ -29,5 +29,6 @@ namespace EmnExtensions.Wpf.Plot.VizEngines {
 		}
 
 		public double CoverageRatio { get { return engine.CoverageRatio; } set { engine.CoverageRatio = value; } }
+		public double CoverageGradient { get { return engine.CoverageGradient; } set { engine.CoverageGradient = value; } }
 	}
 }

@@ -5,10 +5,10 @@ using System.Text;
 using System.Windows;
 using System.Windows.Media;
 
-namespace EmnExtensions.Wpf.Plot
-{
-	public interface IPlotViewOnly
-	{
+namespace EmnExtensions.Wpf.Plot {
+	public enum PlotClass { Auto, PointCloud, Line }
+
+	public interface IPlot {
 		string XUnitLabel { get; }
 		string YUnitLabel { get; }
 		string DataLabel { get; }
@@ -16,43 +16,33 @@ namespace EmnExtensions.Wpf.Plot
 		object Tag { get; }
 		int ZIndex { get; }
 
-		event Action<IPlotViewOnly, GraphChange> Changed;
+		event Action<IPlot, GraphChange> Changed;
 		TickedAxisLocation AxisBindings { get; set; }
 		IPlotWithViz PlotVisualizer { get; }
-	}
-	public enum PlotClass { Auto, PointCloud, Line }
 
-	public interface IPlot : IPlotViewOnly
-	{
-		Rect? OverrideBounds { get; }
-		Rect? MinimalBounds { get; }
-		PlotClass PlotClass { get; }
-		Color? RenderColor { get; }
-		double? RenderThickness { get; }
 		void TriggerChange(GraphChange changeType);
-	}
 
-	public interface IPlotWithSettings : IPlot
-	{
-		new string XUnitLabel { get; set; }
-		new string YUnitLabel { get; set; }
-		new string DataLabel { get; set; }
-		new Rect? OverrideBounds { get; set; }
-		new Rect? MinimalBounds { get; set; }
-		new PlotClass PlotClass { get; set; }
-		new object Tag { get; set; }
-		new Color? RenderColor { get; set; }
-		new double? RenderThickness { get; set; }
+		Rect? OverrideBounds { get;  }
+		Rect? MinimalBounds { get;  }
+        
+		Color? RenderColor { get; set; }
+		double? RenderThickness { get; }
 		bool VizSupportsColor { get; }
 		bool VizSupportsThickness { get; }
-		new int ZIndex { get; set;}
 		void TriggerDataChanged();
 	}
 
-	public interface IPlotWriteable<T> : IPlotWithSettings
-	{
-		IVizEngine<T> Visualizer { get; set; }
-		Func<T, PlotClass, IVizEngine<T>> ChooseVisualizer { get; set; }
-		T Data { get; set; }
+	public interface IPlotWriteable<in T> : IPlot {
+		new string XUnitLabel { get; set; }
+		new string YUnitLabel { get; set; }
+		new string DataLabel { get; set; }
+		new object Tag { get; set; }
+		new int ZIndex { get; set; }
+		new Rect? OverrideBounds { get; set; }
+		new Rect? MinimalBounds { get; set; }
+		new double? RenderThickness { get; set; }
+
+		IVizEngine<T> Visualizer { get;  }
+		T Data { set; }
 	}
 }

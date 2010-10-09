@@ -26,8 +26,8 @@ using EmnExtensions.MathHelpers;
 namespace EmnExtensions.Wpf.Plot {
 	public partial class PlotControl : UserControl {
 		bool needRedrawGraphs = false;
-		ObservableCollection<IPlotViewOnly> graphs = new ObservableCollection<IPlotViewOnly>();
-		public ObservableCollection<IPlotViewOnly> Graphs { get { return graphs; } }
+		ObservableCollection<IPlot> graphs = new ObservableCollection<IPlot>();
+		public ObservableCollection<IPlot> Graphs { get { return graphs; } }
 		DrawingBrush bgBrush;
 		static object syncType = new object();
 		public PlotControl() {
@@ -73,17 +73,17 @@ namespace EmnExtensions.Wpf.Plot {
 		public static readonly DependencyProperty TitleProperty =
 			DependencyProperty.Register("Title", typeof(string), typeof(PlotControl), new UIPropertyMetadata(null));
 
-		
 
-		void RegisterChanged(IEnumerable<IPlotViewOnly> newGraphs) {
-			foreach (IPlotViewOnly newgraph in newGraphs)
-				newgraph.Changed += new Action<IPlotViewOnly, GraphChange>(graphChanged);
+
+		void RegisterChanged(IEnumerable<IPlot> newGraphs) {
+			foreach (IPlot newgraph in newGraphs)
+				newgraph.Changed += new Action<IPlot, GraphChange>(graphChanged);
 		}
 
 		public void AutoPickColors(MersenneTwister rnd=null) {
 			var ColoredPlots = (
 									from graph in Graphs
-									let plotWithSettings = graph as IPlotWithSettings
+									let plotWithSettings = graph as IPlot
 									where plotWithSettings != null && plotWithSettings.VizSupportsColor
 									select plotWithSettings
 							   ).ToArray();
@@ -93,16 +93,16 @@ namespace EmnExtensions.Wpf.Plot {
 			}
 		}
 
-		void UnregisterChanged(IEnumerable<IPlotViewOnly> oldGraphs) {
-			foreach (IPlotViewOnly oldgraph in oldGraphs)
-				oldgraph.Changed -= new Action<IPlotViewOnly, GraphChange>(graphChanged);
+		void UnregisterChanged(IEnumerable<IPlot> oldGraphs) {
+			foreach (IPlot oldgraph in oldGraphs)
+				oldgraph.Changed -= new Action<IPlot, GraphChange>(graphChanged);
 		}
 
 		void graphs_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e) {
 			if (e.OldItems != null)
-				UnregisterChanged(e.OldItems.Cast<IPlotViewOnly>());
+				UnregisterChanged(e.OldItems.Cast<IPlot>());
 			if (e.NewItems != null)
-				RegisterChanged(e.NewItems.Cast<IPlotViewOnly>());
+				RegisterChanged(e.NewItems.Cast<IPlot>());
 			//RecomputeAutoAxis();
 			RequireRedisplay();
 		}
@@ -126,7 +126,7 @@ namespace EmnExtensions.Wpf.Plot {
 			}
 		}
 
-		void graphChanged(IPlotViewOnly graph, GraphChange graphChange) {
+		void graphChanged(IPlot graph, GraphChange graphChange) {
 			if (graphChange == GraphChange.Drawing) {
 				needRedrawGraphs = true;
 				InvalidateVisual();
@@ -158,7 +158,7 @@ namespace EmnExtensions.Wpf.Plot {
 		}
 		private static DimensionBounds ToDimBounds(Rect bounds, bool isHorizontal) { return isHorizontal ? DimensionBounds.FromRectX(bounds) : DimensionBounds.FromRectY(bounds); }
 		private static DimensionMargins ToDimMargins(Thickness margins, bool isHorizontal) { return isHorizontal ? DimensionMargins.FromThicknessX(margins) : DimensionMargins.FromThicknessY(margins); }
-		private static TickedAxisLocation ChooseProjection(IPlotViewOnly graph) { return ProjectionCorners.FirstOrDefault(corner => (graph.AxisBindings & corner) == corner); }
+		private static TickedAxisLocation ChooseProjection(IPlot graph) { return ProjectionCorners.FirstOrDefault(corner => (graph.AxisBindings & corner) == corner); }
 		#endregion
 
 		private void RecomputeBounds() {

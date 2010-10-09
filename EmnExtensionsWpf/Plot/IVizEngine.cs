@@ -20,5 +20,4 @@ namespace EmnExtensions.Wpf.Plot
 		bool SupportsColor { get; }
 		Drawing SampleDrawing { get; }
 	}
-
 }

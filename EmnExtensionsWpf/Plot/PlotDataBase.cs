@@ -6,12 +6,10 @@ using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 
-namespace EmnExtensions.Wpf.Plot
-{
-	class PlotDataImplementation<T> : IPlotWriteable<T>
-	{
+namespace EmnExtensions.Wpf.Plot {
+	class PlotDataImplementation<T> : IPlotWriteable<T> {
 		public static IVizEngine<T> DefaultChooser(T data, PlotClass plotClass) { return (IVizEngine<T>)new VizEngines.VizNone(); }
-		public event Action<IPlotViewOnly, GraphChange> Changed;
+		public event Action<IPlot, GraphChange> Changed;
 		internal protected void TriggerChange(GraphChange changeType) { if (Changed != null) Changed(this, changeType); }
 		void IPlot.TriggerChange(GraphChange changeType) { TriggerChange(changeType); }
 
@@ -31,13 +29,10 @@ namespace EmnExtensions.Wpf.Plot
 
 		public object Tag { get; set; }
 
-		PlotClass m_PlotClass;
-		public PlotClass PlotClass { get { return m_PlotClass; } set { if (m_PlotClass != value) { m_PlotClass = value; vizEngine = null; TriggerChange(GraphChange.Drawing); } } }
-
 		Color? m_PrimaryColor;
 		public Color? RenderColor { get { return m_PrimaryColor; } set { m_PrimaryColor = value; if (vizEngine != null) vizEngine.RenderOptionsChanged(); } }
 
-		int  zIndex;
+		int zIndex;
 		public int ZIndex { get { return zIndex; } set { zIndex = value; TriggerChange(GraphChange.Drawing); } }
 
 		public Drawing SampleDrawing { get { return Visualizer.SampleDrawing; } }
@@ -45,51 +40,39 @@ namespace EmnExtensions.Wpf.Plot
 		double? m_Thickness;
 		public double? RenderThickness { get { return m_Thickness; } set { m_Thickness = value; if (vizEngine != null) vizEngine.RenderOptionsChanged(); } }
 
-		IVizEngine<T> vizEngine;
-		public IVizEngine<T> Visualizer
-		{
-			get
-			{
-				if (vizEngine == null)
-					Visualizer = ChooseVisualizer(Data, PlotClass);
-				return vizEngine;
-			}
-			set { vizEngine = value; vizEngine.Owner = this; vizEngine.DataChanged(Data); TriggerChange(GraphChange.Drawing); }
-		}
-		IPlotWithViz IPlotViewOnly.PlotVisualizer { get { return PlotViz.Wrap(this, Data, Visualizer); } }
+		readonly IVizEngine<T> vizEngine;
+		public IVizEngine<T> Visualizer { get { return vizEngine; } }
+
+		IPlotWithViz IPlot.PlotVisualizer { get { return PlotViz.Wrap(this, Data, Visualizer); } }
 
 		/// <summary>
 		/// Called to construct a visualizer whenever one is necessary an none currently is set (i.e. when needing to measure or render the graph and Visualizer == null).
 		/// This should return a value
 		/// </summary>
-		public Func<T, PlotClass, IVizEngine<T>> ChooseVisualizer { get; set; }
+		public Func<T, PlotClass, IVizEngine<T>> ChooseVisualizer { get; private set; }
 
 		T m_Data;
 		public T Data { get { return m_Data; } set { m_Data = value; TriggerDataChanged(); TriggerChange(GraphChange.Drawing); } } //TODO: workaround for graphchange.drawing...
 		public void TriggerDataChanged() { if (vizEngine != null) vizEngine.DataChanged(Data); }
 
-		public PlotDataImplementation(T data = default(T)) { ChooseVisualizer = DefaultChooser; Data = data; }
+		public PlotDataImplementation(IVizEngine<T> vizualizer, T data = default(T)) { vizEngine = vizualizer; Data = data; }
 		public bool VizSupportsColor { get { return Visualizer.SupportsColor; } }
 		public bool VizSupportsThickness { get { return Visualizer.SupportsThickness; } }
 	}
 
-	public static class PlotData
-	{
-		public static IVizEngine<Point[]> PointArrayVisualizers(Point[] data, PlotClass plotClass)
-		{
-			if (plotClass == PlotClass.Line)
-				return new VizEngines.VizLineSegments();
-			else
-				return new VizEngines.VizPixelScatterSmart();
+	public static class PlotData {
+		public static IPlotWriteable<Point[]> Create(Point[] Data, PlotClass plotClass) {
+			return new PlotDataImplementation<Point[]>(plotClass == PlotClass.Line ? (IVizEngine<Point[]>)new VizEngines.VizLineSegments() : new VizEngines.VizPixelScatterSmart(), Data);
 		}
 
-		public static IPlotWriteable<Point[]> Create(Point[] Data) { return new PlotDataImplementation<Point[]>(Data) { ChooseVisualizer = PointArrayVisualizers }; }
-
-		public static IPlotWriteable<T> Create<T>(T Data, Action<WriteableBitmap, Matrix, int, int, T> displayFunc, Func<T, Rect> boundsFunc = null)
-		{
+		public static IPlotWriteable<T> Create<T>(T Data, Action<WriteableBitmap, Matrix, int, int, T> displayFunc, Func<T, Rect> boundsFunc = null) {
 			var visualizer = new VizEngines.VizDelegateBitmap<T> { UpdateBitmapDelegate = displayFunc };
 			if (boundsFunc != null) visualizer.ComputeBounds = boundsFunc;
-			return new PlotDataImplementation<T>(Data) { Visualizer = visualizer };
+			return new PlotDataImplementation<T>(visualizer, Data);
+		}
+
+		public static IPlotWriteable<T> Create<T>(IVizEngine<T> viz) {
+			return new PlotDataImplementation<T>(viz);
 		}
 	}
 }

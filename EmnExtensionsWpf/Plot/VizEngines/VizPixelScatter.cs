@@ -11,6 +11,7 @@ using System.IO;
 namespace EmnExtensions.Wpf.Plot.VizEngines {
 	public interface IVizPixelScatter : IVizEngine<Point[]> {
 		double CoverageRatio { get; set; }
+		double CoverageGradient { get; set; }
 	}
 	public static class VizPixelScatterHelpers {
 		public const double SquareSidePerThickness = Math.PI / 4.0;
