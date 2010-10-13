@@ -2,10 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace EmnExtensions
-{
-	public static class F
-	{
+namespace EmnExtensions {
+	public static class F {
 
 		public static IEnumerable<T> EmptyIfNull<T>(this IEnumerable<T> enumerable) { return enumerable ?? Enumerable.Empty<T>(); }
 
@@ -49,6 +47,30 @@ namespace EmnExtensions
 				return error(e);
 			}
 		}
+
+		//public struct Maybe<T> {
+		//    readonly T val;
+		//    readonly Exception e;
+		//    public bool HasValue { get { return e == null; } }
+		//    public T Value { get { if (!HasValue) throw new InvalidOperationException("Attempted to get a value with an error", e); else return val; } }
+		//    Maybe(T val, Exception e) { this.val = val; this.e = e; }
+		//    public static Maybe<T> FromException(Exception e) { return new Maybe<T>(default(T), e); }
+		//    public static Maybe<T> FromValue(T val) { return new Maybe<T>(val, null); }
+		//}
+
+		//public static Maybe<T> Try<T>(Func<T> f) {
+		//    try {
+		//        return Maybe<T>.FromValue(f());
+		//    } catch (Exception e) {
+		//        return Maybe<T>.FromException(e);
+		//    }
+		//}
+
+		//public static void Do(IEnumerable<string> lines) {
+		//    var lookup = lines.Select(line => line.Split('|')).ToLookup(line => line[0]);
+		//    lines.GroupBy(
+			
+		//}
 
 		public static string ToStringOrNull(this object value) {
 			return value == null ? null : value.ToString();

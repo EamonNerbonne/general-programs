@@ -30,7 +30,7 @@ namespace EmnExtensions.Wpf.Plot {
 		public object Tag { get; set; }
 
 		Color? m_PrimaryColor;
-		public Color? RenderColor { get { return m_PrimaryColor; } set { m_PrimaryColor = value; if (vizEngine != null) vizEngine.RenderOptionsChanged(); } }
+		public Color? RenderColor { get { return m_PrimaryColor; } set { m_PrimaryColor = value; vizEngine.RenderOptionsChanged(); } }
 
 		int zIndex;
 		public int ZIndex { get { return zIndex; } set { zIndex = value; TriggerChange(GraphChange.Drawing); } }
@@ -38,7 +38,7 @@ namespace EmnExtensions.Wpf.Plot {
 		public Drawing SampleDrawing { get { return Visualizer.SampleDrawing; } }
 
 		double? m_Thickness;
-		public double? RenderThickness { get { return m_Thickness; } set { m_Thickness = value; if (vizEngine != null) vizEngine.RenderOptionsChanged(); } }
+		public double? RenderThickness { get { return m_Thickness; } set { m_Thickness = value; vizEngine.RenderOptionsChanged(); } }
 
 		readonly IVizEngine<T> vizEngine;
 		public IVizEngine<T> Visualizer { get { return vizEngine; } }
@@ -53,9 +53,9 @@ namespace EmnExtensions.Wpf.Plot {
 
 		T m_Data;
 		public T Data { get { return m_Data; } set { m_Data = value; TriggerDataChanged(); TriggerChange(GraphChange.Drawing); } } //TODO: workaround for graphchange.drawing...
-		public void TriggerDataChanged() { if (vizEngine != null) vizEngine.DataChanged(Data); }
+		public void TriggerDataChanged() { vizEngine.DataChanged(Data); }
 
-		public PlotDataImplementation(IVizEngine<T> vizualizer, T data = default(T)) { vizEngine = vizualizer; Data = data; }
+		public PlotDataImplementation(IVizEngine<T> vizualizer, T data = default(T)) { vizualizer.Owner = this; vizEngine = vizualizer; Data = data; }
 		public bool VizSupportsColor { get { return Visualizer.SupportsColor; } }
 		public bool VizSupportsThickness { get { return Visualizer.SupportsThickness; } }
 	}
