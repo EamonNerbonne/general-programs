@@ -10,7 +10,9 @@
         <Style TargetType="{x:Type CheckBox}" BasedOn="{StaticResource PropBox}">
             <Setter Property="VerticalAlignment" Value="Center"/>
         </Style>
-        <Style TargetType="{x:Type Button}" BasedOn="{StaticResource PropButton}"/>
+        <Style TargetType="{x:Type Button}" BasedOn="{StaticResource PropButton}" >
+            <Setter Property="Control.Margin" Value="0,0,5,0"/>
+        </Style>
     </UserControl.Resources>
 
     <Grid>
@@ -23,6 +25,8 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
@@ -69,6 +73,9 @@
         
         <StackPanel Grid.Row="5" Grid.Column="0" Grid.ColumnSpan="2"   Orientation="Horizontal" HorizontalAlignment="Right">
             <Button Content="Reset LR" Click="ResetLearningRate"/>
+            <Button Content="Unload Model" Click="UnloadModel"/>
+            <Button Content="Unload Dataset" Click="UnloadDataset"/>
+            <Button Content="GC" Click="DoGC"/>
         </StackPanel>
 
     </Grid>

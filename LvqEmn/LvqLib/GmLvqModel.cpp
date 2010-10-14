@@ -118,3 +118,16 @@ void GmLvqModel::AppendOtherStats(std::vector<double> & stats, LvqDataset const 
 	stats.push_back(normSum / P.size());
 	stats.push_back(maxNorm);
 }
+
+
+void GmLvqModel::DoOptionalNormalization() {
+	 if(settings.NormalizeProjection) {
+		 if(settings.GloballyNormalize) {
+			 double overallNorm = std::accumulate(P.begin(), P.end(),0.0,[](double cur, MatrixXd const & mat)->double { return cur + projectionSquareNorm(mat); });
+			 double scale = 1.0/sqrt(overallNorm / P.size());
+			 for(int i=0;i<P.size();++i) P[i]*=scale;
+		 } else {
+			 for(int i=0;i<P.size();++i) normalizeProjection(P[i]);
+		 }
+	 }
+}

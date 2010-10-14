@@ -166,3 +166,18 @@ void G2mLvqModel::ClassBoundaryDiagram(double x0, double x1, double y0, double y
 		B_diff_x0_y.noalias() += B_yDelta;
 	}
 }
+
+
+void G2mLvqModel::DoOptionalNormalization() {
+	 if(settings.NormalizeProjection) 
+		 normalizeProjection(P);
+	 if(settings.NormalizeBoundaries) {
+		 if(settings.GloballyNormalize) {
+			 double overallNorm = std::accumulate(prototype.begin(), prototype.end(),0.0,[](double cur, G2mLvqPrototype const & proto)->double { return cur + projectionSquareNorm(proto.B); });
+			 double scale = 1.0/sqrt(overallNorm / prototype.size());
+			 for(int i=0;i<prototype.size();++i) prototype[i].B*=scale;
+		 } else {
+			 for(int i=0;i<prototype.size();++i) normalizeProjection(prototype[i].B);
+		 }
+	 }
+}

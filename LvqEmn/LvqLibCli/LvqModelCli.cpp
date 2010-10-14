@@ -20,6 +20,7 @@ namespace LvqLibCli {
 		, cachedTrainingStats(gcnew List<LvqTrainingStatCli>())
 	{ 
 		msclr::lock l2(mainSync);
+		trainingSet->LastModel = this;
 		#pragma omp parallel for
 		for(int i=0;i<model->Length;i++) {
 			WrappedModel^ m = GcPtr::Create(ConstructLvqModel(as_lvalue( modelSettings->ToNativeSettings(trainingSet, i))));

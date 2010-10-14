@@ -15,14 +15,14 @@ namespace LvqGui {
 		public LvqWindowValues Owner { get { return owner; } }
 
 		public event PropertyChangedEventHandler PropertyChanged;
-		public event Action<LvqDatasetCli, LvqModelCli,int> ModelSelected;
+		public event Action<LvqDatasetCli, LvqModelCli, int> ModelSelected;
 		public event Action<LvqDatasetCli, LvqModelCli> SelectedModelUpdatedInBackgroundThread;
 
 		private void _propertyChanged(string propertyName) { if (PropertyChanged != null) PropertyChanged(this, new PropertyChangedEventArgs(propertyName)); }
 
 		public LvqDatasetCli SelectedDataset {
 			get { return _SelectedDataset; }
-			set { if (!object.Equals(_SelectedDataset, value)) { _SelectedDataset = value; _propertyChanged("SelectedDataset"); _propertyChanged("MatchingLvqModels"); SelectedLvqModel = _SelectedDataset.LastModel; AnimateTraining = false; } }
+			set { if (!object.Equals(_SelectedDataset, value)) { _SelectedDataset = value; _propertyChanged("SelectedDataset"); _propertyChanged("MatchingLvqModels"); SelectedLvqModel = _SelectedDataset == null ? null : _SelectedDataset.LastModel; AnimateTraining = false; } }
 		}
 		private LvqDatasetCli _SelectedDataset;
 
@@ -36,7 +36,7 @@ namespace LvqGui {
 		private LvqModelCli _SelectedLvqModel;
 
 		//ObservableCollection<LvqModelCli>
-		public IEnumerable<int> ModelIndexes { get { return Enumerable.Range(0,SelectedLvqModel == null?0:SelectedLvqModel.ModelCount) ; } }
+		public IEnumerable<int> ModelIndexes { get { return Enumerable.Range(0, SelectedLvqModel == null ? 0 : SelectedLvqModel.ModelCount); } }
 
 		public int SubModelIndex {
 			get { return _SubModelIndex; }
@@ -147,6 +147,22 @@ namespace LvqGui {
 		public void ResetLearningRate() {
 			var selectedModel = SelectedLvqModel;
 			if (selectedModel != null) selectedModel.ResetLearningRate();
+		}
+
+		internal void UnloadModel() {
+			var selectedModel = SelectedLvqModel;
+			if (selectedModel != null) {
+				SelectedLvqModel = null;
+				Owner.LvqModels.Remove(selectedModel);
+			}
+		}
+
+		internal void UnloadDataset() {
+			var selectedDataset = SelectedDataset;
+			if (selectedDataset != null) {
+				SelectedDataset = null;
+				Owner.Datasets.Remove(selectedDataset);
+			}
 		}
 	}
 }

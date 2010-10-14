@@ -133,3 +133,7 @@ void GsmLvqModel::ClassBoundaryDiagram(double x0, double x1, double y0, double y
 	}
 }
 
+void GsmLvqModel::DoOptionalNormalization() {
+	 if(settings.NormalizeProjection) 
+		 normalizeProjection(P);
+}

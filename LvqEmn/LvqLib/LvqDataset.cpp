@@ -210,6 +210,7 @@ void LvqDataset::TrainModel(int epochs, LvqModel * model, std::vector<int> const
 		}
 		t.stop();
 		model->AddTrainingStat(this,trainingSubset,pointCostSum/double(shuffledOrder.size()),errs/double(shuffledOrder.size()), testData,testSubset, (int)(1*shuffledOrder.size()), t.value(CPU_TIMER));
+		model->DoOptionalNormalization();
 	}
 }
 

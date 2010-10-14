@@ -112,3 +112,9 @@ void shuffle(boost::mt19937 & randGen, arrayT arr, size_t size){
 
 
 Eigen::MatrixXd shuffleMatrixCols(boost::mt19937 & randGen, Eigen::MatrixXd const & src);
+
+#ifdef _MSC_VER
+#define FOREACH(RANGEVAR_DECL, ITERATOR) for each(RANGEVAR_DECL in ITERATOR)
+#else
+#define FOREACH(RANGEVAR_DECL, ITERATOR) for(RANGEVAR_DECL : ITERATOR)
+#endif

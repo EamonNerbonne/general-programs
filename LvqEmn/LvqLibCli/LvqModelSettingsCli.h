@@ -18,6 +18,7 @@ namespace LvqLibCli {
 		bool RandomInitialProjection;
 		bool RandomInitialBorders;
 		bool TrackProjectionQuality;
+		bool NormalizeProjection, NormalizeBoundaries, GloballyNormalize;
 		//fields set by native constructor:
 		LvqModelType ModelType;
 		unsigned RngParamsSeed, RngIterSeed;

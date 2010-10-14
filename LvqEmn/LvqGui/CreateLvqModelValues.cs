@@ -56,6 +56,36 @@ namespace LvqGui {
 		}
 		private bool _TrackProjectionQuality;
 
+		public bool NormalizeProjection {
+			get { return _NormalizeProjection; }
+			set { if (!_NormalizeProjection.Equals(value)) { _NormalizeProjection = value; _propertyChanged("NormalizeProjection"); } }
+		}
+		private bool _NormalizeProjection;
+
+		public bool NormalizeBoundaries {
+			get { return _NormalizeBoundaries; }
+			set { if (!_NormalizeBoundaries.Equals(value)) { _NormalizeBoundaries = value; _propertyChanged("NormalizeBoundaries"); } }
+		}
+		private bool _NormalizeBoundaries;
+
+		public bool GloballyNormalize {
+			get { return _GloballyNormalize; }
+			set { if (!_GloballyNormalize.Equals(value)) { _GloballyNormalize = value; _propertyChanged("GloballyNormalize"); } }
+		}
+		private bool _GloballyNormalize;
+
+		public bool RandomInitialProjection {
+			get { return _RandomInitialProjection; }
+			set { if (!_RandomInitialProjection.Equals(value)) { _RandomInitialProjection = value; _propertyChanged("RandomInitialProjection"); } }
+		}
+		private bool _RandomInitialProjection;
+
+		public bool RandomInitialBorders {
+			get { return _RandomInitialBorders; }
+			set { if (!_RandomInitialBorders.Equals(value)) { _RandomInitialBorders = value; _propertyChanged("RandomInitialBorders"); } }
+		}
+		private bool _RandomInitialBorders;
+
 		public uint Seed {
 			get { return _Seed; }
 			set { if (!object.Equals(_Seed, value)) { _Seed = value; _propertyChanged("Seed"); } }
@@ -101,6 +131,8 @@ namespace LvqGui {
 			_Dimensionality = 2;
 			_PrototypesPerClass = 1;
 			_ParallelModels = 10;
+			_RandomInitialProjection = true;
+			_GloballyNormalize = true;
 			this.ReseedBoth();
 		}
 
@@ -115,7 +147,10 @@ namespace LvqGui {
 					RngIterSeed = InstSeed,
 					PrototypesPerClass = PrototypesPerClass,
 					RngParamsSeed = this.Seed,
-					TrackProjectionQuality = TrackProjectionQuality
+					TrackProjectionQuality = TrackProjectionQuality,
+					NormalizeBoundaries = NormalizeBoundaries,
+					GloballyNormalize = GloballyNormalize,
+					NormalizeProjection = NormalizeProjection,
 				});
 		}
 

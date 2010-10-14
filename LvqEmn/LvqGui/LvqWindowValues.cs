@@ -30,11 +30,6 @@ namespace LvqGui {
 		public ObservableCollection<LvqDatasetCli> Datasets { get; private set; }
 		public ObservableCollection<LvqModelCli> LvqModels { get; private set; }
 
-		public LvqDatasetCli LastDataset {
-			get { return _LastDataset; }
-			set { if (!object.Equals(_LastDataset, value)) { _LastDataset = value; _propertyChanged("LastDataset"); } }
-		}
-		private LvqDatasetCli _LastDataset;
 		public readonly Dispatcher Dispatcher;
 
 		public LvqWindowValues(Dispatcher dispatcher) {
@@ -55,22 +50,36 @@ namespace LvqGui {
 		}
 
 		void LvqModels_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e) {
-			if (e.Action == NotifyCollectionChangedAction.Add && e.NewItems.Count > 0) {
+			if (e.NewItems != null && e.NewItems.Count > 0) {
 				var newModel = e.NewItems.Cast<LvqModelCli>().First();
 				TrainingControlValues.SelectedDataset = newModel.InitSet;
 				TrainingControlValues.SelectedLvqModel = newModel;
 			}
+			if (e.OldItems != null && e.OldItems.Contains(TrainingControlValues.SelectedLvqModel)) {
+				var newModel = LvqModels.LastOrDefault();
+				if (newModel == null) {
+					TrainingControlValues.SelectedLvqModel = null;
+				} else {
+					TrainingControlValues.SelectedDataset = newModel.InitSet;
+					TrainingControlValues.SelectedLvqModel = newModel;
+				}
+			}
 		}
 
 		void Datasets_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e) {
-			if (e.Action == NotifyCollectionChangedAction.Add && e.NewItems.Count > 0) {
-				LastDataset = e.NewItems.Cast<LvqDatasetCli>().First();
-				CreateLvqModelValues.ForDataset = LastDataset;
+			if (e.NewItems != null)
 				foreach (LvqDatasetCli dataset in e.NewItems) {
+					CreateLvqModelValues.ForDataset = dataset;
 					var errorRateAndVar = dataset.GetPcaNnErrorRate();
 					Console.WriteLine("NN error rate under PCA: {0} ~ {1}", errorRateAndVar.Item1, Math.Sqrt(errorRateAndVar.Item2));
 				}
+			if (e.OldItems != null) {
+				if (e.OldItems.Contains(CreateLvqModelValues.ForDataset))
+					CreateLvqModelValues.ForDataset = Datasets.LastOrDefault();
+				foreach (var model in LvqModels.Where(model => e.OldItems.Contains(model.InitSet)).ToArray())
+					LvqModels.Remove(model);
 			}
+
 		}
 	}
 }

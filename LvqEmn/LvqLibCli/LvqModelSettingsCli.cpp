@@ -20,6 +20,11 @@ namespace LvqLibCli {
 		initSettings.RandomInitialProjection = RandomInitialProjection;
 		initSettings.RandomInitialBorders = RandomInitialBorders;
 		initSettings.RuntimeSettings.TrackProjectionQuality = TrackProjectionQuality;
+		
+		initSettings.RuntimeSettings.NormalizeProjection = NormalizeProjection;
+		initSettings.RuntimeSettings.NormalizeBoundaries = NormalizeBoundaries;
+		initSettings.RuntimeSettings.GloballyNormalize = GloballyNormalize;
+
 		return initSettings;
 	}
 }

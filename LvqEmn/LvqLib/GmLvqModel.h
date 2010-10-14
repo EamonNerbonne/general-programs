@@ -39,6 +39,7 @@ public:
 
 	GmLvqModel(LvqModelSettings & initSettings);
 	virtual GoodBadMatch ComputeMatches(VectorXd const & unknownPoint, int pointLabel) const;
+	virtual void DoOptionalNormalization();
 	virtual int classify(VectorXd const & unknownPoint) const; 
 	virtual GoodBadMatch learnFrom(VectorXd const & newPoint, int classLabel);
 	virtual GmLvqModel* clone() const { return new GmLvqModel(*this); }

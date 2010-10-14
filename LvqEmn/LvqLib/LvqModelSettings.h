@@ -7,15 +7,21 @@
 class LvqModelRuntimeSettings
 {
 public:
-	bool TrackProjectionQuality;
+	bool TrackProjectionQuality,NormalizeProjection,NormalizeBoundaries,GloballyNormalize;
 	int ClassCount;
 	boost::scoped_ptr<boost::mt19937> RngIter;
 	LvqModelRuntimeSettings(int classCount, boost::mt19937 & rngIter) 
 		: TrackProjectionQuality(false)
+		, NormalizeProjection(false)
+		, NormalizeBoundaries(false)
+		, GloballyNormalize(true)
 		, ClassCount(classCount)
 		, RngIter(new boost::mt19937(rngIter)) { }
 	LvqModelRuntimeSettings(LvqModelRuntimeSettings const & toCopy) 
 		: TrackProjectionQuality(toCopy.TrackProjectionQuality)
+		, NormalizeProjection(toCopy.NormalizeProjection)
+		, NormalizeBoundaries(toCopy.NormalizeBoundaries)
+		, GloballyNormalize(toCopy.GloballyNormalize)
 		, ClassCount(toCopy.ClassCount)
 		, RngIter(new boost::mt19937(*toCopy.RngIter)) { }
 };
