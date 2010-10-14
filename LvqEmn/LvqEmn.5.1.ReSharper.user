@@ -1,0 +1,34 @@
+<Configuration>
+  <SettingsComponent>
+    <string />
+    <integer />
+    <boolean>
+      <setting name="SolutionAnalysisEnabled">False</setting>
+    </boolean>
+  </SettingsComponent>
+  <RecentFiles>
+    <RecentFiles>
+      <File id="F50CC07F-68F1-455A-BE8D-A64D827F1A5C/d:Plot/d:VizEngines/f:VizPixelScatter.cs" caret="4574" fromTop="31" />
+      <File id="F50CC07F-68F1-455A-BE8D-A64D827F1A5C/d:Plot/d:VizEngines/f:VizPixelScatterGeom.cs" caret="1366" fromTop="32" />
+      <File id="41165ACC-4466-4C36-8397-8348DDF766E8/f:TestCovariance.cpp" caret="483" fromTop="20" />
+    </RecentFiles>
+    <RecentEdits>
+      <File id="F50CC07F-68F1-455A-BE8D-A64D827F1A5C/d:Plot/d:VizEngines/f:VizPixelScatter.cs" caret="2276" fromTop="20" />
+      <File id="F50CC07F-68F1-455A-BE8D-A64D827F1A5C/d:Plot/d:VizEngines/f:VizPixelScatter.cs" caret="4574" fromTop="31" />
+      <File id="F50CC07F-68F1-455A-BE8D-A64D827F1A5C/d:Plot/d:VizEngines/f:VizPixelScatterGeom.cs" caret="1016" fromTop="21" />
+      <File id="F50CC07F-68F1-455A-BE8D-A64D827F1A5C/d:Plot/d:VizEngines/f:VizPixelScatterGeom.cs" caret="1016" fromTop="26" />
+      <File id="F50CC07F-68F1-455A-BE8D-A64D827F1A5C/d:Plot/d:VizEngines/f:VizPixelScatterGeom.cs" caret="1016" fromTop="23" />
+      <File id="F50CC07F-68F1-455A-BE8D-A64D827F1A5C/d:Plot/d:VizEngines/f:VizPixelScatterGeom.cs" caret="2348" fromTop="62" />
+    </RecentEdits>
+  </RecentFiles>
+  <NAntValidationSettings>
+    <NAntPath value="" />
+  </NAntValidationSettings>
+  <UnitTestRunner>
+    <Providers />
+  </UnitTestRunner>
+  <UnitTestRunnerNUnit>
+    <NUnitInstallDir>C:\Program Files (x86)\NUnit 2.5.3\bin\net-2.0\</NUnitInstallDir>
+    <UseAddins>Never</UseAddins>
+  </UnitTestRunnerNUnit>
+</Configuration>
