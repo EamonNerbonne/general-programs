@@ -10,7 +10,7 @@ using System.Windows.Media;
 
 namespace EmnExtensions.Wpf.Plot.VizEngines {
 	public class VizPixelScatterGeom : PlotVizTransform<Point[], StreamGeometry>, IVizPixelScatter {
-		VizGeometry impl = new VizGeometry { AutosizeBounds = false };
+		readonly VizGeometry impl = new VizGeometry { AutosizeBounds = false };
 		Point[] currentData;
 		StreamGeometry transformedData;
 		protected override StreamGeometry TransformedData(Point[] inputData) { return transformedData; }
@@ -26,12 +26,14 @@ namespace EmnExtensions.Wpf.Plot.VizEngines {
 		private void SetPenSize(int pointCount) {
 			double thickness = VizPixelScatterHelpers.PointCountToThickness(pointCount);
 
-			var linecap = PenLineCap.Round;
 #if PERMIT_SQUARE_CAPS
+			var linecap = PenLineCap.Round;
 			if (thickness <= 3) { 
 				linecap = PenLineCap.Square;
 				thickness *= VizPixelScatterHelpers.SquareSidePerThickness;
 			}
+#else
+			const PenLineCap linecap = PenLineCap.Round;
 #endif
 			Pen penCopy = impl.Pen.CloneCurrentValue();
 			penCopy.EndLineCap = linecap;

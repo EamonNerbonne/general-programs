@@ -49,8 +49,8 @@ namespace EmnExtensions.Wpf.Plot.VizEngines {
 				cutoffEachSideX == 0 && cutoffEachSideY == 0 ? completeBounds :
 				ComputeInnerBoundsByCutoff(points, cutoffEachSideX, cutoffEachSideY, coverageGrad);
 		}
-		static int hitcount = 0;
-		static DateTime start = DateTime.Now;
+		static int hitcount;
+		static readonly DateTime start = DateTime.Now;
 		static VizPixelScatterHelpers() {
 			AppDomain.CurrentDomain.ProcessExit += (o, e) => {
 				File.AppendAllText(@"C:\tmplog.log", "HitCount: " + hitcount + ", time:" + (DateTime.Now - start) + "\n");
@@ -101,9 +101,9 @@ namespace EmnExtensions.Wpf.Plot.VizEngines {
 			if (xLen == 0.0) return new DimensionBounds { Start = data[0], End = data[datalen - 1] };
 			int startCutoff = maxCutoff;
 			int endCutoff = maxCutoff;
-			while (startCutoff != 0 && (startCutoff >= datalen || requiredGradient * startCutoff / (double)datalen > (data[startCutoff] - data[0]) / xLen))
+			while (startCutoff != 0 && (startCutoff >= datalen || requiredGradient * startCutoff / datalen > (data[startCutoff] - data[0]) / xLen))
 				startCutoff--;
-			while (endCutoff != 0 && (endCutoff >= datalen - startCutoff || requiredGradient * endCutoff / (double)datalen > (data[datalen - 1] - data[datalen - 1 - endCutoff]) / xLen))
+			while (endCutoff != 0 && (endCutoff >= datalen - startCutoff || requiredGradient * endCutoff / datalen > (data[datalen - 1] - data[datalen - 1 - endCutoff]) / xLen))
 				endCutoff--;
 			return startCutoff < datalen - 1 - endCutoff
 			? new DimensionBounds { Start = data[startCutoff], End = data[datalen - 1 - endCutoff] }
