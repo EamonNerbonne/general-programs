@@ -76,13 +76,13 @@ namespace LvqGui {
 		List<Window> plotWindows = new List<Window>();
 		void MakeSubWin(string title, Action<PlotControl> bgThreadInit) {
 			plotsTodo++;
-			double width = Application.Current.MainWindow.Width * 0.5;
-			double height = Application.Current.MainWindow.Height * 0.8;
+			double size = Math.Sqrt(Application.Current.MainWindow.Width * Application.Current.MainWindow.Height * 0.5);
+			
 			var winThread = new Thread(() => {
 				PlotControl plot;
 				var win = new Window {
-					Width = width,
-					Height = height,
+					Width = size,
+					Height = size,
 					Title = title,
 					Content = plot = new PlotControl() {
 						ShowGridLines = true,

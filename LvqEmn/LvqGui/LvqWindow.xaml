@@ -4,20 +4,22 @@
        	xmlns:emnPlot="clr-namespace:EmnExtensions.Wpf.Plot;assembly=EmnExtensionsWpf"
        	xmlns:emn="clr-namespace:EmnExtensions.Wpf;assembly=EmnExtensionsWpf"
 
-        Title="LvqWindow" Height="600" Width="800" xmlns:my="clr-namespace:LvqGui">
+        Title="LvqWindow" Height="800" Width="500" xmlns:my="clr-namespace:LvqGui">
     <Grid >
 
         <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="1*" />
+
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="50*" />
-            <ColumnDefinition Width="Auto" />
-            <ColumnDefinition Width="50*" />
+            <ColumnDefinition Width="1*" />
         </Grid.ColumnDefinitions>
-
-        <GridSplitter Grid.Column="1" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Width="3"  ResizeDirection="Columns"/>
-        <TabControl Grid.Row="0" Grid.Column="2">
+        <Border  Grid.Row="1" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Height="3" Background="Black" />
+        
+        <!--<GridSplitter Grid.Row="1" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Height="3"  ResizeDirection="Rows"/>-->
+        <TabControl>
             <!--<TabItem Header="General Options">
                 <my:AppSettings DataContext="{Binding AppSettingsValues}" />
             </TabItem>-->
@@ -29,7 +31,7 @@
                     <TabItem Header="Load Data">
                         <my:LoadDataset DataContext="{Binding LoadDatasetValues}"/>
                     </TabItem>
-                    <TabItem Header="Gaussian Clouds">
+                    <TabItem Header="Gaussian Clouds" IsSelected="True">
                         <my:CreateDataset DataContext="{Binding CreateDatasetValues}"/>
                     </TabItem>
                     <TabItem Header="Star Dataset">
@@ -39,13 +41,13 @@
                 </StackPanel>
             </TabItem>
 
-            <TabItem Header="Create Lvq Model">
+            <TabItem Header="Create Lvq Model" Name="modelTab">
                 <my:CreateLvqModel DataContext="{Binding CreateLvqModelValues}"/>
             </TabItem>
-            <TabItem Header="Train Model">
+            <TabItem Header="Train Model" Name="trainingTab">
                 <my:TrainingControl DataContext="{Binding TrainingControlValues}"/> 
             </TabItem>
         </TabControl>
-        <emn:LogControl Name="logControl" ClaimStandardOut="True" ClaimStandardError="True"/>
+        <emn:LogControl Name="logControl" ClaimStandardOut="True" ClaimStandardError="True"  Grid.Row="2" Grid.Column="0"/>
     </Grid>
 </Window>

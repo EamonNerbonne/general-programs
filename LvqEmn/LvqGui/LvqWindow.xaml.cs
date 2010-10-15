@@ -20,7 +20,7 @@ using System.Windows.Threading;
 namespace LvqGui {
 	public partial class LvqWindow : Window {
 		public LvqWindow() {
-			var windowValues = new LvqWindowValues(this.Dispatcher);
+			var windowValues = new LvqWindowValues(this);
 			this.DataContext = windowValues;
 			InitializeComponent();
 			windowValues.TrainingControlValues.ModelSelected += TrainingControlValues_ModelSelected;

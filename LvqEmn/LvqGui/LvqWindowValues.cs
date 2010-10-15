@@ -31,10 +31,12 @@ namespace LvqGui {
 		public ObservableCollection<LvqModelCli> LvqModels { get; private set; }
 
 		public readonly Dispatcher Dispatcher;
+		public readonly LvqWindow win;
 
-		public LvqWindowValues(Dispatcher dispatcher) {
-			if (dispatcher == null) throw new ArgumentNullException("dispatcher");
-			this.Dispatcher = dispatcher;
+		public LvqWindowValues(LvqWindow win) {
+			if (win == null) throw new ArgumentNullException("win");
+			this.win = win;
+			this.Dispatcher = win.Dispatcher;
 			Datasets = new ObservableCollection<LvqDatasetCli>();
 			LvqModels = new ObservableCollection<LvqModelCli>();
 
@@ -54,6 +56,7 @@ namespace LvqGui {
 				var newModel = e.NewItems.Cast<LvqModelCli>().First();
 				TrainingControlValues.SelectedDataset = newModel.InitSet;
 				TrainingControlValues.SelectedLvqModel = newModel;
+				win.trainingTab.IsSelected = true;
 			}
 			if (e.OldItems != null && e.OldItems.Contains(TrainingControlValues.SelectedLvqModel)) {
 				var newModel = LvqModels.LastOrDefault();
@@ -67,12 +70,14 @@ namespace LvqGui {
 		}
 
 		void Datasets_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e) {
-			if (e.NewItems != null)
+			if (e.NewItems != null) {
 				foreach (LvqDatasetCli dataset in e.NewItems) {
 					CreateLvqModelValues.ForDataset = dataset;
 					var errorRateAndVar = dataset.GetPcaNnErrorRate();
 					Console.WriteLine("NN error rate under PCA: {0} ~ {1}", errorRateAndVar.Item1, Math.Sqrt(errorRateAndVar.Item2));
 				}
+				win.modelTab.IsSelected = true;
+			}
 			if (e.OldItems != null) {
 				if (e.OldItems.Contains(CreateLvqModelValues.ForDataset))
 					CreateLvqModelValues.ForDataset = Datasets.LastOrDefault();
