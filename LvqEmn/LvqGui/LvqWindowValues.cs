@@ -7,6 +7,8 @@ using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Windows.Threading;
+using System.Threading.Tasks;
+using System.Threading;
 
 namespace LvqGui {
 	public class LvqWindowValues : INotifyPropertyChanged {
@@ -71,10 +73,13 @@ namespace LvqGui {
 
 		void Datasets_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e) {
 			if (e.NewItems != null) {
-				foreach (LvqDatasetCli dataset in e.NewItems) {
-					CreateLvqModelValues.ForDataset = dataset;
-					var errorRateAndVar = dataset.GetPcaNnErrorRate();
-					Console.WriteLine("NN error rate under PCA: {0} ~ {1}", errorRateAndVar.Item1, Math.Sqrt(errorRateAndVar.Item2));
+				foreach (LvqDatasetCli newDataset in e.NewItems) {
+					CreateLvqModelValues.ForDataset = newDataset;
+					ThreadPool.QueueUserWorkItem(o => {
+						LvqDatasetCli dataset = (LvqDatasetCli)o;
+						var errorRateAndVar = dataset.GetPcaNnErrorRate();
+						Console.WriteLine("NN error rate under PCA: {0} ~ {1}", errorRateAndVar.Item1, Math.Sqrt(errorRateAndVar.Item2));
+					}, newDataset);
 				}
 				win.modelTab.IsSelected = true;
 			}
