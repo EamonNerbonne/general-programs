@@ -11,6 +11,7 @@ using System.Windows.Documents;
 using System.Windows;
 using System.Windows.Media;
 using System.Windows.Input;
+using System.Windows.Threading;
 
 namespace EmnExtensions.Wpf
 {
@@ -22,12 +23,17 @@ namespace EmnExtensions.Wpf
         public LogControl() {
             p = new Paragraph();
             doc = new FlowDocument(p);
+			doc.TextAlignment = TextAlignment.Left;
+			
             var style = new Style();
+
             doc.FontFamily = new FontFamily("Consolas");
             doc.FontSize = 10.0;
             insertionPoint = p.ContentEnd;
             logger = new DelegateTextWriter(AppendThreadSafe);
             this.Document = doc;
+			this.VerticalContentAlignment = VerticalAlignment.Bottom;
+			this.VerticalScrollBarVisibility = ScrollBarVisibility.Auto;
         }
         StringBuilder curLine = new StringBuilder();
         bool redraw = false;
@@ -42,7 +48,7 @@ namespace EmnExtensions.Wpf
         private void Invalidate() {
             if (!redraw) {
                 redraw = true;
-                Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal, new Action(UpdateStringUI));
+                Dispatcher.BeginInvoke(DispatcherPriority.Normal, (Action)UpdateStringUI);
             }
         }
 
