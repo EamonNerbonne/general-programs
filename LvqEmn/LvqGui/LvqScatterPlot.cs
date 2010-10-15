@@ -16,7 +16,7 @@ using EmnExtensions.MathHelpers;
 using System.Threading.Tasks;
 
 namespace LvqGui {
-	public class LvqScatterPlot {
+	public sealed class LvqScatterPlot : IDisposable {
 		IPlotWriteable<Point[]> prototypePositionsPlot;
 		IPlotWriteable<Point[]>[] classPlots;
 		IPlotWriteable<int> classBoundaries;
@@ -96,74 +96,68 @@ namespace LvqGui {
 		}
 
 
-
+		double winSize;
 		bool busy, updateQueued;
-		object syncUpdates = new object();
 		public LvqScatterPlot(LvqDatasetCli dataset, LvqModelCli model, int selectedSubModel) {
 			this.subModelIdx = selectedSubModel;
 			this.dataset = dataset;
 			this.model = model;
-
-			double size = Math.Sqrt(Application.Current.MainWindow.Width * Application.Current.MainWindow.Height * 0.5);
-			OpenSubWindows(size);
+			winSize = Math.Sqrt(Application.Current.MainWindow.Width * Application.Current.MainWindow.Height * 0.5);
+			this.scatterPlotDispatcher = StartNewDispatcher();
+			scatterPlotDispatcher.BeginInvoke(() => { OpenSubWindows(); });
 		}
 
-		void OpenSubWindows(double size) {
-			var scatterPlotWin = OpenScatterWindow(size);
-			scatterPlotWin.Dispatcher.BeginInvoke(() => {
-				var plotsControlsWithDetails = (
-						from statname in model.TrainingStatNames.Select(TrainingStatName.Create)
-						where statname.StatGroup != null
-						group statname by new { statname.UnitLabel, statname.StatGroup } into statGroup
-						let winTitle = statGroup.Key.StatGroup
-						let plots = MakePlots(scatterPlotWin.Dispatcher, winTitle, statGroup, model.IsMultiModel, dataset.IsFolded()).ToArray()
-						let plotControl = new PlotControl() {
-							ShowGridLines = true,
-							Title = winTitle + ": " + model.ModelLabel,
-							GraphsEnumerable = plots.Select(plot => plot.plot)
-						}
-						let win = new Window { Width = size, Height = size, Title = winTitle, Content = plotControl }
-						select new {
-							PlotControl = plotControl,
-							Window = win,
-							Plots = plots,
-						}
-						).ToArray();
-				plotWindows.AddRange(plotsControlsWithDetails.Select(plot => plot.Window));
-				statPlots.AddRange(plotsControlsWithDetails.SelectMany(plot => plot.Plots));
+		void OpenSubWindows() {
+			ClosePlots();
 
-				foreach (var statgroup in plotsControlsWithDetails) statgroup.Window.Show();
-				QueueUpdate();
-			});
+			plotWindows.Add(new Window { Width = winSize, Height = winSize, Title = "ScatterPlot", Content = MakeScatterPlots() });
+
+			var plotsControlsWithDetails = (
+					from statname in model.TrainingStatNames.Select(TrainingStatName.Create)
+					where statname.StatGroup != null
+					group statname by new { statname.UnitLabel, statname.StatGroup } into statGroup
+					let winTitle = statGroup.Key.StatGroup
+					let plots = MakePlots(scatterPlotDispatcher, winTitle, statGroup, model.IsMultiModel, dataset.IsFolded()).ToArray()
+					let plotControl = new PlotControl() {
+						ShowGridLines = true,
+						Title = winTitle + ": " + model.ModelLabel,
+						GraphsEnumerable = plots.Select(plot => plot.plot)
+					}
+					let win = new Window { Width = winSize, Height = winSize, Title = winTitle, Content = plotControl }
+					select new {
+						PlotControl = plotControl,
+						Window = win,
+						Plots = plots,
+					}
+					).ToArray();
+
+			plotWindows.AddRange(plotsControlsWithDetails.Select(plot => plot.Window));
+			statPlots.AddRange(plotsControlsWithDetails.SelectMany(plot => plot.Plots));
+
+			foreach (var window in plotWindows) window.Show();
+			QueueUpdate();
 		}
 
-		/// <summary>
-		/// This window must be opened before the other sub windows to avoid ShowDialog messyness.
-		/// </summary>
-		Window OpenScatterWindow(double size) {
+		static Dispatcher StartNewDispatcher() {
 			using (var sem = new SemaphoreSlim(0)) {
-				Window scatterplotWin = null;
+				Dispatcher retval = null;
 				var winThread = new Thread(() => {
-					PlotControl plot = MakeScatterPlots();
-					scatterplotWin = new Window { Width = size, Height = size, Title = "ScatterPlot", Content = plot };
-					plotWindows.Add(scatterplotWin);
-					scatterPlotDispatcher = scatterplotWin.Dispatcher;
-					scatterplotWin.Dispatcher.BeginInvoke(() => { sem.Release(); });
-					scatterplotWin.ShowDialog(); //doesn't exit until window is closed - needed to sustain the message pump.
-					scatterplotWin.Dispatcher.InvokeShutdown();
+					retval = Dispatcher.CurrentDispatcher;
+					sem.Release();
+					Dispatcher.Run();
 				}) { IsBackground = true };
 				winThread.SetApartmentState(ApartmentState.STA);
 				winThread.Start();
 				sem.Wait();
-				return scatterplotWin;
+				return retval;
 			}
 		}
 
 		private PlotControl MakeScatterPlots() {
 			prototypePositionsPlot = PlotData.Create(new VizPixelScatterGeom { OverridePointCountEstimate = 30, });
-			prototypePositionsPlot.ZIndex = -1;
+			prototypePositionsPlot.ZIndex = 1;
 			classBoundaries = PlotData.Create(subModelIdx, UpdateClassBoundaries);
-			classBoundaries.ZIndex = 1;
+			classBoundaries.ZIndex = -1;
 			classPlots = Enumerable.Range(0, dataset.ClassCount).Select(i => {
 				var graphplot = PlotData.Create(default(Point[]), PlotClass.PointCloud);
 				((IVizPixelScatter)graphplot.Visualizer).CoverageRatio = 0.999;
@@ -191,7 +185,7 @@ namespace LvqGui {
 				windowTitle == "Cost Function" ? costColors :
 				GraphRandomPen.MakeDistributedColors(usedStats.Length, new MersenneTwister(1 + windowTitle.GetHashCode()));
 			return
-			usedStats.Zip(colors, (stat, color) => StatPlot.MakePlots(dispatcher, stat.TrainingStatLabel, stat.UnitLabel, false, color, stat.Index, isMultiModel))
+				usedStats.Zip(colors, (stat, color) => StatPlot.MakePlots(dispatcher, stat.TrainingStatLabel, stat.UnitLabel, false, color, stat.Index, isMultiModel))
 				.SelectMany(s => s);
 		}
 
@@ -199,38 +193,26 @@ namespace LvqGui {
 		public int SubModelIndex {
 			get { return subModelIdx; }
 			set {
-				if (value == subModelIdx) return;
-				subModelIdx = value;
-				QueueUpdate();
+				scatterPlotDispatcher.BeginInvoke(() => {
+					if (value != subModelIdx) {
+						subModelIdx = value;
+						if (!plotWindows.Any() || !plotWindows.All(win => win.IsLoaded))
+							OpenSubWindows();
+						else
+							QueueUpdate();
+					}
+				});
 			}
 		}
 
-
-		bool UpdateIsBusy() {
-			lock (syncUpdates) {
-				updateQueued = busy;
-				busy = true;
-				return updateQueued;
-			}
-		}
-
-		bool UpdateIsFree() {
-			lock (syncUpdates) {
-				busy = false;
-				return !updateQueued;
-			}
-		}
-
-		private void UpdateDisplay() {
+		public void QueueUpdate() { ThreadPool.QueueUserWorkItem(o => { UpdateDisplay_BGThread(); }); }
+		private void UpdateDisplay_BGThread() {
 			if (model == null) return;
-			while (true) {
-				if (UpdateIsBusy()) return;
+			while (UpdateEntry_IsAvailable()) {
 				int currentSubModelIdx = subModelIdx;
 
 				var trainingStats = model.TrainingStats;
-				
-				var statPlotUpdaters = statPlots.Select(statPlot=>statPlot.ProcessNewData(trainingStats)).ToArray();
-
+				var statPlotUpdaters = statPlots.Select(statPlot => statPlot.ProcessNewData(trainingStats)).ToArray();
 				var currProjection = model.CurrentProjectionAndPrototypes(currentSubModelIdx, dataset);
 
 				Point[] prototypePositions = !currProjection.IsOk ? default(Point[]) : Points.ToMediaPoints(currProjection.Prototypes.Points);
@@ -257,12 +239,14 @@ namespace LvqGui {
 				}), DispatcherPriority.Background).Wait();
 
 				foreach (var uiOperation in statPlotUpdaters) uiOperation.Wait();
-				
-				if (UpdateIsFree()) return;
+
+				if (UpdateExit_IsDone()) return;
 			}
 		}
+		object syncUpdates = new object();
+		bool UpdateEntry_IsAvailable() { lock (syncUpdates) { updateQueued = busy; busy = true; return !updateQueued; } }
+		bool UpdateExit_IsDone() { lock (syncUpdates) { busy = false; return !updateQueued; } }
 
-		public void QueueUpdate() { ThreadPool.QueueUserWorkItem(o => { UpdateDisplay(); }); }
 
 		void UpdateClassBoundaries(WriteableBitmap bmp, Matrix dataToBmp, int width, int height, int subModelIdx) {
 
@@ -311,10 +295,15 @@ namespace LvqGui {
 		}
 
 		public void ClosePlots() {
-			plotWindows.ForEach(win => {
-				win.Dispatcher.BeginInvoke(() => { win.Close(); });
-			});
+			foreach (var win in plotWindows) win.Close();
 			plotWindows.Clear();
+		}
+
+		public void Dispose() {
+			scatterPlotDispatcher.Invoke(new Action(() => {
+				ClosePlots();
+				scatterPlotDispatcher.BeginInvokeShutdown(DispatcherPriority.Normal);
+			}));
 		}
 	}
 }
