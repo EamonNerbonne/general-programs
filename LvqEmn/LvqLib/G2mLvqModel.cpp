@@ -173,7 +173,10 @@ void G2mLvqModel::DoOptionalNormalization() {
 		 normalizeProjection(P);
 	 if(settings.NormalizeBoundaries) {
 		 if(settings.GloballyNormalize) {
-			 double overallNorm = std::accumulate(prototype.begin(), prototype.end(),0.0,[](double cur, G2mLvqPrototype const & proto)->double { return cur + projectionSquareNorm(proto.B); });
+			 double overallNorm = std::accumulate(prototype.begin(), prototype.end(),0.0,
+				 [](double cur, G2mLvqPrototype const & proto) -> double { return cur + projectionSquareNorm(proto.B); } 
+			     // (cur, proto) => cur + projectionSquareNorm(proto.B)
+			 );
 			 double scale = 1.0/sqrt(overallNorm / prototype.size());
 			 for(int i=0;i<prototype.size();++i) prototype[i].B*=scale;
 		 } else {

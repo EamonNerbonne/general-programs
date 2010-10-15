@@ -24,6 +24,7 @@ void makeRandomOrder(boost::mt19937 & randGen, int*const toFill, int count);
 template <typename T> double projectionSquareNorm(T const & projectionMatrix) {
 	return (projectionMatrix.transpose() * projectionMatrix).diagonal().sum();
 }
+
 template <typename T> void normalizeProjection(T & projectionMatrix) {
 	projectionMatrix *= 1.0/sqrt(projectionSquareNorm(projectionMatrix));
 }
@@ -91,13 +92,8 @@ template <typename T> void projectionRandomizeUniformScaled(boost::mt19937 & ran
 
 template<typename arrayT>
 void shuffle(boost::mt19937 & randGen, arrayT arr, size_t size){
-	using std::random_shuffle;
-	using std::accumulate;
-	using boost::bind;
-	
 	for(size_t i = 0; i<size;++i)
 		swap(arr[i],arr[i+randGen() %(size-i)]);
-
 }
 
 // (Slower) alternative is something like:
@@ -105,11 +101,11 @@ void shuffle(boost::mt19937 & randGen, arrayT arr, size_t size){
 //
 //struct shuffle_rnd_helper {
 //	boost::mt19937 & randGen;
-//	int options;
 //	shuffle_rnd_helper(boost::mt19937 & randGen) : randGen(randGen) {}
 //	int operator()(int max) {return randGen()%max;}
 //};
 
+//[& randGen](int max) -> int {return randGen()%max;}
 
 Eigen::MatrixXd shuffleMatrixCols(boost::mt19937 & randGen, Eigen::MatrixXd const & src);
 
