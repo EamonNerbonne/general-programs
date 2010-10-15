@@ -25,6 +25,7 @@ namespace LvqGui {
 			public IPlotWriteable<Point[]> plot;
 			public Func<LvqTrainingStatCli, Point> extractor;
 			public Dispatcher dispatcher;
+
 			public static Point PlainStat(LvqTrainingStatCli info, int statIdx) { return new Point(info.values[LvqTrainingStatCli.TrainingIterationI], info.values[statIdx]); }
 			public static Point UpperStat(LvqTrainingStatCli info, int statIdx) { return new Point(info.values[LvqTrainingStatCli.TrainingIterationI], info.values[statIdx] + info.stderror[statIdx]); }
 			public static Point LowerStat(LvqTrainingStatCli info, int statIdx) { return new Point(info.values[LvqTrainingStatCli.TrainingIterationI], info.values[statIdx] - info.stderror[statIdx]); }
@@ -63,6 +64,11 @@ namespace LvqGui {
 				}
 				yield return MakePlot(dispatcher, dataLabel, yunitLabel, isRight, color, statIdx, 0);
 			}
+
+			public DispatcherOperation ProcessNewData(IEnumerable<LvqTrainingStatCli> trainingStats) {
+				var newData = trainingStats.Select(extractor).ToArray();
+				return dispatcher.BeginInvoke(() => { plot.Data = newData; });
+			}
 		}
 
 		List<StatPlot> statPlots = new List<StatPlot>();
@@ -71,35 +77,7 @@ namespace LvqGui {
 		public readonly LvqModelCli model;
 		Dispatcher scatterPlotDispatcher;
 
-		object syncPlotWindows = new object();
-		int plotsTodo;
 		List<Window> plotWindows = new List<Window>();
-		void MakeSubWin(string title, Action<PlotControl> bgThreadInit) {
-			plotsTodo++;
-			double size = Math.Sqrt(Application.Current.MainWindow.Width * Application.Current.MainWindow.Height * 0.5);
-			
-			var winThread = new Thread(() => {
-				PlotControl plot;
-				var win = new Window {
-					Width = size,
-					Height = size,
-					Title = title,
-					Content = plot = new PlotControl() {
-						ShowGridLines = true,
-					}
-				};
-				bgThreadInit(plot);
-				lock (syncPlotWindows) {
-					plotWindows.Add(win);
-					plotsTodo--;
-				}
-				win.ShowDialog(); //doesn't exit until window is closed - needed to sustain the message pump.
-				win.Dispatcher.InvokeShutdown();
-			}) { IsBackground = true };
-			winThread.SetApartmentState(ApartmentState.STA);
-			winThread.Start();
-		}
-
 
 		class TrainingStatName {
 			public readonly string TrainingStatLabel, UnitLabel, StatGroup;
@@ -117,6 +95,8 @@ namespace LvqGui {
 			public static TrainingStatName Create(string compoundName, int index) { return new TrainingStatName(compoundName, index); }
 		}
 
+
+
 		bool busy, updateQueued;
 		object syncUpdates = new object();
 		public LvqScatterPlot(LvqDatasetCli dataset, LvqModelCli model, int selectedSubModel) {
@@ -124,35 +104,66 @@ namespace LvqGui {
 			this.dataset = dataset;
 			this.model = model;
 
-			MakeSubWin("ScatterPlot", MakeScatterPlots);
-
-			foreach (var statgroupRangeVar in
-				from statname in model.TrainingStatNames.Select(TrainingStatName.Create)
-				where statname.StatGroup != null
-				group statname by new { statname.UnitLabel, statname.StatGroup }) {
-				var statgroup = statgroupRangeVar;//to enable thread-safe closing.
-				MakeSubWin(statgroup.Key.StatGroup, plotControl => {
-					plotControl.Title = statgroup.Key.StatGroup + ": " + model.ModelLabel;
-					var plotsForGroup = MakePlots(plotControl.Dispatcher, statgroup.Key.StatGroup, statgroup, model.IsMultiModel, dataset.IsFolded()).ToArray();
-					foreach (var plot in plotsForGroup)
-						plotControl.Graphs.Add(plot.plot);
-					lock (statPlots)
-						statPlots.AddRange(plotsForGroup);
-				});
-			}
-			QueueUpdate();
+			double size = Math.Sqrt(Application.Current.MainWindow.Width * Application.Current.MainWindow.Height * 0.5);
+			OpenSubWindows(size);
 		}
 
+		void OpenSubWindows(double size) {
+			var scatterPlotWin = OpenScatterWindow(size);
+			scatterPlotWin.Dispatcher.BeginInvoke(() => {
+				var plotsControlsWithDetails = (
+						from statname in model.TrainingStatNames.Select(TrainingStatName.Create)
+						where statname.StatGroup != null
+						group statname by new { statname.UnitLabel, statname.StatGroup } into statGroup
+						let winTitle = statGroup.Key.StatGroup
+						let plots = MakePlots(scatterPlotWin.Dispatcher, winTitle, statGroup, model.IsMultiModel, dataset.IsFolded()).ToArray()
+						let plotControl = new PlotControl() {
+							ShowGridLines = true,
+							Title = winTitle + ": " + model.ModelLabel,
+							GraphsEnumerable = plots.Select(plot => plot.plot)
+						}
+						let win = new Window { Width = size, Height = size, Title = winTitle, Content = plotControl }
+						select new {
+							PlotControl = plotControl,
+							Window = win,
+							Plots = plots,
+						}
+						).ToArray();
+				plotWindows.AddRange(plotsControlsWithDetails.Select(plot => plot.Window));
+				statPlots.AddRange(plotsControlsWithDetails.SelectMany(plot => plot.Plots));
 
-		private void MakeScatterPlots(PlotControl plotControl) {
-			scatterPlotDispatcher = plotControl.Dispatcher;
-			plotControl.ShowAxes = false;
-			plotControl.AttemptBorderTicks = false;
-			plotControl.ShowGridLines = false;
-			plotControl.Title = "ScatterPlot: " + model.ModelLabel;
+				foreach (var statgroup in plotsControlsWithDetails) statgroup.Window.Show();
+				QueueUpdate();
+			});
+		}
 
-			prototypePositionsPlot = PlotData.Create(new VizPixelScatterGeom { OverridePointCountEstimate = 35, });
+		/// <summary>
+		/// This window must be opened before the other sub windows to avoid ShowDialog messyness.
+		/// </summary>
+		Window OpenScatterWindow(double size) {
+			using (var sem = new SemaphoreSlim(0)) {
+				Window scatterplotWin = null;
+				var winThread = new Thread(() => {
+					PlotControl plot = MakeScatterPlots();
+					scatterplotWin = new Window { Width = size, Height = size, Title = "ScatterPlot", Content = plot };
+					plotWindows.Add(scatterplotWin);
+					scatterPlotDispatcher = scatterplotWin.Dispatcher;
+					scatterplotWin.Dispatcher.BeginInvoke(() => { sem.Release(); });
+					scatterplotWin.ShowDialog(); //doesn't exit until window is closed - needed to sustain the message pump.
+					scatterplotWin.Dispatcher.InvokeShutdown();
+				}) { IsBackground = true };
+				winThread.SetApartmentState(ApartmentState.STA);
+				winThread.Start();
+				sem.Wait();
+				return scatterplotWin;
+			}
+		}
+
+		private PlotControl MakeScatterPlots() {
+			prototypePositionsPlot = PlotData.Create(new VizPixelScatterGeom { OverridePointCountEstimate = 30, });
+			prototypePositionsPlot.ZIndex = -1;
 			classBoundaries = PlotData.Create(subModelIdx, UpdateClassBoundaries);
+			classBoundaries.ZIndex = 1;
 			classPlots = Enumerable.Range(0, dataset.ClassCount).Select(i => {
 				var graphplot = PlotData.Create(default(Point[]), PlotClass.PointCloud);
 				((IVizPixelScatter)graphplot.Visualizer).CoverageRatio = 0.999;
@@ -160,10 +171,13 @@ namespace LvqGui {
 				return graphplot;
 			}).ToArray();
 
-			plotControl.Graphs.Clear();
-			plotControl.Graphs.Add(classBoundaries);
-			foreach (var classPlot in classPlots) plotControl.Graphs.Add(classPlot);
-			plotControl.Graphs.Add(prototypePositionsPlot);
+			return new PlotControl {
+				ShowAxes = false,
+				AttemptBorderTicks = false,
+				ShowGridLines = false,
+				Title = "ScatterPlot: " + model.ModelLabel,
+				GraphsEnumerable = classPlots.Concat(new IPlot[] { prototypePositionsPlot, classBoundaries })
+			};
 		}
 
 		static Color[] errorColors = new[] { Colors.Red, Color.FromRgb(0x8b, 0x8b, 0), };
@@ -181,6 +195,17 @@ namespace LvqGui {
 				.SelectMany(s => s);
 		}
 
+		int subModelIdx = 0;
+		public int SubModelIndex {
+			get { return subModelIdx; }
+			set {
+				if (value == subModelIdx) return;
+				subModelIdx = value;
+				QueueUpdate();
+			}
+		}
+
+
 		bool UpdateIsBusy() {
 			lock (syncUpdates) {
 				updateQueued = busy;
@@ -195,15 +220,6 @@ namespace LvqGui {
 				return !updateQueued;
 			}
 		}
-		int subModelIdx = 0;
-		public int SubModelIndex {
-			get { return subModelIdx; }
-			set {
-				if (value == subModelIdx) return;
-				subModelIdx = value;
-				QueueUpdate();
-			}
-		}
 
 		private void UpdateDisplay() {
 			if (model == null) return;
@@ -212,10 +228,9 @@ namespace LvqGui {
 				int currentSubModelIdx = subModelIdx;
 
 				var trainingStats = model.TrainingStats;
-				StatPlot[] currentStatPlots;
-				lock (statPlots)
-					currentStatPlots = statPlots.ToArray();
-				var statPlotData = Enumerable.Range(0, currentStatPlots.Length).Select(si => trainingStats.Select(currentStatPlots[si].extractor).ToArray()).ToArray();
+				
+				var statPlotUpdaters = statPlots.Select(statPlot=>statPlot.ProcessNewData(trainingStats)).ToArray();
+
 				var currProjection = model.CurrentProjectionAndPrototypes(currentSubModelIdx, dataset);
 
 				Point[] prototypePositions = !currProjection.IsOk ? default(Point[]) : Points.ToMediaPoints(currProjection.Prototypes.Points);
@@ -233,44 +248,18 @@ namespace LvqGui {
 						projectedPointsByLabel[label][pointIndexPerClass[label]++] = points[i];
 					}
 
-				using (var sem = new SemaphoreSlim(0, currentStatPlots.Length + 1)) {
-					object sync = new object();
-					int startedCount = 0;
-					if (IsDispatcherOK(scatterPlotDispatcher))
-						scatterPlotDispatcher.BeginInvoke((Action)(() => {
-							lock (sync) startedCount++;
-							for (int i = 0; i < classPlots.Length; ++i)
-								classPlots[i].Data = projectedPointsByLabel[i];
-							prototypePositionsPlot.Data = prototypePositions;
-							classBoundaries.Data = currentSubModelIdx;
-							classBoundaries.TriggerDataChanged(); //even if same index, underlying model _has_ changed.
-							sem.Release();
-						}), DispatcherPriority.Background);
+				scatterPlotDispatcher.BeginInvoke((Action)(() => {
+					for (int i = 0; i < classPlots.Length; ++i)
+						classPlots[i].Data = projectedPointsByLabel[i];
+					prototypePositionsPlot.Data = prototypePositions;
+					classBoundaries.Data = currentSubModelIdx;
+					classBoundaries.TriggerDataChanged(); //even if same index, underlying model _has_ changed.
+				}), DispatcherPriority.Background).Wait();
 
-					for (int i = 0; i < currentStatPlots.Length; i++)
-						if (IsDispatcherOK(currentStatPlots[i].dispatcher))
-							currentStatPlots[i].dispatcher.BeginInvoke((Action<int>)(idx => {
-								lock (sync) startedCount++;
-								currentStatPlots[idx].plot.Data = statPlotData[idx];
-								sem.Release();
-							}), i);
-
-					while (true) {
-						int liveThreads = (IsDispatcherOK(scatterPlotDispatcher) ? 1 : 0) + currentStatPlots.Count(plot => IsDispatcherOK(plot.dispatcher));
-						if (startedCount == liveThreads)
-							break;
-						else
-							Thread.Sleep(1);
-					}
-
-					for (int i = 0; i < startedCount; i++)
-						sem.Wait();
-					if (UpdateIsFree()) return;
-				}
+				foreach (var uiOperation in statPlotUpdaters) uiOperation.Wait();
+				
+				if (UpdateIsFree()) return;
 			}
-		}
-		static bool IsDispatcherOK(Dispatcher disp) {
-			return disp != null && !disp.HasShutdownStarted && disp.Thread.IsAlive;
 		}
 
 		public void QueueUpdate() { ThreadPool.QueueUserWorkItem(o => { UpdateDisplay(); }); }
@@ -322,13 +311,10 @@ namespace LvqGui {
 		}
 
 		public void ClosePlots() {
-			lock (syncPlotWindows) {
-				plotWindows.ForEach(win => {
-					win.Dispatcher.BeginInvoke(() => { win.Close(); });
-				});
-				plotWindows.Clear();
-			}
+			plotWindows.ForEach(win => {
+				win.Dispatcher.BeginInvoke(() => { win.Close(); });
+			});
+			plotWindows.Clear();
 		}
-
 	}
 }

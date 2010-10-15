@@ -28,6 +28,7 @@ namespace EmnExtensions.Wpf.Plot {
 		bool needRedrawGraphs = false;
 		ObservableCollection<IPlot> graphs = new ObservableCollection<IPlot>();
 		public ObservableCollection<IPlot> Graphs { get { return graphs; } }
+		public IEnumerable<IPlot> GraphsEnumerable { get { return graphs; } set { Graphs.Clear(); foreach (var plot in value) Graphs.Add(plot); } }
 		DrawingBrush bgBrush;
 		static object syncType = new object();
 		public PlotControl() {
