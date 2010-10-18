@@ -4,7 +4,6 @@ using System.Windows.Media;
 
 namespace EmnExtensions.Wpf.Plot.VizEngines {
 	public class VizGeometry : PlotVizBase<Geometry> {
-		Geometry m_Geometry;
 		MatrixTransform m_ProjectionTransform = new MatrixTransform();
 		GeometryGroup combinesGeom = new GeometryGroup();
 		bool m_AutosizeBounds = true;
@@ -45,23 +44,22 @@ namespace EmnExtensions.Wpf.Plot.VizEngines {
 		/// </summary>
 		public bool AutosizeBounds { get { return m_AutosizeBounds; } set { m_AutosizeBounds = value; RecomputeBoundsIfAuto(); } }
 
-		public override void DataChanged(Geometry newData) {
-			if (newData == m_Geometry)
+		protected override void OnDataChanged(Geometry oldData) {
+			if (Data == oldData)
 				return;
-			if (m_Geometry != null && !m_Geometry.IsFrozen)
-				m_Geometry.Changed -= m_Geometry_Changed;
-			m_Geometry = newData;
+			if (oldData != null && !oldData.IsFrozen)
+				oldData.Changed -= m_Geometry_Changed;
 
-			if (m_Geometry == null)
+			if (Data == null)
 				combinesGeom.Children.Clear();
-			else if (combinesGeom.Children.Count > 0 && combinesGeom.Children[0] != m_Geometry)
-				combinesGeom.Children[0] = m_Geometry;
+			else if (combinesGeom.Children.Count > 0 && combinesGeom.Children[0] != Data)
+				combinesGeom.Children[0] = Data;
 			else
-				combinesGeom.Children.Add(m_Geometry);
+				combinesGeom.Children.Add(Data);
 
 
-			if (m_Geometry != null && !m_Geometry.IsFrozen)
-				m_Geometry.Changed += m_Geometry_Changed;
+			if (Data != null && !Data.IsFrozen)
+				Data.Changed += m_Geometry_Changed;
 			RecomputeBoundsIfAuto();
 			TriggerChange(GraphChange.Drawing);
 		}
@@ -73,21 +71,21 @@ namespace EmnExtensions.Wpf.Plot.VizEngines {
 		void m_Geometry_Changed(object sender, EventArgs e) { RecomputeBoundsIfAuto(); }
 
 		void RecomputeBoundsIfAuto() {
-			if (m_AutosizeBounds) SetDataBounds(m_Geometry.Bounds);//this will trigger OnChanged if neeeded.
+			if (m_AutosizeBounds) SetDataBounds(Data.Bounds);//this will trigger OnChanged if neeeded.
 		}
 
-		public override void SetTransform(Geometry data, Matrix axisToDisplay, Rect displayClip, double forDpiX, double forDpiY) {
+		public override void SetTransform(Matrix axisToDisplay, Rect displayClip, double forDpiX, double forDpiY) {
 			clipRectangle.Rect = displayClip;
 			m_ProjectionTransform.Matrix = axisToDisplay;
 		}
 
-		public override void DrawGraph(Geometry data, DrawingContext context) {
+		public override void DrawGraph(DrawingContext context) {
 			context.PushClip(clipRectangle);
 			context.DrawGeometry(m_Fill, m_Pen, combinesGeom);
 			context.Pop();
 		}
 
-		public override void RenderOptionsChanged() { RecreatePen(); }
+		public override void OnRenderOptionsChanged() { RecreatePen(); }
 
 		private void RecreatePen() {
 			Color currentColor = ((SolidColorBrush)m_Pen.Brush).Color;
@@ -105,7 +103,6 @@ namespace EmnExtensions.Wpf.Plot.VizEngines {
 				Pen = newPen;
 			}
 		}
-		public override bool SupportsThickness { get { return true; } }
 		public override bool SupportsColor { get { return true; } }
 	}
 }

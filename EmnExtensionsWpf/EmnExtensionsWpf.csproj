@@ -184,14 +184,12 @@
     <Compile Include="Plot\PlotControl.xaml.cs">
       <DependentUpon>PlotControl.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Plot\IPlotViz.cs" />
     <Compile Include="Plot\VizEngines\PlotVizTransform.cs" />
     <Compile Include="Plot\VizEngines\VizDrawing.cs" />
     <Compile Include="Plot\VizEngines\VizLineSegments.cs" />
     <Compile Include="Plot\VizEngines\VizPixelScatter.cs" />
     <Compile Include="Plot\VizEngines\VizPixelScatterGeom.cs" />
     <Compile Include="Plot\VizEngines\VizPixelScatterSmart.cs" />
-    <Compile Include="Plot\VizEngineWrapper.cs" />
     <Compile Include="WpfTools.cs">
       <SubType>Code</SubType>
     </Compile>

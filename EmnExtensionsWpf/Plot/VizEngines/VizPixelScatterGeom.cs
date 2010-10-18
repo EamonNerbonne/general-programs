@@ -58,7 +58,7 @@ namespace EmnExtensions.Wpf.Plot.VizEngines {
 			}
 		}
 		Rect m_InnerBounds;
-		public override Rect DataBounds(Point[] data) { return m_InnerBounds; }
+		public override Rect DataBounds { get { return m_InnerBounds; } }
 
 		protected override IVizEngine<StreamGeometry> Implementation { get { return impl; } }
 	}

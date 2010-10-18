@@ -25,9 +25,9 @@ namespace EmnExtensions.Wpf.Plot.VizEngines {
 		public Action<WriteableBitmap, Matrix, int, int, T> UpdateBitmapDelegate { get; set; }
 		public Func<T, Rect> ComputeBounds { get; set; }
 
-		protected override void UpdateBitmap(T data, int pW, int pH, Matrix dataToBitmap) { UpdateBitmapDelegate(m_bmp, dataToBitmap, pW, pH, data); }
-		public override void DataChanged(T data) { SetDataBounds(ComputeBounds(data)); TriggerChange(GraphChange.Projection); }
+		protected override void UpdateBitmap(int pW, int pH, Matrix dataToBitmap) { UpdateBitmapDelegate(m_bmp, dataToBitmap, pW, pH, Data); }
+		protected override void OnDataChanged(T oldData) { SetDataBounds(ComputeBounds(Data)); TriggerChange(GraphChange.Projection); }
 
-		public override void RenderOptionsChanged() { } //we don't use color changes.
+		public override void OnRenderOptionsChanged() { } //we don't use color changes.
 	}
 }

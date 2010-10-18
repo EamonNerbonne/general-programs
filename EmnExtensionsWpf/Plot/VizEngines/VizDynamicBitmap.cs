@@ -20,14 +20,14 @@ namespace EmnExtensions.Wpf.Plot.VizEngines {
 		MatrixTransform m_bitmapToDisplayTransform = new MatrixTransform();
 		DrawingGroup m_drawing = new DrawingGroup();
 
-		public sealed override void DrawGraph(T data, DrawingContext context) {
+		public sealed override void DrawGraph(DrawingContext context) {
 			Trace.WriteLine("redraw");
 			context.DrawDrawing(m_drawing);
 		}
 
 		static Rect SnapRect(Rect r, double multX, double multY) { return new Rect(new Point(Math.Floor(r.Left / multX) * multX, Math.Floor(r.Top / multY) * multY), new Point(Math.Ceiling((r.Right + 0.01) / multX) * multX, Math.Ceiling((r.Bottom + 0.01) / multY) * multY)); }
 
-		public sealed override void SetTransform(T data, Matrix dataToDisplay, Rect displayClip, double dpiX, double dpiY) {
+		public sealed override void SetTransform(Matrix dataToDisplay, Rect displayClip, double dpiX, double dpiY) {
 			if (dataToDisplay.IsIdentity) //TODO: is this a good test for no-show?
 				using (m_drawing.Open())
 					return;
@@ -65,7 +65,7 @@ namespace EmnExtensions.Wpf.Plot.VizEngines {
 				Trace.WriteLine("new WriteableBitmap");
 			}
 
-			UpdateBitmap(data, pW, pH, dataToBitmapToDisplay.Item1);
+			UpdateBitmap(pW, pH, dataToBitmapToDisplay.Item1);
 			//painting.
 			Trace.WriteLine("retransform");
 		}
@@ -89,7 +89,7 @@ namespace EmnExtensions.Wpf.Plot.VizEngines {
 			return Tuple.Create(dataToBitmap, bitmapToDisplay);
 		}
 
-		protected abstract void UpdateBitmap(T data, int pW, int pH, Matrix dataToBitmap);
+		protected abstract void UpdateBitmap(int pW, int pH, Matrix dataToBitmap);
 
 		//DataBound includes the portion of the data to display; may exclude irrelevant portions.  
 		//The actual display may be larger due to various reasons and that can be inefficient.
@@ -99,8 +99,6 @@ namespace EmnExtensions.Wpf.Plot.VizEngines {
 		//if you don't provide an OuterDataBound, the entire display clip will be available as a WriteableBitmap.
 		protected abstract Rect? OuterDataBound { get; }
 
-		public override bool SupportsThickness { get { return false; } }
 		public override bool SupportsColor { get { return false; } }
-
 	}
 }

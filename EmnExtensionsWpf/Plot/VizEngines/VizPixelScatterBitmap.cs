@@ -13,22 +13,21 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
 	{
 		Rect m_OuterDataBounds = Rect.Empty;
 		uint[] m_image;
-		Point[] currentPoints;
 
 		protected override Rect? OuterDataBound { get { return m_OuterDataBounds; } }
 		double m_CoverageRatio = 0.9999;
-		public double CoverageRatio { get { return m_CoverageRatio; } set { if (value != m_CoverageRatio) { m_CoverageRatio = value; RecomputeBounds(currentPoints); } } }
+		public double CoverageRatio { get { return m_CoverageRatio; } set { if (value != m_CoverageRatio) { m_CoverageRatio = value; RecomputeBounds(Data); } } }
 
 		double m_CoverageGradient = 5.0;
-		public double CoverageGradient { get { return m_CoverageGradient; } set { m_CoverageGradient = value; RecomputeBounds(currentPoints); } }
+		public double CoverageGradient { get { return m_CoverageGradient; } set { m_CoverageGradient = value; RecomputeBounds(Data); } }
 
-		protected override void UpdateBitmap(Point[] data, int pW, int pH, Matrix dataToBitmap)
+		protected override void UpdateBitmap(int pW, int pH, Matrix dataToBitmap)
 		{
 			Trace.WriteLine("UpdateBitmap");
 
 			if (dataToBitmap.IsIdentity) return;//this is the default mapping; it may occur when generating a scatter plot without data - don't bother plotting.
 
-			double thickness = Owner.RenderThickness ?? VizPixelScatterHelpers.PointCountToThickness(data.Length);
+			double thickness = Owner.RenderThickness ?? VizPixelScatterHelpers.PointCountToThickness(Data.Length);
 			Tuple<double, bool> thicknessTranslation = DecodeThickness(thickness);
 
 			Make2dHistogramInRegion(pW, pH, dataToBitmap, thicknessTranslation.Item2);
@@ -71,7 +70,7 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
 
 		void MakeDiamondPoint2dHistogram(int pW, int pH, Matrix dataToBitmap)
 		{
-			foreach (var point in currentPoints)
+			foreach (var point in Data)
 			{
 				Point displaypoint = dataToBitmap.Transform(point);
 				int x = (int)(displaypoint.X);
@@ -89,7 +88,7 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
 
 		void MakeSinglePoint2dHistogram(int pW, int pH, Matrix dataToBitmap)
 		{
-			foreach (var point in currentPoints)
+			foreach (var point in Data)
 			{
 				Point displaypoint = dataToBitmap.Transform(point);
 				int x = (int)(displaypoint.X);
@@ -149,10 +148,9 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
 		}
 		#endregion
 
-		public override void DataChanged(Point[] newData)
+		protected override void OnDataChanged(Point[] oldData)
 		{
-			currentPoints = newData;
-			RecomputeBounds(newData);
+			RecomputeBounds(Data);
 			TriggerChange(GraphChange.Projection); //because we need to relayout the points in the plot
 		}
 
@@ -163,12 +161,11 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
 			SetDataBounds(innerBounds);
 		}
 
-		public override void RenderOptionsChanged()
+		public override void OnRenderOptionsChanged()
 		{
 			TriggerChange(GraphChange.Projection); // because we need to relayout the points in the plot.
 		}
 
-		public override bool SupportsThickness { get { return true; } }
 		public override bool SupportsColor { get { return true; } }
 
 	}

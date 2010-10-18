@@ -11,29 +11,29 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
 	{
 		MatrixTransform m_trans = new MatrixTransform();
 		RectangleGeometry m_clip = new RectangleGeometry();
-		public override void DrawGraph(Drawing data, DrawingContext context)
+		
+		public override void DrawGraph(DrawingContext context)
 		{
 			context.PushClip(m_clip);
 			context.PushTransform(m_trans);
-			context.DrawDrawing(data);
+			context.DrawDrawing(Data);
 			context.Pop();
 			context.Pop();
 		}
 
-		public override void SetTransform(Drawing data, Matrix boundsToDisplay, Rect displayClip, double forDpiX, double forDpiY)
+		public override void SetTransform(Matrix boundsToDisplay, Rect displayClip, double forDpiX, double forDpiY)
 		{
 			m_trans.Matrix = boundsToDisplay;
 			m_clip.Rect = displayClip;
 		}
 
-		public override void DataChanged(Drawing data)
+		protected override void OnDataChanged(Drawing oldData)
 		{
-			SetDataBounds(data.Bounds);
+			SetDataBounds(Data.Bounds);
 			TriggerChange(GraphChange.Drawing);
 		}
 
-		public override void RenderOptionsChanged() { } //doesn't use primary color at all.
-		public override bool SupportsThickness { get { return false; } }
+		public override void OnRenderOptionsChanged() { } //doesn't use primary color at all.
 		public override bool SupportsColor { get { return false; } }
 	}
 }

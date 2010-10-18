@@ -63,7 +63,7 @@ namespace EmnExtensions.Wpf {
 		}
 
 		public static StreamGeometry LineScaled(Point[] lineOfPoints) {
-			if (lineOfPoints == null) return null;
+			if (lineOfPoints == null || lineOfPoints.Length==0) return null;
 
 			Rect dataBounds = VizPixelScatterHelpers.ComputeOuterBounds(lineOfPoints);
 			double maxSafe = Int32.MaxValue / 2.0;

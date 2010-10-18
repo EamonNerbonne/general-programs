@@ -68,7 +68,7 @@ namespace LvqGui {
 			if (plotData == null || plotData.dataset != dataset || plotData.model != model) {
 				//something's different
 				if (plotData != null) {
-					plotData.ClosePlots();
+					plotData.Dispose();
 					plotData = null;
 				}
 				if (dataset != null && model != null) {

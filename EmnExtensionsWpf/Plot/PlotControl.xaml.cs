@@ -24,7 +24,7 @@ using System.IO.Packaging;
 using EmnExtensions.MathHelpers;
 
 namespace EmnExtensions.Wpf.Plot {
-	public partial class PlotControl : UserControl {
+	public partial class PlotControl : UserControl, IPlotContainer {
 		bool needRedrawGraphs = false;
 		ObservableCollection<IPlot> graphs = new ObservableCollection<IPlot>();
 		public ObservableCollection<IPlot> Graphs { get { return graphs; } }
@@ -78,14 +78,14 @@ namespace EmnExtensions.Wpf.Plot {
 
 		void RegisterChanged(IEnumerable<IPlot> newGraphs) {
 			foreach (IPlot newgraph in newGraphs)
-				newgraph.Changed += new Action<IPlot, GraphChange>(graphChanged);
+				newgraph.Container = this;
 		}
 
 		public void AutoPickColors(MersenneTwister rnd=null) {
 			var ColoredPlots = (
 									from graph in Graphs
 									let plotWithSettings = graph as IPlot
-									where plotWithSettings != null && plotWithSettings.VizSupportsColor
+									where plotWithSettings != null && plotWithSettings.Visualizer.SupportsColor
 									select plotWithSettings
 							   ).ToArray();
 			var randomColors = EmnExtensions.Wpf.GraphRandomPen.MakeDistributedColors(ColoredPlots.Length, rnd);
@@ -96,7 +96,7 @@ namespace EmnExtensions.Wpf.Plot {
 
 		void UnregisterChanged(IEnumerable<IPlot> oldGraphs) {
 			foreach (IPlot oldgraph in oldGraphs)
-				oldgraph.Changed -= new Action<IPlot, GraphChange>(graphChanged);
+				oldgraph.Container = null;
 		}
 
 		void graphs_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e) {
@@ -127,7 +127,7 @@ namespace EmnExtensions.Wpf.Plot {
 			}
 		}
 
-		void graphChanged(IPlot graph, GraphChange graphChange) {
+		void IPlotContainer.GraphChanged(IPlot plot, GraphChange graphChange) {
 			if (graphChange == GraphChange.Drawing) {
 				needRedrawGraphs = true;
 				InvalidateVisual();
@@ -168,11 +168,11 @@ namespace EmnExtensions.Wpf.Plot {
 				var boundGraphs = graphs.Where(graph => (graph.AxisBindings & axis.AxisPos) != 0);
 				DimensionBounds bounds =
 					boundGraphs
-					.Select(graph => ToDimBounds(graph.PlotVisualizer.DataBounds, axis.IsHorizontal))
+					.Select(graph => ToDimBounds(graph.EffectiveDataBounds(), axis.IsHorizontal))
 					.Aggregate(DimensionBounds.Empty, (bounds1, bounds2) => DimensionBounds.Merge(bounds1, bounds2));
 				DimensionMargins margin =
 					boundGraphs
-					.Select(graph => ToDimMargins(graph.PlotVisualizer.Margin, axis.IsHorizontal))
+					.Select(graph => ToDimMargins(graph.Visualizer.Margin, axis.IsHorizontal))
 					.Aggregate(DimensionMargins.Empty, (m1, m2) => DimensionMargins.Merge(m1, m2));
 				string dataUnits = string.Join(", ", boundGraphs.Select(graph => axis.IsHorizontal ? graph.XUnitLabel : graph.YUnitLabel).Distinct().Where(s => !string.IsNullOrWhiteSpace(s)).ToArray());
 
@@ -213,7 +213,7 @@ namespace EmnExtensions.Wpf.Plot {
 					if ((axis.AxisPos & gridLineAxes) != 0)
 						drawingContext.DrawDrawing(axis.GridLines);
 			foreach (var graph in graphs.OrderBy(g => g.ZIndex))
-				graph.PlotVisualizer.DrawGraph(drawingContext);
+				graph.Visualizer.DrawGraph(drawingContext);
 			//drawingContext.Pop();
 		}
 
@@ -260,7 +260,7 @@ namespace EmnExtensions.Wpf.Plot {
 			foreach (var graph in graphs) {
 				var trans = cornerProjection[ChooseProjection(graph)];
 				Rect bounds = new Rect(new Point(trans.HorizontalClip.Start, trans.VerticalClip.Start), new Point(trans.HorizontalClip.End, trans.VerticalClip.End));
-				graph.PlotVisualizer.SetTransform(trans.Transform, bounds, m_dpiX, m_dpiY);
+				graph.Visualizer.SetTransform(trans.Transform, bounds, m_dpiX, m_dpiY);
 			}
 			Rect axisBounds = Axes.Aggregate(Rect.Empty, (bound, axis) => Rect.Union(bound, new Rect(axis.RenderSize)));
 			foreach (var axis in Axes)
@@ -343,5 +343,7 @@ namespace EmnExtensions.Wpf.Plot {
 			printThread.SetApartmentState(ApartmentState.STA);
 			printThread.Start();
 		}
+
+
 	}
 }
