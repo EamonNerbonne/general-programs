@@ -84,13 +84,12 @@ namespace EmnExtensions.Wpf.Plot {
 		public void AutoPickColors(MersenneTwister rnd=null) {
 			var ColoredPlots = (
 									from graph in Graphs
-									let plotWithSettings = graph as IPlot
-									where plotWithSettings != null && plotWithSettings.Visualizer.SupportsColor
-									select plotWithSettings
+									where graph != null  && graph.Visualisation!=null && graph.Visualisation.SupportsColor
+									select graph
 							   ).ToArray();
 			var randomColors = EmnExtensions.Wpf.GraphRandomPen.MakeDistributedColors(ColoredPlots.Length, rnd);
 			foreach (var plotAndColor in ColoredPlots.Zip(randomColors, (a, b) => Tuple.Create(a, b))) {
-				plotAndColor.Item1.RenderColor = plotAndColor.Item2;
+				plotAndColor.Item1.MetaData.RenderColor = plotAndColor.Item2;
 			}
 		}
 
@@ -116,13 +115,13 @@ namespace EmnExtensions.Wpf.Plot {
 
 			labelarea.Children.Clear();
 			foreach (var graph in Graphs) {
-				if (graph.DataLabel == null) continue;
+				if (graph.MetaData.DataLabel == null) continue;
 				TextBlock label = new TextBlock();
 				label.Inlines.Add(new Image { 
-					Source = new DrawingImage(graph.SampleDrawing).AsFrozen(), 
+					Source = new DrawingImage(graph.Visualisation.SampleDrawing).AsFrozen(), 
 					Stretch = Stretch.None, 
 					Margin = new Thickness(2, 0, 2, 0) });
-				label.Inlines.Add(graph.DataLabel);
+				label.Inlines.Add(graph.MetaData.DataLabel);
 				labelarea.Children.Add(label);
 			}
 		}
@@ -159,22 +158,22 @@ namespace EmnExtensions.Wpf.Plot {
 		}
 		private static DimensionBounds ToDimBounds(Rect bounds, bool isHorizontal) { return isHorizontal ? DimensionBounds.FromRectX(bounds) : DimensionBounds.FromRectY(bounds); }
 		private static DimensionMargins ToDimMargins(Thickness margins, bool isHorizontal) { return isHorizontal ? DimensionMargins.FromThicknessX(margins) : DimensionMargins.FromThicknessY(margins); }
-		private static TickedAxisLocation ChooseProjection(IPlot graph) { return ProjectionCorners.FirstOrDefault(corner => (graph.AxisBindings & corner) == corner); }
+		private static TickedAxisLocation ChooseProjection(IPlot graph) { return ProjectionCorners.FirstOrDefault(corner => (graph.MetaData.AxisBindings & corner) == corner); }
 		#endregion
 
 		private void RecomputeBounds() {
 			Trace.WriteLine("RecomputeBounds");
 			foreach (TickedAxis axis in Axes) {
-				var boundGraphs = graphs.Where(graph => (graph.AxisBindings & axis.AxisPos) != 0);
+				var boundGraphs = graphs.Where(graph => (graph.MetaData.AxisBindings & axis.AxisPos) != 0);
 				DimensionBounds bounds =
 					boundGraphs
 					.Select(graph => ToDimBounds(graph.EffectiveDataBounds(), axis.IsHorizontal))
 					.Aggregate(DimensionBounds.Empty, (bounds1, bounds2) => DimensionBounds.Merge(bounds1, bounds2));
 				DimensionMargins margin =
 					boundGraphs
-					.Select(graph => ToDimMargins(graph.Visualizer.Margin, axis.IsHorizontal))
+					.Select(graph => ToDimMargins(graph.Visualisation.Margin, axis.IsHorizontal))
 					.Aggregate(DimensionMargins.Empty, (m1, m2) => DimensionMargins.Merge(m1, m2));
-				string dataUnits = string.Join(", ", boundGraphs.Select(graph => axis.IsHorizontal ? graph.XUnitLabel : graph.YUnitLabel).Distinct().Where(s => !string.IsNullOrWhiteSpace(s)).ToArray());
+				string dataUnits = string.Join(", ", boundGraphs.Select(graph => axis.IsHorizontal ? graph.MetaData.XUnitLabel : graph.MetaData.YUnitLabel).Distinct().Where(s => !string.IsNullOrWhiteSpace(s)).ToArray());
 
 				axis.DataBound = bounds;
 				axis.DataMargin = margin;
@@ -212,8 +211,8 @@ namespace EmnExtensions.Wpf.Plot {
 				foreach (var axis in Axes)
 					if ((axis.AxisPos & gridLineAxes) != 0)
 						drawingContext.DrawDrawing(axis.GridLines);
-			foreach (var graph in graphs.OrderBy(g => g.ZIndex))
-				graph.Visualizer.DrawGraph(drawingContext);
+			foreach (var graph in graphs.OrderBy(g => g.MetaData.ZIndex))
+				graph.Visualisation.DrawGraph(drawingContext);
 			//drawingContext.Pop();
 		}
 
@@ -260,7 +259,7 @@ namespace EmnExtensions.Wpf.Plot {
 			foreach (var graph in graphs) {
 				var trans = cornerProjection[ChooseProjection(graph)];
 				Rect bounds = new Rect(new Point(trans.HorizontalClip.Start, trans.VerticalClip.Start), new Point(trans.HorizontalClip.End, trans.VerticalClip.End));
-				graph.Visualizer.SetTransform(trans.Transform, bounds, m_dpiX, m_dpiY);
+				graph.Visualisation.SetTransform(trans.Transform, bounds, m_dpiX, m_dpiY);
 			}
 			Rect axisBounds = Axes.Aggregate(Rect.Empty, (bound, axis) => Rect.Union(bound, new Rect(axis.RenderSize)));
 			foreach (var axis in Axes)

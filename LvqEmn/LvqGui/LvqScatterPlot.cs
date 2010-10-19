@@ -18,40 +18,52 @@ using System.Threading.Tasks;
 
 namespace LvqGui {
 	public sealed class LvqScatterPlot : IDisposable {
-		IPlotWriteable<Point[]> prototypePositionsPlot;
-		IPlotWriteable<Point[]>[] classPlots;
-		IPlotWriteable<int> classBoundaries;
+
+		delegate Action GraphUpdate<T>(T graphData);
+
+		GraphUpdate<Point[]> prototypePositionsPlot;
+		GraphUpdate<Point[]>[] classPlots;
+		GraphUpdate<int> classBoundaries;
+
+		static GraphUpdate<T> CreateGraphUpdate<T>(IVizEngine<T> viz) {
+			return data=>{
+				var dispOper=viz.Dispatcher.BeginInvoke(() => { viz.DataChanged(data); });
+				return () => { dispOper.Wait(); };
+			};
+		}
 
 		static class StatPlot {
-			
-
 			public static Point PlainStat(LvqTrainingStatCli info, int statIdx) { return new Point(info.values[LvqTrainingStatCli.TrainingIterationI], info.values[statIdx]); }
 			public static Point UpperStat(LvqTrainingStatCli info, int statIdx) { return new Point(info.values[LvqTrainingStatCli.TrainingIterationI], info.values[statIdx] + info.stderror[statIdx]); }
 			public static Point LowerStat(LvqTrainingStatCli info, int statIdx) { return new Point(info.values[LvqTrainingStatCli.TrainingIterationI], info.values[statIdx] - info.stderror[statIdx]); }
 
-			static IPlotWriteable<IEnumerable<LvqTrainingStatCli>> MakePlot(string dataLabel, string yunitLabel, bool isRight, Color color, int statIdx, int variant) {
+			static GraphUpdate<IEnumerable<LvqTrainingStatCli>> MakePlot(string dataLabel, string yunitLabel, bool isRight, Color color, int statIdx, int variant) {
 				var extractor =
 						variant == 0 ? (info => PlainStat(info, statIdx)) :
 						variant == 1 ? (info => UpperStat(info, statIdx)) :
 						(Func<LvqTrainingStatCli, Point>)(info => LowerStat(info, statIdx));
 				//variant 0 is plain, 1 is upper, -1 is lower.
-				var statPlot = PlotData.Create(Enumerable.Empty<LvqTrainingStatCli>(), PlotClass.Line, stats => stats.Select(extractor).ToArray());
-				statPlot.DataLabel = dataLabel;
-				statPlot.RenderColor = color;
-				statPlot.XUnitLabel = "Training iterations";
-				statPlot.YUnitLabel = yunitLabel;
-				statPlot.AxisBindings = TickedAxisLocation.BelowGraph | (isRight ? TickedAxisLocation.RightOfGraph : TickedAxisLocation.LeftOfGraph);
-				statPlot.ZIndex = variant == 0 ? 1 : 0;
-				//trainErr.MinimalBounds = new Rect(new Point(0, 0.001), new Point(0, 0));
-				((IVizLineSegments)statPlot.Visualizer).CoverageRatioY = 0.95;
-				((IVizLineSegments)statPlot.Visualizer).CoverageRatioGrad = 20.0;
+				var statPlot = new PlotData {
+					DataLabel = dataLabel,
+					RenderColor = color,
+					XUnitLabel = "Training iterations",
+					YUnitLabel = yunitLabel,
+					AxisBindings = TickedAxisLocation.BelowGraph | (isRight ? TickedAxisLocation.RightOfGraph : TickedAxisLocation.LeftOfGraph),
+					ZIndex = variant == 0 ? 1 : 0,
+					Visualizer = new VizLineSegments {
+						CoverageRatioY = 0.95,
+						CoverageRatioGrad = 20.0,
+					},
+				};
+					//trainErr.MinimalBounds = new Rect(new Point(0, 0.001), new Point(0, 0));
+			
 
-				return statPlot;
+				return stats => CreateGraphUpdate(viz)(stats.Select(extractor).ToArray());
 			}
 			static Color Blend(Color a, Color b) {
 				return Color.FromArgb((byte)(a.A + b.A + 1 >> 1), (byte)(a.R + b.R + 1 >> 1), (byte)(a.G + b.G + 1 >> 1), (byte)(a.B + b.B + 1 >> 1));
 			}
-			public static IEnumerable<IPlotWriteable<IEnumerable<LvqTrainingStatCli>>> MakePlots(string dataLabel, string yunitLabel, bool isRight, Color color, int statIdx, bool doVariants) {
+			public static IEnumerable<GraphUpdate<IEnumerable<LvqTrainingStatCli>>> MakePlots(string dataLabel, string yunitLabel, bool isRight, Color color, int statIdx, bool doVariants) {
 				if (doVariants) {
 					yield return MakePlot(null, yunitLabel, isRight, Blend(color, Colors.White), statIdx, 1);
 					yield return MakePlot(null, yunitLabel, isRight, Blend(color, Colors.White), statIdx, -1);
@@ -61,7 +73,7 @@ namespace LvqGui {
 
 		}
 
-		List<IPlotWriteable<IEnumerable<LvqTrainingStatCli>>> statPlots = new List<IPlotWriteable<IEnumerable<LvqTrainingStatCli>>>();
+		GraphUpdate<IEnumerable<LvqTrainingStatCli>> statPlots;
 
 		public readonly LvqDatasetCli dataset;
 		public readonly LvqModelCli model;
@@ -144,12 +156,12 @@ namespace LvqGui {
 		}
 
 		private PlotControl MakeScatterPlots() {
-			prototypePositionsPlot = PlotData.Create(new VizPixelScatterGeom { OverridePointCountEstimate = 30, });
+			prototypePositionsPlot = PlotDataS.Create(new VizPixelScatterGeom { OverridePointCountEstimate = 30, });
 			prototypePositionsPlot.ZIndex = 1;
-			classBoundaries = PlotData.Create(subModelIdx, UpdateClassBoundaries);
+			classBoundaries = PlotDataS.Create(subModelIdx, UpdateClassBoundaries);
 			classBoundaries.ZIndex = -1;
 			classPlots = Enumerable.Range(0, dataset.ClassCount).Select(i => {
-				var graphplot = PlotData.Create(default(Point[]), PlotClass.PointCloud);
+				var graphplot = PlotDataS.Create(default(Point[]), PlotClass.PointCloud);
 				((IVizPixelScatter)graphplot.Visualizer).CoverageRatio = 0.999;
 				graphplot.RenderColor = dataset.ClassColors[i];
 				return graphplot;
@@ -160,14 +172,14 @@ namespace LvqGui {
 				AttemptBorderTicks = false,
 				ShowGridLines = false,
 				Title = "ScatterPlot: " + model.ModelLabel,
-				GraphsEnumerable = classPlots.Concat(new IPlot[] { prototypePositionsPlot, classBoundaries })
+				GraphsEnumerable = classPlots.Concat(new IPlotMetaData[] { prototypePositionsPlot, classBoundaries })
 			};
 		}
 
 		static Color[] errorColors = new[] { Colors.Red, Color.FromRgb(0x8b, 0x8b, 0), };
 		static Color[] costColors = new[] { Colors.Blue, Colors.DarkCyan, };
 
-		static IEnumerable<IPlotWriteable< IEnumerable<LvqTrainingStatCli>>> MakePlots(string windowTitle, IEnumerable<TrainingStatName> stats, bool isMultiModel, bool hasTestSet) {
+		static IEnumerable<IPlotWriteable<IEnumerable<LvqTrainingStatCli>>> MakePlots(string windowTitle, IEnumerable<TrainingStatName> stats, bool isMultiModel, bool hasTestSet) {
 			var usedStats = (hasTestSet ? stats : stats.Where(stat => !stat.TrainingStatLabel.StartsWith("Training"))).ToArray();
 
 			Color[] colors =
@@ -228,7 +240,7 @@ namespace LvqGui {
 					classBoundaries.TriggerDataChanged(); //even if same index, underlying model _has_ changed.
 				}), DispatcherPriority.Background).Wait();
 
-				foreach (var uiOperation in statPlotUpdaters.Where(dispOp=>dispOp!=null)) uiOperation.Wait();
+				foreach (var uiOperation in statPlotUpdaters.Where(dispOp => dispOp != null)) uiOperation.Wait();
 
 				if (UpdateExit_IsDone()) return;
 			}

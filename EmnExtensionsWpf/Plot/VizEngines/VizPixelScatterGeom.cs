@@ -9,7 +9,7 @@ using System.Windows;
 using System.Windows.Media;
 
 namespace EmnExtensions.Wpf.Plot.VizEngines {
-	public class VizPixelScatterGeom : PlotVizTransform<Point[], StreamGeometry>, IVizPixelScatter {
+	public class VizPixelScatterGeom : VizTransformed<Point[], StreamGeometry>, IVizPixelScatter {
 		readonly VizGeometry impl = new VizGeometry { AutosizeBounds = false };
 		Point[] currentData;
 		StreamGeometry transformedData;
@@ -17,8 +17,8 @@ namespace EmnExtensions.Wpf.Plot.VizEngines {
 		public override void DataChanged(Point[] newData) {
 			currentData = newData;
 			transformedData = GraphUtils.PointCloud(newData);
-			RecomputeBounds(newData);
 			impl.DataChanged(transformedData);
+			RecomputeBounds(newData);
 			SetPenSize(OverridePointCountEstimate ?? (newData == null ? 0 : newData.Length));
 		}
 		public int? OverridePointCountEstimate { get; set; }
@@ -51,10 +51,10 @@ namespace EmnExtensions.Wpf.Plot.VizEngines {
 
 		private void RecomputeBounds(Point[] newData) {
 			Rect innerBounds, outerBounds;
-			VizPixelScatterHelpers.RecomputeBounds(newData, CoverageRatio,CoverageRatio,CoverageGradient, out outerBounds, out innerBounds);
+			VizPixelScatterHelpers.RecomputeBounds(newData, CoverageRatio, CoverageRatio, CoverageGradient, out outerBounds, out innerBounds);
 			if (innerBounds != m_InnerBounds) {
 				m_InnerBounds = innerBounds;
-				Owner.TriggerChange(GraphChange.Projection);
+				Plot.GraphChanged(GraphChange.Projection);
 			}
 		}
 		Rect m_InnerBounds;

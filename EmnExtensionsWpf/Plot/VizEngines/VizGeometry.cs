@@ -90,8 +90,8 @@ namespace EmnExtensions.Wpf.Plot.VizEngines {
 		private void RecreatePen() {
 			Color currentColor = ((SolidColorBrush)m_Pen.Brush).Color;
 			double currentThickness = m_Pen.Thickness;
-			Color newColor = Owner.RenderColor ?? currentColor;
-			double newThickness = Owner.RenderThickness ?? currentThickness;
+			Color newColor = Plot.MetaData.RenderColor ?? currentColor;
+			double newThickness = Plot.MetaData.RenderThickness ?? currentThickness;
 			if (newThickness != currentThickness || newColor != currentColor) {
 				if (newColor != currentColor)
 					TriggerChange(GraphChange.Labels);

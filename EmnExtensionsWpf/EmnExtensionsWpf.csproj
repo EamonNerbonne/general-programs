@@ -184,7 +184,8 @@
     <Compile Include="Plot\PlotControl.xaml.cs">
       <DependentUpon>PlotControl.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Plot\VizEngines\PlotVizTransform.cs" />
+    <Compile Include="Plot\VizEngines\VizMapped.cs" />
+    <Compile Include="Plot\VizEngines\VizTransformed.cs" />
     <Compile Include="Plot\VizEngines\VizDrawing.cs" />
     <Compile Include="Plot\VizEngines\VizLineSegments.cs" />
     <Compile Include="Plot\VizEngines\VizPixelScatter.cs" />

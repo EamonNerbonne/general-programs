@@ -27,7 +27,7 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
 
 			if (dataToBitmap.IsIdentity) return;//this is the default mapping; it may occur when generating a scatter plot without data - don't bother plotting.
 
-			double thickness = Owner.RenderThickness ?? VizPixelScatterHelpers.PointCountToThickness(Data.Length);
+			double thickness = Plot.MetaData.RenderThickness ?? VizPixelScatterHelpers.PointCountToThickness(Data.Length);
 			Tuple<double, bool> thicknessTranslation = DecodeThickness(thickness);
 
 			Make2dHistogramInRegion(pW, pH, dataToBitmap, thicknessTranslation.Item2);
@@ -100,7 +100,7 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
 
 		void ConvertHistogramToColorDensityImage(int pW, int pH, double alpha)
 		{
-			Color pointColor = Owner.RenderColor ?? Colors.Black;
+			Color pointColor = Plot.MetaData.RenderColor ?? Colors.Black;
 
 			int numPixels = pW * pH;
 			uint[] alphaLookup = PregenerateAlphaLookup(alpha, m_image, numPixels, pointColor.ScA);

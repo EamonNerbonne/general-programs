@@ -4,6 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Windows;
 using System.Windows.Media;
+using System.Threading.Tasks;
+using System.Windows.Threading;
 
 namespace EmnExtensions.Wpf.Plot {
 	public interface IVizEngine {
@@ -12,9 +14,10 @@ namespace EmnExtensions.Wpf.Plot {
 		void DrawGraph(DrawingContext context);
 		void SetTransform(Matrix boundsToDisplay, Rect displayClip, double forDpiX, double forDpiY);
 		void OnRenderOptionsChanged();
-		IPlot Owner { get; set; } //this will always be set before any usage other of this interface
+		IPlot Plot { get; set; } //this will always be set before any usage other of this interface
 		bool SupportsColor { get; }
 		Drawing SampleDrawing { get; }
+		Dispatcher Dispatcher { get; }
 	}
 
 	public interface IVizEngine<in T> : IVizEngine {

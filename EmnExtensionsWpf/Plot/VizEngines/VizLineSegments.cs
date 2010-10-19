@@ -12,7 +12,7 @@ namespace EmnExtensions.Wpf.Plot.VizEngines {
 		double CoverageRatioGrad { get; set; }
 	}
 
-	class VizLineSegments : PlotVizTransform<Point[], StreamGeometry>, IVizLineSegments {
+	public class VizLineSegments : VizTransformed<Point[], StreamGeometry>, IVizLineSegments {
 		IVizEngine<StreamGeometry> impl = new VizGeometry { AutosizeBounds = false };
 		StreamGeometry geomCache;
 		Point[] currentPoints;
@@ -32,7 +32,7 @@ namespace EmnExtensions.Wpf.Plot.VizEngines {
 			currentPoints = newData;
 			geomCache = GraphUtils.LineScaled(newData);
 			RecomputeBounds(currentPoints);
-			impl.DataChanged(geomCache);
+			Implementation.DataChanged(geomCache);
 		}
 
 		private void RecomputeBounds(Point[] newData) {
@@ -40,7 +40,7 @@ namespace EmnExtensions.Wpf.Plot.VizEngines {
 			VizPixelScatterHelpers.RecomputeBounds(newData, CoverageRatioX, CoverageRatioY, CoverageRatioGrad, out outerBounds, out innerBounds);
 			if (innerBounds != m_InnerBounds) {
 				m_InnerBounds = innerBounds;
-				Owner.TriggerChange(GraphChange.Projection);
+				Plot.GraphChanged(GraphChange.Projection);
 			}
 		}
 		Rect m_InnerBounds;

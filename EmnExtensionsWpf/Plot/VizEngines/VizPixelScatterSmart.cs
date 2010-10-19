@@ -6,7 +6,7 @@ using System.Windows;
 using System.Windows.Media;
 
 namespace EmnExtensions.Wpf.Plot.VizEngines {
-	public class VizPixelScatterSmart : PlotVizTransform<Point[], Point[]>, IVizPixelScatter {
+	public class VizPixelScatterSmart : VizTransformed<Point[], Point[]>, IVizPixelScatter {
 		const int MaxPointsInStreamGeometry = 15000;
 
 		protected override Point[] TransformedData(Point[] inputData) { return inputData; }
@@ -19,13 +19,13 @@ namespace EmnExtensions.Wpf.Plot.VizEngines {
 
 			if (reconstructEngine) {
 				IVizPixelScatter newImplementation = useBmpPlot ? (IVizPixelScatter)new VizPixelScatterBitmap() : new VizPixelScatterGeom();
-				newImplementation.Owner = Owner;
+				newImplementation.Plot = Plot;
 				newImplementation.CoverageRatio = CoverageRatio;
 				engine = newImplementation;
-				Owner.TriggerChange(GraphChange.Projection);
-				Owner.TriggerChange(GraphChange.Drawing);
+				Plot.GraphChanged(GraphChange.Projection);
+				Plot.GraphChanged(GraphChange.Drawing);
 			}
-			engine.DataChanged(newData);
+			Implementation.DataChanged(newData);
 		}
 
 		public double CoverageRatio { get { return engine.CoverageRatio; } set { engine.CoverageRatio = value; } }

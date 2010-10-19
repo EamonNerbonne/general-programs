@@ -14,14 +14,13 @@ namespace EmnExtensions.Wpf.Plot {
 		void GraphChanged(IPlot plot, GraphChange changeType);
 	}
 
-	public interface IPlot {
+	public interface IPlotMetaData {
 		string XUnitLabel { get; }
 		string YUnitLabel { get; }
 		string DataLabel { get; }
-		Drawing SampleDrawing { get; }
 		int ZIndex { get; }
 
-		IPlotContainer Container { set; }
+		IPlot Container { set; }
 		TickedAxisLocation AxisBindings { get; set; }
 
 		void TriggerChange(GraphChange changeType);
@@ -31,12 +30,10 @@ namespace EmnExtensions.Wpf.Plot {
 
 		Color? RenderColor { get; set; }
 		double? RenderThickness { get; }
-		IVizEngine Visualizer { get; }
-
-		DispatcherOperation TriggerDataChanged();
+		Dispatcher Dispatcher { get; }
 	}
 
-	public interface IPlotWriteable<in T> : IPlot {
+	public interface IPlotMetaDataWriteable : IPlotMetaData {
 		new string XUnitLabel { get; set; }
 		new string YUnitLabel { get; set; }
 		new string DataLabel { get; set; }
@@ -44,18 +41,22 @@ namespace EmnExtensions.Wpf.Plot {
 		new Rect? OverrideBounds { get; set; }
 		new Rect? MinimalBounds { get; set; }
 		new double? RenderThickness { get; set; }
-		new IPlotContainer Container { get; set; }
-
+		new IPlot Container { get; set; }
 		object Tag { get; set; }
-
-		/// <summary>
-		/// changes the data being graphed.  The data is mapped in the current thread, then, if necessary, graphed on another;
-		/// If a thread change was necessary, the appropriate DispatcherOperation object is return, otherwise null.
-		/// </summary>
-		DispatcherOperation SetData(T newData);
 	}
 
+
+	public interface IPlot {
+		IPlotContainer Container { set; }
+		IPlotMetaData MetaData { get; }
+		IVizEngine Visualisation { get; }
+		void GraphChanged(GraphChange changeType);
+	}
+
+
+
 	public static class PlotExtensions {
-		public static Rect EffectiveDataBounds(this IPlot plot) { return plot.OverrideBounds ?? Rect.Union(plot.Visualizer.DataBounds, plot.MinimalBounds ?? Rect.Empty); }
+		public static Rect EffectiveDataBounds(this IPlot plot) { return plot.MetaData.OverrideBounds ?? Rect.Union(plot.Visualisation.DataBounds, plot.MetaData.MinimalBounds ?? Rect.Empty); }
+		public static IVizEngine<TIn> Map<TOut, TIn>(this IVizEngine<TOut> impl, Func<TIn, TOut> map) { return new VizEngines.VizMapped<TIn, TOut>(impl, map); }
 	}
 }
