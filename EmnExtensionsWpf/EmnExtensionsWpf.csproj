@@ -184,6 +184,7 @@
     <Compile Include="Plot\PlotControl.xaml.cs">
       <DependentUpon>PlotControl.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Plot\PlotWithViz.cs" />
     <Compile Include="Plot\VizEngines\VizMapped.cs" />
     <Compile Include="Plot\VizEngines\VizTransformed.cs" />
     <Compile Include="Plot\VizEngines\VizDrawing.cs" />
@@ -197,7 +198,7 @@
     <Compile Include="Plot\DimensionBounds.cs" />
     <Compile Include="Plot\DimensionMargins.cs" />
     <Compile Include="Plot\GraphChange.cs" />
-    <Compile Include="Plot\PlotDataBase.cs" />
+    <Compile Include="Plot\PlotMetaData.cs" />
     <Compile Include="Plot\VizEngines\PlotVizBase.cs" />
     <Compile Include="Plot\VizEngines\PlotVizException.cs" />
     <Compile Include="Plot\TickedAxis.cs" />

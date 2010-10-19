@@ -10,9 +10,7 @@ using System.Threading.Tasks;
 
 namespace EmnExtensions.Wpf.Plot {
 	public class PlotMetaData : DispatcherObject, IPlotMetaDataWriteable {
-
 		private IPlot container;
-
 		public IPlot Container { get { return container; } set { container = value; } }
 
 		internal protected void TriggerChange(GraphChange changeType) { if (Container != null) Container.GraphChanged(changeType); }
