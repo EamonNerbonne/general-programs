@@ -14,10 +14,10 @@ namespace EmnExtensions.Wpf.Plot.VizEngines {
 		Point[] currentData;
 		StreamGeometry transformedData;
 		protected override StreamGeometry TransformedData(Point[] inputData) { return transformedData; }
-		public override void DataChanged(Point[] newData) {
+		public override void ChangeData(Point[] newData) {
 			currentData = newData;
 			transformedData = GraphUtils.PointCloud(newData);
-			impl.DataChanged(transformedData);
+			impl.ChangeData(transformedData);
 			RecomputeBounds(newData);
 			SetPenSize(OverridePointCountEstimate ?? (newData == null ? 0 : newData.Length));
 		}

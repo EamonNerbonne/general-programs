@@ -13,7 +13,7 @@ namespace EmnExtensions.Wpf.Plot.VizEngines {
 		IVizPixelScatter engine = new VizPixelScatterGeom();
 		protected override IVizEngine<Point[]> Implementation { get { return engine; } }
 
-		public override void DataChanged(Point[] newData) {
+		public override void ChangeData(Point[] newData) {
 			bool useBmpPlot = newData != null && newData.Length > MaxPointsInStreamGeometry;
 			bool reconstructEngine = engine is VizPixelScatterBitmap != useBmpPlot;
 
@@ -25,7 +25,7 @@ namespace EmnExtensions.Wpf.Plot.VizEngines {
 				Plot.GraphChanged(GraphChange.Projection);
 				Plot.GraphChanged(GraphChange.Drawing);
 			}
-			Implementation.DataChanged(newData);
+			Implementation.ChangeData(newData);
 		}
 
 		public double CoverageRatio { get { return engine.CoverageRatio; } set { engine.CoverageRatio = value; } }

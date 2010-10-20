@@ -16,7 +16,7 @@ namespace EmnExtensions.Wpf.Plot {
 
 		public IPlotMetaData MetaData {
 			get { return metaData; }
-			set { metaData = value; metaData.Container = this; }
+			set { metaData = value; metaData.Plot = this; }
 		}
 
 		private IVizEngine<T> visualisation;

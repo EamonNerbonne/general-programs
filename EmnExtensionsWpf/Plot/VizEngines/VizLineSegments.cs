@@ -28,11 +28,11 @@ namespace EmnExtensions.Wpf.Plot.VizEngines {
 		double m_CoverageRatioGrad = 2.0;
 		public double CoverageRatioGrad { get { return m_CoverageRatioGrad; } set { if (value != m_CoverageRatioGrad) { m_CoverageRatioGrad = value; RecomputeBounds(currentPoints); } } }
 
-		public override void DataChanged(Point[] newData) {
+		public override void ChangeData(Point[] newData) {
 			currentPoints = newData;
 			geomCache = GraphUtils.LineScaled(newData);
 			RecomputeBounds(currentPoints);
-			Implementation.DataChanged(geomCache);
+			Implementation.ChangeData(geomCache);
 		}
 
 		private void RecomputeBounds(Point[] newData) {

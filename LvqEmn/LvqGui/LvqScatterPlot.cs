@@ -14,87 +14,29 @@ using System.ComponentModel;
 using System.Diagnostics;
 using EmnExtensions.MathHelpers;
 using System.Threading.Tasks;
+using EmnExtensions;
 
 
 namespace LvqGui {
 	public sealed class LvqScatterPlot : IDisposable {
+		readonly double winSize;
+		readonly UpdateSync updateSync = new UpdateSync();
+
+		readonly Dispatcher lvqPlotDispatcher;
+		readonly List<Window> plotWindows = new List<Window>();
+
+		readonly LvqDatasetCli dataset;
+		public LvqDatasetCli Dataset { get { return dataset; } }
+
+		readonly LvqModelCli model;
+		public LvqModelCli Model { get { return model; } }
 
 		delegate Action GraphUpdate<T>(T graphData);
-
 		GraphUpdate<Point[]> prototypePositionsPlot;
 		GraphUpdate<Point[]>[] classPlots;
 		GraphUpdate<int> classBoundaries;
-
-		static GraphUpdate<T> CreateGraphUpdate<T>(IVizEngine<T> viz) {
-			return data => {
-				var dispOper = viz.Dispatcher.BeginInvoke(() => { viz.DataChanged(data); });
-				return () => { dispOper.Wait(); };
-			};
-		}
-
-		static class StatPlot {
-			public static Point PlainStat(LvqTrainingStatCli info, int statIdx) { return new Point(info.values[LvqTrainingStatCli.TrainingIterationI], info.values[statIdx]); }
-			public static Point UpperStat(LvqTrainingStatCli info, int statIdx) { return new Point(info.values[LvqTrainingStatCli.TrainingIterationI], info.values[statIdx] + info.stderror[statIdx]); }
-			public static Point LowerStat(LvqTrainingStatCli info, int statIdx) { return new Point(info.values[LvqTrainingStatCli.TrainingIterationI], info.values[statIdx] - info.stderror[statIdx]); }
-
-			static PlotWithViz<IEnumerable<LvqTrainingStatCli>> MakePlot(string dataLabel, string yunitLabel, bool isRight, Color color, int statIdx, int variant) {
-				var extractor =
-						variant == 0 ? stats => stats.Select(info => PlainStat(info, statIdx)).ToArray() :
-						variant == 1 ? stats => stats.Select(info => UpperStat(info, statIdx)).ToArray() :
-						(Func<IEnumerable<LvqTrainingStatCli>, Point[]>)(stats => stats.Select(info => LowerStat(info, statIdx)).ToArray());
-				return Plot.Create(
-					new PlotMetaData {
-						DataLabel = dataLabel,
-						RenderColor = color,
-						XUnitLabel = "Training iterations",
-						YUnitLabel = yunitLabel,
-						AxisBindings = TickedAxisLocation.BelowGraph | (isRight ? TickedAxisLocation.RightOfGraph : TickedAxisLocation.LeftOfGraph),
-						ZIndex = variant == 0 ? 1 : 0
-					},
-					new VizLineSegments {
-						CoverageRatioY = 0.95,
-						CoverageRatioGrad = 20.0,
-					}.Map(extractor));
-			}
-			static Color Blend(Color a, Color b) {
-				return Color.FromArgb((byte)(a.A + b.A + 1 >> 1), (byte)(a.R + b.R + 1 >> 1), (byte)(a.G + b.G + 1 >> 1), (byte)(a.B + b.B + 1 >> 1));
-			}
-			public static IEnumerable<PlotWithViz<IEnumerable<LvqTrainingStatCli>>> MakePlots(string dataLabel, string yunitLabel, bool isRight, Color color, int statIdx, bool doVariants) {
-				if (doVariants) {
-					yield return MakePlot(null, yunitLabel, isRight, Blend(color, Colors.White), statIdx, 1);
-					yield return MakePlot(null, yunitLabel, isRight, Blend(color, Colors.White), statIdx, -1);
-				}
-				yield return MakePlot(dataLabel, yunitLabel, isRight, color, statIdx, 0);
-			}
-
-		}
-
 		GraphUpdate<IEnumerable<LvqTrainingStatCli>> statPlots;
 
-		public readonly LvqDatasetCli dataset;
-		public readonly LvqModelCli model;
-		readonly Dispatcher lvqPlotDispatcher;
-
-		readonly List<Window> plotWindows = new List<Window>();
-
-		class TrainingStatName {
-			public readonly string TrainingStatLabel, UnitLabel, StatGroup;
-			public readonly int Index;
-			public TrainingStatName(string compoundName, int index) {
-				if (index < 0) throw new ArgumentException("index must be positive");
-				Index = index;
-				string[] splitName = compoundName.Split('|');
-				if (splitName.Length < 2) throw new ArgumentException("compound name has too few components");
-				if (splitName.Length > 3) throw new ArgumentException("compound name has too many components");
-				TrainingStatLabel = splitName[0];
-				UnitLabel = splitName[1];
-				StatGroup = splitName.Length > 2 ? splitName[2] : null;
-			}
-			public static TrainingStatName Create(string compoundName, int index) { return new TrainingStatName(compoundName, index); }
-		}
-
-		double winSize;
-		bool busy, updateQueued;
 		public LvqScatterPlot(LvqDatasetCli dataset, LvqModelCli model, int selectedSubModel) {
 			this.subModelIdx = selectedSubModel;
 			this.dataset = dataset;
@@ -115,7 +57,7 @@ namespace LvqGui {
 					where statname.StatGroup != null
 					group statname by new { statname.UnitLabel, statname.StatGroup } into statGroup
 					let winTitle = statGroup.Key.StatGroup
-					let plots = MakePlots(winTitle, statGroup, model.IsMultiModel, dataset.IsFolded()).ToArray()
+					let plots = StatisticsPlotMaker.Create(winTitle, statGroup, model.IsMultiModel, dataset.IsFolded()).ToArray()
 					let updaters = plots.Select(plotWithViz => CreateGraphUpdate(plotWithViz.Visualisation))
 					let plotControl = new PlotControl() {
 						ShowGridLines = true,
@@ -141,22 +83,8 @@ namespace LvqGui {
 			QueueUpdate();
 		}
 
-		static Dispatcher StartNewDispatcher() {
-			using (var sem = new SemaphoreSlim(0)) {
-				Dispatcher retval = null;
-				var winThread = new Thread(() => {
-					retval = Dispatcher.CurrentDispatcher;
-					sem.Release();
-					Dispatcher.Run();
-				}) { IsBackground = true };
-				winThread.SetApartmentState(ApartmentState.STA);
-				winThread.Start();
-				sem.Wait();
-				return retval;
-			}
-		}
 
-		private PlotControl MakeScatterPlots() {
+		PlotControl MakeScatterPlots() {
 			var protoPlot = Plot.Create(new PlotMetaData { ZIndex = 1, }, new VizPixelScatterGeom { OverridePointCountEstimate = 30, });
 			prototypePositionsPlot = CreateGraphUpdate(protoPlot.Visualisation);
 			var classBounaryPlot = Plot.Create(new PlotMetaData { ZIndex = -1 }, new VizDelegateBitmap<int> { UpdateBitmapDelegate = UpdateClassBoundaries });
@@ -179,20 +107,6 @@ namespace LvqGui {
 			};
 		}
 
-		static Color[] errorColors = new[] { Colors.Red, Color.FromRgb(0x8b, 0x8b, 0), };
-		static Color[] costColors = new[] { Colors.Blue, Colors.DarkCyan, };
-
-		static IEnumerable<PlotWithViz<IEnumerable<LvqTrainingStatCli>>> MakePlots(string windowTitle, IEnumerable<TrainingStatName> stats, bool isMultiModel, bool hasTestSet) {
-			var usedStats = (hasTestSet ? stats : stats.Where(stat => !stat.TrainingStatLabel.StartsWith("Training"))).ToArray();
-
-			Color[] colors =
-				windowTitle == "Error Rates" ? errorColors :
-				windowTitle == "Cost Function" ? costColors :
-				GraphRandomPen.MakeDistributedColors(usedStats.Length, new MersenneTwister(1 + windowTitle.GetHashCode()));
-			return
-				usedStats.Zip(colors, (stat, color) => StatPlot.MakePlots(stat.TrainingStatLabel, stat.UnitLabel, false, color, stat.Index, isMultiModel))
-				.SelectMany(s => s);
-		}
 
 		int subModelIdx = 0;
 		public int SubModelIndex {
@@ -213,7 +127,7 @@ namespace LvqGui {
 		public void QueueUpdate() { ThreadPool.QueueUserWorkItem(o => { UpdateDisplay_BGThread(); }); }
 		private void UpdateDisplay_BGThread() {
 			if (model == null) return;
-			while (UpdateEntry_IsAvailable()) {
+			while (updateSync.UpdateEnqueue_IsMyTurn()) {
 				int currentSubModelIdx = subModelIdx;
 
 				var trainingStats = model.TrainingStats;
@@ -235,15 +149,12 @@ namespace LvqGui {
 						projectedPointsByLabel[label][pointIndexPerClass[label]++] = points[i];
 					}
 
-				foreach (var waiter in new[] {statPlotWaiter, prototypePositionsPlot(prototypePositions), classBoundaries(currentSubModelIdx), }.Concat(classPlots.Select((updater, i) => updater(projectedPointsByLabel[i])).ToArray()))
+				foreach (var waiter in new[] { statPlotWaiter, prototypePositionsPlot(prototypePositions), classBoundaries(currentSubModelIdx), }.Concat(classPlots.Select((updater, i) => updater(projectedPointsByLabel[i])).ToArray()))
 					waiter();
 
-				if (UpdateExit_IsDone()) return;
+				if (updateSync.UpdateDone_IsQueueEmpty()) return;
 			}
 		}
-		object syncUpdates = new object();
-		bool UpdateEntry_IsAvailable() { lock (syncUpdates) { updateQueued = busy; busy = true; return !updateQueued; } }
-		bool UpdateExit_IsDone() { lock (syncUpdates) { busy = false; return !updateQueued; } }
 
 
 		void UpdateClassBoundaries(WriteableBitmap bmp, Matrix dataToBmp, int width, int height, int subModelIdx) {
@@ -302,6 +213,99 @@ namespace LvqGui {
 				ClosePlots();
 				lvqPlotDispatcher.BeginInvokeShutdown(DispatcherPriority.Normal);
 			}));
+		}
+
+		class TrainingStatName {
+			public readonly string TrainingStatLabel, UnitLabel, StatGroup;
+			public readonly int Index;
+			public TrainingStatName(string compoundName, int index) {
+				if (index < 0) throw new ArgumentException("index must be positive");
+				Index = index;
+				string[] splitName = compoundName.Split('|');
+				if (splitName.Length < 2) throw new ArgumentException("compound name has too few components");
+				if (splitName.Length > 3) throw new ArgumentException("compound name has too many components");
+				TrainingStatLabel = splitName[0];
+				UnitLabel = splitName[1];
+				StatGroup = splitName.Length > 2 ? splitName[2] : null;
+			}
+			public static TrainingStatName Create(string compoundName, int index) { return new TrainingStatName(compoundName, index); }
+		}
+
+		static GraphUpdate<T> CreateGraphUpdate<T>(IVizEngine<T> viz) {
+			return data => {
+				var dispOper = viz.Dispatcher.BeginInvoke(() => { viz.ChangeData(data); });
+				return () => { dispOper.Wait(); };
+			};
+		}
+
+		static Dispatcher StartNewDispatcher() {
+			using (var sem = new SemaphoreSlim(0)) {
+				Dispatcher retval = null;
+				var winThread = new Thread(() => {
+					retval = Dispatcher.CurrentDispatcher;
+					sem.Release();
+					Dispatcher.Run();
+				}) { IsBackground = true };
+				winThread.SetApartmentState(ApartmentState.STA);
+				winThread.Start();
+				sem.Wait();
+				return retval;
+			}
+		}
+
+
+
+		static class StatisticsPlotMaker {
+			public static IEnumerable<PlotWithViz<IEnumerable<LvqTrainingStatCli>>> Create(string windowTitle, IEnumerable<TrainingStatName> stats, bool isMultiModel, bool hasTestSet) {
+				var relevantStatistics = (hasTestSet ? stats : stats.Where(stat => !stat.TrainingStatLabel.StartsWith("Training"))).ToArray();
+
+				return
+					relevantStatistics.Zip(ColorsForWindow(windowTitle,relevantStatistics.Length),
+						(stat, color) => StatisticsPlotMaker.MakePlots(stat.TrainingStatLabel, stat.UnitLabel, color, stat.Index, isMultiModel)
+					).SelectMany(s => s);
+			}
+
+			static Color[] errorColors = new[] { Colors.Red, Color.FromRgb(0x8b, 0x8b, 0), };
+			static Color[] costColors = new[] { Colors.Blue, Colors.DarkCyan, };
+			static Color[] ColorsForWindow(string windowTitle, int length) {
+				return
+					windowTitle == "Error Rates" ? errorColors :
+					windowTitle == "Cost Function" ? costColors :
+					GraphRandomPen.MakeDistributedColors(length, new MersenneTwister(1 + windowTitle.GetHashCode()));
+			}
+			static IEnumerable<PlotWithViz<IEnumerable<LvqTrainingStatCli>>> MakePlots(string dataLabel, string yunitLabel, Color color, int statIdx, bool doVariants) {
+				if (doVariants) {
+					yield return MakePlot(null, yunitLabel,  Blend(color, Colors.White), statIdx, 1);
+					yield return MakePlot(null, yunitLabel,  Blend(color, Colors.White), statIdx, -1);
+				}
+				yield return MakePlot(dataLabel, yunitLabel, color, statIdx, 0);
+			}
+			static Func<IEnumerable<LvqTrainingStatCli>, Point[]> StatisticsToPointsMapper(int statIdx, int variant) {
+				return stats =>
+					stats.Select(info =>
+						new Point(info.values[LvqTrainingStatCli.TrainingIterationI],
+							info.values[statIdx] + variant * info.stderror[statIdx]
+						)
+					).ToArray();
+			}
+			static PlotWithViz<IEnumerable<LvqTrainingStatCli>> MakePlot(string dataLabel, string yunitLabel, Color color, int statIdx, int variant) {
+				return Plot.Create(
+					new PlotMetaData {
+						DataLabel = dataLabel,
+						RenderColor = color,
+						XUnitLabel = "Training iterations",
+						YUnitLabel = yunitLabel,
+						AxisBindings = TickedAxisLocation.BelowGraph | TickedAxisLocation.LeftOfGraph,
+						ZIndex = variant == 0 ? 1 : 0
+					},
+					new VizLineSegments {
+						CoverageRatioY = 0.95,
+						CoverageRatioGrad = 20.0,
+					}.Map(StatisticsToPointsMapper(statIdx, variant)));
+			}
+			static Color Blend(Color a, Color b) {
+				return Color.FromArgb((byte)(a.A + b.A + 1 >> 1), (byte)(a.R + b.R + 1 >> 1), (byte)(a.G + b.G + 1 >> 1), (byte)(a.B + b.B + 1 >> 1));
+			}
 		}
 	}
 }

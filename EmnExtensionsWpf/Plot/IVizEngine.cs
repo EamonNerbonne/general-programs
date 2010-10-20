@@ -20,7 +20,12 @@ namespace EmnExtensions.Wpf.Plot {
 		Dispatcher Dispatcher { get; }
 	}
 
-	public interface IVizEngine<in T> : IVizEngine {
-		void DataChanged(T data);
+	public interface IDataSink<in T> {
+		Dispatcher Dispatcher { get; }
+		void ChangeData(T data);
+	}
+
+	public interface IVizEngine<in T> : IVizEngine, IDataSink<T> {
+		new Dispatcher Dispatcher { get; }
 	}
 }

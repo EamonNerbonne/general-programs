@@ -10,7 +10,7 @@ namespace EmnExtensions.Wpf.Plot.VizEngines {
 	public sealed class VizMapped<TIn, TOut> : IVizEngine<TIn> {
 		readonly Func<TIn, TOut> map;
 		public IVizEngine<TOut> Implementation { get; private set; }
-		public void DataChanged(TIn newData) { Implementation.DataChanged(map(newData)); }
+		public void ChangeData(TIn newData) { Implementation.ChangeData(map(newData)); }
 		public Rect DataBounds { get { return Implementation.DataBounds; } }
 		public Thickness Margin { get { return Implementation.Margin; } }
 		public void DrawGraph(DrawingContext context) { Implementation.DrawGraph(context); }

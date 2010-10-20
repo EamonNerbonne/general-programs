@@ -20,7 +20,7 @@ namespace EmnExtensions.Wpf.Plot {
 		string DataLabel { get; }
 		int ZIndex { get; }
 
-		IPlot Container { set; }
+		IPlot Plot { set; }
 		TickedAxisLocation AxisBindings { get; set; }
 
 		void TriggerChange(GraphChange changeType);
@@ -41,7 +41,7 @@ namespace EmnExtensions.Wpf.Plot {
 		new Rect? OverrideBounds { get; set; }
 		new Rect? MinimalBounds { get; set; }
 		new double? RenderThickness { get; set; }
-		new IPlot Container { get; set; }
+		new IPlot Plot { get; set; }
 		object Tag { get; set; }
 	}
 
@@ -52,8 +52,6 @@ namespace EmnExtensions.Wpf.Plot {
 		IVizEngine Visualisation { get; }
 		void GraphChanged(GraphChange changeType);
 	}
-
-
 
 	public static class PlotExtensions {
 		public static Rect EffectiveDataBounds(this IPlot plot) { return plot.MetaData.OverrideBounds ?? Rect.Union(plot.Visualisation.DataBounds, plot.MetaData.MinimalBounds ?? Rect.Empty); }

@@ -12,7 +12,7 @@ namespace EmnExtensions.Wpf.Plot.VizEngines {
 		public Thickness Margin { get { return new Thickness(0.0); } }
 		public void DrawGraph(DrawingContext context) { }
 		public void SetTransform(Matrix boundsToDisplay, Rect displayClip, double forDpiX, double forDpiY) { }
-		public void DataChanged(object data) { }
+		public void ChangeData(object data) { }
 		public IPlot Plot { get; set; }
 		public void OnRenderOptionsChanged() { }
 		public bool SupportsColor { get { return false; } }

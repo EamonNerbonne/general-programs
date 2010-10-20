@@ -59,13 +59,13 @@ namespace LvqGui {
 		LvqScatterPlot plotData;
 		void TrainingControlValues_SelectedModelUpdatedInBackgroundThread(LvqDatasetCli dataset, LvqModelCli model) {
 			Dispatcher.BeginInvoke(() => {
-				if (plotData != null && plotData.dataset == dataset && plotData.model == model)
+				if (plotData != null && plotData.Dataset == dataset && plotData.Model == model)
 					plotData.QueueUpdate();
 			});
 		}
 
 		void TrainingControlValues_ModelSelected(LvqDatasetCli dataset, LvqModelCli model, int subModelIdx) {
-			if (plotData == null || plotData.dataset != dataset || plotData.model != model) {
+			if (plotData == null || plotData.Dataset != dataset || plotData.Model != model) {
 				//something's different
 				if (plotData != null) {
 					plotData.Dispose();

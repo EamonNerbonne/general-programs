@@ -30,7 +30,7 @@ namespace EmnExtensions.Wpf.Plot.VizEngines {
 		public abstract void DrawGraph(DrawingContext context);
 		public abstract void SetTransform(Matrix boundsToDisplay, Rect displayClip, double forDpiX, double forDpiY);
 		public T Data { get; private set; }
-		public void DataChanged(T data) {
+		public void ChangeData(T data) {
 			
 			var oldData = Data;
 			Data = data;
