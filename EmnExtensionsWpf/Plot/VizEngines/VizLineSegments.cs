@@ -40,7 +40,7 @@ namespace EmnExtensions.Wpf.Plot.VizEngines {
 			VizPixelScatterHelpers.RecomputeBounds(newData, CoverageRatioX, CoverageRatioY, CoverageRatioGrad, out outerBounds, out innerBounds);
 			if (innerBounds != m_InnerBounds) {
 				m_InnerBounds = innerBounds;
-				Plot.GraphChanged(GraphChange.Projection);
+				if (Plot != null) Plot.GraphChanged(GraphChange.Projection);
 			}
 		}
 		Rect m_InnerBounds;
