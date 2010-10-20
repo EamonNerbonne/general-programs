@@ -1,12 +1,8 @@
 ﻿//#define SHAREMEM
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Windows;
-using System.Windows.Media;
-using EmnExtensions.Algorithms;
 using System.IO;
+using System.Windows;
+using EmnExtensions.Algorithms;
 
 namespace EmnExtensions.Wpf.Plot.VizEngines {
 	public interface IVizPixelScatter : IVizEngine<Point[]> {

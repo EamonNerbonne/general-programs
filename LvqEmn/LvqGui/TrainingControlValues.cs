@@ -1,13 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.ComponentModel;
-using LvqLibCli;
-using EmnExtensions.DebugTools;
+using System.Linq;
 using System.Threading;
-using System.Collections.ObjectModel;
-using System.Windows;
+using EmnExtensions.DebugTools;
+using LvqLibCli;
 
 namespace LvqGui {
 	public class TrainingControlValues : INotifyPropertyChanged {

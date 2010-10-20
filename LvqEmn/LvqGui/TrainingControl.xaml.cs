@@ -1,8 +1,7 @@
-﻿using System.Threading;
+﻿using System;
+using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
-using System.Threading.Tasks;
-using System;
 
 namespace LvqGui {
 	/// <summary>

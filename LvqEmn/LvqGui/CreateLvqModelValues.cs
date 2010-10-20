@@ -1,10 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.ComponentModel;
-using LvqLibCli;
+using System.Linq;
 using System.Text.RegularExpressions;
+using LvqLibCli;
 
 namespace LvqGui {
 	public class CreateLvqModelValues : INotifyPropertyChanged, IHasSeed {

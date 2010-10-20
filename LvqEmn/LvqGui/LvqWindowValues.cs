@@ -1,14 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using LvqLibCli;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
-using System.Windows.Threading;
-using System.Threading.Tasks;
+using System.Linq;
 using System.Threading;
+using System.Windows.Threading;
+using LvqLibCli;
 
 namespace LvqGui {
 	public class LvqWindowValues : INotifyPropertyChanged {

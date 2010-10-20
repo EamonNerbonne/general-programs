@@ -1,21 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Threading;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
-using LvqLibCli;
-using EmnExtensions.Wpf.Plot;
-using EmnExtensions.Wpf.Plot.VizEngines;
-using System.ComponentModel;
-using System.Threading;
 using System.Windows.Threading;
+using LvqLibCli;
 
 namespace LvqGui {
 	public partial class LvqWindow : Window {

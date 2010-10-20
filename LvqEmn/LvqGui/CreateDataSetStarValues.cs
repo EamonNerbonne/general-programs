@@ -1,12 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using LvqLibCli;
 using System.ComponentModel;
-using EmnExtensions.Wpf;
+using System.Linq;
 using System.Text.RegularExpressions;
 using EmnExtensions.MathHelpers;
+using EmnExtensions.Wpf;
+using LvqLibCli;
 
 namespace LvqGui {
 
