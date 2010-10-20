@@ -52,27 +52,34 @@ namespace LvqGui {
 
 			plotWindows.Add(new Window { Width = winSize, Height = winSize, Title = "ScatterPlot", Content = MakeScatterPlots() });
 
-			var plotsControlsWithDetails = (
+			var plotGroups = (
 					from statname in model.TrainingStatNames.Select(TrainingStatName.Create)
 					where statname.StatGroup != null
 					group statname by new { statname.UnitLabel, statname.StatGroup } into statGroup
 					let winTitle = statGroup.Key.StatGroup
 					let plots = StatisticsPlotMaker.Create(winTitle, statGroup, model.IsMultiModel, dataset.IsFolded()).ToArray()
-					let updaters = plots.Select(plotWithViz => CreateGraphUpdate(plotWithViz.Visualisation))
-					let plotControl = new PlotControl() {
-						ShowGridLines = true,
-						Title = winTitle + ": " + model.ModelLabel,
-						GraphsEnumerable = plots
-					}
-					let win = new Window { Width = winSize, Height = winSize, Title = winTitle, Content = plotControl }
-					select new {
-						Window = win,
-						Updaters = updaters,
-					}
-					).ToArray();
+					select new { WindowTitle = winTitle, Plots = plots, }
+				).ToArray();
 
-			plotWindows.AddRange(plotsControlsWithDetails.Select(plotGroup => plotGroup.Window));
-			var allUpdaters = plotsControlsWithDetails.SelectMany(plotGroup => plotGroup.Updaters).ToArray();
+			plotWindows.AddRange(
+				from plotGroup in plotGroups
+				select new Window {
+					Width = winSize,
+					Height = winSize,
+					Title = plotGroup.WindowTitle,
+					Content = new PlotControl() {
+						ShowGridLines = true,
+						Title = plotGroup.WindowTitle + ": " + model.ModelLabel,
+						GraphsEnumerable = plotGroup.Plots
+					}
+				}
+			);
+
+			var allUpdaters = (
+					from plotGroup in plotGroups
+					from plot in plotGroup.Plots
+					select CreateGraphUpdate(plot.Visualisation)
+				).ToArray();
 
 			statPlots = stats => {
 				var waiters = allUpdaters.Select(up => up(stats)).ToArray();
@@ -82,7 +89,6 @@ namespace LvqGui {
 			foreach (var window in plotWindows) window.Show();
 			QueueUpdate();
 		}
-
 
 		PlotControl MakeScatterPlots() {
 			var protoPlot = Plot.Create(new PlotMetaData { ZIndex = 1, }, new VizPixelScatterGeom { OverridePointCountEstimate = 30, });
@@ -260,7 +266,7 @@ namespace LvqGui {
 				var relevantStatistics = (hasTestSet ? stats : stats.Where(stat => !stat.TrainingStatLabel.StartsWith("Training"))).ToArray();
 
 				return
-					relevantStatistics.Zip(ColorsForWindow(windowTitle,relevantStatistics.Length),
+					relevantStatistics.Zip(ColorsForWindow(windowTitle, relevantStatistics.Length),
 						(stat, color) => StatisticsPlotMaker.MakePlots(stat.TrainingStatLabel, stat.UnitLabel, color, stat.Index, isMultiModel)
 					).SelectMany(s => s);
 			}
@@ -275,8 +281,8 @@ namespace LvqGui {
 			}
 			static IEnumerable<PlotWithViz<IEnumerable<LvqTrainingStatCli>>> MakePlots(string dataLabel, string yunitLabel, Color color, int statIdx, bool doVariants) {
 				if (doVariants) {
-					yield return MakePlot(null, yunitLabel,  Blend(color, Colors.White), statIdx, 1);
-					yield return MakePlot(null, yunitLabel,  Blend(color, Colors.White), statIdx, -1);
+					yield return MakePlot(null, yunitLabel, Blend(color, Colors.White), statIdx, 1);
+					yield return MakePlot(null, yunitLabel, Blend(color, Colors.White), statIdx, -1);
 				}
 				yield return MakePlot(dataLabel, yunitLabel, color, statIdx, 0);
 			}

@@ -56,5 +56,6 @@ namespace EmnExtensions.Wpf.Plot {
 	public static class PlotExtensions {
 		public static Rect EffectiveDataBounds(this IPlot plot) { return plot.MetaData.OverrideBounds ?? Rect.Union(plot.Visualisation.DataBounds, plot.MetaData.MinimalBounds ?? Rect.Empty); }
 		public static IVizEngine<TIn> Map<TOut, TIn>(this IVizEngine<TOut> impl, Func<TIn, TOut> map) { return new VizEngines.VizMapped<TIn, TOut>(impl, map); }
+		public static DispatcherOperation BeginDataChange<T>(this IDataSink<T> sink, T data) { return sink.Dispatcher.BeginInvoke((Action<T>)sink.ChangeData, data); }
 	}
 }
