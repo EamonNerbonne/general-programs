@@ -1,4 +1,5 @@
-﻿//#define SHAREMEM
+﻿//#define SHAREMEM //useful on workstation GC
+//#define TRACKUSAGE //handy to see how fast GUI is.
 using System;
 using System.IO;
 using System.Windows;
@@ -45,6 +46,7 @@ namespace EmnExtensions.Wpf.Plot.VizEngines {
 				cutoffEachSideX == 0 && cutoffEachSideY == 0 ? completeBounds :
 				ComputeInnerBoundsByCutoff(points, cutoffEachSideX, cutoffEachSideY, coverageGrad);
 		}
+#if TRACKUSAGE
 		static int hitcount;
 		static readonly DateTime start = DateTime.Now;
 		static VizPixelScatterHelpers() {
@@ -52,6 +54,7 @@ namespace EmnExtensions.Wpf.Plot.VizEngines {
 				File.AppendAllText(@"C:\tmplog.log", "HitCount: " + hitcount + ", time:" + (DateTime.Now - start) + "\n");
 			};
 		}
+#endif
 
 #if SHAREMEM
 		static object sync = new object();
@@ -63,8 +66,9 @@ namespace EmnExtensions.Wpf.Plot.VizEngines {
 #endif
 			{
 
-
+#if TRACKUSAGE
 				hitcount++;
+#endif
 #if SHAREMEM
 				if (vals.Length < points.Length)
 #else
