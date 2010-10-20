@@ -131,7 +131,8 @@ namespace LvqGui {
 				var currProjection = model.CurrentProjectionAndPrototypes(currentSubModelIdx, dataset);
 
 				Point[] prototypePositions = !currProjection.IsOk ? default(Point[]) : Points.ToMediaPoints(currProjection.Prototypes.Points);
-				Point[] points = Points.ToMediaPoints(currProjection.Data.Points);
+				Point[] dataPoints = Points.ToMediaPoints(currProjection.Data.Points);
+				
 				int[] pointCountPerClass = new int[dataset.ClassCount];
 				if (currProjection.IsOk)
 					for (int i = 0; i < currProjection.Data.ClassLabels.Length; ++i)
@@ -140,13 +141,14 @@ namespace LvqGui {
 				Point[][] projectedPointsByLabel = Enumerable.Range(0, dataset.ClassCount).Select(i => new Point[pointCountPerClass[i]]).ToArray();
 				int[] pointIndexPerClass = new int[dataset.ClassCount];
 				if (currProjection.IsOk)
-					for (int i = 0; i < points.Length; ++i) {
+					for (int i = 0; i < dataPoints.Length; ++i) {
 						int label = currProjection.Data.ClassLabels[i];
-						projectedPointsByLabel[label][pointIndexPerClass[label]++] = points[i];
+						projectedPointsByLabel[label][pointIndexPerClass[label]++] = dataPoints[i];
 					}
 
 				var uiOperations =
 					new[] { prototypePositionsPlot.BeginDataChange(prototypePositions), classBoundaries.BeginDataChange(currentSubModelIdx), }
+					.Concat(classPlots.Select((plot, i) => plot.BeginDataChange(projectedPointsByLabel[i])))
 					.Concat(statPlots.Select(plot => plot.BeginDataChange(model.TrainingStats)))
 					.ToArray();//Do UI operations only once
 
@@ -159,7 +161,6 @@ namespace LvqGui {
 
 
 		void UpdateClassBoundaries(WriteableBitmap bmp, Matrix dataToBmp, int width, int height, int subModelIdx) {
-
 #if DEBUG
 			int renderwidth = (width + 7) / 8;
 			int renderheight = (height + 7) / 8;
