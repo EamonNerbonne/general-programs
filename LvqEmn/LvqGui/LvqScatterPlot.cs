@@ -1,20 +1,21 @@
-﻿using System;
+﻿#define VIALINQ
+using System;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
+using EmnExtensions;
+using EmnExtensions.MathHelpers;
 using EmnExtensions.Wpf;
 using EmnExtensions.Wpf.Plot;
 using EmnExtensions.Wpf.Plot.VizEngines;
 using LvqLibCli;
-using System.ComponentModel;
-using System.Diagnostics;
-using EmnExtensions.MathHelpers;
-using System.Threading.Tasks;
-using EmnExtensions;
 
 
 namespace LvqGui {
@@ -140,7 +141,7 @@ namespace LvqGui {
 #if VIALINQ
 				var dataIndices = Enumerable.Range(0, dataPoints.Length);
 				var projectedPointsByLabel = dataIndices.ToLookup(i => currProjection.Data.ClassLabels[i], i => dataPoints[i]);
-#endif
+#else
 				
 				int[] pointCountPerClass = new int[dataset.ClassCount];
 				if (currProjection.IsOk)
@@ -154,7 +155,7 @@ namespace LvqGui {
 						int label = currProjection.Data.ClassLabels[i];
 						projectedPointsByLabel[label][pointIndexPerClass[label]++] = dataPoints[i];
 					}
-
+#endif
 				var uiOperations =
 					new[] { prototypePositionsPlot.BeginDataChange(prototypePositions), 
 						classBoundaries.BeginDataChange(currentSubModelIdx), }

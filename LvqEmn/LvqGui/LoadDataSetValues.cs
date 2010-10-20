@@ -3,9 +3,12 @@ using System.ComponentModel;
 using System.IO;
 using System.Threading;
 using EmnExtensions.Wpf;
+using System.Linq;
+
 using LVQeamon;
 using LvqLibCli;
 using Microsoft.Win32;
+using EmnExtensions.MathHelpers;
 
 namespace LvqGui {
 	public class LoadDatasetValues : INotifyPropertyChanged, IHasSeed {
@@ -52,6 +55,9 @@ namespace LvqGui {
 						double[,] pointArray = pointclouds.Item1;
 						int[] labelArray = pointclouds.Item2;
 						int classCount = pointclouds.Item3;
+						long colorSeedLong = labelArray.Select((label, i) => label * (long)(i + 1)).Sum();
+						int colorSeed = (int) (colorSeedLong + (colorSeedLong >> 32));
+
 
 						string name = dataFile.Name + "-" + pointArray.GetLength(1) + "D" + (owner.ExtendDataByCorrelation ? "*" : "") + "-" + classCount + ":" + pointArray.GetLength(0) + "[" + seed + "]/" + folds;
 						Console.WriteLine("Created: " + name);
@@ -60,7 +66,7 @@ namespace LvqGui {
 							label:name,
 							extend: owner.ExtendDataByCorrelation,
 							folds:folds,
-							colors: GraphRandomPen.MakeDistributedColors(classCount), 
+							colors: GraphRandomPen.MakeDistributedColors(classCount,new MersenneTwister(colorSeed)), 
 							points: pointArray, 
 							pointLabels: labelArray, 
 							classCount: classCount);

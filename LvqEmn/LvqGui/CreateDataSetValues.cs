@@ -6,6 +6,7 @@ using System.ComponentModel;
 using LvqLibCli;
 using EmnExtensions.Wpf;
 using System.Text.RegularExpressions;
+using EmnExtensions.MathHelpers;
 
 namespace LvqGui {
 
@@ -106,7 +107,7 @@ namespace LvqGui {
 			return LvqDatasetCli.ConstructGaussianClouds(Shorthand,
 				folds: _Folds,
 				extend: owner.ExtendDataByCorrelation,
-				colors: GraphRandomPen.MakeDistributedColors(NumberOfClasses),
+				colors: GraphRandomPen.MakeDistributedColors(NumberOfClasses, new MersenneTwister((int)Seed)),
 				rngParamsSeed: Seed,
 				rngInstSeed: InstSeed,
 				dims: Dimensions,

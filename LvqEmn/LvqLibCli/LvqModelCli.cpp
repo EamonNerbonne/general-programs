@@ -36,21 +36,21 @@ namespace LvqLibCli {
 		msclr::lock l2(currentBackup);
 		int statCount =int(currentBackup[0]->get()->TrainingStats().size());
 		int statDim = statCount==0  ?  0  : int(currentBackup[0]->get()->TrainingStatNames().size());
-		if(currentBackup->Length ==1) {
-			auto const & trainingStats = currentBackup[0]->get()->TrainingStats();
-			for(int si=cachedTrainingStats->Count;si<statCount;++si) 
-				cachedTrainingStats->Add(LvqTrainingStatCli::toCli(trainingStats[si]));
-			return cachedTrainingStats;
-		}
 		
 		SmartSum<Eigen::Dynamic> stat(statDim);
 		for(int si=cachedTrainingStats->Count;si<statCount;++si) {
-			stat.Reset();	
-			for each(WrappedModel^ m in currentBackup)
-				stat.CombineWith(m->get()->TrainingStats()[si],1.0);
-			cachedTrainingStats->Add(
-				LvqTrainingStatCli::toCli(stat.GetMean(), (stat.GetSampleVariance().array().sqrt() * (1.0/sqrt(stat.GetWeight()))).matrix() )
+			if(currentBackup->Length ==1) {
+				cachedTrainingStats->Add(LvqTrainingStatCli::toCli(currentBackup[0]->get()->TrainingStats()[si]));
+			} else {
+				stat.Reset();	
+				for each(WrappedModel^ m in currentBackup)
+					stat.CombineWith(m->get()->TrainingStats()[si],1.0);
+				cachedTrainingStats->Add(
+					LvqTrainingStatCli::toCli(stat.GetMean(),
+						(stat.GetSampleVariance().array().sqrt() * (1.0/sqrt(stat.GetWeight()))).matrix() 
+					)
 				);
+			}
 		}
 		GC::KeepAlive(currentBackup);
 		return cachedTrainingStats;
