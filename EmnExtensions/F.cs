@@ -69,7 +69,7 @@ namespace EmnExtensions {
 		//public static void Do(IEnumerable<string> lines) {
 		//    var lookup = lines.Select(line => line.Split('|')).ToLookup(line => line[0]);
 		//    lines.GroupBy(
-			
+
 		//}
 
 		public static string ToStringOrNull(this object value) {
@@ -131,5 +131,10 @@ namespace EmnExtensions {
 		public static Action<A> Create<A>(Action<A> action) { return action; }
 		public static Action<A, B> Create<A, B>(Action<A, B> action) { return action; }
 		public static Action<A, B, C> Create<A, B, C>(Action<A, B, C> action) { return action; }
+
+
+		public static Func<T> Curry<A, T>(Func<A, T> func, A a) { return () => func(a); }
+		public static Func<B, T> Curry<A, B, T>(Func<A, B, T> func, A a) { return b => func(a, b); }
+		public static Func<B, C, T> Curry<A, B, C, T>(Func<A, B, C, T> func, A a) { return (b, c) => func(a, b, c); }
 	}
 }
