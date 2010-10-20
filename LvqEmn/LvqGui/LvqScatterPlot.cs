@@ -1,5 +1,4 @@
-﻿#define VIALINQ
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -36,17 +35,17 @@ namespace LvqGui {
 		IVizEngine<Point[]>[] classPlots;
 		IVizEngine<int> classBoundaries;
 		//accessed from multiple threads:
-		IVizEngine<IEnumerable<LvqTrainingStatCli>>[] statPlots = new IVizEngine<IEnumerable<LvqTrainingStatCli>>[]{};
+		IVizEngine<IEnumerable<LvqTrainingStatCli>>[] statPlots = new IVizEngine<IEnumerable<LvqTrainingStatCli>>[] { };
 
 		public LvqScatterPlot(LvqDatasetCli dataset, LvqModelCli model, int selectedSubModel) {
-			if(!updateSync.UpdateEnqueue_IsMyTurn()) throw new InvalidAsynchronousStateException("Update can't be claimed yet!");
+			if (!updateSync.UpdateEnqueue_IsMyTurn()) throw new InvalidAsynchronousStateException("Update can't be claimed yet!");
 			this.subModelIdx = selectedSubModel;
 			this.dataset = dataset;
 			this.model = model;
 			this.winSize = Math.Sqrt(Application.Current.MainWindow.Width * Application.Current.MainWindow.Height * 0.5);
 			this.lvqPlotDispatcher = StartNewDispatcher();
 
-			lvqPlotDispatcher.BeginInvoke(() => { 
+			lvqPlotDispatcher.BeginInvoke(() => {
 				OpenSubWindows();
 				updateSync.UpdateDone_IsQueueEmpty();
 				QueueUpdate();
@@ -138,11 +137,9 @@ namespace LvqGui {
 
 				Point[] prototypePositions = !currProjection.IsOk ? default(Point[]) : Points.ToMediaPoints(currProjection.Prototypes.Points);
 				Point[] dataPoints = Points.ToMediaPoints(currProjection.Data.Points);
-#if VIALINQ
-				var dataIndices = Enumerable.Range(0, dataPoints.Length);
-				var projectedPointsByLabel = dataIndices.ToLookup(i => currProjection.Data.ClassLabels[i], i => dataPoints[i]);
-#else
-				
+				//var dataIndices = Enumerable.Range(0, dataPoints.Length);
+				//var projectedPointsByLabel = dataIndices.ToLookup(i => currProjection.Data.ClassLabels[i], i => dataPoints[i]);
+
 				int[] pointCountPerClass = new int[dataset.ClassCount];
 				if (currProjection.IsOk)
 					for (int i = 0; i < currProjection.Data.ClassLabels.Length; ++i)
@@ -155,14 +152,11 @@ namespace LvqGui {
 						int label = currProjection.Data.ClassLabels[i];
 						projectedPointsByLabel[label][pointIndexPerClass[label]++] = dataPoints[i];
 					}
-#endif
+
 				var uiOperations =
 					new[] { prototypePositionsPlot.BeginDataChange(prototypePositions), 
 						classBoundaries.BeginDataChange(currentSubModelIdx), }
 					.Concat(classPlots.Select((plot, i) => plot.BeginDataChange(projectedPointsByLabel[i]
-#if VIALINQ
-						.ToArray()
-#endif
 						)))
 					.Concat(statPlots.Select(plot => plot.BeginDataChange(model.TrainingStats)))
 					.ToArray();//Do UI operations only once
