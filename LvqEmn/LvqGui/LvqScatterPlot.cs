@@ -31,11 +31,10 @@ namespace LvqGui {
 		readonly LvqModelCli model;
 		public LvqModelCli Model { get { return model; } }
 
-		delegate Action GraphUpdate<T>(T graphData);
-		GraphUpdate<Point[]> prototypePositionsPlot;
-		GraphUpdate<Point[]>[] classPlots;
-		GraphUpdate<int> classBoundaries;
-		GraphUpdate<IEnumerable<LvqTrainingStatCli>> statPlots;
+		IVizEngine<Point[]> prototypePositionsPlot;
+		IVizEngine<Point[]>[] classPlots;
+		IVizEngine<int> classBoundaries;
+		IVizEngine<IEnumerable<LvqTrainingStatCli>>[] statPlots;
 
 		public LvqScatterPlot(LvqDatasetCli dataset, LvqModelCli model, int selectedSubModel) {
 			this.subModelIdx = selectedSubModel;
@@ -75,41 +74,34 @@ namespace LvqGui {
 				}
 			);
 
-			var allUpdaters = (
+			statPlots = (
 					from plotGroup in plotGroups
 					from plot in plotGroup.Plots
-					select CreateGraphUpdate(plot.Visualisation)
+					select plot.Visualisation
 				).ToArray();
-
-			statPlots = stats => {
-				var waiters = allUpdaters.Select(up => up(stats)).ToArray();
-				return () => { foreach (var wait in waiters) wait(); };
-			};
 
 			foreach (var window in plotWindows) window.Show();
 			QueueUpdate();
 		}
 
 		PlotControl MakeScatterPlots() {
-			var protoPlot = Plot.Create(new PlotMetaData { ZIndex = 1, }, new VizPixelScatterGeom { OverridePointCountEstimate = 30, });
-			prototypePositionsPlot = CreateGraphUpdate(protoPlot.Visualisation);
-			var classBounaryPlot = Plot.Create(new PlotMetaData { ZIndex = -1 }, new VizDelegateBitmap<int> { UpdateBitmapDelegate = UpdateClassBoundaries });
-			classBoundaries = CreateGraphUpdate(classBounaryPlot.Visualisation);
+			prototypePositionsPlot = Plot.Create(new PlotMetaData { ZIndex = 1, }, new VizPixelScatterGeom { OverridePointCountEstimate = 30, }).Visualisation;
+			classBoundaries = Plot.Create(new PlotMetaData { ZIndex = -1 }, new VizDelegateBitmap<int> { UpdateBitmapDelegate = UpdateClassBoundaries }).Visualisation;
 
-			var classplots = Enumerable.Range(0, dataset.ClassCount).Select(i => Plot.Create(
-					new PlotMetaData {
-						RenderColor = dataset.ClassColors[i],
-					}, new VizPixelScatterSmart {
-						CoverageRatio = 0.999
-					})).ToArray();
-			classPlots = classplots.Select(plot => CreateGraphUpdate(plot.Visualisation)).ToArray();
+			var classes = Enumerable.Range(0, dataset.ClassCount);
+			classPlots = classes.Select(i =>
+					Plot.Create(
+						new PlotMetaData { RenderColor = dataset.ClassColors[i], },
+						new VizPixelScatterSmart { CoverageRatio = 0.999 }
+					).Visualisation
+				).ToArray();
 
 			return new PlotControl {
 				ShowAxes = false,
 				AttemptBorderTicks = false,
 				ShowGridLines = false,
 				Title = "ScatterPlot: " + model.ModelLabel,
-				GraphsEnumerable = classplots.Concat(new IPlot[] { protoPlot, classBounaryPlot })
+				GraphsEnumerable = classPlots.Select(viz => viz.Plot).Concat(new IPlot[] { prototypePositionsPlot.Plot, classBoundaries.Plot })
 			};
 		}
 
@@ -136,8 +128,6 @@ namespace LvqGui {
 			while (updateSync.UpdateEnqueue_IsMyTurn()) {
 				int currentSubModelIdx = subModelIdx;
 
-				var trainingStats = model.TrainingStats;
-				var statPlotWaiter = statPlots(trainingStats);
 				var currProjection = model.CurrentProjectionAndPrototypes(currentSubModelIdx, dataset);
 
 				Point[] prototypePositions = !currProjection.IsOk ? default(Point[]) : Points.ToMediaPoints(currProjection.Prototypes.Points);
@@ -155,8 +145,13 @@ namespace LvqGui {
 						projectedPointsByLabel[label][pointIndexPerClass[label]++] = points[i];
 					}
 
-				foreach (var waiter in new[] { statPlotWaiter, prototypePositionsPlot(prototypePositions), classBoundaries(currentSubModelIdx), }.Concat(classPlots.Select((updater, i) => updater(projectedPointsByLabel[i])).ToArray()))
-					waiter();
+				var uiOperations =
+					new[] { prototypePositionsPlot.BeginDataChange(prototypePositions), classBoundaries.BeginDataChange(currentSubModelIdx), }
+					.Concat(statPlots.Select(plot => plot.BeginDataChange(model.TrainingStats)))
+					.ToArray();//Do UI operations only once
+
+				foreach (var operation in uiOperations)
+					operation.Wait();
 
 				if (updateSync.UpdateDone_IsQueueEmpty()) return;
 			}
@@ -237,13 +232,6 @@ namespace LvqGui {
 			public static TrainingStatName Create(string compoundName, int index) { return new TrainingStatName(compoundName, index); }
 		}
 
-		static GraphUpdate<T> CreateGraphUpdate<T>(IVizEngine<T> viz) {
-			return data => {
-				var dispOper = viz.Dispatcher.BeginInvoke(() => { viz.ChangeData(data); });
-				return () => { dispOper.Wait(); };
-			};
-		}
-
 		static Dispatcher StartNewDispatcher() {
 			using (var sem = new SemaphoreSlim(0)) {
 				Dispatcher retval = null;
@@ -258,8 +246,6 @@ namespace LvqGui {
 				return retval;
 			}
 		}
-
-
 
 		static class StatisticsPlotMaker {
 			public static IEnumerable<PlotWithViz<IEnumerable<LvqTrainingStatCli>>> Create(string windowTitle, IEnumerable<TrainingStatName> stats, bool isMultiModel, bool hasTestSet) {
