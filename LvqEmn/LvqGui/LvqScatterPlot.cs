@@ -34,16 +34,22 @@ namespace LvqGui {
 		IVizEngine<Point[]> prototypePositionsPlot;
 		IVizEngine<Point[]>[] classPlots;
 		IVizEngine<int> classBoundaries;
-		IVizEngine<IEnumerable<LvqTrainingStatCli>>[] statPlots;
+		//accessed from multiple threads:
+		IVizEngine<IEnumerable<LvqTrainingStatCli>>[] statPlots = new IVizEngine<IEnumerable<LvqTrainingStatCli>>[]{};
 
 		public LvqScatterPlot(LvqDatasetCli dataset, LvqModelCli model, int selectedSubModel) {
+			if(!updateSync.UpdateEnqueue_IsMyTurn()) throw new InvalidAsynchronousStateException("Update can't be claimed yet!");
 			this.subModelIdx = selectedSubModel;
 			this.dataset = dataset;
 			this.model = model;
 			this.winSize = Math.Sqrt(Application.Current.MainWindow.Width * Application.Current.MainWindow.Height * 0.5);
 			this.lvqPlotDispatcher = StartNewDispatcher();
 
-			lvqPlotDispatcher.BeginInvoke(() => { OpenSubWindows(); });
+			lvqPlotDispatcher.BeginInvoke(() => { 
+				OpenSubWindows();
+				updateSync.UpdateDone_IsQueueEmpty();
+				QueueUpdate();
+			});
 		}
 
 		void OpenSubWindows() {
@@ -81,7 +87,6 @@ namespace LvqGui {
 				).ToArray();
 
 			foreach (var window in plotWindows) window.Show();
-			QueueUpdate();
 		}
 
 		PlotControl MakeScatterPlots() {
@@ -115,8 +120,8 @@ namespace LvqGui {
 						subModelIdx = value;
 						if (!plotWindows.Any() || !plotWindows.All(win => win.IsLoaded))
 							OpenSubWindows();
-						else
-							QueueUpdate();
+
+						QueueUpdate();
 					}
 				});
 			}
@@ -132,6 +137,10 @@ namespace LvqGui {
 
 				Point[] prototypePositions = !currProjection.IsOk ? default(Point[]) : Points.ToMediaPoints(currProjection.Prototypes.Points);
 				Point[] dataPoints = Points.ToMediaPoints(currProjection.Data.Points);
+#if VIALINQ
+				var dataIndices = Enumerable.Range(0, dataPoints.Length);
+				var projectedPointsByLabel = dataIndices.ToLookup(i => currProjection.Data.ClassLabels[i], i => dataPoints[i]);
+#endif
 				
 				int[] pointCountPerClass = new int[dataset.ClassCount];
 				if (currProjection.IsOk)
@@ -147,8 +156,13 @@ namespace LvqGui {
 					}
 
 				var uiOperations =
-					new[] { prototypePositionsPlot.BeginDataChange(prototypePositions), classBoundaries.BeginDataChange(currentSubModelIdx), }
-					.Concat(classPlots.Select((plot, i) => plot.BeginDataChange(projectedPointsByLabel[i])))
+					new[] { prototypePositionsPlot.BeginDataChange(prototypePositions), 
+						classBoundaries.BeginDataChange(currentSubModelIdx), }
+					.Concat(classPlots.Select((plot, i) => plot.BeginDataChange(projectedPointsByLabel[i]
+#if VIALINQ
+						.ToArray()
+#endif
+						)))
 					.Concat(statPlots.Select(plot => plot.BeginDataChange(model.TrainingStats)))
 					.ToArray();//Do UI operations only once
 

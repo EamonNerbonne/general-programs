@@ -36,7 +36,7 @@ namespace LvqGui {
 				LvqWindowValues values = ((LvqWindowValues)o);
 				values.CreateDatasetStarValues.Seed = 1337;
 				values.CreateDatasetStarValues.InstSeed = 37;
-				values.CreateDatasetStarValues.ClusterDimensionality = 10;
+				values.CreateDatasetStarValues.ClusterDimensionality = 4;
 				values.CreateDatasetStarValues.Dimensions = 24;
 				values.CreateDatasetStarValues.NumberOfClasses = 5;
 
