@@ -113,7 +113,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Algorithms\BasicStats.cs" />
     <Compile Include="Algorithms\DeepEquals.cs" />
     <Compile Include="Algorithms\Dijkstra.cs" />
     <Compile Include="Algorithms\Histogrammer.cs" />
@@ -128,24 +127,15 @@
     <Compile Include="DebugTools\ConsoleExtension.cs" />
     <Compile Include="DebugTools\DTimer.cs" />
     <Compile Include="F.cs" />
-    <Compile Include="FastSerializer\FastSerializer.cs" />
     <Compile Include="Filesystem\DescendantDirsExtension.cs" />
     <Compile Include="Filesystem\FSUtil.cs" />
     <Compile Include="Filesystem\GetLinesExtension.cs" />
     <Compile Include="Filesystem\GetRelativeFileExtension.cs" />
     <Compile Include="GlobalSuppressions.cs" />
-    <Compile Include="MathHelpers\IMatrix.cs" />
-    <Compile Include="MathHelpers\MatrixMismatchException.cs" />
     <Compile Include="MathHelpers\MeanVarCalc.cs" />
     <Compile Include="MathHelpers\MersenneTwister.cs" />
-    <Compile Include="MathHelpers\QMatrixCM.cs" />
-    <Compile Include="MathHelpers\QMatrixHelper.cs" />
-    <Compile Include="MathHelpers\QMatrixJaggedRM.cs" />
-    <Compile Include="MathHelpers\QMatrixRM.cs" />
-    <Compile Include="MathHelpers\QMatrixSquare.cs" />
     <Compile Include="MathHelpers\RndHelper.cs" />
     <Compile Include="MathHelpers\Statistics.cs" />
-    <Compile Include="MathHelpers\VectorHelpers.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Text\AbstractTextWriter.cs" />
     <Compile Include="Text\BlockingReader.cs" />
