@@ -20,8 +20,9 @@ namespace EmnExtensions.Wpf {
 					ColorSimple old = colors[i];
 #endif
 					colors[i].RepelFrom(ColorSimple.Random(rnd), lr * lr);
-					colors[i].RepelFrom(ColorSimple.LightYellow, lr * 0.5);
-					colors[i].RepelFrom(ColorSimple.LightGreen, lr * 0.2);
+					colors[i].RepelFrom(ColorSimple.LightYellow, lr * lr);
+					colors[i].RepelFrom(ColorSimple.LightGreen, lr * lr);
+					colors[i].RepelFrom(ColorSimple.Grey, lr *0.1);
 					int other = rnd.Next(colors.Count - 1); //rand other in [0..M-1)
 					if (other >= i) other++; //rand other in [0..M) with other != i
 					if (N > 1)
@@ -79,9 +80,10 @@ namespace EmnExtensions.Wpf {
 
 			public static ColorSimple LightYellow { get { return new ColorSimple { R = 1, G = 1, B = 0.5 }; } }
 			public static ColorSimple LightGreen { get { return new ColorSimple { R = 0.5, G = 1, B = 0.5 }; } }
+			public static ColorSimple Grey { get { return new ColorSimple { R = 0.5, G = 0.5, B = 0.5 }; } }
 
 
-			double SqrDistTo(ColorSimple other) { return 0.7 * sqr(R - other.R) + sqr(G - other.G) + 0.3 * sqr(B - other.B) - 0.2 * sqr(Sum - other.Sum); }
+			double SqrDistTo(ColorSimple other) { return 0.7 * sqr(R - other.R) + sqr(G - other.G) + 0.3 * sqr(B - other.B) - 0.5 * HueEmphasis * sqr(Sum - other.Sum); }
 			double Sum { get { return 0.7 * R + G + 0.3 * B; } }
 
 			static double sqr(double x) { return x * x; }
@@ -90,6 +92,7 @@ namespace EmnExtensions.Wpf {
 					? val
 					: 0.01 + 0.98 * (val - min) / (max - min);
 			}
+			const double HueEmphasis = 0.9;
 		}
 	}
 }
