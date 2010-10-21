@@ -52,7 +52,8 @@ namespace LvqGui {
 		void OpenSubWindows() {
 			ClosePlots();
 
-			plotWindows.Add(new Window { Width = winSize, Height = winSize, Title = "ScatterPlot", Content = MakeScatterPlots() });
+			if(model.IsProjectionModel)
+				plotWindows.Add(new Window { Width = winSize, Height = winSize, Title = "ScatterPlot", Content = MakeScatterPlots() });
 
 			var plotGroups = (
 					from statname in model.TrainingStatNames.Select(TrainingStatName.Create)
@@ -131,37 +132,38 @@ namespace LvqGui {
 				int currentSubModelIdx = subModelIdx;
 
 				var currProjection = model.CurrentProjectionAndPrototypes(currentSubModelIdx, dataset);
+				DispatcherOperation scatterPlotOperation=null;
+				if (currProjection.IsOk) {
+					Point[] prototypePositions = !currProjection.IsOk ? default(Point[]) : Points.ToMediaPoints(currProjection.Prototypes.Points);
+					Point[] dataPoints = Points.ToMediaPoints(currProjection.Data.Points);
+					//var dataIndices = Enumerable.Range(0, dataPoints.Length);
+					//var projectedPointsByLabel = dataIndices.ToLookup(i => currProjection.Data.ClassLabels[i], i => dataPoints[i]);
 
-				Point[] prototypePositions = !currProjection.IsOk ? default(Point[]) : Points.ToMediaPoints(currProjection.Prototypes.Points);
-				Point[] dataPoints = Points.ToMediaPoints(currProjection.Data.Points);
-				//var dataIndices = Enumerable.Range(0, dataPoints.Length);
-				//var projectedPointsByLabel = dataIndices.ToLookup(i => currProjection.Data.ClassLabels[i], i => dataPoints[i]);
-
-				int[] pointCountPerClass = new int[dataset.ClassCount];
-				if (currProjection.IsOk)
+					int[] pointCountPerClass = new int[dataset.ClassCount];
 					for (int i = 0; i < currProjection.Data.ClassLabels.Length; ++i)
 						pointCountPerClass[currProjection.Data.ClassLabels[i]]++;
 
-				Point[][] projectedPointsByLabel = Enumerable.Range(0, dataset.ClassCount).Select(i => new Point[pointCountPerClass[i]]).ToArray();
-				int[] pointIndexPerClass = new int[dataset.ClassCount];
-				if (currProjection.IsOk)
+					Point[][] projectedPointsByLabel = Enumerable.Range(0, dataset.ClassCount).Select(i => new Point[pointCountPerClass[i]]).ToArray();
+					int[] pointIndexPerClass = new int[dataset.ClassCount];
 					for (int i = 0; i < dataPoints.Length; ++i) {
 						int label = currProjection.Data.ClassLabels[i];
 						projectedPointsByLabel[label][pointIndexPerClass[label]++] = dataPoints[i];
 					}
 
-				var scatterPlotOperation = prototypePositionsPlot.Dispatcher.BeginInvoke(() => {
-					prototypePositionsPlot.ChangeData(prototypePositions);
-					classBoundaries.ChangeData(currentSubModelIdx);
-					for (int i = 0; i < classPlots.Length; ++i)
-						classPlots[i].ChangeData(projectedPointsByLabel[i]);
-				});
+					scatterPlotOperation = prototypePositionsPlot.Dispatcher.BeginInvoke(() => {
+						prototypePositionsPlot.ChangeData(prototypePositions);
+						classBoundaries.ChangeData(currentSubModelIdx);
+						for (int i = 0; i < classPlots.Length; ++i)
+							classPlots[i].ChangeData(projectedPointsByLabel[i]);
+					});
+				}
 
 				var graphOperations = statPlots.Select(plot => plot.BeginDataChange(model.TrainingStats)).ToArray();
 
 				foreach (var operation in graphOperations)
 					operation.Wait();
-				scatterPlotOperation.Wait();
+				if (currProjection.IsOk) 
+					scatterPlotOperation.Wait();
 
 				if (updateSync.UpdateDone_IsQueueEmpty()) return;
 			}

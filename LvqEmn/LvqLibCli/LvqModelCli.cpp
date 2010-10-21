@@ -143,8 +143,8 @@ namespace LvqLibCli {
 	int LvqModelCli::ClassCount::get(){return model[0]->get()->ClassCount();}
 	int LvqModelCli::Dimensions::get(){return model[0]->get()->Dimensions();}
 	bool LvqModelCli::IsMultiModel::get(){return model->Length > 1;}
+	bool LvqModelCli::IsProjectionModel::get(){return nullptr != dynamic_cast<LvqProjectionModel*>(model[0]->get()); }
 	int LvqModelCli::ModelCount::get() {return model->Length;}
 
 	bool LvqModelCli::FitsDataShape(LvqDatasetCli^ dataset) {return dataset!=nullptr && dataset->ClassCount == this->ClassCount && dataset->Dimensions == this->Dimensions;}
-
 }

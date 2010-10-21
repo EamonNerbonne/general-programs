@@ -32,7 +32,7 @@ namespace LvqLibCli {
 		property int Dimensions {int get();}
 		property int ModelCount {int get();}
 		property bool IsMultiModel {bool get();}
-
+		property bool IsProjectionModel {bool get();}
 		property String^ ModelLabel {String^ get(){return label;}}
 
 		property LvqDatasetCli^ InitSet {LvqDatasetCli^ get(){return initSet;}}

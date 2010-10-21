@@ -390,7 +390,7 @@
       <ExceptionHandling>Async</ExceptionHandling>
       <AdditionalOptions>/MP4</AdditionalOptions>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <OpenMPSupport>true</OpenMPSupport>
+      <OpenMPSupport>false</OpenMPSupport>
     </ClCompile>
     <Link>
       <AdditionalDependencies>LvqLib.lib;%(AdditionalDependencies)</AdditionalDependencies>
