@@ -12,11 +12,11 @@ class GmLvqModel : public LvqModel, public LvqModelFindMatches<GmLvqModel,Vector
 	VectorXi pLabel;
 	double lr_scale_P;
 
-	//calls dimensionality of input-space DIMS
+	//calls dimensionality of input-space DIMS, output space DIMSOUT
 	//we will preallocate a few vectors to reduce malloc/free overhead.
 
-	VectorXd vJ, vK;
-	mutable VectorXd tmpHelper1, tmpHelper2; //vectors of dimension DIMS
+	mutable VectorXd tmpSrcDimsV1, tmpSrcDimsV2; //vectors of dimension DIMS
+	mutable VectorXd tmpDestDimsV1,tmpDestDimsV2; //vector of dimension DIMSOUT
 
 protected:
 	virtual void AppendTrainingStatNames(std::vector<std::wstring> & retval) const;
@@ -29,9 +29,9 @@ public:
 	inline int PrototypeCount() const {return static_cast<int>(pLabel.size());}
 
 	EIGEN_STRONG_INLINE double SqrDistanceTo(int protoIndex, VectorXd const & otherPoint) const {
-		tmpHelper1.noalias() = prototype[protoIndex] - otherPoint;
-		tmpHelper2.noalias() = P[protoIndex] * tmpHelper1;
-		return tmpHelper2.squaredNorm();
+		tmpSrcDimsV1.noalias() = prototype[protoIndex] - otherPoint;
+		tmpDestDimsV1.noalias() = P[protoIndex] * tmpSrcDimsV1;
+		return tmpDestDimsV2.squaredNorm();
 	}
 
 	virtual size_t MemAllocEstimate() const;

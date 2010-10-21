@@ -12,6 +12,8 @@ G2mLvqModel::G2mLvqModel(LvqModelSettings & initSettings)
 	, m_vJ(initSettings.Dimensions())
 	, m_vK(initSettings.Dimensions())
 {
+	if(initSettings.Dimensionality!=0 && initSettings.Dimensionality!=2)
+		throw "Illegal Dimensionality";
 	using namespace std;
 	initSettings.AssertModelIsOfRightType(this);
 
@@ -29,7 +31,7 @@ G2mLvqModel::G2mLvqModel(LvqModelSettings & initSettings)
 			protoIndex++;
 		}
 	}
-	assert( accumulate(initSettings.PrototypeDistribution.begin(), initSettings.PrototypeDistribution.end(), 0)== protoIndex);
+	assert(accumulate(initSettings.PrototypeDistribution.begin(), initSettings.PrototypeDistribution.end(), 0)== protoIndex);
 }
 typedef Map<VectorXd,  Aligned> MVectorXd;
 

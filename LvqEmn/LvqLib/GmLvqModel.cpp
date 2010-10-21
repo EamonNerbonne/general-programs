@@ -6,11 +6,19 @@
 GmLvqModel::GmLvqModel( LvqModelSettings & initSettings)
 	: LvqModel(initSettings)
 	, lr_scale_P(LVQ_LrScaleP)
-	, vJ(initSettings.Dimensions())
-	, vK(initSettings.Dimensions())
-	, tmpHelper1(initSettings.Dimensions())
-	, tmpHelper2(initSettings.Dimensions())
+	, tmpSrcDimsV1(initSettings.Dimensions())
+	, tmpSrcDimsV2(initSettings.Dimensions())
+	, tmpDestDimsV2()
+	, tmpDestDimsV1()
 {
+	if(initSettings.Dimensionality ==0)
+		initSettings.Dimensionality = (int) initSettings.Dimensions();
+	if(initSettings.Dimensionality < 0 || initSettings.Dimensionality > initSettings.Dimensions())
+		throw "Dimensionality out of range";
+	
+	tmpDestDimsV1.resize(initSettings.Dimensionality);
+	tmpDestDimsV2.resize(initSettings.Dimensionality);
+
 	initSettings.AssertModelIsOfRightType(this);
 
 	using namespace std;
@@ -27,7 +35,7 @@ GmLvqModel::GmLvqModel( LvqModelSettings & initSettings)
 		int labelCount =initSettings.PrototypeDistribution[label];
 		for(int i=0;i<labelCount;i++) {
 			prototype[protoIndex] = initSettings.PerClassMeans.col(label);
-			P[protoIndex].setIdentity(initSettings.Dimensions(), initSettings.Dimensions());
+			P[protoIndex].setIdentity(initSettings.Dimensionality, initSettings.Dimensions());
 			if(initSettings.RandomInitialProjection)
 				projectionRandomizeUniformScaled(initSettings.RngParams, P[protoIndex]);
 
@@ -62,11 +70,14 @@ GoodBadMatch GmLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel) 
 	int J = matches.matchGood;
 	int K = matches.matchBad;
 
+	VectorXd & vJ = tmpSrcDimsV1;
+	VectorXd & vK = tmpSrcDimsV2;
+	VectorXd & lrX_muK2_Pj_vJ = tmpDestDimsV1;
+	VectorXd & lrX_muJ2_Pk_vK = tmpDestDimsV2;
+
 	vJ = prototype[J] - trainPoint;
 	vK = prototype[K] - trainPoint;
 
-	VectorXd & lrX_muK2_Pj_vJ = tmpHelper1;
-	VectorXd & lrX_muJ2_Pk_vK = tmpHelper2;
 
 	lrX_muK2_Pj_vJ.noalias() =P[J] * vJ;
 	lrX_muK2_Pj_vJ *= lr_point * mu_K * 2.0;
@@ -90,7 +101,7 @@ size_t GmLvqModel::MemAllocEstimate() const {
 		sizeof(GmLvqModel) + //base structure size
 		sizeof(int)*pLabel.size() + //dyn.alloc labels
 		(sizeof(double) * P[0].size() + sizeof(MatrixXd)) * P.size() + //dyn alloc prototype transforms
-		sizeof(double) * (vJ.size() + vK.size() + tmpHelper1.size() + tmpHelper2.size()) + //various vector temps
+		sizeof(double) * (tmpSrcDimsV1.size() + tmpSrcDimsV2.size() + tmpDestDimsV1.size() + tmpDestDimsV2.size()) + //various vector temps
 		(sizeof(VectorXd) + sizeof(double)*prototype[0].size()) *prototype.size() +//dyn alloc prototypes
 		(16/2) * (4+prototype.size()*2);//estimate for alignment mucking.
 }
