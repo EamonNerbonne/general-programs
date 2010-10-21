@@ -40,7 +40,7 @@ namespace LvqGui {
 			this.dataset = dataset;
 			this.model = model;
 			this.winSize = Math.Sqrt(Application.Current.MainWindow.Width * Application.Current.MainWindow.Height * 0.5);
-			this.lvqPlotDispatcher = StartNewDispatcher();
+			this.lvqPlotDispatcher = DispatcherFactory.StartNewDispatcher();
 
 			lvqPlotDispatcher.BeginInvoke(() => {
 				OpenSubWindows();
@@ -239,20 +239,6 @@ namespace LvqGui {
 			public static TrainingStatName Create(string compoundName, int index) { return new TrainingStatName(compoundName, index); }
 		}
 
-		static Dispatcher StartNewDispatcher() {
-			using (var sem = new SemaphoreSlim(0)) {
-				Dispatcher retval = null;
-				var winThread = new Thread(() => {
-					retval = Dispatcher.CurrentDispatcher;
-					sem.Release();
-					Dispatcher.Run();
-				}) { IsBackground = true };
-				winThread.SetApartmentState(ApartmentState.STA);
-				winThread.Start();
-				sem.Wait();
-				return retval;
-			}
-		}
 
 		static class StatisticsPlotMaker {
 			public static IEnumerable<PlotWithViz<IEnumerable<LvqTrainingStatCli>>> Create(string windowTitle, IEnumerable<TrainingStatName> stats, bool isMultiModel, bool hasTestSet) {

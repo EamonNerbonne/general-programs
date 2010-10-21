@@ -173,6 +173,7 @@
   <ItemGroup>
     <Compile Include="ColorConversion.cs" />
     <Compile Include="Colormaps.cs" />
+    <Compile Include="DispatcherFactory.cs" />
     <Compile Include="DynamicBitmap.cs" />
     <Compile Include="LogControl.cs" />
     <Compile Include="GraphRandomPen.cs" />
