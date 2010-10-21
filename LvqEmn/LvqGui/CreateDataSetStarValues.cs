@@ -5,6 +5,7 @@ using System.Text.RegularExpressions;
 using EmnExtensions.MathHelpers;
 using EmnExtensions.Wpf;
 using LvqLibCli;
+using EmnExtensions.Wpf.Plot;
 
 namespace LvqGui {
 
@@ -132,7 +133,7 @@ namespace LvqGui {
 			Console.WriteLine("Created: "+Shorthand);
 			return LvqDatasetCli.ConstructStarDataset(Shorthand,
 				folds: _Folds,
-				colors: GraphRandomPen.MakeDistributedColors(NumberOfClasses, new MersenneTwister((int)Seed)),
+				colors: WpfTools.MakeDistributedColors(NumberOfClasses, new MersenneTwister((int)Seed)),
 				extend: owner.ExtendDataByCorrelation,
 				rngParamsSeed: Seed,
 				rngInstSeed: InstSeed,

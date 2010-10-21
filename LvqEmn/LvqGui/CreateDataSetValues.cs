@@ -5,6 +5,7 @@ using System.Text.RegularExpressions;
 using EmnExtensions.MathHelpers;
 using EmnExtensions.Wpf;
 using LvqLibCli;
+using EmnExtensions.Wpf.Plot;
 
 namespace LvqGui {
 
@@ -105,7 +106,7 @@ namespace LvqGui {
 			return LvqDatasetCli.ConstructGaussianClouds(Shorthand,
 				folds: _Folds,
 				extend: owner.ExtendDataByCorrelation,
-				colors: GraphRandomPen.MakeDistributedColors(NumberOfClasses, new MersenneTwister((int)Seed)),
+				colors: WpfTools.MakeDistributedColors(NumberOfClasses, new MersenneTwister((int)Seed)),
 				rngParamsSeed: Seed,
 				rngInstSeed: InstSeed,
 				dims: Dimensions,

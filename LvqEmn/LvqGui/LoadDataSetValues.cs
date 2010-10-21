@@ -9,6 +9,7 @@ using LVQeamon;
 using LvqLibCli;
 using Microsoft.Win32;
 using EmnExtensions.MathHelpers;
+using EmnExtensions.Wpf.Plot;
 
 namespace LvqGui {
 	public class LoadDatasetValues : INotifyPropertyChanged, IHasSeed {
@@ -66,7 +67,7 @@ namespace LvqGui {
 							label:name,
 							extend: owner.ExtendDataByCorrelation,
 							folds:folds,
-							colors: GraphRandomPen.MakeDistributedColors(classCount,new MersenneTwister(colorSeed)), 
+							colors: WpfTools.MakeDistributedColors(classCount,new MersenneTwister(colorSeed)), 
 							points: pointArray, 
 							pointLabels: labelArray, 
 							classCount: classCount);

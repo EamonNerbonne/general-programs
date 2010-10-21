@@ -174,10 +174,10 @@
     <Compile Include="ColorConversion.cs" />
     <Compile Include="Colormaps.cs" />
     <Compile Include="WpfTools\AsFrozen.cs" />
+    <Compile Include="WpfTools\MakeDistributedColors.cs" />
     <Compile Include="WpfTools\PrintXps.cs" />
     <Compile Include="DynamicBitmap.cs" />
     <Compile Include="LogControl.cs" />
-    <Compile Include="GraphRandomPen.cs" />
     <Compile Include="GraphUtils.cs">
       <SubType>Code</SubType>
     </Compile>

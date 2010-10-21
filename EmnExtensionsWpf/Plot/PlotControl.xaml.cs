@@ -79,7 +79,7 @@ namespace EmnExtensions.Wpf.Plot {
 									where graph != null  && graph.Visualisation!=null && graph.Visualisation.SupportsColor
 									select graph
 							   ).ToArray();
-			var randomColors = EmnExtensions.Wpf.GraphRandomPen.MakeDistributedColors(ColoredPlots.Length, rnd);
+			var randomColors = WpfTools.MakeDistributedColors(ColoredPlots.Length, rnd);
 			foreach (var plotAndColor in ColoredPlots.Zip(randomColors, (a, b) => Tuple.Create(a, b))) {
 				plotAndColor.Item1.MetaData.RenderColor = plotAndColor.Item2;
 			}

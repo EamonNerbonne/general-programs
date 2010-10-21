@@ -256,7 +256,7 @@ namespace LvqGui {
 				return
 					windowTitle == "Error Rates" ? errorColors :
 					windowTitle == "Cost Function" ? costColors :
-					GraphRandomPen.MakeDistributedColors(length, new MersenneTwister(1 + windowTitle.GetHashCode()));
+					WpfTools.MakeDistributedColors(length, new MersenneTwister(1 + windowTitle.GetHashCode()));
 			}
 			static IEnumerable<PlotWithViz<IEnumerable<LvqTrainingStatCli>>> MakePlots(string dataLabel, string yunitLabel, Color color, int statIdx, bool doVariants) {
 				if (doVariants) {

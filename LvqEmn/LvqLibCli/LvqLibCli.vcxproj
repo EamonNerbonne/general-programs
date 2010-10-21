@@ -301,6 +301,7 @@
       <MinimalRebuild>false</MinimalRebuild>
       <ExceptionHandling>Async</ExceptionHandling>
       <AdditionalOptions>/MP4</AdditionalOptions>
+      <OpenMPSupport>true</OpenMPSupport>
     </ClCompile>
     <Link>
       <AdditionalDependencies>LvqLib.lib;%(AdditionalDependencies)</AdditionalDependencies>
