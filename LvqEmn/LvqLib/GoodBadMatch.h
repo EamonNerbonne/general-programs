@@ -36,7 +36,6 @@ struct CorrectAndWorstMatches {
 		, matchesOk(matchesOk)
 		, foundOk(0)
 #ifndef NDEBUG
-		, matchGood(-1)
 		, matchBad(-1)
 #endif
 	{}

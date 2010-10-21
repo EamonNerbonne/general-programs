@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading;
 using EmnExtensions.DebugTools;
 using LvqLibCli;
+using System.Windows;
 
 namespace LvqGui {
 	public class TrainingControlValues : INotifyPropertyChanged {
