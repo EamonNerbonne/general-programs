@@ -6,6 +6,7 @@ using LvqLibCli;
 namespace LvqGui {
 	public partial class LvqWindow : Window {
 		public LvqWindow() {
+			Thread.CurrentThread.Priority = ThreadPriority.AboveNormal;
 			var windowValues = new LvqWindowValues(this);
 			this.DataContext = windowValues;
 			InitializeComponent();
