@@ -1,13 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Threading;
 using System.Windows.Threading;
-using System.Threading;
-using System.Reflection;
 
 namespace EmnExtensions.Wpf {
-	public static class DispatcherFactory {
+	public static partial class WpfTools {
 		public static Dispatcher StartNewDispatcher() {
 			using (var sem = new SemaphoreSlim(0)) {
 				Dispatcher retval = null;

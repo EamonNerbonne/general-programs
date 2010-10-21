@@ -1,20 +1,14 @@
 ﻿//#define USE_PAGED_XPS_SAVE
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Windows.Media;
-using System.IO.Packaging;
-using System.Windows.Xps.Packaging;
-using System.Windows.Documents;
-using System.Windows.Xps;
-using System.Windows;
 using System.IO;
+using System.IO.Packaging;
 using System.Printing;
+using System.Windows;
+using System.Windows.Media;
+using System.Windows.Xps;
+using System.Windows.Xps.Packaging;
 
 namespace EmnExtensions.Wpf {
-	public static class WpfTools {
-		public static T AsFrozen<T>(this T freezable) where T : Freezable { return (T)freezable.GetAsFrozen(); }
+	public static partial class WpfTools {
 		/// <summary>
 		/// Note that Xps actually reads the stream too, so the file cannot already exist and simply be overwritten
 		/// (unless it's a valid xps), and it in particular may not have 0 bytes unless you open it in FileMode.Create.
@@ -22,7 +16,7 @@ namespace EmnExtensions.Wpf {
 		/// <param name="el">The element to print to xps</param>
 		/// <param name="reqWidth">The requested width.  Don't expect miracles.</param>
 		/// <param name="reqHeight">The requested height.  Don't expect miracles.</param>
-		/// <param name="toStream"></param>
+		/// <param name="toStream">the read/write stream to which to store the printout to.</param>
 		public static void PrintXPS(FrameworkElement el, double reqWidth, double reqHeight, double scaleFactor, Stream toStream, FileMode fileMode, FileAccess fileAccess) {
 			//MemoryStream ms = new MemoryStream();
 			//  using (var stream = File.Open(@"C:\test.xps",FileMode.,FileAccess.ReadWrite)) 

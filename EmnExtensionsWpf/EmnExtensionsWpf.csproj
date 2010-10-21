@@ -173,7 +173,8 @@
   <ItemGroup>
     <Compile Include="ColorConversion.cs" />
     <Compile Include="Colormaps.cs" />
-    <Compile Include="DispatcherFactory.cs" />
+    <Compile Include="WpfTools\AsFrozen.cs" />
+    <Compile Include="WpfTools\PrintXps.cs" />
     <Compile Include="DynamicBitmap.cs" />
     <Compile Include="LogControl.cs" />
     <Compile Include="GraphRandomPen.cs" />
@@ -193,9 +194,6 @@
     <Compile Include="Plot\VizEngines\VizPixelScatter.cs" />
     <Compile Include="Plot\VizEngines\VizPixelScatterGeom.cs" />
     <Compile Include="Plot\VizEngines\VizPixelScatterSmart.cs" />
-    <Compile Include="WpfTools.cs">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="Plot\DimensionBounds.cs" />
     <Compile Include="Plot\DimensionMargins.cs" />
     <Compile Include="Plot\GraphChange.cs" />
@@ -209,6 +207,7 @@
     <Compile Include="Plot\VizEngines\VizNone.cs" />
     <Compile Include="Plot\VizEngines\VizPixelScatterBitmap.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="WpfTools\StartNewDispatcher.cs" />
   </ItemGroup>
   <ItemGroup>
     <Page Include="Plot\PlotControl.xaml">

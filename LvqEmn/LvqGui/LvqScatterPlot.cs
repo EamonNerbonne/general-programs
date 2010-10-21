@@ -40,7 +40,7 @@ namespace LvqGui {
 			this.dataset = dataset;
 			this.model = model;
 			this.winSize = Math.Sqrt(Application.Current.MainWindow.Width * Application.Current.MainWindow.Height * 0.5);
-			this.lvqPlotDispatcher = DispatcherFactory.StartNewDispatcher();
+			this.lvqPlotDispatcher = WpfTools.StartNewDispatcher();
 
 			lvqPlotDispatcher.BeginInvoke(() => {
 				OpenSubWindows();
