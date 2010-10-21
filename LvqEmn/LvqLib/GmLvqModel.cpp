@@ -125,9 +125,9 @@ void GmLvqModel::DoOptionalNormalization() {
 		 if(settings.GloballyNormalize) {
 			 double overallNorm = std::accumulate(P.begin(), P.end(),0.0,[](double cur, MatrixXd const & mat)->double { return cur + projectionSquareNorm(mat); });
 			 double scale = 1.0/sqrt(overallNorm / P.size());
-			 for(int i=0;i<P.size();++i) P[i]*=scale;
+			 for(size_t i=0;i<P.size();++i) P[i]*=scale;
 		 } else {
-			 for(int i=0;i<P.size();++i) normalizeProjection(P[i]);
+			 for(size_t i=0;i<P.size();++i) normalizeProjection(P[i]);
 		 }
 	 }
 }

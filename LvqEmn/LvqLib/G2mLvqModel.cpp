@@ -178,9 +178,9 @@ void G2mLvqModel::DoOptionalNormalization() {
 			     // (cur, proto) => cur + projectionSquareNorm(proto.B)
 			 );
 			 double scale = 1.0/sqrt(overallNorm / prototype.size());
-			 for(int i=0;i<prototype.size();++i) prototype[i].B*=scale;
+			 for(size_t i=0;i<prototype.size();++i) prototype[i].B*=scale;
 		 } else {
-			 for(int i=0;i<prototype.size();++i) normalizeProjection(prototype[i].B);
+			 for(size_t i=0;i<prototype.size();++i) normalizeProjection(prototype[i].B);
 		 }
 	 }
 }
