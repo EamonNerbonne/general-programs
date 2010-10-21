@@ -184,7 +184,7 @@
     <ApplicationDefinition Include="App.xaml">
       <Generator>MSBuild:Compile</Generator>
     </ApplicationDefinition>
-    <Compile Include="ShorthandExtension.cs" />
+    <Compile Include="ShorthandHelper.cs" />
     <Compile Include="UpdateSync.cs" />
     <Page Include="AppSettings.xaml">
       <SubType>Designer</SubType>

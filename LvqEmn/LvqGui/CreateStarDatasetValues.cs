@@ -13,8 +13,15 @@ namespace LvqGui {
 		readonly LvqWindowValues owner;
 
 		public event PropertyChangedEventHandler PropertyChanged;
+		void raisePropertyChanged(string prop) { PropertyChanged(this, new PropertyChangedEventArgs(prop)); }
 
-		private void _propertyChanged(String propertyName) { if (PropertyChanged != null) { PropertyChanged(this, new PropertyChangedEventArgs(propertyName)); PropertyChanged(this, new PropertyChangedEventArgs("Shorthand")); } }
+		private void _propertyChanged(String propertyName) {
+			if (PropertyChanged != null) {
+				raisePropertyChanged(propertyName);
+				raisePropertyChanged("Shorthand");
+				raisePropertyChanged("ShorthandError");
+			}
+		}
 
 		public int Dimensions {
 			get { return _Dimensions; }
@@ -94,6 +101,8 @@ namespace LvqGui {
 			}
 			set { ShorthandHelper.ParseShorthand(this, shR, value); }
 		}
+
+		public string ShorthandErrors { get { return ShorthandHelper.VerifyShorthand(this, shR); } }
 
 		public CreateStarDatasetValues(LvqWindowValues owner) {
 			this.owner = owner;

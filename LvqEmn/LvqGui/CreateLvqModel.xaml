@@ -4,7 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              mc:Ignorable="d" 
-             d:DesignHeight="360" d:DesignWidth="300">
+             d:DesignHeight="460" d:DesignWidth="300">
     <UserControl.Resources>
         <Style TargetType="{x:Type Label}" BasedOn="{StaticResource PropLabel}"/>
         <Style TargetType="{x:Type TextBox}" BasedOn="{StaticResource PropBox}"/>
@@ -82,5 +82,7 @@
         <TextBox  Grid.Row="19" Grid.Column="1" Text="{Binding Shorthand, Mode=TwoWay, ValidatesOnExceptions=True}" />
 
         <Button Grid.Row="20" Grid.ColumnSpan="2" Click="InitializeModel">Initialize Model</Button>
+        <Label Grid.Row="21" Grid.ColumnSpan="2" Content="{Binding ShorthandErrors, Mode=OneWay}" />
+
     </Grid>
 </UserControl>

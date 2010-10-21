@@ -86,7 +86,6 @@ namespace LvqGui {
 				foreach (var model in LvqModels.Where(model => e.OldItems.Contains(model.InitSet)).ToArray())
 					LvqModels.Remove(model);
 			}
-
 		}
 	}
 }
