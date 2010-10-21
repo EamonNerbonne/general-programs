@@ -14,12 +14,12 @@ namespace EmnExtensions.Wpf {
 			var colors = Enumerable.Range(0, N).Select(i => ColorSimple.Random(rnd)).ToList();
 
 			for (int iter = 0; iter < 2000; iter++) {
-				double lr = 0.01 / Math.Sqrt(0.1 * iter + 1);
+				double lr = 0.01 / Math.Sqrt(iter + 100);
 				for (int i = 0; i < colors.Count; i++) {
 #if DEBUG
 					ColorSimple old = colors[i];
 #endif
-					colors[i].RepelFrom(ColorSimple.Random(rnd), lr * 0.01);
+					colors[i].RepelFrom(ColorSimple.Random(rnd), lr * lr);
 					colors[i].RepelFrom(ColorSimple.LightYellow, lr * 0.5);
 					colors[i].RepelFrom(ColorSimple.LightGreen, lr * 0.2);
 					int other = rnd.Next(colors.Count - 1); //rand other in [0..M-1)
