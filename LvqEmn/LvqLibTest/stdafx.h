@@ -8,6 +8,7 @@
 #pragma warning (pop)
 #endif
 #include <Eigen/Core>
+#include <Eigen/StdVector>
 using namespace Eigen;
 static bool failed = false;
 #define ASSTRING(X) #X
