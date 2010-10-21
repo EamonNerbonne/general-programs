@@ -18,16 +18,18 @@ using System.Threading;
 
 namespace LvqGui {
 	/// <summary>
-	/// Interaction logic for CreateDatasetStar.xaml
+	/// Interaction logic for CreateGaussianCloudDataset.xaml
 	/// </summary>
-	public partial class CreateDatasetStar : UserControl {
-		public CreateDatasetStar() { InitializeComponent(); }
+	public partial class CreateGaussianCloudDataset : UserControl {
+		public CreateGaussianCloudDataset() {
+			InitializeComponent();
+		}
 
 		private void ReseedParam(object sender, RoutedEventArgs e) { ((IHasSeed)DataContext).ReseedParam(); }
 		private void ReseedInst(object sender, RoutedEventArgs e) { ((IHasSeed)DataContext).ReseedInst(); }
 
-		private void buttonGenerateDataset_Click(object sender, RoutedEventArgs e) {
-			ThreadPool.QueueUserWorkItem(o => { ((CreateDatasetStarValues)o).ConfirmCreation(); }, DataContext);
+		private void CreateDatasetButtonPress(object sender, RoutedEventArgs e) {
+			ThreadPool.QueueUserWorkItem(o => { ((CreateGaussianCloudsDatasetValues)o).ConfirmCreation(); }, DataContext);
 		}
 	}
 }

@@ -13,8 +13,8 @@ namespace LvqGui {
 		private void _propertyChanged(String propertyName) { if (PropertyChanged != null) PropertyChanged(this, new PropertyChangedEventArgs(propertyName)); }
 
 		//public AppSettingsValues AppSettingsValues { get; private set; }
-		public CreateDatasetValues CreateDatasetValues { get; private set; }
-		public CreateDatasetStarValues CreateDatasetStarValues { get; private set; }
+		public CreateGaussianCloudsDatasetValues CreateDatasetValues { get; private set; }
+		public CreateStarDatasetValues CreateDatasetStarValues { get; private set; }
 		public CreateLvqModelValues CreateLvqModelValues { get; private set; }
 		public TrainingControlValues TrainingControlValues { get; private set; }
 		public LoadDatasetValues LoadDatasetValues { get; private set; }
@@ -40,8 +40,8 @@ namespace LvqGui {
 			LvqModels = new ObservableCollection<LvqModelCli>();
 
 			//AppSettingsValues = new AppSettingsValues(this);
-			CreateDatasetValues = new CreateDatasetValues(this);
-			CreateDatasetStarValues = new CreateDatasetStarValues(this);
+			CreateDatasetValues = new CreateGaussianCloudsDatasetValues(this);
+			CreateDatasetStarValues = new CreateStarDatasetValues(this);
 			CreateLvqModelValues = new CreateLvqModelValues(this);
 			TrainingControlValues = new TrainingControlValues(this);
 			LoadDatasetValues = new LoadDatasetValues(this);

@@ -9,7 +9,7 @@ using EmnExtensions.Wpf.Plot;
 
 namespace LvqGui {
 
-	public class CreateDatasetValues : INotifyPropertyChanged, IHasSeed {
+	public class CreateGaussianCloudsDatasetValues : INotifyPropertyChanged, IHasSeed {
 		readonly LvqWindowValues owner;
 		public event PropertyChangedEventHandler PropertyChanged;
 		private void _propertyChanged(String propertyName) { if (PropertyChanged != null) { PropertyChanged(this, new PropertyChangedEventArgs(propertyName)); PropertyChanged(this, new PropertyChangedEventArgs("Shorthand")); } }
@@ -83,7 +83,7 @@ namespace LvqGui {
 			}
 		}
 
-		public CreateDatasetValues(LvqWindowValues owner) {
+		public CreateGaussianCloudsDatasetValues(LvqWindowValues owner) {
 			this.owner = owner;
 			owner.PropertyChanged += (o, e) => { if (e.PropertyName == "ExtendDataByCorrelation") _propertyChanged("ExtendDataByCorrelation"); };
 			_Folds = 10;

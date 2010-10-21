@@ -9,7 +9,7 @@ using EmnExtensions.Wpf.Plot;
 
 namespace LvqGui {
 
-	public class CreateDatasetStarValues : INotifyPropertyChanged, IHasSeed {
+	public class CreateStarDatasetValues : INotifyPropertyChanged, IHasSeed {
 		readonly LvqWindowValues owner;
 
 		public event PropertyChangedEventHandler PropertyChanged;
@@ -108,7 +108,7 @@ namespace LvqGui {
 			}
 		}
 
-		public CreateDatasetStarValues(LvqWindowValues owner) {
+		public CreateStarDatasetValues(LvqWindowValues owner) {
 			this.owner = owner;
 			owner.PropertyChanged += (o, e) => { if (e.PropertyName == "ExtendDataByCorrelation") _propertyChanged("ExtendDataByCorrelation"); };
 			_Folds = 10;

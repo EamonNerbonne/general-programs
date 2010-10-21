@@ -189,11 +189,11 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="CreateDataset.xaml">
+    <Page Include="CreateGaussianCloudsDataset.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="CreateDatasetStar.xaml">
+    <Page Include="CreateStarDataset.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -221,14 +221,14 @@
       <DependentUpon>AppSettings.xaml</DependentUpon>
     </Compile>
     <Compile Include="AppSettingsValues.cs" />
-    <Compile Include="CreateDataset.xaml.cs">
-      <DependentUpon>CreateDataset.xaml</DependentUpon>
+    <Compile Include="CreateGaussianCloudsDataset.xaml.cs">
+      <DependentUpon>CreateGaussianCloudsDataset.xaml</DependentUpon>
     </Compile>
-    <Compile Include="CreateDatasetStar.xaml.cs">
-      <DependentUpon>CreateDatasetStar.xaml</DependentUpon>
+    <Compile Include="CreateStarDataset.xaml.cs">
+      <DependentUpon>CreateStarDataset.xaml</DependentUpon>
     </Compile>
-    <Compile Include="CreateDatasetStarValues.cs" />
-    <Compile Include="CreateDatasetValues.cs" />
+    <Compile Include="CreateStarDatasetValues.cs" />
+    <Compile Include="CreateGaussianCloudsDatasetValues.cs" />
     <Compile Include="CreateLvqModel.xaml.cs">
       <DependentUpon>CreateLvqModel.xaml</DependentUpon>
     </Compile>
