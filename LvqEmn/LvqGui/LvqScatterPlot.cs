@@ -150,16 +150,18 @@ namespace LvqGui {
 						projectedPointsByLabel[label][pointIndexPerClass[label]++] = dataPoints[i];
 					}
 
-				var uiOperations =
-					new[] { prototypePositionsPlot.BeginDataChange(prototypePositions), 
-						classBoundaries.BeginDataChange(currentSubModelIdx), }
-					.Concat(classPlots.Select((plot, i) => plot.BeginDataChange(projectedPointsByLabel[i]
-						)))
-					.Concat(statPlots.Select(plot => plot.BeginDataChange(model.TrainingStats)))
-					.ToArray();//Do UI operations only once
+				var scatterPlotOperation = prototypePositionsPlot.Dispatcher.BeginInvoke(() => {
+					prototypePositionsPlot.ChangeData(prototypePositions);
+					classBoundaries.ChangeData(currentSubModelIdx);
+					for (int i = 0; i < classPlots.Length; ++i)
+						classPlots[i].ChangeData(projectedPointsByLabel[i]);
+				});
 
-				foreach (var operation in uiOperations)
+				var graphOperations = statPlots.Select(plot => plot.BeginDataChange(model.TrainingStats)).ToArray();
+
+				foreach (var operation in graphOperations)
 					operation.Wait();
+				scatterPlotOperation.Wait();
 
 				if (updateSync.UpdateDone_IsQueueEmpty()) return;
 			}
