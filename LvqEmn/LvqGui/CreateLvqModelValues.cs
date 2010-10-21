@@ -7,6 +7,8 @@ using LvqLibCli;
 namespace LvqGui {
 	public class CreateLvqModelValues : INotifyPropertyChanged, IHasSeed, IHasShorthand {
 		readonly LvqWindowValues owner;
+		[NotInShorthand]
+		public LvqWindowValues Owner { get { return owner; } }
 		public event PropertyChangedEventHandler PropertyChanged;
 		private void _propertyChanged(String propertyName) { if (PropertyChanged != null) { PropertyChanged(this, new PropertyChangedEventArgs(propertyName)); PropertyChanged(this, new PropertyChangedEventArgs("Shorthand")); } }
 

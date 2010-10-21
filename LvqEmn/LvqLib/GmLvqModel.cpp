@@ -44,7 +44,7 @@ GmLvqModel::GmLvqModel( LvqModelSettings & initSettings)
 			protoIndex++;
 		}
 	}
-	assert( accumulate(initSettings.PrototypeDistribution.begin(),initSettings.PrototypeDistribution.end(),0)== protoIndex);
+	assert(accumulate(initSettings.PrototypeDistribution.begin(),initSettings.PrototypeDistribution.end(), 0) == protoIndex);
 }
 
 

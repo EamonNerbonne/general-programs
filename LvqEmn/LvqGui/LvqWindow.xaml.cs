@@ -21,17 +21,17 @@ namespace LvqGui {
 		private void DoBenchmark() {
 			ThreadPool.QueueUserWorkItem(o => {
 				LvqWindowValues values = ((LvqWindowValues)o);
-				values.CreateDatasetStarValues.Seed = 1337;
-				values.CreateDatasetStarValues.InstSeed = 37;
-				values.CreateDatasetStarValues.ClusterDimensionality = 4;
-				values.CreateDatasetStarValues.Dimensions = 24;
-				values.CreateDatasetStarValues.NumberOfClasses = 5;
+				values.CreateStarDatasetValues.Seed = 1337;
+				values.CreateStarDatasetValues.InstSeed = 37;
+				values.CreateStarDatasetValues.ClusterDimensionality = 4;
+				values.CreateStarDatasetValues.Dimensions = 24;
+				values.CreateStarDatasetValues.NumberOfClasses = 5;
 
 				values.CreateLvqModelValues.Seed = 42;
 				values.CreateLvqModelValues.InstSeed = 1234;
 				values.CreateLvqModelValues.PrototypesPerClass = 3;
 
-				values.CreateDatasetStarValues.ConfirmCreation();
+				values.CreateStarDatasetValues.ConfirmCreation();
 				Dispatcher.BeginInvokeBackground(() => {
 					ThreadPool.QueueUserWorkItem(o2 => {
 						values.CreateLvqModelValues.ConfirmCreation();
