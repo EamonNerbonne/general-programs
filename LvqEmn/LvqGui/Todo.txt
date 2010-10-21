@@ -1,3 +1,7 @@
-﻿Bug: model list doesn't update on first model added ... why?
+﻿Checkout why it always says that Dimensionality is unused.
 
-Missing feature: can't deselect model, can't view dataset without model selected
+Make line drawings with loads of points more efficient
+
+Consider shared-Writeable-bitmap scatter-plots.
+
+Consider show/hideable plot windows.

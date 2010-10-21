@@ -31,7 +31,7 @@ public:
 	EIGEN_STRONG_INLINE double SqrDistanceTo(int protoIndex, VectorXd const & otherPoint) const {
 		tmpSrcDimsV1.noalias() = prototype[protoIndex] - otherPoint;
 		tmpDestDimsV1.noalias() = P[protoIndex] * tmpSrcDimsV1;
-		return tmpDestDimsV2.squaredNorm();
+		return tmpDestDimsV1.squaredNorm();
 	}
 
 	virtual size_t MemAllocEstimate() const;
