@@ -31,6 +31,7 @@ class LvqModelSettings
 public:
 	bool RandomInitialProjection;
 	bool RandomInitialBorders;
+	int Dimensionality;
 
 	enum LvqModelType {	 AutoModelType, GmModelType, GsmModelType, G2mModelType };
 	LvqModelType ModelType;
@@ -46,6 +47,7 @@ public:
 		, PerClassMeans(means)
 		, ModelType(modelType)
 		, RuntimeSettings(static_cast<int>(means.cols()),rngIter)
+		, Dimensionality(0)
 	{ }
 
 	size_t Dimensions() const {return PerClassMeans.rows();}
