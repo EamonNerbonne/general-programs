@@ -285,6 +285,6 @@ std::vector<int> LvqDataset::GetTestSubset(int fold, int foldcount) const {
 	int foldEnd = (fold+1) * pointCount / foldcount;
 	std::vector<int> retval(foldEnd-foldStart);
 	for(size_t i=0;i<retval.size();++i)
-		retval[i] = foldStart + i;
+		retval[i] = foldStart + (int)i;
 	return retval;
 }

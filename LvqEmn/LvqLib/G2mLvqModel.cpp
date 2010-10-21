@@ -34,6 +34,7 @@ G2mLvqModel::G2mLvqModel(LvqModelSettings & initSettings)
 typedef Map<VectorXd,  Aligned> MVectorXd;
 
 GoodBadMatch G2mLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel) {
+	CorrectAndWorstMatches::MatchOk cache[20];
 	using namespace std;
 	double learningRate = stepLearningRate();
 
@@ -45,7 +46,19 @@ GoodBadMatch G2mLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel)
 
 	Vector2d projectedTrainPoint( P * trainPoint );
 
-	GoodBadMatch matches = findMatches(projectedTrainPoint, trainLabel);
+	CorrectAndWorstMatches fullmatch(cache);
+	for(int i=0;i<(int)prototype.size();++i) {
+		double curDist = SqrDistanceTo(i, projectedTrainPoint);
+
+		if(PrototypeLabel(i) == trainLabel) 
+			fullmatch.RegisterOk(curDist,i);
+		else 
+			fullmatch.RegisterBad(curDist,i);
+	}
+	fullmatch.SortOk();
+
+	GoodBadMatch matches = fullmatch.ToGoodBadMatch();
+//	GoodBadMatch matches = findMatches(projectedTrainPoint, trainLabel);
 
 	//now matches.good is "J" and matches.bad is "K".
 
@@ -70,10 +83,17 @@ GoodBadMatch G2mLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel)
 	muJ2_BkT_Bk_P_vK.noalias() = K.B.transpose() * muJ2_Bk_P_vK ;
 	J.B.noalias() -= lr_B * muK2_Bj_P_vJ * P_vJ.transpose() ;
 	K.B.noalias() -= lr_B * muJ2_Bk_P_vK * P_vK.transpose() ;
-	Vector2d lr_muK2_Bj_P_vJ = lr_point * muK2_BjT_Bj_P_vJ;
-	J.point.noalias() -=  P.transpose()* lr_muK2_Bj_P_vJ;
+	J.point.noalias() -=  P.transpose()* (lr_point * muK2_BjT_Bj_P_vJ);
 	K.point.noalias() -=   P.transpose() * (LVQ_LrScaleBad*lr_point * muJ2_BkT_Bk_P_vK) ;
 	P.noalias() -= (lr_P * muK2_BjT_Bj_P_vJ) * vJ.transpose() + (lr_P * muJ2_BkT_Bk_P_vK) * vK.transpose() ;
+
+	double lrSub = lr_point;
+	for(int i=1;i<fullmatch.foundOk;++i) {
+		lrSub*=0.1;
+		G2mLvqPrototype &Js = prototype[fullmatch.matchesOk[i].idx];
+		double mu_K2s = 2.0 * +2.0*fullmatch.distBad / (sqr(fullmatch.matchesOk[i].dist) + sqr(fullmatch.distBad));
+		Js.point.noalias() -=  P.transpose() * (lrSub * (Js.B.transpose() * (mu_K2s *  (Js.B * (Js.P_point - projectedTrainPoint)))));
+	}
 
 	//normalizeProjection(P);
 	for(size_t i=0;i<prototype.size();++i)
