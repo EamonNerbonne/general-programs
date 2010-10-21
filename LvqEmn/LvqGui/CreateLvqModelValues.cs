@@ -5,12 +5,12 @@ using System.Text.RegularExpressions;
 using LvqLibCli;
 
 namespace LvqGui {
-	public class CreateLvqModelValues : INotifyPropertyChanged, IHasSeed {
+	public class CreateLvqModelValues : INotifyPropertyChanged, IHasSeed, IHasShorthand {
 		readonly LvqWindowValues owner;
-		public LvqWindowValues Owner { get { return owner; } }
 		public event PropertyChangedEventHandler PropertyChanged;
 		private void _propertyChanged(String propertyName) { if (PropertyChanged != null) { PropertyChanged(this, new PropertyChangedEventArgs(propertyName)); PropertyChanged(this, new PropertyChangedEventArgs("Shorthand")); } }
 
+		[NotInShorthand]
 		public LvqDatasetCli ForDataset {
 			get { return _ForDataset; }
 			set { if (!object.Equals(_ForDataset, value)) { _ForDataset = value; _propertyChanged("ForDataset"); if (value != null) Dimensionality = Math.Min(Dimensionality, value.Dimensions); } }
@@ -97,30 +97,37 @@ namespace LvqGui {
 		private uint _InstSeed;
 
 		static Regex shR =
-	new Regex(@"^(\w|\s)*\:?\s*(?<ModelType>(G2m|Gsm|Gm))(\[(?<Dimensionality>[^\]]+)\])?,(?<PrototypesPerClass>\d+)\[(?<Seed>\d+):(?<InstSeed>\d+)\]/(?<ParallelModels>\d+)(--.*)?\s*$",
-		RegexOptions.Compiled | RegexOptions.ExplicitCapture);
+	new Regex(@"
+				^(\w|\s)*\:?\s*
+				(?<ModelType>G[\w\d]*)
+				(\[(?<Dimensionality>[^\]]+)\])?
+				,(?<PrototypesPerClass>\d+)
+				,?(?<RandomInitialProjection>(RP)?)
+				,?(?<RandomInitialBorders>(RB)?)
+				,?(?<NormalizeProjection>(np)?)
+				,?(?<NormalizeBoundaries>(nb)?)
+				,?(?<GloballyNormalize>(gn)?)
+				\[(?<Seed>\d+):(?<InstSeed>\d+)\]
+				/(?<ParallelModels>\d+)
+				,?(?<TrackProjectionQuality>(pQ)?)
+				(--.*)?\s*$",
+		RegexOptions.Compiled | RegexOptions.ExplicitCapture | RegexOptions.IgnorePatternWhitespace);
 
-		static object[] empty = new object[] { };
 		public string Shorthand {
 			get {
 				return ModelType.ToString()
 				+ (ModelType == LvqModelType.GmModelType ? "[" + Dimensionality + "]" : "")
-				+ "," + PrototypesPerClass + "[" + Seed + ":" + InstSeed + "]/" + ParallelModels
+				+ "," + PrototypesPerClass
+				+ (RandomInitialProjection ? ",RP" : "")
+				+ (RandomInitialBorders ? ",RB" : "")
+				+ (NormalizeProjection ? ",np" : "")
+				+ (NormalizeBoundaries ? ",nb" : "")
+				+ (GloballyNormalize ? ",gn" : "")
+				+ "[" + Seed + ":" + InstSeed + "]/" + ParallelModels
+				+ (TrackProjectionQuality ? ",pQ" : "")
 				+ (ForDataset == null ? "" : "--" + ForDataset.DatasetLabel);
 			}
-			set {
-				if (!shR.IsMatch(value)) throw new ArgumentException("can't parse shorthand - enter manually?");
-				var groups = shR.Match(value).Groups.Cast<Group>().ToArray();
-				for (int i = 0; i < groups.Length; i++) {
-					if (!groups[i].Success) continue;
-					var prop = GetType().GetProperty(shR.GroupNameFromNumber(i));
-					if (prop != null) {
-						var val = prop.PropertyType.Equals(typeof(bool)) ? groups[i].Value == "?"
-							: TypeDescriptor.GetConverter(prop.PropertyType).ConvertFromString(groups[i].Value);
-						prop.SetValue(this, val, empty);
-					}
-				}
-			}
+			set { ShorthandHelper.ParseShorthand(this, shR, value); }
 		}
 
 		public CreateLvqModelValues(LvqWindowValues owner) {
@@ -149,6 +156,9 @@ namespace LvqGui {
 					NormalizeBoundaries = NormalizeBoundaries,
 					GloballyNormalize = GloballyNormalize,
 					NormalizeProjection = NormalizeProjection,
+					RandomInitialBorders = RandomInitialBorders,
+					RandomInitialProjection = RandomInitialProjection,
+					Dimensionality = Dimensionality
 				});
 		}
 

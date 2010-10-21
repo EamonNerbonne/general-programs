@@ -9,7 +9,7 @@ using EmnExtensions.Wpf.Plot;
 
 namespace LvqGui {
 
-	public class CreateStarDatasetValues : INotifyPropertyChanged, IHasSeed {
+	public class CreateStarDatasetValues : INotifyPropertyChanged, IHasSeed, IHasShorthand {
 		readonly LvqWindowValues owner;
 
 		public event PropertyChangedEventHandler PropertyChanged;
@@ -88,24 +88,11 @@ namespace LvqGui {
 			new Regex(@"^\s*(.*--)?star-(?<Dimensions>\d+)D(?<ExtendDataByCorrelation>\*?)-(?<NumberOfClasses>\d+)\*(?<PointsPerClass>\d+):(?<NumberOfClusters>\d+)\((?<ClusterDimensionality>\d+)D(?<RandomlyTransformFirst>\??)\)\*(?<ClusterCenterDeviation>[^~]+)\~(?<IntraClusterClassRelDev>[^\[]+)\[(?<Seed>\d+):(?<InstSeed>\d+)\]/(?<Folds>\d+)\s*$",
 				RegexOptions.Compiled | RegexOptions.ExplicitCapture);
 
-		static object[] empty = new object[] { };
 		public string Shorthand {
 			get {
-				return "star-" + Dimensions + "D"+(owner.ExtendDataByCorrelation?"*":"")+"-" + NumberOfClasses + "*" + PointsPerClass + ":" + NumberOfClusters + "(" + ClusterDimensionality + "D" + (RandomlyTransformFirst ? "?" : "") + ")*" + ClusterCenterDeviation.ToString("r") + "~" + IntraClusterClassRelDev.ToString("r") + "[" + Seed + ":" + InstSeed + "]/" + Folds;
+				return "star-" + Dimensions + "D" + (ExtendDataByCorrelation ? "*" : "") + "-" + NumberOfClasses + "*" + PointsPerClass + ":" + NumberOfClusters + "(" + ClusterDimensionality + "D" + (RandomlyTransformFirst ? "?" : "") + ")*" + ClusterCenterDeviation.ToString("r") + "~" + IntraClusterClassRelDev.ToString("r") + "[" + Seed + ":" + InstSeed + "]/" + Folds;
 			}
-			set {
-				if (!shR.IsMatch(value)) throw new ArgumentException("can't parse shorthand - enter manually?");
-				var groups = shR.Match(value).Groups.Cast<Group>().ToArray();
-				for (int i = 0; i < groups.Length; i++) {
-					if (!groups[i].Success) continue;
-					var prop = GetType().GetProperty(shR.GroupNameFromNumber(i));
-					if (prop != null) {
-						var val = prop.PropertyType.Equals(typeof(bool)) ? groups[i].Value != ""
-							: TypeDescriptor.GetConverter(prop.PropertyType).ConvertFromString(groups[i].Value);
-						prop.SetValue(this, val, empty);
-					}
-				}
-			}
+			set { ShorthandHelper.ParseShorthand(this, shR, value); }
 		}
 
 		public CreateStarDatasetValues(LvqWindowValues owner) {
@@ -130,7 +117,7 @@ namespace LvqGui {
 
 
 		public LvqDatasetCli CreateDataset() {
-			Console.WriteLine("Created: "+Shorthand);
+			Console.WriteLine("Created: " + Shorthand);
 			return LvqDatasetCli.ConstructStarDataset(Shorthand,
 				folds: _Folds,
 				colors: WpfTools.MakeDistributedColors(NumberOfClasses, new MersenneTwister((int)Seed)),

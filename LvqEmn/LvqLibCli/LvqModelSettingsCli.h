@@ -23,6 +23,7 @@ namespace LvqLibCli {
 		LvqModelType ModelType;
 		unsigned RngParamsSeed, RngIterSeed;
 		int PrototypesPerClass;
+		int Dimensionality;
 
 		LvqModelSettingsCli()
 			: ModelType(LvqModelType::G2mModelType)

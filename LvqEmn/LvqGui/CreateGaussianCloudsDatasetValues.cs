@@ -9,7 +9,7 @@ using EmnExtensions.Wpf.Plot;
 
 namespace LvqGui {
 
-	public class CreateGaussianCloudsDatasetValues : INotifyPropertyChanged, IHasSeed {
+	public class CreateGaussianCloudsDatasetValues : INotifyPropertyChanged, IHasSeed, IHasShorthand {
 		readonly LvqWindowValues owner;
 		public event PropertyChangedEventHandler PropertyChanged;
 		private void _propertyChanged(String propertyName) { if (PropertyChanged != null) { PropertyChanged(this, new PropertyChangedEventArgs(propertyName)); PropertyChanged(this, new PropertyChangedEventArgs("Shorthand")); } }
@@ -63,24 +63,12 @@ namespace LvqGui {
 			new Regex(@"^\s*(.*--)?nrm-(?<Dimensions>\d+)D(?<ExtendDataByCorrelation>\*?)-(?<NumberOfClasses>\d+)\*(?<PointsPerClass>\d+):(?<ClassCenterDeviation>[^\[]+)\[(?<Seed>\d+):(?<InstSeed>\d+)\]/(?<Folds>\d+)\s*$",
 				RegexOptions.Compiled | RegexOptions.ExplicitCapture);
 
-		static object[] empty = new object[] { };
+
 		public string Shorthand {
 			get {
-				return "nrm-" + Dimensions + "D" + (owner.ExtendDataByCorrelation ? "*" : "") + "-" + NumberOfClasses + "*" + PointsPerClass + ":" + ClassCenterDeviation.ToString("r") + "[" + Seed + ":" + InstSeed + "]/" + Folds;
+				return "nrm-" + Dimensions + "D" + (ExtendDataByCorrelation ? "*" : "") + "-" + NumberOfClasses + "*" + PointsPerClass + ":" + ClassCenterDeviation.ToString("r") + "[" + Seed + ":" + InstSeed + "]/" + Folds;
 			}
-			set {
-				if (!shR.IsMatch(value)) throw new ArgumentException("can't parse shorthand - enter manually?");
-				var groups = shR.Match(value).Groups.Cast<Group>().ToArray();
-				for (int i = 0; i < groups.Length; i++) {
-					if (!groups[i].Success) continue;
-					var prop = GetType().GetProperty(shR.GroupNameFromNumber(i));
-					if (prop != null) {
-						var val = prop.PropertyType.Equals(typeof(bool)) ? groups[i].Value != ""
-							: TypeDescriptor.GetConverter(prop.PropertyType).ConvertFromString(groups[i].Value);
-						prop.SetValue(this, val, empty);
-					}
-				}
-			}
+			set { ShorthandHelper.ParseShorthand(this, shR, value); }
 		}
 
 		public CreateGaussianCloudsDatasetValues(LvqWindowValues owner) {
