@@ -25,18 +25,17 @@ G2mLvqModel::G2mLvqModel(LvqModelSettings & initSettings)
 	int maxProtoCount=0;
 	int protoIndex=0;
 	for(int label=0; label <(int) initSettings.PrototypeDistribution.size();label++) {
-		
 		int labelCount =initSettings.PrototypeDistribution[label];
-		maxProtoCount = max(maxProtoCount, labelCount);
 		for(int i=0;i<labelCount;i++) {
 			prototype[protoIndex] = G2mLvqPrototype(initSettings.RngParams, initSettings.RandomInitialBorders, label, initSettings.PerClassMeans.col(label));//TODO:experiment with random projection initialization.
 			prototype[protoIndex].ComputePP(P);
 			protoIndex++;
 		}
+		maxProtoCount = max(maxProtoCount, labelCount);
 	}
-	if(initSettings.NgUpdateProtos ) 
+
+	if(initSettings.NgUpdateProtos && maxProtoCount>1) 
 		ngMatchCache.resize(maxProtoCount);//otherwise size 0!
-	
 
 	assert(accumulate(initSettings.PrototypeDistribution.begin(), initSettings.PrototypeDistribution.end(), 0)== protoIndex);
 }
@@ -100,8 +99,9 @@ GoodBadMatch G2mLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel)
 	
 	if(ngMatchCache.size()>0) {
 		double lrSub = lr_point;
+		double lrDelta = exp(-10*sqr(LVQ_LR0/learningRate));//TODO: this is rather ADHOC
 		for(int i=1;i<fullmatch.foundOk;++i) {
-			lrSub*=0.1;
+			lrSub*=lrDelta;
 			G2mLvqPrototype &Js = prototype[fullmatch.matchesOk[i].idx];
 			double mu_K2s = 2.0 * +2.0*fullmatch.distBad / (sqr(fullmatch.matchesOk[i].dist) + sqr(fullmatch.distBad));
 			Js.point.noalias() -=  P.transpose() * (lrSub * (Js.B.transpose() * (mu_K2s *  (Js.B * (Js.P_point - projectedTrainPoint)))));

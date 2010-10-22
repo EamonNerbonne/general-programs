@@ -9,6 +9,9 @@ class GsmLvqModel : public LvqProjectionModelBase<GsmLvqModel>
 	VectorXi pLabel;
 	double lr_scale_P;
 
+
+	std::vector<CorrectAndWorstMatches::MatchOk> ngMatchCache;
+
 	//calls dimensionality of input-space DIMS
 	//we will preallocate a few vectors to reduce malloc/free overhead.
 

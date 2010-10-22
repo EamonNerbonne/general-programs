@@ -19,6 +19,7 @@ GsmLvqModel::GsmLvqModel(LvqModelSettings & initSettings)
 	prototype.resize(protoCount);
 	P_prototype.resize(protoCount);
 
+	int maxProtoCount=0;
 	int protoIndex=0;
 	for(int label = 0; label <(int) initSettings.PrototypeDistribution.size();label++) {
 		int labelCount =initSettings.PrototypeDistribution[label];
@@ -28,8 +29,14 @@ GsmLvqModel::GsmLvqModel(LvqModelSettings & initSettings)
 			RecomputeProjection(protoIndex);
 
 			protoIndex++;
+		
 		}
+		maxProtoCount = max(maxProtoCount, labelCount);
 	}
+
+	if(initSettings.NgUpdateProtos && maxProtoCount>1) 
+		ngMatchCache.resize(maxProtoCount);//otherwise size 0!
+
 	assert( accumulate(initSettings.PrototypeDistribution.begin(),initSettings.PrototypeDistribution.end(),0)== protoIndex);
 }
 
@@ -44,7 +51,23 @@ GoodBadMatch GsmLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel)
 	assert(lr_P>=0  &&  lr_point>=0);
 
 	Vector2d P_trainPoint(P * trainPoint);
-	GoodBadMatch matches = findMatches(P_trainPoint, trainLabel);
+
+	CorrectAndWorstMatches fullmatch(& (ngMatchCache[0]));
+	GoodBadMatch matches;
+	if(ngMatchCache.size()>0) {
+		for(int i=0;i<(int)prototype.size();++i) {
+			double curDist = SqrDistanceTo(i, P_trainPoint);
+
+			if(PrototypeLabel(i) == trainLabel) 
+				fullmatch.RegisterOk(curDist,i);
+			else 
+				fullmatch.RegisterBad(curDist,i);
+		}
+		fullmatch.SortOk();
+		matches = fullmatch.ToGoodBadMatch();
+	} else {
+		matches = findMatches(P_trainPoint, trainLabel);
+	}
 
 	//now matches.good is "J" and matches.bad is "K".
 
@@ -68,7 +91,18 @@ GoodBadMatch GsmLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel)
 	//differential wrt. global projection matrix is subtracted...
 	P.noalias() -= (lr_P * muK2_P_vJ) * vJ.transpose() + (lr_P * muJ2_P_vK) * vK.transpose();
 
-	//normalizeProjection(P);
+	if(ngMatchCache.size()>0) {
+		double lrSub = lr_point;
+		double lrDelta = exp(-10*sqr(LVQ_LR0/learningRate));//TODO: this is rather ADHOC
+		for(int i=1;i<fullmatch.foundOk;++i) {
+			lrSub*=lrDelta;
+			VectorXd &Js = prototype[fullmatch.matchesOk[i].idx];
+			Vector2d &P_Js = P_prototype[fullmatch.matchesOk[i].idx];;
+			double mu_K2s_lrSub = lrSub* 2.0 * +2.0*fullmatch.distBad / (sqr(fullmatch.matchesOk[i].dist) + sqr(fullmatch.distBad));
+			Js.noalias() -=  P.transpose() * (mu_K2s_lrSub *  (P_Js - P_trainPoint));
+		}
+	}
+
 
 	for(int i=0;i<pLabel.size();++i)
 		RecomputeProjection(i);
