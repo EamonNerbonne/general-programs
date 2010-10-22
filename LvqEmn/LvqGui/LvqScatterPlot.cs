@@ -84,7 +84,7 @@ namespace LvqGui {
 					select plot.Visualisation
 				).ToArray();
 
-			foreach (var window in plotWindows.Reverse()) window.Show();
+			foreach (var window in plotWindows.AsEnumerable(). Reverse()) window.Show();
 		}
 
 		PlotControl MakeScatterPlots() {
