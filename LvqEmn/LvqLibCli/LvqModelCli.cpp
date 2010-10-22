@@ -145,6 +145,6 @@ namespace LvqLibCli {
 	bool LvqModelCli::IsMultiModel::get(){return model->Length > 1;}
 	bool LvqModelCli::IsProjectionModel::get(){return nullptr != dynamic_cast<LvqProjectionModel*>(model[0]->get()); }
 	int LvqModelCli::ModelCount::get() {return model->Length;}
-
+	double LvqModelCli::CurrentLearningRate::get() {return model[0]->get()->currentLearningRate(); }
 	bool LvqModelCli::FitsDataShape(LvqDatasetCli^ dataset) {return dataset!=nullptr && dataset->ClassCount == this->ClassCount && dataset->Dimensions == this->Dimensions;}
 }

@@ -11,8 +11,10 @@ LvqModel::LvqModel(LvqModelSettings & initSettings)
 	, trainIter(0)
 	, totalIter(0)
 	, totalElapsed(0.0)
-	, iterationScaleFactor(LVQ_PERCLASSITERFACTOR/static_cast<double>(initSettings.RuntimeSettings.ClassCount))
-	{ }
+	{
+		int protoCount = accumulate(initSettings.PrototypeDistribution.begin(), initSettings.PrototypeDistribution.end(), 0);
+		iterationScaleFactor = LVQ_ITERFACTOR_PERPROTO/protoCount;
+	}
 
 static VectorXd fromStlVector(vector<double> const & vec) {
 	VectorXd retval(vec.size());
@@ -32,7 +34,7 @@ void LvqModel::AddTrainingStat(LvqDataset const * trainingSet,  std::vector<int>
 	stats.push_back(trainingErrorRate);
 	stats.push_back(trainingMeanCost);
 	double meanCost=0,errorRate=0;
-	if(testSet) 
+	if(testSet && testSubset.size() >0) 
 		testSet->ComputeCostAndErrorRate(testSubset,this,meanCost,errorRate);
 	stats.push_back(errorRate);
 	stats.push_back(meanCost);
@@ -43,7 +45,7 @@ void LvqModel::AddTrainingStat(LvqDataset const * trainingSet,  std::vector<int>
 
 void LvqModel::AddTrainingStat(LvqDataset const * trainingSet,  vector<int>const & trainingSubset, LvqDataset const * testSet,  vector<int>const & testSubset, int iterInc, double elapsedInc) {
 	double meanCost=0,errorRate=0;
-	if(trainingSet) 
+	if(trainingSet && trainingSubset.size() >0) 
 		trainingSet->ComputeCostAndErrorRate(trainingSubset,this,meanCost,errorRate);
 	this->AddTrainingStat(trainingSet,trainingSubset,meanCost,errorRate,testSet,testSubset,iterInc,elapsedInc);
 }

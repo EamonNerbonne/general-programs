@@ -84,7 +84,7 @@ namespace LvqGui {
 					select plot.Visualisation
 				).ToArray();
 
-			foreach (var window in plotWindows.AsEnumerable(). Reverse()) window.Show();
+			foreach (var window in plotWindows.AsEnumerable().Reverse()) window.Show();
 		}
 
 		PlotControl MakeScatterPlots() {
@@ -273,21 +273,26 @@ namespace LvqGui {
 				return stats => {
 					var retval = stats.Select(info =>
 						new Point(info.values[LvqTrainingStatCli.TrainingIterationI],
-							info.values[statIdx] + variant * info.stderror[statIdx]
+							info.values[statIdx] + (variant != 0 ? variant * info.stderror[statIdx] : 0)
 						)
 					).ToArray();
-					int scaleFac = retval.Length / 2000;
-					if (scaleFac <= 1)
-						return retval;
-					Point[] newret = new Point[retval.Length / scaleFac];
-					for (int i = 0; i < newret.Length; ++i) {
-						for (int j = i * scaleFac; j < i * scaleFac + scaleFac; ++j) {
-							newret[i] += new Vector(retval[j].X / scaleFac, retval[j].Y / scaleFac);
-						}
-					}
-					return newret;
+					return LimitSize(retval);
 				};
 			}
+
+			static Point[] LimitSize(Point[] retval) {
+				int scaleFac = retval.Length / 2000;
+				if (scaleFac <= 1)
+					return retval;
+				Point[] newret = new Point[retval.Length / scaleFac];
+				for (int i = 0; i < newret.Length; ++i) {
+					for (int j = i * scaleFac; j < i * scaleFac + scaleFac; ++j) {
+						newret[i] += new Vector(retval[j].X / scaleFac, retval[j].Y / scaleFac);
+					}
+				}
+				return newret;
+			}
+
 			static PlotWithViz<IEnumerable<LvqTrainingStatCli>> MakePlot(string dataLabel, string yunitLabel, Color color, int statIdx, int variant) {
 				return Plot.Create(
 					new PlotMetaData {

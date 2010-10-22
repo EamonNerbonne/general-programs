@@ -52,9 +52,18 @@ namespace LvqGui {
 		}
 		private int _EpochsPerClick;
 
+		public int EpochsPerAnimation {
+			get { return _EpochsPerAnimation; }
+			set { if (value < 1) throw new ArgumentException("Must train for at least 1 epoch at a  time"); if (!_EpochsPerAnimation.Equals(value)) { _EpochsPerAnimation = value; _propertyChanged("EpochsPerAnimation"); } }
+		}
+		private int _EpochsPerAnimation;
+
+		
+
 		public TrainingControlValues(LvqWindowValues owner) {
 			this.owner = owner;
-			EpochsPerClick = 1;
+			EpochsPerClick = 500;
+			EpochsPerAnimation = 1;
 			owner.LvqModels.CollectionChanged += LvqModels_CollectionChanged;
 		}
 
@@ -106,7 +115,7 @@ namespace LvqGui {
 			try {
 				isAnimating = true;
 				while (_AnimateTraining) {
-					int epochsToTrainFor = EpochsPerClick;
+					int epochsToTrainFor = EpochsPerAnimation;
 					if (selectedDataset == null || selectedModel == null || epochsToTrainFor < 1) {
 						owner.Dispatcher.BeginInvoke(() => { AnimateTraining = false; });
 						break;
@@ -162,5 +171,12 @@ namespace LvqGui {
 				Owner.Datasets.Remove(selectedDataset);
 			}
 		}
+
+		internal double GetLearningRate() {
+			var selectedModel = SelectedLvqModel;
+			return selectedModel != null ? selectedModel.CurrentLearningRate : 0.0;
+		}
+
+
 	}
 }

@@ -31,10 +31,10 @@
                     <TabItem Header="Load Data">
                         <my:LoadDataset DataContext="{Binding LoadDatasetValues}"/>
                     </TabItem>
-                    <TabItem Header="Gaussian Clouds" IsSelected="True">
+                    <TabItem Header="Gaussian Clouds" >
                         <my:CreateGaussianCloudDataset DataContext="{Binding CreateGaussianCloudsDatasetValues}"/>
                     </TabItem>
-                    <TabItem Header="Star Dataset">
+                        <TabItem Header="Star Dataset" IsSelected="True">
                         <my:CreateStarDataset DataContext="{Binding CreateStarDatasetValues}" />
                     </TabItem>
                 </TabControl>

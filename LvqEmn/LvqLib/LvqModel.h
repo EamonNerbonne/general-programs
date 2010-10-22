@@ -33,6 +33,11 @@ protected:
 	LvqModel(LvqModelSettings & initSettings);
 
 public:
+	double currentLearningRate() const { 
+		double scaledIter = trainIter*iterationScaleFactor+1.0;
+		return LVQ_LR0 / sqrt(scaledIter*sqrt(scaledIter)); 
+	}
+
 	boost::mt19937 & RngIter() {return *settings.RngIter;}//TODO:remove.
 	void resetLearningRate() {trainIter=0;}
 	std::vector<Eigen::VectorXd> const & TrainingStats() {return trainingStats;}

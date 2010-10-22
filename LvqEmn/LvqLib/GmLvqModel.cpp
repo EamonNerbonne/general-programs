@@ -25,8 +25,7 @@ GmLvqModel::GmLvqModel( LvqModelSettings & initSettings)
 
 	int protoCount = accumulate(initSettings.PrototypeDistribution.begin(), initSettings.PrototypeDistribution.end(), 0);
 	pLabel.resize(protoCount);
-	iterationScaleFactor/=protoCount;
-
+	
 	prototype.resize(protoCount);
 	P.resize(protoCount);
 

@@ -19,7 +19,6 @@ G2mLvqModel::G2mLvqModel(LvqModelSettings & initSettings)
 
 
 	int protoCount = accumulate(initSettings.PrototypeDistribution.begin(),initSettings.PrototypeDistribution.end(),0);
-	iterationScaleFactor/=protoCount;
 	prototype.resize(protoCount);
 	
 	int maxProtoCount=0;
@@ -53,9 +52,10 @@ GoodBadMatch G2mLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel)
 
 	Vector2d projectedTrainPoint( P * trainPoint );
 
-	CorrectAndWorstMatches fullmatch(& (ngMatchCache[0]));
+	CorrectAndWorstMatches fullmatch(nullptr);
 	GoodBadMatch matches;
 	if(ngMatchCache.size()>0) {
+		fullmatch = CorrectAndWorstMatches(& (ngMatchCache[0]));
 		for(int i=0;i<(int)prototype.size();++i) {
 			double curDist = SqrDistanceTo(i, projectedTrainPoint);
 
@@ -99,7 +99,7 @@ GoodBadMatch G2mLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel)
 	
 	if(ngMatchCache.size()>0) {
 		double lrSub = lr_point;
-		double lrDelta = exp(-10*sqr(LVQ_LR0/learningRate));//TODO: this is rather ADHOC
+		double lrDelta = 0.1;// exp(-2*LVQ_LR0/learningRate);//TODO: this is rather ADHOC
 		for(int i=1;i<fullmatch.foundOk;++i) {
 			lrSub*=lrDelta;
 			G2mLvqPrototype &Js = prototype[fullmatch.matchesOk[i].idx];

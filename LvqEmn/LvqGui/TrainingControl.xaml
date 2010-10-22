@@ -69,9 +69,14 @@
             <Label Content="epochs" HorizontalAlignment="Right"/>
         </StackPanel>
 
-        <CheckBox Content="Animate" Grid.Column="1" Grid.Row="4" IsChecked="{Binding AnimateTraining}"/>
-        
+        <CheckBox Content="Animate" Grid.Column="0" Grid.Row="4" IsChecked="{Binding AnimateTraining}"/>
+        <StackPanel Grid.Row="4" Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Stretch">
+            <TextBox Width="60" Text="{Binding EpochsPerAnimation,ValidatesOnExceptions=True}" />
+            <Label Content="epochs per frame" HorizontalAlignment="Right"/>
+        </StackPanel>
+
         <StackPanel Grid.Row="5" Grid.Column="0" Grid.ColumnSpan="2"   Orientation="Horizontal" HorizontalAlignment="Right">
+            <Button Content="Print LR" Click="PrintLearningRate"/>
             <Button Content="Reset LR" Click="ResetLearningRate"/>
             <Button Content="Unload Model" Click="UnloadModel"/>
             <Button Content="Unload Dataset" Click="UnloadDataset"/>

@@ -22,8 +22,8 @@ namespace LvqGui {
 
 		private void UnloadDataset(object sender, RoutedEventArgs e) { Values.UnloadDataset(); }
 
-		private void DoGC(object sender, RoutedEventArgs e) {
-			GC.Collect();
-		}
+		private void DoGC(object sender, RoutedEventArgs e) { GC.Collect(); }
+
+		private void PrintLearningRate(object sender, RoutedEventArgs e) { Console.WriteLine(Values.GetLearningRate()); }
 	}
 }

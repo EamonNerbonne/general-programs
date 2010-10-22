@@ -30,6 +30,7 @@ namespace LvqLibCli {
 
 		property int ClassCount {int get();}
 		property int Dimensions {int get();}
+		property double CurrentLearningRate {double get();}
 		property int ModelCount {int get();}
 		property bool IsMultiModel {bool get();}
 		property bool IsProjectionModel {bool get();}
