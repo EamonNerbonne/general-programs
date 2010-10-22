@@ -67,6 +67,8 @@
         <CheckBox Grid.Row="8" Grid.Column="1"  IsChecked="{Binding NormalizeBoundaries, Mode= TwoWay, ValidatesOnExceptions=True}"/>
         <Label Grid.Row="9">Globally normalize (gm, g2m)</Label>
         <CheckBox Grid.Row="9" Grid.Column="1"  IsChecked="{Binding RandomInitialProjection, Mode= TwoWay, ValidatesOnExceptions=True}"/>
+        <Label Grid.Row="10">NG-inspired updates (gsm, g2m)</Label>
+        <CheckBox Grid.Row="10" Grid.Column="1"  IsChecked="{Binding NgUpdateProtos, Mode= TwoWay, ValidatesOnExceptions=True}"/>
 
         <Button Grid.Row="15" Content="Reset Initialization Seed" Click="ReseedParam" />
         <TextBox Grid.Row="15" Grid.Column="1" Text="{Binding Seed, Mode=TwoWay, ValidatesOnExceptions=True}"  />

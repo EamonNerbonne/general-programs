@@ -43,7 +43,6 @@ G2mLvqModel::G2mLvqModel(LvqModelSettings & initSettings)
 typedef Map<VectorXd,  Aligned> MVectorXd;
 
 GoodBadMatch G2mLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel) {
-	CorrectAndWorstMatches::MatchOk cache[20];
 	using namespace std;
 	double learningRate = stepLearningRate();
 
