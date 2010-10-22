@@ -19,7 +19,7 @@ namespace LvqGui {
 			if (PropertyChanged != null) {
 				raisePropertyChanged(propertyName);
 				raisePropertyChanged("Shorthand");
-				raisePropertyChanged("ShorthandError");
+				raisePropertyChanged("ShorthandErrors");
 			}
 		}
 
@@ -108,17 +108,17 @@ namespace LvqGui {
 			this.owner = owner;
 			owner.PropertyChanged += (o, e) => { if (e.PropertyName == "ExtendDataByCorrelation") _propertyChanged("ExtendDataByCorrelation"); };
 			_Folds = 10;
-			_ClusterCenterDeviation = 2.5;
-			_ClusterDimensionality = 2;
-			_IntraClusterClassRelDev = 0.33;
+			_ClusterCenterDeviation = 3.5;
+			_ClusterDimensionality = 4;
+			_IntraClusterClassRelDev = 0.4;
 			_NumberOfClasses = 3;
 			_NumberOfClusters = 3;
 #if DEBUG
 			_Dimensions = 8;
 			_PointsPerClass = 100;
 #else
-			_Dimensions = 50;
-			_PointsPerClass = 3000;
+			_Dimensions = 24;
+			_PointsPerClass = 1000;
 #endif
 			_RandomlyTransformFirst = true;
 			this.ReseedBoth();

@@ -52,7 +52,7 @@ namespace LvqGui {
 		void OpenSubWindows() {
 			ClosePlots();
 
-			if(model.IsProjectionModel)
+			if (model.IsProjectionModel)
 				plotWindows.Add(new Window { Width = winSize, Height = winSize, Title = "ScatterPlot", Content = MakeScatterPlots() });
 
 			var plotGroups = (
@@ -132,7 +132,7 @@ namespace LvqGui {
 				int currentSubModelIdx = subModelIdx;
 
 				var currProjection = model.CurrentProjectionAndPrototypes(currentSubModelIdx, dataset);
-				DispatcherOperation scatterPlotOperation=null;
+				DispatcherOperation scatterPlotOperation = null;
 				if (currProjection.IsOk) {
 					Point[] prototypePositions = !currProjection.IsOk ? default(Point[]) : Points.ToMediaPoints(currProjection.Prototypes.Points);
 					Point[] dataPoints = Points.ToMediaPoints(currProjection.Data.Points);
@@ -162,7 +162,7 @@ namespace LvqGui {
 
 				foreach (var operation in graphOperations)
 					operation.Wait();
-				if (currProjection.IsOk) 
+				if (currProjection.IsOk)
 					scatterPlotOperation.Wait();
 
 				if (updateSync.UpdateDone_IsQueueEmpty()) return;
@@ -270,12 +270,23 @@ namespace LvqGui {
 				yield return MakePlot(dataLabel, yunitLabel, color, statIdx, 0);
 			}
 			static Func<IEnumerable<LvqTrainingStatCli>, Point[]> StatisticsToPointsMapper(int statIdx, int variant) {
-				return stats =>
-					stats.Select(info =>
+				return stats => {
+					var retval = stats.Select(info =>
 						new Point(info.values[LvqTrainingStatCli.TrainingIterationI],
 							info.values[statIdx] + variant * info.stderror[statIdx]
 						)
 					).ToArray();
+					int scaleFac = retval.Length / 2000;
+					if (scaleFac <= 1)
+						return retval;
+					Point[] newret = new Point[retval.Length / scaleFac];
+					for (int i = 0; i < newret.Length; ++i) {
+						for (int j = i * scaleFac; j < i * scaleFac + scaleFac; ++j) {
+							newret[i] += new Vector(retval[j].X / scaleFac, retval[j].Y / scaleFac);
+						}
+					}
+					return newret;
+				};
 			}
 			static PlotWithViz<IEnumerable<LvqTrainingStatCli>> MakePlot(string dataLabel, string yunitLabel, Color color, int statIdx, int variant) {
 				return Plot.Create(

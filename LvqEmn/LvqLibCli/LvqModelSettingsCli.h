@@ -19,6 +19,7 @@ namespace LvqLibCli {
 		bool RandomInitialBorders;
 		bool TrackProjectionQuality;
 		bool NormalizeProjection, NormalizeBoundaries, GloballyNormalize;
+		bool NgUpdateProtos;
 		//fields set by native constructor:
 		LvqModelType ModelType;
 		unsigned RngParamsSeed, RngIterSeed;

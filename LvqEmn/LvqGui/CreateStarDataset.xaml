@@ -68,8 +68,8 @@
         <Label Grid.Row="11">Shorthand</Label>
         <TextBox  Grid.Row="11" Grid.Column="1" Text="{Binding Shorthand, Mode=TwoWay, ValidatesOnExceptions=True}" />
 
-        <Button  Grid.Row="12" Grid.Column="0" Grid.ColumnSpan="2" Name="buttonGenerateDataset" Click="buttonGenerateDataset_Click">Generate Star Dataset</Button>
-        <Label Grid.Row="13" Grid.ColumnSpan="2" Content="{Binding ShorthandErrors, Mode=OneWay}" />
+        <Button  Grid.Row="12" Grid.Column="0" Grid.ColumnSpan="2" Click="buttonGenerateDataset_Click"  VerticalAlignment="Top">Generate Star Dataset</Button>
+        <Label Grid.Row="12" Grid.ColumnSpan="2" Content="{Binding ShorthandErrors, Mode=OneWay}" HorizontalAlignment="Left" />
 
     </Grid>
 </UserControl>

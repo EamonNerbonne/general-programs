@@ -16,7 +16,7 @@ namespace LvqGui {
 			if (PropertyChanged != null) {
 				raisePropertyChanged(propertyName);
 				raisePropertyChanged("Shorthand");
-				raisePropertyChanged("ShorthandError");
+				raisePropertyChanged("ShorthandErrors");
 			}
 		}
 
@@ -95,6 +95,14 @@ namespace LvqGui {
 		}
 		private bool _RandomInitialBorders;
 
+		public bool NgUpdateProtos {
+			get { return _NgUpdateProtos; }
+			set { if (!_NgUpdateProtos.Equals(value)) { _NgUpdateProtos = value; _propertyChanged("NgUpdateProtos"); } }
+		}
+		private bool _NgUpdateProtos;
+
+		
+
 		public uint Seed {
 			get { return _Seed; }
 			set { if (!object.Equals(_Seed, value)) { _Seed = value; _propertyChanged("Seed"); } }
@@ -113,14 +121,15 @@ namespace LvqGui {
 				(?<ModelType>G[\w\d]*)
 				(\[(?<Dimensionality>[^\]]+)\])?
 				,(?<PrototypesPerClass>\d+)
-				,?(?<RandomInitialProjection>(RP)?)
-				,?(?<RandomInitialBorders>(RB)?)
-				,?(?<NormalizeProjection>(np)?)
-				,?(?<NormalizeBoundaries>(nb)?)
-				,?(?<GloballyNormalize>(gn)?)
+				,RP(?<RandomInitialProjection>\+?)
+				(,RB(?<RandomInitialBorders>\+?))?
+				,np(?<NormalizeProjection>\+?)
+				(,nb(?<NormalizeBoundaries>\+?))?
+				(,gn(?<GloballyNormalize>\+?))?
+				(,NG(?<NgUpdateProtos>\+?))?
 				\[(?<Seed>\d+):(?<InstSeed>\d+)\]
 				/(?<ParallelModels>\d+)
-				,?(?<TrackProjectionQuality>(pQ)?)
+				(,pQ(?<TrackProjectionQuality>\+?))?
 				(--.*)?\s*$",
 		RegexOptions.Compiled | RegexOptions.ExplicitCapture | RegexOptions.IgnorePatternWhitespace);
 
@@ -129,13 +138,14 @@ namespace LvqGui {
 				return ModelType.ToString()
 				+ (ModelType == LvqModelType.GmModelType ? "[" + Dimensionality + "]" : "")
 				+ "," + PrototypesPerClass
-				+ (RandomInitialProjection ? ",RP" : "")
-				+ (RandomInitialBorders ? ",RB" : "")
-				+ (NormalizeProjection ? ",np" : "")
-				+ (NormalizeBoundaries ? ",nb" : "")
-				+ (GloballyNormalize ? ",gn" : "")
+				+ ",RP" + (RandomInitialProjection ? "+" : "")
+				+ (ModelType == LvqModelType.G2mModelType ? ",RB" + (RandomInitialBorders ? "+" : "") : "")
+				+ ",np" + (NormalizeProjection ? "+" : "")
+				+ (ModelType == LvqModelType.G2mModelType ? ",nb" + (NormalizeBoundaries ? "+" : "") : "")
+				+ (ModelType == LvqModelType.G2mModelType && NormalizeBoundaries || NormalizeProjection ? ",gn" + (GloballyNormalize ? "+" : "") : "")
+				+ (ModelType != LvqModelType.GmModelType ? ",NG" + (NgUpdateProtos ? "+" : "") : "")
 				+ "[" + Seed + ":" + InstSeed + "]/" + ParallelModels
-				+ (TrackProjectionQuality ? ",pQ" : "")
+				+ (ModelType != LvqModelType.GmModelType ? ",pQ" + (TrackProjectionQuality ? "+" : "") : "")
 				+ (ForDataset == null ? "" : "--" + ForDataset.DatasetLabel);
 			}
 			set { ShorthandHelper.ParseShorthand(this, shR, value); }
@@ -172,7 +182,8 @@ namespace LvqGui {
 					NormalizeProjection = NormalizeProjection,
 					RandomInitialBorders = RandomInitialBorders,
 					RandomInitialProjection = RandomInitialProjection,
-					Dimensionality = Dimensionality
+					Dimensionality = Dimensionality,
+					NgUpdateProtos = NgUpdateProtos,
 				});
 		}
 

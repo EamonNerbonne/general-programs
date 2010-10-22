@@ -81,8 +81,8 @@
         <Label Grid.Row="19">Shorthand</Label>
         <TextBox  Grid.Row="19" Grid.Column="1" Text="{Binding Shorthand, Mode=TwoWay, ValidatesOnExceptions=True}" />
 
-        <Button Grid.Row="20" Grid.ColumnSpan="2" Click="InitializeModel">Initialize Model</Button>
-        <Label Grid.Row="21" Grid.ColumnSpan="2" Content="{Binding ShorthandErrors, Mode=OneWay}" />
+        <Button Grid.Row="20" Grid.ColumnSpan="2" Click="InitializeModel"  VerticalAlignment="Top">Initialize Model</Button>
+        <Label Grid.Row="20" Grid.ColumnSpan="2" Content="{Binding ShorthandErrors, Mode=OneWay}" HorizontalAlignment="Left" />
 
     </Grid>
 </UserControl>

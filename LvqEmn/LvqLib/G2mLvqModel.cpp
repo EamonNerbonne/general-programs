@@ -21,16 +21,23 @@ G2mLvqModel::G2mLvqModel(LvqModelSettings & initSettings)
 	int protoCount = accumulate(initSettings.PrototypeDistribution.begin(),initSettings.PrototypeDistribution.end(),0);
 	iterationScaleFactor/=protoCount;
 	prototype.resize(protoCount);
-
+	
+	int maxProtoCount=0;
 	int protoIndex=0;
 	for(int label=0; label <(int) initSettings.PrototypeDistribution.size();label++) {
+		
 		int labelCount =initSettings.PrototypeDistribution[label];
+		maxProtoCount = max(maxProtoCount, labelCount);
 		for(int i=0;i<labelCount;i++) {
 			prototype[protoIndex] = G2mLvqPrototype(initSettings.RngParams, initSettings.RandomInitialBorders, label, initSettings.PerClassMeans.col(label));//TODO:experiment with random projection initialization.
 			prototype[protoIndex].ComputePP(P);
 			protoIndex++;
 		}
 	}
+	if(initSettings.NgUpdateProtos ) 
+		ngMatchCache.resize(maxProtoCount);//otherwise size 0!
+	
+
 	assert(accumulate(initSettings.PrototypeDistribution.begin(), initSettings.PrototypeDistribution.end(), 0)== protoIndex);
 }
 typedef Map<VectorXd,  Aligned> MVectorXd;
@@ -48,19 +55,22 @@ GoodBadMatch G2mLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel)
 
 	Vector2d projectedTrainPoint( P * trainPoint );
 
-	CorrectAndWorstMatches fullmatch(cache);
-	for(int i=0;i<(int)prototype.size();++i) {
-		double curDist = SqrDistanceTo(i, projectedTrainPoint);
+	CorrectAndWorstMatches fullmatch(& (ngMatchCache[0]));
+	GoodBadMatch matches;
+	if(ngMatchCache.size()>0) {
+		for(int i=0;i<(int)prototype.size();++i) {
+			double curDist = SqrDistanceTo(i, projectedTrainPoint);
 
-		if(PrototypeLabel(i) == trainLabel) 
-			fullmatch.RegisterOk(curDist,i);
-		else 
-			fullmatch.RegisterBad(curDist,i);
+			if(PrototypeLabel(i) == trainLabel) 
+				fullmatch.RegisterOk(curDist,i);
+			else 
+				fullmatch.RegisterBad(curDist,i);
+		}
+		fullmatch.SortOk();
+		matches = fullmatch.ToGoodBadMatch();
+	} else {
+		matches = findMatches(projectedTrainPoint, trainLabel);
 	}
-	fullmatch.SortOk();
-
-	GoodBadMatch matches = fullmatch.ToGoodBadMatch();
-//	GoodBadMatch matches = findMatches(projectedTrainPoint, trainLabel);
 
 	//now matches.good is "J" and matches.bad is "K".
 
@@ -88,13 +98,15 @@ GoodBadMatch G2mLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel)
 	J.point.noalias() -=  P.transpose()* (lr_point * muK2_BjT_Bj_P_vJ);
 	K.point.noalias() -=   P.transpose() * (LVQ_LrScaleBad*lr_point * muJ2_BkT_Bk_P_vK) ;
 	P.noalias() -= (lr_P * muK2_BjT_Bj_P_vJ) * vJ.transpose() + (lr_P * muJ2_BkT_Bk_P_vK) * vK.transpose() ;
-
-	double lrSub = lr_point;
-	for(int i=1;i<fullmatch.foundOk;++i) {
-		lrSub*=0.1;
-		G2mLvqPrototype &Js = prototype[fullmatch.matchesOk[i].idx];
-		double mu_K2s = 2.0 * +2.0*fullmatch.distBad / (sqr(fullmatch.matchesOk[i].dist) + sqr(fullmatch.distBad));
-		Js.point.noalias() -=  P.transpose() * (lrSub * (Js.B.transpose() * (mu_K2s *  (Js.B * (Js.P_point - projectedTrainPoint)))));
+	
+	if(ngMatchCache.size()>0) {
+		double lrSub = lr_point;
+		for(int i=1;i<fullmatch.foundOk;++i) {
+			lrSub*=0.1;
+			G2mLvqPrototype &Js = prototype[fullmatch.matchesOk[i].idx];
+			double mu_K2s = 2.0 * +2.0*fullmatch.distBad / (sqr(fullmatch.matchesOk[i].dist) + sqr(fullmatch.distBad));
+			Js.point.noalias() -=  P.transpose() * (lrSub * (Js.B.transpose() * (mu_K2s *  (Js.B * (Js.P_point - projectedTrainPoint)))));
+		}
 	}
 
 	//normalizeProjection(P);
@@ -109,6 +121,7 @@ LvqModel* G2mLvqModel::clone() const { return new G2mLvqModel(*this); }
 size_t G2mLvqModel::MemAllocEstimate() const {
 	return 
 		sizeof(G2mLvqModel) +
+		sizeof(CorrectAndWorstMatches::MatchOk) * ngMatchCache.size()+
 		sizeof(double) * P.size() +
 		sizeof(double) * (m_vJ.size() +m_vK.size()) + //various temps
 		sizeof(G2mLvqPrototype)*prototype.size() + //prototypes; part statically allocated

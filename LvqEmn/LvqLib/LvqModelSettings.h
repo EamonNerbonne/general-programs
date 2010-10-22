@@ -31,6 +31,7 @@ class LvqModelSettings
 public:
 	bool RandomInitialProjection;
 	bool RandomInitialBorders;
+	bool NgUpdateProtos;
 	int Dimensionality;
 
 	enum LvqModelType {	 AutoModelType, GmModelType, GsmModelType, G2mModelType };
@@ -42,6 +43,7 @@ public:
 	LvqModelSettings(LvqModelType modelType, boost::mt19937 & rngParams, boost::mt19937 & rngIter, std::vector<int> protodistrib, Eigen::MatrixXd const & means) 
 		: RandomInitialProjection(true)
 		, RandomInitialBorders(false) 
+		, NgUpdateProtos(false)
 		, RngParams(rngParams)
 		, PrototypeDistribution(protodistrib)
 		, PerClassMeans(means)

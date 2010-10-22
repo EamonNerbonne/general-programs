@@ -18,7 +18,7 @@ namespace LvqGui {
 			if (PropertyChanged != null) {
 				raisePropertyChanged(propertyName);
 				raisePropertyChanged("Shorthand");
-				raisePropertyChanged("ShorthandError");
+				raisePropertyChanged("ShorthandErrors");
 			}
 		}
 
@@ -92,8 +92,8 @@ namespace LvqGui {
 			_Dimensions = 8;
 			_PointsPerClass = 100;
 #else
-			_Dimensions = 50;
-			_PointsPerClass = 3000;
+			_Dimensions = 24;
+			_PointsPerClass = 1000;
 #endif
 
 			this.ReseedBoth();
