@@ -40,15 +40,10 @@ struct CorrectAndWorstMatches {
 #endif
 	{}
 
-	inline void RegisterOk(double dist,int idx) {
-		matchesOk[foundOk++] = MatchOk(dist,idx);
-	}
-	inline void RegisterBad(double dist,int idx) {
-		if(dist < distBad) {
-			matchBad = idx;
-			distBad = dist;
-		}
-	}
+	inline void RegisterOk(double dist,int idx) { matchesOk[foundOk++] = MatchOk(dist,idx); }
+	inline void RegisterBad(double dist,int idx) { if(dist < distBad) { matchBad = idx; distBad = dist; } }
+
+	inline void Register(double dist,int idx, bool isOk) { if(isOk) RegisterOk(dist,idx); else RegisterBad(dist,idx); }
 
 	inline void SortOk() { std::sort(matchesOk,matchesOk+foundOk); }
 

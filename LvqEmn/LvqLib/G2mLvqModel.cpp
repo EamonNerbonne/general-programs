@@ -38,6 +38,7 @@ G2mLvqModel::G2mLvqModel(LvqModelSettings & initSettings)
 
 	assert(accumulate(initSettings.PrototypeDistribution.begin(), initSettings.PrototypeDistribution.end(), 0)== protoIndex);
 }
+
 typedef Map<VectorXd,  Aligned> MVectorXd;
 
 GoodBadMatch G2mLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel) {
@@ -50,65 +51,75 @@ GoodBadMatch G2mLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel)
 
 	assert(lr_P>=0 && lr_B>=0 && lr_point>=0);
 
-	Vector2d projectedTrainPoint( P * trainPoint );
+	Vector2d P_trainPoint( P * trainPoint );
 
-	CorrectAndWorstMatches fullmatch(nullptr);
+	CorrectAndWorstMatches fullmatch(0);
 	GoodBadMatch matches;
 	if(ngMatchCache.size()>0) {
 		fullmatch = CorrectAndWorstMatches(& (ngMatchCache[0]));
-		for(int i=0;i<(int)prototype.size();++i) {
-			double curDist = SqrDistanceTo(i, projectedTrainPoint);
-
-			if(PrototypeLabel(i) == trainLabel) 
-				fullmatch.RegisterOk(curDist,i);
-			else 
-				fullmatch.RegisterBad(curDist,i);
-		}
+		for(int i=0;i<(int)prototype.size();++i) 
+			fullmatch.Register(SqrDistanceTo(i, P_trainPoint),i, PrototypeLabel(i) == trainLabel);
 		fullmatch.SortOk();
 		matches = fullmatch.ToGoodBadMatch();
 	} else {
-		matches = findMatches(projectedTrainPoint, trainLabel);
+		matches = findMatches(P_trainPoint, trainLabel);
 	}
 
 	//now matches.good is "J" and matches.bad is "K".
 
-	double mu_J = -2.0*matches.distGood / (sqr(matches.distGood) + sqr(matches.distBad));
-	double mu_K = +2.0*matches.distBad / (sqr(matches.distGood) + sqr(matches.distBad));
+	double muJ2 = 2.0*-2.0*matches.distGood / (sqr(matches.distGood) + sqr(matches.distBad));
+	double muK2 = 2.0*+2.0*matches.distBad / (sqr(matches.distGood) + sqr(matches.distBad));
 
 	G2mLvqPrototype &J = prototype[matches.matchGood];
 	G2mLvqPrototype &K = prototype[matches.matchBad];
-	
+
 	MVectorXd vJ(m_vJ.data(),m_vJ.size());
 	MVectorXd vK(m_vK.data(),m_vK.size());
+
+	Vector2d P_vJ= J.P_point - P_trainPoint;
+	Vector2d P_vK = K.P_point - P_trainPoint;
+	Vector2d muK2_Bj_P_vJ = muK2 *  (J.B * P_vJ) ;
+	Vector2d muJ2_Bk_P_vK = muJ2 *  (K.B * P_vK) ;
 	vJ = J.point - trainPoint;
 	vK = K.point - trainPoint;
-	Vector2d P_vJ= J.P_point - projectedTrainPoint;
-	Vector2d P_vK = K.P_point - projectedTrainPoint;
+	Vector2d muK2_BjT_Bj_P_vJ =  J.B.transpose() * muK2_Bj_P_vJ ;
+	Vector2d muJ2_BkT_Bk_P_vK = K.B.transpose() * muJ2_Bk_P_vK ;
 
-	Vector2d muK2_Bj_P_vJ, muJ2_Bk_P_vK,muK2_BjT_Bj_P_vJ,muJ2_BkT_Bk_P_vK;
-
-	muK2_Bj_P_vJ.noalias() = (mu_K * 2.0) *  (J.B * P_vJ) ;
-	muJ2_Bk_P_vK.noalias() = (mu_J * 2.0) *  (K.B * P_vK) ;
-	muK2_BjT_Bj_P_vJ.noalias() =  J.B.transpose() * muK2_Bj_P_vJ ;
-	muJ2_BkT_Bk_P_vK.noalias() = K.B.transpose() * muJ2_Bk_P_vK ;
 	J.B.noalias() -= lr_B * muK2_Bj_P_vJ * P_vJ.transpose() ;
 	K.B.noalias() -= lr_B * muJ2_Bk_P_vK * P_vK.transpose() ;
-	J.point.noalias() -=  P.transpose()* (lr_point * muK2_BjT_Bj_P_vJ);
+	if(settings.UpdatePointsWithoutB) {
+		double distgood = P_vJ.squaredNorm();
+		double distbad =  P_vK.squaredNorm();
+		double XmuJ2 = 2.0*-2.0*distgood / (sqr(distgood) + sqr(distbad));
+		double XmuK2 = 2.0*+2.0*distbad / (sqr(distgood) + sqr(distbad));
+
+		J.point.noalias() -=  P.transpose()* (lr_point * XmuK2 *P_vJ);
+	} else {
+		J.point.noalias() -=  P.transpose()* (lr_point * muK2_BjT_Bj_P_vJ);
+	}
 	K.point.noalias() -=   P.transpose() * (LVQ_LrScaleBad*lr_point * muJ2_BkT_Bk_P_vK) ;
 	P.noalias() -= (lr_P * muK2_BjT_Bj_P_vJ) * vJ.transpose() + (lr_P * muJ2_BkT_Bk_P_vK) * vK.transpose() ;
 	
 	if(ngMatchCache.size()>0) {
 		double lrSub = lr_point;
-		double lrDelta = 0.1;// exp(-2*LVQ_LR0/learningRate);//TODO: this is rather ADHOC
+		double lrDelta =  exp(-0.3*LVQ_LR0/learningRate);//TODO: this is rather ADHOC
 		for(int i=1;i<fullmatch.foundOk;++i) {
 			lrSub*=lrDelta;
 			G2mLvqPrototype &Js = prototype[fullmatch.matchesOk[i].idx];
-			double mu_K2s = 2.0 * +2.0*fullmatch.distBad / (sqr(fullmatch.matchesOk[i].dist) + sqr(fullmatch.distBad));
-			Js.point.noalias() -=  P.transpose() * (lrSub * (Js.B.transpose() * (mu_K2s *  (Js.B * (Js.P_point - projectedTrainPoint)))));
+			if(settings.UpdatePointsWithoutB) {
+				double distgood = (Js.P_point - P_trainPoint).squaredNorm();
+				double distbad =  P_vK.squaredNorm();
+				double XmuK2 = 2.0*+2.0*distbad / (sqr(distgood) + sqr(distbad));
+
+				Js.point.noalias() -=  P.transpose() * (lrSub * XmuK2 *  (Js.P_point - P_trainPoint));
+			} else {
+				double muK2s = 2.0 * +2.0*fullmatch.distBad / (sqr(fullmatch.matchesOk[i].dist) + sqr(fullmatch.distBad));
+
+				Js.point.noalias() -=  P.transpose() * (lrSub * muK2s *  (Js.B.transpose() *  (Js.B * (Js.P_point - P_trainPoint))));
+			}
 		}
 	}
 
-	//normalizeProjection(P);
 	for(size_t i=0;i<prototype.size();++i)
 		prototype[i].ComputePP(P);
 	return matches;

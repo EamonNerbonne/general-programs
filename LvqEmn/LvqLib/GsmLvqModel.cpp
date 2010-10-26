@@ -7,8 +7,8 @@ using namespace std;
 GsmLvqModel::GsmLvqModel(LvqModelSettings & initSettings)
 	: LvqProjectionModelBase(initSettings) 
 	, lr_scale_P(LVQ_LrScaleP)
-	, vJ(initSettings.Dimensions())
-	, vK(initSettings.Dimensions())
+	, m_vJ(initSettings.Dimensions())
+	, m_vK(initSettings.Dimensions())
 {
 	initSettings.AssertModelIsOfRightType(this);
 
@@ -51,18 +51,12 @@ GoodBadMatch GsmLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel)
 
 	Vector2d P_trainPoint(P * trainPoint);
 
-	CorrectAndWorstMatches fullmatch(nullptr);
+	CorrectAndWorstMatches fullmatch(0);
 	GoodBadMatch matches;
 	if(ngMatchCache.size()>0) {
 		fullmatch = CorrectAndWorstMatches(& (ngMatchCache[0]));
-		for(int i=0;i<(int)prototype.size();++i) {
-			double curDist = SqrDistanceTo(i, P_trainPoint);
-
-			if(PrototypeLabel(i) == trainLabel) 
-				fullmatch.RegisterOk(curDist,i);
-			else 
-				fullmatch.RegisterBad(curDist,i);
-		}
+		for(int i=0;i<(int)prototype.size();++i) 
+			fullmatch.Register(SqrDistanceTo(i, P_trainPoint),i, PrototypeLabel(i) == trainLabel);
 		fullmatch.SortOk();
 		matches = fullmatch.ToGoodBadMatch();
 	} else {
@@ -71,24 +65,24 @@ GoodBadMatch GsmLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel)
 
 	//now matches.good is "J" and matches.bad is "K".
 
-	double mu_J = -2.0*matches.distGood / (sqr(matches.distGood) + sqr(matches.distBad));
-	double mu_K = +2.0*matches.distBad / (sqr(matches.distGood) + sqr(matches.distBad));
+	double muJ2 = 2.0*-2.0*matches.distGood / (sqr(matches.distGood) + sqr(matches.distBad));
+	double muK2 = 2.0*+2.0*matches.distBad / (sqr(matches.distGood) + sqr(matches.distBad));
 
 	int J = matches.matchGood;
 	int K = matches.matchBad;
 
-	vJ = prototype[J] - trainPoint;
+	Vector2d muK2_P_vJ(muK2 * (P_prototype[J] - P_trainPoint) );
+	Vector2d muJ2_P_vK(muJ2 * (P_prototype[K] - P_trainPoint) );
+
+	auto vJ(VectorXd::MapAligned(m_vJ.data(),m_vJ.size()));
+	auto vK(VectorXd::MapAligned(m_vK.data(),m_vK.size()));
+		
+	vJ = prototype[K] - trainPoint;
 	vK = prototype[K] - trainPoint;
 
-	//VectorXd
-	Vector2d muK2_P_vJ(mu_K * 2.0 * (P_prototype[J] - P_trainPoint) );
-	Vector2d muJ2_P_vK(mu_J * 2.0 * (P_prototype[K] - P_trainPoint) );
-
-	//differential of cost function Q wrt w_J; i.e. wrt J->point.  Note mu_K(!) for differention wrt J(!)
 	prototype[J].noalias() -= P.transpose() * (lr_point * muK2_P_vJ);
 	prototype[K].noalias() -= P.transpose() * (LVQ_LrScaleBad*lr_point *muJ2_P_vK);
 
-	//differential wrt. global projection matrix is subtracted...
 	P.noalias() -= (lr_P * muK2_P_vJ) * vJ.transpose() + (lr_P * muJ2_P_vK) * vK.transpose();
 
 	if(ngMatchCache.size()>0) {
@@ -98,11 +92,10 @@ GoodBadMatch GsmLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel)
 			lrSub*=lrDelta;
 			VectorXd &Js = prototype[fullmatch.matchesOk[i].idx];
 			Vector2d &P_Js = P_prototype[fullmatch.matchesOk[i].idx];;
-			double mu_K2s_lrSub = lrSub* 2.0 * +2.0*fullmatch.distBad / (sqr(fullmatch.matchesOk[i].dist) + sqr(fullmatch.distBad));
-			Js.noalias() -=  P.transpose() * (mu_K2s_lrSub *  (P_Js - P_trainPoint));
+			double muK2s_lrSub = lrSub* 2.0 * +2.0*fullmatch.distBad / (sqr(fullmatch.matchesOk[i].dist) + sqr(fullmatch.distBad));
+			Js.noalias() -=  P.transpose() * (muK2s_lrSub *  (P_Js - P_trainPoint));
 		}
 	}
-
 
 	for(int i=0;i<pLabel.size();++i)
 		RecomputeProjection(i);
@@ -130,9 +123,9 @@ size_t GsmLvqModel::MemAllocEstimate() const {
 		sizeof(GsmLvqModel) + //base structure size
 		sizeof(int)*pLabel.size() + //dyn.alloc labels
 		sizeof(double) * (P.size() ) + //dyn alloc transform + temp transform
-		sizeof(double) * (vJ.size()*3) + //various vector temps
+		sizeof(double) * (m_vJ.size() + m_vK.size()) + //various vector temps
 		sizeof(VectorXd) *prototype.size() +//dyn alloc prototype base overhead
-		sizeof(double) * (prototype.size() * vJ.size()) + //dyn alloc prototype data
+		sizeof(double) * (prototype.size() * prototype[0].size()) + //dyn alloc prototype data
 		sizeof(Vector2d) * P_prototype.size() + //cache of pretransformed prototypes
 		(16/2) * (5+prototype.size()*2);//estimate for alignment mucking.
 }

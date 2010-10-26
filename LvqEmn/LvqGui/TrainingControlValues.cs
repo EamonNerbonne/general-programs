@@ -63,7 +63,7 @@ namespace LvqGui {
 		public TrainingControlValues(LvqWindowValues owner) {
 			this.owner = owner;
 			EpochsPerClick = 500;
-			EpochsPerAnimation = 1;
+			EpochsPerAnimation = 40;
 			owner.LvqModels.CollectionChanged += LvqModels_CollectionChanged;
 		}
 

@@ -112,7 +112,7 @@ namespace LvqGui {
 			_ClusterDimensionality = 4;
 			_IntraClusterClassRelDev = 0.4;
 			_NumberOfClasses = 3;
-			_NumberOfClusters = 3;
+			_NumberOfClusters = 4;
 #if DEBUG
 			_Dimensions = 8;
 			_PointsPerClass = 100;

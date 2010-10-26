@@ -4,26 +4,32 @@
 #include <Eigen/Core>
 #include <boost/scoped_ptr.hpp>
 
+template <typename T> class copy_ptr {
+	T* item;
+public:
+	explicit copy_ptr(T* ptr) : item(ptr) {}
+	copy_ptr(copy_ptr<T> const & other) : item(new T(*other.item)) {}
+	~copy_ptr()  { delete item;}
+
+	T  * get() const {return item;}
+	T & operator*() const {return *item;}
+	T * operator->() const {return item;}
+};
+
 class LvqModelRuntimeSettings
 {
 public:
-	bool TrackProjectionQuality,NormalizeProjection,NormalizeBoundaries,GloballyNormalize;
+	bool TrackProjectionQuality,NormalizeProjection,NormalizeBoundaries,GloballyNormalize,UpdatePointsWithoutB;
 	int ClassCount;
-	boost::scoped_ptr<boost::mt19937> RngIter;
+	copy_ptr<boost::mt19937> RngIter;
 	LvqModelRuntimeSettings(int classCount, boost::mt19937 & rngIter) 
 		: TrackProjectionQuality(false)
 		, NormalizeProjection(false)
 		, NormalizeBoundaries(false)
+		, UpdatePointsWithoutB(false)
 		, GloballyNormalize(true)
 		, ClassCount(classCount)
 		, RngIter(new boost::mt19937(rngIter)) { }
-	LvqModelRuntimeSettings(LvqModelRuntimeSettings const & toCopy) 
-		: TrackProjectionQuality(toCopy.TrackProjectionQuality)
-		, NormalizeProjection(toCopy.NormalizeProjection)
-		, NormalizeBoundaries(toCopy.NormalizeBoundaries)
-		, GloballyNormalize(toCopy.GloballyNormalize)
-		, ClassCount(toCopy.ClassCount)
-		, RngIter(new boost::mt19937(*toCopy.RngIter)) { }
 };
 
 class LvqModelSettings

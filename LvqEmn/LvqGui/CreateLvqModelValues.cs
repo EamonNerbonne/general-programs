@@ -101,7 +101,11 @@ namespace LvqGui {
 		}
 		private bool _NgUpdateProtos;
 
-		
+		public bool UpdatePointsWithoutB {
+			get { return _UpdatePointsWithoutB; }
+			set { if (!_UpdatePointsWithoutB.Equals(value)) { _UpdatePointsWithoutB = value; _propertyChanged("UpdatePointsWithoutB"); } }
+		}
+		private bool _UpdatePointsWithoutB;
 
 		public uint Seed {
 			get { return _Seed; }
@@ -121,12 +125,13 @@ namespace LvqGui {
 				(?<ModelType>G[\w\d]*)
 				(\[(?<Dimensionality>[^\]]+)\])?
 				,(?<PrototypesPerClass>\d+)
-				,RP(?<RandomInitialProjection>\+?)
-				(,RB(?<RandomInitialBorders>\+?))?
-				,np(?<NormalizeProjection>\+?)
-				(,nb(?<NormalizeBoundaries>\+?))?
+				,rP(?<RandomInitialProjection>\+?)
+				(,rB(?<RandomInitialBorders>\+?))?
+				,nP(?<NormalizeProjection>\+?)
+				(,nB(?<NormalizeBoundaries>\+?))?
 				(,gn(?<GloballyNormalize>\+?))?
 				(,NG(?<NgUpdateProtos>\+?))?
+				(,noB(?<UpdatePointsWithoutB>\+?))?
 				\[(?<Seed>\d+):(?<InstSeed>\d+)\]
 				/(?<ParallelModels>\d+)
 				(,pQ(?<TrackProjectionQuality>\+?))?
@@ -138,12 +143,13 @@ namespace LvqGui {
 				return ModelType.ToString()
 				+ (ModelType == LvqModelType.GmModelType ? "[" + Dimensionality + "]" : "")
 				+ "," + PrototypesPerClass
-				+ ",RP" + (RandomInitialProjection ? "+" : "")
-				+ (ModelType == LvqModelType.G2mModelType ? ",RB" + (RandomInitialBorders ? "+" : "") : "")
-				+ ",np" + (NormalizeProjection ? "+" : "")
-				+ (ModelType == LvqModelType.G2mModelType ? ",nb" + (NormalizeBoundaries ? "+" : "") : "")
+				+ ",rP" + (RandomInitialProjection ? "+" : "")
+				+ (ModelType == LvqModelType.G2mModelType ? ",rB" + (RandomInitialBorders ? "+" : "") : "")
+				+ ",nP" + (NormalizeProjection ? "+" : "")
+				+ (ModelType == LvqModelType.G2mModelType ? ",nB" + (NormalizeBoundaries ? "+" : "") : "")
 				+ (ModelType == LvqModelType.G2mModelType && NormalizeBoundaries || NormalizeProjection ? ",gn" + (GloballyNormalize ? "+" : "") : "")
 				+ (ModelType != LvqModelType.GmModelType ? ",NG" + (NgUpdateProtos ? "+" : "") : "")
+				+ (ModelType == LvqModelType.G2mModelType ? ",noB" + (UpdatePointsWithoutB ? "+" : "") : "")
 				+ "[" + Seed + ":" + InstSeed + "]/" + ParallelModels
 				+ (ModelType != LvqModelType.GmModelType ? ",pQ" + (TrackProjectionQuality ? "+" : "") : "")
 				+ (ForDataset == null ? "" : "--" + ForDataset.DatasetLabel);
@@ -158,7 +164,7 @@ namespace LvqGui {
 			this.owner = owner;
 			_ModelType = LvqModelType.G2mModelType;
 			_Dimensionality = 2;
-			_PrototypesPerClass = 1;
+			_PrototypesPerClass = 4;
 			_ParallelModels = 10;
 			_RandomInitialProjection = true;
 			_GloballyNormalize = true;
@@ -184,6 +190,7 @@ namespace LvqGui {
 					RandomInitialProjection = RandomInitialProjection,
 					Dimensionality = Dimensionality,
 					NgUpdateProtos = NgUpdateProtos,
+					UpdatePointsWithoutB = UpdatePointsWithoutB,
 				});
 		}
 

@@ -12,217 +12,316 @@ using EmnExtensions.Wpf;
 using EmnExtensions.Wpf.Plot;
 using EmnExtensions.Wpf.Plot.VizEngines;
 using LvqLibCli;
+using System.Windows.Controls;
 
 
 namespace LvqGui {
 	public sealed class LvqScatterPlot : IDisposable {
-		readonly double winSize;
 		readonly UpdateSync updateSync = new UpdateSync();
+		readonly object plotsSync = new object();
+		SubPlots subplots = null;
 
 		readonly Dispatcher lvqPlotDispatcher;
-		readonly List<Window> plotWindows = new List<Window>();
 
-		readonly LvqDatasetCli dataset;
-		public LvqDatasetCli Dataset { get { return dataset; } }
+		public LvqDatasetCli Dataset { get { var currsubplots = subplots; return currsubplots==null?null: currsubplots.dataset; } }
 
-		readonly LvqModelCli model;
-		public LvqModelCli Model { get { return model; } }
+		public LvqModelCli Model { get { var currsubplots = subplots; return currsubplots == null ? null : currsubplots.model; } }
 
-		IVizEngine<Point[]> prototypePositionsPlot;
-		IVizEngine<Point[]>[] classPlots;
-		IVizEngine<int> classBoundaries;
-		//accessed from multiple threads:
-		IVizEngine<IEnumerable<LvqTrainingStatCli>>[] statPlots = new IVizEngine<IEnumerable<LvqTrainingStatCli>>[] { };
+		int subModelIdx = 0;
+		public int SubModelIndex { get { return subModelIdx; } }
 
-		public LvqScatterPlot(LvqDatasetCli dataset, LvqModelCli model, int selectedSubModel) {
-			if (!updateSync.UpdateEnqueue_IsMyTurn()) throw new InvalidAsynchronousStateException("Update can't be claimed yet!");
-			this.subModelIdx = selectedSubModel;
-			this.dataset = dataset;
-			this.model = model;
-			this.winSize = Math.Sqrt(Application.Current.MainWindow.Width * Application.Current.MainWindow.Height * 0.5);
-			this.lvqPlotDispatcher = WpfTools.StartNewDispatcher();
-
+		public void DisplayModel(LvqDatasetCli dataset, LvqModelCli model, int subModelIdx) {
 			lvqPlotDispatcher.BeginInvoke(() => {
-				OpenSubWindows();
-				updateSync.UpdateDone_IsQueueEmpty();
+				bool modelChange = this.Dataset != dataset || this.Model != model;
+				bool anyChange = this.subModelIdx != subModelIdx || modelChange;
+
+				if (!anyChange) return;
+
+				if (dataset == null || model == null) {
+					subPlotWindow.Title = "No Model Selected";
+					lock (plotsSync) {
+						subplots = null;
+						this.subModelIdx = 0;
+					}
+				} else {
+					SubPlots newsubplots = modelChange ? new SubPlots(dataset, model) : subplots;
+					subPlotWindow.Title = model.ModelLabel;
+					lock (plotsSync) {
+						subplots = newsubplots;
+						this.subModelIdx = subModelIdx;
+					}
+				}
 				QueueUpdate();
+				RelayoutSubPlotWindow(true);
 			});
 		}
 
-		void OpenSubWindows() {
-			ClosePlots();
+		private void RelayoutSubPlotWindow(bool resetChildrenFirst = false) {
+			Grid plotGrid = (Grid)subPlotWindow.Content;
+			if (subplots == null) {
+				plotGrid.Children.Clear();
+				return;
+			}
+			double ratio = subPlotWindow.ActualWidth / subPlotWindow.ActualHeight;
 
-			if (model.IsProjectionModel)
-				plotWindows.Add(new Window { Width = winSize, Height = winSize, Title = "ScatterPlot", Content = MakeScatterPlots() });
+			int plotCount = subplots.plots.Length + 1;
 
-			var plotGroups = (
-					from statname in model.TrainingStatNames.Select(TrainingStatName.Create)
-					where statname.StatGroup != null
-					group statname by new { statname.UnitLabel, statname.StatGroup } into statGroup
-					let winTitle = statGroup.Key.StatGroup
-					let plots = StatisticsPlotMaker.Create(winTitle, statGroup, model.IsMultiModel, dataset.IsFolded()).ToArray()
-					select new { WindowTitle = winTitle, Plots = plots, }
-				).ToArray();
+			var layout = (
+					from CellsWide in Enumerable.Range((int)Math.Sqrt(plotCount * ratio), 2)
+					from CellsHigh in Enumerable.Range((int)Math.Sqrt(plotCount / ratio), 2)
+					where CellsWide * CellsHigh >= plotCount
+					orderby CellsWide * CellsHigh
+					select new { CellsWide, CellsHigh }
+				).First();
 
-			plotWindows.AddRange(
-				from plotGroup in plotGroups
-				select new Window {
-					Width = winSize,
-					Height = winSize,
-					Title = plotGroup.WindowTitle,
-					Content = new PlotControl() {
-						ShowGridLines = true,
-						Title = plotGroup.WindowTitle + ": " + model.ModelLabel,
-						GraphsEnumerable = plotGroup.Plots
-					}
-				}
-			);
+			var unitLength = new GridLength(1.0, GridUnitType.Star);
+			while (plotGrid.ColumnDefinitions.Count < layout.CellsWide) plotGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = unitLength });
+			if (plotGrid.ColumnDefinitions.Count > layout.CellsWide) plotGrid.ColumnDefinitions.RemoveRange(layout.CellsWide, plotGrid.ColumnDefinitions.Count - layout.CellsWide);
 
-			statPlots = (
-					from plotGroup in plotGroups
-					from plot in plotGroup.Plots
-					select plot.Visualisation
-				).ToArray();
+			while (plotGrid.RowDefinitions.Count < layout.CellsHigh) plotGrid.RowDefinitions.Add(new RowDefinition { Height = unitLength });
+			if (plotGrid.RowDefinitions.Count > layout.CellsHigh) plotGrid.RowDefinitions.RemoveRange(layout.CellsHigh, plotGrid.RowDefinitions.Count - layout.CellsHigh);
 
-			foreach (var window in plotWindows.AsEnumerable().Reverse()) window.Show();
+			if (resetChildrenFirst) {
+				plotGrid.Children.Clear();
+				plotGrid.Children.Add(subplots.scatterPlot);
+				foreach (var plot in subplots.plots) plotGrid.Children.Add(plot);
+			}
+
+			for (int i = 0; i < subplots.plots.Length; ++i) {
+				Grid.SetRow(subplots.plots[i], (i + 1) / layout.CellsWide);
+				Grid.SetColumn(subplots.plots[i], (i + 1) % layout.CellsWide);
+			}
+		}
+		Window subPlotWindow;
+
+		public LvqScatterPlot() {
+			this.lvqPlotDispatcher = WpfTools.StartNewDispatcher();
+			lvqPlotDispatcher.BeginInvoke(() => { MakeSubPlotWindow(); });
 		}
 
-		PlotControl MakeScatterPlots() {
-			prototypePositionsPlot = Plot.Create(new PlotMetaData { ZIndex = 1, }, new VizPixelScatterGeom { OverridePointCountEstimate = 30, }).Visualisation;
-			classBoundaries = Plot.Create(new PlotMetaData { ZIndex = -1 }, new VizDelegateBitmap<int> { UpdateBitmapDelegate = UpdateClassBoundaries }).Visualisation;
-
-			var classes = Enumerable.Range(0, dataset.ClassCount);
-			classPlots = classes.Select(i =>
-					Plot.Create(
-						new PlotMetaData { RenderColor = dataset.ClassColors[i], },
-						new VizPixelScatterSmart { CoverageRatio = 0.999 }
-					).Visualisation
-				).ToArray();
-
-			return new PlotControl {
-				ShowAxes = false,
-				AttemptBorderTicks = false,
-				ShowGridLines = false,
-				Title = "ScatterPlot: " + model.ModelLabel,
-				GraphsEnumerable = classPlots.Select(viz => viz.Plot).Concat(new IPlot[] { prototypePositionsPlot.Plot, classBoundaries.Plot })
+		private void MakeSubPlotWindow() {
+			if (subPlotWindow != null && subPlotWindow.IsLoaded) return;
+			subPlotWindow = new Window {
+				Width = SystemParameters.MaximizedPrimaryScreenWidth * 0.7,
+				Height = SystemParameters.MaximizedPrimaryScreenHeight,
+				Title = "No Model Selected",
+				Content = new Grid()
 			};
+			subPlotWindow.SizeChanged += (o, e) => { RelayoutSubPlotWindow(); };
+			subPlotWindow.Show();
 		}
 
+		class SubPlots {
+			public readonly LvqDatasetCli dataset;
+			public readonly LvqModelCli model;
+			public readonly IVizEngine<Point[]> prototypePositionsPlot;
+			public readonly IVizEngine<Point[]>[] classPlots;
+			public readonly IVizEngine<int> classBoundaries;
+			public readonly PlotControl scatterPlot;
+			public readonly IVizEngine<IEnumerable<LvqTrainingStatCli>>[] statPlots;
+			public readonly PlotControl[] plots;
 
-		int subModelIdx = 0;
-		public int SubModelIndex {
-			get { return subModelIdx; }
-			set {
-				lvqPlotDispatcher.BeginInvoke(() => {
-					if (value != subModelIdx) {
-						subModelIdx = value;
-						if (!plotWindows.Any() || !plotWindows.All(win => win.IsLoaded))
-							OpenSubWindows();
-
-						QueueUpdate();
-					}
-				});
-			}
-		}
-
-		public void QueueUpdate() { ThreadPool.QueueUserWorkItem(o => { UpdateDisplay_BGThread(); }); }
-		private void UpdateDisplay_BGThread() {
-			if (model == null) return;
-			while (updateSync.UpdateEnqueue_IsMyTurn()) {
-				int currentSubModelIdx = subModelIdx;
-
-				var currProjection = model.CurrentProjectionAndPrototypes(currentSubModelIdx, dataset);
-				DispatcherOperation scatterPlotOperation = null;
-				if (currProjection.IsOk) {
-					Point[] prototypePositions = !currProjection.IsOk ? default(Point[]) : Points.ToMediaPoints(currProjection.Prototypes.Points);
-					Point[] dataPoints = Points.ToMediaPoints(currProjection.Data.Points);
-					//var dataIndices = Enumerable.Range(0, dataPoints.Length);
-					//var projectedPointsByLabel = dataIndices.ToLookup(i => currProjection.Data.ClassLabels[i], i => dataPoints[i]);
-
-					int[] pointCountPerClass = new int[dataset.ClassCount];
-					for (int i = 0; i < currProjection.Data.ClassLabels.Length; ++i)
-						pointCountPerClass[currProjection.Data.ClassLabels[i]]++;
-
-					Point[][] projectedPointsByLabel = Enumerable.Range(0, dataset.ClassCount).Select(i => new Point[pointCountPerClass[i]]).ToArray();
-					int[] pointIndexPerClass = new int[dataset.ClassCount];
-					for (int i = 0; i < dataPoints.Length; ++i) {
-						int label = currProjection.Data.ClassLabels[i];
-						projectedPointsByLabel[label][pointIndexPerClass[label]++] = dataPoints[i];
-					}
-
-					scatterPlotOperation = prototypePositionsPlot.Dispatcher.BeginInvoke(() => {
-						prototypePositionsPlot.ChangeData(prototypePositions);
-						classBoundaries.ChangeData(currentSubModelIdx);
-						for (int i = 0; i < classPlots.Length; ++i)
-							classPlots[i].ChangeData(projectedPointsByLabel[i]);
-					});
+			public SubPlots(LvqDatasetCli dataset, LvqModelCli model) {
+				this.dataset = dataset;
+				this.model = model;
+				if (model.IsProjectionModel) {
+					prototypePositionsPlot = MakeProtoPositionGraph();
+					classBoundaries = MakeClassBoundaryGraph();
+					classPlots = MakePerClassScatterGraph(dataset);
+					scatterPlot = MakeScatterPlotControl(model, classPlots.Select(viz => viz.Plot).Concat(new IPlot[] { prototypePositionsPlot.Plot, classBoundaries.Plot }));
 				}
 
-				var graphOperations = statPlots.Select(plot => plot.BeginDataChange(model.TrainingStats)).ToArray();
-
-				foreach (var operation in graphOperations)
-					operation.Wait();
-				if (currProjection.IsOk)
-					scatterPlotOperation.Wait();
-
-				if (updateSync.UpdateDone_IsQueueEmpty()) return;
+				plots = MakeDataPlots(dataset, model);//required
+				statPlots = ExtractDataSinksFromPlots(plots);
 			}
-		}
 
+			static IVizEngine<IEnumerable<LvqTrainingStatCli>>[] ExtractDataSinksFromPlots(PlotControl[] plots) {
+				return (
+						from plot in plots
+						from graph in plot.Graphs
+						select (IVizEngine<IEnumerable<LvqTrainingStatCli>>)graph.Visualisation
+					).ToArray();
+			}
 
-		void UpdateClassBoundaries(WriteableBitmap bmp, Matrix dataToBmp, int width, int height, int subModelIdx) {
+			static PlotControl[] MakeDataPlots(LvqDatasetCli dataset, LvqModelCli model) {
+				return (
+						from statname in model.TrainingStatNames.Select(TrainingStatName.Create)
+						where statname.StatGroup != null
+						group statname by statname.StatGroup into statGroup
+						select new PlotControl() {
+							ShowGridLines = true,
+							Title = statGroup.Key + ": " + model.ModelLabel,
+							Tag = statGroup.Key,
+							GraphsEnumerable = StatisticsPlotMaker.Create(statGroup.Key, statGroup, model.IsMultiModel, dataset.IsFolded()).ToArray(),
+						}
+					).ToArray();
+			}
+
+			static PlotControl MakeScatterPlotControl(LvqModelCli model, IEnumerable<IPlot> graphs) {
+				return new PlotControl {
+					ShowAxes = false,
+					AttemptBorderTicks = false,
+					ShowGridLines = false,
+					Title = "ScatterPlot: " + model.ModelLabel,
+					GraphsEnumerable = graphs
+				};
+			}
+
+			static IVizEngine<Point[]>[] MakePerClassScatterGraph(LvqDatasetCli dataset) {
+				return (
+						from classColor in dataset.ClassColors
+						select Plot.Create(new PlotMetaData { RenderColor = classColor, }, new VizPixelScatterSmart { CoverageRatio = 0.999 }).Visualisation
+					).ToArray();
+			}
+
+			static IVizEngine<Point[]> MakeProtoPositionGraph() {
+				return Plot.Create(new PlotMetaData { ZIndex = 1, }, new VizPixelScatterGeom { OverridePointCountEstimate = 30, }).Visualisation;
+			}
+
+			IVizEngine<int> MakeClassBoundaryGraph() {
+				return Plot.Create(new PlotMetaData { ZIndex = -1 }, new VizDelegateBitmap<int> { UpdateBitmapDelegate = UpdateClassBoundaries }).Visualisation;
+			}
+
+			void UpdateClassBoundaries(WriteableBitmap bmp, Matrix dataToBmp, int width, int height, int subModelIdx) {
 #if DEBUG
 			int renderwidth = (width + 7) / 8;
 			int renderheight = (height + 7) / 8;
 #else
-			int renderwidth = width;
-			int renderheight = height;
+				int renderwidth = width;
+				int renderheight = height;
 #endif
-			var curModel = model;
+				var curModel = model;
 
-			if (curModel == null || width < 1 || height < 1)
-				return;
-			Matrix bmpToData = dataToBmp;
-			bmpToData.Invert();
-			Point topLeft = bmpToData.Transform(new Point(0.0, 0.0));
-			Point botRight = bmpToData.Transform(new Point(width, height));
-			int[,] closestClass = curModel.ClassBoundaries(subModelIdx, topLeft.X, botRight.X, topLeft.Y, botRight.Y, renderwidth, renderheight);
-			if (closestClass == null) //uninitialized
-				return;
-			uint[] nativeColor = dataset.ClassColors
-				.Select(c => { c.ScA = 0.1f; return c; })
-				.Concat(Enumerable.Repeat(Color.FromRgb(0, 0, 0), 1))
-				.Select(c => c.ToNativeColor())
-				.ToArray();
+				if (curModel == null || width < 1 || height < 1)
+					return;
+				Matrix bmpToData = dataToBmp;
+				bmpToData.Invert();
+				Point topLeft = bmpToData.Transform(new Point(0.0, 0.0));
+				Point botRight = bmpToData.Transform(new Point(width, height));
+				int[,] closestClass = curModel.ClassBoundaries(subModelIdx, topLeft.X, botRight.X, topLeft.Y, botRight.Y, renderwidth, renderheight);
+				if (closestClass == null) //uninitialized
+					return;
+				uint[] nativeColor = dataset.ClassColors
+					.Select(c => { c.ScA = 0.1f; return c; })
+					.Concat(Enumerable.Repeat(Color.FromRgb(0, 0, 0), 1))
+					.Select(c => c.ToNativeColor())
+					.ToArray();
 
-			var edges = new List<Tuple<int, int>>();
-			for (int y = 1; y < closestClass.GetLength(0) - 1; y++)
-				for (int x = 1; x < closestClass.GetLength(1) - 1; x++) {
-					if (closestClass[y, x] != closestClass[y, x - 1]
-						|| closestClass[y, x] != closestClass[y, x + 1]
-						|| closestClass[y, x] != closestClass[y - 1, x]
-						|| closestClass[y, x] != closestClass[y + 1, x]
-						)
-						edges.Add(Tuple.Create(y, x));
-				}
-			foreach (var coord in edges)
-				closestClass[coord.Item1, coord.Item2] = nativeColor.Length - 1;
-			uint[] classboundaries = new uint[width * height];
-			int px = 0;
-			for (int y = 0; y < height; y++)
-				for (int x = 0; x < width; x++)
-					classboundaries[px++] = nativeColor[closestClass[y * renderheight / height, x * renderwidth / width]];
-			bmp.WritePixels(new Int32Rect(0, 0, width, height), classboundaries, width * 4, 0);
+				var edges = new List<Tuple<int, int>>();
+				for (int y = 1; y < closestClass.GetLength(0) - 1; y++)
+					for (int x = 1; x < closestClass.GetLength(1) - 1; x++) {
+						if (closestClass[y, x] != closestClass[y, x - 1]
+							|| closestClass[y, x] != closestClass[y, x + 1]
+							|| closestClass[y, x] != closestClass[y - 1, x]
+							|| closestClass[y, x] != closestClass[y + 1, x]
+							)
+							edges.Add(Tuple.Create(y, x));
+					}
+				foreach (var coord in edges)
+					closestClass[coord.Item1, coord.Item2] = nativeColor.Length - 1;
+				uint[] classboundaries = new uint[width * height];
+				int px = 0;
+				for (int y = 0; y < height; y++)
+					for (int x = 0; x < width; x++)
+						classboundaries[px++] = nativeColor[closestClass[y * renderheight / height, x * renderwidth / width]];
+				bmp.WritePixels(new Int32Rect(0, 0, width, height), classboundaries, width * 4, 0);
+			}
 		}
 
-		public void ClosePlots() {
-			foreach (var win in plotWindows) win.Close();
-			plotWindows.Clear();
+		//void OpenSubWindows(SubPlots subPlots) {
+
+		//    if (model.IsProjectionModel)
+		//        plotWindows.Add(new Window { Width = winSize, Height = winSize, Title = "ScatterPlot", Content = MakeScatterPlots() });
+
+		//    var plotGroups = (
+		//            from statname in model.TrainingStatNames.Select(TrainingStatName.Create)
+		//            where statname.StatGroup != null
+		//            group statname by new { statname.UnitLabel, statname.StatGroup } into statGroup
+		//            let winTitle = statGroup.Key.StatGroup
+		//            let plots = StatisticsPlotMaker.Create(winTitle, statGroup, model.IsMultiModel, dataset.IsFolded()).ToArray()
+		//            select new { WindowTitle = winTitle, Plots = plots, }
+		//        ).ToArray();
+
+		//    plotWindows.AddRange(
+		//        from plotGroup in plotGroups
+		//        select new Window {
+		//            Width = winSize,
+		//            Height = winSize,
+		//            Title = plotGroup.WindowTitle,
+		//            Content = new PlotControl() {
+		//                ShowGridLines = true,
+		//                Title = plotGroup.WindowTitle + ": " + model.ModelLabel,
+		//                GraphsEnumerable = plotGroup.Plots
+		//            }
+		//        }
+		//    );
+
+		//    statPlots = (
+		//            from plotGroup in plotGroups
+		//            from plot in plotGroup.Plots
+		//            select plot.Visualisation
+		//        ).ToArray();
+
+		//    foreach (var window in plotWindows.AsEnumerable().Reverse()) window.Show();
+		//}
+
+		public void QueueUpdate() { ThreadPool.QueueUserWorkItem(o => { UpdateQueueProcessor(); }); }
+		private void UpdateQueueProcessor() {
+			while (updateSync.UpdateEnqueue_IsMyTurn()) {
+				SubPlots currsubplots;
+
+				int currSubModelIdx;
+				lock (plotsSync) {
+					currsubplots = subplots;
+					currSubModelIdx = subModelIdx;
+				}
+
+				PerformDisplayUpdate(currsubplots, currSubModelIdx);
+				if (updateSync.UpdateDone_IsQueueEmpty()) return;
+			}
+		}
+
+		static void PerformDisplayUpdate(SubPlots subplots, int subModelIdx) {
+			if (subplots == null) return;
+
+			var currProjection = subplots.model.CurrentProjectionAndPrototypes(subModelIdx, subplots.dataset);
+			DispatcherOperation scatterPlotOperation = null;
+			if (currProjection.IsOk && subplots.prototypePositionsPlot != null) {
+				Point[] prototypePositions = !currProjection.IsOk ? default(Point[]) : Points.ToMediaPoints(currProjection.Prototypes.Points);
+				Point[] dataPoints = Points.ToMediaPoints(currProjection.Data.Points);
+				//var dataIndices = Enumerable.Range(0, dataPoints.Length);
+				//var projectedPointsByLabel = dataIndices.ToLookup(i => currProjection.Data.ClassLabels[i], i => dataPoints[i]);
+
+				int[] pointCountPerClass = new int[subplots.dataset.ClassCount];
+				for (int i = 0; i < currProjection.Data.ClassLabels.Length; ++i)
+					pointCountPerClass[currProjection.Data.ClassLabels[i]]++;
+
+				Point[][] projectedPointsByLabel = Enumerable.Range(0, subplots.dataset.ClassCount).Select(i => new Point[pointCountPerClass[i]]).ToArray();
+				int[] pointIndexPerClass = new int[subplots.dataset.ClassCount];
+				for (int i = 0; i < dataPoints.Length; ++i) {
+					int label = currProjection.Data.ClassLabels[i];
+					projectedPointsByLabel[label][pointIndexPerClass[label]++] = dataPoints[i];
+				}
+
+				scatterPlotOperation = subplots.prototypePositionsPlot.Dispatcher.BeginInvoke(() => {
+					subplots.prototypePositionsPlot.ChangeData(prototypePositions);
+					subplots.classBoundaries.ChangeData(subModelIdx);
+					for (int i = 0; i < subplots.classPlots.Length; ++i)
+						subplots.classPlots[i].ChangeData(projectedPointsByLabel[i]);
+				});
+			}
+
+			var graphOperations = subplots.statPlots.Select(plot => plot.BeginDataChange(subplots.model.TrainingStats)).ToArray();
+
+			foreach (var operation in graphOperations)
+				operation.Wait();
+			if (scatterPlotOperation != null)
+				scatterPlotOperation.Wait();
 		}
 
 		public void Dispose() {
 			lvqPlotDispatcher.Invoke(new Action(() => {
-				ClosePlots();
+				subPlotWindow.Close();
 				lvqPlotDispatcher.BeginInvokeShutdown(DispatcherPriority.Normal);
 			}));
 		}
@@ -281,7 +380,7 @@ namespace LvqGui {
 			}
 
 			static Point[] LimitSize(Point[] retval) {
-				int scaleFac = retval.Length / 2000;
+				int scaleFac = retval.Length / 1000;
 				if (scaleFac <= 1)
 					return retval;
 				Point[] newret = new Point[retval.Length / scaleFac];
@@ -311,6 +410,12 @@ namespace LvqGui {
 			static Color Blend(Color a, Color b) {
 				return Color.FromArgb((byte)(a.A + b.A + 1 >> 1), (byte)(a.R + b.R + 1 >> 1), (byte)(a.G + b.G + 1 >> 1), (byte)(a.B + b.B + 1 >> 1));
 			}
+		}
+
+
+		internal static void QueueUpdateIfCurrent(LvqScatterPlot plotData, LvqDatasetCli dataset, LvqModelCli model) {
+			if (plotData != null && plotData.Dataset == dataset && plotData.Model == model)
+				plotData.QueueUpdate();
 		}
 	}
 }

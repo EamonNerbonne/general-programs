@@ -15,7 +15,7 @@ class GsmLvqModel : public LvqProjectionModelBase<GsmLvqModel>
 	//calls dimensionality of input-space DIMS
 	//we will preallocate a few vectors to reduce malloc/free overhead.
 
-	VectorXd vJ, vK; //vectors of dimension DIMS
+	VectorXd m_vJ, m_vK; //vectors of dimension DIMS
 
 	EIGEN_STRONG_INLINE void RecomputeProjection(int protoIndex) {
 		P_prototype[protoIndex].noalias() = P * prototype[protoIndex];

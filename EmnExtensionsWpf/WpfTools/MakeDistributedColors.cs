@@ -27,7 +27,7 @@ namespace EmnExtensions.Wpf {
 					if (other >= i) other++; //rand other in [0..M) with other != i
 					if (N > 1)
 						colors[i].RepelFrom(colors[other], lr);
-					colors[i].RepelFrom(ColorSimple.MinValue, lr * 0.5);
+					colors[i].RepelFrom(ColorSimple.MinValue, lr * 0.1);
 				}
 
 				ColorSimple min = colors.Aggregate(ColorSimple.MaxValue, ColorSimple.Min);
@@ -92,7 +92,7 @@ namespace EmnExtensions.Wpf {
 					? val
 					: 0.01 + 0.98 * (val - min) / (max - min);
 			}
-			const double HueEmphasis = 0.9;
+			const double HueEmphasis = 1.0;
 		}
 	}
 }

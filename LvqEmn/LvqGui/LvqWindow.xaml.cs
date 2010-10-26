@@ -45,24 +45,15 @@ namespace LvqGui {
 
 		LvqScatterPlot plotData;
 		void TrainingControlValues_SelectedModelUpdatedInBackgroundThread(LvqDatasetCli dataset, LvqModelCli model) {
-			Dispatcher.BeginInvoke(() => {
-				if (plotData != null && plotData.Dataset == dataset && plotData.Model == model)
-					plotData.QueueUpdate();
-			});
+			LvqScatterPlot.QueueUpdateIfCurrent(plotData, dataset, model);
 		}
 
 		void TrainingControlValues_ModelSelected(LvqDatasetCli dataset, LvqModelCli model, int subModelIdx) {
-			if (plotData == null || plotData.Dataset != dataset || plotData.Model != model) {
-				//something's different
-				if (plotData != null) {
-					plotData.Dispose();
-					plotData = null;
-				}
-				if (dataset != null && model != null) {
-					plotData = new LvqScatterPlot(dataset, model, subModelIdx);
-				}
-			} else// implies (plotData != null) 
-				plotData.SubModelIndex = subModelIdx;
+			if (plotData == null && dataset != null && model != null)
+				plotData = new LvqScatterPlot();
+
+			if (plotData != null)
+				plotData.DisplayModel(dataset, model, subModelIdx);
 		}
 
 		public bool Fullscreen {
