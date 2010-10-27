@@ -20,7 +20,7 @@ namespace SongSearchSite {
 		}
 
 		static HashSet<string> users = new HashSet<string> {
-			"eamon","emn13","el_martian","auke","bart","juri"
+			"eamon","emn13","el_martian","auke","bart","juri","klaas"
 		};
 		protected bool MyCustomMethod(string strUsername, string strPassword) {
 			return users.Contains(strUsername) && strPassword == "music";
