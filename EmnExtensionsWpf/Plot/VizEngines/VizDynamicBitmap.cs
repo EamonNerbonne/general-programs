@@ -28,7 +28,7 @@ namespace EmnExtensions.Wpf.Plot.VizEngines {
 		static Rect SnapRect(Rect r, double multX, double multY) { return new Rect(new Point(Math.Floor(r.Left / multX) * multX, Math.Floor(r.Top / multY) * multY), new Point(Math.Ceiling((r.Right + 0.01) / multX) * multX, Math.Ceiling((r.Bottom + 0.01) / multY) * multY)); }
 
 		public sealed override void SetTransform(Matrix dataToDisplay, Rect displayClip, double dpiX, double dpiY) {
-			if (dataToDisplay.IsIdentity) //TODO: is this a good test for no-show?
+			if (displayClip.IsEmpty) //TODO: is this a good test for no-show?
 				using (m_drawing.Open())
 					return;
 
