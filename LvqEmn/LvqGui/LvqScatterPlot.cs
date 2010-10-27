@@ -85,6 +85,11 @@ namespace LvqGui {
 				plotGrid.Children.Clear();
 				plotGrid.Children.Add(subplots.scatterPlot);
 				foreach (var plot in subplots.plots) plotGrid.Children.Add(plot);
+				foreach (PlotControl plot in plotGrid.Children) {
+					plot.Margin = new Thickness(2.0);
+					plot.Background = Brushes.White;
+
+				}
 			}
 
 			for (int i = 0; i < subplots.plots.Length; ++i) {
@@ -105,6 +110,7 @@ namespace LvqGui {
 				Width = SystemParameters.MaximizedPrimaryScreenWidth * 0.7,
 				Height = SystemParameters.MaximizedPrimaryScreenHeight,
 				Title = "No Model Selected",
+				Background = Brushes.Gray,
 				Content = new Grid()
 			};
 			subPlotWindow.SizeChanged += (o, e) => { RelayoutSubPlotWindow(); };
@@ -227,43 +233,6 @@ namespace LvqGui {
 				bmp.WritePixels(new Int32Rect(0, 0, width, height), classboundaries, width * 4, 0);
 			}
 		}
-
-		//void OpenSubWindows(SubPlots subPlots) {
-
-		//    if (model.IsProjectionModel)
-		//        plotWindows.Add(new Window { Width = winSize, Height = winSize, Title = "ScatterPlot", Content = MakeScatterPlots() });
-
-		//    var plotGroups = (
-		//            from statname in model.TrainingStatNames.Select(TrainingStatName.Create)
-		//            where statname.StatGroup != null
-		//            group statname by new { statname.UnitLabel, statname.StatGroup } into statGroup
-		//            let winTitle = statGroup.Key.StatGroup
-		//            let plots = StatisticsPlotMaker.Create(winTitle, statGroup, model.IsMultiModel, dataset.IsFolded()).ToArray()
-		//            select new { WindowTitle = winTitle, Plots = plots, }
-		//        ).ToArray();
-
-		//    plotWindows.AddRange(
-		//        from plotGroup in plotGroups
-		//        select new Window {
-		//            Width = winSize,
-		//            Height = winSize,
-		//            Title = plotGroup.WindowTitle,
-		//            Content = new PlotControl() {
-		//                ShowGridLines = true,
-		//                Title = plotGroup.WindowTitle + ": " + model.ModelLabel,
-		//                GraphsEnumerable = plotGroup.Plots
-		//            }
-		//        }
-		//    );
-
-		//    statPlots = (
-		//            from plotGroup in plotGroups
-		//            from plot in plotGroup.Plots
-		//            select plot.Visualisation
-		//        ).ToArray();
-
-		//    foreach (var window in plotWindows.AsEnumerable().Reverse()) window.Show();
-		//}
 
 		public void QueueUpdate() { ThreadPool.QueueUserWorkItem(o => { UpdateQueueProcessor(); }); }
 		private void UpdateQueueProcessor() {
