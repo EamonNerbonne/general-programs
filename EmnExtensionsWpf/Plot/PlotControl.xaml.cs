@@ -25,7 +25,7 @@ namespace EmnExtensions.Wpf.Plot {
 		static object syncType = new object();
 		public PlotControl() {
 			graphs.CollectionChanged += new NotifyCollectionChangedEventHandler(graphs_CollectionChanged);
-			lock(syncType) InitializeComponent();//Apparently InitializeComponent isn't thread safe.
+			lock (syncType) InitializeComponent();//Apparently InitializeComponent isn't thread safe.
 			RenderOptions.SetBitmapScalingMode(dg, BitmapScalingMode.Linear);
 			bgBrush = new DrawingBrush(dg) {
 				Stretch = Stretch.None, //No stretch since we want the ticked axis to determine stretch
@@ -73,10 +73,10 @@ namespace EmnExtensions.Wpf.Plot {
 				newgraph.Container = this;
 		}
 
-		public void AutoPickColors(MersenneTwister rnd=null) {
+		public void AutoPickColors(MersenneTwister rnd = null) {
 			var ColoredPlots = (
 									from graph in Graphs
-									where graph != null  && graph.Visualisation!=null && graph.Visualisation.SupportsColor
+									where graph != null && graph.Visualisation != null && graph.Visualisation.SupportsColor
 									select graph
 							   ).ToArray();
 			var randomColors = WpfTools.MakeDistributedColors(ColoredPlots.Length, rnd);
@@ -109,10 +109,11 @@ namespace EmnExtensions.Wpf.Plot {
 			foreach (var graph in Graphs) {
 				if (graph.MetaData.DataLabel == null) continue;
 				TextBlock label = new TextBlock();
-				label.Inlines.Add(new Image { 
-					Source = new DrawingImage(graph.Visualisation.SampleDrawing).AsFrozen(), 
-					Stretch = Stretch.None, 
-					Margin = new Thickness(2, 0, 2, 0) });
+				label.Inlines.Add(new Image {
+					Source = new DrawingImage(graph.Visualisation.SampleDrawing).AsFrozen(),
+					Stretch = Stretch.None,
+					Margin = new Thickness(2, 0, 2, 0)
+				});
 				label.Inlines.Add(graph.MetaData.DataLabel);
 				labelarea.Children.Add(label);
 			}
@@ -148,13 +149,14 @@ namespace EmnExtensions.Wpf.Plot {
 				yield return TickedAxisLocation.AboveGraph | TickedAxisLocation.RightOfGraph;
 			}
 		}
-		private static DimensionBounds ToDimBounds(Rect bounds, bool isHorizontal) { return isHorizontal ? DimensionBounds.FromRectX(bounds) : DimensionBounds.FromRectY(bounds); }
+		private static DimensionBounds ToDimBounds(Rect bounds, bool isHorizontal) { return bounds.IsEmpty||bounds.Width==0||bounds.Height==0?DimensionBounds.Empty: isHorizontal ? DimensionBounds.FromRectX(bounds) : DimensionBounds.FromRectY(bounds); }
 		private static DimensionMargins ToDimMargins(Thickness margins, bool isHorizontal) { return isHorizontal ? DimensionMargins.FromThicknessX(margins) : DimensionMargins.FromThicknessY(margins); }
 		private static TickedAxisLocation ChooseProjection(IPlot graph) { return ProjectionCorners.FirstOrDefault(corner => (graph.MetaData.AxisBindings & corner) == corner); }
 		#endregion
 
 		private void RecomputeBounds() {
 			Trace.WriteLine("RecomputeBounds");
+
 			foreach (TickedAxis axis in Axes) {
 				var boundGraphs = graphs.Where(graph => (graph.MetaData.AxisBindings & axis.AxisPos) != 0);
 				DimensionBounds bounds =
@@ -221,7 +223,7 @@ namespace EmnExtensions.Wpf.Plot {
 			TickedAxisLocation relevantAxes = graphs.Aggregate(TickedAxisLocation.None, (axisLoc, graph) => axisLoc | ChooseProjection(graph));
 			var transforms =
 				from axis in Axes
-				where (axis.AxisPos & relevantAxes) != 0
+				where (axis.AxisPos & relevantAxes) != 0 && axis.DataBound.Length > 0
 				select new {
 					AxisPos = axis.AxisPos,
 					Transform = axis.DataToDisplayTransform,
@@ -229,19 +231,18 @@ namespace EmnExtensions.Wpf.Plot {
 					VerticalClip = axis.IsHorizontal ? DimensionBounds.Empty : axis.DisplayClippingBounds,
 				};
 
-			var cornerProjection =
-				ProjectionCorners
-					.Where(corner => corner == (corner & relevantAxes))
-					.ToDictionary(//we have only relevant corners...
-						corner => corner,
-						corner => transforms.Where(transform => transform.AxisPos == (transform.AxisPos & corner))
-										   .Aggregate((t1, t2) => new {
-											   AxisPos = t1.AxisPos | t2.AxisPos,
-											   Transform = t1.Transform * t2.Transform,
-											   HorizontalClip = DimensionBounds.Merge(t1.HorizontalClip, t2.HorizontalClip),
-											   VerticalClip = DimensionBounds.Merge(t1.VerticalClip, t2.VerticalClip),
-										   })
-					);
+			var cornerProjection = (
+					from corner in ProjectionCorners
+					where corner == (corner & relevantAxes)
+					let relevantTransforms = transforms.Where(transform => transform.AxisPos == (transform.AxisPos & corner))
+					where relevantTransforms.Count() == 2
+					select relevantTransforms.Aggregate((t1, t2) => new {
+						AxisPos = t1.AxisPos | t2.AxisPos,
+						Transform = t1.Transform * t2.Transform,
+						HorizontalClip = DimensionBounds.Merge(t1.HorizontalClip, t2.HorizontalClip),
+						VerticalClip = DimensionBounds.Merge(t1.VerticalClip, t2.VerticalClip),
+					})
+				).ToDictionary(cornerTransform => cornerTransform.AxisPos);
 
 			Rect overallClip =
 			cornerProjection.Values.Select(trans => new Rect(new Point(trans.HorizontalClip.Start, trans.VerticalClip.Start), new Point(trans.HorizontalClip.End, trans.VerticalClip.End)))
@@ -249,9 +250,14 @@ namespace EmnExtensions.Wpf.Plot {
 			overallClipRect.Rect = overallClip;
 
 			foreach (var graph in graphs) {
-				var trans = cornerProjection[ChooseProjection(graph)];
-				Rect bounds = new Rect(new Point(trans.HorizontalClip.Start, trans.VerticalClip.Start), new Point(trans.HorizontalClip.End, trans.VerticalClip.End));
-				graph.Visualisation.SetTransform(trans.Transform, bounds, m_dpiX, m_dpiY);
+				var graphCorner = ChooseProjection(graph);
+				if (cornerProjection.ContainsKey(graphCorner)) {
+					var trans = cornerProjection[graphCorner];
+					Rect bounds = new Rect(new Point(trans.HorizontalClip.Start, trans.VerticalClip.Start), new Point(trans.HorizontalClip.End, trans.VerticalClip.End));
+					graph.Visualisation.SetTransform(trans.Transform, bounds, m_dpiX, m_dpiY);
+				} else {
+					graph.Visualisation.SetTransform(Matrix.Identity, Rect.Empty, m_dpiX, m_dpiY);
+				}
 			}
 			Rect axisBounds = Axes.Aggregate(Rect.Empty, (bound, axis) => Rect.Union(bound, new Rect(axis.RenderSize)));
 			foreach (var axis in Axes)
