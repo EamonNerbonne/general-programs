@@ -23,7 +23,7 @@ namespace LvqGui {
 
 		readonly Dispatcher lvqPlotDispatcher;
 
-		public LvqDatasetCli Dataset { get { var currsubplots = subplots; return currsubplots==null?null: currsubplots.dataset; } }
+		public LvqDatasetCli Dataset { get { var currsubplots = subplots; return currsubplots == null ? null : currsubplots.dataset; } }
 
 		public LvqModelCli Model { get { var currsubplots = subplots; return currsubplots == null ? null : currsubplots.model; } }
 
@@ -105,16 +105,26 @@ namespace LvqGui {
 		}
 
 		private void MakeSubPlotWindow() {
+			double borderWidth = (SystemParameters.MaximizedPrimaryScreenWidth - SystemParameters.FullPrimaryScreenWidth) / 2.0;
 			if (subPlotWindow != null && subPlotWindow.IsLoaded) return;
 			subPlotWindow = new Window {
-				Width = SystemParameters.MaximizedPrimaryScreenWidth * 0.7,
-				Height = SystemParameters.MaximizedPrimaryScreenHeight,
+				Width = SystemParameters.FullPrimaryScreenWidth * 0.7,
+				Height = SystemParameters.MaximizedPrimaryScreenHeight - borderWidth * 2,
 				Title = "No Model Selected",
 				Background = Brushes.Gray,
 				Content = new Grid()
 			};
+
 			subPlotWindow.SizeChanged += (o, e) => { RelayoutSubPlotWindow(); };
 			subPlotWindow.Show();
+			subPlotWindow.Top = 0;
+			double subWindowLeft = subPlotWindow.Left = SystemParameters.FullPrimaryScreenWidth - subPlotWindow.Width;
+
+			Application.Current.Dispatcher.BeginInvoke(() => {
+				var mainWindow = Application.Current.MainWindow;
+				if (mainWindow != null && mainWindow.Left + mainWindow.Width > subWindowLeft) 
+					mainWindow.Left = Math.Max(0, subWindowLeft - +mainWindow.Width);
+			});
 		}
 
 		class SubPlots {
@@ -176,12 +186,12 @@ namespace LvqGui {
 			static IVizEngine<Point[]>[] MakePerClassScatterGraph(LvqDatasetCli dataset) {
 				return (
 						from classColor in dataset.ClassColors
-						select Plot.Create(new PlotMetaData { RenderColor = classColor, }, new VizPixelScatterSmart { CoverageRatio = 0.999 }).Visualisation
+						select Plot.Create(new PlotMetaData { RenderColor = classColor, }, new VizPixelScatterSmart { CoverageRatio = 0.99,OverridePointCountEstimate = dataset.PointCount }).Visualisation
 					).ToArray();
 			}
 
 			static IVizEngine<Point[]> MakeProtoPositionGraph() {
-				return Plot.Create(new PlotMetaData { ZIndex = 1, }, new VizPixelScatterGeom { OverridePointCountEstimate = 30, }).Visualisation;
+				return Plot.Create(new PlotMetaData { ZIndex = 1, }, new VizPixelScatterGeom { OverridePointCountEstimate = 30, CoverageRatio=1.0}).Visualisation;
 			}
 
 			IVizEngine<int> MakeClassBoundaryGraph() {
@@ -252,7 +262,6 @@ namespace LvqGui {
 
 		static void PerformDisplayUpdate(SubPlots subplots, int subModelIdx) {
 			if (subplots == null) return;
-
 			var currProjection = subplots.model.CurrentProjectionAndPrototypes(subModelIdx, subplots.dataset);
 			DispatcherOperation scatterPlotOperation = null;
 			if (currProjection.IsOk && subplots.prototypePositionsPlot != null) {
@@ -272,15 +281,23 @@ namespace LvqGui {
 					projectedPointsByLabel[label][pointIndexPerClass[label]++] = dataPoints[i];
 				}
 
-				scatterPlotOperation = subplots.prototypePositionsPlot.Dispatcher.BeginInvoke(() => {
+				scatterPlotOperation = subplots.prototypePositionsPlot.Dispatcher.BeginInvoke((Action)(() => {
 					subplots.prototypePositionsPlot.ChangeData(prototypePositions);
 					subplots.classBoundaries.ChangeData(subModelIdx);
 					for (int i = 0; i < subplots.classPlots.Length; ++i)
 						subplots.classPlots[i].ChangeData(projectedPointsByLabel[i]);
-				});
+				}),DispatcherPriority.Background);
 			}
 
-			var graphOperations = subplots.statPlots.Select(plot => plot.BeginDataChange(subplots.model.TrainingStats)).ToArray();
+			var graphOperations = (
+				from plot in subplots.statPlots
+				group plot by plot.Dispatcher into plotgroup
+				select plotgroup.Key.BeginInvokeBackground(() => { foreach (var sp in plotgroup) sp.ChangeData(subplots.model.TrainingStats); })
+
+				).ToArray();
+
+				
+				//subplots.statPlots.Select(plot => plot.BeginDataChange(subplots.model.TrainingStats)).ToArray();
 
 			foreach (var operation in graphOperations)
 				operation.Wait();
