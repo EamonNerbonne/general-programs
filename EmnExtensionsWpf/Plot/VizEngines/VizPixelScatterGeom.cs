@@ -3,6 +3,7 @@
 
 using System.Windows;
 using System.Windows.Media;
+using System;
 
 namespace EmnExtensions.Wpf.Plot.VizEngines {
 	public class VizPixelScatterGeom : VizTransformed<Point[], StreamGeometry>, IVizPixelScatter {
@@ -20,7 +21,7 @@ namespace EmnExtensions.Wpf.Plot.VizEngines {
 		public int? OverridePointCountEstimate { get; set; }
 
 		private void SetPenSize(int pointCount) {
-			double thickness = VizPixelScatterHelpers.PointCountToThickness(pointCount);
+			double thickness = Plot.MetaData.RenderThickness ?? VizPixelScatterHelpers.PointCountToThickness(pointCount);
 
 #if PERMIT_SQUARE_CAPS
 			var linecap = PenLineCap.Round;

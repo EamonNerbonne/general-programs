@@ -37,7 +37,6 @@ namespace EmnExtensions.Wpf.Plot.VizEngines {
 
 			Rect snappedDrawingClip = SnapRect(drawingClip, 96.0 / dpiX, 96.0 / dpiY);
 
-
 			var dataToBitmapToDisplay = SplitDataToDisplay(dataToDisplay, snappedDrawingClip, dpiX, dpiY);
 
 			m_bitmapToDisplayTransform.Matrix = dataToBitmapToDisplay.Item2;

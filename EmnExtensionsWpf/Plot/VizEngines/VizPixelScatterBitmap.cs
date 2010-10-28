@@ -18,13 +18,15 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
 		double m_CoverageGradient = 5.0;
 		public double CoverageGradient { get { return m_CoverageGradient; } set { m_CoverageGradient = value; RecomputeBounds(Data); } }
 
+		public int? OverridePointCountEstimate { get; set; }
+
 		protected override void UpdateBitmap(int pW, int pH, Matrix dataToBitmap)
 		{
 			Trace.WriteLine("UpdateBitmap");
 
 			if (dataToBitmap.IsIdentity) return;//this is the default mapping; it may occur when generating a scatter plot without data - don't bother plotting.
 
-			double thickness = Plot.MetaData.RenderThickness ?? VizPixelScatterHelpers.PointCountToThickness(Data.Length);
+			double thickness = Plot.MetaData.RenderThickness ?? VizPixelScatterHelpers.PointCountToThickness(OverridePointCountEstimate??(Data == null ? 0 : Data.Length));
 			Tuple<double, bool> thicknessTranslation = DecodeThickness(thickness);
 
 			Make2dHistogramInRegion(pW, pH, dataToBitmap, thicknessTranslation.Item2);
