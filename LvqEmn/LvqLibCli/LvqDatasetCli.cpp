@@ -56,6 +56,6 @@ namespace LvqLibCli {
 	vector<int> LvqDatasetCli::GetTrainingSubset(int fold) { return dataset->GetTrainingSubset(fold,folds); }
 	vector<int> LvqDatasetCli::GetTestSubset(int fold) { return dataset->GetTestSubset(fold,folds); }
 	int LvqDatasetCli::ClassCount::get(){return dataset->getClassCount();}
+	int LvqDatasetCli::PointCount::get(){return dataset->getPointCount();}
 	int LvqDatasetCli::Dimensions::get(){return dataset->dimensions();}
-
 }

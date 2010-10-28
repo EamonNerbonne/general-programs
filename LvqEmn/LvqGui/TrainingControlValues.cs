@@ -58,8 +58,6 @@ namespace LvqGui {
 		}
 		private int _EpochsPerAnimation;
 
-		
-
 		public TrainingControlValues(LvqWindowValues owner) {
 			this.owner = owner;
 			EpochsPerClick = 500;
@@ -87,7 +85,6 @@ namespace LvqGui {
 		void LvqModels_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e) {
 			_propertyChanged("MatchingLvqModels");
 		}
-
 
 		public void ConfirmTraining() {
 			var selectedDataset = SelectedDataset;

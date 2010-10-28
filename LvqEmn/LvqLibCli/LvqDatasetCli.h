@@ -24,6 +24,7 @@ namespace LvqLibCli {
 		array<double,2>^ RawPoints();
 		property ColorArray^ ClassColors { ColorArray^ get(){return colors;} void set(ColorArray^ newcolors){colors=newcolors;}}
 		property int ClassCount {int get();}
+		property int PointCount {int get();}
 		property int Dimensions {int get();}
 		property String^ DatasetLabel {String^ get(){return label;}}
 		property LvqModelCli^ LastModel { LvqModelCli^ get(){return lastModel;} void set(LvqModelCli^ newval){lastModel = newval;}}
