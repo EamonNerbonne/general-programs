@@ -11,34 +11,25 @@ namespace EmnExtensions.Wpf {
 		public static Color[] MakeDistributedColors(int N, MersenneTwister rnd = null) {
 			rnd = rnd ?? RndHelper.ThreadLocalRandom;
 
-			var colors = Enumerable.Range(0, N).Select(i => ColorSimple.Random(rnd)).ToList();
+			var colors = Enumerable.Range(0, N).Select(i => ColorSimple.Random(rnd)).ToArray();
+			if (colors.Length > 1)
+				for (int iter = 0; iter < 10 + 100000/(N*N); iter++) {
+					double lr = 1.0 / Math.Sqrt(iter*N*N + 1000);
+					for (int i = 0; i < colors.Length; i++) {
+						colors[i].RepelFrom(ColorSimple.MaxValue, 0.07 * lr);
+						colors[i].RepelFrom(ColorSimple.LightYellow, 0.03 * lr);
+						colors[i].RepelFrom(ColorSimple.MinValue, 0.1 * lr);
+						colors[i].RepelFrom(ColorSimple.Random(rnd), lr * lr);
+						for (int j = 0; j < colors.Length; j++) 
+							if (i != j) colors[i].RepelFrom(colors[j], lr);
+					}
 
-			for (int iter = 0; iter < 2000; iter++) {
-				double lr = 0.01 / Math.Sqrt(iter + 100);
-				for (int i = 0; i < colors.Count; i++) {
-#if DEBUG
-					ColorSimple old = colors[i];
-#endif
-					colors[i].RepelFrom(ColorSimple.Random(rnd), lr * lr);
-					colors[i].RepelFrom(ColorSimple.LightYellow, lr * lr);
-					colors[i].RepelFrom(ColorSimple.LightGreen, lr * lr);
-					colors[i].RepelFrom(ColorSimple.Grey, lr *0.1);
-					int other = rnd.Next(colors.Count - 1); //rand other in [0..M-1)
-					if (other >= i) other++; //rand other in [0..M) with other != i
-					if (N > 1)
-						colors[i].RepelFrom(colors[other], lr);
-					colors[i].RepelFrom(ColorSimple.MinValue, lr * 0.1);
+					ColorSimple min = colors.Aggregate(ColorSimple.MinValue, ColorSimple.Min);
+					ColorSimple max = colors.Aggregate(ColorSimple.MaxValue, ColorSimple.Max);
+					for (int i = 0; i < colors.Length; i++) colors[i].ScaleBack(min, max, rnd);
 				}
 
-				ColorSimple min = colors.Aggregate(ColorSimple.MaxValue, ColorSimple.Min);
-				ColorSimple max = colors.Aggregate(ColorSimple.MinValue, ColorSimple.Max);
-
-				for (int i = 0; i < colors.Count; i++) colors[i].ScaleBack(min, max, rnd);
-
-			//	if (colors.Count > N) colors.RemoveAt(colors.Count-1);
-			}
-
-			return colors.Take(N).Select(c => c.ToWindowsColor()).ToArray();
+			return colors.Select(c => c.ToWindowsColor()).ToArray();
 		}
 
 		struct ColorSimple {
@@ -49,8 +40,8 @@ namespace EmnExtensions.Wpf {
 
 
 			public void RepelFrom(ColorSimple other, double lr) {
-				double sqrdist = Math.Max(SqrDistTo(other), lr);
-				double force = Math.Min(10.0,lr / sqrdist);
+				double sqrdist = Math.Max(SqrDistTo(other), lr/100);
+				double force =  lr / sqrdist;
 				R = R + force * (R - other.R);
 				G = G + force * (G - other.G);
 				B = B + force * (B - other.B);
@@ -78,13 +69,13 @@ namespace EmnExtensions.Wpf {
 			public static ColorSimple MaxValue { get { return new ColorSimple { R = 1.0, G = 1.0, B = 1.0 }; } }
 			public static ColorSimple MinValue { get { return new ColorSimple { R = 0.0, G = 0.0, B = 0.0 }; } }
 
-			public static ColorSimple LightYellow { get { return new ColorSimple { R = 1, G = 1, B = 0.5 }; } }
+			public static ColorSimple LightYellow { get { return new ColorSimple { R = 1, G = 1, B = 0.75 }; } }
 			public static ColorSimple LightGreen { get { return new ColorSimple { R = 0.5, G = 1, B = 0.5 }; } }
 			public static ColorSimple Grey { get { return new ColorSimple { R = 0.5, G = 0.5, B = 0.5 }; } }
 
 
-			double SqrDistTo(ColorSimple other) { return 0.7 * sqr(R - other.R) + sqr(G - other.G) + 0.3 * sqr(B - other.B) - 0.5 * HueEmphasis * sqr(Sum - other.Sum); }
-			double Sum { get { return 0.7 * R + G + 0.3 * B; } }
+			public double SqrDistTo(ColorSimple other) { return (sqr(R - other.R) + sqr(G - other.G) + sqr(B - other.B)) / 3.0 - 0.5 * HueEmphasis * sqr(Sum - other.Sum); }
+			double Sum { get { return 0.35 * R + 0.5 * G + 0.15 * B; } }
 
 			static double sqr(double x) { return x * x; }
 			static double scaled(double val, double min, double max) {
