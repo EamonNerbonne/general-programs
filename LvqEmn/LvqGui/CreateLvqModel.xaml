@@ -4,7 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              mc:Ignorable="d" 
-             d:DesignHeight="460" d:DesignWidth="300">
+             d:DesignHeight="560" d:DesignWidth="300">
     <UserControl.Resources>
         <Style TargetType="{x:Type Label}" BasedOn="{StaticResource PropLabel}"/>
         <Style TargetType="{x:Type TextBox}" BasedOn="{StaticResource PropBox}"/>
@@ -27,6 +27,18 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
@@ -72,22 +84,36 @@
         <Label Grid.Row="11">Don't use B for point update (g2m)</Label>
         <CheckBox Grid.Row="11" Grid.Column="1"  IsChecked="{Binding UpdatePointsWithoutB, Mode= TwoWay, ValidatesOnExceptions=True}"/>
 
+        <Label Grid.Row="12">LR0</Label>
+        <TextBox Grid.Row="12" Grid.Column="1" Text="{Binding LR0, Mode=TwoWay, ValidatesOnExceptions=True}"/>
 
-        <Button Grid.Row="15" Content="Reset Initialization Seed" Click="ReseedParam" />
-        <TextBox Grid.Row="15" Grid.Column="1" Text="{Binding Seed, Mode=TwoWay, ValidatesOnExceptions=True}"  />
-        <Button Grid.Row="16" Content="Reset Iteration Seed" Click="ReseedInst" />
-        <TextBox Grid.Row="16" Grid.Column="1" Text="{Binding InstSeed, Mode=TwoWay, ValidatesOnExceptions=True}" />
 
-        <Label Grid.Row="17">Parallel models</Label>
-        <TextBox Grid.Row="17" Grid.Column="1" Text="{Binding ParallelModels, Mode=TwoWay, ValidatesOnExceptions=True}" />
-        <Label Grid.Row="18">Track Projection Quality (slow)</Label>
-        <CheckBox Grid.Row="18" Grid.Column="1"  IsChecked="{Binding TrackProjectionQuality, Mode= TwoWay, ValidatesOnExceptions=True}"/>
+        <Label Grid.Row="13">LrScaleP</Label>
+        <TextBox Grid.Row="13" Grid.Column="1" Text="{Binding LrScaleP, Mode=TwoWay, ValidatesOnExceptions=True}"/>
+
+        <Label Grid.Row="14">LrScaleB</Label>
+        <TextBox Grid.Row="14" Grid.Column="1" Text="{Binding LrScaleB, Mode=TwoWay, ValidatesOnExceptions=True}"/>
+
+        <Label Grid.Row="15">LrScaleBad</Label>
+        <TextBox Grid.Row="15" Grid.Column="1" Text="{Binding LrScaleBad, Mode=TwoWay, ValidatesOnExceptions=True}"/>
+
+
+
+        <Button Grid.Row="25" Content="Reset Initialization Seed" Click="ReseedParam" />
+        <TextBox Grid.Row="25" Grid.Column="1" Text="{Binding Seed, Mode=TwoWay, ValidatesOnExceptions=True}"  />
+        <Button Grid.Row="26" Content="Reset Iteration Seed" Click="ReseedInst" />
+        <TextBox Grid.Row="26" Grid.Column="1" Text="{Binding InstSeed, Mode=TwoWay, ValidatesOnExceptions=True}" />
+
+        <Label Grid.Row="27">Parallel models</Label>
+        <TextBox Grid.Row="27" Grid.Column="1" Text="{Binding ParallelModels, Mode=TwoWay, ValidatesOnExceptions=True}" />
+        <Label Grid.Row="28">Track Projection Quality (slow)</Label>
+        <CheckBox Grid.Row="28" Grid.Column="1"  IsChecked="{Binding TrackProjectionQuality, Mode= TwoWay, ValidatesOnExceptions=True}"/>
         
-        <Label Grid.Row="19">Shorthand</Label>
-        <TextBox  Grid.Row="19" Grid.Column="1" Text="{Binding Shorthand, Mode=TwoWay, ValidatesOnExceptions=True}" />
+        <Label Grid.Row="29">Shorthand</Label>
+        <TextBox  Grid.Row="29" Grid.Column="1" Text="{Binding Shorthand, Mode=TwoWay, ValidatesOnExceptions=True}" />
 
-        <Button Grid.Row="20" Grid.ColumnSpan="2" Click="InitializeModel"  VerticalAlignment="Top">Initialize Model</Button>
-        <Label Grid.Row="20" Grid.ColumnSpan="2" Content="{Binding ShorthandErrors, Mode=OneWay}" HorizontalAlignment="Left" />
+        <Button Grid.Row="30" Grid.ColumnSpan="2" Click="InitializeModel"  VerticalAlignment="Top">Initialize Model</Button>
+        <Label Grid.Row="30" Grid.ColumnSpan="2" Content="{Binding ShorthandErrors, Mode=OneWay}" HorizontalAlignment="Left" />
 
     </Grid>
 </UserControl>

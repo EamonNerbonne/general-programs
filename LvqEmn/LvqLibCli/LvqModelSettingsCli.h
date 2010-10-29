@@ -1,5 +1,6 @@
 #pragma once
 #include "LvqModelSettings.h"
+#include "LvqConstants.h"
 using namespace System;
 namespace LvqLibCli {
 
@@ -14,28 +15,35 @@ namespace LvqLibCli {
 	public ref class LvqModelSettingsCli
 	{
 	public:
-		//not passed by native constructor:
+		LvqModelType ModelType;
+		unsigned RngParamsSeed, RngIterSeed;
+		int PrototypesPerClass;
 		bool RandomInitialProjection;
 		bool RandomInitialBorders;
 		bool TrackProjectionQuality;
 		bool NormalizeProjection, NormalizeBoundaries, GloballyNormalize;
 		bool NgUpdateProtos, UpdatePointsWithoutB;
-		//fields set by native constructor:
-		LvqModelType ModelType;
-		unsigned RngParamsSeed, RngIterSeed;
-		int PrototypesPerClass;
 		int Dimensionality;
+		double LrScaleP, LrScaleB, LR0, LrScaleBad;
 
 		LvqModelSettingsCli()
 			: ModelType(LvqModelType::G2mModelType)
+			, RngParamsSeed(37)
+			, RngIterSeed(42)
+			, PrototypesPerClass(4)
 			, RandomInitialProjection(true)
 			, RandomInitialBorders(false)
 			, TrackProjectionQuality(false)
+			, NormalizeProjection(false)
+			, NormalizeBoundaries(false)
+			, GloballyNormalize(true)
 			, NgUpdateProtos(false)
 			, UpdatePointsWithoutB(false)
-			, RngParamsSeed(37)
-			, RngIterSeed(42)
-			, PrototypesPerClass(1)
+			, Dimensionality(0)
+			, LrScaleP(LVQ_LrScaleP)
+			, LrScaleB(LVQ_LrScaleB)
+			, LR0(LVQ_LR0)
+			, LrScaleBad(LVQ_LrScaleBad)
 		{ }
 
 		LvqModelSettings ToNativeSettings(LvqDatasetCli^ dataset, int modelRank);

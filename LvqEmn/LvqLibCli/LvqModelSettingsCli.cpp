@@ -19,16 +19,17 @@ namespace LvqLibCli {
 		);
 		initSettings.RandomInitialProjection = RandomInitialProjection;
 		initSettings.RandomInitialBorders = RandomInitialBorders;
-		initSettings.Dimensionality = Dimensionality;
-		initSettings.NgUpdateProtos = NgUpdateProtos;
-
 		initSettings.RuntimeSettings.TrackProjectionQuality = TrackProjectionQuality;
 		initSettings.RuntimeSettings.NormalizeProjection = NormalizeProjection;
 		initSettings.RuntimeSettings.NormalizeBoundaries = NormalizeBoundaries;
 		initSettings.RuntimeSettings.GloballyNormalize = GloballyNormalize;
+		initSettings.NgUpdateProtos = NgUpdateProtos;
 		initSettings.RuntimeSettings.UpdatePointsWithoutB = UpdatePointsWithoutB;
-		
-
+		initSettings.Dimensionality = Dimensionality;
+		initSettings.RuntimeSettings.LrScaleP = LrScaleP;
+		initSettings.RuntimeSettings.LrScaleB = LrScaleB;
+		initSettings.RuntimeSettings.LR0 = LR0;
+		initSettings.RuntimeSettings.LrScaleBad = LrScaleBad;
 		return initSettings;
 	}
 }

@@ -37,8 +37,8 @@ namespace LvqGui {
 		public int Dimensionality {
 			get { return _Dimensionality; }
 			set {
-				if (value < 1 || (ForDataset != null && value > ForDataset.Dimensions)) throw new ArgumentException("Internal dimensionality must be between 1 and the dimensions of the data.");
-				if (_ModelType != LvqModelType.GmModelType && value != 2) throw new ArgumentException("2D Projection models must have exactly 2 internal dimensions.");
+				if (value < 0 || (ForDataset != null && value > ForDataset.Dimensions)) throw new ArgumentException("Internal dimensionality must be 0 (auto) or between 1 and the dimensions of the data.");
+				if (_ModelType != LvqModelType.GmModelType && value != 2 && value != 0) throw new ArgumentException("2D Projection models must have exactly 2 internal dimensions.");
 				if (!object.Equals(_Dimensionality, value)) { _Dimensionality = value; _propertyChanged("Dimensionality"); }
 			}
 		}
@@ -107,6 +107,30 @@ namespace LvqGui {
 		}
 		private bool _UpdatePointsWithoutB;
 
+		public double LrScaleP {
+			get { return _LrScaleP; }
+			set { if (!_LrScaleP.Equals(value)) { _LrScaleP = value; _propertyChanged("LrScaleP"); } }
+		}
+		private double _LrScaleP;
+
+		public double LrScaleB {
+			get { return _LrScaleB; }
+			set { if (!_LrScaleB.Equals(value)) { _LrScaleB = value; _propertyChanged("LrScaleB"); } }
+		}
+		private double _LrScaleB;
+
+		public double LR0 {
+			get { return _LR0; }
+			set { if (!_LR0.Equals(value)) { _LR0 = value; _propertyChanged("LR0"); } }
+		}
+		private double _LR0;
+
+		public double LrScaleBad {
+			get { return _LrScaleBad; }
+			set { if (!_LrScaleBad.Equals(value)) { _LrScaleBad = value; _propertyChanged("LrScaleBad"); } }
+		}
+		private double _LrScaleBad;
+
 		public uint Seed {
 			get { return _Seed; }
 			set { if (!object.Equals(_Seed, value)) { _Seed = value; _propertyChanged("Seed"); } }
@@ -135,6 +159,10 @@ namespace LvqGui {
 				\[(?<Seed>\d+):(?<InstSeed>\d+)\]
 				/(?<ParallelModels>\d+)
 				(,pQ(?<TrackProjectionQuality>\+?))?
+				,lr0(?<LR0>\d*\.?\d*(e\d+)?)
+				,lrP(?<LrScaleP>\d*\.?\d*(e\d+)?)
+				,lrB(?<LrScaleB>\d*\.?\d*(e\d+)?)
+				,lrX(?<LrScaleBad>\d*\.?\d*(e\d+)?)
 				(--.*)?\s*$",
 		RegexOptions.Compiled | RegexOptions.ExplicitCapture | RegexOptions.IgnorePatternWhitespace);
 
@@ -152,6 +180,10 @@ namespace LvqGui {
 				+ (ModelType == LvqModelType.G2mModelType ? ",noB" + (UpdatePointsWithoutB ? "+" : "") : "")
 				+ "[" + Seed + ":" + InstSeed + "]/" + ParallelModels
 				+ (ModelType != LvqModelType.GmModelType ? ",pQ" + (TrackProjectionQuality ? "+" : "") : "")
+				+ ",lr0" + LR0 
+				+ ",lrP" + LrScaleP 
+				+ ",lrB" + LrScaleB 
+				+ ",lrX" + LrScaleBad 
 				+ (ForDataset == null ? "" : "--" + ForDataset.DatasetLabel);
 			}
 			set { ShorthandHelper.ParseShorthand(this, shR, value); }
@@ -162,12 +194,29 @@ namespace LvqGui {
 
 		public CreateLvqModelValues(LvqWindowValues owner) {
 			this.owner = owner;
-			_ModelType = LvqModelType.G2mModelType;
-			_Dimensionality = 2;
-			_PrototypesPerClass = 4;
-			_ParallelModels = 10;
-			_RandomInitialProjection = true;
-			_GloballyNormalize = true;
+			var defaults = new LvqModelSettingsCli();
+
+			ParallelModels = 10;
+
+			ModelType = defaults.ModelType;
+			//RngParamsSeed => this.Seed;
+			//RngIterSeed => InstSeed;
+			PrototypesPerClass = defaults.PrototypesPerClass;
+			RandomInitialProjection = defaults.RandomInitialProjection;
+			RandomInitialBorders = defaults.RandomInitialBorders;
+
+			TrackProjectionQuality = defaults.TrackProjectionQuality;
+			NormalizeProjection = defaults.NormalizeProjection;
+			NormalizeBoundaries = defaults.NormalizeBoundaries;
+			GloballyNormalize = defaults.GloballyNormalize;
+			NgUpdateProtos = defaults.NgUpdateProtos;
+			UpdatePointsWithoutB = defaults.UpdatePointsWithoutB;
+			Dimensionality = defaults.Dimensionality;
+
+			LrScaleP = defaults.LrScaleP;
+			LrScaleB = defaults.LrScaleB;
+			LR0 = defaults.LR0;
+			LrScaleBad = defaults.LrScaleBad;
 			this.ReseedBoth();
 		}
 
@@ -179,18 +228,25 @@ namespace LvqGui {
 				trainingSet: ForDataset,
 				modelSettings: new LvqModelSettingsCli {
 					ModelType = ModelType,
+					RngParamsSeed = this.Seed,
 					RngIterSeed = InstSeed,
 					PrototypesPerClass = PrototypesPerClass,
-					RngParamsSeed = this.Seed,
+					RandomInitialProjection = RandomInitialProjection,
+					RandomInitialBorders = RandomInitialBorders,
+
 					TrackProjectionQuality = TrackProjectionQuality,
+					NormalizeProjection = NormalizeProjection,
 					NormalizeBoundaries = NormalizeBoundaries,
 					GloballyNormalize = GloballyNormalize,
-					NormalizeProjection = NormalizeProjection,
-					RandomInitialBorders = RandomInitialBorders,
-					RandomInitialProjection = RandomInitialProjection,
-					Dimensionality = Dimensionality,
 					NgUpdateProtos = NgUpdateProtos,
 					UpdatePointsWithoutB = UpdatePointsWithoutB,
+					Dimensionality = Dimensionality,
+
+					LrScaleP = LrScaleP,
+					LrScaleB = LrScaleB,
+					LR0 = LR0,
+					LrScaleBad = LrScaleBad,
+
 				});
 		}
 

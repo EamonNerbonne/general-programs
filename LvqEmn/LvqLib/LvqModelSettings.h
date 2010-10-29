@@ -3,7 +3,7 @@
 #include <boost/random/mersenne_twister.hpp>
 #include <Eigen/Core>
 #include <boost/scoped_ptr.hpp>
-
+#include "LvqConstants.h"
 template <typename T> class copy_ptr {
 	T* item;
 public:
@@ -21,6 +21,7 @@ class LvqModelRuntimeSettings
 public:
 	bool TrackProjectionQuality,NormalizeProjection,NormalizeBoundaries,GloballyNormalize,UpdatePointsWithoutB;
 	int ClassCount;
+	double  LrScaleP, LrScaleB, LR0,LrScaleBad;
 	copy_ptr<boost::mt19937> RngIter;
 	LvqModelRuntimeSettings(int classCount, boost::mt19937 & rngIter) 
 		: TrackProjectionQuality(false)
@@ -29,6 +30,10 @@ public:
 		, UpdatePointsWithoutB(false)
 		, GloballyNormalize(true)
 		, ClassCount(classCount)
+		, LrScaleP(LVQ_LrScaleP)
+		, LrScaleB(LVQ_LrScaleB)
+		, LR0(LVQ_LR0)
+		, LrScaleBad(LVQ_LrScaleBad)
 		, RngIter(new boost::mt19937(rngIter)) { }
 };
 
