@@ -1,7 +1,10 @@
-﻿using System;
+﻿// ReSharper disable PossibleNullReferenceException
+// ReSharper disable UnusedAutoPropertyAccessor.Global
+// ReSharper disable UnusedMember.Global
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
 using System.ComponentModel;
 
@@ -15,7 +18,7 @@ namespace LvqGui {
 	sealed class NotInShorthandAttribute : Attribute { }
 
 	static class ShorthandHelper {
-		static object[] empty = new object[] { };
+		static readonly object[] empty = new object[] { };
 		public static void ParseShorthand(IHasShorthand shorthandObj, Regex shR, string newShorthand) {
 			if (!shR.IsMatch(newShorthand)) throw new ArgumentException("Can't parse shorthand - enter manually?");
 			var groups = shR.Match(newShorthand).Groups.Cast<Group>().ToArray();
@@ -62,7 +65,7 @@ namespace LvqGui {
 					object val = prop.PropertyType.Equals(typeof(bool)) ? groups[i].Value != ""
 						: TypeDescriptor.GetConverter(prop.PropertyType).ConvertFromString(groups[i].Value);
 					object curVal = prop.GetValue(shorthandObj, empty);
-					if (!object.Equals( curVal , val))
+					if (!Equals( curVal , val))
 						errs.Add(groupName + ": " + val + " != " + curVal);
 				} else if (prop != null && !groups[i].Success) {
 					errs.Add(groupName + " unused");

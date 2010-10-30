@@ -1,15 +1,14 @@
-﻿using System;
+﻿// ReSharper disable UnusedMember.Global
+// ReSharper disable MemberCanBePrivate.Global
+using System;
 using System.ComponentModel;
 using System.IO;
 using System.Threading;
 using EmnExtensions.Wpf;
 using System.Linq;
-
-using LVQeamon;
 using LvqLibCli;
 using Microsoft.Win32;
 using EmnExtensions.MathHelpers;
-using EmnExtensions.Wpf.Plot;
 
 namespace LvqGui {
 	public class LoadDatasetValues : INotifyPropertyChanged, IHasSeed {
@@ -19,7 +18,7 @@ namespace LvqGui {
 
 		public uint Seed {
 			get { return _Seed; }
-			set { if (!object.Equals(_Seed,value)) { _Seed = value; _propertyChanged("Seed"); } }
+			set { if (!Equals(_Seed,value)) { _Seed = value; _propertyChanged("Seed"); } }
 		}
 		private uint _Seed;
 
@@ -43,13 +42,13 @@ namespace LvqGui {
 		}
 
 		LvqDatasetCli CreateDataset(uint seed, int folds) {
-			OpenFileDialog dataFileOpenDialog = new OpenFileDialog();
+			var dataFileOpenDialog = new OpenFileDialog();
 			//dataFileOpenDialog.Filter = "*.data";
 
 			if (dataFileOpenDialog.ShowDialog() == true) {
-				FileInfo selectedFile = new FileInfo(dataFileOpenDialog.FileName);
-				FileInfo labelFile = new FileInfo(selectedFile.Directory + @"\" + Path.GetFileNameWithoutExtension(selectedFile.Name) + ".label");
-				FileInfo dataFile = new FileInfo(selectedFile.Directory + @"\" + Path.GetFileNameWithoutExtension(selectedFile.Name) + ".data");
+				var selectedFile = new FileInfo(dataFileOpenDialog.FileName);
+				var labelFile = new FileInfo(selectedFile.Directory + @"\" + Path.GetFileNameWithoutExtension(selectedFile.Name) + ".label");
+				var dataFile = new FileInfo(selectedFile.Directory + @"\" + Path.GetFileNameWithoutExtension(selectedFile.Name) + ".data");
 				if (dataFile.Exists && labelFile.Exists) {
 					try {
 						var pointclouds = DatasetLoader.LoadDataset(dataFile, labelFile);
@@ -74,7 +73,7 @@ namespace LvqGui {
 
 
 					} catch (FileFormatException fe) {
-						Console.WriteLine("Can't load file: {0}", fe.ToString());
+						Console.WriteLine("Can't load file: {0}", fe);
 						return null;
 					}
 				} else return null;

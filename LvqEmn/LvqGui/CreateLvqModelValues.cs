@@ -1,4 +1,6 @@
-﻿using System;
+﻿// ReSharper disable UnusedMember.Global
+// ReSharper disable MemberCanBePrivate.Global
+using System;
 using System.ComponentModel;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -24,13 +26,13 @@ namespace LvqGui {
 		[NotInShorthand]
 		public LvqDatasetCli ForDataset {
 			get { return _ForDataset; }
-			set { if (!object.Equals(_ForDataset, value)) { _ForDataset = value; _propertyChanged("ForDataset"); if (value != null) Dimensionality = Math.Min(Dimensionality, value.Dimensions); } }
+			set { if (!Equals(_ForDataset, value)) { _ForDataset = value; _propertyChanged("ForDataset"); if (value != null) Dimensionality = Math.Min(Dimensionality, value.Dimensions); } }
 		}
 		private LvqDatasetCli _ForDataset;
 
 		public LvqModelType ModelType {
 			get { return _ModelType; }
-			set { if (!object.Equals(_ModelType, value)) { if (value != LvqModelType.GmModelType) Dimensionality = 2; _ModelType = value; _propertyChanged("ModelType"); } }
+			set { if (!Equals(_ModelType, value)) { if (value != LvqModelType.GmModelType) Dimensionality = 2; _ModelType = value; _propertyChanged("ModelType"); } }
 		}
 		private LvqModelType _ModelType;
 
@@ -39,14 +41,14 @@ namespace LvqGui {
 			set {
 				if (value < 0 || (ForDataset != null && value > ForDataset.Dimensions)) throw new ArgumentException("Internal dimensionality must be 0 (auto) or between 1 and the dimensions of the data.");
 				if (_ModelType != LvqModelType.GmModelType && value != 2 && value != 0) throw new ArgumentException("2D Projection models must have exactly 2 internal dimensions.");
-				if (!object.Equals(_Dimensionality, value)) { _Dimensionality = value; _propertyChanged("Dimensionality"); }
+				if (!Equals(_Dimensionality, value)) { _Dimensionality = value; _propertyChanged("Dimensionality"); }
 			}
 		}
 		private int _Dimensionality;
 
 		public int PrototypesPerClass {
 			get { return _PrototypesPerClass; }
-			set { if (!object.Equals(_PrototypesPerClass, value)) { _PrototypesPerClass = value; _propertyChanged("PrototypesPerClass"); } }
+			set { if (!Equals(_PrototypesPerClass, value)) { _PrototypesPerClass = value; _propertyChanged("PrototypesPerClass"); } }
 		}
 		private int _PrototypesPerClass;
 
@@ -133,7 +135,7 @@ namespace LvqGui {
 
 		public uint Seed {
 			get { return _Seed; }
-			set { if (!object.Equals(_Seed, value)) { _Seed = value; _propertyChanged("Seed"); } }
+			set { if (!Equals(_Seed, value)) { _Seed = value; _propertyChanged("Seed"); } }
 		}
 		private uint _Seed;
 
@@ -143,7 +145,7 @@ namespace LvqGui {
 		}
 		private uint _InstSeed;
 
-		static Regex shR =
+		static readonly Regex shR =
 	new Regex(@"
 				^(\w|\s)*\:?\s*
 				(?<ModelType>G[\w\d]*)
@@ -168,7 +170,7 @@ namespace LvqGui {
 
 		public string Shorthand {
 			get {
-				return ModelType.ToString()
+				return ModelType
 				+ (ModelType == LvqModelType.GmModelType ? "[" + Dimensionality + "]" : "")
 				+ "," + PrototypesPerClass
 				+ ",rP" + (RandomInitialProjection ? "+" : "")
@@ -223,12 +225,9 @@ namespace LvqGui {
 		public LvqModelCli CreateModel() {
 			Console.WriteLine("Created: " + Shorthand);
 
-			return new LvqModelCli(Shorthand,
-				parallelModels: ParallelModels,
-				trainingSet: ForDataset,
-				modelSettings: new LvqModelSettingsCli {
+			return new LvqModelCli(Shorthand, ParallelModels, ForDataset, new LvqModelSettingsCli {
 					ModelType = ModelType,
-					RngParamsSeed = this.Seed,
+					RngParamsSeed = Seed,
 					RngIterSeed = InstSeed,
 					PrototypesPerClass = PrototypesPerClass,
 					RandomInitialProjection = RandomInitialProjection,
@@ -246,7 +245,6 @@ namespace LvqGui {
 					LrScaleB = LrScaleB,
 					LR0 = LR0,
 					LrScaleBad = LrScaleBad,
-
 				});
 		}
 

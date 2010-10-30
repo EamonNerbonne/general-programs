@@ -1,11 +1,12 @@
-﻿using System;
+﻿// ReSharper disable MemberCanBePrivate.Global
+// ReSharper disable UnusedMember.Global
+using System;
 using System.ComponentModel;
 using System.Linq;
 using System.Text.RegularExpressions;
 using EmnExtensions.MathHelpers;
 using EmnExtensions.Wpf;
 using LvqLibCli;
-using EmnExtensions.Wpf.Plot;
 
 namespace LvqGui {
 
@@ -25,31 +26,31 @@ namespace LvqGui {
 
 		public int Dimensions {
 			get { return _Dimensions; }
-			set { if (value < 1) throw new ArgumentException("Need at least one dimension"); if (!object.Equals(_Dimensions, value)) { _Dimensions = value; _propertyChanged("Dimensions"); } }
+			set { if (value < 1) throw new ArgumentException("Need at least one dimension"); if (!Equals(_Dimensions, value)) { _Dimensions = value; _propertyChanged("Dimensions"); } }
 		}
 		private int _Dimensions;
 
 		public int NumberOfClasses {
 			get { return _NumberOfClasses; }
-			set { if (value < 2) throw new ArgumentException("Cannot meaningfully train classifier on fewer than 2 classes"); if (!object.Equals(_NumberOfClasses, value)) { _NumberOfClasses = value; _propertyChanged("NumberOfClasses"); } }
+			set { if (value < 2) throw new ArgumentException("Cannot meaningfully train classifier on fewer than 2 classes"); if (!Equals(_NumberOfClasses, value)) { _NumberOfClasses = value; _propertyChanged("NumberOfClasses"); } }
 		}
 		private int _NumberOfClasses;
 
 		public int PointsPerClass {
 			get { return _PointsPerClass; }
-			set { if (value < 1) throw new ArgumentException("Each class needs at least 1 training sample"); if (!object.Equals(_PointsPerClass, value)) { _PointsPerClass = value; _propertyChanged("PointsPerClass"); } }
+			set { if (value < 1) throw new ArgumentException("Each class needs at least 1 training sample"); if (!Equals(_PointsPerClass, value)) { _PointsPerClass = value; _propertyChanged("PointsPerClass"); } }
 		}
 		private int _PointsPerClass;
 
 		public double ClassCenterDeviation {
 			get { return _ClassCenterDeviation; }
-			set { if (value < 0.0) throw new ArgumentException("Deviation must be positive"); if (!object.Equals(_ClassCenterDeviation, value)) { _ClassCenterDeviation = value; _propertyChanged("ClassCenterDeviation"); } }
+			set { if (value < 0.0) throw new ArgumentException("Deviation must be positive"); if (!Equals(_ClassCenterDeviation, value)) { _ClassCenterDeviation = value; _propertyChanged("ClassCenterDeviation"); } }
 		}
 		private double _ClassCenterDeviation;
 
 		public uint Seed {
 			get { return _Seed; }
-			set { if (!object.Equals(_Seed, value)) { _Seed = value; _propertyChanged("Seed"); } }
+			set { if (!Equals(_Seed, value)) { _Seed = value; _propertyChanged("Seed"); } }
 		}
 		private uint _Seed;
 
@@ -67,7 +68,7 @@ namespace LvqGui {
 
 		public bool ExtendDataByCorrelation { get { return owner.ExtendDataByCorrelation; } set { owner.ExtendDataByCorrelation = value; } }
 
-		static Regex shR =
+		static readonly Regex shR =
 			new Regex(@"^\s*(.*--)?nrm-(?<Dimensions>\d+)D(?<ExtendDataByCorrelation>\*?)-(?<NumberOfClasses>\d+)\*(?<PointsPerClass>\d+):(?<ClassCenterDeviation>[^\[]+)\[(?<Seed>\d+):(?<InstSeed>\d+)\]/(?<Folds>\d+)\s*$",
 				RegexOptions.Compiled | RegexOptions.ExplicitCapture);
 
@@ -102,6 +103,7 @@ namespace LvqGui {
 		LvqDatasetCli CreateDataset() {
 			Console.WriteLine("Created: " + Shorthand);
 
+			// ReSharper disable RedundantArgumentName
 			return LvqDatasetCli.ConstructGaussianClouds(Shorthand,
 				folds: _Folds,
 				extend: owner.ExtendDataByCorrelation,
@@ -113,6 +115,7 @@ namespace LvqGui {
 				pointsPerClass: PointsPerClass,
 				meansep: ClassCenterDeviation
 				);
+			// ReSharper restore RedundantArgumentName
 		}
 
 		public void ConfirmCreation() {

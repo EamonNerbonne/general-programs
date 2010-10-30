@@ -8,7 +8,7 @@ namespace LvqGui
 {
 	public static class SeedMaker
 	{
-		static RNGCryptoServiceProvider cryptGen = new RNGCryptoServiceProvider();
+		static readonly RNGCryptoServiceProvider cryptGen = new RNGCryptoServiceProvider();
 		public static uint[] MakeSeed()
 		{
 			var bytes = new byte[624 * sizeof(uint)];

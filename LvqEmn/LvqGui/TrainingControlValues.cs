@@ -1,11 +1,12 @@
-﻿using System;
+﻿// ReSharper disable MemberCanBePrivate.Global
+// ReSharper disable UnusedMember.Global
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Threading;
 using EmnExtensions.DebugTools;
 using LvqLibCli;
-using System.Windows;
 
 namespace LvqGui {
 	public class TrainingControlValues : INotifyPropertyChanged {
@@ -20,20 +21,18 @@ namespace LvqGui {
 
 		public LvqDatasetCli SelectedDataset {
 			get { return _SelectedDataset; }
-			set { if (!object.Equals(_SelectedDataset, value)) { _SelectedDataset = value; _propertyChanged("SelectedDataset"); _propertyChanged("MatchingLvqModels"); SelectedLvqModel = _SelectedDataset == null ? null : _SelectedDataset.LastModel; AnimateTraining = false; } }
+			set { if (!Equals(_SelectedDataset, value)) { _SelectedDataset = value; _propertyChanged("SelectedDataset"); _propertyChanged("MatchingLvqModels"); SelectedLvqModel = _SelectedDataset == null ? null : _SelectedDataset.LastModel; AnimateTraining = false; } }
 		}
 		private LvqDatasetCli _SelectedDataset;
 
-		//ObservableCollection<LvqModelCli>
 		public IEnumerable<LvqModelCli> MatchingLvqModels { get { return Owner.LvqModels.Where(model => model == null || model.FitsDataShape(SelectedDataset)); } }
 
 		public LvqModelCli SelectedLvqModel {
 			get { return _SelectedLvqModel; }
-			set { if (!object.Equals(_SelectedLvqModel, value)) { _SelectedLvqModel = value; _propertyChanged("SelectedLvqModel"); _propertyChanged("ModelIndexes"); ModelSelected(_SelectedDataset, _SelectedLvqModel, _SubModelIndex); AnimateTraining = false; SubModelIndex = 0; } }
+			set { if (!Equals(_SelectedLvqModel, value)) { _SelectedLvqModel = value; _propertyChanged("SelectedLvqModel"); _propertyChanged("ModelIndexes"); ModelSelected(_SelectedDataset, _SelectedLvqModel, _SubModelIndex); AnimateTraining = false; SubModelIndex = 0; } }
 		}
 		private LvqModelCli _SelectedLvqModel;
 
-		//ObservableCollection<LvqModelCli>
 		public IEnumerable<int> ModelIndexes { get { return Enumerable.Range(0, SelectedLvqModel == null ? 0 : SelectedLvqModel.ModelCount); } }
 
 		public int SubModelIndex {
@@ -48,7 +47,7 @@ namespace LvqGui {
 
 		public int EpochsPerClick {
 			get { return _EpochsPerClick; }
-			set { if (value < 1) throw new ArgumentException("Must train for at least 1 epoch at a  time"); if (!object.Equals(_EpochsPerClick, value)) { _EpochsPerClick = value; _propertyChanged("EpochsPerClick"); } }
+			set { if (value < 1) throw new ArgumentException("Must train for at least 1 epoch at a  time"); if (!Equals(_EpochsPerClick, value)) { _EpochsPerClick = value; _propertyChanged("EpochsPerClick"); } }
 		}
 		private int _EpochsPerClick;
 
@@ -68,12 +67,12 @@ namespace LvqGui {
 		public bool AnimateTraining {
 			get { return _AnimateTraining; }
 			set {
-				if (!object.Equals(_AnimateTraining, value)) {
+				if (!Equals(_AnimateTraining, value)) {
 					if (value && (SelectedLvqModel == null || SelectedDataset == null))
 						throw new ArgumentException("Can't animate; dataset or model is not set");
 					_AnimateTraining = value; _propertyChanged("AnimateTraining");
 					if (_AnimateTraining)
-						new Thread(o => { DoAnimatedTraining(); }) {
+						new Thread(o => DoAnimatedTraining()) {
 							IsBackground = true,
 							Priority = ThreadPriority.BelowNormal
 						}.Start();
@@ -106,7 +105,9 @@ namespace LvqGui {
 		bool isAnimating;
 		public void DoAnimatedTraining() {
 			if (isAnimating) return;
+#if BENCHMARK
 			int epochsTrained = 0;
+#endif
 			var selectedDataset = SelectedDataset;
 			var selectedModel = SelectedLvqModel;
 			try {
@@ -119,9 +120,9 @@ namespace LvqGui {
 					}
 
 					selectedModel.Train(epochsToDo: epochsToTrainFor, trainingSet: selectedDataset);
-					epochsTrained += epochsToTrainFor;
 					PotentialUpdate(selectedDataset, selectedModel);
 #if BENCHMARK
+					epochsTrained += epochsToTrainFor;
 					if (epochsTrained >= 100) owner.Dispatcher.BeginInvokeBackground(() => { Application.Current.Shutdown(); });
 #endif
 				}

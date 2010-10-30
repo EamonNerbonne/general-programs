@@ -1,4 +1,8 @@
-﻿using System;
+﻿// ReSharper disable UnusedMember.Global
+// ReSharper disable MemberCanBePrivate.Global
+// ReSharper disable UnusedAutoPropertyAccessor.Global
+
+using System;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
@@ -35,7 +39,7 @@ namespace LvqGui {
 		public LvqWindowValues(LvqWindow win) {
 			if (win == null) throw new ArgumentNullException("win");
 			this.win = win;
-			this.Dispatcher = win.Dispatcher;
+			Dispatcher = win.Dispatcher;
 			Datasets = new ObservableCollection<LvqDatasetCli>();
 			LvqModels = new ObservableCollection<LvqModelCli>();
 

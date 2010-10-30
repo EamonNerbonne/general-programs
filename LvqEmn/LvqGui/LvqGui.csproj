@@ -221,7 +221,6 @@
     <Compile Include="AppSettings.xaml.cs">
       <DependentUpon>AppSettings.xaml</DependentUpon>
     </Compile>
-    <Compile Include="AppSettingsValues.cs" />
     <Compile Include="CreateGaussianCloudsDataset.xaml.cs">
       <DependentUpon>CreateGaussianCloudsDataset.xaml</DependentUpon>
     </Compile>

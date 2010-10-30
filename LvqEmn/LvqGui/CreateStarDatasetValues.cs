@@ -1,11 +1,12 @@
-﻿using System;
+﻿// ReSharper disable UnusedMember.Global
+// ReSharper disable MemberCanBePrivate.Global
+using System;
 using System.ComponentModel;
 using System.Linq;
 using System.Text.RegularExpressions;
 using EmnExtensions.MathHelpers;
 using EmnExtensions.Wpf;
 using LvqLibCli;
-using EmnExtensions.Wpf.Plot;
 
 namespace LvqGui {
 
@@ -25,55 +26,55 @@ namespace LvqGui {
 
 		public int Dimensions {
 			get { return _Dimensions; }
-			set { if (value < _ClusterDimensionality) throw new ArgumentException("Data needs at least one dimension and no fewer than the clusters' dimensions"); if (!object.Equals(_Dimensions, value)) { _Dimensions = value; _propertyChanged("Dimensions"); } }
+			set { if (value < _ClusterDimensionality) throw new ArgumentException("Data needs at least one dimension and no fewer than the clusters' dimensions"); if (!Equals(_Dimensions, value)) { _Dimensions = value; _propertyChanged("Dimensions"); } }
 		}
 		private int _Dimensions;
 
 		public int NumberOfClasses {
 			get { return _NumberOfClasses; }
-			set { if (value < 2) throw new ArgumentException("Need at least 2 classes to meaningfully train"); if (!object.Equals(_NumberOfClasses, value)) { _NumberOfClasses = value; _propertyChanged("NumberOfClasses"); } }
+			set { if (value < 2) throw new ArgumentException("Need at least 2 classes to meaningfully train"); if (!Equals(_NumberOfClasses, value)) { _NumberOfClasses = value; _propertyChanged("NumberOfClasses"); } }
 		}
 		private int _NumberOfClasses;
 
 		public int PointsPerClass {
 			get { return _PointsPerClass; }
-			set { if (value < 1) throw new ArgumentException("Need a positive number of points"); if (!object.Equals(_PointsPerClass, value)) { _PointsPerClass = value; _propertyChanged("PointsPerClass"); } }
+			set { if (value < 1) throw new ArgumentException("Need a positive number of points"); if (!Equals(_PointsPerClass, value)) { _PointsPerClass = value; _propertyChanged("PointsPerClass"); } }
 		}
 		private int _PointsPerClass;
 
 		public int NumberOfClusters {
 			get { return _NumberOfClusters; }
-			set { if (value < 1) throw new ArgumentException("Need a positive number of clusters"); if (!object.Equals(_NumberOfClusters, value)) { _NumberOfClusters = value; _propertyChanged("NumberOfClusters"); } }
+			set { if (value < 1) throw new ArgumentException("Need a positive number of clusters"); if (!Equals(_NumberOfClusters, value)) { _NumberOfClusters = value; _propertyChanged("NumberOfClusters"); } }
 		}
 		private int _NumberOfClusters;
 
 		public int ClusterDimensionality {
 			get { return _ClusterDimensionality; }
-			set { if (value < 1 || value > _Dimensions) throw new ArgumentException("Cluster dimensionality must be a positive number less than the absolute dimensionality"); if (!object.Equals(_ClusterDimensionality, value)) { _ClusterDimensionality = value; _propertyChanged("ClusterDimensionality"); } }
+			set { if (value < 1 || value > _Dimensions) throw new ArgumentException("Cluster dimensionality must be a positive number less than the absolute dimensionality"); if (!Equals(_ClusterDimensionality, value)) { _ClusterDimensionality = value; _propertyChanged("ClusterDimensionality"); } }
 		}
 		private int _ClusterDimensionality;
 
 		public bool RandomlyTransformFirst {
 			get { return _RandomlyTransformFirst; }
-			set { if (!object.Equals(_RandomlyTransformFirst, value)) { _RandomlyTransformFirst = value; _propertyChanged("RandomlyTransformFirst"); } }
+			set { if (!Equals(_RandomlyTransformFirst, value)) { _RandomlyTransformFirst = value; _propertyChanged("RandomlyTransformFirst"); } }
 		}
 		private bool _RandomlyTransformFirst;
 
 		public double ClusterCenterDeviation {
 			get { return _ClusterCenterDeviation; }
-			set { if (value < 0.0) throw new ArgumentException("Deviation must be positive"); if (!object.Equals(_ClusterCenterDeviation, value)) { _ClusterCenterDeviation = value; _propertyChanged("ClusterCenterDeviation"); } }
+			set { if (value < 0.0) throw new ArgumentException("Deviation must be positive"); if (!Equals(_ClusterCenterDeviation, value)) { _ClusterCenterDeviation = value; _propertyChanged("ClusterCenterDeviation"); } }
 		}
 		private double _ClusterCenterDeviation;
 
 		public double IntraClusterClassRelDev {
 			get { return _IntraClusterClassRelDev; }
-			set { if (value < 0.0) throw new ArgumentException("Deviation must be positive"); if (!object.Equals(_IntraClusterClassRelDev, value)) { _IntraClusterClassRelDev = value; _propertyChanged("IntraClusterClassRelDev"); } }
+			set { if (value < 0.0) throw new ArgumentException("Deviation must be positive"); if (!Equals(_IntraClusterClassRelDev, value)) { _IntraClusterClassRelDev = value; _propertyChanged("IntraClusterClassRelDev"); } }
 		}
 		private double _IntraClusterClassRelDev;
 
 		public uint Seed {
 			get { return _Seed; }
-			set { if (!object.Equals(_Seed, value)) { _Seed = value; _propertyChanged("Seed"); } }
+			set { if (!Equals(_Seed, value)) { _Seed = value; _propertyChanged("Seed"); } }
 		}
 		private uint _Seed;
 
@@ -91,7 +92,7 @@ namespace LvqGui {
 
 		public bool ExtendDataByCorrelation { get { return owner.ExtendDataByCorrelation; } set { owner.ExtendDataByCorrelation = value; } }
 
-		static Regex shR =
+		static readonly Regex shR =
 			new Regex(@"^\s*(.*--)?star-(?<Dimensions>\d+)D(?<ExtendDataByCorrelation>\*?)-(?<NumberOfClasses>\d+)\*(?<PointsPerClass>\d+):(?<NumberOfClusters>\d+)\((?<ClusterDimensionality>\d+)D(?<RandomlyTransformFirst>\??)\)\*(?<ClusterCenterDeviation>[^~]+)\~(?<IntraClusterClassRelDev>[^\[]+)\[(?<Seed>\d+):(?<InstSeed>\d+)\]/(?<Folds>\d+)\s*$",
 				RegexOptions.Compiled | RegexOptions.ExplicitCapture);
 
@@ -128,8 +129,8 @@ namespace LvqGui {
 		public LvqDatasetCli CreateDataset() {
 			Console.WriteLine("Created: " + Shorthand);
 			return LvqDatasetCli.ConstructStarDataset(Shorthand,
-				folds: _Folds,
 				colors: WpfTools.MakeDistributedColors(NumberOfClasses, new MersenneTwister((int)Seed)),
+				folds: _Folds,
 				extend: owner.ExtendDataByCorrelation,
 				rngParamsSeed: Seed,
 				rngInstSeed: InstSeed,

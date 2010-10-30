@@ -1,7 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿// ReSharper disable UnusedMemberInSuper.Global
 using System.Linq;
-using System.Text;
 using EmnExtensions.MathHelpers;
 
 namespace LvqGui {

@@ -1,17 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.IO;
 using EmnExtensions.Filesystem;
 using System.Globalization;
-using System.Diagnostics;
 
-namespace LVQeamon {
+namespace LvqGui {
 	public static class DatasetLoader {
-		static char[] dimSep = new[] { ',' };
+		static readonly char[] dimSep = new[] { ',' };
 
-		public static T[,] ToRectangularArray<T>(this T[][] jaggedArray) {
+		static T[,] ToRectangularArray<T>(this T[][] jaggedArray) {
 			int outerLen = jaggedArray.Length;
 
 			if (outerLen == 0)

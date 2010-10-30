@@ -1,14 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿// ReSharper disable UnusedMember.Global
+using System;
 using System.Windows.Controls;
 using System.Windows.Media;
 
-namespace LVQeamon {
+namespace LvqGui {
 	static class DataVerifiers {
-		static Brush OK = Brushes.Transparent;
-		static Brush BAD = Brushes.Yellow;
+		static readonly Brush OK = Brushes.Transparent;
+		static readonly Brush BAD = Brushes.Yellow;
 
 		public static bool IsInt32(string value) { int ignore; return Int32.TryParse(value, out ignore); }
 		public static bool IsDouble(string value) { double ignore; return Double.TryParse(value, out ignore); }

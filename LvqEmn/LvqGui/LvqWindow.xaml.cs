@@ -1,24 +1,26 @@
-﻿using System.Threading;
+﻿// ReSharper disable UnusedMember.Global
+// ReSharper disable MemberCanBePrivate.Global
+using System.Threading;
 using System.Windows;
-using System.Windows.Threading;
 using LvqLibCli;
 
 namespace LvqGui {
-	public partial class LvqWindow : Window {
+	public partial class LvqWindow {
 		public LvqWindow() {
 			Thread.CurrentThread.Priority = ThreadPriority.AboveNormal;
 			var windowValues = new LvqWindowValues(this);
-			this.DataContext = windowValues;
+			DataContext = windowValues;
 			InitializeComponent();
 			windowValues.TrainingControlValues.ModelSelected += TrainingControlValues_ModelSelected;
 			windowValues.TrainingControlValues.SelectedModelUpdatedInBackgroundThread += TrainingControlValues_SelectedModelUpdatedInBackgroundThread;
-			this.Closing += (o, e) => { windowValues.TrainingControlValues.AnimateTraining = false; };
+			Closing += (o, e) => { windowValues.TrainingControlValues.AnimateTraining = false; };
 #if BENCHMARK
 			this.Loaded += (o, e) => { DoBenchmark(); };
 #endif
 		}
 
-		private void DoBenchmark() {
+		// ReSharper disable UnusedMember.Local
+		private void DoBenchmark() {		// ReSharper restore UnusedMember.Local
 			ThreadPool.QueueUserWorkItem(o => {
 				LvqWindowValues values = ((LvqWindowValues)o);
 				values.CreateStarDatasetValues.Seed = 1337;
@@ -33,15 +35,12 @@ namespace LvqGui {
 
 				values.CreateStarDatasetValues.ConfirmCreation();
 				Dispatcher.BeginInvokeBackground(() => {
-					ThreadPool.QueueUserWorkItem(o2 => {
-						values.CreateLvqModelValues.ConfirmCreation();
-						Dispatcher.BeginInvokeBackground(() => {
-							values.TrainingControlValues.AnimateTraining = true;
-						});
-					});
+					values.CreateLvqModelValues.ConfirmCreation();
+					values.TrainingControlValues.AnimateTraining = true;
 				});
 			}, DataContext);
 		}
+
 
 		LvqScatterPlot plotData;
 		void TrainingControlValues_SelectedModelUpdatedInBackgroundThread(LvqDatasetCli dataset, LvqModelCli model) {
@@ -64,20 +63,19 @@ namespace LvqGui {
 		private WindowState lastState = WindowState.Normal;
 		// Using a DependencyProperty as the backing store for Fullscreen.  This enables animation, styling, binding, etc...
 		public static readonly DependencyProperty FullscreenProperty =
-			DependencyProperty.RegisterAttached("Fullscreen", typeof(bool), typeof(LvqWindow), new UIPropertyMetadata((object)false, new PropertyChangedCallback(
-				(o, e) => {
-					LvqWindow win = (LvqWindow)o;
-					if ((bool)e.NewValue == true) {
-						win.lastState = win.WindowState;
-						win.WindowState = WindowState.Normal;
-						win.WindowStyle = WindowStyle.None;
-						win.Topmost = true;
-						win.WindowState = WindowState.Maximized;
-					} else {
-						win.Topmost = false;
-						win.WindowStyle = WindowStyle.SingleBorderWindow;
-						win.WindowState = win.lastState;
-					}
-				})));
+			DependencyProperty.RegisterAttached("Fullscreen", typeof(bool), typeof(LvqWindow), new UIPropertyMetadata(false, (o, e) => {
+				LvqWindow win = (LvqWindow)o;
+				if ((bool)e.NewValue) {
+					win.lastState = win.WindowState;
+					win.WindowState = WindowState.Normal;
+					win.WindowStyle = WindowStyle.None;
+					win.Topmost = true;
+					win.WindowState = WindowState.Maximized;
+				} else {
+					win.Topmost = false;
+					win.WindowStyle = WindowStyle.SingleBorderWindow;
+					win.WindowState = win.lastState;
+				}
+			}));
 	}
 }

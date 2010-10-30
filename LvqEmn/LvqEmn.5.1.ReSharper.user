@@ -3,7 +3,7 @@
     <string />
     <integer />
     <boolean>
-      <setting name="SolutionAnalysisEnabled">False</setting>
+      <setting name="SolutionAnalysisEnabled">True</setting>
     </boolean>
   </SettingsComponent>
   <RecentFiles>
@@ -11,14 +11,54 @@
       <File id="F50CC07F-68F1-455A-BE8D-A64D827F1A5C/d:Plot/d:VizEngines/f:VizPixelScatter.cs" caret="4574" fromTop="31" />
       <File id="F50CC07F-68F1-455A-BE8D-A64D827F1A5C/d:Plot/d:VizEngines/f:VizPixelScatterGeom.cs" caret="1366" fromTop="32" />
       <File id="41165ACC-4466-4C36-8397-8348DDF766E8/f:TestCovariance.cpp" caret="483" fromTop="20" />
+      <File id="4B93E8BF-F146-48EE-98DF-787D4B9FFBBF/f:DatasetLoader.cs" caret="409" fromTop="15" />
+      <File id="4B93E8BF-F146-48EE-98DF-787D4B9FFBBF/d:Properties/f:Resources.Designer.cs" caret="1157" fromTop="7" />
+      <File id="4B93E8BF-F146-48EE-98DF-787D4B9FFBBF/f:App.xaml.cs" caret="170" fromTop="8" />
+      <File id="4B93E8BF-F146-48EE-98DF-787D4B9FFBBF/f:AppSettings.xaml.cs" caret="18" fromTop="0" />
+      <File id="4B93E8BF-F146-48EE-98DF-787D4B9FFBBF/f:CreateGaussianCloudsDataset.xaml.cs" caret="624" fromTop="17" />
+      <File id="4B93E8BF-F146-48EE-98DF-787D4B9FFBBF/f:CreateGaussianCloudsDatasetValues.cs" caret="4667" fromTop="57" />
+      <File id="4B93E8BF-F146-48EE-98DF-787D4B9FFBBF/f:CreateLvqModel.xaml.cs" caret="61" fromTop="2" />
+      <File id="4B93E8BF-F146-48EE-98DF-787D4B9FFBBF/f:CreateLvqModelValues.cs" caret="9208" fromTop="36" />
+      <File id="4B93E8BF-F146-48EE-98DF-787D4B9FFBBF/f:CreateStarDataset.xaml.cs" caret="46" fromTop="1" />
+      <File id="4B93E8BF-F146-48EE-98DF-787D4B9FFBBF/f:CreateStarDatasetValues.cs" caret="90" fromTop="2" />
+      <File id="4B93E8BF-F146-48EE-98DF-787D4B9FFBBF/f:LoadDatasetValues.cs" caret="1972" fromTop="15" />
+      <File id="4B93E8BF-F146-48EE-98DF-787D4B9FFBBF/f:LvqWindowValues.cs" caret="1599" fromTop="23" />
+      <File id="4B93E8BF-F146-48EE-98DF-787D4B9FFBBF/f:MakeSeed.cs" caret="1448" fromTop="20" />
+      <File id="4B93E8BF-F146-48EE-98DF-787D4B9FFBBF/f:Points.cs" caret="357" fromTop="12" />
+      <File id="4B93E8BF-F146-48EE-98DF-787D4B9FFBBF/f:SeedUtils.cs" caret="13" fromTop="0" />
+      <File id="4B93E8BF-F146-48EE-98DF-787D4B9FFBBF/f:ShorthandHelper.cs" caret="1344" fromTop="30" />
     </RecentFiles>
     <RecentEdits>
-      <File id="F50CC07F-68F1-455A-BE8D-A64D827F1A5C/d:Plot/d:VizEngines/f:VizPixelScatter.cs" caret="2276" fromTop="20" />
-      <File id="F50CC07F-68F1-455A-BE8D-A64D827F1A5C/d:Plot/d:VizEngines/f:VizPixelScatter.cs" caret="4574" fromTop="31" />
-      <File id="F50CC07F-68F1-455A-BE8D-A64D827F1A5C/d:Plot/d:VizEngines/f:VizPixelScatterGeom.cs" caret="1016" fromTop="21" />
-      <File id="F50CC07F-68F1-455A-BE8D-A64D827F1A5C/d:Plot/d:VizEngines/f:VizPixelScatterGeom.cs" caret="1016" fromTop="26" />
-      <File id="F50CC07F-68F1-455A-BE8D-A64D827F1A5C/d:Plot/d:VizEngines/f:VizPixelScatterGeom.cs" caret="1016" fromTop="23" />
-      <File id="F50CC07F-68F1-455A-BE8D-A64D827F1A5C/d:Plot/d:VizEngines/f:VizPixelScatterGeom.cs" caret="2348" fromTop="62" />
+      <File id="4B93E8BF-F146-48EE-98DF-787D4B9FFBBF/f:CreateGaussianCloudsDatasetValues.cs" caret="2059" fromTop="50" />
+      <File id="4B93E8BF-F146-48EE-98DF-787D4B9FFBBF/f:CreateGaussianCloudsDatasetValues.cs" caret="2780" fromTop="29" />
+      <File id="4B93E8BF-F146-48EE-98DF-787D4B9FFBBF/f:CreateGaussianCloudsDatasetValues.cs" caret="4667" fromTop="57" />
+      <File id="4B93E8BF-F146-48EE-98DF-787D4B9FFBBF/f:CreateLvqModel.xaml.cs" caret="142" fromTop="9" />
+      <File id="4B93E8BF-F146-48EE-98DF-787D4B9FFBBF/f:CreateLvqModel.xaml.cs" caret="695" fromTop="19" />
+      <File id="4B93E8BF-F146-48EE-98DF-787D4B9FFBBF/f:CreateLvqModel.xaml.cs" caret="61" fromTop="2" />
+      <File id="4B93E8BF-F146-48EE-98DF-787D4B9FFBBF/f:CreateStarDataset.xaml.cs" caret="112" fromTop="6" />
+      <File id="4B93E8BF-F146-48EE-98DF-787D4B9FFBBF/f:CreateStarDataset.xaml.cs" caret="508" fromTop="13" />
+      <File id="4B93E8BF-F146-48EE-98DF-787D4B9FFBBF/f:CreateStarDataset.xaml.cs" caret="46" fromTop="1" />
+      <File id="4B93E8BF-F146-48EE-98DF-787D4B9FFBBF/f:CreateStarDatasetValues.cs" caret="270" fromTop="6" />
+      <File id="4B93E8BF-F146-48EE-98DF-787D4B9FFBBF/f:CreateStarDatasetValues.cs" caret="3449" fromTop="26" />
+      <File id="4B93E8BF-F146-48EE-98DF-787D4B9FFBBF/f:CreateStarDatasetValues.cs" caret="4275" fromTop="29" />
+      <File id="4B93E8BF-F146-48EE-98DF-787D4B9FFBBF/f:CreateStarDatasetValues.cs" caret="6108" fromTop="31" />
+      <File id="4B93E8BF-F146-48EE-98DF-787D4B9FFBBF/f:CreateStarDatasetValues.cs" caret="882" fromTop="27" />
+      <File id="4B93E8BF-F146-48EE-98DF-787D4B9FFBBF/f:CreateStarDatasetValues.cs" caret="42" fromTop="1" />
+      <File id="4B93E8BF-F146-48EE-98DF-787D4B9FFBBF/f:CreateStarDatasetValues.cs" caret="1744" fromTop="41" />
+      <File id="4B93E8BF-F146-48EE-98DF-787D4B9FFBBF/f:LoadDatasetValues.cs" caret="90" fromTop="2" />
+      <File id="4B93E8BF-F146-48EE-98DF-787D4B9FFBBF/f:LoadDatasetValues.cs" caret="224" fromTop="8" />
+      <File id="4B93E8BF-F146-48EE-98DF-787D4B9FFBBF/f:LoadDatasetValues.cs" caret="1449" fromTop="44" />
+      <File id="4B93E8BF-F146-48EE-98DF-787D4B9FFBBF/f:LoadDatasetValues.cs" caret="1798" fromTop="50" />
+      <File id="4B93E8BF-F146-48EE-98DF-787D4B9FFBBF/f:LoadDatasetValues.cs" caret="3043" fromTop="29" />
+      <File id="4B93E8BF-F146-48EE-98DF-787D4B9FFBBF/f:LvqWindowValues.cs" caret="146" fromTop="3" />
+      <File id="4B93E8BF-F146-48EE-98DF-787D4B9FFBBF/f:LvqWindowValues.cs" caret="834" fromTop="20" />
+      <File id="4B93E8BF-F146-48EE-98DF-787D4B9FFBBF/f:LvqWindowValues.cs" caret="1771" fromTop="29" />
+      <File id="4B93E8BF-F146-48EE-98DF-787D4B9FFBBF/f:MakeSeed.cs" caret="235" fromTop="10" />
+      <File id="4B93E8BF-F146-48EE-98DF-787D4B9FFBBF/f:SeedUtils.cs" caret="236" fromTop="11" />
+      <File id="4B93E8BF-F146-48EE-98DF-787D4B9FFBBF/f:SeedUtils.cs" caret="372" fromTop="15" />
+      <File id="4B93E8BF-F146-48EE-98DF-787D4B9FFBBF/f:SeedUtils.cs" caret="567" fromTop="22" />
+      <File id="4B93E8BF-F146-48EE-98DF-787D4B9FFBBF/f:SeedUtils.cs" caret="13" fromTop="0" />
+      <File id="4B93E8BF-F146-48EE-98DF-787D4B9FFBBF/f:ShorthandHelper.cs" caret="68" fromTop="2" />
     </RecentEdits>
   </RecentFiles>
   <NAntValidationSettings>
