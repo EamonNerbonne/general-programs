@@ -3,14 +3,12 @@
 
 using System.Windows;
 using System.Windows.Media;
-using System;
 
 namespace EmnExtensions.Wpf.Plot.VizEngines {
 	public class VizPixelScatterGeom : VizTransformed<Point[], StreamGeometry>, IVizPixelScatter {
 		readonly VizGeometry impl = new VizGeometry { AutosizeBounds = false };
 		Point[] currentData;
 		StreamGeometry transformedData;
-		protected override StreamGeometry TransformedData(Point[] inputData) { return transformedData; }
 		public override void ChangeData(Point[] newData) {
 			currentData = newData;
 			transformedData = GraphUtils.PointCloud(newData);

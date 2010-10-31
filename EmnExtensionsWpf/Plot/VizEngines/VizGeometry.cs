@@ -4,18 +4,20 @@ using System.Windows.Media;
 
 namespace EmnExtensions.Wpf.Plot.VizEngines {
 	public class VizGeometry : PlotVizBase<Geometry> {
-		MatrixTransform m_ProjectionTransform = new MatrixTransform();
-		GeometryGroup combinesGeom = new GeometryGroup();
+		readonly MatrixTransform m_ProjectionTransform = new MatrixTransform();
+		readonly GeometryGroup combinesGeom = new GeometryGroup();
+		readonly RectangleGeometry clipRectangle = new RectangleGeometry();
+
 		bool m_AutosizeBounds = true;
 		Brush m_Fill = Brushes.Black;
 		Pen m_Pen = defaultPen;
-		RectangleGeometry clipRectangle = new RectangleGeometry();
+	
 		public VizGeometry() {
 			combinesGeom.Transform = m_ProjectionTransform;
 			SetMargin(new Thickness(Pen.Thickness / 2.0));//this will trigger OnChanged if neeeded.
 		}
 
-		static Pen defaultPen = (Pen)new Pen { Brush = Brushes.Black, EndLineCap = PenLineCap.Square, StartLineCap = PenLineCap.Square, Thickness = 1.5 }.GetAsFrozen();
+		static readonly Pen defaultPen = (Pen)new Pen { Brush = Brushes.Black, EndLineCap = PenLineCap.Square, StartLineCap = PenLineCap.Square, Thickness = 1.5 }.GetAsFrozen();
 
 		public Brush Fill {
 			get { return m_Fill; }

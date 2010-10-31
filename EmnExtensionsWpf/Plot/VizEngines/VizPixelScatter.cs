@@ -1,7 +1,7 @@
 ﻿//#define SHAREMEM //useful on workstation GC
 //#define TRACKUSAGE //handy to see how fast GUI is.
 using System;
-using System.IO;
+
 using System.Windows;
 using EmnExtensions.Algorithms;
 
@@ -26,7 +26,9 @@ namespace EmnExtensions.Wpf.Plot.VizEngines {
 		#region RecomputeBounds Helpers
 		static bool HasPoints(Point[] points) { return points != null && points.Length > 0; }
 
+// ReSharper disable ParameterTypeCanBeEnumerable.Global
 		public static Rect ComputeOuterBounds(Point[] points) {
+// ReSharper restore ParameterTypeCanBeEnumerable.Global
 			double xmin = double.MaxValue, ymin = double.MaxValue, ymax = double.MinValue, xmax = double.MinValue;
 			foreach (var point in points) {
 				xmin = Math.Min(xmin, point.X);
@@ -36,7 +38,7 @@ namespace EmnExtensions.Wpf.Plot.VizEngines {
 			}
 			Rect outerBounds = new Rect(xmin, ymin, xmax - xmin, ymax - ymin);
 			if (double.IsNaN(outerBounds.Width) || double.IsNaN(outerBounds.Height))
-				throw new ArgumentException("Invalid point array!" + outerBounds);
+				throw new PlotVizException("Invalid point array!" + outerBounds);
 			return outerBounds;
 		}
 
@@ -47,13 +49,13 @@ namespace EmnExtensions.Wpf.Plot.VizEngines {
 				cutoffEachSideX == 0 && cutoffEachSideY == 0 ? completeBounds :
 				ComputeInnerBoundsByCutoff(points, cutoffEachSideX, cutoffEachSideY, coverageGrad);
 		}
+
 #if TRACKUSAGE
 		static int hitcount;
 		static readonly DateTime start = DateTime.Now;
 		static VizPixelScatterHelpers() {
-			AppDomain.CurrentDomain.ProcessExit += (o, e) => {
-				File.AppendAllText(@"C:\tmplog.log", "HitCount: " + hitcount + ", time:" + (DateTime.Now - start) + "\n");
-			};
+			AppDomain.CurrentDomain.ProcessExit += (o, e) => 
+				System.IO.File.AppendAllText(@"C:\tmplog.log", "HitCount: " + hitcount + ", time:" + (DateTime.Now - start) + "\n");
 		}
 #endif
 
@@ -73,7 +75,9 @@ namespace EmnExtensions.Wpf.Plot.VizEngines {
 #if SHAREMEM
 				if (vals.Length < points.Length)
 #else
+// ReSharper disable JoinDeclarationAndInitializer
 				double[] vals;
+// ReSharper restore JoinDeclarationAndInitializer
 #endif
 				vals = new double[points.Length];
 				for (int i = 0; i < points.Length; i++) vals[i] = points[i].X;
@@ -83,7 +87,7 @@ namespace EmnExtensions.Wpf.Plot.VizEngines {
 
 
 				if (xBounds.IsEmpty || yBounds.IsEmpty) return Rect.Empty;
-				else if (!xBounds.Length.IsFinite() || !yBounds.Length.IsFinite()) throw new ArgumentException("Invalid point array!");
+				else if (!xBounds.Length.IsFinite() || !yBounds.Length.IsFinite()) throw new PlotVizException("Invalid point array!");
 				else return new Rect(xBounds.Start, yBounds.Start, xBounds.Length, yBounds.Length);
 			}
 		}

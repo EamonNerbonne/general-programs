@@ -6,12 +6,10 @@ using EmnExtensions.Text;
 using System.Linq;
 using System.Diagnostics;
 
-namespace EmnExtensions.Wpf.Plot
-{
+namespace EmnExtensions.Wpf.Plot {
 	[DebuggerDisplay("{AtStart} [] {AtEnd}")]
 	[TypeConverter(typeof(DimensionMarginsConverter))]
-	public struct DimensionMargins
-	{
+	public struct DimensionMargins {
 		public double AtStart { get; set; }
 		public double AtEnd { get; set; }
 		public double Sum { get { return AtStart + AtEnd; } }
@@ -26,8 +24,7 @@ namespace EmnExtensions.Wpf.Plot
 		public override bool Equals(object obj) { return obj is DimensionMargins && this == (DimensionMargins)obj; }
 	}
 
-	public class DimensionMarginsConverter : TypeConverter
-	{
+	public class DimensionMarginsConverter : TypeConverter {
 		public override object ConvertFrom(ITypeDescriptorContext context, CultureInfo culture, object value) {
 			string strval = value as string;
 			if (strval == null) return null;
@@ -39,12 +36,10 @@ namespace EmnExtensions.Wpf.Plot
 			return new DimensionMargins { AtStart = parameters[0].Value, AtEnd = parameters[parameters.Length - 1].Value };
 		}
 		public override object ConvertTo(ITypeDescriptorContext context, CultureInfo culture, object value, Type destinationType) {
-			if (destinationType != typeof(string))
+			if (destinationType != typeof(string) || !(value is DimensionMargins))
 				return null;
-			if (value == null || !(value is DimensionMargins))
-				return null;
-			DimensionMargins dim= (DimensionMargins)value;
-			return dim.AtEnd==dim.AtStart?dim.AtStart.ToString(culture):dim.AtStart.ToString(culture)+","+dim.AtEnd.ToString(culture);
+			DimensionMargins dim = (DimensionMargins)value;
+			return dim.AtEnd == dim.AtStart ? dim.AtStart.ToString(culture) : dim.AtStart.ToString(culture) + "," + dim.AtEnd.ToString(culture);
 		}
 		public override bool CanConvertFrom(ITypeDescriptorContext context, Type sourceType) {
 			return sourceType.Equals(typeof(string)) || base.CanConvertFrom(context, sourceType);

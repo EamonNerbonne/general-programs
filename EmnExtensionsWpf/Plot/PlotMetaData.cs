@@ -3,11 +3,10 @@ using System.Windows.Media;
 using System.Windows.Threading;
 
 namespace EmnExtensions.Wpf.Plot {
-	public class PlotMetaData : DispatcherObject, IPlotMetaDataWriteable {
-		private IPlot container;
-		public IPlot Plot { get { return container; } set { container = value; } }
+	public sealed class PlotMetaData : DispatcherObject, IPlotMetaDataWriteable {
+		public IPlot Plot { get; set; }
 
-		internal protected void TriggerChange(GraphChange changeType) { if (Plot != null) Plot.GraphChanged(changeType); }
+		void TriggerChange(GraphChange changeType) { if (Plot != null) Plot.GraphChanged(changeType); }
 		void IPlotMetaData.TriggerChange(GraphChange changeType) { TriggerChange(changeType); }
 
 		string m_xUnitLabel, m_yUnitLabel, m_DataLabel;

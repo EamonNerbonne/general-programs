@@ -4,7 +4,6 @@ using System.Windows.Threading;
 
 namespace EmnExtensions.Wpf.Plot.VizEngines {
 	public abstract class VizTransformed<TIn, TOut> : IVizEngine<TIn> {
-		protected abstract TOut TransformedData(TIn inputData);
 		protected abstract IVizEngine<TOut> Implementation { get; }
 		public abstract void ChangeData(TIn newData);
 		public virtual Rect DataBounds { get { return Implementation.DataBounds; } }

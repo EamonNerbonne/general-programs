@@ -5,9 +5,12 @@ namespace LvqGui {
 		public static Point[] ToMediaPoints(double[,] arrayPoints) {
 			int pointCount = arrayPoints.GetLength(0);
 			Point[] retval = new Point[pointCount];
-			for(int i=0;i<pointCount;++i) retval[i] = new Point(arrayPoints[i, 0], arrayPoints[i, 1]);
+			for (int i = 0; i < pointCount; ++i) retval[i] = GetPoint(arrayPoints,i);
 			return retval;
 		}
-	}
 
+		public static Point GetPoint(double[,] arrayPoints, int index) {
+			return new Point(arrayPoints[index, 0], arrayPoints[index, 1]);
+		}
+	}
 }

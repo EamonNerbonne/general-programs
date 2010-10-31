@@ -9,10 +9,9 @@ namespace EmnExtensions.Wpf.Plot.VizEngines {
 	}
 
 	public class VizLineSegments : VizTransformed<Point[], StreamGeometry>, IVizLineSegments {
-		IVizEngine<StreamGeometry> impl = new VizGeometry { AutosizeBounds = false };
+		readonly IVizEngine<StreamGeometry> impl = new VizGeometry { AutosizeBounds = false };
 		StreamGeometry geomCache;
 		Point[] currentPoints;
-		protected override StreamGeometry TransformedData(Point[] inputData) { return geomCache; }
 
 		protected override IVizEngine<StreamGeometry> Implementation { get { return impl; } }
 

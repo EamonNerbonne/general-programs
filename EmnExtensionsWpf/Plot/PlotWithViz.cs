@@ -1,12 +1,7 @@
 ﻿
 namespace EmnExtensions.Wpf.Plot {
 	public class PlotWithViz<T> : IPlot {
-		private IPlotContainer container;
-
-		public IPlotContainer Container {
-			get { return container; }
-			set { container = value; }
-		}
+		public IPlotContainer Container { private get; set; }
 
 		private IPlotMetaData metaData;
 

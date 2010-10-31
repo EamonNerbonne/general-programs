@@ -1,4 +1,6 @@
-﻿using System;
+﻿// ReSharper disable UnusedMember.Global
+// ReSharper disable MemberCanBePrivate.Global
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
@@ -16,15 +18,15 @@ using EmnExtensions.MathHelpers;
 using Microsoft.Win32;
 
 namespace EmnExtensions.Wpf.Plot {
-	public partial class PlotControl : UserControl, IPlotContainer {
-		bool needRedrawGraphs = false;
-		ObservableCollection<IPlot> graphs = new ObservableCollection<IPlot>();
+	public partial class PlotControl : IPlotContainer {
+		bool needRedrawGraphs;
+		readonly ObservableCollection<IPlot> graphs = new ObservableCollection<IPlot>();
 		public ObservableCollection<IPlot> Graphs { get { return graphs; } }
 		public IEnumerable<IPlot> GraphsEnumerable { get { return graphs; } set { Graphs.Clear(); foreach (var plot in value) Graphs.Add(plot); } }
-		DrawingBrush bgBrush;
-		static object syncType = new object();
+		readonly DrawingBrush bgBrush;
+		static readonly object syncType = new object();
 		public PlotControl() {
-			graphs.CollectionChanged += new NotifyCollectionChangedEventHandler(graphs_CollectionChanged);
+			graphs.CollectionChanged += graphs_CollectionChanged;
 			lock (syncType) InitializeComponent();//Apparently InitializeComponent isn't thread safe.
 			RenderOptions.SetBitmapScalingMode(dg, BitmapScalingMode.Linear);
 			bgBrush = new DrawingBrush(dg) {
@@ -44,7 +46,7 @@ namespace EmnExtensions.Wpf.Plot {
 
 		// Using a DependencyProperty as the backing store for ShowAxes.  This enables animation, styling, binding, etc...
 		public static readonly DependencyProperty ShowAxesProperty =
-			DependencyProperty.Register("ShowAxes", typeof(bool), typeof(PlotControl), new UIPropertyMetadata(true, new PropertyChangedCallback(ShowAxesSet)));
+			DependencyProperty.Register("ShowAxes", typeof(bool), typeof(PlotControl), new UIPropertyMetadata(true, ShowAxesSet));
 
 		private static void ShowAxesSet(DependencyObject d, DependencyPropertyChangedEventArgs e) {
 			((PlotControl)d).SetAxesShow((bool)e.NewValue);
@@ -55,23 +57,12 @@ namespace EmnExtensions.Wpf.Plot {
 				axis.HideAxis = !showAxes;
 		}
 
-
-
 		public string Title {
 			get { return (string)GetValue(TitleProperty); }
 			set { SetValue(TitleProperty, value); }
 		}
-
-		// Using a DependencyProperty as the backing store for Title.  This enables animation, styling, binding, etc...
 		public static readonly DependencyProperty TitleProperty =
 			DependencyProperty.Register("Title", typeof(string), typeof(PlotControl), new UIPropertyMetadata(null));
-
-
-
-		void RegisterChanged(IEnumerable<IPlot> newGraphs) {
-			foreach (IPlot newgraph in newGraphs)
-				newgraph.Container = this;
-		}
 
 		public void AutoPickColors(MersenneTwister rnd = null) {
 			var ColoredPlots = (
@@ -80,12 +71,16 @@ namespace EmnExtensions.Wpf.Plot {
 									select graph
 							   ).ToArray();
 			var randomColors = WpfTools.MakeDistributedColors(ColoredPlots.Length, rnd);
-			foreach (var plotAndColor in ColoredPlots.Zip(randomColors, (a, b) => Tuple.Create(a, b))) {
+			foreach (var plotAndColor in ColoredPlots.Zip(randomColors, Tuple.Create)) {
 				plotAndColor.Item1.MetaData.RenderColor = plotAndColor.Item2;
 			}
 		}
 
-		void UnregisterChanged(IEnumerable<IPlot> oldGraphs) {
+		void RegisterChanged(IEnumerable<IPlot> newGraphs) {
+			foreach (IPlot newgraph in newGraphs)
+				newgraph.Container = this;
+		}
+		static void UnregisterChanged(IEnumerable<IPlot> oldGraphs) {
 			foreach (IPlot oldgraph in oldGraphs)
 				oldgraph.Container = null;
 		}
@@ -99,11 +94,11 @@ namespace EmnExtensions.Wpf.Plot {
 			RequireRedisplay();
 		}
 
-		private void RequireRedisplay() {
-			InvalidateMeasure(); //todo; flag and invalidatemeasure always together?
+		void RequireRedisplay() {
+			InvalidateMeasure();
 
 			needRedrawGraphs = true;
-			InvalidateVisual();//todo; flag and InvalidateVisual always together?
+			InvalidateVisual();
 
 			labelarea.Children.Clear();
 			foreach (var graph in Graphs) {
@@ -120,13 +115,17 @@ namespace EmnExtensions.Wpf.Plot {
 		}
 
 		void IPlotContainer.GraphChanged(IPlot plot, GraphChange graphChange) {
-			if (graphChange == GraphChange.Drawing) {
-				needRedrawGraphs = true;
-				InvalidateVisual();
-			} else if (graphChange == GraphChange.Projection) {
-				InvalidateMeasure();
-			} else if (graphChange == GraphChange.Labels) {
-				RequireRedisplay();
+			switch (graphChange) {
+				case GraphChange.Drawing:
+					needRedrawGraphs = true;
+					InvalidateVisual();
+					break;
+				case GraphChange.Projection:
+					InvalidateMeasure();
+					break;
+				case GraphChange.Labels:
+					RequireRedisplay();
+					break;
 			}
 		}
 
@@ -149,7 +148,7 @@ namespace EmnExtensions.Wpf.Plot {
 				yield return TickedAxisLocation.AboveGraph | TickedAxisLocation.RightOfGraph;
 			}
 		}
-		private static DimensionBounds ToDimBounds(Rect bounds, bool isHorizontal) { return bounds.IsEmpty||bounds.Width==0||bounds.Height==0?DimensionBounds.Empty: isHorizontal ? DimensionBounds.FromRectX(bounds) : DimensionBounds.FromRectY(bounds); }
+		private static DimensionBounds ToDimBounds(Rect bounds, bool isHorizontal) { return bounds.IsEmpty || bounds.Width == 0 || bounds.Height == 0 ? DimensionBounds.Empty : isHorizontal ? DimensionBounds.FromRectX(bounds) : DimensionBounds.FromRectY(bounds); }
 		private static DimensionMargins ToDimMargins(Thickness margins, bool isHorizontal) { return isHorizontal ? DimensionMargins.FromThicknessX(margins) : DimensionMargins.FromThicknessY(margins); }
 		private static TickedAxisLocation ChooseProjection(IPlot graph) { return ProjectionCorners.FirstOrDefault(corner => (graph.MetaData.AxisBindings & corner) == corner); }
 		#endregion
@@ -158,16 +157,18 @@ namespace EmnExtensions.Wpf.Plot {
 			Trace.WriteLine("RecomputeBounds");
 
 			foreach (TickedAxis axis in Axes) {
+				// ReSharper disable AccessToModifiedClosure
 				var boundGraphs = graphs.Where(graph => (graph.MetaData.AxisBindings & axis.AxisPos) != 0);
 				DimensionBounds bounds =
 					boundGraphs
 					.Select(graph => ToDimBounds(graph.EffectiveDataBounds(), axis.IsHorizontal))
-					.Aggregate(DimensionBounds.Empty, (bounds1, bounds2) => DimensionBounds.Merge(bounds1, bounds2));
+					.Aggregate(DimensionBounds.Empty, DimensionBounds.Merge);
 				DimensionMargins margin =
 					boundGraphs
 					.Select(graph => ToDimMargins(graph.Visualisation.Margin, axis.IsHorizontal))
-					.Aggregate(DimensionMargins.Empty, (m1, m2) => DimensionMargins.Merge(m1, m2));
+					.Aggregate(DimensionMargins.Empty, DimensionMargins.Merge);
 				string dataUnits = string.Join(", ", boundGraphs.Select(graph => axis.IsHorizontal ? graph.MetaData.XUnitLabel : graph.MetaData.YUnitLabel).Distinct().Where(s => !string.IsNullOrWhiteSpace(s)).ToArray());
+				// ReSharper restore AccessToModifiedClosure
 
 				axis.DataBound = bounds;
 				axis.DataMargin = margin;
@@ -214,8 +215,9 @@ namespace EmnExtensions.Wpf.Plot {
 			RecomputeBounds();
 			return base.MeasureOverride(constraint);
 		}
-		RectangleGeometry overallClipRect = new RectangleGeometry();
-		DrawingGroup dg = new DrawingGroup();
+
+		//readonly RectangleGeometry overallClipRect = new RectangleGeometry();
+		readonly DrawingGroup dg = new DrawingGroup();
 
 		protected override void OnRender(DrawingContext drawingContext) {
 			Trace.WriteLine("PlotControl.OnRender");
@@ -225,7 +227,7 @@ namespace EmnExtensions.Wpf.Plot {
 				from axis in Axes
 				where (axis.AxisPos & relevantAxes) != 0 && axis.DataBound.Length > 0
 				select new {
-					AxisPos = axis.AxisPos,
+					axis.AxisPos,
 					Transform = axis.DataToDisplayTransform,
 					HorizontalClip = axis.IsHorizontal ? axis.DisplayClippingBounds : DimensionBounds.Empty,
 					VerticalClip = axis.IsHorizontal ? DimensionBounds.Empty : axis.DisplayClippingBounds,
@@ -244,10 +246,10 @@ namespace EmnExtensions.Wpf.Plot {
 					})
 				).ToDictionary(cornerTransform => cornerTransform.AxisPos);
 
-			Rect overallClip =
-			cornerProjection.Values.Select(trans => new Rect(new Point(trans.HorizontalClip.Start, trans.VerticalClip.Start), new Point(trans.HorizontalClip.End, trans.VerticalClip.End)))
-				.Aggregate(Rect.Empty, (rect1, rect2) => Rect.Union(rect1, rect2));
-			overallClipRect.Rect = overallClip;
+			//Rect overallClip =
+			//cornerProjection.Values.Select(trans => new Rect(new Point(trans.HorizontalClip.Start, trans.VerticalClip.Start), new Point(trans.HorizontalClip.End, trans.VerticalClip.End)))
+			//    .Aggregate(Rect.Empty, Rect.Union);
+			//overallClipRect.Rect = overallClip;
 
 			foreach (var graph in graphs) {
 				var graphCorner = ChooseProjection(graph);
@@ -276,18 +278,20 @@ namespace EmnExtensions.Wpf.Plot {
 
 		double m_dpiX = 96.0;
 		double m_dpiY = 96.0;
-		bool manualRender = false;
+		bool manualRender;
 
 		private void ExportGraph(object sender, RoutedEventArgs e) {
 			byte[] xpsData = PrintToByteArray();
 			var dialogThread = new Thread(() => {
-				SaveFileDialog saveDialog = new SaveFileDialog() {
+				SaveFileDialog saveDialog = new SaveFileDialog {
 					AddExtension = true,
 					CheckPathExists = true,
 					DefaultExt = ".xps",
 					Filter = "XPS files (*.xps)|*.xps",
 				};
+// ReSharper disable ConstantNullCoalescingCondition
 				if (saveDialog.ShowDialog() ?? false) {
+// ReSharper restore ConstantNullCoalescingCondition
 					FileInfo selectedFile = new FileInfo(saveDialog.FileName);
 					using (var fileStream = selectedFile.Open(FileMode.Create))
 						fileStream.Write(xpsData, 0, xpsData.Length);
@@ -298,34 +302,29 @@ namespace EmnExtensions.Wpf.Plot {
 			dialogThread.Start();
 		}
 
-		private byte[] PrintToByteArray() {
+		byte[] PrintToByteArray() {
 			using (MemoryStream ms = new MemoryStream()) {
 				PrintToStream(ms);
 				return ms.ToArray();
 			}
 		}
 
-		private void PrintToStream(Stream writeTo) {
+		void PrintToStream(Stream writeTo) {
 			try {
 				manualRender = true; m_dpiX = 192.0; m_dpiY = 192.0;
-				WpfTools.PrintXPS(this, this.ActualWidth, this.ActualHeight, 1.0, writeTo, FileMode.Create, FileAccess.ReadWrite);
+				WpfTools.PrintXPS(this, ActualWidth, ActualHeight, 1.0, writeTo, FileMode.Create, FileAccess.ReadWrite);
 			} finally {
 				manualRender = false; m_dpiX = 96.0; m_dpiY = 96.0;
 			}
 		}
 
-
-
-		private void PrintGraph(object sender, RoutedEventArgs ree) {
-			//			new PrintDialog().PrintVisual(this, "PrintGraph");
-
+		void PrintGraph(object sender, RoutedEventArgs ree) {
 			byte[] xpsData = PrintToByteArray();
 
 			var printThread = new Thread(() => {
-				string tempFile = System.IO.Path.GetTempFileName();
+				string tempFile = Path.GetTempFileName();
 				try {
 					File.WriteAllBytes(tempFile, xpsData);
-					using (LocalPrintServer localPrintServer = new LocalPrintServer())
 					using (PrintQueue defaultPrintQueue = LocalPrintServer.GetDefaultPrintQueue())
 					using (var dataReadStream = File.OpenRead(tempFile))
 					using (Package package = Package.Open(dataReadStream, FileMode.Open, FileAccess.Read))
@@ -340,7 +339,5 @@ namespace EmnExtensions.Wpf.Plot {
 			printThread.SetApartmentState(ApartmentState.STA);
 			printThread.Start();
 		}
-
-
 	}
 }

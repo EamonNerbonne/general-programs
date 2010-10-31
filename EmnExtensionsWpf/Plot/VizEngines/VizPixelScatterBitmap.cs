@@ -34,7 +34,7 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
 			CopyImageRegionToWriteableBitmap(pW, pH);
 		}
 
-		private Tuple<double, bool> DecodeThickness(double thickness)
+		static Tuple<double, bool> DecodeThickness(double thickness)
 		{
 			double thicknessOfSquare = VizPixelScatterHelpers.SquareSidePerThickness * thickness;
 			//thicknessOfSquare 1.0 is equivalent to a 1x1 opaque pixel square.

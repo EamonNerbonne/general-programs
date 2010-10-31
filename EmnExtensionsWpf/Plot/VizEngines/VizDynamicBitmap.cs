@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows;
@@ -9,16 +7,16 @@ using System.Diagnostics;
 
 namespace EmnExtensions.Wpf.Plot.VizEngines {
 	public abstract class VizDynamicBitmap<T> : PlotVizBase<T> {
-		public VizDynamicBitmap() { BitmapScalingMode = BitmapScalingMode.Linear; }
+		protected VizDynamicBitmap() { BitmapScalingMode = BitmapScalingMode.Linear; }
 		public BitmapScalingMode BitmapScalingMode { get { return m_scalingMode; } set { m_scalingMode = value; if (m_drawing != null) RenderOptions.SetBitmapScalingMode(m_drawing, value); } }
 		BitmapScalingMode m_scalingMode;
 
 		//DrawingGroup painting = new DrawingGroup();
 		const int EXTRA_RESIZE_PIX = 128;
 		protected WriteableBitmap m_bmp;
-		RectangleGeometry m_clipGeom = new RectangleGeometry();
-		MatrixTransform m_bitmapToDisplayTransform = new MatrixTransform();
-		DrawingGroup m_drawing = new DrawingGroup();
+		readonly RectangleGeometry m_clipGeom = new RectangleGeometry();
+		readonly MatrixTransform m_bitmapToDisplayTransform = new MatrixTransform();
+		readonly DrawingGroup m_drawing = new DrawingGroup();
 
 		public sealed override void DrawGraph(DrawingContext context) {
 			Trace.WriteLine("redraw");
@@ -28,7 +26,7 @@ namespace EmnExtensions.Wpf.Plot.VizEngines {
 		static Rect SnapRect(Rect r, double multX, double multY) { return new Rect(new Point(Math.Floor(r.Left / multX) * multX, Math.Floor(r.Top / multY) * multY), new Point(Math.Ceiling((r.Right + 0.01) / multX) * multX, Math.Ceiling((r.Bottom + 0.01) / multY) * multY)); }
 
 		public sealed override void SetTransform(Matrix dataToDisplay, Rect displayClip, double dpiX, double dpiY) {
-			if (displayClip.IsEmpty) //TODO: is this a good test for no-show?
+			if (displayClip.IsEmpty) 
 				using (m_drawing.Open())
 					return;
 
@@ -42,15 +40,14 @@ namespace EmnExtensions.Wpf.Plot.VizEngines {
 			m_bitmapToDisplayTransform.Matrix = dataToBitmapToDisplay.Item2;
 
 			m_clipGeom.Rect = snappedDrawingClip;
-			//TODO: maybe better to clip after transform and then to clip to pW/pH?
-			//Also, this clips to nearest pixel boundary; but a tighter clip is possible to sub-pixel accuracy:
+			//This clips to nearest pixel boundary; but a tighter clip is possible to sub-pixel accuracy:
 			//m_clipGeom.Rect = drawingClip;
 
 			int pW = (int)(0.5 + snappedDrawingClip.Width * dpiX / 96.0);
 			int pH = (int)(0.5 + snappedDrawingClip.Height * dpiY / 96.0);
 			if (m_bmp == null || m_bmp.PixelWidth < pW || m_bmp.PixelHeight < pH) {
-				int width = Math.Max(m_bmp == null ? 1 : m_bmp.PixelWidth, pW + (int)(EXTRA_RESIZE_PIX));
-				int height = Math.Max(m_bmp == null ? 1 : m_bmp.PixelHeight, pH + (int)(EXTRA_RESIZE_PIX));
+				int width = Math.Max(m_bmp == null ? 1 : m_bmp.PixelWidth, pW + EXTRA_RESIZE_PIX);
+				int height = Math.Max(m_bmp == null ? 1 : m_bmp.PixelHeight, pH + EXTRA_RESIZE_PIX);
 				m_bmp = new WriteableBitmap(width, height, dpiX, dpiY, PixelFormats.Bgra32, null);
 				using (var context = m_drawing.Open()) {
 					context.PushGuidelineSet(new GuidelineSet(new[] { 0.0 }, new[] { 0.0 }));

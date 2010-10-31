@@ -4,8 +4,6 @@ using System.Windows.Media;
 using System.Windows.Threading;
 
 namespace EmnExtensions.Wpf.Plot {
-	public enum PlotClass { Auto, PointCloud, Line }
-
 	public interface IPlotContainer {
 		Dispatcher Dispatcher { get; }
 		void GraphChanged(IPlot plot, GraphChange changeType);
