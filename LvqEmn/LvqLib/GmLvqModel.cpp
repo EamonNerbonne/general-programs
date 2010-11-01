@@ -13,7 +13,7 @@ GmLvqModel::GmLvqModel( LvqModelSettings & initSettings)
 {
 	if(initSettings.Dimensionality ==0)
 		initSettings.Dimensionality = (int) initSettings.Dimensions();
-	if(initSettings.Dimensionality < 0 || initSettings.Dimensionality > initSettings.Dimensions())
+	if(initSettings.Dimensionality < 0 || initSettings.Dimensionality > (int) initSettings.Dimensions())
 		throw "Dimensionality out of range";
 	
 	tmpDestDimsV1.resize(initSettings.Dimensionality);
