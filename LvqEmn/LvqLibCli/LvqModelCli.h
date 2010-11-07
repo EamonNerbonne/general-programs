@@ -39,7 +39,7 @@ namespace LvqLibCli {
 		property int InitDataFold {int get(){return useDataFold;}}
 		property LvqDatasetCli^ InitDataset {LvqDatasetCli^ get(){return initSet;}}
 
-		LvqModelCli(String^ label, LvqDatasetCli^ trainingSet,int datafold,  LvqModelSettingsCli^ modelSettings);
+		LvqModelCli(String^ label, LvqDatasetCli^ trainingSet,int datafold, LvqModelSettingsCli^ modelSettings);
 
 		LvqTrainingStatCli GetTrainingStat(int statI);
 		property int TrainingStatCount {int get();}

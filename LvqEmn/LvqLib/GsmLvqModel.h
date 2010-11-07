@@ -5,7 +5,7 @@ class GsmLvqModel : public LvqProjectionModelBase<GsmLvqModel>
 {
 	//PMatrix P; //in base class
 	std::vector<VectorXd> prototype;
-	std::vector<Vector2d, Eigen::aligned_allocator<Vector2d>  > P_prototype;
+	std::vector<Vector2d, Eigen::aligned_allocator<Vector2d> > P_prototype;
 	VectorXi pLabel;
 	double lr_scale_P;
 

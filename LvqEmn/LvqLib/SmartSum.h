@@ -34,7 +34,7 @@ public:
 		double mScale = other.weightSum / newWeightSum;
 		double sScale = weightSum * other.weightSum / newWeightSum;
 		weightSum = newWeightSum;
-		sX += other.sX +  (other.meanX - meanX)*(other.meanX - meanX) * sScale;
+		sX += other.sX + (other.meanX - meanX)*(other.meanX - meanX) * sScale;
 		meanX += (other.meanX - meanX) * mScale;
 	}
 
@@ -43,7 +43,7 @@ public:
 	ArrayT GetSampleVariance() const {return sX / (weightSum-1);}
 	double GetWeight() const {return weightSum;}
 	void Reset() { 
-		meanX  = ArrayT::Zero(meanX.size());
+		meanX = ArrayT::Zero(meanX.size());
 		sX = ArrayT::Zero(sX.size());
 		weightSum = 0.0;
 	}

@@ -55,7 +55,7 @@ vector<MatrixXd> MakeTailTransforms(boost::mt19937 & rndGen, int numStarTails, i
 typedef boost::uniform_int<> starChoiceDistrib;
 typedef boost::variate_generator<boost::mt19937 &, starChoiceDistrib> starChoiceGen;
 
-LvqDataset* DatasetUtils::ConstructStarDataset(boost::mt19937 & rngParams, boost::mt19937 & rngInst, int dims, int starDims, int numStarTails, int classCount,  int pointsPerClass,  double starMeanSep, double starClassRelOffset, bool randomlyRotate){
+LvqDataset* DatasetUtils::ConstructStarDataset(boost::mt19937 & rngParams, boost::mt19937 & rngInst, int dims, int starDims, int numStarTails, int classCount, int pointsPerClass, double starMeanSep, double starClassRelOffset, bool randomlyRotate){
 	MatrixXd postInitTransform = randomOrthogonalMatrix<MatrixXd>(rngParams,dims);//always compute random transform, even if not needed, to ensure identical usage of random
 	if(!randomlyRotate) postInitTransform.setIdentity();
 

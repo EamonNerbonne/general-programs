@@ -6,7 +6,7 @@ using boost::mt19937;
 struct container {
 	container(mt19937 & rng) : rnd(rng){}
 	mt19937 rnd;
-	unsigned operator()(){		return rnd();	}
+	unsigned operator()(){ return rnd();	}
 };
 
 BOOST_AUTO_TEST_CASE( random_test )

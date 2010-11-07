@@ -83,12 +83,12 @@ GoodBadMatch GmLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel) 
 	lrX_muJ2_Pk_vK.noalias() = P[K] * vK;
 	lrX_muJ2_Pk_vK *= LVQ_LrScaleBad*lr_point * mu_J * 2.0;
 
-	prototype[J].noalias() -= P[J].transpose() *  lrX_muK2_Pj_vJ;
+	prototype[J].noalias() -= P[J].transpose() * lrX_muK2_Pj_vJ;
 	prototype[K].noalias() -= P[K].transpose() * lrX_muJ2_Pk_vK;
 
 	lrX_muK2_Pj_vJ *= lr_P / lr_point;
 	lrX_muJ2_Pk_vK *= lr_P / lr_point/LVQ_LrScaleBad;
-	P[J].noalias() -=  lrX_muK2_Pj_vJ * vJ.transpose() ;
+	P[J].noalias() -= lrX_muK2_Pj_vJ * vJ.transpose() ;
 	P[K].noalias() -= lrX_muJ2_Pk_vK * vK.transpose() ;
 	return matches;
 }
@@ -111,7 +111,7 @@ void GmLvqModel::AppendTrainingStatNames(std::vector<std::wstring> & retval) con
 	retval.push_back(L"Projection Norm Mean|norm|Prototype Matrix");
 	retval.push_back(L"Projection Norm Maximum|norm|Prototype Matrix");
 }
-void GmLvqModel::AppendOtherStats(std::vector<double> & stats, LvqDataset const * trainingSet,  std::vector<int>const & trainingSubset, LvqDataset const * testSet,  std::vector<int>const & testSubset) const {
+void GmLvqModel::AppendOtherStats(std::vector<double> & stats, LvqDataset const * trainingSet, std::vector<int>const & trainingSubset, LvqDataset const * testSet, std::vector<int>const & testSubset) const {
 	LvqModel::AppendOtherStats(stats,trainingSet,trainingSubset,testSet,testSubset);
 	double minNorm=std::numeric_limits<double>::max();
 	double maxNorm=0.0;

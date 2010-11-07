@@ -13,7 +13,7 @@ double mulBench(void) {
 		t.start();
 		for (int i=0; i<num_runs; ++i) {
 			P(num_runs%2, (num_runs/2)%25) = 1.0; //vs. optimizer
-			sum +=  mu_vK.dot(P * vK);
+			sum += mu_vK.dot(P * vK);
 		}
 		t.stop();
 	}

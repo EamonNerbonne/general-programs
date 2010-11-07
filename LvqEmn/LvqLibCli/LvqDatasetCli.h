@@ -14,7 +14,7 @@ namespace LvqLibCli {
 		LvqModelCli^ lastModel;
 		ColorArray^ colors;
 		int folds;
-		LvqDatasetCli(String^label,int folds, bool extend,ColorArray^ colors,  LvqDataset * newDataset,boost::mt19937& rngOrder);
+		LvqDatasetCli(String^label,int folds, bool extend,ColorArray^ colors, LvqDataset * newDataset,boost::mt19937& rngOrder);
 	public:
 		bool IsFolded() {return folds!=0;}
 		std::vector<int> GetTrainingSubset(int fold);
@@ -31,8 +31,8 @@ namespace LvqLibCli {
 
 		Tuple<double,double> ^ GetPcaNnErrorRate();
 
-		static LvqDatasetCli^ ConstructFromArray(String^ label,int folds, bool extend, ColorArray^ colors,unsigned rngInstSeed,  array<double,2>^ points, array<int>^ pointLabels, int classCount);
-		static LvqDatasetCli^ ConstructGaussianClouds(String^ label,int folds, bool extend, ColorArray^ colors, unsigned rngParamsSeed, unsigned  rngInstSeed, int dims, int classCount, int pointsPerClass, double meansep);
+		static LvqDatasetCli^ ConstructFromArray(String^ label,int folds, bool extend, ColorArray^ colors,unsigned rngInstSeed, array<double,2>^ points, array<int>^ pointLabels, int classCount);
+		static LvqDatasetCli^ ConstructGaussianClouds(String^ label,int folds, bool extend, ColorArray^ colors, unsigned rngParamsSeed, unsigned rngInstSeed, int dims, int classCount, int pointsPerClass, double meansep);
 		static LvqDatasetCli^ ConstructStarDataset(String^ label,int folds, bool extend, ColorArray^ colors, unsigned rngParamsSeed, unsigned rngInstSeed, int dims, int starDims, int numStarTails,int classCount, int pointsPerClass, double starMeanSep, double starClassRelOffset, bool randomlyTransform);
 	};
 }

@@ -10,7 +10,7 @@ namespace LvqLibCli {
 	};
 	public value class ModelProjection {
 	public:
-		initonly array<CliLvqLabelledPoint>^   Points;
+		initonly array<CliLvqLabelledPoint>^ Points;
 		initonly array<CliLvqLabelledPoint>^ Prototypes;
 		ModelProjection(array<CliLvqLabelledPoint>^ points,array<CliLvqLabelledPoint>^ prototypes) :Points(points),Prototypes(prototypes) {}
 		property bool HasValue {bool get(){return Points!=nullptr && Prototypes!=nullptr;}}

@@ -48,9 +48,9 @@ int main(int , char*argv []){
 #endif
 	cout<<": ";
 
-	cout <<  file_size(argv[0])/1024 <<"KB\n"; //resizeTest() <<"s; "
+	cout << file_size(argv[0])/1024 <<"KB\n"; //resizeTest() <<"s; "
 
 
-	return 	docovbench();
+	return docovbench();
 
 }

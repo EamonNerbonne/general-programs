@@ -1,6 +1,6 @@
 #pragma once
 #ifdef _MSC_VER
-#define WIN32_LEAN_AND_MEAN             // Exclude rarely-used stuff from Windows headers
+#define WIN32_LEAN_AND_MEAN // Exclude rarely-used stuff from Windows headers
 #pragma warning (disable:4996)
 #pragma warning (disable:4099)
 

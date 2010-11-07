@@ -22,9 +22,9 @@ namespace LvqLibCli {
 		, label(label)
 		, folds(folds)
 		, dataset(newDataset,newDataset->MemAllocEstimate())
-	{  dataset->shufflePoints(rngOrder); if(extend)dataset->ExtendByCorrelations(); }
+	{ dataset->shufflePoints(rngOrder); if(extend)dataset->ExtendByCorrelations(); }
 
-	LvqDatasetCli^ LvqDatasetCli::ConstructGaussianClouds(String^label,int folds,bool extend,ColorArray^ colors,unsigned  rngParamsSeed, unsigned rngInstSeed, int dims, int classCount, int pointsPerClass, double meansep) {
+	LvqDatasetCli^ LvqDatasetCli::ConstructGaussianClouds(String^label,int folds,bool extend,ColorArray^ colors,unsigned rngParamsSeed, unsigned rngInstSeed, int dims, int classCount, int pointsPerClass, double meansep) {
 		mt19937 rngParam(rngParamsSeed);
 		mt19937 rngInst(rngInstSeed);
 		return gcnew LvqDatasetCli(label,folds,extend,colors,DatasetUtils::ConstructGaussianClouds(rngParam,rngInst, dims, classCount, pointsPerClass, meansep),rngInst);
@@ -36,7 +36,7 @@ namespace LvqLibCli {
 		return gcnew LvqDatasetCli(label,folds,extend,colors,DatasetUtils::ConstructStarDataset(rngParam,rngInst, dims, starDims, numStarTails, classCount, pointsPerClass, starMeanSep, starClassRelOffset,randomlyTransform),rngInst);
 	}
 
-	Tuple<double,double> ^ LvqDatasetCli::GetPcaNnErrorRate()  {
+	Tuple<double,double> ^ LvqDatasetCli::GetPcaNnErrorRate() {
 		SmartSum<1> nnErrorRate(1);
 		for(int fold=0;fold<folds;++fold) {
 			nnErrorRate.CombineWith(

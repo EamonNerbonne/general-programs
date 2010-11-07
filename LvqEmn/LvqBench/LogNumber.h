@@ -76,7 +76,7 @@ public:
 		return FromExp(exponent+1.0/(lroot*lroot*lroot*lroot));
 	}
 	inline LogNumber AddSmallerSlow(LogNumber b) {
-		return  FromExp(exponent+std::log(1+std::exp(b.exponent-exponent) )); 
+		return FromExp(exponent+std::log(1+std::exp(b.exponent-exponent) )); 
 	}
 	inline LogNumber operator+(LogNumber b) { return exponent>=b.exponent?AddSmaller(b):b.AddSmaller(*this) ; }
 	inline LogNumber& operator+=(LogNumber b) { exponent = (*this+b).exponent; return *this; }
@@ -97,4 +97,4 @@ inline double ToDouble(double num) { return num; }
 //inline LogNumber FromExp(Float exponent) {return LogNumber::FromExp(exponent);}
 //inline double FromExp(Float exponent) {return exp(exponent);}
 
-inline LogNumber exp(LogNumber num,double power) { 	return LogNumber::FromExp(num.exponent*power);}
+inline LogNumber exp(LogNumber num,double power) { return LogNumber::FromExp(num.exponent*power);}

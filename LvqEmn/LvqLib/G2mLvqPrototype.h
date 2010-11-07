@@ -13,7 +13,7 @@ class G2mLvqPrototype
 	Vector2d P_point;
 
 	EIGEN_STRONG_INLINE void ComputePP( PMatrix const & P) {
-		P_point.noalias() = P  * point;
+		P_point.noalias() = P * point;
 	}
 
 public:

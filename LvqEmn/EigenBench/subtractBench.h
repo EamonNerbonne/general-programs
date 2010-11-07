@@ -14,9 +14,9 @@ double subtractTest() {
 		t.start();
 		for (int i=0; i<num_runs; ++i) {
 			if(i%2==0)
-				c = a  - b;
+				c = a - b;
 			else
-				b  = a - c;
+				b = a - c;
 		}
 		t.stop();
 		sum+=c.sum();

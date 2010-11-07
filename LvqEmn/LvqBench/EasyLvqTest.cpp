@@ -58,11 +58,11 @@ void PrintModelStatus(char const * label,LvqModel const * model,LvqDataset const
 	cerr << label<< ": "<<errorRate << ", "<<meanCost;
 	LvqProjectionModel const * projectionModel = dynamic_cast<LvqProjectionModel const*>(model);
 	if(projectionModel) 
-		cerr<<"   [norm: "<< projectionSquareNorm(projectionModel->projectionMatrix()) <<"]";
+		cerr<<" [norm: "<< projectionSquareNorm(projectionModel->projectionMatrix()) <<"]";
 	cerr<<endl;
 }
 
-void TestModel(LvqModelSettings::LvqModelType modelType, mt19937 & rndGenOrig, bool useNgUpdate, LvqDataset const  * dataset, vector<int> const & protoDistrib, int iters) {
+void TestModel(LvqModelSettings::LvqModelType modelType, mt19937 & rndGenOrig, bool useNgUpdate, LvqDataset const * dataset, vector<int> const & protoDistrib, int iters) {
 	Eigen::BenchTimer t;
 	mt19937 rndGen = rndGenOrig;//we do this to avoid changing the original rng, so we can rerun tests with the same sequence of random numbers generated.
 	

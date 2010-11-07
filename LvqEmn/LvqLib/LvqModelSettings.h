@@ -20,7 +20,7 @@ public:
 	T const & operator*() const {return *item;}
 	T  * get()  {return item;}
 	T  * operator->()  {return get();}
-	T  & operator*()  {return *item;}
+	T & operator*() {return *item;}
 
 	copy_ptr& operator=(copy_ptr const& rhs) { *item = *rhs.item; return *this; }
 	  //copy_ptr tmp(rhs);
@@ -59,7 +59,7 @@ class LvqModelRuntimeSettings
 public:
 	bool TrackProjectionQuality,NormalizeProjection,NormalizeBoundaries,GloballyNormalize,UpdatePointsWithoutB;
 	int ClassCount;
-	double  LrScaleP, LrScaleB, LR0,LrScaleBad;
+	double LrScaleP, LrScaleB, LR0,LrScaleBad;
 	copy_ptr<boost::mt19937> RngIter;
 	LvqModelRuntimeSettings(int classCount, boost::mt19937 & rngIter) 
 		: TrackProjectionQuality(false)
@@ -83,7 +83,7 @@ public:
 	bool NgUpdateProtos;
 	int Dimensionality;
 
-	enum LvqModelType {	 AutoModelType, GmModelType, GsmModelType, G2mModelType };
+	enum LvqModelType { AutoModelType, GmModelType, GsmModelType, G2mModelType };
 	LvqModelType ModelType;
 	boost::mt19937 RngParams;
 	LvqModelRuntimeSettings RuntimeSettings;

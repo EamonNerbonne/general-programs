@@ -4,7 +4,7 @@
 	Author	:	Nishant Sivakumar
 	Email	:	voidnish@gmail.com	
 	Blog	:	http://blog.voidnish.com
-	Web		:	http://www.voidnish.com 	
+	Web :	http://www.voidnish.com 	
 
 	You may freely use this class as long as you include
 	this copyright. 

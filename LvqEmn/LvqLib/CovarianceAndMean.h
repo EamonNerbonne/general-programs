@@ -14,7 +14,7 @@ public:
 
 	//decent baseline.
 	inline static TMatrix CovarianceA(Eigen::MatrixBase<TPoints> const & points, TPoint const & mean) {
-		return (points.colwise() - mean) *  (points.colwise() - mean).transpose()  * (1.0/(points.cols()-1.0)) ;
+		return (points.colwise() - mean) * (points.colwise() - mean).transpose() * (1.0/(points.cols()-1.0)) ;
 	}
 	
 	//good for fixed matrices matrices on MSC
@@ -51,7 +51,7 @@ public:
 
 struct Covariance {
 	template<typename TPoints>
-	static inline Eigen::Matrix<typename TPoints::Scalar,TPoints::RowsAtCompileTime,TPoints::RowsAtCompileTime> Compute(Eigen::MatrixBase<TPoints> const & points, Eigen::Matrix<typename TPoints::Scalar,TPoints::RowsAtCompileTime,1>  const & mean) {
+	static inline Eigen::Matrix<typename TPoints::Scalar,TPoints::RowsAtCompileTime,TPoints::RowsAtCompileTime> Compute(Eigen::MatrixBase<TPoints> const & points, Eigen::Matrix<typename TPoints::Scalar,TPoints::RowsAtCompileTime,1> const & mean) {
 #ifdef _MSC_VER
 		return CovarianceImpl<TPoints>::CovarianceC(points,mean);
 #else
@@ -66,6 +66,6 @@ struct Covariance {
 	static inline Eigen::Matrix<typename TPoints::Scalar,TPoints::RowsAtCompileTime,TPoints::RowsAtCompileTime> ComputeWithMean(Eigen::MatrixBase<TPoints>const & points) {
 		const typename TPoints::PlainObject & evalPoints = points.eval();
 		//Eigen::Matrix<typename TPoints::Scalar,TPoints::RowsAtCompileTime,1>  mean =;
-		return Compute<typename TPoints::PlainObject> (evalPoints,  MeanPoint(evalPoints) );
+		return Compute<typename TPoints::PlainObject> (evalPoints, MeanPoint(evalPoints) );
 	}
 };

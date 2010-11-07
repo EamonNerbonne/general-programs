@@ -24,7 +24,7 @@ static VectorXd fromStlVector(vector<double> const & vec) {
 	return retval;
 }
 
-void LvqModel::AddTrainingStat(LvqDataset const * trainingSet,  std::vector<int>const & trainingSubset, double trainingMeanCost,double trainingErrorRate, LvqDataset const * testSet,  vector<int>const & testSubset, int iterInc, double elapsedInc) {
+void LvqModel::AddTrainingStat(LvqDataset const * trainingSet, std::vector<int>const & trainingSubset, double trainingMeanCost,double trainingErrorRate, LvqDataset const * testSet, vector<int>const & testSubset, int iterInc, double elapsedInc) {
 	this->totalIter+=iterInc;
 	this->totalElapsed+=elapsedInc;
 
@@ -44,14 +44,14 @@ void LvqModel::AddTrainingStat(LvqDataset const * trainingSet,  std::vector<int>
 	this->trainingStats.push_back(fromStlVector(stats) );
 }
 
-void LvqModel::AddTrainingStat(LvqDataset const * trainingSet,  vector<int>const & trainingSubset, LvqDataset const * testSet,  vector<int>const & testSubset, int iterInc, double elapsedInc) {
+void LvqModel::AddTrainingStat(LvqDataset const * trainingSet, vector<int>const & trainingSubset, LvqDataset const * testSet, vector<int>const & testSubset, int iterInc, double elapsedInc) {
 	double meanCost=0,errorRate=0;
 	if(trainingSet && trainingSubset.size() >0) 
 		trainingSet->ComputeCostAndErrorRate(trainingSubset,this,meanCost,errorRate);
 	this->AddTrainingStat(trainingSet,trainingSubset,meanCost,errorRate,testSet,testSubset,iterInc,elapsedInc);
 }
 
-std::vector<std::wstring> LvqModel::TrainingStatNames()  {
+std::vector<std::wstring> LvqModel::TrainingStatNames() {
 	std::vector<std::wstring> retval;
 	retval.push_back(L"Training Iterations|iterations");
 	retval.push_back(L"Elapsed Seconds|seconds");
@@ -64,7 +64,7 @@ std::vector<std::wstring> LvqModel::TrainingStatNames()  {
 }
 
 void LvqModel::AppendTrainingStatNames(std::vector<std::wstring> & retval) const { }
-void LvqModel::AppendOtherStats(std::vector<double> & stats, LvqDataset const * trainingSet,  std::vector<int>const & trainingSubset, LvqDataset const * testSet,  std::vector<int>const & testSubset) const { }
+void LvqModel::AppendOtherStats(std::vector<double> & stats, LvqDataset const * trainingSet, std::vector<int>const & trainingSubset, LvqDataset const * testSet, std::vector<int>const & testSubset) const { }
 
 static const __m128d lr0 = _mm_set_sd(LVQ_LR0);
 

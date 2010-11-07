@@ -3,7 +3,7 @@
 
 using namespace Eigen;
 
-PMatrix Pca2dFromCov(Eigen::MatrixXd const & covarianceMatrix)  {
+PMatrix Pca2dFromCov(Eigen::MatrixXd const & covarianceMatrix) {
 	SelfAdjointEigenSolver<MatrixXd> eigenSolver(covarianceMatrix, ComputeEigenvectors);
 	VectorXd eigenvaluesUnsorted = eigenSolver.eigenvalues();
 	MatrixXd eigVecUnsorted = eigenSolver.eigenvectors();

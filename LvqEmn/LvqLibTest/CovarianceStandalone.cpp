@@ -3,7 +3,7 @@
 using namespace Eigen;
 
 static MatrixXd Covariance(Eigen::MatrixBase<MatrixXd> const & points, VectorXd const & mean) {
-	return (points.colwise() - mean) * (points.colwise() - mean).transpose() * (1.0/(points.cols()-1.0))  ;
+	return (points.colwise() - mean) * (points.colwise() - mean).transpose() * (1.0/(points.cols()-1.0)) ;
 }
 
 static MatrixXd CovarianceB(Eigen::MatrixBase<MatrixXd>const & points, VectorXd const & mean) {
@@ -17,7 +17,7 @@ static MatrixXd CovarianceB(Eigen::MatrixBase<MatrixXd>const & points, VectorXd 
 }
 
 static MatrixXd CovarianceC(Eigen::MatrixBase<MatrixXd> const & points, VectorXd const & mean) {
-	return (points.colwise() - mean) * (1.0/(points.cols()-1.0)) * (points.colwise() - mean).transpose()   ;
+	return (points.colwise() - mean) * (1.0/(points.cols()-1.0)) * (points.colwise() - mean).transpose() ;
 }
 
 
@@ -55,9 +55,9 @@ BOOST_AUTO_TEST_CASE( covariance_standalone_test ){
 #else
 #include <iostream>
 int main(int argc, char *argv[] ) {
-	bool isOk =  testIt();
-	bool isOk2 =  testIt2();
-	bool isOk3 =  testIt3();
+	bool isOk = testIt();
+	bool isOk2 = testIt2();
+	bool isOk3 = testIt3();
 	std::cout<<"testIt(): "<< isOk<<"\n";
 	std::cout<<"testIt2():"<< isOk2<<"\n";
 	std::cout<<"testIt3():"<< isOk3<<"\n";

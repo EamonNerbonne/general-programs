@@ -76,7 +76,7 @@ namespace LvqLibCli {
 		if(modelCopyRef==nullptr) return ModelProjection();
 		LvqProjectionModel* projectionModel = dynamic_cast<LvqProjectionModel*>(modelCopyRef->get());
 		if(projectionModel==nullptr) return ModelProjection();
-		auto projection =  ToCliLabelledPoints(dataset->GetDataset()->ProjectPoints(projectionModel), dataset->GetDataset()->getPointLabels()) ;
+		auto projection = ToCliLabelledPoints(dataset->GetDataset()->ProjectPoints(projectionModel), dataset->GetDataset()->getPointLabels()) ;
 		auto prototypes = ToCliLabelledPoints(projectionModel->GetProjectedPrototypes(),projectionModel->GetPrototypeLabels());
 
 		auto retval = ModelProjection(projection,prototypes);
@@ -103,7 +103,7 @@ namespace LvqLibCli {
 	void LvqModelCli::Train(int epochsToDo,LvqDatasetCli^ trainingSet, int datafold){
 		trainingSet->LastModel = this;
 		msclr::lock l(trainSync);
-		trainingSet->GetDataset()->TrainModel(epochsToDo,  model->get(), trainingSet->GetTrainingSubset(datafold), trainingSet->GetDataset(), trainingSet->GetTestSubset(datafold));
+		trainingSet->GetDataset()->TrainModel(epochsToDo, model->get(), trainingSet->GetTrainingSubset(datafold), trainingSet->GetDataset(), trainingSet->GetTestSubset(datafold));
 		msclr::lock l2(copySync);
 		model->get()->CopyTo(*modelCopy->get());
 	}
@@ -111,7 +111,7 @@ namespace LvqLibCli {
 	void LvqModelCli::TrainUpto(int epochsToReach,LvqDatasetCli^ trainingSet, int datafold){
 		trainingSet->LastModel = this;
 		msclr::lock l(trainSync);
-		trainingSet->GetDataset()->TrainModel(epochsToReach - model->get()->epochsTrained,  model->get(), trainingSet->GetTrainingSubset(datafold), trainingSet->GetDataset(), trainingSet->GetTestSubset(datafold));
+		trainingSet->GetDataset()->TrainModel(epochsToReach - model->get()->epochsTrained, model->get(), trainingSet->GetTrainingSubset(datafold), trainingSet->GetDataset(), trainingSet->GetTestSubset(datafold));
 		msclr::lock l2(copySync);
 		model->get()->CopyTo(*modelCopy->get());
 		//newBackup = GcPtr::Create(model->get()->clone());

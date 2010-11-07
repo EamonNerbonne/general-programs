@@ -56,19 +56,19 @@ namespace LvqLibCli {
 	
 	template<typename TDerived> struct MatrixOrVectorChooser {
 		template<bool isVector >
-		static inline array<typename MatrixBase<TDerived>::Scalar, (isVector?1: 2) >^ cppToCliHelper(MatrixBase<TDerived>  const & matrix);
+		static inline array<typename MatrixBase<TDerived>::Scalar, (isVector?1: 2) >^ cppToCliHelper(MatrixBase<TDerived> const & matrix);
 		template<>
-		static inline array<typename MatrixBase<TDerived>::Scalar, 1>^ cppToCliHelper<true>(MatrixBase<TDerived>  const & matrix){
+		static inline array<typename MatrixBase<TDerived>::Scalar, 1>^ cppToCliHelper<true>(MatrixBase<TDerived> const & matrix){
 			typedef MatrixBase<TDerived>::Scalar T;
-			array<T>^ points =  gcnew array<T>(static_cast<int>(matrix.size()));
+			array<T>^ points = gcnew array<T>(static_cast<int>(matrix.size()));
 			for(int i=0; i<points->GetLength(0); ++i)
 				cppToCli(matrix(i),points[i]);
 			return points;
 		}
 		template<>
-		static inline array<typename MatrixBase<TDerived>::Scalar, 2>^ cppToCliHelper<false>(MatrixBase<TDerived>  const & matrix) {
+		static inline array<typename MatrixBase<TDerived>::Scalar, 2>^ cppToCliHelper<false>(MatrixBase<TDerived> const & matrix) {
 			typedef MatrixBase<TDerived>::Scalar T;
-			array<T, 2>^ points =  gcnew array<T,2>(static_cast<int>(matrix.cols()),static_cast<int>(matrix.rows()));
+			array<T, 2>^ points = gcnew array<T,2>(static_cast<int>(matrix.cols()),static_cast<int>(matrix.rows()));
 			for(int i=0; i<points->GetLength(0); ++i)
 				for(int j=0; j<points->GetLength(1); ++j)
 					cppToCli(matrix(j,i),points[i, j]);
@@ -124,7 +124,7 @@ namespace LvqLibCli {
 
 	template<typename S>
 	struct ToCpp {
-		template<typename T> static  S From(T const & cppVal) {
+		template<typename T> static S From(T const & cppVal) {
 			S retval;
 			cliToCpp(cppVal,retval);
 			return retval;

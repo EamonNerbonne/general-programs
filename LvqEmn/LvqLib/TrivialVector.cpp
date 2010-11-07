@@ -26,7 +26,7 @@
 	};
 
 
-	class IndexableList :  public AverageHelper<IndexableList, TrivialList>
+	class IndexableList : public AverageHelper<IndexableList, TrivialList>
 	{
 		std::vector<double> backend;
 	public:

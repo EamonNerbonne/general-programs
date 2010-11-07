@@ -5,8 +5,8 @@
 #pragma once
 
 template<typename T> ref class GcAutoPtr sealed {
-	T*  ptr;
-	size_t  size;
+	T* ptr;
+	size_t size;
 public:
 	GcAutoPtr(T*ptr,size_t size) : ptr(ptr),size(size){ GC::AddMemoryPressure(size); }
 
@@ -26,7 +26,7 @@ public:
 };
 
 template<typename T> ref class GcPlainPtr sealed {
-	T*  ptr;
+	T* ptr;
 public:
 	GcPlainPtr(T*ptr): ptr(ptr) { GC::AddMemoryPressure(sizeof(T)); }
 

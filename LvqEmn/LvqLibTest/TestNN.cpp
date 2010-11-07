@@ -64,10 +64,10 @@ BOOST_AUTO_TEST_CASE( nn_test )
 
 		double ignore, g2mRate;
 		dataset->ComputeCostAndErrorRate(testSet,&model,ignore,g2mRate);
-		LOG(",  G2m: "<<g2mRate );
+		LOG(", G2m: "<<g2mRate );
 
 		double g2mNNrate = dataset->NearestNeighborErrorRate(trainingSet,dataset.get(),testSet, model.projectionMatrix() );
-		LOG(",  G2mNN: "<<g2mNNrate );
+		LOG(", G2mNN: "<<g2mNNrate );
 
 		timePca.start();
 		PMatrix transform= PcaProjectInto2d(dataset->ExtractPoints(trainingSet) );
@@ -78,12 +78,12 @@ BOOST_AUTO_TEST_CASE( nn_test )
 		timePcaNN.stop();
 
 		BOOST_CHECK(pcaErrorRate >= rawErrorRate);
-		LOG(",  PcaNN: "<<pcaErrorRate );
+		LOG(", PcaNN: "<<pcaErrorRate );
 
 		double identTransRate = dataset->NearestNeighborErrorRate(trainingSet,dataset.get(),testSet, checkerbox);
 		BOOST_CHECK(identTransRate >= pcaErrorRate);
 		BOOST_CHECK(identTransRate >= g2mNNrate);
-		LOG(",  identNN: "<<identTransRate <<"\n");
+		LOG(", identNN: "<<identTransRate <<"\n");
 		
 	}
 

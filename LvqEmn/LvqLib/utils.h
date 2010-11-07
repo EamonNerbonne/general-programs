@@ -33,7 +33,7 @@ template <typename T> void normalizeProjection(T & projectionMatrix) {
 }
 
 
-template<typename T>  void RandomMatrixInit(boost::mt19937 & rng, Eigen::MatrixBase< T>& mat, double mean, double sigma) {
+template<typename T> void RandomMatrixInit(boost::mt19937 & rng, Eigen::MatrixBase< T>& mat, double mean, double sigma) {
 	using namespace boost;
 	normal_distribution<> distrib(mean,sigma);
 	variate_generator<mt19937&, normal_distribution<> > rndGen(rng, distrib);
@@ -42,7 +42,7 @@ template<typename T>  void RandomMatrixInit(boost::mt19937 & rng, Eigen::MatrixB
 			mat(i,j) = rndGen();
 }
 
-template <typename T>  T randomOrthogonalMatrix(boost::mt19937 & rngParams, int dims) {
+template <typename T> T randomOrthogonalMatrix(boost::mt19937 & rngParams, int dims) {
 	T P(dims,dims);
 	double Pdet = 0.0;
 	while(!(fabs(Pdet) >0.1 && fabs(Pdet) < 10)) {
@@ -60,14 +60,14 @@ template <typename T>  T randomOrthogonalMatrix(boost::mt19937 & rngParams, int 
 	return P;
 }
 
-template <typename T>  T randomUnscalingMatrix(boost::mt19937 & rngParams, int dims) {
+template <typename T> T randomUnscalingMatrix(boost::mt19937 & rngParams, int dims) {
 	T P(dims, dims);
 	double Pdet = 0.0;
 	while(!(Pdet >0.1 &&Pdet < 10)) {
 		RandomMatrixInit(rngParams, P, 0, 1.0);
 		Pdet = P.determinant();
 		assert(Pdet!=0);
-		if(Pdet == 0.0)  continue;//exceedingly unlikely.
+		if(Pdet == 0.0) continue;//exceedingly unlikely.
 		
 		if(Pdet < 0.0) //sign doesn't _really_ matter.
 			P.col(0) *=-1;
@@ -85,7 +85,7 @@ template <typename T> void projectionRandomizeUniformScaled(boost::mt19937 & ran
 	boost::uniform_01<boost::mt19937> uniform01_rand(randGen);
 
 	for(int col=0; col < projectionMatrix.cols(); col++)
-		for(int row=0; row < projectionMatrix.rows(); row++)  //column-major storage
+		for(int row=0; row < projectionMatrix.rows(); row++) //column-major storage
 			projectionMatrix(row,col) = uniform01_rand()*2.0-1.0;
 		
 	normalizeProjection(projectionMatrix);

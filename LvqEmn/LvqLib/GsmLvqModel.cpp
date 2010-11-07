@@ -47,7 +47,7 @@ GoodBadMatch GsmLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel)
 	double lr_point = learningRate,
 		lr_P = learningRate * this->lr_scale_P;
 
-	assert(lr_P>=0  &&  lr_point>=0);
+	assert(lr_P>=0 && lr_point>=0);
 
 	Vector2d P_trainPoint(P * trainPoint);
 
@@ -93,7 +93,7 @@ GoodBadMatch GsmLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel)
 			VectorXd &Js = prototype[fullmatch.matchesOk[i].idx];
 			Vector2d &P_Js = P_prototype[fullmatch.matchesOk[i].idx];;
 			double muK2s_lrSub = lrSub* 2.0 * +2.0*fullmatch.distBad / (sqr(fullmatch.matchesOk[i].dist) + sqr(fullmatch.distBad));
-			Js.noalias() -=  P.transpose() * (muK2s_lrSub *  (P_Js - P_trainPoint));
+			Js.noalias() -= P.transpose() * (muK2s_lrSub * (P_Js - P_trainPoint));
 		}
 	}
 
@@ -142,12 +142,12 @@ void GsmLvqModel::ClassBoundaryDiagram(double x0, double x1, double y0, double y
 	//will update to include changes to X.
 
 	for(int pi=0; pi < this->PrototypeCount(); ++pi) 
-		diff_x0_y.col(pi).noalias() =  Vector2d(xBase,yBase) - this->P_prototype[pi];
+		diff_x0_y.col(pi).noalias() = Vector2d(xBase,yBase) - this->P_prototype[pi];
 	
 
-	for(int yRow=0;  yRow < rows;  yRow++) {
+	for(int yRow=0; yRow < rows; yRow++) {
 		PMatrix diff_x_y(diff_x0_y); //copy that includes changes to Y as well.
-		for(int xCol=0;  xCol < cols;  xCol++) {
+		for(int xCol=0; xCol < cols; xCol++) {
 
 			// x = xBase + xCol * xDelta;  y = yBase + yCol * yDelta;
 			MatrixXd::Index bestProtoI;

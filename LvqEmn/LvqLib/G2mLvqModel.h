@@ -16,7 +16,7 @@ class G2mLvqModel : public LvqProjectionModelBase<G2mLvqModel>
 	VectorXd m_vJ, m_vK;
 protected:
 	virtual void AppendTrainingStatNames(std::vector<std::wstring> & retval) const;
-	virtual void AppendOtherStats(std::vector<double> & stats, LvqDataset const * trainingSet,  std::vector<int>const & trainingSubset, LvqDataset const * testSet,  std::vector<int>const & testSubset) const;
+	virtual void AppendOtherStats(std::vector<double> & stats, LvqDataset const * trainingSet, std::vector<int>const & trainingSubset, LvqDataset const * testSet, std::vector<int>const & testSubset) const;
 
 
 public:

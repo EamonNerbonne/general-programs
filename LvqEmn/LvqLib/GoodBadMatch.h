@@ -21,7 +21,7 @@ struct CorrectAndWorstMatches {
 	struct MatchOk {
 		double dist;
 		int idx;
-		MatchOk()  {}
+		MatchOk() {}
 		MatchOk(double dist, int idx) :dist(dist),idx(idx) {}
 		inline bool operator<(MatchOk const & other) const {return dist < other.dist;}
 	};

@@ -18,9 +18,9 @@ public:
 		double yBase = y0+yDelta*0.5;
 
 		double y = yBase;
-		for(int yRow=0;  yRow < rows;  yRow++) {
+		for(int yRow=0; yRow < rows; yRow++) {
 			double x = xBase;
-			for(int xCol=0;  xCol < cols;  xCol++) {
+			for(int xCol=0; xCol < cols; xCol++) {
 				classDiagram(yRow,xCol) = self.classifyProjectedInline(Vector2d(x,y));
 				x+=xDelta;
 			}

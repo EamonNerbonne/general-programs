@@ -3,7 +3,7 @@
 
 #define MAXDIMS 16
 #define ACTUALDIMS 7
-typedef Matrix<double,Dynamic,1,0,MAXDIMS,1>  VectorLimited;
+typedef Matrix<double,Dynamic,1,0,MAXDIMS,1> VectorLimited;
 #define NO_MAP 0
 
 double resizeTest() {
