@@ -1,4 +1,6 @@
 #pragma once
+//#pragma managed(push, off)
+
 #include "LvqProjectionModel.h"
 #include "LvqModelFindMatches.h"
 
@@ -28,3 +30,5 @@ public:
 
 	GoodBadMatch ComputeMatches(VectorXd const & unknownPoint, int pointLabel) const { return this->findMatches(P * unknownPoint, pointLabel); }
 };
+
+//#pragma managed(pop)

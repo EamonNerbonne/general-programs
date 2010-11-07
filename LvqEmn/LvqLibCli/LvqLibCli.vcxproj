@@ -244,7 +244,7 @@
       <ExceptionHandling>Async</ExceptionHandling>
       <FloatingPointModel>Fast</FloatingPointModel>
       <AdditionalOptions>/MP4</AdditionalOptions>
-      <OpenMPSupport>false</OpenMPSupport>
+      <OpenMPSupport>true</OpenMPSupport>
     </ClCompile>
     <Link>
       <AdditionalDependencies>LvqLib.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -517,6 +517,7 @@
       <UseInBuild>True</UseInBuild>
       <UseDependenciesInBuild>True</UseDependenciesInBuild>
     </Reference>
+    <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="LvqDatasetCli.cpp" />

@@ -9,6 +9,9 @@
 #include <msclr/auto_handle.h>
 #include <msclr/lock.h>  
 #include <iostream>
+//#pragma managed(push, off)
 #include <Eigen/Core>
+//#pragma managed(pop)
+
 #include "GcAutoPtr.h"
 #include "WrappingUtils.h"

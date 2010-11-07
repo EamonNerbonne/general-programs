@@ -1,5 +1,5 @@
 #pragma once
-
+//#pragma managed(push, off)
 using namespace Eigen;
 #include "LvqTypedefs.h"
 
@@ -46,3 +46,4 @@ public:
 	std::vector<int> GetTrainingSubset(int fold, int foldcount) const;
 	std::vector<int> GetTestSubset(int fold, int foldcount) const;
 };
+//#pragma managed(pop)

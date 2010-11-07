@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Windows.Media;
 
 namespace EmnExtensions.Wpf
@@ -15,8 +13,7 @@ namespace EmnExtensions.Wpf
 		}
 
 		const float dx = 0.8f;
-		const double saturation = 1.0d;     // TODO make this a user setting in the interface
-		const double hueshift = 0.0d;       // TODO make this a user setting in the interface
+
 		public static Color Rainbow(double value) {
 			if (value < 0) value = 0; if (value > 1) value = 1;
 			value = (6 - 2 * dx) * value + dx;

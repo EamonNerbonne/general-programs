@@ -1,61 +1,76 @@
+#include "StdoutRedirector.h"
+
 #define UNICODE 1
-// Exclude rarely used parts of the windows headers
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
 #include <stdio.h>
 #include <io.h>
 #include <fcntl.h>
 #include <ios>
-
-#include "StdoutRedirector.h"
+#include <msclr/auto_handle.h>
+#include "GcAutoPtr.h"
 using namespace System::Threading;
 using namespace Microsoft::Win32::SafeHandles;
 using namespace System;
 using namespace std;
 namespace EmnExtensionsNative {
+	RestoringReadStream::RestoringReadStream(FileStream^readStream, FILE origFileValue, FILE* underlyingOutStream, FILE*newOutStream) 
+		: readStream(readStream)
+		, origFileValue(new FILE(origFileValue))
+		, underlyingOutStream(underlyingOutStream) 
+		, newOutStream(newOutStream)
+	{
+		//File::AppendAllText("D:\\redir.txt",System::String::Format( "Constructed RestoringReadStream:{0}, {1}\n",(IntPtr)underlyingOutStream,(IntPtr)newOutStream));
+		//printf("%p, %p\n",underlyingOutStream,newOutStream);
+	}
+
+	RestoringReadStream::!RestoringReadStream() { 
+		fclose(newOutStream); 
+		*underlyingOutStream = *origFileValue; 
+		delete origFileValue; 
+		origFileValue=nullptr; 
+		underlyingOutStream = nullptr; 
+		newOutStream = nullptr;
+		//File::AppendAllText("D:\\redir.txt","!RestoringReadStream\n");
+	}
+
+	RestoringReadStream::~RestoringReadStream() { 
+		//File::AppendAllText("D:\\redir.txt","~RestoringReadStream\n"); 
+		this->!RestoringReadStream(); 
+	} 
+
+	FileStream^ RestoringReadStream::ReadStream::get(){return readStream.get();} 
 	//the core idea here is taken from various sources, of which http://www.halcyon.com/~ast/dload/guicon.htm is the most complete (although it attempts a slightly different use-case)
 
-	Stream^ StdoutRedirector::RedirectStdout(void){
-		HANDLE hCustomStdoutWr;
-		Stream^ managedStream = RedirectCStream(stdout, &hCustomStdoutWr);
 
-		//SetStdHandle( STD_OUTPUT_HANDLE,hCustomStdoutWr);//not sure if this is necessary...
-		//ios::sync_with_stdio();//in theory this should remake cout...
-		return managedStream;
-	}
+		//SetStdHandle( STD_OUTPUT_HANDLE,hCustomStdoutWr);//doesn't seem necessary.
+		//SetStdHandle(STD_ERROR_HANDLE,hCustomStderrWr);//doesn't seem necessary.
 
-	Stream^ StdoutRedirector::RedirectStderr(void){
-		HANDLE hCustomStderrWr;
-		Stream^ managedStream = RedirectCStream(stderr, &hCustomStderrWr);
-
-		//SetStdHandle(STD_ERROR_HANDLE,hCustomStderrWr);//not sure if this is necessary...
-		//ios::sync_with_stdio();//in theory this should remake cout...
-		return managedStream;
-	}
+	//ios::sync_with_stdio();//in theory this should remake cout...//doesn't seem necessary.
 
 
-	Stream^ StdoutRedirector::RedirectCStream(FILE* oldCstream, HANDLE* phCustomOutWr){
-
-		HANDLE hCustomOutRd;	
-		//SECURITY_ATTRIBUTES are null since we don't plan on ever exposing this internal pipe
-		SECURITY_ATTRIBUTES *pipeSecurity=NULL;
+	RestoringReadStream^ StdoutRedirector::RedirectCStream(FILE* nativeOutStream){
+		HANDLE hCustomOutRd,hCustomOutWr;
+		SECURITY_ATTRIBUTES *pipeSecurity=NULL;//SECURITY_ATTRIBUTES are null since we don't plan on ever exposing this internal pipe
 		int bufSize=0;//buffer size, where 0 means auto-selected. 
-		if (! CreatePipe(&hCustomOutRd, phCustomOutWr, pipeSecurity, bufSize)) 
+		if (! CreatePipe(&hCustomOutRd, &hCustomOutWr, pipeSecurity, bufSize)) //CloseHandle() must be called on hCustomOutRd and hCustomOutWr eventually.
 			throw gcnew Exception(gcnew String(L"Could not create pipe for native stream redirection!"));
 
-
-
-		//insert magic here - this converts a win32 handle to some other handle:
-		int outHandle = _open_osfhandle((intptr_t)*phCustomOutWr, _O_APPEND);
-		//insert magic here - this converts some other handle to a FILE*
-		FILE* newOut=_fdopen(outHandle,"w");
+		int outHandle = _open_osfhandle((intptr_t)hCustomOutWr, _O_APPEND); //insert magic here(1) - this converts a win32 handle to... a file descriptor (i.e., yet another handle)!
+		//calling _close() on outHandle will close hCustomOutWr
+		
+		FILE* newOut=_fdopen(outHandle,"w"); //insert magic here(2) - this converts a file descriptor to a FILE* (i.e., yet another handle)!
+		// calling fclose() on newOut will close outHandle, closing hCustomOutWr
+		
 		setvbuf(newOut,NULL,_IONBF,0);//we don't want buffering.
-
-		*oldCstream = *newOut;
+		FILE oldValue = *nativeOutStream;
+		*nativeOutStream = *newOut;
 
 		//we use a safehandle since firstly this takes care of deallocation, and since FileStream requires it.
-		SafeFileHandle^ safeCustomOutRd = gcnew SafeFileHandle((IntPtr)hCustomOutRd,true);
-		return gcnew FileStream(safeCustomOutRd,FileAccess::Read);		
-		//TODO: uhh, cleanup, deallocation of rest of pipe? huh? walks away...
+		//this will only close the hCustomOutRd! hCustomOutWr also needs closing.
+		SafeFileHandle^ safeCustomOutRd = gcnew SafeFileHandle((IntPtr)hCustomOutRd,true); //Disposing safeCustomOutRd will close hCustomOutRd
+		
+		FileStream^ cliReadStream = gcnew FileStream(safeCustomOutRd,FileAccess::Read);		//Disposing cliReadStream will Dispose safeCustomOutRd will close hCustomOutRd
+		return gcnew RestoringReadStream(cliReadStream,oldValue,nativeOutStream,newOut);
 	}
 }

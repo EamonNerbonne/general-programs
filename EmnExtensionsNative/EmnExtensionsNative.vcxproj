@@ -267,6 +267,7 @@
     <ClCompile Include="StdoutRedirector.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="GcAutoPtr.h" />
     <ClInclude Include="StdoutRedirector.h" />
   </ItemGroup>
   <ItemGroup>

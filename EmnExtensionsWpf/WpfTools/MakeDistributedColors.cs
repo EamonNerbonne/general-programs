@@ -1,10 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Windows.Media;
 using EmnExtensions.MathHelpers;
-using System.Collections;
 
 namespace EmnExtensions.Wpf {
 	public static partial class WpfTools {
@@ -26,7 +23,7 @@ namespace EmnExtensions.Wpf {
 
 					ColorSimple min = colors.Aggregate(ColorSimple.MinValue, ColorSimple.Min);
 					ColorSimple max = colors.Aggregate(ColorSimple.MaxValue, ColorSimple.Max);
-					for (int i = 0; i < colors.Length; i++) colors[i].ScaleBack(min, max, rnd);
+					for (int i = 0; i < colors.Length; i++) colors[i].ScaleBack(min, max);
 				}
 
 			return colors.Select(c => c.ToWindowsColor()).ToArray();
@@ -36,7 +33,7 @@ namespace EmnExtensions.Wpf {
 			public static ColorSimple Random(MersenneTwister rnd) {
 				return new ColorSimple { R = rnd.NextDouble0To1(), G = rnd.NextDouble0To1(), B = rnd.NextDouble0To1() };
 			}
-			public double R, G, B;
+			double R, G, B;
 
 
 			public void RepelFrom(ColorSimple other, double lr) {
@@ -46,7 +43,7 @@ namespace EmnExtensions.Wpf {
 				G = G + force * (G - other.G);
 				B = B + force * (B - other.B);
 			}
-			public void ScaleBack(ColorSimple min, ColorSimple max, MersenneTwister rnd) {
+			public void ScaleBack(ColorSimple min, ColorSimple max) {
 				R = scaled(R, min.R, max.R);
 				G = scaled(G, min.G, max.G);
 				B = scaled(B, min.B, max.B);

@@ -7,6 +7,8 @@ using System.Linq;
 using System.Threading;
 using EmnExtensions.DebugTools;
 using LvqLibCli;
+using System.Windows;
+using System.Threading.Tasks;
 
 namespace LvqGui {
 	public class TrainingControlValues : INotifyPropertyChanged {
@@ -14,24 +16,24 @@ namespace LvqGui {
 		public LvqWindowValues Owner { get { return owner; } }
 
 		public event PropertyChangedEventHandler PropertyChanged;
-		public event Action<LvqDatasetCli, LvqModelCli, int> ModelSelected;
-		public event Action<LvqDatasetCli, LvqModelCli> SelectedModelUpdatedInBackgroundThread;
+		public event Action<LvqDatasetCli, LvqModels, int> ModelSelected;
+		public event Action<LvqDatasetCli, LvqModels> SelectedModelUpdatedInBackgroundThread;
 
 		private void _propertyChanged(string propertyName) { if (PropertyChanged != null) PropertyChanged(this, new PropertyChangedEventArgs(propertyName)); }
 
 		public LvqDatasetCli SelectedDataset {
 			get { return _SelectedDataset; }
-			set { if (!Equals(_SelectedDataset, value)) { _SelectedDataset = value; _propertyChanged("SelectedDataset"); _propertyChanged("MatchingLvqModels"); SelectedLvqModel = _SelectedDataset == null ? null : _SelectedDataset.LastModel; AnimateTraining = false; } }
+			set { if (!Equals(_SelectedDataset, value)) { _SelectedDataset = value; _propertyChanged("SelectedDataset"); _propertyChanged("MatchingLvqModels"); SelectedLvqModel = _SelectedDataset == null ? null : Owner.ResolveModel(_SelectedDataset.LastModel); AnimateTraining = false; } }
 		}
 		private LvqDatasetCli _SelectedDataset;
 
-		public IEnumerable<LvqModelCli> MatchingLvqModels { get { return Owner.LvqModels.Where(model => model == null || model.FitsDataShape(SelectedDataset)); } }
+		public IEnumerable<LvqModels> MatchingLvqModels { get { return Owner.LvqModels.Where(model => model == null || model.FitsDataShape(SelectedDataset)); } }
 
-		public LvqModelCli SelectedLvqModel {
+		public LvqModels SelectedLvqModel {
 			get { return _SelectedLvqModel; }
 			set { if (!Equals(_SelectedLvqModel, value)) { _SelectedLvqModel = value; _propertyChanged("SelectedLvqModel"); _propertyChanged("ModelIndexes"); ModelSelected(_SelectedDataset, _SelectedLvqModel, _SubModelIndex); AnimateTraining = false; SubModelIndex = 0; } }
 		}
-		private LvqModelCli _SelectedLvqModel;
+		private LvqModels _SelectedLvqModel;
 
 		public IEnumerable<int> ModelIndexes { get { return Enumerable.Range(0, SelectedLvqModel == null ? 0 : SelectedLvqModel.ModelCount); } }
 
@@ -60,7 +62,7 @@ namespace LvqGui {
 		public TrainingControlValues(LvqWindowValues owner) {
 			this.owner = owner;
 			EpochsPerClick = 500;
-			EpochsPerAnimation = 40;
+			EpochsPerAnimation = 2;
 			owner.LvqModels.CollectionChanged += LvqModels_CollectionChanged;
 		}
 
@@ -94,11 +96,13 @@ namespace LvqGui {
 			else if (selectedModel == null)
 				Console.WriteLine("Training aborted, no model selected.");
 			else {
-				lock (selectedModel.UpdateSyncObject) //not needed for safety, just for accurate timing
-					using (new DTimer("Training " + epochsToTrainFor + " epochs"))
-						selectedModel.Train(epochsToDo: epochsToTrainFor, trainingSet: selectedDataset);
-				PrintModelTimings(selectedModel);
-				PotentialUpdate(selectedDataset, selectedModel);
+				//lock (selectedModel.UpdateSyncObject) //not needed for safety, just for accurate timing
+				using (new DTimer("Training " + epochsToTrainFor + " epochs"))
+					selectedModel.Train( epochsToTrainFor,  selectedDataset, Owner.WindowClosingToken);
+				if (!Owner.WindowClosingToken.IsCancellationRequested) {
+					PrintModelTimings(selectedModel);
+					PotentialUpdate(selectedDataset, selectedModel);
+				}
 			}
 		}
 
@@ -112,39 +116,49 @@ namespace LvqGui {
 			var selectedModel = SelectedLvqModel;
 			try {
 				isAnimating = true;
-				while (_AnimateTraining) {
+				Queue<Task> overallTask = new Queue<Task>();
+				while (_AnimateTraining && !Owner.WindowClosingToken.IsCancellationRequested) {
 					int epochsToTrainFor = EpochsPerAnimation;
 					if (selectedDataset == null || selectedModel == null || epochsToTrainFor < 1) {
 						owner.Dispatcher.BeginInvoke(() => { AnimateTraining = false; });
 						break;
 					}
+					overallTask.Enqueue(Task.Factory.StartNew(() => {
+						selectedModel.Train( epochsToTrainFor,  selectedDataset, Owner.WindowClosingToken);
+						PotentialUpdate(selectedDataset, selectedModel);
+					}));
 
-					selectedModel.Train(epochsToDo: epochsToTrainFor, trainingSet: selectedDataset);
-					PotentialUpdate(selectedDataset, selectedModel);
+					if (overallTask.Count > 2) overallTask.Dequeue().Wait();
+
 #if BENCHMARK
 					epochsTrained += epochsToTrainFor;
-					if (epochsTrained >= 100) owner.Dispatcher.BeginInvokeBackground(() => { Application.Current.Shutdown(); });
+					if (epochsTrained >= 100) {
+						_AnimateTraining = false;
+						Task.WaitAll(overallTask.ToArray());
+						owner.Dispatcher.BeginInvokeBackground(() => Application.Current.MainWindow.Close());
+					}
 #endif
 				}
+				Task.WaitAll(overallTask.ToArray());
 			} finally {
 				isAnimating = false;
 				PrintModelTimings(selectedModel);
 			}
 		}
 
-		static void PrintModelTimings(LvqModelCli model) {
-			var trainingStats = model.TrainingStats.ToArray();
+		static void PrintModelTimings(LvqModels model) {
+			var trainingStats = model.TrainingStats;
 			if (trainingStats.Length >= 2) {
 				var lastStat = trainingStats[trainingStats.Length - 1];
 				Console.WriteLine("Avg cpu seconds per iter: {0}{1}",
-					lastStat.values[LvqTrainingStatCli.ElapsedSecondsI] / lastStat.values[LvqTrainingStatCli.TrainingIterationI],
-					lastStat.stderror != null
-						? " ~ " + (lastStat.stderror[LvqTrainingStatCli.ElapsedSecondsI] / lastStat.values[LvqTrainingStatCli.TrainingIterationI])
+					lastStat.Value[LvqTrainingStatCli.ElapsedSecondsI] / lastStat.Value[LvqTrainingStatCli.TrainingIterationI],
+					lastStat.StandardError != null
+						? " ~ " + (lastStat.StandardError[LvqTrainingStatCli.ElapsedSecondsI] / lastStat.Value[LvqTrainingStatCli.TrainingIterationI])
 						: "");
 			}
 		}
 
-		private void PotentialUpdate(LvqDatasetCli selectedDataset, LvqModelCli selectedModel) {
+		private void PotentialUpdate(LvqDatasetCli selectedDataset, LvqModels selectedModel) {
 			if (selectedModel == SelectedLvqModel && selectedDataset == SelectedDataset && SelectedModelUpdatedInBackgroundThread != null)
 				SelectedModelUpdatedInBackgroundThread(selectedDataset, selectedModel);
 		}

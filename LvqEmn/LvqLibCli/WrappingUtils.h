@@ -1,6 +1,10 @@
 #pragma once
 #include <msclr/marshal_cppstd.h>
+
+//#pragma managed(push, off)
 #include <Eigen/Core>
+//#pragma managed(pop)
+
 namespace LvqLibCli {
 
 	value class LvqTrainingStatCli;
@@ -94,6 +98,14 @@ namespace LvqLibCli {
 	template<typename TDerived>
 	inline void cppToCli(MatrixBase<TDerived> const & matrix,array<typename MatrixBase<TDerived>::Scalar, (MatrixBase<TDerived>::Base::IsVectorAtCompileTime?1: 2) >^% retval ) {
 		retval= MatrixOrVectorChooser<TDerived>::cppToCliHelper<MatrixBase<TDerived>::IsVectorAtCompileTime>(matrix);
+	}
+
+	template<typename TDerived>
+	inline void cppToCli(MatrixBase<TDerived> const & matrix,System::Windows::Point% retval ) {
+		assert(matrix.rows()==2);
+		assert(matrix.cols()==1);
+		retval = System::Windows::Point(matrix(0,0),matrix(1,0));
+//		retval= MatrixOrVectorChooser<TDerived>::cppToCliHelper<MatrixBase<TDerived>::IsVectorAtCompileTime>(matrix);
 	}
 
 	template<typename TDerived>

@@ -12,49 +12,53 @@ class LvqModel;
 namespace LvqLibCli {
 	using namespace System;
 	using namespace System::Collections::Generic;
+
 	ref class LvqModelSettingsCli;
 	ref class LvqDatasetCli;
 
-
 	public ref class LvqModelCli {
 		typedef GcAutoPtr<LvqModel> WrappedModel;
-		typedef array<WrappedModel^> WrappedModelArray;
 		String^ label;
-		WrappedModelArray^ model;
-		WrappedModelArray^ modelCopy;
-		Object^ mainSync;
+		WrappedModel^ model;
+		WrappedModel^ modelCopy;
 		LvqDatasetCli^ initSet;
-		void BackupModel(); 
-		List<LvqTrainingStatCli>^ cachedTrainingStats;
+		int useDataFold;
+		Object^trainSync;
+		Object^copySync;
+
 	public:
+
 
 		property int ClassCount {int get();}
 		property int Dimensions {int get();}
 		property double CurrentLearningRate {double get();}
-		property int ModelCount {int get();}
-		property bool IsMultiModel {bool get();}
 		property bool IsProjectionModel {bool get();}
-		property String^ ModelLabel {String^ get(){return label;}}
+		bool FitsDataShape(LvqDatasetCli^ dataset);
 
-		property LvqDatasetCli^ InitSet {LvqDatasetCli^ get(){return initSet;}}
-		property IEnumerable<LvqTrainingStatCli>^ TrainingStats {	IEnumerable<LvqTrainingStatCli>^ get();}
+		property String^ ModelLabel {String^ get(){return label;}}
+		property int InitDataFold {int get(){return useDataFold;}}
+		property LvqDatasetCli^ InitDataset {LvqDatasetCli^ get(){return initSet;}}
+
+		LvqModelCli(String^ label, LvqDatasetCli^ trainingSet,int datafold,  LvqModelSettingsCli^ modelSettings);
+
+		LvqTrainingStatCli GetTrainingStat(int statI);
+		property int TrainingStatCount {int get();}
+
+
 		property array<String^>^ TrainingStatNames { array<String^>^ get();}
 
 		void ResetLearningRate();
 		
-		LvqModelCli(String^ label, int parallelModels, LvqDatasetCli^ trainingSet, LvqModelSettingsCli^ modelSettings);
 
-		bool FitsDataShape(LvqDatasetCli^ dataset);
 
-		property Object^ UpdateSyncObject { Object ^ get(){return mainSync;} }
+//		property Object^ UpdateSyncObject { Object ^ get(){return mainSync;} }
 
-		array<double,2>^ CurrentProjectionOf(int modelIdx,LvqDatasetCli^ dataset);
-		Tuple<array<double,2>^,array<int>^>^ PrototypePositions(int modelIdx);
-		array<int,2>^ ClassBoundaries(int modelIdx, double x0, double x1, double y0, double y1,int xCols, int yRows);
+		array<int,2>^ ClassBoundaries(double x0, double x1, double y0, double y1,int xCols, int yRows);
 
-		ModelProjection CurrentProjectionAndPrototypes(int modelIdx, LvqDatasetCli^ dataset);
+		ModelProjection CurrentProjectionAndPrototypes(LvqDatasetCli^ dataset);
 
-		void Train(int epochsToDo,LvqDatasetCli^ trainingSet); 
+		void Train(int epochsToDo,LvqDatasetCli^ trainingSet, int datafold); 
+		void TrainUpto(int epochsToReach,LvqDatasetCli^ trainingSet, int datafold); 
 
 	};
 }

@@ -3,6 +3,7 @@
 // ReSharper disable UnusedAutoPropertyAccessor.Global
 
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
@@ -31,17 +32,17 @@ namespace LvqGui {
 
 
 		public ObservableCollection<LvqDatasetCli> Datasets { get; private set; }
-		public ObservableCollection<LvqModelCli> LvqModels { get; private set; }
+		public ObservableCollection<LvqModels> LvqModels { get; private set; }
 
-		public readonly Dispatcher Dispatcher;
+		public CancellationToken WindowClosingToken { get { return win.ClosingToken; } }
+		public Dispatcher Dispatcher { get { return win.Dispatcher; } }
 		public readonly LvqWindow win;
 
 		public LvqWindowValues(LvqWindow win) {
 			if (win == null) throw new ArgumentNullException("win");
 			this.win = win;
-			Dispatcher = win.Dispatcher;
 			Datasets = new ObservableCollection<LvqDatasetCli>();
-			LvqModels = new ObservableCollection<LvqModelCli>();
+			LvqModels = new ObservableCollection<LvqModels>();
 
 			//AppSettingsValues = new AppSettingsValues(this);
 			CreateGaussianCloudsDatasetValues = new CreateGaussianCloudsDatasetValues(this);
@@ -56,9 +57,12 @@ namespace LvqGui {
 
 		void LvqModels_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e) {
 			if (e.NewItems != null && e.NewItems.Count > 0) {
-				var newModel = e.NewItems.Cast<LvqModelCli>().First();
-				TrainingControlValues.SelectedDataset = newModel.InitSet;
-				TrainingControlValues.SelectedLvqModel = newModel;
+				foreach (LvqModels modelGroup in e.NewItems)
+					foreach (LvqModelCli subModel in modelGroup.SubModels)
+						modelGroupLookup.Add(subModel, modelGroup);
+				var newModelGroup = e.NewItems.Cast<LvqModels>().First();
+				TrainingControlValues.SelectedDataset = newModelGroup.InitSet;
+				TrainingControlValues.SelectedLvqModel = newModelGroup;
 				win.trainingTab.IsSelected = true;
 			}
 			if (e.OldItems != null && e.OldItems.Contains(TrainingControlValues.SelectedLvqModel)) {
@@ -70,7 +74,20 @@ namespace LvqGui {
 					TrainingControlValues.SelectedLvqModel = newModel;
 				}
 			}
+			if (e.OldItems != null)
+				foreach (LvqModels modelGroup in e.OldItems)
+					foreach (LvqModelCli subModel in modelGroup.SubModels)
+						if (!modelGroupLookup.Remove(subModel))
+							throw new InvalidOperationException("How can you be removing models that aren't in the lookup... ehh....?");
+
 		}
+
+		readonly Dictionary<LvqModelCli, LvqModels> modelGroupLookup = new Dictionary<LvqModelCli, LvqModels>();
+
+		public LvqModels ResolveModel(LvqModelCli lastModel) {
+			return modelGroupLookup[lastModel];
+		}
+
 
 		void Datasets_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e) {
 			if (e.NewItems != null) {
@@ -91,5 +108,6 @@ namespace LvqGui {
 					LvqModels.Remove(model);
 			}
 		}
+
 	}
 }

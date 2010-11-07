@@ -1,9 +1,9 @@
-﻿using System;
+﻿// ReSharper disable UnusedMember.Global
+// ReSharper disable MemberCanBePrivate.Global
+using System;
 using System.Windows;
-using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using System.Windows.Input;
 
 //see http://msdn.microsoft.com/en-us/library/system.windows.media.imaging.writeablebitmap.aspx
 namespace EmnExtensions.Wpf
@@ -13,13 +13,14 @@ namespace EmnExtensions.Wpf
 
 		//Dependency Property "BitmapGenerator":==========================
 
-		public static DependencyProperty BitmapGeneratorProperty =
+		public static readonly DependencyProperty BitmapGeneratorProperty =
  DependencyProperty.Register("BitmapGenerator", typeof(Func<int, int, uint[]>), typeof(DynamicBitmap),
- new FrameworkPropertyMetadata((Func<int, int, uint[]>)null,
+ new FrameworkPropertyMetadata(null,
 	 FrameworkPropertyMetadataOptions.AffectsRender,
-	 new PropertyChangedCallback(BitmapGeneratorSet))
+	 BitmapGeneratorSet)
  );
-		public static void BitmapGeneratorSet(DependencyObject d, DependencyPropertyChangedEventArgs e) {
+
+		private static void BitmapGeneratorSet(DependencyObject d, DependencyPropertyChangedEventArgs e) {
 			((DynamicBitmap)d).InvalidateVisual();
 		}
 		public Func<int, int, uint[]> BitmapGenerator {
@@ -36,8 +37,6 @@ namespace EmnExtensions.Wpf
 
 		//class implementation: ==========================================
 		WriteableBitmap bitmap;
-
-		public DynamicBitmap() { }
 
 		protected override void OnRenderSizeChanged(SizeChangedInfo sizeInfo) {
 			base.OnRenderSizeChanged(sizeInfo);

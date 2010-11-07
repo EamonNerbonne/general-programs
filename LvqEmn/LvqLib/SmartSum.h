@@ -1,4 +1,6 @@
 #pragma once
+//#pragma managed(push, off)
+
 #include <Eigen/Core>
 using namespace Eigen;
 
@@ -28,13 +30,12 @@ public:
 	}
 
 	void CombineWithSum(SmartSum const & other) {
-		if(weight == 0.0) return;//ignore zero-weight stuff...
 		double newWeightSum = weightSum + other.weightSum;
 		double mScale = other.weightSum / newWeightSum;
 		double sScale = weightSum * other.weightSum / newWeightSum;
 		weightSum = newWeightSum;
 		sX += other.sX +  (other.meanX - meanX)*(other.meanX - meanX) * sScale;
-		meanX += (val - meanX) * mScale;
+		meanX += (other.meanX - meanX) * mScale;
 	}
 
 	ArrayT const & GetMean()const {return meanX;}
@@ -48,3 +49,4 @@ public:
 	}
 };
 
+//#pragma managed(pop)

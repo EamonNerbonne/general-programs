@@ -13,12 +13,10 @@ namespace LvqLibCli {
 		literal int ExtraI = 5;
 
 		array<double>^ values;
-		array<double>^ stderror;
 		
-		static LvqTrainingStatCli toCli(Eigen::VectorXd const & cppVal);
-		static LvqTrainingStatCli toCli(Eigen::VectorXd const &  values, Eigen::VectorXd const & stderror);
-		static VectorXd toCpp(LvqTrainingStatCli cliVal);
 	};
+	LvqTrainingStatCli toCli(Eigen::VectorXd const & cppVal);
+	VectorXd toCpp(LvqTrainingStatCli cliVal);
 
 	void cliToCpp(LvqTrainingStatCli % stat, VectorXd &retval);
 	void cppToCli(VectorXd const & stat, LvqTrainingStatCli% retval);

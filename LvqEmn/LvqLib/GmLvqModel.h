@@ -43,6 +43,10 @@ public:
 	virtual int classify(VectorXd const & unknownPoint) const; 
 	virtual GoodBadMatch learnFrom(VectorXd const & newPoint, int classLabel);
 	virtual GmLvqModel* clone() const { return new GmLvqModel(*this); }
+	virtual void CopyTo(LvqModel& target) const{ 
+		GmLvqModel & typedTarget = dynamic_cast<GmLvqModel&>(target);
+		typedTarget = *this;
+	}
 };
 
 inline int GmLvqModel::classify(VectorXd const & unknownPoint) const{

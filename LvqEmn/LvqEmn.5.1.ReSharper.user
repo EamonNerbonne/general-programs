@@ -8,68 +8,67 @@
   </SettingsComponent>
   <RecentFiles>
     <RecentFiles>
-      <File id="4B93E8BF-F146-48EE-98DF-787D4B9FFBBF/f:App.xaml.cs" caret="210" fromTop="12" />
-      <File id="4B93E8BF-F146-48EE-98DF-787D4B9FFBBF/f:LvqWindow.xaml.cs" caret="2164" fromTop="29" />
-      <File id="4B93E8BF-F146-48EE-98DF-787D4B9FFBBF/f:Points.cs" caret="307" fromTop="7" />
-      <File id="4B93E8BF-F146-48EE-98DF-787D4B9FFBBF/f:LvqScatterPlot.cs" caret="11255" fromTop="34" />
-      <File id="F50CC07F-68F1-455A-BE8D-A64D827F1A5C/d:Plot/d:VizEngines/f:PlotVizException.cs" caret="181" fromTop="8" />
-      <File id="F50CC07F-68F1-455A-BE8D-A64D827F1A5C/d:Plot/d:VizEngines/f:VizDelegateBitmap.cs" caret="0" fromTop="0" />
-      <File id="F50CC07F-68F1-455A-BE8D-A64D827F1A5C/d:Plot/d:VizEngines/f:VizDrawing.cs" caret="0" fromTop="0" />
-      <File id="F50CC07F-68F1-455A-BE8D-A64D827F1A5C/d:Plot/d:VizEngines/f:VizDynamicBitmap.cs" caret="0" fromTop="0" />
-      <File id="F50CC07F-68F1-455A-BE8D-A64D827F1A5C/d:Plot/d:VizEngines/f:VizGeometry.cs" caret="0" fromTop="0" />
-      <File id="F50CC07F-68F1-455A-BE8D-A64D827F1A5C/d:Plot/d:VizEngines/f:VizLineSegments.cs" caret="0" fromTop="0" />
-      <File id="F50CC07F-68F1-455A-BE8D-A64D827F1A5C/d:Plot/d:VizEngines/f:VizMapped.cs" caret="0" fromTop="0" />
-      <File id="F50CC07F-68F1-455A-BE8D-A64D827F1A5C/d:Plot/d:VizEngines/f:VizNone.cs" caret="0" fromTop="0" />
-      <File id="F50CC07F-68F1-455A-BE8D-A64D827F1A5C/d:Plot/d:VizEngines/f:VizPixelScatterBitmap.cs" caret="0" fromTop="0" />
-      <File id="F50CC07F-68F1-455A-BE8D-A64D827F1A5C/d:Plot/d:VizEngines/f:VizPixelScatterGeom.cs" caret="0" fromTop="0" />
-      <File id="F50CC07F-68F1-455A-BE8D-A64D827F1A5C/d:Plot/d:VizEngines/f:VizPixelScatterSmart.cs" caret="0" fromTop="0" />
-      <File id="F50CC07F-68F1-455A-BE8D-A64D827F1A5C/d:Plot/d:VizEngines/f:VizTransformed.cs" caret="1197" fromTop="20" />
-      <File id="F50CC07F-68F1-455A-BE8D-A64D827F1A5C/d:Plot/d:VizEngines/f:VizPixelScatter.cs" caret="1876" fromTop="29" />
-      <File id="F50CC07F-68F1-455A-BE8D-A64D827F1A5C/d:Plot/f:DimensionBounds.cs" caret="3649" fromTop="31" />
-      <File id="F50CC07F-68F1-455A-BE8D-A64D827F1A5C/d:Plot/f:DimensionMargins.cs" caret="2393" fromTop="28" />
-      <File id="F50CC07F-68F1-455A-BE8D-A64D827F1A5C/d:Plot/f:IPlot.cs" caret="971" fromTop="35" />
-      <File id="F50CC07F-68F1-455A-BE8D-A64D827F1A5C/d:Plot/f:IVizEngine.cs" caret="545" fromTop="14" />
-      <File id="F50CC07F-68F1-455A-BE8D-A64D827F1A5C/d:Plot/d:VizEngines/f:PlotVizBase.cs" caret="795" fromTop="18" />
-      <File id="F50CC07F-68F1-455A-BE8D-A64D827F1A5C/d:Plot/f:GraphChange.cs" caret="108" fromTop="2" />
-      <File id="F50CC07F-68F1-455A-BE8D-A64D827F1A5C/d:Plot/f:PlotMetaData.cs" caret="1822" fromTop="30" />
-      <File id="F50CC07F-68F1-455A-BE8D-A64D827F1A5C/d:Plot/f:PlotWithViz.cs" caret="123" fromTop="3" />
-      <File id="F50CC07F-68F1-455A-BE8D-A64D827F1A5C/f:ColorConversion.cs" caret="2168" fromTop="28" />
-      <File id="F50CC07F-68F1-455A-BE8D-A64D827F1A5C/d:Plot/f:PlotControl.xaml.cs" caret="7325" fromTop="29" />
-      <File id="F50CC07F-68F1-455A-BE8D-A64D827F1A5C/d:Plot/f:TickedAxis.cs" caret="33929" fromTop="36" />
-      <File id="2783A490-0407-4758-9531-B2950F3058D5/f:GmLvqModel.cpp" caret="1463" fromTop="39" />
-      <File id="F50CC07F-68F1-455A-BE8D-A64D827F1A5C/d:Plot/f:PlotControl.xaml" caret="777" fromTop="14" />
+      <File id="d:Miscellaneous Files/f:HashSet.cs/l:C!?Users?Eamon?AppData?Local?Temp?SymbolCache?src?source?.NET?4?DEVDIV_TFS?Dev10?Releases?RTMRel?ndp?fx?src?Core?System?Collections?Generic?HashSet.cs?1305376?HashSet.cs" caret="63509" fromTop="29" />
+      <File id="d:Miscellaneous Files/f:FileStream.cs/l:C!?Users?Eamon?AppData?Local?Temp?SymbolCache?src?source?.NET?4?DEVDIV_TFS?Dev10?Releases?RTMRel?ndp?clr?src?BCL?System?IO?FileStream.cs?1305376?FileStream.cs" caret="113232" fromTop="29" />
+      <File id="F50CC07F-68F1-455A-BE8D-A64D827F1A5C/d:Plot/f:PlotControl.xaml.cs" caret="8877" fromTop="29" />
+      <File id="d:Miscellaneous Files/f:lock.h/l:c!?Program Files (x86)?Microsoft Visual Studio 10.0?VC?include?msclr?lock.h" caret="1452" fromTop="29" />
+      <File id="d:Miscellaneous Files/f:PlainObjectBase.h/l:d!?EamonLargeDocs?VersionControlled?eigen?Eigen?src?Core?PlainObjectBase.h" caret="3475" fromTop="29" />
+      <File id="A4353940-C302-4556-BA67-3C4E977D1948/f:LvqDatasetCli.h" caret="1948" fromTop="36" />
+      <File id="A4353940-C302-4556-BA67-3C4E977D1948/f:WrappingUtils.h" caret="595" fromTop="21" />
+      <File id="A4353940-C302-4556-BA67-3C4E977D1948/f:LvqTrainingStatCli.cpp" caret="554" fromTop="21" />
+      <File id="F50CC07F-68F1-455A-BE8D-A64D827F1A5C/d:Plot/f:IPlot.cs" caret="1239" fromTop="29" />
+      <File id="2783A490-0407-4758-9531-B2950F3058D5/f:SmartSum.h" caret="1412" fromTop="43" />
+      <File id="A4353940-C302-4556-BA67-3C4E977D1948/f:LvqTrainingStatCli.h" caret="468" fromTop="18" />
+      <File id="2F0A3E48-CD06-43BB-BFC6-6B6F568232B9/d:MathHelpers/f:MeanVarCalc.cs" caret="1671" fromTop="47" />
+      <File id="2F0A3E48-CD06-43BB-BFC6-6B6F568232B9/d:MathHelpers/f:Statistics.cs" caret="0" fromTop="0" />
+      <File id="A4353940-C302-4556-BA67-3C4E977D1948/f:LvqModelCli.h" caret="1702" fromTop="53" />
+      <File id="2783A490-0407-4758-9531-B2950F3058D5/f:LvqModel.cpp" caret="310" fromTop="13" />
+      <File id="2783A490-0407-4758-9531-B2950F3058D5/f:LvqDataset.cpp" caret="7422" fromTop="55" />
+      <File id="A4353940-C302-4556-BA67-3C4E977D1948/f:LvqModelCli.cpp" caret="4781" fromTop="41" />
+      <File id="4B93E8BF-F146-48EE-98DF-787D4B9FFBBF/f:LvqWindowValues.cs" caret="3172" fromTop="56" />
+      <File id="d:Miscellaneous Files/f:WaitHandle.cs/l:C!?Users?Eamon?AppData?Local?Temp?SymbolCache?src?source?.NET?4?DEVDIV_TFS?Dev10?Releases?RTMRel?ndp?clr?src?BCL?System?Threading?WaitHandle.cs?1305376?WaitHandle.cs" caret="9346" fromTop="29" />
+      <File id="4B93E8BF-F146-48EE-98DF-787D4B9FFBBF/f:TrainingControlValues.cs" caret="5756" fromTop="39" />
+      <File id="4B93E8BF-F146-48EE-98DF-787D4B9FFBBF/f:LvqModels.cs" caret="1485" fromTop="38" />
+      <File id="4B93E8BF-F146-48EE-98DF-787D4B9FFBBF/f:LvqScatterPlot.cs" caret="10919" fromTop="16" />
+      <File id="4B93E8BF-F146-48EE-98DF-787D4B9FFBBF/f:CreateLvqModelValues.cs" caret="1415" fromTop="31" />
+      <File id="d:Miscellaneous Files/f:dbgdel.cpp/l:C!?Program Files (x86)?Microsoft Visual Studio 10.0?VC?crt?src?dbgdel.cpp" caret="1192" fromTop="29" />
+      <File id="d:Miscellaneous Files/f:shared_ptr.hpp/l:C!?Program Files (Custom)?boost_1_44_0?boost?shared_ptr.hpp" caret="492" fromTop="16" />
+      <File id="2783A490-0407-4758-9531-B2950F3058D5/f:LvqModel.h" caret="786" fromTop="17" />
+      <File id="d:Miscellaneous Files/f:Marshal.cs/l:C!?Users?Eamon?AppData?Local?Temp?SymbolCache?src?source?.NET?4?DEVDIV_TFS?Dev10?Releases?RTMRel?ndp?clr?src?BCL?System?Runtime?InteropServices?Marshal.cs?1305376?Marshal.cs" caret="81482" fromTop="59" />
+      <File id="2783A490-0407-4758-9531-B2950F3058D5/f:LvqModelSettings.h" caret="439" fromTop="14" />
+      <File id="4B93E8BF-F146-48EE-98DF-787D4B9FFBBF/f:LvqWindow.xaml.cs" caret="1225" fromTop="29" />
     </RecentFiles>
     <RecentEdits>
-      <File id="F50CC07F-68F1-455A-BE8D-A64D827F1A5C/d:Plot/f:TickedAxis.cs" caret="6458" fromTop="53" />
-      <File id="F50CC07F-68F1-455A-BE8D-A64D827F1A5C/d:Plot/f:TickedAxis.cs" caret="6458" fromTop="48" />
-      <File id="F50CC07F-68F1-455A-BE8D-A64D827F1A5C/d:Plot/f:TickedAxis.cs" caret="2773" fromTop="25" />
-      <File id="F50CC07F-68F1-455A-BE8D-A64D827F1A5C/d:Plot/f:TickedAxis.cs" caret="6458" fromTop="30" />
-      <File id="F50CC07F-68F1-455A-BE8D-A64D827F1A5C/d:Plot/f:TickedAxis.cs" caret="2720" fromTop="32" />
-      <File id="F50CC07F-68F1-455A-BE8D-A64D827F1A5C/d:Plot/f:TickedAxis.cs" caret="7177" fromTop="44" />
-      <File id="F50CC07F-68F1-455A-BE8D-A64D827F1A5C/d:Plot/f:TickedAxis.cs" caret="4988" fromTop="50" />
-      <File id="F50CC07F-68F1-455A-BE8D-A64D827F1A5C/d:Plot/f:TickedAxis.cs" caret="4988" fromTop="28" />
-      <File id="F50CC07F-68F1-455A-BE8D-A64D827F1A5C/d:Plot/f:TickedAxis.cs" caret="4839" fromTop="28" />
-      <File id="F50CC07F-68F1-455A-BE8D-A64D827F1A5C/d:Plot/f:TickedAxis.cs" caret="4839" fromTop="32" />
-      <File id="F50CC07F-68F1-455A-BE8D-A64D827F1A5C/d:Plot/f:TickedAxis.cs" caret="4956" fromTop="33" />
-      <File id="F50CC07F-68F1-455A-BE8D-A64D827F1A5C/d:Plot/f:TickedAxis.cs" caret="48" fromTop="1" />
-      <File id="F50CC07F-68F1-455A-BE8D-A64D827F1A5C/d:Plot/f:TickedAxis.cs" caret="4523" fromTop="29" />
-      <File id="F50CC07F-68F1-455A-BE8D-A64D827F1A5C/d:Plot/f:TickedAxis.cs" caret="5061" fromTop="40" />
-      <File id="F50CC07F-68F1-455A-BE8D-A64D827F1A5C/d:Plot/f:TickedAxis.cs" caret="5751" fromTop="48" />
-      <File id="F50CC07F-68F1-455A-BE8D-A64D827F1A5C/d:Plot/f:TickedAxis.cs" caret="13416" fromTop="29" />
-      <File id="F50CC07F-68F1-455A-BE8D-A64D827F1A5C/d:Plot/f:TickedAxis.cs" caret="23681" fromTop="29" />
-      <File id="F50CC07F-68F1-455A-BE8D-A64D827F1A5C/d:Plot/f:TickedAxis.cs" caret="25105" fromTop="30" />
-      <File id="F50CC07F-68F1-455A-BE8D-A64D827F1A5C/d:Plot/f:TickedAxis.cs" caret="26674" fromTop="30" />
-      <File id="F50CC07F-68F1-455A-BE8D-A64D827F1A5C/d:Plot/f:TickedAxis.cs" caret="26854" fromTop="29" />
-      <File id="F50CC07F-68F1-455A-BE8D-A64D827F1A5C/d:Plot/f:TickedAxis.cs" caret="31720" fromTop="30" />
-      <File id="F50CC07F-68F1-455A-BE8D-A64D827F1A5C/d:Plot/f:TickedAxis.cs" caret="32522" fromTop="35" />
-      <File id="F50CC07F-68F1-455A-BE8D-A64D827F1A5C/d:Plot/f:TickedAxis.cs" caret="34517" fromTop="39" />
-      <File id="F50CC07F-68F1-455A-BE8D-A64D827F1A5C/d:Plot/f:TickedAxis.cs" caret="30011" fromTop="18" />
-      <File id="F50CC07F-68F1-455A-BE8D-A64D827F1A5C/d:Plot/f:TickedAxis.cs" caret="30488" fromTop="29" />
-      <File id="F50CC07F-68F1-455A-BE8D-A64D827F1A5C/d:Plot/f:TickedAxis.cs" caret="29729" fromTop="14" />
-      <File id="F50CC07F-68F1-455A-BE8D-A64D827F1A5C/d:Plot/f:TickedAxis.cs" caret="7333" fromTop="29" />
-      <File id="F50CC07F-68F1-455A-BE8D-A64D827F1A5C/d:Plot/f:TickedAxis.cs" caret="8863" fromTop="19" />
-      <File id="F50CC07F-68F1-455A-BE8D-A64D827F1A5C/d:Plot/f:TickedAxis.cs" caret="33204" fromTop="26" />
-      <File id="2783A490-0407-4758-9531-B2950F3058D5/f:GmLvqModel.cpp" caret="518" fromTop="15" />
+      <File id="2783A490-0407-4758-9531-B2950F3058D5/f:LvqModel.h" caret="1249" fromTop="36" />
+      <File id="2783A490-0407-4758-9531-B2950F3058D5/f:LvqModel.cpp" caret="310" fromTop="13" />
+      <File id="2783A490-0407-4758-9531-B2950F3058D5/f:LvqDataset.cpp" caret="7431" fromTop="57" />
+      <File id="2783A490-0407-4758-9531-B2950F3058D5/f:LvqModel.h" caret="279" fromTop="17" />
+      <File id="A4353940-C302-4556-BA67-3C4E977D1948/f:LvqModelCli.cpp" caret="4537" fromTop="37" />
+      <File id="A4353940-C302-4556-BA67-3C4E977D1948/f:LvqModelCli.cpp" caret="4051" fromTop="25" />
+      <File id="A4353940-C302-4556-BA67-3C4E977D1948/f:LvqModelCli.cpp" caret="4289" fromTop="29" />
+      <File id="A4353940-C302-4556-BA67-3C4E977D1948/f:LvqModelCli.cpp" caret="4781" fromTop="41" />
+      <File id="4B93E8BF-F146-48EE-98DF-787D4B9FFBBF/f:LvqModels.cs" caret="3172" fromTop="37" />
+      <File id="4B93E8BF-F146-48EE-98DF-787D4B9FFBBF/f:LvqModels.cs" caret="3172" fromTop="39" />
+      <File id="4B93E8BF-F146-48EE-98DF-787D4B9FFBBF/f:LvqModels.cs" caret="2703" fromTop="33" />
+      <File id="4B93E8BF-F146-48EE-98DF-787D4B9FFBBF/f:LvqModels.cs" caret="3738" fromTop="47" />
+      <File id="4B93E8BF-F146-48EE-98DF-787D4B9FFBBF/f:LvqWindowValues.cs" caret="2767" fromTop="13" />
+      <File id="4B93E8BF-F146-48EE-98DF-787D4B9FFBBF/f:LvqWindowValues.cs" caret="2999" fromTop="17" />
+      <File id="4B93E8BF-F146-48EE-98DF-787D4B9FFBBF/f:LvqScatterPlot.cs" caret="398" fromTop="13" />
+      <File id="4B93E8BF-F146-48EE-98DF-787D4B9FFBBF/f:TrainingControlValues.cs" caret="5575" fromTop="41" />
+      <File id="4B93E8BF-F146-48EE-98DF-787D4B9FFBBF/f:TrainingControlValues.cs" caret="5084" fromTop="22" />
+      <File id="4B93E8BF-F146-48EE-98DF-787D4B9FFBBF/f:TrainingControlValues.cs" caret="5381" fromTop="29" />
+      <File id="4B93E8BF-F146-48EE-98DF-787D4B9FFBBF/f:TrainingControlValues.cs" caret="5633" fromTop="35" />
+      <File id="4B93E8BF-F146-48EE-98DF-787D4B9FFBBF/f:LvqModels.cs" caret="2388" fromTop="52" />
+      <File id="4B93E8BF-F146-48EE-98DF-787D4B9FFBBF/f:LvqModels.cs" caret="68" fromTop="2" />
+      <File id="4B93E8BF-F146-48EE-98DF-787D4B9FFBBF/f:LvqModels.cs" caret="202" fromTop="9" />
+      <File id="4B93E8BF-F146-48EE-98DF-787D4B9FFBBF/f:LvqModels.cs" caret="1303" fromTop="33" />
+      <File id="4B93E8BF-F146-48EE-98DF-787D4B9FFBBF/f:LvqModels.cs" caret="1503" fromTop="38" />
+      <File id="2783A490-0407-4758-9531-B2950F3058D5/f:LvqModelSettings.h" caret="326" fromTop="10" />
+      <File id="2783A490-0407-4758-9531-B2950F3058D5/f:LvqModelSettings.h" caret="793" fromTop="25" />
+      <File id="2783A490-0407-4758-9531-B2950F3058D5/f:LvqModelSettings.h" caret="1188" fromTop="37" />
+      <File id="2783A490-0407-4758-9531-B2950F3058D5/f:LvqModel.h" caret="1448" fromTop="29" />
+      <File id="2783A490-0407-4758-9531-B2950F3058D5/f:LvqModelSettings.h" caret="164" fromTop="7" />
+      <File id="4B93E8BF-F146-48EE-98DF-787D4B9FFBBF/f:LvqWindow.xaml.cs" caret="1225" fromTop="29" />
     </RecentEdits>
   </RecentFiles>
   <NAntValidationSettings>

@@ -33,6 +33,7 @@ protected:
 	LvqModel(LvqModelSettings & initSettings);
 
 public:
+	int epochsTrained;
 	double currentLearningRate() const { 
 		double scaledIter = trainIter*iterationScaleFactor+1.0;
 		return LVQ_LR0 / sqrt(scaledIter*sqrt(scaledIter)); 
@@ -52,6 +53,7 @@ public:
 	virtual void DoOptionalNormalization()=0;
 	virtual ~LvqModel() {	}
 	virtual LvqModel* clone() const=0;
+	virtual void CopyTo(LvqModel& target) const=0;
 	virtual size_t MemAllocEstimate() const=0;
 	virtual int Dimensions() const =0;
 	int ClassCount() const { return settings.ClassCount;}

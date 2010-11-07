@@ -3,10 +3,14 @@
 using System.Threading;
 using System.Windows;
 using LvqLibCli;
+using System;
 
 namespace LvqGui {
 	public partial class LvqWindow {
+		CancellationTokenSource cts = new CancellationTokenSource();
+		public CancellationToken ClosingToken { get { return cts.Token; } }
 		public LvqWindow() {
+			
 			Thread.CurrentThread.Priority = ThreadPriority.AboveNormal;
 			var windowValues = new LvqWindowValues(this);
 			DataContext = windowValues;
@@ -15,8 +19,21 @@ namespace LvqGui {
 			windowValues.TrainingControlValues.SelectedModelUpdatedInBackgroundThread += TrainingControlValues_SelectedModelUpdatedInBackgroundThread;
 			Closing += (o, e) => { windowValues.TrainingControlValues.AnimateTraining = false; };
 #if BENCHMARK
-			this.Loaded += (o, e) => { DoBenchmark(); };
+			this.Loaded += (o, e) => DoBenchmark();
 #endif
+			this.Closed += new System.EventHandler(LvqWindow_Closed);
+		}
+
+		void LvqWindow_Closed(object sender, System.EventArgs e) {
+			cts.Cancel();
+			plotData.Dispose();
+			plotData = null;
+			LvqModels.WaitForTraining();
+			var windowValues = (LvqWindowValues)DataContext;
+			windowValues.LvqModels.Clear();
+			windowValues.Datasets.Clear();
+			GC.Collect();
+			Dispatcher.BeginInvokeShutdown(System.Windows.Threading.DispatcherPriority.ApplicationIdle);
 		}
 
 		// ReSharper disable UnusedMember.Local
@@ -25,31 +42,28 @@ namespace LvqGui {
 				LvqWindowValues values = ((LvqWindowValues)o);
 				values.CreateStarDatasetValues.Seed = 1337;
 				values.CreateStarDatasetValues.InstSeed = 37;
-				values.CreateStarDatasetValues.ClusterDimensionality = 4;
-				values.CreateStarDatasetValues.Dimensions = 24;
-				values.CreateStarDatasetValues.NumberOfClasses = 5;
 
 				values.CreateLvqModelValues.Seed = 42;
 				values.CreateLvqModelValues.InstSeed = 1234;
-				values.CreateLvqModelValues.PrototypesPerClass = 3;
 
 				values.CreateStarDatasetValues.ConfirmCreation();
 				Dispatcher.BeginInvokeBackground(() => {
 					values.CreateLvqModelValues.ConfirmCreation();
-					values.TrainingControlValues.AnimateTraining = true;
+					Dispatcher.BeginInvokeBackground(() => {
+						values.TrainingControlValues.AnimateTraining = true;
+					});
 				});
 			}, DataContext);
 		}
 
-
 		LvqScatterPlot plotData;
-		void TrainingControlValues_SelectedModelUpdatedInBackgroundThread(LvqDatasetCli dataset, LvqModelCli model) {
+		void TrainingControlValues_SelectedModelUpdatedInBackgroundThread(LvqDatasetCli dataset, LvqModels model) {
 			LvqScatterPlot.QueueUpdateIfCurrent(plotData, dataset, model);
 		}
 
-		void TrainingControlValues_ModelSelected(LvqDatasetCli dataset, LvqModelCli model, int subModelIdx) {
+		void TrainingControlValues_ModelSelected(LvqDatasetCli dataset, LvqModels model, int subModelIdx) {
 			if (plotData == null && dataset != null && model != null)
-				plotData = new LvqScatterPlot();
+				plotData = new LvqScatterPlot(ClosingToken);
 
 			if (plotData != null)
 				plotData.DisplayModel(dataset, model, subModelIdx);

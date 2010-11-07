@@ -11,140 +11,110 @@
 namespace LvqLibCli {
 	using boost::mt19937;
 
-	LvqModelCli::LvqModelCli(String^ label, int parallelModels, LvqDatasetCli^ trainingSet, LvqModelSettingsCli^ modelSettings)
+	int LvqModelCli::ClassCount::get(){return model->get()->ClassCount();}
+	int LvqModelCli::Dimensions::get(){return model->get()->Dimensions();}
+	double LvqModelCli::CurrentLearningRate::get() {return modelCopy->get()->currentLearningRate(); }
+	bool LvqModelCli::IsProjectionModel::get(){return nullptr != dynamic_cast<LvqProjectionModel*>(model->get()); }
+
+	bool LvqModelCli::FitsDataShape(LvqDatasetCli^ dataset) {return dataset!=nullptr && dataset->ClassCount == this->ClassCount && dataset->Dimensions == this->Dimensions;}
+
+
+	LvqModelCli::LvqModelCli(String^ label, LvqDatasetCli^ trainingSet,int datafold, LvqModelSettingsCli^ modelSettings)
 		: label(label)
-		, model(gcnew WrappedModelArray(parallelModels) )
-		, modelCopy(nullptr)
-		, mainSync(gcnew Object())
 		, initSet(trainingSet)
-		, cachedTrainingStats(gcnew List<LvqTrainingStatCli>())
+		, trainSync(gcnew Object())
+		, copySync(gcnew Object())
 	{ 
-		msclr::lock l2(mainSync);
+		msclr::lock l(trainSync);
 		trainingSet->LastModel = this;
-		#pragma omp parallel for
-		for(int i=0;i<model->Length;i++) {
-			WrappedModel^ m = GcPtr::Create(ConstructLvqModel(as_lvalue( modelSettings->ToNativeSettings(trainingSet, i))));
-			m->get()->AddTrainingStat(trainingSet->GetDataset(),trainingSet->GetTrainingSubset(i), trainingSet->GetDataset(), trainingSet->GetTestSubset(i),0,0.0);
-			model[i] = m;
+		model = GcPtr::Create(ConstructLvqModel(as_lvalue( modelSettings->ToNativeSettings(trainingSet, datafold))));
+		model->get()->AddTrainingStat(trainingSet->GetDataset(),trainingSet->GetTrainingSubset(datafold), trainingSet->GetDataset(), trainingSet->GetTestSubset(datafold),0,0.0);
+		msclr::lock l2(copySync);
+		modelCopy = GcPtr::Create(model->get()->clone());
+	}
+
+	
+	LvqTrainingStatCli LvqModelCli::GetTrainingStat(int statI){
+		auto modelCopyRef = modelCopy;
+		if(modelCopyRef!=nullptr) {
+			msclr::lock l(copySync);
+			LvqModel* currentBackup = modelCopyRef->get();
+
+			return toCli(currentBackup->TrainingStats()[statI]);
 		}
-		BackupModel();
+		GC::KeepAlive(modelCopyRef);
+		return LvqTrainingStatCli();
 	}
 
-	IEnumerable<LvqTrainingStatCli>^ LvqModelCli :: TrainingStats::get(){
-		using System::Collections::Generic::List;
-		WrappedModelArray^ currentBackup = modelCopy;
-		msclr::lock l2(currentBackup);
-		int statCount =int(currentBackup[0]->get()->TrainingStats().size());
-		int statDim = statCount==0  ?  0  : int(currentBackup[0]->get()->TrainingStatNames().size());
-		
-		SmartSum<Eigen::Dynamic> stat(statDim);
-		for(int si=cachedTrainingStats->Count;si<statCount;++si) {
-			if(currentBackup->Length ==1) {
-				cachedTrainingStats->Add(LvqTrainingStatCli::toCli(currentBackup[0]->get()->TrainingStats()[si]));
-			} else {
-				stat.Reset();	
-				for each(WrappedModel^ m in currentBackup)
-					stat.CombineWith(m->get()->TrainingStats()[si],1.0);
-				cachedTrainingStats->Add(
-					LvqTrainingStatCli::toCli(stat.GetMean(),
-						(stat.GetSampleVariance().array().sqrt() * (1.0/sqrt(stat.GetWeight()))).matrix() 
-					)
-				);
-			}
-		}
-		GC::KeepAlive(currentBackup);
-		return cachedTrainingStats;
-	}
-
-	void LvqModelCli::ResetLearningRate() {
-		msclr::lock l2(mainSync); 
-		for each(WrappedModel ^ m in model) 
-			m->get()->resetLearningRate();
+	int LvqModelCli::TrainingStatCount::get(){
+		msclr::lock l(copySync);
+		auto modelCopyRef = modelCopy;
+		return modelCopyRef!=nullptr ?static_cast<int>( modelCopyRef->get()->TrainingStats().size()):0;
 	}
 
 
-	array<double,2>^ LvqModelCli::CurrentProjectionOf(int modelIdx, LvqDatasetCli^ dataset) { 
-		WrappedModelArray^ currentBackup = modelCopy;
-
-		if(currentBackup==nullptr)
-			return nullptr;
-		msclr::lock l(currentBackup);
-		LvqProjectionModel* projectionModel = dynamic_cast<LvqProjectionModel*>( currentBackup[modelIdx]->get());
-
-		return projectionModel ? ToCli<array<double,2>^>::From(dataset->GetDataset()->ProjectPoints(projectionModel)) : nullptr ; 
+	array<String^>^ LvqModelCli::TrainingStatNames::get() {
+		return ToCli<array<String^>^>::From(model->get()->TrainingStatNames());
 	}
 
-	ModelProjection LvqModelCli::CurrentProjectionAndPrototypes(int modelIdx, LvqDatasetCli^ dataset){
-		ModelProjection retval;
-		WrappedModelArray^ currentBackup = modelCopy;
-		if(currentBackup != nullptr) {
-			msclr::lock l(currentBackup);
-			retval.Data.Points = CurrentProjectionOf(modelIdx,dataset);
-			if(retval.Data.Points ==  nullptr)
-				return retval;
-			retval.Data.ClassLabels = dataset->ClassLabels();
-			Tuple<array<double,2>^,array<int>^>^ protos = PrototypePositions(modelIdx);
-			retval.Prototypes.Points = protos->Item1;
-			retval.Prototypes.ClassLabels = protos->Item2;
-			retval.IsOk = true;
+	void LvqModelCli::ResetLearningRate() { msclr::lock l(trainSync); model->get()->resetLearningRate(); }
+	
+	template<typename T>
+	array<CliLvqLabelledPoint>^ ToCliLabelledPoints(T const & pointmatrix,vector<int> const labels) {
+		array<CliLvqLabelledPoint>^ retval = gcnew array<CliLvqLabelledPoint>(static_cast<int>(labels.size()));
+		for(int i=0;i<static_cast<int>(labels.size()); ++i) {
+			cppToCli(pointmatrix.col(i), retval[i].point);
+			cppToCli(labels[i], retval[i].label);
 		}
 		return retval;
 	}
 
-	void LvqModelCli::BackupModel() {
-		msclr::lock l2(mainSync); 
-		WrappedModelArray^ newBackup = gcnew WrappedModelArray(model->Length);
-		msclr::lock l(newBackup);//necessary?
-		for(int i=0;i<newBackup->Length;i++)
-			newBackup[i] = GcPtr::Create(model[i]->get()->clone());
-		modelCopy = newBackup;
+
+	ModelProjection LvqModelCli::CurrentProjectionAndPrototypes( LvqDatasetCli^ dataset){
+		msclr::lock l(copySync);
+		auto modelCopyRef = modelCopy;
+		if(modelCopyRef==nullptr) return ModelProjection();
+		LvqProjectionModel* projectionModel = dynamic_cast<LvqProjectionModel*>(modelCopyRef->get());
+		if(projectionModel==nullptr) return ModelProjection();
+		auto projection =  ToCliLabelledPoints(dataset->GetDataset()->ProjectPoints(projectionModel), dataset->GetDataset()->getPointLabels()) ;
+		auto prototypes = ToCliLabelledPoints(projectionModel->GetProjectedPrototypes(),projectionModel->GetPrototypeLabels());
+
+		auto retval = ModelProjection(projection,prototypes);
+		GC::KeepAlive(modelCopyRef);
+		return retval;
 	}
 
-	array<int,2>^ LvqModelCli::ClassBoundaries(int modelIdx, double x0, double x1, double y0, double y1,int xCols, int yRows) {
+	array<int,2>^ LvqModelCli::ClassBoundaries( double x0, double x1, double y0, double y1,int xCols, int yRows) {
 		LvqProjectionModel::ClassDiagramT classDiagram(yRows,xCols);
 		{
-			WrappedModelArray^ currentBackup = modelCopy;
+			auto modelCopyRef = modelCopy;
 
-			if(currentBackup==nullptr)
-				return nullptr; //TODO: should never happen?
+			if(modelCopyRef==nullptr) return nullptr;
 
-			msclr::lock l(currentBackup);
-			LvqProjectionModel* projectionModel = dynamic_cast<LvqProjectionModel*>( currentBackup[modelIdx]->get());
+			LvqProjectionModel* projectionModel = dynamic_cast<LvqProjectionModel*>( modelCopyRef->get());
 			if(!projectionModel) return nullptr;
+			msclr::lock l(copySync);
 			projectionModel->ClassBoundaryDiagram(x0,x1,y0,y1,classDiagram);
+			GC::KeepAlive(modelCopyRef);
 		}
 		return ToCli<array<int,2>^>::From(classDiagram.transpose());
 	}
 
-	void LvqModelCli::Train(int epochsToDo,LvqDatasetCli^ dataSet){
-		msclr::lock l(mainSync);
-		dataSet->LastModel = this;
-		#pragma omp parallel for
-		for(int i=0;i<model->Length;i++)
-			dataSet->GetDataset()->TrainModel(epochsToDo,  model[i]->get(), dataSet->GetTrainingSubset(i), dataSet->GetDataset(), dataSet->GetTestSubset(i));
-		BackupModel();
+	void LvqModelCli::Train(int epochsToDo,LvqDatasetCli^ trainingSet, int datafold){
+		trainingSet->LastModel = this;
+		msclr::lock l(trainSync);
+		trainingSet->GetDataset()->TrainModel(epochsToDo,  model->get(), trainingSet->GetTrainingSubset(datafold), trainingSet->GetDataset(), trainingSet->GetTestSubset(datafold));
+		msclr::lock l2(copySync);
+		model->get()->CopyTo(*modelCopy->get());
 	}
 
-	array<String^>^ LvqModelCli::TrainingStatNames::get() {
-		WrappedModelArray^ backupCopy=modelCopy;
-		msclr::lock l(backupCopy); 
-		return ToCli<array<String^>^>::From(backupCopy[0]->get()->TrainingStatNames());
+	void LvqModelCli::TrainUpto(int epochsToReach,LvqDatasetCli^ trainingSet, int datafold){
+		trainingSet->LastModel = this;
+		msclr::lock l(trainSync);
+		trainingSet->GetDataset()->TrainModel(epochsToReach - model->get()->epochsTrained,  model->get(), trainingSet->GetTrainingSubset(datafold), trainingSet->GetDataset(), trainingSet->GetTestSubset(datafold));
+		msclr::lock l2(copySync);
+		model->get()->CopyTo(*modelCopy->get());
+		//newBackup = GcPtr::Create(model->get()->clone());
 	}
 
-	
-	Tuple<array<double,2>^, array<int>^>^ LvqModelCli::PrototypePositions(int modelIdx) {
-		WrappedModelArray^ currentBackup = modelCopy;
-		msclr::lock l(currentBackup);
-		LvqProjectionModel* projectionModel = dynamic_cast<LvqProjectionModel*>(currentBackup[modelIdx]->get());
-		if(!projectionModel) return nullptr;
-		return Tuple::Create(ToCli<array<double,2>^>::From(projectionModel->GetProjectedPrototypes()), ToCli<array<int>^>::From(projectionModel->GetPrototypeLabels()));
-	}
-
-	int LvqModelCli::ClassCount::get(){return model[0]->get()->ClassCount();}
-	int LvqModelCli::Dimensions::get(){return model[0]->get()->Dimensions();}
-	bool LvqModelCli::IsMultiModel::get(){return model->Length > 1;}
-	bool LvqModelCli::IsProjectionModel::get(){return nullptr != dynamic_cast<LvqProjectionModel*>(model[0]->get()); }
-	int LvqModelCli::ModelCount::get() {return model->Length;}
-	double LvqModelCli::CurrentLearningRate::get() {return model[0]->get()->currentLearningRate(); }
-	bool LvqModelCli::FitsDataShape(LvqDatasetCli^ dataset) {return dataset!=nullptr && dataset->ClassCount == this->ClassCount && dataset->Dimensions == this->Dimensions;}
 }

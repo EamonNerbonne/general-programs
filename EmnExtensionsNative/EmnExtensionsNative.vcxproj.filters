@@ -26,5 +26,8 @@
     <ClInclude Include="StdoutRedirector.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="GcAutoPtr.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

@@ -1,5 +1,5 @@
 ﻿//#define SHAREMEM //useful on workstation GC
-//#define TRACKUSAGE //handy to see how fast GUI is.
+#define TRACKUSAGE //handy to see how fast GUI is.
 using System;
 
 using System.Windows;
@@ -55,7 +55,7 @@ namespace EmnExtensions.Wpf.Plot.VizEngines {
 		static readonly DateTime start = DateTime.Now;
 		static VizPixelScatterHelpers() {
 			AppDomain.CurrentDomain.ProcessExit += (o, e) => 
-				System.IO.File.AppendAllText(@"C:\tmplog.log", "HitCount: " + hitcount + ", time:" + (DateTime.Now - start) + "\n");
+				System.IO.File.AppendAllText(@"D:\emnplot.log", "HitCount: " + hitcount + ", time:" + (DateTime.Now - start) + "\n");
 		}
 #endif
 

@@ -1,4 +1,6 @@
 #pragma once
+//#pragma managed(push, off)
+
 #include <Eigen/Core>
 
 #include "LvqModel.h"
@@ -22,3 +24,4 @@ public:
 	virtual void ClassBoundaryDiagram(double x0, double x1, double y0, double y1, LvqProjectionModel::ClassDiagramT & classDiagram) const=0;
 };
 
+//#pragma managed(pop)

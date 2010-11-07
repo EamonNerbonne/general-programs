@@ -12,7 +12,6 @@ using EmnExtensions.Wpf.Plot;
 using EmnExtensions.Wpf.Plot.VizEngines;
 using LvqLibCli;
 using System.Windows.Controls;
-using System.Threading.Tasks;
 
 
 namespace LvqGui {
@@ -25,7 +24,7 @@ namespace LvqGui {
 
 		int subModelIdx;
 
-		public void DisplayModel(LvqDatasetCli dataset, LvqModelCli model, int new_subModelIdx) {
+		public void DisplayModel(LvqDatasetCli dataset, LvqModels model, int new_subModelIdx) {
 			lvqPlotDispatcher.BeginInvoke(() => {
 				SubPlots newsubplots;
 
@@ -93,10 +92,13 @@ namespace LvqGui {
 			}
 		}
 		Window subPlotWindow;
-
-		public LvqScatterPlot() {
+		CancellationToken exitToken;
+		public LvqScatterPlot(CancellationToken exitToken) {
+			this.exitToken = exitToken;
+			
 			lvqPlotDispatcher = WpfTools.StartNewDispatcher();
 			lvqPlotDispatcher.BeginInvoke(MakeSubPlotWindow);
+			exitToken.Register(() => lvqPlotDispatcher.BeginInvokeShutdown(DispatcherPriority.Send));
 		}
 
 		private void MakeSubPlotWindow() {
@@ -124,15 +126,15 @@ namespace LvqGui {
 
 		class SubPlots {
 			public readonly LvqDatasetCli dataset;
-			public readonly LvqModelCli model;
+			public readonly LvqModels model;
 			public readonly IVizEngine<Point[]> prototypePositionsPlot;
 			public readonly IVizEngine<Point[]>[] classPlots;
 			public readonly IVizEngine<int> classBoundaries;
 			public readonly PlotControl scatterPlot;
-			public readonly IVizEngine<IEnumerable<LvqTrainingStatCli>>[] statPlots;
+			public readonly IVizEngine<IEnumerable<LvqModels.Statistic>>[] statPlots;
 			public readonly PlotControl[] plots;
 
-			public SubPlots(LvqDatasetCli dataset, LvqModelCli model) {
+			public SubPlots(LvqDatasetCli dataset, LvqModels model) {
 				this.dataset = dataset;
 				this.model = model;
 				if (model.IsProjectionModel) {
@@ -146,15 +148,15 @@ namespace LvqGui {
 				statPlots = ExtractDataSinksFromPlots(plots);
 			}
 
-			static IVizEngine<IEnumerable<LvqTrainingStatCli>>[] ExtractDataSinksFromPlots(IEnumerable<PlotControl> plots) {
+			static IVizEngine<IEnumerable<LvqModels.Statistic>>[] ExtractDataSinksFromPlots(IEnumerable<PlotControl> plots) {
 				return (
 						from plot in plots
 						from graph in plot.Graphs
-						select (IVizEngine<IEnumerable<LvqTrainingStatCli>>)graph.Visualisation
+						select (IVizEngine<IEnumerable<LvqModels.Statistic>>)graph.Visualisation
 					).ToArray();
 			}
 
-			static PlotControl[] MakeDataPlots(LvqDatasetCli dataset, LvqModelCli model) {
+			static PlotControl[] MakeDataPlots(LvqDatasetCli dataset, LvqModels model) {
 				return (
 						from statname in model.TrainingStatNames.Select(TrainingStatName.Create)
 						where statname.StatGroup != null
@@ -168,7 +170,7 @@ namespace LvqGui {
 					).ToArray();
 			}
 
-			static PlotControl MakeScatterPlotControl(LvqModelCli model, IEnumerable<IPlot> graphs) {
+			static PlotControl MakeScatterPlotControl(LvqModels model, IEnumerable<IPlot> graphs) {
 				return new PlotControl {
 					ShowAxes = false,
 					AttemptBorderTicks = false,
@@ -241,7 +243,7 @@ namespace LvqGui {
 
 		void QueueUpdate() { ThreadPool.QueueUserWorkItem(o => UpdateQueueProcessor()); }
 		void UpdateQueueProcessor() {
-			while (updateSync.UpdateEnqueue_IsMyTurn()) {
+			while (updateSync.UpdateEnqueue_IsMyTurn() && !exitToken.IsCancellationRequested) {
 				SubPlots currsubplots;
 
 				int currSubModelIdx;
@@ -259,19 +261,19 @@ namespace LvqGui {
 			if (subplots == null) return;
 			var currProjection = subplots.model.CurrentProjectionAndPrototypes(subModelIdx, subplots.dataset);
 			DispatcherOperation scatterPlotOperation = null;
-			if (currProjection.IsOk && subplots.prototypePositionsPlot != null) {
-				Point[] prototypePositions = Points.ToMediaPoints(currProjection.Prototypes.Points);
+			if (currProjection.HasValue && subplots.prototypePositionsPlot != null) {
+				Point[] prototypePositions = currProjection.Prototypes.Select(lp => lp.point).ToArray();
 
 				//var projectedPointsByLabel = Enumerable.Range(0, dataPoints.Length).ToLookup(i => currProjection.Data.ClassLabels[i], i =>  Points.GetPoint(currProjection.Data.Points, i));
 
 				int[] pointCountPerClass = new int[subplots.dataset.ClassCount];
-				foreach (int t in currProjection.Data.ClassLabels) pointCountPerClass[t]++;
+				foreach (var p in currProjection.Points) pointCountPerClass[p.label]++;
 
 				Point[][] projectedPointsByLabel = Enumerable.Range(0, subplots.dataset.ClassCount).Select(i => new Point[pointCountPerClass[i]]).ToArray();
 				int[] pointIndexPerClass = new int[subplots.dataset.ClassCount];
-				for (int i = 0; i < currProjection.Data.ClassLabels.Length; ++i) {
-					int label = currProjection.Data.ClassLabels[i];
-					projectedPointsByLabel[label][pointIndexPerClass[label]++] = Points.GetPoint(currProjection.Data.Points, i);
+				for (int i = 0; i < currProjection.Points.Length; ++i) {
+					int label = currProjection.Points[i].label;
+					projectedPointsByLabel[label][pointIndexPerClass[label]++] = currProjection.Points[i].point;
 				}
 				
 				scatterPlotOperation = subplots.prototypePositionsPlot.Dispatcher.BeginInvoke((Action)(() => {
@@ -320,7 +322,7 @@ namespace LvqGui {
 
 
 		static class StatisticsPlotMaker {
-			public static IEnumerable<PlotWithViz<IEnumerable<LvqTrainingStatCli>>> Create(string windowTitle, IEnumerable<TrainingStatName> stats, bool isMultiModel, bool hasTestSet) {
+			public static IEnumerable<PlotWithViz<IEnumerable<LvqModels.Statistic>>> Create(string windowTitle, IEnumerable<TrainingStatName> stats, bool isMultiModel, bool hasTestSet) {
 				var relevantStatistics = (hasTestSet ? stats : stats.Where(stat => !stat.TrainingStatLabel.StartsWith("Training"))).ToArray();
 
 				return
@@ -337,18 +339,18 @@ namespace LvqGui {
 					windowTitle == "Cost Function" ? costColors :
 					WpfTools.MakeDistributedColors(length, new MersenneTwister(1 + windowTitle.GetHashCode()));
 			}
-			static IEnumerable<PlotWithViz<IEnumerable<LvqTrainingStatCli>>> MakePlots(string dataLabel, string yunitLabel, Color color, int statIdx, bool doVariants) {
+			static IEnumerable<PlotWithViz<IEnumerable<LvqModels.Statistic>>> MakePlots(string dataLabel, string yunitLabel, Color color, int statIdx, bool doVariants) {
 				if (doVariants) {
 					yield return MakePlot(null, yunitLabel, Blend(color, Colors.White), statIdx, 1);
 					yield return MakePlot(null, yunitLabel, Blend(color, Colors.White), statIdx, -1);
 				}
 				yield return MakePlot(dataLabel, yunitLabel, color, statIdx, 0);
 			}
-			static Func<IEnumerable<LvqTrainingStatCli>, Point[]> StatisticsToPointsMapper(int statIdx, int variant) {
+			static Func<IEnumerable<LvqModels.Statistic>, Point[]> StatisticsToPointsMapper(int statIdx, int variant) {
 				return stats => {
 					var retval = stats.Select(info =>
-						new Point(info.values[LvqTrainingStatCli.TrainingIterationI],
-							info.values[statIdx] + (variant != 0 ? variant * info.stderror[statIdx] : 0)
+						new Point(info.Value[LvqTrainingStatCli.TrainingIterationI],
+							info.Value[statIdx] + (variant != 0 ? variant * info.StandardError[statIdx] : 0)
 						)
 					).ToArray();
 					return LimitSize(retval);
@@ -368,7 +370,7 @@ namespace LvqGui {
 				return newret;
 			}
 
-			static PlotWithViz<IEnumerable<LvqTrainingStatCli>> MakePlot(string dataLabel, string yunitLabel, Color color, int statIdx, int variant) {
+			static PlotWithViz<IEnumerable<LvqModels.Statistic>> MakePlot(string dataLabel, string yunitLabel, Color color, int statIdx, int variant) {
 				return Plot.Create(
 					new PlotMetaData {
 						DataLabel = dataLabel,
@@ -389,7 +391,7 @@ namespace LvqGui {
 		}
 
 
-		internal static void QueueUpdateIfCurrent(LvqScatterPlot plotData, LvqDatasetCli dataset, LvqModelCli model) {
+		internal static void QueueUpdateIfCurrent(LvqScatterPlot plotData, LvqDatasetCli dataset, LvqModels model) {
 			if (plotData != null && plotData.subplots != null && plotData.subplots.dataset == dataset && plotData.subplots.model == model)
 				plotData.QueueUpdate();
 		}

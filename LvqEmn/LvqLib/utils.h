@@ -1,4 +1,7 @@
 #pragma once
+
+//#pragma managed(push, off)
+
 #include <Eigen/Core>
 #include <Eigen/QR> 
 #include <boost/random/variate_generator.hpp>
@@ -114,3 +117,5 @@ Eigen::MatrixXd shuffleMatrixCols(boost::mt19937 & randGen, Eigen::MatrixXd cons
 #else
 #define FOREACH(RANGEVAR_DECL, ITERATOR) for(RANGEVAR_DECL : ITERATOR)
 #endif
+
+//#pragma managed(pop)

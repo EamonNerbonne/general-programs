@@ -222,10 +222,10 @@ namespace LvqGui {
 			this.ReseedBoth();
 		}
 
-		public LvqModelCli CreateModel() {
+		public LvqModels CreateModel() {
 			Console.WriteLine("Created: " + Shorthand);
 
-			return new LvqModelCli(Shorthand, ParallelModels, ForDataset, new LvqModelSettingsCli {
+			return new LvqModels(Shorthand, ParallelModels, ForDataset, new LvqModelSettingsCli {
 					ModelType = ModelType,
 					RngParamsSeed = Seed,
 					RngIterSeed = InstSeed,

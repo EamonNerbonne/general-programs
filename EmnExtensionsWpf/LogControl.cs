@@ -1,5 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿// ReSharper disable UnusedMember.Global
+using System;
 using System.Linq;
 using System.Text;
 using System.Windows.Controls;
@@ -13,118 +13,118 @@ using System.Windows.Media;
 using System.Windows.Input;
 using System.Windows.Threading;
 
-namespace EmnExtensions.Wpf
-{
-    public class LogControl : FlowDocumentScrollViewer
-    {
-        Paragraph p;
-        FlowDocument doc;
-        TextPointer insertionPoint;
-        public LogControl() {
-            p = new Paragraph();
-            doc = new FlowDocument(p);
-			doc.TextAlignment = TextAlignment.Left;
-			
-            var style = new Style();
-
-            doc.FontFamily = new FontFamily("Consolas");
-            doc.FontSize = 10.0;
-            insertionPoint = p.ContentEnd;
-            logger = new DelegateTextWriter(AppendThreadSafe);
-            this.Document = doc;
-			this.VerticalContentAlignment = VerticalAlignment.Bottom;
-			this.VerticalScrollBarVisibility = ScrollBarVisibility.Auto;
-        }
-        StringBuilder curLine = new StringBuilder();
-        bool redraw = false;
-        DelegateTextWriter logger;
-        TextWriter oldOut,oldError;
+namespace EmnExtensions.Wpf {
+	public class LogControl : FlowDocumentScrollViewer {
+		readonly StringBuilder curLine = new StringBuilder();
+		readonly DelegateTextWriter logger;
+		public LogControl() {
+			Document = new FlowDocument {
+				TextAlignment = TextAlignment.Left,
+				FontFamily = new FontFamily("Consolas"),
+				FontSize = 10.0
+			};
+			logger = new DelegateTextWriter(AppendThreadSafe);
+			VerticalContentAlignment = VerticalAlignment.Bottom;
+			VerticalScrollBarVisibility = ScrollBarVisibility.Auto;
+			Application.Current.MainWindow.Closed += LogControl_Unloaded;
+			Application.Current.Exit += LogControl_Unloaded;
+			Unloaded += LogControl_Unloaded;
+		}
 
 
-        public void AppendLineThreadSafe(string line) {
-            AppendThreadSafe(line + "\n");
-        }
+		void LogControl_Unloaded(object sender, EventArgs e) {
+			ClaimStandardOut = false;
+			ClaimStandardError = false;
+		}
 
-        private void Invalidate() {
-            if (!redraw) {
-                redraw = true;
-                Dispatcher.BeginInvoke(DispatcherPriority.Normal, (Action)UpdateStringUI);
-            }
-        }
+		bool redraw;
+		TextWriter oldOut, oldError;
 
-        static char[] splitChars = new char[] { '\n' };
-        public void AppendThreadSafe(string text) {
-            lock (curLine) {
-                curLine.Append(text);
-                Invalidate();
-            }
-        }
+		public void AppendLineThreadSafe(string line) {
+			AppendThreadSafe(line + "\n");
+		}
 
-        private void UpdateStringUI() {
-            string strToAppendToCur = null;
-            lock (curLine) {
-                if (redraw) {
-                    redraw = false;
-                    strToAppendToCur = curLine.ToString();
-                    curLine.Length = 0;
-                }
-            }
-            if (strToAppendToCur != null) {
-                insertionPoint.InsertTextInRun(strToAppendToCur);
-                NavigationCommands.LastPage.Execute(null, this);//can we say... nasty hack?
-            }
-        }
+		private void Invalidate() {
+			if (!redraw) {
+				redraw = true;
+				Dispatcher.BeginInvoke(DispatcherPriority.Normal, (Action)UpdateStringUI);
+			}
+		}
 
-        public bool ClaimStandardOut {
-            get {
-                return logger == Console.Out;
-            }
-            set {
-                if (ClaimStandardOut != value) {
-                    if (value) {
-                        oldOut = Console.Out;
-                        Console.SetOut(logger);
-                    //    return;
-                        RedirectNativeStream(this, StdoutRedirector.RedirectStdout());
+		public void AppendThreadSafe(string text) {
+			lock (curLine) {
+				curLine.Append(text);
+				Invalidate();
+			}
+		}
 
-                    } else {
-                        Console.SetOut(oldOut);
-                    }
-                }
-            }
-        }
+		private void UpdateStringUI() {
+			string strToAppendToCur = null;
+			lock (curLine) {
+				if (redraw) {
+					redraw = false;
+					strToAppendToCur = curLine.ToString();
+					curLine.Length = 0;
+				}
+			}
+			if (strToAppendToCur != null) {
+				Document.ContentEnd.InsertTextInRun(strToAppendToCur);
+				NavigationCommands.LastPage.Execute(null, this);//can we say... nasty hack?
+			}
+		}
 
-        public bool ClaimStandardError {
-            get {
-                return logger == Console.Error;
-            }
-            set {
-                if (ClaimStandardOut != value) {
-                    if (value) {
-                        oldError = Console.Error;
-                        Console.SetError(logger);
-                       // return;
-                        RedirectNativeStream(this, StdoutRedirector.RedirectStderr());
-                    } else {
-                        Console.SetError(oldError);
-                    }
-                }
-            }
-        }
-        private static void RedirectNativeStream(LogControl toControl, Stream fromNative) {
-            Thread bgReader = new Thread(() => {
-                using (fromNative)
-                using (StreamReader reader = new StreamReader(fromNative)) {
-                    char[] buffer = new char[512];
-                    while (true) {
-                        int actuallyRead = reader.Read(buffer, 0, buffer.Length);
-                        if (actuallyRead <= 0) break;
-                        toControl.AppendThreadSafe(new string(buffer, 0, actuallyRead));
-                    }
-                }
-            });
-            bgReader.IsBackground = true;
-            bgReader.Start();
-        }
-    }
+		RestoringReadStream stdOutOverride;
+		public bool ClaimStandardOut {
+			get {
+				return stdOutOverride !=null;
+			}
+			set {
+				if (ClaimStandardOut != value) {
+					if (value) {
+						oldOut = Console.Out;
+						Console.SetOut(logger);
+						RedirectNativeStream(this, stdOutOverride=StdoutRedirector.RedirectStdout(),"stdout");
+					} else {
+						stdOutOverride.Dispose();
+						stdOutOverride = null;
+						Console.SetOut(oldOut);
+					}
+				}
+			}
+		}
+
+		RestoringReadStream stdErrOverride;
+		public bool ClaimStandardError {
+			get {
+				return stdErrOverride != null;
+			}
+			set {
+				if (ClaimStandardError != value) {
+					if (value) {
+						oldError = Console.Error;
+						Console.SetError(logger);
+						RedirectNativeStream(this, stdErrOverride=StdoutRedirector.RedirectStderr(),"stderr");
+					} else {
+						stdErrOverride.Dispose();
+						stdErrOverride = null;
+						Console.SetError(oldError);
+					}
+				}
+			}
+		}
+
+		private static void RedirectNativeStream(LogControl toControl, RestoringReadStream fromNative,string name) {
+			new Thread(() => {
+				using (var reader = new StreamReader(fromNative.ReadStream)) {
+					char[] buffer = new char[4096];
+					while (true) {
+						int actuallyRead = reader.Read(buffer, 0, buffer.Length);
+						if (actuallyRead <= 0) break;
+						toControl.AppendThreadSafe(new string(buffer, 0, actuallyRead));
+					}
+				}
+				File.AppendAllText(@"D:\logcontrol.log","exiting "+name+"\n");
+			}) { IsBackground = true }.Start();
+		}
+	}
 }

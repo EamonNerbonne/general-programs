@@ -1,4 +1,5 @@
-﻿using System;
+﻿// ReSharper disable UnusedMember.Global
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
@@ -14,8 +15,7 @@ namespace EmnExtensions.Wpf {
 			PathGeometry geom = new PathGeometry();
 			PathFigure fig = null;
 			foreach (Point startPoint in lineOfPoints.Take(1)) {
-				fig = new PathFigure();
-				fig.StartPoint = startPoint;
+				fig = new PathFigure { StartPoint = startPoint };
 				geom.Figures.Add(fig);
 			}
 			foreach (Point point in lineOfPoints.Skip(1)) {
@@ -25,8 +25,9 @@ namespace EmnExtensions.Wpf {
 			double errWidth = bounds.Width / 200.0;
 			for (int i = 0; i < lineOfPoints.Length; i++) {
 				if (ErrBars[i].IsFinite()) {
-					PathFigure errf = new PathFigure();
-					errf.StartPoint = lineOfPoints[i] + new Vector(-errWidth, -ErrBars[i]);
+					PathFigure errf = new PathFigure {
+						StartPoint = lineOfPoints[i] + new Vector(-errWidth, -ErrBars[i])
+					};
 					errf.Segments.Add(new LineSegment(lineOfPoints[i] + new Vector(errWidth, -ErrBars[i]), true));
 					errf.Segments.Add(new LineSegment(lineOfPoints[i] + new Vector(0, -ErrBars[i]), false));
 					errf.Segments.Add(new LineSegment(lineOfPoints[i] + new Vector(0, ErrBars[i]), true));
@@ -45,8 +46,7 @@ namespace EmnExtensions.Wpf {
 			PathGeometry geom = new PathGeometry();
 			PathFigure fig = null;
 			foreach (Point startPoint in lineOfPoints.Take(1)) {
-				fig = new PathFigure();
-				fig.StartPoint = startPoint;
+				fig = new PathFigure {StartPoint = startPoint};
 				geom.Figures.Add(fig);
 			}
 			bool wasOK = true;
@@ -62,14 +62,14 @@ namespace EmnExtensions.Wpf {
 		}
 
 		public static StreamGeometry LineScaled(Point[] lineOfPoints) {
-			if (lineOfPoints == null || lineOfPoints.Length==0) return null;
+			if (lineOfPoints == null || lineOfPoints.Length == 0) return null;
 
 			Rect dataBounds = VizPixelScatterHelpers.ComputeOuterBounds(lineOfPoints);
-			double maxSafe = Int32.MaxValue / 2.0;
+			const double maxSafe = Int32.MaxValue / 2.0;
 			Rect safeBounds = new Rect(new Point(-maxSafe, -maxSafe), new Point(maxSafe, maxSafe));
 			Matrix dataToGeom = TransformShape(dataBounds, safeBounds, flipVertical: false);
 			Matrix geomToData = TransformShape(safeBounds, dataBounds, flipVertical: false);
-			var scaledPoints = lineOfPoints.Select(p => dataToGeom.Transform(p));
+			var scaledPoints = lineOfPoints.Select(dataToGeom.Transform);
 			return Line(scaledPoints, new MatrixTransform(geomToData));
 		}
 
@@ -109,8 +109,7 @@ namespace EmnExtensions.Wpf {
 		/// Makes a filled-square based point cloud; radius is in data-space, so distorted (fast)
 		/// </summary>
 		public static StreamGeometry PointCloud4(IEnumerable<Point> setOfPoints, double radius) {
-			StreamGeometry geom = new StreamGeometry();
-			geom.FillRule = FillRule.Nonzero;
+			StreamGeometry geom = new StreamGeometry {FillRule = FillRule.Nonzero};
 			using (var context = geom.Open()) {
 				foreach (var point in setOfPoints) {
 					if (IsOK(point)) {
@@ -191,7 +190,7 @@ namespace EmnExtensions.Wpf {
 		/// Extends the line made by the last figure in the geometry to the given point.  
 		/// </summary>
 		/// <param name="toGeom">The PathGeometry to extend.</param>
-		/// <param name="point">The point to draw a line to.  Note; IsOK(point) must hold (i.e.
+		/// <param name="point">The point to draw a line to.  IsOK(point) must hold (i.e.
 		/// no NaN of Inf points) for sane results;</param>
 		public static void AddPoint(PathGeometry toGeom, Point point) {
 			var figs = toGeom.Figures;
@@ -203,7 +202,7 @@ namespace EmnExtensions.Wpf {
 				toGeom.Figures.Add(lastFig);
 			} else {
 				lastFig.Segments.Add(new LineSegment(point, true));
-			};
+			}
 		}
 
 		public static Rect ExpandRect(this Rect src, Thickness withMargin) {
@@ -241,13 +240,10 @@ namespace EmnExtensions.Wpf {
 		}
 
 		public static uint ToNativeColor(this Color colorstruct) {
-			return ((uint)colorstruct.A << 24) | ((uint)colorstruct.R << 16) | ((uint)colorstruct.G << 8) | ((uint)colorstruct.B);
+			return ((uint)colorstruct.A << 24) | ((uint)colorstruct.R << 16) | ((uint)colorstruct.G << 8) | colorstruct.B;
 		}
 
-		public static BitmapSource MakeColormappedBitmap<T>(T[,] image, Func<T, Color> colormap) {
-			return MakeColormappedBitmap(image, colormap, 1);
-		}
-		public static BitmapSource MakeColormappedBitmap<T>(T[,] image, Func<T, Color> colormap, int sampleFactor) {
+		public static BitmapSource MakeColormappedBitmap<T>(T[,] image, Func<T, Color> colormap, int sampleFactor = 1) {
 			int w = image.GetLength(1) * sampleFactor, h = image.GetLength(0) * sampleFactor;
 			uint[] inlinearray = new uint[w * h];
 			int i = 0;

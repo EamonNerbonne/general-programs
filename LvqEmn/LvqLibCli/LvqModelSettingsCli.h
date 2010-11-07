@@ -46,6 +46,6 @@ namespace LvqLibCli {
 			, LrScaleBad(LVQ_LrScaleBad)
 		{ }
 
-		LvqModelSettings ToNativeSettings(LvqDatasetCli^ dataset, int modelRank);
+		LvqModelSettings ToNativeSettings(LvqDatasetCli^ dataset, int datasetFold);
 	};
 }

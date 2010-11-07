@@ -11,6 +11,7 @@ LvqModel::LvqModel(LvqModelSettings & initSettings)
 	, trainIter(0)
 	, totalIter(0)
 	, totalElapsed(0.0)
+	, epochsTrained(0)
 	{
 		int protoCount = accumulate(initSettings.PrototypeDistribution.begin(), initSettings.PrototypeDistribution.end(), 0);
 		iterationScaleFactor = LVQ_ITERFACTOR_PERPROTO/protoCount;

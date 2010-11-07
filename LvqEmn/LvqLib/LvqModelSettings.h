@@ -2,18 +2,56 @@
 #include <vector>
 #include <boost/random/mersenne_twister.hpp>
 #include <Eigen/Core>
-#include <boost/scoped_ptr.hpp>
+#include <boost/shared_ptr.hpp>
 #include "LvqConstants.h"
+
 template <typename T> class copy_ptr {
-	T* item;
+	T*  item;
 public:
-	explicit copy_ptr(T* ptr) : item(ptr) {}
+	
+	explicit copy_ptr(T const& existingItem) : item(new T(existingItem)) {}
 	copy_ptr(copy_ptr<T> const & other) : item(new T(*other.item)) {}
+	copy_ptr(copy_ptr<T> && tmpother) : item(tmpother.item) {tmpother.item=0;}
+
 	~copy_ptr()  { delete item;}
 
-	T  * get() const {return item;}
-	T & operator*() const {return *item;}
-	T * operator->() const {return item;}
+	T const * get() const {return item;}
+	T const * operator->() const {return get();}
+	T const & operator*() const {return *item;}
+	T  * get()  {return item;}
+	T  * operator->()  {return get();}
+	T  & operator*()  {return *item;}
+
+	copy_ptr& operator=(copy_ptr const& rhs) { *item = *rhs.item; return *this; }
+	  //copy_ptr tmp(rhs);
+	  //std::swap(item, tmp.item);
+	//  return *this;
+	//}
+	copy_ptr& operator=(copy_ptr && tmprhs) {
+		item=tmprhs.item;
+		tmprhs.item=0;
+	    return *this;
+	}
+};
+
+template <typename T> class copy_val {
+	T  item;
+public:
+	
+	explicit copy_val(T const& existingItem) : item(existingItem) {}
+	copy_val(copy_val<T> const & other) : item(other.item) {}
+	copy_val(copy_val<T> && tmpother) : item(std::move(tmpother.item)) {}
+	~copy_val()  { }
+
+	T const * get() const {return &item;}
+	T const * operator->() const {return get();}
+	T const & operator*() const {return item;}
+	T  * get()  {return &item;}
+	T  * operator->()  {return get();}
+	T  & operator*()  {return item;}
+
+	copy_val& operator=(copy_val const& rhs) { item = rhs.item; return *this; }
+	copy_val& operator=(copy_val && tmprhs) { item = std::move(tmprhs.item); return *this; }
 };
 
 class LvqModelRuntimeSettings
@@ -34,7 +72,7 @@ public:
 		, LrScaleB(LVQ_LrScaleB)
 		, LR0(LVQ_LR0)
 		, LrScaleBad(LVQ_LrScaleBad)
-		, RngIter(new boost::mt19937(rngIter)) { }
+		, RngIter(rngIter) { }
 };
 
 class LvqModelSettings
