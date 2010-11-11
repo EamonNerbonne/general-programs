@@ -74,9 +74,8 @@ template <typename T> T randomUnscalingMatrix(boost::mt19937 & rngParams, int di
 		double scale= pow (fabs(Pdet),-1.0/double(dims));
 		assert(scale==scale);
 
-		P = scale*P;
+		P *= scale;
 		Pdet = P.determinant();
-		assert(Pdet==Pdet);
 	}
 	return P;
 }
