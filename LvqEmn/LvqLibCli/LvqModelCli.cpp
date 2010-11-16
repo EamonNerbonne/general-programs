@@ -1,5 +1,6 @@
 #include "stdafx.h"
 
+#include <boost/scoped_ptr.hpp>
 #include "LvqModelCli.h"
 #include "LvqModelSettingsCli.h"
 #include "LvqProjectionModel.h"
@@ -35,21 +36,29 @@ namespace LvqLibCli {
 
 	
 	LvqTrainingStatCli LvqModelCli::GetTrainingStat(int statI){
-		auto modelCopyRef = modelCopy;
-		if(modelCopyRef!=nullptr) {
-			msclr::lock l(copySync);
-			LvqModel* currentBackup = modelCopyRef->get();
+		if(modelCopy==nullptr)LvqTrainingStatCli();
 
-			return toCli(currentBackup->TrainingStats()[statI]);
-		}
-		GC::KeepAlive(modelCopyRef);
-		return LvqTrainingStatCli();
+		msclr::lock l(copySync);
+		LvqModel* currentBackup = modelCopy->get();
+
+		return toCli(currentBackup->TrainingStats()[statI]);
 	}
 
 	int LvqModelCli::TrainingStatCount::get(){
 		msclr::lock l(copySync);
-		auto modelCopyRef = modelCopy;
-		return modelCopyRef!=nullptr ?static_cast<int>( modelCopyRef->get()->TrainingStats().size()):0;
+		return modelCopy!=nullptr ?static_cast<int>(modelCopy->get()->TrainingStats().size()):0;
+	}
+
+	array<LvqTrainingStatCli>^ LvqModelCli::GetTrainingStatsAfter(int statI) {
+		if(modelCopy==nullptr)LvqTrainingStatCli();
+		msclr::lock l(copySync);
+		LvqModel* currentBackup = modelCopy->get();
+		int maxStat = std::max(statI, (int)currentBackup->TrainingStats().size());
+
+		array<LvqTrainingStatCli>^ stats = gcnew array<LvqTrainingStatCli>(maxStat-statI);
+		for(int i=0;i<stats->Length;++i)
+			stats[i] = toCli(currentBackup->TrainingStats()[statI+i]);
+		return stats;
 	}
 
 
@@ -71,32 +80,32 @@ namespace LvqLibCli {
 
 
 	ModelProjection LvqModelCli::CurrentProjectionAndPrototypes( LvqDatasetCli^ dataset){
-		msclr::lock l(copySync);
-		auto modelCopyRef = modelCopy;
-		if(modelCopyRef==nullptr) return ModelProjection();
-		LvqProjectionModel* projectionModel = dynamic_cast<LvqProjectionModel*>(modelCopyRef->get());
+		if(modelCopy==nullptr) return ModelProjection();
+		LvqProjectionModel* projectionModel = dynamic_cast<LvqProjectionModel*>(modelCopy->get());
 		if(projectionModel==nullptr) return ModelProjection();
-		auto projection = ToCliLabelledPoints(dataset->GetDataset()->ProjectPoints(projectionModel), dataset->GetDataset()->getPointLabels()) ;
-		auto prototypes = ToCliLabelledPoints(projectionModel->GetProjectedPrototypes(),projectionModel->GetPrototypeLabels());
 
-		auto retval = ModelProjection(projection,prototypes);
-		GC::KeepAlive(modelCopyRef);
-		return retval;
+		auto labels = dataset->GetDataset()->getPointLabels();
+
+		msclr::lock l(copySync);
+		auto points = dataset->GetDataset()->ProjectPoints(projectionModel);
+		auto prototypes = projectionModel->GetProjectedPrototypes();
+		auto prototypelabels = projectionModel->GetPrototypeLabels();
+		l.release();
+
+		return ModelProjection(ToCliLabelledPoints(points, labels) ,ToCliLabelledPoints(prototypes,prototypelabels));
 	}
 
 	array<int,2>^ LvqModelCli::ClassBoundaries( double x0, double x1, double y0, double y1,int xCols, int yRows) {
 		LvqProjectionModel::ClassDiagramT classDiagram(yRows,xCols);
-		{
-			auto modelCopyRef = modelCopy;
+		if(modelCopy==nullptr) return nullptr;
+		LvqProjectionModel* projectionModelCopy = dynamic_cast<LvqProjectionModel*>(modelCopy->get());
+		if(!projectionModelCopy) return nullptr;
 
-			if(modelCopyRef==nullptr) return nullptr;
-
-			LvqProjectionModel* projectionModel = dynamic_cast<LvqProjectionModel*>( modelCopyRef->get());
-			if(!projectionModel) return nullptr;
-			msclr::lock l(copySync);
-			projectionModel->ClassBoundaryDiagram(x0,x1,y0,y1,classDiagram);
-			GC::KeepAlive(modelCopyRef);
-		}
+		msclr::lock l(copySync);
+		boost::scoped_ptr<LvqProjectionModel> projectionModelClone(static_cast<LvqProjectionModel*>(projectionModelCopy->clone()));
+		l.release();
+			
+		projectionModelClone->ClassBoundaryDiagram(x0,x1,y0,y1,classDiagram);
 		return ToCli<array<int,2>^>::From(classDiagram.transpose());
 	}
 
@@ -114,7 +123,5 @@ namespace LvqLibCli {
 		trainingSet->GetDataset()->TrainModel(epochsToReach - model->get()->epochsTrained, model->get(), trainingSet->GetTrainingSubset(datafold), trainingSet->GetDataset(), trainingSet->GetTestSubset(datafold));
 		msclr::lock l2(copySync);
 		model->get()->CopyTo(*modelCopy->get());
-		//newBackup = GcPtr::Create(model->get()->clone());
 	}
-
 }

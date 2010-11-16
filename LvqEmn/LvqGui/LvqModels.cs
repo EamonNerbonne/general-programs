@@ -36,21 +36,22 @@ namespace LvqGui {
 		readonly List<Statistic> statCache = new List<Statistic>();
 		public Statistic[] TrainingStats {
 			get {
-				int statCount = subModels.Min(model => model.TrainingStatCount);
+				var newstats = subModels.Select(m => m.GetTrainingStatsAfter(statCache.Count)).ToArray();
+				int newStatCount = newstats.Min(statArray => statArray.Length);
 				lock (statCacheSync) {
-					while (statCount > statCache.Count) {
+					for (int i = 0; i < newStatCount; ++i) {
 						MeanVarCalc[] accum = null;
 
-						foreach (var model in subModels) {
+						foreach (var statArray in newstats)
 							if (accum == null)
-								accum = MeanVarCalc.ForValues(model.GetTrainingStat(statCache.Count).values);
+								accum = MeanVarCalc.ForValues(statArray[i].values);
 							else
-								MeanVarCalc.Add(accum, model.GetTrainingStat(statCache.Count).values);
-						}
+								MeanVarCalc.Add(accum, statArray[i].values);
+
 						Statistic newStat = new Statistic { Value = new double[accum.Length], StandardError = new double[accum.Length], };
-						for (int i = 0; i < accum.Length; ++i) {
-							newStat.Value[i] = accum[i].Mean;
-							newStat.StandardError[i] = Math.Sqrt(accum[i].SampleVar / subModels.Length);
+						for (int mi = 0; mi < accum.Length; ++mi) {
+							newStat.Value[mi] = accum[mi].Mean;
+							newStat.StandardError[mi] = Math.Sqrt(accum[mi].SampleVar / subModels.Length);
 						}
 						statCache.Add(newStat);
 					}
@@ -63,7 +64,7 @@ namespace LvqGui {
 		readonly object epochsSynch = new object();
 		int epochsDone;
 		static int trainersRunning;
-		public static void WaitForTraining() { while (trainersRunning != 0)Thread.Sleep(1); }
+		public static void WaitForTraining() { while (trainersRunning != 0) Thread.Sleep(1); }
 		public void Train(int epochsToDo, LvqDatasetCli trainingSet, CancellationToken cancel) {
 			Interlocked.Increment(ref trainersRunning);
 			try {
@@ -77,16 +78,17 @@ namespace LvqGui {
 				}
 				BlockingCollection<Tuple<LvqModelCli, int>> q = new BlockingCollection<Tuple<LvqModelCli, int>>();
 
-				var helpers = subModels.Select(m => Task.Factory.StartNew(() => { foreach (var next in q.GetConsumingEnumerable(cancel)) next.Item1.TrainUpto(next.Item2, trainingSet, next.Item1.InitDataFold); }, cancel)).ToArray();
 
+				//Parallel.ForEach(subModels, m => m.TrainUpto(epochsTarget,trainingSet,m.InitDataFold));
 
 				while (epochsCurrent != epochsTarget) {
-					epochsCurrent = (epochsTarget + epochsCurrent + 1) / 2;
+					epochsCurrent = (epochsTarget * 3 + epochsCurrent + 1) / 4;
 					int currentTarget = epochsCurrent;
 					foreach (var model in subModels)
 						q.Add(Tuple.Create(model, currentTarget));
 				}
 				q.CompleteAdding();
+				var helpers = Enumerable.Range(0, 4).Select(ignored => Task.Factory.StartNew(() => { foreach (var next in q.GetConsumingEnumerable(cancel)) next.Item1.TrainUpto(next.Item2, trainingSet, next.Item1.InitDataFold); }, cancel)).ToArray();
 				Task.WaitAll(helpers, cancel);
 			} finally {
 				Interlocked.Decrement(ref trainersRunning);

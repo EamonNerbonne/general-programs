@@ -8,68 +8,63 @@
   </SettingsComponent>
   <RecentFiles>
     <RecentFiles>
-      <File id="A4353940-C302-4556-BA67-3C4E977D1948/f:WrappingUtils.h" caret="4579" fromTop="21" />
       <File id="A4353940-C302-4556-BA67-3C4E977D1948/f:LvqTrainingStatCli.cpp" caret="554" fromTop="21" />
-      <File id="F50CC07F-68F1-455A-BE8D-A64D827F1A5C/d:Plot/f:IPlot.cs" caret="1239" fromTop="29" />
       <File id="2783A490-0407-4758-9531-B2950F3058D5/f:SmartSum.h" caret="1483" fromTop="43" />
       <File id="A4353940-C302-4556-BA67-3C4E977D1948/f:LvqTrainingStatCli.h" caret="468" fromTop="18" />
       <File id="2F0A3E48-CD06-43BB-BFC6-6B6F568232B9/d:MathHelpers/f:MeanVarCalc.cs" caret="1671" fromTop="47" />
       <File id="2F0A3E48-CD06-43BB-BFC6-6B6F568232B9/d:MathHelpers/f:Statistics.cs" caret="0" fromTop="0" />
-      <File id="A4353940-C302-4556-BA67-3C4E977D1948/f:LvqModelCli.h" caret="1701" fromTop="53" />
       <File id="2783A490-0407-4758-9531-B2950F3058D5/f:LvqModel.cpp" caret="310" fromTop="13" />
-      <File id="2783A490-0407-4758-9531-B2950F3058D5/f:LvqDataset.cpp" caret="7422" fromTop="55" />
-      <File id="A4353940-C302-4556-BA67-3C4E977D1948/f:LvqModelCli.cpp" caret="4778" fromTop="41" />
       <File id="4B93E8BF-F146-48EE-98DF-787D4B9FFBBF/f:LvqWindowValues.cs" caret="3172" fromTop="56" />
-      <File id="d:Miscellaneous Files/f:WaitHandle.cs/l:C!?Users?Eamon?AppData?Local?Temp?SymbolCache?src?source?.NET?4?DEVDIV_TFS?Dev10?Releases?RTMRel?ndp?clr?src?BCL?System?Threading?WaitHandle.cs?1305376?WaitHandle.cs" caret="9346" fromTop="29" />
-      <File id="4B93E8BF-F146-48EE-98DF-787D4B9FFBBF/f:TrainingControlValues.cs" caret="5756" fromTop="39" />
       <File id="4B93E8BF-F146-48EE-98DF-787D4B9FFBBF/f:CreateLvqModelValues.cs" caret="1415" fromTop="31" />
-      <File id="d:Miscellaneous Files/f:dbgdel.cpp/l:C!?Program Files (x86)?Microsoft Visual Studio 10.0?VC?crt?src?dbgdel.cpp" caret="1192" fromTop="29" />
-      <File id="d:Miscellaneous Files/f:shared_ptr.hpp/l:C!?Program Files (Custom)?boost_1_44_0?boost?shared_ptr.hpp" caret="492" fromTop="16" />
       <File id="4B93E8BF-F146-48EE-98DF-787D4B9FFBBF/f:LvqWindow.xaml.cs" caret="504" fromTop="12" />
       <File id="2783A490-0407-4758-9531-B2950F3058D5/f:LvqModel.h" caret="2017" fromTop="29" />
       <File id="250D79C5-12D3-48EE-83A4-2F11627C0EF4/f:LvqBench.cpp" caret="0" fromTop="0" />
-      <File id="d:Miscellaneous Files/f:mersenne_twister.hpp/l:C!?Program Files (Custom)?boost_1_44_0?boost?random?mersenne_twister.hpp" caret="3727" fromTop="103" />
-      <File id="d:Miscellaneous Files/f:Dispatcher.cs/l:C!?Users?Eamon?AppData?Local?Temp?SymbolCache?src?source?.NET?4?DEVDIV_TFS?Dev10?Releases?RTMRel?wpf?src?Base?System?Windows?Threading?Dispatcher.cs?1407647?Dispatcher.cs" caret="71211" fromTop="29" />
-      <File id="d:Miscellaneous Files/f:SemaphoreSlim.cs/l:C!?Users?Eamon?AppData?Local?Temp?SymbolCache?src?source?.NET?4?DEVDIV_TFS?Dev10?Releases?RTMRel?ndp?clr?src?BCL?System?Threading?SemaphoreSlim.cs?1305376?SemaphoreSlim.cs" caret="14585" fromTop="29" />
-      <File id="4B93E8BF-F146-48EE-98DF-787D4B9FFBBF/f:LvqModels.cs" caret="3697" fromTop="42" />
-      <File id="4B93E8BF-F146-48EE-98DF-787D4B9FFBBF/f:LvqScatterPlot.cs" caret="12280" fromTop="48" />
       <File id="250D79C5-12D3-48EE-83A4-2F11627C0EF4/f:EasyLvqTest.cpp" caret="3942" fromTop="24" />
       <File id="2F0A3E48-CD06-43BB-BFC6-6B6F568232B9/d:MathHelpers/f:MersenneTwister.cs" caret="1775" fromTop="29" />
       <File id="2783A490-0407-4758-9531-B2950F3058D5/f:utils.h" caret="2312" fromTop="36" />
+      <File id="2783A490-0407-4758-9531-B2950F3058D5/f:LvqModelSettings.h" caret="738" fromTop="24" />
       <File id="F50CC07F-68F1-455A-BE8D-A64D827F1A5C/d:Plot/f:PlotControl.xaml.cs" caret="10687" fromTop="29" />
-      <File id="2783A490-0407-4758-9531-B2950F3058D5/f:LvqModelSettings.h" caret="593" fromTop="19" />
+      <File id="2783A490-0407-4758-9531-B2950F3058D5/f:LvqDataset.cpp" caret="7422" fromTop="55" />
+      <File id="4B93E8BF-F146-48EE-98DF-787D4B9FFBBF/f:LvqScatterPlot.cs" caret="15602" fromTop="30" />
+      <File id="F50CC07F-68F1-455A-BE8D-A64D827F1A5C/d:Plot/f:PlotWithViz.cs" caret="70" fromTop="2" />
+      <File id="F50CC07F-68F1-455A-BE8D-A64D827F1A5C/d:Plot/f:IPlot.cs" caret="1121" fromTop="37" />
+      <File id="A4353940-C302-4556-BA67-3C4E977D1948/f:LvqModelCli.h" caret="1240" fromTop="29" />
+      <File id="A4353940-C302-4556-BA67-3C4E977D1948/f:WrappingUtils.h" caret="1099" fromTop="24" />
+      <File id="A4353940-C302-4556-BA67-3C4E977D1948/f:LvqModelCli.cpp" caret="1750" fromTop="30" />
+      <File id="4B93E8BF-F146-48EE-98DF-787D4B9FFBBF/f:LvqModels.cs" caret="2092" fromTop="35" />
+      <File id="4B93E8BF-F146-48EE-98DF-787D4B9FFBBF/f:TrainingControlValues.cs" caret="5819" fromTop="35" />
     </RecentFiles>
     <RecentEdits>
-      <File id="4B93E8BF-F146-48EE-98DF-787D4B9FFBBF/f:LvqWindowValues.cs" caret="2767" fromTop="13" />
-      <File id="4B93E8BF-F146-48EE-98DF-787D4B9FFBBF/f:LvqWindowValues.cs" caret="2999" fromTop="17" />
-      <File id="4B93E8BF-F146-48EE-98DF-787D4B9FFBBF/f:LvqScatterPlot.cs" caret="398" fromTop="13" />
-      <File id="4B93E8BF-F146-48EE-98DF-787D4B9FFBBF/f:TrainingControlValues.cs" caret="5575" fromTop="41" />
-      <File id="4B93E8BF-F146-48EE-98DF-787D4B9FFBBF/f:TrainingControlValues.cs" caret="5084" fromTop="22" />
-      <File id="4B93E8BF-F146-48EE-98DF-787D4B9FFBBF/f:TrainingControlValues.cs" caret="5381" fromTop="29" />
-      <File id="4B93E8BF-F146-48EE-98DF-787D4B9FFBBF/f:TrainingControlValues.cs" caret="5633" fromTop="35" />
-      <File id="4B93E8BF-F146-48EE-98DF-787D4B9FFBBF/f:LvqModels.cs" caret="2388" fromTop="52" />
-      <File id="4B93E8BF-F146-48EE-98DF-787D4B9FFBBF/f:LvqModels.cs" caret="68" fromTop="2" />
-      <File id="4B93E8BF-F146-48EE-98DF-787D4B9FFBBF/f:LvqModels.cs" caret="202" fromTop="9" />
-      <File id="4B93E8BF-F146-48EE-98DF-787D4B9FFBBF/f:LvqModels.cs" caret="1303" fromTop="33" />
-      <File id="4B93E8BF-F146-48EE-98DF-787D4B9FFBBF/f:LvqModels.cs" caret="1503" fromTop="38" />
-      <File id="2783A490-0407-4758-9531-B2950F3058D5/f:LvqModelSettings.h" caret="2500" fromTop="37" />
-      <File id="4B93E8BF-F146-48EE-98DF-787D4B9FFBBF/f:LvqWindow.xaml.cs" caret="1225" fromTop="29" />
-      <File id="2783A490-0407-4758-9531-B2950F3058D5/f:LvqModelSettings.h" caret="2500" fromTop="15" />
-      <File id="2783A490-0407-4758-9531-B2950F3058D5/f:LvqModel.h" caret="2017" fromTop="29" />
-      <File id="2783A490-0407-4758-9531-B2950F3058D5/f:LvqModelSettings.h" caret="2500" fromTop="12" />
-      <File id="2783A490-0407-4758-9531-B2950F3058D5/f:LvqModelSettings.h" caret="2500" fromTop="30" />
-      <File id="2783A490-0407-4758-9531-B2950F3058D5/f:LvqModelSettings.h" caret="2500" fromTop="13" />
-      <File id="2783A490-0407-4758-9531-B2950F3058D5/f:LvqModelSettings.h" caret="2500" fromTop="58" />
-      <File id="2783A490-0407-4758-9531-B2950F3058D5/f:LvqModelSettings.h" caret="2500" fromTop="47" />
-      <File id="250D79C5-12D3-48EE-83A4-2F11627C0EF4/f:EasyLvqTest.cpp" caret="3942" fromTop="24" />
-      <File id="2783A490-0407-4758-9531-B2950F3058D5/f:LvqModelSettings.h" caret="2500" fromTop="36" />
-      <File id="2783A490-0407-4758-9531-B2950F3058D5/f:LvqModelSettings.h" caret="2500" fromTop="24" />
-      <File id="2783A490-0407-4758-9531-B2950F3058D5/f:LvqModelSettings.h" caret="2500" fromTop="29" />
-      <File id="2783A490-0407-4758-9531-B2950F3058D5/f:LvqModelSettings.h" caret="2500" fromTop="51" />
-      <File id="2783A490-0407-4758-9531-B2950F3058D5/f:LvqModelSettings.h" caret="2500" fromTop="46" />
-      <File id="F50CC07F-68F1-455A-BE8D-A64D827F1A5C/d:Plot/f:PlotControl.xaml.cs" caret="10570" fromTop="29" />
-      <File id="2783A490-0407-4758-9531-B2950F3058D5/f:utils.h" caret="2110" fromTop="29" />
       <File id="2783A490-0407-4758-9531-B2950F3058D5/f:utils.h" caret="2341" fromTop="38" />
+      <File id="4B93E8BF-F146-48EE-98DF-787D4B9FFBBF/f:TrainingControlValues.cs" caret="5848" fromTop="44" />
+      <File id="4B93E8BF-F146-48EE-98DF-787D4B9FFBBF/f:LvqModels.cs" caret="3555" fromTop="27" />
+      <File id="4B93E8BF-F146-48EE-98DF-787D4B9FFBBF/f:LvqModels.cs" caret="3153" fromTop="22" />
+      <File id="4B93E8BF-F146-48EE-98DF-787D4B9FFBBF/f:LvqModels.cs" caret="3556" fromTop="31" />
+      <File id="4B93E8BF-F146-48EE-98DF-787D4B9FFBBF/f:TrainingControlValues.cs" caret="3206" fromTop="39" />
+      <File id="4B93E8BF-F146-48EE-98DF-787D4B9FFBBF/f:TrainingControlValues.cs" caret="5566" fromTop="28" />
+      <File id="4B93E8BF-F146-48EE-98DF-787D4B9FFBBF/f:TrainingControlValues.cs" caret="5728" fromTop="32" />
+      <File id="A4353940-C302-4556-BA67-3C4E977D1948/f:LvqModelCli.h" caret="1775" fromTop="30" />
+      <File id="A4353940-C302-4556-BA67-3C4E977D1948/f:LvqModelCli.h" caret="628" fromTop="16" />
+      <File id="A4353940-C302-4556-BA67-3C4E977D1948/f:LvqModelCli.h" caret="1339" fromTop="31" />
+      <File id="A4353940-C302-4556-BA67-3C4E977D1948/f:LvqModelCli.cpp" caret="1611" fromTop="14" />
+      <File id="A4353940-C302-4556-BA67-3C4E977D1948/f:LvqModelCli.cpp" caret="1613" fromTop="15" />
+      <File id="A4353940-C302-4556-BA67-3C4E977D1948/f:LvqModelCli.cpp" caret="5312" fromTop="39" />
+      <File id="A4353940-C302-4556-BA67-3C4E977D1948/f:LvqModelCli.cpp" caret="4324" fromTop="25" />
+      <File id="A4353940-C302-4556-BA67-3C4E977D1948/f:LvqModelCli.cpp" caret="4324" fromTop="26" />
+      <File id="A4353940-C302-4556-BA67-3C4E977D1948/f:LvqModelCli.cpp" caret="3967" fromTop="18" />
+      <File id="A4353940-C302-4556-BA67-3C4E977D1948/f:LvqModelCli.cpp" caret="3784" fromTop="12" />
+      <File id="A4353940-C302-4556-BA67-3C4E977D1948/f:LvqModelCli.cpp" caret="4322" fromTop="23" />
+      <File id="A4353940-C302-4556-BA67-3C4E977D1948/f:LvqModelCli.cpp" caret="3651" fromTop="13" />
+      <File id="A4353940-C302-4556-BA67-3C4E977D1948/f:LvqModelCli.cpp" caret="54" fromTop="2" />
+      <File id="A4353940-C302-4556-BA67-3C4E977D1948/f:LvqModelCli.cpp" caret="4296" fromTop="29" />
+      <File id="A4353940-C302-4556-BA67-3C4E977D1948/f:LvqModelCli.h" caret="1204" fromTop="28" />
+      <File id="A4353940-C302-4556-BA67-3C4E977D1948/f:LvqModelCli.cpp" caret="2404" fromTop="37" />
+      <File id="A4353940-C302-4556-BA67-3C4E977D1948/f:LvqModelCli.cpp" caret="2404" fromTop="46" />
+      <File id="A4353940-C302-4556-BA67-3C4E977D1948/f:LvqModelCli.cpp" caret="2270" fromTop="42" />
+      <File id="4B93E8BF-F146-48EE-98DF-787D4B9FFBBF/f:LvqModels.cs" caret="1927" fromTop="28" />
+      <File id="4B93E8BF-F146-48EE-98DF-787D4B9FFBBF/f:LvqModels.cs" caret="2641" fromTop="50" />
+      <File id="4B93E8BF-F146-48EE-98DF-787D4B9FFBBF/f:LvqModels.cs" caret="2092" fromTop="35" />
+      <File id="4B93E8BF-F146-48EE-98DF-787D4B9FFBBF/f:TrainingControlValues.cs" caret="6226" fromTop="47" />
     </RecentEdits>
   </RecentFiles>
   <NAntValidationSettings>

@@ -61,8 +61,8 @@ namespace LvqGui {
 
 		public TrainingControlValues(LvqWindowValues owner) {
 			this.owner = owner;
-			EpochsPerClick = 500;
-			EpochsPerAnimation = 2;
+			EpochsPerClick = 400;
+			EpochsPerAnimation = 5;
 			owner.LvqModels.CollectionChanged += LvqModels_CollectionChanged;
 		}
 
@@ -124,22 +124,27 @@ namespace LvqGui {
 						break;
 					}
 					overallTask.Enqueue(Task.Factory.StartNew(() => {
-						selectedModel.Train( epochsToTrainFor,  selectedDataset, Owner.WindowClosingToken);
+						selectedModel.Train(epochsToTrainFor,  selectedDataset, Owner.WindowClosingToken);
 						PotentialUpdate(selectedDataset, selectedModel);
 					}));
 
-					if (overallTask.Count > 2) overallTask.Dequeue().Wait();
+					if (overallTask.Count >= 2) overallTask.Dequeue().Wait();
 
 #if BENCHMARK
 					epochsTrained += epochsToTrainFor;
-					if (epochsTrained >= 100) {
+					if (epochsTrained >= 800) {
 						_AnimateTraining = false;
 						Task.WaitAll(overallTask.ToArray());
 						owner.Dispatcher.BeginInvokeBackground(() => Application.Current.MainWindow.Close());
 					}
 #endif
 				}
-				Task.WaitAll(overallTask.ToArray());
+				try {
+					Task.WaitAll(overallTask.ToArray());
+				} catch (AggregateException ae) {
+					if (!ae.InnerExceptions.All(e => e is OperationCanceledException))
+						throw;
+				}
 			} finally {
 				isAnimating = false;
 				PrintModelTimings(selectedModel);
