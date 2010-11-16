@@ -27,8 +27,6 @@ namespace LvqLibCli {
 		Object^copySync;
 
 	public:
-
-
 		property int ClassCount {int get();}
 		property int Dimensions {int get();}
 		property double CurrentLearningRate {double get();}
@@ -41,17 +39,13 @@ namespace LvqLibCli {
 
 		LvqModelCli(String^ label, LvqDatasetCli^ trainingSet,int datafold, LvqModelSettingsCli^ modelSettings);
 
+		array<LvqTrainingStatCli>^ GetTrainingStatsAfter(int statI);
 		LvqTrainingStatCli GetTrainingStat(int statI);
 		property int TrainingStatCount {int get();}
-
 
 		property array<String^>^ TrainingStatNames { array<String^>^ get();}
 
 		void ResetLearningRate();
-		
-
-
-//		property Object^ UpdateSyncObject { Object ^ get(){return mainSync;} }
 
 		array<int,2>^ ClassBoundaries(double x0, double x1, double y0, double y1,int xCols, int yRows);
 
@@ -59,6 +53,5 @@ namespace LvqLibCli {
 
 		void Train(int epochsToDo,LvqDatasetCli^ trainingSet, int datafold); 
 		void TrainUpto(int epochsToReach,LvqDatasetCli^ trainingSet, int datafold); 
-
 	};
 }
