@@ -11,6 +11,7 @@
  #r "System.Xaml";;
  *)
 
+module CharFreqHistogram
 open System
 open System.Xml.Linq
 open System.Xml
@@ -19,6 +20,7 @@ open EmnExtensions.Wpf
 open EmnExtensions.Wpf.Plot
 open EmnExtensions.Wpf.Plot.VizEngines
 open System.Windows
+open System.Collections.Generic
 
 let streamTopLevelEls (fi :FileInfo) filter = 
     seq {
@@ -28,55 +30,66 @@ let streamTopLevelEls (fi :FileInfo) filter =
                 yield  XNode.ReadFrom xmlReader :?> XElement
     }
 
-let xn s = XName.Get(s)
-let wikiNamespace = XNamespace.Get("http://www.mediawiki.org/xml/export-0.4/")
-let wikiFile = new FileInfo(@"D:\EamonLargeDocs\wikipedia\enwiki-latest-pages-articles.xml")
-
-let wikiPages = streamTopLevelEls wikiFile (fun reader -> reader.LocalName = "page")
-
-wikiPages |>Seq.map (fun xml -> xml.ToString()) |> Seq.head |> printfn "%s"
+//wikiPages |>Seq.map (fun xml -> xml.ToString()) |> Seq.head |> printfn "%s"
 
 
 
-let plot = 
-    Plot.Create(
-        new PlotMetaData(
-            DataLabel = "wikiData",
-            XUnitLabel = "Letter",
-            YUnitLabel = "Freq",
-            AxisBindings = (TickedAxisLocation.BelowGraph ||| TickedAxisLocation.LeftOfGraph)
-        ), new VizEngines.VizPixelScatterSmart())
+let asyncHisto syncContext (wikiPages:seq<XElement>) sink =
+    let maxInterestingCharCode = 128
+    let initarr() = Array.zeroCreate<int> maxInterestingCharCode
 
-(plot.Visualisation :?> VizEngines.IVizPixelScatter).CoverageRatio <- 0.9
-(plot.Visualisation :?> VizEngines.IVizPixelScatter).CoverageGradient <- 1.0
+    let charFreqArr (arr : array<int>) charCodes  = 
+        for code in charCodes do 
+            if code < arr.Length then arr.[code]<-arr.[code]+1
+
+    let charFreqPoints (arr : array<int>) pageText = 
+        pageText 
+            |> Seq.map int
+            |> charFreqArr arr
+        
+    let charToPoint sum i count = new Point(float i, float count / sum)
+
+    async {
+        let arr = initarr()
+        for page in wikiPages do
+            let points = charFreqPoints arr page.Value
+            let sum = arr |> Array.map float|> Array.sum
+            do! Async.SwitchToContext(syncContext)
+            arr |> Array.mapi (charToPoint sum) |> sink
+            do! Async.SwitchToThreadPool()
+    }
 
 
-let plotControl = new PlotControl( GraphsEnumerable = Seq.singleton (plot :> IPlot) )
+let main() =
 
-let plotWin = 
-    new Window(
-        Title = "WikiPlot",
-        Content = plotControl
-    )
+    //let xn s = XName.Get(s)
+//    let wikiNamespace = XNamespace.Get("http://www.mediawiki.org/xml/export-0.4/")
 
-plotWin.Show()
+    let scatterViz = new VizEngines.VizLineSegments(CoverageRatioY = 1.0)
 
-let maxInteresting = 128
-let charCodes=
-    wikiPages 
-        |> Seq.collect (fun xml -> xml.Value) 
-        |> Seq.map int
-        |> Seq.filter (fun n->n<maxInteresting)
-        |> Seq.take 1000000000
+    let plotWin = 
+        let metadata = new PlotMetaData( DataLabel = "wikiData", XUnitLabel = "Letter", YUnitLabel = "Freq")
+        
+        let plotControl = new PlotControl( ShowGridLines=true, GraphsEnumerable = (Plot.Create(metadata, scatterViz) |> Seq.singleton |> Seq.cast) ) 
+        let win = new Window(Title = "WikiPlot", Content = plotControl)
+        win.Show()
+        win
 
-let countArr = Array.create maxInteresting 0
-for code in charCodes do 
-    countArr.[code]<-countArr.[code]+1
+    
+    let wikiFile = new FileInfo(@"D:\EamonLargeDocs\wikipedia\enwiki-latest-pages-articles.xml")
+    let wikiPages = streamTopLevelEls wikiFile (fun reader -> reader.LocalName = "page")
+    let syncContext = System.Threading.SynchronizationContext.Current
 
-let charFreq = 
-    let charToPoint i count = new Point(float i, float count)
-    let nonZero (p:Point) = p.Y<>0.
-    countArr |> Array.toSeq |>Seq.mapi  charToPoint |> Seq.filter nonZero |> Seq.toArray
+    asyncHisto syncContext wikiPages scatterViz.ChangeData |> Async.Start
 
-charFreq |> plot.Visualisation.ChangeData 
 
+#if COMPILED
+[<STAThread()>]
+do 
+    let app =  new Application()
+    app.Startup.Add (fun _ -> main())
+    app.Run() |> ignore
+#else 
+do main()
+
+#endif
