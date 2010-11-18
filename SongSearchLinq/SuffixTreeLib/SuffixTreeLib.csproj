@@ -69,6 +69,10 @@
     <Compile Include="SuffixTreeNode.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\EmnExtensions\EmnExtensions.csproj">
+      <Project>{2F0A3E48-CD06-43BB-BFC6-6B6F568232B9}</Project>
+      <Name>EmnExtensions</Name>
+    </ProjectReference>
     <ProjectReference Include="..\SongData\SongData.csproj">
       <Project>{171E7F71-DB67-47CA-82BC-C63681BF2733}</Project>
       <Name>SongData</Name>

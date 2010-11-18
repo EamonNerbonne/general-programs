@@ -14,7 +14,6 @@ namespace SuffixTreeLib
 		byte[] normed;
 		Suffix[] songBoundaries;
 
-		public SuffixTreeSongSearcher() { }
 		public void Init(SongDB db) {
 			this.db = db;
 			normed = db.NormedSongs;

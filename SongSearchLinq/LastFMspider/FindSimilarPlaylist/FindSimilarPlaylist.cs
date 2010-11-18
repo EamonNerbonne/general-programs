@@ -28,7 +28,7 @@ namespace LastFMspider {
 			SimilarPlaylistResults res = new SimilarPlaylistResults();
 
 			SongWithCostCache songCostCache = new SongWithCostCache();
-			Heap<SongWithCost> songCosts = new Heap<SongWithCost>((sc, index) => { sc.index = index; });
+			IHeap<SongWithCost> songCosts = Heap.CreateIndexable<SongWithCost>((sc, index) => { sc.index = index; });
 
 			HashSet<SongRef> lookupQueue = new HashSet<SongRef>();
 			Dictionary<SongRef, SongSimilarityList> lookupCache = new Dictionary<SongRef, SongSimilarityList>();
