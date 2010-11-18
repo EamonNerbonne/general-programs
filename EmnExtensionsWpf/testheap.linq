@@ -40,5 +40,5 @@ Action<string, IHeap<int>> test = (name,heap) => {
 	}
 	sum.Dump();
 };
-test("noindex", Heap.Create<int,Heap.FastIntComparer>(new Heap.FastIntComparer()));
-test("index", Heap.CreateIndexable<int>(null));
+test("index", Heap.Factory<int>().Create(new Heap.FastIntComparer()));
+

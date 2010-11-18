@@ -24,7 +24,7 @@ namespace EmnExtensions.Algorithms {
 				distance[i] = float.PositiveInfinity;
 				comeFrom[i] = -1;
 			}
-			IHeap<DistanceTo> toProcess = Heap.CreateIndexable<DistanceTo>((node, newIndex) => { nodeIndex[node.targetNode] = newIndex; });
+			IHeap<DistanceTo> toProcess = Heap.Factory<DistanceTo>().Create((node, newIndex) => { nodeIndex[node.targetNode] = newIndex; });
 			bool noStartNodes = true;
 			foreach (int startNode in startNodes) {
 				toProcess.Add(new DistanceTo { distance = 0.0f, targetNode = startNode });

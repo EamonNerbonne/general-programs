@@ -24,8 +24,8 @@ namespace EmnExtensions.Algorithms {
 					generators[i] = inorderLists[i].GetEnumerator();
 
 				IHeap<IEnumerator<int>> gens = limitedRangeInts?
-					Heap.Create<IEnumerator<int>, FastEnumeratorIntComparer>(new FastEnumeratorIntComparer()) :
-					Heap.Create<IEnumerator<int>, SafeEnumeratorIntComparer>(new SafeEnumeratorIntComparer());
+					Heap.Factory<IEnumerator<int>>().Create(new FastEnumeratorIntComparer()) :
+					Heap.Factory<IEnumerator<int>>().Create(new SafeEnumeratorIntComparer());
 
 
 				foreach(var gen in generators) 
