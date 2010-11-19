@@ -68,7 +68,7 @@ namespace EmnExtensions.Collections {
 		public struct LongComparer : IComparer<long> { public int Compare(long x, long y) { return x < y ? -1 : x > y ? 1 : 0; } }
 		public struct ComparableComparer<T> : IComparer<T> where T : IComparable<T> { public int Compare(T x, T y) { return x.CompareTo(y); } }
 
-		static DelegateSink<T> CreateDelegateSink<T>(Action<T, int> sink) { return new DelegateSink<T>(); }
+		static DelegateSink<T> CreateDelegateSink<T>(Action<T, int> sink) { return new DelegateSink<T>(sink); }
 		struct DelegateSink<T> : IHeapIndexSink<T> {
 			readonly Action<T, int> sink;
 			public DelegateSink(Action<T, int> sink) { this.sink = sink; }

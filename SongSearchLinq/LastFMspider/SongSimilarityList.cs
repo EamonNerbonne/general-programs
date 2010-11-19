@@ -30,7 +30,6 @@ namespace LastFMspider {
 
 
 	public struct TrackSimilarityListInfo : ICachedInfo<TrackSimilarityListInfo,SimilarTracksListId> {
-		public readonly SongRef SongRef;
 		public readonly TrackId TrackId;
 
 		readonly SimilarTracksListId _ListID;
@@ -45,13 +44,13 @@ namespace LastFMspider {
 		readonly int? _StatusCode;
 		public int? StatusCode { get { return _StatusCode; } }
 
-		internal TrackSimilarityListInfo(SimilarTracksListId listID, TrackId trackId, SongRef songref, DateTime? lookupTimestamp, int? statusCode,
+		internal TrackSimilarityListInfo(SimilarTracksListId listID, TrackId trackId, DateTime? lookupTimestamp, int? statusCode,
 			SimilarityList<TrackId, TrackId.Factory> similarTracks) {
-			this.SongRef = songref; this.TrackId = trackId; this._ListID = listID; this._LookupTimestamp = lookupTimestamp;
-			this._StatusCode = statusCode; this._SimilarTracks = similarTracks;
+			TrackId = trackId; _ListID = listID; _LookupTimestamp = lookupTimestamp;
+			_StatusCode = statusCode; _SimilarTracks = similarTracks;
 		}
-		public static TrackSimilarityListInfo CreateUnknown(SongRef song, TrackId trackId) {
-			return new TrackSimilarityListInfo(default(SimilarTracksListId), trackId, song, null, null, default(TrackSimListStore));
+		public static TrackSimilarityListInfo CreateUnknown(TrackId trackId) {
+			return new TrackSimilarityListInfo(default(SimilarTracksListId), trackId,  null, null, default(TrackSimListStore));
 		}
 	}
 }

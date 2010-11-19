@@ -15,7 +15,7 @@ namespace LastFMspider {
 
 		public DbConnection Connection { get; private set; }
 		public LookupSimilarityList LookupSimilarityList { get; private set; }
-		public LookupSimilarityListInfo LookupSimilarityListAge { get; private set; }
+		public LookupSimilarityListInfo LookupSimilarityListInfo { get; private set; }
 		public InsertArtist InsertArtist { get; private set; }
 		public InsertTrack InsertTrack { get; private set; }
 		public LookupTrack LookupTrack { get; private set; }
@@ -61,7 +61,7 @@ namespace LastFMspider {
 			InsertSimilarityList = new InsertSimilarityList(this);
 			InsertArtist = new InsertArtist(this);
 			LookupSimilarityList = new LookupSimilarityList(this);
-			LookupSimilarityListAge = new LookupSimilarityListInfo(this);
+			LookupSimilarityListInfo = new LookupSimilarityListInfo(this);
 			AllTracks = new AllTracks(this);
 			RawTracks = new RawTracks(this);
 			RawArtists = new RawArtists(this);

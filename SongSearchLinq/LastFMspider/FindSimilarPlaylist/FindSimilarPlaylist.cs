@@ -1,11 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using SongDataLib;
 using EmnExtensions.Collections;
-using LastFMspider;
 using System.Threading;
+using LastFMspider.LastFMSQLiteBackend;
 
 namespace LastFMspider {
 	public static partial class FindSimilarPlaylist {
@@ -17,51 +16,53 @@ namespace LastFMspider {
 		}
 		static bool NeverAbort(int i) { return false; }
 
-		public static SimilarPlaylistResults ProcessPlaylist(LastFmTools tools, Func<SongRef, SongMatch> fuzzySearch, List<SongData> known, List<SongRef> unknown,
+		public static SimilarPlaylistResults ProcessPlaylist(LastFmTools tools, Func<SongRef, SongMatch> fuzzySearch, List<SongData> known, List<SongRef> unknown, out int lookupsDone,
 			int MaxSuggestionLookupCount = 100, int SuggestionCountTarget = 50, Func<int, bool> shouldAbort = null
 			) {
 			//OK, so we now have the playlist in the var "playlist" with knowns in "known" except for the unknowns, which are in "unknown" as far as possible.
 			shouldAbort = shouldAbort ?? NeverAbort;
 
-			var playlistSongs = known.Select(sd => SongRef.Create(sd)).Where(sr => sr != null).Cast<SongRef>().Concat(unknown).Reverse();
-			Dictionary<SongRef, HashSet<SongRef>> playlistSongRefs = playlistSongs.ToDictionary(sr => sr, sr => new HashSet<SongRef>());
+			var playlistSongs = known.Select(SongRef.Create).Where(sr => sr != null).Concat(unknown)
+				.Select(tools.SimilarSongs.backingDB.LookupTrackID.Execute).Reverse();
+			Dictionary<TrackId, HashSet<TrackId>> playlistSongRefs = playlistSongs.ToDictionary(sr => sr, sr => new HashSet<TrackId>());
 			SimilarPlaylistResults res = new SimilarPlaylistResults();
 
 			SongWithCostCache songCostCache = new SongWithCostCache();
 			IHeap<SongWithCost> songCosts = Heap.Factory<SongWithCost>().Create((sc, index) => { sc.index = index; });
 
-			HashSet<SongRef> lookupQueue = new HashSet<SongRef>();
-			Dictionary<SongRef, SongSimilarityList> lookupCache = new Dictionary<SongRef, SongSimilarityList>();
-			Queue<SongRef> lookupCacheOrder = new Queue<SongRef>();
-			HashSet<SongRef> lookupsDeleted = new HashSet<SongRef>();
+			HashSet<TrackId> lookupQueue = new HashSet<TrackId>();
+			Dictionary<TrackId, TrackSimilarityListInfo> lookupCache = new Dictionary<TrackId, TrackSimilarityListInfo>();
+			Queue<TrackId> lookupCacheOrder = new Queue<TrackId>();
+			HashSet<TrackId> lookupsDeleted = new HashSet<TrackId>();
 
-			object ignore = tools.SimilarSongs;//ensure similarsongs loaded.
+			var simSongDb = tools.SimilarSongs.backingDB;//ensure similarsongs loaded.
 			object sync = new object();
 			bool done = false;
-			Random rand = new Random();
-
+			int lookupsDoneTemp = 0;
 			ThreadStart bgLookup = () => {
 				bool tDone;
+// ReSharper disable AccessToModifiedClosure
 				lock (sync) tDone = done;
+// ReSharper restore AccessToModifiedClosure
 				while (!tDone) {
-					SongRef nextToLookup;
-					SongSimilarityList simList = null;
+					TrackId nextToLookup;
 					lock (sync) {
 						nextToLookup =
 							songCosts.ElementsInRoughOrder
-							.Select(sc => sc.songref)
-							.Where(songref => !lookupQueue.Contains(songref))
+							.Select(sc => sc.trackid)
+							.Where(trackid => !lookupQueue.Contains(trackid))
 							.FirstOrDefault();
-						if (nextToLookup != null)
+						if (nextToLookup.HasValue)
 							lookupQueue.Add(nextToLookup);
 					}
-					if (nextToLookup != null) {
-						simList = tools.SimilarSongs.LookupMaybe(nextToLookup);
+					if (nextToLookup.HasValue) {
+						Interlocked.Increment(ref lookupsDoneTemp);
+						TrackSimilarityListInfo simList = simSongDb.LookupSimilarityListInfo.Execute(nextToLookup);
 						lock (sync) {
 							lookupCache[nextToLookup] = simList;
 							lookupCacheOrder.Enqueue(nextToLookup);
 							while (lookupCacheOrder.Count > 10000) {
-								SongRef toRemove = lookupCacheOrder.Dequeue();
+								var toRemove = lookupCacheOrder.Dequeue();
 								lookupCache.Remove(toRemove);
 								lookupsDeleted.Add(toRemove);
 							}
@@ -71,43 +72,48 @@ namespace LastFMspider {
 						Thread.Sleep(100);
 					}
 
+// ReSharper disable AccessToModifiedClosure
 					lock (sync) tDone = done;
+// ReSharper restore AccessToModifiedClosure
 				}
 			};
 
 
 
-			Func<SongRef, int, SongSimilarityList> lookupParallel = (songref, curcount) => {
-				SongSimilarityList retval;
-				bool notInQueue;
-				bool alreadyDeleted;
+			Func<TrackId, int, TrackSimilarityListInfo> lookupParallel = (trackid, curcount) => {
 				while (true) {
-
+					bool notInQueue;
+					bool alreadyDeleted;
+					TrackSimilarityListInfo retval;
 					lock (sync) {
-						if (lookupCache.TryGetValue(songref, out retval))
+						if (lookupCache.TryGetValue(trackid, out retval))
 							return retval; //easy case
-						alreadyDeleted = lookupsDeleted.Contains(songref);
-						notInQueue = !lookupQueue.Contains(songref);
+						alreadyDeleted = lookupsDeleted.Contains(trackid);
+						notInQueue = !lookupQueue.Contains(trackid);
 						if (notInQueue)
-							lookupQueue.Add(songref);
+							lookupQueue.Add(trackid);
 					}
-					if (alreadyDeleted)
-						return tools.SimilarSongs.LookupMaybe(songref);
+					if (alreadyDeleted) {
+						Interlocked.Increment(ref lookupsDoneTemp);
+						return simSongDb.LookupSimilarityListInfo.Execute(trackid);
+					}
 					if (notInQueue) {
-						retval = tools.SimilarSongs.LookupMaybe(songref);
-						lock (sync) lookupsDeleted.Add(songref);
+						Interlocked.Increment(ref lookupsDoneTemp);
+						retval = simSongDb.LookupSimilarityListInfo.Execute(trackid);
+						lock (sync) lookupsDeleted.Add(trackid);
+						return retval;
 					}
 					//OK, so song is in queue, not in cache but not deleted from cache: song must be in flight: we wait and then try again.
-					Thread.Sleep(10);
-					if (shouldAbort(curcount)) return null;
+					Thread.Sleep(1);
+					if (shouldAbort(curcount)) return TrackSimilarityListInfo.CreateUnknown(trackid);
 				}
 			};
 
 
-			foreach (var songcost in playlistSongs.Select(songref => songCostCache.Lookup(songref))) {
+			foreach (var songcost in playlistSongs.Select(songCostCache.Lookup)) {
 				songcost.cost = 0.0;
 				songcost.graphDist = 0;
-				songcost.basedOn.Add(songcost.songref);
+				songcost.basedOn.Add(songcost.trackid);
 				songCosts.Add(songcost);
 			}
 
@@ -121,32 +127,31 @@ namespace LastFMspider {
 						if (!songCosts.RemoveTop(out currentSong))
 							break;
 					currentSong.index = -1;
-					if (!playlistSongRefs.ContainsKey(currentSong.songref)) {
+					if (!playlistSongRefs.ContainsKey(currentSong.trackid)) {
+						SongRef currentSongRef = simSongDb.LookupTrack.Execute(currentSong.trackid);
 						res.similarList.Add(currentSong);
-						if (tools.Lookup.dataByRef.ContainsKey(currentSong.songref))
+						if (tools.Lookup.dataByRef.ContainsKey(currentSongRef))
 							res.knownTracks.Add((
-								from songcandidate in tools.Lookup.dataByRef[currentSong.songref]
+								from songcandidate in tools.Lookup.dataByRef[currentSongRef]
 								orderby SongMatch.AbsoluteSongCost(songcandidate)
 								select songcandidate
 							).First());
 						else {
-							SongMatch bestRoughMatch = fuzzySearch(currentSong.songref);
+							SongMatch bestRoughMatch = fuzzySearch(currentSongRef);
 							if (bestRoughMatch.GoodEnough)
 								res.knownTracks.Add(bestRoughMatch.Song);
 							else
-								res.unknownTracks.Add(currentSong.songref);
+								res.unknownTracks.Add(currentSongRef);
 						}
 					}
 
 
-					var nextSimlist = lookupParallel(currentSong.songref, res.similarList.Count);
-					if (nextSimlist == null)
-						continue;
+					var nextSimlist = lookupParallel(currentSong.trackid, res.similarList.Count);
 
 
 					int simRank = 0;
-					foreach (var similarTrack in nextSimlist.similartracks) {
-						SongWithCost similarSong = songCostCache.Lookup(similarTrack.similarsong);
+					foreach (var similarTrack in nextSimlist.SimilarTracks) {
+						SongWithCost similarSong = songCostCache.Lookup(similarTrack.OtherId);
 						foreach (var baseSong in currentSong.basedOn)
 							similarSong.basedOn.Add(baseSong);
 						double directCost = (simRank + similarSong.basedOn.Select(baseSong => playlistSongRefs[baseSong].Count + 50).Sum()) / (similarSong.basedOn.Count * Math.Sqrt(similarSong.basedOn.Count));
@@ -168,8 +173,8 @@ namespace LastFMspider {
 					}
 					foreach (var srcSong in currentSong.basedOn) {
 						var dependantSongs = playlistSongRefs[srcSong];
-						foreach (var simSong in nextSimlist.similartracks)
-							dependantSongs.Add(simSong.similarsong);
+						foreach (var simSong in nextSimlist.SimilarTracks)
+							dependantSongs.Add(simSong.OtherId);
 					}
 					int newPercent = Math.Max((res.similarList.Count * 100) / MaxSuggestionLookupCount, (res.knownTracks.Count * 100) / SuggestionCountTarget);
 					if (newPercent > lastPercent) {
@@ -182,6 +187,7 @@ namespace LastFMspider {
 				lock (sync) done = true;
 			}
 			Console.WriteLine("{0} similar tracks generated, of which {1} found locally.", res.similarList.Count, res.knownTracks.Count);
+			lookupsDone = lookupsDoneTemp;
 			return res;
 		}
 

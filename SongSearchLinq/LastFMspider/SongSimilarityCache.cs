@@ -36,11 +36,11 @@ namespace LastFMspider {
 			backingDB = new LastFMSQLiteCache(configFile);
 		}
 
-		static TimeSpan normalMaxAge = TimeSpan.FromDays(365.0);
+		static readonly TimeSpan normalMaxAge = TimeSpan.FromDays(365.0);
 
 		public SongSimilarityList LookupMaybe(SongRef songref, TimeSpan maxAge = default(TimeSpan)) {
 			if (maxAge == default(TimeSpan)) maxAge = normalMaxAge;
-			var songSimListAge = backingDB.LookupSimilarityListAge.Execute(songref);
+			var songSimListAge = backingDB.LookupSimilarityListInfo.Execute(songref);
 			if (!IsFresh(songSimListAge, maxAge))
 				QueueWebRequest(songref);
 
@@ -59,7 +59,7 @@ namespace LastFMspider {
 				SongRef next;
 				lock (syncTodoReq)
 					next = todoReq.FirstOrDefault();
-				var simInfo = backingDB.LookupSimilarityListAge.Execute(next);
+				var simInfo = backingDB.LookupSimilarityListInfo.Execute(next);
 				if (!IsFresh(simInfo, TimeSpan.FromDays(2.0)))
 					DoWebLookup(backingDB, next);
 				lock (syncTodoReq) {
@@ -72,7 +72,7 @@ namespace LastFMspider {
 
 		public SongSimilarityList Lookup(SongRef songref, TimeSpan maxAge = default(TimeSpan)) {
 			if (maxAge == default(TimeSpan)) maxAge = normalMaxAge;
-			return Lookup(backingDB.LookupSimilarityListAge.Execute(songref), maxAge);
+			return Lookup(backingDB.LookupSimilarityListInfo.Execute(songref), maxAge);
 		}
 
 		static object syncSongSimLookup = new object();
@@ -123,13 +123,13 @@ namespace LastFMspider {
 
 		public SongSimilarityList Lookup(TrackSimilarityListInfo cachedVersion, TimeSpan maxAge) {
 			if (!IsFresh(cachedVersion, maxAge))  //get online version
-				return DoWebLookup(backingDB, cachedVersion.SongRef);
+				return DoWebLookup(backingDB, backingDB.LookupTrack.Execute(cachedVersion.TrackId));
 			else
 				return backingDB.LookupSimilarityList.Execute(cachedVersion);
 		}
 
 		public Tuple<TrackSimilarityListInfo, SongSimilarityList> EnsureCurrent(SongRef songref, TimeSpan maxAge) {
-			TrackSimilarityListInfo cachedVersion = backingDB.LookupSimilarityListAge.Execute(songref);
+			TrackSimilarityListInfo cachedVersion = backingDB.LookupSimilarityListInfo.Execute(songref);
 			if (!cachedVersion.ListID.HasValue || !cachedVersion.LookupTimestamp.HasValue || cachedVersion.LookupTimestamp.Value < DateTime.UtcNow - maxAge) { //get online version
 				Console.Write("?" + songref);
 				var retval = OldApiClient.Track.GetSimilarTracks(songref);
@@ -149,9 +149,9 @@ namespace LastFMspider {
 			//artist = artist.ToLatinLowercase();
 			if (maxAge == default(TimeSpan)) maxAge = normalMaxAge;
 			var toptracksInfo = backingDB.LookupArtistTopTracksListAge.Execute(artist);
-			if (toptracksInfo.IsKnown && toptracksInfo.LookupTimestamp.HasValue && toptracksInfo.LookupTimestamp.Value >= DateTime.UtcNow - maxAge) 
+			if (toptracksInfo.IsKnown && toptracksInfo.LookupTimestamp.HasValue && toptracksInfo.LookupTimestamp.Value >= DateTime.UtcNow - maxAge)
 				return backingDB.LookupArtistTopTracksList.Execute(toptracksInfo);
-			if (toptracksInfo.ArtistInfo.IsAlternateOf.HasValue)	
+			if (toptracksInfo.ArtistInfo.IsAlternateOf.HasValue)
 				return LookupTopTracks(backingDB.LookupArtist.Execute(toptracksInfo.ArtistInfo.IsAlternateOf), maxAge);
 
 			ArtistTopTracksList toptracks;

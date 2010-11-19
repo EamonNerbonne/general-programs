@@ -1,18 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Data.Common;
-using System.Data.SQLite;
+﻿using System.Linq;
 
 namespace LastFMspider.LastFMSQLiteBackend {
 	public class LookupSimilarityList : AbstractLfmCacheOperation {
 		public LookupSimilarityList(LastFMSQLiteCache lfmCache) : base(lfmCache) { }
 		public SongSimilarityList Execute(TrackSimilarityListInfo list) {
-			if (!list.ListID.HasValue || list.SongRef == null) return null;
+			if (!list.ListID.HasValue) return null;
 
 			lock (SyncRoot) {
-				using (var trans = Connection.BeginTransaction()) {
+				using (Connection.BeginTransaction()) {
 					var similarto =
 						from simTrack in list.SimilarTracks
 						let similarsong = lfmCache.LookupTrack.Execute(simTrack.OtherId)
@@ -25,7 +20,7 @@ namespace LastFMspider.LastFMSQLiteBackend {
 
 					return new SongSimilarityList {
 						id = list.ListID,
-						songref = list.SongRef,
+						songref = lfmCache.LookupTrack.Execute(list.TrackId),
 						similartracks = similarto.ToArray(),
 						LookupTimestamp = list.LookupTimestamp.Value.ToUniversalTime(),
 						StatusCode = list.StatusCode,

@@ -217,33 +217,44 @@ $(document).ready(function ($) {
                 isGetQueued = false;
                 simStateSet.current = "getting";
                 leftColSel.removeClass("proc-error");
+                leftColSel.removeAttr("data-errname");
+                leftColSel.removeAttr("data-errtrace");
+                leftColSel.removeAttr("data-errmsg");
                 leftColSel.addClass("processing");
                 getSimilarImpl();
             }
         },
         done: function (data) {
-            if (!data || !data.known || !data.unknown) { this.error("data-error", false); }
+            if (!data || data.error || !data.known || !data.unknown) { this.error("data-error", false, data); }
             else {
-
                 if (mouseInSimilar) { simDispDataWait = data; leftColSel.addClass("waiting"); }
                 else updateSimilarDisplay(data);
-
+                leftColSel.attr("data-lookups", data.lookups);
                 if (simStateSet.current == "done") return;
                 simStateSet.current = "done";
                 leftColSel.removeClass("proc-error");
+                leftColSel.removeAttr("data-errname");
+                leftColSel.removeAttr("data-errtrace");
+                leftColSel.removeAttr("data-errmsg");
                 leftColSel.removeClass("processing");
                 if (isGetQueued)
                     simStateSet.getting();
             }
         },
-        error: function (status, retry) {
+        error: function (status, retry, errordetail) {
             dataStatus = status || dataStatus;
             isGetQueued = isGetQueued || retry;
-            leftColSel.attr("data-status", dataStatus);
+            if (errordetail) {
+                leftColSel.attr("data-errmsg", errordetail.message);
+                leftColSel.attr("data-errtrace", errordetail.fulltrace);
+                leftColSel.attr("data-errname", errordetail.error);
+            } else leftColSel.attr("data-errname", dataStatus);
+
             if (simStateSet.current == "error") return;
             simStateSet.current = "error";
             leftColSel.addClass("proc-error");
             leftColSel.removeClass("processing");
+            leftColSel.removeAttr("data-lookups");
             if (isGetQueued)
                 simStateSet.getting();
         },

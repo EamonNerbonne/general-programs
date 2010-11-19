@@ -1,15 +1,16 @@
 ﻿using System.Collections.Generic;
+using LastFMspider.LastFMSQLiteBackend;
 
 namespace LastFMspider {
 	public static partial class FindSimilarPlaylist {
 		public class SongWithCostCache {
-			Dictionary<SongRef, SongWithCost> songCostLookupDict = new Dictionary<SongRef, SongWithCost>();
-			public SongWithCost Lookup(SongRef song) {
+			readonly Dictionary<TrackId, SongWithCost> songCostLookupDict = new Dictionary<TrackId, SongWithCost>();
+			public SongWithCost Lookup(TrackId trackid) {
 				SongWithCost retval;
-				if (songCostLookupDict.TryGetValue(song, out retval))
+				if (songCostLookupDict.TryGetValue(trackid, out retval))
 					return retval;
-				retval = new SongWithCost { songref = song };
-				songCostLookupDict.Add(song, retval);
+				retval = new SongWithCost { trackid = trackid };
+				songCostLookupDict.Add(trackid, retval);
 				return retval;
 			}
 		}

@@ -27,7 +27,7 @@ namespace LastFMspider
                 try {
                     string trackStr = track.SongRef.ToString();
                     msg.AppendFormat("SimTo:{0,-30}", trackStr.Substring(0, Math.Min(trackStr.Length, 30)));
-                    TrackSimilarityListInfo info = SimilarSongs.backingDB.LookupSimilarityListAge.Execute(track.SongRef);
+                    TrackSimilarityListInfo info = SimilarSongs.backingDB.LookupSimilarityListInfo.Execute(track.SongRef);
 					if (info.LookupTimestamp.HasValue && info.LookupTimestamp.Value > maxDate) {
                         msg.AppendFormat("done.");
                     } else {

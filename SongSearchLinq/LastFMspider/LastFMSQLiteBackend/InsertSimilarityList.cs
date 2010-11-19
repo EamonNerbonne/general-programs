@@ -50,7 +50,7 @@ LIMIT 1
 					
 
 					trans.Commit();
-					return new TrackSimilarityListInfo(listId, baseTrackId, simList.songref, simList.LookupTimestamp.ToUniversalTime(), simList.StatusCode, listImpl);
+					return new TrackSimilarityListInfo(listId, baseTrackId, simList.LookupTimestamp.ToUniversalTime(), simList.StatusCode, listImpl);
 				}
 			}
 		}

@@ -74,7 +74,7 @@ namespace LastFmPlaylistSuggestions {
 			}
 		}
 
-		static void ProcessM3U(LastFmTools tools, Func<SongRef,SongMatch> fuzzySearch, FileInfo m3ufile, DirectoryInfo m3uDir) {
+		static void ProcessM3U(LastFmTools tools, Func<SongRef, SongMatch> fuzzySearch, FileInfo m3ufile, DirectoryInfo m3uDir) {
 			Console.WriteLine("Trying " + m3ufile.FullName);
 			ISongData[] playlist = LoadExtM3U(m3ufile);
 			var known = new List<SongData>();
@@ -87,7 +87,8 @@ namespace LastFmPlaylistSuggestions {
 				);
 
 			//OK, so we now have the playlist in the var "playlist" with knowns in "known" except for the unknowns, which are in "unknown" as far as possible.
-			var res = FindSimilarPlaylist.ProcessPlaylist(tools, fuzzySearch, known, unknown, 1000);
+			int lookupsDone;
+			var res = FindSimilarPlaylist.ProcessPlaylist(tools, fuzzySearch, known, unknown,out lookupsDone, 1000);
 
 			FileInfo outputplaylist = new FileInfo(Path.Combine(m3uDir.FullName, Path.GetFileNameWithoutExtension(m3ufile.Name) + "-similar.m3u"));
 			using (var stream = outputplaylist.Open(FileMode.Create))
@@ -101,11 +102,12 @@ namespace LastFmPlaylistSuggestions {
 			using (var stream = outputsimtracks.Open(FileMode.Create))
 			using (var writer = new StreamWriter(stream, Encoding.UTF8)) {
 				foreach (var track in res.similarList) {
+					SongRef songref = tools.SimilarSongs.backingDB.LookupTrack.Execute(track.trackid);
 					writer.WriteLine("{0} {2} {1}    [{3}]",
 							track.cost,
-							track.songref.ToString(),
-							tools.Lookup.dataByRef.ContainsKey(track.songref) ? "" : "***",
-							string.Join(";  ", track.basedOn.Select(sr => sr.ToString()).ToArray())
+							songref,
+							tools.Lookup.dataByRef.ContainsKey(songref) ? "" : "***",
+							string.Join(";  ", track.basedOn.Select(id =>tools.SimilarSongs.backingDB.LookupTrack.Execute(id).ToString()).ToArray())
 						);
 				}
 			}

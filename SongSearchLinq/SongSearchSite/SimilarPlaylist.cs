@@ -18,56 +18,69 @@ namespace SongSearchSite {
 		}
 		static object syncroot = new object();
 		public void ProcessRequest(HttpContext context) {
+			try {
+				PlaylistEntryJson[] playlistFromJson = JsonConvert.DeserializeObject<PlaylistEntryJson[]>(context.Request["playlist"]);
+				List<SongData> songs = (
+					from entry in playlistFromJson
+					let path = Uri.UnescapeDataString(entry.href)
+					let songdata = SongDbContainer.GetSongFromFullUri(path) as SongData
+					where songdata != null
+					select songdata).ToList();
 
-			PlaylistEntryJson[] playlistFromJson = JsonConvert.DeserializeObject<PlaylistEntryJson[]>(context.Request["playlist"]);
-			List<SongData> songs = (
-				from entry in playlistFromJson
-				let path = Uri.UnescapeDataString(entry.href)
-				let songdata = SongDbContainer.GetSongFromFullUri(path) as SongData
-				where songdata != null
-				select songdata).ToList();
+				List<SongRef> unknownSongs = new List<SongRef>();
+				FindSimilarPlaylist.SimilarPlaylistResults res = null;
+				Stopwatch timer = Stopwatch.StartNew();
+				int lookupsDone;
+				res = FindSimilarPlaylist.ProcessPlaylist(SongDbContainer.LastFmTools,
+					// sr=>null,
+					SongDbContainer.FuzzySongSearcher.FindBestMatch,
+					 songs, unknownSongs, out lookupsDone, 1000, 50, count => !context.Response.IsClientConnected || (timer.Elapsed.TotalMilliseconds + count * 500 > 30000));
 
-			List<SongRef> unknownSongs = new List<SongRef>();
-			FindSimilarPlaylist.SimilarPlaylistResults res = null;
-			Stopwatch timer = Stopwatch.StartNew();
-			res = FindSimilarPlaylist.ProcessPlaylist(SongDbContainer.LastFmTools,
-				// sr=>null,
-				SongDbContainer.FuzzySongSearcher.FindBestMatch,
-				 songs, unknownSongs, 1000, 50, count => !context.Response.IsClientConnected || (timer.Elapsed.TotalMilliseconds + count*500 > 30000) );
+				if (!context.Response.IsClientConnected)
+					return;
 
-			if (!context.Response.IsClientConnected)
-				return;
+				var uriMapper = SongDbContainer.LocalSongPathToAppRelativeMapper(context);
 
-			var uriMapper = SongDbContainer.LocalSongPathToAppRelativeMapper(context);
+				PlaylistEntryJson[] knownForJson =
+					(from knownSong in res.knownTracks
+					 let mime = SongServeRequestProcessor.guessMIME(knownSong)
+					 where mime == SongServeRequestProcessor.MIME_MP3 || mime == SongServeRequestProcessor.MIME_OGG
+					 select new PlaylistEntryJson {
+						 href = uriMapper(knownSong.SongUri).ToString(),
+						 label = knownSong.HumanLabel,
+						 length = knownSong.Length,
+						 replaygain = knownSong.track_gain
+					 }).ToArray();
+				string[] unknownForJson =
+					(from unknownSong in res.unknownTracks
+					 select unknownSong.ToString())
+					 .Concat(from knownSong in res.knownTracks
+							 let mime = SongServeRequestProcessor.guessMIME(knownSong)
+							 where mime != SongServeRequestProcessor.MIME_MP3 && mime != SongServeRequestProcessor.MIME_OGG
+							 select knownSong.HumanLabel).Take(50).ToArray();
 
-			PlaylistEntryJson[] knownForJson =
-				(from knownSong in res.knownTracks
-				 let mime= SongServeRequestProcessor.guessMIME(knownSong)
-				 where mime == SongServeRequestProcessor.MIME_MP3 || mime == SongServeRequestProcessor.MIME_OGG
-				 select new PlaylistEntryJson {
-					 href = uriMapper(knownSong.SongUri).ToString(),
-					 label = knownSong.HumanLabel,
-					 length = knownSong.Length,
-					 replaygain = knownSong.track_gain
-				 }).ToArray();
-			string[] unknownForJson =
-				(from unknownSong in res.unknownTracks
-				 select unknownSong.ToString())
-				 .Concat(from knownSong in res.knownTracks
-				 let mime= SongServeRequestProcessor.guessMIME(knownSong)
-				 where mime != SongServeRequestProcessor.MIME_MP3 && mime != SongServeRequestProcessor.MIME_OGG
-				 select knownSong.HumanLabel).Take(50)		 .ToArray();
-
-			context.Response.ContentType = "application/json";
-			context.Response.Output.Write(
-				JsonConvert.SerializeObject(
-					new Dictionary<string, object> {
+				context.Response.ContentType = "application/json";
+				context.Response.Output.Write(
+					JsonConvert.SerializeObject(
+						new Dictionary<string, object> {
 						{ "known",knownForJson},
-						{"unknown",unknownForJson}
+						{"unknown",unknownForJson},
+						{"lookups",lookupsDone},
 					}
-				)
-			);
-			//write your handler implementation here.
+					)
+				);
+			} catch (Exception e) {
+				context.Response.ContentType = "application/json";
+				context.Response.Output.Write(
+					JsonConvert.SerializeObject(
+						new Dictionary<string, object> {
+						{ "error",e.GetType().FullName},
+						{"message",e.Message},
+						{"fulltrace",e.ToString()},
+					})
+				);
+			}
+
 		}
 	}
 }
