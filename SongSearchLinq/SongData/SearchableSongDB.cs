@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using EmnExtensions.Algorithms;
 
 namespace SongDataLib
 {
@@ -24,7 +25,7 @@ namespace SongDataLib
 			byte[][] query =
 					 querystring
 					 .Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)
-					 .Select(q => SongUtil.CanonicalizedSearchStr(q))
+					 .Select(SongUtil.CanonicalizedSearchStr)
 					 .ToArray();
 			if(query.Length == 0) return Enumerable.Range(0, db.songs.Length);
 			SearchResult[] res = query.Select(q => searchMethod.Query(q)).ToArray();
@@ -34,12 +35,12 @@ namespace SongDataLib
 		IEnumerable<int> MatchAll(SearchResult[] results, byte[][] queries) {
 			Array.Sort(results, queries);
 			IEnumerable<int> smallestMatch = results[0].songIndexes;
-
-
+			//return SortedIntersectionAlgorithm.SortedIntersection(results.Select(result => result.songIndexes).ToArray(), true);
+			
 			foreach(int si in smallestMatch) {//TODO: use better set intersection logic.  Either enforce results to come in-order so you can "zip" em up, or use hashing.
-				byte[] songtext = db.NormalizedSong(si);
-				if(queries.Skip(1).All(q => songtext.Contains(q)))
-					yield return si;
+			    byte[] songtext = db.NormalizedSong(si);
+			    if(queries.Skip(1).All(q => songtext.Contains(q)))
+			        yield return si;
 			}/**/
 		}
 

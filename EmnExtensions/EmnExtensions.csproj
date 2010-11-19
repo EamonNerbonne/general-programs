@@ -113,11 +113,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Algorithms\SortedIntersection.cs" />
     <Compile Include="Algorithms\DeepEquals.cs" />
     <Compile Include="Algorithms\Dijkstra.cs" />
     <Compile Include="Algorithms\Histogrammer.cs" />
     <Compile Include="Algorithms\Levenshtein.cs" />
-    <Compile Include="Algorithms\MultiMerge.cs" />
+    <Compile Include="Algorithms\SortedUnion.cs" />
     <Compile Include="Algorithms\QuickSelect.cs" />
     <Compile Include="Algorithms\ShuffleAlgorithm.cs" />
     <Compile Include="Collections\Edge.cs" />

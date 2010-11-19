@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using SongDataLib;
+using EmnExtensions.Algorithms;
 
 namespace SuffixTreeLib
 {
@@ -41,17 +42,18 @@ namespace SuffixTreeLib
 
 
 		public IEnumerable<int> GetAllSongs(SuffixTreeSongSearcher sssm) {
-			return GetLocalSongs(sssm).Concat(
-				Children.SelectMany(
-					node => node.GetAllSongs(sssm))).Distinct();
-
-			//	return SongUtil.RemoveDup(children.Values.Select(c => c.GetAllSongs(sssm)).Aggregate(this.GetLocalSongs(sssm), (a, b) => SongUtil.ZipUnion(a, b)));
+			IEnumerable<int>[] all = new IEnumerable<int>[children.Count + 1];
+			int idx=0;
+			foreach (var child in Children)
+				all[idx++] = child.GetAllSongs(sssm);
+			all[idx] = GetLocalSongs(sssm);
+			return SortedUnionAlgorithm.SortedUnion(all, true);
 		}
 
 
 		public SearchResult Match(SuffixTreeSongSearcher sssm, int curdepth, byte[] query) {
 			if(query.Length == curdepth) {
-				return new SearchResult { cost = this.size, songIndexes = GetAllSongs(sssm) };//TODO improve using ordering.
+				return new SearchResult { cost = this.size, songIndexes = GetAllSongs(sssm) };
 			} else
 				return
 						  children.ContainsKey(query[curdepth]) ?

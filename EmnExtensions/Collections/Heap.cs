@@ -8,6 +8,8 @@ namespace EmnExtensions.Collections {
 		int Count { get; }
 		bool RemoveTop(out T retval);
 		T RemoveTop();
+		T Top();
+		void TopChanged();
 		T this[int i] { get; }
 		void Delete(int indexOfItem);
 		IEnumerable<T> ElementsInRoughOrder { get; }
@@ -107,7 +109,7 @@ namespace EmnExtensions.Collections {
 
 		private void Bubble(int newIndex, T elem) {
 			int parIndex = (newIndex - 1) / 2;
-			while (newIndex != 0 && 0 < comparer.Compare(backingStore[parIndex], elem)) {
+			while (newIndex != 0 && comparer.Compare(backingStore[parIndex], elem) > 0) {
 				backingStore[newIndex] = backingStore[parIndex];
 				indexSet.IndexChanged(backingStore[newIndex], newIndex);
 				newIndex = parIndex;
@@ -142,40 +144,149 @@ namespace EmnExtensions.Collections {
 
 			return retval;
 		}
+		public T Top() { return this[0]; }
+
+		public void TopChanged() {
+			Sink(0, Top());
+		}
 
 		public void Delete(int indexOfItem) {
-			T toSink = backingStore[--backingCount];
+			T tailItem = backingStore[--backingCount];
 			//we must delete from the end of the array to avoid holes.
 			//but we actually want to delete @ indexOfItem; so we'll insert this last element @ indexOfItem,
-			//and if it's heavier than the original item there, we need to sink it towards the leaves
+			//and if it's cheaper than the original item there, we need to sink it towards the leaves
 			//but if it's lighter, we need to bubble as usual.
-			int sinkCompToDeleted = comparer.Compare(toSink, backingStore[indexOfItem]);
 
 			if (indexOfItem == backingCount) { } //we deleted the last item.
-			else if (sinkCompToDeleted >= 0) // sink item is heavier than deleted item, need to sink it.
-				Sink(indexOfItem, toSink);
-			else if (sinkCompToDeleted < 0) // last item is lighter than deleted item, need to bubble it.
-				Bubble(indexOfItem, toSink);
+			else if (comparer.Compare(tailItem, backingStore[indexOfItem]) > 0)
+				Sink(indexOfItem, tailItem);// tail item has higher cost, need to sink it.
+			else
+				Bubble(indexOfItem, tailItem);// tail item has lower cost, need to bubble it.
+
+
+			backingStore[backingCount] = default(T);
 		}
 
 		void Sink(int p, T elem) {
 			while (2 * p + 2 < backingCount) {
 				int idxKidA = 2 * p + 1, idxKidB = idxKidA + 1;
-				int kid = 0 >= comparer.Compare(backingStore[idxKidA], backingStore[idxKidB]) ? idxKidA : idxKidB;
-				if (0 < comparer.Compare(elem, backingStore[kid])) {//elem isn't smaller than kid
+				int kid = comparer.Compare(backingStore[idxKidA], backingStore[idxKidB]) <=0  ? idxKidA : idxKidB;
+				if (comparer.Compare(elem, backingStore[kid]) > 0) {//elem isn't smaller than kid
 					indexSet.IndexChanged(backingStore[p] = backingStore[kid], p);
 					p = kid;
 				} else break;
 			}
 			int singleKid = 2 * p + 1;
-			if (singleKid < backingCount && 0 < comparer.Compare(elem, backingStore[singleKid])) {
+			if (singleKid < backingCount &&  comparer.Compare(elem, backingStore[singleKid])> 0) {
 				indexSet.IndexChanged(backingStore[p] = backingStore[singleKid], p);
 				p = singleKid;
 			}
 			indexSet.IndexChanged(backingStore[p] = elem, p);
 		}
 
-		public T this[int i] { get { return backingStore[i]; } }
+
+		public T this[int i] { get { if (i >= backingCount) throw new IndexOutOfRangeException(); return backingStore[i]; } }
 		public IEnumerable<T> ElementsInRoughOrder { get { return backingStore.Take(backingCount); } }
 	}
+
+
+	public class CostHeap<T> {
+		public struct Entry { public int Cost; public T Item;}
+		Entry[] backingStore = new Entry[8];
+		int backingCount;
+		//public Heap() { }
+
+		public void Add(T elem, int cost) {
+			if (backingCount == backingStore.Length)
+				Array.Resize(ref backingStore, backingStore.Length * 2);
+			int newIndex = backingCount++;
+			Bubble(newIndex, new Entry { Cost = cost, Item = elem });
+		}
+
+		public int Count { get { return backingCount; } }
+
+		private void Bubble(int newIndex, Entry elem) {
+			int parIndex = (newIndex - 1) / 2;
+			while (backingStore[parIndex].Cost > elem.Cost && newIndex != 0) {
+				backingStore[newIndex] = backingStore[parIndex];
+				//indexSet.IndexChanged(backingStore[newIndex], newIndex);
+				newIndex = parIndex;
+				parIndex = (newIndex - 1) / 2;
+			}
+			backingStore[newIndex] = elem;
+			//indexSet.IndexChanged(backingStore[newIndex], newIndex);
+		}
+
+		[System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1021:AvoidOutParameters", MessageId = "0#")]
+		public bool RemoveTop(out T retval, out int cost) {
+			if (backingCount == 0) {
+				retval = default(T);
+				cost = default(int);
+				return false;
+			}
+			retval = backingStore[0].Item;
+			cost = backingStore[0].Cost;
+
+			backingCount--;
+			if (0 != backingCount) Sink(0, backingStore[backingCount]);
+
+			backingStore[backingCount].Item = default(T);//don't care about Cost.
+
+			return true;
+		}
+
+		public T RemoveTop() {
+			if (backingCount == 0) throw new InvalidOperationException("Can't remove top; sequence empty");
+			T retval = backingStore[0].Item;
+
+			backingCount--;
+			if (0 != backingCount) Sink(0, backingStore[backingCount]);
+			backingStore[backingCount].Item = default(T);
+
+			return retval;
+		}
+		public Entry Top() { return this[0]; }
+
+		public void TopCostChanged(int newCost) {
+			if (0 == backingCount) throw new IndexOutOfRangeException(); 
+			Sink(0, new Entry { Item = backingStore[0].Item, Cost = newCost });
+		}
+
+		public void Delete(int indexOfItem) {
+			Entry tailItem = backingStore[--backingCount];
+
+			if (indexOfItem == backingCount) { }  //we deleted the last item.
+			else if (tailItem.Cost > backingStore[indexOfItem].Cost) // sink item is heavier than deleted item, need to sink it.
+				Sink(indexOfItem, tailItem);
+			else  // last item is lighter than deleted item, need to bubble it.
+				Bubble(indexOfItem, tailItem);
+
+			backingStore[backingCount].Item = default(T);
+		}
+
+		void Sink(int p, Entry elem) {
+			while (2 * p + 2 < backingCount) {
+				int idxKidA = 2 * p + 1, idxKidB = idxKidA + 1;
+				int kid = backingStore[idxKidA].Cost <= backingStore[idxKidB].Cost ? idxKidA : idxKidB;
+				if (elem.Cost > backingStore[kid].Cost) {//elem isn't smaller than kid
+					backingStore[p] = backingStore[kid];
+					//indexSet.IndexChanged(backingStore[p], p);
+					p = kid;
+				} else break;
+			}
+			int singleKid = 2 * p + 1;
+			if (singleKid < backingCount && elem.Cost > backingStore[singleKid].Cost) {
+				backingStore[p] = backingStore[singleKid];
+				//indexSet.IndexChanged(backingStore[p], p);
+				p = singleKid;
+			}
+			backingStore[p] = elem;
+			//indexSet.IndexChanged(backingStore[p], p);
+		}
+
+
+		public Entry this[int i] { get { if (i >= backingCount) throw new IndexOutOfRangeException(); return backingStore[i]; } }
+		public IEnumerable<Entry> ElementsInRoughOrder { get { return backingStore.Take(backingCount); } }
+	}
+
 }
