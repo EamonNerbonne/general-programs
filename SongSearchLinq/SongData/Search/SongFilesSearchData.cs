@@ -108,13 +108,12 @@ namespace SongDataLib {
 			int songCount = 0;
 			songBoundaries[0] = (Suffix)0;
 			List<byte> normedConstructor = new List<byte>();
-			foreach (byte[] normSong in songs.Select(song => SongUtil.CanonicalizedSearchStr(song.FullInfo))) {
+			foreach (byte[] normSong in songs.Select(song => StringAsBytesCanonicalization.Canonicalize(song.FullInfo))) {
 				normedConstructor.AddRange(normSong);
-				normedConstructor.Add(SongUtil.TERMINATOR);
+				normedConstructor.Add(StringAsBytesCanonicalization.TERMINATOR);
 				songBoundaries[++songCount] = (Suffix)normedConstructor.Count;
 			}
 			normed = normedConstructor.ToArray();
-			normedConstructor = null;
 			//OK byte array 'normed' is constructed.
 		}
 

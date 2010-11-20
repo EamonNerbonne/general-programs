@@ -5,10 +5,8 @@ using System.Linq;
 //using  System.Xml;
 using SongDataLib;
 
-namespace SuffixTreeLib
-{
-	public class SuffixTreeSongSearcher : ISongFileSearchEngine
-	{
+namespace SuffixTreeLib {
+	public class SuffixTreeSongSearcher : ISongFileSearchEngine {
 		ISuffixTreeNode tree;
 		public SongFilesSearchData db;
 		byte[] normed;
@@ -21,8 +19,8 @@ namespace SuffixTreeLib
 			tree = new SuffixTreeNode();
 
 
-			for(Suffix suf = (Suffix)0; suf < songBoundaries[db.SongCount]; suf = suf.Next) {
-				if(normed[(int)suf] == SongUtil.TERMINATOR) continue;
+			for (Suffix suf = (Suffix)0; suf < songBoundaries[db.SongCount]; suf = suf.Next) {
+				if (normed[(int)suf] == StringAsBytesCanonicalization.TERMINATOR) continue;
 				tree.AddSuffix(this, suf);
 			}
 			tree.CompactAndCalcCost(this);
@@ -35,7 +33,7 @@ namespace SuffixTreeLib
 		public byte GetNormedChar(Suffix pos) { return normed[(int)pos]; }
 		IEnumerable<byte> GetSuffixChars(Suffix suf) {
 			int pos = (int)suf;
-			while(normed[pos] != SongUtil.TERMINATOR) yield return normed[pos++];
+			while (normed[pos] != StringAsBytesCanonicalization.TERMINATOR) yield return normed[pos++];
 		}
 		public bool MatchSuffix(Suffix suf, byte[] query, int curpos) {
 			return GetSuffixChars(suf).Take(query.Length - curpos).SequenceEqual(query.Skip(curpos));

@@ -25,7 +25,7 @@ namespace SuffixTreeLib
 
 		public void AddSuffix(SuffixTreeSongSearcher sssm, Suffix suffix) {
 			byte next = sssm.GetNormedChar(suffix);
-			if(next == SongUtil.TERMINATOR || next==SongUtil.MAXCANONBYTE) {
+			if (next == StringAsBytesCanonicalization.TERMINATOR || next == StringAsBytesCanonicalization.MAXCANONBYTE) {
 				hits.Add(suffix);
 			} else {
 				ISuffixTreeNode subTree;

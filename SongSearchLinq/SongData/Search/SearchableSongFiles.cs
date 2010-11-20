@@ -24,7 +24,7 @@ namespace SongDataLib
 			byte[][] query =
 					 querystring
 					 .Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)
-					 .Select(SongUtil.CanonicalizedSearchStr)
+					 .Select(StringAsBytesCanonicalization.Canonicalize)
 					 .ToArray();
 			if(query.Length == 0) return Enumerable.Range(0, db.songs.Length);
 			SearchResult[] res = query.Select(q => searchMethod.Query(q)).ToArray();

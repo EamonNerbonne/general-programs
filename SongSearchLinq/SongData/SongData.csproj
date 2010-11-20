@@ -84,7 +84,7 @@
     <Compile Include="Config\SongDataConfigFile.cs" />
     <Compile Include="FileData\SongFileDataFactory.cs" />
     <Compile Include="Search\SongFilesSearchData.cs" />
-    <Compile Include="SongUtil.cs" />
+    <Compile Include="Search\StringAsBytesCanonicalization.cs" />
     <Compile Include="Search\Suffix.cs" />
   </ItemGroup>
   <ItemGroup>
