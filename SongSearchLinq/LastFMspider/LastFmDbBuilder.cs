@@ -1,9 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.IO;
 using System.Data.Common;
+using System.IO;
+using System.Runtime.InteropServices;
 using SongDataLib;
 
 namespace LastFMspider {
@@ -127,5 +125,10 @@ CREATE INDEX IF NOT EXISTS [IDX_TopTracksList_ArtistID_LookupTimestamp] ON [TopT
 		}
 		const string filename = "lastFMcache.s3db";
 		public static FileInfo DbFile(SongDatabaseConfigFile config) { return new FileInfo(Path.Combine(config.DataDirectory.CreateSubdirectory("cache").FullName, filename)); }
+		[DllImport(@"System.Data.SQLite.dll")]
+		internal static extern int sqlite3_enable_shared_cache(int enabled);
+		static LastFmDbBuilder() {
+			sqlite3_enable_shared_cache(1);
+		}
 	}
 }
