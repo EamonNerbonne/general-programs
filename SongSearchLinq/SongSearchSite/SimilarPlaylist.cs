@@ -22,7 +22,7 @@ namespace SongSearchSite {
 		public void ProcessRequest(HttpContext context) {
 			try {
 				PlaylistEntryJson[] playlistFromJson = JsonConvert.DeserializeObject<PlaylistEntryJson[]>(context.Request["playlist"]);
-				var playlistSongNames = 
+				var playlistSongNames =
 					from entry in playlistFromJson
 					let path = Uri.UnescapeDataString(entry.href)
 					let songdata = SongDbContainer.GetSongFromFullUri(path) as SongData
@@ -69,6 +69,7 @@ namespace SongSearchSite {
 						{ "known", knownForJson},
 						{"unknown", unknownForJson},
 						{"lookups", res.LookupsDone},
+						{"milliseconds",timer.Elapsed.TotalMilliseconds},
 					}
 					)
 				);

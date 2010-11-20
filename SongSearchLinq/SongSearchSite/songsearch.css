@@ -221,7 +221,7 @@ body
     -moz-border-radius:1em;
     -webkit-border-radius:1em;
 }
-.similarItemsDisplay:after
+.similarItemsDisplay[data-lookups]:after
 {
     display: block;
     position: absolute;
@@ -231,7 +231,7 @@ body
     font-size: 60%;
     z-index: -1;
     color: #ccc;
-    content: attr(data-lookups) " lookups";
+    content: attr(data-lookups) " lookups; " attr(data-milliseconds) "ms";
 }
 
 
@@ -246,22 +246,22 @@ body
     content: "Error (" attr(data-errname) ")";
 }
 
-.proc-error:after
+.proc-error[data-errtrace]:after
 {
     display: block;
     position: absolute;
-    top: 50%;
-    width: 100%;
-    margin-top:2.5em;
-    text-align: center;
-    font-size: 75%;
-    z-index: -1;
-    color: #999; 
-    content: attr(data-errtrace);
+    padding: 0.5em;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    text-align: left;
     white-space: pre-line;
+    font-size: 75%;
+    z-index: 1;
+    background: rgb(255,200,175);
+    box-shadow: 0 0 1.0em rgb(255, 200, 175);
+    border-radius: 1em;
 }
-
-
 
 .waiting:before
 {
