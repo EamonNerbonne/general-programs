@@ -60,7 +60,7 @@ namespace SongDataLib {
 		/// <summary>
 		/// Searches efficiently for the song index belonging to a suffix, given that the songindex is in [startI,endI).
 		/// </summary>
-		/// <param name="suffix">The Suffix to search for</param>
+		/// <param name="target">The Suffix to search for</param>
 		/// <param name="startI">Lower search bound, inclusive</param>
 		/// <param name="endI">Upper search bound, exclusive</param>
 		/// <returns>The index of the song.</returns>

@@ -15,13 +15,12 @@ namespace LastFMspider
         {
             var DB = tools.SongsOnDisk;
             var SimilarSongs = tools.SimilarSongs;
-            var Lookup = tools.Lookup;
 
             Console.WriteLine("Loading song database...");
             if (DB.InvalidDataCount != 0)
                 Console.WriteLine("Ignored {0} songs with unknown tags (should be 0).", DB.InvalidDataCount);
             Console.WriteLine("Taking those {0} songs and indexing em by artist/title...", DB.Songs.Length);
-            SongRef[] songsToDownload = Lookup.dataByRef.Keys.ToArray();
+            SongRef[] songsToDownload = tools.FindByName.Select(group=>group.Key).ToArray();
             lock (SimilarSongs.backingDB.SyncRoot)
                 using (var trans = SimilarSongs.backingDB.Connection.BeginTransaction()) {
                     foreach (SongRef songref in songsToDownload) {

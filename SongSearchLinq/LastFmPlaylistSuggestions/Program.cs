@@ -27,7 +27,7 @@ namespace LastFmPlaylistSuggestions {
 
 			foreach (var m3ufile in m3us) {
 				try {
-					using (new DTimer("Processing " + m3ufile.Name)) 
+					using (new DTimer("Processing " + m3ufile.Name))
 						ProcessM3U(tools, searchEngine.FindBestMatch, m3ufile, m3uDir);
 				} catch (Exception e) {
 					Console.WriteLine("Unexpected error on processing " + m3ufile);
@@ -39,21 +39,19 @@ namespace LastFmPlaylistSuggestions {
 		static void FindPlaylistSongLocally(LastFmTools tools, ISongFileData playlistEntry, Action<SongFileData> ifFound, Action<SongRef> ifNotFound, Action<ISongFileData> cannotParse) {
 			SongFileData bestMatch = null;
 			int artistTitleSplitIndex = playlistEntry.HumanLabel.IndexOf(" - ");
-			if (tools.Lookup.dataByPath.ContainsKey(playlistEntry.SongUri.ToString()))
-				ifFound(tools.Lookup.dataByPath[playlistEntry.SongUri.ToString()]);
+			if (tools.FindByPath.ContainsKey(playlistEntry.SongUri.ToString()))
+				ifFound(tools.FindByPath[playlistEntry.SongUri.ToString()]);
 			else if (playlistEntry.IsLocal && File.Exists(playlistEntry.SongUri.LocalPath)) {
 				ifFound((SongFileData)SongFileDataFactory.ConstructFromFile(new FileInfo(playlistEntry.SongUri.LocalPath), tools.ConfigFile.PopularityEstimator));
 			} else if (playlistEntry is PartialSongFileData) {
 				int bestMatchVal = Int32.MaxValue;
 				while (artistTitleSplitIndex != -1) {
 					SongRef songref = SongRef.Create(playlistEntry.HumanLabel.Substring(0, artistTitleSplitIndex), playlistEntry.HumanLabel.Substring(artistTitleSplitIndex + 3));
-					if (tools.Lookup.dataByRef.ContainsKey(songref)) {
-						foreach (var songCandidate in tools.Lookup.dataByRef[songref]) {
-							int candidateMatchVal = 100 * Math.Abs(playlistEntry.Length - songCandidate.Length) + Math.Min(199, Math.Abs(songCandidate.bitrate - 224));
-							if (candidateMatchVal < bestMatchVal) {
-								bestMatchVal = candidateMatchVal;
-								bestMatch = songCandidate;
-							}
+					foreach (var songCandidate in tools.FindByName[songref]) {
+						int candidateMatchVal = 100 * Math.Abs(playlistEntry.Length - songCandidate.Length) + Math.Min(199, Math.Abs(songCandidate.bitrate - 224));
+						if (candidateMatchVal < bestMatchVal) {
+							bestMatchVal = candidateMatchVal;
+							bestMatch = songCandidate;
 						}
 					}
 					artistTitleSplitIndex = playlistEntry.HumanLabel.IndexOf(" - ", artistTitleSplitIndex + 3);
@@ -99,8 +97,8 @@ namespace LastFmPlaylistSuggestions {
 					writer.WriteLine("{0} {2} {1}    [{3}]",
 							track.cost,
 							songref,
-							tools.Lookup.dataByRef.ContainsKey(songref) ? "" : "***",
-							string.Join(";  ", track.basedOn.Select(id =>tools.SimilarSongs.backingDB.LookupTrack.Execute(id).ToString()).ToArray())
+							tools.FindByName[songref].Any() ? "" : "***",
+							string.Join(";  ", track.basedOn.Select(id => tools.SimilarSongs.backingDB.LookupTrack.Execute(id).ToString()).ToArray())
 						);
 				}
 			}

@@ -4,26 +4,33 @@ using System.Reflection;
 using System.Threading;
 using EmnExtensions.MathHelpers;
 using SongDataLib;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace LastFMspider {
 	public class LastFmTools {
 		SongSimilarityCache similarSongs;
 		readonly SongDataConfigFile configFile;
 		SongFiles db;
-		SongDataLookups lookup;
 
 		public SongSimilarityCache SimilarSongs { get { return similarSongs ?? (similarSongs = new SongSimilarityCache(ConfigFile)); } }
 		public SongDataConfigFile ConfigFile { get { return configFile; } }
 		public SongFiles SongsOnDisk { get { return db ?? (db = new SongFiles(ConfigFile, null)); } }
 
-		public SongDataLookups Lookup { get { return lookup ?? (lookup = new SongDataLookups(SongsOnDisk.Songs, null)); } }
+
+		Dictionary<string, SongFileData> m_FindByPath;
+		public Dictionary<string, SongFileData> FindByPath { get { return m_FindByPath ?? (m_FindByPath = SongsOnDisk.Songs.ToDictionary(song => song.SongUri.ToString())); } }
+
+		ILookup<SongRef, SongFileData> m_FindByName;
+		public ILookup<SongRef, SongFileData> FindByName { get { return m_FindByName ?? (m_FindByName = SongsOnDisk.Songs.ToLookup(SongRef.Create)); } }
+
 
 		public LastFmTools(SongDataConfigFile configFile = null) {
 			this.configFile = configFile ?? new SongDataConfigFile(true);
 		}
 
 
-		public void UnloadLookup() { lookup = null; }
+		public void UnloadLookup() { m_FindByPath = null; m_FindByPath =null; }
 
 		public void UnloadDB() { UnloadLookup(); db = null; }
 

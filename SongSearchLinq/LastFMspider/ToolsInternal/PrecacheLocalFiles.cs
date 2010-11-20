@@ -12,7 +12,7 @@ namespace LastFMspider {
 
 		public static void PrecacheLocalFiles(LastFmTools tools, bool shuffle) {
 			var SimilarSongs = tools.SimilarSongs;
-			var Lookup = tools.Lookup;
+			//var Lookup = tools.Lookup;
 			int ttCount = 0; object sync = new object();
 			Console.WriteLine("Caching Top tracks");
 			var artists = tools.SongsOnDisk.Songs.Select(song => song.artist).Where(artist => artist != null).Distinct(StringComparer.InvariantCultureIgnoreCase).ToArray();

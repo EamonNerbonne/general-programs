@@ -109,9 +109,9 @@ namespace LastFMspider {
 						SongRef currentSongRef = simSongDb.LookupTrack.Execute(currentSong.trackid);
 						if (currentSongRef != null) { //null essentially means DB corruption: reference to a trackId that doesn't exist.  We ignore that trackid.
 							res.similarList.Add(currentSong);
-							if (tools.Lookup.dataByRef.ContainsKey(currentSongRef))
+							if (tools.FindByName[currentSongRef].Any())
 								res.knownTracks.Add((
-									from songcandidate in tools.Lookup.dataByRef[currentSongRef]
+									from songcandidate in tools.FindByName[currentSongRef]
 									orderby SongMatch.AbsoluteSongCost(songcandidate)
 									select songcandidate
 								).First());

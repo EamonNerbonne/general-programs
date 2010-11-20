@@ -81,8 +81,8 @@ namespace PlaylistFixer
 				int idx = 0;
 				foreach (var songMin in playlist) {
 					MinimalSongFileData decentMatch = null;
-					if (tools.Lookup.dataByPath.ContainsKey(songMin.SongUri.ToString()))
-						decentMatch = tools.Lookup.dataByPath[songMin.SongUri.ToString()];
+					if (tools.FindByPath.ContainsKey(songMin.SongUri.ToString()))
+						decentMatch = tools.FindByPath[songMin.SongUri.ToString()];
 					else if (songMin is PartialSongFileData) {
 						PartialSongFileData song = (PartialSongFileData)songMin;
 						SongMatch best = FindBestMatch(tools, song);
@@ -160,8 +160,7 @@ namespace PlaylistFixer
 
 		static SongMatch FindBestMatch(LastFmTools tools, PartialSongFileData songToFind) {
 			var q = from songrefOpt in PossibleSongRefs(songToFind.HumanLabel)
-					where tools.Lookup.dataByRef.ContainsKey(songrefOpt)
-					from songdataOpt in tools.Lookup.dataByRef[songrefOpt]
+					from songdataOpt in tools.FindByName[songrefOpt]
 					let lengthDiff = Math.Abs(songToFind.Length - songdataOpt.Length)
 					let filenameDiff = NormalizedFileName(songToFind.SongUri.ToString()).LevenshteinDistance(NormalizedFileName(songdataOpt.SongUri.ToString()))
 					select new SongMatch { SongData = songdataOpt, Orig = songToFind, Cost = lengthDiff * 0.5 + filenameDiff * 0.2 };
