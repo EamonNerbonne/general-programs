@@ -33,7 +33,7 @@ namespace LastFMspider {
 			Console.WriteLine("Loading song database...");
 			if (tools.DB.InvalidDataCount != 0)
 				Console.WriteLine("Ignored {0} songs with unknown tags (should be 0).", tools.DB.InvalidDataCount);
-			Console.WriteLine("Taking those {0} songs and indexing em by artist/title...", tools.DB.Songs.Count);
+			Console.WriteLine("Taking those {0} songs and indexing em by artist/title...", tools.DB.Songs.Length);
 			SongRef[] songsToDownload = tools.DB.Songs.Select(SongRef.Create).Where(sd => sd != null).ToArray();
 			if (shuffle)
 				songsToDownload.Shuffle();

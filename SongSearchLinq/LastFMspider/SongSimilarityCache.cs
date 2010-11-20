@@ -1,33 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.IO;
-using System.Xml.Linq;
-using LastFMspider.LastFMSQLiteBackend;
-using System.Xml;
-
-using EmnExtensions.Text;
-using EmnExtensions.Web;
-using EmnExtensions.Collections;
-using EmnExtensions;
-using System.Diagnostics;
-using SongDataLib;
-using LastFMspider.OldApi;
 using System.Threading;
+using LastFMspider.OldApi;
+using SongDataLib;
 
 namespace LastFMspider {
 	public class SongSimilarityCache {
 		public LastFMSQLiteCache backingDB { get; private set; }
 
 		public SongSimilarityCache(SongDatabaseConfigFile configFile) {
-			Init(configFile);
-		}
-
-
-		private void Init() {
-			Console.WriteLine("Loading config...");
-			var configFile = new SongDatabaseConfigFile(false);
 			Init(configFile);
 		}
 
@@ -54,6 +36,7 @@ namespace LastFMspider {
 					ThreadPool.QueueUserWorkItem(ProcessQueuedLookups);
 			}
 		}
+
 		void ProcessQueuedLookups(object ignore) {
 			while (true) {
 				SongRef next;
@@ -75,20 +58,20 @@ namespace LastFMspider {
 			return Lookup(backingDB.LookupSimilarityListInfo.Execute(songref), maxAge);
 		}
 
-		static object syncSongSimLookup = new object();
+		static readonly object syncSongSimLookup = new object();
 		class Syncer {
-			public int InUse = 0;
+			int InUse ;
 			public SongSimilarityList retval;
 			public bool IsInUse { get { return InUse > 0; } }
 			public void Claim() { lock (this) InUse++; }
 			public void Release() { lock (this) InUse--; }
 		}
-		static Dictionary<SongRef, Syncer> inFlight = new Dictionary<SongRef, Syncer>();
-		object syncTodoReq = new object();
-		static HashSet<SongRef> todoReq = new HashSet<SongRef>();
+		static readonly Dictionary<SongRef, Syncer> inFlight = new Dictionary<SongRef, Syncer>();
+		readonly object syncTodoReq = new object();
+		static readonly HashSet<SongRef> todoReq = new HashSet<SongRef>();
 
 		static SongSimilarityList DoWebLookup(LastFMSQLiteCache backingDB, SongRef songref) {
-			Syncer sync = null;
+			Syncer sync;
 			lock (syncSongSimLookup) {
 				if (!inFlight.TryGetValue(songref, out sync))
 					inFlight[songref] = sync = new Syncer();
@@ -103,7 +86,7 @@ namespace LastFMspider {
 						try {
 							backingDB.InsertSimilarityList.Execute(sync.retval);
 						} catch {//retry; might be a locking issue.  only retry once.
-							System.Threading.Thread.Sleep(100);
+							Thread.Sleep(100);
 							backingDB.InsertSimilarityList.Execute(sync.retval);
 						}
 					}
@@ -137,7 +120,7 @@ namespace LastFMspider {
 				try {
 					return Tuple.Create(backingDB.InsertSimilarityList.Execute(retval), retval);
 				} catch {//retry; might be a locking issue.  only retry once.
-					System.Threading.Thread.Sleep(100);
+					Thread.Sleep(100);
 					return Tuple.Create(backingDB.InsertSimilarityList.Execute(retval), retval);
 				}
 			} else

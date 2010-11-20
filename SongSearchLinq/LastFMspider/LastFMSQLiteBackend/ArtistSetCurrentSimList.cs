@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Data.Common;
+﻿using System.Data.Common;
 
 namespace LastFMspider.LastFMSQLiteBackend {
 	public class ArtistSetCurrentSimList : AbstractLfmCacheQuery {
@@ -21,8 +17,7 @@ WHERE ArtistID=(select ArtistID from SimilarArtistList where ListID = @listId)
 			}
 		}
 
-
-		DbParameter listId;
+		readonly DbParameter listId;
 
 		public void Execute(SimilarArtistsListId listID) {
 			lock (SyncRoot) {
@@ -30,6 +25,5 @@ WHERE ArtistID=(select ArtistID from SimilarArtistList where ListID = @listId)
 				CommandObj.ExecuteNonQuery();
 			}
 		}
-
 	}
 }

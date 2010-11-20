@@ -102,7 +102,7 @@ namespace SongSearchSite {
 				tools = new LastFmTools(dcf);
 
 				var allSongs = tools.DB.Songs;
-				allSongs.Sort((a, b) => b.popularity.TitlePopularity.CompareTo(a.popularity.TitlePopularity));
+				Array.Sort(allSongs,(a, b) => b.popularity.TitlePopularity.CompareTo(a.popularity.TitlePopularity));
 				Parallel.Invoke(
 					() => { fuzzySearcher = new FuzzySongSearcher(allSongs); },
 					() => { searchEngine = new SearchableSongDB(new SongDB(allSongs), new SuffixTreeSongSearcher()); },
@@ -113,11 +113,11 @@ namespace SongSearchSite {
 						Filter = "*.xml",
 						IncludeSubdirectories = false,
 					};
-					fsWatcher.Created += (o, e) => { DbUpdated(); };
-					fsWatcher.Changed += (o, e) => { DbUpdated(); };
-					fsWatcher.Renamed += (o, e) => { DbUpdated(); };
-					fsWatcher.Error += (o, e) => { DbUpdated(); };
-					fsWatcher.Deleted += (o, e) => { DbUpdated(); };
+					fsWatcher.Created += (o, e) => DbUpdated();
+					fsWatcher.Changed += (o, e) => DbUpdated();
+					fsWatcher.Renamed += (o, e) => DbUpdated();
+					fsWatcher.Error += (o, e) => DbUpdated();
+					fsWatcher.Deleted += (o, e) => DbUpdated();
 					fsWatcher.EnableRaisingEvents = true;
 				}
 			}

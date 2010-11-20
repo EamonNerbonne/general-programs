@@ -9,9 +9,7 @@ namespace LastFMspider.LastFMSQLiteBackend {
 		public InsertTrack(LastFMSQLiteCache lfm)
 			: base(lfm) {
 			fullTitle = DefineParameter("@fullTitle");
-
 			lowerTitle = DefineParameter("@lowerTitle");
-
 			artistId = DefineParameter("@artistId");
 		}
 		protected override string CommandText {
@@ -24,7 +22,8 @@ SELECT TrackID FROM [Track] WHERE ArtistID=@artistId  AND LowercaseTitle = @lowe
 ";
 			}
 		}
-		DbParameter fullTitle, lowerTitle, artistId;
+
+		readonly DbParameter fullTitle, lowerTitle, artistId;
 
 		public TrackId Execute(SongRef songref) {
 			lock (SyncRoot) {

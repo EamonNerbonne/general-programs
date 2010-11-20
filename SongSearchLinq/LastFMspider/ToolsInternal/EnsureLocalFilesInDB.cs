@@ -20,7 +20,7 @@ namespace LastFMspider
             Console.WriteLine("Loading song database...");
             if (DB.InvalidDataCount != 0)
                 Console.WriteLine("Ignored {0} songs with unknown tags (should be 0).", DB.InvalidDataCount);
-            Console.WriteLine("Taking those {0} songs and indexing em by artist/title...", DB.Songs.Count);
+            Console.WriteLine("Taking those {0} songs and indexing em by artist/title...", DB.Songs.Length);
             SongRef[] songsToDownload = Lookup.dataByRef.Keys.ToArray();
             lock (SimilarSongs.backingDB.SyncRoot)
                 using (var trans = SimilarSongs.backingDB.Connection.BeginTransaction()) {
