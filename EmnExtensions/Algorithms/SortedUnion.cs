@@ -47,11 +47,10 @@ namespace EmnExtensions.Algorithms {
 		public static IEnumerable<int> ZipMerge(IEnumerable<int> a, IEnumerable<int> b) {
 			var enumA = a.GetEnumerator();
 			var enumB = b.GetEnumerator();
-			int elA, elB;
 			if (enumA.MoveNext()) {
 				if (enumB.MoveNext()) {
-					elA = enumA.Current;
-					elB = enumB.Current;
+					int elA = enumA.Current;
+					int elB = enumB.Current;
 					while (true) {
 						if (elA < elB) {
 							yield return elA;
@@ -91,6 +90,5 @@ namespace EmnExtensions.Algorithms {
 				}
 			}
 		}
-
 	}
 }
