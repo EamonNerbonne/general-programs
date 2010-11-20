@@ -12,29 +12,32 @@ namespace SongSearchSite {
 		public bool IsReusable { get { return true; } }
 
 		class PlaylistEntryJson {
-			public string label = null, href = null;
-			public int length = 0;
+			// ReSharper disable UnaccessedField.Local
+			public string label, href;
+			public int length;
 			public double? replaygain;
+			// ReSharper restore UnaccessedField.Local
 		}
-		static object syncroot = new object();
+
 		public void ProcessRequest(HttpContext context) {
 			try {
 				PlaylistEntryJson[] playlistFromJson = JsonConvert.DeserializeObject<PlaylistEntryJson[]>(context.Request["playlist"]);
-				List<SongData> songs = (
+				var playlistSongNames = 
 					from entry in playlistFromJson
 					let path = Uri.UnescapeDataString(entry.href)
 					let songdata = SongDbContainer.GetSongFromFullUri(path) as SongData
 					where songdata != null
-					select songdata).ToList();
+					select SongRef.Create(songdata);
 
-				List<SongRef> unknownSongs = new List<SongRef>();
-				FindSimilarPlaylist.SimilarPlaylistResults res = null;
-				Stopwatch timer = Stopwatch.StartNew();
-				int lookupsDone;
-				res = FindSimilarPlaylist.ProcessPlaylist(SongDbContainer.LastFmTools,
-					// sr=>null,
-					SongDbContainer.FuzzySongSearcher.FindBestMatch,
-					 songs, unknownSongs, out lookupsDone, 1000, 50, count => !context.Response.IsClientConnected || (timer.Elapsed.TotalMilliseconds + count * 500 > 30000));
+				var timer = Stopwatch.StartNew();
+				var res =
+					FindSimilarPlaylist.ProcessPlaylist(
+						tools: SongDbContainer.LastFmTools,
+						seedSongs: playlistSongNames,
+						MaxSuggestionLookupCount: 1000,
+						SuggestionCountTarget: 50,
+						fuzzySearch: SongDbContainer.FuzzySongSearcher.FindBestMatch,
+						shouldAbort: count => !context.Response.IsClientConnected || (timer.Elapsed.TotalMilliseconds + count * 500 > 30000));
 
 				if (!context.Response.IsClientConnected)
 					return;
@@ -63,9 +66,9 @@ namespace SongSearchSite {
 				context.Response.Output.Write(
 					JsonConvert.SerializeObject(
 						new Dictionary<string, object> {
-						{ "known",knownForJson},
-						{"unknown",unknownForJson},
-						{"lookups",lookupsDone},
+						{ "known", knownForJson},
+						{"unknown", unknownForJson},
+						{"lookups", res.LookupsDone},
 					}
 					)
 				);
@@ -80,7 +83,6 @@ namespace SongSearchSite {
 					})
 				);
 			}
-
 		}
 	}
 }

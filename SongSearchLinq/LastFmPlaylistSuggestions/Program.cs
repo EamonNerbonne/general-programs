@@ -3,12 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Threading;
-using EmnExtensions;
-using EmnExtensions.Algorithms;
-using EmnExtensions.Collections;
 using EmnExtensions.DebugTools;
-using EmnExtensions.Text;
 using LastFMspider;
 using SongDataLib;
 
@@ -26,13 +21,13 @@ namespace LastFmPlaylistSuggestions {
 		static void RunNew(LastFmTools tools, string[] args) {
 			var dir = tools.DB.DatabaseDirectory.CreateSubdirectory("inputlists");
 			var m3us = args.Length == 0 ? dir.GetFiles("*.m3u?") : args.Select(s => new FileInfo(s)).Where(f => f.Exists);
-			DirectoryInfo m3uDir = args.Length == 0 ? tools.DB.DatabaseDirectory.CreateSubdirectory("similarlists") : new DirectoryInfo(System.Environment.GetFolderPath(Environment.SpecialFolder.Desktop));
+			DirectoryInfo m3uDir = args.Length == 0 ? tools.DB.DatabaseDirectory.CreateSubdirectory("similarlists") : new DirectoryInfo(Environment.GetFolderPath(Environment.SpecialFolder.Desktop));
 
 			FuzzySongSearcher searchEngine = new FuzzySongSearcher(tools.DB.Songs);
 
 			foreach (var m3ufile in m3us) {
 				try {
-					using (var dTimer = new DTimer("Processing " + m3ufile.Name))
+					using (new DTimer("Processing " + m3ufile.Name)) 
 						ProcessM3U(tools, searchEngine.FindBestMatch, m3ufile, m3uDir);
 				} catch (Exception e) {
 					Console.WriteLine("Unexpected error on processing " + m3ufile);
@@ -76,19 +71,17 @@ namespace LastFmPlaylistSuggestions {
 
 		static void ProcessM3U(LastFmTools tools, Func<SongRef, SongMatch> fuzzySearch, FileInfo m3ufile, DirectoryInfo m3uDir) {
 			Console.WriteLine("Trying " + m3ufile.FullName);
-			ISongData[] playlist = LoadExtM3U(m3ufile);
+			IEnumerable<ISongData> playlist = LoadExtM3U(m3ufile);
 			var known = new List<SongData>();
 			var unknown = new List<SongRef>();
 			foreach (var song in playlist)
 				FindPlaylistSongLocally(tools, song,
-					(songData) => { known.Add(songData); },
-					(songRef) => { unknown.Add(songRef); },
-					(oopsSong) => { Console.WriteLine("Can't deal with: " + oopsSong.HumanLabel + "\nat:" + oopsSong.SongUri.ToString()); }
-				);
+					known.Add,
+					unknown.Add,
+					oopsSong => Console.WriteLine("Can't deal with: " + oopsSong.HumanLabel + "\nat:" + oopsSong.SongUri.ToString()));
 
 			//OK, so we now have the playlist in the var "playlist" with knowns in "known" except for the unknowns, which are in "unknown" as far as possible.
-			int lookupsDone;
-			var res = FindSimilarPlaylist.ProcessPlaylist(tools, fuzzySearch, known, unknown,out lookupsDone, 1000);
+			var res = FindSimilarPlaylist.ProcessPlaylist(tools, fuzzySearch, known.Select(SongRef.Create).Concat(unknown), 1000);
 
 			FileInfo outputplaylist = new FileInfo(Path.Combine(m3uDir.FullName, Path.GetFileNameWithoutExtension(m3ufile.Name) + "-similar.m3u"));
 			using (var stream = outputplaylist.Open(FileMode.Create))
@@ -136,16 +129,16 @@ namespace LastFmPlaylistSuggestions {
 
 
 
-		static ISongData[] LoadExtM3U(FileInfo m3ufile) {
+		static IEnumerable<ISongData> LoadExtM3U(FileInfo m3ufile) {
 			List<ISongData> m3usongs = new List<ISongData>();
 			using (var m3uStream = m3ufile.OpenRead()) {
 				SongDataFactory.LoadSongsFromM3U(
-					m3uStream, (newsong, completion) => { m3usongs.Add(newsong); },
+					m3uStream, (newsong, completion) => m3usongs.Add(newsong),
 					m3ufile.Extension.EndsWith("8") ? Encoding.UTF8 : Encoding.GetEncoding(1252),
 					true
 					);
 			}
-			return m3usongs.ToArray();
+			return m3usongs;
 		}
 	}
 }

@@ -13,17 +13,17 @@ namespace LastFMspider {
 			public readonly List<SongData> knownTracks = new List<SongData>();
 			public readonly List<SongRef> unknownTracks = new List<SongRef>();
 			public readonly List<SongWithCost> similarList = new List<SongWithCost>();
+			public int LookupsDone;
 		}
 		static bool NeverAbort(int i) { return false; }
 
-		public static SimilarPlaylistResults ProcessPlaylist(LastFmTools tools, Func<SongRef, SongMatch> fuzzySearch, List<SongData> known, List<SongRef> unknown, out int lookupsDone,
+		public static SimilarPlaylistResults ProcessPlaylist(LastFmTools tools, Func<SongRef, SongMatch> fuzzySearch, IEnumerable<SongRef> seedSongs,
 			int MaxSuggestionLookupCount = 100, int SuggestionCountTarget = 50, Func<int, bool> shouldAbort = null
 			) {
 			//OK, so we now have the playlist in the var "playlist" with knowns in "known" except for the unknowns, which are in "unknown" as far as possible.
 			shouldAbort = shouldAbort ?? NeverAbort;
 
-			var playlistSongs = known.Select(SongRef.Create).Where(sr => sr != null).Concat(unknown)
-				.Select(tools.SimilarSongs.backingDB.LookupTrackID.Execute).Reverse();
+			var playlistSongs = seedSongs.Select(tools.SimilarSongs.backingDB.LookupTrackID.Execute).Reverse().ToArray();
 			Dictionary<TrackId, HashSet<TrackId>> playlistSongRefs = playlistSongs.ToDictionary(sr => sr, sr => new HashSet<TrackId>());
 			SimilarPlaylistResults res = new SimilarPlaylistResults();
 
@@ -38,12 +38,11 @@ namespace LastFMspider {
 			var simSongDb = tools.SimilarSongs.backingDB;//ensure similarsongs loaded.
 			object sync = new object();
 			bool done = false;
-			int lookupsDoneTemp = 0;
 			ThreadStart bgLookup = () => {
 				bool tDone;
-// ReSharper disable AccessToModifiedClosure
+				// ReSharper disable AccessToModifiedClosure
 				lock (sync) tDone = done;
-// ReSharper restore AccessToModifiedClosure
+				// ReSharper restore AccessToModifiedClosure
 				while (!tDone) {
 					TrackId nextToLookup;
 					lock (sync) {
@@ -56,7 +55,7 @@ namespace LastFMspider {
 							lookupQueue.Add(nextToLookup);
 					}
 					if (nextToLookup.HasValue) {
-						Interlocked.Increment(ref lookupsDoneTemp);
+						Interlocked.Increment(ref res.LookupsDone);
 						TrackSimilarityListInfo simList = simSongDb.LookupSimilarityListInfo.Execute(nextToLookup);
 						lock (sync) {
 							lookupCache[nextToLookup] = simList;
@@ -72,9 +71,9 @@ namespace LastFMspider {
 						Thread.Sleep(100);
 					}
 
-// ReSharper disable AccessToModifiedClosure
+					// ReSharper disable AccessToModifiedClosure
 					lock (sync) tDone = done;
-// ReSharper restore AccessToModifiedClosure
+					// ReSharper restore AccessToModifiedClosure
 				}
 			};
 
@@ -94,11 +93,11 @@ namespace LastFMspider {
 							lookupQueue.Add(trackid);
 					}
 					if (alreadyDeleted) {
-						Interlocked.Increment(ref lookupsDoneTemp);
+						Interlocked.Increment(ref res.LookupsDone);
 						return simSongDb.LookupSimilarityListInfo.Execute(trackid);
 					}
 					if (notInQueue) {
-						Interlocked.Increment(ref lookupsDoneTemp);
+						Interlocked.Increment(ref res.LookupsDone);
 						retval = simSongDb.LookupSimilarityListInfo.Execute(trackid);
 						lock (sync) lookupsDeleted.Add(trackid);
 						return retval;
@@ -187,9 +186,7 @@ namespace LastFMspider {
 				lock (sync) done = true;
 			}
 			Console.WriteLine("{0} similar tracks generated, of which {1} found locally.", res.similarList.Count, res.knownTracks.Count);
-			lookupsDone = lookupsDoneTemp;
 			return res;
 		}
-
 	}
 }
