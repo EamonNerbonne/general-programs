@@ -8,18 +8,18 @@ using SongDataLib;
 namespace LastFMspider {
 	public class LastFmTools {
 		SongSimilarityCache similarSongs;
-		readonly SongDatabaseConfigFile configFile;
+		readonly SongDataConfigFile configFile;
 		SongsOnDisk db;
 		SongDataLookups lookup;
 
 		public SongSimilarityCache SimilarSongs { get { return similarSongs ?? (similarSongs = new SongSimilarityCache(ConfigFile)); } }
-		public SongDatabaseConfigFile ConfigFile { get { return configFile; } }
+		public SongDataConfigFile ConfigFile { get { return configFile; } }
 		public SongsOnDisk SongsOnDisk { get { return db ?? (db = new SongsOnDisk(ConfigFile, null)); } }
 
 		public SongDataLookups Lookup { get { return lookup ?? (lookup = new SongDataLookups(SongsOnDisk.Songs, null)); } }
 
-		public LastFmTools(SongDatabaseConfigFile configFile = null) {
-			this.configFile = configFile ?? new SongDatabaseConfigFile(true);
+		public LastFmTools(SongDataConfigFile configFile = null) {
+			this.configFile = configFile ?? new SongDataConfigFile(true);
 		}
 
 

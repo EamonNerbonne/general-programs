@@ -69,21 +69,21 @@
   <ItemGroup>
     <Compile Include="AbstractSongDatabaseSection.cs" />
     <Compile Include="IPopularityEstimator.cs" />
-    <Compile Include="ISongData.cs" />
+    <Compile Include="ISongFileData.cs" />
     <Compile Include="ISongDatabaseSection.cs" />
     <Compile Include="ISongSearcher.cs" />
     <Compile Include="LocalSongDatabaseSection.cs" />
-    <Compile Include="MinimalSongData.cs" />
+    <Compile Include="MinimalSongFileData.cs" />
     <Compile Include="PartialSongData.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RemoteSongDatabaseSection.cs" />
     <Compile Include="SearchableSongDB.cs" />
     <Compile Include="SongsOnDisk.cs" />
-    <Compile Include="SongData.cs" />
-    <Compile Include="SongDatabaseConfigException.cs" />
-    <Compile Include="SongDatabaseConfigFile.cs" />
-    <Compile Include="SongDataFactory.cs" />
-    <Compile Include="SongDB.cs" />
+    <Compile Include="SongFileData.cs" />
+    <Compile Include="SongDataConfigException.cs" />
+    <Compile Include="SongDataConfigFile.cs" />
+    <Compile Include="SongFileDataFactory.cs" />
+    <Compile Include="SongFilesSearchData.cs" />
     <Compile Include="SongUtil.cs" />
     <Compile Include="Suffix.cs" />
   </ItemGroup>

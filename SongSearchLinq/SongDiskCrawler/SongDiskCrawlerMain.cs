@@ -13,8 +13,8 @@ namespace SongDiskCrawler {
 		static int newsongs = 0;
 		static double lastprogressprint = 0;
 		static int lastcounter = 0;
-		static Dictionary<string, ISongData> songs = new Dictionary<string, ISongData>();
-		static void SongHandler(ISongData song, double ratio) {
+		static Dictionary<string, ISongFileData> songs = new Dictionary<string, ISongFileData>();
+		static void SongHandler(ISongFileData song, double ratio) {
 			if (song.IsLocal) {
 				songs[song.SongUri.ToString()] = song;
 			}
@@ -32,8 +32,8 @@ namespace SongDiskCrawler {
 			}
 		}
 		static Stopwatch timer;
-		static ISongData LookupSong(Uri localSongPath) {
-			ISongData retval = null;
+		static ISongFileData LookupSong(Uri localSongPath) {
+			ISongFileData retval = null;
 			songs.TryGetValue(localSongPath.ToString(), out retval);
 			if (retval == null) newsongs++;
 			return retval;
@@ -44,7 +44,7 @@ namespace SongDiskCrawler {
 #if !DEBUG
 			try {
 #endif
-			SongDatabaseConfigFile dcf = F.Create(() => new SongDatabaseConfigFile(true)).TimeFunc("Loading Config file...");
+			SongDataConfigFile dcf = F.Create(() => new SongDataConfigFile(true)).TimeFunc("Loading Config file...");
 			dcf.PopularityEstimator = new LastFmPopularityEstimator(new LastFmTools(dcf));
 			//dcf.PopularityEstimator = new LastFmPopularityEstimator(new LastFmTools(dcf));
 

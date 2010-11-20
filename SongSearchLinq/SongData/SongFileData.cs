@@ -1,14 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Xml.Linq;
 using EmnExtensions;
-using System.Text;
 using EmnExtensions.Text;
-using System.Web;
-using System.Text.RegularExpressions;
 
 
 namespace SongDataLib {
@@ -17,7 +13,7 @@ namespace SongDataLib {
 	/// <summary>
 	/// Represent all relevent meta-data about a Song.  If this data can't be determined, use PartialSongData instead.
 	/// </summary>
-	public class SongData : MinimalSongData {
+	public class SongFileData : MinimalSongFileData {
 		public string title, artist, composer, album, comment, genre;
 		public int year, track, trackcount, bitrate, length, samplerate, channels;
 		public double? track_gain;
@@ -30,7 +26,7 @@ namespace SongDataLib {
 
 		static string toSafeString(string data) { return strNullIfEmpty(Canonicalize.MakeSafe(data)); }
 
-		internal SongData(FileInfo fileObj, IPopularityEstimator popEst)
+		internal SongFileData(FileInfo fileObj, IPopularityEstimator popEst)
 			: base(new Uri(fileObj.FullName, UriKind.Absolute), true) {
 			TagLib.File file = TagLib.File.Create(fileObj.FullName);
 			var customtags = GetCustomTags(file);
@@ -85,7 +81,7 @@ namespace SongDataLib {
 			lengthN = "length", samplerateN = "samplerate", channelsN = "channels", lastmodifiedTicksN = "lastmodifiedTicks",
 			ratingN = "rating", artistpopularityN = "popA", titlepopularityN = "popT", trackGainN = "Tgain";
 
-		internal SongData(XElement from, bool? isLocal, IPopularityEstimator popEst)
+		internal SongFileData(XElement from, bool? isLocal, IPopularityEstimator popEst)
 			: base(from, isLocal) {
 			title = (string)from.Attribute(titleN);
 

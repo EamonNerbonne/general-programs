@@ -2,11 +2,11 @@
 using System.Xml.Linq;
 
 namespace SongDataLib {
-	public static class ISongDataMethods {
-		public static string UppercaseExtension(this ISongData song) { return System.IO.Path.GetExtension(song.SongUri.AbsolutePath).ToUpperInvariant(); }
+	public static class ISongFileDataMethods {
+		public static string UppercaseExtension(this ISongFileData song) { return System.IO.Path.GetExtension(song.SongUri.AbsolutePath).ToUpperInvariant(); }
 	}
 
-	public interface ISongData {
+	public interface ISongFileData {
 		/// <summary>
 		/// String representation of all meta-data a user is likely to search for.   This will be indexed for searching purposes - i.e it should include certainly the track title,
 		/// and perhaps the year released, but certainly not the song length in seconds.

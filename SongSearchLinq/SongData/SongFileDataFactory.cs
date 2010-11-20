@@ -5,22 +5,20 @@ using System.Text;
 using System.Xml;
 using System.Xml.Linq;
 using EmnExtensions;
-using EmnExtensions.Filesystem;
-using System.Collections.Generic;
 
 namespace SongDataLib {
-	public delegate void SongDataLoadDelegate(ISongData newsong, double estimatedCompletion);
-	public static class SongDataFactory {
-		public static ISongData ConstructFromFile(FileInfo fileObj, IPopularityEstimator popEst) { return new SongData(fileObj,popEst); }
-		public static ISongData ConstructFromXElement(XElement xEl, bool? isLocal,IPopularityEstimator popEst) {
+	public delegate void SongDataLoadDelegate(ISongFileData newsong, double estimatedCompletion);
+	public static class SongFileDataFactory {
+		public static ISongFileData ConstructFromFile(FileInfo fileObj, IPopularityEstimator popEst) { return new SongFileData(fileObj,popEst); }
+		public static ISongFileData ConstructFromXElement(XElement xEl, bool? isLocal,IPopularityEstimator popEst) {
 			if (xEl.Name == "song") {
-				return new SongData(xEl, isLocal,popEst);
+				return new SongFileData(xEl, isLocal,popEst);
 			}
 			else if (xEl.Name == "partsong") {
 				return new PartialSongData(xEl, isLocal);
 			}
 			else if (xEl.Name == "songref") {
-				return new MinimalSongData(xEl, isLocal);
+				return new MinimalSongFileData(xEl, isLocal);
 			}
 			else
 				throw new ArgumentException("Don't recognize xml name " + xEl.Name + ", is not a valid ISongData format.", "xEl");
@@ -35,13 +33,13 @@ namespace SongDataLib {
 				int songCount = 0;
 				while (reader.Read()) {
 					if (!reader.IsEmptyElement || !reader.HasAttributes) continue;//only consider "empty" elements with attributes!
-					ISongData song = null;
+					ISongFileData song = null;
 					try {
 						//string elName = reader.Name;
 						//var attrs = new Dictionary<string, string>();
 						//while (reader.MoveToNextAttribute()) 
 						//    attrs[reader.Name] = reader.Value;
-						song = SongDataFactory.ConstructFromXElement((XElement)XElement.ReadFrom(reader), songsLocal, popEst);
+						song = SongFileDataFactory.ConstructFromXElement((XElement)XElement.ReadFrom(reader), songsLocal, popEst);
 					}
 					catch (Exception e) {
 						Console.WriteLine(e);
@@ -79,7 +77,7 @@ namespace SongDataLib {
 			bool extm3u = nextLine == "#EXTM3U";
 			if (extm3u) nextLine = tr.ReadLine();
 			while (nextLine != null) {//read another song!
-				ISongData song;
+				ISongFileData song;
 				string metaLine = null;
 				while (nextLine != null && nextLine.StartsWith("#") || nextLine.Trim().Length == 0) {//ignore comments or empty lines, but keep "last" comment line for EXTM3U meta-info.
 					metaLine = nextLine;
@@ -97,7 +95,7 @@ namespace SongDataLib {
 					song = new PartialSongData(metaLine, songUri, songsLocal);
 				}
 				else {
-					song = new MinimalSongData(songUri, songsLocal);
+					song = new MinimalSongFileData(songUri, songsLocal);
 				}
 				songCount++;
 				double ratioDone =

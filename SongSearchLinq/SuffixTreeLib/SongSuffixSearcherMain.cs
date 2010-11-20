@@ -10,11 +10,11 @@ namespace SuffixTreeLib
 	public class SuffixTreeSongSearcher : ISongSearcher
 	{
 		ISuffixTreeNode tree;
-		public SongDB db;
+		public SongFilesSearchData db;
 		byte[] normed;
 		Suffix[] songBoundaries;
 
-		public void Init(SongDB db) {
+		public void Init(SongFilesSearchData db) {
 			this.db = db;
 			normed = db.NormedSongs;
 			songBoundaries = db.SongBoundaries;

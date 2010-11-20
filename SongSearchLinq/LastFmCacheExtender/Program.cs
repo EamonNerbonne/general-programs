@@ -13,7 +13,7 @@ namespace LastFmCacheExtender
         static LastFmTools tools;
         static void Main(string[] args) {
             
-            var config = new SongDatabaseConfigFile(false);
+            var config = new SongDataConfigFile(false);
             Console.WriteLine("Loading song similarity...");
             tools = new LastFmTools(config);
 			//tools.PrecacheLocalFiles();//might want to do this first, but...

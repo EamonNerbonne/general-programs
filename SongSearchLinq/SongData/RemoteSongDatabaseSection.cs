@@ -7,7 +7,7 @@ namespace SongDataLib
 	class RemoteSongDatabaseSection : AbstractSongDatabaseSection
 	{
 		public string href, login, pass;
-		public RemoteSongDatabaseSection(XElement xEl, SongDatabaseConfigFile dcf)
+		public RemoteSongDatabaseSection(XElement xEl, SongDataConfigFile dcf)
 			: base(xEl, dcf) {
 			href = (string)xEl.Attribute("href");
 			login = (string)xEl.Attribute("login");
@@ -20,7 +20,7 @@ namespace SongDataLib
 			if(dbFile.LastWriteTimeUtc.AddDays(7) > DateTime.UtcNow)
 				return;//TODO: note that this means that SongDataLoadDelegate isn't called for each song, which might break application assumptions.
 			try {
-				SongDataFactory.LoadSongsFromPathOrUrl(href, delegate(ISongData newsong, double estimatedCompletion) {
+				SongFileDataFactory.LoadSongsFromPathOrUrl(href, delegate(ISongFileData newsong, double estimatedCompletion) {
 					handler(newsong, estimatedCompletion);
 				}, false,login,pass,dcf.PopularityEstimator);
 			} catch(Exception e) {

@@ -13,7 +13,7 @@ namespace LastFMspider {
 	public static partial class FindSimilarPlaylist {
 
 		public class SimilarPlaylistResults {
-			public readonly List<SongData> knownTracks = new List<SongData>();
+			public readonly List<SongFileData> knownTracks = new List<SongFileData>();
 			public readonly List<SongRef> unknownTracks = new List<SongRef>();
 			public readonly List<SongWithCost> similarList = new List<SongWithCost>();
 			public int LookupsDone;
@@ -23,8 +23,8 @@ namespace LastFMspider {
 		class DbPool : IDisposable {
 			bool dispose;
 			readonly ConcurrentBag<LastFMSQLiteCache> dbs = new ConcurrentBag<LastFMSQLiteCache>();
-			readonly SongDatabaseConfigFile configFile;
-			public DbPool(SongDatabaseConfigFile configFile) { this.configFile = configFile; }
+			readonly SongDataConfigFile configFile;
+			public DbPool(SongDataConfigFile configFile) { this.configFile = configFile; }
 
 			public ConnectionHolder GetDb() {
 				LastFMSQLiteCache conn;

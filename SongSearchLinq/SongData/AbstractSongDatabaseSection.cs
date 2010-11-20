@@ -8,7 +8,7 @@ using System.Linq;
 namespace SongDataLib {
 
 	abstract class AbstractSongDatabaseSection : ISongDatabaseSection {
-		protected SongDatabaseConfigFile dcf;
+		protected SongDataConfigFile dcf;
 		public string name;
 		protected FileInfo dbFile;
 		protected abstract bool IsLocal { get; }
@@ -16,7 +16,7 @@ namespace SongDataLib {
 		public void Load(SongDataLoadDelegate handler) {
 			if (dbFile.Exists)
 				using (Stream stream = dbFile.OpenRead())
-					SongDataFactory.LoadSongsFromXmlFrag(stream, handler, IsLocal,dcf.PopularityEstimator);
+					SongFileDataFactory.LoadSongsFromXmlFrag(stream, handler, IsLocal,dcf.PopularityEstimator);
 		}
 		static XmlWriterSettings settings = new XmlWriterSettings {
 			CheckCharacters = false,
@@ -33,7 +33,7 @@ namespace SongDataLib {
 			using (Stream streamErr = errFile.Open(FileMode.Create))
 			using (StreamWriter writerErr = new StreamWriter(streamErr))
 			using (XmlWriter xw = XmlWriter.Create(writer, settings)) {
-				List<ISongData> songs = new List<ISongData>();
+				List<ISongFileData> songs = new List<ISongFileData>();
 				//writer.WriteLine("<songs>");//we're not using an XmlWriter so that if part of the writer throws an unexpected exception, the writer isn't left in an invalid state.
 				ScanSongs(filter, (song, ratio) => {
 					//var songdata =song as SongData;
@@ -85,7 +85,7 @@ namespace SongDataLib {
 
 		protected abstract void ScanSongs(FileKnownFilter filter, SongDataLoadDelegate handler, Action<string> errSink);
 
-		protected AbstractSongDatabaseSection(XElement xEl, SongDatabaseConfigFile dcf) {
+		protected AbstractSongDatabaseSection(XElement xEl, SongDataConfigFile dcf) {
 			this.dcf = dcf;
 			name = (string)xEl.Attribute("name");
 			dbFile = new FileInfo(Path.Combine(dcf.dataDirectory.FullName + Path.DirectorySeparatorChar, name + ".xml"));

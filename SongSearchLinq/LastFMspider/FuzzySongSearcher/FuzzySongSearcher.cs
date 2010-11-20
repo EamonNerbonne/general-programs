@@ -13,8 +13,8 @@ namespace LastFMspider {
 	public class FuzzySongSearcher {
 		readonly int[][] songsByTrigram;
 		readonly int[] trigramCountBySong;
-		readonly SongData[] songs;
-		public FuzzySongSearcher(SongData[] songs) {
+		readonly SongFileData[] songs;
+		public FuzzySongSearcher(SongFileData[] songs) {
 			using (new DTimer("Constructing FuzzySongSearcher")) {
 				this.songs = songs;
 				uint[][] trigramsBySong = new uint[songs.Length][];
@@ -22,7 +22,7 @@ namespace LastFMspider {
 				int[] trigramOccurenceCount = new int[Trigrammer.TrigramCount];
 
 				for (int i = 0; i < trigramsBySong.Length; i++) {
-					SongData song = songs[i];
+					SongFileData song = songs[i];
 					trigramsBySong[i] =
 						Trigrammer.Trigrams(song.artist)
 						.Concat(Trigrammer.Trigrams(song.title))

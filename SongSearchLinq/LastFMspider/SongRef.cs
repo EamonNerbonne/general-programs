@@ -52,7 +52,7 @@ namespace LastFMspider
         public static SongRef Create(string artist, string title) { return new SongRef(artist, title); } // Cache<SongRef>.Unique(new SongRef(artist, title), s => s.OptimalVersion()); }
 
 
-        public static SongRef Create(SongData song) {
+        public static SongRef Create(SongFileData song) {
             if (song.artist == null || song.title == null)
                 return null;
             return Create(song.artist, song.title);

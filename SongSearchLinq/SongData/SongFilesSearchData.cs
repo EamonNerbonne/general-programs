@@ -3,14 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 
 namespace SongDataLib {
-	public class SongDB {
-		public ISongData[] songs;
-		byte[] normed;//all normalized songs as one big string!
+	public class SongFilesSearchData {
+		public ISongFileData[] songs;
+		readonly byte[] normed;//all normalized songs as one big string!
 		public byte[] NormedSongs { get { return normed; } }
-		Suffix[] songBoundaries;//start positions of each song!
+		readonly Suffix[] songBoundaries;//start positions of each song!
 		public Suffix[] SongBoundaries { get { return songBoundaries; } }
 		public int SongCount { get { return songs.Length; } }
-
 
 		public IEnumerable<int> GetSongIndexes(List<Suffix> suffixList) {
 			if (suffixList.Count < 2) {
@@ -102,7 +101,7 @@ namespace SongDataLib {
 
 
 
-		public SongDB(IEnumerable<ISongData> songs) {
+		public SongFilesSearchData(IEnumerable<ISongFileData> songs) {
 			this.songs = songs.ToArray();
 			//convert all songs into a single byte array...
 			songBoundaries = new Suffix[SongCount + 1];

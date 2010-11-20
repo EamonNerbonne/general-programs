@@ -82,7 +82,7 @@ namespace SongSearchSite {
 		LastFmTools tools;
 		FuzzySongSearcher fuzzySearcher;
 
-		Dictionary<string, SongData> localSongs = new Dictionary<string, SongData>();
+		Dictionary<string, SongFileData> localSongs = new Dictionary<string, SongFileData>();
 		readonly object syncroot = new object();
 		FileSystemWatcher fsWatcher;
 		public void Dispose() {
@@ -97,14 +97,14 @@ namespace SongSearchSite {
 				if (isFresh)
 					return;
 				isFresh = true;
-				SongDatabaseConfigFile dcf = new SongDatabaseConfigFile(true);
+				SongDataConfigFile dcf = new SongDataConfigFile(true);
 				tools = new LastFmTools(dcf);
 
 				var allSongs = tools.SongsOnDisk.Songs;
 				Array.Sort(allSongs,(a, b) => b.popularity.TitlePopularity.CompareTo(a.popularity.TitlePopularity));
 				Parallel.Invoke(
 					() => { fuzzySearcher = new FuzzySongSearcher(allSongs); },
-					() => { searchEngine = new SearchableSongDB(new SongDB(allSongs), new SuffixTreeSongSearcher()); },
+					() => { searchEngine = new SearchableSongDB(new SongFilesSearchData(allSongs), new SuffixTreeSongSearcher()); },
 					() => { localSongs = allSongs.Where(s => s.IsLocal).ToDictionary(song => CanonicalRelativeSongPath(song.SongUri)); });
 				if (fsWatcher == null) {
 					fsWatcher = new FileSystemWatcher {
@@ -142,8 +142,8 @@ namespace SongSearchSite {
 		/// </summary>
 		/// <param name="path">The normalized path </param>
 		/// <returns></returns>
-		public static ISongData GetSongByNormalizedPath(string path) {
-			SongData retval;
+		public static ISongFileData GetSongByNormalizedPath(string path) {
+			SongFileData retval;
 			var sdc = Singleton;
 			lock (sdc.syncroot)
 				sdc.localSongs.TryGetValue(path, out retval);
@@ -154,7 +154,7 @@ namespace SongSearchSite {
 		/// Determines whether a given path maps to an indexed, local song.  If it doesn't, it returns null.  If it does, it returns the meta data known about the song, including the song's "real" path.
 		/// </summary>
 		/// <param name="reqPath">Application relative request path</param>
-		public static ISongData GetSongFromFullUri(string reqPath) {
+		public static ISongFileData GetSongFromFullUri(string reqPath) {
 			if (!reqPath.StartsWith(songsPrefix))
 				throw new Exception("Whoops, illegal request routing...  this should not be routed to this class!");
 

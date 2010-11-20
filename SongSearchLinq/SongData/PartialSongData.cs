@@ -7,7 +7,7 @@ using System.Web;
 
 namespace SongDataLib
 {
-	public class PartialSongData : MinimalSongData
+	public class PartialSongData : MinimalSongFileData
 	{
 		public string label;
 		public int length;

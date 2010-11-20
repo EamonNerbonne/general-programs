@@ -124,7 +124,7 @@ namespace LastFMspider.OldApi {
 		public string FailureMessage { get { return status == Status.OK ? null : (failMessage ?? status.ToString()); } }
 		public Status HandshakeStatus { get { return status; } }
 
-		public bool SubmitNowPlaying(SongData songdata) {
+		public bool SubmitNowPlaying(SongFileData songdata) {
 			if (!IsOK)
 				throw new InvalidOperationException("Can't submit now playing, status == " + status);
 			if (string.IsNullOrEmpty(songdata.artist) || string.IsNullOrEmpty(songdata.title))

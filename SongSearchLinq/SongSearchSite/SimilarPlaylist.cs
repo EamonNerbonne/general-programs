@@ -25,7 +25,7 @@ namespace SongSearchSite {
 				var playlistSongNames =
 					from entry in playlistFromJson
 					let path = Uri.UnescapeDataString(entry.href)
-					let songdata = SongDbContainer.GetSongFromFullUri(path) as SongData
+					let songdata = SongDbContainer.GetSongFromFullUri(path) as SongFileData
 					where songdata != null
 					select SongRef.Create(songdata);
 

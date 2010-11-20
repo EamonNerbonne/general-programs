@@ -6,11 +6,11 @@ namespace SongDataLib {
 	public class SongsOnDisk {
 		public DirectoryInfo DatabaseDirectory { get { return configFile.dataDirectory; } }
 		public int InvalidDataCount { get { return ignoreSongCount; } }
-		public SongData[] Songs { get { return songs; } }
+		public SongFileData[] Songs { get { return songs; } }
 
-		readonly SongDatabaseConfigFile configFile;
+		readonly SongDataConfigFile configFile;
 
-		readonly SongData[] songs;
+		readonly SongFileData[] songs;
 		int ignoreSongCount = 0;
 
 		/// <summary>
@@ -18,11 +18,11 @@ namespace SongDataLib {
 		/// </summary>
 		/// <param name="configFile">the config file to load.</param>
 		/// <param name="filter">The filter to apply, if null, select all songs.</param>
-		public SongsOnDisk(SongDatabaseConfigFile configFile, Func<SongData, bool> filter) {
+		public SongsOnDisk(SongDataConfigFile configFile, Func<SongFileData, bool> filter) {
 			this.configFile = configFile;
-			List<SongData> songsList = new List<SongData>();
+			List<SongFileData> songsList = new List<SongFileData>();
 			configFile.Load((newsong, estimatedCompletion) => {
-				SongData songdata = newsong as SongData;
+				SongFileData songdata = newsong as SongFileData;
 				if (songdata != null && (filter == null || filter(songdata)))
 					songsList.Add(songdata);
 				else ignoreSongCount++;

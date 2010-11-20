@@ -68,7 +68,7 @@ namespace SongSearchSite {
 	public class SongServeRequestProcessor : IHttpRequestProcessor {
 		public readonly static string prefix = "~/songs/";
 		HttpRequestHelper helper;
-		ISongData song = null;
+		ISongFileData song = null;
 		public SongServeRequestProcessor(HttpRequestHelper helper) { this.helper = helper; }
 
 		public void ProcessingStart() { }
@@ -185,7 +185,7 @@ namespace SongSearchSite {
 				default: return MIME_BINARY;
 			}
 		}
-		public static string guessMIME(ISongData song) { return guessMIME(Path.GetExtension(song.SongUri.LocalPath)); }
+		public static string guessMIME(ISongFileData song) { return guessMIME(Path.GetExtension(song.SongUri.LocalPath)); }
 
 	}
 

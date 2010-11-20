@@ -9,7 +9,7 @@ using EmnExtensions.Text;
 namespace SongDataLib {
 	class LocalSongDatabaseSection : AbstractSongDatabaseSection {
 		DirectoryInfo localSearchPath;
-		public LocalSongDatabaseSection(XElement xEl, SongDatabaseConfigFile dcf)
+		public LocalSongDatabaseSection(XElement xEl, SongDataConfigFile dcf)
 			: base(xEl, dcf) {
 			string searchpath = (string)xEl.Attribute("localPath");
 			if (name.IsNullOrEmpty() || searchpath.IsNullOrEmpty()) throw new Exception("Missing attributes for localDB");
@@ -33,10 +33,10 @@ namespace SongDataLib {
 				if (!isExtensionOK(newfile))
 					continue;
 				Uri songUri = new Uri(newfile.FullName, UriKind.Absolute);
-				ISongData song = filter(songUri);
-				if (song == null || (song is SongData && ((SongData)song).lastWriteTime < newfile.LastWriteTimeUtc))
+				ISongFileData song = filter(songUri);
+				if (song == null || (song is SongFileData && ((SongFileData)song).lastWriteTime < newfile.LastWriteTimeUtc))
 					try {
-						song = SongDataFactory.ConstructFromFile(newfile,dcf.PopularityEstimator);
+						song = SongFileDataFactory.ConstructFromFile(newfile,dcf.PopularityEstimator);
 					} catch (Exception e) {
 						errSink("Non-fatal error while generating XML of file: " + songUri + "\nException:\n" + e); song = null;
 					}

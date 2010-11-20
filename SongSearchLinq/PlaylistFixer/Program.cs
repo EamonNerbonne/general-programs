@@ -23,7 +23,7 @@ namespace PlaylistFixer
 					//.Where(fi => !Path.GetFileNameWithoutExtension(fi).EndsWith("-fixed"))
 					.ToArray();
 			}
-			LastFmTools tools = new LastFmTools(new SongDatabaseConfigFile(false));
+			LastFmTools tools = new LastFmTools(new SongDataConfigFile(false));
 			int nulls2 = 0, fine = 0;
 			//Parallel.ForEach(args, m3ufilename => {
 			List<SongMatch>
@@ -75,12 +75,12 @@ namespace PlaylistFixer
 						fi.MoveTo(newPath);
 				}
 
-				MinimalSongData[] playlistfixed;
-				MinimalSongData[] playlist = LoadExtM3U(fi);
-				playlistfixed = new MinimalSongData[playlist.Length];
+				MinimalSongFileData[] playlistfixed;
+				MinimalSongFileData[] playlist = LoadExtM3U(fi);
+				playlistfixed = new MinimalSongFileData[playlist.Length];
 				int idx = 0;
 				foreach (var songMin in playlist) {
-					MinimalSongData decentMatch = null;
+					MinimalSongFileData decentMatch = null;
 					if (tools.Lookup.dataByPath.ContainsKey(songMin.SongUri.ToString()))
 						decentMatch = tools.Lookup.dataByPath[songMin.SongUri.ToString()];
 					else if (songMin is PartialSongData) {
@@ -111,7 +111,7 @@ namespace PlaylistFixer
 
 						decentMatch = best.SongData;
 					} else {
-						SongData[] exactFilenameMatch = tools.SongsOnDisk.Songs.Where(sd => Path.GetFileName(sd.SongUri.ToString()) == Path.GetFileName(songMin.SongUri.ToString())).ToArray();
+						SongFileData[] exactFilenameMatch = tools.SongsOnDisk.Songs.Where(sd => Path.GetFileName(sd.SongUri.ToString()) == Path.GetFileName(songMin.SongUri.ToString())).ToArray();
 						if (exactFilenameMatch.Length == 1)
 							decentMatch = exactFilenameMatch[0];
 					}
@@ -131,7 +131,7 @@ namespace PlaylistFixer
 
 		struct SongMatch
 		{
-			public static SongMatch? Compare(PartialSongData src, string filename, string normlabel, SongData opt) {
+			public static SongMatch? Compare(PartialSongData src, string filename, string normlabel, SongFileData opt) {
 				double lenC = Math.Abs(src.Length - opt.Length);
 				if (lenC > 15) return null;
 				string optFileName = Path.GetFileName(opt.SongUri.ToString());
@@ -147,13 +147,13 @@ namespace PlaylistFixer
 					Cost = lenC / 5.0 + Math.Sqrt(50 * Math.Min(nameC, labelC)) + Math.Sqrt(50 * labelC)
 				};
 			}
-			public SongData SongData;
+			public SongFileData SongData;
 			public PartialSongData Orig;
 			public double Cost, LenC, NameC, TagC;
 			public override string ToString() {
 				return string.Format("{0,7:g5} {1,7:g5} {2,7:g5} {3,7:g5} {4} ==> {5} ", Cost, LenC, NameC, TagC, ToString(Orig), ToString(SongData));
 			}
-			public static string ToString(ISongData song) {
+			public static string ToString(ISongFileData song) {
 				return NormalizedFileName(song.SongUri.ToString()) + ": " + song.HumanLabel + " (" + TimeSpan.FromSeconds(song.Length) + ")";
 			}
 		}
@@ -165,7 +165,7 @@ namespace PlaylistFixer
 					let lengthDiff = Math.Abs(songToFind.Length - songdataOpt.Length)
 					let filenameDiff = NormalizedFileName(songToFind.SongUri.ToString()).LevenshteinDistance(NormalizedFileName(songdataOpt.SongUri.ToString()))
 					select new SongMatch { SongData = songdataOpt, Orig = songToFind, Cost = lengthDiff * 0.5 + filenameDiff * 0.2 };
-			return q.Aggregate(new SongMatch { SongData = (SongData)null, Cost = int.MaxValue }, (a, b) => a.Cost < b.Cost ? a : b);
+			return q.Aggregate(new SongMatch { SongData = (SongFileData)null, Cost = int.MaxValue }, (a, b) => a.Cost < b.Cost ? a : b);
 		}
 		static SongMatch FindBestMatch2(LastFmTools tools, PartialSongData songToFind) {
 			string fileName = NormalizedFileName(songToFind.SongUri.ToString());
@@ -174,17 +174,17 @@ namespace PlaylistFixer
 					let songmatch = SongMatch.Compare(songToFind, fileName, basicLabel, songdataOpt)
 					where songmatch.HasValue
 					select songmatch.Value;
-			return q.Aggregate(new SongMatch { SongData = (SongData)null, Cost = (double)int.MaxValue }, (a, b) => a.Cost < b.Cost ? a : b);
+			return q.Aggregate(new SongMatch { SongData = (SongFileData)null, Cost = (double)int.MaxValue }, (a, b) => a.Cost < b.Cost ? a : b);
 		}
 
-		static MinimalSongData[] LoadExtM3U(FileInfo m3ufile) {
-			List<MinimalSongData> m3usongs = new List<MinimalSongData>();
+		static MinimalSongFileData[] LoadExtM3U(FileInfo m3ufile) {
+			List<MinimalSongFileData> m3usongs = new List<MinimalSongFileData>();
 			using (var m3uStream = m3ufile.OpenRead()) {
-				SongDataFactory.LoadSongsFromM3U(
+				SongFileDataFactory.LoadSongsFromM3U(
 					m3uStream,
-					delegate(ISongData newsong, double completion) {
-						if (newsong is MinimalSongData)
-							m3usongs.Add((MinimalSongData)newsong);
+					delegate(ISongFileData newsong, double completion) {
+						if (newsong is MinimalSongFileData)
+							m3usongs.Add((MinimalSongFileData)newsong);
 					},
 					m3ufile.Extension.ToLowerInvariant() == "m3u8" ? Encoding.UTF8 : Encoding.GetEncoding(1252),
 					null

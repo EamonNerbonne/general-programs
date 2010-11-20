@@ -9,11 +9,11 @@ namespace LastFMspider {
 	public class SongSimilarityCache {
 		public LastFMSQLiteCache backingDB { get; private set; }
 
-		public SongSimilarityCache(SongDatabaseConfigFile configFile) {
+		public SongSimilarityCache(SongDataConfigFile configFile) {
 			Init(configFile);
 		}
 
-		private void Init(SongDatabaseConfigFile configFile) {
+		private void Init(SongDataConfigFile configFile) {
 			Console.WriteLine("Initializing sqlite db");
 			backingDB = new LastFMSQLiteCache(configFile);
 		}

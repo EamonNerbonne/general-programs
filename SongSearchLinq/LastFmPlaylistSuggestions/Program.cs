@@ -15,7 +15,7 @@ namespace LastFmPlaylistSuggestions {
 			//args.PrintAllDebug();
 			//Console.ReadLine();
 			//Console.WriteLine(CharMap.MapSize);
-			RunNew(new LastFmTools(new SongDatabaseConfigFile(false)), args);
+			RunNew(new LastFmTools(new SongDataConfigFile(false)), args);
 			//Console.ReadKey();
 		}
 		static void RunNew(LastFmTools tools, string[] args) {
@@ -36,13 +36,13 @@ namespace LastFmPlaylistSuggestions {
 			}
 		}
 
-		static void FindPlaylistSongLocally(LastFmTools tools, ISongData playlistEntry, Action<SongData> ifFound, Action<SongRef> ifNotFound, Action<ISongData> cannotParse) {
-			SongData bestMatch = null;
+		static void FindPlaylistSongLocally(LastFmTools tools, ISongFileData playlistEntry, Action<SongFileData> ifFound, Action<SongRef> ifNotFound, Action<ISongFileData> cannotParse) {
+			SongFileData bestMatch = null;
 			int artistTitleSplitIndex = playlistEntry.HumanLabel.IndexOf(" - ");
 			if (tools.Lookup.dataByPath.ContainsKey(playlistEntry.SongUri.ToString()))
 				ifFound(tools.Lookup.dataByPath[playlistEntry.SongUri.ToString()]);
 			else if (playlistEntry.IsLocal && File.Exists(playlistEntry.SongUri.LocalPath)) {
-				ifFound((SongData)SongDataFactory.ConstructFromFile(new FileInfo(playlistEntry.SongUri.LocalPath), tools.ConfigFile.PopularityEstimator));
+				ifFound((SongFileData)SongFileDataFactory.ConstructFromFile(new FileInfo(playlistEntry.SongUri.LocalPath), tools.ConfigFile.PopularityEstimator));
 			} else if (playlistEntry is PartialSongData) {
 				int bestMatchVal = Int32.MaxValue;
 				while (artistTitleSplitIndex != -1) {
@@ -71,8 +71,8 @@ namespace LastFmPlaylistSuggestions {
 
 		static void ProcessM3U(LastFmTools tools, Func<SongRef, SongMatch> fuzzySearch, FileInfo m3ufile, DirectoryInfo m3uDir) {
 			Console.WriteLine("Trying " + m3ufile.FullName);
-			IEnumerable<ISongData> playlist = LoadExtM3U(m3ufile);
-			var known = new List<SongData>();
+			IEnumerable<ISongFileData> playlist = LoadExtM3U(m3ufile);
+			var known = new List<SongFileData>();
 			var unknown = new List<SongRef>();
 			foreach (var song in playlist)
 				FindPlaylistSongLocally(tools, song,
@@ -129,10 +129,10 @@ namespace LastFmPlaylistSuggestions {
 
 
 
-		static IEnumerable<ISongData> LoadExtM3U(FileInfo m3ufile) {
-			List<ISongData> m3usongs = new List<ISongData>();
+		static IEnumerable<ISongFileData> LoadExtM3U(FileInfo m3ufile) {
+			List<ISongFileData> m3usongs = new List<ISongFileData>();
 			using (var m3uStream = m3ufile.OpenRead()) {
-				SongDataFactory.LoadSongsFromM3U(
+				SongFileDataFactory.LoadSongsFromM3U(
 					m3uStream, (newsong, completion) => m3usongs.Add(newsong),
 					m3ufile.Extension.EndsWith("8") ? Encoding.UTF8 : Encoding.GetEncoding(1252),
 					true

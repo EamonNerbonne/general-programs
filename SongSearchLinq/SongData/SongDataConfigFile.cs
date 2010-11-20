@@ -6,8 +6,8 @@ using System.Xml.Linq;
 using EmnExtensions;
 
 namespace SongDataLib {
-	public delegate ISongData FileKnownFilter(Uri localSongPath);
-	public class SongDatabaseConfigFile : ISongDatabaseSection {
+	public delegate ISongFileData FileKnownFilter(Uri localSongPath);
+	public class SongDataConfigFile : ISongDatabaseSection {
 		FileInfo configFile;
 		internal DirectoryInfo dataDirectory;
 		List<LocalSongDatabaseSection> locals = new List<LocalSongDatabaseSection>();
@@ -19,7 +19,7 @@ namespace SongDataLib {
 		/// - ApplicationData (per-user)
 		/// - CommonApplicationData (windows: "All Users\Application Data", unix: "/usr/share")
 		/// </summary>
-		public SongDatabaseConfigFile(bool allowRemote, IPopularityEstimator popEst = null) {
+		public SongDataConfigFile(bool allowRemote, IPopularityEstimator popEst = null) {
 			string configRel = Path.DirectorySeparatorChar.ToString() + defaultConfigDir + Path.DirectorySeparatorChar + defaultConfigFileName;
 			string userPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + configRel;
 			string globalPath = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData) + configRel;
@@ -32,7 +32,7 @@ namespace SongDataLib {
 			Init(allowRemote, popEst);
 		}
 		public DirectoryInfo DataDirectory { get { return dataDirectory; } }
-		public SongDatabaseConfigFile(FileInfo configFile, bool allowRemote, IPopularityEstimator popEst = null) {
+		public SongDataConfigFile(FileInfo configFile, bool allowRemote, IPopularityEstimator popEst = null) {
 			if (configFile == null) throw new ArgumentNullException("configFile", "A database config file was not specified");
 			if (!configFile.Exists) throw new FileNotFoundException("The specified configuration file wasn't found", configFile.FullName);
 			this.configFile = configFile;
@@ -47,8 +47,8 @@ namespace SongDataLib {
 					XDocument doc = XDocument.Load(XmlReader.Create(stream));
 
 					XElement xRoot = doc.Root;
-					if (xRoot.Name != "SongDataConfig") throw new SongDatabaseConfigException(this, "Invalid Root Element Name " + ((xRoot.Name.ToStringOrNull()) ?? "?"));
-					if ((string)xRoot.Attribute("version") != "1.0") throw new SongDatabaseConfigException(this, "Invalid Config Version " + (((string)xRoot.Attribute("version")) ?? "?"));
+					if (xRoot.Name != "SongDataConfig") throw new SongDataConfigException(this, "Invalid Root Element Name " + ((xRoot.Name.ToStringOrNull()) ?? "?"));
+					if ((string)xRoot.Attribute("version") != "1.0") throw new SongDataConfigException(this, "Invalid Config Version " + (((string)xRoot.Attribute("version")) ?? "?"));
 
 					string dataDirAttr = (string)xRoot.Element("general").Attribute("dataDirectory");
 					dataDirectory = new DirectoryInfo(Path.Combine(configFile.Directory.FullName + Path.DirectorySeparatorChar, dataDirAttr));
@@ -63,22 +63,22 @@ namespace SongDataLib {
 							case "localDB":
 								locals.Add(new LocalSongDatabaseSection(xe, this));
 								if (!names.Add(locals[locals.Count - 1].name))
-									throw new SongDatabaseConfigException(this, "Cannot have multiple DB's identically named '" + locals[locals.Count - 1].name + "'.");
+									throw new SongDataConfigException(this, "Cannot have multiple DB's identically named '" + locals[locals.Count - 1].name + "'.");
 								break;
 							case "remoteDB":
 								if (remotes == null) break;
 								remotes.Add(new RemoteSongDatabaseSection(xe, this));
 								if (!names.Add(remotes[remotes.Count - 1].name))
-									throw new SongDatabaseConfigException(this, "Cannot have multiple DB's identically named '" + remotes[remotes.Count - 1].name + "'.");
+									throw new SongDataConfigException(this, "Cannot have multiple DB's identically named '" + remotes[remotes.Count - 1].name + "'.");
 
 								break;
 							case "general":
 								break;
 							default:
-								throw new SongDatabaseConfigException(this, "Unknown db type: " + dbType);
+								throw new SongDataConfigException(this, "Unknown db type: " + dbType);
 						}
 					}
-				} catch (SongDatabaseConfigException) { throw; } catch (Exception e) { throw new SongDatabaseConfigException(this, e); }
+				} catch (SongDataConfigException) { throw; } catch (Exception e) { throw new SongDataConfigException(this, e); }
 		}
 
 		public void Load(SongDataLoadDelegate handler) {

@@ -108,7 +108,7 @@ CREATE INDEX IF NOT EXISTS [IDX_TopTracksList_ArtistID_LookupTimestamp] ON [TopT
 				return conn;
 			} catch { if (conn != null) conn.Dispose(); throw; }
 		}
-		public static DbConnection ConstructConnection(SongDatabaseConfigFile configFile) {
+		public static DbConnection ConstructConnection(SongDataConfigFile configFile) {
 			return ConstructConnection(DbFile(configFile));
 		}
 
@@ -124,7 +124,7 @@ CREATE INDEX IF NOT EXISTS [IDX_TopTracksList_ArtistID_LookupTimestamp] ON [TopT
 			}
 		}
 		const string filename = "lastFMcache.s3db";
-		public static FileInfo DbFile(SongDatabaseConfigFile config) { return new FileInfo(Path.Combine(config.DataDirectory.CreateSubdirectory("cache").FullName, filename)); }
+		public static FileInfo DbFile(SongDataConfigFile config) { return new FileInfo(Path.Combine(config.DataDirectory.CreateSubdirectory("cache").FullName, filename)); }
 		[DllImport(@"System.Data.SQLite.dll")]
 		internal static extern int sqlite3_enable_shared_cache(int enabled);
 		static LastFmDbBuilder() {

@@ -119,12 +119,12 @@ namespace SongSearchSite {
 				).Save(context.Response.Output);
 			} else {
 				var uriMapper = SongDbContainer.LocalSongPathToAbsolutePathMapper(context);
-				foreach (ISongData songdata in searchResults)
+				foreach (ISongFileData songdata in searchResults)
 					context.Response.Write(makeM3UEntry(songdata, extm3u, uriMapper));
 			}
 		}
 
-		static string makeM3UEntry(ISongData song, bool extm3u, Func<Uri, Uri> makeAbsolute) {
+		static string makeM3UEntry(ISongFileData song, bool extm3u, Func<Uri, Uri> makeAbsolute) {
 			string url = makeAbsolute(song.SongUri).AbsoluteUri;//absoluteuri include escape sequences.
 			if (extm3u)
 				return "#EXTINF:" + song.Length + "," + song.HumanLabel + "\n" + url + "\n";

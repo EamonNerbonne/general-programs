@@ -9,14 +9,14 @@ namespace SongDataLib
 	public class SearchableSongDB
 	{
 		public ISongSearcher searchMethod;
-		public SongDB db;
-		public SearchableSongDB(SongDB db, ISongSearcher searchMethod) {
+		public SongFilesSearchData db;
+		public SearchableSongDB(SongFilesSearchData db, ISongSearcher searchMethod) {
 			this.db = db;
 			this.searchMethod = searchMethod;
 			searchMethod.Init(db);
 		}
 
-		public IEnumerable<ISongData> Search(string query) {
+		public IEnumerable<ISongFileData> Search(string query) {
 			return Matches(query).Select(i => db.songs[i]);
 		}
 
