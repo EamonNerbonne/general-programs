@@ -12,7 +12,7 @@ namespace SongDataLib
 		public int CompareTo(SearchResult other) { return cost - other.cost; }
 	}
 
-	public interface ISongSearcher
+	public interface ISongFileSearchEngine
 	{
 		void Init(SongFilesSearchData db);
 		SearchResult Query(byte[] query);

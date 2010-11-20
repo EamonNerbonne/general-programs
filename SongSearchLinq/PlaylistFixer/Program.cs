@@ -83,8 +83,8 @@ namespace PlaylistFixer
 					MinimalSongFileData decentMatch = null;
 					if (tools.Lookup.dataByPath.ContainsKey(songMin.SongUri.ToString()))
 						decentMatch = tools.Lookup.dataByPath[songMin.SongUri.ToString()];
-					else if (songMin is PartialSongData) {
-						PartialSongData song = (PartialSongData)songMin;
+					else if (songMin is PartialSongFileData) {
+						PartialSongFileData song = (PartialSongFileData)songMin;
 						SongMatch best = FindBestMatch(tools, song);
 						if (best.SongData == null) {
 
@@ -131,7 +131,7 @@ namespace PlaylistFixer
 
 		struct SongMatch
 		{
-			public static SongMatch? Compare(PartialSongData src, string filename, string normlabel, SongFileData opt) {
+			public static SongMatch? Compare(PartialSongFileData src, string filename, string normlabel, SongFileData opt) {
 				double lenC = Math.Abs(src.Length - opt.Length);
 				if (lenC > 15) return null;
 				string optFileName = Path.GetFileName(opt.SongUri.ToString());
@@ -148,7 +148,7 @@ namespace PlaylistFixer
 				};
 			}
 			public SongFileData SongData;
-			public PartialSongData Orig;
+			public PartialSongFileData Orig;
 			public double Cost, LenC, NameC, TagC;
 			public override string ToString() {
 				return string.Format("{0,7:g5} {1,7:g5} {2,7:g5} {3,7:g5} {4} ==> {5} ", Cost, LenC, NameC, TagC, ToString(Orig), ToString(SongData));
@@ -158,7 +158,7 @@ namespace PlaylistFixer
 			}
 		}
 
-		static SongMatch FindBestMatch(LastFmTools tools, PartialSongData songToFind) {
+		static SongMatch FindBestMatch(LastFmTools tools, PartialSongFileData songToFind) {
 			var q = from songrefOpt in PossibleSongRefs(songToFind.HumanLabel)
 					where tools.Lookup.dataByRef.ContainsKey(songrefOpt)
 					from songdataOpt in tools.Lookup.dataByRef[songrefOpt]
@@ -167,7 +167,7 @@ namespace PlaylistFixer
 					select new SongMatch { SongData = songdataOpt, Orig = songToFind, Cost = lengthDiff * 0.5 + filenameDiff * 0.2 };
 			return q.Aggregate(new SongMatch { SongData = (SongFileData)null, Cost = int.MaxValue }, (a, b) => a.Cost < b.Cost ? a : b);
 		}
-		static SongMatch FindBestMatch2(LastFmTools tools, PartialSongData songToFind) {
+		static SongMatch FindBestMatch2(LastFmTools tools, PartialSongFileData songToFind) {
 			string fileName = NormalizedFileName(songToFind.SongUri.ToString());
 			string basicLabel = Canonicalize.Basic(songToFind.HumanLabel);
 			var q = from songdataOpt in tools.SongsOnDisk.Songs

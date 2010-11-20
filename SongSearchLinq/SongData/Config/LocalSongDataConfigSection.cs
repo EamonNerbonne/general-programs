@@ -7,9 +7,9 @@ using EmnExtensions.Filesystem;
 using EmnExtensions.Text;
 
 namespace SongDataLib {
-	class LocalSongDatabaseSection : AbstractSongDatabaseSection {
+	class LocalSongDataConfigSection : AbstractSongDataConfigSection {
 		DirectoryInfo localSearchPath;
-		public LocalSongDatabaseSection(XElement xEl, SongDataConfigFile dcf)
+		public LocalSongDataConfigSection(XElement xEl, SongDataConfigFile dcf)
 			: base(xEl, dcf) {
 			string searchpath = (string)xEl.Attribute("localPath");
 			if (name.IsNullOrEmpty() || searchpath.IsNullOrEmpty()) throw new Exception("Missing attributes for localDB");

@@ -15,7 +15,7 @@ namespace SongDataLib {
 				return new SongFileData(xEl, isLocal,popEst);
 			}
 			else if (xEl.Name == "partsong") {
-				return new PartialSongData(xEl, isLocal);
+				return new PartialSongFileData(xEl, isLocal);
 			}
 			else if (xEl.Name == "songref") {
 				return new MinimalSongFileData(xEl, isLocal);
@@ -92,7 +92,7 @@ namespace SongDataLib {
 
 
 				if (extm3u && metaLine != null) {
-					song = new PartialSongData(metaLine, songUri, songsLocal);
+					song = new PartialSongFileData(metaLine, songUri, songsLocal);
 				}
 				else {
 					song = new MinimalSongFileData(songUri, songsLocal);

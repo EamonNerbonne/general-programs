@@ -4,10 +4,10 @@ using EmnExtensions.Text;
 
 namespace SongDataLib
 {
-	class RemoteSongDatabaseSection : AbstractSongDatabaseSection
+	class RemoteSongDataConfigSection : AbstractSongDataConfigSection
 	{
 		public string href, login, pass;
-		public RemoteSongDatabaseSection(XElement xEl, SongDataConfigFile dcf)
+		public RemoteSongDataConfigSection(XElement xEl, SongDataConfigFile dcf)
 			: base(xEl, dcf) {
 			href = (string)xEl.Attribute("href");
 			login = (string)xEl.Attribute("login");

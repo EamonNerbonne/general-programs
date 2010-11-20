@@ -78,7 +78,7 @@ namespace SongSearchSite {
 				}
 			}
 		}
-		SearchableSongDB searchEngine;
+		SearchableSongFiles searchEngine;
 		LastFmTools tools;
 		FuzzySongSearcher fuzzySearcher;
 
@@ -104,7 +104,7 @@ namespace SongSearchSite {
 				Array.Sort(allSongs,(a, b) => b.popularity.TitlePopularity.CompareTo(a.popularity.TitlePopularity));
 				Parallel.Invoke(
 					() => { fuzzySearcher = new FuzzySongSearcher(allSongs); },
-					() => { searchEngine = new SearchableSongDB(new SongFilesSearchData(allSongs), new SuffixTreeSongSearcher()); },
+					() => { searchEngine = new SearchableSongFiles(new SongFilesSearchData(allSongs), new SuffixTreeSongSearcher()); },
 					() => { localSongs = allSongs.Where(s => s.IsLocal).ToDictionary(song => CanonicalRelativeSongPath(song.SongUri)); });
 				if (fsWatcher == null) {
 					fsWatcher = new FileSystemWatcher {
@@ -133,7 +133,7 @@ namespace SongSearchSite {
 		}
 
 		private SongDbContainer() { Init(); }
-		public static SearchableSongDB SearchableSongDB { get { var sdc = Singleton; lock (sdc.syncroot) return sdc.searchEngine; } }
+		public static SearchableSongFiles SearchableSongDB { get { var sdc = Singleton; lock (sdc.syncroot) return sdc.searchEngine; } }
 		public static FuzzySongSearcher FuzzySongSearcher { get { var sdc = Singleton; lock (sdc.syncroot) return sdc.fuzzySearcher; } }
 		public static LastFmTools LastFmTools { get { var sdc = Singleton; lock (sdc.syncroot) return sdc.tools; } }
 

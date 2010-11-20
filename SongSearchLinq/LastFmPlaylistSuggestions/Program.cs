@@ -43,7 +43,7 @@ namespace LastFmPlaylistSuggestions {
 				ifFound(tools.Lookup.dataByPath[playlistEntry.SongUri.ToString()]);
 			else if (playlistEntry.IsLocal && File.Exists(playlistEntry.SongUri.LocalPath)) {
 				ifFound((SongFileData)SongFileDataFactory.ConstructFromFile(new FileInfo(playlistEntry.SongUri.LocalPath), tools.ConfigFile.PopularityEstimator));
-			} else if (playlistEntry is PartialSongData) {
+			} else if (playlistEntry is PartialSongFileData) {
 				int bestMatchVal = Int32.MaxValue;
 				while (artistTitleSplitIndex != -1) {
 					SongRef songref = SongRef.Create(playlistEntry.HumanLabel.Substring(0, artistTitleSplitIndex), playlistEntry.HumanLabel.Substring(artistTitleSplitIndex + 3));

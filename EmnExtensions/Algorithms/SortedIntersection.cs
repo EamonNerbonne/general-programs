@@ -51,6 +51,31 @@ namespace EmnExtensions.Algorithms {
 			}
 		}
 
+		public static IEnumerable<int> SortedZipIntersect(IEnumerable<int> a, IEnumerable<int> b) {
+			var enumA = a.GetEnumerator();
+			var enumB = b.GetEnumerator();
+
+			if (!enumA.MoveNext() || !enumB.MoveNext()) yield break;
+			int elA = enumA.Current;
+			int elB = enumB.Current;
+			while (true) {
+				if (elA == elB) {
+					yield return elA;
+					while (elA == elB && enumB.MoveNext()) elB = enumB.Current;
+					if (elA == elB) yield break;
+					if (!enumA.MoveNext()) yield break;
+				} else if (elA < elB) {
+					if (!enumA.MoveNext()) yield break;
+					elA = enumA.Current;
+				} else {
+					if (!enumB.MoveNext()) yield break;
+					elB = enumB.Current;
+				}
+			}
+		}
+
+
+
 		static void DisposeAll<T>(T[] disposables, int startAt) where T : IDisposable {
 			for (int i = startAt; i < disposables.Length; i++) {
 				try {

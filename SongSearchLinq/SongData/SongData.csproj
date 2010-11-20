@@ -67,25 +67,25 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AbstractSongDatabaseSection.cs" />
-    <Compile Include="IPopularityEstimator.cs" />
-    <Compile Include="ISongFileData.cs" />
-    <Compile Include="ISongDatabaseSection.cs" />
-    <Compile Include="ISongSearcher.cs" />
-    <Compile Include="LocalSongDatabaseSection.cs" />
-    <Compile Include="MinimalSongFileData.cs" />
-    <Compile Include="PartialSongData.cs" />
+    <Compile Include="Config\AbstractSongDataConfigSection.cs" />
+    <Compile Include="FileData\IPopularityEstimator.cs" />
+    <Compile Include="FileData\ISongFileData.cs" />
+    <Compile Include="Config\ISongDataConfigSection.cs" />
+    <Compile Include="Search\ISongFileSearchEngine.cs" />
+    <Compile Include="Config\LocalSongDataConfigSection.cs" />
+    <Compile Include="FileData\MinimalSongFileData.cs" />
+    <Compile Include="FileData\PartialSongFileData.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="RemoteSongDatabaseSection.cs" />
-    <Compile Include="SearchableSongDB.cs" />
-    <Compile Include="SongsOnDisk.cs" />
-    <Compile Include="SongFileData.cs" />
-    <Compile Include="SongDataConfigException.cs" />
-    <Compile Include="SongDataConfigFile.cs" />
-    <Compile Include="SongFileDataFactory.cs" />
-    <Compile Include="SongFilesSearchData.cs" />
+    <Compile Include="Config\RemoteSongDataConfigSection.cs" />
+    <Compile Include="Search\SearchableSongFiles.cs" />
+    <Compile Include="FileData\SongFiles.cs" />
+    <Compile Include="FileData\SongFileData.cs" />
+    <Compile Include="Config\SongDataConfigException.cs" />
+    <Compile Include="Config\SongDataConfigFile.cs" />
+    <Compile Include="FileData\SongFileDataFactory.cs" />
+    <Compile Include="Search\SongFilesSearchData.cs" />
     <Compile Include="SongUtil.cs" />
-    <Compile Include="Suffix.cs" />
+    <Compile Include="Search\Suffix.cs" />
   </ItemGroup>
   <ItemGroup>
     <Service Include="{B4F97281-0DBD-4835-9ED8-7DFB966E87FF}" />

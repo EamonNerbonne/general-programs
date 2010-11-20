@@ -7,7 +7,7 @@ using System.Text;
 using System.Linq;
 namespace SongDataLib {
 
-	abstract class AbstractSongDatabaseSection : ISongDatabaseSection {
+	abstract class AbstractSongDataConfigSection : ISongDataConfigSection {
 		protected SongDataConfigFile dcf;
 		public string name;
 		protected FileInfo dbFile;
@@ -85,7 +85,7 @@ namespace SongDataLib {
 
 		protected abstract void ScanSongs(FileKnownFilter filter, SongDataLoadDelegate handler, Action<string> errSink);
 
-		protected AbstractSongDatabaseSection(XElement xEl, SongDataConfigFile dcf) {
+		protected AbstractSongDataConfigSection(XElement xEl, SongDataConfigFile dcf) {
 			this.dcf = dcf;
 			name = (string)xEl.Attribute("name");
 			dbFile = new FileInfo(Path.Combine(dcf.dataDirectory.FullName + Path.DirectorySeparatorChar, name + ".xml"));

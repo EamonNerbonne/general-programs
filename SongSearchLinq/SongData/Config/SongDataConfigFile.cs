@@ -7,11 +7,11 @@ using EmnExtensions;
 
 namespace SongDataLib {
 	public delegate ISongFileData FileKnownFilter(Uri localSongPath);
-	public class SongDataConfigFile : ISongDatabaseSection {
+	public class SongDataConfigFile : ISongDataConfigSection {
 		FileInfo configFile;
 		internal DirectoryInfo dataDirectory;
-		List<LocalSongDatabaseSection> locals = new List<LocalSongDatabaseSection>();
-		List<RemoteSongDatabaseSection> remotes = null;
+		List<LocalSongDataConfigSection> locals = new List<LocalSongDataConfigSection>();
+		List<RemoteSongDataConfigSection> remotes = null;
 		const string defaultConfigFileName = "SongSearch.config";
 		const string defaultConfigDir = "SongSearch";
 		/// <summary>
@@ -40,7 +40,7 @@ namespace SongDataLib {
 		}
 		void Init(bool allowRemote, IPopularityEstimator popEst) {
 			PopularityEstimator = popEst ?? new NullPopularityEstimator();
-			if (allowRemote) remotes = new List<RemoteSongDatabaseSection>();
+			if (allowRemote) remotes = new List<RemoteSongDataConfigSection>();
 			Console.WriteLine("Loading config file from " + configFile.FullName);
 			using (Stream stream = configFile.OpenRead())
 				try {
@@ -61,13 +61,13 @@ namespace SongDataLib {
 						string dbType = xe.Name.ToStringOrNull();
 						switch (dbType) {
 							case "localDB":
-								locals.Add(new LocalSongDatabaseSection(xe, this));
+								locals.Add(new LocalSongDataConfigSection(xe, this));
 								if (!names.Add(locals[locals.Count - 1].name))
 									throw new SongDataConfigException(this, "Cannot have multiple DB's identically named '" + locals[locals.Count - 1].name + "'.");
 								break;
 							case "remoteDB":
 								if (remotes == null) break;
-								remotes.Add(new RemoteSongDatabaseSection(xe, this));
+								remotes.Add(new RemoteSongDataConfigSection(xe, this));
 								if (!names.Add(remotes[remotes.Count - 1].name))
 									throw new SongDataConfigException(this, "Cannot have multiple DB's identically named '" + remotes[remotes.Count - 1].name + "'.");
 

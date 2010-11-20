@@ -7,7 +7,7 @@ using System.Web;
 
 namespace SongDataLib
 {
-	public class PartialSongData : MinimalSongFileData
+	public class PartialSongFileData : MinimalSongFileData
 	{
 		public string label;
 		public int length;
@@ -30,13 +30,13 @@ namespace SongDataLib
 		public override string HumanLabel { get { return label ?? base.HumanLabel; } }
 
 		static readonly Regex extm3uPattern = new Regex(@"^#EXTINF:(?<songlength>[0-9]+),(?<label>.*)$", RegexOptions.Compiled | RegexOptions.ExplicitCapture);
-		internal PartialSongData(XElement xEl, bool? isLocal)
+		internal PartialSongFileData(XElement xEl, bool? isLocal)
 			: base(xEl, isLocal) {
 			label = (string)xEl.Attribute("label");//might even be null!
 			length = ((int?)xEl.Attribute("length")) ??0;//might even be null!
 		}
 
-		internal PartialSongData(string extm3ustr, Uri url, bool? isLocal)
+		internal PartialSongFileData(string extm3ustr, Uri url, bool? isLocal)
 			: base(url, isLocal) {
 			Match m;
 			lock(extm3uPattern) m = extm3uPattern.Match(extm3ustr);

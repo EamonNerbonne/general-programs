@@ -7,7 +7,7 @@ using SongDataLib;
 
 namespace SuffixTreeLib
 {
-	public class SuffixTreeSongSearcher : ISongSearcher
+	public class SuffixTreeSongSearcher : ISongFileSearchEngine
 	{
 		ISuffixTreeNode tree;
 		public SongFilesSearchData db;

@@ -9,7 +9,7 @@ namespace SongDataLib
 		/// </summary>
 		/// <param name="str"></param>
 		/// <returns></returns>
-		public static byte[] str2byteArr(string str) {
+		static byte[] str2byteArr(string str) {
 			List<byte> bytArr = new List<byte>(str.Length);
 			foreach(char c in str) {
 				int b = (ushort)c;
@@ -34,7 +34,7 @@ namespace SongDataLib
 			return str2byteArr(EmnExtensions.Text.Canonicalize.Basic(str));
 		}
 
-		public static bool Contains(this byte[] elem, byte[] substring) {
+		internal static bool Contains(this byte[] elem, byte[] substring) {
 			for(int i = 0; i <= elem.Length - substring.Length; i++) {
 				bool match = true;
 				for(int j = 0; j < substring.Length; j++) {
@@ -47,78 +47,6 @@ namespace SongDataLib
 					return true;
 			}
 			return false;
-		}
-
-
-		public static IEnumerable<int> ZipUnion(IEnumerable<int> a, IEnumerable<int> b) {
-			var enumA = a.GetEnumerator();
-			var enumB = b.GetEnumerator();
-			int elA, elB;
-			if(enumA.MoveNext()) {
-				if(enumB.MoveNext()) {
-					elA = enumA.Current;
-					elB = enumB.Current;
-					while(true) {
-						if(elA < elB) {
-							yield return elA;
-							if(enumA.MoveNext()) elA = enumA.Current;
-							else {//no more a's
-								yield return elB;
-								while(enumB.MoveNext()) yield return enumB.Current;
-								break;
-							}
-						} else {
-							yield return elB;
-							if(enumB.MoveNext()) elB = enumB.Current;
-							else {//no more b's!
-								yield return elA;
-								while(enumA.MoveNext()) yield return enumA.Current;
-								break;
-							}
-						}
-					}
-				} else {
-					yield return enumA.Current;
-					while(enumA.MoveNext()) yield return enumA.Current;
-				}
-			} else while(enumB.MoveNext()) yield return enumB.Current;
-		}
-
-		public static IEnumerable<int> ZipIntersect(IEnumerable<int> a, IEnumerable<int> b) {
-			var enumA = a.GetEnumerator();
-			var enumB = b.GetEnumerator();
-
-			if(!enumA.MoveNext() || !enumB.MoveNext()) yield break;
-			int elA = enumA.Current;
-			int elB = enumB.Current;
-			while(true) {
-				if(elA == elB) {
-					yield return elA;
-					while(elA == elB && enumB.MoveNext()) elB = enumB.Current;
-					if(elA == elB) yield break;
-					if(!enumA.MoveNext()) yield break;
-				} else if(elA < elB) {
-					if(!enumA.MoveNext()) yield break;
-					elA = enumA.Current;
-				} else {
-					if(!enumB.MoveNext()) yield break;
-					elB = enumB.Current;
-				}
-			}
-		}
-
-		public static IEnumerable<int> RemoveDup(IEnumerable<int> orderedList) {
-			var orderedEnum = orderedList.GetEnumerator();
-			if(!orderedEnum.MoveNext()) yield break;
-			int current = orderedEnum.Current;
-			yield return current;
-			while(orderedEnum.MoveNext()) {
-				int newVal = orderedEnum.Current;
-				if(newVal != current) {
-					current = newVal;
-					yield return current;
-				}
-			}
 		}
 	}
 }

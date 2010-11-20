@@ -4,8 +4,8 @@ namespace SongDataLib
 	public struct Suffix
 	{
 		int AbsStartPos;
-		public Suffix(int startPos) { this.AbsStartPos = startPos; }
-		public Suffix Next { get { return new Suffix { AbsStartPos = this.AbsStartPos + 1 }; } }
+		public Suffix(int startPos) { AbsStartPos = startPos; }
+		public Suffix Next { get { return new Suffix { AbsStartPos = AbsStartPos + 1 }; } }
 		//public static Suffix operator ++(Su
 		public override bool Equals(object obj) {
 			if(!(obj is Suffix)) return false;

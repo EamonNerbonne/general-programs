@@ -1,7 +1,7 @@
 ﻿
 namespace SongDataLib
 {
-	public interface ISongDatabaseSection
+	public interface ISongDataConfigSection
 	{
 		void Load(SongDataLoadDelegate handler);
 		void RescanAndSave(FileKnownFilter filter, SongDataLoadDelegate handler);

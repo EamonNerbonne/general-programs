@@ -58,5 +58,54 @@ namespace EmnExtensions.Algorithms {
 				}
 			}
 		}
+
+		public static IEnumerable<int> ZipMerge(IEnumerable<int> a, IEnumerable<int> b) {
+			var enumA = a.GetEnumerator();
+			var enumB = b.GetEnumerator();
+			int elA, elB;
+			if (enumA.MoveNext()) {
+				if (enumB.MoveNext()) {
+					elA = enumA.Current;
+					elB = enumB.Current;
+					while (true) {
+						if (elA < elB) {
+							yield return elA;
+							if (enumA.MoveNext()) elA = enumA.Current;
+							else {//no more a's
+								yield return elB;
+								while (enumB.MoveNext()) yield return enumB.Current;
+								break;
+							}
+						} else {
+							yield return elB;
+							if (enumB.MoveNext()) elB = enumB.Current;
+							else {//no more b's!
+								yield return elA;
+								while (enumA.MoveNext()) yield return enumA.Current;
+								break;
+							}
+						}
+					}
+				} else {
+					yield return enumA.Current;
+					while (enumA.MoveNext()) yield return enumA.Current;
+				}
+			} else while (enumB.MoveNext()) yield return enumB.Current;
+		}
+
+		public static IEnumerable<int> RemoveDup(IEnumerable<int> orderedList) {
+			var orderedEnum = orderedList.GetEnumerator();
+			if (!orderedEnum.MoveNext()) yield break;
+			int current = orderedEnum.Current;
+			yield return current;
+			while (orderedEnum.MoveNext()) {
+				int newVal = orderedEnum.Current;
+				if (newVal != current) {
+					current = newVal;
+					yield return current;
+				}
+			}
+		}
+
 	}
 }

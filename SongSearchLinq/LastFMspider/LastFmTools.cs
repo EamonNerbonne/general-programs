@@ -9,12 +9,12 @@ namespace LastFMspider {
 	public class LastFmTools {
 		SongSimilarityCache similarSongs;
 		readonly SongDataConfigFile configFile;
-		SongsOnDisk db;
+		SongFiles db;
 		SongDataLookups lookup;
 
 		public SongSimilarityCache SimilarSongs { get { return similarSongs ?? (similarSongs = new SongSimilarityCache(ConfigFile)); } }
 		public SongDataConfigFile ConfigFile { get { return configFile; } }
-		public SongsOnDisk SongsOnDisk { get { return db ?? (db = new SongsOnDisk(ConfigFile, null)); } }
+		public SongFiles SongsOnDisk { get { return db ?? (db = new SongFiles(ConfigFile, null)); } }
 
 		public SongDataLookups Lookup { get { return lookup ?? (lookup = new SongDataLookups(SongsOnDisk.Songs, null)); } }
 
