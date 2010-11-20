@@ -111,7 +111,7 @@ namespace PlaylistFixer
 
 						decentMatch = best.SongData;
 					} else {
-						SongData[] exactFilenameMatch = tools.DB.Songs.Where(sd => Path.GetFileName(sd.SongUri.ToString()) == Path.GetFileName(songMin.SongUri.ToString())).ToArray();
+						SongData[] exactFilenameMatch = tools.SongsOnDisk.Songs.Where(sd => Path.GetFileName(sd.SongUri.ToString()) == Path.GetFileName(songMin.SongUri.ToString())).ToArray();
 						if (exactFilenameMatch.Length == 1)
 							decentMatch = exactFilenameMatch[0];
 					}
@@ -170,7 +170,7 @@ namespace PlaylistFixer
 		static SongMatch FindBestMatch2(LastFmTools tools, PartialSongData songToFind) {
 			string fileName = NormalizedFileName(songToFind.SongUri.ToString());
 			string basicLabel = Canonicalize.Basic(songToFind.HumanLabel);
-			var q = from songdataOpt in tools.DB.Songs
+			var q = from songdataOpt in tools.SongsOnDisk.Songs
 					let songmatch = SongMatch.Compare(songToFind, fileName, basicLabel, songdataOpt)
 					where songmatch.HasValue
 					select songmatch.Value;

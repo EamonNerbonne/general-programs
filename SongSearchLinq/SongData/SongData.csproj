@@ -78,7 +78,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RemoteSongDatabaseSection.cs" />
     <Compile Include="SearchableSongDB.cs" />
-    <Compile Include="SimpleSongDB.cs" />
+    <Compile Include="SongsOnDisk.cs" />
     <Compile Include="SongData.cs" />
     <Compile Include="SongDatabaseConfigException.cs" />
     <Compile Include="SongDatabaseConfigFile.cs" />

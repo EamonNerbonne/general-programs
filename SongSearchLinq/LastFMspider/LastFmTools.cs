@@ -9,14 +9,14 @@ namespace LastFMspider {
 	public class LastFmTools {
 		SongSimilarityCache similarSongs;
 		readonly SongDatabaseConfigFile configFile;
-		SimpleSongDB db;
+		SongsOnDisk db;
 		SongDataLookups lookup;
 
 		public SongSimilarityCache SimilarSongs { get { return similarSongs ?? (similarSongs = new SongSimilarityCache(ConfigFile)); } }
 		public SongDatabaseConfigFile ConfigFile { get { return configFile; } }
-		public SimpleSongDB DB { get { return db ?? (db = new SimpleSongDB(ConfigFile, null)); } }
+		public SongsOnDisk SongsOnDisk { get { return db ?? (db = new SongsOnDisk(ConfigFile, null)); } }
 
-		public SongDataLookups Lookup { get { return lookup ?? (lookup = new SongDataLookups(DB.Songs, null)); } }
+		public SongDataLookups Lookup { get { return lookup ?? (lookup = new SongDataLookups(SongsOnDisk.Songs, null)); } }
 
 		public LastFmTools(SongDatabaseConfigFile configFile = null) {
 			this.configFile = configFile ?? new SongDatabaseConfigFile(true);

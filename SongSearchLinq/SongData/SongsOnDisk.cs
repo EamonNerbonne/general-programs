@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 
 namespace SongDataLib {
-	public class SimpleSongDB {
+	public class SongsOnDisk {
 		public DirectoryInfo DatabaseDirectory { get { return configFile.dataDirectory; } }
 		public int InvalidDataCount { get { return ignoreSongCount; } }
 		public SongData[] Songs { get { return songs; } }
@@ -18,7 +18,7 @@ namespace SongDataLib {
 		/// </summary>
 		/// <param name="configFile">the config file to load.</param>
 		/// <param name="filter">The filter to apply, if null, select all songs.</param>
-		public SimpleSongDB(SongDatabaseConfigFile configFile, Func<SongData, bool> filter) {
+		public SongsOnDisk(SongDatabaseConfigFile configFile, Func<SongData, bool> filter) {
 			this.configFile = configFile;
 			List<SongData> songsList = new List<SongData>();
 			configFile.Load((newsong, estimatedCompletion) => {

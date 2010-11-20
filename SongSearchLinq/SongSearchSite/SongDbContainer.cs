@@ -1,17 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Web;
-using System.Text;
-using SongDataLib;
-using SuffixTreeLib;
-using EmnExtensions.Text;
 using System.Globalization;
 using System.IO;
+using System.Linq;
+using System.Text;
 using System.Threading;
-using System.Diagnostics;
-using LastFMspider;
 using System.Threading.Tasks;
+using System.Web;
+using EmnExtensions.Text;
+using LastFMspider;
+using SongDataLib;
+using SuffixTreeLib;
 
 namespace SongSearchSite {
 
@@ -32,7 +31,7 @@ namespace SongSearchSite {
 					case '!':
 						//we filter out %*&: to avoid triggering IIS7 "bad request bug" bug: http://support.microsoft.com/default.aspx?scid=kb;EN-US;826437
 						sb.Append('!');
-						sb.Append(Convert.ToString((int)c, 16).PadLeft(2, '0'));
+						sb.Append(Convert.ToString(c, 16).PadLeft(2, '0'));
 						break;
 					default:
 						if (Canonicalize.FastGetUnicodeCategory(c) == UnicodeCategory.Control)
@@ -84,7 +83,7 @@ namespace SongSearchSite {
 		FuzzySongSearcher fuzzySearcher;
 
 		Dictionary<string, SongData> localSongs = new Dictionary<string, SongData>();
-		object syncroot = new object();
+		readonly object syncroot = new object();
 		FileSystemWatcher fsWatcher;
 		public void Dispose() {
 			if (fsWatcher != null)
@@ -101,7 +100,7 @@ namespace SongSearchSite {
 				SongDatabaseConfigFile dcf = new SongDatabaseConfigFile(true);
 				tools = new LastFmTools(dcf);
 
-				var allSongs = tools.DB.Songs;
+				var allSongs = tools.SongsOnDisk.Songs;
 				Array.Sort(allSongs,(a, b) => b.popularity.TitlePopularity.CompareTo(a.popularity.TitlePopularity));
 				Parallel.Invoke(
 					() => { fuzzySearcher = new FuzzySongSearcher(allSongs); },
@@ -154,8 +153,7 @@ namespace SongSearchSite {
 		/// <summary>
 		/// Determines whether a given path maps to an indexed, local song.  If it doesn't, it returns null.  If it does, it returns the meta data known about the song, including the song's "real" path.
 		/// </summary>
-		/// <param name="path">Application relative request path</param>
-		/// <returns></returns>
+		/// <param name="reqPath">Application relative request path</param>
 		public static ISongData GetSongFromFullUri(string reqPath) {
 			if (!reqPath.StartsWith(songsPrefix))
 				throw new Exception("Whoops, illegal request routing...  this should not be routed to this class!");

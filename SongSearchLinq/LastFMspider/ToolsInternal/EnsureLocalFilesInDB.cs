@@ -13,7 +13,7 @@ namespace LastFMspider
 
         public static void EnsureLocalFilesInDB(LastFmTools tools)
         {
-            var DB = tools.DB;
+            var DB = tools.SongsOnDisk;
             var SimilarSongs = tools.SimilarSongs;
             var Lookup = tools.Lookup;
 

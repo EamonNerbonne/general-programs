@@ -13,7 +13,7 @@ namespace LastFMspider {
 	public class FuzzySongSearcher {
 		readonly int[][] songsByTrigram;
 		readonly int[] trigramCountBySong;
-		SongData[] songs;
+		readonly SongData[] songs;
 		public FuzzySongSearcher(SongData[] songs) {
 			using (new DTimer("Constructing FuzzySongSearcher")) {
 				this.songs = songs;
