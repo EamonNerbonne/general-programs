@@ -5,10 +5,10 @@ namespace LastFMspider.LastFMSQLiteBackend {
 	public class ArtistsWithoutTopTracksList : AbstractLfmCacheQuery {
 		public ArtistsWithoutTopTracksList(LastFMSQLiteCache lfm)
 			: base(lfm) {
-			limitRowCount = DefineParameter("@limitRowCount");
-			maxDate = DefineParameter("@maxDate");
+			limitRowCountParam = DefineParameter("@limitRowCount");
+			maxDateParam = DefineParameter("@maxDate");
 		}
-		DbParameter limitRowCount, maxDate;
+		readonly DbParameter limitRowCountParam, maxDateParam;
 		protected override string CommandText {
 			get {
 				return @"
@@ -27,8 +27,8 @@ LIMIT @limitRowCount;
 		public CachedArtist[] Execute(int limitRowCount, DateTime maxDate) {
 			List<CachedArtist> artists = new List<CachedArtist>();
 			lock (SyncRoot) {
-				this.limitRowCount.Value = limitRowCount;
-				this.maxDate.Value = maxDate.ToUniversalTime().Ticks;
+				limitRowCountParam.Value = limitRowCount;
+				maxDateParam.Value = maxDate.ToUniversalTime().Ticks;
 
 				using (var reader = CommandObj.ExecuteReader()) {
 					while (artists.Count < limitRowCount && (reader.Read() || (reader.NextResult() && reader.Read())))

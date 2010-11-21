@@ -1,15 +1,14 @@
-﻿
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Data.Common;
 using System;
 namespace LastFMspider.LastFMSQLiteBackend {
 	public class TracksWithoutSimilarityList : AbstractLfmCacheQuery {
 		public TracksWithoutSimilarityList(LastFMSQLiteCache lfm)
 			: base(lfm) {
-			limitRowCount = DefineParameter("@limitRowCount");
-			maxDate = DefineParameter("@maxDate");
+			limitRowCountParam = DefineParameter("@limitRowCount");
+			maxDateParam = DefineParameter("@maxDate");
 		}
-		DbParameter limitRowCount,maxDate;
+		readonly DbParameter limitRowCountParam,maxDateParam;
 		protected override string CommandText {
 			get {
 				return @"
@@ -25,9 +24,8 @@ LIMIT @limitRowCount
 		public CachedTrack[] Execute(int limitRowCount, DateTime maxDate) {
 			List<CachedTrack> tracks = new List<CachedTrack>();
 			lock (SyncRoot) {
-
-				this.limitRowCount.Value = limitRowCount;
-				this.maxDate.Value = maxDate.ToUniversalTime().Ticks;
+				limitRowCountParam.Value = limitRowCount;
+				maxDateParam.Value = maxDate.ToUniversalTime().Ticks;
 				using (var reader = CommandObj.ExecuteReader()) {//no transaction needed for a single select!
 					while (reader.Read())
 						tracks.Add(new CachedTrack {

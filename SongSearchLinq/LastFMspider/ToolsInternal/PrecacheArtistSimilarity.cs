@@ -3,19 +3,18 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using EmnExtensions.Algorithms;
-using LastFMspider.LastFMSQLiteBackend;
 using LastFMspider.OldApi;
 
 namespace LastFMspider {
 	internal static partial class ToolsInternal {
 
-		public static int PrecacheArtistSimilarity(LastFmTools tools) {
-			var SimilarSongs = tools.SimilarSongs;
+		public static int PrecacheArtistSimilarity(SongTools tools) {
+			var LastFmCache = tools.LastFmCache;
 			DateTime maxDate = DateTime.UtcNow - TimeSpan.FromDays(365.0);
 
 			int artistsCached = 0;
 			Console.WriteLine("Finding artists without similarities");
-			var artistsToGo = SimilarSongs.backingDB.ArtistsWithoutSimilarityList.Execute(1000000, maxDate);
+			var artistsToGo = LastFmCache.ArtistsWithoutSimilarityList.Execute(1000000, maxDate);
 #if !DEBUG
 			artistsToGo.Shuffle();
 #endif
@@ -25,7 +24,7 @@ namespace LastFMspider {
 				StringBuilder msg = new StringBuilder();
 				try {
 					msg.AppendFormat("SimTo:{0,-30}", artist.ArtistName.Substring(0, Math.Min(artist.ArtistName.Length, 30)));
-					ArtistSimilarityListInfo info = SimilarSongs.backingDB.LookupArtistSimilarityListAge.Execute(artist.ArtistName);
+					ArtistSimilarityListInfo info = LastFmCache.LookupArtistSimilarityListAge.Execute(artist.ArtistName);
 					if ((info.LookupTimestamp.HasValue && info.LookupTimestamp.Value > maxDate) || info.ArtistInfo.IsAlternateOf.HasValue) {
 						msg.AppendFormat("done.");
 					} else {
@@ -35,13 +34,13 @@ namespace LastFMspider {
 							msg.AppendFormat("{1}: {0}", newEntry.Similar[0].Artist.Substring(0, Math.Min(newEntry.Similar[0].Artist.Length, 30)), newEntry.Similar[0].Rating);
 
 						if (artist.ArtistName.ToLatinLowercase() != newEntry.Artist.ToLatinLowercase())
-							SimilarSongs.backingDB.SetArtistAlternate.Execute(artist.ArtistName, newEntry.Artist);
-						SimilarSongs.backingDB.InsertArtistSimilarityList.Execute(newEntry);
+							LastFmCache.SetArtistAlternate.Execute(artist.ArtistName, newEntry.Artist);
+						LastFmCache.InsertArtistSimilarityList.Execute(newEntry);
 						lock (artistsToGo) artistsCached++;
 					}
 				} catch (Exception e) {
 					try {
-						SimilarSongs.backingDB.InsertArtistSimilarityList.Execute(ArtistSimilarityList.CreateErrorList(artist.ArtistName, 1));
+						LastFmCache.InsertArtistSimilarityList.Execute(ArtistSimilarityList.CreateErrorList(artist.ArtistName, 1));
 						lock (artistsToGo) artistsCached++;
 					} catch (Exception ee) { Console.WriteLine(ee.ToString()); }
 					msg.AppendFormat("\n{0}: {1}\n", e.GetType().Name, e.Message);

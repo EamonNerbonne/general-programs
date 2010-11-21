@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Data.Common;
+﻿using System.Data.Common;
 
 namespace LastFMspider.LastFMSQLiteBackend {
     public class UpdateTrackCasing: AbstractLfmCacheQuery {
@@ -25,9 +21,7 @@ SELECT TrackID FROM Track  where ArtistID = @artistId AND LowercaseTitle=@lowerT
             }
         }
         
-
-        DbParameter lowerTitle,  fullTitle, artistId;
-
+        readonly DbParameter lowerTitle,  fullTitle, artistId;
 
         public TrackId Execute(SongRef songRef) {
             lock (SyncRoot) {

@@ -1,17 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Data;
 using System.Data.Common;
-using System.Data.SQLite;
-using System.Data;
 
 namespace LastFMspider.LastFMSQLiteBackend
 {
     public abstract class AbstractLfmCacheQuery : AbstractLfmCacheOperation
     {
         readonly protected DbCommand CommandObj;
-        public AbstractLfmCacheQuery(LastFMSQLiteCache lfmCache)
+        protected AbstractLfmCacheQuery(LastFMSQLiteCache lfmCache)
             : base(lfmCache) {
             CommandObj = Connection.CreateCommand();
 			

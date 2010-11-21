@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Data.Common;
+﻿using System.Data.Common;
 
 namespace LastFMspider.LastFMSQLiteBackend {
 	public class LookupArtist : AbstractLfmCacheQuery {
@@ -17,7 +13,7 @@ SELECT FullArtist FROM [Artist] WHERE ArtistID = @artistID
 ";
 			}
 		}
-		DbParameter artistID;
+		readonly DbParameter artistID;
 
 		public string Execute(ArtistId ArtistID) {
 			lock (SyncRoot) {

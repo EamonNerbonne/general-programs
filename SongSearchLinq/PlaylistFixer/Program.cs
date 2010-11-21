@@ -23,7 +23,7 @@ namespace PlaylistFixer
 					//.Where(fi => !Path.GetFileNameWithoutExtension(fi).EndsWith("-fixed"))
 					.ToArray();
 			}
-			LastFmTools tools = new LastFmTools(new SongDataConfigFile(false));
+			SongTools tools = new SongTools(new SongDataConfigFile(false));
 			int nulls2 = 0, fine = 0;
 			//Parallel.ForEach(args, m3ufilename => {
 			List<SongMatch>
@@ -60,7 +60,7 @@ namespace PlaylistFixer
 			Console.ReadKey();
 		}
 
-		static void ProcessM3U(LastFmTools tools, string m3ufilename, Action nomatch, Action<SongMatch> toobad, Action<SongMatch> iffy,Action matchfound) {
+		static void ProcessM3U(SongTools tools, string m3ufilename, Action nomatch, Action<SongMatch> toobad, Action<SongMatch> iffy,Action matchfound) {
 			Console.WriteLine("\nprocessing: {0}", m3ufilename);
 			FileInfo fi = new FileInfo(m3ufilename);
 			if (!fi.Exists) {
@@ -158,7 +158,7 @@ namespace PlaylistFixer
 			}
 		}
 
-		static SongMatch FindBestMatch(LastFmTools tools, PartialSongFileData songToFind) {
+		static SongMatch FindBestMatch(SongTools tools, PartialSongFileData songToFind) {
 			var q = from songrefOpt in PossibleSongRefs(songToFind.HumanLabel)
 					from songdataOpt in tools.FindByName[songrefOpt]
 					let lengthDiff = Math.Abs(songToFind.Length - songdataOpt.Length)
@@ -166,7 +166,7 @@ namespace PlaylistFixer
 					select new SongMatch { SongData = songdataOpt, Orig = songToFind, Cost = lengthDiff * 0.5 + filenameDiff * 0.2 };
 			return q.Aggregate(new SongMatch { SongData = (SongFileData)null, Cost = int.MaxValue }, (a, b) => a.Cost < b.Cost ? a : b);
 		}
-		static SongMatch FindBestMatch2(LastFmTools tools, PartialSongFileData songToFind) {
+		static SongMatch FindBestMatch2(SongTools tools, PartialSongFileData songToFind) {
 			string fileName = NormalizedFileName(songToFind.SongUri.ToString());
 			string basicLabel = Canonicalize.Basic(songToFind.HumanLabel);
 			var q = from songdataOpt in tools.SongsOnDisk.Songs

@@ -15,10 +15,10 @@ namespace LastFmPlaylistSuggestions {
 			//args.PrintAllDebug();
 			//Console.ReadLine();
 			//Console.WriteLine(CharMap.MapSize);
-			RunNew(new LastFmTools(new SongDataConfigFile(false)), args);
+			RunNew(new SongTools(new SongDataConfigFile(false)), args);
 			//Console.ReadKey();
 		}
-		static void RunNew(LastFmTools tools, string[] args) {
+		static void RunNew(SongTools tools, string[] args) {
 			var dir = tools.SongsOnDisk.DatabaseDirectory.CreateSubdirectory("inputlists");
 			var m3us = args.Length == 0 ? dir.GetFiles("*.m3u?") : args.Select(s => new FileInfo(s)).Where(f => f.Exists);
 			DirectoryInfo m3uDir = args.Length == 0 ? tools.SongsOnDisk.DatabaseDirectory.CreateSubdirectory("similarlists") : new DirectoryInfo(Environment.GetFolderPath(Environment.SpecialFolder.Desktop));
@@ -36,7 +36,7 @@ namespace LastFmPlaylistSuggestions {
 			}
 		}
 
-		static void FindPlaylistSongLocally(LastFmTools tools, ISongFileData playlistEntry, Action<SongFileData> ifFound, Action<SongRef> ifNotFound, Action<ISongFileData> cannotParse) {
+		static void FindPlaylistSongLocally(SongTools tools, ISongFileData playlistEntry, Action<SongFileData> ifFound, Action<SongRef> ifNotFound, Action<ISongFileData> cannotParse) {
 			SongFileData bestMatch = null;
 			int artistTitleSplitIndex = playlistEntry.HumanLabel.IndexOf(" - ");
 			if (tools.FindByPath.ContainsKey(playlistEntry.SongUri.ToString()))
@@ -67,7 +67,7 @@ namespace LastFmPlaylistSuggestions {
 			}
 		}
 
-		static void ProcessM3U(LastFmTools tools, Func<SongRef, SongMatch> fuzzySearch, FileInfo m3ufile, DirectoryInfo m3uDir) {
+		static void ProcessM3U(SongTools tools, Func<SongRef, SongMatch> fuzzySearch, FileInfo m3ufile, DirectoryInfo m3uDir) {
 			Console.WriteLine("Trying " + m3ufile.FullName);
 			IEnumerable<ISongFileData> playlist = LoadExtM3U(m3ufile);
 			var known = new List<SongFileData>();
@@ -93,12 +93,12 @@ namespace LastFmPlaylistSuggestions {
 			using (var stream = outputsimtracks.Open(FileMode.Create))
 			using (var writer = new StreamWriter(stream, Encoding.UTF8)) {
 				foreach (var track in res.similarList) {
-					SongRef songref = tools.SimilarSongs.backingDB.LookupTrack.Execute(track.trackid);
+					SongRef songref = tools.LastFmCache.LookupTrack.Execute(track.trackid);
 					writer.WriteLine("{0} {2} {1}    [{3}]",
 							track.cost,
 							songref,
 							tools.FindByName[songref].Any() ? "" : "***",
-							string.Join(";  ", track.basedOn.Select(id => tools.SimilarSongs.backingDB.LookupTrack.Execute(id).ToString()).ToArray())
+							string.Join(";  ", track.basedOn.Select(id => tools.LastFmCache.LookupTrack.Execute(id).ToString()).ToArray())
 						);
 				}
 			}

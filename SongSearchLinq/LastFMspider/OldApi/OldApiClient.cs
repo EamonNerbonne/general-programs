@@ -65,7 +65,7 @@ namespace LastFMspider.OldApi {
 		}
 
 
-		static XmlReaderSettings xmlSettings = new XmlReaderSettings { CheckCharacters = false, };
+		static readonly XmlReaderSettings xmlSettings = new XmlReaderSettings { CheckCharacters = false, };
 		static string ConvertControlChars(string xmlString) {//unfortunately necessary for the last.fm old-style webservices, since those contain invalid chars.
 			StringBuilder newStr = new StringBuilder();
 			foreach (char c in xmlString) {

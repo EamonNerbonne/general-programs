@@ -261,6 +261,7 @@ body
     background: rgb(255,200,175);
     box-shadow: 0 0 1.0em rgb(255, 200, 175);
     border-radius: 1em;
+    content: attr(data-errtrace);
 }
 
 .waiting:before

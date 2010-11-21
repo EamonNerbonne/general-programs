@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Data.Common;
+﻿using System.Data.Common;
 
 namespace LastFMspider.LastFMSQLiteBackend {
 	public class ArtistSetCurrentTopTracks : AbstractLfmCacheQuery {
@@ -21,9 +17,7 @@ WHERE ArtistID=(select ArtistID from TopTracksList where ListID = @listId)
 			}
 		}
 
-
-		DbParameter listIdQueryParam;
-
+		readonly DbParameter listIdQueryParam;
 
 		public void Execute(TopTracksListId listIdArg) {
 			lock (SyncRoot) {
@@ -31,6 +25,5 @@ WHERE ArtistID=(select ArtistID from TopTracksList where ListID = @listId)
 				CommandObj.ExecuteNonQuery();
 			}
 		}
-
 	}
 }

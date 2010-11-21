@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Data.Common;
+﻿using System.Data.Common;
 
 namespace LastFMspider.LastFMSQLiteBackend
 {
@@ -26,9 +22,7 @@ SELECT ArtistID FROM Artist where LowercaseArtist=@lowerArtist
             }
         }
 
-
-        DbParameter  lowerArtist,  fullArtist;
-
+        readonly DbParameter  lowerArtist,  fullArtist;
 
         public ArtistId Execute(string artistName) {
             lock (SyncRoot) {

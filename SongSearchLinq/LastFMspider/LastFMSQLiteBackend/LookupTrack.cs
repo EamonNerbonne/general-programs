@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Data.Common;
+﻿using System.Data.Common;
 
 namespace LastFMspider.LastFMSQLiteBackend {
 	public class LookupTrack : AbstractLfmCacheQuery {
@@ -17,7 +13,7 @@ SELECT FullArtist, FullTitle FROM [Track] NATURAL join [Artist] WHERE TrackID = 
 ";
 			}
 		}
-		DbParameter trackID;
+		readonly DbParameter trackID;
 
 		public SongRef Execute(TrackId TrackID) {
 			lock (SyncRoot) {

@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Data.Common;
+﻿using System.Data.Common;
 
 namespace LastFMspider.LastFMSQLiteBackend {
 	public class LookupArtistSimilarityListInfo : AbstractLfmCacheQuery {
@@ -20,35 +16,29 @@ AND  L.ListID = A.CurrentSimilarArtistList
 ";
 			}
 		}
-		DbParameter artistId;
+		readonly DbParameter artistId;
 
 		public ArtistSimilarityListInfo Execute(string artist) {
-			lock (SyncRoot) {
-				//TODO:IsAlternateOf
-				using (var trans = Connection.BeginTransaction()) {
-					ArtistSimilarityListInfo retval;
-					var artistInfo = lfmCache.LookupArtistInfo.Execute(artist);
-					if (artistInfo.IsAlternateOf.HasValue)
-						retval = ArtistSimilarityListInfo.CreateUnknown(artistInfo);
-					else {
-						artistId.Value = artistInfo.ArtistId.Id;
-						using (var reader = CommandObj.ExecuteReader()) {
-							//we expect exactly one hit - or none
-							if (reader.Read())
-								retval= new ArtistSimilarityListInfo(
-									listID: new SimilarArtistsListId((long)reader[0]),
-									artistInfo: artistInfo,
-									lookupTimestamp: reader[2].CastDbObjectAsDateTime().Value,
-									statusCode: (int?)reader[3].CastDbObjectAs<long?>(),
-									similarArtists: new SimilarityList<ArtistId, ArtistId.Factory>(reader[4].CastDbObjectAs<byte[]>()) );
-							else
-								retval = ArtistSimilarityListInfo.CreateUnknown(artistInfo);
-						}
+			return DoInLockedTransaction(() => {
+				var artistInfo = lfmCache.LookupArtistInfo.Execute(artist);
+				if (artistInfo.IsAlternateOf.HasValue)
+					return ArtistSimilarityListInfo.CreateUnknown(artistInfo);
+				else {
+					artistId.Value = artistInfo.ArtistId.Id;
+					using (var reader = CommandObj.ExecuteReader()) {
+						//we expect exactly one hit - or none
+						if (reader.Read())
+							return new ArtistSimilarityListInfo(
+								listID: new SimilarArtistsListId((long)reader[0]),
+								artistInfo: artistInfo,
+								lookupTimestamp: reader[2].CastDbObjectAsDateTime().Value,
+								statusCode: (int?)reader[3].CastDbObjectAs<long?>(),
+								similarArtists: new SimilarityList<ArtistId, ArtistId.Factory>(reader[4].CastDbObjectAs<byte[]>()));
+						else
+							return ArtistSimilarityListInfo.CreateUnknown(artistInfo);
 					}
-					trans.Commit();
-					return retval;
 				}
-			}
+			});
 		}
 	}
 }

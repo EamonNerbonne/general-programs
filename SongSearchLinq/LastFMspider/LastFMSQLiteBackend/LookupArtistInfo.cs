@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Data.Common;
+﻿using System.Data.Common;
 
 namespace LastFMspider.LastFMSQLiteBackend {
 	public struct ArtistInfo {
@@ -22,12 +18,12 @@ SELECT ArtistID, IsAlternateOf FROM [Artist] WHERE LowercaseArtist = @lowerArtis
 ";
 			}
 		}
-		DbParameter lowerArtist;
+		readonly DbParameter lowerArtist;
 
 		public ArtistInfo Execute(string artist) {
 			lock (SyncRoot) {
 
-				this.lowerArtist.Value = artist.ToLatinLowercase();
+				lowerArtist.Value = artist.ToLatinLowercase();
 				var res = CommandObj.ExecuteGetTopRow();
 				return res == null
 					? new ArtistInfo { Artist = artist }

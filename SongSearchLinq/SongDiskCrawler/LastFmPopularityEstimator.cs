@@ -11,8 +11,8 @@ using EmnExtensions.Text;
 namespace SongDiskCrawler {
 	class LastFmPopularityEstimator : IPopularityEstimator {
 		Dictionary<string, ArtistTopTracksList> toptracksCache = new Dictionary<string, ArtistTopTracksList>();
-		LastFmTools tools;
-		public LastFmPopularityEstimator(LastFmTools tools) { this.tools = tools; }
+		SongTools tools;
+		public LastFmPopularityEstimator(SongTools tools) { this.tools = tools; }
 		public Popularity EstimatePopularity(string artist, string title) {
 			if (artist == null || title == null) return default(Popularity);
 			var song = SongRef.Create(artist, title);

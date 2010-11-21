@@ -231,6 +231,7 @@ $(document).ready(function ($) {
                 else updateSimilarDisplay(data);
                 leftColSel.attr("data-lookups", data.lookups);
                 leftColSel.attr("data-milliseconds", data.milliseconds);
+
                 if (simStateSet.current == "done") return;
                 simStateSet.current = "done";
                 leftColSel.removeClass("proc-error");

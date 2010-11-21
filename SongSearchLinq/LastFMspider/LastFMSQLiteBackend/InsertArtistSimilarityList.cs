@@ -1,9 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Data.Common;
 using System.Data;
+using System.Data.Common;
+using System.Linq;
 
 namespace LastFMspider.LastFMSQLiteBackend {
 
@@ -15,7 +13,7 @@ namespace LastFMspider.LastFMSQLiteBackend {
 			statusCode = DefineParameter("@statusCode");
 			listBlob = DefineParameter("@listBlob", DbType.Binary);
 		}
-		DbParameter artistID, lookupTimestamp, statusCode, listBlob;
+		readonly DbParameter artistID, lookupTimestamp, statusCode, listBlob;
 		protected override string CommandText {
 			get {
 				return @"
@@ -32,30 +30,24 @@ LIMIT 1
 		}
 
 		public ArtistSimilarityListInfo Execute(ArtistSimilarityList simList) {
-			lock (SyncRoot) {
-				using (var trans = Connection.BeginTransaction()) {
-					ArtistId baseId = lfmCache.InsertArtist.Execute(simList.Artist);
-					var listImpl = new SimilarityList<ArtistId, ArtistId.Factory>(
-							from simArtist in simList.Similar
-							select new SimilarityTo<ArtistId>(lfmCache.UpdateArtistCasing.Execute(simArtist.Artist), (float)simArtist.Rating)
-						);
+			return DoInLockedTransaction(() => {
+				ArtistId baseId = lfmCache.InsertArtist.Execute(simList.Artist);
+				var listImpl = new SimilarityList<ArtistId, ArtistId.Factory>(
+						from simArtist in simList.Similar
+						select new SimilarityTo<ArtistId>(lfmCache.UpdateArtistCasing.Execute(simArtist.Artist), (float)simArtist.Rating)
+					);
 
-					artistID.Value = baseId.Id;
-					lookupTimestamp.Value = simList.LookupTimestamp.ToUniversalTime().Ticks;
-					statusCode.Value = simList.StatusCode;
-					listBlob.Value = listImpl.encodedSims;
-					SimilarArtistsListId listId = new SimilarArtistsListId(CommandObj.ExecuteScalar().CastDbObjectAs<long>());
+				artistID.Value = baseId.Id;
+				lookupTimestamp.Value = simList.LookupTimestamp.ToUniversalTime().Ticks;
+				statusCode.Value = simList.StatusCode;
+				listBlob.Value = listImpl.encodedSims;
+				SimilarArtistsListId listId = new SimilarArtistsListId(CommandObj.ExecuteScalar().CastDbObjectAs<long>());
 
-					if (simList.LookupTimestamp.ToUniversalTime() > DateTime.UtcNow - TimeSpan.FromDays(1.0))
-						lfmCache.ArtistSetCurrentSimList.Execute(listId); //presume if this is recently downloaded, then it's the most current.
+				if (simList.LookupTimestamp.ToUniversalTime() > DateTime.UtcNow - TimeSpan.FromDays(1.0))
+					lfmCache.ArtistSetCurrentSimList.Execute(listId); //presume if this is recently downloaded, then it's the most current.
 
-
-					trans.Commit();
-					return new ArtistSimilarityListInfo(listId, new ArtistInfo { ArtistId = baseId, Artist = simList.Artist }, simList.LookupTimestamp.ToUniversalTime(), simList.StatusCode, listImpl);
-				}
-			}
+				return new ArtistSimilarityListInfo(listId, new ArtistInfo { ArtistId = baseId, Artist = simList.Artist }, simList.LookupTimestamp.ToUniversalTime(), simList.StatusCode, listImpl);
+			});
 		}
-
-
 	}
 }

@@ -105,6 +105,8 @@
     <Compile Include="ArbitraryTrackMapper.cs" />
     <Compile Include="ArtistSimilarityList.cs" />
     <Compile Include="ArtistTopTracksListInfo.cs" />
+    <Compile Include="BlockingCollection.cs" />
+    <Compile Include="DbPool.cs" />
     <Compile Include="FindSimilarPlaylist\FindSimilarPlaylist.cs" />
     <Compile Include="FindSimilarPlaylist\SongWithCost.cs" />
     <Compile Include="FindSimilarPlaylist\SongWithCostCache.cs" />
@@ -146,7 +148,7 @@
     <Compile Include="LastFMSQLiteBackend\UpdateArtistCasing.cs" />
     <Compile Include="LastFMSQLiteBackend\UpdateTrackCasing.cs" />
     <Compile Include="LastFMSQLiteCache.cs" />
-    <Compile Include="LastFmTools.cs" />
+    <Compile Include="SongTools.cs" />
     <Compile Include="LfmApi\ApiClient.cs" />
     <Compile Include="LfmApi\LfmArtistRef.cs" />
     <Compile Include="LfmApi\TrackGetInfo.cs" />
@@ -166,11 +168,14 @@
     <Compile Include="ReachList.cs" />
     <Compile Include="SimilarityList.cs" />
     <Compile Include="SimilarTrack.cs" />
-    <Compile Include="SongDataLookups.cs" />
     <Compile Include="SongRef.cs" />
     <Compile Include="SongSimilarityCache.cs" />
     <Compile Include="SongSimilarityList.cs" />
     <Compile Include="TagRef.cs" />
+    <Compile Include="ToolsInternal\EnsureCurrent.cs" />
+    <Compile Include="ToolsInternal\LookupSimilarArtists.cs" />
+    <Compile Include="ToolsInternal\LookupSimilarTracks.cs" />
+    <Compile Include="ToolsInternal\LookupTopTracks.cs" />
     <Compile Include="ToolsInternal\PrecacheLocalFiles.cs" />
     <Compile Include="ToolsInternal\EnsureLocalFilesInDB.cs" />
     <Compile Include="ToolsInternal\PrecacheArtistSimilarity.cs" />

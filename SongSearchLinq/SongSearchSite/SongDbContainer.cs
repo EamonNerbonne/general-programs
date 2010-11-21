@@ -79,7 +79,7 @@ namespace SongSearchSite {
 			}
 		}
 		SearchableSongFiles searchEngine;
-		LastFmTools tools;
+		SongTools tools;
 		FuzzySongSearcher fuzzySearcher;
 
 		Dictionary<string, SongFileData> localSongs = new Dictionary<string, SongFileData>();
@@ -98,7 +98,7 @@ namespace SongSearchSite {
 					return;
 				isFresh = true;
 				SongDataConfigFile dcf = new SongDataConfigFile(true);
-				tools = new LastFmTools(dcf);
+				tools = new SongTools(dcf);
 
 				var allSongs = tools.SongsOnDisk.Songs;
 				Array.Sort(allSongs,(a, b) => b.popularity.TitlePopularity.CompareTo(a.popularity.TitlePopularity));
@@ -135,7 +135,7 @@ namespace SongSearchSite {
 		private SongDbContainer() { Init(); }
 		public static SearchableSongFiles SearchableSongDB { get { var sdc = Singleton; lock (sdc.syncroot) return sdc.searchEngine; } }
 		public static FuzzySongSearcher FuzzySongSearcher { get { var sdc = Singleton; lock (sdc.syncroot) return sdc.fuzzySearcher; } }
-		public static LastFmTools LastFmTools { get { var sdc = Singleton; lock (sdc.syncroot) return sdc.tools; } }
+		public static SongTools LastFmTools { get { var sdc = Singleton; lock (sdc.syncroot) return sdc.tools; } }
 
 		/// <summary>
 		/// Determines whether a given path maps to an indexed, local song.  If it doesn't, it returns null.  If it does, it returns the meta data known about the song, including the song's "real" path.

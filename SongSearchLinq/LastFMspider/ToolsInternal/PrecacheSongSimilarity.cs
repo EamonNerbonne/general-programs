@@ -10,13 +10,13 @@ namespace LastFMspider
 {
     internal static partial class ToolsInternal
     {
-        public static int PrecacheSongSimilarity(LastFmTools tools) {
-            var SimilarSongs= tools.SimilarSongs;
+        public static int PrecacheSongSimilarity(SongTools tools) {
+			var LastFmCache = tools.LastFmCache;
             int songsCached = 0;
 			DateTime maxDate = DateTime.UtcNow - TimeSpan.FromDays(365.0);
 
             Console.WriteLine("Finding songs without similarities");
-            var tracksToGo = SimilarSongs.backingDB.TracksWithoutSimilarityList.Execute(300000,maxDate);
+            var tracksToGo = LastFmCache.TracksWithoutSimilarityList.Execute(300000,maxDate);
 #if !DEBUG
             tracksToGo.Shuffle();
 #endif
@@ -27,7 +27,7 @@ namespace LastFMspider
                 try {
                     string trackStr = track.SongRef.ToString();
                     msg.AppendFormat("SimTo:{0,-30}", trackStr.Substring(0, Math.Min(trackStr.Length, 30)));
-                    TrackSimilarityListInfo info = SimilarSongs.backingDB.LookupSimilarityListInfo.Execute(track.SongRef);
+                    TrackSimilarityListInfo info = LastFmCache.LookupSimilarityListInfo.Execute(track.SongRef);
 					if (info.LookupTimestamp.HasValue && info.LookupTimestamp.Value > maxDate) {
                         msg.AppendFormat("done.");
                     } else {
@@ -36,13 +36,13 @@ namespace LastFMspider
                         if (newEntry.similartracks.Length > 0)
                             msg.AppendFormat("{1}: {0}", newEntry.similartracks[0].similarsong.ToString().Substring(0, Math.Min(newEntry.similartracks[0].similarsong.ToString().Length, 30)), newEntry.similartracks[0].similarity);
 
-                        SimilarSongs.backingDB.InsertSimilarityList.Execute(newEntry);
+                        LastFmCache.InsertSimilarityList.Execute(newEntry);
                         lock (tracksToGo)
                             songsCached++;
                     }
                 } catch (Exception e) {
                     try {
-                        SimilarSongs.backingDB.InsertSimilarityList.Execute(SongSimilarityList.CreateErrorList(track.SongRef, 1));//unknown error => code 1
+                        LastFmCache.InsertSimilarityList.Execute(SongSimilarityList.CreateErrorList(track.SongRef, 1));//unknown error => code 1
                         lock (tracksToGo)
                             songsCached++;
                     } catch (Exception ee) { Console.WriteLine(ee.ToString()); }

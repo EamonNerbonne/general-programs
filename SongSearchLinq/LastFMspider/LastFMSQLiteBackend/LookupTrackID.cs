@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Data.Common;
+﻿using System.Data.Common;
 
 namespace LastFMspider.LastFMSQLiteBackend {
 	public class LookupTrackID : AbstractLfmCacheQuery {
@@ -19,7 +15,7 @@ SELECT TrackID FROM [Track] NATURAL join [Artist] WHERE LowercaseArtist = @lower
 ";
 			}
 		}
-		DbParameter lowerTitle, lowerArtist;
+		readonly DbParameter lowerTitle, lowerArtist;
 
 		public TrackId Execute(SongRef songref) {
 			lock (SyncRoot) {

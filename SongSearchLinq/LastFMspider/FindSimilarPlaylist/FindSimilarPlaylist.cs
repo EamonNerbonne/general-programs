@@ -1,13 +1,11 @@
-﻿#define NOPRECACHE
+﻿//#define NOPRECACHE
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using EmnExtensions.Collections;
 using LastFMspider.LastFMSQLiteBackend;
 using SongDataLib;
-using System.Threading;
 
 namespace LastFMspider {
 	public static partial class FindSimilarPlaylist {
@@ -20,67 +18,29 @@ namespace LastFMspider {
 		}
 		static bool NeverAbort(int i) { return false; }
 
-		class DbPool : IDisposable {
-			bool dispose;
-			readonly ConcurrentBag<LastFMSQLiteCache> dbs = new ConcurrentBag<LastFMSQLiteCache>();
-			readonly SongDataConfigFile configFile;
-			public DbPool(SongDataConfigFile configFile) { this.configFile = configFile; }
-
-			public ConnectionHolder GetDb() {
-				LastFMSQLiteCache conn;
-				if (dbs.TryTake(out conn))
-					return new ConnectionHolder(this, conn);
-				else
-					return new ConnectionHolder(this, new LastFMSQLiteCache(configFile, true));
-			}
-
-			public class ConnectionHolder : IDisposable {
-				public readonly LastFMSQLiteCache DB;
-				readonly DbPool parent;
-				public ConnectionHolder(DbPool parent, LastFMSQLiteCache db) { this.parent = parent; DB = db; }
-
-				public void Dispose() {
-					parent.dbs.Add(DB);
-					Thread.MemoryBarrier();
-					if (parent.dispose) parent.Dispose();
-				}
-			}
-
-			public void Dispose() {
-				dispose = true;
-				Thread.MemoryBarrier();
-				LastFMSQLiteCache conn;
-				while (dbs.TryTake(out conn))
-					conn.Dispose();
-			}
-		}
-
-		public static SimilarPlaylistResults ProcessPlaylist(LastFmTools tools, Func<SongRef, SongMatch> fuzzySearch, IEnumerable<SongRef> seedSongs,
+		public static SimilarPlaylistResults ProcessPlaylist(SongTools tools, Func<SongRef, SongMatch> fuzzySearch, IEnumerable<SongRef> seedSongs,
 			int MaxSuggestionLookupCount = 100, int SuggestionCountTarget = 50, Func<int, bool> shouldAbort = null
 			) {
 
 			//OK, so we now have the playlist in the var "playlist" with knowns in "known" except for the unknowns, which are in "unknown" as far as possible.
 			shouldAbort = shouldAbort ?? NeverAbort;
-			var simSongDb = tools.SimilarSongs.backingDB;
-			SimilarPlaylistResults res = new SimilarPlaylistResults();
+			var simSongDb = tools.LastFmCache;
+			using (simSongDb.Connection.BeginTransaction()) {
+				SimilarPlaylistResults res = new SimilarPlaylistResults();
 
-			using (var dbpool = new DbPool(tools.ConfigFile)) {
 				var playlistSongs = seedSongs.Select(simSongDb.LookupTrackID.Execute).Where(trackid => trackid.HasValue).Distinct().Reverse().ToArray();
 				Dictionary<TrackId, HashSet<TrackId>> playlistSongRefs = playlistSongs.ToDictionary(sr => sr, sr => new HashSet<TrackId>());
 
 				SongWithCostCache songCostCache = new SongWithCostCache();
 				IHeap<SongWithCost> songCosts = Heap.Factory<SongWithCost>().Create((sc, index) => { sc.index = index; });
 
-				Dictionary<TrackId, Task<TrackSimilarityListInfo>> bgLookupCache = new Dictionary<TrackId, Task<TrackSimilarityListInfo>>();
-
 #if !NOPRECACHE
+				Dictionary<TrackId, Task<TrackSimilarityListInfo>> bgLookupCache = new Dictionary<TrackId, Task<TrackSimilarityListInfo>>();
 				Action<TrackId> precache = trackid => {
 					if (!bgLookupCache.ContainsKey(trackid)) {
-						bgLookupCache[trackid] = Task.Factory.StartNew(() => {
-							using (var holder = dbpool.GetDb())
-								return holder.DB.LookupSimilarityListInfo.Execute(trackid);
-						});
+						bgLookupCache[trackid] = Task.Factory.StartNew(() => simSongDb.LookupSimilarityListInfo.Execute(trackid));
 						res.LookupsDone++;
+						
 					}
 				};
 #endif
@@ -90,7 +50,7 @@ namespace LastFMspider {
 					songcost.graphDist = 0;
 					songcost.basedOn.Add(songcost.trackid);
 #if !NOPRECACHE
-				//	precache(songcost.trackid);
+					precache(songcost.trackid);
 #endif
 					songCosts.Add(songcost);
 				}
@@ -98,7 +58,7 @@ namespace LastFMspider {
 				int lastPercent = 0;
 				while (!shouldAbort(res.similarList.Count) && res.similarList.Count < MaxSuggestionLookupCount && res.knownTracks.Count < SuggestionCountTarget) {
 #if !NOPRECACHE
-					foreach (var trackid in songCosts.ElementsInRoughOrder.Select(songwithcost => songwithcost.trackid).Take(4))
+					foreach (var trackid in songCosts.ElementsInRoughOrder.Select(songwithcost => songwithcost.trackid).Take(2))
 						precache(trackid);
 #endif
 
@@ -127,7 +87,6 @@ namespace LastFMspider {
 
 #if !NOPRECACHE
 					var nextSimlist = bgLookupCache[currentSong.trackid].Result;
-					bgLookupCache.Remove(currentSong.trackid);
 #else
 					var nextSimlist = simSongDb.LookupSimilarityListInfo.Execute(currentSong.trackid);
 					res.LookupsDone++;
@@ -164,9 +123,12 @@ namespace LastFMspider {
 						Console.Write(msg.PadRight(16, ' '));
 					}
 				}
+
+				tools.SimilarSongs.RefreshCacheIfNeeded(bgLookupCache.Values.ToArray());
+
+				Console.WriteLine("{0} similar tracks generated, of which {1} found locally.", res.similarList.Count, res.knownTracks.Count);
+				return res;
 			}
-			Console.WriteLine("{0} similar tracks generated, of which {1} found locally.", res.similarList.Count, res.knownTracks.Count);
-			return res;
 		}
 	}
 }

@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Data.Common;
+﻿using System.Data.Common;
 
 namespace LastFMspider.LastFMSQLiteBackend {
 	public class InsertTrack : AbstractLfmCacheQuery {
@@ -26,18 +22,13 @@ SELECT TrackID FROM [Track] WHERE ArtistID=@artistId  AND LowercaseTitle = @lowe
 		readonly DbParameter fullTitle, lowerTitle, artistId;
 
 		public TrackId Execute(SongRef songref) {
-			lock (SyncRoot) {
-				using (DbTransaction trans = Connection.BeginTransaction()) {
-					ArtistId artId = lfmCache.InsertArtist.Execute(songref.Artist);
-					fullTitle.Value = songref.Title;
-					lowerTitle.Value = songref.Title.ToLatinLowercase();
-					artistId.Value = artId.Id;
-					var retval = new TrackId((long)CommandObj.ExecuteScalar());
-					trans.Commit();
-					return retval;
-				}
-			}
+			return DoInLockedTransaction(() => {
+				ArtistId artId = lfmCache.InsertArtist.Execute(songref.Artist);
+				fullTitle.Value = songref.Title;
+				lowerTitle.Value = songref.Title.ToLatinLowercase();
+				artistId.Value = artId.Id;
+				return new TrackId((long)CommandObj.ExecuteScalar());
+			});
 		}
-
 	}
 }

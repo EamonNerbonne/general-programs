@@ -10,7 +10,7 @@ using System.Globalization;
 namespace LastFMspider {
 	internal static partial class ToolsInternal {
 
-		public static void PrecacheLocalFiles(LastFmTools tools, bool shuffle) {
+		public static void PrecacheLocalFiles(SongTools tools, bool shuffle) {
 			var SimilarSongs = tools.SimilarSongs;
 			//var Lookup = tools.Lookup;
 			int ttCount = 0; object sync = new object();
@@ -19,7 +19,7 @@ namespace LastFMspider {
 			Parallel.ForEach(artists, new ParallelOptions { MaxDegreeOfParallelism = 10, }, artist => {
 				try {
 					var ttList = SimilarSongs.LookupTopTracks(artist, TimeSpan.FromDays(100.0));
-					var saList = SimilarSongs.LookupSimilaArtists(artist, TimeSpan.FromDays(100.0));
+					var saList = SimilarSongs.LookupSimilarArtists(artist, TimeSpan.FromDays(100.0));
 					lock (sync) {
 						ttCount++;
 						if (100 * (ttCount - 1) / artists.Length != 100 * ttCount / artists.Length)
@@ -53,7 +53,7 @@ namespace LastFMspider {
 					lock (songsToDownload) {
 						progressCount++;
 					}
-					var info = SimilarSongs.EnsureCurrent(songref, TimeSpan.FromDays(100.0));
+					var info = EnsureCurrent(tools.LastFmCache, songref, TimeSpan.FromDays(100.0));
 					lock (songsToDownload) {
 						if (info.Item1.StatusCode == 0)
 							hits++;

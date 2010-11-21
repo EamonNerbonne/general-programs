@@ -1,5 +1,4 @@
-﻿
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Data.Common;
 using System;
 namespace LastFMspider.LastFMSQLiteBackend {
@@ -11,10 +10,10 @@ namespace LastFMspider.LastFMSQLiteBackend {
 	public class ArtistsWithoutSimilarityList : AbstractLfmCacheQuery {
 		public ArtistsWithoutSimilarityList(LastFMSQLiteCache lfm)
 			: base(lfm) {
-			limitRowCount = DefineParameter("@limitRowCount");
-			maxDate = DefineParameter("@maxDate");
+			limitRowCountParam = DefineParameter("@limitRowCount");
+			maxDateParam = DefineParameter("@maxDate");
 		}
-		DbParameter limitRowCount, maxDate;
+		readonly DbParameter limitRowCountParam, maxDateParam;
 		protected override string CommandText {
 			get {
 				return @"
@@ -33,8 +32,8 @@ LIMIT @limitRowCount;
 		public CachedArtist[] Execute(int limitRowCount, DateTime maxDate) {
 			List<CachedArtist> artists = new List<CachedArtist>();
 			lock (SyncRoot) {
-				this.limitRowCount.Value = limitRowCount;
-				this.maxDate.Value = maxDate.ToUniversalTime().Ticks; //should be in universal time anyhow...
+				limitRowCountParam.Value = limitRowCount;
+				maxDateParam.Value = maxDate.ToUniversalTime().Ticks; //should be in universal time anyhow...
 
 				using (var reader = CommandObj.ExecuteReader()) {
 					while (artists.Count < limitRowCount && (reader.Read() || (reader.NextResult() && reader.Read())))

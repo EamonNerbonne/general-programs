@@ -1,53 +1,35 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Threading;
 using EmnExtensions.MathHelpers;
 using SongDataLib;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace LastFMspider {
-	public class LastFmTools {
-		SongSimilarityCache similarSongs;
+	public class SongTools : IDisposable {
 		readonly SongDataConfigFile configFile;
-		SongFiles db;
 
-		public SongSimilarityCache SimilarSongs { get { return similarSongs ?? (similarSongs = new SongSimilarityCache(ConfigFile)); } }
+		public SongTools(SongDataConfigFile configFile = null) { this.configFile = configFile ?? new SongDataConfigFile(true); }
 		public SongDataConfigFile ConfigFile { get { return configFile; } }
-		public SongFiles SongsOnDisk { get { return db ?? (db = new SongFiles(ConfigFile, null)); } }
 
+		SongFiles m_SongsOnDisk;
+		public SongFiles SongsOnDisk { get { return m_SongsOnDisk ?? (m_SongsOnDisk = new SongFiles(ConfigFile, null)); } }
+		public void UnloadDB() { UnloadLookup(); m_SongsOnDisk = null; }
 
 		Dictionary<string, SongFileData> m_FindByPath;
 		public Dictionary<string, SongFileData> FindByPath { get { return m_FindByPath ?? (m_FindByPath = SongsOnDisk.Songs.ToDictionary(song => song.SongUri.ToString())); } }
-
 		ILookup<SongRef, SongFileData> m_FindByName;
 		public ILookup<SongRef, SongFileData> FindByName { get { return m_FindByName ?? (m_FindByName = SongsOnDisk.Songs.ToLookup(SongRef.Create)); } }
+		public void UnloadLookup() { m_FindByPath = null; m_FindByPath = null; }
 
+		SongSimilarityCache similarSongs;
+		public SongSimilarityCache SimilarSongs { get { return similarSongs ?? (similarSongs = new SongSimilarityCache(this)); } }
 
-		public LastFmTools(SongDataConfigFile configFile = null) {
-			this.configFile = configFile ?? new SongDataConfigFile(true);
-		}
+		LastFMSQLiteCache m_LastFmCache;
+		public LastFMSQLiteCache LastFmCache { get { return m_LastFmCache ?? (m_LastFmCache = new LastFMSQLiteCache(configFile)); } }
 
-
-		public void UnloadLookup() { m_FindByPath = null; m_FindByPath =null; }
-
-		public void UnloadDB() { UnloadLookup(); db = null; }
-
-		/// <summary>
-		/// Downloads Last.fm metadata for all tracks in the song database (if not already present).
-		/// </summary>
-		/// <param name="shuffle">Whether to perform the precaching in a random order.  Doing so slows down the precaching when almost all
-		/// items are already downloaded, but permits multiple download threads to run in parallel without duplicating downloads.</param>
-		public void PrecacheLocalFiles(bool shuffle = false) { ToolsInternal.PrecacheLocalFiles(this, shuffle); }
-
-		public void EnsureLocalFilesInDB() { ToolsInternal.EnsureLocalFilesInDB(this); }
-
-		public int PrecacheSongSimilarity() { return ToolsInternal.PrecacheSongSimilarity(this); }
-
-		public int PrecacheArtistSimilarity() { return ToolsInternal.PrecacheArtistSimilarity(this); }
-
-		public int PrecacheArtistTopTracks() { return ToolsInternal.PrecacheArtistTopTracks(this); }
 
 		internal void LogNonFatalError(string message, Exception e) {
 			string errstring = "err" + DateTime.UtcNow.Ticks + ".log";
@@ -67,6 +49,12 @@ namespace LastFMspider {
 						Thread.Sleep((int)RndHelper.MakeSecureUInt() % 100);
 					} else throw new Exception("Logging IOException:" + ioe, e);
 				}
+		}
+
+
+
+		public void Dispose() {
+			throw new NotImplementedException();
 		}
 	}
 }

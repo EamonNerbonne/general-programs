@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Data.Common;
+﻿using System.Data.Common;
 
 namespace LastFMspider.LastFMSQLiteBackend {
 	public class InsertArtist : AbstractLfmCacheQuery {
@@ -18,7 +14,7 @@ SELECT ArtistID FROM [Artist] WHERE LowercaseArtist = @lowername
 			lowername = DefineParameter("@lowername");
 		}
 
-		DbParameter fullname, lowername;
+		readonly DbParameter fullname, lowername;
 		public ArtistId Execute(string artist) {
 			lock (SyncRoot) {
 				fullname.Value = artist;
@@ -26,6 +22,5 @@ SELECT ArtistID FROM [Artist] WHERE LowercaseArtist = @lowername
 				return new ArtistId(CommandObj.ExecuteScalar().CastDbObjectAs<long>());
 			}
 		}
-
 	}
 }

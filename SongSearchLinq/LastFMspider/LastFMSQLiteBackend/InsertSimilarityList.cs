@@ -1,9 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Data.Common;
 using System.Data;
+using System.Data.Common;
+using System.Linq;
 
 namespace LastFMspider.LastFMSQLiteBackend {
 	public class InsertSimilarityList : AbstractLfmCacheQuery {
@@ -14,7 +12,7 @@ namespace LastFMspider.LastFMSQLiteBackend {
 			statusCode = DefineParameter("@statusCode");
 			listBlob = DefineParameter("@listBlob", DbType.Binary);
 		}
-		DbParameter trackID, lookupTimestamp, statusCode,listBlob;
+		readonly DbParameter trackID, lookupTimestamp, statusCode, listBlob;
 		protected override string CommandText {
 			get {
 				return @"
@@ -31,30 +29,25 @@ LIMIT 1
 		}
 
 		public TrackSimilarityListInfo Execute(SongSimilarityList simList) {
-			lock (SyncRoot) {
-				using (DbTransaction trans = Connection.BeginTransaction()) {
-					TrackId baseTrackId = lfmCache.InsertTrack.Execute( simList.songref);
-					SimilarityList<TrackId,TrackId.Factory> listImpl = new SimilarityList<TrackId,TrackId.Factory>(
-							from simtrack in simList.similartracks
-							select new SimilarityTo<TrackId>(lfmCache.UpdateTrackCasing.Execute(simtrack.similarsong),(float)simtrack.similarity)
-						);
-					
-					trackID.Value = baseTrackId.Id;
-					lookupTimestamp.Value = simList.LookupTimestamp.ToUniversalTime().Ticks;
-					statusCode.Value = simList.StatusCode;
-					listBlob.Value = listImpl.encodedSims;
-					SimilarTracksListId listId = new SimilarTracksListId(CommandObj.ExecuteScalar().CastDbObjectAs<long>());
+			return DoInLockedTransaction(() => {
+				TrackId baseTrackId = lfmCache.InsertTrack.Execute(simList.songref);
+				SimilarityList<TrackId, TrackId.Factory> listImpl = new SimilarityList<TrackId, TrackId.Factory>(
+						from simtrack in simList.similartracks
+						select new SimilarityTo<TrackId>(lfmCache.UpdateTrackCasing.Execute(simtrack.similarsong), (float)simtrack.similarity)
+					);
 
-					if (simList.LookupTimestamp.ToUniversalTime() > DateTime.UtcNow - TimeSpan.FromDays(1.0))
-						lfmCache.TrackSetCurrentSimList.Execute(listId); //presume if this is recently downloaded, then it's the most current.
-					
+				trackID.Value = baseTrackId.Id;
+				lookupTimestamp.Value = simList.LookupTimestamp.ToUniversalTime().Ticks;
+				statusCode.Value = simList.StatusCode;
+				listBlob.Value = listImpl.encodedSims;
+				SimilarTracksListId listId = new SimilarTracksListId(CommandObj.ExecuteScalar().CastDbObjectAs<long>());
 
-					trans.Commit();
-					return new TrackSimilarityListInfo(listId, baseTrackId, simList.LookupTimestamp.ToUniversalTime(), simList.StatusCode, listImpl);
-				}
-			}
+				if (simList.LookupTimestamp.ToUniversalTime() > DateTime.UtcNow - TimeSpan.FromDays(1.0))
+					lfmCache.TrackSetCurrentSimList.Execute(listId); //presume if this is recently downloaded, then it's the most current.
+
+
+				return new TrackSimilarityListInfo(listId, baseTrackId, simList.LookupTimestamp.ToUniversalTime(), simList.StatusCode, listImpl);
+			});
 		}
-
-
 	}
 }

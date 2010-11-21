@@ -8,15 +8,20 @@ namespace LastFMspider.LastFMSQLiteBackend {
 		protected DbConnection Connection { get { return lfmCache.Connection; } }
 		protected AbstractLfmCacheOperation(LastFMSQLiteCache lfmCache) { this.lfmCache = lfmCache; }
 
-
-		protected TOut DoInTransaction<TOut>(Func<TOut> func) {
-			using (var trans = Connection.BeginTransaction()) {
-				TOut retval = func();
-				trans.Commit();
-				return retval;
-			}
+		protected TOut DoInLockedTransaction<TOut>(Func<TOut> func) {
+			lock (SyncRoot)
+				using (var trans = Connection.BeginTransaction()) {
+					TOut retval = func();
+					trans.Commit();
+					return retval;
+				}
 		}
-		protected TOut DoInLockedTransaction<TOut>(Func<TOut> func) { lock (SyncRoot) return DoInTransaction(func); }
-
+		protected void DoInLockedTransaction(Action func) {
+			lock (SyncRoot)
+				using (var trans = Connection.BeginTransaction()) {
+					func();
+					trans.Commit();
+				}
+		}
 	}
 }

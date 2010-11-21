@@ -1,23 +1,19 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using LastFMspider;
 using SongDataLib;
-using System.Threading;
 
 namespace LastFmCacheExtender
 {
-    class Program
+	static class Program
     {
-        static LastFmTools tools;
+        static SongTools tools;
         static void Main(string[] args) {
             
             var config = new SongDataConfigFile(false);
             Console.WriteLine("Loading song similarity...");
-            tools = new LastFmTools(config);
+            tools = new SongTools(config);
 			//tools.PrecacheLocalFiles();//might want to do this first, but...
-			tools.EnsureLocalFilesInDB();//this is much faster, of course.
+			tools.SimilarSongs.EnsureLocalFilesInDB();//this is much faster, of course.
             tools.UnloadDB();
             Console.WriteLine("go!");
             ExtendSimilarities();
@@ -29,9 +25,9 @@ namespace LastFmCacheExtender
             while (run&&errCount<10) {
                 try {
                     run = false;
-					run = 0 < tools.PrecacheArtistTopTracks() || run;
-					run = 0 < tools.PrecacheArtistSimilarity() || run;
-                    run = 0 < tools.PrecacheSongSimilarity()||run;
+					run = 0 < tools.SimilarSongs.PrecacheArtistTopTracks() || run;
+					run = 0 < tools.SimilarSongs.PrecacheArtistSimilarity() || run;
+					run = 0 < tools.SimilarSongs.PrecacheSongSimilarity() || run;
                 } catch {
                     run = true;
                     errCount++;

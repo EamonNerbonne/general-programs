@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Data.Common;
-using System.Data.SQLite;
-using System.Data;
+﻿using System.Linq;
 
 namespace LastFMspider.LastFMSQLiteBackend {
 
@@ -13,24 +7,21 @@ namespace LastFMspider.LastFMSQLiteBackend {
 		public ArtistSimilarityList Execute(ArtistSimilarityListInfo list) {
 			if (!list.ListID.HasValue) return null;
 
-			lock (SyncRoot) {
-				using (var trans = Connection.BeginTransaction()) {
-					var similarto =
-						from sim in list.SimilarArtists
-						select new SimilarArtist { 
-							 Rating = (float) sim.Similarity,
-							 Artist =  lfmCache.LookupArtist.Execute(sim.OtherId)
-						};
+			return DoInLockedTransaction(() => {
+				var similarto =
+							from sim in list.SimilarArtists
+							select new SimilarArtist {
+								Rating = sim.Similarity,
+								Artist = lfmCache.LookupArtist.Execute(sim.OtherId)
+							};
 
-					return new ArtistSimilarityList {
-						 Artist = list.ArtistInfo.Artist,
-						Similar = similarto.ToArray(),						
-						LookupTimestamp = list.LookupTimestamp.Value.ToUniversalTime(),
-						StatusCode = list.StatusCode,
-						
-					};
-				}
-			}
+				return new ArtistSimilarityList {
+					Artist = list.ArtistInfo.Artist,
+					Similar = similarto.ToArray(),
+					LookupTimestamp = list.LookupTimestamp.Value.ToUniversalTime(),
+					StatusCode = list.StatusCode,
+				};
+			});
 		}
 	}
 }
