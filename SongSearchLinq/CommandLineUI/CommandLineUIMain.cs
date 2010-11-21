@@ -2,29 +2,23 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using EmnExtensions;
 using EmnExtensions.DebugTools;
 using SongDataLib;
-namespace CommandLineUI
-{
-	class CommandLineUIMain
-	{
-		SearchableSongDB searchEngine;
+namespace CommandLineUI {
+	class CommandLineUIMain {
+		readonly SearchableSongFiles searchEngine;
 
-		public static NiceTimer timer;
 
 		static void Main(string[] args) {
 #if !DEBUG
 			try {
 #endif
-				timer = new NiceTimer();
-            timer.TimeMark("Starting");
-				var prog = new CommandLineUIMain(args.Length > 0 ? new FileInfo(args[0]) : null);
-				timer.Done();
+
+				var prog = DTimer.TimeFunc(() => new CommandLineUIMain(args.Length > 0 ? new FileInfo(args[0]) : null), "Starting");
 				//prog.ExecBenchmark();
 				prog.ExecUI();
 #if !DEBUG
-			} catch(Exception e) {
+			} catch (Exception e) {
 				Console.WriteLine("==========================");
 				Console.WriteLine("===TERMINAL ERROR=========");
 				Console.WriteLine("==========================");
@@ -38,7 +32,7 @@ namespace CommandLineUI
 
 		public void ExecBenchmark() {
 			Random r = new Random(1337);
-			for(int i = 0; i < 1000; i++) {
+			for (int i = 0; i < 1000; i++) {
 				int si = r.Next(searchEngine.db.songs.Length);
 				string info = searchEngine.db.songs[si].FullInfo;
 				int stringend = r.Next(5, info.Length);
@@ -50,40 +44,24 @@ namespace CommandLineUI
 				searchEngine.Search(string.Join(" ", sq)).Take(30).ToArray();
 			}
 		}
-		int counter = 0;
-		int seconds = 0;
-		bool UpdateHandler(string msg) {
-			counter++;
-			if(timer.ElapsedSinceMark.Seconds > seconds) {
-				seconds = timer.ElapsedSinceMark.Seconds;
-				Console.WriteLine("Nodes/sec: " + (counter / timer.ElapsedSinceMark.TotalSeconds));
-				if(msg != null) Console.WriteLine(msg);
-			}
-			return true;
-		}
 
-		public CommandLineUIMain(FileInfo dbconfigfile) {
-			timer.TimeMark("Loading DB");
-			SongDatabaseConfigFile dcf =
-				dbconfigfile == null ?
-				new SongDatabaseConfigFile(true) :
-				new SongDatabaseConfigFile(dbconfigfile,true);
-			List<ISongData> loadingSongs = new List<ISongData>();
-			dcf.Load(delegate(ISongData newsong, double progress) {
-				loadingSongs.Add(newsong);
-			});
-			SongDB db = new SongDB(loadingSongs);
-			loadingSongs = null;
-			timer.TimeMark("Loading Search plugin");
-			ISongSearcher ss = //new BwtLib.SongBwtSearcher();
-				new SuffixTreeLib.SuffixTreeSongSearcher();
-			searchEngine = new SearchableSongDB(db, ss);
+		CommandLineUIMain(FileInfo dbconfigfile) {
+			SongFilesSearchData db = DTimer.TimeFunc(() => {
+				SongDataConfigFile dcf =
+					dbconfigfile == null ?
+					new SongDataConfigFile(true) :
+					new SongDataConfigFile(dbconfigfile, true);
+				List<ISongFileData> loadingSongs = new List<ISongFileData>();
+				dcf.Load((newsong, progress) => loadingSongs.Add(newsong));
+				return new SongFilesSearchData(loadingSongs);
+			}, "Loading DB");
+			searchEngine = DTimer.TimeFunc(() => new SearchableSongFiles(db, new SuffixTreeLib.SuffixTreeSongSearcher()), "Loading Search plugin");
 		}
 
 
-		public void ExecUI() {
+		void ExecUI() {
 			string input = "";
-			while(input != null) {
+			while (input != null) {
 				DateTime dtA = DateTime.Now;
 				Console.WriteLine("======RESULTS======= in {0} songs.=========", searchEngine.db.songs.Length);
 
@@ -95,17 +73,17 @@ namespace CommandLineUI
 				Console.Write("Query (Esc to {0}): {1}", input.Length == 0 ? "EXIT" : "Reset", input);
 				do {
 					ConsoleKeyInfo key = Console.ReadKey(true);
-					if(key.Key == ConsoleKey.Escape) {
-						if(input == "") {
+					if (key.Key == ConsoleKey.Escape) {
+						if (input == "") {
 							input = null;
 							break;
 						} else
 							input = "";
-					} else if(key.Key == ConsoleKey.Backspace)
+					} else if (key.Key == ConsoleKey.Backspace)
 						input = input.Substring(0, Math.Max(input.Length - 1, 0));
-					else if(key.KeyChar >= ' ')
+					else if (key.KeyChar >= ' ')
 						input += key.KeyChar;
-				} while(Console.KeyAvailable);
+				} while (Console.KeyAvailable);
 				Console.WriteLine();
 			}
 		}

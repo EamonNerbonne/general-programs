@@ -82,10 +82,9 @@
     <Reference Include="System.Core">
       <RequiredTargetFramework>3.5</RequiredTargetFramework>
     </Reference>
-    <Reference Include="System.Data.SQLite, Version=1.0.60.0, Culture=neutral, PublicKeyToken=db937bc2d44ff139, processorArchitecture=AMD64">
+    <Reference Include="System.Data.SQLite, Version=1.0.66.0, Culture=neutral, PublicKeyToken=db937bc2d44ff139, processorArchitecture=x86">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\SongSearchLinq\Sqlite.netBin\x64\System.Data.SQLite.DLL</HintPath>
-      <Private>True</Private>
+      <HintPath>..\BINARIES\x64\System.Data.SQLite.DLL</HintPath>
     </Reference>
     <Reference Include="System.Runtime.Serialization">
       <RequiredTargetFramework>3.0</RequiredTargetFramework>
@@ -105,7 +104,6 @@
     <Compile Include="ArbitraryTrackMapper.cs" />
     <Compile Include="ArtistSimilarityList.cs" />
     <Compile Include="ArtistTopTracksListInfo.cs" />
-    <Compile Include="BlockingCollection.cs" />
     <Compile Include="DbPool.cs" />
     <Compile Include="FindSimilarPlaylist\FindSimilarPlaylist.cs" />
     <Compile Include="FindSimilarPlaylist\SongWithCost.cs" />
@@ -184,10 +182,6 @@
     <Compile Include="TrackMapper.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\External\taglib-sharp\taglib-sharp.csproj">
-      <Project>{4CC18776-125E-4318-9D24-D60110AD9697}</Project>
-      <Name>taglib-sharp</Name>
-    </ProjectReference>
     <ProjectReference Include="..\..\EmnExtensions\EmnExtensions.csproj">
       <Project>{2F0A3E48-CD06-43BB-BFC6-6B6F568232B9}</Project>
       <Name>EmnExtensions</Name>

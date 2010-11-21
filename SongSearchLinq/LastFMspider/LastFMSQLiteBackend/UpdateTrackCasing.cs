@@ -31,6 +31,5 @@ SELECT TrackID FROM Track  where ArtistID = @artistId AND LowercaseTitle=@lowerT
 				return new TrackId(CommandObj.ExecuteScalar().CastDbObjectAs<long>());
             }
         }
-
     }
 }
