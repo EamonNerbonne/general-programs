@@ -14,15 +14,15 @@ namespace SongDataLib {
 	/// Represent all relevent meta-data about a Song.  If this data can't be determined, use PartialSongData instead.
 	/// </summary>
 	public class SongFileData : MinimalSongFileData {
-		public string title, artist, composer, album, comment, genre;
-		public int year, track, trackcount, bitrate, length, samplerate, channels;
-		public double? track_gain;
-		public int? rating;
+		public readonly string title, artist, composer, album, comment, genre;
+		public readonly int year, track, trackcount, bitrate, length, samplerate, channels;
+		public readonly double? track_gain;
+		public readonly int? rating;
 		DateTime m_lastWriteTime;
 		public Popularity popularity = new Popularity { ArtistPopularity = 0, TitlePopularity = 0 };
-		public DateTime lastWriteTime { get { return m_lastWriteTime; } set { m_lastWriteTime = value.ToUniversalTime(); } }
+		public DateTime lastWriteTime { get { return m_lastWriteTime; } private set { m_lastWriteTime = value.ToUniversalTime(); } }
 
-		static string strNullIfEmpty(string str) { return str == null || str.Length == 0 ? null : str; }//string.Intern is slow but saves memory for identical strings.
+		static string strNullIfEmpty(string str) { return string.IsNullOrEmpty(str) ? null : str; }//string.Intern is slow but saves memory for identical strings.
 
 		static string toSafeString(string data) { return strNullIfEmpty(Canonicalize.MakeSafe(data)); }
 

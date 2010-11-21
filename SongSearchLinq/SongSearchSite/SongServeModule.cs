@@ -13,7 +13,7 @@ namespace SongSearchSite {
 	public class ServingActivity {
 		public sealed class ServedFileStatus : IDisposable {
 			public readonly DateTime StartedAtLocalTime;
-			public readonly string remoteAddr;
+			public readonly string RemoteAddr;
 			public readonly int MaxBytesPerSecond;
 			public readonly string ServedFile;
 			public readonly Range? ByteRange;
@@ -24,18 +24,18 @@ namespace SongSearchSite {
 			volatile public bool Done;
 
 			public ServedFileStatus(string path, Range? byteRange, string remoteAddr, int maxBps) {
-				this.StartedAtLocalTime = DateTime.Now;
-				this.remoteAddr = remoteAddr;
-				this.MaxBytesPerSecond = maxBps;
-				this.ServedFile = path;
-				this.ByteRange = byteRange;
-				ServingActivity.Enqueue(this);
+				StartedAtLocalTime = DateTime.Now;
+				RemoteAddr = remoteAddr;
+				MaxBytesPerSecond = maxBps;
+				ServedFile = path;
+				ByteRange = byteRange;
+				Enqueue(this);
 			}
 
 			public void Dispose() { Done = true; }
 		}
 
-		ServedFileStatus[] lastRequests;
+		readonly ServedFileStatus[] lastRequests;
 		int nextWriteIdx;
 		private ServingActivity(int history) {
 			lastRequests = new ServedFileStatus[history];
@@ -52,23 +52,20 @@ namespace SongSearchSite {
 			get {
 				int idx;
 				lock (this) idx = nextWriteIdx;
-				for (int i = 0; i < lastRequests.Length; i++) {
-					int curIdx = (idx + lastRequests.Length - 1 - i) % lastRequests.Length;
-					yield return lastRequests[curIdx];
-				}
+				return lastRequests.Select((t, i) => (idx + lastRequests.Length - 1 - i) % lastRequests.Length)
+					.Select(curIdx => lastRequests[curIdx]);
 			}
 		}
 
-		static ServingActivity log = new ServingActivity(256);
+		static readonly ServingActivity log = new ServingActivity(256);
 
-		public static void Enqueue(ServedFileStatus file) { log.EnqueueM(file); }
+		static void Enqueue(ServedFileStatus file) { log.EnqueueM(file); }
 		public static IEnumerable<ServedFileStatus> History { get { return log.HistoryM.Where(s => s != null); } }
 	}
 
 	public class SongServeRequestProcessor : IHttpRequestProcessor {
-		public readonly static string prefix = "~/songs/";
-		HttpRequestHelper helper;
-		ISongFileData song = null;
+		readonly HttpRequestHelper helper;
+		ISongFileData song;
 		public SongServeRequestProcessor(HttpRequestHelper helper) { this.helper = helper; }
 
 		public void ProcessingStart() { }
@@ -76,7 +73,7 @@ namespace SongSearchSite {
 		public PotentialResourceInfo DetermineResource() {
 			song = SongDbContainer.GetSongFromFullUri(helper.Context.Request.AppRelativeCurrentExecutionFilePath.Substring(2));
 			if (song == null)
-				return new ResourceError() {
+				return new ResourceError {
 					Code = 404,
 					Message = "Could not find file '" + helper.Context.Request.AppRelativeCurrentExecutionFilePath + "'.  Path is not indexed."
 				};
@@ -84,13 +81,13 @@ namespace SongSearchSite {
 			FileInfo fi = new FileInfo(song.SongUri.LocalPath);
 
 			if (!fi.Exists)
-				return new ResourceError() {
+				return new ResourceError {
 					Code = 404,
 					Message = "Could not find file '" + song.SongUri + "' even though it's indexed as '" + helper.Context.Request.AppRelativeCurrentExecutionFilePath + "'. Sorry.\n"
 				};
 
 			if (fi.Length > Int32.MaxValue)
-				return new ResourceError() {
+				return new ResourceError {
 					Code = 413,
 					Message = "Requested File " + song.SongUri + " is too large!"
 				};	//should now actually support Int64's, but to be extra cautious
@@ -139,10 +136,10 @@ namespace SongSearchSite {
 					while (!streamEnded && stream.Position < end && helper.Context.Response.IsClientConnected) {
 						long maxPos = start + (long)(timer.Elapsed.TotalSeconds * maxBytesPerSec) + fastStartSec * maxBytesPerSec;
 						long excessBytes = stream.Position - maxPos;
-						if (excessBytes > 0 && !this.helper.Context.Request.IsLocal)
+						if (excessBytes > 0 && !helper.Context.Request.IsLocal)
 							Thread.Sleep(TimeSpan.FromSeconds(excessBytes / (double)maxBytesPerSec));
 
-						int bytesToRead = (int)Math.Min((long)window, end - stream.Position);
+						int bytesToRead = (int)Math.Min(window, end - stream.Position);
 						int i = 0;
 						while (i < bytesToRead && helper.Context.Response.IsClientConnected) {
 							int bytesRead = stream.Read(buffer, i, bytesToRead - i);
@@ -168,7 +165,7 @@ namespace SongSearchSite {
 		public const string MIME_MP3 = "audio/mpeg";
 		public const string MIME_WMA = "audio/x-ms-wma";
 		public const string MIME_WAV = "audio/wav";
-		public const string MIME_OGG =  "audio/ogg";
+		public const string MIME_OGG = "audio/ogg";
 		public const string MIME_MPC = "audio/x-musepack";
 		public const string MIME_BINARY = "application/octet-stream";
 
