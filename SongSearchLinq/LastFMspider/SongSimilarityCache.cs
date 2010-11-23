@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Threading;
 using System.Threading.Tasks;
+using System.Threading;
+using LastFMspider.LastFMSQLiteBackend;
 
 namespace LastFMspider {
 	public class SongSimilarityCache {
@@ -27,25 +28,33 @@ namespace LastFMspider {
 
 		public ArtistSimilarityList LookupSimilarArtists(string artist, TimeSpan fromDays = default(TimeSpan)) { return ToolsInternal.LookupSimilarArtists(tools.LastFmCache, artist, fromDays); }
 
-		readonly BlockingCollection<TrackSimilarityListInfo> BgLookupQueue= new BlockingCollection<TrackSimilarityListInfo>();
-		int procthreads;
+		readonly ConcurrentBag<TrackId[]> BgLookupQueue = new ConcurrentBag<TrackId[]>();
+		bool isActive;
+		readonly object sync = new object();
+
 		void ProcessQueue() {
-			int currActive = Interlocked.Increment(ref procthreads);
-			try {
-				if (currActive == 1)
-					foreach (var list in BgLookupQueue.GetConsumingEnumerable())
-						LookupSimilarTracksHelper.RefreshCache(tools.LastFmCache, list);
-			} finally {
-				Interlocked.Decrement(ref procthreads);
-			}
+			TrackId[] tracksToUpdate;
+			while (BgLookupQueue.TryTake(out tracksToUpdate))
+				foreach(var track in tracksToUpdate)
+					LookupSimilarTracksHelper.RefreshCache(tools.LastFmCache, track);
+			lock (sync)
+				isActive = false;
+			StartQueue();
 		}
 
-		internal void RefreshCacheIfNeeded(IEnumerable<Task<TrackSimilarityListInfo>> listtasks) {
-			if(procthreads==0)
-				new Thread(ProcessQueue) { IsBackground = true,}.Start();
-			
-			foreach(var listtask in listtasks)
-				listtask.ContinueWith(task=>BgLookupQueue.Add( task.Result));
+		void StartQueue() {
+			bool willStart = false;
+			lock (sync)
+				if (!isActive && BgLookupQueue.Count > 0)
+					willStart = isActive = true;
+
+			if (willStart)
+				new Thread(ProcessQueue).Start();
+		}
+
+		internal void RefreshCacheIfNeeded(TrackId[] listtasks) {
+			BgLookupQueue.Add(listtasks);
+			StartQueue();
 		}
 	}
 }

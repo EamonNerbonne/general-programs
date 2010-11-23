@@ -69,7 +69,8 @@ namespace SongSearchSite {
 						{ "known", knownForJson},
 						{"unknown", unknownForJson},
 						{"lookups", res.LookupsDone},
-						{"milliseconds",timer.Elapsed.TotalMilliseconds},
+						{"weblookups", res.LookupsWebTotal},
+						{"milliseconds",timer.ElapsedMilliseconds},
 					}
 					)
 				);

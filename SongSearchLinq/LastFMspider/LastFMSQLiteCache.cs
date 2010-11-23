@@ -1,19 +1,69 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.IO;
 using System.Data.Common;
-using LastFMspider.LastFMSQLiteBackend;
-using System.Xml.Linq;
-using SongDataLib;
 using System.Data.SQLite;
+using System.IO;
+using LastFMspider.LastFMSQLiteBackend;
+using SongDataLib;
 
 namespace LastFMspider {
 	public sealed class LastFMSQLiteCache : IDisposable {
 		public readonly object SyncRoot = new object();
 
-		public DbConnection Connection { get; private set; }
+		DbConnection Connection { get; set; }
+
+		public void DoInTransaction(Action action) { DoInTransaction(rollback => action()); }
+		public void DoInTransaction(Action<Action> action) {
+			DbTransaction tran = null;
+			bool error = false;
+			try {
+				lock (SyncRoot)
+					tran = Connection.BeginTransaction();
+				action(() => { error = true; });
+				if (!error)
+					lock (SyncRoot)
+						tran.Commit();
+			} finally {
+				if (tran != null)
+					lock (SyncRoot)
+						tran.Dispose();
+			}
+		}
+		public T DoInTransaction<T>(Func<T> func) { return DoInTransaction(rollback => func()); }
+		public T DoInTransaction<T>(Func<Action, T> func) {
+			DbTransaction tran = null;
+			bool error = false;
+			try {
+				lock (SyncRoot)
+					tran = Connection.BeginTransaction();
+				T retval = func(() => { error = true; });
+				if (!error)
+					lock (SyncRoot)
+						tran.Commit();
+				return retval;
+			} finally {
+				if (tran != null)
+					lock (SyncRoot)
+						tran.Dispose();
+			}
+		}
+
+		public TOut DoInLockedTransaction<TOut>(Func<TOut> func) {
+			lock (SyncRoot)
+				using (var trans = Connection.BeginTransaction()) {
+					TOut retval = func();
+					trans.Commit();
+					return retval;
+				}
+		}
+		public void DoInLockedTransaction(Action action) {
+			lock (SyncRoot)
+				using (var trans = Connection.BeginTransaction()) {
+					action();
+					trans.Commit();
+				}
+		}
+
+		internal DbCommand CreateCommand() { return Connection.CreateCommand(); }//must be locked already!
 
 		LookupSimilarityList c_LookupSimilarityList;
 		public LookupSimilarityList LookupSimilarityList { get { lock (SyncRoot) return c_LookupSimilarityList ?? (c_LookupSimilarityList = new LookupSimilarityList(this)); } }

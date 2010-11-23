@@ -183,7 +183,6 @@ namespace SongSearchSite {
 			}
 		}
 		public static string guessMIME(ISongFileData song) { return guessMIME(Path.GetExtension(song.SongUri.LocalPath)); }
-
 	}
 
 	/// <summary>

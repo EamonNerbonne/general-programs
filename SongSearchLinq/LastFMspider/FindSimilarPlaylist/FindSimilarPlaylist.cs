@@ -15,6 +15,7 @@ namespace LastFMspider {
 			public readonly List<SongRef> unknownTracks = new List<SongRef>();
 			public readonly List<SongWithCost> similarList = new List<SongWithCost>();
 			public int LookupsDone;
+			public int LookupsWebTotal;
 		}
 		static bool NeverAbort(int i) { return false; }
 
@@ -25,7 +26,7 @@ namespace LastFMspider {
 			//OK, so we now have the playlist in the var "playlist" with knowns in "known" except for the unknowns, which are in "unknown" as far as possible.
 			shouldAbort = shouldAbort ?? NeverAbort;
 			var simSongDb = tools.LastFmCache;
-			using (simSongDb.Connection.BeginTransaction()) {
+			return simSongDb.DoInTransaction(() => {
 				SimilarPlaylistResults res = new SimilarPlaylistResults();
 
 				var playlistSongs = seedSongs.Select(simSongDb.LookupTrackID.Execute).Where(trackid => trackid.HasValue).Distinct().Reverse().ToArray();
@@ -40,7 +41,6 @@ namespace LastFMspider {
 					if (!bgLookupCache.ContainsKey(trackid)) {
 						bgLookupCache[trackid] = Task.Factory.StartNew(() => simSongDb.LookupSimilarityListInfo.Execute(trackid));
 						res.LookupsDone++;
-						
 					}
 				};
 #endif
@@ -124,11 +124,12 @@ namespace LastFMspider {
 					}
 				}
 
-				tools.SimilarSongs.RefreshCacheIfNeeded(bgLookupCache.Values.ToArray());
+				tools.SimilarSongs.RefreshCacheIfNeeded(bgLookupCache.Keys.ToArray());
 
 				Console.WriteLine("{0} similar tracks generated, of which {1} found locally.", res.similarList.Count, res.knownTracks.Count);
+				res.LookupsWebTotal = LookupSimilarTracksHelper.WebLookupsSoFar();
 				return res;
-			}
+			});
 		}
 	}
 }

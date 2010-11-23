@@ -6,9 +6,8 @@ namespace LastFMspider.LastFMSQLiteBackend
     public abstract class AbstractLfmCacheQuery : AbstractLfmCacheOperation
     {
         readonly protected DbCommand CommandObj;
-        protected AbstractLfmCacheQuery(LastFMSQLiteCache lfmCache)
-            : base(lfmCache) {
-            CommandObj = Connection.CreateCommand();
+        protected AbstractLfmCacheQuery(LastFMSQLiteCache lfmCache) : base(lfmCache) {
+			CommandObj = lfmCache.CreateCommand();
 			
             CommandObj.CommandText = CommandText;
         }

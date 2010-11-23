@@ -24,7 +24,7 @@ AND L.ListID = T.CurrentSimilarTrackList
 		}
 		public TrackSimilarityListInfo Execute(TrackId id) {
 			if (!id.HasValue) return TrackSimilarityListInfo.CreateUnknown(id);
-			return DoInLockedTransaction(() => ExecuteImpl(id));
+			return  DoInLockedTransaction(() => ExecuteImpl(id));
 		}
 		TrackSimilarityListInfo ExecuteImpl(TrackId id) {
 			trackId.Value = id.Id;

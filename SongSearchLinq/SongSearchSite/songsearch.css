@@ -231,7 +231,7 @@ body
     font-size: 60%;
     z-index: -1;
     color: #ccc;
-    content: attr(data-lookups) " lookups; " attr(data-milliseconds) "ms";
+    content:  attr(data-milliseconds) "ms; " attr(data-lookups) "sql; " attr(data-weblookups) "webT; ";
 }
 
 

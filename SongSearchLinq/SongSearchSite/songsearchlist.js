@@ -230,6 +230,7 @@ $(document).ready(function ($) {
                 if (mouseInSimilar) { simDispDataWait = data; leftColSel.addClass("waiting"); }
                 else updateSimilarDisplay(data);
                 leftColSel.attr("data-lookups", data.lookups);
+                leftColSel.attr("data-weblookups", data.weblookups);
                 leftColSel.attr("data-milliseconds", data.milliseconds);
 
                 if (simStateSet.current == "done") return;

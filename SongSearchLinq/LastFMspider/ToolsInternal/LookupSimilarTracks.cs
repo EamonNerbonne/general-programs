@@ -3,10 +3,11 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using LastFMspider.LastFMSQLiteBackend;
 using LastFMspider.OldApi;
 
 namespace LastFMspider {
-	static class LookupSimilarTracksHelper {
+	public static class LookupSimilarTracksHelper {
 		static readonly TimeSpan normalMaxAge = TimeSpan.FromDays(365.0);
 
 		public static SongSimilarityList Lookup(SongTools tools, SongRef songref, TimeSpan maxAge = default(TimeSpan)) {
@@ -21,6 +22,8 @@ namespace LastFMspider {
 
 		static readonly object syncInFlight = new object();
 		static readonly Dictionary<SongRef, Task<SongSimilarityList>> inFlight = new Dictionary<SongRef, Task<SongSimilarityList>>();
+		static int lookupsDone;
+		public static int WebLookupsSoFar() { return lookupsDone; }
 
 		static SongSimilarityList DoWebLookup(LastFMSQLiteCache backingDB, SongRef songref) {
 			Console.Write("?" + songref);
@@ -30,6 +33,7 @@ namespace LastFMspider {
 					lookupTask = Task.Factory.StartNew(() => OldApiClient.Track.GetSimilarTracks(songref));
 					lookupTask.ContinueWith(task => {
 						Console.WriteLine(" [" + task.Result.similartracks.Length + "]");
+						Interlocked.Increment(ref lookupsDone);
 						try {
 							backingDB.InsertSimilarityList.Execute(task.Result);
 						} catch {//retry; might be a locking issue.  only retry once.
@@ -55,14 +59,13 @@ namespace LastFMspider {
 			return cachedVersion.ListID.HasValue && cachedVersion.LookupTimestamp.HasValue && cachedVersion.LookupTimestamp.Value >= DateTime.UtcNow - maxAge;
 		}
 
-		public static void RefreshCache(LastFMSQLiteCache backingDB, TrackSimilarityListInfo list, TimeSpan maxAge = default(TimeSpan)) {
-			maxAge = maxAge == default(TimeSpan) ? normalMaxAge : maxAge;
+		public static void RefreshCache(LastFMSQLiteCache backingDB, TrackId track, TimeSpan maxAge = default(TimeSpan)) {
+			TrackSimilarityListInfo list = backingDB.LookupSimilarityListInfo.Execute(track);
 			if (!IsFresh(list, maxAge)) {
 				var songref = backingDB.LookupTrack.Execute(list.TrackId);
 				if (songref != null)
 					DoWebLookup(backingDB, songref);
 			}
 		}
-
 	}
 }

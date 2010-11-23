@@ -5,23 +5,10 @@ namespace LastFMspider.LastFMSQLiteBackend {
 	public abstract class AbstractLfmCacheOperation {
 		readonly protected LastFMSQLiteCache lfmCache;
 		protected object SyncRoot { get { return lfmCache.SyncRoot; } }
-		protected DbConnection Connection { get { return lfmCache.Connection; } }
+//		protected DbConnection Connection { get { return lfmCache.Connection; } }
 		protected AbstractLfmCacheOperation(LastFMSQLiteCache lfmCache) { this.lfmCache = lfmCache; }
 
-		protected TOut DoInLockedTransaction<TOut>(Func<TOut> func) {
-			lock (SyncRoot)
-				using (var trans = Connection.BeginTransaction()) {
-					TOut retval = func();
-					trans.Commit();
-					return retval;
-				}
-		}
-		protected void DoInLockedTransaction(Action func) {
-			lock (SyncRoot)
-				using (var trans = Connection.BeginTransaction()) {
-					func();
-					trans.Commit();
-				}
-		}
+		protected TOut DoInLockedTransaction<TOut>(Func<TOut> func) { return lfmCache.DoInLockedTransaction(func); }
+		protected void DoInLockedTransaction(Action action) { lfmCache.DoInLockedTransaction(action); }
 	}
 }
