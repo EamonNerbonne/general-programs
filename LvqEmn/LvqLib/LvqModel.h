@@ -24,7 +24,7 @@ protected:
 	double stepLearningRate() {
 		double scaledIter = trainIter*iterationScaleFactor+1.0;
 		++trainIter;
-		return LVQ_LR0 / sqrt(scaledIter*sqrt(scaledIter)); // significantly faster than exp(-0.75*log(scaledIter)) 
+		return settings.LR0 / sqrt(scaledIter*sqrt(scaledIter)); // significantly faster than exp(-0.75*log(scaledIter)) 
 	}
 	//subclasses must append the stats they intend to collect and call their base-classes AppendTrainingStatNames
 	virtual void AppendTrainingStatNames(std::vector<std::wstring> & retval) const;
@@ -36,7 +36,7 @@ public:
 	int epochsTrained;
 	double currentLearningRate() const { 
 		double scaledIter = trainIter*iterationScaleFactor+1.0;
-		return LVQ_LR0 / sqrt(scaledIter*sqrt(scaledIter)); 
+		return settings.LR0 / sqrt(scaledIter*sqrt(scaledIter)); 
 	}
 
 	boost::mt19937 & RngIter() {return *settings.RngIter;}//TODO:remove.

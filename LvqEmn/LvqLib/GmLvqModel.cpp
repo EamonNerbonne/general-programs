@@ -5,7 +5,6 @@
 
 GmLvqModel::GmLvqModel( LvqModelSettings & initSettings)
 	: LvqModel(initSettings)
-	, lr_scale_P(LVQ_LrScaleP)
 	, tmpSrcDimsV1(initSettings.Dimensions())
 	, tmpSrcDimsV2(initSettings.Dimensions())
 	, tmpDestDimsV2()
@@ -55,7 +54,7 @@ GoodBadMatch GmLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel) 
 	using namespace std;
 
 	double lr_point = learningRate,
-		lr_P = learningRate * lr_scale_P;
+		lr_P = learningRate * settings.LrScaleP;
 
 	assert(lr_P>=0 && lr_point>=0);
 
@@ -81,13 +80,13 @@ GoodBadMatch GmLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel) 
 	lrX_muK2_Pj_vJ.noalias() =P[J] * vJ;
 	lrX_muK2_Pj_vJ *= lr_point * mu_K * 2.0;
 	lrX_muJ2_Pk_vK.noalias() = P[K] * vK;
-	lrX_muJ2_Pk_vK *= LVQ_LrScaleBad*lr_point * mu_J * 2.0;
+	lrX_muJ2_Pk_vK *= settings.LrScaleBad*lr_point * mu_J * 2.0;
 
 	prototype[J].noalias() -= P[J].transpose() * lrX_muK2_Pj_vJ;
 	prototype[K].noalias() -= P[K].transpose() * lrX_muJ2_Pk_vK;
 
 	lrX_muK2_Pj_vJ *= lr_P / lr_point;
-	lrX_muJ2_Pk_vK *= lr_P / lr_point/LVQ_LrScaleBad;
+	lrX_muJ2_Pk_vK *= lr_P / lr_point/settings.LrScaleBad;
 	P[J].noalias() -= lrX_muK2_Pj_vJ * vJ.transpose() ;
 	P[K].noalias() -= lrX_muJ2_Pk_vK * vK.transpose() ;
 	return matches;

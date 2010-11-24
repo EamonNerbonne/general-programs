@@ -7,7 +7,6 @@ class GsmLvqModel : public LvqProjectionModelBase<GsmLvqModel>
 	std::vector<VectorXd> prototype;
 	std::vector<Vector2d, Eigen::aligned_allocator<Vector2d> > P_prototype;
 	VectorXi pLabel;
-	double lr_scale_P;
 
 
 	std::vector<CorrectAndWorstMatches::MatchOk> ngMatchCache;

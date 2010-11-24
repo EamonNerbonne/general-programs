@@ -7,11 +7,11 @@ using System;
 
 namespace LvqGui {
 	public partial class LvqWindow {
-		CancellationTokenSource cts = new CancellationTokenSource();
+		readonly CancellationTokenSource cts = new CancellationTokenSource();
 		public CancellationToken ClosingToken { get { return cts.Token; } }
 		public LvqWindow() {
 			
-			Thread.CurrentThread.Priority = ThreadPriority.AboveNormal;
+			Thread.CurrentThread.Priority = ThreadPriority.Highest;
 			var windowValues = new LvqWindowValues(this);
 			DataContext = windowValues;
 			InitializeComponent();
@@ -21,10 +21,10 @@ namespace LvqGui {
 #if BENCHMARK
 			this.Loaded += (o, e) => DoBenchmark();
 #endif
-			this.Closed += new System.EventHandler(LvqWindow_Closed);
+			Closed += LvqWindow_Closed;
 		}
 
-		void LvqWindow_Closed(object sender, System.EventArgs e) {
+		void LvqWindow_Closed(object sender, EventArgs e) {
 			cts.Cancel();
 			plotData.Dispose();
 			plotData = null;

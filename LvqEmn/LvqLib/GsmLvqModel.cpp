@@ -6,7 +6,6 @@ using namespace std;
 
 GsmLvqModel::GsmLvqModel(LvqModelSettings & initSettings)
 	: LvqProjectionModelBase(initSettings) 
-	, lr_scale_P(LVQ_LrScaleP)
 	, m_vJ(initSettings.Dimensions())
 	, m_vK(initSettings.Dimensions())
 {
@@ -45,7 +44,7 @@ GoodBadMatch GsmLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel)
 	using namespace std;
 
 	double lr_point = learningRate,
-		lr_P = learningRate * this->lr_scale_P;
+		lr_P = learningRate * settings.LrScaleP;
 
 	assert(lr_P>=0 && lr_point>=0);
 
@@ -81,13 +80,13 @@ GoodBadMatch GsmLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel)
 	vK = prototype[K] - trainPoint;
 
 	prototype[J].noalias() -= P.transpose() * (lr_point * muK2_P_vJ);
-	prototype[K].noalias() -= P.transpose() * (LVQ_LrScaleBad*lr_point *muJ2_P_vK);
+	prototype[K].noalias() -= P.transpose() * (settings.LrScaleBad*lr_point *muJ2_P_vK);
 
 	P.noalias() -= (lr_P * muK2_P_vJ) * vJ.transpose() + (lr_P * muJ2_P_vK) * vK.transpose();
 
 	if(ngMatchCache.size()>0) {
 		double lrSub = lr_point;
-		double lrDelta = 0.1;//exp(-2*LVQ_LR0/learningRate);//TODO: this is rather ADHOC
+		double lrDelta = 0.1;//exp(-2*settings.LR0 /learningRate);//TODO: this is rather ADHOC
 		for(int i=1;i<fullmatch.foundOk;++i) {
 			lrSub*=lrDelta;
 			VectorXd &Js = prototype[fullmatch.matchesOk[i].idx];

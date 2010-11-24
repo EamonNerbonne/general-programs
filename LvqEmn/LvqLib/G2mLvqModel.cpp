@@ -7,8 +7,6 @@ using namespace Eigen;
 
 G2mLvqModel::G2mLvqModel(LvqModelSettings & initSettings)
 	: LvqProjectionModelBase(initSettings)
-	, lr_scale_P(LVQ_LrScaleP)
-	, lr_scale_B(LVQ_LrScaleB)
 	, m_vJ(initSettings.Dimensions())
 	, m_vK(initSettings.Dimensions())
 {
@@ -46,8 +44,8 @@ GoodBadMatch G2mLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel)
 	double learningRate = stepLearningRate();
 
 	double lr_point = learningRate,
-		lr_P = learningRate * lr_scale_P,
-		lr_B = learningRate * lr_scale_B; 
+		lr_P = learningRate * settings.LrScaleP,
+		lr_B = learningRate * settings.LrScaleB; 
 
 	assert(lr_P>=0 && lr_B>=0 && lr_point>=0);
 
@@ -97,12 +95,12 @@ GoodBadMatch G2mLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel)
 	} else {
 		J.point.noalias() -= P.transpose()* (lr_point * muK2_BjT_Bj_P_vJ);
 	}
-	K.point.noalias() -= P.transpose() * (LVQ_LrScaleBad*lr_point * muJ2_BkT_Bk_P_vK) ;
+	K.point.noalias() -= P.transpose() * (settings.LrScaleBad*lr_point * muJ2_BkT_Bk_P_vK) ;
 	P.noalias() -= (lr_P * muK2_BjT_Bj_P_vJ) * vJ.transpose() + (lr_P * muJ2_BkT_Bk_P_vK) * vK.transpose() ;
 	
 	if(ngMatchCache.size()>0) {
 		double lrSub = lr_point;
-		double lrDelta = exp(-0.3*LVQ_LR0/learningRate);//TODO: this is rather ADHOC
+		double lrDelta = exp(-0.3*settings.LR0/learningRate);//TODO: this is rather ADHOC
 		for(int i=1;i<fullmatch.foundOk;++i) {
 			lrSub*=lrDelta;
 			G2mLvqPrototype &Js = prototype[fullmatch.matchesOk[i].idx];

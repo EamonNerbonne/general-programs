@@ -9,7 +9,6 @@ class G2mLvqModel : public LvqProjectionModelBase<G2mLvqModel>
 	typedef std::vector<G2mLvqPrototype, Eigen::aligned_allocator<G2mLvqPrototype> > protoList;
 
 	protoList prototype;
-	double lr_scale_P, lr_scale_B;
 	std::vector<CorrectAndWorstMatches::MatchOk> ngMatchCache;
 
 	//we will preallocate a few temp vectors to reduce malloc/free overhead.

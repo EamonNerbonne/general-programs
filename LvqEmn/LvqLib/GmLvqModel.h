@@ -10,7 +10,6 @@ class GmLvqModel : public LvqModel, public LvqModelFindMatches<GmLvqModel,Vector
 	vector<MatrixXd > P; 
 	vector<VectorXd> prototype;
 	VectorXi pLabel;
-	double lr_scale_P;
 
 	//calls dimensionality of input-space DIMS, output space DIMSOUT
 	//we will preallocate a few vectors to reduce malloc/free overhead.
