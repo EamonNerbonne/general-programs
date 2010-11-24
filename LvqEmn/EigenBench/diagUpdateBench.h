@@ -20,7 +20,7 @@ double diagTest() {
 		VectorXd vJ = VectorXd::Random(DIMS);
 		VectorXd vK = VectorXd::Random(DIMS);
 		Matrix<double,2,Dynamic> P = Matrix<double,2,Dynamic>::Random(2,DIMS);
-		double lr_P = ei_random<double>();
+		double lr_P = Eigen::internal::random<double>();
 
 		const int num_runs = 5000000; //5 000 000 was what I used for the forum threads.
 		t.start();

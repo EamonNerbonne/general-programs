@@ -14,7 +14,7 @@ double resizeTest() {
 #if NO_MAP
 		VectorXd v;
 #else
-		double* mem=ei_aligned_new<double>(MAXDIMS);
+		double* mem=internal::aligned_new<double>(MAXDIMS);
 		Map<VectorXd,Aligned> v2(mem,ACTUALDIMS);
 #endif
 
@@ -30,7 +30,7 @@ double resizeTest() {
 		}
 		t.stop();
 #if !NO_MAP
-		ei_aligned_delete(mem,MAXDIMS);
+		internal::aligned_delete(mem,MAXDIMS);
 #endif
 	}
 	cout <<"(" << sum <<") ";

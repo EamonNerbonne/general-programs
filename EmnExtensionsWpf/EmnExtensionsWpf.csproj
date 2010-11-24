@@ -216,6 +216,10 @@
     </Page>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\EmnExtensionsNative\EmnExtensionsNative.vcxproj">
+      <Project>{7CBC6D31-2104-4A4B-9FC2-D731E30103F5}</Project>
+      <Name>EmnExtensionsNative</Name>
+    </ProjectReference>
     <ProjectReference Include="..\EmnExtensions\EmnExtensions.csproj">
       <Project>{2F0A3E48-CD06-43BB-BFC6-6B6F568232B9}</Project>
       <Name>EmnExtensions</Name>
