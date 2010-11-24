@@ -76,14 +76,14 @@ namespace EmnExtensions.Wpf {
 		RestoringReadStream stdOutOverride;
 		public bool ClaimStandardOut {
 			get {
-				return stdOutOverride !=null;
+				return stdOutOverride != null;
 			}
 			set {
 				if (ClaimStandardOut != value) {
 					if (value) {
 						oldOut = Console.Out;
 						Console.SetOut(logger);
-						RedirectNativeStream(this, stdOutOverride=StdoutRedirector.RedirectStdout(),"stdout");
+						RedirectNativeStream(this, stdOutOverride = StdoutRedirector.RedirectStdout(), "stdout");
 					} else {
 						stdOutOverride.Dispose();
 						stdOutOverride = null;
@@ -103,7 +103,7 @@ namespace EmnExtensions.Wpf {
 					if (value) {
 						oldError = Console.Error;
 						Console.SetError(logger);
-						RedirectNativeStream(this, stdErrOverride=StdoutRedirector.RedirectStderr(),"stderr");
+						RedirectNativeStream(this, stdErrOverride = StdoutRedirector.RedirectStderr(), "stderr");
 					} else {
 						stdErrOverride.Dispose();
 						stdErrOverride = null;
@@ -113,7 +113,7 @@ namespace EmnExtensions.Wpf {
 			}
 		}
 
-		private static void RedirectNativeStream(LogControl toControl, RestoringReadStream fromNative,string name) {
+		private static void RedirectNativeStream(LogControl toControl, RestoringReadStream fromNative, string name) {
 			new Thread(() => {
 				using (var reader = new StreamReader(fromNative.ReadStream)) {
 					char[] buffer = new char[4096];
@@ -123,7 +123,6 @@ namespace EmnExtensions.Wpf {
 						toControl.AppendThreadSafe(new string(buffer, 0, actuallyRead));
 					}
 				}
-				File.AppendAllText(@"D:\logcontrol.log","exiting "+name+"\n");
 			}) { IsBackground = true }.Start();
 		}
 	}

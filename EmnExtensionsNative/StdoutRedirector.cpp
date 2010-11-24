@@ -20,8 +20,6 @@ namespace EmnExtensionsNative {
 		, underlyingOutStream(underlyingOutStream) 
 		, newOutStream(newOutStream)
 	{
-		//File::AppendAllText("D:\\redir.txt",System::String::Format( "Constructed RestoringReadStream:{0}, {1}\n",(IntPtr)underlyingOutStream,(IntPtr)newOutStream));
-		//printf("%p, %p\n",underlyingOutStream,newOutStream);
 	}
 
 	RestoringReadStream::!RestoringReadStream() { 
@@ -31,11 +29,9 @@ namespace EmnExtensionsNative {
 		origFileValue=nullptr; 
 		underlyingOutStream = nullptr; 
 		newOutStream = nullptr;
-		//File::AppendAllText("D:\\redir.txt","!RestoringReadStream\n");
 	}
 
 	RestoringReadStream::~RestoringReadStream() { 
-		//File::AppendAllText("D:\\redir.txt","~RestoringReadStream\n"); 
 		this->!RestoringReadStream(); 
 	} 
 

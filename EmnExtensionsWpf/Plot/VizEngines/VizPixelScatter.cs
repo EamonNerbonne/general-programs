@@ -1,5 +1,5 @@
 ﻿//#define SHAREMEM //useful on workstation GC
-#define TRACKUSAGE //handy to see how fast GUI is.
+//#define TRACKUSAGE //handy to see how fast GUI is.
 using System;
 
 using System.Windows;
