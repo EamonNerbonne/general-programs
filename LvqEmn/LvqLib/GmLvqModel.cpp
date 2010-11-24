@@ -53,42 +53,32 @@ GoodBadMatch GmLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel) 
 	double learningRate = stepLearningRate();
 	using namespace std;
 
-	double lr_point = learningRate,
-		lr_P = learningRate * settings.LrScaleP;
-
-	assert(lr_P>=0 && lr_point>=0);
-
 	GoodBadMatch matches = findMatches(trainPoint, trainLabel);
 
 	//now matches.good is "J" and matches.bad is "K".
 
-	double mu_J = -2.0 * matches.distGood / (sqr(matches.distGood) + sqr(matches.distBad));
-	double mu_K = +2.0 * matches.distBad / (sqr(matches.distGood) + sqr(matches.distBad));
+	double lr_mu_J2 = learningRate * 2.0*-2.0 * matches.distGood / (sqr(matches.distGood) + sqr(matches.distBad));
+	double lr_mu_K2 = learningRate * 2.0*+2.0 * matches.distBad / (sqr(matches.distGood) + sqr(matches.distBad));
 
 	int J = matches.matchGood;
 	int K = matches.matchBad;
 
 	VectorXd & vJ = tmpSrcDimsV1;
 	VectorXd & vK = tmpSrcDimsV2;
-	VectorXd & lrX_muK2_Pj_vJ = tmpDestDimsV1;
-	VectorXd & lrX_muJ2_Pk_vK = tmpDestDimsV2;
+	VectorXd & Pj_vJ = tmpDestDimsV1;
+	VectorXd & Pk_vK = tmpDestDimsV2;
 
 	vJ = prototype[J] - trainPoint;
 	vK = prototype[K] - trainPoint;
 
+	Pj_vJ.noalias() =P[J] * vJ;
+	Pk_vK.noalias() = P[K] * vK;
 
-	lrX_muK2_Pj_vJ.noalias() =P[J] * vJ;
-	lrX_muK2_Pj_vJ *= lr_point * mu_K * 2.0;
-	lrX_muJ2_Pk_vK.noalias() = P[K] * vK;
-	lrX_muJ2_Pk_vK *= settings.LrScaleBad*lr_point * mu_J * 2.0;
+	prototype[J].noalias() -= (lr_mu_K2)* (P[J].transpose() * Pj_vJ);
+	prototype[K].noalias() -= (settings.LrScaleBad*lr_mu_J2) * (P[K].transpose() * Pk_vK);
 
-	prototype[J].noalias() -= P[J].transpose() * lrX_muK2_Pj_vJ;
-	prototype[K].noalias() -= P[K].transpose() * lrX_muJ2_Pk_vK;
-
-	lrX_muK2_Pj_vJ *= lr_P / lr_point;
-	lrX_muJ2_Pk_vK *= lr_P / lr_point/settings.LrScaleBad;
-	P[J].noalias() -= lrX_muK2_Pj_vJ * vJ.transpose() ;
-	P[K].noalias() -= lrX_muJ2_Pk_vK * vK.transpose() ;
+	P[J].noalias() -= (settings.LrScaleP*  lr_mu_K2) * (Pj_vJ * vJ.transpose() );
+	P[K].noalias() -=(settings.LrScaleP*lr_mu_J2) * (Pk_vK * vK.transpose() );
 	return matches;
 }
 
