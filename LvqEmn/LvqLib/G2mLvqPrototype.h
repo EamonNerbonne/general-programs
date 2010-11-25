@@ -39,5 +39,9 @@ public:
 		return (B * P_Diff).squaredNorm();//waslazy
 	}
 
+	inline double SqrRawDistanceTo(Vector2d const & P_testPoint) const {
+		return (P_testPoint - P_point).squaredNorm();
+	}
+
 	EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 };

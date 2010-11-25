@@ -53,23 +53,33 @@ GoodBadMatch G2mLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel)
 
 	CorrectAndWorstMatches fullmatch(0);
 	GoodBadMatch matches;
+
 	if(ngMatchCache.size()>0) {
 		fullmatch = CorrectAndWorstMatches(& (ngMatchCache[0]));
-		for(int i=0;i<(int)prototype.size();++i) 
-			fullmatch.Register(SqrDistanceTo(i, P_trainPoint),i, PrototypeLabel(i) == trainLabel);
-		fullmatch.SortOk();
-		matches = fullmatch.ToGoodBadMatch();
+		if(settings.UpdatePointsWithoutB) {
+			for(int i=0;i<(int)prototype.size();++i) 
+				fullmatch.Register(prototype[i].SqrRawDistanceTo(P_trainPoint),i, PrototypeLabel(i) == trainLabel);
+			fullmatch.SortOk();
+			matches.matchGood = fullmatch.matchesOk[0].idx;
+			matches.matchBad = fullmatch.matchBad;
+			matches.distGood = prototype[matches.matchGood].SqrDistanceTo(P_trainPoint);
+			matches.distBad = prototype[matches.matchBad].SqrDistanceTo(P_trainPoint);
+		} else {
+			for(int i=0;i<(int)prototype.size();++i) 
+				fullmatch.Register(SqrDistanceTo(i, P_trainPoint),i, PrototypeLabel(i) == trainLabel);
+			fullmatch.SortOk();
+
+			matches = fullmatch.ToGoodBadMatch();
+		}
 	} else {
 		matches = findMatches(P_trainPoint, trainLabel);
 	}
 
 	//now matches.good is "J" and matches.bad is "K".
-
-	double muJ2 = 2.0*-2.0*matches.distGood / (sqr(matches.distGood) + sqr(matches.distBad));
-	double muK2 = 2.0*+2.0*matches.distBad / (sqr(matches.distGood) + sqr(matches.distBad));
-
 	G2mLvqPrototype &J = prototype[matches.matchGood];
 	G2mLvqPrototype &K = prototype[matches.matchBad];
+	double muJ2 = matches.MuJ() * 2;
+	double muK2 = matches.MuK() * 2;
 
 	MVectorXd vJ(m_vJ.data(),m_vJ.size());
 	MVectorXd vK(m_vK.data(),m_vK.size());

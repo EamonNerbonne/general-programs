@@ -1,5 +1,6 @@
 #pragma once
 #include <numeric>
+#include "utils.h"
 
 struct GoodBadMatch {
 	double distGood, distBad;
@@ -13,6 +14,8 @@ struct GoodBadMatch {
 #endif
 	{}
 	double CostFunc() const { return (distGood - distBad)/(distGood+distBad); }
+	double MuJ() const {return -2.0*distGood / (sqr(distGood) + sqr(distBad));}
+	double MuK() const{return +2.0*distBad / (sqr(distGood) + sqr(distBad));}
 	bool IsErr()const{return distGood > distBad;}
 };
 
@@ -48,6 +51,8 @@ struct CorrectAndWorstMatches {
 	inline void SortOk() { std::sort(matchesOk,matchesOk+foundOk); }
 
 	double CostFunc() const { return (matchesOk[0].dist - distBad)/(matchesOk[0].dist+distBad); }
+	double MuJ() const {return -2.0*matchesOk[0].dist / (sqr(matchesOk[0].dist) + sqr(distBad));}
+	double MuK() const{return +2.0*distBad / (sqr(matchesOk[0].dist) + sqr(distBad));}
 	bool IsErr()const{return matchesOk[0].dist > distBad;}
 
 	GoodBadMatch ToGoodBadMatch() {
