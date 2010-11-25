@@ -1,55 +1,121 @@
-blink { text-decoration: none ! important; }
-
-A:link[HREF*="adserver."] IMG { display: none ! important }
-A:link[HREF*="?BannerID"] IMG { display: none ! important }
-A:link[HREF*="/ad"] IMG { display: none ! important }
-A:link[HREF*="/A="] IMG { display: none ! important }
-A:link[HREF*="/click"] IMG { display: none ! important }
-A:link[HREF*="?click"] IMG { display: none ! important }
-A:link[HREF*="?banner"] IMG { display: none ! important }
-A:link[HREF*="=click"] IMG { display: none ! important }
-A:link[HREF*="/ar.atwo"] IMG { display: none ! important }
-A:link[HREF*="spinbox."] IMG { display: none ! important }
-A:link[HREF*="transfer.go"] IMG { display: none ! important }
-A:link[HREF*="adfarm"] IMG { display: none ! important }
-A:link[HREF*="bluestreak"] IMG { display: none ! important }
-A:link[HREF*="doubleclick"] IMG { display: none ! important }
-A:link[HREF*="prisdatabasen.dk"] IMG { display: none ! important }
-A:link IMG[width="468"][height="60"] { display: none ! important }
-A:link IMG[width="469"][height="60"] { display: none ! important }
-
-/* disable ad iframes */
-IFRAME[SRC*="ad."]  { display: none ! important }
-IFRAME[SRC*="ads"]  { display: none ! important }
-IFRAME[SRC*="/ad"]  { display: none ! important }
-IFRAME[SRC*="/A="]  { display: none ! important }
-IFRAME[SRC*="/click"]  { display: none ! important }
-IFRAME[SRC*="?click"]  { display: none ! important }
-IFRAME[SRC*="?banner"]  { display: none ! important }
-IFRAME[SRC*="=click"]  { display: none ! important }
-IFRAME[SRC*="/ar.atwo"]  { display: none ! important }
-IFRAME[SRC*="spinbox."]  { display: none ! important }
-IFRAME[SRC*="transfer.go"]  { display: none ! important }
-IFRAME[SRC*="adfarm"]  { display: none ! important }
-IFRAME[SRC*="bluestreak"]  { display: none ! important }
-IFRAME[SRC*="doubleclick"]  { display: none ! important }
-
-/*IMG[usemap] { display: none ! important }*/
-
-/* turning some false positives back off */
 /*
-A:link[HREF*="download."] IMG { display: inline ! important }
-A:link[HREF*="click.mp3"] IMG { display: inline ! important }
-A:link[HREF*="ead."] IMG { display: inline ! important }
-A:link[HREF*="eads."] IMG { display: inline ! important }
-*/
-/* Remove all flash */
-embed[type="application/x-shockwave-flash"]{
-  display: none !important;
-}
+ * Edit this file and copy it as userContent.css into your
+ * profile-directory/chrome/
+ */
 
-/* Allow the flash that is proven useful at biobooking.dk */
-embed[type="application/x-shockwave-flash"][width="550"][height="299"] {
-  display: inline !important;
-}
+/*
+ * This file can be used to apply a style to all web pages you view
+ * Rules without !important are overruled by author rules if the
+ * author sets any.  Rules with !important overrule author rules.
+ */
 
+/*
+ * example: turn off "blink" element blinking
+ *
+ * blink { text-decoration: none ! important; }
+ *
+ */
+
+/*
+ * example: give all tables a 2px border
+ *
+ * table { border: 2px solid; }
+ */
+
+/*
+ * example: turn off "marquee" element
+ *
+ * marquee { -moz-binding: none; }
+ *
+ */
+ 
+/* 
+ * For more examples see http://www.mozilla.org/unix/customizing.html
+ */
+
+pre {
+  max-width: 22cm;
+  overflow:auto;
+  }
+  
+  *:focus {
+  -moz-box-shadow: 0 0 1em gold, inset 0 0 1em gold;
+  outline:none;
+  }
+  
+@-moz-document domain(icanhascheezburger.com) {
+  .slide-notification
+  , .socmarks
+  , div[id^="emailShare"]
+  , div[id^="embedFavorite"]
+  , .templates
+  , #pane3 .widget_text
+  , #pane3 .widget_rss
+  , #pane3 > .widget
+  , #pane3 > .skyscraper
+  , #betaBar
+  , #subfooter
+  , .tabSet
+  , #leftcolumn
+  , #floattop
+  , #pane1
+  , .leftcolumnad
+  , .rightskyad
+  , .leaderboard
+  , .leftcolumnad
+  , .content-attribution
+  , .entry > div > p.commentnow
+  , .widget_recent_comments
+  , #pane2 > div
+  , #pane2 > p
+   {display:none !important;}
+    #mainbody{
+    width:100%  !important; margin:0  !important;position:static !important;
+    border:none!important;
+    min-height:0!important;
+    }
+    #pane2 > div.post{
+    display:inline-block!important;
+    margin:1em!important;
+    padding:0!important;
+    -moz-box-shadow: 0 0 2em black;
+    }
+    .post h2 {margin-top:0!important; border:none!important;}
+    .post .postsubtitle {margin:0 1em!important; width:auto!important;}
+    .post p {margin:0.5em 1em !important;}
+    .post p.mine_asset {text-align:center;margin:0!important;}
+    .post p.mine_asset img {display:inline-block;}
+    div.postsubtitle div.right {margin-right:1em;}
+    #pane2 .entry { max-width: 500px;}
+     #pane2 > div.navigation{
+    display:block!important;
+    background: white !important;
+    border: 1px solid black !important;
+    border-bottom: none !important;
+    border-right: none !important;
+    padding: 0.5em !important;
+    position: fixed;
+    right: 0;
+    bottom:0;
+    text-align: center;
+    -moz-box-shadow: 0 0 2em black;
+    }
+    body{background:none !important;}
+    .widget{float:left !important;}
+    #panemain{
+    float:none !important;
+    padding:0.5em !important;
+    }
+    .post,#panemain{    display:inline-block;}
+    table[cellpadding="3"] {
+      float:left;
+    }
+    #pane2 {
+      width:auto !important;
+      float:none !important;
+      overflow:visible !important;
+      min-height:0 !important;
+      padding:0.5em !important;
+      text-align:center;
+    }
+}
