@@ -126,6 +126,10 @@ void EasyLvqTest() {
 		//TestModel(LvqModelSettings::GsmModelType, rndGen2, true, dataset.get(), protoDistrib, ITERS);
 		TestModel(LvqModelSettings::GsmModelType, rndGen2, false, dataset.get(), protoDistrib, ITERS);
 
+		//TestModel(LvqModelSettings::GmmModelType, rndGen2, true, dataset.get(), protoDistrib, ITERS);
+		TestModel(LvqModelSettings::GmmModelType, rndGen2, false, dataset.get(), protoDistrib, ITERS);
+
+
 		cerr<<"\n";
 		t.stop();
 	}

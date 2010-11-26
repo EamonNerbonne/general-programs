@@ -83,7 +83,7 @@ public:
 	bool NgUpdateProtos;
 	int Dimensionality;
 
-	enum LvqModelType { AutoModelType, GmModelType, GsmModelType, G2mModelType };
+	enum LvqModelType { AutoModelType, GmModelType, GsmModelType, G2mModelType, GmmModelType };
 	LvqModelType ModelType;
 	boost::mt19937 RngParams;
 	LvqModelRuntimeSettings RuntimeSettings;

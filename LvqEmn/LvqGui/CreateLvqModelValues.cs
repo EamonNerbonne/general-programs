@@ -168,16 +168,18 @@ namespace LvqGui {
 				(--.*)?\s*$",
 		RegexOptions.Compiled | RegexOptions.ExplicitCapture | RegexOptions.IgnorePatternWhitespace);
 
+		bool isBoundaryModel { get { return ModelType == LvqModelType.G2mModelType || ModelType == LvqModelType.GmmModelType; } }
+
 		public string Shorthand {
 			get {
 				return ModelType
 				+ (ModelType == LvqModelType.GmModelType ? "[" + Dimensionality + "]" : "")
 				+ "," + PrototypesPerClass
 				+ ",rP" + (RandomInitialProjection ? "+" : "")
-				+ (ModelType == LvqModelType.G2mModelType ? ",rB" + (RandomInitialBorders ? "+" : "") : "")
+				+ (isBoundaryModel ? ",rB" + (RandomInitialBorders ? "+" : "") : "")
 				+ ",nP" + (NormalizeProjection ? "+" : "")
-				+ (ModelType == LvqModelType.G2mModelType ? ",nB" + (NormalizeBoundaries ? "+" : "") : "")
-				+ (ModelType == LvqModelType.G2mModelType && NormalizeBoundaries || NormalizeProjection ? ",gn" + (GloballyNormalize ? "+" : "") : "")
+				+ (isBoundaryModel ? ",nB" + (NormalizeBoundaries ? "+" : "") : "")
+				+ (isBoundaryModel && NormalizeBoundaries || NormalizeProjection ? ",gn" + (GloballyNormalize ? "+" : "") : "")
 				+ (ModelType != LvqModelType.GmModelType ? ",NG" + (NgUpdateProtos ? "+" : "") : "")
 				+ (ModelType == LvqModelType.G2mModelType ? ",noB" + (UpdatePointsWithoutB ? "+" : "") : "")
 				+ "[" + Seed + ":" + InstSeed + "]/" + ParallelModels

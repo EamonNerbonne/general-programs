@@ -2,6 +2,7 @@
 #include "LvqModelSettings.h"
 #include "LvqModel.h"
 
+#include "GmmLvqModel.h"
 #include "G2mLvqModel.h"
 #include "GmLvqModel.h"
 #include "GsmLvqModel.h"
@@ -16,6 +17,9 @@ LvqModel* ConstructLvqModel(LvqModelSettings & initSettings) {
 		break;
 	case LvqModelSettings::G2mModelType:
 		return new G2mLvqModel(initSettings);
+		break;
+	case LvqModelSettings::GmmModelType:
+		return new GmmLvqModel(initSettings);
 		break;
 	default:
 		return 0;

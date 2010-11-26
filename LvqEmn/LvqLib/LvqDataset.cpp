@@ -206,7 +206,9 @@ void LvqDataset::TrainModel(int epochs, LvqModel * model, std::vector<int> const
 			prefetch( &points.coeff (0, shuffledOrder[(tI+1)%shuffledOrder.size()]), cacheLines);
 			GoodBadMatch trainingMatch = model->learnFrom(pointA, pointClass);
 			errs += trainingMatch.IsErr() ?1:0;
-			pointCostSum += trainingMatch.CostFunc();
+			double costFunc =trainingMatch.CostFunc(); 
+			assert(-1<=costFunc&&costFunc<=1);
+			pointCostSum += costFunc;
 		}
 		t.stop();
 		model->AddTrainingStat(this,trainingSubset,pointCostSum/double(shuffledOrder.size()),errs/double(shuffledOrder.size()), testData,testSubset, (int)(1*shuffledOrder.size()), t.value(CPU_TIMER));

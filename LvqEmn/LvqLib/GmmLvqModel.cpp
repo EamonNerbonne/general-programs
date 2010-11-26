@@ -1,14 +1,15 @@
 #include "stdafx.h"
-#include "G2mLvqModel.h"
+#include "GmmLvqModel.h"
 #include "utils.h"
 #include "LvqConstants.h"
 using namespace std;
 using namespace Eigen;
 
-G2mLvqModel::G2mLvqModel(LvqModelSettings & initSettings)
+GmmLvqModel::GmmLvqModel(LvqModelSettings & initSettings)
 	: LvqProjectionModelBase(initSettings)
 	, m_vJ(initSettings.Dimensions())
 	, m_vK(initSettings.Dimensions())
+	, m_PpseudoinvT(LVQ_LOW_DIM_SPACE,initSettings.Dimensions())
 {
 	if(initSettings.Dimensionality!=0 && initSettings.Dimensionality!=2)
 		throw "Illegal Dimensionality";
@@ -24,8 +25,7 @@ G2mLvqModel::G2mLvqModel(LvqModelSettings & initSettings)
 	for(int label=0; label <(int) initSettings.PrototypeDistribution.size();label++) {
 		int labelCount =initSettings.PrototypeDistribution[label];
 		for(int i=0;i<labelCount;i++) {
-			prototype[protoIndex] = G2mLvqPrototype(initSettings.RngParams, initSettings.RandomInitialBorders, label, initSettings.PerClassMeans.col(label));
-			prototype[protoIndex].ComputePP(P);
+			prototype[protoIndex] = GmmLvqPrototype(initSettings.RngParams, initSettings.RandomInitialBorders, label, initSettings.PerClassMeans.col(label), P);
 			protoIndex++;
 		}
 		maxProtoCount = max(maxProtoCount, labelCount);
@@ -39,7 +39,7 @@ G2mLvqModel::G2mLvqModel(LvqModelSettings & initSettings)
 
 typedef Map<VectorXd, Aligned> MVectorXd;
 
-GoodBadMatch G2mLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel) {
+GoodBadMatch GmmLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel) {
 	using namespace std;
 	double learningRate = stepLearningRate();
 
@@ -56,28 +56,18 @@ GoodBadMatch G2mLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel)
 
 	if(ngMatchCache.size()>0) {
 		fullmatch = CorrectAndWorstMatches(& (ngMatchCache[0]));
-		if(settings.UpdatePointsWithoutB) {
-			for(int i=0;i<(int)prototype.size();++i) 
-				fullmatch.Register(prototype[i].SqrRawDistanceTo(P_trainPoint),i, PrototypeLabel(i) == trainLabel);
-			fullmatch.SortOk();
-			matches.matchGood = fullmatch.matchesOk[0].idx;
-			matches.matchBad = fullmatch.matchBad;
-			matches.distGood = prototype[matches.matchGood].SqrDistanceTo(P_trainPoint);
-			matches.distBad = prototype[matches.matchBad].SqrDistanceTo(P_trainPoint);
-		} else {
-			for(int i=0;i<(int)prototype.size();++i) 
-				fullmatch.Register(SqrDistanceTo(i, P_trainPoint),i, PrototypeLabel(i) == trainLabel);
-			fullmatch.SortOk();
+		for(int i=0;i<(int)prototype.size();++i) 
+			fullmatch.Register(SqrDistanceTo(i, P_trainPoint),i, PrototypeLabel(i) == trainLabel);
+		fullmatch.SortOk();
 
-			matches = fullmatch.ToGoodBadMatch();
-		}
+		matches = fullmatch.ToGoodBadMatch();
 	} else {
 		matches = findMatches(P_trainPoint, trainLabel);
 	}
 
 	//now matches.good is "J" and matches.bad is "K".
-	G2mLvqPrototype &J = prototype[matches.matchGood];
-	G2mLvqPrototype &K = prototype[matches.matchBad];
+	GmmLvqPrototype &J = prototype[matches.matchGood];
+	GmmLvqPrototype &K = prototype[matches.matchBad];
 	double muJ2 = matches.MuJ() * 2;
 	double muK2 = matches.MuK() * 2;
 
@@ -93,38 +83,30 @@ GoodBadMatch G2mLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel)
 	Vector2d muK2_BjT_Bj_P_vJ =  J.B.transpose() * muK2_Bj_P_vJ ;
 	Vector2d muJ2_BkT_Bk_P_vK = K.B.transpose() * muJ2_Bk_P_vK ;
 
-	J.B.noalias() -= lr_B * muK2_Bj_P_vJ * P_vJ.transpose() ;
-	K.B.noalias() -= lr_B * muJ2_Bk_P_vK * P_vK.transpose() ;
-	if(settings.UpdatePointsWithoutB) {
-		double distgood = P_vJ.squaredNorm();
-		double distbad = P_vK.squaredNorm();
-		double XmuJ2 = 2.0*-2.0*distgood / (sqr(distgood) + sqr(distbad));
-		double XmuK2 = 2.0*+2.0*distbad / (sqr(distgood) + sqr(distbad));
+	Matrix2d muK2_JBinvT = muK2* J.B.inverse().transpose();
+	Matrix2d muJ2_KBinvT = muJ2* K.B.inverse().transpose();
 
-		J.point.noalias() -= P.transpose()* (lr_point * XmuK2 *P_vJ);
-	} else {
-		J.point.noalias() -= P.transpose()* (lr_point * muK2_BjT_Bj_P_vJ);
-	}
+	J.B.noalias() -= lr_B * (muK2_Bj_P_vJ * P_vJ.transpose() - muK2_JBinvT );
+	K.B.noalias() -= lr_B * (muJ2_Bk_P_vK * P_vK.transpose() - muJ2_KBinvT) ;
+	J.RecomputeBias();
+	K.RecomputeBias();
+
+	J.point.noalias() -= P.transpose()* (lr_point * muK2_BjT_Bj_P_vJ);
 	K.point.noalias() -= P.transpose() * (settings.LrScaleBad*lr_point * muJ2_BkT_Bk_P_vK) ;
-	P.noalias() -= (lr_P * muK2_BjT_Bj_P_vJ) * vJ.transpose() + (lr_P * muJ2_BkT_Bk_P_vK) * vK.transpose() ;
+
+	Matrix2d PPTinv = (P* P.transpose()).inverse();
+	m_PpseudoinvT.noalias() = (P.transpose() * (lr_P *(-muK2-muJ2) * PPTinv)).transpose();
+	P.noalias() -= (lr_P * muK2_BjT_Bj_P_vJ) * vJ.transpose() + (lr_P * muJ2_BkT_Bk_P_vK) * vK.transpose()+ m_PpseudoinvT;
 	
 	if(ngMatchCache.size()>0) {
 		double lrSub = lr_point;
 		double lrDelta = exp(-0.3*settings.LR0/learningRate);//TODO: this is rather ADHOC
 		for(int i=1;i<fullmatch.foundOk;++i) {
 			lrSub*=lrDelta;
-			G2mLvqPrototype &Js = prototype[fullmatch.matchesOk[i].idx];
-			if(settings.UpdatePointsWithoutB) {
-				double distgood = (Js.P_point - P_trainPoint).squaredNorm();
-				double distbad =  P_vK.squaredNorm();
-				double XmuK2 = 2.0*+2.0*distbad / (sqr(distgood) + sqr(distbad));
+			GmmLvqPrototype &Js = prototype[fullmatch.matchesOk[i].idx];
+			double muK2s = 2.0 * +2.0*fullmatch.distBad / (sqr(fullmatch.matchesOk[i].dist) + sqr(fullmatch.distBad));
 
-				Js.point.noalias() -= P.transpose() * (lrSub * XmuK2 * (Js.P_point - P_trainPoint));
-			} else {
-				double muK2s = 2.0 * +2.0*fullmatch.distBad / (sqr(fullmatch.matchesOk[i].dist) + sqr(fullmatch.distBad));
-
-				Js.point.noalias() -= P.transpose() * (lrSub * muK2s * (Js.B.transpose() * (Js.B * (Js.P_point - P_trainPoint))));
-			}
+			Js.point.noalias() -= P.transpose() * (lrSub * muK2s * (Js.B.transpose() * (Js.B * (Js.P_point - P_trainPoint))));
 		}
 	}
 
@@ -134,40 +116,40 @@ GoodBadMatch G2mLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel)
 }
 
 
-LvqModel* G2mLvqModel::clone() const { return new G2mLvqModel(*this); }
+LvqModel* GmmLvqModel::clone() const { return new GmmLvqModel(*this); }
 
-size_t G2mLvqModel::MemAllocEstimate() const {
+size_t GmmLvqModel::MemAllocEstimate() const {
 	return 
-		sizeof(G2mLvqModel) +
+		sizeof(GmmLvqModel) +
 		sizeof(CorrectAndWorstMatches::MatchOk) * ngMatchCache.size()+
 		sizeof(double) * P.size() +
 		sizeof(double) * (m_vJ.size() +m_vK.size()) + //various temps
-		sizeof(G2mLvqPrototype)*prototype.size() + //prototypes; part statically allocated
+		sizeof(GmmLvqPrototype)*prototype.size() + //prototypes; part statically allocated
 		sizeof(double) * (prototype.size() * m_vJ.size()) + //prototypes; part dynamically allocated
 		(16/2) * (4+prototype.size()*2);//estimate for alignment mucking.
 }
 
-MatrixXd G2mLvqModel::GetProjectedPrototypes() const {
+MatrixXd GmmLvqModel::GetProjectedPrototypes() const {
 	MatrixXd retval(LVQ_LOW_DIM_SPACE, static_cast<int>(prototype.size()));
 	for(unsigned i=0;i<prototype.size();++i)
 		retval.col(i) = prototype[i].projectedPosition();
 	return retval;
 }
 
-vector<int> G2mLvqModel::GetPrototypeLabels() const {
+vector<int> GmmLvqModel::GetPrototypeLabels() const {
 	vector<int> retval(prototype.size());
 	for(unsigned i=0;i<prototype.size();++i)
 		retval[i] = prototype[i].label();
 	return retval;
 }
 
-void G2mLvqModel::AppendTrainingStatNames(std::vector<std::wstring> & retval) const {
+void GmmLvqModel::AppendTrainingStatNames(std::vector<std::wstring> & retval) const {
 	LvqProjectionModel::AppendTrainingStatNames(retval);
 	retval.push_back(L"Border matrix norm min|norm|Border Matrix");
 	retval.push_back(L"Border matrix norm mean|norm|Border Matrix");
 	retval.push_back(L"Border matrix norm max|norm|Border Matrix");
 }
-void G2mLvqModel::AppendOtherStats(std::vector<double> & stats, LvqDataset const * trainingSet, std::vector<int>const & trainingSubset, LvqDataset const * testSet, std::vector<int>const & testSubset) const {
+void GmmLvqModel::AppendOtherStats(std::vector<double> & stats, LvqDataset const * trainingSet, std::vector<int>const & trainingSubset, LvqDataset const * testSet, std::vector<int>const & testSubset) const {
 	LvqProjectionModel::AppendOtherStats(stats,trainingSet,trainingSubset,testSet,testSubset);
 
 	double minNorm=std::numeric_limits<double>::max();
@@ -186,7 +168,7 @@ void G2mLvqModel::AppendOtherStats(std::vector<double> & stats, LvqDataset const
 }
 
 
-void G2mLvqModel::ClassBoundaryDiagram(double x0, double x1, double y0, double y1, LvqProjectionModel::ClassDiagramT & classDiagram) const {
+void GmmLvqModel::ClassBoundaryDiagram(double x0, double x1, double y0, double y1, LvqProjectionModel::ClassDiagramT & classDiagram) const {
 	int cols = static_cast<int>(classDiagram.cols());
 	int rows = static_cast<int>(classDiagram.rows());
 	double xDelta = (x1-x0) / cols;
@@ -198,12 +180,14 @@ void G2mLvqModel::ClassBoundaryDiagram(double x0, double x1, double y0, double y
 	//will update to include changes to X.
 	PMatrix B_xDelta(LVQ_LOW_DIM_SPACE,PrototypeCount());//Contains B_i * (xDelta, 0)  for all proto's i
 	PMatrix B_yDelta(LVQ_LOW_DIM_SPACE,PrototypeCount());//Contains B_i * (0 , yDelta)  for all proto's i
+	VectorXd pBias(PrototypeCount());//Contains prototype[i].bias for all proto's i
 
 	for(int pi=0; pi < this->PrototypeCount(); ++pi) {
 		auto & current_proto = this->prototype[pi];
 		B_diff_x0_y.col(pi).noalias() = current_proto.B * ( Vector2d(xBase,yBase) - current_proto.P_point);
 		B_xDelta.col(pi).noalias() = current_proto.B * Vector2d(xDelta,0.0);
 		B_yDelta.col(pi).noalias() = current_proto.B * Vector2d(0.0,yDelta);
+		pBias(pi) = current_proto.bias;
 	}
 
 	for(int yRow=0; yRow < rows; yRow++) {
@@ -211,7 +195,7 @@ void G2mLvqModel::ClassBoundaryDiagram(double x0, double x1, double y0, double y
 		for(int xCol=0; xCol < cols; xCol++) {
 			// x = xBase + xCol * xDelta;  y = yBase + yCol * yDelta;
 			MatrixXd::Index bestProtoI;
-			B_diff_x_y.colwise().squaredNorm().minCoeff(&bestProtoI);
+			(B_diff_x_y.colwise().squaredNorm() + pBias.transpose()).minCoeff(&bestProtoI);
 			classDiagram(yRow, xCol) = this->prototype[bestProtoI].classLabel;
 
 			B_diff_x_y.noalias() += B_xDelta;
@@ -221,13 +205,13 @@ void G2mLvqModel::ClassBoundaryDiagram(double x0, double x1, double y0, double y
 }
 
 
-void G2mLvqModel::DoOptionalNormalization() {
+void GmmLvqModel::DoOptionalNormalization() {
 	 if(settings.NormalizeProjection) 
 		 normalizeProjection(P);
 	 if(settings.NormalizeBoundaries) {
 		 if(settings.GloballyNormalize) {
 			 double overallNorm = std::accumulate(prototype.begin(), prototype.end(),0.0,
-				 [](double cur, G2mLvqPrototype const & proto) -> double { return cur + projectionSquareNorm(proto.B); } 
+				 [](double cur, GmmLvqPrototype const & proto) -> double { return cur + projectionSquareNorm(proto.B); } 
 			     // (cur, proto) => cur + projectionSquareNorm(proto.B)
 			 );
 			 double scale = 1.0/sqrt(overallNorm / prototype.size());
@@ -235,5 +219,6 @@ void G2mLvqModel::DoOptionalNormalization() {
 		 } else {
 			 for(size_t i=0;i<prototype.size();++i) normalizeProjection(prototype[i].B);
 		 }
+		 for(size_t i=0;i<prototype.size();++i) prototype[i].RecomputeBias();
 	 }
 }

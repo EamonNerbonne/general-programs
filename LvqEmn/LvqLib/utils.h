@@ -91,7 +91,6 @@ template <typename T> void projectionRandomizeUniformScaled(boost::mt19937 & ran
 }
 
 
-
 template<typename arrayT>
 void shuffle(boost::mt19937 & randGen, arrayT arr, size_t size){
 	for(size_t i = 0; i<size;++i)

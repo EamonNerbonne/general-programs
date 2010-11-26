@@ -408,6 +408,7 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="GmmLvqModel.cpp" />
     <ClCompile Include="LvqModel.cpp" />
     <ClCompile Include="DatasetUtils.cpp" />
     <ClCompile Include="G2mLvqModel.cpp" />
@@ -433,6 +434,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CovarianceAndMean.h" />
+    <ClInclude Include="GmmLvqModel.h" />
+    <ClInclude Include="GmmLvqPrototype.h" />
     <ClInclude Include="GoodBadMatch.h" />
     <ClInclude Include="LvqModel.h" />
     <ClInclude Include="LvqModelSettings.h" />
