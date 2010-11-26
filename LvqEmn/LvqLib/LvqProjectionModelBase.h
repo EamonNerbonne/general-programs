@@ -28,7 +28,7 @@ public:
 		}
 	}
 
-	GoodBadMatch ComputeMatches(VectorXd const & unknownPoint, int pointLabel) const { return this->findMatches(P * unknownPoint, pointLabel); }
+	MatchQuality ComputeMatches(VectorXd const & unknownPoint, int pointLabel) const { return this->findMatches(P * unknownPoint, pointLabel).LvqQuality(); }
 };
 
 //#pragma managed(pop)

@@ -3,16 +3,6 @@
 #include "LvqTypedefs.h"
 using namespace Eigen;
 #include "utils.h"
-#include <cmath>
-#include <math.h>
-
-#ifdef _MSC_VER
-#define isfinite(x)     (_finite(x)) 
-#else
-using std::isinf;
-using std::isnan;
-bool isfinite(double x) {return !(isinf(x)  || isnan(x));}
-#endif
 
 class GmmLvqPrototype
 {
@@ -54,14 +44,8 @@ public:
 
 	inline double SqrDistanceTo(Vector2d const & P_testPoint) const {
 		Vector2d P_Diff = P_testPoint - P_point;
-		double retval= (B * P_Diff).squaredNorm() + bias;//waslazy
-		assert(retval>=0);
-		return retval;
+		return (B * P_Diff).squaredNorm() + bias;//waslazy
 	}
-
-	//inline double SqrRawDistanceTo(Vector2d const & P_testPoint) const {
-	//	return (P_testPoint - P_point).squaredNorm();
-	//}
 
 	EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 };

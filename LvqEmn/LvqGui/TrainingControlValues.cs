@@ -7,7 +7,6 @@ using System.Linq;
 using System.Threading;
 using EmnExtensions.DebugTools;
 using LvqLibCli;
-using System.Windows;
 using System.Threading.Tasks;
 
 namespace LvqGui {

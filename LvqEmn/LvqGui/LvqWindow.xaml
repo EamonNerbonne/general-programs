@@ -17,7 +17,7 @@
             <ColumnDefinition Width="1*" />
         </Grid.ColumnDefinitions>
         <Border  Grid.Row="1" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Height="3" Background="Black" />
-        
+
         <!--<GridSplitter Grid.Row="1" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Height="3"  ResizeDirection="Rows"/>-->
         <TabControl>
             <!--<TabItem Header="General Options">
@@ -27,17 +27,17 @@
                 <StackPanel>
                     <CheckBox Content="Extend data by correlation" IsChecked="{Binding ExtendDataByCorrelation, Mode=TwoWay}"/>
 
-                <TabControl >
-                    <TabItem Header="Load Data">
-                        <my:LoadDataset DataContext="{Binding LoadDatasetValues}"/>
-                    </TabItem>
-                    <TabItem Header="Gaussian Clouds" >
-                        <my:CreateGaussianCloudDataset DataContext="{Binding CreateGaussianCloudsDatasetValues}"/>
-                    </TabItem>
-                        <TabItem Header="Star Dataset" IsSelected="True">
-                        <my:CreateStarDataset DataContext="{Binding CreateStarDatasetValues}" />
-                    </TabItem>
-                </TabControl>
+                    <TabControl >
+                        <TabItem Header="Load Data">
+                            <my:LoadDataset DataContext="{Binding LoadDatasetValues}"/>
+                        </TabItem>
+                        <TabItem Header="Gaussian Clouds"  IsSelected="True" >
+                            <my:CreateGaussianCloudDataset DataContext="{Binding CreateGaussianCloudsDatasetValues}"/>
+                        </TabItem>
+                        <TabItem Header="Star Dataset">
+                            <my:CreateStarDataset DataContext="{Binding CreateStarDatasetValues}" />
+                        </TabItem>
+                    </TabControl>
                 </StackPanel>
             </TabItem>
 
@@ -45,7 +45,7 @@
                 <my:CreateLvqModel DataContext="{Binding CreateLvqModelValues}"/>
             </TabItem>
             <TabItem Header="Train Model" Name="trainingTab">
-                <my:TrainingControl DataContext="{Binding TrainingControlValues}"/> 
+                <my:TrainingControl DataContext="{Binding TrainingControlValues}"/>
             </TabItem>
         </TabControl>
         <emn:LogControl Name="logControl" ClaimStandardOut="True" ClaimStandardError="True"  Grid.Row="2" Grid.Column="0"/>

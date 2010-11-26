@@ -28,10 +28,10 @@ namespace LvqLibCli {
 		double LrScaleP, LrScaleB, LR0, LrScaleBad;
 
 		LvqModelSettingsCli()
-			: ModelType(LvqModelType::G2mModelType)
+			: ModelType(LvqModelType::GmmModelType)
 			, RngParamsSeed(37)
 			, RngIterSeed(42)
-			, PrototypesPerClass(4)
+			, PrototypesPerClass(1)
 			, RandomInitialProjection(true)
 			, RandomInitialBorders(false)
 			, TrackProjectionQuality(false)

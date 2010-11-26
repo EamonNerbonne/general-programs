@@ -59,7 +59,7 @@ namespace LvqGui {
 				}
 			}
 		}
-		const int ParWindow = 8;
+		const int ParWindow = 4;
 		public bool FitsDataShape(LvqDatasetCli selectedDataset) { return subModels.First().FitsDataShape(selectedDataset); }
 		readonly object epochsSynch = new object();
 		int epochsDone;
@@ -88,7 +88,7 @@ namespace LvqGui {
 						q.Add(Tuple.Create(model, currentTarget));
 				}
 				q.CompleteAdding();
-				var helpers = Enumerable.Range(0, 4).Select(ignored => Task.Factory.StartNew(() => { foreach (var next in q.GetConsumingEnumerable(cancel)) next.Item1.TrainUpto(next.Item2, trainingSet, next.Item1.InitDataFold); }, cancel)).ToArray();
+				var helpers = Enumerable.Range(0, ParWindow).Select(ignored => Task.Factory.StartNew(() => { foreach (var next in q.GetConsumingEnumerable(cancel)) next.Item1.TrainUpto(next.Item2, trainingSet, next.Item1.InitDataFold); }, cancel)).ToArray();
 				Task.WaitAll(helpers, cancel);
 			} finally {
 				Interlocked.Decrement(ref trainersRunning);

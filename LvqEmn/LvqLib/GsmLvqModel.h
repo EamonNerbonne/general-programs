@@ -49,7 +49,7 @@ public:
 		return this->pLabel(match);
 	}
 	
-	GoodBadMatch learnFrom(VectorXd const & newPoint, int classLabel);
+	MatchQuality learnFrom(VectorXd const & newPoint, int classLabel);
 	LvqModel* clone() const; 
 
 	MatrixXd GetProjectedPrototypes() const;

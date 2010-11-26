@@ -46,7 +46,8 @@ public:
 		return prototype[match].classLabel;
 	}
 
-	GoodBadMatch learnFrom(VectorXd const & newPoint, int classLabel);
+	MatchQuality ComputeMatches(VectorXd const & unknownPoint, int pointLabel) const { return this->findMatches(P * unknownPoint, pointLabel).GmmQuality(); }
+	MatchQuality learnFrom(VectorXd const & newPoint, int classLabel);
 	virtual LvqModel* clone() const ;
 
 	virtual MatrixXd GetProjectedPrototypes() const;

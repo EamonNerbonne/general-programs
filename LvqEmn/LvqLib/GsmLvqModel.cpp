@@ -38,7 +38,7 @@ GsmLvqModel::GsmLvqModel(LvqModelSettings & initSettings)
 	assert( accumulate(initSettings.PrototypeDistribution.begin(),initSettings.PrototypeDistribution.end(),0)== protoIndex);
 }
 
-GoodBadMatch GsmLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel) {
+MatchQuality GsmLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel) {
 	double learningRate = stepLearningRate();
 
 	using namespace std;
@@ -98,7 +98,7 @@ GoodBadMatch GsmLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel)
 
 	for(int i=0;i<pLabel.size();++i)
 		RecomputeProjection(i);
-	return matches;
+	return matches.LvqQuality();
 }
 
 LvqModel* GsmLvqModel::clone() const { return new GsmLvqModel(*this);	}

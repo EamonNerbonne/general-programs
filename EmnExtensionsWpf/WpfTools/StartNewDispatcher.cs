@@ -14,7 +14,6 @@ namespace EmnExtensions.Wpf {
 				winThread.SetApartmentState(ApartmentState.STA);
 				winThread.Start();
 				sem.Wait();
-				
 				return retval;
 			}
 		}

@@ -37,10 +37,10 @@ public:
 	virtual int Dimensions() const {return static_cast<int>(P[0].cols());}
 
 	GmLvqModel(LvqModelSettings & initSettings);
-	virtual GoodBadMatch ComputeMatches(VectorXd const & unknownPoint, int pointLabel) const;
+	virtual MatchQuality ComputeMatches(VectorXd const & unknownPoint, int pointLabel) const;
 	virtual void DoOptionalNormalization();
 	virtual int classify(VectorXd const & unknownPoint) const; 
-	virtual GoodBadMatch learnFrom(VectorXd const & newPoint, int classLabel);
+	virtual MatchQuality learnFrom(VectorXd const & newPoint, int classLabel);
 	virtual GmLvqModel* clone() const { return new GmLvqModel(*this); }
 	virtual void CopyTo(LvqModel& target) const{ 
 		GmLvqModel & typedTarget = dynamic_cast<GmLvqModel&>(target);

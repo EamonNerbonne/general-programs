@@ -26,8 +26,10 @@ namespace LvqGui {
 
 		void LvqWindow_Closed(object sender, EventArgs e) {
 			cts.Cancel();
-			plotData.Dispose();
-			plotData = null;
+			if (plotData != null) {
+				plotData.Dispose();
+				plotData = null;
+			}
 			LvqModels.WaitForTraining();
 			var windowValues = (LvqWindowValues)DataContext;
 			windowValues.LvqModels.Clear();

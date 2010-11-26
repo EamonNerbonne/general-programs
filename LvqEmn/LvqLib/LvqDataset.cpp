@@ -204,9 +204,9 @@ void LvqDataset::TrainModel(int epochs, LvqModel * model, std::vector<int> const
 			int pointClass = pointLabels[pointIndex];
 			pointA = points.col(pointIndex);
 			prefetch( &points.coeff (0, shuffledOrder[(tI+1)%shuffledOrder.size()]), cacheLines);
-			GoodBadMatch trainingMatch = model->learnFrom(pointA, pointClass);
-			errs += trainingMatch.IsErr() ?1:0;
-			double costFunc =trainingMatch.CostFunc(); 
+			MatchQuality trainingMatchQ = model->learnFrom(pointA, pointClass);
+			errs += trainingMatchQ.isErr ?1:0;
+			double costFunc =trainingMatchQ.costFunc; 
 			assert(-1<=costFunc&&costFunc<=1);
 			pointCostSum += costFunc;
 		}
@@ -247,9 +247,9 @@ void LvqDataset::ComputeCostAndErrorRate(std::vector<int> const & subset, LvqMod
 	int errs=0;
 	for(int i=0;i<(int)subset.size();++i) {
 		assert(points.sum() == points.sum());
-		GoodBadMatch match = model->ComputeMatches(points.col(subset[i]), pointLabels[subset[i]]);
-		totalCost += match.CostFunc();
-		errs += match.IsErr()?1:0;
+		MatchQuality matchQ = model->ComputeMatches(points.col(subset[i]), pointLabels[subset[i]]);
+		totalCost += matchQ.costFunc;
+		errs += matchQ.isErr?1:0;
 	}
 	meanCost = totalCost / double(subset.size());
 	errorRate = errs / double(subset.size());

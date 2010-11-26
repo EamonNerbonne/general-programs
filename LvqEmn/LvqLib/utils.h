@@ -11,8 +11,10 @@
 #include <boost/random/normal_distribution.hpp>
 #include <boost/function.hpp>
 #include <boost/bind/bind.hpp>
+#include <math.h>
 
 #include "LvqTypedefs.h"
+#define DBG(X) (std::cout<< #X <<":\n"<<(X)<<"\n")
 #ifdef NDEBUG
 #define DEBUGPRINT(X) ((void)0)
 #else
@@ -147,3 +149,8 @@ Eigen::MatrixXd shuffleMatrixCols(boost::mt19937 & randGen, Eigen::MatrixXd cons
 #endif
 
 //#pragma managed(pop)
+#ifdef _MSC_VER
+#define isfinite(x)     (_finite(x)) 
+#else
+bool isfinite(double x) {return !(std::isinf(x)  || std::isnan(x));}
+#endif

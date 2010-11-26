@@ -47,7 +47,7 @@ GmLvqModel::GmLvqModel( LvqModelSettings & initSettings)
 
 
 
-GoodBadMatch GmLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel) {
+MatchQuality GmLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel) {
 	//double learningRate = getLearningRate();
 	//incLearningIterationCount();
 	double learningRate = stepLearningRate();
@@ -79,10 +79,10 @@ GoodBadMatch GmLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel) 
 
 	P[J].noalias() -= (settings.LrScaleP*  lr_mu_K2) * (Pj_vJ * vJ.transpose() );
 	P[K].noalias() -=(settings.LrScaleP*lr_mu_J2) * (Pk_vK * vK.transpose() );
-	return matches;
+	return matches.LvqQuality();
 }
 
-GoodBadMatch GmLvqModel::ComputeMatches(VectorXd const & unknownPoint, int pointLabel) const {return findMatches(unknownPoint,pointLabel);}
+MatchQuality GmLvqModel::ComputeMatches(VectorXd const & unknownPoint, int pointLabel) const {return findMatches(unknownPoint,pointLabel).LvqQuality();}
 
 size_t GmLvqModel::MemAllocEstimate() const {
 	return 

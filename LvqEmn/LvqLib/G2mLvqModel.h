@@ -45,7 +45,7 @@ public:
 		return prototype[match].classLabel;
 	}
 
-	GoodBadMatch learnFrom(VectorXd const & newPoint, int classLabel);
+	MatchQuality learnFrom(VectorXd const & newPoint, int classLabel);
 	virtual LvqModel* clone() const ;
 
 	virtual MatrixXd GetProjectedPrototypes() const;
