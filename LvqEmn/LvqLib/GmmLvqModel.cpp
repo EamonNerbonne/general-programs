@@ -39,6 +39,7 @@ GmmLvqModel::GmmLvqModel(LvqModelSettings & initSettings)
 
 typedef Map<VectorXd, Aligned> MVectorXd;
 
+
 GoodBadMatch GmmLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel) {
 	using namespace std;
 	double learningRate = stepLearningRate();
@@ -88,16 +89,32 @@ GoodBadMatch GmmLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel)
 
 	J.B.noalias() -= lr_B * (muK2_Bj_P_vJ * P_vJ.transpose() - muK2_JBinvT );
 	K.B.noalias() -= lr_B * (muJ2_Bk_P_vK * P_vK.transpose() - muJ2_KBinvT) ;
-	J.RecomputeBias();
-	K.RecomputeBias();
 
 	J.point.noalias() -= P.transpose()* (lr_point * muK2_BjT_Bj_P_vJ);
 	K.point.noalias() -= P.transpose() * (settings.LrScaleBad*lr_point * muJ2_BkT_Bk_P_vK) ;
 
-	Matrix2d PPTinv = (P* P.transpose()).inverse();
-	m_PpseudoinvT.noalias() = (P.transpose() * (lr_P *(-muK2-muJ2) * PPTinv)).transpose();
-	P.noalias() -= (lr_P * muK2_BjT_Bj_P_vJ) * vJ.transpose() + (lr_P * muJ2_BkT_Bk_P_vK) * vK.transpose()+ m_PpseudoinvT;
+	//Matrix2d PPTinv = (P* P.transpose()).inverse();
+	//m_PpseudoinvT.noalias() = (P.transpose() * (lr_P *(-muK2-muJ2) * PPTinv)).transpose();
+	P.noalias() -= (lr_P * muK2_BjT_Bj_P_vJ) * vJ.transpose() + (lr_P * muJ2_BkT_Bk_P_vK) * vK.transpose();//+ m_PpseudoinvT;
+
+	//double pBias = -log((P* P.transpose()).determinant());
 	
+	J.RecomputeBias();
+	K.RecomputeBias();
+
+#ifndef NDEBUG
+	double Jbdet =(J.B.transpose()*J.B).determinant();
+	double Kbdet =(K.B.transpose()*K.B).determinant();
+//	double Pdet =(P.transpose()*P).determinant();
+
+	double Jbias = -log((J.B.transpose()*J.B).determinant());
+	double Kbias = -log((K.B.transpose()*K.B).determinant());
+	double eps=std::numeric_limits<double>::epsilon();
+	assert(fabs(J.bias - Jbias)<=eps*trainPoint.size() || almostEqual(J.bias,Jbias,trainPoint.size()));
+	assert(fabs(K.bias - Kbias)<=eps*trainPoint.size() ||almostEqual(K.bias,Kbias,trainPoint.size()));
+#endif
+
+
 	if(ngMatchCache.size()>0) {
 		double lrSub = lr_point;
 		double lrDelta = exp(-0.3*settings.LR0/learningRate);//TODO: this is rather ADHOC

@@ -4,6 +4,16 @@
 using namespace Eigen;
 #include "utils.h"
 #include <cmath>
+#include <math.h>
+
+#ifdef _MSC_VER
+#define isfinite(x)     (_finite(x)) 
+#else
+using std::isinf;
+using std::isnan;
+bool isfinite(double x) {return !(isinf(x)  || isnan(x));}
+#endif
+
 class GmmLvqPrototype
 {
 	friend class GmmLvqModel;
@@ -19,6 +29,7 @@ class GmmLvqPrototype
 	}
 	EIGEN_STRONG_INLINE void RecomputeBias() {
 		bias = -2 * log(B.determinant());
+		assert(isfinite(bias));
 	}
 
 public:
@@ -43,7 +54,9 @@ public:
 
 	inline double SqrDistanceTo(Vector2d const & P_testPoint) const {
 		Vector2d P_Diff = P_testPoint - P_point;
-		return (B * P_Diff).squaredNorm() + bias;//waslazy
+		double retval= (B * P_Diff).squaredNorm() + bias;//waslazy
+		assert(retval>=0);
+		return retval;
 	}
 
 	//inline double SqrRawDistanceTo(Vector2d const & P_testPoint) const {

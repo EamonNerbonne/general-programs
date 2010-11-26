@@ -4,6 +4,7 @@
 
 #include <Eigen/Core>
 #include <Eigen/QR> 
+#include <Eigen/SVD> 
 #include <boost/random/variate_generator.hpp>
 #include <boost/random/mersenne_twister.hpp>
 #include <boost/random/uniform_int.hpp>
@@ -11,6 +12,7 @@
 #include <boost/function.hpp>
 #include <boost/bind/bind.hpp>
 
+#include "LvqTypedefs.h"
 #ifdef NDEBUG
 #define DEBUGPRINT(X) ((void)0)
 #else
@@ -42,6 +44,34 @@ template<typename T> void RandomMatrixInit(boost::mt19937 & rng, Eigen::MatrixBa
 			mat(i,j) = rndGen();
 }
 
+inline bool almostEqual(double x, double y, double leeway=1.0) {
+	double diff = fabs(x-y);
+	double sum = fabs(x+y);
+	return diff <= leeway*std::numeric_limits<double>::epsilon()*sum;
+}
+
+
+inline void randomProjectionMatrix(boost::mt19937 & rngParams, PMatrix & mat) {
+	RandomMatrixInit(rngParams,mat,0.0,1.0);
+	Eigen::JacobiSVD<PMatrix> svd(mat, Eigen::ComputeThinU | Eigen::ComputeThinV);
+	if(mat.rows()>mat.cols())
+		mat.noalias() = svd.matrixU();
+	else
+		mat.noalias() = svd.matrixV().transpose();
+#ifndef NDEBUG
+	for(int r=0;r<mat.rows();r++){
+		for(int r0=0;r0<mat.rows();r0++){
+			double dotprod = mat.row(r).dot(mat.row(r0));
+			if(r==r0)
+				assert(fabs(dotprod-1.0) <= std::numeric_limits<double>::epsilon()*mat.cols());
+			else 
+				assert(fabs(dotprod) <= std::numeric_limits<double>::epsilon()*mat.cols());
+		}
+	}
+#endif
+}
+
+
 template <typename T> T randomOrthogonalMatrix(boost::mt19937 & rngParams, int dims) {
 	T P(dims,dims);
 	double Pdet = 0.0;
@@ -67,7 +97,7 @@ template <typename T> T randomUnscalingMatrix(boost::mt19937 & rngParams, int di
 		RandomMatrixInit(rngParams, P, 0, 1.0);
 		Pdet = P.determinant();
 		assert(Pdet!=0);
-		if(Pdet == 0.0) continue;//exceedingly unlikely.
+		if( fabs(Pdet) <= std::numeric_limits<double>::epsilon()) continue;//exceedingly unlikely.
 		
 		if(Pdet < 0.0) //sign doesn't _really_ matter.
 			P.col(0) *=-1;

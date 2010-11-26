@@ -20,7 +20,8 @@ LvqProjectionModel::LvqProjectionModel(LvqModelSettings & initSettings)
 	, P(LVQ_LOW_DIM_SPACE, initSettings.Dimensions()) 
 {
 	if(initSettings.RandomInitialProjection)
-		projectionRandomizeUniformScaled(initSettings.RngParams, P);
+//		projectionRandomizeUniformScaled(initSettings.RngParams, P);
+		randomProjectionMatrix(initSettings.RngParams, P);
 	else
 		P.setIdentity();
 }
