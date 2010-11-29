@@ -1,11 +1,17 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
+using System.Windows;
+using System.Windows.Media;
+using EmnExtensions.Wpf;
+using EmnExtensions.Wpf.Plot.VizEngines;
 using LvqLibCli;
 using EmnExtensions.MathHelpers;
 using System.Threading.Tasks;
 using System.Threading;
+using EmnExtensions;
 
 namespace LvqGui {
 	public class LvqModels {
@@ -88,7 +94,7 @@ namespace LvqGui {
 						q.Add(Tuple.Create(model, currentTarget));
 				}
 				q.CompleteAdding();
-				var helpers = Enumerable.Range(0, ParWindow).Select(ignored => Task.Factory.StartNew(() => { foreach (var next in q.GetConsumingEnumerable(cancel)) next.Item1.TrainUpto(next.Item2, trainingSet, next.Item1.InitDataFold); }, cancel)).ToArray();
+				var helpers = Enumerable.Range(0, ParWindow).Select(ignored => Task.Factory.StartNew(() => { foreach (var next in q.GetConsumingEnumerable(cancel)) next.Item1.TrainUpto(next.Item2, trainingSet, next.Item1.InitDataFold); }, cancel,TaskCreationOptions.None,LowPriorityTaskScheduler.Instance)).ToArray();
 				Task.WaitAll(helpers, cancel);
 			} finally {
 				Interlocked.Decrement(ref trainersRunning);
@@ -104,8 +110,127 @@ namespace LvqGui {
 			return subModels[subModelIdx].ClassBoundaries(x0, x1, y0, y1, xCols, yRows);
 		}
 
-		public ModelProjection CurrentProjectionAndPrototypes(int subModelIdx, LvqDatasetCli dataset) {
+		public ModelProjection CurrentModelProjection(int subModelIdx, LvqDatasetCli dataset) {
 			return subModels[subModelIdx].CurrentProjectionAndPrototypes(dataset);
+		}
+
+		public class ModelProjectionAndImage {
+			public Point[] Prototypes;
+			public Point[][] PointsByLabel;
+			public Rect Bounds;
+			public int Width, Height;
+			public uint[] ImageData;
+			public LvqModels forModels;
+			public int forSubModel;
+			public LvqDatasetCli forDataset;
+		}
+
+		public ModelProjectionAndImage CurrentProjectionAndImage(int subModelIdx, LvqDatasetCli dataset, int width, int height) {
+#if DEBUG
+				int renderwidth = (width + 7) / 8;
+				int renderheight = (height + 7) / 8;
+#else
+			int renderwidth = width;
+			int renderheight = height;
+#endif
+
+			var selectedModel = subModels[subModelIdx];
+			ModelProjection projection;
+			Rect bounds;
+			int[,] closestClass;
+			lock (selectedModel.ReadSync) {
+				projection = selectedModel.CurrentProjectionAndPrototypes(dataset);
+				if(!projection.HasValue) return null;
+				bounds = ComputeProjectionBounds(projection.Prototypes.Select(lp=>lp.point),projection.Points.Select(lp => lp.point));
+				closestClass = selectedModel.ClassBoundaries(bounds.Left, bounds.Right, bounds.Bottom, bounds.Top, renderwidth, renderheight);
+			}
+			Debug.Assert(NotDefault(projection));
+			Debug.Assert(NotDefault(bounds));
+			Debug.Assert(NotDefault(closestClass));
+
+			uint[] nativeColorsPerClass = NativeColorsPerClassAndBlack(dataset);
+			uint[] boundaryImage = BoundaryImageFor(closestClass, nativeColorsPerClass, width, renderwidth, height, renderheight);
+			return new ModelProjectionAndImage {
+				Width = width,
+				Height = height,
+				ImageData = boundaryImage,
+				Bounds = bounds,
+				Prototypes = projection.Prototypes.Select(lp => lp.point).ToArray(),
+				PointsByLabel = GroupPointsByLabel(projection.Points,dataset.ClassCount),
+				forDataset = dataset,
+				forModels = this,
+				forSubModel = subModelIdx,
+			};
+		}
+
+		static Point[][] GroupPointsByLabel(CliLvqLabelledPoint[] labelledPoints, int classCount) {
+			//var projectedPointsByLabel = Enumerable.Range(0, dataPoints.Length).ToLookup(i => currProjection.Data.ClassLabels[i], i =>  Points.GetPoint(currProjection.Data.Points, i));
+			int[] pointCountPerClass = new int[classCount];
+			foreach (var p in labelledPoints) pointCountPerClass[p.label]++;
+
+			Point[][] pointsByLabel = pointCountPerClass.Select(pointCount=> new Point[pointCount]).ToArray();
+			int[] pointIndexPerClass = new int[classCount];
+			for (int i = 0; i < labelledPoints.Length; ++i) {
+				int label = labelledPoints[i].label;
+				pointsByLabel[label][pointIndexPerClass[label]++] = labelledPoints[i].point;
+			}
+			return pointsByLabel;
+		}
+
+		struct IntPoint { public int X, Y;}
+		static uint[] BoundaryImageFor(int[,] closestClass, uint[] nativeColorsPerClass,int width,int renderwidth,int height, int renderheight) {
+			List<IntPoint> boundaryPoints = GetBoundaryPoints(closestClass);
+			MakeBoundaryBlack(closestClass, boundaryPoints, nativeColorsPerClass.Length - 1);
+			return ToNativeColorBmp(closestClass, nativeColorsPerClass, width,renderwidth,height,renderheight);
+		}
+
+		private static uint[] ToNativeColorBmp(int[,] closestClass, uint[] nativeColorsPerClass, int width, int renderwidth, int height, int renderheight) {
+			uint[] classboundaries = new uint[width * height];
+			int px = 0;
+			for (int y = 0; y < height; y++)
+				for (int x = 0; x < width; x++)
+					classboundaries[px++] = nativeColorsPerClass[closestClass[y * renderheight / height, x * renderwidth / width]];
+
+			return classboundaries;
+		}
+
+		static void MakeBoundaryBlack(int[,] closestClass, List<IntPoint> boundaryPoints, int blackIdx) {
+			foreach (var coord in boundaryPoints)
+				closestClass[coord.Y, coord.X] = blackIdx;
+		}
+
+		static List<IntPoint> GetBoundaryPoints(int[,] closestClass) {
+			var edges = new List<IntPoint>();
+			for (int y = 1; y < closestClass.GetLength(0) - 1; y++)
+				for (int x = 1; x < closestClass.GetLength(1) - 1; x++) {
+					if (closestClass[y, x] != closestClass[y, x - 1]
+						|| closestClass[y, x] != closestClass[y, x + 1]
+						|| closestClass[y, x] != closestClass[y - 1, x]
+						|| closestClass[y, x] != closestClass[y + 1, x]
+						)
+						edges.Add(new IntPoint{ X=x,Y=y});
+				}
+			return edges;
+		}
+
+		static bool NotDefault<T>(T val) {
+			return !Equals(val,default(T));
+		}
+
+		static uint[] NativeColorsPerClassAndBlack(LvqDatasetCli dataset) {
+			return dataset.ClassColors
+				.Select(c => { c.ScA = 0.1f; return c; })
+				.Concat(Enumerable.Repeat(Color.FromRgb(0, 0, 0), 1))
+				.Select(c => c.ToNativeColor())
+				.ToArray();
+		}
+
+
+		static Rect ComputeProjectionBounds(IEnumerable<Point> prototypePositions, IEnumerable<Point> cliLvqLabelledPoint) {
+			Rect outer, inner;
+			VizPixelScatterHelpers.RecomputeBounds(cliLvqLabelledPoint.ToArray(), 0.99, 0.99, 20.0, out outer, out inner);
+			inner.Union(VizPixelScatterHelpers.ComputeOuterBounds(prototypePositions.ToArray()));
+			return inner;
 		}
 
 		public IEnumerable<LvqModelCli> SubModels { get { return subModels; } }

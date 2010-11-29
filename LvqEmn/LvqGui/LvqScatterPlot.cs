@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
@@ -95,7 +96,7 @@ namespace LvqGui {
 		CancellationToken exitToken;
 		public LvqScatterPlot(CancellationToken exitToken) {
 			this.exitToken = exitToken;
-			
+
 			lvqPlotDispatcher = WpfTools.StartNewDispatcher();
 			lvqPlotDispatcher.BeginInvoke(MakeSubPlotWindow);
 			exitToken.Register(() => lvqPlotDispatcher.BeginInvokeShutdown(DispatcherPriority.Send));
@@ -129,7 +130,7 @@ namespace LvqGui {
 			public readonly LvqModels model;
 			public readonly IVizEngine<Point[]> prototypePositionsPlot;
 			public readonly IVizEngine<Point[]>[] classPlots;
-			public readonly IVizEngine<int> classBoundaries;
+			public readonly IVizEngine<LvqModels.ModelProjectionAndImage> classBoundaries;
 			public readonly PlotControl scatterPlot;
 			public readonly IVizEngine<IEnumerable<LvqModels.Statistic>>[] statPlots;
 			public readonly PlotControl[] plots;
@@ -146,6 +147,12 @@ namespace LvqGui {
 
 				plots = MakeDataPlots(dataset, model);//required
 				statPlots = ExtractDataSinksFromPlots(plots);
+			}
+
+			public void SetScatterBounds(Rect bounds) {
+				foreach (IPlotMetaDataWriteable metadata in classPlots.Select(viz => viz.Plot.MetaData).Concat(new[] { prototypePositionsPlot.Plot.MetaData, classBoundaries.Plot.MetaData })) {
+					metadata.OverrideBounds = bounds;
+				}
 			}
 
 			static IVizEngine<IEnumerable<LvqModels.Statistic>>[] ExtractDataSinksFromPlots(IEnumerable<PlotControl> plots) {
@@ -191,53 +198,19 @@ namespace LvqGui {
 				return Plot.Create(new PlotMetaData { ZIndex = 1, }, new VizPixelScatterGeom { OverridePointCountEstimate = 30, CoverageRatio = 1.0 }).Visualisation;
 			}
 
-			IVizEngine<int> MakeClassBoundaryGraph() {
-				return Plot.Create(new PlotMetaData { ZIndex = -1 }, new VizDelegateBitmap<int> { UpdateBitmapDelegate = UpdateClassBoundaries }).Visualisation;
+			IVizEngine<LvqModels.ModelProjectionAndImage> MakeClassBoundaryGraph() {
+				return Plot.Create(new PlotMetaData { ZIndex = -1 }, new VizDelegateBitmap<LvqModels.ModelProjectionAndImage> { UpdateBitmapDelegate = UpdateClassBoundaries }).Visualisation;
 			}
 
-			void UpdateClassBoundaries(WriteableBitmap bmp, Matrix dataToBmp, int width, int height, int subModelIdx) {
-#if DEBUG
-				int renderwidth = (width + 7) / 8;
-				int renderheight = (height + 7) / 8;
-#else
-				int renderwidth = width;
-				int renderheight = height;
-#endif
-				var curModel = model;
+			Tuple<int, int> lastWidthHeight;
+			public Tuple<int, int> LastWidthHeight { get { return lastWidthHeight; } }
 
-				if (curModel == null || width < 1 || height < 1)
-					return;
-				Matrix bmpToData = dataToBmp;
-				bmpToData.Invert();
-				Point topLeft = bmpToData.Transform(new Point(0.0, 0.0));
-				Point botRight = bmpToData.Transform(new Point(width, height));
-				int[,] closestClass = curModel.ClassBoundaries(subModelIdx, topLeft.X, botRight.X, topLeft.Y, botRight.Y, renderwidth, renderheight);
-				if (closestClass == null) //uninitialized
-					return;
-				uint[] nativeColor = dataset.ClassColors
-					.Select(c => { c.ScA = 0.1f; return c; })
-					.Concat(Enumerable.Repeat(Color.FromRgb(0, 0, 0), 1))
-					.Select(c => c.ToNativeColor())
-					.ToArray();
+			void UpdateClassBoundaries(WriteableBitmap bmp, Matrix dataToBmp, int width, int height, LvqModels.ModelProjectionAndImage lastProjection) {
+				lastWidthHeight = Tuple.Create(width, height);
 
-				var edges = new List<Tuple<int, int>>();
-				for (int y = 1; y < closestClass.GetLength(0) - 1; y++)
-					for (int x = 1; x < closestClass.GetLength(1) - 1; x++) {
-						if (closestClass[y, x] != closestClass[y, x - 1]
-							|| closestClass[y, x] != closestClass[y, x + 1]
-							|| closestClass[y, x] != closestClass[y - 1, x]
-							|| closestClass[y, x] != closestClass[y + 1, x]
-							)
-							edges.Add(Tuple.Create(y, x));
-					}
-				foreach (var coord in edges)
-					closestClass[coord.Item1, coord.Item2] = nativeColor.Length - 1;
-				uint[] classboundaries = new uint[width * height];
-				int px = 0;
-				for (int y = 0; y < height; y++)
-					for (int x = 0; x < width; x++)
-						classboundaries[px++] = nativeColor[closestClass[y * renderheight / height, x * renderwidth / width]];
-				bmp.WritePixels(new Int32Rect(0, 0, width, height), classboundaries, width * 4, 0);
+				if (width != lastProjection.Width || height != lastProjection.Height)
+					lastProjection = lastProjection.forModels.CurrentProjectionAndImage(lastProjection.forSubModel, lastProjection.forDataset, width, height);
+				bmp.WritePixels(new Int32Rect(0, 0, width, height), lastProjection.ImageData, width * 4, 0);
 			}
 		}
 
@@ -259,28 +232,16 @@ namespace LvqGui {
 
 		static void PerformDisplayUpdate(SubPlots subplots, int subModelIdx) {
 			if (subplots == null) return;
-			var currProjection = subplots.model.CurrentProjectionAndPrototypes(subModelIdx, subplots.dataset);
+			var wh = subplots.LastWidthHeight;
+			var projectionAndImage = subplots.model.CurrentProjectionAndImage(subModelIdx, subplots.dataset, wh == null ? 0 : wh.Item1, wh == null ? 0 : wh.Item2);
 			DispatcherOperation scatterPlotOperation = null;
-			if (currProjection.HasValue && subplots.prototypePositionsPlot != null) {
-				Point[] prototypePositions = currProjection.Prototypes.Select(lp => lp.point).ToArray();
-
-				//var projectedPointsByLabel = Enumerable.Range(0, dataPoints.Length).ToLookup(i => currProjection.Data.ClassLabels[i], i =>  Points.GetPoint(currProjection.Data.Points, i));
-
-				int[] pointCountPerClass = new int[subplots.dataset.ClassCount];
-				foreach (var p in currProjection.Points) pointCountPerClass[p.label]++;
-
-				Point[][] projectedPointsByLabel = Enumerable.Range(0, subplots.dataset.ClassCount).Select(i => new Point[pointCountPerClass[i]]).ToArray();
-				int[] pointIndexPerClass = new int[subplots.dataset.ClassCount];
-				for (int i = 0; i < currProjection.Points.Length; ++i) {
-					int label = currProjection.Points[i].label;
-					projectedPointsByLabel[label][pointIndexPerClass[label]++] = currProjection.Points[i].point;
-				}
-				
+			if (projectionAndImage != null && subplots.prototypePositionsPlot != null) {
 				scatterPlotOperation = subplots.prototypePositionsPlot.Dispatcher.BeginInvoke((Action)(() => {
-					subplots.prototypePositionsPlot.ChangeData(prototypePositions);
-					subplots.classBoundaries.ChangeData(subModelIdx);
+					subplots.SetScatterBounds(projectionAndImage.Bounds);
+					subplots.prototypePositionsPlot.ChangeData(projectionAndImage.Prototypes);
+					subplots.classBoundaries.ChangeData(projectionAndImage);
 					for (int i = 0; i < subplots.classPlots.Length; ++i)
-						subplots.classPlots[i].ChangeData(projectedPointsByLabel[i]);
+						subplots.classPlots[i].ChangeData(projectionAndImage.PointsByLabel[i]);
 				}), DispatcherPriority.Background);
 			}
 
@@ -295,6 +256,7 @@ namespace LvqGui {
 			if (scatterPlotOperation != null)
 				scatterPlotOperation.Wait();
 		}
+
 
 		public void Dispose() {
 			lvqPlotDispatcher.Invoke(new Action(() => {

@@ -8,6 +8,7 @@ using System.Threading;
 using EmnExtensions.DebugTools;
 using LvqLibCli;
 using System.Threading.Tasks;
+using EmnExtensions;
 
 namespace LvqGui {
 	public class TrainingControlValues : INotifyPropertyChanged {
@@ -125,7 +126,7 @@ namespace LvqGui {
 					overallTask.Enqueue(Task.Factory.StartNew(() => {
 						selectedModel.Train(epochsToTrainFor,  selectedDataset, Owner.WindowClosingToken);
 						PotentialUpdate(selectedDataset, selectedModel);
-					}));
+					}, Owner.WindowClosingToken,TaskCreationOptions.None,LowPriorityTaskScheduler.Instance));
 
 					if (overallTask.Count >= 2) overallTask.Dequeue().Wait();
 
