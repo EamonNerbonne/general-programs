@@ -39,7 +39,7 @@ namespace EmnExtensions {
 		readonly ConcurrentBag<Task> tasks = new ConcurrentBag<Task>();
 
 		readonly ConcurrentBag<WorkerThread> threads = new ConcurrentBag<WorkerThread>();
-		const int MaxParallel = 6;
+		static readonly int MaxParallel = Environment.ProcessorCount*2;
 		int currPar = 0;
 
 		void DoTask(Task t) {
