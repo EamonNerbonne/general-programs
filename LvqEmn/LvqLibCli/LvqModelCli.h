@@ -27,6 +27,7 @@ namespace LvqLibCli {
 		Object^copySync;
 
 	public:
+		property Object^ ReadSync {Object^ get(){return copySync;}}
 		property int ClassCount {int get();}
 		property int Dimensions {int get();}
 		property double CurrentLearningRate {double get();}
