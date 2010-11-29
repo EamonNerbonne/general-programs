@@ -86,7 +86,7 @@ MatchQuality GsmLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel)
 
 	if(ngMatchCache.size()>0) {
 		double lrSub = lr_point;
-		double lrDelta = 0.1;//exp(-2*settings.LR0 /learningRate);//TODO: this is rather ADHOC
+		double lrDelta = exp(-0.2*settings.LR0/learningRate);//TODO: this is rather ADHOC
 		for(int i=1;i<fullmatch.foundOk;++i) {
 			lrSub*=lrDelta;
 			VectorXd &Js = prototype[fullmatch.matchesOk[i].idx];

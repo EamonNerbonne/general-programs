@@ -17,10 +17,10 @@ class GmmLvqPrototype
 	EIGEN_STRONG_INLINE void ComputePP(PMatrix const & P) {
 		P_point.noalias() = P * point;
 	}
-	EIGEN_STRONG_INLINE void RecomputeBias() {
-		bias = -2 * log(B.determinant());
-		assert(isfinite(bias));
-	}
+	//EIGEN_STRONG_INLINE void RecomputeBias() {
+	//	bias = -2 * log(B.determinant());
+	//	assert(isfinite(bias));
+	//}
 
 public:
 	inline int label() const {return classLabel;}
@@ -33,13 +33,14 @@ public:
 	inline GmmLvqPrototype(boost::mt19937 & rng, bool randInit, int protoLabel, VectorXd const & initialVal,PMatrix const & P) 
 		: point(initialVal) 
 		, classLabel(protoLabel)
+		, bias(0.0)
 	{
 		if(randInit)
 			projectionRandomizeUniformScaled(rng, B);	
 		else 
 			B.setIdentity();
 		ComputePP(P);
-		RecomputeBias();
+		//RecomputeBias();
 	}
 
 	inline double SqrDistanceTo(Vector2d const & P_testPoint) const {

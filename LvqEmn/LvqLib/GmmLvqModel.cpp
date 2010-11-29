@@ -95,11 +95,13 @@ MatchQuality GmmLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel)
 	Vector2d mu2_BjT_Bj_P_vJ =  J.B.transpose() * mu2_Bj_P_vJ ;
 	Vector2d mu2_BkT_Bk_P_vK = K.B.transpose() * mu2_Bk_P_vK ;
 
-	Matrix2d mu2_JBinvT = mu2* J.B.inverse().transpose();
-	Matrix2d mu2_KBinvT = mu2* K.B.inverse().transpose();
+	//Matrix2d mu2_JBinvT = mu2* J.B.inverse().transpose();
+	//Matrix2d mu2_KBinvT = mu2* K.B.inverse().transpose();
 
-	J.B.noalias() -= lr_B * (mu2_Bj_P_vJ * P_vJ.transpose() - mu2_JBinvT );
-	K.B.noalias() += lr_B * (mu2_Bk_P_vK * P_vK.transpose() - mu2_KBinvT) ;
+	J.B.noalias() -= lr_B * mu2_Bj_P_vJ * P_vJ.transpose() ;//- mu2_JBinvT );
+	K.B.noalias() += lr_B * mu2_Bk_P_vK * P_vK.transpose() ;//- mu2_KBinvT) ;
+	J.bias -= mu2*lr_B;
+	K.bias += mu2*lr_B;
 
 	J.point.noalias() -= P.transpose()* (lr_point * mu2_BjT_Bj_P_vJ);
 	K.point.noalias() += P.transpose() * (settings.LrScaleBad*lr_point * mu2_BkT_Bk_P_vK) ;
@@ -110,8 +112,8 @@ MatchQuality GmmLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel)
 
 	//double pBias = -log((P* P.transpose()).determinant());
 	
-	J.RecomputeBias();
-	K.RecomputeBias();
+	//J.RecomputeBias();
+	//K.RecomputeBias();
 
 //#ifndef NDEBUG
 //	double Jbdet =(J.B.transpose()*J.B).determinant();
@@ -128,7 +130,7 @@ MatchQuality GmmLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel)
 
 	if(ngMatchCache.size()>0) {
 		double lrSub = lr_point;
-		double lrDelta = exp(-0.3*settings.LR0/learningRate);//TODO: this is rather ADHOC
+		double lrDelta = exp(-0.2*settings.LR0/learningRate);//TODO: this is rather ADHOC
 		for(int i=1;i<fullmatch.foundOk;++i) {
 			lrSub*=lrDelta;
 			GmmLvqPrototype &Js = prototype[fullmatch.matchesOk[i].idx];
@@ -248,6 +250,6 @@ void GmmLvqModel::DoOptionalNormalization() {
 		 } else {
 			 for(size_t i=0;i<prototype.size();++i) normalizeProjection(prototype[i].B);
 		 }
-		 for(size_t i=0;i<prototype.size();++i) prototype[i].RecomputeBias();
+//		 for(size_t i=0;i<prototype.size();++i) prototype[i].RecomputeBias();
 	 }
 }

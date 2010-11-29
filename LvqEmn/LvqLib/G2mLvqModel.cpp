@@ -110,7 +110,7 @@ MatchQuality G2mLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel)
 	
 	if(ngMatchCache.size()>0) {
 		double lrSub = lr_point;
-		double lrDelta = exp(-0.3*settings.LR0/learningRate);//TODO: this is rather ADHOC
+		double lrDelta = exp(-0.2*settings.LR0/learningRate);//TODO: this is rather ADHOC
 		for(int i=1;i<fullmatch.foundOk;++i) {
 			lrSub*=lrDelta;
 			G2mLvqPrototype &Js = prototype[fullmatch.matchesOk[i].idx];
