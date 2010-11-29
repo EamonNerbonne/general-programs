@@ -85,7 +85,7 @@ MatchQuality G2mLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel)
 
 	J.B.noalias() -= lr_B * muK2_Bj_P_vJ * P_vJ.transpose() ;
 	K.B.noalias() -= lr_B * muJ2_Bk_P_vK * P_vK.transpose() ;
-	double distbadRaw;
+	double distbadRaw=0.0;
 	if(settings.UpdatePointsWithoutB) {
 		double distgood = P_vJ.squaredNorm();
 		distbadRaw = P_vK.squaredNorm();
