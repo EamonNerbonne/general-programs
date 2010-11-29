@@ -56,21 +56,11 @@ MatchQuality G2mLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel)
 
 	if(ngMatchCache.size()>0) {
 		fullmatch = CorrectAndWorstMatches(& (ngMatchCache[0]));
-		if(settings.UpdatePointsWithoutB) {
-			for(int i=0;i<(int)prototype.size();++i) 
-				fullmatch.Register(prototype[i].SqrRawDistanceTo(P_trainPoint),i, PrototypeLabel(i) == trainLabel);
-			fullmatch.SortOk();
-			matches.matchGood = fullmatch.matchesOk[0].idx;
-			matches.matchBad = fullmatch.matchBad;
-			matches.distGood = prototype[matches.matchGood].SqrDistanceTo(P_trainPoint);
-			matches.distBad = prototype[matches.matchBad].SqrDistanceTo(P_trainPoint);
-		} else {
 			for(int i=0;i<(int)prototype.size();++i) 
 				fullmatch.Register(SqrDistanceTo(i, P_trainPoint),i, PrototypeLabel(i) == trainLabel);
 			fullmatch.SortOk();
 
 			matches = fullmatch.ToGoodBadMatch();
-		}
 	} else {
 		matches = findMatches(P_trainPoint, trainLabel);
 	}
@@ -95,12 +85,11 @@ MatchQuality G2mLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel)
 
 	J.B.noalias() -= lr_B * muK2_Bj_P_vJ * P_vJ.transpose() ;
 	K.B.noalias() -= lr_B * muJ2_Bk_P_vK * P_vK.transpose() ;
+	double distbadRaw;
 	if(settings.UpdatePointsWithoutB) {
 		double distgood = P_vJ.squaredNorm();
-		double distbad = P_vK.squaredNorm();
-		double XmuJ2 = 2.0*-2.0*distgood / (sqr(distgood) + sqr(distbad));
-		double XmuK2 = 2.0*+2.0*distbad / (sqr(distgood) + sqr(distbad));
-
+		distbadRaw = P_vK.squaredNorm();
+		double XmuK2 = 2.0*+2.0*distbadRaw / (sqr(distgood) + sqr(distbadRaw));
 		J.point.noalias() -= P.transpose()* (lr_point * XmuK2 *P_vJ);
 	} else {
 		J.point.noalias() -= P.transpose()* (lr_point * muK2_BjT_Bj_P_vJ);
@@ -110,19 +99,15 @@ MatchQuality G2mLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel)
 	
 	if(ngMatchCache.size()>0) {
 		double lrSub = lr_point;
-		double lrDelta = exp(-0.2*settings.LR0/learningRate);//TODO: this is rather ADHOC
+		double lrDelta = exp(-LVQ_NG_FACTOR*settings.LR0/learningRate);//TODO: this is rather ADHOC
 		for(int i=1;i<fullmatch.foundOk;++i) {
 			lrSub*=lrDelta;
 			G2mLvqPrototype &Js = prototype[fullmatch.matchesOk[i].idx];
 			if(settings.UpdatePointsWithoutB) {
-				double distgood = (Js.P_point - P_trainPoint).squaredNorm();
-				double distbad =  P_vK.squaredNorm();
-				double XmuK2 = 2.0*+2.0*distbad / (sqr(distgood) + sqr(distbad));
-
-				Js.point.noalias() -= P.transpose() * (lrSub * XmuK2 * (Js.P_point - P_trainPoint));
+				double muK2s = 2.0 * +2.0*distbadRaw / (sqr((Js.P_point - P_trainPoint).squaredNorm()) + sqr(distbadRaw));
+				Js.point.noalias() -= P.transpose() * (lrSub * muK2s * (Js.P_point - P_trainPoint));
 			} else {
 				double muK2s = 2.0 * +2.0*fullmatch.distBad / (sqr(fullmatch.matchesOk[i].dist) + sqr(fullmatch.distBad));
-
 				Js.point.noalias() -= P.transpose() * (lrSub * muK2s * (Js.B.transpose() * (Js.B * (Js.P_point - P_trainPoint))));
 			}
 		}

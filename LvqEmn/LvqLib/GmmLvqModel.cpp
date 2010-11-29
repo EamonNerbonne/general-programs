@@ -115,22 +115,9 @@ MatchQuality GmmLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel)
 	//J.RecomputeBias();
 	//K.RecomputeBias();
 
-//#ifndef NDEBUG
-//	double Jbdet =(J.B.transpose()*J.B).determinant();
-//	double Kbdet =(K.B.transpose()*K.B).determinant();
-//	double Pdet =(P.transpose()*P).determinant();
-//
-//	double Jbias = -log((J.B.transpose()*J.B).determinant());
-//	double Kbias = -log((K.B.transpose()*K.B).determinant());
-//	double eps=std::numeric_limits<double>::epsilon();
-//	assert(fabs(J.bias - Jbias)<=eps*trainPoint.size()*2 || almostEqual(J.bias,Jbias,static_cast<double>(trainPoint.size()*2)));
-//	assert(fabs(K.bias - Kbias)<=eps*trainPoint.size()*2 ||almostEqual(K.bias,Kbias,static_cast<double>(trainPoint.size()*2)));
-//#endif
-
-
 	if(ngMatchCache.size()>0) {
 		double lrSub = lr_point;
-		double lrDelta = exp(-0.2*settings.LR0/learningRate);//TODO: this is rather ADHOC
+		double lrDelta = exp(-LVQ_NG_FACTOR*settings.LR0/learningRate);//TODO: this is rather ADHOC
 		for(int i=1;i<fullmatch.foundOk;++i) {
 			lrSub*=lrDelta;
 			GmmLvqPrototype &Js = prototype[fullmatch.matchesOk[i].idx];
