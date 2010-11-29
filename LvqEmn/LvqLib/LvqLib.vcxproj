@@ -409,6 +409,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="GmmLvqModel.cpp" />
+    <ClCompile Include="GoodBadMatch.cpp" />
     <ClCompile Include="LvqModel.cpp" />
     <ClCompile Include="DatasetUtils.cpp" />
     <ClCompile Include="G2mLvqModel.cpp" />

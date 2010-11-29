@@ -2,7 +2,6 @@
 #include <numeric>
 #include "utils.h"
 
-
 struct MatchQuality {
 	double costFunc;
 	bool isErr;
@@ -20,28 +19,8 @@ struct GoodBadMatch {
 #endif
 	{}
 
-	bool IsErr()const{return distGood > distBad;}
-
-	MatchQuality LvqQuality() {
-		MatchQuality retval;
-		retval.isErr = distGood >= distBad;
-		retval.costFunc = (distGood - distBad)/(distGood+distBad);
-		return retval;
-	}
-
-	MatchQuality GmmQuality() {
-		MatchQuality retval;
-		retval.isErr = distGood >= distBad;
-		if(retval.isErr) {
-			double pk_pj = exp(distGood-distBad); //0 -> 1
-			retval.costFunc = 2*pk_pj/(1+pk_pj)-1;
-		} else {
-			double pj_pk = exp(distBad-distGood); //0 -> 1
-			retval.costFunc = 2/(1+pj_pk)-1;
-		}
-		if(!isfinite(retval.costFunc)) throw "Invalid Cost func!";
-		return retval;
-	}
+	MatchQuality LvqQuality();
+	MatchQuality GmmQuality();
 
 	double MuJ() const {return -2.0*distGood / (sqr(distGood) + sqr(distBad));}
 	double MuK() const{return +2.0*distBad / (sqr(distGood) + sqr(distBad));}
@@ -77,11 +56,6 @@ struct CorrectAndWorstMatches {
 	inline void Register(double dist,int idx, bool isOk) { if(isOk) RegisterOk(dist,idx); else RegisterBad(dist,idx); }
 
 	inline void SortOk() { std::sort(matchesOk,matchesOk+foundOk); }
-
-	//double CostFunc() const { return (matchesOk[0].dist - distBad)/(matchesOk[0].dist+distBad); }
-	//double MuJ() const {return -2.0*matchesOk[0].dist / (sqr(matchesOk[0].dist) + sqr(distBad));}
-	//double MuK() const{return +2.0*distBad / (sqr(matchesOk[0].dist) + sqr(distBad));}
-	//bool IsErr()const{return matchesOk[0].dist > distBad;}
 
 	GoodBadMatch ToGoodBadMatch() {
 		GoodBadMatch retval;
