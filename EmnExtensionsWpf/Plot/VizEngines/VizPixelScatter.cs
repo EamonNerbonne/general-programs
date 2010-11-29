@@ -42,7 +42,7 @@ namespace EmnExtensions.Wpf.Plot.VizEngines {
 			return outerBounds;
 		}
 
-		static Rect ComputeInnerBoundsByRatio(Point[] points, double coverageX, double coverageY, double coverageGrad, Rect completeBounds) {
+		public static Rect ComputeInnerBoundsByRatio(Point[] points, double coverageX, double coverageY, double coverageGrad, Rect completeBounds) {
 			int cutoffEachSideX = (int)(0.5 * (1.0 - coverageX) * points.Length + 0.5);
 			int cutoffEachSideY = (int)(0.5 * (1.0 - coverageY) * points.Length + 0.5);
 			return

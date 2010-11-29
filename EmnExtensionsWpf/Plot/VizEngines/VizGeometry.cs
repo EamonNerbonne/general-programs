@@ -11,7 +11,7 @@ namespace EmnExtensions.Wpf.Plot.VizEngines {
 		bool m_AutosizeBounds = true;
 		Brush m_Fill = Brushes.Black;
 		Pen m_Pen = defaultPen;
-	
+
 		public VizGeometry() {
 			combinesGeom.Transform = m_ProjectionTransform;
 			SetMargin(new Thickness(Pen.Thickness / 2.0));//this will trigger OnChanged if neeeded.
@@ -73,8 +73,9 @@ namespace EmnExtensions.Wpf.Plot.VizEngines {
 		void m_Geometry_Changed(object sender, EventArgs e) { RecomputeBoundsIfAuto(); }
 
 		void RecomputeBoundsIfAuto() {
-			if (m_AutosizeBounds) SetDataBounds(Data.Bounds);//this will trigger OnChanged if neeeded.
+			if (m_AutosizeBounds) InvalidateDataBounds();//this will trigger OnChanged if neeeded.
 		}
+		protected override Rect ComputeBounds() { return Data.Bounds; }
 
 		public override void SetTransform(Matrix axisToDisplay, Rect displayClip, double forDpiX, double forDpiY) {
 			clipRectangle.Rect = displayClip;

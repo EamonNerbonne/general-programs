@@ -5,7 +5,7 @@ using System.Windows.Media.Imaging;
 
 namespace EmnExtensions.Wpf.Plot.VizEngines {
 	public class VizDelegateBitmap<T> : VizDynamicBitmap<T> {
-		public VizDelegateBitmap() { UpdateBitmapDelegate = DefaultUpdateBitmapDelegate; ComputeBounds = DefaultComputeBounds; }
+		public VizDelegateBitmap() { UpdateBitmapDelegate = DefaultUpdateBitmapDelegate; BoundsComputer = DefaultComputeBounds; }
 		static void DefaultUpdateBitmapDelegate(WriteableBitmap bmp, Matrix mat, int pixelWidth, int pixelHeight, T data) { }
 		static Rect DefaultComputeBounds(T data) { return Rect.Empty; }
 		protected override Rect? OuterDataBound { get { return m_OuterDataBound; } }
@@ -20,10 +20,12 @@ namespace EmnExtensions.Wpf.Plot.VizEngines {
 		/// The final parameter is the data to be plotted - this is simply IPlotData.RawData passed for convenience
 		/// </summary>
 		public Action<WriteableBitmap, Matrix, int, int, T> UpdateBitmapDelegate { get; set; }
-		public Func<T, Rect> ComputeBounds { get; set; }
+		public Func<T, Rect> BoundsComputer { get; set; }
+
+		protected override Rect ComputeBounds() { return BoundsComputer(Data); }
 
 		protected override void UpdateBitmap(int pW, int pH, Matrix dataToBitmap) { UpdateBitmapDelegate(m_bmp, dataToBitmap, pW, pH, Data); }
-		protected override void OnDataChanged(T oldData) { SetDataBounds(ComputeBounds(Data)); TriggerChange(GraphChange.Projection); }
+		protected override void OnDataChanged(T oldData) { InvalidateDataBounds(); TriggerChange(GraphChange.Projection); }
 
 		public override void OnRenderOptionsChanged() { } //we don't use color changes.
 	}

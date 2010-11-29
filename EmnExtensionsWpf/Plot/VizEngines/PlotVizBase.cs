@@ -8,13 +8,15 @@ namespace EmnExtensions.Wpf.Plot.VizEngines {
 		IPlot m_owner;
 		public IPlot Plot { get { return m_owner; } set { m_owner = value; OnRenderOptionsChanged(); } }
 
-		Rect m_DataBounds = Rect.Empty;
-		public Rect DataBounds { get { return m_DataBounds; } }
-		protected void SetDataBounds(Rect newBounds) {
-			bool boundsChanged = m_owner != null && !m_owner.MetaData.OverrideBounds.HasValue && m_DataBounds != newBounds;
-			m_DataBounds = newBounds;
+		Rect? m_DataBounds;
+		public Rect DataBounds { get { return m_DataBounds ?? (m_DataBounds = ComputeBounds()).Value; } }
+		protected void InvalidateDataBounds() {
+			m_DataBounds = null;
+			bool boundsChanged = m_owner != null && !m_owner.MetaData.OverrideBounds.HasValue;
 			if (boundsChanged) TriggerChange(GraphChange.Projection);
 		}
+
+		protected abstract Rect ComputeBounds();
 
 		protected void TriggerChange(GraphChange graphChange) { if (m_owner != null) m_owner.GraphChanged(graphChange); }
 

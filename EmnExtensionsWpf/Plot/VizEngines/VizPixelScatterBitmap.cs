@@ -6,17 +6,17 @@ using System.Windows.Media;
 namespace EmnExtensions.Wpf.Plot.VizEngines
 {
 	public class VizPixelScatterBitmap : VizDynamicBitmap<Point[]>, IVizPixelScatter
-	//for efficiency reasons, we accept data in a Point[] rather than the more general IEnumerable<Point>
+	//for efficiency reasons, accept data in a Point[] rather than the more general IEnumerable<Point>
 	{
 		Rect m_OuterDataBounds = Rect.Empty;
 		uint[] m_image;
 
 		protected override Rect? OuterDataBound { get { return m_OuterDataBounds; } }
 		double m_CoverageRatio = 0.9999;
-		public double CoverageRatio { get { return m_CoverageRatio; } set { if (value != m_CoverageRatio) { m_CoverageRatio = value; RecomputeBounds(Data); } } }
+		public double CoverageRatio { get { return m_CoverageRatio; } set { if (value != m_CoverageRatio) { m_CoverageRatio = value; InvalidateDataBounds(); } } }
 
 		double m_CoverageGradient = 5.0;
-		public double CoverageGradient { get { return m_CoverageGradient; } set { m_CoverageGradient = value; RecomputeBounds(Data); } }
+		public double CoverageGradient { get { return m_CoverageGradient; } set { m_CoverageGradient = value; InvalidateDataBounds(); } }
 
 		public int? OverridePointCountEstimate { get; set; }
 
@@ -149,15 +149,13 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
 
 		protected override void OnDataChanged(Point[] oldData)
 		{
-			RecomputeBounds(Data);
+			InvalidateDataBounds();
+			m_OuterDataBounds = VizPixelScatterHelpers.ComputeOuterBounds(Data);
 			TriggerChange(GraphChange.Projection); //because we need to relayout the points in the plot
 		}
 
-		void RecomputeBounds(Point[] points)
-		{
-			Rect innerBounds;
-			VizPixelScatterHelpers.RecomputeBounds(points, CoverageRatio, CoverageRatio, CoverageGradient, out m_OuterDataBounds, out innerBounds);
-			SetDataBounds(innerBounds);
+		protected override Rect ComputeBounds() {
+			return VizPixelScatterHelpers.ComputeInnerBoundsByRatio(Data, CoverageRatio, CoverageRatio, CoverageGradient, m_OuterDataBounds);
 		}
 
 		public override void OnRenderOptionsChanged()
