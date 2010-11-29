@@ -66,6 +66,8 @@ namespace LvqGui {
 			owner.LvqModels.CollectionChanged += LvqModels_CollectionChanged;
 		}
 
+		CancellationTokenSource stopTraining;
+		Task trainingTask;
 		public bool AnimateTraining {
 			get { return _AnimateTraining; }
 			set {
@@ -73,11 +75,14 @@ namespace LvqGui {
 					if (value && (SelectedLvqModel == null || SelectedDataset == null))
 						throw new ArgumentException("Can't animate; dataset or model is not set");
 					_AnimateTraining = value; _propertyChanged("AnimateTraining");
-					if (_AnimateTraining)
-						new Thread(o => DoAnimatedTraining()) {
-							IsBackground = true,
-							Priority = ThreadPriority.BelowNormal
-						}.Start();
+					if (_AnimateTraining) {
+						stopTraining = new CancellationTokenSource();
+						trainingTask = trainingTask == null ?
+							Task.Factory.StartNew(() => DoAnimatedTraining(stopTraining.Token), stopTraining.Token)
+							: trainingTask.ContinueWith(t => DoAnimatedTraining(stopTraining.Token), stopTraining.Token);
+					} else {
+						stopTraining.Cancel();
+					}
 				}
 			}
 		}
@@ -98,7 +103,7 @@ namespace LvqGui {
 			else {
 				//lock (selectedModel.UpdateSyncObject) //not needed for safety, just for accurate timing
 				using (new DTimer("Training " + epochsToTrainFor + " epochs"))
-					selectedModel.Train( epochsToTrainFor,  selectedDataset, Owner.WindowClosingToken);
+					selectedModel.Train(epochsToTrainFor, selectedDataset, Owner.WindowClosingToken);
 				if (!Owner.WindowClosingToken.IsCancellationRequested) {
 					PrintModelTimings(selectedModel);
 					PotentialUpdate(selectedDataset, selectedModel);
@@ -106,27 +111,24 @@ namespace LvqGui {
 			}
 		}
 
-		bool isAnimating;
-		public void DoAnimatedTraining() {
-			if (isAnimating) return;
+		public void DoAnimatedTraining(CancellationToken token) {
 #if BENCHMARK
 			int epochsTrained = 0;
 #endif
 			var selectedDataset = SelectedDataset;
 			var selectedModel = SelectedLvqModel;
 			try {
-				isAnimating = true;
 				Queue<Task> overallTask = new Queue<Task>();
-				while (_AnimateTraining && !Owner.WindowClosingToken.IsCancellationRequested) {
+				while (_AnimateTraining && !token.IsCancellationRequested && !Owner.WindowClosingToken.IsCancellationRequested) {
 					int epochsToTrainFor = EpochsPerAnimation;
 					if (selectedDataset == null || selectedModel == null || epochsToTrainFor < 1) {
 						owner.Dispatcher.BeginInvoke(() => { AnimateTraining = false; });
 						break;
 					}
 					overallTask.Enqueue(Task.Factory.StartNew(() => {
-						selectedModel.Train(epochsToTrainFor,  selectedDataset, Owner.WindowClosingToken);
+						selectedModel.Train(epochsToTrainFor, selectedDataset, Owner.WindowClosingToken);
 						PotentialUpdate(selectedDataset, selectedModel);
-					}, Owner.WindowClosingToken,TaskCreationOptions.None,LowPriorityTaskScheduler.Instance));
+					}, Owner.WindowClosingToken, TaskCreationOptions.None, LowPriorityTaskScheduler.Instance));
 
 					if (overallTask.Count >= 2) overallTask.Dequeue().Wait();
 
@@ -146,7 +148,6 @@ namespace LvqGui {
 						throw;
 				}
 			} finally {
-				isAnimating = false;
 				PrintModelTimings(selectedModel);
 			}
 		}

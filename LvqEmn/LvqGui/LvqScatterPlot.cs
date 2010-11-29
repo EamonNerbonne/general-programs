@@ -13,6 +13,7 @@ using EmnExtensions.Wpf.Plot;
 using EmnExtensions.Wpf.Plot.VizEngines;
 using LvqLibCli;
 using System.Windows.Controls;
+using EmnExtensions;
 
 
 namespace LvqGui {
@@ -214,24 +215,30 @@ namespace LvqGui {
 			}
 		}
 
-		void QueueUpdate() { ThreadPool.QueueUserWorkItem(o => UpdateQueueProcessor()); }
+		void QueueUpdate() { Task.Factory.StartNew(UpdateQueueProcessor, CancellationToken.None, TaskCreationOptions.None, LowPriorityTaskScheduler.Instance); }
 		void UpdateQueueProcessor() {
-			while (updateSync.UpdateEnqueue_IsMyTurn() && !exitToken.IsCancellationRequested) {
-				SubPlots currsubplots;
+			if (exitToken.IsCancellationRequested || !updateSync.UpdateEnqueue_IsMyTurn())
+				return;
+			SubPlots currsubplots;
 
-				int currSubModelIdx;
-				lock (plotsSync) {
-					currsubplots = subplots;
-					currSubModelIdx = subModelIdx;
-				}
-
-				PerformDisplayUpdate(currsubplots, currSubModelIdx);
-				if (updateSync.UpdateDone_IsQueueEmpty()) return;
+			int currSubModelIdx;
+			lock (plotsSync) {
+				currsubplots = subplots;
+				currSubModelIdx = subModelIdx;
 			}
+
+			var inflightOps = PerformDisplayUpdate(currsubplots, currSubModelIdx);
+			Task lastTask = null;
+			for (int i = 0; i < inflightOps.Length; i++) {
+				var currentOp = inflightOps[i];
+				lastTask = lastTask == null ? Task.Factory.StartNew(() => currentOp.Wait()) : lastTask.ContinueWith(task => currentOp.Wait());
+			}
+
+			if (lastTask == null) { if (!updateSync.UpdateDone_IsQueueEmpty()) QueueUpdate(); } else lastTask.ContinueWith(task => { if (!updateSync.UpdateDone_IsQueueEmpty()) QueueUpdate(); });
 		}
 
-		static void PerformDisplayUpdate(SubPlots subplots, int subModelIdx) {
-			if (subplots == null) return;
+		static DispatcherOperation[] PerformDisplayUpdate(SubPlots subplots, int subModelIdx) {
+			if (subplots == null) return new DispatcherOperation[] { };
 			var wh = subplots.LastWidthHeight;
 			var projectionAndImage = subplots.model.CurrentProjectionAndImage(subModelIdx, subplots.dataset, wh == null ? 0 : wh.Item1, wh == null ? 0 : wh.Item2);
 			DispatcherOperation scatterPlotOperation = null;
@@ -245,16 +252,13 @@ namespace LvqGui {
 				}), DispatcherPriority.Background);
 			}
 
-			var graphOperations = (
+			var graphOperationsLazy =
 				from plot in subplots.statPlots
 				group plot by plot.Dispatcher into plotgroup
-				select plotgroup.Key.BeginInvokeBackground(() => { foreach (var sp in plotgroup) sp.ChangeData(subplots.model.TrainingStats); })
-				).ToArray();
+				select plotgroup.Key.BeginInvokeBackground(() => { foreach (var sp in plotgroup) sp.ChangeData(subplots.model.TrainingStats); });
 
-			foreach (var operation in graphOperations)
-				operation.Wait();
-			if (scatterPlotOperation != null)
-				scatterPlotOperation.Wait();
+
+			return graphOperationsLazy.Concat(scatterPlotOperation != null ? new[] { scatterPlotOperation } : new DispatcherOperation[] { }).ToArray();
 		}
 
 
