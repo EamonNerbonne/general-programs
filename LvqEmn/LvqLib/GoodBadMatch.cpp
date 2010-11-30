@@ -21,3 +21,4 @@
 		if(!isfinite(retval.costFunc)) throw "Invalid Cost func!";
 		return retval;
 	}
+	

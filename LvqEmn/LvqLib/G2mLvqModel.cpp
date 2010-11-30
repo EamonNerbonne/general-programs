@@ -43,9 +43,9 @@ MatchQuality G2mLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel)
 	using namespace std;
 	double learningRate = stepLearningRate();
 
-	double lr_point = learningRate,
-		lr_P = learningRate * settings.LrScaleP,
-		lr_B = learningRate * settings.LrScaleB; 
+	double lr_point = settings.LR0 * learningRate,
+		lr_P = lr_point * settings.LrScaleP,
+		lr_B = lr_point * settings.LrScaleB; 
 
 	assert(lr_P>=0 && lr_B>=0 && lr_point>=0);
 
@@ -99,7 +99,7 @@ MatchQuality G2mLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel)
 	
 	if(ngMatchCache.size()>0) {
 		double lrSub = lr_point;
-		double lrDelta = exp(-LVQ_NG_FACTOR*settings.LR0/learningRate);//TODO: this is rather ADHOC
+		double lrDelta = exp(-LVQ_NG_FACTOR/learningRate);//TODO: this is rather ADHOC
 		for(int i=1;i<fullmatch.foundOk;++i) {
 			lrSub*=lrDelta;
 			G2mLvqPrototype &Js = prototype[fullmatch.matchesOk[i].idx];

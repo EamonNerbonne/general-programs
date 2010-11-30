@@ -44,9 +44,10 @@ MatchQuality GmmLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel)
 	using namespace std;
 	double learningRate = stepLearningRate();
 
-	double lr_point = learningRate,
-		lr_P = learningRate * settings.LrScaleP,
-		lr_B = learningRate * settings.LrScaleB; 
+	double lr_point = settings.LR0 * learningRate,
+		lr_P = lr_point * settings.LrScaleP,
+		lr_B = lr_point * settings.LrScaleB*(1.0-learningRate); 
+	double lr_bad_scale = settings.LrScaleBad*(1.0-learningRate);
 
 	assert(lr_P>=0 && lr_B>=0 && lr_point>=0);
 
@@ -73,63 +74,84 @@ MatchQuality GmmLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel)
 	double pMargin = exp(Ddelta);
 	double mu2 = 2*2* pMargin / ((1 + pMargin)*(1+pMargin));
 	if(!isfinite(mu2)) {
+		DBG(matches.matchBad);
+		DBG(matches.matchGood);
+
+
 		DBG(matches.distBad);
 		DBG(matches.distGood);
+		
 
 		DBG(Ddelta);
 		DBG(pMargin);
 
 		DBG(mu2);
 
-		throw "Invalid Cost func!";
-	}
-	MVectorXd vJ(m_vJ.data(),m_vJ.size());
-	MVectorXd vK(m_vK.data(),m_vK.size());
+		DBG(prototype[matches.matchBad].bias);
+		DBG(prototype[matches.matchGood].bias);
 
-	Vector2d P_vJ= J.P_point - P_trainPoint;
-	Vector2d P_vK = K.P_point - P_trainPoint;
-	Vector2d mu2_Bj_P_vJ = mu2 *  (J.B * P_vJ) ;
-	Vector2d mu2_Bk_P_vK = mu2 *  (K.B * P_vK) ;
-	vJ = J.point - trainPoint;
-	vK = K.point - trainPoint;
-	Vector2d mu2_BjT_Bj_P_vJ =  J.B.transpose() * mu2_Bj_P_vJ ;
-	Vector2d mu2_BkT_Bk_P_vK = K.B.transpose() * mu2_Bk_P_vK ;
+		DBG(prototype[matches.matchBad].B);
+		DBG(prototype[matches.matchGood].B);
 
-	//Matrix2d mu2_JBinvT = mu2* J.B.inverse().transpose();
-	//Matrix2d mu2_KBinvT = mu2* K.B.inverse().transpose();
+		DBG(prototype[matches.matchBad].B.determinant());
+		DBG(prototype[matches.matchGood].B.determinant());
 
-	J.B.noalias() -= lr_B * mu2_Bj_P_vJ * P_vJ.transpose() ;//- mu2_JBinvT );
-	K.B.noalias() += lr_B * mu2_Bk_P_vK * P_vK.transpose() ;//- mu2_KBinvT) ;
-	J.bias -= mu2*lr_B;
-	K.bias += mu2*lr_B;
+		mu2 = 0.0;
+	} else {
+		MVectorXd vJ(m_vJ.data(),m_vJ.size());
+		MVectorXd vK(m_vK.data(),m_vK.size());
 
-	J.point.noalias() -= P.transpose()* (lr_point * mu2_BjT_Bj_P_vJ);
-	K.point.noalias() += P.transpose() * (settings.LrScaleBad*lr_point * mu2_BkT_Bk_P_vK) ;
+		Vector2d P_vJ= J.P_point - P_trainPoint;
+		Vector2d P_vK = K.P_point - P_trainPoint;
+		Vector2d mu2_Bj_P_vJ = mu2 *  (J.B * P_vJ) ;
+		Vector2d mu2_Bk_P_vK = mu2 *  (K.B * P_vK) ;
+		vJ = J.point - trainPoint;
+		vK = K.point - trainPoint;
+		Vector2d mu2_BjT_Bj_P_vJ =  J.B.transpose() * mu2_Bj_P_vJ ;
+		Vector2d mu2_BkT_Bk_P_vK = K.B.transpose() * mu2_Bk_P_vK ;
 
-	//Matrix2d PPTinv = (P* P.transpose()).inverse();
-	//m_PpseudoinvT.noalias() = (P.transpose() * (lr_P *(-muK2-muJ2) * PPTinv)).transpose();
-	P.noalias() += (lr_P * mu2_BkT_Bk_P_vK) * vK.transpose() - (lr_P * mu2_BjT_Bj_P_vJ) * vJ.transpose();//+ m_PpseudoinvT;
+	#ifdef AUTO_BIAS
+		Matrix2d mu2_JBinvT = mu2* J.B.inverse().transpose();
+		Matrix2d mu2_KBinvT = mu2* K.B.inverse().transpose();
 
-	//double pBias = -log((P* P.transpose()).determinant());
+		J.B.noalias() -= lr_B * (mu2_Bj_P_vJ * P_vJ.transpose() - mu2_JBinvT );
+		K.B.noalias() += lr_B * (mu2_Bk_P_vK * P_vK.transpose() - mu2_KBinvT) ;
+		J.RecomputeBias();
+		K.RecomputeBias();
+	#else
+		J.B.noalias() -= lr_B * mu2_Bj_P_vJ * P_vJ.transpose() ;
+		K.B.noalias() += lr_B * mu2_Bk_P_vK * P_vK.transpose() ;
+		J.bias -= mu2*lr_B;
+		K.bias += mu2*lr_B;
+	#endif
+
+
+		J.point.noalias() -= P.transpose()* (lr_point * mu2_BjT_Bj_P_vJ);
+		K.point.noalias() += P.transpose() * (lr_bad_scale * lr_point * mu2_BkT_Bk_P_vK) ;
+
+		//Matrix2d PPTinv = (P* P.transpose()).inverse();
+		//m_PpseudoinvT.noalias() = (P.transpose() * (lr_P *(-muK2-muJ2) * PPTinv)).transpose();
+		P.noalias() += (lr_P * mu2_BkT_Bk_P_vK) * vK.transpose() - (lr_P * mu2_BjT_Bj_P_vJ) * vJ.transpose();//+ m_PpseudoinvT;
+
+		//double pBias = -log((P* P.transpose()).determinant());
 	
-	//J.RecomputeBias();
-	//K.RecomputeBias();
 
-	if(ngMatchCache.size()>0) {
-		double lrSub = lr_point;
-		double lrDelta = exp(-LVQ_NG_FACTOR*settings.LR0/learningRate);//TODO: this is rather ADHOC
-		for(int i=1;i<fullmatch.foundOk;++i) {
-			lrSub*=lrDelta;
-			GmmLvqPrototype &Js = prototype[fullmatch.matchesOk[i].idx];
-			double pMargin_s = exp(-fabs(fullmatch.distBad - fullmatch.matchesOk[i].dist));
-			double mu2_s = 2*2* pMargin /((1 + pMargin)*(1+pMargin));
+		if(ngMatchCache.size()>0) {
+			double lrSub = lr_point;
+			double lrDelta = exp(-LVQ_NG_FACTOR/learningRate);//TODO: this is rather ADHOC
+			for(int i=1;i<fullmatch.foundOk;++i) {
+				lrSub*=lrDelta;
+				GmmLvqPrototype &Js = prototype[fullmatch.matchesOk[i].idx];
+				double pMargin_s = exp(-fabs(fullmatch.distBad - fullmatch.matchesOk[i].dist));
+				double mu2_s = 2*2* pMargin /((1 + pMargin)*(1+pMargin));
 
-			Js.point.noalias() -= P.transpose() * (lrSub * mu2_s * (Js.B.transpose() * (Js.B * (Js.P_point - P_trainPoint))));
+				Js.point.noalias() -= P.transpose() * (lrSub * mu2_s * (Js.B.transpose() * (Js.B * (Js.P_point - P_trainPoint))));
+			}
 		}
-	}
 
-	for(size_t i=0;i<prototype.size();++i)
-		prototype[i].ComputePP(P);
+		for(size_t i=0;i<prototype.size();++i)
+			prototype[i].ComputePP(P);
+	}
 	return matches.GmmQuality();
 }
 
@@ -237,6 +259,8 @@ void GmmLvqModel::DoOptionalNormalization() {
 		 } else {
 			 for(size_t i=0;i<prototype.size();++i) normalizeProjection(prototype[i].B);
 		 }
-//		 for(size_t i=0;i<prototype.size();++i) prototype[i].RecomputeBias();
+#ifdef AUTO_BIAS
+		 for(size_t i=0;i<prototype.size();++i) prototype[i].RecomputeBias();
+#endif
 	 }
 }

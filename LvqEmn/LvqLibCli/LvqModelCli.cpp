@@ -14,7 +14,7 @@ namespace LvqLibCli {
 
 	int LvqModelCli::ClassCount::get(){return model->get()->ClassCount();}
 	int LvqModelCli::Dimensions::get(){return model->get()->Dimensions();}
-	double LvqModelCli::CurrentLearningRate::get() {return modelCopy->get()->currentLearningRate(); }
+	double LvqModelCli::UnscaledLearningRate::get() {return modelCopy->get()->unscaledLearningRate(); }
 	bool LvqModelCli::IsProjectionModel::get(){return nullptr != dynamic_cast<LvqProjectionModel*>(model->get()); }
 
 	bool LvqModelCli::FitsDataShape(LvqDatasetCli^ dataset) {return dataset!=nullptr && dataset->ClassCount == this->ClassCount && dataset->Dimensions == this->Dimensions;}
@@ -34,7 +34,6 @@ namespace LvqLibCli {
 		modelCopy = GcPtr::Create(model->get()->clone());
 	}
 
-	
 	LvqTrainingStatCli LvqModelCli::GetTrainingStat(int statI){
 		if(modelCopy==nullptr)LvqTrainingStatCli();
 

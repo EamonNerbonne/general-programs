@@ -41,10 +41,8 @@ GsmLvqModel::GsmLvqModel(LvqModelSettings & initSettings)
 MatchQuality GsmLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel) {
 	double learningRate = stepLearningRate();
 
-	using namespace std;
-
-	double lr_point = learningRate,
-		lr_P = learningRate * settings.LrScaleP;
+	double lr_point = settings.LR0 * learningRate,
+		lr_P = lr_point * settings.LrScaleP;
 
 	assert(lr_P>=0 && lr_point>=0);
 
@@ -86,7 +84,7 @@ MatchQuality GsmLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel)
 
 	if(ngMatchCache.size()>0) {
 		double lrSub = lr_point;
-		double lrDelta = exp(-LVQ_NG_FACTOR*settings.LR0/learningRate);//TODO: this is rather ADHOC
+		double lrDelta = exp(-LVQ_NG_FACTOR/learningRate);//TODO: this is rather ADHOC
 		for(int i=1;i<fullmatch.foundOk;++i) {
 			lrSub*=lrDelta;
 			VectorXd &Js = prototype[fullmatch.matchesOk[i].idx];

@@ -48,17 +48,17 @@ GmLvqModel::GmLvqModel( LvqModelSettings & initSettings)
 
 
 MatchQuality GmLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel) {
-	//double learningRate = getLearningRate();
-	//incLearningIterationCount();
 	double learningRate = stepLearningRate();
+	double lr_point = settings.LR0 * learningRate;
+	
 	using namespace std;
 
 	GoodBadMatch matches = findMatches(trainPoint, trainLabel);
 
 	//now matches.good is "J" and matches.bad is "K".
 
-	double lr_mu_J2 = learningRate * 2.0*-2.0 * matches.distGood / (sqr(matches.distGood) + sqr(matches.distBad));
-	double lr_mu_K2 = learningRate * 2.0*+2.0 * matches.distBad / (sqr(matches.distGood) + sqr(matches.distBad));
+	double lr_mu_J2 = lr_point * 2.0*-2.0 * matches.distGood / (sqr(matches.distGood) + sqr(matches.distBad));
+	double lr_mu_K2 = lr_point * 2.0*+2.0 * matches.distBad / (sqr(matches.distGood) + sqr(matches.distBad));
 
 	int J = matches.matchGood;
 	int K = matches.matchBad;
@@ -77,8 +77,8 @@ MatchQuality GmLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel) 
 	prototype[J].noalias() -= (lr_mu_K2)* (P[J].transpose() * Pj_vJ);
 	prototype[K].noalias() -= (settings.LrScaleBad*lr_mu_J2) * (P[K].transpose() * Pk_vK);
 
-	P[J].noalias() -= (settings.LrScaleP*  lr_mu_K2) * (Pj_vJ * vJ.transpose() );
-	P[K].noalias() -=(settings.LrScaleP*lr_mu_J2) * (Pk_vK * vK.transpose() );
+	P[J].noalias() -= (settings.LrScaleP *  lr_mu_K2) * (Pj_vJ * vJ.transpose() );
+	P[K].noalias() -=(settings.LrScaleP *lr_mu_J2) * (Pk_vK * vK.transpose() );
 	return matches.LvqQuality();
 }
 

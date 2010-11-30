@@ -35,7 +35,7 @@ namespace LvqGui {
 
 		public bool IsMultiModel { get { return ModelCount > 0; } }
 
-		public double CurrentLearningRate { get { return subModels.Sum(model => model.CurrentLearningRate) / ModelCount; } }
+		public double CurrentLearningRate { get { return subModels.Sum(model => model.UnscaledLearningRate) / ModelCount; } }
 
 		public struct Statistic { public double[] Value, StandardError;}
 		readonly object statCacheSync = new object();

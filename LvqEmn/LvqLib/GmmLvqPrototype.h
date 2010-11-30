@@ -4,6 +4,8 @@
 using namespace Eigen;
 #include "utils.h"
 
+//#define AUTO_BIAS
+
 class GmmLvqPrototype
 {
 	friend class GmmLvqModel;
@@ -17,10 +19,13 @@ class GmmLvqPrototype
 	EIGEN_STRONG_INLINE void ComputePP(PMatrix const & P) {
 		P_point.noalias() = P * point;
 	}
-	//EIGEN_STRONG_INLINE void RecomputeBias() {
-	//	bias = -2 * log(B.determinant());
-	//	assert(isfinite(bias));
-	//}
+
+#ifdef AUTO_BIAS
+	EIGEN_STRONG_INLINE void RecomputeBias() {
+		bias = -log(sqr(B.determinant()));
+		assert(isfinite(bias));
+	}
+#endif
 
 public:
 	inline int label() const {return classLabel;}
@@ -40,7 +45,9 @@ public:
 		else 
 			B.setIdentity();
 		ComputePP(P);
-		//RecomputeBias();
+#ifdef AUTO_BIAS
+		RecomputeBias();
+#endif
 	}
 
 	inline double SqrDistanceTo(Vector2d const & P_testPoint) const {

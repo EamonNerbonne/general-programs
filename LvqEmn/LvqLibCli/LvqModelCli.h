@@ -30,7 +30,7 @@ namespace LvqLibCli {
 		property Object^ ReadSync {Object^ get(){return copySync;}}
 		property int ClassCount {int get();}
 		property int Dimensions {int get();}
-		property double CurrentLearningRate {double get();}
+		property double UnscaledLearningRate {double get();}
 		property bool IsProjectionModel {bool get();}
 		bool FitsDataShape(LvqDatasetCli^ dataset);
 

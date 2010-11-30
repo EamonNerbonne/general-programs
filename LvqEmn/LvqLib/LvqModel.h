@@ -21,10 +21,10 @@ class LvqModel
 protected:
 	LvqModelRuntimeSettings settings;
 	double iterationScaleFactor;//TODO:make private;
-	double stepLearningRate() {
+	double stepLearningRate() { //starts at 1.0, descending with power -0.75
 		double scaledIter = trainIter*iterationScaleFactor+1.0;
 		++trainIter;
-		return settings.LR0 / sqrt(scaledIter*sqrt(scaledIter)); // significantly faster than exp(-0.75*log(scaledIter)) 
+		return 1.0 / sqrt(scaledIter*sqrt(scaledIter)); // significantly faster than exp(-0.75*log(scaledIter)) 
 	}
 	//subclasses must append the stats they intend to collect and call their base-classes AppendTrainingStatNames
 	virtual void AppendTrainingStatNames(std::vector<std::wstring> & retval) const;
@@ -34,9 +34,9 @@ protected:
 
 public:
 	int epochsTrained;
-	double currentLearningRate() const { 
+	double unscaledLearningRate() const { 
 		double scaledIter = trainIter*iterationScaleFactor+1.0;
-		return settings.LR0 / sqrt(scaledIter*sqrt(scaledIter)); 
+		return 1.0 / sqrt(scaledIter*sqrt(scaledIter)); 
 	}
 
 	boost::mt19937 & RngIter() {return *settings.RngIter;}//TODO:remove.
