@@ -23,7 +23,7 @@ namespace EmnExtensions.Wpf {
 
 					ColorSimple min = colors.Aggregate(ColorSimple.MinValue, ColorSimple.Min);
 					ColorSimple max = colors.Aggregate(ColorSimple.MaxValue, ColorSimple.Max);
-					for (int i = 0; i < colors.Length; i++) colors[i].ScaleBack(min, max);
+					for (int i = 0; i < colors.Length; i++) { colors[i].ScaleBack(min, max); colors[i].LimitBrightness(0.85); }
 				}
 
 			return colors.Select(c => c.ToWindowsColor()).ToArray();
@@ -47,6 +47,15 @@ namespace EmnExtensions.Wpf {
 				R = scaled(R, min.R, max.R);
 				G = scaled(G, min.G, max.G);
 				B = scaled(B, min.B, max.B);
+			}
+
+			public void LimitBrightness(double max) {
+				if (Sum > max) {
+					double scale = max / Sum;
+					R *= scale;
+					G *= scale;
+					B *= scale;
+				}
 			}
 
 
