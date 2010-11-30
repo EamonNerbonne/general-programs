@@ -53,7 +53,18 @@ $(document).ready(function ($) {
                 try { val = JSON.parse(newval) } catch (e) { }
                 if (val) loadPlaylist(val);
             }
-        }
+        },
+        playlistName:{
+            label: "Playlist Name",
+            type: "textbox",
+            initialValue: "",
+            onchange: function (newval, codeTriggered, e) {
+//                if (codeTriggered) return;
+//                var val = false;
+//                try { val = JSON.parse(newval) } catch (e) { }
+//                if (val) loadPlaylist(val);
+            }
+        },
     };
 
     if (window.webkitNotifications) {
@@ -116,6 +127,7 @@ $(document).ready(function ($) {
                     .click(playlistClick).dblclick(playlistClick)
                     .sortable().disableSelection();
             $("#similar .known").click(knownClick);
+            loadPlaylist(JSON.parse(localStorage.playlist));
         },
         oggSupport: true,
         swfPath: ""
@@ -190,7 +202,9 @@ $(document).ready(function ($) {
 
     function playlistRefreshUi() {
         playlistElem.sortable("refresh");
-        userOptions.serializedList.setValue(JSON.stringify(savePlaylist()));
+        var serializedList = JSON.stringify(savePlaylist());
+        userOptions.serializedList.setValue(serializedList);
+        localStorage.setItem("playlist", serializedList);               // defining the localStorage variable 
         simStateSet.getting();
     }
 
