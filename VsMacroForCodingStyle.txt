@@ -1,8 +1,0 @@
-    'added by Eamon based on: http://geekswithblogs.net/sdorman/archive/2007/04/25/111981.aspx
-    Private Sub SolutionEvents_Opened() Handles SolutionEvents.Opened
-        Dim item As ProjectItem = DTE.Solution.FindProjectItem("VisualStudioTextEditor.vssettings")
-        If Not item Is Nothing Then
-            Dim name = item.FileNames(1)
-            DTE.ExecuteCommand("Tools.ImportandExportSettings", "/import:""" & name & """")
-        End If
-    End Sub
