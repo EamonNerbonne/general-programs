@@ -17,10 +17,19 @@ namespace EmnExtensions {
 			}
 			void DoWork() {
 				while (true) {
-					sem.Wait();
-					Task next = todo;
-					todo = null;
-					owner.ProcessTask(this, next);
+					if (!sem.Wait(10000)) {
+						//idle for 10 seconds, terminate a thread.
+						owner.TerminateThread();
+					} else {
+						Task next = todo;
+						todo = null;
+						if (next == null) {//termination signal
+							this.Dispose();
+							break;
+						} else {
+							owner.ProcessTask(this, next);
+						}
+					}
 				}
 			}
 			public void Start(Task task) {
@@ -63,6 +72,12 @@ namespace EmnExtensions {
 					} //if not, then we're OK since eventually one will and then check the queue.
 				}
 			}
+		}
+
+		void TerminateThread() {
+			WorkerThread idleThread;
+			if (threads.TryTake(out idleThread))
+				idleThread.DoTask(null);
 		}
 
 		private void DoQueueTask() {
