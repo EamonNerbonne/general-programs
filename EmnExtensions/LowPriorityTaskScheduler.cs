@@ -8,12 +8,12 @@ namespace EmnExtensions {
 	public sealed class LowPriorityTaskScheduler : TaskScheduler {
 		sealed class WorkerThread : IDisposable {
 			volatile Task todo;
-			readonly Thread thread;
 			readonly LowPriorityTaskScheduler owner;
 			readonly SemaphoreSlim sem = new SemaphoreSlim(1);
-			public WorkerThread(LowPriorityTaskScheduler owner) {
+			public WorkerThread(LowPriorityTaskScheduler owner, ThreadPriority priority, Task firstTask) {
 				this.owner = owner;
-				thread = new Thread(DoWork) { IsBackground = true, Priority = ThreadPriority.Lowest };
+				todo = firstTask;
+				new Thread(DoWork) { IsBackground = true, Priority = priority }.Start();
 			}
 			void DoWork() {
 				while (true) {
@@ -32,10 +32,6 @@ namespace EmnExtensions {
 					}
 				}
 			}
-			public void Start(Task task) {
-				todo = task;
-				thread.Start();
-			}
 			public void DoTask(Task task) {
 				todo = task;
 				sem.Release();
@@ -48,19 +44,31 @@ namespace EmnExtensions {
 		readonly ConcurrentBag<Task> tasks = new ConcurrentBag<Task>();
 
 		readonly ConcurrentBag<WorkerThread> threads = new ConcurrentBag<WorkerThread>();
-		static readonly int MaxParallel = Environment.ProcessorCount*2;
-		int currPar = 0;
+		readonly int MaxParallel;
+		readonly ThreadPriority Priority;
+		volatile int currPar = 0;
+		public LowPriorityTaskScheduler(int? maxParallelism = null, ThreadPriority priority = ThreadPriority.Lowest) {
+			MaxParallel = maxParallelism ?? Environment.ProcessorCount * 2;
+			Priority = priority;
+		}
 
 		void DoTask(Task t) {
+
 			WorkerThread idleThread;
 			if (threads.TryTake(out idleThread))
 				idleThread.DoTask(t);
 			else {
-				if (Interlocked.Increment(ref currPar) < MaxParallel) {
-					new WorkerThread(this).Start(t);
-				} else {
+				bool shouldStartNew = false;
+				if (Interlocked.Increment(ref currPar) < MaxParallel)
+					shouldStartNew = true;
+				else {
 					Interlocked.Decrement(ref currPar);
-					//ok, there was no workerthread freee, and we're at max capacity, so queue!
+				}
+
+				if (shouldStartNew) {
+					new WorkerThread(this, Priority, t);
+				} else {
+					//ok, there was no workerthread free, and we're at max capacity, so queue!
 					tasks.Add(t);
 					//possible that workerthread became free since check:
 					if (threads.TryTake(out idleThread)) {
@@ -76,11 +84,13 @@ namespace EmnExtensions {
 
 		void TerminateThread() {
 			WorkerThread idleThread;
-			if (threads.TryTake(out idleThread))
+			if (threads.TryTake(out idleThread)) {
+				Interlocked.Decrement(ref currPar);
 				idleThread.DoTask(null);
+			}
 		}
 
-		private void DoQueueTask() {
+		void DoQueueTask() {
 			Task fromQ;
 			if (!tasks.TryTake(out fromQ)) return;
 			//no need to start new workers, after all, all are made if something's in the queue.
@@ -99,12 +109,16 @@ namespace EmnExtensions {
 			return TryExecuteTask(task);
 		}
 
+		void SlipstreamQueueExecute() {
+			Task another;
+			while (tasks.TryTake(out another))
+				TryExecuteTask(another);
+		}
+
 		void ProcessTask(WorkerThread t, Task todo) {
 			try {
 				TryExecuteTask(todo);
-				Task another;
-				while (tasks.TryTake(out another))
-					TryExecuteTask(another);
+				SlipstreamQueueExecute();
 			} finally {
 				threads.Add(t);
 				//it's unlikely the queue is non-empty now, but possible.
@@ -117,7 +131,7 @@ namespace EmnExtensions {
 		}
 
 		public override int MaximumConcurrencyLevel { get { return MaxParallel; } }
-		static readonly LowPriorityTaskScheduler singleton = new LowPriorityTaskScheduler();
-		public static LowPriorityTaskScheduler Instance { get { return singleton; } }
+		//static readonly LowPriorityTaskScheduler singleton = new LowPriorityTaskScheduler();
+		//public static LowPriorityTaskScheduler Instance { get { return singleton; } }
 	}
 }
