@@ -1,4 +1,8 @@
-﻿using System;
+﻿#define FIFO_TASKS
+#define FIFO_THREADS
+//#define DEBUG_TRACK_ITEMS
+//best perf seems to be: fifo tasks&threads, no debug-tracking.
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
@@ -6,13 +10,15 @@ using System.Threading.Tasks;
 
 namespace EmnExtensions {
 	public sealed class LowPriorityTaskScheduler : TaskScheduler {
-		sealed class WorkerThread : IDisposable {
-			volatile Task todo;
+		sealed class WorkerThread {
+#if DEBUG_TRACK_ITEMS
+			public int normalCount;
+#endif
 			readonly LowPriorityTaskScheduler owner;
 			readonly SemaphoreSlim sem = new SemaphoreSlim(1);
-			public WorkerThread(LowPriorityTaskScheduler owner, ThreadPriority priority, Task firstTask) {
+			bool shouldExit = false;
+			public WorkerThread(LowPriorityTaskScheduler owner, ThreadPriority priority) {
 				this.owner = owner;
-				todo = firstTask;
 				new Thread(DoWork) { IsBackground = true, Priority = priority }.Start();
 			}
 			void DoWork() {
@@ -20,30 +26,56 @@ namespace EmnExtensions {
 					if (!sem.Wait(10000)) {
 						//idle for 10 seconds, terminate a thread.
 						owner.TerminateThread();
+					} else if (shouldExit) {//termination signal
+						sem.Dispose();
+#if DEBUG_TRACK_ITEMS
+						PrintStats(true);
+#endif
+						break;
 					} else {
-						Task next = todo;
-						todo = null;
-						if (next == null) {//termination signal
-							this.Dispose();
-							break;
-						} else {
-							owner.ProcessTask(this, next);
-						}
+						owner.ProcessTask(this);
 					}
 				}
 			}
-			public void DoTask(Task task) {
-				todo = task;
-				sem.Release();
-			}
-
-			public void Dispose() {
-				sem.Dispose();
-			}
+			public void WakeThread() { sem.Release(); }
+			public void ExitThread() { shouldExit = true; sem.Release(); }
+#if DEBUG_TRACK_ITEMS
+			public void PrintStats(bool exit=false) { Console.WriteLine((exit?"OnExit: ":"Current: ")+"Executed: "+ normalCount); }
+#endif
 		}
-		readonly ConcurrentBag<Task> tasks = new ConcurrentBag<Task>();
 
+#if FIFO_TASKS
+		readonly ConcurrentQueue<Task> tasks = new ConcurrentQueue<Task>();
+		void AddTaskToQueue(Task task) {
+			tasks.Enqueue(task);
+		}
+		bool TryGetQueuedTask(out Task retval) {
+			return tasks.TryDequeue(out retval);
+		}
+		bool TasksAreQueued() { return tasks.Count > 0; }
+#else
+		readonly ConcurrentBag<Task> tasks = new ConcurrentBag<Task>();
+		void AddTaskToQueue(Task task) {
+			tasks.Add(task);
+		}
+		bool TryGetQueuedTask(out Task retval) {
+			return tasks.TryTake(out retval);
+		}
+		bool TasksAreQueued() { return tasks.Count > 0; }
+#endif
+
+#if FIFO_THREADS
+		readonly ConcurrentQueue<WorkerThread> threads = new ConcurrentQueue<WorkerThread>();
+		bool TryGetThread(out WorkerThread thread) { return threads.TryDequeue(out thread); }
+		void AddThread(WorkerThread thread) { threads.Enqueue(thread); }
+#else
 		readonly ConcurrentBag<WorkerThread> threads = new ConcurrentBag<WorkerThread>();
+		bool TryGetThread(out WorkerThread thread) { return threads.TryTake(out thread); }
+		void AddThread(WorkerThread thread) { threads.Add(thread); }
+#endif
+
+
+
 		readonly int MaxParallel;
 		readonly ThreadPriority Priority;
 		volatile int currPar = 0;
@@ -52,86 +84,76 @@ namespace EmnExtensions {
 			Priority = priority;
 		}
 
-		void DoTask(Task t) {
+		public int WorkerCountEstimate { get { return currPar; } }
+		public int IdleWorkerCountEstimate { get { return threads.Count; } }
 
+		void WakeAnyThread() {
 			WorkerThread idleThread;
-			if (threads.TryTake(out idleThread))
-				idleThread.DoTask(t);
+			if (TryGetThread(out idleThread))
+				idleThread.WakeThread();
 			else {
-				bool shouldStartNew = false;
-				if (Interlocked.Increment(ref currPar) < MaxParallel)
-					shouldStartNew = true;
-				else {
+				if (Interlocked.Increment(ref currPar) <= MaxParallel)
+					new WorkerThread(this, Priority);
+				else
 					Interlocked.Decrement(ref currPar);
-				}
-
-				if (shouldStartNew) {
-					new WorkerThread(this, Priority, t);
-				} else {
-					//ok, there was no workerthread free, and we're at max capacity, so queue!
-					tasks.Add(t);
-					//possible that workerthread became free since check:
-					if (threads.TryTake(out idleThread)) {
-						Task fromQ;
-						if (tasks.TryTake(out fromQ))
-							idleThread.DoTask(fromQ);
-						else
-							threads.Add(idleThread);
-					} //if not, then we're OK since eventually one will and then check the queue.
-				}
 			}
 		}
 
 		void TerminateThread() {
 			WorkerThread idleThread;
-			if (threads.TryTake(out idleThread)) {
+			if (TryGetThread(out idleThread)) {
 				Interlocked.Decrement(ref currPar);
-				idleThread.DoTask(null);
+				idleThread.ExitThread();
+				if (TasksAreQueued()) WakeAnyThread();//unlikely, but to guarrantee liveness.
 			}
 		}
 
-		void DoQueueTask() {
-			Task fromQ;
-			if (!tasks.TryTake(out fromQ)) return;
-			//no need to start new workers, after all, all are made if something's in the queue.
-			WorkerThread idleThread;
-			if (threads.TryTake(out idleThread))
-				idleThread.DoTask(fromQ);
-			else
-				tasks.Add(fromQ);
+#if DEBUG_TRACK_ITEMS
+		int inlined;
+		public void PrintCurrentStats() {
+			foreach (WorkerThread t in threads)
+				t.PrintStats();
+			Console.WriteLine("Inlined: " + inlined);
 		}
+#endif
 
 		protected override IEnumerable<Task> GetScheduledTasks() { return tasks; }
 
-		protected override void QueueTask(Task task) { DoTask(task); }
+		protected override void QueueTask(Task task) { AddTaskToQueue(task); WakeAnyThread(); }
 
 		protected override bool TryExecuteTaskInline(Task task, bool taskWasPreviouslyQueued) {
-			return TryExecuteTask(task);
+
+			bool okInline = Thread.CurrentThread.Priority >= Priority;
+			if(okInline) {
+#if DEBUG_TRACK_ITEMS
+				Interlocked.Increment(ref inlined);
+#endif
+				return TryExecuteTask(task);
+			} else
+				return false;
 		}
 
-		void SlipstreamQueueExecute() {
+		void SlipstreamQueueExecute(WorkerThread t) {
 			Task another;
-			while (tasks.TryTake(out another))
+			while (TryGetQueuedTask(out another)) {
 				TryExecuteTask(another);
+#if DEBUG_TRACK_ITEMS
+				t.normalCount++;
+#endif
+			}
 		}
 
-		void ProcessTask(WorkerThread t, Task todo) {
+		void ProcessTask(WorkerThread t) {
 			try {
-				TryExecuteTask(todo);
-				SlipstreamQueueExecute();
+				SlipstreamQueueExecute(t);
+				//after slipstream, a new task *could* be added
 			} finally {
-				threads.Add(t);
-				//it's unlikely the queue is non-empty now, but possible.
-				//to be sure of progress, if queue is nonempty ensure that there are worker threads in flight
-				//we do that be dequeueing and running an item on a thread.  Since after the thread is returned to the pool the check is
-				//made, we either have a thread available and will run the item (progress) or no thread available  - i.e. the just returned 
-				//thread is already doing something - progress.
-				DoQueueTask();
+				AddThread(t);
+				//now all threads could be halted and a new task just added
+				if (TasksAreQueued()) WakeAnyThread();//so we need to ensure liveness.
 			}
 		}
 
 		public override int MaximumConcurrencyLevel { get { return MaxParallel; } }
-		//static readonly LowPriorityTaskScheduler singleton = new LowPriorityTaskScheduler();
-		//public static LowPriorityTaskScheduler Instance { get { return singleton; } }
 	}
 }
