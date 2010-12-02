@@ -17,7 +17,6 @@ namespace EmnExtensionsTest {
 		//[Fact]
 		public void EverythingRunsOnce() {
 			int a = 0, b = 0, c = 0;
-			int v1;
 
 			const int count = 23456;
 

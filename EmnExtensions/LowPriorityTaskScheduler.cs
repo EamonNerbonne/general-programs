@@ -67,7 +67,7 @@ namespace EmnExtensions {
 
 		readonly int MaxParallel;
 		readonly ThreadPriority Priority;
-		volatile int currPar = 0;
+		int currPar = 0;
 		public LowPriorityTaskScheduler(int? maxParallelism = null, ThreadPriority priority = ThreadPriority.Lowest) {
 			MaxParallel = maxParallelism ?? Environment.ProcessorCount * 2;
 			Priority = priority;
