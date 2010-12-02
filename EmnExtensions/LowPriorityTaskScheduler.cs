@@ -23,17 +23,14 @@ namespace EmnExtensions {
 			}
 			void DoWork() {
 				while (true) {
-					if (!sem.Wait(10000)) {
-						//idle for 10 seconds, terminate a thread.
-						owner.TerminateThread();
-					} else if (shouldExit) {//termination signal
+					if (!sem.Wait(10000)) owner.TerminateThread();//idle for 10 seconds, terminate a thread.
+					else if (!shouldExit) owner.ProcessTask(this);//got signal, wasn't exit signal... go!
+					else {//termination signal
 						sem.Dispose();
 #if DEBUG_TRACK_ITEMS
 						PrintStats(true);
 #endif
 						break;
-					} else {
-						owner.ProcessTask(this);
 					}
 				}
 			}
@@ -46,21 +43,13 @@ namespace EmnExtensions {
 
 #if FIFO_TASKS
 		readonly ConcurrentQueue<Task> tasks = new ConcurrentQueue<Task>();
-		void AddTaskToQueue(Task task) {
-			tasks.Enqueue(task);
-		}
-		bool TryGetQueuedTask(out Task retval) {
-			return tasks.TryDequeue(out retval);
-		}
+		void AddTaskToQueue(Task task) { tasks.Enqueue(task); }
+		bool TryGetQueuedTask(out Task retval) { return tasks.TryDequeue(out retval); }
 		bool TasksAreQueued() { return tasks.Count > 0; }
 #else
 		readonly ConcurrentBag<Task> tasks = new ConcurrentBag<Task>();
-		void AddTaskToQueue(Task task) {
-			tasks.Add(task);
-		}
-		bool TryGetQueuedTask(out Task retval) {
-			return tasks.TryTake(out retval);
-		}
+		void AddTaskToQueue(Task task) { tasks.Add(task); }
+		bool TryGetQueuedTask(out Task retval) { return tasks.TryTake(out retval); }
 		bool TasksAreQueued() { return tasks.Count > 0; }
 #endif
 
@@ -124,7 +113,7 @@ namespace EmnExtensions {
 		protected override bool TryExecuteTaskInline(Task task, bool taskWasPreviouslyQueued) {
 
 			bool okInline = Thread.CurrentThread.Priority >= Priority;
-			if(okInline) {
+			if (okInline) {
 #if DEBUG_TRACK_ITEMS
 				Interlocked.Increment(ref inlined);
 #endif
@@ -146,11 +135,12 @@ namespace EmnExtensions {
 		void ProcessTask(WorkerThread t) {
 			try {
 				SlipstreamQueueExecute(t);
-				//after slipstream, a new task *could* be added
+				//X: after slipstream, a new task *could* be added
 			} finally {
 				AddThread(t);
-				//now all threads could be halted and a new task just added
-				if (TasksAreQueued()) WakeAnyThread();//so we need to ensure liveness.
+				//Y:now all threads *could* be halted leaving task added at X in limbo
+				if (TasksAreQueued()) WakeAnyThread();//...so we need to ensure liveness.
+				//if task is added @ Y or later, no limbo possible since thread was returned to pool.
 			}
 		}
 
