@@ -23,7 +23,7 @@ namespace EmnExtensions {
 			}
 			void DoWork() {
 				while (true) {
-					if (!sem.Wait(10000)) owner.TerminateThread();//idle for 10 seconds, terminate a thread.
+					if (!sem.Wait(owner.IdleAfterMilliseconds)) owner.TerminateThread();//idle for 10 seconds, terminate a thread.
 					else if (!shouldExit) owner.ProcessTask(this);//got signal, wasn't exit signal... go!
 					else {//termination signal
 						sem.Dispose();
@@ -67,10 +67,12 @@ namespace EmnExtensions {
 
 		readonly int MaxParallel;
 		readonly ThreadPriority Priority;
+		readonly int IdleAfterMilliseconds;
 		int currPar = 0;
-		public LowPriorityTaskScheduler(int? maxParallelism = null, ThreadPriority priority = ThreadPriority.Lowest) {
+		public LowPriorityTaskScheduler(int? maxParallelism = null, ThreadPriority priority = ThreadPriority.Lowest, int? idleMilliseconds=null) {
 			MaxParallel = maxParallelism ?? Environment.ProcessorCount * 2;
 			Priority = priority;
+			IdleAfterMilliseconds = idleMilliseconds ?? 10000;
 		}
 
 		public int WorkerCountEstimate { get { return currPar; } }
@@ -145,5 +147,8 @@ namespace EmnExtensions {
 		}
 
 		public override int MaximumConcurrencyLevel { get { return MaxParallel; } }
+
+		static readonly LowPriorityTaskScheduler singleton = new LowPriorityTaskScheduler();
+		public static LowPriorityTaskScheduler DefaultLowPriorityScheduler { get { return singleton; } }
 	}
 }
