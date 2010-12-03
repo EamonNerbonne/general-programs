@@ -5,10 +5,8 @@ using System.Text;
 using System.Diagnostics;
 using EmnExtensions.Algorithms;
 
-namespace EmnExtensions.DebugTools
-{
-	public sealed class DTimer : IDisposable
-	{
+namespace EmnExtensions.DebugTools {
+	public sealed class DTimer : IDisposable {
 		public DTimer(string actionLabel) { Start(actionLabel); }
 		public DTimer(Action<TimeSpan> resultSink) { Start(resultSink); }
 
@@ -22,27 +20,27 @@ namespace EmnExtensions.DebugTools
 
 		void IDisposable.Dispose() { underlyingTimer.Stop(); resultSink(underlyingTimer.Elapsed); }
 
-
 		Action<TimeSpan> resultSink;
 		Stopwatch underlyingTimer;
-		public static T TimeFunc<T>( Func<T> f, string actionLabel) { using (new DTimer(actionLabel)) return f(); }
-		public static T TimeFunc<T>( Func<T> f, Action<TimeSpan> resultSink) { using (new DTimer(resultSink)) return f(); }
-		public static T TimeFunc<T, M>( Func<T> f, M key, Action<M, TimeSpan> resultsSink) { using (new DTimer(t => { resultsSink(key, t); })) return f(); }
-		public static TimeSpan BenchmarkAction(Action a,int repeats) {
+		public static T TimeFunc<T>(Func<T> f, string actionLabel) { using (new DTimer(actionLabel)) return f(); }
+		public static T TimeFunc<T>(Func<T> f, Action<TimeSpan> resultSink) { using (new DTimer(resultSink)) return f(); }
+		public static T TimeFunc<T, M>(Func<T> f, M key, Action<M, TimeSpan> resultsSink) { using (new DTimer(t => { resultsSink(key, t); })) return f(); }
+		public static TimeSpan BenchmarkAction(Action a, int repeats) {
 			long[] times = new long[repeats];
 			for (int i = 0; i < repeats; i++) {
-				Stopwatch w = Stopwatch.StartNew(); 
-				a(); 
-				times[i]=w.ElapsedTicks;
+				Stopwatch w = Stopwatch.StartNew();
+				a();
+				times[i] = w.ElapsedTicks;
 			}
 			Array.Sort(times);
-			return new TimeSpan(times[repeats/4]);
+			return new TimeSpan(times[repeats / 4]);
 		}
+		public static TimeSpan TimeAction(Action a) { var w = Stopwatch.StartNew(); a(); return w.Elapsed; }
 	}
 
 	public static class DTimerExtensions {
-		public static T TimeFunc<T>(this Func<T> f, string actionLabel) { return DTimer.TimeFunc(f, actionLabel);}
-		public static T TimeFunc<T>(this Func<T> f, Action<TimeSpan> resultSink) { return DTimer.TimeFunc(f,resultSink);}
+		public static T TimeFunc<T>(this Func<T> f, string actionLabel) { return DTimer.TimeFunc(f, actionLabel); }
+		public static T TimeFunc<T>(this Func<T> f, Action<TimeSpan> resultSink) { return DTimer.TimeFunc(f, resultSink); }
 		public static T TimeFunc<T, M>(this Func<T> f, M key, Action<M, TimeSpan> resultsSink) { return DTimer.TimeFunc(f, key, resultsSink); }
 	}
 }
