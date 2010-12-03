@@ -128,7 +128,7 @@ namespace LvqGui {
 					overallTask.Enqueue(Task.Factory.StartNew(() => {
 						selectedModel.Train(epochsToTrainFor, selectedDataset, Owner.WindowClosingToken);
 						PotentialUpdate(selectedDataset, selectedModel);
-					}, Owner.WindowClosingToken, TaskCreationOptions.None, LowPriorityTaskScheduler.Instance));
+					}, Owner.WindowClosingToken, TaskCreationOptions.None, LowPriorityTaskScheduler.DefaultLowPriorityScheduler));
 
 					if (overallTask.Count >= 2) overallTask.Dequeue().Wait();
 

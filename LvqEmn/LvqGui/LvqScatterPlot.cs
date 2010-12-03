@@ -215,7 +215,7 @@ namespace LvqGui {
 			}
 		}
 
-		void QueueUpdate() { Task.Factory.StartNew(UpdateQueueProcessor, CancellationToken.None, TaskCreationOptions.None, LowPriorityTaskScheduler.Instance); }
+		void QueueUpdate() { Task.Factory.StartNew(UpdateQueueProcessor, CancellationToken.None, TaskCreationOptions.None, LowPriorityTaskScheduler.DefaultLowPriorityScheduler); }
 		void UpdateQueueProcessor() {
 			if (exitToken.IsCancellationRequested || !updateSync.UpdateEnqueue_IsMyTurn())
 				return;
