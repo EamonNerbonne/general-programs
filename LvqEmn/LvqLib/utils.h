@@ -152,5 +152,5 @@ Eigen::MatrixXd shuffleMatrixCols(boost::mt19937 & randGen, Eigen::MatrixXd cons
 #ifdef _MSC_VER
 #define isfinite(x)     (_finite(x)) 
 #else
-bool isfinite(double x) {return !(std::isinf(x)  || std::isnan(x));}
+inline bool isfinite(double x) {return !(std::isinf(x)  || std::isnan(x));}
 #endif
