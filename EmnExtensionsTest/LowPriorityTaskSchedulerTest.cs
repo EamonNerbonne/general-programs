@@ -6,19 +6,30 @@ using Xunit;
 using System.Threading.Tasks;
 using System.Threading;
 using EmnExtensions;
+using EmnExtensions.DebugTools;
+using PowerAssert;
 
 namespace EmnExtensionsTest {
 	public class LowPriorityTaskSchedulerTest {
-		TaskScheduler scheduler =
-			//new LowPriorityTaskScheduler(8);
-		//new LimitedConcurrencyLevelTaskScheduler(8);
-		TaskScheduler.Default;
+		public void CheckPerfAndSpeed(Action<TaskScheduler> action,double msdnRatio=1.0,double defRatio=1.1) {
+			TaskScheduler msdnVariant = new LimitedConcurrencyLevelTaskScheduler(8);
+			TaskScheduler myScheduler = new LowPriorityTaskScheduler(8, ThreadPriority.Normal);//for fair comparison
 
-		//[Fact]
-		public void EverythingRunsOnce() {
+			var defTime = DTimer.BenchmarkAction(() => action(TaskScheduler.Default), 3);
+			var msdnTime = DTimer.BenchmarkAction(() => action(msdnVariant),3);
+			var myTime = DTimer.BenchmarkAction(() => action(myScheduler),3);
+			PAssert.IsTrue(() => myTime.TotalMilliseconds <= msdnTime.TotalMilliseconds * msdnRatio);
+			PAssert.IsTrue(() => myTime.TotalMilliseconds <= defTime.TotalMilliseconds * defRatio);
+		}
+
+
+		[Fact]
+		public void TasksExecuteOncePerfTest() { CheckPerfAndSpeed(TasksExecuteOnce); }
+
+		public void TasksExecuteOnce(TaskScheduler scheduler) {
 			int a = 0, b = 0, c = 0;
 
-			const int count = 23456;
+			const int count = 5432;
 
 			Task<Task[]> subs1set = Task.Factory.StartNew(() =>
 				Enumerable.Range(0, count).Select(i =>
@@ -60,9 +71,11 @@ namespace EmnExtensionsTest {
 			Assert.Equal(-(count / 5) + (count % 5 == 0 ? 0 : 2 - count % 5), c);
 		}
 
-		//[Fact]
-		public void PlainPerf() {
-			long[] vals = new long[500000];
+		[Fact]
+		public void ParallelForPerfTest() { CheckPerfAndSpeed(ParallelFor,1.05); }
+
+		public void ParallelFor(TaskScheduler scheduler) {
+			long[] vals = new long[100000];
 			const long scale = 1;
 			const int max = 8000;
 			Parallel.For(0, vals.Length, new ParallelOptions { TaskScheduler = scheduler }, i => {
@@ -76,11 +89,14 @@ namespace EmnExtensionsTest {
 				Assert.Equal((i * i * scale * scale + i * scale) / 2, vals[j]);
 			}
 		}
+
 		[Fact]
-		public void PlainPerfRaw() {
-			Task<long>[] tasks = new Task<long>[1000000];
-			const int scale = 1;
-			const int max = 50000;
+		public void ManyIndependantTasksPerfTest() { CheckPerfAndSpeed(ManyIndependantTasks); }
+
+		public void ManyIndependantTasks(TaskScheduler scheduler) {
+			Task<long>[] tasks = new Task<long>[10000];
+			const int scale =10;
+			const int max = 25000;
 			for (int k = 0; k < tasks.Length; k++) {
 				int i = k;
 				tasks[k] = Task.Factory.StartNew(() => {
@@ -90,27 +106,21 @@ namespace EmnExtensionsTest {
 					return sum;
 				}, CancellationToken.None, TaskCreationOptions.None, scheduler);
 			}
-			//Task.WaitAll(tasks);
 			for (int j = 0; j < tasks.Length; j++) {
 				int i = j * scale % max;
-				Assert.Equal((i * (long)i * scale * scale + i * scale) / 2, tasks[j].Result);
+				Assert.Equal((i * (long)i  + i ) / 2, tasks[j].Result);
 			}
-			//if (scheduler is LowPriorityTaskScheduler) 				(scheduler as LowPriorityTaskScheduler).PrintCurrentStats();
 		}
 
-		//[Fact]
+		[Fact]
 		public void CheckExit() {
-			LowPriorityTaskScheduler typedScheduler = scheduler as LowPriorityTaskScheduler;
-			if (typedScheduler == null) return;
-			Assert.True(0 == typedScheduler.WorkerCountEstimate, "there are workers");
-			PlainPerfRaw();
-			Assert.Equal(8, typedScheduler.IdleWorkerCountEstimate);
-			Assert.Equal(8, typedScheduler.WorkerCountEstimate);
-			Thread.Sleep(10100);
-			Assert.True(0 == typedScheduler.WorkerCountEstimate, "there are workers");
-
-
-
+			LowPriorityTaskScheduler scheduler = new  LowPriorityTaskScheduler(maxParallelism:8, idleMilliseconds: 400);
+			Assert.True(0 == scheduler.WorkerCountEstimate, "there are workers");
+			ManyIndependantTasks(scheduler);
+			Assert.Equal(8, scheduler.IdleWorkerCountEstimate);
+			Assert.Equal(8, scheduler.WorkerCountEstimate);
+			Thread.Sleep(600);
+			Assert.True(0 == scheduler.WorkerCountEstimate, "there are workers");
 		}
 
 	}
