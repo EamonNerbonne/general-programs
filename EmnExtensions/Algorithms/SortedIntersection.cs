@@ -3,7 +3,7 @@ using EmnExtensions.Collections;
 
 namespace EmnExtensions.Algorithms {
 	public static class SortedIntersectionAlgorithm {
-		public static IEnumerable<int> SortedIntersection(IEnumerable<int>[] inorderLists, bool limitedRangeInts = false) {
+		public static IEnumerable<int> SortedIntersection(IEnumerable<int>[] inorderLists) {
 			IEnumerator<int>[] generators = new IEnumerator<int>[inorderLists.Length];
 
 			try {
