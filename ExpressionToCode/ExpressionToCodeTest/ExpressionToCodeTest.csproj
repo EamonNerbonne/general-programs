@@ -44,7 +44,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\PrintExpression\ExpressionToCodeLib.csproj">
+    <ProjectReference Include="..\ExpressionToCodeLib\ExpressionToCodeLib.csproj">
       <Project>{2472FFFC-E2F9-4043-8CA6-EB65D4059A0F}</Project>
       <Name>ExpressionToCodeLib</Name>
     </ProjectReference>
