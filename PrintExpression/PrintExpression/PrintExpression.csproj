@@ -41,7 +41,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CSharpFriendlyTypeName.cs" />
-    <Compile Include="ExpressionPrinter.cs" />
+    <Compile Include="ExpressionToCode.cs" />
+    <Compile Include="ExpressionToCodeImpl.cs" />
     <Compile Include="ExpressionPrecedence.cs" />
     <Compile Include="ExpressionTypeDispatch.Generated.cs">
       <AutoGen>True</AutoGen>

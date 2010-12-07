@@ -1,98 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Linq.Expressions;
-using System.Globalization;
-using System.Reflection;
 using System.Runtime.CompilerServices;
 
 namespace PrintExpression {
-	public class ExpressionToCode : IExpressionTypeDispatch {
-		static bool ShouldIgnoreSpaceAfter(char c) { return c == ' ' || c == '('; }
-
-		public static string ToCode<T, T1, T2, T3>(Expression<Func<T, T1, T2, T3>> e) { return ToCode((Expression)e); }
-		public static string ToCode<T, T1, T2>(Expression<Func<T, T1, T2>> e) { return ToCode((Expression)e); }
-		public static string ToCode<T, T1>(Expression<Func<T, T1>> e) { return ToCode((Expression)e); }
-		public static string ToCode<T>(Expression<Func<T>> e) { return ToCode((Expression)e); }
-		public static string AnnotatedToCode<T, T1, T2, T3>(Expression<Func<T, T1, T2, T3>> e) { return AnnotatedToCode((Expression)e); }
-		public static string AnnotatedToCode<T, T1, T2>(Expression<Func<T, T1, T2>> e) { return AnnotatedToCode((Expression)e); }
-		public static string AnnotatedToCode<T, T1>(Expression<Func<T, T1>> e) { return AnnotatedToCode((Expression)e); }
-		public static string AnnotatedToCode<T>(Expression<Func<T>> e) { return AnnotatedToCode((Expression)e); }
-
-		public static string ToCode(Expression e) {
-			StringBuilder sb = new StringBuilder();
-			bool ignoreInitialSpace = true;
-			new ExpressionToCode(etp => {
-				sb.Append(ignoreInitialSpace ? etp.Text.TrimStart() : etp.Text);
-				ignoreInitialSpace = etp.Text.Any() && ShouldIgnoreSpaceAfter(etp.Text[etp.Text.Length - 1]);
-			}).ExpressionDispatch(e);
-			return sb.ToString() + "\n\n" + e.ToString();
-		}
-
-		static SplitExpressionLine ExpressionToStringWithValues(Expression e) {
-			var nodeInfos = new List<SubExpressionInfo>();
-			StringBuilder sb = new StringBuilder();
-			bool ignoreInitialSpace = true;
-			new ExpressionToCode(etp => {
-				var trimmedText = ignoreInitialSpace ? etp.Text.TrimStart() : etp.Text;
-				var pos0 = sb.Length;
-				sb.Append(trimmedText);
-				ignoreInitialSpace = etp.Text.Any() && ShouldIgnoreSpaceAfter(etp.Text[etp.Text.Length - 1]);
-				string valueString = etp.OptionalValue == null? null:PrintedValue(etp.OptionalValue);
-				if (valueString!=null)
-					nodeInfos.Add(new SubExpressionInfo { Location = pos0 + trimmedText.Length / 2, Value = valueString  });
-			}).ExpressionDispatch(e);
-			nodeInfos.Add(new SubExpressionInfo { Location = sb.Length, Value = null });
-			return new SplitExpressionLine { Line = sb.ToString().TrimEnd(), Nodes = nodeInfos.ToArray() };
-		}
-
-		private static string PrintedValue(Expression expression) {
-			try {
-				Delegate lambda;
-				try {
-					lambda = Expression.Lambda(expression).Compile();
-				} catch (InvalidOperationException) { return null; }
-
-				var val = lambda.DynamicInvoke();
-				try {
-					return ObjectToCode.ComplexObjectToPseudoCode(val);
-				} catch (Exception e) {
-					return "stringification throws " + e.GetType().FullName;
-				}
-			} catch (TargetInvocationException tie) {
-				return "throws " + tie.InnerException.GetType().FullName;
-			}
-		}
-
-		struct SplitExpressionLine {
-			public string Line;
-			public SubExpressionInfo[] Nodes;
-		}
-		struct SubExpressionInfo {
-			public int Location;
-			public string Value;
-		}
-
-		public static string AnnotatedToCode(Expression expr) {
-			var splitLine = ExpressionToStringWithValues(expr);
-
-			List<string> lines = new List<string>();
-			lines.Add(splitLine.Line);
-			for (int nodeI = splitLine.Nodes.Length - 1; nodeI >= 0; nodeI--) {
-				char[] stalkLine = new string(' ', splitLine.Nodes[nodeI].Location).ToCharArray();
-				for (int prevI = 0; prevI < nodeI; prevI++)
-					stalkLine[splitLine.Nodes[prevI].Location] = '|';
-				lines.Add((new string(stalkLine) + splitLine.Nodes[nodeI].Value).TrimEnd());
-			}
-
-			return string.Join("\n", lines.ToArray());
-		}
-
-
+	class ExpressionToCodeImpl : IExpressionTypeDispatch {
 		#region General Helpers
 		Action<ExprTextPart> sink;
-		ExpressionToCode(Action<ExprTextPart> sink) { this.sink = sink; }
+		internal ExpressionToCodeImpl(Action<ExprTextPart> sink) { this.sink = sink; }
 		void Sink(ExprTextPart etp) { sink(etp); }
 		void Sink(string text) { sink(ExprTextPart.TextOnly(text)); }
 		void Sink(string text, Expression value) { sink(ExprTextPart.TextAndExpr(text, value)); }
@@ -136,7 +52,8 @@ namespace PrintExpression {
 
 		void UnaryDispatch(string op, Expression e) {
 			var ue = (UnaryExpression)e;
-			Sink(" " + op, e);
+			bool needsSpace = ExpressionPrecedence.TokenizerConfusable(ue.NodeType, ue.Operand.NodeType);
+			Sink(op + (needsSpace ? " " : ""), e);
 			NestExpression(ue.NodeType, ue.Operand);
 		}
 
@@ -226,14 +143,14 @@ namespace PrintExpression {
 			if (lie.NewExpression.Arguments.Any())
 				ArgListDispatch(lie.NewExpression.Arguments);
 
-			Sink("{");
+			Sink(" { ");
 			JoinDispatch(lie.Initializers, ", ", DispatchElementInit);
-			Sink("}");
+			Sink(" }");
 		}
 
 		void DispatchElementInit(ElementInit elemInit) {
 			if (elemInit.Arguments.Count != 1)
-				ArgListDispatch(elemInit.Arguments, open: "{", close: "}");
+				ArgListDispatch(elemInit.Arguments, open: "{ ", close: " }");
 			else
 				RawChildDispatch(elemInit.Arguments.Single());
 		}
@@ -242,14 +159,14 @@ namespace PrintExpression {
 			Sink(mb.Member.Name + " = ");
 			if (mb is MemberMemberBinding) {
 				var mmb = (MemberMemberBinding)mb;
-				Sink(mmb.Member.Name + "{");
+				Sink("{ ");
 				JoinDispatch(mmb.Bindings, ", ", DispatchMemberBinding);
-				Sink("}");
+				Sink(" }");
 			} else if (mb is MemberListBinding) {
 				var mlb = (MemberListBinding)mb;
-				Sink(mlb.Member.Name + "{");
+				Sink("{ ");
 				JoinDispatch(mlb.Initializers, ", ", DispatchElementInit);
-				Sink("}");
+				Sink(" }");
 			} else if (mb is MemberAssignment) {
 				NestExpression(ExpressionType.Assign, ((MemberAssignment)mb).Expression, true);
 			} else
@@ -263,9 +180,9 @@ namespace PrintExpression {
 			if (mie.NewExpression.Arguments.Any())
 				ArgListDispatch(mie.NewExpression.Arguments);
 
-			Sink("{");
+			Sink(" { ");
 			JoinDispatch(mie.Bindings, ", ", DispatchMemberBinding);
-			Sink("}");
+			Sink(" }");
 		}
 
 		public void DispatchNew(Expression e) {
@@ -279,8 +196,8 @@ namespace PrintExpression {
 			NewArrayExpression nae = (NewArrayExpression)e;
 			Type arrayElemType = nae.Type.GetElementType();
 			bool implicitTypeOK = nae.Expressions.Any() && nae.Expressions.All(expr => expr.Type == arrayElemType);
-			Sink("new " + (implicitTypeOK ? "" : CSharpFriendlyTypeName.Get(arrayElemType)) + "[] ", nae);
-			ArgListDispatch(nae.Expressions, open: "{", close: "}");
+			Sink("new" + (implicitTypeOK ? "" :" "+ CSharpFriendlyTypeName.Get(arrayElemType)) + "[] ", nae);
+			ArgListDispatch(nae.Expressions, open: "{ ", close: " }");
 		}
 
 		public void DispatchNewArrayBounds(Expression e) {

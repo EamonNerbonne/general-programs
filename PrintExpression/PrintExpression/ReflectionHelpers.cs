@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Reflection;
 
 namespace PrintExpression {
@@ -13,7 +10,7 @@ namespace PrintExpression {
 			if (!mi.IsSpecialName || !supposedGetter) return null;
 
 			PropertyInfo pi = mi.DeclaringType.GetProperty(mi.Name.Substring(4), BindingFlags.Instance | BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public);
-			return pi.CanRead ? pi : null;
+			return pi.CanRead ? pi : null;//TODO:verify.
 		}
 		public static bool IsMemberInfoStatic(MemberInfo mi) {
 			if (mi is FieldInfo)

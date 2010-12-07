@@ -1,10 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Globalization;
 using System.Collections;
+using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
 using System.Linq.Expressions;
+using System.Text;
 
 namespace PrintExpression {
 	static class ObjectToCode {
@@ -35,10 +35,14 @@ namespace PrintExpression {
 					return "\"" + EscapeStringChars((string)val) + "\"";
 			} else if (val is char)
 				return "'" + EscapeStringChars(val.ToString()) + "'";
-			else if (val is byte || val is sbyte || val is short || val is ushort || val is int || val is uint || val is long || val is ulong || val is double || val is float)
-				return (Convert.ToString(val, CultureInfo.InvariantCulture));//TODO: get numeric suffixes right;
 			else if (val is decimal)
 				return Convert.ToString(val, CultureInfo.InvariantCulture) + "m";
+			else if (val is float)
+				return FloatToCode((float)val);
+			else if (val is double)
+				return DoubleToCode((double)val);
+			else if (val is byte || val is sbyte || val is short || val is ushort || val is int || val is uint || val is long || val is ulong)
+				return (Convert.ToString(val, CultureInfo.InvariantCulture));//TODO: get numeric suffixes right - is this OK?
 			else if (val is bool && val.Equals(true))
 				return "true";
 			else if (val is bool && val.Equals(false))
@@ -50,6 +54,33 @@ namespace PrintExpression {
 			else
 				return null;
 		}
+
+		private static string DoubleToCode(double p) {
+			if (double.IsNaN(p))
+				return "double.NaN";
+			else if (double.IsNegativeInfinity(p))
+				return "double.NegativeInfinity";
+			else if (double.IsPositiveInfinity(p))
+				return "double.PositiveInfinity";
+			else if (Math.Abs(p) > UInt32.MaxValue)
+				return p.ToString("0.0########################e0");
+			else
+				return p.ToString("0.0########################");
+		}
+
+		private static string FloatToCode(float p) {
+			if (float.IsNaN(p))
+				return "float.NaN";
+			else if (float.IsNegativeInfinity(p))
+				return "float.NegativeInfinity";
+			else if (float.IsPositiveInfinity(p))
+				return "float.PositiveInfinity";
+			else if (Math.Abs(p) >= (1<<24))
+				return p.ToString("0.0########e0")+"f";
+			else
+				return p.ToString("0.0########")+"f";
+		}
+
 
 		static string FormatEnumerable(IEnumerable list) {
 			return "{" + string.Join(", ", ExtractFirst10((IEnumerable)list).ToArray()) + "}";
