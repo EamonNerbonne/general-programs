@@ -2,6 +2,7 @@
 #include "GmmLvqModel.h"
 #include "utils.h"
 #include "LvqConstants.h"
+#include "MeanMinMax.h"
 using namespace std;
 using namespace Eigen;
 
@@ -188,23 +189,24 @@ void GmmLvqModel::AppendTrainingStatNames(std::vector<std::wstring> & retval) co
 	retval.push_back(L"Border matrix norm min|norm|Border Matrix");
 	retval.push_back(L"Border matrix norm mean|norm|Border Matrix");
 	retval.push_back(L"Border matrix norm max|norm|Border Matrix");
+	retval.push_back(L"Prototype bias min|bias|Prototype bias");
+	retval.push_back(L"Prototype bias mean|bias|Prototype bias");
+	retval.push_back(L"Prototype bias max|bias|Prototype bias");
 }
 void GmmLvqModel::AppendOtherStats(std::vector<double> & stats, LvqDataset const * trainingSet, std::vector<int>const & trainingSubset, LvqDataset const * testSet, std::vector<int>const & testSubset) const {
 	LvqProjectionModel::AppendOtherStats(stats,trainingSet,trainingSubset,testSet,testSubset);
+	MeanMinMax norm, bias;
+	std::for_each(prototype.begin(),prototype.end(), [&](GmmLvqPrototype const & proto) {
+		norm.Add(projectionSquareNorm( proto.B));
+		bias.Add(proto.bias);
+	});
 
-	double minNorm=std::numeric_limits<double>::max();
-	double maxNorm=0.0;
-	double sumNorm=0.0;
-
-	for(size_t i=0;i<prototype.size();++i) {
-		double norm = projectionSquareNorm(prototype[i].B);
-		sumNorm +=norm;
-		if(norm <minNorm) minNorm = norm;
-		if(norm > maxNorm) maxNorm = norm;
-	}
-	stats.push_back(minNorm);
-	stats.push_back(sumNorm/prototype.size());
-	stats.push_back(maxNorm);
+	stats.push_back(norm.min());
+	stats.push_back(norm.mean());
+	stats.push_back(norm.max());
+	stats.push_back(bias.min());
+	stats.push_back(bias.mean());
+	stats.push_back(bias.max());
 }
 
 

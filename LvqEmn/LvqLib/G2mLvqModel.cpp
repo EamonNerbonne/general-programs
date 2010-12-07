@@ -2,6 +2,7 @@
 #include "G2mLvqModel.h"
 #include "utils.h"
 #include "LvqConstants.h"
+#include "MeanMinMax.h"
 using namespace std;
 using namespace Eigen;
 
@@ -154,20 +155,13 @@ void G2mLvqModel::AppendTrainingStatNames(std::vector<std::wstring> & retval) co
 }
 void G2mLvqModel::AppendOtherStats(std::vector<double> & stats, LvqDataset const * trainingSet, std::vector<int>const & trainingSubset, LvqDataset const * testSet, std::vector<int>const & testSubset) const {
 	LvqProjectionModel::AppendOtherStats(stats,trainingSet,trainingSubset,testSet,testSubset);
-
-	double minNorm=std::numeric_limits<double>::max();
-	double maxNorm=0.0;
-	double sumNorm=0.0;
-
-	for(size_t i=0;i<prototype.size();++i) {
-		double norm = projectionSquareNorm(prototype[i].B);
-		sumNorm +=norm;
-		if(norm <minNorm) minNorm = norm;
-		if(norm > maxNorm) maxNorm = norm;
-	}
-	stats.push_back(minNorm);
-	stats.push_back(sumNorm/prototype.size());
-	stats.push_back(maxNorm);
+	MeanMinMax norm;
+	std::for_each(prototype.begin(),prototype.end(), [&](G2mLvqPrototype const & proto) {
+		norm.Add(projectionSquareNorm(proto.B));
+	});
+	stats.push_back(norm.min());
+	stats.push_back(norm.mean());
+	stats.push_back(norm.max());
 }
 
 
