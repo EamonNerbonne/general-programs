@@ -4,7 +4,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Runtime.CompilerServices;
 
-namespace PrintExpression {
+namespace ExpressionToCodeLib {
 	class ExpressionToCodeImpl : IExpressionTypeDispatch {
 		#region General Helpers
 		Action<ExprTextPart> sink;

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace PrintExpression {
+namespace ExpressionToCodeLib {
 	static class CSharpFriendlyTypeName {
 		public static string Get(Type type) { return GenericTypeName(type) ?? ArrayTypeName(type) ?? AliasName(type) ?? type.Name; }
 

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Linq.Expressions;
 
-namespace PrintExpression {
+namespace ExpressionToCodeLib {
 	static class ExpressionPrecedence {
 		static bool UnaryDashSym(ExpressionType et) {
 			return et == ExpressionType.Negate

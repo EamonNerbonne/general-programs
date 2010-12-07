@@ -4,11 +4,11 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Xml;
 using NUnit.Framework;
-using PrintExpression;
+using ExpressionToCodeLib;
 
-namespace PrintExpressionTest {
+namespace ExpressionToCodeTest {
 	[TestFixture]
-	public class ExpressionPrinterTest {
+	public class ExpressionToCodeTest {
 
 		[Test]
 		public void AddOperator() {

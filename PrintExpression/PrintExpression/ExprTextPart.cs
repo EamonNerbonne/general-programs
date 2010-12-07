@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Linq.Expressions;
 
-namespace PrintExpression {
+namespace ExpressionToCodeLib {
 	public class ExprTextPart {
 		public readonly string Text;
 		public readonly Expression OptionalValue;

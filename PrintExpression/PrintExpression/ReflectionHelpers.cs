@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Reflection;
 
-namespace PrintExpression {
+namespace ExpressionToCodeLib {
 	static class ReflectionHelpers {
 		public static PropertyInfo GetPropertyIfGetter(MethodInfo mi) {
 			bool supposedGetter = mi.Name.StartsWith("get_");

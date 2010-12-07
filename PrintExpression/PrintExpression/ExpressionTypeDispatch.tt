@@ -6,7 +6,7 @@
 using System;
 using System.Linq.Expressions;
 
-namespace PrintExpression {
+namespace ExpressionToCodeLib {
   interface IExpressionTypeDispatch {
 <#
 	foreach(ExpressionType v in Enum.GetValues(typeof(ExpressionType))) {

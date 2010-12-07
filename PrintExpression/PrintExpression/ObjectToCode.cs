@@ -6,7 +6,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
 
-namespace PrintExpression {
+namespace ExpressionToCodeLib {
 	static class ObjectToCode {
 		static string EscapeChar(char c) {
 			if (c < 32 || CharUnicodeInfo.GetUnicodeCategory(c) == UnicodeCategory.Control) { //this is a little too rigorous; but easier to read 

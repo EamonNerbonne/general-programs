@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Linq.Expressions;
 
-namespace PrintExpression {
+namespace ExpressionToCodeLib {
   interface IExpressionTypeDispatch {
 		void DispatchAdd(Expression e);
 		void DispatchAddChecked(Expression e);
