@@ -5,6 +5,13 @@ using namespace Eigen;
 
 class LvqModel;
 class LvqProjectionModel;
+
+struct LvqDatasetStats {
+	double meanCost, errorRate, distGoodMean, distGoodVar, distBadMean, distBadVar;
+	LvqDatasetStats():meanCost(0.0), errorRate(0.0), distGoodMean(0.0), distGoodVar(0.0), distBadMean(0.0), distBadVar(0.0)
+	{}
+};
+
 class LvqDataset
 {
 	MatrixXd points; //one dimension per row, one point per column
@@ -35,7 +42,7 @@ public:
 
 	void TrainModel(int epochs, LvqModel * model, std::vector<int> const & trainingSubset, LvqDataset const * testData, std::vector<int> const & testSubset) const;
 
-	void ComputeCostAndErrorRate(std::vector<int> const & subset, LvqModel const * model,double &cost,double &errorRate) const;
+	LvqDatasetStats ComputeCostAndErrorRate(std::vector<int> const & subset, LvqModel const * model) const;
 
 	PMatrix ProjectPoints(LvqProjectionModel const * model) const;
 	size_t MemAllocEstimate() const;

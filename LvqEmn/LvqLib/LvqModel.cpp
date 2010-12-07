@@ -24,7 +24,7 @@ static VectorXd fromStlVector(vector<double> const & vec) {
 	return retval;
 }
 
-void LvqModel::AddTrainingStat(LvqDataset const * trainingSet, std::vector<int>const & trainingSubset, double trainingMeanCost,double trainingErrorRate, LvqDataset const * testSet, vector<int>const & testSubset, int iterInc, double elapsedInc) {
+void LvqModel::AddTrainingStat(LvqDataset const * trainingSet, std::vector<int>const & trainingSubset, LvqDataset const * testSet, vector<int>const & testSubset, int iterInc, double elapsedInc, LvqDatasetStats const & trainingstats) {
 	this->totalIter+=iterInc;
 	this->totalElapsed+=elapsedInc;
 
@@ -32,23 +32,23 @@ void LvqModel::AddTrainingStat(LvqDataset const * trainingSet, std::vector<int>c
 
 	stats.push_back(double(totalIter));
 	stats.push_back(totalElapsed);
-	stats.push_back(trainingErrorRate);
-	stats.push_back(trainingMeanCost);
-	double meanCost=0,errorRate=0;
+	stats.push_back(trainingstats.errorRate);
+	stats.push_back(trainingstats.meanCost);
+	LvqDatasetStats teststats;
 	if(testSet && testSubset.size() >0) 
-		testSet->ComputeCostAndErrorRate(testSubset,this,meanCost,errorRate);
-	stats.push_back(errorRate);
-	stats.push_back(meanCost);
+		teststats = testSet->ComputeCostAndErrorRate(testSubset,this);
+	stats.push_back(teststats.errorRate);
+	stats.push_back(teststats.meanCost);
 	this->AppendOtherStats(stats, trainingSet,trainingSubset,testSet,testSubset);
 	
 	this->trainingStats.push_back(fromStlVector(stats) );
 }
 
 void LvqModel::AddTrainingStat(LvqDataset const * trainingSet, vector<int>const & trainingSubset, LvqDataset const * testSet, vector<int>const & testSubset, int iterInc, double elapsedInc) {
-	double meanCost=0,errorRate=0;
+	LvqDatasetStats trainingstats;
 	if(trainingSet && trainingSubset.size() >0) 
-		trainingSet->ComputeCostAndErrorRate(trainingSubset,this,meanCost,errorRate);
-	this->AddTrainingStat(trainingSet,trainingSubset,meanCost,errorRate,testSet,testSubset,iterInc,elapsedInc);
+		trainingstats=trainingSet->ComputeCostAndErrorRate(trainingSubset,this);
+	this->AddTrainingStat(trainingSet,trainingSubset,testSet,testSubset,iterInc,elapsedInc,trainingstats);
 }
 
 std::vector<std::wstring> LvqModel::TrainingStatNames() {

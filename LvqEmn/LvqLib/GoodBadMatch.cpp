@@ -5,6 +5,8 @@
 		MatchQuality retval;
 		retval.isErr = distGood >= distBad;
 		retval.costFunc = (distGood - distBad)/(distGood+distBad);
+		retval.distBad = distBad;
+		retval.distGood = distGood;
 		return retval;
 	}
 
@@ -19,6 +21,8 @@
 			retval.costFunc = 2*pk_pj/(1+pk_pj)-1;
 		}
 		if(!isfinite(retval.costFunc)) throw "Invalid Cost func!";
+		retval.distBad = distBad;
+		retval.distGood = distGood;
 		return retval;
 	}
 	

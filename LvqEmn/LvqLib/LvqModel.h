@@ -9,6 +9,7 @@
 
 using namespace Eigen;
 class LvqDataset;
+class LvqDatasetStats;
 
 class LvqModel
 {
@@ -44,7 +45,7 @@ public:
 	std::vector<Eigen::VectorXd> const & TrainingStats() {return trainingStats;}
 	std::vector<std::wstring> TrainingStatNames();
 
-	void AddTrainingStat(LvqDataset const * trainingSet, std::vector<int>const & trainingSubset, double trainingMeanCost,double trainingErrorRate, LvqDataset const * testSet, std::vector<int>const & testSubset, int iterInc, double elapsedInc);
+	void AddTrainingStat(LvqDataset const * trainingSet, std::vector<int>const & trainingSubset, LvqDataset const * testSet, std::vector<int>const & testSubset, int iterInc, double elapsedInc,LvqDatasetStats const & trainingstats);
 	void AddTrainingStat(LvqDataset const * trainingSet, std::vector<int>const & trainingSubset, LvqDataset const * testSet, std::vector<int>const & testSubset, int iterInc, double elapsedInc);
 
 	virtual int classify(VectorXd const & unknownPoint) const=0; 

@@ -3,6 +3,7 @@
 #include "utils.h"
 
 struct MatchQuality {
+	double distGood,distBad;
 	double costFunc;
 	bool isErr;
 };

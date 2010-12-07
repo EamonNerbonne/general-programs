@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "LvqDataset.h"
+#include "SmartSum.h"
 #include "LvqProjectionModel.h"
 #include "utils.h"
 #include <xmmintrin.h>
@@ -197,6 +198,9 @@ void LvqDataset::TrainModel(int epochs, LvqModel * model, std::vector<int> const
 		prefetchStream(&(model->RngIter()), (sizeof(boost::mt19937) +63)/ 64);
 		vector<int> shuffledOrder(trainingSubset);
 		shuffle(model->RngIter(), shuffledOrder, shuffledOrder.size());
+
+		SmartSum<1> distGood;
+		SmartSum<1> distBad;
 		BenchTimer t;
 		t.start();
 		for(int tI=0; tI<(int)shuffledOrder.size(); ++tI) {
@@ -204,14 +208,25 @@ void LvqDataset::TrainModel(int epochs, LvqModel * model, std::vector<int> const
 			int pointClass = pointLabels[pointIndex];
 			pointA = points.col(pointIndex);
 			prefetch( &points.coeff (0, shuffledOrder[(tI+1)%shuffledOrder.size()]), cacheLines);
+
 			MatchQuality trainingMatchQ = model->learnFrom(pointA, pointClass);
+
 			errs += trainingMatchQ.isErr ?1:0;
-			double costFunc =trainingMatchQ.costFunc; 
-			assert(-1<=costFunc&&costFunc<=1);
-			pointCostSum += costFunc;
+			assert(-1<=trainingMatchQ.costFunc && trainingMatchQ.costFunc<=1);
+			pointCostSum += trainingMatchQ.costFunc;
+			distGood.CombineWith(trainingMatchQ.distGood,1.0);
+			distBad.CombineWith(trainingMatchQ.distBad,1.0);
 		}
 		t.stop();
-		model->AddTrainingStat(this,trainingSubset,pointCostSum/double(shuffledOrder.size()),errs/double(shuffledOrder.size()), testData,testSubset, (int)(1*shuffledOrder.size()), t.value(CPU_TIMER));
+		LvqDatasetStats trainingStats;
+		trainingStats.errorRate = errs/double(shuffledOrder.size());
+		trainingStats.meanCost =pointCostSum/double(shuffledOrder.size());
+		trainingStats.distGoodMean = distGood.GetMean()(0);
+		trainingStats.distGoodVar = distGood.GetSampleVariance()(0);
+		trainingStats.distBadMean = distBad.GetMean()(0);
+		trainingStats.distBadVar = distBad.GetSampleVariance()(0);
+
+		model->AddTrainingStat(this,trainingSubset, testData,testSubset, (int)(1*shuffledOrder.size()), t.value(CPU_TIMER),trainingStats);
 		model->DoOptionalNormalization();
 		model->epochsTrained++;
 	}
@@ -240,25 +255,35 @@ void LvqDataset::ExtendByCorrelations() {
 				points(oldDims +triangularIndex(i,j),pI) = points(i,pI)*points(j,pI);
 }
 
-void LvqDataset::ComputeCostAndErrorRate(std::vector<int> const & subset, LvqModel const * model,double &meanCost,double & errorRate) const{
+using Eigen::Array2d;
+
+LvqDatasetStats LvqDataset::ComputeCostAndErrorRate(std::vector<int> const & subset, LvqModel const * model) const{
+	
 	assert(subset.size() > 0);
 	VectorXd a;
 	double totalCost=0;
 	int errs=0;
+	SmartSum<2> dists;
 	for(int i=0;i<(int)subset.size();++i) {
 		assert(points.sum() == points.sum());
 		MatchQuality matchQ = model->ComputeMatches(points.col(subset[i]), pointLabels[subset[i]]);
 		totalCost += matchQ.costFunc;
 		errs += matchQ.isErr?1:0;
+		dists.CombineWith(Array2d(matchQ.distGood,matchQ.distBad), 1.0);
 	}
-	meanCost = totalCost / double(subset.size());
-	errorRate = errs / double(subset.size());
+	LvqDatasetStats retval;
+	retval.meanCost = totalCost / double(subset.size());
+	retval.errorRate = errs / double(subset.size());
+	retval.distGoodMean = dists.GetMean()(0);
+	retval.distBadMean = dists.GetMean()(1);
+	retval.distGoodVar = dists.GetSampleVariance()(0);
+	retval.distBadVar = dists.GetSampleVariance()(1);
+	return retval;
 }
 
 PMatrix LvqDataset::ProjectPoints(LvqProjectionModel const * model) const {
 	return model->projectionMatrix() * points;
 }
-
 
 std::vector<int> LvqDataset::GetTrainingSubset(int fold, int foldcount) const {
 	if(foldcount==0) {
