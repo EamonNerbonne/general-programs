@@ -129,8 +129,7 @@ namespace LvqGui {
 		class SubPlots {
 			public readonly LvqDatasetCli dataset;
 			public readonly LvqModels model;
-			public readonly IVizEngine<Point[]> prototypePositionsPlot;
-			public readonly IVizEngine<Point[]>[] classPlots;
+			public readonly IVizEngine<Point[]>[] prototypePositionsPlot,classPlots;
 			public readonly IVizEngine<LvqModels.ModelProjectionAndImage> classBoundaries;
 			public readonly PlotControl scatterPlot;
 			public readonly IVizEngine<IEnumerable<LvqModels.Statistic>>[] statPlots;
@@ -140,10 +139,10 @@ namespace LvqGui {
 				this.dataset = dataset;
 				this.model = model;
 				if (model.IsProjectionModel) {
-					prototypePositionsPlot = MakeProtoPositionGraph();
+					prototypePositionsPlot = MakePerClassScatterGraph(dataset, 0.5f, dataset.ClassCount * 5,1);
 					classBoundaries = MakeClassBoundaryGraph();
-					classPlots = MakePerClassScatterGraph(dataset);
-					scatterPlot = MakeScatterPlotControl(model, classPlots.Select(viz => viz.Plot).Concat(new[] { prototypePositionsPlot.Plot, classBoundaries.Plot }));
+					classPlots = MakePerClassScatterGraph(dataset, 1.0f);
+					scatterPlot = MakeScatterPlotControl(model, classPlots.Concat(prototypePositionsPlot).Select(viz => viz.Plot).Concat(new[] { classBoundaries.Plot }));
 				}
 
 				plots = MakeDataPlots(dataset, model);//required
@@ -151,7 +150,7 @@ namespace LvqGui {
 			}
 
 			public void SetScatterBounds(Rect bounds) {
-				foreach (IPlotMetaDataWriteable metadata in classPlots.Select(viz => viz.Plot.MetaData).Concat(new[] { prototypePositionsPlot.Plot.MetaData, classBoundaries.Plot.MetaData })) {
+				foreach (IPlotMetaDataWriteable metadata in classPlots.Concat(prototypePositionsPlot).Select(viz => viz.Plot.MetaData).Concat(new[] { classBoundaries.Plot.MetaData })) {
 					metadata.OverrideBounds = bounds;
 				}
 			}
@@ -188,10 +187,11 @@ namespace LvqGui {
 				};
 			}
 
-			static IVizEngine<Point[]>[] MakePerClassScatterGraph(LvqDatasetCli dataset) {
+			static IVizEngine<Point[]>[] MakePerClassScatterGraph(LvqDatasetCli dataset, float colorIntensity, int? PointCount=null,int? zIndex=null) {
 				return (
 						from classColor in dataset.ClassColors
-						select Plot.Create(new PlotMetaData { RenderColor = classColor, }, new VizPixelScatterSmart { CoverageRatio = 0.99, OverridePointCountEstimate = dataset.PointCount }).Visualisation
+						let darkColor = Color.FromScRgb(1.0f, classColor.ScR * colorIntensity, classColor.ScG * colorIntensity, classColor.ScB * colorIntensity)
+						select Plot.Create(new PlotMetaData { RenderColor = darkColor, ZIndex = zIndex??0 }, new VizPixelScatterSmart { CoverageRatio = 0.99, OverridePointCountEstimate = PointCount ?? dataset.PointCount }).Visualisation
 					).ToArray();
 			}
 
@@ -243,12 +243,13 @@ namespace LvqGui {
 			var projectionAndImage = subplots.model.CurrentProjectionAndImage(subModelIdx, subplots.dataset, wh == null ? 0 : wh.Item1, wh == null ? 0 : wh.Item2);
 			DispatcherOperation scatterPlotOperation = null;
 			if (projectionAndImage != null && subplots.prototypePositionsPlot != null) {
-				scatterPlotOperation = subplots.prototypePositionsPlot.Dispatcher.BeginInvoke((Action)(() => {
+				scatterPlotOperation = subplots.scatterPlot.Dispatcher.BeginInvoke((Action)(() => {
 					subplots.SetScatterBounds(projectionAndImage.Bounds);
-					subplots.prototypePositionsPlot.ChangeData(projectionAndImage.Prototypes);
 					subplots.classBoundaries.ChangeData(projectionAndImage);
-					for (int i = 0; i < subplots.classPlots.Length; ++i)
+					for (int i = 0; i < subplots.classPlots.Length; ++i) {
 						subplots.classPlots[i].ChangeData(projectionAndImage.PointsByLabel[i]);
+						subplots.prototypePositionsPlot[i].ChangeData(projectionAndImage.PrototypesByLabel[i]);
+					}
 				}), DispatcherPriority.Background);
 			}
 

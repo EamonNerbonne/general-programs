@@ -7,7 +7,7 @@ class LvqModel;
 class LvqProjectionModel;
 
 struct LvqDatasetStats {
-	double meanCost, errorRate, distGoodMean, distGoodVar, distBadMean, distBadVar;
+	double meanCost, errorRate, distGoodMean, distGoodVar, distBadMean, distBadVar,muJmean,muKmean;
 	LvqDatasetStats():meanCost(0.0), errorRate(0.0), distGoodMean(0.0), distGoodVar(0.0), distBadMean(0.0), distBadVar(0.0)
 	{}
 };

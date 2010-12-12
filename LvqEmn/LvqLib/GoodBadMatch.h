@@ -5,6 +5,7 @@
 struct MatchQuality {
 	double distGood,distBad;
 	double costFunc;
+	double muK,muJ;
 	bool isErr;
 };
 
@@ -25,6 +26,7 @@ struct GoodBadMatch {
 
 	double MuJ() const {return -2.0*distGood / (sqr(distGood) + sqr(distBad));}
 	double MuK() const{return +2.0*distBad / (sqr(distGood) + sqr(distBad));}
+	double MuGmm() const { double pMargin = exp(-fabs(distBad - distGood)); return 2* pMargin / ((1 + pMargin)*(1+pMargin));}
 };
 
 

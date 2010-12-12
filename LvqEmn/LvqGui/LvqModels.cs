@@ -115,7 +115,7 @@ namespace LvqGui {
 		}
 
 		public class ModelProjectionAndImage {
-			public Point[] Prototypes;
+			public Point[][] PrototypesByLabel;
 			public Point[][] PointsByLabel;
 			public Rect Bounds;
 			public int Width, Height;
@@ -155,7 +155,7 @@ namespace LvqGui {
 				Height = height,
 				ImageData = boundaryImage,
 				Bounds = bounds,
-				Prototypes = projection.Prototypes.Select(lp => lp.point).ToArray(),
+				PrototypesByLabel = GroupPointsByLabel(projection.Prototypes, dataset.ClassCount),
 				PointsByLabel = GroupPointsByLabel(projection.Points,dataset.ClassCount),
 				forDataset = dataset,
 				forModels = this,

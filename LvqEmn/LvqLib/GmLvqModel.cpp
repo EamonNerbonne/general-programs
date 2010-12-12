@@ -57,8 +57,8 @@ MatchQuality GmLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel) 
 
 	//now matches.good is "J" and matches.bad is "K".
 
-	double lr_mu_J2 = lr_point * 2.0*-2.0 * matches.distGood / (sqr(matches.distGood) + sqr(matches.distBad));
-	double lr_mu_K2 = lr_point * 2.0*+2.0 * matches.distBad / (sqr(matches.distGood) + sqr(matches.distBad));
+	double lr_mu_J2 = lr_point * 2.0*matches.MuJ();
+	double lr_mu_K2 = lr_point * 2.0*matches.MuK();
 
 	int J = matches.matchGood;
 	int K = matches.matchBad;
