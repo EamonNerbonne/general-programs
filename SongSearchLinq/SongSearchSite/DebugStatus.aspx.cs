@@ -1,17 +1,15 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Web;
-using System.Web.UI;
-using System.Web.UI.WebControls;
-using System.Xml.Linq;
 using System.IO;
+using System.Linq;
+using System.Web.UI;
+using System.Xml.Linq;
 
 namespace SongSearchSite
 {
-	public partial class DebugStatus : System.Web.UI.Page
+	public partial class DebugStatus : Page
 	{
-		protected void Page_Load(object sender, EventArgs e) { }
+		protected void Page_Load(object sender, EventArgs e) { 
+		}
 		protected void WriteRows() {
 			var statusTable=
 			new XElement("table",
@@ -32,7 +30,7 @@ namespace SongSearchSite
 					new XElement("td",
 						Path.GetDirectoryName(sAct.ServedFile)+"\\",
 						new XElement("b",Path.GetFileName(sAct.ServedFile)),
-						sAct.ByteRange.HasValue ? " [" + sAct.ByteRange.Value.ToString() + "]" : null
+						sAct.ByteRange.HasValue ? " [" + sAct.ByteRange.Value + "]" : null
 						),
 					new XElement("td", sAct.RemoteAddr),
 					new XElement("td", sAct.StartedAtLocalTime.ToLocalTime().Date == DateTime.Now.Date? sAct.StartedAtLocalTime.ToString ("T") : sAct.StartedAtLocalTime.ToShortDateString() ),
@@ -44,6 +42,8 @@ namespace SongSearchSite
 					)
 					);
 			Response.Write(statusTable.ToString(SaveOptions.DisableFormatting));
+			Response.Write(new XElement("div",
+				"Memory Usage: " + GC.GetTotalMemory(Request["GC"] == "true") / (double)(1 << 20) + "MB").ToString(SaveOptions.DisableFormatting));
 		}
 	}
 }
