@@ -26,9 +26,7 @@ namespace SuffixTreeLib {
 			tree.CompactAndCalcCost(this);
 		}
 
-		public SearchResult Query(byte[] query) {
-			return tree.Match(this, 0, query);
-		}
+		public SearchResult Query(byte[] query) { return tree.Match(this, 0, query); }
 
 		public byte GetNormedChar(Suffix pos) { return normed[(int)pos]; }
 		IEnumerable<byte> GetSuffixChars(Suffix suf) {
@@ -38,7 +36,6 @@ namespace SuffixTreeLib {
 		public bool MatchSuffix(Suffix suf, byte[] query, int curpos) {
 			return GetSuffixChars(suf).Take(query.Length - curpos).SequenceEqual(query.Skip(curpos));
 		}
-
 	}
 }
 
