@@ -3,16 +3,15 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace SongDataLib
-{
-	public class SearchableSongFiles
-	{
-		public ISongFileSearchEngine searchMethod;
-		public SongFilesSearchData db;
+namespace SongDataLib {
+	public class SearchableSongFiles {
+		readonly ISongFileSearchEngine searchMethod;
+		public readonly SongFilesSearchData db;
 		public SearchableSongFiles(SongFilesSearchData db, ISongFileSearchEngine searchMethod) {
 			this.db = db;
 			this.searchMethod = searchMethod;
-			searchMethod.Init(db);
+			if (searchMethod != null)
+				searchMethod.Init(db);
 		}
 
 		public IEnumerable<ISongFileData> Search(string query) {
@@ -21,26 +20,34 @@ namespace SongDataLib
 
 
 		IEnumerable<int> Matches(string querystring) {
-			byte[][] query =
+			byte[][] queries =
 					 querystring
 					 .Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)
 					 .Select(StringAsBytesCanonicalization.Canonicalize)
 					 .ToArray();
-			if(query.Length == 0) return Enumerable.Range(0, db.songs.Length);
-			SearchResult[] res = query.Select(q => searchMethod.Query(q)).ToArray();
-			return MatchAll(res, query);
+			if (queries.Length == 0) return Enumerable.Range(0, db.songs.Length);
+			if (searchMethod == null) {
+				BitapMatcher[] qMatchers = queries.Select(q =>
+					new BitapMatcher(q)).ToArray();
+				return from songIndexAndBytes in db.AllNormalizedSongs
+					   where qMatchers.All(qMatcher => qMatcher.BitapMatch(songIndexAndBytes.Item2))
+					   select songIndexAndBytes.Item1;
+			} else {
+				SearchResult[] res = queries.Select(q => searchMethod.Query(q)).ToArray();
+				return MatchAll(res, queries);
+			}
 		}
 
 		IEnumerable<int> MatchAll(SearchResult[] results, byte[][] queries) {
 			Array.Sort(results, queries);
 			IEnumerable<int> smallestMatch = results[0].songIndexes;
-			var otherQueries = queries.Skip(1).ToArray(); 
+			var otherQueries = queries.Skip(1).ToArray();
 			//return SortedIntersectionAlgorithm.SortedIntersection(results.Select(result => result.songIndexes).ToArray(), true);
 
-			return 
-				from si in smallestMatch 
-				let songtext = db.NormalizedSong(si) 
-				where otherQueries.All(q => songtext.Contains(q)) 
+			return
+				from si in smallestMatch
+				let songtext = db.NormalizedSong(si)
+				where otherQueries.All(q => songtext.Contains(q))
 				select si;
 		}
 	}

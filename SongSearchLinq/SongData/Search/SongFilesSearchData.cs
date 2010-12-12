@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 
 namespace SongDataLib {
-	public class SongFilesSearchData {
+	public sealed class SongFilesSearchData {
 		public ISongFileData[] songs;
 		readonly byte[] normed;//all normalized songs as one big string!
 		public byte[] NormedSongs { get { return normed; } }
@@ -11,7 +11,7 @@ namespace SongDataLib {
 		public Suffix[] SongBoundaries { get { return songBoundaries; } }
 		public int SongCount { get { return songs.Length; } }
 
-		public IEnumerable<int> GetSongIndexes(List<Suffix> suffixList) {
+		public IEnumerable<int> GetSongIndexes(IList<Suffix> suffixList) {
 			if (suffixList.Count < 2) {
 				if (suffixList.Count == 1) yield return GetSongIndex(suffixList[0]);
 			} else {
@@ -97,10 +97,6 @@ namespace SongDataLib {
 			return startI;//f(startI) <= target < f(startI+1)
 		}
 
-
-
-
-
 		public SongFilesSearchData(IEnumerable<ISongFileData> songs) {
 			this.songs = songs.ToArray();
 			//convert all songs into a single byte array...
@@ -117,12 +113,22 @@ namespace SongDataLib {
 			//OK byte array 'normed' is constructed.
 		}
 
-		public byte[] NormalizedSong(int si) {
+		public ByteRange NormalizedSong(int si) {
 			int start = (int)SongBoundaries[si];
-			int length = (int)SongBoundaries[si + 1] - start - 1;
-			byte[] retval = new byte[length];
-			Array.Copy(normed, start, retval, 0, length);
-			return retval;
+			int end = (int)SongBoundaries[si + 1] - 1 ;
+			return new ByteRange(normed, start, end);
+		}
+
+		public IEnumerable<Tuple<int, ByteRange>> AllNormalizedSongs {
+			get {
+				int start = 0;
+				int end = 0;
+				for (int si = 0; si < SongCount; si++) {
+					end = (int)SongBoundaries[si + 1];
+					yield return Tuple.Create(si, new ByteRange(normed, start, end -  1));//exclude terminator
+					start = end;
+				}
+			}
 		}
 	}
 }

@@ -4,7 +4,7 @@ namespace SongDataLib
 	public struct Suffix
 	{
 		int AbsStartPos;
-		public Suffix(int startPos) { AbsStartPos = startPos; }
+		Suffix(int startPos) { AbsStartPos = startPos; }
 		public Suffix Next { get { return new Suffix { AbsStartPos = AbsStartPos + 1 }; } }
 		public override bool Equals(object obj) {
 			if(!(obj is Suffix)) return false;

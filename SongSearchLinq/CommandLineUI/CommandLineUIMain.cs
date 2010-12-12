@@ -15,8 +15,8 @@ namespace CommandLineUI {
 #endif
 
 				var prog = DTimer.TimeFunc(() => new CommandLineUIMain(args.Length > 0 ? new FileInfo(args[0]) : null), "Starting");
-				//prog.ExecBenchmark();
-				prog.ExecUI();
+				prog.ExecBenchmark();
+				//prog.ExecUI();
 #if !DEBUG
 			} catch (Exception e) {
 				Console.WriteLine("==========================");
@@ -41,7 +41,7 @@ namespace CommandLineUI {
 				string[] sq = queries.Select(s => (s.Length > 2 ? s.Substring(Math.Min(r.Next(s.Length - 2), r.Next(s.Length - 2))) : s))
 											.Select(s => (s.Length > 2 ? s.Substring(0, s.Length - Math.Min(r.Next(s.Length - 2), r.Next(s.Length - 2))) : s))
 											.ToArray();
-				searchEngine.Search(string.Join(" ", sq)).Take(30).ToArray();
+				searchEngine.Search(string.Join(" ", sq)).Take(100).ToArray();
 			}
 		}
 
@@ -55,7 +55,7 @@ namespace CommandLineUI {
 				dcf.Load((newsong, progress) => loadingSongs.Add(newsong));
 				return new SongFilesSearchData(loadingSongs);
 			}, "Loading DB");
-			searchEngine = DTimer.TimeFunc(() => new SearchableSongFiles(db, new SuffixTreeLib.SuffixTreeSongSearcher()), "Loading Search plugin");
+			searchEngine = DTimer.TimeFunc(() => new SearchableSongFiles(db, null), "Loading Search plugin");//new SuffixTreeLib.SuffixTreeSongSearcher()
 		}
 
 
