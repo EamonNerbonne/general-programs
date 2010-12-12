@@ -2,67 +2,48 @@
 using System.Linq;
 using SongDataLib;
 
-namespace SuffixTreeLib
-{
+namespace SuffixTreeLib {
 
-	public class SuffixTreeLeafNode : ISuffixTreeNode
-	{
-		internal List<Suffix> hits = new List<Suffix>();//in-order!
+	public sealed class SuffixTreeLeafNode : ISuffixTreeNode {
+		IList<Suffix> hits = new List<Suffix>();//in-order!
 
 		public int CompactAndCalcCost(SuffixTreeSongSearcher sssm) {
-			hits.Capacity = hits.Count;
+			hits = hits.ToArray();
 			return hits.Count;
 		}
 
-		public void AddSuffix(SuffixTreeSongSearcher sssm, Suffix suffix) {
-			hits.Add(suffix);
-		}
+		public ISuffixTreeNode AddSuffix(SuffixTreeSongSearcher sssm, Suffix suffix) { hits.Add(suffix); return OptimalRep(sssm); }
 
-		public IEnumerable<int> GetAllSongs(SuffixTreeSongSearcher sssm) {
-			return sssm.db.GetSongIndexes(hits);
-		}
+		public IEnumerable<int> GetAllSongs(SuffixTreeSongSearcher sssm) { return sssm.db.GetSongIndexes(hits); }
 		public SearchResult Match(SuffixTreeSongSearcher sssm, int curdepth, byte[] query) {
-			if(query.Length == curdepth) {
+			if (query.Length == curdepth) {
 				return new SearchResult { cost = hits.Count, songIndexes = GetAllSongs(sssm) };
 			} else {//curdepth<query.Length
 				return new SearchResult { cost = hits.Count / 5, songIndexes = FilterBy(sssm, curdepth, query).Distinct() };
 			}
 		}
 
-
-		public IEnumerable<ISuffixTreeNode> Desc {
-			get { yield return this; }
-		}
+		public IEnumerable<ISuffixTreeNode> Desc { get { yield return this; } }
 
 		private IEnumerable<int> FilterBy(SuffixTreeSongSearcher sssm, int curdepth, byte[] query) {
 			int songIndex = 0;
-			foreach(Suffix suf in hits) {
-				if(sssm.MatchSuffix(suf, query, curdepth)) {
+			foreach (Suffix suf in hits) {
+				if (sssm.MatchSuffix(suf, query, curdepth)) {
 					songIndex = sssm.db.GetSongIndex(suf, songIndex);
 					yield return songIndex;
 				}
 			}
 		}
-		public ISuffixTreeNode OptimalRep(SuffixTreeSongSearcher sssm) {
-			if(hits.Count < 1000) {
+
+		ISuffixTreeNode OptimalRep(SuffixTreeSongSearcher sssm) {
+			if (hits.Count < 1000)
 				return this;
-			} else {
+			else {
 				SuffixTreeNode newnode = new SuffixTreeNode();
-				newnode.AddSuffix(sssm, hits[0]);
-				for(int hi = 1; hi < hits.Count; hi++) {
-					newnode.AddSuffix(sssm, hits[hi]);
-				}
+				foreach (Suffix t in hits)
+					newnode.AddSuffix(sssm, t); //always returns this, no need to update.
 				return newnode;
 			}
-		}
-		public bool IsLeaf {
-			get { return true; }
-		}
-		public IEnumerable<ISuffixTreeNode> Children {
-			get { return Enumerable.Empty<ISuffixTreeNode>(); }
-		}
-		public IEnumerable<Suffix> LocalSuffixes {//in-order!
-			get { return hits; }
 		}
 	}
 }
