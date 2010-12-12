@@ -4,7 +4,7 @@ using System.Xml.Linq;
 namespace SongDataLib {
 
 	public class MinimalSongFileData : ISongFileData {
-		readonly Uri songuri;
+		protected readonly Uri songuri, baseUri;
 		public virtual string FullInfo { get { return Uri.UnescapeDataString(songuri.Host + songuri.PathAndQuery); } }
 
 		protected XAttribute makeUriAttribute(Func<Uri, string> urlTranslator) {
@@ -27,15 +27,17 @@ namespace SongDataLib {
 		protected static XAttribute MakeAttributeOrNull(XName attrname, int data) { return data == 0 ? null : new XAttribute(attrname, data); }
 		protected static XAttribute MakeAttributeOrNull(XName attrname, double data) { return data == 0.0 ? null : new XAttribute(attrname, data); }
 
-		public MinimalSongFileData(Uri songuri, bool? mustBeLocal) {
+		public MinimalSongFileData(Uri baseUri, Uri songuri, bool? mustBeLocal) {
 			if (songuri == null) throw new ArgumentNullException("songuri");
 			if (!songuri.IsAbsoluteUri) throw new ArgumentOutOfRangeException("songuri", "uri must be absolute");
+			if (baseUri!=null && !baseUri.IsAbsoluteUri) throw new ArgumentOutOfRangeException("baseUri", "uri must be absolute");
 			if (mustBeLocal.HasValue && mustBeLocal != songuri.IsFile)
 				throw new Exception("Supposedly " + (mustBeLocal.Value ? "" : "non-") + "local song isn't: " + songuri);
 			this.songuri = songuri;
+			this.baseUri = baseUri;
 		}
 
-		public MinimalSongFileData(XElement xEl, bool? isLocal) : this(new Uri((string)xEl.Attribute("songuri"), UriKind.Absolute), isLocal) { }
+		public MinimalSongFileData(Uri baseUri, XElement xEl, bool? isLocal) : this(baseUri, new Uri((string)xEl.Attribute("songuri"), UriKind.Absolute), isLocal) { }
 	}
 
 }

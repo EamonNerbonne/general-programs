@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.IO;
 using System.Net;
 using System.Text;
+using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Linq;
 using EmnExtensions;
@@ -9,52 +11,55 @@ using EmnExtensions;
 namespace SongDataLib {
 	public delegate void SongDataLoadDelegate(ISongFileData newsong, double estimatedCompletion);
 	public static class SongFileDataFactory {
-		public static ISongFileData ConstructFromFile(FileInfo fileObj, IPopularityEstimator popEst) { return new SongFileData(fileObj,popEst); }
-		public static ISongFileData ConstructFromXElement(XElement xEl, bool? isLocal,IPopularityEstimator popEst) {
+		public static ISongFileData ConstructFromFile(Uri baseUri, FileInfo fileObj, IPopularityEstimator popEst) { return new SongFileData(baseUri, fileObj, popEst); }
+		public static ISongFileData ConstructFromXElement(Uri baseUri, XElement xEl, bool? isLocal, IPopularityEstimator popEst) {
 			if (xEl.Name == "song") {
-				return new SongFileData(xEl, isLocal,popEst);
-			}
-			else if (xEl.Name == "partsong") {
-				return new PartialSongFileData(xEl, isLocal);
-			}
-			else if (xEl.Name == "songref") {
-				return new MinimalSongFileData(xEl, isLocal);
-			}
-			else
+				return new SongFileData(baseUri, xEl, isLocal, popEst);
+			} else if (xEl.Name == "partsong") {
+				return new PartialSongFileData(baseUri, xEl, isLocal);
+			} else if (xEl.Name == "songref") {
+				return new MinimalSongFileData(baseUri, xEl, isLocal);
+			} else
 				throw new ArgumentException("Don't recognize xml name " + xEl.Name + ", is not a valid ISongData format.", "xEl");
 		}
 
-		public static void LoadSongsFromXmlFrag(Stream songSource, SongDataLoadDelegate songSink, bool? songsLocal, IPopularityEstimator popEst) {
-			//XmlReaderSettings settings = new XmlReaderSettings();
-			//settings.ConformanceLevel = ConformanceLevel.Fragment;
+		public static void LoadSongsFromXmlFrag(Uri baseUri, Stream songSource, SongDataLoadDelegate songSink, bool? songsLocal, IPopularityEstimator popEst) {
 			long streamLength = F.Swallow(() => songSource.Length, () => -1);
-			using (var textreader = new StreamReader(songSource))
-			using (var reader = XmlReader.Create(textreader)) {
-				int songCount = 0;
-				while (reader.Read()) {
-					if (!reader.IsEmptyElement || !reader.HasAttributes) continue;//only consider "empty" elements with attributes!
-					ISongFileData song = null;
-					try {
-						//string elName = reader.Name;
-						//var attrs = new Dictionary<string, string>();
-						//while (reader.MoveToNextAttribute()) 
-						//    attrs[reader.Name] = reader.Value;
-						song = SongFileDataFactory.ConstructFromXElement((XElement)XElement.ReadFrom(reader), songsLocal, popEst);
+			BlockingCollection<Tuple<XElement, long>> els = new BlockingCollection<Tuple<XElement, long>>();
+			Task.Factory.StartNew(() => {
+				//XmlReaderSettings settings = new XmlReaderSettings();
+				//settings.ConformanceLevel = ConformanceLevel.Fragment;
+				using (var textreader = new StreamReader(songSource))
+				using (var reader = XmlReader.Create(textreader)) {
+					while (reader.Read()) {
+						if (!reader.IsEmptyElement || !reader.HasAttributes) continue;//only consider "empty" elements with attributes!
+						els.Add(Tuple.Create((XElement)XNode.ReadFrom(reader),songSource.Position));
 					}
-					catch (Exception e) {
-						Console.WriteLine(e);
-					}
-					if (song != null) {
-						songCount++;
-						double ratioDone =
-							streamLength == -1 ?
-							1 - 10000 / (double)(songCount + 10000) :
-							(double)songSource.Position / (double)streamLength;
-						songSink(song, ratioDone);
-					}
-					else {
-						Console.WriteLine("???");
-					}
+				}
+
+			}).ContinueWith(_=>els.CompleteAdding());
+			int songCount = 0;
+			foreach (var xElAndPos in els.GetConsumingEnumerable()) {
+				ISongFileData song = null;
+
+				try {
+					//string elName = reader.Name;
+					//var attrs = new Dictionary<string, string>();
+					//while (reader.MoveToNextAttribute()) 
+					//    attrs[reader.Name] = reader.Value;
+					song = ConstructFromXElement(baseUri, xElAndPos.Item1, songsLocal, popEst);
+				} catch (Exception e) {
+					Console.WriteLine(e);
+				}
+				if (song != null) {
+					songCount++;
+					double ratioDone =
+						streamLength == -1 ?
+						1 - 10000 / (double)(songCount + 10000) :
+						(double)xElAndPos.Item2 / streamLength;
+					songSink(song, ratioDone);
+				} else {
+					Console.WriteLine("???");
 				}
 			}
 		}
@@ -92,10 +97,9 @@ namespace SongDataLib {
 
 
 				if (extm3u && metaLine != null) {
-					song = new PartialSongFileData(metaLine, songUri, songsLocal);
-				}
-				else {
-					song = new MinimalSongFileData(songUri, songsLocal);
+					song = new PartialSongFileData(null, metaLine, songUri, songsLocal);
+				} else {
+					song = new MinimalSongFileData((Uri)null, songUri, songsLocal);
 				}
 				songCount++;
 				double ratioDone =
@@ -109,36 +113,34 @@ namespace SongDataLib {
 
 		}
 
-		public static void LoadSongsFromPathOrUrl(string pathOrUrl, SongDataLoadDelegate songSink, bool? isLocal, string remoteUsername, string remotePass,IPopularityEstimator popEst) {
+		public static void LoadSongsFromPathOrUrl(string pathOrUrl, SongDataLoadDelegate songSink, bool? isLocal, string remoteUsername, string remotePass, IPopularityEstimator popEst) {
 			Console.WriteLine("Loading songs from " + pathOrUrl + ":");
 			Uri uri = new Uri(pathOrUrl);
 			string extension = Path.GetExtension(uri.AbsolutePath); ;
 
 			if (uri.IsFile && File.Exists(uri.LocalPath))
 				using (var stream = File.OpenRead(pathOrUrl))
-					LoadSongsFromStream(stream, extension, songSink, isLocal,popEst);
+					LoadSongsFromStream(stream, extension, songSink, isLocal, popEst);
 			else if (uri.IsAbsoluteUri) {
 				var req = WebRequest.Create(uri);
 				if (remoteUsername != null)
 					req.Credentials = new NetworkCredential(remoteUsername, remotePass);
 				using (var resp = req.GetResponse())
 				using (var stream = resp.GetResponseStream())
-					LoadSongsFromStream(stream, extension, songSink, isLocal,popEst);
-			}
-			else {
+					LoadSongsFromStream(stream, extension, songSink, isLocal, popEst);
+			} else {
 				throw new Exception("Invalid song path: " + pathOrUrl);
 			}
 			Console.WriteLine("Completed loading songs from " + pathOrUrl);
 		}
-		public static void LoadSongsFromStream(Stream stream, string extension, SongDataLoadDelegate songSink, bool? isLocal,IPopularityEstimator popEst) {
+
+		public static void LoadSongsFromStream(Stream stream, string extension, SongDataLoadDelegate songSink, bool? isLocal, IPopularityEstimator popEst) {
 			if (extension == ".xml")
-				LoadSongsFromXmlFrag(stream, songSink, isLocal,popEst);
+				LoadSongsFromXmlFrag(null, stream, songSink, isLocal, popEst);
 			else if (extension == ".m3u")
 				LoadSongsFromM3U(stream, songSink, Encoding.GetEncoding(1252), isLocal);
 			else if (extension == ".m3u8")
 				LoadSongsFromM3U(stream, songSink, Encoding.UTF8, isLocal);
 		}
-
-
 	}
 }

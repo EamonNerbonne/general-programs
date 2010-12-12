@@ -8,17 +8,21 @@ using EmnExtensions.Text;
 
 namespace SongDataLib {
 	class LocalSongDataConfigSection : AbstractSongDataConfigSection {
-		DirectoryInfo localSearchPath;
+		readonly DirectoryInfo localSearchPath;
+		readonly Uri localSearchUri;
 		public LocalSongDataConfigSection(XElement xEl, SongDataConfigFile dcf)
 			: base(xEl, dcf) {
 			string searchpath = (string)xEl.Attribute("localPath");
 			if (name.IsNullOrEmpty() || searchpath.IsNullOrEmpty()) throw new Exception("Missing attributes for localDB");
 			if (!Path.IsPathRooted(searchpath)) throw new Exception("Local search paths must be absolute.");
 			localSearchPath = new DirectoryInfo((string)xEl.Attribute("localPath"));
+			localSearchUri = new Uri(localSearchPath.FullName, UriKind.Absolute);
 		}
 		protected override bool IsLocal { get { return true; } }
 
-		protected override void ScanSongs(FileKnownFilter filter, SongDataLoadDelegate handler,Action<string> errSink) {
+		public override Uri BaseUri { get { return localSearchUri; } }
+
+		protected override void ScanSongs(FileKnownFilter filter, SongDataLoadDelegate handler, Action<string> errSink) {
 			Console.WriteLine("Scanning " + localSearchPath + "...");
 			if (!localSearchPath.Exists) throw new DirectoryNotFoundException("Local search path doesn't exist: " + localSearchPath.FullName); //TODO: do this during init instead?
 			//string[] newFiles = Directory.GetFiles (localSearchPath.FullName, "*", SearchOption.AllDirectories).Where(s => isExtensionOK(Path.GetExtension(s))).ToArray();
@@ -36,7 +40,7 @@ namespace SongDataLib {
 				ISongFileData song = filter(songUri);
 				if (song == null || (song is SongFileData && ((SongFileData)song).lastWriteTime < newfile.LastWriteTimeUtc))
 					try {
-						song = SongFileDataFactory.ConstructFromFile(newfile,dcf.PopularityEstimator);
+						song = SongFileDataFactory.ConstructFromFile(localSearchUri, newfile, dcf.PopularityEstimator);
 					} catch (Exception e) {
 						errSink("Non-fatal error while generating XML of file: " + songUri + "\nException:\n" + e); song = null;
 					}

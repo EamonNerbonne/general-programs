@@ -7,18 +7,20 @@ using System.Text;
 using System.Linq;
 namespace SongDataLib {
 
-	abstract class AbstractSongDataConfigSection : ISongDataConfigSection {
-		protected SongDataConfigFile dcf;
-		public string name;
-		protected FileInfo dbFile;
+	public abstract class AbstractSongDataConfigSection : ISongDataConfigSection {
+		protected readonly SongDataConfigFile dcf;
+		public readonly string name;
+		protected readonly FileInfo dbFile;
 		protected abstract bool IsLocal { get; }
+
+		public abstract Uri BaseUri { get; }
 
 		public void Load(SongDataLoadDelegate handler) {
 			if (dbFile.Exists)
 				using (Stream stream = dbFile.OpenRead())
-					SongFileDataFactory.LoadSongsFromXmlFrag(stream, handler, IsLocal,dcf.PopularityEstimator);
+					SongFileDataFactory.LoadSongsFromXmlFrag( BaseUri, stream, handler, IsLocal, dcf.PopularityEstimator);
 		}
-		static XmlWriterSettings settings = new XmlWriterSettings {
+		static readonly XmlWriterSettings settings = new XmlWriterSettings {
 			CheckCharacters = false,
 			Indent = true,
 			//Encoding = Encoding.UTF8,
@@ -68,11 +70,9 @@ namespace SongDataLib {
 			}
 			Console.WriteLine("Scanning of DB " + name + " complete.");
 		}
-		protected static bool isExtensionOK(FileInfo fi) {
-			return isExtensionOK(fi.Extension);
-		}
-
-		protected static bool isExtensionOK(string extension) {
+		
+		protected static bool isExtensionOK(FileInfo fi) {return isExtensionOK(fi.Extension);}
+		static bool isExtensionOK(string extension) {
 			extension = extension.ToLowerInvariant();
 			return extension == ".mp3"
 				|| extension == ".ogg"

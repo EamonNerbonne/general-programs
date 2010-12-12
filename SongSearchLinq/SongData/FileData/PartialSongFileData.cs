@@ -30,14 +30,14 @@ namespace SongDataLib
 		public override string HumanLabel { get { return label ?? base.HumanLabel; } }
 
 		static readonly Regex extm3uPattern = new Regex(@"^#EXTINF:(?<songlength>[0-9]+),(?<label>.*)$", RegexOptions.Compiled | RegexOptions.ExplicitCapture);
-		internal PartialSongFileData(XElement xEl, bool? isLocal)
-			: base(xEl, isLocal) {
+		internal PartialSongFileData(Uri baseUri, XElement xEl, bool? isLocal)
+			: base(baseUri,xEl, isLocal) {
 			label = (string)xEl.Attribute("label");//might even be null!
 			length = ((int?)xEl.Attribute("length")) ??0;//might even be null!
 		}
 
-		internal PartialSongFileData(string extm3ustr, Uri url, bool? isLocal)
-			: base(url, isLocal) {
+		internal PartialSongFileData(Uri baseUri, string extm3ustr, Uri url, bool? isLocal)
+			: base(baseUri, url, isLocal) {
 			Match m;
 			lock(extm3uPattern) m = extm3uPattern.Match(extm3ustr);
 			if(m.Success) {

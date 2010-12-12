@@ -53,14 +53,14 @@ namespace SongSearchSite {
 			return local2absHelper(new Uri(context.Request.Url, context.Request.ApplicationPath + "/" + songsPrefix));
 		}
 		static Func<Uri, Uri> local2absHelper(Uri songsBaseUri) {
-			return localSongUri => 
+			return localSongUri =>
 				localSongUri.IsFile ? new Uri(songsBaseUri, EscapedRelativeSongPath(localSongUri)) : localSongUri;
 		}
 		public static Func<Uri, Uri> LocalSongPathToAppRelativeMapper(HttpContext context) {
 			return local2relHelper(new Uri(context.Request.Url, context.Request.ApplicationPath + "/" + songsPrefix), new Uri(context.Request.Url, context.Request.ApplicationPath + "/"));
 		}
 		static Func<Uri, Uri> local2relHelper(Uri songsBaseUri, Uri appBaseUri) {
-			return localSongUri => 
+			return localSongUri =>
 				localSongUri.IsFile ? appBaseUri.MakeRelativeUri(new Uri(songsBaseUri, EscapedRelativeSongPath(localSongUri))) : localSongUri;
 		}
 
@@ -78,12 +78,11 @@ namespace SongSearchSite {
 				}
 			}
 		}
-		SearchableSongFiles searchEngine;
+		Task<SearchableSongFiles> searchEngine;
 		SongTools tools;
-		FuzzySongSearcher fuzzySearcher;
+		Task<FuzzySongSearcher> fuzzySearcher;
 
-		Dictionary<string, SongFileData> localSongs = new Dictionary<string, SongFileData>();
-		readonly object syncroot = new object();
+		Task<SortedList<string, SongFileData>> localSongs;
 		FileSystemWatcher fsWatcher;
 		public void Dispose() {
 			if (fsWatcher != null)
@@ -93,38 +92,39 @@ namespace SongSearchSite {
 		bool isFresh;
 
 		private void Init() {
-			lock (syncroot) {
-				if (isFresh)
-					return;
-				isFresh = true;
-				SongDataConfigFile dcf = new SongDataConfigFile(true);
-				tools = new SongTools(dcf);
+			if (isFresh)
+				return;
+			isFresh = true;
+			SongDataConfigFile dcf = new SongDataConfigFile(true);
+			tools = new SongTools(dcf);
 
-				var allSongs = tools.SongsOnDisk.Songs;
-				Array.Sort(allSongs,(a, b) => b.popularity.TitlePopularity.CompareTo(a.popularity.TitlePopularity));
-				Parallel.Invoke(
-					() => { fuzzySearcher = new FuzzySongSearcher(allSongs); },
-					() => { searchEngine = new SearchableSongFiles(new SongFilesSearchData(allSongs), new SuffixTreeSongSearcher()); },
-					() => { localSongs = allSongs.Where(s => s.IsLocal).ToDictionary(song => CanonicalRelativeSongPath(song.SongUri)); });
-				if (fsWatcher == null) {
-					fsWatcher = new FileSystemWatcher {
-						Path = dcf.DataDirectory.FullName,
-						Filter = "*.xml",
-						IncludeSubdirectories = false,
-					};
-					fsWatcher.Created += (o, e) => DbUpdated();
-					fsWatcher.Changed += (o, e) => DbUpdated();
-					fsWatcher.Renamed += (o, e) => DbUpdated();
-					fsWatcher.Error += (o, e) => DbUpdated();
-					fsWatcher.Deleted += (o, e) => DbUpdated();
-					fsWatcher.EnableRaisingEvents = true;
-				}
+			var allSongs = tools.SongsOnDisk.Songs;
+			Array.Sort(allSongs, (a, b) => b.popularity.TitlePopularity.CompareTo(a.popularity.TitlePopularity));
+			fuzzySearcher = Task.Factory.StartNew(() => new FuzzySongSearcher(allSongs));
+			searchEngine = Task.Factory.StartNew(() => new SearchableSongFiles(new SongFilesSearchData(allSongs), null));
+			localSongs = Task.Factory.StartNew(() =>
+				new SortedList<string, SongFileData>(
+					allSongs.Where(s => s.IsLocal)
+					.ToDictionary(song => CanonicalRelativeSongPath(song.SongUri))
+					)
+				);
+			if (fsWatcher == null) {
+				fsWatcher = new FileSystemWatcher {
+					Path = dcf.DataDirectory.FullName,
+					Filter = "*.xml",
+					IncludeSubdirectories = false,
+				};
+				fsWatcher.Created += (o, e) => DbUpdated();
+				fsWatcher.Changed += (o, e) => DbUpdated();
+				fsWatcher.Renamed += (o, e) => DbUpdated();
+				fsWatcher.Error += (o, e) => DbUpdated();
+				fsWatcher.Deleted += (o, e) => DbUpdated();
+				fsWatcher.EnableRaisingEvents = true;
 			}
 		}
 
 
 		void DbUpdated() {
-
 			isFresh = false;
 			ThreadPool.QueueUserWorkItem(o => {
 				Thread.Sleep(5000);
@@ -133,20 +133,18 @@ namespace SongSearchSite {
 		}
 
 		private SongDbContainer() { Init(); }
-		public static SearchableSongFiles SearchableSongDB { get { var sdc = Singleton; lock (sdc.syncroot) return sdc.searchEngine; } }
-		public static FuzzySongSearcher FuzzySongSearcher { get { var sdc = Singleton; lock (sdc.syncroot) return sdc.fuzzySearcher; } }
-		public static SongTools LastFmTools { get { var sdc = Singleton; lock (sdc.syncroot) return sdc.tools; } }
+		public static SearchableSongFiles SearchableSongDB { get { var sdc = Singleton; return sdc.searchEngine.Result; } }
+		public static FuzzySongSearcher FuzzySongSearcher { get { var sdc = Singleton; return sdc.fuzzySearcher.Result; } }
+		public static SongTools LastFmTools { get { var sdc = Singleton; return sdc.tools; } }
 
 		/// <summary>
 		/// Determines whether a given path maps to an indexed, local song.  If it doesn't, it returns null.  If it does, it returns the meta data known about the song, including the song's "real" path.
 		/// </summary>
 		/// <param name="path">The normalized path </param>
 		/// <returns></returns>
-		public static ISongFileData GetSongByNormalizedPath(string path) {
+		static ISongFileData GetSongByNormalizedPath(string path) {
 			SongFileData retval;
-			var sdc = Singleton;
-			lock (sdc.syncroot)
-				sdc.localSongs.TryGetValue(path, out retval);
+			Singleton.localSongs.Result.TryGetValue(path, out retval);
 			return retval;
 		}
 

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using EmnExtensions.Text;
 using EmnExtensions.DebugTools;
 using SongDataLib;
@@ -64,7 +63,7 @@ namespace LastFMspider {
 
 		const int MaxMatchCount = 50;
 		[ThreadStatic]
-		int[] songmatchcount = null;
+		static int[] songmatchcount = null;
 		public SongMatch[] FindMatchingSongs(SongRef search) {
 			int[] matchcounts = songmatchcount;
 			if (matchcounts == null)

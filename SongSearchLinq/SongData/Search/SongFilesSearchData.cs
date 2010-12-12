@@ -1,10 +1,11 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 
 namespace SongDataLib {
 	public sealed class SongFilesSearchData {
-		public ISongFileData[] songs;
+		public readonly ISongFileData[] songs;
 		readonly byte[] normed;//all normalized songs as one big string!
 		public byte[] NormedSongs { get { return normed; } }
 		readonly Suffix[] songBoundaries;//start positions of each song!
@@ -49,13 +50,9 @@ namespace SongDataLib {
 		}
 
 
-		public int GetSongIndex(Suffix charpos) {
-			return GetSongIndex(charpos, 0, SongCount);
-		}
+		public int GetSongIndex(Suffix charpos) { return GetSongIndex(charpos, 0, SongCount); }
 
-		public int GetSongIndex(Suffix charpos, int startI) {
-			return GetSongIndex(charpos, startI, SongCount);
-		}
+		public int GetSongIndex(Suffix charpos, int startI) { return GetSongIndex(charpos, startI, SongCount); }
 
 		/// <summary>
 		/// Searches efficiently for the song index belonging to a suffix, given that the songindex is in [startI,endI).
@@ -98,34 +95,44 @@ namespace SongDataLib {
 		}
 
 		public SongFilesSearchData(IEnumerable<ISongFileData> songs) {
-			this.songs = songs.ToArray();
 			//convert all songs into a single byte array...
-			songBoundaries = new Suffix[SongCount + 1];
-			int songCount = 0;
-			songBoundaries[0] = (Suffix)0;
-			List<byte> normedConstructor = new List<byte>();
-			foreach (byte[] normSong in songs.Select(song => StringAsBytesCanonicalization.Canonicalize(song.FullInfo))) {
-				normedConstructor.AddRange(normSong);
-				normedConstructor.Add(StringAsBytesCanonicalization.TERMINATOR);
-				songBoundaries[++songCount] = (Suffix)normedConstructor.Count;
+			var songBoundariesList = new List<Suffix>(200000) { (Suffix)0 };
+			var songList = new List<ISongFileData>(200000);
+			using (var memStream = new MemoryStream()) {
+				foreach (var song in songs) {
+					songList.Add(song);
+					var canonicalSongInfo = StringAsBytesCanonicalization.Canonicalize(song.FullInfo);
+					memStream.Write(canonicalSongInfo, 0, canonicalSongInfo.Length);
+					memStream.WriteByte(StringAsBytesCanonicalization.TERMINATOR);
+					songBoundariesList.Add((Suffix)(int)memStream.Length);
+				}
+				normed = memStream.ToArray();
 			}
-			normed = normedConstructor.ToArray();
+			this.songs = songList.ToArray();
+			songBoundaries = songBoundariesList.ToArray();
 			//OK byte array 'normed' is constructed.
 		}
 
 		public ByteRange NormalizedSong(int si) {
 			int start = (int)SongBoundaries[si];
-			int end = (int)SongBoundaries[si + 1] - 1 ;
+			int end = (int)SongBoundaries[si + 1] - 1;
 			return new ByteRange(normed, start, end);
 		}
 
-		public IEnumerable<Tuple<int, ByteRange>> AllNormalizedSongs {
+		public struct SongIndexAndBytes {
+			public readonly ByteRange bytes;
+			public readonly int index;
+			public SongIndexAndBytes(int index, ByteRange bytes) { this.bytes = bytes; this.index = index; }
+		}
+
+
+		public IEnumerable<SongIndexAndBytes> AllNormalizedSongs {
 			get {
 				int start = 0;
 				int end = 0;
 				for (int si = 0; si < SongCount; si++) {
 					end = (int)SongBoundaries[si + 1];
-					yield return Tuple.Create(si, new ByteRange(normed, start, end -  1));//exclude terminator
+					yield return new SongIndexAndBytes(si, new ByteRange(normed, start, end - 1));//exclude terminator
 					start = end;
 				}
 			}

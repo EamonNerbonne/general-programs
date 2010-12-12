@@ -10,40 +10,65 @@ namespace SongDataLib {
 		public ByteRange(byte[] data, int start, int end) { this.data = data; this.start = start; this.end = end; }
 	}
 
-	public struct BitapMatcher {
+	public interface IBitapMatcher {
+		bool BitapMatch(ByteRange src);
+	}
+	public class BitapMatcher32 : IBitapMatcher {
 		readonly uint[] pattern_mask;
-		readonly byte[] pattern;
-		public BitapMatcher(byte[] pattern) {
+		readonly uint endBit;
+		public BitapMatcher32(byte[] pattern) {
 			if (pattern.Length > 31) throw new ArgumentException("The pattern is too long!");
-			this.pattern = pattern;
-			/* Initialize the pattern bitmasks */
 			pattern_mask = new uint[StringAsBytesCanonicalization.TERMINATOR];
 			for (int i = 0; i < StringAsBytesCanonicalization.TERMINATOR; ++i)
 				pattern_mask[i] = ~0u;
 			for (int i = 0; i < pattern.Length; ++i)
 				pattern_mask[pattern[i]] &= ~(1u << i);
+			endBit = 1u << pattern.Length;
 		}
 
 		public bool BitapMatch(ByteRange src) {
-			/* Initialize the bit array R */
 			uint R = ~1u;
+			for (int i = src.start; i < src.end; ++i) {
+				R = (R | pattern_mask[src.data[i]]) << 1;
+				if (0 == (R & endBit)) return true;// new ByteRange(src.data, i +1 - pattern.Length, i+1);
+			}
+			return false;
+		}
+	}
 
+	public class BitapMatcher64 : IBitapMatcher {
+		readonly ulong[] pattern_mask;
+		readonly ulong endBit;
+		public BitapMatcher64(byte[] pattern) {
+			if (pattern.Length > 63) throw new ArgumentException("The pattern is too long!");
+			pattern_mask = new ulong[StringAsBytesCanonicalization.TERMINATOR];
+			for (int i = 0; i < StringAsBytesCanonicalization.TERMINATOR; ++i)
+				pattern_mask[i] = ~0u;
+			for (int i = 0; i < pattern.Length; ++i)
+				pattern_mask[pattern[i]] &= ~(1u << i);
+			endBit = 1u << pattern.Length;
+		}
+
+		public bool BitapMatch(ByteRange src) {
+			ulong R = ~1u;
 
 			for (int i = src.start; i < src.end; ++i) {
-				/* Update the bit array */
-				R |= pattern_mask[src.data[i]];
-				//for (int k = 0; k < pattern.Length; k++)
-				//    if (src.data[i] != pattern[k])
-				//        R |= 1ul << k;
-				//R <<= 1;
-
 				R = (R | pattern_mask[src.data[i]]) << 1;
-
-				if (0 == (R & (1u << pattern.Length)))
-					return true;// new ByteRange(src.data, i +1 - pattern.Length, i+1);
+				if (0 == (R & endBit)) return true;// new ByteRange(src.data, i +1 - pattern.Length, i+1);
 			}
-
 			return false;
+		}
+	}
+
+	public static class BitapSearch {
+		public static IBitapMatcher MatcherFor(byte[] pattern) {
+			if (pattern.Length < 32)
+				return new BitapMatcher32(pattern);
+			else if (pattern.Length < 64)
+				return new BitapMatcher64(pattern);
+			else
+				return new BitapMatcher64(pattern.Take(63).ToArray());//irrelevant error for our use-case.
+
 		}
 	}
 

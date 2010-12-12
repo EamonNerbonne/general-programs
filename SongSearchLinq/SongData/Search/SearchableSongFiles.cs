@@ -27,11 +27,10 @@ namespace SongDataLib {
 					 .ToArray();
 			if (queries.Length == 0) return Enumerable.Range(0, db.songs.Length);
 			if (searchMethod == null) {
-				BitapMatcher[] qMatchers = queries.Select(q =>
-					new BitapMatcher(q)).ToArray();
+				IBitapMatcher[] qMatchers = queries.Select(BitapSearch.MatcherFor).ToArray();
 				return from songIndexAndBytes in db.AllNormalizedSongs
-					   where qMatchers.All(qMatcher => qMatcher.BitapMatch(songIndexAndBytes.Item2))
-					   select songIndexAndBytes.Item1;
+					   where qMatchers.All(qMatcher => qMatcher.BitapMatch(songIndexAndBytes.bytes))
+					   select songIndexAndBytes.index;
 			} else {
 				SearchResult[] res = queries.Select(q => searchMethod.Query(q)).ToArray();
 				return MatchAll(res, queries);

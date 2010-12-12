@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using EmnExtensions.DebugTools;
 using SongDataLib;
 namespace CommandLineUI {
@@ -15,8 +17,8 @@ namespace CommandLineUI {
 #endif
 
 				var prog = DTimer.TimeFunc(() => new CommandLineUIMain(args.Length > 0 ? new FileInfo(args[0]) : null), "Starting");
-				prog.ExecBenchmark();
-				//prog.ExecUI();
+				//prog.ExecBenchmark();
+				prog.ExecUI();
 #if !DEBUG
 			} catch (Exception e) {
 				Console.WriteLine("==========================");
@@ -51,9 +53,12 @@ namespace CommandLineUI {
 					dbconfigfile == null ?
 					new SongDataConfigFile(true) :
 					new SongDataConfigFile(dbconfigfile, true);
-				List<ISongFileData> loadingSongs = new List<ISongFileData>();
-				dcf.Load((newsong, progress) => loadingSongs.Add(newsong));
-				return new SongFilesSearchData(loadingSongs);
+				BlockingCollection<ISongFileData> loadingSongs = new BlockingCollection<ISongFileData>();
+				Task.Factory.StartNew(() => {
+					dcf.Load((newsong, progress) => loadingSongs.Add(newsong));
+					loadingSongs.CompleteAdding();
+				});
+				return new SongFilesSearchData(loadingSongs.GetConsumingEnumerable());
 			}, "Loading DB");
 			searchEngine = DTimer.TimeFunc(() => new SearchableSongFiles(db, null), "Loading Search plugin");//new SuffixTreeLib.SuffixTreeSongSearcher()
 		}

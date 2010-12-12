@@ -26,8 +26,8 @@ namespace SongDataLib {
 
 		static string toSafeString(string data) { return strNullIfEmpty(Canonicalize.MakeSafe(data)); }
 
-		internal SongFileData(FileInfo fileObj, IPopularityEstimator popEst)
-			: base(new Uri(fileObj.FullName, UriKind.Absolute), true) {
+		internal SongFileData(Uri baseUri, FileInfo fileObj, IPopularityEstimator popEst)
+			: base(baseUri, new Uri(fileObj.FullName, UriKind.Absolute), true) {
 			TagLib.File file = TagLib.File.Create(fileObj.FullName);
 			var customtags = GetCustomTags(file);
 			title = toSafeString(file.Tag.Title);
@@ -81,8 +81,8 @@ namespace SongDataLib {
 			lengthN = "length", samplerateN = "samplerate", channelsN = "channels", lastmodifiedTicksN = "lastmodifiedTicks",
 			ratingN = "rating", artistpopularityN = "popA", titlepopularityN = "popT", trackGainN = "Tgain";
 
-		internal SongFileData(XElement from, bool? isLocal, IPopularityEstimator popEst)
-			: base(from, isLocal) {
+		internal SongFileData(Uri baseUri, XElement from, bool? isLocal, IPopularityEstimator popEst)
+			: base(baseUri, from, isLocal) {
 			title = (string)from.Attribute(titleN);
 
 			artist = (string)from.Attribute(artistN) ?? (string)from.Attribute(performerN);
@@ -143,9 +143,14 @@ namespace SongDataLib {
 			);
 		}
 
+		static readonly char[] seps = new[] { '\\' };
 		IEnumerable<string> Values {//only yield "distinctive" search values
 			get {
-				yield return SongUri.LocalPath;
+				if (baseUri != null && SongUri.OriginalString.StartsWith(baseUri.OriginalString))
+					yield return SongUri.OriginalString.Substring(baseUri.OriginalString.Length).TrimStart(seps);
+				else
+					yield return SongUri.OriginalString;
+				//yield return baseUri == null || !SongUri.LocalPath.StartsWith(baseUri.LocalPath) ? SongUri.LocalPath : SongUri.LocalPath.Substring(baseUri.LocalPath.Length).TrimStart(seps);
 				yield return title;
 				yield return artist;
 				//yield return composer;

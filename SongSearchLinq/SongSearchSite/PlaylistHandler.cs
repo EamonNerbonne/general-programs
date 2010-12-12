@@ -85,13 +85,12 @@ namespace SongSearchSite {
 
 			if (extm3u && !isXml)
 				context.Response.Write("#EXTM3U\n");
-			string serverName = context.Request.Headers["Host"];
-			string appName = context.Request.ApplicationPath;
+			//string serverName = context.Request.Headers["Host"];
+			//string appName = context.Request.ApplicationPath;
+			//if (appName == "/") appName = "";
+			//string songsprefix = "http://" + serverName + appName + "/songs/";
+			//Uri songsAbsolute = new Uri(songsprefix);
 
-			if (appName == "/")
-				appName = "";
-			string songsprefix = "http://" + serverName + appName + "/songs/";
-			Uri songsAbsolute = new Uri(songsprefix);
 			Uri currentUrl = context.Request.Url;
 
 			//			urlprefix = "http://home.nerbonne.org/";

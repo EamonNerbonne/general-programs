@@ -2,18 +2,22 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Xml;
+using System.Linq;
 using System.Xml.Linq;
 using EmnExtensions;
 
 namespace SongDataLib {
 	public delegate ISongFileData FileKnownFilter(Uri localSongPath);
 	public class SongDataConfigFile : ISongDataConfigSection {
-		FileInfo configFile;
+		readonly FileInfo configFile;
 		internal DirectoryInfo dataDirectory;
-		List<LocalSongDataConfigSection> locals = new List<LocalSongDataConfigSection>();
+		readonly List<LocalSongDataConfigSection> locals = new List<LocalSongDataConfigSection>();
 		List<RemoteSongDataConfigSection> remotes = null;
 		const string defaultConfigFileName = "SongSearch.config";
 		const string defaultConfigDir = "SongSearch";
+
+		public IEnumerable<AbstractSongDataConfigSection> Sections { get { return locals.Concat(remotes ?? Enumerable.Empty<AbstractSongDataConfigSection>()); } }
+
 		/// <summary>
 		/// Load the default config file, picking the first config from the following possibilities:
 		/// - ApplicationData (per-user)
