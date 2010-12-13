@@ -14,14 +14,34 @@ namespace LastFMspider {
 		public SongTools(SongDataConfigFile configFile = null) { this.configFile = configFile ?? new SongDataConfigFile(true); }
 		public SongDataConfigFile ConfigFile { get { return configFile; } }
 
-		SongFiles m_SongsOnDisk;
-		public SongFiles SongsOnDisk { get { return m_SongsOnDisk ?? (m_SongsOnDisk = new SongFiles(ConfigFile, null)); } }
-		public void UnloadDB() { UnloadLookup(); m_SongsOnDisk = null; }
+		//SongFiles m_SongsOnDisk;
+		//public SongFiles SongsOnDisk {
+		//    get {
+		//        return m_SongsOnDisk ?? (
+		//            m_SongsOnDisk = m_SongFilesSearchData != null
+		//                ? new SongFiles(m_SongFilesSearchData.songs.Cast<SongFileData>().ToArray())
+		//                : new SongFiles(ConfigFile, null));
+		//    }
+		//}
+
+		SongFilesSearchData m_SongFilesSearchData;
+		public SongFilesSearchData SongFilesSearchData {
+			get {
+				return m_SongFilesSearchData ?? (
+					m_SongFilesSearchData =
+						//m_SongsOnDisk != null
+						//    ? new SongFilesSearchData(m_SongsOnDisk.Songs) :
+							 SongFilesSearchData.FastLoad(configFile, song => song is SongFileData)
+				);
+			}
+		}
+
+		public void UnloadDB() { UnloadLookup(); m_SongFilesSearchData = null; }
 
 		Dictionary<string, SongFileData> m_FindByPath;
-		public Dictionary<string, SongFileData> FindByPath { get { return m_FindByPath ?? (m_FindByPath = SongsOnDisk.Songs.ToDictionary(song => song.SongUri.ToString())); } }
+		public Dictionary<string, SongFileData> FindByPath { get { return m_FindByPath ?? (m_FindByPath = SongFilesSearchData.Songs.ToDictionary(song => song.SongUri.ToString())); } }
 		ILookup<SongRef, SongFileData> m_FindByName;
-		public ILookup<SongRef, SongFileData> FindByName { get { return m_FindByName ?? (m_FindByName = SongsOnDisk.Songs.ToLookup(SongRef.Create)); } }
+		public ILookup<SongRef, SongFileData> FindByName { get { return m_FindByName ?? (m_FindByName = SongFilesSearchData.Songs.ToLookup(SongRef.Create)); } }
 		public void UnloadLookup() { m_FindByPath = null; m_FindByPath = null; }
 
 		SongSimilarityCache similarSongs;

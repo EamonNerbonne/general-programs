@@ -56,7 +56,7 @@ namespace LastFMspider {
 				}
 
 				int lastPercent = 0;
-				while (!shouldAbort(res.similarList.Count) && res.similarList.Count < MaxSuggestionLookupCount && res.knownTracks.Count < SuggestionCountTarget) {
+				while (!shouldAbort(res.knownTracks.Count) && res.similarList.Count < MaxSuggestionLookupCount && res.knownTracks.Count < SuggestionCountTarget) {
 #if !NOPRECACHE
 					foreach (var trackid in songCosts.ElementsInRoughOrder.Select(songwithcost => songwithcost.trackid).Take(2))
 						precache(trackid);

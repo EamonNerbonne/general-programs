@@ -53,12 +53,7 @@ namespace CommandLineUI {
 					dbconfigfile == null ?
 					new SongDataConfigFile(true) :
 					new SongDataConfigFile(dbconfigfile, true);
-				BlockingCollection<ISongFileData> loadingSongs = new BlockingCollection<ISongFileData>();
-				Task.Factory.StartNew(() => {
-					dcf.Load((newsong, progress) => loadingSongs.Add(newsong));
-					loadingSongs.CompleteAdding();
-				});
-				return new SongFilesSearchData(loadingSongs.GetConsumingEnumerable());
+				return SongFilesSearchData.FastLoad(dcf);
 			}, "Loading DB");
 			searchEngine = DTimer.TimeFunc(() => new SearchableSongFiles(db, null), "Loading Search plugin");//new SuffixTreeLib.SuffixTreeSongSearcher()
 		}

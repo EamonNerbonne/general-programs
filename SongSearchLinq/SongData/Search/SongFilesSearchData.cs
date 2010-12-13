@@ -1,16 +1,20 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace SongDataLib {
 	public sealed class SongFilesSearchData {
 		public readonly ISongFileData[] songs;
+		public IEnumerable<SongFileData> Songs { get { return songs.OfType<SongFileData>(); } }
 		readonly byte[] normed;//all normalized songs as one big string!
 		public byte[] NormedSongs { get { return normed; } }
 		readonly Suffix[] songBoundaries;//start positions of each song!
 		public Suffix[] SongBoundaries { get { return songBoundaries; } }
 		public int SongCount { get { return songs.Length; } }
+		public readonly int SongFileCount;
 
 		public IEnumerable<int> GetSongIndexes(IList<Suffix> suffixList) {
 			if (suffixList.Count < 2) {
@@ -101,6 +105,7 @@ namespace SongDataLib {
 			using (var memStream = new MemoryStream()) {
 				foreach (var song in songs) {
 					songList.Add(song);
+					if (song is SongFileData) SongFileCount++;
 					var canonicalSongInfo = StringAsBytesCanonicalization.Canonicalize(song.FullInfo);
 					memStream.Write(canonicalSongInfo, 0, canonicalSongInfo.Length);
 					memStream.WriteByte(StringAsBytesCanonicalization.TERMINATOR);
@@ -111,6 +116,15 @@ namespace SongDataLib {
 			this.songs = songList.ToArray();
 			songBoundaries = songBoundariesList.ToArray();
 			//OK byte array 'normed' is constructed.
+		}
+
+		public static SongFilesSearchData FastLoad(SongDataConfigFile dcf, Func<ISongFileData, bool> filter = null) {
+			BlockingCollection<ISongFileData> loadingSongs = new BlockingCollection<ISongFileData>();
+			Task.Factory.StartNew(() => {
+				dcf.Load((newsong, progress) => { if (filter == null || filter(newsong)) loadingSongs.Add(newsong); });
+				loadingSongs.CompleteAdding();
+			});
+			return new SongFilesSearchData(loadingSongs.GetConsumingEnumerable());
 		}
 
 		public ByteRange NormalizedSong(int si) {

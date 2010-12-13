@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -16,7 +17,7 @@ namespace SongSearchSite {
 
 	public sealed class SongDbContainer : IDisposable {
 		const string songsPrefix = "songs/";
-		public static string CanonicalRelativeSongPath(Uri localSongPath) {
+		static string CanonicalRelativeSongPath(Uri localSongPath) {
 			StringBuilder sb = new StringBuilder();
 			foreach (char c in localSongPath.LocalPath) {
 				switch (c) {
@@ -44,10 +45,9 @@ namespace SongSearchSite {
 			return sb.ToString();
 		}
 
-		public static string EscapedRelativeSongPath(Uri localSongPath) {//failure to manually escape this means .NET interprets ? + # as valid uri segments and generates a valid uri - but not the one intended.
+		static string EscapedRelativeSongPath(Uri localSongPath) {//failure to manually escape this means .NET interprets ? + # as valid uri segments and generates a valid uri - but not the one intended.
 			return Uri.EscapeDataString(CanonicalRelativeSongPath(localSongPath)).Replace("%2F", "/");
 		}
-
 
 		public static Func<Uri, Uri> LocalSongPathToAbsolutePathMapper(HttpContext context) {
 			return local2absHelper(new Uri(context.Request.Url, context.Request.ApplicationPath + "/" + songsPrefix));
@@ -64,7 +64,6 @@ namespace SongSearchSite {
 				localSongUri.IsFile ? appBaseUri.MakeRelativeUri(new Uri(songsBaseUri, EscapedRelativeSongPath(localSongUri))) : localSongUri;
 		}
 
-
 		static SongDbContainer Singleton {
 			get {
 				HttpContext context = HttpContext.Current;
@@ -78,9 +77,11 @@ namespace SongSearchSite {
 				}
 			}
 		}
+
 		Task<SearchableSongFiles> searchEngine;
 		SongTools tools;
 		Task<FuzzySongSearcher> fuzzySearcher;
+		ConcurrentDictionary<SortOrdering, int[]> rankMap;
 
 		Task<SortedList<string, SongFileData>> localSongs;
 		FileSystemWatcher fsWatcher;
@@ -95,11 +96,10 @@ namespace SongSearchSite {
 			if (isFresh)
 				return;
 			isFresh = true;
-			SongDataConfigFile dcf = new SongDataConfigFile(true);
-			tools = new SongTools(dcf);
+			tools = new SongTools();
 			if (fsWatcher == null) {
 				fsWatcher = new FileSystemWatcher {
-					Path = dcf.DataDirectory.FullName,
+					Path = tools.ConfigFile.DataDirectory.FullName,
 					Filter = "*.xml",
 					IncludeSubdirectories = false,
 				};
@@ -110,19 +110,18 @@ namespace SongSearchSite {
 				fsWatcher.Deleted += (o, e) => DbUpdated();
 				fsWatcher.EnableRaisingEvents = true;
 			}
-			//TODO:better task integration for faster loading.
-			var allSongs = tools.SongsOnDisk.Songs;
-			Array.Sort(allSongs, (a, b) => b.popularity.TitlePopularity.CompareTo(a.popularity.TitlePopularity));
-			fuzzySearcher = Task.Factory.StartNew(() => new FuzzySongSearcher(allSongs));
-			searchEngine = Task.Factory.StartNew(() => new SearchableSongFiles(new SongFilesSearchData(allSongs), null));
-			localSongs = Task.Factory.StartNew(() =>
+			var searchData = Task.Factory.StartNew(() => tools.SongFilesSearchData);
+			rankMap = new ConcurrentDictionary<SortOrdering, int[]>();
+
+			searchEngine = searchData.ContinueWith(sd => new SearchableSongFiles(sd.Result, null));
+			fuzzySearcher = searchData.ContinueWith(sd => new FuzzySongSearcher(tools.SongFilesSearchData.Songs.ToArray()));
+			localSongs = searchData.ContinueWith(sd =>
 				new SortedList<string, SongFileData>(
-					allSongs.Where(s => s.IsLocal)
+					tools.SongFilesSearchData.Songs.Where(s => s.IsLocal)
 					.ToDictionary(song => CanonicalRelativeSongPath(song.SongUri))
 					)
 				);
 		}
-
 
 		void DbUpdated() {
 			isFresh = false;
@@ -132,10 +131,16 @@ namespace SongSearchSite {
 			});
 		}
 
+		int[] RankMapForOrdering(SortOrdering ordering) {
+			return rankMap.GetOrAdd(ordering, o => SortOrder.RankMapFor(searchEngine.Result.db.songs, o));
+		}
+
+
 		private SongDbContainer() { Init(); }
-		public static SearchableSongFiles SearchableSongDB { get { var sdc = Singleton; return sdc.searchEngine.Result; } }
-		public static FuzzySongSearcher FuzzySongSearcher { get { var sdc = Singleton; return sdc.fuzzySearcher.Result; } }
-		public static SongTools LastFmTools { get { var sdc = Singleton; return sdc.tools; } }
+		public static SearchableSongFiles SearchableSongDB { get { return Singleton.searchEngine.Result; } }
+		public static FuzzySongSearcher FuzzySongSearcher { get { return Singleton.fuzzySearcher.Result; } }
+		public static SongTools LastFmTools { get { return Singleton.tools; } }
+		public static int[] RankMapFor(SortOrdering ordering) { return Singleton.RankMapForOrdering(ordering); } 
 
 		/// <summary>
 		/// Determines whether a given path maps to an indexed, local song.  If it doesn't, it returns null.  If it does, it returns the meta data known about the song, including the song's "real" path.

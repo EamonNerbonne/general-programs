@@ -5,14 +5,13 @@ using System.Text;
 using System.IO;
 using SongDataLib;
 using LastFMspider;
-using EmnExtensions;
 using EmnExtensions.Text;
 using EmnExtensions.Algorithms;
 //using System.Threading;
 
 namespace PlaylistFixer
 {
-	class Program
+	static class Program
 	{
 		
 
@@ -43,7 +42,7 @@ namespace PlaylistFixer
 				}
 				Console.WriteLine("Fine: {0}, Rough: {1}, Too bad: {2},  No-match: {3}", fine, hmmL.Count, toobadL.Count, nulls2);
 
-			};
+			}
 			hmmL.Sort((a, b) => b.Cost.CompareTo(a.Cost));
 			toobadL.Sort((a, b) => a.Cost.CompareTo(b.Cost));
 			using (var stream = File.Open("m3ufixer-hmm.log", FileMode.Create, FileAccess.Write))
@@ -75,9 +74,8 @@ namespace PlaylistFixer
 						fi.MoveTo(newPath);
 				}
 
-				MinimalSongFileData[] playlistfixed;
 				MinimalSongFileData[] playlist = LoadExtM3U(fi);
-				playlistfixed = new MinimalSongFileData[playlist.Length];
+				MinimalSongFileData[] playlistfixed = new MinimalSongFileData[playlist.Length];
 				int idx = 0;
 				foreach (var songMin in playlist) {
 					MinimalSongFileData decentMatch = null;
@@ -104,14 +102,14 @@ namespace PlaylistFixer
 							}
 						} else {
 							matchfound();
-							File.AppendAllText("m3ufixer-ok.log", NormalizedFileName(song.SongUri.LocalPath) + "(" + TimeSpan.FromSeconds(song.Length).ToString() + "): " + song.HumanLabel + "\t==>\t" + NormalizedFileName(best.SongData.SongUri.LocalPath) + "(" + TimeSpan.FromSeconds(best.SongData.Length).ToString() + "): " + best.SongData.HumanLabel + "\n");
+							File.AppendAllText("m3ufixer-ok.log", NormalizedFileName(song.SongUri.LocalPath) + "(" + TimeSpan.FromSeconds(song.Length) + "): " + song.HumanLabel + "\t==>\t" + NormalizedFileName(best.SongData.SongUri.LocalPath) + "(" + TimeSpan.FromSeconds(best.SongData.Length) + "): " + best.SongData.HumanLabel + "\n");
 
 							//  Console.WriteLine("Was:({2}) {0}\n Is:({3}) {1}\n", NormalizedFileName(song.SongPath), NormalizedFileName(best.SongPath), song.length, best.Length);
 						}
 
 						decentMatch = best.SongData;
 					} else {
-						SongFileData[] exactFilenameMatch = tools.SongsOnDisk.Songs.Where(sd => Path.GetFileName(sd.SongUri.ToString()) == Path.GetFileName(songMin.SongUri.ToString())).ToArray();
+						SongFileData[] exactFilenameMatch = tools.SongFilesSearchData.Songs.Where(sd => Path.GetFileName(sd.SongUri.ToString()) == Path.GetFileName(songMin.SongUri.ToString())).ToArray();
 						if (exactFilenameMatch.Length == 1)
 							decentMatch = exactFilenameMatch[0];
 					}
@@ -123,7 +121,7 @@ namespace PlaylistFixer
 				using (var writer = new StreamWriter(stream, Encoding.GetEncoding(1252))) {
 					writer.WriteLine("#EXTM3U");
 					foreach (var track in playlistfixed) {
-						writer.WriteLine("#EXTINF:" + track.Length + "," + track.HumanLabel + "\r\n" + track.SongUri.ToString());
+						writer.WriteLine("#EXTINF:" + track.Length + "," + track.HumanLabel + "\r\n" + track.SongUri);
 					}
 				}
 			}
@@ -149,7 +147,9 @@ namespace PlaylistFixer
 			}
 			public SongFileData SongData;
 			public PartialSongFileData Orig;
-			public double Cost, LenC, NameC, TagC;
+			public double Cost;
+			 double LenC, NameC, TagC;
+
 			public override string ToString() {
 				return string.Format("{0,7:g5} {1,7:g5} {2,7:g5} {3,7:g5} {4} ==> {5} ", Cost, LenC, NameC, TagC, ToString(Orig), ToString(SongData));
 			}
@@ -164,16 +164,18 @@ namespace PlaylistFixer
 					let lengthDiff = Math.Abs(songToFind.Length - songdataOpt.Length)
 					let filenameDiff = NormalizedFileName(songToFind.SongUri.ToString()).LevenshteinDistance(NormalizedFileName(songdataOpt.SongUri.ToString()))
 					select new SongMatch { SongData = songdataOpt, Orig = songToFind, Cost = lengthDiff * 0.5 + filenameDiff * 0.2 };
-			return q.Aggregate(new SongMatch { SongData = (SongFileData)null, Cost = int.MaxValue }, (a, b) => a.Cost < b.Cost ? a : b);
+			return q.Aggregate(new SongMatch { SongData = default(SongFileData), Cost = int.MaxValue }, (a, b) => a.Cost < b.Cost ? a : b);
 		}
 		static SongMatch FindBestMatch2(SongTools tools, PartialSongFileData songToFind) {
 			string fileName = NormalizedFileName(songToFind.SongUri.ToString());
 			string basicLabel = Canonicalize.Basic(songToFind.HumanLabel);
-			var q = from songdataOpt in tools.SongsOnDisk.Songs
+			var q = from songdataOpt in tools.SongFilesSearchData.Songs
 					let songmatch = SongMatch.Compare(songToFind, fileName, basicLabel, songdataOpt)
 					where songmatch.HasValue
 					select songmatch.Value;
-			return q.Aggregate(new SongMatch { SongData = (SongFileData)null, Cost = (double)int.MaxValue }, (a, b) => a.Cost < b.Cost ? a : b);
+// ReSharper disable RedundantCast
+			return q.Aggregate(new SongMatch { SongData = default(SongFileData), Cost = (double)int.MaxValue }, (a, b) => a.Cost < b.Cost ? a : b);
+// ReSharper restore RedundantCast
 		}
 
 		static MinimalSongFileData[] LoadExtM3U(FileInfo m3ufile) {
@@ -191,7 +193,8 @@ namespace PlaylistFixer
 			}
 			return m3usongs.ToArray();
 		}
-		public static IEnumerable<SongRef> PossibleSongRefs(string humanlabel) {
+
+		static IEnumerable<SongRef> PossibleSongRefs(string humanlabel) {
 			int idxFound = -1;
 			while (true) {
 				idxFound = humanlabel.IndexOf(" - ", idxFound + 1);
@@ -201,8 +204,8 @@ namespace PlaylistFixer
 			}
 		}
 
-		static char[] pathSep = { '\\', '/' };
-		public static string NormalizedFileName(string origpath) {
+		static readonly char[] pathSep = { '\\', '/' };
+		static string NormalizedFileName(string origpath) {
 			string filename = origpath.Substring(origpath.LastIndexOfAny(pathSep) + 1);
 			try {
 				return Uri.UnescapeDataString(filename.Replace("100%", "100%25").Replace("%%", "%25%"));

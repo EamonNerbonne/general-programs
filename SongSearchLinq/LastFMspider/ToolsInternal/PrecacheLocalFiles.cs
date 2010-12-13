@@ -15,7 +15,7 @@ namespace LastFMspider {
 			//var Lookup = tools.Lookup;
 			int ttCount = 0; object sync = new object();
 			Console.WriteLine("Caching Top tracks");
-			var artists = tools.SongsOnDisk.Songs.Select(song => song.artist).Where(artist => artist != null).Distinct(StringComparer.InvariantCultureIgnoreCase).ToArray();
+			var artists = tools.SongFilesSearchData.Songs.Select(song => song.artist).Where(artist => artist != null).Distinct(StringComparer.InvariantCultureIgnoreCase).ToArray();
 			Parallel.ForEach(artists, new ParallelOptions { MaxDegreeOfParallelism = 10, }, artist => {
 				try {
 					var ttList = SimilarSongs.LookupTopTracks(artist, TimeSpan.FromDays(100.0));
@@ -31,10 +31,8 @@ namespace LastFMspider {
 			});
 
 			Console.WriteLine("Loading song database...");
-			if (tools.SongsOnDisk.InvalidDataCount != 0)
-				Console.WriteLine("Ignored {0} songs with unknown tags (should be 0).", tools.SongsOnDisk.InvalidDataCount);
-			Console.WriteLine("Taking those {0} songs and indexing em by artist/title...", tools.SongsOnDisk.Songs.Length);
-			SongRef[] songsToDownload = tools.SongsOnDisk.Songs.Select(SongRef.Create).Where(sd => sd != null).ToArray();
+			Console.WriteLine("Taking those {0} songs and indexing em by artist/title...", tools.SongFilesSearchData.SongFileCount);
+			SongRef[] songsToDownload = tools.SongFilesSearchData.Songs.Select(SongRef.Create).Where(sd => sd != null).ToArray();
 			if (shuffle)
 				songsToDownload.Shuffle();
 			tools.UnloadDB();

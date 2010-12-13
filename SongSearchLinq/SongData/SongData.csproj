@@ -82,12 +82,12 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Config\RemoteSongDataConfigSection.cs" />
     <Compile Include="Search\SearchableSongFiles.cs" />
-    <Compile Include="FileData\SongFiles.cs" />
     <Compile Include="FileData\SongFileData.cs" />
     <Compile Include="Config\SongDataConfigException.cs" />
     <Compile Include="Config\SongDataConfigFile.cs" />
     <Compile Include="FileData\SongFileDataFactory.cs" />
     <Compile Include="Search\SongFilesSearchData.cs" />
+    <Compile Include="Search\SortOrder.cs" />
     <Compile Include="Search\StringAsBytesCanonicalization.cs" />
     <Compile Include="Search\Suffix.cs" />
   </ItemGroup>

@@ -12,7 +12,7 @@ namespace SongDataLib {
 		readonly FileInfo configFile;
 		internal DirectoryInfo dataDirectory;
 		readonly List<LocalSongDataConfigSection> locals = new List<LocalSongDataConfigSection>();
-		List<RemoteSongDataConfigSection> remotes = null;
+		List<RemoteSongDataConfigSection> remotes;
 		const string defaultConfigFileName = "SongSearch.config";
 		const string defaultConfigDir = "SongSearch";
 

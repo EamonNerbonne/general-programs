@@ -25,7 +25,8 @@ tr:nth-child(5n)
 tr > *:nth-child(2)
 {
     font-style: italic;
-}/*
+}
+/*
 td > div
 {
     overflow: hidden;

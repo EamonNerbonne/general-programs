@@ -65,13 +65,14 @@
         <h3>
             SongSearch - search &amp; play songs</h3>
         <form method="get" action="pl.xml" id="searchForm" target="resultsview">
-        <input type="hidden" name="view" value="xslt" />
-        Find:
-        <input id="searchquery" type="text" name="q" autocomplete="off" placeholder="Search for Music..."
-            autofocus="autofocus" />
-        showing
-        <input id="shownumber" type="text" value="40" name="top" />
-        results.<br />
+            <input type="hidden" name="view" value="xslt" />
+            <input type="hidden" name="ordering" id="orderingEl" value="" />
+            Find:
+            <input id="searchquery" type="text" name="q" autocomplete="off" placeholder="Search for Music..."
+                autofocus="autofocus" />
+            showing
+            <input id="shownumber" type="text" value="40" name="top" />
+            results.<br />
         </form>
         matches: <a class="matchLink" href="playlist.m3u?q=" target="_blank">m3u</a> <a class="matchLink"
             href="playlist.m3u8?q=" target="_blank">m3u8</a>

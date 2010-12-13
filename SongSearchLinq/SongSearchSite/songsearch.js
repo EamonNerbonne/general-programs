@@ -2,6 +2,7 @@
     var lastquery = "";
     var lasttop = "";
     var lastQHash = "";
+    var lastOrdering = $("#orderingEl").val();
     var searchqueryEl = $("#searchquery")[0];
 
     function encodeQuery(str) { return encodeURIComponent(str.replace(/^\s+|\s+(?=\s|$)/g, "").toLowerCase()); }
@@ -14,8 +15,10 @@
         var newquery = qInput == lastquery && lastQHash != qHash ? qHash : qInput;
         lastQHash = qHash;
         var topNr = $("#shownumber").attr("value");
-        if (newquery == lastquery && topNr == lasttop) return;
+        var newOrdering = $("#orderingEl").val();
+        if (newquery == lastquery && topNr == lasttop && newOrdering == lastOrdering) return;
         lasttop = topNr;
+        lastOrdering = newOrdering;
         if (newquery != lastquery) {
             lastquery = newquery;
             for (var i = 0; i < queryTargets.length; i++)
@@ -23,6 +26,7 @@
         }
         $("#searchForm").submit();
     }
+    window.updateResultsGlobal = updateResults;
 
     function QueryTarget(el, attrName, prefix, avoidEncode) {
         return function (search) { el[attrName] = (prefix || "") + (avoidEncode ? search : encodeQuery(search)); };

@@ -1,5 +1,7 @@
 ﻿using System;
+using System.IO;
 using System.Linq;
+using System.Runtime.Serialization.Formatters.Binary;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -10,17 +12,15 @@ namespace HttpHeaderHelper {
 
 	public class ResourceError : PotentialResourceInfo {
 		public int Code = 404;
-		public string Message = null;
-		public string ShortDescription = null;
+		public string Message;
+		public string ShortDescription;
 	}
 
 	public class ResourceInfo : PotentialResourceInfo {
-		string eTag = null;
-		DateTime? timeStamp = null;
-		string mimeType = null;
-		ulong? resourceLength = null;
+		string eTag;
+		DateTime? timeStamp;
 		public DateTime? TimeStamp { get { return timeStamp; } set { timeStamp = value.HasValue ? value.Value.ToUniversalTime() : default(DateTime?); } }
-		public ulong? ResourceLength { get { return resourceLength; } set { resourceLength = value; } }
+		public ulong? ResourceLength { get; set; }
 		internal DateTime? RoundedHttpTimeStamp { get { return timeStamp.HasValue ? DateTimeToHttpFormat(timeStamp.Value) : (DateTime?)null; } }
 		public string ETag {
 			get { return eTag; }
@@ -31,14 +31,21 @@ namespace HttpHeaderHelper {
 				eTag = value;
 			}
 		}
-		public string MimeType { get { return mimeType; } set { mimeType = value; } }
+
+		public string MimeType { get; set; }
+
 		private static DateTime DateTimeToHttpFormat(DateTime dt) {
 			return new DateTime(dt.Year, dt.Month, dt.Day, dt.Hour, dt.Minute, dt.Second, DateTimeKind.Utc);
 		}
 
 		public static string GenerateETagFrom(params object[] uniqueKeyData) {
-			return GenerateETagFrom(string.Join("\n", uniqueKeyData.Select(data => data == null ? "[null]" : data.ToString()).ToArray()));
+			var bf = new BinaryFormatter();
+			using(var ms = new MemoryStream()){
+				bf.Serialize(ms, uniqueKeyData);
+				return GenerateETagFrom(ms.ToArray());
+			}
 		}
+
 		public static string GenerateETagFrom(string uniqueKeyData) {
 			return GenerateETagFrom(Encoding.UTF8.GetBytes(uniqueKeyData));
 		}

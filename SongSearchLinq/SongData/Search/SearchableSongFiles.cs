@@ -1,10 +1,10 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
 namespace SongDataLib {
 	public class SearchableSongFiles {
+
 		readonly ISongFileSearchEngine searchMethod;
 		public readonly SongFilesSearchData db;
 		public SearchableSongFiles(SongFilesSearchData db, ISongFileSearchEngine searchMethod) {
@@ -14,26 +14,26 @@ namespace SongDataLib {
 				searchMethod.Init(db);
 		}
 
-		public IEnumerable<ISongFileData> Search(string query) {
-			return Matches(query).Select(i => db.songs[i]);
+		public IEnumerable<ISongFileData> Search(string query,int[] rankmap=null) {
+			return Matches(query,rankmap).Select(i => db.songs[i]);
 		}
 
-
-		IEnumerable<int> Matches(string querystring) {
+		IEnumerable<int> Matches(string querystring,int[]rankmap) {
 			byte[][] queries =
 					 querystring
-					 .Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)
+					 .Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)
 					 .Select(StringAsBytesCanonicalization.Canonicalize)
 					 .ToArray();
-			if (queries.Length == 0) return Enumerable.Range(0, db.songs.Length);
-			if (searchMethod == null) {
+			if (searchMethod == null||queries.Length == 0) {
 				IBitapMatcher[] qMatchers = queries.OrderByDescending(q=>q.Length).Select(BitapSearch.MatcherFor).ToArray();
-				return from songIndexAndBytes in db.AllNormalizedSongs
-					   where qMatchers.All(qMatcher => qMatcher.BitapMatch(songIndexAndBytes.bytes))
-					   select songIndexAndBytes.index;
+				return
+					db.AllNormalizedSongs
+						.Where(songIndexAndBytes => qMatchers.All(qMatcher => qMatcher.BitapMatch(songIndexAndBytes.bytes)))
+						.Select(songIndexAndBytes => songIndexAndBytes.index)
+						.OrderBy(index=>rankmap[index]);
 			} else {
 				SearchResult[] res = queries.Select(q => searchMethod.Query(q)).ToArray();
-				return MatchAll(res, queries);
+				return MatchAll(res, queries).OrderBy(index => rankmap[index]);
 			}
 		}
 

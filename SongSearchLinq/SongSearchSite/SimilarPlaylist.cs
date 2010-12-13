@@ -37,7 +37,7 @@ namespace SongSearchSite {
 						MaxSuggestionLookupCount: 1000,
 						SuggestionCountTarget: 50,
 						fuzzySearch: SongDbContainer.FuzzySongSearcher.FindBestMatch,
-						shouldAbort: count => !context.Response.IsClientConnected || (timer.Elapsed.TotalMilliseconds + count * 500 > 30000));
+						shouldAbort: count => !context.Response.IsClientConnected || (timer.Elapsed.TotalMilliseconds + count * 350 > 20000));
 
 				if (!context.Response.IsClientConnected)
 					return;

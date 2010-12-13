@@ -19,11 +19,11 @@ namespace LastFmPlaylistSuggestions {
 			//Console.ReadKey();
 		}
 		static void RunNew(SongTools tools, string[] args) {
-			var dir = tools.SongsOnDisk.DatabaseDirectory.CreateSubdirectory("inputlists");
+			var dir = tools.ConfigFile.DataDirectory.CreateSubdirectory("inputlists");
 			var m3us = args.Length == 0 ? dir.GetFiles("*.m3u?") : args.Select(s => new FileInfo(s)).Where(f => f.Exists);
-			DirectoryInfo m3uDir = args.Length == 0 ? tools.SongsOnDisk.DatabaseDirectory.CreateSubdirectory("similarlists") : new DirectoryInfo(Environment.GetFolderPath(Environment.SpecialFolder.Desktop));
+			DirectoryInfo m3uDir = args.Length == 0 ? tools.ConfigFile.DataDirectory.CreateSubdirectory("similarlists") : new DirectoryInfo(Environment.GetFolderPath(Environment.SpecialFolder.Desktop));
 
-			FuzzySongSearcher searchEngine = new FuzzySongSearcher(tools.SongsOnDisk.Songs);
+			FuzzySongSearcher searchEngine = new FuzzySongSearcher(tools.SongFilesSearchData.Songs.ToArray());
 
 			foreach (var m3ufile in m3us) {
 				try {

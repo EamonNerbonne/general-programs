@@ -8,6 +8,7 @@ using SongDataLib;
 using System.Xml.Linq;
 
 namespace SongSearchSite {
+
 	public class PlaylistRequestProcessor : IHttpRequestProcessor {
 		readonly HttpRequestHelper helper;
 		public PlaylistRequestProcessor(HttpRequestHelper helper) { this.helper = helper; }
@@ -15,6 +16,7 @@ namespace SongSearchSite {
 		static readonly DateTime startupUtc = DateTime.UtcNow;
 
 		bool isXml, includeRemote, extm3u, coreAttrsOnly, viewXslt;
+		SortOrdering orderby;
 		int? topLimit;
 		Encoding enc;
 		string searchQuery;
@@ -39,7 +41,7 @@ namespace SongSearchSite {
 				isXml = true;
 			}
 			context.Response.ContentEncoding = enc;
-			
+
 
 
 			includeRemote = context.Request.QueryString["remote"] == "allow";
@@ -47,6 +49,7 @@ namespace SongSearchSite {
 			coreAttrsOnly = context.Request.QueryString["fulldata"] != "true";
 			topLimit = context.Request.QueryString["top"].ParseAsInt32();
 			viewXslt = context.Request.QueryString["view"] == "xslt";
+			orderby = SortOrdering.Parse(context.Request.QueryString["ordering"]).Append((int)SongColumn.Rating);
 
 			var path = context.Request.AppRelativeCurrentExecutionFilePath.Split('/');
 			var searchterms = from pathpart in path.Skip(1).Take(path.Length - 2) select pathpart;
@@ -62,20 +65,16 @@ namespace SongSearchSite {
 			if (extension == ".m3u" || extension == ".m3u8")
 				context.Response.Headers["Content-Disposition"] = "attachment; filename=" + Uri.EscapeDataString("playlist_" + searchQuery + extension); //searchquery has been canonicalized: no dangerous injection possible.
 
-			res.ETag = ResourceInfo.GenerateETagFrom(searchQuery, includeRemote, extm3u, isXml, coreAttrsOnly, extension, topLimit, startupUtc, viewXslt);
+			res.ETag = ResourceInfo.GenerateETagFrom(searchQuery, includeRemote, extm3u, isXml, coreAttrsOnly, extension, topLimit, startupUtc, viewXslt, orderby);
 			res.ResourceLength = null;//unknown
 			res.TimeStamp = startupUtc;
-			Console.WriteLine("Request Determined: [" + (isXml ? 'X' : ' ') + (includeRemote ? 'R' : ' ') + (enc == Encoding.UTF8 ? 'U' : ' ') + (extm3u ? 'E' : ' ') + "] q=" + searchQuery);
+			//Console.WriteLine("Request Determined: [" + (isXml ? 'X' : ' ') + (includeRemote ? 'R' : ' ') + (enc == Encoding.UTF8 ? 'U' : ' ') + (extm3u ? 'E' : ' ') + "] q=" + searchQuery);
 			return res;
 		}
 
-		public DateTime? DetermineExpiryDate() {
-			return null;//DateTime.UtcNow.AddHours(1);
-		}
+		public DateTime? DetermineExpiryDate() { return null; }//DateTime.UtcNow.AddHours(1);
 
-		public bool SupportRangeRequests {
-			get { return false; }
-		}
+		public bool SupportRangeRequests { get { return false; } }
 
 		public void WriteByteRange(Range range) { throw new NotImplementedException(); }
 
@@ -95,7 +94,7 @@ namespace SongSearchSite {
 			//			urlprefix = "http://home.nerbonne.org/";
 
 
-			var searchResults = SongDbContainer.SearchableSongDB.Search(searchQuery);
+			var searchResults = SongDbContainer.SearchableSongDB.Search(searchQuery,SongDbContainer.RankMapFor(orderby));
 			if (coreAttrsOnly)
 				searchResults = searchResults.Where(song => { var mime = SongServeRequestProcessor.guessMIME(song); return mime == SongServeRequestProcessor.MIME_MP3 || mime == SongServeRequestProcessor.MIME_OGG; });
 			if (!includeRemote)
@@ -111,6 +110,7 @@ namespace SongSearchSite {
 					viewXslt ? new XProcessingInstruction("xml-stylesheet", "type=\"text/xsl\"  href=\"searchresult.xsl\"") : null,
 					new XElement("songs",
 						new XAttribute("base", currentUrl),
+						new XAttribute("ordering", orderby),
 						from s in searchResults
 						select s.ConvertToXml(uri => uriMapper(uri).ToString(), coreAttrsOnly)
 					)

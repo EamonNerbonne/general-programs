@@ -8,7 +8,7 @@
         <link rel="Stylesheet" type="text/css" href="tableview.css" />
         <!--#8ba;#c4ddd5;#e2eeea-->
       </head>
-      <body>
+      <body data-ordering="{songs/@ordering}">
         <table>
           <colgroup>
             <col  />
@@ -19,13 +19,13 @@
             <col />
           </colgroup>
           <thead>
-            <tr>
-              <th>Rating</th>
-              <th>Artist</th>
-              <th>Title</th>
-              <th>Time</th>
-              <th>#</th>
-              <th>Album</th>
+            <tr id="listhead">
+              <th data-colname="Rating">Rating</th>
+              <th data-colname="Artist">Artist</th>
+              <th data-colname="Title">Title</th>
+              <th data-colname="Time">Time</th>
+              <th data-colname="TrackNumber">#</th>
+              <th data-colname="Album">Album</th>
             </tr>
           </thead>
           <tbody id="listdata">
@@ -36,6 +36,7 @@
       <script type="text/javascript">
         ( function () {
         document.getElementById("listdata").addEventListener('click', parent.SearchListClicked, true);
+        document.getElementById("listhead").addEventListener('click', parent.SetOrdering, true);
         })();
       </script>
     </html>
