@@ -13,7 +13,7 @@ namespace LastFMspider.FuzzySongSearcherInternal {
 			if (canonicalized.Length == 0)
 				yield break;
 
-			uint[] codes = canonicalized.PadLeft(3, (char)0xfffd).Select(c => CharMap.MapChar(c)).ToArray();
+			uint[] codes = canonicalized.PadLeft(3, (char)0xfffd).Select(CharMap.MapChar).ToArray();
 			for (int i = 0; i < codes.Length - 2; i++)
 				yield return TrigramCode(codes[i], codes[i + 1], codes[i + 2]);
 		}

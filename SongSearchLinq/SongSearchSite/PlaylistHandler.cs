@@ -2,7 +2,6 @@
 using System.Linq;
 using System.Text;
 using System.Web;
-using System.Xml;
 using EmnExtensions.Text;
 using HttpHeaderHelper;
 using SongDataLib;
@@ -10,10 +9,10 @@ using System.Xml.Linq;
 
 namespace SongSearchSite {
 	public class PlaylistRequestProcessor : IHttpRequestProcessor {
-		HttpRequestHelper helper;
+		readonly HttpRequestHelper helper;
 		public PlaylistRequestProcessor(HttpRequestHelper helper) { this.helper = helper; }
 		public void ProcessingStart() { }
-		static DateTime startupUtc = DateTime.UtcNow;
+		static readonly DateTime startupUtc = DateTime.UtcNow;
 
 		bool isXml, includeRemote, extm3u, coreAttrsOnly, viewXslt;
 		int? topLimit;
@@ -56,8 +55,8 @@ namespace SongSearchSite {
 				context.Request.ContentEncoding = Encoding.GetEncoding(1252);
 				queryParam = context.Request.QueryString["q"] ?? "";
 			}
-			searchterms = searchterms.Concat(queryParam.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries));
-			searchterms = searchterms.Select(s => Canonicalize.Basic(s)).ToArray();
+			searchterms = searchterms.Concat(queryParam.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries));
+			searchterms = searchterms.Select(Canonicalize.Basic).ToArray();
 			searchQuery = string.Join(" ", searchterms.ToArray());
 
 			if (extension == ".m3u" || extension == ".m3u8")

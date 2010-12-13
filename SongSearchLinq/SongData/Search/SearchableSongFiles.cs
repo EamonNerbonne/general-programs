@@ -27,7 +27,7 @@ namespace SongDataLib {
 					 .ToArray();
 			if (queries.Length == 0) return Enumerable.Range(0, db.songs.Length);
 			if (searchMethod == null) {
-				IBitapMatcher[] qMatchers = queries.Select(BitapSearch.MatcherFor).ToArray();
+				IBitapMatcher[] qMatchers = queries.OrderByDescending(q=>q.Length).Select(BitapSearch.MatcherFor).ToArray();
 				return from songIndexAndBytes in db.AllNormalizedSongs
 					   where qMatchers.All(qMatcher => qMatcher.BitapMatch(songIndexAndBytes.bytes))
 					   select songIndexAndBytes.index;

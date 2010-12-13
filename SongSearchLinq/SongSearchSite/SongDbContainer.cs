@@ -10,7 +10,7 @@ using System.Web;
 using EmnExtensions.Text;
 using LastFMspider;
 using SongDataLib;
-using SuffixTreeLib;
+//using SuffixTreeLib;
 
 namespace SongSearchSite {
 
@@ -97,17 +97,6 @@ namespace SongSearchSite {
 			isFresh = true;
 			SongDataConfigFile dcf = new SongDataConfigFile(true);
 			tools = new SongTools(dcf);
-
-			var allSongs = tools.SongsOnDisk.Songs;
-			Array.Sort(allSongs, (a, b) => b.popularity.TitlePopularity.CompareTo(a.popularity.TitlePopularity));
-			fuzzySearcher = Task.Factory.StartNew(() => new FuzzySongSearcher(allSongs));
-			searchEngine = Task.Factory.StartNew(() => new SearchableSongFiles(new SongFilesSearchData(allSongs), null));
-			localSongs = Task.Factory.StartNew(() =>
-				new SortedList<string, SongFileData>(
-					allSongs.Where(s => s.IsLocal)
-					.ToDictionary(song => CanonicalRelativeSongPath(song.SongUri))
-					)
-				);
 			if (fsWatcher == null) {
 				fsWatcher = new FileSystemWatcher {
 					Path = dcf.DataDirectory.FullName,
@@ -121,6 +110,17 @@ namespace SongSearchSite {
 				fsWatcher.Deleted += (o, e) => DbUpdated();
 				fsWatcher.EnableRaisingEvents = true;
 			}
+			//TODO:better task integration for faster loading.
+			var allSongs = tools.SongsOnDisk.Songs;
+			Array.Sort(allSongs, (a, b) => b.popularity.TitlePopularity.CompareTo(a.popularity.TitlePopularity));
+			fuzzySearcher = Task.Factory.StartNew(() => new FuzzySongSearcher(allSongs));
+			searchEngine = Task.Factory.StartNew(() => new SearchableSongFiles(new SongFilesSearchData(allSongs), null));
+			localSongs = Task.Factory.StartNew(() =>
+				new SortedList<string, SongFileData>(
+					allSongs.Where(s => s.IsLocal)
+					.ToDictionary(song => CanonicalRelativeSongPath(song.SongUri))
+					)
+				);
 		}
 
 
