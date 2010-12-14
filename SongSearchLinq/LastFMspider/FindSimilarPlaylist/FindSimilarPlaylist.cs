@@ -31,6 +31,7 @@ namespace LastFMspider {
 
 				var playlistSongs = seedSongs.Select(simSongDb.LookupTrackID.Execute).Where(trackid => trackid.HasValue).Distinct().Reverse().ToArray();
 				Dictionary<TrackId, HashSet<TrackId>> playlistSongRefs = playlistSongs.ToDictionary(sr => sr, sr => new HashSet<TrackId>());
+				HashSet<SongRef> seedSongSet = new HashSet<SongRef>(); //used to ensure fuzzy matches don't readd existing song.
 
 				SongWithCostCache songCostCache = new SongWithCostCache();
 				IHeap<SongWithCost> songCosts = Heap.Factory<SongWithCost>().Create((sc, index) => { sc.index = index; });
@@ -77,7 +78,7 @@ namespace LastFMspider {
 								).First());
 							else {
 								SongMatch bestRoughMatch = fuzzySearch(currentSongRef);
-								if (bestRoughMatch.GoodEnough)
+								if (bestRoughMatch.GoodEnough && !seedSongSet.Contains(SongRef.Create(bestRoughMatch.Song)))
 									res.knownTracks.Add(bestRoughMatch.Song);
 								else
 									res.unknownTracks.Add(currentSongRef);

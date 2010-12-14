@@ -9,7 +9,7 @@ namespace LastFMspider {
 		public double Cost;
 		public SongFileData Song;
 		public string Explain;
-		public bool GoodEnough { get { return Cost < 1.5; } }
+		public bool GoodEnough { get { return Cost < 1.45; } }
 
 		public int CompareTo(SongMatch other) { return Cost.CompareTo(other.Cost); }
 

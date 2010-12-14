@@ -7,14 +7,9 @@ using SongDataLib;
 using LastFMspider;
 using EmnExtensions.Text;
 using EmnExtensions.Algorithms;
-//using System.Threading;
 
-namespace PlaylistFixer
-{
-	static class Program
-	{
-		
-
+namespace PlaylistFixer {
+	static class Program {
 		static void Main(string[] args) {
 			if (args.Length == 1 && Directory.Exists(args[0])) {
 
@@ -41,7 +36,6 @@ namespace PlaylistFixer
 					Console.ReadKey();
 				}
 				Console.WriteLine("Fine: {0}, Rough: {1}, Too bad: {2},  No-match: {3}", fine, hmmL.Count, toobadL.Count, nulls2);
-
 			}
 			hmmL.Sort((a, b) => b.Cost.CompareTo(a.Cost));
 			toobadL.Sort((a, b) => a.Cost.CompareTo(b.Cost));
@@ -54,12 +48,11 @@ namespace PlaylistFixer
 				foreach (var match in toobadL)
 					writer.WriteLine(match.ToString());
 
-
 			Console.WriteLine("done! (Press any key to close this window)");
 			Console.ReadKey();
 		}
 
-		static void ProcessM3U(SongTools tools, string m3ufilename, Action nomatch, Action<SongMatch> toobad, Action<SongMatch> iffy,Action matchfound) {
+		static void ProcessM3U(SongTools tools, string m3ufilename, Action nomatch, Action<SongMatch> toobad, Action<SongMatch> iffy, Action matchfound) {
 			Console.WriteLine("\nprocessing: {0}", m3ufilename);
 			FileInfo fi = new FileInfo(m3ufilename);
 			if (!fi.Exists) {
@@ -127,8 +120,7 @@ namespace PlaylistFixer
 			}
 		}
 
-		struct SongMatch
-		{
+		struct SongMatch {
 			public static SongMatch? Compare(PartialSongFileData src, string filename, string normlabel, SongFileData opt) {
 				double lenC = Math.Abs(src.Length - opt.Length);
 				if (lenC > 15) return null;
@@ -148,7 +140,7 @@ namespace PlaylistFixer
 			public SongFileData SongData;
 			public PartialSongFileData Orig;
 			public double Cost;
-			 double LenC, NameC, TagC;
+			double LenC, NameC, TagC;
 
 			public override string ToString() {
 				return string.Format("{0,7:g5} {1,7:g5} {2,7:g5} {3,7:g5} {4} ==> {5} ", Cost, LenC, NameC, TagC, ToString(Orig), ToString(SongData));
@@ -173,9 +165,9 @@ namespace PlaylistFixer
 					let songmatch = SongMatch.Compare(songToFind, fileName, basicLabel, songdataOpt)
 					where songmatch.HasValue
 					select songmatch.Value;
-// ReSharper disable RedundantCast
+			// ReSharper disable RedundantCast
 			return q.Aggregate(new SongMatch { SongData = default(SongFileData), Cost = (double)int.MaxValue }, (a, b) => a.Cost < b.Cost ? a : b);
-// ReSharper restore RedundantCast
+			// ReSharper restore RedundantCast
 		}
 
 		static MinimalSongFileData[] LoadExtM3U(FileInfo m3ufile) {
