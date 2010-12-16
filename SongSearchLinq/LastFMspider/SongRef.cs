@@ -53,7 +53,7 @@ namespace LastFMspider
 
 
         public static SongRef Create(SongFileData song) {
-            if (song.artist == null || song.title == null)
+			if (song==null||song.artist == null || song.title == null)
                 return null;
             return Create(song.artist, song.title);
         }
