@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
 namespace JumpPuzzelGen
 {
@@ -13,10 +12,10 @@ namespace JumpPuzzelGen
 			this.y=y;
 		}
 		public override int GetHashCode() {
-			return ((((int)x) << 16) + ((int)y)).GetHashCode();
+			return ((x << 16) + y).GetHashCode();
 		}
 		public override bool Equals(object obj) {
-			return obj is Pos && this.Equals((Pos)obj);
+			return obj is Pos && Equals((Pos)obj);
 		}
 		public bool Equals(Pos other) {
 			return other.x == x && other.y == y;
@@ -30,17 +29,17 @@ namespace JumpPuzzelGen
 	}
 	class PuzzelSolver
 	{
-		byte[,] puzzel;
-		int[,] steps;
-		Queue<Pos> toLook = new Queue<Pos>();
+		readonly byte[,] puzzel;
+		readonly int[,] steps;
+		readonly Queue<Pos> toLook = new Queue<Pos>();
 		Pos start, end;
-		int width, height;
-		public int fieldCount=0;
+		readonly int width;
+		readonly int height;
+		public int fieldCount;
 		public int phase;
-		public int legalMoves;
 		public int fieldSum;
 		public PuzzelSolver(byte[,] puzzel,Pos start,int puzVal) {
-			this.fieldSum = puzVal;
+			fieldSum = puzVal;
 			this.puzzel = puzzel;
 			//this.end = end;
 			this.start = start;
@@ -55,7 +54,6 @@ namespace JumpPuzzelGen
 
 		public int Solve() {
 			int movesMade=0;
-			int legalMoves = 0;
 			Pos next=default(Pos);
 			while(toLook.Count > 0) {
 				next = toLook.Dequeue();
@@ -64,7 +62,6 @@ namespace JumpPuzzelGen
 				//if(next == end) return movesMade;
 				movesMade++;
 				foreach(Pos newPos in CalcMoves(next)) {
-					legalMoves++;
 					if(steps[newPos.x, newPos.y] == 0) { //as yet unreached!
 						steps[newPos.x, newPos.y] = movesMade;
 						toLook.Enqueue(newPos);
@@ -81,7 +78,7 @@ namespace JumpPuzzelGen
 			Console.WriteLine("=============PUZZEL==============");
 			for(int y = 0; y < height; y++) {
 				for(int x = 0; x < width; x++) {
-					int pos = (int)puzzel[x, y];
+					int pos = puzzel[x, y];
 					if(x == start.x && y == start.y) Console.Write("["+pos+"]");
 					else if(x== end.x && y==end.y)Console.Write("("+pos+")");
 					else Console.Write(" "+pos+" ");
@@ -91,7 +88,7 @@ namespace JumpPuzzelGen
 			Console.WriteLine("=============Solution==============");
 			for(int y = 0; y < height; y++) {
 				for(int x = 0; x < width; x++) {
-					int pos = (int)steps[x, y];
+					int pos = steps[x, y];
 					string rep=Convert.ToString(pos,16).PadRight(3);
 					Console.Write(rep);
 				}
@@ -102,7 +99,7 @@ namespace JumpPuzzelGen
 
 
 		IEnumerable<Pos> CalcMoves(Pos at) {
-			short val = (short)puzzel[at.x, at.y];
+			short val = puzzel[at.x, at.y];
 			if(val == 0) yield break;
 			if(at.x + val < width) yield return new Pos(at.x + val, at.y);
 			if(at.x - val >=0) yield return new Pos(at.x - val, at.y);
@@ -114,15 +111,15 @@ namespace JumpPuzzelGen
 
 	class PuzzleCreator
 	{
-		static Random r = new Random();
-		int width, height;
+		static readonly Random r = new Random();
+		readonly int width, height;
 		int fieldCount;
-		int[] nums;
+		//readonly int[] nums;
 		public byte[,] puzzel;
 		int legalMoves;
 		public Pos start;
 		public int fieldSum;
-		Pos[] todo;
+		readonly Pos[] todo;
 		int todoPhaseStart;
 		int todoTotalEnd;
 		int ones;
@@ -133,7 +130,7 @@ namespace JumpPuzzelGen
 		public PuzzleCreator(int width, int height){
 			this.width = width;
 			this.height = height;
-			nums = new int[width + height];
+			//nums = new int[width + height];
 			puzzel = new byte[width, height];
 			todo = new Pos[width * height*4];
 		}
@@ -142,7 +139,7 @@ namespace JumpPuzzelGen
 			Console.WriteLine("=============PUZZEL==============");
 			for(int y = 0; y < height; y++) {
 				for(int x = 0; x < width; x++) {
-					int pos = (int)puzzel[x, y];
+					int pos = puzzel[x, y];
 					if(x == start.x && y == start.y) Console.Write("[" + pos + "]");
 					else if(x == end.x && y == end.y) Console.Write("(" + pos + ")");
 					else Console.Write(" " + pos + " ");
@@ -153,97 +150,97 @@ namespace JumpPuzzelGen
 		}
 
 
-		int DetermineReachableNewNumber(Pos place) {
-			int at=0;
-			bool[] poss = new bool[10];
-			for(int i = 0; i < place.x; i++)
-				if(puzzel[i, place.y] == 0) {
-					int step =place.x - i;
-					if(!poss[step]) {
-						poss[step]=true;
-						nums[at++]=step;
-					}
-				}
-			for(int i = place.x+1; i < width; i++)
-				if(puzzel[i, place.y] == 0){
-					int step =i-place.x;
-					if(!poss[step]) {
-						poss[step]=true;
-						nums[at++]=step;
-					}
-				}
-			for(int i = 0; i < place.y; i++)
-				if(puzzel[place.x, i] == 0){
-					int step =place.y - i;
-					if(!poss[step]) {
-						poss[step]=true;
-						nums[at++]=step;
-					}
-				}
-			for(int i = place.y + 1; i < height; i++)
-				if(puzzel[place.x, i] == 0){
-					int step =i-place.y;
-					if(!poss[step]) {
-						poss[step]=true;
-						nums[at++]=step;
-					}
-				}
-			if(at == 0) return 0;//no success!
-			else return nums[r.Next(at)];
-		}
-		int DetermineMaxNumber(Pos place) {
-			int step = Math.Min(9, Math.Max(Math.Max(place.x,width-1-place.x), Math.Max(place.y,height-1-place.y)));
-			return (r.Next(step*3-2)+2)/3+1; //1 upto step
-		}
-		int DetermineRandomNumber(Pos place,ref bool phaseSafe) {
-			return r.Next(1, width);
-		}
+		//int DetermineReachableNewNumber(Pos place) {
+		//    int at=0;
+		//    bool[] poss = new bool[10];
+		//    for(int i = 0; i < place.x; i++)
+		//        if(puzzel[i, place.y] == 0) {
+		//            int step =place.x - i;
+		//            if(!poss[step]) {
+		//                poss[step]=true;
+		//                nums[at++]=step;
+		//            }
+		//        }
+		//    for(int i = place.x+1; i < width; i++)
+		//        if(puzzel[i, place.y] == 0){
+		//            int step =i-place.x;
+		//            if(!poss[step]) {
+		//                poss[step]=true;
+		//                nums[at++]=step;
+		//            }
+		//        }
+		//    for(int i = 0; i < place.y; i++)
+		//        if(puzzel[place.x, i] == 0){
+		//            int step =place.y - i;
+		//            if(!poss[step]) {
+		//                poss[step]=true;
+		//                nums[at++]=step;
+		//            }
+		//        }
+		//    for(int i = place.y + 1; i < height; i++)
+		//        if(puzzel[place.x, i] == 0){
+		//            int step =i-place.y;
+		//            if(!poss[step]) {
+		//                poss[step]=true;
+		//                nums[at++]=step;
+		//            }
+		//        }
+		//    if(at == 0) return 0;//no success!
+		//    else return nums[r.Next(at)];
+		//}
+		//int DetermineMaxNumber(Pos place) {
+		//    int step = Math.Min(9, Math.Max(Math.Max(place.x,width-1-place.x), Math.Max(place.y,height-1-place.y)));
+		//    return (r.Next(step*3-2)+2)/3+1; //1 upto step
+		//}
+		//int DetermineRandomNumber() {
+		//    return r.Next(1, width);
+		//}
 
-		struct ValStepTuple
-		{
-			public int step;
-			public int val;
-		}
-		IEnumerable<ValStepTuple> AccessibleField(Pos place) {
-			for(int i = 0; i < place.x; i++) 
-				yield return new ValStepTuple { val = puzzel[i, place.y], step = place.x - i };
-			for(int i = place.x + 1; i < width; i++) 
-				yield return new ValStepTuple { val = puzzel[i, place.y], step = i- place.x };
-			for(int i = 0; i < place.y; i++) 
-				yield return new ValStepTuple { val = puzzel[place.x, i], step = place.y - i };
-			for(int i = place.y + 1; i < height; i++) 
-				yield return new ValStepTuple { val = puzzel[place.x, i], step = i-place.y };
-		}
-		int DetermineWeightedNewNumber(Pos place,ref bool phaseSafe) {
-			int zeros = 0;
-			int[] vals = new int[10];
-			vals[1] = 2;
-			vals[2] = 1;
-			foreach(var tuple in AccessibleField(place)) {
-				int val = tuple.val;
-				int step = tuple.step;
-				if(val != 0) {
-					vals[val]++;
-					if(step == val) vals[step]++;
-				} else if(!phaseSafe) {
-					vals[step] -= 10000;
-					zeros++;
-				}
-			}
-			if(zeros > 0) phaseSafe = true;
-			int minI = 1;
-			int maxstep = Math.Min(9, Math.Max(Math.Max(place.x, width - 1 - place.x), Math.Max(place.y, height - 1 - place.y)));
-			foreach(int i in PhaseSeq(1, maxstep+1, r.Next(1, maxstep+1))) {
-				if(vals[i] <= vals[minI]) minI = i;
-			}
-			return minI;
-		}
-	   int CalcQualityWithEnd(Pos end){ 
+		//struct ValStepTuple
+		//{
+		//    public int step;
+		//    public int val;
+		//}
+		//IEnumerable<ValStepTuple> AccessibleField(Pos place) {
+		//    for(int i = 0; i < place.x; i++) 
+		//        yield return new ValStepTuple { val = puzzel[i, place.y], step = place.x - i };
+		//    for(int i = place.x + 1; i < width; i++) 
+		//        yield return new ValStepTuple { val = puzzel[i, place.y], step = i- place.x };
+		//    for(int i = 0; i < place.y; i++) 
+		//        yield return new ValStepTuple { val = puzzel[place.x, i], step = place.y - i };
+		//    for(int i = place.y + 1; i < height; i++) 
+		//        yield return new ValStepTuple { val = puzzel[place.x, i], step = i-place.y };
+		//}
+		//int DetermineWeightedNewNumber(Pos place,ref bool phaseSafe) {
+		//    int zeros = 0;
+		//    int[] vals = new int[10];
+		//    vals[1] = 2;
+		//    vals[2] = 1;
+		//    foreach(var tuple in AccessibleField(place)) {
+		//        int val = tuple.val;
+		//        int step = tuple.step;
+		//        if(val != 0) {
+		//            vals[val]++;
+		//            if(step == val) vals[step]++;
+		//        } else if(!phaseSafe) {
+		//            vals[step] -= 10000;
+		//            zeros++;
+		//        }
+		//    }
+		//    if(zeros > 0) phaseSafe = true;
+		//    int minI = 1;
+		//    int maxstep = Math.Min(9, Math.Max(Math.Max(place.x, width - 1 - place.x), Math.Max(place.y, height - 1 - place.y)));
+		//    foreach(int i in PhaseSeq(1, maxstep+1, r.Next(1, maxstep+1))) {
+		//        if(vals[i] <= vals[minI]) minI = i;
+		//    }
+		//    return minI;
+		//}
+	   int CalcQualityWithEnd(Pos endArg){ 
 			return 
 				phase * width*height
-				- 20 * end.x * (width - 1 - end.x) * end.y * (height - 1 - end.y) 
-				- 5 * (end.x - start.x) * (end.x - start.x) 
-				- 5 * (end.y - start.y) * (end.y - start.y) 
+				- 20 * endArg.x * (width - 1 - endArg.x) * endArg.y * (height - 1 - endArg.y) 
+				- 5 * (endArg.x - start.x) * (endArg.x - start.x) 
+				- 5 * (endArg.y - start.y) * (endArg.y - start.y) 
 				+ 10 * fieldSum
 				+ 75*(legalMoves-ones)
 				- width*height*Math.Max(20-phase,0); 
@@ -290,14 +287,13 @@ namespace JumpPuzzelGen
 				foreach(int posI in PhaseSeq(todoPhaseStart,todoPhaseEnd,r.Next(todoPhaseStart,todoPhaseEnd))) {
 					Pos next = todo[posI];
 					if(puzzel[next.x, next.y] != 0) continue;//you might get the same element twice in a phase if reachable multiple times from the previous phase.
-					int val = 0;
-					val = DetermineRandomNumber(next, ref posterityEnsured);
+					int val =r.Next(1,Math.Max(width,height));
 							//DetermineWeightedNewNumber(next,ref  posterityEnsured);
 					puzzel[next.x,next.y] = (byte)val;
 					fieldSum+=val;
 					if(val == 1) {
 						ones++;
-						foreach(Pos newPos in CalcMoves(next, (short)1)) 
+						foreach(Pos newPos in CalcMoves(next, 1)) 
 							if(puzzel[newPos.x, newPos.y] == 1) //adjacent ones
 								ones++;//extra bad!
 					}
@@ -329,9 +325,9 @@ namespace JumpPuzzelGen
 
 	class Program
 	{
-		static void Main(string[] args) {
-			Random r = new Random();
-			int width = 5,height=5;
+		static void Main() {
+			const int width = 10;
+			const int height = 10;
 			PuzzleCreator creator = new PuzzleCreator(width, height);
 			//int bestSolLength = 0;
 			//int bestPuzVal = 0;
@@ -360,7 +356,7 @@ namespace JumpPuzzelGen
 				tries++;
 				if((DateTime.Now - lastPrint).TotalSeconds > 10.0) {
 					lastPrint=DateTime.Now;
-					Console.WriteLine("Average nps: {0:f2}, Average solution: {1:f4}, AvQ: {2:f1}", tries / (lastPrint - startTime).TotalSeconds,(double)totSol/(double)tries,(double)totQ/(double)tries);
+					Console.WriteLine("Average nps: {0:f2}, Average solution: {1:f4}, AvQ: {2:f1}", tries / (lastPrint - startTime).TotalSeconds,(double)totSol/tries,(double)totQ/tries);
 				}
 			}
 		}
