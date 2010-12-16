@@ -29,9 +29,9 @@ namespace LastFMspider {
 			return simSongDb.DoInTransaction(() => {
 				SimilarPlaylistResults res = new SimilarPlaylistResults();
 
-				var playlistSongs = seedSongs.Select(simSongDb.LookupTrackID.Execute).Where(trackid => trackid.HasValue).Distinct().Reverse().ToArray();
+				var playlistSongs = seedSongs.Where(sr=>sr!=null) .Select(simSongDb.LookupTrackID.Execute).Where(trackid => trackid.HasValue).Distinct().Reverse().ToArray();
 				Dictionary<TrackId, HashSet<TrackId>> playlistSongRefs = playlistSongs.ToDictionary(sr => sr, sr => new HashSet<TrackId>());
-				HashSet<SongRef> seedSongSet = new HashSet<SongRef>(); //used to ensure fuzzy matches don't readd existing song.
+				HashSet<SongRef> seedSongSet = new HashSet<SongRef>(seedSongs); //used to ensure fuzzy matches don't readd existing song.
 
 				SongWithCostCache songCostCache = new SongWithCostCache();
 				IHeap<SongWithCost> songCosts = Heap.Factory<SongWithCost>().Create((sc, index) => { sc.index = index; });
