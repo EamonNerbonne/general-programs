@@ -82,7 +82,6 @@
     <Content Include="jquery-ui-1.8.1.custom.min.js" />
     <Content Include="jquery.jplayer.js" />
     <Content Include="logon.aspx" />
-    <Content Include="TestPlayer.js" />
     <Content Include="Loading.html" />
     <Content Include="OptionsBuilder.js" />
     <Content Include="songsearch.css" />
@@ -114,6 +113,8 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="JsonOutputExtension.cs" />
+    <Compile Include="ScrobbleSong.cs" />
     <Compile Include="DebugStatus.aspx.cs">
       <DependentUpon>DebugStatus.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
