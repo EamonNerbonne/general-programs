@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 
 namespace SongDataLib {
 	public class SearchableSongFiles {
@@ -14,23 +15,25 @@ namespace SongDataLib {
 				searchMethod.Init(db);
 		}
 
-		public IEnumerable<ISongFileData> Search(string query,int[] rankmap=null) {
-			return Matches(query,rankmap).Select(i => db.songs[i]);
+		public IEnumerable<ISongFileData> Search(string query, int[] rankmap = null) {
+			return Matches(query, rankmap).Select(i => db.songs[i]);
 		}
 
-		IEnumerable<int> Matches(string querystring,int[]rankmap) {
+		static readonly Regex querySplitter = new Regex(@"\""[^""]*(\""|$)|\'[^']*(\'|$)|\S+", RegexOptions.CultureInvariant | RegexOptions.Compiled);
+		IEnumerable<int> Matches(string querystring, int[] rankmap) {
 			byte[][] queries =
-					 querystring
-					 .Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)
-					 .Select(StringAsBytesCanonicalization.Canonicalize)
-					 .ToArray();
-			if (searchMethod == null||queries.Length == 0) {
-				IBitapMatcher[] qMatchers = queries.OrderByDescending(q=>q.Length).Select(BitapSearch.MatcherFor).ToArray();
+				querySplitter.Matches(querystring).Cast<Match>()
+				.Select(m => m.Value.Trim('\'','\"'))
+				.Where(s => s.Length > 0)
+				 .Select(StringAsBytesCanonicalization.Canonicalize)
+				 .ToArray();
+			if (searchMethod == null || queries.Length == 0) {
+				IBitapMatcher[] qMatchers = queries.OrderByDescending(q => q.Length).Select(BitapSearch.MatcherFor).ToArray();
 				return
 					db.AllNormalizedSongs
 						.Where(songIndexAndBytes => qMatchers.All(qMatcher => qMatcher.BitapMatch(songIndexAndBytes.bytes)))
 						.Select(songIndexAndBytes => songIndexAndBytes.index)
-						.OrderBy(index=>rankmap[index]);
+						.OrderBy(index => rankmap[index]);
 			} else {
 				SearchResult[] res = queries.Select(q => searchMethod.Query(q)).ToArray();
 				return MatchAll(res, queries).OrderBy(index => rankmap[index]);
