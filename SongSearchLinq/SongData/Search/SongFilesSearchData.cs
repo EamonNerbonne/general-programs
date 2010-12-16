@@ -53,7 +53,6 @@ namespace SongDataLib {
 			}
 		}
 
-
 		public int GetSongIndex(Suffix charpos) { return GetSongIndex(charpos, 0, SongCount); }
 
 		public int GetSongIndex(Suffix charpos, int startI) { return GetSongIndex(charpos, startI, SongCount); }

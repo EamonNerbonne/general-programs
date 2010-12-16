@@ -45,7 +45,7 @@ namespace SongDataLib {
 						errSink("Non-fatal error while generating XML of file: " + songUri + "\nException:\n" + e); song = null;
 					}
 				if (song != null) {
-					handler(song, (double)i / (double)newFiles.Length);
+					handler(song, (double)i / newFiles.Length);
 				}
 			}
 		}
