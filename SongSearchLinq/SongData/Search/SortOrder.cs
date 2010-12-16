@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Xml.Linq;
 
 namespace SongDataLib {
 	public enum SongColumn {
@@ -69,6 +70,18 @@ namespace SongDataLib {
 				return Prepend(Math.Sign(CurrentDirection((int)col) * 2 + 1) * (int)col);
 		}
 		public IEnumerable<Tuple<SongColumn, bool>> Order { get { return colrefs.Select(def => Tuple.Create((SongColumn)Math.Abs(def), def > 0)); } }
+
+		public XElement ToXml() {
+			return
+				new XElement("ordering",
+					EffectiveCols.Select(i =>
+						new XElement("col", 
+							new XAttribute("name", ((SongColumn)Math.Abs(i)).ToString()),
+							new XAttribute("dir", i < 0 ? "desc" : "asc")
+						)
+					)
+				);
+		}
 	}
 
 	public static class SortOrder {
@@ -80,15 +93,20 @@ namespace SongDataLib {
 					: (isAscending ? ordered.ThenBy(keySelector) : ordered.ThenByDescending(keySelector));
 		}
 
+		static IEnumerable<int> StringOrder(this IEnumerable<int> indexes, Func<int, string> keySelector, bool isAscending) {
+			return indexes.OrderByEither(i => string.IsNullOrEmpty(keySelector(i)), isAscending).OrderByEither(keySelector, isAscending);
+		}
+
 		public static int[] RankMapFor(ISongFileData[] songs, SortOrdering ordering) {
 			var indexes = Enumerable.Range(0, songs.Length);
 			foreach (var column in ordering.Order) {
 				switch (column.Item1) {
-					case SongColumn.Album: indexes = indexes.OrderByEither(i => !(songs[i] is SongFileData) ? null : ((SongFileData)songs[i]).album, column.Item2); break;
-					case SongColumn.Artist: indexes = indexes.OrderByEither(i => !(songs[i] is SongFileData) ? null : ((SongFileData)songs[i]).artist, column.Item2); break;
-					case SongColumn.Rating: indexes = indexes.OrderByEither(i => (!(songs[i] is SongFileData) ? null : ((SongFileData)songs[i]).rating) ?? 2, !column.Item2).OrderByEither(i => !(songs[i] is SongFileData) ? 0 : ((SongFileData)songs[i]).popularity.TitlePopularity, !column.Item2); break;
+					case SongColumn.Album: indexes = indexes.StringOrder(i => !(songs[i] is SongFileData) ? null : ((SongFileData)songs[i]).album, column.Item2); break;
+					case SongColumn.Artist: indexes = indexes.StringOrder(i => !(songs[i] is SongFileData) ? null : ((SongFileData)songs[i]).artist, column.Item2); break;
+					case SongColumn.Rating: indexes = indexes.OrderByEither(i => (!(songs[i] is SongFileData) ? null : ((SongFileData)songs[i]).rating) ?? 2, !column.Item2)
+						.OrderByEither(i => !(songs[i] is SongFileData) ? 0 : ((SongFileData)songs[i]).popularity.TitlePopularity, !column.Item2); break;
 					case SongColumn.Time: indexes = indexes.OrderByEither(i => !(songs[i] is SongFileData) ? 0 : ((SongFileData)songs[i]).length, column.Item2); break;
-					case SongColumn.Title: indexes = indexes.OrderByEither(i => !(songs[i] is SongFileData) ? null : ((SongFileData)songs[i]).title, column.Item2); break;
+					case SongColumn.Title: indexes = indexes.StringOrder(i => !(songs[i] is SongFileData) ? null : ((SongFileData)songs[i]).title, column.Item2); break;
 					case SongColumn.TrackNumber: indexes = indexes.OrderByEither(i => !(songs[i] is SongFileData) ? 0 : ((SongFileData)songs[i]).track, column.Item2); break;
 					default: throw new ArgumentOutOfRangeException("ordering");
 				}

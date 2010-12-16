@@ -91,6 +91,7 @@ namespace SongSearchSite {
 		}
 
 		bool isFresh;
+		DateTime loaded;
 
 		private void Init() {
 			if (isFresh)
@@ -110,6 +111,7 @@ namespace SongSearchSite {
 				fsWatcher.Deleted += (o, e) => DbUpdated();
 				fsWatcher.EnableRaisingEvents = true;
 			}
+			loaded = DateTime.UtcNow;
 			var searchData = Task.Factory.StartNew(() => tools.SongFilesSearchData);
 			rankMap = new ConcurrentDictionary<SortOrdering, int[]>();
 
@@ -140,6 +142,7 @@ namespace SongSearchSite {
 		public static SearchableSongFiles SearchableSongDB { get { return Singleton.searchEngine.Result; } }
 		public static FuzzySongSearcher FuzzySongSearcher { get { return Singleton.fuzzySearcher.Result; } }
 		public static SongTools LastFmTools { get { return Singleton.tools; } }
+		public static DateTime LoadTime { get { return Singleton.loaded; } }
 		public static int[] RankMapFor(SortOrdering ordering) { return Singleton.RankMapForOrdering(ordering); } 
 
 		/// <summary>

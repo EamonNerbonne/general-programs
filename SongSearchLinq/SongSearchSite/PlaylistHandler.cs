@@ -13,7 +13,6 @@ namespace SongSearchSite {
 		readonly HttpRequestHelper helper;
 		public PlaylistRequestProcessor(HttpRequestHelper helper) { this.helper = helper; }
 		public void ProcessingStart() { }
-		static readonly DateTime startupUtc = DateTime.UtcNow;
 
 		bool isXml, includeRemote, extm3u, coreAttrsOnly, viewXslt;
 		SortOrdering orderby;
@@ -21,6 +20,7 @@ namespace SongSearchSite {
 		Encoding enc;
 		string searchQuery;
 		public PotentialResourceInfo DetermineResource() {
+			DateTime startupUtc = SongDbContainer.LoadTime;
 			isXml = false;
 			HttpContext context = helper.Context;
 			string extension = VirtualPathUtility.GetExtension(context.Request.AppRelativeCurrentExecutionFilePath).ToLowerInvariant();
@@ -107,10 +107,10 @@ namespace SongSearchSite {
 				var uriMapper = coreAttrsOnly ? SongDbContainer.LocalSongPathToAppRelativeMapper(context)
 					: SongDbContainer.LocalSongPathToAbsolutePathMapper(context);
 				new XDocument(
-					viewXslt ? new XProcessingInstruction("xml-stylesheet", "type=\"text/xsl\"  href=\"searchresult.xsl\"") : null,
+					viewXslt ? new XProcessingInstruction("xml-stylesheet", "type=\"text/xsl\"  href=\"searchresult.xsl?1\"") : null,
 					new XElement("songs",
 						new XAttribute("base", currentUrl),
-						new XAttribute("ordering", orderby),
+						orderby.ToXml(),
 						from s in searchResults
 						select s.ConvertToXml(uri => uriMapper(uri).ToString(), coreAttrsOnly)
 					)

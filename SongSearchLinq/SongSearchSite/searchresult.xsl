@@ -8,7 +8,8 @@
         <link rel="Stylesheet" type="text/css" href="tableview.css" />
         <!--#8ba;#c4ddd5;#e2eeea-->
       </head>
-      <body data-ordering="{songs/@ordering}">
+      <body>
+        <xsl:apply-templates select="songs/ordering" mode="serialized"/>
         <table>
           <colgroup>
             <col  />
@@ -20,12 +21,25 @@
           </colgroup>
           <thead>
             <tr id="listhead">
-              <th data-colname="Rating">Rating</th>
-              <th data-colname="Artist">Artist</th>
-              <th data-colname="Title">Title</th>
-              <th data-colname="Time">Time</th>
-              <th data-colname="TrackNumber">#</th>
-              <th data-colname="Album">Album</th>
+                <xsl:apply-templates select="songs/ordering" mode="sortarrow">
+                  <xsl:with-param name="col" select="'Rating'"/>
+                </xsl:apply-templates>
+                <xsl:apply-templates select="songs/ordering" mode="sortarrow">
+                  <xsl:with-param name="col" select="'Artist'"/>
+                </xsl:apply-templates>
+                <xsl:apply-templates select="songs/ordering" mode="sortarrow">
+                  <xsl:with-param name="col" select="'Title'"/>
+                </xsl:apply-templates>
+                <xsl:apply-templates select="songs/ordering" mode="sortarrow">
+                  <xsl:with-param name="col" select="'Time'"/>
+                </xsl:apply-templates>
+                <xsl:apply-templates select="songs/ordering" mode="sortarrow">
+                  <xsl:with-param name="col" select="'TrackNumber'"/>
+                  <xsl:with-param name="display" select="'#'"/>
+                </xsl:apply-templates>
+                <xsl:apply-templates select="songs/ordering" mode="sortarrow">
+                  <xsl:with-param name="col" select="'Album'"/>
+                </xsl:apply-templates>
             </tr>
           </thead>
           <tbody id="listdata">
@@ -42,10 +56,47 @@
     </html>
   </xsl:template>
 
+  <xsl:template match="ordering" mode="serialized">
+    <xsl:attribute name="data-ordering">
+      <xsl:for-each select="col">
+        <xsl:if test="@dir = 'desc'">
+          <xsl:text>-</xsl:text>
+        </xsl:if>
+        <xsl:if test="@dir = 'asc'">
+          <xsl:text>+</xsl:text>
+        </xsl:if>
+        <xsl:value-of select="@name"/>
+        <xsl:if test="not(position()=last())">
+          <xsl:text>,</xsl:text>
+        </xsl:if>
+      </xsl:for-each>
+    </xsl:attribute>
+  </xsl:template>
+
+  <xsl:template match="ordering" mode="sortarrow">
+    <xsl:param name="col"/>
+    <xsl:param name="display" select="$col"/>
+    <th data-colname="{$col}">
+      <xsl:value-of select="$display"/>
+    <xsl:for-each select="col[@name=$col]">
+      <span style="font-size:smaller; color:Gray;">
+      <xsl:if test="@dir = 'desc'">
+        <xsl:text>&#9660; </xsl:text>
+      </xsl:if>
+      <xsl:if test="@dir = 'asc'">
+        <xsl:text>&#9650; </xsl:text>
+      </xsl:if>
+
+      <xsl:value-of select="count(preceding-sibling::*)+1"/>
+      </span>
+    </xsl:for-each>
+    </th>
+  </xsl:template>
+
+
   <xsl:template match="songs">
     <xsl:apply-templates select="*"/>
   </xsl:template>
-
 
   <xsl:template name="stars">
     <xsl:param name="num" select="0"/>
@@ -86,14 +137,14 @@
           <td >
             <div style="position:relative; width:5em;top:0;left:0;background:none;">
               <div style="position:relative; z-index:1;">
-              <xsl:if test="@rating">
-                <xsl:call-template name="stars">
-                  <xsl:with-param name="num" select="number(@rating) "/>
-                </xsl:call-template>
-              </xsl:if>
-              <xsl:if test="not(@rating)">
-                &#160;
-              </xsl:if>
+                <xsl:if test="@rating">
+                  <xsl:call-template name="stars">
+                    <xsl:with-param name="num" select="number(@rating) "/>
+                  </xsl:call-template>
+                </xsl:if>
+                <xsl:if test="not(@rating)">
+                  &#160;
+                </xsl:if>
               </div>
               <xsl:if test="@popA">
                 <xsl:variable name="width" select="number(@popA) *5"/>
