@@ -36,14 +36,14 @@ namespace EmnExtensions.Text {
 		/// being control characters below 0x20 (except tab, carriage return and newline), 0xfffe and 0xffff.  
 		/// </summary>
 		public static bool IsSafeChar(char c) {
-			int val = (int)c;// this function could technically be a oneliner but I want a particular order of comparisons for performance, and hence the explicit "return true" to make this obvious.
-			if (val < 0x20) {
-				if (val == (int)'\n') return true;
-				else if (val == (int)'\t') return true;
-				else if (val == (int)'\r') return true; //technically allowed, though why you should use it....
-				else return false;
-			} else if (val < 0xfffe) return true;//don't allow 0xfffe and 0xffff!, but do allow 0xd800<0xdc00<0xe000 surrogates
-			else return false;
+			return c >= 0x20 && c < 0xfffe || c == '\n' || c == '\t' || c == '\r';
+		}
+
+		/// <summary>
+		/// Determines whether a character is safe to use and not ' ','\t','\r' or '\n' - see IsSafeChar.
+		/// </summary>
+		public static bool IsSafeNonWhitespaceChar(char c) {
+			return c > 0x20 && c < 0xfffe;
 		}
 
 		/// <summary>
@@ -55,16 +55,25 @@ namespace EmnExtensions.Text {
 		}
 
 		/// <summary>
-		/// Strips all characters deemed unsafe by IsSafeChar.  Returns null if the input is null.
+		/// Strips all characters deemed unsafe by IsSafeChar.  Returns null if the input is null or empty.
 		/// </summary>
-		public static string MakeSafe(string input) {
+		public static string TrimAndMakeSafe(string input) {
 			if (input == null) return null;
 			char[] retval = new char[input.Length];
-			int pos = 0;
-			foreach (char c in input)
+			int pos = 0, srcPos = 0;
+			while (srcPos < input.Length && !IsSafeNonWhitespaceChar(input[srcPos]))
+				srcPos++;//skip inital space or junk
+			while (srcPos < input.Length) {
+				char c = input[srcPos];
 				if (IsSafeChar(c))
 					retval[pos++] = c;
-			return new string(retval, 0, pos);
+				srcPos++;
+			}
+			while (pos > 0 && !IsSafeNonWhitespaceChar(retval[pos - 1]))
+				pos--;//skip trailing space or junk
+
+
+			return pos == 0 ? null : new string(retval, 0, pos);
 		}
 
 		public static string CanonicalizeBasic(this string input) { return Basic(input); }

@@ -22,9 +22,7 @@ namespace SongDataLib {
 		public Popularity popularity = new Popularity { ArtistPopularity = 0, TitlePopularity = 0 };
 		public DateTime lastWriteTime { get { return m_lastWriteTime; } private set { m_lastWriteTime = value.ToUniversalTime(); } }
 
-		static string strNullIfEmpty(string str) { return string.IsNullOrEmpty(str) ? null : str; }//string.Intern is slow but saves memory for identical strings.
-
-		static string toSafeString(string data) { return strNullIfEmpty(Canonicalize.MakeSafe(data)); }
+		static string toSafeString(string data) { return Canonicalize.TrimAndMakeSafe(data); }
 
 		internal SongFileData(Uri baseUri, FileInfo fileObj, IPopularityEstimator popEst)
 			: base(baseUri, new Uri(fileObj.FullName, UriKind.Absolute), true) {
