@@ -20,9 +20,11 @@ namespace LastFMspider {
 			} catch (Exception) {
 				toptracks = ArtistTopTracksList.CreateErrorList(artist, 1);//TODO:statuscodes...
 			}
-			if (artist.ToLatinLowercase() != toptracks.Artist.ToLatinLowercase())
-				LastFmCache.SetArtistAlternate.Execute(artist, toptracks.Artist);
-			LastFmCache.InsertArtistTopTracksList.Execute(toptracks);
+			LastFmCache.DoInLockedTransaction(() => {
+				if (artist.ToLatinLowercase() != toptracks.Artist.ToLatinLowercase())
+					LastFmCache.SetArtistAlternate.Execute(artist, toptracks.Artist);
+				LastFmCache.InsertArtistTopTracksList.Execute(toptracks);
+			});
 			return toptracks;
 		}
 	}
