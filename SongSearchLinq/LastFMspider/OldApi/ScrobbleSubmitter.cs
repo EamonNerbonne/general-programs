@@ -37,7 +37,7 @@ namespace LastFMspider.OldApi {
 		static long toUnix(DateTime dt) { return (long)(dt.ToUniversalTime() - unixBaseTime).TotalSeconds; }
 		static DateTime fromUnix(long timestamp) { return unixBaseTime + TimeSpan.FromSeconds(timestamp); }
 
-		static Encoding lfmEncoding = Encoding.UTF8;
+		static readonly Encoding lfmEncoding = Encoding.UTF8;
 		static string HexEncode(byte[] bytes) { //lowercase!
 			StringBuilder retval = new StringBuilder();
 			foreach (byte b in bytes)
@@ -103,7 +103,7 @@ namespace LastFMspider.OldApi {
 		string failMessage;
 		Status status;
 
-		private ScrobbleSubmitter(string sessionId, string nowPlayingUri, string submitUri) {
+		ScrobbleSubmitter(string sessionId, string nowPlayingUri, string submitUri) {
 			status = Status.OK;
 			this.nowPlayingUri = nowPlayingUri;
 			this.submitUri = submitUri;
@@ -125,19 +125,26 @@ namespace LastFMspider.OldApi {
 		public Status HandshakeStatus { get { return status; } }
 
 		public bool SubmitNowPlaying(SongFileData songdata) {
+			return SubmitNowPlaying(songdata.artist, songdata.title, songdata.album, songdata.length, songdata.track);
+		}
+		public bool SubmitNowPlaying(SongRef songdata) {
+			return SubmitNowPlaying(songdata.Artist, songdata.Title);
+		}
+
+		bool SubmitNowPlaying(string artist,string title,string album=null, int length=0,int track=0) {
 			if (!IsOK)
 				throw new InvalidOperationException("Can't submit now playing, status == " + status);
-			if (string.IsNullOrEmpty(songdata.artist) || string.IsNullOrEmpty(songdata.title))
+			if (string.IsNullOrEmpty(artist) || string.IsNullOrEmpty(title))
 				throw new ArgumentException("Can't submit; incomplete tags!");
 
 			try {
 				var resp = UriRequest.Execute(new Uri(nowPlayingUri), UserAgent: userAgent, PostData: QuerySegment(new[]{
 					mkArg("s",sessionId),
-					mkArg("a",songdata.artist),
-					mkArg("t",songdata.title),
-					mkArg("b",songdata.album??""),
-					mkArg("l",songdata.Length==0?"":songdata.Length.ToString()),
-					mkArg("n",songdata.track==0?"":songdata.track.ToString()),
+					mkArg("a",artist),
+					mkArg("t",title),
+					mkArg("b",album??""),
+					mkArg("l",length==0?"":length.ToString()),
+					mkArg("n",track==0?"":track.ToString()),
 					mkArg("m",""),//TODO
 				}));
 				if (resp.ContentAsString != null && resp.ContentAsString.StartsWith("OK"))
@@ -152,7 +159,6 @@ namespace LastFMspider.OldApi {
 				return false;
 			}
 		}
-
 		//public bool SubmitScrobble(SongData songdata,) {
 		//    if (!IsOK)
 		//        throw new InvalidOperationException("Can't submit now playing, status == " + status);
