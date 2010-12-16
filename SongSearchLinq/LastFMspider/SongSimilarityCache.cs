@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Data.SQLite;
 using System.Threading.Tasks;
 using System.Threading;
 using LastFMspider.LastFMSQLiteBackend;
@@ -35,8 +36,10 @@ namespace LastFMspider {
 		void ProcessQueue() {
 			TrackId[] tracksToUpdate;
 			while (BgLookupQueue.TryTake(out tracksToUpdate))
-				foreach(var track in tracksToUpdate)
-					LookupSimilarTracksHelper.RefreshCache(tools.LastFmCache, track);
+				foreach (var track in tracksToUpdate)
+					try {
+						LookupSimilarTracksHelper.RefreshCache(tools.LastFmCache, track);
+					} catch (SQLiteException) { }
 			lock (sync)
 				isActive = false;
 			StartQueue();
