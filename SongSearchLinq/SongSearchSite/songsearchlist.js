@@ -53,18 +53,60 @@ $(document).ready(function ($) {
                 try { val = JSON.parse(newval) } catch (e) { }
                 if (val) loadPlaylist(val);
             }
-        },
-        playlistName: {
-            label: "Playlist Name",
+        }
+        , lfmUser: {
+            label: "Last.FM username",
             type: "textbox",
-            initialValue: "",
+            initialValue: ""
+        }
+        , lfmPass: {
+            label: "Last.FM password",
+            type: "textbox",
+            initialValue: ""
+        }
+        , scrobble: {
+            label: "Enable Scrobbling",
+            type: "checkbox",
+            initialValue: false,
             onchange: function (newval, codeTriggered, e) {
-                //                if (codeTriggered) return;
-                //                var val = false;
-                //                try { val = JSON.parse(newval) } catch (e) { }
-                //                if (val) loadPlaylist(val);
+                if (newval && playlistItem) {
+                    var songdata = $(playlistItem).data("songdata");
+                    alert(JSON.stringify(songdata));
+                    $.ajax({
+                        type: "POST",
+                        url: "scrobble",
+                        data:
+                            {
+                                scrobbler: JSON.stringify(
+                                {
+                                    user: userOptions.lfmUser.getValue()
+                                    , pass: userOptions.lfmPass.getValue()
+                                    , href: songdata.href
+                                    , label: songdata.label
+                                })
+                            },
+                        timeout: 10000,
+                        success: function (data) { alert(JSON.stringify(data)); },
+                        error: function (xhr, status, errorThrown) { alert(JSON.stringify([xhr, status, errorThrown])); }
+                    });
+
+                    alert(songdata.href + ":" + songdata.length + ":" + songdata.label);
+                }
             }
         }
+
+
+        //        , playlistName: {
+        //            label: "Playlist Name",
+        //            type: "textbox",
+        //            initialValue: "",
+        //            onchange: function (newval, codeTriggered, e) {
+        //                //                if (codeTriggered) return;
+        //                //                var val = false;
+        //                //                try { val = JSON.parse(newval) } catch (e) { }
+        //                //                if (val) loadPlaylist(val);
+        //            }
+        //}
     };
 
     if (window.webkitNotifications) {
@@ -340,6 +382,23 @@ $(document).ready(function ($) {
         $(listItem).remove();
         playlistRefreshUi();
     }
+
+    $("#do_shuffle").click(function () {
+        var kids = $.makeArray(playlistElem.children());
+        var kidCount = kids.length;
+        for (var i = kidCount - 1; i >= 0; i--) {
+            $(kids[i]).remove();
+        }
+        for (var i = kidCount - 1; i >= 0; i--) {
+            var newpos = Math.floor( Math.random() * (i + 1) % (i + 1));
+            var oldItem = kids[newpos];
+            kids[newpos] = kids[i];
+            kids[i] = oldItem;
+        }
+        for (var i = 0; i < kidCount; i++) {
+            $(kids[i]).appendTo(playlistElem);
+        }
+    });
 
     function playlistNext() { playlistChange($(playlistItem).next()[0]); }
 
