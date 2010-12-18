@@ -268,9 +268,9 @@ void GmmLvqModel::DoOptionalNormalization() {
 	}
 }
 
-GmmLvqPrototype::GmmLvqPrototype();
+GmmLvqPrototype::GmmLvqPrototype() : classLabel(-1) {}
 
-GmmLvqPrototype:: GmmLvqPrototype(boost::mt19937 & rng, bool randInit, int protoLabel, VectorXd const & initialVal,PMatrix const & P) 
+GmmLvqPrototype::GmmLvqPrototype(boost::mt19937 & rng, bool randInit, int protoLabel, VectorXd const & initialVal,PMatrix const & P) 
 	: point(initialVal) 
 	, classLabel(protoLabel)
 	, bias(0.0)
