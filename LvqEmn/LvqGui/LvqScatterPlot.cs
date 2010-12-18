@@ -79,7 +79,7 @@ namespace LvqGui {
 
 			if (resetChildrenFirst) {
 				plotGrid.Children.Clear();
-				plotGrid.Children.Add(subplots.scatterPlot);
+				plotGrid.Children.Add(subplots.scatterPlotControl);
 				foreach (var plot in subplots.plots) plotGrid.Children.Add(plot);
 				foreach (PlotControl plot in plotGrid.Children) {
 					plot.Margin = new Thickness(2.0);
@@ -129,9 +129,9 @@ namespace LvqGui {
 		class SubPlots {
 			public readonly LvqDatasetCli dataset;
 			public readonly LvqModels model;
-			public readonly IVizEngine<Point[]>[] prototypePositionsPlot,classPlots;
+			public readonly IVizEngine<Point[]>[] prototypeClouds, dataClouds;
 			public readonly IVizEngine<LvqModels.ModelProjectionAndImage> classBoundaries;
-			public readonly PlotControl scatterPlot;
+			public readonly PlotControl scatterPlotControl;
 			public readonly IVizEngine<IEnumerable<LvqModels.Statistic>>[] statPlots;
 			public readonly PlotControl[] plots;
 
@@ -139,10 +139,10 @@ namespace LvqGui {
 				this.dataset = dataset;
 				this.model = model;
 				if (model.IsProjectionModel) {
-					prototypePositionsPlot = MakePerClassScatterGraph(dataset, 0.5f, dataset.ClassCount * 5,1);
+					prototypeClouds = MakePerClassScatterGraph(dataset, 0.5f, dataset.ClassCount * 5,1);
 					classBoundaries = MakeClassBoundaryGraph();
-					classPlots = MakePerClassScatterGraph(dataset, 1.0f);
-					scatterPlot = MakeScatterPlotControl(model, classPlots.Concat(prototypePositionsPlot).Select(viz => viz.Plot).Concat(new[] { classBoundaries.Plot }));
+					dataClouds = MakePerClassScatterGraph(dataset, 1.0f);
+					scatterPlotControl = MakeScatterPlotControl(model, dataClouds.Concat(prototypeClouds).Select(viz => viz.Plot).Concat(new[] { classBoundaries.Plot }));
 				}
 
 				plots = MakeDataPlots(dataset, model);//required
@@ -150,7 +150,7 @@ namespace LvqGui {
 			}
 
 			public void SetScatterBounds(Rect bounds) {
-				foreach (IPlotMetaDataWriteable metadata in classPlots.Concat(prototypePositionsPlot).Select(viz => viz.Plot.MetaData).Concat(new[] { classBoundaries.Plot.MetaData })) {
+				foreach (IPlotMetaDataWriteable metadata in dataClouds.Concat(prototypeClouds).Select(viz => viz.Plot.MetaData).Concat(new[] { classBoundaries.Plot.MetaData })) {
 					metadata.OverrideBounds = bounds;
 				}
 			}
@@ -242,13 +242,13 @@ namespace LvqGui {
 			var wh = subplots.LastWidthHeight;
 			var projectionAndImage = subplots.model.CurrentProjectionAndImage(subModelIdx, subplots.dataset, wh == null ? 0 : wh.Item1, wh == null ? 0 : wh.Item2);
 			DispatcherOperation scatterPlotOperation = null;
-			if (projectionAndImage != null && subplots.prototypePositionsPlot != null) {
-				scatterPlotOperation = subplots.scatterPlot.Dispatcher.BeginInvoke((Action)(() => {
+			if (projectionAndImage != null && subplots.prototypeClouds != null) {
+				scatterPlotOperation = subplots.scatterPlotControl.Dispatcher.BeginInvoke((Action)(() => {
 					subplots.SetScatterBounds(projectionAndImage.Bounds);
 					subplots.classBoundaries.ChangeData(projectionAndImage);
-					for (int i = 0; i < subplots.classPlots.Length; ++i) {
-						subplots.classPlots[i].ChangeData(projectionAndImage.PointsByLabel[i]);
-						subplots.prototypePositionsPlot[i].ChangeData(projectionAndImage.PrototypesByLabel[i]);
+					for (int i = 0; i < subplots.dataClouds.Length; ++i) {
+						subplots.dataClouds[i].ChangeData(projectionAndImage.PointsByLabel[i]);
+						subplots.prototypeClouds[i].ChangeData(projectionAndImage.PrototypesByLabel[i]);
 					}
 				}), DispatcherPriority.Background);
 			}

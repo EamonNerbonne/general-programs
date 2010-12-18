@@ -14,7 +14,7 @@ GmLvqModel::GmLvqModel( LvqModelSettings & initSettings)
 		initSettings.Dimensionality = (int) initSettings.Dimensions();
 	if(initSettings.Dimensionality < 0 || initSettings.Dimensionality > (int) initSettings.Dimensions())
 		throw "Dimensionality out of range";
-	
+
 	tmpDestDimsV1.resize(initSettings.Dimensionality);
 	tmpDestDimsV2.resize(initSettings.Dimensionality);
 
@@ -24,7 +24,7 @@ GmLvqModel::GmLvqModel( LvqModelSettings & initSettings)
 
 	int protoCount = accumulate(initSettings.PrototypeDistribution.begin(), initSettings.PrototypeDistribution.end(), 0);
 	pLabel.resize(protoCount);
-	
+
 	prototype.resize(protoCount);
 	P.resize(protoCount);
 
@@ -50,7 +50,7 @@ GmLvqModel::GmLvqModel( LvqModelSettings & initSettings)
 MatchQuality GmLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel) {
 	double learningRate = stepLearningRate();
 	double lr_point = settings.LR0 * learningRate;
-	
+
 	using namespace std;
 
 	GoodBadMatch matches = findMatches(trainPoint, trainLabel);
@@ -120,13 +120,13 @@ void GmLvqModel::AppendOtherStats(std::vector<double> & stats, LvqDataset const 
 
 
 void GmLvqModel::DoOptionalNormalization() {
-	 if(settings.NormalizeProjection) {
-		 if(settings.GloballyNormalize) {
-			 double overallNorm = std::accumulate(P.begin(), P.end(),0.0,[](double cur, MatrixXd const & mat)->double { return cur + projectionSquareNorm(mat); });
-			 double scale = 1.0/sqrt(overallNorm / P.size());
-			 for(size_t i=0;i<P.size();++i) P[i]*=scale;
-		 } else {
-			 for(size_t i=0;i<P.size();++i) normalizeProjection(P[i]);
-		 }
-	 }
+	if(settings.NormalizeProjection) {
+		if(settings.GloballyNormalize) {
+			double overallNorm = std::accumulate(P.begin(), P.end(),0.0,[](double cur, MatrixXd const & mat)->double { return cur + projectionSquareNorm(mat); });
+			double scale = 1.0/sqrt(overallNorm / P.size());
+			for(size_t i=0;i<P.size();++i) P[i]*=scale;
+		} else {
+			for(size_t i=0;i<P.size();++i) normalizeProjection(P[i]);
+		}
+	}
 }

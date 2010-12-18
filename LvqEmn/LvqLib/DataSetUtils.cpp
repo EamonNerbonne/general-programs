@@ -16,7 +16,7 @@ MatrixXd DatasetUtils::MakePointCloud(boost::mt19937 & rngParams, boost::mt19937
 	MatrixXd P = randomScalingMatrix<MatrixXd>(rngParams, dims,1.0);
 	MatrixXd points(dims,pointCount);
 	RandomMatrixInit(rngInst, points, 0, 1.0);
-	
+
 	return P * points + offset * VectorXd::Ones(pointCount).transpose();
 }
 
@@ -61,7 +61,7 @@ LvqDataset* DatasetUtils::ConstructStarDataset(boost::mt19937 & rngParams, boost
 
 	vector<MatrixXd> tailTransforms = MakeTailTransforms(rngParams, numStarTails, starDims);
 	MatrixXd tailMeans = MakeTailMeans(rngParams, numStarTails, starDims, starMeanSep);
-	
+
 	starChoiceGen starRndChoose(rngInst, starChoiceDistrib(0, numStarTails -1));
 
 	VectorXd starRaw(starDims),fullPoint(dims);
@@ -74,7 +74,7 @@ LvqDataset* DatasetUtils::ConstructStarDataset(boost::mt19937 & rngParams, boost
 		for(int i=0;i<pointsPerClass;++i) {
 			int starIdx = starRndChoose();
 			RandomMatrixInit(rngInst, starRaw, 0, 1.0);
-			
+
 			fullPoint.block(0,0,starDims,1)	= currentTailMeans.col(starIdx) + tailTransforms[starIdx] * starRaw;
 
 			Eigen::Block<VectorXd> restBlock(fullPoint.block(starDims, 0, dims - starDims, 1));

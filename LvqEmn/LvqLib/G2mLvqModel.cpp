@@ -19,7 +19,7 @@ G2mLvqModel::G2mLvqModel(LvqModelSettings & initSettings)
 
 	int protoCount = accumulate(initSettings.PrototypeDistribution.begin(),initSettings.PrototypeDistribution.end(),0);
 	prototype.resize(protoCount);
-	
+
 	int maxProtoCount=0;
 	int protoIndex=0;
 	for(int label=0; label <(int) initSettings.PrototypeDistribution.size();label++) {
@@ -57,11 +57,11 @@ MatchQuality G2mLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel)
 
 	if(ngMatchCache.size()>0) {
 		fullmatch = CorrectAndWorstMatches(& (ngMatchCache[0]));
-			for(int i=0;i<(int)prototype.size();++i) 
-				fullmatch.Register(SqrDistanceTo(i, P_trainPoint),i, PrototypeLabel(i) == trainLabel);
-			fullmatch.SortOk();
+		for(int i=0;i<(int)prototype.size();++i) 
+			fullmatch.Register(SqrDistanceTo(i, P_trainPoint),i, PrototypeLabel(i) == trainLabel);
+		fullmatch.SortOk();
 
-			matches = fullmatch.ToGoodBadMatch();
+		matches = fullmatch.ToGoodBadMatch();
 	} else {
 		matches = findMatches(P_trainPoint, trainLabel);
 	}
@@ -97,7 +97,7 @@ MatchQuality G2mLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel)
 	}
 	K.point.noalias() -= P.transpose() * (settings.LrScaleBad*lr_point * muJ2_BkT_Bk_P_vK) ;
 	P.noalias() -= (lr_P * muK2_BjT_Bj_P_vJ) * vJ.transpose() + (lr_P * muJ2_BkT_Bk_P_vK) * vK.transpose() ;
-	
+
 	if(ngMatchCache.size()>0) {
 		double lrSub = lr_point;
 		double lrDelta = exp(-LVQ_NG_FACTOR/learningRate);//TODO: this is rather ADHOC
@@ -201,18 +201,33 @@ void G2mLvqModel::ClassBoundaryDiagram(double x0, double x1, double y0, double y
 
 
 void G2mLvqModel::DoOptionalNormalization() {
-	 if(settings.NormalizeProjection) 
-		 normalizeProjection(P);
-	 if(settings.NormalizeBoundaries) {
-		 if(settings.GloballyNormalize) {
-			 double overallNorm = std::accumulate(prototype.begin(), prototype.end(),0.0,
-				 [](double cur, G2mLvqPrototype const & proto) -> double { return cur + projectionSquareNorm(proto.B); } 
-			     // (cur, proto) => cur + projectionSquareNorm(proto.B)
-			 );
-			 double scale = 1.0/sqrt(overallNorm / prototype.size());
-			 for(size_t i=0;i<prototype.size();++i) prototype[i].B*=scale;
-		 } else {
-			 for(size_t i=0;i<prototype.size();++i) normalizeProjection(prototype[i].B);
-		 }
-	 }
+	if(settings.NormalizeProjection) {
+		normalizeProjection(P);
+		for(size_t i=0;i<prototype.size();++i)
+			prototype[i].ComputePP(P);
+	}
+	if(settings.NormalizeBoundaries) {
+		if(settings.GloballyNormalize) {
+			double overallNorm = std::accumulate(prototype.begin(), prototype.end(),0.0,
+				[](double cur, G2mLvqPrototype const & proto) -> double { return cur + projectionSquareNorm(proto.B); } 
+			// (cur, proto) => cur + projectionSquareNorm(proto.B)
+			);
+			double scale = 1.0/sqrt(overallNorm / prototype.size());
+			for(size_t i=0;i<prototype.size();++i) prototype[i].B*=scale;
+		} else {
+			for(size_t i=0;i<prototype.size();++i) normalizeProjection(prototype[i].B);
+		}
+	}
+}
+
+G2mLvqPrototype::G2mLvqPrototype() : classLabel(-1) {}
+
+G2mLvqPrototype::G2mLvqPrototype(boost::mt19937 & rng, bool randInit, int protoLabel, VectorXd const & initialVal) 
+	: point(initialVal) 
+	, classLabel(protoLabel)
+{
+	if(randInit)
+		projectionRandomizeUniformScaled(rng, B);	
+	else 
+		B.setIdentity();
 }

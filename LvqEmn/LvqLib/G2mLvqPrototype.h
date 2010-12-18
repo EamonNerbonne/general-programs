@@ -22,17 +22,10 @@ public:
 	inline VectorXd const & position() const{return point;}
 	inline Vector2d const & projectedPosition() const{return P_point;}
 
-	inline G2mLvqPrototype() : classLabel(-1) {}
+	G2mLvqPrototype();
 
-	inline G2mLvqPrototype(boost::mt19937 & rng, bool randInit, int protoLabel, VectorXd const & initialVal) 
-		: point(initialVal) 
-		, classLabel(protoLabel)
-	{
-		if(randInit)
-			projectionRandomizeUniformScaled(rng, B);	
-		else 
-			B.setIdentity();
-	}
+	G2mLvqPrototype(boost::mt19937 & rng, bool randInit, int protoLabel, VectorXd const & initialVal);
+
 
 	inline double SqrDistanceTo(Vector2d const & P_testPoint) const {
 		Vector2d P_Diff = P_testPoint - P_point;

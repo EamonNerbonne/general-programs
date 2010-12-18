@@ -20,13 +20,13 @@ protected:
 
 public:
 	static const LvqModelSettings::LvqModelType ThisModelType = LvqModelSettings::G2mModelType;
-		//for templates:
+	//for templates:
 
 	inline int PrototypeLabel(int protoIndex) const {return prototype[protoIndex].label();}
 	inline int PrototypeCount() const {return static_cast<int>(prototype.size());}
 	inline double SqrDistanceTo(int protoIndex, Vector2d const & P_otherPoint) const { return prototype[protoIndex].SqrDistanceTo(P_otherPoint); }
 
-//end for templates
+	//end for templates
 
 
 	G2mLvqModel(LvqModelSettings & initSettings);

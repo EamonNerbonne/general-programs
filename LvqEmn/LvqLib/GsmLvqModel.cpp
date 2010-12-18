@@ -13,7 +13,7 @@ GsmLvqModel::GsmLvqModel(LvqModelSettings & initSettings)
 
 	int protoCount = accumulate(initSettings.PrototypeDistribution.begin(), initSettings.PrototypeDistribution.end(), 0);
 	pLabel.resize(protoCount);
-	
+
 	prototype.resize(protoCount);
 	P_prototype.resize(protoCount);
 
@@ -27,7 +27,7 @@ GsmLvqModel::GsmLvqModel(LvqModelSettings & initSettings)
 			RecomputeProjection(protoIndex);
 
 			protoIndex++;
-		
+
 		}
 		maxProtoCount = max(maxProtoCount, labelCount);
 	}
@@ -73,7 +73,7 @@ MatchQuality GsmLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel)
 
 	auto vJ(VectorXd::MapAligned(m_vJ.data(),m_vJ.size()));
 	auto vK(VectorXd::MapAligned(m_vK.data(),m_vK.size()));
-		
+
 	vJ = prototype[K] - trainPoint;
 	vK = prototype[K] - trainPoint;
 
@@ -140,7 +140,7 @@ void GsmLvqModel::ClassBoundaryDiagram(double x0, double x1, double y0, double y
 
 	for(int pi=0; pi < this->PrototypeCount(); ++pi) 
 		diff_x0_y.col(pi).noalias() = Vector2d(xBase,yBase) - this->P_prototype[pi];
-	
+
 
 	for(int yRow=0; yRow < rows; yRow++) {
 		PMatrix diff_x_y(diff_x0_y); //copy that includes changes to Y as well.
@@ -158,6 +158,9 @@ void GsmLvqModel::ClassBoundaryDiagram(double x0, double x1, double y0, double y
 }
 
 void GsmLvqModel::DoOptionalNormalization() {
-	 if(settings.NormalizeProjection) 
-		 normalizeProjection(P);
+	if(settings.NormalizeProjection) {
+		normalizeProjection(P);
+		for(size_t i=0;i<prototype.size();++i)
+			RecomputeProjection((int)i);
+	}
 }

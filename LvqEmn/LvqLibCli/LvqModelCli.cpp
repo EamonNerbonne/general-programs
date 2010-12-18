@@ -66,7 +66,7 @@ namespace LvqLibCli {
 	}
 
 	void LvqModelCli::ResetLearningRate() { msclr::lock l(trainSync); model->get()->resetLearningRate(); }
-	
+
 	template<typename T>
 	array<CliLvqLabelledPoint>^ ToCliLabelledPoints(T const & pointmatrix,vector<int> const labels) {
 		array<CliLvqLabelledPoint>^ retval = gcnew array<CliLvqLabelledPoint>(static_cast<int>(labels.size()));
@@ -103,7 +103,7 @@ namespace LvqLibCli {
 		msclr::lock l(copySync);
 		boost::scoped_ptr<LvqProjectionModel> projectionModelClone(static_cast<LvqProjectionModel*>(projectionModelCopy->clone()));
 		l.release();
-			
+
 		projectionModelClone->ClassBoundaryDiagram(x0,x1,y0,y1,classDiagram);
 		return ToCli<array<int,2>^>::From(classDiagram.transpose());
 	}

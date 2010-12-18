@@ -184,10 +184,10 @@ namespace LvqGui {
 				+ (ModelType == LvqModelType.G2mModelType ? ",noB" + (UpdatePointsWithoutB ? "+" : "") : "")
 				+ "[" + Seed + ":" + InstSeed + "]/" + ParallelModels
 				+ (ModelType != LvqModelType.GmModelType ? ",pQ" + (TrackProjectionQuality ? "+" : "") : "")
-				+ ",lr0" + LR0 
-				+ ",lrP" + LrScaleP 
-				+ ",lrB" + LrScaleB 
-				+ ",lrX" + LrScaleBad 
+				+ ",lr0" + LR0
+				+ ",lrP" + LrScaleP
+				+ ",lrB" + LrScaleB
+				+ ",lrX" + LrScaleBad
 				+ (ForDataset == null ? "" : "--" + ForDataset.DatasetLabel);
 			}
 			set { ShorthandHelper.ParseShorthand(this, shR, value); }
@@ -228,26 +228,26 @@ namespace LvqGui {
 			Console.WriteLine("Created: " + Shorthand);
 
 			return new LvqModels(Shorthand, ParallelModels, ForDataset, new LvqModelSettingsCli {
-					ModelType = ModelType,
-					RngParamsSeed = Seed,
-					RngIterSeed = InstSeed,
-					PrototypesPerClass = PrototypesPerClass,
-					RandomInitialProjection = RandomInitialProjection,
-					RandomInitialBorders = RandomInitialBorders,
+				ModelType = ModelType,
+				RngParamsSeed = Seed,
+				RngIterSeed = InstSeed,
+				PrototypesPerClass = PrototypesPerClass,
+				RandomInitialProjection = RandomInitialProjection,
+				RandomInitialBorders = RandomInitialBorders,
 
-					TrackProjectionQuality = TrackProjectionQuality,
-					NormalizeProjection = NormalizeProjection,
-					NormalizeBoundaries = NormalizeBoundaries,
-					GloballyNormalize = GloballyNormalize,
-					NgUpdateProtos = NgUpdateProtos,
-					UpdatePointsWithoutB = UpdatePointsWithoutB,
-					Dimensionality = Dimensionality,
+				TrackProjectionQuality = TrackProjectionQuality,
+				NormalizeProjection = NormalizeProjection,
+				NormalizeBoundaries = NormalizeBoundaries,
+				GloballyNormalize = GloballyNormalize,
+				NgUpdateProtos = NgUpdateProtos,
+				UpdatePointsWithoutB = UpdatePointsWithoutB,
+				Dimensionality = Dimensionality,
 
-					LrScaleP = LrScaleP,
-					LrScaleB = LrScaleB,
-					LR0 = LR0,
-					LrScaleBad = LrScaleBad,
-				});
+				LrScaleP = LrScaleP,
+				LrScaleB = LrScaleB,
+				LR0 = LR0,
+				LrScaleBad = LrScaleBad,
+			});
 		}
 
 		public void ConfirmCreation() {

@@ -16,7 +16,7 @@ public:
 	inline static TMatrix CovarianceA(Eigen::MatrixBase<TPoints> const & points, TPoint const & mean) {
 		return (points.colwise() - mean) * (points.colwise() - mean).transpose() * (1.0/(points.cols()-1.0)) ;
 	}
-	
+
 	//good for fixed matrices matrices on MSC
 	inline static TMatrix CovarianceB(Eigen::MatrixBase<TPoints>const & points, TPoint const & mean) {
 		TPoint diff = TPoint::Zero(points.rows());

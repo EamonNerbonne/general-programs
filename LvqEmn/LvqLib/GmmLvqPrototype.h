@@ -33,22 +33,9 @@ public:
 	inline VectorXd const & position() const{return point;}
 	inline Vector2d const & projectedPosition() const{return P_point;}
 
-	inline GmmLvqPrototype() : classLabel(-1) {}
+	GmmLvqPrototype();
 
-	inline GmmLvqPrototype(boost::mt19937 & rng, bool randInit, int protoLabel, VectorXd const & initialVal,PMatrix const & P) 
-		: point(initialVal) 
-		, classLabel(protoLabel)
-		, bias(0.0)
-	{
-		if(randInit)
-			projectionRandomizeUniformScaled(rng, B);	
-		else 
-			B.setIdentity();
-		ComputePP(P);
-#ifdef AUTO_BIAS
-		RecomputeBias();
-#endif
-	}
+	GmmLvqPrototype(boost::mt19937 & rng, bool randInit, int protoLabel, VectorXd const & initialVal,PMatrix const & P);
 
 	inline double SqrDistanceTo(Vector2d const & P_testPoint) const {
 		Vector2d P_Diff = P_testPoint - P_point;
