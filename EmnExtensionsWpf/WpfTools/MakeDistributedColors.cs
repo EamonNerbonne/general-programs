@@ -7,24 +7,25 @@ namespace EmnExtensions.Wpf {
 	public static partial class WpfTools {
 		public static Color[] MakeDistributedColors(int N, MersenneTwister rnd = null) {
 			rnd = rnd ?? RndHelper.ThreadLocalRandom;
-
-			var colors = Enumerable.Range(0, N).Select(i => ColorSimple.Random(rnd)).ToArray();
+			var offset=rnd.NextDouble();
+			var colors = Enumerable.Range(0, N).Select(i => ColorSimple.FromColor(new HSL { H = (i + offset) / N, S = 0.8, L = 0.9 }.ToRGB())).ToArray();
 			if (colors.Length > 1)
 				for (int iter = 0; iter < 10 + 100000/(N*N); iter++) {
 					double lr = 1.0 / Math.Sqrt(iter*N*N + 1000);
 					for (int i = 0; i < colors.Length; i++) {
-						colors[i].RepelFrom(ColorSimple.MaxValue, 0.07 * lr);
-						colors[i].RepelFrom(ColorSimple.LightYellow, 0.03 * lr);
-						colors[i].RepelFrom(ColorSimple.MinValue, 0.1 * lr);
+						//colors[i].RepelFrom(ColorSimple.MinValue, 0.3 * lr);
+						//colors[i].RepelFrom(ColorSimple.MaxValue, 0.1 * lr);
+						//colors[i].RepelFrom(ColorSimple.LightGreenYellow, 0.05*lr);
 						colors[i].RepelFrom(ColorSimple.Random(rnd), lr * lr);
 						for (int j = 0; j < colors.Length; j++) 
 							if (i != j) colors[i].RepelFrom(colors[j], lr);
 					}
-
+					for (int i = 0; i < colors.Length; i++)  colors[i].LimitBrightness(0.1, 0.7); 
 					ColorSimple min = colors.Aggregate(ColorSimple.MinValue, ColorSimple.Min);
 					ColorSimple max = colors.Aggregate(ColorSimple.MaxValue, ColorSimple.Max);
-					for (int i = 0; i < colors.Length; i++) { colors[i].ScaleBack(min, max); colors[i].LimitBrightness(0.85); }
+					for (int i = 0; i < colors.Length; i++) colors[i].ScaleBack(min, max);
 				}
+
 
 			return colors.Select(c => c.ToWindowsColor()).ToArray();
 		}
@@ -49,12 +50,17 @@ namespace EmnExtensions.Wpf {
 				B = scaled(B, min.B, max.B);
 			}
 
-			public void LimitBrightness(double max) {
+			public void LimitBrightness(double min, double max) {
 				if (Sum > max) {
 					double scale = max / Sum;
 					R *= scale;
 					G *= scale;
 					B *= scale;
+				} else if (Sum < min) {
+					double offset = min-Sum;
+					R += offset;
+					G += offset;
+					B += offset;
 				}
 			}
 
@@ -75,9 +81,7 @@ namespace EmnExtensions.Wpf {
 			public static ColorSimple MaxValue { get { return new ColorSimple { R = 1.0, G = 1.0, B = 1.0 }; } }
 			public static ColorSimple MinValue { get { return new ColorSimple { R = 0.0, G = 0.0, B = 0.0 }; } }
 
-			public static ColorSimple LightYellow { get { return new ColorSimple { R = 1, G = 1, B = 0.75 }; } }
-			public static ColorSimple LightGreen { get { return new ColorSimple { R = 0.5, G = 1, B = 0.5 }; } }
-			public static ColorSimple Grey { get { return new ColorSimple { R = 0.5, G = 0.5, B = 0.5 }; } }
+			public static ColorSimple LightGreenYellow { get { return new ColorSimple { R = 0.9, G = 1, B = 0.7 }; } }
 
 
 			public double SqrDistTo(ColorSimple other) { return (sqr(R - other.R) + sqr(G - other.G) + sqr(B - other.B)) / 3.0 - 0.5 * HueEmphasis * sqr(Sum - other.Sum); }
@@ -89,7 +93,15 @@ namespace EmnExtensions.Wpf {
 					? val
 					: 0.01 + 0.98 * (val - min) / (max - min);
 			}
-			const double HueEmphasis = 1.0;
+			const double HueEmphasis = 0.5;
+
+			internal static ColorSimple FromColor(Color color) {
+				return new ColorSimple {
+					R = color.ScR,
+					G = color.ScG,
+					B = color.ScB,
+				};
+			}
 		}
 	}
 }

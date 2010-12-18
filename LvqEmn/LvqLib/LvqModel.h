@@ -56,6 +56,7 @@ public:
 	virtual LvqModel* clone() const=0;
 	virtual void CopyTo(LvqModel& target) const=0;
 	virtual size_t MemAllocEstimate() const=0;
+	virtual std::vector<int> GetPrototypeLabels() const=0;
 	virtual int Dimensions() const =0;
 	int ClassCount() const { return settings.ClassCount;}
 };

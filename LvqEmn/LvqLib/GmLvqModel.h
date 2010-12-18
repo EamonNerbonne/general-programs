@@ -39,6 +39,7 @@ public:
 	GmLvqModel(LvqModelSettings & initSettings);
 	virtual MatchQuality ComputeMatches(VectorXd const & unknownPoint, int pointLabel) const;
 	virtual void DoOptionalNormalization();
+	virtual std::vector<int> GetPrototypeLabels() const;
 	virtual int classify(VectorXd const & unknownPoint) const; 
 	virtual MatchQuality learnFrom(VectorXd const & newPoint, int classLabel);
 	virtual GmLvqModel* clone() const { return new GmLvqModel(*this); }

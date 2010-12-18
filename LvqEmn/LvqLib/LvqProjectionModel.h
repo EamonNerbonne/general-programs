@@ -19,7 +19,6 @@ public:
 	PMatrix const & projectionMatrix() const {return P;}
 	virtual int Dimensions() const {return static_cast<int>(P.cols());}
 	virtual MatrixXd GetProjectedPrototypes() const=0;
-	virtual std::vector<int> GetPrototypeLabels() const=0;
 	virtual int classifyProjected(Vector2d const & unknownProjectedPoint) const=0;
 	virtual void ClassBoundaryDiagram(double x0, double x1, double y0, double y1, LvqProjectionModel::ClassDiagramT & classDiagram) const=0;
 };

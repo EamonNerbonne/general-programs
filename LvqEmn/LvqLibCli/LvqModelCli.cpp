@@ -94,6 +94,8 @@ namespace LvqLibCli {
 		return ModelProjection(ToCliLabelledPoints(points, labels) ,ToCliLabelledPoints(prototypes,prototypelabels));
 	}
 
+	array<int>^ LvqModelCli::PrototypeLabels::get() { array<int>^ retval; cppToCli(modelCopy->get()->GetPrototypeLabels(),retval); return retval;}
+
 	array<int,2>^ LvqModelCli::ClassBoundaries( double x0, double x1, double y0, double y1,int xCols, int yRows) {
 		LvqProjectionModel::ClassDiagramT classDiagram(yRows,xCols);
 		if(modelCopy==nullptr) return nullptr;

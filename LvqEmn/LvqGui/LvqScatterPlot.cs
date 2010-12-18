@@ -139,7 +139,7 @@ namespace LvqGui {
 				this.dataset = dataset;
 				this.model = model;
 				if (model.IsProjectionModel) {
-					prototypeClouds = MakePerClassScatterGraph(dataset, 0.5f, dataset.ClassCount * 5,1);
+					prototypeClouds = MakePerClassScatterGraph(dataset, 0.3f, dataset.ClassCount * Math.Min(model.SubModels.First().PrototypeLabels.Length,3) ,1);
 					classBoundaries = MakeClassBoundaryGraph();
 					dataClouds = MakePerClassScatterGraph(dataset, 1.0f);
 					scatterPlotControl = MakeScatterPlotControl(model, dataClouds.Concat(prototypeClouds).Select(viz => viz.Plot).Concat(new[] { classBoundaries.Plot }));

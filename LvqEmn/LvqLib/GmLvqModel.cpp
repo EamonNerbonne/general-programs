@@ -118,6 +118,12 @@ void GmLvqModel::AppendOtherStats(std::vector<double> & stats, LvqDataset const 
 	stats.push_back(maxNorm);
 }
 
+vector<int> GmLvqModel::GetPrototypeLabels() const {
+	vector<int> retval(prototype.size());
+	for(unsigned i=0;i<prototype.size();++i)
+		retval[i] = pLabel[i];
+	return retval;
+}
 
 void GmLvqModel::DoOptionalNormalization() {
 	if(settings.NormalizeProjection) {
