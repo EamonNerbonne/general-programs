@@ -2,22 +2,20 @@
 
 #include "DatasetUtils.h"
 #include "LvqDataset.h"
-#include "utils.h"
+#include "RandomMatrix.h"
+
 using namespace std;
 
-MatrixXd DatasetUtils::MakePointCloud(boost::mt19937 & rngParams, boost::mt19937 & rngInst, int dims, int pointCount, double meansep) {
-	MatrixXd P = randomUnscalingMatrix<MatrixXd>(rngParams, dims);
-	boost::uniform_01<boost::mt19937> uniform01_rand(rngParams);
-	P*=exp(uniform01_rand()*2.0-1.0);
+//Generates a gaussian cloud
+//center is normally distributed with center~N(0,
+MatrixXd DatasetUtils::MakePointCloud(boost::mt19937 & rngParams, boost::mt19937 & rngInst, int dims, int pointCount, double meansep,double detScalePower) {
 
 	VectorXd offset(dims);
 	RandomMatrixInit(rngParams, offset, 0, meansep/sqrt(static_cast<double>(dims)));
 
+	MatrixXd P = randomScalingMatrix<MatrixXd>(rngParams, dims,1.0);
 	MatrixXd points(dims,pointCount);
-	  
 	RandomMatrixInit(rngInst, points, 0, 1.0);
-	//cout<< "Norm pretransform: "<<projectionSquareNorm(points)<<"\n";
-	//cout<< "Norm posttransform: "<<projectionSquareNorm(P * points)<<"\n";
 	
 	return P * points + offset * VectorXd::Ones(pointCount).transpose();
 }
@@ -26,7 +24,7 @@ LvqDataset* DatasetUtils::ConstructGaussianClouds(boost::mt19937 & rngParams, bo
 
 	MatrixXd allpoints(dims, classCount*pointsPerClass);
 	for(int classLabel=0;classLabel < classCount; classLabel++) {
-		allpoints.block(0, classLabel*pointsPerClass, dims, pointsPerClass) = DatasetUtils::MakePointCloud(rngParams,rngInst, dims, pointsPerClass, meansep);
+		allpoints.block(0, classLabel*pointsPerClass, dims, pointsPerClass) = DatasetUtils::MakePointCloud(rngParams,rngInst, dims, pointsPerClass, meansep,1.0);
 	}
 
 	vector<int> trainingLabels(allpoints.cols());
@@ -41,13 +39,15 @@ MatrixXd MakeTailMeans(boost::mt19937 & rndGen, int numStarTails, int starDim, d
 	RandomMatrixInit(rndGen,tailMeans,0,meansep);
 	return tailMeans;
 }
+
 vector<MatrixXd> MakeTailTransforms(boost::mt19937 & rndGen, int numStarTails, int starDim) {
 	vector<MatrixXd> tailTransforms;
 	for(int i=0;i<numStarTails;i++) {
-		MatrixXd t(starDim,starDim);
-		RandomMatrixInit(rndGen,t,0,1.0);
-		normalizeProjection(t);
-		tailTransforms.push_back(t);
+		//MatrixXd t(starDim,starDim);
+		//RandomMatrixInit(rndGen,t,0,1.0);
+		//normalizeProjection(t);
+		//tailTransforms.push_back(t);
+		tailTransforms.push_back(randomScalingMatrix<MatrixXd>(rndGen, starDim,0.5));
 	}
 	return tailTransforms;
 }

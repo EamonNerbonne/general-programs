@@ -1,4 +1,5 @@
 #include "stdafx.h"
+#include "shuffle.h"
 #include "LvqDataset.h"
 #include "SmartSum.h"
 #include "LvqProjectionModel.h"
