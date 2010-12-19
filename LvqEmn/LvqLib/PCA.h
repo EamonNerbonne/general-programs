@@ -8,17 +8,13 @@ struct PrincipalComponentAnalysisTemplate {
 
 	typedef Eigen::Matrix<typename TPoints::Scalar,TPoints::RowsAtCompileTime,1> TPoint;
 	typedef Eigen::Matrix<typename TPoints::Scalar,TPoints::RowsAtCompileTime,TPoints::RowsAtCompileTime> TMatrix;
-	
-   struct EigenValueSortHelper {
-	   TPoint const & eigenvalues;
-   public:
-	   EigenValueSortHelper(TPoint const & eigenvalues) : eigenvalues(eigenvalues) {}
-	   bool operator()(int a, int b) {return eigenvalues(a) > eigenvalues(b); }
-   };
 
 	static void DoPca(Eigen::MatrixBase<TPoints>const & points, TMatrix & transform, TPoint & eigenvalues ) {
-		TMatrix covarianceMatrix = Covariance::ComputeWithMean( points);
-		
+		TMatrix covarianceMatrix = Covariance::ComputeWithMean(points);
+		DoPcaFromCov(covarianceMatrix,transform,eigenvalues);
+	}
+
+	static void DoPcaFromCov(TMatrix const & covarianceMatrix, TMatrix & transform, TPoint & eigenvalues ) {	
 		Eigen::SelfAdjointEigenSolver<TMatrix> eigenSolver(covarianceMatrix, Eigen::ComputeEigenvectors);
 		TPoint eigenvaluesUnsorted = eigenSolver.eigenvalues();
 		TMatrix eigVecUnsorted = eigenSolver.eigenvectors();
@@ -33,7 +29,7 @@ struct PrincipalComponentAnalysisTemplate {
 		std::vector<int> v;
 		for(int i=0;i<eigenvaluesUnsorted.size();++i)
 			v.push_back(i);
-		std::sort(v.begin(),v.end(), EigenValueSortHelper(eigenvaluesUnsorted));
+		std::sort(v.begin(),v.end(), [&eigenvaluesUnsorted](size_t a, size_t b) -> bool { return eigenvaluesUnsorted(a) > eigenvaluesUnsorted(b);});
 
 		assert(eigVecUnsorted.cols() ==eigVecUnsorted.rows());
 		transform.resize(eigVecUnsorted.cols(),eigVecUnsorted.rows());
@@ -53,5 +49,5 @@ struct PrincipalComponentAnalysisTemplate {
 typedef PrincipalComponentAnalysisTemplate<Eigen::MatrixXd> PcaHighDim;
 typedef PrincipalComponentAnalysisTemplate<PMatrix> PcaLowDim;
 
- PMatrix Pca2dFromCov(Eigen::MatrixXd const & covarianceMatrix) ;
+PMatrix Pca2dFromCov(Eigen::MatrixXd const & covarianceMatrix) ;
 inline PMatrix PcaProjectInto2d(Eigen::MatrixXd const & points) { return Pca2dFromCov( Covariance::ComputeWithMean(points) ); }

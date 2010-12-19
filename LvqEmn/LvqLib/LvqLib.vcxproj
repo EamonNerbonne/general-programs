@@ -520,6 +520,7 @@
     <ClCompile Include="LvqDataset.cpp" />
     <ClCompile Include="LvqModelSettings.cpp" />
     <ClCompile Include="LvqProjectionModel.cpp" />
+    <ClCompile Include="NearestNeighbor.cpp" />
     <ClCompile Include="PCA.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
@@ -557,6 +558,7 @@
     <ClInclude Include="LvqProjectionModelBase.h" />
     <ClInclude Include="LvqTypedefs.h" />
     <ClInclude Include="MeanMinMax.h" />
+    <ClInclude Include="NearestNeighbor.h" />
     <ClInclude Include="PCA.h" />
     <ClInclude Include="RandomMatrix.h" />
     <ClInclude Include="shuffle.h" />
