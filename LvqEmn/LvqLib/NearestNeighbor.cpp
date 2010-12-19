@@ -13,7 +13,7 @@ void NearestNeighbor::init() {
 	std::sort(idxs.begin(),idxs.end(), [this] (unsigned a, unsigned b) ->bool {return sortedPoints(0,a) < sortedPoints(0,b);});
 }
 
-int NearestNeighbor::nearestIdx(Eigen::Vector2d point) const
+int NearestNeighbor::nearestIdx(Eigen::Vector2d  const & point) const
 {
 	//we transform the point into the PCA-d space.
 	//then binary search to find nearest point in primary dim

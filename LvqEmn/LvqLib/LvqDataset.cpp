@@ -6,6 +6,7 @@
 #include "utils.h"
 #include <xmmintrin.h>
 #include "PCA.h"
+#include "NearestNeighbor.h"
 using namespace std;
 LvqDataset::LvqDataset(MatrixXd const & points, vector<int> pointLabels, int classCountPar) 
 	: points(points)
@@ -100,6 +101,7 @@ int LvqDataset::NearestNeighborClassify(std::vector<int> const & subset, PMatrix
 }
 
 double LvqDataset::NearestNeighborErrorRate(std::vector<int> const & neighborhood,LvqDataset const* testData, std::vector<int> const & testSet, PMatrix projection) const {
+
 	std::vector<int> neighborLabels;
 	PMatrix neighbors;
 
@@ -110,21 +112,55 @@ double LvqDataset::NearestNeighborErrorRate(std::vector<int> const & neighborhoo
 		neighbors.col(i).noalias() = projection * points.col(pI);
 		neighborLabels[i] = pointLabels[pI];
 	}
+	NearestNeighbor nn(neighbors);
+
+
 	Vector2d testPoint;
 	int errs =0;
 	for(int i=0;i<(int)testSet.size();++i) {
 		int testI = testSet[i];
 		testPoint.noalias() = projection * testData->points.col(testI);
 
-		MatrixXd::Index neighborI;
+		int neighborI=nn.nearestIdx(testPoint);
+#ifndef NDEBUG
+		MatrixXd::Index neighbor2I;
 
-		(neighbors.colwise() - testPoint).colwise().squaredNorm().minCoeff(&neighborI);
+		(neighbors.colwise() - testPoint).colwise().squaredNorm().minCoeff(&neighbor2I);
+		assert(neighbor2I==neighborI);
+#endif
 
 		if(neighborLabels[neighborI] != testData->pointLabels[testI]) 
 			errs++;
 	}
 	return double(errs) / double(testSet.size());
 }
+
+//double LvqDataset::NearestNeighborErrorRate(std::vector<int> const & neighborhood,LvqDataset const* testData, std::vector<int> const & testSet, PMatrix projection) const {
+//	std::vector<int> neighborLabels;
+//	PMatrix neighbors;
+//
+//	neighbors.resize(projection.rows(),neighborhood.size());
+//	neighborLabels.resize(neighborhood.size());
+//	for(int i=0;i<(int)neighborhood.size();++i) {
+//		int pI = neighborhood[i];
+//		neighbors.col(i).noalias() = projection * points.col(pI);
+//		neighborLabels[i] = pointLabels[pI];
+//	}
+//	Vector2d testPoint;
+//	int errs =0;
+//	for(int i=0;i<(int)testSet.size();++i) {
+//		int testI = testSet[i];
+//		testPoint.noalias() = projection * testData->points.col(testI);
+//
+//		MatrixXd::Index neighborI;
+//
+//		(neighbors.colwise() - testPoint).colwise().squaredNorm().minCoeff(&neighborI);
+//
+//		if(neighborLabels[neighborI] != testData->pointLabels[testI]) 
+//			errs++;
+//	}
+//	return double(errs) / double(testSet.size());
+//}
 
 double LvqDataset::NearestNeighborPcaErrorRate(std::vector<int> const & neighborhood, LvqDataset const* testData, std::vector<int> const & testSet) const {
 	return NearestNeighborErrorRate(neighborhood,testData,testSet,PcaProjectInto2d(ExtractPoints(neighborhood)));

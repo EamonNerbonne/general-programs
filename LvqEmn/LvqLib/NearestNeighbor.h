@@ -12,7 +12,7 @@ public:
 	NearestNeighbor(Eigen::MatrixBase<TDerived> const & points)
 		:idxs(points.cols())
 		,sortedPoints(points) { init(); }
-	int nearestIdx(Eigen::Vector2d point) const;
+	int nearestIdx(Eigen::Vector2d const & point) const;
 
 	EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 };
