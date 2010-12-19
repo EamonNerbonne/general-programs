@@ -52,10 +52,9 @@ unsigned int secure_rand() {
 
 void PrintModelStatus(char const * label,LvqModel const * model,LvqDataset const * dataset) {
 	using namespace std;
-	double meanCost=0,errorRate=0;
-	dataset->ComputeCostAndErrorRate(dataset->GetTrainingSubset(0,0),model,meanCost,errorRate);
+	auto stats = dataset->ComputeCostAndErrorRate(dataset->GetTrainingSubset(0,0),model);
 
-	cerr << label<< ": "<<errorRate << ", "<<meanCost;
+	cerr << label<< ": "<<stats.errorRate << ", "<<stats.meanCost;
 	LvqProjectionModel const * projectionModel = dynamic_cast<LvqProjectionModel const*>(model);
 	if(projectionModel) 
 		cerr<<" [norm: "<< projectionSquareNorm(projectionModel->projectionMatrix()) <<"]";

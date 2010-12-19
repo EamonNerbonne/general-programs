@@ -219,7 +219,7 @@ namespace LvqGui {
 
 		static uint[] NativeColorsPerClassAndBlack(LvqDatasetCli dataset) {
 			return dataset.ClassColors
-				.Select(c => { c.ScA = 0.1f; return c; })
+				.Select(c => { c.ScA = 0.05f; return c; })
 				.Concat(Enumerable.Repeat(Color.FromRgb(0, 0, 0), 1))
 				.Select(c => c.ToNativeColor())
 				.ToArray();

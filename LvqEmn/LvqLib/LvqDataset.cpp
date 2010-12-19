@@ -15,7 +15,7 @@ LvqDataset::LvqDataset(MatrixXd const & points, vector<int> pointLabels, int cla
 	assert(points.cols() == int(pointLabels.size()));
 	assert(*std::max_element(pointLabels.begin(),pointLabels.end()) < classCount);
 	assert(*std::min_element(pointLabels.begin(),pointLabels.end()) >= 0);
-	
+
 	//pointLabels.shrink_to_fit();
 }
 LvqDataset::LvqDataset(LvqDataset const & src, std::vector<int> const & subset)
@@ -119,7 +119,7 @@ double LvqDataset::NearestNeighborErrorRate(std::vector<int> const & neighborhoo
 		MatrixXd::Index neighborI;
 
 		(neighbors.colwise() - testPoint).colwise().squaredNorm().minCoeff(&neighborI);
-		
+
 		if(neighborLabels[neighborI] != testData->pointLabels[testI]) 
 			errs++;
 	}
@@ -149,7 +149,7 @@ double LvqDataset::NearestNeighborErrorRate(std::vector<int> const & neighborhoo
 
 		MatrixXd::Index neighborI;
 		(neighbors.colwise() - testPoint).colwise().squaredNorm().minCoeff(&neighborI);
-		
+
 		if(neighborLabels[neighborI] != testData->pointLabels[testI]) 
 			errs++;
 	}
@@ -165,11 +165,11 @@ size_t LvqDataset::MemAllocEstimate() const {
 void LvqDataset::shufflePoints(boost::mt19937& rng) {
 	vector<int> shufLabels(getPointCount());
 	MatrixXd shufPoints(points.rows(),points.cols());
-		
+
 	using boost::scoped_array;
 	scoped_array<int> idxs(new int[getPointCount()]);
 	makeRandomOrder(rng,idxs.get(),static_cast<int>(points.cols()));
-	
+
 	for(int colI=0;colI<points.cols();++colI) {
 		shufPoints.col(idxs[colI]) = points.col(colI);
 		shufLabels[idxs[colI]] = pointLabels[colI];
@@ -238,10 +238,11 @@ void LvqDataset::TrainModel(int epochs, LvqModel * model, std::vector<int> const
 
 static int triangularIndex(int i, int j) {
 	assert(j <= i);
-	 return j + ((i * (i + 1)) >> 1);
+	return j + ((i * (i + 1)) >> 1);
 }
 
 void LvqDataset::ExtendByCorrelations() {
+#if 1
 	int oldDims = int(points.rows());
 	points.conservativeResize(oldDims + (oldDims*oldDims + oldDims)/2, NoChange);
 #ifndef NDEBUG
@@ -251,18 +252,33 @@ void LvqDataset::ExtendByCorrelations() {
 			assert(triangularIndex(i,j) == nextIdx);
 			nextIdx++;
 		}
-	assert(nextIdx == (oldDims*oldDims + oldDims)/2);
+		assert(nextIdx == (oldDims*oldDims + oldDims)/2);
 #endif
-	for(int pI=0;pI<points.cols();++pI) 
+		for(int pI=0;pI<points.cols();++pI) 
+			for(int i=0;i<oldDims;++i)
+				for(int j=0;j<=i;++j) 
+					points(oldDims +triangularIndex(i,j),pI) = points(i,pI)*points(j,pI);
+#else
+	int oldDims = int(points.rows());
+	points.conservativeResize(oldDims*2, NoChange);
+#ifndef NDEBUG
+	int nextIdx=0;
+	for(int i=0;i<oldDims;++i)
+		for(int j=0;j<=i;++j) {
+			assert(triangularIndex(i,j) == nextIdx);
+			nextIdx++;
+		}
+		assert(nextIdx == (oldDims*oldDims + oldDims)/2);
+#endif
 		for(int i=0;i<oldDims;++i)
-			for(int j=0;j<=i;++j) 
-				points(oldDims +triangularIndex(i,j),pI) = points(i,pI)*points(j,pI);
+			points.row(oldDims +i) = points.row(i).array()*points.row(i).array();
+#endif
 }
 
 using Eigen::Array2d;
 
 LvqDatasetStats LvqDataset::ComputeCostAndErrorRate(std::vector<int> const & subset, LvqModel const * model) const{
-	
+
 	assert(subset.size() > 0);
 	VectorXd a;
 	double totalCost=0,muJ=0,muK=0;
