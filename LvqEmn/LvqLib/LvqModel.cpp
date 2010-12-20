@@ -39,13 +39,13 @@ void LvqModel::AddTrainingStat(LvqDataset const * trainingSet, std::vector<int>c
 		teststats = testSet->ComputeCostAndErrorRate(testSubset,this);
 	stats.push_back(teststats.errorRate);
 	stats.push_back(teststats.meanCost);
-	stats.push_back(teststats.distGoodMean);
-	stats.push_back(teststats.distGoodVar);
-	stats.push_back(teststats.distBadMean);
-	stats.push_back(teststats.distBadVar);
+	stats.push_back(trainingstats.distGoodMean);
+	stats.push_back(trainingstats.distGoodVar);
+	stats.push_back(trainingstats.distBadMean);
+	stats.push_back(trainingstats.distBadVar);
 
-	stats.push_back(teststats.muJmean);
-	stats.push_back(teststats.muKmean);
+	stats.push_back(trainingstats.muJmean);
+	stats.push_back(trainingstats.muKmean);
 
 	this->AppendOtherStats(stats, trainingSet,trainingSubset,testSet,testSubset);
 

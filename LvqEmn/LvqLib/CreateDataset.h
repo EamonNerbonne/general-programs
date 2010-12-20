@@ -5,10 +5,10 @@
 #include <Eigen/Core>
 
 class LvqDataset;
-class DatasetUtils
+class CreateDataset
 {
-	DatasetUtils(void) {}
-	DatasetUtils(DatasetUtils const &) {}
+	CreateDataset(void) {}
+	CreateDataset(CreateDataset const &) {}
 public:
 	static Eigen::MatrixXd MakePointCloud(boost::mt19937 & rngParams, boost::mt19937 & rngInst, int dims, int pointCount, double meansep,double detScalePower);
 

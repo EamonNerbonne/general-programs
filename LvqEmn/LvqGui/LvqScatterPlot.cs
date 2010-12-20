@@ -290,7 +290,7 @@ namespace LvqGui {
 
 		static class StatisticsPlotMaker {
 			public static IEnumerable<PlotWithViz<IEnumerable<LvqModels.Statistic>>> Create(string windowTitle, IEnumerable<TrainingStatName> stats, bool isMultiModel, bool hasTestSet) {
-				var relevantStatistics = (hasTestSet ? stats : stats.Where(stat => !stat.TrainingStatLabel.StartsWith("Training"))).ToArray();
+				var relevantStatistics = (hasTestSet ? stats : stats.Where(stat => !stat.TrainingStatLabel.StartsWith("Test"))).ToArray();
 
 				return
 					relevantStatistics.Zip(ColorsForWindow(windowTitle, relevantStatistics.Length),

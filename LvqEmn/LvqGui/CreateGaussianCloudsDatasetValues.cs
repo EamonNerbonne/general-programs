@@ -88,7 +88,7 @@ namespace LvqGui {
 			owner.PropertyChanged += (o, e) => { if (e.PropertyName == "ExtendDataByCorrelation") _propertyChanged("ExtendDataByCorrelation"); };
 			_Folds = 10;
 			_NumberOfClasses = 3;
-			_ClassCenterDeviation = 5.0;
+			_ClassCenterDeviation = 1.5;
 #if DEBUG
 			_Dimensions = 8;
 			_PointsPerClass = 100;

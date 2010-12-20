@@ -1,6 +1,6 @@
 #include "StdAfx.h"
 #include "LvqDatasetCli.h"
-#include "DatasetUtils.h"
+#include "CreateDataset.h"
 #include "SmartSum.h"
 #include "LvqDataset.h"
 
@@ -27,13 +27,13 @@ namespace LvqLibCli {
 	LvqDatasetCli^ LvqDatasetCli::ConstructGaussianClouds(String^label,int folds,bool extend,ColorArray^ colors,unsigned rngParamsSeed, unsigned rngInstSeed, int dims, int classCount, int pointsPerClass, double meansep) {
 		mt19937 rngParam(rngParamsSeed);
 		mt19937 rngInst(rngInstSeed);
-		return gcnew LvqDatasetCli(label,folds,extend,colors,DatasetUtils::ConstructGaussianClouds(rngParam,rngInst, dims, classCount, pointsPerClass, meansep),rngInst);
+		return gcnew LvqDatasetCli(label,folds,extend,colors,CreateDataset::ConstructGaussianClouds(rngParam,rngInst, dims, classCount, pointsPerClass, meansep),rngInst);
 	}
 
 	LvqDatasetCli^ LvqDatasetCli::ConstructStarDataset(String^label,int folds,bool extend,ColorArray^ colors,unsigned rngParamsSeed, unsigned rngInstSeed, int dims, int starDims, int numStarTails,int classCount, int pointsPerClass, double starMeanSep, double starClassRelOffset, bool randomlyTransform) {
 		mt19937 rngParam(rngParamsSeed);
 		mt19937 rngInst(rngInstSeed);
-		return gcnew LvqDatasetCli(label,folds,extend,colors,DatasetUtils::ConstructStarDataset(rngParam,rngInst, dims, starDims, numStarTails, classCount, pointsPerClass, starMeanSep, starClassRelOffset,randomlyTransform),rngInst);
+		return gcnew LvqDatasetCli(label,folds,extend,colors,CreateDataset::ConstructStarDataset(rngParam,rngInst, dims, starDims, numStarTails, classCount, pointsPerClass, starMeanSep, starClassRelOffset,randomlyTransform),rngInst);
 	}
 
 	Tuple<double,double> ^ LvqDatasetCli::GetPcaNnErrorRate() {

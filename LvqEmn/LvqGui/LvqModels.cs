@@ -33,7 +33,7 @@ namespace LvqGui {
 
 		public IEnumerable<string> TrainingStatNames { get { return subModels.First().TrainingStatNames; } }
 
-		public bool IsMultiModel { get { return ModelCount > 0; } }
+		public bool IsMultiModel { get { return ModelCount > 1; } }
 
 		public double CurrentLearningRate { get { return subModels.Sum(model => model.UnscaledLearningRate) / ModelCount; } }
 

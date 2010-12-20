@@ -406,7 +406,7 @@
     </Midl>
     <ClCompile>
       <Optimization>Full</Optimization>
-      <InlineFunctionExpansion>Default</InlineFunctionExpansion>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <OmitFramePointers>true</OmitFramePointers>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -513,7 +513,7 @@
     <ClCompile Include="GmmLvqModel.cpp" />
     <ClCompile Include="GoodBadMatch.cpp" />
     <ClCompile Include="LvqModel.cpp" />
-    <ClCompile Include="DatasetUtils.cpp" />
+    <ClCompile Include="CreateDataset.cpp" />
     <ClCompile Include="G2mLvqModel.cpp" />
     <ClCompile Include="GmLvqModel.cpp" />
     <ClCompile Include="GsmLvqModel.cpp" />
@@ -547,7 +547,7 @@
     <ClInclude Include="LvqModel.h" />
     <ClInclude Include="LvqModelSettings.h" />
     <ClInclude Include="LvqProjectionModel.h" />
-    <ClInclude Include="DatasetUtils.h" />
+    <ClInclude Include="CreateDataset.h" />
     <ClInclude Include="G2mLvqModel.h" />
     <ClInclude Include="G2mLvqPrototype.h" />
     <ClInclude Include="GmLvqModel.h" />

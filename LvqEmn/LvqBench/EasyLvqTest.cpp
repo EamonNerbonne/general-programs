@@ -4,7 +4,7 @@
 #include "G2mLvqModel.h"
 #include "GsmLvqModel.h"
 #include "GmLvqModel.h"
-#include "DatasetUtils.h"
+#include "CreateDataset.h"
 
 using boost::mt19937;
 using boost::normal_distribution;
@@ -111,7 +111,7 @@ void EasyLvqTest() {
 		protoDistrib.push_back(PROTOSPERCLASS);
 
 	Eigen::BenchTimer t;
-	scoped_ptr<LvqDataset> dataset(DatasetUtils::ConstructGaussianClouds(rndGen,rndGen, DIMS, CLASSCOUNT, POINTS_PER_CLASS, MEANSEP)); 
+	scoped_ptr<LvqDataset> dataset(CreateDataset::ConstructGaussianClouds(rndGen,rndGen, DIMS, CLASSCOUNT, POINTS_PER_CLASS, MEANSEP)); 
 
 	for(int bI=0;bI<BENCH_RUNS;++bI)
 	{

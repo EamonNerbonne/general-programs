@@ -109,9 +109,9 @@ namespace LvqGui {
 			this.owner = owner;
 			owner.PropertyChanged += (o, e) => { if (e.PropertyName == "ExtendDataByCorrelation") _propertyChanged("ExtendDataByCorrelation"); };
 			_Folds = 10;
-			_ClusterCenterDeviation = 3.5;
+			_ClusterCenterDeviation = 1.5;
 			_ClusterDimensionality = 4;
-			_IntraClusterClassRelDev = 0.4;
+			_IntraClusterClassRelDev = 0.5;
 			_NumberOfClasses = 3;
 			_NumberOfClusters = 4;
 #if DEBUG

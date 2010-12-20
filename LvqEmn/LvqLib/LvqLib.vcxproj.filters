@@ -15,9 +15,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="DatasetUtils.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="G2mLvqModel.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -57,11 +54,11 @@
     <ClCompile Include="NearestNeighbor.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="CreateDataset.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="DatasetUtils.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="G2mLvqModel.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -132,6 +129,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="NearestNeighbor.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CreateDataset.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
