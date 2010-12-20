@@ -184,7 +184,7 @@ namespace LvqGui {
 			return ToNativeColorBmp(closestClass, nativeColorsPerClass, width,renderwidth,height,renderheight);
 		}
 
-		private static uint[] ToNativeColorBmp(int[,] closestClass, uint[] nativeColorsPerClass, int width, int renderwidth, int height, int renderheight) {
+		static uint[] ToNativeColorBmp(int[,] closestClass, uint[] nativeColorsPerClass, int width, int renderwidth, int height, int renderheight) {
 			uint[] classboundaries = new uint[width * height];
 			int px = 0;
 			for (int y = 0; y < height; y++)

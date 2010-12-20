@@ -17,7 +17,7 @@ namespace EmnExtensions.Web {
 
 		const int BUFSIZE = 4096;
 
-		private UriRequest() { }
+		UriRequest() { }
 		static readonly Encoding FallbackEncoding = Encoding.UTF8;
 		public static UriRequest Execute(Uri uri, CookieContainer cookies = null, Uri referer = null, string UserAgent = null, string PostData=null) {
 			if (uri.Scheme.ToUpperInvariant() != "HTTP")

@@ -25,10 +25,10 @@
         </Grid.ColumnDefinitions>
         <TextBox IsReadOnly="True" BorderThickness="0" Background="Transparent" FontSize="9" Margin="0" Text="{Binding RelativeSource={RelativeSource  Mode=FindAncestor, AncestorType={x:Type UserControl}}, Path=Title, Mode=OneWay}" HorizontalAlignment="Center" />
         <Grid x:Name="plotArea" Grid.Row="1" UseLayoutRounding="False">
-        <emnPlot:TickedAxis x:Name="tickedAxisBot" AxisPos="BelowGraph"/>
-        <emnPlot:TickedAxis x:Name="tickedAxisLft" AxisPos="LeftOfGraph" />
-        <emnPlot:TickedAxis x:Name="tickedAxisTop" AxisPos="AboveGraph"/>
-        <emnPlot:TickedAxis x:Name="tickedAxisRgt" AxisPos="RightOfGraph"/>
+            <emnPlot:TickedAxis x:Name="tickedAxisBot" AxisPos="BelowGraph" />
+            <emnPlot:TickedAxis x:Name="tickedAxisLft" AxisPos="LeftOfGraph" />
+            <emnPlot:TickedAxis x:Name="tickedAxisTop" AxisPos="AboveGraph"/>
+            <emnPlot:TickedAxis x:Name="tickedAxisRgt" AxisPos="RightOfGraph"/>
         </Grid>
         <StackPanel x:Name="labelarea" Grid.Row="2"/>
     </Grid>

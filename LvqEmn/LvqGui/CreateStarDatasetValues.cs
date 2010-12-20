@@ -16,7 +16,7 @@ namespace LvqGui {
 		public event PropertyChangedEventHandler PropertyChanged;
 		void raisePropertyChanged(string prop) { PropertyChanged(this, new PropertyChangedEventArgs(prop)); }
 
-		private void _propertyChanged(String propertyName) {
+		void _propertyChanged(String propertyName) {
 			if (PropertyChanged != null) {
 				raisePropertyChanged(propertyName);
 				raisePropertyChanged("Shorthand");
@@ -28,67 +28,67 @@ namespace LvqGui {
 			get { return _Dimensions; }
 			set { if (value < _ClusterDimensionality) throw new ArgumentException("Data needs at least one dimension and no fewer than the clusters' dimensions"); if (!Equals(_Dimensions, value)) { _Dimensions = value; _propertyChanged("Dimensions"); } }
 		}
-		private int _Dimensions;
+		int _Dimensions;
 
 		public int NumberOfClasses {
 			get { return _NumberOfClasses; }
 			set { if (value < 2) throw new ArgumentException("Need at least 2 classes to meaningfully train"); if (!Equals(_NumberOfClasses, value)) { _NumberOfClasses = value; _propertyChanged("NumberOfClasses"); } }
 		}
-		private int _NumberOfClasses;
+		int _NumberOfClasses;
 
 		public int PointsPerClass {
 			get { return _PointsPerClass; }
 			set { if (value < 1) throw new ArgumentException("Need a positive number of points"); if (!Equals(_PointsPerClass, value)) { _PointsPerClass = value; _propertyChanged("PointsPerClass"); } }
 		}
-		private int _PointsPerClass;
+		int _PointsPerClass;
 
 		public int NumberOfClusters {
 			get { return _NumberOfClusters; }
 			set { if (value < 1) throw new ArgumentException("Need a positive number of clusters"); if (!Equals(_NumberOfClusters, value)) { _NumberOfClusters = value; _propertyChanged("NumberOfClusters"); } }
 		}
-		private int _NumberOfClusters;
+		int _NumberOfClusters;
 
 		public int ClusterDimensionality {
 			get { return _ClusterDimensionality; }
 			set { if (value < 1 || value > _Dimensions) throw new ArgumentException("Cluster dimensionality must be a positive number less than the absolute dimensionality"); if (!Equals(_ClusterDimensionality, value)) { _ClusterDimensionality = value; _propertyChanged("ClusterDimensionality"); } }
 		}
-		private int _ClusterDimensionality;
+		int _ClusterDimensionality;
 
 		public bool RandomlyTransformFirst {
 			get { return _RandomlyTransformFirst; }
 			set { if (!Equals(_RandomlyTransformFirst, value)) { _RandomlyTransformFirst = value; _propertyChanged("RandomlyTransformFirst"); } }
 		}
-		private bool _RandomlyTransformFirst;
+		bool _RandomlyTransformFirst;
 
 		public double ClusterCenterDeviation {
 			get { return _ClusterCenterDeviation; }
 			set { if (value < 0.0) throw new ArgumentException("Deviation must be positive"); if (!Equals(_ClusterCenterDeviation, value)) { _ClusterCenterDeviation = value; _propertyChanged("ClusterCenterDeviation"); } }
 		}
-		private double _ClusterCenterDeviation;
+		double _ClusterCenterDeviation;
 
 		public double IntraClusterClassRelDev {
 			get { return _IntraClusterClassRelDev; }
 			set { if (value < 0.0) throw new ArgumentException("Deviation must be positive"); if (!Equals(_IntraClusterClassRelDev, value)) { _IntraClusterClassRelDev = value; _propertyChanged("IntraClusterClassRelDev"); } }
 		}
-		private double _IntraClusterClassRelDev;
+		double _IntraClusterClassRelDev;
 
 		public uint Seed {
 			get { return _Seed; }
 			set { if (!Equals(_Seed, value)) { _Seed = value; _propertyChanged("Seed"); } }
 		}
-		private uint _Seed;
+		uint _Seed;
 
 		public uint InstSeed {
 			get { return _InstSeed; }
 			set { if (!_InstSeed.Equals(value)) { _InstSeed = value; _propertyChanged("InstSeed"); } }
 		}
-		private uint _InstSeed;
+		uint _InstSeed;
 
 		public int Folds {
 			get { return _Folds; }
 			set { if (value != 0 && value < 2) throw new ArgumentException("Must have no folds (no test data) or at least 2"); if (!_Folds.Equals(value)) { _Folds = value; _propertyChanged("Folds"); } }
 		}
-		private int _Folds;
+		int _Folds;
 
 		public bool ExtendDataByCorrelation { get { return owner.ExtendDataByCorrelation; } set { owner.ExtendDataByCorrelation = value; } }
 

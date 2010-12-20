@@ -213,6 +213,7 @@
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <ExceptionHandling>Async</ExceptionHandling>
       <FloatingPointModel>Fast</FloatingPointModel>
+      <AdditionalOptions>/MP4 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <AdditionalDependencies>LvqLib.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -240,6 +241,7 @@
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <ExceptionHandling>Async</ExceptionHandling>
       <FloatingPointModel>Fast</FloatingPointModel>
+      <AdditionalOptions>/MP4 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <AdditionalDependencies>LvqLib.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -297,6 +299,7 @@
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <MinimalRebuild>false</MinimalRebuild>
       <ExceptionHandling>Async</ExceptionHandling>
+      <AdditionalOptions>/MP4 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <AdditionalDependencies>LvqLib.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -330,6 +333,7 @@
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <MinimalRebuild>false</MinimalRebuild>
       <ExceptionHandling>Async</ExceptionHandling>
+      <AdditionalOptions>/MP4 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <AdditionalDependencies>LvqLib.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -363,6 +367,7 @@
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <MinimalRebuild>false</MinimalRebuild>
       <ExceptionHandling>Async</ExceptionHandling>
+      <AdditionalOptions>/MP4 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <AdditionalDependencies>LvqLib.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -399,6 +404,7 @@
       <ExceptionHandling>Async</ExceptionHandling>
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
       <FloatingPointExceptions>false</FloatingPointExceptions>
+      <AdditionalOptions>/MP4 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <AdditionalDependencies>LvqLib.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -436,6 +442,7 @@
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
       <FloatingPointExceptions>false</FloatingPointExceptions>
       <WholeProgramOptimization>false</WholeProgramOptimization>
+      <AdditionalOptions>/MP4 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <AdditionalDependencies>LvqLib.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -508,6 +515,7 @@
       <ExceptionHandling>Async</ExceptionHandling>
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
       <FloatingPointExceptions>false</FloatingPointExceptions>
+      <AdditionalOptions>/MP4 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <AdditionalDependencies>LvqLib.lib;%(AdditionalDependencies)</AdditionalDependencies>

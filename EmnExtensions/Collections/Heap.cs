@@ -107,7 +107,7 @@ namespace EmnExtensions.Collections {
 
 		public int Count { get { return backingCount; } }
 
-		private void Bubble(int newIndex, T elem) {
+		void Bubble(int newIndex, T elem) {
 			int parIndex = (newIndex - 1) / 2;
 			while (newIndex != 0 && comparer.Compare(backingStore[parIndex], elem) > 0) {
 				backingStore[newIndex] = backingStore[parIndex];
@@ -205,7 +205,7 @@ namespace EmnExtensions.Collections {
 
 		public int Count { get { return backingCount; } }
 
-		private void Bubble(int newIndex, Entry elem) {
+		void Bubble(int newIndex, Entry elem) {
 			int parIndex = (newIndex - 1) / 2;
 			while (backingStore[parIndex].Cost > elem.Cost && newIndex != 0) {
 				backingStore[newIndex] = backingStore[parIndex];

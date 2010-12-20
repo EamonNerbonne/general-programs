@@ -5,7 +5,7 @@ namespace LvqGui
 {
 	public partial class App
 	{
-		private void Application_Startup(object sender, StartupEventArgs e) {
+		void Application_Startup(object sender, StartupEventArgs e) {
 			new LvqWindow().Show();
 		}
 	}

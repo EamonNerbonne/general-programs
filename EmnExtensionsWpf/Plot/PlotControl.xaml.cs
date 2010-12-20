@@ -48,7 +48,7 @@ namespace EmnExtensions.Wpf.Plot {
 		public static readonly DependencyProperty ShowAxesProperty =
 			DependencyProperty.Register("ShowAxes", typeof(bool), typeof(PlotControl), new UIPropertyMetadata(true, ShowAxesSet));
 
-		private static void ShowAxesSet(DependencyObject d, DependencyPropertyChangedEventArgs e) {
+		static void ShowAxesSet(DependencyObject d, DependencyPropertyChangedEventArgs e) {
 			((PlotControl)d).SetAxesShow((bool)e.NewValue);
 		}
 
@@ -129,7 +129,7 @@ namespace EmnExtensions.Wpf.Plot {
 			}
 		}
 
-		private IEnumerable<TickedAxis> Axes { get { yield return tickedAxisLft; yield return tickedAxisBot; yield return tickedAxisRgt; yield return tickedAxisTop; } }
+		IEnumerable<TickedAxis> Axes { get { yield return tickedAxisLft; yield return tickedAxisBot; yield return tickedAxisRgt; yield return tickedAxisTop; } }
 
 		public bool? AttemptBorderTicks {
 			set { if (value.HasValue) foreach (var axis in Axes) axis.AttemptBorderTicks = value.Value; }
@@ -140,7 +140,7 @@ namespace EmnExtensions.Wpf.Plot {
 		}
 
 		#region Static Helper Functions
-		private static IEnumerable<TickedAxisLocation> ProjectionCorners {
+		static IEnumerable<TickedAxisLocation> ProjectionCorners {
 			get {
 				yield return TickedAxisLocation.BelowGraph | TickedAxisLocation.LeftOfGraph;
 				yield return TickedAxisLocation.BelowGraph | TickedAxisLocation.RightOfGraph;
@@ -148,12 +148,12 @@ namespace EmnExtensions.Wpf.Plot {
 				yield return TickedAxisLocation.AboveGraph | TickedAxisLocation.RightOfGraph;
 			}
 		}
-		private static DimensionBounds ToDimBounds(Rect bounds, bool isHorizontal) { return bounds.IsEmpty || bounds.Width == 0 || bounds.Height == 0 ? DimensionBounds.Empty : isHorizontal ? DimensionBounds.FromRectX(bounds) : DimensionBounds.FromRectY(bounds); }
-		private static DimensionMargins ToDimMargins(Thickness margins, bool isHorizontal) { return isHorizontal ? DimensionMargins.FromThicknessX(margins) : DimensionMargins.FromThicknessY(margins); }
-		private static TickedAxisLocation ChooseProjection(IPlot graph) { return ProjectionCorners.FirstOrDefault(corner => (graph.MetaData.AxisBindings & corner) == corner); }
+		static DimensionBounds ToDimBounds(Rect bounds, bool isHorizontal) { return bounds.IsEmpty || bounds.Width == 0 || bounds.Height == 0 ? DimensionBounds.Empty : isHorizontal ? DimensionBounds.FromRectX(bounds) : DimensionBounds.FromRectY(bounds); }
+		static DimensionMargins ToDimMargins(Thickness margins, bool isHorizontal) { return isHorizontal ? DimensionMargins.FromThicknessX(margins) : DimensionMargins.FromThicknessY(margins); }
+		static TickedAxisLocation ChooseProjection(IPlot graph) { return ProjectionCorners.FirstOrDefault(corner => (graph.MetaData.AxisBindings & corner) == corner); }
 		#endregion
 
-		private void RecomputeBounds() {
+		void RecomputeBounds() {
 			Trace.WriteLine("RecomputeBounds");
 
 			foreach (TickedAxis axis in Axes) {
@@ -176,7 +176,7 @@ namespace EmnExtensions.Wpf.Plot {
 			}
 		}
 
-		private void RedrawGraphs(TickedAxisLocation gridLineAxes) {
+		void RedrawGraphs(TickedAxisLocation gridLineAxes) {
 			Trace.WriteLine("Redrawing Graphs");
 			using (var drawingContext = dg.Open())
 				RedrawScene(drawingContext, gridLineAxes);
@@ -200,7 +200,7 @@ namespace EmnExtensions.Wpf.Plot {
 			self.InvalidateVisual();
 		}
 
-		private void RedrawScene(DrawingContext drawingContext, TickedAxisLocation gridLineAxes) {
+		void RedrawScene(DrawingContext drawingContext, TickedAxisLocation gridLineAxes) {
 			//drawingContext.PushClip(overallClipRect);
 			if (ShowGridLines)
 				foreach (var axis in Axes)
@@ -280,7 +280,7 @@ namespace EmnExtensions.Wpf.Plot {
 		double m_dpiY = 96.0;
 		bool manualRender;
 
-		private void ExportGraph(object sender, RoutedEventArgs e) {
+		void ExportGraph(object sender, RoutedEventArgs e) {
 			byte[] xpsData = PrintToByteArray();
 			var dialogThread = new Thread(() => {
 				SaveFileDialog saveDialog = new SaveFileDialog {

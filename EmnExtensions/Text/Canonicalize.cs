@@ -6,8 +6,8 @@ using System.Collections;
 
 namespace EmnExtensions.Text {
 	public static class Canonicalize {
-		private static byte[] categorycache;
-		private static BitArray reasonablechar;
+		static byte[] categorycache;
+		static BitArray reasonablechar;
 		[System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1065:DoNotRaiseExceptionsInUnexpectedLocations"), System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1810:InitializeReferenceTypeStaticFieldsInline")]
 		static Canonicalize() {
 			foreach (UnicodeCategory cat in Enum.GetValues(typeof(UnicodeCategory))) {

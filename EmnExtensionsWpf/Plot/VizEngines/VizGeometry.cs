@@ -90,7 +90,7 @@ namespace EmnExtensions.Wpf.Plot.VizEngines {
 
 		public override void OnRenderOptionsChanged() { RecreatePen(); }
 
-		private void RecreatePen() {
+		void RecreatePen() {
 			Color currentColor = ((SolidColorBrush)m_Pen.Brush).Color;
 			double currentThickness = m_Pen.Thickness;
 			Color newColor = Plot.MetaData.RenderColor ?? currentColor;

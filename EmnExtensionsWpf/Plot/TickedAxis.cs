@@ -58,7 +58,7 @@ namespace EmnExtensions.Wpf.Plot {
 		DimensionMargins m_DataMargin;
 		public DimensionBounds DataBound { get { return m_DataBound; } set { if (m_DataBound != value) { m_DataBound = value; InvalidateMeasure(); InvalidateVisual(); } } }
 		public DimensionMargins DataMargin { get { return m_DataMargin; } set { if (m_DataMargin != value) { m_DataMargin = value; InvalidateMeasure(); InvalidateVisual(); } } }
-		private Brush _background;
+		Brush _background;
 		public Brush Background { get { return _background; } set { _background = value; InvalidateVisual(); } }
 
 		TickedAxis ClockwisePrevAxis, ClockwiseNextAxis, OppositeAxis;//set in OnInitialized
@@ -96,7 +96,7 @@ namespace EmnExtensions.Wpf.Plot {
 		}
 		public double EffectiveThickness { get { return Math.Max(Thickness, RequiredThickness); } }
 
-		private string _dataUnits;
+		string _dataUnits;
 		public string DataUnits { get { return _dataUnits; } set { _dataUnits = value; InvalidateMeasure(); InvalidateVisual(); } }
 
 		bool m_AttemptBorderTicks;
@@ -134,7 +134,7 @@ namespace EmnExtensions.Wpf.Plot {
 
 		IEnumerable<TickedAxis> Siblings { get { return LogicalTreeHelper.GetChildren(Parent).OfType<TickedAxis>(); } }
 
-		private void GuessNeighborsBasedOnAxisPos() {
+		void GuessNeighborsBasedOnAxisPos() {
 			if ((AxisPos & TickedAxisLocation.Any) == 0 || Parent == null) {
 				ClockwiseNextAxis = ClockwisePrevAxis = null;
 			} else {
@@ -270,8 +270,10 @@ namespace EmnExtensions.Wpf.Plot {
 
 		bool IsCollapsedOrEmpty { get { return HideAxis || Visibility == Visibility.Collapsed || DataBound.Length <= 0 || !DataBound.Length.IsFinite(); } }
 
+		static double ZeroIfInf(double val) { return double.IsInfinity(val) ? 0 : val; }
+
 		Size DontShow(Size constraint) {
-			m_bestGuessCurrentSize = CondTranspose(new Size(CondTranspose(constraint).Width, 0));
+			m_bestGuessCurrentSize = CondTranspose(new Size(ZeroIfInf(CondTranspose(constraint).Width), 0));
 			RequiredThicknessOfNext = RequiredThicknessOfPrev = 0.0;
 			return m_bestGuessCurrentSize;
 		}
@@ -540,7 +542,7 @@ namespace EmnExtensions.Wpf.Plot {
 			drawingContext.Pop();
 		}
 
-		private void RenderGridLines() {
+		void RenderGridLines() {
 			//			Console.Write(".");
 			var ticksByIdx = m_ticks.Select((tick, idx) => new Tick { Value = idx, Rank = tick.Rank });
 			using (var context = m_gridLines.Open()) {
@@ -555,7 +557,7 @@ namespace EmnExtensions.Wpf.Plot {
 			m_redrawGridLines = false;
 		}
 
-		private static StreamGeometry DrawGridLines(IEnumerable<Tick> ticks) {
+		static StreamGeometry DrawGridLines(IEnumerable<Tick> ticks) {
 			StreamGeometry geom = new StreamGeometry();
 			using (var context = geom.Open())
 				foreach (Tick tick in ticks)
@@ -563,7 +565,7 @@ namespace EmnExtensions.Wpf.Plot {
 			return geom;
 		}
 
-		private static void DrawGridLinesHelper(StreamGeometryContext context, double value, double tickLength) {
+		static void DrawGridLinesHelper(StreamGeometryContext context, double value, double tickLength) {
 			//we choose to generate the the streamgeometry "by index" of tick rather than value, due to accuracy: it seems the geometry is low-resolution, so
 			//once stored, the resolution is no better than a float: using the "real" value is often inaccurate.
 			context.BeginFigure(new Point(value, 0), false, false);

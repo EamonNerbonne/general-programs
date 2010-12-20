@@ -86,7 +86,7 @@ namespace EmnExtensions.Wpf {
 				return Color.FromRgb(0, 0, 0);
 		}
 
-		private static byte RoundToByte(double d) { return (byte)(d + 0.5); }
+		static byte RoundToByte(double d) { return (byte)(d + 0.5); }
 
 		public static Color Desaturize(Color c, double saturation) {
 			return new HSL(c) {S = saturation}.ToRGB();

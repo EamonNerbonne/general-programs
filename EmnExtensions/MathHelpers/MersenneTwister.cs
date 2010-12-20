@@ -420,42 +420,42 @@ namespace EmnExtensions.MathHelpers
         }
 
         /* Period parameters */
-        private const Int32 N = 624;
-        private const Int32 M = 397;
-        private const UInt32 MatrixA = 0x9908b0df; /* constant vector a */
-        private const UInt32 UpperMask = 0x80000000; /* most significant w-r bits */
-        private const UInt32 LowerMask = 0x7fffffff; /* least significant r bits */
+        const Int32 N = 624;
+        const Int32 M = 397;
+        const UInt32 MatrixA = 0x9908b0df; /* constant vector a */
+        const UInt32 UpperMask = 0x80000000; /* most significant w-r bits */
+        const UInt32 LowerMask = 0x7fffffff; /* least significant r bits */
 
         /* Tempering parameters */
-        private const UInt32 TemperingMaskB = 0x9d2c5680;
-        private const UInt32 TemperingMaskC = 0xefc60000;
+        const UInt32 TemperingMaskB = 0x9d2c5680;
+        const UInt32 TemperingMaskC = 0xefc60000;
 
-        private static UInt32 temperingShiftU(UInt32 y)
+        static UInt32 temperingShiftU(UInt32 y)
         {
             return (y >> 11);
         }
 
-        private static UInt32 temperingShiftS(UInt32 y)
+        static UInt32 temperingShiftS(UInt32 y)
         {
             return (y << 7);
         }
 
-        private static UInt32 temperingShiftT(UInt32 y)
+        static UInt32 temperingShiftT(UInt32 y)
         {
             return (y << 15);
         }
 
-        private static UInt32 temperingShiftL(UInt32 y)
+        static UInt32 temperingShiftL(UInt32 y)
         {
             return (y >> 18);
         }
 
-        private readonly UInt32[] _mt = new UInt32[N]; /* the array for the state vector  */
-        private Int16 _mti;
+        readonly UInt32[] _mt = new UInt32[N]; /* the array for the state vector  */
+        Int16 _mti;
 
-        private static readonly UInt32[] _mag01 = { 0x0, MatrixA };
+        static readonly UInt32[] _mag01 = { 0x0, MatrixA };
 
-        private void init(UInt32 seed)
+        void init(UInt32 seed)
         {
             _mt[0] = seed & 0xffffffffU;
 
@@ -471,7 +471,7 @@ namespace EmnExtensions.MathHelpers
             }
         }
 
-        private void init(UInt32[] key)
+        void init(UInt32[] key)
         {
             Int32 i, j, k;
             init(19650218U);
@@ -509,13 +509,13 @@ namespace EmnExtensions.MathHelpers
 
         // 9007199254740991.0 is the maximum double value which the 53 significand
         // can hold when the exponent is 0.
-        private const Double FiftyThreeBitsOf1s = 9007199254740991.0;
+        const Double FiftyThreeBitsOf1s = 9007199254740991.0;
         // Multiply by inverse to (vainly?) try to avoid a division.
-        private const Double Inverse53BitsOf1s = 1.0 / FiftyThreeBitsOf1s;
-        private const Double OnePlus53BitsOf1s = FiftyThreeBitsOf1s + 1;
-        private const Double InverseOnePlus53BitsOf1s = 1.0 / OnePlus53BitsOf1s;
+        const Double Inverse53BitsOf1s = 1.0 / FiftyThreeBitsOf1s;
+        const Double OnePlus53BitsOf1s = FiftyThreeBitsOf1s + 1;
+        const Double InverseOnePlus53BitsOf1s = 1.0 / OnePlus53BitsOf1s;
 
-        private Double compute53BitRandom(Double translate, Double scale)
+        Double compute53BitRandom(Double translate, Double scale)
         {
             // get 27 pseudo-random bits
             UInt64 a = (UInt64)GenerateUInt32() >> 5;

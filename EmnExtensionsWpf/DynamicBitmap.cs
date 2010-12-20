@@ -20,7 +20,7 @@ namespace EmnExtensions.Wpf
 	 BitmapGeneratorSet)
  );
 
-		private static void BitmapGeneratorSet(DependencyObject d, DependencyPropertyChangedEventArgs e) {
+		static void BitmapGeneratorSet(DependencyObject d, DependencyPropertyChangedEventArgs e) {
 			((DynamicBitmap)d).InvalidateVisual();
 		}
 		public Func<int, int, uint[]> BitmapGenerator {
@@ -29,7 +29,7 @@ namespace EmnExtensions.Wpf
 		}
 
 		static uint[] lastAutoGen;
-		private static uint[] DefaultBitmapGenerator(int width, int height) {
+		static uint[] DefaultBitmapGenerator(int width, int height) {
 			if (lastAutoGen == null || lastAutoGen.Length < width * height)
 				lastAutoGen = new uint[width * height];
 			return lastAutoGen;

@@ -14,25 +14,25 @@ namespace LvqGui {
 	public class LoadDatasetValues : INotifyPropertyChanged, IHasSeed {
 		readonly LvqWindowValues owner;
 		public event PropertyChangedEventHandler PropertyChanged;
-		private void _propertyChanged(String propertyName) { if (PropertyChanged != null) PropertyChanged(this, new PropertyChangedEventArgs(propertyName)); }
+		void _propertyChanged(String propertyName) { if (PropertyChanged != null) PropertyChanged(this, new PropertyChangedEventArgs(propertyName)); }
 
 		public uint Seed {
 			get { return _Seed; }
 			set { if (!Equals(_Seed,value)) { _Seed = value; _propertyChanged("Seed"); } }
 		}
-		private uint _Seed;
+		uint _Seed;
 
 		public uint InstSeed {
 			get { return _InstSeed; }
 			set { if (!_InstSeed.Equals(value)) { _InstSeed = value; _propertyChanged("InstSeed"); } }
 		}
-		private uint _InstSeed;
+		uint _InstSeed;
 
 		public int Folds {
 			get { return _Folds; }
 			set { if (value != 0 && value < 2) throw new ArgumentException("Must have no folds (no test data) or at least 2"); if (!_Folds.Equals(value)) { _Folds = value; _propertyChanged("Folds"); } }
 		}
-		private int _Folds;
+		int _Folds;
 
 
 		public LoadDatasetValues(LvqWindowValues owner) {

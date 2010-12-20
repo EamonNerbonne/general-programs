@@ -39,7 +39,7 @@ namespace LvqGui {
 		}
 
 		// ReSharper disable UnusedMember.Local
-		private void DoBenchmark() {		// ReSharper restore UnusedMember.Local
+		void DoBenchmark() {		// ReSharper restore UnusedMember.Local
 			ThreadPool.QueueUserWorkItem(o => {
 				LvqWindowValues values = ((LvqWindowValues)o);
 				values.CreateStarDatasetValues.Seed = 1337;
@@ -76,7 +76,7 @@ namespace LvqGui {
 			set { SetValue(FullscreenProperty, value); }
 		}
 
-		private WindowState lastState = WindowState.Normal;
+		WindowState lastState = WindowState.Normal;
 		// Using a DependencyProperty as the backing store for Fullscreen.  This enables animation, styling, binding, etc...
 		public static readonly DependencyProperty FullscreenProperty =
 			DependencyProperty.RegisterAttached("Fullscreen", typeof(bool), typeof(LvqWindow), new UIPropertyMetadata(false, (o, e) => {

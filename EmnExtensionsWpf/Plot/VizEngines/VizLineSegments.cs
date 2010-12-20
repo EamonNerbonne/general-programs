@@ -30,7 +30,7 @@ namespace EmnExtensions.Wpf.Plot.VizEngines {
 			Implementation.ChangeData(geomCache);
 		}
 
-		private void RecomputeBounds(Point[] newData) {
+		void RecomputeBounds(Point[] newData) {
 			Rect innerBounds, outerBounds;
 			VizPixelScatterHelpers.RecomputeBounds(newData, CoverageRatioX, CoverageRatioY, CoverageRatioGrad, out outerBounds, out innerBounds);
 			if (innerBounds != m_InnerBounds) {

@@ -3,14 +3,14 @@ namespace EmnExtensions.Wpf.Plot {
 	public class PlotWithViz<T> : IPlot {
 		public IPlotContainer Container { private get; set; }
 
-		private IPlotMetaData metaData;
+		IPlotMetaData metaData;
 
 		public IPlotMetaData MetaData {
 			get { return metaData; }
 			set { metaData = value; metaData.Plot = this; }
 		}
 
-		private IVizEngine<T> visualisation;
+		IVizEngine<T> visualisation;
 
 		public IVizEngine<T> Visualisation {
 			get { return visualisation; }

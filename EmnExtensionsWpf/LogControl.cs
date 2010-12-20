@@ -44,7 +44,7 @@ namespace EmnExtensions.Wpf {
 			AppendThreadSafe(line + "\n");
 		}
 
-		private void Invalidate() {
+		void Invalidate() {
 			if (!redraw) {
 				redraw = true;
 				Dispatcher.BeginInvoke(DispatcherPriority.Normal, (Action)UpdateStringUI);
@@ -58,7 +58,7 @@ namespace EmnExtensions.Wpf {
 			}
 		}
 
-		private void UpdateStringUI() {
+		void UpdateStringUI() {
 			string strToAppendToCur = null;
 			lock (curLine) {
 				if (redraw) {
@@ -113,7 +113,7 @@ namespace EmnExtensions.Wpf {
 			}
 		}
 
-		private static void RedirectNativeStream(LogControl toControl, RestoringReadStream fromNative, string name) {
+		static void RedirectNativeStream(LogControl toControl, RestoringReadStream fromNative, string name) {
 			new Thread(() => {
 				using (var reader = new StreamReader(fromNative.ReadStream)) {
 					char[] buffer = new char[4096];

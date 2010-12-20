@@ -12,7 +12,7 @@ namespace EmnExtensions.Collections {
             foreach (var edge in edges)
                 AddEdge(edge.From, edge.To);
         }
-        private static IEnumerable<Y> LookIn<X,Y>(Dictionary<X, HashSet<Y>> dict, X key) {
+        static IEnumerable<Y> LookIn<X,Y>(Dictionary<X, HashSet<Y>> dict, X key) {
             if (dict.ContainsKey(key)) return dict[key]; else return Enumerable.Empty<Y>();
         }
 

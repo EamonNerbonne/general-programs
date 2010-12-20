@@ -19,13 +19,13 @@ namespace LvqGui {
 		public event Action<LvqDatasetCli, LvqModels, int> ModelSelected;
 		public event Action<LvqDatasetCli, LvqModels> SelectedModelUpdatedInBackgroundThread;
 
-		private void _propertyChanged(string propertyName) { if (PropertyChanged != null) PropertyChanged(this, new PropertyChangedEventArgs(propertyName)); }
+		void _propertyChanged(string propertyName) { if (PropertyChanged != null) PropertyChanged(this, new PropertyChangedEventArgs(propertyName)); }
 
 		public LvqDatasetCli SelectedDataset {
 			get { return _SelectedDataset; }
 			set { if (!Equals(_SelectedDataset, value)) { _SelectedDataset = value; _propertyChanged("SelectedDataset"); _propertyChanged("MatchingLvqModels"); SelectedLvqModel = _SelectedDataset == null ? null : Owner.ResolveModel(_SelectedDataset.LastModel); AnimateTraining = false; } }
 		}
-		private LvqDatasetCli _SelectedDataset;
+		LvqDatasetCli _SelectedDataset;
 
 		public IEnumerable<LvqModels> MatchingLvqModels { get { return Owner.LvqModels.Where(model => model == null || model.FitsDataShape(SelectedDataset)); } }
 
@@ -33,7 +33,7 @@ namespace LvqGui {
 			get { return _SelectedLvqModel; }
 			set { if (!Equals(_SelectedLvqModel, value)) { _SelectedLvqModel = value; _propertyChanged("SelectedLvqModel"); _propertyChanged("ModelIndexes"); ModelSelected(_SelectedDataset, _SelectedLvqModel, _SubModelIndex); AnimateTraining = false; SubModelIndex = 0; } }
 		}
-		private LvqModels _SelectedLvqModel;
+		LvqModels _SelectedLvqModel;
 
 		public IEnumerable<int> ModelIndexes { get { return Enumerable.Range(0, SelectedLvqModel == null ? 0 : SelectedLvqModel.ModelCount); } }
 
@@ -45,19 +45,19 @@ namespace LvqGui {
 				if (!_SubModelIndex.Equals(value)) { _SubModelIndex = value; ModelSelected(_SelectedDataset, _SelectedLvqModel, _SubModelIndex); _propertyChanged("SubModelIndex"); }
 			}
 		}
-		private int _SubModelIndex;
+		int _SubModelIndex;
 
 		public int EpochsPerClick {
 			get { return _EpochsPerClick; }
 			set { if (value < 1) throw new ArgumentException("Must train for at least 1 epoch at a  time"); if (!Equals(_EpochsPerClick, value)) { _EpochsPerClick = value; _propertyChanged("EpochsPerClick"); } }
 		}
-		private int _EpochsPerClick;
+		int _EpochsPerClick;
 
 		public int EpochsPerAnimation {
 			get { return _EpochsPerAnimation; }
 			set { if (value < 1) throw new ArgumentException("Must train for at least 1 epoch at a  time"); if (!_EpochsPerAnimation.Equals(value)) { _EpochsPerAnimation = value; _propertyChanged("EpochsPerAnimation"); } }
 		}
-		private int _EpochsPerAnimation;
+		int _EpochsPerAnimation;
 
 		public TrainingControlValues(LvqWindowValues owner) {
 			this.owner = owner;
@@ -86,7 +86,7 @@ namespace LvqGui {
 				}
 			}
 		}
-		private bool _AnimateTraining;
+		bool _AnimateTraining;
 
 		void LvqModels_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e) {
 			_propertyChanged("MatchingLvqModels");
@@ -164,7 +164,7 @@ namespace LvqGui {
 			}
 		}
 
-		private void PotentialUpdate(LvqDatasetCli selectedDataset, LvqModels selectedModel) {
+		void PotentialUpdate(LvqDatasetCli selectedDataset, LvqModels selectedModel) {
 			if (selectedModel == SelectedLvqModel && selectedDataset == SelectedDataset && SelectedModelUpdatedInBackgroundThread != null)
 				SelectedModelUpdatedInBackgroundThread(selectedDataset, selectedModel);
 		}

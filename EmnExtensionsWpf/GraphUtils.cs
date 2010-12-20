@@ -227,7 +227,7 @@ namespace EmnExtensions.Wpf {
 			return translateThenScale;
 		}
 
-		private static bool IsOK(Point p) { return p.X.IsFinite() && p.Y.IsFinite(); }
+		static bool IsOK(Point p) { return p.X.IsFinite() && p.Y.IsFinite(); }
 
 		public static BitmapSource MakeGreyBitmap(byte[,] image) {
 			int w = image.GetLength(1), h = image.GetLength(0);

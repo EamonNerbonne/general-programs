@@ -27,7 +27,7 @@ namespace EmnExtensions.Wpf.Plot.VizEngines {
 		}
 		public int? OverridePointCountEstimate { get; set; }
 
-		private void SetPenSize(int pointCount) {
+		void SetPenSize(int pointCount) {
 			double thickness = Plot.MetaData.RenderThickness ?? VizPixelScatterHelpers.PointCountToThickness(pointCount);
 
 #if PERMIT_SQUARE_CAPS
@@ -53,7 +53,7 @@ namespace EmnExtensions.Wpf.Plot.VizEngines {
 		double m_CoverageGradient = 5.0;
 		public double CoverageGradient { get { return m_CoverageGradient; } set { m_CoverageGradient = value; InvalidateBounds(); } }
 
-		private Rect RecomputeBounds() {
+		Rect RecomputeBounds() {
 			Rect innerBounds, outerBounds;
 			VizPixelScatterHelpers.RecomputeBounds(currentData, CoverageRatio, CoverageRatio, CoverageGradient, out outerBounds, out innerBounds);
 			return innerBounds;

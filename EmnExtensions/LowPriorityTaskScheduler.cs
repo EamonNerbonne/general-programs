@@ -16,7 +16,7 @@ namespace EmnExtensions {
 #endif
 			readonly LowPriorityTaskScheduler owner;
 			readonly SemaphoreSlim sem = new SemaphoreSlim(1);
-			bool shouldExit = false;
+			bool shouldExit;
 			public WorkerThread(LowPriorityTaskScheduler owner, ThreadPriority priority) {
 				this.owner = owner;
 				new Thread(DoWork) { IsBackground = true, Priority = priority }.Start();
@@ -68,7 +68,7 @@ namespace EmnExtensions {
 		readonly int MaxParallel;
 		readonly ThreadPriority Priority;
 		readonly int IdleAfterMilliseconds;
-		int currPar = 0;
+		int currPar;
 		public LowPriorityTaskScheduler(int? maxParallelism = null, ThreadPriority priority = ThreadPriority.Lowest, int? idleMilliseconds=null) {
 			MaxParallel = maxParallelism ?? Environment.ProcessorCount * 2;
 			Priority = priority;
@@ -124,7 +124,9 @@ namespace EmnExtensions {
 				return false;
 		}
 
+// ReSharper disable UnusedParameter.Local
 		void SlipstreamQueueExecute(WorkerThread t) {
+// ReSharper restore UnusedParameter.Local
 			Task another;
 			while (TryGetQueuedTask(out another)) {
 				TryExecuteTask(another);

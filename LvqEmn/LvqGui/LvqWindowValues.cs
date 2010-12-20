@@ -15,7 +15,7 @@ using LvqLibCli;
 namespace LvqGui {
 	public class LvqWindowValues : INotifyPropertyChanged {
 		public event PropertyChangedEventHandler PropertyChanged;
-		private void _propertyChanged(String propertyName) { if (PropertyChanged != null) PropertyChanged(this, new PropertyChangedEventArgs(propertyName)); }
+		void _propertyChanged(String propertyName) { if (PropertyChanged != null) PropertyChanged(this, new PropertyChangedEventArgs(propertyName)); }
 
 		//public AppSettingsValues AppSettingsValues { get; private set; }
 		public CreateGaussianCloudsDatasetValues CreateGaussianCloudsDatasetValues { get; private set; }
@@ -28,7 +28,7 @@ namespace LvqGui {
 			get { return _ExtendDataByCorrelation; }
 			set { if (!_ExtendDataByCorrelation.Equals(value)) { _ExtendDataByCorrelation = value; _propertyChanged("ExtendDataByCorrelation"); } }
 		}
-		private bool _ExtendDataByCorrelation;
+		bool _ExtendDataByCorrelation;
 
 
 		public ObservableCollection<LvqDatasetCli> Datasets { get; private set; }

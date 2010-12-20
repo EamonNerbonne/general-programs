@@ -52,7 +52,7 @@ namespace LvqGui {
 			});
 		}
 
-		private void RelayoutSubPlotWindow(bool resetChildrenFirst = false) {
+		void RelayoutSubPlotWindow(bool resetChildrenFirst = false) {
 			Grid plotGrid = (Grid)subPlotWindow.Content;
 			if (subplots == null) {
 				plotGrid.Children.Clear();
@@ -103,7 +103,7 @@ namespace LvqGui {
 			exitToken.Register(() => lvqPlotDispatcher.BeginInvokeShutdown(DispatcherPriority.Send));
 		}
 
-		private void MakeSubPlotWindow() {
+		void MakeSubPlotWindow() {
 			double borderWidth = (SystemParameters.MaximizedPrimaryScreenWidth - SystemParameters.FullPrimaryScreenWidth) / 2.0;
 			if (subPlotWindow != null && subPlotWindow.IsLoaded) return;
 			subPlotWindow = new Window {
