@@ -4,6 +4,7 @@
 #include <Eigen/Core>
 #include <boost/shared_ptr.hpp>
 #include "LvqConstants.h"
+#include "LvqTypedefs.h"
 
 template <typename T> class copy_ptr {
 	T*  item;
@@ -89,7 +90,8 @@ public:
 	LvqModelRuntimeSettings RuntimeSettings;
 	std::vector<int> PrototypeDistribution;
 	Eigen::MatrixXd PerClassMeans;
-	LvqModelSettings(LvqModelType modelType, boost::mt19937 & rngParams, boost::mt19937 & rngIter, std::vector<int> protodistrib, Eigen::MatrixXd const & means) 
+	PMatrix pcaTransform;
+	LvqModelSettings(LvqModelType modelType, boost::mt19937 & rngParams, boost::mt19937 & rngIter, std::vector<int> protodistrib, Eigen::MatrixXd const & means, PMatrix const &pcaTransform) 
 		: RandomInitialProjection(true)
 		, RandomInitialBorders(false) 
 		, NgUpdateProtos(false)
@@ -99,6 +101,7 @@ public:
 		, ModelType(modelType)
 		, RuntimeSettings(static_cast<int>(means.cols()),rngIter)
 		, Dimensionality(0)
+		, pcaTransform(pcaTransform)
 	{ }
 
 	size_t Dimensions() const {return PerClassMeans.rows();}

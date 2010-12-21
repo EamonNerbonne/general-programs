@@ -62,14 +62,14 @@ MatchQuality GsmLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel)
 
 	//now matches.good is "J" and matches.bad is "K".
 
-	double muJ2 = 2.0*matches.MuJ();
 	double muK2 = 2.0*matches.MuK();
+	double muJ2 = 2.0*matches.MuJ();
 
 	int J = matches.matchGood;
 	int K = matches.matchBad;
 
-	Vector2d muK2_P_vJ(muK2 * (P_prototype[J] - P_trainPoint) );
-	Vector2d muJ2_P_vK(muJ2 * (P_prototype[K] - P_trainPoint) );
+	Vector2d muJ2_P_vJ(muJ2 * (P_prototype[J] - P_trainPoint) );
+	Vector2d muK2_P_vK(muK2 * (P_prototype[K] - P_trainPoint) );
 
 	auto vJ(VectorXd::MapAligned(m_vJ.data(),m_vJ.size()));
 	auto vK(VectorXd::MapAligned(m_vK.data(),m_vK.size()));
@@ -77,10 +77,10 @@ MatchQuality GsmLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel)
 	vJ = prototype[K] - trainPoint;
 	vK = prototype[K] - trainPoint;
 
-	prototype[J].noalias() -= P.transpose() * (lr_point * muK2_P_vJ);
-	prototype[K].noalias() -= P.transpose() * (settings.LrScaleBad*lr_point *muJ2_P_vK);
+	prototype[J].noalias() -= P.transpose() * (lr_point * muJ2_P_vJ);
+	prototype[K].noalias() -= P.transpose() * (settings.LrScaleBad*lr_point *muK2_P_vK);
 
-	P.noalias() -= (lr_P * muK2_P_vJ) * vJ.transpose() + (lr_P * muJ2_P_vK) * vK.transpose();
+	P.noalias() -= (lr_P * muJ2_P_vJ) * vJ.transpose() + (lr_P * muK2_P_vK) * vK.transpose();
 
 	if(ngMatchCache.size()>0) {
 		double lrSub = lr_point;
@@ -89,8 +89,8 @@ MatchQuality GsmLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel)
 			lrSub*=lrDelta;
 			VectorXd &Js = prototype[fullmatch.matchesOk[i].idx];
 			Vector2d &P_Js = P_prototype[fullmatch.matchesOk[i].idx];;
-			double muK2s_lrSub = lrSub* 2.0 * +2.0*fullmatch.distBad / (sqr(fullmatch.matchesOk[i].dist) + sqr(fullmatch.distBad));
-			Js.noalias() -= P.transpose() * (muK2s_lrSub * (P_Js - P_trainPoint));
+			double muJ2s_lrSub = lrSub* 2.0 * +2.0*fullmatch.distBad / (sqr(fullmatch.matchesOk[i].dist) + sqr(fullmatch.distBad));
+			Js.noalias() -= P.transpose() * (muJ2s_lrSub * (P_Js - P_trainPoint));
 		}
 	}
 

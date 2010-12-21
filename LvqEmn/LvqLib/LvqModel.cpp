@@ -39,9 +39,11 @@ void LvqModel::AddTrainingStat(LvqDataset const * trainingSet, std::vector<int>c
 		teststats = testSet->ComputeCostAndErrorRate(testSubset,this);
 	stats.push_back(teststats.errorRate);
 	stats.push_back(teststats.meanCost);
+
 	stats.push_back(trainingstats.distGoodMean);
-	stats.push_back(trainingstats.distGoodVar);
 	stats.push_back(trainingstats.distBadMean);
+
+	stats.push_back(trainingstats.distGoodVar);
 	stats.push_back(trainingstats.distBadVar);
 
 	stats.push_back(trainingstats.muJmean);
@@ -69,8 +71,8 @@ std::vector<std::wstring> LvqModel::TrainingStatNames() {
 	retval.push_back(L"Test Error|error rate|Error Rates");
 	retval.push_back(L"Test Cost|cost function|Cost Function");
 	retval.push_back(L"Nearest Correct Prototype Distance|distance|Prototype Distance");
-	retval.push_back(L"Nearest Correct Prototype Distance Variance|distance variance|Prototype Distance Variance");
 	retval.push_back(L"Nearest Incorrect Prototype Distance|distance|Prototype Distance");
+	retval.push_back(L"Nearest Correct Prototype Distance Variance|distance variance|Prototype Distance Variance");
 	retval.push_back(L"Nearest Incorrect Prototype Distance Variance|distance variance|Prototype Distance Variance");
 	retval.push_back(L"MuJ mean|mu-ratio|Mu J and K");
 	retval.push_back(L"MuK mean|mu-ratio|Mu J and K");

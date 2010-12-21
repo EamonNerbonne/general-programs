@@ -69,34 +69,34 @@ MatchQuality G2mLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel)
 	//now matches.good is "J" and matches.bad is "K".
 	G2mLvqPrototype &J = prototype[matches.matchGood];
 	G2mLvqPrototype &K = prototype[matches.matchBad];
-	double muJ2 = 2 * matches.MuJ();
 	double muK2 = 2 * matches.MuK();
+	double muJ2 = 2 * matches.MuJ();
 
 	MVectorXd vJ(m_vJ.data(),m_vJ.size());
 	MVectorXd vK(m_vK.data(),m_vK.size());
 
 	Vector2d P_vJ= J.P_point - P_trainPoint;
 	Vector2d P_vK = K.P_point - P_trainPoint;
-	Vector2d muK2_Bj_P_vJ = muK2 *  (J.B * P_vJ) ;
-	Vector2d muJ2_Bk_P_vK = muJ2 *  (K.B * P_vK) ;
+	Vector2d muJ2_Bj_P_vJ = muJ2 *  (J.B * P_vJ) ;
+	Vector2d muK2_Bk_P_vK = muK2 *  (K.B * P_vK) ;
 	vJ = J.point - trainPoint;
 	vK = K.point - trainPoint;
-	Vector2d muK2_BjT_Bj_P_vJ =  J.B.transpose() * muK2_Bj_P_vJ ;
-	Vector2d muJ2_BkT_Bk_P_vK = K.B.transpose() * muJ2_Bk_P_vK ;
+	Vector2d muJ2_BjT_Bj_P_vJ =  J.B.transpose() * muJ2_Bj_P_vJ ;
+	Vector2d muK2_BkT_Bk_P_vK = K.B.transpose() * muK2_Bk_P_vK ;
 
-	J.B.noalias() -= lr_B * muK2_Bj_P_vJ * P_vJ.transpose() ;
-	K.B.noalias() -= lr_B * muJ2_Bk_P_vK * P_vK.transpose() ;
+	J.B.noalias() -= lr_B * muJ2_Bj_P_vJ * P_vJ.transpose() ;
+	K.B.noalias() -= lr_B * muK2_Bk_P_vK * P_vK.transpose() ;
 	double distbadRaw=0.0;
 	if(settings.UpdatePointsWithoutB) {
 		double distgood = P_vJ.squaredNorm();
 		distbadRaw = P_vK.squaredNorm();
-		double XmuK2 = 2.0*+2.0*distbadRaw / (sqr(distgood) + sqr(distbadRaw));
-		J.point.noalias() -= P.transpose()* (lr_point * XmuK2 *P_vJ);
+		double XmuJ2 = 2.0*+2.0*distbadRaw / (sqr(distgood) + sqr(distbadRaw));
+		J.point.noalias() -= P.transpose()* (lr_point * XmuJ2 *P_vJ);
 	} else {
-		J.point.noalias() -= P.transpose()* (lr_point * muK2_BjT_Bj_P_vJ);
+		J.point.noalias() -= P.transpose()* (lr_point * muJ2_BjT_Bj_P_vJ);
 	}
-	K.point.noalias() -= P.transpose() * (settings.LrScaleBad*lr_point * muJ2_BkT_Bk_P_vK) ;
-	P.noalias() -= (lr_P * muK2_BjT_Bj_P_vJ) * vJ.transpose() + (lr_P * muJ2_BkT_Bk_P_vK) * vK.transpose() ;
+	K.point.noalias() -= P.transpose() * (settings.LrScaleBad*lr_point * muK2_BkT_Bk_P_vK) ;
+	P.noalias() -= (lr_P * muJ2_BjT_Bj_P_vJ) * vJ.transpose() + (lr_P * muK2_BkT_Bk_P_vK) * vK.transpose() ;
 
 	if(ngMatchCache.size()>0) {
 		double lrSub = lr_point;
@@ -105,11 +105,11 @@ MatchQuality G2mLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel)
 			lrSub*=lrDelta;
 			G2mLvqPrototype &Js = prototype[fullmatch.matchesOk[i].idx];
 			if(settings.UpdatePointsWithoutB) {
-				double muK2s = 2.0 * +2.0*distbadRaw / (sqr((Js.P_point - P_trainPoint).squaredNorm()) + sqr(distbadRaw));
-				Js.point.noalias() -= P.transpose() * (lrSub * muK2s * (Js.P_point - P_trainPoint));
+				double muJ2s = 2.0 * +2.0*distbadRaw / (sqr((Js.P_point - P_trainPoint).squaredNorm()) + sqr(distbadRaw));
+				Js.point.noalias() -= P.transpose() * (lrSub * muJ2s * (Js.P_point - P_trainPoint));
 			} else {
-				double muK2s = 2.0 * +2.0*fullmatch.distBad / (sqr(fullmatch.matchesOk[i].dist) + sqr(fullmatch.distBad));
-				Js.point.noalias() -= P.transpose() * (lrSub * muK2s * (Js.B.transpose() * (Js.B * (Js.P_point - P_trainPoint))));
+				double muJ2s = 2.0 * +2.0*fullmatch.distBad / (sqr(fullmatch.matchesOk[i].dist) + sqr(fullmatch.distBad));
+				Js.point.noalias() -= P.transpose() * (lrSub * muJ2s * (Js.B.transpose() * (Js.B * (Js.P_point - P_trainPoint))));
 			}
 		}
 	}

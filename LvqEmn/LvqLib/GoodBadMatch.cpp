@@ -7,8 +7,8 @@
 		retval.costFunc = (distGood - distBad)/(distGood+distBad);
 		retval.distBad = distBad;
 		retval.distGood = distGood;
-		retval.muJ = MuJ();
 		retval.muK = MuK();
+		retval.muJ = MuJ();
 		return retval;
 	}
 
@@ -25,8 +25,8 @@
 		if(!isfinite(retval.costFunc)) throw "Invalid Cost func!";
 		retval.distBad = distBad;
 		retval.distGood = distGood;
-		retval.muJ = -MuGmm();
-		retval.muK = MuGmm();
+		retval.muK = -MuGmm();
+		retval.muJ = MuGmm();
 		return retval;
 	}
 	

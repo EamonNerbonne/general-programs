@@ -18,17 +18,6 @@ void LvqProjectionModel::AppendOtherStats(std::vector<double> & stats, LvqDatase
 
 void randomProjectionMatrix(boost::mt19937 & rngParams, PMatrix & mat);
 
-LvqProjectionModel::LvqProjectionModel(LvqModelSettings & initSettings) 
-	: LvqModel(initSettings)
-	, P(LVQ_LOW_DIM_SPACE, initSettings.Dimensions()) 
-{
-	if(initSettings.RandomInitialProjection)
-//		projectionRandomizeUniformScaled(initSettings.RngParams, P);
-		randomProjectionMatrix(initSettings.RngParams, P);
-	else
-		P.setIdentity();
-}
-
 inline void randomProjectionMatrix(boost::mt19937 & rngParams, PMatrix & mat) {
 	RandomMatrixInit(rngParams,mat,0.0,1.0);
 	Eigen::JacobiSVD<PMatrix> svd(mat, Eigen::ComputeThinU | Eigen::ComputeThinV);
@@ -47,6 +36,20 @@ inline void randomProjectionMatrix(boost::mt19937 & rngParams, PMatrix & mat) {
 		}
 	}
 #endif
+}
+
+
+
+LvqProjectionModel::LvqProjectionModel(LvqModelSettings & initSettings) 
+	: LvqModel(initSettings)
+	, P(LVQ_LOW_DIM_SPACE, initSettings.Dimensions()) 
+{
+	if(initSettings.RandomInitialProjection)
+//		projectionRandomizeUniformScaled(initSettings.RngParams, P);
+		randomProjectionMatrix(initSettings.RngParams, P);
+	else
+		P = initSettings.pcaTransform;
+	//		P.setIdentity();
 }
 
 

@@ -4,7 +4,7 @@
 using namespace Eigen;
 #include "utils.h"
 
-//#define AUTO_BIAS
+#define AUTO_BIAS
 
 class GmmLvqPrototype
 {

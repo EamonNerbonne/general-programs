@@ -113,7 +113,7 @@ MatchQuality GmmLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel)
 		Matrix2d muK2_KBinvT = muK2* K.B.inverse().transpose();
 
 		J.B.noalias() -= lr_B * (muJ2_Bj_P_vJ * P_vJ.transpose() - muJ2_JBinvT );
-		K.B.noalias() += lr_B * (muK2_Bk_P_vK * P_vK.transpose() - muK2_KBinvT) ;
+		K.B.noalias() += (lr_bad_scale*lr_B) * (muK2_Bk_P_vK * P_vK.transpose() - muK2_KBinvT) ;
 		J.RecomputeBias();
 		K.RecomputeBias();
 #else
@@ -141,9 +141,18 @@ MatchQuality GmmLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel)
 				lrSub*=lrDelta;
 				GmmLvqPrototype &Js = prototype[fullmatch.matchesOk[i].idx];
 				double pMargin_s = exp(-fabs(fullmatch.distBad - fullmatch.matchesOk[i].dist));
-				double mu2_s = 2*2* pMargin_s /((1 + pMargin_s)*(1+pMargin_s));
+				double muJ2_s = 2*2* pMargin_s /((1 + pMargin_s)*(1+pMargin_s));
+				Vector2d P_vJs = Js.P_point - P_trainPoint;
+				Vector2d muJ2_Bj_P_vJs = muJ2 * (Js.B * P_vJs);
 
-				Js.point.noalias() -= P.transpose() * (lrSub * mu2_s * (Js.B.transpose() * (Js.B * (Js.P_point - P_trainPoint))));
+				Js.point.noalias() -= P.transpose() * (lrSub * (Js.B.transpose() * muJ2_Bj_P_vJs));
+#ifdef AUTO_BIAS
+				Matrix2d muJ2_JBinvTs = muJ2_s* Js.B.inverse().transpose();
+
+				Js.B.noalias() -= (lrSub*lr_B) * (muJ2_Bj_P_vJs * P_vJs.transpose() - muJ2_JBinvTs);
+#else
+				Js.B.noalias() -= lrSub*lr_B * muJ2_Bj_P_vJs * P_vJs.transpose() ;
+#endif
 			}
 		}
 

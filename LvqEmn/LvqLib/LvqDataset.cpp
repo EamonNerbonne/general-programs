@@ -163,8 +163,13 @@ double LvqDataset::NearestNeighborErrorRate(std::vector<int> const & neighborhoo
 //}
 
 double LvqDataset::NearestNeighborPcaErrorRate(std::vector<int> const & neighborhood, LvqDataset const* testData, std::vector<int> const & testSet) const {
-	return NearestNeighborErrorRate(neighborhood,testData,testSet,PcaProjectInto2d(ExtractPoints(neighborhood)));
+	return NearestNeighborErrorRate(neighborhood,testData,testSet,ComputePcaProjection(neighborhood));
 }
+PMatrix LvqDataset::ComputePcaProjection(std::vector<int> const & subset) const{
+	return PcaProjectInto2d(ExtractPoints(subset));
+}
+
+
 double LvqDataset::NearestNeighborErrorRate(std::vector<int> const & neighborhood, LvqDataset const* testData, std::vector<int> const & testSet) const {
 	std::vector<int> neighborLabels;
 	MatrixXd neighbors;
@@ -230,7 +235,7 @@ void LvqDataset::TrainModel(int epochs, LvqModel * model, std::vector<int> const
 	int cacheLines = (dims*sizeof(points(0,0) ) +63)/ 64 ;
 
 	for(int epoch=0; epoch<epochs; ++epoch) {
-		double pointCostSum=0,muJ=0.0,muK=0.0;
+		double pointCostSum=0,muK=0.0,muJ=0.0;
 		int errs=0;
 		prefetchStream(&(model->RngIter()), (sizeof(boost::mt19937) +63)/ 64);
 		vector<int> shuffledOrder(trainingSubset);
@@ -253,8 +258,8 @@ void LvqDataset::TrainModel(int epochs, LvqModel * model, std::vector<int> const
 			pointCostSum += trainingMatchQ.costFunc;
 			distGood.CombineWith(trainingMatchQ.distGood,1.0);
 			distBad.CombineWith(trainingMatchQ.distBad,1.0);
-			muJ+=-trainingMatchQ.muJ;//we want positives.
-			muK+=trainingMatchQ.muK;
+			muK+=-trainingMatchQ.muK;//we want positives.
+			muJ+=trainingMatchQ.muJ;
 		}
 		t.stop();
 		LvqDatasetStats trainingStats;
@@ -264,8 +269,8 @@ void LvqDataset::TrainModel(int epochs, LvqModel * model, std::vector<int> const
 		trainingStats.distGoodVar = distGood.GetVariance()(0);
 		trainingStats.distBadMean = distBad.GetMean()(0);
 		trainingStats.distBadVar = distBad.GetVariance()(0);
-		trainingStats.muJmean = muJ/double(shuffledOrder.size());
 		trainingStats.muKmean = muK/double(shuffledOrder.size());
+		trainingStats.muJmean = muJ/double(shuffledOrder.size());
 		model->AddTrainingStat(this,trainingSubset, testData,testSubset, (int)(1*shuffledOrder.size()), t.value(CPU_TIMER),trainingStats);
 		model->DoOptionalNormalization();
 		model->epochsTrained++;
@@ -317,7 +322,7 @@ LvqDatasetStats LvqDataset::ComputeCostAndErrorRate(std::vector<int> const & sub
 
 	assert(subset.size() > 0);
 	VectorXd a;
-	double totalCost=0,muJ=0,muK=0;
+	double totalCost=0,muK=0,muJ=0;
 	int errs=0;
 	SmartSum<2> dists;
 	for(int i=0;i<(int)subset.size();++i) {
@@ -326,14 +331,14 @@ LvqDatasetStats LvqDataset::ComputeCostAndErrorRate(std::vector<int> const & sub
 		totalCost += matchQ.costFunc;
 		errs += matchQ.isErr?1:0;
 		dists.CombineWith(Array2d(matchQ.distGood,matchQ.distBad), 1.0);
-		muJ+=-matchQ.muJ;//we want positives.
-		muK+=matchQ.muK;
+		muJ+=matchQ.muJ;
+		muK+=-matchQ.muK;//we want positives.
 	}
 	LvqDatasetStats retval;
 	retval.meanCost = totalCost / double(subset.size());
 	retval.errorRate = errs / double(subset.size());
-	retval.muJmean = muJ / double(subset.size());
 	retval.muKmean = muK / double(subset.size());
+	retval.muJmean = muJ / double(subset.size());
 	retval.distGoodMean = dists.GetMean()(0);
 	retval.distBadMean = dists.GetMean()(1);
 	retval.distGoodVar = dists.GetVariance()(0);

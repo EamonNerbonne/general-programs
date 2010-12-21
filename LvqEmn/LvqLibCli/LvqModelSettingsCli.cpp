@@ -15,7 +15,8 @@ namespace LvqLibCli {
 			as_lvalue(mt19937(RngParamsSeed+modelFold)), 
 			as_lvalue(mt19937(RngIterSeed+modelFold)), 
 			protoDistrib, 
-			trainingSet->GetDataset()->ComputeClassMeans(trainingSet->GetTrainingSubset(modelFold))
+			trainingSet->GetDataset()->ComputeClassMeans(trainingSet->GetTrainingSubset(modelFold)),
+			trainingSet->GetDataset()->ComputePcaProjection(trainingSet->GetTrainingSubset(modelFold))
 		);
 		initSettings.RandomInitialProjection = RandomInitialProjection;
 		initSettings.RandomInitialBorders = RandomInitialBorders;
