@@ -17,8 +17,8 @@ class LvqModel
 	double totalIter;
 	double totalElapsed;
 	
-	
-	std::vector<VectorXd> trainingStats;
+	unsigned trainingStatCount;
+	MatrixXd trainingStats;
 protected:
 	LvqModelRuntimeSettings settings;
 	double iterationScaleFactor;//TODO:make private;
@@ -42,7 +42,9 @@ public:
 
 	boost::mt19937 & RngIter() {return *settings.RngIter;}//TODO:remove.
 	void resetLearningRate() {trainIter=0;}
-	std::vector<Eigen::VectorXd> const & TrainingStats() {return trainingStats;}
+	Eigen::MatrixXd const & TrainingStats() {return trainingStats;}
+	unsigned TrainingStatCount() {return trainingStatCount;}
+
 	std::vector<std::wstring> TrainingStatNames();
 
 	void AddTrainingStat(LvqDataset const * trainingSet, std::vector<int>const & trainingSubset, LvqDataset const * testSet, std::vector<int>const & testSubset, int iterInc, double elapsedInc,LvqDatasetStats const & trainingstats);

@@ -40,23 +40,23 @@ namespace LvqLibCli {
 		msclr::lock l(copySync);
 		LvqModel* currentBackup = modelCopy->get();
 
-		return toCli(currentBackup->TrainingStats()[statI]);
+		return toCli(VectorXd(currentBackup->TrainingStats().col(statI)));
 	}
 
 	int LvqModelCli::TrainingStatCount::get(){
 		msclr::lock l(copySync);
-		return modelCopy!=nullptr ?static_cast<int>(modelCopy->get()->TrainingStats().size()):0;
+		return modelCopy!=nullptr ?static_cast<int>(modelCopy->get()->TrainingStatCount()):0;
 	}
 
 	array<LvqTrainingStatCli>^ LvqModelCli::GetTrainingStatsAfter(int statI) {
 		if(modelCopy==nullptr)LvqTrainingStatCli();
 		msclr::lock l(copySync);
 		LvqModel* currentBackup = modelCopy->get();
-		int maxStat = std::max(statI, (int)currentBackup->TrainingStats().size());
+		int maxStat = std::max(statI, (int)currentBackup->TrainingStatCount());
 
 		array<LvqTrainingStatCli>^ stats = gcnew array<LvqTrainingStatCli>(maxStat-statI);
 		for(int i=0;i<stats->Length;++i)
-			stats[i] = toCli(currentBackup->TrainingStats()[statI+i]);
+			stats[i] = toCli(VectorXd(currentBackup->TrainingStats().col(statI+i)));
 		return stats;
 	}
 
