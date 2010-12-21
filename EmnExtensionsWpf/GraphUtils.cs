@@ -70,21 +70,34 @@ namespace EmnExtensions.Wpf {
 			Matrix dataToGeom = TransformShape(dataBounds, safeBounds, flipVertical: false);
 			Matrix geomToData = TransformShape(safeBounds, dataBounds, flipVertical: false);
 			var scaledPoints = lineOfPoints.Select(dataToGeom.Transform);
-			return Line(scaledPoints, new MatrixTransform(geomToData));
+			return Line(scaledPoints, false, new MatrixTransform(geomToData));
 		}
 
-		public static StreamGeometry Line(IEnumerable<Point> lineOfPoints, MatrixTransform withTransform = null) {
+		public static StreamGeometry Line(IEnumerable<Point> lineOfPoints, bool makeFillable=false, MatrixTransform withTransform = null) {
 			StreamGeometry geom = new StreamGeometry();
 			bool wasOK = false;
 			using (var context = geom.Open())
 				foreach (var point in lineOfPoints)
-					if (!IsOK(point)) wasOK = false;
+					if (!IsOK(point)) wasOK = makeFillable;
 					else if (wasOK) context.LineTo(point, true, true);
-					else { context.BeginFigure(point, false, false); wasOK = true; }
+					else { context.BeginFigure(point, makeFillable, makeFillable); wasOK = true; }
 			if (withTransform != null)
 				geom.Transform = withTransform;
 			geom.Freeze();//can't freeze since that breaks transform changes.
 			return geom;
+		}
+
+		public static StreamGeometry RangeScaled(Point[] upper, Point[] lower) {
+			if (upper == null || upper.Length == 0 || lower == null || lower.Length == 0) return null;
+
+			Rect dataBounds = VizPixelScatterHelpers.ComputeOuterBounds(upper);
+			dataBounds.Union(VizPixelScatterHelpers.ComputeOuterBounds(lower));
+			const double maxSafe = Int32.MaxValue / 2.0;
+			Rect safeBounds = new Rect(new Point(-maxSafe, -maxSafe), new Point(maxSafe, maxSafe));
+			Matrix dataToGeom = TransformShape(dataBounds, safeBounds, flipVertical: false);
+			Matrix geomToData = TransformShape(safeBounds, dataBounds, flipVertical: false);
+			var scaledPointsInCircle = upper.Concat(lower.Reverse()).Select(dataToGeom.Transform);
+			return Line(scaledPointsInCircle, true, new MatrixTransform(geomToData));
 		}
 
 		/// <summary>
@@ -93,7 +106,7 @@ namespace EmnExtensions.Wpf {
 		public static StreamGeometry PointCloud(IEnumerable<Point> setOfPoints) {
 			StreamGeometry geom = new StreamGeometry();
 			if (setOfPoints != null)
-				using (var context = geom.Open())
+				using (var context = geom.Open()) 
 					foreach (var point in setOfPoints)
 						if (IsOK(point)) {
 							context.BeginFigure(point, false, false);
