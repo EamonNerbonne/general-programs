@@ -84,7 +84,7 @@ namespace EmnExtensions.Wpf.Plot.VizEngines {
 
 		public override void DrawGraph(DrawingContext context) {
 			context.PushClip(clipRectangle);
-			context.DrawGeometry(m_Fill, m_Pen, combinesGeom);
+			context.DrawGeometry(IsFilled ? m_Fill : null, IsStroked ? m_Pen : null, combinesGeom);
 			context.Pop();
 		}
 
@@ -100,12 +100,18 @@ namespace EmnExtensions.Wpf.Plot.VizEngines {
 					TriggerChange(GraphChange.Labels);
 
 				Pen newPen = m_Pen.CloneCurrentValue();
-				newPen.Brush = new SolidColorBrush(newColor);
+				newPen.Brush = Fill = new SolidColorBrush(newColor);
 				newPen.Thickness = newThickness;
 				newPen.Freeze();
 				Pen = newPen;
+
 			}
 		}
 		public override bool SupportsColor { get { return true; } }
+		bool _isFilled;
+		public bool IsFilled { get { return _isFilled; } set { if (_isFilled != value) { _isFilled = value; TriggerChange(GraphChange.Drawing); } } }
+		bool _isStroked = true;
+		public bool IsStroked { get { return _isStroked; } set { if (_isStroked != value) { _isStroked = value; TriggerChange(GraphChange.Drawing); } } }
+
 	}
 }
