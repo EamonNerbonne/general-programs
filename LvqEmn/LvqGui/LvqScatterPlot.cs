@@ -139,7 +139,7 @@ namespace LvqGui {
 				this.dataset = dataset;
 				this.model = model;
 				if (model.IsProjectionModel) {
-					prototypeClouds = MakePerClassScatterGraph(dataset, 0.3f, dataset.ClassCount * Math.Min(model.SubModels.First().PrototypeLabels.Length,3) ,1);
+					prototypeClouds = MakePerClassScatterGraph(dataset, 0.3f, dataset.ClassCount * Math.Min(model.SubModels.First().PrototypeLabels.Length, 3), 1);
 					classBoundaries = MakeClassBoundaryGraph();
 					dataClouds = MakePerClassScatterGraph(dataset, 1.0f);
 					scatterPlotControl = MakeScatterPlotControl(model, dataClouds.Concat(prototypeClouds).Select(viz => viz.Plot).Concat(new[] { classBoundaries.Plot }));
@@ -187,11 +187,11 @@ namespace LvqGui {
 				};
 			}
 
-			static IVizEngine<Point[]>[] MakePerClassScatterGraph(LvqDatasetCli dataset, float colorIntensity, int? PointCount=null,int? zIndex=null) {
+			static IVizEngine<Point[]>[] MakePerClassScatterGraph(LvqDatasetCli dataset, float colorIntensity, int? PointCount = null, int? zIndex = null) {
 				return (
 						from classColor in dataset.ClassColors
 						let darkColor = Color.FromScRgb(1.0f, classColor.ScR * colorIntensity, classColor.ScG * colorIntensity, classColor.ScB * colorIntensity)
-						select Plot.Create(new PlotMetaData { RenderColor = darkColor, ZIndex = zIndex??0 }, new VizPixelScatterSmart { CoverageRatio = 0.99, OverridePointCountEstimate = PointCount ?? dataset.PointCount }).Visualisation
+						select Plot.Create(new PlotMetaData { RenderColor = darkColor, ZIndex = zIndex ?? 0 }, new VizPixelScatterSmart { CoverageRatio = 0.99, OverridePointCountEstimate = PointCount ?? dataset.PointCount }).Visualisation
 					).ToArray();
 			}
 
@@ -307,12 +307,13 @@ namespace LvqGui {
 					WpfTools.MakeDistributedColors(length, new MersenneTwister(1 + windowTitle.GetHashCode()));
 			}
 			static IEnumerable<PlotWithViz<IEnumerable<LvqModels.Statistic>>> MakePlots(string dataLabel, string yunitLabel, Color color, int statIdx, bool doVariants) {
-				if (doVariants) {
-					yield return MakePlot(null, yunitLabel, Blend(color, Colors.White), statIdx, 1);
-					yield return MakePlot(null, yunitLabel, Blend(color, Colors.White), statIdx, -1);
-				}
+				if (doVariants)
+					yield return MakeRangePlot(null, yunitLabel, Blend(color, Colors.White), statIdx);
+
 				yield return MakePlot(dataLabel, yunitLabel, color, statIdx, 0);
 			}
+
+
 			static Func<IEnumerable<LvqModels.Statistic>, Point[]> StatisticsToPointsMapper(int statIdx, int variant) {
 				return stats => {
 					var retval = stats.Select(info =>
@@ -351,6 +352,29 @@ namespace LvqGui {
 						CoverageRatioY = 0.95,
 						CoverageRatioGrad = 20.0,
 					}.Map(StatisticsToPointsMapper(statIdx, variant)));
+			}
+			static PlotWithViz<IEnumerable<LvqModels.Statistic>> MakeRangePlot(string dataLabel, string yunitLabel, Color color, int statIdx) {
+				return Plot.Create(
+					new PlotMetaData {
+						DataLabel = dataLabel,
+						RenderColor = color,
+						XUnitLabel = "Training iterations",
+						YUnitLabel = yunitLabel,
+						AxisBindings = TickedAxisLocation.BelowGraph | TickedAxisLocation.LeftOfGraph,
+						ZIndex = 0
+					},
+					new VizDataRange {
+						CoverageRatioY = 0.95,
+						CoverageRatioGrad = 20.0,
+					}.Map((IEnumerable<LvqModels.Statistic> stats) =>
+						 Tuple.Create(
+							LimitSize(stats.Select(
+									info => new Point(info.Value[LvqTrainingStatCli.TrainingIterationI], info.Value[statIdx] + info.StandardError[statIdx])
+								).ToArray()),
+							LimitSize(stats.Select(
+									info => new Point(info.Value[LvqTrainingStatCli.TrainingIterationI], info.Value[statIdx] - info.StandardError[statIdx])
+								).ToArray()))
+					));
 			}
 			static Color Blend(Color a, Color b) {
 				return Color.FromArgb((byte)(a.A + b.A + 1 >> 1), (byte)(a.R + b.R + 1 >> 1), (byte)(a.G + b.G + 1 >> 1), (byte)(a.B + b.B + 1 >> 1));

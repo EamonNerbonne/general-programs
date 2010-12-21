@@ -98,7 +98,6 @@
         <TextBox Grid.Row="15" Grid.Column="1" Text="{Binding LrScaleBad, Mode=TwoWay, ValidatesOnExceptions=True}"/>
 
 
-
         <Button Grid.Row="25" Content="Reset Initialization Seed" Click="ReseedParam" />
         <TextBox Grid.Row="25" Grid.Column="1" Text="{Binding Seed, Mode=TwoWay, ValidatesOnExceptions=True}"  />
         <Button Grid.Row="26" Content="Reset Iteration Seed" Click="ReseedInst" />
