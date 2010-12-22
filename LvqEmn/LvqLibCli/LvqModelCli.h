@@ -1,13 +1,13 @@
 #pragma once
 #include "PointSet.h"
 #include "LvqTrainingStatCli.h"
+#include "LvqModel.h"
 
 
 // array of model, modelCopy's.
 //on training, train all models (parallel for)
 //on projecting project first?
 //on stats:
-class LvqModel;
 
 namespace LvqLibCli {
 	using namespace System;
@@ -21,10 +21,13 @@ namespace LvqLibCli {
 		String^ label;
 		WrappedModel^ model;
 		WrappedModel^ modelCopy;
+		List<LvqTrainingStatCli>^ stats;
 		LvqDatasetCli^ initSet;
 		int useDataFold;
 		Object^trainSync;
 		Object^copySync;
+
+		void SinkStats(LvqModel::Statistics & nativeStats);
 
 	public:
 		property Object^ ReadSync {Object^ get(){return copySync;}}

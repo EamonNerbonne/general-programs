@@ -13,7 +13,7 @@ void LvqProjectionModel::AppendOtherStats(std::vector<double> & stats, LvqDatase
 	LvqModel::AppendOtherStats(stats,trainingSet,trainingSubset,testSet,testSubset);
 	stats.push_back(projectionSquareNorm(P));
 	if(settings.TrackProjectionQuality)
-		stats.push_back(trainingSet ? trainingSet->NearestNeighborErrorRate(trainingSubset,testSet,testSubset,this->P) : 0.0);
+		stats.push_back(trainingSet ? trainingSet->NearestNeighborProjectedErrorRate(trainingSubset,testSet,testSubset,this->P) : 0.0);
 }
 
 void randomProjectionMatrix(boost::mt19937 & rngParams, PMatrix & mat);

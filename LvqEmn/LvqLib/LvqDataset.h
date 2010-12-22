@@ -3,7 +3,7 @@
 using namespace Eigen;
 #include "LvqTypedefs.h"
 
-class LvqModel;
+#include "LvqModel.h"
 class LvqProjectionModel;
 
 struct LvqDatasetStats {
@@ -37,11 +37,11 @@ public:
 	int NearestNeighborClassify(std::vector<int> const & subset, Eigen::VectorXd point) const;
 	int NearestNeighborClassify(std::vector<int> const & subset, PMatrix projection, Eigen::Vector2d & point) const;
 
-	double NearestNeighborErrorRate(std::vector<int> const & neighborhood, LvqDataset const* testData, std::vector<int> const & testSet, PMatrix projection) const;
+	double NearestNeighborProjectedErrorRate(std::vector<int> const & neighborhood, LvqDataset const* testData, std::vector<int> const & testSet, PMatrix projection) const;
 	double NearestNeighborPcaErrorRate(std::vector<int> const & neighborhood, LvqDataset const* testData, std::vector<int> const & testSet) const;
 	double NearestNeighborErrorRate(std::vector<int> const & neighborhood, LvqDataset const* testData, std::vector<int> const & testSet) const;
 
-	void TrainModel(int epochs, LvqModel * model, std::vector<int> const & trainingSubset, LvqDataset const * testData, std::vector<int> const & testSubset) const;
+	void TrainModel(int epochs, LvqModel * model, LvqModel::Statistics * statisticsSink, std::vector<int> const & trainingSubset, LvqDataset const * testData, std::vector<int> const & testSubset) const;
 
 	LvqDatasetStats ComputeCostAndErrorRate(std::vector<int> const & subset, LvqModel const * model) const;
 

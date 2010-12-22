@@ -2,23 +2,14 @@
 #include "LvqTrainingStatCli.h"
 
 namespace LvqLibCli {
-	LvqTrainingStatCli toCli(Eigen::VectorXd const & cppVal) {
-		LvqTrainingStatCli cliVal;
-		cppToCli(cppVal, cliVal.values);
-		return cliVal;
-	}
-
-	VectorXd toCpp(LvqTrainingStatCli cliVal) { //TODO:unneeded, remove?
-		VectorXd cppVal;
+	void cliToCpp(LvqTrainingStatCli % cliVal, VectorXd &cppVal) {
 		cliToCpp(cliVal.values,cppVal);
-		return cppVal;
-	}
-
-	void cliToCpp(LvqTrainingStatCli % stat, VectorXd &retval) {
-		retval = toCpp(stat);
 	}
 
 	void cppToCli(VectorXd const & stat, LvqTrainingStatCli% retval) {
-		retval = toCli(stat);
+		cppToCli(stat, retval.values);
+	}
+	void cppToCli(std::vector<double> const  & stat, LvqTrainingStatCli% retval) {
+		cppToCli(stat, retval.values);
 	}
 }

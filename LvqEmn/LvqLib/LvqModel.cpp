@@ -12,7 +12,6 @@ LvqModel::LvqModel(LvqModelSettings & initSettings)
 	, totalIter(0)
 	, totalElapsed(0.0)
 	, epochsTrained(0)
-	,trainingStatCount(0)
 	{
 		int protoCount = accumulate(initSettings.PrototypeDistribution.begin(), initSettings.PrototypeDistribution.end(), 0);
 		iterationScaleFactor = LVQ_ITERFACTOR_PERPROTO/protoCount;
@@ -25,7 +24,7 @@ static VectorXd fromStlVector(vector<double> const & vec) {
 	return retval;
 }
 
-void LvqModel::AddTrainingStat(LvqDataset const * trainingSet, std::vector<int>const & trainingSubset, LvqDataset const * testSet, vector<int>const & testSubset, int iterInc, double elapsedInc, LvqDatasetStats const & trainingstats) {
+void LvqModel::AddTrainingStat(Statistics& statQueue, LvqDataset const * trainingSet, std::vector<int>const & trainingSubset, LvqDataset const * testSet, vector<int>const & testSubset, int iterInc, double elapsedInc, LvqDatasetStats const & trainingstats) {
 	this->totalIter+=iterInc;
 	this->totalElapsed+=elapsedInc;
 
@@ -52,17 +51,14 @@ void LvqModel::AddTrainingStat(LvqDataset const * trainingSet, std::vector<int>c
 
 	this->AppendOtherStats(stats, trainingSet,trainingSubset,testSet,testSubset);
 
-	if(trainingStats.cols() < trainingStatCount+1) {
-		trainingStats.conservativeResize(stats.size(),(size_t) (trainingStatCount*1.5+100));
-	}
-	trainingStats.col(trainingStatCount++) = fromStlVector(stats);
+	statQueue.push(std::move(stats));
 }
 
-void LvqModel::AddTrainingStat(LvqDataset const * trainingSet, vector<int>const & trainingSubset, LvqDataset const * testSet, vector<int>const & testSubset, int iterInc, double elapsedInc) {
+void LvqModel::AddTrainingStat(Statistics& statQueue, LvqDataset const * trainingSet, vector<int>const & trainingSubset, LvqDataset const * testSet, vector<int>const & testSubset, int iterInc, double elapsedInc) {
 	LvqDatasetStats trainingstats;
 	if(trainingSet && trainingSubset.size() >0) 
 		trainingstats=trainingSet->ComputeCostAndErrorRate(trainingSubset,this);
-	this->AddTrainingStat(trainingSet,trainingSubset,testSet,testSubset,iterInc,elapsedInc,trainingstats);
+	this->AddTrainingStat(statQueue, trainingSet,trainingSubset,testSet,testSubset,iterInc,elapsedInc,trainingstats);
 }
 
 std::vector<std::wstring> LvqModel::TrainingStatNames() {

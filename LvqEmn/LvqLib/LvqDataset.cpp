@@ -100,7 +100,7 @@ int LvqDataset::NearestNeighborClassify(std::vector<int> const & subset, PMatrix
 	return match;
 }
 
-double LvqDataset::NearestNeighborErrorRate(std::vector<int> const & neighborhood,LvqDataset const* testData, std::vector<int> const & testSet, PMatrix projection) const {
+double LvqDataset::NearestNeighborProjectedErrorRate(std::vector<int> const & neighborhood,LvqDataset const* testData, std::vector<int> const & testSet, PMatrix projection) const {
 
 	std::vector<int> neighborLabels;
 	PMatrix neighbors;
@@ -163,7 +163,7 @@ double LvqDataset::NearestNeighborErrorRate(std::vector<int> const & neighborhoo
 //}
 
 double LvqDataset::NearestNeighborPcaErrorRate(std::vector<int> const & neighborhood, LvqDataset const* testData, std::vector<int> const & testSet) const {
-	return NearestNeighborErrorRate(neighborhood,testData,testSet,ComputePcaProjection(neighborhood));
+	return NearestNeighborProjectedErrorRate(neighborhood,testData,testSet,ComputePcaProjection(neighborhood));
 }
 PMatrix LvqDataset::ComputePcaProjection(std::vector<int> const & subset) const{
 	return PcaProjectInto2d(ExtractPoints(subset));
@@ -229,7 +229,7 @@ static void EIGEN_STRONG_INLINE prefetchStream(void const * start,int lines) {
 }
 
 
-void LvqDataset::TrainModel(int epochs, LvqModel * model, std::vector<int> const  & trainingSubset, LvqDataset const * testData, std::vector<int> const  & testSubset) const {
+void LvqDataset::TrainModel(int epochs, LvqModel * model, LvqModel::Statistics * statisticsSink, std::vector<int> const  & trainingSubset, LvqDataset const * testData, std::vector<int> const  & testSubset) const {
 	int dims = static_cast<int>(points.rows());
 	VectorXd pointA(dims);
 	int cacheLines = (dims*sizeof(points(0,0) ) +63)/ 64 ;
@@ -262,16 +262,19 @@ void LvqDataset::TrainModel(int epochs, LvqModel * model, std::vector<int> const
 			muJ+=trainingMatchQ.muJ;
 		}
 		t.stop();
-		LvqDatasetStats trainingStats;
-		trainingStats.errorRate = errs/double(shuffledOrder.size());
-		trainingStats.meanCost =pointCostSum/double(shuffledOrder.size());
-		trainingStats.distGoodMean = distGood.GetMean()(0);
-		trainingStats.distGoodVar = distGood.GetVariance()(0);
-		trainingStats.distBadMean = distBad.GetMean()(0);
-		trainingStats.distBadVar = distBad.GetVariance()(0);
-		trainingStats.muKmean = muK/double(shuffledOrder.size());
-		trainingStats.muJmean = muJ/double(shuffledOrder.size());
-		model->AddTrainingStat(this,trainingSubset, testData,testSubset, (int)(1*shuffledOrder.size()), t.value(CPU_TIMER),trainingStats);
+		if(statisticsSink) {
+			LvqDatasetStats trainingStats;
+			trainingStats.errorRate = errs/double(shuffledOrder.size());
+			trainingStats.meanCost =pointCostSum/double(shuffledOrder.size());
+			trainingStats.distGoodMean = distGood.GetMean()(0);
+			trainingStats.distGoodVar = distGood.GetVariance()(0);
+			trainingStats.distBadMean = distBad.GetMean()(0);
+			trainingStats.distBadVar = distBad.GetVariance()(0);
+			trainingStats.muKmean = muK/double(shuffledOrder.size());
+			trainingStats.muJmean = muJ/double(shuffledOrder.size());
+
+			model->AddTrainingStat(*statisticsSink, this,trainingSubset, testData,testSubset, (int)(1*shuffledOrder.size()), t.value(CPU_TIMER),trainingStats);
+		}
 		model->DoOptionalNormalization();
 		model->epochsTrained++;
 	}

@@ -1,6 +1,6 @@
 #pragma once
 #include <Eigen/Core>
-
+#include <queue>
 #include "LvqConstants.h"
 #include "GoodBadMatch.h"
 #include "LvqModelSettings.h"
@@ -17,8 +17,6 @@ class LvqModel
 	double totalIter;
 	double totalElapsed;
 	
-	unsigned trainingStatCount;
-	MatrixXd trainingStats;
 protected:
 	LvqModelRuntimeSettings settings;
 	double iterationScaleFactor;//TODO:make private;
@@ -34,6 +32,7 @@ protected:
 	LvqModel(LvqModelSettings & initSettings);
 
 public:
+	typedef std::queue<std::vector<double> > Statistics;
 	int epochsTrained;
 	double unscaledLearningRate() const { 
 		double scaledIter = trainIter*iterationScaleFactor+1.0;
@@ -41,14 +40,12 @@ public:
 	}
 
 	boost::mt19937 & RngIter() {return *settings.RngIter;}//TODO:remove.
-	void resetLearningRate() {trainIter=0;}
-	Eigen::MatrixXd const & TrainingStats() {return trainingStats;}
-	unsigned TrainingStatCount() {return trainingStatCount;}
+	void resetLearningRate() {trainIter=0; }
 
 	std::vector<std::wstring> TrainingStatNames();
 
-	void AddTrainingStat(LvqDataset const * trainingSet, std::vector<int>const & trainingSubset, LvqDataset const * testSet, std::vector<int>const & testSubset, int iterInc, double elapsedInc,LvqDatasetStats const & trainingstats);
-	void AddTrainingStat(LvqDataset const * trainingSet, std::vector<int>const & trainingSubset, LvqDataset const * testSet, std::vector<int>const & testSubset, int iterInc, double elapsedInc);
+	void AddTrainingStat(Statistics& statQueue, LvqDataset const * trainingSet, std::vector<int>const & trainingSubset, LvqDataset const * testSet, std::vector<int>const & testSubset, int iterInc, double elapsedInc,LvqDatasetStats const & trainingstats);
+	void AddTrainingStat(Statistics& statQueue, LvqDataset const * trainingSet, std::vector<int>const & trainingSubset, LvqDataset const * testSet, std::vector<int>const & testSubset, int iterInc, double elapsedInc);
 
 	virtual int classify(VectorXd const & unknownPoint) const=0; 
 	virtual MatchQuality ComputeMatches(VectorXd const & unknownPoint, int pointLabel) const=0;
@@ -62,4 +59,3 @@ public:
 	virtual int Dimensions() const =0;
 	int ClassCount() const { return settings.ClassCount;}
 };
-

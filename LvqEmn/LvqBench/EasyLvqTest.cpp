@@ -85,7 +85,7 @@ void TestModel(LvqModelSettings::LvqModelType modelType, mt19937 & rndGenOrig, b
 		int itersUpto=iters*(i+1)/num_groups;
 		int itersTodo = itersUpto-itersDone;
 		if(itersTodo>0) {
-			dataset->TrainModel(itersTodo, model.get(),dataset->GetTrainingSubset(0,0), 0,vector<int>() );
+			dataset->TrainModel(itersTodo, model.get(),nullptr,dataset->GetTrainingSubset(0,0), 0,vector<int>() );
 			PrintModelStatus("Trained",model.get(),dataset);
 		}
 	}

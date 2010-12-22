@@ -15,9 +15,8 @@ namespace LvqLibCli {
 		array<double>^ values;
 		
 	};
-	LvqTrainingStatCli toCli(Eigen::VectorXd const & cppVal);
-	VectorXd toCpp(LvqTrainingStatCli cliVal);
 
 	void cliToCpp(LvqTrainingStatCli % stat, VectorXd &retval);
 	void cppToCli(VectorXd const & stat, LvqTrainingStatCli% retval);
+	void cppToCli(std::vector<double> const & stat, LvqTrainingStatCli% retval);
 }

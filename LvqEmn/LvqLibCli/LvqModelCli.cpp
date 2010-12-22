@@ -9,6 +9,8 @@
 #include "SmartSum.h"
 #include "utils.h"
 
+using namespace System::Linq;
+
 namespace LvqLibCli {
 	using boost::mt19937;
 
@@ -19,45 +21,46 @@ namespace LvqLibCli {
 
 	bool LvqModelCli::FitsDataShape(LvqDatasetCli^ dataset) {return dataset!=nullptr && dataset->ClassCount == this->ClassCount && dataset->Dimensions == this->Dimensions;}
 
+	void LvqModelCli::SinkStats(LvqModel::Statistics & nativeStats) {
+		while(!nativeStats.empty()) {
+			LvqTrainingStatCli cliStat;
+			cppToCli(nativeStats.front(),cliStat);
+			nativeStats.pop();
+			stats->Add(cliStat);
+		}
+	}
 
 	LvqModelCli::LvqModelCli(String^ label, LvqDatasetCli^ trainingSet,int datafold, LvqModelSettingsCli^ modelSettings)
 		: label(label)
 		, initSet(trainingSet)
 		, trainSync(gcnew Object())
 		, copySync(gcnew Object())
+		,stats(gcnew List<LvqTrainingStatCli>())
 	{ 
 		msclr::lock l(trainSync);
 		trainingSet->LastModel = this;
 		model = GcPtr::Create(ConstructLvqModel(as_lvalue( modelSettings->ToNativeSettings(trainingSet, datafold))));
-		model->get()->AddTrainingStat(trainingSet->GetDataset(),trainingSet->GetTrainingSubset(datafold), trainingSet->GetDataset(), trainingSet->GetTestSubset(datafold),0,0.0);
+		LvqModel::Statistics nativeStats;
+		model->get()->AddTrainingStat(nativeStats,trainingSet->GetDataset(),trainingSet->GetTrainingSubset(datafold), trainingSet->GetDataset(), trainingSet->GetTestSubset(datafold),0,0.0);
+		SinkStats(nativeStats);
+
 		msclr::lock l2(copySync);
 		modelCopy = GcPtr::Create(model->get()->clone());
 	}
 
 	LvqTrainingStatCli LvqModelCli::GetTrainingStat(int statI){
-		if(modelCopy==nullptr)LvqTrainingStatCli();
-
 		msclr::lock l(copySync);
-		LvqModel* currentBackup = modelCopy->get();
-
-		return toCli(VectorXd(currentBackup->TrainingStats().col(statI)));
+		return stats[statI];
 	}
 
 	int LvqModelCli::TrainingStatCount::get(){
 		msclr::lock l(copySync);
-		return modelCopy!=nullptr ?static_cast<int>(modelCopy->get()->TrainingStatCount()):0;
+		return stats->Count;
 	}
 
 	array<LvqTrainingStatCli>^ LvqModelCli::GetTrainingStatsAfter(int statI) {
 		if(modelCopy==nullptr)LvqTrainingStatCli();
-		msclr::lock l(copySync);
-		LvqModel* currentBackup = modelCopy->get();
-		int maxStat = std::max(statI, (int)currentBackup->TrainingStatCount());
-
-		array<LvqTrainingStatCli>^ stats = gcnew array<LvqTrainingStatCli>(maxStat-statI);
-		for(int i=0;i<stats->Length;++i)
-			stats[i] = toCli(VectorXd(currentBackup->TrainingStats().col(statI+i)));
-		return stats;
+		return Enumerable::ToArray( Enumerable::Skip(stats,statI));
 	}
 
 
@@ -113,16 +116,14 @@ namespace LvqLibCli {
 	void LvqModelCli::Train(int epochsToDo,LvqDatasetCli^ trainingSet, int datafold){
 		trainingSet->LastModel = this;
 		msclr::lock l(trainSync);
-		trainingSet->GetDataset()->TrainModel(epochsToDo, model->get(), trainingSet->GetTrainingSubset(datafold), trainingSet->GetDataset(), trainingSet->GetTestSubset(datafold));
+		LvqModel::Statistics statsink;
+		trainingSet->GetDataset()->TrainModel(epochsToDo, model->get(), &statsink, trainingSet->GetTrainingSubset(datafold), trainingSet->GetDataset(), trainingSet->GetTestSubset(datafold));
 		msclr::lock l2(copySync);
 		model->get()->CopyTo(*modelCopy->get());
 	}
 
 	void LvqModelCli::TrainUpto(int epochsToReach,LvqDatasetCli^ trainingSet, int datafold){
-		trainingSet->LastModel = this;
 		msclr::lock l(trainSync);
-		trainingSet->GetDataset()->TrainModel(epochsToReach - model->get()->epochsTrained, model->get(), trainingSet->GetTrainingSubset(datafold), trainingSet->GetDataset(), trainingSet->GetTestSubset(datafold));
-		msclr::lock l2(copySync);
-		model->get()->CopyTo(*modelCopy->get());
+		Train(epochsToReach - model->get()->epochsTrained,trainingSet,datafold);
 	}
 }
