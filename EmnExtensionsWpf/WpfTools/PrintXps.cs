@@ -17,7 +17,9 @@ namespace EmnExtensions.Wpf {
 		/// <param name="reqWidth">The requested width.  Don't expect miracles.</param>
 		/// <param name="reqHeight">The requested height.  Don't expect miracles.</param>
 		/// <param name="toStream">the read/write stream to which to store the printout to.</param>
-		public static void PrintXPS(FrameworkElement el, double reqWidth, double reqHeight, double scaleFactor, Stream toStream, FileMode fileMode, FileAccess fileAccess) {
+		/// <param name="fileMode">the provided stream's FileMode</param>
+		/// <param name="fileAccess">The provided stream's FileAccess</param>
+		public static void PrintXPS(FrameworkElement el, double reqWidth, double reqHeight, Stream toStream, FileMode fileMode, FileAccess fileAccess) {
 			//MemoryStream ms = new MemoryStream();
 			//  using (var stream = File.Open(@"C:\test.xps",FileMode.,FileAccess.ReadWrite)) 
 			Transform oldLayout = el.LayoutTransform;
@@ -25,13 +27,15 @@ namespace EmnExtensions.Wpf {
 			double oldHeight = el.Height;
 			double curWidth = el.DesiredSize.Width;
 			double curHeight = el.DesiredSize.Height;
+			double renderWidth = el.ActualWidth;
+			double renderHeight = el.ActualHeight;
 
 			try {
 #if USE_PAGED_XPS_SAVE
 				VisualBrush brush = new VisualBrush(el);
 #endif
-				el.Width = reqWidth;
-				el.Height = reqHeight;
+				//el.Width = reqWidth;
+				//el.Height = reqHeight;
 
 				//now IF we already have a size, we'll make a layout-transform that maps the requested size to the current 
 				//size.  This way, if there's something forcing it to the current size, the element must choose to take the 
@@ -40,7 +44,7 @@ namespace EmnExtensions.Wpf {
 				//in UpdateLayout  but aren't influenced by our .Measure and .Arrange calls (which is nasty, but seems to be
 				//a real issue).
 				if (curHeight.IsFinite() && curWidth.IsFinite() && curHeight > 0 && curWidth > 0) {
-					el.LayoutTransform = new ScaleTransform(curWidth / reqWidth, curHeight / reqHeight);
+					el.LayoutTransform = new ScaleTransform(renderWidth / reqWidth, renderHeight / reqHeight);
 					el.Measure(new Size(curWidth, curHeight));
 				} else {
 					el.LayoutTransform = Transform.Identity;
@@ -75,11 +79,14 @@ namespace EmnExtensions.Wpf {
 				el.Width = oldWidth;
 				el.Height = oldHeight;
 				el.LayoutTransform = oldLayout;
-				el.InvalidateArrange();
+				el.InvalidateVisual();
 				// this item may be confused about it's position within the parent.  The following is probably imperfect, but
 				//a reasonable attempt to ensure the item is really relayouted.
-				if (el.Parent is UIElement)
+				if (el.Parent is UIElement) {
 					((UIElement)el.Parent).InvalidateArrange();
+					((UIElement)el.Parent).UpdateLayout();
+				} else
+					el.UpdateLayout();
 			}
 		}
 	}

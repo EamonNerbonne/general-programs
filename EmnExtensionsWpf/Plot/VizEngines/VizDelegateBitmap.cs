@@ -4,7 +4,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 
 namespace EmnExtensions.Wpf.Plot.VizEngines {
-	public class VizDelegateBitmap<T> : VizDynamicBitmap<T> {
+	public sealed class VizDelegateBitmap<T> : VizDynamicBitmap<T> {
 		public VizDelegateBitmap() { UpdateBitmapDelegate = DefaultUpdateBitmapDelegate; BoundsComputer = DefaultComputeBounds; }
 		static void DefaultUpdateBitmapDelegate(WriteableBitmap bmp, Matrix mat, int pixelWidth, int pixelHeight, T data) { }
 		static Rect DefaultComputeBounds(T data) { return Rect.Empty; }

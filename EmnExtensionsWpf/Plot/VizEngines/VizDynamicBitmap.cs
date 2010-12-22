@@ -43,9 +43,11 @@ namespace EmnExtensions.Wpf.Plot.VizEngines {
 			//This clips to nearest pixel boundary; but a tighter clip is possible to sub-pixel accuracy:
 			//m_clipGeom.Rect = drawingClip;
 
+			
+
 			int pW = (int)(0.5 + snappedDrawingClip.Width * dpiX / 96.0);
 			int pH = (int)(0.5 + snappedDrawingClip.Height * dpiY / 96.0);
-			if (m_bmp == null || m_bmp.PixelWidth < pW || m_bmp.PixelHeight < pH) {
+			if (m_bmp == null || m_bmp.PixelWidth < pW || m_bmp.PixelHeight < pH || dpiX!=m_bmp.DpiX || dpiY!=m_bmp.DpiY) {
 				int width = Math.Max(m_bmp == null ? 1 : m_bmp.PixelWidth, pW + EXTRA_RESIZE_PIX);
 				int height = Math.Max(m_bmp == null ? 1 : m_bmp.PixelHeight, pH + EXTRA_RESIZE_PIX);
 				m_bmp = new WriteableBitmap(width, height, dpiX, dpiY, PixelFormats.Bgra32, null);

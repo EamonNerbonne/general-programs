@@ -87,7 +87,6 @@ namespace LvqGui {
 				foreach (PlotControl plot in plotGrid.Children) {
 					plot.Margin = new Thickness(2.0);
 					plot.Background = Brushes.White;
-
 				}
 			}
 
@@ -198,10 +197,6 @@ namespace LvqGui {
 					).ToArray();
 			}
 
-			static IVizEngine<Point[]> MakeProtoPositionGraph() {
-				return Plot.Create(new PlotMetaData { ZIndex = 1, }, new VizPixelScatterGeom { OverridePointCountEstimate = 30, CoverageRatio = 1.0 }).Visualisation;
-			}
-
 			IVizEngine<LvqModels.ModelProjectionAndImage> MakeClassBoundaryGraph() {
 				return Plot.Create(new PlotMetaData { ZIndex = -1 }, new VizDelegateBitmap<LvqModels.ModelProjectionAndImage> { UpdateBitmapDelegate = UpdateClassBoundaries }).Visualisation;
 			}
@@ -230,39 +225,39 @@ namespace LvqGui {
 				currSubModelIdx = subModelIdx;
 			}
 
-			var inflightOps = PerformDisplayUpdate(currsubplots, currSubModelIdx);
-			Task lastTask = null;
-			for (int i = 0; i < inflightOps.Length; i++) {
-				var currentOp = inflightOps[i];
-				lastTask = lastTask == null ? Task.Factory.StartNew(() => currentOp.Wait()) : lastTask.ContinueWith(task => currentOp.Wait());
-			}
+			Task displayUpdateTask = 
+				DisplayUpdateOperations(currsubplots, currSubModelIdx)
+				.Aggregate(default(Task),
+					(current, currentOp) => current == null
+						? Task.Factory.StartNew((Action)(() => currentOp.Wait()))
+						: current.ContinueWith(task => currentOp.Wait())
+				);
 
-			if (lastTask == null) { if (!updateSync.UpdateDone_IsQueueEmpty()) QueueUpdate(); } else lastTask.ContinueWith(task => { if (!updateSync.UpdateDone_IsQueueEmpty()) QueueUpdate(); });
+			if (displayUpdateTask == null) { if (!updateSync.UpdateDone_IsQueueEmpty()) QueueUpdate(); } else displayUpdateTask.ContinueWith(task => { if (!updateSync.UpdateDone_IsQueueEmpty()) QueueUpdate(); });
 		}
 
-		static DispatcherOperation[] PerformDisplayUpdate(SubPlots subplots, int subModelIdx) {
-			if (subplots == null) return new DispatcherOperation[] { };
-			var wh = subplots.LastWidthHeight;
-			var projectionAndImage = subplots.model.CurrentProjectionAndImage(subModelIdx, subplots.dataset, wh == null ? 0 : wh.Item1, wh == null ? 0 : wh.Item2);
-			DispatcherOperation scatterPlotOperation = null;
-			if (projectionAndImage != null && subplots.prototypeClouds != null) {
-				scatterPlotOperation = subplots.scatterPlotControl.Dispatcher.BeginInvoke((Action)(() => {
-					subplots.SetScatterBounds(projectionAndImage.Bounds);
-					subplots.classBoundaries.ChangeData(projectionAndImage);
-					for (int i = 0; i < subplots.dataClouds.Length; ++i) {
-						subplots.dataClouds[i].ChangeData(projectionAndImage.PointsByLabel[i]);
-						subplots.prototypeClouds[i].ChangeData(projectionAndImage.PrototypesByLabel[i]);
-					}
-				}), DispatcherPriority.Background);
+		static IEnumerable<DispatcherOperation> DisplayUpdateOperations(SubPlots subplots, int subModelIdx) {
+			if (subplots != null) {
+				var wh = subplots.LastWidthHeight;
+				var projectionAndImage = subplots.model.CurrentProjectionAndImage(subModelIdx, subplots.dataset, wh == null ? 0 : wh.Item1, wh == null ? 0 : wh.Item2);
+				if (projectionAndImage != null && subplots.prototypeClouds != null) {
+					yield return subplots.scatterPlotControl.Dispatcher.BeginInvoke((Action)(() => {
+						subplots.SetScatterBounds(projectionAndImage.Bounds);
+						subplots.classBoundaries.ChangeData(projectionAndImage);
+						for (int i = 0; i < subplots.dataClouds.Length; ++i) {
+							subplots.dataClouds[i].ChangeData(projectionAndImage.PointsByLabel[i]);
+							subplots.prototypeClouds[i].ChangeData(projectionAndImage.PrototypesByLabel[i]);
+						}
+					}), DispatcherPriority.Background);
+				}
+
+				var graphOperationsLazy =
+					from plot in subplots.statPlots
+					group plot by plot.Dispatcher into plotgroup
+					select plotgroup.Key.BeginInvokeBackground(() => { foreach (var sp in plotgroup) sp.ChangeData(subplots.model.TrainingStats); });
+				
+				foreach (var op in graphOperationsLazy) yield return op;
 			}
-
-			var graphOperationsLazy =
-				from plot in subplots.statPlots
-				group plot by plot.Dispatcher into plotgroup
-				select plotgroup.Key.BeginInvokeBackground(() => { foreach (var sp in plotgroup) sp.ChangeData(subplots.model.TrainingStats); });
-
-
-			return graphOperationsLazy.Concat(scatterPlotOperation != null ? new[] { scatterPlotOperation } : new DispatcherOperation[] { }).ToArray();
 		}
 
 
@@ -317,7 +312,7 @@ namespace LvqGui {
 			}
 
 			static Func<IEnumerable<LvqModels.Statistic>, Point[]> StatisticsToPointsMapper(int statIdx) {
-				return stats => LimitSize(stats.Select(info =>new Point(info.Value[LvqTrainingStatCli.TrainingIterationI],info.Value[statIdx] )).ToArray());
+				return stats => LimitSize(stats.Select(info => new Point(info.Value[LvqTrainingStatCli.TrainingIterationI], info.Value[statIdx])).ToArray());
 			}
 
 			static Point[] LimitSize(Point[] retval) {
@@ -341,7 +336,7 @@ namespace LvqGui {
 						XUnitLabel = "Training iterations",
 						YUnitLabel = yunitLabel,
 						AxisBindings = TickedAxisLocation.BelowGraph | TickedAxisLocation.LeftOfGraph,
-						ZIndex =  1 
+						ZIndex = 1
 					},
 					new VizLineSegments {
 						CoverageRatioY = 0.95,

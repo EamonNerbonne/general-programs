@@ -24,6 +24,14 @@ namespace EmnExtensions.Wpf.Plot {
 		public ObservableCollection<IPlot> Graphs { get { return graphs; } }
 		public IEnumerable<IPlot> GraphsEnumerable { get { return graphs; } set { Graphs.Clear(); foreach (var plot in value) Graphs.Add(plot); } }
 		readonly DrawingBrush bgBrush;
+		readonly UIElement drawingUi;
+
+		class PlainDrawing : UIElement {
+			readonly Drawing drawing;
+			public PlainDrawing(DrawingGroup dg) { drawing = dg; }
+			protected override void OnRender(DrawingContext drawingContext) { drawingContext.DrawDrawing(drawing); }
+		}
+
 		static readonly object syncType = new object();
 		public PlotControl() {
 			graphs.CollectionChanged += graphs_CollectionChanged;
@@ -36,7 +44,11 @@ namespace EmnExtensions.Wpf.Plot {
 				AlignmentX = AlignmentX.Left, //and corner 0,0 is in the Top-Left!
 				AlignmentY = AlignmentY.Top,
 			};
-			plotArea.Background = bgBrush;
+			drawingUi = new PlainDrawing(dg);
+
+
+			//	plotArea.Background = bgBrush;// Brushes.Transparent;
+			manualRender = true;
 		}
 
 		public bool ShowAxes {
@@ -264,15 +276,18 @@ namespace EmnExtensions.Wpf.Plot {
 			Rect axisBounds = Axes.Aggregate(Rect.Empty, (bound, axis) => Rect.Union(bound, new Rect(axis.RenderSize)));
 			foreach (var axis in Axes)
 				axis.SetGridLineExtent(axisBounds.Size);
-			if (needRedrawGraphs) RedrawGraphs(relevantAxes);
-			if (manualRender) {
-				drawingContext.PushTransform((Transform)plotArea.TransformToVisual(this));
-				drawingContext.DrawDrawing(dg);
-				drawingContext.Pop();
-				plotArea.Background = null;
-			} else if (Background == null)
-				plotArea.Background = bgBrush;
+			if (needRedrawGraphs)
+				RedrawGraphs(relevantAxes);
 
+			if (manualRender) {
+				plotArea.Background = null;
+				if (!plotArea.Children.Contains(drawingUi))
+					plotArea.Children.Add(drawingUi);
+			} else {
+				plotArea.Background = bgBrush;
+				if (plotArea.Children.Contains(drawingUi))
+					plotArea.Children.Remove(drawingUi);
+			}
 			base.OnRender(drawingContext);
 		}
 
@@ -289,9 +304,9 @@ namespace EmnExtensions.Wpf.Plot {
 					DefaultExt = ".xps",
 					Filter = "XPS files (*.xps)|*.xps",
 				};
-// ReSharper disable ConstantNullCoalescingCondition
+				// ReSharper disable ConstantNullCoalescingCondition
 				if (saveDialog.ShowDialog() ?? false) {
-// ReSharper restore ConstantNullCoalescingCondition
+					// ReSharper restore ConstantNullCoalescingCondition
 					FileInfo selectedFile = new FileInfo(saveDialog.FileName);
 					using (var fileStream = selectedFile.Open(FileMode.Create))
 						fileStream.Write(xpsData, 0, xpsData.Length);
@@ -311,10 +326,12 @@ namespace EmnExtensions.Wpf.Plot {
 
 		void PrintToStream(Stream writeTo) {
 			try {
-				manualRender = true; m_dpiX = 192.0; m_dpiY = 192.0;
-				WpfTools.PrintXPS(this, ActualWidth, ActualHeight, 1.0, writeTo, FileMode.Create, FileAccess.ReadWrite);
+				manualRender = true; 
+				m_dpiX = 192.0; m_dpiY = 192.0;
+				WpfTools.PrintXPS(this, ActualWidth, ActualHeight, writeTo, FileMode.Create, FileAccess.ReadWrite);
 			} finally {
-				manualRender = false; m_dpiX = 96.0; m_dpiY = 96.0;
+				manualRender = false; 
+				m_dpiX = 96.0; m_dpiY = 96.0;
 			}
 		}
 
