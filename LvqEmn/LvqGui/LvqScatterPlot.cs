@@ -35,8 +35,11 @@ namespace LvqGui {
 					newsubplots = null;
 				} else {
 					subPlotWindow.Title = model.ModelLabel;
-					bool modelChange = subplots == null || subplots.dataset != dataset || subplots.model != model;
-					newsubplots = modelChange ? new SubPlots(dataset, model) : subplots;
+					newsubplots = model.Tag as SubPlots;
+
+					bool modelChange = newsubplots == null || newsubplots.dataset != dataset || newsubplots.model != model;
+					if (modelChange)
+						model.Tag = newsubplots = new SubPlots(dataset, model);
 				}
 
 				if (newsubplots == subplots && subModelIdx == new_subModelIdx)
@@ -98,7 +101,7 @@ namespace LvqGui {
 		public LvqScatterPlot(CancellationToken exitToken) {
 			this.exitToken = exitToken;
 
-			lvqPlotDispatcher = WpfTools.StartNewDispatcher();
+			lvqPlotDispatcher = WpfTools.StartNewDispatcher(ThreadPriority.BelowNormal);
 			lvqPlotDispatcher.BeginInvoke(MakeSubPlotWindow);
 			exitToken.Register(() => lvqPlotDispatcher.BeginInvokeShutdown(DispatcherPriority.Send));
 		}
@@ -310,19 +313,11 @@ namespace LvqGui {
 				if (doVariants)
 					yield return MakeRangePlot(null, yunitLabel, Blend(color, Colors.White), statIdx);
 
-				yield return MakePlot(dataLabel, yunitLabel, color, statIdx, 0);
+				yield return MakePlot(dataLabel, yunitLabel, color, statIdx);
 			}
 
-
-			static Func<IEnumerable<LvqModels.Statistic>, Point[]> StatisticsToPointsMapper(int statIdx, int variant) {
-				return stats => {
-					var retval = stats.Select(info =>
-						new Point(info.Value[LvqTrainingStatCli.TrainingIterationI],
-							info.Value[statIdx] + (variant != 0 ? variant * info.StandardError[statIdx] : 0)
-						)
-					).ToArray();
-					return LimitSize(retval);
-				};
+			static Func<IEnumerable<LvqModels.Statistic>, Point[]> StatisticsToPointsMapper(int statIdx) {
+				return stats => LimitSize(stats.Select(info =>new Point(info.Value[LvqTrainingStatCli.TrainingIterationI],info.Value[statIdx] )).ToArray());
 			}
 
 			static Point[] LimitSize(Point[] retval) {
@@ -338,7 +333,7 @@ namespace LvqGui {
 				return newret;
 			}
 
-			static PlotWithViz<IEnumerable<LvqModels.Statistic>> MakePlot(string dataLabel, string yunitLabel, Color color, int statIdx, int variant) {
+			static PlotWithViz<IEnumerable<LvqModels.Statistic>> MakePlot(string dataLabel, string yunitLabel, Color color, int statIdx) {
 				return Plot.Create(
 					new PlotMetaData {
 						DataLabel = dataLabel,
@@ -346,12 +341,12 @@ namespace LvqGui {
 						XUnitLabel = "Training iterations",
 						YUnitLabel = yunitLabel,
 						AxisBindings = TickedAxisLocation.BelowGraph | TickedAxisLocation.LeftOfGraph,
-						ZIndex = variant == 0 ? 1 : 0
+						ZIndex =  1 
 					},
 					new VizLineSegments {
 						CoverageRatioY = 0.95,
 						CoverageRatioGrad = 20.0,
-					}.Map(StatisticsToPointsMapper(statIdx, variant)));
+					}.Map(StatisticsToPointsMapper(statIdx)));
 			}
 			static PlotWithViz<IEnumerable<LvqModels.Statistic>> MakeRangePlot(string dataLabel, string yunitLabel, Color color, int statIdx) {
 				return Plot.Create(

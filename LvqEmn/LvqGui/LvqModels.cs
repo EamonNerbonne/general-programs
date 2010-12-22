@@ -234,5 +234,7 @@ namespace LvqGui {
 		}
 
 		public IEnumerable<LvqModelCli> SubModels { get { return subModels; } }
+
+		public object Tag { get; set; }
 	}
 }

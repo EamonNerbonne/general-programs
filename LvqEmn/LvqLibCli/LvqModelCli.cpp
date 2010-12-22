@@ -42,9 +42,9 @@ namespace LvqLibCli {
 		model = GcPtr::Create(ConstructLvqModel(as_lvalue( modelSettings->ToNativeSettings(trainingSet, datafold))));
 		LvqModel::Statistics nativeStats;
 		model->get()->AddTrainingStat(nativeStats,trainingSet->GetDataset(),trainingSet->GetTrainingSubset(datafold), trainingSet->GetDataset(), trainingSet->GetTestSubset(datafold),0,0.0);
-		SinkStats(nativeStats);
 
 		msclr::lock l2(copySync);
+		SinkStats(nativeStats);
 		modelCopy = GcPtr::Create(model->get()->clone());
 	}
 
@@ -59,7 +59,7 @@ namespace LvqLibCli {
 	}
 
 	array<LvqTrainingStatCli>^ LvqModelCli::GetTrainingStatsAfter(int statI) {
-		if(modelCopy==nullptr)LvqTrainingStatCli();
+		msclr::lock l(copySync);
 		return Enumerable::ToArray( Enumerable::Skip(stats,statI));
 	}
 
@@ -119,6 +119,7 @@ namespace LvqLibCli {
 		LvqModel::Statistics statsink;
 		trainingSet->GetDataset()->TrainModel(epochsToDo, model->get(), &statsink, trainingSet->GetTrainingSubset(datafold), trainingSet->GetDataset(), trainingSet->GetTestSubset(datafold));
 		msclr::lock l2(copySync);
+		SinkStats(statsink);
 		model->get()->CopyTo(*modelCopy->get());
 	}
 

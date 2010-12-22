@@ -10,7 +10,7 @@ namespace EmnExtensions.Wpf {
 			var offset=rnd.NextDouble();
 			var colors = Enumerable.Range(0, N).Select(i => ColorSimple.FromColor(new HSL { H = (i + offset) / N, S = 0.8, L = 0.9 }.ToRGB())).ToArray();
 			if (colors.Length > 1)
-				for (int iter = 0; iter < 10 + 100000/(N*N); iter++) {
+				for (int iter = 0; iter < 10 + 10000/(N*N); iter++) {
 					double lr = 1.0 / Math.Sqrt(iter*N*N + 1000);
 					for (int i = 0; i < colors.Length; i++) {
 						//colors[i].RepelFrom(ColorSimple.MinValue, 0.3 * lr);

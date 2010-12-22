@@ -15,20 +15,12 @@ namespace EmnExtensions.Wpf.Plot {
 		const double MinimumNumberOfTicks = 1.0;//don't bother rendering if we have fewer than this many ticks.
 		const int GridLineRanks = 3;
 		const double BaseTickWidth = 1.5;
+		const double FontSize = 12.0 * 4.0 / 3.0;//12pt = 12 pixels at 72dpi = 16pixels at 96dpi
 
-		readonly Typeface m_typeface;
-		readonly double m_fontSize;
-		readonly Pen m_tickPen;
-		readonly Pen[] m_gridRankPen;
-
-		public TickedAxis() {
-			m_tickPen = new Pen {
-				Brush = Brushes.Black,
-				StartLineCap = PenLineCap.Flat,
-				EndLineCap = PenLineCap.Round,
-				Thickness = BaseTickWidth
-			}; //start flat end round
-			m_tickPen.Freeze();
+		static readonly Typeface m_typeface;
+		static readonly Pen m_tickPen;
+		static readonly Pen[] m_gridRankPen;
+		static TickedAxis() {
 			m_gridRankPen = Enumerable.Range(0, GridLineRanks)
 				.Select(rank => (GridLineRanks - rank) / (double)(GridLineRanks))
 				.Select(relevance => (Pen)new Pen {
@@ -39,10 +31,19 @@ namespace EmnExtensions.Wpf.Plot {
 					LineJoin = PenLineJoin.Bevel
 				}.GetCurrentValueAsFrozen())
 				.ToArray();
+			m_tickPen = new Pen {
+				Brush = Brushes.Black,
+				StartLineCap = PenLineCap.Flat,
+				EndLineCap = PenLineCap.Round,
+				Thickness = BaseTickWidth
+			}; //start flat end round
+			m_tickPen.Freeze();
+			m_typeface = new Typeface(new FontFamily("Segoe UI"), FontStyles.Normal, FontWeights.Normal, FontStretches.Normal, new FontFamily("Verdana"));
+		}
+
+		public TickedAxis() {
 
 			DataBound = DimensionBounds.Empty;
-			m_typeface = new Typeface(new FontFamily("Segoe UI"), FontStyles.Normal, FontWeights.Normal, FontStretches.Normal, new FontFamily("Verdana"));
-			m_fontSize = 12.0 * 4.0 / 3.0;//12pt = 12 pixels at 72dpi = 16pixels at 96dpi
 			TickLength = 16;
 			LabelOffset = 1;
 			PixelsPerTick = 150;
@@ -318,7 +319,7 @@ namespace EmnExtensions.Wpf.Plot {
 				RecomputeDataOrderOfMagnitude();
 
 				if (m_axisLegend == null)
-					m_axisLegend = MakeAxisLegendText(m_dataOrderOfMagnitude, DataUnits, m_cachedCulture, m_fontSize, m_typeface);
+					m_axisLegend = MakeAxisLegendText(m_dataOrderOfMagnitude, DataUnits, m_cachedCulture, FontSize, m_typeface);
 
 				RecomputeTicks(true);
 
@@ -616,7 +617,7 @@ namespace EmnExtensions.Wpf.Plot {
 
 		FormattedText MakeText(double val) {
 			string numericValueString = (val * Math.Pow(10.0, -m_dataOrderOfMagnitude)).ToString("f" + Math.Max(0, m_dataOrderOfMagnitude - m_slotOrderOfMagnitude));
-			return new FormattedText(numericValueString, m_cachedCulture, FlowDirection.LeftToRight, m_typeface, m_fontSize, Brushes.Black);
+			return new FormattedText(numericValueString, m_cachedCulture, FlowDirection.LeftToRight, m_typeface, FontSize, Brushes.Black);
 		}
 
 		static DrawingGroup MakeAxisLegendText(int dataOrderOfMagnitude, string dataUnits, CultureInfo culture, double fontSize, Typeface typeface) {
