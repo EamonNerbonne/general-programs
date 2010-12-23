@@ -58,6 +58,13 @@ namespace EmnExtensions.Wpf.Plot {
 		public static bool operator !=(DimensionBounds a, DimensionBounds b) { return a.Start != b.Start || a.End != b.End; }
 		public override int GetHashCode() { return base.GetHashCode(); }
 		public override bool Equals(object obj) { return obj is DimensionBounds && this == (DimensionBounds)obj; }
+
+		internal void ScaleFromCenter(double p) {
+			double midpoint = (Start + End) / 2;
+			double dev = (End - Start) / 2;
+			Start = midpoint - dev * p;
+			End = midpoint + dev * p;
+		}
 	}
 
 

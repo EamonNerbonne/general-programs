@@ -45,21 +45,13 @@ namespace EmnExtensions.Wpf.Plot {
 				AlignmentY = AlignmentY.Top,
 			};
 			drawingUi = new PlainDrawing(dg);
-
-
-			//	plotArea.Background = bgBrush;// Brushes.Transparent;
-			manualRender = true;
+			plotArea.Background = bgBrush;
+			//manualRender = true;
 		}
 
-		public bool ShowAxes {
-			get { return (bool)GetValue(ShowAxesProperty); }
-			set { SetValue(ShowAxesProperty, value); }
-		}
-
-		// Using a DependencyProperty as the backing store for ShowAxes.  This enables animation, styling, binding, etc...
+		public bool ShowAxes { get { return (bool)GetValue(ShowAxesProperty); } set { SetValue(ShowAxesProperty, value); } }
 		public static readonly DependencyProperty ShowAxesProperty =
 			DependencyProperty.Register("ShowAxes", typeof(bool), typeof(PlotControl), new UIPropertyMetadata(true, ShowAxesSet));
-
 		static void ShowAxesSet(DependencyObject d, DependencyPropertyChangedEventArgs e) {
 			((PlotControl)d).SetAxesShow((bool)e.NewValue);
 		}
@@ -69,10 +61,9 @@ namespace EmnExtensions.Wpf.Plot {
 				axis.HideAxis = !showAxes;
 		}
 
-		public string Title {
-			get { return (string)GetValue(TitleProperty); }
-			set { SetValue(TitleProperty, value); }
-		}
+		public bool UniformScaling { get { return Axes.All(axis => axis.UniformScale); } set { foreach (var axis in Axes)axis.UniformScale = value; } }
+
+		public string Title { get { return (string)GetValue(TitleProperty); } set { SetValue(TitleProperty, value); } }
 		public static readonly DependencyProperty TitleProperty =
 			DependencyProperty.Register("Title", typeof(string), typeof(PlotControl), new UIPropertyMetadata(null));
 
@@ -83,9 +74,8 @@ namespace EmnExtensions.Wpf.Plot {
 									select graph
 							   ).ToArray();
 			var randomColors = WpfTools.MakeDistributedColors(ColoredPlots.Length, rnd);
-			foreach (var plotAndColor in ColoredPlots.Zip(randomColors, Tuple.Create)) {
+			foreach (var plotAndColor in ColoredPlots.Zip(randomColors, Tuple.Create))
 				plotAndColor.Item1.MetaData.RenderColor = plotAndColor.Item2;
-			}
 		}
 
 		void RegisterChanged(IEnumerable<IPlot> newGraphs) {
@@ -326,11 +316,11 @@ namespace EmnExtensions.Wpf.Plot {
 
 		void PrintToStream(Stream writeTo) {
 			try {
-				manualRender = true; 
+				manualRender = true;
 				m_dpiX = 192.0; m_dpiY = 192.0;
 				WpfTools.PrintXPS(this, ActualWidth, ActualHeight, writeTo, FileMode.Create, FileAccess.ReadWrite);
 			} finally {
-				manualRender = false; 
+				manualRender = false;
 				m_dpiX = 96.0; m_dpiY = 96.0;
 			}
 		}
