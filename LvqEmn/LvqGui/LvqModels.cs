@@ -12,6 +12,7 @@ using EmnExtensions.MathHelpers;
 using System.Threading.Tasks;
 using System.Threading;
 using EmnExtensions;
+using EmnExtensions.Wpf.Plot;
 
 namespace LvqGui {
 	public class LvqModels {
@@ -141,7 +142,7 @@ namespace LvqGui {
 			lock (selectedModel.ReadSync) {
 				projection = selectedModel.CurrentProjectionAndPrototypes(dataset);
 				if(!projection.HasValue) return null;
-				bounds = ComputeProjectionBounds(projection.Prototypes.Select(lp=>lp.point),projection.Points.Select(lp => lp.point));
+				bounds = ExpandToShape(width,height, ComputeProjectionBounds(projection.Prototypes.Select(lp=>lp.point),projection.Points.Select(lp => lp.point)));
 				closestClass = selectedModel.ClassBoundaries(bounds.Left, bounds.Right, bounds.Bottom, bounds.Top, renderwidth, renderheight);
 			}
 			Debug.Assert(NotDefault(projection));
@@ -161,6 +162,20 @@ namespace LvqGui {
 				forModels = this,
 				forSubModel = subModelIdx,
 			};
+		}
+
+		static Rect ExpandToShape(int width, int height, Rect rect) {
+			width = Math.Max(width, 1);
+			height = Math.Max(height, 1);
+			if (rect.Width / width < rect.Height / height) {
+				var bounds = DimensionBounds.FromRectX(rect);
+				bounds.Scale((rect.Height / height) / (rect.Width / width));
+				return new Rect(bounds.Start, rect.Y, bounds.Length, rect.Height);
+			} else {
+				var bounds = DimensionBounds.FromRectY(rect);
+				bounds.Scale((rect.Width / width) / (rect.Height / height));
+				return new Rect(rect.X, bounds.Start, rect.Width,bounds.Length);
+			}
 		}
 
 		static Point[][] GroupPointsByLabel(CliLvqLabelledPoint[] labelledPoints, int classCount) {

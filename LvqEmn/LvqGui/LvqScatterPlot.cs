@@ -183,7 +183,8 @@ namespace LvqGui {
 				return new PlotControl {
 					ShowAxes = false,
 					AttemptBorderTicks = false,
-					ShowGridLines = false,
+					//ShowGridLines = true,
+					UniformScaling = true,
 					Title = "ScatterPlot: " + model.ModelLabel,
 					GraphsEnumerable = graphs
 				};

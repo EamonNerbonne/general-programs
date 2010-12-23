@@ -14,12 +14,15 @@
 #define EIGEN_VECTORIZE_SSSE3
 //#define EIGEN_VECTORIZE_SSE4_1
 #define EIGEN_USE_NEW_STDVECTOR
+#define _USE_MATH_DEFINES
+
+#include <cmath>
 
 #include <iostream>
 #include <algorithm>
 #include <numeric>
 #include <vector>
-#include <math.h>
+
 
 #include <boost/smart_ptr/scoped_array.hpp>
 #include <boost/smart_ptr/scoped_ptr.hpp>
