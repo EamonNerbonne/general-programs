@@ -22,7 +22,7 @@ class GmmLvqPrototype
 
 #ifdef AUTO_BIAS
 	EIGEN_STRONG_INLINE void RecomputeBias() {
-		bias = point.size()*log(2*M_PI) - log(sqr(B.determinant()));
+		bias = - log(sqr(B.determinant()));
 		assert(isfinite(bias));
 	}
 #endif
