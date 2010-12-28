@@ -307,7 +307,7 @@ namespace LvqGui {
 			}
 			static IEnumerable<PlotWithViz<IEnumerable<LvqModels.Statistic>>> MakePlots(string dataLabel, string yunitLabel, Color color, int statIdx, bool doVariants) {
 				if (doVariants)
-					yield return MakeRangePlot(null, yunitLabel, Blend(color, Colors.White), statIdx);
+					yield return MakeRangePlot(null, yunitLabel, color, statIdx);
 
 				yield return MakePlot(dataLabel, yunitLabel, color, statIdx);
 			}
@@ -345,6 +345,8 @@ namespace LvqGui {
 					}.Map(StatisticsToPointsMapper(statIdx)));
 			}
 			static PlotWithViz<IEnumerable<LvqModels.Statistic>> MakeRangePlot(string dataLabel, string yunitLabel, Color color, int statIdx) {
+				//Blend(color, Colors.White)
+				color.ScA = 0.3f;
 				return Plot.Create(
 					new PlotMetaData {
 						DataLabel = dataLabel,
