@@ -14,7 +14,7 @@ namespace LastFMspider.LastFMSQLiteBackend {
 				return @"
 SELECT T.TrackID, A.FullArtist, T.FullTitle
 FROM  Track T, Artist A
-WHERE (T.CurrentSimilarTrackList IS NULL OR T.CurrentSimilarTrackList <= @maxDate)
+WHERE (T.CurrentSimilarTrackList IS NULL OR T.CurrentSimilarTrackListTimestamp <= @maxDate)
 AND A.ArtistID = T.ArtistID
 LIMIT @limitRowCount 
             ";
