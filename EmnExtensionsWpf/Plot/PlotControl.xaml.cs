@@ -317,7 +317,7 @@ namespace EmnExtensions.Wpf.Plot {
 		void PrintToStream(Stream writeTo) {
 			try {
 				manualRender = true;
-				m_dpiX = 192.0; m_dpiY = 192.0;
+				m_dpiX = 288.0; m_dpiY = 288.0;
 				WpfTools.PrintXPS(this, ActualWidth, ActualHeight, writeTo, FileMode.Create, FileAccess.ReadWrite);
 			} finally {
 				manualRender = false;
