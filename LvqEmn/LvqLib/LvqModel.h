@@ -30,6 +30,7 @@ protected:
 	//subclasses must append the stats and the base-classe implementation in the same order as they did for AppendTrainingStatNames
 	virtual void AppendOtherStats(std::vector<double> & stats, LvqDataset const * trainingSet, std::vector<int>const & trainingSubset, LvqDataset const * testSet, std::vector<int>const & testSubset) const;
 	LvqModel(LvqModelSettings & initSettings);
+	virtual bool IdenticalMu(){return false;}
 
 public:
 	typedef std::queue<std::vector<double> > Statistics;
@@ -57,5 +58,6 @@ public:
 	virtual size_t MemAllocEstimate() const=0;
 	virtual std::vector<int> GetPrototypeLabels() const=0;
 	virtual int Dimensions() const =0;
+	
 	int ClassCount() const { return settings.ClassCount;}
 };

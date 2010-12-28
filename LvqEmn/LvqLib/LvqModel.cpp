@@ -12,10 +12,10 @@ LvqModel::LvqModel(LvqModelSettings & initSettings)
 	, totalIter(0)
 	, totalElapsed(0.0)
 	, epochsTrained(0)
-	{
-		int protoCount = accumulate(initSettings.PrototypeDistribution.begin(), initSettings.PrototypeDistribution.end(), 0);
-		iterationScaleFactor = LVQ_ITERFACTOR_PERPROTO/protoCount;
-	}
+{
+	int protoCount = accumulate(initSettings.PrototypeDistribution.begin(), initSettings.PrototypeDistribution.end(), 0);
+	iterationScaleFactor = LVQ_ITERFACTOR_PERPROTO/protoCount;
+}
 
 static VectorXd fromStlVector(vector<double> const & vec) {
 	VectorXd retval(vec.size());
@@ -47,7 +47,8 @@ void LvqModel::AddTrainingStat(Statistics& statQueue, LvqDataset const * trainin
 	stats.push_back(trainingstats.distBadVar);
 
 	stats.push_back(trainingstats.muJmean);
-	stats.push_back(trainingstats.muKmean);
+	if(!this->IdenticalMu())
+		stats.push_back(trainingstats.muKmean);
 
 	this->AppendOtherStats(stats, trainingSet,trainingSubset,testSet,testSubset);
 
@@ -73,8 +74,12 @@ std::vector<std::wstring> LvqModel::TrainingStatNames() {
 	retval.push_back(L"Nearest Incorrect Prototype Distance|distance|Prototype Distance");
 	retval.push_back(L"Nearest Correct Prototype Distance Variance|distance variance|Prototype Distance Variance");
 	retval.push_back(L"Nearest Incorrect Prototype Distance Variance|distance variance|Prototype Distance Variance");
-	retval.push_back(L"MuJ mean|mu-ratio|Mu J and K");
-	retval.push_back(L"MuK mean|mu-ratio|Mu J and K");
+	if(this->IdenticalMu()) {
+		retval.push_back(L"Mu mean|mu-ratio|Mu (J and K)");
+	} else {
+		retval.push_back(L"MuJ mean|mu-ratio|Mu J and K");
+		retval.push_back(L"MuK mean|mu-ratio|Mu J and K");
+	}
 	AppendTrainingStatNames(retval); 
 	return retval;
 }
