@@ -12,7 +12,7 @@ using LastFMspider.LastFMSQLiteBackend;
 
 namespace LastFMspider.OldApi {
 	public class OldApiClient {
-		static readonly TimeSpan minReqDelta = new TimeSpan(0, 0, 0, 0, 750);//no more than one request per second.
+		static readonly TimeSpan minReqDelta = new TimeSpan(0, 0, 0, 0, 450);//no more than one request per second.
 		static DateTime nextRequestWhenInternal = DateTime.Now;
 		static object syncRoot = new object();
 
