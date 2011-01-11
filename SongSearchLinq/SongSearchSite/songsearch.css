@@ -143,6 +143,7 @@ body
 
     -moz-transition: width 0.3s ease-in, -moz-box-shadow 0.1s 0.3s, background 0.2s 0.2s;
     -webkit-transition:  width 0.3s ease-in, -webkit-box-shadow 0.1s 0.3s, background 0.2s 0.2s;
+    -ms-transition:  width 0.3s ease-in, -ms-box-shadow 0.1s 0.3s, -ms-background 0.2s 0.2s;
     transition:  width 0.3s ease-in, box-shadow 0.1s 0.3s, background 0.2s 0.2s;
 }
 

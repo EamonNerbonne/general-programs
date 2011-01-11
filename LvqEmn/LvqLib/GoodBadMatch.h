@@ -26,7 +26,7 @@ struct GoodBadMatch {
 
 	double MuK() const {return -2.0*distGood / (sqr(distGood) + sqr(distBad));}
 	double MuJ() const{return +2.0*distBad / (sqr(distGood) + sqr(distBad));}
-	double MuGmm() const { double pMargin = exp(-fabs(distBad - distGood)/2.0); return 2* pMargin / sqr(1 + pMargin);}
+	double MuGmm() const { double pMargin = exp(-fabs(distBad - distGood)/2.0); return 2*4* pMargin / sqr(1 + pMargin);}
 };
 
 
