@@ -147,6 +147,11 @@ body
     transition:  width 0.3s ease-in, box-shadow 0.1s 0.3s, background 0.2s 0.2s;
 }
 
+.jp-controls button 
+{
+    padding: 0; margin:0;
+}
+
 #shownumber
 {
     width: 3em;

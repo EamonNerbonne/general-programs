@@ -383,14 +383,14 @@ $(document).ready(function ($) {
         playlistRefreshUi();
     }
 
-    $("#do_shuffle").click(function () {
+    $("#do_shuffle").click(function do_shuffle_click() {
         var kids = $.makeArray(playlistElem.children());
         var kidCount = kids.length;
         for (var i = kidCount - 1; i >= 0; i--) {
-            $(kids[i]).remove();
+            $(kids[i]).detach();
         }
         for (var i = kidCount - 1; i >= 0; i--) {
-            var newpos = Math.floor( Math.random() * (i + 1) % (i + 1));
+            var newpos = Math.floor(Math.random() * (i + 1) % (i + 1));
             var oldItem = kids[newpos];
             kids[newpos] = kids[i];
             kids[i] = oldItem;
@@ -399,6 +399,16 @@ $(document).ready(function ($) {
             $(kids[i]).appendTo(playlistElem);
         }
     });
+
+    $("#do_addAll").click(function do_add_all() {
+        var allRows = $("#resultsview").contents().find("tr[data-href]");
+        allRows.each(function (index, row) {
+            addRowToPlaylist($(row));
+        });
+    });
+
+
+    $("#do_removeAll").click(emptyPlaylist);
 
     function playlistNext() { playlistChange($(playlistItem).next()[0]); }
 
@@ -411,14 +421,24 @@ $(document).ready(function ($) {
         addToPlaylist(clickedListItem.data("songdata"));
     }
 
+    function addRowToPlaylist(clickedRowJQ) {
+        addToPlaylist(
+            { label: clickedRowJQ.attr("data-label") || GetFileName(clickedRowJQ.attr("data-href")),
+                href: clickedRowJQ.attr("data-href"),
+                length: clickedRowJQ.attr("data-length"),
+                replaygain: Number(clickedRowJQ.attr("data-replaygain")) || 0
+            });
+    }
+
     window.SearchListClicked = function SearchListClicked_impl(e) {
         if (!e) var e = window.event;
         var target = e.target || e.srcElement;
         var clickedRow = $(target).parents("tr");
         if (clickedRow.length != 1)
             return;
-        addToPlaylist({ label: clickedRow.attr("data-label") || GetFileName(clickedRow.attr("data-href")), href: clickedRow.attr("data-href"), length: clickedRow.attr("data-length"), replaygain: Number(clickedRow.attr("data-replaygain")) || 0 });
+        addToPlaylist(clickedRow);
     };
+
     window.SetOrdering = function SetOrdering_impl(e) {
         if (!e) var e = window.event;
         var target = e.target || e.srcElement;
