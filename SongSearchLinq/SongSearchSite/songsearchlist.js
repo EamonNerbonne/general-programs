@@ -436,7 +436,7 @@ $(document).ready(function ($) {
         var clickedRow = $(target).parents("tr");
         if (clickedRow.length != 1)
             return;
-        addToPlaylist(clickedRow);
+        addRowToPlaylist(clickedRow);
     };
 
     window.SetOrdering = function SetOrdering_impl(e) {
