@@ -65,7 +65,7 @@ void TestModel(LvqModelSettings::LvqModelType modelType, mt19937 & rndGenOrig, b
 	Eigen::BenchTimer t;
 	mt19937 rndGen = rndGenOrig;//we do this to avoid changing the original rng, so we can rerun tests with the same sequence of random numbers generated.
 	
-	LvqModelSettings initSettings(modelType,rndGen,rndGen,protoDistrib,dataset->ComputeClassMeans(dataset->GetTrainingSubset(0,0)),dataset->ComputePcaProjection(dataset->GetTrainingSubset(0,0)));
+	LvqModelSettings initSettings(modelType,rndGen,rndGen,protoDistrib,dataset,dataset->GetTrainingSubset(0,0));
 	//initSettings.RandomInitialProjection = randInit;
 	initSettings.NgUpdateProtos=useNgUpdate;
 
