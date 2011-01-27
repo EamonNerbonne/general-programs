@@ -76,6 +76,8 @@ public:
 		, RngIter(rngIter) { }
 };
 
+class LvqDataset;
+
 class LvqModelSettings
 {
 public:
@@ -89,22 +91,14 @@ public:
 	boost::mt19937 RngParams;
 	LvqModelRuntimeSettings RuntimeSettings;
 	std::vector<int> PrototypeDistribution;
-	Eigen::MatrixXd PerClassMeans;
-	PMatrix pcaTransform;
-	LvqModelSettings(LvqModelType modelType, boost::mt19937 & rngParams, boost::mt19937 & rngIter, std::vector<int> protodistrib, Eigen::MatrixXd const & means, PMatrix const &pcaTransform) 
-		: RandomInitialProjection(true)
-		, RandomInitialBorders(false) 
-		, NgUpdateProtos(false)
-		, RngParams(rngParams)
-		, PrototypeDistribution(protodistrib)
-		, PerClassMeans(means)
-		, ModelType(modelType)
-		, RuntimeSettings(static_cast<int>(means.cols()),rngIter)
-		, Dimensionality(0)
-		, pcaTransform(pcaTransform)
-	{ }
+	LvqDataset const * Dataset;
+	std::vector<int> Trainingset;
 
-	size_t Dimensions() const {return PerClassMeans.rows();}
+	Eigen::MatrixXd PerClassMeans() const;
+	PMatrix pcaTransform() const;
+
+	LvqModelSettings(LvqModelType modelType, boost::mt19937 & rngParams, boost::mt19937 & rngIter, std::vector<int> protodistrib, LvqDataset const * dataset, std::vector<int> trainingset); 
+	size_t Dimensions() const;
 
 	template<typename T>
 	void AssertModelIsOfRightType(T * model) {

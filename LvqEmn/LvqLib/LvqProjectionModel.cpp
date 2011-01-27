@@ -48,7 +48,7 @@ LvqProjectionModel::LvqProjectionModel(LvqModelSettings & initSettings)
 //		projectionRandomizeUniformScaled(initSettings.RngParams, P);
 		randomProjectionMatrix(initSettings.RngParams, P);
 	else
-		P = initSettings.pcaTransform;
+		P = initSettings.pcaTransform();
 	//		P.setIdentity();
 }
 

@@ -29,10 +29,11 @@ GmLvqModel::GmLvqModel( LvqModelSettings & initSettings)
 	P.resize(protoCount);
 
 	int protoIndex=0;
+	auto PerClassMeans = initSettings.PerClassMeans();
 	for(int label = 0; label <(int) initSettings.PrototypeDistribution.size();label++) {
 		int labelCount =initSettings.PrototypeDistribution[label];
 		for(int i=0;i<labelCount;i++) {
-			prototype[protoIndex] = initSettings.PerClassMeans.col(label);
+			prototype[protoIndex] = PerClassMeans.col(label);
 			P[protoIndex].setIdentity(initSettings.Dimensionality, initSettings.Dimensions());
 			if(initSettings.RandomInitialProjection)
 				projectionRandomizeUniformScaled(initSettings.RngParams, P[protoIndex]);

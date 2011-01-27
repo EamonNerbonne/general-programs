@@ -19,10 +19,11 @@ GsmLvqModel::GsmLvqModel(LvqModelSettings & initSettings)
 
 	int maxProtoCount=0;
 	int protoIndex=0;
+	auto PerClassMeans = initSettings.PerClassMeans();
 	for(int label = 0; label <(int) initSettings.PrototypeDistribution.size();label++) {
 		int labelCount =initSettings.PrototypeDistribution[label];
 		for(int i=0;i<labelCount;i++) {
-			prototype[protoIndex] = initSettings.PerClassMeans.col(label);
+			prototype[protoIndex] = PerClassMeans.col(label);
 			pLabel(protoIndex) = label;
 			RecomputeProjection(protoIndex);
 

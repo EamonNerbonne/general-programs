@@ -22,10 +22,11 @@ G2mLvqModel::G2mLvqModel(LvqModelSettings & initSettings)
 
 	int maxProtoCount=0;
 	int protoIndex=0;
+	auto PerClassMeans = initSettings.PerClassMeans();
 	for(int label=0; label <(int) initSettings.PrototypeDistribution.size();label++) {
 		int labelCount =initSettings.PrototypeDistribution[label];
 		for(int i=0;i<labelCount;i++) {
-			prototype[protoIndex] = G2mLvqPrototype(initSettings.RngParams, initSettings.RandomInitialBorders, label, initSettings.PerClassMeans.col(label));
+			prototype[protoIndex] = G2mLvqPrototype(initSettings.RngParams, initSettings.RandomInitialBorders, label, PerClassMeans.col(label));
 			prototype[protoIndex].ComputePP(P);
 			protoIndex++;
 		}

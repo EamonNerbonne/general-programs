@@ -158,7 +158,7 @@ namespace LvqGui {
 				(,gn(?<GloballyNormalize>\+?))?
 				(,NG(?<NgUpdateProtos>\+?))?
 				(,noB(?<UpdatePointsWithoutB>\+?))?
-				\[(?<Seed>\d+):(?<InstSeed>\d+)\]
+				\[(?<Seed>\d+)\:(?<InstSeed>\d+)\]
 				/(?<ParallelModels>\d+)
 				(,pQ(?<TrackProjectionQuality>\+?))?
 				,lr0(?<LR0>\d*\.?\d*(e\d+)?)
