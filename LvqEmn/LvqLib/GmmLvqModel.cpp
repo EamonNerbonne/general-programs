@@ -1,8 +1,11 @@
 #include "stdafx.h"
 #include "GmmLvqModel.h"
 #include "utils.h"
+#include "RandomMatrix.h"
 #include "LvqConstants.h"
 #include "MeanMinMax.h"
+#include "LvqDataset.h"
+#include "PCA.h"
 using namespace std;
 using namespace Eigen;
 
@@ -16,7 +19,10 @@ GmmLvqModel::GmmLvqModel(LvqModelSettings & initSettings)
 		throw "Illegal Dimensionality";
 	using namespace std;
 	initSettings.AssertModelIsOfRightType(this);
-
+	Vector2d eigVal;
+	Matrix2d pca2d;
+	PcaLowDim::DoPca(P * initSettings.Dataset->ExtractPoints(initSettings.Trainingset),pca2d,eigVal);
+	Matrix2d toUnitDist=eigVal.cwiseSqrt().asDiagonal();
 
 	int protoCount = accumulate(initSettings.PrototypeDistribution.begin(),initSettings.PrototypeDistribution.end(),0);
 	prototype.resize(protoCount);
@@ -27,7 +33,7 @@ GmmLvqModel::GmmLvqModel(LvqModelSettings & initSettings)
 	for(int label=0; label <(int) initSettings.PrototypeDistribution.size();label++) {
 		int labelCount =initSettings.PrototypeDistribution[label];
 		for(int i=0;i<labelCount;i++) {
-			prototype[protoIndex] = GmmLvqPrototype(initSettings.RngParams, initSettings.RandomInitialBorders, label, PerClassMeans.col(label), P);
+			prototype[protoIndex] = GmmLvqPrototype(initSettings.RngParams, initSettings.RandomInitialBorders, label, PerClassMeans.col(label), P, toUnitDist);
 			protoIndex++;
 		}
 		maxProtoCount = max(maxProtoCount, labelCount);
@@ -280,15 +286,16 @@ void GmmLvqModel::DoOptionalNormalization() {
 
 GmmLvqPrototype::GmmLvqPrototype() : classLabel(-1) {}
 
-GmmLvqPrototype::GmmLvqPrototype(boost::mt19937 & rng, bool randInit, int protoLabel, VectorXd const & initialVal,PMatrix const & P) 
+GmmLvqPrototype::GmmLvqPrototype(boost::mt19937 & rng, bool randInit, int protoLabel, VectorXd const & initialVal,PMatrix const & P, Matrix2d const & scaleB) 
 	: point(initialVal) 
 	, classLabel(protoLabel)
 	, bias(0.0)
 {
+	B = scaleB;
 	if(randInit)
-		projectionRandomizeUniformScaled(rng, B);	
+		B = randomUnscalingMatrix<Matrix2d>(rng, LVQ_LOW_DIM_SPACE) * scaleB;	
 	else 
-		B.setIdentity();
+		B = scaleB;
 	ComputePP(P);
 #ifdef AUTO_BIAS
 	RecomputeBias();
