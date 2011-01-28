@@ -194,7 +194,9 @@ namespace LvqGui {
 				return (
 						from classColor in dataset.ClassColors
 						let darkColor = Color.FromScRgb(1.0f, classColor.ScR * colorIntensity, classColor.ScG * colorIntensity, classColor.ScB * colorIntensity)
-						select Plot.Create(new PlotMetaData { RenderColor = darkColor, ZIndex = zIndex ?? 0 }, new VizPixelScatterSmart { CoverageRatio = 0.99, OverridePointCountEstimate = PointCount ?? dataset.PointCount }).Visualisation
+						select Plot.Create(
+							new PlotMetaData { RenderColor = darkColor, ZIndex = zIndex ?? 0 }, 
+							new VizPixelScatterSmart { CoverageRatio = 0.98, OverridePointCountEstimate = PointCount ?? dataset.PointCount, CoverageGradient=5.0 }).Visualisation
 					).ToArray();
 			}
 

@@ -22,7 +22,7 @@ GmmLvqModel::GmmLvqModel(LvqModelSettings & initSettings)
 	Vector2d eigVal;
 	Matrix2d pca2d;
 	PcaLowDim::DoPca(P * initSettings.Dataset->ExtractPoints(initSettings.Trainingset),pca2d,eigVal);
-	Matrix2d toUnitDist=eigVal.cwiseSqrt().asDiagonal();
+	Matrix2d toUnitDist=eigVal.array().sqrt().inverse().matrix().asDiagonal()*pca2d;
 
 	int protoCount = accumulate(initSettings.PrototypeDistribution.begin(),initSettings.PrototypeDistribution.end(),0);
 	prototype.resize(protoCount);
