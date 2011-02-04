@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include <boost/random/mersenne_twister.hpp>
 #include "PCA.h"
-#include "DatasetUtils.h"
+#include "CreateDataset.h"
 
 using namespace Eigen;
 
@@ -11,7 +11,7 @@ BOOST_AUTO_TEST_CASE( pca_vs_svd_test )
 	using std::cout;
 	using std::cerr;
 	mt19937 rng(1338);
-	MatrixXd points = DatasetUtils::MakePointCloud(rng, rng, 7, 1000, 2.12345);
+	MatrixXd points = CreateDataset::MakePointCloud(rng, rng, 7, 1000, 2.12345,1.0);
 
 	MatrixXd transform;
 	VectorXd eigenvalues;

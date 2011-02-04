@@ -3,7 +3,7 @@
 #include <bench/BenchTimer.h>
 #include <boost/random/mersenne_twister.hpp>
 #include "CovarianceAndMean.h"
-#include "DatasetUtils.h"
+#include "CreateDataset.h"
 #include "LvqTypedefs.h"
 
 #define DIMS 17
@@ -27,7 +27,7 @@ BOOST_AUTO_TEST_CASE( covariance_test )
 {
 	typedef CovarianceImpl<MatrixXd> CovHD;
 	mt19937 rng(1337);
-	MatrixXd points = DatasetUtils::MakePointCloud(rng,rng,DIMS,1000,2.3456);
+	MatrixXd points = CreateDataset::MakePointCloud(rng,rng,DIMS,1000,2.3456,1.0);
 	
 
 	VectorXd mean = MeanPoint(points);
@@ -54,7 +54,7 @@ BOOST_AUTO_TEST_CASE( covariance_lowdim_test )
 {
 	typedef CovarianceImpl<PMatrix> CovLD;
 	mt19937 rng(1337);
-	PMatrix points = DatasetUtils::MakePointCloud(rng,rng,LVQ_LOW_DIM_SPACE,10000,2.3456);
+	PMatrix points = CreateDataset::MakePointCloud(rng,rng,LVQ_LOW_DIM_SPACE,10000,2.3456,1.0);
 	Vector2d mean = MeanPoint(points);
 
 	BOOST_CHECK(CovLD::CovarianceA(points,mean).isApprox(CovLD::CovarianceB(points,mean)));

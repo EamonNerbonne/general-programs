@@ -2,7 +2,7 @@
 #include <boost/random/mersenne_twister.hpp>
 #include <boost/scoped_ptr.hpp>
 #include <bench/BenchTimer.h>
-#include "DatasetUtils.h"
+#include "CreateDataset.h"
 #include "LvqDataset.h"
 #include "PCA.h"
 #include "G2mLvqModel.h"
@@ -32,7 +32,7 @@ using std::vector;
 BOOST_AUTO_TEST_CASE( nn_test )
 {
 	mt19937 rng(1337);
-	scoped_ptr<LvqDataset> dataset(DatasetUtils::ConstructGaussianClouds(rng,rng,DIMS, CLASSES,POINTS_PER_CLASS,MEANSEP));
+	scoped_ptr<LvqDataset> dataset(CreateDataset::ConstructGaussianClouds(rng,rng,DIMS, CLASSES,POINTS_PER_CLASS,MEANSEP));
 	dataset->shufflePoints(rng);
 
 	vector<int> protoDistrib;
@@ -58,15 +58,15 @@ BOOST_AUTO_TEST_CASE( nn_test )
 		LOG("Raw: "<<rawErrorRate);
 
 		timeG2m.start();
-		G2mLvqModel model(as_lvalue(LvqModelSettings(LvqModelSettings::AutoModelType,rng,rng,protoDistrib,dataset->ComputeClassMeans(trainingSet))));
-		dataset->TrainModel(25,&model,trainingSet,dataset.get() ,testSet);
+		G2mLvqModel model(as_lvalue(LvqModelSettings(LvqModelSettings::AutoModelType,rng,rng,protoDistrib,dataset.get(),trainingSet)));
+		LvqModel::Statistics stats;
+		dataset->TrainModel(25, &model, &stats, trainingSet, dataset.get(), testSet);
 		timeG2m.stop();
 
-		double ignore, g2mRate;
-		dataset->ComputeCostAndErrorRate(testSet,&model,ignore,g2mRate);
-		LOG(", G2m: "<<g2mRate );
+		LvqDatasetStats statsG2m = dataset->ComputeCostAndErrorRate(testSet,&model);
+		LOG(", G2m: "<<statsG2m.errorRate);
 
-		double g2mNNrate = dataset->NearestNeighborErrorRate(trainingSet,dataset.get(),testSet, model.projectionMatrix() );
+		double g2mNNrate = dataset->NearestNeighborProjectedErrorRate(trainingSet,dataset.get(),testSet, model.projectionMatrix() );
 		LOG(", G2mNN: "<<g2mNNrate );
 
 		timePca.start();
@@ -74,17 +74,16 @@ BOOST_AUTO_TEST_CASE( nn_test )
 		timePca.stop();
 
 		timePcaNN.start();
-		double pcaErrorRate = dataset->NearestNeighborErrorRate(trainingSet,dataset.get(),testSet,transform);
+		double pcaErrorRate = dataset->NearestNeighborProjectedErrorRate(trainingSet,dataset.get(),testSet,transform);
 		timePcaNN.stop();
 
 		BOOST_CHECK(pcaErrorRate >= rawErrorRate);
 		LOG(", PcaNN: "<<pcaErrorRate );
 
-		double identTransRate = dataset->NearestNeighborErrorRate(trainingSet,dataset.get(),testSet, checkerbox);
+		double identTransRate = dataset->NearestNeighborProjectedErrorRate(trainingSet,dataset.get(),testSet, checkerbox);
 		BOOST_CHECK(identTransRate >= pcaErrorRate);
 		BOOST_CHECK(identTransRate >= g2mNNrate);
 		LOG(", identNN: "<<identTransRate <<"\n");
-		
 	}
 
 	LOG("RawNN time: "<<timeRawNN.best()<<", Pca time: "<<timePca.best()<<", PcaNN time: "<<timePcaNN.best() <<", G2m time: "<<timeG2m.best() <<"\n\n");
