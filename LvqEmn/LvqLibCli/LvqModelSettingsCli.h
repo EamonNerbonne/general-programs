@@ -35,7 +35,7 @@ namespace LvqLibCli {
 			, RandomInitialProjection(true)
 			, RandomInitialBorders(false)
 			, TrackProjectionQuality(false)
-			, NormalizeProjection(false)
+			, NormalizeProjection(true)
 			, NormalizeBoundaries(false)
 			, GloballyNormalize(true)
 			, NgUpdateProtos(false)

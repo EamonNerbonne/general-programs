@@ -43,9 +43,8 @@ namespace LvqGui {
 				where !includedProperties.Contains(property.Name)
 				select property.Name;
 
-			if (excludedProperties.Any()) {
+			if (excludedProperties.Any()) 
 				throw new ArgumentException("Invalid Regex doesn't set properties: " + string.Join(", ", excludedProperties.ToArray()));
-			}
 		}
 
 		public static string VerifyShorthand(IHasShorthand shorthandObj, Regex shR) {

@@ -65,7 +65,9 @@ namespace EmnExtensions.Wpf.Plot {
 
 		public string Title { get { return (string)GetValue(TitleProperty); } set { SetValue(TitleProperty, value); } }
 		public static readonly DependencyProperty TitleProperty =
-			DependencyProperty.Register("Title", typeof(string), typeof(PlotControl), new UIPropertyMetadata(null));
+			DependencyProperty.Register("Title", typeof(string), typeof(PlotControl), new UIPropertyMetadata(
+				(depObj, evtArg) => { (depObj as PlotControl).titleTextbox.Visibility = evtArg.NewValue == null ? Visibility.Collapsed : Visibility.Visible; }
+				));
 
 		public void AutoPickColors(MersenneTwister rnd = null) {
 			var ColoredPlots = (
@@ -318,7 +320,7 @@ namespace EmnExtensions.Wpf.Plot {
 			try {
 				manualRender = true;
 				m_dpiX = 288.0; m_dpiY = 288.0;
-				WpfTools.PrintXPS(this, ActualWidth, ActualHeight, writeTo, FileMode.Create, FileAccess.ReadWrite);
+				WpfTools.PrintXPS(this, 350, 350, writeTo, FileMode.Create, FileAccess.ReadWrite);
 			} finally {
 				manualRender = false;
 				m_dpiX = 96.0; m_dpiY = 96.0;

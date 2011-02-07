@@ -172,7 +172,7 @@ namespace LvqGui {
 						group statname by statname.StatGroup into statGroup
 						select new PlotControl {
 							ShowGridLines = true,
-							Title = statGroup.Key + ": " + model.ModelLabel,
+							//Title = statGroup.Key + ": " + model.ModelLabel,
 							Tag = statGroup.Key,
 							GraphsEnumerable = StatisticsPlotMaker.Create(statGroup.Key, statGroup, model.IsMultiModel, dataset.IsFolded()).ToArray(),
 						}
@@ -185,7 +185,7 @@ namespace LvqGui {
 					AttemptBorderTicks = false,
 					//ShowGridLines = true,
 					UniformScaling = true,
-					Title = "ScatterPlot: " + model.ModelLabel,
+					//Title = "ScatterPlot: " + model.ModelLabel,
 					GraphsEnumerable = graphs
 				};
 			}

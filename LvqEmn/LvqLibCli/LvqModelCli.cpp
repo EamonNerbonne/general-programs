@@ -80,8 +80,7 @@ namespace LvqLibCli {
 		return retval;
 	}
 
-
-	ModelProjection LvqModelCli::CurrentProjectionAndPrototypes( LvqDatasetCli^ dataset){
+	ModelProjection LvqModelCli::CurrentProjectionAndPrototypes(LvqDatasetCli^ dataset) {
 		if(modelCopy==nullptr) return ModelProjection();
 		LvqProjectionModel* projectionModel = dynamic_cast<LvqProjectionModel*>(modelCopy->get());
 		if(projectionModel==nullptr) return ModelProjection();
@@ -99,7 +98,7 @@ namespace LvqLibCli {
 
 	array<int>^ LvqModelCli::PrototypeLabels::get() { array<int>^ retval; cppToCli(modelCopy->get()->GetPrototypeLabels(),retval); return retval;}
 
-	array<int,2>^ LvqModelCli::ClassBoundaries( double x0, double x1, double y0, double y1,int xCols, int yRows) {
+	array<int,2>^ LvqModelCli::ClassBoundaries(double x0, double x1, double y0, double y1, int xCols, int yRows) {
 		LvqProjectionModel::ClassDiagramT classDiagram(yRows,xCols);
 		if(modelCopy==nullptr) return nullptr;
 		LvqProjectionModel* projectionModelCopy = dynamic_cast<LvqProjectionModel*>(modelCopy->get());

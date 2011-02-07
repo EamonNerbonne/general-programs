@@ -47,9 +47,11 @@
                 </DataTemplate>
             </ComboBox.ItemTemplate>
         </ComboBox>
+        <Label Grid.Row="2">Shorthand</Label>
+        <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding SelectedLvqModel.ModelLabel, Mode=OneWay}" IsReadOnly="true"/>
 
-        <Label Grid.Row="2">Select Sub-Model</Label>
-        <ComboBox Grid.Row="2" Grid.Column="1" ItemsSource="{Binding ModelIndexes, Mode=OneWay}" SelectedItem="{Binding SubModelIndex}">
+        <Label Grid.Row="3">Select Sub-Model</Label>
+        <ComboBox Grid.Row="3" Grid.Column="1" ItemsSource="{Binding ModelIndexes, Mode=OneWay}" SelectedItem="{Binding SubModelIndex}">
             <ComboBox.ItemTemplate>
                 <DataTemplate>
                     <TextBlock Text="{Binding}"/>
@@ -59,23 +61,22 @@
 
 
 
-        <StackPanel Grid.Row="3"  Orientation="Horizontal" HorizontalAlignment="Right">
+        <StackPanel Grid.Row="4"  Orientation="Horizontal" HorizontalAlignment="Right">
             <Button Content="Train" Click="StartTraining" />
             <Label Content="for"/>
         </StackPanel>
-
-        <StackPanel Grid.Row="3" Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Stretch">
+        <StackPanel Grid.Row="4" Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Stretch">
             <TextBox Width="60" Text="{Binding EpochsPerClick,ValidatesOnExceptions=True}" />
             <Label Content="epochs" HorizontalAlignment="Right"/>
         </StackPanel>
 
-        <CheckBox Content="Animate" Grid.Column="0" Grid.Row="4" IsChecked="{Binding AnimateTraining}"/>
-        <StackPanel Grid.Row="4" Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Stretch">
+        <CheckBox Grid.Row="5" Grid.Column="0"  Content="Animate" IsChecked="{Binding AnimateTraining}"/>
+        <StackPanel Grid.Row="5" Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Stretch">
             <TextBox Width="60" Text="{Binding EpochsPerAnimation,ValidatesOnExceptions=True}" />
             <Label Content="epochs per frame" HorizontalAlignment="Right"/>
         </StackPanel>
 
-        <StackPanel Grid.Row="5" Grid.Column="0" Grid.ColumnSpan="2"   Orientation="Horizontal" HorizontalAlignment="Right">
+        <StackPanel Grid.Row="6" Grid.Column="0" Grid.ColumnSpan="2"   Orientation="Horizontal" HorizontalAlignment="Right">
             <Button Content="Print LR" Click="PrintLearningRate"/>
             <Button Content="Reset LR" Click="ResetLearningRate"/>
             <Button Content="Unload Model" Click="UnloadModel"/>

@@ -97,9 +97,7 @@ namespace LvqGui {
 				RegexOptions.Compiled | RegexOptions.ExplicitCapture);
 
 		public string Shorthand {
-			get {
-				return "star-" + Dimensions + "D" + (ExtendDataByCorrelation ? "*" : "") + "-" + NumberOfClasses + "*" + PointsPerClass + ":" + NumberOfClusters + "(" + ClusterDimensionality + "D" + (RandomlyTransformFirst ? "?" : "") + ")*" + ClusterCenterDeviation.ToString("r") + "~" + IntraClusterClassRelDev.ToString("r") + "[" + Seed + ":" + InstSeed + "]/" + Folds;
-			}
+			get { return "star-" + Dimensions + "D" + (ExtendDataByCorrelation ? "*" : "") + "-" + NumberOfClasses + "*" + PointsPerClass + ":" + NumberOfClusters + "(" + ClusterDimensionality + "D" + (RandomlyTransformFirst ? "?" : "") + ")*" + ClusterCenterDeviation.ToString("r") + "~" + IntraClusterClassRelDev.ToString("r") + "[" + Seed + ":" + InstSeed + "]/" + Folds; }
 			set { ShorthandHelper.ParseShorthand(this, shR, value); }
 		}
 
@@ -124,7 +122,6 @@ namespace LvqGui {
 			_RandomlyTransformFirst = true;
 			this.ReseedBoth();
 		}
-
 
 		public LvqDatasetCli CreateDataset() {
 			Console.WriteLine("Created: " + Shorthand);

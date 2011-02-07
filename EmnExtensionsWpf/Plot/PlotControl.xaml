@@ -23,7 +23,8 @@
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="1*" />
         </Grid.ColumnDefinitions>
-        <TextBox IsReadOnly="True" BorderThickness="0" Background="Transparent" FontSize="9" Margin="0" Text="{Binding RelativeSource={RelativeSource  Mode=FindAncestor, AncestorType={x:Type UserControl}}, Path=Title, Mode=OneWay}" HorizontalAlignment="Center" />
+        <TextBox IsReadOnly="True" BorderThickness="0" Background="Transparent" FontSize="9" Margin="0" Text="{Binding RelativeSource={RelativeSource  Mode=FindAncestor, AncestorType={x:Type UserControl}}, Path=Title, Mode=OneWay}" HorizontalAlignment="Center" x:Name="titleTextbox" Visibility="Collapsed"/>
+        <!--<Label Content="{Binding RelativeSource={RelativeSource  Mode=FindAncestor, AncestorType={x:Type UserControl}}, Path=Title, Mode=OneWay}" Margin="0" FontSize="9" Background="Transparent" HorizontalAlignment="Center" BorderThickness="0"/>-->
         <Grid x:Name="plotArea" Grid.Row="1" UseLayoutRounding="False">
             <emnPlot:TickedAxis x:Name="tickedAxisBot" AxisPos="BelowGraph" />
             <emnPlot:TickedAxis x:Name="tickedAxisLft" AxisPos="LeftOfGraph" />

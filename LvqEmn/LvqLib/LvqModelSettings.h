@@ -64,7 +64,7 @@ public:
 	copy_ptr<boost::mt19937> RngIter;
 	LvqModelRuntimeSettings(int classCount, boost::mt19937 & rngIter) 
 		: TrackProjectionQuality(false)
-		, NormalizeProjection(false)
+		, NormalizeProjection(true)
 		, NormalizeBoundaries(false)
 		, UpdatePointsWithoutB(false)
 		, GloballyNormalize(true)
