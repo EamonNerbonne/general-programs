@@ -72,6 +72,14 @@ namespace LvqGui {
 		}
 		double _IntraClusterClassRelDev;
 
+		public double NoiseSigma {
+			get { return _NoiseSigma; }
+			set { if (value <= 0.0) throw new ArgumentException("Standard deviation must be positive");  if (!_NoiseSigma.Equals(value)) { _NoiseSigma = value; _propertyChanged("NoiseSigma"); } }
+		}
+		private double _NoiseSigma;
+
+		
+
 		public uint Seed {
 			get { return _Seed; }
 			set { if (!Equals(_Seed, value)) { _Seed = value; _propertyChanged("Seed"); } }
@@ -93,11 +101,12 @@ namespace LvqGui {
 		public bool ExtendDataByCorrelation { get { return owner.ExtendDataByCorrelation; } set { owner.ExtendDataByCorrelation = value; } }
 
 		static readonly Regex shR =
-			new Regex(@"^\s*(.*--)?star-(?<Dimensions>\d+)D(?<ExtendDataByCorrelation>\*?)-(?<NumberOfClasses>\d+)\*(?<PointsPerClass>\d+):(?<NumberOfClusters>\d+)\((?<ClusterDimensionality>\d+)D(?<RandomlyTransformFirst>\??)\)\*(?<ClusterCenterDeviation>[^~]+)\~(?<IntraClusterClassRelDev>[^\[]+)\[(?<Seed>\d+):(?<InstSeed>\d+)\]/(?<Folds>\d+)\s*$",
+			new Regex(@"^\s*(.*--)?star-(?<Dimensions>\d+)D(?<ExtendDataByCorrelation>\*?)-(?<NumberOfClasses>\d+)\*(?<PointsPerClass>\d+):(?<NumberOfClusters>\d+)\((?<ClusterDimensionality>\d+)D(?<RandomlyTransformFirst>\??)\)\*(?<ClusterCenterDeviation>[^~]+)\~(?<IntraClusterClassRelDev>[^\[n]+)(n(?<NoiseSigma>[^\[]+))?\[(?<Seed>\d+):(?<InstSeed>\d+)\]/(?<Folds>\d+)\s*$",
 				RegexOptions.Compiled | RegexOptions.ExplicitCapture);
 
 		public string Shorthand {
-			get { return "star-" + Dimensions + "D" + (ExtendDataByCorrelation ? "*" : "") + "-" + NumberOfClasses + "*" + PointsPerClass + ":" + NumberOfClusters + "(" + ClusterDimensionality + "D" + (RandomlyTransformFirst ? "?" : "") + ")*" + ClusterCenterDeviation.ToString("r") + "~" + IntraClusterClassRelDev.ToString("r") + "[" + Seed + ":" + InstSeed + "]/" + Folds; }
+			get { return "star-" + Dimensions + "D" + (ExtendDataByCorrelation ? "*" : "") + "-" + NumberOfClasses + "*" + PointsPerClass + ":" + NumberOfClusters + "(" + ClusterDimensionality + "D" + (RandomlyTransformFirst ? "?" : "") + ")*" + ClusterCenterDeviation.ToString("r") + "~" + IntraClusterClassRelDev.ToString("r")+(
+				NoiseSigma!=1.0?"n"+NoiseSigma.ToString("r"):"") + "[" + Seed + ":" + InstSeed + "]/" + Folds; }
 			set { ShorthandHelper.ParseShorthand(this, shR, value); }
 		}
 
@@ -112,6 +121,7 @@ namespace LvqGui {
 			_IntraClusterClassRelDev = 0.5;
 			_NumberOfClasses = 3;
 			_NumberOfClusters = 4;
+			_NoiseSigma = 1.0;
 #if DEBUG
 			_Dimensions = 8;
 			_PointsPerClass = 100;
@@ -138,7 +148,8 @@ namespace LvqGui {
 				pointsPerClass: PointsPerClass,
 				starMeanSep: ClusterCenterDeviation,
 				starClassRelOffset: IntraClusterClassRelDev,
-				randomlyTransform: RandomlyTransformFirst
+				randomlyTransform: RandomlyTransformFirst,
+				noiseSigma: NoiseSigma
 				);
 		}
 
