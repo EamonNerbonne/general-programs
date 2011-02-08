@@ -46,13 +46,16 @@ namespace EmnExtensions.Wpf {
 				//Doing this fixes bugs in saving complex grid layouts that probably are doing some layout calcs outside of
 				//UpdateLayout but aren't influenced by our .Measure and .Arrange calls (which is nasty, but seems to be
 				//a real issue).
-				if (false && curHeight.IsFinite() && curWidth.IsFinite() && curHeight > 0 && curWidth > 0) {
+#if false
+				if (curHeight.IsFinite() && curWidth.IsFinite() && curHeight > 0 && curWidth > 0) {
 					el.LayoutTransform = new ScaleTransform(renderWidth / reqWidth, renderHeight / reqHeight);
 					el.RenderTransform = new ScaleTransform(reqWidth / renderWidth, reqHeight / renderHeight);
 					el.UpdateLayout();
 					el.Measure(new Size(curWidth, curHeight));
 					el.Arrange(new Rect(el.DesiredSize));
-				} else {
+				} else 
+#endif
+				{
 					el.Width = reqWidth;
 					el.Height = reqHeight;
 					//el.LayoutTransform = Transform.Identity;

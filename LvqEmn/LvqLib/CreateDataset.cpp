@@ -50,7 +50,7 @@ vector<MatrixXd> MakeTailTransforms(boost::mt19937 & rndGen, int numStarTails, i
 typedef boost::uniform_int<> starChoiceDistrib;
 typedef boost::variate_generator<boost::mt19937 &, starChoiceDistrib> starChoiceGen;
 
-LvqDataset* CreateDataset::ConstructStarDataset(boost::mt19937 & rngParams, boost::mt19937 & rngInst, int dims, int starDims, int numStarTails, int classCount, int pointsPerClass, double starMeanSep, double starClassRelOffset, bool randomlyRotate, double noiseVariance){
+LvqDataset* CreateDataset::ConstructStarDataset(boost::mt19937 & rngParams, boost::mt19937 & rngInst, int dims, int starDims, int numStarTails, int classCount, int pointsPerClass, double starMeanSep, double starClassRelOffset, bool randomlyRotate, double noiseSigma){
 	MatrixXd postInitTransform = randomOrthogonalMatrix<MatrixXd>(rngParams,dims);//always compute random transform, even if not needed, to ensure identical usage of random generator
 	if(!randomlyRotate) postInitTransform.setIdentity();
 
@@ -73,7 +73,7 @@ LvqDataset* CreateDataset::ConstructStarDataset(boost::mt19937 & rngParams, boos
 			fullPoint.block(0,0,starDims,1)	= currentTailMeans.col(starIdx) + tailTransforms[starIdx] * starRaw;
 
 			Eigen::Block<VectorXd> restBlock(fullPoint.block(starDims, 0, dims - starDims, 1));
-			RandomMatrixInit(rngInst, restBlock,0,noiseVariance);
+			RandomMatrixInit(rngInst, restBlock,0,noiseSigma);
 			points.block(0, pointIndex, dims, 1) = postInitTransform* fullPoint;
 			pointLabels[pointIndex] = label;
 			pointIndex++;
