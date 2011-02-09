@@ -23,14 +23,16 @@ namespace EmnExtensions.Wpf {
 		public static void PrintXPS(FrameworkElement el, double reqWidth, double reqHeight, Stream toStream, FileMode fileMode, FileAccess fileAccess) {
 			//MemoryStream ms = new MemoryStream();
 			//  using (var stream = File.Open(@"C:\test.xps",FileMode.,FileAccess.ReadWrite)) 
-			Transform oldLayout = el.LayoutTransform;
-			Transform oldRender = el.RenderTransform;
 			double oldWidth = el.Width;
 			double oldHeight = el.Height;
+#if USELAYOUTTRANSFORM
+			Transform oldLayout = el.LayoutTransform;
+			Transform oldRender = el.RenderTransform;
 			double curWidth = el.DesiredSize.Width;
 			double curHeight = el.DesiredSize.Height;
 			double renderWidth = el.ActualWidth;
 			double renderHeight = el.ActualHeight;
+#endif
 
 			try {
 #if USE_PAGED_XPS_SAVE
@@ -46,7 +48,7 @@ namespace EmnExtensions.Wpf {
 				//Doing this fixes bugs in saving complex grid layouts that probably are doing some layout calcs outside of
 				//UpdateLayout but aren't influenced by our .Measure and .Arrange calls (which is nasty, but seems to be
 				//a real issue).
-#if false
+#if USELAYOUTTRANSFORM
 				if (curHeight.IsFinite() && curWidth.IsFinite() && curHeight > 0 && curWidth > 0) {
 					el.LayoutTransform = new ScaleTransform(renderWidth / reqWidth, renderHeight / reqHeight);
 					el.RenderTransform = new ScaleTransform(reqWidth / renderWidth, reqHeight / renderHeight);
@@ -87,8 +89,10 @@ namespace EmnExtensions.Wpf {
 			} finally {
 				el.Width = oldWidth;
 				el.Height = oldHeight;
-				//el.LayoutTransform = oldLayout;
-				//el.RenderTransform = oldRender;
+#if USELAYOUTTRANSFORM
+				el.LayoutTransform = oldLayout;
+				el.RenderTransform = oldRender;
+#endif
 				el.InvalidateVisual();
 				// this item may be confused about it's position within the parent.  The following is probably imperfect, but
 				//a reasonable attempt to ensure the item is really relayouted.
