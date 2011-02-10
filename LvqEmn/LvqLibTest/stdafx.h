@@ -1,5 +1,4 @@
 #pragma once
-
 #ifndef STANDALONE
 #define BOOST_TEST_INCLUDED
 #pragma warning (push)

@@ -1,11 +1,15 @@
 #include "stdafx.h"
+
 #include <boost/random/mersenne_twister.hpp>
 #include <boost/scoped_ptr.hpp>
-#include <bench/BenchTimer.h>
+#include "LvqModelSettings.h"
+
 #include "CreateDataset.h"
 #include "LvqDataset.h"
 #include "PCA.h"
 #include "G2mLvqModel.h"
+
+#include <bench/BenchTimer.h>
 
 using boost::mt19937;
 using std::cout;
