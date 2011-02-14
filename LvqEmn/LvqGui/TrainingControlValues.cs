@@ -130,8 +130,14 @@ namespace LvqGui {
 						PotentialUpdate(selectedDataset, selectedModel);
 					}, Owner.WindowClosingToken, TaskCreationOptions.None, LowPriorityTaskScheduler.DefaultLowPriorityScheduler));
 
-					if (overallTask.Count >= 2) overallTask.Dequeue().Wait();
-
+					try {
+						if (overallTask.Count >= 2) overallTask.Dequeue().Wait();
+					} catch (AggregateException ae) {
+						if (!ae.InnerExceptions.All(ie => ie is OperationCanceledException))
+							throw;
+						else
+							break;
+					}
 #if BENCHMARK
 					epochsTrained += epochsToTrainFor;
 					if (epochsTrained >= 800) {
