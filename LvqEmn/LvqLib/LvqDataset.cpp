@@ -4,9 +4,9 @@
 #include "SmartSum.h"
 #include "LvqProjectionModel.h"
 #include "utils.h"
-#include <xmmintrin.h>
 #include "PCA.h"
 #include "NearestNeighbor.h"
+#include "prefetch.h"
 using namespace std;
 LvqDataset::LvqDataset(MatrixXd const & points, vector<int> pointLabels, int classCountPar) 
 	: points(points)
@@ -112,8 +112,8 @@ double LvqDataset::NearestNeighborProjectedErrorRate(std::vector<int> const & ne
 		neighbors.col(i).noalias() = projection * points.col(pI);
 		neighborLabels[i] = pointLabels[pI];
 	}
-	NearestNeighbor nn(neighbors);
 
+	NearestNeighbor nn(neighbors);
 
 	Vector2d testPoint;
 	int errs =0;
@@ -217,15 +217,6 @@ void LvqDataset::shufflePoints(boost::mt19937& rng) {
 	}
 	points = shufPoints;
 	pointLabels = shufLabels;
-}
-
-static void EIGEN_STRONG_INLINE prefetch(void const * start,int lines) {
-	for(int i=0;i<lines;i++)
-		_mm_prefetch( (const char*)start + 64*i, _MM_HINT_T0);//_MM_HINT_T0 or _MM_HINT_NTA
-}
-static void EIGEN_STRONG_INLINE prefetchStream(void const * start,int lines) {
-	for(int i=0;i<lines;i++)
-		_mm_prefetch( (const char*)start + 64*i, _MM_HINT_NTA);//_MM_HINT_T0 or _MM_HINT_NTA
 }
 
 

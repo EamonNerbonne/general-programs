@@ -528,6 +528,7 @@
     <ClInclude Include="NearestNeighbor.h" />
     <ClInclude Include="NeuralGas.h" />
     <ClInclude Include="PCA.h" />
+    <ClInclude Include="prefetch.h" />
     <ClInclude Include="RandomMatrix.h" />
     <ClInclude Include="shuffle.h" />
     <ClInclude Include="SmartSum.h" />

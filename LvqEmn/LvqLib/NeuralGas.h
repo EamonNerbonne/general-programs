@@ -1,32 +1,33 @@
 #pragma once
 #include <Eigen/Core>
 #include <vector>
+#include <boost/random/mersenne_twister.hpp>
 
-#define NG_LAMBDA_START 10.0
-#define NG_LAMBDA_END 0.01
-#define NG_LR_START 0.5
-#define NG_LR_END 0.5
-
-using std::vector;
+class LvqDataset;
 
 class NeuralGas
 {
 	int trainIter, finalIter;
-	int statMoments;
+	std::vector<std::pair<int, double> > trainCosts;
 	double totalElapsed;
 
-	vector<VectorXd> prototype;
-
+	MatrixXd prototypes;
+	
+	typedef VectorXd::Index Index;
+	MatrixXd tmp_deltaFrom;
+	VectorXd tmp_delta;
+	std::vector<std::pair<double, Index> > tmp_prototypes_ordering;
+	boost::mt19937 rng;
 
 public:
-	NeuralGas(void);
-	~NeuralGas(void);
+	NeuralGas(boost::mt19937& rng, unsigned proto_count, LvqDataset const * dataset, std::vector<int> training_subset, int totalIterCount=1000000, size_t statMoments=2000);
 
-	double unscaledLearningRate() const { 
-		double scaledIter = trainIter*iterationScaleFactor+1.0;
-		return 1.0 / sqrt(scaledIter*sqrt(scaledIter)); 
-	}
+	double lr() const;
+	double lambda() const;
 
-
+	double learnFrom(VectorXd const & point);
+	void do_training(LvqDataset const * dataset, std::vector<int> training_subset);
+	boost::mt19937 const & rng_state() {return rng;}
+	std::vector<std::pair<int, double> > const & trainCosts_tracked() {return trainCosts;}
 };
 
