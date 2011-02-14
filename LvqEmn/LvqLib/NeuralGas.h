@@ -5,6 +5,12 @@
 
 class LvqDataset;
 
+#ifdef NDEBUG
+#define NG_DEFAULT_ITERS 1000000
+#else
+#define NG_DEFAULT_ITERS 10000
+#endif
+
 class NeuralGas {
 
 	int trainIter, finalIter;
@@ -19,7 +25,7 @@ class NeuralGas {
 	std::vector<std::pair<double, Index> > tmp_prototypes_ordering;
 
 public:
-	NeuralGas(boost::mt19937& rng, unsigned proto_count, LvqDataset const * dataset, std::vector<int> training_subset, int totalIterCount=1000000, size_t statMoments=2000);
+	NeuralGas(boost::mt19937& rng, unsigned proto_count, LvqDataset const * dataset, std::vector<int> training_subset, int totalIterCount=NG_DEFAULT_ITERS, size_t statMoments=2000);
 
 	double lr() const;
 	double lambda() const;
