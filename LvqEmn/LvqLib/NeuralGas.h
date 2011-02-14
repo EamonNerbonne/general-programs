@@ -5,8 +5,8 @@
 
 class LvqDataset;
 
-class NeuralGas
-{
+class NeuralGas {
+
 	int trainIter, finalIter;
 	std::vector<std::pair<int, double> > trainCosts;
 	double totalElapsed;
@@ -17,7 +17,6 @@ class NeuralGas
 	MatrixXd tmp_deltaFrom;
 	VectorXd tmp_delta;
 	std::vector<std::pair<double, Index> > tmp_prototypes_ordering;
-	boost::mt19937 rng;
 
 public:
 	NeuralGas(boost::mt19937& rng, unsigned proto_count, LvqDataset const * dataset, std::vector<int> training_subset, int totalIterCount=1000000, size_t statMoments=2000);
@@ -26,8 +25,9 @@ public:
 	double lambda() const;
 
 	double learnFrom(VectorXd const & point);
-	void do_training(LvqDataset const * dataset, std::vector<int> training_subset);
-	boost::mt19937 const & rng_state() {return rng;}
+	void do_training(boost::mt19937& rng, LvqDataset const * dataset, std::vector<int> training_subset);
 	std::vector<std::pair<int, double> > const & trainCosts_tracked() {return trainCosts;}
+
+	MatrixXd const & Prototypes() const { return prototypes; }
 };
 
