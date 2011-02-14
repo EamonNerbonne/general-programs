@@ -94,8 +94,11 @@ public:
 	LvqDataset const * Dataset;
 	std::vector<int> Trainingset;
 
-	Eigen::MatrixXd PerClassMeans() const;
+	size_t ClassCount() const { return PrototypeDistribution.size(); }
+	std::pair<Eigen::MatrixXd,Eigen::VectorXi> InitByClassMeans() const;
+	std::pair<Eigen::MatrixXd,Eigen::VectorXi> InitByNg(boost::mt19937 & rng) const;
 	PMatrix pcaTransform() const;
+	int PrototypeCount() const;
 
 	LvqModelSettings(LvqModelType modelType, boost::mt19937 & rngParams, boost::mt19937 & rngIter, std::vector<int> protodistrib, LvqDataset const * dataset, std::vector<int> trainingset); 
 	size_t Dimensions() const;

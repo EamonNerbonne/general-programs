@@ -8,7 +8,7 @@
 #include "GsmLvqModel.h"
 
 #include "LvqDataset.h"
-
+#include "NeuralGas.h"
 LvqModel* ConstructLvqModel(LvqModelSettings & initSettings) {
 	switch(initSettings.ModelType) {
 	case LvqModelSettings::GmModelType:
@@ -42,12 +42,57 @@ LvqModelSettings::LvqModelSettings(LvqModelType modelType, boost::mt19937 & rngP
 	, Trainingset(trainingset)
 { }
 
-size_t LvqModelSettings::Dimensions() const {return Dataset->dimensions();}
+size_t LvqModelSettings::Dimensions() const { return Dataset->dimensions(); }
 
-Eigen::MatrixXd LvqModelSettings::PerClassMeans() const {
-	return Dataset->ComputeClassMeans(Trainingset);
+int LvqModelSettings::PrototypeCount() const {	return accumulate(PrototypeDistribution.begin(), PrototypeDistribution.end(), 0); }
+
+using std::pair;
+using std::make_pair;
+pair<MatrixXd, VectorXi> LvqModelSettings::InitByClassMeans() const {
+	int prototypecount = PrototypeCount();
+	MatrixXd  prototypes(Dataset->dimensions(),prototypecount);
+	VectorXi labels(prototypecount);
+	MatrixXd classmeans = Dataset->ComputeClassMeans(Trainingset);
+	int pi=0;
+	for(size_t i = 0; i < PrototypeDistribution.size(); ++i) {
+		for(int subpi =0; subpi < PrototypeDistribution[i]; ++subpi, ++pi){
+			prototypes.col(pi).noalias() = classmeans.col(i);
+			labels(pi) = (int)i;
+		}
+	}
+
+	return make_pair(prototypes,labels);
 }
-	
+
+using boost::mt19937;
+pair<MatrixXd, VectorXi> LvqModelSettings::InitByNg(mt19937 & rng) const{
+	if(std::all_of(PrototypeDistribution.begin(), PrototypeDistribution.end(), [](int count) {return count==1;}))
+		return InitByClassMeans();
+
+	vector<vector<int> > setsByClass(ClassCount());
+	for(size_t si=0;si<Trainingset.size();++si) {
+		int pointIndex = Trainingset[si];
+		int label = Dataset->getPointLabels()[pointIndex];
+		setsByClass[label].push_back(pointIndex);
+	}
+
+	int prototypecount = PrototypeCount();
+	MatrixXd prototypes(Dimensions(), prototypecount);
+	VectorXi labels(prototypecount);
+
+	int pi=0;
+	for(size_t i = 0; i < PrototypeDistribution.size(); ++i) {
+		NeuralGas ng(rng, PrototypeDistribution[i], Dataset, setsByClass[i]);
+		ng.do_training(rng, Dataset, setsByClass[i]);
+		prototypes.block(0, pi, Dimensions(), PrototypeDistribution[i]).noalias() = ng.Prototypes();
+		for(int subpi =0; subpi < PrototypeDistribution[i]; ++subpi, ++pi)
+			labels(pi) = (int)i;
+	}
+
+	return make_pair(prototypes,labels);
+}
+
+
 PMatrix LvqModelSettings::pcaTransform() const {
 	return Dataset->ComputePcaProjection(Trainingset);
 }
