@@ -7,36 +7,24 @@ using namespace std;
 GsmLvqModel::GsmLvqModel(LvqModelSettings & initSettings)
 	: LvqProjectionModelBase(initSettings) 
 	, m_vJ(initSettings.Dimensions())
-	, m_vK(initSettings.Dimensions())
-{
+	, m_vK(initSettings.Dimensions()) {
 	initSettings.AssertModelIsOfRightType(this);
 
-	int protoCount = accumulate(initSettings.PrototypeDistribution.begin(), initSettings.PrototypeDistribution.end(), 0);
-	pLabel.resize(protoCount);
-
+	auto InitProtos = initSettings.InitByNg(initSettings.RngParams); //initSettings.InitByClassMeans();
+	pLabel = InitProtos.second;
+	size_t protoCount = pLabel.size();
 	prototype.resize(protoCount);
 	P_prototype.resize(protoCount);
 
-	int maxProtoCount=0;
-	int protoIndex=0;
-	auto PerClassMeans = initSettings.PerClassMeans();
-	for(int label = 0; label <(int) initSettings.PrototypeDistribution.size();label++) {
-		int labelCount =initSettings.PrototypeDistribution[label];
-		for(int i=0;i<labelCount;i++) {
-			prototype[protoIndex] = PerClassMeans.col(label);
-			pLabel(protoIndex) = label;
-			RecomputeProjection(protoIndex);
-
-			protoIndex++;
-
-		}
-		maxProtoCount = max(maxProtoCount, labelCount);
+	for(int protoIndex=0; protoIndex < protoCount; ++protoIndex) {
+		prototype[protoIndex] = InitProtos.first.col(protoIndex);
+		RecomputeProjection(protoIndex);
 	}
+
+	int maxProtoCount = accumulate(initSettings.PrototypeDistribution.begin(), initSettings.PrototypeDistribution.end(), 0, [](int a, int b) -> int { return max(a,b); });
 
 	if(initSettings.NgUpdateProtos && maxProtoCount>1) 
 		ngMatchCache.resize(maxProtoCount);//otherwise size 0!
-
-	assert( accumulate(initSettings.PrototypeDistribution.begin(),initSettings.PrototypeDistribution.end(),0)== protoIndex);
 }
 
 MatchQuality GsmLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel) {

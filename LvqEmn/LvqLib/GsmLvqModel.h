@@ -61,6 +61,5 @@ public:
 		GsmLvqModel & typedTarget = dynamic_cast<GsmLvqModel&>(target);
 		typedTarget = *this;
 	}
-
 };
 

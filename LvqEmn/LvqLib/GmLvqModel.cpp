@@ -21,31 +21,20 @@ GmLvqModel::GmLvqModel( LvqModelSettings & initSettings)
 	initSettings.AssertModelIsOfRightType(this);
 
 	using namespace std;
+	auto InitProto = initSettings.InitByClassMeans();
 
-	int protoCount = accumulate(initSettings.PrototypeDistribution.begin(), initSettings.PrototypeDistribution.end(), 0);
-	pLabel.resize(protoCount);
-
+	pLabel = InitProto.second;
+	size_t protoCount = pLabel.size();
 	prototype.resize(protoCount);
 	P.resize(protoCount);
 
-	int protoIndex=0;
-	auto PerClassMeans = initSettings.PerClassMeans();
-	for(int label = 0; label <(int) initSettings.PrototypeDistribution.size();label++) {
-		int labelCount =initSettings.PrototypeDistribution[label];
-		for(int i=0;i<labelCount;i++) {
-			prototype[protoIndex] = PerClassMeans.col(label);
-			P[protoIndex].setIdentity(initSettings.Dimensionality, initSettings.Dimensions());
-			if(initSettings.RandomInitialProjection)
-				projectionRandomizeUniformScaled(initSettings.RngParams, P[protoIndex]);
-
-			pLabel(protoIndex) = label;
-
-			protoIndex++;
-		}
+	for(int protoIndex = 0; protoIndex < protoCount; ++protoIndex) {
+		prototype[protoIndex] = InitProto.first.col(protoIndex);
+		P[protoIndex].setIdentity(initSettings.Dimensionality, initSettings.Dimensions());
+		if(initSettings.RandomInitialProjection)
+			projectionRandomizeUniformScaled(initSettings.RngParams, P[protoIndex]);
 	}
-	assert(accumulate(initSettings.PrototypeDistribution.begin(),initSettings.PrototypeDistribution.end(), 0) == protoIndex);
 }
-
 
 
 MatchQuality GmLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel) {

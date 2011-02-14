@@ -17,26 +17,19 @@ G2mLvqModel::G2mLvqModel(LvqModelSettings & initSettings)
 	initSettings.AssertModelIsOfRightType(this);
 
 
-	int protoCount = accumulate(initSettings.PrototypeDistribution.begin(),initSettings.PrototypeDistribution.end(),0);
+	auto InitProtos = initSettings.InitByClassMeans();
+	size_t protoCount = InitProtos.second.size();
 	prototype.resize(protoCount);
 
-	int maxProtoCount=0;
-	int protoIndex=0;
-	auto PerClassMeans = initSettings.PerClassMeans();
-	for(int label=0; label <(int) initSettings.PrototypeDistribution.size();label++) {
-		int labelCount =initSettings.PrototypeDistribution[label];
-		for(int i=0;i<labelCount;i++) {
-			prototype[protoIndex] = G2mLvqPrototype(initSettings.RngParams, initSettings.RandomInitialBorders, label, PerClassMeans.col(label));
-			prototype[protoIndex].ComputePP(P);
-			protoIndex++;
-		}
-		maxProtoCount = max(maxProtoCount, labelCount);
+	for(int protoIndex=0; protoIndex < protoCount; ++protoIndex) {
+		prototype[protoIndex] = G2mLvqPrototype(initSettings.RngParams, initSettings.RandomInitialBorders, InitProtos.second(protoIndex), InitProtos.first.col(protoIndex));
+		prototype[protoIndex].ComputePP(P);
 	}
+
+	int maxProtoCount = accumulate(initSettings.PrototypeDistribution.begin(), initSettings.PrototypeDistribution.end(), 0, [](int a, int b) -> int { return max(a,b); });
 
 	if(initSettings.NgUpdateProtos && maxProtoCount>1) 
 		ngMatchCache.resize(maxProtoCount);//otherwise size 0!
-
-	assert(accumulate(initSettings.PrototypeDistribution.begin(), initSettings.PrototypeDistribution.end(), 0)== protoIndex);
 }
 
 typedef Map<VectorXd, Aligned> MVectorXd;
