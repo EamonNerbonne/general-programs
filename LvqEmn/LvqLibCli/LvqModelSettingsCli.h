@@ -23,7 +23,7 @@ namespace LvqLibCli {
 		bool RandomInitialBorders;
 		bool TrackProjectionQuality;
 		bool NormalizeProjection, NormalizeBoundaries, GloballyNormalize;
-		bool NgUpdateProtos, UpdatePointsWithoutB;
+		bool NgUpdateProtos, NgInitializeProtos, UpdatePointsWithoutB;
 		int Dimensionality;
 		double LrScaleP, LrScaleB, LR0, LrScaleBad;
 
@@ -39,6 +39,7 @@ namespace LvqLibCli {
 			, NormalizeBoundaries(false)
 			, GloballyNormalize(true)
 			, NgUpdateProtos(false)
+			, NgInitializeProtos(true)
 			, UpdatePointsWithoutB(false)
 			, Dimensionality(0)
 			, LrScaleP(LVQ_LrScaleP)

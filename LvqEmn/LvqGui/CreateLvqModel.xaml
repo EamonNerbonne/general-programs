@@ -81,21 +81,23 @@
         <CheckBox Grid.Row="9" Grid.Column="1"  IsChecked="{Binding GloballyNormalize, Mode= TwoWay, ValidatesOnExceptions=True}"/>
         <Label Grid.Row="10">NG-inspired updates (gsm, g2m, gmm)</Label>
         <CheckBox Grid.Row="10" Grid.Column="1"  IsChecked="{Binding NgUpdateProtos, Mode= TwoWay, ValidatesOnExceptions=True}"/>
-        <Label Grid.Row="11">Don't use B for point update (g2m)</Label>
-        <CheckBox Grid.Row="11" Grid.Column="1"  IsChecked="{Binding UpdatePointsWithoutB, Mode= TwoWay, ValidatesOnExceptions=True}"/>
+        <Label Grid.Row="11">NG prototype initialization</Label>
+        <CheckBox Grid.Row="11" Grid.Column="1"  IsChecked="{Binding NgInitializeProtos, Mode= TwoWay, ValidatesOnExceptions=True}"/>
+        <Label Grid.Row="12">Don't use B for point update (g2m)</Label>
+        <CheckBox Grid.Row="12" Grid.Column="1"  IsChecked="{Binding UpdatePointsWithoutB, Mode= TwoWay, ValidatesOnExceptions=True}"/>
 
-        <Label Grid.Row="12">LR0</Label>
-        <TextBox Grid.Row="12" Grid.Column="1" Text="{Binding LR0, Mode=TwoWay, ValidatesOnExceptions=True}"/>
+        <Label Grid.Row="13">LR0</Label>
+        <TextBox Grid.Row="13" Grid.Column="1" Text="{Binding LR0, Mode=TwoWay, ValidatesOnExceptions=True}"/>
 
 
-        <Label Grid.Row="13">LrScaleP</Label>
-        <TextBox Grid.Row="13" Grid.Column="1" Text="{Binding LrScaleP, Mode=TwoWay, ValidatesOnExceptions=True}"/>
+        <Label Grid.Row="14">LrScaleP</Label>
+        <TextBox Grid.Row="14" Grid.Column="1" Text="{Binding LrScaleP, Mode=TwoWay, ValidatesOnExceptions=True}"/>
 
-        <Label Grid.Row="14">LrScaleB</Label>
-        <TextBox Grid.Row="14" Grid.Column="1" Text="{Binding LrScaleB, Mode=TwoWay, ValidatesOnExceptions=True}"/>
+        <Label Grid.Row="15">LrScaleB</Label>
+        <TextBox Grid.Row="15" Grid.Column="1" Text="{Binding LrScaleB, Mode=TwoWay, ValidatesOnExceptions=True}"/>
 
-        <Label Grid.Row="15">LrScaleBad</Label>
-        <TextBox Grid.Row="15" Grid.Column="1" Text="{Binding LrScaleBad, Mode=TwoWay, ValidatesOnExceptions=True}"/>
+        <Label Grid.Row="16">LrScaleBad</Label>
+        <TextBox Grid.Row="16" Grid.Column="1" Text="{Binding LrScaleBad, Mode=TwoWay, ValidatesOnExceptions=True}"/>
 
 
         <Button Grid.Row="25" Content="Reset Initialization Seed" Click="ReseedParam" />

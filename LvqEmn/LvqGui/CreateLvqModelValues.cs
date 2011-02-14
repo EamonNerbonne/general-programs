@@ -103,6 +103,14 @@ namespace LvqGui {
 		}
 		bool _NgUpdateProtos;
 
+		public bool NgInitializeProtos {
+			get { return _NgInitializeProtos; }
+			set { if (!object.Equals(_NgInitializeProtos, value)) { _NgInitializeProtos = value; _propertyChanged("NgInitializeProtos"); } }
+		}
+		private bool _NgInitializeProtos;
+
+		
+
 		public bool UpdatePointsWithoutB {
 			get { return _UpdatePointsWithoutB; }
 			set { if (!_UpdatePointsWithoutB.Equals(value)) { _UpdatePointsWithoutB = value; _propertyChanged("UpdatePointsWithoutB"); } }
@@ -157,6 +165,7 @@ namespace LvqGui {
 				(,nB(?<NormalizeBoundaries>\+?))?
 				(,gn(?<GloballyNormalize>\+?))?
 				(,NG(?<NgUpdateProtos>\+?))?
+				(,NGi(?<NgInitializeProtos>\+?))?
 				(,noB(?<UpdatePointsWithoutB>\+?))?
 				\[(?<Seed>\d+)\:(?<InstSeed>\d+)\]
 				/(?<ParallelModels>\d+)
@@ -181,6 +190,7 @@ namespace LvqGui {
 				+ (isBoundaryModel ? ",nB" + (NormalizeBoundaries ? "+" : "") : "")
 				+ (isBoundaryModel && NormalizeBoundaries || NormalizeProjection ? ",gn" + (GloballyNormalize ? "+" : "") : "")
 				+ (ModelType != LvqModelType.GmModelType ? ",NG" + (NgUpdateProtos ? "+" : "") : "")
+				+ ",NGi" + (NgInitializeProtos ? "+" : "")
 				+ (ModelType == LvqModelType.G2mModelType ? ",noB" + (UpdatePointsWithoutB ? "+" : "") : "")
 				+ "[" + Seed + ":" + InstSeed + "]/" + ParallelModels
 				+ (ModelType != LvqModelType.GmModelType ? ",pQ" + (TrackProjectionQuality ? "+" : "") : "")
@@ -214,6 +224,7 @@ namespace LvqGui {
 			NormalizeBoundaries = defaults.NormalizeBoundaries;
 			GloballyNormalize = defaults.GloballyNormalize;
 			NgUpdateProtos = defaults.NgUpdateProtos;
+			NgInitializeProtos = defaults.NgInitializeProtos;
 			UpdatePointsWithoutB = defaults.UpdatePointsWithoutB;
 			Dimensionality = defaults.Dimensionality;
 

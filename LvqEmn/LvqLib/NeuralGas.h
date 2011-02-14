@@ -6,9 +6,9 @@
 class LvqDataset;
 
 #ifdef NDEBUG
-#define NG_DEFAULT_ITERS 1000000
+#define NG_DEFAULT_ITERS 100000
 #else
-#define NG_DEFAULT_ITERS 10000
+#define NG_DEFAULT_ITERS 1000
 #endif
 
 class NeuralGas {

@@ -52,7 +52,7 @@ double NeuralGas::learnFrom(VectorXd const & point) {
 
 void NeuralGas::do_training(boost::mt19937& rng, LvqDataset const * dataset, std::vector<int> training_subset){
 	assert(dataset->dimensions() == prototypes.rows());
-	assert(training_subset.size() > prototypes.cols());
+	assert(training_subset.size() > (size_t)prototypes.cols());
 	VectorXd point(prototypes.rows());
 
 	int cacheLines = ((int)point.rows() * sizeof(point(0)) + 63)/ 64 ;

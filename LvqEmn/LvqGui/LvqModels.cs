@@ -19,8 +19,9 @@ namespace LvqGui {
 		readonly LvqModelCli[] subModels;
 		public LvqModels(string shorthand, int parallelModels, LvqDatasetCli forDataset, LvqModelSettingsCli lvqModelSettingsCli) {
 			subModels =
-				Enumerable.Range(0, parallelModels)
+				Enumerable.Range(0, parallelModels).AsParallel()
 				.Select(datafold => new LvqModelCli(shorthand, forDataset, datafold, lvqModelSettingsCli))
+				.OrderBy(model=>model.InitDataFold)
 				.ToArray();
 		}
 

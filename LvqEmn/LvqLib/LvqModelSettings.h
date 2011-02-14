@@ -84,6 +84,7 @@ public:
 	bool RandomInitialProjection;
 	bool RandomInitialBorders;
 	bool NgUpdateProtos;
+	bool NgInitializeProtos;
 	int Dimensionality;
 
 	enum LvqModelType { AutoModelType, GmModelType, GsmModelType, G2mModelType, GmmModelType };
