@@ -296,10 +296,20 @@ namespace EmnExtensions.Wpf.Plot {
 					DefaultExt = ".xps",
 					Filter = "XPS files (*.xps)|*.xps",
 				};
+
+				using (var emnExtensionsWpfKey = Registry.CurrentUser.OpenSubKey(@"Software\EmnExtensionsWpf")) 
+					if (emnExtensionsWpfKey != null)
+						saveDialog.InitialDirectory = emnExtensionsWpfKey.GetValue("ExportDir") as string;
+				
+
 				// ReSharper disable ConstantNullCoalescingCondition
 				if (saveDialog.ShowDialog() ?? false) {
 					// ReSharper restore ConstantNullCoalescingCondition
 					FileInfo selectedFile = new FileInfo(saveDialog.FileName);
+					using (var emnExtensionsWpfKey = Registry.CurrentUser.CreateSubKey(@"Software\EmnExtensionsWpf")) 
+						emnExtensionsWpfKey.SetValue("ExportDir", selectedFile.Directory.FullName);
+					
+
 					using (var fileStream = selectedFile.Open(FileMode.Create))
 						fileStream.Write(xpsData, 0, xpsData.Length);
 				}

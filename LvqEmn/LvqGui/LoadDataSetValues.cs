@@ -43,10 +43,19 @@ namespace LvqGui {
 
 		LvqDatasetCli CreateDataset(uint seed, int folds) {
 			var dataFileOpenDialog = new OpenFileDialog();
+			using (var lvqGuiKey = Registry.CurrentUser.OpenSubKey(@"Software\LvqGui")) 
+				if(lvqGuiKey!=null)
+					dataFileOpenDialog.InitialDirectory = lvqGuiKey.GetValue("DataDir") as string;
+			
+
 			//dataFileOpenDialog.Filter = "*.data";
 
-			if (dataFileOpenDialog.ShowDialog() == true) {
+			if (dataFileOpenDialog.ShowDialog() ?? false) {
 				var selectedFile = new FileInfo(dataFileOpenDialog.FileName);
+				using (var lvqGuiKey = Registry.CurrentUser.CreateSubKey(@"Software\LvqGui")) {
+					lvqGuiKey.SetValue("DataDir", selectedFile.Directory.FullName);
+				}
+
 				var labelFile = new FileInfo(selectedFile.Directory + @"\" + Path.GetFileNameWithoutExtension(selectedFile.Name) + ".label");
 				var dataFile = new FileInfo(selectedFile.Directory + @"\" + Path.GetFileNameWithoutExtension(selectedFile.Name) + ".data");
 				if (dataFile.Exists && labelFile.Exists) {
