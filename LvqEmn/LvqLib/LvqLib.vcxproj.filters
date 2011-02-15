@@ -18,9 +18,6 @@
     <ClCompile Include="G2mLvqModel.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="GsmLvqModel.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="LvqDataset.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -60,15 +57,15 @@
     <ClCompile Include="GgmLvqModel.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="GmLvqModel.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="G2mLvqModel.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="G2mLvqPrototype.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="GsmLvqModel.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="LvqConstants.h">
@@ -141,6 +138,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="GgmLvqPrototype.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="GmLvqModel.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
