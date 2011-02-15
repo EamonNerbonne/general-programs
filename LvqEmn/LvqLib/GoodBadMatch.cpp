@@ -12,7 +12,7 @@
 		return retval;
 	}
 
-	MatchQuality GoodBadMatch::GmmQuality() {
+	MatchQuality GoodBadMatch::GgmQuality() {
 		MatchQuality retval;
 		retval.isErr = distGood >= distBad;
 		if(retval.isErr) {
@@ -25,8 +25,8 @@
 		if(!isfinite(retval.costFunc)) throw "Invalid Cost func!";
 		retval.distBad = distBad;
 		retval.distGood = distGood;
-		retval.muK = -MuGmm();
-		retval.muJ = MuGmm();
+		retval.muK = -MuGgm();
+		retval.muJ = MuGgm();
 		return retval;
 	}
 	

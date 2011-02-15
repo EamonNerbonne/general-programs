@@ -71,8 +71,8 @@ MatchQuality GgmLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel)
 	//now matches.good is "J" and matches.bad is "K".
 	GgmLvqPrototype &J = prototype[matches.matchGood];
 	GgmLvqPrototype &K = prototype[matches.matchBad];
-	double muJ2 = 2*matches.MuGmm();
-	double muK2 = 2*matches.MuGmm();
+	double muJ2 = 2*matches.MuGgm();
+	double muK2 = 2*matches.MuGgm();
 
 	if(!isfinite(muJ2) || !isfinite(muK2)) {
 		DBG(matches.matchBad);
@@ -159,7 +159,7 @@ MatchQuality GgmLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel)
 		for(size_t i=0;i<prototype.size();++i)
 			prototype[i].ComputePP(P);
 	}
-	return matches.GmmQuality();
+	return matches.GgmQuality();
 }
 
 
