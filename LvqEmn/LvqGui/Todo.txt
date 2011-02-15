@@ -1,6 +1,3 @@
-﻿Cleanup G2m /Gsm math to use fewer intermediates: I don't think *this* many are necessary.
-
-
-Consider shared-Writeable-bitmap scatter-plots.
+﻿Consider shared-Writeable-bitmap scatter-plots.
 
 Consider show/hideable plot windows.

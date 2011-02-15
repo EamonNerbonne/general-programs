@@ -5,7 +5,7 @@
 #include "GgmLvqModel.h"
 #include "G2mLvqModel.h"
 #include "LgmLvqModel.h"
-#include "GsmLvqModel.h"
+#include "GmLvqModel.h"
 
 #include "LvqDataset.h"
 #include "NeuralGas.h"
@@ -14,8 +14,8 @@ LvqModel* ConstructLvqModel(LvqModelSettings & initSettings) {
 	case LvqModelSettings::LgmModelType:
 		return new LgmLvqModel(initSettings);
 		break;
-	case LvqModelSettings::GsmModelType:
-		return new GsmLvqModel(initSettings);
+	case LvqModelSettings::GmModelType:
+		return new GmLvqModel(initSettings);
 		break;
 	case LvqModelSettings::G2mModelType:
 		return new G2mLvqModel(initSettings);

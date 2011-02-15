@@ -1,10 +1,10 @@
 #include "StdAfx.h"
-#include "GsmLvqModel.h"
+#include "GmLvqModel.h"
 #include "utils.h"
 #include "LvqConstants.h"
 using namespace std;
 
-GsmLvqModel::GsmLvqModel(LvqModelSettings & initSettings)
+GmLvqModel::GmLvqModel(LvqModelSettings & initSettings)
 	: LvqProjectionModelBase(initSettings) 
 	, m_vJ(initSettings.Dimensions())
 	, m_vK(initSettings.Dimensions()) {
@@ -27,7 +27,7 @@ GsmLvqModel::GsmLvqModel(LvqModelSettings & initSettings)
 		ngMatchCache.resize(maxProtoCount);//otherwise size 0!
 }
 
-MatchQuality GsmLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel) {
+MatchQuality GmLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel) {
 	double learningRate = stepLearningRate();
 
 	double lr_point = settings.LR0 * learningRate,
@@ -88,25 +88,25 @@ MatchQuality GsmLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel)
 	return matches.LvqQuality();
 }
 
-LvqModel* GsmLvqModel::clone() const { return new GsmLvqModel(*this);	}
+LvqModel* GmLvqModel::clone() const { return new GmLvqModel(*this);	}
 
-MatrixXd GsmLvqModel::GetProjectedPrototypes() const {
+MatrixXd GmLvqModel::GetProjectedPrototypes() const {
 	MatrixXd retval(LVQ_LOW_DIM_SPACE, static_cast<int>(prototype.size()));
 	for(unsigned i=0;i<prototype.size();++i)
 		retval.col(i) = P_prototype[i];
 	return retval;
 }
 
-vector<int> GsmLvqModel::GetPrototypeLabels() const {
+vector<int> GmLvqModel::GetPrototypeLabels() const {
 	vector<int> retval(prototype.size());
 	for(unsigned i=0;i<prototype.size();++i)
 		retval[i] = pLabel[i];
 	return retval;
 }
 
-size_t GsmLvqModel::MemAllocEstimate() const {
+size_t GmLvqModel::MemAllocEstimate() const {
 	return 
-		sizeof(GsmLvqModel) + //base structure size
+		sizeof(GmLvqModel) + //base structure size
 		sizeof(int)*pLabel.size() + //dyn.alloc labels
 		sizeof(double) * (P.size() ) + //dyn alloc transform + temp transform
 		sizeof(double) * (m_vJ.size() + m_vK.size()) + //various vector temps
@@ -116,7 +116,7 @@ size_t GsmLvqModel::MemAllocEstimate() const {
 		(16/2) * (5+prototype.size()*2);//estimate for alignment mucking.
 }
 
-void GsmLvqModel::ClassBoundaryDiagram(double x0, double x1, double y0, double y1, LvqProjectionModel::ClassDiagramT & classDiagram) const {
+void GmLvqModel::ClassBoundaryDiagram(double x0, double x1, double y0, double y1, LvqProjectionModel::ClassDiagramT & classDiagram) const {
 	int cols = static_cast<int>(classDiagram.cols());
 	int rows = static_cast<int>(classDiagram.rows());
 	double xDelta = (x1-x0) / cols;
@@ -146,7 +146,7 @@ void GsmLvqModel::ClassBoundaryDiagram(double x0, double x1, double y0, double y
 	}
 }
 
-void GsmLvqModel::DoOptionalNormalization() {
+void GmLvqModel::DoOptionalNormalization() {
 	if(settings.NormalizeProjection) {
 		normalizeProjection(P);
 		for(size_t i=0;i<prototype.size();++i)

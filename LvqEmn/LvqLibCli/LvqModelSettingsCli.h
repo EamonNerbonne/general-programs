@@ -6,7 +6,7 @@ namespace LvqLibCli {
 
 	public enum class LvqModelType {
 		LgmModelType = LvqModelSettings::LgmModelType,
-		GsmModelType = LvqModelSettings::GsmModelType,
+		GmModelType = LvqModelSettings::GmModelType,
 		G2mModelType = LvqModelSettings::G2mModelType,
 		GgmModelType = LvqModelSettings::GgmModelType,
 	};

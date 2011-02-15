@@ -2,7 +2,7 @@
 #include "EasyLvqTest.h"
 #include <fstream>
 #include "G2mLvqModel.h"
-#include "GsmLvqModel.h"
+#include "GmLvqModel.h"
 #include "LgmLvqModel.h"
 
 
@@ -40,7 +40,7 @@ int main(int , char*argv []){
 #endif
 	cout<<": ";
 	std::cerr<<" ("<<sizeof(G2mLvqModel) <<") ";
-	std::cerr<<" ("<<sizeof(GsmLvqModel) <<") ";
+	std::cerr<<" ("<<sizeof(GmLvqModel) <<") ";
 	std::cerr<<" ("<<sizeof(LgmLvqModel) <<") ";
 	Eigen::BenchTimer t;
 	t.start();

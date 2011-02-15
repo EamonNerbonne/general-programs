@@ -1,7 +1,7 @@
 #pragma once
 #include "LvqProjectionModelBase.h"
 
-class GsmLvqModel : public LvqProjectionModelBase<GsmLvqModel>
+class GmLvqModel : public LvqProjectionModelBase<GmLvqModel>
 {
 	//PMatrix P; //in base class
 	std::vector<VectorXd> prototype;
@@ -24,7 +24,7 @@ class GsmLvqModel : public LvqProjectionModelBase<GsmLvqModel>
 public:
 	//for templates:
 	
-	static const LvqModelSettings::LvqModelType ThisModelType = LvqModelSettings::GsmModelType;
+	static const LvqModelSettings::LvqModelType ThisModelType = LvqModelSettings::GmModelType;
 	inline int PrototypeLabel(int protoIndex) const {return pLabel(protoIndex);}
 	inline int PrototypeCount() const {return static_cast<int>(pLabel.size());}
 	inline double SqrDistanceTo(int protoIndex, Vector2d const & P_otherPoint) const {
@@ -34,7 +34,7 @@ public:
 //end for templates
 	virtual size_t MemAllocEstimate() const;
 
-	GsmLvqModel(LvqModelSettings & initSettings);
+	GmLvqModel(LvqModelSettings & initSettings);
 	virtual int classify(VectorXd const & unknownPoint) const {return classifyProjectedInline(P * unknownPoint);}
 	virtual int classifyProjected(Vector2d const & unknownProjectedPoint) const {return classifyProjectedInline(unknownProjectedPoint);}
 	EIGEN_STRONG_INLINE int classifyProjectedInline(Vector2d const & P_otherPoint) const{
@@ -58,7 +58,7 @@ public:
 	virtual void ClassBoundaryDiagram(double x0, double x1, double y0, double y1, LvqProjectionModel::ClassDiagramT & classDiagram) const;
 	
 	virtual void CopyTo(LvqModel& target) const{ 
-		GsmLvqModel & typedTarget = dynamic_cast<GsmLvqModel&>(target);
+		GmLvqModel & typedTarget = dynamic_cast<GmLvqModel&>(target);
 		typedTarget = *this;
 	}
 };

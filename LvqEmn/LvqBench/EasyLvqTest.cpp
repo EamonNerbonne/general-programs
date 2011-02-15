@@ -2,7 +2,7 @@
 #include "EasyLvqTest.h"
 #include "LvqDataset.h"
 #include "G2mLvqModel.h"
-#include "GsmLvqModel.h"
+#include "GmLvqModel.h"
 #include "LgmLvqModel.h"
 #include "CreateDataset.h"
 
@@ -122,8 +122,8 @@ void EasyLvqTest() {
 		//TestModel(LvqModelSettings::G2mModelType, rndGen2, true, dataset.get(), protoDistrib, ITERS);
 		TestModel(LvqModelSettings::G2mModelType, rndGen2, false, dataset.get(), protoDistrib, ITERS);
 
-		//TestModel(LvqModelSettings::GsmModelType, rndGen2, true, dataset.get(), protoDistrib, ITERS);
-		TestModel(LvqModelSettings::GsmModelType, rndGen2, false, dataset.get(), protoDistrib, ITERS);
+		//TestModel(LvqModelSettings::GmModelType, rndGen2, true, dataset.get(), protoDistrib, ITERS);
+		TestModel(LvqModelSettings::GmModelType, rndGen2, false, dataset.get(), protoDistrib, ITERS);
 
 		//TestModel(LvqModelSettings::GgmModelType, rndGen2, true, dataset.get(), protoDistrib, ITERS);
 		TestModel(LvqModelSettings::GgmModelType, rndGen2, false, dataset.get(), protoDistrib, ITERS);
