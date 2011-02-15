@@ -3,7 +3,7 @@
 #include "LvqDataset.h"
 #include "G2mLvqModel.h"
 #include "GsmLvqModel.h"
-#include "GmLvqModel.h"
+#include "LgmLvqModel.h"
 #include "CreateDataset.h"
 
 using boost::mt19937;

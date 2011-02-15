@@ -97,7 +97,8 @@ public:
 
 	size_t ClassCount() const { return PrototypeDistribution.size(); }
 	std::pair<Eigen::MatrixXd,Eigen::VectorXi> InitByClassMeans() const;
-	std::pair<Eigen::MatrixXd,Eigen::VectorXi> InitByNg(boost::mt19937 & rng) const;
+	std::pair<Eigen::MatrixXd,Eigen::VectorXi> InitByNg() ;
+	std::pair<Eigen::MatrixXd,Eigen::VectorXi> InitProtosBySetting() ;
 	PMatrix pcaTransform() const;
 	int PrototypeCount() const;
 

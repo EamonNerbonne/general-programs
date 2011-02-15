@@ -4,7 +4,7 @@
 
 #include "GmmLvqModel.h"
 #include "G2mLvqModel.h"
-#include "GmLvqModel.h"
+#include "LgmLvqModel.h"
 #include "GsmLvqModel.h"
 
 #include "LvqDataset.h"
@@ -12,7 +12,7 @@
 LvqModel* ConstructLvqModel(LvqModelSettings & initSettings) {
 	switch(initSettings.ModelType) {
 	case LvqModelSettings::GmModelType:
-		return new GmLvqModel(initSettings);
+		return new LgmLvqModel(initSettings);
 		break;
 	case LvqModelSettings::GsmModelType:
 		return new GsmLvqModel(initSettings);
@@ -66,7 +66,7 @@ pair<MatrixXd, VectorXi> LvqModelSettings::InitByClassMeans() const {
 }
 
 using boost::mt19937;
-pair<MatrixXd, VectorXi> LvqModelSettings::InitByNg(mt19937 & rng) const{
+pair<MatrixXd, VectorXi> LvqModelSettings::InitByNg() {
 	if(std::all_of(PrototypeDistribution.begin(), PrototypeDistribution.end(), [](int count) {return count==1;}))
 		return InitByClassMeans();
 
@@ -83,8 +83,8 @@ pair<MatrixXd, VectorXi> LvqModelSettings::InitByNg(mt19937 & rng) const{
 
 	int pi=0;
 	for(size_t i = 0; i < PrototypeDistribution.size(); ++i) {
-		NeuralGas ng(rng, PrototypeDistribution[i], Dataset, setsByClass[i]);
-		ng.do_training(rng, Dataset, setsByClass[i]);
+		NeuralGas ng(RngParams, PrototypeDistribution[i], Dataset, setsByClass[i]);
+		ng.do_training(RngParams, Dataset, setsByClass[i]);
 		prototypes.block(0, pi, Dimensions(), PrototypeDistribution[i]).noalias() = ng.Prototypes();
 		for(int subpi =0; subpi < PrototypeDistribution[i]; ++subpi, ++pi)
 			labels(pi) = (int)i;
@@ -93,6 +93,9 @@ pair<MatrixXd, VectorXi> LvqModelSettings::InitByNg(mt19937 & rng) const{
 	return make_pair(prototypes,labels);
 }
 
+pair<MatrixXd, VectorXi> LvqModelSettings::InitProtosBySetting()  {
+	return NgInitializeProtos ? InitByNg() : InitByClassMeans();
+}
 
 PMatrix LvqModelSettings::pcaTransform() const {
 	return Dataset->ComputePcaProjection(Trainingset);

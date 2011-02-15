@@ -17,7 +17,7 @@ G2mLvqModel::G2mLvqModel(LvqModelSettings & initSettings)
 	initSettings.AssertModelIsOfRightType(this);
 
 
-	auto InitProtos = initSettings.InitByClassMeans();
+	auto InitProtos = initSettings.InitProtosBySetting();
 	size_t protoCount = InitProtos.second.size();
 	prototype.resize(protoCount);
 

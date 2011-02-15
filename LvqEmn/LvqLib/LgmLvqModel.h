@@ -5,7 +5,7 @@
 
 using boost::scoped_array;
 using std::vector;
-class GmLvqModel : public LvqModel, public LvqModelFindMatches<GmLvqModel,VectorXd>
+class LgmLvqModel : public LvqModel, public LvqModelFindMatches<LgmLvqModel,VectorXd>
 {
 	vector<MatrixXd > P; 
 	vector<VectorXd> prototype;
@@ -36,20 +36,20 @@ public:
 	virtual size_t MemAllocEstimate() const;
 	virtual int Dimensions() const {return static_cast<int>(P[0].cols());}
 
-	GmLvqModel(LvqModelSettings & initSettings);
+	LgmLvqModel(LvqModelSettings & initSettings);
 	virtual MatchQuality ComputeMatches(VectorXd const & unknownPoint, int pointLabel) const;
 	virtual void DoOptionalNormalization();
 	virtual std::vector<int> GetPrototypeLabels() const;
 	virtual int classify(VectorXd const & unknownPoint) const; 
 	virtual MatchQuality learnFrom(VectorXd const & newPoint, int classLabel);
-	virtual GmLvqModel* clone() const { return new GmLvqModel(*this); }
+	virtual LgmLvqModel* clone() const { return new LgmLvqModel(*this); }
 	virtual void CopyTo(LvqModel& target) const{ 
-		GmLvqModel & typedTarget = dynamic_cast<GmLvqModel&>(target);
+		LgmLvqModel & typedTarget = dynamic_cast<LgmLvqModel&>(target);
 		typedTarget = *this;
 	}
 };
 
-inline int GmLvqModel::classify(VectorXd const & unknownPoint) const{
+inline int LgmLvqModel::classify(VectorXd const & unknownPoint) const{
 	using namespace std;
 	double distance(std::numeric_limits<double>::infinity());
 	int match(-1);

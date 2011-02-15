@@ -10,7 +10,7 @@ GsmLvqModel::GsmLvqModel(LvqModelSettings & initSettings)
 	, m_vK(initSettings.Dimensions()) {
 	initSettings.AssertModelIsOfRightType(this);
 
-	auto InitProtos = initSettings.InitByNg(initSettings.RngParams); //initSettings.InitByClassMeans();
+	auto InitProtos = initSettings.InitProtosBySetting(); 
 	pLabel = InitProtos.second;
 	size_t protoCount = pLabel.size();
 	prototype.resize(protoCount);

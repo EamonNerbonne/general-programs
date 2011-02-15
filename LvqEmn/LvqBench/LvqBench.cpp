@@ -3,7 +3,7 @@
 #include <fstream>
 #include "G2mLvqModel.h"
 #include "GsmLvqModel.h"
-#include "GmLvqModel.h"
+#include "LgmLvqModel.h"
 
 
 //from http://www.codeproject.com/KB/files/filesize.aspx
@@ -41,7 +41,7 @@ int main(int , char*argv []){
 	cout<<": ";
 	std::cerr<<" ("<<sizeof(G2mLvqModel) <<") ";
 	std::cerr<<" ("<<sizeof(GsmLvqModel) <<") ";
-	std::cerr<<" ("<<sizeof(GmLvqModel) <<") ";
+	std::cerr<<" ("<<sizeof(LgmLvqModel) <<") ";
 	Eigen::BenchTimer t;
 	t.start();
 	EasyLvqTest();

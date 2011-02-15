@@ -1,9 +1,9 @@
 #include "StdAfx.h"
-#include "GmLvqModel.h"
+#include "LgmLvqModel.h"
 #include "utils.h"
 #include "LvqConstants.h"
 
-GmLvqModel::GmLvqModel( LvqModelSettings & initSettings)
+LgmLvqModel::LgmLvqModel( LvqModelSettings & initSettings)
 	: LvqModel(initSettings)
 	, tmpSrcDimsV1(initSettings.Dimensions())
 	, tmpSrcDimsV2(initSettings.Dimensions())
@@ -21,7 +21,7 @@ GmLvqModel::GmLvqModel( LvqModelSettings & initSettings)
 	initSettings.AssertModelIsOfRightType(this);
 
 	using namespace std;
-	auto InitProto = initSettings.InitByClassMeans();
+	auto InitProto = initSettings.InitProtosBySetting();
 
 	pLabel = InitProto.second;
 	size_t protoCount = pLabel.size();
@@ -37,7 +37,7 @@ GmLvqModel::GmLvqModel( LvqModelSettings & initSettings)
 }
 
 
-MatchQuality GmLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel) {
+MatchQuality LgmLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel) {
 	double learningRate = stepLearningRate();
 	double lr_point = settings.LR0 * learningRate;
 
@@ -72,11 +72,11 @@ MatchQuality GmLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel) 
 	return matches.LvqQuality();
 }
 
-MatchQuality GmLvqModel::ComputeMatches(VectorXd const & unknownPoint, int pointLabel) const {return findMatches(unknownPoint,pointLabel).LvqQuality();}
+MatchQuality LgmLvqModel::ComputeMatches(VectorXd const & unknownPoint, int pointLabel) const {return findMatches(unknownPoint,pointLabel).LvqQuality();}
 
-size_t GmLvqModel::MemAllocEstimate() const {
+size_t LgmLvqModel::MemAllocEstimate() const {
 	return 
-		sizeof(GmLvqModel) + //base structure size
+		sizeof(LgmLvqModel) + //base structure size
 		sizeof(int)*pLabel.size() + //dyn.alloc labels
 		(sizeof(double) * P[0].size() + sizeof(MatrixXd)) * P.size() + //dyn alloc prototype transforms
 		sizeof(double) * (tmpSrcDimsV1.size() + tmpSrcDimsV2.size() + tmpDestDimsV1.size() + tmpDestDimsV2.size()) + //various vector temps
@@ -84,13 +84,13 @@ size_t GmLvqModel::MemAllocEstimate() const {
 		(16/2) * (4+prototype.size()*2);//estimate for alignment mucking.
 }
 
-void GmLvqModel::AppendTrainingStatNames(std::vector<std::wstring> & retval) const {
+void LgmLvqModel::AppendTrainingStatNames(std::vector<std::wstring> & retval) const {
 	LvqModel::AppendTrainingStatNames(retval);
 	retval.push_back(L"Projection Norm Minimum|norm|Prototype Matrix");
 	retval.push_back(L"Projection Norm Mean|norm|Prototype Matrix");
 	retval.push_back(L"Projection Norm Maximum|norm|Prototype Matrix");
 }
-void GmLvqModel::AppendOtherStats(std::vector<double> & stats, LvqDataset const * trainingSet, std::vector<int>const & trainingSubset, LvqDataset const * testSet, std::vector<int>const & testSubset) const {
+void LgmLvqModel::AppendOtherStats(std::vector<double> & stats, LvqDataset const * trainingSet, std::vector<int>const & trainingSubset, LvqDataset const * testSet, std::vector<int>const & testSubset) const {
 	LvqModel::AppendOtherStats(stats,trainingSet,trainingSubset,testSet,testSubset);
 	double minNorm=std::numeric_limits<double>::max();
 	double maxNorm=0.0;
@@ -108,14 +108,14 @@ void GmLvqModel::AppendOtherStats(std::vector<double> & stats, LvqDataset const 
 	stats.push_back(maxNorm);
 }
 
-vector<int> GmLvqModel::GetPrototypeLabels() const {
+vector<int> LgmLvqModel::GetPrototypeLabels() const {
 	vector<int> retval(prototype.size());
 	for(unsigned i=0;i<prototype.size();++i)
 		retval[i] = pLabel[i];
 	return retval;
 }
 
-void GmLvqModel::DoOptionalNormalization() {
+void LgmLvqModel::DoOptionalNormalization() {
 	if(settings.NormalizeProjection) {
 		if(settings.GloballyNormalize) {
 			double overallNorm = std::accumulate(P.begin(), P.end(),0.0,[](double cur, MatrixXd const & mat)->double { return cur + projectionSquareNorm(mat); });

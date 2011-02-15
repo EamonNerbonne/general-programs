@@ -482,7 +482,7 @@
     <ClCompile Include="LvqModel.cpp" />
     <ClCompile Include="CreateDataset.cpp" />
     <ClCompile Include="G2mLvqModel.cpp" />
-    <ClCompile Include="GmLvqModel.cpp" />
+    <ClCompile Include="LgmLvqModel.cpp" />
     <ClCompile Include="GsmLvqModel.cpp" />
     <ClCompile Include="LvqDataset.cpp" />
     <ClCompile Include="LvqModelSettings.cpp" />
@@ -517,7 +517,7 @@
     <ClInclude Include="CreateDataset.h" />
     <ClInclude Include="G2mLvqModel.h" />
     <ClInclude Include="G2mLvqPrototype.h" />
-    <ClInclude Include="GmLvqModel.h" />
+    <ClInclude Include="LgmLvqModel.h" />
     <ClInclude Include="LvqModelFindMatches.h" />
     <ClInclude Include="GsmLvqModel.h" />
     <ClInclude Include="LvqConstants.h" />

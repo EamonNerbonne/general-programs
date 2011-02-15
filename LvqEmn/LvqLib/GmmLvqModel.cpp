@@ -24,7 +24,7 @@ GmmLvqModel::GmmLvqModel(LvqModelSettings & initSettings)
 	PcaLowDim::DoPca(P * initSettings.Dataset->ExtractPoints(initSettings.Trainingset),pca2d,eigVal);
 	Matrix2d toUnitDist=eigVal.array().sqrt().inverse().matrix().asDiagonal()*pca2d;
 
-	auto InitProtos = initSettings.InitByClassMeans();
+	auto InitProtos = initSettings.InitProtosBySetting();
 	size_t protoCount = InitProtos.second.size();
 	prototype.resize(protoCount);
 	
@@ -112,8 +112,8 @@ MatchQuality GmmLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel)
 		Matrix2d muJ2_JBinvT = muJ2* J.B.inverse().transpose();
 		Matrix2d muK2_KBinvT = muK2* K.B.inverse().transpose();
 
-		J.B.noalias() -= lr_B * (muJ2_Bj_P_vJ * P_vJ.transpose() - muJ2_JBinvT );
-		K.B.noalias() += (lr_bad_scale*lr_B) * (muK2_Bk_P_vK * P_vK.transpose() - muK2_KBinvT) ;
+		J.B.noalias() -= lr_B * (muJ2_Bj_P_vJ * P_vJ.transpose() - 0.01*muJ2_JBinvT );
+		K.B.noalias() += (lr_bad_scale*lr_B) * (muK2_Bk_P_vK * P_vK.transpose() - 0.01*muK2_KBinvT) ;
 		J.RecomputeBias();
 		K.RecomputeBias();
 #else
