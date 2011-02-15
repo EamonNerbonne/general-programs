@@ -87,7 +87,7 @@ public:
 	bool NgInitializeProtos;
 	int Dimensionality;
 
-	enum LvqModelType { AutoModelType, GmModelType, GsmModelType, G2mModelType, GmmModelType };
+	enum LvqModelType { AutoModelType, LgmModelType, GsmModelType, G2mModelType, GgmModelType };
 	LvqModelType ModelType;
 	boost::mt19937 RngParams;
 	LvqModelRuntimeSettings RuntimeSettings;

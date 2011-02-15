@@ -22,7 +22,6 @@ namespace LvqGui {
 			}
 		}
 
-
 		[NotInShorthand]
 		public LvqDatasetCli ForDataset {
 			get { return _ForDataset; }
@@ -32,7 +31,7 @@ namespace LvqGui {
 
 		public LvqModelType ModelType {
 			get { return _ModelType; }
-			set { if (!Equals(_ModelType, value)) { if (value != LvqModelType.GmModelType) Dimensionality = 2; _ModelType = value; _propertyChanged("ModelType"); } }
+			set { if (!Equals(_ModelType, value)) { if (value != LvqModelType.LgmModelType) Dimensionality = 2; _ModelType = value; _propertyChanged("ModelType"); } }
 		}
 		LvqModelType _ModelType;
 
@@ -40,7 +39,7 @@ namespace LvqGui {
 			get { return _Dimensionality; }
 			set {
 				if (value < 0 || (ForDataset != null && value > ForDataset.Dimensions)) throw new ArgumentException("Internal dimensionality must be 0 (auto) or between 1 and the dimensions of the data.");
-				if (_ModelType != LvqModelType.GmModelType && value != 2 && value != 0) throw new ArgumentException("2D Projection models must have exactly 2 internal dimensions.");
+				if (_ModelType != LvqModelType.LgmModelType && value != 2 && value != 0) throw new ArgumentException("2D Projection models must have exactly 2 internal dimensions.");
 				if (!Equals(_Dimensionality, value)) { _Dimensionality = value; _propertyChanged("Dimensionality"); }
 			}
 		}
@@ -177,23 +176,23 @@ namespace LvqGui {
 				(--.*)?\s*$",
 		RegexOptions.Compiled | RegexOptions.ExplicitCapture | RegexOptions.IgnorePatternWhitespace);
 
-		bool isBoundaryModel { get { return ModelType == LvqModelType.G2mModelType || ModelType == LvqModelType.GmmModelType; } }
+		bool isBoundaryModel { get { return ModelType == LvqModelType.G2mModelType || ModelType == LvqModelType.GgmModelType; } }
 
 		public string Shorthand {
 			get {
 				return ModelType
-				+ (ModelType == LvqModelType.GmModelType ? "[" + Dimensionality + "]" : "")
+				+ (ModelType == LvqModelType.LgmModelType ? "[" + Dimensionality + "]" : "")
 				+ "," + PrototypesPerClass
 				+ ",rP" + (RandomInitialProjection ? "+" : "")
 				+ (isBoundaryModel ? ",rB" + (RandomInitialBorders ? "+" : "") : "")
 				+ ",nP" + (NormalizeProjection ? "+" : "")
 				+ (isBoundaryModel ? ",nB" + (NormalizeBoundaries ? "+" : "") : "")
 				+ (isBoundaryModel && NormalizeBoundaries || NormalizeProjection ? ",gn" + (GloballyNormalize ? "+" : "") : "")
-				+ (ModelType != LvqModelType.GmModelType ? ",NG" + (NgUpdateProtos ? "+" : "") : "")
+				+ (ModelType != LvqModelType.LgmModelType ? ",NG" + (NgUpdateProtos ? "+" : "") : "")
 				+ ",NGi" + (NgInitializeProtos ? "+" : "")
 				+ (ModelType == LvqModelType.G2mModelType ? ",noB" + (UpdatePointsWithoutB ? "+" : "") : "")
 				+ "[" + Seed + ":" + InstSeed + "]/" + ParallelModels
-				+ (ModelType != LvqModelType.GmModelType ? ",pQ" + (TrackProjectionQuality ? "+" : "") : "")
+				+ (ModelType != LvqModelType.LgmModelType ? ",pQ" + (TrackProjectionQuality ? "+" : "") : "")
 				+ ",lr0" + LR0
 				+ ",lrP" + LrScaleP
 				+ ",lrB" + LrScaleB

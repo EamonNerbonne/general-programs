@@ -1,5 +1,5 @@
 #include "stdafx.h"
-#include "GmmLvqModel.h"
+#include "GgmLvqModel.h"
 #include "utils.h"
 #include "RandomMatrix.h"
 #include "LvqConstants.h"
@@ -9,7 +9,7 @@
 using namespace std;
 using namespace Eigen;
 
-GmmLvqModel::GmmLvqModel(LvqModelSettings & initSettings)
+GgmLvqModel::GgmLvqModel(LvqModelSettings & initSettings)
 	: LvqProjectionModelBase(initSettings)
 	, m_vJ(initSettings.Dimensions())
 	, m_vK(initSettings.Dimensions())
@@ -29,7 +29,7 @@ GmmLvqModel::GmmLvqModel(LvqModelSettings & initSettings)
 	prototype.resize(protoCount);
 	
 	for(int protoIndex=0; protoIndex < protoCount; ++protoIndex) {
-		prototype[protoIndex] = 	GmmLvqPrototype(initSettings.RngParams, initSettings.RandomInitialBorders, InitProtos.second(protoIndex), InitProtos.first.col(protoIndex), P, toUnitDist);
+		prototype[protoIndex] = 	GgmLvqPrototype(initSettings.RngParams, initSettings.RandomInitialBorders, InitProtos.second(protoIndex), InitProtos.first.col(protoIndex), P, toUnitDist);
 		prototype[protoIndex].ComputePP(P);
 	}
 
@@ -41,7 +41,7 @@ GmmLvqModel::GmmLvqModel(LvqModelSettings & initSettings)
 
 typedef Map<VectorXd, Aligned> MVectorXd;
 
-MatchQuality GmmLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel) {
+MatchQuality GgmLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel) {
 	using namespace std;
 	double learningRate = stepLearningRate();
 
@@ -69,8 +69,8 @@ MatchQuality GmmLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel)
 	}
 
 	//now matches.good is "J" and matches.bad is "K".
-	GmmLvqPrototype &J = prototype[matches.matchGood];
-	GmmLvqPrototype &K = prototype[matches.matchBad];
+	GgmLvqPrototype &J = prototype[matches.matchGood];
+	GgmLvqPrototype &K = prototype[matches.matchBad];
 	double muJ2 = 2*matches.MuGmm();
 	double muK2 = 2*matches.MuGmm();
 
@@ -139,7 +139,7 @@ MatchQuality GmmLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel)
 			double lrDelta = exp(-LVQ_NG_FACTOR/learningRate);//TODO: this is rather ADHOC
 			for(int i=1;i<fullmatch.foundOk;++i) {
 				lrSub*=lrDelta;
-				GmmLvqPrototype &Js = prototype[fullmatch.matchesOk[i].idx];
+				GgmLvqPrototype &Js = prototype[fullmatch.matchesOk[i].idx];
 				double pMargin_s = exp(-fabs(fullmatch.distBad - fullmatch.matchesOk[i].dist));
 				double muJ2_s = 2*2* pMargin_s /((1 + pMargin_s)*(1+pMargin_s));
 				Vector2d P_vJs = Js.P_point - P_trainPoint;
@@ -163,34 +163,34 @@ MatchQuality GmmLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel)
 }
 
 
-LvqModel* GmmLvqModel::clone() const { return new GmmLvqModel(*this); }
+LvqModel* GgmLvqModel::clone() const { return new GgmLvqModel(*this); }
 
-size_t GmmLvqModel::MemAllocEstimate() const {
+size_t GgmLvqModel::MemAllocEstimate() const {
 	return 
-		sizeof(GmmLvqModel) +
+		sizeof(GgmLvqModel) +
 		sizeof(CorrectAndWorstMatches::MatchOk) * ngMatchCache.size()+
 		sizeof(double) * P.size() +
 		sizeof(double) * (m_vJ.size() +m_vK.size()) + //various temps
-		sizeof(GmmLvqPrototype)*prototype.size() + //prototypes; part statically allocated
+		sizeof(GgmLvqPrototype)*prototype.size() + //prototypes; part statically allocated
 		sizeof(double) * (prototype.size() * m_vJ.size()) + //prototypes; part dynamically allocated
 		(16/2) * (4+prototype.size()*2);//estimate for alignment mucking.
 }
 
-MatrixXd GmmLvqModel::GetProjectedPrototypes() const {
+MatrixXd GgmLvqModel::GetProjectedPrototypes() const {
 	MatrixXd retval(LVQ_LOW_DIM_SPACE, static_cast<int>(prototype.size()));
 	for(unsigned i=0;i<prototype.size();++i)
 		retval.col(i) = prototype[i].projectedPosition();
 	return retval;
 }
 
-vector<int> GmmLvqModel::GetPrototypeLabels() const {
+vector<int> GgmLvqModel::GetPrototypeLabels() const {
 	vector<int> retval(prototype.size());
 	for(unsigned i=0;i<prototype.size();++i)
 		retval[i] = prototype[i].label();
 	return retval;
 }
 
-void GmmLvqModel::AppendTrainingStatNames(std::vector<std::wstring> & retval) const {
+void GgmLvqModel::AppendTrainingStatNames(std::vector<std::wstring> & retval) const {
 	LvqProjectionModel::AppendTrainingStatNames(retval);
 	retval.push_back(L"Border matrix norm min|norm|Border Matrix");
 	retval.push_back(L"Border matrix norm mean|norm|Border Matrix");
@@ -199,10 +199,10 @@ void GmmLvqModel::AppendTrainingStatNames(std::vector<std::wstring> & retval) co
 	retval.push_back(L"Prototype bias mean|bias|Prototype bias");
 	retval.push_back(L"Prototype bias max|bias|Prototype bias");
 }
-void GmmLvqModel::AppendOtherStats(std::vector<double> & stats, LvqDataset const * trainingSet, std::vector<int>const & trainingSubset, LvqDataset const * testSet, std::vector<int>const & testSubset) const {
+void GgmLvqModel::AppendOtherStats(std::vector<double> & stats, LvqDataset const * trainingSet, std::vector<int>const & trainingSubset, LvqDataset const * testSet, std::vector<int>const & testSubset) const {
 	LvqProjectionModel::AppendOtherStats(stats,trainingSet,trainingSubset,testSet,testSubset);
 	MeanMinMax norm, bias;
-	std::for_each(prototype.begin(),prototype.end(), [&](GmmLvqPrototype const & proto) {
+	std::for_each(prototype.begin(),prototype.end(), [&](GgmLvqPrototype const & proto) {
 		norm.Add(projectionSquareNorm( proto.B));
 		bias.Add(proto.bias);
 	});
@@ -216,7 +216,7 @@ void GmmLvqModel::AppendOtherStats(std::vector<double> & stats, LvqDataset const
 }
 
 
-void GmmLvqModel::ClassBoundaryDiagram(double x0, double x1, double y0, double y1, LvqProjectionModel::ClassDiagramT & classDiagram) const {
+void GgmLvqModel::ClassBoundaryDiagram(double x0, double x1, double y0, double y1, LvqProjectionModel::ClassDiagramT & classDiagram) const {
 	int cols = static_cast<int>(classDiagram.cols());
 	int rows = static_cast<int>(classDiagram.rows());
 	double xDelta = (x1-x0) / cols;
@@ -253,7 +253,7 @@ void GmmLvqModel::ClassBoundaryDiagram(double x0, double x1, double y0, double y
 }
 
 
-void GmmLvqModel::DoOptionalNormalization() {
+void GgmLvqModel::DoOptionalNormalization() {
 	if(settings.NormalizeProjection) {
 		normalizeProjection(P);
 		for(size_t i=0;i<prototype.size();++i)
@@ -263,7 +263,7 @@ void GmmLvqModel::DoOptionalNormalization() {
 	if(settings.NormalizeBoundaries) {
 		if(settings.GloballyNormalize) {
 			double overallNorm = std::accumulate(prototype.begin(), prototype.end(),0.0,
-				[](double cur, GmmLvqPrototype const & proto) -> double { return cur + projectionSquareNorm(proto.B); } 
+				[](double cur, GgmLvqPrototype const & proto) -> double { return cur + projectionSquareNorm(proto.B); } 
 			// (cur, proto) => cur + projectionSquareNorm(proto.B)
 			);
 			double scale = 1.0/sqrt(overallNorm / prototype.size());
@@ -277,9 +277,9 @@ void GmmLvqModel::DoOptionalNormalization() {
 	}
 }
 
-GmmLvqPrototype::GmmLvqPrototype() : classLabel(-1) {}
+GgmLvqPrototype::GgmLvqPrototype() : classLabel(-1) {}
 
-GmmLvqPrototype::GmmLvqPrototype(boost::mt19937 & rng, bool randInit, int protoLabel, VectorXd const & initialVal,PMatrix const & P, Matrix2d const & scaleB) 
+GgmLvqPrototype::GgmLvqPrototype(boost::mt19937 & rng, bool randInit, int protoLabel, VectorXd const & initialVal,PMatrix const & P, Matrix2d const & scaleB) 
 	: point(initialVal) 
 	, classLabel(protoLabel)
 	, bias(0.0)

@@ -5,10 +5,10 @@ using namespace System;
 namespace LvqLibCli {
 
 	public enum class LvqModelType {
-		GmModelType = LvqModelSettings::GmModelType,
+		LgmModelType = LvqModelSettings::LgmModelType,
 		GsmModelType = LvqModelSettings::GsmModelType,
 		G2mModelType = LvqModelSettings::G2mModelType,
-		GmmModelType = LvqModelSettings::GmmModelType,
+		GgmModelType = LvqModelSettings::GgmModelType,
 	};
 
 	ref class LvqDatasetCli;
@@ -28,7 +28,7 @@ namespace LvqLibCli {
 		double LrScaleP, LrScaleB, LR0, LrScaleBad;
 
 		LvqModelSettingsCli()
-			: ModelType(LvqModelType::GmmModelType)
+			: ModelType(LvqModelType::GgmModelType)
 			, RngParamsSeed(37)
 			, RngIterSeed(42)
 			, PrototypesPerClass(1)

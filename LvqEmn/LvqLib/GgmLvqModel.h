@@ -1,12 +1,12 @@
 #pragma once
 #include "LvqProjectionModelBase.h"
-#include "GmmLvqPrototype.h"
+#include "GgmLvqPrototype.h"
 
 using namespace Eigen;
 
-class GmmLvqModel : public LvqProjectionModelBase<GmmLvqModel>
+class GgmLvqModel : public LvqProjectionModelBase<GgmLvqModel>
 {
-	typedef std::vector<GmmLvqPrototype, Eigen::aligned_allocator<GmmLvqPrototype> > protoList;
+	typedef std::vector<GgmLvqPrototype, Eigen::aligned_allocator<GgmLvqPrototype> > protoList;
 
 	protoList prototype;
 	std::vector<CorrectAndWorstMatches::MatchOk> ngMatchCache;
@@ -21,7 +21,7 @@ protected:
 
 
 public:
-	static const LvqModelSettings::LvqModelType ThisModelType = LvqModelSettings::GmmModelType;
+	static const LvqModelSettings::LvqModelType ThisModelType = LvqModelSettings::GgmModelType;
 		//for templates:
 
 	inline int PrototypeLabel(int protoIndex) const {return prototype[protoIndex].label();}
@@ -31,7 +31,7 @@ public:
 //end for templates
 
 
-	GmmLvqModel(LvqModelSettings & initSettings);
+	GgmLvqModel(LvqModelSettings & initSettings);
 	virtual size_t MemAllocEstimate() const;
 	virtual int classify(VectorXd const & unknownPoint) const {return classifyProjectedInline(P * unknownPoint);}
 	virtual int classifyProjected(Vector2d const & unknownProjectedPoint) const { return classifyProjectedInline(unknownProjectedPoint);}
@@ -56,7 +56,7 @@ public:
 	virtual void DoOptionalNormalization();
 	virtual void ClassBoundaryDiagram(double x0, double x1, double y0, double y1, LvqProjectionModel::ClassDiagramT & classDiagram) const;
 	virtual void CopyTo(LvqModel& target) const{ 
-		GmmLvqModel & typedTarget = dynamic_cast<GmmLvqModel&>(target);
+		GgmLvqModel & typedTarget = dynamic_cast<GgmLvqModel&>(target);
 		typedTarget = *this;
 	}
 };

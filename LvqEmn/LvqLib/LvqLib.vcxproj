@@ -477,7 +477,7 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="GmmLvqModel.cpp" />
+    <ClCompile Include="GgmLvqModel.cpp" />
     <ClCompile Include="GoodBadMatch.cpp" />
     <ClCompile Include="LvqModel.cpp" />
     <ClCompile Include="CreateDataset.cpp" />
@@ -508,8 +508,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CovarianceAndMean.h" />
-    <ClInclude Include="GmmLvqModel.h" />
-    <ClInclude Include="GmmLvqPrototype.h" />
+    <ClInclude Include="GgmLvqModel.h" />
+    <ClInclude Include="GgmLvqPrototype.h" />
     <ClInclude Include="GoodBadMatch.h" />
     <ClInclude Include="LvqModel.h" />
     <ClInclude Include="LvqModelSettings.h" />

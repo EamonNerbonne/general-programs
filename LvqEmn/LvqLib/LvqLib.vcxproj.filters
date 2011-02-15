@@ -42,9 +42,6 @@
     <ClCompile Include="LvqModelSettings.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="GmmLvqModel.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="GoodBadMatch.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -58,6 +55,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="LgmLvqModel.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GgmLvqModel.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -113,12 +113,6 @@
     <ClInclude Include="LvqTypedefs.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="GmmLvqPrototype.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="GmmLvqModel.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="MeanMinMax.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -141,6 +135,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="LgmLvqModel.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="GgmLvqModel.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="GgmLvqPrototype.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

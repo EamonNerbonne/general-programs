@@ -2,7 +2,7 @@
 #include "LvqModelSettings.h"
 #include "LvqModel.h"
 
-#include "GmmLvqModel.h"
+#include "GgmLvqModel.h"
 #include "G2mLvqModel.h"
 #include "LgmLvqModel.h"
 #include "GsmLvqModel.h"
@@ -11,7 +11,7 @@
 #include "NeuralGas.h"
 LvqModel* ConstructLvqModel(LvqModelSettings & initSettings) {
 	switch(initSettings.ModelType) {
-	case LvqModelSettings::GmModelType:
+	case LvqModelSettings::LgmModelType:
 		return new LgmLvqModel(initSettings);
 		break;
 	case LvqModelSettings::GsmModelType:
@@ -20,8 +20,8 @@ LvqModel* ConstructLvqModel(LvqModelSettings & initSettings) {
 	case LvqModelSettings::G2mModelType:
 		return new G2mLvqModel(initSettings);
 		break;
-	case LvqModelSettings::GmmModelType:
-		return new GmmLvqModel(initSettings);
+	case LvqModelSettings::GgmModelType:
+		return new GgmLvqModel(initSettings);
 		break;
 	default:
 		return 0;

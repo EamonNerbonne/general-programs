@@ -116,8 +116,8 @@ void EasyLvqTest() {
 	for(int bI=0;bI<BENCH_RUNS;++bI)
 	{
 		t.start();
-		//TestModel(LvqModelSettings::GmModelType, rndGen2, true,  dataset.get(), protoDistrib, (ITERS + DIMS -1)/DIMS);
-		TestModel(LvqModelSettings::GmModelType, rndGen2, false,  dataset.get(), protoDistrib, 2*(ITERS + DIMS -1)/DIMS);
+		//TestModel(LvqModelSettings::LgmModelType, rndGen2, true,  dataset.get(), protoDistrib, (ITERS + DIMS -1)/DIMS);
+		TestModel(LvqModelSettings::LgmModelType, rndGen2, false,  dataset.get(), protoDistrib, 2*(ITERS + DIMS -1)/DIMS);
 
 		//TestModel(LvqModelSettings::G2mModelType, rndGen2, true, dataset.get(), protoDistrib, ITERS);
 		TestModel(LvqModelSettings::G2mModelType, rndGen2, false, dataset.get(), protoDistrib, ITERS);
@@ -125,8 +125,8 @@ void EasyLvqTest() {
 		//TestModel(LvqModelSettings::GsmModelType, rndGen2, true, dataset.get(), protoDistrib, ITERS);
 		TestModel(LvqModelSettings::GsmModelType, rndGen2, false, dataset.get(), protoDistrib, ITERS);
 
-		//TestModel(LvqModelSettings::GmmModelType, rndGen2, true, dataset.get(), protoDistrib, ITERS);
-		TestModel(LvqModelSettings::GmmModelType, rndGen2, false, dataset.get(), protoDistrib, ITERS);
+		//TestModel(LvqModelSettings::GgmModelType, rndGen2, true, dataset.get(), protoDistrib, ITERS);
+		TestModel(LvqModelSettings::GgmModelType, rndGen2, false, dataset.get(), protoDistrib, ITERS);
 
 
 		cerr<<"\n";
