@@ -25,6 +25,7 @@ namespace LvqLibCli {
 		initSettings.RuntimeSettings.NormalizeBoundaries = NormalizeBoundaries;
 		initSettings.RuntimeSettings.GloballyNormalize = GloballyNormalize;
 		initSettings.NgUpdateProtos = NgUpdateProtos;
+		initSettings.NgInitializeProtos = NgInitializeProtos;
 		initSettings.RuntimeSettings.UpdatePointsWithoutB = UpdatePointsWithoutB;
 		initSettings.Dimensionality = Dimensionality;
 		initSettings.RuntimeSettings.LrScaleP = LrScaleP;
