@@ -23,7 +23,7 @@ namespace LvqLibCli {
 		WrappedModel^ modelCopy;
 		List<LvqTrainingStatCli>^ stats;
 		LvqDatasetCli^ initSet;
-		int useDataFold;
+		int initDataFold;
 		Object^trainSync;
 		Object^copySync;
 
@@ -38,7 +38,7 @@ namespace LvqLibCli {
 		bool FitsDataShape(LvqDatasetCli^ dataset);
 
 		property String^ ModelLabel {String^ get(){return label;}}
-		property int InitDataFold {int get(){return useDataFold;}}
+		property int InitDataFold {int get(){return initDataFold;}}
 		property LvqDatasetCli^ InitDataset {LvqDatasetCli^ get(){return initSet;}}
 
 		LvqModelCli(String^ label, LvqDatasetCli^ trainingSet,int datafold, LvqModelSettingsCli^ modelSettings);

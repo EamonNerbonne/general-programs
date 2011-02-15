@@ -33,6 +33,7 @@ namespace LvqLibCli {
 	LvqModelCli::LvqModelCli(String^ label, LvqDatasetCli^ trainingSet,int datafold, LvqModelSettingsCli^ modelSettings)
 		: label(label)
 		, initSet(trainingSet)
+		, initDataFold(datafold)
 		, trainSync(gcnew Object())
 		, copySync(gcnew Object())
 		,stats(gcnew List<LvqTrainingStatCli>())
