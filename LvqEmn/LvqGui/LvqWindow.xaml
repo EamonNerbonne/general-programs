@@ -4,7 +4,7 @@
        	xmlns:emnPlot="clr-namespace:EmnExtensions.Wpf.Plot;assembly=EmnExtensionsWpf"
        	xmlns:emn="clr-namespace:EmnExtensions.Wpf;assembly=EmnExtensionsWpf"
 
-        Title="LvqWindow" Height="800" Width="500" xmlns:my="clr-namespace:LvqGui">
+        Title="Lvq Gui" Height="800" Width="500" xmlns:my="clr-namespace:LvqGui">
     <Grid >
 
         <Grid.RowDefinitions>
