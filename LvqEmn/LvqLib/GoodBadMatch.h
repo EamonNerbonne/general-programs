@@ -25,8 +25,12 @@ struct GoodBadMatch {
 	MatchQuality GgmQuality();
 
 	double MuK() const {return -2.0*distGood / (sqr(distGood) + sqr(distBad));}
-	double MuJ() const{return +2.0*distBad / (sqr(distGood) + sqr(distBad));}
-	double MuGgm() const { double pMargin = exp(-fabs(distBad - distGood)/2.0); return 2*4* pMargin / sqr(1 + pMargin);}
+	double MuJ() const { return +2.0*distBad / (sqr(distGood) + sqr(distBad));}
+	double MuGgm() const { 
+		return  (1.0/4.0) * (1 - sqr(std::tanh((distGood - distBad)/4.0)));
+		//double pMargin = exp(-fabs(distBad - distGood)/2.0); 
+		//return pMargin / sqr(1 + pMargin);
+	}
 };
 
 

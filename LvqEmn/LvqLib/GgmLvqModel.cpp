@@ -45,12 +45,12 @@ MatchQuality GgmLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel)
 	using namespace std;
 	double learningRate = stepLearningRate();
 
-	double lr_point = settings.LR0 * learningRate,
+	double lr_point = -settings.LR0 * learningRate,
 		lr_P = lr_point * settings.LrScaleP,
-		lr_B = lr_point * settings.LrScaleB*(1.0-learningRate); 
-	double lr_bad_scale = settings.LrScaleBad*(1.0-learningRate);
+		lr_B = lr_point * settings.LrScaleB; 
+	double lr_bad_scale = settings.LrScaleBad;
 
-	assert(lr_P>=0 && lr_B>=0 && lr_point>=0);
+	assert(lr_P<=0 && lr_B<=0 && lr_point<=0);
 
 	Vector2d P_trainPoint( P * trainPoint );
 
@@ -71,8 +71,9 @@ MatchQuality GgmLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel)
 	//now matches.good is "J" and matches.bad is "K".
 	GgmLvqPrototype &J = prototype[matches.matchGood];
 	GgmLvqPrototype &K = prototype[matches.matchBad];
-	double muJ2 = 2*matches.MuGgm();
-	double muK2 = 2*matches.MuGgm();
+	auto ggmQuality = matches.GgmQuality();
+	double muJ2 = 2*ggmQuality.muJ;
+	double muK2 = 2*ggmQuality.muK;
 
 	if(!isfinite(muJ2) || !isfinite(muK2)) {
 		DBG(matches.matchBad);
@@ -112,46 +113,40 @@ MatchQuality GgmLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel)
 		Matrix2d muJ2_JBinvT = muJ2* J.B.inverse().transpose();
 		Matrix2d muK2_KBinvT = muK2* K.B.inverse().transpose();
 
-		J.B.noalias() -= lr_B * (muJ2_Bj_P_vJ * P_vJ.transpose() - muJ2_JBinvT );
+		J.B.noalias() += lr_B * (muJ2_Bj_P_vJ * P_vJ.transpose() - muJ2_JBinvT );
 		K.B.noalias() += (lr_bad_scale*lr_B) * (muK2_Bk_P_vK * P_vK.transpose() - muK2_KBinvT) ;
 		J.RecomputeBias();
 		K.RecomputeBias();
 #else
-		J.B.noalias() -= lr_B * muJ2_Bj_P_vJ * P_vJ.transpose() ;
+		J.B.noalias() += lr_B * muJ2_Bj_P_vJ * P_vJ.transpose() ;
 		K.B.noalias() += lr_B * muK2_Bk_P_vK * P_vK.transpose() ;
-		//J.bias -= mu2*lr_B;
-		//K.bias += mu2*lr_B;
+		//J.bias += mu2*lr_B;
+		//K.bias -= mu2*lr_B;
 #endif
 
 
-		J.point.noalias() -= P.transpose()* (lr_point * muJ2_BjT_Bj_P_vJ);
+		J.point.noalias() += P.transpose()* (lr_point * muJ2_BjT_Bj_P_vJ);
 		K.point.noalias() += P.transpose() * (lr_bad_scale * lr_point * muK2_BkT_Bk_P_vK) ;
 
-		//Matrix2d PPTinv = (P* P.transpose()).inverse();
-		//m_PpseudoinvT.noalias() = (P.transpose() * (lr_P *(-muK2-muJ2) * PPTinv)).transpose();
-		P.noalias() += (lr_P * muK2_BkT_Bk_P_vK) * vK.transpose() - (lr_P * muJ2_BjT_Bj_P_vJ) * vJ.transpose();//+ m_PpseudoinvT;
-
-		//double pBias = -log((P* P.transpose()).determinant());
-
+		P.noalias() += (lr_P * muK2_BkT_Bk_P_vK) * vK.transpose() + (lr_P * muJ2_BjT_Bj_P_vJ) * vJ.transpose();
 
 		if(ngMatchCache.size()>0) {
-			double lrSub = lr_point;
+			double lrSub = 1.0;
 			double lrDelta = exp(-LVQ_NG_FACTOR/learningRate);//TODO: this is rather ADHOC
 			for(int i=1;i<fullmatch.foundOk;++i) {
 				lrSub*=lrDelta;
 				GgmLvqPrototype &Js = prototype[fullmatch.matchesOk[i].idx];
-				double pMargin_s = exp(-fabs(fullmatch.distBad - fullmatch.matchesOk[i].dist));
-				double muJ2_s = 2*2* pMargin_s /((1 + pMargin_s)*(1+pMargin_s));
+				double muJ2_s = (1.0/4.0) * (1.0 - sqr(std::tanh((fullmatch.matchesOk[i].dist - fullmatch.distBad)/4.0)));
 				Vector2d P_vJs = Js.P_point - P_trainPoint;
 				Vector2d muJ2_Bj_P_vJs = muJ2 * (Js.B * P_vJs);
 
-				Js.point.noalias() -= P.transpose() * (lrSub * (Js.B.transpose() * muJ2_Bj_P_vJs));
+				Js.point.noalias() += P.transpose() * (lrSub * lr_point * (Js.B.transpose() * muJ2_Bj_P_vJs));
 #ifdef AUTO_BIAS
 				Matrix2d muJ2_JBinvTs = muJ2_s* Js.B.inverse().transpose();
 
-				Js.B.noalias() -= (lrSub*lr_B) * (muJ2_Bj_P_vJs * P_vJs.transpose() - muJ2_JBinvTs);
+				Js.B.noalias() += lrSub*lr_B * (muJ2_Bj_P_vJs * P_vJs.transpose() - muJ2_JBinvTs);
 #else
-				Js.B.noalias() -= lrSub*lr_B * muJ2_Bj_P_vJs * P_vJs.transpose() ;
+				Js.B.noalias() += lrSub*lr_B * muJ2_Bj_P_vJs * P_vJs.transpose() ;
 #endif
 			}
 		}

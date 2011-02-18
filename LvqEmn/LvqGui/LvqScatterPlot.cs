@@ -34,6 +34,7 @@ namespace LvqGui {
 					subPlotWindow.Title = "No Model Selected";
 					newsubplots = null;
 				} else {
+					MakeSubPlotWindow();
 					subPlotWindow.Title = model.ModelLabel;
 					newsubplots = model.Tag as SubPlots;
 
