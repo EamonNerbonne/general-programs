@@ -102,11 +102,16 @@ namespace LvqGui {
 				Console.WriteLine("Training aborted, no model selected.");
 			else {
 				//lock (selectedModel.UpdateSyncObject) //not needed for safety, just for accurate timing
-				using (new DTimer("Training " + epochsToTrainFor + " epochs"))
-					selectedModel.Train(epochsToTrainFor, selectedDataset, Owner.WindowClosingToken);
-				if (!Owner.WindowClosingToken.IsCancellationRequested) {
-					PrintModelTimings(selectedModel);
-					PotentialUpdate(selectedDataset, selectedModel);
+				try {
+					using (new DTimer("Training " + epochsToTrainFor + " epochs"))
+						selectedModel.Train(epochsToTrainFor, selectedDataset, Owner.WindowClosingToken);
+					if (!Owner.WindowClosingToken.IsCancellationRequested) {
+						PrintModelTimings(selectedModel);
+						PotentialUpdate(selectedDataset, selectedModel);
+					}
+				} catch (OperationCanceledException) {
+					if (!Owner.WindowClosingToken.IsCancellationRequested)
+						throw;
 				}
 			}
 		}
