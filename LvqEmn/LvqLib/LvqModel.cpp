@@ -14,7 +14,7 @@ LvqModel::LvqModel(LvqModelSettings & initSettings)
 	, epochsTrained(0)
 {
 	int protoCount = accumulate(initSettings.PrototypeDistribution.begin(), initSettings.PrototypeDistribution.end(), 0);
-	iterationScaleFactor = LVQ_ITERFACTOR_PERPROTO/protoCount;
+	iterationScaleFactor = LVQ_ITERFACTOR_PERPROTO/sqrt((double)protoCount);
 }
 
 static VectorXd fromStlVector(vector<double> const & vec) {
