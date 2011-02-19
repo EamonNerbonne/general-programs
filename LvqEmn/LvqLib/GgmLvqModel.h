@@ -24,9 +24,9 @@ public:
 	static const LvqModelSettings::LvqModelType ThisModelType = LvqModelSettings::GgmModelType;
 		//for templates:
 
-	inline int PrototypeLabel(int protoIndex) const {return prototype[protoIndex].label();}
+	inline int PrototypeLabel(size_t protoIndex) const {return prototype[protoIndex].label();}
 	inline int PrototypeCount() const {return static_cast<int>(prototype.size());}
-	inline double SqrDistanceTo(int protoIndex, Vector2d const & P_otherPoint) const { return prototype[protoIndex].SqrDistanceTo(P_otherPoint); }
+	inline double SqrDistanceTo(size_t protoIndex, Vector2d const & P_otherPoint) const { return prototype[protoIndex].SqrDistanceTo(P_otherPoint); }
 
 //end for templates
 

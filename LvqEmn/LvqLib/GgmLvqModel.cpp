@@ -43,7 +43,9 @@ typedef Map<VectorXd, Aligned> MVectorXd;
 
 MatchQuality GgmLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel) {
 	using namespace std;
+	const size_t protoCount = prototype.size();
 	double learningRate = stepLearningRate();
+	
 
 	double lr_point = -settings.LR0 * learningRate,
 		lr_P = lr_point * settings.LrScaleP,
@@ -59,8 +61,8 @@ MatchQuality GgmLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel)
 
 	if(ngMatchCache.size()>0) {
 		fullmatch = CorrectAndWorstMatches(& (ngMatchCache[0]));
-		for(int i=0;i<(int)prototype.size();++i) 
-			fullmatch.Register(SqrDistanceTo(i, P_trainPoint),i, PrototypeLabel(i) == trainLabel);
+		for(size_t i=0;i<protoCount;++i) 
+			fullmatch.Register(SqrDistanceTo(i, P_trainPoint),(int)i, PrototypeLabel(i) == trainLabel);
 		fullmatch.SortOk();
 
 		matches = fullmatch.ToGoodBadMatch();
@@ -75,7 +77,7 @@ MatchQuality GgmLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel)
 	double muJ2 = 2*ggmQuality.muJ;
 	double muK2 = 2*ggmQuality.muK;
 
-	if(!isfinite(muJ2) || !isfinite(muK2)) {
+	if(!isfinite(muJ2+muK2)) {
 		DBG(matches.matchBad);
 		DBG(matches.matchGood);
 
@@ -110,11 +112,11 @@ MatchQuality GgmLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel)
 		Vector2d muK2_BkT_Bk_P_vK = K.B.transpose() * muK2_Bk_P_vK ;
 
 #ifdef AUTO_BIAS
-		Matrix2d muJ2_JBinvT = muJ2* J.B.inverse().transpose();
-		Matrix2d muK2_KBinvT = muK2* K.B.inverse().transpose();
+		Matrix2d neg_muJ2_JBinvT = -muJ2* J.B.inverse().transpose();
+		Matrix2d neg_muK2_KBinvT = -muK2* K.B.inverse().transpose();
 
-		J.B.noalias() += lr_B * (muJ2_Bj_P_vJ * P_vJ.transpose() - muJ2_JBinvT );
-		K.B.noalias() += (lr_bad_scale*lr_B) * (muK2_Bk_P_vK * P_vK.transpose() - muK2_KBinvT) ;
+		J.B.noalias() += lr_B * (muJ2_Bj_P_vJ * P_vJ.transpose() + neg_muJ2_JBinvT );
+		K.B.noalias() += (lr_bad_scale*lr_B) * (muK2_Bk_P_vK * P_vK.transpose() + neg_muK2_KBinvT) ;
 		J.RecomputeBias();
 		K.RecomputeBias();
 #else
@@ -136,22 +138,22 @@ MatchQuality GgmLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel)
 			for(int i=1;i<fullmatch.foundOk;++i) {
 				lrSub*=lrDelta;
 				GgmLvqPrototype &Js = prototype[fullmatch.matchesOk[i].idx];
-				double muJ2_s = (1.0/4.0) * (1.0 - sqr(std::tanh((fullmatch.matchesOk[i].dist - fullmatch.distBad)/4.0)));
+				double muJ2_s =  (1.0/4.0) * (1.0 - sqr(std::tanh((fullmatch.matchesOk[i].dist - fullmatch.distBad)/4.0)));
 				Vector2d P_vJs = Js.P_point - P_trainPoint;
-				Vector2d muJ2_Bj_P_vJs = muJ2 * (Js.B * P_vJs);
+				Vector2d muJ2_Bj_P_vJs = muJ2_s * (Js.B * P_vJs);
 
 				Js.point.noalias() += P.transpose() * (lrSub * lr_point * (Js.B.transpose() * muJ2_Bj_P_vJs));
 #ifdef AUTO_BIAS
-				Matrix2d muJ2_JBinvTs = muJ2_s* Js.B.inverse().transpose();
+				Matrix2d neg_muJ2_JBinvTs = -muJ2_s* Js.B.inverse().transpose();
 
-				Js.B.noalias() += lrSub*lr_B * (muJ2_Bj_P_vJs * P_vJs.transpose() - muJ2_JBinvTs);
+				Js.B.noalias() += lrSub*lr_B * (muJ2_Bj_P_vJs * P_vJs.transpose() + neg_muJ2_JBinvTs);
 #else
 				Js.B.noalias() += lrSub*lr_B * muJ2_Bj_P_vJs * P_vJs.transpose() ;
 #endif
 			}
 		}
 
-		for(size_t i=0;i<prototype.size();++i)
+		for(size_t i=0;i < protoCount;++i)
 			prototype[i].ComputePP(P);
 	}
 	return ggmQuality;
