@@ -1,6 +1,6 @@
 #include "stdafx.h"
 #include "GoodBadMatch.h"
-
+using std::tanh;
 	MatchQuality GoodBadMatch::LvqQuality() {
 		MatchQuality retval;
 		retval.isErr = distGood >= distBad;
@@ -15,12 +15,11 @@
 	MatchQuality GoodBadMatch::GgmQuality() {
 		MatchQuality retval;
 		retval.isErr = distGood >= distBad;
-		retval.costFunc=std::tanh((distGood-distBad)/4.0);
+		retval.costFunc=tanh((distGood-distBad)/4.0);
 		retval.distBad = distBad;
 		retval.distGood = distGood;
-		retval.muK = -MuGgm();
-		retval.muJ = MuGgm();//
-		if(!isfinite(retval.costFunc)) throw "Invalid Cost func!";
+		retval.muJ = (1.0/4.0) * (1 - sqr(retval.costFunc));//
+		retval.muK = -retval.muJ;
 		return retval;
 	}
 	
