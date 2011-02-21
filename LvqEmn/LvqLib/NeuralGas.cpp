@@ -21,11 +21,10 @@ double NeuralGas::lambda() const { return exp(ln_lambda_start + trainIter / (dou
 
 double NeuralGas::learnFrom(VectorXd const & point) {
 	assert(trainIter < finalIter);
-	typedef VectorXd::Index Index;
 	tmp_deltaFrom = (prototypes.colwise() - point);
 	
     for(Index i=0; (size_t)i < tmp_prototypes_ordering.size(); ++i)
-		tmp_prototypes_ordering[i] = make_pair<double, Index>(tmp_deltaFrom.col(i).squaredNorm(),i);
+		tmp_prototypes_ordering[i] = make_pair(tmp_deltaFrom.col(i).squaredNorm(), i);
     sort(tmp_prototypes_ordering.begin(), tmp_prototypes_ordering.end());
 
 	//now tmp_prototypes_ordering[i].second is the index of the i-th ranked prototype.

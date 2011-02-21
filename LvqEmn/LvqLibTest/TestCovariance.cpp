@@ -71,5 +71,7 @@ BOOST_AUTO_TEST_CASE( covariance_lowdim_test )
 	BENCHRET(tC,10,10,ignore+=CovLD::CovarianceC(points,mean).sum());
 	BENCHRET(tD,10,10,ignore+=CovLD::CovarianceD(points,mean).sum());
 	BENCHRET(t,10,10,ignore+=Covariance::Compute<PMatrix>(points,mean).sum());
+	using std::cout;
+	//cout<< tA.best()<<" "<<tB.best()<<" "<<tC.best()<<" "<<tD.best()<<" "<<t.best()<<"\n";
 	BOOST_CHECK(t.best()<= 1.05 * std::min(tA.best(),std::min(tB.best(),std::min(tC.best(),tD.best()))));
 }

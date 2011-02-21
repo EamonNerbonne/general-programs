@@ -53,7 +53,13 @@ struct Covariance {
 	template<typename TPoints>
 	static inline Eigen::Matrix<typename TPoints::Scalar,TPoints::RowsAtCompileTime,TPoints::RowsAtCompileTime> Compute(Eigen::MatrixBase<TPoints> const & points, Eigen::Matrix<typename TPoints::Scalar,TPoints::RowsAtCompileTime,1> const & mean) {
 #ifdef _MSC_VER
-		return CovarianceImpl<TPoints>::CovarianceC(points,mean);
+#pragma warning (push, 3)
+#pragma warning (disable: 4127)
+		if(TPoints::RowsAtCompileTime == Eigen::Dynamic)
+			return CovarianceImpl<TPoints>::CovarianceC(points,mean);
+		else 
+			return CovarianceImpl<TPoints>::CovarianceB(points,mean);
+#pragma warning (pop)
 #else
 		if(TPoints::RowsAtCompileTime == Eigen::Dynamic)
 			return CovarianceImpl<TPoints>::CovarianceC(points,mean);
