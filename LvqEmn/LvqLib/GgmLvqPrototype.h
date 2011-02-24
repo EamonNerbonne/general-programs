@@ -14,7 +14,7 @@ class GgmLvqPrototype
 
 	int classLabel; //only set during initialization.
 	VectorXd point;
-	double bias;//-ln(det(B)^2)-ln(det(P^2))  --but I ignore the global factor P.
+	double bias;//-ln(det(B)^2)
 
 	EIGEN_STRONG_INLINE void ComputePP(PMatrix const & P) {
 		P_point.noalias() = P * point;

@@ -38,7 +38,7 @@ namespace EmnExtensions.Wpf.Plot {
 				Thickness = BaseTickWidth
 			}; //start flat end round
 			m_tickPen.Freeze();
-			m_typeface = new Typeface(new FontFamily("Segoe UI"), FontStyles.Normal, FontWeights.Normal, FontStretches.Normal, new FontFamily("Verdana"));
+			m_typeface = new Typeface(new FontFamily("Segoe UI"), FontStyles.Normal, FontWeights.Normal, FontStretches.Normal, new FontFamily("Arial"));
 		}
 
 		public TickedAxis() {

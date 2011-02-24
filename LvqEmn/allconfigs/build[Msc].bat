@@ -4,7 +4,7 @@ cd %~dp0\..\build\msc
 
 cmake -G "Visual Studio 10 Win64" ..\..\allconfigs
 REM start "MsBuild" /low  /B /wait 
-start /low /B /wait C:\Windows\Microsoft.NET\Framework64\v4.0.30319\MSBuild.exe /property:Configuration=Release /maxcpucount "ALL_BUILD.vcxproj"
+start /low /B /wait C:\Windows\Microsoft.NET\Framework64\v4.0.30319\MSBuild.exe /property:Configuration=Release /maxcpucount:4 "ALL_BUILD.vcxproj"
 IF ERRORLEVEL 1 (
 	echo buildFailed > "%~dp0\_BuildFailed-msc"
 ) ELSE (

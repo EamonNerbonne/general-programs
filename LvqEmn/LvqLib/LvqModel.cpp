@@ -75,10 +75,10 @@ std::vector<std::wstring> LvqModel::TrainingStatNames() {
 	retval.push_back(L"Nearest Correct Prototype Distance Variance|distance variance|Prototype Distance Variance");
 	retval.push_back(L"Nearest Incorrect Prototype Distance Variance|distance variance|Prototype Distance Variance");
 	if(this->IdenticalMu()) {
-		retval.push_back(L"Mu mean|mu-ratio|Mu (J and K)");
+		retval.push_back(L"mean \u03BC|\u03BC value|\u03BC (J and K)");//greek:\u03BC math:\U0001D707
 	} else {
-		retval.push_back(L"MuJ mean|mu-ratio|Mu J and K");
-		retval.push_back(L"MuK mean|mu-ratio|Mu J and K");
+		retval.push_back(L"\u03BC J mean|\u03BC value|\u03BC J and K");
+		retval.push_back(L"\u03BC K mean|\u03BC value|\u03BC J and K");
 	}
 	AppendTrainingStatNames(retval); 
 	return retval;
