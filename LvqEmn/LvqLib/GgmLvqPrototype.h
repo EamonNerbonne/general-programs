@@ -23,7 +23,7 @@ class GgmLvqPrototype
 #ifdef AUTO_BIAS
 	EIGEN_STRONG_INLINE void RecomputeBias() {
 		bias = - log(sqr(B.determinant()));
-		assert(isfinite(bias));
+		assert(isfinite_emn(bias));
 	}
 #endif
 

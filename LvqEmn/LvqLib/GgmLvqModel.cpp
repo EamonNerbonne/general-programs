@@ -77,7 +77,7 @@ MatchQuality GgmLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel)
 	double muJ2 = 2*ggmQuality.muJ;
 	double muK2 = 2*ggmQuality.muK;
 
-	if(!isfinite(muJ2+muK2)) {
+	if(!isfinite_emn(muJ2+muK2)) {
 		DBG(matches.matchBad);
 		DBG(matches.matchGood);
 
