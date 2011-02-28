@@ -5,7 +5,7 @@ cd %~dp0\..\build\mingw
 REM start /belownormal /wait /B
 cmake -G "MinGW Makefiles" ..\..\allconfigs
 REM start "MsBuild" /low /B /wait 
-start /low /B /wait mingw32-make --jobs 4
+start /low /B /wait mingw32-make
 IF ERRORLEVEL 1 (
 	echo buildFailed > "%~dp0\_BuildFailed-mingw"
 ) ELSE (
