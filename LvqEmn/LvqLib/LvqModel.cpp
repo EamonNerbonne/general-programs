@@ -24,10 +24,14 @@ static VectorXd fromStlVector(vector<double> const & vec) {
 	return retval;
 }
 
-void LvqModel::AddTrainingStat(Statistics& statQueue, LvqDataset const * trainingSet, std::vector<int>const & trainingSubset, LvqDataset const * testSet, vector<int>const & testSubset, int iterInc, double elapsedInc, LvqDatasetStats const & trainingstats) {
-	this->totalIter+=iterInc;
-	this->totalElapsed+=elapsedInc;
+double LvqModel::RegisterEpochDone(int itersTrained, double elapsed, int epochs) {
+	totalIter +=itersTrained;
+	totalElapsed += elapsed;
+	epochsTrained += epochs;
+	return totalIter;
+}
 
+void LvqModel::AddTrainingStat(Statistics& statQueue, LvqDataset const * trainingSet, std::vector<int>const & trainingSubset, LvqDataset const * testSet, vector<int>const & testSubset, LvqDatasetStats const & trainingstats) {
 	vector<double> stats;
 
 	stats.push_back(double(totalIter));
@@ -55,11 +59,11 @@ void LvqModel::AddTrainingStat(Statistics& statQueue, LvqDataset const * trainin
 	statQueue.push(std::move(stats));
 }
 
-void LvqModel::AddTrainingStat(Statistics& statQueue, LvqDataset const * trainingSet, vector<int>const & trainingSubset, LvqDataset const * testSet, vector<int>const & testSubset, int iterInc, double elapsedInc) {
+void LvqModel::AddTrainingStat(Statistics& statQueue, LvqDataset const * trainingSet, vector<int>const & trainingSubset, LvqDataset const * testSet, vector<int>const & testSubset) {
 	LvqDatasetStats trainingstats;
 	if(trainingSet && trainingSubset.size() >0) 
 		trainingstats=trainingSet->ComputeCostAndErrorRate(trainingSubset,this);
-	this->AddTrainingStat(statQueue, trainingSet,trainingSubset,testSet,testSubset,iterInc,elapsedInc,trainingstats);
+	this->AddTrainingStat(statQueue, trainingSet,trainingSubset,testSet,testSubset, trainingstats);
 }
 
 std::vector<std::wstring> LvqModel::TrainingStatNames() {

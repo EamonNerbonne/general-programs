@@ -219,7 +219,7 @@ void LvqDataset::shufflePoints(boost::mt19937& rng) {
 }
 
 
-void LvqDataset::TrainModel(int epochs, LvqModel * model, LvqModel::Statistics * statisticsSink, std::vector<int> const  & trainingSubset, LvqDataset const * testData, std::vector<int> const  & testSubset) const {
+void LvqDataset::TrainModel(int epochs, LvqModel * model, LvqModel::Statistics * statisticsSink, vector<int> const  & trainingSubset, LvqDataset const * testData, std::vector<int> const  & testSubset) const {
 	int dims = static_cast<int>(points.rows());
 	VectorXd pointA(dims);
 	int cacheLines = (dims*sizeof(points(0,0) ) +63)/ 64 ;
@@ -252,7 +252,9 @@ void LvqDataset::TrainModel(int epochs, LvqModel * model, LvqModel::Statistics *
 			muJ+=trainingMatchQ.muJ;
 		}
 		t.stop();
-		if(statisticsSink) {
+		model->RegisterEpochDone( (int)(1*shuffledOrder.size()), t.value(CPU_TIMER), 1);
+		if(statisticsSink && (model->epochsTrained%AppropriateAnimationEpochs(trainingSubset)==0)) {
+			//cout<<AppropriateAnimationEpochs(trainingSubset)<<", ";
 			LvqDatasetStats trainingStats;
 			trainingStats.errorRate = errs/double(shuffledOrder.size());
 			trainingStats.meanCost =pointCostSum/double(shuffledOrder.size());
@@ -263,11 +265,14 @@ void LvqDataset::TrainModel(int epochs, LvqModel * model, LvqModel::Statistics *
 			trainingStats.muKmean = muK/double(shuffledOrder.size());
 			trainingStats.muJmean = muJ/double(shuffledOrder.size());
 
-			model->AddTrainingStat(*statisticsSink, this,trainingSubset, testData,testSubset, (int)(1*shuffledOrder.size()), t.value(CPU_TIMER),trainingStats);
+			model->AddTrainingStat(*statisticsSink, this, trainingSubset, testData, testSubset, trainingStats);
 		}
 		model->DoOptionalNormalization();
-		model->epochsTrained++;
 	}
+}
+
+size_t LvqDataset::AppropriateAnimationEpochs(vector<int> const  & trainingSubset) const {
+	return max(size_t(2000000L) / (trainingSubset.size() * (this->dimensions()+25)), size_t(1));
 }
 
 static int triangularIndex(int i, int j) {

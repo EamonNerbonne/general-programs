@@ -45,8 +45,10 @@ public:
 
 	std::vector<std::wstring> TrainingStatNames();
 
-	void AddTrainingStat(Statistics& statQueue, LvqDataset const * trainingSet, std::vector<int>const & trainingSubset, LvqDataset const * testSet, std::vector<int>const & testSubset, int iterInc, double elapsedInc,LvqDatasetStats const & trainingstats);
-	void AddTrainingStat(Statistics& statQueue, LvqDataset const * trainingSet, std::vector<int>const & trainingSubset, LvqDataset const * testSet, std::vector<int>const & testSubset, int iterInc, double elapsedInc);
+	double RegisterEpochDone(int itersTrained, double elapsed, int epochs);
+
+	void AddTrainingStat(Statistics& statQueue, LvqDataset const * trainingSet, std::vector<int>const & trainingSubset, LvqDataset const * testSet, std::vector<int>const & testSubset, LvqDatasetStats const & trainingstats);
+	void AddTrainingStat(Statistics& statQueue, LvqDataset const * trainingSet, std::vector<int>const & trainingSubset, LvqDataset const * testSet, std::vector<int>const & testSubset);
 
 	virtual int classify(VectorXd const & unknownPoint) const=0; 
 	virtual MatchQuality ComputeMatches(VectorXd const & unknownPoint, int pointLabel) const=0;

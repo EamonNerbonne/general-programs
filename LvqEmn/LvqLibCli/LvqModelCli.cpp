@@ -42,7 +42,7 @@ namespace LvqLibCli {
 		trainingSet->LastModel = this;
 		model = GcPtr::Create(ConstructLvqModel(as_lvalue( modelSettings->ToNativeSettings(trainingSet, datafold))));
 		LvqModel::Statistics nativeStats;
-		model->get()->AddTrainingStat(nativeStats,trainingSet->GetDataset(),trainingSet->GetTrainingSubset(datafold), trainingSet->GetDataset(), trainingSet->GetTestSubset(datafold),0,0.0);
+		model->get()->AddTrainingStat(nativeStats,trainingSet->GetDataset(),trainingSet->GetTrainingSubset(datafold), trainingSet->GetDataset(), trainingSet->GetTestSubset(datafold));
 
 		msclr::lock l2(copySync);
 		SinkStats(nativeStats);

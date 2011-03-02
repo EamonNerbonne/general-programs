@@ -41,6 +41,7 @@ public:
 	double NearestNeighborPcaErrorRate(std::vector<int> const & neighborhood, LvqDataset const* testData, std::vector<int> const & testSet) const;
 	double NearestNeighborErrorRate(std::vector<int> const & neighborhood, LvqDataset const* testData, std::vector<int> const & testSet) const;
 
+	size_t LvqDataset::AppropriateAnimationEpochs(std::vector<int> const  & trainingSubset) const;
 	void TrainModel(int epochs, LvqModel * model, LvqModel::Statistics * statisticsSink, std::vector<int> const & trainingSubset, LvqDataset const * testData, std::vector<int> const & testSubset) const;
 
 	LvqDatasetStats ComputeCostAndErrorRate(std::vector<int> const & subset, LvqModel const * model) const;
