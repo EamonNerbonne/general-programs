@@ -140,6 +140,14 @@ namespace LvqGui {
 		}
 		double _LrScaleBad;
 
+		public bool SlowStartLrBad {
+			get { return _SlowStartLrBad; }
+			set { if (!_SlowStartLrBad.Equals(value)) { _SlowStartLrBad = value; _propertyChanged("SlowStartLrBad"); } }
+		}
+		private bool _SlowStartLrBad;
+
+			
+
 		public uint Seed {
 			get { return _Seed; }
 			set { if (!Equals(_Seed, value)) { _Seed = value; _propertyChanged("Seed"); } }
@@ -173,6 +181,7 @@ namespace LvqGui {
 				,lrP(?<LrScaleP>\d*\.?\d*(e\d+)?)
 				,lrB(?<LrScaleB>\d*\.?\d*(e\d+)?)
 				,lrX(?<LrScaleBad>\d*\.?\d*(e\d+)?)
+				(?<SlowStartLrBad>\!?)
 				(--.*)?\s*$",
 		RegexOptions.Compiled | RegexOptions.ExplicitCapture | RegexOptions.IgnorePatternWhitespace);
 
@@ -197,6 +206,7 @@ namespace LvqGui {
 				+ ",lrP" + LrScaleP
 				+ ",lrB" + LrScaleB
 				+ ",lrX" + LrScaleBad
+				+ (SlowStartLrBad?"!":"")
 				+ (ForDataset == null ? "" : "--" + ForDataset.DatasetLabel);
 			}
 			set { ShorthandHelper.ParseShorthand(this, shR, value); }
@@ -226,6 +236,7 @@ namespace LvqGui {
 			NgInitializeProtos = defaults.NgInitializeProtos;
 			UpdatePointsWithoutB = defaults.UpdatePointsWithoutB;
 			Dimensionality = defaults.Dimensionality;
+			SlowStartLrBad = defaults.SlowStartLrBad;
 
 			LrScaleP = defaults.LrScaleP;
 			LrScaleB = defaults.LrScaleB;
@@ -252,6 +263,7 @@ namespace LvqGui {
 				NgUpdateProtos = NgUpdateProtos,
 				UpdatePointsWithoutB = UpdatePointsWithoutB,
 				Dimensionality = Dimensionality,
+				SlowStartLrBad = SlowStartLrBad,
 
 				LrScaleP = LrScaleP,
 				LrScaleB = LrScaleB,

@@ -31,7 +31,9 @@ MatchQuality GmLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel) 
 	double learningRate = stepLearningRate();
 
 	double lr_point = settings.LR0 * learningRate,
-		lr_P = lr_point * settings.LrScaleP;
+		lr_P = lr_point * settings.LrScaleP,
+		lr_bad = (settings.SlowStartLrBad? 1.0-learningRate : 1.0) * settings.LrScaleBad;
+
 
 	assert(lr_P>=0 && lr_point>=0);
 
@@ -67,7 +69,7 @@ MatchQuality GmLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel) 
 	vK = prototype[K] - trainPoint;
 
 	prototype[J].noalias() -= P.transpose() * (lr_point * muJ2_P_vJ);
-	prototype[K].noalias() -= P.transpose() * (settings.LrScaleBad*lr_point *muK2_P_vK);
+	prototype[K].noalias() -= P.transpose() * (lr_bad*lr_point *muK2_P_vK);
 
 	P.noalias() -= (lr_P * muJ2_P_vJ) * vJ.transpose() + (lr_P * muK2_P_vK) * vK.transpose();
 

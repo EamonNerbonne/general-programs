@@ -27,6 +27,7 @@ namespace LvqLibCli {
 		initSettings.NgUpdateProtos = NgUpdateProtos;
 		initSettings.NgInitializeProtos = NgInitializeProtos;
 		initSettings.RuntimeSettings.UpdatePointsWithoutB = UpdatePointsWithoutB;
+		initSettings.RuntimeSettings.SlowStartLrBad = SlowStartLrBad;
 		initSettings.Dimensionality = Dimensionality;
 		initSettings.RuntimeSettings.LrScaleP = LrScaleP;
 		initSettings.RuntimeSettings.LrScaleB = LrScaleB;

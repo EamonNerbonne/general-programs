@@ -49,8 +49,8 @@ MatchQuality GgmLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel)
 
 	double lr_point = -settings.LR0 * learningRate,
 		lr_P = lr_point * settings.LrScaleP,
-		lr_B = lr_point * settings.LrScaleB; 
-	double lr_bad_scale = settings.LrScaleBad;
+		lr_B = lr_point * settings.LrScaleB,
+		lr_bad = (settings.SlowStartLrBad? 1.0-learningRate : 1.0) * settings.LrScaleBad;
 
 	assert(lr_P<=0 && lr_B<=0 && lr_point<=0);
 
@@ -116,19 +116,19 @@ MatchQuality GgmLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel)
 		Matrix2d neg_muK2_KBinvT = -muK2* K.B.inverse().transpose();
 
 		J.B.noalias() += lr_B * (muJ2_Bj_P_vJ * P_vJ.transpose() + neg_muJ2_JBinvT );
-		K.B.noalias() += (lr_bad_scale*lr_B) * (muK2_Bk_P_vK * P_vK.transpose() + neg_muK2_KBinvT) ;
+		K.B.noalias() += (lr_bad*lr_B) * (muK2_Bk_P_vK * P_vK.transpose() + neg_muK2_KBinvT) ;
 		J.RecomputeBias();
 		K.RecomputeBias();
 #else
 		J.B.noalias() += lr_B * muJ2_Bj_P_vJ * P_vJ.transpose() ;
-		K.B.noalias() += lr_B * muK2_Bk_P_vK * P_vK.transpose() ;
+		K.B.noalias() += lr_bad*lr_B * muK2_Bk_P_vK * P_vK.transpose() ;
 		//J.bias += mu2*lr_B;
 		//K.bias -= mu2*lr_B;
 #endif
 
 
 		J.point.noalias() += P.transpose()* (lr_point * muJ2_BjT_Bj_P_vJ);
-		K.point.noalias() += P.transpose() * (lr_bad_scale * lr_point * muK2_BkT_Bk_P_vK) ;
+		K.point.noalias() += P.transpose() * (lr_bad * lr_point * muK2_BkT_Bk_P_vK) ;
 
 		P.noalias() += (lr_P * muK2_BkT_Bk_P_vK) * vK.transpose() + (lr_P * muJ2_BjT_Bj_P_vJ) * vJ.transpose();
 

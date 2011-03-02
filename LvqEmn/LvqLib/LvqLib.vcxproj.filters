@@ -143,6 +143,12 @@
     <ClInclude Include="GmLvqModel.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="unused_utils.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="copy_ptr.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="CMakeLists.txt" />

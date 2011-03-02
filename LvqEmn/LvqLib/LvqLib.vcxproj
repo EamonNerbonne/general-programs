@@ -507,6 +507,7 @@
     <ClCompile Include="utils.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="copy_ptr.h" />
     <ClInclude Include="CovarianceAndMean.h" />
     <ClInclude Include="GgmLvqModel.h" />
     <ClInclude Include="GgmLvqPrototype.h" />
@@ -533,6 +534,7 @@
     <ClInclude Include="shuffle.h" />
     <ClInclude Include="SmartSum.h" />
     <ClInclude Include="stdafx.h" />
+    <ClInclude Include="unused_utils.h" />
     <ClInclude Include="utils.h" />
   </ItemGroup>
   <ItemGroup>

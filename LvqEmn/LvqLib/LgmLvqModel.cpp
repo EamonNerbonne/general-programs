@@ -49,6 +49,7 @@ MatchQuality LgmLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel)
 
 	double lr_mu_J2 = lr_point * 2.0*matches.MuK();
 	double lr_mu_K2 = lr_point * 2.0*matches.MuJ();
+	double lr_bad = (settings.SlowStartLrBad? 1.0-learningRate : 1.0) * settings.LrScaleBad;
 
 	int J = matches.matchGood;
 	int K = matches.matchBad;
@@ -65,10 +66,10 @@ MatchQuality LgmLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel)
 	Pk_vK.noalias() = P[K] * vK;
 
 	prototype[J].noalias() -= (lr_mu_K2)* (P[J].transpose() * Pj_vJ);
-	prototype[K].noalias() -= (settings.LrScaleBad*lr_mu_J2) * (P[K].transpose() * Pk_vK);
+	prototype[K].noalias() -= (lr_bad * lr_mu_J2) * (P[K].transpose() * Pk_vK);
 
 	P[J].noalias() -= (settings.LrScaleP *  lr_mu_K2) * (Pj_vJ * vJ.transpose() );
-	P[K].noalias() -=(settings.LrScaleP *lr_mu_J2) * (Pk_vK * vK.transpose() );
+	P[K].noalias() -=(settings.LrScaleP * lr_mu_J2) * (Pk_vK * vK.transpose() );
 	return matches.LvqQuality();
 }
 

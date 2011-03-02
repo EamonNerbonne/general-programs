@@ -4,16 +4,18 @@
 #include "utils.h"
 
 using namespace Eigen;
+using std::sort;
+
 void NearestNeighbor::init() {
 	for(size_t i=0;i<idxs.size();i++)
 		idxs[i]=(unsigned)i;
 	Vector2d eigenvalues;
 	PcaLowDim::DoPca(sortedPoints,this->transform,eigenvalues);
 	sortedPoints = transform * sortedPoints;
-	std::sort(idxs.begin(),idxs.end(), [this] (unsigned a, unsigned b) ->bool {return sortedPoints(0,a) < sortedPoints(0,b);});
+	sort(idxs.begin(),idxs.end(), [this] (unsigned a, unsigned b) ->bool {return sortedPoints(0,a) < sortedPoints(0,b);});
 }
 
-int NearestNeighbor::nearestIdx(Eigen::Vector2d  const & point) const
+int NearestNeighbor::nearestIdx(Vector2d const & point) const
 {
 	//we transform the point into the PCA-d space.
 	//then binary search to find nearest point in primary dim

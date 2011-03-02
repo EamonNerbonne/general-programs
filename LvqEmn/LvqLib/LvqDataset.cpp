@@ -101,7 +101,6 @@ int LvqDataset::NearestNeighborClassify(std::vector<int> const & subset, PMatrix
 }
 
 double LvqDataset::NearestNeighborProjectedErrorRate(std::vector<int> const & neighborhood,LvqDataset const* testData, std::vector<int> const & testSet, PMatrix projection) const {
-
 	std::vector<int> neighborLabels;
 	PMatrix neighbors;
 

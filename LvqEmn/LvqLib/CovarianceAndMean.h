@@ -64,7 +64,7 @@ struct Covariance {
 		if(TPoints::RowsAtCompileTime == Eigen::Dynamic)
 			return CovarianceImpl<TPoints>::CovarianceC(points,mean);
 		else
-			return CovarianceImpl<TPoints>::CovarianceD(points,mean);
+			return CovarianceImpl<TPoints>::CovarianceB(points,mean);
 #endif
 	}
 

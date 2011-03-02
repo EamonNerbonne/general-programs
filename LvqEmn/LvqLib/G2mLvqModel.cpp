@@ -40,7 +40,8 @@ MatchQuality G2mLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel)
 
 	double lr_point = settings.LR0 * learningRate,
 		lr_P = lr_point * settings.LrScaleP,
-		lr_B = lr_point * settings.LrScaleB; 
+		lr_B = lr_point * settings.LrScaleB,
+		lr_bad = (settings.SlowStartLrBad?1.0- learningRate : 1.0) * settings.LrScaleBad;
 
 	assert(lr_P>=0 && lr_B>=0 && lr_point>=0);
 
@@ -79,7 +80,7 @@ MatchQuality G2mLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel)
 	Vector2d muK2_BkT_Bk_P_vK = K.B.transpose() * muK2_Bk_P_vK ;
 
 	J.B.noalias() -= lr_B * muJ2_Bj_P_vJ * P_vJ.transpose() ;
-	K.B.noalias() -= lr_B * muK2_Bk_P_vK * P_vK.transpose() ;
+	K.B.noalias() -= lr_bad*lr_B * muK2_Bk_P_vK * P_vK.transpose() ;
 	double distbadRaw=0.0;
 	if(settings.UpdatePointsWithoutB) {
 		double distgood = P_vJ.squaredNorm();
@@ -89,7 +90,7 @@ MatchQuality G2mLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel)
 	} else {
 		J.point.noalias() -= P.transpose()* (lr_point * muJ2_BjT_Bj_P_vJ);
 	}
-	K.point.noalias() -= P.transpose() * (settings.LrScaleBad*lr_point * muK2_BkT_Bk_P_vK) ;
+	K.point.noalias() -= P.transpose() * (lr_bad*lr_point * muK2_BkT_Bk_P_vK) ;
 	P.noalias() -= (lr_P * muJ2_BjT_Bj_P_vJ) * vJ.transpose() + (lr_P * muK2_BkT_Bk_P_vK) * vK.transpose() ;
 
 	if(ngMatchCache.size()>0) {
