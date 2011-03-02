@@ -50,7 +50,7 @@ MatchQuality GgmLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel)
 	double lr_point = -settings.LR0 * learningRate,
 		lr_P = lr_point * settings.LrScaleP,
 		lr_B = lr_point * settings.LrScaleB,
-		lr_bad = (settings.SlowStartLrBad? 1.0-learningRate : 1.0) * settings.LrScaleBad;
+		lr_bad = (settings.SlowStartLrBad  ?  sqr(1.0 - learningRate)  :  1.0) * settings.LrScaleBad;
 
 	assert(lr_P<=0 && lr_B<=0 && lr_point<=0);
 

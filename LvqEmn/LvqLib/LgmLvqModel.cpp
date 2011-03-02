@@ -49,7 +49,7 @@ MatchQuality LgmLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel)
 
 	double lr_mu_J2 = lr_point * 2.0*matches.MuK();
 	double lr_mu_K2 = lr_point * 2.0*matches.MuJ();
-	double lr_bad = (settings.SlowStartLrBad? 1.0-learningRate : 1.0) * settings.LrScaleBad;
+	double lr_bad = (settings.SlowStartLrBad  ?  sqr(1.0 - learningRate)  :  1.0) * settings.LrScaleBad;
 
 	int J = matches.matchGood;
 	int K = matches.matchBad;
