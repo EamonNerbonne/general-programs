@@ -146,8 +146,6 @@ namespace LvqGui {
 		}
 		private bool _SlowStartLrBad;
 
-			
-
 		public uint Seed {
 			get { return _Seed; }
 			set { if (!Equals(_Seed, value)) { _Seed = value; _propertyChanged("Seed"); } }
@@ -163,7 +161,7 @@ namespace LvqGui {
 		static readonly Regex shR =
 	new Regex(@"
 				^(\w|\s)*\:?\s*
-				(?<ModelType>G[\w\d]*)
+				(?<ModelType>[A-Z][\w\d]*)
 				(\[(?<Dimensionality>[^\]]+)\])?
 				,(?<PrototypesPerClass>\d+)
 				,rP(?<RandomInitialProjection>\+?)
@@ -198,7 +196,7 @@ namespace LvqGui {
 				+ (isBoundaryModel ? ",nB" + (NormalizeBoundaries ? "+" : "") : "")
 				+ (isBoundaryModel && NormalizeBoundaries || NormalizeProjection ? ",gn" + (GloballyNormalize ? "+" : "") : "")
 				+ (ModelType != LvqModelType.LgmModelType ? ",NG" + (NgUpdateProtos ? "+" : "") : "")
-				+ ",NGi" + (NgInitializeProtos ? "+" : "")
+				+ (PrototypesPerClass>1?",NGi" + (NgInitializeProtos ? "+" : ""):"")
 				+ (ModelType == LvqModelType.G2mModelType ? ",noB" + (UpdatePointsWithoutB ? "+" : "") : "")
 				+ "[" + Seed + ":" + InstSeed + "]/" + ParallelModels
 				+ (ModelType != LvqModelType.LgmModelType ? ",pQ" + (TrackProjectionQuality ? "+" : "") : "")

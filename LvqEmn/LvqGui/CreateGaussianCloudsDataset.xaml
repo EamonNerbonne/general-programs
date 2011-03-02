@@ -47,7 +47,7 @@
         <Button Content="Reset Instantiation Seed" Grid.Row="6" Click="ReseedInst"/>
         <TextBox Grid.Row="6"  Grid.Column="1" Text="{Binding InstSeed, Mode=TwoWay, ValidatesOnExceptions=True}" />
         <Label Grid.Row="7">Shorthand</Label>
-        <TextBox  Grid.Row="7" Grid.Column="1" Text="{Binding Shorthand, Mode=TwoWay, ValidatesOnExceptions=True}" />
+        <TextBox  Grid.Row="7" Grid.Column="1" Text="{Binding Shorthand, Mode=TwoWay, ValidatesOnExceptions=True, UpdateSourceTrigger=PropertyChanged}" />
 
         <Button  Grid.Row="8" Grid.Column="0" Grid.ColumnSpan="2" Click="CreateDatasetButtonPress" VerticalAlignment="Top">Generate Point Clouds</Button>
         <Label Grid.Row="8" Grid.ColumnSpan="2" Content="{Binding ShorthandErrors, Mode=OneWay}" HorizontalAlignment="Left"/>

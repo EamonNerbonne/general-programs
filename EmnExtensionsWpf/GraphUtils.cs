@@ -9,6 +9,11 @@ using EmnExtensions.Wpf.Plot.VizEngines;
 
 namespace EmnExtensions.Wpf {
 	public static class GraphUtils {
+		public static Color BlendWith(this Color a, Color b) {
+			return Color.FromArgb((byte)(a.A + b.A + 1 >> 1), (byte)(a.R + b.R + 1 >> 1), (byte)(a.G + b.G + 1 >> 1), (byte)(a.B + b.B + 1 >> 1));
+		}
+
+
 		public static bool IsFiniteNonEmpty(this Rect rect) { return rect.Width.IsFinite() && rect.Height.IsFinite() && rect.Height * rect.Width > 0; }
 
 		public static PathGeometry LineWithErrorBars(Point[] lineOfPoints, double[] ErrBars) {

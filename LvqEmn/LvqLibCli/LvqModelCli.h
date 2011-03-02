@@ -12,6 +12,7 @@
 namespace LvqLibCli {
 	using namespace System;
 	using namespace System::Collections::Generic;
+	using namespace System::Collections::ObjectModel;
 
 	ref class LvqModelSettingsCli;
 	ref class LvqDatasetCli;
@@ -47,6 +48,7 @@ namespace LvqLibCli {
 		
 		LvqTrainingStatCli GetTrainingStat(int statI);
 		property int TrainingStatCount {int get();}
+		property ReadOnlyCollection<LvqTrainingStatCli>^ TrainingStats {ReadOnlyCollection<LvqTrainingStatCli>^  get();}
 
 		property array<String^>^ TrainingStatNames { array<String^>^ get();}
 

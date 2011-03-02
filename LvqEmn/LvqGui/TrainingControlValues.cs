@@ -94,7 +94,6 @@ namespace LvqGui {
 			_propertyChanged("MatchingLvqModels");
 		}
 
-
 		public void PrintCurrentStats() {
 			var selectedModel = SelectedLvqModel;
 			var meanstats = selectedModel.EvaluateStats(SelectedDataset);

@@ -138,7 +138,7 @@ namespace LvqGui {
 			public readonly IVizEngine<Point[]>[] prototypeClouds, dataClouds;
 			public readonly IVizEngine<LvqModels.ModelProjectionAndImage> classBoundaries;
 			public readonly PlotControl scatterPlotControl;
-			public readonly IVizEngine<IEnumerable<LvqModels.Statistic>>[] statPlots;
+			public readonly IVizEngine<LvqModels>[] statPlots;
 			public readonly PlotControl[] plots;
 
 			public SubPlots(LvqDatasetCli dataset, LvqModels model) {
@@ -148,7 +148,7 @@ namespace LvqGui {
 					prototypeClouds = MakePerClassScatterGraph(dataset, 0.3f, dataset.ClassCount * Math.Min(model.SubModels.First().PrototypeLabels.Length, 3), 1);
 					classBoundaries = MakeClassBoundaryGraph();
 					dataClouds = MakePerClassScatterGraph(dataset, 1.0f);
-					scatterPlotControl = MakeScatterPlotControl(model, dataClouds.Concat(prototypeClouds).Select(viz => viz.Plot).Concat(new[] { classBoundaries.Plot }));
+					scatterPlotControl = MakeScatterPlotControl(dataClouds.Concat(prototypeClouds).Select(viz => viz.Plot).Concat(new[] { classBoundaries.Plot }));
 				}
 
 				plots = MakeDataPlots(dataset, model);//required
@@ -161,11 +161,11 @@ namespace LvqGui {
 				}
 			}
 
-			static IVizEngine<IEnumerable<LvqModels.Statistic>>[] ExtractDataSinksFromPlots(IEnumerable<PlotControl> plots) {
+			static IVizEngine<LvqModels>[] ExtractDataSinksFromPlots(IEnumerable<PlotControl> plots) {
 				return (
 						from plot in plots
 						from graph in plot.Graphs
-						select (IVizEngine<IEnumerable<LvqModels.Statistic>>)graph.Visualisation
+						select (IVizEngine<LvqModels>)graph.Visualisation
 					).ToArray();
 			}
 
@@ -183,7 +183,7 @@ namespace LvqGui {
 					).ToArray();
 			}
 
-			static PlotControl MakeScatterPlotControl(LvqModels model, IEnumerable<IPlot> graphs) {
+			static PlotControl MakeScatterPlotControl(IEnumerable<IPlot> graphs) {
 				return new PlotControl {
 					ShowAxes = false,
 					AttemptBorderTicks = false,
@@ -261,7 +261,7 @@ namespace LvqGui {
 				var graphOperationsLazy =
 					from plot in subplots.statPlots
 					group plot by plot.Dispatcher into plotgroup
-					select plotgroup.Key.BeginInvokeBackground(() => { foreach (var sp in plotgroup) sp.ChangeData(subplots.model.TrainingStats); });
+					select plotgroup.Key.BeginInvokeBackground(() => { foreach (var sp in plotgroup) sp.ChangeData(subplots.model); });
 
 				foreach (var op in graphOperationsLazy) yield return op;
 			}
@@ -294,7 +294,7 @@ namespace LvqGui {
 
 
 		static class StatisticsPlotMaker {
-			public static IEnumerable<PlotWithViz<IEnumerable<LvqModels.Statistic>>> Create(string windowTitle, IEnumerable<TrainingStatName> stats, bool isMultiModel, bool hasTestSet) {
+			public static IEnumerable<PlotWithViz<LvqModels>> Create(string windowTitle, IEnumerable<TrainingStatName> stats, bool isMultiModel, bool hasTestSet) {
 				var relevantStatistics = (hasTestSet ? stats : stats.Where(stat => !stat.TrainingStatLabel.StartsWith("Test"))).ToArray();
 
 				return
@@ -311,17 +311,33 @@ namespace LvqGui {
 					windowTitle == "Cost Function" ? costColors :
 					WpfTools.MakeDistributedColors(length, new MersenneTwister(42));
 			}
-			static IEnumerable<PlotWithViz<IEnumerable<LvqModels.Statistic>>> MakePlots(string dataLabel, string yunitLabel, Color color, int statIdx, bool doVariants) {
+			static IEnumerable<PlotWithViz<LvqModels>> MakePlots(string dataLabel, string yunitLabel, Color color, int statIdx, bool doVariants) {
 				if (doVariants)
 					yield return MakeRangePlot(null, yunitLabel, color, statIdx);
 
 				yield return MakePlot(dataLabel, yunitLabel, color, statIdx);
 			}
 
-			static Func<IEnumerable<LvqModels.Statistic>, Point[]> StatisticsToPointsMapper(int statIdx) {
-				return stats => LimitSize(stats.Select(info => new Point(info.Value[LvqTrainingStatCli.TrainingIterationI], info.Value[statIdx])).ToArray());
+			static Func<LvqModels, Point[]> StatisticsToPointsMapper(int statIdx) {
+				return stats => LimitSize(stats.TrainingStats.Where(info => info.Value[statIdx].IsFinite()).Select(info => new Point(info.Value[LvqTrainingStatCli.TrainingIterationI], info.Value[statIdx])).ToArray());
 			}
-
+			static Func<LvqModels, Tuple<Point[], Point[]>> StatisticsToRangeMapper(int statIdx) {
+				return stats => {
+					var okstats = stats.TrainingStats.Where(info => (info.Value[statIdx] + info.StandardError[statIdx]).IsFinite());
+					return
+					Tuple.Create(
+						LimitSize(
+							okstats.Select(info =>
+								new Point(info.Value[LvqTrainingStatCli.TrainingIterationI], info.Value[statIdx] + info.StandardError[statIdx])
+							).ToArray()),
+						LimitSize(
+							okstats.Select(info =>
+								new Point(info.Value[LvqTrainingStatCli.TrainingIterationI], info.Value[statIdx] - info.StandardError[statIdx])
+							).ToArray()
+						)
+					);
+				};
+			}
 			static Point[] LimitSize(Point[] retval) {
 				int scaleFac = retval.Length / 1000;
 				if (scaleFac <= 1)
@@ -335,7 +351,7 @@ namespace LvqGui {
 				return newret;
 			}
 
-			static PlotWithViz<IEnumerable<LvqModels.Statistic>> MakePlot(string dataLabel, string yunitLabel, Color color, int statIdx) {
+			static PlotWithViz<LvqModels> MakePlot(string dataLabel, string yunitLabel, Color color, int statIdx) {
 				return Plot.Create(
 					new PlotMetaData {
 						DataLabel = dataLabel,
@@ -350,7 +366,7 @@ namespace LvqGui {
 						CoverageRatioGrad = 20.0,
 					}.Map(StatisticsToPointsMapper(statIdx)));
 			}
-			static PlotWithViz<IEnumerable<LvqModels.Statistic>> MakeRangePlot(string dataLabel, string yunitLabel, Color color, int statIdx) {
+			static PlotWithViz<LvqModels> MakeRangePlot(string dataLabel, string yunitLabel, Color color, int statIdx) {
 				//Blend(color, Colors.White)
 				color.ScA = 0.3f;
 				return Plot.Create(
@@ -365,18 +381,8 @@ namespace LvqGui {
 					new VizDataRange {
 						CoverageRatioY = 0.95,
 						CoverageRatioGrad = 20.0,
-					}.Map((IEnumerable<LvqModels.Statistic> stats) =>
-						 Tuple.Create(
-							LimitSize(stats.Select(
-									info => new Point(info.Value[LvqTrainingStatCli.TrainingIterationI], info.Value[statIdx] + info.StandardError[statIdx])
-								).ToArray()),
-							LimitSize(stats.Select(
-									info => new Point(info.Value[LvqTrainingStatCli.TrainingIterationI], info.Value[statIdx] - info.StandardError[statIdx])
-								).ToArray()))
-					));
-			}
-			static Color Blend(Color a, Color b) {
-				return Color.FromArgb((byte)(a.A + b.A + 1 >> 1), (byte)(a.R + b.R + 1 >> 1), (byte)(a.G + b.G + 1 >> 1), (byte)(a.B + b.B + 1 >> 1));
+					}.Map(StatisticsToRangeMapper(statIdx))
+					);
 			}
 		}
 

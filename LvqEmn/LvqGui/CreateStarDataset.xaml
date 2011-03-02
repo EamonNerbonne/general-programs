@@ -77,7 +77,7 @@
         <Button  Grid.Row="16" Content="Reset Instantiation Seed" Click="ReseedInst"/>
         <TextBox Grid.Row="16"  Grid.Column="1"  Text="{Binding InstSeed, Mode=TwoWay, ValidatesOnExceptions=True}" />
         <Label Grid.Row="17">Shorthand</Label>
-        <TextBox  Grid.Row="17" Grid.Column="1" Text="{Binding Shorthand, Mode=TwoWay, ValidatesOnExceptions=True}" />
+        <TextBox  Grid.Row="17" Grid.Column="1" Text="{Binding Shorthand, Mode=TwoWay, ValidatesOnExceptions=True, UpdateSourceTrigger=PropertyChanged}" />
 
         <Button  Grid.Row="18" Grid.Column="0" Grid.ColumnSpan="2" Click="buttonGenerateDataset_Click"  VerticalAlignment="Top">Generate Star Dataset</Button>
         <Label Grid.Row="19" Grid.ColumnSpan="2" Content="{Binding ShorthandErrors, Mode=OneWay}" HorizontalAlignment="Left" />
