@@ -28,7 +28,6 @@ namespace LvqLibCli {
 		Object^copySync;
 
 		void SinkStats(LvqModel::Statistics & nativeStats);
-
 	public:
 		property Object^ ReadSync {Object^ get(){return copySync;}}
 		property int ClassCount {int get();}
@@ -44,6 +43,8 @@ namespace LvqLibCli {
 		LvqModelCli(String^ label, LvqDatasetCli^ trainingSet,int datafold, LvqModelSettingsCli^ modelSettings);
 
 		array<LvqTrainingStatCli>^ GetTrainingStatsAfter(int statI);
+		LvqTrainingStatCli EvaluateStats(LvqDatasetCli^ testset, int datafold);
+		
 		LvqTrainingStatCli GetTrainingStat(int statI);
 		property int TrainingStatCount {int get();}
 

@@ -30,7 +30,7 @@ protected:
 	//subclasses must append the stats and the base-classe implementation in the same order as they did for AppendTrainingStatNames
 	virtual void AppendOtherStats(std::vector<double> & stats, LvqDataset const * trainingSet, std::vector<int>const & trainingSubset, LvqDataset const * testSet, std::vector<int>const & testSubset) const;
 	LvqModel(LvqModelSettings & initSettings);
-	virtual bool IdenticalMu(){return false;}
+	virtual bool IdenticalMu()const {return false;}
 
 public:
 	typedef std::queue<std::vector<double> > Statistics;
@@ -47,8 +47,8 @@ public:
 
 	double RegisterEpochDone(int itersTrained, double elapsed, int epochs);
 
-	void AddTrainingStat(Statistics& statQueue, LvqDataset const * trainingSet, std::vector<int>const & trainingSubset, LvqDataset const * testSet, std::vector<int>const & testSubset, LvqDatasetStats const & trainingstats);
-	void AddTrainingStat(Statistics& statQueue, LvqDataset const * trainingSet, std::vector<int>const & trainingSubset, LvqDataset const * testSet, std::vector<int>const & testSubset);
+	void AddTrainingStat(Statistics& statQueue, LvqDataset const * trainingSet, std::vector<int>const & trainingSubset, LvqDataset const * testSet, std::vector<int>const & testSubset, LvqDatasetStats const & trainingstats) const;
+	void AddTrainingStat(Statistics& statQueue, LvqDataset const * trainingSet, std::vector<int>const & trainingSubset, LvqDataset const * testSet, std::vector<int>const & testSubset) const;
 
 	virtual int classify(VectorXd const & unknownPoint) const=0; 
 	virtual MatchQuality ComputeMatches(VectorXd const & unknownPoint, int pointLabel) const=0;

@@ -66,6 +66,8 @@ namespace LvqGui {
 			owner.LvqModels.CollectionChanged += LvqModels_CollectionChanged;
 		}
 
+
+
 		CancellationTokenSource stopTraining;
 		Task trainingTask;
 		public bool AnimateTraining {
@@ -91,6 +93,33 @@ namespace LvqGui {
 		void LvqModels_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e) {
 			_propertyChanged("MatchingLvqModels");
 		}
+
+
+		public void PrintCurrentStats() {
+			var selectedModel = SelectedLvqModel;
+			var meanstats = selectedModel.EvaluateStats(SelectedDataset);
+
+			for (int i = 0; i < selectedModel.TrainingStatNames.Length; i++) {
+				string numF, errF;
+				if (meanstats.StandardError[i] == 0) {
+					numF = "g";
+					errF = "";
+				} else if (Math.Abs(meanstats.Value[i]) > 0 && Math.Abs(Math.Log10(Math.Abs(meanstats.Value[i]))) < 5) {
+					//use fixed-point:
+					int errOOM = Math.Max(0, (int)(1.5 - Math.Log10(meanstats.StandardError[i])));
+					numF = "f" + errOOM;
+					errF = " ~ {2:f" + errOOM + "}";
+				} else {
+					int digits = Math.Abs(meanstats.Value[i]) <= meanstats.StandardError[i] ? 1
+									: (int)(Math.Log10(Math.Abs(meanstats.Value[i]) / meanstats.StandardError[i]) + 1.5);
+					numF = "g" + digits;
+					errF = " ~ {2:g2}";
+				}
+
+				Console.WriteLine("{0}: {1:" + numF + "}" + errF, selectedModel.TrainingStatNames[i].Split('|')[0], meanstats.Value[i], meanstats.StandardError[i]);
+			}
+		}
+
 
 		public void ConfirmTraining() {
 			var selectedDataset = SelectedDataset;
@@ -205,7 +234,5 @@ namespace LvqGui {
 			var selectedModel = SelectedLvqModel;
 			return selectedModel != null ? selectedModel.CurrentLearningRate : 0.0;
 		}
-
-
 	}
 }

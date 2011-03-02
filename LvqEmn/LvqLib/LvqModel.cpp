@@ -31,7 +31,7 @@ double LvqModel::RegisterEpochDone(int itersTrained, double elapsed, int epochs)
 	return totalIter;
 }
 
-void LvqModel::AddTrainingStat(Statistics& statQueue, LvqDataset const * trainingSet, std::vector<int>const & trainingSubset, LvqDataset const * testSet, vector<int>const & testSubset, LvqDatasetStats const & trainingstats) {
+void LvqModel::AddTrainingStat(Statistics& statQueue, LvqDataset const * trainingSet, std::vector<int>const & trainingSubset, LvqDataset const * testSet, vector<int>const & testSubset, LvqDatasetStats const & trainingstats) const {
 	vector<double> stats;
 
 	stats.push_back(double(totalIter));
@@ -59,7 +59,7 @@ void LvqModel::AddTrainingStat(Statistics& statQueue, LvqDataset const * trainin
 	statQueue.push(std::move(stats));
 }
 
-void LvqModel::AddTrainingStat(Statistics& statQueue, LvqDataset const * trainingSet, vector<int>const & trainingSubset, LvqDataset const * testSet, vector<int>const & testSubset) {
+void LvqModel::AddTrainingStat(Statistics& statQueue, LvqDataset const * trainingSet, vector<int>const & trainingSubset, LvqDataset const * testSet, vector<int>const & testSubset) const {
 	LvqDatasetStats trainingstats;
 	if(trainingSet && trainingSubset.size() >0) 
 		trainingstats=trainingSet->ComputeCostAndErrorRate(trainingSubset,this);

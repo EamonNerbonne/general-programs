@@ -30,6 +30,16 @@ namespace LvqLibCli {
 		}
 	}
 
+	LvqTrainingStatCli LvqModelCli::EvaluateStats(LvqDatasetCli^ dataset, int datafold){
+		LvqModel::Statistics nativeStats;
+		msclr::lock l2(copySync);
+		modelCopy->get()->AddTrainingStat(nativeStats, dataset->GetDataset(), dataset->GetTrainingSubset(datafold), dataset->GetDataset(), dataset->GetTestSubset(datafold));
+		LvqTrainingStatCli cliStat;
+		cppToCli(nativeStats.front(),cliStat);
+		return cliStat;
+	}
+
+
 	LvqModelCli::LvqModelCli(String^ label, LvqDatasetCli^ trainingSet,int datafold, LvqModelSettingsCli^ modelSettings)
 		: label(label)
 		, initSet(trainingSet)
