@@ -57,8 +57,8 @@ namespace EmnExtensions.Wpf.Plot {
 
 		DimensionBounds m_DataBound;
 		DimensionMargins m_DataMargin;
-		public DimensionBounds DataBound { get { return m_DataBound; } set { if (m_DataBound != value) { m_DataBound = value; InvalidateMeasure(); InvalidateVisual(); } } }
-		public DimensionMargins DataMargin { get { return m_DataMargin; } set { if (m_DataMargin != value) { m_DataMargin = value; InvalidateMeasure(); InvalidateVisual(); } } }
+		public DimensionBounds DataBound { get { return m_DataBound; } set { if (m_DataBound != value) { m_DataBound = value; InvalidateMeasure(); InvalidateVisual(); InvalidateRender(); } } }
+		public DimensionMargins DataMargin { get { return m_DataMargin; } set { if (m_DataMargin != value) { m_DataMargin = value; InvalidateMeasure(); InvalidateVisual(); InvalidateRender(); } } }
 		Brush _background;
 		public Brush Background { get { return _background; } set { _background = value; InvalidateVisual(); } }
 
@@ -193,6 +193,7 @@ namespace EmnExtensions.Wpf.Plot {
 					InvalidateVisual();
 				m_ticks = null;
 				m_rank1Labels = null;
+				m_redrawGridLines = true;
 			} else {
 				int newSlotOrderOfMagnitude;
 				int newTickCount;
@@ -215,16 +216,32 @@ namespace EmnExtensions.Wpf.Plot {
 			}
 		}
 
+		void RecomputeTickLabels() {
+			if (m_rank1Labels == null) {
+				m_rank1Labels =
+				 (
+					from value in Rank1Values
+					select MakeText(value)
+				).ToArray();
+				InvalidateRender();
+			}
+		}
+
 		/// <summary>
 		/// Recomputes m_dataOrderOfMagnitude.  If value has changed, sets m_axisLegend to null.
 		/// </summary>
 		void RecomputeDataOrderOfMagnitude() {
 			double oldDOOM = m_dataOrderOfMagnitude;
-			m_dataOrderOfMagnitude = (int)(0.5 + Math.Floor(Math.Log10(Math.Max(Math.Abs(DataBound.Start), Math.Abs(DataBound.End)))));
+			m_dataOrderOfMagnitude = ComputedDataOrderOfMagnitude();
 			if (Math.Abs(m_dataOrderOfMagnitude) < 4) m_dataOrderOfMagnitude = 0;//don't use scientific notation for small powers of 10
 
 			if (m_dataOrderOfMagnitude != oldDOOM)
 				m_axisLegend = null; //if order of magnitude has changed, we'll need to recreate the axis legend.
+		}
+
+		int ComputedDataOrderOfMagnitude()
+		{
+			return (int)(0.5 + Math.Floor(Math.Log10(Math.Max(Math.Abs(DataBound.Start), Math.Abs(DataBound.End)))));
 		}
 
 		Size TickLabelSizeGuess {
@@ -236,7 +253,7 @@ namespace EmnExtensions.Wpf.Plot {
 						);
 				else {
 					var canBeNegative = Rank1Values.Any(value => value < 0.0);
-					var excessMagnitude = m_dataOrderOfMagnitude == 0 ? (int)(0.5 + Math.Floor(Math.Log10(Math.Max(Math.Abs(DataBound.Start), Math.Abs(DataBound.End))))) : 0;
+					var excessMagnitude = m_dataOrderOfMagnitude == 0 ? ComputedDataOrderOfMagnitude() : 0;
 					var textSample = MakeText(8.88888888888888888 * Math.Pow(10.0, excessMagnitude) * (canBeNegative ? -1 : 1));
 					return new Size(textSample.Width, textSample.Height);
 				}
@@ -354,13 +371,6 @@ namespace EmnExtensions.Wpf.Plot {
 			minBounds.Height = Math.Ceiling(minBounds.Height);
 
 			return minBounds.Size;
-		}
-
-		void RecomputeTickLabels() {
-			if (m_rank1Labels == null)
-				m_rank1Labels = (from value in Rank1Values
-								 select MakeText(value)
-								).ToArray();
 		}
 
 		protected override Size ArrangeOverride(Size constraint) {
@@ -488,14 +498,34 @@ namespace EmnExtensions.Wpf.Plot {
 
 		DimensionBounds DisplayedDataBoundsRaw { get { return m_ticks == null ? DataBound : DataBound.UnionWith(m_ticks.First().Value, m_ticks.Last().Value); } }
 		double UnitsPerPixelRaw { get { return DisplayedDataBoundsRaw.IsEmpty ? 0 : DisplayedDataBoundsRaw.Length / DisplayBounds.Length; } }
-		public DimensionBounds DisplayedDataBounds { get {
-			var databounds = DisplayedDataBoundsRaw;
-			if(UniformScale && !databounds.IsEmpty) {
-				double density = Siblings.Select(axis => axis.UnitsPerPixelRaw).Max();
-				databounds.ScaleFromCenter(density / UnitsPerPixelRaw);
+		public DimensionBounds DisplayedDataBounds {
+			get {
+				var databounds = DisplayedDataBoundsRaw;
+				if (UniformScale && !databounds.IsEmpty) {
+					double density = Siblings.Select(axis => axis.UnitsPerPixelRaw).Max();
+					databounds.ScaleFromCenter(density / UnitsPerPixelRaw);
+				}
+				return databounds;
 			}
-			return databounds; 
-		} }
+		}
+
+
+
+		public ulong RepaintWorkaround {
+			get { return (ulong)GetValue(RepaintWorkaroundProperty); }
+			set { SetValue(RepaintWorkaroundProperty, value); }
+		}
+
+		// Using a DependencyProperty as the backing store for RepaintWorkaround.  This enables animation, styling, binding, etc...
+		public static readonly DependencyProperty RepaintWorkaroundProperty =
+			DependencyProperty.Register("RepaintWorkaround", typeof(ulong), typeof(TickedAxis), new FrameworkPropertyMetadata(0UL, FrameworkPropertyMetadataOptions.NotDataBindable|FrameworkPropertyMetadataOptions.AffectsRender));
+
+		void InvalidateRender() {
+			RepaintWorkaround++;
+		}
+
+
+
 
 		protected override void OnRender(DrawingContext drawingContext) {
 			drawingContext.DrawRectangle(Background, null, new Rect(m_bestGuessCurrentSize));
