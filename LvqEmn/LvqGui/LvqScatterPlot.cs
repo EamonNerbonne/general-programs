@@ -64,7 +64,19 @@ namespace LvqGui {
 			}
 			double ratio = subPlotWindow.ActualWidth / subPlotWindow.ActualHeight;
 
-			int plotCount = subplots.plots.Length + 1;
+
+			if (resetChildrenFirst) {
+				plotGrid.Children.Clear();
+				if (subplots.scatterPlotControl != null)
+					plotGrid.Children.Add(subplots.scatterPlotControl);
+				foreach (var plot in subplots.plots) plotGrid.Children.Add(plot);
+				foreach (PlotControl plot in plotGrid.Children) {
+					plot.Margin = new Thickness(2.0);
+					plot.Background = Brushes.White;
+				}
+			}
+
+			int plotCount = plotGrid.Children.Count;
 
 			var layout = (
 					from CellsWide in Enumerable.Range((int)Math.Sqrt(plotCount * ratio), 2)
@@ -81,19 +93,10 @@ namespace LvqGui {
 			while (plotGrid.RowDefinitions.Count < layout.CellsHigh) plotGrid.RowDefinitions.Add(new RowDefinition { Height = unitLength });
 			if (plotGrid.RowDefinitions.Count > layout.CellsHigh) plotGrid.RowDefinitions.RemoveRange(layout.CellsHigh, plotGrid.RowDefinitions.Count - layout.CellsHigh);
 
-			if (resetChildrenFirst) {
-				plotGrid.Children.Clear();
-				plotGrid.Children.Add(subplots.scatterPlotControl);
-				foreach (var plot in subplots.plots) plotGrid.Children.Add(plot);
-				foreach (PlotControl plot in plotGrid.Children) {
-					plot.Margin = new Thickness(2.0);
-					plot.Background = Brushes.White;
-				}
-			}
 
-			for (int i = 0; i < subplots.plots.Length; ++i) {
-				Grid.SetRow(subplots.plots[i], (i + 1) / layout.CellsWide);
-				Grid.SetColumn(subplots.plots[i], (i + 1) % layout.CellsWide);
+			for (int i = 0; i < plotGrid.Children.Count; ++i) {
+				Grid.SetRow(plotGrid.Children[i], i / layout.CellsWide);
+				Grid.SetColumn(plotGrid.Children[i], i % layout.CellsWide);
 			}
 		}
 		Window subPlotWindow;
@@ -196,8 +199,8 @@ namespace LvqGui {
 						from classColor in dataset.ClassColors
 						let darkColor = Color.FromScRgb(1.0f, classColor.ScR * colorIntensity, classColor.ScG * colorIntensity, classColor.ScB * colorIntensity)
 						select Plot.Create(
-							new PlotMetaData { RenderColor = darkColor, ZIndex = zIndex ?? 0 }, 
-							new VizPixelScatterSmart { CoverageRatio = 0.98, OverridePointCountEstimate = PointCount ?? dataset.PointCount, CoverageGradient=5.0 }).Visualisation
+							new PlotMetaData { RenderColor = darkColor, ZIndex = zIndex ?? 0 },
+							new VizPixelScatterSmart { CoverageRatio = 0.98, OverridePointCountEstimate = PointCount ?? dataset.PointCount, CoverageGradient = 5.0 }).Visualisation
 					).ToArray();
 			}
 
@@ -229,7 +232,7 @@ namespace LvqGui {
 				currSubModelIdx = subModelIdx;
 			}
 
-			Task displayUpdateTask = 
+			Task displayUpdateTask =
 				DisplayUpdateOperations(currsubplots, currSubModelIdx)
 				.Aggregate(default(Task),
 					(current, currentOp) => current == null
@@ -259,7 +262,7 @@ namespace LvqGui {
 					from plot in subplots.statPlots
 					group plot by plot.Dispatcher into plotgroup
 					select plotgroup.Key.BeginInvokeBackground(() => { foreach (var sp in plotgroup) sp.ChangeData(subplots.model.TrainingStats); });
-				
+
 				foreach (var op in graphOperationsLazy) yield return op;
 			}
 		}
