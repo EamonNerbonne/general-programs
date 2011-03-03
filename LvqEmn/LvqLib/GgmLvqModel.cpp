@@ -191,12 +191,12 @@ vector<int> GgmLvqModel::GetPrototypeLabels() const {
 
 void GgmLvqModel::AppendTrainingStatNames(std::vector<std::wstring> & retval) const {
 	LvqProjectionModel::AppendTrainingStatNames(retval);
-	retval.push_back(L"Border matrix norm min|norm|Border Matrix");
-	retval.push_back(L"Border matrix norm mean|norm|Border Matrix");
 	retval.push_back(L"Border matrix norm max|norm|Border Matrix");
-	retval.push_back(L"Prototype bias min|bias|Prototype bias");
-	retval.push_back(L"Prototype bias mean|bias|Prototype bias");
+	retval.push_back(L"Border matrix norm mean|norm|Border Matrix");
+	retval.push_back(L"Border matrix norm min|norm|Border Matrix");
 	retval.push_back(L"Prototype bias max|bias|Prototype bias");
+	retval.push_back(L"Prototype bias mean|bias|Prototype bias");
+	retval.push_back(L"Prototype bias min|bias|Prototype bias");
 }
 void GgmLvqModel::AppendOtherStats(std::vector<double> & stats, LvqDataset const * trainingSet, std::vector<int>const & trainingSubset, LvqDataset const * testSet, std::vector<int>const & testSubset) const {
 	LvqProjectionModel::AppendOtherStats(stats,trainingSet,trainingSubset,testSet,testSubset);
@@ -206,14 +206,14 @@ void GgmLvqModel::AppendOtherStats(std::vector<double> & stats, LvqDataset const
 		bias.Add(proto.bias);
 	});
 
-	stats.push_back(norm.min());
-	stats.push_back(norm.mean());
 	stats.push_back(norm.max());
-	stats.push_back(bias.min());
-	stats.push_back(bias.mean());
-	stats.push_back(bias.max());
-}
+	stats.push_back(norm.mean());
+	stats.push_back(norm.min());
 
+	stats.push_back(bias.max());
+	stats.push_back(bias.mean());
+	stats.push_back(bias.min());
+}
 
 void GgmLvqModel::ClassBoundaryDiagram(double x0, double x1, double y0, double y1, LvqProjectionModel::ClassDiagramT & classDiagram) const {
 	int cols = static_cast<int>(classDiagram.cols());
@@ -251,14 +251,15 @@ void GgmLvqModel::ClassBoundaryDiagram(double x0, double x1, double y0, double y
 	}
 }
 
-
 void GgmLvqModel::DoOptionalNormalization() {
+/*THIS IS JUST BAD; we normalize each iter.
 	if(settings.NormalizeProjection) {
 		normalizeProjection(P);
 		for(size_t i=0;i<prototype.size();++i)
 			prototype[i].ComputePP(P);
 	}
 
+	
 	if(settings.NormalizeBoundaries) {
 		if(settings.GloballyNormalize) {
 			double overallNorm = std::accumulate(prototype.begin(), prototype.end(),0.0,
@@ -274,6 +275,7 @@ void GgmLvqModel::DoOptionalNormalization() {
 		for(size_t i=0;i<prototype.size();++i) prototype[i].RecomputeBias();
 #endif
 	}
+	*/
 }
 
 GgmLvqPrototype::GgmLvqPrototype() : classLabel(-1) {}

@@ -145,9 +145,9 @@ vector<int> G2mLvqModel::GetPrototypeLabels() const {
 
 void G2mLvqModel::AppendTrainingStatNames(std::vector<std::wstring> & retval) const {
 	LvqProjectionModel::AppendTrainingStatNames(retval);
-	retval.push_back(L"Border matrix norm min|norm|Border Matrix");
-	retval.push_back(L"Border matrix norm mean|norm|Border Matrix");
 	retval.push_back(L"Border matrix norm max|norm|Border Matrix");
+	retval.push_back(L"Border matrix norm mean|norm|Border Matrix");
+	retval.push_back(L"Border matrix norm min|norm|Border Matrix");
 }
 void G2mLvqModel::AppendOtherStats(std::vector<double> & stats, LvqDataset const * trainingSet, std::vector<int>const & trainingSubset, LvqDataset const * testSet, std::vector<int>const & testSubset) const {
 	LvqProjectionModel::AppendOtherStats(stats,trainingSet,trainingSubset,testSet,testSubset);
@@ -155,9 +155,9 @@ void G2mLvqModel::AppendOtherStats(std::vector<double> & stats, LvqDataset const
 	std::for_each(prototype.begin(),prototype.end(), [&](G2mLvqPrototype const & proto) {
 		norm.Add(projectionSquareNorm(proto.B));
 	});
-	stats.push_back(norm.min());
-	stats.push_back(norm.mean());
 	stats.push_back(norm.max());
+	stats.push_back(norm.mean());
+	stats.push_back(norm.min());
 }
 
 
