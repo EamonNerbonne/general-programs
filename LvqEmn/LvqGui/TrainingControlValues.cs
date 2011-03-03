@@ -47,6 +47,12 @@ namespace LvqGui {
 		}
 		int _SubModelIndex;
 
+		public bool CurrProjStats {
+			get { return _CurrProjStats; }
+			set { if (!_CurrProjStats.Equals(value)) { _CurrProjStats = value; _propertyChanged("CurrProjStats"); ModelSelected(_SelectedDataset, _SelectedLvqModel, _SubModelIndex); } }
+		}
+		private bool _CurrProjStats;
+
 		public int EpochsPerClick {
 			get { return _EpochsPerClick; }
 			set { if (value < 1) throw new ArgumentException("Must train for at least 1 epoch at a  time"); if (!Equals(_EpochsPerClick, value)) { _EpochsPerClick = value; _propertyChanged("EpochsPerClick"); } }

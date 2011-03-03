@@ -25,6 +25,7 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
@@ -59,8 +60,6 @@
             </ComboBox.ItemTemplate>
         </ComboBox>
 
-
-
         <StackPanel Grid.Row="4"  Orientation="Horizontal" HorizontalAlignment="Right">
             <Button Content="Train" Click="StartTraining" />
             <Label Content="for"/>
@@ -76,7 +75,9 @@
             <Label Content="epochs per frame" HorizontalAlignment="Right"/>
         </StackPanel>
 
-        <StackPanel Grid.Row="6" Grid.Column="0" Grid.ColumnSpan="2"   Orientation="Horizontal" HorizontalAlignment="Right">
+        <CheckBox Grid.Row="6" Grid.Column="1" Content="Show Current Projection Statistics" IsChecked="{Binding CurrProjStats}"/>
+
+        <StackPanel Grid.Row="7" Grid.Column="0" Grid.ColumnSpan="2"   Orientation="Horizontal" HorizontalAlignment="Right">
             <Button Content="Current Stats" Click="PrintCurrentStats"/>
             <Button Content="Print LR" Click="PrintLearningRate"/>
             <Button Content="Reset LR" Click="ResetLearningRate"/>
@@ -84,6 +85,5 @@
             <Button Content="Unload Dataset" Click="UnloadDataset"/>
             <Button Content="GC" Click="DoGC"/>
         </StackPanel>
-
     </Grid>
 </UserControl>
