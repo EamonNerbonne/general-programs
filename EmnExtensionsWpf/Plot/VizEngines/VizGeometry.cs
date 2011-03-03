@@ -17,7 +17,7 @@ namespace EmnExtensions.Wpf.Plot.VizEngines {
 			SetMargin(new Thickness(Pen.Thickness / 2.0));//this will trigger OnChanged if neeeded.
 		}
 
-		static readonly Pen defaultPen = (Pen)new Pen { Brush = Brushes.Black, EndLineCap = PenLineCap.Square, StartLineCap = PenLineCap.Square, Thickness = 1.5 }.GetAsFrozen();
+		static readonly Pen defaultPen = (Pen)new Pen { Brush = Brushes.Black, EndLineCap = PenLineCap.Square, StartLineCap = PenLineCap.Square, Thickness = 1.5, }.GetAsFrozen();
 
 		public Brush Fill {
 			get { return m_Fill; }
@@ -104,7 +104,6 @@ namespace EmnExtensions.Wpf.Plot.VizEngines {
 				newPen.Thickness = newThickness;
 				newPen.Freeze();
 				Pen = newPen;
-
 			}
 		}
 		public override bool SupportsColor { get { return true; } }
