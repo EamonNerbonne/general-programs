@@ -64,5 +64,50 @@ namespace LvqGui {
 
 			return Tuple.Create(dataVectors.ToRectangularArray(), itemLabels, labelCount);
 		}
+
+		public static Tuple<double[,], int[], int> LoadDataset(FileInfo dataAndLabelFile) {
+			var labelledVectors =
+				(from dataline in dataAndLabelFile.GetLines()
+				 let splitLine = dataline.Split(dimSep)
+				 select new {
+					 Label = splitLine[0],
+					 Data = (
+						 from dataDim in splitLine.Skip(1)
+						 select double.Parse(dataDim, CultureInfo.InvariantCulture)
+						 ).ToArray()
+				 }
+				).ToArray();
+
+			var itemLabels = (
+					from labelline in labelledVectors
+					select labelline.Label
+					).ToArray();
+
+			var dataVectors = (
+					from labelline in labelledVectors
+					select labelline.Data
+					).ToArray();
+
+			var denseLabelLookup =
+				itemLabels
+				.Distinct()
+				.OrderBy(label => label)
+				.Select((OldLabel, Index) => new { OldLabel, NewLabel = Index })
+				.ToDictionary(a => a.OldLabel, a => a.NewLabel);
+
+			var itemIntLabels =
+				itemLabels
+				.Select(oldlabel => denseLabelLookup[oldlabel])
+				.ToArray();
+
+			var labelSet = new HashSet<int>(itemIntLabels);
+			int minLabel = labelSet.Min();
+			int maxLabel = labelSet.Max();
+			int labelCount = labelSet.Count;
+			if (labelCount != maxLabel + 1 || minLabel != 0)
+				throw new FileFormatException("Class labels must be consecutive integers starting at 0");
+
+			return Tuple.Create(dataVectors.ToRectangularArray(), itemIntLabels, labelCount);
+		}
 	}
 }
