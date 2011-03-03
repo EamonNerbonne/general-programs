@@ -9,7 +9,7 @@ namespace EmnExtensions.Wpf.Plot.VizEngines {
 	}
 
 	public class VizLineSegments : VizTransformed<Point[], StreamGeometry>, IVizLineSegments {
-		readonly IVizEngine<StreamGeometry> impl = new VizGeometry { AutosizeBounds = false };
+		readonly VizGeometry impl = new VizGeometry { AutosizeBounds = false };
 		StreamGeometry geomCache;
 		Point[] currentPoints;
 
@@ -29,6 +29,8 @@ namespace EmnExtensions.Wpf.Plot.VizEngines {
 			RecomputeBounds(currentPoints);
 			Implementation.ChangeData(geomCache);
 		}
+
+		public DashStyle DashStyle { get { return impl.Pen.DashStyle; } set { impl.Pen = impl.Pen.AsFrozen(pen => pen.DashStyle = value); } }
 
 		void RecomputeBounds(Point[] newData) {
 			Rect innerBounds, outerBounds;
