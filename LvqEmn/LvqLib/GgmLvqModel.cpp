@@ -130,8 +130,6 @@ MatchQuality GgmLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel)
 		J.point.noalias() += P.transpose()* (lr_point * muJ2_BjT_Bj_P_vJ);
 		K.point.noalias() += P.transpose() * (lr_bad * lr_point * muK2_BkT_Bk_P_vK) ;
 
-		P.noalias() += (lr_P * muK2_BkT_Bk_P_vK) * vK.transpose() + (lr_P * muJ2_BjT_Bj_P_vJ) * vJ.transpose();
-
 		if(ngMatchCache.size()>0) {
 			double lrSub = 1.0;
 			double lrDelta = exp(-LVQ_NG_FACTOR/learningRate);//TODO: this is rather ADHOC
@@ -152,6 +150,10 @@ MatchQuality GgmLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel)
 #endif
 			}
 		}
+		
+		P.noalias() += (lr_P * muK2_BkT_Bk_P_vK) * vK.transpose() + (lr_P * muJ2_BjT_Bj_P_vJ) * vJ.transpose();
+		if(settings.NormalizeProjection)
+			normalizeProjection(P);
 
 		for(size_t i=0;i < protoCount;++i)
 			prototype[i].ComputePP(P);

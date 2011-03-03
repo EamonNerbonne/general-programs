@@ -113,7 +113,8 @@
         <CheckBox Grid.Row="28" Grid.Column="1"  IsChecked="{Binding TrackProjectionQuality, Mode= TwoWay, ValidatesOnExceptions=True}"/>
         
         <Label Grid.Row="29">Shorthand</Label>
-        <TextBox  Grid.Row="29" Grid.Column="1" Text="{Binding Shorthand, Mode=TwoWay, ValidatesOnExceptions=True, UpdateSourceTrigger=PropertyChanged}" />
+        <TextBox  Grid.Row="29" Grid.Column="1" Text="{Binding Shorthand, Mode=TwoWay, ValidatesOnExceptions=True, UpdateSourceTrigger=PropertyChanged}" />        <!--, UpdateSourceTrigger=PropertyChanged-->
+
 
         <Button Grid.Row="30" Grid.ColumnSpan="2" Click="InitializeModel"  VerticalAlignment="Top">Initialize Model</Button>
         <Label Grid.Row="30" Grid.ColumnSpan="2" Content="{Binding ShorthandErrors, Mode=OneWay}" HorizontalAlignment="Left" />

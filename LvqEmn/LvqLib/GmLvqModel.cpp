@@ -71,8 +71,6 @@ MatchQuality GmLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel) 
 	prototype[J].noalias() -= P.transpose() * (lr_point * muJ2_P_vJ);
 	prototype[K].noalias() -= P.transpose() * (lr_bad*lr_point *muK2_P_vK);
 
-	P.noalias() -= (lr_P * muJ2_P_vJ) * vJ.transpose() + (lr_P * muK2_P_vK) * vK.transpose();
-
 	if(ngMatchCache.size()>0) {
 		double lrSub = lr_point;
 		double lrDelta = exp(-LVQ_NG_FACTOR/learningRate);//TODO: this is rather ADHOC
@@ -84,6 +82,8 @@ MatchQuality GmLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel) 
 			Js.noalias() -= P.transpose() * (muJ2s_lrSub * (P_Js - P_trainPoint));
 		}
 	}
+
+	P.noalias() -= (lr_P * muJ2_P_vJ) * vJ.transpose() + (lr_P * muK2_P_vK) * vK.transpose();
 
 	for(int i=0;i<pLabel.size();++i)
 		RecomputeProjection(i);

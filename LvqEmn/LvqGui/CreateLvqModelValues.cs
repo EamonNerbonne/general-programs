@@ -161,7 +161,7 @@ namespace LvqGui {
 		static readonly Regex shR =
 	new Regex(@"
 				^(\w|\s)*\:?\s*
-				(?<ModelType>[A-Z][\w\d]*)
+				(?<ModelType>\b[A-Z][\w\d]*)
 				(\[(?<Dimensionality>[^\]]+)\])?
 				,(?<PrototypesPerClass>\d+)
 				,rP(?<RandomInitialProjection>\+?)
