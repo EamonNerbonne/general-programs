@@ -46,7 +46,8 @@ namespace LvqGui {
 
 				lock (plotsSync) {
 					subplots = newsubplots;
-					model.SelectedSubModel = new_subModelIdx;
+					if(model!=null)
+						model.SelectedSubModel = new_subModelIdx;
 				}
 
 				QueueUpdate();
