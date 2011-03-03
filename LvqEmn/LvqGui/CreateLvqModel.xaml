@@ -75,7 +75,7 @@
         <CheckBox Grid.Row="6" Grid.Column="1"  IsChecked="{Binding RandomInitialBorders, Mode= TwoWay, ValidatesOnExceptions=True}"/>
         <Label Grid.Row="7">Normalize projection each epoch</Label>
         <CheckBox Grid.Row="7" Grid.Column="1"  IsChecked="{Binding NormalizeProjection, Mode= TwoWay, ValidatesOnExceptions=True}"/>
-        <Label Grid.Row="8">Normalize boundaries each epoch (g2m, ggm)</Label>
+        <Label Grid.Row="8">Normalize boundaries each epoch (g2m)</Label>
         <CheckBox Grid.Row="8" Grid.Column="1"  IsChecked="{Binding NormalizeBoundaries, Mode= TwoWay, ValidatesOnExceptions=True}"/>
         <Label Grid.Row="9">Globally normalize (lgm, g2m, ggm)</Label>
         <CheckBox Grid.Row="9" Grid.Column="1"  IsChecked="{Binding GloballyNormalize, Mode= TwoWay, ValidatesOnExceptions=True}"/>

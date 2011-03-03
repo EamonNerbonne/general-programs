@@ -30,7 +30,6 @@ namespace LvqGui {
 
 		public int ModelCount { get { return subModels.Length; } }
 
-
 		public LvqDatasetCli InitSet { get { return subModels.First().InitDataset; } }
 
 		public bool IsProjectionModel { get { return subModels.First().IsProjectionModel; } }
