@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Windows;
@@ -29,6 +30,7 @@ namespace LvqGui {
 
 		public int ModelCount { get { return subModels.Length; } }
 
+
 		public LvqDatasetCli InitSet { get { return subModels.First().InitDataset; } }
 
 		public bool IsProjectionModel { get { return subModels.First().IsProjectionModel; } }
@@ -45,6 +47,9 @@ namespace LvqGui {
 			return MeanStdErrStats(multistats);
 		}
 
+		public int SelectedSubModel { get; set; }
+
+		public LvqTrainingStatCli[] SelectedStats { get { return subModels[SelectedSubModel].TrainingStats; } }
 		readonly object statCacheSync = new object();
 		readonly List<Statistic> statCache = new List<Statistic>();
 		public Statistic[] TrainingStats {
@@ -136,7 +141,7 @@ namespace LvqGui {
 			public LvqDatasetCli forDataset;
 		}
 
-		public ModelProjectionAndImage CurrentProjectionAndImage(int subModelIdx, LvqDatasetCli dataset, int width, int height) {
+		public ModelProjectionAndImage CurrentProjectionAndImage(LvqDatasetCli dataset, int width, int height) {
 #if DEBUG
 			int renderwidth = (width + 7) / 8;
 			int renderheight = (height + 7) / 8;
@@ -144,8 +149,8 @@ namespace LvqGui {
 			int renderwidth = width;
 			int renderheight = height;
 #endif
-
-			var selectedModel = subModels[subModelIdx];
+			int currSubModel = SelectedSubModel;
+			var selectedModel = subModels[currSubModel];
 			ModelProjection projection;
 			Rect bounds;
 			int[,] closestClass;
@@ -170,7 +175,7 @@ namespace LvqGui {
 				PointsByLabel = GroupPointsByLabel(projection.Points, dataset.ClassCount),
 				forDataset = dataset,
 				forModels = this,
-				forSubModel = subModelIdx,
+				forSubModel = currSubModel,
 			};
 		}
 

@@ -4,13 +4,14 @@ using System.Threading;
 using System.Windows;
 using LvqLibCli;
 using System;
+using System.ComponentModel;
 
 namespace LvqGui {
 	public partial class LvqWindow {
 		readonly CancellationTokenSource cts = new CancellationTokenSource();
 		public CancellationToken ClosingToken { get { return cts.Token; } }
 		public LvqWindow() {
-			
+
 			Thread.CurrentThread.Priority = ThreadPriority.Highest;
 			var windowValues = new LvqWindowValues(this);
 			DataContext = windowValues;
@@ -23,6 +24,8 @@ namespace LvqGui {
 #endif
 			Closed += LvqWindow_Closed;
 		}
+
+		LvqWindowValues Values { get { return (LvqWindowValues)DataContext; } }
 
 		void LvqWindow_Closed(object sender, EventArgs e) {
 			cts.Cancel();
@@ -63,12 +66,13 @@ namespace LvqGui {
 			LvqScatterPlot.QueueUpdateIfCurrent(plotData, dataset, model);
 		}
 
+
 		void TrainingControlValues_ModelSelected(LvqDatasetCli dataset, LvqModels model, int subModelIdx) {
 			if (plotData == null && dataset != null && model != null)
 				plotData = new LvqScatterPlot(ClosingToken);
 
 			if (plotData != null)
-				plotData.DisplayModel(dataset, model, subModelIdx);
+				plotData.DisplayModel(dataset, model, subModelIdx, Values.TrainingControlValues.CurrProjStats);
 		}
 
 		public bool Fullscreen {
