@@ -19,9 +19,10 @@ GgmLvqModel::GgmLvqModel(LvqModelSettings & initSettings)
 		throw "Illegal Dimensionality";
 	using namespace std;
 	initSettings.AssertModelIsOfRightType(this);
+	PMatrix const lowdimpoints = P * initSettings.Dataset->ExtractPoints(initSettings.Trainingset);
 	Vector2d eigVal;
 	Matrix2d pca2d;
-	PcaLowDim::DoPca(P * initSettings.Dataset->ExtractPoints(initSettings.Trainingset),pca2d,eigVal);
+	PcaLowDim::DoPca(lowdimpoints,pca2d,eigVal);
 	Matrix2d toUnitDist=eigVal.array().sqrt().inverse().matrix().asDiagonal()*pca2d;
 
 	auto InitProtos = initSettings.InitProtosBySetting();
@@ -49,7 +50,7 @@ MatchQuality GgmLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel)
 
 	double lr_point = -settings.LR0 * learningRate,
 		lr_P = lr_point * settings.LrScaleP,
-		lr_B = lr_point * settings.LrScaleB,
+		lr_B = lr_point * settings.LrScaleB,// * (1.0 - learningRate),
 		lr_bad = (settings.SlowStartLrBad  ?  sqr(1.0 - learningRate)  :  1.0) * settings.LrScaleBad;
 
 	assert(lr_P<=0 && lr_B<=0 && lr_point<=0);

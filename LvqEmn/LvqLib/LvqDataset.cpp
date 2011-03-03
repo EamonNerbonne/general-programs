@@ -121,11 +121,15 @@ double LvqDataset::NearestNeighborProjectedErrorRate(std::vector<int> const & ne
 		testPoint.noalias() = projection * testData->points.col(testI);
 
 		int neighborI=nn.nearestIdx(testPoint);
-#ifndef NDEBUG
+#if 0
 		MatrixXd::Index neighbor2I;
 
 		(neighbors.colwise() - testPoint).colwise().squaredNorm().minCoeff(&neighbor2I);
-		assert(neighbor2I==neighborI);
+		if(neighbor2I!=neighborI) {
+			double directDist = (neighbors.col(neighbor2I) - testPoint).squaredNorm();
+			double indirectDist = (neighbors.col(neighborI) - testPoint).squaredNorm();
+			assert(directDist == indirectDist);
+		}
 #endif
 
 		if(neighborLabels[neighborI] != testData->pointLabels[testI]) 
@@ -272,7 +276,11 @@ void LvqDataset::TrainModel(int epochs, LvqModel * model, LvqModel::Statistics *
 }
 
 size_t LvqDataset::AppropriateAnimationEpochs(vector<int> const  & trainingSubset) const {
+#ifndef NDEBUG
+	return 1;
+#else
 	return max(size_t(2000000L) / (trainingSubset.size() * (this->dimensions()+25)), size_t(1));
+#endif
 }
 
 static int triangularIndex(int i, int j) {

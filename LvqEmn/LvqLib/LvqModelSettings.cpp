@@ -29,6 +29,22 @@ LvqModel* ConstructLvqModel(LvqModelSettings & initSettings) {
 	}
 }
 
+
+LvqModelRuntimeSettings::LvqModelRuntimeSettings(int classCount, boost::mt19937 & rngIter)
+	: TrackProjectionQuality(true)
+	, NormalizeProjection(true)
+	, NormalizeBoundaries(true)
+	, UpdatePointsWithoutB(false)
+	, GloballyNormalize(true)
+	, SlowStartLrBad(false)
+	, ClassCount(classCount)
+	, LrScaleP(LVQ_LrScaleP)
+	, LrScaleB(LVQ_LrScaleB)
+	, LR0(LVQ_LR0)
+	, LrScaleBad(LVQ_LrScaleBad)
+	, RngIter(rngIter) { }
+
+
 LvqModelSettings::LvqModelSettings(LvqModelType modelType, boost::mt19937 & rngParams, boost::mt19937 & rngIter, std::vector<int> protodistrib, LvqDataset const * dataset, std::vector<int> trainingset) 
 	: RandomInitialProjection(true)
 	, RandomInitialBorders(false) 

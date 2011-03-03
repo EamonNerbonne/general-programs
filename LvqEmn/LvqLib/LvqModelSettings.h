@@ -14,19 +14,7 @@ public:
 	int ClassCount;
 	double LrScaleP, LrScaleB, LR0,LrScaleBad;
 	copy_ptr<boost::mt19937> RngIter;
-	LvqModelRuntimeSettings(int classCount, boost::mt19937 & rngIter) 
-		: TrackProjectionQuality(false)
-		, NormalizeProjection(true)
-		, NormalizeBoundaries(false)
-		, UpdatePointsWithoutB(false)
-		, GloballyNormalize(true)
-		, SlowStartLrBad(false)
-		, ClassCount(classCount)
-		, LrScaleP(LVQ_LrScaleP)
-		, LrScaleB(LVQ_LrScaleB)
-		, LR0(LVQ_LR0)
-		, LrScaleBad(LVQ_LrScaleBad)
-		, RngIter(rngIter) { }
+	LvqModelRuntimeSettings(int classCount, boost::mt19937 & rngIter); 
 };
 
 class LvqDataset;
