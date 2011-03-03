@@ -69,13 +69,16 @@ namespace LvqLibCli {
 		return stats->Count;
 	}
 
-	ReadOnlyCollection<LvqTrainingStatCli>^ LvqModelCli::TrainingStats::get() {
-		return gcnew ReadOnlyCollection<LvqTrainingStatCli>(stats);
+	array<LvqTrainingStatCli>^ LvqModelCli::TrainingStats::get() {
+		msclr::lock l(copySync);
+		auto copy = gcnew array<LvqTrainingStatCli>(stats->Count);
+		stats->CopyTo(copy);
+		return copy;
 	}
 
 	array<LvqTrainingStatCli>^ LvqModelCli::GetTrainingStatsAfter(int statI) {
 		msclr::lock l(copySync);
-		return Enumerable::ToArray( Enumerable::Skip(stats,statI));
+		return Enumerable::ToArray(Enumerable::Skip(stats,statI));
 	}
 
 

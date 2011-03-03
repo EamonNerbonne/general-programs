@@ -48,7 +48,7 @@ namespace LvqLibCli {
 		
 		LvqTrainingStatCli GetTrainingStat(int statI);
 		property int TrainingStatCount {int get();}
-		property ReadOnlyCollection<LvqTrainingStatCli>^ TrainingStats {ReadOnlyCollection<LvqTrainingStatCli>^  get();}
+		property array<LvqTrainingStatCli>^ TrainingStats {array<LvqTrainingStatCli>^  get();}
 
 		property array<String^>^ TrainingStatNames { array<String^>^ get();}
 
