@@ -50,11 +50,11 @@ ul.jp-controls li img
     border: 0;
 }
 
-ul.jp-controls li.jp-play img, ul.jp-controls li.jp-pause img
+ul.jp-controls li.jp-pause img,ul.jp-controls li.jp-play img
 {
-    width: 2.5em;
     height: 2.5em;
-    margin: -0.5em;
+    top: -0.5em;
+    position:relative;
 }
 
 ul.jp-controls li
