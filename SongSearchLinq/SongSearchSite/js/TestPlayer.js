@@ -62,7 +62,7 @@ $(document).ready(function ($) {
 	            userOptions.notifications.setValue(useNotifications = false);
 	        else {
 	            var songTitle = $(playListItem).contents(":empty").text();
-	            var popup = window.webkitNotifications.createNotification("emnicon.png", songTitle, songTitle);
+	            var popup = window.webkitNotifications.createNotification("img/emnicon.png", songTitle, songTitle);
 	            popup.ondisplay = function () { setTimeout(function () { popup.cancel(); }, 5000); }
 	            popup.show();
 	        }

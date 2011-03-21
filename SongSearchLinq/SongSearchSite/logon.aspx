@@ -4,7 +4,7 @@
 
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head runat="server">
-    <link rel="shortcut icon" type="image/ico" href="emnicon.ico" />
+    <link rel="shortcut icon" type="image/ico" href="img/emnicon.ico" />
     <title>Log on to songsearch</title>
     <style type="text/css">
     html,body,form 
