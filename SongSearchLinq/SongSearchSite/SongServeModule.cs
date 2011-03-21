@@ -120,7 +120,7 @@ namespace SongSearchSite {
 			const int window = 4096;
 			long fileByteCount = new FileInfo(song.SongUri.LocalPath).Length;
 			double songSeconds = Math.Max(1.0, TagLib.File.Create(song.SongUri.LocalPath).Properties.Duration.TotalSeconds);
-			int maxBytesPerSec = (int)(Math.Max(128 * 1024 / 8, Math.Min(fileByteCount / songSeconds, 320 * 1024 / 8)) * 1.25);
+			int maxBytesPerSec = (int)(Math.Max(256 * 1024 / 8, Math.Min(fileByteCount / songSeconds, 320 * 1024 / 8)) * 3);
 
 			using (var servingStatus = new ServingActivity.ServedFileStatus(song.SongUri.LocalPath, range, helper.Context.Request.UserHostAddress, maxBytesPerSec)) {
 				const int fastStartSec = 10;
