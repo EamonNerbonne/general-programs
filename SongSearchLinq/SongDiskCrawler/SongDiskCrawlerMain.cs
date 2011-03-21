@@ -7,13 +7,10 @@ using LastFMspider;
 using System.Diagnostics;
 
 namespace SongDiskCrawler {
-
-	class SongDiskCrawlerMain {
-		static int counter = 0;
-		static int newsongs = 0;
-		static double lastprogressprint = 0;
-		static int lastcounter = 0;
-		static Dictionary<string, ISongFileData> songs = new Dictionary<string, ISongFileData>();
+	static class SongDiskCrawlerMain {
+		static int counter,newsongs,lastcounter;
+		static double lastprogressprint;
+		static readonly Dictionary<string, ISongFileData> songs = new Dictionary<string, ISongFileData>();
 		static void SongHandler(ISongFileData song, double ratio) {
 			if (song.IsLocal) {
 				songs[song.SongUri.ToString()] = song;
