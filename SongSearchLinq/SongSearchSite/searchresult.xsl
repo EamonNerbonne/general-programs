@@ -5,7 +5,7 @@
     <html>
       <head>
         <link rel="shortcut icon" type="image/ico" href="emnicon.ico" />
-        <link rel="Stylesheet" type="text/css" href="tableview.css" />
+        <link rel="Stylesheet" type="text/css" href="css/tableview.css" />
         <!--#8ba;#c4ddd5;#e2eeea-->
       </head>
       <body>

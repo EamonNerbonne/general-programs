@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head runat="server">
     <title>Status</title>
-    <link rel="Stylesheet" type="text/css" href="DebugStatus.css" />
+    <link rel="Stylesheet" type="text/css" href="css/DebugStatus.css" />
     <meta http-equiv="refresh" content="15" />
 </head>
 <body>
