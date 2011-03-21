@@ -43,6 +43,10 @@ pre {
   outline:none;
   }
   
+@-moz-document domain(google.com), domain(google.nl) {
+  .vspib, #vspb {display:none !important;}
+}
+  
 @-moz-document domain(icanhascheezburger.com) {
   .slide-notification
   , .socmarks
@@ -117,5 +121,7 @@ pre {
       min-height:0 !important;
       padding:0.5em !important;
       text-align:center;
+      position:relative;
+      z-index:5;
     }
 }
