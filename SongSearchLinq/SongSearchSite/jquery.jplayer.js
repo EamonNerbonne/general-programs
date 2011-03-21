@@ -287,9 +287,9 @@
                     self.config.isFileSet = true;
                     self.jPlayerOnProgressChange(0, 0, 0, 0, 0);
                     clearInterval(self.config.jPlayerControllerId);
-                    self.config.audio.addEventListener("canplay", function () {
+                    //self.config.audio.addEventListener("canplay", function () {
                         self.config.audio.volume = self.config.volume * self.config.diag.gainScale / 100; // Fix for Chrome 4: Event solves initial volume not being set correctly.
-                    }, false);
+                    //}, false);
                     self.handlers.setButtons(false);
                 },
                 clearFile: function () {
