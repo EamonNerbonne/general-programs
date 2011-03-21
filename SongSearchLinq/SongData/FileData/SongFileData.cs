@@ -5,6 +5,7 @@ using System.Linq;
 using System.Xml.Linq;
 using EmnExtensions;
 using EmnExtensions.Text;
+using TagLib.Id3v2;
 
 
 namespace SongDataLib {
@@ -17,7 +18,7 @@ namespace SongDataLib {
 		public readonly string title, artist, composer, album, comment, genre;
 		public readonly int year, track, trackcount, bitrate, length, samplerate, channels;
 		public readonly double? track_gain;
-		public readonly int? rating;
+		public int? rating;
 		DateTime m_lastWriteTime;
 		public Popularity popularity = new Popularity { ArtistPopularity = 0, TitlePopularity = 0 };
 		public DateTime lastWriteTime { get { return m_lastWriteTime; } private set { m_lastWriteTime = value.ToUniversalTime(); } }
@@ -71,6 +72,41 @@ namespace SongDataLib {
 					.ToDictionary(key => key.Name.ToLowerInvariant(), key => key.ToString());
 			} else
 				throw new NotImplementedException();
+		}
+
+		public void WriteRatingToFile() {
+			var file = TagLib.File.Create(SongUri.LocalPath);
+			TagLib.TagTypes types = file.TagTypes;
+			if (types.HasFlag(TagLib.TagTypes.Xiph) || file is TagLib.Ogg.File) {
+				var filetag = (file.GetTag(TagLib.TagTypes.Xiph, true) as TagLib.Ogg.XiphComment);
+				if(rating==null)
+					filetag.RemoveField("rating");
+				else
+					filetag.SetField("rating", rating.Value.ToString());
+				
+			} else if (types.HasFlag(TagLib.TagTypes.Id3v2)) {
+				var filetag = ((TagLib.Id3v2.Tag)file.GetTag(TagLib.TagTypes.Id3v2, true));
+				var ratingfield=UserTextInformationFrame.Get(filetag, "rating", true);
+				if (rating == null)
+					filetag.RemoveFrame(ratingfield);
+				else
+					ratingfield.Text = new[]{rating.Value.ToString()};
+			} else if (types.HasFlag(TagLib.TagTypes.Ape)) {
+				var filetag = (file.GetTag(TagLib.TagTypes.Ape, false) as TagLib.Ape.Tag);
+				if (rating == null)
+					filetag.RemoveItem("rating");
+				else
+					filetag.SetValue("rating", rating.Value.ToString());
+			} else if (types == TagLib.TagTypes.None || types == TagLib.TagTypes.Id3v1) {
+				//return new Dictionary<string, string>();
+			} else if (types.HasFlag(TagLib.TagTypes.Asf)) {
+				var filetag = file.GetTag(TagLib.TagTypes.Asf, false) as TagLib.Asf.Tag;
+				if(rating==null)
+					filetag.RemoveDescriptors("rating");
+				filetag.SetDescriptorString(rating.Value.ToString(), "rating");//note reversed order!
+			} else
+				throw new NotImplementedException();
+			file.Save();
 		}
 
 		//faster to not recreate XNames.
