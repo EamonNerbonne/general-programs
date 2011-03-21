@@ -101,7 +101,7 @@
   <xsl:template name="stars">
     <xsl:param name="num" select="0"/>
     <xsl:if test="$num &gt; 0.5">
-      <xsl:text>&#9733;</xsl:text>
+      <xsl:text>&#x2605;</xsl:text>
       <xsl:call-template name="stars">
         <xsl:with-param name="num" select="$num - 1"/>
       </xsl:call-template>
@@ -131,7 +131,7 @@
     <xsl:variable name="songlabel">
       <xsl:apply-templates select="." mode="makelabel" />
     </xsl:variable>
-    <tr data-href="{@songuri}" title="{@songuri}" data-label="{$songlabel}" data-length="{@length}" data-replaygain="{@Tgain}">
+    <tr data-href="{@songuri}" title="{@songuri}" data-label="{$songlabel}" data-length="{@length}" data-replaygain="{@Tgain}" data-rating="{@rating}">
       <xsl:choose>
         <xsl:when test="@artist">
           <td >

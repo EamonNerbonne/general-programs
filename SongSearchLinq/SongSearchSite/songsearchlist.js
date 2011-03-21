@@ -221,10 +221,25 @@ $(document).ready(function ($) {
         return $("#jplayer_playlist ul li").map(function (i, e) { return $(e).data("songdata"); }).get();
     }
 
+    function repeatStr(str, times) { return Array(times + 1).join(str); }
+
+    function toNestedAnchors(str, idx) {
+        return idx >= str.length ? null : $(document.createElement("a")).append(toNestedAnchors(str, idx + 1)).append($(document.createTextNode(str[str.length - idx - 1])));
+    }
+
+    function appendPerCharAnchor(el, str) {
+        for (var i = 0; i < str.length; i++)
+            el.append($(document.createElement("a")).text(str[i]));
+        return el;
+    }
+    var sixAnchors = $("<a><a><a><a><a><a></a></a></a></a></a></a>");
+
     function makeListItem(song) {
-        return $(document.createElement("li")).text(song.label).data("songdata", song).append(
-            $(document.createElement("div")).text("x").addClass("deleteButton")
-        ).disableSelection();
+        var rating = Math.max(0, Math.min(song.rating || 0, 5));
+        return $(document.createElement("li")).text(song.label).data("songdata", song)
+            .append($(document.createElement("div")).attr("data-rating", rating).append(sixAnchors.clone()))
+            .append($(document.createElement("div")).addClass("deleteButton").text("x"))
+            .disableSelection();
     }
 
     function addToPlaylistRaw(song) {
@@ -232,7 +247,6 @@ $(document).ready(function ($) {
         listItem.appendTo(playlistElem);
         return listItem[0];
     }
-
 
     function addToPlaylist(song) {
         var shouldStart = playlistElem.children().length == 0;
@@ -426,7 +440,8 @@ $(document).ready(function ($) {
             { label: clickedRowJQ.attr("data-label") || GetFileName(clickedRowJQ.attr("data-href")),
                 href: clickedRowJQ.attr("data-href"),
                 length: clickedRowJQ.attr("data-length"),
-                replaygain: Number(clickedRowJQ.attr("data-replaygain")) || 0
+                replaygain: Number(clickedRowJQ.attr("data-replaygain")) || 0,
+                rating: Number(clickedRowJQ.attr("data-rating"))
             });
     }
 

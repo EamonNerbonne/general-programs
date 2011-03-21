@@ -127,9 +127,9 @@ body
     -webkit-box-shadow: 0 0 1.5em rgba(0,0,0,0.30);
     box-shadow: 0 0 1.2em rgba(0,0,0,0.35);
     
-    -moz-transition: width 0.3s 0.1s ease-in-out, -moz-box-shadow 0.1s, background 0.2s;
-    -webkit-transition: width 0.3s 0.1s ease-out, -webkit-box-shadow 0.1s, background 0.2s;
-    transition:  width 0.3s 0.1s ease-out, box-shadow 0.1s, background 0.2s;
+    -moz-transition: width 0.3s 0.1s ease-in-out, background 0.2s;
+    -webkit-transition: width 0.3s 0.1s ease-out, background 0.2s;
+    transition:  width 0.3s 0.1s ease-out, background 0.2s;
 }
 
 .forOptions:hover
@@ -137,14 +137,11 @@ body
     width: 36em;
     height:auto;
     background:  #F7FCF7;
-    -moz-box-shadow: inset 0 0 2px rgba(0,0,0,0.35), 0 0 3.5em rgba(0,0,0,0.55);
-    -webkit-box-shadow:  0 0 4.5em rgba(0,0,0,0.45);
-    box-shadow:0 0 3.5em rgba(0,0,0,0.55);
 
-    -moz-transition: width 0.3s ease-in, -moz-box-shadow 0.1s 0.3s, background 0.2s 0.2s;
-    -webkit-transition:  width 0.3s ease-in, -webkit-box-shadow 0.1s 0.3s, background 0.2s 0.2s;
-    -ms-transition:  width 0.3s ease-in, -ms-box-shadow 0.1s 0.3s, -ms-background 0.2s 0.2s;
-    transition:  width 0.3s ease-in, box-shadow 0.1s 0.3s, background 0.2s 0.2s;
+    -moz-transition: width 0.3s ease-in, background 0.2s 0.2s;
+    -webkit-transition:  width 0.3s ease-in, background 0.2s 0.2s;
+    -ms-transition:  width 0.3s ease-in, -ms-background 0.2s 0.2s;
+    transition:  width 0.3s ease-in, background 0.2s 0.2s;
 }
 
 .jp-controls button 
@@ -343,8 +340,40 @@ body
     -moz-box-shadow: 0 0 0.5em rgba(0,0,0,0.5);
     -webkit-box-shadow: 0 0 0.5em rgba(0,0,0,0.5);
     box-shadow: 0 0 0.5em rgba(0,0,0,0.5);
-
 }
+
+div[data-rating]
+{
+    position:absolute;
+    right:0;
+    top:0;
+    text-align:right;
+    font-style:normal;
+    font-weight:normal;
+}
+
+div[data-rating] a:before 
+{
+    content: "\2606";
+}
+div[data-rating] a:first-child:before 
+{
+    content: "\D7" !important;
+}
+
+div[data-rating="1"] > a:nth-child(-n+2):before, 
+div[data-rating="2"] > a:nth-child(-n+3):before, 
+div[data-rating="3"] > a:nth-child(-n+4):before, 
+div[data-rating="4"] > a:nth-child(-n+5):before, 
+div[data-rating="5"] > a:nth-child(-n+6):before
+{
+    content: "\2605";
+}
+
+div[data-rating] a { opacity:0.4; }
+div[data-rating]:hover a { opacity:1; }
+div[data-rating]:hover a:hover + a, div[data-rating]:hover a:hover + a + a, div[data-rating]:hover a:hover + a + a + a, div[data-rating]:hover a:hover + a + a +a + a, div[data-rating]:hover a:hover + a + a +a + a + a{ opacity:0.4; }
+
 
 .searchSect a
 {
