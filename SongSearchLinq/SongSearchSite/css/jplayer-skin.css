@@ -145,9 +145,8 @@ div.jp-total-time
 }
 .jp-playlist
 {
-    max-height: 100%;
-    overflow-y: auto;
-
+    height: 100%;
+    overflow-y: scroll;
 }
 
 div.jp-playlist ul 

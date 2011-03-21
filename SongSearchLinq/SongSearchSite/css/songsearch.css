@@ -307,6 +307,7 @@ body
     position:relative;
 }
 
+.deleteButton:before{content:"x";}
 .deleteButton
 {
     position:absolute;
@@ -347,6 +348,7 @@ div[data-rating]
     position:absolute;
     right:0;
     top:0;
+    float:right;
     text-align:right;
     font-style:normal;
     font-weight:normal;
@@ -370,9 +372,9 @@ div[data-rating="5"] > a:nth-child(-n+6):before
     content: "\2605";
 }
 
-div[data-rating] a { opacity:0.4; }
-div[data-rating]:hover a { opacity:1; }
-div[data-rating]:hover a:hover + a, div[data-rating]:hover a:hover + a + a, div[data-rating]:hover a:hover + a + a + a, div[data-rating]:hover a:hover + a + a +a + a, div[data-rating]:hover a:hover + a + a +a + a + a{ opacity:0.4; }
+div[data-rating] a { color:#aaa; }
+div[data-rating]:hover a { color:Black; }
+div[data-rating]:hover a:hover + a, div[data-rating]:hover a:hover + a + a, div[data-rating]:hover a:hover + a + a + a, div[data-rating]:hover a:hover + a + a +a + a, div[data-rating]:hover a:hover + a + a +a + a + a{ color:#aaa; }
 
 
 .searchSect a

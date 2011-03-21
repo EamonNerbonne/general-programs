@@ -142,10 +142,17 @@ $(document).ready(function ($) {
         var target = e.target || e.srcElement;
         var clickedListItem = $(target).parents().andSelf().filter("li").first()[0];
         var clickedDelete = $(target).parents().andSelf().filter(".deleteButton").length > 0;
+        var clickedRatingEl = $(target).parents().andSelf().filter("div[data-rating]");
+
 
         if (clickedDelete)
             playlistDelete(clickedListItem);
-        else if (e.type == "dblclick") {
+        else if (clickedRatingEl.length > 0) {
+            var clickedA = $(target).parents().andSelf().filter("a").first();
+            var newRating = clickedA.parents().filter("div[data-rating]").length == 0 ? 0
+                : clickedA.prevAll().length;
+            updateRating(clickedListItem, newRating);
+        } else if (e.type == "dblclick") {
             if (document.selection && document.selection.empty)
                 document.selection.empty();
             else if (window.getSelection) {
@@ -157,6 +164,22 @@ $(document).ready(function ($) {
         }
     }
 
+    function updateRating(clickedListItem, newRating) {
+        var jqItem = $(clickedListItem);
+        var songdata = jqItem.data("songdata");
+        songdata.rating = newRating;
+        jqItem.children().filter("div[data-rating]").attr("data-rating", newRating.toString());
+        playlistToLocalStorage();
+
+        $.ajax({
+            type: "POST",
+            url: "update-rating",
+            data: { songuri: songdata.href, rating: newRating },
+            timeout: 10000,
+            success: function (data) { if (data && data.error) alert(JSON.stringify(data)); },
+            error: function (xhr, status, errorThrown) { alert(status + "\n" + (errorThrown || "")); }
+        });
+    }
 
 
     var playlistContainer = $("#jplayer_playlist");
@@ -238,7 +261,7 @@ $(document).ready(function ($) {
         var rating = Math.max(0, Math.min(song.rating || 0, 5));
         return $(document.createElement("li")).text(song.label).data("songdata", song)
             .append($(document.createElement("div")).attr("data-rating", rating).append(sixAnchors.clone()))
-            .append($(document.createElement("div")).addClass("deleteButton").text("x"))
+            .append($(document.createElement("div")).addClass("deleteButton"))
             .disableSelection();
     }
 
@@ -256,11 +279,15 @@ $(document).ready(function ($) {
         else scrollIntoMiddleView(newItem);
     }
 
-    function playlistRefreshUi() {
-        playlistElem.sortable("refresh");
+    function playlistToLocalStorage() {
         var serializedList = JSON.stringify(savePlaylist());
         userOptions.serializedList.setValue(serializedList);
         localStorage.setItem("playlist", serializedList);               // defining the localStorage variable 
+    }
+
+    function playlistRefreshUi() {
+        playlistElem.sortable("refresh");
+        playlistToLocalStorage();
         simStateSet.getting();
     }
 
