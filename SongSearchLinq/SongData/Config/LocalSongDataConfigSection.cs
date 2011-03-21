@@ -43,7 +43,10 @@ namespace SongDataLib {
 						song = SongFileDataFactory.ConstructFromFile(localSearchUri, newfile, dcf.PopularityEstimator);
 					} catch (Exception e) {
 						errSink("Non-fatal error while generating XML of file: " + songUri + "\nException:\n" + e); song = null;
-					}
+					} else if (song is SongFileData) {
+					var songF = ((SongFileData)song);
+					songF.popularity = dcf.PopularityEstimator.EstimatePopularity(songF.artist, songF.title);
+				}
 				if (song != null) {
 					handler(song, (double)i / newFiles.Length);
 				}
