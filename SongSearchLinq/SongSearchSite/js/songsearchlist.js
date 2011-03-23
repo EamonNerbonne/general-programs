@@ -167,17 +167,25 @@ $(document).ready(function ($) {
     function updateRating(clickedListItem, newRating) {
         var jqItem = $(clickedListItem);
         var songdata = jqItem.data("songdata");
+        var ratingDiv = jqItem.children().filter("div[data-rating]");
+        var oldRating = songdata.rating;
         songdata.rating = newRating;
-        jqItem.children().filter("div[data-rating]").attr("data-rating", newRating.toString());
+        ratingDiv.attr("data-rating", newRating || "");
         playlistToLocalStorage();
+
+        function oops(ignore, errorstatus, errormessage) {
+            songdata.rating = oldRating;
+            ratingDiv.attr("data-rating", oldRating || "");
+            alert(errorstatus + " while setting rating=" + newRating + ": " + songdata.href + "\n" + (errormessage || ""));
+        };
 
         $.ajax({
             type: "POST",
             url: "update-rating",
             data: { songuri: songdata.href, rating: newRating },
-            timeout: 10000,
-            success: function (data) { if (data && data.error) alert(JSON.stringify(data)); },
-            error: function (xhr, status, errorThrown) { alert(status + "\n" + (errorThrown || "")); }
+            timeout: 62 * 1000,
+            success: function (data) { if (data && data.error) oops(null, data.error, data.message); },
+            error: oops
         });
     }
 
@@ -302,7 +310,7 @@ $(document).ready(function ($) {
         knownSel.empty();
         leftColSel.removeClass("waiting");
         for (var i = 0; i < known.length; i++)
-            knownSel.append($(document.createElement("li")).text(known[i].label).data("songdata", known[i]));
+            knownSel.append($(document.createElement("li")).text(known[i].label).attr("data-staticrating", known[i].rating || "").data("songdata", known[i]));
     }
 
 
