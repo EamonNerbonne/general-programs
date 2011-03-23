@@ -14,8 +14,9 @@ namespace SongSearchSite {
 		class PlaylistEntryJson {
 			// ReSharper disable UnaccessedField.Local
 			public string label, href;
-			public int length;
+			public int? length;
 			public double? replaygain;
+			public int? rating;
 			// ReSharper restore UnaccessedField.Local
 		}
 
@@ -52,7 +53,8 @@ namespace SongSearchSite {
 						 href = uriMapper(knownSong.SongUri).ToString(),
 						 label = knownSong.HumanLabel,
 						 length = knownSong.Length,
-						 replaygain = knownSong.track_gain
+						 replaygain = knownSong.track_gain,
+						 rating = knownSong.rating
 					 }).ToArray();
 				string[] unknownForJson =
 					(from unknownSong in res.unknownTracks
