@@ -116,12 +116,12 @@ namespace SongSearchSite {
 		public void WriteEntireContent() { WriteHelper(null); }
 
 		private void WriteHelper(Range? range) {
-			//400kbps //alternative: extract from tag using taglib.  However, this isn't always the right (VBR) bitrate, and may thus fail.
+			
 			const int window = 4096;
 			long fileByteCount = new FileInfo(song.SongUri.LocalPath).Length;
 			double songSeconds = Math.Max(1.0, TagLib.File.Create(song.SongUri.LocalPath).Properties.Duration.TotalSeconds);
-			int maxBytesPerSec = (int)(Math.Max(256 * 1024 / 8, Math.Min(fileByteCount / songSeconds, 320 * 1024 / 8)) * 3);
-
+			int maxBytesPerSecSong = (int)(Math.Max(256 * 1024 / 8, Math.Min(fileByteCount / songSeconds, 320 * 1024 / 8)) * 1.25);
+			int maxBytesPerSec = 300000;//alternative: use extract from tag using taglib.
 			using (var servingStatus = new ServingActivity.ServedFileStatus(song.SongUri.LocalPath, range, helper.Context.Request.UserHostAddress, maxBytesPerSec)) {
 				const int fastStartSec = 10;
 				byte[] buffer = new byte[window];
@@ -134,7 +134,7 @@ namespace SongSearchSite {
 				using (var stream = new FileStream(song.SongUri.LocalPath, FileMode.Open, FileAccess.Read, FileShare.Read)) {
 					stream.Seek(start, SeekOrigin.Begin);
 					while (!streamEnded && stream.Position < end && helper.Context.Response.IsClientConnected) {
-						long maxPos = start + (long)(timer.Elapsed.TotalSeconds * maxBytesPerSec) + fastStartSec * maxBytesPerSec;
+						long maxPos = start + (long)(timer.Elapsed.TotalSeconds * maxBytesPerSec) + fastStartSec * maxBytesPerSecSong;
 						long excessBytes = stream.Position - maxPos;
 						if (excessBytes > 0 && !helper.Context.Request.IsLocal)
 							Thread.Sleep(TimeSpan.FromSeconds(excessBytes / (double)maxBytesPerSec));
