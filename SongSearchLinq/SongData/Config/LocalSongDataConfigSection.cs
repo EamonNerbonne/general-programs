@@ -38,15 +38,17 @@ namespace SongDataLib {
 					continue;
 				Uri songUri = new Uri(newfile.FullName, UriKind.Absolute);
 				ISongFileData song = filter(songUri);
-				if (song == null || (song is SongFileData && ((SongFileData)song).lastWriteTime < newfile.LastWriteTimeUtc))
+				if (song == null || (song is SongFileData && ((SongFileData)song).lastWriteTime < newfile.LastWriteTimeUtc)) {
 					try {
 						song = SongFileDataFactory.ConstructFromFile(localSearchUri, newfile, dcf.PopularityEstimator);
 					} catch (Exception e) {
 						errSink("Non-fatal error while generating XML of file: " + songUri + "\nException:\n" + e); song = null;
-					} else if (song is SongFileData) {
-					var songF = ((SongFileData)song);
-					songF.popularity = dcf.PopularityEstimator.EstimatePopularity(songF.artist, songF.title);
-				}
+					}
+				} 
+				//else if (song is SongFileData) {
+				//    var songF = ((SongFileData)song);
+				//    songF.popularity = dcf.PopularityEstimator.EstimatePopularity(songF.artist, songF.title);
+				//}
 				if (song != null) {
 					handler(song, (double)i / newFiles.Length);
 				}
