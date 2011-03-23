@@ -131,7 +131,18 @@
     <xsl:variable name="songlabel">
       <xsl:apply-templates select="." mode="makelabel" />
     </xsl:variable>
-    <tr data-href="{@songuri}" title="{@songuri}" data-label="{$songlabel}" data-length="{@length}" data-replaygain="{@Tgain}" data-rating="{@rating}">
+    <xsl:variable name="length">
+      <xsl:choose>
+        <xsl:when test="@length">
+          <xsl:value-of select="@length"/>
+        </xsl:when>
+        <xsl:otherwise>
+          <xsl:value-of select="0"/>
+        </xsl:otherwise>
+      </xsl:choose>
+    </xsl:variable>
+
+    <tr data-href="{@songuri}" title="{@songuri}" data-label="{$songlabel}" data-length="{$length}" data-replaygain="{@Tgain}" data-rating="{@rating}">
       <xsl:choose>
         <xsl:when test="@artist">
           <td >
@@ -168,7 +179,7 @@
           </td>
           <td  style="text-align:right;padding-right:0.5em;">
             <xsl:call-template name="stringNoEllipses">
-              <xsl:with-param name="str" select="concat(number(floor(number(@length) div 60)),':',substring('0',floor(number(@length) mod 60 div 10) +1), string(number(@length) mod 60))"/>
+              <xsl:with-param name="str" select="concat(number(floor(number($length) div 60)),':',substring('0',floor(number($length) mod 60 div 10) +1), string(number($length) mod 60))"/>
             </xsl:call-template>
           </td>
           <td  style="text-align:right;padding-right:0.5em;">
