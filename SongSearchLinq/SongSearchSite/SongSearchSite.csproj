@@ -88,8 +88,6 @@
     <Content Include="img\emnicon.png" />
     <Content Include="css\jplayer-skin.css" />
     <Content Include="Jplayer.swf" />
-    <Content Include="js\jquery-1.4.2.min.js" />
-    <Content Include="js\jquery-ui-1.8.1.custom.min.js" />
     <Content Include="js\jquery.jplayer-1.1.0.min.js" />
     <Content Include="js\jquery.jplayer.js" />
     <Content Include="js\TestPlayer.js" />
@@ -117,7 +115,8 @@
     <Content Include="ui-lightness\images\ui-icons_ef8c08_256x240.png" />
     <Content Include="ui-lightness\images\ui-icons_ffd27a_256x240.png" />
     <Content Include="ui-lightness\images\ui-icons_ffffff_256x240.png" />
-    <Content Include="ui-lightness\jquery-ui-1.8.1.custom.css" />
+    <Content Include="ui-lightness\jquery-ui-1.8.11.custom.css" />
+    <Content Include="ui-lightness\jquery-ui-1.8.11.custom.min.js" />
     <Content Include="Web.config">
       <SubType>Designer</SubType>
     </Content>
