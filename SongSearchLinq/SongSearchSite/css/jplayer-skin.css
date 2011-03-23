@@ -3,11 +3,7 @@ div.jp-interface
     position: relative;
     background-color: #eee;
     min-width: 20em;
-    -moz-box-shadow: 0 0 2.5em white inset, 0 0 1.5em white inset,0 0 0.5em white inset;
-    -webkit-box-shadow: 0 0 2.5em white inset, 0 0 1.5em white inset,0 0 0.5em white inset;
-    box-shadow: 0 0 2.5em white inset, 0 0 1.5em white inset,0 0 0.5em white inset;
-    border-radius: 2.5em;
-    -moz-border-radius: 2.5em;
+    box-shadow:0 0 0.2em rgb(150,150,150);
 }
 div.jp-single-player div.jp-interface
 {
@@ -64,8 +60,6 @@ ul.jp-controls li
 ul.jp-controls li:hover
 {
     opacity: 1.0;
-    -moz-box-shadow: 0 0 2em white, 0 0 0.5em white;
-    -webkit-box-shadow: 0 0 2em white, 0 0 0.5em white;
     box-shadow: 0 0 2em white, 0 0 0.5em white;
     background-color: rgba(255,255,255,0.5);
 }
@@ -142,6 +136,7 @@ div.jp-total-time
     right: 0;
     padding: 0;
     margin: 0;
+    box-shadow: 0 0 0.2em rgba(0,0,0,0.35);
 }
 .jp-playlist
 {
@@ -179,7 +174,5 @@ div.jp-playlist li:hover
 {
     color: #445E55;
     background:#eee;/*needed also to avoid dragging transparency!*/
-    -moz-box-shadow:  0 0 0.5em #eee;
-    -webkit-box-shadow:  0 0 0.5em #eee;
     box-shadow:  0 0 0.5em #eee;
 }
