@@ -3,6 +3,7 @@
 using System;
 using System.ComponentModel;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 using EmnExtensions.MathHelpers;
 using EmnExtensions.Wpf;
@@ -101,7 +102,7 @@ namespace LvqGui {
 		public bool ExtendDataByCorrelation { get { return owner.ExtendDataByCorrelation; } set { owner.ExtendDataByCorrelation = value; } }
 
 		static readonly Regex shR =
-			new Regex(@"^\s*(.*--)?star-(?<Dimensions>\d+)D(?<ExtendDataByCorrelation>\*?)-(?<NumberOfClasses>\d+)\*(?<PointsPerClass>\d+):(?<NumberOfClusters>\d+)\((?<ClusterDimensionality>\d+)D(?<RandomlyTransformFirst>\??)\)\*(?<ClusterCenterDeviation>[^~]+)\~(?<IntraClusterClassRelDev>[^\[n]+)(n(?<NoiseSigma>[^\[]+))?\[(?<Seed>\d+):(?<InstSeed>\d+)\]/(?<Folds>\d+)\s*$",
+			new Regex(@"^\s*(.*?--)?star-(?<Dimensions>\d+)D(?<ExtendDataByCorrelation>\*?)-(?<NumberOfClasses>\d+)\*(?<PointsPerClass>\d+):(?<NumberOfClusters>\d+)\((?<ClusterDimensionality>\d+)D(?<RandomlyTransformFirst>\??)\)\*(?<ClusterCenterDeviation>[^~]+)\~(?<IntraClusterClassRelDev>[^\[n]+)(n(?<NoiseSigma>[^\[]+))?\[(?<Seed>\d+):(?<InstSeed>\d+)\]/(?<Folds>\d+)\s*$",
 				RegexOptions.Compiled | RegexOptions.ExplicitCapture);
 
 		public string Shorthand {
@@ -110,7 +111,7 @@ namespace LvqGui {
 			set { ShorthandHelper.ParseShorthand(this, shR, value); }
 		}
 
-		public string ShorthandErrors { get { return ShorthandHelper.VerifyShorthand(this, shR); } }
+		public string ShorthandErrors { [MethodImpl(MethodImplOptions.NoInlining)]get { return ShorthandHelper.VerifyShorthand(this, shR); } }
 
 		public CreateStarDatasetValues(LvqWindowValues owner) {
 			this.owner = owner;

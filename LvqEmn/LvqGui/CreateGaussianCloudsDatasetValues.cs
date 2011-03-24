@@ -3,6 +3,7 @@
 using System;
 using System.ComponentModel;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 using EmnExtensions.MathHelpers;
 using EmnExtensions.Wpf;
@@ -69,7 +70,7 @@ namespace LvqGui {
 		public bool ExtendDataByCorrelation { get { return owner.ExtendDataByCorrelation; } set { owner.ExtendDataByCorrelation = value; } }
 
 		static readonly Regex shR =
-			new Regex(@"^\s*(.*--)?nrm-(?<Dimensions>\d+)D(?<ExtendDataByCorrelation>\*?)-(?<NumberOfClasses>\d+)\*(?<PointsPerClass>\d+):(?<ClassCenterDeviation>[^\[]+)\[(?<Seed>\d+):(?<InstSeed>\d+)\]/(?<Folds>\d+)\s*$",
+			new Regex(@"^\s*(.*?--)?nrm-(?<Dimensions>\d+)D(?<ExtendDataByCorrelation>\*?)-(?<NumberOfClasses>\d+)\*(?<PointsPerClass>\d+):(?<ClassCenterDeviation>[^\[]+)\[(?<Seed>\d+):(?<InstSeed>\d+)\]/(?<Folds>\d+)\s*$",
 				RegexOptions.Compiled | RegexOptions.ExplicitCapture);
 
 
@@ -80,7 +81,7 @@ namespace LvqGui {
 			set { ShorthandHelper.ParseShorthand(this, shR, value); }
 		}
 
-		public string ShorthandErrors { get { return ShorthandHelper.VerifyShorthand(this, shR); } }
+		public string ShorthandErrors { [MethodImpl(MethodImplOptions.NoInlining)]get { return ShorthandHelper.VerifyShorthand(this, shR); } }
 
 
 		public CreateGaussianCloudsDatasetValues(LvqWindowValues owner) {

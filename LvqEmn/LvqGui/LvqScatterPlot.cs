@@ -46,7 +46,7 @@ namespace LvqGui {
 
 				lock (plotsSync) {
 					subplots = newsubplots;
-					if(model!=null)
+					if (model != null)
 						model.SelectedSubModel = new_subModelIdx;
 				}
 
@@ -106,7 +106,7 @@ namespace LvqGui {
 
 			lvqPlotDispatcher = WpfTools.StartNewDispatcher(ThreadPriority.BelowNormal);
 			lvqPlotDispatcher.BeginInvoke(MakeSubPlotWindow);
-			exitToken.Register(() => lvqPlotDispatcher.BeginInvokeShutdown(DispatcherPriority.Send));
+			exitToken.Register(() => lvqPlotDispatcher.InvokeShutdown());
 		}
 
 		void MakeSubPlotWindow() {
@@ -222,7 +222,7 @@ namespace LvqGui {
 			}
 		}
 
-		void QueueUpdate() { Task.Factory.StartNew(UpdateQueueProcessor, CancellationToken.None, TaskCreationOptions.None, LowPriorityTaskScheduler.DefaultLowPriorityScheduler); }
+		void QueueUpdate() { Task.Factory.StartNew(UpdateQueueProcessor); }
 		void UpdateQueueProcessor() {
 			if (exitToken.IsCancellationRequested || !updateSync.UpdateEnqueue_IsMyTurn())
 				return;
@@ -247,16 +247,17 @@ namespace LvqGui {
 			if (subplots != null) {
 				var wh = subplots.LastWidthHeight;
 				var projectionAndImage = subplots.model.CurrentProjectionAndImage(subplots.dataset, wh == null ? 0 : wh.Item1, wh == null ? 0 : wh.Item2);
-				if (projectionAndImage != null && subplots.prototypeClouds != null) {
-					yield return subplots.scatterPlotControl.Dispatcher.BeginInvoke((Action)(() => {
-						subplots.SetScatterBounds(projectionAndImage.Bounds);
-						subplots.classBoundaries.ChangeData(projectionAndImage);
-						for (int i = 0; i < subplots.dataClouds.Length; ++i) {
-							subplots.dataClouds[i].ChangeData(projectionAndImage.PointsByLabel[i]);
-							subplots.prototypeClouds[i].ChangeData(projectionAndImage.PrototypesByLabel[i]);
-						}
-					}), DispatcherPriority.Background);
-				}
+				
+				if (projectionAndImage != null && subplots.prototypeClouds != null)
+					yield return subplots.scatterPlotControl.Dispatcher.BeginInvokeBackground(
+						() => {
+							subplots.SetScatterBounds(projectionAndImage.Bounds);
+							subplots.classBoundaries.ChangeData(projectionAndImage);
+							for (int i = 0; i < subplots.dataClouds.Length; ++i) {
+								subplots.dataClouds[i].ChangeData(projectionAndImage.PointsByLabel[i]);
+								subplots.prototypeClouds[i].ChangeData(projectionAndImage.PrototypesByLabel[i]);
+							}
+						});
 
 				var graphOperationsLazy =
 					from plot in subplots.statPlots
@@ -270,7 +271,7 @@ namespace LvqGui {
 		public void Dispose() {
 			lvqPlotDispatcher.Invoke(new Action(() => {
 				subPlotWindow.Close();
-				lvqPlotDispatcher.BeginInvokeShutdown(DispatcherPriority.Normal);
+				lvqPlotDispatcher.InvokeShutdown();
 			}));
 		}
 

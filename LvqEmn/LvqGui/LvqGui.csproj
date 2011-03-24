@@ -117,7 +117,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'ReleaseDev|x64'">
     <DebugSymbols>true</DebugSymbols>
     <OutputPath>bin\x64\ReleaseDev\</OutputPath>
-    <DefineConstants>TRACE;NBENCHMARK</DefineConstants>
+    <DefineConstants>TRACE;BENCHMARK</DefineConstants>
     <Optimize>true</Optimize>
     <NoWarn>1668, 1607</NoWarn>
     <DebugType>full</DebugType>

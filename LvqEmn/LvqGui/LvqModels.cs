@@ -86,6 +86,7 @@ namespace LvqGui {
 		int epochsDone;
 		static int trainersRunning;
 		public static void WaitForTraining() { while (trainersRunning != 0) Thread.Sleep(1); }
+		readonly static LowPriorityTaskScheduler scheduler = new LowPriorityTaskScheduler(Environment.ProcessorCount);
 		public void Train(int epochsToDo, LvqDatasetCli trainingSet, CancellationToken cancel) {
 			Interlocked.Increment(ref trainersRunning);
 			try {
@@ -103,13 +104,21 @@ namespace LvqGui {
 				//Parallel.ForEach(subModels, m => m.TrainUpto(epochsTarget,trainingSet,m.InitDataFold));
 
 				while (epochsCurrent != epochsTarget) {
-					epochsCurrent = (epochsTarget * 3 + epochsCurrent + 1) / 4;
+					epochsCurrent += ((epochsTarget - epochsCurrent) * 15 + 1) / 16;
 					int currentTarget = epochsCurrent;
 					foreach (var model in subModels)
 						q.Add(Tuple.Create(model, currentTarget));
 				}
 				q.CompleteAdding();
-				var helpers = Enumerable.Range(0, ParWindow).Select(ignored => Task.Factory.StartNew(() => { foreach (var next in q.GetConsumingEnumerable(cancel)) next.Item1.TrainUpto(next.Item2, trainingSet, next.Item1.InitDataFold); }, cancel, TaskCreationOptions.None, LowPriorityTaskScheduler.DefaultLowPriorityScheduler)).ToArray();
+				var helpers = Enumerable.Range(0, ParWindow)
+					.Select(ignored =>
+						Task.Factory.StartNew(
+							() => {
+								foreach (var next in q.GetConsumingEnumerable(cancel))
+									next.Item1.TrainUpto(next.Item2, trainingSet, next.Item1.InitDataFold);
+							},
+							cancel, TaskCreationOptions.None, scheduler)
+						).ToArray();
 				Task.WaitAll(helpers, cancel);
 			} finally {
 				Interlocked.Decrement(ref trainersRunning);

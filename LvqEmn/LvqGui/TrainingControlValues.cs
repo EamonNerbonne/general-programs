@@ -164,10 +164,12 @@ namespace LvqGui {
 						owner.Dispatcher.BeginInvoke(() => { AnimateTraining = false; });
 						break;
 					}
-					overallTask.Enqueue(Task.Factory.StartNew(() => {
-						selectedModel.Train(epochsToTrainFor, selectedDataset, Owner.WindowClosingToken);
-						PotentialUpdate(selectedDataset, selectedModel);
-					}, Owner.WindowClosingToken, TaskCreationOptions.None, LowPriorityTaskScheduler.DefaultLowPriorityScheduler));
+					overallTask.Enqueue(
+						Task.Factory.StartNew(() => {
+							selectedModel.Train(epochsToTrainFor, selectedDataset, Owner.WindowClosingToken);
+							PotentialUpdate(selectedDataset, selectedModel);
+						},
+						Owner.WindowClosingToken));
 
 					try {
 						if (overallTask.Count >= 2) overallTask.Dequeue().Wait();
@@ -182,7 +184,7 @@ namespace LvqGui {
 					if (epochsTrained >= 800) {
 						_AnimateTraining = false;
 						Task.WaitAll(overallTask.ToArray());
-						owner.Dispatcher.BeginInvokeBackground(() => Application.Current.MainWindow.Close());
+						owner.Dispatcher.BeginInvokeBackground(() => System.Windows.Application.Current.MainWindow.Close());
 					}
 #endif
 				}

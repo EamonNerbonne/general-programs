@@ -3,6 +3,7 @@
 using System;
 using System.ComponentModel;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 using LvqLibCli;
 
@@ -160,7 +161,7 @@ namespace LvqGui {
 
 		static readonly Regex shR =
 	new Regex(@"
-				^(\w|\s)*\:?\s*
+				^(\w|\s)*?\:?\s*?
 				(?<ModelType>\b[A-Z][\w\d]*)
 				(\[(?<Dimensionality>[^\]]+)\])?
 				,(?<PrototypesPerClass>\d+)
@@ -181,7 +182,7 @@ namespace LvqGui {
 				,lrX(?<LrScaleBad>\d*\.?\d*(e\d+)?)
 				(?<SlowStartLrBad>\!?)
 				(--.*)?\s*$",
-		RegexOptions.Compiled | RegexOptions.ExplicitCapture | RegexOptions.IgnorePatternWhitespace);
+		RegexOptions.Compiled | RegexOptions.ExplicitCapture | RegexOptions.IgnorePatternWhitespace|RegexOptions.CultureInvariant);
 
 		bool isBoundaryModel { get { return ModelType == LvqModelType.G2mModelType || ModelType == LvqModelType.GgmModelType; } }
 
@@ -210,7 +211,7 @@ namespace LvqGui {
 			set { ShorthandHelper.ParseShorthand(this, shR, value); }
 		}
 
-		public string ShorthandErrors { get { return ShorthandHelper.VerifyShorthand(this, shR); } }
+		public string ShorthandErrors { [MethodImpl(MethodImplOptions.NoInlining)]get { return ShorthandHelper.VerifyShorthand(this, shR); } }
 
 
 		public CreateLvqModelValues(LvqWindowValues owner) {

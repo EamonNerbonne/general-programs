@@ -19,7 +19,7 @@ namespace EmnExtensions {
 			bool shouldExit;
 			public WorkerThread(LowPriorityTaskScheduler owner, ThreadPriority priority) {
 				this.owner = owner;
-				new Thread(DoWork) { IsBackground = true, Priority = priority }.Start();
+				new Thread(DoWork) { IsBackground = true, Name = "LowPriorityTaskScheduler:"+priority, Priority = priority }.Start();
 			}
 			void DoWork() {
 				while (true) {
@@ -69,7 +69,7 @@ namespace EmnExtensions {
 		readonly ThreadPriority Priority;
 		readonly int IdleAfterMilliseconds;
 		int currPar;
-		public LowPriorityTaskScheduler(int? maxParallelism = null, ThreadPriority priority = ThreadPriority.Lowest, int? idleMilliseconds=null) {
+		public LowPriorityTaskScheduler(int? maxParallelism = null, ThreadPriority priority = ThreadPriority.Lowest, int? idleMilliseconds = null) {
 			MaxParallel = maxParallelism ?? Environment.ProcessorCount * 2;
 			Priority = priority;
 			IdleAfterMilliseconds = idleMilliseconds ?? 10000;
@@ -124,9 +124,9 @@ namespace EmnExtensions {
 				return false;
 		}
 
-// ReSharper disable UnusedParameter.Local
+		// ReSharper disable UnusedParameter.Local
 		void SlipstreamQueueExecute(WorkerThread t) {
-// ReSharper restore UnusedParameter.Local
+			// ReSharper restore UnusedParameter.Local
 			Task another;
 			while (TryGetQueuedTask(out another)) {
 				TryExecuteTask(another);
