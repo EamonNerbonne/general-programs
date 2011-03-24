@@ -88,6 +88,7 @@
     <Content Include="img\emnicon.png" />
     <Content Include="css\jplayer-skin.css" />
     <Content Include="Jplayer.swf" />
+    <Content Include="js\jquery-1.5.1.min.js" />
     <Content Include="js\jquery.jplayer-1.1.0.min.js" />
     <Content Include="js\jquery.jplayer.js" />
     <Content Include="js\TestPlayer.js" />
