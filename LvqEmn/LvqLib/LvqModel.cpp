@@ -17,8 +17,8 @@ LvqModel::LvqModel(LvqModelSettings & initSettings)
 	iterationScaleFactor = LVQ_ITERFACTOR_PERPROTO/sqrt((double)protoCount);
 }
 
-static VectorXd fromStlVector(vector<double> const & vec) {
-	VectorXd retval(vec.size());
+static Vector_N fromStlVector(vector<double> const & vec) {
+	Vector_N retval(vec.size());
 	for(size_t i=0;i<vec.size();++i)
 		retval(i) = vec[i];
 	return retval;

@@ -8,10 +8,10 @@ namespace LvqLibCli {
 	using boost::mt19937;
 
 
-	LvqDatasetCli ^ LvqDatasetCli::ConstructFromArray(String^ label, int folds, bool extend, ColorArray^ colors, unsigned rngInstSeed, array<double,2>^ points, array<int>^ pointLabels, int classCount) {
+	LvqDatasetCli ^ LvqDatasetCli::ConstructFromArray(String^ label, int folds, bool extend, ColorArray^ colors, unsigned rngInstSeed, array<LvqFloat,2>^ points, array<int>^ pointLabels, int classCount) {
 		mt19937 rngIter(rngInstSeed);
 		vector<int> cppLabels;
-		MatrixXd cppPoints;
+		Matrix_NN cppPoints;
 		cliToCpp(points,cppPoints);
 		cliToCpp(pointLabels,cppLabels);
 		return gcnew LvqDatasetCli(label,folds,extend,colors, new LvqDataset(cppPoints,cppLabels,classCount), rngIter);
@@ -30,7 +30,8 @@ namespace LvqLibCli {
 		return gcnew LvqDatasetCli(label,folds,extend,colors,CreateDataset::ConstructGaussianClouds(rngParam,rngInst, dims, classCount, pointsPerClass, meansep),rngInst);
 	}
 
-	LvqDatasetCli^ LvqDatasetCli::ConstructStarDataset(String^label, int folds, bool extend, ColorArray^ colors, unsigned rngParamsSeed, unsigned rngInstSeed, int dims, int starDims, int numStarTails, int classCount, int pointsPerClass, double starMeanSep, double starClassRelOffset, bool randomlyTransform, double noiseSigma) {
+	LvqDatasetCli^ LvqDatasetCli::ConstructStarDataset(String^label, int folds, bool extend, ColorArray^ colors, unsigned rngParamsSeed, unsigned rngInstSeed, int dims, int starDims, int numStarTails,
+			int classCount, int pointsPerClass, double starMeanSep, double starClassRelOffset, bool randomlyTransform, double noiseSigma) {
 		mt19937 rngParam(rngParamsSeed);
 		mt19937 rngInst(rngInstSeed);
 		return gcnew LvqDatasetCli(label,folds,extend,colors,CreateDataset::ConstructStarDataset(rngParam, rngInst, dims, starDims, numStarTails, classCount, pointsPerClass, starMeanSep, starClassRelOffset, randomlyTransform, noiseSigma),rngInst);
@@ -52,7 +53,7 @@ namespace LvqLibCli {
 	}
 
 	array<int>^ LvqDatasetCli::ClassLabels(){ array<int>^ retval; cppToCli(dataset->getPointLabels(), retval); return retval;}
-	array<double,2>^ LvqDatasetCli::RawPoints() { array<double,2>^ retval; cppToCli(dataset->getPoints(), retval); return retval;}
+	array<LvqFloat,2>^ LvqDatasetCli::RawPoints() { array<LvqFloat,2>^ retval; cppToCli(dataset->getPoints(), retval); return retval;}
 	vector<int> LvqDatasetCli::GetTrainingSubset(int fold) { return dataset->GetTrainingSubset(fold,folds); }
 	vector<int> LvqDatasetCli::GetTestSubset(int fold) { return dataset->GetTestSubset(fold,folds); }
 	int LvqDatasetCli::ClassCount::get(){return dataset->getClassCount();}

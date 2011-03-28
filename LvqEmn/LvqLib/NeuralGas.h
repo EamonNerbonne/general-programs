@@ -1,5 +1,5 @@
 #pragma once
-#include <Eigen/Core>
+#include "LvqTypedefs.h"
 #include <vector>
 #include <boost/random/mersenne_twister.hpp>
 
@@ -17,11 +17,11 @@ class NeuralGas {
 	std::vector<std::pair<int, double> > trainCosts;
 	double totalElapsed;
 
-	MatrixXd prototypes;
+	Matrix_NN prototypes;
 	
-	typedef VectorXd::Index Index;
-	MatrixXd tmp_deltaFrom;
-	VectorXd tmp_delta;
+	typedef Vector_N::Index Index;
+	Matrix_NN tmp_deltaFrom;
+	Vector_N tmp_delta;
 	std::vector<std::pair<double, Index> > tmp_prototypes_ordering;
 
 public:
@@ -30,10 +30,10 @@ public:
 	double lr() const;
 	double lambda() const;
 
-	double learnFrom(VectorXd const & point);
+	double learnFrom(Vector_N const & point);
 	void do_training(boost::mt19937& rng, LvqDataset const * dataset, std::vector<int> training_subset);
 	std::vector<std::pair<int, double> > const & trainCosts_tracked() {return trainCosts;}
 
-	MatrixXd const & Prototypes() const { return prototypes; }
+	Matrix_NN const & Prototypes() const { return prototypes; }
 };
 

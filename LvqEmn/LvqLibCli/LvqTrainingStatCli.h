@@ -1,5 +1,5 @@
 #pragma once
-#include <Eigen/Core>
+#include "LvqTypedefs.h"
 namespace LvqLibCli {
 	using namespace System;
 	public value class LvqTrainingStatCli {
@@ -12,11 +12,11 @@ namespace LvqLibCli {
 		literal int TestCostI = 5;
 		literal int ExtraI = 5;
 
-		array<double>^ values;
+		array<LvqStat>^ values;
 		
 	};
 
-	void cliToCpp(LvqTrainingStatCli % stat, VectorXd &retval);
-	void cppToCli(VectorXd const & stat, LvqTrainingStatCli% retval);
-	void cppToCli(std::vector<double> const & stat, LvqTrainingStatCli% retval);
+	void cliToCpp(LvqTrainingStatCli % stat, Vector_Stat &retval);
+	void cppToCli(Vector_Stat const & stat, LvqTrainingStatCli% retval);
+	void cppToCli(std::vector<LvqStat> const & stat, LvqTrainingStatCli% retval);
 }

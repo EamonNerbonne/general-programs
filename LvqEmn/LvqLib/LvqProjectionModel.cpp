@@ -19,11 +19,11 @@ void LvqProjectionModel::AppendOtherStats(std::vector<double> & stats, LvqDatase
 		stats.push_back(trainingSet ? trainingSet->NearestNeighborProjectedErrorRate(trainingSubset,testSet,testSubset,this->P) : 0.0);
 }
 
-void randomProjectionMatrix(boost::mt19937 & rngParams, PMatrix & mat);
+void randomProjectionMatrix(boost::mt19937 & rngParams, Matrix_P & mat);
 
-inline void randomProjectionMatrix(boost::mt19937 & rngParams, PMatrix & mat) {
+inline void randomProjectionMatrix(boost::mt19937 & rngParams, Matrix_P & mat) {
 	RandomMatrixInit(rngParams,mat,0.0,1.0);
-	Eigen::JacobiSVD<PMatrix> svd(mat, Eigen::ComputeThinU | Eigen::ComputeThinV);
+	Eigen::JacobiSVD<Matrix_P> svd(mat, Eigen::ComputeThinU | Eigen::ComputeThinV);
 	if(mat.rows()>mat.cols())
 		mat.noalias() = svd.matrixU();
 	else
@@ -33,9 +33,9 @@ inline void randomProjectionMatrix(boost::mt19937 & rngParams, PMatrix & mat) {
 		for(int r0=0;r0<mat.rows();r0++){
 			double dotprod = mat.row(r).dot(mat.row(r0));
 			if(r==r0)
-				assert(fabs(dotprod-1.0) <= std::numeric_limits<double>::epsilon()*mat.cols());
+				assert(fabs(dotprod-1.0) <= std::numeric_limits<LvqFloat>::epsilon()*mat.cols());
 			else 
-				assert(fabs(dotprod) <= std::numeric_limits<double>::epsilon()*mat.cols());
+				assert(fabs(dotprod) <= std::numeric_limits<LvqFloat>::epsilon()*mat.cols());
 		}
 	}
 #endif

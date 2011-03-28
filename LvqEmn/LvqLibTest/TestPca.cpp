@@ -11,13 +11,13 @@ BOOST_AUTO_TEST_CASE( pca_vs_svd_test )
 	using std::cout;
 	using std::cerr;
 	mt19937 rng(1338);
-	MatrixXd points = CreateDataset::MakePointCloud(rng, rng, 7, 1000, 2.12345,1.0);
+	Matrix_NN points = CreateDataset::MakePointCloud(rng, rng, 7, 1000, 2.12345,1.0);
 
-	MatrixXd transform;
-	VectorXd eigenvalues;
+	Matrix_NN transform;
+	Vector_N eigenvalues;
 	PcaHighDim::DoPca(points, transform, eigenvalues);
 
-	MatrixXd newCov = Covariance::ComputeWithMean( transform * points );
+	Matrix_NN newCov = Covariance::ComputeWithMean( transform * points );
 
 	BOOST_CHECK(newCov.isDiagonal());
 	BOOST_CHECK(newCov.diagonal().isApprox(eigenvalues));

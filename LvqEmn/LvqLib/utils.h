@@ -38,11 +38,11 @@ template <typename T> T sqr(T val) {return val*val;}
 
 
 
-template <typename T> double projectionSquareNorm(T const & projectionMatrix) {
+template <typename T> EIGEN_POSSIBLE_INLINE double projectionSquareNorm(T const & projectionMatrix) {
 	return (projectionMatrix.transpose() * projectionMatrix).diagonal().sum();
 }
 
-template <typename T> void normalizeProjection(T & projectionMatrix) {
+ template <typename T> void normalizeProjection(T & projectionMatrix) {
 	projectionMatrix *= 1.0/sqrt(projectionSquareNorm(projectionMatrix));
 }
 
@@ -64,7 +64,7 @@ template <typename T> void projectionRandomizeUniformScaled(boost::mt19937 & ran
 }
 
 void makeRandomOrder(boost::mt19937 & randGen, int*const toFill, int count);
-Eigen::MatrixXd shuffleMatrixCols(boost::mt19937 & randGen, Eigen::MatrixXd const & src);
+Matrix_NN shuffleMatrixCols(boost::mt19937 & randGen, Matrix_NN const & src);
 
 #ifdef _MSC_VER
 #define FOREACH(RANGEVAR_DECL, ITERATOR) for each(RANGEVAR_DECL in ITERATOR)

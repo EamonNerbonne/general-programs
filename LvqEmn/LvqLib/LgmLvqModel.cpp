@@ -37,7 +37,7 @@ LgmLvqModel::LgmLvqModel( LvqModelSettings & initSettings)
 }
 
 
-MatchQuality LgmLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel) {
+MatchQuality LgmLvqModel::learnFrom(Vector_N const & trainPoint, int trainLabel) {
 	double learningRate = stepLearningRate();
 	double lr_point = settings.LR0 * learningRate;
 
@@ -54,10 +54,10 @@ MatchQuality LgmLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel)
 	int J = matches.matchGood;
 	int K = matches.matchBad;
 
-	VectorXd & vJ = tmpSrcDimsV1;
-	VectorXd & vK = tmpSrcDimsV2;
-	VectorXd & Pj_vJ = tmpDestDimsV1;
-	VectorXd & Pk_vK = tmpDestDimsV2;
+	Vector_N & vJ = tmpSrcDimsV1;
+	Vector_N & vK = tmpSrcDimsV2;
+	Vector_N & Pj_vJ = tmpDestDimsV1;
+	Vector_N & Pk_vK = tmpDestDimsV2;
 
 	vJ = prototype[J] - trainPoint;
 	vK = prototype[K] - trainPoint;
@@ -73,15 +73,15 @@ MatchQuality LgmLvqModel::learnFrom(VectorXd const & trainPoint, int trainLabel)
 	return matches.LvqQuality();
 }
 
-MatchQuality LgmLvqModel::ComputeMatches(VectorXd const & unknownPoint, int pointLabel) const {return findMatches(unknownPoint,pointLabel).LvqQuality();}
+MatchQuality LgmLvqModel::ComputeMatches(Vector_N const & unknownPoint, int pointLabel) const {return findMatches(unknownPoint,pointLabel).LvqQuality();}
 
 size_t LgmLvqModel::MemAllocEstimate() const {
 	return 
 		sizeof(LgmLvqModel) + //base structure size
 		sizeof(int)*pLabel.size() + //dyn.alloc labels
-		(sizeof(double) * P[0].size() + sizeof(MatrixXd)) * P.size() + //dyn alloc prototype transforms
+		(sizeof(double) * P[0].size() + sizeof(Matrix_NN)) * P.size() + //dyn alloc prototype transforms
 		sizeof(double) * (tmpSrcDimsV1.size() + tmpSrcDimsV2.size() + tmpDestDimsV1.size() + tmpDestDimsV2.size()) + //various vector temps
-		(sizeof(VectorXd) + sizeof(double)*prototype[0].size()) *prototype.size() +//dyn alloc prototypes
+		(sizeof(Vector_N) + sizeof(double)*prototype[0].size()) *prototype.size() +//dyn alloc prototypes
 		(16/2) * (4+prototype.size()*2);//estimate for alignment mucking.
 }
 
@@ -119,7 +119,7 @@ vector<int> LgmLvqModel::GetPrototypeLabels() const {
 void LgmLvqModel::DoOptionalNormalization() {
 	if(settings.NormalizeProjection) {
 		if(settings.GloballyNormalize) {
-			double overallNorm = std::accumulate(P.begin(), P.end(),0.0,[](double cur, MatrixXd const & mat)->double { return cur + projectionSquareNorm(mat); });
+			double overallNorm = std::accumulate(P.begin(), P.end(),0.0,[](double cur, Matrix_NN const & mat)->double { return cur + projectionSquareNorm(mat); });
 			double scale = 1.0/sqrt(overallNorm / P.size());
 			for(size_t i=0;i<P.size();++i) P[i]*=scale;
 		} else {

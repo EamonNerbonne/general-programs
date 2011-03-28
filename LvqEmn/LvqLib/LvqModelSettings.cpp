@@ -65,11 +65,11 @@ int LvqModelSettings::PrototypeCount() const {	return accumulate(PrototypeDistri
 
 using std::pair;
 using std::make_pair;
-pair<MatrixXd, VectorXi> LvqModelSettings::InitByClassMeans() const {
+pair<Matrix_NN, VectorXi> LvqModelSettings::InitByClassMeans() const {
 	int prototypecount = PrototypeCount();
-	MatrixXd  prototypes(Dataset->dimensions(),prototypecount);
+	Matrix_NN  prototypes(Dataset->dimensions(),prototypecount);
 	VectorXi labels(prototypecount);
-	MatrixXd classmeans = Dataset->ComputeClassMeans(Trainingset);
+	Matrix_NN classmeans = Dataset->ComputeClassMeans(Trainingset);
 	int pi=0;
 	for(size_t i = 0; i < PrototypeDistribution.size(); ++i) {
 		for(int subpi =0; subpi < PrototypeDistribution[i]; ++subpi, ++pi){
@@ -82,7 +82,7 @@ pair<MatrixXd, VectorXi> LvqModelSettings::InitByClassMeans() const {
 }
 
 using boost::mt19937;
-pair<MatrixXd, VectorXi> LvqModelSettings::InitByNg() {
+pair<Matrix_NN, VectorXi> LvqModelSettings::InitByNg() {
 	if(std::all_of(PrototypeDistribution.begin(), PrototypeDistribution.end(), [](int count) {return count==1;}))
 		return InitByClassMeans();
 
@@ -94,7 +94,7 @@ pair<MatrixXd, VectorXi> LvqModelSettings::InitByNg() {
 	}
 
 	int prototypecount = PrototypeCount();
-	MatrixXd prototypes(Dimensions(), prototypecount);
+	Matrix_NN prototypes(Dimensions(), prototypecount);
 	VectorXi labels(prototypecount);
 
 	int pi=0;
@@ -109,10 +109,10 @@ pair<MatrixXd, VectorXi> LvqModelSettings::InitByNg() {
 	return make_pair(prototypes,labels);
 }
 
-pair<MatrixXd, VectorXi> LvqModelSettings::InitProtosBySetting()  {
+pair<Matrix_NN, VectorXi> LvqModelSettings::InitProtosBySetting()  {
 	return NgInitializeProtos ? InitByNg() : InitByClassMeans();
 }
 
-PMatrix LvqModelSettings::pcaTransform() const {
+Matrix_P LvqModelSettings::pcaTransform() const {
 	return Dataset->ComputePcaProjection(Trainingset);
 }

@@ -3,9 +3,9 @@
 
 class GmLvqModel : public LvqProjectionModelBase<GmLvqModel>
 {
-	//PMatrix P; //in base class
-	std::vector<VectorXd> prototype;
-	std::vector<Vector2d, Eigen::aligned_allocator<Vector2d> > P_prototype;
+	//Matrix_P P; //in base class
+	std::vector<Vector_N> prototype;
+	std::vector<Vector_2, Eigen::aligned_allocator<Vector_2> > P_prototype;
 	VectorXi pLabel;
 
 
@@ -14,7 +14,7 @@ class GmLvqModel : public LvqProjectionModelBase<GmLvqModel>
 	//calls dimensionality of input-space DIMS
 	//we will preallocate a few vectors to reduce malloc/free overhead.
 
-	VectorXd m_vJ, m_vK; //vectors of dimension DIMS
+	Vector_N m_vJ, m_vK; //vectors of dimension DIMS
 
 	EIGEN_STRONG_INLINE void RecomputeProjection(int protoIndex) {
 		P_prototype[protoIndex].noalias() = P * prototype[protoIndex];
@@ -27,7 +27,7 @@ public:
 	static const LvqModelSettings::LvqModelType ThisModelType = LvqModelSettings::GmModelType;
 	inline int PrototypeLabel(int protoIndex) const {return pLabel(protoIndex);}
 	inline int PrototypeCount() const {return static_cast<int>(pLabel.size());}
-	inline double SqrDistanceTo(int protoIndex, Vector2d const & P_otherPoint) const {
+	inline double SqrDistanceTo(int protoIndex, Vector_2 const & P_otherPoint) const {
 		return (P_prototype[protoIndex] - P_otherPoint).squaredNorm();
 	}
 
@@ -35,9 +35,9 @@ public:
 	virtual size_t MemAllocEstimate() const;
 
 	GmLvqModel(LvqModelSettings & initSettings);
-	virtual int classify(VectorXd const & unknownPoint) const {return classifyProjectedInline(P * unknownPoint);}
-	virtual int classifyProjected(Vector2d const & unknownProjectedPoint) const {return classifyProjectedInline(unknownProjectedPoint);}
-	EIGEN_STRONG_INLINE int classifyProjectedInline(Vector2d const & P_otherPoint) const{
+	virtual int classify(Vector_N const & unknownPoint) const {return classifyProjectedInline(P * unknownPoint);}
+	virtual int classifyProjected(Vector_2 const & unknownProjectedPoint) const {return classifyProjectedInline(unknownProjectedPoint);}
+	EIGEN_STRONG_INLINE int classifyProjectedInline(Vector_2 const & P_otherPoint) const{
 		double distance(std::numeric_limits<double>::infinity());
 		int match(-1);
 
@@ -49,10 +49,10 @@ public:
 		return this->pLabel(match);
 	}
 	
-	MatchQuality learnFrom(VectorXd const & newPoint, int classLabel);
+	MatchQuality learnFrom(Vector_N const & newPoint, int classLabel);
 	LvqModel* clone() const; 
 
-	MatrixXd GetProjectedPrototypes() const;
+	Matrix_NN GetProjectedPrototypes() const;
 	std::vector<int> GetPrototypeLabels() const;
 	virtual void DoOptionalNormalization();
 	virtual void ClassBoundaryDiagram(double x0, double x1, double y0, double y1, LvqProjectionModel::ClassDiagramT & classDiagram) const;

@@ -3,8 +3,8 @@
 
 class NearestNeighbor
 {
-	Eigen::Matrix2d transform;
-	PMatrix sortedPoints;
+	Matrix_22 transform;
+	Matrix_P sortedPoints;
 	std::vector<unsigned> idxs;	
 	void init();
 public:
@@ -12,7 +12,7 @@ public:
 	NearestNeighbor(Eigen::MatrixBase<TDerived> const & points)
 		:idxs(points.cols())
 		,sortedPoints(points) { init(); }
-	int nearestIdx(Eigen::Vector2d const & point) const;
+	int nearestIdx(Vector_2 const & point) const;
 
 	EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 };

@@ -36,7 +36,7 @@ template <typename T> T randomOrthogonalMatrix(boost::mt19937 & rngParams, int d
 		RandomMatrixInit(rngParams, P, 0, 1.0);
 		Pdet = P.determinant();
 		if(fabs(Pdet) <= std::numeric_limits<double>::epsilon()) continue;//exceedingly unlikely.
-		Eigen::HouseholderQR<Eigen::MatrixXd> qrOfP(P);
+		Eigen::HouseholderQR<Matrix_NN> qrOfP(P);
 		P = qrOfP.householderQ();
 		Pdet = P.determinant();
 		if(Pdet < 0.0) {

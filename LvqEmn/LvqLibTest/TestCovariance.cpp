@@ -25,12 +25,12 @@
 #endif
 BOOST_AUTO_TEST_CASE( covariance_test )
 {
-	typedef CovarianceImpl<MatrixXd> CovHD;
+	typedef CovarianceImpl<Matrix_NN> CovHD;
 	mt19937 rng(1337);
-	MatrixXd points = CreateDataset::MakePointCloud(rng,rng,DIMS,1000,2.3456,1.0);
+	Matrix_NN points = CreateDataset::MakePointCloud(rng,rng,DIMS,1000,2.3456,1.0);
 	
 
-	VectorXd mean = MeanPoint(points);
+	Vector_N mean = MeanPoint(points);
 
 	BOOST_CHECK(CovHD::CovarianceA(points,mean).isApprox(CovHD::CovarianceB(points,mean)));
 	BOOST_CHECK(CovHD::CovarianceA(points,mean).isApprox(CovHD::CovarianceC(points,mean)));
@@ -45,17 +45,17 @@ BOOST_AUTO_TEST_CASE( covariance_test )
 	BENCHRET(tB,10,10,ignore+=CovHD::CovarianceB(points,mean).sum());
 	BENCHRET(tC,10,10,ignore+=CovHD::CovarianceC(points,mean).sum());
 	BENCHRET(tD,10,10,ignore+=CovHD::CovarianceD(points,mean).sum());
-	BENCHRET(t,10,10,ignore+=Covariance::Compute<MatrixXd>(points,mean).sum());
+	BENCHRET(t,10,10,ignore+=Covariance::Compute<Matrix_NN>(points,mean).sum());
 	BOOST_CHECK(t.best()<= 1.05 * std::min(tA.best(),std::min(tB.best(),std::min(tC.best(),tD.best()))));
 }
 
 
 BOOST_AUTO_TEST_CASE( covariance_lowdim_test )
 {
-	typedef CovarianceImpl<PMatrix> CovLD;
+	typedef CovarianceImpl<Matrix_P> CovLD;
 	mt19937 rng(1337);
-	PMatrix points = CreateDataset::MakePointCloud(rng,rng,LVQ_LOW_DIM_SPACE,10000,2.3456,1.0);
-	Vector2d mean = MeanPoint(points);
+	Matrix_P points = CreateDataset::MakePointCloud(rng,rng,LVQ_LOW_DIM_SPACE,10000,2.3456,1.0);
+	Vector_2 mean = MeanPoint(points);
 
 	BOOST_CHECK(CovLD::CovarianceA(points,mean).isApprox(CovLD::CovarianceB(points,mean)));
 	BOOST_CHECK(CovLD::CovarianceA(points,mean).isApprox(CovLD::CovarianceC(points,mean)));
@@ -70,7 +70,7 @@ BOOST_AUTO_TEST_CASE( covariance_lowdim_test )
 	BENCHRET(tB,10,10,ignore+=CovLD::CovarianceB(points,mean).sum());
 	BENCHRET(tC,10,10,ignore+=CovLD::CovarianceC(points,mean).sum());
 	BENCHRET(tD,10,10,ignore+=CovLD::CovarianceD(points,mean).sum());
-	BENCHRET(t,10,10,ignore+=Covariance::Compute<PMatrix>(points,mean).sum());
+	BENCHRET(t,10,10,ignore+=Covariance::Compute<Matrix_P>(points,mean).sum());
 	using std::cout;
 	cout<< tA.best()<<" "<<tB.best()<<" "<<tC.best()<<" "<<tD.best()<<" "<<t.best()<<"\n";
 	BOOST_CHECK(t.best()<= 1.05 * std::min(tA.best(),std::min(tB.best(),std::min(tC.best(),tD.best()))));

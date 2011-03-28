@@ -44,11 +44,11 @@ BOOST_AUTO_TEST_CASE( nn_test )
 		protoDistrib.push_back(PROTOSPERCLASS);
 	LOG("Random guess accuracy: "<<(1.0-1.0/CLASSES)<<"\n");
 
-	PMatrix checkerbox(2,DIMS);
-	//Vector2d::LinSpaced(2,0,1) * VectorXd::Ones(DIMS).transpose() + Vector2d::Ones() * VectorXd::LinSpaced(DIMS,0,DIMS-1).transpose()
+	Matrix_P checkerbox(2,DIMS);
+	//Vector_2::LinSpaced(2,0,1) * Vector_N::Ones(DIMS).transpose() + Vector_2::Ones() * Vector_N::LinSpaced(DIMS,0,DIMS-1).transpose()
 	for(int j=0;j<DIMS;++j)
 		for(int i=0;i<LVQ_LOW_DIM_SPACE;++i) 
-			checkerbox(i,j) = (i+j+1)%2;
+			checkerbox(i,j) = (LvqFloat)((i+j+1)%2);
 
 	BenchTimer timeRawNN,timePca,timePcaNN, timeG2m;
 	for(int fold =0;fold<FOLDS;++fold) {
@@ -74,7 +74,7 @@ BOOST_AUTO_TEST_CASE( nn_test )
 		LOG(", G2mNN: "<<g2mNNrate );
 
 		timePca.start();
-		PMatrix transform= PcaProjectInto2d(dataset->ExtractPoints(trainingSet) );
+		Matrix_P transform= PcaProjectInto2d(dataset->ExtractPoints(trainingSet) );
 		timePca.stop();
 
 		timePcaNN.start();

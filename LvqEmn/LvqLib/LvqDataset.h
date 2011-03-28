@@ -14,12 +14,12 @@ struct LvqDatasetStats {
 
 class LvqDataset
 {
-	MatrixXd points; //one dimension per row, one point per column
+	Matrix_NN points; //one dimension per row, one point per column
 	std::vector<int> pointLabels;
 	int classCount;
 	LvqDataset(LvqDataset const & src, std::vector<int> const & subset);
 public:
-	MatrixXd const & getPoints()const {return points;}
+	Matrix_NN const & getPoints()const {return points;}
 	std::vector<int> const & getPointLabels()const {return pointLabels;}
 	int getClassCount()const {return classCount;}
 	int getPointCount()const {return static_cast<int>(pointLabels.size());}
@@ -27,17 +27,17 @@ public:
 	void ExtendByCorrelations();
 
 	LvqDataset* Extract(std::vector<int> const & subset) const;
-	MatrixXd ExtractPoints(std::vector<int> const & subset) const;
+	Matrix_NN ExtractPoints(std::vector<int> const & subset) const;
 	std::vector<int> ExtractLabels(std::vector<int> const & subset) const;
 
-	LvqDataset(MatrixXd const & points, std::vector<int> pointLabels, int classCount);
-	MatrixXd ComputeClassMeans(std::vector<int> const & subset) const;
-	PMatrix ComputePcaProjection(std::vector<int> const & subset) const;
+	LvqDataset(Matrix_NN const & points, std::vector<int> pointLabels, int classCount);
+	Matrix_NN ComputeClassMeans(std::vector<int> const & subset) const;
+	Matrix_P ComputePcaProjection(std::vector<int> const & subset) const;
 
-	int NearestNeighborClassify(std::vector<int> const & subset, Eigen::VectorXd point) const;
-	int NearestNeighborClassify(std::vector<int> const & subset, PMatrix projection, Eigen::Vector2d & point) const;
+	int NearestNeighborClassify(std::vector<int> const & subset, Vector_N point) const;
+	int NearestNeighborClassify(std::vector<int> const & subset, Matrix_P projection, Vector_2 & point) const;
 
-	double NearestNeighborProjectedErrorRate(std::vector<int> const & neighborhood, LvqDataset const* testData, std::vector<int> const & testSet, PMatrix projection) const;
+	double NearestNeighborProjectedErrorRate(std::vector<int> const & neighborhood, LvqDataset const* testData, std::vector<int> const & testSet, Matrix_P projection) const;
 	double NearestNeighborPcaErrorRate(std::vector<int> const & neighborhood, LvqDataset const* testData, std::vector<int> const & testSet) const;
 	double NearestNeighborErrorRate(std::vector<int> const & neighborhood, LvqDataset const* testData, std::vector<int> const & testSet) const;
 
@@ -46,7 +46,7 @@ public:
 
 	LvqDatasetStats ComputeCostAndErrorRate(std::vector<int> const & subset, LvqModel const * model) const;
 
-	PMatrix ProjectPoints(LvqProjectionModel const * model) const;
+	Matrix_P ProjectPoints(LvqProjectionModel const * model) const;
 	size_t MemAllocEstimate() const;
 	int dimensions() const { return static_cast<int>(points.rows());}
 

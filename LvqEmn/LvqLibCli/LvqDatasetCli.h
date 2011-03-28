@@ -1,6 +1,7 @@
 #pragma once
 using namespace System;
 #include <boost/random/mersenne_twister.hpp>
+#include "LvqTypedefs.h"
 class LvqDataset;
 
 namespace LvqLibCli {
@@ -21,7 +22,7 @@ namespace LvqLibCli {
 		std::vector<int> GetTestSubset(int fold);
 		LvqDataset const * GetDataset() {return dataset;}
 		array<int>^ ClassLabels();
-		array<double,2>^ RawPoints();
+		array<LvqFloat,2>^ RawPoints();
 		property ColorArray^ ClassColors { ColorArray^ get(){return colors;} void set(ColorArray^ newcolors){colors=newcolors;}}
 		property int ClassCount {int get();}
 		property int PointCount {int get();}
@@ -31,7 +32,7 @@ namespace LvqLibCli {
 
 		Tuple<double,double> ^ GetPcaNnErrorRate();
 
-		static LvqDatasetCli^ ConstructFromArray(String^ label,int folds, bool extend, ColorArray^ colors,unsigned rngInstSeed, array<double,2>^ points, array<int>^ pointLabels, int classCount);
+		static LvqDatasetCli^ ConstructFromArray(String^ label,int folds, bool extend, ColorArray^ colors,unsigned rngInstSeed, array<LvqFloat,2>^ points, array<int>^ pointLabels, int classCount);
 		static LvqDatasetCli^ ConstructGaussianClouds(String^ label,int folds, bool extend, ColorArray^ colors, unsigned rngParamsSeed, unsigned rngInstSeed, int dims, int classCount, int pointsPerClass, double meansep);
 		static LvqDatasetCli^ ConstructStarDataset(String^ label,int folds, bool extend, ColorArray^ colors, unsigned rngParamsSeed, unsigned rngInstSeed, int dims, int starDims, int numStarTails,int classCount, int pointsPerClass, double starMeanSep, double starClassRelOffset, bool randomlyTransform, double noiseSigma);
 	};

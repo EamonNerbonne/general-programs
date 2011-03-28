@@ -6,7 +6,7 @@
 #include <boost/test/unit_test.hpp>
 #pragma warning (pop)
 #endif
-#include <Eigen/Core>
+#include "LvqTypedefs.h"
 #include <Eigen/StdVector>
 using namespace Eigen;
 static bool failed = false;

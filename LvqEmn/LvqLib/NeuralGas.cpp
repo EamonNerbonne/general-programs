@@ -19,7 +19,7 @@ double NeuralGas::lr() const { return exp(ln_lr_start + trainIter / (double) fin
 
 double NeuralGas::lambda() const { return exp(ln_lambda_start + trainIter / (double) finalIter * (ln_lambda_end - ln_lambda_start)); }
 
-double NeuralGas::learnFrom(VectorXd const & point) {
+double NeuralGas::learnFrom(Vector_N const & point) {
 	assert(trainIter < finalIter);
 	tmp_deltaFrom = (prototypes.colwise() - point);
 	
@@ -52,11 +52,11 @@ double NeuralGas::learnFrom(VectorXd const & point) {
 void NeuralGas::do_training(boost::mt19937& rng, LvqDataset const * dataset, std::vector<int> training_subset){
 	assert(dataset->dimensions() == prototypes.rows());
 	assert(training_subset.size() > (size_t)prototypes.cols());
-	VectorXd point(prototypes.rows());
+	Vector_N point(prototypes.rows());
 
 	int cacheLines = ((int)point.rows() * sizeof(point(0)) + 63)/ 64 ;
 
-	MatrixXd const & points = dataset->getPoints();
+	Matrix_NN const & points = dataset->getPoints();
 	while(trainIter < finalIter) {
 		shuffle(rng, training_subset, training_subset.size());
 		for(int tI=0;tI < training_subset.size() && trainIter < finalIter; ++tI) {

@@ -48,10 +48,8 @@
 #include <Bench/BenchTimer.h>
 
 using Eigen::MatrixBase;
-using Eigen::VectorXd;
-using Eigen::Vector2d;
+
 using Eigen::VectorXi;
-using Eigen::MatrixXd;
 using Eigen::MatrixXi;
 
 

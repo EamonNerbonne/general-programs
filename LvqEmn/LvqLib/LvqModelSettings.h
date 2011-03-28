@@ -37,10 +37,10 @@ public:
 	std::vector<int> Trainingset;
 
 	size_t ClassCount() const { return PrototypeDistribution.size(); }
-	std::pair<Eigen::MatrixXd,Eigen::VectorXi> InitByClassMeans() const;
-	std::pair<Eigen::MatrixXd,Eigen::VectorXi> InitByNg() ;
-	std::pair<Eigen::MatrixXd,Eigen::VectorXi> InitProtosBySetting() ;
-	PMatrix pcaTransform() const;
+	std::pair<Matrix_NN,Eigen::VectorXi> InitByClassMeans() const;
+	std::pair<Matrix_NN,Eigen::VectorXi> InitByNg() ;
+	std::pair<Matrix_NN,Eigen::VectorXi> InitProtosBySetting() ;
+	Matrix_P pcaTransform() const;
 	int PrototypeCount() const;
 
 	LvqModelSettings(LvqModelType modelType, boost::mt19937 & rngParams, boost::mt19937 & rngIter, std::vector<int> protodistrib, LvqDataset const * dataset, std::vector<int> trainingset); 

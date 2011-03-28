@@ -50,9 +50,9 @@ public:
 	void AddTrainingStat(Statistics& statQueue, LvqDataset const * trainingSet, std::vector<int>const & trainingSubset, LvqDataset const * testSet, std::vector<int>const & testSubset, LvqDatasetStats const & trainingstats) const;
 	void AddTrainingStat(Statistics& statQueue, LvqDataset const * trainingSet, std::vector<int>const & trainingSubset, LvqDataset const * testSet, std::vector<int>const & testSubset) const;
 
-	virtual int classify(VectorXd const & unknownPoint) const=0; 
-	virtual MatchQuality ComputeMatches(VectorXd const & unknownPoint, int pointLabel) const=0;
-	virtual MatchQuality learnFrom(VectorXd const & newPoint, int classLabel)=0;
+	virtual int classify(Vector_N const & unknownPoint) const=0; 
+	virtual MatchQuality ComputeMatches(Vector_N const & unknownPoint, int pointLabel) const=0;
+	virtual MatchQuality learnFrom(Vector_N const & newPoint, int classLabel)=0;
 	virtual void DoOptionalNormalization()=0;
 	virtual ~LvqModel() {	}
 	virtual LvqModel* clone() const=0;

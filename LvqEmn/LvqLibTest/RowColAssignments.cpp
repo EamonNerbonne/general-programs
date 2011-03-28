@@ -1,9 +1,9 @@
 #include "stdafx.h"
 
 bool rowFromCol() {
-	MatrixXd matA, matB;
+	Matrix_NN matA, matB;
 	
-	matA = MatrixXd::Random(12,15);
+	matA = Matrix_NN::Random(12,15);
 	matB.resize(matA.cols(),matA.rows());
 	for(ptrdiff_t i=0;i<matA.cols();++i) 
 		matB.row(i) = matA.col(i);
@@ -11,9 +11,9 @@ bool rowFromCol() {
 }
 
 bool colFromRow() {
-	MatrixXd matA, matB;
+	Matrix_NN matA, matB;
 	
-	matA = MatrixXd::Random(12,15);
+	matA = Matrix_NN::Random(12,15);
 	matB.resize(matA.cols(),matA.rows());
 	for(ptrdiff_t i=0;i<matA.rows();++i) 
 		matB.col(i) = matA.row(i);
@@ -21,9 +21,9 @@ bool colFromRow() {
 }
 
 bool rowFromColNoalias() {
-	MatrixXd matA, matB;
+	Matrix_NN matA, matB;
 	
-	matA = MatrixXd::Random(12,15);
+	matA = Matrix_NN::Random(12,15);
 	matB.resize(matA.cols(),matA.rows());
 	for(ptrdiff_t i=0;i<matA.cols();++i) 
 		matB.row(i).noalias() = matA.col(i);
@@ -31,9 +31,9 @@ bool rowFromColNoalias() {
 }
 
 bool colFromRowNoalias() {
-	MatrixXd matA, matB;
+	Matrix_NN matA, matB;
 	
-	matA = MatrixXd::Random(12,15);
+	matA = Matrix_NN::Random(12,15);
 	matB.resize(matA.cols(),matA.rows());
 	for(ptrdiff_t i=0;i<matA.rows();++i) 
 		matB.col(i).noalias() = matA.row(i);

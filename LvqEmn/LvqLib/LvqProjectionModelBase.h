@@ -4,7 +4,7 @@
 #include "LvqProjectionModel.h"
 #include "LvqModelFindMatches.h"
 
-template<typename TDerivedModel> class LvqProjectionModelBase : public LvqProjectionModel, public LvqModelFindMatches<TDerivedModel, Vector2d> {
+template<typename TDerivedModel> class LvqProjectionModelBase : public LvqProjectionModel, public LvqModelFindMatches<TDerivedModel, Vector_2> {
 protected:
 	LvqProjectionModelBase(LvqModelSettings & initSettings) : LvqProjectionModel(initSettings) { }
 public:
@@ -21,14 +21,14 @@ public:
 		for(int yRow=0; yRow < rows; yRow++) {
 			double x = xBase;
 			for(int xCol=0; xCol < cols; xCol++) {
-				classDiagram(yRow,xCol) = self.classifyProjectedInline(Vector2d(x,y));
+				classDiagram(yRow,xCol) = self.classifyProjectedInline(Vector_2(x,y));
 				x+=xDelta;
 			}
 			y+=yDelta;
 		}
 	}
 
-	MatchQuality ComputeMatches(VectorXd const & unknownPoint, int pointLabel) const { return this->findMatches(P * unknownPoint, pointLabel).LvqQuality(); }
+	MatchQuality ComputeMatches(Vector_N const & unknownPoint, int pointLabel) const { return this->findMatches(P * unknownPoint, pointLabel).LvqQuality(); }
 };
 
 //#pragma managed(pop)

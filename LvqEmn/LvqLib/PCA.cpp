@@ -3,9 +3,9 @@
 
 using namespace Eigen;
 
-PMatrix Pca2dFromCov(Eigen::MatrixXd const & covarianceMatrix) {
-	MatrixXd transform;
-	VectorXd eigenvalues;
+Matrix_P Pca2dFromCov(Matrix_NN const & covarianceMatrix) {
+	Matrix_NN transform;
+	Vector_N eigenvalues;
 	PcaHighDim::DoPcaFromCov(covarianceMatrix,transform,eigenvalues);
 	return transform.topRows<2>();
 }

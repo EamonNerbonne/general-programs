@@ -12,7 +12,7 @@ class G2mLvqModel : public LvqProjectionModelBase<G2mLvqModel>
 	std::vector<CorrectAndWorstMatches::MatchOk> ngMatchCache;
 
 	//we will preallocate a few temp vectors to reduce malloc/free overhead.
-	VectorXd m_vJ, m_vK;
+	Vector_N m_vJ, m_vK;
 protected:
 	virtual void AppendTrainingStatNames(std::vector<std::wstring> & retval) const;
 	virtual void AppendOtherStats(std::vector<double> & stats, LvqDataset const * trainingSet, std::vector<int>const & trainingSubset, LvqDataset const * testSet, std::vector<int>const & testSubset) const;
@@ -24,16 +24,16 @@ public:
 
 	inline int PrototypeLabel(int protoIndex) const {return prototype[protoIndex].label();}
 	inline int PrototypeCount() const {return static_cast<int>(prototype.size());}
-	inline double SqrDistanceTo(int protoIndex, Vector2d const & P_otherPoint) const { return prototype[protoIndex].SqrDistanceTo(P_otherPoint); }
+	inline double SqrDistanceTo(int protoIndex, Vector_2 const & P_otherPoint) const { return prototype[protoIndex].SqrDistanceTo(P_otherPoint); }
 
 	//end for templates
 
 
 	G2mLvqModel(LvqModelSettings & initSettings);
 	virtual size_t MemAllocEstimate() const;
-	virtual int classify(VectorXd const & unknownPoint) const {return classifyProjectedInline(P * unknownPoint);}
-	virtual int classifyProjected(Vector2d const & unknownProjectedPoint) const { return classifyProjectedInline(unknownProjectedPoint);}
-	EIGEN_STRONG_INLINE int classifyProjectedInline(Vector2d const & P_unknownPoint) const {
+	virtual int classify(Vector_N const & unknownPoint) const {return classifyProjectedInline(P * unknownPoint);}
+	virtual int classifyProjected(Vector_2 const & unknownProjectedPoint) const { return classifyProjectedInline(unknownProjectedPoint);}
+	EIGEN_STRONG_INLINE int classifyProjectedInline(Vector_2 const & P_unknownPoint) const {
 		double distance(std::numeric_limits<double>::infinity());
 		int match(-1);
 
@@ -45,10 +45,10 @@ public:
 		return prototype[match].classLabel;
 	}
 
-	MatchQuality learnFrom(VectorXd const & newPoint, int classLabel);
+	MatchQuality learnFrom(Vector_N const & newPoint, int classLabel);
 	virtual LvqModel* clone() const ;
 
-	virtual MatrixXd GetProjectedPrototypes() const;
+	virtual Matrix_NN GetProjectedPrototypes() const;
 	virtual std::vector<int> GetPrototypeLabels() const;
 	virtual void DoOptionalNormalization();
 	virtual void ClassBoundaryDiagram(double x0, double x1, double y0, double y1, LvqProjectionModel::ClassDiagramT & classDiagram) const;

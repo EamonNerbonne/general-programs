@@ -9,18 +9,18 @@ using std::sort;
 void NearestNeighbor::init() {
 	for(size_t i=0;i<idxs.size();i++)
 		idxs[i]=(unsigned)i;
-	Vector2d eigenvalues;
+	Vector_2 eigenvalues;
 	PcaLowDim::DoPca(sortedPoints,this->transform,eigenvalues);
 	sortedPoints = transform * sortedPoints;
 	sort(idxs.begin(),idxs.end(), [this] (unsigned a, unsigned b) ->bool {return sortedPoints(0,a) < sortedPoints(0,b);});
 }
 
-int NearestNeighbor::nearestIdx(Vector2d const & point) const
+int NearestNeighbor::nearestIdx(Vector_2 const & point) const
 {
 	//we transform the point into the PCA-d space.
 	//then binary search to find nearest point in primary dim
 	//then look backward and forward until distance to BEST < primary-dim-only distance to CURRENT.
-	Vector2d Ppoint = transform*point;
+	Vector_2 Ppoint = transform*point;
 
 	unsigned rStart=0,rEnd=(unsigned)idxs.size();
 	while(rStart+1<rEnd){

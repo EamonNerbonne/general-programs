@@ -8,7 +8,7 @@
 
 class LvqProjectionModel : public LvqModel {
 protected:
-	PMatrix P;
+	Matrix_P P;
 
 	LvqProjectionModel(LvqModelSettings & initSettings);
 	virtual void AppendTrainingStatNames(std::vector<std::wstring> & retval) const;
@@ -16,10 +16,10 @@ protected:
 public:
 	typedef Eigen::Matrix<int,Eigen::Dynamic,Eigen::Dynamic,Eigen::RowMajor> ClassDiagramT;
 	virtual ~LvqProjectionModel() { }
-	PMatrix const & projectionMatrix() const {return P;}
+	Matrix_P const & projectionMatrix() const {return P;}
 	virtual int Dimensions() const {return static_cast<int>(P.cols());}
-	virtual MatrixXd GetProjectedPrototypes() const=0;
-	virtual int classifyProjected(Vector2d const & unknownProjectedPoint) const=0;
+	virtual Matrix_NN GetProjectedPrototypes() const=0;
+	virtual int classifyProjected(Vector_2 const & unknownProjectedPoint) const=0;
 	virtual void ClassBoundaryDiagram(double x0, double x1, double y0, double y1, LvqProjectionModel::ClassDiagramT & classDiagram) const=0;
 };
 

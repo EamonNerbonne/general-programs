@@ -61,7 +61,7 @@ namespace LvqGui {
 				try {
 					if (dataFile.Exists) {
 						var pointclouds = labelFile.Exists? DatasetLoader.LoadDataset(dataFile, labelFile):DatasetLoader.LoadDataset(dataFile);
-						double[,] pointArray = pointclouds.Item1;
+						var pointArray = pointclouds.Item1;
 						int[] labelArray = pointclouds.Item2;
 						int classCount = pointclouds.Item3;
 						long colorSeedLong = labelArray.Select((label, i) => label * (long)(i + 1)).Sum();

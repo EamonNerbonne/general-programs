@@ -3,7 +3,7 @@
 
 template <typename TPoints>
 static Eigen::Matrix<typename TPoints::Scalar,TPoints::RowsAtCompileTime,1> MeanPoint(Eigen::MatrixBase<TPoints>const & points) {
-	return points.rowwise().sum() * (1.0/points.cols());
+	return points.rowwise().sum() * ((LvqFloat)1.0/points.cols());
 }
 
 template <typename TPoints>
@@ -14,7 +14,7 @@ public:
 
 	//decent baseline.
 	inline static TMatrix CovarianceA(Eigen::MatrixBase<TPoints> const & points, TPoint const & mean) {
-		return (points.colwise() - mean) * (points.colwise() - mean).transpose() * (1.0/(points.cols()-1.0)) ;
+		return (points.colwise() - mean) * (points.colwise() - mean).transpose() * (LvqFloat(1.0)/(points.cols() - LvqFloat(1.0))) ;
 	}
 
 	//good for fixed matrices matrices on MSC
@@ -25,14 +25,14 @@ public:
 			diff.noalias() = points.col(i) - mean;
 			cov.noalias() += diff * diff.transpose(); 
 		}
-		return cov * (1.0/(points.cols()-1.0));
+		return cov * ((LvqFloat)1.0/(points.cols()-(LvqFloat)1.0));
 	}
 
 	//good for dynamic matrices (and good for fixed matrices matrices on MSC)
 	inline static TMatrix CovarianceC(Eigen::MatrixBase<TPoints>const & points, TPoint const & mean) {
 		TMatrix cov = TMatrix::Zero(points.rows(),points.rows());
 		typename TPoints::PlainObject meanCentered = points.colwise() - mean;
-		cov.template selfadjointView<Eigen::Lower>().rankUpdate(meanCentered,1.0/(points.cols()-1.0));
+		cov.template selfadjointView<Eigen::Lower>().rankUpdate(meanCentered,(LvqFloat)1.0/(points.cols()-(LvqFloat)1.0));
 		cov.template triangularView<Eigen::StrictlyUpper>() = cov.adjoint();
 		return cov;
 	}
@@ -45,7 +45,7 @@ public:
 			cov.template triangularView<Eigen::Lower>() += diff * diff.adjoint();
 		}
 		cov.template triangularView<Eigen::StrictlyUpper>() = cov.adjoint();
-		return cov * (1.0/(points.cols()-1.0));
+		return cov * ((LvqFloat)1.0/(points.cols()-(LvqFloat)1.0));
 	}
 };
 

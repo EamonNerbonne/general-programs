@@ -5,6 +5,9 @@ using System.IO;
 using EmnExtensions.Filesystem;
 using System.Globalization;
 
+//using LvqFloat = System.Single;
+using LvqFloat = System.Double;
+
 namespace LvqGui {
 	public static class DatasetLoader {
 		static readonly char[] dimSep = new[] { ',' };
@@ -29,12 +32,12 @@ namespace LvqGui {
 			return retval;
 		}
 
-		public static Tuple<double[,], int[], int> LoadDataset(FileInfo datafile, FileInfo labelfile) {
+		public static Tuple<LvqFloat[,], int[], int> LoadDataset(FileInfo datafile, FileInfo labelfile) {
 			var dataVectors =
 				(from dataline in datafile.GetLines()
 				 select (
 					 from dataDim in dataline.Split(dimSep)
-					 select double.Parse(dataDim, CultureInfo.InvariantCulture)
+					 select LvqFloat.Parse(dataDim, CultureInfo.InvariantCulture)
 					 ).ToArray()
 				).ToArray();
 
@@ -65,7 +68,7 @@ namespace LvqGui {
 			return Tuple.Create(dataVectors.ToRectangularArray(), itemLabels, labelCount);
 		}
 
-		public static Tuple<double[,], int[], int> LoadDataset(FileInfo dataAndLabelFile) {
+		public static Tuple<LvqFloat[,], int[], int> LoadDataset(FileInfo dataAndLabelFile) {
 			var labelledVectors =
 				(from dataline in dataAndLabelFile.GetLines()
 				 let splitLine = dataline.Split(dimSep)
@@ -73,7 +76,7 @@ namespace LvqGui {
 					 Label = splitLine[0],
 					 Data = (
 						 from dataDim in splitLine.Skip(1)
-						 select double.Parse(dataDim, CultureInfo.InvariantCulture)
+						 select LvqFloat.Parse(dataDim, CultureInfo.InvariantCulture)
 						 ).ToArray()
 				 }
 				).ToArray();
