@@ -43,7 +43,7 @@ template <typename T> EIGEN_POSSIBLE_INLINE double projectionSquareNorm(T const 
 }
 
  template <typename T> void normalizeProjection(T & projectionMatrix) {
-	projectionMatrix *= 1.0/sqrt(projectionSquareNorm(projectionMatrix));
+	projectionMatrix *= LvqFloat(LvqFloat(1.0)/sqrt(projectionSquareNorm(projectionMatrix)));
 }
 
 
