@@ -38,7 +38,7 @@ template <typename T> T sqr(T val) {return val*val;}
 
 
 
-template <typename T> EIGEN_POSSIBLE_INLINE double projectionSquareNorm(T const & projectionMatrix) {
+template <typename T> EIGEN_STRONG_INLINE double projectionSquareNorm(T const & projectionMatrix) {
 	return (projectionMatrix.transpose() * projectionMatrix).diagonal().sum();
 }
 
