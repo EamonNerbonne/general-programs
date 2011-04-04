@@ -183,6 +183,12 @@ namespace EmnExtensions.Wpf.Plot {
 			}
 		}
 
+		static bool TickArrEqual(Tick[] a, Tick[] b) {
+			if (a.Length != b.Length) return false;
+			for (int i = 0; i < a.Length; i++) if (a[i].Rank != b[i].Rank || a[i].Value != b[i].Value) return false;
+			return true;
+		}
+
 		/// <summary>
 		/// Recomputes m_ticks: if available space is too small set to null, else when null recomputed based on m_bestGuessCurrentSize.
 		/// </summary>
@@ -199,7 +205,7 @@ namespace EmnExtensions.Wpf.Plot {
 				int newTickCount;
 				var newTicks = FindAllTicks(DataBound, m_minReqTickCount, preferredNrOfTicks, AttemptBorderTicks, out newSlotOrderOfMagnitude, out newTickCount);
 				if (m_ticks == null && mayIncrease
-					|| m_ticks != null && !m_ticks.SequenceEqual(newTicks) && (mayIncrease || m_ticks.Count(tick => tick.Rank <= 1) > newTicks.Count(tick => tick.Rank <= 1))) {
+					|| m_ticks != null && !TickArrEqual(m_ticks, newTicks) && (mayIncrease || m_ticks.Count(tick => tick.Rank <= 1) > newTicks.Count(tick => tick.Rank <= 1))) {
 
 					m_slotOrderOfMagnitude = newSlotOrderOfMagnitude;
 					m_rank1Labels = null;
@@ -239,8 +245,7 @@ namespace EmnExtensions.Wpf.Plot {
 				m_axisLegend = null; //if order of magnitude has changed, we'll need to recreate the axis legend.
 		}
 
-		int ComputedDataOrderOfMagnitude()
-		{
+		int ComputedDataOrderOfMagnitude() {
 			return (int)(0.5 + Math.Floor(Math.Log10(Math.Max(Math.Abs(DataBound.Start), Math.Abs(DataBound.End)))));
 		}
 
@@ -518,7 +523,7 @@ namespace EmnExtensions.Wpf.Plot {
 
 		// Using a DependencyProperty as the backing store for RepaintWorkaround.  This enables animation, styling, binding, etc...
 		public static readonly DependencyProperty RepaintWorkaroundProperty =
-			DependencyProperty.Register("RepaintWorkaround", typeof(ulong), typeof(TickedAxis), new FrameworkPropertyMetadata(0UL, FrameworkPropertyMetadataOptions.NotDataBindable|FrameworkPropertyMetadataOptions.AffectsRender));
+			DependencyProperty.Register("RepaintWorkaround", typeof(ulong), typeof(TickedAxis), new FrameworkPropertyMetadata(0UL, FrameworkPropertyMetadataOptions.NotDataBindable | FrameworkPropertyMetadataOptions.AffectsRender));
 
 		void InvalidateRender() {
 			RepaintWorkaround++;
