@@ -136,6 +136,48 @@ body
     padding: 0; margin:0;
 }
 
+#matchlinksect{float:right; font-size:80%;}
+#do_shuffle, #do_addAll, #do_removeAll
+{
+    color:White;
+    background:#333;
+    padding:0 0.3em;
+    border-radius:1.3em;
+    border:1px solid black;
+    position:relative;
+}
+
+#do_shuffle:after, #do_addAll:after, #do_removeAll:after 
+{
+    position:absolute;
+    display:none;
+    background: #ffa;
+    border:0;
+    top:100%;
+    margin-top:0.5em;
+    border-radius:1em;
+    padding:0 1em;
+    color:Black;
+    border:1px solid #333;
+    z-index:100;
+     white-space:pre;
+}
+
+#do_shuffle:hover:after, #do_addAll:hover:after, #do_removeAll:hover:after 
+{
+    display:block;
+}
+
+#do_addAll:hover{
+    box-shadow: 0 0 2em white, 0 0 0.5em white;
+    background:black;
+}
+#do_addAll:after {    content: "Add all tracks to playlist"; top:auto; margin-bottom:0.5em; bottom:100%;}
+#do_removeAll:after {    content: "Remove all tracks from playlist";}
+#do_shuffle:after {    content: "Shuffle playlist";}
+
+
+
 #shownumber
 {
     width: 3em;
@@ -344,21 +386,13 @@ div[data-rating] a:first-child:before
     
 }
 
-div[data-rating="1"] { color: #c64; }
-div[data-rating="2"] { color: #b86; }
-div[data-rating="3"] { color: #9a7; }
-div[data-rating="4"] { color: #8b8; }
-div[data-rating="5"] { color: #7c7; }
-
-
 div[data-rating="1"] > a:nth-child(-n+2):before, 
 div[data-rating="2"] > a:nth-child(-n+3):before, 
 div[data-rating="3"] > a:nth-child(-n+4):before, 
 div[data-rating="4"] > a:nth-child(-n+5):before, 
 div[data-rating="5"] > a:nth-child(-n+6):before
-{    content: "\2605";    color:inherit;}
+{ content: "\2605"; color:inherit; }
 
-div[data-rating]:hover a:before { color:Black; content: "\2605"; }
 
 div[data-rating]:hover a:hover + a:before, 
 div[data-rating]:hover a:hover + a + a:before, 
@@ -367,7 +401,7 @@ div[data-rating]:hover a:hover + a + a +a + a:before,
 div[data-rating]:hover a:hover + a + a +a + a + a:before
 { color:#aaa; content: "\2606";}
 
-#similar li[data-staticrating]:before
+li[data-staticrating]:before
 {
     position:absolute;
     text-align:right;
@@ -376,11 +410,19 @@ div[data-rating]:hover a:hover + a + a +a + a + a:before
     right:0;
 }
 
-#similar li[data-staticrating="1"]:before { content:"\2605"; color: #c64;  }
-#similar li[data-staticrating="2"]:before { content:"\2605\2605"; color: #b86;}
-#similar li[data-staticrating="3"]:before { content:"\2605\2605\2605";color: #9a7; }
-#similar li[data-staticrating="4"]:before { content:"\2605\2605\2605\2605";color: #8b8;  }
-#similar li[data-staticrating="5"]:before { content:"\2605\2605\2605\2605\2605";color: #7c7;  }
+li[data-staticrating="1"]:before { content:"\2605"; }
+li[data-staticrating="2"]:before { content:"\2605\2605";}
+li[data-staticrating="3"]:before { content:"\2605\2605\2605";}
+li[data-staticrating="4"]:before { content:"\2605\2605\2605\2605";}
+li[data-staticrating="5"]:before { content:"\2605\2605\2605\2605\2605";}
+
+div[data-rating]:hover a:before { content: "\2605"; color:Black; }
+li[data-staticrating="1"]:before, div[data-rating="1"], div[data-rating]:hover > a:nth-child(2):before {color: #d42;  }
+li[data-staticrating="2"]:before, div[data-rating="2"], div[data-rating]:hover > a:nth-child(3):before { color: #c74; }
+li[data-staticrating="3"]:before, div[data-rating="3"], div[data-rating]:hover > a:nth-child(4):before { color: #7b5; }
+li[data-staticrating="4"]:before, div[data-rating="4"], div[data-rating]:hover > a:nth-child(5):before { color: #4c4; }
+li[data-staticrating="5"]:before, div[data-rating="5"], div[data-rating]:hover > a:nth-child(6):before { color: #0d0; }
+
 
 .searchSect a
 {

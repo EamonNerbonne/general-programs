@@ -103,8 +103,8 @@ namespace SongDataLib {
 				switch (column.Item1) {
 					case SongColumn.Album: indexes = indexes.StringOrder(i => !(songs[i] is SongFileData) ? null : ((SongFileData)songs[i]).album, column.Item2); break;
 					case SongColumn.Artist: indexes = indexes.StringOrder(i => !(songs[i] is SongFileData) ? null : ((SongFileData)songs[i]).artist, column.Item2); break;
-					case SongColumn.Rating: indexes = indexes.OrderByEither(i => (!(songs[i] is SongFileData) ? null : ((SongFileData)songs[i]).rating) ?? 2, !column.Item2)
-						.OrderByEither(i => !(songs[i] is SongFileData) ? 0 : ((SongFileData)songs[i]).popularity.TitlePopularity, !column.Item2); break;
+					case SongColumn.Rating: indexes = indexes.OrderByEither(i => ((!(songs[i] is SongFileData) ? null : ((SongFileData)songs[i]).rating) ?? 2.5) * (!(songs[i] is SongFileData) ? 0 : ((SongFileData)songs[i]).popularity.TitlePopularity), !column.Item2);
+						break;
 					case SongColumn.Time: indexes = indexes.OrderByEither(i => !(songs[i] is SongFileData) ? 0 : ((SongFileData)songs[i]).length, column.Item2); break;
 					case SongColumn.Title: indexes = indexes.StringOrder(i => !(songs[i] is SongFileData) ? null : ((SongFileData)songs[i]).title, column.Item2); break;
 					case SongColumn.TrackNumber: indexes = indexes.OrderByEither(i => !(songs[i] is SongFileData) ? 0 : ((SongFileData)songs[i]).track, column.Item2); break;
