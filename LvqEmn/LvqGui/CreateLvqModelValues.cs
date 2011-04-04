@@ -161,8 +161,8 @@ namespace LvqGui {
 
 		static readonly Regex shR =
 	new Regex(@"
-				^(\w|\s)*?\:?\s*?
-				(?<ModelType>\b[A-Z][\w\d]*)
+				^([^:]*\:)?\s*?
+				(?<ModelType>\b[A-Z][A-Za-z0-9]*)
 				(\[(?<Dimensionality>[^\]]+)\])?
 				,(?<PrototypesPerClass>\d+)
 				,rP(?<RandomInitialProjection>\+?)
@@ -182,7 +182,11 @@ namespace LvqGui {
 				,lrX(?<LrScaleBad>\d*\.?\d*(e\d+)?)
 				(?<SlowStartLrBad>\!?)
 				(--.*)?\s*$",
-		RegexOptions.Compiled | RegexOptions.ExplicitCapture | RegexOptions.IgnorePatternWhitespace|RegexOptions.CultureInvariant);
+		RegexOptions.Compiled | RegexOptions.ExplicitCapture | RegexOptions.IgnorePatternWhitespace);
+
+		static CreateLvqModelValues() {
+			shR.IsMatch("");
+		}
 
 		bool isBoundaryModel { get { return ModelType == LvqModelType.G2mModelType || ModelType == LvqModelType.GgmModelType; } }
 
