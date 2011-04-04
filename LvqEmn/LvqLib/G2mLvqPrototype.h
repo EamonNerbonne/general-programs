@@ -27,12 +27,12 @@ public:
 	G2mLvqPrototype(boost::mt19937 & rng, bool randInit, int protoLabel, Vector_N const & initialVal);
 
 
-	inline float SqrDistanceTo(Vector_2 const & P_testPoint) const {
+	inline LvqFloat SqrDistanceTo(Vector_2 const & P_testPoint) const {
 		Vector_2 P_Diff = P_testPoint - P_point;
-		return (B * P_Diff).squaredNorm();//waslazy
+		return (B * P_Diff).squaredNorm();
 	}
 
-	inline double SqrRawDistanceTo(Vector_2 const & P_testPoint) const {
+	inline LvqFloat SqrRawDistanceTo(Vector_2 const & P_testPoint) const {
 		return (P_testPoint - P_point).squaredNorm();
 	}
 
