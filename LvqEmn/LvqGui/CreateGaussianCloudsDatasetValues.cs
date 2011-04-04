@@ -71,7 +71,7 @@ namespace LvqGui {
 
 		static readonly Regex shR =
 			new Regex(@"^\s*(.*?--)?nrm-(?<Dimensions>\d+)D(?<ExtendDataByCorrelation>\*?)-(?<NumberOfClasses>\d+)\*(?<PointsPerClass>\d+):(?<ClassCenterDeviation>[^\[]+)\[(?<Seed>\d+):(?<InstSeed>\d+)\]/(?<Folds>\d+)\s*$",
-				RegexOptions.Compiled | RegexOptions.ExplicitCapture);
+				RegexOptions.CultureInvariant | RegexOptions.ExplicitCapture);
 
 
 		public string Shorthand {

@@ -109,7 +109,7 @@ namespace LvqGui {
 		}
 		private bool _NgInitializeProtos;
 
-		
+
 
 		public bool UpdatePointsWithoutB {
 			get { return _UpdatePointsWithoutB; }
@@ -163,53 +163,48 @@ namespace LvqGui {
 	new Regex(@"
 				^([^:]*\:)?\s*?
 				(?<ModelType>\b[A-Z][A-Za-z0-9]*)
-				(\[(?<Dimensionality>[^\]]+)\])?
-				,(?<PrototypesPerClass>\d+)
-				,rP(?<RandomInitialProjection>\+?)
-				(,rB(?<RandomInitialBorders>\+?))?
-				,nP(?<NormalizeProjection>\+?)
-				(,nB(?<NormalizeBoundaries>\+?))?
-				(,gn(?<GloballyNormalize>\+?))?
-				(,NG(?<NgUpdateProtos>\+?))?
-				(,NGi(?<NgInitializeProtos>\+?))?
-				(,noB(?<UpdatePointsWithoutB>\+?))?
-				\[(?<Seed>\d+)\:(?<InstSeed>\d+)\]
-				/(?<ParallelModels>\d+)
-				(,pQ(?<TrackProjectionQuality>\+?))?
-				,lr0(?<LR0>\d*\.?\d*(e\d+)?)
-				,lrP(?<LrScaleP>\d*\.?\d*(e\d+)?)
-				,lrB(?<LrScaleB>\d*\.?\d*(e\d+)?)
-				,lrX(?<LrScaleBad>\d*\.?\d*(e\d+)?)
+				(\[(?<Dimensionality>[^\]]+)\])?,
+				(?<PrototypesPerClass>[0-9]+),
+				rP(?<RandomInitialProjection>\+?),
+				(rB(?<RandomInitialBorders>\+?),)?
+				nP(?<NormalizeProjection>\+?),
+				(nB(?<NormalizeBoundaries>\+?),)?
+				(gn(?<GloballyNormalize>\+?),)?
+				(NG(?<NgUpdateProtos>\+?),)?
+				(NGi(?<NgInitializeProtos>\+?),)?
+				(noB(?<UpdatePointsWithoutB>\+?),)?
+				\[(?<Seed>[0-9]+)\:(?<InstSeed>[0-9]+)\]/(?<ParallelModels>[0-9]+),
+				(pQ(?<TrackProjectionQuality>\+?),)?
+				lr0(?<LR0>[0-9]*(\.[0-9]*)?(e[0-9]+)?),
+				lrP(?<LrScaleP>[0-9]*(\.[0-9]*)?(e[0-9]+)?),
+				lrB(?<LrScaleB>[0-9]*(\.[0-9]*)?(e[0-9]+)?),
+				lrX(?<LrScaleBad>[0-9]*(\.[0-9]*)?(e[0-9]+)?),
 				(?<SlowStartLrBad>\!?)
 				(--.*)?\s*$",
-		RegexOptions.Compiled | RegexOptions.ExplicitCapture | RegexOptions.IgnorePatternWhitespace);
-
-		static CreateLvqModelValues() {
-			shR.IsMatch("");
-		}
+		RegexOptions.ExplicitCapture | RegexOptions.IgnorePatternWhitespace);
 
 		bool isBoundaryModel { get { return ModelType == LvqModelType.G2mModelType || ModelType == LvqModelType.GgmModelType; } }
 
 		public string Shorthand {
 			get {
 				return ModelType
-				+ (ModelType == LvqModelType.LgmModelType ? "[" + Dimensionality + "]" : "")
-				+ "," + PrototypesPerClass
-				+ ",rP" + (RandomInitialProjection ? "+" : "")
-				+ (isBoundaryModel ? ",rB" + (RandomInitialBorders ? "+" : "") : "")
-				+ ",nP" + (NormalizeProjection ? "+" : "")
-				+ (ModelType == LvqModelType.G2mModelType ? ",nB" + (NormalizeBoundaries ? "+" : "") : "")
-				+ (ModelType == LvqModelType.G2mModelType && NormalizeBoundaries || NormalizeProjection ? ",gn" + (GloballyNormalize ? "+" : "") : "")
-				+ (ModelType != LvqModelType.LgmModelType ? ",NG" + (NgUpdateProtos ? "+" : "") : "")
-				+ (PrototypesPerClass>1?",NGi" + (NgInitializeProtos ? "+" : ""):"")
-				+ (ModelType == LvqModelType.G2mModelType ? ",noB" + (UpdatePointsWithoutB ? "+" : "") : "")
-				+ "[" + Seed + ":" + InstSeed + "]/" + ParallelModels
-				+ (ModelType != LvqModelType.LgmModelType ? ",pQ" + (TrackProjectionQuality ? "+" : "") : "")
-				+ ",lr0" + LR0
-				+ ",lrP" + LrScaleP
-				+ ",lrB" + LrScaleB
-				+ ",lrX" + LrScaleBad
-				+ (SlowStartLrBad?"!":"")
+				+ (ModelType == LvqModelType.LgmModelType ? "[" + Dimensionality + "]" : "") + ","
+				+ PrototypesPerClass + ","
+				+ "rP" + (RandomInitialProjection ? "+" : "") + ","
+				+ (isBoundaryModel ? "rB" + (RandomInitialBorders ? "+" : "") : "") + ","
+				+ "nP" + (NormalizeProjection ? "+" : "") + ","
+				+ (ModelType == LvqModelType.G2mModelType ? "nB" + (NormalizeBoundaries ? "+" : "") + "," : "")
+				+ (ModelType == LvqModelType.G2mModelType && NormalizeBoundaries || NormalizeProjection ? "gn" + (GloballyNormalize ? "+" : "") + "," : "")
+				+ (ModelType != LvqModelType.LgmModelType ? "NG" + (NgUpdateProtos ? "+" : "") + "," : "")
+				+ (PrototypesPerClass > 1 ? "NGi" + (NgInitializeProtos ? "+" : "") + "," : "")
+				+ (ModelType == LvqModelType.G2mModelType ? "noB" + (UpdatePointsWithoutB ? "+" : "") + "," : "")
+				+ "[" + Seed + ":" + InstSeed + "]/" + ParallelModels + ","
+				+ (ModelType != LvqModelType.LgmModelType ? "pQ" + (TrackProjectionQuality ? "+" : "") + "," : "")
+				+ "lr0" + LR0 + ","
+				+ "lrP" + LrScaleP + ","
+				+ "lrB" + LrScaleB + ","
+				+ "lrX" + LrScaleBad + ","
+				+ (SlowStartLrBad ? "!" : "")
 				+ (ForDataset == null ? "" : "--" + ForDataset.DatasetLabel);
 			}
 			set { ShorthandHelper.ParseShorthand(this, shR, value); }
