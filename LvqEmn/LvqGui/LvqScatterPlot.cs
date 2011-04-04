@@ -136,7 +136,7 @@ namespace LvqGui {
 			public readonly bool ShowSelectedModelGraphs;
 			public readonly LvqDatasetCli dataset;
 			public readonly LvqModels model;
-			public readonly IVizEngine<Point[]>[] prototypeClouds, dataClouds;
+			public readonly IVizEngine<LvqModels.ModelProjectionAndImage>[] prototypeClouds, dataClouds;
 			public readonly IVizEngine<LvqModels.ModelProjectionAndImage> classBoundaries;
 			public readonly PlotControl scatterPlotControl;
 			public readonly IVizEngine<LvqModels>[] statPlots;
@@ -147,9 +147,11 @@ namespace LvqGui {
 				this.dataset = dataset;
 				this.model = model;
 				if (model.IsProjectionModel) {
-					prototypeClouds = MakePerClassScatterGraph(dataset, 0.3f, dataset.ClassCount * Math.Min(model.SubModels.First().PrototypeLabels.Length, 3), 1);
+					prototypeClouds = MakePerClassScatterGraph(dataset, 0.3f, dataset.ClassCount * Math.Min(model.SubModels.First().PrototypeLabels.Length, 3), 1)
+						.Select((graph,i)=>graph.Map((LvqModels.ModelProjectionAndImage proj)=>proj.PrototypesByLabel	[i])).ToArray();
 					classBoundaries = MakeClassBoundaryGraph();
-					dataClouds = MakePerClassScatterGraph(dataset, 1.0f);
+					dataClouds = MakePerClassScatterGraph(dataset, 1.0f)
+						.Select((graph, i) => graph.Map((LvqModels.ModelProjectionAndImage proj) => proj.PointsByLabel[i])).ToArray();
 					scatterPlotControl = MakeScatterPlotControl(dataClouds.Concat(prototypeClouds).Select(viz => viz.Plot).Concat(new[] { classBoundaries.Plot }));
 				}
 
@@ -254,8 +256,8 @@ namespace LvqGui {
 							subplots.SetScatterBounds(projectionAndImage.Bounds);
 							subplots.classBoundaries.ChangeData(projectionAndImage);
 							for (int i = 0; i < subplots.dataClouds.Length; ++i) {
-								subplots.dataClouds[i].ChangeData(projectionAndImage.PointsByLabel[i]);
-								subplots.prototypeClouds[i].ChangeData(projectionAndImage.PrototypesByLabel[i]);
+								subplots.dataClouds[i].ChangeData(projectionAndImage);
+								subplots.prototypeClouds[i].ChangeData(projectionAndImage);
 							}
 						});
 
