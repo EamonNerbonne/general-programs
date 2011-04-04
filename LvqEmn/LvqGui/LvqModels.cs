@@ -130,7 +130,7 @@ namespace LvqGui {
 				model.ResetLearningRate();
 		}
 
-		public int[,] ClassBoundaries(int subModelIdx, double x0, double x1, double y0, double y1, int xCols, int yRows) {
+		public byte[,] ClassBoundaries(int subModelIdx, double x0, double x1, double y0, double y1, int xCols, int yRows) {
 			return subModels[subModelIdx].ClassBoundaries(x0, x1, y0, y1, xCols, yRows);
 		}
 
@@ -161,7 +161,7 @@ namespace LvqGui {
 			var selectedModel = subModels[currSubModel];
 			ModelProjection projection;
 			Rect bounds;
-			int[,] closestClass;
+			byte[,] closestClass;
 			lock (selectedModel.ReadSync) {
 				projection = selectedModel.CurrentProjectionAndPrototypes(dataset);
 				if (!projection.HasValue) return null;
@@ -191,13 +191,11 @@ namespace LvqGui {
 			width = Math.Max(width, 1);
 			height = Math.Max(height, 1);
 			if (rect.Width / width < rect.Height / height) {
-				var bounds = DimensionBounds.FromRectX(rect);
-				bounds.Scale((rect.Height / height) / (rect.Width / width));
-				return new Rect(bounds.Start, rect.Y, bounds.Length, rect.Height);
+				double scale = (rect.Height / height) / (rect.Width / width);
+				return new Rect(rect.X - rect.Width * (scale - 1) / 2, rect.Y, rect.Width * scale, rect.Height);
 			} else {
-				var bounds = DimensionBounds.FromRectY(rect);
-				bounds.Scale((rect.Width / width) / (rect.Height / height));
-				return new Rect(rect.X, bounds.Start, rect.Width, bounds.Length);
+				double scale = (rect.Width / width) / (rect.Height / height);
+				return new Rect(rect.X, rect.Y - rect.Height * (scale - 1) / 2, rect.Width, rect.Height * scale);
 			}
 		}
 
@@ -216,13 +214,13 @@ namespace LvqGui {
 		}
 
 		struct IntPoint { public int X, Y;}
-		static uint[] BoundaryImageFor(int[,] closestClass, uint[] nativeColorsPerClass, int width, int renderwidth, int height, int renderheight) {
+		static uint[] BoundaryImageFor(byte[,] closestClass, uint[] nativeColorsPerClass, int width, int renderwidth, int height, int renderheight) {
 			List<IntPoint> boundaryPoints = GetBoundaryPoints(closestClass);
-			MakeBoundaryBlack(closestClass, boundaryPoints, nativeColorsPerClass.Length - 1);
+			MakeBoundaryBlack(closestClass, boundaryPoints, (byte)(nativeColorsPerClass.Length - 1));
 			return ToNativeColorBmp(closestClass, nativeColorsPerClass, width, renderwidth, height, renderheight);
 		}
 
-		static uint[] ToNativeColorBmp(int[,] closestClass, uint[] nativeColorsPerClass, int width, int renderwidth, int height, int renderheight) {
+		static uint[] ToNativeColorBmp(byte[,] closestClass, uint[] nativeColorsPerClass, int width, int renderwidth, int height, int renderheight) {
 			uint[] classboundaries = new uint[width * height];
 			int px = 0;
 			for (int y = 0; y < height; y++)
@@ -232,12 +230,12 @@ namespace LvqGui {
 			return classboundaries;
 		}
 
-		static void MakeBoundaryBlack(int[,] closestClass, List<IntPoint> boundaryPoints, int blackIdx) {
+		static void MakeBoundaryBlack(byte[,] closestClass, List<IntPoint> boundaryPoints, byte blackIdx) {
 			foreach (var coord in boundaryPoints)
 				closestClass[coord.Y, coord.X] = blackIdx;
 		}
 
-		static List<IntPoint> GetBoundaryPoints(int[,] closestClass) {
+		static List<IntPoint> GetBoundaryPoints(byte[,] closestClass) {
 			var edges = new List<IntPoint>();
 			for (int y = 1; y < closestClass.GetLength(0) - 1; y++)
 				for (int x = 1; x < closestClass.GetLength(1) - 1; x++) {

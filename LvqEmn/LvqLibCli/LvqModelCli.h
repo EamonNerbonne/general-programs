@@ -54,7 +54,7 @@ namespace LvqLibCli {
 
 		void ResetLearningRate();
 
-		array<int,2>^ ClassBoundaries(double x0, double x1, double y0, double y1,int xCols, int yRows);
+		array<unsigned char,2>^ ClassBoundaries(double x0, double x1, double y0, double y1,int xCols, int yRows);
 
 		ModelProjection CurrentProjectionAndPrototypes(LvqDatasetCli^ dataset);
 		property array<int>^ PrototypeLabels {array<int>^ get(); }

@@ -9,6 +9,13 @@ namespace LvqLibCli {
 
 	value class LvqTrainingStatCli;
 
+	generic<typename T>
+	value class MatrixContainer {
+	public:
+		array<T>^ arr;
+		int cols;
+	};
+
 	//template<typename TIn, typename TOut> TOut cliToCpp(TIn arr);
 	//template<typename TIn, typename TOut> TOut cppToCli(TIn const & arr);
 	using namespace std;
@@ -130,6 +137,5 @@ namespace LvqLibCli {
 			return retval;
 		}
 	};
-
 }
 
