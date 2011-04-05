@@ -2,7 +2,7 @@
 
 namespace EmnExtensions.Wpf.Plot.VizEngines {
 	public class VizPixelScatterSmart : VizTransformed<Point[], Point[]>, IVizPixelScatter {
-		const int MaxPointsInStreamGeometry = 15000;
+		const int MaxPointsInStreamGeometry = 10000;
 
 		IVizPixelScatter engine = new VizPixelScatterGeom();
 		protected override IVizEngine<Point[]> Implementation { get { return engine; } }
