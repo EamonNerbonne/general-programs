@@ -218,14 +218,16 @@ namespace LvqGui {
 			void UpdateClassBoundaries(WriteableBitmap bmp, Matrix dataToBmp, int width, int height, LvqModels.ModelProjectionAndImage lastProjection) {
 				lastWidthHeight = Tuple.Create(width, height);
 
-				if (width != lastProjection.Width || height != lastProjection.Height)
+				if (width != lastProjection.Width || height != lastProjection.Height) {
 					lastProjection = lastProjection.forModels.CurrentProjectionAndImage(lastProjection.forDataset, width, height);
+					SetScatterBounds(lastProjection.Bounds);
+				}
 				bmp.WritePixels(new Int32Rect(0, 0, width, height), lastProjection.ImageData, width * 4, 0);
 			}
 		}
 
-		void QueueUpdate() { Task.Factory.StartNew(UpdateQueueProcessor); }
-		void UpdateQueueProcessor() {
+		void QueueUpdate() { ThreadPool.QueueUserWorkItem(UpdateQueueProcessor); }
+		void UpdateQueueProcessor(object _) {
 			if (exitToken.IsCancellationRequested || !updateSync.UpdateEnqueue_IsMyTurn())
 				return;
 			SubPlots currsubplots;

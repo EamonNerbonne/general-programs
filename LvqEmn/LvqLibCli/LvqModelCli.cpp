@@ -116,18 +116,18 @@ namespace LvqLibCli {
 
 	array<int>^ LvqModelCli::PrototypeLabels::get() { array<int>^ retval; cppToCli(modelCopy->get()->GetPrototypeLabels(),retval); return retval;}
 
-	array<unsigned char,2>^ LvqModelCli::ClassBoundaries(double x0, double x1, double y0, double y1, int xCols, int yRows) {
+	MatrixContainer<unsigned char> LvqModelCli::ClassBoundaries(double x0, double x1, double y0, double y1, int xCols, int yRows) {
 		LvqProjectionModel::ClassDiagramT classDiagram(yRows,xCols);
-		if(modelCopy==nullptr) return nullptr;
+		if(modelCopy==nullptr) return MatrixContainer<unsigned char>();
 		LvqProjectionModel* projectionModelCopy = dynamic_cast<LvqProjectionModel*>(modelCopy->get());
-		if(!projectionModelCopy) return nullptr;
+		if(!projectionModelCopy) return MatrixContainer<unsigned char>();
 
 		msclr::lock l(copySync);
 		boost::scoped_ptr<LvqProjectionModel> projectionModelClone(static_cast<LvqProjectionModel*>(projectionModelCopy->clone()));
 		l.release();
 
 		projectionModelClone->ClassBoundaryDiagram(x0,x1,y0,y1,classDiagram);
-		return ToCli<array<unsigned char,2>^>::From(classDiagram.transpose());
+		return ToCli<MatrixContainer<unsigned char> >::From(classDiagram.transpose());
 	}
 
 	void LvqModelCli::Train(int epochsToDo,LvqDatasetCli^ trainingSet, int datafold){

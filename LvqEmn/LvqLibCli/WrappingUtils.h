@@ -10,10 +10,22 @@ namespace LvqLibCli {
 	value class LvqTrainingStatCli;
 
 	generic<typename T>
-	value class MatrixContainer {
+	public value class MatrixContainer {
 	public:
 		array<T>^ arr;
 		int cols;
+		int rows;
+
+		//property int rows {int get(){return arr->Length / cols;}}
+		bool IsSet() {return arr != nullptr;}
+		void Set(int row, int col,T val) {arr[row*cols+col]=val; }
+		T Get(int row, int col) {return arr[row*cols+col];}
+		property T default[int,int] {
+			T get(int i,int j) { return arr[i*cols+j]; }
+			void set(int i,int j,T val) { arr[i*cols+j] = val; }
+		}
+
+		MatrixContainer(int rows, int cols) : cols(cols),rows(rows) {arr=gcnew array<T>(rows*cols); }
 	};
 
 	//template<typename TIn, typename TOut> TOut cliToCpp(TIn arr);
@@ -65,7 +77,7 @@ namespace LvqLibCli {
 		template<bool isVector >
 		static inline array<typename MatrixBase<TDerived>::Scalar, (isVector?1: 2) >^ cppToCliHelper(MatrixBase<TDerived> const & matrix);
 		template<>
-		static inline array<typename MatrixBase<TDerived>::Scalar, 1>^ cppToCliHelper<true>(MatrixBase<TDerived> const & matrix){
+		static inline array<typename MatrixBase<TDerived>::Scalar>^ cppToCliHelper<true>(MatrixBase<TDerived> const & matrix){
 			typedef MatrixBase<TDerived>::Scalar T;
 			array<T>^ points = gcnew array<T>(static_cast<int>(matrix.size()));
 			for(int i=0; i<points->GetLength(0); ++i)
@@ -106,6 +118,22 @@ namespace LvqLibCli {
 	inline void cppToCli(MatrixBase<TDerived> const & matrix,array<typename MatrixBase<TDerived>::Scalar, (MatrixBase<TDerived>::Base::IsVectorAtCompileTime?1: 2) >^% retval ) {
 		retval= MatrixOrVectorChooser<TDerived>::cppToCliHelper<MatrixBase<TDerived>::IsVectorAtCompileTime>(matrix);
 	}
+
+	template<typename TDerived>
+	inline void cppToCli(MatrixBase<TDerived> const & matrix, MatrixContainer<typename MatrixBase<TDerived>::Scalar>%points) {
+			
+			typedef MatrixBase<TDerived>::Scalar T;
+			points=MatrixContainer<T>(static_cast<int>(matrix.cols()), static_cast<int>(matrix.rows()));
+			
+			for(int i=0; i<points.rows; ++i)
+				for(int j=0; j<points.cols; ++j) {
+					T val;
+					cppToCli(matrix(j,i), val);
+					points.Set(i, j, val);
+				}
+		}
+
+
 
 	template<typename TDerived>
 	inline void cppToCli(MatrixBase<TDerived> const & matrix,System::Windows::Point% retval ) {

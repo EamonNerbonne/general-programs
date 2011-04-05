@@ -130,7 +130,7 @@ namespace LvqGui {
 				model.ResetLearningRate();
 		}
 
-		public byte[,] ClassBoundaries(int subModelIdx, double x0, double x1, double y0, double y1, int xCols, int yRows) {
+		public MatrixContainer<byte> ClassBoundaries(int subModelIdx, double x0, double x1, double y0, double y1, int xCols, int yRows) {
 			return subModels[subModelIdx].ClassBoundaries(x0, x1, y0, y1, xCols, yRows);
 		}
 
@@ -161,11 +161,11 @@ namespace LvqGui {
 			var selectedModel = subModels[currSubModel];
 			ModelProjection projection;
 			Rect bounds;
-			byte[,] closestClass;
+			MatrixContainer<byte> closestClass;
 			lock (selectedModel.ReadSync) {
 				projection = selectedModel.CurrentProjectionAndPrototypes(dataset);
 				if (!projection.HasValue) return null;
-				bounds = ExpandToShape(width, height, ComputeProjectionBounds(projection.Prototypes.Select(lp => lp.point), projection.Points.Select(lp => lp.point)));
+				bounds = ExpandToShape(renderwidth, renderheight, ComputeProjectionBounds(projection.Prototypes.Select(lp => lp.point), projection.Points.Select(lp => lp.point)));
 				closestClass = selectedModel.ClassBoundaries(bounds.Left, bounds.Right, bounds.Bottom, bounds.Top, renderwidth, renderheight);
 			}
 			Debug.Assert(NotDefault(projection));
@@ -214,13 +214,13 @@ namespace LvqGui {
 		}
 
 		struct IntPoint { public int X, Y;}
-		static uint[] BoundaryImageFor(byte[,] closestClass, uint[] nativeColorsPerClass, int width, int renderwidth, int height, int renderheight) {
+		static uint[] BoundaryImageFor(MatrixContainer<byte> closestClass, uint[] nativeColorsPerClass, int width, int renderwidth, int height, int renderheight) {
 			List<IntPoint> boundaryPoints = GetBoundaryPoints(closestClass);
 			MakeBoundaryBlack(closestClass, boundaryPoints, (byte)(nativeColorsPerClass.Length - 1));
 			return ToNativeColorBmp(closestClass, nativeColorsPerClass, width, renderwidth, height, renderheight);
 		}
 
-		static uint[] ToNativeColorBmp(byte[,] closestClass, uint[] nativeColorsPerClass, int width, int renderwidth, int height, int renderheight) {
+		static uint[] ToNativeColorBmp(MatrixContainer<byte> closestClass, uint[] nativeColorsPerClass, int width, int renderwidth, int height, int renderheight) {
 			uint[] classboundaries = new uint[width * height];
 			int px = 0;
 			for (int y = 0; y < height; y++)
@@ -230,19 +230,21 @@ namespace LvqGui {
 			return classboundaries;
 		}
 
-		static void MakeBoundaryBlack(byte[,] closestClass, List<IntPoint> boundaryPoints, byte blackIdx) {
+		static void MakeBoundaryBlack(MatrixContainer<byte> closestClass, List<IntPoint> boundaryPoints, byte blackIdx) {
 			foreach (var coord in boundaryPoints)
-				closestClass[coord.Y, coord.X] = blackIdx;
+				closestClass.Set(coord.Y, coord.X, blackIdx);
 		}
 
-		static List<IntPoint> GetBoundaryPoints(byte[,] closestClass) {
+		static List<IntPoint> GetBoundaryPoints(MatrixContainer<byte> closestClass) {
 			var edges = new List<IntPoint>();
-			for (int y = 1; y < closestClass.GetLength(0) - 1; y++)
-				for (int x = 1; x < closestClass.GetLength(1) - 1; x++) {
-					if (closestClass[y, x] != closestClass[y, x - 1]
-						|| closestClass[y, x] != closestClass[y, x + 1]
-						|| closestClass[y, x] != closestClass[y - 1, x]
-						|| closestClass[y, x] != closestClass[y + 1, x]
+			for (int y = 1; y < closestClass.rows - 1; y++)
+				for (int x = 1; x < closestClass.cols - 1; x++) {
+					int addr = closestClass.cols * y + x;
+					var val = closestClass.arr[addr];
+					if (val != closestClass.arr[addr - 1]
+						|| val != closestClass.arr[addr + 1]
+						|| val != closestClass.arr[addr - closestClass.cols]
+						|| val != closestClass.arr[addr + closestClass.cols]
 						)
 						edges.Add(new IntPoint { X = x, Y = y });
 				}

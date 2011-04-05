@@ -21,7 +21,7 @@ public:
 		for(int yRow=0; yRow < rows; yRow++) {
 			double x = xBase;
 			for(int xCol=0; xCol < cols; xCol++) {
-				classDiagram(yRow,xCol) = self.classifyProjectedInline(Vector_2(x,y));
+				classDiagram(yRow,xCol) = (unsigned char)self.classifyProjectedInline(Vector_2(x,y));
 				x+=xDelta;
 			}
 			y+=yDelta;

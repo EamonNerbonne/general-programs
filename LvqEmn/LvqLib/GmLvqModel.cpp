@@ -92,8 +92,8 @@ MatchQuality GmLvqModel::learnFrom(Vector_N const & trainPoint, int trainLabel) 
 
 LvqModel* GmLvqModel::clone() const { return new GmLvqModel(*this);	}
 
-Matrix_NN GmLvqModel::GetProjectedPrototypes() const {
-	Matrix_NN retval(LVQ_LOW_DIM_SPACE, static_cast<int>(prototype.size()));
+Matrix_2N GmLvqModel::GetProjectedPrototypes() const {
+	Matrix_2N retval(LVQ_LOW_DIM_SPACE, static_cast<int>(prototype.size()));
 	for(unsigned i=0;i<prototype.size();++i)
 		retval.col(i) = P_prototype[i];
 	return retval;

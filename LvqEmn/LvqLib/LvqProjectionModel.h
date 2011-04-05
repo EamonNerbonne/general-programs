@@ -18,7 +18,7 @@ public:
 	virtual ~LvqProjectionModel() { }
 	Matrix_P const & projectionMatrix() const {return P;}
 	virtual int Dimensions() const {return static_cast<int>(P.cols());}
-	virtual Matrix_NN GetProjectedPrototypes() const=0;
+	virtual Matrix_2N GetProjectedPrototypes() const=0;
 	virtual int classifyProjected(Vector_2 const & unknownProjectedPoint) const=0;
 	virtual void ClassBoundaryDiagram(double x0, double x1, double y0, double y1, LvqProjectionModel::ClassDiagramT & classDiagram) const=0;
 };

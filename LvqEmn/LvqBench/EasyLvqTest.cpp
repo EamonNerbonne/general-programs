@@ -56,8 +56,19 @@ void PrintModelStatus(char const * label,LvqModel const * model,LvqDataset const
 
 	cerr << label<< ": "<<stats.errorRate << ", "<<stats.meanCost;
 	LvqProjectionModel const * projectionModel = dynamic_cast<LvqProjectionModel const*>(model);
-	if(projectionModel) 
-		cerr<<" [norm: "<< projectionSquareNorm(projectionModel->projectionMatrix()) <<"]";
+	if(projectionModel) {
+		LvqProjectionModel::ClassDiagramT diagram(800,800);
+		Matrix_2N protos = projectionModel->GetProjectedPrototypes();
+		Vector_2 minV= protos.colwise().minCoeff();
+		Vector_2 maxV= protos.colwise().maxCoeff();
+		Vector_2 range = maxV-minV;
+		minV-=range;
+		maxV+=range;
+
+		projectionModel->ClassBoundaryDiagram(minV(0),maxV(0),minV(1),maxV(1),diagram);
+
+		cerr<<" [norm: "<< projectionSquareNorm(projectionModel->projectionMatrix()) <<"]"<<diagram.cast<unsigned>().sum()<<";";
+	}
 	cerr<<endl;
 }
 
@@ -86,6 +97,7 @@ void TestModel(LvqModelSettings::LvqModelType modelType, mt19937 & rndGenOrig, b
 		int itersTodo = itersUpto-itersDone;
 		if(itersTodo>0) {
 			dataset->TrainModel(itersTodo, model.get(),NULL,dataset->GetTrainingSubset(0,0), 0,vector<int>() );
+			LvqProjectionModel* projModel = dynamic_cast<LvqProjectionModel*>(model.get());
 			PrintModelStatus("Trained",model.get(),dataset);
 		}
 	}

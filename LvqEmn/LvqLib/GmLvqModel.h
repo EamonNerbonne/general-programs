@@ -52,7 +52,7 @@ public:
 	MatchQuality learnFrom(Vector_N const & newPoint, int classLabel);
 	LvqModel* clone() const; 
 
-	Matrix_NN GetProjectedPrototypes() const;
+	Matrix_2N GetProjectedPrototypes() const;
 	std::vector<int> GetPrototypeLabels() const;
 	virtual void DoOptionalNormalization();
 	virtual void ClassBoundaryDiagram(double x0, double x1, double y0, double y1, LvqProjectionModel::ClassDiagramT & classDiagram) const;

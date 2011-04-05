@@ -176,8 +176,8 @@ size_t GgmLvqModel::MemAllocEstimate() const {
 		(16/2) * (4+prototype.size()*2);//estimate for alignment mucking.
 }
 
-Matrix_NN GgmLvqModel::GetProjectedPrototypes() const {
-	Matrix_NN retval(LVQ_LOW_DIM_SPACE, static_cast<int>(prototype.size()));
+Matrix_2N GgmLvqModel::GetProjectedPrototypes() const {
+	Matrix_2N retval(LVQ_LOW_DIM_SPACE, static_cast<int>(prototype.size()));
 	for(unsigned i=0;i<prototype.size();++i)
 		retval.col(i) = prototype[i].projectedPosition();
 	return retval;
