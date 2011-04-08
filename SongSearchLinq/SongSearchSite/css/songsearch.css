@@ -141,13 +141,21 @@ body
 {
     color:White;
     background:#333;
-    padding:0 0.3em;
-    border-radius:1.3em;
+    padding:0;
+    border-radius:1.5em;
+    width:1.4em;
+    height:1.4em;
+    font-size:90%;
+    display:block;
     border:1px solid black;
+    text-align:center;
+    
     position:relative;
 }
+#do_shuffle, #do_addAll, #do_removeAll, #repeat_playlist_box_li { position:relative; font-size:90%;vertical-align:baseline; }
 
-#do_shuffle:after, #do_addAll:after, #do_removeAll:after 
+
+#do_shuffle:after, #do_addAll:after, #do_removeAll:after, #repeat_playlist_box_li:after
 {
     position:absolute;
     display:none;
@@ -163,7 +171,7 @@ body
      white-space:pre;
 }
 
-#do_shuffle:hover:after, #do_addAll:hover:after, #do_removeAll:hover:after 
+#do_shuffle:hover:after, #do_addAll:hover:after, #do_removeAll:hover:after , #repeat_playlist_box_li:hover:after
 {
     display:block;
 }
@@ -172,9 +180,10 @@ body
     box-shadow: 0 0 2em white, 0 0 0.5em white;
     background:black;
 }
-#do_addAll:after {    content: "Add all tracks to playlist"; top:auto; margin-bottom:0.5em; bottom:100%;}
-#do_removeAll:after {    content: "Remove all tracks from playlist";}
-#do_shuffle:after {    content: "Shuffle playlist";}
+#do_addAll:after { content: "Add all tracks to playlist"; top:auto; margin-bottom:0.5em; bottom:100%; }
+#do_removeAll:after { content: "Remove all tracks from playlist"; }
+#do_shuffle:after { content: "Shuffle playlist"; }
+#repeat_playlist_box_li:after { content: "Loop playlist"; }
 
 
 
@@ -355,6 +364,7 @@ body
     background: #f8b8b0;
     border: 1px solid #e89890;
 }
+
 .deleteButton:hover 
 {
     background: #ffa8a0;

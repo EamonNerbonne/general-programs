@@ -55,8 +55,13 @@
                     </li>
                     <li id="jplayer_volume_max" class="jp-volume-max">
                         <img src="img/volume.png" alt="max volume" /></li>
-                        <li><button id="do_shuffle">S</button></li>
-                        <li><button id="do_removeAll">X</button></li>
+                    <li>
+                        <span id="do_shuffle">
+                            S</span></li>
+                    <li>
+                        <span id="do_removeAll">
+                            X</span></li>
+                    <li id="repeat_playlist_box_li"><input type="checkbox" id="repeat_playlist_box"/></li>
                 </ul>
             </div>
         </div>
@@ -67,18 +72,21 @@
         <h3>
             SongSearch - search &amp; play songs</h3>
         <form method="get" action="pl.xml" id="searchForm" target="resultsview">
-            <input type="hidden" name="view" value="xslt" />
-            <input type="hidden" name="ordering" id="orderingEl" value="" />
-            Find:
-            <input id="searchquery" type="text" name="q" autocomplete="off" placeholder="Search for Music..."
-                autofocus="autofocus" />
-            showing
-            <input id="shownumber" type="text" value="100" name="top" />
-            results.<br />
+        <input type="hidden" name="view" value="xslt" />
+        <input type="hidden" name="ordering" id="orderingEl" value="" />
+        Find:
+        <input id="searchquery" type="text" name="q" autocomplete="off" placeholder="Search for Music..."
+            autofocus="true" />
+        showing
+        <input id="shownumber" type="text" value="100" name="top" />
+        results.<br />
         </form>
-       <button id="do_addAll">A</button>
-       <div id="matchlinksect">download all matches as: <a class="matchLink" href="playlist.m3u?q=" target="_blank">m3u</a> <a class="matchLink"
-            href="playlist.m3u8?q=" target="_blank">m3u8</a></div>
+        <div id="matchlinksect">
+            download all matches as: <a class="matchLink" href="playlist.m3u?q=" target="_blank">
+                m3u</a> <a class="matchLink" href="playlist.m3u8?q=" target="_blank">m3u8</a></div>
+                        <span id="do_addAll">
+            A</span>
+
     </div>
     <div id="forOptions">
         <fieldset id="optionsBox" class="OptionsBuilder-uninitialized">

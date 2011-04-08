@@ -459,7 +459,7 @@ $(document).ready(function ($) {
 
     $("#do_removeAll").click(emptyPlaylist);
 
-    function playlistNext() { playlistChange($(playlistItem).next()[0]); }
+    function playlistNext() { playlistChange(  $(playlistItem).next()[0] || $("#repeat_playlist_box:checked")[0] && $("#jplayer_playlist ul li")[0]  ); }
 
     function playlistPrev() { playlistChange($(playlistItem).prev()[0]); }
 
