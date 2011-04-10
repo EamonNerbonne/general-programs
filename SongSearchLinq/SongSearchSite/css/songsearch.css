@@ -211,7 +211,7 @@ body
 #similar li
 {
     display: block;
-    font-size: 83.4%;
+    font-size: 80.0%;
 }
 #similar .unknown
 {
@@ -348,8 +348,8 @@ body
     margin-right:-1.7em;
 
     border-radius: 2em;
-    width:1.3em;
-    height:1.3em;
+    width:1.2em;
+    height:1.2em;
 
     cursor:pointer;
     text-transform: uppercase;
@@ -361,14 +361,14 @@ body
    
     color: White;
     text-shadow:0 0 0.1em black;
-    background: #f8b8b0;
-    border: 1px solid #e89890;
+    background: #f89890;
+    border: 1px solid #e87870;
 }
 
 .deleteButton:hover 
 {
-    background: #ffa8a0;
-    border: 1px solid #e87870;
+    background: #ff8880;
+    border: 1px solid #e85850;
     box-shadow: 0 0 0.5em rgb(150,150,150);
 }
 
@@ -388,6 +388,9 @@ div[data-rating] a:before
 {
     content: "\2606";
     color:#ccc; 
+    text-shadow:white 0 0 0.1em;
+    font-size: 110%;
+    letter-spacing:-0.15em;
 }
 div[data-rating] a:first-child:before 
 {
@@ -415,9 +418,13 @@ li[data-staticrating]:before
 {
     position:absolute;
     text-align:right;
-    top:0;
+    bottom:0;
+    vertical-align:top;
     color:#888;
     right:0;
+    text-shadow:white 0 0 0.1em;
+    font-size: 110%;
+    letter-spacing:-0.15em;
 }
 
 li[data-staticrating="1"]:before { content:"\2605"; }
