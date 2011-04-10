@@ -18,6 +18,7 @@ namespace LvqGui {
 		public event PropertyChangedEventHandler PropertyChanged;
 		public event Action<LvqDatasetCli, LvqModels, int> ModelSelected;
 		public event Action<LvqDatasetCli, LvqModels> SelectedModelUpdatedInBackgroundThread;
+		public event Action<bool> ShowBoundariesSet;
 
 		void _propertyChanged(string propertyName) { if (PropertyChanged != null) PropertyChanged(this, new PropertyChangedEventArgs(propertyName)); }
 
@@ -53,6 +54,12 @@ namespace LvqGui {
 		}
 		private bool _CurrProjStats;
 
+		public bool ShowBoundaries {
+			get { return _ShowBoundaries; }
+			set { if (!_ShowBoundaries.Equals(value)) { _ShowBoundaries = value; _propertyChanged("ShowBoundaries"); ShowBoundariesSet(value); } }
+		}
+		private bool _ShowBoundaries;
+
 		public int EpochsPerClick {
 			get { return _EpochsPerClick; }
 			set { if (value < 1) throw new ArgumentException("Must train for at least 1 epoch at a  time"); if (!Equals(_EpochsPerClick, value)) { _EpochsPerClick = value; _propertyChanged("EpochsPerClick"); } }
@@ -69,10 +76,9 @@ namespace LvqGui {
 			this.owner = owner;
 			EpochsPerClick = 400;
 			EpochsPerAnimation = 5;
+			_ShowBoundaries = true;
 			owner.LvqModels.CollectionChanged += LvqModels_CollectionChanged;
 		}
-
-
 
 		CancellationTokenSource stopTraining;
 		Task trainingTask;

@@ -33,5 +33,11 @@ namespace EmnExtensions.Wpf.Plot {
 
 		double? m_Thickness;
 		public double? RenderThickness { get { return m_Thickness; } set { m_Thickness = value; TriggerChange(GraphChange.RenderOptions); } }
+
+		bool hidden;
+		public bool Hidden {
+			get {return hidden;}
+			set { if (hidden != value) { hidden = value; TriggerChange(GraphChange.Visibility); } }
+		}
 	}
 }

@@ -21,6 +21,7 @@ namespace EmnExtensions.Wpf.Plot {
 	public partial class PlotControl : IPlotContainer {
 		bool needRedrawGraphs;
 		readonly ObservableCollection<IPlot> graphs = new ObservableCollection<IPlot>();
+		IEnumerable<IPlot> visibleGraphs { get { return graphs.Where(g => !g.MetaData.Hidden); } }
 		public ObservableCollection<IPlot> Graphs { get { return graphs; } }
 		public IEnumerable<IPlot> GraphsEnumerable { get { return graphs; } set { Graphs.Clear(); foreach (var plot in value) Graphs.Add(plot); } }
 		readonly DrawingBrush bgBrush;
@@ -94,8 +95,8 @@ namespace EmnExtensions.Wpf.Plot {
 				UnregisterChanged(e.OldItems.Cast<IPlot>());
 			if (e.NewItems != null)
 				RegisterChanged(e.NewItems.Cast<IPlot>());
-			//RecomputeAutoAxis();
-			RequireRedisplay();
+			if (e.OldItems != null && e.OldItems.Count > 0 || e.NewItems!=null && e.NewItems.Cast<IPlot>().Any(p => !p.MetaData.Hidden))
+				RequireRedisplay();
 		}
 
 		void RequireRedisplay() {
@@ -118,19 +119,24 @@ namespace EmnExtensions.Wpf.Plot {
 			}
 		}
 
+
+
 		void IPlotContainer.GraphChanged(IPlot plot, GraphChange graphChange) {
-			switch (graphChange) {
-				case GraphChange.Drawing:
-					needRedrawGraphs = true;
-					InvalidateVisual();
-					break;
-				case GraphChange.Projection:
-					InvalidateMeasure();
-					break;
-				case GraphChange.Labels:
-					RequireRedisplay();
-					break;
-			}
+			if (GraphChange.Visibility == graphChange)
+				RequireRedisplay();
+			else if (!plot.MetaData.Hidden)
+				switch (graphChange) {
+					case GraphChange.Drawing:
+						needRedrawGraphs = true;
+						InvalidateVisual();
+						break;
+					case GraphChange.Projection:
+						InvalidateMeasure();
+						break;
+					case GraphChange.Labels:
+						RequireRedisplay();
+						break;
+				}
 		}
 
 		IEnumerable<TickedAxis> Axes { get { yield return tickedAxisLft; yield return tickedAxisBot; yield return tickedAxisRgt; yield return tickedAxisTop; } }
@@ -162,7 +168,7 @@ namespace EmnExtensions.Wpf.Plot {
 
 			foreach (TickedAxis axis in Axes) {
 				// ReSharper disable AccessToModifiedClosure
-				var boundGraphs = graphs.Where(graph => (graph.MetaData.AxisBindings & axis.AxisPos) != 0);
+				var boundGraphs = visibleGraphs.Where(graph => (graph.MetaData.AxisBindings & axis.AxisPos) != 0);
 				DimensionBounds bounds =
 					boundGraphs
 					.Select(graph => ToDimBounds(graph.EffectiveDataBounds(), axis.IsHorizontal))
@@ -210,7 +216,7 @@ namespace EmnExtensions.Wpf.Plot {
 				foreach (var axis in Axes)
 					if ((axis.AxisPos & gridLineAxes) != 0)
 						drawingContext.DrawDrawing(axis.GridLines);
-			foreach (var graph in graphs.OrderBy(g => g.MetaData.ZIndex))
+			foreach (var graph in visibleGraphs.OrderBy(g => g.MetaData.ZIndex))
 				graph.Visualisation.DrawGraph(drawingContext);
 			//drawingContext.Pop();
 		}
@@ -226,7 +232,7 @@ namespace EmnExtensions.Wpf.Plot {
 		protected override void OnRender(DrawingContext drawingContext) {
 			Trace.WriteLine("PlotControl.OnRender");
 			//axes which influence projection matrices:
-			TickedAxisLocation relevantAxes = graphs.Aggregate(TickedAxisLocation.None, (axisLoc, graph) => axisLoc | ChooseProjection(graph));
+			TickedAxisLocation relevantAxes = visibleGraphs.Aggregate(TickedAxisLocation.None, (axisLoc, graph) => axisLoc | ChooseProjection(graph));
 			var transforms =
 				from axis in Axes
 				where (axis.AxisPos & relevantAxes) != 0 && axis.DataBound.Length > 0
@@ -255,7 +261,7 @@ namespace EmnExtensions.Wpf.Plot {
 			//    .Aggregate(Rect.Empty, Rect.Union);
 			//overallClipRect.Rect = overallClip;
 
-			foreach (var graph in graphs) {
+			foreach (var graph in visibleGraphs) {
 				var graphCorner = ChooseProjection(graph);
 				if (cornerProjection.ContainsKey(graphCorner)) {
 					var trans = cornerProjection[graphCorner];
@@ -297,18 +303,18 @@ namespace EmnExtensions.Wpf.Plot {
 					Filter = "XPS files (*.xps)|*.xps",
 				};
 
-				using (var emnExtensionsWpfKey = Registry.CurrentUser.OpenSubKey(@"Software\EmnExtensionsWpf")) 
+				using (var emnExtensionsWpfKey = Registry.CurrentUser.OpenSubKey(@"Software\EmnExtensionsWpf"))
 					if (emnExtensionsWpfKey != null)
 						saveDialog.InitialDirectory = emnExtensionsWpfKey.GetValue("ExportDir") as string;
-				
+
 
 				// ReSharper disable ConstantNullCoalescingCondition
 				if (saveDialog.ShowDialog() ?? false) {
 					// ReSharper restore ConstantNullCoalescingCondition
 					FileInfo selectedFile = new FileInfo(saveDialog.FileName);
-					using (var emnExtensionsWpfKey = Registry.CurrentUser.CreateSubKey(@"Software\EmnExtensionsWpf")) 
+					using (var emnExtensionsWpfKey = Registry.CurrentUser.CreateSubKey(@"Software\EmnExtensionsWpf"))
 						emnExtensionsWpfKey.SetValue("ExportDir", selectedFile.Directory.FullName);
-					
+
 
 					using (var fileStream = selectedFile.Open(FileMode.Create))
 						fileStream.Write(xpsData, 0, xpsData.Length);

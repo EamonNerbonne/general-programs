@@ -24,7 +24,7 @@ namespace LvqGui {
 
 		readonly Dispatcher lvqPlotDispatcher;
 
-		public void DisplayModel(LvqDatasetCli dataset, LvqModels model, int new_subModelIdx, bool showSelectedModelGraphs) {
+		public void DisplayModel(LvqDatasetCli dataset, LvqModels model, int new_subModelIdx, bool showSelectedModelGraphs, bool showBoundaries) {
 			lvqPlotDispatcher.BeginInvoke(() => {
 				SubPlots newsubplots;
 
@@ -49,11 +49,21 @@ namespace LvqGui {
 					if (model != null)
 						model.SelectedSubModel = new_subModelIdx;
 				}
-
-				QueueUpdate();
+				ShowBoundaries(showBoundaries);
 				RelayoutSubPlotWindow(true);
 			});
 		}
+
+		public void ShowBoundaries(bool visible) {
+
+			lock (plotsSync)
+				if (subplots != null && subplots.classBoundaries != null)
+					lvqPlotDispatcher.BeginInvoke(() =>
+						subplots.classBoundaries.Plot.MetaData.Hidden = !visible
+					);
+			QueueUpdate();
+		}
+
 
 		void RelayoutSubPlotWindow(bool resetChildrenFirst = false) {
 			Grid plotGrid = (Grid)subPlotWindow.Content;
@@ -148,7 +158,7 @@ namespace LvqGui {
 				this.model = model;
 				if (model.IsProjectionModel) {
 					prototypeClouds = MakePerClassScatterGraph(dataset, 0.3f, dataset.ClassCount * Math.Min(model.SubModels.First().PrototypeLabels.Length, 3), 1)
-						.Select((graph,i)=>graph.Map((LvqModels.ModelProjectionAndImage proj)=>proj.PrototypesByLabel	[i])).ToArray();
+						.Select((graph, i) => graph.Map((LvqModels.ModelProjectionAndImage proj) => proj.PrototypesByLabel[i])).ToArray();
 					classBoundaries = MakeClassBoundaryGraph();
 					dataClouds = MakePerClassScatterGraph(dataset, 1.0f)
 						.Select((graph, i) => graph.Map((LvqModels.ModelProjectionAndImage proj) => proj.PointsByLabel[i])).ToArray();
@@ -217,12 +227,15 @@ namespace LvqGui {
 
 			void UpdateClassBoundaries(WriteableBitmap bmp, Matrix dataToBmp, int width, int height, LvqModels.ModelProjectionAndImage lastProjection) {
 				lastWidthHeight = Tuple.Create(width, height);
+				bool hideBoundaries = classBoundaries.Plot.MetaData.Hidden;
 
-				if (width != lastProjection.Width || height != lastProjection.Height) {
-					lastProjection = lastProjection.forModels.CurrentProjectionAndImage(lastProjection.forDataset, width, height);
-					SetScatterBounds(lastProjection.Bounds);
+				if (!hideBoundaries) {
+					if (width != lastProjection.Width || height != lastProjection.Height || lastProjection.ImageData == null) {
+						lastProjection = lastProjection.forModels.CurrentProjectionAndImage(lastProjection.forDataset, width, height, hideBoundaries);
+						SetScatterBounds(lastProjection.Bounds);
+					}
+					bmp.WritePixels(new Int32Rect(0, 0, width, height), lastProjection.ImageData, width * 4, 0);
 				}
-				bmp.WritePixels(new Int32Rect(0, 0, width, height), lastProjection.ImageData, width * 4, 0);
 			}
 		}
 
@@ -250,8 +263,8 @@ namespace LvqGui {
 		static IEnumerable<DispatcherOperation> DisplayUpdateOperations(SubPlots subplots) {
 			if (subplots != null) {
 				var wh = subplots.LastWidthHeight;
-				var projectionAndImage = subplots.model.CurrentProjectionAndImage(subplots.dataset, wh == null ? 0 : wh.Item1, wh == null ? 0 : wh.Item2);
-				
+				var projectionAndImage = subplots.model.CurrentProjectionAndImage(subplots.dataset, wh == null ? 0 : wh.Item1, wh == null ? 0 : wh.Item2, subplots.classBoundaries.Plot.MetaData.Hidden);
+
 				if (projectionAndImage != null && subplots.prototypeClouds != null)
 					yield return subplots.scatterPlotControl.Dispatcher.BeginInvokeBackground(
 						() => {

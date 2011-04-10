@@ -26,6 +26,9 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
@@ -76,8 +79,9 @@
         </StackPanel>
 
         <CheckBox Grid.Row="6" Grid.Column="1" Content="Show Current Projection Statistics" IsChecked="{Binding CurrProjStats}"/>
+        <CheckBox Grid.Row="7" Grid.Column="1" Content="Show Boundaries" IsChecked="{Binding ShowBoundaries}"/>
 
-        <StackPanel Grid.Row="7" Grid.Column="0" Grid.ColumnSpan="2"   Orientation="Horizontal" HorizontalAlignment="Right">
+        <StackPanel Grid.Row="8" Grid.Column="0" Grid.ColumnSpan="2"   Orientation="Horizontal" HorizontalAlignment="Right">
             <Button Content="Current Stats" Click="PrintCurrentStats"/>
             <Button Content="Print LR" Click="PrintLearningRate"/>
             <Button Content="Reset LR" Click="ResetLearningRate"/>

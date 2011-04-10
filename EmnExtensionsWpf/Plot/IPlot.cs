@@ -17,6 +17,7 @@ namespace EmnExtensions.Wpf.Plot {
 
 		IPlot Plot { set; }
 		TickedAxisLocation AxisBindings { get; set; }
+		bool Hidden { get; set; }
 
 		void TriggerChange(GraphChange changeType);
 

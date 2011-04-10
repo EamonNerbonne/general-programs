@@ -149,7 +149,7 @@ namespace LvqGui {
 			public LvqDatasetCli forDataset;
 		}
 
-		public ModelProjectionAndImage CurrentProjectionAndImage(LvqDatasetCli dataset, int width, int height) {
+		public ModelProjectionAndImage CurrentProjectionAndImage(LvqDatasetCli dataset, int width, int height, bool hideBoundaries) {
 #if DEBUG
 			int renderwidth = (width + 7) / 8;
 			int renderheight = (height + 7) / 8;
@@ -166,14 +166,16 @@ namespace LvqGui {
 				projection = selectedModel.CurrentProjectionAndPrototypes(dataset);
 				if (!projection.HasValue) return null;
 				bounds = ExpandToShape(renderwidth, renderheight, ComputeProjectionBounds(projection.Prototypes.Select(lp => lp.point), projection.Points.Select(lp => lp.point)));
-				closestClass = selectedModel.ClassBoundaries(bounds.Left, bounds.Right, bounds.Bottom, bounds.Top, renderwidth, renderheight);
+				if (!hideBoundaries)
+					closestClass = selectedModel.ClassBoundaries(bounds.Left, bounds.Right, bounds.Bottom, bounds.Top, renderwidth, renderheight);
+				else
+					closestClass = default(MatrixContainer<byte>);
 			}
 			Debug.Assert(NotDefault(projection));
 			Debug.Assert(NotDefault(bounds));
-			Debug.Assert(NotDefault(closestClass));
 
 			uint[] nativeColorsPerClass = NativeColorsPerClassAndBlack(dataset);
-			uint[] boundaryImage = BoundaryImageFor(closestClass, nativeColorsPerClass, width, renderwidth, height, renderheight);
+			uint[] boundaryImage = closestClass.IsSet() ? BoundaryImageFor(closestClass, nativeColorsPerClass, width, renderwidth, height, renderheight) : null;
 			return new ModelProjectionAndImage {
 				Width = width,
 				Height = height,
