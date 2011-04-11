@@ -18,7 +18,6 @@ namespace LvqGui {
 		public event PropertyChangedEventHandler PropertyChanged;
 		public event Action<LvqDatasetCli, LvqModels, int> ModelSelected;
 		public event Action<LvqDatasetCli, LvqModels> SelectedModelUpdatedInBackgroundThread;
-		public event Action<bool> ShowBoundariesSet;
 
 		void _propertyChanged(string propertyName) { if (PropertyChanged != null) PropertyChanged(this, new PropertyChangedEventArgs(propertyName)); }
 
@@ -56,9 +55,15 @@ namespace LvqGui {
 
 		public bool ShowBoundaries {
 			get { return _ShowBoundaries; }
-			set { if (!_ShowBoundaries.Equals(value)) { _ShowBoundaries = value; _propertyChanged("ShowBoundaries"); ShowBoundariesSet(value); } }
+			set { if (!_ShowBoundaries.Equals(value)) { _ShowBoundaries = value; _propertyChanged("ShowBoundaries"); } }
 		}
 		private bool _ShowBoundaries;
+
+		public bool ShowPrototypes {
+			get { return _ShowPrototypes; }
+			set { if (!_ShowPrototypes.Equals(value)) { _ShowPrototypes = value; _propertyChanged("ShowPrototypes"); } }
+		}
+		private bool _ShowPrototypes;
 
 		public int EpochsPerClick {
 			get { return _EpochsPerClick; }
@@ -77,6 +82,7 @@ namespace LvqGui {
 			EpochsPerClick = 400;
 			EpochsPerAnimation = 5;
 			_ShowBoundaries = true;
+			_ShowPrototypes = true;
 			owner.LvqModels.CollectionChanged += LvqModels_CollectionChanged;
 		}
 

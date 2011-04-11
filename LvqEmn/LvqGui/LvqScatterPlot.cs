@@ -24,7 +24,7 @@ namespace LvqGui {
 
 		readonly Dispatcher lvqPlotDispatcher;
 
-		public void DisplayModel(LvqDatasetCli dataset, LvqModels model, int new_subModelIdx, bool showSelectedModelGraphs, bool showBoundaries) {
+		public void DisplayModel(LvqDatasetCli dataset, LvqModels model, int new_subModelIdx, bool showSelectedModelGraphs, bool showBoundaries, bool showPrototypes) {
 			lvqPlotDispatcher.BeginInvoke(() => {
 				SubPlots newsubplots;
 
@@ -50,6 +50,7 @@ namespace LvqGui {
 						model.SelectedSubModel = new_subModelIdx;
 				}
 				ShowBoundaries(showBoundaries);
+				ShowPrototypes(showPrototypes);
 				RelayoutSubPlotWindow(true);
 			});
 		}
@@ -61,6 +62,16 @@ namespace LvqGui {
 					lvqPlotDispatcher.BeginInvoke(() =>
 						subplots.classBoundaries.Plot.MetaData.Hidden = !visible
 					);
+			QueueUpdate();
+		}
+
+		public void ShowPrototypes(bool visible) {
+			lock (plotsSync)
+				if (subplots != null && subplots.classBoundaries != null)
+					lvqPlotDispatcher.BeginInvoke(() => {
+						foreach (var protoPlot in subplots.prototypeClouds)
+							protoPlot.Plot.MetaData.Hidden = !visible;
+					});
 			QueueUpdate();
 		}
 

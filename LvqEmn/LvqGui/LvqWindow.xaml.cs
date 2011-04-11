@@ -18,13 +18,14 @@ namespace LvqGui {
 			InitializeComponent();
 			windowValues.TrainingControlValues.ModelSelected += TrainingControlValues_ModelSelected;
 			windowValues.TrainingControlValues.SelectedModelUpdatedInBackgroundThread += TrainingControlValues_SelectedModelUpdatedInBackgroundThread;
-			windowValues.TrainingControlValues.ShowBoundariesSet += TrainingControlValues_ShowBoundariesSet;
+			windowValues.TrainingControlValues.PropertyChanged += TrainingControlValues_PropertyChanged;
 			Closing += (o, e) => { windowValues.TrainingControlValues.AnimateTraining = false; };
 #if BENCHMARK
 			this.Loaded += (o, e) => DoBenchmark();
 #endif
 			Closed += LvqWindow_Closed;
 		}
+
 
 
 		LvqWindowValues Values { get { return (LvqWindowValues)DataContext; } }
@@ -68,17 +69,20 @@ namespace LvqGui {
 			LvqScatterPlot.QueueUpdateIfCurrent(plotData, dataset, model);
 		}
 
-		void TrainingControlValues_ShowBoundariesSet(bool showBoundaries) {
-			if (plotData != null)
-				plotData.ShowBoundaries(showBoundaries);
+		void TrainingControlValues_PropertyChanged(object sender, PropertyChangedEventArgs e) {
+			if(e.PropertyName == "ShowBoundaries" && plotData!=null)
+				plotData.ShowBoundaries(Values.TrainingControlValues.ShowBoundaries);
+			if (e.PropertyName == "ShowPrototypes" && plotData != null)
+				plotData.ShowPrototypes(Values.TrainingControlValues.ShowPrototypes);
 		}
+
 
 		void TrainingControlValues_ModelSelected(LvqDatasetCli dataset, LvqModels model, int subModelIdx) {
 			if (plotData == null && dataset != null && model != null)
 				plotData = new LvqScatterPlot(ClosingToken);
 
 			if (plotData != null)
-				plotData.DisplayModel(dataset, model, subModelIdx, Values.TrainingControlValues.CurrProjStats, Values.TrainingControlValues.ShowBoundaries);
+				plotData.DisplayModel(dataset, model, subModelIdx, Values.TrainingControlValues.CurrProjStats, Values.TrainingControlValues.ShowBoundaries, Values.TrainingControlValues.ShowPrototypes);
 		}
 
 		public bool Fullscreen {
