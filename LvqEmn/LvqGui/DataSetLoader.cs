@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.IO;
+using System.Text.RegularExpressions;
 using EmnExtensions.Filesystem;
 using System.Globalization;
 
@@ -11,6 +12,7 @@ using LvqFloat = System.Double;
 namespace LvqGui {
 	public static class DatasetLoader {
 		static readonly char[] dimSep = new[] { ',' };
+		static readonly char[] spaceSep = new[] { ' ' };
 
 		static T[,] ToRectangularArray<T>(this T[][] jaggedArray) {
 			int outerLen = jaggedArray.Length;
@@ -69,13 +71,22 @@ namespace LvqGui {
 		}
 
 		public static Tuple<LvqFloat[,], int[], int> LoadDataset(FileInfo dataAndLabelFile) {
-			var labelledVectors =
+			bool commasplit = dataAndLabelFile.GetLines().Take(10).All(line => line.Contains(','));
+
+			var splitLines =
 				(from dataline in dataAndLabelFile.GetLines()
-				 let splitLine = dataline.Split(dimSep)
+				 select commasplit ? dataline.Split(dimSep) : dataline.Split(spaceSep, StringSplitOptions.RemoveEmptyEntries));
+
+			bool lastColClass = splitLines.Take(10).All(splitLine => Regex.IsMatch(splitLine[splitLine.Length - 1], @"^[a-zA-Z]\w*$"));
+			bool firstColClass = !lastColClass && splitLines.Take(10).All(splitLine => Regex.IsMatch(splitLine[0], @"^[a-zA-Z]\w*$"));
+
+
+			var labelledVectors =
+				(from splitLine in splitLines
 				 select new {
-					 Label = splitLine[0],
+					 Label = splitLine[firstColClass ? 0 : splitLine.Length - 1],
 					 Data = (
-						 from dataDim in splitLine.Skip(1)
+						 from dataDim in (firstColClass ? splitLine.Skip(1) : splitLine.Take(splitLine.Length - 1))
 						 select LvqFloat.Parse(dataDim, CultureInfo.InvariantCulture)
 						 ).ToArray()
 				 }
