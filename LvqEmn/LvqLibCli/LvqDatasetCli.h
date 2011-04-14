@@ -13,14 +13,17 @@ namespace LvqLibCli {
 		GcAutoPtr<LvqDataset> dataset;
 		String^ label;
 		LvqModelCli^ lastModel;
+		LvqDatasetCli ^testSet;
 		ColorArray^ colors;
 		int folds;
 		LvqDatasetCli(String^label,int folds, bool extend,ColorArray^ colors, LvqDataset * newDataset,boost::mt19937& rngOrder);
 	public:
 		bool IsFolded() {return folds!=0;}
+		bool HasTestSet() {return testSet != nullptr;}
 		std::vector<int> GetTrainingSubset(int fold);
 		std::vector<int> GetTestSubset(int fold);
-		LvqDataset const * GetDataset() {return dataset;}
+		LvqDataset const * GetTrainingDataset() {return dataset;}
+		LvqDataset const * GetTestDataset() {return testSet==nullptr?dataset:testSet->dataset;}
 		array<int>^ ClassLabels();
 		array<LvqFloat,2>^ RawPoints();
 		property ColorArray^ ClassColors { ColorArray^ get(){return colors;} void set(ColorArray^ newcolors){colors=newcolors;}}
@@ -29,6 +32,8 @@ namespace LvqLibCli {
 		property int Dimensions {int get();}
 		property String^ DatasetLabel {String^ get(){return label;}}
 		property LvqModelCli^ LastModel { LvqModelCli^ get(){return lastModel;} void set(LvqModelCli^ newval){lastModel = newval;}}
+
+		property LvqDatasetCli^ TestSet { LvqDatasetCli^ get(){return testSet;} void set(LvqDatasetCli^ newval){testSet = newval;}}
 
 		Tuple<double,double> ^ GetPcaNnErrorRate();
 

@@ -14,6 +14,26 @@ using namespace System::Linq;
 namespace LvqLibCli {
 	using boost::mt19937;
 
+
+	LvqModelCli::LvqModelCli(String^ label, LvqDatasetCli^ trainingSet,int datafold, LvqModelSettingsCli^ modelSettings)
+		: label(label)
+		, initSet(trainingSet)
+		, initDataFold(datafold)
+		, trainSync(gcnew Object())
+		, copySync(gcnew Object())
+		,stats(gcnew List<LvqTrainingStatCli>())
+	{ 
+		msclr::lock l(trainSync);
+		trainingSet->LastModel = this;
+		model = GcPtr::Create(ConstructLvqModel(as_lvalue( modelSettings->ToNativeSettings(trainingSet, datafold))));
+		LvqModel::Statistics nativeStats;
+		model->get()->AddTrainingStat(nativeStats,trainingSet->GetTrainingDataset(),trainingSet->GetTrainingSubset(datafold), trainingSet->GetTestDataset(), trainingSet->GetTestSubset(datafold));
+
+		msclr::lock l2(copySync);
+		SinkStats(nativeStats);
+		modelCopy = GcPtr::Create(model->get()->clone());
+	}
+
 	int LvqModelCli::ClassCount::get(){return model->get()->ClassCount();}
 	int LvqModelCli::Dimensions::get(){return model->get()->Dimensions();}
 	double LvqModelCli::UnscaledLearningRate::get() {return modelCopy->get()->unscaledLearningRate(); }
@@ -33,31 +53,12 @@ namespace LvqLibCli {
 	LvqTrainingStatCli LvqModelCli::EvaluateStats(LvqDatasetCli^ dataset, int datafold){
 		LvqModel::Statistics nativeStats;
 		msclr::lock l2(copySync);
-		modelCopy->get()->AddTrainingStat(nativeStats, dataset->GetDataset(), dataset->GetTrainingSubset(datafold), dataset->GetDataset(), dataset->GetTestSubset(datafold));
+		modelCopy->get()->AddTrainingStat(nativeStats, dataset->GetTrainingDataset(), dataset->GetTrainingSubset(datafold), dataset->GetTestDataset(), dataset->GetTestSubset(datafold));
 		LvqTrainingStatCli cliStat;
 		cppToCli(nativeStats.front(),cliStat);
 		return cliStat;
 	}
 
-
-	LvqModelCli::LvqModelCli(String^ label, LvqDatasetCli^ trainingSet,int datafold, LvqModelSettingsCli^ modelSettings)
-		: label(label)
-		, initSet(trainingSet)
-		, initDataFold(datafold)
-		, trainSync(gcnew Object())
-		, copySync(gcnew Object())
-		,stats(gcnew List<LvqTrainingStatCli>())
-	{ 
-		msclr::lock l(trainSync);
-		trainingSet->LastModel = this;
-		model = GcPtr::Create(ConstructLvqModel(as_lvalue( modelSettings->ToNativeSettings(trainingSet, datafold))));
-		LvqModel::Statistics nativeStats;
-		model->get()->AddTrainingStat(nativeStats,trainingSet->GetDataset(),trainingSet->GetTrainingSubset(datafold), trainingSet->GetDataset(), trainingSet->GetTestSubset(datafold));
-
-		msclr::lock l2(copySync);
-		SinkStats(nativeStats);
-		modelCopy = GcPtr::Create(model->get()->clone());
-	}
 
 	LvqTrainingStatCli LvqModelCli::GetTrainingStat(int statI){
 		msclr::lock l(copySync);
@@ -103,10 +104,10 @@ namespace LvqLibCli {
 		LvqProjectionModel* projectionModel = dynamic_cast<LvqProjectionModel*>(modelCopy->get());
 		if(projectionModel==nullptr) return ModelProjection();
 
-		auto labels = dataset->GetDataset()->getPointLabels();
+		auto labels = dataset->GetTrainingDataset()->getPointLabels();
 
 		msclr::lock l(copySync);
-		auto points = dataset->GetDataset()->ProjectPoints(projectionModel);
+		auto points = dataset->GetTrainingDataset()->ProjectPoints(projectionModel);
 		auto prototypes = projectionModel->GetProjectedPrototypes();
 		auto prototypelabels = projectionModel->GetPrototypeLabels();
 		l.release();
@@ -134,7 +135,7 @@ namespace LvqLibCli {
 		trainingSet->LastModel = this;
 		msclr::lock l(trainSync);
 		LvqModel::Statistics statsink;
-		trainingSet->GetDataset()->TrainModel(epochsToDo, model->get(), &statsink, trainingSet->GetTrainingSubset(datafold), trainingSet->GetDataset(), trainingSet->GetTestSubset(datafold));
+		trainingSet->GetTrainingDataset()->TrainModel(epochsToDo, model->get(), &statsink, trainingSet->GetTrainingSubset(datafold), trainingSet->GetTestDataset(), trainingSet->GetTestSubset(datafold));
 		msclr::lock l2(copySync);
 		SinkStats(statsink);
 		model->get()->CopyTo(*modelCopy->get());

@@ -21,7 +21,7 @@ namespace LvqGui {
 		public LvqModels(string shorthand, int parallelModels, LvqDatasetCli forDataset, LvqModelSettingsCli lvqModelSettingsCli) {
 			subModels =
 				Enumerable.Range(0, parallelModels).AsParallel()
-				.Select(datafold => new LvqModelCli(shorthand, forDataset, datafold, lvqModelSettingsCli))
+				.Select(modelfold => new LvqModelCli(shorthand, forDataset, modelfold, lvqModelSettingsCli))
 				.OrderBy(model => model.InitDataFold)
 				.ToArray();
 		}

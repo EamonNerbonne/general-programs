@@ -41,10 +41,10 @@ namespace LvqLibCli {
 		SmartSum<1> nnErrorRate(1);
 		for(int fold=0;fold<folds;++fold) {
 			nnErrorRate.CombineWith(
-				dataset->NearestNeighborPcaErrorRate(
-					dataset->GetTrainingSubset(fold,folds),
-					dataset.get(),
-					dataset->GetTestSubset(fold,folds)
+				GetTrainingDataset()->NearestNeighborPcaErrorRate(
+					GetTrainingSubset(fold),
+					GetTestDataset(),
+					GetTestSubset(fold)
 				),
 				1.0
 			);
@@ -54,8 +54,8 @@ namespace LvqLibCli {
 
 	array<int>^ LvqDatasetCli::ClassLabels(){ array<int>^ retval; cppToCli(dataset->getPointLabels(), retval); return retval;}
 	array<LvqFloat,2>^ LvqDatasetCli::RawPoints() { array<LvqFloat,2>^ retval; cppToCli(dataset->getPoints(), retval); return retval;}
-	vector<int> LvqDatasetCli::GetTrainingSubset(int fold) { return dataset->GetTrainingSubset(fold,folds); }
-	vector<int> LvqDatasetCli::GetTestSubset(int fold) { return dataset->GetTestSubset(fold,folds); }
+	vector<int> LvqDatasetCli::GetTrainingSubset(int fold) { return GetTrainingDataset()->GetTrainingSubset(fold,folds); }
+	vector<int> LvqDatasetCli::GetTestSubset(int fold) { return HasTestSet() ? GetTestDataset()->GetTrainingSubset(0,0) : GetTestDataset()->GetTestSubset(fold,folds); }
 	int LvqDatasetCli::ClassCount::get(){return dataset->getClassCount();}
 	int LvqDatasetCli::PointCount::get(){return dataset->getPointCount();}
 	int LvqDatasetCli::Dimensions::get(){return dataset->dimensions();}

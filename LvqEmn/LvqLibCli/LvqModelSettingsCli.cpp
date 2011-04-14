@@ -15,7 +15,7 @@ namespace LvqLibCli {
 			as_lvalue(mt19937(RngParamsSeed+modelFold)), 
 			as_lvalue(mt19937(RngIterSeed+modelFold)), 
 			protoDistrib, 
-			trainingSet->GetDataset(),
+			trainingSet->GetTrainingDataset(),
 			trainingSet->GetTrainingSubset(modelFold)
 		);
 		initSettings.RandomInitialProjection = RandomInitialProjection;

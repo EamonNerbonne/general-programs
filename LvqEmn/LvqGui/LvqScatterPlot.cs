@@ -203,7 +203,7 @@ namespace LvqGui {
 							ShowGridLines = true,
 							//Title = statGroup.Key + ": " + model.ModelLabel,
 							Tag = statGroup.Key,
-							GraphsEnumerable = StatisticsPlotMaker.Create(statGroup.Key, statGroup, model.IsMultiModel, dataset.IsFolded(), showSelGraphs).ToArray(),
+							GraphsEnumerable = StatisticsPlotMaker.Create(statGroup.Key, statGroup, model.IsMultiModel, dataset.IsFolded() || dataset.HasTestSet(), showSelGraphs).ToArray(),
 						}
 					).ToArray();
 			}

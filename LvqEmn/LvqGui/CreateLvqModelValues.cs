@@ -105,7 +105,7 @@ namespace LvqGui {
 
 		public bool NgInitializeProtos {
 			get { return _NgInitializeProtos; }
-			set { if (!object.Equals(_NgInitializeProtos, value)) { _NgInitializeProtos = value; _propertyChanged("NgInitializeProtos"); } }
+			set { if (!Equals(_NgInitializeProtos, value)) { _NgInitializeProtos = value; _propertyChanged("NgInitializeProtos"); } }
 		}
 		private bool _NgInitializeProtos;
 
