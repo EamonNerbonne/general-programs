@@ -27,7 +27,7 @@ namespace LvqGui {
 		}
 		LvqDatasetCli _SelectedDataset;
 
-		public IEnumerable<LvqModels> MatchingLvqModels { get { return Owner.LvqModels.Where(model => model == null || model.FitsDataShape(SelectedDataset)); } }
+		public IEnumerable<LvqModels> MatchingLvqModels { get { return Owner.LvqModels.Where(model => model == null || model.InitSet == SelectedDataset); } } // model.FitsDataShape(SelectedDataset) is unhandy
 
 		public LvqModels SelectedLvqModel {
 			get { return _SelectedLvqModel; }

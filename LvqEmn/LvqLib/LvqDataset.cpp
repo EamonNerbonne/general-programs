@@ -234,7 +234,6 @@ void LvqDataset::TrainModel(int epochs, LvqModel * model, LvqModel::Statistics *
 		prefetchStream(&(model->RngIter()), (sizeof(boost::mt19937) +63)/ 64);
 		vector<int> shuffledOrder(trainingSubset);
 		shuffle(model->RngIter(), shuffledOrder, shuffledOrder.size());
-
 		SmartSum<1> distGood;
 		SmartSum<1> distBad;
 		BenchTimer t;

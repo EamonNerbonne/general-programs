@@ -15,7 +15,7 @@ namespace LvqLibCli {
 	using boost::mt19937;
 
 
-	LvqModelCli::LvqModelCli(String^ label, LvqDatasetCli^ trainingSet,int datafold, LvqModelSettingsCli^ modelSettings)
+	LvqModelCli::LvqModelCli(String^ label, LvqDatasetCli^ trainingSet, int datafold, LvqModelSettingsCli^ modelSettings)
 		: label(label)
 		, initSet(trainingSet)
 		, initDataFold(datafold)
@@ -25,7 +25,7 @@ namespace LvqLibCli {
 	{ 
 		msclr::lock l(trainSync);
 		trainingSet->LastModel = this;
-		model = GcPtr::Create(ConstructLvqModel(as_lvalue( modelSettings->ToNativeSettings(trainingSet, datafold))));
+		model = GcPtr::Create(ConstructLvqModel(as_lvalue(modelSettings->ToNativeSettings(trainingSet, datafold))));
 		LvqModel::Statistics nativeStats;
 		model->get()->AddTrainingStat(nativeStats,trainingSet->GetTrainingDataset(),trainingSet->GetTrainingSubset(datafold), trainingSet->GetTestDataset(), trainingSet->GetTestSubset(datafold));
 
