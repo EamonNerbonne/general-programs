@@ -41,7 +41,7 @@ namespace LvqGui {
 						model.Tag = newsubplots = new SubPlots(dataset, model, showSelectedModelGraphs);
 				}
 
-				if (newsubplots == subplots && model.SelectedSubModel == new_subModelIdx)
+				if (newsubplots == subplots && model != null && model.SelectedSubModel == new_subModelIdx)
 					return;
 
 				lock (plotsSync) {
@@ -274,7 +274,7 @@ namespace LvqGui {
 		static IEnumerable<DispatcherOperation> DisplayUpdateOperations(SubPlots subplots) {
 			if (subplots != null) {
 				var wh = subplots.LastWidthHeight;
-				var projectionAndImage = subplots.model.CurrentProjectionAndImage(subplots.dataset, wh == null ? 0 : wh.Item1, wh == null ? 0 : wh.Item2, subplots.classBoundaries !=null && subplots.classBoundaries.Plot.MetaData.Hidden);
+				var projectionAndImage = subplots.model.CurrentProjectionAndImage(subplots.dataset, wh == null ? 0 : wh.Item1, wh == null ? 0 : wh.Item2, subplots.classBoundaries != null && subplots.classBoundaries.Plot.MetaData.Hidden);
 
 				if (projectionAndImage != null && subplots.prototypeClouds != null)
 					yield return subplots.scatterPlotControl.Dispatcher.BeginInvokeBackground(

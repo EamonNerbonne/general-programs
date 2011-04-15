@@ -11,7 +11,7 @@ namespace LastFMspider {
 		//rating is stored as a REAL which is a float in C#.
 
 		const string DataProvider = "System.Data.SQLite";
-		const string DataConnectionString = "page size=4096;cache size=100000;datetimeformat=Ticks;Legacy Format=False;Synchronous=Normal;Journal Mode=Persist;Default Timeout=30;data source=\"{0}\"";
+		const string DataConnectionString = "page size=4096;cache size=10000;datetimeformat=Ticks;Legacy Format=False;Synchronous=Normal;Journal Mode=Persist;Default Timeout=30;data source=\"{0}\"";
 		const string DatabaseDef = @"
 PRAGMA journal_mode = PERSIST;
 
