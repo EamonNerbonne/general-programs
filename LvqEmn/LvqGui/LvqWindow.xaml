@@ -26,6 +26,7 @@
             <TabItem Header="Create Dataset" Name="datasetTabs">
                 <StackPanel>
                     <CheckBox Content="Extend data by correlation" IsChecked="{Binding ExtendDataByCorrelation, Mode=TwoWay}"/>
+                    <CheckBox Content="Normalize each Dimension" IsChecked="{Binding NormalizeDimensions, Mode=TwoWay}"/>
 
                     <TabControl >
                         <TabItem Header="Load Data">

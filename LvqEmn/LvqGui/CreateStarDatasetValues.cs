@@ -100,13 +100,16 @@ namespace LvqGui {
 		int _Folds;
 
 		public bool ExtendDataByCorrelation { get { return owner.ExtendDataByCorrelation; } set { owner.ExtendDataByCorrelation = value; } }
+		public bool NormalizeDimensions { get { return owner.NormalizeDimensions; } set { owner.NormalizeDimensions = value; } }
+
 
 		static readonly Regex shR =
-			new Regex(@"^\s*(.*?--)?star-(?<Dimensions>\d+)D(?<ExtendDataByCorrelation>\*?)-(?<NumberOfClasses>\d+)\*(?<PointsPerClass>\d+):(?<NumberOfClusters>\d+)\((?<ClusterDimensionality>\d+)D(?<RandomlyTransformFirst>\??)\)\*(?<ClusterCenterDeviation>[^~]+)\~(?<IntraClusterClassRelDev>[^\[n]+)(n(?<NoiseSigma>[^\[]+))?\[(?<Seed>\d+):(?<InstSeed>\d+)\]/(?<Folds>\d+)\s*$",
+			new Regex(@"^\s*(.*?--)?star-(?<Dimensions>\d+)D(?<ExtendDataByCorrelation>\*?)(?<NormalizeDimensions>n?)-(?<NumberOfClasses>\d+)\*(?<PointsPerClass>\d+):(?<NumberOfClusters>\d+)\((?<ClusterDimensionality>\d+)D(?<RandomlyTransformFirst>\??)\)\*(?<ClusterCenterDeviation>[^~]+)\~(?<IntraClusterClassRelDev>[^\[n]+)(n(?<NoiseSigma>[^\[]+))?\[(?<Seed>\d+):(?<InstSeed>\d+)\]/(?<Folds>\d+)\s*$",
 				RegexOptions.CultureInvariant | RegexOptions.ExplicitCapture);
 
 		public string Shorthand {
-			get { return "star-" + Dimensions + "D" + (ExtendDataByCorrelation ? "*" : "") + "-" + NumberOfClasses + "*" + PointsPerClass + ":" + NumberOfClusters + "(" + ClusterDimensionality + "D" + (RandomlyTransformFirst ? "?" : "") + ")*" + ClusterCenterDeviation.ToString("r") + "~" + IntraClusterClassRelDev.ToString("r")+(
+			get {
+				return "star-" + Dimensions + "D" + (ExtendDataByCorrelation ? "*" : "") + (NormalizeDimensions ? "*" : "") + "-" + NumberOfClasses + "*" + PointsPerClass + ":" + NumberOfClusters + "(" + ClusterDimensionality + "D" + (RandomlyTransformFirst ? "?" : "") + ")*" + ClusterCenterDeviation.ToString("r") + "~" + IntraClusterClassRelDev.ToString("r") + (
 				NoiseSigma!=1.0?"n"+NoiseSigma.ToString("r"):"") + "[" + Seed + ":" + InstSeed + "]/" + Folds; }
 			set { ShorthandHelper.ParseShorthand(this, shR, value); }
 		}
@@ -116,6 +119,7 @@ namespace LvqGui {
 		public CreateStarDatasetValues(LvqWindowValues owner) {
 			this.owner = owner;
 			owner.PropertyChanged += (o, e) => { if (e.PropertyName == "ExtendDataByCorrelation") _propertyChanged("ExtendDataByCorrelation"); };
+			owner.PropertyChanged += (o, e) => { if (e.PropertyName == "NormalizeDimensions") _propertyChanged("NormalizeDimensions"); };
 			_Folds = 10;
 			_ClusterCenterDeviation = 1.5;
 			_ClusterDimensionality = 4;
@@ -140,6 +144,7 @@ namespace LvqGui {
 				colors: WpfTools.MakeDistributedColors(NumberOfClasses, new MersenneTwister((int)Seed)),
 				folds: _Folds,
 				extend: owner.ExtendDataByCorrelation,
+				normalizeDims: owner.ExtendDataByCorrelation,
 				rngParamsSeed: Seed,
 				rngInstSeed: InstSeed,
 				dims: Dimensions,

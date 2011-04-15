@@ -79,12 +79,13 @@ namespace LvqGui {
 					int colorSeed = (int)(colorSeedLong + (colorSeedLong >> 32));
 
 
-					string name = dataFile.Name + "-" + pointArray.GetLength(1) + "D" + (owner.ExtendDataByCorrelation ? "*" : "") + "-" + classCount + ":" + pointArray.GetLength(0) + "[" + seed + "]/" + folds;
+					string name = dataFile.Name + "-" + pointArray.GetLength(1) + "D" + (owner.ExtendDataByCorrelation ? "*" : "") + (owner.NormalizeDimensions ? "*" : "") + "-" + classCount + ":" + pointArray.GetLength(0) + "[" + seed + "]/" + folds;
 					Console.WriteLine("Created: " + name);
 					return LvqDatasetCli.ConstructFromArray(
 						rngInstSeed: seed,
 						label: name,
 						extend: owner.ExtendDataByCorrelation,
+						normalizeDims: owner.ExtendDataByCorrelation,
 						folds: folds,
 						colors: WpfTools.MakeDistributedColors(classCount, new MersenneTwister(colorSeed)),
 						points: pointArray,

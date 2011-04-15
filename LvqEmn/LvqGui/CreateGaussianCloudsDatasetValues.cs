@@ -68,15 +68,16 @@ namespace LvqGui {
 		int _Folds;
 
 		public bool ExtendDataByCorrelation { get { return owner.ExtendDataByCorrelation; } set { owner.ExtendDataByCorrelation = value; } }
+		public bool NormalizeDimensions { get { return owner.NormalizeDimensions; } set { owner.NormalizeDimensions = value; } }
 
 		static readonly Regex shR =
-			new Regex(@"^\s*(.*?--)?nrm-(?<Dimensions>\d+)D(?<ExtendDataByCorrelation>\*?)-(?<NumberOfClasses>\d+)\*(?<PointsPerClass>\d+):(?<ClassCenterDeviation>[^\[]+)\[(?<Seed>\d+):(?<InstSeed>\d+)\]/(?<Folds>\d+)\s*$",
+			new Regex(@"^\s*(.*?--)?nrm-(?<Dimensions>\d+)D(?<ExtendDataByCorrelation>\*?)(?<NormalizeDimensions>n?)-(?<NumberOfClasses>\d+)\*(?<PointsPerClass>\d+):(?<ClassCenterDeviation>[^\[]+)\[(?<Seed>\d+):(?<InstSeed>\d+)\]/(?<Folds>\d+)\s*$",
 				RegexOptions.CultureInvariant | RegexOptions.ExplicitCapture);
 
 
 		public string Shorthand {
 			get {
-				return "nrm-" + Dimensions + "D" + (ExtendDataByCorrelation ? "*" : "") + "-" + NumberOfClasses + "*" + PointsPerClass + ":" + ClassCenterDeviation.ToString("r") + "[" + Seed + ":" + InstSeed + "]/" + Folds;
+				return "nrm-" + Dimensions + "D" + (ExtendDataByCorrelation ? "*" : "") + (NormalizeDimensions ? "*" : "") + "-" + NumberOfClasses + "*" + PointsPerClass + ":" + ClassCenterDeviation.ToString("r") + "[" + Seed + ":" + InstSeed + "]/" + Folds;
 			}
 			set { ShorthandHelper.ParseShorthand(this, shR, value); }
 		}
@@ -87,6 +88,7 @@ namespace LvqGui {
 		public CreateGaussianCloudsDatasetValues(LvqWindowValues owner) {
 			this.owner = owner;
 			owner.PropertyChanged += (o, e) => { if (e.PropertyName == "ExtendDataByCorrelation") _propertyChanged("ExtendDataByCorrelation"); };
+			owner.PropertyChanged += (o, e) => { if (e.PropertyName == "NormalizeDimensions") _propertyChanged("NormalizeDimensions"); };
 			_Folds = 10;
 			_NumberOfClasses = 3;
 			_ClassCenterDeviation = 1.5;
@@ -108,6 +110,7 @@ namespace LvqGui {
 			return LvqDatasetCli.ConstructGaussianClouds(Shorthand,
 				folds: _Folds,
 				extend: owner.ExtendDataByCorrelation,
+				normalizeDims: owner.ExtendDataByCorrelation,
 				colors: WpfTools.MakeDistributedColors(NumberOfClasses, new MersenneTwister((int)Seed)),
 				rngParamsSeed: Seed,
 				rngInstSeed: InstSeed,
