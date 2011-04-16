@@ -19,19 +19,33 @@ namespace SongDataLib {
 			return Matches(query, rankmap).Select(i => db.songs[i]);
 		}
 
-		static readonly Regex querySplitter = new Regex(@"\""[^""]*(\""|$)|\'[^']*(\'|$)|\S+", RegexOptions.CultureInvariant | RegexOptions.Compiled);
+		static readonly Regex querySplitter = new Regex(@"\-?\""[^""]*(\""|$)|-?\'[^']*(\'|$)|\S+", RegexOptions.CultureInvariant | RegexOptions.Compiled);
+
 		IEnumerable<int> Matches(string querystring, int[] rankmap) {
+			var queryParts=querySplitter.Matches(querystring).Cast<Match>().Select(m=>m.Value);
+
 			byte[][] queries =
-				querySplitter.Matches(querystring).Cast<Match>()
-				.Select(m => m.Value.Trim('\'','\"'))
+				queryParts
+				.Where(s =>!s.StartsWith("-"))
+				.Select(s => s.Trim('\'','\"'))
 				.Where(s => s.Length > 0)
 				 .Select(StringAsBytesCanonicalization.Canonicalize)
 				 .ToArray();
+
+			byte[][] negQueries =
+				queryParts
+				.Where(s => s.StartsWith("-"))
+				.Select(s => s.Substring(1).Trim('\'', '\"'))
+				.Where(s => s.Length > 0)
+				 .Select(StringAsBytesCanonicalization.Canonicalize)
+				 .ToArray();
+
 			if (searchMethod == null || queries.Length == 0) {
 				IBitapMatcher[] qMatchers = queries.OrderByDescending(q => q.Length).Select(BitapSearch.MatcherFor).ToArray();
+				IBitapMatcher[] qNegMatchers = negQueries.OrderBy(q => q.Length).Select(BitapSearch.MatcherFor).ToArray();
 				return
 					db.AllNormalizedSongs
-						.Where(songIndexAndBytes => qMatchers.All(qMatcher => qMatcher.BitapMatch(songIndexAndBytes.bytes)))
+						.Where(songIndexAndBytes => qMatchers.All(qMatcher => qMatcher.BitapMatch(songIndexAndBytes.bytes)) && !qNegMatchers.Any(qNegMatcher=>qNegMatcher.BitapMatch(songIndexAndBytes.bytes)))
 						.Select(songIndexAndBytes => songIndexAndBytes.index)
 						.OrderBy(index => rankmap[index]);
 			} else {

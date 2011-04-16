@@ -58,8 +58,8 @@ namespace SongDataLib {
 				var filetag = (file.GetTag(TagLib.TagTypes.Xiph, false) as TagLib.Ogg.XiphComment);
 				return filetag.ToDictionary(key => key.ToLowerInvariant(), key => filetag.GetField(key).First());
 			} else if (types.HasFlag(TagLib.TagTypes.Id3v2)) {
-				return ((TagLib.Id3v2.Tag)file.GetTag(TagLib.TagTypes.Id3v2, false))
-					.GetFrames("TXXX").Cast<TagLib.Id3v2.UserTextInformationFrame>()
+				return ((Tag)file.GetTag(TagLib.TagTypes.Id3v2, false))
+					.GetFrames("TXXX").Cast<UserTextInformationFrame>()
 					.ToDictionary(frame => frame.Description.ToLowerInvariant(), frame => frame.Text.FirstOrDefault());
 			} else if (types.HasFlag(TagLib.TagTypes.Ape)) {
 				var filetag = (file.GetTag(TagLib.TagTypes.Ape, false) as TagLib.Ape.Tag);
@@ -85,7 +85,7 @@ namespace SongDataLib {
 					filetag.SetField("rating", rating.Value.ToString());
 				
 			} else if (types.HasFlag(TagLib.TagTypes.Id3v2)) {
-				var filetag = ((TagLib.Id3v2.Tag)file.GetTag(TagLib.TagTypes.Id3v2, true));
+				var filetag = ((Tag)file.GetTag(TagLib.TagTypes.Id3v2, true));
 				var ratingfield=UserTextInformationFrame.Get(filetag, "rating", true);
 				if (rating == null)
 					filetag.RemoveFrame(ratingfield);
