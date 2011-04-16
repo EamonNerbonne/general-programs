@@ -25,6 +25,7 @@ public:
 	int getPointCount()const {return static_cast<int>(pointLabels.size());}
 	void shufflePoints(boost::mt19937& rng);
 	void ExtendByCorrelations();
+	void NormalizeDimensions();
 
 	LvqDataset* Extract(std::vector<int> const & subset) const;
 	Matrix_NN ExtractPoints(std::vector<int> const & subset) const;

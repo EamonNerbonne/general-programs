@@ -14,27 +14,31 @@ namespace LvqLibCli {
 		Matrix_NN cppPoints;
 		cliToCpp(points,cppPoints);
 		cliToCpp(pointLabels,cppLabels);
-		return gcnew LvqDatasetCli(label,folds,extend,colors, new LvqDataset(cppPoints,cppLabels,classCount), rngIter);
+		return gcnew LvqDatasetCli(label,folds,extend,normalizeDims,colors, new LvqDataset(cppPoints,cppLabels,classCount), rngIter);
 	}
 
-	LvqDatasetCli::LvqDatasetCli(String^label, int folds,bool extend,ColorArray^ colors, LvqDataset * newDataset,mt19937& rngOrder) 
+	LvqDatasetCli::LvqDatasetCli(String^label, int folds,bool extend, bool normalizeDims, ColorArray^ colors, LvqDataset * newDataset,mt19937& rngOrder) 
 		: colors(colors)
 		, label(label)
 		, folds(folds)
 		, dataset(newDataset,newDataset->MemAllocEstimate())
-	{ dataset->shufflePoints(rngOrder); if(extend)dataset->ExtendByCorrelations(); }
+	{
+		if(extend) dataset->ExtendByCorrelations(); 
+		if(normalizeDims) dataset->NormalizeDimensions(); 
+		dataset->shufflePoints(rngOrder); 
+	}
 
 	LvqDatasetCli^ LvqDatasetCli::ConstructGaussianClouds(String^label, int folds, bool extend,  bool normalizeDims, ColorArray^ colors, unsigned rngParamsSeed, unsigned rngInstSeed, int dims, int classCount, int pointsPerClass, double meansep) {
 		mt19937 rngParam(rngParamsSeed);
 		mt19937 rngInst(rngInstSeed);
-		return gcnew LvqDatasetCli(label,folds,extend,colors,CreateDataset::ConstructGaussianClouds(rngParam,rngInst, dims, classCount, pointsPerClass, meansep),rngInst);
+		return gcnew LvqDatasetCli(label,folds,extend,normalizeDims,colors,CreateDataset::ConstructGaussianClouds(rngParam,rngInst, dims, classCount, pointsPerClass, meansep),rngInst);
 	}
 
 	LvqDatasetCli^ LvqDatasetCli::ConstructStarDataset(String^label, int folds, bool extend,  bool normalizeDims, ColorArray^ colors, unsigned rngParamsSeed, unsigned rngInstSeed, int dims, int starDims, int numStarTails,
 			int classCount, int pointsPerClass, double starMeanSep, double starClassRelOffset, bool randomlyTransform, double noiseSigma) {
 		mt19937 rngParam(rngParamsSeed);
 		mt19937 rngInst(rngInstSeed);
-		return gcnew LvqDatasetCli(label,folds,extend,colors,CreateDataset::ConstructStarDataset(rngParam, rngInst, dims, starDims, numStarTails, classCount, pointsPerClass, starMeanSep, starClassRelOffset, randomlyTransform, noiseSigma),rngInst);
+		return gcnew LvqDatasetCli(label,folds,extend,normalizeDims,colors,CreateDataset::ConstructStarDataset(rngParam, rngInst, dims, starDims, numStarTails, classCount, pointsPerClass, starMeanSep, starClassRelOffset, randomlyTransform, noiseSigma),rngInst);
 	}
 
 	Tuple<double,double> ^ LvqDatasetCli::GetPcaNnErrorRate() {

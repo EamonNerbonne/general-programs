@@ -1,6 +1,6 @@
 #include "stdafx.h"
-#include "shuffle.h"
 #include "LvqDataset.h"
+#include "shuffle.h"
 #include "SmartSum.h"
 #include "LvqProjectionModel.h"
 #include "utils.h"
@@ -303,22 +303,37 @@ void LvqDataset::ExtendByCorrelations() {
 		for(int pI=0;pI<points.cols();++pI) 
 			for(int i=0;i<oldDims;++i)
 				for(int j=0;j<=i;++j) 
-					points(oldDims +triangularIndex(i,j),pI) = points(i,pI)*points(j,pI);
+					points(oldDims + triangularIndex(i,j), pI) = points(i,pI) * points(j,pI);
 #else
 	int oldDims = int(points.rows());
 	points.conservativeResize(oldDims*2, NoChange);
-#ifndef NDEBUG
-	int nextIdx=0;
 	for(int i=0;i<oldDims;++i)
-		for(int j=0;j<=i;++j) {
-			assert(triangularIndex(i,j) == nextIdx);
-			nextIdx++;
+		points.row(oldDims +i) = points.row(i).array()*points.row(i).array();
+#endif
+}
+
+void LvqDataset::NormalizeDimensions() {
+	points = points.colwise() - MeanPoint(points);
+	Vector_N variance =  points.rowwise().squaredNorm() / (points.cols()-1.0);
+	assert((variance.array() >= 0).all());
+	vector<int> remapping;
+	Vector_N inv_stddev =  variance.array().sqrt().inverse().matrix();
+	
+	for(int indim=0;indim<variance.rows();indim++) 
+		if(variance(indim) >= std::numeric_limits<LvqFloat>::min()) 
+			remapping.push_back(indim);
+	if(remapping.size()<points.rows())
+		cout<<"Retaining "<< remapping.size() <<" of "<< points.rows()<<" dimensions\n";
+	for(int pI=0; pI <points.cols(); pI++) {
+		for(int outdim=0; outdim<remapping.size(); outdim++) {
+			int indim = remapping[outdim];
+			points(outdim,pI) = points(indim,pI) * inv_stddev(indim);
 		}
-		assert(nextIdx == (oldDims*oldDims + oldDims)/2);
-#endif
-		for(int i=0;i<oldDims;++i)
-			points.row(oldDims +i) = points.row(i).array()*points.row(i).array();
-#endif
+	}
+	points.conservativeResize(remapping.size(), Eigen::NoChange);
+
+//	variance = (variance.array() < std::numeric_limits<LvqFloat>::min()).matrix().cast<LvqFloat>() + variance;
+//	points = variance.array().sqrt().inverse().matrix().asDiagonal() * (points.colwise() - mean);
 }
 
 using Eigen::Array2d;

@@ -191,7 +191,7 @@ namespace LvqGui {
 				+ (ModelType == LvqModelType.LgmModelType ? "[" + Dimensionality + "]" : "") + ","
 				+ PrototypesPerClass + ","
 				+ "rP" + (RandomInitialProjection ? "+" : "") + ","
-				+ (isBoundaryModel ? "rB" + (RandomInitialBorders ? "+" : "") : "") + ","
+				+ (isBoundaryModel ? "rB" + (RandomInitialBorders ? "+" : "") + "," : "") 
 				+ "nP" + (NormalizeProjection ? "+" : "") + ","
 				+ (ModelType == LvqModelType.G2mModelType ? "nB" + (NormalizeBoundaries ? "+" : "") + "," : "")
 				+ (ModelType == LvqModelType.G2mModelType && NormalizeBoundaries || NormalizeProjection ? "gn" + (GloballyNormalize ? "+" : "") + "," : "")

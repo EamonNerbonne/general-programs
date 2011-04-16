@@ -16,7 +16,7 @@ namespace LvqLibCli {
 		LvqDatasetCli ^testSet;
 		ColorArray^ colors;
 		int folds;
-		LvqDatasetCli(String^label,int folds, bool extend,ColorArray^ colors, LvqDataset * newDataset,boost::mt19937& rngOrder);
+		LvqDatasetCli(String^label,int folds, bool extend, bool normalizeDims, ColorArray^ colors, LvqDataset * newDataset,boost::mt19937& rngOrder);
 	public:
 		bool IsFolded() {return folds!=0;}
 		bool HasTestSet() {return testSet != nullptr;}
