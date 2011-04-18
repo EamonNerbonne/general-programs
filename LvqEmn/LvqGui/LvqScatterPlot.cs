@@ -26,42 +26,47 @@ namespace LvqGui {
 
 		public void DisplayModel(LvqDatasetCli dataset, LvqModels model, int new_subModelIdx, bool showSelectedModelGraphs, bool showBoundaries, bool showPrototypes) {
 			lvqPlotDispatcher.BeginInvoke(() => {
-				SubPlots newsubplots;
-
-				if (dataset == null || model == null) {
-					subPlotWindow.Title = "No Model Selected";
-					newsubplots = null;
-				} else {
-					MakeSubPlotWindow();
-					subPlotWindow.Title = model.ModelLabel;
-					newsubplots = model.Tag as SubPlots;
-
-					bool modelChange = newsubplots == null || newsubplots.dataset != dataset || newsubplots.model != model || newsubplots.ShowSelectedModelGraphs != showSelectedModelGraphs;
-					if (modelChange)
-						model.Tag = newsubplots = new SubPlots(dataset, model, showSelectedModelGraphs);
-				}
-
-				if (newsubplots == subplots && model != null && model.SelectedSubModel == new_subModelIdx)
-					return;
-
 				lock (plotsSync) {
-					subplots = newsubplots;
-					if (model != null)
-						model.SelectedSubModel = new_subModelIdx;
+					if (dataset == null || model == null) {
+						subPlotWindow.Title = "No Model Selected";
+						subplots = null;
+					} else {
+						MakeSubPlotWindow();
+						subPlotWindow.Title = model.ModelLabel;
+						SubPlots oldsubplots = model.Tag as SubPlots;
+
+						bool modelChange = oldsubplots == null || oldsubplots.dataset != dataset || oldsubplots.model != model;
+						if (modelChange)
+							model.Tag = subplots = new SubPlots(dataset, model);
+						else
+							subplots = oldsubplots;
+						subplots.selectedSubModel = new_subModelIdx;
+					}
 				}
 				ShowBoundaries(showBoundaries);
+				ShowCurrentProjectionStats(showSelectedModelGraphs);
 				ShowPrototypes(showPrototypes);
 				RelayoutSubPlotWindow(true);
 			});
 		}
 
 		public void ShowBoundaries(bool visible) {
-
 			lock (plotsSync)
 				if (subplots != null && subplots.classBoundaries != null)
 					lvqPlotDispatcher.BeginInvoke(() =>
 						subplots.classBoundaries.Plot.MetaData.Hidden = !visible
 					);
+			QueueUpdate();
+		}
+
+		public void ShowCurrentProjectionStats(bool visible) {
+			lock (plotsSync)
+				if (subplots != null && subplots.statPlots != null)
+					lvqPlotDispatcher.BeginInvoke(() => {
+						foreach (var plot in subplots.statPlots)
+							if (plot.Plot.MetaData.Tag == StatisticsPlotMaker.IsCurrPlotTag)
+								plot.Plot.MetaData.Hidden = !visible;
+					});
 			QueueUpdate();
 		}
 
@@ -154,47 +159,54 @@ namespace LvqGui {
 		}
 
 		class SubPlots {
-			public readonly bool ShowSelectedModelGraphs;
 			public readonly LvqDatasetCli dataset;
 			public readonly LvqModels model;
 			public readonly IVizEngine<LvqModels.ModelProjectionAndImage>[] prototypeClouds, dataClouds;
 			public readonly IVizEngine<LvqModels.ModelProjectionAndImage> classBoundaries;
 			public readonly PlotControl scatterPlotControl;
-			public readonly IVizEngine<LvqModels>[] statPlots;
+			public readonly IVizEngine<SubPlots>[] statPlots;
 			public readonly PlotControl[] plots;
+			public int selectedSubModel;
 
-			public SubPlots(LvqDatasetCli dataset, LvqModels model, bool showSelectedModelGraphs) {
-				ShowSelectedModelGraphs = showSelectedModelGraphs;
+			public SubPlots(LvqDatasetCli dataset, LvqModels model) {
 				this.dataset = dataset;
 				this.model = model;
 				if (model.IsProjectionModel) {
 					prototypeClouds = MakePerClassScatterGraph(dataset, 0.3f, dataset.ClassCount * Math.Min(model.SubModels.First().PrototypeLabels.Length, 3), 1)
 						.Select((graph, i) => graph.Map((LvqModels.ModelProjectionAndImage proj) => proj.PrototypesByLabel[i])).ToArray();
+					foreach (IPlotMetaDataWriteable metadata in prototypeClouds.Select(viz => viz.Plot.MetaData)) {
+						metadata.OverrideBounds = Rect.Empty;
+					}
 					classBoundaries = MakeClassBoundaryGraph();
 					dataClouds = MakePerClassScatterGraph(dataset, 1.0f)
 						.Select((graph, i) => graph.Map((LvqModels.ModelProjectionAndImage proj) => proj.PointsByLabel[i])).ToArray();
 					scatterPlotControl = MakeScatterPlotControl(dataClouds.Concat(prototypeClouds).Select(viz => viz.Plot).Concat(new[] { classBoundaries.Plot }));
 				}
 
-				plots = MakeDataPlots(dataset, model, showSelectedModelGraphs);//required
+				plots = MakeDataPlots(dataset, model);//required
 				statPlots = ExtractDataSinksFromPlots(plots);
 			}
 
+			public LvqModels.ModelProjectionAndImage CurrentProjection() {
+				return model.CurrentProjectionAndImage(dataset, LastWidthHeight == null ? 0 : LastWidthHeight.Item1, LastWidthHeight == null ? 0 : LastWidthHeight.Item2, classBoundaries != null && classBoundaries.Plot.MetaData.Hidden, selectedSubModel);
+			}
+
+
 			public void SetScatterBounds(Rect bounds) {
-				foreach (IPlotMetaDataWriteable metadata in dataClouds.Concat(prototypeClouds).Select(viz => viz.Plot.MetaData).Concat(new[] { classBoundaries.Plot.MetaData })) {
+				foreach (IPlotMetaDataWriteable metadata in dataClouds.Select(viz => viz.Plot.MetaData)) {
 					metadata.OverrideBounds = bounds;
 				}
 			}
 
-			static IVizEngine<LvqModels>[] ExtractDataSinksFromPlots(IEnumerable<PlotControl> plots) {
+			static IVizEngine<SubPlots>[] ExtractDataSinksFromPlots(IEnumerable<PlotControl> plots) {
 				return (
 						from plot in plots
 						from graph in plot.Graphs
-						select (IVizEngine<LvqModels>)graph.Visualisation
+						select (IVizEngine<SubPlots>)graph.Visualisation
 					).ToArray();
 			}
 
-			static PlotControl[] MakeDataPlots(LvqDatasetCli dataset, LvqModels model, bool showSelGraphs) {
+			static PlotControl[] MakeDataPlots(LvqDatasetCli dataset, LvqModels model) {
 				return (
 						from statname in model.TrainingStatNames.Select(TrainingStatName.Create)
 						where statname.StatGroup != null
@@ -203,7 +215,7 @@ namespace LvqGui {
 							ShowGridLines = true,
 							//Title = statGroup.Key + ": " + model.ModelLabel,
 							Tag = statGroup.Key,
-							GraphsEnumerable = StatisticsPlotMaker.Create(statGroup.Key, statGroup, model.IsMultiModel, dataset.IsFolded() || dataset.HasTestSet(), showSelGraphs).ToArray(),
+							GraphsEnumerable = StatisticsPlotMaker.Create(statGroup.Key, statGroup, model.IsMultiModel, dataset.IsFolded() || dataset.HasTestSet()).ToArray(),
 						}
 					).ToArray();
 			}
@@ -230,7 +242,7 @@ namespace LvqGui {
 			}
 
 			IVizEngine<LvqModels.ModelProjectionAndImage> MakeClassBoundaryGraph() {
-				return Plot.Create(new PlotMetaData { ZIndex = -1 }, new VizDelegateBitmap<LvqModels.ModelProjectionAndImage> { UpdateBitmapDelegate = UpdateClassBoundaries }).Visualisation;
+				return Plot.Create(new PlotMetaData { ZIndex = -1, OverrideBounds=Rect.Empty }, new VizDelegateBitmap<LvqModels.ModelProjectionAndImage> { UpdateBitmapDelegate = UpdateClassBoundaries }).Visualisation;
 			}
 
 			Tuple<int, int> lastWidthHeight;
@@ -242,7 +254,7 @@ namespace LvqGui {
 
 				if (!hideBoundaries) {
 					if (width != lastProjection.Width || height != lastProjection.Height || lastProjection.ImageData == null) {
-						lastProjection = lastProjection.forModels.CurrentProjectionAndImage(lastProjection.forDataset, width, height, hideBoundaries);
+						lastProjection = lastProjection.forModels.CurrentProjectionAndImage(lastProjection.forDataset, width, height, hideBoundaries, selectedSubModel);
 						SetScatterBounds(lastProjection.Bounds);
 					}
 					bmp.WritePixels(new Int32Rect(0, 0, width, height), lastProjection.ImageData, width * 4, 0);
@@ -273,8 +285,7 @@ namespace LvqGui {
 
 		static IEnumerable<DispatcherOperation> DisplayUpdateOperations(SubPlots subplots) {
 			if (subplots != null) {
-				var wh = subplots.LastWidthHeight;
-				var projectionAndImage = subplots.model.CurrentProjectionAndImage(subplots.dataset, wh == null ? 0 : wh.Item1, wh == null ? 0 : wh.Item2, subplots.classBoundaries != null && subplots.classBoundaries.Plot.MetaData.Hidden);
+				var projectionAndImage = subplots.CurrentProjection();
 
 				if (projectionAndImage != null && subplots.prototypeClouds != null)
 					yield return subplots.scatterPlotControl.Dispatcher.BeginInvokeBackground(
@@ -290,7 +301,7 @@ namespace LvqGui {
 				var graphOperationsLazy =
 					from plot in subplots.statPlots
 					group plot by plot.Dispatcher into plotgroup
-					select plotgroup.Key.BeginInvokeBackground(() => { foreach (var sp in plotgroup) sp.ChangeData(subplots.model); });
+					select plotgroup.Key.BeginInvokeBackground(() => { foreach (var sp in plotgroup) sp.ChangeData(subplots); });
 
 				foreach (var op in graphOperationsLazy) yield return op;
 			}
@@ -310,7 +321,7 @@ namespace LvqGui {
 			TrainingStatName(string compoundName, int index) {
 				if (index < 0) throw new ArgumentException("index must be positive");
 				Index = index;
-				string[] splitName = compoundName.Split('|');
+				string[] splitName = compoundName.Split('!');
 				if (splitName.Length < 2) throw new ArgumentException("compound name has too few components");
 				if (splitName.Length > 3) throw new ArgumentException("compound name has too many components");
 				TrainingStatLabel = splitName[0];
@@ -322,12 +333,12 @@ namespace LvqGui {
 
 
 		static class StatisticsPlotMaker {
-			public static IEnumerable<PlotWithViz<LvqModels>> Create(string windowTitle, IEnumerable<TrainingStatName> stats, bool isMultiModel, bool hasTestSet, bool showSelGraphs) {
+			public static IEnumerable<PlotWithViz<SubPlots>> Create(string windowTitle, IEnumerable<TrainingStatName> stats, bool isMultiModel, bool hasTestSet) {
 				var relevantStatistics = (hasTestSet ? stats : stats.Where(stat => !stat.TrainingStatLabel.StartsWith("Test"))).ToArray();
 
 				return
 					relevantStatistics.Zip(ColorsForWindow(windowTitle, relevantStatistics.Length),
-						(stat, color) => MakePlots(stat.TrainingStatLabel, stat.UnitLabel, color, stat.Index, isMultiModel, isMultiModel && showSelGraphs)
+						(stat, color) => MakePlots(stat.TrainingStatLabel, stat.UnitLabel, color, stat.Index, isMultiModel)
 					).SelectMany(s => s);
 			}
 
@@ -339,26 +350,25 @@ namespace LvqGui {
 					windowTitle == "Cost Function" ? costColors :
 					WpfTools.MakeDistributedColors(length, new MersenneTwister(42));
 			}
-			static IEnumerable<PlotWithViz<LvqModels>> MakePlots(string dataLabel, string yunitLabel, Color color, int statIdx, bool doVariants, bool showSelGraph) {
-				if (doVariants)
+			static IEnumerable<PlotWithViz<SubPlots>> MakePlots(string dataLabel, string yunitLabel, Color color, int statIdx, bool doVariants) {
+				if (doVariants) {
 					yield return MakeRangePlot(null, yunitLabel, color, statIdx);
-				if (showSelGraph)
 					yield return MakeCurrPlot(null, yunitLabel, color, statIdx);
+				}
 
 
 				yield return MakePlot(dataLabel, yunitLabel, color, statIdx);
 			}
 
-
-			static Func<LvqModels, Point[]> ModelToPointsMapper(int statIdx) {
-				return model => LimitSize(model.TrainingStats.Where(info => info.Value[statIdx].IsFinite()).Select(info => new Point(info.Value[LvqTrainingStatCli.TrainingIterationI], info.Value[statIdx])).ToArray());
+			static Func<SubPlots, Point[]> ModelToPointsMapper(int statIdx) {
+				return subplots => LimitSize(subplots.model.TrainingStats.Where(info => info.Value[statIdx].IsFinite()).Select(info => new Point(info.Value[LvqTrainingStatCli.TrainingIterationI], info.Value[statIdx])).ToArray());
 			}
-			static Func<LvqModels, Point[]> SelectedModelToPointsMapper(int statIdx) {
-				return model => LimitSize(model.SelectedStats.Where(stat => stat.values[statIdx].IsFinite()).Select(stat => new Point(stat.values[LvqTrainingStatCli.TrainingIterationI], stat.values[statIdx])).ToArray());
+			static Func<SubPlots, Point[]> SelectedModelToPointsMapper(int statIdx) {
+				return subplots => LimitSize(subplots.model.SelectedStats(subplots.selectedSubModel).Where(stat => stat.values[statIdx].IsFinite()).Select(stat => new Point(stat.values[LvqTrainingStatCli.TrainingIterationI], stat.values[statIdx])).ToArray());
 			}
-			static Func<LvqModels, Tuple<Point[], Point[]>> ModelToRangeMapper(int statIdx) {
-				return model => {
-					var okstats = model.TrainingStats.Where(info => (info.Value[statIdx] + info.StandardError[statIdx]).IsFinite());
+			static Func<SubPlots, Tuple<Point[], Point[]>> ModelToRangeMapper(int statIdx) {
+				return subplots => {
+					var okstats = subplots.model.TrainingStats.Where(info => (info.Value[statIdx] + info.StandardError[statIdx]).IsFinite());
 					return
 					Tuple.Create(
 						LimitSize(
@@ -387,7 +397,8 @@ namespace LvqGui {
 				return newret;
 			}
 
-			static PlotWithViz<LvqModels> MakeCurrPlot(string dataLabel, string yunitLabel, Color color, int statIdx) {
+			public static readonly object IsCurrPlotTag = new object();
+			static PlotWithViz<SubPlots> MakeCurrPlot(string dataLabel, string yunitLabel, Color color, int statIdx) {
 				return Plot.Create(
 					new PlotMetaData {
 						DataLabel = dataLabel,
@@ -395,16 +406,17 @@ namespace LvqGui {
 						XUnitLabel = "Training iterations",
 						YUnitLabel = yunitLabel,
 						AxisBindings = TickedAxisLocation.BelowGraph | TickedAxisLocation.LeftOfGraph,
-						ZIndex = 1
+						ZIndex = 1,
+						Tag = IsCurrPlotTag,
 					},
 					new VizLineSegments {
-						CoverageRatioY = 0.95,
+						CoverageRatioY = 0.90,
 						CoverageRatioGrad = 20.0,
 						DashStyle = DashStyles.Dot,
 					}.Map(SelectedModelToPointsMapper(statIdx)));
 			}
 
-			static PlotWithViz<LvqModels> MakePlot(string dataLabel, string yunitLabel, Color color, int statIdx) {
+			static PlotWithViz<SubPlots> MakePlot(string dataLabel, string yunitLabel, Color color, int statIdx) {
 				return Plot.Create(
 					new PlotMetaData {
 						DataLabel = dataLabel,
@@ -415,11 +427,11 @@ namespace LvqGui {
 						ZIndex = 1
 					},
 					new VizLineSegments {
-						CoverageRatioY = 0.95,
+						CoverageRatioY = dataLabel.StartsWith("max")?1.0: 0.90,
 						CoverageRatioGrad = 20.0,
 					}.Map(ModelToPointsMapper(statIdx)));
 			}
-			static PlotWithViz<LvqModels> MakeRangePlot(string dataLabel, string yunitLabel, Color color, int statIdx) {
+			static PlotWithViz<SubPlots> MakeRangePlot(string dataLabel, string yunitLabel, Color color, int statIdx) {
 				//Blend(color, Colors.White)
 				color.ScA = 0.3f;
 				return Plot.Create(
@@ -432,16 +444,15 @@ namespace LvqGui {
 						ZIndex = 0
 					},
 					new VizDataRange {
-						CoverageRatioY = 0.95,
+						CoverageRatioY = 0.90,
 						CoverageRatioGrad = 20.0,
 					}.Map(ModelToRangeMapper(statIdx))
 					);
 			}
 		}
 
-
-		internal static void QueueUpdateIfCurrent(LvqScatterPlot plotData, LvqDatasetCli dataset, LvqModels model) {
-			if (plotData != null && plotData.subplots != null && plotData.subplots.dataset == dataset && plotData.subplots.model == model)
+		internal static void QueueUpdateIfCurrent(LvqScatterPlot plotData) {
+			if (plotData != null && plotData.subplots != null)
 				plotData.QueueUpdate();
 		}
 	}
