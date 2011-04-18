@@ -60,14 +60,14 @@ namespace LvqGui {
 					var testFile = dataFileOpenDialog.FileNames.Where(name => Path.GetFileNameWithoutExtension(name).EndsWith("test")).Select(name => new FileInfo(name)).FirstOrDefault();
 					if (trainFile == null || testFile == null)
 						return null;
-					var dataset = LoadDataset(trainFile, seed, folds);
+					var dataset = LoadDataset(trainFile, seed, folds,testFile.Name);
 					dataset.TestSet = LoadDataset(testFile, seed, folds);
 					return dataset;
 				} else return null;
 			} else return null;
 		}
 
-		LvqDatasetCli LoadDataset(FileInfo dataFile, uint seed, int folds) {
+		LvqDatasetCli LoadDataset(FileInfo dataFile, uint seed, int folds, string testFile=null) {
 			var labelFile = new FileInfo(dataFile.Directory + @"\" + Path.GetFileNameWithoutExtension(dataFile.Name) + ".label");
 			try {
 				if (dataFile.Exists) {
@@ -79,7 +79,7 @@ namespace LvqGui {
 					int colorSeed = (int)(colorSeedLong + (colorSeedLong >> 32));
 
 
-					string name = dataFile.Name + "-" + pointArray.GetLength(1) + "D" + (owner.ExtendDataByCorrelation ? "*" : "") + (owner.NormalizeDimensions ? "n" : "") + "-" + classCount + ":" + pointArray.GetLength(0) + "[" + seed + "]/" + folds;
+					string name = dataFile.Name+(testFile!=null?":"+testFile:"") + "-" + pointArray.GetLength(1) + "D" + (owner.ExtendDataByCorrelation ? "*" : "") + (owner.NormalizeDimensions ? "n" : "") + "-" + classCount + ":" + pointArray.GetLength(0) + "[" + seed + "]/" + folds;
 					Console.WriteLine("Created: " + name);
 					return LvqDatasetCli.ConstructFromArray(
 						rngInstSeed: seed,
