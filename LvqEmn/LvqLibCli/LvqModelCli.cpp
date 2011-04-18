@@ -21,7 +21,7 @@ namespace LvqLibCli {
 		, initDataFold(datafold)
 		, trainSync(gcnew Object())
 		, copySync(gcnew Object())
-		,stats(gcnew List<LvqTrainingStatCli>())
+		, stats(gcnew List<LvqTrainingStatCli>())
 	{ 
 		msclr::lock l(trainSync);
 		trainingSet->LastModel = this;

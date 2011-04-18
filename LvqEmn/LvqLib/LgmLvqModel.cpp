@@ -87,9 +87,9 @@ size_t LgmLvqModel::MemAllocEstimate() const {
 
 void LgmLvqModel::AppendTrainingStatNames(std::vector<std::wstring> & retval) const {
 	LvqModel::AppendTrainingStatNames(retval);
-	retval.push_back(L"Projection Norm Maximum|norm|Prototype Matrix");
-	retval.push_back(L"Projection Norm Mean|norm|Prototype Matrix");
-	retval.push_back(L"Projection Norm Minimum|norm|Prototype Matrix");
+	retval.push_back(L"Projection Norm Maximum!norm!Prototype Matrix");
+	retval.push_back(L"Projection Norm Mean!norm!Prototype Matrix");
+	retval.push_back(L"Projection Norm Minimum!norm!Prototype Matrix");
 }
 void LgmLvqModel::AppendOtherStats(std::vector<double> & stats, LvqDataset const * trainingSet, std::vector<int>const & trainingSubset, LvqDataset const * testSet, std::vector<int>const & testSubset) const {
 	LvqModel::AppendOtherStats(stats,trainingSet,trainingSubset,testSet,testSubset);

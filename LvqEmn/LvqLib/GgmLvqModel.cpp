@@ -192,24 +192,32 @@ vector<int> GgmLvqModel::GetPrototypeLabels() const {
 
 void GgmLvqModel::AppendTrainingStatNames(std::vector<std::wstring> & retval) const {
 	LvqProjectionModel::AppendTrainingStatNames(retval);
-	retval.push_back(L"Border matrix norm max|norm|Border Matrix");
-	retval.push_back(L"Border matrix norm mean|norm|Border Matrix");
-	retval.push_back(L"Border matrix norm min|norm|Border Matrix");
-	retval.push_back(L"Prototype bias max|bias|Prototype bias");
-	retval.push_back(L"Prototype bias mean|bias|Prototype bias");
-	retval.push_back(L"Prototype bias min|bias|Prototype bias");
+	retval.push_back(L"Maximum norm(B)!norm!Border Matrix norm");
+	retval.push_back(L"Mean norm(B)!norm!Border Matrix norm");
+	retval.push_back(L"Minimum norm(B)!norm!Border Matrix norm");
+	retval.push_back(L"Maximum |B|!determinant!Border Matrix absolute determinant");
+	retval.push_back(L"Mean |B|!determinant!Border Matrix absolute determinant");
+	retval.push_back(L"Minimum |B|!determinant!Border Matrix absolute determinant");
+	retval.push_back(L"Prototype bias max!bias!Prototype bias");
+	retval.push_back(L"Prototype bias mean!bias!Prototype bias");
+	retval.push_back(L"Prototype bias min!bias!Prototype bias");
 }
 void GgmLvqModel::AppendOtherStats(std::vector<double> & stats, LvqDataset const * trainingSet, std::vector<int>const & trainingSubset, LvqDataset const * testSet, std::vector<int>const & testSubset) const {
 	LvqProjectionModel::AppendOtherStats(stats,trainingSet,trainingSubset,testSet,testSubset);
-	MeanMinMax norm, bias;
+	MeanMinMax norm, det, bias;
 	std::for_each(prototype.begin(),prototype.end(), [&](GgmLvqPrototype const & proto) {
 		norm.Add(projectionSquareNorm(proto.B));
+		det.Add(abs(proto.B.determinant()));
 		bias.Add(proto.bias);
 	});
 
 	stats.push_back(norm.max());
 	stats.push_back(norm.mean());
 	stats.push_back(norm.min());
+
+	stats.push_back(det.max());
+	stats.push_back(det.mean());
+	stats.push_back(det.min());
 
 	stats.push_back(bias.max());
 	stats.push_back(bias.mean());

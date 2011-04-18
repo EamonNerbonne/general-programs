@@ -9,7 +9,7 @@
 
 using namespace Eigen;
 class LvqDataset;
-struct LvqDatasetStats;
+class LvqDatasetStats;
 
 class LvqModel
 {
