@@ -28,7 +28,6 @@ namespace EmnExtensions.Wpf.Plot.VizEngines {
 		public abstract void SetTransform(Matrix boundsToDisplay, Rect displayClip, double forDpiX, double forDpiY);
 		protected T Data { get; private set; }
 		public void ChangeData(T data) {
-			
 			var oldData = Data;
 			Data = data;
 			OnDataChanged(oldData);

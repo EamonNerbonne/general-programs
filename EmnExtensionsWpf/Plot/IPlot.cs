@@ -27,6 +27,7 @@ namespace EmnExtensions.Wpf.Plot {
 		Color? RenderColor { get; set; }
 		double? RenderThickness { get; }
 		Dispatcher Dispatcher { get; }
+		object Tag { get;  }
 	}
 
 	public interface IPlotMetaDataWriteable : IPlotMetaData {
@@ -38,7 +39,7 @@ namespace EmnExtensions.Wpf.Plot {
 		new Rect? MinimalBounds { get; set; }
 		new double? RenderThickness { get; set; }
 		new IPlot Plot { get; set; }
-		object Tag { get; set; }
+		new object Tag { get; set; }
 	}
 
 
