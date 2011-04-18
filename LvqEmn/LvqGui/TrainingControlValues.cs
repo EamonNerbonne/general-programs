@@ -26,13 +26,13 @@ namespace LvqGui {
 		}
 		LvqDatasetCli _SelectedDataset;
 
-		public IEnumerable<LvqModels> MatchingLvqModels { get { return Owner.LvqModels.Where(model => model == null || model.InitSet == SelectedDataset); } } // model.FitsDataShape(SelectedDataset) is unhandy
+		public IEnumerable<LvqMultiModel> MatchingLvqModels { get { return Owner.LvqModels.Where(model => model == null || model.InitSet == SelectedDataset); } } // model.FitsDataShape(SelectedDataset) is unhandy
 
-		public LvqModels SelectedLvqModel {
+		public LvqMultiModel SelectedLvqModel {
 			get { return _SelectedLvqModel; }
 			set { if (!Equals(_SelectedLvqModel, value)) { _SelectedLvqModel = value; _propertyChanged("SelectedLvqModel"); _propertyChanged("ModelIndexes"); AnimateTraining = false; SubModelIndex = 0; } }
 		}
-		LvqModels _SelectedLvqModel;
+		LvqMultiModel _SelectedLvqModel;
 
 		public IEnumerable<int> ModelIndexes { get { return Enumerable.Range(0, SelectedLvqModel == null ? 0 : SelectedLvqModel.ModelCount); } }
 
@@ -210,7 +210,7 @@ namespace LvqGui {
 			}
 		}
 
-		static void PrintModelTimings(LvqModels model) {
+		static void PrintModelTimings(LvqMultiModel model) {
 			var trainingStats = model.TrainingStats;
 			if (trainingStats.Length >= 2) {
 				var lastStat = trainingStats[trainingStats.Length - 1];
@@ -222,7 +222,7 @@ namespace LvqGui {
 			}
 		}
 
-		void PotentialUpdate(LvqDatasetCli selectedDataset, LvqModels selectedModel) {
+		void PotentialUpdate(LvqDatasetCli selectedDataset, LvqMultiModel selectedModel) {
 			if (selectedModel == SelectedLvqModel && selectedDataset == SelectedDataset && SelectedModelUpdatedInBackgroundThread != null)
 				SelectedModelUpdatedInBackgroundThread();
 		}

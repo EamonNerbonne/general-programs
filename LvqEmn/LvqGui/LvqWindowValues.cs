@@ -39,7 +39,7 @@ namespace LvqGui {
 		
 
 		public ObservableCollection<LvqDatasetCli> Datasets { get; private set; }
-		public ObservableCollection<LvqModels> LvqModels { get; private set; }
+		public ObservableCollection<LvqMultiModel> LvqModels { get; private set; }
 
 		public CancellationToken WindowClosingToken { get { return win.ClosingToken; } }
 		public Dispatcher Dispatcher { get { return win.Dispatcher; } }
@@ -49,7 +49,7 @@ namespace LvqGui {
 			if (win == null) throw new ArgumentNullException("win");
 			this.win = win;
 			Datasets = new ObservableCollection<LvqDatasetCli>();
-			LvqModels = new ObservableCollection<LvqModels>();
+			LvqModels = new ObservableCollection<LvqMultiModel>();
 
 			//AppSettingsValues = new AppSettingsValues(this);
 			CreateGaussianCloudsDatasetValues = new CreateGaussianCloudsDatasetValues(this);
@@ -64,10 +64,10 @@ namespace LvqGui {
 
 		void LvqModels_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e) {
 			if (e.NewItems != null && e.NewItems.Count > 0) {
-				foreach (LvqModels modelGroup in e.NewItems)
+				foreach (LvqMultiModel modelGroup in e.NewItems)
 					foreach (LvqModelCli subModel in modelGroup.SubModels)
 						modelGroupLookup.Add(subModel, modelGroup);
-				var newModelGroup = e.NewItems.Cast<LvqModels>().First();
+				var newModelGroup = e.NewItems.Cast<LvqMultiModel>().First();
 				TrainingControlValues.SelectedDataset = newModelGroup.InitSet;
 				TrainingControlValues.SelectedLvqModel = newModelGroup;
 				win.trainingTab.IsSelected = true;
@@ -82,16 +82,16 @@ namespace LvqGui {
 				}
 			}
 			if (e.OldItems != null)
-				foreach (LvqModels modelGroup in e.OldItems)
+				foreach (LvqMultiModel modelGroup in e.OldItems)
 					foreach (LvqModelCli subModel in modelGroup.SubModels)
 						if (!modelGroupLookup.Remove(subModel))
 							throw new InvalidOperationException("How can you be removing models that aren't in the lookup... ehh....?");
 
 		}
 
-		readonly Dictionary<LvqModelCli, LvqModels> modelGroupLookup = new Dictionary<LvqModelCli, LvqModels>();
+		readonly Dictionary<LvqModelCli, LvqMultiModel> modelGroupLookup = new Dictionary<LvqModelCli, LvqMultiModel>();
 
-		public LvqModels ResolveModel(LvqModelCli lastModel) {
+		public LvqMultiModel ResolveModel(LvqModelCli lastModel) {
 			return modelGroupLookup[lastModel];
 		}
 

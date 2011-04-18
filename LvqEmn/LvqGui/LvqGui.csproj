@@ -160,6 +160,9 @@
       <Generator>MSBuild:Compile</Generator>
     </ApplicationDefinition>
     <Compile Include="LvqModels.cs" />
+    <Compile Include="LvqStatName.cs" />
+    <Compile Include="LvqStatPlotFactory.cs" />
+    <Compile Include="LvqStatPlots.cs" />
     <Compile Include="ShorthandHelper.cs" />
     <Compile Include="UpdateSync.cs" />
     <Page Include="AppSettings.xaml">

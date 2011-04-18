@@ -243,10 +243,10 @@ namespace LvqGui {
 			this.ReseedBoth();
 		}
 
-		public LvqModels CreateModel() {
+		public LvqMultiModel CreateModel() {
 			Console.WriteLine("Created: " + Shorthand);
 
-			return new LvqModels(Shorthand, ParallelModels, ForDataset, new LvqModelSettingsCli {
+			return new LvqMultiModel(Shorthand, ParallelModels, ForDataset, new LvqModelSettingsCli {
 				ModelType = ModelType,
 				RngParamsSeed = Seed,
 				RngIterSeed = InstSeed,

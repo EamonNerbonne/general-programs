@@ -16,9 +16,9 @@ using EmnExtensions;
 using EmnExtensions.Wpf.Plot;
 
 namespace LvqGui {
-	public class LvqModels {
+	public class LvqMultiModel {
 		readonly LvqModelCli[] subModels;
-		public LvqModels(string shorthand, int parallelModels, LvqDatasetCli forDataset, LvqModelSettingsCli lvqModelSettingsCli) {
+		public LvqMultiModel(string shorthand, int parallelModels, LvqDatasetCli forDataset, LvqModelSettingsCli lvqModelSettingsCli) {
 			subModels =
 				Enumerable.Range(0, parallelModels).AsParallel()
 				.Select(modelfold => new LvqModelCli(shorthand, forDataset, modelfold, lvqModelSettingsCli))
@@ -142,7 +142,7 @@ namespace LvqGui {
 			public Rect Bounds;
 			public int Width, Height;
 			public uint[] ImageData;
-			public LvqModels forModels;
+			public LvqMultiModel forModels;
 			public int forSubModel;
 			public LvqDatasetCli forDataset;
 		}

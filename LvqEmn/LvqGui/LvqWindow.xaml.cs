@@ -35,7 +35,7 @@ namespace LvqGui {
 				plotData.Dispose();
 				plotData = null;
 			}
-			LvqModels.WaitForTraining();
+			LvqMultiModel.WaitForTraining();
 			var windowValues = (LvqWindowValues)DataContext;
 			windowValues.LvqModels.Clear();
 			windowValues.Datasets.Clear();
