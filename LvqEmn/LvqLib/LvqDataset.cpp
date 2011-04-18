@@ -229,15 +229,12 @@ void LvqDataset::TrainModel(int epochs, LvqModel * model, LvqModel::Statistics *
 	int cacheLines = (dims*sizeof(points(0,0) ) +63)/ 64 ;
 
 	for(int epoch=0; epoch<epochs; ++epoch) {
-		double pointCostSum=0,muK=0.0,muJ=0.0;
-		int errs=0;
 		prefetchStream(&(model->RngIter()), (sizeof(boost::mt19937) +63)/ 64);
 		vector<int> shuffledOrder(trainingSubset);
 		shuffle(model->RngIter(), shuffledOrder, shuffledOrder.size());
-		SmartSum<1> distGood;
-		SmartSum<1> distBad;
 		BenchTimer t;
 		t.start();
+		LvqDatasetStats stats;
 		for(int tI=0; tI<(int)shuffledOrder.size(); ++tI) {
 			int pointIndex = shuffledOrder[tI];
 			int pointClass = pointLabels[pointIndex];
@@ -245,31 +242,13 @@ void LvqDataset::TrainModel(int epochs, LvqModel * model, LvqModel::Statistics *
 			prefetch( &points.coeff (0, shuffledOrder[(tI+1)%shuffledOrder.size()]), cacheLines);
 
 			MatchQuality trainingMatchQ = model->learnFrom(pointA, pointClass);
-
-			errs += trainingMatchQ.isErr ?1:0;
-			assert(-1<=trainingMatchQ.costFunc && trainingMatchQ.costFunc<=1);
-			pointCostSum += trainingMatchQ.costFunc;
-			distGood.CombineWith(trainingMatchQ.distGood,1.0);
-			distBad.CombineWith(trainingMatchQ.distBad,1.0);
-			muK+=-trainingMatchQ.muK;//we want positives.
-			muJ+=trainingMatchQ.muJ;
+			stats.Add(trainingMatchQ);
 		}
 		t.stop();
 		model->RegisterEpochDone( (int)(1*shuffledOrder.size()), t.value(CPU_TIMER), 1);
-		if(statisticsSink && (model->epochsTrained%AppropriateAnimationEpochs(trainingSubset)==0)) {
-			//cout<<AppropriateAnimationEpochs(trainingSubset)<<", ";
-			LvqDatasetStats trainingStats;
-			trainingStats.errorRate = errs/double(shuffledOrder.size());
-			trainingStats.meanCost =pointCostSum/double(shuffledOrder.size());
-			trainingStats.distGoodMean = distGood.GetMean()(0);
-			trainingStats.distGoodVar = distGood.GetVariance()(0);
-			trainingStats.distBadMean = distBad.GetMean()(0);
-			trainingStats.distBadVar = distBad.GetVariance()(0);
-			trainingStats.muKmean = muK/double(shuffledOrder.size());
-			trainingStats.muJmean = muJ/double(shuffledOrder.size());
-
-			model->AddTrainingStat(*statisticsSink, this, trainingSubset, testData, testSubset, trainingStats);
-		}
+		if(statisticsSink && (model->epochsTrained%AppropriateAnimationEpochs(trainingSubset)==0)) 
+			model->AddTrainingStat(*statisticsSink, this, trainingSubset, testData, testSubset, stats);
+		
 		model->DoOptionalNormalization();
 	}
 }
@@ -322,7 +301,7 @@ void LvqDataset::NormalizeDimensions() {
 	for(int indim=0;indim<variance.rows();indim++) 
 		if(variance(indim) >= std::numeric_limits<LvqFloat>::min()) 
 			remapping.push_back(indim);
-	if(remapping.size()<points.rows())
+	if((ptrdiff_t)remapping.size()<points.rows())
 		cout<<"Retaining "<< remapping.size() <<" of "<< points.rows()<<" dimensions\n";
 	for(int pI=0; pI <points.cols(); pI++) {
 		for(int outdim=0; outdim<remapping.size(); outdim++) {
@@ -339,31 +318,14 @@ void LvqDataset::NormalizeDimensions() {
 using Eigen::Array2d;
 
 LvqDatasetStats LvqDataset::ComputeCostAndErrorRate(std::vector<int> const & subset, LvqModel const * model) const{
-
 	assert(subset.size() > 0);
-	Vector_N a;
-	double totalCost=0,muK=0,muJ=0;
-	int errs=0;
-	SmartSum<2> dists;
+	LvqDatasetStats stats;
 	for(int i=0;i<(int)subset.size();++i) {
 		assert(points.sum() == points.sum());
 		MatchQuality matchQ = model->ComputeMatches(points.col(subset[i]), pointLabels[subset[i]]);
-		totalCost += matchQ.costFunc;
-		errs += matchQ.isErr?1:0;
-		dists.CombineWith(Array2d(matchQ.distGood,matchQ.distBad), 1.0);
-		muJ+=matchQ.muJ;
-		muK+=-matchQ.muK;//we want positives.
+		stats.Add(matchQ);
 	}
-	LvqDatasetStats retval;
-	retval.meanCost = totalCost / double(subset.size());
-	retval.errorRate = errs / double(subset.size());
-	retval.muKmean = muK / double(subset.size());
-	retval.muJmean = muJ / double(subset.size());
-	retval.distGoodMean = dists.GetMean()(0);
-	retval.distBadMean = dists.GetMean()(1);
-	retval.distGoodVar = dists.GetVariance()(0);
-	retval.distBadVar = dists.GetVariance()(1);
-	return retval;
+	return stats;
 }
 
 Matrix_P LvqDataset::ProjectPoints(LvqProjectionModel const * model) const {

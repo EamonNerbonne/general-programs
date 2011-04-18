@@ -2,14 +2,42 @@
 //#pragma managed(push, off)
 using namespace Eigen;
 #include "LvqTypedefs.h"
-
+#include "SmartSum.h"
 #include "LvqModel.h"
 class LvqProjectionModel;
 
-struct LvqDatasetStats {
-	double meanCost, errorRate, distGoodMean, distGoodVar, distBadMean, distBadVar,muKmean,muJmean;
-	LvqDatasetStats():meanCost(0.0), errorRate(0.0), distGoodMean(0.0), distGoodVar(0.0), distBadMean(0.0), distBadVar(0.0)
-	{}
+class LvqDatasetStats {
+	double meanCost_sum, errorRate_sum, muKmean_sum, muJmean_sum,muKmax_val,muJmax_val;
+	SmartSum<1> distGood, distBad;
+	size_t counter;
+public:
+	LvqDatasetStats()
+		: meanCost_sum(0.0), errorRate_sum(0.0), muKmean_sum(0.0),muJmean_sum(0.0), counter(0)
+	{
+	
+	}
+	void Add(MatchQuality match) {
+		assert(-1<=match.costFunc && match.costFunc<=1);
+		counter++;
+		errorRate_sum+= match.isErr ?1:0;
+		meanCost_sum += match.costFunc;
+		distGood.CombineWith(match.distGood,1.0);
+		distBad.CombineWith(match.distBad,1.0);
+		muKmean_sum+=-match.muK;//we want positives.
+		muJmean_sum+=match.muJ;
+		muKmax_val = std::max(muKmax_val, -match.muK);
+		muJmax_val = std::max(muJmax_val, match.muJ);
+	}
+
+	double meanCost() const {return meanCost_sum / counter;}
+	double errorRate()  const{return errorRate_sum / counter;}
+	double muKmean()  const{return muKmean_sum / counter; }
+	double muJmean() const {return muJmean_sum / counter; }
+	double muKmax() const {return muKmax_val;}
+	double muJmax()  const {return muJmax_val;}
+	SmartSum<1> distanceGood() const {return distGood;} 
+	SmartSum<1> distanceBad() const {return distBad;}
+
 };
 
 class LvqDataset
