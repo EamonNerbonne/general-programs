@@ -46,9 +46,7 @@ namespace LvqGui {
 			return MeanStdErrStats(multistats);
 		}
 
-		public int SelectedSubModel { get; set; }
-
-		public LvqTrainingStatCli[] SelectedStats { get { return subModels[SelectedSubModel].TrainingStats; } }
+		public LvqTrainingStatCli[] SelectedStats(int submodel) { return subModels[submodel].TrainingStats; }
 		readonly object statCacheSync = new object();
 		readonly List<Statistic> statCache = new List<Statistic>();
 		public Statistic[] TrainingStats {
@@ -86,7 +84,7 @@ namespace LvqGui {
 		int epochsDone;
 		static int trainersRunning;
 		public static void WaitForTraining() { while (trainersRunning != 0) Thread.Sleep(1); }
-		readonly static LowPriorityTaskScheduler scheduler = new LowPriorityTaskScheduler(Environment.ProcessorCount);
+		readonly static LowPriorityTaskScheduler scheduler = new LowPriorityTaskScheduler(Environment.ProcessorCount+2);
 		public void Train(int epochsToDo, LvqDatasetCli trainingSet, CancellationToken cancel) {
 			Interlocked.Increment(ref trainersRunning);
 			try {
@@ -149,7 +147,7 @@ namespace LvqGui {
 			public LvqDatasetCli forDataset;
 		}
 
-		public ModelProjectionAndImage CurrentProjectionAndImage(LvqDatasetCli dataset, int width, int height, bool hideBoundaries) {
+		public ModelProjectionAndImage CurrentProjectionAndImage(LvqDatasetCli dataset, int width, int height, bool hideBoundaries, int currSubModel) {
 #if DEBUG
 			int renderwidth = (width + 7) / 8;
 			int renderheight = (height + 7) / 8;
@@ -157,7 +155,6 @@ namespace LvqGui {
 			int renderwidth = width;
 			int renderheight = height;
 #endif
-			int currSubModel = SelectedSubModel;
 			var selectedModel = subModels[currSubModel];
 			ModelProjection projection;
 			Rect bounds;
