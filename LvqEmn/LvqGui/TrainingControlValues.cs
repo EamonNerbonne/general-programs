@@ -16,8 +16,7 @@ namespace LvqGui {
 		public LvqWindowValues Owner { get { return owner; } }
 
 		public event PropertyChangedEventHandler PropertyChanged;
-		public event Action<LvqDatasetCli, LvqModels, int> ModelSelected;
-		public event Action<LvqDatasetCli, LvqModels> SelectedModelUpdatedInBackgroundThread;
+		public event Action SelectedModelUpdatedInBackgroundThread;
 
 		void _propertyChanged(string propertyName) { if (PropertyChanged != null) PropertyChanged(this, new PropertyChangedEventArgs(propertyName)); }
 
@@ -31,7 +30,7 @@ namespace LvqGui {
 
 		public LvqModels SelectedLvqModel {
 			get { return _SelectedLvqModel; }
-			set { if (!Equals(_SelectedLvqModel, value)) { _SelectedLvqModel = value; _propertyChanged("SelectedLvqModel"); _propertyChanged("ModelIndexes"); ModelSelected(_SelectedDataset, _SelectedLvqModel, _SubModelIndex); AnimateTraining = false; SubModelIndex = 0; } }
+			set { if (!Equals(_SelectedLvqModel, value)) { _SelectedLvqModel = value; _propertyChanged("SelectedLvqModel"); _propertyChanged("ModelIndexes"); AnimateTraining = false; SubModelIndex = 0; } }
 		}
 		LvqModels _SelectedLvqModel;
 
@@ -42,14 +41,14 @@ namespace LvqGui {
 			set {
 				if (SelectedLvqModel != null && (value < 0 || value >= SelectedLvqModel.ModelCount))
 					throw new ArgumentException("Model only has " + SelectedLvqModel.ModelCount + " sub-models.");
-				if (!_SubModelIndex.Equals(value)) { _SubModelIndex = value; ModelSelected(_SelectedDataset, _SelectedLvqModel, _SubModelIndex); _propertyChanged("SubModelIndex"); }
+				if (!_SubModelIndex.Equals(value)) { _SubModelIndex = value; _propertyChanged("SubModelIndex"); }
 			}
 		}
 		int _SubModelIndex;
 
 		public bool CurrProjStats {
 			get { return _CurrProjStats; }
-			set { if (!_CurrProjStats.Equals(value)) { _CurrProjStats = value; _propertyChanged("CurrProjStats"); ModelSelected(_SelectedDataset, _SelectedLvqModel, _SubModelIndex); } }
+			set { if (!_CurrProjStats.Equals(value)) { _CurrProjStats = value; _propertyChanged("CurrProjStats"); } }
 		}
 		private bool _CurrProjStats;
 
@@ -133,7 +132,7 @@ namespace LvqGui {
 					errF = " ~ {2:g2}";
 				}
 
-				Console.WriteLine("{0}: {1:" + numF + "}" + errF, selectedModel.TrainingStatNames[i].Split('|')[0], meanstats.Value[i], meanstats.StandardError[i]);
+				Console.WriteLine("{0}: {1:" + numF + "}" + errF, selectedModel.TrainingStatNames[i].Split('!')[0], meanstats.Value[i], meanstats.StandardError[i]);
 			}
 		}
 
@@ -225,7 +224,7 @@ namespace LvqGui {
 
 		void PotentialUpdate(LvqDatasetCli selectedDataset, LvqModels selectedModel) {
 			if (selectedModel == SelectedLvqModel && selectedDataset == SelectedDataset && SelectedModelUpdatedInBackgroundThread != null)
-				SelectedModelUpdatedInBackgroundThread(selectedDataset, selectedModel);
+				SelectedModelUpdatedInBackgroundThread();
 		}
 
 		public void ResetLearningRate() {

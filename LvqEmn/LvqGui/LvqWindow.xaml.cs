@@ -16,7 +16,6 @@ namespace LvqGui {
 			var windowValues = new LvqWindowValues(this);
 			DataContext = windowValues;
 			InitializeComponent();
-			windowValues.TrainingControlValues.ModelSelected += TrainingControlValues_ModelSelected;
 			windowValues.TrainingControlValues.SelectedModelUpdatedInBackgroundThread += TrainingControlValues_SelectedModelUpdatedInBackgroundThread;
 			windowValues.TrainingControlValues.PropertyChanged += TrainingControlValues_PropertyChanged;
 			Closing += (o, e) => { windowValues.TrainingControlValues.AnimateTraining = false; };
@@ -65,8 +64,8 @@ namespace LvqGui {
 		}
 
 		LvqScatterPlot plotData;
-		void TrainingControlValues_SelectedModelUpdatedInBackgroundThread(LvqDatasetCli dataset, LvqModels model) {
-			LvqScatterPlot.QueueUpdateIfCurrent(plotData, dataset, model);
+		void TrainingControlValues_SelectedModelUpdatedInBackgroundThread() {
+			LvqScatterPlot.QueueUpdateIfCurrent(plotData);
 		}
 
 		void TrainingControlValues_PropertyChanged(object sender, PropertyChangedEventArgs e) {
@@ -74,15 +73,19 @@ namespace LvqGui {
 				plotData.ShowBoundaries(Values.TrainingControlValues.ShowBoundaries);
 			if (e.PropertyName == "ShowPrototypes" && plotData != null)
 				plotData.ShowPrototypes(Values.TrainingControlValues.ShowPrototypes);
+			if (e.PropertyName == "CurrProjStats" && plotData != null)
+				plotData.ShowCurrentProjectionStats(Values.TrainingControlValues.CurrProjStats);
+			if (e.PropertyName == "SelectedDataset" || e.PropertyName == "SelectedLvqModel")
+				ModelChanged();
 		}
 
 
-		void TrainingControlValues_ModelSelected(LvqDatasetCli dataset, LvqModels model, int subModelIdx) {
-			if (plotData == null && dataset != null && model != null)
+		void ModelChanged() {
+			if (plotData == null && Values.TrainingControlValues.SelectedDataset != null && Values.TrainingControlValues.SelectedLvqModel != null)
 				plotData = new LvqScatterPlot(ClosingToken);
 
 			if (plotData != null)
-				plotData.DisplayModel(dataset, model, subModelIdx, Values.TrainingControlValues.CurrProjStats, Values.TrainingControlValues.ShowBoundaries, Values.TrainingControlValues.ShowPrototypes);
+				plotData.DisplayModel(Values.TrainingControlValues.SelectedDataset, Values.TrainingControlValues.SelectedLvqModel, Values.TrainingControlValues.SubModelIndex, Values.TrainingControlValues.CurrProjStats, Values.TrainingControlValues.ShowBoundaries, Values.TrainingControlValues.ShowPrototypes);
 		}
 
 		public bool Fullscreen {
