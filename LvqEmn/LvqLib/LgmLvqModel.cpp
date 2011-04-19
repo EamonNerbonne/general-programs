@@ -47,6 +47,7 @@ MatchQuality LgmLvqModel::learnFrom(Vector_N const & trainPoint, int trainLabel)
 
 	//now matches.good is "J" and matches.bad is "K".
 	MatchQuality retval = matches.LvqQuality();
+
 	double lr_mu_K2 = lr_point * 2.0*retval.muK;
 	double lr_mu_J2 = lr_point * 2.0*retval.muJ;
 	double lr_bad = (settings.SlowStartLrBad  ?  sqr(1.0 - learningRate)  :  1.0) * settings.LrScaleBad;

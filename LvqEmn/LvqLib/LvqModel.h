@@ -16,6 +16,7 @@ class LvqModel
 	double trainIter;
 	double totalIter;
 	double totalElapsed;
+	double totalLR;
 	
 protected:
 	LvqModelRuntimeSettings settings;
@@ -23,7 +24,9 @@ protected:
 	double stepLearningRate() { //starts at 1.0, descending with power -0.75
 		double scaledIter = trainIter*iterationScaleFactor+1.0;
 		++trainIter;
-		return 1.0 / sqrt(scaledIter*sqrt(scaledIter)); // significantly faster than exp(-0.75*log(scaledIter)) 
+		double lr= 1.0 / sqrt(scaledIter*sqrt(scaledIter)); // significantly faster than exp(-0.75*log(scaledIter)) 
+		totalLR+=lr;
+		return lr;
 	}
 	//subclasses must append the stats they intend to collect and call their base-classes AppendTrainingStatNames
 	virtual void AppendTrainingStatNames(std::vector<std::wstring> & retval) const;

@@ -50,6 +50,8 @@ void LvqModel::AddTrainingStat(Statistics& statQueue, LvqDataset const * trainin
 	stats.push_back(trainingstats.distanceGood().GetVariance()[0]);
 	stats.push_back(trainingstats.distanceBad().GetVariance()[0]);
 
+	stats.push_back(totalLR * settings.LR0);
+
 	stats.push_back(trainingstats.muJmean());
 	if(!this->IdenticalMu()) stats.push_back(trainingstats.muKmean());
 	stats.push_back(trainingstats.muJmax());
@@ -79,6 +81,10 @@ std::vector<std::wstring> LvqModel::TrainingStatNames() {
 	retval.push_back(L"Nearest Incorrect Prototype Distance!distance!Prototype Distance");
 	retval.push_back(L"Nearest Correct Prototype Distance Variance!distance variance!Prototype Distance Variance");
 	retval.push_back(L"Nearest Incorrect Prototype Distance Variance!distance variance!Prototype Distance Variance");
+	
+	retval.push_back(L"Cumulative Learning Rate!!Cumulative Learning Rates");
+
+	//retval.push_back(L"Cumulative \u03BC-scaled Learning Rate!!Cumulative Learning Rates");
 	if(this->IdenticalMu()) {
 		retval.push_back(L"mean \u03BC!mean \u03BC!mean \u03BC");//greek:\u03BC math:\U0001D707
 		retval.push_back(L"max \u03BC!max \u03BC!max \u03BC");//greek:\u03BC math:\U0001D707
