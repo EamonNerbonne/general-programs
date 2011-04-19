@@ -63,9 +63,9 @@ namespace LvqGui {
 			}, DataContext);
 		}
 
-		LvqScatterPlot plotData;
+		LvqStatPlotsContainer plotData;
 		void TrainingControlValues_SelectedModelUpdatedInBackgroundThread() {
-			LvqScatterPlot.QueueUpdateIfCurrent(plotData);
+			LvqStatPlotsContainer.QueueUpdateIfCurrent(plotData);
 		}
 
 		void TrainingControlValues_PropertyChanged(object sender, PropertyChangedEventArgs e) {
@@ -82,7 +82,7 @@ namespace LvqGui {
 
 		void ModelChanged() {
 			if (plotData == null && Values.TrainingControlValues.SelectedDataset != null && Values.TrainingControlValues.SelectedLvqModel != null)
-				plotData = new LvqScatterPlot(ClosingToken);
+				plotData = new LvqStatPlotsContainer(ClosingToken);
 
 			if (plotData != null)
 				plotData.DisplayModel(Values.TrainingControlValues.SelectedDataset, Values.TrainingControlValues.SelectedLvqModel, Values.TrainingControlValues.SubModelIndex, Values.TrainingControlValues.CurrProjStats, Values.TrainingControlValues.ShowBoundaries, Values.TrainingControlValues.ShowPrototypes);

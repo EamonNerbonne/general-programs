@@ -71,7 +71,7 @@ namespace LvqGui {
 			var labelFile = new FileInfo(dataFile.Directory + @"\" + Path.GetFileNameWithoutExtension(dataFile.Name) + ".label");
 			try {
 				if (dataFile.Exists) {
-					var pointclouds = labelFile.Exists ? DatasetLoader.LoadDataset(dataFile, labelFile) : DatasetLoader.LoadDataset(dataFile);
+					var pointclouds = labelFile.Exists ? LoadDatasetImpl.LoadDataset(dataFile, labelFile) : LoadDatasetImpl.LoadDataset(dataFile);
 					var pointArray = pointclouds.Item1;
 					int[] labelArray = pointclouds.Item2;
 					int classCount = pointclouds.Item3;

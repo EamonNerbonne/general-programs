@@ -160,10 +160,10 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="LvqMultiModel.cs" />
-    <Compile Include="LvqStatName.cs" />
-    <Compile Include="LvqStatPlotFactory.cs" />
-    <Compile Include="LvqStatPlots.cs" />
+    <Compile Include="LvqPlotting\LvqMultiModel.cs" />
+    <Compile Include="LvqPlotting\LvqStatName.cs" />
+    <Compile Include="LvqPlotting\LvqStatPlotFactory.cs" />
+    <Compile Include="LvqPlotting\LvqStatPlots.cs" />
     <Compile Include="CreatorGui\ShorthandHelper.cs" />
     <Compile Include="UpdateSync.cs" />
     <Page Include="CoreGui\AppSettings.xaml">
@@ -209,14 +209,14 @@
       <DependentUpon>CreateLvqModel.xaml</DependentUpon>
     </Compile>
     <Compile Include="CreatorGui\CreateLvqModelValues.cs" />
-    <Compile Include="DatasetLoader.cs" />
-    <Compile Include="DataVerifiers.cs" />
+    <Compile Include="CreatorGui\LoadDatasetImpl.cs" />
+    <Compile Include="UserInputVerifiers.cs" />
     <Compile Include="CreatorGui\SeedHelpers.cs" />
     <Compile Include="CreatorGui\LoadDataset.xaml.cs">
       <DependentUpon>LoadDataset.xaml</DependentUpon>
     </Compile>
     <Compile Include="CreatorGui\LoadDatasetValues.cs" />
-    <Compile Include="LvqScatterPlot.cs" />
+    <Compile Include="LvqPlotting\LvqStatPlotsContainer.cs" />
     <Compile Include="CoreGui\LvqWindow.xaml.cs">
       <DependentUpon>LvqWindow.xaml</DependentUpon>
     </Compile>
@@ -302,9 +302,7 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="LvqPlotting\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

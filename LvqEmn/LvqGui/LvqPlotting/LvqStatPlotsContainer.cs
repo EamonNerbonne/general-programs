@@ -17,7 +17,7 @@ using EmnExtensions;
 
 
 namespace LvqGui {
-	public sealed class LvqScatterPlot : IDisposable {
+	public sealed class LvqStatPlotsContainer : IDisposable {
 		readonly UpdateSync updateSync = new UpdateSync();
 		readonly object plotsSync = new object();
 		LvqStatPlots subplots;
@@ -127,7 +127,7 @@ namespace LvqGui {
 		Window subPlotWindow;
 		CancellationToken exitToken;
 
-		public LvqScatterPlot(CancellationToken exitToken) {
+		public LvqStatPlotsContainer(CancellationToken exitToken) {
 			this.exitToken = exitToken;
 
 			lvqPlotDispatcher = WpfTools.StartNewDispatcher(ThreadPriority.BelowNormal);
@@ -210,7 +210,7 @@ namespace LvqGui {
 			}));
 		}
 
-		internal static void QueueUpdateIfCurrent(LvqScatterPlot plotData) {
+		internal static void QueueUpdateIfCurrent(LvqStatPlotsContainer plotData) {
 			if (plotData != null && plotData.subplots != null)
 				plotData.QueueUpdate();
 		}

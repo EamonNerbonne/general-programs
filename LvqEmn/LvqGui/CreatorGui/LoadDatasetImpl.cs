@@ -10,7 +10,7 @@ using System.Globalization;
 using LvqFloat = System.Double;
 
 namespace LvqGui {
-	public static class DatasetLoader {
+	public static class LoadDatasetImpl {
 		static readonly char[] dimSep = new[] { ',' };
 		static readonly char[] spaceSep = new[] { ' ' };
 
