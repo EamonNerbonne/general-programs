@@ -33,15 +33,15 @@ namespace LvqGui {
 
 		static IEnumerable<PlotWithViz<LvqStatPlots>> MakePlotsForStatIdx(string dataLabel, string yunitLabel, Color color, int statIdx, bool doVariants) {
 			if (doVariants) {
-				yield return MakeStderrRangePlot(null, yunitLabel, color, statIdx);
-				yield return MakeCurrentModelPlot(null, yunitLabel, color, statIdx);
+				yield return MakeStderrRangePlot(yunitLabel, color, statIdx);
+				yield return MakeCurrentModelPlot(yunitLabel, color, statIdx);
 			}
 			yield return MakeMeanPlot(dataLabel, yunitLabel, color, statIdx);
 		}
 
 		public static readonly object IsCurrPlotTag = new object();
-		static PlotWithViz<LvqStatPlots> MakeCurrentModelPlot(string dataLabel, string yunitLabel, Color color, int statIdx) {
-			return MakePlotHelper(dataLabel, color, yunitLabel, IsCurrPlotTag, SelectedModelToPointsMapper(statIdx), DashStyles.Dot);
+		static PlotWithViz<LvqStatPlots> MakeCurrentModelPlot( string yunitLabel, Color color, int statIdx) {
+			return MakePlotHelper(null, color, yunitLabel, IsCurrPlotTag, SelectedModelToPointsMapper(statIdx), DashStyles.Dot);
 		}
 
 		static PlotWithViz<LvqStatPlots> MakeMeanPlot(string dataLabel, string yunitLabel, Color color, int statIdx) {
@@ -60,19 +60,18 @@ namespace LvqGui {
 					Tag = tag,
 				},
 				new VizLineSegments {
-					CoverageRatioY = dataLabel.StartsWith("max") ? 1.0 : 0.90,
+					CoverageRatioY = yunitLabel.StartsWith("max") ? 1.0 : 0.90,
 					CoverageRatioGrad = 20.0,
 					DashStyle = dashStyle ?? DashStyles.Solid,
 				}.Map(mapper));
 		}
 
 
-		static PlotWithViz<LvqStatPlots> MakeStderrRangePlot(string dataLabel, string yunitLabel, Color color, int statIdx) {
+		static PlotWithViz<LvqStatPlots> MakeStderrRangePlot( string yunitLabel, Color color, int statIdx) {
 			//Blend(color, Colors.White)
 			color.ScA = 0.3f;
 			return Plot.Create(
 				new PlotMetaData {
-					DataLabel = dataLabel,
 					RenderColor = color,
 					XUnitLabel = "Training iterations",
 					YUnitLabel = yunitLabel,
@@ -80,7 +79,7 @@ namespace LvqGui {
 					ZIndex = 0
 				},
 				new VizDataRange {
-					CoverageRatioY = dataLabel.StartsWith("max") ? 1.0 : 0.90,
+					CoverageRatioY = yunitLabel.StartsWith("max") ? 1.0 : 0.90,
 					CoverageRatioGrad = 20.0,
 				}.Map(ModelToRangeMapper(statIdx))
 				);

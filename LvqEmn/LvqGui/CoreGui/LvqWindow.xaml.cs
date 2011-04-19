@@ -75,7 +75,7 @@ namespace LvqGui {
 				plotData.ShowPrototypes(Values.TrainingControlValues.ShowPrototypes);
 			if (e.PropertyName == "CurrProjStats" && plotData != null)
 				plotData.ShowCurrentProjectionStats(Values.TrainingControlValues.CurrProjStats);
-			if (e.PropertyName == "SelectedDataset" || e.PropertyName == "SelectedLvqModel")
+			if (e.PropertyName == "SelectedDataset" || e.PropertyName == "SelectedLvqModel" || e.PropertyName == "SubModelIndex")
 				ModelChanged();
 		}
 

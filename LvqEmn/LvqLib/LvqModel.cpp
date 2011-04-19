@@ -80,13 +80,13 @@ std::vector<std::wstring> LvqModel::TrainingStatNames() {
 	retval.push_back(L"Nearest Correct Prototype Distance Variance!distance variance!Prototype Distance Variance");
 	retval.push_back(L"Nearest Incorrect Prototype Distance Variance!distance variance!Prototype Distance Variance");
 	if(this->IdenticalMu()) {
-		retval.push_back(L"mean \u03BC!\u03BC value!\u03BC");//greek:\u03BC math:\U0001D707
-		retval.push_back(L"max \u03BC!\u03BC value!max \u03BC");//greek:\u03BC math:\U0001D707
+		retval.push_back(L"mean \u03BC!mean \u03BC!mean \u03BC");//greek:\u03BC math:\U0001D707
+		retval.push_back(L"max \u03BC!max \u03BC!max \u03BC");//greek:\u03BC math:\U0001D707
 	} else {
-		retval.push_back(L"mean \u03BC J!\u03BC value!\u03BC");
-		retval.push_back(L"mean \u03BC K !\u03BC value!\u03BC");
-		retval.push_back(L"max \u03BC J!\u03BC value!max \u03BC");
-		retval.push_back(L"max \u03BC K!\u03BC value!max \u03BC");
+		retval.push_back(L"mean \u03BC J!mean \u03BC!mean \u03BC");
+		retval.push_back(L"mean \u03BC K!mean \u03BC!mean \u03BC");
+		retval.push_back(L"max \u03BC J!max \u03BC!max \u03BC");
+		retval.push_back(L"max \u03BC K!max \u03BC!max \u03BC");
 	}
 	AppendTrainingStatNames(retval); 
 	return retval;
