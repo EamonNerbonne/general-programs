@@ -37,7 +37,6 @@ public:
 	double muJmax()  const {return muJmax_val;}
 	SmartSum<1> distanceGood() const {return distGood;} 
 	SmartSum<1> distanceBad() const {return distBad;}
-
 };
 
 class LvqDataset

@@ -64,8 +64,9 @@ MatchQuality G2mLvqModel::learnFrom(Vector_N const & trainPoint, int trainLabel)
 	//now matches.good is "J" and matches.bad is "K".
 	G2mLvqPrototype &J = prototype[matches.matchGood];
 	G2mLvqPrototype &K = prototype[matches.matchBad];
-	double muK2 = 2 * matches.MuK(),
-			 muJ2 = 2 * matches.MuJ();
+	MatchQuality retval = matches.LvqQuality();
+	double muK2 = 2 * retval.muK,
+		muJ2 = 2 * retval.muJ;
 
 	MVectorXd vJ(m_vJ.data(),m_vJ.size());
 	MVectorXd vK(m_vK.data(),m_vK.size());
@@ -112,7 +113,7 @@ MatchQuality G2mLvqModel::learnFrom(Vector_N const & trainPoint, int trainLabel)
 
 	for(size_t i=0;i<prototype.size();++i)
 		prototype[i].ComputePP(P);
-	return matches.LvqQuality();
+	return retval;
 }
 
 

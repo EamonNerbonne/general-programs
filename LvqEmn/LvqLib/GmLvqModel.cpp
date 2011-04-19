@@ -52,9 +52,9 @@ MatchQuality GmLvqModel::learnFrom(Vector_N const & trainPoint, int trainLabel) 
 	}
 
 	//now matches.good is "J" and matches.bad is "K".
-
-	double muK2 = 2.0*matches.MuK();
-	double muJ2 = 2.0*matches.MuJ();
+	MatchQuality retval = matches.LvqQuality();
+	double muK2 = 2.0*retval.muK;
+	double muJ2 = 2.0*retval.muJ;
 
 	int J = matches.matchGood;
 	int K = matches.matchBad;
@@ -87,7 +87,7 @@ MatchQuality GmLvqModel::learnFrom(Vector_N const & trainPoint, int trainLabel) 
 
 	for(int i=0;i<pLabel.size();++i)
 		RecomputeProjection(i);
-	return matches.LvqQuality();
+	return retval;
 }
 
 LvqModel* GmLvqModel::clone() const { return new GmLvqModel(*this);	}
