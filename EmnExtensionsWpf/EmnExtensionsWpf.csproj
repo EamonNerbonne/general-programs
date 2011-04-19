@@ -129,9 +129,11 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ByteArrayConverter.cs" />
     <Compile Include="ColorConversion.cs" />
     <Compile Include="Colormaps.cs" />
     <Compile Include="Plot\VizEngines\VizDataRange.cs" />
+    <Compile Include="DispatcherUtils.cs" />
     <Compile Include="WpfTools\AsFrozen.cs" />
     <Compile Include="WpfTools\MakeDistributedColors.cs" />
     <Compile Include="WpfTools\PrintXps.cs" />

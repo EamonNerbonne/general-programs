@@ -156,81 +156,75 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <ApplicationDefinition Include="App.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </ApplicationDefinition>
-    <Compile Include="LvqModels.cs" />
-    <Compile Include="LvqStatName.cs" />
-    <Compile Include="LvqStatPlotFactory.cs" />
-    <Compile Include="LvqStatPlots.cs" />
-    <Compile Include="ShorthandHelper.cs" />
-    <Compile Include="UpdateSync.cs" />
-    <Page Include="AppSettings.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="CreateGaussianCloudsDataset.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="CreateStarDataset.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="CreateLvqModel.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="LoadDataset.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="LvqWindow.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="TrainingControl.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Compile Include="App.xaml.cs">
+    <Compile Include="CoreGui\App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="AppSettings.xaml.cs">
+    <Compile Include="LvqMultiModel.cs" />
+    <Compile Include="LvqStatName.cs" />
+    <Compile Include="LvqStatPlotFactory.cs" />
+    <Compile Include="LvqStatPlots.cs" />
+    <Compile Include="CreatorGui\ShorthandHelper.cs" />
+    <Compile Include="UpdateSync.cs" />
+    <Page Include="CoreGui\AppSettings.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="CreatorGui\CreateGaussianCloudsDataset.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="CreatorGui\CreateStarDataset.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="CreatorGui\CreateLvqModel.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="CreatorGui\LoadDataset.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="CoreGui\LvqWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="CoreGui\TrainingControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Compile Include="CoreGui\AppSettings.xaml.cs">
       <DependentUpon>AppSettings.xaml</DependentUpon>
     </Compile>
-    <Compile Include="CreateGaussianCloudsDataset.xaml.cs">
+    <Compile Include="CreatorGui\CreateGaussianCloudsDataset.xaml.cs">
       <DependentUpon>CreateGaussianCloudsDataset.xaml</DependentUpon>
     </Compile>
-    <Compile Include="CreateStarDataset.xaml.cs">
+    <Compile Include="CreatorGui\CreateStarDataset.xaml.cs">
       <DependentUpon>CreateStarDataset.xaml</DependentUpon>
     </Compile>
-    <Compile Include="CreateStarDatasetValues.cs" />
-    <Compile Include="CreateGaussianCloudsDatasetValues.cs" />
-    <Compile Include="CreateLvqModel.xaml.cs">
+    <Compile Include="CreatorGui\CreateStarDatasetValues.cs" />
+    <Compile Include="CreatorGui\CreateGaussianCloudsDatasetValues.cs" />
+    <Compile Include="CreatorGui\CreateLvqModel.xaml.cs">
       <DependentUpon>CreateLvqModel.xaml</DependentUpon>
     </Compile>
-    <Compile Include="CreateLvqModelValues.cs" />
+    <Compile Include="CreatorGui\CreateLvqModelValues.cs" />
     <Compile Include="DatasetLoader.cs" />
     <Compile Include="DataVerifiers.cs" />
-    <Compile Include="IHasSeed.cs" />
-    <Compile Include="LoadDataset.xaml.cs">
+    <Compile Include="CreatorGui\SeedHelpers.cs" />
+    <Compile Include="CreatorGui\LoadDataset.xaml.cs">
       <DependentUpon>LoadDataset.xaml</DependentUpon>
     </Compile>
-    <Compile Include="LoadDatasetValues.cs" />
+    <Compile Include="CreatorGui\LoadDatasetValues.cs" />
     <Compile Include="LvqScatterPlot.cs" />
-    <Compile Include="LvqWindow.xaml.cs">
+    <Compile Include="CoreGui\LvqWindow.xaml.cs">
       <DependentUpon>LvqWindow.xaml</DependentUpon>
     </Compile>
-    <Compile Include="LvqWindowValues.cs" />
-    <Compile Include="MakeSeed.cs" />
-    <Compile Include="Points.cs" />
-    <Compile Include="SeedUtils.cs" />
-    <Compile Include="TrainingControl.xaml.cs">
+    <Compile Include="CoreGui\LvqWindowValues.cs" />
+    <Compile Include="CoreGui\TrainingControl.xaml.cs">
       <DependentUpon>TrainingControl.xaml</DependentUpon>
     </Compile>
-    <Compile Include="TrainingControlValues.cs" />
+    <Compile Include="CoreGui\TrainingControlValues.cs" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs">
@@ -301,6 +295,15 @@
       <ProductName>Windows Installer 3.1</ProductName>
       <Install>true</Install>
     </BootstrapperPackage>
+  </ItemGroup>
+  <ItemGroup>
+    <ApplicationDefinition Include="CoreGui\App.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </ApplicationDefinition>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="LvqPlotting\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

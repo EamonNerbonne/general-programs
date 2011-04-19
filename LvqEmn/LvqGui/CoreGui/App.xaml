@@ -4,7 +4,6 @@
              xmlns:lvq="clr-namespace:LvqGui"
 			 Startup="Application_Startup"   ShutdownMode="OnExplicitShutdown">
 	<Application.Resources>
-        <lvq:ByteArrayConverter x:Key="ByteArrConverter" />
         <Style x:Key="InputBox" >
             <Style.Triggers>
                 <Trigger Property="Validation.HasError" Value="true">
