@@ -7,7 +7,10 @@ using namespace std;
 GmLvqModel::GmLvqModel(LvqModelSettings & initSettings)
 	: LvqProjectionModelBase(initSettings) 
 	, m_vJ(initSettings.Dimensions())
-	, m_vK(initSettings.Dimensions()) {
+	, m_vK(initSettings.Dimensions())
+	, totalMuJLr(0.0)
+	, totalMuKLr(0.0)
+{
 	initSettings.AssertModelIsOfRightType(this);
 
 	auto InitProtos = initSettings.InitProtosBySetting(); 
@@ -87,6 +90,10 @@ MatchQuality GmLvqModel::learnFrom(Vector_N const & trainPoint, int trainLabel) 
 
 	for(int i=0;i<pLabel.size();++i)
 		RecomputeProjection(i);
+
+	totalMuJLr += lr_point * retval.muJ;
+	totalMuKLr -= lr_point * retval.muK;
+
 	return retval;
 }
 
@@ -155,3 +162,18 @@ void GmLvqModel::DoOptionalNormalization() {
 			RecomputeProjection((int)i);
 	}
 }
+
+
+void GmLvqModel::AppendTrainingStatNames(std::vector<std::wstring> & retval) const {
+	LvqProjectionModel::AppendTrainingStatNames(retval);
+	retval.push_back(L"Cumulative \u03BC-J-scaled Learning Rate!!Cumulative \u03BC-scaled Learning Rates");
+	retval.push_back(L"Cumulative \u03BC-K-scaled Learning Rate!!Cumulative \u03BC-scaled Learning Rates");
+}
+
+void GmLvqModel::AppendOtherStats(std::vector<double> & stats, LvqDataset const * trainingSet, std::vector<int>const & trainingSubset, LvqDataset const * testSet, std::vector<int>const & testSubset) const {
+	LvqProjectionModel::AppendOtherStats(stats,trainingSet,trainingSubset,testSet,testSubset);
+	stats.push_back(totalMuJLr);
+	stats.push_back(totalMuKLr);
+}
+
+

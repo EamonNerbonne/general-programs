@@ -7,7 +7,7 @@ using namespace Eigen;
 class G2mLvqModel : public LvqProjectionModelBase<G2mLvqModel>
 {
 	typedef std::vector<G2mLvqPrototype, Eigen::aligned_allocator<G2mLvqPrototype> > protoList;
-
+	double totalMuJLr,totalMuKLr;
 	protoList prototype;
 	std::vector<CorrectAndWorstMatches::MatchOk> ngMatchCache;
 
@@ -56,5 +56,4 @@ public:
 		G2mLvqModel & typedTarget = dynamic_cast<G2mLvqModel&>(target);
 		typedTarget = *this;
 	}
-
 };

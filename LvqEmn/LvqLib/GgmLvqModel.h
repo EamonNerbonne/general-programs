@@ -8,6 +8,7 @@ class GgmLvqModel : public LvqProjectionModelBase<GgmLvqModel>
 {
 	typedef std::vector<GgmLvqPrototype, Eigen::aligned_allocator<GgmLvqPrototype> > protoList;
 
+	double totalMuLr;
 	protoList prototype;
 	std::vector<CorrectAndWorstMatches::MatchOk> ngMatchCache;
 

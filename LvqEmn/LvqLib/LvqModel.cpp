@@ -12,6 +12,7 @@ LvqModel::LvqModel(LvqModelSettings & initSettings)
 	, totalIter(0)
 	, totalElapsed(0.0)
 	, epochsTrained(0)
+	, totalLR(0.0)
 {
 	int protoCount = accumulate(initSettings.PrototypeDistribution.begin(), initSettings.PrototypeDistribution.end(), 0);
 	iterationScaleFactor = LVQ_ITERFACTOR_PERPROTO/sqrt((double)protoCount);
@@ -57,7 +58,7 @@ void LvqModel::AddTrainingStat(Statistics& statQueue, LvqDataset const * trainin
 	stats.push_back(trainingstats.muJmax());
 	if(!this->IdenticalMu()) stats.push_back(trainingstats.muKmax());
 
-	this->AppendOtherStats(stats, trainingSet,trainingSubset,testSet,testSubset);
+	this->AppendOtherStats(stats, trainingSet,trainingSubset,testSet,testSubset); 
 
 	statQueue.push(std::move(stats));
 }

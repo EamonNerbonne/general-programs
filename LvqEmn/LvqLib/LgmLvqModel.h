@@ -10,7 +10,7 @@ class LgmLvqModel : public LvqModel, public LvqModelFindMatches<LgmLvqModel,Vect
 	vector<Matrix_NN > P; 
 	vector<Vector_N> prototype;
 	VectorXi pLabel;
-
+	double totalMuJLr,totalMuKLr;
 	//calls dimensionality of input-space DIMS, output space DIMSOUT
 	//we will preallocate a few vectors to reduce malloc/free overhead.
 

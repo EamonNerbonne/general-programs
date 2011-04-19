@@ -10,6 +10,8 @@ G2mLvqModel::G2mLvqModel(LvqModelSettings & initSettings)
 	: LvqProjectionModelBase(initSettings)
 	, m_vJ(initSettings.Dimensions())
 	, m_vK(initSettings.Dimensions())
+	, totalMuJLr(0.0)
+	, totalMuKLr(0.0)
 {
 	if(initSettings.Dimensionality!=0 && initSettings.Dimensionality!=2)
 		throw "Illegal Dimensionality";
@@ -113,6 +115,10 @@ MatchQuality G2mLvqModel::learnFrom(Vector_N const & trainPoint, int trainLabel)
 
 	for(size_t i=0;i<prototype.size();++i)
 		prototype[i].ComputePP(P);
+
+	totalMuJLr += lr_point * retval.muJ;
+	totalMuKLr -= lr_point * retval.muK;
+
 	return retval;
 }
 
@@ -152,6 +158,8 @@ void G2mLvqModel::AppendTrainingStatNames(std::vector<std::wstring> & retval) co
 	retval.push_back(L"Maximum |B|!determinant!Border Matrix absolute determinant");
 	retval.push_back(L"Mean |B|!determinant!Border Matrix absolute determinant");
 	retval.push_back(L"Minimum |B|!determinant!Border Matrix absolute determinant");
+	retval.push_back(L"Cumulative \u03BC-J-scaled Learning Rate!!Cumulative \u03BC-scaled Learning Rates");
+	retval.push_back(L"Cumulative \u03BC-K-scaled Learning Rate!!Cumulative \u03BC-scaled Learning Rates");
 }
 void G2mLvqModel::AppendOtherStats(std::vector<double> & stats, LvqDataset const * trainingSet, std::vector<int>const & trainingSubset, LvqDataset const * testSet, std::vector<int>const & testSubset) const {
 	LvqProjectionModel::AppendOtherStats(stats,trainingSet,trainingSubset,testSet,testSubset);
@@ -168,6 +176,9 @@ void G2mLvqModel::AppendOtherStats(std::vector<double> & stats, LvqDataset const
 	stats.push_back(det.max());
 	stats.push_back(det.mean());
 	stats.push_back(det.min());
+
+	stats.push_back(totalMuJLr);
+	stats.push_back(totalMuKLr);
 }
 
 

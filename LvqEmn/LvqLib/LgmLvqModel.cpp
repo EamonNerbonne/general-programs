@@ -9,6 +9,8 @@ LgmLvqModel::LgmLvqModel( LvqModelSettings & initSettings)
 	, tmpSrcDimsV2(initSettings.Dimensions())
 	, tmpDestDimsV2()
 	, tmpDestDimsV1()
+	, totalMuJLr(0.0)
+	, totalMuKLr(0.0)
 {
 	if(initSettings.Dimensionality ==0)
 		initSettings.Dimensionality = (int) initSettings.Dimensions();
@@ -71,6 +73,10 @@ MatchQuality LgmLvqModel::learnFrom(Vector_N const & trainPoint, int trainLabel)
 
 	P[J].noalias() -= (settings.LrScaleP *  lr_mu_J2) * (Pj_vJ * vJ.transpose() );
 	P[K].noalias() -=(settings.LrScaleP * lr_mu_K2) * (Pk_vK * vK.transpose() );
+
+	totalMuJLr += lr_point * retval.muJ;
+	totalMuKLr -= lr_point * retval.muK;
+
 	return retval;
 }
 
@@ -91,6 +97,10 @@ void LgmLvqModel::AppendTrainingStatNames(std::vector<std::wstring> & retval) co
 	retval.push_back(L"Projection Norm Maximum!norm!Prototype Matrix");
 	retval.push_back(L"Projection Norm Mean!norm!Prototype Matrix");
 	retval.push_back(L"Projection Norm Minimum!norm!Prototype Matrix");
+	
+	retval.push_back(L"Cumulative \u03BC-J-scaled Learning Rate!!Cumulative \u03BC-scaled Learning Rates");
+	retval.push_back(L"Cumulative \u03BC-K-scaled Learning Rate!!Cumulative \u03BC-scaled Learning Rates");
+
 }
 void LgmLvqModel::AppendOtherStats(std::vector<double> & stats, LvqDataset const * trainingSet, std::vector<int>const & trainingSubset, LvqDataset const * testSet, std::vector<int>const & testSubset) const {
 	LvqModel::AppendOtherStats(stats,trainingSet,trainingSubset,testSet,testSubset);
@@ -108,6 +118,9 @@ void LgmLvqModel::AppendOtherStats(std::vector<double> & stats, LvqDataset const
 	stats.push_back(maxNorm);
 	stats.push_back(normSum / P.size());
 	stats.push_back(minNorm);
+
+	stats.push_back(totalMuJLr);
+	stats.push_back(totalMuKLr);
 }
 
 vector<int> LgmLvqModel::GetPrototypeLabels() const {
