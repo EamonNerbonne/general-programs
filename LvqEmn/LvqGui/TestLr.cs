@@ -32,7 +32,7 @@ namespace LvqGui {
 			}
 		}
 
-		public static ErrorRates ErrorOf(LvqDatasetCli[] dataset, long iters, LvqModelType type, int protos, double lr0, double lrScaleP, double lrScaleB, uint rngIter, uint rngParam) {
+		public static ErrorRates ErrorOf(TextWriter sink, LvqDatasetCli[] dataset, long iters, LvqModelType type, int protos, double lr0, double lrScaleP, double lrScaleB, uint rngIter, uint rngParam) {
 			int nnErrorIdx = -1;
 			var severalStats = Enumerable.Range(0, dataset.Length).AsParallel().Select(fold => {
 				var model = new LvqModelCli("model" + fold, dataset[fold], fold, new LvqModelSettingsCli {
@@ -65,7 +65,7 @@ namespace LvqGui {
 			).ToArray();
 
 			var meanStats = LvqMultiModel.MeanStdErrStats(severalStats);
-			Console.Write(".");
+			sink.Write(".");
 			return new ErrorRates(meanStats, nnErrorIdx);
 		}
 
@@ -76,7 +76,7 @@ namespace LvqGui {
 				yield return start * Math.Exp(lnScale * ((double)i / (steps - 1)));
 		}
 
-		public static void FindOptimalLr(LvqDatasetCli[] dataset, long iters, LvqModelType type, int protos, uint rngIter, uint rngParam) {
+		public static void FindOptimalLr(TextWriter sink, LvqDatasetCli[] dataset, long iters, LvqModelType type, int protos, uint rngIter, uint rngParam) {
 			var lr0range = LogRange(0.3, 0.01, 4);
 			var lrPrange = LogRange(0.5, 0.03, 4);
 			var lrBrange = (type == LvqModelType.GgmModelType || type == LvqModelType.G2mModelType ? LogRange(0.1, 0.003, 4) : new[] { 0.0 });
@@ -85,23 +85,23 @@ namespace LvqGui {
 				(from lr0 in lr0range.AsParallel()
 				 from lrP in lrPrange
 				 from lrB in lrBrange
-				 let errs = ErrorOf(dataset, iters, type, protos, lr0, lrP, lrB, rngIter, rngParam)
+				 let errs = ErrorOf(sink, dataset, iters, type, protos, lr0, lrP, lrB, rngIter, rngParam)
 				 orderby errs.ErrorMean
 				 select new { lr0, lrP, lrB, errs }).AsSequential();
 
-			Console.WriteLine("lr0range:" + ObjectToCode.ComplexObjectToPseudoCode(lr0range));
-			Console.WriteLine("lrPrange:" + ObjectToCode.ComplexObjectToPseudoCode(lrPrange));
-			Console.WriteLine("lrBrange:" + ObjectToCode.ComplexObjectToPseudoCode(lrBrange));
-			Console.WriteLine("For " + type + " with " + protos + " prototypes and " + iters + " iters training:");
+			sink.WriteLine("lr0range:" + ObjectToCode.ComplexObjectToPseudoCode(lr0range));
+			sink.WriteLine("lrPrange:" + ObjectToCode.ComplexObjectToPseudoCode(lrPrange));
+			sink.WriteLine("lrBrange:" + ObjectToCode.ComplexObjectToPseudoCode(lrBrange));
+			sink.WriteLine("For " + type + " with " + protos + " prototypes and " + iters + " iters training:");
 
 			foreach (var result in q.Take(100)) {
-				Console.Write("\n" + result.lr0.ToString("g4").PadRight(9) + "p" + result.lrP.ToString("g4").PadRight(9) + "b" + result.lrB.ToString("g4").PadRight(9) + ": "
+				sink.Write("\n" + result.lr0.ToString("g4").PadRight(9) + "p" + result.lrP.ToString("g4").PadRight(9) + "b" + result.lrB.ToString("g4").PadRight(9) + ": "
 						+ result.errs.training.ToString("g4").PadRight(9) + ";"
 						+ result.errs.test.ToString("g4").PadRight(9) + ";"
 						+ result.errs.nn.ToString("g4").PadRight(9) + ";"
 					);
 			}
-			Console.WriteLine();
+			sink.WriteLine();
 		}
 
 		public static LvqDatasetCli PlainDataset(int folds, uint rngParam, uint rngInst, int dims, int classes, double? classsep = null) {
@@ -134,9 +134,9 @@ namespace LvqGui {
 			yield return Load(folds, "pendigits.train", rngInst++);
 		}
 
-		public static void Run(LvqModelType modeltype, int protos, long itersToRun) {
-			using (new DTimer("search"))
-				FindOptimalLr(Datasets(10, 42, 37).ToArray(), itersToRun, modeltype, protos, 51, 133);
+		public static void Run(TextWriter sink, LvqModelType modeltype, int protos, long itersToRun) {
+			using (new DTimer(time => sink.WriteLine("Search Complete!  Tookr " + time)))
+				FindOptimalLr(sink, Datasets(10, 42, 37).ToArray(), itersToRun, modeltype, protos, 51, 133);
 		}
 	}
 }

@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
 using System.Windows;
+using System.Windows.Media;
+using EmnExtensions.Wpf;
 using LvqLibCli;
 using System;
 using System.ComponentModel;
@@ -118,8 +120,13 @@ namespace LvqGui {
 		void Button_Click(object sender, RoutedEventArgs e) {
 			LvqModelType modeltype = (LvqModelType)modelType.SelectedItem;
 			int protos = Use5Protos.IsChecked == true ? 5 : 1;
-			long iterCount = (long) iterCountSelectbox.SelectedItem;
-			ThreadPool.QueueUserWorkItem(_ => TestLr.Run(modeltype, protos, iterCount));
+			long iterCount = (long)iterCountSelectbox.SelectedItem;
+			var logWindow = LogControl.ShowNewLogWindow(modeltype + " " + protos + " prototypes training for " + iterCount, ActualWidth, ActualHeight * 0.6);
+
+			ThreadPool.QueueUserWorkItem(_ => {
+				TestLr.Run(logWindow.Item2, modeltype, protos, iterCount);
+				logWindow.Item1.Dispatcher.BeginInvoke(() => logWindow.Item1.Background = Brushes.White);
+			});
 		}
 	}
 }
