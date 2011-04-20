@@ -12,7 +12,7 @@ class LvqDatasetStats {
 	size_t counter;
 public:
 	LvqDatasetStats()
-		: meanCost_sum(0.0), errorRate_sum(0.0), muKmean_sum(0.0),muJmean_sum(0.0), counter(0)
+		: meanCost_sum(0.0), errorRate_sum(0.0), muKmean_sum(0.0),muJmean_sum(0.0), muKmax_val(0.0), muJmax_val(0.0), counter(0)
 	{
 	
 	}
