@@ -15,6 +15,29 @@ using System.Windows.Threading;
 
 namespace EmnExtensions.Wpf {
 	public class LogControl : FlowDocumentScrollViewer {
+
+		public static Tuple<Window, TextWriter> ShowNewLogWindow(string windowTitle=null, double? width=null, double? height=null) {
+			var logger = new LogControl();
+			var win = new Window {
+				Title = windowTitle ?? "Log Window",
+				Content = logger,
+				Background = Brushes.LightGray,
+			};
+			if (height.HasValue)
+				win.Height = height.Value;
+			if (width.HasValue)
+				win.Width = width.Value;
+
+			win.Show();
+
+			return Tuple.Create(win, logger.Writer);
+		}
+		public static Tuple<Window, TextWriter> ShowNewLogWindow_NewDispatcher(string windowTitle = null, double? width = null, double? height = null) {
+			var disp=WpfTools.StartNewDispatcher();
+			return (Tuple<Window, TextWriter>)disp.Invoke((Func<Tuple<Window, TextWriter>>)(() => ShowNewLogWindow(windowTitle, width, height)));
+		}
+		
+
 		readonly StringBuilder curLine = new StringBuilder();
 		readonly DelegateTextWriter logger;
 		public LogControl() {
