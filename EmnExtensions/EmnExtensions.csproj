@@ -107,6 +107,7 @@
     <Compile Include="Collections\SymmetricDistanceMatrix.cs" />
     <Compile Include="DebugTools\ConsoleExtension.cs" />
     <Compile Include="DebugTools\DTimer.cs" />
+    <Compile Include="Enumerables\IndexOfExtension.cs" />
     <Compile Include="F.cs" />
     <Compile Include="Filesystem\DescendantDirsExtension.cs" />
     <Compile Include="Filesystem\FSUtil.cs" />
