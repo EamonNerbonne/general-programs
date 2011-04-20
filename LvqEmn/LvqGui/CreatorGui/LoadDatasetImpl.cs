@@ -7,6 +7,9 @@ using EmnExtensions.Filesystem;
 using System.Globalization;
 
 //using LvqFloat = System.Single;
+using EmnExtensions.MathHelpers;
+using EmnExtensions.Wpf;
+using LvqLibCli;
 using LvqFloat = System.Double;
 
 namespace LvqGui {
@@ -34,7 +37,28 @@ namespace LvqGui {
 			return retval;
 		}
 
-		public static Tuple<LvqFloat[,], int[], int> LoadDataset(FileInfo datafile, FileInfo labelfile) {
+		public static LvqDatasetCli LoadData(FileInfo dataFile, bool extendByCorrelation, bool normalizeDims, uint shuffleSeed, int folds, string testFileName) {
+			var labelFile = new FileInfo(dataFile.Directory + @"\" + Path.GetFileNameWithoutExtension(dataFile.Name) + ".label");
+			var pointclouds = labelFile.Exists ? LoadDatasetImpl.LoadDatasetHelper(dataFile, labelFile) : LoadDatasetImpl.LoadDatasetHelper(dataFile);
+			var pointArray = pointclouds.Item1;
+			int[] labelArray = pointclouds.Item2;
+			int classCount = pointclouds.Item3;
+			long colorSeedLong = labelArray.Select((label, i) => label * (long)(i + 1)).Sum();
+			int colorSeed = (int)(colorSeedLong + (colorSeedLong >> 32));
+			string name = dataFile.Name + (testFileName != null ? ":" + testFileName : "") + "-" + pointArray.GetLength(1) + "D" + (extendByCorrelation ? "*" : "") + (normalizeDims ? "n" : "") + "-" + classCount + ":" + pointArray.GetLength(0) + "[" + shuffleSeed + "]/" + folds;
+			return LvqDatasetCli.ConstructFromArray(
+				rngInstSeed: shuffleSeed,
+				label: name,
+				extend: extendByCorrelation,
+				normalizeDims: normalizeDims,
+				folds: folds,
+				colors: WpfTools.MakeDistributedColors(classCount, new MersenneTwister(colorSeed)),
+				points: pointArray,
+				pointLabels: labelArray,
+				classCount: classCount);
+		}
+
+		public static Tuple<LvqFloat[,], int[], int> LoadDatasetHelper(FileInfo datafile, FileInfo labelfile) {
 			var dataVectors =
 				(from dataline in datafile.GetLines()
 				 select (
@@ -70,7 +94,7 @@ namespace LvqGui {
 			return Tuple.Create(dataVectors.ToRectangularArray(), itemLabels, labelCount);
 		}
 
-		public static Tuple<LvqFloat[,], int[], int> LoadDataset(FileInfo dataAndLabelFile) {
+		public static Tuple<LvqFloat[,], int[], int> LoadDatasetHelper(FileInfo dataAndLabelFile) {
 			bool commasplit = dataAndLabelFile.GetLines().Take(10).All(line => line.Contains(','));
 
 			var splitLines =

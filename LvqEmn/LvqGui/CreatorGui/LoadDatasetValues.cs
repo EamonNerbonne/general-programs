@@ -53,50 +53,32 @@ namespace LvqGui {
 					lvqGuiKey.SetValue("DataDir", selectedFile.Directory.FullName);
 				}
 
-				if (dataFileOpenDialog.FileNames.Length == 1)
-					return LoadDataset(selectedFile, seed, folds);
-				else if (dataFileOpenDialog.FileNames.Length == 2) {
+				if (dataFileOpenDialog.FileNames.Length == 1) {
+					try {
+						return LoadDataset(selectedFile, seed, folds);
+					} catch (FileFormatException fe) {
+						Console.WriteLine("Can't load file: {0}", fe);
+						return null;
+					}
+				} else if (dataFileOpenDialog.FileNames.Length == 2) {
 					var trainFile = dataFileOpenDialog.FileNames.Where(name => Path.GetFileNameWithoutExtension(name).EndsWith("train")).Select(name => new FileInfo(name)).FirstOrDefault();
 					var testFile = dataFileOpenDialog.FileNames.Where(name => Path.GetFileNameWithoutExtension(name).EndsWith("test")).Select(name => new FileInfo(name)).FirstOrDefault();
 					if (trainFile == null || testFile == null)
 						return null;
-					var dataset = LoadDataset(trainFile, seed, folds,testFile.Name);
-					dataset.TestSet = LoadDataset(testFile, seed, folds);
-					return dataset;
+					try {
+						var dataset = LoadDataset(trainFile, seed, folds, testFile.Name);
+						dataset.TestSet = LoadDataset(testFile, seed, folds);
+						return dataset;
+					} catch (FileFormatException fe) {
+						Console.WriteLine("Can't load file: {0}", fe);
+						return null;
+					}
 				} else return null;
 			} else return null;
 		}
 
-		LvqDatasetCli LoadDataset(FileInfo dataFile, uint seed, int folds, string testFile=null) {
-			var labelFile = new FileInfo(dataFile.Directory + @"\" + Path.GetFileNameWithoutExtension(dataFile.Name) + ".label");
-			try {
-				if (dataFile.Exists) {
-					var pointclouds = labelFile.Exists ? LoadDatasetImpl.LoadDataset(dataFile, labelFile) : LoadDatasetImpl.LoadDataset(dataFile);
-					var pointArray = pointclouds.Item1;
-					int[] labelArray = pointclouds.Item2;
-					int classCount = pointclouds.Item3;
-					long colorSeedLong = labelArray.Select((label, i) => label * (long)(i + 1)).Sum();
-					int colorSeed = (int)(colorSeedLong + (colorSeedLong >> 32));
-
-
-					string name = dataFile.Name+(testFile!=null?":"+testFile:"") + "-" + pointArray.GetLength(1) + "D" + (owner.ExtendDataByCorrelation ? "*" : "") + (owner.NormalizeDimensions ? "n" : "") + "-" + classCount + ":" + pointArray.GetLength(0) + "[" + seed + "]/" + folds;
-					Console.WriteLine("Created: " + name);
-					return LvqDatasetCli.ConstructFromArray(
-						rngInstSeed: seed,
-						label: name,
-						extend: owner.ExtendDataByCorrelation,
-						normalizeDims: owner.NormalizeDimensions,
-						folds: folds,
-						colors: WpfTools.MakeDistributedColors(classCount, new MersenneTwister(colorSeed)),
-						points: pointArray,
-						pointLabels: labelArray,
-						classCount: classCount);
-
-				} else return null;
-			} catch (FileFormatException fe) {
-				Console.WriteLine("Can't load file: {0}", fe);
-				return null;
-			}
+		LvqDatasetCli LoadDataset(FileInfo dataFile, uint seed, int folds, string testFile = null) {
+			return LoadDatasetImpl.LoadData(dataFile, owner.ExtendDataByCorrelation, owner.NormalizeDimensions, seed, folds, testFile);
 		}
 
 		public void ConfirmCreation() {
