@@ -44,6 +44,8 @@ namespace EmnExtensions.Wpf {
 			AppendThreadSafe(line + "\n");
 		}
 
+		public TextWriter Writer { get { return logger; } }
+
 		void Invalidate() {
 			if (!redraw) {
 				redraw = true;
