@@ -19,12 +19,12 @@ namespace LvqGui {
 			public ErrorRates(LvqMultiModel.Statistic stats, int nnIdx) {
 				training = stats.Value[LvqTrainingStatCli.TrainingErrorI];
 				test = stats.Value[LvqTrainingStatCli.TestErrorI];
-				nn = stats.Value[nnIdx];
+				nn = nnIdx == -1 ? double.NaN : stats.Value[nnIdx];
 				trainingStderr = stats.StandardError[LvqTrainingStatCli.TrainingErrorI];
 				testStderr = stats.StandardError[LvqTrainingStatCli.TestErrorI];
-				nnStderr = stats.StandardError[nnIdx];
+				nnStderr = nnIdx == -1 ? double.NaN : stats.StandardError[nnIdx];
 			}
-			public double ErrorMean { get { return (training*3 + test + nn) / 5.0; } }
+			public double ErrorMean { get { return double.IsNaN(nnStderr) && double.IsNaN(nn) ? (training * 2 + test) / 3.0 : (training * 3 + test + nn) / 5.0; } }
 			public override string ToString() {
 				return TrainingControlValues.GetFormatted(training, trainingStderr) + "; " +
 					TrainingControlValues.GetFormatted(test, testStderr) + "; " +
@@ -134,11 +134,9 @@ namespace LvqGui {
 			yield return Load(folds, "pendigits.train", rngInst++);
 		}
 
-		public static void Run() {
-			using (var proc = Process.GetCurrentProcess())
-				proc.PriorityClass = ProcessPriorityClass.BelowNormal;
+		public static void Run(LvqModelType modeltype, int protos, long itersToRun) {
 			using (new DTimer("search"))
-				FindOptimalLr(Datasets(10, 42, 37).ToArray(), 10000000, LvqModelType.GmModelType, 1, 51, 133);
+				FindOptimalLr(Datasets(10, 42, 37).ToArray(), itersToRun, modeltype, protos, 51, 133);
 		}
 	}
 }

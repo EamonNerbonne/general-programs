@@ -1,5 +1,7 @@
 ﻿// ReSharper disable UnusedMember.Global
 // ReSharper disable MemberCanBePrivate.Global
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading;
 using System.Windows;
 using LvqLibCli;
@@ -11,6 +13,8 @@ namespace LvqGui {
 		readonly CancellationTokenSource cts = new CancellationTokenSource();
 		public CancellationToken ClosingToken { get { return cts.Token; } }
 		public LvqWindow() {
+			using (var proc = Process.GetCurrentProcess())
+				proc.PriorityClass = ProcessPriorityClass.BelowNormal;
 
 			Thread.CurrentThread.Priority = ThreadPriority.Highest;
 			var windowValues = new LvqWindowValues(this);
@@ -23,7 +27,6 @@ namespace LvqGui {
 			this.Loaded += (o, e) => DoBenchmark();
 #endif
 			Closed += LvqWindow_Closed;
-			ThreadPool.QueueUserWorkItem(_ => TestLr.Run());
 		}
 
 		LvqWindowValues Values { get { return (LvqWindowValues)DataContext; } }
@@ -68,7 +71,7 @@ namespace LvqGui {
 		}
 
 		void TrainingControlValues_PropertyChanged(object sender, PropertyChangedEventArgs e) {
-			if(e.PropertyName == "ShowBoundaries" && plotData!=null)
+			if (e.PropertyName == "ShowBoundaries" && plotData != null)
 				plotData.ShowBoundaries(Values.TrainingControlValues.ShowBoundaries);
 			if (e.PropertyName == "ShowPrototypes" && plotData != null)
 				plotData.ShowPrototypes(Values.TrainingControlValues.ShowPrototypes);
@@ -109,5 +112,14 @@ namespace LvqGui {
 					win.WindowState = win.lastState;
 				}
 			}));
+
+		public IEnumerable<LvqModelType> ModelTypes { get { return (LvqModelType[])Enum.GetValues(typeof(LvqModelType)); } }
+		public IEnumerable<long> Iters { get { return new[] { 100000L, 1000000L, 10000000L, }; } }
+		void Button_Click(object sender, RoutedEventArgs e) {
+			LvqModelType modeltype = (LvqModelType)modelType.SelectedItem;
+			int protos = Use5Protos.IsChecked == true ? 5 : 1;
+			long iterCount = (long) iterCountSelectbox.SelectedItem;
+			ThreadPool.QueueUserWorkItem(_ => TestLr.Run(modeltype, protos, iterCount));
+		}
 	}
 }

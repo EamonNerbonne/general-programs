@@ -5,6 +5,17 @@
        	xmlns:emn="clr-namespace:EmnExtensions.Wpf;assembly=EmnExtensionsWpf"
 
         Title="Lvq Gui" Height="1000" Width="500" xmlns:my="clr-namespace:LvqGui">
+    <Window.Resources>
+        <Style TargetType="{x:Type Label}" BasedOn="{StaticResource PropLabel}"/>
+        <Style TargetType="{x:Type TextBox}" BasedOn="{StaticResource PropBox}"/>
+        <Style TargetType="{x:Type CheckBox}" BasedOn="{StaticResource PropBox}">
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+        <Style TargetType="{x:Type Button}" BasedOn="{StaticResource PropButton}" >
+            <Setter Property="Control.Margin" Value="0,0,5,0"/>
+        </Style>
+    </Window.Resources>
+
     <Grid >
 
         <Grid.RowDefinitions>
@@ -47,6 +58,27 @@
             </TabItem>
             <TabItem Header="Train Model" Name="trainingTab">
                 <my:TrainingControl DataContext="{Binding TrainingControlValues}"/>
+            </TabItem>
+            <TabItem Header="Determine optimal LR" Name="lrTab">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="121.353*" />
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <Label Grid.Row="0">Model Type</Label>
+                    <ComboBox Grid.Row="0"  Grid.Column="1"  Name="modelType" SelectedIndex="1" ItemsSource="{Binding  RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type my:LvqWindow} }, Path=ModelTypes}"/>
+                    <Label Grid.Row="1">Use 5 prototypes</Label>
+                    <CheckBox Grid.Row="1" Grid.Column="1" Name="Use5Protos" />
+                    <Label Grid.Row="2">Iterations to run</Label>
+                    <ComboBox Grid.Row="2"  Grid.Column="1"  Name="iterCountSelectbox" SelectedIndex="0" ItemsSource="{Binding  RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type my:LvqWindow} }, Path=Iters}"/>
+                    <Button Grid.Row="3" Grid.Column="1" Click="Button_Click">Do Lr Search</Button>
+                </Grid>
             </TabItem>
         </TabControl>
         <emn:LogControl Name="logControl" ClaimStandardOut="True" ClaimStandardError="True"  Grid.Row="2" Grid.Column="0"/>
