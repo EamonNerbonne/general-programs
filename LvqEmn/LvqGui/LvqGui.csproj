@@ -165,6 +165,7 @@
     <Compile Include="LvqPlotting\LvqStatPlotFactory.cs" />
     <Compile Include="LvqPlotting\LvqStatPlots.cs" />
     <Compile Include="CreatorGui\ShorthandHelper.cs" />
+    <Compile Include="TestLr.cs" />
     <Compile Include="UpdateSync.cs" />
     <Page Include="CoreGui\AppSettings.xaml">
       <SubType>Designer</SubType>

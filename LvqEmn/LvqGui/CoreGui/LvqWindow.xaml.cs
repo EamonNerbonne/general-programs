@@ -23,9 +23,8 @@ namespace LvqGui {
 			this.Loaded += (o, e) => DoBenchmark();
 #endif
 			Closed += LvqWindow_Closed;
+			ThreadPool.QueueUserWorkItem(_ => TestLr.Run());
 		}
-
-
 
 		LvqWindowValues Values { get { return (LvqWindowValues)DataContext; } }
 
