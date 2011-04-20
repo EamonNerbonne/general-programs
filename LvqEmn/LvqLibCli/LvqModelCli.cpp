@@ -51,12 +51,18 @@ namespace LvqLibCli {
 	}
 
 	LvqTrainingStatCli LvqModelCli::EvaluateStats(LvqDatasetCli^ dataset, int datafold){
-		LvqModel::Statistics nativeStats;
-		msclr::lock l2(copySync);
-		modelCopy->get()->AddTrainingStat(nativeStats, dataset->GetTrainingDataset(), dataset->GetTrainingSubset(datafold), dataset->GetTestDataset(), dataset->GetTestSubset(datafold));
-		LvqTrainingStatCli cliStat;
-		cppToCli(nativeStats.front(),cliStat);
-		return cliStat;
+		try {
+			LvqModel::Statistics nativeStats;
+			msclr::lock l2(copySync);
+
+			modelCopy->get()->AddTrainingStat(nativeStats, dataset->GetTrainingDataset(), dataset->GetTrainingSubset(datafold), dataset->GetTestDataset(), dataset->GetTestSubset(datafold));
+
+			LvqTrainingStatCli cliStat;
+			cppToCli(nativeStats.front(),cliStat);
+			return cliStat;
+		} finally {
+			GC::KeepAlive(this);
+		}
 	}
 
 
