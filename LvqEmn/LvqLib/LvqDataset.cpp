@@ -320,9 +320,16 @@ using Eigen::Array2d;
 LvqDatasetStats LvqDataset::ComputeCostAndErrorRate(std::vector<int> const & subset, LvqModel const * model) const{
 	assert(subset.size() > 0);
 	LvqDatasetStats stats;
+#ifdef DEBUGHELP
+	if(model->sentinal != initSentinal)		throw "Whoops!";
+#endif
 	for(int i=0;i<(int)subset.size();++i) {
 		assert(points.sum() == points.sum());
 		MatchQuality matchQ = model->ComputeMatches(points.col(subset[i]), pointLabels[subset[i]]);
+#ifdef DEBUGHELP
+	if(model->sentinal != initSentinal)		throw "Whoops!";
+#endif
+
 		stats.Add(matchQ);
 	}
 	return stats;

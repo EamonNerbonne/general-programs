@@ -7,7 +7,11 @@ using namespace std;
 using namespace Eigen;
 
 LvqModel::LvqModel(LvqModelSettings & initSettings)
-	: settings(initSettings.RuntimeSettings)
+	: 
+#ifdef DEBUGHELP
+sentinal(initSentinal),
+#endif
+	 settings(initSettings.RuntimeSettings)
 	, trainIter(0)
 	, totalIter(0)
 	, totalElapsed(0.0)
@@ -33,6 +37,9 @@ double LvqModel::RegisterEpochDone(int itersTrained, double elapsed, int epochs)
 }
 
 void LvqModel::AddTrainingStat(Statistics& statQueue, LvqDataset const * trainingSet, std::vector<int>const & trainingSubset, LvqDataset const * testSet, vector<int>const & testSubset, LvqDatasetStats const & trainingstats) const {
+#ifdef DEBUGHELP
+	if(sentinal != initSentinal)		throw "Whoops!";
+#endif
 	vector<double> stats;
 
 	stats.push_back(double(totalIter));
@@ -58,12 +65,21 @@ void LvqModel::AddTrainingStat(Statistics& statQueue, LvqDataset const * trainin
 	stats.push_back(trainingstats.muJmax());
 	if(!this->IdenticalMu()) stats.push_back(trainingstats.muKmax());
 
+#ifdef DEBUGHELP
+	if(sentinal != initSentinal)		throw "Whoops!";
+#endif
 	this->AppendOtherStats(stats, trainingSet,trainingSubset,testSet,testSubset); 
 
 	statQueue.push(std::move(stats));
+#ifdef DEBUGHELP
+	if(sentinal != initSentinal)		throw "Whoops!";
+#endif
 }
 
 void LvqModel::AddTrainingStat(Statistics& statQueue, LvqDataset const * trainingSet, vector<int>const & trainingSubset, LvqDataset const * testSet, vector<int>const & testSubset) const {
+#ifdef DEBUGHELP
+	if(sentinal != initSentinal)		throw "Whoops!";
+#endif
 	LvqDatasetStats trainingstats;
 	if(trainingSet && trainingSubset.size() >0) 
 		trainingstats=trainingSet->ComputeCostAndErrorRate(trainingSubset,this);
