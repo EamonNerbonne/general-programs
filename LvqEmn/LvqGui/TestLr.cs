@@ -9,6 +9,7 @@ using EmnExtensions;
 using EmnExtensions.DebugTools;
 using EmnExtensions.MathHelpers;
 using EmnExtensions.Wpf;
+using ExpressionToCodeLib;
 using LvqLibCli;
 
 namespace LvqGui {
@@ -23,7 +24,7 @@ namespace LvqGui {
 				testStderr = stats.StandardError[LvqTrainingStatCli.TestErrorI];
 				nnStderr = stats.StandardError[nnIdx];
 			}
-			public double ErrorMean { get { return (training + test + nn) / 3.0; } }
+			public double ErrorMean { get { return (training*3 + test + nn) / 5.0; } }
 			public override string ToString() {
 				return TrainingControlValues.GetFormatted(training, trainingStderr) + "; " +
 					TrainingControlValues.GetFormatted(test, testStderr) + "; " +
@@ -31,7 +32,7 @@ namespace LvqGui {
 			}
 		}
 
-		public static ErrorRates ErrorOf(LvqDatasetCli[] dataset, int epochsToTrain, LvqModelType type, double lr0, double lrScaleP, double lrScaleB, uint rngIter, uint rngParam) {
+		public static ErrorRates ErrorOf(LvqDatasetCli[] dataset, long iters, LvqModelType type, int protos, double lr0, double lrScaleP, double lrScaleB, uint rngIter, uint rngParam) {
 			int nnErrorIdx = -1;
 			var severalStats = Enumerable.Range(0, dataset.Length).AsParallel().Select(fold => {
 				var model = new LvqModelCli("model" + fold, dataset[fold], fold, new LvqModelSettingsCli {
@@ -44,7 +45,7 @@ namespace LvqGui {
 
 					NgInitializeProtos = false,
 					NgUpdateProtos = false,
-					PrototypesPerClass = 5,
+					PrototypesPerClass = protos,
 					RandomInitialBorders = false,
 					RandomInitialProjection = true,
 					SlowStartLrBad = false,
@@ -57,14 +58,14 @@ namespace LvqGui {
 					RngParamsSeed = rngIter + (uint)fold,
 				});
 				nnErrorIdx = model.TrainingStatNames.AsEnumerable().IndexOf(name => name.Contains("NN Error")); // threading irrelevant; all the same & atomic.
-				model.Train(epochsToTrain, dataset[fold], fold);
+				model.Train((int)(iters / dataset[fold].PointCount), dataset[fold], fold);
 				var stats = model.EvaluateStats(dataset[fold], fold);
 				return stats;
 			}
 			).ToArray();
 
 			var meanStats = LvqMultiModel.MeanStdErrStats(severalStats);
-			//Console.Write(".");
+			Console.Write(".");
 			return new ErrorRates(meanStats, nnErrorIdx);
 		}
 
@@ -75,35 +76,47 @@ namespace LvqGui {
 				yield return start * Math.Exp(lnScale * ((double)i / (steps - 1)));
 		}
 
-		const int splits = 10;
+		public static void FindOptimalLr(LvqDatasetCli[] dataset, long iters, LvqModelType type, int protos, uint rngIter, uint rngParam) {
+			var lr0range = LogRange(0.3, 0.01, 4);
+			var lrPrange = LogRange(0.5, 0.03, 4);
+			var lrBrange = (type == LvqModelType.GgmModelType || type == LvqModelType.G2mModelType ? LogRange(0.1, 0.003, 4) : new[] { 0.0 });
 
-		public static void FindOptimalLr(LvqDatasetCli[] dataset,  int epochsToTrain, LvqModelType type, uint rngIter, uint rngParam) {
 			var q =
-				(from lr0 in LogRange(0.5, 0.005, splits).AsParallel()
-				 from lrP in LogRange(1.0, 0.01, splits)
-				 from lrB in (type == LvqModelType.GgmModelType || type == LvqModelType.G2mModelType ? LogRange(1.0, 0.01, splits) : new[] { 0.0 })
-				 let errs = ErrorOf(dataset, epochsToTrain, type, lr0, lrP, lrB, rngIter, rngParam)
+				(from lr0 in lr0range.AsParallel()
+				 from lrP in lrPrange
+				 from lrB in lrBrange
+				 let errs = ErrorOf(dataset, iters, type, protos, lr0, lrP, lrB, rngIter, rngParam)
 				 orderby errs.ErrorMean
 				 select new { lr0, lrP, lrB, errs }).AsSequential();
 
+			Console.WriteLine("lr0range:" + ObjectToCode.ComplexObjectToPseudoCode(lr0range));
+			Console.WriteLine("lrPrange:" + ObjectToCode.ComplexObjectToPseudoCode(lrPrange));
+			Console.WriteLine("lrBrange:" + ObjectToCode.ComplexObjectToPseudoCode(lrBrange));
+			Console.WriteLine("For " + type + " with " + protos + " prototypes and " + iters + " iters training:");
+
 			foreach (var result in q.Take(100)) {
-				Console.WriteLine(result.lr0 + "/" + result.lrP + "/" + result.lrB + ": " + result.errs);
+				Console.Write("\n" + result.lr0.ToString("g4").PadRight(9) + "p" + result.lrP.ToString("g4").PadRight(9) + "b" + result.lrB.ToString("g4").PadRight(9) + ": "
+						+ result.errs.training.ToString("g4").PadRight(9) + ";"
+						+ result.errs.test.ToString("g4").PadRight(9) + ";"
+						+ result.errs.nn.ToString("g4").PadRight(9) + ";"
+					);
 			}
+			Console.WriteLine();
 		}
 
 		public static LvqDatasetCli PlainDataset(int folds, uint rngParam, uint rngInst, int dims, int classes, double? classsep = null) {
-			return LvqDatasetCli.ConstructGaussianClouds("simplemodel", folds, false, false, null, rngParam, rngInst, dims, classes, 10000 / dims, classsep ?? 1.5);
+			return LvqDatasetCli.ConstructGaussianClouds("simplemodel", folds, false, false, null, rngParam, rngInst, dims, classes, (int)(10000 / Math.Sqrt(dims) / classes), classsep ?? 1.5);
 		}
 		public static LvqDatasetCli StarDataset(int folds, uint rngParam, uint rngInst, int dims, int classes, double? starsep = null, double? classrelsep = null, double? sigmanoise = null) {
-			return LvqDatasetCli.ConstructStarDataset("star", folds, false, false, null, rngParam, rngInst, dims, dims / 2, 3, classes, 10000 / dims, starsep ?? 1.5, classrelsep ?? 0.5, true, sigmanoise ?? 2.5);
+			return LvqDatasetCli.ConstructStarDataset("star", folds, false, false, null, rngParam, rngInst, dims, dims / 2, 3, classes, (int)(10000 / Math.Sqrt(dims) / classes), starsep ?? 1.5, classrelsep ?? 0.5, true, sigmanoise ?? 2.5);
 		}
 		static readonly DirectoryInfo dataDir = new DirectoryInfo(@"D:\EamonLargeDocs\VersionControlled\docs-trunk\programs\LvqEmn\data\datasets\");
 		public static LvqDatasetCli Load(int folds, string name, uint rngInst) {
 			var dataFile = dataDir.GetFiles(name + ".data").FirstOrDefault();
 			var testFile = dataDir.GetFiles(name.Replace("train", "test") + ".data").FirstOrDefault();
 
-			var dataset = LoadDatasetImpl.LoadData(dataFile, false, false, rngInst, folds, testFile != null ? testFile.Name : null);
-			dataset.TestSet = testFile != null ? LoadDatasetImpl.LoadData(testFile, false, false, rngInst, folds, null) : null;
+			var dataset = LoadDatasetImpl.LoadData(dataFile, false, false, rngInst, testFile != null ? 0 : folds, testFile != null ? testFile.Name : null);
+			dataset.TestSet = testFile != null ? LoadDatasetImpl.LoadData(testFile, false, false, rngInst, 0, null) : null;
 
 			return dataset;
 		}
@@ -125,7 +138,7 @@ namespace LvqGui {
 			using (var proc = Process.GetCurrentProcess())
 				proc.PriorityClass = ProcessPriorityClass.BelowNormal;
 			using (new DTimer("search"))
-				FindOptimalLr(Datasets(10, 42, 37).ToArray(), 10, LvqModelType.GgmModelType, 51, 133);
+				FindOptimalLr(Datasets(10, 42, 37).ToArray(), 10000000, LvqModelType.GmModelType, 1, 51, 133);
 		}
 	}
 }
