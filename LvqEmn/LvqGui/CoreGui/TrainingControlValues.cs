@@ -115,25 +115,29 @@ namespace LvqGui {
 			var selectedModel = SelectedLvqModel;
 			var meanstats = selectedModel.EvaluateStats(SelectedDataset);
 
-			for (int i = 0; i < selectedModel.TrainingStatNames.Length; i++) {
-				string numF, errF;
-				if (meanstats.StandardError[i] == 0) {
-					numF = "g";
-					errF = "";
-				} else if (Math.Abs(meanstats.Value[i]) > 0 && Math.Abs(Math.Log10(Math.Abs(meanstats.Value[i]))) < 5) {
-					//use fixed-point:
-					int errOOM = Math.Max(0, (int)(1.5 - Math.Log10(meanstats.StandardError[i])));
-					numF = "f" + errOOM;
-					errF = " ~ {2:f" + errOOM + "}";
-				} else {
-					int digits = Math.Abs(meanstats.Value[i]) <= meanstats.StandardError[i] ? 1
-									: (int)(Math.Log10(Math.Abs(meanstats.Value[i]) / meanstats.StandardError[i]) + 1.5);
-					numF = "g" + digits;
-					errF = " ~ {2:g2}";
-				}
+			for (int i = 0; i < selectedModel.TrainingStatNames.Length; i++) 
+				Console.WriteLine(selectedModel.TrainingStatNames[i].Split('!')[0] + ": "+GetFormatted(meanstats.Value[i], meanstats.StandardError[i]));
+			
+		}
 
-				Console.WriteLine("{0}: {1:" + numF + "}" + errF, selectedModel.TrainingStatNames[i].Split('!')[0], meanstats.Value[i], meanstats.StandardError[i]);
+		public static string GetFormatted(double mean, double stderr)
+		{
+			string numF, errF;
+			if (stderr == 0) {
+				numF = "g";
+				errF = "";
+			} else if (Math.Abs(mean) > 0 && Math.Abs(Math.Log10(Math.Abs(mean))) < 5) {
+				//use fixed-point:
+				int errOOM = Math.Max(0, (int)(1.5 - Math.Log10(stderr)));
+				numF = "f" + errOOM;
+				errF = " ~ {1:f" + errOOM + "}";
+			} else {
+				int digits = Math.Abs(mean) <= stderr ? 1
+				             	: (int)(Math.Log10(Math.Abs(mean) / stderr) + 1.5);
+				numF = "g" + digits;
+				errF = " ~ {1:g2}";
 			}
+			return string.Format("{0:" + numF + "}" + errF, mean, stderr);
 		}
 
 

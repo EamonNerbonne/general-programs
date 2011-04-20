@@ -40,7 +40,8 @@ namespace LvqGui {
 
 		public double CurrentLearningRate { get { return subModels.Sum(model => model.UnscaledLearningRate) / ModelCount; } }
 
-		public struct Statistic { public double[] Value, StandardError;}
+		public struct Statistic { public double[] Value, StandardError; }
+
 		internal Statistic EvaluateStats(LvqDatasetCli selectedDataset) {
 			var multistats = subModels.Select(m => m.EvaluateStats(selectedDataset, m.InitDataFold));
 			return MeanStdErrStats(multistats);
@@ -61,7 +62,7 @@ namespace LvqGui {
 			}
 		}
 
-		static Statistic MeanStdErrStats(IEnumerable<LvqTrainingStatCli> newstats) {
+		public static Statistic MeanStdErrStats(IEnumerable<LvqTrainingStatCli> newstats) {
 			MeanVarCalc[] accum = null;
 
 			foreach (var statArray in newstats)
@@ -84,7 +85,7 @@ namespace LvqGui {
 		int epochsDone;
 		static int trainersRunning;
 		public static void WaitForTraining() { while (trainersRunning != 0) Thread.Sleep(1); }
-		readonly static LowPriorityTaskScheduler scheduler = new LowPriorityTaskScheduler(Environment.ProcessorCount+2);
+		readonly static LowPriorityTaskScheduler scheduler = new LowPriorityTaskScheduler(Environment.ProcessorCount + 2);
 		public void Train(int epochsToDo, LvqDatasetCli trainingSet, CancellationToken cancel) {
 			Interlocked.Increment(ref trainersRunning);
 			try {
