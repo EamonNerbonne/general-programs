@@ -259,6 +259,7 @@ namespace LvqGui {
 				NormalizeBoundaries = NormalizeBoundaries,
 				GloballyNormalize = GloballyNormalize,
 				NgUpdateProtos = NgUpdateProtos,
+				NgInitializeProtos = NgInitializeProtos,
 				UpdatePointsWithoutB = UpdatePointsWithoutB,
 				Dimensionality = Dimensionality,
 				SlowStartLrBad = SlowStartLrBad,
