@@ -77,8 +77,8 @@ namespace LvqGui {
 		}
 
 		public static void FindOptimalLr(TextWriter sink, LvqDatasetCli[] dataset, long iters, LvqModelType type, int protos, uint rngIter, uint rngParam) {
-			var lr0range = LogRange(0.3, 0.01, 4);
-			var lrPrange = LogRange(0.5, 0.03, 4);
+			var lr0range = LogRange(0.3, 0.01, 10);
+			var lrPrange = LogRange(0.5, 0.03, 10);
 			var lrBrange = (type == LvqModelType.GgmModelType || type == LvqModelType.G2mModelType ? LogRange(0.1, 0.003, 4) : new[] { 0.0 });
 
 			var q =
@@ -125,10 +125,16 @@ namespace LvqGui {
 			yield return PlainDataset(folds, rngParam++, rngInst++, 16, 3);
 			yield return PlainDataset(folds, rngParam++, rngInst++, 8, 3);
 			yield return PlainDataset(folds, rngParam++, rngInst++, 16, 3, 0.8);
+			yield return PlainDataset(folds, rngParam++, rngInst++, 10, 4, 1.5);//new
 			yield return StarDataset(folds, rngParam++, rngInst++, 8, 3);
 			yield return StarDataset(folds, rngParam++, rngInst++, 16, 3);
 			yield return StarDataset(folds, rngParam++, rngInst++, 24, 4);
+			yield return StarDataset(folds, rngParam++, rngInst++, 8, 2);//new
 			yield return Load(folds, "segmentationNormed_combined", rngInst++);
+			yield return Load(folds, "segmentation_combined", rngInst++);
+			yield return Load(folds, "colorado", rngInst++);
+			yield return Load(folds, "pendigits.train", rngInst++);
+			yield return Load(folds, "segmentationNormed_combined", rngInst++);//new:different ordering!
 			yield return Load(folds, "segmentation_combined", rngInst++);
 			yield return Load(folds, "colorado", rngInst++);
 			yield return Load(folds, "pendigits.train", rngInst++);
