@@ -97,7 +97,7 @@ namespace LvqGui {
 					epochsDone += epochsToDo;
 					epochsTarget = epochsDone;
 				}
-				BlockingCollection<Tuple<LvqModelCli, int>> q = new BlockingCollection<Tuple<LvqModelCli, int>>();
+				var trainingqueue = new BlockingCollection<Tuple<LvqModelCli, int>>();
 
 
 				//Parallel.ForEach(subModels, m => m.TrainUpto(epochsTarget,trainingSet,m.InitDataFold));
@@ -106,14 +106,14 @@ namespace LvqGui {
 					epochsCurrent += ((epochsTarget - epochsCurrent) * 15 + 1) / 16;
 					int currentTarget = epochsCurrent;
 					foreach (var model in subModels)
-						q.Add(Tuple.Create(model, currentTarget));
+						trainingqueue.Add(Tuple.Create(model, currentTarget));
 				}
-				q.CompleteAdding();
+				trainingqueue.CompleteAdding();
 				var helpers = Enumerable.Range(0, ParWindow)
 					.Select(ignored =>
 						Task.Factory.StartNew(
 							() => {
-								foreach (var next in q.GetConsumingEnumerable(cancel))
+								foreach (var next in trainingqueue.GetConsumingEnumerable(cancel))
 									next.Item1.TrainUpto(next.Item2, trainingSet, next.Item1.InitDataFold);
 							},
 							cancel, TaskCreationOptions.None, scheduler)
