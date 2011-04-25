@@ -1,14 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using EmnExtensions;
 using EmnExtensions.DebugTools;
-using EmnExtensions.MathHelpers;
-using EmnExtensions.Wpf;
 using ExpressionToCodeLib;
 using LvqLibCli;
 
@@ -129,7 +124,9 @@ namespace LvqGui {
 			yield return StarDataset(folds, rngParam++, rngInst++, 8, 3);
 			yield return StarDataset(folds, rngParam++, rngInst++, 16, 3);
 			yield return StarDataset(folds, rngParam++, rngInst++, 24, 4);
+			// ReSharper disable RedundantAssignment
 			yield return StarDataset(folds, rngParam++, rngInst++, 8, 2);//new
+			// ReSharper restore RedundantAssignment
 			yield return Load(folds, "segmentationNormed_combined", rngInst++);
 			yield return Load(folds, "segmentation_combined", rngInst++);
 			yield return Load(folds, "colorado", rngInst++);
@@ -137,12 +134,17 @@ namespace LvqGui {
 			yield return Load(folds, "segmentationNormed_combined", rngInst++);//new:different ordering!
 			yield return Load(folds, "segmentation_combined", rngInst++);
 			yield return Load(folds, "colorado", rngInst++);
+			// ReSharper disable RedundantAssignment
 			yield return Load(folds, "pendigits.train", rngInst++);
+			// ReSharper restore RedundantAssignment
 		}
 
 		public static void Run(TextWriter sink, LvqModelType modeltype, int protos, long itersToRun) {
+			//big: param42,inst37; model: iter51, param133
+			//mix: param42,inst37; model: iter52, param133
+			//alt: param42,inst37; model: iter52, param134
 			using (new DTimer(time => sink.WriteLine("Search Complete!  Tookr " + time)))
-				FindOptimalLr(sink, Datasets(10, 42, 37).ToArray(), itersToRun, modeltype, protos, 51, 133);
+				FindOptimalLr(sink, Datasets(10, 42, 37).ToArray(), itersToRun, modeltype, protos, 52, 133);
 		}
 	}
 }
