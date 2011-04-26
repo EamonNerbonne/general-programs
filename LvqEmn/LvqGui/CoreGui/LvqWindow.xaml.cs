@@ -121,7 +121,7 @@ namespace LvqGui {
 			LvqModelType modeltype = (LvqModelType)modelType.SelectedItem;
 			int protos = Use5Protos.IsChecked == true ? 5 : 1;
 			long iterCount = (long)iterCountSelectbox.SelectedItem;
-			var logWindow = LogControl.ShowNewLogWindow(modeltype + " " + protos + " prototypes training for " + iterCount, ActualWidth, ActualHeight * 0.6);
+			var logWindow = LogControl.ShowNewLogWindow(modeltype.ToString().Replace("ModelType","") + protos +"e"+(int)(Math.Log10(iterCount)+0.5), ActualWidth, ActualHeight * 0.6);
 
 			ThreadPool.QueueUserWorkItem(_ => {
 				TestLr.Run(logWindow.Item2, modeltype, protos, iterCount);

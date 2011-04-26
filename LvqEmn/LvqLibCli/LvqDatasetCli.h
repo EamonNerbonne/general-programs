@@ -21,6 +21,7 @@ namespace LvqLibCli {
 		bool IsFolded() {return folds!=0;}
 		bool HasTestSet() {return testSet != nullptr;}
 		std::vector<int> GetTrainingSubset(int fold);
+		int GetTrainingSubsetSize(int fold);
 		std::vector<int> GetTestSubset(int fold);
 		LvqDataset const * GetTrainingDataset() {return dataset;}
 		LvqDataset const * GetTestDataset() {return testSet==nullptr?dataset:testSet->dataset;}

@@ -59,6 +59,7 @@ namespace LvqLibCli {
 	array<int>^ LvqDatasetCli::ClassLabels(){ array<int>^ retval; cppToCli(dataset->getPointLabels(), retval); return retval;}
 	array<LvqFloat,2>^ LvqDatasetCli::RawPoints() { array<LvqFloat,2>^ retval; cppToCli(dataset->getPoints(), retval); return retval;}
 	vector<int> LvqDatasetCli::GetTrainingSubset(int fold) { return GetTrainingDataset()->GetTrainingSubset(fold,folds); }
+	int LvqDatasetCli::GetTrainingSubsetSize(int fold) { return GetTrainingDataset()->GetTrainingSubsetSize(fold,folds); }
 	vector<int> LvqDatasetCli::GetTestSubset(int fold) { return HasTestSet() ? GetTestDataset()->GetTrainingSubset(0,0) : GetTestDataset()->GetTestSubset(fold,folds); }
 	int LvqDatasetCli::ClassCount::get(){return dataset->getClassCount();}
 	int LvqDatasetCli::PointCount::get(){return dataset->getPointCount();}

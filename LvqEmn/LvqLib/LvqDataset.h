@@ -79,6 +79,7 @@ public:
 	int dimensions() const { return static_cast<int>(points.rows());}
 
 	std::vector<int> GetTrainingSubset(int fold, int foldcount) const;
+	int GetTrainingSubsetSize(int fold, int foldcount) const;
 	std::vector<int> GetTestSubset(int fold, int foldcount) const;
 };
 //#pragma managed(pop)
