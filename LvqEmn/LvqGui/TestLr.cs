@@ -170,9 +170,14 @@ namespace LvqGui {
 		//const int rngParams = 2003;
 		//const string rngName = "alt";
 	
-		const int rngIter = 2002;
-		const int rngParams = 2001;
-		const string rngName = "bPaI";
+		//const int rngIter = 2002;
+		//const int rngParams = 2001;
+		//const string rngName = "bPaI";
+
+		const int rngIter = 2004;
+		const int rngParams = 2005;
+		const string rngName = "alt2";
+
 
 		public static void SaveLogFor(string shortname, string logcontents) {
 			var logfilepath = 
