@@ -54,7 +54,7 @@ void PrintModelStatus(char const * label,LvqModel const * model,LvqDataset const
 	using namespace std;
 	auto stats = dataset->ComputeCostAndErrorRate(dataset->GetTrainingSubset(0,0),model);
 
-	cerr << label<< ": "<<stats.errorRate << ", "<<stats.meanCost;
+	cerr << label<< ": "<<stats.errorRate() << ", "<<stats.meanCost();
 	LvqProjectionModel const * projectionModel = dynamic_cast<LvqProjectionModel const*>(model);
 	if(projectionModel) {
 		LvqProjectionModel::ClassDiagramT diagram(800,800);

@@ -68,7 +68,7 @@ BOOST_AUTO_TEST_CASE( nn_test )
 		timeG2m.stop();
 
 		LvqDatasetStats statsG2m = dataset->ComputeCostAndErrorRate(testSet,&model);
-		LOG(", G2m: "<<statsG2m.errorRate);
+		LOG(", G2m: "<<statsG2m.errorRate());
 
 		double g2mNNrate = dataset->NearestNeighborProjectedErrorRate(trainingSet,dataset.get(),testSet, model.projectionMatrix() );
 		LOG(", G2mNN: "<<g2mNNrate );
