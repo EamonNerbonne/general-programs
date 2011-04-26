@@ -16,7 +16,7 @@ using System.Windows.Threading;
 namespace EmnExtensions.Wpf {
 	public class LogControl : FlowDocumentScrollViewer {
 
-		public static Tuple<Window, TextWriter> ShowNewLogWindow(string windowTitle=null, double? width=null, double? height=null) {
+		public static Tuple<Window, LogControl> ShowNewLogWindow(string windowTitle = null, double? width = null, double? height = null) {
 			var logger = new LogControl();
 			var win = new Window {
 				Title = windowTitle ?? "Log Window",
@@ -30,11 +30,12 @@ namespace EmnExtensions.Wpf {
 
 			win.Show();
 
-			return Tuple.Create(win, logger.Writer);
+			return Tuple.Create(win, logger);
 		}
-		public static Tuple<Window, TextWriter> ShowNewLogWindow_NewDispatcher(string windowTitle = null, double? width = null, double? height = null) {
+		//TODO: this doesn't yet work.
+		public static Tuple<Window, LogControl> ShowNewLogWindow_NewDispatcher(string windowTitle = null, double? width = null, double? height = null) {
 			var disp=WpfTools.StartNewDispatcher();
-			return (Tuple<Window, TextWriter>)disp.Invoke((Func<Tuple<Window, TextWriter>>)(() => ShowNewLogWindow(windowTitle, width, height)));
+			return (Tuple<Window, LogControl>)disp.Invoke((Func<Tuple<Window, LogControl>>)(() => ShowNewLogWindow(windowTitle, width, height)));
 		}
 		
 
@@ -96,6 +97,14 @@ namespace EmnExtensions.Wpf {
 				Document.ContentEnd.InsertTextInRun(strToAppendToCur);
 				NavigationCommands.LastPage.Execute(null, this);//can we say... nasty hack?
 			}
+		}
+
+		public string GetContentsUI() {
+			lock (curLine) {
+				Document.ContentEnd.InsertTextInRun(curLine.ToString());
+				curLine.Length = 0;
+			}
+			return new TextRange(Document.ContentStart,Document.ContentEnd).Text;
 		}
 
 		RestoringReadStream stdOutOverride;

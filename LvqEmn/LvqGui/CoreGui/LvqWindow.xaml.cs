@@ -121,10 +121,15 @@ namespace LvqGui {
 			LvqModelType modeltype = (LvqModelType)modelType.SelectedItem;
 			int protos = Use5Protos.IsChecked == true ? 5 : 1;
 			long iterCount = (long)iterCountSelectbox.SelectedItem;
-			var logWindow = LogControl.ShowNewLogWindow(modeltype.ToString().Replace("ModelType","") + protos +"e"+(int)(Math.Log10(iterCount)+0.5), ActualWidth, ActualHeight * 0.6);
+
+			string shortname = modeltype.ToString().Replace("ModelType", "") + protos + "e" + (int)(Math.Log10(iterCount) + 0.5);
+
+			var logWindow = LogControl.ShowNewLogWindow(shortname, ActualWidth, ActualHeight * 0.6);
 
 			ThreadPool.QueueUserWorkItem(_ => {
-				TestLr.Run(logWindow.Item2, modeltype, protos, iterCount);
+				TestLr.Run(logWindow.Item2.Writer, modeltype, protos, iterCount);
+				string contents = (string)logWindow.Item1.Dispatcher.Invoke((Func<string>)logWindow.Item2.GetContentsUI);
+				TestLr.SaveLogFor(shortname, contents);
 				logWindow.Item1.Dispatcher.BeginInvoke(() => logWindow.Item1.Background = Brushes.White);
 			});
 		}

@@ -3,14 +3,16 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using EmnExtensions;
+using EmnExtensions.Filesystem;
 using EmnExtensions.DebugTools;
 using ExpressionToCodeLib;
 using LvqLibCli;
+using System.Reflection;
 
 namespace LvqGui {
 	class TestLr {
 		public struct ErrorRates {
-			public readonly double training, trainingStderr, test, testStderr, nn, nnStderr,cumLearningRate;
+			public readonly double training, trainingStderr, test, testStderr, nn, nnStderr, cumLearningRate;
 			public ErrorRates(LvqMultiModel.Statistic stats, int nnIdx) {
 				training = stats.Value[LvqTrainingStatCli.TrainingErrorI];
 				test = stats.Value[LvqTrainingStatCli.TestErrorI];
@@ -94,7 +96,7 @@ namespace LvqGui {
 				sink.Write("\n" + result.lr0.ToString("g4").PadRight(9) + "p" + result.lrP.ToString("g4").PadRight(9) + "b" + result.lrB.ToString("g4").PadRight(9) + ": "
 						+ result.errs.training.ToString("g4").PadRight(9) + ";"
 						+ result.errs.test.ToString("g4").PadRight(9) + ";"
-						+ result.errs.nn.ToString("g4").PadRight(9) + "; ["+result.errs.cumLearningRate+"]"
+						+ result.errs.nn.ToString("g4").PadRight(9) + "; [" + result.errs.cumLearningRate + "]"
 					);
 			}
 			sink.WriteLine();
@@ -106,12 +108,20 @@ namespace LvqGui {
 		public static LvqDatasetCli StarDataset(int folds, uint rngParam, uint rngInst, int dims, int classes, double? starsep = null, double? classrelsep = null, double? sigmanoise = null) {
 			return LvqDatasetCli.ConstructStarDataset("star", folds, false, false, null, rngParam, rngInst, dims, dims / 2, 3, classes, (int)(10000 / Math.Sqrt(dims) / classes), starsep ?? 1.5, classrelsep ?? 0.5, true, sigmanoise ?? 2.5);
 		}
-		static readonly DirectoryInfo dataDir = new DirectoryInfo(@"D:\EamonLargeDocs\VersionControlled\docs-trunk\programs\LvqEmn\data\datasets\");
+
+		static DirectoryInfo FindDir(string relpath) {
+			return new FileInfo(Assembly.GetEntryAssembly().Location).Directory.ParentDirs().Select(dir => Path.Combine(dir.FullName + @"\", relpath)).Where(Directory.Exists).Select(path => new DirectoryInfo(path)).FirstOrDefault();
+		}
+
+		static readonly DirectoryInfo dataDir = FindDir(@"data\datasets\");
+		static readonly DirectoryInfo resultsDir = FindDir(@"uni\2009-Scriptie\Thesis\results\");
+		//new DirectoryInfo(@"D:\EamonLargeDocs\VersionControlled\docs-trunk\programs\LvqEmn\data\datasets\");
 		public static LvqDatasetCli Load(int folds, string name, uint rngInst) {
+
 			var dataFile = dataDir.GetFiles(name + ".data").FirstOrDefault();
 
-			return LoadDatasetImpl.LoadData(dataFile, false, false, rngInst,  folds, null);
-			
+			return LoadDatasetImpl.LoadData(dataFile, false, false, rngInst, folds, null);
+
 			//var dataFile = dataDir.GetFiles(name + ".data").FirstOrDefault();
 			//var testFile = dataDir.GetFiles(name.Replace("train", "test") + ".data").FirstOrDefault();
 
@@ -120,6 +130,8 @@ namespace LvqGui {
 
 			//return dataset;
 		}
+
+
 
 		// ReSharper disable RedundantAssignment
 		public static IEnumerable<LvqDatasetCli> Datasets(int folds, uint rngParam, uint rngInst) {
@@ -148,7 +160,24 @@ namespace LvqGui {
 			//alt: param42,inst37; model: iter52, param52
 			//base: 1,2
 			using (new DTimer(time => sink.WriteLine("Search Complete!  Tookr " + time)))
-				FindOptimalLr(sink, Datasets(10, 1000, 1001).ToArray(), itersToRun, modeltype, protos, 2000, 2001);
+				FindOptimalLr(sink, Datasets(10, 1000, 1001).ToArray(), itersToRun, modeltype, protos, rngIter, rngParams);
+		}
+		//const int rngIter = 2000;
+		//const int rngParams = 2001;
+		//const string rngName = "base";
+		const int rngIter = 2002;
+		const int rngParams = 2003;
+		const string rngName = "alt";
+
+		public static void SaveLogFor(string shortname, string logcontents) {
+			var logfilepath = 
+				Enumerable.Range(0, 1000)
+				.Select(i => shortname + rngName + (i == 0 ? "" : " (" + i + ")") + ".txt")
+				.Select(filename => Path.Combine(resultsDir.FullName, filename))
+				.Where(path => !File.Exists(path))
+				.First();
+
+			File.WriteAllText(logfilepath, logcontents);
 		}
 	}
 }
