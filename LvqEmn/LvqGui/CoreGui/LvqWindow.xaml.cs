@@ -122,7 +122,7 @@ namespace LvqGui {
 			int protos = Use5Protos.IsChecked == true ? 5 : 1;
 			long iterCount = (long)iterCountSelectbox.SelectedItem;
 
-			string shortname = modeltype.ToString().Replace("ModelType", "") + protos + "e" + (int)(Math.Log10(iterCount) + 0.5);
+			string shortname = modeltype.ToString().Replace("ModelType", "").ToLowerInvariant() + protos + "e" + (int)(Math.Log10(iterCount) + 0.5);
 
 			var logWindow = LogControl.ShowNewLogWindow(shortname, ActualWidth, ActualHeight * 0.6);
 
