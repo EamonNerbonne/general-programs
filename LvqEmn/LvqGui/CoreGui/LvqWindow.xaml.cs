@@ -117,11 +117,20 @@ namespace LvqGui {
 
 		public IEnumerable<LvqModelType> ModelTypes { get { return (LvqModelType[])Enum.GetValues(typeof(LvqModelType)); } }
 		public IEnumerable<long> Iters { get { return new[] { 100000L, 1000000L, 10000000L, }; } }
-		void Button_Click(object sender, RoutedEventArgs e) {
+		void LrSearch_Click(object sender, RoutedEventArgs e) {
 			LvqModelType modeltype = (LvqModelType)modelType.SelectedItem;
 			int protos = Use5Protos.IsChecked == true ? 5 : 1;
 			long iterCount = (long)iterCountSelectbox.SelectedItem;
+			LrSearch(modeltype, protos, iterCount);
+		}
+		void LrSearchAll_Click(object sender, RoutedEventArgs e) {
+			foreach (LvqModelType modeltype in ModelTypes)
+				foreach (int protos in new[] { 5, 1 })
+					foreach (long iterCount in Iters)
+						LrSearch(modeltype, protos, iterCount, true);
+		}
 
+		private void LrSearch(LvqModelType modeltype, int protos, long iterCount, bool autoclose = false) {
 			string shortname = modeltype.ToString().Replace("ModelType", "").ToLowerInvariant() + protos + "e" + (int)(Math.Log10(iterCount) + 0.5);
 
 			var logWindow = LogControl.ShowNewLogWindow(shortname, ActualWidth, ActualHeight * 0.6);
@@ -130,7 +139,10 @@ namespace LvqGui {
 				TestLr.Run(logWindow.Item2.Writer, modeltype, protos, iterCount);
 				string contents = (string)logWindow.Item1.Dispatcher.Invoke((Func<string>)logWindow.Item2.GetContentsUI);
 				TestLr.SaveLogFor(shortname, contents);
-				logWindow.Item1.Dispatcher.BeginInvoke(() => logWindow.Item1.Background = Brushes.White);
+				if (autoclose)
+					logWindow.Item1.Dispatcher.BeginInvoke(() => logWindow.Item1.Close());
+				else
+					logWindow.Item1.Dispatcher.BeginInvoke(() => logWindow.Item1.Background = Brushes.White);
 			});
 		}
 	}

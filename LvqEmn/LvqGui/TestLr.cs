@@ -162,9 +162,10 @@ namespace LvqGui {
 			using (new DTimer(time => sink.WriteLine("Search Complete!  Tookr " + time)))
 				FindOptimalLr(sink, Datasets(10, 1000, 1001).ToArray(), itersToRun, modeltype, protos, rngIter, rngParams);
 		}
-		//const int rngIter = 2000;
-		//const int rngParams = 2001;
-		//const string rngName = "base";
+		const int offset = 3;
+		const int rngIter = 2000+2*offset;
+		const int rngParams = 2001+2*offset;
+		static readonly string rngName = "alt"+offset;
 
 		//const int rngIter = 2002;
 		//const int rngParams = 2003;
@@ -178,9 +179,9 @@ namespace LvqGui {
 		//const int rngParams = 2005;
 		//const string rngName = "alt2";
 		
-		const int rngIter = 2004;
-		const int rngParams = 2001;
-		const string rngName = "bPa2I";
+		//const int rngIter = 2004;
+		//const int rngParams = 2001;
+		//const string rngName = "bPa2I";
 
 
 		public static void SaveLogFor(string shortname, string logcontents) {

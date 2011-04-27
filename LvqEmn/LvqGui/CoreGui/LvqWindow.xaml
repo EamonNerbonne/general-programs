@@ -77,7 +77,11 @@
                     <CheckBox Grid.Row="1" Grid.Column="1" Name="Use5Protos" />
                     <Label Grid.Row="2">Iterations to run</Label>
                     <ComboBox Grid.Row="2"  Grid.Column="1"  Name="iterCountSelectbox" SelectedIndex="0" ItemsSource="{Binding  RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type my:LvqWindow} }, Path=Iters}"/>
-                    <Button Grid.Row="3" Grid.Column="1" Click="Button_Click">Do Lr Search</Button>
+                    <StackPanel Grid.Row="3" Grid.Column="1" HorizontalAlignment="Left"  Orientation="Horizontal">
+                        <Button Click="LrSearch_Click">Lr Search</Button>
+                        <Button Click="LrSearchAll_Click">Lr Search All Types</Button>
+                    </StackPanel>
+                    
                 </Grid>
             </TabItem>
         </TabControl>
