@@ -162,7 +162,7 @@ namespace LvqGui {
 			using (new DTimer(time => sink.WriteLine("Search Complete!  Tookr " + time)))
 				FindOptimalLr(sink, Datasets(10, 1000, 1001).ToArray(), itersToRun, modeltype, protos, rngIter, rngParams);
 		}
-		const int offset = 3;
+		const int offset = 6;
 		const int rngIter = 2000+2*offset;
 		const int rngParams = 2001+2*offset;
 		static readonly string rngName = "alt"+offset;
