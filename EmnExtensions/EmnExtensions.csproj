@@ -127,6 +127,7 @@
     <Compile Include="Text\StringFeatures.cs" />
     <Compile Include="Threading\Par.cs" />
     <Compile Include="Web\UriRequest.cs" />
+    <Compile Include="WinProcessUtils.cs" />
     <Compile Include="XmlSerializableBase.cs" />
   </ItemGroup>
   <ItemGroup>
