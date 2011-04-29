@@ -1,14 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Globalization;
 
 namespace EmnExtensions.MathHelpers {
 	public struct MeanVarCalc {
 		double meanX, sX;
 		double weightSum;
-
 
 		public void Add(double val, double weight = 1.0) {
 			if (weight == 0.0) return;//ignore zero-weight stuff...
@@ -19,6 +15,7 @@ namespace EmnExtensions.MathHelpers {
 			sX += (val - meanX) * (val - meanX) * sScale;
 			meanX += (val - meanX) * mScale;
 		}
+
 		public void Add(MeanVarCalc other) {
 			double newWeightSum = weightSum + other.weightSum;
 			double mScale = other.weightSum / newWeightSum;
