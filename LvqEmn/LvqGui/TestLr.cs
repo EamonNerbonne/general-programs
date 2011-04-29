@@ -29,11 +29,12 @@ namespace LvqGui {
 					TrainingControlValues.GetFormatted(nn, nnStderr) + "; ";
 			}
 		}
-
-		public static ErrorRates ErrorOf(TextWriter sink, LvqDatasetCli[] dataset, long iters, LvqModelType type, int protos, double lr0, double lrScaleP, double lrScaleB, uint rngIter, uint rngParam) {
+		
+		public static ErrorRates ErrorOf(TextWriter sink, LvqDatasetCli[] datasets, long iters, LvqModelType type, int protos, double lr0, double lrScaleP, double lrScaleB, uint rngIter, uint rngParam) {
 			int nnErrorIdx = -1;
-			var severalStats = Enumerable.Range(0, dataset.Length).AsParallel().Select(fold => {
-				var model = new LvqModelCli("model" + fold, dataset[fold], fold, new LvqModelSettingsCli {
+			var severalStats = datasets.AsParallel().Select((dataset, i) => {
+				int fold = FollowDatafolding ? i : 0;
+				var model = new LvqModelCli("model", dataset, fold, new LvqModelSettingsCli {
 					ModelType = type,
 					Dimensionality = 2,
 					GloballyNormalize = true,
@@ -56,8 +57,8 @@ namespace LvqGui {
 					RngParamsSeed = rngParam + (uint)fold,
 				});
 				nnErrorIdx = model.TrainingStatNames.AsEnumerable().IndexOf(name => name.Contains("NN Error")); // threading irrelevant; all the same & atomic.
-				model.Train((int)(iters / dataset[fold].GetTrainingSubsetSize(fold)), dataset[fold], fold);
-				var stats = model.EvaluateStats(dataset[fold], fold);
+				model.Train((int)(iters / dataset.GetTrainingSubsetSize(fold)), dataset, fold);
+				var stats = model.EvaluateStats(dataset, fold);
 				return stats;
 			}
 			).ToArray();
@@ -159,25 +160,33 @@ namespace LvqGui {
 			//mix: param42,inst37; model: iter52, param51
 			//alt: param42,inst37; model: iter52, param52
 			//base: 1,2
-			using (new DTimer(time => sink.WriteLine("Search Complete!  Tookr " + time)))
-				FindOptimalLr(sink, Datasets(10, 1000, 1001).ToArray(), itersToRun, modeltype, protos, rngIter, rngParams);
+			using (new DTimer(time => sink.WriteLine("Search Complete!  Took " + time)))
+				FindOptimalLr(sink, Datasets(10, 1000, 1001).ToArray(), itersToRun, modeltype, protos, rngModelIter, rngModelParams);
 		}
-		const int offset = 9;
-		const int rngIter = 2000+2*offset;
-		const int rngParams = 2001+2*offset;
-		static readonly string rngName = "alt"+offset;
-	
+		const bool FollowDatafolding = false;
+		const int offset = 0;
+		const int rngModelIter = 2 * offset;
+		const int rngModelParams = 1+2 * offset;
+		static readonly string rngName = "base" + offset;
+
+
+		//const bool FollowDatafolding = true;
+		//const int offset = 9;
+		//const int rngModelIter = 2000 + 2 * offset;
+		//const int rngModelParams = 2001 + 2 * offset;
+		//static readonly string rngName = "alt" + offset;
+
 		//const int rngIter = 2002;
 		//const int rngParams = 2001;
 		//const string rngName = "bPaI";
-		
+
 		//const int rngIter = 2004;
 		//const int rngParams = 2001;
 		//const string rngName = "bPa2I";
 
 
 		public static void SaveLogFor(string shortname, string logcontents) {
-			var logfilepath = 
+			var logfilepath =
 				Enumerable.Range(0, 1000)
 				.Select(i => shortname + rngName + (i == 0 ? "" : " (" + i + ")") + ".txt")
 				.Select(filename => Path.Combine(resultsDir.FullName, filename))
