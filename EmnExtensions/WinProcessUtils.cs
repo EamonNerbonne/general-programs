@@ -1,4 +1,7 @@
 ﻿using System.Diagnostics;
+using System;
+using System.Text;
+using System.Threading;
 
 namespace EmnExtensions {
 	/// <summary>
@@ -22,15 +25,21 @@ namespace EmnExtensions {
 						Arguments = arguments,
 					}
 				)) {
+				StringBuilder error = new StringBuilder(), output = new StringBuilder();
+				Thread.MemoryBarrier();
+				proc.ErrorDataReceived += (s, e) => error.Append(e.Data);
+				proc.OutputDataReceived += (s, e) => output.Append(e.Data);
+				proc.BeginErrorReadLine();
+				proc.BeginOutputReadLine();
 				if (input != null)
 					proc.StandardInput.Write(input);
 				proc.StandardInput.Close();
-				var outval = proc.StandardOutput.ReadToEnd();
-				var errval = proc.StandardError.ReadToEnd();
 				proc.WaitForExit();
-				return new ExecutionResult { StandardOutputContents = outval, StandardErrorContents = errval, ExitCode = proc.ExitCode };
+				Thread.MemoryBarrier();
+				return new ExecutionResult { StandardOutputContents = output.ToString(), StandardErrorContents = error.ToString(), ExitCode = proc.ExitCode };
 			}
 		}
+
 	}
 }
 
