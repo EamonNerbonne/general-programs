@@ -164,7 +164,7 @@ namespace LvqGui {
 				FindOptimalLr(sink, Datasets(10, 1000, 1001).ToArray(), itersToRun, modeltype, protos, rngModelIter, rngModelParams);
 		}
 		const bool FollowDatafolding = false;
-		const int offset = 2;
+		const int offset = 4;
 		const int rngModelIter = 2 * offset;
 		const int rngModelParams = 1+2 * offset;
 		static readonly string rngName = "base" + offset;
