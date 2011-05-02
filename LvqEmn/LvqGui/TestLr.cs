@@ -2,15 +2,28 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using EmnExtensions;
 using EmnExtensions.Filesystem;
 using EmnExtensions.DebugTools;
+using EmnExtensions.Text;
 using ExpressionToCodeLib;
 using LvqLibCli;
 using System.Reflection;
 
 namespace LvqGui {
 	class TestLr {
+
+		readonly bool followDatafolding;
+		readonly uint offset;
+
+		public string PatternName { get { return followDatafolding ? "alt" : "base"; } }
+
+		public TestLr(uint p_offset, bool overlappingModelFolding = false) {
+			offset = p_offset;
+			followDatafolding = overlappingModelFolding;
+		}
+
 		public struct ErrorRates {
 			public readonly double training, trainingStderr, test, testStderr, nn, nnStderr, cumLearningRate;
 			public ErrorRates(LvqMultiModel.Statistic stats, int nnIdx) {
@@ -29,11 +42,11 @@ namespace LvqGui {
 					TrainingControlValues.GetFormatted(nn, nnStderr) + "; ";
 			}
 		}
-		
-		public static ErrorRates ErrorOf(TextWriter sink, LvqDatasetCli[] datasets, long iters, LvqModelType type, int protos, double lr0, double lrScaleP, double lrScaleB, uint rngIter, uint rngParam) {
+
+		public ErrorRates ErrorOf(TextWriter sink, LvqDatasetCli[] datasets, long iters, LvqModelType type, int protos, double lr0, double lrScaleP, double lrScaleB, uint rngIter, uint rngParam) {
 			int nnErrorIdx = -1;
 			var severalStats = datasets.AsParallel().Select((dataset, i) => {
-				int fold = FollowDatafolding ? i : 0;
+				int fold = followDatafolding ? i : 0;
 				var model = new LvqModelCli("model", dataset, fold, new LvqModelSettingsCli {
 					ModelType = type,
 					Dimensionality = 2,
@@ -75,7 +88,7 @@ namespace LvqGui {
 				yield return start * Math.Exp(lnScale * ((double)i / (steps - 1)));
 		}
 
-		public static void FindOptimalLr(TextWriter sink, LvqDatasetCli[] dataset, long iters, LvqModelType type, int protos, uint rngIter, uint rngParam) {
+		public void FindOptimalLr(TextWriter sink, LvqDatasetCli[] dataset, long iters, LvqModelType type, int protos, uint rngIter, uint rngParam) {
 			var lr0range = LogRange(0.3, 0.01, 8);
 			var lrPrange = LogRange(0.5, 0.03, 8);
 			var lrBrange = (type == LvqModelType.GgmModelType || type == LvqModelType.G2mModelType ? LogRange(0.1, 0.003, 4) : new[] { 0.0 });
@@ -155,26 +168,22 @@ namespace LvqGui {
 			// ReSharper restore RedundantAssignment
 		}
 
-		public static void Run(TextWriter sink, LvqModelType modeltype, int protos, long itersToRun) {
+		public void Run(TextWriter sink, LvqModelType modeltype, int protos, long itersToRun) {
 			//big: param42,inst37; model: iter51, param51
 			//mix: param42,inst37; model: iter52, param51
 			//alt: param42,inst37; model: iter52, param52
 			//base: 1,2
 			using (new DTimer(time => sink.WriteLine("Search Complete!  Took " + time)))
-				FindOptimalLr(sink, Datasets(10, 1000, 1001).ToArray(), itersToRun, modeltype, protos, rngModelIter, rngModelParams);
+				FindOptimalLr(sink, Datasets(10, 1000, 1001).ToArray(), itersToRun, modeltype, protos, 2 * offset, 1 + 2 * offset);
 		}
-		const bool FollowDatafolding = false;
-		const int offset = 4;
-		const int rngModelIter = 2 * offset;
-		const int rngModelParams = 1+2 * offset;
-		static readonly string rngName = "base" + offset;
 
-
-		//const bool FollowDatafolding = true;
-		//const int offset = 9;
-		//const int rngModelIter = 2000 + 2 * offset;
-		//const int rngModelParams = 2001 + 2 * offset;
-		//static readonly string rngName = "alt" + offset;
+		public void RunAndSave(TextWriter sink, LvqModelType modeltype, int protos, long itersToRun) {
+			using (var sw = new StringWriter()) {
+				var effWriter = sink == null ? (TextWriter)sw : new ForkingTextWriter(new[] { sw, sink }, false);
+				Run(effWriter, modeltype, protos, itersToRun);
+				SaveLogFor(Shortname(modeltype, protos, itersToRun), sw.ToString());
+			}
+		}
 
 		//const int rngIter = 2002;
 		//const int rngParams = 2001;
@@ -188,12 +197,34 @@ namespace LvqGui {
 		public static void SaveLogFor(string shortname, string logcontents) {
 			var logfilepath =
 				Enumerable.Range(0, 1000)
-				.Select(i => shortname + rngName + (i == 0 ? "" : " (" + i + ")") + ".txt")
+				.Select(i => shortname + (i == 0 ? "" : " (" + i + ")") + ".txt")
 				.Select(filename => Path.Combine(resultsDir.FullName, filename))
 				.Where(path => !File.Exists(path))
 				.First();
 
 			File.WriteAllText(logfilepath, logcontents);
+		}
+
+		public string Shortname(LvqModelType modeltype, int protos, long iterCount) {
+			return modeltype.ToString().Replace("ModelType", "").ToLowerInvariant() + protos + "e" + (int)(Math.Log10(iterCount) + 0.5) + PatternName + offset;
+		}
+
+		public IEnumerable<LvqModelType> ModelTypes { get { return (LvqModelType[])Enum.GetValues(typeof(LvqModelType)); } }
+
+		public Task StartAllLrTesting(long iterCount) {
+			return Task.Factory.ContinueWhenAll(
+				(
+					from protoCount in new[] { 5, 1 }
+					from modeltype in ModelTypes
+					select Task.Factory.StartNew(() => {
+						string shortname = Shortname(modeltype, protoCount, iterCount);
+						Console.WriteLine("Starting " + shortname);
+						using (new DTimer(shortname + " training"))
+							RunAndSave(null, modeltype, protoCount, iterCount);
+					}, TaskCreationOptions.LongRunning)
+				).ToArray(),
+				subtasks => { }
+			);
 		}
 	}
 }

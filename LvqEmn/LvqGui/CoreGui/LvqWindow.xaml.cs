@@ -1,17 +1,14 @@
-﻿// ReSharper disable UnusedMember.Global
+﻿using System;
+// ReSharper disable UnusedMember.Global
 // ReSharper disable MemberCanBePrivate.Global
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
-using System.IO;
 using System.Threading;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Media;
-using EmnExtensions.DebugTools;
 using EmnExtensions.Wpf;
 using LvqLibCli;
-using System;
-using System.ComponentModel;
 
 namespace LvqGui {
 	public partial class LvqWindow {
@@ -120,50 +117,35 @@ namespace LvqGui {
 
 		public IEnumerable<LvqModelType> ModelTypes { get { return (LvqModelType[])Enum.GetValues(typeof(LvqModelType)); } }
 		public IEnumerable<long> Iters { get { return new[] { 100000L, 1000000L, 10000000L, }; } }
+
 		void LrSearch_Click(object sender, RoutedEventArgs e) {
+			uint offset = uint.Parse(rngOffsetTextBox.Text);
 			LvqModelType modeltype = (LvqModelType)modelType.SelectedItem;
 			int protos = Use5Protos.IsChecked == true ? 5 : 1;
 			long iterCount = (long)iterCountSelectbox.SelectedItem;
-			string shortname = Shortname(modeltype, protos, iterCount);
+			var testLr = new TestLr(offset);
+			string shortname = testLr.Shortname(modeltype, protos, iterCount);
 
 			var logWindow = LogControl.ShowNewLogWindow(shortname, ActualWidth, ActualHeight * 0.6);
 
 			ThreadPool.QueueUserWorkItem(_ => {
-				TestLr.Run(logWindow.Item2.Writer, modeltype, protos, iterCount);
-				string contents = (string)logWindow.Item1.Dispatcher.Invoke((Func<string>)logWindow.Item2.GetContentsUI);
-				TestLr.SaveLogFor(shortname, contents);
+				new TestLr(offset).RunAndSave(logWindow.Item2.Writer, modeltype, protos, iterCount);
 				logWindow.Item1.Dispatcher.BeginInvoke(() => logWindow.Item1.Background = Brushes.White);
 			});
 		}
 
 		void LrSearchAll_Click(object sender, RoutedEventArgs e) {
+			uint offset = uint.Parse(rngOffsetTextBox.Text);
 			long iterCount = (long)iterCountSelectbox.SelectedItem;
-			int wT,cT;
+			int wT, cT;
 			ThreadPool.GetMinThreads(out wT, out cT);
-			if(wT<64)
+			if (wT < 64)
 				ThreadPool.SetMinThreads(64, cT);
-
-			ThreadPool.QueueUserWorkItem(_ => {
-				foreach( var protoCountV in new[] { 5, 1 })
-					foreach( var modeltypeV in ModelTypes) {
-						var protoCount = protoCountV;
-						var modeltype = modeltypeV;
-						Task.Factory.StartNew(() => {
-							string shortname = Shortname(modeltype, protoCount, iterCount);
-							Console.WriteLine("Starting " + shortname);
-							using (new DTimer(shortname + " training")) {
-								StringWriter sw = new StringWriter();
-								TestLr.Run(sw, modeltype, protoCount, iterCount);
-								TestLr.SaveLogFor(shortname, sw.ToString());
-							}
-						}, TaskCreationOptions.LongRunning);
-					}
-				}
-			);
+			Process.GetCurrentProcess().PriorityClass = ProcessPriorityClass.Idle;
+			new TestLr(offset).StartAllLrTesting(iterCount).ContinueWith(_ => {
+				Console.WriteLine("wheee!!!!");
+			});
 		}
 
-		private static string Shortname(LvqModelType modeltype, int protos, long iterCount) {
-			return modeltype.ToString().Replace("ModelType", "").ToLowerInvariant() + protos + "e" + (int)(Math.Log10(iterCount) + 0.5);
-		}
 	}
 }
