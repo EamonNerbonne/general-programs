@@ -19,7 +19,7 @@ namespace EmnExtensions {
 			bool shouldExit;
 			public WorkerThread(LowPriorityTaskScheduler owner, ThreadPriority priority) {
 				this.owner = owner;
-				new Thread(DoWork) { IsBackground = true, Name = "LowPriorityTaskScheduler:"+priority, Priority = priority }.Start();
+				new Thread(DoWork) { IsBackground = true, Name = "LowPriorityTaskScheduler:" + priority, Priority = priority }.Start();
 			}
 			void DoWork() {
 				while (true) {
@@ -114,7 +114,7 @@ namespace EmnExtensions {
 
 		protected override bool TryExecuteTaskInline(Task task, bool taskWasPreviouslyQueued) {
 
-			bool okInline = Thread.CurrentThread.Priority >= Priority;
+			bool okInline =Thread.CurrentThread.Priority >= Priority && IdleWorkerCountEstimate > 0;
 			if (okInline) {
 #if DEBUG_TRACK_ITEMS
 				Interlocked.Increment(ref inlined);

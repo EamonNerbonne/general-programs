@@ -85,7 +85,6 @@ namespace LvqGui {
 		int epochsDone;
 		static int trainersRunning;
 		public static void WaitForTraining() { while (trainersRunning != 0) Thread.Sleep(1); }
-		readonly static LowPriorityTaskScheduler scheduler = new LowPriorityTaskScheduler(Environment.ProcessorCount + 2);
 		public void Train(int epochsToDo, LvqDatasetCli trainingSet, CancellationToken cancel) {
 			Interlocked.Increment(ref trainersRunning);
 			try {
@@ -116,7 +115,7 @@ namespace LvqGui {
 								foreach (var next in trainingqueue.GetConsumingEnumerable(cancel))
 									next.Item1.TrainUpto(next.Item2, trainingSet, next.Item1.InitDataFold);
 							},
-							cancel, TaskCreationOptions.None, scheduler)
+							cancel, TaskCreationOptions.None, LowPriorityTaskScheduler.DefaultLowPriorityScheduler)
 						).ToArray();
 				Task.WaitAll(helpers, cancel);
 			} finally {

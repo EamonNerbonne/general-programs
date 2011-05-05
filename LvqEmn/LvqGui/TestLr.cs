@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -42,11 +43,13 @@ namespace LvqGui {
 					TrainingControlValues.GetFormatted(nn, nnStderr) + "; ";
 			}
 		}
-
 		public ErrorRates ErrorOf(TextWriter sink, LvqDatasetCli[] datasets, long iters, LvqModelType type, int protos, double lr0, double lrScaleP, double lrScaleB, uint rngIter, uint rngParam) {
 			int nnErrorIdx = -1;
-			var severalStats = datasets.AsParallel().Select((dataset, i) => {
-				int fold = followDatafolding ? i : 0;
+
+			ConcurrentBag<LvqTrainingStatCli> results = new ConcurrentBag<LvqTrainingStatCli>();
+
+			Parallel.ForEach(datasets, new ParallelOptions { TaskScheduler = LowPriorityTaskScheduler.DefaultLowPriorityScheduler, }, (dataset, _, i) => {
+				int fold = followDatafolding ? (int)i : 0;
 				var model = new LvqModelCli("model", dataset, fold, new LvqModelSettingsCli {
 					ModelType = type,
 					Dimensionality = 2,
@@ -72,11 +75,11 @@ namespace LvqGui {
 				nnErrorIdx = model.TrainingStatNames.AsEnumerable().IndexOf(name => name.Contains("NN Error")); // threading irrelevant; all the same & atomic.
 				model.Train((int)(iters / dataset.GetTrainingSubsetSize(fold)), dataset, fold);
 				var stats = model.EvaluateStats(dataset, fold);
-				return stats;
+				results.Add(stats);
 			}
-			).ToArray();
+			);
 
-			var meanStats = LvqMultiModel.MeanStdErrStats(severalStats);
+			var meanStats = LvqMultiModel.MeanStdErrStats(results.ToArray());
 			sink.Write(".");
 			return new ErrorRates(meanStats, nnErrorIdx);
 		}

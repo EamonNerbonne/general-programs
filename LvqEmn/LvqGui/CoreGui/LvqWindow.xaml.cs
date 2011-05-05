@@ -137,15 +137,10 @@ namespace LvqGui {
 		void LrSearchAll_Click(object sender, RoutedEventArgs e) {
 			uint offset = uint.Parse(rngOffsetTextBox.Text);
 			long iterCount = (long)iterCountSelectbox.SelectedItem;
-			int wT, cT;
-			ThreadPool.GetMinThreads(out wT, out cT);
-			if (wT < 64)
-				ThreadPool.SetMinThreads(64, cT);
 			Process.GetCurrentProcess().PriorityClass = ProcessPriorityClass.Idle;
 			new TestLr(offset).StartAllLrTesting(iterCount).ContinueWith(_ => {
 				Console.WriteLine("wheee!!!!");
 			});
 		}
-
 	}
 }
