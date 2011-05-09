@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using EmnExtensions;
 using EmnExtensions.Filesystem;
 using EmnExtensions.DebugTools;
+using EmnExtensions.MathHelpers;
 using EmnExtensions.Text;
 using ExpressionToCodeLib;
 using LvqLibCli;
@@ -38,9 +39,9 @@ namespace LvqGui {
 			}
 			public double ErrorMean { get { return double.IsNaN(nnStderr) && double.IsNaN(nn) ? (training * 2 + test) / 3.0 : (training * 3 + test + nn) / 5.0; } }
 			public override string ToString() {
-				return TrainingControlValues.GetFormatted(training, trainingStderr) + "; " +
-					TrainingControlValues.GetFormatted(test, testStderr) + "; " +
-					TrainingControlValues.GetFormatted(nn, nnStderr) + "; ";
+				return Statistics.GetFormatted(training, trainingStderr) + "; " +
+					Statistics.GetFormatted(test, testStderr) + "; " +
+					Statistics.GetFormatted(nn, nnStderr) + "; ";
 			}
 		}
 		public ErrorRates ErrorOf(TextWriter sink, LvqDatasetCli[] datasets, long iters, LvqModelType type, int protos, double lr0, double lrScaleP, double lrScaleB, uint rngIter, uint rngParam) {
@@ -57,7 +58,6 @@ namespace LvqGui {
 					NormalizeBoundaries = true,
 					NormalizeProjection = true,
 					TrackProjectionQuality = true,
-
 					NgInitializeProtos = false,
 					NgUpdateProtos = false,
 					PrototypesPerClass = protos,
@@ -69,8 +69,8 @@ namespace LvqGui {
 					LR0 = lr0,
 					LrScaleP = lrScaleP,
 					LrScaleB = lrScaleB,
-					RngIterSeed = rngIter + (uint)fold,
-					RngParamsSeed = rngParam + (uint)fold,
+					RngIterSeed = rngIter,
+					RngParamsSeed = rngParam,
 				});
 				nnErrorIdx = model.TrainingStatNames.AsEnumerable().IndexOf(name => name.Contains("NN Error")); // threading irrelevant; all the same & atomic.
 				model.Train((int)(iters / dataset.GetTrainingSubsetSize(fold)), dataset, fold);

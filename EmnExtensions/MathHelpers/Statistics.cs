@@ -12,6 +12,26 @@ namespace EmnExtensions.MathHelpers
     /// </summary>
     public class Statistics
     {
+		public static string GetFormatted(double mean, double stderr, int extraprecision = 0) {
+			string numF, errF;
+			if (stderr == 0) {
+				numF = "g";
+				errF = "";
+			} else if (Math.Abs(mean) > 0 && Math.Abs(Math.Log10(Math.Abs(mean))) < 5) {
+				//use fixed-point:
+				int errOOM = Math.Max(0, (int)(1.5 - Math.Log10(stderr))) + extraprecision;
+				numF = "f" + errOOM;
+				errF = " ~ {1:f" + errOOM + "}";
+			} else {
+				int digits = Math.Abs(mean) <= stderr ? 1
+								: (int)(Math.Log10(Math.Abs(mean) / stderr) + 1.5);
+				numF = "g" + (digits + extraprecision);
+				errF = " ~ {1:g2}";
+			}
+			return string.Format("{0:" + numF + "}" + errF, mean, stderr);
+		}
+
+
         public static float CentralMoment(IEnumerable<float> list, float average, int moment) {
             return (float)list.Average(x => Math.Pow(x - average, moment));
         }

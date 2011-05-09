@@ -6,6 +6,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Threading;
 using EmnExtensions.DebugTools;
+using EmnExtensions.MathHelpers;
 using LvqLibCli;
 using System.Threading.Tasks;
 using EmnExtensions;
@@ -116,30 +117,9 @@ namespace LvqGui {
 			var meanstats = selectedModel.EvaluateStats(SelectedDataset);
 
 			for (int i = 0; i < selectedModel.TrainingStatNames.Length; i++) 
-				Console.WriteLine(selectedModel.TrainingStatNames[i].Split('!')[0] + ": "+GetFormatted(meanstats.Value[i], meanstats.StandardError[i]));
+				Console.WriteLine(selectedModel.TrainingStatNames[i].Split('!')[0] + ": "+Statistics.GetFormatted(meanstats.Value[i], meanstats.StandardError[i]));
 			
 		}
-
-		public static string GetFormatted(double mean, double stderr)
-		{
-			string numF, errF;
-			if (stderr == 0) {
-				numF = "g";
-				errF = "";
-			} else if (Math.Abs(mean) > 0 && Math.Abs(Math.Log10(Math.Abs(mean))) < 5) {
-				//use fixed-point:
-				int errOOM = Math.Max(0, (int)(1.5 - Math.Log10(stderr)));
-				numF = "f" + errOOM;
-				errF = " ~ {1:f" + errOOM + "}";
-			} else {
-				int digits = Math.Abs(mean) <= stderr ? 1
-				             	: (int)(Math.Log10(Math.Abs(mean) / stderr) + 1.5);
-				numF = "g" + digits;
-				errF = " ~ {1:g2}";
-			}
-			return string.Format("{0:" + numF + "}" + errF, mean, stderr);
-		}
-
 
 		public void ConfirmTraining() {
 			var selectedDataset = SelectedDataset;
