@@ -80,7 +80,7 @@ MatchQuality LgmLvqModel::learnFrom(Vector_N const & trainPoint, int trainLabel)
 	return retval;
 }
 
-MatchQuality LgmLvqModel::ComputeMatches(Vector_N const & unknownPoint, int pointLabel) const {return findMatches(unknownPoint,pointLabel).LvqQuality();}
+MatchQuality LgmLvqModel::ComputeMatches(Vector_N const & unknownPoint, int pointLabel) const { return findMatches(unknownPoint,pointLabel).LvqQuality();}
 
 size_t LgmLvqModel::MemAllocEstimate() const {
 	return 

@@ -57,13 +57,13 @@ namespace LvqGui {
 				values.CreateLvqModelValues.Seed = 42;
 				values.CreateLvqModelValues.InstSeed = 1234;
 
-				values.CreateStarDatasetValues.ConfirmCreation();
-				Dispatcher.BeginInvokeBackground(() => {
-					values.CreateLvqModelValues.ConfirmCreation();
-					Dispatcher.BeginInvokeBackground(() => {
-						values.TrainingControlValues.AnimateTraining = true;
-					});
-				});
+				values.CreateStarDatasetValues.ConfirmCreation().Completed +=
+						(s, e) => Dispatcher.BeginInvokeBackground(
+							() => values.CreateLvqModelValues.ConfirmCreation().ContinueWith(
+							creationTask => Dispatcher.BeginInvokeBackground(
+							() => {values.TrainingControlValues.AnimateTraining = true;}
+							)));
+
 			}, DataContext);
 		}
 
@@ -129,7 +129,7 @@ namespace LvqGui {
 			var logWindow = LogControl.ShowNewLogWindow(shortname, ActualWidth, ActualHeight * 0.6);
 
 			ThreadPool.QueueUserWorkItem(_ => {
-				new TestLr(offset).RunAndSave(logWindow.Item2.Writer, modeltype, protos, iterCount);
+				testLr.RunAndSave(logWindow.Item2.Writer, modeltype, protos, iterCount);
 				logWindow.Item1.Dispatcher.BeginInvoke(() => logWindow.Item1.Background = Brushes.White);
 			});
 		}

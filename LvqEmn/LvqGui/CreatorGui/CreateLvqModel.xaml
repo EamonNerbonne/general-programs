@@ -4,7 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              mc:Ignorable="d" 
-             d:DesignHeight="560" d:DesignWidth="300">
+             d:DesignHeight="600" d:DesignWidth="300">
     <UserControl.Resources>
         <Style TargetType="{x:Type Label}" BasedOn="{StaticResource PropLabel}"/>
         <Style TargetType="{x:Type TextBox}" BasedOn="{StaticResource PropBox}"/>
@@ -115,9 +115,12 @@
         <Label Grid.Row="29">Shorthand</Label>
         <TextBox  Grid.Row="29" Grid.Column="1" Text="{Binding Shorthand, Mode=TwoWay, ValidatesOnExceptions=True, UpdateSourceTrigger=PropertyChanged}" />        <!--, UpdateSourceTrigger=PropertyChanged-->
 
-
-        <Button Grid.Row="30" Grid.ColumnSpan="2" Click="InitializeModel"  VerticalAlignment="Top">Initialize Model</Button>
-        <Label Grid.Row="30" Grid.ColumnSpan="2" Content="{Binding ShorthandErrors, Mode=OneWay}" HorizontalAlignment="Left" />
+        <StackPanel Orientation="Horizontal" Grid.Row="30" Grid.ColumnSpan="2" FlowDirection="RightToLeft">
+            <Button Click="InitializeModel" >Initialize Model</Button>
+            <Button Click="OptimizeLr" >Optimize LR</Button>
+        </StackPanel>
+        
+        <Label Grid.Row="31" Grid.ColumnSpan="2" Content="{Binding ShorthandErrors, Mode=OneWay}" HorizontalAlignment="Left" />
 
     </Grid>
 </UserControl>

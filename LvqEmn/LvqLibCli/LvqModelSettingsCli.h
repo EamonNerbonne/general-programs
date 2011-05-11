@@ -49,7 +49,7 @@ namespace LvqLibCli {
 			, LR0(LVQ_LR0)
 			, LrScaleBad(LVQ_LrScaleBad)
 		{ }
-
+		LvqModelSettingsCli^ Copy();
 		LvqModelSettings ToNativeSettings(LvqDatasetCli^ dataset, int datasetFold);
 	};
 }

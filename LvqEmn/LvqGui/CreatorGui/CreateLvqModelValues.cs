@@ -5,6 +5,11 @@ using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
+using System.Threading;
+using System.Threading.Tasks;
+using System.Windows.Media;
+using System.Windows.Threading;
+using EmnExtensions.Wpf;
 using LvqLibCli;
 
 namespace LvqGui {
@@ -191,7 +196,7 @@ namespace LvqGui {
 				+ (ModelType == LvqModelType.LgmModelType ? "[" + Dimensionality + "]" : "") + ","
 				+ PrototypesPerClass + ","
 				+ "rP" + (RandomInitialProjection ? "+" : "") + ","
-				+ (isBoundaryModel ? "rB" + (RandomInitialBorders ? "+" : "") + "," : "") 
+				+ (isBoundaryModel ? "rB" + (RandomInitialBorders ? "+" : "") + "," : "")
 				+ "nP" + (NormalizeProjection ? "+" : "") + ","
 				+ (ModelType == LvqModelType.G2mModelType ? "nB" + (NormalizeBoundaries ? "+" : "") + "," : "")
 				+ (ModelType == LvqModelType.G2mModelType && NormalizeBoundaries || NormalizeProjection ? "gn" + (GloballyNormalize ? "+" : "") + "," : "")
@@ -243,10 +248,8 @@ namespace LvqGui {
 			this.ReseedBoth();
 		}
 
-		public LvqMultiModel CreateModel() {
-			Console.WriteLine("Created: " + Shorthand);
-
-			return new LvqMultiModel(Shorthand, ParallelModels, ForDataset, new LvqModelSettingsCli {
+		LvqModelSettingsCli ConstructLvqModelSettings() {
+			return new LvqModelSettingsCli {
 				ModelType = ModelType,
 				RngParamsSeed = Seed,
 				RngIterSeed = InstSeed,
@@ -268,11 +271,38 @@ namespace LvqGui {
 				LrScaleB = LrScaleB,
 				LR0 = LR0,
 				LrScaleBad = LrScaleBad,
-			});
+			};
 		}
 
-		public void ConfirmCreation() {
-			owner.Dispatcher.BeginInvoke(owner.LvqModels.Add, CreateModel());
+		public Task ConfirmCreation() {
+			var settings = ConstructLvqModelSettings();
+			var args = new { Shorthand, ParallelModels, ForDataset }; //for threadsafety get these now.
+
+			TaskCompletionSource<object> whenDone = new TaskCompletionSource<object>();
+
+			Task.Factory
+				.StartNew(() => new LvqMultiModel(args.Shorthand, args.ParallelModels, args.ForDataset, settings))
+				.ContinueWith(modelTask => {
+					Console.WriteLine("Created: " + args.Shorthand);
+					owner.Dispatcher.BeginInvoke(owner.LvqModels.Add, modelTask.Result).Completed += (s, e) => whenDone.SetResult(null);
+				});
+
+			return whenDone.Task;
+		}
+
+		internal void OptimizeLr() {//on gui thread.
+			var settings = ConstructLvqModelSettings();
+			var args = new { Shorthand, ParallelModels, ForDataset };//for threadsafety get these now.
+			long iterCount = 10000000;
+			var testLr = new TestLr(0, ForDataset, ParallelModels);
+			string shortname = testLr.Shortname(settings, iterCount);
+
+			var logWindow = LogControl.ShowNewLogWindow(shortname, owner.win.ActualWidth, owner.win.ActualHeight * 0.6);
+
+			ThreadPool.QueueUserWorkItem(_ => {
+				testLr.RunAndSave(logWindow.Item2.Writer, settings, iterCount);
+				logWindow.Item1.Dispatcher.BeginInvoke(() => logWindow.Item1.Background = Brushes.White);
+			});
 		}
 	}
 }

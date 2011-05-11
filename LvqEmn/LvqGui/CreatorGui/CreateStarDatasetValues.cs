@@ -5,6 +5,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
+using System.Windows.Threading;
 using EmnExtensions.MathHelpers;
 using EmnExtensions.Wpf;
 using LvqLibCli;
@@ -159,8 +160,8 @@ namespace LvqGui {
 				);
 		}
 
-		public void ConfirmCreation() {
-			owner.Dispatcher.BeginInvoke(owner.Datasets.Add, CreateDataset());
+		public DispatcherOperation ConfirmCreation() {
+			return owner.Dispatcher.BeginInvoke(owner.Datasets.Add, CreateDataset());
 		}
 	}
 }

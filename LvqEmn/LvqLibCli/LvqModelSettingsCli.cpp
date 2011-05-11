@@ -35,4 +35,7 @@ namespace LvqLibCli {
 		initSettings.RuntimeSettings.LrScaleBad = LrScaleBad;
 		return initSettings;
 	}
+	LvqModelSettingsCli^ LvqModelSettingsCli::Copy() {
+		return (LvqModelSettingsCli^)this->MemberwiseClone();
+	}
 }
