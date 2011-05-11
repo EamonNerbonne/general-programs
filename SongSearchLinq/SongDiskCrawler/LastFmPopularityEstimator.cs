@@ -17,12 +17,12 @@ namespace SongDiskCrawler {
 			var canonicalArtist = song.GetLowerArtist();
 			var canonicalTrack = title.ToLatinLowercase();
 			ArtistTopTracksList toptracks =
-			toptracksCache.GetOrAdd(canonicalArtist, a => {
-				var toptracksFromLfm = tools.SimilarSongs.LookupTopTracks(artist);
-				for (int i = 0; i < toptracksFromLfm.TopTracks.Length; i++)
-					toptracksFromLfm.TopTracks[i].Track = toptracksFromLfm.TopTracks[i].Track.ToLatinLowercase();//canonicalization to speed up lookup below.
-				return toptracksFromLfm;
-			});
+				toptracksCache.GetOrAdd(canonicalArtist, a => {
+					var toptracksFromLfm = tools.SimilarSongs.LookupTopTracks(artist);
+					for (int i = 0; i < toptracksFromLfm.TopTracks.Length; i++)
+						toptracksFromLfm.TopTracks[i].Track = toptracksFromLfm.TopTracks[i].Track.ToLatinLowercase();//canonicalization to speed up lookup below.
+					return toptracksFromLfm;
+				});
 
 			var q =
 				(from toptrack in toptracks.TopTracks

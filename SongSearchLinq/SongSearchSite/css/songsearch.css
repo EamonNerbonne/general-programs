@@ -149,7 +149,7 @@ body
     display:block;
     border:1px solid black;
     text-align:center;
-    
+    cursor:pointer;
     position:relative;
 }
 #do_shuffle, #do_addAll, #do_removeAll, #repeat_playlist_box_li { position:relative; font-size:90%;vertical-align:baseline; }

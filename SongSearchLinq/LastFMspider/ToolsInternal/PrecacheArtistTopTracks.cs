@@ -42,7 +42,7 @@ namespace LastFMspider {
 
 					try {
 						msg.AppendFormat("TopOf:{0,-30}", artist.ArtistName.Substring(0, Math.Min(artist.ArtistName.Length, 30)));
-						ArtistTopTracksListInfo info = LastFmCache.LookupArtistTopTracksListAge.Execute(artist.ArtistName);
+						ArtistTopTracksListInfo info = LastFmCache.LookupArtistTopTracksListInfo.Execute(artist.ArtistName);
 						if ((info.LookupTimestamp.HasValue && info.LookupTimestamp.Value > maxDate) || info.ArtistInfo.IsAlternateOf.HasValue) {
 							msg.AppendFormat("done.");
 						} else {

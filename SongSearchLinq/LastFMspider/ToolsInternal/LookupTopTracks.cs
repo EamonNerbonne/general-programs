@@ -8,7 +8,7 @@ namespace LastFMspider {
 		public static ArtistTopTracksList LookupTopTracks(LastFMSQLiteCache LastFmCache, string artist, TimeSpan maxAge = default(TimeSpan)) {
 			//artist = artist.ToLatinLowercase();
 			if (maxAge == default(TimeSpan)) maxAge = NormalMaxAge;
-			var toptracksInfo = LastFmCache.LookupArtistTopTracksListAge.Execute(artist);
+			var toptracksInfo = LastFmCache.LookupArtistTopTracksListInfo.Execute(artist);
 			if (toptracksInfo.IsKnown && toptracksInfo.LookupTimestamp.HasValue && toptracksInfo.LookupTimestamp.Value >= DateTime.UtcNow - maxAge)
 				return LastFmCache.LookupArtistTopTracksList.Execute(toptracksInfo);
 			if (toptracksInfo.ArtistInfo.IsAlternateOf.HasValue)

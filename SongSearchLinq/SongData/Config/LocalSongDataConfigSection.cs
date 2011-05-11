@@ -25,8 +25,6 @@ namespace SongDataLib {
 		protected override void ScanSongs(FileKnownFilter filter, SongDataLoadDelegate handler, Action<string> errSink) {
 			Console.WriteLine("Scanning " + localSearchPath + "...");
 			if (!localSearchPath.Exists) throw new DirectoryNotFoundException("Local search path doesn't exist: " + localSearchPath.FullName); //TODO: do this during init instead?
-			//string[] newFiles = Directory.GetFiles (localSearchPath.FullName, "*", SearchOption.AllDirectories).Where(s => isExtensionOK(Path.GetExtension(s))).ToArray();
-			//var newFiles = localSearchPath.DescendantFiles().ToArray();
 			var newFiles = localSearchPath.GetFiles("*", SearchOption.AllDirectories);//.Where(fi => isExtensionOK(fi)).ToArray();
 
 
@@ -38,7 +36,7 @@ namespace SongDataLib {
 					continue;
 				Uri songUri = new Uri(newfile.FullName, UriKind.Absolute);
 				ISongFileData song = filter(songUri);
-				if (song == null || (song is SongFileData && ((SongFileData)song).lastWriteTime < newfile.LastWriteTimeUtc)) {
+				if (song == null || (song is SongFileData && ((SongFileData)song).LastWriteTimeUtc < newfile.LastWriteTimeUtc)) {
 					try {
 						song = SongFileDataFactory.ConstructFromFile(localSearchUri, newfile, dcf.PopularityEstimator);
 					} catch (Exception e) {

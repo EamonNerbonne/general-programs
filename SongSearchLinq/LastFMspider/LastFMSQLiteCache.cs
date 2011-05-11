@@ -103,8 +103,8 @@ namespace LastFMspider {
 		public ArtistsWithoutSimilarityList ArtistsWithoutSimilarityList { get { lock (SyncRoot) return c_ArtistsWithoutSimilarityList ?? (c_ArtistsWithoutSimilarityList = new ArtistsWithoutSimilarityList(this)); } }
 		ArtistsWithoutTopTracksList c_ArtistsWithoutTopTracksList;
 		public ArtistsWithoutTopTracksList ArtistsWithoutTopTracksList { get { lock (SyncRoot) return c_ArtistsWithoutTopTracksList ?? (c_ArtistsWithoutTopTracksList = new ArtistsWithoutTopTracksList(this)); } }
-		LookupArtistTopTracksListInfo c_LookupArtistTopTracksListAge;
-		public LookupArtistTopTracksListInfo LookupArtistTopTracksListAge { get { lock (SyncRoot) return c_LookupArtistTopTracksListAge ?? (c_LookupArtistTopTracksListAge = new LookupArtistTopTracksListInfo(this)); } }
+		LookupArtistTopTracksListInfo c_LookupArtistTopTracksListInfo;
+		public LookupArtistTopTracksListInfo LookupArtistTopTracksListInfo { get { lock (SyncRoot) return c_LookupArtistTopTracksListInfo ?? (c_LookupArtistTopTracksListInfo = new LookupArtistTopTracksListInfo(this)); } }
 		LookupArtistTopTracksList c_LookupArtistTopTracksList;
 		public LookupArtistTopTracksList LookupArtistTopTracksList { get { lock (SyncRoot) return c_LookupArtistTopTracksList ?? (c_LookupArtistTopTracksList = new LookupArtistTopTracksList(this)); } }
 		InsertArtistTopTracksList c_InsertArtistTopTracksList;

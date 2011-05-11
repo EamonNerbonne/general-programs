@@ -19,9 +19,9 @@ namespace SongDataLib {
 		public readonly int year, track, trackcount, bitrate, length, samplerate, channels;
 		public readonly double? track_gain;
 		public int? rating;
-		DateTime m_lastWriteTime;
+		DateTime m_lastWriteTimeUtc;
 		public Popularity popularity = new Popularity { ArtistPopularity = 0, TitlePopularity = 0 };
-		public DateTime lastWriteTime { get { return m_lastWriteTime; } private set { m_lastWriteTime = value.ToUniversalTime(); } }
+		public DateTime LastWriteTimeUtc { get { return m_lastWriteTimeUtc; } private set { m_lastWriteTimeUtc = value.ToUniversalTime(); } }
 
 		static string toSafeString(string data) { return Canonicalize.TrimAndMakeSafe(data); }
 
@@ -38,7 +38,7 @@ namespace SongDataLib {
 			year = (int)file.Tag.Year;
 			track = (int)file.Tag.Track;
 			trackcount = (int)file.Tag.TrackCount;
-			lastWriteTime = fileObj.LastWriteTime;
+			LastWriteTimeUtc = fileObj.LastWriteTime;
 			bitrate = file.Properties == null ? 0 : file.Properties.AudioBitrate;
 			length = file.Properties == null ? 0 : (int)Math.Round(file.Properties.Duration.TotalSeconds);
 			samplerate = file.Properties == null ? 0 : file.Properties.AudioSampleRate;
@@ -144,7 +144,7 @@ namespace SongDataLib {
 			//}
 
 			long? lastmodifiedTicks = (long?)from.Attribute(lastmodifiedTicksN);
-			if (lastmodifiedTicks.HasValue) lastWriteTime = new DateTime(lastmodifiedTicks.Value, DateTimeKind.Utc);
+			if (lastmodifiedTicks.HasValue) LastWriteTimeUtc = new DateTime(lastmodifiedTicks.Value, DateTimeKind.Utc);
 
 		}
 
@@ -173,7 +173,7 @@ namespace SongDataLib {
 				 coreOnly
 				 ? MakeAttributeOrNull(titlepopularityN, popularity.TitlePopularity / Math.Max(1.0, popularity.ArtistPopularity * 0.95 + 0.05 * 365000))
 				 : MakeAttributeOrNull(titlepopularityN, popularity.TitlePopularity),
-				 coreOnly ? null : MakeAttributeOrNull(lastmodifiedTicksN, lastWriteTime == default(DateTime) ? default(long?) : lastWriteTime.Ticks)
+				 coreOnly ? null : MakeAttributeOrNull(lastmodifiedTicksN, LastWriteTimeUtc == default(DateTime) ? default(long?) : LastWriteTimeUtc.Ticks)
 			);
 		}
 
