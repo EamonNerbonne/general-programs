@@ -137,7 +137,7 @@ body
 }
 
 #matchlinksect{float:right; font-size:80%;}
-#do_shuffle, #do_addAll, #do_removeAll
+#do_shuffle, #do_addAll, #do_removeAlldiv[data-rating]
 {
     color:White;
     background:#333;
@@ -377,42 +377,41 @@ div[data-rating]
     position:absolute;
     right:0;
     bottom:0;
-    float:right;
     text-align:right;
     font-style:normal;
     font-weight:normal;
-    color:#aaa; 
+    letter-spacing:-0.15em;
+    font-size: 110%;
+    color:#ccc; 
 }
-
+/*div[data-rating] a {float:right;}*/
 div[data-rating] a:before 
 {
-    content: "\2606";
-    color:#ccc; 
-    text-shadow:white 0 0 0.1em;
-    font-size: 110%;
-    letter-spacing:-0.15em;
+    content: "\2605";
+    -webkit-text-shadow:white 0 0 0.1em;
 }
+
 div[data-rating] a:first-child:before 
 {
     content: "\D7" !important;
     font-weight:bold;
-    
+    visibility: hidden;
+}
+div[data-rating]:hover a:first-child:before 
+{
+    visibility:visible;
 }
 
-div[data-rating="1"] > a:nth-child(-n+2):before, 
-div[data-rating="2"] > a:nth-child(-n+3):before, 
-div[data-rating="3"] > a:nth-child(-n+4):before, 
-div[data-rating="4"] > a:nth-child(-n+5):before, 
-div[data-rating="5"] > a:nth-child(-n+6):before
-{ content: "\2605"; color:inherit; }
+
+div[data-rating="0"] > a:nth-child(1) ~ a:before, 
+div[data-rating="1"] > a:nth-child(2) ~ a:before, 
+div[data-rating="2"] > a:nth-child(3) ~ a:before, 
+div[data-rating="3"] > a:nth-child(4) ~ a:before,  
+div[data-rating="4"] > a:nth-child(5) ~ a:before
+/*div[data-rating="5"] > a:nth-child(6) ~ a:before*/
+{ visibility:hidden;}
 
 
-div[data-rating]:hover a:hover + a:before, 
-div[data-rating]:hover a:hover + a + a:before, 
-div[data-rating]:hover a:hover + a + a + a:before, 
-div[data-rating]:hover a:hover + a + a +a + a:before, 
-div[data-rating]:hover a:hover + a + a +a + a + a:before
-{ color:#aaa; content: "\2606";}
 
 li[data-staticrating]:before
 {
@@ -433,12 +432,15 @@ li[data-staticrating="3"]:before { content:"\2605\2605\2605";}
 li[data-staticrating="4"]:before { content:"\2605\2605\2605\2605";}
 li[data-staticrating="5"]:before { content:"\2605\2605\2605\2605\2605";}
 
-div[data-rating]:hover a:before { content: "\2605"; color:Black; }
-li[data-staticrating="1"]:before, div[data-rating="1"], div[data-rating]:hover > a:nth-child(2):before {color: #d42;  }
+div[data-rating]:hover > a:nth-child(n+1):before { content: "\2605"; color:Black; visibility:visible; }
+li[data-staticrating="1"]:before, div[data-rating="1"], div[data-rating]:hover > a:nth-child(2):before { color: #d42;  }
 li[data-staticrating="2"]:before, div[data-rating="2"], div[data-rating]:hover > a:nth-child(3):before { color: #c74; }
 li[data-staticrating="3"]:before, div[data-rating="3"], div[data-rating]:hover > a:nth-child(4):before { color: #7b5; }
 li[data-staticrating="4"]:before, div[data-rating="4"], div[data-rating]:hover > a:nth-child(5):before { color: #4c4; }
 li[data-staticrating="5"]:before, div[data-rating="5"], div[data-rating]:hover > a:nth-child(6):before { color: #0d0; }
+
+div[data-rating] > a:hover ~ a:before { color:#ccc !important; content: "\2606" !important;}
+
 
 
 .searchSect a

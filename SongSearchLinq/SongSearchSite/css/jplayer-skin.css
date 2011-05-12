@@ -172,7 +172,7 @@ div.jp-playlist li.jplayer_playlist_current
 
 div.jp-playlist li:hover
 {
-    color: #445E55;
+    color: black;
     background:#eee;/*needed also to avoid dragging transparency!*/
-    box-shadow:  0 0 0.5em #eee;
+    /*box-shadow:  0 0 0.5em #eee;*/
 }
