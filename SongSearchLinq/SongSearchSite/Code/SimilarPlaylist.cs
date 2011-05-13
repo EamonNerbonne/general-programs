@@ -17,6 +17,7 @@ namespace SongSearchSite {
 			public int? length;
 			public double? replaygain;
 			public int? rating;
+			public double? popA, popT;
 			// ReSharper restore UnaccessedField.Local
 		}
 
@@ -54,7 +55,9 @@ namespace SongSearchSite {
 						 label = knownSong.HumanLabel,
 						 length = knownSong.Length,
 						 replaygain = knownSong.track_gain,
-						 rating = knownSong.rating
+						 rating = knownSong.rating,
+						 popA = knownSong.popA_forscripting,
+						 popT = knownSong.popT_forscripting
 					 }).ToArray();
 				string[] unknownForJson =
 					(from unknownSong in res.unknownTracks

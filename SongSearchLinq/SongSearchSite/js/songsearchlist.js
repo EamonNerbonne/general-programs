@@ -54,7 +54,7 @@ $(document).ready(function ($) {
                 if (val) loadPlaylist(val);
             }
         }
-        , lfmUser: {
+      /*  , lfmUser: {
             label: "Last.FM username",
             type: "textbox",
             initialValue: ""
@@ -94,7 +94,7 @@ $(document).ready(function ($) {
                 }
             }
         }
-
+*/
 
         //        , playlistName: {
         //            label: "Playlist Name",
@@ -309,8 +309,27 @@ $(document).ready(function ($) {
             unknownSel.append($(document.createElement("li")).text(unknown[i]));
         knownSel.empty();
         leftColSel.removeClass("waiting");
-        for (var i = 0; i < known.length; i++)
-            knownSel.append($(document.createElement("li")).text(known[i].label).attr("data-staticrating", known[i].rating || "").data("songdata", known[i]));
+        for (var i = 0; i < known.length; i++){
+            knownSel.append(
+                $(document.createElement("li"))
+                    .text(known[i].label)
+                    .attr("data-staticrating", known[i].rating || "")
+                    .data("songdata", known[i])
+                    .append(
+                        $(document.createElement("div"))
+                            .append(
+                                $(document.createElement("div"))
+                                    .attr("class", "popAbar")
+                                    .attr("style","width: "+(known[i].popA*5)+"em")
+                            )
+                            .append(
+                                $(document.createElement("div"))
+                                    .attr("class", "popTbar")
+                                    .attr("style", "width: " + (known[i].popT * 5) + "em")
+                            )
+                    )
+            );
+        }
     }
 
 
@@ -476,7 +495,9 @@ $(document).ready(function ($) {
                 href: clickedRowJQ.attr("data-href"),
                 length: clickedRowJQ.attr("data-length"),
                 replaygain: Number(clickedRowJQ.attr("data-replaygain")) || 0,
-                rating: Number(clickedRowJQ.attr("data-rating"))
+                rating: Number(clickedRowJQ.attr("data-rating")),
+                popA:Number(clickedRowJQ.attr("data-popA")),
+                popT:Number(clickedRowJQ.attr("data-popT"))
             });
     }
 
@@ -499,7 +520,7 @@ $(document).ready(function ($) {
         var clickedCol = clickedHead.attr("data-colname");
         var currOrder = $(target).parents("body").attr("data-ordering");
         $("#orderingEl").attr("value", clickedCol + ":" + currOrder);
-        updateResultsGlobal();
+        UpdateSongSearchResults();
     };
 });
 

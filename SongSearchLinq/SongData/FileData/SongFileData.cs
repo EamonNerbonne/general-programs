@@ -148,6 +148,9 @@ namespace SongDataLib {
 
 		}
 
+		public double popA_forscripting { get { return Math.Sqrt(popularity.ArtistPopularity / 350000.0); } }
+		public double popT_forscripting { get { return popularity.TitlePopularity / Math.Max(1.0, popularity.ArtistPopularity * 0.95 + 0.05 * 365000); } }
+
 		public override XElement ConvertToXml(Func<Uri, string> urlTranslator, bool coreOnly) {
 			return new XElement(songN,
 				 makeUriAttribute(urlTranslator),
@@ -168,10 +171,10 @@ namespace SongDataLib {
 				 MakeAttributeOrNull(ratingN, rating),
 				 MakeAttributeOrNull(trackGainN, track_gain),
 				 coreOnly
-				 ? MakeAttributeOrNull(artistpopularityN, Math.Sqrt(popularity.ArtistPopularity / 350000.0))
+				 ? MakeAttributeOrNull(artistpopularityN, popA_forscripting)
 				 : MakeAttributeOrNull(artistpopularityN, popularity.ArtistPopularity),
 				 coreOnly
-				 ? MakeAttributeOrNull(titlepopularityN, popularity.TitlePopularity / Math.Max(1.0, popularity.ArtistPopularity * 0.95 + 0.05 * 365000))
+				 ? MakeAttributeOrNull(titlepopularityN, popT_forscripting)
 				 : MakeAttributeOrNull(titlepopularityN, popularity.TitlePopularity),
 				 coreOnly ? null : MakeAttributeOrNull(lastmodifiedTicksN, LastWriteTimeUtc == default(DateTime) ? default(long?) : LastWriteTimeUtc.Ticks)
 			);

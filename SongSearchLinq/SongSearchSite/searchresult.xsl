@@ -21,25 +21,25 @@
           </colgroup>
           <thead>
             <tr id="listhead">
-                <xsl:apply-templates select="songs/ordering" mode="sortarrow">
-                  <xsl:with-param name="col" select="'Rating'"/>
-                </xsl:apply-templates>
-                <xsl:apply-templates select="songs/ordering" mode="sortarrow">
-                  <xsl:with-param name="col" select="'Artist'"/>
-                </xsl:apply-templates>
-                <xsl:apply-templates select="songs/ordering" mode="sortarrow">
-                  <xsl:with-param name="col" select="'Title'"/>
-                </xsl:apply-templates>
-                <xsl:apply-templates select="songs/ordering" mode="sortarrow">
-                  <xsl:with-param name="col" select="'Time'"/>
-                </xsl:apply-templates>
-                <xsl:apply-templates select="songs/ordering" mode="sortarrow">
-                  <xsl:with-param name="col" select="'TrackNumber'"/>
-                  <xsl:with-param name="display" select="'#'"/>
-                </xsl:apply-templates>
-                <xsl:apply-templates select="songs/ordering" mode="sortarrow">
-                  <xsl:with-param name="col" select="'Album'"/>
-                </xsl:apply-templates>
+              <xsl:apply-templates select="songs/ordering" mode="sortarrow">
+                <xsl:with-param name="col" select="'Rating'"/>
+              </xsl:apply-templates>
+              <xsl:apply-templates select="songs/ordering" mode="sortarrow">
+                <xsl:with-param name="col" select="'Artist'"/>
+              </xsl:apply-templates>
+              <xsl:apply-templates select="songs/ordering" mode="sortarrow">
+                <xsl:with-param name="col" select="'Title'"/>
+              </xsl:apply-templates>
+              <xsl:apply-templates select="songs/ordering" mode="sortarrow">
+                <xsl:with-param name="col" select="'Time'"/>
+              </xsl:apply-templates>
+              <xsl:apply-templates select="songs/ordering" mode="sortarrow">
+                <xsl:with-param name="col" select="'TrackNumber'"/>
+                <xsl:with-param name="display" select="'#'"/>
+              </xsl:apply-templates>
+              <xsl:apply-templates select="songs/ordering" mode="sortarrow">
+                <xsl:with-param name="col" select="'Album'"/>
+              </xsl:apply-templates>
             </tr>
           </thead>
           <tbody id="listdata">
@@ -78,18 +78,18 @@
     <xsl:param name="display" select="$col"/>
     <th data-colname="{$col}">
       <xsl:value-of select="$display"/>
-    <xsl:for-each select="col[@name=$col]">
-      <span style="font-size:smaller; color:Gray;">
-      <xsl:if test="@dir = 'desc'">
-        <xsl:text>&#9660; </xsl:text>
-      </xsl:if>
-      <xsl:if test="@dir = 'asc'">
-        <xsl:text>&#9650; </xsl:text>
-      </xsl:if>
+      <xsl:for-each select="col[@name=$col]">
+        <span style="font-size:smaller; color:Gray;">
+          <xsl:if test="@dir = 'desc'">
+            <xsl:text>&#9660; </xsl:text>
+          </xsl:if>
+          <xsl:if test="@dir = 'asc'">
+            <xsl:text>&#9650; </xsl:text>
+          </xsl:if>
 
-      <xsl:value-of select="count(preceding-sibling::*)+1"/>
-      </span>
-    </xsl:for-each>
+          <xsl:value-of select="count(preceding-sibling::*)+1"/>
+        </span>
+      </xsl:for-each>
     </th>
   </xsl:template>
 
@@ -142,10 +142,10 @@
       </xsl:choose>
     </xsl:variable>
 
-    <tr data-href="{@songuri}" title="{@songuri}" data-label="{$songlabel}" data-length="{$length}" data-replaygain="{@Tgain}" data-rating="{@rating}">
+    <tr data-href="{@songuri}" title="{@songuri}" data-label="{$songlabel}" data-length="{$length}" data-replaygain="{@Tgain}" data-rating="{@rating}" data-popA="{@popA}" data-popT="{@popT}">
       <xsl:choose>
         <xsl:when test="@artist">
-          <td >
+          <td>
             <div style="position:relative; width:5em;top:0;left:0;background:none;">
               <div style="position:relative; z-index:1;">
                 <xsl:if test="@rating">

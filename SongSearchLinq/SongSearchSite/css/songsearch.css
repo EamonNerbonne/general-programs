@@ -113,9 +113,9 @@ body
     border-radius:0 0 0 1em;
     box-shadow: 0 0 0.2em rgb(200,200,200);
     
-    -moz-transition: width 0.3s 0.1s ease-in-out, background 0.2s;
-    -webkit-transition: width 0.3s 0.1s ease-out, background 0.2s;
-    transition:  width 0.3s 0.1s ease-out, background 0.2s;
+    -moz-transition: width 0.3s ease-in-out, background 0.2s;
+    -webkit-transition: width 0.3s  ease-out, background 0.2s;
+    transition:  width 0.3s  ease-out, background 0.2s;
 }
 
 
@@ -127,7 +127,6 @@ body
 
     -moz-transition: width 0.3s ease-in, background 0.2s 0.2s;
     -webkit-transition:  width 0.3s ease-in, background 0.2s 0.2s;
-    -ms-transition:  width 0.3s ease-in, -ms-background 0.2s 0.2s;
     transition:  width 0.3s ease-in, background 0.2s 0.2s;
 }
 
@@ -212,6 +211,9 @@ body
 {
     display: block;
     font-size: 80.0%;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow: ellipsis;
 }
 #similar .unknown
 {
@@ -416,14 +418,14 @@ div[data-rating="4"] > a:nth-child(5) ~ a:before
 li[data-staticrating]:before
 {
     position:absolute;
-    text-align:right;
+    text-align:left;
     bottom:0;
-    vertical-align:top;
+    vertical-align:bottom;
     color:#888;
     right:0;
-    text-shadow:white 0 0 0.1em;
-    font-size: 110%;
+    width:4.5em;
     letter-spacing:-0.15em;
+    z-index:-1;
 }
 
 li[data-staticrating="1"]:before { content:"\2605"; }
@@ -441,6 +443,35 @@ li[data-staticrating="5"]:before, div[data-rating="5"], div[data-rating]:hover >
 
 div[data-rating] > a:hover ~ a:before { color:#ccc !important; content: "\2606" !important;}
 
+li[data-staticrating] > div 
+{
+    position:absolute;
+    top:0;
+    bottom:0;
+    right:4.5em;
+    width:5em;
+    z-index:-2;
+}
+
+.popTbar 
+{
+    position:absolute;
+    right:0;
+    
+    bottom:50%;
+    height:0.4em;
+    max-width:5em;
+    background:#9bf;
+}
+.popAbar 
+{
+    position:absolute;
+    top:50%;
+    right:0;
+    height:0.4em;
+    max-width:5em;
+    background:#9fb;
+}
 
 
 .searchSect a
