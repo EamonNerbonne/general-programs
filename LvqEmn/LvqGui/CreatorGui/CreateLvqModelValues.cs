@@ -293,7 +293,7 @@ namespace LvqGui {
 		internal void OptimizeLr() {//on gui thread.
 			var settings = ConstructLvqModelSettings();
 			var args = new { Shorthand, ParallelModels, ForDataset };//for threadsafety get these now.
-			long iterCount = 10000000;
+			long iterCount = 5000000;
 			var testLr = new TestLr(0, ForDataset, ParallelModels);
 			string shortname = testLr.Shortname(settings, iterCount);
 

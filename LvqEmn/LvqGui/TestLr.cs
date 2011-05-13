@@ -16,6 +16,7 @@ using System.Reflection;
 namespace LvqGui {
 	class TestLr {
 		readonly bool followDatafolding;
+		readonly bool altLearningRates;
 		readonly uint offset;
 		readonly LvqDatasetCli[] datasets;
 		readonly public string PatternName;
@@ -23,13 +24,15 @@ namespace LvqGui {
 		public TestLr(uint p_offset) {
 			offset = p_offset;
 			followDatafolding = false;
-			PatternName = followDatafolding ? "alt" : "base";
+			altLearningRates = false;
+			PatternName = "base";
 			datasets = Datasets(10, 1000, 1001).ToArray();
 		}
 
 		public TestLr(uint p_offset, LvqDatasetCli dataset, int folds) {
 			offset = p_offset;
 			followDatafolding = true;
+			altLearningRates = true;
 			PatternName = "custom";
 			datasets = Enumerable.Repeat(dataset, folds).ToArray();
 		}
@@ -47,9 +50,9 @@ namespace LvqGui {
 			}
 			public double ErrorMean { get { return double.IsNaN(nnStderr) && double.IsNaN(nn) ? (training * 2 + test) / 3.0 : (training * 3 + test + nn) / 5.0; } }
 			public override string ToString() {
-				return Statistics.GetFormatted(training, trainingStderr) + "; " +
-					Statistics.GetFormatted(test, testStderr) + "; " +
-					Statistics.GetFormatted(nn, nnStderr) + "; ";
+				return Statistics.GetFormatted(training, trainingStderr, 1) + "; " +
+					Statistics.GetFormatted(test, testStderr, 1) + "; " +
+					Statistics.GetFormatted(nn, nnStderr, 1) + "; ";
 			}
 		}
 		public ErrorRates ErrorOf(TextWriter sink, long iters, LvqModelSettingsCli settings) {
@@ -108,9 +111,13 @@ namespace LvqGui {
 		}
 
 		public void FindOptimalLr(TextWriter sink, LvqDatasetCli[] dataset, long iters, LvqModelSettingsCli settings) {
-			var lr0range = LogRange(0.3, 0.01, 8);
-			var lrPrange = LogRange(0.5, 0.03, 8);
-			var lrBrange = (settings.ModelType == LvqModelType.GgmModelType || settings.ModelType == LvqModelType.G2mModelType ? LogRange(0.1, 0.003, 4) : new[] { 0.0 });
+			var lr0range = altLearningRates ? LogRange(0.3 / settings.PrototypesPerClass, 0.03 / settings.PrototypesPerClass, 4) : LogRange(0.3, 0.01, 8);
+			var lrPrange = altLearningRates ? LogRange(0.3 / settings.PrototypesPerClass, 0.03 / settings.PrototypesPerClass, 4) : LogRange(0.5, 0.03, 8);
+			var lrBrange = settings.ModelType != LvqModelType.GgmModelType && settings.ModelType != LvqModelType.G2mModelType ? new[] { 0.0 } :
+				!altLearningRates ? LogRange(0.1, 0.003, 4) :
+				settings.ModelType == LvqModelType.G2mModelType ? LogRange(0.03 / settings.PrototypesPerClass, 0.003 / settings.PrototypesPerClass, 4)
+				: LogRange(0.03 * settings.PrototypesPerClass, 0.003 * settings.PrototypesPerClass, 4) //!!!!
+				;
 
 			var q =
 				(from lr0 in lr0range.AsParallel()
@@ -127,9 +134,7 @@ namespace LvqGui {
 
 			foreach (var result in q) {
 				sink.Write("\n" + result.lr0.ToString("g4").PadRight(9) + "p" + result.lrP.ToString("g4").PadRight(9) + "b" + result.lrB.ToString("g4").PadRight(9) + ": "
-						+ result.errs.training.ToString("g4").PadRight(9) + ";"
-						+ result.errs.test.ToString("g4").PadRight(9) + ";"
-						+ result.errs.nn.ToString("g4").PadRight(9) + "; [" + result.errs.cumLearningRate + "]"
+						+ result.errs.ToString() + "[" + result.errs.cumLearningRate + "]"
 					);
 			}
 			sink.WriteLine();

@@ -118,7 +118,6 @@ namespace LvqGui {
 
 			for (int i = 0; i < selectedModel.TrainingStatNames.Length; i++) 
 				Console.WriteLine(selectedModel.TrainingStatNames[i].Split('!')[0] + ": "+Statistics.GetFormatted(meanstats.Value[i], meanstats.StandardError[i]));
-			
 		}
 
 		public void ConfirmTraining() {
