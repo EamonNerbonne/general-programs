@@ -131,7 +131,7 @@
     <Compile Include="Code\Model\PlaylistEntry.cs" />
     <Compile Include="Code\Model\SimilarPlaylist.cs" />
     <Compile Include="Code\Model\SimilarPlaylistError.cs" />
-    <Compile Include="Code\Handlers\PlaylistBounceHandler.cs" />
+    <Compile Include="Code\Handlers\BouncePlaylistHandler.cs" />
     <Compile Include="Code\Handlers\UpdateRatingHandler.cs" />
     <Compile Include="Code\JsonOutputExtension.cs" />
     <Compile Include="Code\ScrobbleSong.cs" />

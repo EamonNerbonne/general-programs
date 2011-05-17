@@ -47,6 +47,6 @@ namespace SongSearchSite.Code.Model {
 
 	}
 	enum PlaylistFormat {
-		m3u, extm3u, xml, json
+		m3u, m3u8, xml, json, zip
 	}
 }

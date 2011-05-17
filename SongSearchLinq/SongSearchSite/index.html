@@ -103,6 +103,12 @@
                 <li>You can save a playlist for later by copying the serialized playlist below. Load
                     such a playlist by pasting it back into the same box.</li>
             </ol>
+            <form  method="post" action="bounce-playlist" id="savePlaylistForm" target="savePlaylistIframe">
+                <input type="hidden" name="format" value="m3u"/>
+                <input type="hidden" name="playlist" id="savePlaylistHiddenJson" />
+                <button id="savePlaylistAsM3u">Save Playlist (m3u)</button>
+                <iframe id="savePlaylistIframe" ></iframe>
+            </form>
         </fieldset>
     </div>
     <div id="searchResultShadow">

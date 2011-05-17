@@ -54,47 +54,47 @@ $(document).ready(function ($) {
                 if (val) loadPlaylist(val);
             }
         }
-      /*  , lfmUser: {
-            label: "Last.FM username",
-            type: "textbox",
-            initialValue: ""
+        /*  , lfmUser: {
+        label: "Last.FM username",
+        type: "textbox",
+        initialValue: ""
         }
         , lfmPass: {
-            label: "Last.FM password",
-            type: "textbox",
-            initialValue: ""
+        label: "Last.FM password",
+        type: "textbox",
+        initialValue: ""
         }
         , scrobble: {
-            label: "Enable Scrobbling",
-            type: "checkbox",
-            initialValue: false,
-            onchange: function (newval, codeTriggered, e) {
-                if (newval && playlistItem) {
-                    var songdata = $(playlistItem).data("songdata");
-                    alert(JSON.stringify(songdata));
-                    $.ajax({
-                        type: "POST",
-                        url: "scrobble",
-                        data:
-                            {
-                                scrobbler: JSON.stringify(
-                                {
-                                    user: userOptions.lfmUser.getValue()
-                                    , pass: userOptions.lfmPass.getValue()
-                                    , href: songdata.href
-                                    , label: songdata.label
-                                })
-                            },
-                        timeout: 10000,
-                        success: function (data) { alert(JSON.stringify(data)); },
-                        error: function (xhr, status, errorThrown) { alert(JSON.stringify([xhr, status, errorThrown])); }
-                    });
+        label: "Enable Scrobbling",
+        type: "checkbox",
+        initialValue: false,
+        onchange: function (newval, codeTriggered, e) {
+        if (newval && playlistItem) {
+        var songdata = $(playlistItem).data("songdata");
+        alert(JSON.stringify(songdata));
+        $.ajax({
+        type: "POST",
+        url: "scrobble",
+        data:
+        {
+        scrobbler: JSON.stringify(
+        {
+        user: userOptions.lfmUser.getValue()
+        , pass: userOptions.lfmPass.getValue()
+        , href: songdata.href
+        , label: songdata.label
+        })
+        },
+        timeout: 10000,
+        success: function (data) { alert(JSON.stringify(data)); },
+        error: function (xhr, status, errorThrown) { alert(JSON.stringify([xhr, status, errorThrown])); }
+        });
 
-                    alert(songdata.href + ":" + songdata.length + ":" + songdata.label);
-                }
-            }
+        alert(songdata.href + ":" + songdata.length + ":" + songdata.label);
         }
-*/
+        }
+        }
+        */
 
         //        , playlistName: {
         //            label: "Playlist Name",
@@ -309,7 +309,7 @@ $(document).ready(function ($) {
             unknownSel.append($(document.createElement("li")).text(unknown[i]));
         knownSel.empty();
         leftColSel.removeClass("waiting");
-        for (var i = 0; i < known.length; i++){
+        for (var i = 0; i < known.length; i++) {
             knownSel.append(
                 $(document.createElement("li"))
                     .text(known[i].label)
@@ -320,7 +320,7 @@ $(document).ready(function ($) {
                             .append(
                                 $(document.createElement("div"))
                                     .attr("class", "popAbar")
-                                    .attr("style","width: "+(known[i].popA*5)+"em")
+                                    .attr("style", "width: " + (known[i].popA * 5) + "em")
                             )
                             .append(
                                 $(document.createElement("div"))
@@ -478,7 +478,7 @@ $(document).ready(function ($) {
 
     $("#do_removeAll").click(emptyPlaylist);
 
-    function playlistNext() { playlistChange(  $(playlistItem).next()[0] || $("#repeat_playlist_box:checked")[0] && $("#jplayer_playlist ul li")[0]  ); }
+    function playlistNext() { playlistChange($(playlistItem).next()[0] || $("#repeat_playlist_box:checked")[0] && $("#jplayer_playlist ul li")[0]); }
 
     function playlistPrev() { playlistChange($(playlistItem).prev()[0]); }
 
@@ -496,8 +496,8 @@ $(document).ready(function ($) {
                 length: clickedRowJQ.attr("data-length"),
                 replaygain: Number(clickedRowJQ.attr("data-replaygain")) || 0,
                 rating: Number(clickedRowJQ.attr("data-rating")),
-                popA:Number(clickedRowJQ.attr("data-popA")),
-                popT:Number(clickedRowJQ.attr("data-popT"))
+                popA: Number(clickedRowJQ.attr("data-popA")),
+                popT: Number(clickedRowJQ.attr("data-popT"))
             });
     }
 
@@ -522,5 +522,10 @@ $(document).ready(function ($) {
         $("#orderingEl").attr("value", clickedCol + ":" + currOrder);
         UpdateSongSearchResults();
     };
+
+    $("#savePlaylistForm").submit(function savePlaylistAsM3u() {
+        var serializedList = JSON.stringify(savePlaylist());
+        $("#savePlaylistHiddenJson").val(JSON.stringify(savePlaylist()));
+    });
 });
 
