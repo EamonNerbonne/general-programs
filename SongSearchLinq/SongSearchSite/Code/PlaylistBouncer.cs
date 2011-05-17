@@ -14,7 +14,7 @@ namespace SongSearchSite.Code {
 			PlaylistEntry[] playlistFromJson = JsonConvert.DeserializeObject<PlaylistEntry[]>(context.Request["playlist"]);
 			PlaylistFormat format = (PlaylistFormat)Enum.Parse(typeof(PlaylistFormat), context.Request["format"]);
 
-			ISongFileData[] playlistLocal = playlistFromJson.Select(item => item.LookupBestGuess()).ToArray();
+			ISongFileData[] playlistLocal = playlistFromJson.Select(item => item.LookupBestGuess()).Where(item => item != null).ToArray();
 
 		}
 	}

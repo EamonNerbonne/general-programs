@@ -11,9 +11,19 @@ using System.Xml.Linq;
 
 namespace SongSearchSite {
 
-	public class PlaylistRequestProcessor : IHttpRequestProcessor {
+	public class SearchRequestHandler : IHttpHandler {
+		public bool IsReusable { get { return false; } }
+		public void ProcessRequest(HttpContext context) {
+			Console.WriteLine("PlaylistHandler called.");
+			HttpRequestHelper helper = new HttpRequestHelper(context);
+			SearchRequestProcessor proc = new SearchRequestProcessor(helper);
+			helper.Process(proc);
+		}
+	}
+
+	public class SearchRequestProcessor : IHttpRequestProcessor {
 		readonly HttpRequestHelper helper;
-		public PlaylistRequestProcessor(HttpRequestHelper helper) { this.helper = helper; }
+		public SearchRequestProcessor(HttpRequestHelper helper) { this.helper = helper; }
 		public void ProcessingStart() { }
 
 		bool isXml, includeRemote, extm3u, coreAttrsOnly, viewXslt, avoidDuplicates;
@@ -102,10 +112,10 @@ namespace SongSearchSite {
 				searchResults = searchResults.Where(song => { var mime = SongServeRequestProcessor.guessMIME(song); return mime == SongServeRequestProcessor.MIME_MP3 || mime == SongServeRequestProcessor.MIME_OGG; });
 			if (!includeRemote)
 				searchResults = searchResults.Where(song => song.IsLocal);
-			if(avoidDuplicates) {
-				Dictionary<string,List<int>> seen = new Dictionary<string,List<int>>();
+			if (avoidDuplicates) {
+				Dictionary<string, List<int>> seen = new Dictionary<string, List<int>>();
 				searchResults = searchResults.Where(songfile => {
-					var songlabel=songfile.HumanLabel.ToLowerInvariant();
+					var songlabel = songfile.HumanLabel.ToLowerInvariant();
 					var songlength = songfile.Length;
 					List<int> songlengths;
 					if (seen.TryGetValue(songlabel, out songlengths)) {
@@ -153,15 +163,4 @@ namespace SongSearchSite {
 		}
 	}
 
-	public class PlaylistHandler : IHttpHandler {
-
-		public bool IsReusable { get { return false; } }
-
-		public void ProcessRequest(HttpContext context) {
-			Console.WriteLine("PlaylistHandler called.");
-			HttpRequestHelper helper = new HttpRequestHelper(context);
-			PlaylistRequestProcessor proc = new PlaylistRequestProcessor(helper);
-			helper.Process(proc);
-		}
-	}
 }
