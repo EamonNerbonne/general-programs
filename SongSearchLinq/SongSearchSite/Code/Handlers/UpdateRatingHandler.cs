@@ -1,18 +1,14 @@
 ﻿using System;
 using System.IO;
+using System.Threading;
 using System.Web;
 using EmnExtensions.Text;
 using Newtonsoft.Json;
-using System.Linq;
-using LastFMspider;
 using SongDataLib;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Threading;
 using SongSearchSite.Code.Model;
 
-namespace SongSearchSite {
-	public class UpdateRating : IHttpHandler {
+namespace SongSearchSite.Code.Handlers {
+	public class UpdateRatingHandler : IHttpHandler {
 		public bool IsReusable { get { return true; } }
 
 		public void ProcessRequest(HttpContext context) {
