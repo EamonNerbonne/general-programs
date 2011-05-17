@@ -38,6 +38,7 @@ namespace SongDataLib {
 		}
 
 		public MinimalSongFileData(Uri baseUri, XElement xEl, bool? isLocal) : this(baseUri, new Uri((string)xEl.Attribute("songuri"), UriKind.Absolute), isLocal) { }
-	}
 
+		public virtual double AverageBitrate { get { return 112.0; } }//arbitrary estimate.
+	}
 }

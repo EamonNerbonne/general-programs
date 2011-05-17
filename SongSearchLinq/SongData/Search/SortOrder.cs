@@ -75,7 +75,7 @@ namespace SongDataLib {
 			return
 				new XElement("ordering",
 					EffectiveCols.Select(i =>
-						new XElement("col", 
+						new XElement("col",
 							new XAttribute("name", ((SongColumn)Math.Abs(i)).ToString()),
 							new XAttribute("dir", i < 0 ? "desc" : "asc")
 						)
@@ -111,6 +111,7 @@ namespace SongDataLib {
 					default: throw new ArgumentOutOfRangeException("ordering");
 				}
 			}
+			indexes = indexes.OrderByEither(i => Math.Abs(Math.Sqrt(songs[i].AverageBitrate) - 15), true);
 			int[] rankmap = new int[songs.Length];
 			int currRank = 0;
 			foreach (int index in indexes)

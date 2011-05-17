@@ -36,5 +36,7 @@ namespace SongDataLib {
 		/// This data is a fallback, if possible a user interface should try to use SongData's (or any other implementing class's) more complete data, but if that's to no avail...  
 		/// </summary>
 		string HumanLabel { get; }
+
+		double AverageBitrate { get; }
 	}
 }

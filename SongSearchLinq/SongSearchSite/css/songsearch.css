@@ -136,7 +136,7 @@ body
 }
 
 #matchlinksect{float:right; font-size:80%;}
-#do_shuffle, #do_addAll, #do_removeAlldiv[data-rating]
+#do_shuffle, #do_addAll, #do_removeAll
 {
     color:White;
     background:#333;
@@ -179,16 +179,20 @@ body
     box-shadow: 0 0 2em white, 0 0 0.5em white;
     background:black;
 }
-#do_addAll:after { content: "Add all tracks to playlist"; top:auto; margin-bottom:0.5em; bottom:100%; }
+#do_addAll:after { content: "Add all tracks to playlist"; right:0; }
 #do_removeAll:after { content: "Remove all tracks from playlist"; }
 #do_shuffle:after { content: "Shuffle playlist"; }
 #repeat_playlist_box_li:after { content: "Loop playlist"; }
 
-
+#do_addAll {
+    position: absolute;
+    right: 0.7em;
+    top: 0.7em;
+}
 
 #shownumber
 {
-    width: 3em;
+    width: 2.5em;
 }
 #searchquery
 {

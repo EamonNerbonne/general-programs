@@ -14,6 +14,7 @@ namespace SongSearchSite {
 		public sealed class ServedFileStatus : IDisposable {
 			public readonly DateTime StartedAtLocalTime;
 			public readonly string RemoteAddr;
+			public readonly string User;
 			public readonly int MaxBytesPerSecond;
 			public readonly string ServedFile;
 			public readonly Range? ByteRange;
@@ -23,11 +24,12 @@ namespace SongSearchSite {
 			volatile public uint ServedBytes;
 			volatile public bool Done;
 
-			public ServedFileStatus(string path, Range? byteRange, string remoteAddr, int maxBps) {
+			public ServedFileStatus(string path, Range? byteRange, string remoteAddr, string username, int maxBps) {
 				StartedAtLocalTime = DateTime.Now;
 				RemoteAddr = remoteAddr;
 				MaxBytesPerSecond = maxBps;
 				ServedFile = path;
+				User = username;
 				ByteRange = byteRange;
 				Enqueue(this);
 			}
@@ -116,13 +118,13 @@ namespace SongSearchSite {
 		public void WriteEntireContent() { WriteHelper(null); }
 
 		private void WriteHelper(Range? range) {
-			
+
 			const int window = 4096;
 			long fileByteCount = new FileInfo(song.SongUri.LocalPath).Length;
 			double songSeconds = Math.Max(1.0, TagLib.File.Create(song.SongUri.LocalPath).Properties.Duration.TotalSeconds);
 			int maxBytesPerSecSong = (int)(Math.Max(256 * 1024 / 8, Math.Min(fileByteCount / songSeconds, 320 * 1024 / 8)) * 1.25);
 			int maxBytesPerSec = 300000;//alternative: use extract from tag using taglib.
-			using (var servingStatus = new ServingActivity.ServedFileStatus(song.SongUri.LocalPath, range, helper.Context.Request.UserHostAddress, maxBytesPerSec)) {
+			using (var servingStatus = new ServingActivity.ServedFileStatus(song.SongUri.LocalPath, range, helper.Context.Request.UserHostAddress, helper.Context.User.Identity.Name, maxBytesPerSec)) {
 				const int fastStartSec = 10;
 				byte[] buffer = new byte[window];
 				Stopwatch timer = Stopwatch.StartNew();

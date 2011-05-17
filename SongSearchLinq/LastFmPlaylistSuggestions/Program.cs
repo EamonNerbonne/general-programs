@@ -38,15 +38,14 @@ namespace LastFmPlaylistSuggestions {
 
 		static void FindPlaylistSongLocally(SongTools tools, ISongFileData playlistEntry, Action<SongFileData> ifFound, Action<SongRef> ifNotFound, Action<ISongFileData> cannotParse) {
 			SongFileData bestMatch = null;
-			int artistTitleSplitIndex = playlistEntry.HumanLabel.IndexOf(" - ");
 			if (tools.FindByPath.ContainsKey(playlistEntry.SongUri.ToString()))
 				ifFound(tools.FindByPath[playlistEntry.SongUri.ToString()]);
 			else if (playlistEntry.IsLocal && File.Exists(playlistEntry.SongUri.LocalPath)) {
 				ifFound((SongFileData)SongFileDataFactory.ConstructFromFile(tools.ConfigFile.Sections.Select(cs => cs.BaseUri).Where(uri => uri != null).FirstOrDefault(uri => uri.IsBaseOf(playlistEntry.SongUri)), new FileInfo(playlistEntry.SongUri.LocalPath), tools.ConfigFile.PopularityEstimator));
 			} else if (playlistEntry is PartialSongFileData) {
 				int bestMatchVal = Int32.MaxValue;
-				while (artistTitleSplitIndex != -1) {
-					SongRef songref = SongRef.Create(playlistEntry.HumanLabel.Substring(0, artistTitleSplitIndex), playlistEntry.HumanLabel.Substring(artistTitleSplitIndex + 3));
+
+				foreach (SongRef songref in SongRef.PossibleSongRefs(playlistEntry.HumanLabel)) {
 					foreach (var songCandidate in tools.FindByName[songref]) {
 						int candidateMatchVal = 100 * Math.Abs(playlistEntry.Length - songCandidate.Length) + Math.Min(199, Math.Abs(songCandidate.bitrate - 224));
 						if (candidateMatchVal < bestMatchVal) {
@@ -54,12 +53,11 @@ namespace LastFmPlaylistSuggestions {
 							bestMatch = songCandidate;
 						}
 					}
-					artistTitleSplitIndex = playlistEntry.HumanLabel.IndexOf(" - ", artistTitleSplitIndex + 3);
 				}
 				if (bestMatch != null) ifFound(bestMatch);
 				else {
-					artistTitleSplitIndex = playlistEntry.HumanLabel.IndexOf(" - ");
-					if (artistTitleSplitIndex >= 0) ifNotFound(SongRef.Create(playlistEntry.HumanLabel.Substring(0, artistTitleSplitIndex), playlistEntry.HumanLabel.Substring(artistTitleSplitIndex + 3)));
+					var songref = SongRef.PossibleSongRefs(playlistEntry.HumanLabel).FirstOrDefault();
+					if (songref != null) ifNotFound(songref);
 					else cannotParse(playlistEntry);
 				}
 			} else {

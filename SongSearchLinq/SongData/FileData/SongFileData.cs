@@ -19,6 +19,7 @@ namespace SongDataLib {
 		public readonly int year, track, trackcount, bitrate, length, samplerate, channels;
 		public readonly double? track_gain;
 		public int? rating;
+		public readonly int filesize;
 		DateTime m_lastWriteTimeUtc;
 		public Popularity popularity = new Popularity { ArtistPopularity = 0, TitlePopularity = 0 };
 		public DateTime LastWriteTimeUtc { get { return m_lastWriteTimeUtc; } private set { m_lastWriteTimeUtc = value.ToUniversalTime(); } }
@@ -39,6 +40,7 @@ namespace SongDataLib {
 			track = (int)file.Tag.Track;
 			trackcount = (int)file.Tag.TrackCount;
 			LastWriteTimeUtc = fileObj.LastWriteTime;
+			filesize = (int)fileObj.Length;
 			bitrate = file.Properties == null ? 0 : file.Properties.AudioBitrate;
 			length = file.Properties == null ? 0 : (int)Math.Round(file.Properties.Duration.TotalSeconds);
 			samplerate = file.Properties == null ? 0 : file.Properties.AudioSampleRate;
@@ -79,18 +81,18 @@ namespace SongDataLib {
 			TagLib.TagTypes types = file.TagTypes;
 			if (types.HasFlag(TagLib.TagTypes.Xiph) || file is TagLib.Ogg.File) {
 				var filetag = (file.GetTag(TagLib.TagTypes.Xiph, true) as TagLib.Ogg.XiphComment);
-				if(rating==null)
+				if (rating == null)
 					filetag.RemoveField("rating");
 				else
 					filetag.SetField("rating", rating.Value.ToString());
-				
+
 			} else if (types.HasFlag(TagLib.TagTypes.Id3v2)) {
 				var filetag = ((Tag)file.GetTag(TagLib.TagTypes.Id3v2, true));
-				var ratingfield=UserTextInformationFrame.Get(filetag, "rating", true);
+				var ratingfield = UserTextInformationFrame.Get(filetag, "rating", true);
 				if (rating == null)
 					filetag.RemoveFrame(ratingfield);
 				else
-					ratingfield.Text = new[]{rating.Value.ToString()};
+					ratingfield.Text = new[] { rating.Value.ToString() };
 			} else if (types.HasFlag(TagLib.TagTypes.Ape)) {
 				var filetag = (file.GetTag(TagLib.TagTypes.Ape, false) as TagLib.Ape.Tag);
 				if (rating == null)
@@ -101,7 +103,7 @@ namespace SongDataLib {
 				//return new Dictionary<string, string>();
 			} else if (types.HasFlag(TagLib.TagTypes.Asf)) {
 				var filetag = file.GetTag(TagLib.TagTypes.Asf, false) as TagLib.Asf.Tag;
-				if(rating==null)
+				if (rating == null)
 					filetag.RemoveDescriptors("rating");
 				filetag.SetDescriptorString(rating.Value.ToString(), "rating");//note reversed order!
 			} else
@@ -113,7 +115,7 @@ namespace SongDataLib {
 		readonly static XName songN = "song", titleN = "title", artistN = "artist", performerN = "performer", composerN = "composer", albumN = "album",
 			commentN = "comment", genreN = "genre", yearN = "year", trackN = "track", trackcountN = "trackcount", bitrateN = "bitrate",
 			lengthN = "length", samplerateN = "samplerate", channelsN = "channels", lastmodifiedTicksN = "lastmodifiedTicks",
-			ratingN = "rating", artistpopularityN = "popA", titlepopularityN = "popT", trackGainN = "Tgain";
+			ratingN = "rating", artistpopularityN = "popA", titlepopularityN = "popT", trackGainN = "Tgain", filesizeN = "filesize";
 
 		internal SongFileData(Uri baseUri, XElement from, bool? isLocal, IPopularityEstimator popEst)
 			: base(baseUri, from, isLocal) {
@@ -145,7 +147,7 @@ namespace SongDataLib {
 
 			long? lastmodifiedTicks = (long?)from.Attribute(lastmodifiedTicksN);
 			if (lastmodifiedTicks.HasValue) LastWriteTimeUtc = new DateTime(lastmodifiedTicks.Value, DateTimeKind.Utc);
-
+			filesize = (int?)from.Attribute(filesizeN) ?? (IsLocal ? (int)new FileInfo(SongUri.LocalPath).Length : 0);
 		}
 
 		public double popA_forscripting { get { return Math.Sqrt(popularity.ArtistPopularity / 350000.0); } }
@@ -176,7 +178,8 @@ namespace SongDataLib {
 				 coreOnly
 				 ? MakeAttributeOrNull(titlepopularityN, popT_forscripting)
 				 : MakeAttributeOrNull(titlepopularityN, popularity.TitlePopularity),
-				 coreOnly ? null : MakeAttributeOrNull(lastmodifiedTicksN, LastWriteTimeUtc == default(DateTime) ? default(long?) : LastWriteTimeUtc.Ticks)
+				 coreOnly ? null : MakeAttributeOrNull(lastmodifiedTicksN, LastWriteTimeUtc == default(DateTime) ? default(long?) : LastWriteTimeUtc.Ticks),
+				 coreOnly ? null : MakeAttributeOrNull(filesizeN, filesize)
 			);
 		}
 
@@ -201,6 +204,7 @@ namespace SongDataLib {
 
 		public override string FullInfo { get { return string.Join("\n", Values.Where(v => v != null).ToArray()); } }
 		public override int Length { get { return length; } }
+		public override double AverageBitrate { get { return filesize * 8.0 / length; } }
 		public override string HumanLabel {
 			get {
 				if (title == null)

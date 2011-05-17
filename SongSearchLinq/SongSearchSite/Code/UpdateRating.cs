@@ -9,6 +9,7 @@ using SongDataLib;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
+using SongSearchSite.Code.Model;
 
 namespace SongSearchSite {
 	public class UpdateRating : IHttpHandler {
@@ -37,19 +38,15 @@ namespace SongSearchSite {
 					}
 				}
 				if (!ok)
-					context.Response.Output.Write(JsonConvert.SerializeObject(new {
-						error = "FileInUse",
-						message = path + " is in use and not released for 60 seconds or more. Try again later.",
-						fulltrace = ""
-					}));
+					context.Response.Output.Write(JsonConvert.SerializeObject(new SimilarPlaylistError {
+					                                                                   	error = "FileInUse", message = path + " is in use and not released for 60 seconds or more. Try again later.", fulltrace = ""
+					                                                                   }));
 				else
 					context.Response.Output.Write(JsonConvert.SerializeObject(context.User.Identity.Name));
 			} catch (Exception e) {
-				context.Response.Output.Write(JsonConvert.SerializeObject(new {
-					error = e.GetType().FullName,
-					message = e.Message,
-					fulltrace = e.ToString(),
-				}));
+				context.Response.Output.Write(JsonConvert.SerializeObject(new SimilarPlaylistError {
+				                                                                   	error = e.GetType().FullName, message = e.Message, fulltrace = e.ToString()
+				                                                                   }));
 			}
 		}
 	}

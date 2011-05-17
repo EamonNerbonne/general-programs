@@ -1,9 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Web;
 using EmnExtensions.Text;
 using HttpHeaderHelper;
+using LastFMspider;
 using SongDataLib;
 using System.Xml.Linq;
 
@@ -14,7 +16,7 @@ namespace SongSearchSite {
 		public PlaylistRequestProcessor(HttpRequestHelper helper) { this.helper = helper; }
 		public void ProcessingStart() { }
 
-		bool isXml, includeRemote, extm3u, coreAttrsOnly, viewXslt;
+		bool isXml, includeRemote, extm3u, coreAttrsOnly, viewXslt, avoidDuplicates;
 		SortOrdering orderby;
 		int? topLimit;
 		Encoding enc;
@@ -49,6 +51,7 @@ namespace SongSearchSite {
 			coreAttrsOnly = context.Request.QueryString["fulldata"] != "true";
 			topLimit = context.Request.QueryString["top"].ParseAsInt32();
 			viewXslt = context.Request.QueryString["view"] == "xslt";
+			avoidDuplicates = context.Request.QueryString["nodup"] == "on";
 			orderby = SortOrdering.Parse(context.Request.QueryString["ordering"]).Append((int)SongColumn.Rating);
 
 			var path = context.Request.AppRelativeCurrentExecutionFilePath.Split('/');
@@ -65,7 +68,7 @@ namespace SongSearchSite {
 			if (extension == ".m3u" || extension == ".m3u8")
 				context.Response.Headers["Content-Disposition"] = "attachment; filename=" + Uri.EscapeDataString("playlist_" + searchQuery + extension); //searchquery has been canonicalized: no dangerous injection possible.
 
-			res.ETag = ResourceInfo.GenerateETagFrom(searchQuery, includeRemote, extm3u, isXml, coreAttrsOnly, extension, topLimit, startupUtc, viewXslt, orderby);
+			res.ETag = ResourceInfo.GenerateETagFrom(searchQuery, includeRemote, extm3u, isXml, coreAttrsOnly, extension, topLimit, startupUtc, viewXslt, orderby, avoidDuplicates);
 			res.ResourceLength = null;//unknown
 			res.TimeStamp = startupUtc;
 			//Console.WriteLine("Request Determined: [" + (isXml ? 'X' : ' ') + (includeRemote ? 'R' : ' ') + (enc == Encoding.UTF8 ? 'U' : ' ') + (extm3u ? 'E' : ' ') + "] q=" + searchQuery);
@@ -94,11 +97,30 @@ namespace SongSearchSite {
 			//			urlprefix = "http://home.nerbonne.org/";
 
 
-			var searchResults = SongDbContainer.SearchableSongDB.Search(searchQuery,SongDbContainer.RankMapFor(orderby));
+			var searchResults = SongDbContainer.SearchableSongDB.Search(searchQuery, SongDbContainer.RankMapFor(orderby));
 			if (coreAttrsOnly)
 				searchResults = searchResults.Where(song => { var mime = SongServeRequestProcessor.guessMIME(song); return mime == SongServeRequestProcessor.MIME_MP3 || mime == SongServeRequestProcessor.MIME_OGG; });
 			if (!includeRemote)
 				searchResults = searchResults.Where(song => song.IsLocal);
+			if(avoidDuplicates) {
+				Dictionary<string,List<int>> seen = new Dictionary<string,List<int>>();
+				searchResults = searchResults.Where(songfile => {
+					var songlabel=songfile.HumanLabel.ToLowerInvariant();
+					var songlength = songfile.Length;
+					List<int> songlengths;
+					if (seen.TryGetValue(songlabel, out songlengths)) {
+						bool tooSimilar = songlengths.Any(length => Math.Abs(songfile.Length - length) <= 5);
+						if (!tooSimilar) {
+							songlengths.Add(songlength);
+							return true;
+						}
+						return false;
+					} else {
+						seen.Add(songlabel, new List<int> { songlength });
+						return true;
+					}
+				});
+			}
 			if (topLimit.HasValue)
 				searchResults = searchResults.Take(topLimit.Value);
 

@@ -126,6 +126,11 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Code\Model\PlaylistEntry.cs" />
+    <Compile Include="Code\Model\SimilarPlaylist.cs" />
+    <Compile Include="Code\Model\SimilarPlaylistError.cs" />
+    <Compile Include="Code\Model\SongData.cs" />
+    <Compile Include="Code\PlaylistBouncer.cs" />
     <Compile Include="Code\UpdateRating.cs" />
     <Compile Include="Code\JsonOutputExtension.cs" />
     <Compile Include="Code\ScrobbleSong.cs" />
@@ -145,7 +150,7 @@
     </Compile>
     <Compile Include="Code\PlaylistHandler.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Code\SimilarPlaylist.cs" />
+    <Compile Include="Code\SimilarPlaylistHandler.cs" />
     <Compile Include="Code\SongDbContainer.cs" />
     <Compile Include="Code\SongServeModule.cs" />
   </ItemGroup>

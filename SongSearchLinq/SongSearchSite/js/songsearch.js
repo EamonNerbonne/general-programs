@@ -9,7 +9,7 @@ $(document).ready(function ($) {
 
     function encodeQuery(str) { return encodeURIComponent(str.replace(/^\s+|\s+(?=\s|$)/g, "").toLowerCase()); }
 
-     function updateResults() {
+    function updateResults() {
         var qHash = window.location.hash.substring(1), qInput = searchqueryEl.value;
         try {
             qHash = decodeURIComponent(qHash);
@@ -26,7 +26,7 @@ $(document).ready(function ($) {
         if (newquery != lastquery) {
             lastquery = newquery;
             if (!isQInputChanged)
-                searchqueryEl["value"] =  search;
+                searchqueryEl["value"] = newquery;
             if (!isQHashChanged)
                 window.setTimeout(function () { if (newquery == lastquery) updateHash(); }, 10000);
             for (var i = 0; i < queryTargets.length; i++)
@@ -46,7 +46,7 @@ $(document).ready(function ($) {
     var queryTargets = [];
     $("a.matchLink").each(function (idx, aEl) { queryTargets.push(QueryTarget(aEl, "href", aEl.href, false)); });
     $("#searchForm input").keyup(updateResults).change(updateResults).blur(updateHash);
-
+    $("#nodupCheckbox").change(function () { $("#searchForm").submit(); });
     $(window).bind("hashchange", updateResults);
     updateResults();
     if (!document.createElement("input").autofocus) $("[autofocus='autofocus']").first().each(function (i) { this.focus(); });

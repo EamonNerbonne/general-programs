@@ -7,6 +7,7 @@ using SongDataLib;
 using System.Collections.Generic;
 using System.Diagnostics;
 using LastFMspider.OldApi;
+using SongSearchSite.Code.Model;
 
 namespace SongSearchSite {
 	public class ScrobbleSongHandler : IHttpHandler {
@@ -63,11 +64,9 @@ namespace SongSearchSite {
 					});
 
 			} catch (Exception e) {
-				context.Response.JsonOutput(new {
-					error = e.GetType().FullName,
-					message = e.Message,
-					fulltrace = e.ToString(),
-				});
+				context.Response.JsonOutput(new SimilarPlaylistError {
+				                                     	error = e.GetType().FullName, message = e.Message, fulltrace = e.ToString()
+				                                     });
 			}
 		}
 	}
