@@ -126,11 +126,12 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Code\Handlers\SongServeHandler.cs" />
+    <Compile Include="Code\Handlers\SongServeRequestProcessor.cs" />
     <Compile Include="Code\Model\PlaylistEntry.cs" />
     <Compile Include="Code\Model\SimilarPlaylist.cs" />
     <Compile Include="Code\Model\SimilarPlaylistError.cs" />
-    <Compile Include="Code\Model\SongData.cs" />
-    <Compile Include="Code\PlaylistBouncer.cs" />
+    <Compile Include="Code\Handlers\PlaylistBounceHandler.cs" />
     <Compile Include="Code\UpdateRating.cs" />
     <Compile Include="Code\JsonOutputExtension.cs" />
     <Compile Include="Code\ScrobbleSong.cs" />
@@ -148,9 +149,9 @@
     <Compile Include="logon.aspx.designer.cs">
       <DependentUpon>logon.aspx</DependentUpon>
     </Compile>
-    <Compile Include="Code\PlaylistHandler.cs" />
+    <Compile Include="Code\Handlers\SearchRequestHandler.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Code\SimilarPlaylistHandler.cs" />
+    <Compile Include="Code\Handlers\SimilarPlaylistHandler.cs" />
     <Compile Include="Code\SongDbContainer.cs" />
     <Compile Include="Code\SongServeModule.cs" />
   </ItemGroup>

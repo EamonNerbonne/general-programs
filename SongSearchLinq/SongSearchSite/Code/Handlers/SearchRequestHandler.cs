@@ -9,7 +9,7 @@ using LastFMspider;
 using SongDataLib;
 using System.Xml.Linq;
 
-namespace SongSearchSite {
+namespace SongSearchSite.Code.Handlers {
 
 	public class SearchRequestHandler : IHttpHandler {
 		public bool IsReusable { get { return false; } }

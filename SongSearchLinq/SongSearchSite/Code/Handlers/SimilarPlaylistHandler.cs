@@ -8,7 +8,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using SongSearchSite.Code.Model;
 
-namespace SongSearchSite {
+namespace SongSearchSite.Code.Handlers {
 	public class SimilarPlaylistHandler : IHttpHandler {
 		public bool IsReusable { get { return true; } }
 		public void ProcessRequest(HttpContext context) {

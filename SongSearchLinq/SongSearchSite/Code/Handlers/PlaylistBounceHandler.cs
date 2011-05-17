@@ -6,8 +6,8 @@ using Newtonsoft.Json;
 using SongDataLib;
 using SongSearchSite.Code.Model;
 
-namespace SongSearchSite.Code {
-	public class PlaylistBouncer : IHttpHandler {
+namespace SongSearchSite.Code.Handlers {
+	public class PlaylistBounceHandler : IHttpHandler {
 		public bool IsReusable { get { return true; } }
 
 		public void ProcessRequest(HttpContext context) {
