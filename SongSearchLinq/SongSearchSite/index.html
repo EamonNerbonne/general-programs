@@ -55,13 +55,10 @@
                     </li>
                     <li id="jplayer_volume_max" class="jp-volume-max">
                         <img src="img/volume.png" alt="max volume" /></li>
-                    <li>
-                        <span id="do_shuffle">
-                            S</span></li>
-                    <li>
-                        <span id="do_removeAll">
-                            X</span></li>
-                    <li id="repeat_playlist_box_li"><input type="checkbox" id="repeat_playlist_box"/></li>
+                    <li><span id="do_shuffle">S</span></li>
+                    <li><span id="do_removeAll">X</span></li>
+                    <li id="repeat_playlist_box_li">
+                        <input type="checkbox" id="repeat_playlist_box" /></li>
                 </ul>
             </div>
         </div>
@@ -83,18 +80,20 @@
         <div id="matchlinksect">
             download all matches as: <a class="matchLink" href="playlist.m3u?q=" target="_blank">
                 m3u</a> <a class="matchLink" href="playlist.m3u8?q=" target="_blank">m3u8</a></div>
-        <input type="checkbox" checked="checked" name="nodup" id="nodupCheckbox" /> Avoid Duplicates.
+        <input type="checkbox" checked="checked" name="nodup" id="nodupCheckbox" />
+        Avoid Duplicates.
         </form>
-                        <span id="do_addAll">
-            A</span>
+        <span id="do_addAll">A</span>
     </div>
     <div id="forOptions">
         <fieldset id="optionsBox" class="OptionsBuilder-uninitialized">
-            <legend>Options &amp; Help</legend>
+            <legend>Help &amp; Playlist Export</legend>
             <ol>
                 <li>Enter search terms in the search box</li>
-                <li>Search for phrases using quotes <a href="javascript:$('#searchquery').val('&quot;like this&quot;');UpdateSongSearchResults();">"like this"</a></li>
-                <li>Use a minus sign to remove results: <a href="javascript:$('#searchquery').val('machine -&quot;the machine&quot;');UpdateSongSearchResults();">machine -"the machine"</a></li>
+                <li>Search for phrases using quotes <a href="javascript:$('#searchquery').val('&quot;like this&quot;');UpdateSongSearchResults();">
+                    "like this"</a></li>
+                <li>Use a minus sign to remove results: <a href="javascript:$('#searchquery').val('machine -&quot;the machine&quot;');UpdateSongSearchResults();">
+                    machine -"the machine"</a></li>
                 <li>Click on a search-result to add it to the playlist</li>
                 <li><b>Double-click</b> a playlist track to play it; <b>drag&amp;drop</b> tracks to
                     change order</li>
@@ -103,11 +102,14 @@
                 <li>You can save a playlist for later by copying the serialized playlist below. Load
                     such a playlist by pasting it back into the same box.</li>
             </ol>
-            <form  method="post" action="bounce-playlist" id="savePlaylistForm" target="savePlaylistIframe">
-                <input type="hidden" name="format" value="m3u"/>
-                <input type="hidden" name="playlist" id="savePlaylistHiddenJson" />
-                <button id="savePlaylistAsM3u">Save Playlist (m3u)</button>
-                <iframe id="savePlaylistIframe" ></iframe>
+            <form method="post" action="bounce-playlist" id="savePlaylistForm" target="_blank">
+            <select name="format">
+                <option value="m3u" selected="selected">M3U Format</option>
+                <option value="zip">Complete Zip</option>
+            </select>
+            <input type="hidden" name="playlist" id="savePlaylistHiddenJson" />
+            <button id="savePlaylistAsM3u">
+                Export Playlist</button>
             </form>
         </fieldset>
     </div>

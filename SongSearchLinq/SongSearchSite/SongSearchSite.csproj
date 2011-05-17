@@ -41,6 +41,9 @@
     <DebugSymbols>true</DebugSymbols>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Ionic.Zip.Reduced">
+      <HintPath>..\BINARIES\Ionic.Zip.Reduced.dll</HintPath>
+    </Reference>
     <Reference Include="Newtonsoft.Json">
       <HintPath>..\Json.NET\Bin\DotNet\Newtonsoft.Json.dll</HintPath>
     </Reference>
