@@ -128,9 +128,6 @@
   </xsl:template>
 
   <xsl:template match="partsong|songref|song">
-    <xsl:variable name="songlabel">
-      <xsl:apply-templates select="." mode="makelabel" />
-    </xsl:variable>
     <xsl:variable name="length">
       <xsl:choose>
         <xsl:when test="@length">
@@ -142,7 +139,7 @@
       </xsl:choose>
     </xsl:variable>
 
-    <tr data-href="{@songuri}" title="{@songuri}" data-label="{$songlabel}" data-length="{$length}" data-replaygain="{@Tgain}" data-rating="{@rating}" data-popA="{@popA}" data-popT="{@popT}">
+    <tr data-href="{@songuri}" title="{@songuri}" data-label="{@label}" data-artist="{@artist}" data-title="{@title}" data-length="{$length}" data-replaygain="{@Tgain}" data-rating="{@rating}" data-popA="{@popA}" data-popT="{@popT}">
       <xsl:choose>
         <xsl:when test="@artist">
           <td>
@@ -215,18 +212,6 @@
         </xsl:otherwise>
       </xsl:choose>
     </tr>
-  </xsl:template>
-
-
-  <xsl:template match="partsong|songref|song" mode="makelabel">
-    <xsl:choose>
-      <xsl:when test="@artist">
-        <xsl:value-of select="concat(@artist,' - ',@title)"/>
-      </xsl:when>
-      <xsl:otherwise>
-        <xsl:value-of select="@label"/>
-      </xsl:otherwise>
-    </xsl:choose>
   </xsl:template>
 
   <xsl:template name="replace">

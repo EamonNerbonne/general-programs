@@ -33,7 +33,7 @@ namespace SongSearchSite {
 		public void ProcessRequest(HttpContext context) {
 			try {
 				ScrobbleMessage command = JsonConvert.DeserializeObject<ScrobbleMessage>(context.Request["scrobbler"]);
-				var fullSongData = SongDbContainer.GetSongFromFullUri(Uri.UnescapeDataString(command.href)) as SongFileData;
+				var fullSongData = SongDbContainer.GetSongFromFullUri(context, command.href) as SongFileData;
 
 				SongRef songGuess = SongGuess(command.label);
 				bool haveSomeGuess = fullSongData != null || songGuess != null;

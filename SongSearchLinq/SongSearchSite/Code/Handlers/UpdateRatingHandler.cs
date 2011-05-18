@@ -16,8 +16,7 @@ namespace SongSearchSite.Code.Handlers {
 			try {
 				var escapedSongUri = context.Request["songuri"];
 				var newRating = context.Request["rating"].ParseAsInt32();
-				var path = Uri.UnescapeDataString(escapedSongUri);
-				var songdata = SongDbContainer.GetSongFromFullUri(path) as SongFileData;
+				var songdata = SongDbContainer.GetSongFromFullUri(context, escapedSongUri) as SongFileData;
 				songdata.rating = newRating == 0 ? null : newRating;
 
 				bool ok = false;
@@ -35,7 +34,9 @@ namespace SongSearchSite.Code.Handlers {
 				}
 				if (!ok)
 					context.Response.Output.Write(JsonConvert.SerializeObject(new SimilarPlaylistError {
-					                                                                   	error = "FileInUse", message = path + " is in use and not released for 60 seconds or more. Try again later.", fulltrace = ""
+						error = "FileInUse",
+						message = escapedSongUri + " is in use and not released for 60 seconds or more. Try again later.",
+						fulltrace = ""
 					                                                                   }));
 				else
 					context.Response.Output.Write(JsonConvert.SerializeObject(context.User.Identity.Name));

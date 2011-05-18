@@ -162,5 +162,4 @@ namespace SongSearchSite.Code.Handlers {
 				return url + "?" + HttpUtility.UrlEncode(song.HumanLabel) + "\n";
 		}
 	}
-
 }

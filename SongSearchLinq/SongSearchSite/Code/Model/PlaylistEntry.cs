@@ -19,9 +19,9 @@ namespace SongSearchSite.Code.Model {
 		// ReSharper enable UnaccessedField.Global
 		// ReSharper enable MemberCanBePrivate.Global
 
-		public ISongFileData LookupLocalData() { return SongDbContainer.GetSongFromFullUri(Uri.UnescapeDataString(href)); }
-		public ISongFileData LookupBestGuess() {
-			var match = SongDbContainer.GetSongFromFullUri(Uri.UnescapeDataString(href));
+		public SongFileData LookupLocalData(HttpContext context) { return SongDbContainer.GetSongFromFullUri(context, href); }
+		public SongFileData LookupBestGuess(HttpContext context) {
+			var match = SongDbContainer.GetSongFromFullUri(context, href);
 			if (match != null) return match;
 			if (artist != null && title != null)
 				return SongDbContainer.FuzzySongSearcher.FindBestMatch(SongRef.Create(artist, title)).Song;
@@ -36,15 +36,16 @@ namespace SongSearchSite.Code.Model {
 		public static PlaylistEntry MakeEntry(Func<Uri, Uri> uriMapper, SongFileData knownSong) {
 			return new PlaylistEntry {
 				href = uriMapper(knownSong.SongUri).ToString(),
-				label = knownSong.HumanLabel,
+				label = knownSong.artist==null||knownSong.title==null? knownSong.HumanLabel:null,
+				artist = knownSong.artist,
+				title = knownSong.title,
 				length = knownSong.Length,
 				replaygain = knownSong.track_gain,
 				rating = knownSong.rating,
 				popA = knownSong.popA_forscripting,
-				popT = knownSong.popT_forscripting
+				popT = knownSong.popT_forscripting,
 			};
 		}
-
 	}
 	enum PlaylistFormat {
 		m3u, m3u8, xml, json, zip

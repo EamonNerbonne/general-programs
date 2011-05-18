@@ -16,29 +16,46 @@ namespace SongSearchSite.Code.Handlers {
 		public void ProcessRequest(HttpContext context) {
 			PlaylistEntry[] playlistFromJson = JsonConvert.DeserializeObject<PlaylistEntry[]>(context.Request["playlist"]);
 
-			ISongFileData[] playlistLocal = playlistFromJson.Select(item => item.LookupBestGuess()).Where(item => item != null).ToArray();
+			SongFileData[] playlistLocal = playlistFromJson.Select(item => item.LookupBestGuess(context)).Where(item => item != null).ToArray();
 
 			PlaylistFormat format = (PlaylistFormat)Enum.Parse(typeof(PlaylistFormat), context.Request["format"]);
 
-			if (format == PlaylistFormat.m3u)
-				ProcessAsM3u(context, playlistLocal);
+			if (format == PlaylistFormat.m3u || format == PlaylistFormat.m3u8)
+				ProcessAsM3u(context, playlistLocal, format);
 			else if (format == PlaylistFormat.zip)
 				ProcessAsZip(context, playlistLocal);
+			else if (format == PlaylistFormat.json)
+				ProcessAsJson(context, playlistLocal);
 			else throw new NotImplementedException(format.ToString());
 
 
 			//TODO:support other formats, refactor m3u support to separate file. 
 		}
 
-		static void ProcessAsM3u(HttpContext context, ISongFileData[] playlistLocal) {
+		static void ProcessAsJson(HttpContext context, SongFileData[] playlistLocal) {
+			try {
+				context.Response.ContentType = "application/json";
+				context.Response.ContentEncoding = Encoding.UTF8;
+
+				Func<Uri, Uri> uriMapper = SongDbContainer.LocalSongPathToAppRelativeMapper(context);
+				context.Response.Output.Write(
+					JsonConvert.SerializeObject(playlistLocal.Select(song => PlaylistEntry.MakeEntry(uriMapper, song)).ToArray())
+				);
+			} catch (Exception e) {
+				context.Response.ContentType = "application/json";
+				context.Response.Output.Write(JsonConvert.SerializeObject(new SimilarPlaylistError { error = e.GetType().FullName, message = e.Message, fulltrace = e.ToString() }));
+			}
+		}
+
+		static void ProcessAsM3u(HttpContext context, SongFileData[] playlistLocal, PlaylistFormat format) {
 			context.Response.ContentType = "audio/x-mpegurl";
-			context.Response.ContentEncoding = Encoding.GetEncoding(1252);
-			context.Response.Headers["Content-Disposition"] = "attachment; filename=" + Uri.EscapeDataString(context.User.Identity.Name + DateTime.Now.ToString("yyyyddMM") + ".m3u");
+			context.Response.ContentEncoding = format == PlaylistFormat.m3u8 ? Encoding.UTF8 : Encoding.GetEncoding(1252);
+			context.Response.Headers["Content-Disposition"] = "attachment; filename=" + Uri.EscapeDataString(context.User.Identity.Name + DateTime.Now.ToString("yyyyddMM") + "." + format);
 
 			var uriMapper = SongDbContainer.LocalSongPathToAbsolutePathMapper(context);
 			context.Response.Write(MakeM3u(playlistLocal, songdata => uriMapper(songdata.SongUri).AbsoluteUri));
 		}
-		static void ProcessAsZip(HttpContext context, ISongFileData[] playlistLocal) {
+		static void ProcessAsZip(HttpContext context, SongFileData[] playlistLocal) {
 			string filename = context.User.Identity.Name + DateTime.Now.ToString("yyyyddMM");
 			context.Response.ContentType = "application/zip";
 			context.Response.AddHeader("Content-Disposition", "attachment; filename=" + filename + ".zip");
@@ -54,10 +71,10 @@ namespace SongSearchSite.Code.Handlers {
 			}
 		}
 
-		private static string MakeM3u(ISongFileData[] playlistLocal, Func<ISongFileData, string> songToPathMapper) {
+		private static string MakeM3u(SongFileData[] playlistLocal, Func<SongFileData, string> songToPathMapper) {
 			StringBuilder m3u = new StringBuilder();
 			m3u.Append("#EXTM3U\n");
-			foreach (ISongFileData songdata in playlistLocal)
+			foreach (SongFileData songdata in playlistLocal)
 				m3u.Append("#EXTINF:" + songdata.Length + "," + songdata.HumanLabel + "\n" + songToPathMapper(songdata) + "\n");
 			return m3u.ToString();
 		}

@@ -49,19 +49,23 @@ namespace SongSearchSite {
 			return Uri.EscapeDataString(CanonicalRelativeSongPath(localSongPath)).Replace("%2F", "/");
 		}
 
+		public static Uri SongBaseUri(HttpContext context) {
+			return new Uri(context.Request.Url, context.Request.ApplicationPath + "/" + songsPrefix);
+		}
+
+		public static Uri AppBaseUri(HttpContext context) {
+			return new Uri(context.Request.Url, context.Request.ApplicationPath + "/");
+		}
+
 		public static Func<Uri, Uri> LocalSongPathToAbsolutePathMapper(HttpContext context) {
-			return local2absHelper(new Uri(context.Request.Url, context.Request.ApplicationPath + "/" + songsPrefix));
+			Uri songsBaseUri = SongBaseUri(context);
+			return localSongUri => localSongUri.IsFile ? new Uri(songsBaseUri, EscapedRelativeSongPath(localSongUri)) : localSongUri;
 		}
-		static Func<Uri, Uri> local2absHelper(Uri songsBaseUri) {
-			return localSongUri =>
-				localSongUri.IsFile ? new Uri(songsBaseUri, EscapedRelativeSongPath(localSongUri)) : localSongUri;
-		}
+
 		public static Func<Uri, Uri> LocalSongPathToAppRelativeMapper(HttpContext context) {
-			return local2relHelper(new Uri(context.Request.Url, context.Request.ApplicationPath + "/" + songsPrefix), new Uri(context.Request.Url, context.Request.ApplicationPath + "/"));
-		}
-		static Func<Uri, Uri> local2relHelper(Uri songsBaseUri, Uri appBaseUri) {
-			return localSongUri =>
-				localSongUri.IsFile ? appBaseUri.MakeRelativeUri(new Uri(songsBaseUri, EscapedRelativeSongPath(localSongUri))) : localSongUri;
+			Uri appBaseUri = AppBaseUri(context);
+			Uri songsBaseUri = SongBaseUri(context);
+			return localSongUri => localSongUri.IsFile ? appBaseUri.MakeRelativeUri(new Uri(songsBaseUri, EscapedRelativeSongPath(localSongUri))) : localSongUri;
 		}
 
 		static SongDbContainer Singleton {
@@ -143,14 +147,14 @@ namespace SongSearchSite {
 		public static FuzzySongSearcher FuzzySongSearcher { get { return Singleton.fuzzySearcher.Result; } }
 		public static SongTools LastFmTools { get { return Singleton.tools; } }
 		public static DateTime LoadTime { get { return Singleton.loaded; } }
-		public static int[] RankMapFor(SortOrdering ordering) { return Singleton.RankMapForOrdering(ordering); } 
+		public static int[] RankMapFor(SortOrdering ordering) { return Singleton.RankMapForOrdering(ordering); }
 
 		/// <summary>
 		/// Determines whether a given path maps to an indexed, local song.  If it doesn't, it returns null.  If it does, it returns the meta data known about the song, including the song's "real" path.
 		/// </summary>
 		/// <param name="path">The normalized path </param>
 		/// <returns></returns>
-		static ISongFileData GetSongByNormalizedPath(string path) {
+		static SongFileData GetSongByNormalizedPath(string path) {
 			SongFileData retval;
 			Singleton.localSongs.Result.TryGetValue(path, out retval);
 			return retval;
@@ -160,11 +164,15 @@ namespace SongSearchSite {
 		/// Determines whether a given path maps to an indexed, local song.  If it doesn't, it returns null.  If it does, it returns the meta data known about the song, including the song's "real" path.
 		/// </summary>
 		/// <param name="reqPath">Application relative request path</param>
-		public static ISongFileData GetSongFromFullUri(string reqPath) {
-			if (!reqPath.StartsWith(songsPrefix))
-				throw new Exception("Whoops, illegal request routing...  this should not be routed to this class!");
+		public static SongFileData GetSongFromFullUri(HttpContext context, string reqPath) {
+			//reqPath might be relative or absolute.
+			Uri appBaseUri = AppBaseUri(context);
+			Uri songUri = new Uri(appBaseUri, reqPath);
+			string appRelativeUri = Uri.UnescapeDataString(appBaseUri.MakeRelativeUri(new Uri(appBaseUri, reqPath)).ToString());
+			if (!appRelativeUri.StartsWith(songsPrefix))
+				return null;
 
-			string songNormedPath = reqPath.Substring(songsPrefix.Length);
+			string songNormedPath = appRelativeUri.Substring(songsPrefix.Length);
 			return GetSongByNormalizedPath(songNormedPath);
 		}
 	}

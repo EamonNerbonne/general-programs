@@ -240,7 +240,7 @@ $(document).ready(function ($) {
         playlistRefreshUi();
     }
 
-    function loadPlaylist(list) {
+    function loadPlaylistSync(list) {
         playlistElem.empty();
         for (i = 0; i < list.length; i++)
             addToPlaylistRaw(list[i]);
@@ -248,6 +248,25 @@ $(document).ready(function ($) {
         else $("#jquery_jplayer").jPlayer("stop");
         playlistRefreshUi();
     }
+
+    function loadPlaylist(list) {
+        function oops(ignore, errorstatus, errormessage) {
+            songdata.rating = oldRating;
+            ratingDiv.attr("data-rating", oldRating || "");
+            alert(errorstatus + " while setting rating=" + newRating + ": " + songdata.href + "\n" + (errormessage || ""));
+        };
+
+        $.ajax({
+            type: "POST",
+            url: "bounce-playlist",
+            data: { playlist: JSON.stringify(list), format: "json" },
+            timeout: 62 * 1000,
+            success: function (data) { if (data && data.error) oops(null,data.error,data.message); else loadPlaylistSync(data); },
+            error: oops
+        });
+    }
+
+
     function savePlaylist() {
         return $("#jplayer_playlist ul li").map(function (i, e) { return $(e).data("songdata"); }).get();
     }
@@ -265,9 +284,13 @@ $(document).ready(function ($) {
     }
     var sixAnchors = $("<a><a><a><a><a><a></a></a></a></a></a></a>");
 
+    function getLabel(song) {
+        return song.artist && song.title ? song.artist + " - " + song.title : song.label;
+    }
+
     function makeListItem(song) {
         var rating = Math.max(0, Math.min(song.rating || 0, 5));
-        return $(document.createElement("li")).text(song.label).data("songdata", song)
+        return $(document.createElement("li")).text(getLabel(song)).data("songdata", song)
             .append($(document.createElement("div")).attr("data-rating", rating).append(sixAnchors.clone()))
             .append($(document.createElement("div")).addClass("deleteButton"))
             .disableSelection();
@@ -312,7 +335,7 @@ $(document).ready(function ($) {
         for (var i = 0; i < known.length; i++) {
             knownSel.append(
                 $(document.createElement("li"))
-                    .text(known[i].label)
+                    .text(getLabel(known[i]))
                     .attr("data-staticrating", known[i].rating || "")
                     .data("songdata", known[i])
                     .append(
@@ -492,6 +515,8 @@ $(document).ready(function ($) {
     function addRowToPlaylist(clickedRowJQ) {
         addToPlaylist(
             { label: clickedRowJQ.attr("data-label") || GetFileName(clickedRowJQ.attr("data-href")),
+                artist: clickedRowJQ.attr("data-artist"),
+                title: clickedRowJQ.attr("data-title"),
                 href: clickedRowJQ.attr("data-href"),
                 length: clickedRowJQ.attr("data-length"),
                 replaygain: Number(clickedRowJQ.attr("data-replaygain")) || 0,

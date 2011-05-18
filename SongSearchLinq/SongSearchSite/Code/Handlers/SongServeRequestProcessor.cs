@@ -15,7 +15,7 @@ namespace SongSearchSite.Code.Handlers
 		public void ProcessingStart() { }
 
 		public PotentialResourceInfo DetermineResource() {
-			song = SongDbContainer.GetSongFromFullUri(helper.Context.Request.AppRelativeCurrentExecutionFilePath.Substring(2));
+			song = SongDbContainer.GetSongFromFullUri(helper.Context,helper.Context.Request.AppRelativeCurrentExecutionFilePath.Substring(2));
 			if (song == null)
 				return new ResourceError {
 				                         	Code = 404,
@@ -65,7 +65,7 @@ namespace SongSearchSite.Code.Handlers
 			long fileByteCount = new FileInfo(song.SongUri.LocalPath).Length;
 			double songSeconds = Math.Max(1.0, TagLib.File.Create(song.SongUri.LocalPath).Properties.Duration.TotalSeconds);
 			int maxBytesPerSecSong = (int)(Math.Max(256 * 1024 / 8, Math.Min(fileByteCount / songSeconds, 320 * 1024 / 8)) * 1.25);
-			int maxBytesPerSec = 300000;//alternative: use extract from tag using taglib.
+			int maxBytesPerSec = 300*1000;//alternative: use extract from tag using taglib.
 			using (var servingStatus = new ServingActivity.ServedFileStatus(song.SongUri.LocalPath, range, helper.Context.Request.UserHostAddress, helper.Context.User.Identity.Name, maxBytesPerSec)) {
 				const int fastStartSec = 10;
 				byte[] buffer = new byte[window];
