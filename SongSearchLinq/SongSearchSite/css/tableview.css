@@ -1,4 +1,23 @@
-﻿table
+﻿/*$base03:    #002b36;
+$base02:    #073642;
+$base01:    #586e75;
+$base00:    #657b83;
+$base0:     #839496;
+$base1:     #93a1a1;
+$base2:     #eee8d5;
+$base3:     #fdf6e3;
+$yellow:    #b58900;
+$orange:    #cb4b16;
+$red:       #dc322f;
+$magenta:   #d33682;
+$violet:    #6c71c4;
+$blue:      #268bd2;
+$cyan:      #2aa198;
+$green:     #859900;*/
+
+body{background:#fdf6e3; color:#586e75;}
+
+table
 {
     border-collapse: collapse;
     width: 100%;
@@ -6,10 +25,11 @@
     line-height:0.9;
     vertical-align:middle;
 }
+thead{color:#657b83;}
 
 tr
 {
-    border: solid #e2eeea;
+    border: solid #eee8d5;
     border-width: 1px 0 0 0;
     cursor: pointer;
     height:1.5em;
@@ -17,54 +37,17 @@ tr
 
 tr:nth-child(5n)
 {
-    border: solid #8ba;
+    border: solid #93a1a1;
     border-width: 1px 0;
-    background: #e2eeea;
+    background: #eee8d5;
 }
 
 tr > *:nth-child(2)
 {
     font-style: italic;
 }
-/*
-td > div
-{
-    overflow: hidden;
-    max-height: 1.28em;
-    max-width: 100%;
-    position: relative;
-}
-td > div > span
-{
-    position: relative;
-    z-index: 1;
-}
-
-
-
-td > div > i
-{
-    float: right;
-    position: relative;
-    white-space: nowrap;
-    width: 0;
-    overflow: show;
-    background: red;
-    z-index: 0;
-}
-
-td > div > i > i
-{
-    position: absolute;
-    bottom: 0.0ex;
-    font-weight: bold;
-    right: 0;
-    color: #aaa;
-}
-*/
-td {width:5em;}
-td+td {width:auto;}
-td{max-width:25%; }
+td:first-child{color:#002b36;width:5em;} 
+td {width:auto;max-width:25%; }
 body
 {
     font-family: Segoe UI, 'Droid Sans', Arial, Sans-Serif; /* Segoe UI, Calibri, Bitstream Vera Sans, Gill Sans, Verdana, Sans-Serif;*/
@@ -80,7 +63,7 @@ body
     left:0;
     bottom:50%;
     max-width:5em;
-    background:#38f;
+    background:#d33682;
 }
 .popAbar 
 {
@@ -89,5 +72,5 @@ body
     left:0;
     bottom:0;
     max-width:5em;
-    background:#3f8;
+    background:#6c71c4;
 }
