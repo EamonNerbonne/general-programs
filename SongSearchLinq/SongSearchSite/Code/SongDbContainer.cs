@@ -168,7 +168,7 @@ namespace SongSearchSite {
 			//reqPath might be relative or absolute.
 			Uri appBaseUri = AppBaseUri(context);
 			Uri songUri = new Uri(appBaseUri, reqPath);
-			string appRelativeUri = Uri.UnescapeDataString(appBaseUri.MakeRelativeUri(new Uri(appBaseUri, reqPath)).ToString());
+			string appRelativeUri = Uri.UnescapeDataString(appBaseUri.MakeRelativeUri(songUri).ToString());
 			if (!appRelativeUri.StartsWith(songsPrefix))
 				return null;
 
