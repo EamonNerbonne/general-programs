@@ -55,7 +55,7 @@ namespace LastFMspider {
 						PartialSongFileData song = (PartialSongFileData)songMin;
 						decentMatch = FindBestSufficientMatchWithLogging(fuzzySearcher, song, nomatch, toobad, iffy, matchfound);
 					} else {
-						SongFileData[] exactFilenameMatch = fuzzySearcher.songs.Where(sd => Path.GetFileName(sd.SongUri.ToString()) == Path.GetFileName(songMin.SongUri.ToString())).ToArray();
+						SongFileData[] exactFilenameMatch = fuzzySearcher.songs.Where(sd => Path.GetFileName(sd.SongUri.ToString()) == Path.GetFileName(songMin.SongUri.ToString()) && Math.Abs(songMin.Length - sd.Length) < 4).ToArray();
 						if (exactFilenameMatch.Length == 1)
 							decentMatch = exactFilenameMatch[0];
 					}
@@ -65,21 +65,18 @@ namespace LastFMspider {
 			return playlistfixed;
 		}
 		private static SongFileData FindBestSufficientMatchWithLogging(FuzzySongSearcher fuzzySearcher, PartialSongFileData song, Action<PartialSongFileData> nomatch, Action<PlaylistSongMatch> toobad, Action<PlaylistSongMatch> iffy, Action<PlaylistSongMatch> matchfound) {
-			PlaylistSongMatch best = FindBestMatch(fuzzySearcher, song);
-			if (best.SongData != null)
+			PlaylistSongMatch best = FindBestMatch2(fuzzySearcher, song);
+			if (best.SongData == null)
+				nomatch(song);
+			else if (best.Cost < 6 && SongRef.PossibleSongRefs(song.HumanLabel).Any(songref => songref.Equals(SongRef.Create(best.SongData))))
 				matchfound(best);
+			else if (best.Cost <= 7.5)
+				iffy(best);
 			else {
-				best = FindBestMatch2(fuzzySearcher, song);
-				if (best.SongData != null) {
-					if (best.Cost <= 7.5) {
-						iffy(best);
-					} else {
-						toobad(best);
-						best = new PlaylistSongMatch { SongData = null };
-					}
-				} else
-					nomatch(song);
+				toobad(best);
+				best = new PlaylistSongMatch { SongData = null };
 			}
+
 			return best.SongData;
 		}
 
@@ -87,6 +84,7 @@ namespace LastFMspider {
 			var q = from songrefOpt in SongRef.PossibleSongRefs(songToFind.HumanLabel)
 					from songdataOpt in fuzzySearcher.FindPerfectMatchingSongs(songrefOpt)
 					let lengthDiff = Math.Abs(songToFind.Length - songdataOpt.Length)
+					where lengthDiff < 9
 					let filenameDiff = NormalizedFileName(songToFind.SongUri.ToString()).LevenshteinDistance(NormalizedFileName(songdataOpt.SongUri.ToString()))
 					select new PlaylistSongMatch { SongData = songdataOpt, Orig = songToFind, Cost = lengthDiff * 0.5 + filenameDiff * 0.2 };
 			return q.Aggregate(new PlaylistSongMatch { SongData = default(SongFileData), Cost = int.MaxValue }, (a, b) => a.Cost < b.Cost ? a : b);
