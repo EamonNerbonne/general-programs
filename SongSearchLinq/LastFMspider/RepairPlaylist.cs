@@ -44,7 +44,6 @@ namespace LastFMspider {
 
 
 	public static class RepairPlaylist {
-
 		public static ISongFileData[] GetPlaylistFixed(ISongFileData[] playlist, FuzzySongSearcher fuzzySearcher, Func<Uri, SongFileData> findByUri, Action<PartialSongFileData> nomatch, Action<PlaylistSongMatch> toobad, Action<PlaylistSongMatch> iffy, Action<PlaylistSongMatch> matchfound) {
 			ISongFileData[] playlistfixed = new ISongFileData[playlist.Length];
 			int idx = 0;
@@ -76,18 +75,7 @@ namespace LastFMspider {
 				toobad(best);
 				best = new PlaylistSongMatch { SongData = null };
 			}
-
 			return best.SongData;
-		}
-
-		static PlaylistSongMatch FindBestMatch(FuzzySongSearcher fuzzySearcher, PartialSongFileData songToFind) {
-			var q = from songrefOpt in SongRef.PossibleSongRefs(songToFind.HumanLabel)
-					from songdataOpt in fuzzySearcher.FindPerfectMatchingSongs(songrefOpt)
-					let lengthDiff = Math.Abs(songToFind.Length - songdataOpt.Length)
-					where lengthDiff < 9
-					let filenameDiff = NormalizedFileName(songToFind.SongUri.ToString()).LevenshteinDistance(NormalizedFileName(songdataOpt.SongUri.ToString()))
-					select new PlaylistSongMatch { SongData = songdataOpt, Orig = songToFind, Cost = lengthDiff * 0.5 + filenameDiff * 0.2 };
-			return q.Aggregate(new PlaylistSongMatch { SongData = default(SongFileData), Cost = int.MaxValue }, (a, b) => a.Cost < b.Cost ? a : b);
 		}
 
 		static PlaylistSongMatch FindBestMatch2(FuzzySongSearcher fuzzySearcher, PartialSongFileData songToFind) {//TODO: reimplement with FuzzySongSearcher
@@ -110,7 +98,6 @@ namespace LastFMspider {
 				return filename;
 			}
 		}
-
 
 		public static ISongFileData[] GetPlaylistFixed(ISongFileData[] m3uPlaylist, FuzzySongSearcher fuzzySongSearcher, Func<Uri, SongFileData> lookupSongByUri) {
 			return GetPlaylistFixed(m3uPlaylist, fuzzySongSearcher, lookupSongByUri, _ => { }, _ => { }, _ => { }, _ => { });
