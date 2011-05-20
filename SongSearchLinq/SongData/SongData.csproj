@@ -65,10 +65,6 @@
     <Reference Include="System.Xml.Linq">
       <RequiredTargetFramework>3.5</RequiredTargetFramework>
     </Reference>
-    <Reference Include="taglib-sharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=db62eba44689b5b0, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\BINARIES\taglib-sharp.dll</HintPath>
-    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Config\AbstractSongDataConfigSection.cs" />
@@ -132,6 +128,10 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\..\..\..\Downloads\taglib-sharp-2.0.4.0\src\taglib-sharp.csproj">
+      <Project>{6B143A39-C7B2-4743-9917-92262C60E9A6}</Project>
+      <Name>taglib-sharp</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\EmnExtensions\EmnExtensions.csproj">
       <Project>{2F0A3E48-CD06-43BB-BFC6-6B6F568232B9}</Project>
       <Name>EmnExtensions</Name>
