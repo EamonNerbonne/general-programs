@@ -119,7 +119,8 @@ namespace LastFMspider {
 			return
 				SortedIntersectionAlgorithm.SortedIntersection(
 					(from trigram in searchTrigrams
-					 select songsByTrigram[trigram]).ToArray()).Select(songIndex => songs[songIndex]);
+					 orderby songsByTrigram[trigram].Length
+					 select songsByTrigram[trigram]).ToArray()).Where(songIndex=>trigramCountBySong[songIndex] == searchTrigrams.Length).Select(songIndex => songs[songIndex]);
 		}
 	}
 }
