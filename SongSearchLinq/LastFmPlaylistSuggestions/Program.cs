@@ -23,7 +23,7 @@ namespace LastFmPlaylistSuggestions {
 			var m3us = args.Length == 0 ? dir.GetFiles("*.m3u?") : args.Select(s => new FileInfo(s)).Where(f => f.Exists);
 			DirectoryInfo m3uDir = args.Length == 0 ? tools.ConfigFile.DataDirectory.CreateSubdirectory("similarlists") : new DirectoryInfo(Environment.GetFolderPath(Environment.SpecialFolder.Desktop));
 
-			FuzzySongSearcher searchEngine = new FuzzySongSearcher(tools.SongFilesSearchData.Songs.ToArray());
+			FuzzySongSearcher searchEngine = new FuzzySongSearcher(tools.SongFilesSearchData.Songs);
 
 			foreach (var m3ufile in m3us) {
 				try {
@@ -67,7 +67,7 @@ namespace LastFmPlaylistSuggestions {
 
 		static void ProcessM3U(SongTools tools, Func<SongRef, SongMatch> fuzzySearch, FileInfo m3ufile, DirectoryInfo m3uDir) {
 			Console.WriteLine("Trying " + m3ufile.FullName);
-			IEnumerable<ISongFileData> playlist = LoadExtM3U(m3ufile);
+			IEnumerable<ISongFileData> playlist = SongFileDataFactory.LoadExtM3U(m3ufile);
 			var known = new List<SongFileData>();
 			var unknown = new List<SongRef>();
 			foreach (var song in playlist)
@@ -81,12 +81,9 @@ namespace LastFmPlaylistSuggestions {
 
 			FileInfo outputplaylist = new FileInfo(Path.Combine(m3uDir.FullName, Path.GetFileNameWithoutExtension(m3ufile.Name) + "-similar.m3u"));
 			using (var stream = outputplaylist.Open(FileMode.Create))
-			using (var writer = new StreamWriter(stream, Encoding.GetEncoding(1252))) {
-				writer.WriteLine("#EXTM3U");
-				foreach (var track in res.knownTracks) {
-					writer.WriteLine("#EXTINF:" + track.Length + "," + track.HumanLabel + "\n" + track.SongUri.LocalPath);
-				}
-			}
+			using (var writer = new StreamWriter(stream, Encoding.GetEncoding(1252)))
+				SongFileDataFactory.WriteSongsToM3U(writer, res.knownTracks);
+
 			FileInfo outputsimtracks = new FileInfo(Path.Combine(m3uDir.FullName, Path.GetFileNameWithoutExtension(m3ufile.Name) + "-similar.txt"));
 			using (var stream = outputsimtracks.Open(FileMode.Create))
 			using (var writer = new StreamWriter(stream, Encoding.UTF8)) {
@@ -120,21 +117,6 @@ namespace LastFmPlaylistSuggestions {
 					}
 				}
 			}
-
-		}
-
-
-
-		static IEnumerable<ISongFileData> LoadExtM3U(FileInfo m3ufile) {
-			List<ISongFileData> m3usongs = new List<ISongFileData>();
-			using (var m3uStream = m3ufile.OpenRead()) {
-				SongFileDataFactory.LoadSongsFromM3U(
-					m3uStream, (newsong, completion) => m3usongs.Add(newsong),
-					m3ufile.Extension.EndsWith("8") ? Encoding.UTF8 : Encoding.GetEncoding(1252),
-					true
-					);
-			}
-			return m3usongs;
 		}
 	}
 }

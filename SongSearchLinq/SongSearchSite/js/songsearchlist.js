@@ -251,9 +251,7 @@ $(document).ready(function ($) {
 
     function loadPlaylist(list) {
         function oops(ignore, errorstatus, errormessage) {
-            songdata.rating = oldRating;
-            ratingDiv.attr("data-rating", oldRating || "");
-            alert(errorstatus + " while setting rating=" + newRating + ": " + songdata.href + "\n" + (errormessage || ""));
+            alert(errorstatus + " while bouncing playlist off server\n" + (errormessage || ""));
         };
 
         $.ajax({
@@ -261,7 +259,7 @@ $(document).ready(function ($) {
             url: "bounce-playlist",
             data: { playlist: JSON.stringify(list), format: "json" },
             timeout: 62 * 1000,
-            success: function (data) { if (data && data.error) oops(null,data.error,data.message); else loadPlaylistSync(data); },
+            success: function (data) { if (data && data.error) oops(null, data.error, data.message); else loadPlaylistSync(data); },
             error: oops
         });
     }
@@ -551,6 +549,43 @@ $(document).ready(function ($) {
     $("#savePlaylistForm").submit(function savePlaylistAsM3u() {
         var serializedList = JSON.stringify(savePlaylist());
         $("#savePlaylistHiddenJson").val(JSON.stringify(savePlaylist()));
+    });
+
+    /////////////////////////////////////////////////////////////////DROP PLAYLIST
+
+
+    $("body").bind("dragover", function (e) {
+        e.preventDefault();
+        e.originalEvent.dataTransfer.dropEffect = "copy";
+    }).bind("drop", function (e) {
+        e.stopPropagation();
+        e.preventDefault();
+        var files = e.originalEvent.dataTransfer.files;
+        //for (var i = 0, f; f = files[i]; i++) alert(f.name);
+
+        function oops(ignore, errorstatus, errormessage) {
+            alert(errorstatus + " while bouncing playlist off server\n" + (errormessage || ""));
+        };
+        function uploadDone(e) {
+            var jsResponse = JSON.parse(e.target.responseText);
+            if (e.target.status < 200 || e.target.status >= 300 || !jsResponse)
+                oops(null, e.target.status, e.target.responseText);
+            else if (jsResponse.error)
+                oops(null, jsResponse.error, jsResponse.message);
+            else
+                loadPlaylistSync(jsResponse);
+        }
+
+        var xhr = new XMLHttpRequest();
+
+        var fd = new FormData();
+        fd.append("format", "json");
+        fd.append("playlist", files[0]);
+        xhr.addEventListener("load", uploadDone, false);
+        xhr.addEventListener("error", oops, false);
+        xhr.addEventListener("abort", oops, false);
+        xhr.open("POST", "bounce-playlist");
+        xhr.send(fd);
     });
 });
 

@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Web;
+using LastFMspider;
 using Newtonsoft.Json;
 using SongDataLib;
 using SongSearchSite.Code.Model;
@@ -14,9 +15,8 @@ namespace SongSearchSite.Code.Handlers {
 		public bool IsReusable { get { return true; } }
 
 		public void ProcessRequest(HttpContext context) {
-			PlaylistEntry[] playlistFromJson = JsonConvert.DeserializeObject<PlaylistEntry[]>(context.Request["playlist"]);
-
-			SongFileData[] playlistLocal = playlistFromJson.Select(item => item.LookupBestGuess(context)).Where(item => item != null).ToArray();
+			var postedFile = context.Request.Files["playlist"];
+			SongFileData[] playlistLocal = postedFile != null ? GetPlaylistFromM3U(context, postedFile) : GetPlaylistFromJson(context);
 
 			PlaylistFormat format = (PlaylistFormat)Enum.Parse(typeof(PlaylistFormat), context.Request["format"]);
 
@@ -27,9 +27,19 @@ namespace SongSearchSite.Code.Handlers {
 			else if (format == PlaylistFormat.json)
 				ProcessAsJson(context, playlistLocal);
 			else throw new NotImplementedException(format.ToString());
+		}
+
+		private static SongFileData[] GetPlaylistFromJson(HttpContext context) {
+			PlaylistEntry[] playlistFromJson = JsonConvert.DeserializeObject<PlaylistEntry[]>(context.Request["playlist"]);
 
 
-			//TODO:support other formats, refactor m3u support to separate file. 
+			return playlistFromJson.Select(item => item.LookupBestGuess(context)).Where(item => item != null).ToArray();
+		}
+
+		private static SongFileData[] GetPlaylistFromM3U(HttpContext context, HttpPostedFile postedFile) {
+			var m3uPlaylist = SongFileDataFactory.LoadExtM3U(postedFile.InputStream, Path.GetExtension(postedFile.FileName));
+			return RepairPlaylist.GetPlaylistFixed(m3uPlaylist, SongDbContainer.FuzzySongSearcher, uri => SongDbContainer.GetSongFromFullUri(context, uri.ToString()))
+				.OfType<SongFileData>().ToArray();
 		}
 
 		static void ProcessAsJson(HttpContext context, SongFileData[] playlistLocal) {
@@ -71,12 +81,11 @@ namespace SongSearchSite.Code.Handlers {
 			}
 		}
 
-		private static string MakeM3u(SongFileData[] playlistLocal, Func<SongFileData, string> songToPathMapper) {
-			StringBuilder m3u = new StringBuilder();
-			m3u.Append("#EXTM3U\n");
-			foreach (SongFileData songdata in playlistLocal)
-				m3u.Append("#EXTINF:" + songdata.Length + "," + songdata.HumanLabel + "\n" + songToPathMapper(songdata) + "\n");
-			return m3u.ToString();
+		private static string MakeM3u(SongFileData[] playlistLocal, Func<ISongFileData, string> songToPathMapper) {
+			using (var writer = new StringWriter()) {
+				SongFileDataFactory.WriteSongsToM3U(writer, playlistLocal, songToPathMapper);
+				return writer.ToString();
+			}
 		}
 	}
 }

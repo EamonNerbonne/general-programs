@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Text;
@@ -33,11 +34,11 @@ namespace SongDataLib {
 				using (var reader = XmlReader.Create(textreader)) {
 					while (reader.Read()) {
 						if (!reader.IsEmptyElement || !reader.HasAttributes) continue;//only consider "empty" elements with attributes!
-						els.Add(Tuple.Create((XElement)XNode.ReadFrom(reader),songSource.Position));
+						els.Add(Tuple.Create((XElement)XNode.ReadFrom(reader), songSource.Position));
 					}
 				}
 
-			}).ContinueWith(_=>els.CompleteAdding());
+			}).ContinueWith(_ => els.CompleteAdding());
 			int songCount = 0;
 			foreach (var xElAndPos in els.GetConsumingEnumerable()) {
 				ISongFileData song = null;
@@ -70,25 +71,23 @@ namespace SongDataLib {
 		/// The Encoding is passed separately from the stream to enable seeking, if possible, which is not possible in
 		///  a TextReader based approach.
 		/// </summary>
-		/// <param name="songSource">The stream to read from</param>
+		/// <param name="tr">The stream to read from</param>
 		/// <param name="songSink">The handler to call for each found song</param>
-		/// <param name="encoding">The encoding to use for decoding the stream.</param>
-		public static void LoadSongsFromM3U(Stream songSource, SongDataLoadDelegate songSink, Encoding encoding, bool? songsLocal) {
-			long streamLength = F.Swallow(() => songSource.Length, () => -1);
-			int songCount = 0; //fallback guesstimation
-			StreamReader tr;
-			tr = new StreamReader(songSource, encoding);
+		public static void LoadSongsFromM3U(TextReader tr, Action<ISongFileData> songSink, bool? songsLocal) {
 			string nextLine = tr.ReadLine();
 			bool extm3u = nextLine == "#EXTM3U";
 			if (extm3u) nextLine = tr.ReadLine();
 			while (nextLine != null) {//read another song!
-				ISongFileData song;
 				string metaLine = null;
 				while (nextLine != null && nextLine.StartsWith("#") || nextLine.Trim().Length == 0) {//ignore comments or empty lines, but keep "last" comment line for EXTM3U meta-info.
 					metaLine = nextLine;
 					nextLine = tr.ReadLine();
 				}
+				// ReSharper disable HeuristicUnreachableCode
+				// ReSharper disable ConditionIsAlwaysTrueOrFalse
 				if (nextLine == null) break;
+				// ReSharper restore ConditionIsAlwaysTrueOrFalse
+				// ReSharper restore HeuristicUnreachableCode
 
 				Uri songUri;
 				if (!Uri.TryCreate(nextLine, UriKind.Absolute, out songUri))
@@ -96,22 +95,37 @@ namespace SongDataLib {
 						throw new Exception("Can't parse m3u's paths!");
 
 
-				if (extm3u && metaLine != null) {
-					song = new PartialSongFileData(null, metaLine, songUri, songsLocal);
-				} else {
-					song = new MinimalSongFileData((Uri)null, songUri, songsLocal);
-				}
-				songCount++;
-				double ratioDone =
-					streamLength == -1 ?
-					1 - 10000 / (double)(songCount + 10000) :
-					(double)songSource.Position / (double)streamLength;
-				songSink(song, ratioDone);
+				songSink(extm3u && metaLine != null
+						? new PartialSongFileData(null, metaLine, songUri, songsLocal)
+						: new MinimalSongFileData((Uri)null, songUri, songsLocal));
 
 				nextLine = tr.ReadLine();
 			}
-
 		}
+
+		public static void WriteSongsToM3U(TextWriter writer, IEnumerable<ISongFileData> songs, Func<ISongFileData, string> songToPathMapper = null) {
+			songToPathMapper = songToPathMapper ?? (song => (song.SongUri.IsFile ? song.SongUri.LocalPath : song.SongUri.ToString()));
+			writer.WriteLine("#EXTM3U");
+			foreach (var songdata in songs)
+				writer.WriteLine("#EXTINF:" + songdata.Length + "," + songdata.HumanLabel + "\n" + songToPathMapper(songdata));
+		}
+
+		public static ISongFileData[] LoadExtM3U(FileInfo m3ufile) {
+			using (var m3uStream = m3ufile.OpenRead())
+				return LoadExtM3U(m3uStream, m3ufile.Extension);
+		}
+
+		public static ISongFileData[] LoadExtM3U(Stream m3uStream, string extension) {
+			using (var reader = new StreamReader(m3uStream, extension.EndsWith("8") ? Encoding.UTF8 : Encoding.GetEncoding(1252))) {
+				List<ISongFileData> m3usongs = new List<ISongFileData>();
+
+				LoadSongsFromM3U(reader, m3usongs.Add, null);
+				return m3usongs.ToArray();
+			}
+		}
+
+
+
 
 		public static void LoadSongsFromPathOrUrl(string pathOrUrl, SongDataLoadDelegate songSink, bool? isLocal, string remoteUsername, string remotePass, IPopularityEstimator popEst) {
 			Console.WriteLine("Loading songs from " + pathOrUrl + ":");
@@ -137,10 +151,17 @@ namespace SongDataLib {
 		public static void LoadSongsFromStream(Stream stream, string extension, SongDataLoadDelegate songSink, bool? isLocal, IPopularityEstimator popEst) {
 			if (extension == ".xml")
 				LoadSongsFromXmlFrag(null, stream, songSink, isLocal, popEst);
-			else if (extension == ".m3u")
-				LoadSongsFromM3U(stream, songSink, Encoding.GetEncoding(1252), isLocal);
-			else if (extension == ".m3u8")
-				LoadSongsFromM3U(stream, songSink, Encoding.UTF8, isLocal);
+			else if (extension == ".m3u" || extension == ".m3u8")
+				using (var reader = new StreamReader(stream, extension == ".m3u8" ? Encoding.UTF8 : Encoding.GetEncoding(1252))) {
+					long streamLength = -1;
+					try { streamLength = stream.Length; } catch (NotSupportedException) { }
+					int songCount = 0;
+					LoadSongsFromM3U(reader, song => {
+						songCount++;
+						double ratioDone = streamLength == -1 ? 1 - 10000 / (double)(songCount + 10000) : (double)stream.Position / (double)streamLength;
+						songSink(song, ratioDone);
+					}, isLocal);
+				}
 		}
 	}
 }

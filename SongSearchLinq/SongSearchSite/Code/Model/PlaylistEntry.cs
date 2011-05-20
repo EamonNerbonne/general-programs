@@ -25,12 +25,17 @@ namespace SongSearchSite.Code.Model {
 			if (match != null) return match;
 			if (artist != null && title != null)
 				return SongDbContainer.FuzzySongSearcher.FindBestMatch(SongRef.Create(artist, title)).Song;
+			return BestFuzzyMatch(label);
+		}
+
+		public static SongFileData BestFuzzyMatch(string label)
+		{
 			return (
-				from songref in SongRef.PossibleSongRefs(label)
-				let pmatch = SongDbContainer.FuzzySongSearcher.FindBestMatch(songref)
-				where pmatch.GoodEnough
-				orderby pmatch.Cost
-				select pmatch.Song).FirstOrDefault();
+			       	from songref in SongRef.PossibleSongRefs(label)
+			       	let pmatch = SongDbContainer.FuzzySongSearcher.FindBestMatch(songref)
+			       	where pmatch.GoodEnough
+			       	orderby pmatch.Cost
+			       	select pmatch.Song).FirstOrDefault();
 		}
 
 		public static PlaylistEntry MakeEntry(Func<Uri, Uri> uriMapper, SongFileData knownSong) {

@@ -120,7 +120,7 @@ namespace SongSearchSite {
 			rankMap = new ConcurrentDictionary<SortOrdering, int[]>();
 
 			searchEngine = searchData.ContinueWith(sd => new SearchableSongFiles(sd.Result, null));
-			fuzzySearcher = searchData.ContinueWith(sd => new FuzzySongSearcher(tools.SongFilesSearchData.Songs.ToArray()));
+			fuzzySearcher = searchData.ContinueWith(sd => new FuzzySongSearcher(tools.SongFilesSearchData.Songs));
 			localSongs = searchData.ContinueWith(sd =>
 				new SortedList<string, SongFileData>(
 					tools.SongFilesSearchData.Songs.Where(s => s.IsLocal)

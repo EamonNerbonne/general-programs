@@ -146,6 +146,7 @@
     <Compile Include="LastFMSQLiteBackend\UpdateArtistCasing.cs" />
     <Compile Include="LastFMSQLiteBackend\UpdateTrackCasing.cs" />
     <Compile Include="LastFMSQLiteCache.cs" />
+    <Compile Include="RepairPlaylist.cs" />
     <Compile Include="SongTools.cs" />
     <Compile Include="LfmApi\ApiClient.cs" />
     <Compile Include="LfmApi\LfmArtistRef.cs" />

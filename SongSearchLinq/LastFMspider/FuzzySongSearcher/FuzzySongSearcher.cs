@@ -12,10 +12,10 @@ namespace LastFMspider {
 	public class FuzzySongSearcher {
 		readonly int[][] songsByTrigram;
 		readonly int[] trigramCountBySong;
-		readonly SongFileData[] songs;
-		public FuzzySongSearcher(SongFileData[] songs) {
+		public readonly SongFileData[] songs;
+		public FuzzySongSearcher(IEnumerable<SongFileData> psongs) {
 			using (new DTimer("Constructing FuzzySongSearcher")) {
-				this.songs = songs;
+				this.songs = psongs.ToArray();
 				uint[][] trigramsBySong = new uint[songs.Length][];
 				trigramCountBySong = new int[songs.Length];
 				int[] trigramOccurenceCount = new int[Trigrammer.TrigramCount];
@@ -25,7 +25,6 @@ namespace LastFMspider {
 					trigramsBySong[i] =
 						Trigrammer.Trigrams(song.artist)
 						.Concat(Trigrammer.Trigrams(song.title))
-						//.Concat(Trigrammer.Trigrams(Path.GetFileNameWithoutExtension(song.SongPath)))
 						.Distinct()
 						.ToArray();
 					trigramCountBySong[i] = trigramsBySong[i].Length;
@@ -37,18 +36,21 @@ namespace LastFMspider {
 				for (int ti = 0; ti < Trigrammer.TrigramCount; ti++)
 					songsByTrigram[ti] = new int[trigramOccurenceCount[ti]];//constructed arrays to hold lists of all songs for a given trigram.
 
-				//trigramOccurenceCount: how many trigrams yet to process!
-
-				for (int i = 0; i < trigramsBySong.Length; i++) { //for each song...
-					foreach (uint trigram in trigramsBySong[i]) { //for each trigram of each song...
-						//If there were N trigrams to be processed still, then N-1 is a valid, unoccupied index in the trigram list for that song.
-						trigramOccurenceCount[trigram]--;
-						songsByTrigram[trigram][trigramOccurenceCount[trigram]] = i;
-					}
-				}
 
 				for (int ti = 0; ti < Trigrammer.TrigramCount; ti++)
-					if (trigramOccurenceCount[ti] != 0)
+					trigramOccurenceCount[ti] = 0;
+
+				//songsByTrigram[ti].Length: how many trigrams we need to process!
+				//trigramOccurenceCount[ti]: index of next trigram to process
+
+				for (int i = 0; i < trigramsBySong.Length; i++) //for each song...
+					foreach (uint trigram in trigramsBySong[i])  //for each trigram of each song...
+						songsByTrigram[trigram][trigramOccurenceCount[trigram]++] = i;
+
+				//songsByTrigram is in ascending order for any trigram!
+
+				for (int trigram = 0; trigram < Trigrammer.TrigramCount; trigram++)
+					if (trigramOccurenceCount[trigram] != songsByTrigram[trigram].Length)
 						throw new ApplicationException("BUG: Invalid programming assumption; review code.");//constructed arrays to hold lists of all songs for a given trigram.
 			}
 		}
@@ -64,7 +66,7 @@ namespace LastFMspider {
 		const int MaxMatchCount = 50;
 		[ThreadStatic]
 		static int[] songmatchcount = null;
-		public SongMatch[] FindMatchingSongs(SongRef search) {
+		public SongMatch[] FindMatchingSongs(SongRef search, bool suppressAbsoluteCost = false) {
 			int[] matchcounts = songmatchcount;
 			if (matchcounts == null)
 				songmatchcount = matchcounts = new int[songs.Length];//cache to save mem-allocation overhead.
@@ -92,33 +94,32 @@ namespace LastFMspider {
 				}
 
 				var q = from songIndex in matchingSongs.Take(MaxMatchCount)
-						select new SongMatch {
-							Song = songs[songIndex],
-							Cost =
-								 (1.0 - matchcounts[songIndex] / (double)Math.Max(searchTrigrams.Length, trigramCountBySong[songIndex]))
-								+ (songs[songIndex].artist ?? "").ToLowerInvariant().LevenshteinDistanceScaled(search.Artist.ToLowerInvariant())
-								+ (songs[songIndex].title ?? "").ToLowerInvariant().LevenshteinDistanceScaled(search.Title.ToLowerInvariant())
-								+ (songs[songIndex].artist ?? "").CanonicalizeBasic().LevenshteinDistanceScaled(search.Artist.CanonicalizeBasic())
-								+ (songs[songIndex].title ?? "").CanonicalizeBasic().LevenshteinDistanceScaled(search.Title.CanonicalizeBasic())
-								+ 0.1 * SongMatch.AbsoluteSongCost(songs[songIndex]),
-							Explain = "" + (1.0 - matchcounts[songIndex] / (double)Math.Max(searchTrigrams.Length, trigramCountBySong[songIndex])) + " + "
-										+ (songs[songIndex].artist ?? "").ToLowerInvariant().LevenshteinDistanceScaled(search.Artist.ToLowerInvariant()) + " + "
-										+ (songs[songIndex].title ?? "").ToLowerInvariant().LevenshteinDistanceScaled(search.Title.ToLowerInvariant()) + " + "
-										+ (songs[songIndex].artist ?? "").CanonicalizeBasic().LevenshteinDistanceScaled(search.Artist.CanonicalizeBasic()) + " + "
-										+ (songs[songIndex].title ?? "").CanonicalizeBasic().LevenshteinDistanceScaled(search.Title.CanonicalizeBasic()) + " + "
-										+ 0.1 * SongMatch.AbsoluteSongCost(songs[songIndex]),
-						};
+						let absoluteQualityCost = (suppressAbsoluteCost ? 0.0 : 0.1 * SongMatch.AbsoluteSongCost(songs[songIndex]))
+						let titleCanonicalizedCost = (songs[songIndex].title ?? "").CanonicalizeBasic().LevenshteinDistanceScaled(search.Title.CanonicalizeBasic())
+						let artistCanonicalizedCost = (songs[songIndex].artist ?? "").CanonicalizeBasic().LevenshteinDistanceScaled(search.Artist.CanonicalizeBasic())
+						let titleCost = (songs[songIndex].title ?? "").ToLowerInvariant().LevenshteinDistanceScaled(search.Title.ToLowerInvariant())
+						let artistCost = (songs[songIndex].artist ?? "").ToLowerInvariant().LevenshteinDistanceScaled(search.Artist.ToLowerInvariant())
+						let trigramCost = (1.0 - matchcounts[songIndex] / (double)Math.Max(searchTrigrams.Length, trigramCountBySong[songIndex]))
+						select new SongMatch(songs[songIndex], trigramCost, artistCost, titleCost, artistCanonicalizedCost, titleCanonicalizedCost, absoluteQualityCost);
+
 
 				SongMatch[] matches = q.ToArray();
 				Array.Sort(matches);
 
-				for (int i = 0; i < matchingSongs.Count; i++)
-					matchcounts[matchingSongs[i]] = 0;
+				foreach (int songIndex in matchingSongs)
+					matchcounts[songIndex] = 0;
 				return matches;
 			} catch {//hmm songmatchcount must be zeroed; we'll just throw it away.
 				songmatchcount = null;
 				throw;
 			}
+		}
+		public IEnumerable<SongFileData> FindPerfectMatchingSongs(SongRef search) {
+			uint[] searchTrigrams = Trigrammer.Trigrams(search.Artist).Concat(Trigrammer.Trigrams(search.Title)).Distinct().ToArray();
+			return
+				SortedIntersectionAlgorithm.SortedIntersection(
+					(from trigram in searchTrigrams
+					 select songsByTrigram[trigram]).ToArray()).Select(songIndex => songs[songIndex]);
 		}
 	}
 }
