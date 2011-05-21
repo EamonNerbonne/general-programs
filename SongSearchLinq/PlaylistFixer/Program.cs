@@ -74,21 +74,15 @@ namespace PlaylistFixer {
 			if (!fi.Exists) {
 				Console.WriteLine("Not found");
 			} else {
-				if (fi.Name.EndsWith("-fixed.m3u")) {
-					string newPath = Path.Combine(
-						fi.Directory.FullName,
-						fi.Name.Substring(0, fi.Name.Length - "-fixed.m3u".Length)
-						+ ".m3u");
-					if (!File.Exists(newPath))
-						fi.MoveTo(newPath);
-				}
 				ISongFileData[] playlist = SongFileDataFactory.LoadExtM3U(fi);
 				ISongFileData[] playlistfixed = RepairPlaylist.GetPlaylistFixed(playlist, fuzzySearcher, findByUri, nomatch, toobad, iffy, matchfound);
 
-				FileInfo outputplaylist = new FileInfo(Path.Combine(fi.DirectoryName, Path.GetFileNameWithoutExtension(fi.Name) + ".m3u"));
+				FileInfo outputplaylist = new FileInfo(Path.ChangeExtension(fi.FullName, ".m3u8"));
 				using (var stream = outputplaylist.Open(FileMode.Create, FileAccess.Write))
-				using (var writer = new StreamWriter(stream, Encoding.GetEncoding(1252)))
+				using (var writer = new StreamWriter(stream, Encoding.UTF8))
 					SongFileDataFactory.WriteSongsToM3U(writer, playlistfixed);
+				if (fi.Extension == ".m3u")
+					fi.Delete();
 			}
 		}
 	}
