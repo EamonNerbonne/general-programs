@@ -433,6 +433,17 @@ a:focus {
     box-shadow: 0 0 0.5em #002b36;
 }
 
+/* \2605: filled star
+    \2606: empty star
+    \21e7: arrow up
+    \21e9: arrow down
+    \D7: times symbol
+    \263a: white smiley
+    \263b: black smiley
+    \2639: sad white smiley
+    \25bc: triangle down
+    \25b2: triangle up
+*/
 div[data-rating] {
     position: absolute;
     right: 0;
@@ -444,25 +455,28 @@ div[data-rating] {
     font-size: 110%;
     color: #93a1a1;
 }
-/*div[data-rating] a {float:right;}*/
-div[data-rating] a:before {
-    content: "\2605";
-    -webkit-text-shadow: #fdf6e3 0 0 0.1em;
-}
+div[data-rating] a {float:left;display:block;} /*use floats for chrome; chrome doesn't do correct hit-testing for inlines; neither for CSS nor js handlers.*/
+div[data-rating] a:before { visibility:hidden;}
+div[data-rating] a:before { content: "\25b2"; -webkit-text-shadow: #fdf6e3 0 0 0.1em; }
+div[data-rating] a:nth-child(2):before, div[data-rating] a:nth-child(3):before { content: "\25bc";}
 
-div[data-rating] a:first-child:before {
-    content: "\D7" !important;
-    font-weight: bold;
-    visibility: hidden;
-}
-div[data-rating]:hover a:first-child:before {
+div[data-rating="1"]  a:nth-child(2):before,
+div[data-rating="1"]  a:nth-child(3):before,
+div[data-rating="2"]  a:nth-child(3):before, 
+div[data-rating="3"]  a:nth-child(4):before, 
+div[data-rating="4"]  a:nth-child(4):before, 
+div[data-rating="4"]  a:nth-child(5):before, 
+div[data-rating="5"]  a:nth-child(n+4):before  {
     visibility: visible;
 }
 
-
-div[data-rating="0"] > a:nth-child(1) ~ a:before, div[data-rating="1"] > a:nth-child(2) ~ a:before, div[data-rating="2"] > a:nth-child(3) ~ a:before, div[data-rating="3"] > a:nth-child(4) ~ a:before, div[data-rating="4"] > a:nth-child(5) ~ a:before  {
-    visibility: hidden;
+div[data-rating] a:first-child:before {
+    content: "\D7";
+    color:Black;
+    font-weight: bold;
 }
+div[data-rating]:hover a:nth-child(1):before { visibility: visible; }
+
 
 li[data-staticrating]:before {
     position: absolute;
@@ -476,28 +490,28 @@ li[data-staticrating]:before {
 }
 
 li[data-staticrating="1"]:before {
-    content: "\2605";
+    content: "\25bc\25bc";
 }
 li[data-staticrating="2"]:before {
-    content: "\2605\2605";
+    content: "\2003\25bc";
 }
 li[data-staticrating="3"]:before {
-    content: "\2605\2605\2605";
+    content: "\2003\2003\25b2";
 }
 li[data-staticrating="4"]:before {
-    content: "\2605\2605\2605\2605";
+    content: "\2003\2003\25b2\25b2";
 }
 li[data-staticrating="5"]:before {
-    content: "\2605\2605\2605\2605\2605";
-}
-
-div[data-rating]:hover > a:first-child:before {
-    color: #002b36;
+    content: "\2003\2003\25b2\25b2\25b2";
 }
 
 div[data-rating]:hover > a ~ a:before {
     visibility: visible;
-    content: "\2605";
+    opacity:0.2;
+}
+
+div[data-rating]:hover > a:hover:before  {
+    opacity:1.0;
 }
 
 li[data-staticrating="1"]:before, div[data-rating="1"] a, div[data-rating]:hover > a:nth-child(2):before {
@@ -510,16 +524,12 @@ li[data-staticrating="3"]:before, div[data-rating="3"] a, div[data-rating]:hover
     color: #859900;
 }
 li[data-staticrating="4"]:before, div[data-rating="4"] a, div[data-rating]:hover > a:nth-child(5):before {
-    color: #2aa198;
+    color: #859900;
 }
 li[data-staticrating="5"]:before, div[data-rating="5"] a, div[data-rating]:hover > a:nth-child(6):before {
     color: #2aa198;
 }
 
-div[data-rating]:hover > a:hover ~ a:before  {
-    color: #93a1a1;
-    content: "\2606";
-}
 
 
 li[data-staticrating] > div {
