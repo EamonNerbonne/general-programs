@@ -170,12 +170,12 @@ $(document).ready(function ($) {
         var ratingDiv = jqItem.children().filter("div[data-rating]");
         var oldRating = songdata.rating;
         songdata.rating = newRating;
-        ratingDiv.attr("data-rating", newRating || "");
+        ratingDiv.attr("data-rating", newRating || 0);
         playlistToLocalStorage();
 
         function oops(ignore, errorstatus, errormessage) {
             songdata.rating = oldRating;
-            ratingDiv.attr("data-rating", oldRating || "");
+            ratingDiv.attr("data-rating", oldRating || 0);
             alert(errorstatus + " while setting rating=" + newRating + ": " + songdata.href + "\n" + (errormessage || ""));
         };
 
@@ -212,17 +212,34 @@ $(document).ready(function ($) {
 	        hasBeenNotified = true;
 	        if (window.webkitNotifications.checkPermission() != 0)
 	            userOptions.notifications.setValue(useNotifications = false);
-	        else {
-	            var songTitle = $(playlistItem).contents(":empty").text();
-	            var popup = window.webkitNotifications.createNotification("img/emnicon.png", songTitle, songTitle);
-	            popup.ondisplay = function () { setTimeout(function () { popup.cancel(); }, 5000); }
-	            popup.show();
-	        }
+	        else
+	            ShowPopup($(playlistItem).contents(":empty").text());
 	    }
 	})
 	.jPlayer("onSoundComplete", function () {
 	    playlistNext();
 	});
+
+    var popupCount = 0;
+    var outstandingNotifications = {};
+    function CancelPopup(index) {
+        var oldNotification = outstandingNotifications[index];
+        if (!oldNotification) return;
+        delete outstandingNotifications[index];
+        oldNotification.cancel();
+    }
+    function ShowPopup(songTitle) {
+        var popup = window.webkitNotifications.createNotification("img/emnicon.png", songTitle, songTitle);
+        var popupI = popupCount++;
+        outstandingNotifications[popupI] = popup;
+        popup.ondisplay = function () { setTimeout(function () { CancelPopup(popupI); }, 5000); }
+        popup.show();
+    }
+
+    window.addEventListener("unload", function () {
+        for (var pI in outstandingNotifications)
+            CancelPopup(pI);
+    });
 
     $("#jplayer_previous").click(function () {
         playlistPrev();
@@ -554,13 +571,10 @@ $(document).ready(function ($) {
     /////////////////////////////////////////////////////////////////DROP PLAYLIST
 
 
-    $("body").bind("dragover", function (e) {
-        e.preventDefault();
-        e.originalEvent.dataTransfer.dropEffect = "copy";
-    }).bind("drop", function (e) {
+    window.globalDropHandler = function (e) {
         e.stopPropagation();
         e.preventDefault();
-        var files = e.originalEvent.dataTransfer.files;
+        var files = e.dataTransfer.files;
         //for (var i = 0, f; f = files[i]; i++) alert(f.name);
 
         function oops(ignore, errorstatus, errormessage) {
@@ -586,6 +600,13 @@ $(document).ready(function ($) {
         xhr.addEventListener("abort", oops, false);
         xhr.open("POST", "bounce-playlist");
         xhr.send(fd);
+    };
+
+    $("body").bind("dragover", function (e) {
+        e.preventDefault();
+        e.originalEvent.dataTransfer.dropEffect = "copy";
+    }).bind("drop", function (e) {
+        globalDropHandler(e.originalEvent);
     });
 });
 
