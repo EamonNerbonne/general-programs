@@ -51,6 +51,12 @@
         ( function () {
         document.getElementById("listdata").addEventListener('click', parent.SearchListClicked, true);
         document.getElementById("listhead").addEventListener('click', parent.SetOrdering, true);
+        var body = document.getElementsByTagName("body")[0];
+        body.addEventListener('dragover', function(e){
+        e.preventDefault();
+        e.dataTransfer.dropEffect = "copy";
+        });
+        body.addEventListener("drop",function (e) {parent.globalDropHandler(e);});
         })();
       </script>
     </html>
