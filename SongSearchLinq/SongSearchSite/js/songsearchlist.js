@@ -197,8 +197,9 @@ $(document).ready(function ($) {
         ready: function () {
             playlistElem = $(document.createElement("ul"))
                     .appendTo(playlistContainer.empty())
-                    .click(playlistClick).dblclick(playlistClick)
-                    .sortable().disableSelection();
+                    .click(playlistClick).dblclick(playlistClick); //TODO: enable drag/drop.
+            playlistDragnDropInit();
+
             $("#similar .known").click(knownClick);
             loadPlaylist(JSON.parse(localStorage.playlist));
         },
@@ -305,10 +306,9 @@ $(document).ready(function ($) {
 
     function makeListItem(song) {
         var rating = Math.max(0, Math.min(song.rating || 0, 5));
-        return $(document.createElement("li")).text(getLabel(song)).data("songdata", song)
+        return $(document.createElement("li")).text(getLabel(song)).attr("draggable", "true").data("songdata", song)
             .append($(document.createElement("div")).attr("data-rating", rating).append(sixAnchors.clone()))
-            .append($(document.createElement("div")).addClass("deleteButton"))
-            .disableSelection();
+            .append($(document.createElement("div")).addClass("deleteButton"));
     }
 
     function addToPlaylistRaw(song) {
@@ -332,7 +332,6 @@ $(document).ready(function ($) {
     }
 
     function playlistRefreshUi() {
-        playlistElem.sortable("refresh");
         playlistToLocalStorage();
         simStateSet.getting();
     }
@@ -568,7 +567,7 @@ $(document).ready(function ($) {
         $("#savePlaylistHiddenJson").val(JSON.stringify(savePlaylist()));
     });
 
-    /////////////////////////////////////////////////////////////////DROP PLAYLIST
+    //////////////////////////////////////////////////////////////////////////////////////////////////DROP PLAYLIST
 
 
     window.globalDropHandler = function (e) {
@@ -576,18 +575,26 @@ $(document).ready(function ($) {
         e.preventDefault();
         var files = e.dataTransfer.files;
         //for (var i = 0, f; f = files[i]; i++) alert(f.name);
+        if (!files.length) return true;
 
         function oops(ignore, errorstatus, errormessage) {
             alert(errorstatus + " while bouncing playlist off server\n" + (errormessage || ""));
         };
         function uploadDone(e) {
-            var jsResponse = JSON.parse(e.target.responseText);
-            if (e.target.status < 200 || e.target.status >= 300 || !jsResponse)
+            if (e.target.status < 200 || e.target.status >= 300)
                 oops(null, e.target.status, e.target.responseText);
-            else if (jsResponse.error)
-                oops(null, jsResponse.error, jsResponse.message);
-            else
-                loadPlaylistSync(jsResponse);
+            else {
+                var jsResponse;
+                try {
+                    jsResponse = JSON.parse(e.target.responseText);
+                } catch (ex) {
+                    oops(null, "JSON.parse", ex.Description);
+                }
+                if (jsResponse.error)
+                    oops(null, jsResponse.error, jsResponse.message);
+                else if (jsResponse)
+                    loadPlaylistSync(jsResponse);
+            }
         }
 
         var xhr = new XMLHttpRequest();
@@ -603,10 +610,78 @@ $(document).ready(function ($) {
     };
 
     $("body").bind("dragover", function (e) {
+        var dt = e.originalEvent.dataTransfer;
         e.preventDefault();
         e.originalEvent.dataTransfer.dropEffect = "copy";
     }).bind("drop", function (e) {
         globalDropHandler(e.originalEvent);
     });
+
+    function blalog(text) {
+        $("#similar").append($(document.createElement("div")).text(text));
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////DRAGNDROP PLAYLIST ITEMS
+    function playlistDragnDropInit() { //playlist is set up!
+        playlistElem.bind('dragstart', function (e) {
+            var draggedItem = $(e.originalEvent.target).parents().andSelf().filter("li").first();
+            var songdata = draggedItem.data("songdata");
+            if (!songdata) return true;
+            var dt = e.originalEvent.dataTransfer;
+            dt.setData("text/plain", getLabel(songdata));
+            dt.setData("Text", JSON.stringify({ song: songdata, position: draggedItem.prevAll().length }));
+            dt.setData("application/x-song", JSON.stringify({ song: songdata, position: draggedItem.prevAll().length }));
+            dt.setData("text/uri-list", songdata.href);
+            return true;
+        });
+        playlistElem.parent().bind("dragover", function (e) {
+            var dt = e.originalEvent.dataTransfer;
+            var draggedData = dt.getData("application/x-song");
+            if (!draggedData) return true;
+            dt.dropEffect = "move";
+            e.preventDefault();
+            e.stopPropagation();
+        });
+        playlistElem.parent().bind('drop', function (e) {
+            var dt = e.originalEvent.dataTransfer;
+
+            var draggedRawData = dt.getData("application/x-song") || dt.getData("Text");
+            if (!draggedRawData) return true;
+            try {
+                draggedRawData = JSON.parse(draggedRawData);
+            } catch (ex) {
+                return true;
+            }
+            var draggedData = draggedRawData.song;
+            if (!draggedData)
+                return true;
+            e.stopPropagation();
+            e.preventDefault();
+            var target = e.originalEvent.target;
+            var droppedOnListItem = $(target).parents().andSelf().filter("li").first();
+
+
+            var fromListItem = playlistElem.children().eq(draggedRawData.position);
+            var draggedFromThisList = fromListItem.length && fromListItem.data("songdata").href == draggedData.href;
+            var droppedOnLi = droppedOnListItem.length && droppedOnListItem.data("songdata");
+
+            if (draggedFromThisList) {
+                fromListItem.detach();
+                if (droppedOnLi)
+                    fromListItem.insertAfter(droppedOnListItem); //dropped on LI
+                else
+                    playlistElem.append(fromListItem); //dropped on UL.
+            } else {
+                if (droppedOnLi) //dropped on LI from other browser
+                    droppedOnListItem.after(makeListItem(draggedData));
+                else
+                    playlistElem.append(makeListItem(draggedData));
+            }
+
+            playlistRefreshUi();
+        });
+
+
+    }
 });
 
