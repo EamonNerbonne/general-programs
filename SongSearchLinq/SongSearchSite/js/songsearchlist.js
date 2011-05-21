@@ -621,6 +621,7 @@ $(document).ready(function ($) {
         $("#similar").append($(document.createElement("div")).text(text));
     }
 
+
     ///////////////////////////////////////////////////////////////////////////////////////////////////////DRAGNDROP PLAYLIST ITEMS
     function playlistDragnDropInit() { //playlist is set up!
         playlistElem.bind('dragstart', function (e) {
@@ -629,9 +630,9 @@ $(document).ready(function ($) {
             if (!songdata) return true;
             var dt = e.originalEvent.dataTransfer;
             dt.setData("text/plain", getLabel(songdata));
-            dt.setData("Text", JSON.stringify({ song: songdata, position: draggedItem.prevAll().length }));
             dt.setData("application/x-song", JSON.stringify({ song: songdata, position: draggedItem.prevAll().length }));
             dt.setData("text/uri-list", songdata.href);
+            dt.setData("Text", JSON.stringify({ song: songdata, position: draggedItem.prevAll().length }));//workaround for chrome...
             return true;
         });
         playlistElem.parent().bind("dragover", function (e) {
@@ -658,24 +659,29 @@ $(document).ready(function ($) {
             e.stopPropagation();
             e.preventDefault();
             var target = e.originalEvent.target;
-            var droppedOnListItem = $(target).parents().andSelf().filter("li").first();
+            var targetPlaylistLI = $(target).parents().andSelf().filter("li").first();
+            var sourcePlaylistLI = playlistElem.children().eq(draggedRawData.position);
 
+            var isDraggedFromThisBrowser = sourcePlaylistLI.length && sourcePlaylistLI.data("songdata").href == draggedData.href;
+            var isDroppedOnPlaylistLI = targetPlaylistLI.length && targetPlaylistLI.data("songdata");
 
-            var fromListItem = playlistElem.children().eq(draggedRawData.position);
-            var draggedFromThisList = fromListItem.length && fromListItem.data("songdata").href == draggedData.href;
-            var droppedOnLi = droppedOnListItem.length && droppedOnListItem.data("songdata");
+            var putSourceBeforeTarget = e.offsetY < (isDroppedOnPlaylistLI ?
+                targetPlaylistLI[0].offsetTop + targetPlaylistLI[0].clientHeight / 2 :
+                playlistElem[0].offsetTop + playlistElem[0].clientHeight / 2);
 
-            if (draggedFromThisList) {
-                fromListItem.detach();
-                if (droppedOnLi)
-                    fromListItem.insertAfter(droppedOnListItem); //dropped on LI
+            if (isDraggedFromThisBrowser) sourcePlaylistLI.detach();
+            var playlistLIToInsert = isDraggedFromThisBrowser ? sourcePlaylistLI : makeListItem(draggedData);
+
+            if (isDroppedOnPlaylistLI) {
+                if (putSourceBeforeTarget)
+                    playlistLIToInsert.insertBefore(targetPlaylistLI);
                 else
-                    playlistElem.append(fromListItem); //dropped on UL.
+                    playlistLIToInsert.insertAfter(targetPlaylistLI);
             } else {
-                if (droppedOnLi) //dropped on LI from other browser
-                    droppedOnListItem.after(makeListItem(draggedData));
+                if (putSourceBeforeTarget)
+                    playlistElem.prepend(playlistLIToInsert); //dropped on UL.
                 else
-                    playlistElem.append(makeListItem(draggedData));
+                    playlistElem.append(playlistLIToInsert); //dropped on UL.
             }
 
             playlistRefreshUi();
