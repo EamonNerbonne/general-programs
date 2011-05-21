@@ -14,10 +14,10 @@ namespace SongDiskCrawler {
 		public Popularity EstimatePopularity(string artist, string title) {
 			if (artist == null || title == null) return default(Popularity);
 			var song = SongRef.Create(artist, title);
-			var canonicalArtist = song.GetLowerArtist();
-			var canonicalTrack = title.ToLatinLowercase();
+			var lowerArtist = song.GetLowerArtist();
+			var lowerTrack = title.ToLatinLowercase();
 			ArtistTopTracksList toptracks =
-				toptracksCache.GetOrAdd(canonicalArtist, a => {
+				toptracksCache.GetOrAdd(lowerArtist, a => {
 					var toptracksFromLfm = tools.SimilarSongs.LookupTopTracks(artist);
 					for (int i = 0; i < toptracksFromLfm.TopTracks.Length; i++)
 						toptracksFromLfm.TopTracks[i].Track = toptracksFromLfm.TopTracks[i].Track.ToLatinLowercase();//canonicalization to speed up lookup below.
@@ -26,9 +26,9 @@ namespace SongDiskCrawler {
 
 			var q =
 				(from toptrack in toptracks.TopTracks
-				 let distance = (canonicalTrack.LevenshteinDistanceScaled(toptrack.Track) +
-					 canonicalTrack.CanonicalizeBasic().LevenshteinDistanceScaled(toptrack.Track.CanonicalizeBasic())) *
-					 (canonicalTrack.Length + toptrack.Track.Length + 40)
+				 let distance = (lowerTrack.LevenshteinDistanceScaled(toptrack.Track) +
+					 lowerTrack.CanonicalizeBasic().LevenshteinDistanceScaled(toptrack.Track.CanonicalizeBasic())) *
+					 (lowerTrack.Length + toptrack.Track.Length + 40)
 				 where distance < 60
 				 orderby distance / toptrack.Reach
 				 select new { track = toptrack, cost = distance }).ToArray();
