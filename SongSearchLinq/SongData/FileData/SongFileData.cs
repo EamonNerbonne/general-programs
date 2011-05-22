@@ -5,8 +5,7 @@ using System.Linq;
 using System.Xml.Linq;
 using EmnExtensions;
 using EmnExtensions.Text;
-using TagLib.Id3v2;
-
+using TagLib;
 
 namespace SongDataLib {
 
@@ -28,85 +27,124 @@ namespace SongDataLib {
 
 		internal SongFileData(Uri baseUri, FileInfo fileObj, IPopularityEstimator popEst)
 			: base(baseUri, new Uri(fileObj.FullName, UriKind.Absolute), true) {
-			TagLib.File file = TagLib.File.Create(fileObj.FullName);
-			var customtags = GetCustomTags(file);
-			title = toSafeString(file.Tag.Title);
-			artist = toSafeString(file.Tag.JoinedPerformers);
-			composer = toSafeString(file.Tag.JoinedComposers);
-			album = toSafeString(file.Tag.Album);
-			comment = toSafeString(file.Tag.Comment);
-			genre = toSafeString(file.Tag.JoinedGenres);
-			year = (int)file.Tag.Year;
-			track = (int)file.Tag.Track;
-			trackcount = (int)file.Tag.TrackCount;
+			IAudioCodec properties;
+			ILookup<string, string> customtags;
+			Tag tag;
+			GetTag(fileObj, out properties, out customtags, out tag);
+
+			title = toSafeString(tag.Title);
+			artist = toSafeString(tag.JoinedPerformers);
+			composer = toSafeString(tag.JoinedComposers);
+			album = toSafeString(tag.Album);
+			comment = toSafeString(tag.Comment);
+			genre = toSafeString(tag.JoinedGenres);
+			year = (int)tag.Year;
+			track = (int)tag.Track;
+			trackcount = (int)tag.TrackCount;
 			LastWriteTimeUtc = fileObj.LastWriteTime;
 			filesize = (int)fileObj.Length;
-			bitrate = file.Properties == null ? 0 : file.Properties.AudioBitrate;
-			length = file.Properties == null ? 0 : (int)Math.Round(file.Properties.Duration.TotalSeconds);
-			samplerate = file.Properties == null ? 0 : file.Properties.AudioSampleRate;
-			channels = file.Properties == null ? 0 : file.Properties.AudioChannels;
-			rating = customtags.ContainsKey("rating") ? customtags["rating"].ParseAsInt32() : null;
-			string track_gain_str;
-			if (customtags.TryGetValue("replaygain_track_gain", out track_gain_str))
-				track_gain_str = track_gain_str.Replace("dB", "").Replace("db", "").Trim();
-			track_gain = track_gain_str.ParseAsDouble();
+			bitrate = properties == null ? 0 : properties.AudioBitrate;
+			length = properties == null ? 0 : (int)Math.Round(properties.Duration.TotalSeconds);
+			samplerate = properties == null ? 0 : properties.AudioSampleRate;
+			channels = properties == null ? 0 : properties.AudioChannels;
+
+			rating =
+				customtags["rating"]
+				.Select(ratingStr => ratingStr.ParseAsInt32())
+				.Distinct().Max();
+			track_gain =
+				customtags["replaygain_track_gain"]
+					.Select(trackgainStr => trackgainStr.Replace("dB", "").Replace("db", "").Trim().ParseAsDouble())
+					.Where(trackgainVal => trackgainVal.HasValue)
+					.Distinct().SingleOrDefault();
 
 			popularity = popEst == null ? default(Popularity) : popEst.EstimatePopularity(artist, title);
 		}
 
-		static Dictionary<string, string> GetCustomTags(TagLib.File file) {
-			TagLib.TagTypes types = file.TagTypes;
-			if (types.HasFlag(TagLib.TagTypes.Xiph)) {
-				var filetag = (file.GetTag(TagLib.TagTypes.Xiph, false) as TagLib.Ogg.XiphComment);
-				return filetag.ToDictionary(key => key.ToLowerInvariant(), key => filetag.GetField(key).First());
-			} else if (types.HasFlag(TagLib.TagTypes.Id3v2)) {
-				return ((Tag)file.GetTag(TagLib.TagTypes.Id3v2, false))
-					.GetFrames("TXXX").Cast<UserTextInformationFrame>()
-					.ToDictionary(frame => frame.Description.ToLowerInvariant(), frame => frame.Text.FirstOrDefault());
-			} else if (types.HasFlag(TagLib.TagTypes.Ape)) {
-				var filetag = (file.GetTag(TagLib.TagTypes.Ape, false) as TagLib.Ape.Tag);
-				return filetag.ToDictionary(key => key.ToLowerInvariant(), key => filetag.GetItem(key).ToStringArray().FirstOrDefault());
-			} else if (types == TagLib.TagTypes.None || types == TagLib.TagTypes.Id3v1) {
-				return new Dictionary<string, string>();
-			} else if (types.HasFlag(TagLib.TagTypes.Asf)) {
-				var filetag = file.GetTag(TagLib.TagTypes.Asf, false) as TagLib.Asf.Tag;
+		static void GetTag(FileInfo fileObj, out IAudioCodec properties, out ILookup<string, string> customtags, out Tag tag) {
+			//if (fileObj.Extension.ToLowerInvariant() == ".mp3") {
+			//    prefer reading only start of file.
+			//    taglib doesn't really support this, unfortunately.
+			//}
+
+			TagLib.File file = TagLib.File.Create(fileObj.FullName);
+			properties = file.Properties;
+			tag = file.Tag;
+			customtags = GetCustomTags(file);
+		}
+
+		static ILookup<string, string> GetCustomTags(TagLib.File file) {
+			return GetCustomTagsList(file).ToLookup(keyval => keyval.Item1.ToLowerInvariant(), keyval => keyval.Item2);
+		}
+
+		static IEnumerable<Tuple<string, string>> GetCustomTagsList(TagLib.File file) {
+			TagTypes types = file.TagTypes;
+			if (types.HasFlag(TagTypes.Xiph)) {
+				var filetag = (file.GetTag(TagTypes.Xiph, false) as TagLib.Ogg.XiphComment);
+				return filetag.SelectMany(key => filetag.GetField(key).Select(val => Tuple.Create(key, val)));
+			} else if (types.HasFlag(TagTypes.Id3v2)) {
+				return UserTextInformationFrames(file)
+					.SelectMany(frame => frame.Text.Select(val => Tuple.Create(frame.Description, val)));
+			} else if (types.HasFlag(TagTypes.Ape)) {
+				var filetag = (file.GetTag(TagTypes.Ape, false) as TagLib.Ape.Tag);
+				return filetag.SelectMany(key => filetag.GetItem(key).ToStringArray().Select(val => Tuple.Create(key, val)));
+			} else if (types == TagTypes.None || types == TagTypes.Id3v1) {
+				return Enumerable.Empty<Tuple<string, string>>();
+			} else if (types.HasFlag(TagTypes.Asf)) {
+				var filetag = file.GetTag(TagTypes.Asf, false) as TagLib.Asf.Tag;
 				return filetag.Where(desc => desc.Type == TagLib.Asf.DataType.Unicode)
-					.ToDictionary(key => key.Name.ToLowerInvariant(), key => key.ToString());
+					.Select(key => Tuple.Create(key.Name, key.ToString()));
 			} else
 				throw new NotImplementedException();
 		}
 
+		private static IEnumerable<TagLib.Id3v2.UserTextInformationFrame> UserTextInformationFrames(TagLib.File file) {
+			return ((TagLib.Id3v2.Tag)file.GetTag(TagTypes.Id3v2, false))
+				.GetFrames("TXXX").Cast<TagLib.Id3v2.UserTextInformationFrame>();
+		}
+
 		public void WriteRatingToFile() {
 			var file = TagLib.File.Create(SongUri.LocalPath);
-			TagLib.TagTypes types = file.TagTypes;
-			if (types.HasFlag(TagLib.TagTypes.Xiph) || file is TagLib.Ogg.File) {
-				var filetag = (file.GetTag(TagLib.TagTypes.Xiph, true) as TagLib.Ogg.XiphComment);
+			TagTypes types = file.TagTypes & (~TagTypes.Id3v1);
+			if (types.HasFlag(TagTypes.Xiph) || file is TagLib.Ogg.File) {
+				var filetag = (file.GetTag(TagTypes.Xiph, true) as TagLib.Ogg.XiphComment);
 				if (rating == null)
-					filetag.RemoveField("rating");
+					filetag.RemoveField("rating");//case insensitive
 				else
 					filetag.SetField("rating", rating.Value.ToString());
 
-			} else if (types.HasFlag(TagLib.TagTypes.Id3v2)) {
-				var filetag = ((Tag)file.GetTag(TagLib.TagTypes.Id3v2, true));
-				var ratingfield = UserTextInformationFrame.Get(filetag, "rating", true);
+				types = types & (~TagTypes.Xiph);
+			}
+
+			if (types.HasFlag(TagTypes.Id3v2) || file is TagLib.Mpeg.AudioFile) {
+				var filetag = ((TagLib.Id3v2.Tag)file.GetTag(TagTypes.Id3v2, true));
+				var ratingfields = UserTextInformationFrames(file).Where(frame => frame.Description.ToLowerInvariant() == "rating").ToArray();
+				foreach (var fieldtodelete in ratingfields.Where(frame => frame.Description != "rating" || rating == null))
+					filetag.RemoveFrame(fieldtodelete);
+
+				if (rating != null)
+					TagLib.Id3v2.UserTextInformationFrame.Get(filetag, "rating", true).Text = new[] { rating.Value.ToString() };
+				types = types & (~TagTypes.Id3v2);
+			}
+
+			if (types.HasFlag(TagTypes.Ape)) {
+				var filetag = (file.GetTag(TagTypes.Ape, false) as TagLib.Ape.Tag);
 				if (rating == null)
-					filetag.RemoveFrame(ratingfield);
-				else
-					ratingfield.Text = new[] { rating.Value.ToString() };
-			} else if (types.HasFlag(TagLib.TagTypes.Ape)) {
-				var filetag = (file.GetTag(TagLib.TagTypes.Ape, false) as TagLib.Ape.Tag);
-				if (rating == null)
-					filetag.RemoveItem("rating");
+					filetag.RemoveItem("rating");//case insensitive
 				else
 					filetag.SetValue("rating", rating.Value.ToString());
-			} else if (types == TagLib.TagTypes.None || types == TagLib.TagTypes.Id3v1) {
-				//return new Dictionary<string, string>();
-			} else if (types.HasFlag(TagLib.TagTypes.Asf)) {
-				var filetag = file.GetTag(TagLib.TagTypes.Asf, false) as TagLib.Asf.Tag;
+				types = types & (~TagTypes.Ape);
+			}
+
+			if (types.HasFlag(TagTypes.Asf)) {
+				var filetag = file.GetTag(TagTypes.Asf, false) as TagLib.Asf.Tag;
 				if (rating == null)
 					filetag.RemoveDescriptors("rating");
 				filetag.SetDescriptorString(rating.Value.ToString(), "rating");//note reversed order!
-			} else
+				types = types & (~TagTypes.Asf);
+			}
+
+			if (types != TagTypes.None)
 				throw new NotImplementedException();
 			file.Save();
 		}

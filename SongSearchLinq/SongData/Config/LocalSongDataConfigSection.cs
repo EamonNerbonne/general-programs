@@ -1,9 +1,6 @@
 ﻿using System;
 using System.IO;
-using System.Linq;
 using System.Xml.Linq;
-using EmnExtensions;
-using EmnExtensions.Filesystem;
 using EmnExtensions.Text;
 
 namespace SongDataLib {
@@ -40,7 +37,7 @@ namespace SongDataLib {
 					try {
 						song = SongFileDataFactory.ConstructFromFile(localSearchUri, newfile, dcf.PopularityEstimator);
 					} catch (Exception e) {
-						errSink("Non-fatal error while generating XML of file: " + songUri + "\nException:\n" + e); song = null;
+						errSink("Cannot scan audio file (file will be skipped): " + songUri + "\nException:\n" + e); song = null;
 					}
 				} 
 				//else if (song is SongFileData) {
