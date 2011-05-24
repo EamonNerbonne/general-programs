@@ -79,20 +79,24 @@ namespace LvqGui {
 			return new LvqModelSettingsCli {
 				ModelType = type,
 				Dimensionality = 2,
-				GloballyNormalize = true,
-				NormalizeBoundaries = true,
-				NormalizeProjection = true,
-				TrackProjectionQuality = true,
-				NgInitializeProtos = false,
-				NgUpdateProtos = false,
 				PrototypesPerClass = protos,
-				RandomInitialBorders = false,
 				RandomInitialProjection = true,
-				SlowStartLrBad = false,
+				RandomInitialBorders = false,
+
+				NormalizeProjection = true,
+				NormalizeBoundaries = true,
+				GloballyNormalize = true,
+
+				NgUpdateProtos = false,
+				NgInitializeProtos = false,
 				UpdatePointsWithoutB = false,
+	
+				SlowStartLrBad = false,
 				LrScaleBad = 1.0,
-				InstanceSeed = rngIter,
+
 				ParamsSeed = rngParam,
+				InstanceSeed = rngIter,
+				TrackProjectionQuality = true,
 			};
 		}
 		static LvqModelSettingsCli SetLr(LvqModelSettingsCli baseSettings, double lr0, double lrScaleP, double lrScaleB) {
@@ -171,6 +175,7 @@ namespace LvqGui {
 		}
 
 		public void Run(TextWriter sink, long itersToRun, LvqModelSettingsCli settings) {
+			sink.WriteLine("Evaluating: " + settings.ToShorthand());
 			using (new DTimer(time => sink.WriteLine("Search Complete!  Took " + time)))
 				FindOptimalLr(sink, datasets, itersToRun, settings);
 		}

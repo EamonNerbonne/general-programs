@@ -49,7 +49,7 @@ LvqModelSettings::LvqModelSettings(LvqModelType modelType, boost::mt19937 & rngP
 	: RandomInitialProjection(true)
 	, RandomInitialBorders(false) 
 	, NgUpdateProtos(false)
-	, NgInitializeProtos(true)
+	, NgInitializeProtos(false)
 	, RngParams(rngParams)
 	, PrototypeDistribution(protodistrib)
 	, Dataset(dataset)

@@ -17,37 +17,41 @@ namespace LvqLibCli {
 	{
 	public:
 		LvqModelType ModelType;
-		unsigned ParamsSeed, InstanceSeed;
+		int Dimensionality;
 		int PrototypesPerClass;
 		bool RandomInitialProjection;
 		bool RandomInitialBorders;
-		bool TrackProjectionQuality;
 		bool NormalizeProjection, NormalizeBoundaries, GloballyNormalize;
 		bool NgUpdateProtos, NgInitializeProtos, UpdatePointsWithoutB;
 		bool SlowStartLrBad;
-		int Dimensionality;
-		double LrScaleP, LrScaleB, LR0, LrScaleBad;
+		double  LR0, LrScaleP, LrScaleB, LrScaleBad;
+		unsigned ParamsSeed, InstanceSeed;
+		bool TrackProjectionQuality;
 
 		LvqModelSettingsCli()
 			: ModelType(LvqModelType::GgmModelType)
-			, ParamsSeed(37)
-			, InstanceSeed(42)
+			, Dimensionality(2)
 			, PrototypesPerClass(1)
 			, RandomInitialProjection(true)
 			, RandomInitialBorders(false)
-			, TrackProjectionQuality(true)
+
 			, NormalizeProjection(true)
 			, NormalizeBoundaries(true)
 			, GloballyNormalize(true)
+
 			, NgUpdateProtos(false)
-			, NgInitializeProtos(true)
+			, NgInitializeProtos(false)
 			, UpdatePointsWithoutB(false)
+
 			, SlowStartLrBad(false)
-			, Dimensionality(0)
+			, LR0(LVQ_LR0)
 			, LrScaleP(LVQ_LrScaleP)
 			, LrScaleB(LVQ_LrScaleB)
-			, LR0(LVQ_LR0)
 			, LrScaleBad(LVQ_LrScaleBad)
+
+			, ParamsSeed(37)
+			, InstanceSeed(42)
+			, TrackProjectionQuality(true)
 		{ }
 		LvqModelSettingsCli^ Copy();
 		LvqModelSettings ToNativeSettings(LvqDatasetCli^ dataset, int datasetFold);
