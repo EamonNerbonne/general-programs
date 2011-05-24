@@ -78,25 +78,10 @@ namespace LvqGui {
 		static LvqModelSettingsCli CreateBasicSettings(LvqModelType type, int protos, uint rngIter, uint rngParam) {
 			return new LvqModelSettingsCli {
 				ModelType = type,
-				Dimensionality = 2,
 				PrototypesPerClass = protos,
-				RandomInitialProjection = true,
-				RandomInitialBorders = false,
-
-				NormalizeProjection = true,
-				NormalizeBoundaries = true,
-				GloballyNormalize = true,
-
-				NgUpdateProtos = false,
-				NgInitializeProtos = false,
-				UpdatePointsWithoutB = false,
-	
-				SlowStartLrBad = false,
-				LrScaleBad = 1.0,
 
 				ParamsSeed = rngParam,
 				InstanceSeed = rngIter,
-				TrackProjectionQuality = true,
 			};
 		}
 		static LvqModelSettingsCli SetLr(LvqModelSettingsCli baseSettings, double lr0, double lrScaleP, double lrScaleB) {

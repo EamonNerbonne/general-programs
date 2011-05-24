@@ -149,7 +149,7 @@ namespace LvqGui {
 	new Regex(@"
 				^([^:]*\:)?\s*?
 				(?<ModelType>\b[A-Z][A-Za-z0-9]*)
-				(\[(?<Dimensionality>[^\]]+)\])?,
+				(\[(?<Dimensionality>[^\]]+)\]|(?<TrackProjectionQuality>\+?)),
 				(?<PrototypesPerClass>[0-9]+),
 				rP(?<RandomInitialProjection>\+?),
 				(rB(?<RandomInitialBorders>\+?),)?
@@ -160,23 +160,25 @@ namespace LvqGui {
 				(NGi(?<NgInitializeProtos>\+?),)?
 				(noB(?<UpdatePointsWithoutB>\+?),)?
 				(pQ(?<TrackProjectionQuality>\+?),)?
+				(lrX(?<LrScaleBad>[0-9]*(\.[0-9]*)?(e[0-9]+)?),)?
+				(?<SlowStartLrBad>\!?)
 				lr0(?<LR0>[0-9]*(\.[0-9]*)?(e[0-9]+)?),
 				lrP(?<LrScaleP>[0-9]*(\.[0-9]*)?(e[0-9]+)?),
 				lrB(?<LrScaleB>[0-9]*(\.[0-9]*)?(e[0-9]+)?),
-				lrX(?<LrScaleBad>[0-9]*(\.[0-9]*)?(e[0-9]+)?),
-				(?<SlowStartLrBad>\!?)
 				\[(?<ParamsSeed>[0-9a-fA-F]+)\,(?<InstanceSeed>[0-9a-fA-F]+)\]\^(?<ParallelModels>[0-9]+)\,
-				(pQ(?<TrackProjectionQuality>\+?),)?
 				(--.*)?\s*$",
 		RegexOptions.ExplicitCapture | RegexOptions.IgnorePatternWhitespace);
 
 		public string Shorthand {
 			get {
-				return settings.ToShorthand()+"^" + ParallelModels + ","
-				+ (ModelType != LvqModelType.LgmModelType ? "pQ" + (TrackProjectionQuality ? "+" : "") + "," : "")
+				return settings.ToShorthand() + "^" + ParallelModels + ","
 				+ (ForDataset == null ? "" : "--" + ForDataset.DatasetLabel);
 			}
-			set { ShorthandHelper.ParseShorthand(this, shR, value); }
+			set {
+				ShorthandHelper.ParseShorthand(this, shR, value);
+				LrScaleBad = 1.0;
+				ShorthandHelper.ParseShorthand(this, shR, value);
+			}
 		}
 
 		public string ShorthandErrors { [MethodImpl(MethodImplOptions.NoInlining)]get { return ShorthandHelper.VerifyShorthand(this, shR); } }
@@ -190,7 +192,7 @@ namespace LvqGui {
 		}
 
 		public Task ConfirmCreation() {
-			var settingsCopy =settings.Copy();
+			var settingsCopy = settings.Copy();
 			var args = new { Shorthand, ParallelModels, ForDataset }; //for threadsafety get these now.
 
 			TaskCompletionSource<object> whenDone = new TaskCompletionSource<object>();
@@ -207,7 +209,7 @@ namespace LvqGui {
 
 		internal void OptimizeLr() {//on gui thread.
 			var settingsCopy = settings.Copy();
-			var args = new { Shorthand, ParallelModels, ForDataset };//for threadsafety get these now.
+//			var args = new { Shorthand, ParallelModels, ForDataset };//for threadsafety get these now.
 			long iterCount = 5000000;
 			var testLr = new TestLr(0, ForDataset, ParallelModels);
 			string shortname = testLr.Shortname(settingsCopy, iterCount);

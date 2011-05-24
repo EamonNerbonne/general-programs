@@ -5,10 +5,10 @@ using namespace System;
 namespace LvqLibCli {
 
 	public enum class LvqModelType {
-		LgmModelType = LvqModelSettings::LgmModelType,
-		GmModelType = LvqModelSettings::GmModelType,
-		G2mModelType = LvqModelSettings::G2mModelType,
-		GgmModelType = LvqModelSettings::GgmModelType,
+		Lgm = LvqModelSettings::LgmModelType,
+		Gm = LvqModelSettings::GmModelType,
+		G2m = LvqModelSettings::G2mModelType,
+		Ggm = LvqModelSettings::GgmModelType,
 	};
 
 	ref class LvqDatasetCli;
@@ -29,7 +29,7 @@ namespace LvqLibCli {
 		bool TrackProjectionQuality;
 
 		LvqModelSettingsCli()
-			: ModelType(LvqModelType::GgmModelType)
+			: ModelType(LvqModelType::Ggm)
 			, Dimensionality(2)
 			, PrototypesPerClass(1)
 			, RandomInitialProjection(true)
@@ -58,21 +58,21 @@ namespace LvqLibCli {
 
 		String^ ToShorthand() {
 			return ModelType.ToString()
-				+ (ModelType == LvqModelType::LgmModelType ? "[" + Dimensionality + "]" : "") + ","
+				+ (ModelType == LvqModelType::Lgm ? "[" + Dimensionality + "]" : (TrackProjectionQuality ? "+" : "")) + ","
 				+ PrototypesPerClass + ","
 				+ "rP" + (RandomInitialProjection ? "+" : "") + ","
-				+ (ModelType == LvqModelType::GgmModelType || ModelType==LvqModelType::G2mModelType ? "rB" + (RandomInitialBorders ? "+" : "") + "," : "")
+				+ (ModelType == LvqModelType::Ggm || ModelType==LvqModelType::G2m ? "rB" + (RandomInitialBorders ? "+" : "") + "," : "")
 				+ "nP" + (NormalizeProjection ? "+" : "") + ","
-				+ (ModelType == LvqModelType::G2mModelType ? "nB" + (NormalizeBoundaries ? "+" : "") + "," : "")
-				+ (ModelType == LvqModelType::G2mModelType && NormalizeBoundaries || NormalizeProjection ? "gn" + (GloballyNormalize ? "+" : "") + "," : "")
-				+ (ModelType != LvqModelType::LgmModelType ? "NG" + (NgUpdateProtos ? "+" : "") + "," : "")
+				+ (ModelType == LvqModelType::G2m ? "nB" + (NormalizeBoundaries ? "+" : "") + "," : "")
+				+ (ModelType == LvqModelType::G2m && NormalizeBoundaries || NormalizeProjection ? "gn" + (GloballyNormalize ? "+" : "") + "," : "")
+				+ (ModelType != LvqModelType::Lgm ? "NG" + (NgUpdateProtos ? "+" : "") + "," : "")
 				+ (PrototypesPerClass > 1 ? "NGi" + (NgInitializeProtos ? "+" : "") + "," : "")
-				+ (ModelType == LvqModelType::G2mModelType ? "noB" + (UpdatePointsWithoutB ? "+" : "") + "," : "")
+				+ (ModelType == LvqModelType::G2m ? "noB" + (UpdatePointsWithoutB ? "+" : "") + "," : "")
+				+(LrScaleBad!=1.0? "lrX" + LrScaleBad + ",":"")
+				+ (SlowStartLrBad ? "!" : "")
 				+ "lr0" + LR0 + ","
 				+ "lrP" + LrScaleP + ","
 				+ "lrB" + LrScaleB + ","
-				+ "lrX" + LrScaleBad + ","
-				+ (SlowStartLrBad ? "!" : "")
 				+ "[" + ParamsSeed.ToString("x") + "," + InstanceSeed.ToString("x") + "]";
 		}
 	};
