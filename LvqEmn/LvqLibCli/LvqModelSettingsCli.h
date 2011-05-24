@@ -73,7 +73,7 @@ namespace LvqLibCli {
 				+ "lrB" + LrScaleB + ","
 				+ "lrX" + LrScaleBad + ","
 				+ (SlowStartLrBad ? "!" : "")
-				+ "[" + ParamsSeed + ":" + InstanceSeed + "]";
+				+ "[" + ParamsSeed.ToString("x") + "," + InstanceSeed.ToString("x") + "]";
 		}
 	};
 }

@@ -24,5 +24,6 @@
             <Setter Property="Control.VerticalAlignment" Value="Center" />
             <Setter Property="Control.Margin" Value="2" />
         </Style>
+        <lvq:HexConverter x:Key="hexConverter"/>
     </Application.Resources>
 </Application>

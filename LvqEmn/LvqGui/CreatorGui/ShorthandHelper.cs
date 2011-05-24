@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.ComponentModel;
-
 namespace LvqGui {
 	interface IHasShorthand {
 		string Shorthand { get; set; }
@@ -31,7 +30,9 @@ namespace LvqGui {
 				if (prop == null && i != 0) {
 					throw new ArgumentException("Invalid regex group #" + i + " called '" + groupName + "'");
 				} else if (prop != null && groups[i].Success) {
-					var val = prop.PropertyType.Equals(typeof(bool)) ? groups[i].Value != ""
+					var val =
+						prop.PropertyType.Equals(typeof(bool)) ? groups[i].Value != ""
+						: prop.Name.EndsWith("Seed") && prop.PropertyType == typeof(uint) ? Convert.ToUInt32(groups[i].Value, 16)
 						: TypeDescriptor.GetConverter(prop.PropertyType).ConvertFromString(groups[i].Value);
 					prop.SetValue(shorthandObj, val, empty);
 				}
@@ -43,7 +44,7 @@ namespace LvqGui {
 				where !includedProperties.Contains(property.Name)
 				select property.Name;
 
-			if (excludedProperties.Any()) 
+			if (excludedProperties.Any())
 				throw new ArgumentException("Invalid Regex doesn't set properties: " + string.Join(", ", excludedProperties.ToArray()));
 		}
 
@@ -64,7 +65,7 @@ namespace LvqGui {
 					object val = prop.PropertyType.Equals(typeof(bool)) ? groups[i].Value != ""
 						: TypeDescriptor.GetConverter(prop.PropertyType).ConvertFromString(groups[i].Value);
 					object curVal = prop.GetValue(shorthandObj, empty);
-					if (!Equals( curVal , val))
+					if (!Equals(curVal, val))
 						errs.Add(groupName + ": " + val + " != " + curVal);
 				} else if (prop != null && !groups[i].Success) {
 					errs.Add(groupName + " unused");

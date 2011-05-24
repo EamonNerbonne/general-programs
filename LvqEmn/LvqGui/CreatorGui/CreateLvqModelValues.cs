@@ -165,14 +165,14 @@ namespace LvqGui {
 				lrB(?<LrScaleB>[0-9]*(\.[0-9]*)?(e[0-9]+)?),
 				lrX(?<LrScaleBad>[0-9]*(\.[0-9]*)?(e[0-9]+)?),
 				(?<SlowStartLrBad>\!?)
-				\[(?<ParamsSeed>[0-9]+)\:(?<InstanceSeed>[0-9]+)\]\/(?<ParallelModels>[0-9]+)\,
+				\[(?<ParamsSeed>[0-9a-fA-F]+)\,(?<InstanceSeed>[0-9a-fA-F]+)\]\^(?<ParallelModels>[0-9]+)\,
 				(pQ(?<TrackProjectionQuality>\+?),)?
 				(--.*)?\s*$",
 		RegexOptions.ExplicitCapture | RegexOptions.IgnorePatternWhitespace);
 
 		public string Shorthand {
 			get {
-				return settings.ToShorthand()+"/" + ParallelModels + ","
+				return settings.ToShorthand()+"^" + ParallelModels + ","
 				+ (ModelType != LvqModelType.LgmModelType ? "pQ" + (TrackProjectionQuality ? "+" : "") + "," : "")
 				+ (ForDataset == null ? "" : "--" + ForDataset.DatasetLabel);
 			}

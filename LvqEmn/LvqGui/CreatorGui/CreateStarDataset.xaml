@@ -73,9 +73,9 @@
         <Label Grid.Row="14">Fold count</Label>
         <TextBox  Grid.Row="14" Grid.Column="1" Text="{Binding Folds, Mode=TwoWay, ValidatesOnExceptions=True}" />
         <Button Grid.Row="15" Content="Reset Parameter Seed"  Click="ReseedParam" />
-        <TextBox Grid.Row="15"  Grid.Column="1"  Text="{Binding ParamsSeed, Mode=TwoWay, ValidatesOnExceptions=True}" />
+        <TextBox Grid.Row="15"  Grid.Column="1"  Text="{Binding ParamsSeed, Mode=TwoWay, ValidatesOnExceptions=True, Converter={StaticResource hexConverter}}" />
         <Button  Grid.Row="16" Content="Reset Instantiation Seed" Click="ReseedInst"/>
-        <TextBox Grid.Row="16"  Grid.Column="1"  Text="{Binding InstanceSeed, Mode=TwoWay, ValidatesOnExceptions=True}" />
+        <TextBox Grid.Row="16"  Grid.Column="1"  Text="{Binding InstanceSeed, Mode=TwoWay, ValidatesOnExceptions=True, Converter={StaticResource hexConverter}}" />
         <Label Grid.Row="17">Shorthand</Label>
         <TextBox  Grid.Row="17" Grid.Column="1" Text="{Binding Shorthand, Mode=TwoWay, ValidatesOnExceptions=True, UpdateSourceTrigger=PropertyChanged}" />
 
