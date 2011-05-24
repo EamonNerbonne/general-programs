@@ -128,7 +128,7 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\..\..\Downloads\taglib-sharp-2.0.4.0\src\taglib-sharp.csproj">
+    <ProjectReference Include="..\..\..\..\external\taglib-sharp\src\taglib-sharp.csproj">
       <Project>{6B143A39-C7B2-4743-9917-92262C60E9A6}</Project>
       <Name>taglib-sharp</Name>
     </ProjectReference>
