@@ -15,7 +15,7 @@ namespace LastFMspider {
 		public readonly SongFileData[] songs;
 		public FuzzySongSearcher(IEnumerable<SongFileData> psongs) {
 			using (new DTimer("Constructing FuzzySongSearcher")) {
-				this.songs = psongs.ToArray();
+				songs = psongs.ToArray();
 				uint[][] trigramsBySong = new uint[songs.Length][];
 				trigramCountBySong = new int[songs.Length];
 				int[] trigramOccurenceCount = new int[Trigrammer.TrigramCount];
@@ -65,7 +65,7 @@ namespace LastFMspider {
 
 		const int MaxMatchCount = 50;
 		[ThreadStatic]
-		static int[] songmatchcount = null;
+		static int[] songmatchcount;
 		public SongMatch[] FindMatchingSongs(SongRef search, bool suppressAbsoluteCost = false) {
 			int[] matchcounts = songmatchcount;
 			if (matchcounts == null)
