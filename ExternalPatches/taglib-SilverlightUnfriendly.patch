@@ -1,0 +1,14 @@
+Index: Tag.cs
+===================================================================
+--- Tag.cs	(revision 160737)
++++ Tag.cs	(working copy)
+@@ -752,8 +752,7 @@
+ 			if (text == null)
+ 				return 0;
+ 			
+-			string [] values = text.Split (new char [] {'/'},
+-				index + 2);
++			string [] values = text.Split (new char [] {'/'}); //this overload is silverlight compatible
+ 			
+ 			if (values.Length < index + 1)
+ 				return 0;

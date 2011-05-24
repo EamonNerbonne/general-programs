@@ -1,0 +1,15 @@
+Index: AttachedPictureFrame.cs
+===================================================================
+--- AttachedPictureFrame.cs	(revision 160737)
++++ AttachedPictureFrame.cs	(working copy)
+@@ -551,8 +551,8 @@
+ 		/// </exception>
+ 		protected override void ParseFields (ByteVector data, byte version)
+ 		{
+-			if (data.Count < 5)
+-				throw new CorruptFileException (
++			if (data.Count < 5)
++				throw new NotImplementedException( // was CorruptFileException, but that halts entire tag processing, not good!
+ 					"A picture frame must contain at least 5 bytes.");
+ 			
+ 			raw_data = data;

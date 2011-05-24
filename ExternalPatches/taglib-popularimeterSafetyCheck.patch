@@ -1,0 +1,13 @@
+Index: PopularimeterFrame.cs
+===================================================================
+--- PopularimeterFrame.cs	(revision 160737)
++++ PopularimeterFrame.cs	(working copy)
+@@ -240,6 +240,8 @@
+ 			if (index < 0)
+ 				throw new CorruptFileException (
+ 					"Popularimeter frame does not contain a text delimiter");
++            if (index + 2 > data.Count) //Eamon
++                throw new CorruptFileException("Popularimeter is too short");
+ 			
+ 			user = data.ToString (StringType.Latin1, 0, index);
+ 			rating = data [index + 1];

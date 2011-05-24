@@ -1,0 +1,269 @@
+# HG changeset patch
+# User Eamon Nerbonne <eamon@nerbonne.org>
+# Date 1268853215 -3600
+# Node ID ee903fa5fe1e0564de0d964e74ad9d939ada4a70
+# Parent 9bfaeafbbbafacde967fd05f5b916fa0546518ab
+ * removed a few EIGEN_DONT_INLINES
+ * added a few EIGEN_POSSIBLE_INLINE's which are either inline or EIGEN_STRONG_INLINE
+ * defining EIGEN_MORE_INLINE sets EIGEN_POSSIBLE_INLINES to be strong inlines, and changes strong inlines for gcc to include EIGEN_ALWAYS_INLINE_ATTRIB.
+
+diff --git a/Eigen/src/Core/Assign.h b/Eigen/src/Core/Assign.h
+--- a/Eigen/src/Core/Assign.h
++++ b/Eigen/src/Core/Assign.h
+@@ -268,7 +268,7 @@
+ struct assign_impl<Derived1, Derived2, DefaultTraversal, NoUnrolling>
+ {
+   typedef typename Derived1::Index Index;
+-  inline static void run(Derived1 &dst, const Derived2 &src)
++  EIGEN_POSSIBLE_INLINE static void run(Derived1 &dst, const Derived2 &src)
+   {
+     const Index innerSize = dst.innerSize();
+     const Index outerSize = dst.outerSize();
+@@ -309,7 +309,7 @@
+ struct assign_impl<Derived1, Derived2, LinearTraversal, NoUnrolling>
+ {
+   typedef typename Derived1::Index Index;
+-  inline static void run(Derived1 &dst, const Derived2 &src)
++  EIGEN_POSSIBLE_INLINE static void run(Derived1 &dst, const Derived2 &src)
+   {
+     const Index size = dst.size();
+     for(Index i = 0; i < size; ++i)
+@@ -335,7 +335,7 @@
+ struct assign_impl<Derived1, Derived2, InnerVectorizedTraversal, NoUnrolling>
+ {
+   typedef typename Derived1::Index Index;
+-  inline static void run(Derived1 &dst, const Derived2 &src)
++  EIGEN_POSSIBLE_INLINE static void run(Derived1 &dst, const Derived2 &src)
+   {
+     const Index innerSize = dst.innerSize();
+     const Index outerSize = dst.outerSize();
+@@ -385,7 +385,7 @@
+ {
+   // MSVC must not inline this functions. If it does, it fails to optimize the
+   // packet access path.
+-#ifdef _MSC_VER
++#if _MSC_VER && (_MSC_VER < 1500 || (!(defined EIGEN_MORE_INLINE)&& !(defined EIGEN_POSSIBLE_INLINE) ) )
+   template <typename Derived, typename OtherDerived>
+   static EIGEN_DONT_INLINE void run(const Derived& src, OtherDerived& dst, typename Derived::Index start, typename Derived::Index end)
+ #else
+diff --git a/Eigen/src/Core/CwiseUnaryOp.h b/Eigen/src/Core/CwiseUnaryOp.h
+--- a/Eigen/src/Core/CwiseUnaryOp.h
++++ b/Eigen/src/Core/CwiseUnaryOp.h
+@@ -77,7 +77,7 @@
+     typedef typename CwiseUnaryOpImpl<UnaryOp, XprType,typename internal::traits<XprType>::StorageKind>::Base Base;
+     EIGEN_GENERIC_PUBLIC_INTERFACE(CwiseUnaryOp)
+ 
+-    inline CwiseUnaryOp(const XprType& xpr, const UnaryOp& func = UnaryOp())
++    EIGEN_POSSIBLE_INLINE CwiseUnaryOp(const XprType& xpr, const UnaryOp& func = UnaryOp())
+       : m_xpr(xpr), m_functor(func) {}
+ 
+     EIGEN_STRONG_INLINE Index rows() const { return m_xpr.rows(); }
+diff --git a/Eigen/src/Core/DenseBase.h b/Eigen/src/Core/DenseBase.h
+--- a/Eigen/src/Core/DenseBase.h
++++ b/Eigen/src/Core/DenseBase.h
+@@ -207,7 +207,7 @@
+       * \note For a vector, this is just the size. For a matrix (non-vector), this is the minor dimension
+       * with respect to the \ref TopicStorageOrders "storage order", i.e., the number of rows for a 
+       * column-major matrix, and the number of columns for a row-major matrix. */
+-    Index innerSize() const
++    inline Index innerSize() const
+     {
+       return IsVectorAtCompileTime ? this->size()
+            : int(IsRowMajor) ? this->cols() : this->rows();
+diff --git a/Eigen/src/Core/ProductBase.h b/Eigen/src/Core/ProductBase.h
+--- a/Eigen/src/Core/ProductBase.h
++++ b/Eigen/src/Core/ProductBase.h
+@@ -112,7 +112,7 @@
+     inline Index cols() const { return m_rhs.cols(); }
+ 
+     template<typename Dest>
+-    inline void evalTo(Dest& dst) const { dst.setZero(); scaleAndAddTo(dst,Scalar(1)); }
++    EIGEN_POSSIBLE_INLINE void evalTo(Dest& dst) const { dst.setZero(); scaleAndAddTo(dst,Scalar(1)); }
+ 
+     template<typename Dest>
+     inline void addTo(Dest& dst) const { scaleAndAddTo(dst,1); }
+@@ -121,7 +121,7 @@
+     inline void subTo(Dest& dst) const { scaleAndAddTo(dst,-1); }
+ 
+     template<typename Dest>
+-    inline void scaleAndAddTo(Dest& dst,Scalar alpha) const { derived().scaleAndAddTo(dst,alpha); }
++    EIGEN_POSSIBLE_INLINE void scaleAndAddTo(Dest& dst,Scalar alpha) const { derived().scaleAndAddTo(dst,alpha); }
+ 
+     const _LhsNested& lhs() const { return m_lhs; }
+     const _RhsNested& rhs() const { return m_rhs; }
+diff --git a/Eigen/src/Core/Redux.h b/Eigen/src/Core/Redux.h
+--- a/Eigen/src/Core/Redux.h
++++ b/Eigen/src/Core/Redux.h
+@@ -209,7 +209,7 @@
+   typedef typename packet_traits<Scalar>::type PacketScalar;
+   typedef typename Derived::Index Index;
+ 
+-  static Scalar run(const Derived& mat, const Func& func)
++  static EIGEN_POSSIBLE_INLINE Scalar run(const Derived& mat, const Func& func)
+   {
+     const Index size = mat.size();
+     eigen_assert(size && "you are using an empty matrix");
+diff --git a/Eigen/src/Core/SelfCwiseBinaryOp.h b/Eigen/src/Core/SelfCwiseBinaryOp.h
+--- a/Eigen/src/Core/SelfCwiseBinaryOp.h
++++ b/Eigen/src/Core/SelfCwiseBinaryOp.h
+@@ -98,7 +98,7 @@
+     }
+ 
+     template<typename OtherDerived>
+-    void copyCoeff(Index row, Index col, const DenseBase<OtherDerived>& other)
++    EIGEN_POSSIBLE_INLINE void copyCoeff(Index row, Index col, const DenseBase<OtherDerived>& other)
+     {
+       OtherDerived& _other = other.const_cast_derived();
+       eigen_internal_assert(row >= 0 && row < rows()
+@@ -108,7 +108,7 @@
+     }
+ 
+     template<typename OtherDerived>
+-    void copyCoeff(Index index, const DenseBase<OtherDerived>& other)
++    EIGEN_POSSIBLE_INLINE void copyCoeff(Index index, const DenseBase<OtherDerived>& other)
+     {
+       OtherDerived& _other = other.const_cast_derived();
+       eigen_internal_assert(index >= 0 && index < m_matrix.size());
+@@ -117,7 +117,7 @@
+     }
+ 
+     template<typename OtherDerived, int StoreMode, int LoadMode>
+-    void copyPacket(Index row, Index col, const DenseBase<OtherDerived>& other)
++    EIGEN_POSSIBLE_INLINE void copyPacket(Index row, Index col, const DenseBase<OtherDerived>& other)
+     {
+       OtherDerived& _other = other.const_cast_derived();
+       eigen_internal_assert(row >= 0 && row < rows()
+@@ -127,7 +127,7 @@
+     }
+ 
+     template<typename OtherDerived, int StoreMode, int LoadMode>
+-    void copyPacket(Index index, const DenseBase<OtherDerived>& other)
++    EIGEN_POSSIBLE_INLINE void copyPacket(Index index, const DenseBase<OtherDerived>& other)
+     {
+       OtherDerived& _other = other.const_cast_derived();
+       eigen_internal_assert(index >= 0 && index < m_matrix.size());
+@@ -157,7 +157,7 @@
+     // overloaded to honor evaluation of special matrices
+     // maybe another solution would be to not use SelfCwiseBinaryOp
+     // at first...
+-    SelfCwiseBinaryOp& operator=(const Rhs& _rhs)
++    EIGEN_POSSIBLE_INLINE SelfCwiseBinaryOp& operator=(const Rhs& _rhs)
+     {
+       typename internal::nested<Rhs>::type rhs(_rhs);
+       return Base::operator=(rhs);
+@@ -172,7 +172,7 @@
+ };
+ 
+ template<typename Derived>
+-inline Derived& DenseBase<Derived>::operator*=(const Scalar& other)
++EIGEN_POSSIBLE_INLINE Derived& DenseBase<Derived>::operator*=(const Scalar& other)
+ {
+   typedef typename Derived::PlainObject PlainObject;
+   SelfCwiseBinaryOp<internal::scalar_product_op<Scalar>, Derived, typename PlainObject::ConstantReturnType> tmp(derived());
+diff --git a/Eigen/src/Core/products/CoeffBasedProduct.h b/Eigen/src/Core/products/CoeffBasedProduct.h
+--- a/Eigen/src/Core/products/CoeffBasedProduct.h
++++ b/Eigen/src/Core/products/CoeffBasedProduct.h
+@@ -158,7 +158,7 @@
+     {}
+ 
+     template<typename Lhs, typename Rhs>
+-    inline CoeffBasedProduct(const Lhs& lhs, const Rhs& rhs)
++    EIGEN_POSSIBLE_INLINE CoeffBasedProduct(const Lhs& lhs, const Rhs& rhs)
+       : m_lhs(lhs), m_rhs(rhs)
+     {
+       // we don't allow taking products of matrices of different real types, as that wouldn't be vectorizable.
+diff --git a/Eigen/src/Core/products/GeneralMatrixVector.h b/Eigen/src/Core/products/GeneralMatrixVector.h
+--- a/Eigen/src/Core/products/GeneralMatrixVector.h
++++ b/Eigen/src/Core/products/GeneralMatrixVector.h
+@@ -61,7 +61,7 @@
+ typedef typename conditional<Vectorizable,_RhsPacket,RhsScalar>::type RhsPacket;
+ typedef typename conditional<Vectorizable,_ResPacket,ResScalar>::type ResPacket;
+ 
+-EIGEN_DONT_INLINE static void run(
++EIGEN_POSSIBLE_INLINE static void run(
+   Index rows, Index cols,
+   const LhsScalar* lhs, Index lhsStride,
+   const RhsScalar* rhs, Index rhsIncr,
+@@ -317,7 +317,7 @@
+ typedef typename conditional<Vectorizable,_RhsPacket,RhsScalar>::type RhsPacket;
+ typedef typename conditional<Vectorizable,_ResPacket,ResScalar>::type ResPacket;
+   
+-EIGEN_DONT_INLINE static void run(
++EIGEN_POSSIBLE_INLINE static void run(
+   Index rows, Index cols,
+   const LhsScalar* lhs, Index lhsStride,
+   const RhsScalar* rhs, Index rhsIncr,
+diff --git a/Eigen/src/Core/util/Macros.h b/Eigen/src/Core/util/Macros.h
+--- a/Eigen/src/Core/util/Macros.h
++++ b/Eigen/src/Core/util/Macros.h
+@@ -148,6 +148,7 @@
+ #define EIGEN_FLATTEN_ATTRIB
+ #endif
+ 
++
+ // EIGEN_FORCE_INLINE means "inline as much as possible"
+ #if (defined _MSC_VER) || (defined __INTEL_COMPILER)
+ #define EIGEN_STRONG_INLINE __forceinline
+@@ -155,6 +156,15 @@
+ #define EIGEN_STRONG_INLINE inline
+ #endif
+ 
++// EIGEN_MORE_INLINE means "inline more in general"
++#define EIGEN_MORE_INLINE
++#ifdef EIGEN_MORE_INLINE
++#define EIGEN_POSSIBLE_INLINE EIGEN_STRONG_INLINE
++#else
++#define EIGEN_POSSIBLE_INLINE inline
++#endif
++
++
+ #if (defined __GNUC__)
+ #define EIGEN_DONT_INLINE __attribute__((noinline))
+ #elif (defined _MSC_VER)
+diff --git a/Eigen/src/Core/util/Memory.h b/Eigen/src/Core/util/Memory.h
+--- a/Eigen/src/Core/util/Memory.h
++++ b/Eigen/src/Core/util/Memory.h
+@@ -436,7 +436,7 @@
+   * There is also the variant first_aligned(const MatrixBase&) defined in DenseCoeffsBase.h.
+   */
+ template<typename Scalar, typename Index>
+-inline static Index first_aligned(const Scalar* array, Index size)
++EIGEN_POSSIBLE_INLINE static Index first_aligned(const Scalar* array, Index size)
+ {
+   typedef typename packet_traits<Scalar>::type Packet;
+   enum { PacketSize = packet_traits<Scalar>::size,
+diff --git a/Eigen/src/Eigenvalues/Tridiagonalization.h b/Eigen/src/Eigenvalues/Tridiagonalization.h
+--- a/Eigen/src/Eigenvalues/Tridiagonalization.h
++++ b/Eigen/src/Eigenvalues/Tridiagonalization.h
+@@ -438,8 +438,6 @@
+ template<typename MatrixType, typename DiagonalType, typename SubDiagonalType>
+ void tridiagonalization_inplace(MatrixType& mat, DiagonalType& diag, SubDiagonalType& subdiag, bool extractQ)
+ {
+-  typedef typename MatrixType::Index Index;
+-  //Index n = mat.rows();
+   eigen_assert(mat.cols()==mat.rows() && diag.size()==mat.rows() && subdiag.size()==mat.rows()-1);
+   tridiagonalization_inplace_selector<MatrixType>::run(mat, diag, subdiag, extractQ);
+ }
+diff --git a/Eigen/src/plugins/CommonCwiseUnaryOps.h b/Eigen/src/plugins/CommonCwiseUnaryOps.h
+--- a/Eigen/src/plugins/CommonCwiseUnaryOps.h
++++ b/Eigen/src/plugins/CommonCwiseUnaryOps.h
+@@ -60,7 +60,7 @@
+ 
+ 
+ /** \returns an expression of \c *this scaled by the scalar factor \a scalar */
+-inline const ScalarMultipleReturnType
++EIGEN_POSSIBLE_INLINE const ScalarMultipleReturnType
+ operator*(const Scalar& scalar) const
+ {
+   return CwiseUnaryOp<internal::scalar_multiple_op<Scalar>, const Derived>
+@@ -86,8 +86,8 @@
+   return CwiseUnaryOp<internal::scalar_multiple2_op<Scalar,std::complex<Scalar> >, const Derived>
+     (*static_cast<const Derived*>(this), internal::scalar_multiple2_op<Scalar,std::complex<Scalar> >(scalar));
+ }
+-
+-inline friend const ScalarMultipleReturnType
++ 
++EIGEN_POSSIBLE_INLINE friend const ScalarMultipleReturnType
+ operator*(const Scalar& scalar, const StorageBaseType& matrix)
+ { return matrix*scalar; }
+ 
