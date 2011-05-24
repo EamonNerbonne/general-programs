@@ -35,27 +35,26 @@ namespace LvqGui {
 		}
 		LvqDatasetCli _ForDataset;
 
+		LvqModelSettingsCli settings;
+
 		public LvqModelType ModelType {
-			get { return _ModelType; }
-			set { if (!Equals(_ModelType, value)) { if (value != LvqModelType.LgmModelType) Dimensionality = 2; _ModelType = value; _propertyChanged("ModelType"); } }
+			get { return settings.ModelType; }
+			set { if (!Equals(settings.ModelType, value)) { if (value != LvqModelType.LgmModelType) Dimensionality = 2; settings.ModelType = value; _propertyChanged("ModelType"); } }
 		}
-		LvqModelType _ModelType;
 
 		public int Dimensionality {
-			get { return _Dimensionality; }
+			get { return settings.Dimensionality; }
 			set {
 				if (value < 0 || (ForDataset != null && value > ForDataset.Dimensions)) throw new ArgumentException("Internal dimensionality must be 0 (auto) or between 1 and the dimensions of the data.");
-				if (_ModelType != LvqModelType.LgmModelType && value != 2 && value != 0) throw new ArgumentException("2D Projection models must have exactly 2 internal dimensions.");
-				if (!Equals(_Dimensionality, value)) { _Dimensionality = value; _propertyChanged("Dimensionality"); }
+				if (settings.ModelType != LvqModelType.LgmModelType && value != 2 && value != 0) throw new ArgumentException("2D Projection models must have exactly 2 internal dimensions.");
+				if (!Equals(settings.Dimensionality, value)) { settings.Dimensionality = value; _propertyChanged("Dimensionality"); }
 			}
 		}
-		int _Dimensionality;
 
 		public int PrototypesPerClass {
-			get { return _PrototypesPerClass; }
-			set { if (!Equals(_PrototypesPerClass, value)) { _PrototypesPerClass = value; _propertyChanged("PrototypesPerClass"); } }
+			get { return settings.PrototypesPerClass; }
+			set { if (!Equals(settings.PrototypesPerClass, value)) { settings.PrototypesPerClass = value; _propertyChanged("PrototypesPerClass"); } }
 		}
-		int _PrototypesPerClass;
 
 		public int ParallelModels {
 			get { return _ParallelModels; }
@@ -67,102 +66,84 @@ namespace LvqGui {
 		int _ParallelModels;
 
 		public bool TrackProjectionQuality {
-			get { return _TrackProjectionQuality; }
-			set { if (!_TrackProjectionQuality.Equals(value)) { _TrackProjectionQuality = value; _propertyChanged("TrackProjectionQuality"); } }
+			get { return settings.TrackProjectionQuality; }
+			set { if (!settings.TrackProjectionQuality.Equals(value)) { settings.TrackProjectionQuality = value; _propertyChanged("TrackProjectionQuality"); } }
 		}
-		bool _TrackProjectionQuality;
 
 		public bool NormalizeProjection {
-			get { return _NormalizeProjection; }
-			set { if (!_NormalizeProjection.Equals(value)) { _NormalizeProjection = value; _propertyChanged("NormalizeProjection"); } }
+			get { return settings.NormalizeProjection; }
+			set { if (!settings.NormalizeProjection.Equals(value)) { settings.NormalizeProjection = value; _propertyChanged("NormalizeProjection"); } }
 		}
-		bool _NormalizeProjection;
 
 		public bool NormalizeBoundaries {
-			get { return _NormalizeBoundaries; }
-			set { if (!_NormalizeBoundaries.Equals(value)) { _NormalizeBoundaries = value; _propertyChanged("NormalizeBoundaries"); } }
+			get { return settings.NormalizeBoundaries; }
+			set { if (!settings.NormalizeBoundaries.Equals(value)) { settings.NormalizeBoundaries = value; _propertyChanged("NormalizeBoundaries"); } }
 		}
-		bool _NormalizeBoundaries;
 
 		public bool GloballyNormalize {
-			get { return _GloballyNormalize; }
-			set { if (!_GloballyNormalize.Equals(value)) { _GloballyNormalize = value; _propertyChanged("GloballyNormalize"); } }
+			get { return settings.GloballyNormalize; }
+			set { if (!settings.GloballyNormalize.Equals(value)) { settings.GloballyNormalize = value; _propertyChanged("GloballyNormalize"); } }
 		}
-		bool _GloballyNormalize;
 
 		public bool RandomInitialProjection {
-			get { return _RandomInitialProjection; }
-			set { if (!_RandomInitialProjection.Equals(value)) { _RandomInitialProjection = value; _propertyChanged("RandomInitialProjection"); } }
+			get { return settings.RandomInitialProjection; }
+			set { if (!settings.RandomInitialProjection.Equals(value)) { settings.RandomInitialProjection = value; _propertyChanged("RandomInitialProjection"); } }
 		}
-		bool _RandomInitialProjection;
 
 		public bool RandomInitialBorders {
-			get { return _RandomInitialBorders; }
-			set { if (!_RandomInitialBorders.Equals(value)) { _RandomInitialBorders = value; _propertyChanged("RandomInitialBorders"); } }
+			get { return settings.RandomInitialBorders; }
+			set { if (!settings.RandomInitialBorders.Equals(value)) { settings.RandomInitialBorders = value; _propertyChanged("RandomInitialBorders"); } }
 		}
-		bool _RandomInitialBorders;
 
 		public bool NgUpdateProtos {
-			get { return _NgUpdateProtos; }
-			set { if (!_NgUpdateProtos.Equals(value)) { _NgUpdateProtos = value; _propertyChanged("NgUpdateProtos"); } }
+			get { return settings.NgUpdateProtos; }
+			set { if (!settings.NgUpdateProtos.Equals(value)) { settings.NgUpdateProtos = value; _propertyChanged("NgUpdateProtos"); } }
 		}
-		bool _NgUpdateProtos;
 
 		public bool NgInitializeProtos {
-			get { return _NgInitializeProtos; }
-			set { if (!Equals(_NgInitializeProtos, value)) { _NgInitializeProtos = value; _propertyChanged("NgInitializeProtos"); } }
+			get { return settings.NgInitializeProtos; }
+			set { if (!Equals(settings.NgInitializeProtos, value)) { settings.NgInitializeProtos = value; _propertyChanged("NgInitializeProtos"); } }
 		}
-		private bool _NgInitializeProtos;
-
-
 
 		public bool UpdatePointsWithoutB {
-			get { return _UpdatePointsWithoutB; }
-			set { if (!_UpdatePointsWithoutB.Equals(value)) { _UpdatePointsWithoutB = value; _propertyChanged("UpdatePointsWithoutB"); } }
+			get { return settings.UpdatePointsWithoutB; }
+			set { if (!settings.UpdatePointsWithoutB.Equals(value)) { settings.UpdatePointsWithoutB = value; _propertyChanged("UpdatePointsWithoutB"); } }
 		}
-		bool _UpdatePointsWithoutB;
 
 		public double LrScaleP {
-			get { return _LrScaleP; }
-			set { if (!_LrScaleP.Equals(value)) { _LrScaleP = value; _propertyChanged("LrScaleP"); } }
+			get { return settings.LrScaleP; }
+			set { if (!settings.LrScaleP.Equals(value)) { settings.LrScaleP = value; _propertyChanged("LrScaleP"); } }
 		}
-		double _LrScaleP;
 
 		public double LrScaleB {
-			get { return _LrScaleB; }
-			set { if (!_LrScaleB.Equals(value)) { _LrScaleB = value; _propertyChanged("LrScaleB"); } }
+			get { return settings.LrScaleB; }
+			set { if (!settings.LrScaleB.Equals(value)) { settings.LrScaleB = value; _propertyChanged("LrScaleB"); } }
 		}
-		double _LrScaleB;
 
 		public double LR0 {
-			get { return _LR0; }
-			set { if (!_LR0.Equals(value)) { _LR0 = value; _propertyChanged("LR0"); } }
+			get { return settings.LR0; }
+			set { if (!settings.LR0.Equals(value)) { settings.LR0 = value; _propertyChanged("LR0"); } }
 		}
-		double _LR0;
 
 		public double LrScaleBad {
-			get { return _LrScaleBad; }
-			set { if (!_LrScaleBad.Equals(value)) { _LrScaleBad = value; _propertyChanged("LrScaleBad"); } }
+			get { return settings.LrScaleBad; }
+			set { if (!settings.LrScaleBad.Equals(value)) { settings.LrScaleBad = value; _propertyChanged("LrScaleBad"); } }
 		}
-		double _LrScaleBad;
 
 		public bool SlowStartLrBad {
-			get { return _SlowStartLrBad; }
-			set { if (!_SlowStartLrBad.Equals(value)) { _SlowStartLrBad = value; _propertyChanged("SlowStartLrBad"); } }
+			get { return settings.SlowStartLrBad; }
+			set { if (!settings.SlowStartLrBad.Equals(value)) { settings.SlowStartLrBad = value; _propertyChanged("SlowStartLrBad"); } }
 		}
-		private bool _SlowStartLrBad;
 
-		public uint Seed {
-			get { return _Seed; }
-			set { if (!Equals(_Seed, value)) { _Seed = value; _propertyChanged("Seed"); } }
+		public uint ParamsSeed {
+			get { return settings.ParamsSeed; }
+			set { if (!Equals(settings.ParamsSeed, value)) { settings.ParamsSeed = value; _propertyChanged("ParamsSeed"); } }
 		}
-		uint _Seed;
 
-		public uint InstSeed {
-			get { return _InstSeed; }
-			set { if (!_InstSeed.Equals(value)) { _InstSeed = value; _propertyChanged("InstSeed"); } }
+		public uint InstanceSeed {
+			get { return settings.InstanceSeed; }
+			set { if (!settings.InstanceSeed.Equals(value)) { settings.InstanceSeed = value; _propertyChanged("InstanceSeed"); } }
 		}
-		uint _InstSeed;
 
 		static readonly Regex shR =
 	new Regex(@"
@@ -178,38 +159,21 @@ namespace LvqGui {
 				(NG(?<NgUpdateProtos>\+?),)?
 				(NGi(?<NgInitializeProtos>\+?),)?
 				(noB(?<UpdatePointsWithoutB>\+?),)?
-				\[(?<Seed>[0-9]+)\:(?<InstSeed>[0-9]+)\]/(?<ParallelModels>[0-9]+),
 				(pQ(?<TrackProjectionQuality>\+?),)?
 				lr0(?<LR0>[0-9]*(\.[0-9]*)?(e[0-9]+)?),
 				lrP(?<LrScaleP>[0-9]*(\.[0-9]*)?(e[0-9]+)?),
 				lrB(?<LrScaleB>[0-9]*(\.[0-9]*)?(e[0-9]+)?),
 				lrX(?<LrScaleBad>[0-9]*(\.[0-9]*)?(e[0-9]+)?),
 				(?<SlowStartLrBad>\!?)
+				\[(?<ParamsSeed>[0-9]+)\:(?<InstanceSeed>[0-9]+)\]\/(?<ParallelModels>[0-9]+)\,
+				(pQ(?<TrackProjectionQuality>\+?),)?
 				(--.*)?\s*$",
 		RegexOptions.ExplicitCapture | RegexOptions.IgnorePatternWhitespace);
 
-		bool isBoundaryModel { get { return ModelType == LvqModelType.G2mModelType || ModelType == LvqModelType.GgmModelType; } }
-
 		public string Shorthand {
 			get {
-				return ModelType
-				+ (ModelType == LvqModelType.LgmModelType ? "[" + Dimensionality + "]" : "") + ","
-				+ PrototypesPerClass + ","
-				+ "rP" + (RandomInitialProjection ? "+" : "") + ","
-				+ (isBoundaryModel ? "rB" + (RandomInitialBorders ? "+" : "") + "," : "")
-				+ "nP" + (NormalizeProjection ? "+" : "") + ","
-				+ (ModelType == LvqModelType.G2mModelType ? "nB" + (NormalizeBoundaries ? "+" : "") + "," : "")
-				+ (ModelType == LvqModelType.G2mModelType && NormalizeBoundaries || NormalizeProjection ? "gn" + (GloballyNormalize ? "+" : "") + "," : "")
-				+ (ModelType != LvqModelType.LgmModelType ? "NG" + (NgUpdateProtos ? "+" : "") + "," : "")
-				+ (PrototypesPerClass > 1 ? "NGi" + (NgInitializeProtos ? "+" : "") + "," : "")
-				+ (ModelType == LvqModelType.G2mModelType ? "noB" + (UpdatePointsWithoutB ? "+" : "") + "," : "")
-				+ "[" + Seed + ":" + InstSeed + "]/" + ParallelModels + ","
+				return settings.ToShorthand()+"/" + ParallelModels + ","
 				+ (ModelType != LvqModelType.LgmModelType ? "pQ" + (TrackProjectionQuality ? "+" : "") + "," : "")
-				+ "lr0" + LR0 + ","
-				+ "lrP" + LrScaleP + ","
-				+ "lrB" + LrScaleB + ","
-				+ "lrX" + LrScaleBad + ","
-				+ (SlowStartLrBad ? "!" : "")
 				+ (ForDataset == null ? "" : "--" + ForDataset.DatasetLabel);
 			}
 			set { ShorthandHelper.ParseShorthand(this, shR, value); }
@@ -220,68 +184,19 @@ namespace LvqGui {
 
 		public CreateLvqModelValues(LvqWindowValues owner) {
 			this.owner = owner;
-			var defaults = new LvqModelSettingsCli();
-
+			settings = new LvqModelSettingsCli();
 			ParallelModels = 10;
-
-			ModelType = defaults.ModelType;
-			//RngParamsSeed => this.Seed;
-			//RngIterSeed => InstSeed;
-			PrototypesPerClass = defaults.PrototypesPerClass;
-			RandomInitialProjection = defaults.RandomInitialProjection;
-			RandomInitialBorders = defaults.RandomInitialBorders;
-
-			TrackProjectionQuality = defaults.TrackProjectionQuality;
-			NormalizeProjection = defaults.NormalizeProjection;
-			NormalizeBoundaries = defaults.NormalizeBoundaries;
-			GloballyNormalize = defaults.GloballyNormalize;
-			NgUpdateProtos = defaults.NgUpdateProtos;
-			NgInitializeProtos = defaults.NgInitializeProtos;
-			UpdatePointsWithoutB = defaults.UpdatePointsWithoutB;
-			Dimensionality = defaults.Dimensionality;
-			SlowStartLrBad = defaults.SlowStartLrBad;
-
-			LrScaleP = defaults.LrScaleP;
-			LrScaleB = defaults.LrScaleB;
-			LR0 = defaults.LR0;
-			LrScaleBad = defaults.LrScaleBad;
 			this.ReseedBoth();
 		}
 
-		LvqModelSettingsCli ConstructLvqModelSettings() {
-			return new LvqModelSettingsCli {
-				ModelType = ModelType,
-				RngParamsSeed = Seed,
-				RngIterSeed = InstSeed,
-				PrototypesPerClass = PrototypesPerClass,
-				RandomInitialProjection = RandomInitialProjection,
-				RandomInitialBorders = RandomInitialBorders,
-
-				TrackProjectionQuality = TrackProjectionQuality,
-				NormalizeProjection = NormalizeProjection,
-				NormalizeBoundaries = NormalizeBoundaries,
-				GloballyNormalize = GloballyNormalize,
-				NgUpdateProtos = NgUpdateProtos,
-				NgInitializeProtos = NgInitializeProtos,
-				UpdatePointsWithoutB = UpdatePointsWithoutB,
-				Dimensionality = Dimensionality,
-				SlowStartLrBad = SlowStartLrBad,
-
-				LrScaleP = LrScaleP,
-				LrScaleB = LrScaleB,
-				LR0 = LR0,
-				LrScaleBad = LrScaleBad,
-			};
-		}
-
 		public Task ConfirmCreation() {
-			var settings = ConstructLvqModelSettings();
+			var settingsCopy =settings.Copy();
 			var args = new { Shorthand, ParallelModels, ForDataset }; //for threadsafety get these now.
 
 			TaskCompletionSource<object> whenDone = new TaskCompletionSource<object>();
 
 			Task.Factory
-				.StartNew(() => new LvqMultiModel(args.Shorthand, args.ParallelModels, args.ForDataset, settings))
+				.StartNew(() => new LvqMultiModel(args.Shorthand, args.ParallelModels, args.ForDataset, settingsCopy))
 				.ContinueWith(modelTask => {
 					Console.WriteLine("Created: " + args.Shorthand);
 					owner.Dispatcher.BeginInvoke(owner.LvqModels.Add, modelTask.Result).Completed += (s, e) => whenDone.SetResult(null);
@@ -291,16 +206,16 @@ namespace LvqGui {
 		}
 
 		internal void OptimizeLr() {//on gui thread.
-			var settings = ConstructLvqModelSettings();
+			var settingsCopy = settings.Copy();
 			var args = new { Shorthand, ParallelModels, ForDataset };//for threadsafety get these now.
 			long iterCount = 5000000;
 			var testLr = new TestLr(0, ForDataset, ParallelModels);
-			string shortname = testLr.Shortname(settings, iterCount);
+			string shortname = testLr.Shortname(settingsCopy, iterCount);
 
 			var logWindow = LogControl.ShowNewLogWindow(shortname, owner.win.ActualWidth, owner.win.ActualHeight * 0.6);
 
 			ThreadPool.QueueUserWorkItem(_ => {
-				testLr.RunAndSave(logWindow.Item2.Writer, settings, iterCount);
+				testLr.RunAndSave(logWindow.Item2.Writer, settingsCopy, iterCount);
 				logWindow.Item1.Dispatcher.BeginInvoke(() => logWindow.Item1.Background = Brushes.White);
 			});
 		}

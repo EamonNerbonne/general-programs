@@ -17,7 +17,7 @@ namespace LvqLibCli {
 	{
 	public:
 		LvqModelType ModelType;
-		unsigned RngParamsSeed, RngIterSeed;
+		unsigned ParamsSeed, InstanceSeed;
 		int PrototypesPerClass;
 		bool RandomInitialProjection;
 		bool RandomInitialBorders;
@@ -30,8 +30,8 @@ namespace LvqLibCli {
 
 		LvqModelSettingsCli()
 			: ModelType(LvqModelType::GgmModelType)
-			, RngParamsSeed(37)
-			, RngIterSeed(42)
+			, ParamsSeed(37)
+			, InstanceSeed(42)
 			, PrototypesPerClass(1)
 			, RandomInitialProjection(true)
 			, RandomInitialBorders(false)
@@ -51,5 +51,25 @@ namespace LvqLibCli {
 		{ }
 		LvqModelSettingsCli^ Copy();
 		LvqModelSettings ToNativeSettings(LvqDatasetCli^ dataset, int datasetFold);
+
+		String^ ToShorthand() {
+			return ModelType.ToString()
+				+ (ModelType == LvqModelType::LgmModelType ? "[" + Dimensionality + "]" : "") + ","
+				+ PrototypesPerClass + ","
+				+ "rP" + (RandomInitialProjection ? "+" : "") + ","
+				+ (ModelType == LvqModelType::GgmModelType || ModelType==LvqModelType::G2mModelType ? "rB" + (RandomInitialBorders ? "+" : "") + "," : "")
+				+ "nP" + (NormalizeProjection ? "+" : "") + ","
+				+ (ModelType == LvqModelType::G2mModelType ? "nB" + (NormalizeBoundaries ? "+" : "") + "," : "")
+				+ (ModelType == LvqModelType::G2mModelType && NormalizeBoundaries || NormalizeProjection ? "gn" + (GloballyNormalize ? "+" : "") + "," : "")
+				+ (ModelType != LvqModelType::LgmModelType ? "NG" + (NgUpdateProtos ? "+" : "") + "," : "")
+				+ (PrototypesPerClass > 1 ? "NGi" + (NgInitializeProtos ? "+" : "") + "," : "")
+				+ (ModelType == LvqModelType::G2mModelType ? "noB" + (UpdatePointsWithoutB ? "+" : "") + "," : "")
+				+ "lr0" + LR0 + ","
+				+ "lrP" + LrScaleP + ","
+				+ "lrB" + LrScaleB + ","
+				+ "lrX" + LrScaleBad + ","
+				+ (SlowStartLrBad ? "!" : "")
+				+ "[" + ParamsSeed + ":" + InstanceSeed + "]";
+		}
 	};
 }

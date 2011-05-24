@@ -16,15 +16,15 @@ namespace LvqGui {
 		public event PropertyChangedEventHandler PropertyChanged;
 		void _propertyChanged(String propertyName) { if (PropertyChanged != null) PropertyChanged(this, new PropertyChangedEventArgs(propertyName)); }
 
-		public uint Seed {
+		public uint ParamsSeed {
 			get { return _Seed; }
-			set { if (!Equals(_Seed, value)) { _Seed = value; _propertyChanged("Seed"); } }
+			set { if (!Equals(_Seed, value)) { _Seed = value; _propertyChanged("ParamsSeed"); } }
 		}
 		uint _Seed;
 
-		public uint InstSeed {
+		public uint InstanceSeed {
 			get { return _InstSeed; }
-			set { if (!_InstSeed.Equals(value)) { _InstSeed = value; _propertyChanged("InstSeed"); } }
+			set { if (!_InstSeed.Equals(value)) { _InstSeed = value; _propertyChanged("InstanceSeed"); } }
 		}
 		uint _InstSeed;
 

@@ -12,8 +12,8 @@ namespace LvqLibCli {
 
 		LvqModelSettings initSettings(
 			LvqModelSettings::LvqModelType(ModelType), 
-			as_lvalue(mt19937(RngParamsSeed+modelFold)), 
-			as_lvalue(mt19937(RngIterSeed+modelFold)), 
+			as_lvalue(mt19937(ParamsSeed+modelFold)), 
+			as_lvalue(mt19937(InstanceSeed+modelFold)), 
 			protoDistrib, 
 			trainingSet->GetTrainingDataset(),
 			trainingSet->GetTrainingSubset(modelFold)

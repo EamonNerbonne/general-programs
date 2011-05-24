@@ -51,11 +51,11 @@ namespace LvqGui {
 		void DoBenchmark() {		// ReSharper restore UnusedMember.Local
 			ThreadPool.QueueUserWorkItem(o => {
 				LvqWindowValues values = ((LvqWindowValues)o);
-				values.CreateStarDatasetValues.Seed = 1337;
-				values.CreateStarDatasetValues.InstSeed = 37;
+				values.CreateStarDatasetValues.ParamsSeed = 1337;
+				values.CreateStarDatasetValues.InstanceSeed = 37;
 
-				values.CreateLvqModelValues.Seed = 42;
-				values.CreateLvqModelValues.InstSeed = 1234;
+				values.CreateLvqModelValues.ParamsSeed = 42;
+				values.CreateLvqModelValues.InstanceSeed = 1234;
 
 				values.CreateStarDatasetValues.ConfirmCreation().Completed +=
 						(s, e) => Dispatcher.BeginInvokeBackground(

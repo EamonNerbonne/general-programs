@@ -91,8 +91,8 @@ namespace LvqGui {
 				SlowStartLrBad = false,
 				UpdatePointsWithoutB = false,
 				LrScaleBad = 1.0,
-				RngIterSeed = rngIter,
-				RngParamsSeed = rngParam,
+				InstanceSeed = rngIter,
+				ParamsSeed = rngParam,
 			};
 		}
 		static LvqModelSettingsCli SetLr(LvqModelSettingsCli baseSettings, double lr0, double lrScaleP, double lrScaleB) {

@@ -49,15 +49,15 @@ namespace LvqGui {
 		}
 		double _ClassCenterDeviation;
 
-		public uint Seed {
+		public uint ParamsSeed {
 			get { return _Seed; }
-			set { if (!Equals(_Seed, value)) { _Seed = value; _propertyChanged("Seed"); } }
+			set { if (!Equals(_Seed, value)) { _Seed = value; _propertyChanged("ParamsSeed"); } }
 		}
 		uint _Seed;
 
-		public uint InstSeed {
+		public uint InstanceSeed {
 			get { return _InstSeed; }
-			set { if (!_InstSeed.Equals(value)) { _InstSeed = value; _propertyChanged("InstSeed"); } }
+			set { if (!_InstSeed.Equals(value)) { _InstSeed = value; _propertyChanged("InstanceSeed"); } }
 		}
 		uint _InstSeed;
 
@@ -71,13 +71,13 @@ namespace LvqGui {
 		public bool NormalizeDimensions { get { return owner.NormalizeDimensions; } set { owner.NormalizeDimensions = value; } }
 
 		static readonly Regex shR =
-			new Regex(@"^\s*(.*?--)?nrm-(?<Dimensions>\d+)D(?<ExtendDataByCorrelation>\*?)(?<NormalizeDimensions>n?)-(?<NumberOfClasses>\d+)\*(?<PointsPerClass>\d+):(?<ClassCenterDeviation>[^\[]+)\[(?<Seed>\d+):(?<InstSeed>\d+)\]/(?<Folds>\d+)\s*$",
+			new Regex(@"^\s*(.*?--)?nrm-(?<Dimensions>\d+)D(?<ExtendDataByCorrelation>\*?)(?<NormalizeDimensions>n?)-(?<NumberOfClasses>\d+)\*(?<PointsPerClass>\d+):(?<ClassCenterDeviation>[^\[]+)\[(?<ParamsSeed>\d+):(?<InstanceSeed>\d+)\]/(?<Folds>\d+)\s*$",
 				RegexOptions.CultureInvariant | RegexOptions.ExplicitCapture);
 
 
 		public string Shorthand {
 			get {
-				return "nrm-" + Dimensions + "D" + (ExtendDataByCorrelation ? "*" : "") + (NormalizeDimensions ? "n" : "") + "-" + NumberOfClasses + "*" + PointsPerClass + ":" + ClassCenterDeviation.ToString("r") + "[" + Seed + ":" + InstSeed + "]/" + Folds;
+				return "nrm-" + Dimensions + "D" + (ExtendDataByCorrelation ? "*" : "") + (NormalizeDimensions ? "n" : "") + "-" + NumberOfClasses + "*" + PointsPerClass + ":" + ClassCenterDeviation.ToString("r") + "[" + ParamsSeed + ":" + InstanceSeed + "]/" + Folds;
 			}
 			set { ShorthandHelper.ParseShorthand(this, shR, value); }
 		}
@@ -111,9 +111,9 @@ namespace LvqGui {
 				folds: _Folds,
 				extend: owner.ExtendDataByCorrelation,
 				normalizeDims: owner.ExtendDataByCorrelation,
-				colors: WpfTools.MakeDistributedColors(NumberOfClasses, new MersenneTwister((int)Seed)),
-				rngParamsSeed: Seed,
-				rngInstSeed: InstSeed,
+				colors: WpfTools.MakeDistributedColors(NumberOfClasses, new MersenneTwister((int)ParamsSeed)),
+				rngParamsSeed: ParamsSeed,
+				rngInstSeed: InstanceSeed,
 				dims: Dimensions,
 				classCount: NumberOfClasses,
 				pointsPerClass: PointsPerClass,

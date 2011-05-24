@@ -4,12 +4,12 @@ using EmnExtensions.MathHelpers;
 
 namespace LvqGui {
 	public interface IHasSeed {
-		uint Seed { get; set; }
-		uint InstSeed { get; set; }
+		uint ParamsSeed { get; set; }
+		uint InstanceSeed { get; set; }
 	}
 	public static class IHasSeedExtensions {
 		public static void ReseedBoth(this IHasSeed seededObj) { seededObj.ReseedParam(); seededObj.ReseedInst(); }
-		public static void ReseedParam(this IHasSeed seededObj) { seededObj.Seed = RndHelper.MakeSecureUInt(); }
-		public static void ReseedInst(this IHasSeed seededObj) { seededObj.InstSeed = RndHelper.MakeSecureUInt(); }
+		public static void ReseedParam(this IHasSeed seededObj) { seededObj.ParamsSeed = RndHelper.MakeSecureUInt(); }
+		public static void ReseedInst(this IHasSeed seededObj) { seededObj.InstanceSeed = RndHelper.MakeSecureUInt(); }
 	}
 }
