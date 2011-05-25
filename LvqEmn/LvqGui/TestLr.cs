@@ -105,7 +105,7 @@ namespace LvqGui {
 				yield return start * Math.Exp(lnScale * ((double)i / (steps - 1)));
 		}
 
-		void FindOptimalLr(TextWriter sink,  LvqModelSettingsCli settings) {
+		void FindOptimalLr(TextWriter sink, LvqModelSettingsCli settings) {
 			var lr0range = altLearningRates ? LogRange(0.3 / settings.PrototypesPerClass, 0.03 / settings.PrototypesPerClass, 5) : LogRange(0.3, 0.01, 8);
 			var lrPrange = altLearningRates ? LogRange(0.3 / settings.PrototypesPerClass, 0.03 / settings.PrototypesPerClass, 5) : LogRange(0.5, 0.03, 8);
 			var lrBrange = settings.ModelType != LvqModelType.Ggm && settings.ModelType != LvqModelType.G2m ? new[] { 0.0 } :
@@ -171,14 +171,13 @@ namespace LvqGui {
 			if (altLearningRates)
 				sink.WriteLine("Against: " + datasets[0].DatasetLabel);
 			using (new DTimer(time => sink.WriteLine("Search Complete!  Took " + time)))
-				FindOptimalLr(sink,  settings);
+				FindOptimalLr(sink, settings);
 		}
 
-		public void RunAndSave(TextWriter sink, LvqModelSettingsCli settings)
-		{
+		public void RunAndSave(TextWriter sink, LvqModelSettingsCli settings) {
 			using (var sw = new StringWriter()) {
 				var effWriter = sink == null ? (TextWriter)sw : new ForkingTextWriter(new[] { sw, sink }, false);
-				Run(effWriter,  settings);
+				Run(effWriter, settings);
 				SaveLogFor(Shortname(settings), sw.ToString());
 			}
 		}
@@ -186,19 +185,23 @@ namespace LvqGui {
 		string GetDatasetLabel() { return altLearningRates ? datasets[0].DatasetLabel : "base"; }
 
 		void SaveLogFor(string shortname, string logcontents) {
-			var logfilepath =
-				Enumerable.Range(0, 1000)
-				.Select(i => shortname + (i == 0 ? "" : " (" + i + ")") + ".txt")
-				.Select(filename => Path.Combine(resultsDir.FullName, GetDatasetLabel() + "\\" + filename))
-				.Where(path => !File.Exists(path))
-				.First();
+			string logfilepath = GetLogfilepath(shortname);
 			Directory.CreateDirectory(Path.GetDirectoryName(logfilepath));
 			File.WriteAllText(logfilepath, logcontents);
 		}
 
+		private string GetLogfilepath(string shortname) {
+			return Enumerable.Range(0, 1000)
+				.Select(i => shortname + (i == 0 ? "" : " (" + i + ")") + ".txt")
+				.Select(filename => Path.Combine(resultsDir.FullName, GetDatasetLabel() + "\\" + filename))
+				.Where(path => !File.Exists(path))
+				.First();
+		}
 
 		public string Shortname(LvqModelSettingsCli settings) {
-			return "e" + (int)(Math.Log10(_itersToRun) + 0.5) + "-" + settings.ToShorthand();
+			int pow10 = (int)(Math.Log10(_itersToRun+0.5));
+			int prefix = (int)(_itersToRun / Math.Pow(10.0, pow10) + 0.5);
+			return (prefix == 1 ? "" : prefix.ToString()) + "e" + pow10 + "-" + settings.ToShorthand();
 		}
 
 		static IEnumerable<LvqModelType> ModelTypes { get { return (LvqModelType[])Enum.GetValues(typeof(LvqModelType)); } }
