@@ -213,7 +213,7 @@ namespace LvqGui {
 			settingsCopy.ParamsSeed = 1;
 			//			var args = new { Shorthand, ParallelModels, ForDataset };//for threadsafety get these now.
 			const long iterCount = 3000000;
-			var testLr = new TestLr(0,iterCount, ForDataset, 3);
+			var testLr = new TestLr(iterCount, ForDataset, 3);
 			string shortname = testLr.Shortname(settingsCopy);
 
 			var logWindow = LogControl.ShowNewLogWindow(shortname, owner.win.ActualWidth, owner.win.ActualHeight * 0.6);
@@ -230,7 +230,7 @@ namespace LvqGui {
 			settingsCopy.PrototypesPerClass = 0;
 			settingsCopy.ModelType = LvqModelType.Gm;
 			const long iterCount = 3000000;
-			var testLr = new TestLr(0, iterCount, ForDataset, 3);
+			var testLr = new TestLr(iterCount, ForDataset, 3);
 			testLr.StartAllLrTesting().ContinueWith(_ => Console.WriteLine("completed lr optimization for " + settingsCopy.ToShorthand()));
 		}
 	}

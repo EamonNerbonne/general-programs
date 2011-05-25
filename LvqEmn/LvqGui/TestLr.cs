@@ -29,9 +29,9 @@ namespace LvqGui {
 			datasets = Datasets(10, 1000, 1001).ToArray();
 		}
 
-		public TestLr(uint p_offset, long itersToRun, LvqDatasetCli dataset, int folds) {
+		public TestLr( long itersToRun, LvqDatasetCli dataset, int folds) {
 			_itersToRun = itersToRun;
-			offset = p_offset;
+			offset = 0;
 			followDatafolding = true;
 			altLearningRates = true;
 			datasets = Enumerable.Repeat(dataset, folds).ToArray();
