@@ -45,7 +45,7 @@ namespace LvqGui {
 			int classCount = pointclouds.Item3;
 			long colorSeedLong = labelArray.Select((label, i) => label * (long)(i + 1)).Sum();
 			int colorSeed = (int)(colorSeedLong + (colorSeedLong >> 32));
-			string name = dataFile.Name + (testFileName != null ? ":" + testFileName : "") + "-" + pointArray.GetLength(1) + "D" + (extendByCorrelation ? "*" : "") + (normalizeDims ? "n" : "") + "-" + classCount + ":" + pointArray.GetLength(0) + "[" + shuffleSeed.ToString("x") + "]^" + folds;
+			string name = dataFile.Name + (testFileName != null ? "," + testFileName : "") + "-" + pointArray.GetLength(1) + "D" + (extendByCorrelation ? "x" : "") + (normalizeDims ? "n" : "") + "-" + classCount + "x" + pointArray.GetLength(0) + "[" + shuffleSeed.ToString("x") + "]^" + folds;
 			return LvqDatasetCli.ConstructFromArray(
 				rngInstSeed: shuffleSeed,
 				label: name,
