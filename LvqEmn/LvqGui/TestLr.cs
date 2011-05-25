@@ -29,7 +29,7 @@ namespace LvqGui {
 			datasets = Datasets(10, 1000, 1001).ToArray();
 		}
 
-		public TestLr( long itersToRun, LvqDatasetCli dataset, int folds) {
+		public TestLr(long itersToRun, LvqDatasetCli dataset, int folds) {
 			_itersToRun = itersToRun;
 			offset = 0;
 			followDatafolding = true;
@@ -177,7 +177,7 @@ namespace LvqGui {
 		public void RunAndSave(TextWriter sink, LvqModelSettingsCli settings) {
 			if (File.Exists(GetLogfilepath(settings).First())) {
 				Console.WriteLine("already done:" + GetDatasetLabel() + "\\" + Shortname(settings));
-				sink.WriteLine("already done!");
+				if (sink != null) sink.WriteLine("already done!");
 			} else
 				using (var sw = new StringWriter()) {
 					var effWriter = sink == null ? (TextWriter)sw : new ForkingTextWriter(new[] { sw, sink }, false);
