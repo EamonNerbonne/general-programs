@@ -175,31 +175,33 @@ namespace LvqGui {
 		}
 
 		public void RunAndSave(TextWriter sink, LvqModelSettingsCli settings) {
-			using (var sw = new StringWriter()) {
-				var effWriter = sink == null ? (TextWriter)sw : new ForkingTextWriter(new[] { sw, sink }, false);
-				Run(effWriter, settings);
-				SaveLogFor(Shortname(settings), sw.ToString());
-			}
+			if (File.Exists(GetLogfilepath(settings).First())) {
+				Console.WriteLine("already done:" + GetDatasetLabel() + "\\" + Shortname(settings));
+				sink.WriteLine("already done!");
+			} else
+				using (var sw = new StringWriter()) {
+					var effWriter = sink == null ? (TextWriter)sw : new ForkingTextWriter(new[] { sw, sink }, false);
+					Run(effWriter, settings);
+					SaveLogFor(settings, sw.ToString());
+				}
 		}
 
 		string GetDatasetLabel() { return altLearningRates ? datasets[0].DatasetLabel : "base"; }
 
-		void SaveLogFor(string shortname, string logcontents) {
-			string logfilepath = GetLogfilepath(shortname);
+		void SaveLogFor(LvqModelSettingsCli settings, string logcontents) {
+			string logfilepath = GetLogfilepath(settings).Where(path => !File.Exists(path)).First();
 			Directory.CreateDirectory(Path.GetDirectoryName(logfilepath));
 			File.WriteAllText(logfilepath, logcontents);
 		}
 
-		private string GetLogfilepath(string shortname) {
+		private IEnumerable<string> GetLogfilepath(LvqModelSettingsCli settings) {
 			return Enumerable.Range(0, 1000)
-				.Select(i => shortname + (i == 0 ? "" : " (" + i + ")") + ".txt")
-				.Select(filename => Path.Combine(resultsDir.FullName, GetDatasetLabel() + "\\" + filename))
-				.Where(path => !File.Exists(path))
-				.First();
+				.Select(i => Shortname(settings) + (i == 0 ? "" : " (" + i + ")") + ".txt")
+				.Select(filename => Path.Combine(resultsDir.FullName, GetDatasetLabel() + "\\" + filename));
 		}
 
 		public string Shortname(LvqModelSettingsCli settings) {
-			int pow10 = (int)(Math.Log10(_itersToRun+0.5));
+			int pow10 = (int)(Math.Log10(_itersToRun + 0.5));
 			int prefix = (int)(_itersToRun / Math.Pow(10.0, pow10) + 0.5);
 			return (prefix == 1 ? "" : prefix.ToString()) + "e" + pow10 + "-" + settings.ToShorthand();
 		}
