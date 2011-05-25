@@ -63,6 +63,7 @@ namespace LvqGui {
 					errs.Add("Invalid regex group #" + i + " called '" + groupName + "'");
 				} else if (prop != null && groups[i].Success) {
 					object val = prop.PropertyType.Equals(typeof(bool)) ? groups[i].Value != ""
+						: prop.Name.EndsWith("Seed") && prop.PropertyType == typeof(uint) ? Convert.ToUInt32(groups[i].Value, 16)
 						: TypeDescriptor.GetConverter(prop.PropertyType).ConvertFromString(groups[i].Value);
 					object curVal = prop.GetValue(shorthandObj, empty);
 					if (!Equals(curVal, val))

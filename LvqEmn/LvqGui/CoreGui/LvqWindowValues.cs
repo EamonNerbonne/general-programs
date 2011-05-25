@@ -92,7 +92,9 @@ namespace LvqGui {
 		readonly Dictionary<LvqModelCli, LvqMultiModel> modelGroupLookup = new Dictionary<LvqModelCli, LvqMultiModel>();
 
 		public LvqMultiModel ResolveModel(LvqModelCli lastModel) {
-			return modelGroupLookup[lastModel];
+			LvqMultiModel multiModel;
+			modelGroupLookup.TryGetValue(lastModel, out multiModel);
+			return multiModel;
 		}
 
 

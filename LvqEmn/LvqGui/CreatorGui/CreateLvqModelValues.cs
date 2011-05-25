@@ -209,9 +209,11 @@ namespace LvqGui {
 
 		internal void OptimizeLr() {//on gui thread.
 			var settingsCopy = settings.Copy();
+			settingsCopy.InstanceSeed = 0;
+			settingsCopy.ParamsSeed = 1;
 //			var args = new { Shorthand, ParallelModels, ForDataset };//for threadsafety get these now.
-			long iterCount = 5000000;
-			var testLr = new TestLr(0, ForDataset, ParallelModels);
+			const long iterCount = 5000000;
+			var testLr = new TestLr(0, ForDataset, 1);
 			string shortname = testLr.Shortname(settingsCopy, iterCount);
 
 			var logWindow = LogControl.ShowNewLogWindow(shortname, owner.win.ActualWidth, owner.win.ActualHeight * 0.6);

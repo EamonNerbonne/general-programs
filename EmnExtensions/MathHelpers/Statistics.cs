@@ -14,9 +14,9 @@ namespace EmnExtensions.MathHelpers
     {
 		public static string GetFormatted(double mean, double stderr, int extraprecision = 0) {
 			string numF, errF;
-			if (stderr == 0) {
+			if (stderr == 0 || double.IsNaN(stderr) || double.IsInfinity(stderr)) {
 				numF = "g";
-				errF = "";
+				errF = stderr == 0?"~ 0":"";
 			} else if (Math.Abs(mean) > 0 && Math.Abs(Math.Log10(Math.Abs(mean))) < 5) {
 				//use fixed-point:
 				int errOOM = Math.Max(0, (int)(1.5 - Math.Log10(stderr))) + extraprecision;

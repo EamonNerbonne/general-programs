@@ -124,12 +124,13 @@ namespace LvqGui {
 			int protos = Use5Protos.IsChecked == true ? 5 : 1;
 			long iterCount = (long)iterCountSelectbox.SelectedItem;
 			var testLr = new TestLr(offset);
-			string shortname = testLr.Shortname(modeltype, protos, iterCount);
+			var settings = testLr.CreateBasicSettings(modeltype, protos);
+			string shortname = testLr.Shortname(settings, iterCount);
 
 			var logWindow = LogControl.ShowNewLogWindow(shortname, ActualWidth, ActualHeight * 0.6);
 
 			ThreadPool.QueueUserWorkItem(_ => {
-				testLr.RunAndSave(logWindow.Item2.Writer, modeltype, protos, iterCount);
+				testLr.RunAndSave(logWindow.Item2.Writer, settings, iterCount);
 				logWindow.Item1.Dispatcher.BeginInvoke(() => logWindow.Item1.Background = Brushes.White);
 			});
 		}

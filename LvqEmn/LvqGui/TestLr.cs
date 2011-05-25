@@ -75,7 +75,11 @@ namespace LvqGui {
 			return new ErrorRates(meanStats, nnErrorIdx);
 		}
 
-		static LvqModelSettingsCli CreateBasicSettings(LvqModelType type, int protos, uint rngIter, uint rngParam) {
+		public LvqModelSettingsCli CreateBasicSettings(LvqModelType type, int protos) {
+			return CreateBasicSettings(type, protos, 2 * offset, 1 + 2 * offset);
+		}
+
+		public static LvqModelSettingsCli CreateBasicSettings(LvqModelType type, int protos, uint rngIter, uint rngParam) {
 			return new LvqModelSettingsCli {
 				ModelType = type,
 				PrototypesPerClass = protos,
@@ -84,6 +88,8 @@ namespace LvqGui {
 				InstanceSeed = rngIter,
 			};
 		}
+
+
 		static LvqModelSettingsCli SetLr(LvqModelSettingsCli baseSettings, double lr0, double lrScaleP, double lrScaleB) {
 			var newSettings = baseSettings.Copy();
 			newSettings.LR0 = lr0;
@@ -161,6 +167,8 @@ namespace LvqGui {
 
 		public void Run(TextWriter sink, long itersToRun, LvqModelSettingsCli settings) {
 			sink.WriteLine("Evaluating: " + settings.ToShorthand());
+			if (datasets.Length == 1)
+				sink.WriteLine("Against: " + datasets[0].DatasetLabel);
 			using (new DTimer(time => sink.WriteLine("Search Complete!  Took " + time)))
 				FindOptimalLr(sink, datasets, itersToRun, settings);
 		}
@@ -171,10 +179,6 @@ namespace LvqGui {
 				Run(effWriter, itersToRun, settings);
 				SaveLogFor(Shortname(settings, itersToRun), sw.ToString());
 			}
-		}
-
-		public void RunAndSave(TextWriter sink, LvqModelType modeltype, int protos, long itersToRun) {
-			RunAndSave(sink, CreateBasicSettings(modeltype, protos, 2 * offset, 1 + 2 * offset), itersToRun);
 		}
 
 		public static void SaveLogFor(string shortname, string logcontents) {
@@ -190,10 +194,7 @@ namespace LvqGui {
 
 
 		public string Shortname(LvqModelSettingsCli settings, long iterCount) {
-			return Shortname(settings.ModelType, settings.PrototypesPerClass, iterCount);
-		}
-		public string Shortname(LvqModelType modeltype, int protosPerClass, long iterCount) {
-			return modeltype.ToString().Replace("ModelType", "").ToLowerInvariant() + protosPerClass + "e" + (int)(Math.Log10(iterCount) + 0.5) + PatternName + offset;
+			return "e" + (int)(Math.Log10(iterCount) + 0.5) + "-" + settings.ToShorthand();
 		}
 
 		public IEnumerable<LvqModelType> ModelTypes { get { return (LvqModelType[])Enum.GetValues(typeof(LvqModelType)); } }
@@ -203,11 +204,12 @@ namespace LvqGui {
 				(
 					from protoCount in new[] { 5, 1 }
 					from modeltype in ModelTypes
+					let settings = CreateBasicSettings(modeltype,protoCount)
 					select Task.Factory.StartNew(() => {
-						string shortname = Shortname(modeltype, protoCount, iterCount);
+						string shortname = Shortname(settings, iterCount);
 						Console.WriteLine("Starting " + shortname);
 						using (new DTimer(shortname + " training"))
-							RunAndSave(null, modeltype, protoCount, iterCount);
+							RunAndSave(null, settings, iterCount);
 					}, TaskCreationOptions.LongRunning)
 				).ToArray(),
 				subtasks => { }
