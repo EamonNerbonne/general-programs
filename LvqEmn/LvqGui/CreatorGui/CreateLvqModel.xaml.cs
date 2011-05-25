@@ -20,5 +20,6 @@ namespace LvqGui {
 		void InitializeModel(object sender, RoutedEventArgs e) { ((CreateLvqModelValues)DataContext).ConfirmCreation(); }
 
 		void OptimizeLr(object sender, RoutedEventArgs e) { ((CreateLvqModelValues)DataContext).OptimizeLr(); }
+		void OptimizeLrAll(object sender, RoutedEventArgs e) { ((CreateLvqModelValues)DataContext).OptimizeLrAll(); }
 	}
 }

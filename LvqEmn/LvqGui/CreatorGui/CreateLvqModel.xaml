@@ -118,6 +118,7 @@
         <StackPanel Orientation="Horizontal" Grid.Row="30" Grid.ColumnSpan="2" FlowDirection="RightToLeft">
             <Button Click="InitializeModel" >Initialize Model</Button>
             <Button Click="OptimizeLr" >Optimize LR</Button>
+            <Button Click="OptimizeLrAll" >Optimize LR All</Button>
         </StackPanel>
         
         <Label Grid.Row="31" Grid.ColumnSpan="2" Content="{Binding ShorthandErrors, Mode=OneWay}" HorizontalAlignment="Left" />

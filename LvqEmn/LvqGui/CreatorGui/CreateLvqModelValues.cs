@@ -211,17 +211,27 @@ namespace LvqGui {
 			var settingsCopy = settings.Copy();
 			settingsCopy.InstanceSeed = 0;
 			settingsCopy.ParamsSeed = 1;
-//			var args = new { Shorthand, ParallelModels, ForDataset };//for threadsafety get these now.
-			const long iterCount = 5000000;
-			var testLr = new TestLr(0, ForDataset, 1);
-			string shortname = testLr.Shortname(settingsCopy, iterCount);
+			//			var args = new { Shorthand, ParallelModels, ForDataset };//for threadsafety get these now.
+			const long iterCount = 3000000;
+			var testLr = new TestLr(0,iterCount, ForDataset, 3);
+			string shortname = testLr.Shortname(settingsCopy);
 
 			var logWindow = LogControl.ShowNewLogWindow(shortname, owner.win.ActualWidth, owner.win.ActualHeight * 0.6);
 
 			ThreadPool.QueueUserWorkItem(_ => {
-				testLr.RunAndSave(logWindow.Item2.Writer, settingsCopy, iterCount);
+				testLr.RunAndSave(logWindow.Item2.Writer, settingsCopy);
 				logWindow.Item1.Dispatcher.BeginInvoke(() => logWindow.Item1.Background = Brushes.White);
 			});
+		}
+		internal void OptimizeLrAll() {//on gui thread.
+			var settingsCopy = settings.Copy();
+			settingsCopy.InstanceSeed = 0;
+			settingsCopy.ParamsSeed = 1;
+			settingsCopy.PrototypesPerClass = 0;
+			settingsCopy.ModelType = LvqModelType.Gm;
+			const long iterCount = 3000000;
+			var testLr = new TestLr(0, iterCount, ForDataset, 3);
+			testLr.StartAllLrTesting().ContinueWith(_ => Console.WriteLine("completed lr optimization for " + settingsCopy.ToShorthand()));
 		}
 	}
 }

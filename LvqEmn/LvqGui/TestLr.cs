@@ -19,25 +19,25 @@ namespace LvqGui {
 		readonly bool altLearningRates;
 		readonly uint offset;
 		readonly LvqDatasetCli[] datasets;
-		readonly public string PatternName;
+		readonly long _itersToRun;
 
-		public TestLr(uint p_offset) {
+		public TestLr(uint p_offset, long itersToRun) {
+			_itersToRun = itersToRun;
 			offset = p_offset;
 			followDatafolding = false;
 			altLearningRates = false;
-			PatternName = "base";
 			datasets = Datasets(10, 1000, 1001).ToArray();
 		}
 
-		public TestLr(uint p_offset, LvqDatasetCli dataset, int folds) {
+		public TestLr(uint p_offset, long itersToRun, LvqDatasetCli dataset, int folds) {
+			_itersToRun = itersToRun;
 			offset = p_offset;
 			followDatafolding = true;
 			altLearningRates = true;
-			PatternName = "custom";
 			datasets = Enumerable.Repeat(dataset, folds).ToArray();
 		}
 
-		public struct ErrorRates {
+		struct ErrorRates {
 			public readonly double training, trainingStderr, test, testStderr, nn, nnStderr, cumLearningRate;
 			public ErrorRates(LvqMultiModel.Statistic stats, int nnIdx) {
 				training = stats.Value[LvqTrainingStatCli.TrainingErrorI];
@@ -55,7 +55,8 @@ namespace LvqGui {
 					Statistics.GetFormatted(nn, nnStderr, 1) + "; ";
 			}
 		}
-		public ErrorRates ErrorOf(TextWriter sink, long iters, LvqModelSettingsCli settings) {
+
+		ErrorRates ErrorOf(TextWriter sink, long iters, LvqModelSettingsCli settings) {
 			int nnErrorIdx = -1;
 
 			ConcurrentBag<LvqTrainingStatCli> results = new ConcurrentBag<LvqTrainingStatCli>();
@@ -75,18 +76,17 @@ namespace LvqGui {
 			return new ErrorRates(meanStats, nnErrorIdx);
 		}
 
-		public LvqModelSettingsCli CreateBasicSettings(LvqModelType type, int protos) {
-			return CreateBasicSettings(type, protos, 2 * offset, 1 + 2 * offset);
+		public LvqModelSettingsCli CreateBasicSettings(LvqModelType type, int protos, LvqModelSettingsCli settings = null) {
+			return CreateBasicSettings(type, protos, 2 * offset, 1 + 2 * offset, settings);
 		}
 
-		public static LvqModelSettingsCli CreateBasicSettings(LvqModelType type, int protos, uint rngIter, uint rngParam) {
-			return new LvqModelSettingsCli {
-				ModelType = type,
-				PrototypesPerClass = protos,
-
-				ParamsSeed = rngParam,
-				InstanceSeed = rngIter,
-			};
+		static LvqModelSettingsCli CreateBasicSettings(LvqModelType type, int protos, uint rngIter, uint rngParam, LvqModelSettingsCli settings) {
+			var retval = settings == null ? new LvqModelSettingsCli() : settings.Copy();
+			retval.ModelType = type;
+			retval.PrototypesPerClass = protos;
+			retval.ParamsSeed = rngParam;
+			retval.InstanceSeed = rngIter;
+			return retval;
 		}
 
 
@@ -98,16 +98,16 @@ namespace LvqGui {
 			return newSettings;
 		}
 
-		public static IEnumerable<double> LogRange(double start, double end, int steps) {
+		static IEnumerable<double> LogRange(double start, double end, int steps) {
 			//start*exp(ln(end/start) *  i/(steps-1) )
 			double lnScale = Math.Log(end / start);
 			for (int i = 0; i < steps; i++)
 				yield return start * Math.Exp(lnScale * ((double)i / (steps - 1)));
 		}
 
-		public void FindOptimalLr(TextWriter sink, LvqDatasetCli[] dataset, long iters, LvqModelSettingsCli settings) {
-			var lr0range = altLearningRates ? LogRange(0.3 / settings.PrototypesPerClass, 0.03 / settings.PrototypesPerClass, 4) : LogRange(0.3, 0.01, 8);
-			var lrPrange = altLearningRates ? LogRange(0.3 / settings.PrototypesPerClass, 0.03 / settings.PrototypesPerClass, 4) : LogRange(0.5, 0.03, 8);
+		void FindOptimalLr(TextWriter sink,  LvqModelSettingsCli settings) {
+			var lr0range = altLearningRates ? LogRange(0.3 / settings.PrototypesPerClass, 0.03 / settings.PrototypesPerClass, 5) : LogRange(0.3, 0.01, 8);
+			var lrPrange = altLearningRates ? LogRange(0.3 / settings.PrototypesPerClass, 0.03 / settings.PrototypesPerClass, 5) : LogRange(0.5, 0.03, 8);
 			var lrBrange = settings.ModelType != LvqModelType.Ggm && settings.ModelType != LvqModelType.G2m ? new[] { 0.0 } :
 				!altLearningRates ? LogRange(0.1, 0.003, 4) :
 				settings.ModelType == LvqModelType.G2m ? LogRange(0.03 / settings.PrototypesPerClass, 0.003 / settings.PrototypesPerClass, 4)
@@ -118,27 +118,27 @@ namespace LvqGui {
 				(from lr0 in lr0range.AsParallel()
 				 from lrP in lrPrange
 				 from lrB in lrBrange
-				 let errs = ErrorOf(sink, iters, SetLr(settings, lr0, lrP, lrB))
+				 let errs = ErrorOf(sink, _itersToRun, SetLr(settings, lr0, lrP, lrB))
 				 orderby errs.ErrorMean
 				 select new { lr0, lrP, lrB, errs }).AsSequential();
 
 			sink.WriteLine("lr0range:" + ObjectToCode.ComplexObjectToPseudoCode(lr0range));
 			sink.WriteLine("lrPrange:" + ObjectToCode.ComplexObjectToPseudoCode(lrPrange));
 			sink.WriteLine("lrBrange:" + ObjectToCode.ComplexObjectToPseudoCode(lrBrange));
-			sink.WriteLine("For " + settings.ModelType + " with " + settings.PrototypesPerClass + " prototypes and " + iters + " iters training:");
+			sink.WriteLine("For " + settings.ModelType + " with " + settings.PrototypesPerClass + " prototypes and " + _itersToRun + " iters training:");
 
 			foreach (var result in q) {
 				sink.Write("\n" + result.lr0.ToString("g4").PadRight(9) + "p" + result.lrP.ToString("g4").PadRight(9) + "b" + result.lrB.ToString("g4").PadRight(9) + ": "
-						+ result.errs.ToString() + "[" + result.errs.cumLearningRate + "]"
+						+ result.errs + "[" + result.errs.cumLearningRate + "]"
 					);
 			}
 			sink.WriteLine();
 		}
 
-		public static LvqDatasetCli PlainDataset(int folds, uint rngParam, uint rngInst, int dims, int classes, double? classsep = null) {
+		static LvqDatasetCli PlainDataset(int folds, uint rngParam, uint rngInst, int dims, int classes, double? classsep = null) {
 			return LvqDatasetCli.ConstructGaussianClouds("simplemodel", folds, false, false, null, rngParam, rngInst, dims, classes, (int)(10000 / Math.Sqrt(dims) / classes), classsep ?? 1.5);
 		}
-		public static LvqDatasetCli StarDataset(int folds, uint rngParam, uint rngInst, int dims, int classes, double? starsep = null, double? classrelsep = null, double? sigmanoise = null) {
+		static LvqDatasetCli StarDataset(int folds, uint rngParam, uint rngInst, int dims, int classes, double? starsep = null, double? classrelsep = null, double? sigmanoise = null) {
 			return LvqDatasetCli.ConstructStarDataset("star", folds, false, false, null, rngParam, rngInst, dims, dims / 2, 3, classes, (int)(10000 / Math.Sqrt(dims) / classes), starsep ?? 1.5, classrelsep ?? 0.5, true, sigmanoise ?? 2.5);
 		}
 
@@ -148,13 +148,14 @@ namespace LvqGui {
 
 		static readonly DirectoryInfo dataDir = FindDir(@"data\datasets\");
 		static readonly DirectoryInfo resultsDir = FindDir(@"uni\2009-Scriptie\Thesis\results\");
+
 		static LvqDatasetCli Load(int folds, string name, uint rngInst) {
 			var dataFile = dataDir.GetFiles(name + ".data").FirstOrDefault();
 			return LoadDatasetImpl.LoadData(dataFile, false, false, rngInst, folds, null);
 		}
 
 		// ReSharper disable RedundantAssignment
-		public static IEnumerable<LvqDatasetCli> Datasets(int folds, uint rngParam, uint rngInst) {
+		static IEnumerable<LvqDatasetCli> Datasets(int folds, uint rngParam, uint rngInst) {
 			yield return PlainDataset(folds, rngParam++, rngInst++, 16, 3);
 			yield return PlainDataset(folds, rngParam++, rngInst++, 8, 3);
 			yield return StarDataset(folds, rngParam++, rngInst++, 12, 4);
@@ -165,51 +166,54 @@ namespace LvqGui {
 			// ReSharper restore RedundantAssignment
 		}
 
-		public void Run(TextWriter sink, long itersToRun, LvqModelSettingsCli settings) {
+		void Run(TextWriter sink, LvqModelSettingsCli settings) {
 			sink.WriteLine("Evaluating: " + settings.ToShorthand());
-			if (datasets.Length == 1)
+			if (altLearningRates)
 				sink.WriteLine("Against: " + datasets[0].DatasetLabel);
 			using (new DTimer(time => sink.WriteLine("Search Complete!  Took " + time)))
-				FindOptimalLr(sink, datasets, itersToRun, settings);
+				FindOptimalLr(sink,  settings);
 		}
 
-		public void RunAndSave(TextWriter sink, LvqModelSettingsCli settings, long itersToRun) {
+		public void RunAndSave(TextWriter sink, LvqModelSettingsCli settings)
+		{
 			using (var sw = new StringWriter()) {
 				var effWriter = sink == null ? (TextWriter)sw : new ForkingTextWriter(new[] { sw, sink }, false);
-				Run(effWriter, itersToRun, settings);
-				SaveLogFor(Shortname(settings, itersToRun), sw.ToString());
+				Run(effWriter,  settings);
+				SaveLogFor(Shortname(settings), sw.ToString());
 			}
 		}
 
-		public static void SaveLogFor(string shortname, string logcontents) {
+		string GetDatasetLabel() { return altLearningRates ? datasets[0].DatasetLabel : "base"; }
+
+		void SaveLogFor(string shortname, string logcontents) {
 			var logfilepath =
 				Enumerable.Range(0, 1000)
 				.Select(i => shortname + (i == 0 ? "" : " (" + i + ")") + ".txt")
-				.Select(filename => Path.Combine(resultsDir.FullName, filename))
+				.Select(filename => Path.Combine(resultsDir.FullName, GetDatasetLabel() + "\\" + filename))
 				.Where(path => !File.Exists(path))
 				.First();
-
+			Directory.CreateDirectory(Path.GetDirectoryName(logfilepath));
 			File.WriteAllText(logfilepath, logcontents);
 		}
 
 
-		public string Shortname(LvqModelSettingsCli settings, long iterCount) {
-			return "e" + (int)(Math.Log10(iterCount) + 0.5) + "-" + settings.ToShorthand();
+		public string Shortname(LvqModelSettingsCli settings) {
+			return "e" + (int)(Math.Log10(_itersToRun) + 0.5) + "-" + settings.ToShorthand();
 		}
 
-		public IEnumerable<LvqModelType> ModelTypes { get { return (LvqModelType[])Enum.GetValues(typeof(LvqModelType)); } }
+		static IEnumerable<LvqModelType> ModelTypes { get { return (LvqModelType[])Enum.GetValues(typeof(LvqModelType)); } }
 
-		public Task StartAllLrTesting(long iterCount) {
+		public Task StartAllLrTesting(LvqModelSettingsCli baseSettings = null) {
 			return Task.Factory.ContinueWhenAll(
 				(
 					from protoCount in new[] { 5, 1 }
 					from modeltype in ModelTypes
-					let settings = CreateBasicSettings(modeltype,protoCount)
+					let settings = CreateBasicSettings(modeltype, protoCount, baseSettings)
 					select Task.Factory.StartNew(() => {
-						string shortname = Shortname(settings, iterCount);
+						string shortname = Shortname(settings);
 						Console.WriteLine("Starting " + shortname);
 						using (new DTimer(shortname + " training"))
-							RunAndSave(null, settings, iterCount);
+							RunAndSave(null, settings);
 					}, TaskCreationOptions.LongRunning)
 				).ToArray(),
 				subtasks => { }
