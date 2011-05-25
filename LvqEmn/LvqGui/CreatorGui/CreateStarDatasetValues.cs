@@ -108,19 +108,19 @@ namespace LvqGui {
 			new Regex(@"
 				^\s*(.*?--)?
 				star-(?<Dimensions>\d+)D
-				(?<ExtendDataByCorrelation>\*?)
+				(?<ExtendDataByCorrelation>x?)
 				(?<NormalizeDimensions>n?)-
-				(?<NumberOfClasses>\d+)\*(?<PointsPerClass>\d+)
-				:(?<NumberOfClusters>\d+)
-				\((?<ClusterDimensionality>\d+)D(?<RandomlyTransformFirst>\??)\)
-				\*(?<ClusterCenterDeviation>[^~]+)\~(?<IntraClusterClassRelDev>[^\[n]+)(n(?<NoiseSigma>[^\[]+))?
+				(?<NumberOfClasses>\d+)x(?<PointsPerClass>\d+)
+				,(?<NumberOfClusters>\d+)
+				\((?<ClusterDimensionality>\d+)D(?<RandomlyTransformFirst>r?)\)
+				x(?<ClusterCenterDeviation>[^~]+)\~(?<IntraClusterClassRelDev>[^\[n]+)(n(?<NoiseSigma>[^\[]+))?
 				\[(?<ParamsSeed>[0-9a-fA-F]+),(?<InstanceSeed>[0-9a-fA-F]+)\]
 				\^(?<Folds>\d+)\s*$",
 				RegexOptions.CultureInvariant | RegexOptions.ExplicitCapture| RegexOptions.IgnorePatternWhitespace);
 
 		public string Shorthand {
 			get {
-				return "star-" + Dimensions + "D" + (ExtendDataByCorrelation ? "*" : "") + (NormalizeDimensions ? "n" : "") + "-" + NumberOfClasses + "*" + PointsPerClass + ":" + NumberOfClusters + "(" + ClusterDimensionality + "D" + (RandomlyTransformFirst ? "?" : "") + ")*" + ClusterCenterDeviation.ToString("r") + "~" + IntraClusterClassRelDev.ToString("r") + (
+				return "star-" + Dimensions + "D" + (ExtendDataByCorrelation ? "x" : "") + (NormalizeDimensions ? "n" : "") + "-" + NumberOfClasses + "x" + PointsPerClass + "," + NumberOfClusters + "(" + ClusterDimensionality + "D" + (RandomlyTransformFirst ? "r" : "") + ")x" + ClusterCenterDeviation.ToString("r") + "~" + IntraClusterClassRelDev.ToString("r") + (
 				NoiseSigma!=1.0?"n"+NoiseSigma.ToString("r"):"") + "[" + ParamsSeed.ToString("x") + "," + InstanceSeed.ToString("x") + "]^" + Folds; }
 			set { ShorthandHelper.ParseShorthand(this, shR, value); }
 		}
