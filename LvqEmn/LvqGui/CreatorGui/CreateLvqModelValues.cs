@@ -39,14 +39,14 @@ namespace LvqGui {
 
 		public LvqModelType ModelType {
 			get { return settings.ModelType; }
-			set { if (!Equals(settings.ModelType, value)) { if (value != LvqModelType.LgmModelType) Dimensionality = 2; settings.ModelType = value; _propertyChanged("ModelType"); } }
+			set { if (!Equals(settings.ModelType, value)) { if (value != LvqModelType.Lgm) Dimensionality = 2; settings.ModelType = value; _propertyChanged("ModelType"); } }
 		}
 
 		public int Dimensionality {
 			get { return settings.Dimensionality; }
 			set {
 				if (value < 0 || (ForDataset != null && value > ForDataset.Dimensions)) throw new ArgumentException("Internal dimensionality must be 0 (auto) or between 1 and the dimensions of the data.");
-				if (settings.ModelType != LvqModelType.LgmModelType && value != 2 && value != 0) throw new ArgumentException("2D Projection models must have exactly 2 internal dimensions.");
+				if (settings.ModelType != LvqModelType.Lgm && value != 2 && value != 0) throw new ArgumentException("2D Projection models must have exactly 2 internal dimensions.");
 				if (!Equals(settings.Dimensionality, value)) { settings.Dimensionality = value; _propertyChanged("Dimensionality"); }
 			}
 		}

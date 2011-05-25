@@ -15,25 +15,35 @@ namespace SongSearchSite.Code.Handlers {
 		public bool IsReusable { get { return true; } }
 
 		public void ProcessRequest(HttpContext context) {
-			var postedFile = context.Request.Files["playlist"];
-			SongFileData[] playlistLocal = postedFile != null ? GetPlaylistFromM3U(context, postedFile) : GetPlaylistFromJson(context);
+			try {
+				var postedFile = context.Request.Files["playlist"];
+				SongFileData[] playlistLocal = postedFile != null ? GetPlaylistFromM3U(context, postedFile) : GetPlaylistFromJson(context);
 
-			PlaylistFormat format = (PlaylistFormat)Enum.Parse(typeof(PlaylistFormat), context.Request["format"]);
+				PlaylistFormat format = (PlaylistFormat)Enum.Parse(typeof(PlaylistFormat), context.Request["format"]);
 
-			if (format == PlaylistFormat.m3u || format == PlaylistFormat.m3u8)
-				ProcessAsM3u(context, playlistLocal, format);
-			else if (format == PlaylistFormat.zip)
-				ProcessAsZip(context, playlistLocal);
-			else if (format == PlaylistFormat.json)
-				ProcessAsJson(context, playlistLocal);
-			else throw new NotImplementedException(format.ToString());
+				if (format == PlaylistFormat.m3u || format == PlaylistFormat.m3u8)
+					ProcessAsM3u(context, playlistLocal, format);
+				else if (format == PlaylistFormat.zip)
+					ProcessAsZip(context, playlistLocal);
+				else if (format == PlaylistFormat.json)
+					ProcessAsJson(context, playlistLocal);
+				else
+					throw new NotImplementedException(format.ToString());
+			} catch(Exception e) {
+				File.AppendAllText(@"D:\Temp\errlog.log", e.ToString());
+				throw;
+			}
 		}
 
 		private static SongFileData[] GetPlaylistFromJson(HttpContext context) {
-			PlaylistEntry[] playlistFromJson = JsonConvert.DeserializeObject<PlaylistEntry[]>(context.Request["playlist"]);
+			try {
+				PlaylistEntry[] playlistFromJson = JsonConvert.DeserializeObject<PlaylistEntry[]>(context.Request["playlist"]);
 
 
-			return playlistFromJson.Select(item => item.LookupBestGuess(context)).Where(item => item != null).ToArray();
+				return playlistFromJson.Select(item => item.LookupBestGuess(context)).Where(item => item != null).ToArray();
+			} catch(Exception) {
+				return new SongFileData[0];
+			}
 		}
 
 		private static SongFileData[] GetPlaylistFromM3U(HttpContext context, HttpPostedFile postedFile) {

@@ -102,9 +102,9 @@ namespace LvqGui {
 		public void FindOptimalLr(TextWriter sink, LvqDatasetCli[] dataset, long iters, LvqModelSettingsCli settings) {
 			var lr0range = altLearningRates ? LogRange(0.3 / settings.PrototypesPerClass, 0.03 / settings.PrototypesPerClass, 4) : LogRange(0.3, 0.01, 8);
 			var lrPrange = altLearningRates ? LogRange(0.3 / settings.PrototypesPerClass, 0.03 / settings.PrototypesPerClass, 4) : LogRange(0.5, 0.03, 8);
-			var lrBrange = settings.ModelType != LvqModelType.GgmModelType && settings.ModelType != LvqModelType.G2mModelType ? new[] { 0.0 } :
+			var lrBrange = settings.ModelType != LvqModelType.Ggm && settings.ModelType != LvqModelType.G2m ? new[] { 0.0 } :
 				!altLearningRates ? LogRange(0.1, 0.003, 4) :
-				settings.ModelType == LvqModelType.G2mModelType ? LogRange(0.03 / settings.PrototypesPerClass, 0.003 / settings.PrototypesPerClass, 4)
+				settings.ModelType == LvqModelType.G2m ? LogRange(0.03 / settings.PrototypesPerClass, 0.003 / settings.PrototypesPerClass, 4)
 				: LogRange(0.03 * settings.PrototypesPerClass, 0.003 * settings.PrototypesPerClass, 4) //!!!!
 				;
 
