@@ -55,8 +55,8 @@
         body.addEventListener('dragover', function(e){
         e.preventDefault();
         e.dataTransfer.dropEffect = "copy";
-        });
-        body.addEventListener("drop",function (e) {parent.globalDropHandler(e);});
+        }, false);
+        body.addEventListener("drop",function (e) {parent.globalDropHandler(e);}, false);
         })();
       </script>
     </html>

@@ -240,7 +240,7 @@ $(document).ready(function ($) {
     window.addEventListener("unload", function () {
         for (var pI in outstandingNotifications)
             CancelPopup(pI);
-    });
+    }, false);
 
     $("#jplayer_previous").click(function () {
         playlistPrev();
