@@ -165,7 +165,7 @@ namespace LvqGui {
 				lr0(?<LR0>[0-9]*(\.[0-9]*)?(e[0-9]+)?),
 				lrP(?<LrScaleP>[0-9]*(\.[0-9]*)?(e[0-9]+)?),
 				lrB(?<LrScaleB>[0-9]*(\.[0-9]*)?(e[0-9]+)?),
-				\[(?<ParamsSeed>[0-9a-fA-F]+)\,(?<InstanceSeed>[0-9a-fA-F]+)\]\^(?<ParallelModels>[0-9]+)\,
+				\[(?<ParamsSeed_>[0-9a-fA-F]+)\,(?<InstanceSeed_>[0-9a-fA-F]+)\]\^(?<ParallelModels>[0-9]+)\,
 				(--.*)?\s*$",
 		RegexOptions.ExplicitCapture | RegexOptions.IgnorePatternWhitespace);
 

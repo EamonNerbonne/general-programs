@@ -71,8 +71,9 @@ namespace LvqGui {
 		public bool NormalizeDimensions { get { return owner.NormalizeDimensions; } set { owner.NormalizeDimensions = value; } }
 
 		static readonly Regex shR =
-			new Regex(@"^\s*(.*?--)?nrm-(?<Dimensions>\d+)D(?<ExtendDataByCorrelation>x?)(?<NormalizeDimensions>n?)-(?<NumberOfClasses>\d+)x(?<PointsPerClass>\d+)\,(?<ClassCenterDeviation>[^\[]+)\[(?<ParamsSeed>[\dA-Fa-f]+)\,(?<InstanceSeed>[\dA-Fa-f]+)\]\^(?<Folds>\d+)\s*$",
-				RegexOptions.CultureInvariant | RegexOptions.ExplicitCapture);
+			new Regex(@"^\s*(.*?--)?nrm-(?<Dimensions>\d+)D(?<ExtendDataByCorrelation>x?)(?<NormalizeDimensions>n?)-(?<NumberOfClasses>\d+)x(?<PointsPerClass>\d+)
+					\,(?<ClassCenterDeviation>[^\[]+)\[(?<ParamsSeed_>[\dA-Fa-f]+)\,(?<InstanceSeed_>[\dA-Fa-f]+)\]\^(?<Folds>\d+)\s*$",
+				RegexOptions.CultureInvariant | RegexOptions.ExplicitCapture|RegexOptions.IgnorePatternWhitespace);
 
 
 		public string Shorthand {

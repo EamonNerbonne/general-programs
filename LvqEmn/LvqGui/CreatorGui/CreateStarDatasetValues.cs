@@ -114,7 +114,7 @@ namespace LvqGui {
 				,(?<NumberOfClusters>\d+)
 				\((?<ClusterDimensionality>\d+)D(?<RandomlyTransformFirst>r?)\)
 				x(?<ClusterCenterDeviation>[^~]+)\~(?<IntraClusterClassRelDev>[^\[n]+)(n(?<NoiseSigma>[^\[]+))?
-				\[(?<ParamsSeed>[0-9a-fA-F]+),(?<InstanceSeed>[0-9a-fA-F]+)\]
+				\[(?<ParamsSeed_>[0-9a-fA-F]+),(?<InstanceSeed_>[0-9a-fA-F]+)\]
 				\^(?<Folds>\d+)\s*$",
 				RegexOptions.CultureInvariant | RegexOptions.ExplicitCapture| RegexOptions.IgnorePatternWhitespace);
 

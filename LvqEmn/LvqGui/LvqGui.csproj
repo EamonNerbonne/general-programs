@@ -163,6 +163,7 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="CreatorGui\GaussianCloudSettings.cs" />
     <Compile Include="HexConverter.cs" />
     <Compile Include="LvqPlotting\LvqMultiModel.cs" />
     <Compile Include="LvqPlotting\LvqStatName.cs" />
