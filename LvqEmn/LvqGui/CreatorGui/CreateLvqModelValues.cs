@@ -146,9 +146,8 @@ namespace LvqGui {
 		}
 
 		static readonly Regex shR =
-	new Regex(@"
-				^([^:]*\:)?\s*?
-				(?<ModelType>\b[A-Z][A-Za-z0-9]*)
+	new Regex(@"^([^:]*\:|\s*\\lvqseed\{)?\s*?(" +
+			@"(?<ModelType>\b[A-Z][A-Za-z0-9]*)
 				(\[(?<Dimensionality>[^\]]+)\]|(?<TrackProjectionQuality>\+?)),
 				(?<PrototypesPerClass>[0-9]+),
 				rP(?<RandomInitialProjection>\+?),
@@ -165,8 +164,48 @@ namespace LvqGui {
 				lr0(?<LR0>[0-9]*(\.[0-9]*)?(e[0-9]+)?),
 				lrP(?<LrScaleP>[0-9]*(\.[0-9]*)?(e[0-9]+)?),
 				lrB(?<LrScaleB>[0-9]*(\.[0-9]*)?(e[0-9]+)?),
-				\[(?<ParamsSeed_>[0-9a-fA-F]+)\,(?<InstanceSeed_>[0-9a-fA-F]+)\]\^(?<ParallelModels>[0-9]+)\,
-				(--.*)?\s*$",
+				\[(?<ParamsSeed_>[0-9a-fA-F]+)\,(?<InstanceSeed_>[0-9a-fA-F]+)\]\^(?<ParallelModels>[0-9]+)\,"
+		+ "|" +
+			@"(?<ModelType>\b[A-Z][A-Za-z0-9]*)
+				(\[(?<Dimensionality>[^\]]+)\])?,
+				(?<PrototypesPerClass>[0-9]+),
+				rP(?<RandomInitialProjection>\+?),
+				(rB(?<RandomInitialBorders>\+?),)?
+				nP(?<NormalizeProjection>\+?),
+				(nB(?<NormalizeBoundaries>\+?),)?
+				(gn(?<GloballyNormalize>\+?),)?
+				(NG(?<NgUpdateProtos>\+?),)?
+				(NGi(?<NgInitializeProtos>\+?),)?
+				(noB(?<UpdatePointsWithoutB>\+?),)?
+				(pQ(?<TrackProjectionQuality>\+?),)?
+				lr0(?<LR0>[0-9]*(\.[0-9]*)?(e[0-9]+)?),
+				lrP(?<LrScaleP>[0-9]*(\.[0-9]*)?(e[0-9]+)?),
+				lrB(?<LrScaleB>[0-9]*(\.[0-9]*)?(e[0-9]+)?),
+				lrX(?<LrScaleBad>[0-9]*(\.[0-9]*)?(e[0-9]+)?),
+				(?<SlowStartLrBad>\!?)
+				\[(?<ParamsSeed>[0-9]+)\:(?<InstanceSeed>[0-9]+)\]\/(?<ParallelModels>[0-9]+)\,
+				(pQ(?<TrackProjectionQuality>\+?),)?"
+			+"|"+
+			@"(?<ModelType>\b[A-Z][A-Za-z0-9]*)
+				(\[(?<Dimensionality>[^\]]+)\])?,
+				(?<PrototypesPerClass>[0-9]+),
+				rP(?<RandomInitialProjection>\+?),
+				(rB(?<RandomInitialBorders>\+?),)?
+				nP(?<NormalizeProjection>\+?),
+				(nB(?<NormalizeBoundaries>\+?),)?
+				(gn(?<GloballyNormalize>\+?),)?
+				(NG(?<NgUpdateProtos>\+?),?)?
+				(NGi(?<NgInitializeProtos>\+?),)?
+				(noB(?<UpdatePointsWithoutB>\+?),)?
+				\[(?<ParamsSeed>[0-9]+)\:(?<InstanceSeed>[0-9]+)\]/(?<ParallelModels>[0-9]+),
+				(pQ(?<TrackProjectionQuality>\+?),)?
+				lr0(?<LR0>[0-9]*(\.[0-9]*)?(e[0-9]+)?),
+				lrP(?<LrScaleP>[0-9]*(\.[0-9]*)?(e[0-9]+)?),
+				lrB(?<LrScaleB>[0-9]*(\.[0-9]*)?(e[0-9]+)?),
+				lrX(?<LrScaleBad>[0-9]*(\.[0-9]*)?(e[0-9]+)?),?
+				(?<SlowStartLrBad>\!?)"
+			+@")(--.*|\}\{[^\}]*\})?\s*$"
+			,
 		RegexOptions.ExplicitCapture | RegexOptions.IgnorePatternWhitespace);
 
 		public string Shorthand {

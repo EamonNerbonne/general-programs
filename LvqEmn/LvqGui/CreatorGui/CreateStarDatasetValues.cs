@@ -115,7 +115,19 @@ namespace LvqGui {
 				\((?<ClusterDimensionality>\d+)D(?<RandomlyTransformFirst>r?)\)
 				x(?<ClusterCenterDeviation>[^~]+)\~(?<IntraClusterClassRelDev>[^\[n]+)(n(?<NoiseSigma>[^\[]+))?
 				\[(?<ParamsSeed_>[0-9a-fA-F]+),(?<InstanceSeed_>[0-9a-fA-F]+)\]
-				\^(?<Folds>\d+)\s*$",
+				\^(?<Folds>\d+)\s*$"
+				+"|"+
+				@"^\s*(.*?--)?
+				star-(?<Dimensions>\d+)D
+				(?<ExtendDataByCorrelation>\*?)
+				(?<NormalizeDimensions>n?)-
+				(?<NumberOfClasses>\d+)\*(?<PointsPerClass>\d+)
+				:(?<NumberOfClusters>\d+)
+				\((?<ClusterDimensionality>\d+)D(?<RandomlyTransformFirst>\??)\)
+				\*(?<ClusterCenterDeviation>[^~]+)\~(?<IntraClusterClassRelDev>[^\[n]+)(n(?<NoiseSigma>[^\[]+))?
+				\[(?<ParamsSeed>\d+):(?<InstanceSeed>\d+)\]
+				/(?<Folds>\d+)\s*$"
+				,
 				RegexOptions.CultureInvariant | RegexOptions.ExplicitCapture| RegexOptions.IgnorePatternWhitespace);
 
 		public string Shorthand {

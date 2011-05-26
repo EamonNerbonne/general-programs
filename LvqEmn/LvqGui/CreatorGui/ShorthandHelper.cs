@@ -50,6 +50,7 @@ namespace LvqGui {
 			var includedProperties = new HashSet<string> { "Shorthand" };
 
 			for (int i = 0; i < groups.Length; i++) {
+				Group captureGroup = groups[i];
 				string groupName = shR.GroupNameFromNumber(i);
 				bool isHexEncoded = groupName.EndsWith("_");
 				if (isHexEncoded) groupName = groupName.Substring(0, groupName.Length - 1);
@@ -58,10 +59,11 @@ namespace LvqGui {
 
 				if (prop == null && i != 0) {
 					registerError("Invalid regex group #" + i + " called '" + groupName + "'");
-				} else if (prop != null && groups[i].Success) {
-					object val = prop.Type.Equals(typeof(bool)) ? groups[i].Value != ""
-									: isHexEncoded && prop.Type == typeof(uint) ? Convert.ToUInt32(groups[i].Value, 16)
-										: TypeDescriptor.GetConverter(prop.Type).ConvertFromString(groups[i].Value);
+				} else if (prop != null && captureGroup.Success) {
+					string captureVal = captureGroup.Value;
+					object val = prop.Type.Equals(typeof(bool)) ? captureVal != ""
+									: isHexEncoded && prop.Type == typeof(uint) ? Convert.ToUInt32(captureVal, 16)
+										: TypeDescriptor.GetConverter(prop.Type).ConvertFromString(Regex.Replace(captureVal, "ModelType$", ""));
 					FoundVal(prop, val);
 				}
 			}
