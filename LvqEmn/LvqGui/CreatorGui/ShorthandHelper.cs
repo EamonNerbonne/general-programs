@@ -10,10 +10,34 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.ComponentModel;
 namespace LvqGui {
-	interface IHasShorthand {
+	public interface IHasShorthand {
 		string Shorthand { get; set; }
 		string ShorthandErrors { get; }
 	}
+
+	public abstract class HasShorthandBase : INotifyPropertyChanged, IHasShorthand {
+
+		public event PropertyChangedEventHandler PropertyChanged;
+
+		void raisePropertyChanged(string prop) { PropertyChanged(this, new PropertyChangedEventArgs(prop)); }
+
+		protected void _propertyChanged(string propertyName) {
+			if (PropertyChanged != null) {
+				if (propertyName == "Shorthand")
+					foreach (var propname in GetType().GetProperties().Where(prop => prop.CanRead).Select(prop => prop.Name))
+						raisePropertyChanged(propname);
+				else {
+					raisePropertyChanged(propertyName);
+					raisePropertyChanged("Shorthand");
+					raisePropertyChanged("ShorthandErrors");
+				}
+			}
+		}
+
+		public abstract string Shorthand { get; set; }
+		public abstract string ShorthandErrors { get;  }
+	}
+
 
 	[AttributeUsage(AttributeTargets.Property, Inherited = true, AllowMultiple = false)]
 	sealed class NotInShorthandAttribute : Attribute { }
@@ -23,8 +47,10 @@ namespace LvqGui {
 
 
 
-		public static void ParseShorthand(IHasShorthand shorthandObj, Regex shR, string newShorthand) {
-			DecomposeShorthand(shorthandObj, shR, newShorthand, (prop, val) => { prop.Value = val; }, err => { throw new ArgumentException(err); });
+		public static HashSet<string> ParseShorthand(IHasShorthand shorthandObj, Regex shR, string newShorthand) {
+			HashSet<string> updated = new HashSet<string>();
+			DecomposeShorthand(shorthandObj, shR, newShorthand, (prop, val) => { prop.Value = val; updated.Add(prop.Name); }, err => { throw new ArgumentException(err); });
+			return updated;
 		}
 
 		public static string VerifyShorthand(IHasShorthand shorthandObj, Regex shR) {

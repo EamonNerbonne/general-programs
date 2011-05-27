@@ -1,4 +1,7 @@
 ﻿using System.Text.RegularExpressions;
+using EmnExtensions.MathHelpers;
+using EmnExtensions.Wpf;
+using LvqLibCli;
 
 namespace LvqGui.CreatorGui {
 	class StarSettings : IHasShorthand {
@@ -10,13 +13,13 @@ namespace LvqGui.CreatorGui {
 		public int PointsPerClass = 1000;
 #endif
 
-		public int NumberOfClasses= 3;
-		public int NumberOfClusters= 4;
-		public int ClusterDimensionality= 4;
-		public bool RandomlyTransformFirst= true;
-		public double ClusterCenterDeviation= 1.5;
+		public int NumberOfClasses = 3;
+		public int NumberOfClusters = 4;
+		public int ClusterDimensionality = 4;
+		public bool RandomlyTransformFirst = true;
+		public double ClusterCenterDeviation = 1.5;
 		public double IntraClusterClassRelDev = 0.5;
-		public double NoiseSigma= 1.0;
+		public double NoiseSigma = 1.0;
 		public uint ParamsSeed;
 		public uint InstanceSeed;
 		public int Folds = 10;
@@ -59,5 +62,25 @@ namespace LvqGui.CreatorGui {
 		}
 
 		public string ShorthandErrors { get { return ShorthandHelper.VerifyShorthand(this, shR); } }
+		public LvqDatasetCli CreateDataset() {
+			return LvqDatasetCli.ConstructStarDataset(Shorthand,
+				colors: WpfTools.MakeDistributedColors(NumberOfClasses, new MersenneTwister((int)ParamsSeed)),
+				folds: Folds,
+				extend: ExtendDataByCorrelation,
+				normalizeDims: ExtendDataByCorrelation,
+				rngParamsSeed: ParamsSeed,
+				rngInstSeed: InstanceSeed,
+				dims: Dimensions,
+				starDims: ClusterDimensionality,
+				numStarTails: NumberOfClusters,
+				classCount: NumberOfClasses,
+				pointsPerClass: PointsPerClass,
+				starMeanSep: ClusterCenterDeviation,
+				starClassRelOffset: IntraClusterClassRelDev,
+				randomlyTransform: RandomlyTransformFirst,
+				noiseSigma: NoiseSigma
+			);
+		}
+
 	}
 }

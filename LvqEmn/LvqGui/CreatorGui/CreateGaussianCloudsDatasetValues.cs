@@ -1,29 +1,13 @@
 ﻿// ReSharper disable MemberCanBePrivate.Global
 // ReSharper disable UnusedMember.Global
 using System;
-using System.ComponentModel;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text.RegularExpressions;
-using EmnExtensions.MathHelpers;
-using EmnExtensions.Wpf;
 using LvqGui.CreatorGui;
 using LvqLibCli;
 
 namespace LvqGui {
 
-	public class CreateGaussianCloudsDatasetValues : INotifyPropertyChanged, IHasSeed, IHasShorthand {
+	public class CreateGaussianCloudsDatasetValues : HasShorthandBase, IHasSeed {
 		readonly LvqWindowValues owner;
-		public event PropertyChangedEventHandler PropertyChanged;
-		void raisePropertyChanged(string prop) { PropertyChanged(this, new PropertyChangedEventArgs(prop)); }
-
-		void _propertyChanged(String propertyName) {
-			if (PropertyChanged != null) {
-				raisePropertyChanged(propertyName);
-				raisePropertyChanged("Shorthand");
-				raisePropertyChanged("ShorthandErrors");
-			}
-		}
 
 		GaussianCloudSettings settings = new GaussianCloudSettings();
 
@@ -64,42 +48,32 @@ namespace LvqGui {
 
 		public bool ExtendDataByCorrelation {
 			get { return settings.ExtendDataByCorrelation; }
-			set { if (Equals(settings.ExtendDataByCorrelation, value)) return; settings.ExtendDataByCorrelation = value; owner.ExtendDataByCorrelation = value; }
+			set { if (Equals(settings.ExtendDataByCorrelation, value)) return; settings.ExtendDataByCorrelation = value; _propertyChanged("ExtendDataByCorrelation"); }
 		}
 		public bool NormalizeDimensions {
 			get { return settings.NormalizeDimensions; }
-			set { if (Equals(settings.ExtendDataByCorrelation, value)) return; settings.NormalizeDimensions = value; owner.NormalizeDimensions = value; }
+			set { if (Equals(settings.ExtendDataByCorrelation, value)) return; settings.NormalizeDimensions = value; _propertyChanged("NormalizeDimensions"); }
 		}
 
-		public string Shorthand { get { return settings.Shorthand; } set { settings.Shorthand = value; } }
-		public string ShorthandErrors { get { return settings.ShorthandErrors; } }
+		public override string Shorthand { get { return settings.Shorthand; } set { settings.Shorthand = value; _propertyChanged("Shorthand"); } }
+		public override string ShorthandErrors { get { return settings.ShorthandErrors; } }
 
 
 		public CreateGaussianCloudsDatasetValues(LvqWindowValues owner) {
 			this.owner = owner;
-			owner.PropertyChanged += (o, e) => { if (e.PropertyName == "ExtendDataByCorrelation") { settings.ExtendDataByCorrelation = owner.ExtendDataByCorrelation; _propertyChanged("ExtendDataByCorrelation"); } };
-			owner.PropertyChanged += (o, e) => { if (e.PropertyName == "NormalizeDimensions") { settings.NormalizeDimensions = owner.NormalizeDimensions; _propertyChanged("NormalizeDimensions"); } };
+			owner.PropertyChanged += (o, e) => {
+				if (e.PropertyName == "ExtendDataByCorrelation") ExtendDataByCorrelation = owner.ExtendDataByCorrelation;
+				else if (e.PropertyName == "NormalizeDimensions") NormalizeDimensions = owner.NormalizeDimensions;
+			};
+			PropertyChanged += (o, e) => {
+				if (e.PropertyName == "ExtendDataByCorrelation") owner.ExtendDataByCorrelation = ExtendDataByCorrelation;
+				else if (e.PropertyName == "NormalizeDimensions") owner.NormalizeDimensions = NormalizeDimensions;
+			};
 			this.ReseedBoth();
 		}
 
-		LvqDatasetCli CreateDataset() {
-			Console.WriteLine("Created: " + Shorthand);
+		LvqDatasetCli CreateDataset() { Console.WriteLine("Creating: " + Shorthand); return settings.CreateDataset(); }
 
-			// ReSharper disable RedundantArgumentName
-			return LvqDatasetCli.ConstructGaussianClouds(Shorthand,
-				folds: settings.Folds,
-				extend: owner.ExtendDataByCorrelation,
-				normalizeDims: owner.ExtendDataByCorrelation,
-				colors: WpfTools.MakeDistributedColors(NumberOfClasses, new MersenneTwister((int)ParamsSeed)),
-				rngParamsSeed: ParamsSeed,
-				rngInstSeed: InstanceSeed,
-				dims: Dimensions,
-				classCount: NumberOfClasses,
-				pointsPerClass: PointsPerClass,
-				meansep: ClassCenterDeviation
-				);
-			// ReSharper restore RedundantArgumentName
-		}
 
 		public void ConfirmCreation() {
 			owner.Dispatcher.BeginInvoke(owner.Datasets.Add, CreateDataset());

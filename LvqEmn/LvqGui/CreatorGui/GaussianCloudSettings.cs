@@ -4,9 +4,12 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.RegularExpressions;
+using EmnExtensions.MathHelpers;
+using EmnExtensions.Wpf;
+using LvqLibCli;
 
 namespace LvqGui.CreatorGui {
-	class GaussianCloudSettings : IHasShorthand {
+	public class GaussianCloudSettings : IHasShorthand {
 		public int NumberOfClasses=3;
 #if DEBUG
 		public int Dimensions=8;
@@ -41,6 +44,21 @@ namespace LvqGui.CreatorGui {
 
 		public string ShorthandErrors {get { return ShorthandHelper.VerifyShorthand(this, shR); } }
 
+
+		public LvqDatasetCli CreateDataset() {
+			return LvqDatasetCli.ConstructGaussianClouds(Shorthand,
+														 folds: Folds,
+														 extend: ExtendDataByCorrelation,
+														 normalizeDims: ExtendDataByCorrelation,
+														 colors: WpfTools.MakeDistributedColors(NumberOfClasses, new MersenneTwister((int)ParamsSeed)),
+														 rngParamsSeed: ParamsSeed,
+														 rngInstSeed: InstanceSeed,
+														 dims: Dimensions,
+														 classCount: NumberOfClasses,
+														 pointsPerClass: PointsPerClass,
+														 meansep: ClassCenterDeviation
+				);
+		}
 
 	}
 }

@@ -13,20 +13,10 @@ using EmnExtensions.Wpf;
 using LvqLibCli;
 
 namespace LvqGui {
-	public class CreateLvqModelValues : INotifyPropertyChanged, IHasSeed, IHasShorthand {
+	public class CreateLvqModelValues : HasShorthandBase, IHasSeed {
 		readonly LvqWindowValues owner;
 		[NotInShorthand]
 		public LvqWindowValues Owner { get { return owner; } }
-		public event PropertyChangedEventHandler PropertyChanged;
-		void raisePropertyChanged(string prop) { PropertyChanged(this, new PropertyChangedEventArgs(prop)); }
-
-		void _propertyChanged(String propertyName) {
-			if (PropertyChanged != null) {
-				raisePropertyChanged(propertyName);
-				raisePropertyChanged("Shorthand");
-				raisePropertyChanged("ShorthandErrors");
-			}
-		}
 
 		[NotInShorthand]
 		public LvqDatasetCli ForDataset {
@@ -185,7 +175,7 @@ namespace LvqGui {
 				(?<SlowStartLrBad>\!?)
 				\[(?<ParamsSeed>[0-9]+)\:(?<InstanceSeed>[0-9]+)\]\/(?<ParallelModels>[0-9]+)\,
 				(pQ(?<TrackProjectionQuality>\+?),)?"
-			+"|"+
+			+ "|" +
 			@"(?<ModelType>\b[A-Z][A-Za-z0-9]*)
 				(\[(?<Dimensionality>[^\]]+)\])?,
 				(?<PrototypesPerClass>[0-9]+),
@@ -204,23 +194,23 @@ namespace LvqGui {
 				lrB(?<LrScaleB>[0-9]*(\.[0-9]*)?(e[0-9]+)?),
 				lrX(?<LrScaleBad>[0-9]*(\.[0-9]*)?(e[0-9]+)?),?
 				(?<SlowStartLrBad>\!?)"
-			+@")(--.*|\}\{[^\}]*\})?\s*$"
+			+ @")(--.*|\}\{[^\}]*\})?\s*$"
 			,
 		RegexOptions.ExplicitCapture | RegexOptions.IgnorePatternWhitespace);
 
-		public string Shorthand {
+		public override string Shorthand {
 			get {
 				return settings.ToShorthand() + "^" + ParallelModels + ","
 				+ (ForDataset == null ? "" : "--" + ForDataset.DatasetLabel);
 			}
 			set {
-				ShorthandHelper.ParseShorthand(this, shR, value);
-				LrScaleBad = 1.0;
-				ShorthandHelper.ParseShorthand(this, shR, value);
+				var updated = ShorthandHelper.ParseShorthand(this, shR, value);
+				if (!updated.Contains("LrScaleBad"))
+					LrScaleBad = 1.0;
 			}
 		}
 
-		public string ShorthandErrors {get { return ShorthandHelper.VerifyShorthand(this, shR); } }
+		public override string ShorthandErrors { get { return ShorthandHelper.VerifyShorthand(this, shR); } }
 
 
 		public CreateLvqModelValues(LvqWindowValues owner) {

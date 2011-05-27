@@ -13,19 +13,8 @@ using LvqGui.CreatorGui;
 
 namespace LvqGui {
 
-	public class CreateStarDatasetValues : INotifyPropertyChanged, IHasSeed, IHasShorthand {
+	public class CreateStarDatasetValues : HasShorthandBase, IHasSeed {
 		readonly LvqWindowValues owner;
-
-		public event PropertyChangedEventHandler PropertyChanged;
-		void raisePropertyChanged(string prop) { PropertyChanged(this, new PropertyChangedEventArgs(prop)); }
-
-		void _propertyChanged(String propertyName) {
-			if (PropertyChanged != null) {
-				raisePropertyChanged(propertyName);
-				raisePropertyChanged("Shorthand");
-				raisePropertyChanged("ShorthandErrors");
-			}
-		}
 
 		StarSettings settings = new StarSettings();
 
@@ -71,10 +60,8 @@ namespace LvqGui {
 
 		public double NoiseSigma {
 			get { return settings.NoiseSigma; }
-			set { if (value <= 0.0) throw new ArgumentException("Standard deviation must be positive");  if (!settings.NoiseSigma.Equals(value)) { settings.NoiseSigma = value; _propertyChanged("NoiseSigma"); } }
+			set { if (value <= 0.0) throw new ArgumentException("Standard deviation must be positive"); if (!settings.NoiseSigma.Equals(value)) { settings.NoiseSigma = value; _propertyChanged("NoiseSigma"); } }
 		}
-
-		
 
 		public uint ParamsSeed {
 			get { return settings.ParamsSeed; }
@@ -100,35 +87,25 @@ namespace LvqGui {
 			set { if (Equals(settings.ExtendDataByCorrelation, value)) return; settings.NormalizeDimensions = value; owner.NormalizeDimensions = value; }
 		}
 
-		public string Shorthand { get { return settings.Shorthand; } set { settings.Shorthand = value; } }
-		public string ShorthandErrors { get { return settings.ShorthandErrors; } }
+		public override string Shorthand { get { return settings.Shorthand; } set { settings.Shorthand = value; _propertyChanged("Shorthand"); } }
+		public override string ShorthandErrors { get { return settings.ShorthandErrors; } }
 
 		public CreateStarDatasetValues(LvqWindowValues owner) {
 			this.owner = owner;
-			owner.PropertyChanged += (o, e) => { if (e.PropertyName == "ExtendDataByCorrelation") { settings.ExtendDataByCorrelation = owner.ExtendDataByCorrelation; _propertyChanged("ExtendDataByCorrelation"); } };
-			owner.PropertyChanged += (o, e) => { if (e.PropertyName == "NormalizeDimensions") { settings.NormalizeDimensions = owner.NormalizeDimensions; _propertyChanged("NormalizeDimensions"); } };
+			owner.PropertyChanged += (o, e) => {
+				if (e.PropertyName == "ExtendDataByCorrelation") ExtendDataByCorrelation = owner.ExtendDataByCorrelation;
+				else if (e.PropertyName == "NormalizeDimensions") NormalizeDimensions = owner.NormalizeDimensions;
+			};
+			PropertyChanged += (o, e) => {
+				if (e.PropertyName == "ExtendDataByCorrelation") owner.ExtendDataByCorrelation = ExtendDataByCorrelation;
+				else if (e.PropertyName == "NormalizeDimensions") owner.NormalizeDimensions = NormalizeDimensions;
+			};
 			this.ReseedBoth();
 		}
 
 		public LvqDatasetCli CreateDataset() {
 			Console.WriteLine("Created: " + Shorthand);
-			return LvqDatasetCli.ConstructStarDataset(Shorthand,
-				colors: WpfTools.MakeDistributedColors(NumberOfClasses, new MersenneTwister((int)ParamsSeed)),
-				folds: settings.Folds,
-				extend: owner.ExtendDataByCorrelation,
-				normalizeDims: owner.ExtendDataByCorrelation,
-				rngParamsSeed: ParamsSeed,
-				rngInstSeed: InstanceSeed,
-				dims: Dimensions,
-				starDims: ClusterDimensionality,
-				numStarTails: NumberOfClusters,
-				classCount: NumberOfClasses,
-				pointsPerClass: PointsPerClass,
-				starMeanSep: ClusterCenterDeviation,
-				starClassRelOffset: IntraClusterClassRelDev,
-				randomlyTransform: RandomlyTransformFirst,
-				noiseSigma: NoiseSigma
-				);
+			return settings.CreateDataset();
 		}
 
 		public DispatcherOperation ConfirmCreation() {
