@@ -7,6 +7,7 @@ using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 using EmnExtensions.MathHelpers;
 using EmnExtensions.Wpf;
+using LvqGui.CreatorGui;
 using LvqLibCli;
 
 namespace LvqGui {
@@ -24,86 +25,60 @@ namespace LvqGui {
 			}
 		}
 
+		GaussianCloudSettings settings = new GaussianCloudSettings();
 
 		public int Dimensions {
-			get { return _Dimensions; }
-			set { if (value < 1) throw new ArgumentException("Need at least one dimension"); if (!Equals(_Dimensions, value)) { _Dimensions = value; _propertyChanged("Dimensions"); } }
+			get { return settings.Dimensions; }
+			set { if (value < 1) throw new ArgumentException("Need at least one dimension"); if (!Equals(settings.Dimensions, value)) { settings.Dimensions = value; _propertyChanged("Dimensions"); } }
 		}
-		int _Dimensions;
 
 		public int NumberOfClasses {
-			get { return _NumberOfClasses; }
-			set { if (value < 2) throw new ArgumentException("Cannot meaningfully train classifier on fewer than 2 classes"); if (!Equals(_NumberOfClasses, value)) { _NumberOfClasses = value; _propertyChanged("NumberOfClasses"); } }
+			get { return settings.NumberOfClasses; }
+			set { if (value < 2) throw new ArgumentException("Cannot meaningfully train classifier on fewer than 2 classes"); if (!Equals(settings.NumberOfClasses, value)) { settings.NumberOfClasses = value; _propertyChanged("NumberOfClasses"); } }
 		}
-		int _NumberOfClasses;
 
 		public int PointsPerClass {
-			get { return _PointsPerClass; }
-			set { if (value < 1) throw new ArgumentException("Each class needs at least 1 training sample"); if (!Equals(_PointsPerClass, value)) { _PointsPerClass = value; _propertyChanged("PointsPerClass"); } }
+			get { return settings.PointsPerClass; }
+			set { if (value < 1) throw new ArgumentException("Each class needs at least 1 training sample"); if (!Equals(settings.PointsPerClass, value)) { settings.PointsPerClass = value; _propertyChanged("PointsPerClass"); } }
 		}
-		int _PointsPerClass;
 
 		public double ClassCenterDeviation {
-			get { return _ClassCenterDeviation; }
-			set { if (value < 0.0) throw new ArgumentException("Deviation must be positive"); if (!Equals(_ClassCenterDeviation, value)) { _ClassCenterDeviation = value; _propertyChanged("ClassCenterDeviation"); } }
+			get { return settings.ClassCenterDeviation; }
+			set { if (value < 0.0) throw new ArgumentException("Deviation must be positive"); if (!Equals(settings.ClassCenterDeviation, value)) { settings.ClassCenterDeviation = value; _propertyChanged("ClassCenterDeviation"); } }
 		}
-		double _ClassCenterDeviation;
 
 		public uint ParamsSeed {
-			get { return _Seed; }
-			set { if (!Equals(_Seed, value)) { _Seed = value; _propertyChanged("ParamsSeed"); } }
+			get { return settings.ParamsSeed; }
+			set { if (!Equals(settings.ParamsSeed, value)) { settings.ParamsSeed = value; _propertyChanged("ParamsSeed"); } }
 		}
-		uint _Seed;
 
 		public uint InstanceSeed {
-			get { return _InstSeed; }
-			set { if (!_InstSeed.Equals(value)) { _InstSeed = value; _propertyChanged("InstanceSeed"); } }
+			get { return settings.InstanceSeed; }
+			set { if (!settings.InstanceSeed.Equals(value)) { settings.InstanceSeed = value; _propertyChanged("InstanceSeed"); } }
 		}
-		uint _InstSeed;
 
 		public int Folds {
-			get { return _Folds; }
-			set { if (value != 0 && value < 2) throw new ArgumentException("Must have no folds (no test data) or at least 2"); if (!_Folds.Equals(value)) { _Folds = value; _propertyChanged("Folds"); } }
-		}
-		int _Folds;
-
-		public bool ExtendDataByCorrelation { get { return owner.ExtendDataByCorrelation; } set { owner.ExtendDataByCorrelation = value; } }
-		public bool NormalizeDimensions { get { return owner.NormalizeDimensions; } set { owner.NormalizeDimensions = value; } }
-
-		static readonly Regex shR =
-			new Regex(@"^\s*(.*?--)?nrm-(?<Dimensions>\d+)D(?<ExtendDataByCorrelation>x?)(?<NormalizeDimensions>n?)-(?<NumberOfClasses>\d+)x(?<PointsPerClass>\d+)
-					\,(?<ClassCenterDeviation>[^\[]+)\[(?<ParamsSeed_>[\dA-Fa-f]+)\,(?<InstanceSeed_>[\dA-Fa-f]+)\]\^(?<Folds>\d+)\s*$"
-				+"|"+
-					@"^\s*(.*?--)?nrm-(?<Dimensions>\d+)D(?<ExtendDataByCorrelation>\*?)(?<NormalizeDimensions>n?)-(?<NumberOfClasses>\d+)\*(?<PointsPerClass>\d+):(?<ClassCenterDeviation>[^\[]+)\[(?<ParamsSeed>\d+):(?<InstanceSeed>\d+)\]/(?<Folds>\d+)\s*$"
-				,
-				RegexOptions.CultureInvariant | RegexOptions.ExplicitCapture|RegexOptions.IgnorePatternWhitespace);
-
-
-		public string Shorthand {
-			get {
-				return "nrm-" + Dimensions + "D" + (ExtendDataByCorrelation ? "x" : "") + (NormalizeDimensions ? "n" : "") + "-" + NumberOfClasses + "x" + PointsPerClass + "," + ClassCenterDeviation.ToString("r") + "[" + ParamsSeed.ToString("x") + "," + InstanceSeed.ToString("x") + "]^" + Folds;
-			}
-			set { ShorthandHelper.ParseShorthand(this, shR, value); }
+			get { return settings.Folds; }
+			set { if (value != 0 && value < 2) throw new ArgumentException("Must have no folds (no test data) or at least 2"); if (!settings.Folds.Equals(value)) { settings.Folds = value; _propertyChanged("Folds"); } }
 		}
 
-		public string ShorthandErrors { [MethodImpl(MethodImplOptions.NoInlining)]get { return ShorthandHelper.VerifyShorthand(this, shR); } }
+		public bool ExtendDataByCorrelation {
+			get { return settings.ExtendDataByCorrelation; }
+			set { if (Equals(settings.ExtendDataByCorrelation, value)) return; settings.ExtendDataByCorrelation = value; owner.ExtendDataByCorrelation = value; }
+		}
+		public bool NormalizeDimensions {
+			get { return settings.NormalizeDimensions; }
+			set { if (Equals(settings.ExtendDataByCorrelation, value)) return; settings.NormalizeDimensions = value; owner.NormalizeDimensions = value; }
+		}
+
+		public string Shorthand { get { return settings.Shorthand; } set { settings.Shorthand = value; } }
+		public string ShorthandErrors { get { return settings.ShorthandErrors; } }
 
 
 		public CreateGaussianCloudsDatasetValues(LvqWindowValues owner) {
 			this.owner = owner;
-			owner.PropertyChanged += (o, e) => { if (e.PropertyName == "ExtendDataByCorrelation") _propertyChanged("ExtendDataByCorrelation"); };
-			owner.PropertyChanged += (o, e) => { if (e.PropertyName == "NormalizeDimensions") _propertyChanged("NormalizeDimensions"); };
-			_Folds = 10;
-			_NumberOfClasses = 3;
-			_ClassCenterDeviation = 1.5;
-#if DEBUG
-			_Dimensions = 8;
-			_PointsPerClass = 100;
-#else
-			_Dimensions = 24;
-			_PointsPerClass = 1000;
-#endif
-
+			owner.PropertyChanged += (o, e) => { if (e.PropertyName == "ExtendDataByCorrelation") { settings.ExtendDataByCorrelation = owner.ExtendDataByCorrelation; _propertyChanged("ExtendDataByCorrelation"); } };
+			owner.PropertyChanged += (o, e) => { if (e.PropertyName == "NormalizeDimensions") { settings.NormalizeDimensions = owner.NormalizeDimensions; _propertyChanged("NormalizeDimensions"); } };
 			this.ReseedBoth();
 		}
 
@@ -112,7 +87,7 @@ namespace LvqGui {
 
 			// ReSharper disable RedundantArgumentName
 			return LvqDatasetCli.ConstructGaussianClouds(Shorthand,
-				folds: _Folds,
+				folds: settings.Folds,
 				extend: owner.ExtendDataByCorrelation,
 				normalizeDims: owner.ExtendDataByCorrelation,
 				colors: WpfTools.MakeDistributedColors(NumberOfClasses, new MersenneTwister((int)ParamsSeed)),

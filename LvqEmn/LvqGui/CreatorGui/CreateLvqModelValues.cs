@@ -220,7 +220,7 @@ namespace LvqGui {
 			}
 		}
 
-		public string ShorthandErrors { [MethodImpl(MethodImplOptions.NoInlining)]get { return ShorthandHelper.VerifyShorthand(this, shR); } }
+		public string ShorthandErrors {get { return ShorthandHelper.VerifyShorthand(this, shR); } }
 
 
 		public CreateLvqModelValues(LvqWindowValues owner) {
