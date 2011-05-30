@@ -428,7 +428,8 @@ $(document).ready(function ($) {
     var simDispDataWait = null, dataStatus = null;
 
     var mouseInSimilar = false;
-    knownSel.hover(function (e) { mouseInSimilar = true; }, function (e) {
+    knownSel.mouseenter(function (e) { mouseInSimilar = true; });
+    knownSel.add(leftColSel).mouseleave(function (e) {
         mouseInSimilar = false;
         if (simDispDataWait) {
             updateSimilarDisplay(simDispDataWait);
