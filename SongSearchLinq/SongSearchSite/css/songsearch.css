@@ -354,9 +354,7 @@ a:focus {
 }
 .waiting:before {
     content: "Suggestions Ready!";
-    background: #b58900;
-    border-radius: 1em;
-    box-shadow: 0 0 2.0em #b58900;
+    color: #b58900;
 }
 
 
