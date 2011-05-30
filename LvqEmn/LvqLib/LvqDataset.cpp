@@ -223,7 +223,7 @@ void LvqDataset::shufflePoints(boost::mt19937& rng) {
 }
 
 bool shouldCollect(unsigned epochsDone) {
-	return epochsDone<200 || epochsDone%2==0 &&shouldCollect((epochsDone-200)/2);
+	return epochsDone<512 || epochsDone%2==0 && shouldCollect(epochsDone/2);
 }
 
 void LvqDataset::TrainModel(int epochs, LvqModel * model, LvqModel::Statistics * statisticsSink, vector<int> const  & trainingSubset, LvqDataset const * testData, std::vector<int> const  & testSubset) const {
@@ -237,7 +237,7 @@ void LvqDataset::TrainModel(int epochs, LvqModel * model, LvqModel::Statistics *
 		shuffle(model->RngIter(), shuffledOrder, shuffledOrder.size());
 		BenchTimer t;
 		t.start();
-		bool collectStats = 	statisticsSink && shouldCollect(model->epochsTrained); 
+		bool collectStats = 	statisticsSink && shouldCollect(model->epochsTrained+1); 
 
 		LvqDatasetStats stats;
 		for(int tI=0; tI<(int)shuffledOrder.size(); ++tI) {

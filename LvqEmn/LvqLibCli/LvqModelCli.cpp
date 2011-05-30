@@ -15,13 +15,13 @@ namespace LvqLibCli {
 	using boost::mt19937;
 
 
-	LvqModelCli::LvqModelCli(String^ label, LvqDatasetCli^ trainingSet, int datafold, LvqModelSettingsCli^ modelSettings)
+	LvqModelCli::LvqModelCli(String^ label, LvqDatasetCli^ trainingSet, int datafold, LvqModelSettingsCli^ modelSettings, bool trackStats)
 		: label(label)
 		, initSet(trainingSet)
 		, initDataFold(datafold)
 		, trainSync(gcnew Object())
 		, copySync(gcnew Object())
-		, stats(gcnew List<LvqTrainingStatCli>())
+		, stats(!trackStats?nullptr: gcnew List<LvqTrainingStatCli>())
 	{ 
 		msclr::lock l(trainSync);
 		trainingSet->LastModel = this;
@@ -42,12 +42,13 @@ namespace LvqLibCli {
 	bool LvqModelCli::FitsDataShape(LvqDatasetCli^ dataset) {return dataset!=nullptr && dataset->ClassCount == this->ClassCount && dataset->Dimensions == this->Dimensions;}
 
 	void LvqModelCli::SinkStats(LvqModel::Statistics & nativeStats) {
-		while(!nativeStats.empty()) {
-			LvqTrainingStatCli cliStat;
-			cppToCli(nativeStats.front(),cliStat);
-			nativeStats.pop();
-			stats->Add(cliStat);
-		}
+		if(stats)
+			while(!nativeStats.empty()) {
+				LvqTrainingStatCli cliStat;
+				cppToCli(nativeStats.front(),cliStat);
+				nativeStats.pop();
+				stats->Add(cliStat);
+			}
 	}
 
 	LvqTrainingStatCli LvqModelCli::EvaluateStats(LvqDatasetCli^ dataset, int datafold){
@@ -62,6 +63,7 @@ namespace LvqLibCli {
 			return cliStat;
 		} finally {
 			GC::KeepAlive(this);
+			GC::KeepAlive(dataset);
 		}
 	}
 
@@ -72,11 +74,13 @@ namespace LvqLibCli {
 	}
 
 	int LvqModelCli::TrainingStatCount::get(){
+		if(!stats) return 0;
 		msclr::lock l(copySync);
 		return stats->Count;
 	}
 
 	array<LvqTrainingStatCli>^ LvqModelCli::TrainingStats::get() {
+		if(!stats) return nullptr;
 		msclr::lock l(copySync);
 		auto copy = gcnew array<LvqTrainingStatCli>(stats->Count);
 		stats->CopyTo(copy);
@@ -84,6 +88,7 @@ namespace LvqLibCli {
 	}
 
 	array<LvqTrainingStatCli>^ LvqModelCli::GetTrainingStatsAfter(int statI) {
+		if(!stats) return nullptr;
 		msclr::lock l(copySync);
 		return Enumerable::ToArray(Enumerable::Skip(stats,statI));
 	}
@@ -141,13 +146,16 @@ namespace LvqLibCli {
 		msclr::lock l(trainSync);
 		LvqModel::Statistics statsink;
 		trainingSet->GetTrainingDataset()->TrainModel(epochsToDo, model->get(), &statsink, trainingSet->GetTrainingSubset(datafold), trainingSet->GetTestDataset(), trainingSet->GetTestSubset(datafold));
+		GC::KeepAlive(trainingSet);
 		msclr::lock l2(copySync);
 		SinkStats(statsink);
 		model->get()->CopyTo(*modelCopy->get());
+		GC::KeepAlive(this);
 	}
 
 	void LvqModelCli::TrainUpto(int epochsToReach,LvqDatasetCli^ trainingSet, int datafold){
 		msclr::lock l(trainSync);
 		Train(epochsToReach - model->get()->epochsTrained,trainingSet,datafold);
+		GC::KeepAlive(this);
 	}
 }

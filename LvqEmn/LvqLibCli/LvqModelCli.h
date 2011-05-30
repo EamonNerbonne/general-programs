@@ -41,7 +41,7 @@ namespace LvqLibCli {
 		property int InitDataFold {int get(){return initDataFold;}}
 		property LvqDatasetCli^ InitDataset {LvqDatasetCli^ get(){return initSet;}}
 
-		LvqModelCli(String^ label, LvqDatasetCli^ trainingSet,int datafold, LvqModelSettingsCli^ modelSettings);
+		LvqModelCli(String^ label, LvqDatasetCli^ trainingSet,int datafold, LvqModelSettingsCli^ modelSettings, bool trackStats);
 
 		array<LvqTrainingStatCli>^ GetTrainingStatsAfter(int statI);
 		LvqTrainingStatCli EvaluateStats(LvqDatasetCli^ testset, int datafold);
