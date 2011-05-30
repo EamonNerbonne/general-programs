@@ -60,5 +60,27 @@ namespace LvqGui.CreatorGui {
 				);
 		}
 
+		public static GaussianCloudSettings InstableCross() {
+			return new GaussianCloudSettings {
+				PointsPerClass = 1000,
+				Folds = 10,
+				NumberOfClasses = 3,
+				Dimensions = 24,
+				ClassCenterDeviation=1.0,
+				ParamsSeed = 0x5122ea19,
+				InstanceSeed = 0xc62ef64e,
+			};
+		}
+		public static GaussianCloudSettings PlainCurvedBoundaryExample() {
+			return new GaussianCloudSettings {
+				PointsPerClass = 1000,
+				Folds = 10,
+				NumberOfClasses = 3,
+				Dimensions = 12,
+				ClassCenterDeviation = 1.8,
+				ParamsSeed = 0xdff95b36,
+				InstanceSeed = 0x64ea6990,
+			};
+		}
 	}
 }
