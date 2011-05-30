@@ -17,6 +17,8 @@ namespace LvqGui {
 		readonly LvqWindowValues owner;
 
 		StarSettings settings = new StarSettings();
+		public StarSettings Settings { get { return settings; } set { if (settings != value) { settings = value; AllPropertiesChanged(); } } }
+
 
 		public int Dimensions {
 			get { return settings.Dimensions; }

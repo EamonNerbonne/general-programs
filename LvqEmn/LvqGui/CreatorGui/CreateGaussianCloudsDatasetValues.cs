@@ -10,6 +10,7 @@ namespace LvqGui {
 		readonly LvqWindowValues owner;
 
 		GaussianCloudSettings settings = new GaussianCloudSettings();
+		public GaussianCloudSettings Settings { get { return settings; } set { if (settings != value) { settings = value; AllPropertiesChanged(); } } }
 
 		public int Dimensions {
 			get { return settings.Dimensions; }
