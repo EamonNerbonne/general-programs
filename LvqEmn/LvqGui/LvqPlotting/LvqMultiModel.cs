@@ -19,7 +19,7 @@ namespace LvqGui {
 		public LvqMultiModel(string shorthand, int parallelModels, LvqDatasetCli forDataset, LvqModelSettingsCli lvqModelSettingsCli) {
 			subModels =
 				Enumerable.Range(0, parallelModels).AsParallel()
-				.Select(modelfold => new LvqModelCli(shorthand, forDataset, modelfold, lvqModelSettingsCli))
+				.Select(modelfold => new LvqModelCli(shorthand, forDataset, modelfold, lvqModelSettingsCli, true))
 				.OrderBy(model => model.InitDataFold)
 				.ToArray();
 		}
@@ -48,13 +48,21 @@ namespace LvqGui {
 		public LvqTrainingStatCli[] SelectedStats(int submodel) { return subModels[submodel].TrainingStats; }
 		readonly object statCacheSync = new object();
 		readonly List<Statistic> statCache = new List<Statistic>();
+		int statProcIdx;
 		public Statistic[] TrainingStats {
 			get {
-				var newstats = subModels.Select(m => m.GetTrainingStatsAfter(statCache.Count)).ToArray();
-				int newStatCount = newstats.Min(statArray => statArray.Length);
 				lock (statCacheSync) {
+					var newstats = subModels.Select(m => m.GetTrainingStatsAfter(statProcIdx)).ToArray();
+					int newStatCount = newstats.Min(statArray => statArray == null ? 0 : statArray.Length);
+					statProcIdx += newStatCount;
 					for (int i = 0; i < newStatCount; ++i)
 						statCache.Add(MeanStdErrStats(newstats.Select(modelstats => modelstats[i])));
+					while (statCache.Count > 512) {
+						//Console.WriteLine("Trimming from " + statCache.Count);
+						for (int i = 1; i < 256; i++) statCache[i] = statCache[2 * i];
+						for (int i = 512; i < statCache.Count; i++) statCache[i - 256] = statCache[i];
+						statCache.RemoveRange(statCache.Count - 256, 256);
+					}
 					return statCache.ToArray();
 				}
 			}

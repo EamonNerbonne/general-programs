@@ -109,7 +109,7 @@ namespace LvqGui {
 			};
 		}
 		static Point[] LimitGraphDetail(Point[] retval) {
-			int scaleFac = retval.Length / 500;
+			int scaleFac = retval.Length / 1024; //not necessary anymore?
 			if (scaleFac <= 1)
 				return retval;
 			Point[] newret = new Point[retval.Length / scaleFac];
