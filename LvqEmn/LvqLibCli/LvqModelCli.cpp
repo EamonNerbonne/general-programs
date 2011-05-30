@@ -88,7 +88,6 @@ namespace LvqLibCli {
 		return Enumerable::ToArray(Enumerable::Skip(stats,statI));
 	}
 
-
 	array<String^>^ LvqModelCli::TrainingStatNames::get() {
 		return ToCli<array<String^>^>::From(model->get()->TrainingStatNames());
 	}

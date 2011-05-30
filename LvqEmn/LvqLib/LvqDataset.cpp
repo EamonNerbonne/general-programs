@@ -222,6 +222,9 @@ void LvqDataset::shufflePoints(boost::mt19937& rng) {
 	pointLabels = shufLabels;
 }
 
+bool shouldCollect(unsigned epochsDone) {
+	return epochsDone<200 || epochsDone%2==0 &&shouldCollect((epochsDone-200)/2);
+}
 
 void LvqDataset::TrainModel(int epochs, LvqModel * model, LvqModel::Statistics * statisticsSink, vector<int> const  & trainingSubset, LvqDataset const * testData, std::vector<int> const  & testSubset) const {
 	int dims = static_cast<int>(points.rows());
@@ -234,6 +237,8 @@ void LvqDataset::TrainModel(int epochs, LvqModel * model, LvqModel::Statistics *
 		shuffle(model->RngIter(), shuffledOrder, shuffledOrder.size());
 		BenchTimer t;
 		t.start();
+		bool collectStats = 	statisticsSink && shouldCollect(model->epochsTrained); 
+
 		LvqDatasetStats stats;
 		for(int tI=0; tI<(int)shuffledOrder.size(); ++tI) {
 			int pointIndex = shuffledOrder[tI];
@@ -242,23 +247,16 @@ void LvqDataset::TrainModel(int epochs, LvqModel * model, LvqModel::Statistics *
 			prefetch( &points.coeff (0, shuffledOrder[(tI+1)%shuffledOrder.size()]), cacheLines);
 
 			MatchQuality trainingMatchQ = model->learnFrom(pointA, pointClass);
-			stats.Add(trainingMatchQ);
+			if(collectStats)
+				stats.Add(trainingMatchQ);
 		}
 		t.stop();
 		model->RegisterEpochDone( (int)(1*shuffledOrder.size()), t.value(CPU_TIMER), 1);
-		if(statisticsSink && (model->epochsTrained%AppropriateAnimationEpochs(trainingSubset)==0)) 
+		if(collectStats)
 			model->AddTrainingStat(*statisticsSink, this, trainingSubset, testData, testSubset, stats);
 		
 		model->DoOptionalNormalization();
 	}
-}
-
-size_t LvqDataset::AppropriateAnimationEpochs(vector<int> const  & trainingSubset) const {
-#ifndef NDEBUG
-	return 1;
-#else
-	return max(size_t(2000000L) / (trainingSubset.size() * (this->dimensions()+25)), size_t(1));
-#endif
 }
 
 static int triangularIndex(int i, int j) {
