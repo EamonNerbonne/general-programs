@@ -64,7 +64,7 @@ namespace SongDataLib {
 			if (tryagain) {
 				if (dbFile.IsReadOnly) dbFile.IsReadOnly = false;
 				Console.WriteLine("Replacing old DB and backing it up: " + dbFile);
-				File.Delete(dbFile.FullName + ".backup");//note that aFileInfo.MoveTo(newfilepath) actually updates the aFileInfo object!
+				File.Delete(dbFile.FullName + ".backup");//notice that aFileInfo.MoveTo(newfilepath) actually updates the aFileInfo *object*!
 				File.Move(dbFile.FullName, dbFile.FullName + ".backup");//not using FileInfo.Replace as this is not supported by mono
 				File.Move(tmpFile.FullName, dbFile.FullName);
 			}
