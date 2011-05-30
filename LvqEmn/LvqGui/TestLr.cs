@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using EmnExtensions;
 using EmnExtensions.Filesystem;
@@ -36,7 +37,10 @@ namespace LvqGui {
 			altLearningRates = true;
 			datasets = Enumerable.Repeat(dataset, folds).ToArray();
 		}
-
+		struct LrAndErrorRates {
+			public double lr0, lrP, lrB;
+			public ErrorRates errs;
+		}
 		struct ErrorRates {
 			public readonly double training, trainingStderr, test, testStderr, nn, nnStderr, cumLearningRate;
 			public ErrorRates(LvqMultiModel.Statistic stats, int nnIdx) {
@@ -63,7 +67,7 @@ namespace LvqGui {
 
 			Parallel.ForEach(datasets, new ParallelOptions { TaskScheduler = LowPriorityTaskScheduler.DefaultLowPriorityScheduler, }, (dataset, _, i) => {
 				int fold = followDatafolding ? (int)i : 0;
-				var model = new LvqModelCli("model", dataset, fold, settings);
+				var model = new LvqModelCli("model", dataset, fold, settings, false);
 				nnErrorIdx = model.TrainingStatNames.AsEnumerable().IndexOf(name => name.Contains("NN Error")); // threading irrelevant; all the same & atomic.
 				model.Train((int)(iters / dataset.GetTrainingSubsetSize(fold)), dataset, fold);
 				var stats = model.EvaluateStats(dataset, fold);
@@ -114,24 +118,28 @@ namespace LvqGui {
 				: LogRange(0.1 * settings.PrototypesPerClass, 0.003 * settings.PrototypesPerClass, 8) //!!!!
 				;
 
-			var q =
-				(from lr0 in lr0range.AsParallel()
-				 from lrP in lrPrange
-				 from lrB in lrBrange
-				 let errs = ErrorOf(sink, _itersToRun, SetLr(settings, lr0, lrP, lrB))
-				 orderby errs.ErrorMean
-				 select new { lr0, lrP, lrB, errs }).AsSequential();
 
 			sink.WriteLine("lr0range:" + ObjectToCode.ComplexObjectToPseudoCode(lr0range));
 			sink.WriteLine("lrPrange:" + ObjectToCode.ComplexObjectToPseudoCode(lrPrange));
 			sink.WriteLine("lrBrange:" + ObjectToCode.ComplexObjectToPseudoCode(lrBrange));
 			sink.WriteLine("For " + settings.ModelType + " with " + settings.PrototypesPerClass + " prototypes and " + _itersToRun + " iters training:");
 
-			foreach (var result in q) {
+			ConcurrentBag<LrAndErrorRates> errs = new ConcurrentBag<LrAndErrorRates>();
+
+			Parallel.ForEach(from lr0 in lr0range
+							 from lrP in lrPrange
+							 from lrB in lrBrange
+							 select F.Create(() => new LrAndErrorRates { lr0 = lr0, lrP = lrP, lrB = lrB, errs = ErrorOf(sink, _itersToRun, SetLr(settings, lr0, lrP, lrB)) }),
+				 new ParallelOptions { TaskScheduler = LowPriorityTaskScheduler.DefaultLowPriorityScheduler, },
+				 factory => errs.Add(factory()));
+
+			var q = errs.OrderBy(err => err.errs.ErrorMean).ToArray();
+
+			foreach (var result in q)
 				sink.Write("\n" + result.lr0.ToString("g4").PadRight(9) + "p" + result.lrP.ToString("g4").PadRight(9) + "b" + result.lrB.ToString("g4").PadRight(9) + ": "
 						+ result.errs + "[" + result.errs.cumLearningRate + "]"
 					);
-			}
+
 			sink.WriteLine();
 		}
 
@@ -219,7 +227,7 @@ namespace LvqGui {
 						Console.WriteLine("Starting " + shortname);
 						using (new DTimer(shortname + " training"))
 							RunAndSave(null, settings);
-					}, TaskCreationOptions.LongRunning)
+					}, CancellationToken.None, TaskCreationOptions.LongRunning, LowPriorityTaskScheduler.DefaultLowPriorityScheduler)
 				).ToArray(),
 				subtasks => { }
 			);
