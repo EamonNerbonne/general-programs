@@ -1,19 +1,17 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Media;
+using EmnExtensions;
+using EmnExtensions.MathHelpers;
 using EmnExtensions.Wpf;
 using EmnExtensions.Wpf.Plot.VizEngines;
 using LvqLibCli;
-using EmnExtensions.MathHelpers;
-using System.Threading.Tasks;
-using System.Threading;
-using EmnExtensions;
-using EmnExtensions.Wpf.Plot;
 
 namespace LvqGui {
 	public class LvqMultiModel {
