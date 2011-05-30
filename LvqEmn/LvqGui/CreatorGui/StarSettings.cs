@@ -4,7 +4,7 @@ using EmnExtensions.Wpf;
 using LvqLibCli;
 
 namespace LvqGui.CreatorGui {
-	class StarSettings : IHasShorthand {
+	public class StarSettings : CloneableAs<StarSettings>, IHasShorthand {
 #if DEBUG
 		public int Dimensions=8;
 		public int PointsPerClass=100;
@@ -81,6 +81,5 @@ namespace LvqGui.CreatorGui {
 				noiseSigma: NoiseSigma
 			);
 		}
-
 	}
 }

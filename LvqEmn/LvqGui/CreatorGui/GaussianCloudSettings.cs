@@ -9,7 +9,7 @@ using EmnExtensions.Wpf;
 using LvqLibCli;
 
 namespace LvqGui.CreatorGui {
-	public class GaussianCloudSettings : IHasShorthand {
+	public class GaussianCloudSettings : CloneableAs<GaussianCloudSettings>, IHasShorthand {
 		public int NumberOfClasses=3;
 #if DEBUG
 		public int Dimensions=8;
@@ -59,7 +59,6 @@ namespace LvqGui.CreatorGui {
 														 meansep: ClassCenterDeviation
 				);
 		}
-
 		public static GaussianCloudSettings InstableCross() {
 			return new GaussianCloudSettings {
 				PointsPerClass = 1000,
