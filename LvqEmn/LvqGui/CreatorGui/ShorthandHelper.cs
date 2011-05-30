@@ -24,14 +24,19 @@ namespace LvqGui {
 		protected void _propertyChanged(string propertyName) {
 			if (PropertyChanged != null) {
 				if (propertyName == "Shorthand")
-					foreach (var propname in GetType().GetProperties().Where(prop => prop.CanRead).Select(prop => prop.Name))
-						raisePropertyChanged(propname);
+					AllPropertiesChanged();
 				else {
 					raisePropertyChanged(propertyName);
 					raisePropertyChanged("Shorthand");
 					raisePropertyChanged("ShorthandErrors");
 				}
 			}
+		}
+
+		protected void AllPropertiesChanged()
+		{
+			foreach (var propname in GetType().GetProperties().Where(prop => prop.CanRead).Select(prop => prop.Name))
+				raisePropertyChanged(propname);
 		}
 
 		public abstract string Shorthand { get; set; }
