@@ -1,14 +1,10 @@
 ﻿// ReSharper disable UnusedMember.Global
 // ReSharper disable MemberCanBePrivate.Global
 using System;
-using System.ComponentModel;
-using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Media;
-using System.Windows.Threading;
 using EmnExtensions.Wpf;
 using LvqLibCli;
 
@@ -241,7 +237,7 @@ namespace LvqGui {
 			settingsCopy.InstanceSeed = 0;
 			settingsCopy.ParamsSeed = 1;
 			//			var args = new { Shorthand, ParallelModels, ForDataset };//for threadsafety get these now.
-			const long iterCount = 3000000;
+			const long iterCount = 30L*1000L*1000L;
 			var testLr = new TestLr(iterCount, ForDataset, 3);
 			string shortname = testLr.Shortname(settingsCopy);
 
@@ -258,7 +254,7 @@ namespace LvqGui {
 			settingsCopy.ParamsSeed = 1;
 			settingsCopy.PrototypesPerClass = 0;
 			settingsCopy.ModelType = LvqModelType.Gm;
-			const long iterCount = 3000000;
+			const long iterCount = 30L * 1000L * 1000L;
 			var testLr = new TestLr(iterCount, ForDataset, 3);
 			testLr.StartAllLrTesting().ContinueWith(_ => Console.WriteLine("completed lr optimization for " + settingsCopy.ToShorthand()));
 		}
