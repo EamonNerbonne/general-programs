@@ -36,16 +36,15 @@ namespace LvqGui {
 
 		// ReSharper disable RedundantAssignment
 		static IEnumerable<LvqDatasetCli> Datasets() {
-			int folds = 10;
 			uint rngParam = 1000;
 			uint rngInst = 1001;
-			yield return PlainDataset(folds, rngParam++, rngInst++, 16, 3);
-			yield return PlainDataset(folds, rngParam++, rngInst++, 8, 3);
-			yield return StarDataset(folds, rngParam++, rngInst++, 12, 4);
-			yield return StarDataset(folds, rngParam++, rngInst++, 8, 3);
-			yield return LoadDatasetImpl.Load(folds, "segmentationNormed_combined", rngInst++);
-			yield return LoadDatasetImpl.Load(folds, "colorado", rngInst++);
-			yield return LoadDatasetImpl.Load(folds, "pendigits.train", rngInst++);
+			yield return new GaussianCloudSettings { ParamsSeed = rngParam++, InstanceSeed = rngInst++, Dimensions = 16, PointsPerClass = (int)(10000 / Math.Sqrt(16) / 3), }.CreateDataset();
+			yield return new GaussianCloudSettings { ParamsSeed = rngParam++, InstanceSeed = rngInst++, Dimensions = 8, PointsPerClass = (int)(10000 / Math.Sqrt(8) / 3), }.CreateDataset();
+			yield return new StarSettings { ParamsSeed = rngParam++, InstanceSeed = rngInst++, Dimensions = 12, ClusterDimensionality = 6, NumberOfClusters = 3, NumberOfClasses = 4, PointsPerClass = (int)(10000 / Math.Sqrt(12) / 4), NoiseSigma = 2.5, }.CreateDataset();
+			yield return new StarSettings { ParamsSeed = rngParam++, InstanceSeed = rngInst++, Dimensions = 8, ClusterDimensionality = 4, NumberOfClusters = 3, PointsPerClass = (int)(10000 / Math.Sqrt(8) / 3), NoiseSigma = 2.5, }.CreateDataset();
+			yield return LoadDatasetImpl.Load(10, "segmentationNormed_combined", rngInst++);
+			yield return LoadDatasetImpl.Load(10, "colorado", rngInst++);
+			yield return LoadDatasetImpl.Load(10, "pendigits.train", rngInst++);
 			// ReSharper restore RedundantAssignment
 		}
 		static readonly LvqDatasetCli[] basedatasets = Datasets().ToArray();
@@ -121,7 +120,6 @@ namespace LvqGui {
 				: LogRange(0.1 * settings.PrototypesPerClass, 0.003 * settings.PrototypesPerClass, 8) //!!!!
 				;
 
-
 			sink.WriteLine("lr0range:" + ObjectToCode.ComplexObjectToPseudoCode(lr0range));
 			sink.WriteLine("lrPrange:" + ObjectToCode.ComplexObjectToPseudoCode(lrPrange));
 			sink.WriteLine("lrBrange:" + ObjectToCode.ComplexObjectToPseudoCode(lrBrange));
@@ -146,16 +144,7 @@ namespace LvqGui {
 			sink.WriteLine();
 		}
 
-		static LvqDatasetCli PlainDataset(int folds, uint rngParam, uint rngInst, int dims, int classes, double? classsep = null) {
-			return LvqDatasetCli.ConstructGaussianClouds("simplemodel", folds, false, false, null, rngParam, rngInst, dims, classes, (int)(10000 / Math.Sqrt(dims) / classes), classsep ?? 1.5);
-		}
-		static LvqDatasetCli StarDataset(int folds, uint rngParam, uint rngInst, int dims, int classes, double? starsep = null, double? classrelsep = null, double? sigmanoise = null) {
-			return LvqDatasetCli.ConstructStarDataset("star", folds, false, false, null, rngParam, rngInst, dims, dims / 2, 3, classes, (int)(10000 / Math.Sqrt(dims) / classes), starsep ?? 1.5, classrelsep ?? 0.5, true, sigmanoise ?? 2.5);
-		}
-
 		static readonly DirectoryInfo resultsDir = FSUtil.FindDataDir(@"uni\2009-Scriptie\Thesis\results\");
-
-
 
 		void Run(TextWriter sink, LvqModelSettingsCli settings) {
 			sink.WriteLine("Evaluating: " + settings.ToShorthand());

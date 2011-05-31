@@ -1,15 +1,8 @@
 ﻿// ReSharper disable UnusedMember.Global
 // ReSharper disable MemberCanBePrivate.Global
 using System;
-using System.ComponentModel;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text.RegularExpressions;
 using System.Windows.Threading;
-using EmnExtensions.MathHelpers;
-using EmnExtensions.Wpf;
 using LvqLibCli;
-using LvqGui.CreatorGui;
 
 namespace LvqGui {
 

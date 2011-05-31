@@ -3,7 +3,7 @@ using EmnExtensions.MathHelpers;
 using EmnExtensions.Wpf;
 using LvqLibCli;
 
-namespace LvqGui.CreatorGui {
+namespace LvqGui {
 	public class StarSettings : CloneableAs<StarSettings>, IHasShorthand {
 #if DEBUG
 		public int Dimensions=8;

@@ -8,7 +8,7 @@ using EmnExtensions.MathHelpers;
 using EmnExtensions.Wpf;
 using LvqLibCli;
 
-namespace LvqGui.CreatorGui {
+namespace LvqGui {
 	public class GaussianCloudSettings : CloneableAs<GaussianCloudSettings>, IHasShorthand {
 		public int NumberOfClasses=3;
 #if DEBUG
