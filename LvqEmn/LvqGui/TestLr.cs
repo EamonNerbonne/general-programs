@@ -15,10 +15,15 @@ using LvqLibCli;
 using System.Reflection;
 
 namespace LvqGui {
-	class TestLr {
+	public static class TestLrHelper {
+		public static LvqModelSettingsCli WithLrTestingChanges(this LvqModelSettingsCli settings, LvqModelType type, int protos, uint offset) {
+			return settings.WithChanges(type, protos, 1 + 2 * offset, 2 * offset);
+		}
+	}
+	public class TestLr {
 		readonly bool followDatafolding;
 		readonly bool altLearningRates;
-		readonly uint offset;
+		public readonly uint offset;
 		readonly LvqDatasetCli[] datasets;
 		readonly long _itersToRun;
 
@@ -79,20 +84,6 @@ namespace LvqGui {
 			sink.Write(".");
 			return new ErrorRates(meanStats, nnErrorIdx);
 		}
-
-		public LvqModelSettingsCli CreateBasicSettings(LvqModelType type, int protos, LvqModelSettingsCli settings = null) {
-			return CreateBasicSettings(type, protos, 2 * offset, 1 + 2 * offset, settings);
-		}
-
-		static LvqModelSettingsCli CreateBasicSettings(LvqModelType type, int protos, uint rngIter, uint rngParam, LvqModelSettingsCli settings) {
-			var retval = settings == null ? new LvqModelSettingsCli() : settings.Copy();
-			retval.ModelType = type;
-			retval.PrototypesPerClass = protos;
-			retval.ParamsSeed = rngParam;
-			retval.InstanceSeed = rngIter;
-			return retval;
-		}
-
 
 		static LvqModelSettingsCli SetLr(LvqModelSettingsCli baseSettings, double lr0, double lrScaleP, double lrScaleB) {
 			var newSettings = baseSettings.Copy();
@@ -217,11 +208,12 @@ namespace LvqGui {
 		static IEnumerable<LvqModelType> ModelTypes { get { return (LvqModelType[])Enum.GetValues(typeof(LvqModelType)); } }
 
 		public Task StartAllLrTesting(LvqModelSettingsCli baseSettings = null) {
+			baseSettings = baseSettings ?? new LvqModelSettingsCli();
 			return Task.Factory.ContinueWhenAll(
 				(
 					from protoCount in new[] { 5, 1 }
 					from modeltype in ModelTypes
-					let settings = CreateBasicSettings(modeltype, protoCount, baseSettings)
+					let settings = baseSettings.WithLrTestingChanges(modeltype, protoCount, offset)
 					select Task.Factory.StartNew(() => {
 						string shortname = Shortname(settings);
 						Console.WriteLine("Starting " + shortname);

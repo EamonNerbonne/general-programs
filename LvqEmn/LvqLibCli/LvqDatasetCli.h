@@ -42,5 +42,5 @@ namespace LvqLibCli {
 		static LvqDatasetCli^ ConstructGaussianClouds(String^ label,int folds, bool extend, bool normalizeDims, ColorArray^ colors, unsigned rngParamsSeed, unsigned rngInstSeed, int dims, int classCount, int pointsPerClass, double meansep);
 		static LvqDatasetCli^ ConstructStarDataset(String^ label,int folds, bool extend, bool normalizeDims, ColorArray^ colors, unsigned rngParamsSeed, unsigned rngInstSeed, int dims, int starDims, int numStarTails,int classCount, int pointsPerClass, double starMeanSep, double starClassRelOffset, bool randomlyTransform, double noiseSigma);
 	};
-}
+};
 

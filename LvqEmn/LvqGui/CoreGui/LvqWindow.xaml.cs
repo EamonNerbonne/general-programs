@@ -124,7 +124,7 @@ namespace LvqGui {
 			int protos = Use5Protos.IsChecked == true ? 5 : 1;
 			long iterCount = (long)iterCountSelectbox.SelectedItem;
 			var testLr = new TestLr(offset, iterCount);
-			var settings = testLr.CreateBasicSettings(modeltype, protos);
+			var settings = new LvqModelSettingsCli().WithLrTestingChanges(modeltype, protos,testLr.offset);
 			string shortname = testLr.Shortname(settings);
 
 			var logWindow = LogControl.ShowNewLogWindow(shortname, ActualWidth, ActualHeight * 0.6);

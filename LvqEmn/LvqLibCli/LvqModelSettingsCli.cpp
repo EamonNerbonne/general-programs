@@ -38,4 +38,32 @@ namespace LvqLibCli {
 	LvqModelSettingsCli^ LvqModelSettingsCli::Copy() {
 		return (LvqModelSettingsCli^)this->MemberwiseClone();
 	}
+
+	String^ LvqModelSettingsCli::ToShorthand() {
+		return ModelType.ToString()
+			+ (ModelType == LvqModelType::Lgm ? "[" + Dimensionality + "]" : (TrackProjectionQuality ? "+" : "")) + ","
+			+ PrototypesPerClass + ","
+			+ "rP" + (RandomInitialProjection ? "+" : "") + ","
+			+ (ModelType == LvqModelType::Ggm || ModelType==LvqModelType::G2m ? "rB" + (RandomInitialBorders ? "+" : "") + "," : "")
+			+ "nP" + (NormalizeProjection ? "+" : "") + ","
+			+ (ModelType == LvqModelType::G2m ? "nB" + (NormalizeBoundaries ? "+" : "") + "," : "")
+			+ (ModelType == LvqModelType::G2m && NormalizeBoundaries || NormalizeProjection ? "gn" + (GloballyNormalize ? "+" : "") + "," : "")
+			+ (ModelType != LvqModelType::Lgm ? "NG" + (NgUpdateProtos ? "+" : "") + "," : "")
+			+ (PrototypesPerClass > 1 ? "NGi" + (NgInitializeProtos ? "+" : "") + "," : "")
+			+ (ModelType == LvqModelType::G2m ? "noB" + (UpdatePointsWithoutB ? "+" : "") + "," : "")
+			+(LrScaleBad!=1.0? "lrX" + LrScaleBad + ",":"")
+			+ (SlowStartLrBad ? "!" : "")
+			+ "lr0" + LR0 + ","
+			+ "lrP" + LrScaleP + ","
+			+ "lrB" + LrScaleB + ","
+			+ "[" + ParamsSeed.ToString("x") + "," + InstanceSeed.ToString("x") + "]";
+	}
+	LvqModelSettingsCli^ LvqModelSettingsCli::WithChanges(LvqModelType type, int protos, unsigned rngParams, unsigned rngIter){
+		auto retval = Copy();
+		retval->ModelType = type;
+		retval->PrototypesPerClass = protos;
+		retval->ParamsSeed = rngParams;
+		retval->InstanceSeed = rngIter;
+		return retval;
+	}
 }
