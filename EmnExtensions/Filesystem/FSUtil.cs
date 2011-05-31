@@ -1,5 +1,7 @@
 ﻿using System.IO;
 using System;
+using System.Linq;
+using System.Reflection;
 
 namespace EmnExtensions.Filesystem
 {
@@ -22,5 +24,15 @@ namespace EmnExtensions.Filesystem
 			return pathUri.IsFile;
 		}
 
+
+
+		public static DirectoryInfo FindDataDir(string relpath) {
+			return new FileInfo(Assembly.GetEntryAssembly().Location)
+				.Directory.ParentDirs()
+				.Select(dir => Path.Combine(dir.FullName + @"\", relpath))
+				.Where(Directory.Exists)
+				.Select(path => new DirectoryInfo(path))
+				.FirstOrDefault();
+		}
 	}
 }
