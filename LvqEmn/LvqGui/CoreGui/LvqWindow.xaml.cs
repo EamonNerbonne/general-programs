@@ -139,7 +139,7 @@ namespace LvqGui {
 			uint offset = uint.Parse(rngOffsetTextBox.Text);
 			long iterCount = (long)iterCountSelectbox.SelectedItem;
 			Process.GetCurrentProcess().PriorityClass = ProcessPriorityClass.Idle;
-			new TestLr(offset, iterCount).StartAllLrTesting().ContinueWith(_ => Console.WriteLine("wheee!!!!"));
+			new TestLr(offset, iterCount).StartAllLrTesting(new LvqModelSettingsCli { SlowStartLrBad = true }).ContinueWith(_ => Console.WriteLine("wheee!!!!"));
 		}
 	}
 }
