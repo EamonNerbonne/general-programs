@@ -50,8 +50,7 @@ namespace LvqGui {
 
 		public void TestLrIfNecessary(TextWriter sink, LvqModelSettingsCli settings) {
 			if (!AbortIfAlreadyDone(settings, sink))
-				using (var sw = new StringWriter())
-				{
+				using (var sw = new StringWriter()) {
 					Run(settings, sw, sink);
 					SaveLogFor(settings, sw.ToString());
 				}
@@ -65,20 +64,21 @@ namespace LvqGui {
 
 		public Task StartAllLrTesting(LvqModelSettingsCli baseSettings = null) {
 			baseSettings = baseSettings ?? new LvqModelSettingsCli();
-			return Task.Factory.ContinueWhenAll(
-				(
-					from protoCount in new[] { 5, 1 }
-					from modeltype in ModelTypes
-					let settings = baseSettings.WithTestingChanges(modeltype, protoCount, offset)
-					select Task.Factory.StartNew(() => {
-						string shortname = ShortnameFor(settings);
-						Console.WriteLine("Starting " + shortname);
-						using (new DTimer(shortname + " training"))
-							TestLrIfNecessary(null, settings);
-					}, CancellationToken.None, TaskCreationOptions.LongRunning, LowPriorityTaskScheduler.DefaultLowPriorityScheduler)
-				).ToArray(),
-				subtasks => { }
-			);
+			var testingTasks=
+			(
+				from protoCount in new[] { 5, 1 }
+				from modeltype in ModelTypes
+				select baseSettings.WithTestingChanges(modeltype, protoCount, offset) into settings
+				select Task.Factory.StartNew(() => {
+					string shortname = ShortnameFor(settings);
+					Console.WriteLine("Starting " + shortname);
+					using (new DTimer(shortname + " training"))
+						TestLrIfNecessary(null, settings);
+				}, CancellationToken.None, TaskCreationOptions.None, LowPriorityTaskScheduler.DefaultLowPriorityScheduler)
+				 ).ToArray();
+
+			return 
+				Task.Factory.ContinueWhenAll(testingTasks,_=>{},CancellationToken.None,TaskContinuationOptions.ExecuteSynchronously, LowPriorityTaskScheduler.DefaultLowPriorityScheduler);
 		}
 
 		void FindOptimalLr(TextWriter sink, LvqModelSettingsCli settings) {
@@ -95,18 +95,15 @@ namespace LvqGui {
 			sink.WriteLine("lrBrange:" + ObjectToCode.ComplexObjectToPseudoCode(lrBrange));
 			sink.WriteLine("For " + settings.ModelType + " with " + settings.PrototypesPerClass + " prototypes and " + _itersToRun + " iters training:");
 
-			ConcurrentBag<LrAndErrorRates> errs = new ConcurrentBag<LrAndErrorRates>();
+			var parTasks = (
+				from lr0 in lr0range
+				from lrP in lrPrange
+				from lrB in lrBrange
+				select Task.Factory.StartNew(
+					() => new LrAndErrorRates { lr0 = lr0, lrP = lrP, lrB = lrB, errs = ErrorOf(sink, _itersToRun, settings.WithLrChanges(lr0, lrP, lrB)) },
+						CancellationToken.None, TaskCreationOptions.None, LowPriorityTaskScheduler.DefaultLowPriorityScheduler)).ToArray();
 
-			Parallel.ForEach(from lr0 in lr0range
-							 from lrP in lrPrange
-							 from lrB in lrBrange
-							 select F.Create(() => new LrAndErrorRates { lr0 = lr0, lrP = lrP, lrB = lrB, errs = ErrorOf(sink, _itersToRun, settings.WithLrChanges(lr0, lrP, lrB)) }),
-				 new ParallelOptions { TaskScheduler = LowPriorityTaskScheduler.DefaultLowPriorityScheduler, },
-				 factory => errs.Add(factory()));
-
-			var q = errs.OrderBy(err => err.errs.ErrorMean).ToArray();
-
-			foreach (var result in q)
+			foreach (var result in parTasks.Select(t => t.Result).OrderBy(err => err.errs.ErrorMean))
 				sink.Write("\n" + result.lr0.ToString("g4").PadRight(9) + "p" + result.lrP.ToString("g4").PadRight(9) + "b" + result.lrB.ToString("g4").PadRight(9) + ": "
 						+ result.errs + "[" + result.errs.cumLearningRate + "]"
 					);
@@ -125,7 +122,7 @@ namespace LvqGui {
 			int nnErrorIdx = -1;
 			ConcurrentBag<LvqTrainingStatCli> results = new ConcurrentBag<LvqTrainingStatCli>();
 
-			Parallel.For(0, _folds, new ParallelOptions { TaskScheduler = LowPriorityTaskScheduler.DefaultLowPriorityScheduler, }, i => {
+			Parallel.For(0, _folds, new ParallelOptions { TaskScheduler = LowPriorityTaskScheduler.DefaultLowPriorityScheduler, MaxDegreeOfParallelism = LowPriorityTaskScheduler.DefaultLowPriorityScheduler.MaximumConcurrencyLevel }, i => {
 				var dataset = _dataset ?? basedatasets[i];
 				int fold = _dataset != null ? i : 0;
 				var model = new LvqModelCli("model", dataset, fold, settings, false);
