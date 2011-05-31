@@ -239,12 +239,12 @@ namespace LvqGui {
 			//			var args = new { Shorthand, ParallelModels, ForDataset };//for threadsafety get these now.
 			const long iterCount = 30L*1000L*1000L;
 			var testLr = new TestLr(iterCount, ForDataset, 3);
-			string shortname = testLr.Shortname(settingsCopy);
+			string shortname = testLr.ShortnameFor(settingsCopy);
 
 			var logWindow = LogControl.ShowNewLogWindow(shortname, owner.win.ActualWidth, owner.win.ActualHeight * 0.6);
 
 			ThreadPool.QueueUserWorkItem(_ => {
-				testLr.RunAndSave(logWindow.Item2.Writer, settingsCopy);
+				testLr.TestLrIfNecessary(logWindow.Item2.Writer, settingsCopy);
 				logWindow.Item1.Dispatcher.BeginInvoke(() => logWindow.Item1.Background = Brushes.White);
 			});
 		}

@@ -34,22 +34,7 @@ namespace LvqGui {
 		readonly long _itersToRun;
 		readonly int _folds;
 
-		// ReSharper disable RedundantAssignment
-		static IEnumerable<LvqDatasetCli> Datasets() {
-			uint rngParam = 1000;
-			uint rngInst = 1001;
-			yield return new GaussianCloudSettings { ParamsSeed = rngParam++, InstanceSeed = rngInst++, Dimensions = 16, PointsPerClass = (int)(10000 / Math.Sqrt(16) / 3), }.CreateDataset();
-			yield return new GaussianCloudSettings { ParamsSeed = rngParam++, InstanceSeed = rngInst++, Dimensions = 8, PointsPerClass = (int)(10000 / Math.Sqrt(8) / 3), }.CreateDataset();
-			yield return new StarSettings { ParamsSeed = rngParam++, InstanceSeed = rngInst++, Dimensions = 12, ClusterDimensionality = 6, NumberOfClusters = 3, NumberOfClasses = 4, PointsPerClass = (int)(10000 / Math.Sqrt(12) / 4), NoiseSigma = 2.5, }.CreateDataset();
-			yield return new StarSettings { ParamsSeed = rngParam++, InstanceSeed = rngInst++, Dimensions = 8, ClusterDimensionality = 4, NumberOfClusters = 3, PointsPerClass = (int)(10000 / Math.Sqrt(8) / 3), NoiseSigma = 2.5, }.CreateDataset();
-			yield return LoadDatasetImpl.Load(10, "segmentationNormed_combined", rngInst++);
-			yield return LoadDatasetImpl.Load(10, "colorado", rngInst++);
-			yield return LoadDatasetImpl.Load(10, "pendigits.train", rngInst++);
-			// ReSharper restore RedundantAssignment
-		}
-		static readonly LvqDatasetCli[] basedatasets = Datasets().ToArray();
-
-		public TestLr(uint p_offset, long itersToRun) {
+		public TestLr(long itersToRun, uint p_offset) {
 			_itersToRun = itersToRun;
 			offset = p_offset;
 			_folds = basedatasets.Length;
@@ -61,54 +46,39 @@ namespace LvqGui {
 			_dataset = dataset;
 			_folds = folds;
 		}
-		struct LrAndErrorRates {
-			public double lr0, lrP, lrB;
-			public ErrorRates errs;
-		}
-		struct ErrorRates {
-			public readonly double training, trainingStderr, test, testStderr, nn, nnStderr, cumLearningRate;
-			public ErrorRates(LvqMultiModel.Statistic stats, int nnIdx) {
-				training = stats.Value[LvqTrainingStatCli.TrainingErrorI];
-				test = stats.Value[LvqTrainingStatCli.TestErrorI];
-				nn = nnIdx == -1 ? double.NaN : stats.Value[nnIdx];
-				trainingStderr = stats.StandardError[LvqTrainingStatCli.TrainingErrorI];
-				testStderr = stats.StandardError[LvqTrainingStatCli.TestErrorI];
-				nnStderr = nnIdx == -1 ? double.NaN : stats.StandardError[nnIdx];
-				cumLearningRate = stats.Value[LvqTrainingStatCli.CumLearningRateI];
-			}
-			public double ErrorMean { get { return double.IsNaN(nnStderr) && double.IsNaN(nn) ? (training * 2 + test) / 3.0 : (training * 3 + test + nn) / 5.0; } }
-			public override string ToString() {
-				return Statistics.GetFormatted(training, trainingStderr, 1) + "; " +
-					Statistics.GetFormatted(test, testStderr, 1) + "; " +
-					Statistics.GetFormatted(nn, nnStderr, 1) + "; ";
-			}
+
+
+		public void TestLrIfNecessary(TextWriter sink, LvqModelSettingsCli settings) {
+			if (!AbortIfAlreadyDone(settings, sink))
+				using (var sw = new StringWriter())
+				{
+					Run(settings, sw, sink);
+					SaveLogFor(settings, sw.ToString());
+				}
 		}
 
-		ErrorRates ErrorOf(TextWriter sink, long iters, LvqModelSettingsCli settings) {
-			int nnErrorIdx = -1;
-			ConcurrentBag<LvqTrainingStatCli> results = new ConcurrentBag<LvqTrainingStatCli>();
-
-			Parallel.For(0, _folds, new ParallelOptions { TaskScheduler = LowPriorityTaskScheduler.DefaultLowPriorityScheduler, }, i => {
-				var dataset = _dataset ?? basedatasets[i];
-				int fold = _dataset != null ? i : 0;
-				var model = new LvqModelCli("model", dataset, fold, settings, false);
-				nnErrorIdx = model.TrainingStatNames.AsEnumerable().IndexOf(name => name.Contains("NN Error")); // threading irrelevant; all the same & atomic.
-				model.Train((int)(iters / dataset.GetTrainingSubsetSize(fold)), dataset, fold);
-				var stats = model.EvaluateStats(dataset, fold);
-				results.Add(stats);
-			});
-
-			var meanStats = LvqMultiModel.MeanStdErrStats(results.ToArray());
-			sink.Write(".");
-			return new ErrorRates(meanStats, nnErrorIdx);
+		public string ShortnameFor(LvqModelSettingsCli settings) {
+			int pow10 = (int)(Math.Log10(_itersToRun + 0.5));
+			int prefix = (int)(_itersToRun / Math.Pow(10.0, pow10) + 0.5);
+			return (prefix == 1 ? "" : prefix.ToString()) + "e" + pow10 + "-" + settings.ToShorthand();
 		}
 
-
-		static IEnumerable<double> LogRange(double start, double end, int steps) {
-			//start*exp(ln(end/start) *  i/(steps-1) )
-			double lnScale = Math.Log(end / start);
-			for (int i = 0; i < steps; i++)
-				yield return start * Math.Exp(lnScale * ((double)i / (steps - 1)));
+		public Task StartAllLrTesting(LvqModelSettingsCli baseSettings = null) {
+			baseSettings = baseSettings ?? new LvqModelSettingsCli();
+			return Task.Factory.ContinueWhenAll(
+				(
+					from protoCount in new[] { 5, 1 }
+					from modeltype in ModelTypes
+					let settings = baseSettings.WithTestingChanges(modeltype, protoCount, offset)
+					select Task.Factory.StartNew(() => {
+						string shortname = ShortnameFor(settings);
+						Console.WriteLine("Starting " + shortname);
+						using (new DTimer(shortname + " training"))
+							TestLrIfNecessary(null, settings);
+					}, CancellationToken.None, TaskCreationOptions.LongRunning, LowPriorityTaskScheduler.DefaultLowPriorityScheduler)
+				).ToArray(),
+				subtasks => { }
+			);
 		}
 
 		void FindOptimalLr(TextWriter sink, LvqModelSettingsCli settings) {
@@ -144,28 +114,80 @@ namespace LvqGui {
 			sink.WriteLine();
 		}
 
-		static readonly DirectoryInfo resultsDir = FSUtil.FindDataDir(@"uni\2009-Scriptie\Thesis\results\");
+		static IEnumerable<double> LogRange(double start, double end, int steps) {
+			//start*exp(ln(end/start) *  i/(steps-1) )
+			double lnScale = Math.Log(end / start);
+			for (int i = 0; i < steps; i++)
+				yield return start * Math.Exp(lnScale * ((double)i / (steps - 1)));
+		}
 
-		void Run(TextWriter sink, LvqModelSettingsCli settings) {
+		ErrorRates ErrorOf(TextWriter sink, long iters, LvqModelSettingsCli settings) {
+			int nnErrorIdx = -1;
+			ConcurrentBag<LvqTrainingStatCli> results = new ConcurrentBag<LvqTrainingStatCli>();
+
+			Parallel.For(0, _folds, new ParallelOptions { TaskScheduler = LowPriorityTaskScheduler.DefaultLowPriorityScheduler, }, i => {
+				var dataset = _dataset ?? basedatasets[i];
+				int fold = _dataset != null ? i : 0;
+				var model = new LvqModelCli("model", dataset, fold, settings, false);
+				nnErrorIdx = model.TrainingStatNames.AsEnumerable().IndexOf(name => name.Contains("NN Error")); // threading irrelevant; all the same & atomic.
+				model.Train((int)(iters / dataset.GetTrainingSubsetSize(fold)), dataset, fold);
+				var stats = model.EvaluateStats(dataset, fold);
+				results.Add(stats);
+			});
+
+			var meanStats = LvqMultiModel.MeanStdErrStats(results.ToArray());
+			sink.Write(".");
+			return new ErrorRates(meanStats, nnErrorIdx);
+		}
+
+		struct LrAndErrorRates {
+			public double lr0, lrP, lrB;
+			public ErrorRates errs;
+		}
+
+		struct ErrorRates {
+			public readonly double training, trainingStderr, test, testStderr, nn, nnStderr, cumLearningRate;
+			public ErrorRates(LvqMultiModel.Statistic stats, int nnIdx) {
+				training = stats.Value[LvqTrainingStatCli.TrainingErrorI];
+				test = stats.Value[LvqTrainingStatCli.TestErrorI];
+				nn = nnIdx == -1 ? double.NaN : stats.Value[nnIdx];
+				trainingStderr = stats.StandardError[LvqTrainingStatCli.TrainingErrorI];
+				testStderr = stats.StandardError[LvqTrainingStatCli.TestErrorI];
+				nnStderr = nnIdx == -1 ? double.NaN : stats.StandardError[nnIdx];
+				cumLearningRate = stats.Value[LvqTrainingStatCli.CumLearningRateI];
+			}
+			public double ErrorMean { get { return double.IsNaN(nnStderr) && double.IsNaN(nn) ? (training * 2 + test) / 3.0 : (training * 3 + test + nn) / 5.0; } }
+			public override string ToString() {
+				return Statistics.GetFormatted(training, trainingStderr, 1) + "; " +
+					Statistics.GetFormatted(test, testStderr, 1) + "; " +
+					Statistics.GetFormatted(nn, nnStderr, 1) + "; ";
+			}
+		}
+
+		bool AbortIfAlreadyDone(LvqModelSettingsCli settings, TextWriter sink) {
+			if (File.Exists(GetLogfilepath(settings).First())) {
+				Console.WriteLine("already done:" + DatasetLabel + "\\" + ShortnameFor(settings));
+				if (sink != null) sink.WriteLine("already done!");
+				return true;
+			} else
+				return false;
+		}
+
+		void Run(LvqModelSettingsCli settings, StringWriter sw, TextWriter extraSink) {
+			if (extraSink == null)
+				Run(settings, sw);
+			else
+				using (var effWriter = new ForkingTextWriter(new[] { sw, extraSink }, false))
+					Run(settings, effWriter);
+		}
+
+		void Run(LvqModelSettingsCli settings, TextWriter sink) {
 			sink.WriteLine("Evaluating: " + settings.ToShorthand());
-			sink.WriteLine("Against: " + GetDatasetLabel());
+			sink.WriteLine("Against: " + DatasetLabel);
 			using (new DTimer(time => sink.WriteLine("Search Complete!  Took " + time)))
 				FindOptimalLr(sink, settings);
 		}
-
-		public void RunAndSave(TextWriter sink, LvqModelSettingsCli settings) {
-			if (File.Exists(GetLogfilepath(settings).First())) {
-				Console.WriteLine("already done:" + GetDatasetLabel() + "\\" + Shortname(settings));
-				if (sink != null) sink.WriteLine("already done!");
-			} else
-				using (var sw = new StringWriter()) {
-					var effWriter = sink == null ? (TextWriter)sw : new ForkingTextWriter(new[] { sw, sink }, false);
-					Run(effWriter, settings);
-					SaveLogFor(settings, sw.ToString());
-				}
-		}
-
-		string GetDatasetLabel() { return _dataset != null ? _dataset.DatasetLabel : "base"; }
+		string DatasetLabel { get { return _dataset != null ? _dataset.DatasetLabel : "base"; } }
 
 		void SaveLogFor(LvqModelSettingsCli settings, string logcontents) {
 			string logfilepath = GetLogfilepath(settings).Where(path => !File.Exists(path)).First();
@@ -173,36 +195,28 @@ namespace LvqGui {
 			File.WriteAllText(logfilepath, logcontents);
 		}
 
-		private IEnumerable<string> GetLogfilepath(LvqModelSettingsCli settings) {
+		IEnumerable<string> GetLogfilepath(LvqModelSettingsCli settings) {
 			return Enumerable.Range(0, 1000)
-				.Select(i => Shortname(settings) + (i == 0 ? "" : " (" + i + ")") + ".txt")
-				.Select(filename => Path.Combine(resultsDir.FullName, GetDatasetLabel() + "\\" + filename));
-		}
-
-		public string Shortname(LvqModelSettingsCli settings) {
-			int pow10 = (int)(Math.Log10(_itersToRun + 0.5));
-			int prefix = (int)(_itersToRun / Math.Pow(10.0, pow10) + 0.5);
-			return (prefix == 1 ? "" : prefix.ToString()) + "e" + pow10 + "-" + settings.ToShorthand();
+				.Select(i => ShortnameFor(settings) + (i == 0 ? "" : " (" + i + ")") + ".txt")
+				.Select(filename => Path.Combine(resultsDir.FullName, DatasetLabel + "\\" + filename));
 		}
 
 		static IEnumerable<LvqModelType> ModelTypes { get { return (LvqModelType[])Enum.GetValues(typeof(LvqModelType)); } }
-
-		public Task StartAllLrTesting(LvqModelSettingsCli baseSettings = null) {
-			baseSettings = baseSettings ?? new LvqModelSettingsCli();
-			return Task.Factory.ContinueWhenAll(
-				(
-					from protoCount in new[] { 5, 1 }
-					from modeltype in ModelTypes
-					let settings = baseSettings.WithTestingChanges(modeltype, protoCount, offset)
-					select Task.Factory.StartNew(() => {
-						string shortname = Shortname(settings);
-						Console.WriteLine("Starting " + shortname);
-						using (new DTimer(shortname + " training"))
-							RunAndSave(null, settings);
-					}, CancellationToken.None, TaskCreationOptions.LongRunning, LowPriorityTaskScheduler.DefaultLowPriorityScheduler)
-				).ToArray(),
-				subtasks => { }
-			);
+		static readonly DirectoryInfo resultsDir = FSUtil.FindDataDir(@"uni\2009-Scriptie\Thesis\results\");
+		static IEnumerable<LvqDatasetCli> Datasets() {
+			// ReSharper disable RedundantAssignment
+			uint rngParam = 1000;
+			uint rngInst = 1001;
+			yield return new GaussianCloudSettings { ParamsSeed = rngParam++, InstanceSeed = rngInst++, Dimensions = 16, PointsPerClass = (int)(10000 / Math.Sqrt(16) / 3), }.CreateDataset();
+			yield return new GaussianCloudSettings { ParamsSeed = rngParam++, InstanceSeed = rngInst++, Dimensions = 8, PointsPerClass = (int)(10000 / Math.Sqrt(8) / 3), }.CreateDataset();
+			yield return new StarSettings { ParamsSeed = rngParam++, InstanceSeed = rngInst++, Dimensions = 12, ClusterDimensionality = 6, NumberOfClusters = 3, NumberOfClasses = 4, PointsPerClass = (int)(10000 / Math.Sqrt(12) / 4), NoiseSigma = 2.5, }.CreateDataset();
+			yield return new StarSettings { ParamsSeed = rngParam++, InstanceSeed = rngInst++, Dimensions = 8, ClusterDimensionality = 4, NumberOfClusters = 3, PointsPerClass = (int)(10000 / Math.Sqrt(8) / 3), NoiseSigma = 2.5, }.CreateDataset();
+			yield return LoadDatasetImpl.Load(10, "segmentationNormed_combined", rngInst++);
+			yield return LoadDatasetImpl.Load(10, "colorado", rngInst++);
+			yield return LoadDatasetImpl.Load(10, "pendigits.train", rngInst++);
+			// ReSharper restore RedundantAssignment
 		}
+		static readonly LvqDatasetCli[] basedatasets = Datasets().ToArray();
+
 	}
 }
