@@ -29,26 +29,38 @@ namespace LvqGui {
 
 	}
 	public class TestLr {
-		readonly bool followDatafolding;
-		readonly bool altLearningRates;
 		public readonly uint offset;
-		readonly LvqDatasetCli[] datasets;
+		readonly LvqDatasetCli _dataset;
 		readonly long _itersToRun;
+		readonly int _folds;
+
+		// ReSharper disable RedundantAssignment
+		static IEnumerable<LvqDatasetCli> Datasets() {
+			int folds = 10;
+			uint rngParam = 1000;
+			uint rngInst = 1001;
+			yield return PlainDataset(folds, rngParam++, rngInst++, 16, 3);
+			yield return PlainDataset(folds, rngParam++, rngInst++, 8, 3);
+			yield return StarDataset(folds, rngParam++, rngInst++, 12, 4);
+			yield return StarDataset(folds, rngParam++, rngInst++, 8, 3);
+			yield return LoadDatasetImpl.Load(folds, "segmentationNormed_combined", rngInst++);
+			yield return LoadDatasetImpl.Load(folds, "colorado", rngInst++);
+			yield return LoadDatasetImpl.Load(folds, "pendigits.train", rngInst++);
+			// ReSharper restore RedundantAssignment
+		}
+		static readonly LvqDatasetCli[] basedatasets = Datasets().ToArray();
 
 		public TestLr(uint p_offset, long itersToRun) {
 			_itersToRun = itersToRun;
 			offset = p_offset;
-			followDatafolding = false;
-			altLearningRates = false;
-			datasets = Datasets().ToArray();
+			_folds = basedatasets.Length;
 		}
 
 		public TestLr(long itersToRun, LvqDatasetCli dataset, int folds) {
 			_itersToRun = itersToRun;
 			offset = 0;
-			followDatafolding = true;
-			altLearningRates = true;
-			datasets = Enumerable.Repeat(dataset, folds).ToArray();
+			_dataset = dataset;
+			_folds = folds;
 		}
 		struct LrAndErrorRates {
 			public double lr0, lrP, lrB;
@@ -75,18 +87,17 @@ namespace LvqGui {
 
 		ErrorRates ErrorOf(TextWriter sink, long iters, LvqModelSettingsCli settings) {
 			int nnErrorIdx = -1;
-
 			ConcurrentBag<LvqTrainingStatCli> results = new ConcurrentBag<LvqTrainingStatCli>();
 
-			Parallel.ForEach(datasets, new ParallelOptions { TaskScheduler = LowPriorityTaskScheduler.DefaultLowPriorityScheduler, }, (dataset, _, i) => {
-				int fold = followDatafolding ? (int)i : 0;
+			Parallel.For(0, _folds, new ParallelOptions { TaskScheduler = LowPriorityTaskScheduler.DefaultLowPriorityScheduler, }, i => {
+				var dataset = _dataset ?? basedatasets[i];
+				int fold = _dataset != null ? i : 0;
 				var model = new LvqModelCli("model", dataset, fold, settings, false);
 				nnErrorIdx = model.TrainingStatNames.AsEnumerable().IndexOf(name => name.Contains("NN Error")); // threading irrelevant; all the same & atomic.
 				model.Train((int)(iters / dataset.GetTrainingSubsetSize(fold)), dataset, fold);
 				var stats = model.EvaluateStats(dataset, fold);
 				results.Add(stats);
-			}
-			);
+			});
 
 			var meanStats = LvqMultiModel.MeanStdErrStats(results.ToArray());
 			sink.Write(".");
@@ -102,10 +113,10 @@ namespace LvqGui {
 		}
 
 		void FindOptimalLr(TextWriter sink, LvqModelSettingsCli settings) {
-			var lr0range = altLearningRates ? LogRange(0.3 / settings.PrototypesPerClass, 0.01 / settings.PrototypesPerClass, 8) : LogRange(0.3, 0.01, 8);
-			var lrPrange = altLearningRates ? LogRange(0.3 / settings.PrototypesPerClass, 0.01 / settings.PrototypesPerClass, 8) : LogRange(0.5, 0.03, 8);
+			var lr0range = _dataset != null ? LogRange(0.3 / settings.PrototypesPerClass, 0.01 / settings.PrototypesPerClass, 8) : LogRange(0.3, 0.01, 8);
+			var lrPrange = _dataset != null ? LogRange(0.3 / settings.PrototypesPerClass, 0.01 / settings.PrototypesPerClass, 8) : LogRange(0.5, 0.03, 8);
 			var lrBrange = settings.ModelType != LvqModelType.Ggm && settings.ModelType != LvqModelType.G2m ? new[] { 0.0 }
-				: !altLearningRates ? LogRange(0.1, 0.003, 4)
+				: _dataset == null ? LogRange(0.1, 0.003, 4)
 				: settings.ModelType == LvqModelType.G2m ? LogRange(0.03 / settings.PrototypesPerClass, 0.001 / settings.PrototypesPerClass, 8)
 				: LogRange(0.1 * settings.PrototypesPerClass, 0.003 * settings.PrototypesPerClass, 8) //!!!!
 				;
@@ -145,25 +156,10 @@ namespace LvqGui {
 		static readonly DirectoryInfo resultsDir = FSUtil.FindDataDir(@"uni\2009-Scriptie\Thesis\results\");
 
 
-		// ReSharper disable RedundantAssignment
-		static IEnumerable<LvqDatasetCli> Datasets() {
-			int folds = 10;
-			uint rngParam=1000;
-			uint rngInst = 1001;
-			yield return PlainDataset(folds, rngParam++, rngInst++, 16, 3);
-			yield return PlainDataset(folds, rngParam++, rngInst++, 8, 3);
-			yield return StarDataset(folds, rngParam++, rngInst++, 12, 4);
-			yield return StarDataset(folds, rngParam++, rngInst++, 8, 3);
-			yield return LoadDatasetImpl.Load(folds, "segmentationNormed_combined", rngInst++);
-			yield return LoadDatasetImpl.Load(folds, "colorado", rngInst++);
-			yield return LoadDatasetImpl.Load(folds, "pendigits.train", rngInst++);
-			// ReSharper restore RedundantAssignment
-		}
 
 		void Run(TextWriter sink, LvqModelSettingsCli settings) {
 			sink.WriteLine("Evaluating: " + settings.ToShorthand());
-			if (altLearningRates)
-				sink.WriteLine("Against: " + datasets[0].DatasetLabel);
+			sink.WriteLine("Against: " + GetDatasetLabel());
 			using (new DTimer(time => sink.WriteLine("Search Complete!  Took " + time)))
 				FindOptimalLr(sink, settings);
 		}
@@ -180,7 +176,7 @@ namespace LvqGui {
 				}
 		}
 
-		string GetDatasetLabel() { return altLearningRates ? datasets[0].DatasetLabel : "base"; }
+		string GetDatasetLabel() { return _dataset != null ? _dataset.DatasetLabel : "base"; }
 
 		void SaveLogFor(LvqModelSettingsCli settings, string logcontents) {
 			string logfilepath = GetLogfilepath(settings).Where(path => !File.Exists(path)).First();
