@@ -6,19 +6,27 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using EmnExtensions;
-using EmnExtensions.Filesystem;
 using EmnExtensions.DebugTools;
+using EmnExtensions.Filesystem;
 using EmnExtensions.MathHelpers;
 using EmnExtensions.Text;
 using ExpressionToCodeLib;
 using LvqLibCli;
-using System.Reflection;
 
 namespace LvqGui {
 	public static class TestLrHelper {
-		public static LvqModelSettingsCli WithLrTestingChanges(this LvqModelSettingsCli settings, LvqModelType type, int protos, uint offset) {
+		public static LvqModelSettingsCli WithTestingChanges(this LvqModelSettingsCli settings, LvqModelType type, int protos, uint offset) {
 			return settings.WithChanges(type, protos, 1 + 2 * offset, 2 * offset);
 		}
+
+		public static LvqModelSettingsCli WithLrChanges(this LvqModelSettingsCli baseSettings, double lr0, double lrScaleP, double lrScaleB) {
+			var newSettings = baseSettings.Copy();
+			newSettings.LR0 = lr0;
+			newSettings.LrScaleB = lrScaleB;
+			newSettings.LrScaleP = lrScaleP;
+			return newSettings;
+		}
+
 	}
 	public class TestLr {
 		readonly bool followDatafolding;
@@ -32,7 +40,7 @@ namespace LvqGui {
 			offset = p_offset;
 			followDatafolding = false;
 			altLearningRates = false;
-			datasets = Datasets(10, 1000, 1001).ToArray();
+			datasets = Datasets().ToArray();
 		}
 
 		public TestLr(long itersToRun, LvqDatasetCli dataset, int folds) {
@@ -85,13 +93,6 @@ namespace LvqGui {
 			return new ErrorRates(meanStats, nnErrorIdx);
 		}
 
-		static LvqModelSettingsCli SetLr(LvqModelSettingsCli baseSettings, double lr0, double lrScaleP, double lrScaleB) {
-			var newSettings = baseSettings.Copy();
-			newSettings.LR0 = lr0;
-			newSettings.LrScaleB = lrScaleB;
-			newSettings.LrScaleP = lrScaleP;
-			return newSettings;
-		}
 
 		static IEnumerable<double> LogRange(double start, double end, int steps) {
 			//start*exp(ln(end/start) *  i/(steps-1) )
@@ -120,7 +121,7 @@ namespace LvqGui {
 			Parallel.ForEach(from lr0 in lr0range
 							 from lrP in lrPrange
 							 from lrB in lrBrange
-							 select F.Create(() => new LrAndErrorRates { lr0 = lr0, lrP = lrP, lrB = lrB, errs = ErrorOf(sink, _itersToRun, SetLr(settings, lr0, lrP, lrB)) }),
+							 select F.Create(() => new LrAndErrorRates { lr0 = lr0, lrP = lrP, lrB = lrB, errs = ErrorOf(sink, _itersToRun, settings.WithLrChanges(lr0, lrP, lrB)) }),
 				 new ParallelOptions { TaskScheduler = LowPriorityTaskScheduler.DefaultLowPriorityScheduler, },
 				 factory => errs.Add(factory()));
 
@@ -141,27 +142,21 @@ namespace LvqGui {
 			return LvqDatasetCli.ConstructStarDataset("star", folds, false, false, null, rngParam, rngInst, dims, dims / 2, 3, classes, (int)(10000 / Math.Sqrt(dims) / classes), starsep ?? 1.5, classrelsep ?? 0.5, true, sigmanoise ?? 2.5);
 		}
 
-		static DirectoryInfo FindDir(string relpath) {
-			return new FileInfo(Assembly.GetEntryAssembly().Location).Directory.ParentDirs().Select(dir => Path.Combine(dir.FullName + @"\", relpath)).Where(Directory.Exists).Select(path => new DirectoryInfo(path)).FirstOrDefault();
-		}
+		static readonly DirectoryInfo resultsDir = FSUtil.FindDataDir(@"uni\2009-Scriptie\Thesis\results\");
 
-		static readonly DirectoryInfo dataDir = FindDir(@"data\datasets\");
-		static readonly DirectoryInfo resultsDir = FindDir(@"uni\2009-Scriptie\Thesis\results\");
-
-		static LvqDatasetCli Load(int folds, string name, uint rngInst) {
-			var dataFile = dataDir.GetFiles(name + ".data").FirstOrDefault();
-			return LoadDatasetImpl.LoadData(dataFile, false, false, rngInst, folds, null);
-		}
 
 		// ReSharper disable RedundantAssignment
-		static IEnumerable<LvqDatasetCli> Datasets(int folds, uint rngParam, uint rngInst) {
+		static IEnumerable<LvqDatasetCli> Datasets() {
+			int folds = 10;
+			uint rngParam=1000;
+			uint rngInst = 1001;
 			yield return PlainDataset(folds, rngParam++, rngInst++, 16, 3);
 			yield return PlainDataset(folds, rngParam++, rngInst++, 8, 3);
 			yield return StarDataset(folds, rngParam++, rngInst++, 12, 4);
 			yield return StarDataset(folds, rngParam++, rngInst++, 8, 3);
-			yield return Load(folds, "segmentationNormed_combined", rngInst++);
-			yield return Load(folds, "colorado", rngInst++);
-			yield return Load(folds, "pendigits.train", rngInst++);
+			yield return LoadDatasetImpl.Load(folds, "segmentationNormed_combined", rngInst++);
+			yield return LoadDatasetImpl.Load(folds, "colorado", rngInst++);
+			yield return LoadDatasetImpl.Load(folds, "pendigits.train", rngInst++);
 			// ReSharper restore RedundantAssignment
 		}
 
@@ -213,7 +208,7 @@ namespace LvqGui {
 				(
 					from protoCount in new[] { 5, 1 }
 					from modeltype in ModelTypes
-					let settings = baseSettings.WithLrTestingChanges(modeltype, protoCount, offset)
+					let settings = baseSettings.WithTestingChanges(modeltype, protoCount, offset)
 					select Task.Factory.StartNew(() => {
 						string shortname = Shortname(settings);
 						Console.WriteLine("Starting " + shortname);

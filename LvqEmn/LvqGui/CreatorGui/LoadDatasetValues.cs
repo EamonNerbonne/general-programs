@@ -78,7 +78,7 @@ namespace LvqGui {
 		}
 
 		LvqDatasetCli LoadDataset(FileInfo dataFile, uint seed, int folds, string testFile = null) {
-			return LoadDatasetImpl.LoadData(dataFile, owner.ExtendDataByCorrelation, owner.NormalizeDimensions, seed, folds, testFile);
+			return LoadDatasetImpl.LoadData(dataFile, seed, testFile, folds, owner.ExtendDataByCorrelation, owner.NormalizeDimensions);
 		}
 
 		public void ConfirmCreation() {

@@ -1,19 +1,27 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Text.RegularExpressions;
 using EmnExtensions.Filesystem;
-using System.Globalization;
-
-//using LvqFloat = System.Single;
 using EmnExtensions.MathHelpers;
 using EmnExtensions.Wpf;
 using LvqLibCli;
+//using LvqFloat = System.Single;
 using LvqFloat = System.Double;
 
 namespace LvqGui {
 	public static class LoadDatasetImpl {
+
+		static readonly DirectoryInfo dataDir = FSUtil.FindDataDir(@"data\datasets\");
+
+		public static LvqDatasetCli Load(int folds, string name, uint rngInst) {
+			var dataFile = dataDir.GetFiles(name + ".data").FirstOrDefault();
+			return LoadData(dataFile, rngInst, null, folds, false, false);
+		}
+
+
 		static readonly char[] dimSep = new[] { ',' };
 		static readonly char[] spaceSep = new[] { ' ' };
 
@@ -37,9 +45,11 @@ namespace LvqGui {
 			return retval;
 		}
 
-		public static LvqDatasetCli LoadData(FileInfo dataFile, bool extendByCorrelation, bool normalizeDims, uint shuffleSeed, int folds, string testFileName) {
+		public static LvqDatasetCli LoadData(FileInfo dataFile, uint shuffleSeed, string testFileName, int folds, bool extendByCorrelation, bool normalizeDims) {
+			if (folds != 0 && testFileName != null)
+				throw new ArgumentException("Cannot use n-fold crossvalidation and a separate test-set simultaneously");
 			var labelFile = new FileInfo(dataFile.Directory + @"\" + Path.GetFileNameWithoutExtension(dataFile.Name) + ".label");
-			var pointclouds = labelFile.Exists ? LoadDatasetImpl.LoadDatasetHelper(dataFile, labelFile) : LoadDatasetImpl.LoadDatasetHelper(dataFile);
+			var pointclouds = labelFile.Exists ? LoadDatasetHelper(dataFile, labelFile) : LoadDatasetHelper(dataFile);
 			var pointArray = pointclouds.Item1;
 			int[] labelArray = pointclouds.Item2;
 			int classCount = pointclouds.Item3;
