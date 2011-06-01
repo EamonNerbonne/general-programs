@@ -92,20 +92,30 @@ namespace LvqGui {
 		static int trainersRunning;
 		public static void WaitForTraining() { while (trainersRunning != 0) Thread.Sleep(1); }
 		public void Train(int epochsToDo, LvqDatasetCli trainingSet, CancellationToken cancel) {
+			if (cancel.IsCancellationRequested) return;
+			int epochsTarget;
+			lock (epochsSynch)
+				epochsTarget=epochsDone += epochsToDo;
+			TrainImpl(cancel, epochsTarget - epochsToDo, epochsTarget, trainingSet);
+		}
+		public void TrainUpto(int epochsToTrainUpto, LvqDatasetCli trainingSet, CancellationToken cancel) {
+			if (cancel.IsCancellationRequested) return;
+			int epochsCurrent;
+			lock (epochsSynch) {
+				if (epochsDone >= epochsToTrainUpto)
+					return;
+				epochsCurrent = epochsDone;
+				epochsDone = epochsToTrainUpto;
+			}
+			TrainImpl(cancel, epochsCurrent, epochsToTrainUpto, trainingSet);
+		}
+
+		void TrainImpl(CancellationToken cancel,int epochsCurrent, int epochsTarget, LvqDatasetCli trainingSet)
+		{
+			
 			Interlocked.Increment(ref trainersRunning);
 			try {
-				if (cancel.IsCancellationRequested) return;
-				int epochsCurrent;
-				int epochsTarget;
-				lock (epochsSynch) {
-					epochsCurrent = epochsDone;
-					epochsDone += epochsToDo;
-					epochsTarget = epochsDone;
-				}
 				var trainingqueue = new BlockingCollection<Tuple<LvqModelCli, int>>();
-
-
-				//Parallel.ForEach(subModels, m => m.TrainUpto(epochsTarget,trainingSet,m.InitDataFold));
 
 				while (epochsCurrent != epochsTarget) {
 					epochsCurrent += ((epochsTarget - epochsCurrent) * 15 + 1) / 16;
@@ -116,13 +126,13 @@ namespace LvqGui {
 				trainingqueue.CompleteAdding();
 				var helpers = Enumerable.Range(0, ParWindow)
 					.Select(ignored =>
-						Task.Factory.StartNew(
-							() => {
-								foreach (var next in trainingqueue.GetConsumingEnumerable(cancel))
-									next.Item1.TrainUpto(next.Item2, trainingSet, next.Item1.InitDataFold);
-							},
-							cancel, TaskCreationOptions.None, LowPriorityTaskScheduler.DefaultLowPriorityScheduler)
-						).ToArray();
+					        Task.Factory.StartNew(
+					        	() => {
+					        	      	foreach (var next in trainingqueue.GetConsumingEnumerable(cancel))
+					        	      		next.Item1.TrainUpto(next.Item2, trainingSet, next.Item1.InitDataFold);
+					        	},
+					        	cancel, TaskCreationOptions.None, LowPriorityTaskScheduler.DefaultLowPriorityScheduler)
+					).ToArray();
 				Task.WaitAll(helpers, cancel);
 			} finally {
 				Interlocked.Decrement(ref trainersRunning);
