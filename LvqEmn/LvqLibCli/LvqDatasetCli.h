@@ -19,6 +19,7 @@ namespace LvqLibCli {
 		LvqDatasetCli(String^label,int folds, bool extend, bool normalizeDims, ColorArray^ colors, LvqDataset * newDataset,boost::mt19937& rngOrder);
 	public:
 		bool IsFolded() {return folds!=0;}
+		int Folds() {return folds;}
 		bool HasTestSet() {return testSet != nullptr;}
 		std::vector<int> GetTrainingSubset(int fold);
 		int GetTrainingSubsetSize(int fold);
