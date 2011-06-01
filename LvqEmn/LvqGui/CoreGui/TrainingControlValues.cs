@@ -22,11 +22,13 @@ namespace LvqGui {
 
 		public LvqDatasetCli SelectedDataset {
 			get { return _SelectedDataset; }
-			set { if (!Equals(_SelectedDataset, value)) { _SelectedDataset = value; _propertyChanged("SelectedDataset"); _propertyChanged("MatchingLvqModels"); SelectedLvqModel = _SelectedDataset == null ? null : Owner.ResolveModel(_SelectedDataset.LastModel); AnimateTraining = false; } }
+			set { if (!Equals(_SelectedDataset, value)) { _SelectedDataset = value; _propertyChanged("SelectedDataset"); _propertyChanged("ItersPerEpoch"); _propertyChanged("MatchingLvqModels"); SelectedLvqModel = _SelectedDataset == null ? null : Owner.ResolveModel(_SelectedDataset.LastModel); AnimateTraining = false; } }
 		}
 		LvqDatasetCli _SelectedDataset;
 
 		public IEnumerable<LvqMultiModel> MatchingLvqModels { get { return Owner.LvqModels.Where(model => model == null || model.InitSet == SelectedDataset); } } // model.FitsDataShape(SelectedDataset) is unhandy
+
+		public uint ItersPerEpoch { get { return (uint)(SelectedDataset.PointCount * (SelectedDataset.Folds() - 1L) / SelectedDataset.Folds()); } }
 
 		public LvqMultiModel SelectedLvqModel {
 			get { return _SelectedLvqModel; }
@@ -56,19 +58,27 @@ namespace LvqGui {
 			get { return _ShowBoundaries; }
 			set { if (!_ShowBoundaries.Equals(value)) { _ShowBoundaries = value; _propertyChanged("ShowBoundaries"); } }
 		}
-		private bool _ShowBoundaries;
+		bool _ShowBoundaries;
 
 		public bool ShowPrototypes {
 			get { return _ShowPrototypes; }
 			set { if (!_ShowPrototypes.Equals(value)) { _ShowPrototypes = value; _propertyChanged("ShowPrototypes"); } }
 		}
-		private bool _ShowPrototypes;
+		bool _ShowPrototypes;
 
 		public int EpochsPerClick {
 			get { return _EpochsPerClick; }
 			set { if (value < 1) throw new ArgumentException("Must train for at least 1 epoch at a  time"); if (!Equals(_EpochsPerClick, value)) { _EpochsPerClick = value; _propertyChanged("EpochsPerClick"); } }
 		}
 		int _EpochsPerClick;
+
+		public ulong ItersToTrainUpto {
+			get { return _ItersToTrainUpto; }
+			set { if (!_ItersToTrainUpto.Equals(value)) { _ItersToTrainUpto = value; _propertyChanged("ItersToTrainUpto"); } }
+		}
+		ulong _ItersToTrainUpto;
+
+
 
 		public int EpochsPerAnimation {
 			get { return _EpochsPerAnimation; }
@@ -115,14 +125,21 @@ namespace LvqGui {
 			var selectedModel = SelectedLvqModel;
 			var meanstats = selectedModel.EvaluateStats(SelectedDataset);
 
-			for (int i = 0; i < selectedModel.TrainingStatNames.Length; i++) 
-				Console.WriteLine(selectedModel.TrainingStatNames[i].Split('!')[0] + ": "+Statistics.GetFormatted(meanstats.Value[i], meanstats.StandardError[i]));
+			for (int i = 0; i < selectedModel.TrainingStatNames.Length; i++)
+				Console.WriteLine(selectedModel.TrainingStatNames[i].Split('!')[0] + ": " + Statistics.GetFormatted(meanstats.Value[i], meanstats.StandardError[i]));
 		}
 
 		public void ConfirmTraining() {
+			int epochsToTrainFor = EpochsPerClick;
+			TrainSelectedModel((dataset, model) => {
+				using (new DTimer("Training " + epochsToTrainFor + " epochs"))
+					model.Train(epochsToTrainFor, dataset, Owner.WindowClosingToken);
+			});
+		}
+
+		void TrainSelectedModel(Action<LvqDatasetCli, LvqMultiModel> trainImpl) {
 			var selectedDataset = SelectedDataset;
 			var selectedModel = SelectedLvqModel;
-			int epochsToTrainFor = EpochsPerClick;
 			if (selectedDataset == null)
 				Console.WriteLine("Training aborted, no dataset selected.");
 			else if (selectedModel == null)
@@ -130,8 +147,7 @@ namespace LvqGui {
 			else {
 				//lock (selectedModel.UpdateSyncObject) //not needed for safety, just for accurate timing
 				try {
-					using (new DTimer("Training " + epochsToTrainFor + " epochs"))
-						selectedModel.Train(epochsToTrainFor, selectedDataset, Owner.WindowClosingToken);
+					trainImpl(selectedDataset, selectedModel);
 					if (!Owner.WindowClosingToken.IsCancellationRequested) {
 						PrintModelTimings(selectedModel);
 						PotentialUpdate(selectedDataset, selectedModel);
@@ -142,6 +158,16 @@ namespace LvqGui {
 				}
 			}
 		}
+
+		public void TrainUptoIters() {
+			ulong uptoIters = ItersToTrainUpto;
+			int uptoEpochs = (int)(uptoIters / ItersPerEpoch);
+			TrainSelectedModel((dataset, model) => {
+				using (new DTimer("Training up to " + uptoEpochs + " epochs"))
+					model.TrainUpto(uptoEpochs, dataset, Owner.WindowClosingToken);
+			});
+		}
+
 
 		public void DoAnimatedTraining(CancellationToken token) {
 #if BENCHMARK

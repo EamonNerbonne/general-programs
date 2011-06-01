@@ -243,8 +243,7 @@ namespace LvqGui {
 
 			var logWindow = LogControl.ShowNewLogWindow(shortname, owner.win.ActualWidth, owner.win.ActualHeight * 0.6);
 
-			ThreadPool.QueueUserWorkItem(_ => {
-				testLr.TestLrIfNecessary(logWindow.Item2.Writer, settingsCopy);
+			testLr.TestLrIfNecessary(logWindow.Item2.Writer, settingsCopy).ContinueWith(t => {
 				logWindow.Item1.Dispatcher.BeginInvoke(() => logWindow.Item1.Background = Brushes.White);
 			});
 		}

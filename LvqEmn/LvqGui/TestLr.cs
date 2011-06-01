@@ -48,12 +48,18 @@ namespace LvqGui {
 		}
 
 
-		public void TestLrIfNecessary(TextWriter sink, LvqModelSettingsCli settings) {
-			if (!AbortIfAlreadyDone(settings, sink))
-				using (var sw = new StringWriter()) {
-					Run(settings, sw, sink);
+		public Task TestLrIfNecessary(TextWriter sink, LvqModelSettingsCli settings) {
+			if (!AbortIfAlreadyDone(settings, sink)) {
+				var sw = new StringWriter();
+				return Run(settings, sw, sink).ContinueWith(t => {
+					t.Wait();
 					SaveLogFor(settings, sw.ToString());
-				}
+				}, CancellationToken.None, TaskContinuationOptions.None, LowPriorityTaskScheduler.DefaultLowPriorityScheduler).ContinueWith(t => sw.Dispose());
+			} else {
+				TaskCompletionSource<int> tc = new TaskCompletionSource<int>();
+				tc.SetResult(0);
+				return tc.Task;
+			}
 		}
 
 		public string ShortnameFor(LvqModelSettingsCli settings) {
@@ -64,24 +70,23 @@ namespace LvqGui {
 
 		public Task StartAllLrTesting(LvqModelSettingsCli baseSettings = null) {
 			baseSettings = baseSettings ?? new LvqModelSettingsCli();
-			var testingTasks=
+			var testingTasks =
 			(
 				from protoCount in new[] { 5, 1 }
 				from modeltype in ModelTypes
 				select baseSettings.WithTestingChanges(modeltype, protoCount, offset) into settings
-				select Task.Factory.StartNew(() => {
-					string shortname = ShortnameFor(settings);
+				let shortname = ShortnameFor(settings)
+				select DTimer.TimeTask(() => {
 					Console.WriteLine("Starting " + shortname);
-					using (new DTimer(shortname + " training"))
-						TestLrIfNecessary(null, settings);
-				}, CancellationToken.None, TaskCreationOptions.None, LowPriorityTaskScheduler.DefaultLowPriorityScheduler)
+					return TestLrIfNecessary(null, settings);
+				}, shortname + " training")
 				 ).ToArray();
 
-			return 
-				Task.Factory.ContinueWhenAll(testingTasks,_=>{},CancellationToken.None,TaskContinuationOptions.ExecuteSynchronously, LowPriorityTaskScheduler.DefaultLowPriorityScheduler);
+			return
+				Task.Factory.ContinueWhenAll(testingTasks, Task.WaitAll);
 		}
 
-		void FindOptimalLr(TextWriter sink, LvqModelSettingsCli settings) {
+		Task FindOptimalLr(TextWriter sink, LvqModelSettingsCli settings) {
 			var lr0range = _dataset != null ? LogRange(0.3 / settings.PrototypesPerClass, 0.01 / settings.PrototypesPerClass, 8) : LogRange(0.3, 0.01, 8);
 			var lrPrange = _dataset != null ? LogRange(0.3 / settings.PrototypesPerClass, 0.01 / settings.PrototypesPerClass, 8) : LogRange(0.5, 0.03, 8);
 			var lrBrange = settings.ModelType != LvqModelType.Ggm && settings.ModelType != LvqModelType.G2m ? new[] { 0.0 }
@@ -95,20 +100,22 @@ namespace LvqGui {
 			sink.WriteLine("lrBrange:" + ObjectToCode.ComplexObjectToPseudoCode(lrBrange));
 			sink.WriteLine("For " + settings.ModelType + " with " + settings.PrototypesPerClass + " prototypes and " + _itersToRun + " iters training:");
 
-			var parTasks = (
+			var errorRates = (
 				from lr0 in lr0range
 				from lrP in lrPrange
 				from lrB in lrBrange
-				select Task.Factory.StartNew(
-					() => new LrAndErrorRates { lr0 = lr0, lrP = lrP, lrB = lrB, errs = ErrorOf(sink, _itersToRun, settings.WithLrChanges(lr0, lrP, lrB)) },
-						CancellationToken.None, TaskCreationOptions.None, LowPriorityTaskScheduler.DefaultLowPriorityScheduler)).ToArray();
+				select new LrAndErrorRates { lr0 = lr0, lrP = lrP, lrB = lrB, errs = ErrorOf(sink, _itersToRun, settings.WithLrChanges(lr0, lrP, lrB)) }
+				).ToArray();
 
-			foreach (var result in parTasks.Select(t => t.Result).OrderBy(err => err.errs.ErrorMean))
-				sink.Write("\n" + result.lr0.ToString("g4").PadRight(9) + "p" + result.lrP.ToString("g4").PadRight(9) + "b" + result.lrB.ToString("g4").PadRight(9) + ": "
-						+ result.errs + "[" + result.errs.cumLearningRate + "]"
-					);
+			return Task.Factory.ContinueWhenAll(errorRates.Select(run => run.errs).ToArray(),
+				tasks => {
+					foreach (var result in errorRates.OrderBy(err => err.errs.Result.ErrorMean))
+						sink.Write("\n" + result.lr0.ToString("g4").PadRight(9) + "p" + result.lrP.ToString("g4").PadRight(9) + "b" + result.lrB.ToString("g4").PadRight(9) + ": "
+								+ result.errs.Result + "[" + result.errs.Result.cumLearningRate + "]"
+							);
 
-			sink.WriteLine();
+					sink.WriteLine();
+				});
 		}
 
 		static IEnumerable<double> LogRange(double start, double end, int steps) {
@@ -118,28 +125,28 @@ namespace LvqGui {
 				yield return start * Math.Exp(lnScale * ((double)i / (steps - 1)));
 		}
 
-		ErrorRates ErrorOf(TextWriter sink, long iters, LvqModelSettingsCli settings) {
+		Task<ErrorRates> ErrorOf(TextWriter sink, long iters, LvqModelSettingsCli settings) {
 			int nnErrorIdx = -1;
-			ConcurrentBag<LvqTrainingStatCli> results = new ConcurrentBag<LvqTrainingStatCli>();
+			var results = new Task<LvqTrainingStatCli>[_folds];
 
-			Parallel.For(0, _folds, new ParallelOptions { TaskScheduler = LowPriorityTaskScheduler.DefaultLowPriorityScheduler, MaxDegreeOfParallelism = LowPriorityTaskScheduler.DefaultLowPriorityScheduler.MaximumConcurrencyLevel }, i => {
+			for (int i = 0; i < _folds; i++) {
+
 				var dataset = _dataset ?? basedatasets[i];
 				int fold = _dataset != null ? i : 0;
-				var model = new LvqModelCli("model", dataset, fold, settings, false);
-				nnErrorIdx = model.TrainingStatNames.AsEnumerable().IndexOf(name => name.Contains("NN Error")); // threading irrelevant; all the same & atomic.
-				model.Train((int)(iters / dataset.GetTrainingSubsetSize(fold)), dataset, fold);
-				var stats = model.EvaluateStats(dataset, fold);
-				results.Add(stats);
-			});
+				results[i] = Task.Factory.StartNew(() => {
+					var model = new LvqModelCli("model", dataset, fold, settings, false);
+					nnErrorIdx = model.TrainingStatNames.AsEnumerable().IndexOf(name => name.Contains("NN Error")); // threading irrelevant; all the same & atomic.
+					model.Train((int)(iters / dataset.GetTrainingSubsetSize(fold)), dataset, fold);
+					return model.EvaluateStats(dataset, fold);
+				}, CancellationToken.None, TaskCreationOptions.PreferFairness, LowPriorityTaskScheduler.DefaultLowPriorityScheduler);
+			}
 
-			var meanStats = LvqMultiModel.MeanStdErrStats(results.ToArray());
-			sink.Write(".");
-			return new ErrorRates(meanStats, nnErrorIdx);
+			return Task.Factory.ContinueWhenAll(results, tasks => { sink.Write("."); return new ErrorRates(LvqMultiModel.MeanStdErrStats(tasks.Select(task => task.Result).ToArray()), nnErrorIdx); }, CancellationToken.None, TaskContinuationOptions.None, LowPriorityTaskScheduler.DefaultLowPriorityScheduler);
 		}
 
-		struct LrAndErrorRates {
+		class LrAndErrorRates {
 			public double lr0, lrP, lrB;
-			public ErrorRates errs;
+			public Task<ErrorRates> errs;
 		}
 
 		struct ErrorRates {
@@ -170,24 +177,24 @@ namespace LvqGui {
 				return false;
 		}
 
-		void Run(LvqModelSettingsCli settings, StringWriter sw, TextWriter extraSink) {
+		Task Run(LvqModelSettingsCli settings, StringWriter sw, TextWriter extraSink) {
 			if (extraSink == null)
-				Run(settings, sw);
+				return Run(settings, TextWriter.Synchronized(sw));
 			else
 				using (var effWriter = new ForkingTextWriter(new[] { sw, extraSink }, false))
-					Run(settings, effWriter);
+					return Run(settings, TextWriter.Synchronized(effWriter));
 		}
 
-		void Run(LvqModelSettingsCli settings, TextWriter sink) {
+		Task Run(LvqModelSettingsCli settings, TextWriter sink) {
 			sink.WriteLine("Evaluating: " + settings.ToShorthand());
 			sink.WriteLine("Against: " + DatasetLabel);
 			using (new DTimer(time => sink.WriteLine("Search Complete!  Took " + time)))
-				FindOptimalLr(sink, settings);
+				return FindOptimalLr(sink, settings);
 		}
 		string DatasetLabel { get { return _dataset != null ? _dataset.DatasetLabel : "base"; } }
 
 		void SaveLogFor(LvqModelSettingsCli settings, string logcontents) {
-			string logfilepath = GetLogfilepath(settings).Where(path => !File.Exists(path)).First();
+			string logfilepath = GetLogfilepath(settings).First(path => !File.Exists(path));
 			Directory.CreateDirectory(Path.GetDirectoryName(logfilepath));
 			File.WriteAllText(logfilepath, logcontents);
 		}

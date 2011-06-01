@@ -61,7 +61,7 @@ namespace LvqGui {
 						(s, e) => Dispatcher.BeginInvokeBackground(
 							() => values.CreateLvqModelValues.ConfirmCreation().ContinueWith(
 							creationTask => Dispatcher.BeginInvokeBackground(
-							() => {values.TrainingControlValues.AnimateTraining = true;}
+							() => { values.TrainingControlValues.AnimateTraining = true; }
 							)));
 
 			}, DataContext);
@@ -124,22 +124,25 @@ namespace LvqGui {
 			int protos = Use5Protos.IsChecked == true ? 5 : 1;
 			long iterCount = (long)iterCountSelectbox.SelectedItem;
 			var testLr = new TestLr(iterCount, offset);
-			var settings = new LvqModelSettingsCli().WithTestingChanges(modeltype, protos,testLr.offset);
+			var settings = new LvqModelSettingsCli().WithTestingChanges(modeltype, protos, testLr.offset);
 			string shortname = testLr.ShortnameFor(settings);
 
 			var logWindow = LogControl.ShowNewLogWindow(shortname, ActualWidth, ActualHeight * 0.6);
-
-			ThreadPool.QueueUserWorkItem(_ => {
-				testLr.TestLrIfNecessary(logWindow.Item2.Writer, settings);
-				logWindow.Item1.Dispatcher.BeginInvoke(() => logWindow.Item1.Background = Brushes.White);
-			});
+			ThreadPool.QueueUserWorkItem(_ => testLr.TestLrIfNecessary(logWindow.Item2.Writer, settings)
+									.ContinueWith(t => {
+										logWindow.Item1.Dispatcher.BeginInvoke(() => logWindow.Item1.Background = Brushes.White);
+										t.Wait();
+									}));
 		}
 
 		void LrSearchAll_Click(object sender, RoutedEventArgs e) {
 			uint offset = uint.Parse(rngOffsetTextBox.Text);
 			long iterCount = (long)iterCountSelectbox.SelectedItem;
 			Process.GetCurrentProcess().PriorityClass = ProcessPriorityClass.Idle;
-			new TestLr(iterCount, offset).StartAllLrTesting(new LvqModelSettingsCli { SlowStartLrBad = true }).ContinueWith(_ => Console.WriteLine("wheee!!!!"));
+			ThreadPool.QueueUserWorkItem(_=>
+				new TestLr(iterCount, offset).StartAllLrTesting(new LvqModelSettingsCli { SlowStartLrBad = true })
+				.ContinueWith(t => {Console.WriteLine("wheee!!!!"); t.Wait();} )
+				);
 		}
 	}
 }

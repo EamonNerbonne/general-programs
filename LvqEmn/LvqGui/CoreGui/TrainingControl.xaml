@@ -69,13 +69,17 @@
         </StackPanel>
         <StackPanel Grid.Row="4" Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Stretch">
             <TextBox Width="60" Text="{Binding EpochsPerClick,ValidatesOnExceptions=True}" />
-            <Label Content="epochs" HorizontalAlignment="Right"/>
+            <TextBlock VerticalAlignment="Center" Margin="2"> epochs or </TextBlock>
+            <Button Content="Train" Click="TrainUpto" />
+            <TextBlock VerticalAlignment="Center" Margin="2"> upto </TextBlock>
+            <TextBox Width="60" Text="{Binding ItersToTrainUpto,ValidatesOnExceptions=True}" />
+            <TextBlock VerticalAlignment="Center" Margin="2"> iterations.</TextBlock>
         </StackPanel>
 
         <CheckBox Grid.Row="5" Grid.Column="0"  Content="Animate" IsChecked="{Binding AnimateTraining}"/>
         <StackPanel Grid.Row="5" Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Stretch">
             <TextBox Width="60" Text="{Binding EpochsPerAnimation,ValidatesOnExceptions=True}" />
-            <Label Content="epochs per frame" HorizontalAlignment="Right"/>
+            <TextBlock VerticalAlignment="Center">epochs per frame (<Run Text="{Binding ItersPerEpoch, Mode=OneWay}"/> iters per epoch)</TextBlock>
         </StackPanel>
 
         <StackPanel Grid.Row="6" Grid.Column="1"   Orientation="Vertical" HorizontalAlignment="Left">

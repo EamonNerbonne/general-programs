@@ -11,6 +11,9 @@ namespace LvqGui {
 		void StartTraining(object sender, RoutedEventArgs e) {
 			ThreadPool.QueueUserWorkItem(o => ((TrainingControlValues)o).ConfirmTraining(), DataContext);
 		}
+		void TrainUpto(object sender, RoutedEventArgs e) {
+			ThreadPool.QueueUserWorkItem(o => ((TrainingControlValues)o).TrainUptoIters(), DataContext);
+		}
 		void ResetLearningRate(object sender, RoutedEventArgs e) {
 			ThreadPool.QueueUserWorkItem(o => ((TrainingControlValues)o).ResetLearningRate(), DataContext);
 		}
@@ -26,5 +29,6 @@ namespace LvqGui {
 		}
 
 		void PrintLearningRate(object sender, RoutedEventArgs e) { Console.WriteLine(Values.GetLearningRate()); }
+
 	}
 }
