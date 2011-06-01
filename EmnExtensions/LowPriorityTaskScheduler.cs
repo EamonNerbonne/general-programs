@@ -116,7 +116,7 @@ namespace EmnExtensions {
 		protected override void QueueTask(Task task) { AddTaskToQueue(task); WakeAnyThread(); }
 
 		protected override bool TryExecuteTaskInline(Task task, bool taskWasPreviouslyQueued) {
-			bool okInline = isWorkerThread || Thread.CurrentThread.Priority >= Priority && IdleWorkerCountEstimate > 0;
+			bool okInline = isWorkerThread;// || Thread.CurrentThread.Priority >= Priority && IdleWorkerCountEstimate > 0;
 			if (okInline) {
 #if DEBUG_TRACK_ITEMS
 				Interlocked.Increment(ref inlined);
