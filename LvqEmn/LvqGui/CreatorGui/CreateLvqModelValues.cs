@@ -240,9 +240,7 @@ namespace LvqGui {
 			const long iterCount = 30L*1000L*1000L;
 			var testLr = new TestLr(iterCount, ForDataset, 3);
 			string shortname = testLr.ShortnameFor(settingsCopy);
-
 			var logWindow = LogControl.ShowNewLogWindow(shortname, owner.win.ActualWidth, owner.win.ActualHeight * 0.6);
-
 			testLr.TestLrIfNecessary(logWindow.Item2.Writer, settingsCopy).ContinueWith(t => {
 				logWindow.Item1.Dispatcher.BeginInvoke(() => logWindow.Item1.Background = Brushes.White);
 			});
@@ -253,7 +251,7 @@ namespace LvqGui {
 			settingsCopy.ParamsSeed = 1;
 			settingsCopy.PrototypesPerClass = 0;
 			settingsCopy.ModelType = LvqModelType.Gm;
-			const long iterCount = 30L * 1000L * 1000L;
+			const long iterCount = 20L * 1000L * 1000L;
 			var testLr = new TestLr(iterCount, ForDataset, 3);
 			testLr.StartAllLrTesting().ContinueWith(_ => Console.WriteLine("completed lr optimization for " + settingsCopy.ToShorthand()));
 		}

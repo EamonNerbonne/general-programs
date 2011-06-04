@@ -79,7 +79,6 @@ namespace LvqGui {
 		ulong _ItersToTrainUpto;
 
 
-
 		public int EpochsPerAnimation {
 			get { return _EpochsPerAnimation; }
 			set { if (value < 1) throw new ArgumentException("Must train for at least 1 epoch at a  time"); if (!_EpochsPerAnimation.Equals(value)) { _EpochsPerAnimation = value; _propertyChanged("EpochsPerAnimation"); } }
