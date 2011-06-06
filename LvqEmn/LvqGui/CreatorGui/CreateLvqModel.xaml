@@ -125,8 +125,7 @@
             Optimize LR All done: <Run Text="{Binding HasOptimizedLrAll, Mode=OneWay}"/>
 
         </TextBlock>
-        
-        <Label Grid.Row="32" Grid.ColumnSpan="2" Content="{Binding ShorthandErrors, Mode=OneWay}" HorizontalAlignment="Left" />
+        <TextBlock Grid.Row="32" Grid.ColumnSpan="2" Text="{Binding ShorthandErrors, Mode=OneWay}" HorizontalAlignment="Left" TextWrapping="Wrap" />
 
     </Grid>
 </UserControl>
