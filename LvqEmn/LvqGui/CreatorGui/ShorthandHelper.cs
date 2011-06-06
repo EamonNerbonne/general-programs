@@ -69,8 +69,7 @@ namespace LvqGui {
 					if (!Equals(prop.Value, val))
 						errs.AppendLine(prop.Name + ": " + val + " != " + prop.Value);
 				}, err => errs.AppendLine(err));
-			foreach (var unusedName in Property.All(shorthandObj).Select(p => p.Name).Except(usedProperties))
-				errs.AppendLine("unused: " + unusedName);
+			errs.AppendLine("defaulted: " + string.Join(", ",Property.All(shorthandObj).Select(p => p.Name).Except(usedProperties)));
 			return errs.ToString();
 		}
 
@@ -127,12 +126,12 @@ namespace LvqGui {
 			}
 			public static IEnumerable<Property> All(object shorthandObj) {
 				return (
-						from property in shorthandObj.GetType().GetProperties()
+						from property in shorthandObj.GetType().GetProperties(BindingFlags.Public|BindingFlags.Instance)
 						where property.CanRead && property.CanWrite
 						where !property.GetCustomAttributes(typeof(NotInShorthandAttribute), true).Any()
 						select (Property)new PropertyProperty(shorthandObj, property)
 					).Concat(
-						from field in shorthandObj.GetType().GetFields()
+						from field in shorthandObj.GetType().GetFields(BindingFlags.Public | BindingFlags.Instance)
 						where !field.GetCustomAttributes(typeof(NotInShorthandAttribute), true).Any()
 						select new FieldProperty(shorthandObj, field)
 					);
