@@ -4,7 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              mc:Ignorable="d" 
-             d:DesignHeight="600" d:DesignWidth="300">
+             d:DesignHeight="650" d:DesignWidth="300">
     <UserControl.Resources>
         <Style TargetType="{x:Type Label}" BasedOn="{StaticResource PropLabel}"/>
         <Style TargetType="{x:Type TextBox}" BasedOn="{StaticResource PropBox}"/>
@@ -120,8 +120,11 @@
             <Button Click="OptimizeLr" >Optimize LR</Button>
             <Button Click="OptimizeLrAll" >Optimize LR All</Button>
         </StackPanel>
+        <TextBlock VerticalAlignment="Center" Grid.Row="31" Grid.ColumnSpan="2" HorizontalAlignment="Right">
+            Has Results: <Run Text="{Binding HasOptimizedLr, Mode=OneWay}"/>
+        </TextBlock>
         
-        <Label Grid.Row="31" Grid.ColumnSpan="2" Content="{Binding ShorthandErrors, Mode=OneWay}" HorizontalAlignment="Left" />
+        <Label Grid.Row="32" Grid.ColumnSpan="2" Content="{Binding ShorthandErrors, Mode=OneWay}" HorizontalAlignment="Left" />
 
     </Grid>
 </UserControl>

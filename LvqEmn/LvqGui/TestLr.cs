@@ -205,7 +205,7 @@ namespace LvqGui {
 		}
 
 		static IEnumerable<LvqModelType> ModelTypes { get { return (LvqModelType[])Enum.GetValues(typeof(LvqModelType)); } }
-		static readonly DirectoryInfo resultsDir = FSUtil.FindDataDir(@"uni\2009-Scriptie\Thesis\results\");
+		internal static readonly DirectoryInfo resultsDir = FSUtil.FindDataDir(@"uni\2009-Scriptie\Thesis\results\");
 		static IEnumerable<LvqDatasetCli> Datasets() {
 			// ReSharper disable RedundantAssignment
 			uint rngParam = 1000;

@@ -1,8 +1,8 @@
 ﻿// ReSharper disable UnusedMember.Global
 // ReSharper disable MemberCanBePrivate.Global
 using System;
+using System.Linq;
 using System.Text.RegularExpressions;
-using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Media;
 using EmnExtensions.Wpf;
@@ -13,6 +13,7 @@ namespace LvqGui {
 		readonly LvqWindowValues owner;
 		[NotInShorthand]
 		public LvqWindowValues Owner { get { return owner; } }
+
 
 		[NotInShorthand]
 		public LvqDatasetCli ForDataset {
@@ -43,13 +44,12 @@ namespace LvqGui {
 		}
 
 		public int ParallelModels {
-			get { return _ParallelModels; }
+			get { return settings.ParallelModels; }
 			set {
 				if (value < 1 || value > 100) throw new ArgumentException("# of models must be in range [1,100]");
-				if (!_ParallelModels.Equals(value)) { _ParallelModels = value; _propertyChanged("ParallelModels"); }
+				if (!settings.ParallelModels.Equals(value)) { settings.ParallelModels = value; _propertyChanged("ParallelModels"); }
 			}
 		}
-		int _ParallelModels;
 
 		public bool TrackProjectionQuality {
 			get { return settings.TrackProjectionQuality; }
@@ -150,7 +150,7 @@ namespace LvqGui {
 				lr0(?<LR0>[0-9]*(\.[0-9]*)?(e[0-9]+)?),
 				lrP(?<LrScaleP>[0-9]*(\.[0-9]*)?(e[0-9]+)?),
 				lrB(?<LrScaleB>[0-9]*(\.[0-9]*)?(e[0-9]+)?),
-				\[(?<ParamsSeed_>[0-9a-fA-F]+)\,(?<InstanceSeed_>[0-9a-fA-F]+)\]\^(?<ParallelModels>[0-9]+)\,"
+				\[(?<ParamsSeed_>[0-9a-fA-F]+)\,(?<InstanceSeed_>[0-9a-fA-F]+)\](\^(?<ParallelModels>[0-9]+))?\,?"
 		+ "|" +
 			@"(?<ModelType>\b[A-Z][A-Za-z0-9]*)
 				(\[(?<Dimensionality>[^\]]+)\])?,
@@ -196,7 +196,7 @@ namespace LvqGui {
 
 		public override string Shorthand {
 			get {
-				return settings.ToShorthand() + "^" + ParallelModels + ","
+				return settings.ToShorthand()
 				+ (ForDataset == null ? "" : "--" + ForDataset.DatasetLabel);
 			}
 			set {
@@ -207,6 +207,47 @@ namespace LvqGui {
 		}
 
 		public override string ShorthandErrors { get { return ShorthandHelper.VerifyShorthand(this, shR); } }
+
+		static readonly Regex resultsFilenameRegex = new Regex(@"^(?<iters>[0-9]?e[0-9])+\-(?<shorthand>[^ ]*?)( \([0-9+]\))?\.txt$");
+		static LvqModelSettingsCli SettingsFromShorthand(string shorthand) {
+			var parsedSettings = new LvqModelSettingsCli();
+			ShorthandHelper.ParseShorthand(parsedSettings, shR, shorthand);
+			return parsedSettings;
+		}
+		static LvqModelSettingsCli WithNoLrOrSeeds(LvqModelSettingsCli p_settings) {
+			var retval = p_settings.Copy();
+			retval.LR0 = 0;
+			retval.LrScaleB = 0;
+			retval.LrScaleP = 0;
+			retval.ParamsSeed = 0;
+			retval.InstanceSeed = 0;
+			return retval;
+		}
+
+
+		public bool HasOptimizedLr {
+			get {
+				if (ForDataset == null) return false;
+				var datasetResultsDir = TestLr.resultsDir.GetDirectories(ForDataset.DatasetLabel).FirstOrDefault();
+				if (datasetResultsDir == null) return false;
+
+				var lrIgnoredSettings = WithNoLrOrSeeds(settings);
+
+				var matchingFiles=
+					(from resultFile in datasetResultsDir.GetFiles("*.txt")
+					 let match = resultsFilenameRegex.Match(resultFile.Name)
+					 where match.Success
+					 let iters = double.Parse(match.Groups["iters"].Value)
+					 let resSettings = WithNoLrOrSeeds(SettingsFromShorthand(match.Groups["shorthand"].Value))
+					 where resSettings.ToShorthand() == lrIgnoredSettings.ToShorthand()
+					 orderby iters descending
+					 select resultFile);
+
+				var bestResults = matchingFiles.FirstOrDefault();
+
+				return bestResults != null;
+			}
+		}
 
 
 		public CreateLvqModelValues(LvqWindowValues owner) {
@@ -245,13 +286,14 @@ namespace LvqGui {
 				logWindow.Item1.Dispatcher.BeginInvoke(() => logWindow.Item1.Background = Brushes.White);
 			});
 		}
+
 		internal void OptimizeLrAll() {//on gui thread.
 			var settingsCopy = settings.Copy();
 			settingsCopy.InstanceSeed = 0;
 			settingsCopy.ParamsSeed = 1;
 			settingsCopy.PrototypesPerClass = 0;
 			settingsCopy.ModelType = LvqModelType.Gm;
-			const long iterCount = 20L * 1000L * 1000L;
+			const long iterCount = 30L * 1000L * 1000L;
 			var testLr = new TestLr(iterCount, ForDataset, 3);
 			testLr.StartAllLrTesting().ContinueWith(_ => Console.WriteLine("completed lr optimization for " + settingsCopy.ToShorthand()));
 		}

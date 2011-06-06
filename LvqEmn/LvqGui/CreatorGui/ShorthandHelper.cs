@@ -29,6 +29,7 @@ namespace LvqGui {
 					raisePropertyChanged(propertyName);
 					raisePropertyChanged("Shorthand");
 					raisePropertyChanged("ShorthandErrors");
+					raisePropertyChanged("HasOptimizedLr");//nasty hack.
 				}
 			}
 		}
@@ -52,7 +53,7 @@ namespace LvqGui {
 
 
 
-		public static HashSet<string> ParseShorthand(IHasShorthand shorthandObj, Regex shR, string newShorthand) {
+		public static HashSet<string> ParseShorthand(object shorthandObj, Regex shR, string newShorthand) {
 			HashSet<string> updated = new HashSet<string>();
 			DecomposeShorthand(shorthandObj, shR, newShorthand, (prop, val) => { prop.Value = val; updated.Add(prop.Name); }, err => { throw new ArgumentException(err); });
 			return updated;
@@ -72,7 +73,7 @@ namespace LvqGui {
 			return errs.ToString();
 		}
 
-		static void DecomposeShorthand(IHasShorthand shorthandObj, Regex shR, string shorthand, Action<Property, object> FoundVal, Action<string> registerError) {
+		static void DecomposeShorthand(object shorthandObj, Regex shR, string shorthand, Action<Property, object> FoundVal, Action<string> registerError) {
 			if (!shR.IsMatch(shorthand)) {
 				registerError("Can't parse shorthand - enter manually?");
 				return;
@@ -111,10 +112,10 @@ namespace LvqGui {
 			// ReSharper restore MemberCanBeProtected.Global
 			public abstract object Value { get; set; }
 			public abstract Type Type { get; }
-			protected readonly IHasShorthand Obj;
-			protected Property(IHasShorthand obj) { Obj = obj; }
+			protected readonly object Obj;
+			protected Property(object obj) { Obj = obj; }
 
-			public static Property Create(IHasShorthand obj, string name) {
+			public static Property Create(object obj, string name) {
 				var propertyInfo = obj.GetType().GetProperty(name);
 				if (propertyInfo != null)
 					return new PropertyProperty(obj, propertyInfo);
@@ -123,7 +124,7 @@ namespace LvqGui {
 					return new FieldProperty(obj, fieldInfo);
 				return null;
 			}
-			public static IEnumerable<Property> All(IHasShorthand shorthandObj) {
+			public static IEnumerable<Property> All(object shorthandObj) {
 				return (
 						from property in shorthandObj.GetType().GetProperties()
 						where property.CanRead && property.CanWrite
@@ -142,7 +143,7 @@ namespace LvqGui {
 			public override Type Type { get { return property.PropertyType; } }
 			public override object Value { get { return property.GetValue(Obj, null); } set { property.SetValue(Obj, value, null); } }
 			readonly PropertyInfo property;
-			public PropertyProperty(IHasShorthand o, PropertyInfo property)
+			public PropertyProperty(object o, PropertyInfo property)
 				: base(o) {
 				if (!(property.CanRead && property.CanWrite)) //non R/W properties don't make sense for shorthand.
 					throw new Exception("Non read/write property " + property.Name + " on type " + o.GetType().FullName);
@@ -155,7 +156,7 @@ namespace LvqGui {
 			public override string Name { get { return field.Name; } }
 			public override Type Type { get { return field.FieldType; } }
 			public override object Value { get { return field.GetValue(Obj); } set { field.SetValue(Obj, value); } }
-			public FieldProperty(IHasShorthand o, FieldInfo field) : base(o) { this.field = field; }
+			public FieldProperty(object o, FieldInfo field) : base(o) { this.field = field; }
 		}
 
 	}

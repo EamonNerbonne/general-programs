@@ -56,7 +56,8 @@ namespace LvqLibCli {
 			+ "lr0" + LR0 + ","
 			+ "lrP" + LrScaleP + ","
 			+ "lrB" + LrScaleB + ","
-			+ "[" + ParamsSeed.ToString("x") + "," + InstanceSeed.ToString("x") + "]";
+			+ "[" + ParamsSeed.ToString("x") + "," + InstanceSeed.ToString("x") + "]"
+			+ "^" + ParallelModels + ",";
 	}
 	LvqModelSettingsCli^ LvqModelSettingsCli::WithChanges(LvqModelType type, int protos, unsigned rngParams, unsigned rngIter){
 		auto retval = Copy();

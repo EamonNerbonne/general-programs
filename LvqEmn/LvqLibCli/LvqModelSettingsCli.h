@@ -27,6 +27,7 @@ namespace LvqLibCli {
 		double  LR0, LrScaleP, LrScaleB, LrScaleBad;
 		unsigned ParamsSeed, InstanceSeed;
 		bool TrackProjectionQuality;
+		int ParallelModels;
 
 		LvqModelSettingsCli()
 			: ModelType(LvqModelType::Ggm)
@@ -52,6 +53,8 @@ namespace LvqLibCli {
 			, ParamsSeed(37)
 			, InstanceSeed(42)
 			, TrackProjectionQuality(true)
+
+			, ParallelModels(10) //only used in C#!
 		{ }
 		LvqModelSettingsCli^ Copy();
 		LvqModelSettingsCli^ WithChanges(LvqModelType type, int protos, unsigned rngParams, unsigned rngIter);
