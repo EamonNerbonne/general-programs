@@ -30,6 +30,7 @@ namespace LvqGui {
 					raisePropertyChanged("Shorthand");
 					raisePropertyChanged("ShorthandErrors");
 					raisePropertyChanged("HasOptimizedLr");//nasty hack.
+					raisePropertyChanged("HasOptimizedLrAll");//nasty hack.
 				}
 			}
 		}

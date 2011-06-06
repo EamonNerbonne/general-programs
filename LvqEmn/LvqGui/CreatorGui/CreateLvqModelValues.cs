@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows.Media;
+using EmnExtensions.Algorithms;
 using EmnExtensions.Wpf;
 using LvqLibCli;
 
@@ -214,7 +215,7 @@ namespace LvqGui {
 			ShorthandHelper.ParseShorthand(parsedSettings, shR, shorthand);
 			return parsedSettings;
 		}
-		static LvqModelSettingsCli WithNoLrOrSeeds(LvqModelSettingsCli p_settings) {
+		static LvqModelSettingsCli WithoutLrOrSeeds(LvqModelSettingsCli p_settings) {
 			var retval = p_settings.Copy();
 			retval.LR0 = 0;
 			retval.LrScaleB = 0;
@@ -231,14 +232,14 @@ namespace LvqGui {
 				var datasetResultsDir = TestLr.resultsDir.GetDirectories(ForDataset.DatasetLabel).FirstOrDefault();
 				if (datasetResultsDir == null) return false;
 
-				var lrIgnoredSettings = WithNoLrOrSeeds(settings);
+				var lrIgnoredSettings = WithoutLrOrSeeds(settings);
 
 				var matchingFiles=
 					(from resultFile in datasetResultsDir.GetFiles("*.txt")
 					 let match = resultsFilenameRegex.Match(resultFile.Name)
 					 where match.Success
 					 let iters = double.Parse(match.Groups["iters"].Value)
-					 let resSettings = WithNoLrOrSeeds(SettingsFromShorthand(match.Groups["shorthand"].Value))
+					 let resSettings = WithoutLrOrSeeds(SettingsFromShorthand(match.Groups["shorthand"].Value))
 					 where resSettings.ToShorthand() == lrIgnoredSettings.ToShorthand()
 					 orderby iters descending
 					 select resultFile);
@@ -248,6 +249,42 @@ namespace LvqGui {
 				return bestResults != null;
 			}
 		}
+
+		static LvqModelSettingsCli WithoutModelAndPrototypes(LvqModelSettingsCli p_settings) {
+			var retval = p_settings.Copy();
+			retval.ModelType =  LvqModelType.Gm;
+			retval.PrototypesPerClass = 0;
+			return retval;
+		}
+
+
+		public bool HasOptimizedLrAll {
+			get {
+				if (ForDataset == null) return false;
+				var datasetResultsDir = TestLr.resultsDir.GetDirectories(ForDataset.DatasetLabel).FirstOrDefault();
+				if (datasetResultsDir == null) return false;
+
+				var modelIgnoredSettings = WithoutModelAndPrototypes(WithoutLrOrSeeds(settings));
+
+				var matchingFiles =
+					(from resultFile in datasetResultsDir.GetFiles("*.txt")
+					 let match = resultsFilenameRegex.Match(resultFile.Name)
+					 where match.Success
+					 let iters = double.Parse(match.Groups["iters"].Value)
+					 let resSettings = WithoutLrOrSeeds(SettingsFromShorthand(match.Groups["shorthand"].Value))
+					 where WithoutModelAndPrototypes(resSettings).ToShorthand() == modelIgnoredSettings.ToShorthand()
+					 group new {resultFile, resSettings} by iters into resGroup
+					 where resGroup.Select(res=> new { res.resSettings.ModelType, res.resSettings.PrototypesPerClass})
+						.SetEquals(TestLr.ModelTypes.SelectMany(mt=>TestLr.PrototypesPerClassOpts.Select(ppc=>new {ModelType=mt, PrototypesPerClass=ppc})))
+					orderby resGroup.Key descending
+					 select resGroup);
+
+				var bestResults = matchingFiles.FirstOrDefault();
+
+				return bestResults != null;
+			}
+		}
+
 
 
 		public CreateLvqModelValues(LvqWindowValues owner) {

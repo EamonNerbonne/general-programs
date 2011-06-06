@@ -204,7 +204,8 @@ namespace LvqGui {
 				.Select(filename => Path.Combine(resultsDir.FullName, DatasetLabel + "\\" + filename));
 		}
 
-		static IEnumerable<LvqModelType> ModelTypes { get { return (LvqModelType[])Enum.GetValues(typeof(LvqModelType)); } }
+		public static IEnumerable<LvqModelType> ModelTypes { get { return (LvqModelType[])Enum.GetValues(typeof(LvqModelType)); } }
+		public static IEnumerable<int> PrototypesPerClassOpts { get { yield return 5; yield return 1; } }
 		internal static readonly DirectoryInfo resultsDir = FSUtil.FindDataDir(@"uni\2009-Scriptie\Thesis\results\");
 		static IEnumerable<LvqDatasetCli> Datasets() {
 			// ReSharper disable RedundantAssignment

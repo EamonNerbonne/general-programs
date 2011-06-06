@@ -121,7 +121,9 @@
             <Button Click="OptimizeLrAll" >Optimize LR All</Button>
         </StackPanel>
         <TextBlock VerticalAlignment="Center" Grid.Row="31" Grid.ColumnSpan="2" HorizontalAlignment="Right">
-            Has Results: <Run Text="{Binding HasOptimizedLr, Mode=OneWay}"/>
+            Optimize LR done: <Run Text="{Binding HasOptimizedLr, Mode=OneWay}"/>
+            Optimize LR All done: <Run Text="{Binding HasOptimizedLrAll, Mode=OneWay}"/>
+
         </TextBlock>
         
         <Label Grid.Row="32" Grid.ColumnSpan="2" Content="{Binding ShorthandErrors, Mode=OneWay}" HorizontalAlignment="Left" />
