@@ -202,6 +202,7 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="CloneableAs.cs" />
+    <Compile Include="DatasetResults.cs" />
     <Compile Include="GaussianCloudSettings.cs" />
     <Compile Include="StarSettings.cs" />
     <Compile Include="HexConverter.cs" />

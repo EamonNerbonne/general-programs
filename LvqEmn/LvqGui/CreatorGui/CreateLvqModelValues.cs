@@ -1,11 +1,9 @@
 ﻿// ReSharper disable UnusedMember.Global
 // ReSharper disable MemberCanBePrivate.Global
 using System;
-using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows.Media;
-using EmnExtensions.Algorithms;
 using EmnExtensions.Wpf;
 using LvqLibCli;
 
@@ -209,83 +207,16 @@ namespace LvqGui {
 
 		public override string ShorthandErrors { get { return ShorthandHelper.VerifyShorthand(this, shR); } }
 
-		static readonly Regex resultsFilenameRegex = new Regex(@"^(?<iters>[0-9]?e[0-9])+\-(?<shorthand>[^ ]*?)( \([0-9+]\))?\.txt$");
-		static LvqModelSettingsCli SettingsFromShorthand(string shorthand) {
+
+		public bool HasOptimizedLr { get { return DatasetResults.GetBestResult(ForDataset, settings.Copy()) != null; } }
+		public bool HasOptimizedLrAll { get { return DatasetResults.GetBestResults(ForDataset, settings.Copy()) != null; } }
+
+
+		public static LvqModelSettingsCli SettingsFromShorthand(string shorthand) {
 			var parsedSettings = new LvqModelSettingsCli();
 			ShorthandHelper.ParseShorthand(parsedSettings, shR, shorthand);
 			return parsedSettings;
 		}
-		static LvqModelSettingsCli WithoutLrOrSeeds(LvqModelSettingsCli p_settings) {
-			var retval = p_settings.Copy();
-			retval.LR0 = 0;
-			retval.LrScaleB = 0;
-			retval.LrScaleP = 0;
-			retval.ParamsSeed = 0;
-			retval.InstanceSeed = 0;
-			return retval;
-		}
-
-
-		public bool HasOptimizedLr {
-			get {
-				if (ForDataset == null) return false;
-				var datasetResultsDir = TestLr.resultsDir.GetDirectories(ForDataset.DatasetLabel).FirstOrDefault();
-				if (datasetResultsDir == null) return false;
-
-				var lrIgnoredSettings = WithoutLrOrSeeds(settings);
-
-				var matchingFiles=
-					(from resultFile in datasetResultsDir.GetFiles("*.txt")
-					 let match = resultsFilenameRegex.Match(resultFile.Name)
-					 where match.Success
-					 let iters = double.Parse(match.Groups["iters"].Value)
-					 let resSettings = WithoutLrOrSeeds(SettingsFromShorthand(match.Groups["shorthand"].Value))
-					 where resSettings.ToShorthand() == lrIgnoredSettings.ToShorthand()
-					 orderby iters descending
-					 select resultFile);
-
-				var bestResults = matchingFiles.FirstOrDefault();
-
-				return bestResults != null;
-			}
-		}
-
-		static LvqModelSettingsCli WithoutModelAndPrototypes(LvqModelSettingsCli p_settings) {
-			var retval = p_settings.Copy();
-			retval.ModelType =  LvqModelType.Gm;
-			retval.PrototypesPerClass = 0;
-			return retval;
-		}
-
-
-		public bool HasOptimizedLrAll {
-			get {
-				if (ForDataset == null) return false;
-				var datasetResultsDir = TestLr.resultsDir.GetDirectories(ForDataset.DatasetLabel).FirstOrDefault();
-				if (datasetResultsDir == null) return false;
-
-				var modelIgnoredSettings = WithoutModelAndPrototypes(WithoutLrOrSeeds(settings));
-
-				var matchingFiles =
-					(from resultFile in datasetResultsDir.GetFiles("*.txt")
-					 let match = resultsFilenameRegex.Match(resultFile.Name)
-					 where match.Success
-					 let iters = double.Parse(match.Groups["iters"].Value)
-					 let resSettings = WithoutLrOrSeeds(SettingsFromShorthand(match.Groups["shorthand"].Value))
-					 where WithoutModelAndPrototypes(resSettings).ToShorthand() == modelIgnoredSettings.ToShorthand()
-					 group new {resultFile, resSettings} by iters into resGroup
-					 where resGroup.Select(res=> new { res.resSettings.ModelType, res.resSettings.PrototypesPerClass})
-						.SetEquals(TestLr.ModelTypes.SelectMany(mt=>TestLr.PrototypesPerClassOpts.Select(ppc=>new {ModelType=mt, PrototypesPerClass=ppc})))
-					orderby resGroup.Key descending
-					 select resGroup);
-
-				var bestResults = matchingFiles.FirstOrDefault();
-
-				return bestResults != null;
-			}
-		}
-
-
 
 		public CreateLvqModelValues(LvqWindowValues owner) {
 			this.owner = owner;
@@ -315,7 +246,7 @@ namespace LvqGui {
 			settingsCopy.InstanceSeed = 0;
 			settingsCopy.ParamsSeed = 1;
 			//			var args = new { Shorthand, ParallelModels, ForDataset };//for threadsafety get these now.
-			const long iterCount = 30L*1000L*1000L;
+			const long iterCount = 30L * 1000L * 1000L;
 			var testLr = new TestLr(iterCount, ForDataset, 3);
 			string shortname = testLr.ShortnameFor(settingsCopy);
 			var logWindow = LogControl.ShowNewLogWindow(shortname, owner.win.ActualWidth, owner.win.ActualHeight * 0.6);
