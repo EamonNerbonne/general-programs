@@ -1,5 +1,4 @@
 ﻿using System.Diagnostics;
-using System;
 using System.Text;
 using System.Threading;
 
@@ -39,7 +38,6 @@ namespace EmnExtensions {
 				return new ExecutionResult { StandardOutputContents = output.ToString(), StandardErrorContents = error.ToString(), ExitCode = proc.ExitCode };
 			}
 		}
-
 	}
 }
 
