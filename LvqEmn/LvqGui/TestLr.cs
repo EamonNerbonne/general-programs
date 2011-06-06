@@ -11,6 +11,7 @@ using EmnExtensions.MathHelpers;
 using EmnExtensions.Text;
 using ExpressionToCodeLib;
 using LvqLibCli;
+using System.Reflection;
 
 namespace LvqGui {
 	public static class TestLrHelper {
@@ -61,10 +62,13 @@ namespace LvqGui {
 			}
 		}
 
-		public string ShortnameFor(LvqModelSettingsCli settings) {
-			int pow10 = (int)(Math.Log10(_itersToRun + 0.5));
-			int prefix = (int)(_itersToRun / Math.Pow(10.0, pow10) + 0.5);
+		public static string ShortnameFor(long iters, LvqModelSettingsCli settings) {
+			int pow10 = (int)(Math.Log10(iters + 0.5));
+			int prefix = (int)(iters / Math.Pow(10.0, pow10) + 0.5);
 			return (prefix == 1 ? "" : prefix.ToString()) + "e" + pow10 + "-" + settings.ToShorthand();
+		}
+		public string ShortnameFor(LvqModelSettingsCli settings) {
+			return ShortnameFor(_itersToRun, settings);
 		}
 
 		public Task StartAllLrTesting(LvqModelSettingsCli baseSettings = null) {
@@ -84,6 +88,7 @@ namespace LvqGui {
 			return
 				Task.Factory.ContinueWhenAll(testingTasks, Task.WaitAll);
 		}
+
 
 		Task FindOptimalLr(TextWriter sink, LvqModelSettingsCli settings) {
 			var lr0range = _dataset != null ? LogRange(0.3 / settings.PrototypesPerClass, 0.01 / settings.PrototypesPerClass, 6) : LogRange(0.3, 0.01, 8);
@@ -206,7 +211,7 @@ namespace LvqGui {
 
 		public static IEnumerable<LvqModelType> ModelTypes { get { return (LvqModelType[])Enum.GetValues(typeof(LvqModelType)); } }
 		public static IEnumerable<int> PrototypesPerClassOpts { get { yield return 5; yield return 1; } }
-		internal static readonly DirectoryInfo resultsDir = FSUtil.FindDataDir(@"uni\2009-Scriptie\Thesis\results\");
+		internal static readonly DirectoryInfo resultsDir = FSUtil.FindDataDir(@"uni\2009-Scriptie\Thesis\results\", Assembly.GetAssembly(typeof(TestLr)));
 		static IEnumerable<LvqDatasetCli> Datasets() {
 			// ReSharper disable RedundantAssignment
 			uint rngParam = 1000;
