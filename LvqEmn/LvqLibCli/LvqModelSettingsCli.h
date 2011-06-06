@@ -28,6 +28,7 @@ namespace LvqLibCli {
 		unsigned ParamsSeed, InstanceSeed;
 		bool TrackProjectionQuality;
 		int ParallelModels;
+		static initonly LvqModelSettingsCli^ defaults;
 
 		LvqModelSettingsCli()
 			: ModelType(LvqModelType::Ggm)
@@ -56,9 +57,13 @@ namespace LvqLibCli {
 
 			, ParallelModels(10) //only used in C#!
 		{ }
+
 		LvqModelSettingsCli^ Copy();
 		LvqModelSettingsCli^ WithChanges(LvqModelType type, int protos, unsigned rngParams, unsigned rngIter);
 		LvqModelSettings ToNativeSettings(LvqDatasetCli^ dataset, int datasetFold);
 		String^ ToShorthand();
+	private:
+		static LvqModelSettingsCli() {defaults = gcnew LvqModelSettingsCli();}
+
 	};
 }

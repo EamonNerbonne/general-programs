@@ -43,21 +43,22 @@ namespace LvqLibCli {
 		return ModelType.ToString()
 			+ (ModelType == LvqModelType::Lgm ? "[" + Dimensionality + "]" : (TrackProjectionQuality ? "+" : "")) + ","
 			+ PrototypesPerClass + ","
-			+ "rP" + (RandomInitialProjection ? "+" : "") + ","
-			+ (ModelType == LvqModelType::Ggm || ModelType==LvqModelType::G2m ? "rB" + (RandomInitialBorders ? "+" : "") + "," : "")
-			+ "nP" + (NormalizeProjection ? "+" : "") + ","
-			+ (ModelType == LvqModelType::G2m ? "nB" + (NormalizeBoundaries ? "+" : "") + "," : "")
-			+ (ModelType == LvqModelType::G2m && NormalizeBoundaries || NormalizeProjection ? "gn" + (GloballyNormalize ? "+" : "") + "," : "")
-			+ (ModelType != LvqModelType::Lgm ? "NG" + (NgUpdateProtos ? "+" : "") + "," : "")
-			+ (PrototypesPerClass > 1 ? "NGi" + (NgInitializeProtos ? "+" : "") + "," : "")
-			+ (ModelType == LvqModelType::G2m ? "noB" + (UpdatePointsWithoutB ? "+" : "") + "," : "")
-			+(LrScaleBad!=1.0? "lrX" + LrScaleBad + ",":"")
+			+ (RandomInitialProjection != defaults->RandomInitialProjection ? "rP" + (RandomInitialProjection ? "+" : "") + ",":"")
+			+ (RandomInitialBorders != defaults->RandomInitialBorders && (ModelType == LvqModelType::Ggm || ModelType==LvqModelType::G2m) ? "rB" + (RandomInitialBorders ? "+" : "") + "," : "")
+			+ (NormalizeProjection != defaults->NormalizeProjection ? "nP" + (NormalizeProjection ? "+" : "") + ",":"")
+			+ (NormalizeBoundaries != defaults->NormalizeBoundaries && ModelType == LvqModelType::G2m ? "nB" + (NormalizeBoundaries ? "+" : "") + "," : "")
+			+ (GloballyNormalize !=defaults->GloballyNormalize && (ModelType == LvqModelType::G2m && NormalizeBoundaries || NormalizeProjection) ? "gn" + (GloballyNormalize ? "+" : "") + "," : "")
+			+ (NgUpdateProtos != defaults->NgUpdateProtos && ModelType != LvqModelType::Lgm && PrototypesPerClass > 1 ? "NG" + (NgUpdateProtos ? "+" : "") + "," : "")
+			+ (NgInitializeProtos != defaults->NgInitializeProtos && PrototypesPerClass > 1 ? "NGi" + (NgInitializeProtos ? "+" : "") + "," : "")
+			+ (UpdatePointsWithoutB != defaults->UpdatePointsWithoutB && ModelType == LvqModelType::G2m ? "noB" + (UpdatePointsWithoutB ? "+" : "") + "," : "")
+			+ (LrScaleBad != defaults->LrScaleBad ? "lrX" + LrScaleBad + ",":"")
 			+ (SlowStartLrBad ? "!" : "")
-			+ "lr0" + LR0 + ","
-			+ "lrP" + LrScaleP + ","
-			+ "lrB" + LrScaleB + ","
+			+ (LR0==LVQ_LR0 &&LrScaleP==LVQ_LrScaleP&&LrScaleB==LVQ_LrScaleB?"":
+				"lr0" + LR0 + ","
+				+ "lrP" + LrScaleP + ","
+				+ "lrB" + LrScaleB + ",")
 			+ "[" + ParamsSeed.ToString("x") + "," + InstanceSeed.ToString("x") + "]"
-			+ "^" + ParallelModels + ",";
+			+ (ParallelModels!=10?"^" + ParallelModels: "");
 	}
 	LvqModelSettingsCli^ LvqModelSettingsCli::WithChanges(LvqModelType type, int protos, unsigned rngParams, unsigned rngIter){
 		auto retval = Copy();

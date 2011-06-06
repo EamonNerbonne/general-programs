@@ -135,9 +135,9 @@ namespace LvqGui {
 			@"(?<ModelType>\b[A-Z][A-Za-z0-9]*)
 				(\[(?<Dimensionality>[^\]]+)\]|(?<TrackProjectionQuality>\+?)),
 				(?<PrototypesPerClass>[0-9]+),
-				rP(?<RandomInitialProjection>\+?),
+				(rP(?<RandomInitialProjection>\+?),)?
 				(rB(?<RandomInitialBorders>\+?),)?
-				nP(?<NormalizeProjection>\+?),
+				(nP(?<NormalizeProjection>\+?),)?
 				(nB(?<NormalizeBoundaries>\+?),)?
 				(gn(?<GloballyNormalize>\+?),)?
 				(NG(?<NgUpdateProtos>\+?),)?
@@ -146,9 +146,9 @@ namespace LvqGui {
 				(pQ(?<TrackProjectionQuality>\+?),)?
 				(lrX(?<LrScaleBad>[0-9]*(\.[0-9]*)?(e[0-9]+)?),)?
 				(?<SlowStartLrBad>\!?)
-				lr0(?<LR0>[0-9]*(\.[0-9]*)?(e[0-9]+)?),
+				(lr0(?<LR0>[0-9]*(\.[0-9]*)?(e[0-9]+)?),
 				lrP(?<LrScaleP>[0-9]*(\.[0-9]*)?(e[0-9]+)?),
-				lrB(?<LrScaleB>[0-9]*(\.[0-9]*)?(e[0-9]+)?),
+				lrB(?<LrScaleB>[0-9]*(\.[0-9]*)?(e[0-9]+)?),)?
 				\[(?<ParamsSeed_>[0-9a-fA-F]+)\,(?<InstanceSeed_>[0-9a-fA-F]+)\](\^(?<ParallelModels>[0-9]+))?\,?"
 		+ "|" +
 			@"(?<ModelType>\b[A-Z][A-Za-z0-9]*)
@@ -200,11 +200,26 @@ namespace LvqGui {
 			}
 			set {
 				var updated = ShorthandHelper.ParseShorthand(this, shR, value);
-				if (!updated.Contains("LrScaleBad"))
-					LrScaleBad = 1.0;
+				if (!updated.Contains("RandomInitialProjection")) RandomInitialProjection = defaults.RandomInitialProjection;
+				if (!updated.Contains("RandomInitialBorders")) RandomInitialBorders = defaults.RandomInitialBorders;
+				if (!updated.Contains("NormalizeBoundaries")) NormalizeBoundaries = defaults.NormalizeBoundaries;
+				if (!updated.Contains("GloballyNormalize")) GloballyNormalize = defaults.GloballyNormalize;
+				if (!updated.Contains("NgUpdateProtos")) NgUpdateProtos = defaults.NgUpdateProtos;
+				if (!updated.Contains("NgInitializeProtos")) NgInitializeProtos = defaults.NgInitializeProtos;
+				if (!updated.Contains("UpdatePointsWithoutB")) UpdatePointsWithoutB = defaults.UpdatePointsWithoutB;
+				if (!updated.Contains("LrScaleBad")) LrScaleBad = defaults.LrScaleBad;
+				if (!updated.Contains("LrScaleBad")) LrScaleBad = defaults.LrScaleBad;
+
+	
+				if (!updated.Contains("LrScaleBad")) LrScaleBad = defaults.LrScaleBad;
+				if (!updated.Contains("LR0")) LR0 = defaults.LR0;
+				if (!updated.Contains("LrScaleP")) LrScaleP = defaults.LrScaleP;
+				if (!updated.Contains("LrScaleB")) LrScaleB = defaults.LrScaleB;
+				if (!updated.Contains("ParallelModels")) ParallelModels = defaults.ParallelModels;
+
 			}
 		}
-
+		static readonly LvqModelSettingsCli defaults = new LvqModelSettingsCli();
 		public override string ShorthandErrors { get { return ShorthandHelper.VerifyShorthand(this, shR); } }
 
 
