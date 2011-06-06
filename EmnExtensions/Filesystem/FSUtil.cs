@@ -22,8 +22,8 @@ namespace EmnExtensions.Filesystem
 			return pathUri.IsFile;
 		}
 
-		public static DirectoryInfo FindDataDir(string relpath) {
-			return new FileInfo(Assembly.GetEntryAssembly().Location)
+		public static DirectoryInfo FindDataDir(string relpath, Assembly relativeTo=null) {
+			return new FileInfo((relativeTo??Assembly.GetCallingAssembly()).Location)
 				.Directory.ParentDirs()
 				.Select(dir => Path.Combine(dir.FullName + @"\", relpath))
 				.Where(Directory.Exists)
