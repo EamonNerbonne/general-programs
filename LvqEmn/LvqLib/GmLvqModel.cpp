@@ -80,7 +80,7 @@ MatchQuality GmLvqModel::learnFrom(Vector_N const & trainPoint, int trainLabel) 
 		for(int i=1;i<fullmatch.foundOk;++i) {
 			lrSub*=lrDelta;
 			Vector_N &Js = prototype[fullmatch.matchesOk[i].idx];
-			Vector_2 &P_Js = P_prototype[fullmatch.matchesOk[i].idx];;
+			Vector_2 &P_Js = P_prototype[fullmatch.matchesOk[i].idx];
 			double muJ2s_lrSub = lrSub* 2.0 * +2.0*fullmatch.distBad / (sqr(fullmatch.matchesOk[i].dist) + sqr(fullmatch.distBad));
 			Js.noalias() -= P.transpose() * (muJ2s_lrSub * (P_Js - P_trainPoint));
 		}
