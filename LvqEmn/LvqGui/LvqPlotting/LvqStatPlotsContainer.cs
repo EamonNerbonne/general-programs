@@ -49,9 +49,10 @@ namespace LvqGui {
 		public void ShowBoundaries(bool visible) {
 			lock (plotsSync)
 				if (subplots != null && subplots.classBoundaries != null)
-					lvqPlotDispatcher.BeginInvoke(() =>
-						subplots.classBoundaries.Plot.MetaData.Hidden = !visible
-					);
+					lvqPlotDispatcher.BeginInvoke(() => {
+						if (subplots != null && subplots.classBoundaries != null)
+							subplots.classBoundaries.Plot.MetaData.Hidden = !visible;
+					});
 			QueueUpdate();
 		}
 
@@ -70,8 +71,9 @@ namespace LvqGui {
 			lock (plotsSync)
 				if (subplots != null && subplots.classBoundaries != null)
 					lvqPlotDispatcher.BeginInvoke(() => {
-						foreach (var protoPlot in subplots.prototypeClouds)
-							protoPlot.Plot.MetaData.Hidden = !visible;
+						if (subplots != null && subplots.classBoundaries != null)
+							foreach (var protoPlot in subplots.prototypeClouds)
+								protoPlot.Plot.MetaData.Hidden = !visible;
 					});
 			QueueUpdate();
 		}
