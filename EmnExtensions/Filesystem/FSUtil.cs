@@ -13,18 +13,14 @@ namespace EmnExtensions.Filesystem
 		}
 
 		/// <summary>
-		/// Verifies whether a path is absolute or not.  Returns null if the path is invalid.
+		/// Verifies whether a path is valid and absolute or not.  Returns false if the path is either invalid or not absolute.
 		/// </summary>
-		/// <param name="path">The Path to test</param>
-		/// <returns>null when invalid, false when path is relative, true when path is absolute.</returns>
 		public static bool IsValidAbsolutePath(string path) {
 			Uri pathUri;
 			if (!Uri.TryCreate(path, UriKind.Absolute, out pathUri))
 				return false;
 			return pathUri.IsFile;
 		}
-
-
 
 		public static DirectoryInfo FindDataDir(string relpath) {
 			return new FileInfo(Assembly.GetEntryAssembly().Location)
@@ -33,6 +29,17 @@ namespace EmnExtensions.Filesystem
 				.Where(Directory.Exists)
 				.Select(path => new DirectoryInfo(path))
 				.FirstOrDefault();
+		}
+
+		/// <summary>
+		/// Returns the path of the tgtPath parameter relative to the basePath parameter.  Both parameters must be absolute paths.  
+		/// If either represents a directory, it should end with a directory seperating character (e.g. a backslash)
+		/// </summary>
+		public static string MakeRelativePath(string basePath, string tgtPath) {
+			return
+				Uri.UnescapeDataString(
+					new Uri(basePath, UriKind.Absolute).MakeRelativeUri(new Uri(tgtPath, UriKind.Absolute)).ToString()
+				).Replace('/', Path.DirectorySeparatorChar);
 		}
 	}
 }
