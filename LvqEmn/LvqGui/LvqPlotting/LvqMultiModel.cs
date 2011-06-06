@@ -16,9 +16,10 @@ using LvqLibCli;
 namespace LvqGui {
 	public class LvqMultiModel {
 		readonly LvqModelCli[] subModels;
-		public LvqMultiModel(string shorthand, int parallelModels, LvqDatasetCli forDataset, LvqModelSettingsCli lvqModelSettingsCli) {
+		public LvqMultiModel(LvqDatasetCli forDataset, LvqModelSettingsCli lvqModelSettingsCli) {
+			string shorthand = lvqModelSettingsCli.ToShorthand() + "--" + forDataset.DatasetLabel;
 			subModels =
-				Enumerable.Range(0, parallelModels).AsParallel()
+				Enumerable.Range(0, lvqModelSettingsCli.ParallelModels).AsParallel()
 				.Select(modelfold => new LvqModelCli(shorthand, forDataset, modelfold, lvqModelSettingsCli, true))
 				.OrderBy(model => model.InitDataFold)
 				.ToArray();
