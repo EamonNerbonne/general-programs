@@ -28,7 +28,7 @@ namespace LvqGui {
 
 		public IEnumerable<LvqMultiModel> MatchingLvqModels { get { return Owner.LvqModels.Where(model => model == null || model.InitSet == SelectedDataset); } } // model.FitsDataShape(SelectedDataset) is unhandy
 
-		public uint ItersPerEpoch { get { return (uint)(SelectedDataset.PointCount * (SelectedDataset.Folds() - 1L) / SelectedDataset.Folds()); } }
+		public uint ItersPerEpoch { get { return SelectedDataset == null ? 0 : (uint)(SelectedDataset.PointCount * (SelectedDataset.Folds() - 1L) / SelectedDataset.Folds()); } }
 
 		public LvqMultiModel SelectedLvqModel {
 			get { return _SelectedLvqModel; }
