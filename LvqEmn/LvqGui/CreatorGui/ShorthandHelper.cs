@@ -27,11 +27,15 @@ namespace LvqGui {
 					AllPropertiesChanged();
 				else {
 					raisePropertyChanged(propertyName);
-					raisePropertyChanged("Shorthand");
-					raisePropertyChanged("ShorthandErrors");
-					raisePropertyChanged("HasOptimizedLr");//nasty hack.
-					raisePropertyChanged("HasOptimizedLrAll");//nasty hack.
+					foreach (var propName in GloballyDependantProps)
+						raisePropertyChanged(propName);
 				}
+			}
+		}
+		virtual protected IEnumerable<string> GloballyDependantProps {
+			get {
+				yield return "Shorthand";
+				yield return "ShorthandErrors";
 			}
 		}
 

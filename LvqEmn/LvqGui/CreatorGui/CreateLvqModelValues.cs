@@ -1,11 +1,13 @@
 ﻿// ReSharper disable UnusedMember.Global
 // ReSharper disable MemberCanBePrivate.Global
 using System;
+using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows.Media;
 using EmnExtensions.Wpf;
 using LvqLibCli;
+using System.Collections.Generic;
 
 namespace LvqGui {
 	public class CreateLvqModelValues : HasShorthandBase, IHasSeed {
@@ -210,7 +212,7 @@ namespace LvqGui {
 				if (!updated.Contains("LrScaleBad")) LrScaleBad = defaults.LrScaleBad;
 				if (!updated.Contains("LrScaleBad")) LrScaleBad = defaults.LrScaleBad;
 
-	
+
 				if (!updated.Contains("LrScaleBad")) LrScaleBad = defaults.LrScaleBad;
 				if (!updated.Contains("LR0")) LR0 = defaults.LR0;
 				if (!updated.Contains("LrScaleP")) LrScaleP = defaults.LrScaleP;
@@ -223,8 +225,6 @@ namespace LvqGui {
 		public override string ShorthandErrors { get { return ShorthandHelper.VerifyShorthand(this, shR); } }
 
 
-		public bool HasOptimizedLr { get { return DatasetResults.GetBestResult(ForDataset, settings.Copy()) != null; } }
-		public bool HasOptimizedLrAll { get { return DatasetResults.GetBestResults(ForDataset, settings.Copy()) != null; } }
 
 
 		public static LvqModelSettingsCli SettingsFromShorthand(string shorthand) {
@@ -240,21 +240,25 @@ namespace LvqGui {
 			this.ReseedBoth();
 		}
 
-		public Task ConfirmCreation() {
-			var settingsCopy = settings.Copy();
-			var args = new { Shorthand, ParallelModels, ForDataset }; //for threadsafety get these now.
+		public Task ConfirmCreation() { return CreateSingleModel(owner, ForDataset, settings.Copy()); }
 
+		static Task CreateSingleModel(LvqWindowValues owner, LvqDatasetCli dataset, LvqModelSettingsCli settingsCopy) {
 			TaskCompletionSource<object> whenDone = new TaskCompletionSource<object>();
-
 			Task.Factory
-				.StartNew(() => new LvqMultiModel(args.Shorthand, args.ParallelModels, args.ForDataset, settingsCopy))
-				.ContinueWith(modelTask => {
-					Console.WriteLine("Created: " + args.Shorthand);
-					owner.Dispatcher.BeginInvoke(owner.LvqModels.Add, modelTask.Result).Completed += (s, e) => whenDone.SetResult(null);
+				.StartNew(() => {
+					var newModel = new LvqMultiModel(dataset, settingsCopy);
+					Console.WriteLine("Created: " + newModel.ModelLabel);
+					owner.Dispatcher.BeginInvoke(owner.LvqModels.Add, newModel).Completed += (s, e) => whenDone.SetResult(null);
 				});
-
 			return whenDone.Task;
 		}
+
+		public bool HasOptimizedLr { get { return DatasetResults.GetBestResult(ForDataset, settings.Copy()) != null; } }
+		public string OptimizeButtonText { get { return HasOptimizedLr ? "Create with Optimal LR" : "Find optimal LR"; } }
+
+		public bool HasOptimizedLrAll { get { return DatasetResults.GetBestResults(ForDataset, settings.Copy()) != null; } }
+		public string OptimizeAllButtonText { get { return HasOptimizedLr ? "Create all types' with Optimal LR" : "Find all types' optimal LR"; } }
+
 
 		internal void OptimizeLr() {//on gui thread.
 			var settingsCopy = settings.Copy();
@@ -279,6 +283,35 @@ namespace LvqGui {
 			const long iterCount = 30L * 1000L * 1000L;
 			var testLr = new TestLr(iterCount, ForDataset, 3);
 			testLr.StartAllLrTesting().ContinueWith(_ => Console.WriteLine("completed lr optimization for " + settingsCopy.ToShorthand()));
+		}
+
+		static readonly string[] depProps = new[] { "HasOptimizedLr", "OptimizeButtonText", "HasOptimizedLrAll", "OptimizeAllButtonText" };
+		protected override IEnumerable<string> GloballyDependantProps { get { return base.GloballyDependantProps.Concat(depProps); } }
+
+		internal void OptimizeOrCreate() {//gui thread
+			var bestResult = DatasetResults.GetBestResult(ForDataset, settings.Copy());
+			if (bestResult == null)
+				OptimizeLr();
+			else 
+				CreateSingleModel(owner, ForDataset, bestResult.GetOptimizedSettings());
+		}
+
+		internal void OptimizeAllOrCreateAll() {
+			var dataset = ForDataset;
+			var bestResults = DatasetResults.GetBestResults(ForDataset, settings.Copy());
+			if (bestResults == null)
+				OptimizeLrAll();
+			else {
+				Task.Factory
+					.StartNew(() => {
+						var newModels = bestResults.AsParallel().Select(res => new LvqMultiModel(dataset, res.GetOptimizedSettings())).ToArray();
+						Console.WriteLine("Created: " + string.Join(", ",newModels.Select(m=>m.ModelLabel)));
+						owner.Dispatcher.BeginInvoke(() => {
+							foreach (var newModel in newModels)
+								owner.LvqModels.Add(newModel);
+						});
+					});
+			}
 		}
 	}
 }
