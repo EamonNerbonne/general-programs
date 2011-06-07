@@ -99,7 +99,7 @@ namespace LvqGui {
 		}
 
 		Tuple<int, int> lastWidthHeight;
-		public Tuple<int, int> LastWidthHeight { get { return lastWidthHeight; } }
+		Tuple<int, int> LastWidthHeight { get { return lastWidthHeight; } }
 
 		void UpdateClassBoundaries(WriteableBitmap bmp, Matrix dataToBmp, int width, int height, LvqMultiModel.ModelProjectionAndImage lastProjection) {
 			lastWidthHeight = Tuple.Create(width, height);
@@ -107,7 +107,7 @@ namespace LvqGui {
 
 			if (!hideBoundaries) {
 				if (width != lastProjection.Width || height != lastProjection.Height || lastProjection.ImageData == null) {
-					lastProjection = lastProjection.forModels.CurrentProjectionAndImage(lastProjection.forDataset, width, height, hideBoundaries, selectedSubModel);
+					lastProjection = lastProjection.forModels.CurrentProjectionAndImage(lastProjection.forDataset, width, height, false, selectedSubModel);
 					SetScatterBounds(lastProjection.Bounds);
 				}
 				bmp.WritePixels(new Int32Rect(0, 0, width, height), lastProjection.ImageData, width * 4, 0);
