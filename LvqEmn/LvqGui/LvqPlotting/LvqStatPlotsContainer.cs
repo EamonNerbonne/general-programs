@@ -7,9 +7,12 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Threading;
+using EmnExtensions.Text;
 using EmnExtensions.Wpf;
 using EmnExtensions.Wpf.Plot;
 using LvqLibCli;
+using EmnExtensions.Filesystem;
+using System.IO;
 
 
 namespace LvqGui {
@@ -211,6 +214,47 @@ namespace LvqGui {
 		internal static void QueueUpdateIfCurrent(LvqStatPlotsContainer plotData) {
 			if (plotData != null && plotData.subplots != null)
 				plotData.QueueUpdate();
+		}
+
+		static readonly DirectoryInfo outputDir = FSUtil.FindDataDir(@"uni\2009-Scriptie\Thesis\plots\xps\gen", typeof(LvqStatPlotsContainer));
+		internal void SaveAllGraphs() {
+			lvqPlotDispatcher.BeginInvoke(() => {
+				if (subplots == null) { Console.WriteLine("No plots to save!"); return; }
+				Console.Write("Saving");
+
+				DirectoryInfo datasetDir = outputDir.CreateSubdirectory(subplots.dataset.DatasetLabel);
+				string modelLabel = subplots.model.ModelLabel.SubstringBefore("--") ?? subplots.model.ModelLabel;
+				DirectoryInfo modelDir = datasetDir.CreateSubdirectory(modelLabel);
+
+				Grid plotGrid = (Grid)subPlotWindow.Content;
+				PlotControl[] plotControls = plotGrid.Children.OfType<PlotControl>().ToArray();
+				foreach (var plotControl in plotControls) {
+					byte[] xpsBlob = plotControl.PrintToByteArray();
+					string filename = plotnameLookup(plotControl.PlotName) + ".xps";
+					File.WriteAllBytes(modelDir.FullName + "\\" + filename, xpsBlob);
+					Console.Write(".");
+				}
+				Console.WriteLine("done.");
+			});
+		}
+
+		static string plotnameLookup(string fullname) {
+			switch (fullname) {
+				case "Border Matrix absolute determinant": return "Bdet";
+				case "Border Matrix norm": return "Bnorm";
+				case "Cost Function": return "cost";
+				case "Cumulative Learning Rates": return "cumullr";
+				case "Cumulative μ-scaled Learning Rates": return "cumulmu";
+				case "Prototype Distance": return "dist";
+				case "Prototype Distance Variance": return "distVar";
+				case "Error Rates": return "err";
+				case "embed": return "embed";
+				case "Projection Quality": return "nn";
+				case "Prototype bias": return "bias";
+				case "max μ": return "maxmu";
+				case "mean μ": return "meanmu";
+				default: return fullname;
+			}
 		}
 	}
 }
