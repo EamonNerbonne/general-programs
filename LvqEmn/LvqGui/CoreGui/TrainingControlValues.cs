@@ -22,7 +22,14 @@ namespace LvqGui {
 
 		public LvqDatasetCli SelectedDataset {
 			get { return _SelectedDataset; }
-			set { if (!Equals(_SelectedDataset, value)) { _SelectedDataset = value; _propertyChanged("SelectedDataset"); _propertyChanged("ItersPerEpoch"); _propertyChanged("MatchingLvqModels"); SelectedLvqModel = _SelectedDataset == null ? null : Owner.ResolveModel(_SelectedDataset.LastModel); AnimateTraining = false; } }
+			set {
+				if (!Equals(_SelectedDataset, value)) {
+					_SelectedDataset = value;
+					SelectedLvqModel = _SelectedDataset == null ? null : Owner.ResolveModel(_SelectedDataset.LastModel);
+					AnimateTraining = false;
+					_propertyChanged("SelectedDataset"); _propertyChanged("ItersPerEpoch"); _propertyChanged("MatchingLvqModels");
+				}
+			}
 		}
 		LvqDatasetCli _SelectedDataset;
 
