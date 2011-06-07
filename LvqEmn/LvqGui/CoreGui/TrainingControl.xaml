@@ -88,6 +88,7 @@
             <CheckBox Content="Show Prototypes" IsChecked="{Binding ShowPrototypes}"/>
         </StackPanel>
         <StackPanel Grid.Row="8" Grid.Column="0" Grid.ColumnSpan="2"   Orientation="Horizontal" HorizontalAlignment="Right">
+            <Button Content="Save Graphs" Click="SaveAllGraphs"/>
             <Button Content="Current Stats" Click="PrintCurrentStats"/>
             <Button Content="Print LR" Click="PrintLearningRate"/>
             <Button Content="Reset LR" Click="ResetLearningRate"/>

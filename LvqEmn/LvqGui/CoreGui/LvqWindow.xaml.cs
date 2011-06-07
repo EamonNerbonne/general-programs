@@ -35,9 +35,9 @@ namespace LvqGui {
 
 		void LvqWindow_Closed(object sender, EventArgs e) {
 			cts.Cancel();
-			if (plotData != null) {
-				plotData.Dispose();
-				plotData = null;
+			if (lvqPlotContainer != null) {
+				lvqPlotContainer.Dispose();
+				lvqPlotContainer = null;
 			}
 			LvqMultiModel.WaitForTraining();
 			var windowValues = (LvqWindowValues)DataContext;
@@ -67,29 +67,29 @@ namespace LvqGui {
 			}, DataContext);
 		}
 
-		LvqStatPlotsContainer plotData;
+		LvqStatPlotsContainer lvqPlotContainer;
 		void TrainingControlValues_SelectedModelUpdatedInBackgroundThread() {
-			LvqStatPlotsContainer.QueueUpdateIfCurrent(plotData);
+			LvqStatPlotsContainer.QueueUpdateIfCurrent(lvqPlotContainer);
 		}
 
 		void TrainingControlValues_PropertyChanged(object sender, PropertyChangedEventArgs e) {
-			if (e.PropertyName == "ShowBoundaries" && plotData != null)
-				plotData.ShowBoundaries(Values.TrainingControlValues.ShowBoundaries);
-			if (e.PropertyName == "ShowPrototypes" && plotData != null)
-				plotData.ShowPrototypes(Values.TrainingControlValues.ShowPrototypes);
-			if (e.PropertyName == "CurrProjStats" && plotData != null)
-				plotData.ShowCurrentProjectionStats(Values.TrainingControlValues.CurrProjStats);
+			if (e.PropertyName == "ShowBoundaries" && lvqPlotContainer != null)
+				lvqPlotContainer.ShowBoundaries(Values.TrainingControlValues.ShowBoundaries);
+			if (e.PropertyName == "ShowPrototypes" && lvqPlotContainer != null)
+				lvqPlotContainer.ShowPrototypes(Values.TrainingControlValues.ShowPrototypes);
+			if (e.PropertyName == "CurrProjStats" && lvqPlotContainer != null)
+				lvqPlotContainer.ShowCurrentProjectionStats(Values.TrainingControlValues.CurrProjStats);
 			if (e.PropertyName == "SelectedDataset" || e.PropertyName == "SelectedLvqModel" || e.PropertyName == "SubModelIndex")
 				ModelChanged();
 		}
 
 
 		void ModelChanged() {
-			if (plotData == null && Values.TrainingControlValues.SelectedDataset != null && Values.TrainingControlValues.SelectedLvqModel != null)
-				plotData = new LvqStatPlotsContainer(ClosingToken);
+			if (lvqPlotContainer == null && Values.TrainingControlValues.SelectedDataset != null && Values.TrainingControlValues.SelectedLvqModel != null)
+				lvqPlotContainer = new LvqStatPlotsContainer(ClosingToken);
 
-			if (plotData != null)
-				plotData.DisplayModel(Values.TrainingControlValues.SelectedDataset, Values.TrainingControlValues.SelectedLvqModel, Values.TrainingControlValues.SubModelIndex, Values.TrainingControlValues.CurrProjStats, Values.TrainingControlValues.ShowBoundaries, Values.TrainingControlValues.ShowPrototypes);
+			if (lvqPlotContainer != null)
+				lvqPlotContainer.DisplayModel(Values.TrainingControlValues.SelectedDataset, Values.TrainingControlValues.SelectedLvqModel, Values.TrainingControlValues.SubModelIndex, Values.TrainingControlValues.CurrProjStats, Values.TrainingControlValues.ShowBoundaries, Values.TrainingControlValues.ShowPrototypes);
 		}
 
 		public bool Fullscreen {
@@ -139,10 +139,12 @@ namespace LvqGui {
 			uint offset = uint.Parse(rngOffsetTextBox.Text);
 			long iterCount = (long)iterCountSelectbox.SelectedItem;
 			Process.GetCurrentProcess().PriorityClass = ProcessPriorityClass.Idle;
-			ThreadPool.QueueUserWorkItem(_=>
+			ThreadPool.QueueUserWorkItem(_ =>
 				new TestLr(iterCount, offset).StartAllLrTesting(new LvqModelSettingsCli { NgInitializeProtos = true })
-				.ContinueWith(t => {Console.WriteLine("wheee!!!!"); t.Wait();} )
+				.ContinueWith(t => { Console.WriteLine("wheee!!!!"); t.Wait(); })
 				);
 		}
+
+		public void SaveAllGraphs() { lvqPlotContainer.SaveAllGraphs(); }
 	}
 }
