@@ -22,6 +22,10 @@ namespace EmnExtensions.Filesystem
 			return pathUri.IsFile;
 		}
 
+		public static DirectoryInfo FindDataDir(string relpath, Type relativeToAssemblyFor) {
+			return FindDataDir(relpath, Assembly.GetAssembly(relativeToAssemblyFor));
+		}
+
 		public static DirectoryInfo FindDataDir(string relpath, Assembly relativeTo=null) {
 			return new FileInfo((relativeTo??Assembly.GetCallingAssembly()).Location)
 				.Directory.ParentDirs()
