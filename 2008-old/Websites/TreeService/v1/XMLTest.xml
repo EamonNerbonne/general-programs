@@ -1,7 +1,0 @@
-﻿<?xml version="1.0" encoding="utf-8" ?> 
-<?xml-stylesheet type="text/xsl" href="../xsl/tree2html.xsl"?>
-<node label="Buy a PC Now!!!"><col label="445$"/><col label="2 avail"/>
-	<node label="Buy a screen"><col label="245$"/><col label="5 avail"/></node>
-	<node label="Lessons for PC"><col label="101$"/><col label="unlim."/></node>
-	<node label="Your fancy Athlon FX"><col label="99$"/><col label="52avail"/></node>
-</node>
