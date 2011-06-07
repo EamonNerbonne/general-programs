@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
@@ -41,9 +42,17 @@ namespace LvqGui {
 
 		public struct Statistic { public double[] Value, StandardError; }
 
-		internal Statistic EvaluateStats(LvqDatasetCli selectedDataset) {
+		public Statistic EvaluateStats(LvqDatasetCli selectedDataset) {
 			var multistats = subModels.Select(m => m.EvaluateStats(selectedDataset, m.InitDataFold));
 			return MeanStdErrStats(multistats);
+		}
+
+		public string CurrentStatsString(LvqDatasetCli selectedDataset) {
+			var meanstats = EvaluateStats(selectedDataset);
+			StringBuilder sb = new StringBuilder();
+			for (int i = 0; i < TrainingStatNames.Length; i++)
+				sb.AppendLine(TrainingStatNames[i].Split('!')[0] + ": " + Statistics.GetFormatted(meanstats.Value[i], meanstats.StandardError[i]));
+			return sb.ToString();
 		}
 
 		public LvqTrainingStatCli[] SelectedStats(int submodel) { return subModels[submodel].TrainingStats; }

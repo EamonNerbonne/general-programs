@@ -131,10 +131,7 @@ namespace LvqGui {
 
 		public void PrintCurrentStats() {
 			var selectedModel = SelectedLvqModel;
-			var meanstats = selectedModel.EvaluateStats(SelectedDataset);
-
-			for (int i = 0; i < selectedModel.TrainingStatNames.Length; i++)
-				Console.WriteLine(selectedModel.TrainingStatNames[i].Split('!')[0] + ": " + Statistics.GetFormatted(meanstats.Value[i], meanstats.StandardError[i]));
+			Console.WriteLine(selectedModel.CurrentStatsString(SelectedDataset));
 		}
 
 		public void ConfirmTraining() {
