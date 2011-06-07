@@ -325,7 +325,7 @@ namespace EmnExtensions.Wpf.Plot {
 			dialogThread.Start();
 		}
 
-		byte[] PrintToByteArray() {
+		public byte[] PrintToByteArray() {
 			using (MemoryStream ms = new MemoryStream()) {
 				PrintToStream(ms);
 				return ms.ToArray();
@@ -364,5 +364,7 @@ namespace EmnExtensions.Wpf.Plot {
 			printThread.SetApartmentState(ApartmentState.STA);
 			printThread.Start();
 		}
+
+		public string PlotName { get; set; }
 	}
 }

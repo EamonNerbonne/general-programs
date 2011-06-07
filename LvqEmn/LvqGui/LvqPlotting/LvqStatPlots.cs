@@ -67,6 +67,7 @@ namespace LvqGui {
 						//Title = statGroup.Key + ": " + model.ModelLabel,
 						Tag = statGroup.Key,
 						GraphsEnumerable = LvqStatPlotFactory.Create(statGroup.Key, statGroup, model.IsMultiModel, dataset.IsFolded() || dataset.HasTestSet()).ToArray(),
+						PlotName = statGroup.Key
 					}
 				).ToArray();
 		}
@@ -78,7 +79,8 @@ namespace LvqGui {
 				//ShowGridLines = true,
 				UniformScaling = true,
 				//Title = "ScatterPlot: " + model.ModelLabel,
-				GraphsEnumerable = graphs
+				GraphsEnumerable = graphs,
+				PlotName = "embed",
 			};
 		}
 
