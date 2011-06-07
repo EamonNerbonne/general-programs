@@ -28,7 +28,7 @@ namespace LvqGui {
 
 		public IEnumerable<LvqMultiModel> MatchingLvqModels { get { return Owner.LvqModels.Where(model => model == null || model.InitSet == SelectedDataset); } } // model.FitsDataShape(SelectedDataset) is unhandy
 
-		public uint ItersPerEpoch { get { return SelectedDataset == null ? 0 : (uint)(SelectedDataset.PointCount * (SelectedDataset.Folds() - 1L) / SelectedDataset.Folds()); } }
+		public double ItersPerEpoch { get { return SelectedDataset == null ? double.NaN : (double)SelectedDataset.PointCount * (SelectedDataset.Folds() - 1L) / SelectedDataset.Folds(); } }
 
 		public LvqMultiModel SelectedLvqModel {
 			get { return _SelectedLvqModel; }
@@ -72,12 +72,14 @@ namespace LvqGui {
 		}
 		int _EpochsPerClick;
 
-		public ulong ItersToTrainUpto {
+		public double ItersToTrainUpto {
 			get { return _ItersToTrainUpto; }
-			set { if (!_ItersToTrainUpto.Equals(value)) { _ItersToTrainUpto = value; _propertyChanged("ItersToTrainUpto"); } }
+			set {
+				if (value < 0.0 || double.IsInfinity(value) || double.IsNaN(value)) throw new ArgumentException("must train upto a non-negative number of iterations");
+				if (!_ItersToTrainUpto.Equals(value)) { _ItersToTrainUpto = value; _propertyChanged("ItersToTrainUpto"); }
+			}
 		}
-		ulong _ItersToTrainUpto;
-
+		double _ItersToTrainUpto;
 
 		public int EpochsPerAnimation {
 			get { return _EpochsPerAnimation; }
@@ -159,8 +161,8 @@ namespace LvqGui {
 		}
 
 		public void TrainUptoIters() {
-			ulong uptoIters = ItersToTrainUpto;
-			int uptoEpochs = (int)(uptoIters / ItersPerEpoch);
+			double uptoIters = ItersToTrainUpto;
+			int uptoEpochs = (int)(uptoIters / ItersPerEpoch + 0.5);
 			TrainSelectedModel((dataset, model) => {
 				using (new DTimer("Training up to " + uptoEpochs + " epochs"))
 					model.TrainUpto(uptoEpochs, dataset, Owner.WindowClosingToken);
