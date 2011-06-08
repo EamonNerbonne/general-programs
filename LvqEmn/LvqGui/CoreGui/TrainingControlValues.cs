@@ -39,21 +39,20 @@ namespace LvqGui {
 
 		public LvqMultiModel SelectedLvqModel {
 			get { return _SelectedLvqModel; }
-			set { if (!Equals(_SelectedLvqModel, value)) { _SelectedLvqModel = value; _propertyChanged("SelectedLvqModel"); _propertyChanged("ModelIndexes"); AnimateTraining = false; SubModelIndex = 0; } }
+			set { if (!Equals(_SelectedLvqModel, value)) { _SelectedLvqModel = value; _propertyChanged("SelectedLvqModel"); _propertyChanged("ModelIndexes"); AnimateTraining = false; _propertyChanged("SubModelIndex"); } }
 		}
 		LvqMultiModel _SelectedLvqModel;
 
 		public IEnumerable<int> ModelIndexes { get { return Enumerable.Range(0, SelectedLvqModel == null ? 0 : SelectedLvqModel.ModelCount); } }
 
 		public int SubModelIndex {
-			get { return _SubModelIndex; }
+			get { return SelectedLvqModel == null ? 0 : SelectedLvqModel.SelectedSubModel; }
 			set {
 				if (SelectedLvqModel != null && (value < 0 || value >= SelectedLvqModel.ModelCount))
 					throw new ArgumentException("Model only has " + SelectedLvqModel.ModelCount + " sub-models.");
-				if (!_SubModelIndex.Equals(value)) { _SubModelIndex = value; _propertyChanged("SubModelIndex"); }
+				if (SelectedLvqModel != null && !SelectedLvqModel.SelectedSubModel.Equals(value)) { SelectedLvqModel.SelectedSubModel = value; _propertyChanged("SubModelIndex"); }
 			}
 		}
-		int _SubModelIndex;
 
 		public bool CurrProjStats {
 			get { return _CurrProjStats; }
@@ -100,6 +99,7 @@ namespace LvqGui {
 			EpochsPerAnimation = 25;
 			_ShowBoundaries = true;
 			_ShowPrototypes = true;
+			_CurrProjStats = true;
 			owner.LvqModels.CollectionChanged += LvqModels_CollectionChanged;
 		}
 
@@ -139,6 +139,8 @@ namespace LvqGui {
 			TrainSelectedModel((dataset, model) => {
 				using (new DTimer("Training " + epochsToTrainFor + " epochs"))
 					model.Train(epochsToTrainFor, dataset, Owner.WindowClosingToken);
+				var newIdx = model.GetBestSubModelIdx(dataset);
+				owner.Dispatcher.BeginInvoke(() => { SubModelIndex = newIdx; });
 			});
 		}
 
@@ -170,6 +172,14 @@ namespace LvqGui {
 			TrainSelectedModel((dataset, model) => {
 				using (new DTimer("Training up to " + uptoEpochs + " epochs"))
 					model.TrainUpto(uptoEpochs, dataset, Owner.WindowClosingToken);
+				
+				var newIdx = model.GetBestSubModelIdx(dataset);
+				owner.Dispatcher.BeginInvoke(() => {
+					if (SelectedLvqModel == model)
+						SubModelIndex = newIdx;
+					else
+						model.SelectedSubModel = newIdx;
+				});
 			});
 		}
 
