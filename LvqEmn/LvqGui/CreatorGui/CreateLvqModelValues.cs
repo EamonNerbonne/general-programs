@@ -292,20 +292,22 @@ namespace LvqGui {
 			var bestResult = DatasetResults.GetBestResult(ForDataset, settings.Copy());
 			if (bestResult == null)
 				OptimizeLr();
-			else 
-				CreateSingleModel(owner, ForDataset, bestResult.GetOptimizedSettings());
+			else
+				CreateSingleModel(owner, ForDataset, bestResult.GetOptimizedSettings(ParamsSeed, InstanceSeed));
 		}
 
 		internal void OptimizeAllOrCreateAll() {
 			var dataset = ForDataset;
 			var bestResults = DatasetResults.GetBestResults(ForDataset, settings.Copy());
+			var paramsSeed = ParamsSeed;
+			var instanceSeed = InstanceSeed;
 			if (bestResults == null)
 				OptimizeLrAll();
 			else {
 				Task.Factory
 					.StartNew(() => {
-						var newModels = bestResults.AsParallel().Select(res => new LvqMultiModel(dataset, res.GetOptimizedSettings())).ToArray();
-						Console.WriteLine("Created: " + string.Join(", ",newModels.Select(m=>m.ModelLabel)));
+						var newModels = bestResults.AsParallel().Select(res => new LvqMultiModel(dataset, res.GetOptimizedSettings(paramsSeed, instanceSeed))).ToArray();
+						Console.WriteLine("Created: " + string.Join(", ", newModels.Select(m => m.ModelLabel)));
 						owner.Dispatcher.BeginInvoke(() => {
 							foreach (var newModel in newModels)
 								owner.LvqModels.Add(newModel);
