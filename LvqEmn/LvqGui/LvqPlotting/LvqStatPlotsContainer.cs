@@ -243,7 +243,8 @@ namespace LvqGui {
 			switch (fullname) {
 				case "Border Matrix absolute determinant": return "Bdet";
 				case "Border Matrix norm": return "Bnorm";
-				case "Projection Matrix": return "Pnorm";
+				case "Projection Matrix": 
+				case "Prototype Matrix": return "Pnorm";
 				case "Cost Function": return "cost";
 				case "Cumulative Learning Rates": return "cumullr";
 				case "Cumulative μ-scaled Learning Rates": return "cumulmu";
