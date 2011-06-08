@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Text.RegularExpressions;
+﻿using System.Text.RegularExpressions;
 using EmnExtensions.MathHelpers;
 using EmnExtensions.Wpf;
 using LvqLibCli;
@@ -49,7 +44,7 @@ namespace LvqGui {
 			return LvqDatasetCli.ConstructGaussianClouds(Shorthand,
 														 folds: Folds,
 														 extend: ExtendDataByCorrelation,
-														 normalizeDims: ExtendDataByCorrelation,
+														 normalizeDims: NormalizeDimensions,
 														 colors: WpfTools.MakeDistributedColors(NumberOfClasses, new MersenneTwister((int)ParamsSeed)),
 														 rngParamsSeed: ParamsSeed,
 														 rngInstSeed: InstanceSeed,

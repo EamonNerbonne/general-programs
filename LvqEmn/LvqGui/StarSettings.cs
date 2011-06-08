@@ -67,7 +67,7 @@ namespace LvqGui {
 				colors: WpfTools.MakeDistributedColors(NumberOfClasses, new MersenneTwister((int)ParamsSeed)),
 				folds: Folds,
 				extend: ExtendDataByCorrelation,
-				normalizeDims: ExtendDataByCorrelation,
+				normalizeDims: NormalizeDimensions,
 				rngParamsSeed: ParamsSeed,
 				rngInstSeed: InstanceSeed,
 				dims: Dimensions,

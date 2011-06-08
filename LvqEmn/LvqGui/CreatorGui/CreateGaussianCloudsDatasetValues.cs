@@ -52,7 +52,7 @@ namespace LvqGui {
 		}
 		public bool NormalizeDimensions {
 			get { return settings.NormalizeDimensions; }
-			set { if (Equals(settings.ExtendDataByCorrelation, value)) return; settings.NormalizeDimensions = value; _propertyChanged("NormalizeDimensions"); }
+			set { if (Equals(settings.NormalizeDimensions, value)) return; settings.NormalizeDimensions = value; _propertyChanged("NormalizeDimensions"); }
 		}
 
 		public override string Shorthand { get { return settings.Shorthand; } set { settings.Shorthand = value; _propertyChanged("Shorthand"); } }

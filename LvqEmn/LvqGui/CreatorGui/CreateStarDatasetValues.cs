@@ -75,11 +75,11 @@ namespace LvqGui {
 
 		public bool ExtendDataByCorrelation {
 			get { return settings.ExtendDataByCorrelation; }
-			set { if (Equals(settings.ExtendDataByCorrelation, value)) return; settings.ExtendDataByCorrelation = value; owner.ExtendDataByCorrelation = value; }
+			set { if (Equals(settings.ExtendDataByCorrelation, value)) return; settings.ExtendDataByCorrelation = value;  _propertyChanged("ExtendDataByCorrelation"); }
 		}
 		public bool NormalizeDimensions {
 			get { return settings.NormalizeDimensions; }
-			set { if (Equals(settings.ExtendDataByCorrelation, value)) return; settings.NormalizeDimensions = value; owner.NormalizeDimensions = value; }
+			set { if (Equals(settings.NormalizeDimensions, value)) return; settings.NormalizeDimensions = value; _propertyChanged("NormalizeDimensions"); }
 		}
 
 		public override string Shorthand { get { return settings.Shorthand; } set { settings.Shorthand = value; _propertyChanged("Shorthand"); } }
