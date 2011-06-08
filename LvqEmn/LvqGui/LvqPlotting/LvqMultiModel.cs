@@ -40,18 +40,33 @@ namespace LvqGui {
 
 		public double CurrentLearningRate { get { return subModels.Sum(model => model.UnscaledLearningRate) / ModelCount; } }
 
-		public struct Statistic { public double[] Value, StandardError; }
+		public int SelectedSubModel { get; set; }
 
-		public Statistic EvaluateStats(LvqDatasetCli selectedDataset) {
-			var multistats = subModels.Select(m => m.EvaluateStats(selectedDataset, m.InitDataFold));
-			return MeanStdErrStats(multistats);
-		}
+		public struct Statistic { public double[] Value, StandardError; public int BestIdx;}
+
+
+		public Statistic EvaluateStats(LvqDatasetCli selectedDataset) { return MeanStdErrStats(EvaluateFullStats(selectedDataset)); }
+		public IEnumerable<LvqTrainingStatCli> EvaluateFullStats(LvqDatasetCli selectedDataset) { return subModels.Select(m => m.EvaluateStats(selectedDataset, m.InitDataFold)); }
+		public int GetBestSubModelIdx(LvqDatasetCli selectedDataset) { return MinIdx(EvaluateFullStats(selectedDataset).Select(stat => stat.values[LvqTrainingStatCli.TrainingErrorI])); }
 
 		public string CurrentStatsString(LvqDatasetCli selectedDataset) {
 			var meanstats = EvaluateStats(selectedDataset);
 			StringBuilder sb = new StringBuilder();
 			for (int i = 0; i < TrainingStatNames.Length; i++)
 				sb.AppendLine(TrainingStatNames[i].Split('!')[0] + ": " + Statistics.GetFormatted(meanstats.Value[i], meanstats.StandardError[i]));
+			sb.AppendLine("Best idx: " + meanstats.BestIdx);
+
+			return sb.ToString();
+		}
+		public string CurrentFullStatsString(LvqDatasetCli selectedDataset) {
+			var allstats = EvaluateFullStats(selectedDataset).ToArray();
+			var meanstats = MeanStdErrStats(allstats);
+
+			StringBuilder sb = new StringBuilder();
+			for (int i = 0; i < TrainingStatNames.Length; i++)
+				sb.AppendLine(TrainingStatNames[i].Split('!')[0] + ": " + string.Join(", ", allstats.Select(stats => Statistics.GetFormatted(stats.values[i], meanstats.StandardError[i], 0, true))));
+			sb.AppendLine("Best idx: " + meanstats.BestIdx);
+
 			return sb.ToString();
 		}
 
@@ -87,12 +102,27 @@ namespace LvqGui {
 				else
 					MeanVarCalc.Add(accum, statArray.values);
 
-			Statistic newStat = new Statistic { Value = new double[accum.Length], StandardError = new double[accum.Length], };
+
+			Statistic newStat = new Statistic { Value = new double[accum.Length], StandardError = new double[accum.Length], BestIdx = MinIdx(newstats.Select(stat => stat.values[LvqTrainingStatCli.TrainingErrorI])) };
 			for (int mi = 0; mi < accum.Length; ++mi) {
 				newStat.Value[mi] = accum[mi].Mean;
 				newStat.StandardError[mi] = Math.Sqrt(accum[mi].SampleVar / accum[mi].Weight);
 			}
 			return newStat;
+		}
+
+		static int MinIdx(IEnumerable<double> vals) {
+			int minidx = -1;
+			double minval = double.PositiveInfinity;
+			int idx = 0;
+			foreach (double val in vals) {
+				if (val < minval) {
+					minval = val;
+					minidx = idx;
+				}
+				idx++;
+			}
+			return minidx;
 		}
 
 		const int ParWindow = 4;
@@ -105,7 +135,7 @@ namespace LvqGui {
 			if (cancel.IsCancellationRequested) return;
 			int epochsTarget;
 			lock (epochsSynch)
-				epochsTarget=epochsDone += epochsToDo;
+				epochsTarget = epochsDone += epochsToDo;
 			TrainImpl(cancel, epochsTarget - epochsToDo, epochsTarget, trainingSet);
 		}
 		public void TrainUpto(int epochsToTrainUpto, LvqDatasetCli trainingSet, CancellationToken cancel) {
@@ -120,9 +150,8 @@ namespace LvqGui {
 			TrainImpl(cancel, epochsCurrent, epochsToTrainUpto, trainingSet);
 		}
 
-		void TrainImpl(CancellationToken cancel,int epochsCurrent, int epochsTarget, LvqDatasetCli trainingSet)
-		{
-			
+		void TrainImpl(CancellationToken cancel, int epochsCurrent, int epochsTarget, LvqDatasetCli trainingSet) {
+
 			Interlocked.Increment(ref trainersRunning);
 			try {
 				var trainingqueue = new BlockingCollection<Tuple<LvqModelCli, int>>();
@@ -136,12 +165,12 @@ namespace LvqGui {
 				trainingqueue.CompleteAdding();
 				var helpers = Enumerable.Range(0, ParWindow)
 					.Select(ignored =>
-					        Task.Factory.StartNew(
-					        	() => {
-					        	      	foreach (var next in trainingqueue.GetConsumingEnumerable(cancel))
-					        	      		next.Item1.TrainUpto(next.Item2, trainingSet, next.Item1.InitDataFold);
-					        	},
-					        	cancel, TaskCreationOptions.None, LowPriorityTaskScheduler.DefaultLowPriorityScheduler)
+							Task.Factory.StartNew(
+								() => {
+									foreach (var next in trainingqueue.GetConsumingEnumerable(cancel))
+										next.Item1.TrainUpto(next.Item2, trainingSet, next.Item1.InitDataFold);
+								},
+								cancel, TaskCreationOptions.None, LowPriorityTaskScheduler.DefaultLowPriorityScheduler)
 					).ToArray();
 				Task.WaitAll(helpers, cancel);
 			} finally {
