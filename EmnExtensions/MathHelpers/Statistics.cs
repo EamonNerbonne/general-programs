@@ -12,7 +12,7 @@ namespace EmnExtensions.MathHelpers
     /// </summary>
     public class Statistics
     {
-		public static string GetFormatted(double mean, double stderr, int extraprecision = 0) {
+		public static string GetFormatted(double mean, double stderr, int extraprecision = 0, bool suppressStderr=false) {
 			string numF, errF;
 			if (stderr == 0 || double.IsNaN(stderr) || double.IsInfinity(stderr)) {
 				numF = "g";
@@ -28,7 +28,7 @@ namespace EmnExtensions.MathHelpers
 				numF = "g" + (digits + extraprecision);
 				errF = " ~ {1:g2}";
 			}
-			return string.Format("{0:" + numF + "}" + errF, mean, stderr);
+			return string.Format("{0:" + numF + "}" + (suppressStderr?"":errF), mean, stderr);
 		}
 
 
