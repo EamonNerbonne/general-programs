@@ -22,7 +22,9 @@ namespace EmnExtensions.Wpf.Plot {
 		public bool IsEmpty { get { return double.IsPositiveInfinity(Start) && double.IsPositiveInfinity(End); } }
 		public double Length { get { return Math.Abs(End - Start); } }
 
-		public bool EncompassesValue(double value) { return value >= Start && value <= End; }
+		public bool EncompassesValue(double value) { return value >= Start && value <= End || value >= End && value <= Start; }
+		public bool HasNoOverlap(DimensionBounds other) { return Max < other.Min || Min > other.Max; }
+
 		public DimensionBounds UnionWith(params double[] vals) { return UnionWith(vals.AsEnumerable()); }
 		public DimensionBounds UnionWith(IEnumerable<double> vals) {
 			double min = Min, max = Max;
