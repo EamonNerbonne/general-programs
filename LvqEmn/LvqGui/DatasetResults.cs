@@ -19,7 +19,7 @@ namespace LvqGui {
 			double[] lr0range = ExtractLrs(fileLines.First(line => line.StartsWith("lr0range:")));
 			double[] lrPrange = ExtractLrs(fileLines.First(line => line.StartsWith("lrPrange:")));
 			double[] lrBrange = ExtractLrs(fileLines.First(line => line.StartsWith("lrBrange:")));
-			string[] resultLines = fileLines.SkipWhile(line => !line.StartsWith(".")).Skip(1).TakeWhile(line => !line.StartsWith("Search Complete!")).ToArray();
+			string[] resultLines = fileLines.SkipWhile(line => !line.StartsWith(".")).Skip(1).Where(line => !line.StartsWith("Search Complete!") && !string.IsNullOrWhiteSpace(line)).ToArray();
 			double[] lrOfBestResult = resultLines.First().SubstringBefore(":").Split('p', 'b').Select(double.Parse).ToArray();
 
 			double lr0 = ClosestMatch(lr0range, lrOfBestResult[0]);
@@ -60,6 +60,7 @@ namespace LvqGui {
 
 			return new DatasetResults(resultFile, Double.Parse(match.Groups["iters"].Value.StartsWith("e") ? "1" + match.Groups["iters"].Value : match.Groups["iters"].Value), CreateLvqModelValues.SettingsFromShorthand(match.Groups["shorthand"].Value));
 		}
+
 		/// <summary>
 		/// Gets the lr-optimized result for the given dataset and settings with the largest number of iterations, or null if no results have been done for this settings+dataset combination.
 		/// </summary>
@@ -84,7 +85,7 @@ namespace LvqGui {
 			var matchingFiles =
 				from result in FromDataset(dataset)
 				where WithoutModelAndPrototypes(WithoutLrOrSeeds(result.unoptimizedSettings)).ToShorthand() == modelIgnoredSettings.ToShorthand()
-				group result by Tuple.Create(result.trainedIterations,result.resultsFile.Directory.Name) into resGroup
+				group result by Tuple.Create(result.trainedIterations, result.resultsFile.Directory.Name) into resGroup
 				where resGroup.Select(res => new { res.unoptimizedSettings.ModelType, res.unoptimizedSettings.PrototypesPerClass })
 												.SetEquals(TestLr.ModelTypes.SelectMany(mt => TestLr.PrototypesPerClassOpts.Select(ppc => new { ModelType = mt, PrototypesPerClass = ppc })))
 				orderby resGroup.Key.Item1 descending, resGroup.Key.Item2 == dataset.DatasetLabel descending
