@@ -104,7 +104,7 @@ namespace EmnExtensions.Wpf {
 				Document.ContentEnd.InsertTextInRun(curLine.ToString());
 				curLine.Length = 0;
 			}
-			return new TextRange(Document.ContentStart,Document.ContentEnd).Text;
+			return new TextRange(Document.ContentStart, Document.ContentEnd).Text;
 		}
 
 		RestoringReadStream stdOutOverride;

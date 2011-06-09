@@ -26,8 +26,8 @@ namespace EmnExtensionsNative {
 	{
 		static RestoringReadStream^ RedirectCStream(FILE* nativeOutStream);
 	public:
-		static RestoringReadStream^ RedirectStdout(void){		return RedirectCStream(stdout);	}
+		static RestoringReadStream^ RedirectStdout(void){ return RedirectCStream(stdout); }
 
-		static RestoringReadStream^ RedirectStderr(void){		return RedirectCStream(stderr);	}
+		static RestoringReadStream^ RedirectStderr(void){ return RedirectCStream(stderr); }
 	};
 }

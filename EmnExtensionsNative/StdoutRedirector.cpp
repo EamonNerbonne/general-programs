@@ -49,14 +49,14 @@ namespace EmnExtensionsNative {
 		HANDLE hCustomOutRd,hCustomOutWr;
 		SECURITY_ATTRIBUTES *pipeSecurity=NULL;//SECURITY_ATTRIBUTES are null since we don't plan on ever exposing this internal pipe
 		int bufSize=0;//buffer size, where 0 means auto-selected. 
-		if (! CreatePipe(&hCustomOutRd, &hCustomOutWr, pipeSecurity, bufSize)) //CloseHandle() must be called on hCustomOutRd and hCustomOutWr eventually.
+		if (!CreatePipe(&hCustomOutRd, &hCustomOutWr, pipeSecurity, bufSize)) //CloseHandle() must be called on hCustomOutRd and hCustomOutWr eventually.
 			throw gcnew Exception(gcnew String(L"Could not create pipe for native stream redirection!"));
 
 		int outHandle = _open_osfhandle((intptr_t)hCustomOutWr, _O_APPEND); //insert magic here(1) - this converts a win32 handle to... a file descriptor (i.e., yet another handle)!
 		//calling _close() on outHandle will close hCustomOutWr
 		
 		FILE* newOut=_fdopen(outHandle,"w"); //insert magic here(2) - this converts a file descriptor to a FILE* (i.e., yet another handle)!
-		// calling fclose() on newOut will close outHandle, closing hCustomOutWr
+		//calling fclose() on newOut will close outHandle, closing hCustomOutWr
 		
 		setvbuf(newOut,NULL,_IONBF,0);//we don't want buffering.
 		FILE oldValue = *nativeOutStream;
