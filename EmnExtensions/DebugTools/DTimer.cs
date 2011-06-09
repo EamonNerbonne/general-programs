@@ -19,8 +19,11 @@ namespace EmnExtensions.DebugTools {
 
 		Action<TimeSpan> m_resultSink;
 		Stopwatch underlyingTimer;
+		public static Task TimeTask(Func<Task> f, string actionLabel) { return TimeTask(f, new DTimer(actionLabel)); }
+		public static Task TimeTask(Func<Task> f, Action<TimeSpan> resultSink) { return TimeTask(f, new DTimer(resultSink)); }
+		static Task TimeTask(Func<Task> f, DTimer timer) { return f().ContinueWith(t => { ((IDisposable)timer).Dispose(); t.Wait(); }); }
+
 		public static T TimeFunc<T>(Func<T> f, string actionLabel) { using (new DTimer(actionLabel)) return f(); }
-		public static Task TimeTask(Func<Task> f, string actionLabel) { var timer = new DTimer(actionLabel); return f().ContinueWith(t => { ((IDisposable)timer).Dispose(); t.Wait(); }); }
 		public static T TimeFunc<T>(Func<T> f, Action<TimeSpan> resultSink) { using (new DTimer(resultSink)) return f(); }
 		public static T TimeFunc<T, M>(Func<T> f, M key, Action<M, TimeSpan> resultsSink) { using (new DTimer(t => resultsSink(key, t))) return f(); }
 		public static TimeSpan BenchmarkAction(Action a, int repeats) {
