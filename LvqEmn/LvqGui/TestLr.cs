@@ -192,8 +192,7 @@ namespace LvqGui {
 		Task Run(LvqModelSettingsCli settings, TextWriter sink) {
 			sink.WriteLine("Evaluating: " + settings.ToShorthand());
 			sink.WriteLine("Against: " + DatasetLabel);
-			using (new DTimer(time => sink.WriteLine("Search Complete!  Took " + time)))
-				return FindOptimalLr(sink, settings);
+			return DTimer.TimeTask(()=>FindOptimalLr(sink, settings), time => sink.WriteLine("Search Complete!  Took " + time));
 		}
 		string DatasetLabel { get { return _dataset != null ? _dataset.DatasetLabel : "base"; } }
 
