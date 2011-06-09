@@ -282,7 +282,7 @@ namespace LvqGui {
 			settingsCopy.ModelType = LvqModelType.Gm;
 			const long iterCount = 30L * 1000L * 1000L;
 			var testLr = new TestLr(iterCount, ForDataset, 3);
-			testLr.StartAllLrTesting().ContinueWith(_ => Console.WriteLine("completed lr optimization for " + settingsCopy.ToShorthand()));
+			testLr.StartAllLrTesting(settingsCopy).ContinueWith(_ => Console.WriteLine("completed lr optimization for " + settingsCopy.ToShorthand()));
 		}
 
 		static readonly string[] depProps = new[] { "HasOptimizedLr", "OptimizeButtonText", "HasOptimizedLrAll", "OptimizeAllButtonText" };
