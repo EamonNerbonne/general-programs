@@ -159,7 +159,7 @@ namespace EmnExtensions.Wpf.Plot {
 		int m_dataOrderOfMagnitude, m_slotOrderOfMagnitude;
 		Tick[] m_ticks;
 		int m_minReqTickCount, m_tickCount;
-		FormattedText[] m_rank1Labels;
+		Tuple<Tick, FormattedText>[] m_tickLabels;
 		DrawingGroup m_axisLegend;
 		bool m_redrawGridLines;
 		Size m_bestGuessCurrentSize;
@@ -182,6 +182,14 @@ namespace EmnExtensions.Wpf.Plot {
 					select tick.Value;
 			}
 		}
+		IEnumerable<Tick> ValuesNeedingLabels {
+			get {
+				if (m_ticks == null) yield break;
+				for (int i = 0; i < m_ticks.Length; i++)
+					if (i == 0 || i == m_ticks.Length - 1 || m_ticks[i].Rank <= 1)
+						yield return m_ticks[i];
+			}
+		}
 
 		static bool TickArrEqual(Tick[] a, Tick[] b) {
 			if (a.Length != b.Length) return false;
@@ -198,7 +206,7 @@ namespace EmnExtensions.Wpf.Plot {
 				if (m_ticks != null)
 					InvalidateVisual();
 				m_ticks = null;
-				m_rank1Labels = null;
+				m_tickLabels = null;
 				m_redrawGridLines = true;
 			} else {
 				int newSlotOrderOfMagnitude;
@@ -208,7 +216,7 @@ namespace EmnExtensions.Wpf.Plot {
 					|| m_ticks != null && !TickArrEqual(m_ticks, newTicks) && (mayIncrease || m_ticks.Count(tick => tick.Rank <= 1) > newTicks.Count(tick => tick.Rank <= 1))) {
 
 					m_slotOrderOfMagnitude = newSlotOrderOfMagnitude;
-					m_rank1Labels = null;
+					m_tickLabels = null;
 					m_redrawGridLines = true;
 					m_ticks = newTicks;
 					if (MatchOppositeTicks && OppositeAxis != null && !OppositeAxis.IsCollapsedOrEmpty
@@ -223,11 +231,11 @@ namespace EmnExtensions.Wpf.Plot {
 		}
 
 		void RecomputeTickLabels() {
-			if (m_rank1Labels == null) {
-				m_rank1Labels =
+			if (m_tickLabels == null) {
+				m_tickLabels =
 				 (
-					from value in Rank1Values
-					select MakeText(value)
+					from value in ValuesNeedingLabels
+					select Tuple.Create(value, MakeText(value.Value))
 				).ToArray();
 				InvalidateRender();
 			}
@@ -251,13 +259,13 @@ namespace EmnExtensions.Wpf.Plot {
 
 		Size TickLabelSizeGuess {
 			get {
-				if (m_rank1Labels != null)
+				if (m_tickLabels != null)
 					return new Size(
-						m_rank1Labels.Select(label => label.Width).DefaultIfEmpty(0.0).Max(),
-						m_rank1Labels.Select(label => label.Height).DefaultIfEmpty(0.0).Max()
+						m_tickLabels.Select(label => label.Item2.Width).DefaultIfEmpty(0.0).Max(),
+						m_tickLabels.Select(label => label.Item2.Height).DefaultIfEmpty(0.0).Max()
 						);
 				else {
-					var canBeNegative = Rank1Values.Any(value => value < 0.0);
+					var canBeNegative = ValuesNeedingLabels.Any(value => value.Value < 0.0);
 					var excessMagnitude = m_dataOrderOfMagnitude == 0 ? ComputedDataOrderOfMagnitude() : 0;
 					var textSample = MakeText(8.88888888888888888 * Math.Pow(10.0, excessMagnitude) * (canBeNegative ? -1 : 1));
 					return new Size(textSample.Width, textSample.Height);
@@ -273,7 +281,6 @@ namespace EmnExtensions.Wpf.Plot {
 		static Size Transpose(Size size) { return new Size(size.Height, size.Width); }
 
 		Size CondTranspose(Size size) { return IsHorizontal ? size : Transpose(size); }//height==thickness, width == along span of axis
-
 
 
 		public bool HideAxis { get { return (bool)GetValue(HideAxisProperty); } set { SetValue(HideAxisProperty, value); } }
@@ -530,8 +537,6 @@ namespace EmnExtensions.Wpf.Plot {
 		}
 
 
-
-
 		protected override void OnRender(DrawingContext drawingContext) {
 			drawingContext.DrawRectangle(Background, null, new Rect(m_bestGuessCurrentSize));
 			if (IsCollapsedOrEmpty || m_ticks == null)
@@ -562,12 +567,27 @@ namespace EmnExtensions.Wpf.Plot {
 			drawingContext.DrawLine(m_tickPen, alignToDisp.Transform(new Point(dispBounds.End, m_tickPen.Thickness / 4.0)), alignToDisp.Transform(new Point(dispBounds.Start, m_tickPen.Thickness / 4.0)));
 
 			//then we draw all labels, computing the label center point accounting for horizontal/vertical alignment, and using data->disp to position that center point.
-			foreach (var labelledValue in Rank1Values.Zip(m_rank1Labels, (val, label) => new { Value = val, Label = label })) {
-				double labelAltitude = TickLength + LabelOffset + (IsHorizontal ? labelledValue.Label.Height : labelledValue.Label.Width) / 2.0;
-				Point centerPoint = dataToDisp.Transform(new Point(labelledValue.Value, labelAltitude));
-				Point originPoint = centerPoint - new Vector(labelledValue.Label.Width / 2.0, labelledValue.Label.Height / 2.0);
+			Point[] centerPoints = m_tickLabels.Select(labelledValue => {
+				double labelAltitude = TickLength + LabelOffset + (IsHorizontal ? labelledValue.Item2.Height : labelledValue.Item2.Width) / 2.0;
+				return dataToDisp.Transform(new Point(labelledValue.Item1.Value, labelAltitude));
+			}).ToArray();
 
-				drawingContext.DrawText(labelledValue.Label, originPoint);
+
+			for (int i = 0; i < m_tickLabels.Length; i++) {
+				var labelledValue = m_tickLabels[i];
+				Point centerPoint = centerPoints[i];
+				Point originPoint = centerPoint - new Vector(labelledValue.Item2.Width / 2.0, labelledValue.Item2.Height / 2.0);
+
+				bool tooClose =
+					labelledValue.Item1.Rank > 1 &&
+					new[] { i - 1, i + 1 }.Where(j => j >= 0 && j < m_tickLabels.Length).Any(j => {
+						double widthsum = IsHorizontal ? m_tickLabels[i].Item2.Width + m_tickLabels[j].Item2.Width : m_tickLabels[i].Item2.Height + m_tickLabels[j].Item2.Height;
+						double offset = IsHorizontal ? centerPoints[i].X - centerPoints[j].X : centerPoints[i].Y - centerPoints[j].Y;
+						return Math.Abs(offset) < 0.6 * widthsum;
+					});
+
+				if (!tooClose)
+					drawingContext.DrawText(labelledValue.Item2, originPoint);
 			}
 
 			//finally, we draw the axisLegend:
@@ -681,9 +701,10 @@ namespace EmnExtensions.Wpf.Plot {
 			double totalSlotSize;
 			int[] subDivTicks;
 			long firstTickMult, lastTickMult;
-			CalcTickPositions(range, minReqTickCount, preferredNum, ref attemptBorderTicks, out totalSlotSize, out slotOrderOfMagnitude, out firstTickMult, out lastTickMult, out subDivTicks, out tickCount);
 
-			//convert subDivTicks into "cumulative" multiples, i.e. 2,2,5 into 20,10,5
+			CalcTickPositions(range, minReqTickCount, preferredNum, out totalSlotSize, out slotOrderOfMagnitude, out firstTickMult, out lastTickMult, out subDivTicks, out tickCount);
+
+			//convert subDivTicks into "cumulative" multiples, i.e. 2,2,5 into 20,10,5,1
 			int[] subMultiple = new int[subDivTicks.Length + 1];
 			subMultiple[subDivTicks.Length] = 1;
 			for (int i = subDivTicks.Length - 1; i >= 0; i--)
@@ -695,8 +716,6 @@ namespace EmnExtensions.Wpf.Plot {
 			List<Tick> allTicks = new List<Tick>();
 			for (int i = 0; i <= subSlotCount; i++) {
 				double value = (firstTickMult * subMultiple[0] + i) * subSlotSize; //by working in integral math here, we ensure that 0 falls on 0.0 exactly.
-				if (!attemptBorderTicks && !range.EncompassesValue(value)) continue;
-
 				int rank = 1;
 				if (value == 0.0)
 					rank = 0;
@@ -704,7 +723,23 @@ namespace EmnExtensions.Wpf.Plot {
 					while (i % subMultiple[rank - 1] != 0) rank++;
 				allTicks.Add(new Tick { Rank = rank, Value = value });
 			}
-			return allTicks.ToArray();
+			//we have all ticks, now trim ticks down to relevant ones
+
+			int startSkip = 0;
+			if (minReqTickCount == 0 && (!attemptBorderTicks || range.Min - allTicks[0].Value > 0.2 * range.Length))
+				for (int i = 0; i < allTicks.Count && !range.EncompassesValue(allTicks[i].Value); i++)
+					if (allTicks[i].Rank <= 2) startSkip = i; //found SubPrime before range!
+
+			int upto = allTicks.Count;
+			if (minReqTickCount == 0 && (!attemptBorderTicks || allTicks[allTicks.Count - 1].Value - range.Max > 0.2 * range.Length))
+				for (int i = allTicks.Count - 1; i >= 0 && !range.EncompassesValue(allTicks[i].Value); i--)
+					if (allTicks[i].Rank <= 2) upto = i + 1; //found SubPrime after range!
+
+			if (startSkip != 0 || upto != allTicks.Count && subDivTicks[0] == 2) //subdividing into a new significant digit!
+				slotOrderOfMagnitude--;
+
+
+			return allTicks.Skip(startSkip).Take(upto - startSkip).ToArray();
 		}
 
 		//static IEnumerable<int> SlotFactors {
@@ -727,7 +762,6 @@ namespace EmnExtensions.Wpf.Plot {
 		/// <param name="range"> the range of values to be ticked</param>
 		/// <param name="preferredNum">the preferred number of labelled ticks.  This method will deviate by at most a factor 0.5*sqrt(10) from that</param>
 		/// <param name="minReqTickCount">the minimal required tick count.  This method will always generate this many ticks, if necessary by padding the result.</param>
-		/// <param name="attemptBorderTicks">Whether to try and extend the minVal-maxVal data range to include the next logical ticks.  Set to false by the method if inadvisable (when the preferredNum is too small, for instance).</param>
 		/// <param name="slotSize">output: the distance between consecutive ticks</param>
 		/// <param name="firstTickAtSlotMultiple">output: the first tick is at this multiple of slotSize.</param>
 		/// <param name="lastTickAtSlotMultiple">output: the last tick is at this multiple of slotSize.</param>
@@ -736,7 +770,7 @@ namespace EmnExtensions.Wpf.Plot {
 		/// and slightly less when the actual number of slots greater than requested.</param>
 		/// <param name="tickCount">output: the number of major ticks the range has been subdived over.</param>
 		/// <param name="slotOrderOfMagnitude">output: The order of magnitude of the difference between consecutive major ticks, in base 10 - useful for deciding how many digits of a label to print.</param>
-		static void CalcTickPositions(DimensionBounds range, int minReqTickCount, double preferredNum, ref bool attemptBorderTicks, out double slotSize, out int slotOrderOfMagnitude, out long firstTickAtSlotMultiple, out long lastTickAtSlotMultiple, out int[] ticks, out int tickCount) {
+		static void CalcTickPositions(DimensionBounds range, int minReqTickCount, double preferredNum, out double slotSize, out int slotOrderOfMagnitude, out long firstTickAtSlotMultiple, out long lastTickAtSlotMultiple, out int[] ticks, out int tickCount) {
 			if (preferredNum > 10.0) preferredNum = Math.Sqrt(10 * preferredNum);
 
 			double idealSlotSize = range.Length / preferredNum;
@@ -771,8 +805,6 @@ namespace EmnExtensions.Wpf.Plot {
 
 			double effectiveStart = firstTickAtSlotMultiple * slotSize;
 			double effectiveEnd = lastTickAtSlotMultiple * slotSize;
-			if (minReqTickCount > 0) attemptBorderTicks = true;
-			else if (effectiveEnd - effectiveStart > 1.35 * range.Length) attemptBorderTicks = false;
 		}
 	}
 }
