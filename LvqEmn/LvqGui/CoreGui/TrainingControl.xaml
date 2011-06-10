@@ -74,6 +74,7 @@
             <TextBlock VerticalAlignment="Center" Margin="2"> upto </TextBlock>
             <TextBox Width="60" Text="{Binding ItersToTrainUpto,ValidatesOnExceptions=True}" />
             <TextBlock VerticalAlignment="Center" Margin="2"> iterations.</TextBlock>
+            <Button Content="(TrainAllUpto)" Click="TrainAllUpto" />
         </StackPanel>
 
         <CheckBox Grid.Row="5" Grid.Column="0"  Content="Animate" IsChecked="{Binding AnimateTraining}"/>
