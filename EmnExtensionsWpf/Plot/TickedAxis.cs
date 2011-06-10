@@ -14,7 +14,8 @@ namespace EmnExtensions.Wpf.Plot {
 		const double DefaultAxisLength = 1000.0;//assume we have this many pixels for estimates (i.e. measuring)
 		const double MinimumNumberOfTicks = 1.0;//don't bother rendering if we have fewer than this many ticks.
 		const int GridLineRanks = 3;
-		const double BaseTickWidth = 1.5;
+		const double BaseTickWidth = 1.25;
+		const double BaseGridlineWidth = 0.9;
 		const double FontSize = 12.0 * 4.0 / 3.0;//12pt = 12 pixels at 72dpi = 16pixels at 96dpi
 
 		static readonly Typeface m_typeface;
@@ -25,7 +26,7 @@ namespace EmnExtensions.Wpf.Plot {
 				.Select(rank => (GridLineRanks - rank) / (double)(GridLineRanks))
 				.Select(relevance => (Pen)new Pen {
 					Brush = (Brush)new SolidColorBrush(Color.FromScRgb(1.0f, (float)(1.0 - relevance), (float)(1.0 - relevance), (float)(1.0 - relevance))).GetAsFrozen(),
-					Thickness = BaseTickWidth * relevance * Math.Sqrt(relevance),
+					Thickness = BaseGridlineWidth * relevance * Math.Sqrt(relevance),
 					EndLineCap = PenLineCap.Flat,
 					StartLineCap = PenLineCap.Flat,
 					LineJoin = PenLineJoin.Bevel
@@ -182,7 +183,7 @@ namespace EmnExtensions.Wpf.Plot {
 					select tick.Value;
 			}
 		}
-		IEnumerable<Tick> ValuesNeedingLabels {
+		IEnumerable<Tick> TicksNeedingLabels {
 			get {
 				if (m_ticks == null) yield break;
 				for (int i = 0; i < m_ticks.Length; i++)
@@ -234,8 +235,8 @@ namespace EmnExtensions.Wpf.Plot {
 			if (m_tickLabels == null) {
 				m_tickLabels =
 				 (
-					from value in ValuesNeedingLabels
-					select Tuple.Create(value, MakeText(value.Value))
+					from tick in TicksNeedingLabels
+					select Tuple.Create(tick, MakeText(tick.Value))
 				).ToArray();
 				InvalidateRender();
 			}
@@ -265,7 +266,7 @@ namespace EmnExtensions.Wpf.Plot {
 						m_tickLabels.Select(label => label.Item2.Height).DefaultIfEmpty(0.0).Max()
 						);
 				else {
-					var canBeNegative = ValuesNeedingLabels.Any(value => value.Value < 0.0);
+					var canBeNegative = TicksNeedingLabels.Any(tick => tick.Value < 0.0);
 					var excessMagnitude = m_dataOrderOfMagnitude == 0 ? ComputedDataOrderOfMagnitude() : 0;
 					var textSample = MakeText(8.88888888888888888 * Math.Pow(10.0, excessMagnitude) * (canBeNegative ? -1 : 1));
 					return new Size(textSample.Width, textSample.Height);
@@ -701,9 +702,10 @@ namespace EmnExtensions.Wpf.Plot {
 			double totalSlotSize;
 			int[] subDivTicks;
 			long firstTickMult, lastTickMult;
+			int fixedSlot;
 
-			CalcTickPositions(range, minReqTickCount, preferredNum, out totalSlotSize, out slotOrderOfMagnitude, out firstTickMult, out lastTickMult, out subDivTicks, out tickCount);
-
+			CalcTickPositions(range, minReqTickCount, preferredNum, out totalSlotSize, out slotOrderOfMagnitude, out firstTickMult, out lastTickMult, out subDivTicks, out tickCount, out fixedSlot);
+			subDivTicks = subDivTicks.Take(1).ToArray();//TODO: does this look better?
 			//convert subDivTicks into "cumulative" multiples, i.e. 2,2,5 into 20,10,5,1
 			int[] subMultiple = new int[subDivTicks.Length + 1];
 			subMultiple[subDivTicks.Length] = 1;
@@ -735,8 +737,10 @@ namespace EmnExtensions.Wpf.Plot {
 				for (int i = allTicks.Count - 1; i >= 0 && !range.EncompassesValue(allTicks[i].Value); i--)
 					if (allTicks[i].Rank <= 2) upto = i + 1; //found SubPrime after range!
 
-			if (startSkip != 0 || upto != allTicks.Count && subDivTicks[0] == 2) //subdividing into a new significant digit!
+			if ((startSkip != 0 || upto != allTicks.Count) && fixedSlot == 1) {//subdividing into a new significant digit!
+				//Console.WriteLine("Subdividing for range " + allTicks[startSkip].Value.ToString("g3") + " - " + allTicks[upto - 1].Value.ToString("g3"));
 				slotOrderOfMagnitude--;
+			}
 
 
 			return allTicks.Skip(startSkip).Take(upto - startSkip).ToArray();
@@ -770,14 +774,13 @@ namespace EmnExtensions.Wpf.Plot {
 		/// and slightly less when the actual number of slots greater than requested.</param>
 		/// <param name="tickCount">output: the number of major ticks the range has been subdived over.</param>
 		/// <param name="slotOrderOfMagnitude">output: The order of magnitude of the difference between consecutive major ticks, in base 10 - useful for deciding how many digits of a label to print.</param>
-		static void CalcTickPositions(DimensionBounds range, int minReqTickCount, double preferredNum, out double slotSize, out int slotOrderOfMagnitude, out long firstTickAtSlotMultiple, out long lastTickAtSlotMultiple, out int[] ticks, out int tickCount) {
+		static void CalcTickPositions(DimensionBounds range, int minReqTickCount, double preferredNum, out double slotSize, out int slotOrderOfMagnitude, out long firstTickAtSlotMultiple, out long lastTickAtSlotMultiple, out int[] ticks, out int tickCount, out int fixedSlot) {
 			if (preferredNum > 10.0) preferredNum = Math.Sqrt(10 * preferredNum);
 
 			double idealSlotSize = range.Length / preferredNum;
 			slotOrderOfMagnitude = (int)Math.Floor(Math.Log10(idealSlotSize)); //i.e  for 143 or 971 this is 2
 			double baseSize = Math.Pow(10, slotOrderOfMagnitude);
 			double relSlotSize = idealSlotSize / baseSize; //some number between 1 and 10
-			int fixedSlot;
 
 			if (relSlotSize < 1.42) {
 				fixedSlot = 1;
@@ -802,9 +805,6 @@ namespace EmnExtensions.Wpf.Plot {
 			long extraNeeded = Math.Max(0, minReqTickCount - tickCount);
 			firstTickAtSlotMultiple -= extraNeeded / 2;
 			lastTickAtSlotMultiple += (extraNeeded + 1) / 2;
-
-			double effectiveStart = firstTickAtSlotMultiple * slotSize;
-			double effectiveEnd = lastTickAtSlotMultiple * slotSize;
 		}
 	}
 }
