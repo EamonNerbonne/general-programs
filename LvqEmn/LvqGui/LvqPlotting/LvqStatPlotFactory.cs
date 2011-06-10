@@ -40,8 +40,8 @@ namespace LvqGui {
 		}
 
 		public static readonly object IsCurrPlotTag = new object();
-		static PlotWithViz<LvqStatPlots> MakeCurrentModelPlot( string yunitLabel, Color color, int statIdx) {
-			return MakePlotHelper(null, color, yunitLabel, IsCurrPlotTag, SelectedModelToPointsMapper(statIdx), DashStyles.Dot);
+		static PlotWithViz<LvqStatPlots> MakeCurrentModelPlot(string yunitLabel, Color color, int statIdx) {
+			return MakePlotHelper(null, color, yunitLabel, IsCurrPlotTag, SelectedModelToPointsMapper(statIdx), new DashStyle(new[] { 0.0, 3.0 }, 0.0));
 		}
 
 		static PlotWithViz<LvqStatPlots> MakeMeanPlot(string dataLabel, string yunitLabel, Color color, int statIdx) {
@@ -67,9 +67,9 @@ namespace LvqGui {
 		}
 
 
-		static PlotWithViz<LvqStatPlots> MakeStderrRangePlot( string yunitLabel, Color color, int statIdx) {
+		static PlotWithViz<LvqStatPlots> MakeStderrRangePlot(string yunitLabel, Color color, int statIdx) {
 			//Blend(color, Colors.White)
-			color.ScA = 0.3f;
+			color.ScA = 0.25f;
 			return Plot.Create(
 				new PlotMetaData {
 					RenderColor = color,
