@@ -234,7 +234,8 @@ namespace LvqGui {
 					File.WriteAllBytes(modelDir.FullName + "\\" + filename, xpsBlob);
 					Console.Write(".");
 				}
-				File.WriteAllText(modelDir.FullName + "\\stats.txt", subplots.model.CurrentStatsString(subplots.dataset) );
+				File.WriteAllText(modelDir.FullName + "\\stats.txt", subplots.model.CurrentStatsString(subplots.dataset));
+				File.WriteAllText(modelDir.FullName + "\\fullstats.txt", subplots.model.CurrentFullStatsString(subplots.dataset));
 				Console.WriteLine("done.");
 			});
 		}
@@ -243,7 +244,7 @@ namespace LvqGui {
 			switch (fullname) {
 				case "Border Matrix absolute determinant": return "Bdet";
 				case "Border Matrix norm": return "Bnorm";
-				case "Projection Matrix": 
+				case "Projection Matrix":
 				case "Prototype Matrix": return "Pnorm";
 				case "Cost Function": return "cost";
 				case "Cumulative Learning Rates": return "cumullr";
