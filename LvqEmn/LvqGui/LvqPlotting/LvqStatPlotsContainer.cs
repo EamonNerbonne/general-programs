@@ -216,7 +216,7 @@ namespace LvqGui {
 				plotData.QueueUpdate();
 		}
 
-		static readonly DirectoryInfo outputDir = FSUtil.FindDataDir(@"uni\2009-Scriptie\Thesis\plots\xps\gen", typeof(LvqStatPlotsContainer));
+		static readonly DirectoryInfo outputDir = FSUtil.FindDataDir(@"uni\Thesis\doc\plots\xps\g", typeof(LvqStatPlotsContainer));
 		internal void SaveAllGraphs() {
 			lvqPlotDispatcher.BeginInvoke(() => {
 				if (subplots == null) { Console.WriteLine("No plots to save!"); return; }
