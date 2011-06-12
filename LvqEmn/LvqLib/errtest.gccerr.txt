@@ -1,0 +1,37 @@
+Using built-in specs.
+COLLECT_GCC=g++
+COLLECT_LTO_WRAPPER=c:/gcc/mingw64/bin/../libexec/gcc/x86_64-w64-mingw32/4.5.2/lto-wrapper.exe
+Target: x86_64-w64-mingw32
+Configured with: ../../../build/gcc/src/configure --target=x86_64-w64-mingw32 --prefix=/c/bb/vista64-mingw32/mingw-x86-x86_64/build/build/root --with-sysroot=/c/bb/vista64-mingw32/mingw-x86-x86_64/build/build/root --enable-languages=all,obj-c++ --enable-fully-dynamic-string --disable-multilib
+Thread model: win32
+gcc version 4.5.2 20101129 (prerelease) (GCC) 
+COLLECT_GCC_OPTIONS='-ID:\EamonLargeDocs\VersionControlled\eigen\' '-std=c++0x' '-march=core2' '-v' '-save-temps' '-shared-libgcc'
+ c:/gcc/mingw64/bin/../libexec/gcc/x86_64-w64-mingw32/4.5.2/cc1plus.exe -E -quiet -v -ID:\EamonLargeDocs\VersionControlled\eigen\ -iprefix c:\gcc\mingw64\bin\../lib/gcc/x86_64-w64-mingw32/4.5.2/ errtest.cpp -march=core2 -std=c++0x -fpch-preprocess -o errtest.ii
+ignoring nonexistent directory "c:/bb/vista64-mingw32/mingw-x86-x86_64/build/build/rootc:/bb/vista64-mingw32/mingw-x86-x86_64/build/build/root/include"
+ignoring duplicate directory "c:/gcc/mingw64/lib/gcc/../../lib/gcc/x86_64-w64-mingw32/4.5.2/include"
+ignoring duplicate directory "c:/gcc/mingw64/lib/gcc/../../lib/gcc/x86_64-w64-mingw32/4.5.2/include-fixed"
+ignoring nonexistent directory "c:/bb/vista64-mingw32/mingw-x86-x86_64/build/build/root/mingw/include"
+#include "..." search starts here:
+#include <...> search starts here:
+ D:\EamonLargeDocs\VersionControlled\eigen
+ c:\gcc\mingw64\bin\../lib/gcc/x86_64-w64-mingw32/4.5.2/include
+ c:\gcc\mingw64\bin\../lib/gcc/x86_64-w64-mingw32/4.5.2/include-fixed
+ c:/gcc/mingw64/lib/gcc/../../x86_64-w64-mingw32/include/c++/4.5.2
+ c:/gcc/mingw64/lib/gcc/../../x86_64-w64-mingw32/include/c++/4.5.2/x86_64-w64-mingw32
+ c:/gcc/mingw64/lib/gcc/../../x86_64-w64-mingw32/include/c++/4.5.2/backward
+ c:/gcc/mingw64/lib/gcc/../../x86_64-w64-mingw32/include
+End of search list.
+COLLECT_GCC_OPTIONS='-ID:\EamonLargeDocs\VersionControlled\eigen\' '-std=c++0x' '-march=core2' '-v' '-save-temps' '-shared-libgcc'
+ c:/gcc/mingw64/bin/../libexec/gcc/x86_64-w64-mingw32/4.5.2/cc1plus.exe -fpreprocessed errtest.ii -quiet -dumpbase errtest.cpp -march=core2 -auxbase errtest -std=c++0x -version -o errtest.s
+GNU C++ (GCC) version 4.5.2 20101129 (prerelease) (x86_64-w64-mingw32)
+	compiled by GNU C version 4.4.5 20101001 (release) [svn/rev.164871 - mingw-w64/oz], GMP version 5.0.1, MPFR version 2.4.2, MPC version 0.8.2
+GGC heuristics: --param ggc-min-expand=100 --param ggc-min-heapsize=131072
+GNU C++ (GCC) version 4.5.2 20101129 (prerelease) (x86_64-w64-mingw32)
+	compiled by GNU C version 4.4.5 20101001 (release) [svn/rev.164871 - mingw-w64/oz], GMP version 5.0.1, MPFR version 2.4.2, MPC version 0.8.2
+GGC heuristics: --param ggc-min-expand=100 --param ggc-min-heapsize=131072
+Compiler executable checksum: 4b983de43773a54b0e71a3e3293a9de5
+errtest.cpp: In lambda function:
+errtest.cpp:16:78: internal compiler error: in write_unnamed_type_name, at cp/mangle.c:1311
+Please submit a full bug report,
+with preprocessed source if appropriate.
+See <http://gcc.gnu.org/bugs.html> for instructions.
