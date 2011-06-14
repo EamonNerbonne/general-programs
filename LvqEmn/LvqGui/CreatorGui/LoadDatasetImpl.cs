@@ -14,7 +14,7 @@ using LvqFloat = System.Double;
 namespace LvqGui {
 	public static class LoadDatasetImpl {
 
-		static readonly DirectoryInfo dataDir = FSUtil.FindDataDir(@"data\datasets\");
+		static readonly DirectoryInfo dataDir = FSUtil.FindDataDir(new[] { @"data\datasets\", @"uni\Thesis\datasets\" },typeof(LoadDatasetImpl));
 
 		public static LvqDatasetCli Load(int folds, string name, uint rngInst) {
 			var dataFile = dataDir.GetFiles(name + ".data").FirstOrDefault();
