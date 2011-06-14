@@ -20,18 +20,29 @@ namespace LvqGui {
 			double[] lrPrange = ExtractLrs(fileLines.First(line => line.StartsWith("lrPrange:")));
 			double[] lrBrange = ExtractLrs(fileLines.First(line => line.StartsWith("lrBrange:")));
 			string[] resultLines = fileLines.SkipWhile(line => !line.StartsWith(".")).Skip(1).Where(line => !line.StartsWith("Search Complete!") && !string.IsNullOrWhiteSpace(line)).ToArray();
-			double[] lrOfBestResult = resultLines.First().SubstringBefore(":").Split('p', 'b').Select(double.Parse).ToArray();
-
-			double lr0 = ClosestMatch(lr0range, lrOfBestResult[0]);
-			double lrp = ClosestMatch(lrPrange, lrOfBestResult[1]);
-			double lrb = ClosestMatch(lrBrange, lrOfBestResult[2]);
+			var lr = resultLines.Select(resLine => ParseLine(resLine, lr0range, lrPrange, lrBrange)).OrderBy(resVal => resVal.Errors.training).First();
 			LvqModelSettingsCli retval = unoptimizedSettings.Copy();
-			retval.LR0 = lr0;
-			retval.LrScaleP = lrp;
-			retval.LrScaleB = lrb;
+			retval.LR0 = lr.Lr0;
+			retval.LrScaleP = lr.LrP;
+			retval.LrScaleB = lr.LrB;
 			retval.ParamsSeed = paramSeed ?? retval.ParamsSeed;
 			retval.InstanceSeed = instSeed ?? retval.InstanceSeed;
 			return retval;
+		}
+		struct Lrs { public double Lr0, LrP, LrB; public TestLr.ErrorRates Errors;}
+		private static Lrs ParseLine(string resultLine, double[] lr0range, double[] lrPrange, double[] lrBrange) {
+			var resLrThenErr = resultLine.Split(':');
+			double[] lrs = resLrThenErr[0].Split('p', 'b').Select(double.Parse).ToArray();
+			
+			var errsThenCumulLr0 = resLrThenErr[1].Split(';');
+
+			Tuple<double,double>[] errs = errsThenCumulLr0.Take(3).Select(errStr => errStr.Split('~').Select(double.Parse).ToArray() ).Select(errval=> Tuple.Create(errval[0],errval.Skip(1).FirstOrDefault())).ToArray();
+			return new Lrs {
+				Lr0 = ClosestMatch(lr0range, lrs[0]),
+				LrP = ClosestMatch(lrPrange, lrs[1]),
+				LrB = ClosestMatch(lrBrange, lrs[2]),
+				Errors = new TestLr.ErrorRates(errs[0].Item1, errs[0].Item2, errs[1].Item1, errs[1].Item2, errs[2].Item1, errs[2].Item2, double.Parse(errsThenCumulLr0[3].Trim(' ', '[', ']'))),
+			};
 		}
 
 		static readonly char[] comma = new[] { ',' };

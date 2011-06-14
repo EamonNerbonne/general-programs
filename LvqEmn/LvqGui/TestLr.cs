@@ -153,8 +153,17 @@ namespace LvqGui {
 			public Task<ErrorRates> errs;
 		}
 
-		struct ErrorRates {
+		public struct ErrorRates {
 			public readonly double training, trainingStderr, test, testStderr, nn, nnStderr, cumLearningRate;
+			public ErrorRates(double training, double trainingStderr, double test, double testStderr, double nn, double nnStderr, double cumLearningRate) {
+				this.training = training;
+				this.trainingStderr = trainingStderr;
+				this.test = test;
+				this.testStderr = testStderr;
+				this.nn = nn;
+				this.nnStderr = nnStderr;
+				this.cumLearningRate = cumLearningRate;
+			}
 			public ErrorRates(LvqMultiModel.Statistic stats, int nnIdx) {
 				training = stats.Value[LvqTrainingStatCli.TrainingErrorI];
 				test = stats.Value[LvqTrainingStatCli.TestErrorI];
@@ -192,7 +201,7 @@ namespace LvqGui {
 		Task Run(LvqModelSettingsCli settings, TextWriter sink) {
 			sink.WriteLine("Evaluating: " + settings.ToShorthand());
 			sink.WriteLine("Against: " + DatasetLabel);
-			return DTimer.TimeTask(()=>FindOptimalLr(sink, settings), time => sink.WriteLine("Search Complete!  Took " + time));
+			return DTimer.TimeTask(() => FindOptimalLr(sink, settings), time => sink.WriteLine("Search Complete!  Took " + time));
 		}
 		string DatasetLabel { get { return _dataset != null ? _dataset.DatasetLabel : "base"; } }
 
