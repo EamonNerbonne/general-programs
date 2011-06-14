@@ -34,6 +34,18 @@ namespace EmnExtensions.Filesystem
 				.Select(path => new DirectoryInfo(path))
 				.FirstOrDefault();
 		}
+		public static DirectoryInfo FindDataDir(string[] relpaths, Type relativeToAssemblyFor) {
+			return FindDataDir(relpaths, Assembly.GetAssembly(relativeToAssemblyFor));
+		}
+
+		public static DirectoryInfo FindDataDir(string[] relpaths, Assembly relativeTo = null) {
+			return new FileInfo((relativeTo ?? Assembly.GetCallingAssembly()).Location)
+				.Directory.ParentDirs()
+				.SelectMany(dir => relpaths.Select(relpath=>Path.Combine(dir.FullName + @"\", relpath)))
+				.Where(Directory.Exists)
+				.Select(path => new DirectoryInfo(path))
+				.FirstOrDefault();
+		}
 
 		/// <summary>
 		/// Returns the path of the tgtPath parameter relative to the basePath parameter.  Both parameters must be absolute paths.  
