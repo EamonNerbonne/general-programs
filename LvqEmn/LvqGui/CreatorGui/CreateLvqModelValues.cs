@@ -257,7 +257,7 @@ namespace LvqGui {
 		public string OptimizeButtonText { get { return HasOptimizedLr ? "Create with Optimal LR" : "Find optimal LR"; } }
 
 		public bool HasOptimizedLrAll { get { return DatasetResults.GetBestResults(ForDataset, settings.Copy()) != null; } }
-		public string OptimizeAllButtonText { get { return HasOptimizedLr ? "Create all types' with Optimal LR" : "Find all types' optimal LR"; } }
+		public string OptimizeAllButtonText { get { return HasOptimizedLrAll ? "Create all types' with Optimal LR" : "Find all types' optimal LR"; } }
 
 
 		internal void OptimizeLr() {//on gui thread.
@@ -304,6 +304,10 @@ namespace LvqGui {
 			if (bestResults == null)
 				OptimizeLrAll();
 			else {
+				foreach (var bres in bestResults)
+					Console.WriteLine(bres.resultsFile.Name);
+
+
 				Task.Factory
 					.StartNew(() => {
 						var newModels = bestResults.AsParallel().Select(res => new LvqMultiModel(dataset, res.GetOptimizedSettings())).ToArray();
