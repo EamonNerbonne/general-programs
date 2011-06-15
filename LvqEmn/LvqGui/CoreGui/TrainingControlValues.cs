@@ -38,7 +38,7 @@ namespace LvqGui {
 
 		public double ItersPerEpoch { get { return SelectedDataset == null ? double.NaN : GetItersPerEpoch(SelectedDataset); } }
 
-		static double GetItersPerEpoch(LvqDatasetCli dataset) { return (double)dataset.PointCount * (dataset.Folds() - 1L) / dataset.Folds(); }
+		static double GetItersPerEpoch(LvqDatasetCli dataset) { return (double)dataset.PointCount * (dataset.IsFolded() ? (dataset.Folds() - 1.0) / dataset.Folds() : 1.0); }
 
 		public LvqMultiModel SelectedLvqModel {
 			get { return _SelectedLvqModel; }
@@ -188,7 +188,7 @@ namespace LvqGui {
 			double uptoIters = ItersToTrainUpto;
 
 			var allModels = Owner.LvqModels.ToArray();
-			Parallel.ForEach(Partitioner.Create(allModels,true), new ParallelOptions { MaxDegreeOfParallelism = 3, CancellationToken = owner.WindowClosingToken }, model => {
+			Parallel.ForEach(Partitioner.Create(allModels, true), new ParallelOptions { MaxDegreeOfParallelism = 3, CancellationToken = owner.WindowClosingToken }, model => {
 				var dataset = model.InitSet;
 				int uptoEpochs = (int)(uptoIters / GetItersPerEpoch(dataset) + 0.5);
 				TrainSelectedModel((_dataset, _model) => {
@@ -297,6 +297,5 @@ namespace LvqGui {
 			var selectedModel = SelectedLvqModel;
 			return selectedModel != null ? selectedModel.CurrentLearningRate : 0.0;
 		}
-
 	}
 }
