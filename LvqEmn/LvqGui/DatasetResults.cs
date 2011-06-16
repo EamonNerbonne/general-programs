@@ -91,11 +91,12 @@ namespace LvqGui {
 		/// Gets the set of dataset lr-optimized results for the given dataset and settings with the largest number of iterations, or null if not all modeltype/prototype combos are done.
 		/// </summary>
 		public static DatasetResults[] GetBestResults(LvqDatasetCli dataset, LvqModelSettingsCli settings) {
-			var modelIgnoredSettings = WithoutModelAndPrototypes(WithoutLrOrSeeds(settings));
+			var settingsNoLr = WithoutLrOrSeeds(settings);
 
 			var matchingFiles =
 				from result in FromDataset(dataset)
-				where WithoutModelAndPrototypes(WithoutLrOrSeeds(result.unoptimizedSettings)).ToShorthand() == modelIgnoredSettings.ToShorthand()
+				where WithoutLrOrSeeds(result.unoptimizedSettings).ToShorthand() == 
+				 WithModelAndPrototypes(settingsNoLr , result.unoptimizedSettings.ModelType, result.unoptimizedSettings.PrototypesPerClass).ToShorthand()
 				group result by Tuple.Create(result.trainedIterations, result.resultsFile.Directory.Name) into resGroup
 				where resGroup.Select(res => new { res.unoptimizedSettings.ModelType, res.unoptimizedSettings.PrototypesPerClass })
 												.SetEquals(TestLr.ModelTypes.SelectMany(mt => TestLr.PrototypesPerClassOpts.Select(ppc => new { ModelType = mt, PrototypesPerClass = ppc })))
@@ -114,10 +115,10 @@ namespace LvqGui {
 			retval.InstanceSeed = 0;
 			return retval;
 		}
-		static LvqModelSettingsCli WithoutModelAndPrototypes(LvqModelSettingsCli p_settings) {
+		static LvqModelSettingsCli WithModelAndPrototypes(LvqModelSettingsCli p_settings,LvqModelType modelType, int protos) {
 			var retval = p_settings.Copy();
-			retval.ModelType = LvqModelType.Gm;
-			retval.PrototypesPerClass = 0;
+			retval.ModelType = modelType;
+			retval.PrototypesPerClass = protos;
 			return retval;
 		}
 
