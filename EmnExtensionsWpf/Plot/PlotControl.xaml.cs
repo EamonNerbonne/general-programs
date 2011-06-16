@@ -289,8 +289,8 @@ namespace EmnExtensions.Wpf.Plot {
 			base.OnRender(drawingContext);
 		}
 
-		double m_dpiX = 96.0;
-		double m_dpiY = 96.0;
+		double m_dpiX = 96;
+		double m_dpiY = 96;
 		bool manualRender;
 
 		void ExportGraph(object sender, RoutedEventArgs e) {
@@ -340,6 +340,7 @@ namespace EmnExtensions.Wpf.Plot {
 			} finally {
 				manualRender = false;
 				m_dpiX = 96.0; m_dpiY = 96.0;
+				RequireRedisplay();
 			}
 		}
 

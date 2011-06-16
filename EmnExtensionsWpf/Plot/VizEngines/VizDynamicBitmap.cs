@@ -81,7 +81,7 @@ namespace EmnExtensions.Wpf.Plot.VizEngines {
 			dataToBitmap.Scale(dpiX / 96.0, dpiY / 96.0); //transform from abstract units --> pixels
 
 			Matrix bitmapToDisplay = Matrix.Identity;
-			dataToBitmap.Scale(96.0 / dpiX, 96.0 / dpiY); //transform pixels --> abstract units
+			//bitmapToDisplay.Scale(96.0 / dpiX, 96.0 / dpiY); //transform pixels --> abstract units; not necessary, already done by WriteableBitmap's DPI setting.
 			bitmapToDisplay.Translate(snappedDrawingClip.X, snappedDrawingClip.Y); //transform coordinates --> real-location
 
 			return Tuple.Create(dataToBitmap, bitmapToDisplay);
