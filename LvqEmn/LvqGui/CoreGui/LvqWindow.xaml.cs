@@ -4,7 +4,9 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Media;
 using EmnExtensions.Wpf;
@@ -145,6 +147,25 @@ namespace LvqGui {
 				);
 		}
 
-		public void SaveAllGraphs() { lvqPlotContainer.SaveAllGraphs(); }
+		public Task SaveAllGraphs() {
+			var selectedModel = Values.TrainingControlValues.SelectedLvqModel;
+			var allmodels = Values.TrainingControlValues.MatchingLvqModels.ToArray();
+			var graphSettings = new { Values.TrainingControlValues.ShowBoundaries, Values.TrainingControlValues.ShowPrototypes,Values.TrainingControlValues.CurrProjStats };
+			lvqPlotContainer = lvqPlotContainer ?? new LvqStatPlotsContainer(ClosingToken);
+			TaskCompletionSource<object> done = new TaskCompletionSource<object>();
+			done.SetResult(null);
+			Task doneTask = done.Task;
+
+			return
+				allmodels.Aggregate(doneTask, (task, model) =>
+					task.ContinueWith(_ => lvqPlotContainer.DisplayModel(model.InitSet, model, model.SelectedSubModel, true, graphSettings.ShowBoundaries, graphSettings.ShowPrototypes)
+							.ContinueWith(__ => lvqPlotContainer.SaveAllGraphs()
+								.ContinueWith(___ => lvqPlotContainer.DisplayModel(model.InitSet, model, model.SelectedSubModel, false, graphSettings.ShowBoundaries, graphSettings.ShowPrototypes)
+									.ContinueWith(____ => lvqPlotContainer.SaveAllGraphs().Wait()).Wait()
+								).Wait()
+							).Wait()
+						)
+				).ContinueWith(_=>lvqPlotContainer.DisplayModel(selectedModel.InitSet,selectedModel,selectedModel.SelectedSubModel,graphSettings.CurrProjStats,graphSettings.ShowBoundaries,graphSettings.ShowPrototypes).Wait());
+		}
 	}
 }

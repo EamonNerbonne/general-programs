@@ -17,14 +17,15 @@ using System.IO;
 
 namespace LvqGui {
 	public sealed class LvqStatPlotsContainer : IDisposable {
-		readonly UpdateSync updateSync = new UpdateSync();
 		readonly object plotsSync = new object();
 		LvqStatPlots subplots;
 
 		readonly Dispatcher lvqPlotDispatcher;
+		readonly TaskScheduler lvqPlotTaskScheduler;//corresponds to lvqPlotDispatcher
 
-		public void DisplayModel(LvqDatasetCli dataset, LvqMultiModel model, int new_subModelIdx, bool showSelectedModelGraphs, bool showBoundaries, bool showPrototypes) {
-			lvqPlotDispatcher.BeginInvoke(() => {
+
+		public Task DisplayModel(LvqDatasetCli dataset, LvqMultiModel model, int new_subModelIdx, bool showSelectedModelGraphs, bool showBoundaries, bool showPrototypes) {
+			return lvqPlotTaskScheduler.StartNewTask(() => {
 				lock (plotsSync) {
 					if (dataset == null || model == null) {
 						subPlotWindow.Title = "No Model Selected";
@@ -59,14 +60,17 @@ namespace LvqGui {
 			QueueUpdate();
 		}
 
+		bool isShowingSelectedSubModelStats;
 		public void ShowCurrentProjectionStats(bool visible) {
-			lock (plotsSync)
+			lock (plotsSync) {
 				if (subplots != null && subplots.statPlots != null)
 					lvqPlotDispatcher.BeginInvoke(() => {
 						foreach (var plot in subplots.statPlots)
 							if (plot.Plot.MetaData.Tag == LvqStatPlotFactory.IsCurrPlotTag)
 								plot.Plot.MetaData.Hidden = !visible;
 					});
+				isShowingSelectedSubModelStats = visible;
+			}
 			QueueUpdate();
 		}
 
@@ -132,6 +136,7 @@ namespace LvqGui {
 			this.exitToken = exitToken;
 
 			lvqPlotDispatcher = WpfTools.StartNewDispatcher(ThreadPriority.BelowNormal);
+			lvqPlotTaskScheduler = lvqPlotDispatcher.GetScheduler().Result;
 			lvqPlotDispatcher.BeginInvoke(MakeSubPlotWindow);
 			exitToken.Register(() => lvqPlotDispatcher.InvokeShutdown());
 		}
@@ -160,24 +165,27 @@ namespace LvqGui {
 		}
 
 		void QueueUpdate() { ThreadPool.QueueUserWorkItem(UpdateQueueProcessor); }
+		readonly UpdateSync updateSync = new UpdateSync();
+
 		void UpdateQueueProcessor(object _) {
 			if (exitToken.IsCancellationRequested || !updateSync.UpdateEnqueue_IsMyTurn())
 				return;
+
 			LvqStatPlots currsubplots;
-
-			lock (plotsSync) {
-				currsubplots = subplots;
-			}
-
-			Task displayUpdateTask =
-				DisplayUpdateOperations(currsubplots)
-				.Aggregate(default(Task),
-					(current, currentOp) => current == null
-						? Task.Factory.StartNew((Action)(() => currentOp.Wait()))
-						: current.ContinueWith(task => currentOp.Wait())
-				);
+			lock (plotsSync) currsubplots = subplots;
+			Task displayUpdateTask = GetDisplayUpdateTask(currsubplots);
 
 			if (displayUpdateTask == null) { if (!updateSync.UpdateDone_IsQueueEmpty()) QueueUpdate(); } else displayUpdateTask.ContinueWith(task => { if (!updateSync.UpdateDone_IsQueueEmpty()) QueueUpdate(); });
+		}
+
+		static Task GetDisplayUpdateTask(LvqStatPlots currsubplots) {
+			lock (currsubplots)
+				return DisplayUpdateOperations(currsubplots)
+					.Aggregate(default(Task),
+							   (current, currentOp) => current == null
+														? Task.Factory.StartNew((Action)(() => currentOp.Wait()))
+														: current.ContinueWith(task => currentOp.Wait())
+					);
 		}
 
 		static IEnumerable<DispatcherOperation> DisplayUpdateOperations(LvqStatPlots subplots) {
@@ -216,13 +224,13 @@ namespace LvqGui {
 				plotData.QueueUpdate();
 		}
 
-		static readonly DirectoryInfo outputDir = FSUtil.FindDataDir(@"uni\Thesis\doc\plots\xps\g", typeof(LvqStatPlotsContainer));
-		internal void SaveAllGraphs() {
-			lvqPlotDispatcher.BeginInvoke(() => {
+		static readonly DirectoryInfo outputDir = FSUtil.FindDataDir(@"uni\Thesis\doc\plots\xps", typeof(LvqStatPlotsContainer));
+		internal Task SaveAllGraphs() {
+			return Task.Factory.StartNew(() => GetDisplayUpdateTask(subplots).Wait()).ContinueWith(_ => {
 				if (subplots == null) { Console.WriteLine("No plots to save!"); return; }
 				Console.Write("Saving");
 
-				DirectoryInfo datasetDir = outputDir.CreateSubdirectory(subplots.dataset.DatasetLabel);
+				DirectoryInfo datasetDir = outputDir.CreateSubdirectory((isShowingSelectedSubModelStats ? @"g2\" : @"g\") + subplots.dataset.DatasetLabel);
 				string modelLabel = subplots.model.ModelLabel.SubstringBefore("--") ?? subplots.model.ModelLabel;
 				DirectoryInfo modelDir = datasetDir.CreateSubdirectory(modelLabel);
 
@@ -237,7 +245,7 @@ namespace LvqGui {
 				File.WriteAllText(modelDir.FullName + "\\stats.txt", subplots.model.CurrentStatsString(subplots.dataset));
 				File.WriteAllText(modelDir.FullName + "\\fullstats.txt", subplots.model.CurrentFullStatsString(subplots.dataset));
 				Console.WriteLine("done.");
-			});
+			}, lvqPlotTaskScheduler);
 		}
 
 		static string plotnameLookup(string fullname) {
