@@ -15,7 +15,6 @@ using System.Windows.Threading;
 
 namespace EmnExtensions.Wpf {
 	public class LogControl : FlowDocumentScrollViewer {
-
 		public static Tuple<Window, LogControl> ShowNewLogWindow(string windowTitle = null, double? width = null, double? height = null) {
 			var logger = new LogControl();
 			var win = new Window {
@@ -33,11 +32,11 @@ namespace EmnExtensions.Wpf {
 			return Tuple.Create(win, logger);
 		}
 		//TODO: this doesn't yet work.
-		public static Tuple<Window, LogControl> ShowNewLogWindow_NewDispatcher(string windowTitle = null, double? width = null, double? height = null) {
-			var disp=WpfTools.StartNewDispatcher();
+		static Tuple<Window, LogControl> ShowNewLogWindow_NewDispatcher(string windowTitle = null, double? width = null, double? height = null) {
+			var disp = WpfTools.StartNewDispatcher();
 			return (Tuple<Window, LogControl>)disp.Invoke((Func<Tuple<Window, LogControl>>)(() => ShowNewLogWindow(windowTitle, width, height)));
 		}
-		
+
 
 		readonly StringBuilder curLine = new StringBuilder();
 		readonly DelegateTextWriter logger;
@@ -52,7 +51,7 @@ namespace EmnExtensions.Wpf {
 			VerticalScrollBarVisibility = ScrollBarVisibility.Auto;
 			Application.Current.MainWindow.Closed += LogControl_Unloaded;
 			Application.Current.Exit += LogControl_Unloaded;
-			Unloaded += LogControl_Unloaded;
+			//Unloaded += LogControl_Unloaded;
 		}
 
 
