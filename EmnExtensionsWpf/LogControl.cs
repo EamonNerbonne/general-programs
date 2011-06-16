@@ -52,13 +52,13 @@ namespace EmnExtensions.Wpf {
 			Application.Current.MainWindow.Closed += LogControl_Unloaded;
 			Application.Current.Exit += LogControl_Unloaded;
 			Unloaded += LogControl_Unloaded;
-			Loaded += new RoutedEventHandler(LogControl_Loaded);
+			Loaded += LogControl_Loaded;
 		}
 
 		bool wantsStdOut, wantsStdErr;
 		void LogControl_Loaded(object sender, RoutedEventArgs e) {
-			ClaimStandardOut = wantsStdOut;
-			ClaimStandardError = wantsStdErr;
+			ClaimStandardOut = wantsStdOut || ClaimStandardOut;
+			ClaimStandardError = wantsStdErr || ClaimStandardError;
 		}
 		void LogControl_Unloaded(object sender, EventArgs e) {
 			wantsStdErr = ClaimStandardError;
