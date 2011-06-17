@@ -120,10 +120,8 @@ namespace LastFMspider {
 		ArtistSetCurrentSimList c_ArtistSetCurrentSimList;
 		internal ArtistSetCurrentSimList ArtistSetCurrentSimList { get { lock (SyncRoot) return c_ArtistSetCurrentSimList ?? (c_ArtistSetCurrentSimList = new ArtistSetCurrentSimList(this)); } }
 
-		public LastFMSQLiteCache(SongDataConfigFile config, bool suppressCreation = false) : this(LastFmDbBuilder.DbFile(config), suppressCreation) { }
-
-		public LastFMSQLiteCache(FileInfo dbFile, bool suppressCreation) {
-			Connection = LastFmDbBuilder.ConstructConnection(dbFile);
+		public LastFMSQLiteCache(SongDataConfigFile config, bool suppressCreation=false) {
+			Connection = LastFmDbBuilder.ConstructConnection(config);
 			Connection.Open();
 			if (!suppressCreation)
 				try { LastFmDbBuilder.CreateTables(Connection); } catch (SQLiteException) { }//if we can't create, we just hope the tables are already OK.
