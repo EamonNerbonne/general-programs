@@ -301,7 +301,9 @@ a:focus {
     position: relative;
 }
 
+#playlistNames li { display:list-item; cursor:pointer; list-style-type:disc;}
 
+#playlistNames { padding-left:2em!important;}
 
 .similarItemsDisplay:before {
     display: block;

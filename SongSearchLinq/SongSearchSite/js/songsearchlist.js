@@ -329,6 +329,8 @@ $(document).ready(function ($) {
         var serializedList = JSON.stringify(savePlaylist());
         userOptions.serializedList.setValue(serializedList);
         localStorage.setItem("playlist", serializedList);               // defining the localStorage variable 
+
+        updatePlaylistContents(serializedList);
     }
 
     function playlistRefreshUi() {
@@ -368,6 +370,8 @@ $(document).ready(function ($) {
             );
         }
     }
+
+
 
 
     var simStateSet = {
@@ -528,12 +532,14 @@ $(document).ready(function ($) {
     }
 
     function addRowToPlaylist(clickedRowJQ) {
+        var artist = clickedRowJQ.attr("data-artist");
+        var title = clickedRowJQ.attr("data-title");
         addToPlaylist(
-            { label: clickedRowJQ.attr("data-label") || GetFileName(clickedRowJQ.attr("data-href")),
+            { label: artist&&title?null: clickedRowJQ.attr("data-label") || GetFileName(clickedRowJQ.attr("data-href")),
                 artist: clickedRowJQ.attr("data-artist"),
                 title: clickedRowJQ.attr("data-title"),
                 href: clickedRowJQ.attr("data-href"),
-                length: clickedRowJQ.attr("data-length"),
+                length: parseInt(clickedRowJQ.attr("data-length")),
                 replaygain: Number(clickedRowJQ.attr("data-replaygain")) || 0,
                 rating: Number(clickedRowJQ.attr("data-rating")),
                 popA: Number(clickedRowJQ.attr("data-popA")),
@@ -633,7 +639,7 @@ $(document).ready(function ($) {
             dt.setData("text/plain", getLabel(songdata));
             dt.setData("application/x-song", JSON.stringify({ song: songdata, position: draggedItem.prevAll().length }));
             dt.setData("text/uri-list", songdata.href);
-            dt.setData("Text", JSON.stringify({ song: songdata, position: draggedItem.prevAll().length }));//workaround for chrome...
+            dt.setData("Text", JSON.stringify({ song: songdata, position: draggedItem.prevAll().length })); //workaround for chrome...
             return true;
         });
         playlistElem.parent().bind("dragover", function (e) {
@@ -687,8 +693,121 @@ $(document).ready(function ($) {
 
             playlistRefreshUi();
         });
+    }
 
+    function ajaxLoadPlaylistNames() {
+        $.ajax({
+            type: "POST",
+            url: "list-all-playlists",
+            data: {},
+            timeout: 10000,
+            success: loadPlaylistNames,
+            error: function (xhr, status, errorThrown) { alert(errorThrown); }
+        });
+    }
+
+    var playlistNamesUl = $("#playlistNames");
+
+    function loadPlaylistNames(data) {
+        var known = data.known, unknown = data.unknown;
+        playlistNamesUl.empty();
+        for (var i = 0; i < data.length; i++) {
+            playlistNamesUl.append(
+                $(document.createElement("li"))
+                    .text(data[i].Username + "/" + data[i].PlaylistTitle)
+                    .attr("data-CumulativePlayCount", data[i].CumulativePlayCount)
+                    .data("playlist", data[i])
+            );
+        }
+    }
+    ajaxLoadPlaylistNames();
+
+    function playlistNameClick(e) {
+        if (!e) var e = window.event;
+        var target = e.target || e.srcElement;
+        var clickedListItem = $(target).parents().andSelf().filter("li").first();
+        var plData = clickedListItem.data("playlist");
+        var playlistID = plData.PlaylistID;
+        $.ajax({
+            type: "POST",
+            url: "load-playlist",
+            data: { playlistID: playlistID },
+            timeout: 10000,
+            success: function (data) {
+                currentlyLoadedSerializedPlaylist = data.PlaylistContents;
+                loadPlaylist(JSON.parse(data.PlaylistContents));
+                currentlyLoadedPlaylistID = playlistID;
+                savedPlaylistName = data.PlaylistTitle;
+                $("#playlistName")[0].value = data.PlaylistTitle;
+            },
+            error: function (xhr, status, errorThrown) { alert(errorThrown); }
+        });
 
     }
+    playlistNamesUl.click(playlistNameClick);
+
+    var currentlyLoadedPlaylistID, currentlyLoadedSerializedPlaylist;
+    var lastPlaylistName, savedPlaylistName;
+
+    function playlistNameChanged() {
+        var newPlaylistName = $("#playlistName")[0].value;
+        var nameChangeIsForID = currentlyLoadedPlaylistID;
+        lastPlaylistName = newPlaylistName;
+        if (newPlaylistName !== "") {
+            window.setTimeout(function () {
+                if (newPlaylistName === lastPlaylistName && savedPlaylistName !== newPlaylistName && nameChangeIsForID === currentlyLoadedPlaylistID) {
+                    savedPlaylistName = newPlaylistName;
+                    var encodedPlaylist = JSON.stringify(savePlaylist());
+                    currentlyLoadedSerializedPlaylist = encodedPlaylist;
+                    $.ajax({
+                        type: "POST",
+                        url: "store-playlist",
+                        data: { playlistTitle: newPlaylistName, playlistContents: encodedPlaylist },
+                        timeout: 1000,
+                        success: function (data) {
+                            currentlyLoadedPlaylistID = data;
+                            ajaxLoadPlaylistNames();
+                        },
+                        error: function (xhr, status, errorThrown) { alert(errorThrown); }
+                    });
+                }
+            }, 10000);
+        }
+    }
+
+    function updatePlaylistContents(serializedPlaylist) {
+        if (!currentlyLoadedPlaylistID || serializedPlaylist === currentlyLoadedSerializedPlaylist) return;
+        var newP = JSON.parse(serializedPlaylist);
+        var oldP = JSON.parse(currentlyLoadedSerializedPlaylist);
+        if (newP.length == oldP.length) {
+            var areSame = true;
+            for (var i = 0; i < newP.length; i++) {
+                for (var prop in newP[i]) {
+                    if (newP[i][prop] !== oldP[i][prop]) { areSame = false; alert(newP[i][prop] + " ~ " + oldP[i][prop]); break; }
+                }
+                for (var prop in oldP[i]) {
+                    if (newP[i][prop] !== oldP[i][prop]) { areSame = false; alert(newP[i][prop] + " ~ " + oldP[i][prop]); break; }
+                }
+                if (!areSame) break;
+            }
+            if (areSame) return;
+        }
+
+        $.ajax({
+            type: "POST",
+            url: "update-playlist",
+            data: { playlistTitle: savedPlaylistName, playlistContents: serializedPlaylist, lastVersionId: currentlyLoadedPlaylistID },
+            timeout: 1000,
+            success: function (data) {
+                currentlyLoadedPlaylistID = data;
+                ajaxLoadPlaylistNames();
+            },
+            error: function (xhr, status, errorThrown) { alert(errorThrown); }
+        });
+    }
+
+    $("#playlistName").keyup(playlistNameChanged).change(playlistNameChanged).blur(playlistNameChanged);
+
+
 });
 
