@@ -8,6 +8,8 @@ class Test {
 		int size = 10000000;
 		RunTests(size, x => false, false);
 		RunTests(size, x => true, false);
+		RunTests(size, x => false, false);
+		RunTests(size, x => true, false);
 		Console.WriteLine("Always false");
 		RunTests(size, x => false, true);
 
