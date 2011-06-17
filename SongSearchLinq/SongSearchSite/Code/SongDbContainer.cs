@@ -85,6 +85,7 @@ namespace SongSearchSite {
 		Task<SearchableSongFiles> searchEngine;
 		SongTools tools;
 		Task<FuzzySongSearcher> fuzzySearcher;
+		PlaylistDb playlistDb;
 		ConcurrentDictionary<SortOrdering, int[]> rankMap;
 
 		Task<SortedList<string, SongFileData>> localSongs;
@@ -121,6 +122,7 @@ namespace SongSearchSite {
 
 			searchEngine = searchData.ContinueWith(sd => new SearchableSongFiles(sd.Result, null));
 			fuzzySearcher = searchData.ContinueWith(sd => new FuzzySongSearcher(tools.SongFilesSearchData.Songs));
+			playlistDb = new PlaylistDb(tools.ConfigFile);
 			localSongs = searchData.ContinueWith(sd =>
 				new SortedList<string, SongFileData>(
 					tools.SongFilesSearchData.Songs.Where(s => s.IsLocal)
@@ -146,6 +148,7 @@ namespace SongSearchSite {
 		public static SearchableSongFiles SearchableSongDB { get { return Singleton.searchEngine.Result; } }
 		public static FuzzySongSearcher FuzzySongSearcher { get { return Singleton.fuzzySearcher.Result; } }
 		public static SongTools LastFmTools { get { return Singleton.tools; } }
+		public static PlaylistDb PlaylistDb { get { return Singleton.playlistDb; } }
 		public static DateTime LoadTime { get { return Singleton.loaded; } }
 		public static int[] RankMapFor(SortOrdering ordering) { return Singleton.RankMapForOrdering(ordering); }
 
