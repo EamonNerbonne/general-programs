@@ -42,6 +42,14 @@ namespace LvqLibCli {
 	}
 
 	Tuple<double,double> ^ LvqDatasetCli::GetPcaNnErrorRate() {
+		if(HasTestSet())
+			return Tuple::Create(
+				GetTrainingDataset()->NearestNeighborPcaErrorRate(
+					GetTrainingSubset(0),
+					GetTestDataset(),
+					GetTestSubset(0)
+				), double::NaN);
+				
 		SmartSum<1> nnErrorRate(1);
 		for(int fold=0;fold<folds;++fold) {
 			nnErrorRate.CombineWith(
