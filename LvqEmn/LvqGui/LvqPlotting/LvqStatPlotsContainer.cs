@@ -179,37 +179,37 @@ namespace LvqGui {
 		}
 
 		static Task GetDisplayUpdateTask(LvqStatPlots currsubplots) {
-			lock (currsubplots)
-				return DisplayUpdateOperations(currsubplots)
-					.Aggregate(default(Task),
-							   (current, currentOp) => current == null
-														? Task.Factory.StartNew((Action)(() => currentOp.Wait()))
-														: current.ContinueWith(task => currentOp.Wait())
-					);
+			return DisplayUpdateOperations(currsubplots)
+				.Aggregate(default(Task),
+						   (current, currentOp) => current == null
+													? Task.Factory.StartNew((Action)(() => currentOp.Wait()))
+													: current.ContinueWith(task => currentOp.Wait())
+				);
 		}
 
 		static IEnumerable<DispatcherOperation> DisplayUpdateOperations(LvqStatPlots subplots) {
-			if (subplots != null) {
-				var projectionAndImage = subplots.CurrentProjection();
+			if (subplots != null)
+				lock (subplots) {
+					var projectionAndImage = subplots.CurrentProjection();
 
-				if (projectionAndImage != null && subplots.prototypeClouds != null)
-					yield return subplots.scatterPlotControl.Dispatcher.BeginInvokeBackground(
-						() => {
-							subplots.SetScatterBounds(projectionAndImage.Bounds);
-							subplots.classBoundaries.ChangeData(projectionAndImage);
-							for (int i = 0; i < subplots.dataClouds.Length; ++i) {
-								subplots.dataClouds[i].ChangeData(projectionAndImage);
-								subplots.prototypeClouds[i].ChangeData(projectionAndImage);
-							}
-						});
+					if (projectionAndImage != null && subplots.prototypeClouds != null)
+						yield return subplots.scatterPlotControl.Dispatcher.BeginInvokeBackground(
+							() => {
+								subplots.SetScatterBounds(projectionAndImage.Bounds);
+								subplots.classBoundaries.ChangeData(projectionAndImage);
+								for (int i = 0; i < subplots.dataClouds.Length; ++i) {
+									subplots.dataClouds[i].ChangeData(projectionAndImage);
+									subplots.prototypeClouds[i].ChangeData(projectionAndImage);
+								}
+							});
 
-				var graphOperationsLazy =
-					from plot in subplots.statPlots
-					group plot by plot.Dispatcher into plotgroup
-					select plotgroup.Key.BeginInvokeBackground(() => { foreach (var sp in plotgroup) sp.ChangeData(subplots); });
+					var graphOperationsLazy =
+						from plot in subplots.statPlots
+						group plot by plot.Dispatcher into plotgroup
+						select plotgroup.Key.BeginInvokeBackground(() => { foreach (var sp in plotgroup) sp.ChangeData(subplots); });
 
-				foreach (var op in graphOperationsLazy) yield return op;
-			}
+					foreach (var op in graphOperationsLazy) yield return op;
+				}
 		}
 
 		public void Dispose() {
