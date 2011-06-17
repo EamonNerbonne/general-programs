@@ -125,6 +125,7 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Code\Handlers\PlaylistStorageHandler.cs" />
     <Compile Include="Code\Handlers\SongServeHandler.cs" />
     <Compile Include="Code\Handlers\SongServeRequestProcessor.cs" />
     <Compile Include="Code\Model\PlaylistEntry.cs" />
