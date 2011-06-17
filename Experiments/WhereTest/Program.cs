@@ -10,7 +10,7 @@ using PredFactory = System.Func<int, System.Func<int, bool>>;
 class Test {
 	static void Main() {
 		const int size = 10000;
-		const int repeats = 300;
+		const int repeats = 30;
 
 		var tests = new[]{
 			new { Name = "false", Query = (PredFactory)(n => x => false)},
@@ -25,7 +25,7 @@ class Test {
 			new { Name = "fast ", Filter = (FilterT)FastWhere},
 		};
 
-		foreach (var depth in Enumerable.Range(1, 5)) {
+		foreach (var depth in Enumerable.Range(1, 10)) {
 			foreach (var test in tests) {
 				foreach (var filterAndResult in filters
 						.Select(filter => new { filter.Name, Result = TimeFilteredEnumerableCount(depth, size, repeats, filter.Filter, test.Query) })
@@ -63,7 +63,7 @@ class Test {
 	}
 
 	static Tuple<double, int> TimeCount(int repeats, IEnumerable<int> input) {
-		return Enumerable.Repeat(input, 5).Select(list => TimeCountOnce(repeats, list)).OrderBy(x => x).Skip(1).First();
+		return Enumerable.Repeat(input, 50).Select(list => TimeCountOnce(repeats, list)).OrderBy(x => x).Skip(9).First();
 	}
 
 
@@ -105,29 +105,39 @@ class Test {
 			}
 		}
 
-		static AbstractEnumerator Create(FilterListEnum<T> filteredList) {
+		static AbstractEnumerator Create(FilterListEnum<T> filteredList)
+		{
 			if(filteredList.height==1)
-				return new Enumerator1(filteredList.pred, filteredList.list.GetEnumerator());
+				return new Enumerator1(filteredList);
+			else if (filteredList.height == 2)
+				return new Enumerator2(filteredList);
+			else if (filteredList.height == 3)
+				return new Enumerator3(filteredList);
+			else if (filteredList.height == 4)
+				return new Enumerator4(filteredList);
+			else if (filteredList.height == 5)
+				return new Enumerator5(filteredList);
+			else if (filteredList.height == 6)
+				return new Enumerator6(filteredList);
+			else //if (filteredList.height == 7)
+				return new Enumerator7(filteredList);
+		}
+
+		static AbstractEnumerator CreateArrayEnumerator(FilterListEnum<T> filteredList)
+		{
 			var pred = new Func<T, bool>[filteredList.height];
 			while (filteredList.height > 1) {
 				pred[filteredList.height - 1] = filteredList.pred;
 				filteredList = (FilterListEnum<T>)filteredList.list;
 			}
 			pred[0] = filteredList.pred;
-			var enumerator = filteredList.list.GetEnumerator();
-			if (pred.Length == 2)
-				return new Enumerator2(pred[0], pred[1], enumerator);
-			else if (pred.Length == 3)
-				return new Enumerator3(pred[0], pred[1], pred[2], enumerator);
-			else if (pred.Length == 4)
-				return new Enumerator4(pred[0], pred[1], pred[2], pred[3], enumerator);
-			else return new Enumerator(pred, filteredList.list.GetEnumerator());
+			return new ArrayEnumerator(pred, filteredList.list.GetEnumerator());
 		}
 
-		class Enumerator : AbstractEnumerator {
+		class ArrayEnumerator : AbstractEnumerator {
 			public readonly Func<T, bool>[] pred;
 
-			public Enumerator(Func<T, bool>[] pred, IEnumerator<T> underlying) : base(underlying) { this.pred = pred; }
+			public ArrayEnumerator(Func<T, bool>[] pred, IEnumerator<T> underlying) : base(underlying) { this.pred = pred; }
 			public override bool MoveNext() {
 				while (underlying.MoveNext()) {
 					var next = underlying.Current;
@@ -147,7 +157,7 @@ class Test {
 		class Enumerator1 : AbstractEnumerator {
 			public readonly Func<T, bool> pred1;
 
-			public Enumerator1(Func<T, bool> pred, IEnumerator<T> underlying) : base(underlying) { this.pred1 = pred; }
+			public Enumerator1(FilterListEnum<T> list) : base(list.list.GetEnumerator()) { this.pred1 = list.pred; }
 			public override bool MoveNext() {
 				while (underlying.MoveNext()) {
 					var next = underlying.Current;
@@ -163,7 +173,7 @@ class Test {
 		class Enumerator2 : Enumerator1 {
 			public readonly Func<T, bool> pred2;
 
-			public Enumerator2(Func<T, bool> pred1, Func<T, bool> pred2, IEnumerator<T> underlying) : base(pred1, underlying) { this.pred2 = pred2; }
+			public Enumerator2(FilterListEnum<T> list) : base((FilterListEnum<T>)list.list) { this.pred2 = list.pred; }
 			public override bool MoveNext() {
 				while (underlying.MoveNext()) {
 					var next = underlying.Current;
@@ -179,7 +189,7 @@ class Test {
 		class Enumerator3 : Enumerator2 {
 			public readonly Func<T, bool> pred3;
 
-			public Enumerator3(Func<T, bool> pred1, Func<T, bool> pred2, Func<T, bool> pred3, IEnumerator<T> underlying) : base(pred1,pred2,underlying) { this.pred3 = pred3; }
+			public Enumerator3(FilterListEnum<T> list) : base((FilterListEnum<T>)list.list) { this.pred3 = list.pred; }
 			public override bool MoveNext() {
 				while (underlying.MoveNext()) {
 					var next = underlying.Current;
@@ -195,11 +205,11 @@ class Test {
 		class Enumerator4 : Enumerator3 {
 			public readonly Func<T, bool> pred4;
 
-			public Enumerator4(Func<T, bool> pred1, Func<T, bool> pred2, Func<T, bool> pred3, Func<T, bool> pred4, IEnumerator<T> underlying) : base(pred1, pred2,pred3, underlying) { this.pred4 = pred4; }
+			public Enumerator4(FilterListEnum<T> list) : base((FilterListEnum<T>)list.list) { this.pred4 = list.pred; }
 			public override bool MoveNext() {
 				while (underlying.MoveNext()) {
 					var next = underlying.Current;
-					if (pred1(next) && pred2(next) && pred3(next) &&pred4(next)) {
+					if (pred1(next) && pred2(next) && pred3(next) && pred4(next)) {
 						current = next;
 						return true;
 					}
@@ -207,6 +217,54 @@ class Test {
 				return false;
 			}
 		}
+
+		class Enumerator5 : Enumerator4 {
+			public readonly Func<T, bool> pred5;
+
+			public Enumerator5(FilterListEnum<T> list) : base((FilterListEnum<T>)list.list) { this.pred5 = list.pred; }
+			public override bool MoveNext() {
+				while (underlying.MoveNext()) {
+					var next = underlying.Current;
+					if (pred1(next) && pred2(next) && pred3(next) && pred4(next) && pred5(next)) {
+						current = next;
+						return true;
+					}
+				}
+				return false;
+			}
+		}
+		class Enumerator6 : Enumerator5 {
+			public readonly Func<T, bool> pred6;
+
+			public Enumerator6(FilterListEnum<T> list) : base((FilterListEnum<T>)list.list) { this.pred6 = list.pred; }
+			public override bool MoveNext() {
+				while (underlying.MoveNext()) {
+					var next = underlying.Current;
+					if (pred1(next) && pred2(next) && pred3(next) && pred4(next) && pred5(next) && pred6(next)) {
+						current = next;
+						return true;
+					}
+				}
+				return false;
+			}
+		}
+		class Enumerator7 : Enumerator6 {
+			public readonly Func<T, bool> pred7;
+
+			public Enumerator7(FilterListEnum<T> list) : base((FilterListEnum<T>)list.list) { this.pred7 = list.pred; }
+			public override bool MoveNext() {
+				while (underlying.MoveNext()) {
+					var next = underlying.Current;
+					if (pred1(next) && pred2(next) && pred3(next) && pred4(next) && pred5(next) && pred6(next) && pred7(next)) {
+						current = next;
+						return true;
+					}
+				}
+				return false;
+			}
+		}
+
+
 
 		public IEnumerator<T> GetEnumerator() { return Create(this); }
 
