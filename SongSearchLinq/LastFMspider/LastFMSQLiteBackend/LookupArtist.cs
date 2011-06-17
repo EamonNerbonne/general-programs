@@ -6,13 +6,7 @@ namespace LastFMspider.LastFMSQLiteBackend {
 			: base(lfm) {
 			artistID = DefineParameter("@artistID");
 		}
-		protected override string CommandText {
-			get {
-				return @"
-SELECT FullArtist FROM [Artist] WHERE ArtistID = @artistID
-";
-			}
-		}
+		protected override string CommandText {get {return @"SELECT FullArtist FROM [Artist] WHERE ArtistID = @artistID";}}
 		readonly DbParameter artistID;
 
 		public string Execute(ArtistId ArtistID) {

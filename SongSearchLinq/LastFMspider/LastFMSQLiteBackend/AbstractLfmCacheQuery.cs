@@ -12,7 +12,7 @@ namespace LastFMspider.LastFMSQLiteBackend
             CommandObj.CommandText = CommandText;
         }
         protected abstract string CommandText { get; }
-        protected DbParameter DefineParameter(string name,DbType type = DbType.Object) {
+        protected DbParameter DefineParameter(string name, DbType type = DbType.Object) {
             DbParameter param = CommandObj.CreateParameter();
             param.ParameterName = name;
 			param.DbType = type;
