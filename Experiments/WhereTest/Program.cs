@@ -89,8 +89,25 @@ class Test {
 		public readonly IEnumerable<T> list;
 		public readonly int height;
 
-		static AbstractEnumerator Create(FilterListEnum<T> filteredList) {
-			if (filteredList.height == 1)
+		abstract class AbstractEnumerator : IEnumerator<T> {
+			protected T current;
+			public T Current { get { return current; } }
+			protected IEnumerator<T> underlying;
+			public void Dispose() { underlying.Dispose(); }
+			object System.Collections.IEnumerator.Current { get { return Current; } }
+			protected AbstractEnumerator(IEnumerator<T> underlying) { this.underlying = underlying; }
+
+			public abstract bool MoveNext();
+
+			public void Reset() {
+				current = default(T);
+				underlying.Reset();
+			}
+		}
+
+		static AbstractEnumerator Create(FilterListEnum<T> filteredList)
+		{
+			if(filteredList.height==1)
 				return new Enumerator1(filteredList);
 			else if (filteredList.height == 2)
 				return new Enumerator2(filteredList);
@@ -106,7 +123,8 @@ class Test {
 				return new Enumerator7(filteredList);
 		}
 
-		static AbstractEnumerator CreateArrayEnumerator(FilterListEnum<T> filteredList) {
+		static AbstractEnumerator CreateArrayEnumerator(FilterListEnum<T> filteredList)
+		{
 			var pred = new Func<T, bool>[filteredList.height];
 			while (filteredList.height > 1) {
 				pred[filteredList.height - 1] = filteredList.pred;
@@ -120,164 +138,130 @@ class Test {
 			public readonly Func<T, bool>[] pred;
 
 			public ArrayEnumerator(Func<T, bool>[] pred, IEnumerator<T> underlying) : base(underlying) { this.pred = pred; }
-			public override bool Predicate(T val) {
-				foreach (var subpred in pred)
-					if (!subpred(val))
-						return false;
-				return true;
-			}
-		}
-
-		abstract class AbstractEnumerator : IEnumerator<T> {
-			protected T current;
-			public T Current { get { return current; } }
-			protected IEnumerator<T> underlying;
-			public void Dispose() { underlying.Dispose(); }
-			object System.Collections.IEnumerator.Current { get { return Current; } }
-			protected AbstractEnumerator(IEnumerator<T> underlying) { this.underlying = underlying; }
-
-			public abstract bool Predicate(T val);
-
-			public bool MoveNext() {
+			public override bool MoveNext() {
 				while (underlying.MoveNext()) {
 					var next = underlying.Current;
-					if (Predicate(next)) {
-						current = next;
+					bool ok = true;
+					for (int i = 0; i < pred.Length; i++)
+						if (!pred[i](next)) {
+							ok = false;
+							break;
+						}
+					if (ok)
 						return true;
-					}
 				}
 				return false;
 			}
-
-
-			public void Reset() {
-				current = default(T);
-				underlying.Reset();
-			}
 		}
-
-		interface IPred {
-			bool Predicate(T val);
-			void Init(FilterListEnum<T> list);
-			IEnumerator<T> GetEnumerator();
-
-		}
-
-		struct SinglePred : IPred {
-			Func<T, bool> pred;
-			IEnumerator<T> enumerator;
-			public IEnumerator<T> GetEnumerator() { return enumerator; }
-			public bool Predicate(T val) { return pred(val); }
-			public void Init(FilterListEnum<T> list) {
-				enumerator = list.list.GetEnumerator();
-				pred = list.pred;
-			}
-		}
-
-		struct CombinedPred<TNext> : IPred where TNext : IPred {
-			Func<T, bool> pred;
-			TNext next;
-			public IEnumerator<T> GetEnumerator() { return next.GetEnumerator(); }
-			public bool Predicate(T val) { return next.Predicate(val) && pred(val); }
-			public void Init(FilterListEnum<T> list) {
-				pred = list.pred;
-				next.Init((FilterListEnum<T>)list.list);
-			}
-		}
-
-
-
-		sealed class EnumImpl<TPred> : IEnumerator<T> where TPred : IPred {
-			readonly IEnumerator<T> underlying;
-			readonly TPred pred;
-			public EnumImpl(TPred pred) { this.underlying = pred.GetEnumerator(); this.pred = pred; }
-			T current;
-			public T Current { get { return current; } }
-			public void Dispose() { underlying.Dispose(); }
-			object System.Collections.IEnumerator.Current { get { return Current; } }
-
-			public bool MoveNext() {
-				while (underlying.MoveNext()) {
-					var next = underlying.Current;
-					if (pred.Predicate(next)) {
-						current = next;
-						return true;
-					}
-				}
-				return false;
-			}
-
-			public void Reset() { current = default(T); underlying.Reset(); }
-		}
-
-		TPred CreatePred<TPred>() where TPred : IPred, new() { TPred retval = new TPred(); retval.Init(this); return retval; }
-		EnumImpl<TPred> CreatePredEnum<TPred>() where TPred : IPred, new() { return new EnumImpl<TPred>(CreatePred<TPred>()); }
-
-		IEnumerator<T> CreateGen(FilterListEnum<T> filteredList) {
-			if (filteredList.height == 1)
-				return CreatePredEnum<SinglePred>();
-			else if (filteredList.height == 2)
-				return CreatePredEnum<CombinedPred<SinglePred>>();
-			else if (filteredList.height == 3)
-				return CreatePredEnum<CombinedPred<CombinedPred<SinglePred>>>();
-			else if (filteredList.height == 4)
-				return CreatePredEnum<CombinedPred<CombinedPred<CombinedPred<SinglePred>>>>();
-			else if (filteredList.height == 5)
-				return CreatePredEnum<CombinedPred<CombinedPred<CombinedPred<CombinedPred<SinglePred>>>>>();
-			else if (filteredList.height == 6)
-				return CreatePredEnum<CombinedPred<CombinedPred<CombinedPred<CombinedPred<CombinedPred<SinglePred>>>>>>();
-			else //if (filteredList.height == 7)
-				return CreatePredEnum<CombinedPred<CombinedPred<CombinedPred<CombinedPred<CombinedPred<CombinedPred<SinglePred>>>>>>>();
-		}
-
-
 
 		class Enumerator1 : AbstractEnumerator {
 			public readonly Func<T, bool> pred1;
 
 			public Enumerator1(FilterListEnum<T> list) : base(list.list.GetEnumerator()) { this.pred1 = list.pred; }
-
-			public override bool Predicate(T val) { return pred1(val); }
+			public override bool MoveNext() {
+				while (underlying.MoveNext()) {
+					var next = underlying.Current;
+					if (pred1(next)) {
+						current = next;
+						return true;
+					}
+				}
+				return false;
+			}
 		}
 
 		class Enumerator2 : Enumerator1 {
 			public readonly Func<T, bool> pred2;
 
 			public Enumerator2(FilterListEnum<T> list) : base((FilterListEnum<T>)list.list) { this.pred2 = list.pred; }
-			public override bool Predicate(T val) { return base.Predicate(val) && pred2(val); }
+			public override bool MoveNext() {
+				while (underlying.MoveNext()) {
+					var next = underlying.Current;
+					if (pred1(next) && pred2(next)) {
+						current = next;
+						return true;
+					}
+				}
+				return false;
+			}
 		}
 
 		class Enumerator3 : Enumerator2 {
 			public readonly Func<T, bool> pred3;
 
 			public Enumerator3(FilterListEnum<T> list) : base((FilterListEnum<T>)list.list) { this.pred3 = list.pred; }
-			public override bool Predicate(T val) { return base.Predicate(val) && pred3(val); }
+			public override bool MoveNext() {
+				while (underlying.MoveNext()) {
+					var next = underlying.Current;
+					if (pred1(next) && pred2(next) && pred3(next)) {
+						current = next;
+						return true;
+					}
+				}
+				return false;
+			}
 		}
 
 		class Enumerator4 : Enumerator3 {
 			public readonly Func<T, bool> pred4;
 
 			public Enumerator4(FilterListEnum<T> list) : base((FilterListEnum<T>)list.list) { this.pred4 = list.pred; }
-			public override bool Predicate(T val) { return base.Predicate(val) && pred4(val); }
+			public override bool MoveNext() {
+				while (underlying.MoveNext()) {
+					var next = underlying.Current;
+					if (pred1(next) && pred2(next) && pred3(next) && pred4(next)) {
+						current = next;
+						return true;
+					}
+				}
+				return false;
+			}
 		}
 
 		class Enumerator5 : Enumerator4 {
 			public readonly Func<T, bool> pred5;
 
 			public Enumerator5(FilterListEnum<T> list) : base((FilterListEnum<T>)list.list) { this.pred5 = list.pred; }
-			public override bool Predicate(T val) { return base.Predicate(val) && pred5(val); }
+			public override bool MoveNext() {
+				while (underlying.MoveNext()) {
+					var next = underlying.Current;
+					if (pred1(next) && pred2(next) && pred3(next) && pred4(next) && pred5(next)) {
+						current = next;
+						return true;
+					}
+				}
+				return false;
+			}
 		}
 		class Enumerator6 : Enumerator5 {
 			public readonly Func<T, bool> pred6;
 
 			public Enumerator6(FilterListEnum<T> list) : base((FilterListEnum<T>)list.list) { this.pred6 = list.pred; }
-			public override bool Predicate(T val) { return base.Predicate(val) && pred6(val); }
+			public override bool MoveNext() {
+				while (underlying.MoveNext()) {
+					var next = underlying.Current;
+					if (pred1(next) && pred2(next) && pred3(next) && pred4(next) && pred5(next) && pred6(next)) {
+						current = next;
+						return true;
+					}
+				}
+				return false;
+			}
 		}
 		class Enumerator7 : Enumerator6 {
 			public readonly Func<T, bool> pred7;
 
 			public Enumerator7(FilterListEnum<T> list) : base((FilterListEnum<T>)list.list) { this.pred7 = list.pred; }
-			public override bool Predicate(T val) { return base.Predicate(val) && pred7(val); }
+			public override bool MoveNext() {
+				while (underlying.MoveNext()) {
+					var next = underlying.Current;
+					if (pred1(next) && pred2(next) && pred3(next) && pred4(next) && pred5(next) && pred6(next) && pred7(next)) {
+						current = next;
+						return true;
+					}
+				}
+				return false;
+			}
 		}
 
 
