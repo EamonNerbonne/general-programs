@@ -50,14 +50,15 @@ vector<Matrix_NN> MakeTailTransforms(boost::mt19937 & rndGen, int numStarTails, 
 typedef boost::uniform_int<> starChoiceDistrib;
 typedef boost::variate_generator<boost::mt19937 &, starChoiceDistrib> starChoiceGen;
 
-LvqDataset* CreateDataset::ConstructStarDataset(boost::mt19937 & rngParams, boost::mt19937 & rngInst, int dims, int starDims, int numStarTails, int classCount, int pointsPerClass, double starMeanSep, double starClassRelOffset, bool randomlyRotate, double noiseSigma){
+LvqDataset* CreateDataset::ConstructStarDataset(boost::mt19937 & rngParams, boost::mt19937 & rngInst, int dims, int starDims, int numStarTails, int classCount, int pointsPerClass,
+		double starMeanSep, double starClassRelOffset, bool randomlyRotate, double noiseSigma, double globalNoiseMaxSigma){
 	Matrix_NN postInitTransform = randomOrthogonalMatrix<Matrix_NN>(rngParams,dims);//always compute random transform, even if not needed, to ensure identical usage of random generator
 	if(!randomlyRotate) postInitTransform.setIdentity();
 
 	vector<Matrix_NN> tailTransforms = MakeTailTransforms(rngParams, numStarTails, starDims);
 	Matrix_NN tailMeans = MakeTailMeans(rngParams, numStarTails, starDims, starMeanSep);
 
-	starChoiceGen starRndChoose(rngInst, starChoiceDistrib(0, numStarTails -1));
+	starChoiceGen starRndChoose(rngInst, starChoiceDistrib(0, numStarTails - 1));
 
 	Vector_N starRaw(starDims),fullPoint(dims);
 	Matrix_NN points(dims, pointsPerClass * classCount);
@@ -79,6 +80,17 @@ LvqDataset* CreateDataset::ConstructStarDataset(boost::mt19937 & rngParams, boos
 			pointIndex++;
 		}
 	}
+
+	Vector_N perDimSigma(dims);
+	UniformRandomizeMatrix(perDimSigma, rngParams, 0.0, globalNoiseMaxSigma);
+	if(globalNoiseMaxSigma > 0.0) {
+		Matrix_NN globalNoise(dims, pointsPerClass * classCount);
+		RandomMatrixInit(rngInst, globalNoise, 0.0, 1.0);
+		globalNoise = perDimSigma.asDiagonal() * globalNoise;
+		points += globalNoise;
+	}
+
+
 	assert(pointIndex == pointsPerClass * classCount);
 	return new LvqDataset(points, pointLabels, classCount); 
 }

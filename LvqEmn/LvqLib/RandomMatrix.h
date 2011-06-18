@@ -1,5 +1,6 @@
 #pragma once
 #include "utils.h"
+#include <boost/random/uniform_real.hpp>
 
 template <typename T> T randomUnscalingMatrix(boost::mt19937 & rngParams, int dims) {
 	T P(dims, dims);
@@ -45,6 +46,15 @@ template <typename T> T randomOrthogonalMatrix(boost::mt19937 & rngParams, int d
 		}//Pdet should be 1, but we've lots of doubles and numeric accuracy is thus not perfect.
 	}
 	return P;
+}
+
+
+template <typename T> void UniformRandomizeMatrix(T& mat, boost::mt19937 & rngParams, double min, double max) {
+	boost::uniform_real<> distrib(min,max);
+	boost::variate_generator<boost::mt19937&, boost::uniform_real<> > rndGen(rngParams, distrib);
+	for(int j=0; j<mat.cols(); j++)
+		for(int i=0; i<mat.rows(); i++)
+			mat(i,j) = rndGen();
 }
 
 

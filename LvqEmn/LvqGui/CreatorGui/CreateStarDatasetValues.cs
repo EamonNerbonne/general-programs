@@ -58,6 +58,11 @@ namespace LvqGui {
 			set { if (value <= 0.0) throw new ArgumentException("Standard deviation must be positive"); if (!settings.NoiseSigma.Equals(value)) { settings.NoiseSigma = value; _propertyChanged("NoiseSigma"); } }
 		}
 
+		public double GlobalNoiseMaxSigma {
+			get { return settings.GlobalNoiseMaxSigma; }
+			set { if (value < 0.0) throw new ArgumentException("Standard deviation must be non-negative"); if (!settings.GlobalNoiseMaxSigma.Equals(value)) { settings.GlobalNoiseMaxSigma = value; _propertyChanged("GlobalNoiseMaxSigma"); } }
+		}
+
 		public uint ParamsSeed {
 			get { return settings.ParamsSeed; }
 			set { if (!Equals(settings.ParamsSeed, value)) { settings.ParamsSeed = value; _propertyChanged("ParamsSeed"); } }

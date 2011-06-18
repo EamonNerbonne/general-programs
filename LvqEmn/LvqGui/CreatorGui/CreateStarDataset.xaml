@@ -69,17 +69,19 @@
 
         <Label Grid.Row="13">Noise dimensions deviation</Label>
         <TextBox  Grid.Row="13" Grid.Column="1" Text="{Binding NoiseSigma, Mode=TwoWay, ValidatesOnExceptions=True}" />
+        <Label Grid.Row="14">Extra global noise</Label>
+        <TextBox  Grid.Row="14" Grid.Column="1" Text="{Binding GlobalNoiseMaxSigma, Mode=TwoWay, ValidatesOnExceptions=True}" />
 
-        <Label Grid.Row="14">Fold count</Label>
-        <TextBox  Grid.Row="14" Grid.Column="1" Text="{Binding Folds, Mode=TwoWay, ValidatesOnExceptions=True}" />
-        <Button Grid.Row="15" Content="Reset Parameter Seed"  Click="ReseedParam" />
-        <TextBox Grid.Row="15"  Grid.Column="1"  Text="{Binding ParamsSeed, Mode=TwoWay, ValidatesOnExceptions=True, Converter={StaticResource hexConverter}}" />
-        <Button  Grid.Row="16" Content="Reset Instantiation Seed" Click="ReseedInst"/>
-        <TextBox Grid.Row="16"  Grid.Column="1"  Text="{Binding InstanceSeed, Mode=TwoWay, ValidatesOnExceptions=True, Converter={StaticResource hexConverter}}" />
-        <Label Grid.Row="17">Shorthand</Label>
-        <TextBox  Grid.Row="17" Grid.Column="1" Text="{Binding Shorthand, Mode=TwoWay, ValidatesOnExceptions=True, UpdateSourceTrigger=PropertyChanged}" />
+        <Label Grid.Row="15">Fold count</Label>
+        <TextBox  Grid.Row="15" Grid.Column="1" Text="{Binding Folds, Mode=TwoWay, ValidatesOnExceptions=True}" />
+        <Button Grid.Row="16" Content="Reset Parameter Seed"  Click="ReseedParam" />
+        <TextBox Grid.Row="16"  Grid.Column="1"  Text="{Binding ParamsSeed, Mode=TwoWay, ValidatesOnExceptions=True, Converter={StaticResource hexConverter}}" />
+        <Button  Grid.Row="17" Content="Reset Instantiation Seed" Click="ReseedInst"/>
+        <TextBox Grid.Row="17"  Grid.Column="1"  Text="{Binding InstanceSeed, Mode=TwoWay, ValidatesOnExceptions=True, Converter={StaticResource hexConverter}}" />
+        <Label Grid.Row="18">Shorthand</Label>
+        <TextBox  Grid.Row="18" Grid.Column="1" Text="{Binding Shorthand, Mode=TwoWay, ValidatesOnExceptions=True, UpdateSourceTrigger=PropertyChanged}" />
 
-        <Button  Grid.Row="18" Grid.Column="0" Grid.ColumnSpan="2" Click="buttonGenerateDataset_Click"  VerticalAlignment="Top">Generate Star Dataset</Button>
-        <Label Grid.Row="19" Grid.ColumnSpan="2" Content="{Binding ShorthandErrors, Mode=OneWay}" HorizontalAlignment="Left" />
+        <Button  Grid.Row="19" Grid.Column="0" Grid.ColumnSpan="2" Click="buttonGenerateDataset_Click"  VerticalAlignment="Top">Generate Star Dataset</Button>
+        <Label Grid.Row="20" Grid.ColumnSpan="2" Content="{Binding ShorthandErrors, Mode=OneWay}" HorizontalAlignment="Left" />
     </Grid>
 </UserControl>

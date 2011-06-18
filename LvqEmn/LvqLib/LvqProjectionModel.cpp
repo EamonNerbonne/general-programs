@@ -11,6 +11,7 @@ void LvqProjectionModel::AppendTrainingStatNames(std::vector<std::wstring> & ret
 	if(settings.TrackProjectionQuality)
 		retval.push_back(L"Projected NN Error Rate!error rate!Projection Quality");
 }
+
 void LvqProjectionModel::AppendOtherStats(std::vector<double> & stats, LvqDataset const * trainingSet, std::vector<int>const & trainingSubset, LvqDataset const * testSet, std::vector<int>const & testSubset) const { 
 	LvqModel::AppendOtherStats(stats,trainingSet,trainingSubset,testSet,testSubset);
 	if(!dynamic_cast<GgmLvqModel const*>(this))

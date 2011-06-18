@@ -20,6 +20,8 @@ namespace LvqGui {
 		public double ClusterCenterDeviation = 1.5;
 		public double IntraClusterClassRelDev = 0.5;
 		public double NoiseSigma = 1.0;
+		public double GlobalNoiseMaxSigma = 0.0;
+
 		public uint ParamsSeed;
 		public uint InstanceSeed;
 		public int Folds = 10;
@@ -36,7 +38,7 @@ namespace LvqGui {
 				(?<NumberOfClasses>\d+)x(?<PointsPerClass>\d+)
 				,(?<NumberOfClusters>\d+)
 				\((?<ClusterDimensionality>\d+)D(?<RandomlyTransformFirst>r?)\)
-				x(?<ClusterCenterDeviation>[^~i]+)[~i](?<IntraClusterClassRelDev>[^\[n]+)(n(?<NoiseSigma>[^\[]+))?
+				x(?<ClusterCenterDeviation>[^~i]+)[~i](?<IntraClusterClassRelDev>[^\[n]+)(n(?<NoiseSigma>[^\[]+))?(g(?<GlobalNoiseMaxSigma>[^\[]+))?
 				\[(?<ParamsSeed_>[0-9a-fA-F]+),(?<InstanceSeed_>[0-9a-fA-F]+)\]
 				\^(?<Folds>\d+)\s*$"
 				+ "|" +
@@ -55,10 +57,14 @@ namespace LvqGui {
 
 		public string Shorthand {
 			get {
-				return "star-" + Dimensions + "D" + (ExtendDataByCorrelation ? "x" : "") + (NormalizeDimensions ? "n" : "") + "-" + NumberOfClasses + "x" + PointsPerClass + "," + NumberOfClusters + "(" + ClusterDimensionality + "D" + (RandomlyTransformFirst ? "r" : "") + ")x" + ClusterCenterDeviation.ToString("r") + "i" + IntraClusterClassRelDev.ToString("r") + (
-				NoiseSigma != 1.0 ? "n" + NoiseSigma.ToString("r") : "") + "[" + ParamsSeed.ToString("x") + "," + InstanceSeed.ToString("x") + "]^" + Folds;
+				return "star-" + Dimensions + "D" + (ExtendDataByCorrelation ? "x" : "") + (NormalizeDimensions ? "n" : "") + "-" + NumberOfClasses + "x" + PointsPerClass + "," + NumberOfClusters + "(" + ClusterDimensionality + "D" + (RandomlyTransformFirst ? "r" : "") + ")x" + ClusterCenterDeviation.ToString("r") + "i" + IntraClusterClassRelDev.ToString("r")
+					+ (NoiseSigma != 1.0 ? "n" + NoiseSigma.ToString("r") : "") + (GlobalNoiseMaxSigma != 0.0 ? "g" + GlobalNoiseMaxSigma.ToString("r") : "") + "[" + ParamsSeed.ToString("x") + "," + InstanceSeed.ToString("x") + "]^" + Folds;
 			}
-			set { ShorthandHelper.ParseShorthand(this, shR, value); }
+			set {
+				var updated = ShorthandHelper.ParseShorthand(this, shR, value);
+				if (!updated.Contains("NoiseSigma")) NoiseSigma = 1.0;
+				if (!updated.Contains("GlobalNoiseMaxSigma")) GlobalNoiseMaxSigma = 0.0;
+			}
 		}
 
 		public string ShorthandErrors { get { return ShorthandHelper.VerifyShorthand(this, shR); } }
@@ -78,7 +84,8 @@ namespace LvqGui {
 				starMeanSep: ClusterCenterDeviation,
 				starClassRelOffset: IntraClusterClassRelDev,
 				randomlyTransform: RandomlyTransformFirst,
-				noiseSigma: NoiseSigma
+				noiseSigma: NoiseSigma,
+				globalNoiseMaxSigma: GlobalNoiseMaxSigma
 			);
 		}
 	}
