@@ -1,14 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Text;
 using System.Web;
-using LastFMspider;
 using Newtonsoft.Json;
-using SongDataLib;
-using SongSearchSite.Code.Model;
-using Ionic.Zip;
 
 namespace SongSearchSite.Code.Handlers {
 	public class PlaylistStorageHandler : IHttpHandler {
@@ -37,8 +31,8 @@ namespace SongSearchSite.Code.Handlers {
 					return null;
 				case "~/update-playcount":
 //					db.UpdatePlaycount(long.Parse(context.Request["playlistID"]), DateTime.UtcNow);
+//					return null;
 					throw new NotImplementedException();
-					return null;
 				case "~/list-all-playlists":
 					return db.ListAllPlaylists();
 				case "~/list-user-playlists":

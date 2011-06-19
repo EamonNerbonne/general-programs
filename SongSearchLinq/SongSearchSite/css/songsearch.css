@@ -271,31 +271,31 @@ a:focus {
 #similar {
     padding-top: 0.3em;
 }
-#similar ul {
+.known, .unknown {
     display: block;
     margin: 0;
     padding: 0;
     padding-left: 1%;
     padding-right: 1%;
 }
-#similar li {
+.unknown {
+    float: left;
+    width: 35%;
+    color: #93a1a1;
+    font-size: 80%;
+}
+.known {
+    float: right;
+    width: 60%;
+}
+.known li, .unknown li {
     display: block;
     font-size: 80.0%;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
-#similar .unknown {
-    float: left;
-    width: 35%;
-    color: #93a1a1;
-    font-size: 80%;
-}
-#similar .known {
-    float: right;
-    width: 60%;
-}
-#similar .known li {
+.known li {
     cursor: pointer;
     border-bottom: 1px solid #eee8d5;
     position: relative;

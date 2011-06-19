@@ -104,7 +104,6 @@
     <Compile Include="ArbitraryTrackMapper.cs" />
     <Compile Include="ArtistSimilarityList.cs" />
     <Compile Include="ArtistTopTracksListInfo.cs" />
-    <Compile Include="Dictionary.cs" />
     <Compile Include="PlaylistDb.cs" />
     <Compile Include="PlaylistDbBuilder.cs" />
     <Compile Include="DbPool.cs" />
