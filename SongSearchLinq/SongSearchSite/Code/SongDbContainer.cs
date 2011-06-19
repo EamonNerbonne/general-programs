@@ -166,10 +166,10 @@ namespace SongSearchSite {
 		/// <summary>
 		/// Determines whether a given path maps to an indexed, local song.  If it doesn't, it returns null.  If it does, it returns the meta data known about the song, including the song's "real" path.
 		/// </summary>
+		/// <param name="appBaseUri"></param>
 		/// <param name="reqPath">Application relative request path</param>
-		public static SongFileData GetSongFromFullUri(HttpContext context, string reqPath) {
+		public static SongFileData GetSongFromFullUri(Uri appBaseUri, string reqPath) {
 			//reqPath might be relative or absolute.
-			Uri appBaseUri = AppBaseUri(context);
 			Uri songUri = new Uri(appBaseUri, reqPath);
 			string appRelativeUri = Uri.UnescapeDataString(appBaseUri.MakeRelativeUri(songUri).ToString());
 			if (!appRelativeUri.StartsWith(songsPrefix))

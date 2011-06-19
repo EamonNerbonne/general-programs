@@ -9,6 +9,7 @@ using EmnExtensions;
 using System.Net;
 using System.Diagnostics;
 using LastFMspider.LastFMSQLiteBackend;
+using SongDataLib;
 
 namespace LastFMspider.OldApi {
 	public class OldApiClient {

@@ -2,6 +2,7 @@
 using System.Data;
 using System.Data.Common;
 using System.Linq;
+using SongDataLib;
 
 namespace LastFMspider.LastFMSQLiteBackend {
 	public class InsertArtistTopTracksList : AbstractLfmCacheQuery {

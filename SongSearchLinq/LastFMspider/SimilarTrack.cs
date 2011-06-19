@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Runtime.Serialization;
-using LastFMspider.LastFMSQLiteBackend;
+﻿using LastFMspider.LastFMSQLiteBackend;
+using SongDataLib;
 
 namespace LastFMspider {
 	public struct SimilarTrack {

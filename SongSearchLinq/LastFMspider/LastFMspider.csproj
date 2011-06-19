@@ -169,7 +169,6 @@
     <Compile Include="ReachList.cs" />
     <Compile Include="SimilarityList.cs" />
     <Compile Include="SimilarTrack.cs" />
-    <Compile Include="SongRef.cs" />
     <Compile Include="SongSimilarityCache.cs" />
     <Compile Include="SongSimilarityList.cs" />
     <Compile Include="TagRef.cs" />

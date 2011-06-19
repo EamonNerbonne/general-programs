@@ -16,9 +16,10 @@ namespace SongSearchSite.Code.Handlers {
 				PlaylistEntry[] playlistFromJson = JsonConvert.DeserializeObject<PlaylistEntry[]>(context.Request["playlist"]);
 				var playlistSongNames =
 					from entry in playlistFromJson
-					let songdata = entry.LookupBestGuess(context) as SongFileData
+					let songdata = entry.LookupBestGuess(SongDbContainer.AppBaseUri(context)) as SongFileData
 					where songdata != null
-					select SongRef.Create(songdata);
+					from songref in songdata.PossibleSongs
+					select songref;
 
 				var timer = Stopwatch.StartNew();
 				var res =

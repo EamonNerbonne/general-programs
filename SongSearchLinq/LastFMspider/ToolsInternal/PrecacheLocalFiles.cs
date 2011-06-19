@@ -1,11 +1,9 @@
 ﻿using System;
+using System.Globalization;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using EmnExtensions.Algorithms;
-using LastFMspider.LastFMSQLiteBackend;
-using LastFMspider.OldApi;
-using System.Globalization;
+using SongDataLib;
 
 namespace LastFMspider {
 	internal static partial class ToolsInternal {
@@ -32,7 +30,7 @@ namespace LastFMspider {
 
 			Console.WriteLine("Loading song database...");
 			Console.WriteLine("Taking those {0} songs and indexing em by artist/title...", tools.SongFilesSearchData.SongFileCount);
-			SongRef[] songsToDownload = tools.SongFilesSearchData.Songs.Select(SongRef.Create).Where(sd => sd != null).ToArray();
+			SongRef[] songsToDownload = tools.SongFilesSearchData.Songs.SelectMany(songfile=>songfile.PossibleSongs).ToArray();
 			if (shuffle)
 				songsToDownload.Shuffle();
 			tools.UnloadDB();

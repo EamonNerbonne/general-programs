@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.IO;
 using System.Threading;
+using System.Web;
 using HttpHeaderHelper;
 using SongDataLib;
 
@@ -15,7 +16,8 @@ namespace SongSearchSite.Code.Handlers
 		public void ProcessingStart() { }
 
 		public PotentialResourceInfo DetermineResource() {
-			song = SongDbContainer.GetSongFromFullUri(helper.Context,helper.Context.Request.AppRelativeCurrentExecutionFilePath.Substring(2));
+			HttpContext context = helper.Context;
+			song = SongDbContainer.GetSongFromFullUri(SongDbContainer.AppBaseUri(context), helper.Context.Request.AppRelativeCurrentExecutionFilePath.Substring(2));
 			if (song == null)
 				return new ResourceError {
 				                         	Code = 404,

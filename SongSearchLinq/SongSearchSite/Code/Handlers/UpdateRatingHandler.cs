@@ -16,7 +16,7 @@ namespace SongSearchSite.Code.Handlers {
 			try {
 				var escapedSongUri = context.Request["songuri"];
 				var newRating = context.Request["rating"].ParseAsInt32();
-				var songdata = SongDbContainer.GetSongFromFullUri(context, escapedSongUri) as SongFileData;
+				var songdata = SongDbContainer.GetSongFromFullUri(SongDbContainer.AppBaseUri(context), escapedSongUri) as SongFileData;
 				songdata.rating = newRating == 0 ? null : newRating;
 
 				bool ok = false;

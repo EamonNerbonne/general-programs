@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using SongDataLib;
 
 namespace LastFMspider {
 	internal static partial class ToolsInternal {

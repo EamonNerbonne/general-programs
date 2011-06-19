@@ -10,8 +10,8 @@ using SongDataLib;
 namespace LastFMspider {
 
 	public struct PlaylistSongMatch {
-		public static PlaylistSongMatch? Compare(PartialSongFileData orig, SongFileData opt) {
-			double lenC = Math.Abs(orig.Length - opt.Length);
+		public static PlaylistSongMatch? Compare(MinimalSongFileData orig, SongFileData opt) {
+			double lenC = orig.Length == 0 ? 7.5 : Math.Abs(orig.Length - opt.Length);
 			if (lenC > 15) return null;
 			string optFileName = RepairPlaylist.NormalizedFileName(Path.GetFileName(opt.SongUri.ToString()));
 			string origFilename = RepairPlaylist.NormalizedFileName(orig.SongUri.ToString());
@@ -30,7 +30,7 @@ namespace LastFMspider {
 		}
 
 		public SongFileData SongData;
-		public PartialSongFileData Orig;
+		public MinimalSongFileData Orig;
 		public double Cost;
 		double LenC, NameC, TagC;
 
@@ -63,13 +63,21 @@ namespace LastFMspider {
 			}
 			return playlistfixed;
 		}
+
+		const double AcceptableCost = 7.5;
+
+		public static SongFileData FindBestSufficientMatch(FuzzySongSearcher fuzzySearcher, MinimalSongFileData song) {
+			PlaylistSongMatch best = FindBestMatch2(fuzzySearcher, song);
+			return best.Cost > AcceptableCost ? null : best.SongData;
+		}
+
 		private static SongFileData FindBestSufficientMatchWithLogging(FuzzySongSearcher fuzzySearcher, PartialSongFileData song, Action<PartialSongFileData> nomatch, Action<PlaylistSongMatch> toobad, Action<PlaylistSongMatch> iffy, Action<PlaylistSongMatch> matchfound) {
 			PlaylistSongMatch best = FindBestMatch2(fuzzySearcher, song);
 			if (best.SongData == null)
 				nomatch(song);
-			else if (best.Cost < 6 && SongRef.PossibleSongRefs(song.HumanLabel).Any(songref => songref.Equals(SongRef.Create(best.SongData))))
+			else if (best.Cost < 6 && song.PossibleSongs.Intersect(best.SongData.PossibleSongs).Any())
 				matchfound(best);
-			else if (best.Cost <= 7.5)
+			else if (best.Cost <= AcceptableCost)
 				iffy(best);
 			else {
 				toobad(best);
@@ -78,7 +86,7 @@ namespace LastFMspider {
 			return best.SongData;
 		}
 
-		static PlaylistSongMatch FindBestMatch2(FuzzySongSearcher fuzzySearcher, PartialSongFileData songToFind) {//TODO: reimplement with FuzzySongSearcher
+		static PlaylistSongMatch FindBestMatch2(FuzzySongSearcher fuzzySearcher, MinimalSongFileData songToFind) {//TODO: reimplement with FuzzySongSearcher
 			var q =
 				from songref in SongRef.PossibleSongRefs(songToFind.HumanLabel)
 				from fuzzyMatch in fuzzySearcher.FindMatchingSongs(songref, true)

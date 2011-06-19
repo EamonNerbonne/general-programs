@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using LastFMspider.LastFMSQLiteBackend;
 using LastFMspider.OldApi;
+using SongDataLib;
 
 namespace LastFMspider {
 	public static class LookupSimilarTracksHelper {

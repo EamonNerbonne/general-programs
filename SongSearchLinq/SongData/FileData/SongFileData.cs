@@ -25,6 +25,7 @@ namespace SongDataLib {
 
 		static string toSafeString(string data) { return Canonicalize.TrimAndMakeSafe(data); }
 
+
 		internal SongFileData(Uri baseUri, FileInfo fileObj, IPopularityEstimator popEst)
 			: base(baseUri, new Uri(fileObj.FullName, UriKind.Absolute), true) {
 			IAudioCodec properties;
@@ -188,6 +189,16 @@ namespace SongDataLib {
 			filesize = (int?)from.Attribute(filesizeN) ?? (IsLocal ? (int)new FileInfo(SongUri.LocalPath).Length : 0);
 		}
 
+		public SongFileData(Uri baseUri, Uri uri, string artist, string title, int? length, int? rating, double? replaygain)
+			: base(baseUri, uri, false) {
+			this.artist = artist;
+			this.title = title;
+			this.length = length??0;
+			this.rating = rating;
+			this.track_gain = replaygain;
+		}
+
+
 		public double popA_forscripting { get { return Math.Sqrt(popularity.ArtistPopularity / 350000.0); } }
 		public double popT_forscripting { get { return popularity.TitlePopularity / Math.Max(1.0, popularity.ArtistPopularity * 0.95 + 0.05 * 365000); } }
 
@@ -254,5 +265,6 @@ namespace SongDataLib {
 				}
 			}
 		}
+		public override IEnumerable<SongRef> PossibleSongs { get { return artist != null && title != null ? Enumerable.Repeat(SongRef.Create(artist, title), 1) : base.PossibleSongs; } }
 	}
 }

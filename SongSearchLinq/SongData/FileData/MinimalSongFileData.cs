@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Xml.Linq;
 
 namespace SongDataLib {
@@ -22,6 +23,8 @@ namespace SongDataLib {
 		public bool IsLocal { get { return songuri.IsFile; } }
 
 		public virtual string HumanLabel { get { return System.IO.Path.GetFileNameWithoutExtension(songuri.LocalPath); } }
+
+		public virtual IEnumerable<SongRef> PossibleSongs { get { return SongRef.PossibleSongRefs(HumanLabel); } }
 
 		protected static XAttribute MakeAttributeOrNull(XName attrname, object data) { return data == null ? null : new XAttribute(attrname, data); }
 		protected static XAttribute MakeAttributeOrNull(XName attrname, int data) { return data == 0 ? null : new XAttribute(attrname, data); }

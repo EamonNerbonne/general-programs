@@ -1,5 +1,6 @@
 ﻿using System;
 using LastFMspider.OldApi;
+using SongDataLib;
 
 namespace LastFMspider {
 	internal static partial class ToolsInternal {

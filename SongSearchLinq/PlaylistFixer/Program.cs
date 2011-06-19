@@ -39,10 +39,10 @@ namespace PlaylistFixer {
 						nulls2++;
 					}, badMatch => {
 						toobadL.Add(badMatch);
-						Console.WriteLine("!!!{4}:({2}) {0}\n Is:({3}) {1}\n", RepairPlaylist.NormalizedFileName(badMatch.Orig.SongUri.LocalPath) + ": " + badMatch.Orig.HumanLabel, RepairPlaylist.NormalizedFileName(badMatch.SongData.SongUri.LocalPath) + ": " + badMatch.SongData.HumanLabel, badMatch.Orig.length, badMatch.SongData.Length, badMatch.Cost);
+						Console.WriteLine("!!!{4}:({2}) {0}\n Is:({3}) {1}\n", RepairPlaylist.NormalizedFileName(badMatch.Orig.SongUri.LocalPath) + ": " + badMatch.Orig.HumanLabel, RepairPlaylist.NormalizedFileName(badMatch.SongData.SongUri.LocalPath) + ": " + badMatch.SongData.HumanLabel, badMatch.Orig.Length, badMatch.SongData.Length, badMatch.Cost);
 					}, iffyMatch => {
 						hmmL.Add(iffyMatch);
-						Console.WriteLine("___:({2}) {0}\n Is:({3}) {1}\n", RepairPlaylist.NormalizedFileName(iffyMatch.Orig.SongUri.LocalPath) + ": " + iffyMatch.Orig.HumanLabel, RepairPlaylist.NormalizedFileName(iffyMatch.SongData.SongUri.LocalPath) + ": " + iffyMatch.SongData.HumanLabel, iffyMatch.Orig.length, iffyMatch.SongData.Length);
+						Console.WriteLine("___:({2}) {0}\n Is:({3}) {1}\n", RepairPlaylist.NormalizedFileName(iffyMatch.Orig.SongUri.LocalPath) + ": " + iffyMatch.Orig.HumanLabel, RepairPlaylist.NormalizedFileName(iffyMatch.SongData.SongUri.LocalPath) + ": " + iffyMatch.SongData.HumanLabel, iffyMatch.Orig.Length, iffyMatch.SongData.Length);
 					}, goodMatch => {
 						File.AppendAllText("m3ufixer-ok.log", RepairPlaylist.NormalizedFileName(goodMatch.Orig.SongUri.LocalPath) + "(" + TimeSpan.FromSeconds(goodMatch.Orig.Length) + "): " + goodMatch.Orig.HumanLabel + "\t==>\t" + RepairPlaylist.NormalizedFileName(goodMatch.SongData.SongUri.LocalPath) + "(" + TimeSpan.FromSeconds(goodMatch.SongData.Length) + "): " + goodMatch.SongData.HumanLabel + "\n");
 						fine++;

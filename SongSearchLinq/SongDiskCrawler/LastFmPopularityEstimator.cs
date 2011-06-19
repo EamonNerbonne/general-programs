@@ -1,5 +1,4 @@
 ﻿using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Linq;
 using EmnExtensions.Algorithms;
 using EmnExtensions.Text;
@@ -13,8 +12,7 @@ namespace SongDiskCrawler {
 		public LastFmPopularityEstimator(SongTools tools) { this.tools = tools; }
 		public Popularity EstimatePopularity(string artist, string title) {
 			if (artist == null || title == null) return default(Popularity);
-			var song = SongRef.Create(artist, title);
-			var lowerArtist = song.GetLowerArtist();
+			var lowerArtist = artist.ToLatinLowercase();
 			var lowerTrack = title.ToLatinLowercase();
 			ArtistTopTracksList toptracks =
 				toptracksCache.GetOrAdd(lowerArtist, a => {

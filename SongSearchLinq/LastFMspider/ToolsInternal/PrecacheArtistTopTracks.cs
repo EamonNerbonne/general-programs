@@ -4,8 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using EmnExtensions.Algorithms;
-using LastFMspider.LastFMSQLiteBackend;
 using LastFMspider.OldApi;
+using SongDataLib;
 
 namespace LastFMspider {
 	internal static partial class ToolsInternal {

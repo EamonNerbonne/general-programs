@@ -1,12 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.IO;
-using System.Xml.Linq;
-using EmnExtensions.Text;
-using System.Runtime.Serialization;
 using LastFMspider.LastFMSQLiteBackend;
+using SongDataLib;
 using TrackSimListStore = LastFMspider.SimilarityList<LastFMspider.LastFMSQLiteBackend.TrackId, LastFMspider.LastFMSQLiteBackend.TrackId.Factory>;
 
 namespace LastFMspider {

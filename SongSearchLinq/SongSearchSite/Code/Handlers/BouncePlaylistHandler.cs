@@ -37,10 +37,7 @@ namespace SongSearchSite.Code.Handlers {
 
 		private static SongFileData[] GetPlaylistFromJson(HttpContext context) {
 			try {
-				PlaylistEntry[] playlistFromJson = JsonConvert.DeserializeObject<PlaylistEntry[]>(context.Request["playlist"]);
-
-
-				return playlistFromJson.Select(item => item.LookupBestGuess(context)).Where(item => item != null).ToArray();
+				return PlaylistEntry.CleanedPlaylistFromJson(context.Request["playlist"], SongDbContainer.AppBaseUri(context));
 			} catch(Exception) {
 				return new SongFileData[0];
 			}
@@ -48,7 +45,7 @@ namespace SongSearchSite.Code.Handlers {
 
 		private static SongFileData[] GetPlaylistFromM3U(HttpContext context, HttpPostedFile postedFile) {
 			var m3uPlaylist = SongFileDataFactory.LoadExtM3U(postedFile.InputStream, Path.GetExtension(postedFile.FileName));
-			return RepairPlaylist.GetPlaylistFixed(m3uPlaylist, SongDbContainer.FuzzySongSearcher, uri => SongDbContainer.GetSongFromFullUri(context, uri.ToString()))
+			return RepairPlaylist.GetPlaylistFixed(m3uPlaylist, SongDbContainer.FuzzySongSearcher, uri => SongDbContainer.GetSongFromFullUri(SongDbContainer.AppBaseUri(context), uri.ToString()))
 				.OfType<SongFileData>().ToArray();
 		}
 

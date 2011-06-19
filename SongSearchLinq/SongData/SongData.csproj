@@ -71,6 +71,7 @@
     <Compile Include="FileData\IPopularityEstimator.cs" />
     <Compile Include="FileData\ISongFileData.cs" />
     <Compile Include="Config\ISongDataConfigSection.cs" />
+    <Compile Include="FileData\SongRef.cs" />
     <Compile Include="Search\ISongFileSearchEngine.cs" />
     <Compile Include="Config\LocalSongDataConfigSection.cs" />
     <Compile Include="FileData\MinimalSongFileData.cs" />

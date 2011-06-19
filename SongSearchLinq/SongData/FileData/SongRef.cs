@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System;
 using System.Linq;
 using System.Text;
-namespace LastFMspider {
+namespace SongDataLib {
 	public static class SongRefUtils {
 		const int charDiff = 'a' - 'A';
 		/// <summary>
@@ -41,17 +41,11 @@ namespace LastFMspider {
 				yield return Create(label.Substring(0, artistTitleSplitIndex), label.Substring(artistTitleSplitIndex + 3));
 		}
 
-
-		public static SongRef Create(SongFileData song) {
-			if (song == null || song.artist == null || song.title == null)
-				return null;
-			return Create(song.artist, song.title);
-		}
 		public override bool Equals(object obj) {
 			if (!(obj is SongRef))
 				return false;
 			SongRef other = ((SongRef)obj);
-			return other.hashcode == hashcode && other.Artist.ToLatinLowercase().Equals(Artist.ToLatinLowercase()) && Title.ToLatinLowercase().Equals(other.Title.ToLatinLowercase());
+			return other.hashcode == hashcode && other.GetLowerArtist().Equals(GetLowerArtist()) && GetLowerTitle().Equals(other.GetLowerTitle());
 		}
 		public override int GetHashCode() { return hashcode; }
 		public override string ToString() { return Artist + " - " + Title; }
@@ -59,7 +53,7 @@ namespace LastFMspider {
 		private SongRef(string artist, string title) {
 			this.artist = artist;
 			this.title = title;
-			hashcode = Artist.ToLatinLowercase().GetHashCode() + 137 * Title.ToLatinLowercase().GetHashCode();
+			hashcode = GetLowerArtist().GetHashCode() + 137 * GetLowerTitle().GetHashCode();
 		}
 		private SongRef(string artist, string title, int hashcode) {
 			this.artist = artist;

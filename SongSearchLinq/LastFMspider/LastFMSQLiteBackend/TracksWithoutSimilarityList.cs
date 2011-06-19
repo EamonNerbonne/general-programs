@@ -1,6 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Data.Common;
 using System;
+using SongDataLib;
+
 namespace LastFMspider.LastFMSQLiteBackend {
 	public class TracksWithoutSimilarityList : AbstractLfmCacheQuery {
 		public TracksWithoutSimilarityList(LastFMSQLiteCache lfm)

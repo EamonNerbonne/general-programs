@@ -29,7 +29,7 @@ namespace LastFMspider {
 			return simSongDb.DoInTransaction(() => {
 				SimilarPlaylistResults res = new SimilarPlaylistResults();
 
-				var playlistSongs = seedSongs.Where(sr=>sr!=null) .Select(simSongDb.LookupTrackID.Execute).Where(trackid => trackid.HasValue).Distinct().Reverse().ToArray();
+				var playlistSongs = seedSongs.Where(sr => sr != null).Select(simSongDb.LookupTrackID.Execute).Where(trackid => trackid.HasValue).Distinct().Reverse().ToArray();
 				Dictionary<TrackId, HashSet<TrackId>> playlistSongRefs = playlistSongs.ToDictionary(sr => sr, sr => new HashSet<TrackId>());
 				HashSet<SongRef> seedSongSet = new HashSet<SongRef>(seedSongs); //used to ensure fuzzy matches don't readd existing song.
 
@@ -78,10 +78,10 @@ namespace LastFMspider {
 								).First());
 							else {
 								SongMatch bestRoughMatch = fuzzySearch(currentSongRef);
-								if (bestRoughMatch.GoodEnough && !seedSongSet.Contains(SongRef.Create(bestRoughMatch.Song)))
-									res.knownTracks.Add(bestRoughMatch.Song);
-								else
+								if (!bestRoughMatch.GoodEnough)
 									res.unknownTracks.Add(currentSongRef);
+								else if (!bestRoughMatch.Song.PossibleSongs.Any(seedSongSet.Contains))
+									res.knownTracks.Add(bestRoughMatch.Song);
 							}
 						}
 					}

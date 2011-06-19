@@ -1,4 +1,5 @@
 ﻿using System.Data.Common;
+using SongDataLib;
 
 namespace LastFMspider.LastFMSQLiteBackend {
 	public class LookupSimilarityListInfo : AbstractLfmCacheQuery {

@@ -29,8 +29,8 @@ namespace LastFMspider {
 			get {
 				return m_SongFilesSearchData ?? (
 					m_SongFilesSearchData =
-						//m_SongsOnDisk != null
-						//    ? new SongFilesSearchData(m_SongsOnDisk.Songs) :
+					//m_SongsOnDisk != null
+					//    ? new SongFilesSearchData(m_SongsOnDisk.Songs) :
 							 SongFilesSearchData.FastLoad(configFile, song => song is SongFileData)
 				);
 			}
@@ -41,7 +41,7 @@ namespace LastFMspider {
 		Dictionary<string, SongFileData> m_FindByPath;
 		public Dictionary<string, SongFileData> FindByPath { get { return m_FindByPath ?? (m_FindByPath = SongFilesSearchData.Songs.ToDictionary(song => song.SongUri.ToString())); } }
 		ILookup<SongRef, SongFileData> m_FindByName;
-		public ILookup<SongRef, SongFileData> FindByName { get { return m_FindByName ?? (m_FindByName = SongFilesSearchData.Songs.ToLookup(SongRef.Create)); } }
+		public ILookup<SongRef, SongFileData> FindByName { get { return m_FindByName ?? (m_FindByName = SongFilesSearchData.Songs.SelectMany(songfile => songfile.PossibleSongs.Select(songref => new { songfile, songref })).ToLookup(song => song.songref, song => song.songfile)); } }
 		public void UnloadLookup() { m_FindByPath = null; m_FindByPath = null; }
 
 		SongSimilarityCache similarSongs;

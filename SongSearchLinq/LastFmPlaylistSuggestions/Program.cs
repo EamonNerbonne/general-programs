@@ -77,7 +77,7 @@ namespace LastFmPlaylistSuggestions {
 					oopsSong => Console.WriteLine("Can't deal with: " + oopsSong.HumanLabel + "\nat:" + oopsSong.SongUri.ToString()));
 
 			//OK, so we now have the playlist in the var "playlist" with knowns in "known" except for the unknowns, which are in "unknown" as far as possible.
-			var res = FindSimilarPlaylist.ProcessPlaylist(tools, fuzzySearch, known.Select(SongRef.Create).Concat(unknown), 1000);
+			var res = FindSimilarPlaylist.ProcessPlaylist(tools, fuzzySearch, known.Select(song=>song.PossibleSongs.FirstOrDefault()).Concat(unknown), 1000);
 
 			FileInfo outputplaylist = new FileInfo(Path.Combine(m3uDir.FullName, Path.GetFileNameWithoutExtension(m3ufile.Name) + "-similar.m3u"));
 			using (var stream = outputplaylist.Open(FileMode.Create))
