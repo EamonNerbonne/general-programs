@@ -138,8 +138,8 @@ namespace LastFMspider {
                 ", "@pPlaylistID");
 
 			renamePlaylist = CreateCommand(@"
-				UPDATE Playlist SET PlaylistTitle = @pPlaylistTitle WHERE PlaylistID = @pPlaylistID
-                ", "@pPlaylistID", "@pPlaylistTitle");
+				UPDATE Playlist SET PlaylistTitle = @pPlaylistTitle, Username = @pUsername WHERE PlaylistID = @pPlaylistID
+                ", "@pPlaylistID","@pUsername", "@pPlaylistTitle");
 
 			updatePlaycount = CreateCommand(@"
 				UPDATE Playlist SET PlayCount = PlayCount + 1, CumulativePlayCount = CumulativePlayCount + 1, LastPlayedTimestamp = @pLastPlayedTimestamp
@@ -229,10 +229,12 @@ namespace LastFMspider {
 			});
 		}
 
-		public void RenamePlaylist(long playlistID, string newName) {
+		public void RenamePlaylist(long playlistID, string newUser, string newName) {
 			DoInLockedTransaction(() => {
 				renamePlaylist.Parameters["@pPlaylistID"].Value = playlistID;
+				renamePlaylist.Parameters["@pUsername"].Value = newUser;
 				renamePlaylist.Parameters["@pPlaylistTitle"].Value = newName;
+
 				renamePlaylist.ExecuteNonQuery();
 			});
 		}

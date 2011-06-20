@@ -1,9 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Web;
-using System.Web.UI;
-using System.Web.UI.WebControls;
 using System.Web.Security;
 
 namespace SongSearchSite {
@@ -19,10 +15,11 @@ namespace SongSearchSite {
 
 		}
 
-		static HashSet<string> users = new HashSet<string> {
-			"eamon","emn13","el_martian","auke","bart","juri","klaas"
+		static readonly HashSet<string> users = new HashSet<string> {
+			"eamon","emn13","el_martian","auke","bart","juri","klaas","annechien"
 		};
-		protected bool MyCustomMethod(string strUsername, string strPassword) {
+
+		static bool MyCustomMethod(string strUsername, string strPassword) {
 			return users.Contains(strUsername) && strPassword == "music";
 		}
 	}

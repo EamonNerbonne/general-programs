@@ -300,10 +300,20 @@ a:focus {
     border-bottom: 1px solid #eee8d5;
     position: relative;
 }
-
-#playlistNames li { display:list-item; cursor:pointer; list-style-type:disc;}
-
-#playlistNames { padding-left:2em!important;}
+#playlistForm {padding-left:0.5em;float:left;width:36%;}
+#playlistNames { font-size: 80%; position:relative; padding:0 0 0 0.5em;}
+#playlistNames li { display:block; cursor:pointer;}
+#playlistNames li:after {
+    content: "(" attr(data-CumulativePlayCount) ")";
+    font-size: 80%;
+    position: absolute;
+    right:0;
+}
+#playlistNames li:before {
+    content: attr(data-Username)": ";
+    font-size: 80%;
+    padding-right: 0.5em;
+}
 
 .similarItemsDisplay:before {
     display: block;

@@ -27,16 +27,16 @@ namespace SongSearchSite.Code.Handlers {
 					db.UpdatePlaycount(long.Parse(context.Request["playlistID"]), DateTime.UtcNow);
 					return db.LoadPlaylist(long.Parse(context.Request["playlistID"]));
 				case "~/rename-playlist":
-					db.RenamePlaylist(long.Parse(context.Request["playlistID"]), context.Request["newName"]);
+					db.RenamePlaylist(long.Parse(context.Request["playlistID"]), context.User.Identity.Name, context.Request["newName"]);
 					return null;
 				case "~/update-playcount":
 //					db.UpdatePlaycount(long.Parse(context.Request["playlistID"]), DateTime.UtcNow);
 //					return null;
 					throw new NotImplementedException();
 				case "~/list-all-playlists":
-					return db.ListAllPlaylists();
+					return db.ListAllPlaylists().OrderBy(entry => entry.Username != context.User.Identity.Name).ThenBy(entry => entry.Username).ThenByDescending(entry => entry.LastPlayedTimestamp).ThenBy(entry => entry.PlaylistTitle).ToArray();
 				case "~/list-user-playlists":
-					return db.ListAllPlaylists().Where(entry=>entry.Username == context.User.Identity.Name).ToArray();
+					return db.ListAllPlaylists().Where(entry => entry.Username == context.User.Identity.Name).OrderByDescending(entry => entry.LastPlayedTimestamp).ToArray();
 				default:
 					throw new ArgumentOutOfRangeException("Cannot handle: " + context.Request.AppRelativeCurrentExecutionFilePath);
 			}
