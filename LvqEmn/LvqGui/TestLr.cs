@@ -195,6 +195,7 @@ namespace LvqGui {
 					}
 					return true;
 				} else {
+					saveFile.Directory.Create();
 					saveFile.Create().Close();
 					return false;
 				}
