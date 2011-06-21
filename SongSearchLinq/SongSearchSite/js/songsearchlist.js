@@ -94,7 +94,8 @@ $(document).ready(function ($) {
                 if (codeTriggered) return;
                 var val = false;
                 try { val = JSON.parse(newval) } catch (e) { }
-                if (val) loadPlaylistAsync({ list: val, name: null });
+                if (val && val.list) loadPlaylistAsync(val);
+                else if (val) loadPlaylistAsync({ name: null, list: val });
             }
         }
         /*  , lfmUser: {
@@ -232,7 +233,8 @@ $(document).ready(function ($) {
             playlistDragnDropInit();
 
             $("#similar .known").click(knownClick);
-            loadPlaylistAsync({ list: JSON.parse(localStorage.playlist), name: null });
+
+            playlistStorage.loadLastList();
         },
         oggSupport: true,
         swfPath: ""
@@ -717,46 +719,8 @@ $(document).ready(function ($) {
             playlistRefreshUi();
         });
     }
+
     /////////////////////////////////////////////////////////////////////////////////////Playlist Storage Handling
-    var playlistNamesUl = $("#playlistNames");
-    function ajaxLoadPlaylistNames() {
-        $.ajax({
-            type: "POST",
-            url: "list-all-playlists",
-            data: {},
-            timeout: 10000,
-            success: function (data) {
-                var known = data.known, unknown = data.unknown;
-                playlistNamesUl.empty();
-                for (var i = 0; i < data.length; i++) {
-                    playlistNamesUl.append(
-                            $(document.createElement("li"))
-                                .text(data[i].PlaylistTitle)
-                                .attr("data-Username", data[i].Username)
-                                .attr("data-CumulativePlayCount", data[i].CumulativePlayCount)
-                                .attr("data-StoredTimestamp", data[i].StoredTimestamp)
-                                .data("playlist", data[i])
-                        );
-                }
-            },
-            error: function (xhr, status, errorThrown) { alert(errorThrown); }
-        });
-    }
-    ajaxLoadPlaylistNames();
-    setInterval(ajaxLoadPlaylistNames, 120000);
-
-
-    playlistNamesUl.click(function (e) {
-        if (!e) var e = window.event;
-        var target = e.target || e.srcElement;
-        var clickedListItem = $(target).parents().andSelf().filter("li").first();
-        var plData = clickedListItem.data("playlist");
-        playlistStorage.loadPlaylistByID(plData.PlaylistID);
-    });
-
-    function playlistNameChangedHandler() { playlistStorage.changePlaylistName($("#playlistName")[0].value); }
-    $("#playlistName").keyup(playlistNameChangedHandler).change(playlistNameChangedHandler).blur(playlistNameChangedHandler);
-
     var playlistStorage = function () {
         var public = {
             contentsChanged: function (listdata) {
@@ -774,6 +738,20 @@ $(document).ready(function ($) {
             changePlaylistName: function (newName) {
                 cmdQ.nameChangedTo = newName;
                 ProcessPlaylistQueue();
+            },
+            loadLastList: function () {
+                var lastList = JSON.parse(localStorage.playlist);
+                if (!lastList)
+                    return;
+                else if (!lastList.list)
+                    loadPlaylistAsync({ list: lastList, name: null, PlaylistID: null });
+                else if (!lastList.PlaylistID)
+                    loadPlaylistAsync(lastList);
+                else if (state.currentPlaylists) {
+                    loadLastListFromCurrentPlaylists(lastList);
+                } else {
+                    cmdQ.lastListToLoad = lastList;
+                }
             }
         };
 
@@ -782,15 +760,19 @@ $(document).ready(function ($) {
             playlistToLoad: null,
             nameChangedTo: null,
             playlistContentsChangedTo: null,
-            playlistLoadedAs: null
+            playlistLoadedAs: null,
+            lastListToLoad: null
         };
 
         var state = {
             playlistContents: null,
             playlistID: null,
             playlistName: null,
+            currentPlaylists:null,
             changeNameFromData: function (newName) { state.playlistName = newName; $("#playlistName")[0].value = newName; }
         };
+        var playlistNamesUl = $("#playlistNames");
+
 
         function setBusy() { if (cmdQ.isBusy) throw "already busy!"; cmdQ.isBusy = true; }
         function setFree() { if (!cmdQ.isBusy) throw "not busy!"; cmdQ.isBusy = false; setTimeout(ProcessPlaylistQueue, 0); }
@@ -800,10 +782,10 @@ $(document).ready(function ($) {
             if (cmdQ.playlistLoadedAs) {
                 var listdata = cmdQ.playlistLoadedAs;
                 cmdQ.playlistLoadedAs = null;
-                var serializedList = JSON.stringify(listdata.list);
+                var serializedList = JSON.stringify(listdata);
                 localStorage.setItem("playlist", serializedList);
                 userOptions.serializedList.setValue(serializedList);
-                if (listdata.PlaylistID === state.playlistID) {
+                if (listdata.PlaylistID && listdata.PlaylistID === state.playlistID) {
                     if (!areEquivalent(listdata.list, state.playlistContents)) {
                         qUpdatePlaylistContents(listdata.name, listdata.list, listdata.PlaylistID);
                         return;
@@ -825,7 +807,7 @@ $(document).ready(function ($) {
                 var newplaylist = cmdQ.playlistContentsChangedTo;
                 cmdQ.playlistContentsChangedTo = null;
                 if (!areEquivalent(newplaylist, state.playlistContents)) {
-                    var serializedList = JSON.stringify(newplaylist);
+                    var serializedList = JSON.stringify({ list: newplaylist, name: state.playlistName, PlaylistID: state.playlistID });
                     localStorage.setItem("playlist", serializedList);
                     userOptions.serializedList.setValue(serializedList);
                     if (state.playlistID === null) {
@@ -837,15 +819,15 @@ $(document).ready(function ($) {
                 }
             }
 
-            if (cmdQ.nameChangedTo) {
+            if (cmdQ.nameChangedTo !== null) {
                 var newname = cmdQ.nameChangedTo;
                 cmdQ.nameChangedTo = null;
                 if (state.playlistName !== newname) {
-                    if (state.playlistID === null) {//we're free, name has changed, and no ID: save!
-                        qStorePlaylist(newname, state.playlistContents);
-                        return;
-                    } else {//we're free, name has changed, and pre-existing ID: rename!
+                    if (state.playlistID !== null) { //we're free, name has changed, and pre-existing ID: rename!
                         qRenamePlaylist(state.playlistID, newname);
+                        return;
+                    } else if (newname !== "") {//we're free, name has changed, and no ID: save!
+                        qStorePlaylist(newname, state.playlistContents);
                         return;
                     } //TODO: deal with empty name how?
                 }
@@ -929,9 +911,9 @@ $(document).ready(function ($) {
                 success: function (data) {
                     try {
                         state.playlistContents = JSON.parse(data.PlaylistContents);
-                        state.playlistID = playlistID;
+                        state.playlistID = data.PlaylistID;
                         state.changeNameFromData(data.PlaylistTitle);
-                        loadPlaylistAsync({ list: state.playlistContents, name: data.PlaylistTitle, PlaylistID: playlistID });
+                        loadPlaylistSync({ list: state.playlistContents, name: data.PlaylistTitle, PlaylistID: data.PlaylistID });
                     } finally {
                         setFree();
                     }
@@ -939,6 +921,57 @@ $(document).ready(function ($) {
                 error: function (xhr, status, errorThrown) { alert(errorThrown); setFree(); }
             });
         }
+
+        function ajaxLoadPlaylistNames() {
+            $.ajax({
+                type: "POST",
+                url: "list-all-playlists",
+                data: {},
+                timeout: 30000,
+                success: function (data) {
+                    state.currentPlaylists = data;
+                    playlistNamesUl.empty();
+                    for (var i = 0; i < data.length; i++) {
+                        playlistNamesUl.append(
+                            $(document.createElement("li"))
+                                .text(data[i].PlaylistTitle)
+                                .attr("data-Username", data[i].Username)
+                                .attr("data-CumulativePlayCount", data[i].CumulativePlayCount)
+                                .attr("data-StoredTimestamp", data[i].StoredTimestamp)
+                                .data("playlist", data[i])
+                        );
+                    }
+                    if (cmdQ.lastListToLoad) {
+                        loadLastListFromCurrentPlaylists(cmdQ.lastListToLoad);
+                        cmdQ.lastListToLoad = null;
+                    }
+                },
+                error: function (xhr, status, errorThrown) { alert(errorThrown); }
+            });
+        }
+        function loadLastListFromCurrentPlaylists(lastListToLoad) {
+            var bestMatch = state.currentPlaylists.filter(function (playlist) {
+                return playlist.PlaylistTitle === lastListToLoad.name;
+            })[0];
+            if (bestMatch)
+                public.loadPlaylistByID(bestMatch.PlaylistID);
+            else
+                loadPlaylistAsync({ list: lastListToLoad.list, name: null, PlaylistID: null });
+        }
+
+
+        function playlistNameChangedHandler() { playlistStorage.changePlaylistName($("#playlistName")[0].value); }
+        $("#playlistName").keyup(playlistNameChangedHandler).change(playlistNameChangedHandler).blur(playlistNameChangedHandler);
+        playlistNamesUl.click(function (e) {
+            if (!e) var e = window.event;
+            var target = e.target || e.srcElement;
+            var clickedListItem = $(target).parents().andSelf().filter("li").first();
+            var plData = clickedListItem.data("playlist");
+            playlistStorage.loadPlaylistByID(plData.PlaylistID);
+        });
+
+        setInterval(ajaxLoadPlaylistNames, 120000);
+        ajaxLoadPlaylistNames();
         return public;
     } ();
 });

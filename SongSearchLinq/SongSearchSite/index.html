@@ -14,7 +14,10 @@
                 <ul class="known">
                 </ul>
                 <div id="playlistForm">
-                    Saved As: <input id="playlistName" type="text" name="playlistName" autocomplete="off" placeholder="Playlist Name"/>
+                    <div id="playlistNameBox">
+                    Playlist: <input id="playlistName" type="text" name="playlistName" autocomplete="off"/>
+                    <div class="help">fill in name save playlist, clear to delete playlist</div>
+                    </div>
                     <ul id="playlistNames"></ul>
                 </div>
                 <ul class="unknown">
@@ -134,6 +137,6 @@
 <!--<script type="text/javascript" src="ui-lightness/jquery-ui-1.8.11.custom.min.js"></script>-->
 <script type="text/javascript" src="js/jquery.jplayer.js"></script>
 <script type="text/javascript" src="js/songsearch.js"></script>
-<script type="text/javascript" src="js/songsearchlist.js"></script>
+<script type="text/javascript" src="js/songsearchlist.js?1"></script>
 <!--<script type="text/javascript" src="braindead.js"></script>-->
 </html>

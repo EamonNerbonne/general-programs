@@ -3,6 +3,7 @@ using System.Linq;
 using System.Text;
 using System.Web;
 using Newtonsoft.Json;
+using SongSearchSite.Code.Model;
 
 namespace SongSearchSite.Code.Handlers {
 	public class PlaylistStorageHandler : IHttpHandler {
@@ -19,21 +20,32 @@ namespace SongSearchSite.Code.Handlers {
 			var db = SongDbContainer.PlaylistDb;
 			switch (context.Request.AppRelativeCurrentExecutionFilePath) {
 				case "~/update-playlist":
-					return db.UpdatePlaylistContents(context.User.Identity.Name, context.Request["playlistTitle"], DateTime.UtcNow, context.Request["playlistContents"], long.Parse(context.Request["lastVersionId"]));
+					return db.UpdatePlaylistContents(context.User.Identity.Name, context.Request["playlistTitle"], DateTime.UtcNow, 
+						PlaylistHelpers.CleanupJsonPlaylist(context, context.Request["playlistContents"]), long.Parse(context.Request["lastVersionId"]));
 				case "~/store-playlist":
-					return db.StoreNewPlaylist(context.User.Identity.Name, context.Request["playlistTitle"], DateTime.UtcNow, context.Request["playlistContents"]);
+					return db.StoreNewPlaylist(context.User.Identity.Name, context.Request["playlistTitle"], DateTime.UtcNow, 
+						PlaylistHelpers.CleanupJsonPlaylist(context, context.Request["playlistContents"]));
 				case "~/load-playlist":
 					db.UpdatePlaycount(long.Parse(context.Request["playlistID"]), DateTime.UtcNow);
-					return db.LoadPlaylist(long.Parse(context.Request["playlistID"]));
+					var loadResult= db.LoadPlaylist(long.Parse(context.Request["playlistID"]));
+					var cleanedList = PlaylistHelpers.CleanupJsonPlaylist(context, loadResult.PlaylistContents);
+					if (cleanedList != loadResult.PlaylistContents) {
+						var newId = db.UpdatePlaylistContents(loadResult.Username, loadResult.PlaylistTitle, DateTime.UtcNow, cleanedList, loadResult.PlaylistID);
+						loadResult = db.LoadPlaylist(newId);
+					}
+					return loadResult;
 				case "~/rename-playlist":
-					db.RenamePlaylist(long.Parse(context.Request["playlistID"]), context.User.Identity.Name, context.Request["newName"]);
+					if (context.Request["newName"] == "")
+						db.HidePlaylist(long.Parse(context.Request["playlistID"]), context.User.Identity.Name);
+					else
+						db.RenamePlaylist(long.Parse(context.Request["playlistID"]), context.User.Identity.Name, context.Request["newName"]);
 					return null;
 				case "~/update-playcount":
 					//					db.UpdatePlaycount(long.Parse(context.Request["playlistID"]), DateTime.UtcNow);
 					//					return null;
 					throw new NotImplementedException();
 				case "~/list-all-playlists":
-					return db.ListAllPlaylists().OrderBy(entry => entry.Username != context.User.Identity.Name).ThenByDescending(entry => (entry.CumulativePlayCount + entry.PlayCount * 2) / Math.Max(1.0, 1.0 + (DateTime.UtcNow - entry.LastPlayedTimestamp).TotalDays)).ToArray();
+					return db.ListAllPlaylists().OrderByDescending(entry => (entry.Username == context.User.Identity.Name ? 5.0 : 0.0) + (entry.CumulativePlayCount + entry.PlayCount * 2) / Math.Max(1.0, 1.0 + (DateTime.UtcNow - entry.LastPlayedTimestamp).TotalDays)).ToArray();
 				case "~/list-user-playlists":
 					return db.ListAllPlaylists().Where(entry => entry.Username == context.User.Identity.Name).OrderByDescending(entry => (entry.CumulativePlayCount + entry.PlayCount * 2) / Math.Max(1.0, 1.0 + (DateTime.UtcNow - entry.LastPlayedTimestamp).TotalDays)).ToArray();
 				default:

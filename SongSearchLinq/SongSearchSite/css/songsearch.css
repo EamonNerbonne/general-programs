@@ -301,7 +301,11 @@ a:focus {
     position: relative;
 }
 #playlistForm {padding-left:0.5em;float:left;width:36%;}
-#playlistNames { font-size: 80%; position:relative; padding:0 0 0 0.5em;}
+#playlistName {width:13em;}
+#playlistNameBox >.help {visibility:hidden; font-style:italic; font-size:80%;}
+#playlistNameBox >#playlistName:focus + .help {visibility:visible;}
+#playlistNameBox:hover >#playlistName + .help {visibility:visible;}
+#playlistNames { font-size: 80%; position:relative; padding:0 0 0 0.5em; margin:0.2em 0;}
 #playlistNames li { display:block; cursor:pointer;}
 #playlistNames li:after {
     content: "(" attr(data-CumulativePlayCount) ")";

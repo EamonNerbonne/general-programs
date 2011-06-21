@@ -93,7 +93,7 @@ namespace LastFMspider {
 		}
 
 		DbCommand listAllPlaylists, storeNewPlaylist, updatePlaylistContents, loadPlaylist;
-		DbCommand renamePlaylist, listEntirePlaycountHistory;
+		DbCommand renamePlaylist, listEntirePlaycountHistory, hidePlaylist;
 		DbCommand updatePlaycount, overwriteCumulativePlaycount;
 		
 
@@ -142,8 +142,11 @@ namespace LastFMspider {
                 ", "@pPlaylistID");
 
 			renamePlaylist = CreateCommand(@"
-				UPDATE Playlist SET PlaylistTitle = @pPlaylistTitle, Username = @pUsername WHERE PlaylistID = @pPlaylistID
+				UPDATE Playlist SET IsCurrent=1,PlaylistTitle = @pPlaylistTitle, Username = @pUsername WHERE PlaylistID = @pPlaylistID
                 ", "@pPlaylistID", "@pUsername", "@pPlaylistTitle");
+			hidePlaylist = CreateCommand(@"
+				UPDATE Playlist SET IsCurrent = 0, Username = @pUsername WHERE PlaylistID = @pPlaylistID
+                ", "@pPlaylistID", "@pUsername");
 
 			updatePlaycount = CreateCommand(@"
 				UPDATE Playlist SET PlayCount = PlayCount + 1, CumulativePlayCount = CumulativePlayCount + 1, LastPlayedTimestamp = @pLastPlayedTimestamp
@@ -254,6 +257,7 @@ namespace LastFMspider {
 		}
 
 		public class LoadPlaylistResult {
+			public long PlaylistID;
 			public long? LastVersionID;
 			public string Username, PlaylistTitle;
 			public DateTime StoredTimestamp;
@@ -267,6 +271,7 @@ namespace LastFMspider {
 				loadPlaylist.Parameters["@pPlaylistID"].Value = playlistID;
 				var dbRow = loadPlaylist.ExecuteGetTopRow();
 				return new LoadPlaylistResult {
+					PlaylistID = playlistID,
 					LastVersionID = dbRow[0].CastDbObjectAs<long?>(),
 					Username = dbRow[1].CastDbObjectAs<string>(),
 					PlaylistTitle = dbRow[2].CastDbObjectAs<string>(),
@@ -286,6 +291,13 @@ namespace LastFMspider {
 				renamePlaylist.Parameters["@pPlaylistTitle"].Value = newName;
 
 				renamePlaylist.ExecuteNonQuery();
+			});
+		}
+		public void HidePlaylist(long playlistID, string newUser) {
+			DoInLockedTransaction(() => {
+				hidePlaylist.Parameters["@pPlaylistID"].Value = playlistID;
+				hidePlaylist.Parameters["@pUsername"].Value = newUser;
+				hidePlaylist.ExecuteNonQuery();
 			});
 		}
 

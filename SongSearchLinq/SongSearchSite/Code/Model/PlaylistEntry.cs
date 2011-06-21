@@ -43,10 +43,24 @@ namespace SongSearchSite.Code.Model {
 				popT = knownSong.popT_forscripting,
 			};
 		}
+	}
+
+	public static class PlaylistHelpers {
 
 		public static PlaylistEntry[] ParsePlaylistFromJson(string jsonPlaylist) { return JsonConvert.DeserializeObject<PlaylistEntry[]>(jsonPlaylist); }
-		public static SongFileData[] CleanedPlaylistFromJson(string jsonPlaylist, Uri appBaseUri) { return ParsePlaylistFromJson(jsonPlaylist).Select(item => item.LookupBestGuess(appBaseUri)).Where(item => item != null).ToArray(); }
+		public static SongFileData[] CleanedPlaylistFromJson(HttpContext context, string jsonPlaylist) {
+			Uri appBaseUri = SongDbContainer.AppBaseUri(context);
+			return ParsePlaylistFromJson(jsonPlaylist).Select(item => item.LookupBestGuess(appBaseUri)).Where(item => item != null).ToArray();
+		}
 
+		public static string SerializeToJson(HttpContext context, SongFileData[] playlistLocal) {
+			Func<Uri, Uri> uriMapper = SongDbContainer.LocalSongPathToAppRelativeMapper(context);
+			return JsonConvert.SerializeObject(playlistLocal.Select(song => PlaylistEntry.MakeEntry(uriMapper, song)).ToArray());
+		}
+
+		public static string CleanupJsonPlaylist(HttpContext context, string jsonPlaylist) {
+			return SerializeToJson(context, CleanedPlaylistFromJson(context, jsonPlaylist));
+		}
 	}
 	enum PlaylistFormat {
 		m3u, m3u8, xml, json, zip

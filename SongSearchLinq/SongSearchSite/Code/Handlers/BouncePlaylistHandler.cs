@@ -17,7 +17,7 @@ namespace SongSearchSite.Code.Handlers {
 		public void ProcessRequest(HttpContext context) {
 			try {
 				var postedFile = context.Request.Files["playlist"];
-				SongFileData[] playlistLocal = postedFile != null ? GetPlaylistFromM3U(context, postedFile) : GetPlaylistFromJson(context);
+				SongFileData[] playlistLocal = postedFile != null ? GetPlaylistFromM3U(context, postedFile) : GetPlaylistFromJson(context, context.Request["playlist"]);
 
 				PlaylistFormat format = (PlaylistFormat)Enum.Parse(typeof(PlaylistFormat), context.Request["format"]);
 
@@ -35,9 +35,9 @@ namespace SongSearchSite.Code.Handlers {
 			}
 		}
 
-		private static SongFileData[] GetPlaylistFromJson(HttpContext context) {
+		public static SongFileData[] GetPlaylistFromJson(HttpContext context, string jsonPlaylist) {
 			try {
-				return PlaylistEntry.CleanedPlaylistFromJson(context.Request["playlist"], SongDbContainer.AppBaseUri(context));
+				return PlaylistHelpers.CleanedPlaylistFromJson(context, jsonPlaylist);
 			} catch(Exception) {
 				return new SongFileData[0];
 			}
@@ -53,11 +53,7 @@ namespace SongSearchSite.Code.Handlers {
 			try {
 				context.Response.ContentType = "application/json";
 				context.Response.ContentEncoding = Encoding.UTF8;
-
-				Func<Uri, Uri> uriMapper = SongDbContainer.LocalSongPathToAppRelativeMapper(context);
-				context.Response.Output.Write(
-					JsonConvert.SerializeObject(playlistLocal.Select(song => PlaylistEntry.MakeEntry(uriMapper, song)).ToArray())
-				);
+				context.Response.Output.Write(PlaylistHelpers.SerializeToJson(context, playlistLocal));
 			} catch (Exception e) {
 				context.Response.ContentType = "application/json";
 				context.Response.Output.Write(JsonConvert.SerializeObject(new SimilarPlaylistError { error = e.GetType().FullName, message = e.Message, fulltrace = e.ToString() }));
