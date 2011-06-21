@@ -92,13 +92,14 @@ namespace LastFMspider {
 		}
 
 		DbCommand listAllPlaylists, storeNewPlaylist, updatePlaylistContents, loadPlaylist;
-		DbCommand renamePlaylist;
-		private DbCommand updatePlaycount;
+		DbCommand renamePlaylist, listEntirePlaycountHistory;
+		DbCommand updatePlaycount, overwriteCumulativePlaycount;
+		
 
 		public PlaylistDb(SongDataConfigFile config, bool suppressCreation = false) {
 			Connection = PlaylistDbBuilder.ConstructConnection(config);
 			Connection.Open();
-			PlaylistDbBuilder.CreateTables(Connection); 
+			PlaylistDbBuilder.CreateTables(Connection);
 			//if (!suppressCreation) try { PlaylistDbBuilder.CreateTables(Connection); } catch (SQLiteException) { }//if we can't create, we just hope the tables are already OK.
 
 			InitCommands();
@@ -110,9 +111,12 @@ namespace LastFMspider {
                   FROM Playlist
                   WHERE IsCurrent = 1
                 ");
+			listEntirePlaycountHistory = CreateCommand(@"
+				SELECT PlaylistID, LastVersionID, PlayCount, CumulativePlayCount
+                  FROM Playlist");
 			storeNewPlaylist = CreateCommand(@"
-				INSERT INTO Playlist (Username,PlaylistTitle,StoredTimestamp, IsCurrent, PlayCount, CumulativePlayCount, PlaylistContents)
-				  VALUES (@pUsername, @pPlaylistTitle, @pStoredTimestamp, 1, 0, 0, @pPlaylistContents);
+				INSERT INTO Playlist (Username,PlaylistTitle,StoredTimestamp,LastPlayedTimestamp IsCurrent, PlayCount, CumulativePlayCount, PlaylistContents)
+				  VALUES (@pUsername, @pPlaylistTitle, @pStoredTimestamp,@pStoredTimestamp, 1, 0, 0, @pPlaylistContents);
 
 				SELECT max(PlaylistID)
 				FROM Playlist
@@ -120,8 +124,8 @@ namespace LastFMspider {
 			", "@pUsername", "@pPlaylistTitle", "@pStoredTimestamp", "@pPlaylistContents");
 
 			updatePlaylistContents = CreateCommand(@"
-				INSERT INTO Playlist (LastVersionID, Username, PlaylistTitle, StoredTimestamp, IsCurrent, PlayCount, CumulativePlayCount, PlaylistContents)
-				SELECT						@pLastVersionID, @pUsername, @pPlaylistTitle, @pStoredTimestamp, 1,   0,             PlayCount,            @pPlaylistContents
+				INSERT INTO Playlist (LastVersionID, Username, PlaylistTitle, StoredTimestamp, LastPlayedTimestamp,IsCurrent, PlayCount, CumulativePlayCount, PlaylistContents)
+				SELECT						@pLastVersionID, @pUsername, @pPlaylistTitle, @pStoredTimestamp, LastPlayedTimestamp,1,   0,             CumulativePlayCount,            @pPlaylistContents
 				FROM Playlist WHERE PlaylistID = @pLastVersionID;
                 
 				UPDATE Playlist SET IsCurrent = 0 WHERE PlaylistID = @pLastVersionID;
@@ -139,12 +143,13 @@ namespace LastFMspider {
 
 			renamePlaylist = CreateCommand(@"
 				UPDATE Playlist SET PlaylistTitle = @pPlaylistTitle, Username = @pUsername WHERE PlaylistID = @pPlaylistID
-                ", "@pPlaylistID","@pUsername", "@pPlaylistTitle");
+                ", "@pPlaylistID", "@pUsername", "@pPlaylistTitle");
 
 			updatePlaycount = CreateCommand(@"
 				UPDATE Playlist SET PlayCount = PlayCount + 1, CumulativePlayCount = CumulativePlayCount + 1, LastPlayedTimestamp = @pLastPlayedTimestamp
 				WHERE PlaylistID = @pPlaylistID
                 ", "@pPlaylistID", "@pLastPlayedTimestamp");
+			overwriteCumulativePlaycount = CreateCommand(@"UPDATE Playlist SET CumulativePlayCount = @newCum WHERE PlaylistID = @id", "@id", "@newCum");
 		}
 
 
@@ -200,6 +205,51 @@ namespace LastFMspider {
 						});
 
 				return retval.ToArray();
+			});
+		}
+
+		public struct PlaylistPlaycounts {
+			public long PlaylistID;
+			public long? LastVersionID;
+			public long PlayCount, CumulativePlayCount;
+		}
+
+		public PlaylistPlaycounts[] ListPlaycountHistory() {
+			return DoInLockedTransaction(() => {
+				var retval = new List<PlaylistPlaycounts>();
+				using (var reader = listEntirePlaycountHistory.ExecuteReader())
+					while (reader.Read())
+						retval.Add(new PlaylistPlaycounts {
+							PlaylistID = reader[0].CastDbObjectAs<long>(),
+							LastVersionID = reader[1].CastDbObjectAs<long?>(),
+							PlayCount = reader[2].CastDbObjectAs<long>(),
+							CumulativePlayCount = reader[3].CastDbObjectAs<long>(),
+						});
+
+				return retval.ToArray();
+			});
+		}
+
+		public void RecomputeCumulativePlaycounts() {
+			DoInLockedTransaction(() => {
+				var playlists = ListPlaycountHistory();
+
+				var playlistsLookup = playlists.ToDictionary(playlist => playlist.PlaylistID);
+
+				Dictionary<long, long> cumulativePlaycountCache = new Dictionary<long, long>();
+				Func<long?, long> rawCumul = null;
+				rawCumul = id => !id.HasValue ? 0 :
+					cumulativePlaycountCache.ContainsKey(id.Value) ? cumulativePlaycountCache[id.Value] :
+					(cumulativePlaycountCache[id.Value] = playlistsLookup[id.Value].PlayCount + rawCumul(playlistsLookup[id.Value].LastVersionID));
+
+				foreach (var playlist in playlists) {
+					var computedCumulativePlaycount = rawCumul(playlist.PlaylistID);
+					if (playlist.CumulativePlayCount == computedCumulativePlaycount) continue;
+					overwriteCumulativePlaycount.Parameters["@id"].Value = playlist.PlaylistID;
+					overwriteCumulativePlaycount.Parameters["@newCum"].Value = computedCumulativePlaycount;
+					//Console.WriteLine("Setting " + playlist.PlaylistID + " to " + computedCumulativePlaycount);
+					overwriteCumulativePlaycount.ExecuteNonQuery();
+				}
 			});
 		}
 

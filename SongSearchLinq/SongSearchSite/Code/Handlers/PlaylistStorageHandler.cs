@@ -34,7 +34,7 @@ namespace SongSearchSite.Code.Handlers {
 //					return null;
 					throw new NotImplementedException();
 				case "~/list-all-playlists":
-					return db.ListAllPlaylists().OrderBy(entry => entry.Username != context.User.Identity.Name).ThenBy(entry => entry.Username).ThenByDescending(entry => entry.LastPlayedTimestamp).ThenBy(entry => entry.PlaylistTitle).ToArray();
+					return db.ListAllPlaylists().OrderBy(entry => entry.Username != context.User.Identity.Name).ThenByDescending(entry => entry.LastPlayedTimestamp).ThenBy(entry => entry.PlaylistTitle).ToArray();
 				case "~/list-user-playlists":
 					return db.ListAllPlaylists().Where(entry => entry.Username == context.User.Identity.Name).OrderByDescending(entry => entry.LastPlayedTimestamp).ToArray();
 				default:
