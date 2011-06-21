@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
+using System.Data.SQLite;
 using System.Linq;
 using LastFMspider.LastFMSQLiteBackend;
 using SongDataLib;
@@ -65,7 +66,7 @@ namespace LastFMspider {
 				}
 		}
 
-		internal DbCommand CreateCommand() { return Connection.CreateCommand(); }//must be locked already!
+		DbCommand CreateCommand() { return Connection.CreateCommand(); }//must be locked already!
 		#endregion
 
 		class ParDef {
@@ -99,8 +100,7 @@ namespace LastFMspider {
 		public PlaylistDb(SongDataConfigFile config, bool suppressCreation = false) {
 			Connection = PlaylistDbBuilder.ConstructConnection(config);
 			Connection.Open();
-			PlaylistDbBuilder.CreateTables(Connection);
-			//if (!suppressCreation) try { PlaylistDbBuilder.CreateTables(Connection); } catch (SQLiteException) { }//if we can't create, we just hope the tables are already OK.
+			if (!suppressCreation) try { PlaylistDbBuilder.CreateTables(Connection); } catch (SQLiteException) { }//if we can't create, we just hope the tables are already OK.
 
 			InitCommands();
 		}
@@ -115,8 +115,8 @@ namespace LastFMspider {
 				SELECT PlaylistID, LastVersionID, PlayCount, CumulativePlayCount
                   FROM Playlist");
 			storeNewPlaylist = CreateCommand(@"
-				INSERT INTO Playlist (Username,PlaylistTitle,StoredTimestamp,LastPlayedTimestamp IsCurrent, PlayCount, CumulativePlayCount, PlaylistContents)
-				  VALUES (@pUsername, @pPlaylistTitle, @pStoredTimestamp,@pStoredTimestamp, 1, 0, 0, @pPlaylistContents);
+				INSERT INTO Playlist (Username,PlaylistTitle,    StoredTimestamp,     LastPlayedTimestamp, IsCurrent, PlayCount, CumulativePlayCount, PlaylistContents)
+				  VALUES            (@pUsername, @pPlaylistTitle,@pStoredTimestamp,@pStoredTimestamp, 1, 0, 0, @pPlaylistContents);
 
 				SELECT max(PlaylistID)
 				FROM Playlist
@@ -184,7 +184,7 @@ namespace LastFMspider {
 			public long? LastVersionID;
 			public string Username, PlaylistTitle;
 			public DateTime StoredTimestamp;
-			public DateTime? LastPlayedTimestamp;
+			public DateTime LastPlayedTimestamp;
 			public long PlayCount, CumulativePlayCount;
 		}
 
@@ -199,7 +199,7 @@ namespace LastFMspider {
 							Username = reader[2].CastDbObjectAs<string>(),
 							PlaylistTitle = reader[3].CastDbObjectAs<string>(),
 							StoredTimestamp = reader[4].CastDbObjectAsDateTime().Value,
-							LastPlayedTimestamp = reader[5].CastDbObjectAsDateTime(),
+							LastPlayedTimestamp = reader[5].CastDbObjectAsDateTime().Value,
 							PlayCount = reader[6].CastDbObjectAs<long>(),
 							CumulativePlayCount = reader[7].CastDbObjectAs<long>(),
 						});
@@ -257,7 +257,7 @@ namespace LastFMspider {
 			public long? LastVersionID;
 			public string Username, PlaylistTitle;
 			public DateTime StoredTimestamp;
-			public DateTime? LastPlayedTimestamp;
+			public DateTime LastPlayedTimestamp;
 			public long PlayCount, CumulativePlayCount;
 			public string PlaylistContents;
 		}
@@ -271,7 +271,7 @@ namespace LastFMspider {
 					Username = dbRow[1].CastDbObjectAs<string>(),
 					PlaylistTitle = dbRow[2].CastDbObjectAs<string>(),
 					StoredTimestamp = dbRow[3].CastDbObjectAsDateTime().Value,
-					LastPlayedTimestamp = dbRow[4].CastDbObjectAsDateTime(),
+					LastPlayedTimestamp = dbRow[4].CastDbObjectAsDateTime().Value,
 					PlayCount = dbRow[5].CastDbObjectAs<long>(),
 					CumulativePlayCount = dbRow[6].CastDbObjectAs<long>(),
 					PlaylistContents = dbRow[7].CastDbObjectAs<string>(),

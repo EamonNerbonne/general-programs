@@ -94,7 +94,7 @@ $(document).ready(function ($) {
                 if (codeTriggered) return;
                 var val = false;
                 try { val = JSON.parse(newval) } catch (e) { }
-                if (val) loadPlaylist(val, {});
+                if (val) loadPlaylistAsync({ list: val, name: null });
             }
         }
         /*  , lfmUser: {
@@ -138,18 +138,6 @@ $(document).ready(function ($) {
         }
         }
         */
-
-        //        , playlistName: {
-        //            label: "Playlist Name",
-        //            type: "textbox",
-        //            initialValue: "",
-        //            onchange: function (newval, codeTriggered, e) {
-        //                //                if (codeTriggered) return;
-        //                //                var val = false;
-        //                //                try { val = JSON.parse(newval) } catch (e) { }
-        //                //                if (val) loadPlaylist(val);
-        //            }
-        //}
     };
 
     if (window.webkitNotifications) {
@@ -214,7 +202,7 @@ $(document).ready(function ($) {
         var oldRating = songdata.rating;
         songdata.rating = newRating;
         ratingDiv.attr("data-rating", newRating || 0);
-        playlistStorageQueue.contentsChanged();
+        playlistStorage.contentsChanged(savePlaylist_ExtractFromHtml());
 
         function oops(ignore, errorstatus, errormessage) {
             songdata.rating = oldRating;
@@ -244,7 +232,7 @@ $(document).ready(function ($) {
             playlistDragnDropInit();
 
             $("#similar .known").click(knownClick);
-            loadPlaylist(JSON.parse(localStorage.playlist));
+            loadPlaylistAsync({ list: JSON.parse(localStorage.playlist), name: null });
         },
         oggSupport: true,
         swfPath: ""
@@ -297,20 +285,25 @@ $(document).ready(function ($) {
 
     function emptyPlaylist() {
         playlistChange(null);
-        playlistElem.empty();
-        playlistRefreshUi({});
+        loadPlaylistSync({ list: [], name: null });
     }
 
-    function loadPlaylistSync(list, optional_loadedas) {
+    function loadPlaylistSync(listdata) {
         playlistElem.empty();
-        for (i = 0; i < list.length; i++)
-            addToPlaylistRaw(list[i]);
+        var list = listdata.list;
+        for (i = 0; i < list.length; i++) addToPlaylistRaw(list[i]);
         if (list.length > 0) playlistChange($("#jplayer_playlist ul li")[0]);
         else $("#jquery_jplayer").jPlayer("stop");
-        playlistRefreshUi(optional_loadedas);
+        playlistStorage.playlistLoaded(listdata);
+        simStateSet.getting();
     }
 
-    function loadPlaylist(list, optional_loadedas) {
+    function playlistRefreshUi() {
+        playlistStorage.contentsChanged(savePlaylist_ExtractFromHtml());
+        simStateSet.getting();
+    }
+
+    function loadPlaylistAsync(listdata) {
         function oops(ignore, errorstatus, errormessage) {
             alert(errorstatus + " while bouncing playlist off server\n" + (errormessage || ""));
         };
@@ -318,9 +311,9 @@ $(document).ready(function ($) {
         $.ajax({
             type: "POST",
             url: "bounce-playlist",
-            data: { playlist: JSON.stringify(list), format: "json" },
+            data: { playlist: JSON.stringify(listdata.list), format: "json" },
             timeout: 62 * 1000,
-            success: function (data) { if (data && data.error) oops(null, data.error, data.message); else loadPlaylistSync(data, optional_loadedas); },
+            success: function (data) { if (data && data.error) oops(null, data.error, data.message); else { listdata.list = data; loadPlaylistSync(listdata); } },
             error: oops
         });
     }
@@ -368,10 +361,6 @@ $(document).ready(function ($) {
         else scrollIntoMiddleView(newItem);
     }
 
-    function playlistRefreshUi(optional_listname) {
-        playlistStorageQueue.contentsChanged(optional_listname);
-        simStateSet.getting();
-    }
 
     var isGetQueued = false;
     var leftColSel = $(".similarItemsDisplay"), knownSel = $("#similar .known"), unknownSel = $("#similar .unknown");
@@ -634,7 +623,7 @@ $(document).ready(function ($) {
                 if (jsResponse.error)
                     oops(null, jsResponse.error, jsResponse.message);
                 else if (jsResponse)
-                    loadPlaylistSync(jsResponse, { name: filenameNoExtension });
+                    loadPlaylistSync({ list: jsResponse, name: filenameNoExtension });
             }
         }
 
@@ -762,171 +751,195 @@ $(document).ready(function ($) {
         var target = e.target || e.srcElement;
         var clickedListItem = $(target).parents().andSelf().filter("li").first();
         var plData = clickedListItem.data("playlist");
-        playlistStorageQueue.playlistToLoad = plData.PlaylistID;
-
-        ProcessPlaylistQueue();
+        playlistStorage.loadPlaylistByID(plData.PlaylistID);
     });
 
-    function playlistNameChangedHandler() {
-        playlistStorageQueue.nameChangedTo = $("#playlistName")[0].value;
-        ProcessPlaylistQueue();
-    }
+    function playlistNameChangedHandler() { playlistStorage.changePlaylistName($("#playlistName")[0].value); }
     $("#playlistName").keyup(playlistNameChangedHandler).change(playlistNameChangedHandler).blur(playlistNameChangedHandler);
 
-    var playlistStorageQueue = {
-        isBusy: false,
-        playlistToLoad: null,
-        nameChangedTo: null,
-        playlistContentsChangedTo: null,
-        playlistLoadedAs: null,
-        setBusy: function () { if (playlistStorageQueue.isBusy) throw "already busy!"; playlistStorageQueue.isBusy = true; },
-        setFree: function () { if (!playlistStorageQueue.isBusy) throw "not busy!"; playlistStorageQueue.isBusy = false; setTimeout(ProcessPlaylistQueue, 0); },
-        contentsChanged: function (optional_listname) {
-            var playlistData = savePlaylist_ExtractFromHtml();
-            playlistStorageQueue.playlistContentsChangedTo = playlistData;
-            if (optional_listname) playlistStorageQueue.playlistLoadedAs = optional_listname;
-            ProcessPlaylistQueue();
-        }
-    };
-    var playlistState = {
-        playlistContents: null,
-        playlistID: null,
-        playlistName: null,
-        changeNameFromData: function (newName) { playlistState.playlistName = newName; $("#playlistName")[0].value = newName; }
-    };
+    var playlistStorage = function () {
+        var public = {
+            contentsChanged: function (listdata) {
+                cmdQ.playlistContentsChangedTo = listdata;
+                ProcessPlaylistQueue();
+            },
+            playlistLoaded: function (listdata) {
+                cmdQ.playlistLoadedAs = listdata;
+                ProcessPlaylistQueue();
+            },
+            loadPlaylistByID: function (playlistID) {
+                cmdQ.playlistToLoad = playlistID;
+                ProcessPlaylistQueue();
+            },
+            changePlaylistName: function (newName) {
+                cmdQ.nameChangedTo = newName;
+                ProcessPlaylistQueue();
+            }
+        };
 
+        var cmdQ = {
+            isBusy: false,
+            playlistToLoad: null,
+            nameChangedTo: null,
+            playlistContentsChangedTo: null,
+            playlistLoadedAs: null
+        };
 
+        var state = {
+            playlistContents: null,
+            playlistID: null,
+            playlistName: null,
+            changeNameFromData: function (newName) { state.playlistName = newName; $("#playlistName")[0].value = newName; }
+        };
 
-    function ProcessPlaylistQueue() {
-        if (playlistStorageQueue.isBusy) return;
-        if (playlistStorageQueue.playlistContentsChangedTo) {
-            var newplaylist = playlistStorageQueue.playlistContentsChangedTo;
-            playlistStorageQueue.playlistContentsChangedTo = null;
-            if (!areEquivalent(newplaylist, playlistState.playlistContents)) {
-                var serializedList = JSON.stringify(newplaylist);
-                localStorage.setItem("playlist", serializedList); // defining the localStorage variable 
+        function setBusy() { if (cmdQ.isBusy) throw "already busy!"; cmdQ.isBusy = true; }
+        function setFree() { if (!cmdQ.isBusy) throw "not busy!"; cmdQ.isBusy = false; setTimeout(ProcessPlaylistQueue, 0); }
+        function ProcessPlaylistQueue() {
+            if (cmdQ.isBusy) return;
+
+            if (cmdQ.playlistLoadedAs) {
+                var listdata = cmdQ.playlistLoadedAs;
+                cmdQ.playlistLoadedAs = null;
+                var serializedList = JSON.stringify(listdata.list);
+                localStorage.setItem("playlist", serializedList);
                 userOptions.serializedList.setValue(serializedList);
-                if (playlistStorageQueue.playlistLoadedAs && !playlistStorageQueue.playlistLoadedAs.name) {
-                    playlistState.playlistContents = newplaylist;
-                    playlistState.playlistID = null;
-                    playlistState.changeNameFromData(null);
-                } else if (playlistStorageQueue.playlistLoadedAs) {
-                    playlistStorageQueue.setBusy();
-                    qStorePlaylist(playlistStorageQueue.playlistLoadedAs.name, newplaylist);
-                    playlistState.changeNameFromData(playlistStorageQueue.playlistLoadedAs.name);
-                    playlistStorageQueue.playlistLoadedAs = null;
-                    return;
-                } if (playlistState.playlistID === null) {
-                    playlistState.playlistContents = newplaylist;
-                } else { //playlist has changed, we're free, and we've got a current ID!
-                    playlistStorageQueue.setBusy();
-                    qUpdatePlaylistContents(playlistState.playlistName, newplaylist, playlistState.playlistID);
+                if (listdata.PlaylistID === state.playlistID) {
+                    if (!areEquivalent(listdata.list, state.playlistContents)) {
+                        qUpdatePlaylistContents(listdata.name, listdata.list, listdata.PlaylistID);
+                        return;
+                    }
+                } else if (listdata.PlaylistID) {
+                    alert("Hmm, seems you've loaded " + listdata.name + "(" + listdata.PlaylistID + ") while " + state.playlistName + "(" + state.playlistID + ") is active??");
+                } else if (!listdata.name) {
+                    state.playlistContents = listdata.list;
+                    state.playlistID = null;
+                    state.changeNameFromData(null);
+                } else {
+                    qStorePlaylist(listdata.name, listdata.list);
+                    state.changeNameFromData(listdata.name);
                     return;
                 }
             }
-        }
 
-        if (playlistStorageQueue.nameChangedTo) {
-            var newname = playlistStorageQueue.nameChangedTo;
-            playlistStorageQueue.nameChangedTo = null;
-            if (playlistState.playlistName !== newname) {
-                if (playlistState.playlistID === null) {//we're free, name has changed, and no ID: save!
-                    playlistStorageQueue.setBusy();
-                    qStorePlaylist(newname, playlistState.playlistContents);
-                    return;
-                } else {//we're free, name has changed, and pre-existing ID: rename!
-                    playlistStorageQueue.setBusy();
-                    qRenamePlaylist(playlistState.playlistID, newname);
-                    return;
-                } //TODO: deal with empty name how?
+            if (cmdQ.playlistContentsChangedTo) {
+                var newplaylist = cmdQ.playlistContentsChangedTo;
+                cmdQ.playlistContentsChangedTo = null;
+                if (!areEquivalent(newplaylist, state.playlistContents)) {
+                    var serializedList = JSON.stringify(newplaylist);
+                    localStorage.setItem("playlist", serializedList);
+                    userOptions.serializedList.setValue(serializedList);
+                    if (state.playlistID === null) {
+                        state.playlistContents = newplaylist;
+                    } else { //playlist has changed, we're free, and we've got a current ID!
+                        qUpdatePlaylistContents(state.playlistName, newplaylist, state.playlistID);
+                        return;
+                    }
+                }
+            }
+
+            if (cmdQ.nameChangedTo) {
+                var newname = cmdQ.nameChangedTo;
+                cmdQ.nameChangedTo = null;
+                if (state.playlistName !== newname) {
+                    if (state.playlistID === null) {//we're free, name has changed, and no ID: save!
+                        qStorePlaylist(newname, state.playlistContents);
+                        return;
+                    } else {//we're free, name has changed, and pre-existing ID: rename!
+                        qRenamePlaylist(state.playlistID, newname);
+                        return;
+                    } //TODO: deal with empty name how?
+                }
+            }
+
+            if (cmdQ.playlistToLoad) {
+                qLoadPlaylist(cmdQ.playlistToLoad);
+                cmdQ.playlistToLoad = null;
+                return;
             }
         }
 
-        if (playlistStorageQueue.playlistToLoad) {
-            playlistStorageQueue.setBusy();
-            qLoadPlaylist(playlistStorageQueue.playlistToLoad);
-            playlistStorageQueue.playlistToLoad = null;
-            return;
+
+        function qRenamePlaylist(_playlistID, _newName) {
+            setBusy();
+            $.ajax({
+                type: "POST",
+                url: "rename-playlist",
+                data: { playlistID: _playlistID, newName: _newName },
+                timeout: 10000,
+                success: function (data) {
+                    try {
+                        state.playlistName = _newName;
+                        ajaxLoadPlaylistNames();
+                    } finally {
+                        setFree();
+                    }
+                },
+                error: function (xhr, status, errorThrown) { alert(errorThrown); setFree(); }
+            });
         }
-    }
 
+        function qStorePlaylist(_playlistTitle, _playlistContents) {
+            setBusy();
+            $.ajax({
+                type: "POST",
+                url: "store-playlist",
+                data: { playlistTitle: _playlistTitle, playlistContents: JSON.stringify(_playlistContents) },
+                timeout: 10000,
+                success: function (data) {
+                    try {
+                        state.playlistID = data;
+                        state.playlistContents = _playlistContents;
+                        ajaxLoadPlaylistNames();
+                    } finally {
+                        setFree();
+                    }
+                },
+                error: function (xhr, status, errorThrown) { alert(errorThrown); setFree(); }
+            });
+        }
 
-    function qRenamePlaylist(_playlistID, _newName) {
-        $.ajax({
-            type: "POST",
-            url: "rename-playlist",
-            data: { playlistID: _playlistID, newName: _newName },
-            timeout: 10000,
-            success: function (data) {
-                try {
-                    playlistState.playlistName = _newName;
-                    ajaxLoadPlaylistNames();
-                } finally {
-                    playlistStorageQueue.setFree();
-                }
-            },
-            error: function (xhr, status, errorThrown) { alert(errorThrown); playlistStorageQueue.setFree(); }
-        });
-    }
+        function qUpdatePlaylistContents(_playlistTitle, _playlistContents, _lastVersionId) {
+            setBusy();
+            $.ajax({
+                type: "POST",
+                url: "update-playlist",
+                data: { playlistTitle: _playlistTitle, playlistContents: JSON.stringify(_playlistContents), lastVersionId: _lastVersionId },
+                timeout: 10000,
+                success: function (data) {
+                    try {
+                        state.playlistID = data;
+                        state.playlistContents = _playlistContents;
+                        state.playlistName = _playlistTitle;
+                        ajaxLoadPlaylistNames();
+                    } finally {
+                        setFree();
+                    }
+                },
+                error: function (xhr, status, errorThrown) { alert(errorThrown); setFree(); }
+            });
+        }
 
-    function qStorePlaylist(_playlistTitle, _playlistContents) {
-        $.ajax({
-            type: "POST",
-            url: "store-playlist",
-            data: { playlistTitle: _playlistTitle, playlistContents: JSON.stringify(_playlistContents) },
-            timeout: 10000,
-            success: function (data) {
-                try {
-                    playlistState.playlistID = data;
-                    playlistState.playlistContents = _playlistContents;
-                    ajaxLoadPlaylistNames();
-                } finally {
-                    playlistStorageQueue.setFree();
-                }
-            },
-            error: function (xhr, status, errorThrown) { alert(errorThrown); playlistStorageQueue.setFree(); }
-        });
-    }
-
-    function qUpdatePlaylistContents(_playlistTitle, _playlistContents, _lastVersionId) {
-        $.ajax({
-            type: "POST",
-            url: "update-playlist",
-            data: { playlistTitle: _playlistTitle, playlistContents: JSON.stringify(_playlistContents), lastVersionId: _lastVersionId },
-            timeout: 10000,
-            success: function (data) {
-                try {
-                    playlistState.playlistID = data;
-                    playlistState.playlistContents = _playlistContents;
-                    playlistState.playlistName = _playlistTitle;
-                    ajaxLoadPlaylistNames();
-                } finally {
-                    playlistStorageQueue.setFree();
-                }
-            },
-            error: function (xhr, status, errorThrown) { alert(errorThrown); playlistStorageQueue.setFree(); }
-        });
-    }
-
-    function qLoadPlaylist(playlistID) {
-        $.ajax({
-            type: "POST",
-            url: "load-playlist",
-            data: { playlistID: playlistID },
-            timeout: 10000,
-            success: function (data) {
-
-                try {
-                    playlistState.playlistContents = JSON.parse(data.PlaylistContents);
-                    playlistState.playlistID = playlistID;
-                    playlistState.changeNameFromData(data.PlaylistTitle);
-                    loadPlaylist(playlistState.playlistContents);
-                } finally {
-                    playlistStorageQueue.setFree();
-                }
-            },
-            error: function (xhr, status, errorThrown) { alert(errorThrown); playlistStorageQueue.setFree(); }
-        });
-    }
+        function qLoadPlaylist(playlistID) {
+            setBusy();
+            $.ajax({
+                type: "POST",
+                url: "load-playlist",
+                data: { playlistID: playlistID },
+                timeout: 10000,
+                success: function (data) {
+                    try {
+                        state.playlistContents = JSON.parse(data.PlaylistContents);
+                        state.playlistID = playlistID;
+                        state.changeNameFromData(data.PlaylistTitle);
+                        loadPlaylistAsync({ list: state.playlistContents, name: data.PlaylistTitle, PlaylistID: playlistID });
+                    } finally {
+                        setFree();
+                    }
+                },
+                error: function (xhr, status, errorThrown) { alert(errorThrown); setFree(); }
+            });
+        }
+        return public;
+    } ();
 });
 

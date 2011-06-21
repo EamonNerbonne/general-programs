@@ -20,7 +20,7 @@ CREATE TABLE IF NOT EXISTS [Playlist] (
   [Username] TEXT NOT NULL,
   [PlaylistTitle] TEXT NOT NULL,
   [StoredTimestamp] INTEGER NOT NULL,
-  [LastPlayedTimestamp] INTEGER NULL,
+  [LastPlayedTimestamp] INTEGER NOT NULL,
   [IsCurrent] INTEGER NOT NULL,
   [PlayCount] INTEGER NOT NULL,
   [CumulativePlayCount] INTEGER NOT NULL,

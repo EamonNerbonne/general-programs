@@ -15,8 +15,7 @@ namespace SongSearchSite.Code.Handlers {
 			SetResult(ChooseAction(context));
 		}
 
-		static object ChooseAction(HttpContext context)
-		{
+		static object ChooseAction(HttpContext context) {
 			var db = SongDbContainer.PlaylistDb;
 			switch (context.Request.AppRelativeCurrentExecutionFilePath) {
 				case "~/update-playlist":
@@ -30,13 +29,13 @@ namespace SongSearchSite.Code.Handlers {
 					db.RenamePlaylist(long.Parse(context.Request["playlistID"]), context.User.Identity.Name, context.Request["newName"]);
 					return null;
 				case "~/update-playcount":
-//					db.UpdatePlaycount(long.Parse(context.Request["playlistID"]), DateTime.UtcNow);
-//					return null;
+					//					db.UpdatePlaycount(long.Parse(context.Request["playlistID"]), DateTime.UtcNow);
+					//					return null;
 					throw new NotImplementedException();
 				case "~/list-all-playlists":
-					return db.ListAllPlaylists().OrderBy(entry => entry.Username != context.User.Identity.Name).ThenByDescending(entry => entry.LastPlayedTimestamp).ThenBy(entry => entry.PlaylistTitle).ToArray();
+					return db.ListAllPlaylists().OrderBy(entry => entry.Username != context.User.Identity.Name).ThenByDescending(entry => (entry.CumulativePlayCount + entry.PlayCount * 2) / Math.Max(1.0, 1.0 + (DateTime.UtcNow - entry.LastPlayedTimestamp).TotalDays)).ToArray();
 				case "~/list-user-playlists":
-					return db.ListAllPlaylists().Where(entry => entry.Username == context.User.Identity.Name).OrderByDescending(entry => entry.LastPlayedTimestamp).ToArray();
+					return db.ListAllPlaylists().Where(entry => entry.Username == context.User.Identity.Name).OrderByDescending(entry => (entry.CumulativePlayCount + entry.PlayCount * 2) / Math.Max(1.0, 1.0 + (DateTime.UtcNow - entry.LastPlayedTimestamp).TotalDays)).ToArray();
 				default:
 					throw new ArgumentOutOfRangeException("Cannot handle: " + context.Request.AppRelativeCurrentExecutionFilePath);
 			}
