@@ -49,7 +49,7 @@ namespace LvqGui {
 
 
 		public Task TestLrIfNecessary(TextWriter sink, LvqModelSettingsCli settings) {
-			if (!AbortIfAlreadyDone(settings, sink)) {
+			if (!AttemptToClaimSettings(settings, sink)) {
 				var sw = new StringWriter();
 				return Run(settings, sw, sink).ContinueWith(t => {
 					t.Wait();
@@ -180,14 +180,24 @@ namespace LvqGui {
 					Statistics.GetFormatted(nn, nnStderr, 1) + "; ";
 			}
 		}
+		static readonly object fsSync = new object();
 
-		bool AbortIfAlreadyDone(LvqModelSettingsCli settings, TextWriter sink) {
-			if (File.Exists(GetLogfilepath(settings).First())) {
-				Console.WriteLine("already done:" + DatasetLabel + "\\" + ShortnameFor(settings));
-				if (sink != null) sink.WriteLine("already done!");
-				return true;
-			} else
-				return false;
+		bool AttemptToClaimSettings(LvqModelSettingsCli settings, TextWriter sink) {
+			var saveFile = new FileInfo(GetLogfilepath(settings).First());
+			lock (fsSync)
+				if (saveFile.Exists) {
+					if (saveFile.Length > 0) {
+						Console.WriteLine("already done:" + DatasetLabel + "\\" + ShortnameFor(settings));
+						if (sink != null) sink.WriteLine("already done!");
+					} else {
+						Console.WriteLine("already started:" + DatasetLabel + "\\" + ShortnameFor(settings));
+						if (sink != null) sink.WriteLine("already started!");
+					}
+					return true;
+				} else {
+					saveFile.Create().Close();
+					return false;
+				}
 		}
 
 		Task Run(LvqModelSettingsCli settings, StringWriter sw, TextWriter extraSink) {
@@ -206,7 +216,7 @@ namespace LvqGui {
 		string DatasetLabel { get { return _dataset != null ? _dataset.DatasetLabel : "base"; } }
 
 		void SaveLogFor(LvqModelSettingsCli settings, string logcontents) {
-			string logfilepath = GetLogfilepath(settings).First(path => !File.Exists(path));
+			string logfilepath = GetLogfilepath(settings).First(path => !File.Exists(path) || new FileInfo(path).Length == 0);
 			Directory.CreateDirectory(Path.GetDirectoryName(logfilepath));
 			File.WriteAllText(logfilepath, logcontents);
 		}
