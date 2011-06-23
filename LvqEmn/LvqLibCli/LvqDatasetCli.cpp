@@ -22,12 +22,12 @@ namespace LvqLibCli {
 		: colors(colors)
 		, label(label)
 		, folds(folds)
-		, dataset(newDataset,newDataset->MemAllocEstimate())
+		, dataset(newDataset,newDataset->MemAllocEstimate()) //TODO:ABI: make this a public methods taking pointers.
 	{
-		if(extend) dataset->ExtendByCorrelations(); 
-		if(normalizeDims) dataset->NormalizeDimensions(); 
-		dataset->shufflePoints(rngOrder); 
-	}
+		if(extend) dataset->ExtendByCorrelations(); //TODO:ABI make these public methods taking pointers.
+		if(normalizeDims) dataset->NormalizeDimensions();  //TODO:ABI make these public methods taking pointers.
+		dataset->shufflePoints(rngOrder);  //TODO:ABI this should be in creator function.
+	}//TODO:ABI: constructor functions should take seed value, not mt19937, and should know folds.
 
 	LvqDatasetCli^ LvqDatasetCli::ConstructGaussianClouds(String^label, int folds, bool extend,  bool normalizeDims, ColorArray^ colors, unsigned rngParamsSeed, unsigned rngInstSeed, int dims, 
 			int classCount, int pointsPerClass, double meansep) {
@@ -47,7 +47,7 @@ namespace LvqLibCli {
 	Tuple<double,double> ^ LvqDatasetCli::GetPcaNnErrorRate() {
 		if(HasTestSet())
 			return Tuple::Create(
-				GetTrainingDataset()->NearestNeighborPcaErrorRate(
+				GetTrainingDataset()->NearestNeighborPcaErrorRate( //TODO:ABI: make this a function taking two dataset pointers
 					GetTrainingSubset(0),
 					GetTestDataset(),
 					GetTestSubset(0)
@@ -56,7 +56,7 @@ namespace LvqLibCli {
 		SmartSum<1> nnErrorRate(1);
 		for(int fold=0;fold<folds;++fold) {
 			nnErrorRate.CombineWith(
-				GetTrainingDataset()->NearestNeighborPcaErrorRate(
+				GetTrainingDataset()->NearestNeighborPcaErrorRate(//TODO:ABI: make this a function taking one dataset pointer, and two folds.
 					GetTrainingSubset(fold),
 					GetTestDataset(),
 					GetTestSubset(fold)
@@ -69,9 +69,9 @@ namespace LvqLibCli {
 
 	array<int>^ LvqDatasetCli::ClassLabels(){ array<int>^ retval; cppToCli(dataset->getPointLabels(), retval); return retval;}
 	array<LvqFloat,2>^ LvqDatasetCli::RawPoints() { array<LvqFloat,2>^ retval; cppToCli(dataset->getPoints(), retval); return retval;}
-	vector<int> LvqDatasetCli::GetTrainingSubset(int fold) { return GetTrainingDataset()->GetTrainingSubset(fold,folds); }
-	int LvqDatasetCli::GetTrainingSubsetSize(int fold) { return GetTrainingDataset()->GetTrainingSubsetSize(fold,folds); }
-	vector<int> LvqDatasetCli::GetTestSubset(int fold) { return HasTestSet() ? GetTestDataset()->GetTrainingSubset(0,0) : GetTestDataset()->GetTestSubset(fold,folds); }
+	vector<int> LvqDatasetCli::GetTrainingSubset(int fold) { return GetTrainingDataset()->GetTrainingSubset(fold,folds); } //TODO:ABI:remove.
+	int LvqDatasetCli::GetTrainingSubsetSize(int fold) { return GetTrainingDataset()->GetTrainingSubsetSize(fold,folds); }//TODO:ABI: make this a public methods taking pointers.
+	vector<int> LvqDatasetCli::GetTestSubset(int fold) { return HasTestSet() ? GetTestDataset()->GetTrainingSubset(0,0) : GetTestDataset()->GetTestSubset(fold,folds); }//TODO:ABI:remove.
 	int LvqDatasetCli::ClassCount::get(){return dataset->getClassCount();}
 	int LvqDatasetCli::PointCount::get(){return dataset->getPointCount();}
 	int LvqDatasetCli::Dimensions::get(){return dataset->dimensions();}
