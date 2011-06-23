@@ -24,6 +24,7 @@ namespace LvqGui {
 			op.Completed += (s, e) => whenDone.SetResult(0);
 			return whenDone.Task;
 		}
+
 		public static Task<TaskScheduler> GetScheduler(this Dispatcher d) {
 			TaskCompletionSource<TaskScheduler> schedulerResult = new TaskCompletionSource<TaskScheduler>();
 			d.BeginInvoke(() => schedulerResult.SetResult(TaskScheduler.FromCurrentSynchronizationContext()));

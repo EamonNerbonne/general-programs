@@ -768,7 +768,7 @@ $(document).ready(function ($) {
             playlistContents: null,
             playlistID: null,
             playlistName: null,
-            currentPlaylists:null,
+            currentPlaylists: null,
             changeNameFromData: function (newName) { state.playlistName = newName; $("#playlistName")[0].value = newName; }
         };
         var playlistNamesUl = $("#playlistNames");
@@ -922,10 +922,11 @@ $(document).ready(function ($) {
             });
         }
 
+        var showOwnListsCheckbox = $("#showOnlyOwnLists");
         function ajaxLoadPlaylistNames() {
             $.ajax({
                 type: "POST",
-                url: "list-all-playlists",
+                url: showOwnListsCheckbox.prop("checked") ? "list-user-playlists" : "list-all-playlists",
                 data: {},
                 timeout: 30000,
                 success: function (data) {
@@ -971,6 +972,7 @@ $(document).ready(function ($) {
         });
 
         setInterval(ajaxLoadPlaylistNames, 120000);
+        showOwnListsCheckbox.change(ajaxLoadPlaylistNames);
         ajaxLoadPlaylistNames();
         return public;
     } ();

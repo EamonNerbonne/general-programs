@@ -125,7 +125,7 @@ namespace LastFMspider {
 
 			updatePlaylistContents = CreateCommand(@"
 				INSERT INTO Playlist (LastVersionID, Username, PlaylistTitle, StoredTimestamp, LastPlayedTimestamp,IsCurrent, PlayCount, CumulativePlayCount, PlaylistContents)
-				SELECT						@pLastVersionID, @pUsername, @pPlaylistTitle, @pStoredTimestamp, LastPlayedTimestamp,1,   0,             CumulativePlayCount,            @pPlaylistContents
+				SELECT						@pLastVersionID, Username, @pPlaylistTitle, @pStoredTimestamp, LastPlayedTimestamp,1,   0,             CumulativePlayCount,            @pPlaylistContents
 				FROM Playlist WHERE PlaylistID = @pLastVersionID;
                 
 				UPDATE Playlist SET IsCurrent = 0 WHERE PlaylistID = @pLastVersionID;
@@ -133,7 +133,7 @@ namespace LastFMspider {
 				SELECT max(PlaylistID)
 				FROM Playlist
 				WHERE LastVersionID = @pLastVersionID AND StoredTimestamp = @pStoredTimestamp
-			", "@pUsername", "@pPlaylistTitle", "@pStoredTimestamp", "@pPlaylistContents", "@pLastVersionID");
+			", "@pPlaylistTitle", "@pStoredTimestamp", "@pPlaylistContents", "@pLastVersionID");
 
 			loadPlaylist = CreateCommand(@"
 				SELECT LastVersionID, Username, PlaylistTitle,StoredTimestamp,LastPlayedTimestamp,PlayCount,CumulativePlayCount, PlaylistContents
@@ -157,9 +157,9 @@ namespace LastFMspider {
 
 
 
-		public long UpdatePlaylistContents(string username, string playlistTitle, DateTime storedTimestamp, string playlistContents, long lastVersionId) {
+		public long UpdatePlaylistContents(string playlistTitle, DateTime storedTimestamp, string playlistContents, long lastVersionId) {
 			return DoInLockedTransaction(() => {
-				updatePlaylistContents.Parameters["@pUsername"].Value = username;
+				//updatePlaylistContents.Parameters["@pUsername"].Value = username;
 				updatePlaylistContents.Parameters["@pPlaylistTitle"].Value = playlistTitle;
 				updatePlaylistContents.Parameters["@pStoredTimestamp"].Value = storedTimestamp.ToUniversalTime().Ticks;
 				updatePlaylistContents.Parameters["@pPlaylistContents"].Value = playlistContents;

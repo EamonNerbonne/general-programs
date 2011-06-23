@@ -20,17 +20,17 @@ namespace SongSearchSite.Code.Handlers {
 			var db = SongDbContainer.PlaylistDb;
 			switch (context.Request.AppRelativeCurrentExecutionFilePath) {
 				case "~/update-playlist":
-					return db.UpdatePlaylistContents(context.User.Identity.Name, context.Request["playlistTitle"], DateTime.UtcNow, 
+					return db.UpdatePlaylistContents(context.Request["playlistTitle"], DateTime.UtcNow,
 						PlaylistHelpers.CleanupJsonPlaylist(context, context.Request["playlistContents"]), long.Parse(context.Request["lastVersionId"]));
 				case "~/store-playlist":
-					return db.StoreNewPlaylist(context.User.Identity.Name, context.Request["playlistTitle"], DateTime.UtcNow, 
+					return db.StoreNewPlaylist(context.User.Identity.Name, context.Request["playlistTitle"], DateTime.UtcNow,
 						PlaylistHelpers.CleanupJsonPlaylist(context, context.Request["playlistContents"]));
 				case "~/load-playlist":
 					db.UpdatePlaycount(long.Parse(context.Request["playlistID"]), DateTime.UtcNow);
-					var loadResult= db.LoadPlaylist(long.Parse(context.Request["playlistID"]));
+					var loadResult = db.LoadPlaylist(long.Parse(context.Request["playlistID"]));
 					var cleanedList = PlaylistHelpers.CleanupJsonPlaylist(context, loadResult.PlaylistContents);
 					if (cleanedList != loadResult.PlaylistContents) {
-						var newId = db.UpdatePlaylistContents(loadResult.Username, loadResult.PlaylistTitle, DateTime.UtcNow, cleanedList, loadResult.PlaylistID);
+						var newId = db.UpdatePlaylistContents(loadResult.PlaylistTitle, DateTime.UtcNow, cleanedList, loadResult.PlaylistID);
 						loadResult = db.LoadPlaylist(newId);
 					}
 					return loadResult;
