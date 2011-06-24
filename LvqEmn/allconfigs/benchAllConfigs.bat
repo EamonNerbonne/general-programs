@@ -1,4 +1,4 @@
-REM @echo off
+@echo off
 
 set benchHelper1=%~dp0\benchOneConfig.bat
 

@@ -1,4 +1,4 @@
-REM @echo off
+@echo off
 
 set buildVariant=build%~3
 
@@ -10,18 +10,20 @@ set benchExe=%~1%~3.exe
 set appName=%~1-%~2
 
 echo %buildVariant%
-cd "%~dp0\..\build\%~2\%buildVariant%\%1\"
+cd "%~dp0\..\build\%~2\bin"
 IF "%4" NEQ "" (
 echo %buildVariant%: >>"%~dp0\_%appName%.log"
 echo %buildVariant%: >>"%~dp0\_%appName%.errlog"
 start /high /B /wait %benchExe% >>"%~dp0\_%appName%.log" 2>>"%~dp0\_%appName%.errlog""
 ) ELSE (
-start /high /B /wait %benchExe% >>"%~dp0\_%appName%.log" 
+start /high /B /wait %benchExe% >>"%~dp0\_%appName%.log" 2>"%~dp0\_%appName%.errlog""
 )
 IF ERRORLEVEL 1 (
 	echo. > "%~dp0\__FAILING-%appName%-%~3"
 ) ELSE (
-	del "%~dp0\__FAILING-%appName%-%~3"
+  IF EXIST "%~dp0\__FAILING-%appName%-%~3" (
+    del "%~dp0\__FAILING-%appName%-%~3"
+    )
 )
 
 
