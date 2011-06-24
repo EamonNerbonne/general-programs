@@ -1,0 +1,504 @@
+ (240)  (288)  (272) constructing class LgmLvqModel: 0.000406598s
+Initial: 0.148556, -0.251942
+Trained: 0.000444444, -0.880736
+Trained: 0.000444444, -0.914539
+Trained: 0.000222222, -0.934772
+training class LgmLvqModel: 0.263472s
+constructing class G2mLvqModel: 0.00027831s
+Initial: 0.230778, -0.319148 [norm: 1]460642;
+Trained: 0.006, -0.916692 [norm: 1]586195;
+Trained: 0.00544444, -0.917074 [norm: 1]589216;
+Trained: 0.00577778, -0.91729 [norm: 1]589884;
+training class G2mLvqModel: 0.234212s
+constructing class GmLvqModel: 0.000287064s
+Initial: 0.230778, -0.319148 [norm: 1]460642;
+Trained: 0.019, -0.813958 [norm: 1]415482;
+Trained: 0.0191111, -0.814142 [norm: 1]441236;
+Trained: 0.0188889, -0.814211 [norm: 1]454072;
+training class GmLvqModel: 0.226167s
+constructing class GgmLvqModel: 0.00203933s
+Initial: 0.240556, -0.105424 [norm: 1]459381;
+Trained: 0.00411111, -0.988879 [norm: 1]512026;
+Trained: 0.00355556, -0.990512 [norm: 1]515853;
+Trained: 0.00322222, -0.99148 [norm: 1]522236;
+training class GgmLvqModel: 0.349421s
+
+constructing class LgmLvqModel: 0.000303968s
+Initial: 0.148556, -0.251942
+Trained: 0.000444444, -0.880736
+Trained: 0.000444444, -0.914539
+Trained: 0.000222222, -0.934772
+training class LgmLvqModel: 0.253319s
+constructing class G2mLvqModel: 0.00025386s
+Initial: 0.230778, -0.319148 [norm: 1]460642;
+Trained: 0.006, -0.916692 [norm: 1]586195;
+Trained: 0.00544444, -0.917074 [norm: 1]589216;
+Trained: 0.00577778, -0.91729 [norm: 1]589884;
+training class G2mLvqModel: 0.23628s
+constructing class GmLvqModel: 0.000290686s
+Initial: 0.230778, -0.319148 [norm: 1]460642;
+Trained: 0.019, -0.813958 [norm: 1]415482;
+Trained: 0.0191111, -0.814142 [norm: 1]441236;
+Trained: 0.0188889, -0.814211 [norm: 1]454072;
+training class GmLvqModel: 0.2261s
+constructing class GgmLvqModel: 0.00205352s
+Initial: 0.240556, -0.105424 [norm: 1]459381;
+Trained: 0.00411111, -0.988879 [norm: 1]512026;
+Trained: 0.00355556, -0.990512 [norm: 1]515853;
+Trained: 0.00322222, -0.99148 [norm: 1]522236;
+training class GgmLvqModel: 0.352368s
+
+constructing class LgmLvqModel: 0.000302459s
+Initial: 0.148556, -0.251942
+Trained: 0.000444444, -0.880736
+Trained: 0.000444444, -0.914539
+Trained: 0.000222222, -0.934772
+training class LgmLvqModel: 0.257993s
+constructing class G2mLvqModel: 0.000263821s
+Initial: 0.230778, -0.319148 [norm: 1]460642;
+Trained: 0.006, -0.916692 [norm: 1]586195;
+Trained: 0.00544444, -0.917074 [norm: 1]589216;
+Trained: 0.00577778, -0.91729 [norm: 1]589884;
+training class G2mLvqModel: 0.236032s
+constructing class GmLvqModel: 0.000284347s
+Initial: 0.230778, -0.319148 [norm: 1]460642;
+Trained: 0.019, -0.813958 [norm: 1]415482;
+Trained: 0.0191111, -0.814142 [norm: 1]441236;
+Trained: 0.0188889, -0.814211 [norm: 1]454072;
+training class GmLvqModel: 0.225557s
+constructing class GgmLvqModel: 0.00196025s
+Initial: 0.240556, -0.105424 [norm: 1]459381;
+Trained: 0.00411111, -0.988879 [norm: 1]512026;
+Trained: 0.00355556, -0.990512 [norm: 1]515853;
+Trained: 0.00322222, -0.99148 [norm: 1]522236;
+training class GgmLvqModel: 0.346742s
+
+constructing class LgmLvqModel: 0.00035317s
+Initial: 0.148556, -0.251942
+Trained: 0.000444444, -0.880736
+Trained: 0.000444444, -0.914539
+Trained: 0.000222222, -0.934772
+training class LgmLvqModel: 0.252974s
+constructing class G2mLvqModel: 0.000255973s
+Initial: 0.230778, -0.319148 [norm: 1]460642;
+Trained: 0.006, -0.916692 [norm: 1]586195;
+Trained: 0.00544444, -0.917074 [norm: 1]589216;
+Trained: 0.00577778, -0.91729 [norm: 1]589884;
+training class G2mLvqModel: 0.233683s
+constructing class GmLvqModel: 0.000292497s
+Initial: 0.230778, -0.319148 [norm: 1]460642;
+Trained: 0.019, -0.813958 [norm: 1]415482;
+Trained: 0.0191111, -0.814142 [norm: 1]441236;
+Trained: 0.0188889, -0.814211 [norm: 1]454072;
+training class GmLvqModel: 0.225681s
+constructing class GgmLvqModel: 0.00190259s
+Initial: 0.240556, -0.105424 [norm: 1]459381;
+Trained: 0.00411111, -0.988879 [norm: 1]512026;
+Trained: 0.00355556, -0.990512 [norm: 1]515853;
+Trained: 0.00322222, -0.99148 [norm: 1]522236;
+training class GgmLvqModel: 0.345577s
+
+constructing class LgmLvqModel: 0.000303666s
+Initial: 0.148556, -0.251942
+Trained: 0.000444444, -0.880736
+Trained: 0.000444444, -0.914539
+Trained: 0.000222222, -0.934772
+training class LgmLvqModel: 0.251454s
+constructing class G2mLvqModel: 0.000253558s
+Initial: 0.230778, -0.319148 [norm: 1]460642;
+Trained: 0.006, -0.916692 [norm: 1]586195;
+Trained: 0.00544444, -0.917074 [norm: 1]589216;
+Trained: 0.00577778, -0.91729 [norm: 1]589884;
+training class G2mLvqModel: 0.234087s
+constructing class GmLvqModel: 0.000275593s
+Initial: 0.230778, -0.319148 [norm: 1]460642;
+Trained: 0.019, -0.813958 [norm: 1]415482;
+Trained: 0.0191111, -0.814142 [norm: 1]441236;
+Trained: 0.0188889, -0.814211 [norm: 1]454072;
+training class GmLvqModel: 0.224985s
+constructing class GgmLvqModel: 0.00193247s
+Initial: 0.240556, -0.105424 [norm: 1]459381;
+Trained: 0.00411111, -0.988879 [norm: 1]512026;
+Trained: 0.00355556, -0.990512 [norm: 1]515853;
+Trained: 0.00322222, -0.99148 [norm: 1]522236;
+training class GgmLvqModel: 0.360764s
+
+constructing class LgmLvqModel: 0.000303666s
+Initial: 0.148556, -0.251942
+Trained: 0.000444444, -0.880736
+Trained: 0.000444444, -0.914539
+Trained: 0.000222222, -0.934772
+training class LgmLvqModel: 0.254775s
+constructing class G2mLvqModel: 0.000251747s
+Initial: 0.230778, -0.319148 [norm: 1]460642;
+Trained: 0.006, -0.916692 [norm: 1]586195;
+Trained: 0.00544444, -0.917074 [norm: 1]589216;
+Trained: 0.00577778, -0.91729 [norm: 1]589884;
+training class G2mLvqModel: 0.236114s
+constructing class GmLvqModel: 0.000292195s
+Initial: 0.230778, -0.319148 [norm: 1]460642;
+Trained: 0.019, -0.813958 [norm: 1]415482;
+Trained: 0.0191111, -0.814142 [norm: 1]441236;
+Trained: 0.0188889, -0.814211 [norm: 1]454072;
+training class GmLvqModel: 0.225411s
+constructing class GgmLvqModel: 0.00192432s
+Initial: 0.240556, -0.105424 [norm: 1]459381;
+Trained: 0.00411111, -0.988879 [norm: 1]512026;
+Trained: 0.00355556, -0.990512 [norm: 1]515853;
+Trained: 0.00322222, -0.99148 [norm: 1]522236;
+training class GgmLvqModel: 0.35415s
+
+constructing class LgmLvqModel: 0.000288875s
+Initial: 0.148556, -0.251942
+Trained: 0.000444444, -0.880736
+Trained: 0.000444444, -0.914539
+Trained: 0.000222222, -0.934772
+training class LgmLvqModel: 0.251864s
+constructing class G2mLvqModel: 0.000275593s
+Initial: 0.230778, -0.319148 [norm: 1]460642;
+Trained: 0.006, -0.916692 [norm: 1]586195;
+Trained: 0.00544444, -0.917074 [norm: 1]589216;
+Trained: 0.00577778, -0.91729 [norm: 1]589884;
+training class G2mLvqModel: 0.235662s
+constructing class GmLvqModel: 0.000271971s
+Initial: 0.230778, -0.319148 [norm: 1]460642;
+Trained: 0.019, -0.813958 [norm: 1]415482;
+Trained: 0.0191111, -0.814142 [norm: 1]441236;
+Trained: 0.0188889, -0.814211 [norm: 1]454072;
+training class GmLvqModel: 0.225538s
+constructing class GgmLvqModel: 0.00192312s
+Initial: 0.240556, -0.105424 [norm: 1]459381;
+Trained: 0.00411111, -0.988879 [norm: 1]512026;
+Trained: 0.00355556, -0.990512 [norm: 1]515853;
+Trained: 0.00322222, -0.99148 [norm: 1]522236;
+training class GgmLvqModel: 0.346909s
+
+constructing class LgmLvqModel: 0.00028646s
+Initial: 0.148556, -0.251942
+Trained: 0.000444444, -0.880736
+Trained: 0.000444444, -0.914539
+Trained: 0.000222222, -0.934772
+training class LgmLvqModel: 0.253556s
+constructing class G2mLvqModel: 0.000277405s
+Initial: 0.230778, -0.319148 [norm: 1]460642;
+Trained: 0.006, -0.916692 [norm: 1]586195;
+Trained: 0.00544444, -0.917074 [norm: 1]589216;
+Trained: 0.00577778, -0.91729 [norm: 1]589884;
+training class G2mLvqModel: 0.235795s
+constructing class GmLvqModel: 0.000283744s
+Initial: 0.230778, -0.319148 [norm: 1]460642;
+Trained: 0.019, -0.813958 [norm: 1]415482;
+Trained: 0.0191111, -0.814142 [norm: 1]441236;
+Trained: 0.0188889, -0.814211 [norm: 1]454072;
+training class GmLvqModel: 0.225131s
+constructing class GgmLvqModel: 0.00191768s
+Initial: 0.240556, -0.105424 [norm: 1]459381;
+Trained: 0.00411111, -0.988879 [norm: 1]512026;
+Trained: 0.00355556, -0.990512 [norm: 1]515853;
+Trained: 0.00322222, -0.99148 [norm: 1]522236;
+training class GgmLvqModel: 0.345932s
+
+constructing class LgmLvqModel: 0.000293101s
+Initial: 0.148556, -0.251942
+Trained: 0.000444444, -0.880736
+Trained: 0.000444444, -0.914539
+Trained: 0.000222222, -0.934772
+training class LgmLvqModel: 0.253009s
+constructing class G2mLvqModel: 0.000259293s
+Initial: 0.230778, -0.319148 [norm: 1]460642;
+Trained: 0.006, -0.916692 [norm: 1]586195;
+Trained: 0.00544444, -0.917074 [norm: 1]589216;
+Trained: 0.00577778, -0.91729 [norm: 1]589884;
+training class G2mLvqModel: 0.235412s
+constructing class GmLvqModel: 0.000271066s
+Initial: 0.230778, -0.319148 [norm: 1]460642;
+Trained: 0.019, -0.813958 [norm: 1]415482;
+Trained: 0.0191111, -0.814142 [norm: 1]441236;
+Trained: 0.0188889, -0.814211 [norm: 1]454072;
+training class GmLvqModel: 0.225208s
+constructing class GgmLvqModel: 0.00193338s
+Initial: 0.240556, -0.105424 [norm: 1]459381;
+Trained: 0.00411111, -0.988879 [norm: 1]512026;
+Trained: 0.00355556, -0.990512 [norm: 1]515853;
+Trained: 0.00322222, -0.99148 [norm: 1]522236;
+training class GgmLvqModel: 0.349985s
+
+constructing class LgmLvqModel: 0.000280121s
+Initial: 0.148556, -0.251942
+Trained: 0.000444444, -0.880736
+Trained: 0.000444444, -0.914539
+Trained: 0.000222222, -0.934772
+training class LgmLvqModel: 0.255542s
+constructing class G2mLvqModel: 0.000283744s
+Initial: 0.230778, -0.319148 [norm: 1]460642;
+Trained: 0.006, -0.916692 [norm: 1]586195;
+Trained: 0.00544444, -0.917074 [norm: 1]589216;
+Trained: 0.00577778, -0.91729 [norm: 1]589884;
+training class G2mLvqModel: 0.234563s
+constructing class GmLvqModel: 0.000272877s
+Initial: 0.230778, -0.319148 [norm: 1]460642;
+Trained: 0.019, -0.813958 [norm: 1]415482;
+Trained: 0.0191111, -0.814142 [norm: 1]441236;
+Trained: 0.0188889, -0.814211 [norm: 1]454072;
+training class GmLvqModel: 0.224077s
+constructing class GgmLvqModel: 0.00191074s
+Initial: 0.240556, -0.105424 [norm: 1]459381;
+Trained: 0.00411111, -0.988879 [norm: 1]512026;
+Trained: 0.00355556, -0.990512 [norm: 1]515853;
+Trained: 0.00322222, -0.99148 [norm: 1]522236;
+training class GgmLvqModel: 0.345613s
+
+Total time:11.2309s
+Could Not Find C:\Users\nerbonne\VCS\emn\programs\LvqEmn\allconfigs\__FAILING-LvqBench-msc-NV
+ (240)  (288)  (272) constructing class LgmLvqModel: 0.000272575s
+Initial: 0.148556, -0.251942
+Trained: 0.000444444, -0.880736
+Trained: 0.000444444, -0.914539
+Trained: 0.000222222, -0.934772
+training class LgmLvqModel: 0.168279s
+constructing class G2mLvqModel: 0.000226693s
+Initial: 0.230778, -0.319148 [norm: 1]460642;
+Trained: 0.006, -0.916692 [norm: 1]586195;
+Trained: 0.00544444, -0.917074 [norm: 1]589216;
+Trained: 0.00577778, -0.91729 [norm: 1]589884;
+training class G2mLvqModel: 0.189286s
+constructing class GmLvqModel: 0.000252954s
+Initial: 0.230778, -0.319148 [norm: 1]460642;
+Trained: 0.019, -0.813958 [norm: 1]415482;
+Trained: 0.0191111, -0.814142 [norm: 1]441236;
+Trained: 0.0188889, -0.814211 [norm: 1]454072;
+training class GmLvqModel: 0.191271s
+constructing class GgmLvqModel: 0.00208491s
+Initial: 0.240556, -0.105424 [norm: 1]459381;
+Trained: 0.00411111, -0.988879 [norm: 1]512026;
+Trained: 0.00355556, -0.990512 [norm: 1]515853;
+Trained: 0.00322222, -0.99148 [norm: 1]522236;
+training class GgmLvqModel: 0.272302s
+
+constructing class LgmLvqModel: 0.000250539s
+Initial: 0.148556, -0.251942
+Trained: 0.000444444, -0.880736
+Trained: 0.000444444, -0.914539
+Trained: 0.000222222, -0.934772
+training class LgmLvqModel: 0.173417s
+constructing class G2mLvqModel: 0.000214317s
+Initial: 0.230778, -0.319148 [norm: 1]460642;
+Trained: 0.006, -0.916692 [norm: 1]586195;
+Trained: 0.00544444, -0.917074 [norm: 1]589216;
+Trained: 0.00577778, -0.91729 [norm: 1]589884;
+training class G2mLvqModel: 0.193458s
+constructing class GmLvqModel: 0.000239069s
+Initial: 0.230778, -0.319148 [norm: 1]460642;
+Trained: 0.019, -0.813958 [norm: 1]415482;
+Trained: 0.0191111, -0.814142 [norm: 1]441236;
+Trained: 0.0188889, -0.814211 [norm: 1]454072;
+training class GmLvqModel: 0.194369s
+constructing class GgmLvqModel: 0.00195632s
+Initial: 0.240556, -0.105424 [norm: 1]459381;
+Trained: 0.00411111, -0.988879 [norm: 1]512026;
+Trained: 0.00355556, -0.990512 [norm: 1]515853;
+Trained: 0.00322222, -0.99148 [norm: 1]522236;
+training class GgmLvqModel: 0.274021s
+
+constructing class LgmLvqModel: 0.000256878s
+Initial: 0.148556, -0.251942
+Trained: 0.000444444, -0.880736
+Trained: 0.000444444, -0.914539
+Trained: 0.000222222, -0.934772
+training class LgmLvqModel: 0.176939s
+constructing class G2mLvqModel: 0.000211902s
+Initial: 0.230778, -0.319148 [norm: 1]460642;
+Trained: 0.006, -0.916692 [norm: 1]586195;
+Trained: 0.00544444, -0.917074 [norm: 1]589216;
+Trained: 0.00577778, -0.91729 [norm: 1]589884;
+training class G2mLvqModel: 0.188938s
+constructing class GmLvqModel: 0.000234843s
+Initial: 0.230778, -0.319148 [norm: 1]460642;
+Trained: 0.019, -0.813958 [norm: 1]415482;
+Trained: 0.0191111, -0.814142 [norm: 1]441236;
+Trained: 0.0188889, -0.814211 [norm: 1]454072;
+training class GmLvqModel: 0.193076s
+constructing class GgmLvqModel: 0.00196206s
+Initial: 0.240556, -0.105424 [norm: 1]459381;
+Trained: 0.00411111, -0.988879 [norm: 1]512026;
+Trained: 0.00355556, -0.990512 [norm: 1]515853;
+Trained: 0.00322222, -0.99148 [norm: 1]522236;
+training class GgmLvqModel: 0.273785s
+
+constructing class LgmLvqModel: 0.000250539s
+Initial: 0.148556, -0.251942
+Trained: 0.000444444, -0.880736
+Trained: 0.000444444, -0.914539
+Trained: 0.000222222, -0.934772
+training class LgmLvqModel: 0.170576s
+constructing class G2mLvqModel: 0.000206167s
+Initial: 0.230778, -0.319148 [norm: 1]460642;
+Trained: 0.006, -0.916692 [norm: 1]586195;
+Trained: 0.00544444, -0.917074 [norm: 1]589216;
+Trained: 0.00577778, -0.91729 [norm: 1]589884;
+training class G2mLvqModel: 0.188584s
+constructing class GmLvqModel: 0.000237258s
+Initial: 0.230778, -0.319148 [norm: 1]460642;
+Trained: 0.019, -0.813958 [norm: 1]415482;
+Trained: 0.0191111, -0.814142 [norm: 1]441236;
+Trained: 0.0188889, -0.814211 [norm: 1]454072;
+training class GmLvqModel: 0.193511s
+constructing class GgmLvqModel: 0.00197292s
+Initial: 0.240556, -0.105424 [norm: 1]459381;
+Trained: 0.00411111, -0.988879 [norm: 1]512026;
+Trained: 0.00355556, -0.990512 [norm: 1]515853;
+Trained: 0.00322222, -0.99148 [norm: 1]522236;
+training class GgmLvqModel: 0.276937s
+
+constructing class LgmLvqModel: 0.000259595s
+Initial: 0.148556, -0.251942
+Trained: 0.000444444, -0.880736
+Trained: 0.000444444, -0.914539
+Trained: 0.000222222, -0.934772
+training class LgmLvqModel: 0.170365s
+constructing class G2mLvqModel: 0.000224278s
+Initial: 0.230778, -0.319148 [norm: 1]460642;
+Trained: 0.006, -0.916692 [norm: 1]586195;
+Trained: 0.00544444, -0.917074 [norm: 1]589216;
+Trained: 0.00577778, -0.91729 [norm: 1]589884;
+training class G2mLvqModel: 0.187306s
+constructing class GmLvqModel: 0.000233636s
+Initial: 0.230778, -0.319148 [norm: 1]460642;
+Trained: 0.019, -0.813958 [norm: 1]415482;
+Trained: 0.0191111, -0.814142 [norm: 1]441236;
+Trained: 0.0188889, -0.814211 [norm: 1]454072;
+training class GmLvqModel: 0.192758s
+constructing class GgmLvqModel: 0.00194757s
+Initial: 0.240556, -0.105424 [norm: 1]459381;
+Trained: 0.00411111, -0.988879 [norm: 1]512026;
+Trained: 0.00355556, -0.990512 [norm: 1]515853;
+Trained: 0.00322222, -0.99148 [norm: 1]522236;
+training class GgmLvqModel: 0.274556s
+
+constructing class LgmLvqModel: 0.000260199s
+Initial: 0.148556, -0.251942
+Trained: 0.000444444, -0.880736
+Trained: 0.000444444, -0.914539
+Trained: 0.000222222, -0.934772
+training class LgmLvqModel: 0.171713s
+constructing class G2mLvqModel: 0.000220958s
+Initial: 0.230778, -0.319148 [norm: 1]460642;
+Trained: 0.006, -0.916692 [norm: 1]586195;
+Trained: 0.00544444, -0.917074 [norm: 1]589216;
+Trained: 0.00577778, -0.91729 [norm: 1]589884;
+training class G2mLvqModel: 0.186101s
+constructing class GmLvqModel: 0.000224882s
+Initial: 0.230778, -0.319148 [norm: 1]460642;
+Trained: 0.019, -0.813958 [norm: 1]415482;
+Trained: 0.0191111, -0.814142 [norm: 1]441236;
+Trained: 0.0188889, -0.814211 [norm: 1]454072;
+training class GmLvqModel: 0.194349s
+constructing class GgmLvqModel: 0.00200371s
+Initial: 0.240556, -0.105424 [norm: 1]459381;
+Trained: 0.00411111, -0.988879 [norm: 1]512026;
+Trained: 0.00355556, -0.990512 [norm: 1]515853;
+Trained: 0.00322222, -0.99148 [norm: 1]522236;
+training class GgmLvqModel: 0.274892s
+
+constructing class LgmLvqModel: 0.000245106s
+Initial: 0.148556, -0.251942
+Trained: 0.000444444, -0.880736
+Trained: 0.000444444, -0.914539
+Trained: 0.000222222, -0.934772
+training class LgmLvqModel: 0.172427s
+constructing class G2mLvqModel: 0.000226995s
+Initial: 0.230778, -0.319148 [norm: 1]460642;
+Trained: 0.006, -0.916692 [norm: 1]586195;
+Trained: 0.00544444, -0.917074 [norm: 1]589216;
+Trained: 0.00577778, -0.91729 [norm: 1]589884;
+training class G2mLvqModel: 0.187707s
+constructing class GmLvqModel: 0.000220958s
+Initial: 0.230778, -0.319148 [norm: 1]460642;
+Trained: 0.019, -0.813958 [norm: 1]415482;
+Trained: 0.0191111, -0.814142 [norm: 1]441236;
+Trained: 0.0188889, -0.814211 [norm: 1]454072;
+training class GmLvqModel: 0.19505s
+constructing class GgmLvqModel: 0.00193761s
+Initial: 0.240556, -0.105424 [norm: 1]459381;
+Trained: 0.00411111, -0.988879 [norm: 1]512026;
+Trained: 0.00355556, -0.990512 [norm: 1]515853;
+Trained: 0.00322222, -0.99148 [norm: 1]522236;
+training class GgmLvqModel: 0.275136s
+
+constructing class LgmLvqModel: 0.000244502s
+Initial: 0.148556, -0.251942
+Trained: 0.000444444, -0.880736
+Trained: 0.000444444, -0.914539
+Trained: 0.000222222, -0.934772
+training class LgmLvqModel: 0.169259s
+constructing class G2mLvqModel: 0.000235447s
+Initial: 0.230778, -0.319148 [norm: 1]460642;
+Trained: 0.006, -0.916692 [norm: 1]586195;
+Trained: 0.00544444, -0.917074 [norm: 1]589216;
+Trained: 0.00577778, -0.91729 [norm: 1]589884;
+training class G2mLvqModel: 0.188794s
+constructing class GmLvqModel: 0.000264425s
+Initial: 0.230778, -0.319148 [norm: 1]460642;
+Trained: 0.019, -0.813958 [norm: 1]415482;
+Trained: 0.0191111, -0.814142 [norm: 1]441236;
+Trained: 0.0188889, -0.814211 [norm: 1]454072;
+training class GmLvqModel: 0.192371s
+constructing class GgmLvqModel: 0.00185912s
+Initial: 0.240556, -0.105424 [norm: 1]459381;
+Trained: 0.00411111, -0.988879 [norm: 1]512026;
+Trained: 0.00355556, -0.990512 [norm: 1]515853;
+Trained: 0.00322222, -0.99148 [norm: 1]522236;
+training class GgmLvqModel: 0.274228s
+
+constructing class LgmLvqModel: 0.000291592s
+Initial: 0.148556, -0.251942
+Trained: 0.000444444, -0.880736
+Trained: 0.000444444, -0.914539
+Trained: 0.000222222, -0.934772
+training class LgmLvqModel: 0.168885s
+constructing class G2mLvqModel: 0.000207676s
+Initial: 0.230778, -0.319148 [norm: 1]460642;
+Trained: 0.006, -0.916692 [norm: 1]586195;
+Trained: 0.00544444, -0.917074 [norm: 1]589216;
+Trained: 0.00577778, -0.91729 [norm: 1]589884;
+training class G2mLvqModel: 0.193278s
+constructing class GmLvqModel: 0.00026533s
+Initial: 0.230778, -0.319148 [norm: 1]460642;
+Trained: 0.019, -0.813958 [norm: 1]415482;
+Trained: 0.0191111, -0.814142 [norm: 1]441236;
+Trained: 0.0188889, -0.814211 [norm: 1]454072;
+training class GmLvqModel: 0.194151s
+constructing class GgmLvqModel: 0.00187633s
+Initial: 0.240556, -0.105424 [norm: 1]459381;
+Trained: 0.00411111, -0.988879 [norm: 1]512026;
+Trained: 0.00355556, -0.990512 [norm: 1]515853;
+Trained: 0.00322222, -0.99148 [norm: 1]522236;
+training class GgmLvqModel: 0.272797s
+
+constructing class LgmLvqModel: 0.000285555s
+Initial: 0.148556, -0.251942
+Trained: 0.000444444, -0.880736
+Trained: 0.000444444, -0.914539
+Trained: 0.000222222, -0.934772
+training class LgmLvqModel: 0.174175s
+constructing class G2mLvqModel: 0.0002279s
+Initial: 0.230778, -0.319148 [norm: 1]460642;
+Trained: 0.006, -0.916692 [norm: 1]586195;
+Trained: 0.00544444, -0.917074 [norm: 1]589216;
+Trained: 0.00577778, -0.91729 [norm: 1]589884;
+training class G2mLvqModel: 0.189533s
+constructing class GmLvqModel: 0.00026201s
+Initial: 0.230778, -0.319148 [norm: 1]460642;
+Trained: 0.019, -0.813958 [norm: 1]415482;
+Trained: 0.0191111, -0.814142 [norm: 1]441236;
+Trained: 0.0188889, -0.814211 [norm: 1]454072;
+training class GmLvqModel: 0.19346s
+constructing class GgmLvqModel: 0.00184192s
+Initial: 0.240556, -0.105424 [norm: 1]459381;
+Trained: 0.00411111, -0.988879 [norm: 1]512026;
+Trained: 0.00355556, -0.990512 [norm: 1]515853;
+Trained: 0.00322222, -0.99148 [norm: 1]522236;
+training class GgmLvqModel: 0.272837s
+
+Total time:8.79129s
+Could Not Find C:\Users\nerbonne\VCS\emn\programs\LvqEmn\allconfigs\__FAILING-LvqBench-msc-V
