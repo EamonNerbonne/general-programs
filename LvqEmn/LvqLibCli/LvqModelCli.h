@@ -1,7 +1,7 @@
 #pragma once
 #include "PointSet.h"
 #include "LvqTrainingStatCli.h"
-#include "LvqModel.h"
+#include "LvqLib.h"
 
 
 // array of model, modelCopy's.
@@ -18,17 +18,18 @@ namespace LvqLibCli {
 	ref class LvqDatasetCli;
 
 	public ref class LvqModelCli {
-		typedef GcAutoPtr<LvqModel> WrappedModel;
+	public:
+		typedef GcManualPtr<LvqModel> WrappedModel;
+	private:
 		String^ label;
 		WrappedModel^ model;
 		WrappedModel^ modelCopy;
 		List<LvqTrainingStatCli>^ stats;
 		LvqDatasetCli^ initSet;
-		int initDataFold;
+		int initDataFold,classCount,dimCount,protoCount;
 		Object^trainSync;
 		Object^copySync;
 
-		void SinkStats(LvqModel::Statistics & nativeStats);
 	public:
 		property Object^ ReadSync {Object^ get(){return copySync;}}
 		property int ClassCount {int get();}
@@ -45,7 +46,7 @@ namespace LvqLibCli {
 
 		array<LvqTrainingStatCli>^ GetTrainingStatsAfter(int statI);
 		LvqTrainingStatCli EvaluateStats(LvqDatasetCli^ testset, int datafold);
-		
+
 		LvqTrainingStatCli GetTrainingStat(int statI);
 		property int TrainingStatCount {int get();}
 		property array<LvqTrainingStatCli>^ TrainingStats {array<LvqTrainingStatCli>^  get();}

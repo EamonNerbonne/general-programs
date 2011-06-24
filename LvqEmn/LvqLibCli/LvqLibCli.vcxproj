@@ -253,6 +253,7 @@
       <TargetMachine>MachineX86</TargetMachine>
       <LinkErrorReporting>
       </LinkErrorReporting>
+      <AdditionalOptions>/ignore:4248 %(AdditionalOptions)</AdditionalOptions>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|X64'">
@@ -281,6 +282,7 @@
       <TargetMachine>MachineX64</TargetMachine>
       <LinkErrorReporting>
       </LinkErrorReporting>
+      <AdditionalOptions>/ignore:4248 %(AdditionalOptions)</AdditionalOptions>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='DebugGui|X64'">
@@ -366,6 +368,7 @@
       <TargetMachine>MachineX86</TargetMachine>
       <LinkErrorReporting>
       </LinkErrorReporting>
+      <AdditionalOptions>/ignore:4248 %(AdditionalOptions)</AdditionalOptions>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseDev|Win32'">
@@ -395,6 +398,7 @@
       <TargetMachine>MachineX86</TargetMachine>
       <LinkErrorReporting>
       </LinkErrorReporting>
+      <AdditionalOptions>/ignore:4248 %(AdditionalOptions)</AdditionalOptions>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseNoVec|Win32'">
@@ -423,6 +427,7 @@
       <TargetMachine>MachineX86</TargetMachine>
       <LinkErrorReporting>
       </LinkErrorReporting>
+      <AdditionalOptions>/ignore:4248 %(AdditionalOptions)</AdditionalOptions>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|X64'">
@@ -456,6 +461,7 @@
       <TargetMachine>MachineX64</TargetMachine>
       <LinkErrorReporting>
       </LinkErrorReporting>
+      <AdditionalOptions>/ignore:4248 %(AdditionalOptions)</AdditionalOptions>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseDev|X64'">
@@ -480,7 +486,7 @@
       <ExceptionHandling>Async</ExceptionHandling>
       <AdditionalOptions>/MP4</AdditionalOptions>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <OpenMPSupport>true</OpenMPSupport>
+      <OpenMPSupport>false</OpenMPSupport>
     </ClCompile>
     <Link>
       <AdditionalDependencies>LvqLib.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -489,6 +495,7 @@
       <TargetMachine>MachineX64</TargetMachine>
       <LinkErrorReporting>
       </LinkErrorReporting>
+      <AdditionalOptions>/ignore:4248 %(AdditionalOptions)</AdditionalOptions>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseExtra|X64'">
@@ -553,6 +560,7 @@
       <TargetMachine>MachineX64</TargetMachine>
       <LinkErrorReporting>
       </LinkErrorReporting>
+      <AdditionalOptions>/ignore:4248 %(AdditionalOptions)</AdditionalOptions>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release2|X64'">

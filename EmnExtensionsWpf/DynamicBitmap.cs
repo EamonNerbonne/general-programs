@@ -6,10 +6,8 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 
 //see http://msdn.microsoft.com/en-us/library/system.windows.media.imaging.writeablebitmap.aspx
-namespace EmnExtensions.Wpf
-{
-	public class DynamicBitmap : FrameworkElement
-	{
+namespace EmnExtensions.Wpf {
+	public class DynamicBitmap : FrameworkElement {
 
 		//Dependency Property "BitmapGenerator":==========================
 
@@ -47,7 +45,7 @@ namespace EmnExtensions.Wpf
 		void MakeBitmap() {
 			bitmap = new WriteableBitmap(
 				Math.Min((int)Math.Ceiling(ActualWidth), maxWidthHeight),
-				Math.Min((int)Math.Ceiling(ActualHeight), maxWidthHeight), 
+				Math.Min((int)Math.Ceiling(ActualHeight), maxWidthHeight),
 				96, 96, PixelFormats.Bgr32, null);
 		}
 		void UpdateBitmap() {
@@ -55,7 +53,7 @@ namespace EmnExtensions.Wpf
 			bitmap.WritePixels(new Int32Rect(0, 0, bitmap.PixelWidth, bitmap.PixelHeight), bmpGen(bitmap.PixelWidth, bitmap.PixelHeight), bitmap.PixelWidth * 4, 0);
 		}
 		protected override void OnRender(DrawingContext drawingContext) {
-			double shortSide = Math.Min(ActualHeight,ActualWidth);
+			double shortSide = Math.Min(ActualHeight, ActualWidth);
 
 			if (shortSide <= 0 || !shortSide.IsFinite()) return;
 			if (bitmap == null) MakeBitmap();

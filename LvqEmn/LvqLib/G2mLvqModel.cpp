@@ -109,7 +109,7 @@ MatchQuality G2mLvqModel::learnFrom(Vector_N const & trainPoint, int trainLabel)
 			}
 		}
 	}
-	
+
 	P.noalias() -= (lr_P * muJ2_BjT_Bj_P_vJ) * vJ.transpose() + (lr_P * muK2_BkT_Bk_P_vK) * vK.transpose() ;
 
 	for(size_t i=0;i<prototype.size();++i)

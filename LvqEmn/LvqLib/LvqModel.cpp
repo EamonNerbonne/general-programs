@@ -11,7 +11,7 @@ LvqModel::LvqModel(LvqModelSettings & initSettings)
 #ifdef DEBUGHELP
 sentinal(initSentinal),
 #endif
-	 settings(initSettings.RuntimeSettings)
+	settings(initSettings.RuntimeSettings)
 	, trainIter(0)
 	, totalIter(0)
 	, totalElapsed(0.0)
@@ -86,7 +86,7 @@ void LvqModel::AddTrainingStat(Statistics& statQueue, LvqDataset const * trainin
 	this->AddTrainingStat(statQueue, trainingSet,trainingSubset,testSet,testSubset, trainingstats);
 }
 
-std::vector<std::wstring> LvqModel::TrainingStatNames() {
+std::vector<std::wstring> LvqModel::TrainingStatNames() const {
 	std::vector<std::wstring> retval;
 	retval.push_back(L"Training Iterations!iterations");
 	retval.push_back(L"Elapsed Seconds!seconds");
@@ -98,7 +98,7 @@ std::vector<std::wstring> LvqModel::TrainingStatNames() {
 	retval.push_back(L"Nearest Incorrect Prototype Distance!distance!Prototype Distance");
 	retval.push_back(L"Nearest Correct Prototype Distance Variance!distance variance!Prototype Distance Variance");
 	retval.push_back(L"Nearest Incorrect Prototype Distance Variance!distance variance!Prototype Distance Variance");
-	
+
 	retval.push_back(L"Cumulative Learning Rate!!Cumulative Learning Rates");
 
 	//retval.push_back(L"Cumulative \u03BC-scaled Learning Rate!!Cumulative Learning Rates");

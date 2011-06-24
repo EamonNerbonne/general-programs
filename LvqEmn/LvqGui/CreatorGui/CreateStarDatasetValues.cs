@@ -80,7 +80,7 @@ namespace LvqGui {
 
 		public bool ExtendDataByCorrelation {
 			get { return settings.ExtendDataByCorrelation; }
-			set { if (Equals(settings.ExtendDataByCorrelation, value)) return; settings.ExtendDataByCorrelation = value;  _propertyChanged("ExtendDataByCorrelation"); }
+			set { if (Equals(settings.ExtendDataByCorrelation, value)) return; settings.ExtendDataByCorrelation = value; _propertyChanged("ExtendDataByCorrelation"); }
 		}
 		public bool NormalizeDimensions {
 			get { return settings.NormalizeDimensions; }

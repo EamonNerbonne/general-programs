@@ -10,7 +10,7 @@ namespace LvqLibCli {
 	value class LvqTrainingStatCli;
 
 	generic<typename T>
-	public value class MatrixContainer {
+	public value class MatrixContainer {//rowmajor
 	public:
 		array<T>^ arr;
 		int cols;
@@ -21,8 +21,8 @@ namespace LvqLibCli {
 		void Set(int row, int col,T val) {arr[row*cols+col]=val; }
 		T Get(int row, int col) {return arr[row*cols+col];}
 		property T default[int,int] {
-			T get(int i,int j) { return arr[i*cols+j]; }
-			void set(int i,int j,T val) { arr[i*cols+j] = val; }
+			T get(int y,int x) { return arr[y*cols+x]; }
+			void set(int y,int x,T val) { arr[y*cols+x] = val; }
 		}
 
 		MatrixContainer(int rows, int cols) : cols(cols),rows(rows) {arr=gcnew array<T>(rows*cols); }
@@ -35,22 +35,22 @@ namespace LvqLibCli {
 	using namespace Eigen;
 
 #define MAKE_NOOP_CONVERSION(T) \
-		 inline void cliToCpp(T  val, T& retval) {retval=val;} \
-		inline void cppToCli(T const & val, T%retval) {retval= val;} 
+	inline void cliToCpp(T  val, T& retval) {retval=val;} \
+	inline void cppToCli(T const & val, T%retval) {retval= val;} 
 
 	MAKE_NOOP_CONVERSION(int)
-	MAKE_NOOP_CONVERSION(unsigned int)
-	MAKE_NOOP_CONVERSION(short)
-	MAKE_NOOP_CONVERSION(unsigned short)
-	MAKE_NOOP_CONVERSION(long long)
-	MAKE_NOOP_CONVERSION(unsigned long long)
-	MAKE_NOOP_CONVERSION(char)
-	MAKE_NOOP_CONVERSION(unsigned char)
-	MAKE_NOOP_CONVERSION(float)
-	MAKE_NOOP_CONVERSION(double)
-	
-	
-	template<typename T,typename S>
+		MAKE_NOOP_CONVERSION(unsigned int)
+		MAKE_NOOP_CONVERSION(short)
+		MAKE_NOOP_CONVERSION(unsigned short)
+		MAKE_NOOP_CONVERSION(long long)
+		MAKE_NOOP_CONVERSION(unsigned long long)
+		MAKE_NOOP_CONVERSION(char)
+		MAKE_NOOP_CONVERSION(unsigned char)
+		MAKE_NOOP_CONVERSION(float)
+		MAKE_NOOP_CONVERSION(double)
+
+
+		template<typename T,typename S>
 	inline void cliToCpp(array<T>^ arr, vector<S> &vec) {
 		vec = vector<S>(arr->Length);
 		for(int i=0;i<arr->Length;++i)
@@ -72,7 +72,7 @@ namespace LvqLibCli {
 		dst = msclr::interop::marshal_as<wstring>(src);
 	}
 
-	
+
 	template<typename TDerived> struct MatrixOrVectorChooser {
 		template<bool isVector >
 		static inline array<typename MatrixBase<TDerived>::Scalar, (isVector?1: 2) >^ cppToCliHelper(MatrixBase<TDerived> const & matrix);
@@ -121,17 +121,17 @@ namespace LvqLibCli {
 
 	template<typename TDerived>
 	inline void cppToCli(MatrixBase<TDerived> const & matrix, MatrixContainer<typename MatrixBase<TDerived>::Scalar>%points) {
-			
-			typedef MatrixBase<TDerived>::Scalar T;
-			points=MatrixContainer<T>(static_cast<int>(matrix.cols()), static_cast<int>(matrix.rows()));
-			
-			for(int i=0; i<points.rows; ++i)
-				for(int j=0; j<points.cols; ++j) {
-					T val;
-					cppToCli(matrix(j,i), val);
-					points.Set(i, j, val);
-				}
-		}
+
+		typedef MatrixBase<TDerived>::Scalar T;
+		points=MatrixContainer<T>(static_cast<int>(matrix.cols()), static_cast<int>(matrix.rows()));
+
+		for(int i=0; i<points.rows; ++i)
+			for(int j=0; j<points.cols; ++j) {
+				T val;
+				cppToCli(matrix(j,i), val);
+				points.Set(i, j, val);
+			}
+	}
 
 
 
@@ -140,7 +140,7 @@ namespace LvqLibCli {
 		assert(matrix.rows()==2);
 		assert(matrix.cols()==1);
 		retval = System::Windows::Point(matrix(0,0),matrix(1,0));
-//		retval= MatrixOrVectorChooser<TDerived>::cppToCliHelper<MatrixBase<TDerived>::IsVectorAtCompileTime>(matrix);
+		//		retval= MatrixOrVectorChooser<TDerived>::cppToCliHelper<MatrixBase<TDerived>::IsVectorAtCompileTime>(matrix);
 	}
 
 	template<typename TDerived>

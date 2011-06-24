@@ -106,7 +106,7 @@ namespace LvqGui {
 			bool hideBoundaries = classBoundaries.Plot.MetaData.Hidden;
 
 			if (!hideBoundaries) {
-				if (width != lastProjection.Width || height != lastProjection.Height || lastProjection.ImageData == null) {
+				if (width != lastProjection.Width || height != lastProjection.Height || lastProjection.ImageData == null || selectedSubModel != lastProjection.forSubModel) {
 					lastProjection = lastProjection.forModels.CurrentProjectionAndImage(lastProjection.forDataset, width, height, false, selectedSubModel);
 					SetScatterBounds(lastProjection.Bounds);
 				}

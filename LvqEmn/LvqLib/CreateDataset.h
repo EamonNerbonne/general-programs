@@ -4,7 +4,7 @@
 #include <boost/random/mersenne_twister.hpp>
 #include "LvqTypedefs.h"
 
-class LvqDataset;
+struct LvqDataset;
 class CreateDataset
 {
 	CreateDataset(void) {}

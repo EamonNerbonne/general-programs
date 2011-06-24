@@ -1,8 +1,9 @@
 #pragma once
 using namespace System;
 #include <boost/random/mersenne_twister.hpp>
-#include "LvqTypedefs.h"
-class LvqDataset;
+//#include "LvqTypedefs.h"
+#include "LvqLib.h"
+struct LvqDataset;
 
 namespace LvqLibCli {
 	ref class LvqModelCli;
@@ -10,24 +11,24 @@ namespace LvqLibCli {
 	{
 		typedef array<System::Windows::Media::Color> ColorArray;
 
-		GcAutoPtr<LvqDataset> dataset;
+		GcManualPtr<LvqDataset> dataset;
 		String^ label;
 		LvqModelCli^ lastModel;
 		LvqDatasetCli ^testSet;
 		ColorArray^ colors;
-		int folds;
-		LvqDatasetCli(String^label,int folds, bool extend, bool normalizeDims, ColorArray^ colors, LvqDataset * newDataset,boost::mt19937& rngOrder);
+		int folds,pointCount,dimCount,classCount;
+		LvqDatasetCli(String^label,int folds, bool extend, bool normalizeDims, ColorArray^ colors, LvqDataset * newDataset);
 	public:
 		bool IsFolded() {return folds!=0;}
 		int Folds() {return folds;}
 		bool HasTestSet() {return testSet != nullptr;}
-		std::vector<int> GetTrainingSubset(int fold);
+		//std::vector<int> GetTrainingSubset(int fold);
+		//std::vector<int> GetTestSubset(int fold);
 		int GetTrainingSubsetSize(int fold);
-		std::vector<int> GetTestSubset(int fold);
 		LvqDataset const * GetTrainingDataset() {return dataset;}
-		LvqDataset const * GetTestDataset() {return testSet==nullptr?dataset:testSet->dataset;}
+		LvqDataset const * GetTestDataset() {return testSet==nullptr?dataset:testSet->dataset;} 
 		array<int>^ ClassLabels();
-		array<LvqFloat,2>^ RawPoints();
+		//array<LvqFloat,2>^ RawPoints();
 		property ColorArray^ ClassColors { ColorArray^ get(){return colors;} void set(ColorArray^ newcolors){colors=newcolors;}}
 		property int ClassCount {int get();}
 		property int PointCount {int get();}

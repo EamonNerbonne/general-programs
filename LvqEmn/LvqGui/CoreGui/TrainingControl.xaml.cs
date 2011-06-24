@@ -15,6 +15,6 @@ namespace LvqGui {
 		void DoGC(object sender, RoutedEventArgs e) { GC.Collect(); }
 		void PrintCurrentStats(object sender, RoutedEventArgs e) { ThreadPool.QueueUserWorkItem(o => ((TrainingControlValues)o).PrintCurrentStats(), DataContext); }
 		void PrintLearningRate(object sender, RoutedEventArgs e) { Console.WriteLine(Values.GetLearningRate()); }
-		void SaveAllGraphs(object sender, RoutedEventArgs e) { ((TrainingControlValues)DataContext).Owner.win.SaveAllGraphs();  }
+		void SaveAllGraphs(object sender, RoutedEventArgs e) { ((TrainingControlValues)DataContext).Owner.win.SaveAllGraphs(); }
 	}
 }

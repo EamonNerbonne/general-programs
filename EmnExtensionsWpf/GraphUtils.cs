@@ -51,7 +51,7 @@ namespace EmnExtensions.Wpf {
 			PathGeometry geom = new PathGeometry();
 			PathFigure fig = null;
 			foreach (Point startPoint in lineOfPoints.Take(1)) {
-				fig = new PathFigure {StartPoint = startPoint};
+				fig = new PathFigure { StartPoint = startPoint };
 				geom.Figures.Add(fig);
 			}
 			bool wasOK = true;
@@ -78,7 +78,7 @@ namespace EmnExtensions.Wpf {
 			return Line(scaledPoints, false, new MatrixTransform(geomToData));
 		}
 
-		public static StreamGeometry Line(IEnumerable<Point> lineOfPoints, bool makeFillable=false, MatrixTransform withTransform = null) {
+		public static StreamGeometry Line(IEnumerable<Point> lineOfPoints, bool makeFillable = false, MatrixTransform withTransform = null) {
 			StreamGeometry geom = new StreamGeometry();
 			bool wasOK = false;
 			using (var context = geom.Open())
@@ -111,7 +111,7 @@ namespace EmnExtensions.Wpf {
 		public static StreamGeometry PointCloud(IEnumerable<Point> setOfPoints) {
 			StreamGeometry geom = new StreamGeometry();
 			if (setOfPoints != null)
-				using (var context = geom.Open()) 
+				using (var context = geom.Open())
 					foreach (var point in setOfPoints)
 						if (IsOK(point)) {
 							context.BeginFigure(point, false, false);
@@ -127,7 +127,7 @@ namespace EmnExtensions.Wpf {
 		/// Makes a filled-square based point cloud; radius is in data-space, so distorted (fast)
 		/// </summary>
 		public static StreamGeometry PointCloud4(IEnumerable<Point> setOfPoints, double radius) {
-			StreamGeometry geom = new StreamGeometry {FillRule = FillRule.Nonzero};
+			StreamGeometry geom = new StreamGeometry { FillRule = FillRule.Nonzero };
 			using (var context = geom.Open()) {
 				foreach (var point in setOfPoints) {
 					if (IsOK(point)) {

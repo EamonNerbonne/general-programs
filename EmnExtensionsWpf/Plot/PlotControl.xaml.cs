@@ -95,7 +95,7 @@ namespace EmnExtensions.Wpf.Plot {
 				UnregisterChanged(e.OldItems.Cast<IPlot>());
 			if (e.NewItems != null)
 				RegisterChanged(e.NewItems.Cast<IPlot>());
-			if (e.OldItems != null && e.OldItems.Count > 0 || e.NewItems!=null && e.NewItems.Cast<IPlot>().Any(p => !p.MetaData.Hidden))
+			if (e.OldItems != null && e.OldItems.Count > 0 || e.NewItems != null && e.NewItems.Cast<IPlot>().Any(p => !p.MetaData.Hidden))
 				RequireRedisplay();
 		}
 

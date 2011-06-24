@@ -150,7 +150,7 @@ namespace LvqGui {
 		public Task SaveAllGraphs() {
 			var selectedModel = Values.TrainingControlValues.SelectedLvqModel;
 			var allmodels = Values.TrainingControlValues.MatchingLvqModels.ToArray();
-			var graphSettings = new { Values.TrainingControlValues.ShowBoundaries, Values.TrainingControlValues.ShowPrototypes,Values.TrainingControlValues.CurrProjStats };
+			var graphSettings = new { Values.TrainingControlValues.ShowBoundaries, Values.TrainingControlValues.ShowPrototypes, Values.TrainingControlValues.CurrProjStats };
 			lvqPlotContainer = lvqPlotContainer ?? new LvqStatPlotsContainer(ClosingToken);
 			TaskCompletionSource<object> done = new TaskCompletionSource<object>();
 			done.SetResult(null);
@@ -165,7 +165,7 @@ namespace LvqGui {
 								).Wait()
 							).Wait()
 						)
-				).ContinueWith(_=>lvqPlotContainer.DisplayModel(selectedModel.InitSet,selectedModel,selectedModel.SelectedSubModel,graphSettings.CurrProjStats,graphSettings.ShowBoundaries,graphSettings.ShowPrototypes).Wait());
+				).ContinueWith(_ => lvqPlotContainer.DisplayModel(selectedModel.InitSet, selectedModel, selectedModel.SelectedSubModel, graphSettings.CurrProjStats, graphSettings.ShowBoundaries, graphSettings.ShowPrototypes).Wait());
 		}
 	}
 }

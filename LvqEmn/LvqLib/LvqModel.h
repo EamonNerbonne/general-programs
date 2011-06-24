@@ -10,15 +10,14 @@
 #pragma intrinsic(pow)
 
 using namespace Eigen;
-class LvqDataset;
+struct LvqDataset;
 class LvqDatasetStats;
 #ifdef DEBUGHELP
 const size_t initSentinal = 0xdeadbeefdeadbeef;
 #endif
-class LvqModel
+struct LvqModel
 {
 #ifdef DEBUGHELP
-public:
 	size_t sentinal;
 #endif
 private:
@@ -45,7 +44,7 @@ protected:
 	virtual bool IdenticalMu()const {return false;}
 
 public:
-	typedef std::queue<std::vector<double> > Statistics;
+	typedef std::queue<std::vector<double>> Statistics;
 	int epochsTrained;
 	double unscaledLearningRate() const { 
 		double scaledIter = trainIter*iterationScaleFactor+1.0;
@@ -55,7 +54,7 @@ public:
 	boost::mt19937 & RngIter() {return *settings.RngIter;}//TODO:remove.
 	void resetLearningRate() {trainIter=0; }
 
-	std::vector<std::wstring> TrainingStatNames();
+	std::vector<std::wstring> TrainingStatNames() const;
 
 	double RegisterEpochDone(int itersTrained, double elapsed, int epochs);
 
@@ -79,3 +78,5 @@ public:
 
 	int ClassCount() const { return settings.ClassCount;}
 };
+
+

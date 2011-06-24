@@ -7,9 +7,8 @@
 #include "LvqTypedefs.h"
 #include "copy_ptr.h"
 
-class LvqModelRuntimeSettings
+struct LvqModelRuntimeSettings
 {
-public:
 	bool TrackProjectionQuality,NormalizeProjection,NormalizeBoundaries,GloballyNormalize,UpdatePointsWithoutB,SlowStartLrBad;
 	int ClassCount;
 	double LrScaleP, LrScaleB, LR0,LrScaleBad;
@@ -17,11 +16,10 @@ public:
 	LvqModelRuntimeSettings(int classCount, boost::mt19937 & rngIter); 
 };
 
-class LvqDataset;
+struct LvqDataset;
 
-class LvqModelSettings
+struct LvqModelSettings
 {
-public:
 	bool RandomInitialProjection;
 	bool RandomInitialBorders;
 	bool NgUpdateProtos;
@@ -57,6 +55,6 @@ public:
 	LvqModelSettings& self(){return *this;}
 };
 
-class LvqModel;
+struct LvqModel;
 
 LvqModel* ConstructLvqModel(LvqModelSettings & initSettings);

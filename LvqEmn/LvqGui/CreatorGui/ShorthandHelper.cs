@@ -39,14 +39,13 @@ namespace LvqGui {
 			}
 		}
 
-		protected void AllPropertiesChanged()
-		{
+		protected void AllPropertiesChanged() {
 			foreach (var propname in GetType().GetProperties().Where(prop => prop.CanRead).Select(prop => prop.Name))
 				raisePropertyChanged(propname);
 		}
 
 		public abstract string Shorthand { get; set; }
-		public abstract string ShorthandErrors { get;  }
+		public abstract string ShorthandErrors { get; }
 	}
 
 
@@ -73,7 +72,7 @@ namespace LvqGui {
 					if (!Equals(prop.Value, val))
 						errs.AppendLine(prop.Name + ": " + val + " != " + prop.Value);
 				}, err => errs.AppendLine(err));
-			errs.AppendLine("defaulted: " + string.Join(", ",Property.All(shorthandObj).Select(p => p.Name).Except(usedProperties)));
+			errs.AppendLine("defaulted: " + string.Join(", ", Property.All(shorthandObj).Select(p => p.Name).Except(usedProperties)));
 			return errs.ToString();
 		}
 
@@ -130,7 +129,7 @@ namespace LvqGui {
 			}
 			public static IEnumerable<Property> All(object shorthandObj) {
 				return (
-						from property in shorthandObj.GetType().GetProperties(BindingFlags.Public|BindingFlags.Instance)
+						from property in shorthandObj.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance)
 						where property.CanRead && property.CanWrite
 						where !property.GetCustomAttributes(typeof(NotInShorthandAttribute), true).Any()
 						select (Property)new PropertyProperty(shorthandObj, property)

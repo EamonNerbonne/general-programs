@@ -25,9 +25,9 @@ Matrix_NN shuffleMatrixCols(boost::mt19937 & randGen, Matrix_NN const & src){
 	using boost::scoped_array;
 	scoped_array<int> idxs(new int[src.cols()]);
 	makeRandomOrder(randGen,idxs.get(),static_cast<int>(src.cols()));
-	
+
 	Matrix_NN retval(src.rows(),src.cols());
-	
+
 	for(int colI=0;colI<src.cols();++colI)
 		retval.col(idxs[colI]) = src.col(colI);
 	return retval;

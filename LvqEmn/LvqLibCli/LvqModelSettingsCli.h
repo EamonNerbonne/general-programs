@@ -1,14 +1,14 @@
 #pragma once
-#include "LvqModelSettings.h"
+#include "LvqLib.h"
 #include "LvqConstants.h"
 using namespace System;
 namespace LvqLibCli {
 
 	public enum class LvqModelType {
-		Lgm = LvqModelSettings::LgmModelType,
-		Gm = LvqModelSettings::GmModelType,
-		G2m = LvqModelSettings::G2mModelType,
-		Ggm = LvqModelSettings::GgmModelType,
+		Lgm = LgmModelType,
+		Gm = GmModelType,
+		G2m = G2mModelType,
+		Ggm = GgmModelType,
 	};
 
 	ref class LvqDatasetCli;
@@ -28,6 +28,7 @@ namespace LvqLibCli {
 		unsigned ParamsSeed, InstanceSeed;
 		bool TrackProjectionQuality;
 		int ParallelModels;
+
 		static initonly LvqModelSettingsCli^ defaults;
 
 		LvqModelSettingsCli()
@@ -60,7 +61,7 @@ namespace LvqLibCli {
 
 		LvqModelSettingsCli^ Copy();
 		LvqModelSettingsCli^ WithChanges(LvqModelType type, int protos, unsigned rngParams, unsigned rngIter);
-		LvqModelSettings ToNativeSettings(LvqDatasetCli^ dataset, int datasetFold);
+		LvqModelSettingsRaw ToNativeSettings();
 		String^ ToShorthand();
 	private:
 		static LvqModelSettingsCli() {defaults = gcnew LvqModelSettingsCli();}

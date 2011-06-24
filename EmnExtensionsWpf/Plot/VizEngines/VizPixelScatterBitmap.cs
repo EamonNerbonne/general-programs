@@ -3,10 +3,9 @@ using System.Diagnostics;
 using System.Windows;
 using System.Windows.Media;
 
-namespace EmnExtensions.Wpf.Plot.VizEngines
-{
+namespace EmnExtensions.Wpf.Plot.VizEngines {
 	public class VizPixelScatterBitmap : VizDynamicBitmap<Point[]>, IVizPixelScatter
-	//for efficiency reasons, accept data in a Point[] rather than the more general IEnumerable<Point>
+		//for efficiency reasons, accept data in a Point[] rather than the more general IEnumerable<Point>
 	{
 		Rect m_OuterDataBounds = Rect.Empty;
 		uint[] m_image;
@@ -20,13 +19,12 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
 
 		public int? OverridePointCountEstimate { get; set; }
 
-		protected override void UpdateBitmap(int pW, int pH, Matrix dataToBitmap)
-		{
+		protected override void UpdateBitmap(int pW, int pH, Matrix dataToBitmap) {
 			Trace.WriteLine("UpdateBitmap");
 
 			if (dataToBitmap.IsIdentity) return;//this is the default mapping; it may occur when generating a scatter plot without data - don't bother plotting.
 
-			double thickness = Plot.MetaData.RenderThickness ?? VizPixelScatterHelpers.PointCountToThickness(OverridePointCountEstimate??(Data == null ? 0 : Data.Length));
+			double thickness = Plot.MetaData.RenderThickness ?? VizPixelScatterHelpers.PointCountToThickness(OverridePointCountEstimate ?? (Data == null ? 0 : Data.Length));
 			Tuple<double, bool> thicknessTranslation = DecodeThickness(thickness);
 
 			Make2dHistogramInRegion(pW, pH, dataToBitmap, thicknessTranslation.Item2);
@@ -34,8 +32,7 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
 			CopyImageRegionToWriteableBitmap(pW, pH);
 		}
 
-		static Tuple<double, bool> DecodeThickness(double thickness)
-		{
+		static Tuple<double, bool> DecodeThickness(double thickness) {
 			double thicknessOfSquare = VizPixelScatterHelpers.SquareSidePerThickness * thickness;
 			//thicknessOfSquare 1.0 is equivalent to a 1x1 opaque pixel square.
 			double alpha = thicknessOfSquare * thicknessOfSquare;
@@ -48,8 +45,7 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
 		}
 
 		#region UpdateBitmap Helpers
-		void Make2dHistogramInRegion(int pW, int pH, Matrix dataToBitmap, bool useDiamondPoints)
-		{
+		void Make2dHistogramInRegion(int pW, int pH, Matrix dataToBitmap, bool useDiamondPoints) {
 			MakeVisibleRegionEmpty(pW, pH);
 
 			if (useDiamondPoints)
@@ -58,8 +54,7 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
 				MakeSinglePoint2dHistogram(pW, pH, dataToBitmap);
 		}
 
-		void MakeVisibleRegionEmpty(int pW, int pH)
-		{
+		void MakeVisibleRegionEmpty(int pW, int pH) {
 			if (m_image == null || m_image.Length < pW * pH)
 				m_image = new uint[pW * pH];
 			else
@@ -67,15 +62,12 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
 					m_image[i] = 0;
 		}
 
-		void MakeDiamondPoint2dHistogram(int pW, int pH, Matrix dataToBitmap)
-		{
-			foreach (var point in Data)
-			{
+		void MakeDiamondPoint2dHistogram(int pW, int pH, Matrix dataToBitmap) {
+			foreach (var point in Data) {
 				Point displaypoint = dataToBitmap.Transform(point);
 				int x = (int)(displaypoint.X);
 				int y = (int)(displaypoint.Y);
-				if (x >= 1 && x < pW - 1 && y >= 1 && y < pH - 1)
-				{
+				if (x >= 1 && x < pW - 1 && y >= 1 && y < pH - 1) {
 					m_image[x + pW * y]++;
 					m_image[x - 1 + pW * y]++;
 					m_image[x + 1 + pW * y]++;
@@ -85,10 +77,8 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
 			}
 		}
 
-		void MakeSinglePoint2dHistogram(int pW, int pH, Matrix dataToBitmap)
-		{
-			foreach (var point in Data)
-			{
+		void MakeSinglePoint2dHistogram(int pW, int pH, Matrix dataToBitmap) {
+			foreach (var point in Data) {
 				Point displaypoint = dataToBitmap.Transform(point);
 				int x = (int)(displaypoint.X);
 				int y = (int)(displaypoint.Y);
@@ -97,8 +87,7 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
 			}
 		}
 
-		void ConvertHistogramToColorDensityImage(int pW, int pH, double alpha)
-		{
+		void ConvertHistogramToColorDensityImage(int pW, int pH, double alpha) {
 			Color pointColor = Plot.MetaData.RenderColor ?? Colors.Black;
 
 			int numPixels = pW * pH;
@@ -109,8 +98,7 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
 				m_image[pxI] = nativeColorWithoutAlpha | alphaLookup[m_image[pxI]];
 		}
 
-		void CopyImageRegionToWriteableBitmap(int pW, int pH)
-		{
+		void CopyImageRegionToWriteableBitmap(int pW, int pH) {
 			m_bmp.WritePixels(
 				sourceRect: new Int32Rect(0, 0, pW, pH),
 				sourceBuffer: m_image,
@@ -119,26 +107,22 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
 				destinationY: 0);
 		}
 
-		static uint[] PregenerateAlphaLookup(double alpha, uint[] image, int numPixels, double overallAlpha)
-		{
+		static uint[] PregenerateAlphaLookup(double alpha, uint[] image, int numPixels, double overallAlpha) {
 			uint maximalOverlapCount = ValueOfMax(image, 0, numPixels);
 			return MakeAlphaLookupUpto(alpha, maximalOverlapCount, overallAlpha);
 		}
 
-		static uint[] MakeAlphaLookupUpto(double alpha, uint maxOverlap, double overallAlpha)
-		{
+		static uint[] MakeAlphaLookupUpto(double alpha, uint maxOverlap, double overallAlpha) {
 			double transparencyPerOverlap = 1.0 - alpha;
 			uint[] alphaLookup = new uint[maxOverlap + 1];
-			for (int overlap = 0; overlap < alphaLookup.Length; overlap++)
-			{
+			for (int overlap = 0; overlap < alphaLookup.Length; overlap++) {
 				double overlappingAlpha = overallAlpha * (1.0 - Math.Pow(transparencyPerOverlap, overlap));
 				alphaLookup[overlap] = (uint)(overlappingAlpha * 255.5) << 24;
 			}
 			return alphaLookup;
 		}
 
-		static uint ValueOfMax(uint[] m_image, int start, int end)
-		{
+		static uint ValueOfMax(uint[] m_image, int start, int end) {
 			uint maxCount = 0;
 			for (int i = start; i < end; i++)
 				if (m_image[i] > maxCount)
@@ -147,8 +131,7 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
 		}
 		#endregion
 
-		protected override void OnDataChanged(Point[] oldData)
-		{
+		protected override void OnDataChanged(Point[] oldData) {
 			InvalidateDataBounds();
 			m_OuterDataBounds = VizPixelScatterHelpers.ComputeOuterBounds(Data);
 			TriggerChange(GraphChange.Projection); //because we need to relayout the points in the plot
@@ -158,8 +141,7 @@ namespace EmnExtensions.Wpf.Plot.VizEngines
 			return VizPixelScatterHelpers.ComputeInnerBoundsByRatio(Data, CoverageRatio, CoverageRatio, CoverageGradient, m_OuterDataBounds);
 		}
 
-		public override void OnRenderOptionsChanged()
-		{
+		public override void OnRenderOptionsChanged() {
 			TriggerChange(GraphChange.Projection); // because we need to relayout the points in the plot.
 		}
 

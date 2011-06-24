@@ -26,9 +26,9 @@ namespace EmnExtensions.Wpf.Plot.VizEngines {
 		#region RecomputeBounds Helpers
 		static bool HasPoints(Point[] points) { return points != null && points.Length > 0; }
 
-// ReSharper disable ParameterTypeCanBeEnumerable.Global
+		// ReSharper disable ParameterTypeCanBeEnumerable.Global
 		public static Rect ComputeOuterBounds(Point[] points) {
-// ReSharper restore ParameterTypeCanBeEnumerable.Global
+			// ReSharper restore ParameterTypeCanBeEnumerable.Global
 			double xmin = double.MaxValue, ymin = double.MaxValue, ymax = double.MinValue, xmax = double.MinValue;
 			foreach (var point in points) {
 				xmin = Math.Min(xmin, point.X);
@@ -75,9 +75,9 @@ namespace EmnExtensions.Wpf.Plot.VizEngines {
 #if SHAREMEM
 				if (vals.Length < points.Length)
 #else
-// ReSharper disable JoinDeclarationAndInitializer
+				// ReSharper disable JoinDeclarationAndInitializer
 				double[] vals;
-// ReSharper restore JoinDeclarationAndInitializer
+				// ReSharper restore JoinDeclarationAndInitializer
 #endif
 				vals = new double[points.Length];
 				for (int i = 0; i < points.Length; i++) vals[i] = points[i].X;

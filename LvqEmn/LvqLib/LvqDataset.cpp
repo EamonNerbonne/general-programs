@@ -254,7 +254,7 @@ void LvqDataset::TrainModel(int epochs, LvqModel * model, LvqModel::Statistics *
 		model->RegisterEpochDone( (int)(1*shuffledOrder.size()), t.value(CPU_TIMER), 1);
 		if(collectStats)
 			model->AddTrainingStat(*statisticsSink, this, trainingSubset, testData, testSubset, stats);
-		
+
 		model->DoOptionalNormalization();
 	}
 }
@@ -295,7 +295,7 @@ void LvqDataset::NormalizeDimensions() {
 	assert((variance.array() >= 0).all());
 	vector<int> remapping;
 	Vector_N inv_stddev =  variance.array().sqrt().inverse().matrix();
-	
+
 	for(int indim=0;indim<variance.rows();indim++) 
 		if(variance(indim) >= std::numeric_limits<LvqFloat>::min()) 
 			remapping.push_back(indim);
@@ -309,8 +309,8 @@ void LvqDataset::NormalizeDimensions() {
 	}
 	points.conservativeResize(remapping.size(), Eigen::NoChange);
 
-//	variance = (variance.array() < std::numeric_limits<LvqFloat>::min()).matrix().cast<LvqFloat>() + variance;
-//	points = variance.array().sqrt().inverse().matrix().asDiagonal() * (points.colwise() - mean);
+	//	variance = (variance.array() < std::numeric_limits<LvqFloat>::min()).matrix().cast<LvqFloat>() + variance;
+	//	points = variance.array().sqrt().inverse().matrix().asDiagonal() * (points.colwise() - mean);
 }
 
 using Eigen::Array2d;
@@ -325,7 +325,7 @@ LvqDatasetStats LvqDataset::ComputeCostAndErrorRate(std::vector<int> const & sub
 		assert(points.sum() == points.sum());
 		MatchQuality matchQ = model->ComputeMatches(points.col(subset[i]), pointLabels[subset[i]]);
 #ifdef DEBUGHELP
-	if(model->sentinal != initSentinal)		throw "Whoops!";
+		if(model->sentinal != initSentinal)		throw "Whoops!";
 #endif
 
 		stats.Add(matchQ);
@@ -337,29 +337,35 @@ Matrix_P LvqDataset::ProjectPoints(LvqProjectionModel const * model) const {
 	return model->projectionMatrix() * points;
 }
 
-std::vector<int> LvqDataset::GetTrainingSubset(int fold, int foldcount) const {
-	if(foldcount==0) {
-		std::vector<int> idxs((size_t)getPointCount());
-		for(int i=0;i<getPointCount();i++) idxs[i]=i; return idxs; 
-	}
-	fold = fold % foldcount;
-	int pointCount = getPointCount();
-	int foldStart = fold * pointCount / foldcount;
-	int foldEnd = (fold+1) * pointCount / foldcount;
-	int totalLength = foldStart + pointCount - foldEnd;
-
-	std::vector<int> retval(totalLength);
-	int j=0;
-	for(int i=0;i<foldStart;++i)
-		retval[j++] = i;
-	for(int i=foldEnd;i<pointCount;++i)
-		retval[j++]=i;
-	return retval;
+std::vector<int> LvqDataset::GetEverythingSubset() const {
+	std::vector<int> idxs((size_t)getPointCount());
+	for(int i=0;i<getPointCount();i++) idxs[i]=i; return idxs; 
 }
+
+std::vector<int> LvqDataset::GetTrainingSubset(int fold, int foldcount) const {
+	if(foldcount==0) 
+		return GetEverythingSubset();
+	else {
+		fold = fold % foldcount;
+		int pointCount = getPointCount();
+		int foldStart = fold * pointCount / foldcount;
+		int foldEnd = (fold+1) * pointCount / foldcount;
+		int totalLength = foldStart + pointCount - foldEnd;
+
+		std::vector<int> retval(totalLength);
+		int j=0;
+		for(int i=0;i<foldStart;++i)
+			retval[j++] = i;
+		for(int i=foldEnd;i<pointCount;++i)
+			retval[j++]=i;
+		return retval;
+	}
+}
+
 int LvqDataset::GetTrainingSubsetSize(int fold, int foldcount) const {
 	if(foldcount==0) 
 		return getPointCount();
-	
+
 	fold = fold % foldcount;
 	int pointCount = getPointCount();
 	int foldStart = fold * pointCount / foldcount;
@@ -380,3 +386,16 @@ std::vector<int> LvqDataset::GetTestSubset(int fold, int foldcount) const {
 		retval[i] = foldStart + (int)i;
 	return retval;
 }
+
+int LvqDataset::GetTestSubsetSize(int fold, int foldcount) const {
+	if(foldcount==0) 
+		return 0;
+
+	fold = fold % foldcount;
+	int pointCount = getPointCount();
+	int foldStart = fold * pointCount / foldcount;
+	int foldEnd = (fold+1) * pointCount / foldcount;
+	int totalLength = foldEnd - foldStart;
+	return totalLength;
+}
+

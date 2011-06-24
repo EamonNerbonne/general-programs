@@ -36,7 +36,7 @@ namespace LvqGui {
 		}
 		private bool _NormalizeDimensions;
 
-		
+
 
 		public ObservableCollection<LvqDatasetCli> Datasets { get; private set; }
 		public ObservableCollection<LvqMultiModel> LvqModels { get; private set; }

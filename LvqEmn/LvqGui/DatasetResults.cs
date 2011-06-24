@@ -33,10 +33,10 @@ namespace LvqGui {
 		private static Lrs ParseLine(string resultLine, double[] lr0range, double[] lrPrange, double[] lrBrange) {
 			var resLrThenErr = resultLine.Split(':');
 			double[] lrs = resLrThenErr[0].Split('p', 'b').Select(double.Parse).ToArray();
-			
+
 			var errsThenCumulLr0 = resLrThenErr[1].Split(';');
 
-			Tuple<double,double>[] errs = errsThenCumulLr0.Take(3).Select(errStr => errStr.Split('~').Select(double.Parse).ToArray() ).Select(errval=> Tuple.Create(errval[0],errval.Skip(1).FirstOrDefault())).ToArray();
+			Tuple<double, double>[] errs = errsThenCumulLr0.Take(3).Select(errStr => errStr.Split('~').Select(double.Parse).ToArray()).Select(errval => Tuple.Create(errval[0], errval.Skip(1).FirstOrDefault())).ToArray();
 			return new Lrs {
 				Lr0 = ClosestMatch(lr0range, lrs[0]),
 				LrP = ClosestMatch(lrPrange, lrs[1]),
@@ -95,8 +95,8 @@ namespace LvqGui {
 
 			var matchingFiles =
 				from result in FromDataset(dataset)
-				where WithoutLrOrSeeds(result.unoptimizedSettings).ToShorthand() == 
-				 WithModelAndPrototypes(settingsNoLr , result.unoptimizedSettings.ModelType, result.unoptimizedSettings.PrototypesPerClass).ToShorthand()
+				where WithoutLrOrSeeds(result.unoptimizedSettings).ToShorthand() ==
+				 WithModelAndPrototypes(settingsNoLr, result.unoptimizedSettings.ModelType, result.unoptimizedSettings.PrototypesPerClass).ToShorthand()
 				group result by Tuple.Create(result.trainedIterations, result.resultsFile.Directory.Name) into resGroup
 				where resGroup.Select(res => new { res.unoptimizedSettings.ModelType, res.unoptimizedSettings.PrototypesPerClass })
 												.SetEquals(TestLr.ModelTypes.SelectMany(mt => TestLr.PrototypesPerClassOpts.Select(ppc => new { ModelType = mt, PrototypesPerClass = ppc })))
@@ -115,7 +115,7 @@ namespace LvqGui {
 			retval.InstanceSeed = 0;
 			return retval;
 		}
-		static LvqModelSettingsCli WithModelAndPrototypes(LvqModelSettingsCli p_settings,LvqModelType modelType, int protos) {
+		static LvqModelSettingsCli WithModelAndPrototypes(LvqModelSettingsCli p_settings, LvqModelType modelType, int protos) {
 			var retval = p_settings.Copy();
 			retval.ModelType = modelType;
 			retval.PrototypesPerClass = protos;

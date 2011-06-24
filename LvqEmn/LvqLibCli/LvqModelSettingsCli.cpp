@@ -1,39 +1,13 @@
 #include "StdAfx.h"
 #include "LvqModelSettingsCli.h"
 #include "LvqDatasetCli.h"
-#include "LvqDataset.h"
 #include "utils.h"
 namespace LvqLibCli {
-	LvqModelSettings LvqModelSettingsCli::ToNativeSettings(LvqDatasetCli^ trainingSet, int modelFold) {
-		using boost::mt19937;
-		vector<int> protoDistrib;
-		for(int i=0;i<trainingSet->ClassCount;++i)
-			protoDistrib.push_back(PrototypesPerClass);
+	//TODO:ABI:LvqModelSettings
+	LvqModelSettingsRaw LvqModelSettingsCli::ToNativeSettings() {
 
-		LvqModelSettings initSettings(
-			LvqModelSettings::LvqModelType(ModelType), 
-			as_lvalue(mt19937(ParamsSeed+modelFold)), 
-			as_lvalue(mt19937(InstanceSeed+modelFold)), 
-			protoDistrib, 
-			trainingSet->GetTrainingDataset(),
-			trainingSet->GetTrainingSubset(modelFold)
-		);
-		initSettings.RandomInitialProjection = RandomInitialProjection;
-		initSettings.RandomInitialBorders = RandomInitialBorders;
-		initSettings.RuntimeSettings.TrackProjectionQuality = TrackProjectionQuality;
-		initSettings.RuntimeSettings.NormalizeProjection = NormalizeProjection;
-		initSettings.RuntimeSettings.NormalizeBoundaries = NormalizeBoundaries;
-		initSettings.RuntimeSettings.GloballyNormalize = GloballyNormalize;
-		initSettings.NgUpdateProtos = NgUpdateProtos;
-		initSettings.NgInitializeProtos = NgInitializeProtos;
-		initSettings.RuntimeSettings.UpdatePointsWithoutB = UpdatePointsWithoutB;
-		initSettings.RuntimeSettings.SlowStartLrBad = SlowStartLrBad;
-		initSettings.Dimensionality = Dimensionality;
-		initSettings.RuntimeSettings.LrScaleP = LrScaleP;
-		initSettings.RuntimeSettings.LrScaleB = LrScaleB;
-		initSettings.RuntimeSettings.LR0 = LR0;
-		initSettings.RuntimeSettings.LrScaleBad = LrScaleBad;
-		return initSettings;
+		LvqModelSettingsRaw nativeSettings = { (::LvqModelType)ModelType, Dimensionality, PrototypesPerClass, RandomInitialProjection, RandomInitialBorders, NormalizeProjection, NormalizeBoundaries, GloballyNormalize, NgUpdateProtos, NgInitializeProtos, UpdatePointsWithoutB, SlowStartLrBad, LR0, LrScaleP, LrScaleB, LrScaleBad, ParamsSeed, InstanceSeed, TrackProjectionQuality, ParallelModels };
+		return nativeSettings;
 	}
 	LvqModelSettingsCli^ LvqModelSettingsCli::Copy() {
 		return (LvqModelSettingsCli^)this->MemberwiseClone();
@@ -54,9 +28,9 @@ namespace LvqLibCli {
 			+ (LrScaleBad != defaults->LrScaleBad ? "lrX" + LrScaleBad + ",":"")
 			+ (SlowStartLrBad ? "!" : "")
 			+ (LR0==LVQ_LR0 &&LrScaleP==LVQ_LrScaleP&&LrScaleB==LVQ_LrScaleB?"":
-				"lr0" + LR0 + ","
-				+ "lrP" + LrScaleP + ","
-				+ "lrB" + LrScaleB + ",")
+			"lr0" + LR0 + ","
+			+ "lrP" + LrScaleP + ","
+			+ "lrB" + LrScaleB + ",")
 			+ "[" + ParamsSeed.ToString("x") + "," + InstanceSeed.ToString("x") + "]"
 			+ (ParallelModels!=10?"^" + ParallelModels: "");
 	}

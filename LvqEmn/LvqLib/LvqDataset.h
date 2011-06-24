@@ -14,7 +14,7 @@ public:
 	LvqDatasetStats()
 		: meanCost_sum(0.0), errorRate_sum(0.0), muKmean_sum(0.0),muJmean_sum(0.0), muKmax_val(0.0), muJmax_val(0.0), counter(0)
 	{
-	
+
 	}
 	void Add(MatchQuality match) {
 		assert(-1<=match.costFunc && match.costFunc<=1);
@@ -39,8 +39,9 @@ public:
 	SmartSum<1> distanceBad() const {return distBad;}
 };
 
-class LvqDataset
+struct LvqDataset
 {
+private:
 	Matrix_NN points; //one dimension per row, one point per column
 	std::vector<int> pointLabels;
 	int classCount;
@@ -77,8 +78,10 @@ public:
 	size_t MemAllocEstimate() const;
 	int dimensions() const { return static_cast<int>(points.rows());}
 
+	std::vector<int> GetEverythingSubset() const;
 	std::vector<int> GetTrainingSubset(int fold, int foldcount) const;
 	int GetTrainingSubsetSize(int fold, int foldcount) const;
 	std::vector<int> GetTestSubset(int fold, int foldcount) const;
+	int GetTestSubsetSize(int fold, int foldcount) const;
 };
 //#pragma managed(pop)

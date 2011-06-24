@@ -25,6 +25,28 @@ public:
 	static operator T*(GcAutoPtr<T>% gcPtr) { return gcPtr.ptr; }
 };
 
+template<typename T> ref class GcManualPtr sealed {
+	T* ptr;
+	size_t size;
+	void (*freeCmd)(T* obj);
+public:
+	GcManualPtr(T*ptr,size_t size, void (*freeCmd)(T* obj) ) : ptr(ptr),size(size),freeCmd(freeCmd){ GC::AddMemoryPressure(size); }
+
+	!GcManualPtr() {
+		GC::RemoveMemoryPressure(size);
+		size=0;
+		freeCmd(ptr);
+	}
+
+	~GcManualPtr() { this->!GcManualPtr();} //mostly just to avoid C4461
+
+	T* get() {return ptr;}
+
+	static T* operator->(GcManualPtr<T>% gcPtr) { return gcPtr.ptr;}
+	static operator T*(GcManualPtr<T>% gcPtr) { return gcPtr.ptr; }
+};
+
+
 template<typename T> ref class GcPlainPtr sealed {
 	T* ptr;
 public:

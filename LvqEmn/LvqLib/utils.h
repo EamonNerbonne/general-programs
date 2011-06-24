@@ -42,7 +42,7 @@ template <typename T> EIGEN_STRONG_INLINE double projectionSquareNorm(T const & 
 	return (projectionMatrix.transpose() * projectionMatrix).diagonal().sum();
 }
 
- template <typename T> void normalizeProjection(T & projectionMatrix) {
+template <typename T> void normalizeProjection(T & projectionMatrix) {
 	projectionMatrix *= LvqFloat(LvqFloat(1.0)/sqrt(projectionSquareNorm(projectionMatrix)));
 }
 
@@ -59,7 +59,7 @@ template <typename T> void projectionRandomizeUniformScaled(boost::mt19937 & ran
 	for(int col=0; col < projectionMatrix.cols(); col++)
 		for(int row=0; row < projectionMatrix.rows(); row++) //column-major storage
 			projectionMatrix(row,col) = uniform01_rand()*2.0-1.0;
-		
+
 	normalizeProjection(projectionMatrix);
 }
 
@@ -74,7 +74,7 @@ Matrix_NN shuffleMatrixCols(boost::mt19937 & randGen, Matrix_NN const & src);
 
 //#pragma managed(pop)
 #ifdef _MSC_VER
-#define isfinite_emn(x)     (_finite(x)) 
+#define isfinite_emn(x) (_finite(x)) 
 #else
 inline bool isfinite_emn(double x) {return !(std::isinf(x)  || std::isnan(x));}
 #endif

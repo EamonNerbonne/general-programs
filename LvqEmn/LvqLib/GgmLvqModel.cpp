@@ -29,7 +29,7 @@ GgmLvqModel::GgmLvqModel(LvqModelSettings & initSettings)
 	auto InitProtos = initSettings.InitProtosBySetting();
 	size_t protoCount = InitProtos.second.size();
 	prototype.resize(protoCount);
-	
+
 	for(int protoIndex=0; protoIndex < protoCount; ++protoIndex) {
 		prototype[protoIndex] = 	GgmLvqPrototype(initSettings.RngParams, initSettings.RandomInitialBorders, InitProtos.second(protoIndex), InitProtos.first.col(protoIndex), P, toUnitDist);
 		prototype[protoIndex].ComputePP(P);
@@ -47,7 +47,7 @@ MatchQuality GgmLvqModel::learnFrom(Vector_N const & trainPoint, int trainLabel)
 	using namespace std;
 	const size_t protoCount = prototype.size();
 	double learningRate = stepLearningRate();
-	
+
 
 	double lr_point = -settings.LR0 * learningRate,
 		lr_P = lr_point * settings.LrScaleP,
@@ -152,7 +152,7 @@ MatchQuality GgmLvqModel::learnFrom(Vector_N const & trainPoint, int trainLabel)
 #endif
 			}
 		}
-		
+
 		P.noalias() += (lr_P * muK2_BkT_Bk_P_vK) * vK.transpose() + (lr_P * muJ2_BjT_Bj_P_vJ) * vJ.transpose();
 		if(settings.NormalizeProjection)
 			normalizeProjection(P);
@@ -265,28 +265,28 @@ void GgmLvqModel::ClassBoundaryDiagram(double x0, double x1, double y0, double y
 }
 
 void GgmLvqModel::DoOptionalNormalization() {
-/*THIS IS JUST BAD; we normalize each iter.
+	/*THIS IS JUST BAD; we normalize each iter.
 	if(settings.NormalizeProjection) {
-		normalizeProjection(P);
-		for(size_t i=0;i<prototype.size();++i)
-			prototype[i].ComputePP(P);
+	normalizeProjection(P);
+	for(size_t i=0;i<prototype.size();++i)
+	prototype[i].ComputePP(P);
 	}
 
-	
+
 	if(settings.NormalizeBoundaries) {
-		if(settings.GloballyNormalize) {
-			double overallNorm = std::accumulate(prototype.begin(), prototype.end(),0.0,
-				[](double cur, GgmLvqPrototype const & proto) -> double { return cur + projectionSquareNorm(proto.B); } 
-			// (cur, proto) => cur + projectionSquareNorm(proto.B)
-			);
-			double scale = 1.0/sqrt(overallNorm / prototype.size());
-			for(size_t i=0;i<prototype.size();++i) prototype[i].B*=scale;
-		} else {
-			for(size_t i=0;i<prototype.size();++i) normalizeProjection(prototype[i].B);
-		}
-#ifdef AUTO_BIAS
-		for(size_t i=0;i<prototype.size();++i) prototype[i].RecomputeBias();
-#endif
+	if(settings.GloballyNormalize) {
+	double overallNorm = std::accumulate(prototype.begin(), prototype.end(),0.0,
+	[](double cur, GgmLvqPrototype const & proto) -> double { return cur + projectionSquareNorm(proto.B); } 
+	// (cur, proto) => cur + projectionSquareNorm(proto.B)
+	);
+	double scale = 1.0/sqrt(overallNorm / prototype.size());
+	for(size_t i=0;i<prototype.size();++i) prototype[i].B*=scale;
+	} else {
+	for(size_t i=0;i<prototype.size();++i) normalizeProjection(prototype[i].B);
+	}
+	#ifdef AUTO_BIAS
+	for(size_t i=0;i<prototype.size();++i) prototype[i].RecomputeBias();
+	#endif
 	}
 	*/
 }
