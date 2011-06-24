@@ -35,3 +35,4 @@ uni/Thesis/doc/G2MLVQ_bitmap.pdf
 uni/Thesis/doc/G2MLVQ_vector.pdf
 programs/WhereTest/*.vsp
 programs/WhereTest/WhereTest.psess
+programs/LvqEmn/allconfigs/_BuildFailed*
