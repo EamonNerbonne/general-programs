@@ -1,10 +1,14 @@
 #include "stdafx.h"
 #include "EasyLvqTest.h"
-#include "LvqDataset.h"
-#include "G2mLvqModel.h"
-#include "GmLvqModel.h"
-#include "LgmLvqModel.h"
-#include "CreateDataset.h"
+#include "LvqTypedefs.h"
+//#include "LvqDataset.h"
+//#include "G2mLvqModel.h"
+//#include "GmLvqModel.h"
+//#include "LgmLvqModel.h"
+//#include "CreateDataset.h"
+#include "LvqLib.h"
+#include "utils.h"
+#include <vector>
 
 using boost::mt19937;
 using boost::normal_distribution;
@@ -52,42 +56,47 @@ unsigned int secure_rand() {
 
 void PrintModelStatus(char const * label,LvqModel const * model,LvqDataset const * dataset) {
 	using namespace std;
-	auto stats = dataset->ComputeCostAndErrorRate(dataset->GetTrainingSubset(0,0),model);
+	
+	auto stats = ComputeCostAndErrorRate(dataset,0,0,model);
 
-	cerr << label<< ": "<<stats.errorRate() << ", "<<stats.meanCost();
-	LvqProjectionModel const * projectionModel = dynamic_cast<LvqProjectionModel const*>(model);
-	if(projectionModel) {
-		LvqProjectionModel::ClassDiagramT diagram(800,800);
-		Matrix_2N protos = projectionModel->GetProjectedPrototypes();
+	cerr << label<< ": "<<stats.errorRate << ", "<<stats.meanCost;
+	if(IsProjectionModel(model)) {
+		auto shape = GetModelShape(model);
+		Matrix_2N protos(2, shape.pointCount);
+		ProjectPrototypes(model,protos.data());
+		
+
 		Vector_2 minV= protos.colwise().minCoeff();
 		Vector_2 maxV= protos.colwise().maxCoeff();
 		Vector_2 range = maxV-minV;
 		minV-=range;
 		maxV+=range;
 
-		projectionModel->ClassBoundaryDiagram(minV(0),maxV(0),minV(1),maxV(1),diagram);
-
-		cerr<<" [norm: "<< projectionSquareNorm(projectionModel->projectionMatrix()) <<"]"<<diagram.cast<unsigned>().sum()<<";";
+		ClassDiagramT diagram(800,800);
+		ClassBoundaries(model,minV(0),maxV(0),minV(1),maxV(1),(int)diagram.cols(),(int)diagram.rows(),diagram.data());
+		Matrix_P projMatrix(2,shape.dimCount);
+		GetProjectionMatrix(model,projMatrix.data());
+		cerr<<" [norm: "<< projectionSquareNorm(projMatrix) <<"]"<<diagram.cast<unsigned>().sum()<<";";
 	}
 	cerr<<endl;
 }
 
-void TestModel(LvqModelSettings::LvqModelType modelType, mt19937 & rndGenOrig, bool useNgUpdate, LvqDataset const * dataset, vector<int> const & protoDistrib, int iters) {
+void TestModel(LvqModelType modelType, unsigned seed, bool useNgUpdate, LvqDataset const * dataset, int protosPerClass, int iters) {
 	Eigen::BenchTimer t;
-	mt19937 rndGen = rndGenOrig;//we do this to avoid changing the original rng, so we can rerun tests with the same sequence of random numbers generated.
-	
-	LvqModelSettings initSettings(modelType,rndGen,rndGen,protoDistrib,dataset,dataset->GetTrainingSubset(0,0));
-	//initSettings.RandomInitialProjection = randInit;
-	initSettings.NgUpdateProtos=useNgUpdate;
-
-	using boost::scoped_ptr;
-	scoped_ptr<LvqModel> model;
+	DataShape dataShape = GetDataShape(dataset);
+	LvqModelSettingsRaw settings = defaultLvqModelSettings;
+	settings.ModelType = modelType;
+	settings.PrototypesPerClass = protosPerClass;
+	settings.NgUpdateProtos = useNgUpdate;
+	settings.ParamsSeed = seed;
+	settings.InstanceSeed = seed;
 	t.start();
-	model.reset(ConstructLvqModel(initSettings));
+	LvqModel* model= CreateLvqModel(settings, dataset, 0, 0);
 	t.stop();
+
 	cerr<<"constructing "<<typeid(*model).name()<<(useNgUpdate?" (NG update)":"")<<": "<<t.value()<<"s\n";
 
-	PrintModelStatus("Initial", model.get(), dataset);
+	PrintModelStatus("Initial", model, dataset);
 
 	t.start();
 	int num_groups=3;
@@ -96,55 +105,37 @@ void TestModel(LvqModelSettings::LvqModelType modelType, mt19937 & rndGenOrig, b
 		int itersUpto=iters*(i+1)/num_groups;
 		int itersTodo = itersUpto-itersDone;
 		if(itersTodo>0) {
-			dataset->TrainModel(itersTodo, model.get(),NULL,dataset->GetTrainingSubset(0,0), 0,vector<int>() );
-			LvqProjectionModel* projModel = dynamic_cast<LvqProjectionModel*>(model.get());
-			PrintModelStatus("Trained",model.get(),dataset);
+			TrainModel(dataset,dataset,0,0,model,itersTodo,nullptr,nullptr);
+			PrintModelStatus("Trained",model, dataset);
 		}
 	}
 	t.stop();
 	cerr<<"training "<<typeid(*model).name()<<": "<<t.value()<<"s\n";
+	FreeModel(model);
 }
 
 void EasyLvqTest() {
-	using boost::scoped_ptr;
-
 	
-	mt19937 rndGen(347);
-	mt19937 rndGen2(37); //347: 50%, 37:
-#ifndef DETERMINISTIC_SEED
-	rndGen.seed(secure_rand);
-#endif
-#ifndef DETERMINISTIC_ORDER
-	rndGen2.seed(secure_rand);
-#endif
-
-	vector<int> protoDistrib;
-	for(int i=0;i<CLASSCOUNT;++i)
-		protoDistrib.push_back(PROTOSPERCLASS);
-
 	Eigen::BenchTimer t;
-	scoped_ptr<LvqDataset> dataset(CreateDataset::ConstructGaussianClouds(rndGen,rndGen, DIMS, CLASSCOUNT, POINTS_PER_CLASS, MEANSEP)); 
+	LvqDataset* dataset = CreateGaussianClouds(37,37, DIMS, CLASSCOUNT*POINTS_PER_CLASS, CLASSCOUNT, 0, MEANSEP); 
 
 	for(int bI=0;bI<BENCH_RUNS;++bI)
 	{
 		t.start();
-		//TestModel(LvqModelSettings::LgmModelType, rndGen2, true,  dataset.get(), protoDistrib, (ITERS + DIMS -1)/DIMS);
-		TestModel(LvqModelSettings::LgmModelType, rndGen2, false,  dataset.get(), protoDistrib, 2*(ITERS + DIMS -1)/DIMS);
+		TestModel(LgmModelType, 0, false,  dataset, PROTOSPERCLASS, 2*(ITERS + DIMS -1)/DIMS);
 
-		//TestModel(LvqModelSettings::G2mModelType, rndGen2, true, dataset.get(), protoDistrib, ITERS);
-		TestModel(LvqModelSettings::G2mModelType, rndGen2, false, dataset.get(), protoDistrib, ITERS);
+		TestModel(G2mModelType, 1, false, dataset, PROTOSPERCLASS, ITERS);
 
-		//TestModel(LvqModelSettings::GmModelType, rndGen2, true, dataset.get(), protoDistrib, ITERS);
-		TestModel(LvqModelSettings::GmModelType, rndGen2, false, dataset.get(), protoDistrib, ITERS);
+		TestModel(GmModelType, 2, false, dataset, PROTOSPERCLASS, ITERS);
 
-		//TestModel(LvqModelSettings::GgmModelType, rndGen2, true, dataset.get(), protoDistrib, ITERS);
-		TestModel(LvqModelSettings::GgmModelType, rndGen2, false, dataset.get(), protoDistrib, ITERS);
+		TestModel(GgmModelType, 3, false, dataset, PROTOSPERCLASS, ITERS);
 
 
 		cerr<<"\n";
 		t.stop();
 	}
 	
+	FreeDataset(dataset);
 	cout.precision(3);
 	cout<<t.best()<<"s";
 }

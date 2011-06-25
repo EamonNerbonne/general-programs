@@ -5,11 +5,14 @@
 #include "LvqModel.h"
 #include "LvqProjectionModel.h"
 #include<algorithm>
-using namespace std;
-using namespace boost;
+using boost::mt19937;
+using std::vector;
+using std::copy;
+using std::wstring;
+using std::transform;
 
 extern"C" LvqDataset* CreateDatasetRaw(
-	unsigned rngParamSeed, unsigned rngInstSeed, int dimCount, int pointCount, int classCount, int foldCount,
+	unsigned rngParamSeed, unsigned rngInstSeed, int dimCount, int pointCount, int classCount, int foldCount, //TODO:remove foldCount
 	LvqFloat* data, int*labels) {
 		mt19937 rngParams(rngParamSeed), rngInst(rngInstSeed);
 		Matrix_NN points(dimCount,pointCount);
@@ -130,6 +133,11 @@ extern "C" void ProjectPoints(LvqModel const* model, LvqDataset const * dataset,
 	mappedData = pPoints;//TODO:copying
 }
 
+extern "C" void GetProjectionMatrix(LvqModel const* model, LvqFloat* matrixDataTgt){//2 * dimCount
+	Matrix_P const & mat = dynamic_cast<LvqProjectionModel const*>(model)->projectionMatrix();
+	copy(mat.data(), mat.data()+mat.size(), matrixDataTgt);
+}
+
 extern "C" void ClassBoundaries(LvqModel const* model, double x0, double x1, double y0, double y1, int xCols, int yRows, unsigned char* imageData) {
 	auto projModel=dynamic_cast<LvqProjectionModel const *>(model);
 	LvqProjectionModel::ClassDiagramT image(yRows,xCols);
@@ -178,4 +186,11 @@ extern "C" void ComputeModelStats(LvqDataset const * trainingset, LvqDataset con
 		addStat(context,stats.front().size(),& stats.front()[0]);
 		stats.pop();
 	}
+}
+
+extern "C"  CostAndErrorRate ComputeCostAndErrorRate(LvqDataset const * dataset, int fold,int foldCount, LvqModel const * model){
+	auto stats = dataset->ComputeCostAndErrorRate(dataset->GetTrainingSubset(fold,foldCount),model);
+
+	CostAndErrorRate result = { stats.meanCost(), stats.errorRate()};
+	return result;
 }

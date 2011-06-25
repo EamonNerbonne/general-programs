@@ -647,6 +647,11 @@
     <ClInclude Include="Stdafx.h" />
     <ClInclude Include="WrappingUtils.h" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\LvqLib\LvqLib.vcxproj">
+      <Project>{2783a490-0407-4758-9531-b2950f3058d5}</Project>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
