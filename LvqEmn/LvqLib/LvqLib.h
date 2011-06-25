@@ -69,5 +69,6 @@ extern "C" {
 	__declspec(dllexport) void ComputeModelStats(LvqDataset const * trainingset, LvqDataset const * testset, int fold,int foldCount, LvqModel const * model,
 		void (*addStat)(void* context, size_t statsCount, LvqStat* stats), void* context);
 	__declspec(dllexport) CostAndErrorRate ComputeCostAndErrorRate(LvqDataset const * dataset, int fold,int foldCount, LvqModel const * model);
+	
 
 }
