@@ -54,7 +54,8 @@ namespace LvqGui {
 				return Run(settings, sw, sink).ContinueWith(t => {
 					t.Wait();
 					SaveLogFor(settings, sw.ToString());
-				}, CancellationToken.None, TaskContinuationOptions.None, LowPriorityTaskScheduler.DefaultLowPriorityScheduler).ContinueWith(t => sw.Dispose());
+				}, TaskContinuationOptions.PreferFairness
+				).ContinueWith(t => sw.Dispose(), TaskContinuationOptions.PreferFairness);
 			} else {
 				TaskCompletionSource<int> tc = new TaskCompletionSource<int>();
 				tc.SetResult(0);
@@ -86,7 +87,7 @@ namespace LvqGui {
 				 ).ToArray();
 
 			return
-				Task.Factory.ContinueWhenAll(testingTasks, Task.WaitAll);
+				Task.Factory.ContinueWhenAll(testingTasks, Task.WaitAll, TaskContinuationOptions.PreferFairness);
 		}
 
 
@@ -119,7 +120,7 @@ namespace LvqGui {
 							);
 
 					sink.WriteLine();
-				});
+				}, TaskContinuationOptions.PreferFairness);
 		}
 
 		static IEnumerable<double> LogRange(double start, double end, int steps) {
@@ -145,7 +146,7 @@ namespace LvqGui {
 				}, CancellationToken.None, TaskCreationOptions.PreferFairness, LowPriorityTaskScheduler.DefaultLowPriorityScheduler);
 			}
 
-			return Task.Factory.ContinueWhenAll(results, tasks => { sink.Write("."); return new ErrorRates(LvqMultiModel.MeanStdErrStats(tasks.Select(task => task.Result).ToArray()), nnErrorIdx); }, CancellationToken.None, TaskContinuationOptions.None, LowPriorityTaskScheduler.DefaultLowPriorityScheduler);
+			return Task.Factory.ContinueWhenAll(results, tasks => { sink.Write("."); return new ErrorRates(LvqMultiModel.MeanStdErrStats(tasks.Select(task => task.Result).ToArray()), nnErrorIdx); }, CancellationToken.None, TaskContinuationOptions.PreferFairness, LowPriorityTaskScheduler.DefaultLowPriorityScheduler);
 		}
 
 		class LrAndErrorRates {
@@ -204,9 +205,12 @@ namespace LvqGui {
 		Task Run(LvqModelSettingsCli settings, StringWriter sw, TextWriter extraSink) {
 			if (extraSink == null)
 				return Run(settings, TextWriter.Synchronized(sw));
-			else
-				using (var effWriter = new ForkingTextWriter(new[] { sw, extraSink }, false))
-					return Run(settings, TextWriter.Synchronized(effWriter));
+			else {
+				var effWriter = new ForkingTextWriter(new[] { sw, extraSink }, false);
+				return Run(settings, TextWriter.Synchronized(effWriter))
+					.ContinueWith(_ => effWriter.Dispose(),
+					TaskContinuationOptions.PreferFairness);
+			}
 		}
 
 		Task Run(LvqModelSettingsCli settings, TextWriter sink) {
