@@ -489,8 +489,8 @@
       <OpenMPSupport>false</OpenMPSupport>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>LvqLib.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(SolutionDir)$(Platform)\$(Configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>LvqLibV.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)\build\mingw\bin;$(SolutionDir)$(Platform)\$(Configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <TargetMachine>MachineX64</TargetMachine>
       <LinkErrorReporting>
@@ -646,11 +646,6 @@
     <ClInclude Include="PointSet.h" />
     <ClInclude Include="Stdafx.h" />
     <ClInclude Include="WrappingUtils.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\LvqLib\LvqLib.vcxproj">
-      <Project>{2783a490-0407-4758-9531-b2950f3058d5}</Project>
-    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

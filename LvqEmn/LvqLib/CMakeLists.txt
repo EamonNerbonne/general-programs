@@ -13,12 +13,10 @@ set(libName "LvqLib${build_suffix}")
 
 IF (CMAKE_COMPILER_IS_GNUCXX)
     SET(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,--output-def,${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/${libName}.def")
-    #GET_TARGET_PROPERTY(existing_link_flags ${libName} CMAKE_SHARED_LINKER_FLAGS)
-    #IF(existing_link_flags)
-    #    SET(new_link_flags "${existing_link_flags} ${new_link_flags}")
-    #ENDIF()
-    #SET_TARGET_PROPERTIES(${libName} PROPERTIES CMAKE_SHARED_LINKER_FLAGS ${new_link_flags})
-    INSTALL(FILES ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/lib${libName}.def DESTINATION lib)
 ENDIF (CMAKE_COMPILER_IS_GNUCXX)
 
 ADD_LIBRARY(${libName} SHARED ${sources})
+
+IF (CMAKE_COMPILER_IS_GNUCXX)
+	add_custom_command(TARGET ${libName} POST_BUILD COMMAND "C:/Program Files (x86)/Microsoft Visual Studio 10.0/VC/bin/amd64/lib.exe" ARGS /machine:x64 /def:${libName}.def WORKING_DIRECTORY ${CMAKE_LIBRARY_OUTPUT_DIRECTORY} VERBATIM )
+ENDIF (CMAKE_COMPILER_IS_GNUCXX)
