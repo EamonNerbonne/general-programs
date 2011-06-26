@@ -56,7 +56,7 @@ unsigned int secure_rand() {
 
 void PrintModelStatus(char const * label,LvqModel const * model,LvqDataset const * dataset) {
 	using namespace std;
-	
+
 	auto stats = ComputeCostAndErrorRate(dataset,0,0,model);
 
 	cerr << label<< ": "<<stats.errorRate << ", "<<stats.meanCost;
@@ -64,7 +64,7 @@ void PrintModelStatus(char const * label,LvqModel const * model,LvqDataset const
 		auto shape = GetModelShape(model);
 		Matrix_2N protos(2, shape.pointCount);
 		ProjectPrototypes(model,protos.data());
-		
+
 
 		Vector_2 minV= protos.colwise().minCoeff();
 		Vector_2 maxV= protos.colwise().maxCoeff();
@@ -94,7 +94,7 @@ void TestModel(LvqModelType modelType, unsigned seed, bool useNgUpdate, LvqDatas
 	LvqModel* model= CreateLvqModel(settings, dataset, 0, 0);
 	t.stop();
 
-	cerr<<"constructing "<<typeid(*model).name()<<(useNgUpdate?" (NG update)":"")<<": "<<t.value()<<"s\n";
+	cerr<<"constructing "<< (modelType==LgmModelType? "Lgm":modelType==GmModelType?"Gm":modelType==G2mModelType?"G2m":"Ggm" ) <<(useNgUpdate?" (NG update)":"")<<": "<<t.value()<<"s\n";
 
 	PrintModelStatus("Initial", model, dataset);
 
@@ -110,12 +110,12 @@ void TestModel(LvqModelType modelType, unsigned seed, bool useNgUpdate, LvqDatas
 		}
 	}
 	t.stop();
-	cerr<<"training "<<typeid(*model).name()<<": "<<t.value()<<"s\n";
+	cerr<<"training "<< (modelType==LgmModelType? "Lgm":modelType==GmModelType?"Gm":modelType==G2mModelType?"G2m":"Ggm" ) <<": "<<t.value()<<"s\n";
 	FreeModel(model);
 }
 
 void EasyLvqTest() {
-	
+
 	Eigen::BenchTimer t;
 	LvqDataset* dataset = CreateGaussianClouds(37,37, DIMS, CLASSCOUNT*POINTS_PER_CLASS, CLASSCOUNT, 0, MEANSEP); 
 
@@ -134,7 +134,7 @@ void EasyLvqTest() {
 		cerr<<"\n";
 		t.stop();
 	}
-	
+
 	FreeDataset(dataset);
 	cout.precision(3);
 	cout<<t.best()<<"s";
