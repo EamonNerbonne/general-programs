@@ -31,6 +31,7 @@ namespace EmnExtensions.Wpf {
 
 			return Tuple.Create(win, logger);
 		}
+
 		//TODO: this doesn't yet work.
 		static Tuple<Window, LogControl> ShowNewLogWindow_NewDispatcher(string windowTitle = null, double? width = null, double? height = null) {
 			var disp = WpfTools.StartNewDispatcher();
