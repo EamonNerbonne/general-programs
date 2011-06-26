@@ -232,7 +232,7 @@ namespace LvqGui {
 				.Select(filename => Path.Combine(resultsDir.FullName, DatasetLabel + "\\" + filename));
 		}
 
-		public static IEnumerable<LvqModelType> ModelTypes { get { return (LvqModelType[])Enum.GetValues(typeof(LvqModelType)); } }
+		public static IEnumerable<LvqModelType> ModelTypes { get { return new[] { LvqModelType.Ggm, LvqModelType.G2m, LvqModelType.Gm }; } }//  (LvqModelType[])Enum.GetValues(typeof(LvqModelType)); } }
 		public static IEnumerable<int> PrototypesPerClassOpts { get { yield return 5; yield return 1; } }
 		internal static readonly DirectoryInfo resultsDir = FSUtil.FindDataDir(@"uni\Thesis\doc\results\", Assembly.GetAssembly(typeof(TestLr)));
 		static IEnumerable<LvqDatasetCli> Datasets() {
