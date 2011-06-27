@@ -183,7 +183,8 @@ extern "C" void GetTrainingStatNames(LvqModel const* model, void (*addNames)(voi
 
 extern "C" void TrainModel(LvqDataset const * trainingset, LvqDataset const * testset, int fold, int foldCount, LvqModel* model, int epochsToDo, void (*addStat)(void* context, size_t statsCount, LvqStat* stats), void* context){
 	LvqModel::Statistics stats;
-	trainingset->TrainModel(epochsToDo,model,addStat?&stats:nullptr,trainingset->GetTrainingSubset(fold,foldCount),testset,testset->GetTestSubset(fold,foldCount));
+	bool isSplitSet = foldCount==0;
+	trainingset->TrainModel(epochsToDo,model,addStat?&stats:nullptr,trainingset->GetTrainingSubset(fold,foldCount),testset,isSplitSet?testset->GetEverythingSubset(): testset->GetTestSubset(fold,foldCount));
 	if(addStat)
 		while(!stats.empty()){
 			addStat(context,stats.front().size(),& stats.front()[0]);
