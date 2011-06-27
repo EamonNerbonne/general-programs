@@ -123,19 +123,28 @@ namespace LvqGui {
 			return retval;
 		}
 
-		static readonly Regex labelRegex = new Regex(@"^(?<prefix>.*?[,\[])(?<instseed>[0-9A-Fa-f]+)(?<suffix>\].*)$");
-		static Tuple<string, string, string> splitLabel(string label) {
+		static readonly Regex labelRegex = new Regex(@"^(?<prefix>.*?[,\[])(?<instseed>[0-9A-Fa-f]+)(?<suffix>\].*)\^(?<folds>[0-9]+)$");
+		static readonly Regex labelPrefixRegex = new Regex(@"^(?<name>.*?)train\.data(?<hasTest>,\k<prefix>test\.data)?-(?<rest>.*?)$");
+		static Tuple<string, bool, uint, string,int> splitLabel(string label) {
 			Match m = labelRegex.Match(label);
 			if (!m.Success) return null;
-			return Tuple.Create(m.Groups["prefix"].Value, m.Groups["instseed"].Value, m.Groups["suffix"].Value);
+			int folds = int.Parse(m.Groups["folds"].Value);
+			uint instSeed = Convert.ToUInt32(m.Groups["instseed"].Value, 16);
+			Match mPrefix = labelPrefixRegex.Match(m.Groups["prefix"].Value);
+			bool hasTest = mPrefix.Success && !string.IsNullOrEmpty(mPrefix.Groups["hasTest"].Value);
+			string uniquePrefix = mPrefix.Success?mPrefix.Groups["name"].Value+"-"+mPrefix.Groups["rest"].Value:m.Groups["prefix"].Value;
+			return Tuple.Create(uniquePrefix, hasTest, instSeed, m.Groups["suffix"].Value,folds);
 		}
 
 		static IEnumerable<DirectoryInfo> GetDatasetResultDir(LvqDatasetCli dataset) {
 			if (dataset == null) return Enumerable.Empty<DirectoryInfo>();
 			var split = splitLabel(dataset.DatasetLabel);
 
-			return TestLr.resultsDir.GetDirectories(split.Item1 + "*" + split.Item3)
-				.Where(di => { var diSplit = splitLabel(di.Name); return diSplit.Item1 == split.Item1 && diSplit.Item3 == split.Item3; });
+			return from dir in TestLr.resultsDir.GetDirectories()
+				   let dirSplitName = splitLabel(dir.Name)
+				   where dirSplitName.Item1 == split.Item1 && dirSplitName.Item4 == split.Item4
+				   orderby dirSplitName.Item2 == split.Item2 descending, dirSplitName.Item5 == split.Item5 descending, dirSplitName.Item5 == split.Item5 descending, dirSplitName.Item3 == split.Item3 descending
+				   select dir;
 		}
 	}
 }
