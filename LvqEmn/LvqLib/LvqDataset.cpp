@@ -120,17 +120,33 @@ double LvqDataset::NearestNeighborProjectedErrorRate(std::vector<int> const & ne
 		int testI = testSet[i];
 		testPoint.noalias() = projection * testData->points.col(testI);
 
-		int neighborI=nn.nearestIdx(testPoint);
-#if 0
+		 Matrix_NN::Index neighborI=nn.nearestIdx(testPoint);
+
+#ifdef __GNUC__
+		 //COMPILER HACK!
+		 //g++ 4.6 optimizer somehow borks the nearest neighbor search unless I look at the distances it produces.
+		 //this forces it to actually compute the NN.
+		 Matrix_NN::Index neighbor2I = (neighborI+1)%neighborLabels.size();
+		double directDist = (neighbors.col(neighbor2I) - testPoint).squaredNorm();
+		double indirectDist = (neighbors.col(neighborI) - testPoint).squaredNorm();
+		if(directDist < indirectDist)
+			std::cout << "naive:"<<directDist<<"; nn:"<<indirectDist<<"\n";
+
+#endif
+
+		/*
+
 		Matrix_NN::Index neighbor2I;
 
 		(neighbors.colwise() - testPoint).colwise().squaredNorm().minCoeff(&neighbor2I);
 		if(neighbor2I!=neighborI) {
 			double directDist = (neighbors.col(neighbor2I) - testPoint).squaredNorm();
 			double indirectDist = (neighbors.col(neighborI) - testPoint).squaredNorm();
-			assert(directDist == indirectDist);
+			if(directDist != indirectDist)
+				std::cout << "naive:"<<directDist<<"; nn:"<<indirectDist<<"\n";
+//			assert(directDist == indirectDist);
 		}
-#endif
+/**/
 
 		if(neighborLabels[neighborI] != testData->pointLabels[testI]) 
 			errs++;
