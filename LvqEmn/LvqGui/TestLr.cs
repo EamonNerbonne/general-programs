@@ -222,7 +222,9 @@ namespace LvqGui {
 
 		void SaveLogFor(LvqModelSettingsCli settings, string logcontents) {
 			string logfilepath = GetLogfilepath(settings).First(path => !File.Exists(path) || new FileInfo(path).Length == 0);
+// ReSharper disable AssignNullToNotNullAttribute
 			Directory.CreateDirectory(Path.GetDirectoryName(logfilepath));
+// ReSharper restore AssignNullToNotNullAttribute
 			File.WriteAllText(logfilepath, logcontents);
 		}
 
