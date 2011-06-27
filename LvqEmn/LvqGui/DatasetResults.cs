@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
+using EmnExtensions;
 using EmnExtensions.Algorithms;
 using EmnExtensions.Text;
 using LvqLibCli;
@@ -99,7 +100,7 @@ namespace LvqGui {
 				 WithModelAndPrototypes(settingsNoLr, result.unoptimizedSettings.ModelType, result.unoptimizedSettings.PrototypesPerClass).ToShorthand()
 				group result by Tuple.Create(result.trainedIterations, result.resultsFile.Directory.Name) into resGroup
 				where resGroup.Select(res => new { res.unoptimizedSettings.ModelType, res.unoptimizedSettings.PrototypesPerClass })
-												.SetEquals(TestLr.ModelTypes.SelectMany(mt => TestLr.PrototypesPerClassOpts.Select(ppc => new { ModelType = mt, PrototypesPerClass = ppc })))
+						.ContainsAll(TestLr.ModelTypes.SelectMany(mt => TestLr.PrototypesPerClassOpts.Select(ppc => new { ModelType = mt, PrototypesPerClass = ppc })))
 				orderby resGroup.Key.Item1 descending, resGroup.Key.Item2 == dataset.DatasetLabel descending
 				select resGroup.ToArray();
 
