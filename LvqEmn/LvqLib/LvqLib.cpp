@@ -193,7 +193,8 @@ extern "C" void TrainModel(LvqDataset const * trainingset, LvqDataset const * te
 
 extern "C" void ComputeModelStats(LvqDataset const * trainingset, LvqDataset const * testset, int fold, int foldCount, LvqModel const * model, void (*addStat)(void* context, size_t statsCount, LvqStat* stats), void* context) {
 	LvqModel::Statistics stats;
-	model->AddTrainingStat(stats,trainingset,trainingset->GetTrainingSubset(fold,foldCount),testset ,testset->GetTestSubset(fold,foldCount));
+	bool isSplitSet = foldCount==0;
+	model->AddTrainingStat(stats,trainingset,trainingset->GetTrainingSubset(fold,foldCount), testset, isSplitSet ? testset->GetEverythingSubset() : testset->GetTestSubset(fold,foldCount));
 	while(!stats.empty()){
 		addStat(context,stats.front().size(),& stats.front()[0]);
 		stats.pop();
