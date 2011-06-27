@@ -116,7 +116,7 @@
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'ReleaseMingw|x64' ">
     <DebugSymbols>true</DebugSymbols>
-    <OutputPath>bin\x64\ReleaseDev\</OutputPath>
+    <OutputPath>bin\x64\ReleaseMingw\</OutputPath>
     <DefineConstants>TRACE;NBENCHMARK</DefineConstants>
     <Optimize>true</Optimize>
     <NoWarn>1668, 1607</NoWarn>
