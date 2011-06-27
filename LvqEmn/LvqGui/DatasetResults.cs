@@ -124,7 +124,7 @@ namespace LvqGui {
 		}
 
 		static readonly Regex labelRegex = new Regex(@"^(?<prefix>.*?[,\[])(?<instseed>[0-9A-Fa-f]+)(?<suffix>\].*)\^(?<folds>[0-9]+)$");
-		static readonly Regex labelPrefixRegex = new Regex(@"^(?<name>.*?)train\.data(?<hasTest>,\k<prefix>test\.data)?-(?<rest>.*?)$");
+		static readonly Regex labelPrefixRegex = new Regex(@"^(?<name>.*?)train\.data(?<hasTest>,\k<name>test\.data)?-(?<rest>.*?)$");
 		static Tuple<string, bool, uint, string,int> splitLabel(string label) {
 			Match m = labelRegex.Match(label);
 			if (!m.Success) return null;
@@ -142,7 +142,7 @@ namespace LvqGui {
 
 			return from dir in TestLr.resultsDir.GetDirectories()
 				   let dirSplitName = splitLabel(dir.Name)
-				   where dirSplitName.Item1 == split.Item1 && dirSplitName.Item4 == split.Item4
+				   where dirSplitName!=null && dirSplitName.Item1 == split.Item1 && dirSplitName.Item4 == split.Item4
 				   orderby dirSplitName.Item2 == split.Item2 descending, dirSplitName.Item5 == split.Item5 descending, dirSplitName.Item5 == split.Item5 descending, dirSplitName.Item3 == split.Item3 descending
 				   select dir;
 		}
