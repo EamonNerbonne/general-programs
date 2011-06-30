@@ -5,9 +5,16 @@ ENDIF(NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
 message("Using build type ${CMAKE_BUILD_TYPE}")
 if(CMAKE_COMPILER_IS_GNUCXX)
 	message("Compiler is Gcc")
-
-	set(CMAKE_CXX_FLAGS_DEBUG " -std=c++0x -m64 -march=native -mtune=native -O2")
-	set(CMAKE_CXX_FLAGS_RELEASE " -std=c++0x -DNDEBUG -m64 -march=native -mtune=native -O3 ")
+  
+  if($ENV{NUMBER_OF_PROCESSORS} EQUAL "8")
+    set(CPU_ARCH "corei7")
+    message("Using i7 without AVX")
+  else ()
+    set(CPU_ARCH "native")
+  endif()
+	set(CMAKE_CXX_FLAGS_DEBUG " -std=c++0x -m64 -march=${CPU_ARCH} -mtune=native -O2")
+	set(CMAKE_CXX_FLAGS_RELEASE " -std=c++0x -DNDEBUG -m64 -march=${CPU_ARCH} -mtune=native -O3 ")
+	
 
   set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -ftree-loop-linear -ftree-loop-distribution -ftree-loop-im -ftree-loop-ivcanon -fivopts")#*slightly* good for build3v
   set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -fassociative-math -fno-trapping-math -fno-signed-zeros -ffinite-math-only")
