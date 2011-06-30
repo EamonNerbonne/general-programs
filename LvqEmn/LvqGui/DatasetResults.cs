@@ -16,21 +16,33 @@ namespace LvqGui {
 		DatasetResults(FileInfo fi, double iters, LvqModelSettingsCli settings) { unoptimizedSettings = settings; trainedIterations = iters; resultsFile = fi; }
 
 		public LvqModelSettingsCli GetOptimizedSettings(uint? paramSeed = null, uint? instSeed = null) {
+			IEnumerable<Lrs> lrs = GetLrs();
+			var bestLr = lrs.OrderBy(resVal => resVal.Errors.training).First();
+			return ConvertLrToSettings(bestLr, paramSeed, instSeed);
+		}
+
+		public LvqModelSettingsCli ConvertLrToSettings(Lrs bestLr, uint? paramSeed=null, uint? instSeed=null)
+		{
+			LvqModelSettingsCli retval = unoptimizedSettings.Copy();
+			retval.LR0 = bestLr.Lr0;
+			retval.LrScaleP = bestLr.LrP;
+			retval.LrScaleB = bestLr.LrB;
+			retval.ParamsSeed = paramSeed ?? retval.ParamsSeed;
+			retval.InstanceSeed = instSeed ?? retval.InstanceSeed;
+			return retval;
+		}
+
+		public IEnumerable<Lrs> GetLrs()
+		{
 			string[] fileLines = File.ReadAllLines(resultsFile.FullName);
 			double[] lr0range = ExtractLrs(fileLines.First(line => line.StartsWith("lr0range:")));
 			double[] lrPrange = ExtractLrs(fileLines.First(line => line.StartsWith("lrPrange:")));
 			double[] lrBrange = ExtractLrs(fileLines.First(line => line.StartsWith("lrBrange:")));
 			string[] resultLines = fileLines.SkipWhile(line => !line.StartsWith(".")).Skip(1).Where(line => !line.StartsWith("Search Complete!") && !string.IsNullOrWhiteSpace(line)).ToArray();
-			var lr = resultLines.Select(resLine => ParseLine(resLine, lr0range, lrPrange, lrBrange)).OrderBy(resVal => resVal.Errors.training).First();
-			LvqModelSettingsCli retval = unoptimizedSettings.Copy();
-			retval.LR0 = lr.Lr0;
-			retval.LrScaleP = lr.LrP;
-			retval.LrScaleB = lr.LrB;
-			retval.ParamsSeed = paramSeed ?? retval.ParamsSeed;
-			retval.InstanceSeed = instSeed ?? retval.InstanceSeed;
-			return retval;
+			return resultLines.Select(resLine => ParseLine(resLine, lr0range, lrPrange, lrBrange));
 		}
-		struct Lrs { public double Lr0, LrP, LrB; public TestLr.ErrorRates Errors;}
+
+		public struct Lrs { public double Lr0, LrP, LrB; public TestLr.ErrorRates Errors;}
 		private static Lrs ParseLine(string resultLine, double[] lr0range, double[] lrPrange, double[] lrBrange) {
 			var resLrThenErr = resultLine.Split(':');
 			double[] lrs = resLrThenErr[0].Split('p', 'b').Select(double.Parse).ToArray();
