@@ -269,7 +269,7 @@ namespace LvqGui {
 			var testLr = new TestLr(iterCount, ForDataset, 3);
 			string shortname = testLr.ShortnameFor(settingsCopy);
 			var logWindow = LogControl.ShowNewLogWindow(shortname, owner.win.ActualWidth, owner.win.ActualHeight * 0.6);
-			testLr.TestLrIfNecessary(logWindow.Item2.Writer, settingsCopy).ContinueWith(t => {
+			testLr.TestLrIfNecessary(logWindow.Item2.Writer, settingsCopy,Owner.WindowClosingToken).ContinueWith(t => {
 				logWindow.Item1.Dispatcher.BeginInvoke(() => logWindow.Item1.Background = Brushes.White);
 			});
 		}
@@ -282,7 +282,7 @@ namespace LvqGui {
 			settingsCopy.ModelType = LvqModelType.Gm;
 			const long iterCount = 30L * 1000L * 1000L;
 			var testLr = new TestLr(iterCount, ForDataset, 3);
-			testLr.StartAllLrTesting(settingsCopy).ContinueWith(_ => Console.WriteLine("completed lr optimization for " + settingsCopy.ToShorthand()));
+			testLr.StartAllLrTesting(Owner.WindowClosingToken, settingsCopy).ContinueWith(_ => Console.WriteLine("completed lr optimization for " + settingsCopy.ToShorthand()));
 		}
 
 		static readonly string[] depProps = new[] { "HasOptimizedLr", "OptimizeButtonText", "HasOptimizedLrAll", "OptimizeAllButtonText" };

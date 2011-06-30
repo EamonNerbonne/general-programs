@@ -48,14 +48,20 @@ namespace LvqGui {
 		}
 
 
-		public Task TestLrIfNecessary(TextWriter sink, LvqModelSettingsCli settings) {
+		public Task TestLrIfNecessary(TextWriter sink, LvqModelSettingsCli settings, CancellationToken cancel) {
 			if (!AttemptToClaimSettings(settings, sink)) {
 				var sw = new StringWriter();
-				return Run(settings, sw, sink).ContinueWith(t => {
-					t.Wait();
-					SaveLogFor(settings, sw.ToString());
-				}, TaskContinuationOptions.PreferFairness
-				).ContinueWith(t => sw.Dispose(), TaskContinuationOptions.PreferFairness);
+				return
+					Run(settings, sw, sink, cancel)
+					.ContinueWith(
+						t => {
+							using (sw)
+								if (t.Status == TaskStatus.RanToCompletion)
+									SaveLogFor(settings, sw.ToString());
+								else
+									AttemptToUnclaimSettings(settings, sink);
+						}, cancel, TaskContinuationOptions.ExecuteSynchronously, LowPriorityTaskScheduler.DefaultLowPriorityScheduler
+					);
 			} else {
 				TaskCompletionSource<int> tc = new TaskCompletionSource<int>();
 				tc.SetResult(0);
@@ -72,7 +78,7 @@ namespace LvqGui {
 			return ShortnameFor(_itersToRun, settings);
 		}
 
-		public Task StartAllLrTesting(LvqModelSettingsCli baseSettings = null) {
+		public Task StartAllLrTesting(CancellationToken cancel, LvqModelSettingsCli baseSettings = null) {
 			baseSettings = baseSettings ?? new LvqModelSettingsCli();
 			var testingTasks =
 			(
@@ -82,16 +88,16 @@ namespace LvqGui {
 				let shortname = ShortnameFor(settings)
 				select DTimer.TimeTask(() => {
 					Console.WriteLine("Starting " + shortname);
-					return TestLrIfNecessary(null, settings);
+					return TestLrIfNecessary(null, settings, cancel);
 				}, shortname + " training")
 				 ).ToArray();
 
 			return
-				Task.Factory.ContinueWhenAll(testingTasks, Task.WaitAll, TaskContinuationOptions.PreferFairness);
+				Task.Factory.ContinueWhenAll(testingTasks, Task.WaitAll, cancel, TaskContinuationOptions.ExecuteSynchronously, LowPriorityTaskScheduler.DefaultLowPriorityScheduler);
 		}
 
 
-		Task FindOptimalLr(TextWriter sink, LvqModelSettingsCli settings) {
+		Task FindOptimalLr(TextWriter sink, LvqModelSettingsCli settings, CancellationToken cancel) {
 			var lr0range = _dataset != null ? LogRange(0.3 / settings.PrototypesPerClass, 0.01 / settings.PrototypesPerClass, 6) : LogRange(0.3, 0.01, 8);
 			var lrPrange = _dataset != null ? LogRange(0.3 / settings.PrototypesPerClass, 0.01 / settings.PrototypesPerClass, 6) : LogRange(0.5, 0.03, 8);
 			var lrBrange = settings.ModelType != LvqModelType.Ggm && settings.ModelType != LvqModelType.G2m ? new[] { 0.0 }
@@ -109,7 +115,7 @@ namespace LvqGui {
 				from lr0 in lr0range
 				from lrP in lrPrange
 				from lrB in lrBrange
-				select new LrAndErrorRates { lr0 = lr0, lrP = lrP, lrB = lrB, errs = ErrorOf(sink, _itersToRun, settings.WithLrChanges(lr0, lrP, lrB)) }
+				select new LrAndErrorRates { lr0 = lr0, lrP = lrP, lrB = lrB, errs = ErrorOf(sink, _itersToRun, settings.WithLrChanges(lr0, lrP, lrB), cancel) }
 				).ToArray();
 
 			return Task.Factory.ContinueWhenAll(errorRates.Select(run => run.errs).ToArray(),
@@ -120,7 +126,7 @@ namespace LvqGui {
 							);
 
 					sink.WriteLine();
-				}, TaskContinuationOptions.PreferFairness);
+				}, cancel, TaskContinuationOptions.ExecuteSynchronously, LowPriorityTaskScheduler.DefaultLowPriorityScheduler);
 		}
 
 		static IEnumerable<double> LogRange(double start, double end, int steps) {
@@ -130,7 +136,7 @@ namespace LvqGui {
 				yield return start * Math.Exp(lnScale * ((double)i / (steps - 1)));
 		}
 
-		Task<ErrorRates> ErrorOf(TextWriter sink, long iters, LvqModelSettingsCli settings) {
+		Task<ErrorRates> ErrorOf(TextWriter sink, long iters, LvqModelSettingsCli settings, CancellationToken cancel) {
 			int nnErrorIdx = -1;
 			var results = new Task<LvqTrainingStatCli>[_folds];
 
@@ -139,14 +145,19 @@ namespace LvqGui {
 				var dataset = _dataset ?? basedatasets[i];
 				int fold = _dataset != null ? i : 0;
 				results[i] = Task.Factory.StartNew(() => {
+					Console.WriteLine(settings.ToShorthand() + " /" + fold);
 					var model = new LvqModelCli("model", dataset, fold, settings, false);
 					nnErrorIdx = model.TrainingStatNames.AsEnumerable().IndexOf(name => name.Contains("NN Error")); // threading irrelevant; all the same & atomic.
 					model.Train((int)(iters / dataset.GetTrainingSubsetSize(fold)), dataset, fold);
 					return model.EvaluateStats(dataset, fold);
-				}, CancellationToken.None, TaskCreationOptions.PreferFairness, LowPriorityTaskScheduler.DefaultLowPriorityScheduler);
+				}, cancel, TaskCreationOptions.PreferFairness, LowPriorityTaskScheduler.DefaultLowPriorityScheduler);
 			}
 
-			return Task.Factory.ContinueWhenAll(results, tasks => { sink.Write("."); return new ErrorRates(LvqMultiModel.MeanStdErrStats(tasks.Select(task => task.Result).ToArray()), nnErrorIdx); }, CancellationToken.None, TaskContinuationOptions.PreferFairness, LowPriorityTaskScheduler.DefaultLowPriorityScheduler);
+			return Task.Factory.ContinueWhenAll(results, tasks => {
+				sink.Write(".");
+				return new ErrorRates(LvqMultiModel.MeanStdErrStats(tasks.Select(task => task.Result).ToArray()), nnErrorIdx);
+			},
+				cancel, TaskContinuationOptions.ExecuteSynchronously, LowPriorityTaskScheduler.DefaultLowPriorityScheduler);
 		}
 
 		class LrAndErrorRates {
@@ -202,29 +213,57 @@ namespace LvqGui {
 				}
 		}
 
-		Task Run(LvqModelSettingsCli settings, StringWriter sw, TextWriter extraSink) {
+		bool AttemptToUnclaimSettings(LvqModelSettingsCli settings, TextWriter sink) {
+			var saveFile = new FileInfo(GetLogfilepath(settings).First());
+			lock (fsSync)
+				if (saveFile.Exists) {
+					if (saveFile.Length > 0) {
+						string message = "Won't cancel completed results:" + DatasetLabel + "\\" + ShortnameFor(settings);
+						Console.WriteLine(message);
+						if (sink != null) sink.WriteLine(message);
+						return false;
+					} else {
+						string message = "Cancelling:" + DatasetLabel + "\\" + ShortnameFor(settings);
+						Console.WriteLine(message);
+						if (sink != null) sink.WriteLine(message);
+
+						saveFile.Delete();
+						return true;
+					}
+				} else {
+					string message = "Already cancelled??? " + DatasetLabel + "\\" + ShortnameFor(settings);
+					Console.WriteLine(message);
+					if (sink != null) sink.WriteLine(message);
+					return false;
+				}
+		}
+
+
+
+		Task Run(LvqModelSettingsCli settings, StringWriter sw, TextWriter extraSink, CancellationToken cancel) {
 			if (extraSink == null)
-				return Run(settings, TextWriter.Synchronized(sw));
+				return Run(settings, TextWriter.Synchronized(sw), cancel);
 			else {
 				var effWriter = new ForkingTextWriter(new[] { sw, extraSink }, false);
-				return Run(settings, TextWriter.Synchronized(effWriter))
+				return Run(settings, TextWriter.Synchronized(effWriter), cancel)
 					.ContinueWith(_ => effWriter.Dispose(),
-					TaskContinuationOptions.PreferFairness);
+					TaskContinuationOptions.ExecuteSynchronously);
 			}
 		}
 
-		Task Run(LvqModelSettingsCli settings, TextWriter sink) {
+		Task Run(LvqModelSettingsCli settings, TextWriter sink, CancellationToken cancel) {
 			sink.WriteLine("Evaluating: " + settings.ToShorthand());
 			sink.WriteLine("Against: " + DatasetLabel);
-			return DTimer.TimeTask(() => FindOptimalLr(sink, settings), time => sink.WriteLine("Search Complete!  Took " + time));
+			return DTimer.TimeTask(() => FindOptimalLr(sink, settings, cancel), time => sink.WriteLine("Search Complete!  Took " + time));
 		}
+
 		string DatasetLabel { get { return _dataset != null ? _dataset.DatasetLabel : "base"; } }
 
 		void SaveLogFor(LvqModelSettingsCli settings, string logcontents) {
 			string logfilepath = GetLogfilepath(settings).First(path => !File.Exists(path) || new FileInfo(path).Length == 0);
-// ReSharper disable AssignNullToNotNullAttribute
+			// ReSharper disable AssignNullToNotNullAttribute
 			Directory.CreateDirectory(Path.GetDirectoryName(logfilepath));
-// ReSharper restore AssignNullToNotNullAttribute
+			// ReSharper restore AssignNullToNotNullAttribute
 			File.WriteAllText(logfilepath, logcontents);
 		}
 

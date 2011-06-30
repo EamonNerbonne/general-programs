@@ -130,7 +130,7 @@ namespace LvqGui {
 			string shortname = testLr.ShortnameFor(settings);
 
 			var logWindow = LogControl.ShowNewLogWindow(shortname, ActualWidth, ActualHeight * 0.6);
-			ThreadPool.QueueUserWorkItem(_ => testLr.TestLrIfNecessary(logWindow.Item2.Writer, settings)
+			ThreadPool.QueueUserWorkItem(_ => testLr.TestLrIfNecessary(logWindow.Item2.Writer, settings, ClosingToken)
 									.ContinueWith(t => {
 										logWindow.Item1.Dispatcher.BeginInvoke(() => logWindow.Item1.Background = Brushes.White);
 										t.Wait();
@@ -142,7 +142,7 @@ namespace LvqGui {
 			long iterCount = (long)iterCountSelectbox.SelectedItem;
 			Process.GetCurrentProcess().PriorityClass = ProcessPriorityClass.Idle;
 			ThreadPool.QueueUserWorkItem(_ =>
-				new TestLr(iterCount, offset).StartAllLrTesting(new LvqModelSettingsCli { NgUpdateProtos = true })
+				new TestLr(iterCount, offset).StartAllLrTesting(ClosingToken, new LvqModelSettingsCli { NgUpdateProtos = true })
 				.ContinueWith(t => { Console.WriteLine("wheee!!!!"); t.Wait(); })
 				);
 		}
