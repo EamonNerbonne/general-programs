@@ -8,12 +8,10 @@ namespace LastFMspider {
 	public static class LastFmDbBuilder {
 		//we set legacy format to false for better storage efficiency
 		//we set datetime format to ticks for better efficiency (internally just stored as Int64)
-		//rating is stored as a REAL which is a float in C#.
 
-		const string DataProvider = "System.Data.SQLite";
-		const string DataConnectionString = "page size=4096;cache size=10000;datetimeformat=Ticks;Legacy Format=False;Synchronous=Normal;Journal Mode=Persist;Default Timeout=30;data source=\"{0}\"";
+		const string DataConnectionString = "page size=4096;cache size=10000;datetimeformat=Ticks;Legacy Format=False;Synchronous=Normal;Journal Mode=WAL;Default Timeout=30;data source=\"{0}\"";
 		const string DatabaseDef = @"
-PRAGMA journal_mode = PERSIST;
+pragma journal_mode=wal;
 
 
 CREATE TABLE IF NOT EXISTS [Artist] (
@@ -125,8 +123,5 @@ CREATE INDEX IF NOT EXISTS [IDX_TopTracksList_ArtistID_LookupTimestamp] ON [TopT
 		}
 		const string filename = "lastFMcache.s3db";
 		public static FileInfo DbFile(SongDataConfigFile config) { return new FileInfo(Path.Combine(config.DataDirectory.CreateSubdirectory("cache").FullName, filename)); }
-		[DllImport(@"System.Data.SQLite.dll")]
-		static extern int sqlite3_enable_shared_cache(int enabled);
-		static LastFmDbBuilder() { sqlite3_enable_shared_cache(1); }
 	}
 }

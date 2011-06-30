@@ -6,13 +6,10 @@ using SongDataLib;
 
 namespace LastFMspider {
 	public static class PlaylistDbBuilder {
-		//we set legacy format to false for better storage efficiency
-		//we set datetime format to ticks for better efficiency (internally just stored as Int64)
-		//rating is stored as a REAL which is a float in C#.
 
-		const string DataConnectionString = "page size=4096;cache size=2000;datetimeformat=Ticks;Legacy Format=False;Synchronous=Normal;Journal Mode=Persist;Default Timeout=30;data source=\"{0}\"";
+		const string DataConnectionString = "page size=4096;cache size=2000;datetimeformat=Ticks;Legacy Format=False;Synchronous=Normal;Journal Mode=WAL;Default Timeout=30;data source=\"{0}\"";
 		const string DatabaseDef = @"
-PRAGMA journal_mode = PERSIST;
+pragma journal_mode=wal;
 
 CREATE TABLE IF NOT EXISTS [Playlist] (
   [PlaylistID] INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
