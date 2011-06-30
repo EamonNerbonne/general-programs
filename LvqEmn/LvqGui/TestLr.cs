@@ -145,7 +145,6 @@ namespace LvqGui {
 				var dataset = _dataset ?? basedatasets[i];
 				int fold = _dataset != null ? i : 0;
 				results[i] = Task.Factory.StartNew(() => {
-					Console.WriteLine(settings.ToShorthand() + " /" + fold);
 					var model = new LvqModelCli("model", dataset, fold, settings, false);
 					nnErrorIdx = model.TrainingStatNames.AsEnumerable().IndexOf(name => name.Contains("NN Error")); // threading irrelevant; all the same & atomic.
 					model.Train((int)(iters / dataset.GetTrainingSubsetSize(fold)), dataset, fold);
@@ -155,6 +154,7 @@ namespace LvqGui {
 
 			return Task.Factory.ContinueWhenAll(results, tasks => {
 				sink.Write(".");
+				Console.WriteLine(settings.ToShorthand());
 				return new ErrorRates(LvqMultiModel.MeanStdErrStats(tasks.Select(task => task.Result).ToArray()), nnErrorIdx);
 			},
 				cancel, TaskContinuationOptions.ExecuteSynchronously, LowPriorityTaskScheduler.DefaultLowPriorityScheduler);
