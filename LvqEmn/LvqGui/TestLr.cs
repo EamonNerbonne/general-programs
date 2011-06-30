@@ -108,7 +108,7 @@ namespace LvqGui {
 			sink.WriteLine("lrPrange:" + ObjectToCode.ComplexObjectToPseudoCode(lrPrange));
 			sink.WriteLine("lrBrange:" + ObjectToCode.ComplexObjectToPseudoCode(lrBrange));
 			sink.WriteLine("For " + settings.ModelType + " with " + settings.PrototypesPerClass + " prototypes and " + _itersToRun + " iters training:");
-			
+
 			var errorRates = (
 				from lr0 in lr0range
 				from lrP in lrPrange
@@ -182,7 +182,7 @@ namespace LvqGui {
 				nnStderr = nnIdx == -1 ? double.NaN : stats.StandardError[nnIdx];
 				cumLearningRate = stats.Value[LvqTrainingStatCli.CumLearningRateI];
 			}
-			public double ErrorMean { get { return double.IsNaN(nnStderr) && double.IsNaN(nn) ? (training * 2 + test) / 3.0 : (training * 3 + test + nn) / 5.0; } }
+			public double ErrorMean { get { return training * 0.9 + (nn.IsFinite() ? test * 0.05 + nn * 0.05 : test * 0.1); } }
 			public override string ToString() {
 				return Statistics.GetFormatted(training, trainingStderr, 1) + "; " +
 					Statistics.GetFormatted(test, testStderr, 1) + "; " +
@@ -257,8 +257,8 @@ namespace LvqGui {
 			return FindOptimalLr(sink, settings, cancel).ContinueWith(_ => {
 				double durationSec = timer.Elapsed.TotalSeconds;
 				sink.WriteLine("Search Complete!  Took " + durationSec + "s");
-				Console.WriteLine("Optimizing "+ShortnameFor(settings) + " took " + durationSec + "s");
-			},TaskContinuationOptions.ExecuteSynchronously);
+				Console.WriteLine("Optimizing " + ShortnameFor(settings) + " took " + durationSec + "s");
+			}, TaskContinuationOptions.ExecuteSynchronously);
 		}
 
 		string DatasetLabel { get { return _dataset != null ? _dataset.DatasetLabel : "base"; } }
