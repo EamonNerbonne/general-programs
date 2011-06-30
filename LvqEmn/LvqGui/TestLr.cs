@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -55,6 +56,7 @@ namespace LvqGui {
 					Run(settings, sw, sink, cancel)
 					.ContinueWith(
 						t => {
+
 							using (sw)
 								if (t.Status == TaskStatus.RanToCompletion)
 									SaveLogFor(settings, sw.ToString());
@@ -86,10 +88,7 @@ namespace LvqGui {
 				from modeltype in ModelTypes
 				select baseSettings.WithTestingChanges(modeltype, protoCount, offset) into settings
 				let shortname = ShortnameFor(settings)
-				select DTimer.TimeTask(() => {
-					Console.WriteLine("Starting " + shortname);
-					return TestLrIfNecessary(null, settings, cancel);
-				}, shortname + " training")
+				select TestLrIfNecessary(null, settings, cancel)
 				 ).ToArray();
 
 			return
@@ -252,7 +251,14 @@ namespace LvqGui {
 		Task Run(LvqModelSettingsCli settings, TextWriter sink, CancellationToken cancel) {
 			sink.WriteLine("Evaluating: " + settings.ToShorthand());
 			sink.WriteLine("Against: " + DatasetLabel);
-			return DTimer.TimeTask(() => FindOptimalLr(sink, settings, cancel), time => sink.WriteLine("Search Complete!  Took " + time));
+			Stopwatch timer = Stopwatch.StartNew();
+			LowPriorityTaskScheduler.DefaultLowPriorityScheduler.StartNewTask(() => timer = Stopwatch.StartNew());
+
+			return FindOptimalLr(sink, settings, cancel).ContinueWith(_ => {
+				double durationSec = timer.Elapsed.TotalSeconds;
+				sink.WriteLine("Search Complete!  Took " + durationSec + "s");
+				Console.WriteLine("Optimizing "+ShortnameFor(settings) + " took " + durationSec + "s");
+			},TaskContinuationOptions.ExecuteSynchronously);
 		}
 
 		string DatasetLabel { get { return _dataset != null ? _dataset.DatasetLabel : "base"; } }
