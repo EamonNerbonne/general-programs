@@ -73,7 +73,7 @@ namespace EmnExtensions {
 		readonly int IdleAfterMilliseconds;
 		int currPar;
 		public LowPriorityTaskScheduler(int? maxParallelism = null, ThreadPriority priority = ThreadPriority.Lowest, int? idleMilliseconds = null) {
-			MaxParallel = maxParallelism ?? Environment.ProcessorCount * 2;
+			MaxParallel = maxParallelism ?? Environment.ProcessorCount + 2;
 			Priority = priority;
 			IdleAfterMilliseconds = idleMilliseconds ?? 10000;
 		}
