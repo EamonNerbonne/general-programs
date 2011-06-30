@@ -237,7 +237,7 @@ namespace LvqGui {
 			this.owner = owner;
 			settings = new LvqModelSettingsCli();
 			ParallelModels = 10;
-			this.ReseedBoth();
+			//this.ReseedBoth();
 		}
 
 		public Task ConfirmCreation() { return CreateSingleModel(owner, ForDataset, settings.Copy()); }

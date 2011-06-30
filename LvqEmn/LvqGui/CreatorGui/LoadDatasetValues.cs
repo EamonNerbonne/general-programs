@@ -38,7 +38,7 @@ namespace LvqGui {
 		public LoadDatasetValues(LvqWindowValues owner) {
 			this.owner = owner;
 			_Folds = 10;
-			this.ReseedBoth();
+			//this.ReseedBoth();
 		}
 
 		LvqDatasetCli CreateDataset(uint seed, int folds) {

@@ -69,7 +69,7 @@ namespace LvqGui {
 				if (e.PropertyName == "ExtendDataByCorrelation") owner.ExtendDataByCorrelation = ExtendDataByCorrelation;
 				else if (e.PropertyName == "NormalizeDimensions") owner.NormalizeDimensions = NormalizeDimensions;
 			};
-			this.ReseedBoth();
+			//this.ReseedBoth();
 		}
 
 		LvqDatasetCli CreateDataset() { Console.WriteLine("Creating: " + Shorthand); return settings.CreateDataset(); }
