@@ -21,7 +21,7 @@ namespace EmnExtensions.DebugTools {
 		Stopwatch underlyingTimer;
 		public static Task TimeTask(Func<Task> f, string actionLabel) { return TimeTask(f, new DTimer(actionLabel)); }
 		public static Task TimeTask(Func<Task> f, Action<TimeSpan> resultSink) { return TimeTask(f, new DTimer(resultSink)); }
-		static Task TimeTask(Func<Task> f, DTimer timer) { return f().ContinueWith(t => { ((IDisposable)timer).Dispose(); t.Wait(); }); }
+		static Task TimeTask(Func<Task> f, DTimer timer) { return f().ContinueWith(t => { ((IDisposable)timer).Dispose(); t.Wait(); },TaskContinuationOptions.ExecuteSynchronously); }
 
 		public static T TimeFunc<T>(Func<T> f, string actionLabel) { using (new DTimer(actionLabel)) return f(); }
 		public static T TimeFunc<T>(Func<T> f, Action<TimeSpan> resultSink) { using (new DTimer(resultSink)) return f(); }
