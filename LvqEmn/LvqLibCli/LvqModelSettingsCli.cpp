@@ -21,7 +21,7 @@ namespace LvqLibCli {
 			+ (RandomInitialBorders != defaults->RandomInitialBorders && (ModelType == LvqModelType::Ggm || ModelType==LvqModelType::G2m) ? "rB" + (RandomInitialBorders ? "+" : "") + "," : "")
 			+ (NormalizeProjection != defaults->NormalizeProjection ? "nP" + (NormalizeProjection ? "+" : "") + ",":"")
 			+ (NormalizeBoundaries != defaults->NormalizeBoundaries && ModelType == LvqModelType::G2m ? "nB" + (NormalizeBoundaries ? "+" : "") + "," : "")
-			+ (GloballyNormalize !=defaults->GloballyNormalize && (ModelType == LvqModelType::G2m && NormalizeBoundaries || NormalizeProjection) ? "gn" + (GloballyNormalize ? "+" : "") + "," : "")
+			+ (GloballyNormalize !=defaults->GloballyNormalize && (ModelType == LvqModelType::G2m && NormalizeBoundaries ||ModelType == LvqModelType::Lgm && NormalizeProjection) ? "gn" + (GloballyNormalize ? "+" : "") + "," : "")
 			+ (NgUpdateProtos != defaults->NgUpdateProtos && ModelType != LvqModelType::Lgm && PrototypesPerClass > 1 ? "NG" + (NgUpdateProtos ? "+" : "") + "," : "")
 			+ (NgInitializeProtos != defaults->NgInitializeProtos && PrototypesPerClass > 1 ? "NGi" + (NgInitializeProtos ? "+" : "") + "," : "")
 			+ (UpdatePointsWithoutB != defaults->UpdatePointsWithoutB && ModelType == LvqModelType::G2m ? "noB" + (UpdatePointsWithoutB ? "+" : "") + "," : "")
