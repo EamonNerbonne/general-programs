@@ -61,6 +61,7 @@ namespace LvqGui {
 			return
 				from datasetResultsDir in GetDatasetResultDir(dataset)
 				from resultFile in datasetResultsDir.GetFiles("*.txt")
+				where resultFile.Length > 0
 				let parsedResults = ProcFile(resultFile)
 				where parsedResults != null
 				select parsedResults;
