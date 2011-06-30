@@ -42,11 +42,7 @@ namespace EmnExtensions.Wpf {
 		readonly StringBuilder curLine = new StringBuilder();
 		readonly DelegateTextWriter logger;
 		public LogControl() {
-			Document = new FlowDocument {
-				TextAlignment = TextAlignment.Left,
-				FontFamily = new FontFamily("Consolas"),
-				FontSize = 10.0
-			};
+			Reset();
 			logger = new DelegateTextWriter(AppendThreadSafe);
 			VerticalContentAlignment = VerticalAlignment.Bottom;
 			VerticalScrollBarVisibility = ScrollBarVisibility.Auto;
@@ -54,6 +50,20 @@ namespace EmnExtensions.Wpf {
 			Application.Current.Exit += LogControl_Unloaded;
 			Unloaded += LogControl_Unloaded;
 			Loaded += LogControl_Loaded;
+
+			var clearLogMenuItem = new MenuItem {Header = "Clear log"};
+			clearLogMenuItem.Click += (s, e) => Reset();
+
+			this.ContextMenu = new ContextMenu { Items = { clearLogMenuItem } };
+		}
+
+		void Reset()
+		{
+			Document = new FlowDocument {
+			                            	TextAlignment = TextAlignment.Left,
+			                            	FontFamily = new FontFamily("Consolas"),
+			                            	FontSize = 10.0
+			                            };
 		}
 
 		bool wantsStdOut, wantsStdErr;
