@@ -125,7 +125,7 @@ namespace LvqGui {
 			return minidx;
 		}
 
-		const int ParWindow = 4;
+		static readonly int ParWindow = Environment.ProcessorCount;
 		public bool FitsDataShape(LvqDatasetCli selectedDataset) { return subModels.First().FitsDataShape(selectedDataset); }
 		readonly object epochsSynch = new object();
 		int epochsDone;
@@ -157,13 +157,13 @@ namespace LvqGui {
 				var trainingqueue = new BlockingCollection<Tuple<LvqModelCli, int>>();
 
 				while (epochsCurrent != epochsTarget) {
-					epochsCurrent += ((epochsTarget - epochsCurrent) * 15 + 1) / 16;
+					epochsCurrent += ((epochsTarget - epochsCurrent) + 1) / 2;
 					int currentTarget = epochsCurrent;
 					foreach (var model in subModels)
 						trainingqueue.Add(Tuple.Create(model, currentTarget));
 				}
 				trainingqueue.CompleteAdding();
-				var helpers = Enumerable.Range(0, ParWindow)
+				var helpers = Enumerable.Range(0, Math.Min(ParWindow, ModelCount))
 					.Select(ignored =>
 							Task.Factory.StartNew(
 								() => {
