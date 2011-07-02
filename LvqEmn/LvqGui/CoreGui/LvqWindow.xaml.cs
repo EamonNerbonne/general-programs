@@ -142,7 +142,7 @@ namespace LvqGui {
 			long iterCount = (long)iterCountSelectbox.SelectedItem;
 			Process.GetCurrentProcess().PriorityClass = ProcessPriorityClass.Idle;
 			ThreadPool.QueueUserWorkItem(_ =>
-				new TestLr(iterCount, offset).StartAllLrTesting(ClosingToken, new LvqModelSettingsCli { NgUpdateProtos = true })
+				new TestLr(iterCount, offset).StartAllLrTesting(ClosingToken, new LvqModelSettingsCli { UpdatePointsWithoutB = true })
 				.ContinueWith(t => { Console.WriteLine("wheee!!!!"); t.Wait(); })
 				);
 		}
