@@ -30,7 +30,7 @@ LgmLvqModel::LgmLvqModel( LvqModelSettings & initSettings)
 	prototype.resize(protoCount);
 	P.resize(protoCount);
 
-	for(int protoIndex = 0; protoIndex < protoCount; ++protoIndex) {
+	for(size_t protoIndex = 0; protoIndex < protoCount; ++protoIndex) {
 		prototype[protoIndex] = InitProto.first.col(protoIndex);
 		P[protoIndex].setIdentity(initSettings.Dimensionality, initSettings.Dimensions());
 		if(initSettings.RandomInitialProjection)

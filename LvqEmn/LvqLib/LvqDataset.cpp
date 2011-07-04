@@ -317,8 +317,8 @@ void LvqDataset::NormalizeDimensions() {
 			remapping.push_back(indim);
 	if((ptrdiff_t)remapping.size()<points.rows())
 		cout<<"Retaining "<< remapping.size() <<" of "<< points.rows()<<" dimensions\n";
-	for(int pI=0; pI <points.cols(); pI++) {
-		for(int outdim=0; outdim<remapping.size(); outdim++) {
+	for(size_t pI=0; pI < static_cast<size_t>(points.cols()); pI++) {
+		for(size_t outdim=0; outdim<remapping.size(); outdim++) {
 			int indim = remapping[outdim];
 			points(outdim,pI) = points(indim,pI) * inv_stddev(indim);
 		}

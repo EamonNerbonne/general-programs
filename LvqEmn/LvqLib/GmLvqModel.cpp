@@ -19,7 +19,7 @@ GmLvqModel::GmLvqModel(LvqModelSettings & initSettings)
 	prototype.resize(protoCount);
 	P_prototype.resize(protoCount);
 
-	for(int protoIndex=0; protoIndex < protoCount; ++protoIndex) {
+	for(size_t protoIndex=0; protoIndex < protoCount; ++protoIndex) {
 		prototype[protoIndex] = InitProtos.first.col(protoIndex);
 		RecomputeProjection(protoIndex);
 	}

@@ -16,7 +16,7 @@ class GmLvqModel : public LvqProjectionModelBase<GmLvqModel>
 
 	Vector_N m_vJ, m_vK; //vectors of dimension DIMS
 
-	EIGEN_STRONG_INLINE void RecomputeProjection(int protoIndex) {
+	EIGEN_STRONG_INLINE void RecomputeProjection(size_t protoIndex) {
 		P_prototype[protoIndex].noalias() = P * prototype[protoIndex];
 	}
 

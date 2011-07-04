@@ -23,7 +23,7 @@ G2mLvqModel::G2mLvqModel(LvqModelSettings & initSettings)
 	size_t protoCount = InitProtos.second.size();
 	prototype.resize(protoCount);
 
-	for(int protoIndex=0; protoIndex < protoCount; ++protoIndex) {
+	for(size_t protoIndex=0; protoIndex < protoCount; ++protoIndex) {
 		prototype[protoIndex] = G2mLvqPrototype(initSettings.RngParams, initSettings.RandomInitialBorders, InitProtos.second(protoIndex), InitProtos.first.col(protoIndex));
 		prototype[protoIndex].ComputePP(P);
 	}

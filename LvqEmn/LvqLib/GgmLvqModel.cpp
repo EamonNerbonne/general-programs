@@ -30,7 +30,7 @@ GgmLvqModel::GgmLvqModel(LvqModelSettings & initSettings)
 	size_t protoCount = InitProtos.second.size();
 	prototype.resize(protoCount);
 
-	for(int protoIndex=0; protoIndex < protoCount; ++protoIndex) {
+	for(size_t protoIndex=0; protoIndex < protoCount; ++protoIndex) {
 		prototype[protoIndex] = 	GgmLvqPrototype(initSettings.RngParams, initSettings.RandomInitialBorders, InitProtos.second(protoIndex), InitProtos.first.col(protoIndex), P, toUnitDist);
 		prototype[protoIndex].ComputePP(P);
 	}
