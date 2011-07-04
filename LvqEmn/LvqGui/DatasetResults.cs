@@ -16,23 +16,23 @@ namespace LvqGui {
 		DatasetResults(FileInfo fi, double iters, LvqModelSettingsCli settings) { unoptimizedSettings = settings; trainedIterations = iters; resultsFile = fi; }
 
 		public LvqModelSettingsCli GetOptimizedSettings(uint? paramSeed = null, uint? instSeed = null) {
-			IEnumerable<Lrs> lrs = GetLrs();
+			IEnumerable<LrAndError> lrs = GetLrs();
 			var bestLr = lrs.OrderBy(resVal => resVal.Errors.ErrorMean).First();
 			return ConvertLrToSettings(bestLr, paramSeed, instSeed);
 		}
 
-		public LvqModelSettingsCli ConvertLrToSettings(Lrs bestLr, uint? paramSeed=null, uint? instSeed=null)
+		public LvqModelSettingsCli ConvertLrToSettings(LrAndError bestLr, uint? paramSeed=null, uint? instSeed=null)
 		{
 			LvqModelSettingsCli retval = unoptimizedSettings.Copy();
-			retval.LR0 = bestLr.Lr0;
-			retval.LrScaleP = bestLr.LrP;
-			retval.LrScaleB = bestLr.LrB;
+			retval.LR0 = bestLr.Lr.Lr0;
+			retval.LrScaleP = bestLr.Lr.LrP;
+			retval.LrScaleB = bestLr.Lr.LrB;
 			retval.ParamsSeed = paramSeed ?? retval.ParamsSeed;
 			retval.InstanceSeed = instSeed ?? retval.InstanceSeed;
 			return retval;
 		}
 
-		public IEnumerable<Lrs> GetLrs()
+		public IEnumerable<LrAndError> GetLrs()
 		{
 			string[] fileLines = File.ReadAllLines(resultsFile.FullName);
 			double[] lr0range = ExtractLrs(fileLines.First(line => line.StartsWith("lr0range:")));
@@ -42,18 +42,22 @@ namespace LvqGui {
 			return resultLines.Select(resLine => ParseLine(resLine, lr0range, lrPrange, lrBrange));
 		}
 
-		public struct Lrs { public double Lr0, LrP, LrB; public TestLr.ErrorRates Errors;}
-		private static Lrs ParseLine(string resultLine, double[] lr0range, double[] lrPrange, double[] lrBrange) {
+		public struct Lr { public double Lr0, LrP, LrB; }
+		public struct LrAndError { public Lr Lr; public TestLr.ErrorRates Errors; }
+
+		private static LrAndError ParseLine(string resultLine, double[] lr0range, double[] lrPrange, double[] lrBrange) {
 			var resLrThenErr = resultLine.Split(':');
 			double[] lrs = resLrThenErr[0].Split('p', 'b').Select(double.Parse).ToArray();
 
 			var errsThenCumulLr0 = resLrThenErr[1].Split(';');
 
 			Tuple<double, double>[] errs = errsThenCumulLr0.Take(3).Select(errStr => errStr.Split('~').Select(double.Parse).ToArray()).Select(errval => Tuple.Create(errval[0], errval.Skip(1).FirstOrDefault())).ToArray();
-			return new Lrs {
+			return new LrAndError {
+				Lr = new Lr{
 				Lr0 = ClosestMatch(lr0range, lrs[0]),
 				LrP = ClosestMatch(lrPrange, lrs[1]),
 				LrB = ClosestMatch(lrBrange, lrs[2]),
+				},
 				Errors = new TestLr.ErrorRates(errs[0].Item1, errs[0].Item2, errs[1].Item1, errs[1].Item2, errs[2].Item1, errs[2].Item2, double.Parse(errsThenCumulLr0[3].Trim(' ', '[', ']'))),
 			};
 		}
@@ -120,7 +124,7 @@ namespace LvqGui {
 			return matchingFiles.FirstOrDefault();
 		}
 
-		static LvqModelSettingsCli WithoutLrOrSeeds(LvqModelSettingsCli p_settings) {
+		public static LvqModelSettingsCli WithoutLrOrSeeds(LvqModelSettingsCli p_settings) {
 			var retval = p_settings.Copy();
 			retval.LR0 = 0;
 			retval.LrScaleB = 0;
