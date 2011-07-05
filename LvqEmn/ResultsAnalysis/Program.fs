@@ -1,6 +1,4 @@
-﻿// Learn more about F# at http://fsharp.net
-
-open System.IO;
+﻿open System.IO;
 open System;
 open LvqGui;
 open LvqLibCli;
@@ -8,7 +6,7 @@ open LvqLibCli;
 //---------------------------------------------------CONSTANTS
 
 let filepattern = "*.txt"
-let datasetName = "base"
+let curDatasetName = "base"
 let alltypes:list<LvqModelSettingsCli> =
     [ LvqModelSettingsCli(ModelType = LvqModelType.Lgm, PrototypesPerClass = 1) ] 
 
@@ -71,8 +69,6 @@ let certainlyConfusable = bestResults 1.00 true
 let possiblyConfusable =  bestResults 1.96 true
 let certainlyOneConfusable =  bestResults 1.00 false
 
-let modelname (fileprefix:string) = fileprefix.Substring(0, fileprefix.IndexOf("m") + 1)
-
 let latexifyConfusable (datasetName:string) settings =
     let latexifyConfusableList = 
         let prErr(mean,stderr) = latexstderr (mean*100., stderr*100.)
@@ -93,23 +89,27 @@ let latexifyConfusable (datasetName:string) settings =
         + latexifyConfusableList confusables
         + "\n\\end{tabular}"
 
-String.Join("\n\n", alltypes |> List.map (latexifyConfusable datasetName)) |> printfn "%s"  //print results
+String.Join("\n\n", alltypes |> List.map (latexifyConfusable curDatasetName)) |> printfn "%s"  //print results
 
 //-------------------------------------------------------------------------------err-type correlations
 
-let rec corrs errlists = 
-    match errlists with
-    | errlist::rest -> List.append (List.map (sampleCorrelation errlist) rest) (corrs rest)
-    | [] -> []
+let tails xs = 
+    let step x xss = (x::List.head xss)::xss
+    List.foldBack step xs [[]]
 
-let rec corrNames errnames = 
-    match errnames with
-    | errname::rest -> List.append (List.map (fun other->errname + "-" + other) rest) (corrNames rest)
-    | [] -> []
+let correlateUsing comb =
+    tails >> List.collect (function
+                                    | x::xsrest -> (List.map (comb x) xsrest)
+                                    | [] -> []  
+                                )
+
+let corrs = correlateUsing sampleCorrelation
+
+let corrNames = correlateUsing (fun (a:LvqModelSettingsCli) b -> a.ToShorthand() + "-" + b.ToShorthand())
 
 
-let errTypeCorrelation fileprefix =
-    loadResultsByLrThenFileThenErrtype fileprefix //list of LRs, each has a list of results in file order, each has a few error rate types
+let errTypeCorrelation datasetName settings =
+    loadResultsByLr datasetName settings //list of LRs, each has a list of results in file order, each has a few error rate types
 //    |> List.sortBy (snd >> flipList >> List.map meanStderr >> List.map fst >> List.sum) //list of lr's is sorted by quality
 //    |> (fun list -> Seq.take 5 list |> Seq.toList) //only take accurate LR's
     |> List.map 
@@ -120,21 +120,21 @@ let errTypeCorrelation fileprefix =
     |> List.map meanStderr
     |> (fun list -> List.zip (if List.length list > 1 then corrNames ["train";"test";"NN"] else corrNames ["train";"test"]) list)
 
-let errTypeCorrelationLatex fileprefix =
-    let corrInfo = errTypeCorrelation fileprefix
-    prettyModelNameShort fileprefix + " & " + String.Join(" & ", List.map (fun (errname, x) -> (*errname + ": " +*) (latexstderr >> (fun (corr) -> "$" + corr + "$")) x) corrInfo)
+let errTypeCorrelationLatex datasetName settings =
+    let corrInfo = errTypeCorrelation datasetName settings
+    settings.ToShorthand() + " & " + String.Join(" & ", List.map (fun (errname, x) -> (*errname + ": " +*) (latexstderr >> (fun (corr) -> "$" + corr + "$")) x) corrInfo)
 
-errTypeCorrelation "g2m1e7"
+errTypeCorrelation "base" (LvqModelSettingsCli(ModelType = LvqModelType.G2m)) |> ignore
 
-String.Join("\\\\\n", alltypes |> List.map errTypeCorrelationLatex) |> printfn "%s"
+String.Join("\\\\\n", alltypes |> List.map (errTypeCorrelationLatex curDatasetName)) |> printfn "%s"
 
 
 //-------------------------------------------------------------------------------initialization correlations
 let initCorrs = 
     let relevantTypes = 
-        alltypes |> List.filter (fun modeltype -> not (modeltype.Contains("lgm")))
+        alltypes |> List.filter (fun modeltype -> not (modeltype.ModelType = LvqModelType.Lgm))
     relevantTypes
-        |> List.map (loadResultsByLrThenFileThenErrtype >> List.map (snd >> List.map List.head)) 
+        |> List.map (loadResultsByLr curDatasetName >> List.map (snd >> List.map List.head)) 
                 //list of model types, each has a list of LRs, each has a list of results in file order
         |> flipList //list of lrs, each has a  list of model types, each has a list of results in file order
         |> List.map corrs //, list of lrs, each has a list of model type correlations
