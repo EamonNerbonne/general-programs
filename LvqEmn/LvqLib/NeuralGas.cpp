@@ -59,7 +59,7 @@ void NeuralGas::do_training(boost::mt19937& rng, LvqDataset const * dataset, std
 	Matrix_NN const & points = dataset->getPoints();
 	while(trainIter < finalIter) {
 		shuffle(rng, training_subset, training_subset.size());
-		for(int tI=0;tI < training_subset.size() && trainIter < finalIter; ++tI) {
+		for(size_t tI=0;tI < training_subset.size() && trainIter < finalIter; ++tI) {
 			point = points.col(training_subset[tI]);
 			prefetch( &points.coeff (0, training_subset[(tI+1)%training_subset.size()]), cacheLines);
 			learnFrom(point);
@@ -77,7 +77,7 @@ NeuralGas::NeuralGas(boost::mt19937 & rng, unsigned proto_count, LvqDataset cons
 	tmp_deltaFrom.resizeLike(prototypes);
 	tmp_delta.resize(dataset->dimensions());
 	tmp_prototypes_ordering.resize(proto_count);
-	for(Index i =0; i< proto_count; ++i)
+	for(size_t i =0; i< proto_count; ++i)
 		prototypes.col(i) = dataset->getPoints().col(training_subset[rng() % training_subset.size()]);
 }
 
