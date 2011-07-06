@@ -180,14 +180,14 @@ let initCorrs datasetName (settingslist:list< LvqModelSettingsCli * string >) =
 let curDatasetName = "base"
 let alltypes:list< LvqModelSettingsCli * string > =
     [
-        (LvqModelSettingsCli(ModelType = LvqModelType.Lgm, PrototypesPerClass = 1), "lgm 1ppc");
-        (LvqModelSettingsCli(ModelType = LvqModelType.Lgm, PrototypesPerClass = 5), "lgm 5ppc");
-        (LvqModelSettingsCli(ModelType = LvqModelType.Gm, PrototypesPerClass = 1), "gm 1ppc");
-        (LvqModelSettingsCli(ModelType = LvqModelType.Gm, PrototypesPerClass = 5), "gm 5ppc");
-        (LvqModelSettingsCli(ModelType = LvqModelType.G2m, PrototypesPerClass = 1), "g2m 1ppc");
-        (LvqModelSettingsCli(ModelType = LvqModelType.G2m, PrototypesPerClass = 5), "g2m 5ppc");
-        (LvqModelSettingsCli(ModelType = LvqModelType.Ggm, PrototypesPerClass = 1), "ggm 1ppc");
-        (LvqModelSettingsCli(ModelType = LvqModelType.Ggm, PrototypesPerClass = 5), "ggm 5ppc");
+        (LvqModelSettingsCli(ModelType = LvqModelType.Lgm, PrototypesPerClass = 1, UpdatePointsWithoutB = true), "lgm 1ppc");
+        (LvqModelSettingsCli(ModelType = LvqModelType.Lgm, PrototypesPerClass = 5, UpdatePointsWithoutB = true), "lgm 5ppc");
+        (LvqModelSettingsCli(ModelType = LvqModelType.Gm, PrototypesPerClass = 1, UpdatePointsWithoutB = true), "gm 1ppc");
+        (LvqModelSettingsCli(ModelType = LvqModelType.Gm, PrototypesPerClass = 5, UpdatePointsWithoutB = true), "gm 5ppc");
+        (LvqModelSettingsCli(ModelType = LvqModelType.G2m, PrototypesPerClass = 1, UpdatePointsWithoutB = true), "g2m 1ppc");
+        (LvqModelSettingsCli(ModelType = LvqModelType.G2m, PrototypesPerClass = 5, UpdatePointsWithoutB = true), "g2m 5ppc");
+        (LvqModelSettingsCli(ModelType = LvqModelType.Ggm, PrototypesPerClass = 1, UpdatePointsWithoutB = true), "ggm 1ppc");
+        (LvqModelSettingsCli(ModelType = LvqModelType.Ggm, PrototypesPerClass = 5, UpdatePointsWithoutB = true), "ggm 5ppc");
     ] 
 
 
