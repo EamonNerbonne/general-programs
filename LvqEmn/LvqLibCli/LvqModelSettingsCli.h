@@ -52,8 +52,8 @@ namespace LvqLibCli {
 			, LrScaleB(LVQ_LrScaleB)
 			, LrScaleBad(LVQ_LrScaleBad)
 
-			, ParamsSeed(37)
-			, InstanceSeed(42)
+			, ParamsSeed(1)
+			, InstanceSeed(0)
 			, TrackProjectionQuality(true)
 
 			, ParallelModels(10) //only used in C#!
