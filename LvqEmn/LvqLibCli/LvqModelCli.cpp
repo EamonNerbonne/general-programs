@@ -37,7 +37,7 @@ namespace LvqLibCli {
 		gcroot<List<String^>^> nameList;
 		NameCollector() : nameList(gcnew List<String^>()) {}
 		void Callback(size_t statsCount, wchar_t const **names) {
-			for(int i=0;i<statsCount;i++)
+			for(size_t i=0;i<statsCount;i++)
 				nameList->Add(Marshal::PtrToStringUni((IntPtr)const_cast<wchar_t*>( names[i])));
 		}
 	};
