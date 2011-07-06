@@ -142,8 +142,8 @@ namespace LvqGui {
 			TrainSelectedModel((dataset, model) => {
 				using (new DTimer("Training " + epochsToTrainFor + " epochs"))
 					model.Train(epochsToTrainFor, dataset, Owner.WindowClosingToken);
-				var newIdx = model.GetBestSubModelIdx(dataset);
-				owner.Dispatcher.BeginInvoke(() => { SubModelIndex = newIdx; });
+				//var newIdx = model.GetBestSubModelIdx(dataset);
+				//owner.Dispatcher.BeginInvoke(() => { SubModelIndex = newIdx; });
 			}, SelectedDataset, SelectedLvqModel);
 		}
 
