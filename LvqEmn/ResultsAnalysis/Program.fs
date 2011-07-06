@@ -1,14 +1,32 @@
-﻿open System.IO;
+﻿#if INTERACTIVE
+#I @"..\..\EmnExtensions\bin\Release"
+#I @"..\LvqGui\bin\Release"
+#r "EmnExtensions"
+#r "LvqGui"
+#r "LvqLibCli"
+#endif
+
+open System.IO;
 open System;
 open LvqGui;
 open LvqLibCli;
+open EmnExtensions;
 
 //---------------------------------------------------CONSTANTS
 
 let filepattern = "*.txt"
 let curDatasetName = "base"
-let alltypes:list<LvqModelSettingsCli> =
-    [ LvqModelSettingsCli(ModelType = LvqModelType.Lgm, PrototypesPerClass = 1) ] 
+let alltypes:list< LvqModelSettingsCli * string > =
+    [
+        (LvqModelSettingsCli(ModelType = LvqModelType.Lgm, PrototypesPerClass = 1), "lgm 1ppc");
+        (LvqModelSettingsCli(ModelType = LvqModelType.Lgm, PrototypesPerClass = 5), "lgm 5ppc");
+        (LvqModelSettingsCli(ModelType = LvqModelType.Gm, PrototypesPerClass = 1), "gm 1ppc");
+        (LvqModelSettingsCli(ModelType = LvqModelType.Gm, PrototypesPerClass = 5), "gm 5ppc");
+        (LvqModelSettingsCli(ModelType = LvqModelType.G2m, PrototypesPerClass = 1), "g2m 1ppc");
+        (LvqModelSettingsCli(ModelType = LvqModelType.G2m, PrototypesPerClass = 5), "g2m 5ppc");
+        (LvqModelSettingsCli(ModelType = LvqModelType.Ggm, PrototypesPerClass = 1), "ggm 1ppc");
+        (LvqModelSettingsCli(ModelType = LvqModelType.Ggm, PrototypesPerClass = 5), "ggm 5ppc");
+    ] 
 
 //---------------------------------------------------BASICS
 
@@ -42,54 +60,77 @@ let sampleCorrelation listA listB =
 
 //---------------------------------------------------PARSING
 
+let coreSettingsEq a b = DatasetResults.WithoutLrOrSeeds(a).ToShorthand() =  DatasetResults.WithoutLrOrSeeds(b).ToShorthand()
+
 let loadResultsByLr datasetName (settings:LvqLibCli.LvqModelSettingsCli) = 
     TestLr.resultsDir.GetDirectories(datasetName).[0].GetFiles(filepattern)
     |> Seq.map LvqGui.DatasetResults.ProcFile
-    |> Seq.filter (fun result -> DatasetResults.WithoutLrOrSeeds(result.unoptimizedSettings).ToShorthand() =  settings.ToShorthand())
+    |> Seq.filter (fun result -> result.unoptimizedSettings.InstanceSeed < 20u )
+    |> Seq.filter (fun result -> coreSettingsEq settings result.unoptimizedSettings)
     |> Seq.collect (fun res -> res.GetLrs() |> Seq.map (fun lr -> (lr.Lr, lr.Errors, res)))
     |> Seq.toList
-    |> groupList (fun (lr, err, result) -> lr) (fun (lr, err, result) -> [err.training; err.test; err.nn] |> List.filter (Double.IsNaN >> not) )
+    |> groupList (fun (lr, err, result) -> lr) (fun (lr, err, result) -> err )
 
 
+let unpackErrs errs = 
+    (List.map (fun (err:TestLr.ErrorRates) -> err.training) errs,
+        List.map (fun (err:TestLr.ErrorRates) -> err.test) errs,
+        List.map (fun (err:TestLr.ErrorRates) -> err.nn) errs)
+
+let unpackToListErrs errs = 
+    [List.map (fun (err:TestLr.ErrorRates) -> err.training) errs;
+        List.map (fun (err:TestLr.ErrorRates) -> err.test) errs;
+        List.map (fun (err:TestLr.ErrorRates) -> err.nn) errs]
+
+
+let meanStderrOfErrs errs =
+    let (trns, tsts, nns) = unpackErrs errs
+    let (trnM, trnE) = meanStderr trns
+    let (tstM, tstE) = meanStderr tsts
+    let (nnM, nnE) = meanStderr nns
+    TestLr.ErrorRates(trnM,trnE,tstM,tstE,nnM,nnE, 0.0)
 //------------------------------------------------------------------------Best lr's
 
-let bestResults cutoffscale useall datasetName settings = 
-    let toCutoff (mean, stderr) = mean + cutoffscale*stderr
-    let toCutoffMin (mean, stderr) = mean - cutoffscale*stderr
-    let results = 
-        loadResultsByLr datasetName settings //list of LRs, each has a list of results in file order
-        |> List.map (apply2nd (flipList >> List.map meanStderr)) //list of LRs, each mean+stderrs for error rates
-        |> List.sortBy (snd >> List.map fst >> List.sum)
+let bestResults cutoffscale useall (results:list<TestLr.ErrorRates>) = 
+    let best = results |> List.head
+    let cutoff = best.training + cutoffscale*best.trainingStderr
+    results |> List.filter (fun err-> err.training - err.trainingStderr*cutoffscale < cutoff)
 
-    let cutoff = results |> List.head |> snd |> List.map toCutoff
-    let filterF = if useall then List.forall2 else List.exists2
-    results |> List.filter (snd >> List.map toCutoffMin >> filterF (fun cutoffval currval -> cutoffval > currval) cutoff)
+//    let cutoff = results |> List.head |> snd |> List.map toCutoff
+//    let filterF = if useall then List.forall2 else List.exists2
+//    results |> List.filter (snd >> List.map toCutoffMin >> filterF (fun cutoffval currval -> cutoffval > currval) cutoff)
 
-let certainlyConfusable = bestResults 1.00 true 
-let possiblyConfusable =  bestResults 1.96 true
-let certainlyOneConfusable =  bestResults 1.00 false
+let certainlyConfusable x = bestResults 1.00 true x
+let possiblyConfusable x =  bestResults 1.96 true x
+let certainlyOneConfusable x =  bestResults 1.00 false x
 
-let latexifyConfusable (datasetName:string) settings =
-    let latexifyConfusableList = 
-        let prErr(mean,stderr) = latexstderr (mean*100., stderr*100.)
-        let prTuple (lr:DatasetResults.Lr, errs) = sprintf  "$ %f $ & $ %f $ & $ %f $" lr.Lr0 lr.LrP lr.LrB + " & $" + String.Join("$ & $", List.map prErr errs) + "$"
-        List.map prTuple >> (fun list->String.Join("  \\\\\n",list))
-    let confusables = certainlyConfusable datasetName settings
-    let hasLrB =  (confusables |> List.head |> fst).LrB <> 0.0
-    let hasNnError=  confusables |> List.head |> snd |> List.length = 3
-    @"\noindent " + datasetName + ":\\\\\n" + 
-        @"\begin{tabular}{llll"
-        + (if hasLrB then "l" else "")
-        + (if hasNnError then "l" else "")
-        + "}\n" + @"$\lr_0$ & $\lr_P$ "
-        + if hasLrB then @"& $\lr_B$ " else ""
-        + @"& training error & test error "
-        + if hasNnError then @"& NN error" else ""
-        + " \\\\\n\\hline"
-        + latexifyConfusableList confusables
-        + "\n\\end{tabular}"
+let latexifyConfusable (datasetName:string) settingsList =
+    let latexifyConfusableRow (settings, label:string) = 
+        let rawResults = loadResultsByLr datasetName settings //list of LRs, each has a list of results in file order
+        let results = 
+            rawResults
+            |> List.map (apply2nd meanStderrOfErrs) //list of LRs, each mean+stderrs for error rates
+            |> List.sortBy (snd >>  (fun err-> err.training))
+        printfn "%d" (rawResults |> List.head |> snd |> List.length)
+        let confusableCount = results |> List.map snd |> certainlyConfusable  |> List.length
+        let confusableRatio = float confusableCount / float(List.length results)
+        let prErr(mean, stderr) = latexstderr (mean*100., stderr*100.)
+        let (bestlr, besterr) = results |> List.head
+        
+        label + " & " + latexstderr (besterr.training * 100., besterr.trainingStderr * 100.) +
+            " & " + latexstderr (besterr.test * 100., besterr.testStderr * 100.) +
+            " & " + (if F.IsFinite besterr.nn then latexstderr (besterr.nn * 100., besterr.nnStderr * 100.) else "") +
+            sprintf " & $%2.0f" (100. - 100. * confusableRatio) + "\\%$ " + 
+            " & " + sprintf " $ %1.3f $ & $ %1.3f $" bestlr.Lr0 bestlr.LrP +
+            (if bestlr.LrB > 0.0 then sprintf  " & $ %1.3f $" bestlr.LrB else "&")
+            
+    @"\noindent " + datasetName  + ":\\\\\n" + 
+        @"\begin{tabular}{llllll}"+"\n"
+        + @"model & trn-err & tst-err & NN-err & certainty & $\lr_0$ & $\lr_P$ & $\lr_B$  \\\hline" + "\n" 
+        + String.Join("\\\\\n", settingsList |>List.map latexifyConfusableRow)
+        + "\n" + @"\end{tabular}"
 
-String.Join("\n\n", alltypes |> List.map (latexifyConfusable curDatasetName)) |> printfn "%s"  //print results
+latexifyConfusable curDatasetName alltypes |> printfn "%s"  //print results
 
 //-------------------------------------------------------------------------------err-type correlations
 
@@ -105,8 +146,9 @@ let correlateUsing comb =
 
 let corrs = correlateUsing sampleCorrelation
 
-let corrNames = correlateUsing (fun (a:LvqModelSettingsCli) b -> a.ToShorthand() + "-" + b.ToShorthand())
+let corrNames = correlateUsing (fun (a:string) b -> a + "-" + b)
 
+let corrSettings = List.map (fun (setting:LvqModelSettingsCli) -> setting.ToShorthand()) >> corrNames
 
 let errTypeCorrelation datasetName settings =
     loadResultsByLr datasetName settings //list of LRs, each has a list of results in file order, each has a few error rate types
@@ -114,19 +156,18 @@ let errTypeCorrelation datasetName settings =
 //    |> (fun list -> Seq.take 5 list |> Seq.toList) //only take accurate LR's
     |> List.map 
         (snd //discard LR data: each has a list of results in file order, each has a few error rate types
-        >> flipList //each has a few error rate types, each has a list of results in file order
+        >> unpackToListErrs //each has a few error rate types, each has a list of results in file order
         >> corrs) //each has a few error type correlations
     |> flipList //List of error types, each has the list of correlation for all LRs
     |> List.map meanStderr
-    |> (fun list -> List.zip (if List.length list > 1 then corrNames ["train";"test";"NN"] else corrNames ["train";"test"]) list)
+    |> (fun list -> List.zip (corrNames ["train";"test";"NN"]) list)
 
 let errTypeCorrelationLatex datasetName settings =
     let corrInfo = errTypeCorrelation datasetName settings
-    settings.ToShorthand() + " & " + String.Join(" & ", List.map (fun (errname, x) -> (*errname + ": " +*) (latexstderr >> (fun (corr) -> "$" + corr + "$")) x) corrInfo)
+    settings.ToShorthand() + " & " + String.Join(" & ", List.map (fun (errname, x) -> if Double.IsNaN(fst x) then "" else "$" + latexstderr x + "$") corrInfo)
 
-errTypeCorrelation "base" (LvqModelSettingsCli(ModelType = LvqModelType.G2m)) |> ignore
 
-String.Join("\\\\\n", alltypes |> List.map (errTypeCorrelationLatex curDatasetName)) |> printfn "%s"
+String.Join("\\\\\n", alltypes|>List.map fst |> List.map (errTypeCorrelationLatex curDatasetName)) |> printfn "%s"
 
 
 //-------------------------------------------------------------------------------initialization correlations
@@ -140,13 +181,13 @@ let initCorrs =
         |> List.map corrs //, list of lrs, each has a list of model type correlations
         |> flipList //, list of model type correlations, each has a list of corrs for all LRs
         |> List.map meanStderr //, list of model type correlation mean/stderrs
-        |> List.zip (corrNames relevantTypes)
+        |> List.zip (corrSettings relevantTypes)
 
 initCorrs |> List.averageBy (snd >> fst)
 
 
-alltypes |> List.filter (fun modeltype -> not (modeltype.Contains("lgm")))
-    |> List.map (loadResultsByLrThenFileThenErrtype >> List.map (snd >> List.map List.head)) 
+alltypes |> List.filter (fun settings -> settings.ModelType <> LvqModelType.Lgm)
+    |> List.map (loadResultsByLr curDatasetName >> List.map (snd >> List.map List.head)) 
             //list of model types, each has a list of LRs, each has a list of results in file order
     |> List.concat
     |> corrs //, list of lrs, each has a list of model type correlations
