@@ -24,9 +24,15 @@ namespace SongSearchSite.Code.Model {
 		public SongFileData LookupBestGuess(Uri appBaseUri) {
 			var match = SongDbContainer.GetSongFromFullUri(appBaseUri, href);
 			if (match != null) return match;
+			Uri songuri;
+			try {
+				songuri = new Uri(appBaseUri, href);
+			} catch (Exception e) {
+				throw new Exception("href:" + href+" base: "+appBaseUri, e);
+			}
 			var externalSongFile = label != null && artist == null
-				? (MinimalSongFileData)new PartialSongFileData(appBaseUri, new Uri(href), label, length)
-				: new SongFileData(appBaseUri, new Uri(href), artist, title, length ?? 0, rating, replaygain);
+				? (MinimalSongFileData)new PartialSongFileData(appBaseUri, songuri, label, length)
+				: new SongFileData(appBaseUri, songuri, artist, title, length ?? 0, rating, replaygain);
 			return RepairPlaylist.FindBestSufficientMatch(SongDbContainer.FuzzySongSearcher, externalSongFile);
 		}
 
