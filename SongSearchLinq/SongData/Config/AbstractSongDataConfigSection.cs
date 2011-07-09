@@ -4,12 +4,14 @@ using System.IO;
 using System.Linq;
 using System.Xml;
 using System.Xml.Linq;
+using EmnExtensions.IO;
+
 namespace SongDataLib {
 
 	public abstract class AbstractSongDataConfigSection : ISongDataConfigSection {
 		protected readonly SongDataConfigFile dcf;
 		public readonly string name;
-		protected readonly FileInfo dbFile;
+		protected readonly LFile dbFile;
 		protected abstract bool IsLocal { get; }
 
 		public abstract Uri BaseUri { get; }
@@ -17,7 +19,7 @@ namespace SongDataLib {
 		public void Load(SongDataLoadDelegate handler) {
 			if (dbFile.Exists)
 				using (Stream stream = dbFile.OpenRead())
-					SongFileDataFactory.LoadSongsFromXmlFrag( BaseUri, stream, handler, IsLocal, dcf.PopularityEstimator);
+					SongFileDataFactory.LoadSongsFromXmlFrag(BaseUri, stream, handler, IsLocal, dcf.PopularityEstimator);
 		}
 		static readonly XmlWriterSettings settings = new XmlWriterSettings {
 			CheckCharacters = false,
@@ -27,8 +29,8 @@ namespace SongDataLib {
 		};
 
 		public void RescanAndSave(FileKnownFilter filter, SongDataLoadDelegate handler) {
-			FileInfo tmpFile = new FileInfo(dbFile.FullName + ".tmp");
-			FileInfo errFile = new FileInfo(dbFile.FullName + ".err");
+			LFile tmpFile = new LFile(dbFile.FullName + ".tmp");
+			LFile errFile = new LFile(dbFile.FullName + ".err");
 			using (Stream stream = tmpFile.Open(FileMode.Create))
 			using (StreamWriter writer = new StreamWriter(stream))
 			using (Stream streamErr = errFile.Open(FileMode.Create))
@@ -49,28 +51,27 @@ namespace SongDataLib {
 				}
 				);
 				//writer.WriteLine("</songs>");
-				new XStreamingElement("songs", songs.Select(song=>song.ConvertToXml(null,false)) ).WriteTo(xw);
+				new XStreamingElement("songs", songs.Select(song => song.ConvertToXml(null, false))).WriteTo(xw);
 			}
 
 
 			bool tryagain = false;
 			try {
-				tmpFile.MoveTo(dbFile.FullName);
+				tmpFile = tmpFile.Move(dbFile.FullName);
 				Console.WriteLine("DB is new: moved " + tmpFile + " to " + dbFile);
 			} catch (IOException) {
 				tryagain = true;
 			}
 			if (tryagain) {
-				if (dbFile.IsReadOnly) dbFile.IsReadOnly = false;
 				Console.WriteLine("Replacing old DB and backing it up: " + dbFile);
-				File.Delete(dbFile.FullName + ".backup");//notice that aFileInfo.MoveTo(newfilepath) actually updates the aFileInfo *object*!
-				File.Move(dbFile.FullName, dbFile.FullName + ".backup");//not using FileInfo.Replace as this is not supported by mono
-				File.Move(tmpFile.FullName, dbFile.FullName);
+				LFile.Delete(dbFile.FullName + ".backup");//notice that aLFile.MoveTo(newfilepath) actually updates the aLFile *object*!
+				LFile.Move(dbFile.FullName, dbFile.FullName + ".backup");//not using LFile.Replace as this is not supported by mono
+				LFile.Move(tmpFile.FullName, dbFile.FullName);
 			}
 			Console.WriteLine("Scanning of DB " + name + " complete.");
 		}
-		
-		protected static bool isExtensionOK(FileInfo fi) {return isExtensionOK(fi.Extension);}
+
+		protected static bool isExtensionOK(LFile fi) { return isExtensionOK(fi.Extension); }
 		static bool isExtensionOK(string extension) {
 			extension = extension.ToLowerInvariant();
 			return extension == ".mp3"
@@ -87,7 +88,7 @@ namespace SongDataLib {
 		protected AbstractSongDataConfigSection(XElement xEl, SongDataConfigFile dcf) {
 			this.dcf = dcf;
 			name = (string)xEl.Attribute("name");
-			dbFile = new FileInfo(Path.Combine(dcf.dataDirectory.FullName + Path.DirectorySeparatorChar, name + ".xml"));
+			dbFile = new LFile(Path.Combine(dcf.dataDirectory.FullName + Path.DirectorySeparatorChar, name + ".xml"));
 		}
 	}
 }

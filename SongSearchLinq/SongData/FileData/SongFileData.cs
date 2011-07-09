@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
+
 using System.Linq;
 using System.Xml.Linq;
 using EmnExtensions;
+using EmnExtensions.IO;
 using EmnExtensions.Text;
 using TagLib;
 
@@ -26,7 +27,7 @@ namespace SongDataLib {
 		static string toSafeString(string data) { return Canonicalize.TrimAndMakeSafe(data); }
 
 
-		internal SongFileData(Uri baseUri, FileInfo fileObj, IPopularityEstimator popEst)
+		internal SongFileData(Uri baseUri, LFile fileObj, IPopularityEstimator popEst)
 			: base(baseUri, new Uri(fileObj.FullName, UriKind.Absolute), true) {
 			IAudioCodec properties;
 			ILookup<string, string> customtags;
@@ -62,12 +63,12 @@ namespace SongDataLib {
 			popularity = popEst == null ? default(Popularity) : popEst.EstimatePopularity(artist, title);
 		}
 
-		static void GetTag(FileInfo fileObj, out IAudioCodec properties, out ILookup<string, string> customtags, out Tag tag) {
+		static void GetTag(LFile fileObj, out IAudioCodec properties, out ILookup<string, string> customtags, out Tag tag) {
 			//if (fileObj.Extension.ToLowerInvariant() == ".mp3") {
 			//    prefer reading only start of file.
 			//    taglib doesn't really support this, unfortunately.
 			//}
-
+			
 			TagLib.File file = TagLib.File.Create(fileObj.FullName);
 			properties = file.Properties;
 			tag = file.Tag;
@@ -186,7 +187,7 @@ namespace SongDataLib {
 
 			long? lastmodifiedTicks = (long?)from.Attribute(lastmodifiedTicksN);
 			if (lastmodifiedTicks.HasValue) LastWriteTimeUtc = new DateTime(lastmodifiedTicks.Value, DateTimeKind.Utc);
-			filesize = (int?)from.Attribute(filesizeN) ?? (IsLocal ? (int)new FileInfo(SongUri.LocalPath).Length : 0);
+			filesize = (int?)from.Attribute(filesizeN) ?? (IsLocal ? (int)new LFile(SongUri.LocalPath).Length : 0);
 		}
 
 		public SongFileData(Uri baseUri, Uri uri, string artist, string title, int? length, int? rating, double? replaygain)

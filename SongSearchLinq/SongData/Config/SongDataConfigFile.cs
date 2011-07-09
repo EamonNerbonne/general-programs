@@ -5,12 +5,13 @@ using System.Xml;
 using System.Linq;
 using System.Xml.Linq;
 using EmnExtensions;
+using EmnExtensions.IO;
 
 namespace SongDataLib {
 	public delegate ISongFileData FileKnownFilter(Uri localSongPath);
 	public class SongDataConfigFile : ISongDataConfigSection {
-		readonly FileInfo configFile;
-		internal DirectoryInfo dataDirectory;
+		readonly LFile configFile;
+		internal LDirectory dataDirectory;
 		readonly List<LocalSongDataConfigSection> locals = new List<LocalSongDataConfigSection>();
 		List<RemoteSongDataConfigSection> remotes;
 		const string defaultConfigFileName = "SongSearch.config";
@@ -27,16 +28,13 @@ namespace SongDataLib {
 			string configRel = Path.DirectorySeparatorChar.ToString() + defaultConfigDir + Path.DirectorySeparatorChar + defaultConfigFileName;
 			string userPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + configRel;
 			string globalPath = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData) + configRel;
-			if (File.Exists(userPath))
-				configFile = new FileInfo(userPath);
-			else if (File.Exists(globalPath))
-				configFile = new FileInfo(globalPath);
-			else
+			configFile = LFile.ConstructIfExists(userPath) ?? LFile.ConstructIfExists(globalPath);
+			if (configFile == null) 
 				throw new FileNotFoundException("Could not find config file, looked in '" + userPath + "' and '" + globalPath + "'.");
 			Init(allowRemote, popEst);
 		}
-		public DirectoryInfo DataDirectory { get { return dataDirectory; } }
-		public SongDataConfigFile(FileInfo configFile, bool allowRemote, IPopularityEstimator popEst = null) {
+		public LDirectory DataDirectory { get { return dataDirectory; } }
+		public SongDataConfigFile(LFile configFile, bool allowRemote, IPopularityEstimator popEst = null) {
 			if (configFile == null) throw new ArgumentNullException("configFile", "A database config file was not specified");
 			if (!configFile.Exists) throw new FileNotFoundException("The specified configuration file wasn't found", configFile.FullName);
 			this.configFile = configFile;
@@ -55,7 +53,7 @@ namespace SongDataLib {
 					if ((string)xRoot.Attribute("version") != "1.0") throw new SongDataConfigException(this, "Invalid Config Version " + (((string)xRoot.Attribute("version")) ?? "?"));
 
 					string dataDirAttr = (string)xRoot.Element("general").Attribute("dataDirectory");
-					dataDirectory = new DirectoryInfo(Path.Combine(configFile.Directory.FullName + Path.DirectorySeparatorChar, dataDirAttr));
+					dataDirectory = new LDirectory(Path.Combine(configFile.Directory.FullName + Path.DirectorySeparatorChar, dataDirAttr));
 					if (!dataDirectory.Exists) {
 
 						dataDirectory.Create();
@@ -95,7 +93,7 @@ namespace SongDataLib {
 			if (remotes != null) foreach (var remote in remotes) remote.RescanAndSave(filter, handler);
 		}
 		internal string configPathReadable { get { return configFile == null ? "<null>" : configFile.FullName; } }
-		public FileInfo ConfigFile { get { return configFile; } }
+		public LFile ConfigFile { get { return configFile; } }
 		public IPopularityEstimator PopularityEstimator { get; set; }
 	}
 }

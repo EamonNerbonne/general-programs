@@ -1,11 +1,9 @@
 ﻿using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Threading.Tasks;
 using EmnExtensions.DebugTools;
+using EmnExtensions.IO;
 using SongDataLib;
+
 namespace CommandLineUI {
 	class CommandLineUIMain {
 		readonly SearchableSongFiles searchEngine;
@@ -16,7 +14,7 @@ namespace CommandLineUI {
 			try {
 #endif
 
-				var prog = DTimer.TimeFunc(() => new CommandLineUIMain(args.Length > 0 ? new FileInfo(args[0]) : null), "Starting");
+				var prog = DTimer.TimeFunc(() => new CommandLineUIMain(args.Length > 0 ? new LFile(args[0]) : null), "Starting");
 				//prog.ExecBenchmark();
 				prog.ExecUI();
 #if !DEBUG
@@ -47,7 +45,7 @@ namespace CommandLineUI {
 			}
 		}
 
-		CommandLineUIMain(FileInfo dbconfigfile) {
+		CommandLineUIMain(LFile dbconfigfile) {
 			SongFilesSearchData db = DTimer.TimeFunc(() => {
 				SongDataConfigFile dcf =
 					dbconfigfile == null ?

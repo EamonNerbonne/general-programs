@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using EmnExtensions.DebugTools;
+using EmnExtensions.IO;
 using LastFMspider;
 using SongDataLib;
 
@@ -20,15 +21,15 @@ namespace LastFmPlaylistSuggestions {
 		}
 		static void RunNew(SongTools tools, string[] args) {
 			var dir = tools.ConfigFile.DataDirectory.CreateSubdirectory("inputlists");
-			var m3us = args.Length == 0 ? dir.GetFiles("*.m3u?") : args.Select(s => new FileInfo(s)).Where(f => f.Exists);
-			DirectoryInfo m3uDir = args.Length == 0 ? tools.ConfigFile.DataDirectory.CreateSubdirectory("similarlists") : new DirectoryInfo(Environment.GetFolderPath(Environment.SpecialFolder.Desktop));
+			var m3us = args.Length == 0 ? dir.GetFiles("*.m3u?") : args.Select(s => new LFile(s)).Where(f => f.Exists);
+			LDirectory m3uDir = args.Length == 0 ? tools.ConfigFile.DataDirectory.CreateSubdirectory("similarlists") : new LDirectory(Environment.GetFolderPath(Environment.SpecialFolder.Desktop));
 
 			FuzzySongSearcher searchEngine = new FuzzySongSearcher(tools.SongFilesSearchData.Songs);
 
 			foreach (var m3ufile in m3us) {
 				try {
 					using (new DTimer("Processing " + m3ufile.Name))
-						ProcessM3U(tools, searchEngine.FindBestMatch, m3ufile, m3uDir);
+						ProcessM3U(tools, searchEngine.FindBestMatch, m3ufile.AsInfo(), m3uDir.AsInfo());
 				} catch (Exception e) {
 					Console.WriteLine("Unexpected error on processing " + m3ufile);
 					Console.WriteLine(e.ToString());
@@ -41,7 +42,7 @@ namespace LastFmPlaylistSuggestions {
 			if (tools.FindByPath.ContainsKey(playlistEntry.SongUri.ToString()))
 				ifFound(tools.FindByPath[playlistEntry.SongUri.ToString()]);
 			else if (playlistEntry.IsLocal && File.Exists(playlistEntry.SongUri.LocalPath)) {
-				ifFound((SongFileData)SongFileDataFactory.ConstructFromFile(tools.ConfigFile.Sections.Select(cs => cs.BaseUri).Where(uri => uri != null).FirstOrDefault(uri => uri.IsBaseOf(playlistEntry.SongUri)), new FileInfo(playlistEntry.SongUri.LocalPath), tools.ConfigFile.PopularityEstimator));
+				ifFound((SongFileData)SongFileDataFactory.ConstructFromFile(tools.ConfigFile.Sections.Select(cs => cs.BaseUri).Where(uri => uri != null).FirstOrDefault(uri => uri.IsBaseOf(playlistEntry.SongUri)), new LFile(playlistEntry.SongUri.LocalPath), tools.ConfigFile.PopularityEstimator));
 			} else if (playlistEntry is PartialSongFileData) {
 				int bestMatchVal = Int32.MaxValue;
 
@@ -67,7 +68,7 @@ namespace LastFmPlaylistSuggestions {
 
 		static void ProcessM3U(SongTools tools, Func<SongRef, SongMatch> fuzzySearch, FileInfo m3ufile, DirectoryInfo m3uDir) {
 			Console.WriteLine("Trying " + m3ufile.FullName);
-			IEnumerable<ISongFileData> playlist = SongFileDataFactory.LoadExtM3U(m3ufile);
+			IEnumerable<ISongFileData> playlist = SongFileDataFactory.LoadExtM3U(LFile.Construct(m3ufile));
 			var known = new List<SongFileData>();
 			var unknown = new List<SongRef>();
 			foreach (var song in playlist)

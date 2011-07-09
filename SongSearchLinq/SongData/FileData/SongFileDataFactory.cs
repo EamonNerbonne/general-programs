@@ -8,11 +8,12 @@ using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Linq;
 using EmnExtensions;
+using EmnExtensions.IO;
 
 namespace SongDataLib {
 	public delegate void SongDataLoadDelegate(ISongFileData newsong, double estimatedCompletion);
 	public static class SongFileDataFactory {
-		public static ISongFileData ConstructFromFile(Uri baseUri, FileInfo fileObj, IPopularityEstimator popEst) { return new SongFileData(baseUri, fileObj, popEst); }
+		public static ISongFileData ConstructFromFile(Uri baseUri, LFile fileObj, IPopularityEstimator popEst) { return new SongFileData(baseUri, fileObj, popEst); }
 		public static ISongFileData ConstructFromXElement(Uri baseUri, XElement xEl, bool? isLocal, IPopularityEstimator popEst) {
 			if (xEl.Name == "song") {
 				return new SongFileData(baseUri, xEl, isLocal, popEst);
@@ -110,7 +111,7 @@ namespace SongDataLib {
 				writer.WriteLine("#EXTINF:" + songdata.Length + "," + songdata.HumanLabel + "\n" + songToPathMapper(songdata));
 		}
 
-		public static ISongFileData[] LoadExtM3U(FileInfo m3ufile) {
+		public static ISongFileData[] LoadExtM3U(LFile m3ufile) {
 			using (var m3uStream = m3ufile.OpenRead())
 				return LoadExtM3U(m3uStream, m3ufile.Extension);
 		}
@@ -132,8 +133,8 @@ namespace SongDataLib {
 			Uri uri = new Uri(pathOrUrl);
 			string extension = Path.GetExtension(uri.AbsolutePath); ;
 
-			if (uri.IsFile && File.Exists(uri.LocalPath))
-				using (var stream = File.OpenRead(pathOrUrl))
+			if (uri.IsFile && LFile.ConstructIfExists(uri.LocalPath) != null)
+				using (var stream = LFile.OpenRead(pathOrUrl))
 					LoadSongsFromStream(stream, extension, songSink, isLocal, popEst);
 			else if (uri.IsAbsoluteUri) {
 				var req = WebRequest.Create(uri);

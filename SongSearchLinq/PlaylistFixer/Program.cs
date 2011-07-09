@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.IO;
+using EmnExtensions.IO;
 using SongDataLib;
 using LastFMspider;
 using EmnExtensions.Text;
@@ -74,7 +75,7 @@ namespace PlaylistFixer {
 			if (!fi.Exists) {
 				Console.WriteLine("Not found");
 			} else {
-				ISongFileData[] playlist = SongFileDataFactory.LoadExtM3U(fi);
+				ISongFileData[] playlist = SongFileDataFactory.LoadExtM3U(LFile.Construct(fi));
 				ISongFileData[] playlistfixed = RepairPlaylist.GetPlaylistFixed(playlist, fuzzySearcher, findByUri, nomatch, toobad, iffy, matchfound);
 
 				FileInfo outputplaylist = new FileInfo(Path.ChangeExtension(fi.FullName, ".m3u8"));
