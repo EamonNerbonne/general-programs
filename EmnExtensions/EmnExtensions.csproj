@@ -75,6 +75,9 @@
     <DebugSymbols>true</DebugSymbols>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Microsoft.Experimental.IO">
+      <HintPath>..\Support Tools\LongPath\Microsoft.Experimental.IO.dll</HintPath>
+    </Reference>
     <Reference Include="nunit.framework">
       <HintPath>..\Support Tools\nunit\framework\nunit.framework.dll</HintPath>
     </Reference>
@@ -115,6 +118,7 @@
     <Compile Include="Filesystem\FSUtil.cs" />
     <Compile Include="Filesystem\GetLinesExtension.cs" />
     <Compile Include="Filesystem\GetRelativeFileExtension.cs" />
+    <Compile Include="IO\LFile.cs" />
     <Compile Include="LowPriorityTaskScheduler.cs" />
     <Compile Include="MathHelpers\MeanVarCalc.cs" />
     <Compile Include="MathHelpers\MersenneTwister.cs" />
