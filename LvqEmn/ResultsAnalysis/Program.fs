@@ -173,8 +173,6 @@ let initCorrs datasetName (settingslist:list< LvqModelSettingsCli * string >) =
 
 
 
-
-
 //-------------------------------------------------------------------------------------------------main code:
 
 let curDatasetName = "base"
