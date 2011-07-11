@@ -202,22 +202,28 @@ namespace LvqGui {
 			}
 			set {
 				var updated = ShorthandHelper.ParseShorthand(this, shR, value);
-				if (!updated.Contains("RandomInitialProjection")) RandomInitialProjection = defaults.RandomInitialProjection;
-				if (!updated.Contains("RandomInitialBorders")) RandomInitialBorders = defaults.RandomInitialBorders;
-				if (!updated.Contains("NormalizeBoundaries")) NormalizeBoundaries = defaults.NormalizeBoundaries;
-				if (!updated.Contains("GloballyNormalize")) GloballyNormalize = defaults.GloballyNormalize;
-				if (!updated.Contains("NgUpdateProtos")) NgUpdateProtos = defaults.NgUpdateProtos;
-				if (!updated.Contains("NgInitializeProtos")) NgInitializeProtos = defaults.NgInitializeProtos;
-				if (!updated.Contains("UpdatePointsWithoutB")) UpdatePointsWithoutB = defaults.UpdatePointsWithoutB;
-				if (!updated.Contains("LrScaleBad")) LrScaleBad = defaults.LrScaleBad;
-				if (!updated.Contains("LrScaleBad")) LrScaleBad = defaults.LrScaleBad;
 
+				if(!updated.Contains("Dimensionality")) Dimensionality = defaults.Dimensionality;
+				if(!updated.Contains("GloballyNormalize")) GloballyNormalize = defaults.GloballyNormalize;
+				if(!updated.Contains("InstanceSeed")) InstanceSeed = defaults.InstanceSeed;
+				if(!updated.Contains("LR0")) LR0 = defaults.LR0;
+				if(!updated.Contains("LrScaleB")) LrScaleB = defaults.LrScaleB;
+				if(!updated.Contains("LrScaleBad")) LrScaleBad = defaults.LrScaleBad;
+				if(!updated.Contains("LrScaleP")) LrScaleP = defaults.LrScaleP;
+				if(!updated.Contains("ModelType")) ModelType = defaults.ModelType;
+				if(!updated.Contains("NgInitializeProtos")) NgInitializeProtos = defaults.NgInitializeProtos;
+				if(!updated.Contains("NgUpdateProtos")) NgUpdateProtos = defaults.NgUpdateProtos;
+				if(!updated.Contains("NormalizeBoundaries")) NormalizeBoundaries = defaults.NormalizeBoundaries;
+				if(!updated.Contains("NormalizeProjection")) NormalizeProjection = defaults.NormalizeProjection;
+				if(!updated.Contains("ParallelModels")) ParallelModels = defaults.ParallelModels;
+				if(!updated.Contains("ParamsSeed")) ParamsSeed = defaults.ParamsSeed;
+				if(!updated.Contains("PrototypesPerClass")) PrototypesPerClass = defaults.PrototypesPerClass;
+				if(!updated.Contains("RandomInitialBorders")) RandomInitialBorders = defaults.RandomInitialBorders;
+				if(!updated.Contains("RandomInitialProjection")) RandomInitialProjection = defaults.RandomInitialProjection;
+				if(!updated.Contains("SlowStartLrBad")) SlowStartLrBad = defaults.SlowStartLrBad;
+				if(!updated.Contains("TrackProjectionQuality")) TrackProjectionQuality = defaults.TrackProjectionQuality;
+				if(!updated.Contains("UpdatePointsWithoutB")) UpdatePointsWithoutB = defaults.UpdatePointsWithoutB;
 
-				if (!updated.Contains("LrScaleBad")) LrScaleBad = defaults.LrScaleBad;
-				if (!updated.Contains("LR0")) LR0 = defaults.LR0;
-				if (!updated.Contains("LrScaleP")) LrScaleP = defaults.LrScaleP;
-				if (!updated.Contains("LrScaleB")) LrScaleB = defaults.LrScaleB;
-				if (!updated.Contains("ParallelModels")) ParallelModels = defaults.ParallelModels;
 
 			}
 		}
