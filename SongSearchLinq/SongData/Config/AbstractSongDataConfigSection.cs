@@ -45,9 +45,9 @@ namespace SongDataLib {
 
 					songs.Add(song);
 					handler(song, ratio);
-				}, err => {
-					Console.WriteLine(err);
-					writerErr.WriteLine(err);
+				}, (msg, ex) => {
+					Console.WriteLine(msg+"\n("+ex.Message+")");
+					writerErr.WriteLine(msg + "\n" + ex + "\n");
 				}
 				);
 				//writer.WriteLine("</songs>");
@@ -83,7 +83,7 @@ namespace SongDataLib {
 				|| extension == "._@mp3";
 		}
 
-		protected abstract void ScanSongs(FileKnownFilter filter, SongDataLoadDelegate handler, Action<string> errSink);
+		protected abstract void ScanSongs(FileKnownFilter filter, SongDataLoadDelegate handler, Action<string, Exception> errSink);
 
 		protected AbstractSongDataConfigSection(XElement xEl, SongDataConfigFile dcf) {
 			this.dcf = dcf;

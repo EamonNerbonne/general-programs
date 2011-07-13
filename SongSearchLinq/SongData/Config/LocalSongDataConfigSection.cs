@@ -21,7 +21,7 @@ namespace SongDataLib {
 
 		public override Uri BaseUri { get { return localSearchUri; } }
 
-		protected override void ScanSongs(FileKnownFilter filter, SongDataLoadDelegate handler, Action<string> errSink) {
+		protected override void ScanSongs(FileKnownFilter filter, SongDataLoadDelegate handler, Action<string, Exception> errSink) {
 			Console.WriteLine("Scanning " + localSearchPath.FullName + "...");
 			if (!localSearchPath.Exists) throw new DirectoryNotFoundException("Local search path doesn't exist: " + localSearchPath.FullName); //TODO: do this during init instead?
 			var newFiles = localSearchPath.GetFiles("*", SearchOption.AllDirectories).ToArray();//.Where(fi => isExtensionOK(fi)).ToArray();
@@ -40,7 +40,7 @@ namespace SongDataLib {
 						try {
 							song = SongFileDataFactory.ConstructFromFile(localSearchUri, newfile, dcf.PopularityEstimator);
 						} catch (Exception e) {
-							errSink("Cannot scan audio file (file will be skipped): " + songUri + "\nException:\n" + e); song = null;
+							errSink("Cannot scan audio file (corrupt file will be skipped): " + songUri, e); song = null;
 						}
 					}
 					//else if (song is SongFileData) {
@@ -51,7 +51,7 @@ namespace SongDataLib {
 						handler(song, (double)i / newFiles.Length);
 					}
 				} catch (Exception e) {
-					errSink("Cannot process file (file will be skipped): " + newfile.FullName + "\nException:\n" + e);
+					errSink("Cannot process file (unreadable file will be skipped): " + newfile.FullName, e);
 				}
 			}
 		}
