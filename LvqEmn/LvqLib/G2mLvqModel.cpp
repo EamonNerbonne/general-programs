@@ -8,10 +8,10 @@ using namespace Eigen;
 
 G2mLvqModel::G2mLvqModel(LvqModelSettings & initSettings)
 	: LvqProjectionModelBase(initSettings)
-	, m_vJ(initSettings.Dimensions())
-	, m_vK(initSettings.Dimensions())
 	, totalMuJLr(0.0)
 	, totalMuKLr(0.0)
+	, m_vJ(initSettings.Dimensions())
+	, m_vK(initSettings.Dimensions())
 {
 	if(initSettings.Dimensionality!=0 && initSettings.Dimensionality!=2)
 		throw "Illegal Dimensionality";
@@ -19,12 +19,16 @@ G2mLvqModel::G2mLvqModel(LvqModelSettings & initSettings)
 	initSettings.AssertModelIsOfRightType(this);
 
 
-	auto InitProtos = initSettings.InitProtosBySetting();
-	size_t protoCount = InitProtos.second.size();
+	auto InitProtos = initSettings.InitProtosAndProjectionBySetting();
+	P = get<0>(InitProtos);
+	auto prototypes = get<1>(InitProtos);
+	auto protolabels = get<2>(InitProtos);
+	size_t protoCount = protolabels.size();
+
 	prototype.resize(protoCount);
 
 	for(size_t protoIndex=0; protoIndex < protoCount; ++protoIndex) {
-		prototype[protoIndex] = G2mLvqPrototype(initSettings.RngParams, initSettings.RandomInitialBorders, InitProtos.second(protoIndex), InitProtos.first.col(protoIndex));
+		prototype[protoIndex] = G2mLvqPrototype(initSettings.RngParams, initSettings.RandomInitialBorders, protolabels(protoIndex), prototypes.col(protoIndex));
 		prototype[protoIndex].ComputePP(P);
 	}
 

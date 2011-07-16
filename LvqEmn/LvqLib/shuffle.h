@@ -4,7 +4,7 @@
 template<typename arrayT>
 void shuffle(boost::mt19937 & randGen, arrayT& arr, size_t size){
 	for(size_t i = 0; i<size;++i)
-		swap(arr[i],arr[i+randGen() %(size-i)]);
+		std::swap(arr[i],arr[i+randGen() %(size-i)]);
 }
 // (Slower) alternative is something like:
 //	random_shuffle(start, end, shuffle_rnd_helper(randGen) );

@@ -11,23 +11,23 @@ LvqModel::LvqModel(LvqModelSettings & initSettings)
 #ifdef DEBUGHELP
 sentinal(initSentinal),
 #endif
-	settings(initSettings.RuntimeSettings)
-	, trainIter(0)
+	trainIter(0)
 	, totalIter(0)
 	, totalElapsed(0.0)
-	, epochsTrained(0)
 	, totalLR(0.0)
+	, settings(initSettings.RuntimeSettings)
+	, epochsTrained(0)
 {
 	int protoCount = accumulate(initSettings.PrototypeDistribution.begin(), initSettings.PrototypeDistribution.end(), 0);
 	iterationScaleFactor = LVQ_ITERFACTOR_PERPROTO/sqrt((double)protoCount);
 }
 
-static Vector_N fromStlVector(vector<double> const & vec) {
+/*static Vector_N fromStlVector(vector<double> const & vec) {
 	Vector_N retval(vec.size());
 	for(size_t i=0;i<vec.size();++i)
 		retval(i) = vec[i];
 	return retval;
-}
+}*/
 
 double LvqModel::RegisterEpochDone(int itersTrained, double elapsed, int epochs) {
 	totalIter +=itersTrained;

@@ -7,7 +7,9 @@
 
 //#define DEBUGHELP
 
+#ifdef _MSC_VER
 #pragma intrinsic(pow)
+#endif
 
 using namespace Eigen;
 struct LvqDataset;

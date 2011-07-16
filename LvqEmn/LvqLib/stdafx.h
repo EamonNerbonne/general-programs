@@ -55,7 +55,7 @@ using Eigen::MatrixXi;
 
 #ifdef _MSC_VER
 //#pragma warning(pop)
+#pragma warning (disable: 4127)
 #endif
 
-#pragma warning (disable: 4127)
 #define DBG(X) (std::cout<< #X <<":\n"<<(X)<<"\n")

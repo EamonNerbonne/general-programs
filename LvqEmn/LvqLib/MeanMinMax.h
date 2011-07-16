@@ -6,10 +6,10 @@ class MeanMinMax
 public:
 
 	MeanMinMax()
-		: m_min(std::numeric_limits<double>::max())
+		: m_count(0)
+		, m_min(std::numeric_limits<double>::max())
 		, m_max(-std::numeric_limits<double>::max())
 		, m_sum(0.0)
-		, m_count(0)
 	{}
 
 	void Add(double val) {

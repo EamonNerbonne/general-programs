@@ -5,12 +5,12 @@
 
 LgmLvqModel::LgmLvqModel( LvqModelSettings & initSettings)
 	: LvqModel(initSettings)
-	, tmpSrcDimsV1(initSettings.Dimensions())
-	, tmpSrcDimsV2(initSettings.Dimensions())
-	, tmpDestDimsV2()
-	, tmpDestDimsV1()
 	, totalMuJLr(0.0)
 	, totalMuKLr(0.0)
+	, tmpSrcDimsV1(initSettings.Dimensions())
+	, tmpSrcDimsV2(initSettings.Dimensions())
+	, tmpDestDimsV1()
+	, tmpDestDimsV2()
 {
 	if(initSettings.Dimensionality ==0)
 		initSettings.Dimensionality = (int) initSettings.Dimensions();

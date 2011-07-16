@@ -6,21 +6,24 @@ using namespace std;
 
 GmLvqModel::GmLvqModel(LvqModelSettings & initSettings)
 	: LvqProjectionModelBase(initSettings) 
-	, m_vJ(initSettings.Dimensions())
-	, m_vK(initSettings.Dimensions())
 	, totalMuJLr(0.0)
 	, totalMuKLr(0.0)
+	, m_vJ(initSettings.Dimensions())
+	, m_vK(initSettings.Dimensions())
 {
 	initSettings.AssertModelIsOfRightType(this);
 
-	auto InitProtos = initSettings.InitProtosBySetting(); 
-	pLabel = InitProtos.second;
+	auto InitProtos = initSettings.InitProtosAndProjectionBySetting(); 
+	auto prototypes = get<1>(InitProtos);
+	pLabel =  get<2>(InitProtos);
 	size_t protoCount = pLabel.size();
+	P = get<0>(InitProtos);
+
 	prototype.resize(protoCount);
 	P_prototype.resize(protoCount);
 
 	for(size_t protoIndex=0; protoIndex < protoCount; ++protoIndex) {
-		prototype[protoIndex] = InitProtos.first.col(protoIndex);
+		prototype[protoIndex] = prototypes.col(protoIndex);
 		RecomputeProjection(protoIndex);
 	}
 

@@ -82,7 +82,11 @@
         <Label Grid.Row="10">NG-inspired updates (gsm, g2m, ggm)</Label>
         <CheckBox Grid.Row="10" Grid.Column="1"  IsChecked="{Binding NgUpdateProtos, Mode= TwoWay, ValidatesOnExceptions=True}"/>
         <Label Grid.Row="11">NG prototype initialization</Label>
-        <CheckBox Grid.Row="11" Grid.Column="1"  IsChecked="{Binding NgInitializeProtos, Mode= TwoWay, ValidatesOnExceptions=True}"/>
+        <StackPanel Orientation="Horizontal" Grid.Row="11" Grid.Column="1" >
+        <CheckBox  IsChecked="{Binding NgInitializeProtos, Mode= TwoWay, ValidatesOnExceptions=True}"/>
+            <Label>... and spread P: </Label>
+            <CheckBox  IsChecked="{Binding ProjOptimalInit, Mode= TwoWay, ValidatesOnExceptions=True}"/>
+        </StackPanel>
         <Label Grid.Row="12">Don't use B for point update (g2m)</Label>
         <CheckBox Grid.Row="12" Grid.Column="1"  IsChecked="{Binding UpdatePointsWithoutB, Mode= TwoWay, ValidatesOnExceptions=True}"/>
         <Label Grid.Row="13">Slow start LrBad</Label>

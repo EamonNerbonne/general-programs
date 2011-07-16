@@ -2,6 +2,7 @@
 #include <vector>
 #include <boost/random/mersenne_twister.hpp>
 #include <Eigen/Core>
+#include <tuple>
 #include <boost/shared_ptr.hpp>
 #include "LvqConstants.h"
 #include "LvqTypedefs.h"
@@ -24,6 +25,7 @@ struct LvqModelSettings
 	bool RandomInitialBorders;
 	bool NgUpdateProtos;
 	bool NgInitializeProtos;
+	bool ProjOptimalInit;
 	int Dimensionality;
 
 	enum LvqModelType { AutoModelType, LgmModelType, GmModelType, G2mModelType, GgmModelType };
@@ -37,8 +39,11 @@ struct LvqModelSettings
 	size_t ClassCount() const { return PrototypeDistribution.size(); }
 	std::pair<Matrix_NN,Eigen::VectorXi> InitByClassMeans() const;
 	std::pair<Matrix_NN,Eigen::VectorXi> InitByNg() ;
-	std::pair<Matrix_NN,Eigen::VectorXi> InitProtosBySetting() ;
+	std::pair<Matrix_NN,Eigen::VectorXi> InitProtosBySetting();
+	std::tuple<Matrix_P,Matrix_NN,Eigen::VectorXi> InitProtosAndProjectionBySetting();
+
 	Matrix_P pcaTransform() const;
+	Matrix_P initTransform();
 	int PrototypeCount() const;
 
 	LvqModelSettings(LvqModelType modelType, boost::mt19937 & rngParams, boost::mt19937 & rngIter, std::vector<int> protodistrib, LvqDataset const * dataset, std::vector<int> trainingset); 

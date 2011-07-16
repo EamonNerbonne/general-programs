@@ -146,7 +146,7 @@ double LvqDataset::NearestNeighborProjectedErrorRate(std::vector<int> const & ne
 				std::cout << "naive:"<<directDist<<"; nn:"<<indirectDist<<"\n";
 //			assert(directDist == indirectDist);
 		}
-/**/
+*/
 
 		if(neighborLabels[neighborI] != testData->pointLabels[testI]) 
 			errs++;

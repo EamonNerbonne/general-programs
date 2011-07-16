@@ -11,27 +11,31 @@ using namespace Eigen;
 
 GgmLvqModel::GgmLvqModel(LvqModelSettings & initSettings)
 	: LvqProjectionModelBase(initSettings)
+	, totalMuLr(0.0)
 	, m_vJ(initSettings.Dimensions())
 	, m_vK(initSettings.Dimensions())
 	, m_PpseudoinvT(LVQ_LOW_DIM_SPACE,initSettings.Dimensions())
-	, totalMuLr(0.0)
 {
 	if(initSettings.Dimensionality!=0 && initSettings.Dimensionality!=2)
 		throw "Illegal Dimensionality";
 	using namespace std;
 	initSettings.AssertModelIsOfRightType(this);
+
+	auto InitProtos = initSettings.InitProtosAndProjectionBySetting();
+	P = get<0>(InitProtos);
+	auto prototypes = get<1>(InitProtos);
+	auto protolabels = get<2>(InitProtos);
+	size_t protoCount = protolabels.size();
+	prototype.resize(protoCount);
+
 	Matrix_P const lowdimpoints = P * initSettings.Dataset->ExtractPoints(initSettings.Trainingset);
 	Vector_2 eigVal;
 	Matrix_22 pca2d;
 	PcaLowDim::DoPca(lowdimpoints,pca2d,eigVal);
 	Matrix_22 toUnitDist=eigVal.array().sqrt().inverse().matrix().asDiagonal()*pca2d;
 
-	auto InitProtos = initSettings.InitProtosBySetting();
-	size_t protoCount = InitProtos.second.size();
-	prototype.resize(protoCount);
-
 	for(size_t protoIndex=0; protoIndex < protoCount; ++protoIndex) {
-		prototype[protoIndex] = 	GgmLvqPrototype(initSettings.RngParams, initSettings.RandomInitialBorders, InitProtos.second(protoIndex), InitProtos.first.col(protoIndex), P, toUnitDist);
+		prototype[protoIndex] = 	GgmLvqPrototype(initSettings.RngParams, initSettings.RandomInitialBorders, protolabels(protoIndex), prototypes.col(protoIndex), P, toUnitDist);
 		prototype[protoIndex].ComputePP(P);
 	}
 
@@ -294,8 +298,8 @@ void GgmLvqModel::DoOptionalNormalization() {
 GgmLvqPrototype::GgmLvqPrototype() : classLabel(-1) {}
 
 GgmLvqPrototype::GgmLvqPrototype(boost::mt19937 & rng, bool randInit, int protoLabel, Vector_N const & initialVal,Matrix_P const & P, Matrix_22 const & scaleB) 
-	: point(initialVal) 
-	, classLabel(protoLabel)
+	: classLabel(protoLabel)
+	, point(initialVal) 
 	, bias(0.0)
 {
 	B = scaleB;

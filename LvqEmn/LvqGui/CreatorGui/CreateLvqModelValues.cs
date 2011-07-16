@@ -92,6 +92,11 @@ namespace LvqGui {
 			set { if (!Equals(settings.NgInitializeProtos, value)) { settings.NgInitializeProtos = value; _propertyChanged("NgInitializeProtos"); } }
 		}
 
+		public bool ProjOptimalInit {
+			get { return settings.ProjOptimalInit; }
+			set { if (!Equals(settings.ProjOptimalInit, value)) { settings.ProjOptimalInit = value; _propertyChanged("ProjOptimalInit"); } }
+		}
+
 		public bool UpdatePointsWithoutB {
 			get { return settings.UpdatePointsWithoutB; }
 			set { if (!settings.UpdatePointsWithoutB.Equals(value)) { settings.UpdatePointsWithoutB = value; _propertyChanged("UpdatePointsWithoutB"); } }
@@ -144,6 +149,7 @@ namespace LvqGui {
 				(gn(?<GloballyNormalize>\+?),)?
 				(NG(?<NgUpdateProtos>\+?),)?
 				(NGi(?<NgInitializeProtos>\+?),)?
+				(Pi(?<ProjOptimalInit>\+?),)?
 				(noB(?<UpdatePointsWithoutB>\+?),)?
 				(pQ(?<TrackProjectionQuality>\+?),)?
 				(lrX(?<LrScaleBad>[0-9]*(\.[0-9]*)?(e[0-9]+)?),)?
@@ -152,7 +158,7 @@ namespace LvqGui {
 				lrP(?<LrScaleP>[0-9]*(\.[0-9]*)?(e[0-9]+)?),
 				lrB(?<LrScaleB>[0-9]*(\.[0-9]*)?(e[0-9]+)?),)?
 				\[(?<ParamsSeed_>[0-9a-fA-F]+)\,(?<InstanceSeed_>[0-9a-fA-F]+)\](\^(?<ParallelModels>[0-9]+))?\,?"
-		+ "|" +
+		+ "|" +//top regex is newest
 			@"(?<ModelType>\b[A-Z][A-Za-z0-9]*)
 				(\[(?<Dimensionality>[^\]]+)\])?,
 				(?<PrototypesPerClass>[0-9]+),
@@ -203,28 +209,27 @@ namespace LvqGui {
 			set {
 				var updated = ShorthandHelper.ParseShorthand(this, shR, value);
 
-				if(!updated.Contains("Dimensionality")) Dimensionality = defaults.Dimensionality;
-				if(!updated.Contains("GloballyNormalize")) GloballyNormalize = defaults.GloballyNormalize;
-				if(!updated.Contains("InstanceSeed")) InstanceSeed = defaults.InstanceSeed;
-				if(!updated.Contains("LR0")) LR0 = defaults.LR0;
-				if(!updated.Contains("LrScaleB")) LrScaleB = defaults.LrScaleB;
-				if(!updated.Contains("LrScaleBad")) LrScaleBad = defaults.LrScaleBad;
-				if(!updated.Contains("LrScaleP")) LrScaleP = defaults.LrScaleP;
-				if(!updated.Contains("ModelType")) ModelType = defaults.ModelType;
-				if(!updated.Contains("NgInitializeProtos")) NgInitializeProtos = defaults.NgInitializeProtos;
-				if(!updated.Contains("NgUpdateProtos")) NgUpdateProtos = defaults.NgUpdateProtos;
-				if(!updated.Contains("NormalizeBoundaries")) NormalizeBoundaries = defaults.NormalizeBoundaries;
-				if(!updated.Contains("NormalizeProjection")) NormalizeProjection = defaults.NormalizeProjection;
-				if(!updated.Contains("ParallelModels")) ParallelModels = defaults.ParallelModels;
-				if(!updated.Contains("ParamsSeed")) ParamsSeed = defaults.ParamsSeed;
-				if(!updated.Contains("PrototypesPerClass")) PrototypesPerClass = defaults.PrototypesPerClass;
-				if(!updated.Contains("RandomInitialBorders")) RandomInitialBorders = defaults.RandomInitialBorders;
-				if(!updated.Contains("RandomInitialProjection")) RandomInitialProjection = defaults.RandomInitialProjection;
-				if(!updated.Contains("SlowStartLrBad")) SlowStartLrBad = defaults.SlowStartLrBad;
-				if(!updated.Contains("TrackProjectionQuality")) TrackProjectionQuality = defaults.TrackProjectionQuality;
-				if(!updated.Contains("UpdatePointsWithoutB")) UpdatePointsWithoutB = defaults.UpdatePointsWithoutB;
-
-
+				if (!updated.Contains("Dimensionality")) Dimensionality = defaults.Dimensionality;
+				if (!updated.Contains("GloballyNormalize")) GloballyNormalize = defaults.GloballyNormalize;
+				if (!updated.Contains("InstanceSeed")) InstanceSeed = defaults.InstanceSeed;
+				if (!updated.Contains("LR0")) LR0 = defaults.LR0;
+				if (!updated.Contains("LrScaleB")) LrScaleB = defaults.LrScaleB;
+				if (!updated.Contains("LrScaleBad")) LrScaleBad = defaults.LrScaleBad;
+				if (!updated.Contains("LrScaleP")) LrScaleP = defaults.LrScaleP;
+				if (!updated.Contains("ModelType")) ModelType = defaults.ModelType;
+				if (!updated.Contains("NgInitializeProtos")) NgInitializeProtos = defaults.NgInitializeProtos;
+				if (!updated.Contains("ProjOptimalInit")) ProjOptimalInit = defaults.ProjOptimalInit;
+				if (!updated.Contains("NgUpdateProtos")) NgUpdateProtos = defaults.NgUpdateProtos;
+				if (!updated.Contains("NormalizeBoundaries")) NormalizeBoundaries = defaults.NormalizeBoundaries;
+				if (!updated.Contains("NormalizeProjection")) NormalizeProjection = defaults.NormalizeProjection;
+				if (!updated.Contains("ParallelModels")) ParallelModels = defaults.ParallelModels;
+				if (!updated.Contains("ParamsSeed")) ParamsSeed = defaults.ParamsSeed;
+				if (!updated.Contains("PrototypesPerClass")) PrototypesPerClass = defaults.PrototypesPerClass;
+				if (!updated.Contains("RandomInitialBorders")) RandomInitialBorders = defaults.RandomInitialBorders;
+				if (!updated.Contains("RandomInitialProjection")) RandomInitialProjection = defaults.RandomInitialProjection;
+				if (!updated.Contains("SlowStartLrBad")) SlowStartLrBad = defaults.SlowStartLrBad;
+				if (!updated.Contains("TrackProjectionQuality")) TrackProjectionQuality = defaults.TrackProjectionQuality;
+				if (!updated.Contains("UpdatePointsWithoutB")) UpdatePointsWithoutB = defaults.UpdatePointsWithoutB;
 			}
 		}
 		static readonly LvqModelSettingsCli defaults = new LvqModelSettingsCli();
@@ -275,7 +280,7 @@ namespace LvqGui {
 			var testLr = new TestLr(iterCount, ForDataset, 3);
 			string shortname = testLr.ShortnameFor(settingsCopy);
 			var logWindow = LogControl.ShowNewLogWindow(shortname, owner.win.ActualWidth, owner.win.ActualHeight * 0.6);
-			testLr.TestLrIfNecessary(logWindow.Item2.Writer, settingsCopy,Owner.WindowClosingToken).ContinueWith(t => {
+			testLr.TestLrIfNecessary(logWindow.Item2.Writer, settingsCopy, Owner.WindowClosingToken).ContinueWith(t => {
 				logWindow.Item1.Dispatcher.BeginInvoke(() => logWindow.Item1.Background = Brushes.White);
 			});
 		}

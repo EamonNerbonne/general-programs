@@ -10,8 +10,8 @@ class NearestNeighbor
 public:
 	template<typename TDerived>
 	NearestNeighbor(Eigen::MatrixBase<TDerived> const & points)
-		:idxs(points.cols())
-		,sortedPoints(points) { init(); }
+		: sortedPoints(points)
+		, idxs(points.cols()) { init(); }
 	int nearestIdx(Vector_2 const & point) const;
 
 	EIGEN_MAKE_ALIGNED_OPERATOR_NEW
