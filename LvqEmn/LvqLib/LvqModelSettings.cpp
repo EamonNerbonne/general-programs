@@ -127,10 +127,10 @@ pair<Matrix_NN, VectorXi> LvqModelSettings::InitProtosBySetting()  {
 }
 
 tuple<Matrix_P,Matrix_NN, VectorXi> LvqModelSettings::InitProtosAndProjectionBySetting() {
+	auto P = initTransform();
 	auto protos = InitProtosBySetting();
 	auto prototypes = protos.first;
 	auto labels = protos.second;
-	auto P = initTransform();
 	size_t protocount = prototypes.cols();
 
 	if(ProjOptimalInit) {
