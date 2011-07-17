@@ -11,6 +11,7 @@
 #include "NeuralGas.h"
 #include "shuffle.h"
 #include "CovarianceAndMean.h"
+#include "RandomMatrix.h"
 #include "PCA.h"
 
 #include <numeric>
@@ -160,19 +161,19 @@ void LvqModelSettings::ProjInit(Matrix_NN const& prototypes, Matrix_P & P){
 					wJi = i;
 					bestJd = dists(i);
 				}
-			for(int i=0; i < (int)protocount; i ++) 
-				if(i == classOffsets[classLabel])
-					i = classOffsets[classLabel+1];
-				else if(bestKd > dists(i)) {
-					wKi = i;
-					bestKd = dists(i);
-				}
+				for(int i=0; i < (int)protocount; i ++) 
+					if(i == classOffsets[classLabel])
+						i = classOffsets[classLabel+1];
+					else if(bestKd > dists(i)) {
+						wKi = i;
+						bestKd = dists(i);
+					}
 
-			vJ = prototypes.col(wJi) - point;
-			vK = prototypes.col(wKi) - point;
+					vJ = prototypes.col(wJi) - point;
+					vK = prototypes.col(wKi) - point;
 
-			P +=  lr * (1.0/sqrt(bestKd)* P * vK * vK.transpose() - 1.0/sqrt(bestJd)*P * vJ * vJ.transpose());
-			normalizeProjection(P);
+					P +=  lr * (1.0/sqrt(bestKd)* P * vK * vK.transpose() - 1.0/sqrt(bestJd)*P * vJ * vJ.transpose());
+					normalizeProjection(P);
 		}
 	}
 }
@@ -187,7 +188,7 @@ tuple<Matrix_P,Matrix_NN, VectorXi> LvqModelSettings::InitProtosAndProjectionByS
 
 	if(ProjOptimalInit) 
 		ProjInit(prototypes, P);
-	
+
 	return make_tuple(P, prototypes, labels);
 }
 
@@ -266,11 +267,20 @@ vector<Matrix_22> BinitByLastProto(Matrix_P const & lowdimpoints, vector<int> co
 	return initB;
 }
 
-vector<Matrix_22> BinitPerProto(Matrix_P const & P, LvqModelSettings const & initSettings,	Matrix_NN const & prototypes,	VectorXi const & protoLabels) {
+vector<Matrix_22> BinitPerProto(Matrix_P const & P, LvqModelSettings & initSettings,	Matrix_NN const & prototypes,	VectorXi const & protoLabels) {
 	Matrix_P const lowdimpoints = P * initSettings.Dataset->ExtractPoints(initSettings.Trainingset);
 
 	vector<Matrix_22> initB;
 	if(!initSettings.BLocalInit) {
+		if(initSettings.ModelType == LvqModelSettings::GgmModelType) {
+			auto globalB = BinitByPca(lowdimpoints);
+			for(size_t protoIndex=0; protoIndex < (size_t)protoLabels.size(); ++protoIndex)
+				initB.push_back(globalB);
+		} else { //G2mModelType
+			for(size_t protoIndex=0; protoIndex < (size_t)protoLabels.size(); ++protoIndex)
+				initB.push_back(Matrix_22::Identity());
+		}
+	} else if(!initSettings.BLocalInit) {
 		auto globalB = BinitByPca(lowdimpoints);
 		for(size_t protoIndex=0; protoIndex < (size_t)protoLabels.size(); ++protoIndex)
 			initB.push_back(globalB);
@@ -279,6 +289,18 @@ vector<Matrix_22> BinitPerProto(Matrix_P const & P, LvqModelSettings const & ini
 	} else {
 		initB = BinitByLastProto(lowdimpoints,  initSettings.Dataset->ExtractLabels(initSettings.Trainingset), P * prototypes, protoLabels);
 	}
+
+	if(initSettings.RandomInitialBorders) {
+		for(size_t protoIndex=0; protoIndex < (size_t)protoLabels.size(); ++protoIndex){
+			Matrix_22 rndMat;
+			if(initSettings.ModelType == LvqModelSettings::GgmModelType) 
+				rndMat = randomUnscalingMatrix<Matrix_22>(initSettings.RngParams, LVQ_LOW_DIM_SPACE);
+			else  //G2mModelType
+				projectionRandomizeUniformScaled(initSettings.RngParams, rndMat);
+			initB[protoIndex] =rndMat * initB[protoIndex];
+		}
+	}
+
 	return initB;
 }
 
@@ -290,7 +312,7 @@ tuple<Matrix_P,Matrix_NN, VectorXi, vector<Matrix_22> > LvqModelSettings::InitPr
 
 	auto protosAndProjection = InitProtosAndProjectionBySetting();
 	auto boundaries = BinitPerProto(get<0>(protosAndProjection),*this,get<1>(protosAndProjection),get<2>(protosAndProjection));
-	
+
 	return make_tuple(get<0>(protosAndProjection), get<1>(protosAndProjection), get<2>(protosAndProjection), boundaries);
 }
 

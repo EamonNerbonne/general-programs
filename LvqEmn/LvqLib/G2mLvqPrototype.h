@@ -23,8 +23,8 @@ public:
 	inline Vector_2 const & projectedPosition() const{return P_point;}
 
 	G2mLvqPrototype();
-
-	G2mLvqPrototype(boost::mt19937 & rng, bool randInit, int protoLabel, Vector_N const & initialVal);
+	G2mLvqPrototype(Matrix_22 Binit, int protoLabel, Vector_N const & initialVal);
+	
 
 
 	inline LvqFloat SqrDistanceTo(Vector_2 const & P_testPoint) const {

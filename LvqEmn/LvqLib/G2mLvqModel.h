@@ -13,6 +13,7 @@ class G2mLvqModel : public LvqProjectionModelBase<G2mLvqModel>
 
 	//we will preallocate a few temp vectors to reduce malloc/free overhead.
 	Vector_N m_vJ, m_vK;
+	void NormalizeBoundaries();
 protected:
 	virtual void AppendTrainingStatNames(std::vector<std::wstring> & retval) const;
 	virtual void AppendOtherStats(std::vector<double> & stats, LvqDataset const * trainingSet, std::vector<int>const & trainingSubset, LvqDataset const * testSet, std::vector<int>const & testSubset) const;
@@ -51,6 +52,7 @@ public:
 	virtual Matrix_2N GetProjectedPrototypes() const;
 	virtual std::vector<int> GetPrototypeLabels() const;
 	virtual void DoOptionalNormalization();
+	
 	virtual void ClassBoundaryDiagram(double x0, double x1, double y0, double y1, LvqProjectionModel::ClassDiagramT & classDiagram) const;
 	virtual void CopyTo(LvqModel& target) const{ 
 		G2mLvqModel & typedTarget = dynamic_cast<G2mLvqModel&>(target);

@@ -18,19 +18,21 @@ G2mLvqModel::G2mLvqModel(LvqModelSettings & initSettings)
 	using namespace std;
 	initSettings.AssertModelIsOfRightType(this);
 
-
-	auto InitProtos = initSettings.InitProtosAndProjectionBySetting();
+	auto InitProtos = initSettings.InitProtosProjectionBoundariesBySetting();
 	P = get<0>(InitProtos);
-	auto prototypes = get<1>(InitProtos);
-	auto protolabels = get<2>(InitProtos);
-	size_t protoCount = protolabels.size();
+	Matrix_NN prototypes = get<1>(InitProtos);
+	VectorXi protoLabels = get<2>(InitProtos);
+	vector<Matrix_22> initB = get<3>(InitProtos);
 
-	prototype.resize(protoCount);
+	prototype.resize(protoLabels.size());
 
-	for(size_t protoIndex=0; protoIndex < protoCount; ++protoIndex) {
-		prototype[protoIndex] = G2mLvqPrototype(initSettings.RngParams, initSettings.RandomInitialBorders, protolabels(protoIndex), prototypes.col(protoIndex));
+	for(size_t protoIndex=0; protoIndex < (size_t) protoLabels.size(); ++protoIndex) {
+		prototype[protoIndex] = G2mLvqPrototype(initB[protoIndex], protoLabels(protoIndex), prototypes.col(protoIndex));
 		prototype[protoIndex].ComputePP(P);
 	}
+
+	if(initSettings.BLocalInit || initSettings.RandomInitialBorders)
+		NormalizeBoundaries();
 
 	int maxProtoCount = accumulate(initSettings.PrototypeDistribution.begin(), initSettings.PrototypeDistribution.end(), 0, [](int a, int b) -> int { return max(a,b); });
 
@@ -219,14 +221,7 @@ void G2mLvqModel::ClassBoundaryDiagram(double x0, double x1, double y0, double y
 	}
 }
 
-
-void G2mLvqModel::DoOptionalNormalization() {
-	if(settings.NormalizeProjection) {
-		normalizeProjection(P);
-		for(size_t i=0;i<prototype.size();++i)
-			prototype[i].ComputePP(P);
-	}
-	if(settings.NormalizeBoundaries) {
+void G2mLvqModel::NormalizeBoundaries() {
 		if(settings.GloballyNormalize) {
 			double overallNorm = std::accumulate(prototype.begin(), prototype.end(),0.0,
 				[](double cur, G2mLvqPrototype const & proto) -> double { return cur + projectionSquareNorm(proto.B); } 
@@ -237,17 +232,22 @@ void G2mLvqModel::DoOptionalNormalization() {
 		} else {
 			for(size_t i=0;i<prototype.size();++i) normalizeProjection(prototype[i].B);
 		}
+}
+void G2mLvqModel::DoOptionalNormalization() {
+	if(settings.NormalizeProjection) {
+		normalizeProjection(P);
+		for(size_t i=0;i<prototype.size();++i)
+			prototype[i].ComputePP(P);
+	}
+	if(settings.NormalizeBoundaries) {
+		NormalizeBoundaries();	
 	}
 }
 
 G2mLvqPrototype::G2mLvqPrototype() : classLabel(-1) {}
 
-G2mLvqPrototype::G2mLvqPrototype(boost::mt19937 & rng, bool randInit, int protoLabel, Vector_N const & initialVal) 
-	: point(initialVal) 
+G2mLvqPrototype::G2mLvqPrototype(Matrix_22 Binit, int protoLabel, Vector_N const & initialVal) 
+	: B(Binit) 
+	, point(initialVal) 
 	, classLabel(protoLabel)
-{
-	if(randInit)
-		projectionRandomizeUniformScaled(rng, B);	
-	else 
-		B.setIdentity();
-}
+{ }
