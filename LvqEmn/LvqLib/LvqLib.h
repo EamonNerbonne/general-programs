@@ -18,7 +18,7 @@ extern "C" {
 		bool RandomInitialProjection;
 		bool RandomInitialBorders;
 		bool NormalizeProjection, NormalizeBoundaries, GloballyNormalize;
-		bool NgUpdateProtos, NgInitializeProtos, ProjOptimalInit, UpdatePointsWithoutB;
+		bool NgUpdateProtos, NgInitializeProtos, ProjOptimalInit,BLocalInit, UpdatePointsWithoutB;
 		bool SlowStartLrBad;
 		double  LR0, LrScaleP, LrScaleB, LrScaleBad;
 		unsigned ParamsSeed, InstanceSeed;
@@ -26,7 +26,7 @@ extern "C" {
 		int ParallelModels; //only used in C#!
 	};
 
-	const LvqModelSettingsRaw defaultLvqModelSettings = { AutoModelType, 2, 1, true, false, true, true, true, false, false,  false, false, false, LVQ_LR0, LVQ_LrScaleP, LVQ_LrScaleB, LVQ_LrScaleBad, 37, 42, true, 10	};
+	const LvqModelSettingsRaw defaultLvqModelSettings = { AutoModelType, 2, 1, true, false, true, true, true, false, false,  false,false, false, false, LVQ_LR0, LVQ_LrScaleP, LVQ_LrScaleB, LVQ_LrScaleBad, 37, 42, true, 10	};
 
 	__declspec(dllexport) LvqDataset* CreateDatasetRaw(
 		unsigned rngParamSeed, unsigned rngInstSeed, int dimCount, int pointCount, int classCount, int foldCount,

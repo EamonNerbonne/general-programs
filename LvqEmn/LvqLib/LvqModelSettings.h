@@ -10,7 +10,7 @@
 
 struct LvqModelRuntimeSettings
 {
-	bool TrackProjectionQuality,NormalizeProjection,NormalizeBoundaries,GloballyNormalize,UpdatePointsWithoutB,SlowStartLrBad;
+	bool TrackProjectionQuality,NormalizeProjection,NormalizeBoundaries,GloballyNormalize,UpdatePointsWithoutB, SlowStartLrBad;
 	int ClassCount;
 	double LrScaleP, LrScaleB, LR0,LrScaleBad;
 	copy_ptr<boost::mt19937> RngIter;
@@ -21,11 +21,8 @@ struct LvqDataset;
 
 struct LvqModelSettings
 {
-	bool RandomInitialProjection;
-	bool RandomInitialBorders;
-	bool NgUpdateProtos;
-	bool NgInitializeProtos;
-	bool ProjOptimalInit;
+	bool RandomInitialProjection, RandomInitialBorders, NgUpdateProtos, NgInitializeProtos, ProjOptimalInit, BLocalInit;
+
 	int Dimensionality;
 
 	enum LvqModelType { AutoModelType, LgmModelType, GmModelType, G2mModelType, GgmModelType };
@@ -40,7 +37,8 @@ struct LvqModelSettings
 	std::pair<Matrix_NN,Eigen::VectorXi> InitByClassMeans() const;
 	std::pair<Matrix_NN,Eigen::VectorXi> InitByNg() ;
 	std::pair<Matrix_NN,Eigen::VectorXi> InitProtosBySetting();
-	std::tuple<Matrix_P,Matrix_NN,Eigen::VectorXi> InitProtosAndProjectionBySetting();
+	std::tuple<Matrix_P, Matrix_NN, Eigen::VectorXi> InitProtosAndProjectionBySetting();
+	std::tuple<Matrix_P, Matrix_NN, Eigen::VectorXi, std::vector<Matrix_22> > InitProtosProjectionBoundariesBySetting();
 
 	Matrix_P pcaTransform() const;
 	Matrix_P initTransform();
@@ -58,6 +56,9 @@ struct LvqModelSettings
 	}
 
 	LvqModelSettings& self(){return *this;}
+
+private:
+	void ProjInit(Matrix_NN const& prototypes, Matrix_P & P);
 };
 
 struct LvqModel;

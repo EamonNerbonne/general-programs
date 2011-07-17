@@ -86,6 +86,8 @@
         <CheckBox  IsChecked="{Binding NgInitializeProtos, Mode= TwoWay, ValidatesOnExceptions=True}"/>
             <Label>... and spread P: </Label>
             <CheckBox  IsChecked="{Binding ProjOptimalInit, Mode= TwoWay, ValidatesOnExceptions=True}"/>
+            <Label>... and init B:</Label>
+            <CheckBox  IsChecked="{Binding BLocalInit, Mode= TwoWay, ValidatesOnExceptions=True}"/>
         </StackPanel>
         <Label Grid.Row="12">Don't use B for point update (g2m)</Label>
         <CheckBox Grid.Row="12" Grid.Column="1"  IsChecked="{Binding UpdatePointsWithoutB, Mode= TwoWay, ValidatesOnExceptions=True}"/>

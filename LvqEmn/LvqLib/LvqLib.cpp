@@ -106,6 +106,7 @@ extern"C" LvqModel* CreateLvqModel(LvqModelSettingsRaw rawSettings, LvqDataset c
 	initSettings.NgUpdateProtos =rawSettings. NgUpdateProtos;
 	initSettings.NgInitializeProtos =rawSettings. NgInitializeProtos;
 	initSettings.ProjOptimalInit =rawSettings. ProjOptimalInit;
+	initSettings.BLocalInit =rawSettings. BLocalInit;
 	initSettings.RuntimeSettings.UpdatePointsWithoutB = rawSettings.UpdatePointsWithoutB;
 	initSettings.RuntimeSettings.SlowStartLrBad = rawSettings.SlowStartLrBad;
 	initSettings.Dimensionality =rawSettings. Dimensionality;

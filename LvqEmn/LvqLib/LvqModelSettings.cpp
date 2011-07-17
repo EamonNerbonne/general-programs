@@ -10,9 +10,17 @@
 #include "LvqDataset.h"
 #include "NeuralGas.h"
 #include "shuffle.h"
+#include "CovarianceAndMean.h"
+#include "PCA.h"
 
 #include <numeric>
 #include <iterator>
+
+using std::pair;
+using std::tuple;
+using boost::mt19937;
+
+
 LvqModel* ConstructLvqModel(LvqModelSettings & initSettings) {
 	switch(initSettings.ModelType) {
 	case LvqModelSettings::LgmModelType:
@@ -55,6 +63,7 @@ LvqModelSettings::LvqModelSettings(LvqModelType modelType, boost::mt19937 & rngP
 	, NgUpdateProtos(false)
 	, NgInitializeProtos(false)
 	, ProjOptimalInit(false)
+	, BLocalInit(false)
 	, Dimensionality(0)
 	, ModelType(modelType)
 	, RngParams(rngParams)
@@ -68,12 +77,9 @@ size_t LvqModelSettings::Dimensions() const { return Dataset->dimensions(); }
 
 int LvqModelSettings::PrototypeCount() const {	return accumulate(PrototypeDistribution.begin(), PrototypeDistribution.end(), 0); }
 
-using std::pair;
-using std::tuple;
-using std::make_tuple;
-using std::make_pair;
 
 pair<Matrix_NN, VectorXi> LvqModelSettings::InitByClassMeans() const {
+	using std::make_pair;
 	int prototypecount = PrototypeCount();
 	Matrix_NN  prototypes(Dataset->dimensions(),prototypecount);
 	VectorXi labels(prototypecount);
@@ -89,12 +95,13 @@ pair<Matrix_NN, VectorXi> LvqModelSettings::InitByClassMeans() const {
 	return make_pair(prototypes,labels);
 }
 
-using boost::mt19937;
+
 pair<Matrix_NN, VectorXi> LvqModelSettings::InitByNg() {
 	using std::partial_sum;
 	using std::back_inserter;
 	using std::all_of;
 	using std::for_each;
+	using std::make_pair;
 
 	if(all_of(PrototypeDistribution.begin(), PrototypeDistribution.end(), [](int count) {return count == 1;}))
 		return InitByClassMeans();
@@ -126,63 +133,171 @@ pair<Matrix_NN, VectorXi> LvqModelSettings::InitProtosBySetting()  {
 	return NgInitializeProtos ? InitByNg() : InitByClassMeans();
 }
 
+void LvqModelSettings::ProjInit(Matrix_NN const& prototypes, Matrix_P & P){
+	size_t protocount = prototypes.cols();
+	vector<int> classOffsets;
+	classOffsets.push_back(0);
+	partial_sum(PrototypeDistribution.begin(),PrototypeDistribution.end(), back_inserter(classOffsets));
+	size_t iter=0;
+	const size_t finalIter = 10000;
+
+	vector<int> shuffledset(Trainingset);
+	Vector_N  dists, vJ, vK, point;
+	//auto dims = Dimensions();
+
+	while(iter < finalIter) {
+		shuffle(RngParams, shuffledset, shuffledset.size());
+		for(size_t tI=0;tI < shuffledset.size() && iter < finalIter; ++tI, ++iter) {
+			int classLabel = Dataset->getPointLabels()[shuffledset[tI]];
+			double lr = 0.01 * (finalIter/100.0) / (finalIter/100.0 + iter);
+			Matrix_P::Index wJi=-1, wKi=-1;
+			double bestJd(std::numeric_limits<double>::infinity()), bestKd(std::numeric_limits<double>::infinity());
+			point = Dataset->getPoints().col(shuffledset[tI]);
+			dists = (P * (prototypes.colwise() - point)).colwise().squaredNorm();
+
+			for(int i=classOffsets[classLabel];i<classOffsets[classLabel+1];i++)
+				if(bestJd > dists(i)) {
+					wJi = i;
+					bestJd = dists(i);
+				}
+			for(int i=0; i < (int)protocount; i ++) 
+				if(i == classOffsets[classLabel])
+					i = classOffsets[classLabel+1];
+				else if(bestKd > dists(i)) {
+					wKi = i;
+					bestKd = dists(i);
+				}
+
+			vJ = prototypes.col(wJi) - point;
+			vK = prototypes.col(wKi) - point;
+
+			P +=  lr * (1.0/sqrt(bestKd)* P * vK * vK.transpose() - 1.0/sqrt(bestJd)*P * vJ * vJ.transpose());
+			normalizeProjection(P);
+		}
+	}
+}
+
 tuple<Matrix_P,Matrix_NN, VectorXi> LvqModelSettings::InitProtosAndProjectionBySetting() {
+	using std::make_tuple;
+
 	auto P = initTransform();
 	auto protos = InitProtosBySetting();
 	auto prototypes = protos.first;
 	auto labels = protos.second;
-	size_t protocount = prototypes.cols();
 
-	if(ProjOptimalInit) {
-		vector<int> classOffsets;
-		classOffsets.push_back(0);
-		partial_sum(PrototypeDistribution.begin(),PrototypeDistribution.end(), back_inserter(classOffsets));
-		size_t iter=0;
-		const size_t finalIter = 10000;
-
-		vector<int> shuffledset(Trainingset);
-		Vector_N  dists, vJ, vK, point;
-		//auto dims = Dimensions();
-
-		while(iter < finalIter) {
-			shuffle(RngParams, shuffledset, shuffledset.size());
-			for(size_t tI=0;tI < shuffledset.size() && iter < finalIter; ++tI, ++iter) {
-				int classLabel = Dataset->getPointLabels()[shuffledset[tI]];
-				double lr = 0.01 * (finalIter/100.0) / (finalIter/100.0 + iter);
-				Matrix_P::Index wJi=-1, wKi=-1;
-				double bestJd(std::numeric_limits<double>::infinity()), bestKd(std::numeric_limits<double>::infinity());
-				point = Dataset->getPoints().col(shuffledset[tI]);
-				dists = (P * (prototypes.colwise() - point)).colwise().squaredNorm();
-
-				for(int i=classOffsets[classLabel];i<classOffsets[classLabel+1];i++)
-					if(bestJd > dists(i)) {
-						wJi = i;
-						bestJd = dists(i);
-					}
-				for(int i=0; i < (int)protocount; i ++) 
-					if(i == classOffsets[classLabel])
-						i = classOffsets[classLabel+1];
-					else if(bestKd > dists(i)) {
-						wKi = i;
-						bestKd = dists(i);
-					}
-
-				vJ = prototypes.col(wJi) - point;
-				vK = prototypes.col(wKi) - point;
-
-				P +=  lr * (1.0/sqrt(bestKd)* P * vK * vK.transpose() - 1.0/sqrt(bestJd)*P * vJ * vJ.transpose());
-				normalizeProjection(P);
-			}
-		}
-	}
-
+	if(ProjOptimalInit) 
+		ProjInit(prototypes, P);
+	
 	return make_tuple(P, prototypes, labels);
 }
+
+
+Matrix_22 normalizingB(Matrix_22 cov) {
+	Vector_2 eigVal;
+	Matrix_22 pca2d;
+	PcaLowDim::DoPcaFromCov(cov,pca2d,eigVal);
+	return eigVal.array().sqrt().inverse().matrix().asDiagonal()*pca2d;
+}
+
+Matrix_22 BinitByPca(Matrix_P const & lowdimpoints) {
+	return normalizingB(Covariance::ComputeWithMean(lowdimpoints));
+}
+
+
+vector<Matrix_22> BinitByProtos(Matrix_P const & lowdimpoints, vector<int> const & pointLabels, Matrix_P const & lowdimProtos, VectorXi const & protoLabels) {
+	Matrix_22 globalCov = Covariance::ComputeWithMean(lowdimpoints);
+
+	int classCount=protoLabels.maxCoeff() + 1;
+	vector<Matrix_P> protosByClass;
+	for(int label=0;label < classCount; ++label) {
+		vector<size_t> lblProtoIdxs;
+		for(size_t i=0; i < (size_t)protoLabels.size(); ++i) 
+			if (protoLabels(i) == (int)label) 
+				lblProtoIdxs.push_back(i);
+		Matrix_P lblProtos(LVQ_LOW_DIM_SPACE, lblProtoIdxs.size());
+		for(size_t i=0;i< lblProtoIdxs.size(); ++i) 
+			lblProtos.col(i) = lowdimProtos.col(lblProtoIdxs[i]);
+
+		protosByClass.push_back(lblProtos);
+	}
+
+	vector<vector<Vector_2> > pointsNearestToProto(protoLabels.size());
+
+	for(size_t pointI = 0; pointI < pointLabels.size(); ++pointI) {
+		Matrix_P::Index protoI;
+		(protosByClass[ pointLabels[pointI] ].colwise() - lowdimpoints.col(pointI)).colwise().squaredNorm().minCoeff(&protoI);
+		pointsNearestToProto[protoI].push_back(lowdimpoints.col(pointI));
+	}
+
+	vector<Matrix_22> invCov(protoLabels.size());
+
+	for(size_t protoI = 0; protoI < (size_t)protoLabels.size(); ++protoI) {
+		if( pointsNearestToProto[protoI].size() < 3 ) {
+			invCov[protoI] = normalizingB(globalCov);
+		} else{
+			Matrix_P nearestPoints(LVQ_LOW_DIM_SPACE, pointsNearestToProto[protoI].size());
+
+			for(size_t pointI = 0; pointI < pointsNearestToProto[protoI].size(); ++pointI) 
+				nearestPoints.col(pointI) = pointsNearestToProto[protoI][pointI];
+
+			Vector_2 protoPosition = lowdimProtos.col(protoI);
+			Matrix_22 cov = Covariance::Compute<Matrix_P>(nearestPoints, protoPosition);
+
+			invCov[protoI] = normalizingB(cov);
+		}
+	}
+	return invCov;
+}
+
+
+vector<Matrix_22> BinitByLastProto(Matrix_P const & lowdimpoints, vector<int> const & pointLabels, Matrix_P const & lowdimProtos, VectorXi const & protoLabels) {
+	int classCount=protoLabels.maxCoeff() + 1;
+	Matrix_P classMeans(LVQ_LOW_DIM_SPACE, classCount);
+	for(int i = 0; i < protoLabels.size(); ++i) 
+		classMeans.col(protoLabels(i)) = lowdimProtos.col(i);
+	VectorXi protoSubLabels(classCount);
+	for(int i = 0; i < classCount; ++i) 
+		protoSubLabels(i) = i;
+
+	vector<Matrix_22> initClassB = BinitByProtos(lowdimpoints,  pointLabels, classMeans, protoSubLabels);
+	vector<Matrix_22> initB;
+	for(int i = 0; i < protoLabels.size(); ++i) 
+		initB.push_back(initClassB[protoLabels(i)]);
+	return initB;
+}
+
+vector<Matrix_22> BinitPerProto(Matrix_P const & P, LvqModelSettings const & initSettings,	Matrix_NN const & prototypes,	VectorXi const & protoLabels) {
+	Matrix_P const lowdimpoints = P * initSettings.Dataset->ExtractPoints(initSettings.Trainingset);
+
+	vector<Matrix_22> initB;
+	if(!initSettings.BLocalInit) {
+		auto globalB = BinitByPca(lowdimpoints);
+		for(size_t protoIndex=0; protoIndex < (size_t)protoLabels.size(); ++protoIndex)
+			initB.push_back(globalB);
+	} else if(initSettings.NgInitializeProtos) {
+		initB = BinitByProtos(lowdimpoints,  initSettings.Dataset->ExtractLabels(initSettings.Trainingset), P * prototypes, protoLabels);
+	} else {
+		initB = BinitByLastProto(lowdimpoints,  initSettings.Dataset->ExtractLabels(initSettings.Trainingset), P * prototypes, protoLabels);
+	}
+	return initB;
+}
+
+
+tuple<Matrix_P,Matrix_NN, VectorXi, vector<Matrix_22> > LvqModelSettings::InitProtosProjectionBoundariesBySetting() {
+	using std::get;
+	using std::make_tuple;
+
+
+	auto protosAndProjection = InitProtosAndProjectionBySetting();
+	auto boundaries = BinitPerProto(get<0>(protosAndProjection),*this,get<1>(protosAndProjection),get<2>(protosAndProjection));
+	
+	return make_tuple(get<0>(protosAndProjection), get<1>(protosAndProjection), get<2>(protosAndProjection), boundaries);
+}
+
 
 Matrix_P LvqModelSettings::pcaTransform() const {
 	return Dataset->ComputePcaProjection(Trainingset);
 }
-
 
 
 

@@ -97,6 +97,11 @@ namespace LvqGui {
 			set { if (!Equals(settings.ProjOptimalInit, value)) { settings.ProjOptimalInit = value; _propertyChanged("ProjOptimalInit"); } }
 		}
 
+		public bool BLocalInit {
+			get { return settings.BLocalInit; }
+			set { if (!Equals(settings.BLocalInit, value)) { settings.BLocalInit = value; _propertyChanged("BLocalInit"); } }
+		}
+
 		public bool UpdatePointsWithoutB {
 			get { return settings.UpdatePointsWithoutB; }
 			set { if (!settings.UpdatePointsWithoutB.Equals(value)) { settings.UpdatePointsWithoutB = value; _propertyChanged("UpdatePointsWithoutB"); } }
@@ -150,6 +155,7 @@ namespace LvqGui {
 				(NG(?<NgUpdateProtos>\+?),)?
 				(NGi(?<NgInitializeProtos>\+?),)?
 				(Pi(?<ProjOptimalInit>\+?),)?
+				(Bi(?<BLocalInit>\+?),)?
 				(noB(?<UpdatePointsWithoutB>\+?),)?
 				(pQ(?<TrackProjectionQuality>\+?),)?
 				(lrX(?<LrScaleBad>[0-9]*(\.[0-9]*)?(e[0-9]+)?),)?
@@ -219,6 +225,7 @@ namespace LvqGui {
 				if (!updated.Contains("ModelType")) ModelType = defaults.ModelType;
 				if (!updated.Contains("NgInitializeProtos")) NgInitializeProtos = defaults.NgInitializeProtos;
 				if (!updated.Contains("ProjOptimalInit")) ProjOptimalInit = defaults.ProjOptimalInit;
+				if (!updated.Contains("ProjOptimalInit")) BLocalInit = defaults.BLocalInit;
 				if (!updated.Contains("NgUpdateProtos")) NgUpdateProtos = defaults.NgUpdateProtos;
 				if (!updated.Contains("NormalizeBoundaries")) NormalizeBoundaries = defaults.NormalizeBoundaries;
 				if (!updated.Contains("NormalizeProjection")) NormalizeProjection = defaults.NormalizeProjection;
@@ -234,9 +241,6 @@ namespace LvqGui {
 		}
 		static readonly LvqModelSettingsCli defaults = new LvqModelSettingsCli();
 		public override string ShorthandErrors { get { return ShorthandHelper.VerifyShorthand(this, shR); } }
-
-
-
 
 		public static LvqModelSettingsCli SettingsFromShorthand(string shorthand) {
 			var parsedSettings = new LvqModelSettingsCli();

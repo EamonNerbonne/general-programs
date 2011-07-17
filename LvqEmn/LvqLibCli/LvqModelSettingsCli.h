@@ -22,7 +22,7 @@ namespace LvqLibCli {
 		bool RandomInitialProjection;
 		bool RandomInitialBorders;
 		bool NormalizeProjection, NormalizeBoundaries, GloballyNormalize;
-		bool NgUpdateProtos, NgInitializeProtos, ProjOptimalInit, UpdatePointsWithoutB;
+		bool NgUpdateProtos, NgInitializeProtos, ProjOptimalInit,BLocalInit, UpdatePointsWithoutB;
 		bool SlowStartLrBad;
 		double  LR0, LrScaleP, LrScaleB, LrScaleBad;
 		unsigned ParamsSeed, InstanceSeed;
@@ -45,6 +45,7 @@ namespace LvqLibCli {
 			, NgUpdateProtos(false)
 			, NgInitializeProtos(false)
 			, ProjOptimalInit(false)
+			, BLocalInit(false)
 			, UpdatePointsWithoutB(false)
 
 			, SlowStartLrBad(false)

@@ -6,6 +6,7 @@
 #include "MeanMinMax.h"
 #include "LvqDataset.h"
 #include "PCA.h"
+#include "CovarianceAndMean.h"
 using namespace std;
 using namespace Eigen;
 
@@ -21,21 +22,16 @@ GgmLvqModel::GgmLvqModel(LvqModelSettings & initSettings)
 	using namespace std;
 	initSettings.AssertModelIsOfRightType(this);
 
-	auto InitProtos = initSettings.InitProtosAndProjectionBySetting();
+	auto InitProtos = initSettings.InitProtosProjectionBoundariesBySetting();
 	P = get<0>(InitProtos);
-	auto prototypes = get<1>(InitProtos);
-	auto protolabels = get<2>(InitProtos);
-	size_t protoCount = protolabels.size();
-	prototype.resize(protoCount);
+	Matrix_NN prototypes = get<1>(InitProtos);
+	VectorXi protoLabels = get<2>(InitProtos);
 
-	Matrix_P const lowdimpoints = P * initSettings.Dataset->ExtractPoints(initSettings.Trainingset);
-	Vector_2 eigVal;
-	Matrix_22 pca2d;
-	PcaLowDim::DoPca(lowdimpoints,pca2d,eigVal);
-	Matrix_22 toUnitDist=eigVal.array().sqrt().inverse().matrix().asDiagonal()*pca2d;
+	vector<Matrix_22> initB = get<3>(InitProtos);
 
-	for(size_t protoIndex=0; protoIndex < protoCount; ++protoIndex) {
-		prototype[protoIndex] = 	GgmLvqPrototype(initSettings.RngParams, initSettings.RandomInitialBorders, protolabels(protoIndex), prototypes.col(protoIndex), P, toUnitDist);
+	prototype.resize(protoLabels.size());
+	for(size_t protoIndex=0; protoIndex < (size_t)protoLabels.size(); ++protoIndex) {
+		prototype[protoIndex] = 	GgmLvqPrototype(initSettings.RngParams, initSettings.RandomInitialBorders, protoLabels(protoIndex), prototypes.col(protoIndex), P, initB[protoIndex]);
 		prototype[protoIndex].ComputePP(P);
 	}
 
