@@ -10,6 +10,7 @@ using System.Windows.Threading;
 using EmnExtensions.Text;
 using EmnExtensions.Wpf;
 using EmnExtensions.Wpf.Plot;
+using EmnExtensions.Wpf.Plot.VizEngines;
 using LvqLibCli;
 using EmnExtensions.Filesystem;
 using System.IO;
@@ -24,7 +25,7 @@ namespace LvqGui {
 		readonly TaskScheduler lvqPlotTaskScheduler;//corresponds to lvqPlotDispatcher
 
 
-		public Task DisplayModel(LvqDatasetCli dataset, LvqMultiModel model, int new_subModelIdx, bool showSelectedModelGraphs, bool showBoundaries, bool showPrototypes) {
+		public Task DisplayModel(LvqDatasetCli dataset, LvqMultiModel model, int new_subModelIdx, StatisticsViewMode viewMode, bool showBoundaries, bool showPrototypes) {
 			return lvqPlotTaskScheduler.StartNewTask(() => {
 				lock (plotsSync) {
 					if (dataset == null || model == null) {
@@ -44,7 +45,7 @@ namespace LvqGui {
 					}
 				}
 				ShowBoundaries(showBoundaries);
-				ShowCurrentProjectionStats(showSelectedModelGraphs);
+				ShowCurrentProjectionStats(viewMode);
 				ShowPrototypes(showPrototypes);
 				RelayoutSubPlotWindow(true);
 			});
@@ -60,16 +61,19 @@ namespace LvqGui {
 			QueueUpdate();
 		}
 
-		bool isShowingSelectedSubModelStats;
-		public void ShowCurrentProjectionStats(bool visible) {
+		StatisticsViewMode currViewMode;
+		public void ShowCurrentProjectionStats(StatisticsViewMode viewMode) {
 			lock (plotsSync) {
 				if (subplots != null && subplots.statPlots != null)
 					lvqPlotDispatcher.BeginInvoke(() => {
 						foreach (var plot in subplots.statPlots)
-							if (plot.Plot.MetaData.Tag == LvqStatPlotFactory.IsCurrPlotTag)
-								plot.Plot.MetaData.Hidden = !visible;
+							if (plot.Plot.MetaData.Tag == LvqStatPlotFactory.IsCurrPlotTag) {
+								plot.Plot.MetaData.Hidden = viewMode == StatisticsViewMode.MeanAndStderr;
+								((VizLineSegments)((ITranformed<Point[]>)plot.Plot.Visualisation).Implementation).DashStyle = viewMode == StatisticsViewMode.CurrentOnly ? DashStyles.Solid : LvqStatPlotFactory.CurrPlotDashStyle;
+							} else
+								plot.Plot.MetaData.Hidden = viewMode == StatisticsViewMode.CurrentOnly;
 					});
-				isShowingSelectedSubModelStats = visible;
+				currViewMode = viewMode;
 			}
 			QueueUpdate();
 		}
@@ -230,7 +234,7 @@ namespace LvqGui {
 				if (subplots == null) { Console.WriteLine("No plots to save!"); return; }
 				Console.Write("Saving");
 
-				DirectoryInfo datasetDir = outputDir.CreateSubdirectory((isShowingSelectedSubModelStats ? @"g2\" : @"g\") + subplots.dataset.DatasetLabel);
+				DirectoryInfo datasetDir = outputDir.CreateSubdirectory((currViewMode != StatisticsViewMode.MeanAndStderr ? @"g2\" : @"g\") + subplots.dataset.DatasetLabel);
 				string modelLabel = subplots.model.ModelLabel.SubstringBefore("--") ?? subplots.model.ModelLabel;
 				DirectoryInfo modelDir = datasetDir.CreateSubdirectory(modelLabel);
 

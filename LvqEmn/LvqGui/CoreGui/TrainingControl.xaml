@@ -76,19 +76,25 @@
             <TextBlock VerticalAlignment="Center" Margin="2"> iterations.</TextBlock>
             <Button Content="(TrainAllUpto)" Click="TrainAllUpto" />
         </StackPanel>
-
+        
         <CheckBox Grid.Row="5" Grid.Column="0"  Content="Animate" IsChecked="{Binding AnimateTraining}"/>
         <StackPanel Grid.Row="5" Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Stretch">
             <TextBox Width="60" Text="{Binding EpochsPerAnimation,ValidatesOnExceptions=True}" />
             <TextBlock VerticalAlignment="Center">epochs per frame (<Run Text="{Binding ItersPerEpoch, Mode=OneWay}"/> iters per epoch)</TextBlock>
         </StackPanel>
-
-        <StackPanel Grid.Row="6" Grid.Column="1"   Orientation="Vertical" HorizontalAlignment="Left">
-            <CheckBox Content="Show Current Projection Statistics" IsChecked="{Binding CurrProjStats}"/>
+        <Label Grid.Row="6" Grid.Column="0">View Mode</Label>
+        <ComboBox Grid.Row="6" Grid.Column="1" ItemsSource="{Binding StatisticsViewModes}" SelectedItem="{Binding CurrProjStats}"/>
+        <!--<ComboBox.ItemTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding DatasetLabel}"/>
+                    </DataTemplate>
+                </ComboBox.ItemTemplate>
+            </ComboBox>-->
+        <StackPanel Grid.Row="7" Grid.Column="1"   Orientation="Vertical" HorizontalAlignment="Left">
             <CheckBox Content="Show Boundaries" IsChecked="{Binding ShowBoundaries}"/>
             <CheckBox Content="Show Prototypes" IsChecked="{Binding ShowPrototypes}"/>
         </StackPanel>
-        <StackPanel Grid.Row="8" Grid.Column="0" Grid.ColumnSpan="2"   Orientation="Horizontal" HorizontalAlignment="Right">
+        <TextBlock Grid.Row="8" Grid.Column="0" Grid.ColumnSpan="2"  HorizontalAlignment="Stretch"  TextAlignment="Center" TextWrapping="Wrap">
             <Button Content="Save Graphs" Click="SaveAllGraphs"/>
             <Button Content="Current Stats" Click="PrintCurrentStats"/>
             <Button Content="Print LR" Click="PrintLearningRate"/>
@@ -96,6 +102,6 @@
             <Button Content="Unload Model" Click="UnloadModel"/>
             <Button Content="Unload Dataset" Click="UnloadDataset"/>
             <Button Content="GC" Click="DoGC"/>
-        </StackPanel>
+        </TextBlock>
     </Grid>
 </UserControl>

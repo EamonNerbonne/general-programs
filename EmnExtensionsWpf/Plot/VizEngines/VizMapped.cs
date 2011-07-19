@@ -4,7 +4,7 @@ using System.Windows.Media;
 using System.Windows.Threading;
 
 namespace EmnExtensions.Wpf.Plot.VizEngines {
-	public sealed class VizMapped<TIn, TOut> : IVizEngine<TIn> {
+	public sealed class VizMapped<TIn, TOut> : IVizEngine<TIn>, ITranformed<TOut> {
 		readonly Func<TIn, TOut> map;
 		IVizEngine<TOut> Implementation { get; set; }
 		public void ChangeData(TIn newData) { Implementation.ChangeData(map(newData)); }
@@ -19,5 +19,7 @@ namespace EmnExtensions.Wpf.Plot.VizEngines {
 		public Dispatcher Dispatcher { get { return Implementation.Dispatcher; } }
 
 		public VizMapped(IVizEngine<TOut> impl, Func<TIn, TOut> map) { this.map = map; Implementation = impl; }
+
+		IVizEngine<TOut> ITranformed<TOut>.Implementation { get { return Implementation; } }
 	}
 }

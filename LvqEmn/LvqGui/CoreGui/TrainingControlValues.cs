@@ -57,11 +57,13 @@ namespace LvqGui {
 			}
 		}
 
-		public bool CurrProjStats {
+		public IEnumerable<StatisticsViewMode> StatisticsViewModes { get { return (StatisticsViewMode[])Enum.GetValues(typeof(StatisticsViewMode)); } }
+
+		public StatisticsViewMode CurrProjStats {
 			get { return _CurrProjStats; }
 			set { if (!_CurrProjStats.Equals(value)) { _CurrProjStats = value; _propertyChanged("CurrProjStats"); } }
 		}
-		private bool _CurrProjStats;
+		StatisticsViewMode _CurrProjStats;
 
 		public bool ShowBoundaries {
 			get { return _ShowBoundaries; }
@@ -102,7 +104,7 @@ namespace LvqGui {
 			EpochsPerAnimation = 25;
 			_ShowBoundaries = true;
 			_ShowPrototypes = true;
-			_CurrProjStats = true;
+			_CurrProjStats = StatisticsViewMode.CurrentAndMean;
 			owner.LvqModels.CollectionChanged += LvqModels_CollectionChanged;
 		}
 

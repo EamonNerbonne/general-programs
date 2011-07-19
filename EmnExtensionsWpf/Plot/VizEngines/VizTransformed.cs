@@ -3,8 +3,10 @@ using System.Windows.Media;
 using System.Windows.Threading;
 
 namespace EmnExtensions.Wpf.Plot.VizEngines {
-	public abstract class VizTransformed<TIn, TOut> : IVizEngine<TIn> {
+	public abstract class VizTransformed<TIn, TOut> : IVizEngine<TIn>,ITranformed<TOut> {
 		protected abstract IVizEngine<TOut> Implementation { get; }
+		IVizEngine<TOut> ITranformed<TOut>.Implementation { get { return Implementation; } }
+
 		public abstract void ChangeData(TIn newData);
 		public virtual Rect DataBounds { get { return Implementation.DataBounds; } }
 
@@ -16,5 +18,6 @@ namespace EmnExtensions.Wpf.Plot.VizEngines {
 		public bool SupportsColor { get { return Implementation.SupportsColor; } }
 		public Drawing SampleDrawing { get { return Implementation == null ? null : Implementation.SampleDrawing; } }
 		public Dispatcher Dispatcher { get { return Implementation.Dispatcher; } }
+
 	}
 }

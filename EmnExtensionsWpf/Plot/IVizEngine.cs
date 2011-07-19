@@ -23,4 +23,8 @@ namespace EmnExtensions.Wpf.Plot {
 	public interface IVizEngine<in T> : IVizEngine, IDataSink<T> {
 		new Dispatcher Dispatcher { get; }
 	}
+
+	public interface ITranformed<in T> {
+		IVizEngine<T> Implementation { get; }
+	}
 }

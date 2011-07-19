@@ -40,8 +40,9 @@ namespace LvqGui {
 		}
 
 		public static readonly object IsCurrPlotTag = new object();
+		public static readonly DashStyle CurrPlotDashStyle = new DashStyle(new[] { 0.0, 3.0 }, 0.0);
 		static PlotWithViz<LvqStatPlots> MakeCurrentModelPlot(string yunitLabel, Color color, int statIdx) {
-			return MakePlotHelper(null, color, yunitLabel, IsCurrPlotTag, SelectedModelToPointsMapper(statIdx), new DashStyle(new[] { 0.0, 3.0 }, 0.0));
+			return MakePlotHelper(null, color, yunitLabel, IsCurrPlotTag, SelectedModelToPointsMapper(statIdx), CurrPlotDashStyle);
 		}
 
 		static PlotWithViz<LvqStatPlots> MakeMeanPlot(string dataLabel, string yunitLabel, Color color, int statIdx) {
