@@ -105,7 +105,7 @@ void TestModel(LvqModelType modelType, unsigned seed, bool useNgUpdate, LvqDatas
 		int itersUpto=iters*(i+1)/num_groups;
 		int itersTodo = itersUpto-itersDone;
 		if(itersTodo>0) {
-			TrainModel(dataset,dataset,0,0,model,itersTodo,nullptr,nullptr);
+			TrainModel(dataset,dataset,0,0,model,itersTodo,nullptr,nullptr,nullptr,false);
 			PrintModelStatus("Trained",model, dataset);
 		}
 	}
