@@ -253,8 +253,16 @@ void LvqDataset::TrainModel(int epochs, LvqModel * model, LvqModel::Statistics *
 		prefetchStream(&(model->RngIter()), (sizeof(boost::mt19937) +63)/ 64);
 		vector<int> shuffledOrder(trainingSubset);
 		shuffle(model->RngIter(), shuffledOrder, shuffledOrder.size());
-		if(sortedTrain)
-			sort(shuffledOrder.begin(),shuffledOrder.end(), [this] (int pIa, int pIb) { return pointLabels[pIa] < pointLabels[pIb]; });
+		if(sortedTrain) {
+			Vector_N sortBy;
+			if(dynamic_cast<LvqProjectionModel*>(model)) {
+				Matrix_P projected = ProjectPoints(dynamic_cast<LvqProjectionModel*>(model));
+				sortBy = ( projected).row(0).transpose();//PcaProjectInto2d(projected) *
+			} else {
+				sortBy = (PcaProjectInto2d(points) * points).row(0).transpose();
+			}
+			sort(shuffledOrder.begin(),shuffledOrder.end(), [&sortBy, this] (int pIa, int pIb) { return pointLabels[pIa] == pointLabels[pIb] ? sortBy(pIa) < sortBy(pIb) : pointLabels[pIa] < pointLabels[pIb]; });
+		}
 		
 		BenchTimer t;
 		t.start();

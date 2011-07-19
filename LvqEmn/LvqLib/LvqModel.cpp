@@ -36,12 +36,13 @@ double LvqModel::RegisterEpochDone(int itersTrained, double elapsed, int epochs)
 	return totalIter;
 }
 
-void LvqModel::AddTrainingStat(Statistics& statQueue, LvqDataset const * trainingSet, std::vector<int>const & trainingSubset, LvqDataset const * testSet, vector<int>const & testSubset, LvqDatasetStats const & trainingstats) const {
+void LvqModel::AddTrainingStat(Statistics& statQueue, LvqDataset const * trainingSet, std::vector<int>const & trainingSubset, LvqDataset const * testSet, vector<int>const & testSubset, LvqDatasetStats const & trainingstatsIgnore) const {
 #ifdef DEBUGHELP
 	if(sentinal != initSentinal)		throw "Whoops!";
 #endif
-	vector<double> stats;
 
+	vector<double> stats;
+	LvqDatasetStats trainingstats = trainingSet->ComputeCostAndErrorRate(trainingSubset,this);
 	stats.push_back(double(totalIter));
 	stats.push_back(totalElapsed);
 	stats.push_back(trainingstats.errorRate());
