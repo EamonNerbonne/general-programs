@@ -320,7 +320,7 @@ namespace LvqGui {
 
 		static Rect ComputeProjectionBounds(IEnumerable<Point> prototypePositions, IEnumerable<Point> cliLvqLabelledPoint) {
 			Rect outer, inner;
-			VizPixelScatterHelpers.RecomputeBounds(cliLvqLabelledPoint.ToArray(), 0.99, 0.99, 20.0, out outer, out inner);
+			VizPixelScatterHelpers.RecomputeBounds(cliLvqLabelledPoint.ToArray(), 0.95, 0.95, 5.0, out outer, out inner);
 			//			inner.Union(VizPixelScatterHelpers.ComputeOuterBounds(prototypePositions.ToArray()));
 			return inner;
 		}

@@ -248,8 +248,6 @@ namespace LvqGui {
 						+ (currViewMode == StatisticsViewMode.CurrentOnly ? @"-c" : currViewMode == StatisticsViewMode.CurrentAndMean ? @"-cm" : @"-m")
 						+ ".xps";
 					string filepath = modelDir.FullName + "\\" + filename;
-					if (plotControl.PlotName == "embed" && currViewMode == StatisticsViewMode.MeanAndStderr && File.Exists(filepath))
-						continue;
 					File.WriteAllBytes(filepath, plotControl.PrintToByteArray());
 					Console.Write(".");
 				}
