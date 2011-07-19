@@ -193,7 +193,7 @@ tuple<Matrix_P,Matrix_NN, VectorXi> LvqModelSettings::InitProtosAndProjectionByS
 }
 
 
-Matrix_22 normalizingB(Matrix_22 cov) {
+Matrix_22 normalizingB(Matrix_22 const & cov) {
 	Vector_2 eigVal;
 	Matrix_22 pca2d;
 	PcaLowDim::DoPcaFromCov(cov,pca2d,eigVal);

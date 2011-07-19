@@ -16,6 +16,24 @@
 #define EIGEN_USE_NEW_STDVECTOR
 #define _USE_MATH_DEFINES
 
+
+#ifdef _MSC_VER
+#pragma warning(pop)
+//#pragma warning(push,3)
+#pragma warning(disable: 4714) //OK to ignore __forceinline
+#pragma warning(disable: 4244) //temporarily OK to ignore 64 vs. 32 bit issues. //TODO: remove 
+#endif
+#include <Eigen/Core>
+#include <Eigen/LU> 
+#include <Eigen/QR> 
+#include <Eigen/StdVector>
+//EIGEN_DEFINE_STL_VECTOR_SPECIALIZATION(Eigen::Matrix2d)
+
+//EIGEN_DEFINE_STL_VECTOR_SPECIALIZATION(Eigen::Vector2d)
+
+#include <Bench/BenchTimer.h>
+
+
 #include <cmath>
 
 #include <iostream>
@@ -34,18 +52,6 @@
 #include <boost/random/uniform_int.hpp>
 #include <boost/random/normal_distribution.hpp>
 #include <boost/random/mersenne_twister.hpp>
-
-#ifdef _MSC_VER
-#pragma warning(pop)
-//#pragma warning(push,3)
-#pragma warning(disable: 4714) //OK to ignore __forceinline
-#pragma warning(disable: 4244) //temporarily OK to ignore 64 vs. 32 bit issues. //TODO: remove 
-#endif
-#include <Eigen/Core>
-#include <Eigen/LU> 
-#include <Eigen/QR> 
-#include <Eigen/StdVector>
-#include <Bench/BenchTimer.h>
 
 using Eigen::MatrixBase;
 

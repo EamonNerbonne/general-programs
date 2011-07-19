@@ -246,7 +246,7 @@ void G2mLvqModel::DoOptionalNormalization() {
 
 G2mLvqPrototype::G2mLvqPrototype() : classLabel(-1) {}
 
-G2mLvqPrototype::G2mLvqPrototype(Matrix_22 Binit, int protoLabel, Vector_N const & initialVal) 
+G2mLvqPrototype::G2mLvqPrototype(Matrix_22 const & Binit, int protoLabel, Vector_N const & initialVal) 
 	: B(Binit) 
 	, point(initialVal) 
 	, classLabel(protoLabel)
