@@ -154,8 +154,7 @@ namespace LvqGui {
 							,
 							cancel, TaskCreationOptions.None, LowPriorityTaskScheduler.DefaultLowPriorityScheduler)
 				).ToArray();
-			var labelOrdering = Task.Factory.ContinueWhenAll(helpers, tasks => tasks.Select(task => task.Result).Single(labelOrder => labelOrder != null)).Result;
-			Console.WriteLine(string.Join("", labelOrdering.Select(i => (char)(i < 10 ? i + '0' : i - 10 + 'a'))));
+			Task.WaitAll(helpers);
 		}
 
 		public void Train(int epochsToDo, LvqDatasetCli trainingSet, CancellationToken cancel) {
