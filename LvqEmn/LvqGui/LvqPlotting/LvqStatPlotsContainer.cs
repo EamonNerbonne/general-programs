@@ -234,16 +234,23 @@ namespace LvqGui {
 				if (subplots == null) { Console.WriteLine("No plots to save!"); return; }
 				Console.Write("Saving");
 
-				DirectoryInfo datasetDir = outputDir.CreateSubdirectory((currViewMode != StatisticsViewMode.MeanAndStderr ? @"g2\" : @"g\") + subplots.dataset.DatasetLabel);
+				//DirectoryInfo genDir = outputDir.CreateSubdirectory("a");
+				DirectoryInfo datasetDir = outputDir.CreateSubdirectory(@"a\" + subplots.dataset.DatasetLabel);
+
+				//DirectoryInfo datasetDir = outputDir.CreateSubdirectory((currViewMode != StatisticsViewMode.MeanAndStderr ? @"g2\" : @"g\") + subplots.dataset.DatasetLabel);
 				string modelLabel = subplots.model.ModelLabel.SubstringBefore("--") ?? subplots.model.ModelLabel;
 				DirectoryInfo modelDir = datasetDir.CreateSubdirectory(modelLabel);
 
 				Grid plotGrid = (Grid)subPlotWindow.Content;
 				PlotControl[] plotControls = plotGrid.Children.OfType<PlotControl>().ToArray();
 				foreach (var plotControl in plotControls) {
-					byte[] xpsBlob = plotControl.PrintToByteArray();
-					string filename = plotnameLookup(plotControl.PlotName) + ".xps";
-					File.WriteAllBytes(modelDir.FullName + "\\" + filename, xpsBlob);
+					string filename = plotnameLookup(plotControl.PlotName)
+						+ (currViewMode == StatisticsViewMode.CurrentOnly ? @"-c" : currViewMode == StatisticsViewMode.CurrentAndMean ? @"-cm" : @"-m")
+						+ ".xps";
+					string filepath = modelDir.FullName + "\\" + filename;
+					if (plotControl.PlotName == "embed" && currViewMode == StatisticsViewMode.MeanAndStderr && File.Exists(filepath))
+						continue;
+					File.WriteAllBytes(filepath, plotControl.PrintToByteArray());
 					Console.Write(".");
 				}
 				File.WriteAllText(modelDir.FullName + "\\stats.txt", subplots.model.CurrentStatsString(subplots.dataset));
