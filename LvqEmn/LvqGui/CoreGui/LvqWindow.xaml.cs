@@ -117,8 +117,10 @@ namespace LvqGui {
 				}
 			}));
 
+		// ReSharper disable MemberCanBeMadeStatic.Global
 		public IEnumerable<LvqModelType> ModelTypes { get { return (LvqModelType[])Enum.GetValues(typeof(LvqModelType)); } }
 		public IEnumerable<long> Iters { get { return new[] { 100000L, 1000000L, 10000000L, }; } }
+		// ReSharper restore MemberCanBeMadeStatic.Global
 
 		void LrSearch_Click(object sender, RoutedEventArgs e) {
 			uint offset = uint.Parse(rngOffsetTextBox.Text);
@@ -142,7 +144,7 @@ namespace LvqGui {
 			long iterCount = (long)iterCountSelectbox.SelectedItem;
 			Process.GetCurrentProcess().PriorityClass = ProcessPriorityClass.Idle;
 			ThreadPool.QueueUserWorkItem(_ =>
-				new TestLr(iterCount, offset).StartAllLrTesting(ClosingToken, new LvqModelSettingsCli {  NgInitializeProtos = true, ProjOptimalInit = true })
+				new TestLr(iterCount, offset).StartAllLrTesting(ClosingToken, new LvqModelSettingsCli { NgInitializeProtos = true, ProjOptimalInit = true, BLocalInit = true })
 				.ContinueWith(t => { Console.WriteLine("wheee!!!!"); t.Wait(); })
 				);
 		}
