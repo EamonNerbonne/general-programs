@@ -7,6 +7,8 @@ namespace LvqGui {
 		public TrainingControl() { InitializeComponent(); }
 		TrainingControlValues Values { get { return (TrainingControlValues)DataContext; } }
 		void StartTraining(object sender, RoutedEventArgs e) { ThreadPool.QueueUserWorkItem(o => ((TrainingControlValues)o).ConfirmTraining(), DataContext); }
+		void StartPrintOrderTraining(object sender, RoutedEventArgs e) { ThreadPool.QueueUserWorkItem(o => ((TrainingControlValues)o).ConfirmTrainingPrintOrder(), DataContext); }
+		void StartTrainingSortedOrder(object sender, RoutedEventArgs e) { ThreadPool.QueueUserWorkItem(o => ((TrainingControlValues)o).ConfirmTrainingSortedOrder(), DataContext); }
 		void TrainUpto(object sender, RoutedEventArgs e) { ThreadPool.QueueUserWorkItem(o => ((TrainingControlValues)o).TrainUptoIters(), DataContext); }
 		void TrainAllUpto(object sender, RoutedEventArgs e) { ThreadPool.QueueUserWorkItem(o => ((TrainingControlValues)o).TrainAllUptoIters(), DataContext); }
 		void ResetLearningRate(object sender, RoutedEventArgs e) { ThreadPool.QueueUserWorkItem(o => ((TrainingControlValues)o).ResetLearningRate(), DataContext); }
@@ -16,5 +18,6 @@ namespace LvqGui {
 		void PrintCurrentStats(object sender, RoutedEventArgs e) { ThreadPool.QueueUserWorkItem(o => ((TrainingControlValues)o).PrintCurrentStats(), DataContext); }
 		void PrintLearningRate(object sender, RoutedEventArgs e) { Console.WriteLine(Values.GetLearningRate()); }
 		void SaveAllGraphs(object sender, RoutedEventArgs e) { ((TrainingControlValues)DataContext).Owner.win.SaveAllGraphs(); }
+
 	}
 }

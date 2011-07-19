@@ -131,6 +131,33 @@ namespace LvqGui {
 		int epochsDone;
 		static int trainersRunning;
 		public static void WaitForTraining() { while (trainersRunning != 0) Thread.Sleep(1); }
+		public void TrainAndPrintOrder(LvqDatasetCli trainingSet, CancellationToken cancel) {
+			if (cancel.IsCancellationRequested) return;
+			int selectedSubModel = SelectedSubModel;
+			var helpers = subModels
+				.Select((model, modelIndex) =>
+						Task.Factory.StartNew(
+							() => model.Train(1, trainingSet, model.InitDataFold, modelIndex == selectedSubModel,false)
+							,
+							cancel, TaskCreationOptions.None, LowPriorityTaskScheduler.DefaultLowPriorityScheduler)
+				).ToArray();
+			var labelOrdering = Task.Factory.ContinueWhenAll(helpers, tasks => tasks.Select(task => task.Result).Single(labelOrder => labelOrder != null)).Result;
+			Console.WriteLine(string.Join("",labelOrdering.Select(i => (char)(i < 10 ? i + '0' : i - 10 + 'a'))));
+		}
+		public void SortedTrain(LvqDatasetCli trainingSet, CancellationToken cancel) {
+			if (cancel.IsCancellationRequested) return;
+			int selectedSubModel = SelectedSubModel;
+			var helpers = subModels
+				.Select((model, modelIndex) =>
+						Task.Factory.StartNew(
+							() => model.Train(1, trainingSet, model.InitDataFold, false, true)
+							,
+							cancel, TaskCreationOptions.None, LowPriorityTaskScheduler.DefaultLowPriorityScheduler)
+				).ToArray();
+			var labelOrdering = Task.Factory.ContinueWhenAll(helpers, tasks => tasks.Select(task => task.Result).Single(labelOrder => labelOrder != null)).Result;
+			Console.WriteLine(string.Join("", labelOrdering.Select(i => (char)(i < 10 ? i + '0' : i - 10 + 'a'))));
+		}
+
 		public void Train(int epochsToDo, LvqDatasetCli trainingSet, CancellationToken cancel) {
 			if (cancel.IsCancellationRequested) return;
 			int epochsTarget;

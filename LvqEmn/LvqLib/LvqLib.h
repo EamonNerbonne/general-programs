@@ -68,7 +68,7 @@ extern "C" {
 	__declspec(dllexport) void GetTrainingStatNames(LvqModel const* model, 
 		void (*addNames)(void* context, size_t statsCount, wchar_t const **names), void* context);
 	__declspec(dllexport) void TrainModel(LvqDataset const * trainingset, LvqDataset const * testset, int fold,int foldCount, LvqModel* model, int epochsToDo,
-		void (*addStat)(void* context, size_t statsCount, LvqStat* stats), void* context);
+		void (*addStat)(void* context, size_t statsCount, LvqStat* stats), void* context, int* labelOrderSink, bool sortedTrain);
 	__declspec(dllexport) void ComputeModelStats(LvqDataset const * trainingset, LvqDataset const * testset, int fold,int foldCount, LvqModel const * model,
 		void (*addStat)(void* context, size_t statsCount, LvqStat* stats), void* context);
 	__declspec(dllexport) CostAndErrorRate ComputeCostAndErrorRate(LvqDataset const * dataset, int fold,int foldCount, LvqModel const * model);

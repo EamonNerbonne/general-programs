@@ -145,7 +145,7 @@ namespace LvqGui {
 				results[i] = Task.Factory.StartNew(() => {
 					var model = new LvqModelCli("model", dataset, fold, settings, false);
 					nnErrorIdx = model.TrainingStatNames.AsEnumerable().IndexOf(name => name.Contains("NN Error")); // threading irrelevant; all the same & atomic.
-					model.Train((int)(iters / dataset.GetTrainingSubsetSize(fold)), dataset, fold);
+					model.Train((int)(iters / dataset.GetTrainingSubsetSize(fold)), dataset, fold,false,false);
 					return model.EvaluateStats(dataset, fold);
 				}, cancel, TaskCreationOptions.PreferFairness, LowPriorityTaskScheduler.DefaultLowPriorityScheduler);
 			}

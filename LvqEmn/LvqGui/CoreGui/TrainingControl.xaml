@@ -29,6 +29,8 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
@@ -69,34 +71,48 @@
         </StackPanel>
         <StackPanel Grid.Row="4" Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Stretch">
             <TextBox Width="60" Text="{Binding EpochsPerClick,ValidatesOnExceptions=True}" />
-            <TextBlock VerticalAlignment="Center" Margin="2"> epochs or </TextBlock>
+            <TextBlock VerticalAlignment="Center" Margin="2"> epochs or</TextBlock>
             <Button Content="Train" Click="TrainUpto" />
-            <TextBlock VerticalAlignment="Center" Margin="2"> upto </TextBlock>
+            <TextBlock VerticalAlignment="Center" Margin="2"> upto</TextBlock>
             <TextBox Width="60" Text="{Binding ItersToTrainUpto,ValidatesOnExceptions=True}" />
             <TextBlock VerticalAlignment="Center" Margin="2"> iterations.</TextBlock>
             <Button Content="(TrainAllUpto)" Click="TrainAllUpto" />
         </StackPanel>
-        
-        <CheckBox Grid.Row="5" Grid.Column="0"  Content="Animate" IsChecked="{Binding AnimateTraining}"/>
-        <StackPanel Grid.Row="5" Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Stretch">
+
+        <CheckBox Grid.Row="6" Grid.Column="0"  Content="Animate" IsChecked="{Binding AnimateTraining}"/>
+        <StackPanel Grid.Row="6" Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Stretch">
             <TextBox Width="60" Text="{Binding EpochsPerAnimation,ValidatesOnExceptions=True}" />
             <TextBlock VerticalAlignment="Center">epochs per frame (<Run Text="{Binding ItersPerEpoch, Mode=OneWay}"/> iters per epoch)</TextBlock>
         </StackPanel>
-        <Label Grid.Row="6" Grid.Column="0">View Mode</Label>
-        <ComboBox Grid.Row="6" Grid.Column="1" ItemsSource="{Binding StatisticsViewModes}" SelectedItem="{Binding CurrProjStats}"/>
+        <Label Grid.Row="7" Grid.Column="0">View Mode</Label>
+        <ComboBox Grid.Row="7" Grid.Column="1" ItemsSource="{Binding StatisticsViewModes, Mode=OneWay}" SelectedItem="{Binding CurrProjStats}"/>
         <!--<ComboBox.ItemTemplate>
                     <DataTemplate>
                         <TextBlock Text="{Binding DatasetLabel}"/>
                     </DataTemplate>
                 </ComboBox.ItemTemplate>
             </ComboBox>-->
-        <StackPanel Grid.Row="7" Grid.Column="1"   Orientation="Vertical" HorizontalAlignment="Left">
+        <StackPanel Grid.Row="8" Grid.Column="1"   Orientation="Vertical" HorizontalAlignment="Left">
             <CheckBox Content="Show Boundaries" IsChecked="{Binding ShowBoundaries}"/>
             <CheckBox Content="Show Prototypes" IsChecked="{Binding ShowPrototypes}"/>
         </StackPanel>
-        <TextBlock Grid.Row="8" Grid.Column="0" Grid.ColumnSpan="2"  HorizontalAlignment="Stretch"  TextAlignment="Center" TextWrapping="Wrap">
+        <ListView ItemsSource="{Binding ModelClasses, Mode=OneWay}" Grid.Row="9" Grid.ColumnSpan="2" Background="Transparent" BorderThickness="0">
+            <ListView.ItemTemplate>
+                <DataTemplate>
+                    <Label Content="{Binding ClassLabel}" Background="{Binding ClassColor}" Foreground="White"/>
+                </DataTemplate>
+            </ListView.ItemTemplate>
+            <ListView.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <StackPanel Orientation="Horizontal"></StackPanel>
+                </ItemsPanelTemplate>
+            </ListView.ItemsPanel>
+        </ListView>
+        <TextBlock Grid.Row="10" Grid.Column="0" Grid.ColumnSpan="2"  HorizontalAlignment="Stretch"  TextAlignment="Center" TextWrapping="Wrap">
             <Button Content="Save Graphs" Click="SaveAllGraphs"/>
             <Button Content="Current Stats" Click="PrintCurrentStats"/>
+                   <Button Content="Train 1 and print order" Click="StartPrintOrderTraining" />
+            <Button Content="Train 1 in sorted order" Click="StartTrainingSortedOrder" />
             <Button Content="Print LR" Click="PrintLearningRate"/>
             <Button Content="Reset LR" Click="ResetLearningRate"/>
             <Button Content="Unload Model" Click="UnloadModel"/>

@@ -60,7 +60,7 @@ namespace LvqLibCli {
 		ModelProjection CurrentProjectionAndPrototypes(LvqDatasetCli^ dataset);
 		property array<int>^ PrototypeLabels {array<int>^ get(); }
 
-		void Train(int epochsToDo,LvqDatasetCli^ trainingSet, int datafold); 
+		array<int>^ Train(int epochsToDo,LvqDatasetCli^ trainingSet, int datafold, bool getOrder,bool sortedTrain); 
 		void TrainUpto(int epochsToReach,LvqDatasetCli^ trainingSet, int datafold); 
 	};
 }

@@ -242,15 +242,20 @@ bool shouldCollect(unsigned epochsDone) {
 	return epochsDone<512 || epochsDone%2==0 && shouldCollect(epochsDone/2);
 }
 
-void LvqDataset::TrainModel(int epochs, LvqModel * model, LvqModel::Statistics * statisticsSink, vector<int> const  & trainingSubset, LvqDataset const * testData, std::vector<int> const  & testSubset) const {
+void LvqDataset::TrainModel(int epochs, LvqModel * model, LvqModel::Statistics * statisticsSink, vector<int> const  & trainingSubset, LvqDataset const * testData, std::vector<int> const  & testSubset, int* labelOrderSink, bool sortedTrain) const {
 	int dims = static_cast<int>(points.rows());
 	Vector_N pointA(dims);
 	int cacheLines = (dims*sizeof(points(0,0) ) +63)/ 64 ;
+
+	size_t labelOrderSinkIdx=0;
 
 	for(int epoch=0; epoch<epochs; ++epoch) {
 		prefetchStream(&(model->RngIter()), (sizeof(boost::mt19937) +63)/ 64);
 		vector<int> shuffledOrder(trainingSubset);
 		shuffle(model->RngIter(), shuffledOrder, shuffledOrder.size());
+		if(sortedTrain)
+			sort(shuffledOrder.begin(),shuffledOrder.end(), [this] (int pIa, int pIb) { return pointLabels[pIa] < pointLabels[pIb]; });
+		
 		BenchTimer t;
 		t.start();
 		bool collectStats = 	statisticsSink && shouldCollect(model->epochsTrained+1); 
@@ -259,6 +264,8 @@ void LvqDataset::TrainModel(int epochs, LvqModel * model, LvqModel::Statistics *
 		for(int tI=0; tI<(int)shuffledOrder.size(); ++tI) {
 			int pointIndex = shuffledOrder[tI];
 			int pointClass = pointLabels[pointIndex];
+			if(labelOrderSink)
+				labelOrderSink[labelOrderSinkIdx++] = pointClass;
 			pointA = points.col(pointIndex);
 			prefetch( &points.coeff (0, shuffledOrder[(tI+1)%shuffledOrder.size()]), cacheLines);
 

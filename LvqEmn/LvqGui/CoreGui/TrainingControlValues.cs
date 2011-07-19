@@ -6,6 +6,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows.Media;
 using EmnExtensions.DebugTools;
 using EmnExtensions.MathHelpers;
 using LvqLibCli;
@@ -28,7 +29,7 @@ namespace LvqGui {
 					_SelectedDataset = value;
 					SelectedLvqModel = _SelectedDataset == null ? null : Owner.ResolveModel(_SelectedDataset.LastModel);
 					AnimateTraining = false;
-					_propertyChanged("SelectedDataset"); _propertyChanged("ItersPerEpoch"); _propertyChanged("MatchingLvqModels");
+					_propertyChanged("SelectedDataset"); _propertyChanged("ItersPerEpoch"); _propertyChanged("MatchingLvqModels"); _propertyChanged("ModelClasses");
 				}
 			}
 		}
@@ -64,6 +65,18 @@ namespace LvqGui {
 			set { if (!_CurrProjStats.Equals(value)) { _CurrProjStats = value; _propertyChanged("CurrProjStats"); } }
 		}
 		StatisticsViewMode _CurrProjStats;
+
+		public IEnumerable<object> ModelClasses {
+			get {
+				if (SelectedDataset == null) return new object[0] { };
+				return SelectedDataset.ClassColors.Select((col, i) => new { ClassLabel = i, ClassColor = (SolidColorBrush)new SolidColorBrush(col).GetAsFrozen() }).ToArray();
+			}
+		}
+		public bool PrintOrder {
+			get { return _PrintOrder; }
+			set { if (!_PrintOrder.Equals(value)) { _PrintOrder = value; _propertyChanged("PrintOrder"); } }
+		}
+		bool _PrintOrder;
 
 		public bool ShowBoundaries {
 			get { return _ShowBoundaries; }
@@ -149,6 +162,13 @@ namespace LvqGui {
 			}, SelectedDataset, SelectedLvqModel);
 		}
 
+		public void ConfirmTrainingPrintOrder() {
+			TrainSelectedModel((dataset, model) => model.TrainAndPrintOrder(dataset, Owner.WindowClosingToken), SelectedDataset, SelectedLvqModel);
+		}
+		public void ConfirmTrainingSortedOrder() {
+			TrainSelectedModel((dataset, model) => model.SortedTrain(dataset, Owner.WindowClosingToken), SelectedDataset, SelectedLvqModel);
+		}
+
 		void TrainSelectedModel(Action<LvqDatasetCli, LvqMultiModel> trainImpl, LvqDatasetCli selectedDataset, LvqMultiModel selectedModel) {
 			if (selectedDataset == null)
 				Console.WriteLine("Training aborted, no dataset selected.");
@@ -188,7 +208,7 @@ namespace LvqGui {
 
 		public void TrainAllUptoIters() {
 			double uptoIters = ItersToTrainUpto;
-
+			var printOrder = PrintOrder;
 			var allModels = Owner.LvqModels.ToArray();
 			Parallel.ForEach(Partitioner.Create(allModels, true), new ParallelOptions { MaxDegreeOfParallelism = 3, CancellationToken = owner.WindowClosingToken }, model => {
 				var dataset = model.InitSet;

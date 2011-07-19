@@ -188,22 +188,29 @@ namespace LvqLibCli {
 		//return ToCli<MatrixContainer<unsigned char> >::From(classDiagram.transpose());
 	}
 
-	void LvqModelCli::Train(int epochsToDo,LvqDatasetCli^ trainingSet, int datafold){
+	array<int>^ LvqModelCli::Train(int epochsToDo,LvqDatasetCli^ trainingSet, int datafold, bool getOrder, bool sortedTrain){
 		trainingSet->LastModel = this;
 		StatCollector statCollector;
 		LvqModel* nativeModel=model->get();
+		std::vector<int> classLabelOrdering;
+		if(getOrder)
+			classLabelOrdering.resize(trainingSet->GetTrainingSubsetSize(datafold) * epochsToDo);
 		msclr::lock l(trainSync);
-		TrainModel(trainingSet->GetTrainingDataset(), trainingSet->GetTestDataset(), datafold, trainingSet->Folds(), nativeModel,epochsToDo, StatCallbackTrampoline, &statCollector);
+		TrainModel(trainingSet->GetTrainingDataset(), trainingSet->GetTestDataset(), datafold, trainingSet->Folds(), nativeModel, epochsToDo, StatCallbackTrampoline, &statCollector, getOrder?&classLabelOrdering[0]:nullptr,sortedTrain);
 		GC::KeepAlive(trainingSet);
 		msclr::lock l2(copySync);
 		SinkStats(stats, statCollector.statsList);
 		CopyLvqModel((LvqModel const *)nativeModel,modelCopy->get());
+		array<int>^ retval;
+		if(getOrder)
+			cppToCli(classLabelOrdering, retval);
+		return retval;
 		GC::KeepAlive(this);
 	}
 
 	void LvqModelCli::TrainUpto(int epochsToReach,LvqDatasetCli^ trainingSet, int datafold){
 		msclr::lock l(trainSync);
-		Train(epochsToReach - GetEpochsTrained(model->get()), trainingSet,datafold);
+		Train(epochsToReach - GetEpochsTrained(model->get()), trainingSet,datafold,false,false);
 		GC::KeepAlive(this);
 	}
 }
