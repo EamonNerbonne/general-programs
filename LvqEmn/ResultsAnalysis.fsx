@@ -46,10 +46,16 @@ let sampleCorrelation listA listB =
     assert (countA = countB)
     (List.zip listA listB
         |> List.sumBy (fun (a,b) -> (a - meanA) * (b - meanB))) / (float countA - 1.0) / Math.Sqrt(varA * varB)
-
+        
 //---------------------------------------------------PARSING
 
 let coreSettingsEq a b = DatasetResults.WithoutLrOrSeeds(a).ToShorthand() =  DatasetResults.WithoutLrOrSeeds(b).ToShorthand()
+
+let loadAllResults datasetName =
+    TestLr.resultsDir.GetDirectories(datasetName).[0].GetFiles(filepattern)
+    |> Seq.map LvqGui.DatasetResults.ProcFile
+    
+
 
 let loadResultsByLr datasetName (settings:LvqLibCli.LvqModelSettingsCli) = 
     TestLr.resultsDir.GetDirectories(datasetName).[0].GetFiles(filepattern)

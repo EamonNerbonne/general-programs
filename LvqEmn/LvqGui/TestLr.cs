@@ -21,7 +21,7 @@ namespace LvqGui {
 		}
 
 		public static LvqModelSettingsCli WithLrChanges(this LvqModelSettingsCli baseSettings, double lr0, double lrScaleP, double lrScaleB) {
-			var newSettings = baseSettings.Copy();
+			var newSettings = baseSettings;
 			newSettings.LR0 = lr0;
 			newSettings.LrScaleB = lrScaleB;
 			newSettings.LrScaleP = lrScaleP;
@@ -80,13 +80,13 @@ namespace LvqGui {
 			return ShortnameFor(_itersToRun, settings);
 		}
 
-		public Task StartAllLrTesting(CancellationToken cancel, LvqModelSettingsCli baseSettings = null) {
-			baseSettings = baseSettings ?? new LvqModelSettingsCli();
+		public Task StartAllLrTesting(CancellationToken cancel, LvqModelSettingsCli? baseSettings = null) {
+			LvqModelSettingsCli effectiveSettings = baseSettings ?? new LvqModelSettingsCli();
 			var testingTasks =
 			(
 				from protoCount in new[] { 5, 1 }
 				from modeltype in ModelTypes
-				select baseSettings.WithTestingChanges(modeltype, protoCount, offset) into settings
+				select effectiveSettings.WithTestingChanges(modeltype, protoCount, offset) into settings
 				let shortname = ShortnameFor(settings)
 				select TestLrIfNecessary(null, settings, cancel)
 				 ).ToArray();

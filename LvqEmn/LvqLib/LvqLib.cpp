@@ -24,7 +24,7 @@ extern"C" LvqDataset* CreateDatasetRaw(
 		return dataset;
 }
 extern"C" LvqDataset* CreateGaussianClouds(
-	unsigned rngParamSeed, unsigned rngInstSeed, int dimCount, int pointCount, int classCount, int foldCount, 
+	unsigned rngParamSeed, unsigned rngInstSeed, int dimCount, int pointCount, int classCount, int foldCount, //TODO:remove foldCount
 	double meansep) {
 		mt19937 rngParams(rngParamSeed), rngInst(rngInstSeed);
 		LvqDataset* dataset= CreateDataset::ConstructGaussianClouds(rngParams,rngInst,dimCount,classCount,pointCount/classCount,meansep);
@@ -32,7 +32,7 @@ extern"C" LvqDataset* CreateGaussianClouds(
 		return dataset;
 }
 extern"C" LvqDataset* CreateStarDataset(
-	unsigned rngParamSeed, unsigned rngInstSeed, int dimCount, int pointCount, int classCount, int foldCount, 
+	unsigned rngParamSeed, unsigned rngInstSeed, int dimCount, int pointCount, int classCount, int foldCount, //TODO:remove foldCount
 	int starDims, int numStarTails, double starMeanSep, double starClassRelOffset, bool randomlyRotate, double noiseSigma, double globalNoiseMaxSigma){
 		mt19937 rngParams(rngParamSeed), rngInst(rngInstSeed);
 		LvqDataset* dataset= CreateDataset::ConstructStarDataset(rngParams,rngInst,dimCount,starDims,numStarTails,classCount,pointCount/classCount,starMeanSep,starClassRelOffset,randomlyRotate,noiseSigma,globalNoiseMaxSigma);

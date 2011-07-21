@@ -21,9 +21,8 @@ namespace LvqGui {
 			return ConvertLrToSettings(bestLr, paramSeed, instSeed);
 		}
 
-		public LvqModelSettingsCli ConvertLrToSettings(LrAndError bestLr, uint? paramSeed=null, uint? instSeed=null)
-		{
-			LvqModelSettingsCli retval = unoptimizedSettings.Copy();
+		public LvqModelSettingsCli ConvertLrToSettings(LrAndError bestLr, uint? paramSeed = null, uint? instSeed = null) {
+			LvqModelSettingsCli retval = unoptimizedSettings;
 			retval.LR0 = bestLr.Lr.Lr0;
 			retval.LrScaleP = bestLr.Lr.LrP;
 			retval.LrScaleB = bestLr.Lr.LrB;
@@ -32,8 +31,7 @@ namespace LvqGui {
 			return retval;
 		}
 
-		public IEnumerable<LrAndError> GetLrs()
-		{
+		public IEnumerable<LrAndError> GetLrs() {
 			string[] fileLines = File.ReadAllLines(resultsFile.FullName);
 			double[] lr0range = ExtractLrs(fileLines.First(line => line.StartsWith("lr0range:")));
 			double[] lrPrange = ExtractLrs(fileLines.First(line => line.StartsWith("lrPrange:")));
@@ -53,10 +51,10 @@ namespace LvqGui {
 
 			Tuple<double, double>[] errs = errsThenCumulLr0.Take(3).Select(errStr => errStr.Split('~').Select(double.Parse).ToArray()).Select(errval => Tuple.Create(errval[0], errval.Skip(1).FirstOrDefault())).ToArray();
 			return new LrAndError {
-				Lr = new Lr{
-				Lr0 = ClosestMatch(lr0range, lrs[0]),
-				LrP = ClosestMatch(lrPrange, lrs[1]),
-				LrB = ClosestMatch(lrBrange, lrs[2]),
+				Lr = new Lr {
+					Lr0 = ClosestMatch(lr0range, lrs[0]),
+					LrP = ClosestMatch(lrPrange, lrs[1]),
+					LrB = ClosestMatch(lrBrange, lrs[2]),
 				},
 				Errors = new TestLr.ErrorRates(errs[0].Item1, errs[0].Item2, errs[1].Item1, errs[1].Item2, errs[2].Item1, errs[2].Item2, double.Parse(errsThenCumulLr0[3].Trim(' ', '[', ']'))),
 			};
@@ -87,7 +85,8 @@ namespace LvqGui {
 			var match = resultsFilenameRegex.Match(resultFile.Name);
 			if (!match.Success) return null;
 
-			return new DatasetResults(resultFile, Double.Parse(match.Groups["iters"].Value.StartsWith("e") ? "1" + match.Groups["iters"].Value : match.Groups["iters"].Value), CreateLvqModelValues.SettingsFromShorthand(match.Groups["shorthand"].Value));
+			return new DatasetResults(resultFile, Double.Parse(match.Groups["iters"].Value.StartsWith("e") ? "1" + match.Groups["iters"].Value : match.Groups["iters"].Value),
+				CreateLvqModelValues.SettingsFromShorthand(match.Groups["shorthand"].Value));
 		}
 
 		/// <summary>
@@ -125,32 +124,30 @@ namespace LvqGui {
 		}
 
 		public static LvqModelSettingsCli WithoutLrOrSeeds(LvqModelSettingsCli p_settings) {
-			var retval = p_settings.Copy();
-			retval.LR0 = 0;
-			retval.LrScaleB = 0;
-			retval.LrScaleP = 0;
-			retval.ParamsSeed = 0;
-			retval.InstanceSeed = 0;
-			return retval;
+			p_settings.LR0 = 0;
+			p_settings.LrScaleB = 0;
+			p_settings.LrScaleP = 0;
+			p_settings.ParamsSeed = 0;
+			p_settings.InstanceSeed = 0;
+			return p_settings;
 		}
 		static LvqModelSettingsCli WithModelAndPrototypes(LvqModelSettingsCli p_settings, LvqModelType modelType, int protos) {
-			var retval = p_settings.Copy();
-			retval.ModelType = modelType;
-			retval.PrototypesPerClass = protos;
-			return retval;
+			p_settings.ModelType = modelType;
+			p_settings.PrototypesPerClass = protos;
+			return p_settings;
 		}
 
 		static readonly Regex labelRegex = new Regex(@"^(?<prefix>.*?[,\[])(?<instseed>[0-9A-Fa-f]+)(?<suffix>\].*)\^(?<folds>[0-9]+)$");
 		static readonly Regex labelPrefixRegex = new Regex(@"^(?<name>.*?)train\.data(?<hasTest>,\k<name>test\.data)?-(?<rest>.*?)$");
-		static Tuple<string, bool, uint, string,int> splitLabel(string label) {
+		static Tuple<string, bool, uint, string, int> splitLabel(string label) {
 			Match m = labelRegex.Match(label);
 			if (!m.Success) return null;
 			int folds = int.Parse(m.Groups["folds"].Value);
 			uint instSeed = Convert.ToUInt32(m.Groups["instseed"].Value, 16);
 			Match mPrefix = labelPrefixRegex.Match(m.Groups["prefix"].Value);
 			bool hasTest = mPrefix.Success && !string.IsNullOrEmpty(mPrefix.Groups["hasTest"].Value);
-			string uniquePrefix = mPrefix.Success?mPrefix.Groups["name"].Value+"-"+mPrefix.Groups["rest"].Value:m.Groups["prefix"].Value;
-			return Tuple.Create(uniquePrefix, hasTest, instSeed, m.Groups["suffix"].Value,folds);
+			string uniquePrefix = mPrefix.Success ? mPrefix.Groups["name"].Value + "-" + mPrefix.Groups["rest"].Value : m.Groups["prefix"].Value;
+			return Tuple.Create(uniquePrefix, hasTest, instSeed, m.Groups["suffix"].Value, folds);
 		}
 
 		static IEnumerable<DirectoryInfo> GetDatasetResultDir(LvqDatasetCli dataset) {
@@ -159,7 +156,7 @@ namespace LvqGui {
 
 			return from dir in TestLr.resultsDir.GetDirectories()
 				   let dirSplitName = splitLabel(dir.Name)
-				   where dirSplitName!=null && dirSplitName.Item1 == split.Item1 && dirSplitName.Item4 == split.Item4
+				   where dirSplitName != null && dirSplitName.Item1 == split.Item1 && dirSplitName.Item4 == split.Item4
 				   orderby dirSplitName.Item2 == split.Item2 descending, dirSplitName.Item5 == split.Item5 descending, dirSplitName.Item5 == split.Item5 descending, dirSplitName.Item3 == split.Item3 descending
 				   select dir;
 		}

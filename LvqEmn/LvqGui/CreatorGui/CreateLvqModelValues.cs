@@ -243,19 +243,18 @@ namespace LvqGui {
 		public override string ShorthandErrors { get { return ShorthandHelper.VerifyShorthand(this, shR); } }
 
 		public static LvqModelSettingsCli SettingsFromShorthand(string shorthand) {
-			var parsedSettings = new LvqModelSettingsCli();
+			object parsedSettings = new LvqModelSettingsCli();
 			ShorthandHelper.ParseShorthand(parsedSettings, shR, shorthand);
-			return parsedSettings;
+			return (LvqModelSettingsCli)parsedSettings;
 		}
 
 		public CreateLvqModelValues(LvqWindowValues owner) {
 			this.owner = owner;
 			settings = new LvqModelSettingsCli();
-			ParallelModels = 10;
 			//this.ReseedBoth();
 		}
 
-		public Task ConfirmCreation() { return CreateSingleModel(owner, ForDataset, settings.Copy()); }
+		public Task ConfirmCreation() { return CreateSingleModel(owner, ForDataset, settings); }
 
 		static Task CreateSingleModel(LvqWindowValues owner, LvqDatasetCli dataset, LvqModelSettingsCli settingsCopy) {
 			TaskCompletionSource<object> whenDone = new TaskCompletionSource<object>();
@@ -268,18 +267,17 @@ namespace LvqGui {
 			return whenDone.Task;
 		}
 
-		public bool HasOptimizedLr { get { return DatasetResults.GetBestResult(ForDataset, settings.Copy()) != null; } }
+		public bool HasOptimizedLr { get { return DatasetResults.GetBestResult(ForDataset, settings) != null; } }
 		public string OptimizeButtonText { get { return HasOptimizedLr ? "Create with Optimal LR" : "Find optimal LR"; } }
 
-		public bool HasOptimizedLrAll { get { return DatasetResults.GetBestResults(ForDataset, settings.Copy()) != null; } }
+		public bool HasOptimizedLrAll { get { return DatasetResults.GetBestResults(ForDataset, settings) != null; } }
 		public string OptimizeAllButtonText { get { return HasOptimizedLrAll ? "Create all types' with Optimal LR" : "Find all types' optimal LR"; } }
 
 
 		internal void OptimizeLr() {//on gui thread.
-			var settingsCopy = settings.Copy();
+			var settingsCopy = settings;
 			settingsCopy.InstanceSeed = 0;
 			settingsCopy.ParamsSeed = 1;
-			//			var args = new { Shorthand, ParallelModels, ForDataset };//for threadsafety get these now.
 			const long iterCount = 30L * 1000L * 1000L;
 			var testLr = new TestLr(iterCount, ForDataset, 3);
 			string shortname = testLr.ShortnameFor(settingsCopy);
@@ -290,7 +288,7 @@ namespace LvqGui {
 		}
 
 		internal void OptimizeLrAll() {//on gui thread.
-			var settingsCopy = settings.Copy();
+			var settingsCopy = settings;
 			settingsCopy.InstanceSeed = 0;
 			settingsCopy.ParamsSeed = 1;
 			settingsCopy.PrototypesPerClass = 0;
@@ -304,7 +302,7 @@ namespace LvqGui {
 		protected override IEnumerable<string> GloballyDependantProps { get { return base.GloballyDependantProps.Concat(depProps); } }
 
 		internal void OptimizeOrCreate() {//gui thread
-			var bestResult = DatasetResults.GetBestResult(ForDataset, settings.Copy());
+			var bestResult = DatasetResults.GetBestResult(ForDataset, settings);
 			if (bestResult == null)
 				OptimizeLr();
 			else
@@ -313,7 +311,7 @@ namespace LvqGui {
 
 		internal void OptimizeAllOrCreateAll() {
 			var dataset = ForDataset;
-			var bestResults = DatasetResults.GetBestResults(ForDataset, settings.Copy());
+			var bestResults = DatasetResults.GetBestResults(ForDataset, settings);
 			var paramsSeed = ParamsSeed;
 			var instanceSeed = InstanceSeed;
 			if (bestResults == null)

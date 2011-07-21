@@ -14,7 +14,7 @@ namespace LvqLibCli {
 	using namespace System::Collections::Generic;
 	using namespace System::Collections::ObjectModel;
 
-	ref class LvqModelSettingsCli;
+	value class LvqModelSettingsCli;
 	ref class LvqDatasetCli;
 
 	public ref class LvqModelCli {

@@ -9,9 +9,6 @@ namespace LvqLibCli {
 		LvqModelSettingsRaw nativeSettings = { (::LvqModelType)ModelType, Dimensionality, PrototypesPerClass, RandomInitialProjection, RandomInitialBorders, NormalizeProjection, NormalizeBoundaries, GloballyNormalize, NgUpdateProtos, NgInitializeProtos, ProjOptimalInit, BLocalInit, UpdatePointsWithoutB, SlowStartLrBad, LR0, LrScaleP, LrScaleB, LrScaleBad, ParamsSeed, InstanceSeed, TrackProjectionQuality, ParallelModels };
 		return nativeSettings;
 	}
-	LvqModelSettingsCli^ LvqModelSettingsCli::Copy() {
-		return (LvqModelSettingsCli^)this->MemberwiseClone();
-	}
 
 	String^ LvqModelSettingsCli::ToShorthand() {
 		return ModelType.ToString()
@@ -36,12 +33,12 @@ namespace LvqLibCli {
 			+ "[" + ParamsSeed.ToString("x") + "," + InstanceSeed.ToString("x") + "]"
 			+ (ParallelModels!=10?"^" + ParallelModels: "");
 	}
-	LvqModelSettingsCli^ LvqModelSettingsCli::WithChanges(LvqModelType type, int protos, unsigned rngParams, unsigned rngIter){
-		auto retval = Copy();
-		retval->ModelType = type;
-		retval->PrototypesPerClass = protos;
-		retval->ParamsSeed = rngParams;
-		retval->InstanceSeed = rngIter;
+	LvqModelSettingsCli LvqModelSettingsCli::WithChanges(LvqModelType type, int protos, unsigned rngParams, unsigned rngIter){
+		LvqModelSettingsCli retval = *this;
+		retval.ModelType = type;
+		retval.PrototypesPerClass = protos;
+		retval.ParamsSeed = rngParams;
+		retval.InstanceSeed = rngIter;
 		return retval;
 	}
 }
