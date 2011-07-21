@@ -1,10 +1,11 @@
 ﻿#if INTERACTIVE
-#I @"..\..\EmnExtensions\bin\Release"
-#I @"..\LvqGui\bin\Release"
+#I @"..\EmnExtensions\bin\Release"
+#I @"LvqGui\bin\Release"
 #r "EmnExtensions"
 #r "LvqGui"
 #r "LvqLibCli"
 #endif
+
 
 open System.IO;
 open System;
@@ -176,17 +177,38 @@ let initCorrs datasetName (settingslist:list< LvqModelSettingsCli * string >) =
 //-------------------------------------------------------------------------------------------------main code:
 
 let curDatasetName = "base"
-let alltypes:list< LvqModelSettingsCli * string > =
+let heuristics:list< LvqModelSettingsCli * string > =
     [
-        (LvqModelSettingsCli(ModelType = LvqModelType.Lgm, PrototypesPerClass = 1, UpdatePointsWithoutB = true), "lgm 1ppc");
-        (LvqModelSettingsCli(ModelType = LvqModelType.Lgm, PrototypesPerClass = 5, UpdatePointsWithoutB = true), "lgm 5ppc");
-        (LvqModelSettingsCli(ModelType = LvqModelType.Gm, PrototypesPerClass = 1, UpdatePointsWithoutB = true), "gm 1ppc");
-        (LvqModelSettingsCli(ModelType = LvqModelType.Gm, PrototypesPerClass = 5, UpdatePointsWithoutB = true), "gm 5ppc");
-        (LvqModelSettingsCli(ModelType = LvqModelType.G2m, PrototypesPerClass = 1, UpdatePointsWithoutB = true), "g2m 1ppc");
-        (LvqModelSettingsCli(ModelType = LvqModelType.G2m, PrototypesPerClass = 5, UpdatePointsWithoutB = true), "g2m 5ppc");
-        (LvqModelSettingsCli(ModelType = LvqModelType.Ggm, PrototypesPerClass = 1, UpdatePointsWithoutB = true), "ggm 1ppc");
-        (LvqModelSettingsCli(ModelType = LvqModelType.Ggm, PrototypesPerClass = 5, UpdatePointsWithoutB = true), "ggm 5ppc");
+        (LvqModelSettingsCli(), "core");
+        (LvqModelSettingsCli(UpdatePointsWithoutB = true), "NoB");
+        (LvqModelSettingsCli(SlowStartLrBad = true ), "SlowStartLrBad");
+        (LvqModelSettingsCli(NgUpdateProtos = true), "NgUpdate");
+        (LvqModelSettingsCli(NgInitializeProtos = true), "NgInit");
+        (LvqModelSettingsCli(NgInitializeProtos = true, SlowStartLrBad = true ), "NgInit+SlowStartLrBad");
+        (LvqModelSettingsCli(NgInitializeProtos = true, ProjOptimalInit = true), "NgInit+Pi");
+        (LvqModelSettingsCli(NgInitializeProtos = true, ProjOptimalInit=true, BLocalInit=true), "NgInit+Pi+Bi");
     ] 
+
+let setProtosAndType lvqType protos (settings:LvqModelSettingsCli) = settings.WithChanges(lvqType, protos, settings.ParamsSeed, settings.InstanceSeed)
+
+let alternates:list< (LvqModelSettingsCli -> LvqModelSettingsCli) * string > =
+    [
+        (setProtosAndType LvqModelType.Lgm 1 , "lgm 1ppc");
+        (setProtosAndType LvqModelType.Lgm 5 , "lgm 5ppc");
+        (setProtosAndType LvqModelType.Gm 1 , "gm 1ppc");
+        (setProtosAndType LvqModelType.Gm 5 , "gm 5ppc");
+        (setProtosAndType LvqModelType.G2m 1 , "g2m 1ppc");
+        (setProtosAndType LvqModelType.G2m 5 , "g2m 5ppc");
+        (setProtosAndType LvqModelType.Ggm 1 , "ggm 1ppc");
+        (setProtosAndType LvqModelType.Ggm 5 , "ggm 5ppc");
+    ] 
+
+
+let coversAllResults = 
+    let alltypes = heuristics |> List.collect (fun (setting, name) -> alternates |> List.map (fun (f, fname) -> (f setting, name + ":" + fname))) |> List.map fst 
+    TestLr.resultsDir.GetDirectories(curDatasetName).[0].GetFiles(filepattern)
+    |> Seq.map LvqGui.DatasetResults.ProcFile
+    |> Seq.filter (fun result -> not <| List.exists (coreSettingsEq result.unoptimizedSettings) alltypes )
 
 
 latexifyConfusable curDatasetName alltypes |> printfn "%s"  //print results
