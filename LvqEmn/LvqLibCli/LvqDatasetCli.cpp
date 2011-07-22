@@ -19,7 +19,7 @@ namespace LvqLibCli {
 			cliToCpp(points,cppPoints);
 			cliToCpp(pointLabels,cppLabels);
 			return gcnew LvqDatasetCli(label,folds,extend,normalizeDims,colors,
-				CreateDatasetRaw(0u,rngInstSeed,(int)cppPoints.rows(),(int)cppPoints.cols(),classCount,folds,
+				CreateDatasetRaw(0u,rngInstSeed,(int)cppPoints.rows(),(int)cppPoints.cols(),classCount,
 				cppPoints.data(), cppLabels.data()));
 	}
 
@@ -39,14 +39,14 @@ namespace LvqLibCli {
 	LvqDatasetCli^ LvqDatasetCli::ConstructGaussianClouds(String^label, int folds, bool extend,  bool normalizeDims, ColorArray^ colors, unsigned rngParamsSeed, unsigned rngInstSeed, int dims, 
 		int classCount, int pointsPerClass, double meansep) {
 			return gcnew LvqDatasetCli(label,folds,extend,normalizeDims,colors, 
-				CreateGaussianClouds(rngParamsSeed,rngInstSeed,dims,classCount*pointsPerClass, classCount, folds,
+				CreateGaussianClouds(rngParamsSeed,rngInstSeed,dims,classCount*pointsPerClass, classCount, 
 				meansep));
 	}
 
 	LvqDatasetCli^ LvqDatasetCli::ConstructStarDataset(String^label, int folds, bool extend,  bool normalizeDims, ColorArray^ colors, unsigned rngParamsSeed, unsigned rngInstSeed, int dims, 
 		int starDims, int numStarTails,	int classCount, int pointsPerClass, double starMeanSep, double starClassRelOffset, bool randomlyRotate, double noiseSigma, double globalNoiseMaxSigma) {
 			return gcnew LvqDatasetCli(label,folds,extend,normalizeDims,colors,
-				CreateStarDataset(rngParamsSeed,rngInstSeed,dims,classCount*pointsPerClass, classCount,folds,
+				CreateStarDataset(rngParamsSeed,rngInstSeed,dims,classCount*pointsPerClass, classCount,
 				starDims, numStarTails,starMeanSep,starClassRelOffset,randomlyRotate,noiseSigma,globalNoiseMaxSigma));
 	}
 
@@ -70,10 +70,7 @@ namespace LvqLibCli {
 		GetPointLabels(dataset, pinRetval);
 		return retval;
 	}
-	//array<LvqFloat,2>^ LvqDatasetCli::RawPoints() { array<LvqFloat,2>^ retval; cppToCli(dataset->getPoints(), retval); return retval;}
-	//vector<int> LvqDatasetCli::GetTrainingSubset(int fold) { return GetTrainingDataset()->GetTrainingSubset(fold,folds); } 
 	int LvqDatasetCli::GetTrainingSubsetSize(int fold) { return ::GetTrainingSubsetSize(GetTrainingDataset(), fold,folds); }//TODO:ABI: make this a public methods taking pointers.
-	//vector<int> LvqDatasetCli::GetTestSubset(int fold) { return HasTestSet() ? GetTestDataset()->GetTrainingSubset(0,0) : GetTestDataset()->GetTestSubset(fold,folds); }
 	int LvqDatasetCli::ClassCount::get(){return classCount;}
 	int LvqDatasetCli::PointCount::get(){return pointCount;}
 	int LvqDatasetCli::Dimensions::get(){return dimCount;}

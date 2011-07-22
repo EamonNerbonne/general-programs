@@ -29,13 +29,13 @@ extern "C" {
 	const LvqModelSettingsRaw defaultLvqModelSettings = { AutoModelType, 2, 1, true, false, true, true, true, false, false,  false,false, false, false, LVQ_LR0, LVQ_LrScaleP, LVQ_LrScaleB, LVQ_LrScaleBad, 37, 42, true, 10	};
 
 	__declspec(dllexport) LvqDataset* CreateDatasetRaw(
-		unsigned rngParamSeed, unsigned rngInstSeed, int dimCount, int pointCount, int classCount, int foldCount,
+		unsigned rngParamSeed, unsigned rngInstSeed, int dimCount, int pointCount, int classCount,
 		LvqFloat* data, int*labels);
 	__declspec(dllexport) LvqDataset* CreateGaussianClouds(
-		unsigned rngParamSeed, unsigned rngInstSeed, int dimCount, int pointCount, int classCount, int foldCount, 
+		unsigned rngParamSeed, unsigned rngInstSeed, int dimCount, int pointCount, int classCount,
 		double meansep);
 	__declspec(dllexport) LvqDataset* CreateStarDataset(
-		unsigned rngParamSeed, unsigned rngInstSeed, int dimCount, int pointCount, int classCount, int foldCount, 
+		unsigned rngParamSeed, unsigned rngInstSeed, int dimCount, int pointCount, int classCount,
 		int starDims, int numStarTails, double starMeanSep,	double starClassRelOffset, bool randomlyRotate, double noiseSigma, double globalNoiseMaxSigma);
 	__declspec(dllexport) void CreatePointCloud(unsigned rngParamSeed, unsigned rngInstSeed, int dimCount, int pointCount, double meansep, double detScalePower, LvqFloat* target);
 	__declspec(dllexport) void FreeDataset(LvqDataset* dataset);
