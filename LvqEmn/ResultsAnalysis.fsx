@@ -1,9 +1,11 @@
 ﻿#if INTERACTIVE
 #I @"..\EmnExtensions\bin\Release"
+#I @"..\Support Tools\alglib"
 #I @"LvqGui\bin\Release"
 #r "EmnExtensions"
 #r "LvqGui"
 #r "LvqLibCli"
+#r "alglibnet2"
 #endif
 
 
@@ -13,9 +15,6 @@ open LvqGui;
 open LvqLibCli;
 open EmnExtensions;
 
-//---------------------------------------------------CONSTANTS
-
-let filepattern = "*.txt"
 
 //---------------------------------------------------BASICS
 let pass x f = f x 
@@ -31,14 +30,14 @@ let groupList keyF valF =
     List.toSeq >> Seq.groupBy keyF >> Seq.map (apply2nd (Seq.map valF >> Seq.toList)) >> Seq.toList
     
 let countMeanVar xs = 
-    let count = float(List.length xs)
-    let mean = List.sum xs / count
-    let var = List.sumBy (fun x -> (x-mean)**2.0) xs / (count - 1.0)
+    let count = List.length xs
+    let mean = List.sum xs / float count
+    let var = List.sumBy (fun x -> (x-mean)**2.0) xs / (float count - 1.0)
     (count, mean, var)
 
 let meanStderr xs = 
     let (count, mean, var) = countMeanVar xs
-    (mean, Math.Sqrt( var / count))
+    (mean, Math.Sqrt( var / float count))
 
 let latexstderr (mean,stderr) =  "$ "+EmnExtensions.MathHelpers.Statistics.GetFormatted(mean,stderr,-0.4).Replace("~",@"\pm")+"$"
 
@@ -48,14 +47,24 @@ let sampleCorrelation listA listB =
     assert (countA = countB)
     (List.zip listA listB
         |> List.sumBy (fun (a,b) -> (a - meanA) * (b - meanB))) / (float countA - 1.0) / Math.Sqrt(varA * varB)
+
+let twoTailedPairedTtest xs ys = 
+    let (count, mean, var) = List.zip xs ys |>List.map (fun (x,y) -> x - y) |> countMeanVar
+    let t = mean / Math.Sqrt(var / float count)
+    let p = alglib.studenttdistr.studenttdistribution(count - 1, -Math.Abs(t)) * 2.0
+    (p, mean < 0.0)
         
 //---------------------------------------------------PARSING
 
 
 let loadAllResults datasetName =
+    let filepattern = "*.txt"
     TestLr.resultsDir.GetDirectories(datasetName).[0].GetFiles(filepattern)
     |> Seq.map LvqGui.DatasetResults.ProcFile
     |> Seq.toList
+
+let curDatasetName = "base"
+let allResults = loadAllResults curDatasetName
 
 let groupResultsByLr (results:list<DatasetResults>) = 
     results
@@ -111,7 +120,7 @@ let latexifyConfusable (datasetName:string)  (results:list<DatasetResults>) sett
 //        printfn "%d" (rawResults |> List.head |> snd |> List.length)
         let confusableCount = results |> List.map snd |> certainlyConfusable  |> List.length
         let confusableRatio = float confusableCount / float(List.length results)
-        let prErr(mean, stderr) =  sprintf @"$%.1f \pm %.1f $" (mean*100.) (stderr*100.)
+        let prErr(mean, stderr) =  sprintf @"$%.1f \pm %.2f $" (mean*100.) (stderr*100.)
         let (bestlr, besterr) = List.head results 
         let (lr75th, err75th ) = List.length results / 4 |> List.nth results
         
@@ -130,7 +139,64 @@ let latexifyConfusable (datasetName:string)  (results:list<DatasetResults>) sett
     @"\noindent " + datasetName  + ":\\\\\n" + 
         @"\begin{tabular}{@{}lllllll@{}}"+"\n"
         + @"model &\multicolumn{2}{c}{training error rate} & \multicolumn{2}{c}{test error rate} &\multicolumn{2}{c}{NN error rate}  \\" + "\n" //& better than & $\lr_0$ & $\lr_P$ & $\lr_B$
-        + @"        & best &\small upper quartile & best &\small upper quartile & best &\small upper quartile \\\hline" + "\n" //&  & &  &
+        + @"        & best &\footnotesize upper quartile & best &\footnotesize upper quartile & best &\footnotesize upper quartile \\\hline" + "\n" //&  & &  &
+        + String.Join("\\\\\n", settingsList |> List.map latexifyConfusableRow (*|> List.sort*) |> List.map snd)
+        + "\n" + @"\end{tabular}"
+
+
+
+let latexifyCompareMethods (datasetName:string)  (allresults:list<DatasetResults>) settingsList =
+    let latexifyConfusableRow (settings:LvqModelSettingsCli, label:string) = 
+        let basicSettings = (new LvqModelSettingsCli()).WithChanges(settings.ModelType, settings.PrototypesPerClass, settings.ParamsSeed, settings.InstanceSeed)
+        let getResults s = 
+            allresults |> filterResults s |> groupResultsByLr //list of LRs, each has a list of results in file order
+            |> List.map snd //list of LRs without their values, each  has a list of results in file order
+            |> List.map (fun errs -> (meanStderrOfErrs errs, errs))//list of LRs, each mean+stderrs for error rates
+            |> List.sortBy (fst>> (fun err-> err.ErrorMean))
+        let results = getResults settings
+        let basicResults = getResults basicSettings
+        let (besterr, besterrs) = List.head results 
+        let (err75th, err75ths) = List.length results / 4 |> List.nth results
+        let (besterrB ,besterrBs)= List.head basicResults 
+        let (err75thB ,err75thBs)= List.length basicResults / 4 |> List.nth basicResults
+
+        let significantDiff errsA errsB errSelector =
+            twoTailedPairedTtest (errsA |>List.map errSelector) (errsB |> List.map errSelector)
+        let prErr (mean, stderr) (errsA, errsB) errSelector =
+            let (p, isBetter) = significantDiff errsA errsB errSelector
+            let color = 
+                if isBetter && p < 0.01 then
+                    "0.4,0.8,1.0"   
+                else if isBetter && p < 0.05 then
+                    "0.8,0.9,1.0" 
+                else if not isBetter && p <0.01 then
+                    "1.0,0.55,0.4"
+                else if not isBetter && p <0.05 then
+                    "1.0,0.85,0.8"
+                else
+                    "1.0,1.0,1.0"
+            sprintf @"\cellcolor[rgb]{%s} $%.1f \pm %.2f $" color (mean*100.) (stderr*100.)
+        
+        let trainingError (err:TestLr.ErrorRates) = err.training
+        let testError (err:TestLr.ErrorRates) = err.test
+        let nnError (err:TestLr.ErrorRates) = err.nn
+
+        (besterr.training, 
+            label
+            + " & " + prErr (besterr.training , besterr.trainingStderr) (besterrs , besterrBs) trainingError
+            + " & " + prErr (err75th.training , err75th.trainingStderr) (err75ths, err75thBs) trainingError
+            + " & " + prErr (besterr.test , besterr.testStderr) (besterrs , besterrBs) testError
+            + " & " + prErr (err75th.test , err75th.testStderr) (err75ths , err75thBs) testError
+            + " & " + (if F.IsFinite besterr.nn then prErr (besterr.nn, besterr.nnStderr) (besterrs, besterrBs) nnError else "")
+            + " & " + (if F.IsFinite err75th.nn then prErr (err75th.nn, err75th.nnStderr) (err75ths, err75thBs) nnError else "")
+            //+ sprintf " & $%2.0f" (100. - 100. * confusableRatio) + "\\%$ "
+            // + " & " + sprintf " $ %1.3f $ & $ %1.3f $" bestlr.Lr0 bestlr.LrP + (if bestlr.LrB > 0.0 then sprintf  " & $ %1.3f $" bestlr.LrB else "&")
+        )
+            
+    @"\noindent " + datasetName  + ":\\\\\n" + 
+        @"\begin{tabular}{@{}lllllll@{}}"+"\n"
+        + @"model &\multicolumn{2}{c}{training error rate} & \multicolumn{2}{c}{test error rate} &\multicolumn{2}{c}{NN error rate}  \\" + "\n" //& better than & $\lr_0$ & $\lr_P$ & $\lr_B$
+        + @"        & best &\footnotesize upper quartile & best &\footnotesize upper quartile & best &\footnotesize upper quartile \\\hline" + "\n" //&  & &  &
         + String.Join("\\\\\n", settingsList |> List.map latexifyConfusableRow (*|> List.sort*) |> List.map snd)
         + "\n" + @"\end{tabular}"
 
@@ -189,8 +255,6 @@ let initCorrs results (settingslist:list< LvqModelSettingsCli * string >) =
 
 //-------------------------------------------------------------------------------------------------main code:
 
-let curDatasetName = "base"
-let allResults = loadAllResults curDatasetName
 
 let alternates:list< (LvqModelSettingsCli -> LvqModelSettingsCli) * string > =
     let setProtosAndType lvqType protos (settings:LvqModelSettingsCli) = settings.WithChanges(lvqType, protos, settings.ParamsSeed, settings.InstanceSeed)
@@ -221,9 +285,15 @@ let heuristics:list< LvqModelSettingsCli * string > =
 
 
 List.map (fun (settings, name) ->
-        latexifyConfusable name allResults (
+        latexifyCompareMethods name allResults (
             alternates
-            |> List.filter (fun (alternate, altName) ->settings = basicSettings || (alternate settings).ToShorthand() <> (alternate basicSettings).ToShorthand() )
+            |> List.filter (fun (alternate, altName) -> 
+                    settings = basicSettings 
+                    || (alternate settings).ToShorthand() <> (alternate basicSettings).ToShorthand() 
+                    && (not settings.NgInitializeProtos 
+                        || (alternate settings).PrototypesPerClass <> 1
+                        ) 
+                    )
             |> List.map (fun (alternate, altName) -> (alternate settings, altName))
         )
     ) heuristics 
