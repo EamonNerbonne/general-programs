@@ -38,3 +38,6 @@ programs/WhereTest/WhereTest.psess
 programs/LvqEmn/allconfigs/_BuildFailed*
 programs/LvqEmn/allconfigs/_*.errlog
 uni/Thesis/doc/G2MLVQ-14-july-2011.pdf
+uni/Thesis/doc/plots/_pngS
+uni/Thesis/doc/plots/_png16m
+uni/Thesis/doc/plots/_pdfwrite
