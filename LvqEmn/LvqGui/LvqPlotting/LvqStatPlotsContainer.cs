@@ -229,7 +229,7 @@ namespace LvqGui {
 		}
 
 		static readonly DirectoryInfo outputDir = FSUtil.FindDataDir(@"uni\Thesis\doc\plots\xps", typeof(LvqStatPlotsContainer));
-		internal Task SaveAllGraphs() {
+		internal Task SaveAllGraphs(bool alsoEmbedding) {
 			return Task.Factory.StartNew(() => GetDisplayUpdateTask(subplots).Wait()).ContinueWith(_ => {
 				if (subplots == null) { Console.WriteLine("No plots to save!"); return; }
 				Console.Write("Saving");
@@ -244,6 +244,8 @@ namespace LvqGui {
 				Grid plotGrid = (Grid)subPlotWindow.Content;
 				PlotControl[] plotControls = plotGrid.Children.OfType<PlotControl>().ToArray();
 				foreach (var plotControl in plotControls) {
+					if (plotControl.PlotName == "embed" && !alsoEmbedding)
+						continue;
 					string filename = plotnameLookup(plotControl.PlotName)
 						+ (currViewMode == StatisticsViewMode.CurrentOnly ? @"-c" : currViewMode == StatisticsViewMode.CurrentAndMean ? @"-cm" : @"-m")
 						+ ".xps";

@@ -161,9 +161,15 @@ namespace LvqGui {
 			return
 				allmodels.Aggregate(doneTask, (task, model) =>
 					task.ContinueWith(_ => lvqPlotContainer.DisplayModel(model.InitSet, model, model.SelectedSubModel, StatisticsViewMode.CurrentOnly, graphSettings.ShowBoundaries, graphSettings.ShowPrototypes)
-							.ContinueWith(__ => lvqPlotContainer.SaveAllGraphs()
+							.ContinueWith(__ => lvqPlotContainer.SaveAllGraphs(true)
 								.ContinueWith(___ => lvqPlotContainer.DisplayModel(model.InitSet, model, model.SelectedSubModel, StatisticsViewMode.MeanAndStderr, graphSettings.ShowBoundaries, graphSettings.ShowPrototypes)
-									.ContinueWith(____ => lvqPlotContainer.SaveAllGraphs().Wait()).Wait()
+									.ContinueWith(____ => lvqPlotContainer.SaveAllGraphs(false)
+										.ContinueWith(_____ => lvqPlotContainer.DisplayModel(model.InitSet, model, model.SelectedSubModel, StatisticsViewMode.CurrentAndMean, graphSettings.ShowBoundaries, graphSettings.ShowPrototypes)
+											.ContinueWith(______ => lvqPlotContainer.SaveAllGraphs(false)
+												.Wait()
+											).Wait()
+										).Wait()
+									).Wait()
 								).Wait()
 							).Wait()
 						)
