@@ -7,7 +7,7 @@ open System
 //-------------------------------------------------------------------------------err-type correlations
 
 let tails xs = 
-    let step x xss = (x::List.head xss)::xss
+    let step y yss = (y::List.head yss)::yss
     List.foldBack step xs [[]]
 
 let correlateUsing comb =
@@ -31,26 +31,25 @@ let errTypeCorrelation results  =
         >> ResultParsing.unpackToListErrs //each has a few error rate types, each has a list of results in file order
         >> corrs) //each has a few error type correlations
     |> Utils.flipList //List of error types, each has the list of correlation for all LRs
-    |> List.map Utils.meanStderr
+    |> List.map Utils.sampleDistribution
     |> (fun list -> List.zip (corrNames ["train";"test";"NN"]) list)
+
 
 let errTypeCorrelationLatex results (settings:LvqModelSettingsCli) =
     let corrInfo = errTypeCorrelation results
-    settings.ToShorthand() + " & " + String.Join(" & ", List.map (fun (errname, x) -> if Double.IsNaN(fst x) then "" else Utils.latexstderr x) corrInfo)
+    settings.ToShorthand() + " & " + String.Join(" & ", List.map (fun (errname, x:Utils.SampleDistribution) -> if Double.IsNaN(x.Mean) then "" else Utils.latexstderr x) corrInfo)
 
 
     
 
 //-------------------------------------------------------------------------------initialization correlations
-let initCorrs results (settingslist:list< LvqModelSettingsCli * string >) = 
-    let relevantTypes = 
-        settingslist |> List.map fst |> List.filter (fun modeltype -> not (modeltype.ModelType = LvqModelType.Lgm))
-    relevantTypes
+let initCorrs results (settingslist:list< LvqModelSettingsCli>) = 
+    settingslist
         |> List.map (ResultParsing.filterResults >> Utils.pass results >> ResultParsing.groupResultsByLr >> List.map (snd >> List.map (fun err->err.training))) 
                 //list of model types, each has a list of LRs, each has a list of results in file order
         |> Utils.flipList //list of lrs, each has a  list of model types, each has a list of results in file order
         |> List.map corrs //, list of lrs, each has a list of model type correlations
         |> Utils.flipList //, list of model type correlations, each has a list of corrs for all LRs
-        |> List.map Utils.meanStderr //, list of model type correlation mean/stderrs
-        |> List.zip (corrSettings relevantTypes)
+        |> List.map Utils.sampleDistribution //, list of model type correlation mean/stderrs
+        |> List.zip (corrSettings settingslist)
 

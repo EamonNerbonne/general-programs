@@ -3,7 +3,14 @@
 open System
 
 //---------------------------------------------------BASICS
+type SampleDistribution = { Count: int; Mean:float; Variance: float; } member this.StdErr = Math.Sqrt( this.Variance / float this.Count);
+
 let pass x f = f x 
+let apply f x = f x 
+let apply2 f (a, b) = (f a, f b)
+let apply3 f (a, b, c) = (f a, f b, f c)
+let apply4 f (a, b, c, d) = (f a, f b, f c, f d)
+
 
 let rec flipList lstOfLists = 
     let lstOfNonemptyLists = List.filter (List.isEmpty >> not) lstOfLists
@@ -15,29 +22,25 @@ let apply1st f (v1,v2) = (f v1, v2)
 let groupList keyF valF = 
     List.toSeq >> Seq.groupBy keyF >> Seq.map (apply2nd (Seq.map valF >> Seq.toList)) >> Seq.toList
     
-let countMeanVar xs = 
+let sampleDistribution xs = 
     let count = List.length xs
     let mean = List.sum xs / float count
     let var = List.sumBy (fun x -> (x-mean)**2.0) xs / (float count - 1.0)
-    (count, mean, var)
+    { Count = count; Mean = mean; Variance = var; }
 
-let meanStderr xs = 
-    let (count, mean, var) = countMeanVar xs
-    (mean, Math.Sqrt( var / float count))
-
-let latexstderr (mean,stderr) =  "$ "+EmnExtensions.MathHelpers.Statistics.GetFormatted(mean,stderr,-0.4).Replace("~",@"\pm")+"$"
+let latexstderr distr =  "$ "+EmnExtensions.MathHelpers.Statistics.GetFormatted(distr.Mean, distr.StdErr, -0.4).Replace("~",@"\pm")+"$"
 
 let sampleCorrelation listA listB =
-    let (countA, meanA, varA) = countMeanVar listA
-    let (countB, meanB, varB) = countMeanVar listB
-    assert (countA = countB)
+    let distrA = sampleDistribution listA
+    let distrB = sampleDistribution listB
+    assert (distrA.Count = distrB.Count)
     (List.zip listA listB
-        |> List.sumBy (fun (a,b) -> (a - meanA) * (b - meanB))) / (float countA - 1.0) / Math.Sqrt(varA * varB)
+        |> List.sumBy (fun (a,b) -> (a - distrA.Mean) * (b - distrB.Mean))) / (float distrA.Count - 1.0) / Math.Sqrt(distrA.Variance * distrB.Variance)
 
 let twoTailedPairedTtest xs ys = 
-    let (count, mean, var) = List.zip xs ys |>List.map (fun (x,y) -> x - y) |> countMeanVar
-    let t = mean / Math.Sqrt(var / float count)
-    let p = alglib.studenttdistr.studenttdistribution(count - 1, -Math.Abs(t)) * 2.0
-    (p, mean < 0.0)
+    let corrDistr = List.zip xs ys |>List.map (fun (x,y) -> x - y) |> sampleDistribution
+    let t = corrDistr.Mean / corrDistr.StdErr
+    let p = alglib.studenttdistr.studenttdistribution(corrDistr.Count - 1, -Math.Abs(t)) * 2.0
+    (p, corrDistr.Mean < 0.0)
 
 

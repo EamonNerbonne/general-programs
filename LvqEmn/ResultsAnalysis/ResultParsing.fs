@@ -35,11 +35,8 @@ let unpackToListErrs errs =
 
 
 let meanStderrOfErrs errs =
-    let (trns, tsts, nns) = unpackErrs errs
-    let (trnM, trnE) = Utils.meanStderr trns
-    let (tstM, tstE) = Utils.meanStderr tsts
-    let (nnM, nnE) = Utils.meanStderr nns
-    TestLr.ErrorRates(trnM,trnE,tstM,tstE,nnM,nnE, 0.0)
+    let (trnD, tstD, nnD) = unpackErrs errs |> Utils.apply3 Utils.sampleDistribution
+    TestLr.ErrorRates(trnD.Mean, trnD.StdErr, tstD.Mean,tstD.StdErr,nnD.Mean,nnD.StdErr, 0.0)
 
 
 let uncoveredSettings allResults alltypes = 
@@ -48,3 +45,5 @@ let uncoveredSettings allResults alltypes =
     |> List.filter (fun settings -> not <| List.exists (coreSettingsEq settings) alltypes )
     |> List.filter (fun settings -> settings.ModelType = LvqModelType.Lgm |> not )
     |> List.map (fun settings -> settings.ToShorthand())
+
+let isCanonical (settings:LvqModelSettingsCli) = CreateLvqModelValues.SettingsFromShorthand(settings.ToShorthand()) = settings

@@ -16,7 +16,7 @@ let certainlyConfusable x = bestResults 1.00 true x
 let possiblyConfusable x =  bestResults 1.96 true x
 let certainlyOneConfusable x =  bestResults 1.00 false x
 
-let latexifyConfusable (datasetName:string)  (results:list<DatasetResults>) settingsList =
+let latexifyConfusable (title:string)  (results:list<DatasetResults>) settingsList =
     let latexifyConfusableRow (settings, label:string) = 
         let rawResults = results |> ResultParsing.filterResults settings |> ResultParsing.groupResultsByLr //list of LRs, each has a list of results in file order
         let results = 
@@ -42,7 +42,7 @@ let latexifyConfusable (datasetName:string)  (results:list<DatasetResults>) sett
             // + " & " + sprintf " $ %1.3f $ & $ %1.3f $" bestlr.Lr0 bestlr.LrP + (if bestlr.LrB > 0.0 then sprintf  " & $ %1.3f $" bestlr.LrB else "&")
         )
             
-    @"\noindent " + datasetName  + ":\\\\\n" + 
+    @"\noindent " + title  + ":\\\\\n" + 
         @"\begin{tabular}{@{}lllllll@{}}"+"\n"
         + @"model &\multicolumn{2}{c}{training error rate} & \multicolumn{2}{c}{test error rate} &\multicolumn{2}{c}{NN error rate}  \\" + "\n" //& better than & $\lr_0$ & $\lr_P$ & $\lr_B$
         + @"        & best &\footnotesize upper quartile & best &\footnotesize upper quartile & best &\footnotesize upper quartile \\\hline" + "\n" //&  & &  &

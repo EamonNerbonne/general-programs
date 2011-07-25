@@ -4,16 +4,15 @@ open LvqLibCli
 open EmnExtensions
 open System
 
-let latexifyCompareMethods (datasetName:string)  (allresults:list<DatasetResults>) settingsList =
-    let latexifyConfusableRow (settings:LvqModelSettingsCli, label:string) = 
-        let basicSettings = (new LvqModelSettingsCli()).WithChanges(settings.ModelType, settings.PrototypesPerClass, settings.ParamsSeed, settings.InstanceSeed)
+let latexifyCompareMethods (datasetName:string) (allresults:list<DatasetResults>) settingsList =
+    let latexifyConfusableRow (baseSettings:LvqModelSettingsCli, settings:LvqModelSettingsCli, label:string) = 
         let getResults s = 
             allresults |> ResultParsing.filterResults s |> ResultParsing.groupResultsByLr //list of LRs, each has a list of results in file order
             |> List.map snd //list of LRs without their values, each  has a list of results in file order
             |> List.map (fun errs -> (ResultParsing.meanStderrOfErrs errs, errs))//list of LRs, each mean+stderrs for error rates
             |> List.sortBy (fst>> (fun err-> err.ErrorMean))
         let results = getResults settings
-        let basicResults = getResults basicSettings
+        let basicResults = getResults baseSettings
         let (besterr, besterrs) = List.head results 
         let (err75th, err75ths) = List.length results / 4 |> List.nth results
         let (besterrB ,besterrBs)= List.head basicResults 
