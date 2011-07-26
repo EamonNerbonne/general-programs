@@ -1,7 +1,6 @@
 ﻿module LatexifyResults
 open LvqGui
 open EmnExtensions
-open System
 
 let bestResults cutoffscale useall (results:list<TestLr.ErrorRates>) = 
     let best = results |> List.head
@@ -12,40 +11,40 @@ let bestResults cutoffscale useall (results:list<TestLr.ErrorRates>) =
 //    let filterF = if useall then List.forall2 else List.exists2
 //    results |> List.filter (snd >> List.map toCutoffMin >> filterF (fun cutoffval currval -> cutoffval > currval) cutoff)
 
-let certainlyConfusable x = bestResults 1.00 true x
-let possiblyConfusable x =  bestResults 1.96 true x
-let certainlyOneConfusable x =  bestResults 1.00 false x
+let certainlyConfusable = bestResults 1.00 true
+let possiblyConfusable =  bestResults 1.96 true
+let certainlyOneConfusable =  bestResults 1.00 false
 
-let latexifyConfusable (title:string)  (results:list<DatasetResults>) settingsList =
-    let latexifyConfusableRow (settings, label:string) = 
-        let rawResults = results |> ResultParsing.filterResults settings |> ResultParsing.groupResultsByLr //list of LRs, each has a list of results in file order
-        let results = 
-            rawResults
-            |> List.map (Utils.apply2nd ResultParsing.meanStderrOfErrs) //list of LRs, each mean+stderrs for error rates
-            |> List.sortBy (snd >>  (fun err-> err.ErrorMean))
-//        printfn "%d" (rawResults |> List.head |> snd |> List.length)
-        let confusableCount = results |> List.map snd |> certainlyConfusable  |> List.length
-        let confusableRatio = float confusableCount / float(List.length results)
+let latexifyConfusable (title:string)  (allResults:list<DatasetResults>) settingsList =
+    let latexifyConfusableRow errTypeSelector (settings, label:string) = 
+        let resultsByLr = 
+            ResultParsing.chooseResults allResults settings |> ResultParsing.groupResultsByLr //list of LRs, each has a list of results in file order
+            |> List.map (fun (lr, errs) -> (errs |> List.map (errTypeSelector >> fst), ResultParsing.meanStderrOfErrs errs |> errTypeSelector, lr))
+            |> List.sortBy (fun (errmean, _, _) -> List.average errmean)
+            |> List.toArray
+        let resultCount =  Array.length resultsByLr
+        let rankedResults =
+            [|0; resultCount / 4; resultCount * 2 / 4; resultCount * 3 / 4; resultCount - 1 |] 
+            |> Array.map (Array.get resultsByLr)
+        let (bestMeans,_,_) = rankedResults.[0]    
+
+        let confusableCount =
+            resultsByLr |> Seq.skip 1
+            |> Seq.map (fun (errmean,_,_) -> Utils.twoTailedPairedTtest bestMeans errmean)
+            |> Seq.filter (fun (p, firstIsBetter) -> not firstIsBetter || p > 0.05)
+            |> Seq.length
+        let confusableRatio = float confusableCount / float(resultCount - 1)
         let prErr(mean, stderr) =  sprintf @"$%.1f \pm %.2f $" (mean*100.) (stderr*100.)
-        let (bestlr, besterr) = List.head results 
-        let (lr75th, err75th ) = List.length results / 4 |> List.nth results
+
+        label
+        + String.concat "" (Seq.map (fun (_,meanStderr,_) -> " & " + prErr meanStderr) rankedResults)
+        + sprintf " & $%f" (100. - 100. * confusableRatio) + "\\%$ "
+        // + " & " + sprintf " $ %1.3f $ & $ %1.3f $" bestlr.Lr0 bestlr.LrP + (if bestlr.LrB > 0.0 then sprintf  " & $ %1.3f $" bestlr.LrB else "&")
         
-        (besterr.training, 
-            label
-            + " & " + prErr (besterr.training , besterr.trainingStderr )
-            + " & " + prErr (err75th.training , err75th.trainingStderr )
-            + " & " + prErr (besterr.test , besterr.testStderr )
-            + " & " + prErr (err75th.test , err75th.testStderr )
-            + " & " + (if F.IsFinite besterr.nn then prErr (besterr.nn, besterr.nnStderr ) else "")
-            + " & " + (if F.IsFinite err75th.nn then prErr (err75th.nn, err75th.nnStderr ) else "")
-            //+ sprintf " & $%2.0f" (100. - 100. * confusableRatio) + "\\%$ "
-            // + " & " + sprintf " $ %1.3f $ & $ %1.3f $" bestlr.Lr0 bestlr.LrP + (if bestlr.LrB > 0.0 then sprintf  " & $ %1.3f $" bestlr.LrB else "&")
-        )
             
-    @"\noindent " + title  + ":\\\\\n" + 
+    @"\noindent " + title  + " (training error):\\\\\n" + 
         @"\begin{tabular}{@{}lllllll@{}}"+"\n"
-        + @"model &\multicolumn{2}{c}{training error rate} & \multicolumn{2}{c}{test error rate} &\multicolumn{2}{c}{NN error rate}  \\" + "\n" //& better than & $\lr_0$ & $\lr_P$ & $\lr_B$
-        + @"        & best &\footnotesize upper quartile & best &\footnotesize upper quartile & best &\footnotesize upper quartile \\\hline" + "\n" //&  & &  &
-        + String.Join("\\\\\n", settingsList |> List.map latexifyConfusableRow (*|> List.sort*) |> List.map snd)
+        + @"     model   & best &\footnotesize upper quartile & median &\footnotesize lower quartile & worst & certainty \\\hline" + "\n" //&  & &  &
+        + String.concat "\\\\\n" (settingsList |> List.map (latexifyConfusableRow (fun err-> (err.training, err.trainingStderr))))
         + "\n" + @"\end{tabular}"
 

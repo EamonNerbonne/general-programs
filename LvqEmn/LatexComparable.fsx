@@ -9,17 +9,26 @@ open LvqLibCli
 
 
 let allResults = ResultParsing.loadAllResults "base"
+let tenResults = ResultParsing.onlyFirst10results allResults
 
 let heuristicsCompared=
     heuristics
-    |> List.map (fun (baseHeuristicSettings, name) -> latexifyCompareMethods name allResults (relevantVariants baseHeuristicSettings))  
+    |> List.map (fun (baseHeuristicSettings, name) -> latexifyCompareMethods name tenResults (relevantVariants baseHeuristicSettings))  
     |> String.concat "\n\n"
 
+let basicTypesWithName = variants |> List.map (fun (variant, varName) -> (LvqModelSettingsCli() |> variant, varName))
+let basicTypes = basicTypesWithName |> List.map fst
 
-ErrorCorrelations.initCorrs allResults (variants |> List.map (fun (variant, varName) -> (LvqModelSettingsCli() |> variant, varName )) ) |>printfn "%A"
+LatexifyResults.latexifyConfusable "base" allResults basicTypesWithName
 
+ErrorCorrelations.initCorrs allResults basicTypes |>printfn "%A"
 
-alltypes |> List.map (ErrorCorrelations.errTypeCorrelationLatex allResults) |> String.concat "\\\\\n" 
+basicTypes 
+    |> List.map (
+        fun settings -> 
+            ErrorCorrelations.errTypeCorrelationLatex (settings.ToShorthand()) (ResultParsing.chooseResults allResults settings) false
+        ) 
+    |> String.concat "\\\\\n" 
 
 
 (*

@@ -17,8 +17,11 @@ let groupResultsByLr (results:list<DatasetResults>) =
     |> Utils.groupList (fun (lr, err, result) -> lr) (fun (lr, err, result) -> err )
 
 let coreSettingsEq a b = DatasetResults.WithoutLrOrSeeds(a).ToShorthand() =  DatasetResults.WithoutLrOrSeeds(b).ToShorthand()
-let filterResults exampleSettings results = 
-    results |> List.filter (fun (result:DatasetResults) -> coreSettingsEq exampleSettings result.unoptimizedSettings && result.unoptimizedSettings.InstanceSeed < 20u)
+
+let onlyFirst10results = List.filter (fun (result:DatasetResults) ->result.unoptimizedSettings.InstanceSeed < 20u)
+
+let chooseResults results exampleSettings = 
+    results |> List.filter (fun (result:DatasetResults) -> coreSettingsEq exampleSettings result.unoptimizedSettings)
 
 //let loadResultsByLr datasetName (settings:LvqLibCli.LvqModelSettingsCli) = 
 //    loadAllResults datasetName |> filterResults settings  |> groupResultsByLr
