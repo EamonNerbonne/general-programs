@@ -1,8 +1,7 @@
-﻿module GeneralHelpers
+﻿module GeneralSettings
 
 open LvqLibCli
 open LvqGui
-open LatexifyCompareMethods
 
 
 let variants:list< (LvqModelSettingsCli -> LvqModelSettingsCli) * string > =
@@ -39,3 +38,5 @@ let relevantVariants baseHeuristicSettings =
 
 let alltypes = heuristics |> List.collect (fun (setting, name) -> variants |> List.map (fun (alt, altname) -> (alt setting, name + ":" + altname))) |> List.map fst 
 
+let basicTypesWithName = variants |> List.map (fun (variant, varName) -> (LvqModelSettingsCli() |> variant, varName))
+let basicTypes = basicTypesWithName |> List.map fst

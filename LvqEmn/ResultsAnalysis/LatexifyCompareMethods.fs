@@ -59,3 +59,4 @@ let latexifyCompareMethods (datasetName:string) (allresults:list<DatasetResults>
         + String.Join("\\\\\n", settingsList |> List.map latexifyConfusableRow (*|> List.sort*) |> List.map snd)
         + "\n" + @"\end{tabular}"
 
+let latexifyCompareHeuristic (allresults:list<DatasetResults>) (baseHeuristic, heuristicName) = latexifyCompareMethods heuristicName allresults (GeneralSettings.relevantVariants baseHeuristic)

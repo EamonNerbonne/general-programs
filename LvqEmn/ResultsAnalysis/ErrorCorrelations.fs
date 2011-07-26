@@ -42,7 +42,12 @@ let errTypeCorrelationLatex title results onlyBestResults =
     let corrInfo = errTypeCorrelation results onlyBestResults
     title + " & " + String.Join(" & ", List.map (fun (errname, x:Utils.SampleDistribution) -> if Double.IsNaN(x.Mean) then "" else Utils.latexstderr x) corrInfo)
 
-
+let errTypeCorrTableLatex results onlyBestResults settingsList = 
+    @"\begin{tabular}{llll} model type & training $\leftrightarrow$ test & training $\leftrightarrow$ NN &  test $\leftrightarrow$ NN  \\\hline" + "\n" + 
+    (settingsList 
+    |> List.map (fun (settings:LvqModelSettingsCli) -> errTypeCorrelationLatex (settings.ToShorthand()) (ResultParsing.chooseResults results settings) onlyBestResults) 
+    |> String.concat "\\\\\n") + "\n"
+    + @"\end{tabular}" + "\n"
     
 
 //-------------------------------------------------------------------------------initialization correlations
@@ -57,3 +62,11 @@ let initCorrs results (settingslist:list< LvqModelSettingsCli>) =
         |> List.map Utils.sampleDistribution //, list of model type correlation mean/stderrs
         |> List.zip (corrSettings settingslist)
 
+let meanInitCorrs results  (settingslist:list< LvqModelSettingsCli>) = 
+    settingslist
+        |> List.filter (fun settings -> settings.ModelType <> LvqModelType.Lgm)
+        |> List.map (ResultParsing.chooseResults results >> ResultParsing.groupResultsByLr >> List.map (snd >> List.map (fun err->err.training))) 
+                //list of model types, each has a list of LRs, each has a list of results in file order
+        |> List.concat  //list of model types+lrs, each has a list of results in file order
+        |> corrs //a list of correlations between differing types/lrs over changing initialization
+        |> Utils.sampleDistribution //mean correlation between differing types/lrs over changing initialization
