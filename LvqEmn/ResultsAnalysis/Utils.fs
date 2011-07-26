@@ -11,6 +11,8 @@ let apply2 f (a, b) = (f a, f b)
 let apply3 f (a, b, c) = (f a, f b, f c)
 let apply4 f (a, b, c, d) = (f a, f b, f c, f d)
 
+let nullable (x:'a) = new System.Nullable<'a>(x)
+
 let rec flipList lstOfLists = 
     let lstOfNonemptyLists = List.filter (List.isEmpty >> not) lstOfLists
     if List.isEmpty lstOfNonemptyLists then []

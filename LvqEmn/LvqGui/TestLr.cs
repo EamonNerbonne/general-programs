@@ -182,6 +182,7 @@ namespace LvqGui {
 				nnStderr = nnIdx == -1 ? double.NaN : stats.StandardError[nnIdx];
 				cumLearningRate = stats.Value[LvqTrainingStatCli.CumLearningRateI];
 			}
+
 			public double ErrorMean { get { return training * 0.9 + (nn.IsFinite() ? test * 0.05 + nn * 0.05 : test * 0.1); } }
 			public override string ToString() {
 				return Statistics.GetFormatted(training, trainingStderr, 1) + "; " +

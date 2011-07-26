@@ -24,7 +24,10 @@ namespace LvqGui {
 				.Select(modelfold => new LvqModelCli(shorthand, forDataset, modelfold, lvqModelSettingsCli, true))
 				.OrderBy(model => model.InitDataFold)
 				.ToArray();
+			nnErrIdx = subModels[0].TrainingStatNames.AsEnumerable().IndexOf(name => name.Contains("NN Error"));
 		}
+
+		public readonly int nnErrIdx;
 
 		public string ModelLabel { get { return subModels.First().ModelLabel; } }
 
@@ -40,17 +43,19 @@ namespace LvqGui {
 
 		public double CurrentLearningRate { get { return subModels.Sum(model => model.UnscaledLearningRate) / ModelCount; } }
 
+		public TestLr.ErrorRates CurrentErrorRates(LvqDatasetCli dataset) { return new TestLr.ErrorRates(CurrentRawStats(dataset), nnErrIdx); }
+
 		public int SelectedSubModel { get; set; }
 
 		public struct Statistic { public double[] Value, StandardError; public int BestIdx;}
 		public static double GetItersPerEpoch(LvqDatasetCli dataset) { return (double)dataset.PointCount * (dataset.IsFolded() ? (dataset.Folds() - 1.0) / dataset.Folds() : 1.0); }
 
-		public Statistic EvaluateStats(LvqDatasetCli selectedDataset) { return MeanStdErrStats(EvaluateFullStats(selectedDataset)); }
+		public Statistic CurrentRawStats(LvqDatasetCli selectedDataset) { return MeanStdErrStats(EvaluateFullStats(selectedDataset)); }
 		public IEnumerable<LvqTrainingStatCli> EvaluateFullStats(LvqDatasetCli selectedDataset) { return subModels.Select(m => m.EvaluateStats(selectedDataset, m.InitDataFold)); }
 		public int GetBestSubModelIdx(LvqDatasetCli selectedDataset) { return MinIdx(EvaluateFullStats(selectedDataset).Select(stat => stat.values[LvqTrainingStatCli.TrainingErrorI])); }
 
 		public string CurrentStatsString(LvqDatasetCli selectedDataset) {
-			var meanstats = EvaluateStats(selectedDataset);
+			var meanstats = CurrentRawStats(selectedDataset);
 			StringBuilder sb = new StringBuilder();
 			for (int i = 0; i < TrainingStatNames.Length; i++)
 				sb.AppendLine(TrainingStatNames[i].Split('!')[0] + ": " + Statistics.GetFormatted(meanstats.Value[i], meanstats.StandardError[i]));
@@ -157,14 +162,19 @@ namespace LvqGui {
 			Task.WaitAll(helpers);
 		}
 
-		public void Train(int epochsToDo, LvqDatasetCli trainingSet, CancellationToken cancel) {
+		public void TrainEpochs(int epochsToDo, LvqDatasetCli trainingSet, CancellationToken cancel) {
 			if (cancel.IsCancellationRequested) return;
 			int epochsTarget;
 			lock (epochsSynch)
 				epochsTarget = epochsDone += epochsToDo;
 			TrainImpl(cancel, epochsTarget - epochsToDo, epochsTarget, trainingSet);
 		}
-		public void TrainUpto(int epochsToTrainUpto, LvqDatasetCli trainingSet, CancellationToken cancel) {
+
+		public void TrainUptoIters(double itersToTrainUpto, LvqDatasetCli trainingSet, CancellationToken cancel) {
+			TrainUptoEpochs((int)(itersToTrainUpto / GetItersPerEpoch(trainingSet) ), trainingSet, cancel);
+		}
+
+		public void TrainUptoEpochs(int epochsToTrainUpto, LvqDatasetCli trainingSet, CancellationToken cancel) {
 			if (cancel.IsCancellationRequested) return;
 			int epochsCurrent;
 			lock (epochsSynch) {

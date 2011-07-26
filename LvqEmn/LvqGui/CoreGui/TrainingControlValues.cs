@@ -71,11 +71,6 @@ namespace LvqGui {
 				return SelectedDataset.ClassColors.Select((col, i) => new { ClassLabel = i, ClassColor = (SolidColorBrush)new SolidColorBrush(col).GetAsFrozen() }).ToArray();
 			}
 		}
-		public bool PrintOrder {
-			get { return _PrintOrder; }
-			set { if (!_PrintOrder.Equals(value)) { _PrintOrder = value; _propertyChanged("PrintOrder"); } }
-		}
-		bool _PrintOrder;
 
 		public bool ShowBoundaries {
 			get { return _ShowBoundaries; }
@@ -155,7 +150,7 @@ namespace LvqGui {
 			int epochsToTrainFor = EpochsPerClick;
 			TrainSelectedModel((dataset, model) => {
 				using (new DTimer("Training " + epochsToTrainFor + " epochs"))
-					model.Train(epochsToTrainFor, dataset, Owner.WindowClosingToken);
+					model.TrainEpochs(epochsToTrainFor, dataset, Owner.WindowClosingToken);
 				//var newIdx = model.GetBestSubModelIdx(dataset);
 				//owner.Dispatcher.BeginInvoke(() => { SubModelIndex = newIdx; });
 			}, SelectedDataset, SelectedLvqModel);
@@ -190,10 +185,10 @@ namespace LvqGui {
 
 		public void TrainUptoIters() {
 			double uptoIters = ItersToTrainUpto;
-			int uptoEpochs = (int)(uptoIters / ItersPerEpoch + 0.5);
+			int uptoEpochs = (int)(uptoIters / ItersPerEpoch);
 			TrainSelectedModel((dataset, model) => {
 				using (new DTimer("Training up to " + uptoEpochs + " epochs"))
-					model.TrainUpto(uptoEpochs, dataset, Owner.WindowClosingToken);
+					model.TrainUptoIters(uptoIters, dataset, Owner.WindowClosingToken);
 
 				var newIdx = model.GetBestSubModelIdx(dataset);
 				owner.Dispatcher.BeginInvoke(() => {
@@ -207,14 +202,13 @@ namespace LvqGui {
 
 		public void TrainAllUptoIters() {
 			double uptoIters = ItersToTrainUpto;
-			var printOrder = PrintOrder;
 			var allModels = Owner.LvqModels.ToArray();
 			Parallel.ForEach(Partitioner.Create(allModels, true), new ParallelOptions { MaxDegreeOfParallelism = 3, CancellationToken = owner.WindowClosingToken }, model => {
 				var dataset = model.InitSet;
 				int uptoEpochs = (int)(uptoIters / LvqMultiModel.GetItersPerEpoch(dataset) + 0.5);
 				TrainSelectedModel((_dataset, _model) => {
 					using (new DTimer("Training up to " + uptoEpochs + " epochs"))
-						_model.TrainUpto(uptoEpochs, dataset, Owner.WindowClosingToken);
+						_model.TrainUptoEpochs(uptoEpochs, dataset, Owner.WindowClosingToken);
 
 					var newIdx = _model.GetBestSubModelIdx(dataset);
 					owner.Dispatcher.BeginInvoke(() => {
@@ -243,7 +237,7 @@ namespace LvqGui {
 					}
 					overallTask.Enqueue(
 						Task.Factory.StartNew(() => {
-							selectedModel.Train(epochsToTrainFor, selectedDataset, Owner.WindowClosingToken);
+							selectedModel.TrainEpochs(epochsToTrainFor, selectedDataset, Owner.WindowClosingToken);
 							PotentialUpdate(selectedDataset, selectedModel);
 						},
 						Owner.WindowClosingToken));

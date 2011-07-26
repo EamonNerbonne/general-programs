@@ -2,6 +2,7 @@
 #r "ResultsAnalysis"
 #r "LvqLibCli"
 #r "LvqGui"
+#time "on"
 
 open LvqLibCli
 open LvqGui
@@ -15,15 +16,15 @@ let bestRes =
     |> List.head
     
 
-let nullable (x:'a) = new System.Nullable<'a>(x)
-
 let dataset = CreateDataset.CreateFromShorthand(bestRes.resultsFile.Directory.Name)
-let itersPerEpoch = LvqMultiModel.GetItersPerEpoch(dataset);
-let model = new LvqMultiModel(dataset, bestRes.GetOptimizedSettings(nullable 1u, nullable 0u))
+let model = new LvqMultiModel(dataset, bestRes.GetOptimizedSettings(Utils.nullable 1u, Utils.nullable 0u))
 
-model.TrainUpto( 30.*1000.*1000. / itersPerEpoch + 0.5 |> int32, dataset, CancellationToken.None )
+model.TrainUptoIters(30000000. , dataset, CancellationToken.None)
 
-LoadDatasetImpl.ParseSettings(bestRes.resultsFile.Directory.Name)
+model.CurrentStatsString(dataset)
+model.CurrentFullStatsString(dataset)
+bestRes.GetOptimizedSettings(Utils.nullable 1u, Utils.nullable 0u).ToShorthand()
+new TestLr.ErrorRates(model.EvaluateFullStats(dataset) |> Seq.take 3 |> LvqMultiModel.MeanStdErrStats, model.nnErrIdx)
 
 //pagenR
 //    |> List.map (fun res -> (res.GetLrs() |> Seq.sortBy (fun lrE -> lrE.Errors.ErrorMean) |> Seq.toList, res.unoptimizedSettings))
