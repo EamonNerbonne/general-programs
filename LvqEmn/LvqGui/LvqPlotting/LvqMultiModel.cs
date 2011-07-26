@@ -43,7 +43,7 @@ namespace LvqGui {
 		public int SelectedSubModel { get; set; }
 
 		public struct Statistic { public double[] Value, StandardError; public int BestIdx;}
-
+		public static double GetItersPerEpoch(LvqDatasetCli dataset) { return (double)dataset.PointCount * (dataset.IsFolded() ? (dataset.Folds() - 1.0) / dataset.Folds() : 1.0); }
 
 		public Statistic EvaluateStats(LvqDatasetCli selectedDataset) { return MeanStdErrStats(EvaluateFullStats(selectedDataset)); }
 		public IEnumerable<LvqTrainingStatCli> EvaluateFullStats(LvqDatasetCli selectedDataset) { return subModels.Select(m => m.EvaluateStats(selectedDataset, m.InitDataFold)); }

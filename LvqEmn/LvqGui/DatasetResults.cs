@@ -4,7 +4,6 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using EmnExtensions;
-using EmnExtensions.Algorithms;
 using EmnExtensions.Text;
 using LvqLibCli;
 
@@ -33,6 +32,7 @@ namespace LvqGui {
 
 		public IEnumerable<LrAndError> GetLrs() {
 			string[] fileLines = File.ReadAllLines(resultsFile.FullName);
+			if (fileLines.Length < 2) return Enumerable.Empty<LrAndError>();
 			double[] lr0range = ExtractLrs(fileLines.First(line => line.StartsWith("lr0range:")));
 			double[] lrPrange = ExtractLrs(fileLines.First(line => line.StartsWith("lrPrange:")));
 			double[] lrBrange = ExtractLrs(fileLines.First(line => line.StartsWith("lrBrange:")));
@@ -40,8 +40,14 @@ namespace LvqGui {
 			return resultLines.Select(resLine => ParseLine(resLine, lr0range, lrPrange, lrBrange));
 		}
 
-		public struct Lr { public double Lr0, LrP, LrB; }
-		public struct LrAndError { public Lr Lr; public TestLr.ErrorRates Errors; }
+		public struct Lr { public double Lr0, LrP, LrB; public override string ToString() { return Lr0 + " p" + LrP + " b" + LrB; } }
+		public struct LrAndError : IComparable<LrAndError>, IComparable {
+			public Lr Lr; public TestLr.ErrorRates Errors;
+			public int CompareTo(LrAndError other) { return Errors.CompareTo(other.Errors); }
+			public override string ToString() { return Lr + " @ " + Errors; }
+
+			public int CompareTo(object obj) { return CompareTo((LrAndError)obj); }
+		}
 
 		private static LrAndError ParseLine(string resultLine, double[] lr0range, double[] lrPrange, double[] lrBrange) {
 			var resLrThenErr = resultLine.Split(':');

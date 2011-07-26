@@ -55,13 +55,33 @@ namespace LvqGui {
 	static class ShorthandHelper {
 		static readonly object[] empty = new object[] { };
 
-
-
 		public static HashSet<string> ParseShorthand(object shorthandObj, Regex shR, string newShorthand) {
 			HashSet<string> updated = new HashSet<string>();
 			DecomposeShorthand(shorthandObj, shR, newShorthand, (prop, val) => { prop.Value = val; updated.Add(prop.Name); }, err => { throw new ArgumentException(err); });
 			return updated;
 		}
+
+		public static HashSet<string> TryParseShorthand(object shorthandObj, Regex shR, string newShorthand) {
+			var toSet = new Dictionary<Property, object>();
+			bool error = false;
+			DecomposeShorthand(shorthandObj, shR, newShorthand, toSet.Add, err => error = true);
+			if (error) return null;
+			foreach (var entry in toSet)
+				entry.Key.Value = entry.Value;
+			return new HashSet<string>(toSet.Keys.Select(p => p.Name));
+		}
+
+		public static T TryParseShorthand<T>(Regex shR, string newShorthand) where T : class,new() {
+			T shorthandObj = new T();
+			var toSet = new Dictionary<Property, object>();
+			bool error = false;
+			DecomposeShorthand(shorthandObj, shR, newShorthand, toSet.Add, err => error = true);
+			if (error) return null;
+			foreach (var entry in toSet)
+				entry.Key.Value = entry.Value;
+			return shorthandObj;
+		}
+
 
 		public static string VerifyShorthand(IHasShorthand shorthandObj, Regex shR) {
 			var errs = new StringBuilder();

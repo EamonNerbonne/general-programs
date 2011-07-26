@@ -4,6 +4,8 @@
 #r "LvqGui"
 
 open LvqLibCli
+open LvqGui    
+
 
 
 let allResults = ResultParsing.loadAllResults "base"
@@ -19,3 +21,5 @@ ErrorCorrelations.initCorrs allResults GeneralSettings.basicTypes
 ErrorCorrelations.meanInitCorrs allResults GeneralSettings.basicTypes
 
 ErrorCorrelations.errTypeCorrTableLatex allResults false GeneralSettings.basicTypes
+
+

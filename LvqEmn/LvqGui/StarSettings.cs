@@ -4,7 +4,7 @@ using EmnExtensions.Wpf;
 using LvqLibCli;
 
 namespace LvqGui {
-	public class StarSettings : CloneableAs<StarSettings>, IHasShorthand {
+	public class StarSettings : CloneableAs<StarSettings>, IHasShorthand, IDatasetCreator {
 #if DEBUG
 		public int Dimensions=8;
 		public int PointsPerClass=100;
@@ -66,6 +66,8 @@ namespace LvqGui {
 				if (!updated.Contains("GlobalNoiseMaxSigma")) GlobalNoiseMaxSigma = 0.0;
 			}
 		}
+
+		public static StarSettings TryParse(string shorthand) { return ShorthandHelper.TryParseShorthand<StarSettings>(shR, shorthand); }
 
 		public string ShorthandErrors { get { return ShorthandHelper.VerifyShorthand(this, shR); } }
 		public LvqDatasetCli CreateDataset() {

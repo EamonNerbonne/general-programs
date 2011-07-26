@@ -162,7 +162,7 @@ namespace LvqGui {
 			public Task<ErrorRates> errs;
 		}
 
-		public struct ErrorRates {
+		public struct ErrorRates:IComparable<ErrorRates>,IComparable {
 			public readonly double training, trainingStderr, test, testStderr, nn, nnStderr, cumLearningRate;
 			public ErrorRates(double training, double trainingStderr, double test, double testStderr, double nn, double nnStderr, double cumLearningRate) {
 				this.training = training;
@@ -188,6 +188,10 @@ namespace LvqGui {
 					Statistics.GetFormatted(test, testStderr, 1) + "; " +
 					Statistics.GetFormatted(nn, nnStderr, 1) + "; ";
 			}
+
+			public int CompareTo(ErrorRates other) { return ErrorMean.CompareTo(other.ErrorMean); }
+
+			public int CompareTo(object obj) { return CompareTo((ErrorRates)obj); }
 		}
 		static readonly object fsSync = new object();
 

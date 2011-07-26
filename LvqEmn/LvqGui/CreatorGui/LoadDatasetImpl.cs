@@ -14,11 +14,11 @@ using LvqFloat = System.Double;
 namespace LvqGui {
 	public static class LoadDatasetImpl {
 
-		static readonly DirectoryInfo dataDir = FSUtil.FindDataDir(new[] { @"data\datasets\", @"uni\Thesis\datasets\" },typeof(LoadDatasetImpl));
+		static readonly DirectoryInfo dataDir = FSUtil.FindDataDir(new[] { @"data\datasets\", @"uni\Thesis\datasets\" }, typeof(LoadDatasetImpl));
 
 		public static LvqDatasetCli Load(int folds, string name, uint rngInst) {
 			var dataFile = dataDir.GetFiles(name + ".data").FirstOrDefault();
-			return LoadData(dataFile, rngInst, null, folds, false, false);
+			return LoadData(dataFile, new LoadedDatasetSettings { InstanceSeed = rngInst, Folds = folds });
 		}
 
 
@@ -45,27 +45,86 @@ namespace LvqGui {
 			return retval;
 		}
 
-		public static LvqDatasetCli LoadData(FileInfo dataFile, uint shuffleSeed, string testFileName, int folds, bool extendByCorrelation, bool normalizeDims) {
-			if (folds != 0 && testFileName != null)
+		public static LoadedDatasetSettings ParseSettings(string shorthand) { return new LoadedDatasetSettings { Shorthand = shorthand }; }
+		public static LoadedDatasetSettings TryParse(string shorthand) { return ShorthandHelper.TryParseShorthand<LoadedDatasetSettings>(LoadedDatasetSettings.shR, shorthand); }
+
+		public class LoadedDatasetSettings : CloneableAs<LoadedDatasetSettings>, IHasShorthand, IDatasetCreator {
+			public static readonly Regex shR = new Regex(@"^
+				(?<Filename>.*?)
+				(\,(?<TestFilename>.*?))?
+				\-(?<DimCount>[0-9]+)D
+				(?<Extend>x?)
+				(?<Normalize>n?)
+				\-(?<ClassCount>[0-9]+)
+				\,(?<PointCount>[0-9]+)
+				\[(?<InstanceSeed_>[0-9a-fA-F]+)\]
+				\^(?<Folds>\d+)\s*$"
+	,
+		RegexOptions.CultureInvariant | RegexOptions.ExplicitCapture | RegexOptions.IgnorePatternWhitespace);
+
+			public string Filename, TestFilename;
+			public int DimCount, ClassCount, PointCount, Folds = 10;
+			public bool Extend, Normalize;
+			public uint InstanceSeed;
+
+
+			public string Shorthand {
+				get {
+					return Filename + (TestFilename != null ? "," + TestFilename : "") + "-" + DimCount + "D" + (Extend ? "x" : "") + (Normalize ? "n" : "") + "-" + ClassCount + "," + PointCount + "[" + InstanceSeed.ToString("x") + "]^" + Folds;
+				}
+				set {
+					var updated = ShorthandHelper.ParseShorthand(this, shR, value);
+					if (!updated.Contains("TestFilename")) TestFilename = null;
+					if (!updated.Contains("Folds")) Folds = 10;
+					if (!updated.Contains("Extend")) Extend = false;
+					if (!updated.Contains("Normalize")) Normalize = false;
+					if (!updated.Contains("InstanceSeed")) InstanceSeed = 0;
+				}
+			}
+
+			public string ShorthandErrors { get { return ShorthandHelper.VerifyShorthand(this, shR); } }
+
+			public LvqDatasetCli CreateDataset() {
+				var trainFile = dataDir.GetFiles(Filename).FirstOrDefault();
+				if (trainFile == null) return null;
+				var testFile = TestFilename == null ? null : dataDir.GetFiles(TestFilename).FirstOrDefault();
+				if (testFile == null && TestFilename != null) return null;
+				var trainSet = LoadDatasetImpl.LoadData(trainFile, this);
+				trainSet.TestSet = testFile == null ? null : LoadDatasetImpl.LoadData(testFile, this);
+				return trainSet;
+			}
+		}
+
+
+		public static LvqDatasetCli LoadData(FileInfo dataFile, LoadedDatasetSettings settings) {
+			settings = settings.Clone();
+			settings.Filename = dataFile.Name;
+			if (settings.Folds != 0 && settings.TestFilename != null)
 				throw new ArgumentException("Cannot use n-fold crossvalidation and a separate test-set simultaneously");
+
+
 			var labelFile = new FileInfo(dataFile.Directory + @"\" + Path.GetFileNameWithoutExtension(dataFile.Name) + ".label");
 			var pointclouds = labelFile.Exists ? LoadDatasetHelper(dataFile, labelFile) : LoadDatasetHelper(dataFile);
 			var pointArray = pointclouds.Item1;
 			int[] labelArray = pointclouds.Item2;
-			int classCount = pointclouds.Item3;
 			long colorSeedLong = labelArray.Select((label, i) => label * (long)(i + 1)).Sum();
 			int colorSeed = (int)(colorSeedLong + (colorSeedLong >> 32));
-			string name = dataFile.Name + (testFileName != null ? "," + testFileName : "") + "-" + pointArray.GetLength(1) + "D" + (extendByCorrelation ? "x" : "") + (normalizeDims ? "n" : "") + "-" + classCount + "," + pointArray.GetLength(0) + "[" + shuffleSeed.ToString("x") + "]^" + folds;
+
+			settings.DimCount = pointArray.GetLength(1);
+			settings.ClassCount = pointclouds.Item3;
+			settings.PointCount = pointArray.GetLength(0);
+
+
 			return LvqDatasetCli.ConstructFromArray(
-				rngInstSeed: shuffleSeed,
-				label: name,
-				extend: extendByCorrelation,
-				normalizeDims: normalizeDims,
-				folds: folds,
-				colors: WpfTools.MakeDistributedColors(classCount, new MersenneTwister(colorSeed)),
+				rngInstSeed: settings.InstanceSeed,
+				label: settings.Shorthand,
+				extend: settings.Extend,
+				normalizeDims: settings.Normalize,
+				folds: settings.Folds,
+				colors: WpfTools.MakeDistributedColors(settings.ClassCount, new MersenneTwister(colorSeed)),
 				points: pointArray,
 				pointLabels: labelArray,
-				classCount: classCount);
+				classCount: settings.ClassCount);
 		}
 
 		public static Tuple<LvqFloat[,], int[], int> LoadDatasetHelper(FileInfo datafile, FileInfo labelfile) {
