@@ -292,7 +292,7 @@ namespace LvqGui {
 			if (selectedModel != null) selectedModel.ResetLearningRate();
 		}
 
-		internal void UnloadModel() {
+		public void UnloadModel() {
 			var selectedModel = SelectedLvqModel;
 			if (selectedModel != null) {
 				SelectedLvqModel = null;
@@ -300,7 +300,7 @@ namespace LvqGui {
 			}
 		}
 
-		internal void UnloadDataset() {
+		public void UnloadDataset() {
 			var selectedDataset = SelectedDataset;
 			if (selectedDataset != null) {
 				SelectedDataset = null;
@@ -308,7 +308,7 @@ namespace LvqGui {
 			}
 		}
 
-		internal double GetLearningRate() {
+		public double GetLearningRate() {
 			var selectedModel = SelectedLvqModel;
 			return selectedModel != null ? selectedModel.CurrentLearningRate : 0.0;
 		}

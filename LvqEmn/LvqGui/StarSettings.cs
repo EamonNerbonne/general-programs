@@ -90,5 +90,6 @@ namespace LvqGui {
 				globalNoiseMaxSigma: GlobalNoiseMaxSigma
 			);
 		}
+		public void IncInstanceSeed() { InstanceSeed++; }
 	}
 }

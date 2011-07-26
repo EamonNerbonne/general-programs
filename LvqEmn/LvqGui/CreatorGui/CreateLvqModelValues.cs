@@ -274,7 +274,7 @@ namespace LvqGui {
 		public string OptimizeAllButtonText { get { return HasOptimizedLrAll ? "Create all types' with Optimal LR" : "Find all types' optimal LR"; } }
 
 
-		internal void OptimizeLr() {//on gui thread.
+		public void OptimizeLr() {//on gui thread.
 			var settingsCopy = settings;
 			settingsCopy.InstanceSeed = 0;
 			settingsCopy.ParamsSeed = 1;
@@ -287,7 +287,7 @@ namespace LvqGui {
 			});
 		}
 
-		internal void OptimizeLrAll() {//on gui thread.
+		public void OptimizeLrAll() {//on gui thread.
 			var settingsCopy = settings;
 			settingsCopy.InstanceSeed = 0;
 			settingsCopy.ParamsSeed = 1;
@@ -301,7 +301,7 @@ namespace LvqGui {
 		static readonly string[] depProps = new[] { "HasOptimizedLr", "OptimizeButtonText", "HasOptimizedLrAll", "OptimizeAllButtonText" };
 		protected override IEnumerable<string> GloballyDependantProps { get { return base.GloballyDependantProps.Concat(depProps); } }
 
-		internal void OptimizeOrCreate() {//gui thread
+		public void OptimizeOrCreate() {//gui thread
 			var bestResult = DatasetResults.GetBestResult(ForDataset, settings);
 			if (bestResult == null)
 				OptimizeLr();
@@ -309,7 +309,7 @@ namespace LvqGui {
 				CreateSingleModel(owner, ForDataset, bestResult.GetOptimizedSettings());
 		}
 
-		internal void OptimizeAllOrCreateAll() {
+		public void OptimizeAllOrCreateAll() {
 			var dataset = ForDataset;
 			var bestResults = DatasetResults.GetBestResults(ForDataset, settings);
 			var paramsSeed = ParamsSeed;

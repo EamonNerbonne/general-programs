@@ -26,6 +26,7 @@ namespace LvqGui {
 
 
 		public Task DisplayModel(LvqDatasetCli dataset, LvqMultiModel model, int new_subModelIdx, StatisticsViewMode viewMode, bool showBoundaries, bool showPrototypes) {
+			if (lvqPlotDispatcher.HasShutdownStarted) throw new InvalidOperationException("Dispatcher shutting down");
 			return lvqPlotTaskScheduler.StartNewTask(() => {
 				lock (plotsSync) {
 					if (dataset == null || model == null) {
@@ -36,7 +37,7 @@ namespace LvqGui {
 						subPlotWindow.Title = model.ModelLabel;
 						LvqStatPlots oldsubplots = model.Tag as LvqStatPlots;
 
-						bool modelChange = oldsubplots == null || oldsubplots.dataset != dataset || oldsubplots.model != model;
+						bool modelChange = oldsubplots == null || oldsubplots.dataset != dataset || oldsubplots.model != model || oldsubplots.plots.First().Dispatcher != lvqPlotDispatcher;
 						if (modelChange)
 							model.Tag = subplots = new LvqStatPlots(dataset, model);
 						else
@@ -62,20 +63,22 @@ namespace LvqGui {
 		}
 
 		StatisticsViewMode currViewMode;
-		public void ShowCurrentProjectionStats(StatisticsViewMode viewMode) {
+		public Task ShowCurrentProjectionStats(StatisticsViewMode viewMode) {
+			Task retval = null;
 			lock (plotsSync) {
 				if (subplots != null && subplots.statPlots != null)
-					lvqPlotDispatcher.BeginInvoke(() => {
+					retval = lvqPlotDispatcher.BeginInvoke(() => {
 						foreach (var plot in subplots.statPlots)
 							if (plot.Plot.MetaData.Tag == LvqStatPlotFactory.IsCurrPlotTag) {
 								plot.Plot.MetaData.Hidden = viewMode == StatisticsViewMode.MeanAndStderr;
 								((VizLineSegments)((ITranformed<Point[]>)plot.Plot.Visualisation).Implementation).DashStyle = viewMode == StatisticsViewMode.CurrentOnly ? DashStyles.Solid : LvqStatPlotFactory.CurrPlotDashStyle;
 							} else
 								plot.Plot.MetaData.Hidden = viewMode == StatisticsViewMode.CurrentOnly;
-					});
+					}).AsTask();
 				currViewMode = viewMode;
 			}
 			QueueUpdate();
+			return retval ?? SeedUtils.CompletedTask();
 		}
 
 		public void ShowPrototypes(bool visible) {
@@ -135,10 +138,10 @@ namespace LvqGui {
 		}
 		Window subPlotWindow;
 		CancellationToken exitToken;
-
-		public LvqStatPlotsContainer(CancellationToken exitToken) {
+		readonly bool hide;
+		public LvqStatPlotsContainer(CancellationToken exitToken, bool hide = false) {
 			this.exitToken = exitToken;
-
+			this.hide = hide;
 			lvqPlotDispatcher = WpfTools.StartNewDispatcher(ThreadPriority.BelowNormal);
 			lvqPlotTaskScheduler = lvqPlotDispatcher.GetScheduler().Result;
 			lvqPlotDispatcher.BeginInvoke(MakeSubPlotWindow);
@@ -153,7 +156,8 @@ namespace LvqGui {
 				Height = SystemParameters.MaximizedPrimaryScreenHeight - borderWidth * 2,
 				Title = "No Model Selected",
 				Background = Brushes.Gray,
-				Content = new Grid()
+				Content = new Grid(),
+				Visibility = Visibility.Hidden
 			};
 
 			subPlotWindow.SizeChanged += (o, e) => RelayoutSubPlotWindow();
@@ -161,14 +165,15 @@ namespace LvqGui {
 			subPlotWindow.Top = 0;
 			double subWindowLeft = subPlotWindow.Left = SystemParameters.FullPrimaryScreenWidth - subPlotWindow.Width;
 
-			Application.Current.Dispatcher.BeginInvoke(() => {
-				var mainWindow = Application.Current.MainWindow;
-				if (mainWindow != null && mainWindow.Left + mainWindow.Width > subWindowLeft)
-					mainWindow.Left = Math.Max(0, subWindowLeft - +mainWindow.Width);
-			});
+			if (Application.Current != null) // just a little nicer layout; this won't work from F#
+				Application.Current.Dispatcher.BeginInvoke(() => {
+					var mainWindow = Application.Current.MainWindow;
+					if (mainWindow != null && mainWindow.Left + mainWindow.Width > subWindowLeft)
+						mainWindow.Left = Math.Max(0, subWindowLeft - +mainWindow.Width);
+				});
 		}
 
-		void QueueUpdate() { ThreadPool.QueueUserWorkItem(UpdateQueueProcessor); }
+		public void QueueUpdate() { ThreadPool.QueueUserWorkItem(UpdateQueueProcessor); }
 		readonly UpdateSync updateSync = new UpdateSync();
 
 		void UpdateQueueProcessor(object _) {
@@ -223,23 +228,40 @@ namespace LvqGui {
 			}));
 		}
 
-		internal static void QueueUpdateIfCurrent(LvqStatPlotsContainer plotData) {
+		public static void QueueUpdateIfCurrent(LvqStatPlotsContainer plotData) {
 			if (plotData != null && plotData.subplots != null)
 				plotData.QueueUpdate();
 		}
 
-		static readonly DirectoryInfo outputDir = FSUtil.FindDataDir(@"uni\Thesis\doc\plots\xps", typeof(LvqStatPlotsContainer));
-		internal Task SaveAllGraphs(bool alsoEmbedding) {
+		static readonly DirectoryInfo outputDir = FSUtil.FindDataDir(@"uni\Thesis\doc\plots", typeof(LvqStatPlotsContainer));
+
+		public static bool AnnouncePlotGeneration(LvqDatasetCli dataset, string shorthand, long iterIntent) {
+			DirectoryInfo modelDir = GraphDir(dataset, shorthand);
+			string iterPostfix = "-" + TestLr.ItersPrefix(iterIntent);
+
+			string statspath = modelDir.FullName + "\\fullstats" + iterPostfix + ".txt";
+			bool exists = File.Exists(statspath);
+			if (!exists)
+				File.WriteAllText(statspath, "");
+			return !exists;
+		}
+
+		static DirectoryInfo GraphDir(LvqDatasetCli dataset, string modelshorthand) {
+			DirectoryInfo datasetDir = outputDir.CreateSubdirectory(@"auto\" + dataset.DatasetLabel);
+			string modelLabel = modelshorthand.SubstringBefore("--") ?? modelshorthand;
+			return datasetDir.CreateSubdirectory(modelLabel);
+
+		}
+
+		public Task SaveAllGraphs(bool alsoEmbedding) {
 			return Task.Factory.StartNew(() => GetDisplayUpdateTask(subplots).Wait()).ContinueWith(_ => {
+
 				if (subplots == null) { Console.WriteLine("No plots to save!"); return; }
 				Console.Write("Saving");
 
-				//DirectoryInfo genDir = outputDir.CreateSubdirectory("a");
-				DirectoryInfo datasetDir = outputDir.CreateSubdirectory(@"a\" + subplots.dataset.DatasetLabel);
-
-				//DirectoryInfo datasetDir = outputDir.CreateSubdirectory((currViewMode != StatisticsViewMode.MeanAndStderr ? @"g2\" : @"g\") + subplots.dataset.DatasetLabel);
-				string modelLabel = subplots.model.ModelLabel.SubstringBefore("--") ?? subplots.model.ModelLabel;
-				DirectoryInfo modelDir = datasetDir.CreateSubdirectory(modelLabel);
+				DirectoryInfo modelDir = GraphDir(subplots.dataset, subplots.model.ModelLabel);
+				double iterations = subplots.model.CurrentRawStats(subplots.dataset).Value[LvqTrainingStatCli.TrainingIterationI];
+				string iterPostfix = "-" + TestLr.ItersPrefix((long)(iterations + 0.5));
 
 				Grid plotGrid = (Grid)subPlotWindow.Content;
 				PlotControl[] plotControls = plotGrid.Children.OfType<PlotControl>().ToArray();
@@ -248,13 +270,14 @@ namespace LvqGui {
 						continue;
 					string filename = plotnameLookup(plotControl.PlotName)
 						+ (currViewMode == StatisticsViewMode.CurrentOnly ? @"-c" : currViewMode == StatisticsViewMode.CurrentAndMean ? @"-cm" : @"-m")
+						+ iterPostfix
 						+ ".xps";
 					string filepath = modelDir.FullName + "\\" + filename;
 					File.WriteAllBytes(filepath, plotControl.PrintToByteArray());
 					Console.Write(".");
 				}
-				File.WriteAllText(modelDir.FullName + "\\stats.txt", subplots.model.CurrentStatsString(subplots.dataset));
-				File.WriteAllText(modelDir.FullName + "\\fullstats.txt", subplots.model.CurrentFullStatsString(subplots.dataset));
+				File.WriteAllText(modelDir.FullName + "\\stats" + iterPostfix + ".txt", subplots.model.CurrentStatsString(subplots.dataset));
+				File.WriteAllText(modelDir.FullName + "\\fullstats" + iterPostfix + ".txt", subplots.model.CurrentFullStatsString(subplots.dataset));
 				Console.WriteLine("done.");
 			}, lvqPlotTaskScheduler);
 		}

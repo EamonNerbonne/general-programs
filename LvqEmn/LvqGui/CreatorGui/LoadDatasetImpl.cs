@@ -93,6 +93,9 @@ namespace LvqGui {
 				trainSet.TestSet = testFile == null ? null : LoadDatasetImpl.LoadData(testFile, this);
 				return trainSet;
 			}
+
+
+			public void IncInstanceSeed() { InstanceSeed++; }
 		}
 
 

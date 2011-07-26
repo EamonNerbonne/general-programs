@@ -77,7 +77,7 @@ namespace LvqGui {
 
 		static readonly Regex resultsFilenameRegex = new Regex(@"^(?<iters>[0-9]?e[0-9])+\-(?<shorthand>[^ ]*?)( \([0-9+]\))?\.txt$");
 
-		static IEnumerable<DatasetResults> FromDataset(LvqDatasetCli dataset) {
+		public static IEnumerable<DatasetResults> FromDataset(LvqDatasetCli dataset) {
 			return
 				from datasetResultsDir in GetDatasetResultDir(dataset)
 				from resultFile in datasetResultsDir.GetFiles("*.txt")
@@ -89,7 +89,7 @@ namespace LvqGui {
 
 		public static DatasetResults ProcFile(FileInfo resultFile) {
 			var match = resultsFilenameRegex.Match(resultFile.Name);
-			if (!match.Success) return null;
+			if (!match.Success || resultFile.Length == 0) return null;
 
 			return new DatasetResults(resultFile, Double.Parse(match.Groups["iters"].Value.StartsWith("e") ? "1" + match.Groups["iters"].Value : match.Groups["iters"].Value),
 				CreateLvqModelValues.SettingsFromShorthand(match.Groups["shorthand"].Value));

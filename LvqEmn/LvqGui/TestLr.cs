@@ -71,11 +71,17 @@ namespace LvqGui {
 			}
 		}
 
+
 		public static string ShortnameFor(long iters, LvqModelSettingsCli settings) {
+			return ItersPrefix(iters) + "-" + settings.ToShorthand();
+		}
+
+		public static string ItersPrefix(long iters) {
 			int pow10 = (int)(Math.Log10(iters + 0.5));
 			int prefix = (int)(iters / Math.Pow(10.0, pow10) + 0.5);
-			return (prefix == 1 ? "" : prefix.ToString()) + "e" + pow10 + "-" + settings.ToShorthand();
+			return (prefix == 1 ? "" : prefix.ToString()) + "e" + pow10;
 		}
+
 		public string ShortnameFor(LvqModelSettingsCli settings) {
 			return ShortnameFor(_itersToRun, settings);
 		}
@@ -145,7 +151,7 @@ namespace LvqGui {
 				results[i] = Task.Factory.StartNew(() => {
 					var model = new LvqModelCli("model", dataset, fold, settings, false);
 					nnErrorIdx = model.TrainingStatNames.AsEnumerable().IndexOf(name => name.Contains("NN Error")); // threading irrelevant; all the same & atomic.
-					model.Train((int)(iters / dataset.GetTrainingSubsetSize(fold)), dataset, fold,false,false);
+					model.Train((int)(iters / dataset.GetTrainingSubsetSize(fold)), dataset, fold, false, false);
 					return model.EvaluateStats(dataset, fold);
 				}, cancel, TaskCreationOptions.PreferFairness, LowPriorityTaskScheduler.DefaultLowPriorityScheduler);
 			}
@@ -162,7 +168,7 @@ namespace LvqGui {
 			public Task<ErrorRates> errs;
 		}
 
-		public struct ErrorRates:IComparable<ErrorRates>,IComparable {
+		public struct ErrorRates : IComparable<ErrorRates>, IComparable {
 			public readonly double training, trainingStderr, test, testStderr, nn, nnStderr, cumLearningRate;
 			public ErrorRates(double training, double trainingStderr, double test, double testStderr, double nn, double nnStderr, double cumLearningRate) {
 				this.training = training;

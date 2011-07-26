@@ -5,18 +5,18 @@ using LvqLibCli;
 
 namespace LvqGui {
 	public class GaussianCloudSettings : CloneableAs<GaussianCloudSettings>, IHasShorthand, IDatasetCreator {
-		public int NumberOfClasses=3;
+		public int NumberOfClasses = 3;
 #if DEBUG
 		public int Dimensions=8;
 		public int PointsPerClass=100;
 #else
-		public int Dimensions=24;
-		public int PointsPerClass=1000;
+		public int Dimensions = 24;
+		public int PointsPerClass = 1000;
 #endif
-		public double ClassCenterDeviation=1.5;
+		public double ClassCenterDeviation = 1.5;
 		public uint ParamsSeed;
 		public uint InstanceSeed;
-		public int Folds=10;
+		public int Folds = 10;
 		public bool ExtendDataByCorrelation;
 		public bool NormalizeDimensions;
 
@@ -37,7 +37,7 @@ namespace LvqGui {
 			set { ShorthandHelper.ParseShorthand(this, shR, value); }
 		}
 
-		public string ShorthandErrors {get { return ShorthandHelper.VerifyShorthand(this, shR); } }
+		public string ShorthandErrors { get { return ShorthandHelper.VerifyShorthand(this, shR); } }
 
 
 		public LvqDatasetCli CreateDataset() {
@@ -63,7 +63,7 @@ namespace LvqGui {
 				Folds = 10,
 				NumberOfClasses = 3,
 				Dimensions = 24,
-				ClassCenterDeviation=1.0,
+				ClassCenterDeviation = 1.0,
 				ParamsSeed = 0x5122ea19,
 				InstanceSeed = 0xc62ef64e,
 			};
@@ -79,5 +79,8 @@ namespace LvqGui {
 				InstanceSeed = 0x64ea6990,
 			};
 		}
+
+
+		public void IncInstanceSeed() { InstanceSeed++; }
 	}
 }

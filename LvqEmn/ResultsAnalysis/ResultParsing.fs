@@ -6,10 +6,11 @@ open LvqLibCli
 //---------------------------------------------------PARSING
 
 let loadAllResults datasetName =
-    let filepattern = "*.txt"
-    TestLr.resultsDir.GetDirectories(datasetName).[0].GetFiles(filepattern)
-    |> Seq.map LvqGui.DatasetResults.ProcFile
-    |> Seq.toList
+        let filepattern = "*.txt"
+        TestLr.resultsDir.GetDirectories(datasetName).[0].GetFiles(filepattern)
+        |> Seq.map LvqGui.DatasetResults.ProcFile
+        |> Seq.filter (fun res -> res <> null)
+        |> Seq.toList
 
 let groupResultsByLr (results:list<DatasetResults>) = 
     results
