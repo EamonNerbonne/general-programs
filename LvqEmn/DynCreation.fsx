@@ -50,7 +50,6 @@ let shuffle seq =
 
 let iters = 100000000L
 
-
 for (dirname, dataset) in shuffle datasets do
     Async.Parallel 
         [ for (_, _, settings) in shuffle (bestModelsForDataset (dirname,dataset)) ->
