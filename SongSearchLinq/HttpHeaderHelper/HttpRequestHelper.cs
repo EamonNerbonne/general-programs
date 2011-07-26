@@ -152,7 +152,7 @@ namespace HttpHeaderHelper {
 			} catch (SocketException) {
 			} catch (System.Runtime.InteropServices.COMException) { //IIS7
 			} catch (HttpException e) {
-				if ((uint)e.ErrorCode != 0x800703E3 && (uint)e.ErrorCode != 0x800704CD) throw; //IIS7.5?
+				if ((uint)e.ErrorCode != 0x800703E3 && (uint)e.ErrorCode != 0x80004005 && (uint)e.ErrorCode != 0x800704CD) throw; //IIS7.5?
 			}
 		}
 
