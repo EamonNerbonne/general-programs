@@ -11,7 +11,6 @@ let apply2 f (a, b) = (f a, f b)
 let apply3 f (a, b, c) = (f a, f b, f c)
 let apply4 f (a, b, c, d) = (f a, f b, f c, f d)
 
-
 let rec flipList lstOfLists = 
     let lstOfNonemptyLists = List.filter (List.isEmpty >> not) lstOfLists
     if List.isEmpty lstOfNonemptyLists then []
@@ -28,7 +27,7 @@ let sampleDistribution xs =
     let var = List.sumBy (fun x -> (x-mean)**2.0) xs / (float count - 1.0)
     { Count = count; Mean = mean; Variance = var; }
 
-let latexstderr distr =  "$ "+EmnExtensions.MathHelpers.Statistics.GetFormatted(distr.Mean, distr.StdErr, -0.4).Replace("~",@"\pm")+"$"
+let latexstderr distr =  "$ " + EmnExtensions.MathHelpers.Statistics.GetFormatted(distr.Mean, distr.StdErr, -0.4).Replace("~", @"\pm") + "$"
 
 let sampleCorrelation listA listB =
     let distrA = sampleDistribution listA
