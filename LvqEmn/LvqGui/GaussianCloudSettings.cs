@@ -15,10 +15,10 @@ namespace LvqGui {
 #endif
 		public double ClassCenterDeviation = 1.5;
 		public uint ParamsSeed;
-		public uint InstanceSeed;
+		public uint InstanceSeed { get; set; }
 		public int Folds = 10;
-		public bool ExtendDataByCorrelation;
-		public bool NormalizeDimensions;
+		public bool ExtendDataByCorrelation { get; set; }
+		public bool NormalizeDimensions { get; set; }
 
 
 
@@ -80,7 +80,6 @@ namespace LvqGui {
 			};
 		}
 
-
-		public void IncInstanceSeed() { InstanceSeed++; }
+		IDatasetCreator IDatasetCreator.Clone() { return Clone(); }
 	}
 }

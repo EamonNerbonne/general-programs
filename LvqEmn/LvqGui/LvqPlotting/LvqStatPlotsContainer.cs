@@ -233,7 +233,8 @@ namespace LvqGui {
 				plotData.QueueUpdate();
 		}
 
-		static readonly DirectoryInfo outputDir = FSUtil.FindDataDir(@"uni\Thesis\doc\plots", typeof(LvqStatPlotsContainer));
+		public static readonly DirectoryInfo outputDir = FSUtil.FindDataDir(@"uni\Thesis\doc\plots", typeof(LvqStatPlotsContainer));
+		public static DirectoryInfo AutoPlotDir { get { return outputDir.CreateSubdirectory("auto"); } }
 
 		public static bool AnnouncePlotGeneration(LvqDatasetCli dataset, string shorthand, long iterIntent) {
 			DirectoryInfo modelDir = GraphDir(dataset, shorthand);

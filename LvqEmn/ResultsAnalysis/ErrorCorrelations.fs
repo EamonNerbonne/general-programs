@@ -25,7 +25,7 @@ let corrSettings = List.map (fun (setting:LvqModelSettingsCli) -> setting.ToShor
 let errTypeCorrelation results onlyBestResults =
     ResultParsing.groupResultsByLr results //list of LRs, each has a list of results in file order, each has a few error rate types
     |> if onlyBestResults then    
-            List.sortBy (snd >> ResultParsing.meanStderrOfErrs >> (fun errs->errs.ErrorMean)) //list of lr's is sorted by quality
+            List.sortBy (snd >> ResultParsing.meanStderrOfErrs >> (fun errs->errs.CanonicalError)) //list of lr's is sorted by quality
             >> (fun list -> Seq.take 10 list |> Seq.toList) //only take accurate LR's
         else
             id

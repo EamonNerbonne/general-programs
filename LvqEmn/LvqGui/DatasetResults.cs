@@ -16,7 +16,7 @@ namespace LvqGui {
 
 		public LvqModelSettingsCli GetOptimizedSettings(uint? paramSeed = null, uint? instSeed = null) {
 			IEnumerable<LrAndError> lrs = GetLrs();
-			var bestLr = lrs.OrderBy(resVal => resVal.Errors.ErrorMean).First();
+			var bestLr = lrs.OrderBy(resVal => resVal.Errors.CanonicalError).First();
 			return ConvertLrToSettings(bestLr, paramSeed, instSeed);
 		}
 

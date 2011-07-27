@@ -23,11 +23,11 @@ namespace LvqGui {
 		public double GlobalNoiseMaxSigma = 0.0;
 
 		public uint ParamsSeed;
-		public uint InstanceSeed;
+		public uint InstanceSeed { get; set; }
 		public int Folds = 10;
 
-		public bool ExtendDataByCorrelation;
-		public bool NormalizeDimensions;
+		public bool ExtendDataByCorrelation { get; set; }
+		public bool NormalizeDimensions { get; set; }
 
 		static readonly Regex shR =
 			new Regex(@"
@@ -90,6 +90,6 @@ namespace LvqGui {
 				globalNoiseMaxSigma: GlobalNoiseMaxSigma
 			);
 		}
-		public void IncInstanceSeed() { InstanceSeed++; }
+		IDatasetCreator IDatasetCreator.Clone() { return Clone(); }
 	}
 }

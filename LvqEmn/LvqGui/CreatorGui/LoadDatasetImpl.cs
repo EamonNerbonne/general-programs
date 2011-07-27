@@ -53,8 +53,8 @@ namespace LvqGui {
 				(?<Filename>.*?)
 				(\,(?<TestFilename>.*?))?
 				\-(?<DimCount>[0-9]+)D
-				(?<Extend>x?)
-				(?<Normalize>n?)
+				(?<ExtendDataByCorrelation>x?)
+				(?<NormalizeDimensions>n?)
 				\-(?<ClassCount>[0-9]+)
 				\,(?<PointCount>[0-9]+)
 				\[(?<InstanceSeed_>[0-9a-fA-F]+)\]
@@ -64,20 +64,21 @@ namespace LvqGui {
 
 			public string Filename, TestFilename;
 			public int DimCount, ClassCount, PointCount, Folds = 10;
-			public bool Extend, Normalize;
-			public uint InstanceSeed;
+			public bool ExtendDataByCorrelation { get; set; }
+			public bool NormalizeDimensions { get; set; }
+			public uint InstanceSeed { get; set; }
 
 
 			public string Shorthand {
 				get {
-					return Filename + (TestFilename != null ? "," + TestFilename : "") + "-" + DimCount + "D" + (Extend ? "x" : "") + (Normalize ? "n" : "") + "-" + ClassCount + "," + PointCount + "[" + InstanceSeed.ToString("x") + "]^" + Folds;
+					return Filename + (TestFilename != null ? "," + TestFilename : "") + "-" + DimCount + "D" + (ExtendDataByCorrelation ? "x" : "") + (NormalizeDimensions ? "n" : "") + "-" + ClassCount + "," + PointCount + "[" + InstanceSeed.ToString("x") + "]^" + Folds;
 				}
 				set {
 					var updated = ShorthandHelper.ParseShorthand(this, shR, value);
 					if (!updated.Contains("TestFilename")) TestFilename = null;
 					if (!updated.Contains("Folds")) Folds = 10;
-					if (!updated.Contains("Extend")) Extend = false;
-					if (!updated.Contains("Normalize")) Normalize = false;
+					if (!updated.Contains("ExtendDataByCorrelation")) ExtendDataByCorrelation = false;
+					if (!updated.Contains("NormalizeDimensions")) NormalizeDimensions = false;
 					if (!updated.Contains("InstanceSeed")) InstanceSeed = 0;
 				}
 			}
@@ -93,9 +94,7 @@ namespace LvqGui {
 				trainSet.TestSet = testFile == null ? null : LoadDatasetImpl.LoadData(testFile, this);
 				return trainSet;
 			}
-
-
-			public void IncInstanceSeed() { InstanceSeed++; }
+			IDatasetCreator IDatasetCreator.Clone() { return Clone(); }
 		}
 
 
@@ -121,8 +120,8 @@ namespace LvqGui {
 			return LvqDatasetCli.ConstructFromArray(
 				rngInstSeed: settings.InstanceSeed,
 				label: settings.Shorthand,
-				extend: settings.Extend,
-				normalizeDims: settings.Normalize,
+				extend: settings.ExtendDataByCorrelation,
+				normalizeDims: settings.NormalizeDimensions,
 				folds: settings.Folds,
 				colors: WpfTools.MakeDistributedColors(settings.ClassCount, new MersenneTwister(colorSeed)),
 				points: pointArray,

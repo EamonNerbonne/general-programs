@@ -77,7 +77,7 @@ namespace LvqGui {
 		}
 
 		public static string ItersPrefix(long iters) {
-			int pow10 = (int)(Math.Log10(iters + 0.5));
+			int pow10 = (int)(Math.Log10(iters) + Math.Log10(10.0/9.5));
 			int prefix = (int)(iters / Math.Pow(10.0, pow10) + 0.5);
 			return (prefix == 1 ? "" : prefix.ToString()) + "e" + pow10;
 		}
@@ -124,7 +124,7 @@ namespace LvqGui {
 
 			return Task.Factory.ContinueWhenAll(errorRates.Select(run => run.errs).ToArray(),
 				tasks => {
-					foreach (var result in errorRates.OrderBy(err => err.errs.Result.ErrorMean))
+					foreach (var result in errorRates.OrderBy(err => err.errs.Result.CanonicalError))
 						sink.Write("\n" + result.lr0.ToString("g4").PadRight(9) + "p" + result.lrP.ToString("g4").PadRight(9) + "b" + result.lrB.ToString("g4").PadRight(9) + ": "
 								+ result.errs.Result + "[" + result.errs.Result.cumLearningRate + "]"
 							);
@@ -189,14 +189,14 @@ namespace LvqGui {
 				cumLearningRate = stats.Value[LvqTrainingStatCli.CumLearningRateI];
 			}
 
-			public double ErrorMean { get { return training * 0.9 + (nn.IsFinite() ? test * 0.05 + nn * 0.05 : test * 0.1); } }
+			public double CanonicalError { get { return training * 0.9 + (nn.IsFinite() ? test * 0.05 + nn * 0.05 : test * 0.1); } }
 			public override string ToString() {
 				return Statistics.GetFormatted(training, trainingStderr, 1) + "; " +
 					Statistics.GetFormatted(test, testStderr, 1) + "; " +
 					Statistics.GetFormatted(nn, nnStderr, 1) + "; ";
 			}
 
-			public int CompareTo(ErrorRates other) { return ErrorMean.CompareTo(other.ErrorMean); }
+			public int CompareTo(ErrorRates other) { return CanonicalError.CompareTo(other.CanonicalError); }
 
 			public int CompareTo(object obj) { return CompareTo((ErrorRates)obj); }
 		}
