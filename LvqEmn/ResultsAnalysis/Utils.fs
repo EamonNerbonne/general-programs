@@ -29,7 +29,7 @@ let sampleDistribution xs =
     let var = List.sumBy (fun x -> (x-mean)**2.0) xs / (float count - 1.0)
     { Count = count; Mean = mean; Variance = var; }
 
-let latexstderr distr =  "$ " + EmnExtensions.MathHelpers.Statistics.GetFormatted(distr.Mean, distr.StdErr, -0.4).Replace("~", @"\pm") + "$"
+let latexstderr distr =  "$" + EmnExtensions.MathHelpers.Statistics.GetFormatted(distr.Mean, distr.StdErr, -0.4).Replace("~", @"\pm") + "$"
 
 let sampleCorrelation listA listB =
     let distrA = sampleDistribution listA

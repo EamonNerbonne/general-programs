@@ -102,8 +102,17 @@ for resStr in
                     (fun (key, group) ->
                         let sortedGroup = group |> Seq.sortBy (fun res -> res.MeanError)
                         let mappedGroup = sortedGroup |> Seq.map (fun res -> 
+                            let trn = res.Results |> Seq.map (fun x->x.TrainingError*100.) |> Seq.toList |> Utils.sampleDistribution
+                            let tst = res.Results |> Seq.map (fun x->x.TestError*100.) |> Seq.toList |> Utils.sampleDistribution
+                            let nn = res.Results |> Seq.map (fun x->x.NnError*100.) |> Seq.toList |> Utils.sampleDistribution
+                            let errStr =
+                                Utils.latexstderr trn + " " + Utils.latexstderr tst + 
+                                    if nn.Mean.IsFinite() then
+                                        " " + Utils.latexstderr nn
+                                    else
+                                        ""
                             let avgResult = (res.Results |> Array.average) * 100.
-                            "   " + datasetAnnotation res.DatasetSettings + sprintf " %s: %1.1f/%1.1f/%1.1f" (res.ModelSettings.ToShorthand()) avgResult.TrainingError avgResult.TestError avgResult.NnError
+                            "   " + datasetAnnotation res.DatasetSettings + " " + (res.ModelSettings.ToShorthand()) + errStr
                             )
                         key + "\n" + String.concat "\n" mappedGroup + "\n\n"
                     )
