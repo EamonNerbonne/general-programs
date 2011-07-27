@@ -22,33 +22,35 @@ type Result =
     static member get_Zero () = { Iterations = 0.; TrainingError = 0.; TestError = 0.; NnError = 0. }
 
 type ModelResults =
-    { DatasetSettings: IDatasetCreator; ModelDir: DirectoryInfo; ModelSettings: LvqModelSettingsCli; Results: Result [] }
-    member this.DatasetBaseShorthand = this.DatasetSettings.BaseShorthand()
+    {  DatasetBaseShorthand:string; DatasetTweaks:string; ModelDir: DirectoryInfo; ModelSettings: LvqModelSettingsCli; Results: Result [] }
     member this.MeanError = this.Results |> Array.averageBy (fun res -> res.CanonicalError)
-    
-let fixSegmentation (settings:IDatasetCreator) =
+ 
+ 
+let datasetAnnotation (settings:IDatasetCreator) segmentNorm =
+    if settings.ExtendDataByCorrelation then "x" else ""
+    + if settings.NormalizeDimensions then "n" else ""
+    + if segmentNorm then "N" else ""
+  
+let decodeDataset (settings:IDatasetCreator) =
     match settings.Clone() with
     | :? LoadedDatasetSettings as ldSettings ->
         if ldSettings.Filename.StartsWith("segmentationNormed_") then
             ldSettings.Filename <- ldSettings.Filename.Replace("segmentationNormed_","segmentationX_")
             ldSettings.NormalizeDimensions <- true
             ldSettings.DimCount <- 19
-            ldSettings :> IDatasetCreator
+            (ldSettings.BaseShorthand(), datasetAnnotation settings true)
         elif ldSettings.Filename.StartsWith("segmentation_") then
             ldSettings.Filename <- ldSettings.Filename.Replace("segmentation_","segmentationX_")
-            ldSettings :> IDatasetCreator
+            (ldSettings.BaseShorthand(), datasetAnnotation settings false)
         else
-            settings
-    | _ -> settings
+            (ldSettings.BaseShorthand(), datasetAnnotation settings false)
+    | _ -> (settings.BaseShorthand(), datasetAnnotation settings false)
 
-let datasetAnnotation (settings:IDatasetCreator) =
-    if settings.ExtendDataByCorrelation then "x" else ""
-    + if settings.NormalizeDimensions then "n" else ""
 
 
 let datasetSettings = 
     LvqStatPlotsContainer.AutoPlotDir.GetDirectories()
-    |> Seq.map (fun dir -> (dir, CreateDataset.CreateFactory(dir.Name) |> fixSegmentation))
+    |> Seq.map (fun dir -> (dir, CreateDataset.CreateFactory(dir.Name) |> decodeDataset))
     |> Seq.toArray
  
 let analyzedModels = 
@@ -83,7 +85,7 @@ let analyzedModels =
         | None -> None
         | Some(results) -> 
             Some({
-                        ModelDir = modeldir; DatasetSettings = dataset; ModelSettings = CreateLvqModelValues.SettingsFromShorthand(modeldir.Name);
+                        ModelDir = modeldir; DatasetBaseShorthand = fst dataset; DatasetTweaks = snd dataset; ModelSettings = CreateLvqModelValues.SettingsFromShorthand(modeldir.Name);
                         Results = results
                     })
 
@@ -112,7 +114,7 @@ for resStr in
                                     else
                                         ""
                             let avgResult = (res.Results |> Array.average) * 100.
-                            "   " + datasetAnnotation res.DatasetSettings + " " + (res.ModelSettings.ToShorthand()) + errStr
+                            "   " + res.DatasetTweaks + " " + (res.ModelSettings.ToShorthand()) + errStr
                             )
                         key + "\n" + String.concat "\n" mappedGroup + "\n\n"
                     )
