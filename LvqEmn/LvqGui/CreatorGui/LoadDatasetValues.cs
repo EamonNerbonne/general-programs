@@ -3,12 +3,10 @@
 using System;
 using System.ComponentModel;
 using System.IO;
-using System.Threading;
-using EmnExtensions.Wpf;
 using System.Linq;
+using System.Threading;
 using LvqLibCli;
 using Microsoft.Win32;
-using EmnExtensions.MathHelpers;
 
 namespace LvqGui {
 	public class LoadDatasetValues : INotifyPropertyChanged, IHasSeed {
