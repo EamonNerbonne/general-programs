@@ -41,6 +41,10 @@ let fixSegmentation (settings:IDatasetCreator) =
             settings
     | _ -> settings
 
+let datasetAnnotation (settings:IDatasetCreator) =
+    if settings.ExtendDataByCorrelation then "x" else ""
+    + if settings.NormalizeDimensions then "n" else ""
+
 
 let datasetSettings = 
     LvqStatPlotsContainer.AutoPlotDir.GetDirectories()
@@ -90,9 +94,6 @@ let analyzedModels =
     |> Seq.toArray
 
 
-let datasetAnnotation (settings:IDatasetCreator) =
-    if settings.ExtendDataByCorrelation then "x" else ""
-    + if settings.NormalizeDimensions then "n" else ""
 
 for resStr in
             analyzedModels 
