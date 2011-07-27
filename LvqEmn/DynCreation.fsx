@@ -65,35 +65,3 @@ for (dirname, dataset) in shuffle datasets do
                 }
         ]
     |> Async.RunSynchronously |> ignore
-
-let pagenR = ResultParsing.loadAllResults "star-8D-9x10000,3(5Dr)x10i0.8n7g5[a9cd2154,1]^10"
-let bestRes = 
-    pagenR
-    |> List.filter (fun res -> res.GetLrs() |> Seq.isEmpty |> not)
-    |> List.sortBy (fun res -> (res.GetLrs() |> Seq.min).Errors)
-    |> List.head
-    
-
-let factory = CreateDataset.CreateFactory(bestRes.resultsFile.Directory.Name)
-factory.IncInstanceSeed()
-let dataset = factory.CreateDataset()
-let model = new LvqMultiModel(dataset, bestRes.GetOptimizedSettings(Utils.nullable 1u, Utils.nullable 0u))
-
-model.TrainUptoIters(3000000. , dataset, CancellationToken.None)
-
-//model.CurrentStatsString(dataset)
-//model.CurrentFullStatsString(dataset)
-//bestRes.GetOptimizedSettings(Utils.nullable 1u, Utils.nullable 0u).ToShorthand()
-//new TestLr.ErrorRates(model.EvaluateFullStats(dataset) |> Seq.take 3 |> LvqMultiModel.MeanStdErrStats, model.nnErrIdx)
-
-
-saveGraphs model dataset
-model.ModelLabel
-//pagenR
-//    |> List.map (fun res -> (res.GetLrs() |> Seq.sortBy (fun lrE -> lrE.Errors.ErrorMean) |> Seq.toList, res.unoptimizedSettings))
-//    |> List.filter (fst >> List.isEmpty >> not)
-//    |> List.map (Utils.apply1st List.head >> Utils.apply2nd (fun settings -> settings.ToShorthand()))
-//    |> List.sortBy fst
-//    |> Seq.take 20 |> Seq.toList
-
-//float(System.GC.GetTotalMemory(false)) / 1024.0 / 1024.0
