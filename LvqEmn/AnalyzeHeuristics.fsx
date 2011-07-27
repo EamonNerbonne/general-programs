@@ -30,6 +30,10 @@ type Heuristic =
     { Name:string; Activator: LvqSettings -> LvqSettings }
     member this.IsActive settings =  (this.Activator settings).Equiv settings
 
+let applyHeuristic (heuristic:Heuristic) settings = 
+    let activated = heuristic.Activator settings
+    if activated.Equiv settings then None else Some(activated)
+
 let heuristics = 
     let heur name activator = { Name=name; Activator= activator; }
     let heurD name letter = { Name = name; Activator = (fun s -> 
@@ -83,6 +87,25 @@ let heuristics =
 let toDict keyf valf xs = (Seq.groupBy keyf xs).ToDictionary(fst, snd >> valf)
 
 let resultsByDatasetByModel =
-    ResultAnalysis.analyzedModels |> toDict (fun modelRes -> modelRes.DatasetBaseShorthand) (toDict (fun modelRes -> (getSettings modelRes).Key) id)
+    ResultAnalysis.analyzedModels |> toDict (fun modelRes -> modelRes.DatasetBaseShorthand) (toDict (fun modelRes -> (getSettings modelRes).Key) System.Linq.Enumerable.Single )
 
 
+heuristics |> Seq.map (fun heur -> 
+    seq {
+        for datasetRes in  resultsByDatasetByModel.Values do
+            for modelRes in datasetRes.Values do
+                let heurResMaybe = 
+                    getSettings modelRes 
+                    |> applyHeuristic heur 
+                    |> Option.map (fun lvqS -> lvqS.Key)
+                    |> Option.bind (Utils.getMaybe datasetRes)
+
+                match heurResMaybe with
+                | None -> ()
+                | Some(heurRes) ->
+                    yield (heurRes.MeanError < modelRes.MeanError)
+    } |> Seq.toList |> (fun betters ->
+        let distr = Utils.sampleDistribution (List.map (fun b -> if b then 1. else 0.) betters)
+        (heur.Name, distr.Count, distr.Mean)
+    )
+) |> Seq.toList
