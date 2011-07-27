@@ -45,3 +45,14 @@ let twoTailedPairedTtest xs ys =
     (p, corrDistr.Mean < 0.0)
 
 
+let shuffle seq =
+    let arr = Seq.toArray seq
+    EmnExtensions.Algorithms.ShuffleAlgorithm.Shuffle arr
+    arr
+
+let inline getMaybe (dict:System.Collections.Generic.Dictionary<'a,'b>) key =
+    let value = ref Unchecked.defaultof<'b>
+    if dict.TryGetValue(key, value) then
+        Some(value.Value)
+    else 
+        None

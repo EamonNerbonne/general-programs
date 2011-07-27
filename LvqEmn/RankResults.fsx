@@ -16,23 +16,36 @@ open System.Collections.Generic
 type Result = 
     { Iterations: float; TrainingError: float; TestError:float; NnError: float } 
     member this.CanonicalError = this.TrainingError * 0.9 + if this.NnError.IsFinite() then 0.05 * this.TestError + 0.05 * this.NnError else 0.1 * this.TestError
+    static member (+) (a, b) = { Iterations= a.Iterations + b.Iterations; TrainingError = a.TrainingError + b.TrainingError; TestError= a.TestError + b.TestError; NnError = a.NnError + b.NnError }
+    static member DivideByInt (a, n) = { Iterations= a.Iterations / float n; TrainingError = a.TrainingError  / float n; TestError= a.TestError / float n; NnError = a.NnError / float n }
+    static member (*) (a, x) = { Iterations= a.Iterations * x; TrainingError = a.TrainingError  * x; TestError= a.TestError * x; NnError = a.NnError * x }
+    static member get_Zero () = { Iterations = 0.; TrainingError = 0.; TestError = 0.; NnError = 0. }
 
 type ModelResults =
     { DatasetSettings: IDatasetCreator; ModelDir: DirectoryInfo; ModelSettings: LvqModelSettingsCli; Results: Result [] }
     member this.DatasetBaseShorthand = this.DatasetSettings.BaseShorthand()
     member this.MeanError = this.Results |> Array.averageBy (fun res -> res.CanonicalError)
+    
+let fixSegmentation (settings:IDatasetCreator) =
+    match settings.Clone() with
+    | :? LoadedDatasetSettings as ldSettings ->
+        if ldSettings.Filename.StartsWith("segmentationNormed_") then
+            ldSettings.Filename <- ldSettings.Filename.Replace("segmentationNormed_","segmentationX_")
+            ldSettings.NormalizeDimensions <- true
+            ldSettings.DimCount <- 19
+            ldSettings :> IDatasetCreator
+        elif ldSettings.Filename.StartsWith("segmentation_") then
+            ldSettings.Filename <- ldSettings.Filename.Replace("segmentation_","segmentationX_")
+            ldSettings :> IDatasetCreator
+        else
+            settings
+    | _ -> settings
+
 
 let datasetSettings = 
     LvqStatPlotsContainer.AutoPlotDir.GetDirectories()
-    |> Seq.map (fun dir -> (dir, CreateDataset.CreateFactory(dir.Name)))
+    |> Seq.map (fun dir -> (dir, CreateDataset.CreateFactory(dir.Name) |> fixSegmentation))
     |> Seq.toArray
-
-let inline getMaybe (dict:Dictionary<'a,'b>) key =
-    let value = ref Unchecked.defaultof<'b>
-    if dict.TryGetValue(key, value) then
-        Some(value.Value)
-    else 
-        None
  
 let analyzedModels = 
     let decodeLine (line:string) =
@@ -51,7 +64,7 @@ let analyzedModels =
             None
         else
             let itersArr = lines.["Training Iterations"]
-            let nnErrs = getMaybe lines "Projected NN Error Rate" |> function
+            let nnErrs = Utils.getMaybe lines "Projected NN Error Rate" |> function
                 | Some(arr) -> arr
                 | None -> Array.create itersArr.Length Operators.nan
             let zippedResults = Array.zip itersArr (Array.zip3 lines.["Training Error"] lines.["Test Error"] nnErrs)
@@ -77,10 +90,23 @@ let analyzedModels =
     |> Seq.toArray
 
 
-let shuffle seq =
-    let arr = Seq.toArray seq
-    EmnExtensions.Algorithms.ShuffleAlgorithm.Shuffle arr
-    arr
+let datasetAnnotation (settings:IDatasetCreator) =
+    if settings.ExtendDataByCorrelation then "x" else ""
+    + if settings.NormalizeDimensions then "n" else ""
 
-let iters = 100000000L
+for resStr in
+            analyzedModels 
+                |> Seq.groupBy (fun res-> res.DatasetBaseShorthand) 
+                |> Seq.map 
+                    (fun (key, group) ->
+                        let sortedGroup = group |> Seq.sortBy (fun res -> res.MeanError)
+                        let mappedGroup = sortedGroup |> Seq.map (fun res -> 
+                            let avgResult = (res.Results |> Array.average) * 100.
+                            "   " + datasetAnnotation res.DatasetSettings + sprintf " %s: %1.1f/%1.1f/%1.1f" (res.ModelSettings.ToShorthand()) avgResult.TrainingError avgResult.TestError avgResult.NnError
+                            )
+                        key + "\n" + String.concat "\n" mappedGroup + "\n\n"
+                    )
+        do
+    printfn "%s" resStr
+    
 

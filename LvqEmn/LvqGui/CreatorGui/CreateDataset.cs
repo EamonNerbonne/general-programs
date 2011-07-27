@@ -20,11 +20,11 @@ namespace LvqGui {
 			return obj.Shorthand;
 		}
 		public static IDatasetCreator CreateFactory(string shorthand) {
-			return StarSettings.TryParse(shorthand) ?? GaussianCloudSettings.TryParse(shorthand) ?? (IDatasetCreator)LoadDatasetImpl.TryParse(shorthand);
+			return StarSettings.TryParse(shorthand) ?? GaussianCloudSettings.TryParse(shorthand) ?? (IDatasetCreator)LoadedDatasetSettings.TryParse(shorthand);
 		}
 
 		public static LvqDatasetCli CreateFromShorthand(string shorthand) {
-			var factory = StarSettings.TryParse(shorthand) ?? GaussianCloudSettings.TryParse(shorthand) ?? (IDatasetCreator)LoadDatasetImpl.TryParse(shorthand);
+			var factory = StarSettings.TryParse(shorthand) ?? GaussianCloudSettings.TryParse(shorthand) ?? (IDatasetCreator)LoadedDatasetSettings.TryParse(shorthand);
 			return factory.CreateDataset();
 		}
 	}

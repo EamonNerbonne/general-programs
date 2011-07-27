@@ -12,9 +12,62 @@ using LvqLibCli;
 using LvqFloat = System.Double;
 
 namespace LvqGui {
+
+	public class LoadedDatasetSettings : CloneableAs<LoadedDatasetSettings>, IHasShorthand, IDatasetCreator {
+		public static readonly Regex shR = new Regex(@"^
+				(?<Filename>.*?)
+				(\,(?<TestFilename>.*?))?
+				\-(?<DimCount>[0-9]+)D
+				(?<ExtendDataByCorrelation>x?)
+				(?<NormalizeDimensions>n?)
+				\-(?<ClassCount>[0-9]+)
+				\,(?<PointCount>[0-9]+)
+				\[(?<InstanceSeed_>[0-9a-fA-F]+)\]
+				\^(?<Folds>\d+)\s*$"
+,
+	RegexOptions.CultureInvariant | RegexOptions.ExplicitCapture | RegexOptions.IgnorePatternWhitespace);
+
+		public string Filename, TestFilename;
+		public int DimCount, ClassCount, PointCount, Folds = 10;
+		public bool ExtendDataByCorrelation { get; set; }
+		public bool NormalizeDimensions { get; set; }
+		public uint InstanceSeed { get; set; }
+
+
+		public string Shorthand {
+			get {
+				return Filename + (TestFilename != null ? "," + TestFilename : "") + "-" + DimCount + "D" + (ExtendDataByCorrelation ? "x" : "") + (NormalizeDimensions ? "n" : "") + "-" + ClassCount + "," + PointCount + "[" + InstanceSeed.ToString("x") + "]^" + Folds;
+			}
+			set {
+				var updated = ShorthandHelper.ParseShorthand(this, shR, value);
+				if (!updated.Contains("TestFilename")) TestFilename = null;
+				if (!updated.Contains("Folds")) Folds = 10;
+				if (!updated.Contains("ExtendDataByCorrelation")) ExtendDataByCorrelation = false;
+				if (!updated.Contains("NormalizeDimensions")) NormalizeDimensions = false;
+				if (!updated.Contains("InstanceSeed")) InstanceSeed = 0;
+			}
+		}
+
+		public string ShorthandErrors { get { return ShorthandHelper.VerifyShorthand(this, shR); } }
+
+		public LvqDatasetCli CreateDataset() {
+			var trainFile = LoadDatasetImpl.dataDir.GetFiles(Filename).FirstOrDefault();
+			if (trainFile == null) return null;
+			var testFile = TestFilename == null ? null : LoadDatasetImpl.dataDir.GetFiles(TestFilename).FirstOrDefault();
+			if (testFile == null && TestFilename != null) return null;
+			var trainSet = LoadDatasetImpl.LoadData(trainFile, this);
+			trainSet.TestSet = testFile == null ? null : LoadDatasetImpl.LoadData(testFile, this);
+			return trainSet;
+		}
+		IDatasetCreator IDatasetCreator.Clone() { return Clone(); }
+
+		public static LoadedDatasetSettings ParseSettings(string shorthand) { return new LoadedDatasetSettings { Shorthand = shorthand }; }
+		public static LoadedDatasetSettings TryParse(string shorthand) { return ShorthandHelper.TryParseShorthand<LoadedDatasetSettings>(LoadedDatasetSettings.shR, shorthand); }
+	}
+
 	public static class LoadDatasetImpl {
 
-		static readonly DirectoryInfo dataDir = FSUtil.FindDataDir(new[] { @"data\datasets\", @"uni\Thesis\datasets\" }, typeof(LoadDatasetImpl));
+		public static readonly DirectoryInfo dataDir = FSUtil.FindDataDir(new[] { @"data\datasets\", @"uni\Thesis\datasets\" }, typeof(LoadDatasetImpl));
 
 		public static LvqDatasetCli Load(int folds, string name, uint rngInst) {
 			var dataFile = dataDir.GetFiles(name + ".data").FirstOrDefault();
@@ -45,57 +98,6 @@ namespace LvqGui {
 			return retval;
 		}
 
-		public static LoadedDatasetSettings ParseSettings(string shorthand) { return new LoadedDatasetSettings { Shorthand = shorthand }; }
-		public static LoadedDatasetSettings TryParse(string shorthand) { return ShorthandHelper.TryParseShorthand<LoadedDatasetSettings>(LoadedDatasetSettings.shR, shorthand); }
-
-		public class LoadedDatasetSettings : CloneableAs<LoadedDatasetSettings>, IHasShorthand, IDatasetCreator {
-			public static readonly Regex shR = new Regex(@"^
-				(?<Filename>.*?)
-				(\,(?<TestFilename>.*?))?
-				\-(?<DimCount>[0-9]+)D
-				(?<ExtendDataByCorrelation>x?)
-				(?<NormalizeDimensions>n?)
-				\-(?<ClassCount>[0-9]+)
-				\,(?<PointCount>[0-9]+)
-				\[(?<InstanceSeed_>[0-9a-fA-F]+)\]
-				\^(?<Folds>\d+)\s*$"
-	,
-		RegexOptions.CultureInvariant | RegexOptions.ExplicitCapture | RegexOptions.IgnorePatternWhitespace);
-
-			public string Filename, TestFilename;
-			public int DimCount, ClassCount, PointCount, Folds = 10;
-			public bool ExtendDataByCorrelation { get; set; }
-			public bool NormalizeDimensions { get; set; }
-			public uint InstanceSeed { get; set; }
-
-
-			public string Shorthand {
-				get {
-					return Filename + (TestFilename != null ? "," + TestFilename : "") + "-" + DimCount + "D" + (ExtendDataByCorrelation ? "x" : "") + (NormalizeDimensions ? "n" : "") + "-" + ClassCount + "," + PointCount + "[" + InstanceSeed.ToString("x") + "]^" + Folds;
-				}
-				set {
-					var updated = ShorthandHelper.ParseShorthand(this, shR, value);
-					if (!updated.Contains("TestFilename")) TestFilename = null;
-					if (!updated.Contains("Folds")) Folds = 10;
-					if (!updated.Contains("ExtendDataByCorrelation")) ExtendDataByCorrelation = false;
-					if (!updated.Contains("NormalizeDimensions")) NormalizeDimensions = false;
-					if (!updated.Contains("InstanceSeed")) InstanceSeed = 0;
-				}
-			}
-
-			public string ShorthandErrors { get { return ShorthandHelper.VerifyShorthand(this, shR); } }
-
-			public LvqDatasetCli CreateDataset() {
-				var trainFile = dataDir.GetFiles(Filename).FirstOrDefault();
-				if (trainFile == null) return null;
-				var testFile = TestFilename == null ? null : dataDir.GetFiles(TestFilename).FirstOrDefault();
-				if (testFile == null && TestFilename != null) return null;
-				var trainSet = LoadDatasetImpl.LoadData(trainFile, this);
-				trainSet.TestSet = testFile == null ? null : LoadDatasetImpl.LoadData(testFile, this);
-				return trainSet;
-			}
-			IDatasetCreator IDatasetCreator.Clone() { return Clone(); }
-		}
 
 
 		public static LvqDatasetCli LoadData(FileInfo dataFile, LoadedDatasetSettings settings) {
