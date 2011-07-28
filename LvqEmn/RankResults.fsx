@@ -5,11 +5,10 @@
 #r "EmnExtensions"
 #time "on"
 
-open ResultAnalysis
 open EmnExtensions
 
 for resStr in
-            analyzedModels 
+            ResultAnalysis.analyzedModels 
                 |> Seq.groupBy (fun res-> res.DatasetBaseShorthand) 
                 |> Seq.map 
                     (fun (key, group) ->
