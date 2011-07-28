@@ -201,12 +201,12 @@ heuristics
     |> Seq.toList
     |> List.map (fun (name, count,ratio, better, worse) ->
             sprintf @"Heuristic %s was an improvement in $%1.1f\%%$ of %i cases:\\" name (100.*ratio) count + "\n"
-            + sprintf @"\noindent\begin{tabular}{|l|l|l|}\hline"  + "\n"
-            + sprintf @"$p$-value & errors & scenario\\\hline"  + "\n"
-            + String.concat "\\\\\n" (Array.map (fun ((p, errChange), scenario) -> sprintf @" %0.3g & %0.1f\%% & \verb/%s/ " p errChange scenario) better)
+            + sprintf @"\noindent\begin{longtable}{lrl}\toprule"  + "\n"
+            + sprintf @"$p$-value & errors & scenario\\\midrule"  + "\n"
+            + String.concat "\\\\\n" (Array.map (fun ((p, errChange), scenario) -> sprintf @" %0.3g & %0.1f\%% &{\footnotesize \verb/%s/ }" p errChange scenario) better)
             + @"\\\hline" + "\n"
-            + String.concat "\\\\\n" (Array.map (fun ((p, errChange), scenario) -> sprintf @" %0.3g & %0.1f\%% & \verb/%s/ " p errChange scenario) worse)
-            + "\n\\hline\\end{tabular}\n\n"
+            + String.concat "\\\\\n" (Array.map (fun ((p, errChange), scenario) -> sprintf @" %0.3g & %0.1f\%% &{\footnotesize \verb/%s/ }" p errChange scenario) worse)
+            + "\n\\\\ \\bottomrule\\end{longtable}\n\n"
         )
     |> String.concat ""
     |> (fun contents -> File.WriteAllText(EmnExtensions.Filesystem.FSUtil.FindDataDir(@"uni\Thesis\doc", System.Reflection.Assembly.GetAssembly(typeof<CreateDataset>)).FullName + @"\AnalyzeHeuristics.tex", contents))
