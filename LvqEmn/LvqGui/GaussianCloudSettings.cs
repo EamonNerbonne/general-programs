@@ -4,7 +4,7 @@ using EmnExtensions.Wpf;
 using LvqLibCli;
 
 namespace LvqGui {
-	public class GaussianCloudSettings : CloneableAs<GaussianCloudSettings>, IHasShorthand, IDatasetCreator {
+	public sealed class GaussianCloudSettings : DatasetCreatorBase<GaussianCloudSettings> {
 		public int NumberOfClasses = 3;
 #if DEBUG
 		public int Dimensions=8;
@@ -15,32 +15,23 @@ namespace LvqGui {
 #endif
 		public double ClassCenterDeviation = 1.5;
 		public uint ParamsSeed;
-		public uint InstanceSeed { get; set; }
-		public int Folds = 10;
-		public bool ExtendDataByCorrelation { get; set; }
-		public bool NormalizeDimensions { get; set; }
 
-
-
-		static readonly Regex shR =
-			new Regex(@"^\s*(.*?--)?nrm-(?<Dimensions>\d+)D(?<ExtendDataByCorrelation>x?)(?<NormalizeDimensions>n?)-(?<NumberOfClasses>\d+)x(?<PointsPerClass>\d+)
-					\,(?<ClassCenterDeviation>[^\[]+)\[(?<ParamsSeed_>[\dA-Fa-f]+)\,(?<InstanceSeed_>[\dA-Fa-f]+)\]\^(?<Folds>\d+)\s*$"
-				+ "|" +
-					@"^\s*(.*?--)?nrm-(?<Dimensions>\d+)D(?<ExtendDataByCorrelation>\*?)(?<NormalizeDimensions>n?)-(?<NumberOfClasses>\d+)\*(?<PointsPerClass>\d+):(?<ClassCenterDeviation>[^\[]+)\[(?<ParamsSeed>\d+):(?<InstanceSeed>\d+)\]/(?<Folds>\d+)\s*$"
-				,
-				RegexOptions.CultureInvariant | RegexOptions.ExplicitCapture | RegexOptions.IgnorePatternWhitespace);
-
-		public string Shorthand {
+		protected override string RegexText {
 			get {
-				return "nrm-" + Dimensions + "D" + (ExtendDataByCorrelation ? "x" : "") + (NormalizeDimensions ? "n" : "") + "-" + NumberOfClasses + "x" + PointsPerClass + "," + ClassCenterDeviation.ToString("r") + "[" + ParamsSeed.ToString("x") + "," + InstanceSeed.ToString("x") + "]^" + Folds;
+				return @"^\s*(.*?--)?nrm-(?<Dimensions>\d+)D(?<ExtendDataByCorrelation>x?)(?<NormalizeDimensions>n?)-(?<NumberOfClasses>\d+)x(?<PointsPerClass>\d+)
+					\,(?<ClassCenterDeviation>[^\[]+)\[(?<ParamsSeed_>[\dA-Fa-f]+)\,(?<InstanceSeed_>[\dA-Fa-f]+)\]\^(?<Folds>\d+)\s*$"
+					+ "|" +
+				  @"^\s*(.*?--)?nrm-(?<Dimensions>\d+)D(?<ExtendDataByCorrelation>\*?)(?<NormalizeDimensions>n?)-(?<NumberOfClasses>\d+)\*(?<PointsPerClass>\d+):(?<ClassCenterDeviation>[^\[]+)\[(?<ParamsSeed>\d+):(?<InstanceSeed>\d+)\]/(?<Folds>\d+)\s*$";
 			}
-			set { ShorthandHelper.ParseShorthand(this, shR, value); }
 		}
 
-		public string ShorthandErrors { get { return ShorthandHelper.VerifyShorthand(this, shR); } }
+		protected override string GetShorthand() {
+			return "nrm-" + Dimensions + "D" + (ExtendDataByCorrelation ? "x" : "") + (NormalizeDimensions ? "n" : "") + "-" + NumberOfClasses + "x" + PointsPerClass + ","
+				+ ClassCenterDeviation.ToString("r") + "[" + ParamsSeed.ToString("x") + "," + InstanceSeed.ToString("x") + "]^" + Folds;
+		}
 
 
-		public LvqDatasetCli CreateDataset() {
+		public override LvqDatasetCli CreateDataset() {
 			return LvqDatasetCli.ConstructGaussianClouds(Shorthand,
 														 folds: Folds,
 														 extend: ExtendDataByCorrelation,
@@ -54,7 +45,6 @@ namespace LvqGui {
 														 meansep: ClassCenterDeviation
 				);
 		}
-		public static GaussianCloudSettings TryParse(string shorthand) { return ShorthandHelper.TryParseShorthand<GaussianCloudSettings>(shR, shorthand); }
 
 
 		public static GaussianCloudSettings InstableCross() {
@@ -79,7 +69,5 @@ namespace LvqGui {
 				InstanceSeed = 0x64ea6990,
 			};
 		}
-
-		IDatasetCreator IDatasetCreator.Clone() { return Clone(); }
 	}
 }

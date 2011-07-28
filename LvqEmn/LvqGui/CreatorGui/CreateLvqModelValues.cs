@@ -213,38 +213,15 @@ namespace LvqGui {
 				+ (ForDataset == null ? "" : "--" + ForDataset.DatasetLabel);
 			}
 			set {
-				var updated = ShorthandHelper.ParseShorthand(this, shR, value);
-
-				if (!updated.Contains("Dimensionality")) Dimensionality = default(LvqModelSettingsCli).Dimensionality;
-				if (!updated.Contains("GloballyNormalize")) GloballyNormalize = default(LvqModelSettingsCli).GloballyNormalize;
-				if (!updated.Contains("InstanceSeed")) InstanceSeed = default(LvqModelSettingsCli).InstanceSeed;
-				if (!updated.Contains("LR0")) LR0 = default(LvqModelSettingsCli).LR0;
-				if (!updated.Contains("LrScaleB")) LrScaleB = default(LvqModelSettingsCli).LrScaleB;
-				if (!updated.Contains("LrScaleBad")) LrScaleBad = default(LvqModelSettingsCli).LrScaleBad;
-				if (!updated.Contains("LrScaleP")) LrScaleP = default(LvqModelSettingsCli).LrScaleP;
-				if (!updated.Contains("ModelType")) ModelType = default(LvqModelSettingsCli).ModelType;
-				if (!updated.Contains("NgInitializeProtos")) NgInitializeProtos = default(LvqModelSettingsCli).NgInitializeProtos;
-				if (!updated.Contains("ProjOptimalInit")) ProjOptimalInit = default(LvqModelSettingsCli).ProjOptimalInit;
-				if (!updated.Contains("ProjOptimalInit")) BLocalInit = default(LvqModelSettingsCli).BLocalInit;
-				if (!updated.Contains("NgUpdateProtos")) NgUpdateProtos = default(LvqModelSettingsCli).NgUpdateProtos;
-				if (!updated.Contains("NormalizeBoundaries")) NormalizeBoundaries = default(LvqModelSettingsCli).NormalizeBoundaries;
-				if (!updated.Contains("NormalizeProjection")) NormalizeProjection = default(LvqModelSettingsCli).NormalizeProjection;
-				if (!updated.Contains("ParallelModels")) ParallelModels = default(LvqModelSettingsCli).ParallelModels;
-				if (!updated.Contains("ParamsSeed")) ParamsSeed = default(LvqModelSettingsCli).ParamsSeed;
-				if (!updated.Contains("PrototypesPerClass")) PrototypesPerClass = default(LvqModelSettingsCli).PrototypesPerClass;
-				if (!updated.Contains("RandomInitialBorders")) RandomInitialBorders = default(LvqModelSettingsCli).RandomInitialBorders;
-				if (!updated.Contains("RandomInitialProjection")) RandomInitialProjection = default(LvqModelSettingsCli).RandomInitialProjection;
-				if (!updated.Contains("SlowStartLrBad")) SlowStartLrBad = default(LvqModelSettingsCli).SlowStartLrBad;
-				if (!updated.Contains("TrackProjectionQuality")) TrackProjectionQuality = default(LvqModelSettingsCli).TrackProjectionQuality;
-				if (!updated.Contains("UpdatePointsWithoutB")) UpdatePointsWithoutB = default(LvqModelSettingsCli).UpdatePointsWithoutB;
+				ShorthandHelper.ParseShorthand(this,default(LvqModelSettingsCli), shR, value);
 			}
 		}
 
 		public override string ShorthandErrors { get { return ShorthandHelper.VerifyShorthand(this, shR); } }
 
 		public static LvqModelSettingsCli SettingsFromShorthand(string shorthand) {
-			object parsedSettings = new LvqModelSettingsCli();
-			ShorthandHelper.ParseShorthand(parsedSettings, shR, shorthand);
+			object parsedSettings = default(LvqModelSettingsCli);
+			ShorthandHelper.ParseShorthand(parsedSettings,default(LvqModelSettingsCli), shR, shorthand);
 			return (LvqModelSettingsCli)parsedSettings;
 		}
 

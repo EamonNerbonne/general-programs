@@ -25,7 +25,7 @@ namespace LvqLibCli {
 		Nullable<double> _LR0, _LrScaleP, _LrScaleB, _LrScaleBad;
 		Nullable<LvqModelType> _ModelType;
 	public:
-		property LvqModelType ModelType { LvqModelType get() { return _ModelType.HasValue?_ModelType.Value:LvqModelType::Ggm; } void set(LvqModelType val) { _ModelType = Nullable<LvqModelType>(val); } }
+		property LvqModelType ModelType { LvqModelType get() { return _ModelType.HasValue?_ModelType.Value:LvqModelType::Ggm; } void set(LvqModelType val) { _ModelType = val==LvqModelType::Ggm?Nullable<LvqModelType>():Nullable<LvqModelType>(val); } }
 
 		property int Dimensionality { int get() {return _Dimensionality + 2; } void set(int val) { _Dimensionality = val - 2; } }
 		property int PrototypesPerClass  { int get() {return _PrototypesPerClass + 1; } void set(int val) { _PrototypesPerClass = val - 1; } }
@@ -37,10 +37,10 @@ namespace LvqLibCli {
 		property bool GloballyNormalize { bool get() {return !_NonGloballyNormalize; } void set(bool val) { _NonGloballyNormalize = !val; } }
 		property bool TrackProjectionQuality { bool get() {return !_NonTrackProjectionQuality; } void set(bool val) { _NonTrackProjectionQuality = !val; } }
 
-		property double LR0 { double get() { return _LR0.HasValue?_LR0.Value:LVQ_LR0; } void set(double val) { _LR0 = Nullable<double>(val); } }
-		property double LrScaleP { double get() { return _LrScaleP.HasValue?_LrScaleP.Value:LVQ_LrScaleP; } void set(double val) { _LrScaleP = Nullable<double>(val); } }
-		property double LrScaleB { double get() { return _LrScaleB.HasValue?_LrScaleB.Value:LVQ_LrScaleB; } void set(double val) { _LrScaleB = Nullable<double>(val); } }
-		property double LrScaleBad { double get() { return _LrScaleBad.HasValue?_LrScaleBad.Value:LVQ_LrScaleBad; } void set(double val) { _LrScaleBad = Nullable<double>(val); } }
+		property double LR0 { double get() { return _LR0.HasValue?_LR0.Value:LVQ_LR0; } void set(double val) { _LR0 = val==LVQ_LR0?Nullable<double>(): Nullable<double>(val); } }
+		property double LrScaleP { double get() { return _LrScaleP.HasValue?_LrScaleP.Value:LVQ_LrScaleP; } void set(double val) { _LrScaleP = val==LVQ_LrScaleP?Nullable<double>(): Nullable<double>(val); } }
+		property double LrScaleB { double get() { return _LrScaleB.HasValue?_LrScaleB.Value:LVQ_LrScaleB; } void set(double val) { _LrScaleB =  val==LVQ_LrScaleB?Nullable<double>():Nullable<double>(val); } }
+		property double LrScaleBad { double get() { return _LrScaleBad.HasValue?_LrScaleBad.Value:LVQ_LrScaleBad; } void set(double val) { _LrScaleBad = val==LVQ_LrScaleBad?Nullable<double>(): Nullable<double>(val); } }
 
 
 		bool RandomInitialBorders;
@@ -49,29 +49,17 @@ namespace LvqLibCli {
 		bool SlowStartLrBad;
 		unsigned  InstanceSeed;
 
-		static initonly LvqModelSettingsCli^ defaults;
+		static initonly LvqModelSettingsCli defaults;
 
-		/*LvqModelSettingsCli()
-			: RandomInitialBorders(false)
-
-
-			, NgUpdateProtos(false)
-			, NgInitializeProtos(false)
-			, ProjOptimalInit(false)
-			, BLocalInit(false)
-			, UpdatePointsWithoutB(false)
-
-			, SlowStartLrBad(false)
-
-			, InstanceSeed(0)
-		{ }*/
 
 //		LvqModelSettingsCli^ Copy();
 		LvqModelSettingsCli WithChanges(LvqModelType type, int protos, unsigned rngParams, unsigned rngIter);
+		LvqModelSettingsCli WithDefaultLr();
+		LvqModelSettingsCli WithDefaultNnTracking();
 		LvqModelSettingsRaw ToNativeSettings();
 		String^ ToShorthand();
 
 	private:
-		static LvqModelSettingsCli() {defaults = gcnew LvqModelSettingsCli(); }
+		static LvqModelSettingsCli() {defaults = LvqModelSettingsCli(); }
 	};
 }

@@ -55,33 +55,41 @@ namespace LvqGui {
 	static class ShorthandHelper {
 		static readonly object[] empty = new object[] { };
 
-		public static HashSet<string> ParseShorthand(object shorthandObj, Regex shR, string newShorthand) {
+		public static void ParseShorthand(object shorthandObj, object defaults, Regex shR, string newShorthand) {
 			HashSet<string> updated = new HashSet<string>();
 			DecomposeShorthand(shorthandObj, shR, newShorthand, (prop, val) => { prop.Value = val; updated.Add(prop.Name); }, err => { throw new ArgumentException(err); });
-			return updated;
+			foreach (var unsetProp in Property.All(shorthandObj).Where(prop => !updated.Contains(prop.Name)))
+				unsetProp.Value = Property.Create(defaults, unsetProp.Name).Value;
 		}
 
-		public static HashSet<string> TryParseShorthand(object shorthandObj, Regex shR, string newShorthand) {
-			var toSet = new Dictionary<Property, object>();
+		public static bool TryParseShorthand(object shorthandObj, object defaults, Regex shR, string newShorthand) {
+			var toSet = new List<Tuple<Property, object>>();
 			bool error = false;
-			DecomposeShorthand(shorthandObj, shR, newShorthand, toSet.Add, err => error = true);
-			if (error) return null;
-			foreach (var entry in toSet)
-				entry.Key.Value = entry.Value;
-			return new HashSet<string>(toSet.Keys.Select(p => p.Name));
+			DecomposeShorthand(shorthandObj, shR, newShorthand, (p, v) => toSet.Add(Tuple.Create(p, v)), err => error = true);
+			if (error) return false;
+			foreach (var entry in toSet) 
+				entry.Item1.Value = entry.Item2;
+			var updated = new HashSet<string>(toSet.Select(t=>t.Item1.Name));
+
+			foreach (var unsetProp in Property.All(shorthandObj).Where(prop => !updated.Contains(prop.Name)))
+				unsetProp.Value = Property.Create(defaults, unsetProp.Name).Value;
+			return true;
 		}
 
-		public static T TryParseShorthand<T>(Regex shR, string newShorthand) where T : class,new() {
+		public static T TryParseShorthand<T>(T defaults, Regex shR, string newShorthand) where T : class,new() {
 			T shorthandObj = new T();
-			var toSet = new Dictionary<Property, object>();
+			var toSet = new List<Tuple<Property, object>>();
 			bool error = false;
-			DecomposeShorthand(shorthandObj, shR, newShorthand, toSet.Add, err => error = true);
+			DecomposeShorthand(shorthandObj, shR, newShorthand, (p, v) => toSet.Add(Tuple.Create(p, v)), err => error = true);
 			if (error) return null;
 			foreach (var entry in toSet)
-				entry.Key.Value = entry.Value;
+				entry.Item1.Value = entry.Item2;
+			var updated = new HashSet<string>(toSet.Select(t => t.Item1.Name));
+
+			foreach (var unsetProp in Property.All(shorthandObj).Where(prop => !updated.Contains(prop.Name)))
+				unsetProp.Value = Property.Create(defaults, unsetProp.Name).Value;
 			return shorthandObj;
 		}
-
 
 		public static string VerifyShorthand(IHasShorthand shorthandObj, Regex shR) {
 			var errs = new StringBuilder();

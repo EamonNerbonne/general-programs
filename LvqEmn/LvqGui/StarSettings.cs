@@ -4,7 +4,7 @@ using EmnExtensions.Wpf;
 using LvqLibCli;
 
 namespace LvqGui {
-	public class StarSettings : CloneableAs<StarSettings>, IHasShorthand, IDatasetCreator {
+	public sealed class StarSettings : DatasetCreatorBase<StarSettings> {
 #if DEBUG
 		public int Dimensions=8;
 		public int PointsPerClass=100;
@@ -23,14 +23,10 @@ namespace LvqGui {
 		public double GlobalNoiseMaxSigma = 0.0;
 
 		public uint ParamsSeed;
-		public uint InstanceSeed { get; set; }
-		public int Folds = 10;
 
-		public bool ExtendDataByCorrelation { get; set; }
-		public bool NormalizeDimensions { get; set; }
-
-		static readonly Regex shR =
-			new Regex(@"
+		protected override string RegexText {
+			get {
+				return @"
 				^\s*(.*?--)?
 				star-(?<Dimensions>\d+)D
 				(?<ExtendDataByCorrelation>x?)
@@ -41,8 +37,8 @@ namespace LvqGui {
 				x(?<ClusterCenterDeviation>[^~i]+)[~i](?<IntraClusterClassRelDev>[^\[n]+)(n(?<NoiseSigma>[^\[g]+))?(g(?<GlobalNoiseMaxSigma>[^\[]+))?
 				\[(?<ParamsSeed_>[0-9a-fA-F]+),(?<InstanceSeed_>[0-9a-fA-F]+)\]
 				\^(?<Folds>\d+)\s*$"
-				+ "|" +
-				@"^\s*(.*?--)?
+					+ "|" +
+					@"^\s*(.*?--)?
 				star-(?<Dimensions>\d+)D
 				(?<ExtendDataByCorrelation>\*?)
 				(?<NormalizeDimensions>n?)-
@@ -51,26 +47,18 @@ namespace LvqGui {
 				\((?<ClusterDimensionality>\d+)D(?<RandomlyTransformFirst>\??)\)
 				\*(?<ClusterCenterDeviation>[^~]+)\~(?<IntraClusterClassRelDev>[^\[n]+)(n(?<NoiseSigma>[^\[]+))?
 				\[(?<ParamsSeed>\d+):(?<InstanceSeed>\d+)\]
-				/(?<Folds>\d+)\s*$"
-				,
-				RegexOptions.CultureInvariant | RegexOptions.ExplicitCapture | RegexOptions.IgnorePatternWhitespace);
-
-		public string Shorthand {
-			get {
-				return "star-" + Dimensions + "D" + (ExtendDataByCorrelation ? "x" : "") + (NormalizeDimensions ? "n" : "") + "-" + NumberOfClasses + "x" + PointsPerClass + "," + NumberOfClusters + "(" + ClusterDimensionality + "D" + (RandomlyTransformFirst ? "r" : "") + ")x" + ClusterCenterDeviation.ToString("r") + "i" + IntraClusterClassRelDev.ToString("r")
-					+ (NoiseSigma != 1.0 ? "n" + NoiseSigma.ToString("r") : "") + (GlobalNoiseMaxSigma != 0.0 ? "g" + GlobalNoiseMaxSigma.ToString("r") : "") + "[" + ParamsSeed.ToString("x") + "," + InstanceSeed.ToString("x") + "]^" + Folds;
-			}
-			set {
-				var updated = ShorthandHelper.ParseShorthand(this, shR, value);
-				if (!updated.Contains("NoiseSigma")) NoiseSigma = 1.0;
-				if (!updated.Contains("GlobalNoiseMaxSigma")) GlobalNoiseMaxSigma = 0.0;
+				/(?<Folds>\d+)\s*$";
 			}
 		}
 
-		public static StarSettings TryParse(string shorthand) { return ShorthandHelper.TryParseShorthand<StarSettings>(shR, shorthand); }
+		protected override string GetShorthand() {
+			return "star-" + Dimensions + "D" + (ExtendDataByCorrelation ? "x" : "") + (NormalizeDimensions ? "n" : "") + "-" + NumberOfClasses + "x" + PointsPerClass + ","
+				+ NumberOfClusters + "(" + ClusterDimensionality + "D" + (RandomlyTransformFirst ? "r" : "") + ")x" + ClusterCenterDeviation.ToString("r") + "i"
+				+ IntraClusterClassRelDev.ToString("r") + (NoiseSigma != 1.0 ? "n" + NoiseSigma.ToString("r") : "")
+				+ (GlobalNoiseMaxSigma != 0.0 ? "g" + GlobalNoiseMaxSigma.ToString("r") : "") + "[" + ParamsSeed.ToString("x") + "," + InstanceSeed.ToString("x") + "]^" + Folds;
+		}
 
-		public string ShorthandErrors { get { return ShorthandHelper.VerifyShorthand(this, shR); } }
-		public LvqDatasetCli CreateDataset() {
+		public override LvqDatasetCli CreateDataset() {
 			return LvqDatasetCli.ConstructStarDataset(Shorthand,
 				colors: WpfTools.MakeDistributedColors(NumberOfClasses, new MersenneTwister((int)ParamsSeed)),
 				folds: Folds,
@@ -90,6 +78,5 @@ namespace LvqGui {
 				globalNoiseMaxSigma: GlobalNoiseMaxSigma
 			);
 		}
-		IDatasetCreator IDatasetCreator.Clone() { return Clone(); }
 	}
 }

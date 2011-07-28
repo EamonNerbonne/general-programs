@@ -18,7 +18,7 @@ type ModelResults =
     {  DatasetBaseShorthand:string; DatasetTweaks:string; ModelDir: DirectoryInfo; ModelSettings: LvqModelSettingsCli; Results: Result [] }
     member this.MeanError = this.Results |> Array.averageBy (fun res -> res.CanonicalError)
 
-let datasetSettings = 
+let datasetSettings () = 
     let datasetAnnotation (settings:IDatasetCreator) segmentNorm =
         if settings.ExtendDataByCorrelation then "x" else ""
         + if settings.NormalizeDimensions then "n" else ""
@@ -41,7 +41,7 @@ let datasetSettings =
     |> Seq.map (fun dir -> (dir, CreateDataset.CreateFactory(dir.Name) |> decodeDataset))
     |> Seq.toArray
  
-let analyzedModels = 
+let analyzedModels () = 
     let decodeLine (line:string) =
         let name = line.SubstringBefore(":")
         let nums = line.Substring(name.Length+1).Split(',') |> Array.map float
@@ -77,7 +77,7 @@ let analyzedModels =
                         Results = results
                     })
 
-    datasetSettings 
+    datasetSettings ()
     |> Seq.collect (fun (datasetdir, dataset) -> datasetdir.GetDirectories() |> Array.map (loadModelResults dataset))
     |> Seq.filter Option.isSome
     |> Seq.map Option.get

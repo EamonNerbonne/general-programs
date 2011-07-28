@@ -15,19 +15,18 @@ open System.Collections.Generic
 open System.Linq
 
 
-
-type LvqSettings = 
+type HeuristicsSettings = 
     { DataSettings: string; ModelSettings: LvqModelSettingsCli }
     member this.Equiv other = this.DataSettings = other.DataSettings && this.ModelSettings.ToShorthand() = other.ModelSettings.ToShorthand()
     member this.Key = this.DataSettings + "|" + (this.ModelSettings.ToShorthand())
 
 let normalizeDatatweaks str = new System.String(str |> Seq.sortBy (fun c -> - int32 c) |> Seq.distinct |> Seq.toArray)
 
-let getSettings (modelResults:ResultAnalysis.ModelResults) = { DataSettings = normalizeDatatweaks modelResults.DatasetTweaks; ModelSettings = modelResults.ModelSettings }
+let getSettings (modelResults:ResultAnalysis.ModelResults) = { DataSettings = normalizeDatatweaks modelResults.DatasetTweaks; ModelSettings = modelResults.ModelSettings.WithDefaultLr().WithDefaultNnTracking()  }
 
 
 type Heuristic = 
-    { Name:string; Activator: LvqSettings -> (LvqSettings * LvqSettings); }
+    { Name:string; Activator: HeuristicsSettings -> (HeuristicsSettings * HeuristicsSettings); }
     //member this.IsActive settings =  (this.Activator settings |> fst).Equiv settings
 
 let applyHeuristic (heuristic:Heuristic) settings = 
@@ -41,8 +40,8 @@ let orDefault defaultValue =
     | None -> defaultValue
     | Some(value) -> value
 
-let resultsByDatasetByModel =
-    ResultAnalysis.analyzedModels |> toDict (fun modelRes -> modelRes.DatasetBaseShorthand) (toDict (fun modelRes -> (getSettings modelRes).Key) System.Linq.Enumerable.Single )
+let resultsByDatasetByModel () =
+    ResultAnalysis.analyzedModels () |> toDict (fun modelRes -> modelRes.DatasetBaseShorthand) (toDict (fun modelRes -> (getSettings modelRes).Key) System.Linq.Enumerable.Single )
 
 
 let heuristics = 
@@ -167,7 +166,7 @@ let heuristics =
 
 heuristics |> Seq.map (fun heur -> 
     seq {
-        for datasetRes in  resultsByDatasetByModel.Values do
+        for datasetRes in (resultsByDatasetByModel ()).Values do
             for modelRes in datasetRes.Values do
                 let lvqSettings = getSettings modelRes 
                 let heurResMaybe = 
@@ -183,9 +182,9 @@ heuristics |> Seq.map (fun heur ->
                     let hErr = errs heurRes
                     let bErr = errs modelRes
                     let (isBetter, p) = Utils.twoTailedPairedTtest hErr bErr
-                    yield (isBetter, p, lvqSettings.Key + " " + modelRes.DatasetBaseShorthand)
+                    yield (isBetter, ((p, (heurRes.MeanError - modelRes.MeanError) / System.Math.Max(modelRes.MeanError,heurRes.MeanError) * 100. ), lvqSettings.Key + " " + modelRes.DatasetBaseShorthand))
     }
-    |> toDict (fun (isbetter,_,_) -> isbetter) (Seq.map (fun (_,p,k) -> (p,k)) >> Seq.sort >> Seq.toArray)
+    |> toDict fst ((Seq.map snd) >> Seq.sort >> Seq.toArray)
     |> (fun dict -> (Utils.getMaybe dict true |> orDefault (Array.empty),  Utils.getMaybe dict false |> orDefault (Array.empty)) )
     |> (fun (better, worse) ->
         (heur.Name, better.Length + worse.Length, float better.Length / float (better.Length + worse.Length), better, worse)
