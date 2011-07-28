@@ -94,7 +94,7 @@ namespace LvqGui {
 			if (!match.Success || resultFile.Length == 0) return null;
 
 			return new DatasetResults(resultFile, Double.Parse(match.Groups["iters"].Value.StartsWith("e") ? "1" + match.Groups["iters"].Value : match.Groups["iters"].Value),
-				CreateLvqModelValues.SettingsFromShorthand(match.Groups["shorthand"].Value));
+				CreateLvqModelValues.ParseShorthand(match.Groups["shorthand"].Value));
 		}
 
 		/// <summary>

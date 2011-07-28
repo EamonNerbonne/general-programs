@@ -50,4 +50,4 @@ let uncoveredSettings allResults alltypes =
     |> List.filter (fun settings -> settings.ModelType = LvqModelType.Lgm |> not )
     |> List.map (fun settings -> settings.ToShorthand())
 
-let isCanonical (settings:LvqModelSettingsCli) = CreateLvqModelValues.SettingsFromShorthand(settings.ToShorthand()) = settings
+let isCanonical (settings:LvqModelSettingsCli) = CreateLvqModelValues.ParseShorthand(settings.ToShorthand()) = settings

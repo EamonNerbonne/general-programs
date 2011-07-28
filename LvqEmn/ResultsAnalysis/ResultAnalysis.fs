@@ -89,7 +89,7 @@ let analyzedModels () =
         | None -> None
         | Some(results) -> 
             Some({
-                        ModelDir = modeldir; DatasetBaseShorthand = fst dataset; DatasetTweaks = snd dataset; ModelSettings = CreateLvqModelValues.SettingsFromShorthand(modeldir.Name);
+                        ModelDir = modeldir; DatasetBaseShorthand = fst dataset; DatasetTweaks = snd dataset; ModelSettings = CreateLvqModelValues.ParseShorthand(modeldir.Name);
                         Results = results
                     })
 

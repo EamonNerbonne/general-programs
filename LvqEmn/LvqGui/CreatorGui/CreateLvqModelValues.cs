@@ -219,10 +219,16 @@ namespace LvqGui {
 
 		public override string ShorthandErrors { get { return ShorthandHelper.VerifyShorthand(this, shR); } }
 
-		public static LvqModelSettingsCli SettingsFromShorthand(string shorthand) {
+		public static LvqModelSettingsCli ParseShorthand(string shorthand) {
 			object parsedSettings = default(LvqModelSettingsCli);
 			ShorthandHelper.ParseShorthand(parsedSettings,default(LvqModelSettingsCli), shR, shorthand);
 			return (LvqModelSettingsCli)parsedSettings;
+		}
+
+		public static LvqModelSettingsCli? TryParseShorthand(string shorthand) {
+			object parsedSettings = default(LvqModelSettingsCli);
+			bool success = ShorthandHelper.TryParseShorthand(parsedSettings, default(LvqModelSettingsCli), shR, shorthand);
+			return success ? (LvqModelSettingsCli?)parsedSettings : null;
 		}
 
 		public CreateLvqModelValues(LvqWindowValues owner) {

@@ -236,7 +236,7 @@ namespace LvqGui {
 		public static readonly DirectoryInfo outputDir = FSUtil.FindDataDir(@"uni\Thesis\doc\plots", typeof(LvqStatPlotsContainer));
 		public static DirectoryInfo AutoPlotDir { get { return outputDir.CreateSubdirectory("auto"); } }
 
-		public static bool AnnouncePlotGeneration(LvqDatasetCli dataset, string shorthand, long iterIntent) {
+		public static bool AnnouncePlotGeneration(LvqDatasetCli dataset, LvqModelSettingsCli shorthand, long iterIntent) {
 			DirectoryInfo modelDir = GraphDir(dataset, shorthand);
 			string iterPostfix = "-" + TestLr.ItersPrefix(iterIntent);
 
@@ -247,11 +247,19 @@ namespace LvqGui {
 			return !exists;
 		}
 
-		static DirectoryInfo GraphDir(LvqDatasetCli dataset, string modelshorthand) {
-			DirectoryInfo datasetDir = outputDir.CreateSubdirectory(@"auto\" + dataset.DatasetLabel);
-			string modelLabel = modelshorthand.SubstringBefore("--") ?? modelshorthand;
-			return datasetDir.CreateSubdirectory(modelLabel);
-
+		static DirectoryInfo GraphDir(LvqDatasetCli dataset, LvqModelSettingsCli modelSettings) {
+			DirectoryInfo autoDir = outputDir.CreateSubdirectory(@"auto");
+			var dSettings = CreateDataset.CreateFactory(dataset.DatasetLabel);
+			string dSettingsShorthand = dSettings.Shorthand;
+			DirectoryInfo datasetDir = autoDir.GetDirectories().FirstOrDefault(dir => {
+				var otherSettings = CreateDataset.CreateFactory(dir.Name);
+				return otherSettings != null && otherSettings.Shorthand == dSettingsShorthand;
+			}) ?? autoDir.CreateSubdirectory(dSettingsShorthand);
+			string mSettingsShorthand = modelSettings.ToShorthand();
+			return datasetDir.GetDirectories().FirstOrDefault( dir => {
+				var otherSettings = CreateLvqModelValues.TryParseShorthand(dir.Name);
+				return otherSettings.HasValue && otherSettings.Value.ToShorthand() == mSettingsShorthand;
+			}) ?? datasetDir.CreateSubdirectory(mSettingsShorthand);
 		}
 
 		public Task SaveAllGraphs(bool alsoEmbedding) {
@@ -260,7 +268,7 @@ namespace LvqGui {
 				if (subplots == null) { Console.WriteLine("No plots to save!"); return; }
 				Console.Write("Saving");
 
-				DirectoryInfo modelDir = GraphDir(subplots.dataset, subplots.model.ModelLabel);
+				DirectoryInfo modelDir = GraphDir(subplots.dataset, CreateLvqModelValues.ParseShorthand(subplots.model.ModelLabel));
 				double iterations = subplots.model.CurrentRawStats(subplots.dataset).Value[LvqTrainingStatCli.TrainingIterationI];
 				string iterPostfix = "-" + TestLr.ItersPrefix((long)(iterations + 0.5));
 
