@@ -164,29 +164,49 @@ let heuristics =
         heurD "SegNorm" "N"
     ]
 
-heuristics |> Seq.map (fun heur -> 
-    seq {
-        for datasetRes in (resultsByDatasetByModel ()).Values do
-            for modelRes in datasetRes.Values do
-                let lvqSettings = getSettings modelRes 
-                let heurResMaybe = 
-                    lvqSettings
-                    |> applyHeuristic heur 
-                    |> Option.map (fun lvqS -> lvqS.Key)
-                    |> Option.bind (Utils.getMaybe datasetRes)
+heuristics 
+    |> Seq.map (fun heur -> 
+        seq {
+            for datasetRes in (resultsByDatasetByModel ()).Values do
+                for modelRes in datasetRes.Values do
+                    let lvqSettings = getSettings modelRes 
+                    let heurResMaybe = 
+                        lvqSettings
+                        |> applyHeuristic heur 
+                        |> Option.map (fun lvqS -> lvqS.Key)
+                        |> Option.bind (Utils.getMaybe datasetRes)
 
-                match heurResMaybe with
-                | None -> ()
-                | Some(heurRes) ->
-                    let errs (model:ResultAnalysis.ModelResults) = model.Results |> Seq.map (fun res->res.CanonicalError) |> Seq.toList 
-                    let hErr = errs heurRes
-                    let bErr = errs modelRes
-                    let (isBetter, p) = Utils.twoTailedPairedTtest hErr bErr
-                    yield (isBetter, ((p, (heurRes.MeanError - modelRes.MeanError) / System.Math.Max(modelRes.MeanError,heurRes.MeanError) * 100. ), lvqSettings.Key + " " + modelRes.DatasetBaseShorthand))
-    }
-    |> toDict fst ((Seq.map snd) >> Seq.sort >> Seq.toArray)
-    |> (fun dict -> (Utils.getMaybe dict true |> orDefault (Array.empty),  Utils.getMaybe dict false |> orDefault (Array.empty)) )
-    |> (fun (better, worse) ->
-        (heur.Name, better.Length + worse.Length, float better.Length / float (better.Length + worse.Length), better, worse)
-    )
-) |> Seq.toList
+                    match heurResMaybe with
+                    | None -> ()
+                    | Some(heurRes) ->
+                        let errs (model:ResultAnalysis.ModelResults) = model.Results |> Seq.map (fun res->res.CanonicalError) |> Seq.toList 
+                        let hErr = errs heurRes
+                        let bErr = errs modelRes
+                        let (isBetter, p) = Utils.twoTailedPairedTtest hErr bErr
+                        yield 
+                            (
+                                isBetter, 
+                                (
+                                    (p, (heurRes.MeanError - modelRes.MeanError) / System.Math.Max(modelRes.MeanError,heurRes.MeanError) * 100. ),
+                                    lvqSettings.ModelSettings.ToShorthand() + " " + (ResultAnalysis.applyDatasetTweaks lvqSettings.DataSettings (CreateDataset.CreateFactory modelRes.DatasetBaseShorthand)).Shorthand
+                                )
+                            )
+        }
+        |> toDict fst ((Seq.map snd) >> Seq.sort >> Seq.toArray)
+        |> (fun dict -> (Utils.getMaybe dict true |> orDefault (Array.empty),  Utils.getMaybe dict false |> orDefault (Array.empty)) )
+        |> (fun (better, worse) ->
+            (heur.Name, better.Length + worse.Length, float better.Length / float (better.Length + worse.Length), better, worse)
+        )
+    ) 
+    |> Seq.toList
+    |> List.map (fun (name, count,ratio, better, worse) ->
+            sprintf @"Heuristic %s was an improvement in $%1.1f\%%$ of %i cases:\\" name (100.*ratio) count + "\n"
+            + sprintf @"\noindent\begin{tabular}{lll}\hline"  + "\n"
+            + sprintf @"$p$-value & errors & scenario\\\hline"  + "\n"
+            + String.concat "\\\\\n" (Array.map (fun ((p, errChange), scenario) -> sprintf @" %0.3g & %0.1f%% & %s " p errChange scenario) better)
+            + @"\\\hline" + "\n"
+            + String.concat "\\\\\n" (Array.map (fun ((p, errChange), scenario) -> sprintf @" %0.3g & %0.1f%% & %s " p errChange scenario) worse)
+            + "\n\\end{tabular}\n\n"
+        )
+    |> String.concat ""
+    |> printf "%s"

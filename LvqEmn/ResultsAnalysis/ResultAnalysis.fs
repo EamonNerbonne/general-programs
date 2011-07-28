@@ -18,6 +18,18 @@ type ModelResults =
     {  DatasetBaseShorthand:string; DatasetTweaks:string; ModelDir: DirectoryInfo; ModelSettings: LvqModelSettingsCli; Results: Result [] }
     member this.MeanError = this.Results |> Array.averageBy (fun res -> res.CanonicalError)
 
+let applyDatasetTweaks (tweaks:string) (settings:IDatasetCreator) = 
+    let copy = settings.Clone()
+    copy.ExtendDataByCorrelation <- tweaks.Contains("x")
+    copy.NormalizeDimensions <- tweaks.Contains("n")
+    if copy :? LoadedDatasetSettings then
+        let ldSettings = copy :?> LoadedDatasetSettings
+        let segmentVersion = if tweaks.Contains("N") then "segmentationNormed_" else "segmentation_"
+        ldSettings.Filename <- ldSettings.Filename.Replace("segmentationX_", segmentVersion)
+        if ldSettings.TestFilename <> null then
+            ldSettings.TestFilename <- ldSettings.TestFilename.Replace("segmentationX_", segmentVersion)
+    copy
+
 let datasetSettings () = 
     let datasetAnnotation (settings:IDatasetCreator) segmentNorm =
         if settings.ExtendDataByCorrelation then "x" else ""
@@ -28,11 +40,15 @@ let datasetSettings () =
         | :? LoadedDatasetSettings as ldSettings ->
             if ldSettings.Filename.StartsWith("segmentationNormed_") then
                 ldSettings.Filename <- ldSettings.Filename.Replace("segmentationNormed_","segmentationX_")
+                if ldSettings.TestFilename <> null then
+                    ldSettings.TestFilename <- ldSettings.TestFilename.Replace("segmentationNormed_","segmentationX_")
                 ldSettings.NormalizeDimensions <- true
                 ldSettings.DimCount <- 19
                 (ldSettings.BaseShorthand(), datasetAnnotation settings true)
             elif ldSettings.Filename.StartsWith("segmentation_") then
                 ldSettings.Filename <- ldSettings.Filename.Replace("segmentation_","segmentationX_")
+                if ldSettings.TestFilename <> null then
+                    ldSettings.TestFilename <- ldSettings.TestFilename.Replace("segmentation_","segmentationX_")
                 (ldSettings.BaseShorthand(), datasetAnnotation settings false)
             else
                 (ldSettings.BaseShorthand(), datasetAnnotation settings false)
