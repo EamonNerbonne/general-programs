@@ -8,7 +8,7 @@
 open EmnExtensions
 
 for resStr in
-            ResultAnalysis.analyzedModels 
+            ResultAnalysis.analyzedModels ()
                 |> Seq.groupBy (fun res-> res.DatasetBaseShorthand) 
                 |> Seq.map 
                     (fun (key, group) ->
