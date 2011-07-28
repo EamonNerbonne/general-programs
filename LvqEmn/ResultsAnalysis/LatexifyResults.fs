@@ -31,7 +31,7 @@ let latexifyConfusable (title:string)  (allResults:list<DatasetResults>) setting
         let confusableCount =
             resultsByLr |> Seq.skip 1
             |> Seq.map (fun (errmean,_,_) -> Utils.twoTailedPairedTtest bestMeans errmean)
-            |> Seq.filter (fun (p, firstIsBetter) -> not firstIsBetter || p > 0.05)
+            |> Seq.filter (fun (firstIsBetter, p) -> not firstIsBetter || p > 0.05)
             |> Seq.length
         let confusableRatio = float confusableCount / float(resultCount - 1)
         let prErr(mean, stderr) =  sprintf @"$%.1f \pm %.2f $" (mean*100.) (stderr*100.)

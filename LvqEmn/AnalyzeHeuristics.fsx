@@ -1,4 +1,4 @@
-﻿#I @"ResultsAnalysis\bin\ReleaseMingw2"
+﻿#I @"ResultsAnalysis\bin\ReleaseMingw"
 #r "ResultsAnalysis"
 #r "LvqLibCli"
 #r "LvqGui"
@@ -85,6 +85,10 @@ let heuristics =
     ]
 
 let toDict keyf valf xs = (Seq.groupBy keyf xs).ToDictionary(fst, snd >> valf)
+let orDefault defaultValue = 
+    function
+    | None -> defaultValue
+    | Some(value) -> value
 
 let resultsByDatasetByModel =
     ResultAnalysis.analyzedModels |> toDict (fun modelRes -> modelRes.DatasetBaseShorthand) (toDict (fun modelRes -> (getSettings modelRes).Key) System.Linq.Enumerable.Single )
@@ -103,9 +107,14 @@ heuristics |> Seq.map (fun heur ->
                 match heurResMaybe with
                 | None -> ()
                 | Some(heurRes) ->
-                    yield (heurRes.MeanError < modelRes.MeanError)
-    } |> Seq.toList |> (fun betters ->
-        let distr = Utils.sampleDistribution (List.map (fun b -> if b then 1. else 0.) betters)
-        (heur.Name, distr.Count, distr.Mean)
+                    let errs (model:ResultAnalysis.ModelResults) = model.Results |> Seq.map (fun res->res.CanonicalError) |> Seq.toList 
+                    let hErr = errs heurRes
+                    let bErr = errs modelRes
+                    yield Utils.twoTailedPairedTtest hErr bErr
+    }
+    |> toDict fst (Seq.map snd >> Seq.sort >> Seq.toArray)
+    |> (fun dict -> (Utils.getMaybe dict true |> orDefault (Array.empty),  Utils.getMaybe dict false |> orDefault (Array.empty)) )
+    |> (fun (better, worse) ->
+        (heur.Name, better.Length + worse.Length, float better.Length / float (better.Length + worse.Length), better, worse)
     )
 ) |> Seq.toList

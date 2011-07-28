@@ -22,7 +22,7 @@ let latexifyCompareMethods (datasetName:string) (allresults:list<DatasetResults>
         let significantDiff errsA errsB errSelector =
             Utils.twoTailedPairedTtest (errsA |>List.map errSelector) (errsB |> List.map errSelector)
         let prErr (mean, stderr) (errsA, errsB) errSelector =
-            let (p, isBetter) = significantDiff errsA errsB errSelector
+            let (isBetter, p) = significantDiff errsA errsB errSelector
             let color = 
                 if isBetter && p < 0.01 then
                     "0.4,0.8,1.0"   
