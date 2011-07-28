@@ -27,62 +27,13 @@ let getSettings (modelResults:ResultAnalysis.ModelResults) = { DataSettings = no
 
 
 type Heuristic = 
-    { Name:string; Activator: LvqSettings -> LvqSettings }
-    member this.IsActive settings =  (this.Activator settings).Equiv settings
+    { Name:string; Activator: LvqSettings -> (LvqSettings * LvqSettings); }
+    //member this.IsActive settings =  (this.Activator settings |> fst).Equiv settings
 
 let applyHeuristic (heuristic:Heuristic) settings = 
-    let activated = heuristic.Activator settings
-    if activated.Equiv settings then None else Some(activated)
+    let (on, off) = heuristic.Activator settings
+    if off.Equiv settings && on.Equiv settings |> not && on.ModelSettings = CreateLvqModelValues.SettingsFromShorthand(on.ModelSettings.ToShorthand()) then Some(on) else None
 
-let heuristics = 
-    let heur name activator = { Name=name; Activator= activator; }
-    let heurD name letter = { Name = name; Activator = (fun s -> 
-        {
-            DataSettings = normalizeDatatweaks (s.DataSettings + letter)
-            ModelSettings = s.ModelSettings
-        })}
-    let heurM name activator = 
-        {
-            Name = name;
-            Activator = (fun s ->
-                {
-                    DataSettings = s.DataSettings; 
-                    ModelSettings = activator s.ModelSettings
-                })
-        }
-    [
-        heurM "NGi" (fun s  -> 
-            let mutable ns = s
-            ns.NgInitializeProtos <- true
-            ns)
-        heurM "NG" (fun s  -> 
-            let mutable ns = s
-            ns.NgUpdateProtos <- true
-            ns)
-        heurM "pca" (fun s  -> 
-            let mutable ns = s
-            ns.RandomInitialProjection <- false
-            ns)
-        heurM "SlowBad" (fun s  -> 
-            let mutable ns = s
-            ns.SlowStartLrBad <- true
-            ns)
-        heurM "NoB" (fun s  -> 
-            let mutable ns = s
-            ns.UpdatePointsWithoutB <- true
-            ns)
-        heurM "Pi" (fun s  -> 
-            let mutable ns = s
-            ns.ProjOptimalInit <- true
-            ns)
-        heurM "Bi" (fun s  -> 
-            let mutable ns = s
-            ns.BLocalInit <- true
-            ns)
-        heurD "Extend" "x"
-        heurD "Normalize" "n"
-        heurD "SegNorm" "N"
-    ]
 
 let toDict keyf valf xs = (Seq.groupBy keyf xs).ToDictionary(fst, snd >> valf)
 let orDefault defaultValue = 
@@ -92,6 +43,127 @@ let orDefault defaultValue =
 
 let resultsByDatasetByModel =
     ResultAnalysis.analyzedModels |> toDict (fun modelRes -> modelRes.DatasetBaseShorthand) (toDict (fun modelRes -> (getSettings modelRes).Key) System.Linq.Enumerable.Single )
+
+
+let heuristics = 
+    let heur name activator = { Name=name; Activator = activator; }
+    let heurD name letter = { Name = name; Activator = (fun s -> 
+        let on = normalizeDatatweaks (s.DataSettings + letter)
+        let off = s.DataSettings.Replace(letter,"")
+
+        ({ DataSettings = on; ModelSettings = s.ModelSettings}, { DataSettings = off; ModelSettings = s.ModelSettings}))}
+    let heurM name activator = 
+        {
+            Name = name;
+            Activator = (fun s ->
+                let (on, off) = activator s.ModelSettings
+                ({ DataSettings = s.DataSettings; ModelSettings = on }, { DataSettings = s.DataSettings; ModelSettings = off }))
+        }
+    [
+        heurM "NGi" (fun s  -> 
+            let mutable on = s
+            let mutable off = s
+            on.NgInitializeProtos <- true
+            off.NgInitializeProtos <- false
+            (on,off))
+        heurM "NG" (fun s  -> 
+            let mutable on = s
+            let mutable off = s
+            on.NgUpdateProtos <- true
+            off.NgUpdateProtos <- false
+            (on, off))
+        heurM "pca" (fun s  -> 
+            let mutable on = s
+            let mutable off = s
+            on.RandomInitialProjection <- false
+            off.RandomInitialProjection <- true
+            (on, off))
+        heurM "SlowBad" (fun s  -> 
+            let mutable on = s
+            let mutable off = s
+            on.SlowStartLrBad <- true
+            off.SlowStartLrBad <- false
+            (on, off))
+        heurM "NoB" (fun s  -> 
+            let mutable on = s
+            let mutable off = s
+            on.UpdatePointsWithoutB <- true
+            off.UpdatePointsWithoutB <- false
+            (on, off))
+        heurM "Pi" (fun s  -> 
+            let mutable on = s
+            let mutable off = s
+            on.ProjOptimalInit <- true
+            off.ProjOptimalInit <- false
+            (on, off))
+        heurM "Bi" (fun s  -> 
+            let mutable on = s
+            let mutable off = s
+            on.BLocalInit <- true
+            off.BLocalInit <- false
+            (on, off))
+        heurM "Pi+Bi" (fun s  -> 
+            let mutable on = s
+            let mutable off = s
+            on.BLocalInit <- true
+            off.BLocalInit <- false
+            on.ProjOptimalInit <- true
+            off.ProjOptimalInit <- false
+            (on, off))
+        heurM "Pi+Bi+SlowBad" (fun s  -> 
+            let mutable on = s
+            let mutable off = s
+            on.BLocalInit <- true
+            off.BLocalInit <- false
+            on.ProjOptimalInit <- true
+            off.ProjOptimalInit <- false
+            on.SlowStartLrBad <- true
+            off.SlowStartLrBad <- false
+            (on, off))
+        heurM "NGi+Pi" (fun s  -> 
+            let mutable on = s
+            let mutable off = s
+            on.NgInitializeProtos <- true
+            off.NgInitializeProtos <- false
+            on.ProjOptimalInit <- true
+            off.ProjOptimalInit <- false
+            (on, off))
+        heurM "NG+Pi" (fun s  -> 
+            let mutable on = s
+            let mutable off = s
+            on.NgUpdateProtos <- true
+            off.NgUpdateProtos <- false
+            on.ProjOptimalInit <- true
+            off.ProjOptimalInit <- false
+            (on, off))
+        heurM "NGi+NG" (fun s  -> 
+            let mutable on = s
+            let mutable off = s
+            on.NgInitializeProtos <- true
+            off.NgInitializeProtos <- false
+            on.NgUpdateProtos <- true
+            off.NgUpdateProtos <- false
+            (on, off))
+        heurM "NGi+SlowBad" (fun s  -> 
+            let mutable on = s
+            let mutable off = s
+            on.NgInitializeProtos <- true
+            off.NgInitializeProtos <- false
+            on.SlowStartLrBad <- true
+            off.SlowStartLrBad <- false
+            (on, off))
+        heurM "NG+SlowBad" (fun s  -> 
+            let mutable on = s
+            let mutable off = s
+            on.NgUpdateProtos <- true
+            off.NgUpdateProtos <- false
+            on.SlowStartLrBad <- true
+            off.SlowStartLrBad <- false
+            (on, off))
+        heurD "Extend" "x"
+        heurD "Normalize" "n"
+        heurD "SegNorm" "N"
+    ]
 
 heuristics |> Seq.map (fun heur -> 
     seq {
@@ -111,7 +183,7 @@ heuristics |> Seq.map (fun heur ->
                     let hErr = errs heurRes
                     let bErr = errs modelRes
                     let (isBetter, p) = Utils.twoTailedPairedTtest hErr bErr
-                    yield (isBetter, p, lvqSettings.Key)
+                    yield (isBetter, p, lvqSettings.Key + " " + modelRes.DatasetBaseShorthand)
     }
     |> toDict (fun (isbetter,_,_) -> isbetter) (Seq.map (fun (_,p,k) -> (p,k)) >> Seq.sort >> Seq.toArray)
     |> (fun dict -> (Utils.getMaybe dict true |> orDefault (Array.empty),  Utils.getMaybe dict false |> orDefault (Array.empty)) )
