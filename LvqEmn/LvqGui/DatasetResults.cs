@@ -1,4 +1,6 @@
-﻿using System;
+﻿// ReSharper disable ParameterTypeCanBeEnumerable.Local
+// ReSharper disable MemberCanBePrivate.Global
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -8,7 +10,7 @@ using EmnExtensions.Text;
 using LvqLibCli;
 
 namespace LvqGui {
-	public class DatasetResults {
+	public sealed class DatasetResults {
 		public readonly FileInfo resultsFile;
 		public readonly double trainedIterations;
 		public readonly LvqModelSettingsCli unoptimizedSettings;
@@ -22,9 +24,9 @@ namespace LvqGui {
 
 		public LvqModelSettingsCli ConvertLrToSettings(LrAndError bestLr, uint? paramSeed = null, uint? instSeed = null) {
 			LvqModelSettingsCli retval = unoptimizedSettings;
-			retval.LR0 = bestLr.Lr.Lr0;
-			retval.LrScaleP = bestLr.Lr.LrP;
-			retval.LrScaleB = bestLr.Lr.LrB;
+			retval.LR0 = bestLr.LR.Lr0;
+			retval.LrScaleP = bestLr.LR.LrP;
+			retval.LrScaleB = bestLr.LR.LrB;
 			retval.ParamsSeed = paramSeed ?? retval.ParamsSeed;
 			retval.InstanceSeed = instSeed ?? retval.InstanceSeed;
 			return retval;
@@ -42,14 +44,14 @@ namespace LvqGui {
 
 		public struct Lr { public double Lr0, LrP, LrB; public override string ToString() { return Lr0 + " p" + LrP + " b" + LrB; } }
 		public struct LrAndError : IComparable<LrAndError>, IComparable {
-			public Lr Lr; public TestLr.ErrorRates Errors;
+			public Lr LR; public TestLr.ErrorRates Errors;
 			public int CompareTo(LrAndError other) { return Errors.CompareTo(other.Errors); }
-			public override string ToString() { return Lr + " @ " + Errors; }
+			public override string ToString() { return LR + " @ " + Errors; }
 
 			public int CompareTo(object obj) { return CompareTo((LrAndError)obj); }
 		}
 
-		private static LrAndError ParseLine(string resultLine, double[] lr0range, double[] lrPrange, double[] lrBrange) {
+		static LrAndError ParseLine(string resultLine, double[] lr0range, double[] lrPrange, double[] lrBrange) {
 			var resLrThenErr = resultLine.Split(':');
 			double[] lrs = resLrThenErr[0].Split('p', 'b').Select(double.Parse).ToArray();
 
@@ -57,7 +59,7 @@ namespace LvqGui {
 
 			Tuple<double, double>[] errs = errsThenCumulLr0.Take(3).Select(errStr => errStr.Split('~').Select(double.Parse).ToArray()).Select(errval => Tuple.Create(errval[0], errval.Skip(1).FirstOrDefault())).ToArray();
 			return new LrAndError {
-				Lr = new Lr {
+				LR = new Lr {
 					Lr0 = ClosestMatch(lr0range, lrs[0]),
 					LrP = ClosestMatch(lrPrange, lrs[1]),
 					LrB = ClosestMatch(lrBrange, lrs[2]),
@@ -143,27 +145,16 @@ namespace LvqGui {
 			return p_settings;
 		}
 
-		static readonly Regex labelRegex = new Regex(@"^(?<prefix>.*?[,\[])(?<instseed>[0-9A-Fa-f]+)(?<suffix>\].*)\^(?<folds>[0-9]+)$");
-		static readonly Regex labelPrefixRegex = new Regex(@"^(?<name>.*?)train\.data(?<hasTest>,\k<name>test\.data)?-(?<rest>.*?)$");
-		static Tuple<string, bool, uint, string, int> splitLabel(string label) {
-			Match m = labelRegex.Match(label);
-			if (!m.Success) return null;
-			int folds = int.Parse(m.Groups["folds"].Value);
-			uint instSeed = Convert.ToUInt32(m.Groups["instseed"].Value, 16);
-			Match mPrefix = labelPrefixRegex.Match(m.Groups["prefix"].Value);
-			bool hasTest = mPrefix.Success && !string.IsNullOrEmpty(mPrefix.Groups["hasTest"].Value);
-			string uniquePrefix = mPrefix.Success ? mPrefix.Groups["name"].Value + "-" + mPrefix.Groups["rest"].Value : m.Groups["prefix"].Value;
-			return Tuple.Create(uniquePrefix, hasTest, instSeed, m.Groups["suffix"].Value, folds);
-		}
-
 		static IEnumerable<DirectoryInfo> GetDatasetResultDir(LvqDatasetCli dataset) {
 			if (dataset == null) return Enumerable.Empty<DirectoryInfo>();
-			var split = splitLabel(dataset.DatasetLabel);
+			var split = CreateDataset.CreateFactory(dataset.DatasetLabel);
 
 			return from dir in TestLr.resultsDir.GetDirectories()
-				   let dirSplitName = splitLabel(dir.Name)
-				   where dirSplitName != null && dirSplitName.Item1 == split.Item1 && dirSplitName.Item4 == split.Item4
-				   orderby dirSplitName.Item2 == split.Item2 descending, dirSplitName.Item5 == split.Item5 descending, dirSplitName.Item5 == split.Item5 descending, dirSplitName.Item3 == split.Item3 descending
+				   let dirSplitName = CreateDataset.CreateFactory(dir.Name)
+				   where dirSplitName != null && dirSplitName.GetType() == split.GetType() && split.LrTrainingShorthand() == dirSplitName.LrTrainingShorthand()
+				   orderby dirSplitName.HasTestfile() == split.HasTestfile() descending
+				   , dirSplitName.Folds == split.Folds descending
+				   , dirSplitName.InstanceSeed == split.InstanceSeed descending
 				   select dir;
 		}
 	}

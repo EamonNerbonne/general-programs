@@ -40,9 +40,23 @@ namespace LvqGui {
 			obj.InstanceSeed = 0;
 			return obj.Shorthand;
 		}
+
 		public static IDatasetCreator CreateFactory(string shorthand) {
 			return StarSettings.TryParse(shorthand) ?? GaussianCloudSettings.TryParse(shorthand) ?? (IDatasetCreator)LoadedDatasetSettings.TryParse(shorthand);
 		}
+
+		public static string LrTrainingShorthand(this IDatasetCreator obj) {
+			obj = obj.Clone();
+			obj.InstanceSeed = 0;
+			obj.Folds = 10;
+			if (obj is LoadedDatasetSettings)
+				((LoadedDatasetSettings)obj).TestFilename = null;
+			return obj.Shorthand;
+		}
+		public static bool HasTestfile(this IDatasetCreator obj) {
+			return obj is LoadedDatasetSettings && ((LoadedDatasetSettings)obj).TestFilename != null;
+		}
+
 
 		public static LvqDatasetCli CreateFromShorthand(string shorthand) {
 			var factory = StarSettings.TryParse(shorthand) ?? GaussianCloudSettings.TryParse(shorthand) ?? (IDatasetCreator)LoadedDatasetSettings.TryParse(shorthand);

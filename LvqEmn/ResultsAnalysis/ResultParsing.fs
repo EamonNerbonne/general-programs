@@ -14,7 +14,7 @@ let loadAllResults datasetName =
 
 let groupResultsByLr (results:list<DatasetResults>) = 
     results
-    |> List.collect (fun res -> res.GetLrs() |> Seq.toList |> List.map (fun lr -> (lr.Lr, lr.Errors, res)))
+    |> List.collect (fun res -> res.GetLrs() |> Seq.toList |> List.map (fun lr -> (lr.LR, lr.Errors, res)))
     |> Utils.groupList (fun (lr, err, result) -> lr) (fun (lr, err, result) -> err )
 
 let coreSettingsEq a b = DatasetResults.WithoutLrOrSeeds(a).ToShorthand() =  DatasetResults.WithoutLrOrSeeds(b).ToShorthand()
