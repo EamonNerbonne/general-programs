@@ -24,14 +24,18 @@ namespace LvqLibCli {
 			+ (ProjOptimalInit != LvqModelSettingsCli().ProjOptimalInit && (ModelType != LvqModelType::Lgm) ? "Pi" + (ProjOptimalInit ? "+" : "") + "," : "")
 			+ (BLocalInit != LvqModelSettingsCli().BLocalInit && (ModelType != LvqModelType::Lgm && ModelType != LvqModelType::Gm) ? "Bi" + (BLocalInit ? "+" : "") + "," : "")
 			+ (UpdatePointsWithoutB != LvqModelSettingsCli().UpdatePointsWithoutB && ModelType == LvqModelType::G2m ? "noB" + (UpdatePointsWithoutB ? "+" : "") + "," : "")
-			+ (LrScaleBad != LvqModelSettingsCli().LrScaleBad ? "lrX" + LrScaleBad + ",":"")
+			+ (LrScaleBad != LvqModelSettingsCli().LrScaleBad ? "lrX" + LrScaleBad.ToString("r") + ",":"")
 			+ (SlowStartLrBad ? "!" : "")
 			+ (LR0==LVQ_LR0 &&LrScaleP==LVQ_LrScaleP&&LrScaleB==LVQ_LrScaleB?"":
-			"lr0" + LR0 + ","
-			+ "lrP" + LrScaleP + ","
-			+ "lrB" + LrScaleB + ",")
-			+ "[" + ParamsSeed.ToString("x") + "," + InstanceSeed.ToString("x") + "]"
-			+ (ParallelModels!=10?"^" + ParallelModels: "");
+			"lr0" + LR0.ToString("r") + ","
+			+ "lrP" + LrScaleP.ToString("r") + ","
+			+ "lrB" + LrScaleB.ToString("r") + ",")
+			+ ( ParamsSeed != LvqModelSettingsCli().ParamsSeed ||InstanceSeed != LvqModelSettingsCli().InstanceSeed
+				? "[" +  ( ParamsSeed != LvqModelSettingsCli().ParamsSeed ? ParamsSeed.ToString("x"):"") 
+				+ "," +  (InstanceSeed != LvqModelSettingsCli().InstanceSeed?InstanceSeed.ToString("x"):"") + "]"
+			: "" )
+
+			+ (ParallelModels!=LvqModelSettingsCli().ParallelModels?"^" + ParallelModels: "");
 	}
 	LvqModelSettingsCli LvqModelSettingsCli::WithChanges(LvqModelType type, int protos, unsigned rngParams, unsigned rngIter){
 		LvqModelSettingsCli retval = *this;
@@ -43,7 +47,7 @@ namespace LvqLibCli {
 	}
 	LvqModelSettingsCli LvqModelSettingsCli::WithDefaultLr(){
 		LvqModelSettingsCli retval = *this;
-        retval.LR0 = LvqModelSettingsCli().LR0;
+		retval.LR0 = LvqModelSettingsCli().LR0;
 		retval.LrScaleP = LvqModelSettingsCli().LrScaleP;
 		retval.LrScaleB = LvqModelSettingsCli().LrScaleB;
 		return retval;

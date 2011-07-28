@@ -24,8 +24,8 @@ namespace LvqGui {
 				(?<NormalizeDimensions>n?)
 				\-(?<ClassCount>[0-9]+)
 				\,(?<PointCount>[0-9]+)
-				\[(?<InstanceSeed_>[0-9a-fA-F]+)\]
-				\^(?<Folds>\d+)\s*$";
+				(\[(?<InstanceSeed_>[0-9a-fA-F]+)\])?
+				(\^(?<Folds>\d+))?\s*$";
 			}
 		}
 
@@ -35,7 +35,9 @@ namespace LvqGui {
 
 		protected override string GetShorthand() {
 			return Filename + (TestFilename != null ? "," + TestFilename : "") + "-" + DimCount + "D" + (ExtendDataByCorrelation ? "x" : "") + (NormalizeDimensions ? "n" : "") + "-"
-				+ ClassCount + "," + PointCount + "[" + InstanceSeed.ToString("x") + "]^" + Folds;
+				+ ClassCount + "," + PointCount
+				+ (InstanceSeed == defaults.InstanceSeed ? "" : "[" + InstanceSeed.ToString("x") + "]")
+				+ (Folds == defaults.Folds ? "" : "^" + Folds);
 		}
 
 

@@ -1,5 +1,4 @@
-﻿using System.Text.RegularExpressions;
-using EmnExtensions.MathHelpers;
+﻿using EmnExtensions.MathHelpers;
 using EmnExtensions.Wpf;
 using LvqLibCli;
 
@@ -20,7 +19,7 @@ namespace LvqGui {
 		public double ClusterCenterDeviation = 1.5;
 		public double IntraClusterClassRelDev = 0.5;
 		public double NoiseSigma = 1.0;
-		public double GlobalNoiseMaxSigma = 0.0;
+		public double GlobalNoiseMaxSigma;//0.0
 
 		public uint ParamsSeed;
 
@@ -35,8 +34,8 @@ namespace LvqGui {
 				,(?<NumberOfClusters>\d+)
 				\((?<ClusterDimensionality>\d+)D(?<RandomlyTransformFirst>r?)\)
 				x(?<ClusterCenterDeviation>[^~i]+)[~i](?<IntraClusterClassRelDev>[^\[n]+)(n(?<NoiseSigma>[^\[g]+))?(g(?<GlobalNoiseMaxSigma>[^\[]+))?
-				\[(?<ParamsSeed_>[0-9a-fA-F]+),(?<InstanceSeed_>[0-9a-fA-F]+)\]
-				\^(?<Folds>\d+)\s*$"
+				(\[(?<ParamsSeed_>[\dA-Fa-f]+)?\,(?<InstanceSeed_>[\dA-Fa-f]+)?\])?
+				(\^(?<Folds>\d+))?\s*$"
 					+ "|" +
 					@"^\s*(.*?--)?
 				star-(?<Dimensions>\d+)D
@@ -55,7 +54,9 @@ namespace LvqGui {
 			return "star-" + Dimensions + "D" + (ExtendDataByCorrelation ? "x" : "") + (NormalizeDimensions ? "n" : "") + "-" + NumberOfClasses + "x" + PointsPerClass + ","
 				+ NumberOfClusters + "(" + ClusterDimensionality + "D" + (RandomlyTransformFirst ? "r" : "") + ")x" + ClusterCenterDeviation.ToString("r") + "i"
 				+ IntraClusterClassRelDev.ToString("r") + (NoiseSigma != 1.0 ? "n" + NoiseSigma.ToString("r") : "")
-				+ (GlobalNoiseMaxSigma != 0.0 ? "g" + GlobalNoiseMaxSigma.ToString("r") : "") + "[" + ParamsSeed.ToString("x") + "," + InstanceSeed.ToString("x") + "]^" + Folds;
+				+ (GlobalNoiseMaxSigma != 0.0 ? "g" + GlobalNoiseMaxSigma.ToString("r") : "")
+				+ (ParamsSeed == defaults.ParamsSeed && InstanceSeed == defaults.InstanceSeed ? "" : "[" + (ParamsSeed == defaults.ParamsSeed ? "" : ParamsSeed.ToString("x")) + "," + (InstanceSeed == defaults.InstanceSeed ? "" : InstanceSeed.ToString("x")) + "]")
+				+ (Folds == defaults.Folds ? "" : "^" + Folds);
 		}
 
 		public override LvqDatasetCli CreateDataset() {
