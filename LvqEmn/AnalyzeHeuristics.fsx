@@ -93,13 +93,13 @@ let orDefault defaultValue =
 let resultsByDatasetByModel =
     ResultAnalysis.analyzedModels |> toDict (fun modelRes -> modelRes.DatasetBaseShorthand) (toDict (fun modelRes -> (getSettings modelRes).Key) System.Linq.Enumerable.Single )
 
-
 heuristics |> Seq.map (fun heur -> 
     seq {
         for datasetRes in  resultsByDatasetByModel.Values do
             for modelRes in datasetRes.Values do
+                let lvqSettings = getSettings modelRes 
                 let heurResMaybe = 
-                    getSettings modelRes 
+                    lvqSettings
                     |> applyHeuristic heur 
                     |> Option.map (fun lvqS -> lvqS.Key)
                     |> Option.bind (Utils.getMaybe datasetRes)
@@ -110,9 +110,10 @@ heuristics |> Seq.map (fun heur ->
                     let errs (model:ResultAnalysis.ModelResults) = model.Results |> Seq.map (fun res->res.CanonicalError) |> Seq.toList 
                     let hErr = errs heurRes
                     let bErr = errs modelRes
-                    yield Utils.twoTailedPairedTtest hErr bErr
+                    let (isBetter, p) = Utils.twoTailedPairedTtest hErr bErr
+                    yield (isBetter, p, lvqSettings.Key)
     }
-    |> toDict fst (Seq.map snd >> Seq.sort >> Seq.toArray)
+    |> toDict (fun (isbetter,_,_) -> isbetter) (Seq.map (fun (_,p,k) -> (p,k)) >> Seq.sort >> Seq.toArray)
     |> (fun dict -> (Utils.getMaybe dict true |> orDefault (Array.empty),  Utils.getMaybe dict false |> orDefault (Array.empty)) )
     |> (fun (better, worse) ->
         (heur.Name, better.Length + worse.Length, float better.Length / float (better.Length + worse.Length), better, worse)
