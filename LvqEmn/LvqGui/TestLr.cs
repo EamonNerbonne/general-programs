@@ -3,16 +3,15 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using EmnExtensions;
-using EmnExtensions.DebugTools;
 using EmnExtensions.Filesystem;
 using EmnExtensions.MathHelpers;
 using EmnExtensions.Text;
 using ExpressionToCodeLib;
 using LvqLibCli;
-using System.Reflection;
 
 namespace LvqGui {
 	public static class TestLrHelper {
