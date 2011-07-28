@@ -53,12 +53,10 @@ namespace LvqGui {
 	sealed class NotInShorthandAttribute : Attribute { }
 
 	static class ShorthandHelper {
-		static readonly object[] empty = new object[] { };
-
 		public static void ParseShorthand(object shorthandObj, object defaults, Regex shR, string newShorthand) {
-			HashSet<string> updated = new HashSet<string>();
-			DecomposeShorthand(shorthandObj, shR, newShorthand, (prop, val) => { prop.Value = val; updated.Add(prop.Name); }, err => { throw new ArgumentException(err); });
-			foreach (var unsetProp in Property.All(shorthandObj).Where(prop => !updated.Contains(prop.Name)))
+			var handled = new HashSet<string> { "Shorthand" };
+			DecomposeShorthand(shorthandObj, shR, newShorthand, (prop, val) => { prop.Value = val; handled.Add(prop.Name); }, err => { throw new ArgumentException(err); });
+			foreach (var unsetProp in Property.All(shorthandObj).Where(prop => !handled.Contains(prop.Name)))
 				unsetProp.Value = Property.Create(defaults, unsetProp.Name).Value;
 		}
 
@@ -67,11 +65,11 @@ namespace LvqGui {
 			bool error = false;
 			DecomposeShorthand(shorthandObj, shR, newShorthand, (p, v) => toSet.Add(Tuple.Create(p, v)), err => error = true);
 			if (error) return false;
-			foreach (var entry in toSet) 
+			foreach (var entry in toSet)
 				entry.Item1.Value = entry.Item2;
-			var updated = new HashSet<string>(toSet.Select(t=>t.Item1.Name));
+			var handled = new HashSet<string>(toSet.Select(t => t.Item1.Name)) { "Shorthand" };
 
-			foreach (var unsetProp in Property.All(shorthandObj).Where(prop => !updated.Contains(prop.Name)))
+			foreach (var unsetProp in Property.All(shorthandObj).Where(prop => !handled.Contains(prop.Name)))
 				unsetProp.Value = Property.Create(defaults, unsetProp.Name).Value;
 			return true;
 		}
@@ -84,16 +82,16 @@ namespace LvqGui {
 			if (error) return null;
 			foreach (var entry in toSet)
 				entry.Item1.Value = entry.Item2;
-			var updated = new HashSet<string>(toSet.Select(t => t.Item1.Name));
+			var handled = new HashSet<string>(toSet.Select(t => t.Item1.Name)) { "Shorthand" };
 
-			foreach (var unsetProp in Property.All(shorthandObj).Where(prop => !updated.Contains(prop.Name)))
+			foreach (var unsetProp in Property.All(shorthandObj).Where(prop => !handled.Contains(prop.Name)))
 				unsetProp.Value = Property.Create(defaults, unsetProp.Name).Value;
 			return shorthandObj;
 		}
 
 		public static string VerifyShorthand(IHasShorthand shorthandObj, Regex shR) {
 			var errs = new StringBuilder();
-			HashSet<string> usedProperties = new HashSet<string> { "Shorthand" };
+			var usedProperties = new HashSet<string> { "Shorthand" };
 			DecomposeShorthand(shorthandObj, shR, shorthandObj.Shorthand,
 				(prop, val) => {
 					usedProperties.Add(prop.Name);
