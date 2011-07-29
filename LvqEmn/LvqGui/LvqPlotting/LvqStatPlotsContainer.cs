@@ -157,7 +157,7 @@ namespace LvqGui {
 				Title = "No Model Selected",
 				Background = Brushes.Gray,
 				Content = new Grid(),
-				Visibility = Visibility.Hidden
+				Visibility = hide? Visibility.Hidden:Visibility.Visible
 			};
 
 			subPlotWindow.SizeChanged += (o, e) => RelayoutSubPlotWindow();
