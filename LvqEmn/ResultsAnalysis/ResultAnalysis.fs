@@ -98,3 +98,35 @@ let analyzedModels () =
     |> Seq.filter Option.isSome
     |> Seq.map Option.get
     |> Seq.toArray
+
+let latexLiteral = sprintf @"{\footnotesize\textsf{%s}}"
+let niceDatasetName = 
+    let dict = new System.Collections.Generic.Dictionary<string,string>()
+    dict.Add("pendigits.combined.data-16D-10,10992","pendigits")
+    dict.Add("pendigits.combined.data-16Dn-10,10992","pendigits: normalized")
+    dict.Add("pendigits.combined.data-16Dxn-10,10992","pendigits: extended, normalized")
+    dict.Add("colorado.data-6D-14,28000","colorado")
+    dict.Add("colorado.data-6Dn-14,28000","colorado: normalized")
+    dict.Add("colorado.data-6Dxn-14,28000","colorado:extended, normalized")
+
+    dict.Add("star-8D-9x10000,3(5Dr)x10i0.8n7g5[a9cd2154,]", "generated star")
+    dict.Add("star-8Dxn-9x10000,3(5Dr)x10i0.8n7g5[a9cd2154,]", "generated star: extended, normalized")
+
+    dict.Add("segmentation_test.data-19D-7,2100","segmentation")
+    dict.Add("segmentationX_test.data-19D-7,2100", "segmentation")
+    dict.Add("segmentation_test.data-19Dn-7,2100","segmentation: normalized")
+    dict.Add("segmentation_test.data-19Dxn-7,2100","segmentation: extended, normalized")
+    dict.Add("segmentationNormed_test.data-19D-7,2100", "segmentation: pre-normalized")
+
+    dict.Add("page-blocks.data-10D-5,5473", "page-blocks")
+    dict.Add("page-blocks.data-10Dn-5,5473", "page-blocks: normalized")
+    dict.Add("page-blocks.data-10Dxn-5,5473", "page-blocks: extended, normalized")
+    dict.Add("letter-recognition.data-16D-26,20000", "letter-recognition")
+    dict.Add("letter-recognition.data-16Dxn-26,20000", "letter-recognition: extended, normalized")
+
+    dict.Add("nrm-24D-3x30000,1[5122ea19,]","gaussian cross")
+    dict.Add("nrm-24Dxn-3x30000,1[5122ea19,]","gaussian cross: extended, normalized")
+
+    dict.Add("optdigits.combined.data-64D-10,5620", "optdigits")
+    dict.Add("optdigits.combined.data-64Dn-10,5620", "optdigits: normalized")
+    fun datasetshorthand -> Utils.getMaybe dict datasetshorthand |> Utils.orDefault (latexLiteral datasetshorthand)

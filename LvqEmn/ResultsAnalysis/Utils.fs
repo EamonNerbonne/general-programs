@@ -1,6 +1,7 @@
 ﻿module Utils
 
 open System
+open System.Linq
 
 //---------------------------------------------------BASICS
 type SampleDistribution = { Count: int; Mean:float; Variance: float; } member this.StdErr = Math.Sqrt( this.Variance / float this.Count);
@@ -56,3 +57,9 @@ let inline getMaybe (dict:System.Collections.Generic.Dictionary<'a,'b>) key =
         Some(value.Value)
     else 
         None
+
+let toDict keyf valf xs = (Seq.groupBy keyf xs).ToDictionary(fst, snd >> valf)
+let orDefault defaultValue = 
+    function
+    | None -> defaultValue
+    | Some(value) -> value
