@@ -185,8 +185,8 @@ heuristics
                         
                         let (isBetter, p) = Utils.twoTailedPairedTtest heurErr baseErr
                         let errChange = (heurRes.MeanError - modelRes.MeanError) / Math.Max(modelRes.MeanError,heurRes.MeanError) * 100. 
-                        let tweaksL = lvqSettings.DataSettings + " " + ResultAnalysis.latexLiteral (lvqSettings.ModelSettings.ToShorthand()) 
-                        let scenarioLatex = ResultAnalysis.niceDatasetName modelRes.DatasetBaseShorthand + @" \phantom{" + tweaksL + @"}&\llap{" + tweaksL + "}"
+                        let tweaksL = ResultAnalysis.latexLiteral (lvqSettings.DataSettings + " " + lvqSettings.ModelSettings.ToShorthand()) 
+                        let scenarioLatex = ResultAnalysis.niceDatasetName modelRes.DatasetBaseShorthand + @"\phantom{" + tweaksL + @"}&\llap{" + tweaksL + "}"
                         let difference = if p > 0.01 * Math.Abs(errChange) then Irrelevant elif isBetter then Better else Worse
                         yield ( difference,  ( p, errChange, Utils.sampleDistribution baseErr, Utils.sampleDistribution heurErr, scenarioLatex ) )
         }
