@@ -147,14 +147,14 @@ namespace LvqGui {
 
 		static IEnumerable<DirectoryInfo> GetDatasetResultDir(LvqDatasetCli dataset) {
 			if (dataset == null) return Enumerable.Empty<DirectoryInfo>();
-			var split = CreateDataset.CreateFactory(dataset.DatasetLabel);
+			var basicExample = CreateDataset.CreateFactory(dataset.DatasetLabel);
 
 			return from dir in TestLr.resultsDir.GetDirectories()
 				   let dirSplitName = CreateDataset.CreateFactory(dir.Name)
-				   where dirSplitName != null && dirSplitName.GetType() == split.GetType() && split.LrTrainingShorthand() == dirSplitName.LrTrainingShorthand()
-				   orderby dirSplitName.HasTestfile() == split.HasTestfile() descending
-				   , dirSplitName.Folds == split.Folds descending
-				   , dirSplitName.InstanceSeed == split.InstanceSeed descending
+				   where dirSplitName != null && dirSplitName.GetType() == basicExample.GetType() && basicExample.LrTrainingShorthand() == dirSplitName.LrTrainingShorthand()
+				   orderby dirSplitName.HasTestfile() == basicExample.HasTestfile() descending
+				   , dirSplitName.Folds == basicExample.Folds descending
+				   , dirSplitName.InstanceSeed == basicExample.InstanceSeed descending
 				   select dir;
 		}
 	}
