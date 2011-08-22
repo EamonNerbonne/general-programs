@@ -18,6 +18,23 @@ namespace LvqGui {
 		public static LvqModelSettingsCli WithTestingChanges(this LvqModelSettingsCli settings, LvqModelType type, int protos, uint offset) {
 			return settings.WithChanges(type, protos, 1 + 2 * offset, 2 * offset);
 		}
+		public static LvqModelSettingsCli WithTestingChanges2(this LvqModelSettingsCli settings, LvqModelType type, int protos, uint offset,
+				bool rp,
+				bool ngi,
+				bool bi,
+				bool pi,
+				bool ng,
+				bool slowbad
+			) {
+			var newsettings = settings.WithChanges(type, protos, 1 + 2 * offset, 2 * offset);
+			newsettings.RandomInitialProjection = rp;
+			newsettings.NgInitializeProtos = ngi;
+			newsettings.NgUpdateProtos = ng;
+			newsettings.BLocalInit = bi;
+			newsettings.ProjOptimalInit = pi;
+			newsettings.SlowStartLrBad = slowbad;
+			return newsettings;
+		}
 
 		public static LvqModelSettingsCli WithLrChanges(this LvqModelSettingsCli baseSettings, double lr0, double lrScaleP, double lrScaleB) {
 			var newSettings = baseSettings;
@@ -76,7 +93,7 @@ namespace LvqGui {
 		}
 
 		public static string ItersPrefix(long iters) {
-			int pow10 = (int)(Math.Log10(iters) + Math.Log10(10.0/9.5));
+			int pow10 = (int)(Math.Log10(iters) + Math.Log10(10.0 / 9.5));
 			int prefix = (int)(iters / Math.Pow(10.0, pow10) + 0.5);
 			return (prefix == 1 ? "" : prefix.ToString()) + "e" + pow10;
 		}
@@ -91,7 +108,13 @@ namespace LvqGui {
 			(
 				from protoCount in new[] { 5, 1 }
 				from modeltype in ModelTypes
-				select effectiveSettings.WithTestingChanges(modeltype, protoCount, offset) into settings
+				from rp in new[] { true, false }
+				from ngi in new[] { true, false }
+				from bi in new[] { true, false }
+				from pi in new[] { true, false }
+				from ng in new[] { true, false }
+				from slowbad in new[] { true, false }
+				select effectiveSettings.WithTestingChanges2(modeltype, protoCount, offset, rp, ngi, bi, pi, ng, slowbad) into settings
 				let shortname = ShortnameFor(settings)
 				select TestLrIfNecessary(null, settings, cancel)
 				 ).ToArray();
@@ -282,10 +305,36 @@ namespace LvqGui {
 		}
 
 		IEnumerable<string> GetLogfilepath(LvqModelSettingsCli settings) {
-			return Enumerable.Range(0, 1000)
-				.Select(i => ShortnameFor(settings) + (i == 0 ? "" : " (" + i + ")") + ".txt")
-				.Select(filename => Path.Combine(resultsDir.FullName, DatasetLabel + "\\" + filename));
+			return
+				SettingsFile(settings).Select(fi => fi.FullName).Concat(
+				Enumerable.Range(1, 1000)
+				.Select(i => ShortnameFor(settings) + " (" + i + ")" + ".txt")
+				.Select(filename => Path.Combine(resultsDir.FullName, DatasetLabel + "\\" + filename)));
 		}
+
+		IEnumerable<FileInfo> SettingsFile(LvqModelSettingsCli settings) {
+			var dirs = ResultsDatasetDir();
+			string mSettingsShorthand = settings.ToShorthand();
+			string prefix = ItersPrefix(_itersToRun) + "-";
+			var files = dirs.Where(dir => dir.Exists).SelectMany(dir => dir.GetFiles(prefix + "*.txt").Where(file => {
+				var otherSettings = CreateLvqModelValues.TryParseShorthand(Path.GetFileNameWithoutExtension(file.Name).Substring(prefix.Length));
+				return otherSettings.HasValue && otherSettings.Value.ToShorthand() == mSettingsShorthand;
+			}));
+
+			return files.DefaultIfEmpty(new FileInfo(Path.Combine(dirs.First().FullName + "\\", prefix + mSettingsShorthand + ".txt")));
+
+		}
+
+		IEnumerable<DirectoryInfo> ResultsDatasetDir() {
+			if (_dataset == null) return new[] { resultsDir.CreateSubdirectory("base") };
+			var dSettings = CreateDataset.CreateFactory(_dataset.DatasetLabel);
+			string dSettingsShorthand = dSettings.Shorthand;
+			return resultsDir.GetDirectories().Where(dir => {
+				var otherSettings = CreateDataset.CreateFactory(dir.Name);
+				return otherSettings != null && otherSettings.Shorthand == dSettingsShorthand;
+			}).DefaultIfEmpty(new DirectoryInfo(resultsDir.FullName + "\\" + dSettingsShorthand));
+		}
+
 
 		public static IEnumerable<LvqModelType> ModelTypes { get { return new[] { LvqModelType.Ggm, LvqModelType.G2m, LvqModelType.Gm }; } }//  (LvqModelType[])Enum.GetValues(typeof(LvqModelType)); } }
 		public static IEnumerable<int> PrototypesPerClassOpts { get { yield return 5; yield return 1; } }
