@@ -36,7 +36,16 @@ let applyHeuristic (heuristic:Heuristic) settings =
 
 
 let resultsByDatasetByModel () =
-    ResultAnalysis.analyzedModels () |> Utils.toDict (fun modelRes -> modelRes.DatasetBaseShorthand) (Utils.toDict (fun modelRes -> (getSettings modelRes).Key) System.Linq.Enumerable.Single )
+    ResultAnalysis.analyzedModels () 
+        |> Utils.toDict (fun modelRes -> modelRes.DatasetBaseShorthand) 
+                (Utils.toDict 
+                    (fun modelRes -> (getSettings modelRes).Key) 
+                    (fun modelRess -> 
+                        match Seq.toArray modelRess with
+                        | [| modelRes |] -> modelRes
+                        | modelResArr -> failwith (sprintf "whoops: %A" modelResArr)
+                    )
+                )
 
 
 let heuristics = 
@@ -130,14 +139,6 @@ let heuristics =
             on.ProjOptimalInit <- true
             off.ProjOptimalInit <- false
             (on, off))
-        heurM @"Neural gas prototype initialization and neural gas-like updates" "NGi+,NG+" (fun s  -> 
-            let mutable on = s
-            let mutable off = s
-            on.NgInitializeProtos <- true
-            off.NgInitializeProtos <- false
-            on.NgUpdateProtos <- true
-            off.NgUpdateProtos <- false
-            (on, off))
         heurM @"Neural gas prototype initialization and initially using lower learning rates for incorrect prototypes" "NGi+,!" (fun s  -> 
             let mutable on = s
             let mutable off = s
@@ -149,6 +150,36 @@ let heuristics =
         heurM @"Neural gas-like updates and initially using lower learning rates for incorrect prototypes" "NG+,!" (fun s  -> 
             let mutable on = s
             let mutable off = s
+            on.NgUpdateProtos <- true
+            off.NgUpdateProtos <- false
+            on.SlowStartLrBad <- true
+            off.SlowStartLrBad <- false
+            (on, off))
+        heurM @"Neural gas prototype initialization and neural gas-like updates" "NGi+,NG+" (fun s  -> 
+            let mutable on = s
+            let mutable off = s
+            on.NgInitializeProtos <- true
+            off.NgInitializeProtos <- false
+            on.NgUpdateProtos <- true
+            off.NgUpdateProtos <- false
+            (on, off))
+        heurM @"Neural gas prototype initialization, neural gas-like updates and $P$ initialization by PCA" "NGi+,NG+,rP" (fun s  -> 
+            let mutable on = s
+            let mutable off = s
+            on.NgInitializeProtos <- true
+            off.NgInitializeProtos <- false
+            on.RandomInitialProjection <- false
+            off.RandomInitialProjection <- true
+            on.NgUpdateProtos <- true
+            off.NgUpdateProtos <- false
+            (on, off))
+        heurM @"Neural gas prototype initialization, neural gas-like updates, $P$ initialization by PCA and  initially using lower learning rates for incorrect prototypes" "NGi+,NG+,rP,!" (fun s  -> 
+            let mutable on = s
+            let mutable off = s
+            on.NgInitializeProtos <- true
+            off.NgInitializeProtos <- false
+            on.RandomInitialProjection <- false
+            off.RandomInitialProjection <- true
             on.NgUpdateProtos <- true
             off.NgUpdateProtos <- false
             on.SlowStartLrBad <- true
