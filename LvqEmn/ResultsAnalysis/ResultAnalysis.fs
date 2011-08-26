@@ -114,8 +114,8 @@ let niceDatasetName =
 
     dict.Add("segmentation_test.data-19D-7,2100","segmentation")
     dict.Add("segmentationX_test.data-19D-7,2100", "segmentation")
-    dict.Add("segmentationX_combined.data-19D-7,2310", "segmentation (combined)")
-    dict.Add("segmentationX_train.data,segmentationX_test.data-19D-7,210^0", "segmentation (pre-split)")
+    dict.Add("segmentationX_combined.data-19D-7,2310", "segment.\ (both)")
+    dict.Add("segmentationX_train.data,segmentationX_test.data-19D-7,210^0", "segment.\ (pre-split)")
     
     
     dict.Add("segmentation_test.data-19Dn-7,2100","segmentation: normalized")

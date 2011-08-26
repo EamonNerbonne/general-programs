@@ -230,16 +230,16 @@ heuristics
     |> Seq.toList
     |> List.map (fun (name, count, ignoreCount,ratio, better, worse,irrelevant) ->
             sprintf @"\noindent %s was an improvement in $%1.1f\%%$ of %i cases and irrelevant in %i:" name (100.*ratio) count ignoreCount + "\n\n"
-            + sprintf @"\noindent\begin{longtable}{lrcclr}\toprule"  + "\n"
+            + sprintf @"\noindent\begin{longtable}{lrccl@{}r}\toprule"  + "\n"
             + sprintf @"$p$-value & $\Delta\%%$ &\multicolumn{1}{c}{before}&\multicolumn{1}{c}{after}  & \multicolumn{2}{c}{Scenario} \\\midrule"  + "\n"
             + @"&&\multicolumn{2}{c}{Improved} \\ \cmidrule(r){3-4}" + "\n"
-            + String.concat "\\\\\n" (Array.map (fun (p, errChange,before,after, scenario) -> sprintf @" %0.2g & %0.1f &%s&%s& %s" p errChange (Utils.latexstderr before) (Utils.latexstderr after) scenario ) better)
+            + String.concat "\\\\\n" (Array.map (fun (p, errChange,before,after, scenario) -> sprintf @" %0.2g & %0.1f &%s&%s&%s" p errChange (Utils.latexstderr before) (Utils.latexstderr after) scenario) better)
             + @"\\\midrule" + "\n"
             + @"&&\multicolumn{2}{c}{Degraded} \\ \cmidrule(r){3-4}" + "\n"
-            + String.concat "\\\\\n" (Array.map (fun (p, errChange,before,after, scenario) -> sprintf @" %0.2g & %0.1f &%s&%s& %s" p errChange (Utils.latexstderr before) (Utils.latexstderr after) scenario) worse)
+            + String.concat "\\\\\n" (Array.map (fun (p, errChange,before,after, scenario) -> sprintf @" %0.2g & %0.1f &%s&%s&%s" p errChange (Utils.latexstderr before) (Utils.latexstderr after) scenario) worse)
             + @"\\\midrule" + "\n"
             + @"&&\multicolumn{2}{c}{Irrelevant} \\ \cmidrule(r){3-4}" + "\n"
-            + String.concat "\\\\\n" (Array.map (fun (p, errChange,before,after, scenario) -> sprintf @" %0.2g & %0.1f &%s&%s& %s" p errChange (Utils.latexstderr before) (Utils.latexstderr after) scenario) irrelevant)
+            + String.concat "\\\\\n" (Array.map (fun (p, errChange,before,after, scenario) -> sprintf @" %0.2g & %0.1f &%s&%s&%s" p errChange (Utils.latexstderr before) (Utils.latexstderr after) scenario) irrelevant)
             + "\n" + @"\\ \bottomrule\end{longtable}" + "\n\n" 
         )
     |> String.concat ""
