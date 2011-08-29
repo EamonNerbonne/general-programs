@@ -117,7 +117,7 @@ void TestModel(LvqModelType modelType, unsigned seed, bool useNgUpdate, LvqDatas
 void EasyLvqTest() {
 
 	Eigen::BenchTimer t;
-	LvqDataset* dataset = CreateGaussianClouds(37,37, DIMS, CLASSCOUNT*POINTS_PER_CLASS, CLASSCOUNT, 0, MEANSEP); 
+	LvqDataset* dataset = CreateGaussianClouds(37,37, DIMS, CLASSCOUNT*POINTS_PER_CLASS, CLASSCOUNT, MEANSEP); 
 
 	for(int bI=0;bI<BENCH_RUNS;++bI)
 	{
