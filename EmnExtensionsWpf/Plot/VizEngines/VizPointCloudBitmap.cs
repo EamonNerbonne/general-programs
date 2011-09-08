@@ -62,14 +62,22 @@ namespace EmnExtensions.Wpf.Plot.VizEngines {
 
 			if (alpha <= 1.0)
 				return Tuple.Create(alpha, 0);
+			else if (alpha <= 1.2)
+				return Tuple.Create(1.0, 0);
+			else if (alpha <= 2.5)
+				return Tuple.Create(alpha / 6.0, 1);
 			else if (alpha <= 5.0)
-				return Tuple.Create(alpha / 5.0, 1);
-			else if (alpha <= 9.0)
-				return Tuple.Create(alpha / 9.0, 2);
-			else if (alpha <= 21.0)
-				return Tuple.Create(alpha / 21.0, 3);
-			else
+				return Tuple.Create(alpha / 5.0, 2);
+			else if (alpha <= 6.0)
+				return Tuple.Create(1.0, 2);
+			else if (alpha <= 10.0)
+				return Tuple.Create(alpha / 10.0, 3);
+			else if (alpha <= 12.0)
 				return Tuple.Create(1.0, 3);
+			else if (alpha <= 21.0)
+				return Tuple.Create(alpha / 21.0, 4);
+			else
+				return Tuple.Create(1.0, 4);
 		}
 
 		#region UpdateBitmap Helpers
@@ -79,10 +87,12 @@ namespace EmnExtensions.Wpf.Plot.VizEngines {
 			if (addpixelMode == 0)
 				MakeSinglePoint2dHistogram(pW, pH, dataToBitmap);
 			else if (addpixelMode == 1)
-				MakeDiamondPoint2dHistogram(pW, pH, dataToBitmap);
+				MakeSoftDiamondPoint2dHistogram(pW, pH, dataToBitmap);
 			else if (addpixelMode == 2)
-				MakeSquarePoint2dHistogram(pW, pH, dataToBitmap);
+				MakeDiamondPoint2dHistogram(pW, pH, dataToBitmap);
 			else if (addpixelMode == 3)
+				MakeSquarePoint2dHistogram(pW, pH, dataToBitmap);
+			else if (addpixelMode == 4)
 				Make21Point2dHistogram(pW, pH, dataToBitmap);
 		}
 
@@ -113,6 +123,25 @@ namespace EmnExtensions.Wpf.Plot.VizEngines {
 			}
 		}
 
+		void MakeSoftDiamondPoint2dHistogram(int pW, int pH, Matrix dataToBitmap) {
+			var data = Data;
+			for (int i = 0; i < data.Length; i++) {
+				Point point = data[i];
+				int label = m_PointLabels[i];
+				Point displaypoint = dataToBitmap.Transform(point);
+				int x = (int)(displaypoint.X);
+				int y = (int)(displaypoint.Y);
+				if (x >= 1 && x < pW - 1 && y >= 1 && y < pH - 1) {
+					AddPixel(x + pW * y, label);
+					AddPixel(x + pW * y, label);
+					AddPixel(x + pW * y, label);
+					AddPixel(x - 1 + pW * y, label);
+					AddPixel(x + 1 + pW * y, label);
+					AddPixel(x + pW * (y - 1), label);
+					AddPixel(x + pW * (y + 1), label);
+				}
+			}
+		}
 
 		void MakeDiamondPoint2dHistogram(int pW, int pH, Matrix dataToBitmap) {
 			var data = Data;
@@ -141,6 +170,12 @@ namespace EmnExtensions.Wpf.Plot.VizEngines {
 				int x = (int)(displaypoint.X);
 				int y = (int)(displaypoint.Y);
 				if (x >= 1 && x < pW - 1 && y >= 1 && y < pH - 1) {
+					AddPixel(x + pW * y, label);
+					AddPixel(x - 1 + pW * y, label);
+					AddPixel(x + 1 + pW * y, label);
+					AddPixel(x + pW * (y - 1), label);
+					AddPixel(x + pW * (y + 1), label);
+
 					AddPixel(x + pW * y, label);
 					AddPixel(x - 1 + pW * y, label);
 					AddPixel(x + 1 + pW * y, label);
@@ -189,6 +224,20 @@ namespace EmnExtensions.Wpf.Plot.VizEngines {
 					AddPixel(offset - 1 + 2 * pW, label);
 					AddPixel(offset + 2 * pW, label);
 					AddPixel(offset + 1 + 2 * pW, label);
+
+
+					AddPixel(offset - 1 - pW, label);
+					AddPixel(offset - pW, label);
+					AddPixel(offset + 1 - pW, label);
+
+					AddPixel(offset - 1, label);
+					AddPixel(offset, label);
+					AddPixel(offset + 1, label);
+
+					AddPixel(offset - 1 + pW, label);
+					AddPixel(offset + pW, label);
+					AddPixel(offset + 1 + pW, label);
+
 				}
 			}
 		}
@@ -220,10 +269,10 @@ namespace EmnExtensions.Wpf.Plot.VizEngines {
 
 		static uint[] PregenerateAlphaLookup(double alpha, uint[] image, int numPixels) {
 			uint maximalOverlapCount = ValueOfMax(image, 0, numPixels);
-			double transparencyPerOverlap = 1.0 - alpha;
+			double transparencyPerOverlap = (1.0 - alpha);
 			uint[] alphaLookup = new uint[maximalOverlapCount + 1];
 			for (int overlap = 0; overlap < alphaLookup.Length; overlap++) {
-				double overlappingAlpha = (1.0 - Math.Pow(transparencyPerOverlap, overlap));
+				double overlappingAlpha = (1.0 - Math.Pow(transparencyPerOverlap, overlap/2.0));
 				alphaLookup[overlap] = (uint)(overlappingAlpha * 255.5) << 24;
 			}
 			return alphaLookup;
