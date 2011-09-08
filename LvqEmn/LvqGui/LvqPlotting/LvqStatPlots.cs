@@ -12,8 +12,8 @@ namespace LvqGui {
 	class LvqStatPlots {
 		public readonly LvqDatasetCli dataset;
 		public readonly LvqMultiModel model;
-		public readonly IVizEngine<LvqMultiModel.ModelProjectionAndImage>[] prototypeClouds, dataClouds;
-		public readonly IVizEngine<LvqMultiModel.ModelProjectionAndImage> classBoundaries;
+		public readonly IVizEngine<LvqMultiModel.ModelProjectionAndImage>[] prototypeClouds;
+		public readonly IVizEngine<LvqMultiModel.ModelProjectionAndImage> classBoundaries, dataClouds;
 		public readonly PlotControl scatterPlotControl;
 		public readonly IVizEngine<LvqStatPlots>[] statPlots;
 		public readonly PlotControl[] plots;
@@ -29,9 +29,8 @@ namespace LvqGui {
 					metadata.OverrideBounds = Rect.Empty;
 				}
 				classBoundaries = MakeClassBoundaryGraph();
-				dataClouds = MakePerClassScatterGraph(dataset, 1.0f)
-					.Select((graph, i) => graph.Map((LvqMultiModel.ModelProjectionAndImage proj) => proj.PointsByLabel[i])).ToArray();
-				scatterPlotControl = MakeScatterPlotControl(dataClouds.Concat(prototypeClouds).Select(viz => viz.Plot).Concat(new[] { classBoundaries.Plot }));
+				dataClouds = MakePointCloudGraph(dataset).Map((LvqMultiModel.ModelProjectionAndImage proj) => proj.RawPoints);
+				scatterPlotControl = MakeScatterPlotControl(prototypeClouds.Select(viz => viz.Plot).Concat(new[] { classBoundaries.Plot,dataClouds.Plot }));
 			}
 
 			plots = MakeDataPlots(dataset, model);//required
@@ -44,9 +43,8 @@ namespace LvqGui {
 
 
 		public void SetScatterBounds(Rect bounds) {
-			foreach (IPlotMetaDataWriteable metadata in dataClouds.Select(viz => viz.Plot.MetaData)) {
-				metadata.OverrideBounds = bounds;
-			}
+			((IPlotMetaDataWriteable)dataClouds.Plot.MetaData).OverrideBounds = bounds;
+			//foreach (IPlotMetaDataWriteable metadata in dataClouds.Select(viz => viz.Plot.MetaData)) metadata.OverrideBounds = bounds;
 		}
 
 		static IVizEngine<LvqStatPlots>[] ExtractDataSinksFromPlots(IEnumerable<PlotControl> plots) {
@@ -92,6 +90,12 @@ namespace LvqGui {
 						new PlotMetaData { RenderColor = darkColor, ZIndex = zIndex ?? 0 },
 						new VizPixelScatterSmart { CoverageRatio = 0.95, OverridePointCountEstimate = PointCount ?? dataset.PointCount, CoverageGradient = 5.0 }).Visualisation
 				).ToArray();
+		}
+
+		static IVizEngine<Point[]> MakePointCloudGraph(LvqDatasetCli dataset, int? zIndex = null) {
+			return Plot.Create(
+						new PlotMetaData { ZIndex = zIndex ?? 0 },
+						new VizPointCloudBitmap { CoverageRatio = 0.95, CoverageGradient = 5.0, ClassColors = dataset.ClassColors, PointLabels = dataset.ClassLabels() }).Visualisation;
 		}
 
 		IVizEngine<LvqMultiModel.ModelProjectionAndImage> MakeClassBoundaryGraph() {

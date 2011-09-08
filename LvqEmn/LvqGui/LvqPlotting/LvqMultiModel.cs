@@ -228,6 +228,7 @@ namespace LvqGui {
 		}
 
 		public class ModelProjectionAndImage {
+			public Point[] RawPoints;
 			public Point[][] PrototypesByLabel;
 			public Point[][] PointsByLabel;
 			public Rect Bounds;
@@ -271,10 +272,18 @@ namespace LvqGui {
 				Bounds = bounds,
 				PrototypesByLabel = GroupPointsByLabel(projection.Prototypes, dataset.ClassCount),
 				PointsByLabel = GroupPointsByLabel(projection.Points, dataset.ClassCount),
+				RawPoints = ToPointArray(projection.Points),
 				forDataset = dataset,
 				forModels = this,
 				forSubModel = currSubModel,
 			};
+		}
+
+		static Point[] ToPointArray(CliLvqLabelledPoint[] cliLvqLabelledPoint) {
+			Point[] retval = new Point[cliLvqLabelledPoint.Length];
+			for (int i = 0; i < retval.Length; i++)
+				retval[i] = cliLvqLabelledPoint[i].point;
+			return retval;
 		}
 
 		static Rect ExpandToShape(int width, int height, Rect rect) {

@@ -206,8 +206,8 @@ namespace LvqGui {
 							() => {
 								subplots.SetScatterBounds(projectionAndImage.Bounds);
 								subplots.classBoundaries.ChangeData(projectionAndImage);
-								for (int i = 0; i < subplots.dataClouds.Length; ++i) {
-									subplots.dataClouds[i].ChangeData(projectionAndImage);
+								subplots.dataClouds.ChangeData(projectionAndImage);
+								for (int i = 0; i < subplots.prototypeClouds.Length; ++i) {
 									subplots.prototypeClouds[i].ChangeData(projectionAndImage);
 								}
 							});
