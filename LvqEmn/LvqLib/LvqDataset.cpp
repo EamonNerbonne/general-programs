@@ -268,7 +268,7 @@ void LvqDataset::TrainModel(int epochs, LvqModel * model, LvqModel::Statistics *
 		t.start();
 		bool collectStats = 	statisticsSink && shouldCollect(model->epochsTrained+1); 
 
-		LvqDatasetStats stats;
+		//LvqDatasetStats stats;//TODO:this doesn't do anything; remove?
 		for(int tI=0; tI<(int)shuffledOrder.size(); ++tI) {
 			int pointIndex = shuffledOrder[tI];
 			int pointClass = pointLabels[pointIndex];
@@ -277,14 +277,14 @@ void LvqDataset::TrainModel(int epochs, LvqModel * model, LvqModel::Statistics *
 			pointA = points.col(pointIndex);
 			prefetch( &points.coeff (0, shuffledOrder[(tI+1)%shuffledOrder.size()]), cacheLines);
 
-			MatchQuality trainingMatchQ = model->learnFrom(pointA, pointClass);
-			if(collectStats)
-				stats.Add(trainingMatchQ);
+			//MatchQuality trainingMatchQ = 
+				model->learnFrom(pointA, pointClass);
+			//if(collectStats)				stats.Add(trainingMatchQ);
 		}
 		t.stop();
 		model->RegisterEpochDone( (int)(1*shuffledOrder.size()), t.value(CPU_TIMER), 1);
 		if(collectStats)
-			model->AddTrainingStat(*statisticsSink, this, trainingSubset, testData, testSubset, stats);
+			model->AddTrainingStat(*statisticsSink, this, trainingSubset, testData, testSubset);
 
 		model->DoOptionalNormalization();
 	}

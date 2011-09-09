@@ -37,7 +37,7 @@ extern "C" {
 	__declspec(dllexport) LvqDataset* CreateStarDataset(
 		unsigned rngParamSeed, unsigned rngInstSeed, int dimCount, int pointCount, int classCount,
 		int starDims, int numStarTails, double starMeanSep,	double starClassRelOffset, bool randomlyRotate, double noiseSigma, double globalNoiseMaxSigma);
-	__declspec(dllexport) void CreatePointCloud(unsigned rngParamSeed, unsigned rngInstSeed, int dimCount, int pointCount, double meansep, double detScalePower, LvqFloat* target);
+	__declspec(dllexport) void CreatePointCloud(unsigned rngParamSeed, unsigned rngInstSeed, int dimCount, int pointCount, double meansep, LvqFloat* target);
 	__declspec(dllexport) void FreeDataset(LvqDataset* dataset);
 	__declspec(dllexport) size_t MemAllocEstimateDataset(LvqDataset* dataset);
 	__declspec(dllexport) void ExtendAndNormalize(LvqDataset * dataset, bool extend, bool normalize);

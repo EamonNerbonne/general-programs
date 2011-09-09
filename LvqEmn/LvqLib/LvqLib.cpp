@@ -40,9 +40,9 @@ extern"C" LvqDataset* CreateStarDataset(
 		return dataset;
 }
 
-extern"C"  void CreatePointCloud(unsigned rngParamSeed, unsigned rngInstSeed, int dimCount, int pointCount, double meansep, double detScalePower, LvqFloat* target){
+extern"C"  void CreatePointCloud(unsigned rngParamSeed, unsigned rngInstSeed, int dimCount, int pointCount, double meansep,  LvqFloat* target){
 	Map<Matrix_NN> tgt(target,dimCount,pointCount);
-	tgt=CreateDataset::MakePointCloud(as_lvalue(mt19937(rngParamSeed)),as_lvalue(mt19937(rngInstSeed)),dimCount,pointCount,meansep,detScalePower);
+	tgt=CreateDataset::MakePointCloud(as_lvalue(mt19937(rngParamSeed)),as_lvalue(mt19937(rngInstSeed)),dimCount,pointCount,meansep);
 }
 
 extern"C" void FreeDataset(LvqDataset* dataset) {delete dataset;}

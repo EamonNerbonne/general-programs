@@ -8,7 +8,7 @@ using namespace std;
 
 //Generates a gaussian cloud
 //center is normally distributed with center~N(0,
-Matrix_NN CreateDataset::MakePointCloud(boost::mt19937 & rngParams, boost::mt19937 & rngInst, int dims, int pointCount, double meansep,double detScalePower) {
+Matrix_NN CreateDataset::MakePointCloud(boost::mt19937 & rngParams, boost::mt19937 & rngInst, int dims, int pointCount, double meansep) {
 
 	Vector_N offset(dims);
 	RandomMatrixInit(rngParams, offset, 0, meansep/sqrt(static_cast<double>(dims)));
@@ -24,7 +24,7 @@ LvqDataset* CreateDataset::ConstructGaussianClouds(boost::mt19937 & rngParams, b
 
 	Matrix_NN allpoints(dims, classCount*pointsPerClass);
 	for(int classLabel=0;classLabel < classCount; classLabel++) {
-		allpoints.block(0, classLabel*pointsPerClass, dims, pointsPerClass) = CreateDataset::MakePointCloud(rngParams,rngInst, dims, pointsPerClass,  meansep * classCount,1.0);
+		allpoints.block(0, classLabel*pointsPerClass, dims, pointsPerClass) = CreateDataset::MakePointCloud(rngParams,rngInst, dims, pointsPerClass,  meansep * classCount);
 	}
 
 	vector<int> trainingLabels(allpoints.cols());
