@@ -48,7 +48,7 @@ struct LvqModelSettings
 	size_t Dimensions() const;
 
 	template<typename T>
-	void AssertModelIsOfRightType(T * model) {
+	void AssertModelIsOfRightType(T * ) {
 		if(ModelType == AutoModelType)
 			ModelType = T::ThisModelType;
 		else if(ModelType != T::ThisModelType)
