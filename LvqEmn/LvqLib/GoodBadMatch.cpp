@@ -16,10 +16,10 @@ using std::tanh;
 		MatchQuality retval;
 		retval.isErr = distGood >= distBad;
 
-		retval.costFunc=tanh((distGood-distBad)/4.0);
+		retval.costFunc = tanh((distGood-distBad)/4.0);
 		retval.distBad = distBad;
 		retval.distGood = distGood;
-		retval.muJ = (1.0/4.0) * (1 - sqr(retval.costFunc));//
+		retval.muJ = (1.0/4.0) * (1 - sqr(retval.costFunc));
 		retval.muK = -retval.muJ;
 		return retval;
 
