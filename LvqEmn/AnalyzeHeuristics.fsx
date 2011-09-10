@@ -237,9 +237,9 @@ heuristics
             + @"\\\midrule" + "\n"
             + @"&&\multicolumn{2}{c}{Degraded} \\ \cmidrule(r){3-4}" + "\n"
             + String.concat "\\\\\n" (Array.map (fun (p, errChange,before,after, scenario) -> sprintf @" %0.2g & %0.1f &%s&%s&%s" p errChange (Utils.latexstderr before) (Utils.latexstderr after) scenario) worse)
-            + @"\\\midrule" + "\n"
-            + @"&&\multicolumn{2}{c}{Irrelevant} \\ \cmidrule(r){3-4}" + "\n"
-            + String.concat "\\\\\n" (Array.map (fun (p, errChange,before,after, scenario) -> sprintf @" %0.2g & %0.1f &%s&%s&%s" p errChange (Utils.latexstderr before) (Utils.latexstderr after) scenario) irrelevant)
+//            + @"\\\midrule" + "\n"
+            //+ @"&&\multicolumn{2}{c}{Irrelevant} \\ \cmidrule(r){3-4}" + "\n"
+            //+ String.concat "\\\\\n" (Array.map (fun (p, errChange,before,after, scenario) -> sprintf @" %0.2g & %0.1f &%s&%s&%s" p errChange (Utils.latexstderr before) (Utils.latexstderr after) scenario) irrelevant)
             + "\n" + @"\\ \bottomrule\end{longtable}" + "\n\n" 
         )
     |> String.concat ""
