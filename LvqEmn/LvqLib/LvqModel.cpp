@@ -149,5 +149,5 @@ std::vector<std::wstring> LvqModel::TrainingStatNames() const {
 	return retval;
 }
 
-void LvqModel::AppendTrainingStatNames(std::vector<std::wstring> & retval) const { }
-void LvqModel::AppendOtherStats(std::vector<double> & stats, LvqDataset const * trainingSet, std::vector<int>const & trainingSubset, LvqDataset const * testSet, std::vector<int>const & testSubset) const { }
+void LvqModel::AppendTrainingStatNames(std::vector<std::wstring> & ) const { }
+void LvqModel::AppendOtherStats(std::vector<double> & , LvqDataset const * , std::vector<int>const & , LvqDataset const * , std::vector<int>const & ) const { }

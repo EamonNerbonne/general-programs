@@ -52,6 +52,13 @@ namespace LvqGui {
 			}
 		}
 
+		public int FoldOffset {
+			get { return settings.FoldOffset; }
+			set {
+				if (!settings.FoldOffset.Equals(value)) { settings.FoldOffset = value; _propertyChanged("FoldOffset"); }
+			}
+		}
+
 		public bool TrackProjectionQuality {
 			get { return settings.TrackProjectionQuality; }
 			set { if (!settings.TrackProjectionQuality.Equals(value)) { settings.TrackProjectionQuality = value; _propertyChanged("TrackProjectionQuality"); } }
@@ -163,7 +170,7 @@ namespace LvqGui {
 				(lr0(?<LR0>[0-9]*(\.[0-9]*)?(e[0-9]+)?),
 				lrP(?<LrScaleP>[0-9]*(\.[0-9]*)?(e[0-9]+)?),
 				lrB(?<LrScaleB>[0-9]*(\.[0-9]*)?(e[0-9]+)?),)?
-				(\[(?<ParamsSeed_>[0-9a-fA-F]+)?\,(?<InstanceSeed_>[0-9a-fA-F]+)?\])?(\^(?<ParallelModels>[0-9]+))?\,?"
+				(\[(?<ParamsSeed_>[0-9a-fA-F]+)?\,(?<InstanceSeed_>[0-9a-fA-F]+)?\])?(\^(?<ParallelModels>[0-9]+))?(_(?<FoldOffset>[0-9]+))?\,?"
 		+ "|" +//top regex is newest
 			@"(?<ModelType>\b[A-Z][A-Za-z0-9]*)
 				(\[(?<Dimensionality>[^\]]+)\])?,

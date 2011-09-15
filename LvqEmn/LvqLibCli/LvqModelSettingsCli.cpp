@@ -35,7 +35,8 @@ namespace LvqLibCli {
 				+ "," +  (InstanceSeed != LvqModelSettingsCli().InstanceSeed?InstanceSeed.ToString("x"):"") + "]"
 			: "" )
 
-			+ (ParallelModels!=LvqModelSettingsCli().ParallelModels?"^" + ParallelModels: "");
+			+ (ParallelModels!=LvqModelSettingsCli().ParallelModels?"^" + ParallelModels: "")
+			+ (FoldOffset!=LvqModelSettingsCli().FoldOffset?"_" + FoldOffset: "");
 	}
 	LvqModelSettingsCli LvqModelSettingsCli::WithChanges(LvqModelType type, int protos, unsigned rngParams, unsigned rngIter){
 		LvqModelSettingsCli retval = *this;

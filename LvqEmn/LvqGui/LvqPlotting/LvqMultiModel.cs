@@ -21,7 +21,7 @@ namespace LvqGui {
 			string shorthand = lvqModelSettingsCli.ToShorthand() + "--" + forDataset.DatasetLabel;
 			subModels =
 				Enumerable.Range(0, lvqModelSettingsCli.ParallelModels).AsParallel()
-				.Select(modelfold => new LvqModelCli(shorthand, forDataset, modelfold, lvqModelSettingsCli, true))
+				.Select(modelfold => new LvqModelCli(shorthand, forDataset, modelfold+lvqModelSettingsCli.FoldOffset, lvqModelSettingsCli, true))
 				.OrderBy(model => model.InitDataFold)
 				.ToArray();
 			nnErrIdx = subModels[0].TrainingStatNames.AsEnumerable().IndexOf(name => name.Contains("NN Error"));

@@ -43,8 +43,8 @@ namespace LvqGui {
 			newSettings.LrScaleP = lrScaleP;
 			return newSettings;
 		}
-
 	}
+
 	public class TestLr {
 		public readonly uint offset;
 		readonly LvqDatasetCli _dataset;
@@ -141,7 +141,8 @@ namespace LvqGui {
 				from lr0 in lr0range
 				from lrP in lrPrange
 				from lrB in lrBrange
-				select new LrAndErrorRates { lr0 = lr0, lrP = lrP, lrB = lrB, errs = ErrorOf(sink, _itersToRun, settings.WithLrChanges(lr0, lrP, lrB), cancel) }
+				let errs = ErrorOf(sink, _itersToRun, settings.WithLrChanges(lr0, lrP, lrB), cancel)
+				select new LrAndErrorRates { lr0 = lr0, lrP = lrP, lrB = lrB, errs = errs }
 				).ToArray();
 
 			return Task.Factory.ContinueWhenAll(errorRates.Select(run => run.errs).ToArray(),
@@ -171,10 +172,18 @@ namespace LvqGui {
 				var dataset = _dataset ?? basedatasets[i];
 				int fold = _dataset != null ? i : 0;
 				results[i] = Task.Factory.StartNew(() => {
-					var model = new LvqModelCli("model", dataset, fold, settings, false);
-					nnErrorIdx = model.TrainingStatNames.AsEnumerable().IndexOf(name => name.Contains("NN Error")); // threading irrelevant; all the same & atomic.
-					model.Train((int)(iters / dataset.GetTrainingSubsetSize(fold)), dataset, fold, false, false);
-					return model.EvaluateStats(dataset, fold);
+					try {
+						var model = new LvqModelCli("model", dataset, fold, settings, false);
+						//Console.WriteLine(settings.ToShorthand() + " |" + fold);
+
+						nnErrorIdx = model.TrainingStatNames.AsEnumerable().IndexOf(name => name.Contains("NN Error")); // threading irrelevant; all the same & atomic.
+						model.Train((int)(iters / dataset.GetTrainingSubsetSize(fold)), dataset, fold, false, false);
+						return model.EvaluateStats(dataset, fold);
+					} finally {
+						//Console.WriteLine(settings.ToShorthand() + " |" + fold + " OK");
+
+
+					}
 				}, cancel, TaskCreationOptions.PreferFairness, LowPriorityTaskScheduler.DefaultLowPriorityScheduler);
 			}
 

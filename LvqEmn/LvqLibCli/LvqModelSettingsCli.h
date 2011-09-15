@@ -17,7 +17,7 @@ namespace LvqLibCli {
 	{
 		int _Dimensionality;
 		int _PrototypesPerClass;
-		int _ParallelModels;
+		int _ParallelModels, _FoldOffset;
 		unsigned _ParamsSeed;
 		bool _NonRandomInitialProjection;
 		bool _NonNormalizeProjection, _NonNormalizeBoundaries, _NonGloballyNormalize;
@@ -31,6 +31,7 @@ namespace LvqLibCli {
 		property int PrototypesPerClass  { int get() {return _PrototypesPerClass + 1; } void set(int val) { _PrototypesPerClass = val - 1; } }
 		property unsigned ParamsSeed  { unsigned get() {return _ParamsSeed + 1; } void set(unsigned val) { _ParamsSeed = val - 1; } }
 		property int ParallelModels  { int get() {return _ParallelModels + 10; } void set(int val) { _ParallelModels = val - 10; } }
+		property int FoldOffset  { int get() {return _FoldOffset ; } void set(int val) { _FoldOffset = val; } }
 		property bool RandomInitialProjection { bool get() {return !_NonRandomInitialProjection; } void set(bool val) { _NonRandomInitialProjection = !val; } }
 		property bool NormalizeProjection { bool get() {return !_NonNormalizeProjection; } void set(bool val) { _NonNormalizeProjection = !val; } }
 		property bool NormalizeBoundaries { bool get() {return !_NonNormalizeBoundaries; } void set(bool val) { _NonNormalizeBoundaries = !val; } }

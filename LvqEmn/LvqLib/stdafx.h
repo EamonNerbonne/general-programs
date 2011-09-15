@@ -6,7 +6,7 @@
 
 #pragma warning(disable: 4505)
 #pragma warning(disable: 4512)
-
+#pragma warning(disable: 4428)
 #pragma warning(push,3)
 #endif
 

@@ -108,13 +108,15 @@
         <TextBox Grid.Row="17" Grid.Column="1" Text="{Binding LrScaleBad, Mode=TwoWay, ValidatesOnExceptions=True}"/>
 
 
-        <Button Grid.Row="25" Content="Reset Initialization Seed" Click="ReseedParam" />
-        <TextBox Grid.Row="25" Grid.Column="1" Text="{Binding ParamsSeed, Mode=TwoWay, ValidatesOnExceptions=True, Converter={StaticResource hexConverter}}"  />
-        <Button Grid.Row="26" Content="Reset Iteration Seed" Click="ReseedInst" />
-        <TextBox Grid.Row="26" Grid.Column="1" Text="{Binding InstanceSeed, Mode=TwoWay, ValidatesOnExceptions=True, Converter={StaticResource hexConverter}}" />
+        <Button Grid.Row="20" Content="Reset Initialization Seed" Click="ReseedParam" />
+        <TextBox Grid.Row="20" Grid.Column="1" Text="{Binding ParamsSeed, Mode=TwoWay, ValidatesOnExceptions=True, Converter={StaticResource hexConverter}}"  />
+        <Button Grid.Row="21" Content="Reset Iteration Seed" Click="ReseedInst" />
+        <TextBox Grid.Row="21" Grid.Column="1" Text="{Binding InstanceSeed, Mode=TwoWay, ValidatesOnExceptions=True, Converter={StaticResource hexConverter}}" />
 
-        <Label Grid.Row="27">Parallel models</Label>
-        <TextBox Grid.Row="27" Grid.Column="1" Text="{Binding ParallelModels, Mode=TwoWay, ValidatesOnExceptions=True}" />
+        <Label Grid.Row="25">Parallel models</Label>
+        <TextBox Grid.Row="25" Grid.Column="1" Text="{Binding ParallelModels, Mode=TwoWay, ValidatesOnExceptions=True}" />
+        <Label Grid.Row="26">Fold offset</Label>
+        <TextBox Grid.Row="26" Grid.Column="1" Text="{Binding FoldOffset, Mode=TwoWay, ValidatesOnExceptions=True}" />
         <Label Grid.Row="28">Track Projection Quality (slow)</Label>
         <CheckBox Grid.Row="28" Grid.Column="1"  IsChecked="{Binding TrackProjectionQuality, Mode= TwoWay, ValidatesOnExceptions=True}"/>
         
