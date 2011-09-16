@@ -190,17 +190,6 @@ type Difference =
 
 
 
-let resultsByDatasetByModel =
-    ResultAnalysis.analyzedModels () 
-        |> Utils.toDict (fun modelRes -> modelRes.DatasetBaseShorthand) 
-                (Utils.toDict 
-                    (fun modelRes -> (getSettings modelRes).Key) 
-                    (fun modelRess -> 
-                        match Seq.toArray modelRess with
-                        | [| modelRes |] -> modelRes
-                        | modelResArr -> failwith (sprintf "whoops: %A" modelResArr)
-                    )
-                )
 
 let compare baseResults heurResults =
     let lvqSettings = getSettings baseResults
@@ -223,40 +212,22 @@ let maybeCompare datasetResults modelResults heuristic =
     |> Option.map (fun heuristicResults -> compare modelResults heuristicResults)
     
 
-heuristics
-    |> Seq.map (fun heur -> 
-        seq {
-            for datasetRes in resultsByDatasetByModel.Values do
-                for modelRes in datasetRes.Values do
-                    match maybeCompare datasetRes modelRes heur with
-                    | None -> ()
-                    | Some(comparison) -> yield comparison
-        }
-        |> Utils.toDict fst ((Seq.map snd) >> Seq.sort >> Seq.toArray)
-        |> (fun dict -> (Utils.getMaybe dict Better |> Utils.orDefault (Array.empty),  Utils.getMaybe dict Worse |> Utils.orDefault (Array.empty), Utils.getMaybe dict Irrelevant |> Utils.orDefault (Array.empty))) 
-        |> (fun (better, worse, irrelevant) ->
-            (heur.Name, better.Length + worse.Length, irrelevant.Length, float better.Length / float (better.Length + worse.Length), better, worse,irrelevant)
-        )
-    ) 
-    |> Seq.toList
-    |> List.map (fun (name, count, ignoreCount,ratio, better, worse,irrelevant) ->
-            sprintf @"\noindent %s was an improvement in $%1.1f\%%$ of %i cases and irrelevant in %i:" name (100.*ratio) count ignoreCount + "\n\n"
-            + sprintf @"\noindent\begin{longtable}{lrccl@{}r}\toprule"  + "\n"
-            + sprintf @"$p$-value & $\Delta\%%$ &\multicolumn{1}{c}{before}&\multicolumn{1}{c}{after}  & \multicolumn{2}{c}{Scenario} \\\midrule"  + "\n"
-            + @"&&\multicolumn{2}{c}{Improved} \\ \cmidrule(r){3-4}" + "\n"
-            + String.concat "\\\\\n" (Array.map (fun (p, errChange,before,after, scenario) -> sprintf @" %0.2g & %0.1f &%s&%s&%s" p errChange (Utils.latexstderr before) (Utils.latexstderr after) scenario) better)
-            + @"\\\midrule" + "\n"
-            + @"&&\multicolumn{2}{c}{Degraded} \\ \cmidrule(r){3-4}" + "\n"
-            + String.concat "\\\\\n" (Array.map (fun (p, errChange,before,after, scenario) -> sprintf @" %0.2g & %0.1f &%s&%s&%s" p errChange (Utils.latexstderr before) (Utils.latexstderr after) scenario) worse)
-//            + @"\\\midrule" + "\n"
-            //+ @"&&\multicolumn{2}{c}{Irrelevant} \\ \cmidrule(r){3-4}" + "\n"
-            //+ String.concat "\\\\\n" (Array.map (fun (p, errChange,before,after, scenario) -> sprintf @" %0.2g & %0.1f &%s&%s&%s" p errChange (Utils.latexstderr before) (Utils.latexstderr after) scenario) irrelevant)
-            + "\n" + @"\\ \bottomrule\end{longtable}" + "\n\n" 
-        )
-    |> String.concat ""
-    |> (fun contents -> File.WriteAllText(EmnExtensions.Filesystem.FSUtil.FindDataDir(@"uni\Thesis\doc", System.Reflection.Assembly.GetAssembly(typeof<CreateDataset>)).FullName + @"\AnalyzeHeuristics.tex", contents))
+let resultsByDatasetByModel =
+    ResultAnalysis.analyzedModels () 
+        |> Utils.toDict (fun modelRes -> modelRes.DatasetBaseShorthand) 
+                (Utils.toDict 
+                    (fun modelRes -> (getSettings modelRes).Key) 
+                    (fun modelRess -> 
+                        match Seq.toArray modelRess with
+                        | [| modelRes |] -> modelRes
+                        | modelResArr -> failwith (sprintf "whoops: %A" modelResArr)
+                    )
+                )
 
-resultsByDatasetByModel.Keys |> Seq.toList
+
+resultsByDatasetByModel //|> Seq.filter (fun kvp->kvp.Key.Contains("colorado"))
+    |>Seq.map(fun kvp -> (kvp.Key, kvp.Value.Count))
+    |> Seq.sumBy snd
 
 
 
@@ -295,8 +266,8 @@ let analysisGiven (filter:ResultAnalysis.ModelResults -> bool) (heur:Heuristic) 
                     let irrelevant = Utils.getMaybe changes Irrelevant |> Utils.orDefault (Array.empty)
                     let relCount = better.Length + worse.Length
                     let changeRatio = float better.Length / float relCount
-                    let avgChange = Seq.concat [| better;worse;irrelevant|] |> Seq.map (fun (p, errChange,before,after, scenario) -> errChange) |> Seq.average
                     if relCount > 0 then
+                        let avgChange = Seq.concat [| better;worse;irrelevant|] |> Seq.map (fun (p, errChange,before,after, scenario) -> errChange) |> Seq.average
                         sprintf "%.3f of %d; %.2f" changeRatio relCount avgChange
                     else 
                         ""
@@ -306,3 +277,40 @@ let analysisGiven (filter:ResultAnalysis.ModelResults -> bool) (heur:Heuristic) 
     )
     +  "</td></tr></table>"
 |> Console.WriteLine
+
+
+
+
+
+heuristics
+    |> Seq.map (fun heur -> 
+        seq {
+            for datasetRes in resultsByDatasetByModel.Values do
+                for modelRes in datasetRes.Values do
+                    match maybeCompare datasetRes modelRes heur with
+                    | None -> ()
+                    | Some(comparison) -> yield comparison
+        }
+        |> Utils.toDict fst ((Seq.map snd) >> Seq.sort >> Seq.toArray)
+        |> (fun dict -> (Utils.getMaybe dict Better |> Utils.orDefault (Array.empty),  Utils.getMaybe dict Worse |> Utils.orDefault (Array.empty), Utils.getMaybe dict Irrelevant |> Utils.orDefault (Array.empty))) 
+        |> (fun (better, worse, irrelevant) ->
+            (heur.Name, better.Length + worse.Length, irrelevant.Length, float better.Length / float (better.Length + worse.Length), better, worse,irrelevant)
+        )
+    ) 
+    |> Seq.toList
+    |> List.map (fun (name, count, ignoreCount,ratio, better, worse,irrelevant) ->
+            sprintf @"\noindent %s was an improvement in $%1.1f\%%$ of %i cases and irrelevant in %i:" name (100.*ratio) count ignoreCount + "\n\n"
+            + sprintf @"\noindent\begin{longtable}{lrccl@{}r}\toprule"  + "\n"
+            + sprintf @"$p$-value & $\Delta\%%$ &\multicolumn{1}{c}{before}&\multicolumn{1}{c}{after}  & \multicolumn{2}{c}{Scenario} \\\midrule"  + "\n"
+            + @"&&\multicolumn{2}{c}{Improved} \\ \cmidrule(r){3-4}" + "\n"
+            + String.concat "\\\\\n" (Array.map (fun (p, errChange,before,after, scenario) -> sprintf @" %0.2g & %0.1f &%s&%s&%s" p errChange (Utils.latexstderr before) (Utils.latexstderr after) scenario) better)
+            + @"\\\midrule" + "\n"
+            + @"&&\multicolumn{2}{c}{Degraded} \\ \cmidrule(r){3-4}" + "\n"
+            + String.concat "\\\\\n" (Array.map (fun (p, errChange,before,after, scenario) -> sprintf @" %0.2g & %0.1f &%s&%s&%s" p errChange (Utils.latexstderr before) (Utils.latexstderr after) scenario) worse)
+//            + @"\\\midrule" + "\n"
+            //+ @"&&\multicolumn{2}{c}{Irrelevant} \\ \cmidrule(r){3-4}" + "\n"
+            //+ String.concat "\\\\\n" (Array.map (fun (p, errChange,before,after, scenario) -> sprintf @" %0.2g & %0.1f &%s&%s&%s" p errChange (Utils.latexstderr before) (Utils.latexstderr after) scenario) irrelevant)
+            + "\n" + @"\\ \bottomrule\end{longtable}" + "\n\n" 
+        )
+    |> String.concat ""
+    |> (fun contents -> File.WriteAllText(EmnExtensions.Filesystem.FSUtil.FindDataDir(@"uni\Thesis\doc", System.Reflection.Assembly.GetAssembly(typeof<CreateDataset>)).FullName + @"\AnalyzeHeuristics.tex", contents))
