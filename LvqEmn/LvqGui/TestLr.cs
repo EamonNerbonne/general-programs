@@ -174,13 +174,13 @@ namespace LvqGui {
 				results[i] = Task.Factory.StartNew(() => {
 					try {
 						var model = new LvqModelCli("model", dataset, fold, settings, false);
-						//Console.WriteLine(settings.ToShorthand() + " |" + fold);
+						Console.WriteLine(settings.ToShorthand() + " |" + fold);
 
 						nnErrorIdx = model.TrainingStatNames.AsEnumerable().IndexOf(name => name.Contains("NN Error")); // threading irrelevant; all the same & atomic.
 						model.Train((int)(iters / dataset.GetTrainingSubsetSize(fold)), dataset, fold, false, false);
 						return model.EvaluateStats(dataset, fold);
 					} finally {
-						//Console.WriteLine(settings.ToShorthand() + " |" + fold + " OK");
+						Console.WriteLine(settings.ToShorthand() + " |" + fold + " OK");
 
 
 					}

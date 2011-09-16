@@ -55,16 +55,13 @@ struct Covariance {
 #ifdef _MSC_VER
 #pragma warning (push, 3)
 #pragma warning (disable: 4127)
-		if(TPoints::RowsAtCompileTime == Eigen::Dynamic)
-			return CovarianceImpl<TPoints>::CovarianceC(points,mean);
-		else 
-			return CovarianceImpl<TPoints>::CovarianceB(points,mean);
-#pragma warning (pop)
-#else
+#endif
 		if(TPoints::RowsAtCompileTime == Eigen::Dynamic)
 			return CovarianceImpl<TPoints>::CovarianceC(points,mean);
 		else
 			return CovarianceImpl<TPoints>::CovarianceB(points,mean);
+#ifdef _MSC_VER
+#pragma warning (pop)
 #endif
 	}
 
