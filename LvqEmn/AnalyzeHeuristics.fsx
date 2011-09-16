@@ -27,30 +27,22 @@ let getSettings (modelResults:ResultAnalysis.ModelResults) = { DataSettings = no
 
 
 type Heuristic = 
-    { Name:string; Activator: HeuristicsSettings -> (HeuristicsSettings * HeuristicsSettings); }
+    { Name:string; Code:string; Activator: HeuristicsSettings -> (HeuristicsSettings * HeuristicsSettings); }
     //member this.IsActive settings =  (this.Activator settings |> fst).Equiv settings
 
 let applyHeuristic (heuristic:Heuristic) settings = 
     let (on, off) = heuristic.Activator settings
     if off.Equiv settings && on.Equiv settings |> not && on.ModelSettings = CreateLvqModelValues.ParseShorthand(on.ModelSettings.ToShorthand()) then Some(on) else None
 
+let isHeuristicApplied (heuristic:Heuristic) settings = 
+    let (on, off) = heuristic.Activator settings
+    on.Equiv settings && off.Equiv settings |> not && on.ModelSettings = CreateLvqModelValues.ParseShorthand(on.ModelSettings.ToShorthand())
 
-let resultsByDatasetByModel () =
-    ResultAnalysis.analyzedModels () 
-        |> Utils.toDict (fun modelRes -> modelRes.DatasetBaseShorthand) 
-                (Utils.toDict 
-                    (fun modelRes -> (getSettings modelRes).Key) 
-                    (fun modelRess -> 
-                        match Seq.toArray modelRess with
-                        | [| modelRes |] -> modelRes
-                        | modelResArr -> failwith (sprintf "whoops: %A" modelResArr)
-                    )
-                )
 
 
 let heuristics = 
-    let heur name activator = { Name=name; Activator = activator; }
-    let heurD name letter = { Name = name; Activator = (fun s -> 
+    let heur name code activator = { Name=name; Code=code; Activator = activator; }
+    let heurD name letter = { Name = name; Code = letter; Activator = (fun s -> 
         let on = normalizeDatatweaks (s.DataSettings + letter)
         let off = s.DataSettings.Replace(letter,"")
 
@@ -58,6 +50,7 @@ let heuristics =
     let heurM name code activator = 
         {
             Name = ResultAnalysis.latexLiteral code + " --- "+ name;
+            Code = code;
             Activator = (fun s ->
                 let (on, off) = activator s.ModelSettings
                 ({ DataSettings = s.DataSettings; ModelSettings = on }, { DataSettings = s.DataSettings; ModelSettings = off }))
@@ -195,31 +188,49 @@ type Difference =
     | Worse
     | Irrelevant
 
+
+
+let resultsByDatasetByModel =
+    ResultAnalysis.analyzedModels () 
+        |> Utils.toDict (fun modelRes -> modelRes.DatasetBaseShorthand) 
+                (Utils.toDict 
+                    (fun modelRes -> (getSettings modelRes).Key) 
+                    (fun modelRess -> 
+                        match Seq.toArray modelRess with
+                        | [| modelRes |] -> modelRes
+                        | modelResArr -> failwith (sprintf "whoops: %A" modelResArr)
+                    )
+                )
+
+let compare baseResults heurResults =
+    let lvqSettings = getSettings baseResults
+    let errs (model:ResultAnalysis.ModelResults) = model.Results |> Seq.map (fun res->res.CanonicalError*100.) |> Seq.toList 
+    let heurErr = errs heurResults
+    let baseErr = errs baseResults
+    let (isBetter, p) = Utils.twoTailedPairedTtest heurErr baseErr
+    let errChange = (heurResults.MeanError - baseResults.MeanError) / Math.Max(baseResults.MeanError,heurResults.MeanError) * 100. 
+    let tweaksL = ResultAnalysis.latexLiteral (lvqSettings.DataSettings + " " + lvqSettings.ModelSettings.ToShorthand()) 
+    let scenarioLatex = ResultAnalysis.niceDatasetName baseResults.DatasetBaseShorthand + @"\phantom{" + tweaksL + @"}&\llap{" + tweaksL + "}"
+    let difference = if p > 0.01 * Math.Abs(errChange) then Irrelevant elif isBetter then Better else Worse
+    ( difference,  ( p, errChange, Utils.sampleDistribution baseErr, Utils.sampleDistribution heurErr, scenarioLatex ) )
+
+let maybeCompare datasetResults modelResults heuristic =
+    modelResults
+    |> getSettings 
+    |> applyHeuristic heuristic 
+    |> Option.map (fun settingsWithHeuristic -> settingsWithHeuristic.Key)
+    |> Option.bind (Utils.getMaybe datasetResults)
+    |> Option.map (fun heuristicResults -> compare modelResults heuristicResults)
+    
+
 heuristics
     |> Seq.map (fun heur -> 
         seq {
-            for datasetRes in (resultsByDatasetByModel ()).Values do
+            for datasetRes in resultsByDatasetByModel.Values do
                 for modelRes in datasetRes.Values do
-                    let lvqSettings = getSettings modelRes 
-                    let heurResMaybe = 
-                        lvqSettings
-                        |> applyHeuristic heur 
-                        |> Option.map (fun lvqS -> lvqS.Key)
-                        |> Option.bind (Utils.getMaybe datasetRes)
-
-                    match heurResMaybe with
+                    match maybeCompare datasetRes modelRes heur with
                     | None -> ()
-                    | Some(heurRes) ->
-                        let errs (model:ResultAnalysis.ModelResults) = model.Results |> Seq.map (fun res->res.CanonicalError*100.) |> Seq.toList 
-                        let heurErr = errs heurRes
-                        let baseErr = errs modelRes
-                        
-                        let (isBetter, p) = Utils.twoTailedPairedTtest heurErr baseErr
-                        let errChange = (heurRes.MeanError - modelRes.MeanError) / Math.Max(modelRes.MeanError,heurRes.MeanError) * 100. 
-                        let tweaksL = ResultAnalysis.latexLiteral (lvqSettings.DataSettings + " " + lvqSettings.ModelSettings.ToShorthand()) 
-                        let scenarioLatex = ResultAnalysis.niceDatasetName modelRes.DatasetBaseShorthand + @"\phantom{" + tweaksL + @"}&\llap{" + tweaksL + "}"
-                        let difference = if p > 0.01 * Math.Abs(errChange) then Irrelevant elif isBetter then Better else Worse
-                        yield ( difference,  ( p, errChange, Utils.sampleDistribution baseErr, Utils.sampleDistribution heurErr, scenarioLatex ) )
+                    | Some(comparison) -> yield comparison
         }
         |> Utils.toDict fst ((Seq.map snd) >> Seq.sort >> Seq.toArray)
         |> (fun dict -> (Utils.getMaybe dict Better |> Utils.orDefault (Array.empty),  Utils.getMaybe dict Worse |> Utils.orDefault (Array.empty), Utils.getMaybe dict Irrelevant |> Utils.orDefault (Array.empty))) 
@@ -245,3 +256,53 @@ heuristics
     |> String.concat ""
     |> (fun contents -> File.WriteAllText(EmnExtensions.Filesystem.FSUtil.FindDataDir(@"uni\Thesis\doc", System.Reflection.Assembly.GetAssembly(typeof<CreateDataset>)).FullName + @"\AnalyzeHeuristics.tex", contents))
 
+resultsByDatasetByModel.Keys |> Seq.toList
+
+
+
+
+let allFilters = 
+    let simplifyName (name:string) = if name.Contains("-") then name.Substring(0, name.IndexOf("-")) else name
+    heuristics 
+    |> Seq.map (fun heur ->  (heur.Code, getSettings >> isHeuristicApplied heur) )
+    |> Seq.append (
+        resultsByDatasetByModel.Keys
+        |> Seq.filter (fun key -> resultsByDatasetByModel.[key].Count > 65)
+        |> Seq.map (fun datasetKey ->(simplifyName datasetKey, (fun modelRes->modelRes.DatasetBaseShorthand = datasetKey)))
+    )
+    |> Seq.toList
+
+
+let analysisGiven (filter:ResultAnalysis.ModelResults -> bool) (heur:Heuristic) = 
+    seq {
+        for datasetRes in resultsByDatasetByModel.Values do
+            for modelRes in datasetRes.Values do
+                if filter modelRes then
+                    match maybeCompare datasetRes modelRes heur with
+                    | None -> ()
+                    | Some(comparison) -> yield comparison
+    }
+
+
+"<table><tr><td>heuristic</td><td>" + (allFilters |> List.map fst |> String.concat " </td><td> ") + "</td></tr>" +
+    (heuristics
+        |> Seq.map (fun heur ->
+            "<tr><td>" + heur.Code + " </td><td> " + (
+                allFilters |> List.map (fun filter -> 
+                    let changes= analysisGiven (snd filter) heur |> Utils.toDict fst ((Seq.map snd) >> Seq.sort >> Seq.toArray)
+                    let better = Utils.getMaybe changes Better |> Utils.orDefault (Array.empty)
+                    let worse = Utils.getMaybe changes Worse |> Utils.orDefault (Array.empty)
+                    let irrelevant = Utils.getMaybe changes Irrelevant |> Utils.orDefault (Array.empty)
+                    let relCount = better.Length + worse.Length
+                    let changeRatio = float better.Length / float relCount
+                    let avgChange = Seq.concat [| better;worse;irrelevant|] |> Seq.map (fun (p, errChange,before,after, scenario) -> errChange) |> Seq.average
+                    if relCount > 0 then
+                        sprintf "%.3f of %d; %.2f" changeRatio relCount avgChange
+                    else 
+                        ""
+                ) |> String.concat " </td><td> "
+            ) 
+        ) |> String.concat "<tr><td>\n"
+    )
+    +  "</td></tr></table>"
+|> Console.WriteLine
