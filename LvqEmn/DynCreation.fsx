@@ -1,4 +1,4 @@
-﻿#I @"ResultsAnalysis\bin\ReleaseMingw2"
+﻿#I @"ResultsAnalysis\bin\ReleaseMingw"
 #r "ResultsAnalysis"
 #r "LvqLibCli"
 #r "LvqGui"
@@ -9,14 +9,14 @@ open LvqLibCli
 open LvqGui
 open System.Threading
 
-let saveGraphs model dataset = 
-    use statPlots = new LvqStatPlotsContainer(CancellationToken.None, true)
-    statPlots.DisplayModel(dataset,model,model.GetBestSubModelIdx(dataset),StatisticsViewMode.CurrentOnly, true,true).Wait()
-    statPlots.SaveAllGraphs(true).Wait()
-    statPlots.ShowCurrentProjectionStats(StatisticsViewMode.CurrentAndMean).Wait()
-    statPlots.SaveAllGraphs(false).Wait()
-    statPlots.ShowCurrentProjectionStats(StatisticsViewMode.MeanAndStderr).Wait()
-    statPlots.SaveAllGraphs(false).Wait()
+//let saveGraphs model dataset = 
+//    use statPlots = new LvqStatPlotsContainer(CancellationToken.None, true)
+//    statPlots.DisplayModel(dataset,model,model.GetBestSubModelIdx(dataset),StatisticsViewMode.CurrentOnly, true,true).Wait()
+//    statPlots.SaveAllGraphs(true).Wait()
+//    statPlots.ShowCurrentProjectionStats(StatisticsViewMode.CurrentAndMean).Wait()
+//    statPlots.SaveAllGraphs(false).Wait()
+//    statPlots.ShowCurrentProjectionStats(StatisticsViewMode.MeanAndStderr).Wait()
+//    statPlots.SaveAllGraphs(false).Wait()
 
 let createConfirmationDataset resultsName = 
     let factory = CreateDataset.CreateFactory(resultsName)
@@ -55,11 +55,11 @@ for (dirname, dataset) in shuffle datasets do
         [ for (_, _, settings) in shuffle (bestModelsForDataset (dirname, dataset)) ->
             async
                 {
-                    if LvqStatPlotsContainer.AnnouncePlotGeneration(dataset, settings, iters) then
+                    if LvqMultiModel.AnnounceModelTrainingGeneration(dataset, settings, iters) then
                         printfn "Starting %s / %s" dataset.DatasetLabel (settings.ToShorthand())
                         let model = new LvqMultiModel(dataset, settings)
                         model.TrainUptoIters(float iters, dataset, CancellationToken.None)
-                        saveGraphs model dataset
+                        model.SaveStats(dataset, iters)
                     else
                         printfn "Already done %s / %s" dataset.DatasetLabel (settings.ToShorthand())
                 }

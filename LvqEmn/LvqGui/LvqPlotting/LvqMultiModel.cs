@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -9,6 +10,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Media;
 using EmnExtensions;
+using EmnExtensions.Filesystem;
 using EmnExtensions.MathHelpers;
 using EmnExtensions.Wpf;
 using EmnExtensions.Wpf.Plot.VizEngines;
@@ -17,11 +19,13 @@ using LvqLibCli;
 namespace LvqGui {
 	public class LvqMultiModel {
 		readonly LvqModelCli[] subModels;
+		readonly LvqModelSettingsCli originalSettings;
 		public LvqMultiModel(LvqDatasetCli forDataset, LvqModelSettingsCli lvqModelSettingsCli) {
+			originalSettings = lvqModelSettingsCli;
 			string shorthand = lvqModelSettingsCli.ToShorthand() + "--" + forDataset.DatasetLabel;
 			subModels =
 				Enumerable.Range(0, lvqModelSettingsCli.ParallelModels).AsParallel()
-				.Select(modelfold => new LvqModelCli(shorthand, forDataset, modelfold+lvqModelSettingsCli.FoldOffset, lvqModelSettingsCli, true))
+				.Select(modelfold => new LvqModelCli(shorthand, forDataset, modelfold + lvqModelSettingsCli.FoldOffset, lvqModelSettingsCli, true))
 				.OrderBy(model => model.InitDataFold)
 				.ToArray();
 			nnErrIdx = subModels[0].TrainingStatNames.AsEnumerable().IndexOf(name => name.Contains("NN Error"));
@@ -63,8 +67,14 @@ namespace LvqGui {
 
 			return sb.ToString();
 		}
-		public string CurrentFullStatsString(LvqDatasetCli selectedDataset) {
+		public string CurrentFullStatsString(LvqDatasetCli selectedDataset)
+		{
 			var allstats = EvaluateFullStats(selectedDataset).ToArray();
+			return FullStatsString(allstats);
+		}
+
+		private string FullStatsString(LvqTrainingStatCli[] allstats)
+		{
 			var meanstats = MeanStdErrStats(allstats);
 
 			StringBuilder sb = new StringBuilder();
@@ -142,12 +152,12 @@ namespace LvqGui {
 			var helpers = subModels
 				.Select((model, modelIndex) =>
 						Task.Factory.StartNew(
-							() => model.Train(1, trainingSet, model.InitDataFold, modelIndex == selectedSubModel,false)
+							() => model.Train(1, trainingSet, model.InitDataFold, modelIndex == selectedSubModel, false)
 							,
 							cancel, TaskCreationOptions.None, LowPriorityTaskScheduler.DefaultLowPriorityScheduler)
 				).ToArray();
 			var labelOrdering = Task.Factory.ContinueWhenAll(helpers, tasks => tasks.Select(task => task.Result).Single(labelOrder => labelOrder != null)).Result;
-			Console.WriteLine(string.Join("",labelOrdering.Select(i => (char)(i < 10 ? i + '0' : i - 10 + 'a'))));
+			Console.WriteLine(string.Join("", labelOrdering.Select(i => (char)(i < 10 ? i + '0' : i - 10 + 'a'))));
 		}
 		public void SortedTrain(LvqDatasetCli trainingSet, CancellationToken cancel) {
 			if (cancel.IsCancellationRequested) return;
@@ -171,7 +181,7 @@ namespace LvqGui {
 		}
 
 		public void TrainUptoIters(double itersToTrainUpto, LvqDatasetCli trainingSet, CancellationToken cancel) {
-			TrainUptoEpochs((int)(itersToTrainUpto / GetItersPerEpoch(trainingSet) ), trainingSet, cancel);
+			TrainUptoEpochs((int)(itersToTrainUpto / GetItersPerEpoch(trainingSet)), trainingSet, cancel);
 		}
 
 		public void TrainUptoEpochs(int epochsToTrainUpto, LvqDatasetCli trainingSet, CancellationToken cancel) {
@@ -218,6 +228,45 @@ namespace LvqGui {
 			foreach (var model in subModels)
 				model.ResetLearningRate();
 		}
+
+		public static readonly DirectoryInfo statsDir = FSUtil.FindDataDir(@"uni\Thesis\doc\stats", typeof(LvqStatPlotsContainer));
+		static FileInfo StatFile(LvqDatasetCli dataset, LvqModelSettingsCli modelSettings, long iterIntent) {
+			var dSettings = CreateDataset.CreateFactory(dataset.DatasetLabel);
+			string dSettingsShorthand = dSettings.Shorthand;
+			DirectoryInfo datasetDir = statsDir.GetDirectories().FirstOrDefault(dir => {
+				var otherSettings = CreateDataset.CreateFactory(dir.Name);
+				return otherSettings != null && otherSettings.Shorthand == dSettingsShorthand;
+			}) ?? statsDir.CreateSubdirectory(dSettingsShorthand);
+			string iterPrefix = TestLr.ItersPrefix(iterIntent) + "-";
+			string mSettingsShorthand = modelSettings.ToShorthand();
+
+			return datasetDir.GetFiles(iterPrefix + "*.txt").FirstOrDefault(file => {
+				var otherSettings = CreateLvqModelValues.TryParseShorthand(Path.GetFileNameWithoutExtension(file.Name).Substring(iterPrefix.Length));
+				return otherSettings.HasValue && otherSettings.Value.ToShorthand() == mSettingsShorthand;
+			}) ?? new FileInfo(Path.Combine(datasetDir.FullName + "\\", iterPrefix + mSettingsShorthand + ".txt"));
+		}
+
+		public static bool AnnounceModelTrainingGeneration(LvqDatasetCli dataset, LvqModelSettingsCli shorthand, long iterIntent) {
+			FileInfo statFile = StatFile(dataset, shorthand, iterIntent);
+			bool isFresh = !statFile.Exists;
+			if (isFresh)
+				File.WriteAllText(statFile.FullName, "");
+			return isFresh;
+		}
+
+		public void SaveStats(LvqDatasetCli dataset, long iterIntent) {
+			var allstats = EvaluateFullStats(dataset).ToArray();
+
+
+			if (TestLr.ItersPrefix(iterIntent) != TestLr.ItersPrefix((long)Math.Round(allstats.Select(stat => stat.values[LvqTrainingStatCli.TrainingIterationI]).Average())))
+				throw new InvalidOperationException("Trained the wrong number of iterations; aborting.");
+			string statsString=FullStatsString(allstats);
+
+			FileInfo statFile = StatFile(dataset, originalSettings, iterIntent);
+			File.WriteAllText(statFile.FullName, statsString);
+		}
+
+
 
 		public MatrixContainer<byte> ClassBoundaries(int subModelIdx, double x0, double x1, double y0, double y1, int xCols, int yRows) {
 			return subModels[subModelIdx].ClassBoundaries(x0, x1, y0, y1, xCols, yRows);
