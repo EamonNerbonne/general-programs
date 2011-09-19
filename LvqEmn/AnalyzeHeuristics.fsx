@@ -225,7 +225,7 @@ let resultsByDatasetByModel =
                 )
 
 
-resultsByDatasetByModel //|> Seq.filter (fun kvp->kvp.Key.Contains("colorado"))
+resultsByDatasetByModel |> Seq.filter (fun kvp->kvp.Key.Contains("star"))
     |>Seq.map(fun kvp -> (kvp.Key, kvp.Value.Count))
     |> Seq.sumBy snd
 
