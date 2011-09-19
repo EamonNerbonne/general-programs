@@ -64,7 +64,7 @@ BOOST_AUTO_TEST_CASE( nn_test )
 		timeG2m.start();
 		G2mLvqModel model(as_lvalue(LvqModelSettings(LvqModelSettings::AutoModelType,rng,rng,protoDistrib,dataset.get(),trainingSet)));
 		LvqModel::Statistics stats;
-		dataset->TrainModel(25, &model, &stats, trainingSet, dataset.get(), testSet);
+		dataset->TrainModel(25, &model, &stats, trainingSet, dataset.get(), testSet,nullptr,false);
 		timeG2m.stop();
 
 		LvqDatasetStats statsG2m = dataset->ComputeCostAndErrorRate(testSet,&model);

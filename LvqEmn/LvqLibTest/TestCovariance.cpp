@@ -27,7 +27,7 @@ BOOST_AUTO_TEST_CASE( covariance_test )
 {
 	typedef CovarianceImpl<Matrix_NN> CovHD;
 	mt19937 rng(1337);
-	Matrix_NN points = CreateDataset::MakePointCloud(rng,rng,DIMS,1000,2.3456,1.0);
+	Matrix_NN points = CreateDataset::MakePointCloud(rng,rng,DIMS,1000,2.3456);
 	
 
 	Vector_N mean = MeanPoint(points);
@@ -54,7 +54,7 @@ BOOST_AUTO_TEST_CASE( covariance_lowdim_test )
 {
 	typedef CovarianceImpl<Matrix_P> CovLD;
 	mt19937 rng(1337);
-	Matrix_P points = CreateDataset::MakePointCloud(rng,rng,LVQ_LOW_DIM_SPACE,10000,2.3456,1.0);
+	Matrix_P points = CreateDataset::MakePointCloud(rng,rng,LVQ_LOW_DIM_SPACE,10000,2.3456);
 	Vector_2 mean = MeanPoint(points);
 
 	BOOST_CHECK(CovLD::CovarianceA(points,mean).isApprox(CovLD::CovarianceB(points,mean)));

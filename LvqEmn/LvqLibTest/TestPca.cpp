@@ -11,7 +11,7 @@ BOOST_AUTO_TEST_CASE( pca_vs_svd_test )
 	using std::cout;
 	using std::cerr;
 	mt19937 rng(1338);
-	Matrix_NN points = CreateDataset::MakePointCloud(rng, rng, 7, 1000, 2.12345,1.0);
+	Matrix_NN points = CreateDataset::MakePointCloud(rng, rng, 7, 1000, 2.12345);
 
 	Matrix_NN transform;
 	Vector_N eigenvalues;
