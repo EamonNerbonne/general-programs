@@ -234,15 +234,22 @@ resultsByDatasetByModel |> Seq.filter (fun kvp->kvp.Key.Contains("star"))
 
 let allFilters = 
     let simplifyName (name:string) = if name.Contains("-") then name.Substring(0, name.IndexOf("-")) else name
-    heuristics 
-    |> Seq.map (fun heur ->  (heur.Code, getSettings >> isHeuristicApplied heur) )
-    |> Seq.append (
-        resultsByDatasetByModel.Keys
-        |> Seq.filter (fun key -> resultsByDatasetByModel.[key].Count > 65)
-        |> Seq.map (fun datasetKey ->(simplifyName datasetKey, (fun modelRes->modelRes.DatasetBaseShorthand = datasetKey)))
+    List.append [
+        ("Everything", (fun (mr:ResultAnalysis.ModelResults) -> true));
+        ("Ggm,1", (fun mr -> mr.ModelSettings.ModelType = LvqModelType.Ggm && mr.ModelSettings.PrototypesPerClass = 1));
+        ("G2m,1", (fun mr -> mr.ModelSettings.ModelType = LvqModelType.G2m && mr.ModelSettings.PrototypesPerClass = 1));
+        ("Gm,1", (fun mr -> mr.ModelSettings.ModelType = LvqModelType.Gm && mr.ModelSettings.PrototypesPerClass = 1));
+        ("Ggm,5", (fun mr -> mr.ModelSettings.ModelType = LvqModelType.Ggm && mr.ModelSettings.PrototypesPerClass = 5));
+        ("G2m,5", (fun mr -> mr.ModelSettings.ModelType = LvqModelType.G2m && mr.ModelSettings.PrototypesPerClass = 5));
+        ("Gm,5", (fun mr -> mr.ModelSettings.ModelType = LvqModelType.Gm && mr.ModelSettings.PrototypesPerClass = 5));
+    ] (
+        heuristics |> List.map (fun heur ->  (heur.Code, getSettings >> isHeuristicApplied heur) )
+        |> List.append (
+            Seq.toList resultsByDatasetByModel.Keys
+            |> List.filter (fun key -> resultsByDatasetByModel.[key].Count > 65)
+            |> List.map (fun datasetKey ->(simplifyName datasetKey, (fun modelRes->modelRes.DatasetBaseShorthand = datasetKey)))
+        )
     )
-    |> Seq.toList
-
 
 let analysisGiven (filter:ResultAnalysis.ModelResults -> bool) (heur:Heuristic) = 
     seq {
@@ -255,12 +262,11 @@ let analysisGiven (filter:ResultAnalysis.ModelResults -> bool) (heur:Heuristic) 
     }
 
 
-"<table><tr><td>heuristic</td><td>" + (allFilters |> List.map fst |> String.concat " </td><td> ") + "</td></tr>" +
-    (heuristics
-        |> Seq.map (fun heur ->
-            "<tr><td>" + heur.Code + " </td><td> " + (
-                allFilters |> List.map (fun filter -> 
-                    let changes= analysisGiven (snd filter) heur |> Utils.toDict fst ((Seq.map snd) >> Seq.sort >> Seq.toArray)
+"<table><tr><td>heuristic</td><td>" + (heuristics |> List.map (fun heur->heur.Code) |> String.concat " </td><td> ") + "</td></tr>" +
+    (allFilters |> List.map (fun (filtername, filter) -> 
+            "<tr><td>" + filtername + " </td><td> " + 
+                (heuristics |> List.map (fun heur ->
+                    let changes= analysisGiven filter heur |> Utils.toDict fst ((Seq.map snd) >> Seq.sort >> Seq.toArray)
                     let better = Utils.getMaybe changes Better |> Utils.orDefault (Array.empty)
                     let worse = Utils.getMaybe changes Worse |> Utils.orDefault (Array.empty)
                     let irrelevant = Utils.getMaybe changes Irrelevant |> Utils.orDefault (Array.empty)
@@ -268,14 +274,14 @@ let analysisGiven (filter:ResultAnalysis.ModelResults -> bool) (heur:Heuristic) 
                     let changeRatio = float better.Length / float relCount
                     if relCount > 0 then
                         let avgChange = Seq.concat [| better;worse;irrelevant|] |> Seq.map (fun (p, errChange,before,after, scenario) -> errChange) |> Seq.average
-                        sprintf "%.3f of %d; %.2f" changeRatio relCount avgChange
+                        sprintf "%.3f of %d<br/> %.2f" changeRatio relCount avgChange
                     else 
                         ""
                 ) |> String.concat " </td><td> "
-            ) 
-        ) |> String.concat "<tr><td>\n"
+            ) + "</td></tr>\n" 
+        ) |> String.concat ""
     )
-    +  "</td></tr></table>"
+    +  "</table>"
 |> Console.WriteLine
 
 
