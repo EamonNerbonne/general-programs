@@ -15,7 +15,7 @@ type Result =
     static member get_Zero () = { Iterations = 0.; TrainingError = 0.; TestError = 0.; NnError = 0. }
 
 type ModelResults =
-    {  DatasetBaseShorthand:string; DatasetTweaks:string; ModelDir: DirectoryInfo; ModelSettings: LvqModelSettingsCli; Results: Result [] }
+    {  DatasetBaseShorthand:string; DatasetTweaks:string; ModelStatFile: FileInfo; ModelSettings: LvqModelSettingsCli; Results: Result [] }
     member this.MeanError = this.Results |> Array.averageBy (fun res -> res.CanonicalError)
 
 let applyDatasetTweaks (tweaks:string) (settings:IDatasetCreator) = 
@@ -53,7 +53,7 @@ let datasetSettings () =
             else
                 (ldSettings.BaseShorthand(), datasetAnnotation settings false)
         | _ -> (settings.BaseShorthand(), datasetAnnotation settings false)
-    LvqStatPlotsContainer.AutoPlotDir.GetDirectories()
+    LvqMultiModel.statsDir.GetDirectories()
     |> Seq.map (fun dir -> (dir, CreateDataset.CreateFactory(dir.Name) |> decodeDataset))
     |> Seq.toArray
  
@@ -79,22 +79,18 @@ let analyzedModels () =
                 | None -> Array.create itersArr.Length Operators.nan
             let zippedResults = Array.zip itersArr (Array.zip3 lines.["Training Error"] lines.["Test Error"] nnErrs)
             Some(Array.map (fun (i,(trn,tst,nn)) -> { Iterations = i; TrainingError = trn; TestError = tst; NnError = nn }) zippedResults)
-    let getStats (modeldir:DirectoryInfo) = 
-        modeldir.GetFiles("fullstats-*.txt")
-        |> Seq.map getResults
-        |> Seq.append (Seq.singleton None)
-        |> Seq.maxBy (Option.map (Array.sumBy (fun res-> res.Iterations)))
-    let loadModelResults dataset modeldir = 
-        match getStats modeldir with
-        | None -> None
-        | Some(results) -> 
+    let loadModelResults dataset (modelstatfile:FileInfo) = 
+        let (success, iters, settings) = DatasetResults.ExtractItersAndSettings modelstatfile.Name
+        match (success, getResults modelstatfile) with
+        | (true, Some(results)) -> 
             Some({
-                        ModelDir = modeldir; DatasetBaseShorthand = fst dataset; DatasetTweaks = snd dataset; ModelSettings = CreateLvqModelValues.ParseShorthand(modeldir.Name);
+                        ModelStatFile = modelstatfile; DatasetBaseShorthand = fst dataset; DatasetTweaks = snd dataset; ModelSettings = settings;
                         Results = results
                     })
+        | _ -> None
 
     datasetSettings ()
-    |> Seq.collect (fun (datasetdir, dataset) -> datasetdir.GetDirectories() |> Array.map (loadModelResults dataset))
+    |> Seq.collect (fun (datasetdir, dataset) -> datasetdir.GetFiles("*.txt") |> Array.map (loadModelResults dataset))
     |> Seq.filter Option.isSome
     |> Seq.map Option.get
     |> Seq.toArray

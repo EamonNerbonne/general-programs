@@ -90,11 +90,20 @@ namespace LvqGui {
 		}
 
 		public static DatasetResults ProcFile(FileInfo resultFile) {
-			var match = resultsFilenameRegex.Match(resultFile.Name);
-			if (!match.Success || resultFile.Length == 0) return null;
+			if(resultFile.Length == 0) return null;
+			var itersAndSettings= ExtractItersAndSettings(resultFile.Name);
+			if(!itersAndSettings.Item1) return null;
+			return new DatasetResults(resultFile, itersAndSettings.Item2, itersAndSettings.Item3);
+		}
 
-			return new DatasetResults(resultFile, Double.Parse(match.Groups["iters"].Value.StartsWith("e") ? "1" + match.Groups["iters"].Value : match.Groups["iters"].Value),
-				CreateLvqModelValues.ParseShorthand(match.Groups["shorthand"].Value));
+		public static Tuple<bool,double,LvqModelSettingsCli> ExtractItersAndSettings(string filename)
+		{
+			var match = resultsFilenameRegex.Match(filename);
+			if (!match.Success) return Tuple.Create(false,default(double),default(LvqModelSettingsCli));
+			double iters = double.Parse(match.Groups["iters"].Value.StartsWith("e") ? "1" + match.Groups["iters"].Value : match.Groups["iters"].Value);
+			string shorthand = match.Groups["shorthand"].Value;
+			LvqModelSettingsCli  modelSettings = CreateLvqModelValues.ParseShorthand(shorthand);
+			return Tuple.Create(true,iters,modelSettings);
 		}
 
 		/// <summary>
