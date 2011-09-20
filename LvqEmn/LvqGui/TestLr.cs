@@ -102,6 +102,7 @@ namespace LvqGui {
 			return ShortnameFor(_itersToRun, settings);
 		}
 
+
 		public Task StartAllLrTesting(CancellationToken cancel, LvqModelSettingsCli? baseSettings = null) {
 			LvqModelSettingsCli effectiveSettings = baseSettings ?? new LvqModelSettingsCli();
 			var testingTasks =
@@ -114,6 +115,8 @@ namespace LvqGui {
 				from pi in new[] { true, false }
 				from ng in new[] { true, false }
 				from slowbad in new[] { true, false }
+				let relevanceCost = new[] { !rp, ngi, bi, pi, ng, slowbad }.Count(b => b)
+				orderby relevanceCost
 				select effectiveSettings.WithTestingChanges2(modeltype, protoCount, offset, rp, ngi, bi, pi, ng, slowbad) into settings
 				let shortname = ShortnameFor(settings)
 				select TestLrIfNecessary(null, settings, cancel)
@@ -172,16 +175,11 @@ namespace LvqGui {
 				var dataset = _dataset ?? basedatasets[i];
 				int fold = _dataset != null ? i : 0;
 				results[i] = Task.Factory.StartNew(() => {
-					try {
-						var model = new LvqModelCli("model", dataset, fold, settings, false);
-						//File.AppendAllText(@"C:\\lvq.log",settings.ToShorthand() + " |" + fold+"\n");
+					var model = new LvqModelCli("model", dataset, fold, settings, false);
 
-						nnErrorIdx = model.TrainingStatNames.AsEnumerable().IndexOf(name => name.Contains("NN Error")); // threading irrelevant; all the same & atomic.
-						model.Train((int)(iters / dataset.GetTrainingSubsetSize(fold)), dataset, fold, false, false);
-						return model.EvaluateStats(dataset, fold);
-					} finally {
-						//File.AppendAllText(@"C:\\lvq.log", settings.ToShorthand() + " |" + fold + "OK\n");
-					}
+					nnErrorIdx = model.TrainingStatNames.AsEnumerable().IndexOf(name => name.Contains("NN Error")); // threading irrelevant; all the same & atomic.
+					model.Train((int)(iters / dataset.GetTrainingSubsetSize(fold)), dataset, fold, false, false);
+					return model.EvaluateStats(dataset, fold);
 				}, cancel, TaskCreationOptions.PreferFairness, LowPriorityTaskScheduler.DefaultLowPriorityScheduler);
 			}
 
@@ -320,7 +318,7 @@ namespace LvqGui {
 		}
 
 		IEnumerable<FileInfo> SettingsFile(LvqModelSettingsCli settings) {
-			var dirs = ResultsDatasetDir();
+			var dirs = ResultsDatasetDir().ToArray();
 			string mSettingsShorthand = settings.ToShorthand();
 			string prefix = ItersPrefix(_itersToRun) + "-";
 			var files = dirs.Where(dir => dir.Exists).SelectMany(dir => dir.GetFiles(prefix + "*.txt").Where(file => {
