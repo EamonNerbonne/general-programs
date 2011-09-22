@@ -98,7 +98,7 @@ let heuristics =
             on.BLocalInit <- true
             off.BLocalInit <- false
             (on, off))
-        heurM @"Optimizing $P$ and seting $B_i$ to the local covariance" "Pi+,Bi+" (fun s  -> 
+        (*heurM @"Optimizing $P$ and seting $B_i$ to the local covariance" "Pi+,Bi+" (fun s  -> 
             let mutable on = s
             let mutable off = s
             on.BLocalInit <- true
@@ -177,7 +177,7 @@ let heuristics =
             off.NgUpdateProtos <- false
             on.SlowStartLrBad <- true
             off.SlowStartLrBad <- false
-            (on, off))
+            (on, off))*)
         heurD "Extend dataset by correlations (x)" "x"
         heurD "Normalize each dimension (n)" "n"
         heurD "pre-normalized segmentation dataset (N)" "N"
@@ -196,12 +196,14 @@ let compare baseResults heurResults =
     let errs (model:ResultAnalysis.ModelResults) = model.Results |> Seq.map (fun res->res.CanonicalError*100.) |> Seq.toList 
     let heurErr = errs heurResults
     let baseErr = errs baseResults
+    let resCount = List.length heurErr
+    let betterRatio = float (List.zip heurErr baseErr |> List.filter (fun (hE,bE) -> hE < bE) |> List.length) / float (List.length heurErr)
     let (isBetter, p) = Utils.twoTailedPairedTtest heurErr baseErr
     let errChange = (heurResults.MeanError - baseResults.MeanError) / Math.Max(baseResults.MeanError,heurResults.MeanError) * 100. 
     let tweaksL = ResultAnalysis.latexLiteral (lvqSettings.DataSettings + " " + lvqSettings.ModelSettings.ToShorthand()) 
     let scenarioLatex = ResultAnalysis.niceDatasetName baseResults.DatasetBaseShorthand + @"\phantom{" + tweaksL + @"}&\llap{" + tweaksL + "}"
     let difference = if p > 0.01 * Math.Abs(errChange) then Irrelevant elif isBetter then Better else Worse
-    ( difference,  ( p, errChange, Utils.sampleDistribution baseErr, Utils.sampleDistribution heurErr, scenarioLatex ) )
+    ( difference,  ( p, errChange, Utils.sampleDistribution baseErr, Utils.sampleDistribution heurErr, scenarioLatex, betterRatio,resCount) )
 
 let maybeCompare datasetResults modelResults heuristic =
     modelResults
@@ -228,8 +230,6 @@ let resultsByDatasetByModel =
 resultsByDatasetByModel |> Seq.filter (fun kvp->kvp.Key.Contains("star"))
     |>Seq.map(fun kvp -> (kvp.Key, kvp.Value.Count))
     |> Seq.sumBy snd
-
-
 
 
 let allFilters = 
@@ -266,15 +266,11 @@ let analysisGiven (filter:ResultAnalysis.ModelResults -> bool) (heur:Heuristic) 
     (allFilters |> List.map (fun (filtername, filter) -> 
             "<tr><td>" + filtername + " </td><td> " + 
                 (heuristics |> List.map (fun heur ->
-                    let changes= analysisGiven filter heur |> Utils.toDict fst ((Seq.map snd) >> Seq.sort >> Seq.toArray)
-                    let better = Utils.getMaybe changes Better |> Utils.orDefault (Array.empty)
-                    let worse = Utils.getMaybe changes Worse |> Utils.orDefault (Array.empty)
-                    let irrelevant = Utils.getMaybe changes Irrelevant |> Utils.orDefault (Array.empty)
-                    let relCount = better.Length + worse.Length
-                    let changeRatio = float better.Length / float relCount
-                    if relCount > 0 then
-                        let avgChange = Seq.concat [| better;worse;irrelevant|] |> Seq.map (fun (p, errChange,before,after, scenario) -> errChange) |> Seq.average
-                        sprintf "%.3f of %d<br/> %.2f" changeRatio relCount avgChange
+                    let analysis = analysisGiven filter heur |> Seq.map snd |> Seq.toList
+                    if List.isEmpty analysis |> not then
+                        let changeRatio = analysis |> List.averageBy (fun (p, errChange,before,after, scenario, betterRatio,resCount) -> betterRatio) 
+                        let avgChange = analysis |> List.averageBy (fun (p, errChange,before,after, scenario, betterRatio,resCount) -> errChange)
+                        sprintf "%.3f of %d<br/> %.2f" changeRatio (List.sumBy (fun (p, errChange,before,after, scenario, betterRatio,resCount)->resCount) analysis) avgChange
                     else 
                         ""
                 ) |> String.concat " </td><td> "
@@ -283,9 +279,6 @@ let analysisGiven (filter:ResultAnalysis.ModelResults -> bool) (heur:Heuristic) 
     )
     +  "</table>"
 |> Console.WriteLine
-
-
-
 
 
 heuristics
@@ -309,10 +302,10 @@ heuristics
             + sprintf @"\noindent\begin{longtable}{lrccl@{}r}\toprule"  + "\n"
             + sprintf @"$p$-value & $\Delta\%%$ &\multicolumn{1}{c}{before}&\multicolumn{1}{c}{after}  & \multicolumn{2}{c}{Scenario} \\\midrule"  + "\n"
             + @"&&\multicolumn{2}{c}{Improved} \\ \cmidrule(r){3-4}" + "\n"
-            + String.concat "\\\\\n" (Array.map (fun (p, errChange,before,after, scenario) -> sprintf @" %0.2g & %0.1f &%s&%s&%s" p errChange (Utils.latexstderr before) (Utils.latexstderr after) scenario) better)
+            + String.concat "\\\\\n" (Array.map (fun (p, errChange,before,after, scenario, betterRatio, resCount) -> sprintf @" %0.2g & %0.1f &%s&%s&%s" p errChange (Utils.latexstderr before) (Utils.latexstderr after) scenario) better)
             + @"\\\midrule" + "\n"
             + @"&&\multicolumn{2}{c}{Degraded} \\ \cmidrule(r){3-4}" + "\n"
-            + String.concat "\\\\\n" (Array.map (fun (p, errChange,before,after, scenario) -> sprintf @" %0.2g & %0.1f &%s&%s&%s" p errChange (Utils.latexstderr before) (Utils.latexstderr after) scenario) worse)
+            + String.concat "\\\\\n" (Array.map (fun (p, errChange,before,after, scenario, betterRatio, resCount) -> sprintf @" %0.2g & %0.1f &%s&%s&%s" p errChange (Utils.latexstderr before) (Utils.latexstderr after) scenario) worse)
 //            + @"\\\midrule" + "\n"
             //+ @"&&\multicolumn{2}{c}{Irrelevant} \\ \cmidrule(r){3-4}" + "\n"
             //+ String.concat "\\\\\n" (Array.map (fun (p, errChange,before,after, scenario) -> sprintf @" %0.2g & %0.1f &%s&%s&%s" p errChange (Utils.latexstderr before) (Utils.latexstderr after) scenario) irrelevant)
