@@ -199,7 +199,11 @@ void ImageFeatures::init(int winSizeDens,int winSizeAngle, int iter) {
 	}
 	
 	// Accumulate feature values : downsampled
-	double total = 1e-10, total_bgs = 1e-10;
+	double total = 1e-10;
+#if USE_DOWNSAMPLED_BGS
+	double total_bgs = 1e-10;
+#endif
+
 	for (int y = 0 ; y < image_height ; ++y) {
 		for (int x = 0 ; x < image_width ; ++x) {
 			total += pixelsForDownsample.pix(x,y);

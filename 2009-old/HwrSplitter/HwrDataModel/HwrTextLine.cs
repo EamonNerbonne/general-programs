@@ -2,17 +2,15 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using MoreLinq;
 using System.Xml.Linq;
-using System.Windows;
-using System.Windows.Media;
+using MoreLinq;
 
 namespace HwrDataModel
 {
 	public class HwrTextLine : ShearedBox, IAsXml
 	{
 		public readonly HwrTextWord[] words; //after construction, words are fixed - you can only recompute their positions.
-		public readonly int no;
+		public readonly int nr;
 		public readonly HwrTextPage Page;
 
 		public int bodyTop, bodyTopAlt;//bodyTop/bodyBot are relative to line top, not to page top.
@@ -25,8 +23,9 @@ namespace HwrDataModel
 		double computedLikelihood = double.NaN;
 		public int[] ComputedCharEndpoints { get { return computedCharEndpoints; } }
 		public double ComputedLikelihood { get { return computedLikelihood; } }
-		public void SetComputedCharEndpoints(int[] endpoints, double likelihood, HwrEndpointStatus endpointSource)
+		public bool SetComputedCharEndpoints(int[] endpoints, double likelihood, HwrEndpointStatus endpointSource)
 		{
+			bool possibleError=false;
 			//remember: don't overwrite manually set endpoints!!!!
 
 			computedLikelihood = likelihood;
@@ -50,8 +49,10 @@ namespace HwrDataModel
 						}
 						else
 						{
-							if (Math.Abs(words[currWordI].right - endpoints[i - 1]) > 2)
-								Console.Write("Calculated endpoint differs significantly from manual example!\nHwrLine {0}: {1}\nWord {2}: {3}\nPosition is {4} but should be {5}\n", no, FullText, currWordI, words[currWordI].text, endpoints[i - 1], words[currWordI].right);
+							if (Math.Abs(words[currWordI].right - endpoints[i - 1]) > 2) {
+								Console.Write("Calculated endpoint differs significantly from manual example!\nHwrLine {0}: {1}\nWord {2}: {3}\nPosition is {4} but should be {5}\n", nr, FullText, currWordI, words[currWordI].text, endpoints[i - 1], words[currWordI].right);
+								possibleError = true;
+							}
 						}
 					}
 					currWordI++;//space means new word
@@ -64,24 +65,27 @@ namespace HwrDataModel
 						}
 						else
 						{
-							if (Math.Abs(words[currWordI].left - endpoints[i]) > 2)
-								Console.Write("Calculated startpoint differs significantly from manual example!\nHwrLine {0}: {1}\nWord {2}: {3}\nPosition is {4} but should be {5}\n", no, FullText, currWordI, words[currWordI].text, endpoints[i], words[currWordI].left);
+							if (Math.Abs(words[currWordI].left - endpoints[i]) > 2) {
+								Console.Write("Calculated startpoint differs significantly from manual example!\nHwrLine {0}: {1}\nWord {2}: {3}\nPosition is {4} but should be {5}\n", nr, FullText, currWordI, words[currWordI].text, endpoints[i], words[currWordI].left);
+								possibleError = true;
+							}
 						}
 					}
 				}
 			}
 			if (currWordI != words.Length)
 				throw new ApplicationException("programmer error: currWordI(" + currWordI + ") != words.Length (" + words.Length + ")");
+			return possibleError;
 		}
 
 
-		public HwrTextLine(HwrTextPage page) { this.Page = page; }
-		public HwrTextLine(HwrTextPage page, string text, int no, double top, double bottom, double left, double right, double shear)
+		public HwrTextLine(HwrTextPage page) { Page = page; }
+		public HwrTextLine(HwrTextPage page, string text, int lineNumber, double top, double bottom, double left, double right, double shear)
 			: base(top, bottom, left, right, shear)
 		{
-			this.Page = page;
-			this.no = no;
-			this.words = text
+			Page = page;
+			nr = lineNumber;
+			words = text
 				.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)
 				.Select((t, i) => new HwrTextWord(this, t, i + 1, top, bottom, left, left, shear))
 			.ToArray();
@@ -89,8 +93,8 @@ namespace HwrDataModel
 		public HwrTextLine(HwrTextPage page, XElement fromXml, HwrEndpointStatus wordSource)
 			: base(fromXml)
 		{
-			this.Page = page;
-			no = (int)fromXml.Attribute("no");
+			Page = page;
+			nr = (int)fromXml.Attribute("no");
 			words = fromXml.Elements("Word").Select(xmlWord => new HwrTextWord(this, xmlWord, wordSource)).ToArray();
 		}
 
@@ -102,7 +106,7 @@ namespace HwrDataModel
 			get
 			{
 				return
-					new char[] { (char)0, ' ' }.Concat(FullText).Concat(new char[] { ' ', (char)10 });
+					new[] { (char)0, ' ' }.Concat(FullText).Concat(new[] { ' ', (char)10 });
 			}
 		}
 
@@ -198,15 +202,15 @@ namespace HwrDataModel
 					distributeWord(i + 1, wordEstimates[i].HwrTextWord.right);
 				}
 			}
-			distributeWord(wordEstimates.Length, this.right);
+			distributeWord(wordEstimates.Length, right);
 		}
 
 		public XNode AsXml()
 		{
 			return
 				new XElement("TextLine",
-					new XAttribute("no", no),
-					base.MakeXAttrs(),
+					new XAttribute("no", nr),
+					MakeXAttrs(),
 					words.Select(word => word.AsXml())
 				);
 		}

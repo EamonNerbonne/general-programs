@@ -110,6 +110,7 @@ namespace HwrSplitter.Engine
 					image[x, y] = greyScale[x, y] > threshold ? (sbyte)0 : (sbyte)1;
 				}
 
+			bmp = UpdateBmp(image);
 
 #if LOGSPEED
 			timer.TimeMark(null);
@@ -119,16 +120,18 @@ namespace HwrSplitter.Engine
 		public int Width { get { return image.Width; } }
 		public int Height { get { return image.Height; } }
 
-		WriteableBitmap bmp;
-		public WriteableBitmap BitmapSource { get { UpdateBmp(); return bmp; } }
+		readonly WriteableBitmap bmp;
+		public ImageSource BitmapSource { get { return bmp; } }
 
-		private void UpdateBmp() {
-			if (bmp == null) bmp = new WriteableBitmap(Width, Height, 96.0, 96.0, PixelFormats.Gray8, null);
-			byte[] gray = new byte[image.RawData.Length];
-			for (int i = 0; i < image.RawData.Length; i++)
-				gray[i] = (byte)(255 - image.RawData[i] * 255);
+		static WriteableBitmap UpdateBmp(ImageStruct<sbyte> img) {
+			var bmp = new WriteableBitmap(img.Width, img.Height, 96.0, 96.0, PixelFormats.Gray8, null);
+			byte[] gray = new byte[img.RawData.Length];
+			for (int i = 0; i < img.RawData.Length; i++)
+				gray[i] = (byte)(255 - img.RawData[i] * 255);
 
-			bmp.WritePixels(new Int32Rect(0, 0, bmp.PixelWidth, bmp.PixelHeight), gray, image.Stride, 0);
+			bmp.WritePixels(new Int32Rect(0, 0, bmp.PixelWidth, bmp.PixelHeight), gray, img.Stride, 0);
+			bmp.Freeze();
+			return bmp;
 		}
 
 		public sbyte this[int y, int x] { get { return (sbyte)(1 - image[x, y]); } }

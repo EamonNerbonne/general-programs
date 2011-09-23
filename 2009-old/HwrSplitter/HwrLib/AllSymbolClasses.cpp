@@ -18,7 +18,7 @@ void AllSymbolClasses::resetToZero() {
 	iteration = 0;
 }
 
-int AllSymbolClasses::AllocatedSize() const {return sizeof(AllSymbolClasses) + sizeof(SymbolClass)*sym.capacity();}
+size_t AllSymbolClasses::AllocatedSize() const {return sizeof(AllSymbolClasses) + sizeof(SymbolClass)*sym.capacity();}
 
 void AllSymbolClasses::CombineWithDistributions(AllSymbolClasses const & other) {
 	if(other.size()!=this->size())

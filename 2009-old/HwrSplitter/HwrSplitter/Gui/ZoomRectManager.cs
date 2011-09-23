@@ -1,21 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Windows;
 using System.Windows.Input;
-using System.Windows;
 
 namespace HwrSplitter.Gui
 {
     class ZoomRectManager
     {
-        ZoomRect zoomRect;
-        MainManager man;
+    	readonly ZoomRect zoomRect;
+    	readonly MainManager man;
         public ZoomRectManager(MainManager man, ZoomRect zoomRect) {
             this.zoomRect = zoomRect;
             this.man = man;
-            man.Window.ImageAnnotViewbox.MouseLeave += new MouseEventHandler(imgView_MouseLeave);
-            zoomRect.zoomRect.MouseLeftButtonDown += new MouseButtonEventHandler(zoomRect_MouseLeftButtonDown);
+            man.Window.ImageAnnotViewbox.MouseLeave += imgView_MouseLeave;
+            zoomRect.zoomRect.MouseLeftButtonDown += zoomRect_MouseLeftButtonDown;
 
         }
         void zoomRect_MouseLeftButtonDown(object sender, MouseButtonEventArgs e) {
@@ -34,6 +30,5 @@ namespace HwrSplitter.Gui
             zoomRect.ShowNewPoint(man.LastClickPoint);
             //TODO: this should also happen when WordDetail is updated.
         }
-
     }
 }

@@ -48,11 +48,11 @@ class WordSplitSolver
 	inline double opR(short u, unsigned x0, unsigned x1) {//the cumulative log-likelihood that u was observed on px [x0..x1)
 		unsigned len = x1 - x0;
 		double ll =1.0;
-		for(int i=0;i<SUB_PHASE_COUNT;i++)
+		for(short i=0;i<SUB_PHASE_COUNT;i++)
 			ll*=opsR(u,i, x0 + i*len/SUB_PHASE_COUNT, x0 + (i+1)*len/SUB_PHASE_COUNT);
 		return ll;
 	}
-	void init_opC_x_u_i(double featureRelevanceFactor);
+	void init_opC_x_u_i();
 
 	//========================
 	//the (nonlog)likelihood of observing symbols [0,u] precisely over pixels [0,x), i.e. of u ending at x.

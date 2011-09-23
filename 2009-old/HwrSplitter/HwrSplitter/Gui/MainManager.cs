@@ -1,25 +1,19 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Windows.Input;
-using HwrDataModel;
-using System.Windows;
-using System.Windows.Threading;
-using HwrSplitter.Engine;
 using System.Threading;
+using System.Windows;
 using EmnExtensions.DebugTools;
+using HwrDataModel;
+using HwrSplitter.Engine;
 
-namespace HwrSplitter.Gui
-{
-	public class MainManager
-	{
+namespace HwrSplitter.Gui {
+	public class MainManager {
 		public HwrPageOptimizer optimizer; //IDisposable
 
 		public MainManager(MainWindow mainWindow) {
 			Window = mainWindow;
 			ImageAnnotater = new HwrImageAnnotater(this, Window.ImageAnnotViewbox);
-			zoomRectMan = new ZoomRectManager(this, Window.ZoomRect);
+			new ZoomRectManager(this, Window.ZoomRect);//hooks itself up
 			wordDetailMan = new WordDetailManager(this, Window.WordDetail);
 		}
 
@@ -28,17 +22,19 @@ namespace HwrSplitter.Gui
 		public HwrImageAnnotater ImageAnnotater { get; private set; }
 		public HwrPageImage PageImage { get; private set; }
 
-		ZoomRectManager zoomRectMan;
-		WordDetailManager wordDetailMan;
-		object pagesync = new object();
+		readonly WordDetailManager wordDetailMan;
+		readonly object pagesync = new object();
 		public void DisplayPage(HwrPageImage pageImage) {
 			lock (pagesync) {
+				if (PageImage != null)
+					foreach (var word in PageImage.TextPage.textlines.SelectMany(line => line.words))
+						word.guiTag = null;
 				PageImage = pageImage;
 				Window.Dispatcher.BeginInvoke((Action)UpdatePageUI);
 			}
 		}
 
-		private void UpdatePageUI() {
+		void UpdatePageUI() {
 			lock (pagesync) {
 				Window.ImageAnnotViewbox.SetImage(PageImage);
 				ImageAnnotater.DrawWords(PageImage.TextPage.textlines.SelectMany(line => line.words));
@@ -58,7 +54,7 @@ namespace HwrSplitter.Gui
 				}
 		}
 
-		object pausesync = new object(); //not truly crucial.
+		readonly object pausesync = new object(); //not truly crucial.
 		bool paused;
 		readonly object pausedSync = new object();//used to implement pausing of background thread;
 
@@ -71,8 +67,7 @@ namespace HwrSplitter.Gui
 					if (paused == value) return;
 					if (value)
 						Monitor.Enter(pausedSync, ref paused);
-					else
-					{
+					else {
 						Monitor.Exit(pausedSync);
 						paused = false;
 					}

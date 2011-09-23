@@ -5,6 +5,8 @@
 //| By Axel Brink and Tijn van der Zant                                        |
 //+----------------------------------------------------------------------------+
 
+#pragma warning(disable:4201)
+
 #ifndef PAMIMAGE_H
 #define PAMIMAGE_H
 #include "../HwrConfig.h"

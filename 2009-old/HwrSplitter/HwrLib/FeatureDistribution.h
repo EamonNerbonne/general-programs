@@ -36,7 +36,7 @@ public:
 		return /*logDCfactor*0.001 +*/ -0.5*distSqr*weightSum;
 	}
 #if  DO_CHECK_CONSISTENCY
-	inline int CheckConsistency(){
+	inline int CheckConsistency() const {
 		int errs =0 ;
 		errs += meanX.CheckConsistency();
 		errs += sX.CheckConsistency();

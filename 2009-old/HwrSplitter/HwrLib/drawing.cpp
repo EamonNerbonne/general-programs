@@ -18,8 +18,8 @@ using std::max;
 
 void line_gray(PamImage<GrayPixel> &im, int x1, int y1, int x2, int y2, GrayPixel grayval)
 {
-	int width = im.getWidth();
-	int height = im.getHeight();
+	//int width = im.getWidth();
+	//int height = im.getHeight();
 
 	// adapted from http://en.wikipedia.org/wiki/Bresenham's_line_algorithm 2007-07-18
 
@@ -151,15 +151,15 @@ void draw_y_projection(PamImage<RGBPixel>& im, int y0, int y1, const std::vector
 
 
 
-int hsl2rgbp(double t1, double t2, double t3) {
+byte hsl2rgbp(double t1, double t2, double t3) {
 	// adjust t3 to [0...1)
 	if      (t3 < 0.0) t3 += 1;
 	else if (t3 > 1.0) t3 -= 1;
 	// determine color
-	if (6.0 * t3 < 1) return (int)(255 * (t1 + (t2-t1) * 6.0 * t3)             );
-	if (2.0 * t3 < 1) return (int)(255 * (t2)                                  );
-	if (3.0 * t3 < 2) return (int)(255 * (t1 + (t2-t1) * 6.0 * (2.0/3.0 - t3)) );
-	else              return (int)(255 * (t1)                                  );
+	if (6.0 * t3 < 1) return (byte)(255 * (t1 + (t2-t1) * 6.0 * t3)             );
+	if (2.0 * t3 < 1) return (byte)(255 * (t2)                                  );
+	if (3.0 * t3 < 2) return (byte)(255 * (t1 + (t2-t1) * 6.0 * (2.0/3.0 - t3)) );
+	else              return (byte)(255 * (t1)                                  );
 }
 RGBPixel hsl2rgb(double h, double s, double l) {
 	double t2 = l < 0.5 ? l * (1.0 + s) :

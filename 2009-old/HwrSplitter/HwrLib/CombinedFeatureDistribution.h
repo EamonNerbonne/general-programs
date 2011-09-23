@@ -25,7 +25,7 @@ public:
 		return ll;
 	}
 #if  DO_CHECK_CONSISTENCY
-	inline int CheckConsistency(){
+	inline int CheckConsistency() const {
 		int errs =0 ;
 		for(int i=0;i<SUB_STATE_COUNT;i++)
 			errs+= state[i].CheckConsistency();

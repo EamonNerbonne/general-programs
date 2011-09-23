@@ -7,7 +7,7 @@
 #include "image/transformations.h"
 
 namespace HwrLibCliWrapper {
-	void HwrOptimizer::SplitWords(ImageStruct<signed char> block, int cropXoffset, HwrDataModel::HwrTextLine^ textLine, SymbolLearningData ^ learningCache) {
+	bool HwrOptimizer::SplitWords(ImageStruct<signed char> block, int cropXoffset, HwrDataModel::HwrTextLine^ textLine, SymbolLearningData ^ learningCache) {
 		using std::min;
 		using std::max;
 		using std::cout;
@@ -80,7 +80,7 @@ namespace HwrLibCliWrapper {
 		for(int i=0;i<(int)splits.size();i++) 
 			absoluteEndpoints[i] = splits[i] + topShearOffset + cropXoffset;
 
-		textLine->SetComputedCharEndpoints(absoluteEndpoints, computedLikelihood, HwrDataModel::HwrEndpointStatus::Calculated);
+		bool conflictingEndpoints = textLine->SetComputedCharEndpoints(absoluteEndpoints, computedLikelihood, HwrDataModel::HwrEndpointStatus::Calculated);
 		AllSymbolClasses* learnSymbols = learningCache->GetSymbols();
 #if DO_CHECK_CONSISTENCY
 		if((*learnSymbols).CheckConsistency() > 0)
@@ -91,5 +91,6 @@ namespace HwrLibCliWrapper {
 		if((*learnSymbols).CheckConsistency() > 0)
 			throw gcnew ApplicationException("NaN's found in learning cache after learning: "+textLine->FullText );
 #endif
+		return conflictingEndpoints;
 	}
 }

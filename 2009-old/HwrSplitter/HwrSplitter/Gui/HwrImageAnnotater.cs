@@ -1,24 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using HwrDataModel;
-using System.Windows.Shapes;
-using System.Windows;
-using System.Windows.Media;
-using System.Windows.Threading;
 using System.Windows.Input;
+using System.Windows.Media;
+using System.Windows.Shapes;
+using HwrDataModel;
 
 namespace HwrSplitter.Gui
 {
     public class HwrImageAnnotater
     {
-        ImageAnnotViewbox imageView;
-        MainManager man;
+        readonly ImageAnnotViewbox imageView;
+        readonly MainManager man;
         public HwrImageAnnotater(MainManager man, ImageAnnotViewbox imageView) {
             this.imageView = imageView;
             this.man = man;
-            imageView.MouseLeftButtonDown += new MouseButtonEventHandler(imgView_MouseLeftButtonDown);
+            imageView.MouseLeftButtonDown += imgView_MouseLeftButtonDown;
         }
 
         void imgView_MouseLeftButtonDown(object sender, MouseButtonEventArgs e) {
@@ -40,7 +36,7 @@ namespace HwrSplitter.Gui
         }
 
 		public void BackgroundLineUpdate(HwrTextLine line) {
-			man.Window.Dispatcher.BeginInvoke((Action)(()=>{DrawWords(line.words);}));
+			man.Window.Dispatcher.BeginInvoke((Action)(() => DrawWords(line.words)));
 		}
 
         private static void setLine(Line line, double x1, double y1, double x2, double y2, Brush brush) {
@@ -75,7 +71,5 @@ namespace HwrSplitter.Gui
             //yield return mkLine(word.right + xcorr, word.bottom, word.left + xcorr, word.bottom, brush);
             setLine(lines.left,word.left + xcorr, word.bottom, word.left, word.top, stat2brush(word.leftStat));
         }
-
-
     }
 }

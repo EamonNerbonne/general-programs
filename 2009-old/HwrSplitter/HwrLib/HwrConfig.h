@@ -7,15 +7,15 @@ inline static double sqr(double x) { return x*x; }
 
 #define LOGLEVEL 1
 #define LENGTH_WEIGHT_ON_TERMINATORS 0
-#define DO_CHECK_CONSISTENCY 1
+#define DO_CHECK_CONSISTENCY 0
 
 #define SUB_STATE_COUNT 1 //more than one looks counter-productive - at least initially, hard to say about later
 #define SUB_PHASE_COUNT 4
 #define DYNAMIC_SYMBOL_WEIGHT 0.0
-#define FEATURE_SCALING 0.0
+#define FEATURE_SCALING 0.01
 //this is in relation to length.
 
-#define STARTUP_SMOOTH_ITERATIONS 10000
+#define STARTUP_SMOOTH_ITERATIONS 2000
 
 double const DefaultFeatureWeight = 1.0;
 double const DefaultFeatureVariance = sqr(1000);

@@ -13,19 +13,15 @@ using namespace std;
 inline int FindFirstNan(vector<double> const & vec) {
 	for(int i=0;i<(int)vec.size();i++) {
 		if(isnan(vec[i]))
-			return i+1;
+			return i;
 	}
-	return 0;
+	return -1;
 }
-#endif
-
-
-#if  DO_CHECK_CONSISTENCY
 
 inline void ErrIfNanImpl(vector<double> const & vec, char const * label) {
 	int nanIdx = FindFirstNan(vec);
-	if(nanIdx >0)
-		cout<<label <<" contains NaN at index " << nanIdx-1 << endl;
+	if(nanIdx >=0)
+		cout<<label <<" contains NaN at index " << nanIdx << endl;
 }
 #define ErrIfNan(x)  ErrIfNanImpl(x, #x)
 #else
@@ -58,7 +54,7 @@ WordSplitSolver::WordSplitSolver(AllSymbolClasses const & syms, ImageFeatures co
 #endif
 
 	//we marginalize to find the cumulative loglikelihood of observing all pixels between any x0 and x1 for any given symbol.
-	init_opC_x_u_i(featureRelevance);
+	init_opC_x_u_i();
 
 #if LOGLEVEL >=9
 	std::cout << ",  Marginalize: "<<overallTimer.elapsed();
@@ -98,13 +94,13 @@ std::vector<int> WordSplitSolver::MostLikelySplit(double & loglikelihood) {
 
 	double featureLikelihoodSum=0.0;
 	double lenLikelihoodSum=0.0;
-	for(int u=0; u< (int)strLen()-1;u++) {
+	for(short u=0; u< (short)strLen()-1;u++) {
 		int startX = x;
 		while(x <(int) imageLen() && P(x,u) > P(x,u+1)) { 
 			x++;
 		}
 		int len = x - startX;
-		for(int i=0;i<SUB_PHASE_COUNT;i++) 
+		for(short i=0;i<SUB_PHASE_COUNT;i++) 
 			for(int xp = startX + i*len/SUB_PHASE_COUNT;   xp < startX + (i+1)*len/SUB_PHASE_COUNT;   xp++)
 				featureLikelihoodSum += sym(u).phase[i].LogProbDensityOf(featsAt(xp));
 
@@ -116,10 +112,10 @@ std::vector<int> WordSplitSolver::MostLikelySplit(double & loglikelihood) {
 		splits.push_back(x*SOLVESCALE);
 	}
 
-	int U = (int)strLen()-1;
+	short U = strLen()-1;
 	int startX = x;
 	int len =  imageLen() - startX;
-	for(int i=0;i<SUB_PHASE_COUNT;i++) 
+	for(short i=0;i<SUB_PHASE_COUNT;i++) 
 		for(int xp = startX + i*len/SUB_PHASE_COUNT;   xp < startX + (i+1)*len/SUB_PHASE_COUNT;   xp++)
 			featureLikelihoodSum += sym(U).phase[i].LogProbDensityOf(featsAt(xp));
 
@@ -148,15 +144,15 @@ void WordSplitSolver::Learn(double blurSymbols, AllSymbolClasses& learningTarget
 	CheckSymConsistencyMsg(learningTarget, "before learning");
 
 #if  DO_CHECK_CONSISTENCY
-	if(FindFirstNan( this->op_x_u_i) >0||
-		FindFirstNan( this->opC_x_u_i) >0||
-		FindFirstNan( this->p_x_u) >0||
-		FindFirstNan( this->P_x_u) >0||
-		FindFirstNan( this->pb_x_u ) >0||
-		FindFirstNan( this->pC_x_u ) >0||
-		FindFirstNan( this->pCi_x_u_i ) >0||
-		FindFirstNan( this->pf_x_u ) >0||
-		FindFirstNan( this->Pi_x_u_i ) >0)
+	if(FindFirstNan(this->op_x_u_i) >=0||
+		FindFirstNan(this->opC_x_u_i) >=0||
+		FindFirstNan(this->p_x_u) >=0||
+		FindFirstNan(this->P_x_u) >=0||
+		FindFirstNan(this->pb_x_u ) >=0||
+		FindFirstNan(this->pC_x_u ) >=0||
+		FindFirstNan(this->pCi_x_u_i ) >=0||
+		FindFirstNan(this->pf_x_u ) >=0||
+		FindFirstNan(this->Pi_x_u_i ) >=0)
 		cout<<"Nan!\n";
 #endif
 
@@ -165,9 +161,9 @@ void WordSplitSolver::Learn(double blurSymbols, AllSymbolClasses& learningTarget
 		FeatureVector const & fv = featsAt(x);
 		CheckSymConsistencyMsg(fv, "pix: " << x);
 
-		for(int u=0;u<(int)strLen();u++) {
-			int c=targetString[u];
-			for(int i=0;i<SUB_PHASE_COUNT;i++) {
+		for(short u=0;u<strLen();u++) {
+			short c=targetString[u];
+			for(short i=0;i<SUB_PHASE_COUNT;i++) {
 				if(!(Pi(x,u,i)>=0) ) 
 					throw "NanOrNeg:Pi(x,u,i)";
 				CheckSymConsistencyMsg(learningTarget[c].phase[i], "c:"<<c<<", i: "<<i);
@@ -198,7 +194,7 @@ void WordSplitSolver::Learn(double blurSymbols, AllSymbolClasses& learningTarget
 	}
 #endif
 
-	for(int u=1;u <(int)strLen()-1; u++) {
+	for(short u=1;u <strLen()-1; u++) {
 		SymbolClass & sc =  learningTarget[targetString[u]];
 		SymbolClass const & scOrig =  syms[targetString[u]];
 
@@ -228,16 +224,16 @@ void WordSplitSolver::Learn(double blurSymbols, AllSymbolClasses& learningTarget
 
 	if(blurSymbols != 0.0 ) {
 		FeatureDistribution overall;
-		for(int i=0;i<syms.size();i++) 
+		for(short i=0;i<syms.size();i++) 
 			for(int j=0;j<SUB_PHASE_COUNT;j++) 
 				for(int k=0;k<SUB_STATE_COUNT;k++)
 					overall.CombineWithDistribution(syms[i].phase[j].state[k]);
 
 		overall.ScaleWeightBy(blurSymbols/(syms.size()*SUB_PHASE_COUNT*SUB_STATE_COUNT));
 
-		for(int i=0;i<syms.size();i++) 
-			for(int j=0;j<SUB_PHASE_COUNT;j++) 
-				for(int k=0;k<SUB_STATE_COUNT;k++) {
+		for(short i=0;i<syms.size();i++) 
+			for(short j=0;j<SUB_PHASE_COUNT;j++) 
+				for(short k=0;k<SUB_STATE_COUNT;k++) {
 					if(syms[i].originalChar == 32 ||syms[i].originalChar == 0 ||syms[i].originalChar == 10) { //space,begin, or end
 						learningTarget[i].phase[j].state[k].meanX[FEATURE_DENSITY] *= 1.0-blurSymbols;
 						learningTarget[i].phase[j].state[k].meanX[FEATURE_DENSITY_MID] *= 1.0-blurSymbols;
@@ -249,7 +245,7 @@ void WordSplitSolver::Learn(double blurSymbols, AllSymbolClasses& learningTarget
 					learningTarget[i].phase[j].state[k].CombineWithDistribution(overall);
 					learningTarget[i].phase[j].state[k].ScaleWeightBy(1.0/(1.0+blurSymbols));
 				}
-				CheckSymConsistencyMsg(learningTarget, "after blurring symbols");
+		CheckSymConsistencyMsg(learningTarget, "after blurring symbols");
 
 	}//endif blursymbols>0
 
@@ -268,7 +264,7 @@ void WordSplitSolver::init_pCi_x_u_i() {
 		xWriteCounts[i].resize(imageLen1);
 
 	for(short u=0;u<strLen();u++) {
-		for(int i=1;i<SUB_PHASE_COUNT;i++) {
+		for(short i=1;i<SUB_PHASE_COUNT;i++) {
 			for(unsigned x=0;x<imageLen1;x++) {
 				pCi(x,u,i) = 0.0;
 				xWriteCounts[i][x]=0;
@@ -286,7 +282,7 @@ void WordSplitSolver::init_pCi_x_u_i() {
 			double lowerProb = std::min(probU0, probU1);
 
 			//write prob.
-			for(int i=1;i<SUB_PHASE_COUNT;i++) {
+			for(short i=1;i<SUB_PHASE_COUNT;i++) {
 				int x =  ((SUB_PHASE_COUNT-i)*x0 + i*x1) / SUB_PHASE_COUNT;
 				pCi(x, u, i) = (pCi(x, u, i)*xWriteCounts[i][x]+ lowerProb)/(xWriteCounts[i][x]+1);
 				xWriteCounts[i][x]++;
@@ -429,7 +425,9 @@ void WordSplitSolver::init_pb_x_u() {
 	short U = strLen()-1;
 	unsigned X = imageLen1-1;
 
+#if LENGTH_WEIGHT_ON_TERMINATORS
 	SymbolClass const & scU = sym(U);
+#endif
 	for(unsigned x=0; x<imageLen1; x++) 
 		pb(x,U) =  pb(x,U) + opR(U,x,X)
 #if LENGTH_WEIGHT_ON_TERMINATORS
@@ -468,7 +466,9 @@ void WordSplitSolver::init_pf_x_u() {
 			pf(x,u) = 0.0;
 
 
+#if LENGTH_WEIGHT_ON_TERMINATORS
 	SymbolClass const & sc0 = sym(0);
+#endif
 	for(unsigned x=0; x<imageLen1; x++) {
 		pf(x,0) = pf(x,0) + opR(0,0,x)*exp(-0.1*x)
 #if LENGTH_WEIGHT_ON_TERMINATORS
@@ -508,7 +508,7 @@ void WordSplitSolver::init_pf_x_u() {
 
 //double minimum
 
-void WordSplitSolver::init_opC_x_u_i(double featureRelevanceFactor) {
+void WordSplitSolver::init_opC_x_u_i() {
 	using namespace std;
 	opC_x_u_i.resize(strLen()*SUB_PHASE_COUNT*imageLen1);
 

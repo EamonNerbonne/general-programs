@@ -18,10 +18,10 @@ struct AllSymbolClasses {
 	void initializeRandomly();
 	void resetToZero();
 
-	int AllocatedSize() const;
+	size_t AllocatedSize() const;
 	void CombineWithDistributions(AllSymbolClasses const & other);
 #if  DO_CHECK_CONSISTENCY
-	inline int CheckConsistency(){
+	inline int CheckConsistency() const {
 		int errs =0 ;
 		for(int i=0;i<size();i++)
 			errs+= sym[i].CheckConsistency();

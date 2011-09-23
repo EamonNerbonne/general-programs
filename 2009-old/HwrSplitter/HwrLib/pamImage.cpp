@@ -31,7 +31,7 @@ RGBPixel getPixelRGB(PamImage<RGBPixel> const & im, float x, float y) {
    * Assumes that the image dimensions are [-0.5..width-0.5] x [-0.5..height-0.5]
    */
 	int width = im.getWidth();
-	int height = im.getHeight();
+	//int height = im.getHeight();
     long x1, x2, y1, y2;
     float w1, w2, w3, w4; // weights:   w1 w2
                           //            w3 w4

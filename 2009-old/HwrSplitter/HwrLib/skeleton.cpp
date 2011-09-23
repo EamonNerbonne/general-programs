@@ -117,7 +117,11 @@ void Skeletonizer::init() {
 
 //TODO: custom stack impl.
 
-void Skeletonizer::try_init(int dir_p, int x_p, int y_p, int& unique, int uu, int&maxSize) {
+void Skeletonizer::try_init(int dir_p, int x_p, int y_p, int& unique, int uu, int&
+#ifdef SKEL_DBG_PRINT_STACK_SIZE
+	maxSize
+#endif
+	) {
 	using namespace boost;
 	struct SkelPoint {
 		int dir, x,y;
