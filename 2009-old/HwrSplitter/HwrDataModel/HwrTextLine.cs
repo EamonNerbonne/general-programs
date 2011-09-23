@@ -50,8 +50,8 @@ namespace HwrDataModel
 						}
 						else
 						{
-							if (Math.Abs(words[currWordI].right - endpoints[i - 1]) > 1)
-								throw new ApplicationException("calculated endpoint differs significantly from manual example!");
+							if (Math.Abs(words[currWordI].right - endpoints[i - 1]) > 2)
+								Console.Write("Calculated endpoint differs significantly from manual example!\nHwrLine {0}: {1}\nWord {2}: {3}\nPosition is {4} but should be {5}\n", no, FullText, currWordI, words[currWordI].text, endpoints[i - 1], words[currWordI].right);
 						}
 					}
 					currWordI++;//space means new word
@@ -64,8 +64,8 @@ namespace HwrDataModel
 						}
 						else
 						{
-							if (Math.Abs(words[currWordI].left - endpoints[i]) > 1)
-								throw new ApplicationException("calculated endpoint differs significantly from manual example!");
+							if (Math.Abs(words[currWordI].left - endpoints[i]) > 2)
+								Console.Write("Calculated startpoint differs significantly from manual example!\nHwrLine {0}: {1}\nWord {2}: {3}\nPosition is {4} but should be {5}\n", no, FullText, currWordI, words[currWordI].text, endpoints[i], words[currWordI].left);
 						}
 					}
 				}

@@ -1,24 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using HwrDataModel;
-using System.Text.RegularExpressions;
-using HwrSplitter.Gui;
 using System.IO;
-using System.Threading;
-using EmnExtensions.Threading;
+using System.Linq;
 using EmnExtensions.DebugTools;
+using EmnExtensions.Threading;
+using HwrDataModel;
+using HwrSplitter.Gui;
 
-namespace HwrSplitter.Engine
-{
-	public sealed class EngineData : IDisposable
-	{
+namespace HwrSplitter.Engine {
+	public sealed class EngineData : IDisposable {
 		HwrPageOptimizer optimizer;
 		Dictionary<int, HwrTextPage> annot_lines;
 		int[] pages;
+		int[] trainingPages;
 		int pageIndex;
-		private MainManager mainManager;
+		readonly MainManager mainManager;
 		public EngineData(MainManager mainManager) { this.mainManager = mainManager; }
 
 		public void Load() {
@@ -26,9 +22,15 @@ namespace HwrSplitter.Engine
 			//TODO:parallelizable:
 			using (new DTimer("parInvoke"))
 				Par.Invoke(
-					() => { annot_lines = AnnotLinesParser.GetGuessWords(HwrResources.LineAnnotFile); pages = HwrResources.ImagePages.Where(num => annot_lines.ContainsKey(num)).ToArray(); },
+					() => {
+						annot_lines = AnnotLinesParser.GetGuessWords(HwrResources.LineAnnotFile);
+						pages = HwrResources.ImagePages.Where(num => annot_lines.ContainsKey(num)).ToArray();
+					},
 					() => { optimizer = new HwrPageOptimizer(null); },//null==use default
-					() => { trainingData = HwrResources.WordsTrainingExamples.ToArray(); });
+					() => {
+						trainingData = HwrResources.WordsTrainingExamples.ToArray();
+						trainingPages = trainingData.Select(data => data.pageNum).ToArray();
+					});
 
 			foreach (var wordsImage in trainingData)
 				if (annot_lines.ContainsKey(wordsImage.pageNum))
@@ -38,15 +40,13 @@ namespace HwrSplitter.Engine
 				wordsImage.EstimateWordBoundariesViaSymbolLength(symbolWidthLookup);
 		}
 
-		private HwrPageImage LearnInBackground(HwrPageImage currentPageImage, HwrTextPage nextPage) {
+		HwrPageImage LearnInBackground(HwrPageImage currentPageImage, HwrTextPage nextPage) {
 			mainManager.DisplayPage(currentPageImage);
 
 			HwrPageImage precachedNextPage =
-				optimizer.ImproveGuess(currentPageImage, currentPageImage.TextPage, nextPage, line => {
-					mainManager.ImageAnnotater.BackgroundLineUpdate(line);
-				});
+				optimizer.ImproveGuess(currentPageImage, currentPageImage.TextPage, nextPage, line => mainManager.ImageAnnotater.BackgroundLineUpdate(line));
 
-			
+
 
 			using (Stream stream = HwrResources.WordsGuessFile(currentPageImage.TextPage.pageNum).OpenWrite())
 			using (TextWriter writer = new StreamWriter(stream))
@@ -58,14 +58,16 @@ namespace HwrSplitter.Engine
 		public void Dispose() { if (optimizer != null) optimizer.Dispose(); }
 
 		public void StartLearning() {
-			var firstPageIndex = pages.Select((pageNum, index) => new { PageNum = pageNum, Index = index }).FirstOrDefault(p => p.PageNum > optimizer.SymbolClasses.LastPage);
+			var pageset2use = trainingPages;
+
+			var firstPageIndex = pageset2use.Select((pageNum, index) => new { PageNum = pageNum, Index = index }).FirstOrDefault(p => p.PageNum > optimizer.SymbolClasses.LastPage);
 			pageIndex = firstPageIndex == null ? 0 : firstPageIndex.Index;
 
-			HwrPageImage currentPageImage = HwrResources.ImageForText(annot_lines[pages[pageIndex]]);
+			HwrPageImage currentPageImage = HwrResources.ImageForText(annot_lines[pageset2use[pageIndex]]);
 
 			while (true) {
-				int nextPageIndex = (pageIndex + 1) % pages.Length;
-				HwrTextPage nextPage = annot_lines[pages[nextPageIndex]];
+				int nextPageIndex = (pageIndex + 1) % pageset2use.Length;
+				HwrTextPage nextPage = annot_lines[pageset2use[nextPageIndex]];
 
 				try {
 					currentPageImage = LearnInBackground(currentPageImage, nextPage);
@@ -76,8 +78,6 @@ namespace HwrSplitter.Engine
 				mainManager.WaitWhilePaused();
 				pageIndex = nextPageIndex;
 			}
-
 		}
-
 	}
 }

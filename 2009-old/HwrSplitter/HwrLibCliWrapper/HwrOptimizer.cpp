@@ -7,7 +7,7 @@
 #include "image/transformations.h"
 
 namespace HwrLibCliWrapper {
-	void HwrOptimizer::SplitWords(ImageStruct<signed char> block, int cropXoffset, HwrDataModel::HwrTextLine^ textLine, SymbolLearningData ^ learningCache  ) {
+	void HwrOptimizer::SplitWords(ImageStruct<signed char> block, int cropXoffset, HwrDataModel::HwrTextLine^ textLine, SymbolLearningData ^ learningCache) {
 		using std::min;
 		using std::max;
 		using std::cout;
@@ -21,7 +21,7 @@ namespace HwrLibCliWrapper {
 		int blurIter = 3;
 		int winAngleSize = int(100.0*dampingFactor + 4);
 		int winDensSize = int(winAngleSize*0.76);
-		double featureRelevance = FEATURE_SCALING * exp(-20*dampingFactor) ;
+		double featureRelevance = FEATURE_SCALING * exp(-20*dampingFactor)*(1.0-dampingFactor) ;
 
 		PamImage<BWPixel> shearedImg = ImageProcessor::StructToPamImage(block);
 		ImageBW deshearedImg = processAndUnshear(shearedImg, (float)textLine->shear, textLine->bodyTop,textLine->bodyBot);//bodyTop/bodyBot are relative to line top, not to page top.

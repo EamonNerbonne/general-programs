@@ -9,8 +9,8 @@ namespace HwrSplitter.Engine
 {
 	public static class HwrResources
 	{
-		static readonly DirectoryInfo HwrDir = new DirectoryInfo(new[] { @"D:\EamonLargeDocs\HWR", @"C:\Users\nerbonne\HWR" }.First(Directory.Exists));
-		static Regex imageFilenamePattern = new Regex(@"^NL_HaNa_H2_7823_(?<num>\d+)\.tif$", RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.ExplicitCapture);
+		static readonly DirectoryInfo HwrDir = new DirectoryInfo(new[] { @"D:\BigDocs\HWR", @"C:\Users\nerbonne\HWR",  }.First(Directory.Exists));
+		static readonly Regex imageFilenamePattern = new Regex(@"^NL_HaNa_H2_7823_(?<num>\d+)\.tif$", RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.ExplicitCapture);
 
 
 		public static DirectoryInfo DataDir { get { return HwrDir.CreateSubdirectory("data"); } }

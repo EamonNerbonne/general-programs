@@ -48,6 +48,9 @@
     <DebugSymbols>true</DebugSymbols>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="MoreLinq">
+      <HintPath>..\..\Support Tools\MoreLinq\MoreLinq.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Data" />
@@ -71,10 +74,6 @@
     <Compile Include="HwrTextPage.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\External\MoreLinq\MoreLinq\MoreLinq.csproj">
-      <Project>{8642E81B-3414-4C13-914F-05A4E600FE49}</Project>
-      <Name>MoreLinq</Name>
-    </ProjectReference>
     <ProjectReference Include="..\..\EmnExtensions\EmnExtensions.csproj">
       <Project>{2F0A3E48-CD06-43BB-BFC6-6B6F568232B9}</Project>
       <Name>EmnExtensions</Name>

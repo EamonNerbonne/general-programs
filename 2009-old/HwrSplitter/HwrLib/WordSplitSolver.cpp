@@ -35,7 +35,7 @@ inline void ErrIfNanImpl(vector<double> const & vec, char const * label) {
 WordSplitSolver::WordSplitSolver(AllSymbolClasses const & syms, ImageFeatures const & imageFeatures, std::vector<short> const & targetString,std::vector<int> const & overrideEnds, double featureRelevance) 
 	: syms(syms)
 	, imageFeatures(imageFeatures)
-	, imageLen1(imageFeatures.getImageWidth()+1)
+	, imageLen1(imageFeatures.getImageWidth()/SOLVESCALE+1)
 	, targetString(targetString) 
 	, overrideEnds(overrideEnds)
 	, symToStrIdx(new vector<short>[syms.size()])
@@ -106,14 +106,14 @@ std::vector<int> WordSplitSolver::MostLikelySplit(double & loglikelihood) {
 		int len = x - startX;
 		for(int i=0;i<SUB_PHASE_COUNT;i++) 
 			for(int xp = startX + i*len/SUB_PHASE_COUNT;   xp < startX + (i+1)*len/SUB_PHASE_COUNT;   xp++)
-				featureLikelihoodSum += sym(u).phase[i].LogProbDensityOf(imageFeatures.featAt(xp));
+				featureLikelihoodSum += sym(u).phase[i].LogProbDensityOf(featsAt(xp));
 
 
 #if !LENGTH_WEIGHT_ON_TERMINATORS
 		if(u>0)
 #endif
-			lenLikelihoodSum += sym(u).LogLikelihoodLength(len);
-		splits.push_back(x);
+			lenLikelihoodSum += sym(u).LogLikelihoodLength(len*SOLVESCALE);
+		splits.push_back(x*SOLVESCALE);
 	}
 
 	int U = (int)strLen()-1;
@@ -121,11 +121,11 @@ std::vector<int> WordSplitSolver::MostLikelySplit(double & loglikelihood) {
 	int len =  imageLen() - startX;
 	for(int i=0;i<SUB_PHASE_COUNT;i++) 
 		for(int xp = startX + i*len/SUB_PHASE_COUNT;   xp < startX + (i+1)*len/SUB_PHASE_COUNT;   xp++)
-			featureLikelihoodSum += sym(U).phase[i].LogProbDensityOf(imageFeatures.featAt(xp));
+			featureLikelihoodSum += sym(U).phase[i].LogProbDensityOf(featsAt(xp));
 
-	splits.push_back(imageLen());
+	splits.push_back(imageFeatures.getImageWidth());
 #if LENGTH_WEIGHT_ON_TERMINATORS
-	lenLikelihoodSum += sym(U).LogLikelihoodLength(len);
+	lenLikelihoodSum += sym(U).LogLikelihoodLength(len*SOLVESCALE);
 #endif
 
 
@@ -146,7 +146,7 @@ void WordSplitSolver::Learn(double blurSymbols, AllSymbolClasses& learningTarget
 
 	//we need to "guess" the sub-state loglikelihoods: we've only the overall probability P(x,u)
 	CheckSymConsistencyMsg(learningTarget, "before learning");
-	
+
 #if  DO_CHECK_CONSISTENCY
 	if(FindFirstNan( this->op_x_u_i) >0||
 		FindFirstNan( this->opC_x_u_i) >0||
@@ -162,7 +162,7 @@ void WordSplitSolver::Learn(double blurSymbols, AllSymbolClasses& learningTarget
 
 
 	for(int x=0;x<(int)imageLen();x++) {
-		FeatureVector const & fv = imageFeatures.featAt(x);
+		FeatureVector const & fv = featsAt(x);
 		CheckSymConsistencyMsg(fv, "pix: " << x);
 
 		for(int u=0;u<(int)strLen();u++) {
@@ -191,9 +191,9 @@ void WordSplitSolver::Learn(double blurSymbols, AllSymbolClasses& learningTarget
 		SymbolClass & sc = learningTarget[targetString[0]];
 		SymbolClass const & scOrig =  syms[targetString[0]];
 		for(unsigned x1=0;x1<imageLen1;x1++) {
-			double ll = p(0,0) * p(x1,0+1) * exp(scOrig.LogLikelihoodLength(x1-0));
+			double ll = p(0,0) * p(x1,0+1) * exp(scOrig.LogLikelihoodLength((x1-0)*SOLVESCALE));
 			if(isnan(ll)) throw "Nan: sym0 length likelihood";
-			sc.LearnLength(double(x1), ll );
+			sc.LearnLength(double(x1*SOLVESCALE), ll );
 		}
 	}
 #endif
@@ -203,13 +203,13 @@ void WordSplitSolver::Learn(double blurSymbols, AllSymbolClasses& learningTarget
 		SymbolClass const & scOrig =  syms[targetString[u]];
 
 		for(unsigned i=0;i<imageLen1;i++) {
-			double lenFactor= exp( scOrig.LogLikelihoodLength(i));
+			double lenFactor= exp( scOrig.LogLikelihoodLength(i*SOLVESCALE));
 			double sum =0.0;
 			for(unsigned x0=0;x0<imageLen1-i;x0++) 
 				sum+= p(x0,u) * p(x0+i,u+1);
 			if(isnan(sum*lenFactor))
 				throw "Nan: sym length likelihood";
-			sc.LearnLength(double(i),sum*lenFactor);
+			sc.LearnLength(double(i*SOLVESCALE),sum*lenFactor);
 		}
 	}
 #if LENGTH_WEIGHT_ON_TERMINATORS
@@ -218,9 +218,9 @@ void WordSplitSolver::Learn(double blurSymbols, AllSymbolClasses& learningTarget
 		SymbolClass & sc =  learningTarget[targetString[U]];
 		SymbolClass const & scOrig =  syms[targetString[U]];
 		for(unsigned x0=0;x0<imageLen1;x0++) {
-			double ll = p(x0,U) * exp(scOrig.LogLikelihoodLength(imageLen()-x0) );
+			double ll = p(x0,U) * exp(scOrig.LogLikelihoodLength((imageLen()-x0)*SOLVESCALE) );
 			if(isnan(ll)) throw "Nan: symZ length likelihood";
-			sc.LearnLength(double(imageLen()-x0), ll);
+			sc.LearnLength(double(imageLen()-x0)*SOLVESCALE, ll);
 		}
 	}
 #endif
@@ -249,7 +249,7 @@ void WordSplitSolver::Learn(double blurSymbols, AllSymbolClasses& learningTarget
 					learningTarget[i].phase[j].state[k].CombineWithDistribution(overall);
 					learningTarget[i].phase[j].state[k].ScaleWeightBy(1.0/(1.0+blurSymbols));
 				}
-		CheckSymConsistencyMsg(learningTarget, "after blurring symbols");
+				CheckSymConsistencyMsg(learningTarget, "after blurring symbols");
 
 	}//endif blursymbols>0
 
@@ -381,6 +381,7 @@ void WordSplitSolver::init_P_x_u() {
 					throw "Pi(x,u,i): NaN encountered; this should be impossible.";
 				if(Pi(x,u,i)<0.0) { //should be positive.  Is it?
 					err=true;
+					std::cout<<"x"<<x<<" u"<<u<<" i"<<i<<"\n";
 					Pi(x,u,i) = 0.0;
 				}
 			}
@@ -432,7 +433,7 @@ void WordSplitSolver::init_pb_x_u() {
 	for(unsigned x=0; x<imageLen1; x++) 
 		pb(x,U) =  pb(x,U) + opR(U,x,X)
 #if LENGTH_WEIGHT_ON_TERMINATORS
-		*exp(scU.LogLikelihoodLength(X-x))
+		*exp(scU.LogLikelihoodLength((X-x)*SOLVESCALE))
 #endif
 		;//first+last symbol have no intrinsic length 
 
@@ -440,7 +441,7 @@ void WordSplitSolver::init_pb_x_u() {
 		if(u==0 || overrideEnds[u-1]<0) {
 			SymbolClass const & sc = sym(u);
 			for(unsigned len=0;len<imageLen1;len++){
-				double lenL = exp(sc.LogLikelihoodLength(len));
+				double lenL = exp(sc.LogLikelihoodLength(len*SOLVESCALE));
 				if(len<MIN_SYM_LENGTH) lenL*=exp(-0.5*(double(MIN_SYM_LENGTH)-len));
 				for(unsigned x0=0;x0<imageLen1-len;x0++)  {
 					unsigned x1 = x0 + len;
@@ -448,7 +449,7 @@ void WordSplitSolver::init_pb_x_u() {
 				}
 			}
 		} else {
-			int startX = overrideEnds[u-1];
+			int startX = overrideEnds[u-1]/SOLVESCALE;
 			pb(startX,u) = 1.0;
 			//for(unsigned x=startX; x<imageLen1; x++) {
 			//	pb(startX,u) = pb(startX,u) +  pb(x, u+1);// * opR(u,startX,x);is this needed?
@@ -471,7 +472,7 @@ void WordSplitSolver::init_pf_x_u() {
 	for(unsigned x=0; x<imageLen1; x++) {
 		pf(x,0) = pf(x,0) + opR(0,0,x)*exp(-0.1*x)
 #if LENGTH_WEIGHT_ON_TERMINATORS
-			*exp(sc0.LogLikelihoodLength(x-0))
+			*exp(sc0.LogLikelihoodLength((x-0)*SOLVESCALE))
 #endif
 			;//first+last symbol have no intrinsic length
 		//	if(x<100&& x%5==0) cout<<pf(x,0)<<", ";
@@ -482,15 +483,15 @@ void WordSplitSolver::init_pf_x_u() {
 		if(overrideEnds[u]<0) {
 			SymbolClass const & sc = sym(u);
 			for(unsigned len=0;len<imageLen1;len++){
-				double lenL = exp(sc.LogLikelihoodLength(len)); //avoiding the exp in the inner loop saves a bunch of time.
+				double lenL = exp(sc.LogLikelihoodLength(len*SOLVESCALE)); //avoiding the exp in the inner loop saves a bunch of time.
 				if(len<MIN_SYM_LENGTH) lenL*=exp(-0.5*(double(MIN_SYM_LENGTH)-len));
 				for(unsigned x0=0;x0<imageLen1-len;x0++)  {
-					unsigned x1= x0 +len;
+					unsigned x1= x0 + len;
 					pf(x1,u) = pf(x1,u) +  pf(x0, u-1) * opR(u,x0,x1) *lenL;
 				}
 			}
 		} else {
-			int endX = overrideEnds[u];
+			int endX = overrideEnds[u]/SOLVESCALE;
 			pf(endX,u)=1.0;
 			//for(unsigned x=0; (int)x<endX; x++) {
 			//	pf(endX,u) = pf(endX,u) +  pf(x, u-1);// * opR(u,x,endX);is this needed?
@@ -546,7 +547,7 @@ void WordSplitSolver::init_opC_x_u_i(double featureRelevanceFactor) {
 void WordSplitSolver::init_op_x_u_i(double featureRelevanceFactor) {
 	op_x_u_i.resize(imageLen()*strLen()*SUB_PHASE_COUNT);
 	for(unsigned x=0;x<imageLen();++x) { //for all x-positions
-		FeatureVector const & fv = imageFeatures.featAt(x);
+		FeatureVector const & fv = featsAt(x);
 		for(short ci=0;ci<(short)usedSymbols.size();ci++){ //for all used symbols
 			short c = usedSymbols[ci];
 			SymbolClass const & sc = this->syms[c];

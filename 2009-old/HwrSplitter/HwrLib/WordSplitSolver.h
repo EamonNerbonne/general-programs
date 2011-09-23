@@ -13,7 +13,9 @@ class WordSplitSolver
 	const unsigned imageLen1;//number of possible starting points for a symbol: imageLen()+1 since a symbol may have zero length and thus start after the last pixel ends.
 	std::vector<short> const & targetString;
 	std::vector<int> const & overrideEnds;
-	inline unsigned imageLen() { return imageFeatures.getImageWidth(); }
+	inline unsigned imageLen() { return imageFeatures.getImageWidth()/SOLVESCALE; }
+	FeatureVector const& featsAt(int x) {return imageFeatures.featAt(SOLVESCALE*x);}
+
 	inline short strLen() { return (short) targetString.size(); }
 	inline SymbolClass const & sym(short u) {return syms[targetString[u]];}
 

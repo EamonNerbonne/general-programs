@@ -1,35 +1,20 @@
 ﻿#define PARALLEL_LEARNING
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Globalization;
 using System.IO;
-using System.IO.Compression;
 using System.Linq;
-using System.Text;
-using System.Text.RegularExpressions;
 using System.Threading;
-using System.Windows;
-using System.Windows.Media.Imaging;
-using System.Xml;
-using EmnExtensions;
-using EmnExtensions.DebugTools;
-using EmnExtensions.Filesystem;
 using HwrDataModel;
 using HwrLibCliWrapper;
-using MoreLinq;
 
-namespace HwrSplitter.Engine
-{
-	public sealed class HwrPageOptimizer : IDisposable
-	{
-		sealed class Worker : IDisposable
-		{
-			HwrPageOptimizer manager;
+namespace HwrSplitter.Engine {
+	public sealed class HwrPageOptimizer : IDisposable {
+		sealed class Worker : IDisposable {
+			readonly HwrPageOptimizer manager;
 			readonly int workerIndex;
 			public readonly SymbolLearningData learningCache;
-			public readonly Thread thread;
-			bool active = false;
+			readonly Thread thread;
+			bool active ;
 			public Worker(HwrPageOptimizer manager, int workerIndex) {
 				this.manager = manager;
 				learningCache = manager.optimizer.ConstructLearningCache();
@@ -38,7 +23,7 @@ namespace HwrSplitter.Engine
 				this.workerIndex = workerIndex;
 			}
 
-			private void ProcessLines() {
+			void ProcessLines() {
 				while (true) {
 					thread.Priority = workerIndex == 0 ? ThreadPriority.Normal : workerIndex == 1 ? ThreadPriority.BelowNormal : ThreadPriority.Lowest;
 					manager.workStart.WaitOne();
@@ -54,8 +39,8 @@ namespace HwrSplitter.Engine
 							break;
 						HwrTextPage nextPage;
 						lock (manager.sync) {
-							nextPage = manager.nextPage;
-							manager.nextPage = null;
+							nextPage = manager.m_nextPage;
+							manager.m_nextPage = null;
 						}
 						if (nextPage != null)
 							manager.cachedNextPage = HwrResources.ImageForText(nextPage);
@@ -76,7 +61,7 @@ namespace HwrSplitter.Engine
 				}
 			}
 
-			public void ProcessLine(HwrTextLine line) {
+			void ProcessLine(HwrTextLine line) {
 				string linetext = line.FullText;
 				if (linetext.Length < 25 && !line.words.Where(word => word.leftStat == HwrEndpointStatus.Manual || word.leftStat == HwrEndpointStatus.Manual).Any()) {
 					line.ProcessorMessage = string.Format("skipped:len=={0}, ", linetext.Length);
@@ -106,20 +91,18 @@ namespace HwrSplitter.Engine
 			}
 		}
 
-		HwrOptimizer optimizer;//IDisposable
-		Worker[] workers;//IDisposable[]
+		readonly HwrOptimizer optimizer;//IDisposable
+		readonly Worker[] workers;//IDisposable[]
 		bool running = true;
 
 		HwrPageImage currentImage;
 		HwrTextPage currentLines;
-		int nextLine = 0;
+		int nextLine;
 		Action<HwrTextLine> lineDoneEvent;
 
-		object sync = new object();
-		Semaphore workDone;//IDisposable
-		Semaphore workStart;//IDisposable
-
-		static Regex fractionRegex = new Regex(@"\d/\d", RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.ExplicitCapture);
+		readonly object sync = new object();
+		readonly Semaphore workDone;//IDisposable
+		readonly Semaphore workStart;//IDisposable
 
 		int ClaimLine() { lock (sync)	 return nextLine++; }
 
@@ -130,7 +113,7 @@ namespace HwrSplitter.Engine
 				symbolClasses = SymbolClasses.LoadWithFallback(HwrResources.DataDir, HwrResources.CharWidthFile);
 			optimizer = new HwrOptimizer(symbolClasses);
 
-			int parallelCount = Math.Max(1, System.Environment.ProcessorCount);
+			int parallelCount = Math.Max(1, Environment.ProcessorCount);
 
 			workers = new Worker[parallelCount];
 			workDone = new Semaphore(0, parallelCount);
@@ -153,13 +136,13 @@ namespace HwrSplitter.Engine
 				workers[i].Dispose();
 			optimizer.Dispose();
 		}
-		HwrTextPage nextPage;
+		HwrTextPage m_nextPage;
 		HwrPageImage cachedNextPage;
 		public HwrPageImage ImproveGuess(HwrPageImage image, HwrTextPage betterGuessWords, HwrTextPage nextPage, Action<HwrTextLine> lineProcessed) {
 			currentImage = image;
 			currentLines = betterGuessWords;
-			this.nextPage = nextPage;
-			this.cachedNextPage = null;
+			m_nextPage = nextPage;
+			cachedNextPage = null;
 			nextLine = 0;
 			lineDoneEvent = lineProcessed;
 #if PARALLEL_LEARNING
@@ -174,9 +157,9 @@ namespace HwrSplitter.Engine
 			if(nextPage!=null)
 				cachedNextPage = HwrResources.ImageForText(nextPage);
 #endif
-			this.currentImage = null;
-			this.currentLines = null;
-			this.lineDoneEvent = null;
+			currentImage = null;
+			currentLines = null;
+			lineDoneEvent = null;
 
 			//current page computed, next page image preloaded, current symbols saved, now time to update symbols!
 
@@ -186,7 +169,7 @@ namespace HwrSplitter.Engine
 			SymbolClasses.LastPage = image.TextPage.pageNum;
 			//All SymbolClass modifications END!
 			//symbols will be saved during next page processing.
-			
+
 			Console.WriteLine("Finished page {0}; total lines learnt {1}.", betterGuessWords.pageNum, optimizer.ManagedSymbols.Iteration);
 			return cachedNextPage;
 		}
