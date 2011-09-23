@@ -116,7 +116,7 @@ namespace LvqGui {
 				from ng in new[] { true, false }
 				from slowbad in new[] { true, false }
 				let relevanceCost = new[] { !rp, ngi, bi, pi, ng, slowbad }.Count(b => b)
-				orderby relevanceCost
+				orderby relevanceCost, pi
 				select effectiveSettings.WithTestingChanges2(modeltype, protoCount, offset, rp, ngi, bi, pi, ng, slowbad) into settings
 				let shortname = ShortnameFor(settings)
 				select TestLrIfNecessary(null, settings, cancel)
