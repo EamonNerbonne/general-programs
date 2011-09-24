@@ -81,8 +81,8 @@ void clipbin(int& bin) {
 }
 
 ImageFeatures::ImageFeatures(PamImage<BWPixel> const& im, int topline,int baseline, int winSizeDens,int winSizeAngle, int iter)
-: image_width(  im.getWidth() )
-, image_height( im.getHeight() )
+: image_width(im.getWidth())
+, image_height(im.getHeight())
 , topline (topline)
 , baseline(baseline)
 , image(im)

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using EmnExtensions.DebugTools;
+using EmnExtensions;
 using EmnExtensions.Threading;
 using HwrDataModel;
 using HwrSplitter.Gui;
@@ -53,14 +54,14 @@ namespace HwrSplitter.Engine {
 			return precachedNextPage;
 		}
 
-
 		public void Dispose() { if (pageoptimizer != null) pageoptimizer.Dispose(); }
 
 		public void StartLearning() {
 			var pageset2use = trainingPages;
 
-			var firstPageIndex = pageset2use.Select((pageNum, index) => new { PageNum = pageNum, Index = index }).FirstOrDefault(p => p.PageNum > pageoptimizer.SymbolClasses.LastPage);
-			pageIndex = firstPageIndex == null ? 0 : firstPageIndex.Index;
+			var firstPageIndex = pageoptimizer.SymbolClasses.LastPage == 0 ? 50 :
+				pageset2use.IndexOf(p => p > pageoptimizer.SymbolClasses.LastPage);
+			pageIndex = (firstPageIndex < 0 ? 0 : firstPageIndex) % pageset2use.Length;
 
 			HwrPageImage currentPageImage = HwrResources.ImageForText(annot_lines[pageset2use[pageIndex]]);
 

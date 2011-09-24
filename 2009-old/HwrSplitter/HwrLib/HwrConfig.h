@@ -11,7 +11,7 @@ inline static double sqr(double x) { return x*x; }
 
 #define SUB_STATE_COUNT 1 //more than one looks counter-productive - at least initially, hard to say about later
 #define SUB_PHASE_COUNT 4
-#define DYNAMIC_SYMBOL_WEIGHT 0.0
+//#define DYNAMIC_SYMBOL_WEIGHT 0.0
 #define FEATURE_SCALING 0.01
 //this is in relation to length.
 

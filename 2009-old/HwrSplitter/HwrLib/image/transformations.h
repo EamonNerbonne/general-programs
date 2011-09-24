@@ -70,12 +70,12 @@ template<typename T> PamImage<T> unshear_factor(PamImage<T> const& im_in, float 
 	}
 
 	PamImage<T> im_out(new_width, height);
-		for (long y = 0; y < height; ++y) {
-			long dx = (long)((height - 1 - y ) * factor);
-			for(long x=0;x<new_width;x++) {
-				im_out.pix(x,y) = im_in.pix(x+dx,y);//upto nW-1+h-1==w-h+1-1+h-1==w-2
-			}
+	for (long y = 0; y < height; ++y) {
+		long dx = (long)((height - 1 - y ) * factor);
+		for(long x=0;x<new_width;x++) {
+			im_out.pix(x,y) = im_in.pix(x+dx,y);//upto nW-1+h-1==w-h+1-1+h-1==w-2
 		}
+	}
 
 	return im_out;
 }
@@ -83,8 +83,6 @@ template<typename T> PamImage<T> unshear_factor(PamImage<T> const& im_in, float 
 template<typename T> PamImage<T> unshear(PamImage<T> const& im_in, float angle) {
 	return unshear_factor(im_in, (float)tan(angle * M_PI / 180));
 }
-
-
 
 
 #endif

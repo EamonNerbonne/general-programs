@@ -103,7 +103,7 @@ PamImage<double> featuresImage(ImageBW shearedImg, float shear) {
 }
 
 PamImage<BWPixel> processAndUnshear(PamImage<BWPixel> const& input_image, float shear_angle, int bodyTop, int bodyBot) {
-    SegmentedImage seg_image( input_image );
+    SegmentedImage seg_image(input_image );
     // what segments to keep?
     long width = input_image.getWidth(), height = input_image.getHeight();
     FOR_EACH(c, seg_image.components) {
@@ -215,5 +215,163 @@ PamImage<BWPixel> invert(PamImage<BWPixel> const im_in) {
 		}
 	}
 	return im_out;
+}
+
+
+pair<vector<double>,vector<double> > weightedEdgePos(PamImage<BWPixel> vert_edge, vector<double> const & row_histo, vector<double> const & col_histo,  int edgeClass, vector<double> bodyTop, vector<double> bodyBot){
+	long width     = vert_edge.getWidth();
+	long height    = vert_edge.getHeight();
+	pair<vector<double>,vector<double> > weightedEdgePosition= make_pair(vector<double>(width), vector<double>(width));
+	int edge =  edgeClass>0?0:height-1;
+	for(long x=0;x<width;++x) {
+		double weightedpos=0.0, weight=0.0;
+		if(edgeClass == 1) {
+			double scale = 2.0/bodyBot[x];
+			for (long y = 0; y < height; ++y) {
+				if(vert_edge.pix(x,y) == edgeClass) {
+					double w = scale*( (y<bodyTop[x] ? y : y<bodyBot[x] ? (bodyBot[x] - y) : 0.0));
+					w=row_histo[y]*w*w*w/sqrt(col_histo[x]);
+					if(weightedpos==0.0) w*=2;
+					if(x>1) w*= (abs(vert_edge.pix(x-2,y))+abs(vert_edge.pix(x-1,y))+1);
+					weightedpos+=w*y;
+					weight+=w;
+				}
+			}
+		} else {
+			double scale = 2.0/(edge-bodyTop[x]);
+			for (long y = height-1; y >=0; --y) {
+				if(vert_edge.pix(x,y) == edgeClass) {
+					double w = (y>bodyBot[x] ? 2*sqrt((edge-y)*scale) : y>bodyTop[x] ? (y-bodyTop[x])*scale : 0.0);
+					w=row_histo[y]*w*w*w/sqrt(col_histo[x]);
+					if(weightedpos==0.0) w*=3;
+					if(x>1) w*= (abs(vert_edge.pix(x-2,y))+abs(vert_edge.pix(x-1,y))+1);
+					weightedpos+=w*(y+1);
+					weight+=w;
+				}
+			}
+		}
+
+		weightedEdgePosition.first[x]=weightedpos;
+		weightedEdgePosition.second[x]=weight;
+	}
+	return weightedEdgePosition;
+}
+
+vector<double> leftTriangularWeightedSum(vector<double> f) {
+	//for each n, computes sum of f(i) over i<-0..n weighted by (i+1/n+1)
+	for(int i=1;i<f.size();++i) 
+		f[i]+=double(i)/double(i+1) * f[i-1];
+	return f;
+}
+
+vector<double> rightExTriWeightedSum(vector<double> f) {
+	//symmetric to left but excluding current value.
+	vector<double> r(f.size());
+
+	for(int i=(int)f.size()-2;i>=0;--i) 
+		r[i] = double(f.size()-i-1)/double(f.size()-i) * (r[i+1] + f[i+1]);
+	return r;
+}
+
+vector<double> add(vector<double> a, vector<double> b) {
+	for(int i=0;i<a.size();++i)
+		a[i]+=b[i];
+	return a;
+}
+vector<double> add(vector<double> a, double b) {
+	for(int i=0;i<a.size();++i)
+		a[i]+=b;
+	return a;
+}
+
+vector<double> scale(vector<double> a, double x) {
+	for(int i=0;i<a.size();++i) a[i]*=x;
+	return a;
+}
+
+vector<double> TriSum(vector<double> vals) {
+	return add(leftTriangularWeightedSum(vals), rightExTriWeightedSum(vals));
+}
+
+vector<double> ApplyWeights(vector<double> weightedvals, vector<double> weights) {
+	for(int i=0; i < weightedvals.size(); ++i)
+		weightedvals[i] /= weights[i];
+	return weightedvals;
+}
+
+vector<double> TriSmooth(vector<double> weightedvals, vector<double> weights) {	return ApplyWeights(TriSum(weightedvals),TriSum(weights)); }
+
+vector<double> sqBlur(vector<double> x) {
+	fastblur(x,(int)x.size(),35,4,0.7);
+	return x;
+}
+
+
+
+pair<vector<double>, vector<double> > smoothBody(PamImage<BWPixel> const& vert_edge, vector<double> const & row_histo, vector<double> const & col_histo, vector<double> bodyTop, vector<double> bodyBot) {
+	//vert_edge: 1 on top edge, -1 on bottom edge, 0 elsewhere.
+	//now we want to compute the localized top of the body.  This is just the "normal" mean y-coordinate of the top edge.
+	//so, we compute the mean weighted edge position per column...
+	vector<double> smoothOldTop =TriSmooth(bodyTop,vector<double>(bodyTop.size(), 1.0));
+	vector<double> smoothOldBot = TriSmooth(bodyBot,vector<double>(bodyBot.size(), 1.0));
+
+
+	auto topEdges = weightedEdgePos(vert_edge,row_histo,col_histo, 1, smoothOldTop, smoothOldBot);
+	auto botEdges = weightedEdgePos(vert_edge, row_histo,col_histo,-1, smoothOldTop, smoothOldBot);
+
+	vector<double> smoothTop = TriSmooth(topEdges.first, topEdges.second);
+	vector<double> smoothBot = TriSmooth(botEdges.first, botEdges.second);
+
+	vector<double> blurTop = ApplyWeights(add(sqBlur(topEdges.first), scale(bodyTop,0.05)), add(sqBlur(topEdges.second),0.05));
+	vector<double> blurBot = ApplyWeights(add(sqBlur(botEdges.first), scale(bodyBot,0.05)), add(sqBlur(botEdges.second),0.05));
+	
+	vector<double> top = add(scale(smoothTop,0.5), scale(blurTop,0.5));
+	vector<double> bot = add(scale(smoothBot,0.5), scale(blurBot,0.5));
+
+	return make_pair(top,bot);
+}
+
+
+PamImage<BWPixel> fixBody(PamImage<BWPixel> const& im_in, int bodyTop, int bodyBot) {
+	long width     = im_in.getWidth();
+	long height    = im_in.getHeight();
+	PamImage<BWPixel> vert_edge(width, height);
+	for(long x=0;x<width;x++) 
+		vert_edge.pix(x,0) = im_in.pix(x,0);
+
+	for (long y = 1; y < height; ++y) 
+		for(long x=0;x<width;++x) 
+			vert_edge.pix(x,y) = im_in.pix(x,y)-im_in.pix(x,y-1);
+
+	vector<double> row_histo(height, 0.0);
+	vector<double> col_histo(width, 0.0);
+
+	project_x(im_in,row_histo,0,width);
+	project_y(im_in,col_histo,0,height);
+	fastblur(row_histo,row_histo.size(),5,3,0.9);
+	fastblur(col_histo,col_histo.size(),3,3,0.9);
+	
+
+	vector<double> top(width,double(bodyTop));
+	vector<double> bot(width,double(bodyBot));
+	auto body = make_pair(vector<double>(width,double(bodyTop)), vector<double> (width,double(bodyBot)));
+
+	for(int i=0;i<3;++i){
+		body = smoothBody(vert_edge,row_histo,col_histo,body.first,body.second);
+	}
+
+	for (long y = 0; y < height; ++y) 
+		for(long x=0;x<width;++x) 
+			if(vert_edge.pix(x,y) <0) 
+				vert_edge.pix(x,y) = 1;
+
+
+	for(long x=0;x<width;++x) {
+		vert_edge.pix(x,(int)(body.first[x]+0.5)) = 1;
+		vert_edge.pix(x,(int)(body.second[x]+0.5)) = 1;
+	}
+
+
+	return vert_edge;
 }
 

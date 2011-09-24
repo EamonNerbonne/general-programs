@@ -21,10 +21,11 @@ namespace HwrLibCliWrapper {
 		int blurIter = 3;
 		int winAngleSize = int(100.0*dampingFactor + 4);
 		int winDensSize = int(winAngleSize*0.76);
-		double featureRelevance = FEATURE_SCALING * exp(-20*dampingFactor)*(1.0-dampingFactor) ;
+		double featureRelevance = FEATURE_SCALING * exp(-20*dampingFactor);
 
 		PamImage<BWPixel> shearedImg = ImageProcessor::StructToPamImage(block);
-		ImageBW deshearedImg = processAndUnshear(shearedImg, (float)textLine->shear, textLine->bodyTop,textLine->bodyBot);//bodyTop/bodyBot are relative to line top, not to page top.
+		ImageBW deshearedImg = processAndUnshear(shearedImg, (float)textLine->shear, textLine->bodyTop,textLine->bodyBot);
+		//bodyTop/bodyBot are relative to line top, not to page top.
 		int topShearOffset = shearedImg.getWidth() - deshearedImg.getWidth();
 
 		ImageFeatures feats(deshearedImg,textLine->bodyTop,textLine->bodyBot, winDensSize,winAngleSize,blurIter);
@@ -73,8 +74,9 @@ namespace HwrLibCliWrapper {
 		WordSplitSolver splitSolve(*nativeSymbols->GetSymbols(), feats, symbolCodeVector, manualEndsVector, featureRelevance); //computes various prob. distributions
 		
 		double computedLikelihood;
-		vector<int> splits = splitSolve.MostLikelySplit(computedLikelihood);//these, of course, are computed relative to the sheared image, i.e. you need to add topShearOffset + cropXoffset for absolute coordinates.
 		
+		//these, of course, are computed relative to the sheared image, i.e. you need to add topShearOffset + cropXoffset for absolute coordinates.
+		vector<int> splits = splitSolve.MostLikelySplit(computedLikelihood);
 		
 		array<int>^ absoluteEndpoints = gcnew array<int>((int)splits.size());
 		for(int i=0;i<(int)splits.size();i++) 

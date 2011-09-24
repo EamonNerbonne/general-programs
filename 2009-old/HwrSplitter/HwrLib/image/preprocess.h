@@ -7,12 +7,12 @@
 
 #ifndef PREPROCESS_H
 #define PREPROCESS_H
-#include "../HwrConfig.h"
 
 // ----------------------------------------------------------------------------- : Includes
-
+#include "../HwrConfig.h"
 #include "pamImage.h"
 #include "histograms.h"
+#include <boost/scoped_array.hpp>
 
 // ----------------------------------------------------------------------------- : Preprocessing
 
@@ -23,6 +23,9 @@ PamImage<BWPixel> preprocessLimited(PamImage<RGBPixel> const& input_image);
 PamImage<double> featuresImage(ImageBW shearedImg, float shear);
 
 PamImage<BWPixel> processAndUnshear(PamImage<BWPixel> const& input_image, float shear_angle, int bodyTop, int bodyBot);
+
+PamImage<BWPixel> fixBody(PamImage<BWPixel> const& im_in, int bodyTop, int bodyBot);
+
 
 
 
@@ -37,6 +40,29 @@ void convolve(std::vector<double>& values, const std::vector<double>& window);
 
 void blur_projection(std::vector<double>& values, int radius);
 double mean(std::vector<double> const & values);
+
+
+
+template<typename T>
+void fastblur(T& data, int dataCnt, int win,int iter, double blurRatio) {
+	using namespace boost;
+	scoped_array<double> acc(new double[dataCnt]);
+	for(int itCnt=0;itCnt<iter;itCnt++) {
+		double lastVal=0.0;
+		for(int i=0;i<(int)dataCnt;i++) {
+			lastVal+=data[i];
+			acc[i]=lastVal;
+		}
+		for(int i=dataCnt-1;i>=0;i--) {
+			int i0 = std::max(i-win,0)-1;
+			int i1 = std::min(i+win,dataCnt-1);
+			double v0 = i0<0?0.0:acc[i0];
+			double v1 = acc[i1];
+			double avg = (v1-v0)/(i1-i0);
+			data[i] = avg*blurRatio + data[i]*(1-blurRatio);
+		}
+	}
+}
 
 
 // ----------------------------------------------------------------------------- : Pixel type conversion
