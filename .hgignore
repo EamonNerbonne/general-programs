@@ -45,3 +45,5 @@ uni/Thesis/doc/RankResults-overall.tps
 uni/Thesis/doc/RankResults-overall.pdf
 uni/Thesis/doc/G2M-heuristics.tps
 uni/Thesis/doc/G2M-heuristics.pdf
+*.vsp
+programs/HwrSplitter/HwrSplitter.psess
