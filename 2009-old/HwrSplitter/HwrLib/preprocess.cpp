@@ -226,7 +226,7 @@ pair<vector<double>,vector<double> > weightedEdgePos(PamImage<BWPixel> vert_edge
 	for(long x=0;x<width;++x) {
 		double weightedpos=0.0, weight=0.0;
 		if(edgeClass == 1) {
-			double scale = 2.0/bodyBot[x];
+			double scale = 2.0 / bodyBot[x];
 			for (long y = 0; y < height; ++y) {
 				if(vert_edge.pix(x,y) == edgeClass) {
 					double w = scale*( (y<bodyTop[x] ? y : y<bodyBot[x] ? (bodyBot[x] - y) : 0.0));
@@ -240,9 +240,10 @@ pair<vector<double>,vector<double> > weightedEdgePos(PamImage<BWPixel> vert_edge
 		} else {
 			double scale = 2.0/(edge-bodyTop[x]);
 			for (long y = height-1; y >=0; --y) {
-				if(vert_edge.pix(x,y) == edgeClass) {
-					double w = (y>bodyBot[x] ? 2*sqrt((edge-y)*scale) : y>bodyTop[x] ? (y-bodyTop[x])*scale : 0.0);
-					w=row_histo[y]*w*w*w/sqrt(col_histo[x]);
+				if(vert_edge.pix(x,y) == edgeClass ) {
+					double wA = 1.0-min(1.0,abs(y-bodyBot[x])/(bodyBot[x]-bodyTop[x]));
+					double w = (y>bodyBot[x] ? 3*(edge-y)*scale : y>bodyTop[x] ? (y-bodyTop[x])*scale : 0.0);
+					w=row_histo[y]*wA*w*w/sqrt(col_histo[x]);
 					if(weightedpos==0.0) w*=3;
 					if(x>1) w*= (abs(vert_edge.pix(x-2,y))+abs(vert_edge.pix(x-1,y))+1);
 					weightedpos+=w*(y+1);
