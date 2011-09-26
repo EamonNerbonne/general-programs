@@ -91,9 +91,8 @@
       <Optimization>Disabled</Optimization>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <AdditionalOptions>/MP4</AdditionalOptions>
-      <FloatingPointExceptions>false</FloatingPointExceptions>
+      <FloatingPointExceptions>true</FloatingPointExceptions>
       <ExceptionHandling>Async</ExceptionHandling>
-      <FloatingPointModel>Fast</FloatingPointModel>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|X64'">
@@ -138,6 +137,7 @@
   <ItemGroup>
     <ClInclude Include="AllSymbolClasses.h" />
     <ClInclude Include="CombinedFeatureDistribution.h" />
+    <ClInclude Include="EdgeFollow.h" />
     <ClInclude Include="FeatureDistribution.h" />
     <ClInclude Include="feature\features.h" />
     <ClInclude Include="feature\featurevector.h" />
@@ -166,6 +166,7 @@
     <ClCompile Include="AllSymbolClasses.cpp" />
     <ClCompile Include="CombinedFeatureDistribution.cpp" />
     <ClCompile Include="drawing.cpp" />
+    <ClCompile Include="EdgeFollow.cpp" />
     <ClCompile Include="envelopes.cpp" />
     <ClCompile Include="FeatureDistribution.cpp" />
     <ClCompile Include="features.cpp" />
