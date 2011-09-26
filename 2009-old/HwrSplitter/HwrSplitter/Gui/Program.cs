@@ -1,21 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Windows;
-using HwrDataModel;
-using System.Xml.Linq;
-using System.IO;
-using System.Windows.Shapes;
-using System.Windows.Media;
-using System.Text.RegularExpressions;
 using System.Threading;
-using System.Windows.Threading;
-using System.Diagnostics;
-using EmnExtensions.DebugTools;
-using EmnExtensions.Filesystem;
-using EmnExtensions.Text;
-using System.Windows.Input;
+using System.Windows;
 using HwrSplitter.Engine;
 
 namespace HwrSplitter.Gui
@@ -24,12 +9,13 @@ namespace HwrSplitter.Gui
 	{
 		[STAThread]
 		public static void Main(string[] args) { new Program().Exec(); }
-		MainWindow mainWindow;
+
+		readonly MainWindow mainWindow;
 		public Program() {
 			mainWindow = new MainWindow();
 			this.ShutdownMode = ShutdownMode.OnMainWindowClose;//TODO:add save warning.
 		}
-		public void Exec() { this.Run(mainWindow); } //TODO:MainWindow.
+		public void Exec() { Run(mainWindow); } //TODO:MainWindow.
 
 		protected override void OnStartup(StartupEventArgs e) {
 			base.OnStartup(e);
