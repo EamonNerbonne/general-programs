@@ -14,6 +14,7 @@
 #include "image/histograms.h"
 #include "image/transformations.h"
 #include "feature/features.h"
+#include "EdgeFollow.h"
 
 using namespace std;
 
@@ -218,37 +219,93 @@ PamImage<BWPixel> invert(PamImage<BWPixel> const im_in) {
 }
 
 
-pair<vector<double>,vector<double> > weightedEdgePos(PamImage<BWPixel> vert_edge, vector<double> const & row_histo, vector<double> const & col_histo,  int edgeClass, vector<double> bodyTop, vector<double> bodyBot){
-	long width     = vert_edge.getWidth();
-	long height    = vert_edge.getHeight();
+template <class TDir, class TWhile, class TAction> EdgeComponent BodyEdgeFollow(PamImage<BWPixel> const & image, EdgeComponent initial, TDir step,int & minX, int& minY, int& maxX, int& maxY,
+	TWhile filter,   
+	TAction action) {
+	action(initial.P);
+	EdgeComponent pos(step(image,initial));
+	while(filter(pos) && pos != initial) {
+		action(pos.P);
+		minY = min(minY, pos.P.Y);
+		maxY = max(maxY, pos.P.Y);
+		minX = min(minX,pos.P.X);
+		maxX = max(maxX,pos.P.X);
+		pos=step(image,pos);
+	}
+	return pos;
+}
+
+pair<vector<double>,vector<double> > weightedTopEdgePos(PamImage<BWPixel> const & image,  PamImage<unsigned> const &sum, PamImage<BWPixel> const & vert_edge, 
+	 vector<double>const &  bodyTop, vector<double>const &  bodyBot){
+	int width     = vert_edge.getWidth();
+	int height    = vert_edge.getHeight();
 	pair<vector<double>,vector<double> > weightedEdgePosition= make_pair(vector<double>(width), vector<double>(width));
-	int edge =  edgeClass>0?0:height-1;
-	for(long x=0;x<width;++x) {
+	vector<int> componentTop(width,height);
+	for(int x=1;x<width-1;++x) {
 		double weightedpos=0.0, weight=0.0;
-		if(edgeClass == 1) {
-			double scale = 2.0 / bodyBot[x];
-			for (long y = 0; y < height; ++y) {
-				if(vert_edge.pix(x,y) == edgeClass) {
-					double w = scale*( (y<bodyTop[x] ? y : y<bodyBot[x] ? (bodyBot[x] - y) : 0.0));
-					w=row_histo[y]*w*w*w/sqrt(col_histo[x]);
-					if(weightedpos==0.0) w*=2;
-					if(x>1) w*= (abs(vert_edge.pix(x-2,y))+abs(vert_edge.pix(x-1,y))+1);
-					weightedpos+=w*y;
-					weight+=w;
-				}
-			}
-		} else {
-			double scale = 2.0/(edge-bodyTop[x]);
-			for (long y = height-1; y >=0; --y) {
-				if(vert_edge.pix(x,y) == edgeClass ) {
-					double wA = 1.0-min(1.0,abs(y-bodyBot[x])/(bodyBot[x]-bodyTop[x]));
-					double w = (y>bodyBot[x] ? 3*(edge-y)*scale : y>bodyTop[x] ? (y-bodyTop[x])*scale : 0.0);
-					w=row_histo[y]*wA*w*w/sqrt(col_histo[x]);
-					if(weightedpos==0.0) w*=3;
-					if(x>1) w*= (abs(vert_edge.pix(x-2,y))+abs(vert_edge.pix(x-1,y))+1);
-					weightedpos+=w*(y+1);
-					weight+=w;
-				}
+		double bodyheight = max(0.0,bodyBot[x]-bodyTop[x]);
+		for (int y = 0; y < height; ++y) {
+			if(vert_edge.pix(x,y) == 1) {
+				EdgeComponent cur = EdgeComponent(Point(x,y),TopEdge);
+				EdgeComponent walkFwd = ClockwiseSteps(image,cur,16);
+				EdgeComponent walkBack = CounterClockwiseSteps(image,cur,16);
+
+				double wA;
+				if(abs(walkFwd.P.X-walkBack.P.X) < abs(walkFwd.P.Y - walkBack.P.Y)
+					||abs(cur.P.X-walkBack.P.X) < abs(cur.P.Y - walkBack.P.Y)
+					||abs(walkFwd.P.X-cur.P.X) < abs(walkFwd.P.Y - cur.P.Y)
+					||abs(walkFwd.P.Y-cur.P.Y)<2||abs(cur.P.Y-walkBack.P.Y)<2
+					||cur.P.Y>walkBack.P.Y ||cur.P.Y>walkFwd.P.Y
+					) {
+					wA=0.0;
+				} else if(y<bodyTop[x]) {//outside current body estimate:
+
+					int minY=y, maxY=y;
+					int minX=x, maxX=x;
+					EdgeComponent clockwise = 
+						BodyEdgeFollow(image,cur,ClockwiseStep,minX,minY,maxX,maxY,
+							[&bodyTop](EdgeComponent e) {return e.P.Y < bodyTop[e.P.X];},
+							[&componentTop](Point point) {componentTop[point.X] = min(componentTop[point.X],point.Y); }
+							);
+					EdgeComponent counterclockwise =
+						BodyEdgeFollow(image,cur,CounterClockwiseStep,minX,minY,maxX,maxY,
+							[&bodyTop](EdgeComponent e) {return e.P.Y < bodyTop[e.P.X];},
+							[&componentTop](Point point) {componentTop[point.X] = min(componentTop[point.X],point.Y); }
+						);
+					
+					int stemwidth = abs(clockwise.P.X - counterclockwise.P.X);
+					double ascenderheight = maxY - minY;
+
+					int emptyPx=0, filledPx=0;
+					for(int cx=minX;cx<=maxX;++cx) {
+						for(int cy=componentTop[cx];cy<bodyTop[cx];++cy)
+							(image.pix(cx,cy) ? filledPx : emptyPx)++;
+						componentTop[cx]=height;
+					}
+
+					if(clockwise.P.X > counterclockwise.P.X && stemwidth*2 > maxX-minX && stemwidth > ascenderheight && filledPx > emptyPx){
+						int bot_y=min(height, (int)(y+bodyheight+0.5));
+						int btop_y=(int)(bodyTop[x]+0.5);
+						int rgt_x=min(width,  (int)(x+bodyheight+0.5));
+						int lft_x=max(0,  (int)(x-bodyheight+0.5));
+						int bodyArea = (rgt_x-lft_x)*(bot_y-btop_y);
+						int newArea = (rgt_x-lft_x)*(btop_y-y);
+						int bodySum = SumInRect(sum,lft_x,rgt_x,btop_y,bot_y); 
+						int newSum = SumInRect(sum,lft_x,rgt_x,y,btop_y);
+						if(bodyArea>0&&newArea>0)
+							wA = 20.0*(1.0 + 5*(newSum/double(newArea) - bodySum/double(bodyArea)));
+						else
+							wA = 10.0;
+					}else
+						wA = 0.0;
+				} else
+					wA = 1.0;
+				double wB =  (y<bodyTop[x] ? y/bodyBot[x] : y<bodyBot[x] ? 1.0 : 0.0);
+				double w=wA*wB;
+				if(weightedpos==0.0) w*=3;
+				//if(x>1) w*= (abs(vert_edge.pix(x-2,y))+abs(vert_edge.pix(x-1,y))+1);
+				weightedpos+=w*max(y-3, 0);
+				weight+=w;
 			}
 		}
 
@@ -257,6 +314,76 @@ pair<vector<double>,vector<double> > weightedEdgePos(PamImage<BWPixel> vert_edge
 	}
 	return weightedEdgePosition;
 }
+
+pair<vector<double>,vector<double> > weightedBotEdgePos( PamImage<BWPixel> const & image,  PamImage<unsigned> const &sum, PamImage<BWPixel>const & vert_edge,
+	 vector<double> const & bodyTop, vector<double> const & bodyBot){
+	long width     = vert_edge.getWidth();
+	long height    = vert_edge.getHeight();
+	pair<vector<double>,vector<double> > weightedEdgePosition= make_pair(vector<double>(width), vector<double>(width));
+	vector<int> componentBottom(width,0);
+	for(long x=1;x<width-1;++x) {
+		double weightedpos=0.0, weight=0.0;
+		double scale = 2.0/(height-1-bodyTop[x]);
+		for (long y = height-1; y >=0; --y) {
+			if( vert_edge.pix(x,y) == -1) {
+				EdgeComponent cur = EdgeComponent(Point(x,y-1),BottomEdge);
+				EdgeComponent walkFwd = ClockwiseSteps(image,cur,16);
+				EdgeComponent walkBack = CounterClockwiseSteps(image,cur,16);
+
+				double wA;
+
+				if(abs(walkFwd.P.X-walkBack.P.X) < abs(walkFwd.P.Y - walkBack.P.Y)
+					||abs(cur.P.X-walkBack.P.X) < abs(cur.P.Y - walkBack.P.Y)
+					||abs(walkFwd.P.X-cur.P.X) < abs(walkFwd.P.Y - cur.P.Y)
+					||abs(walkFwd.P.Y-cur.P.Y)<2||abs(cur.P.Y-walkBack.P.Y)<2) {
+					wA=0.0;
+				} if(y>=bodyBot[x]) {//outside current body estimate:
+					int minY=cur.P.Y,maxY=cur.P.Y;
+					int minX=x, maxX=x;
+					EdgeComponent clockwise = 
+						BodyEdgeFollow(image,cur,ClockwiseStep,minX,minY,maxX,maxY,
+							[&bodyBot](EdgeComponent e) {return e.P.Y >= bodyBot[e.P.X];},
+							[&componentBottom](Point point) {componentBottom[point.X] = max(componentBottom[point.X],point.Y); }
+							);
+					EdgeComponent counterclockwise =
+						BodyEdgeFollow(image,cur,CounterClockwiseStep,minX,minY,maxX,maxY,
+							[&bodyBot](EdgeComponent e) {return e.P.Y >= bodyBot[e.P.X];},
+							[&componentBottom](Point point) {componentBottom[point.X] = max(componentBottom[point.X],point.Y); }
+						);
+					
+					int stemwidth = abs(clockwise.P.X - counterclockwise.P.X);
+					double descenderdepth = maxY - minY;
+
+					int emptyPx=0, filledPx=0;
+					for(int cx=minX;cx<=maxX;++cx) {
+						for(int cy=componentBottom[cx];cy>=bodyBot[cx];--cy)
+							(image.pix(cx,cy) ? filledPx : emptyPx)++;
+						componentBottom[cx]=0;
+					}
+
+					if(clockwise.P.X < counterclockwise.P.X && stemwidth*2 > maxX-minX && stemwidth > descenderdepth && filledPx > emptyPx){
+						wA = 15.0;
+					}else
+						wA = 0.0;
+				} else
+					wA = 1.0;
+
+				double wB = scale*( (y>=bodyBot[x] ? height-y : y>=bodyTop[x] ? (y - bodyTop[x]) : 0.0));
+
+				//(y>bodyBot[x] ? 3*(height-1-y)*scale : y>bodyTop[x] ? (y-bodyTop[x])*scale : 0.0);
+				double w=wA*wB;
+				if(weightedpos==0.0) w*=3;
+
+				weightedpos+=w*min(y+3,height);
+				weight+=w;
+			}
+		}
+		weightedEdgePosition.first[x]=weightedpos;
+		weightedEdgePosition.second[x]=weight;
+	}
+	return weightedEdgePosition;
+}
+
 
 vector<double> leftTriangularWeightedSum(vector<double> f) {
 	//for each n, computes sum of f(i) over i<-0..n weighted by (i+1/n+1)
@@ -296,52 +423,51 @@ vector<double> TriSum(vector<double> vals) {
 
 vector<double> ApplyWeights(vector<double> weightedvals, vector<double> weights) {
 	for(int i=0; i < weightedvals.size(); ++i)
-		weightedvals[i] /= weights[i];
+		weightedvals[i] = weightedvals[i]==0.0?0.0:weightedvals[i]/ weights[i];
 	return weightedvals;
 }
 
 vector<double> TriSmooth(vector<double> weightedvals, vector<double> weights) {	return ApplyWeights(TriSum(weightedvals),TriSum(weights)); }
 
 vector<double> sqBlur(vector<double> x) {
-	fastblur(x,(int)x.size(),35,4,0.7);
+	fastblur(x,(int)x.size(),45,4,1.0);
 	return x;
 }
 
 
 
-pair<vector<double>, vector<double> > smoothBody(PamImage<BWPixel> const& vert_edge, vector<double> const & row_histo, vector<double> const & col_histo, vector<double> bodyTop, vector<double> bodyBot) {
+pair<vector<double>, vector<double> > smoothBody(PamImage<BWPixel> const & image, PamImage<unsigned> const &sum, PamImage<BWPixel> const& vert_edge, vector<double> bodyTop, vector<double> bodyBot, double smoothing, double momentum) {
 	//vert_edge: 1 on top edge, -1 on bottom edge, 0 elsewhere.
 	//now we want to compute the localized top of the body.  This is just the "normal" mean y-coordinate of the top edge.
 	//so, we compute the mean weighted edge position per column...
-	vector<double> smoothOldTop =TriSmooth(bodyTop,vector<double>(bodyTop.size(), 1.0));
-	vector<double> smoothOldBot = TriSmooth(bodyBot,vector<double>(bodyBot.size(), 1.0));
 
-
-	auto topEdges = weightedEdgePos(vert_edge,row_histo,col_histo, 1, smoothOldTop, smoothOldBot);
-	auto botEdges = weightedEdgePos(vert_edge, row_histo,col_histo,-1, smoothOldTop, smoothOldBot);
+	auto topEdges = weightedTopEdgePos(image,sum, vert_edge, bodyTop, bodyBot);
+	auto botEdges = weightedBotEdgePos(image, sum, vert_edge, bodyTop, bodyBot);
 
 	vector<double> smoothTop = TriSmooth(topEdges.first, topEdges.second);
 	vector<double> smoothBot = TriSmooth(botEdges.first, botEdges.second);
 
-	vector<double> blurTop = ApplyWeights(add(sqBlur(topEdges.first), scale(bodyTop,0.05)), add(sqBlur(topEdges.second),0.05));
-	vector<double> blurBot = ApplyWeights(add(sqBlur(botEdges.first), scale(bodyBot,0.05)), add(sqBlur(botEdges.second),0.05));
+	vector<double> blurTop = ApplyWeights(sqBlur(topEdges.first),sqBlur(topEdges.second));
+	vector<double> blurBot = ApplyWeights(sqBlur(botEdges.first), sqBlur(botEdges.second));
 	
-	vector<double> top = add(scale(smoothTop,0.5), scale(blurTop,0.5));
-	vector<double> bot = add(scale(smoothBot,0.5), scale(blurBot,0.5));
+	vector<double> top = add(add(scale(smoothTop, smoothing*(1-momentum)), scale(blurTop, (1-smoothing)*(1-momentum))), scale(bodyTop,momentum));
+	vector<double> bot = add(add(scale(smoothBot , smoothing*(1-momentum)), scale(blurBot , (1-smoothing)*(1-momentum))), scale(bodyBot,momentum));
 
 	return make_pair(top,bot);
 }
 
 
 PamImage<BWPixel> fixBody(PamImage<BWPixel> const& im_in, int bodyTop, int bodyBot) {
-	long width     = im_in.getWidth();
-	long height    = im_in.getHeight();
+	int width     = im_in.getWidth();
+	int height    = im_in.getHeight();
 	PamImage<BWPixel> vert_edge(width, height);
-	for(long x=0;x<width;x++) 
+	PamImage<unsigned> sum = CumulativeCount(im_in);
+
+	for(int x=0;x<width;x++) 
 		vert_edge.pix(x,0) = im_in.pix(x,0);
 
-	for (long y = 1; y < height; ++y) 
-		for(long x=0;x<width;++x) 
+	for (int y = 1; y < height; ++y) 
+		for(int x=0;x<width;++x) 
 			vert_edge.pix(x,y) = im_in.pix(x,y)-im_in.pix(x,y-1);
 
 	vector<double> row_histo(height, 0.0);
@@ -349,29 +475,61 @@ PamImage<BWPixel> fixBody(PamImage<BWPixel> const& im_in, int bodyTop, int bodyB
 
 	project_x(im_in,row_histo,0,width);
 	project_y(im_in,col_histo,0,height);
-	fastblur(row_histo,row_histo.size(),5,3,0.9);
-	fastblur(col_histo,col_histo.size(),3,3,0.9);
+	fastblur(row_histo,(int)row_histo.size(),5,3,0.9);
+	fastblur(col_histo,(int)col_histo.size(),3,3,0.9);
+	
 	
 
 	vector<double> top(width,double(bodyTop));
 	vector<double> bot(width,double(bodyBot));
 	auto body = make_pair(vector<double>(width,double(bodyTop)), vector<double> (width,double(bodyBot)));
+	body = smoothBody(im_in,sum,vert_edge,body.first,body.second,0.8,0.2);
+	body = smoothBody(im_in,sum,vert_edge,body.first,body.second,0.6,0.4);
+	body = smoothBody(im_in,sum,vert_edge,body.first,body.second,0.4,0.6);
+	body = smoothBody(im_in,sum,vert_edge,body.first,body.second,0.2,0.8);
 
-	for(int i=0;i<3;++i){
-		body = smoothBody(vert_edge,row_histo,col_histo,body.first,body.second);
-	}
-
+	for (int y = 0; y < height; ++y) 
+		for(int x=0;x<width;++x) 
+			vert_edge.pix(x,y) = 0;
+	
+	/*
 	for (long y = 0; y < height; ++y) 
 		for(long x=0;x<width;++x) 
 			if(vert_edge.pix(x,y) <0) 
 				vert_edge.pix(x,y) = 1;
+				*/
+	set<EdgeComponent> knownEdges;
 
+	for(int x=0;x<width;++x) {
+		int topY = max(0, (int)(body.first[x]+0.5));
+		int botY = min(height-1, (int)(body.second[x]+0.5));
+		Point topP = Point(x,topY);
+		Point botP = Point(x,botY);
+		EdgeComponent consider[] = {
+			EdgeComponent(topP,LeftEdge),EdgeComponent(topP,RightEdge),EdgeComponent(topP,BottomEdge),EdgeComponent(topP,TopEdge),
+			EdgeComponent(botP,LeftEdge),EdgeComponent(botP,RightEdge),EdgeComponent(botP,BottomEdge),EdgeComponent(botP,TopEdge)
+		};
+		bool hasTop = topP.isSet(im_in), hasBot=botP.isSet(im_in);
 
-	for(long x=0;x<width;++x) {
-		vert_edge.pix(x,(int)(body.first[x]+0.5)) = 1;
-		vert_edge.pix(x,(int)(body.second[x]+0.5)) = 1;
+		if(hasTop||hasBot)
+			for(int i=0;i<8;i++) {
+				bool isvalid = consider[i].IsValidIn(im_in);
+				if(isvalid && knownEdges.find(consider[i]) == knownEdges.end()) {
+					auto newEdge = ClockwiseEdge(im_in,consider[i]);
+					for_each(newEdge.cbegin(),newEdge.cend(),[&knownEdges,&vert_edge](EdgeComponent e) {
+						knownEdges.insert(e);
+						vert_edge.pix(e.P.X,e.P.Y) = 1;
+					});
+				}
+			}
+
+		vert_edge.pix(x,topY) = 1;
+		vert_edge.pix(x,botY) = 1;
+		for(int y=topY+1;y<botY;y++)
+			vert_edge.pix(x,y) = im_in.pix(x,y);
 	}
 
+	
 
 	return vert_edge;
 }
