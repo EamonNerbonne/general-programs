@@ -11,10 +11,8 @@ using HwrLibCliWrapper;
 using EmnExtensions.DebugTools;
 using HwrDataModel;
 
-namespace HwrSplitter.Engine
-{
-	public class HwrPageImage
-	{
+namespace HwrSplitter.Engine {
+	public class HwrPageImage {
 		static void Fac16SumBlur(ImageStruct<int> img) {
 			for (int y = 0; y < img.Height; y++) {
 				for (int x = 0; x < img.Width - 1; x++)
@@ -44,7 +42,7 @@ namespace HwrSplitter.Engine
 				img[x, 0] *= 2;
 		}
 
-		const int SCALE = 64;//not more than 256 due to overflow! 
+		const int SCALE =32;//not more than 256 due to overflow! 
 		ImageStruct<sbyte> image;
 		//BitmapImage original;
 		public HwrPageImage(FileInfo fileToLoad) {
@@ -71,30 +69,47 @@ namespace HwrSplitter.Engine
 			var greyScale = rawImg.MapTo(nr => ((PixelArgb32)nr).R);
 			rawImg = default(ImageStruct<uint>);
 
-			var avgSmall = new ImageStruct<int>((greyScale.Width + SCALE - 1) / SCALE, greyScale.Height); //mean only over x-direction.
+			var avgXSmall = new ImageStruct<int>((greyScale.Width + SCALE - 1) / SCALE, greyScale.Height); //mean only over x-direction.
+			var avgYSmall = new ImageStruct<int>(greyScale.Width, (greyScale.Height + SCALE - 1) / SCALE); //mean only over y-direction.
 			var maxSmall = new ImageStruct<int>((greyScale.Width + SCALE - 1) / SCALE, (greyScale.Height + SCALE - 1) / SCALE);
+			var maxYSmall = new ImageStruct<int>(greyScale.Width, (greyScale.Height + SCALE - 1) / SCALE); //max only over y-direction.
+
+			var avg = new ImageStruct<int>(greyScale.Width, greyScale.Height); //mean only over y-direction.
+			for (int y = 0; y < avg.Height; y++)
+				for (int x = 0; x < avg.Width; x++)
+					avg[x, y] = greyScale[x, y];
+
 			for (int y = 0; y < maxSmall.Height; y++)
-				for (int x = 0; x < maxSmall.Width; x++) 
+				for (int x = 0; x < maxSmall.Width; x++)
 					maxSmall[x, y] = 0;
 
-			for (int y = 0; y < avgSmall.Height; y++)
-				for (int x = 0; x < avgSmall.Width; x++)
-					avgSmall[x, y] = 0;
+			for (int y = 0; y < avgXSmall.Height; y++)
+				for (int x = 0; x < avgXSmall.Width; x++)
+					avgXSmall[x, y] = 0;
+
+			for (int y = 0; y < avgYSmall.Height; y++)
+				for (int x = 0; x < avgYSmall.Width; x++)
+					avgYSmall[x, y] = 0;
 
 			for (int y = 0; y < greyScale.Height; y++) {
 				int sy = y / SCALE;
 				for (int x = 0; x < greyScale.Width; x++) {
 					int sx = x / SCALE;
-					avgSmall[sx, y] = avgSmall[sx, y] + (int) greyScale[x, y];
+					avgXSmall[sx, y] = avgXSmall[sx, y] + (int)greyScale[x, y];
+					avgYSmall[x, sy] = avgYSmall[x, sy] + (int)greyScale[x, y];
 					maxSmall[sx, sy] = Math.Max(maxSmall[sx, sy], greyScale[x, y]);
+					maxYSmall[x, sy] = Math.Max(maxYSmall[x, sy], greyScale[x, y]);
 				}
-				int missingPix = avgSmall.Width * SCALE - greyScale.Width;
-				double scaleFac = SCALE /(double) (SCALE - missingPix);
-				avgSmall[avgSmall.Width - 1, y] = (int)(avgSmall[avgSmall.Width - 1, y] * scaleFac + 0.5);
+				int missingPix = avgXSmall.Width * SCALE - greyScale.Width;
+				double scaleFac = SCALE / (double)(SCALE - missingPix);
+				avgXSmall[avgXSmall.Width - 1, y] = (int)(avgXSmall[avgXSmall.Width - 1, y] * scaleFac + 0.5);
 			}
 
 			Fac16SumBlur(maxSmall);
-			Fac16SumBlur(avgSmall);
+			Fac16SumBlur(maxYSmall);
+			Fac16SumBlur(avgXSmall);
+			Fac16SumBlur(avgYSmall);
+			Fac16SumBlur(avg);
 
 #if LOGSPEED
 			timer.TimeMark("threshholding");
@@ -106,7 +121,13 @@ namespace HwrSplitter.Engine
 				for (int x = 0; x < greyScale.Width; x++) {
 					int sx = x / SCALE;
 					int sy = y / SCALE;
-					byte threshold = (byte)(200.0 * 0.1 + 0.5 * (maxSmall[sx, sy] * (1 / 16.0) * 0.9) +0.4* (avgSmall[sx, y] * (1  / (double)SCALE/16.0) *0.92  )   + 0.5);
+					byte threshold = (byte)(
+						0.1 * (avg[x,y]*1/16.0)//200.0
+						+ 0.05 * (maxSmall[sx, sy] * (1 / 16.0) * 0.91)
+						+ 0.4 * (maxYSmall[x, sy] * (1 / 16.0) * 0.91)
+						+ 0.1 * (avgXSmall[sx, y] * (1 / (double)SCALE / 16.0) * 0.91)
+						+ 0.35 * (avgYSmall[x, sy] * (1 / (double)SCALE /16.0) * 0.91) 
+						+ 0.5);
 					image[x, y] = greyScale[x, y] > threshold ? (sbyte)0 : (sbyte)1;
 				}
 
@@ -141,7 +162,7 @@ namespace HwrSplitter.Engine
 		public HwrTextPage TextPage { get; set; }
 
 		public double[] XProjectionSmart { get; set; }
-		
+
 		public void ComputeXProjection(int x0, int x1) {
 			double[] xProjectionSmart = new double[Height];
 			for (int y = 0; y < Height; y++) {
@@ -163,7 +184,7 @@ namespace HwrSplitter.Engine
 					if (image[x, y] != 0)
 						sumRaw++;
 				}
-				xProjectionSmart[y] = (sum*2 + sumRaw) / 3.0 / (double)(x1 - x0);
+				xProjectionSmart[y] = (sum * 2 + sumRaw) / 3.0 / (double)(x1 - x0);
 				//xProjectionRaw[y] = sumRaw / (double)(x1 - x0);
 			}
 			XProjectionSmart = xProjectionSmart;
