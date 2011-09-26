@@ -85,4 +85,8 @@ template<typename T> PamImage<T> unshear(PamImage<T> const& im_in, float angle) 
 }
 
 
+PamImage<unsigned> CumulativeCount(PamImage<BWPixel> const& im);
+inline unsigned SumInRect(PamImage<unsigned> const &sumImg,int x0,int x1,int y0,int y1) {
+	return sumImg.pix(x1,y1) + sumImg.pix(x0,y0) - sumImg.pix(x0,y1) - sumImg.pix(x1,y0);
+}
 #endif

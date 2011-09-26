@@ -50,3 +50,16 @@ done_right:
 	return crop(im_in, left, top, right, bottom);
 }
 
+
+PamImage<unsigned> CumulativeCount(PamImage<BWPixel> const& im){
+	int w=im.getWidth()+1,h=im.getHeight()+1;
+	PamImage<unsigned> out(w, h);
+	out.pix(0,0)= 0;
+	for(int y=0;y<h;++y) out.pix(0,y) = 0;
+	for(int x=0;x<w;++x) out.pix(x,0) = 0;
+	for(int y=1;y<h;++y) 
+		for(int x=1;x<w;++x) 
+			out.pix(x,y) = out.pix(x-1,y) + out.pix(x,y-1) - out.pix(x-1,y-1) + unsigned(im.pix(x-1,y-1)!=0);
+	return out;
+}
+

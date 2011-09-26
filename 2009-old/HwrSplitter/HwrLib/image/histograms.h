@@ -73,5 +73,4 @@ template<typename T> void histogram(PamImage<T> const&im, std::vector<double>& h
 	}
 }
 
-
 #endif
