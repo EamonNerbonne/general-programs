@@ -15,15 +15,16 @@ ResultAnalysis.analyzedModels ()
     |> Seq.groupBy (fun res-> res.DatasetBaseShorthand) 
     |> Seq.map 
         (fun (key, group) ->
-            let sortedGroup = group |> Seq.sortBy (fun res -> res.MeanError)
+            let sortedGroup = group |> Seq.toArray |> Array.map (fun res -> ((res.Results |> Array.map (fun r-> r.TrainingError) |> Array.min, res.MeanError), res)) |> Array.sortBy fst |> Array.map snd
             let mappedGroup = sortedGroup |> Seq.map (fun res -> 
                 let trn = res.Results |> Seq.map (fun x->x.TrainingError*100.) |> Seq.toList |> Utils.sampleDistribution
                 let tst = res.Results |> Seq.map (fun x->x.TestError*100.) |> Seq.toList |> Utils.sampleDistribution
                 let nn = res.Results |> Seq.map (fun x->x.NnError*100.) |> Seq.toList |> Utils.sampleDistribution
+                let (bestTrn, bestTest, bestNn) = res.Results |> Array.minBy (fun (x:ResultAnalysis.Result) -> x.TrainingError) |> (fun x -> (x.TrainingError*100.,x.TestError*100.,x.NnError*100.))
                 let errStr =
-                    Utils.latexstderr trn + "&" + Utils.latexstderr tst + "&" + 
+                    Utils.latexstderr trn + "(" + bestTrn.ToString("f1") + ")" + "&" + Utils.latexstderr tst + "(" + bestTest.ToString("f1") + ")" + "&" + 
                         if nn.Mean.IsFinite() then
-                            Utils.latexstderr nn
+                            Utils.latexstderr nn + "(" + bestNn.ToString("f1") + ")"
                         else
                             ""
                 "   " +  ResultAnalysis.latexLiteral res.DatasetTweaks + "&" + ResultAnalysis.latexLiteral (res.ModelSettings.WithDefaultLr().ToShorthand()) + "&" + errStr
