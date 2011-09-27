@@ -1,15 +1,12 @@
 ﻿//#define VIACPP
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Windows;
-using System.Windows.Media.Imaging;
-using System.Windows.Media;
 using System.IO;
-using HwrLibCliWrapper;
-using EmnExtensions.DebugTools;
+using System.Linq;
+using System.Windows;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
 using HwrDataModel;
+using HwrLibCliWrapper;
 
 namespace HwrSplitter.Engine {
 	public class HwrPageImage {
@@ -67,7 +64,9 @@ namespace HwrSplitter.Engine {
 			original.CopyPixels(rawImg.RawData, rawImg.Stride, 0);
 
 			var greyScale = rawImg.MapTo(nr => ((PixelArgb32)nr).R);
-			rawImg = default(ImageStruct<uint>);
+// ReSharper disable RedundantAssignment
+			rawImg = default(ImageStruct<uint>);//allow GC
+// ReSharper restore RedundantAssignment
 
 			var avgXSmall = new ImageStruct<int>((greyScale.Width + SCALE - 1) / SCALE, greyScale.Height); //mean only over x-direction.
 			var avgYSmall = new ImageStruct<int>(greyScale.Width, (greyScale.Height + SCALE - 1) / SCALE); //mean only over y-direction.
@@ -95,8 +94,8 @@ namespace HwrSplitter.Engine {
 				int sy = y / SCALE;
 				for (int x = 0; x < greyScale.Width; x++) {
 					int sx = x / SCALE;
-					avgXSmall[sx, y] = avgXSmall[sx, y] + (int)greyScale[x, y];
-					avgYSmall[x, sy] = avgYSmall[x, sy] + (int)greyScale[x, y];
+					avgXSmall[sx, y] = avgXSmall[sx, y] + greyScale[x, y];
+					avgYSmall[x, sy] = avgYSmall[x, sy] + greyScale[x, y];
 					maxSmall[sx, sy] = Math.Max(maxSmall[sx, sy], greyScale[x, y]);
 					maxYSmall[x, sy] = Math.Max(maxYSmall[x, sy], greyScale[x, y]);
 				}
@@ -184,7 +183,7 @@ namespace HwrSplitter.Engine {
 					if (image[x, y] != 0)
 						sumRaw++;
 				}
-				xProjectionSmart[y] = (sum * 2 + sumRaw) / 3.0 / (double)(x1 - x0);
+				xProjectionSmart[y] = (sum * 2 + sumRaw) / 3.0 / (x1 - x0);
 				//xProjectionRaw[y] = sumRaw / (double)(x1 - x0);
 			}
 			XProjectionSmart = xProjectionSmart;
@@ -198,9 +197,9 @@ namespace HwrSplitter.Engine {
 			int y0 = (int)(line.top + 0.5);
 			int y1 = (int)(line.bottom + 0.5);
 
-			ImageStruct<float> data = ImageProcessor.ExtractFeatures(this.Image.CropTo(x0, y0, x1, y1), line, out topXoffset);
+			ImageStruct<float> data = ImageProcessor.ExtractFeatures(Image.CropTo(x0, y0, x1, y1), line, out topXoffset);
 			int featDataY = y0;
-			int featDataX = (int)x0 + topXoffset;
+			int featDataX = x0 + topXoffset;
 			var featImgRGB = data.MapTo(f => (byte)(255.9 * f)).MapTo(b => new PixelArgb32(255, b, b, b));
 			foreach (int wordBoundary in
 							from word in line.words
