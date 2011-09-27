@@ -261,8 +261,16 @@ let analysisGiven (filter:ResultAnalysis.ModelResults -> bool) (heur:Heuristic) 
                     | Some(comparison) -> yield comparison
     }
 
-
-"<table><tr><td>heuristic</td><td>" + (heuristics |> List.map (fun heur->heur.Code) |> String.concat " </td><td> ") + "</td></tr>" +
+@"<!DOCTYPE html>
+<html><head>
+<style type=""text/css"">
+  table { border-collapse:collapse; }
+  td { white-space: nowrap; }
+  td:nth-child(2n+1) { background: #ccc; }
+  body { font-family: Calibri, Sans-serif; }
+</style>
+</head><body>" +
+"<table><thead><tr><td>within</td><td>" + (heuristics |> List.map (fun heur->heur.Code) |> String.concat " </td><td> ") + "</td></tr></thead><tbody>" +
     (allFilters |> List.map (fun (filtername, filter) -> 
             "<tr><td>" + filtername + " </td><td> " + 
                 (heuristics |> List.map (fun heur ->
@@ -277,9 +285,9 @@ let analysisGiven (filter:ResultAnalysis.ModelResults -> bool) (heur:Heuristic) 
             ) + "</td></tr>\n" 
         ) |> String.concat ""
     )
-    +  "</table>"
-|> Console.WriteLine
-
+    +  "</tbody></table>"
++ "</body></html>"
+|> (fun contents -> File.WriteAllText(EmnExtensions.Filesystem.FSUtil.FindDataDir(@"uni\Thesis\doc", System.Reflection.Assembly.GetAssembly(typeof<CreateDataset>)).FullName + @"\compare.html", contents))
 
 heuristics
     |> Seq.map (fun heur -> 
