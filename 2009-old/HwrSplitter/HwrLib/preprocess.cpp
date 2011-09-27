@@ -255,7 +255,7 @@ pair<vector<double>,vector<double> > weightedTopEdgePos(PamImage<BWPixel> const 
 					||abs(cur.P.X-walkBack.P.X) < abs(cur.P.Y - walkBack.P.Y)
 					||abs(walkFwd.P.X-cur.P.X) < abs(walkFwd.P.Y - cur.P.Y)
 					||abs(walkFwd.P.Y-cur.P.Y)<2||abs(cur.P.Y-walkBack.P.Y)<2
-					||cur.P.Y>walkBack.P.Y ||cur.P.Y>walkFwd.P.Y
+					//||cur.P.Y>walkBack.P.Y ||cur.P.Y>walkFwd.P.Y
 					) {
 					wA=0.0;
 				} else if(y<bodyTop[x]) {//outside current body estimate:
@@ -284,24 +284,27 @@ pair<vector<double>,vector<double> > weightedTopEdgePos(PamImage<BWPixel> const 
 					}
 
 					if(clockwise.P.X > counterclockwise.P.X && stemwidth*2 > maxX-minX && stemwidth > ascenderheight && filledPx > emptyPx){
-						int bot_y=min(height, (int)(y+bodyheight+0.5));
-						int btop_y=(int)(bodyTop[x]+0.5);
-						int rgt_x=min(width,  (int)(x+bodyheight+0.5));
-						int lft_x=max(0,  (int)(x-bodyheight+0.5));
-						int bodyArea = (rgt_x-lft_x)*(bot_y-btop_y);
-						int newArea = (rgt_x-lft_x)*(btop_y-y);
-						int bodySum = SumInRect(sum,lft_x,rgt_x,btop_y,bot_y); 
-						int newSum = SumInRect(sum,lft_x,rgt_x,y,btop_y);
-						if(bodyArea>0&&newArea>0)
-							wA = 20.0*(1.0 + 5*(newSum/double(newArea) - bodySum/double(bodyArea)));
-						else
-							wA = 10.0;
+						wA = 5.0;
 					}else
 						wA = 0.0;
 				} else
 					wA = 1.0;
+
+
+
 				double wB =  (y<bodyTop[x] ? y/bodyBot[x] : y<bodyBot[x] ? 1.0 : 0.0);
 				double w=wA*wB;
+
+				int bbot_y=min(height, (int)(y+bodyheight+0.5));
+				int btop_y=(int)(bodyTop[x]+0.5);
+				int rgt_x=min(width,  (int)(x+bodyheight+0.5));
+				int lft_x=max(0,  (int)(x-bodyheight+0.5));
+				int bodyArea = (rgt_x-lft_x)*(bbot_y-btop_y);
+				int newArea = (rgt_x-lft_x)*(bbot_y-y);
+				int bodySum = SumInRect(sum,lft_x,rgt_x,btop_y,bbot_y); 
+				int newSum = SumInRect(sum,lft_x,rgt_x,y,bbot_y);
+				if(bodyArea>0&&newArea>0)
+					w *= max(0.0, 1.0 + 3*(newSum/double(newArea) - bodySum/double(bodyArea)));
 				if(weightedpos==0.0) w*=3;
 				//if(x>1) w*= (abs(vert_edge.pix(x-2,y))+abs(vert_edge.pix(x-1,y))+1);
 				weightedpos+=w*max(y-3, 0);
@@ -317,14 +320,15 @@ pair<vector<double>,vector<double> > weightedTopEdgePos(PamImage<BWPixel> const 
 
 pair<vector<double>,vector<double> > weightedBotEdgePos( PamImage<BWPixel> const & image,  PamImage<unsigned> const &sum, PamImage<BWPixel>const & vert_edge,
 	 vector<double> const & bodyTop, vector<double> const & bodyBot){
-	long width     = vert_edge.getWidth();
-	long height    = vert_edge.getHeight();
+	int width     = vert_edge.getWidth();
+	int height    = vert_edge.getHeight();
 	pair<vector<double>,vector<double> > weightedEdgePosition= make_pair(vector<double>(width), vector<double>(width));
 	vector<int> componentBottom(width,0);
-	for(long x=1;x<width-1;++x) {
+	for(int x=1;x<width-1;++x) {
 		double weightedpos=0.0, weight=0.0;
-		double scale = 2.0/(height-1-bodyTop[x]);
-		for (long y = height-1; y >=0; --y) {
+		//double scale = 2.0/(height-1-bodyTop[x]);
+		double bodyheight = max(0.0,bodyBot[x]-bodyTop[x]);
+		for (int y = height-1; y >=0; --y) {
 			if( vert_edge.pix(x,y) == -1) {
 				EdgeComponent cur = EdgeComponent(Point(x,y-1),BottomEdge);
 				EdgeComponent walkFwd = ClockwiseSteps(image,cur,16);
@@ -332,10 +336,18 @@ pair<vector<double>,vector<double> > weightedBotEdgePos( PamImage<BWPixel> const
 
 				double wA;
 
-				if(abs(walkFwd.P.X-walkBack.P.X) < abs(walkFwd.P.Y - walkBack.P.Y)
+				if(
+					abs(walkFwd.P.X-walkBack.P.X) < abs(walkFwd.P.Y - walkBack.P.Y)
 					||abs(cur.P.X-walkBack.P.X) < abs(cur.P.Y - walkBack.P.Y)
 					||abs(walkFwd.P.X-cur.P.X) < abs(walkFwd.P.Y - cur.P.Y)
-					||abs(walkFwd.P.Y-cur.P.Y)<2||abs(cur.P.Y-walkBack.P.Y)<2) {
+					||abs(walkFwd.P.Y-cur.P.Y)<2||abs(cur.P.Y-walkBack.P.Y)<2
+					//||cur.P.Y<walkBack.P.Y ||cur.P.Y<walkFwd.P.Y
+
+					//abs(walkFwd.P.X-walkBack.P.X) < abs(walkFwd.P.Y - walkBack.P.Y)
+					//||abs(cur.P.X-walkBack.P.X) < abs(cur.P.Y - walkBack.P.Y)
+					//||abs(walkFwd.P.X-cur.P.X) < abs(walkFwd.P.Y - cur.P.Y)
+					//||abs(walkFwd.P.Y-cur.P.Y)<2||abs(cur.P.Y-walkBack.P.Y)<2
+					) {
 					wA=0.0;
 				} if(y>=bodyBot[x]) {//outside current body estimate:
 					int minY=cur.P.Y,maxY=cur.P.Y;
@@ -362,17 +374,30 @@ pair<vector<double>,vector<double> > weightedBotEdgePos( PamImage<BWPixel> const
 					}
 
 					if(clockwise.P.X < counterclockwise.P.X && stemwidth*2 > maxX-minX && stemwidth > descenderdepth && filledPx > emptyPx){
-						wA = 15.0;
+						wA = 10.0;
 					}else
 						wA = 0.0;
 				} else
 					wA = 1.0;
 
-				double wB = scale*( (y>=bodyBot[x] ? height-y : y>=bodyTop[x] ? (y - bodyTop[x]) : 0.0));
+				//double wB = scale*( (y>=bodyBot[x] ? height-y : y>=bodyTop[x] ? (y - bodyTop[x]) : 0.0));
+				
+				double wB =  (y>=bodyBot[x] ? y/(height-bodyTop[x]) : y>=bodyTop[x] ? 1.0 : 0.0);
 
 				//(y>bodyBot[x] ? 3*(height-1-y)*scale : y>bodyTop[x] ? (y-bodyTop[x])*scale : 0.0);
 				double w=wA*wB;
 				if(weightedpos==0.0) w*=3;
+				
+				int bbot_y=min(height, (int)(y+bodyheight+0.5));
+				int btop_y=(int)(bodyTop[x]+0.5);
+				int rgt_x=min(width,  (int)(x+bodyheight+0.5));
+				int lft_x=max(0,  (int)(x-bodyheight+0.5));
+				int bodyArea = (rgt_x-lft_x)*(bbot_y-btop_y);
+				int newArea = (rgt_x-lft_x)*(y-btop_y);
+				int bodySum = SumInRect(sum,lft_x,rgt_x,btop_y,bbot_y); 
+				int newSum = SumInRect(sum,lft_x,rgt_x,btop_y,y);
+				if(bodyArea>0&&newArea>0)
+					w *= max(0.0, 1.0 + 3*(newSum/double(newArea) - bodySum/double(bodyArea)));
 
 				weightedpos+=w*min(y+3,height);
 				weight+=w;
@@ -430,7 +455,7 @@ vector<double> ApplyWeights(vector<double> weightedvals, vector<double> weights)
 vector<double> TriSmooth(vector<double> weightedvals, vector<double> weights) {	return ApplyWeights(TriSum(weightedvals),TriSum(weights)); }
 
 vector<double> sqBlur(vector<double> x) {
-	fastblur(x,(int)x.size(),45,4,1.0);
+	fastblur(x,(int)x.size(),35,4,1.0);
 	return x;
 }
 
@@ -461,7 +486,6 @@ PamImage<BWPixel> fixBody(PamImage<BWPixel> const& im_in, int bodyTop, int bodyB
 	int width     = im_in.getWidth();
 	int height    = im_in.getHeight();
 	PamImage<BWPixel> vert_edge(width, height);
-	PamImage<unsigned> sum = CumulativeCount(im_in);
 
 	for(int x=0;x<width;x++) 
 		vert_edge.pix(x,0) = im_in.pix(x,0);
@@ -469,15 +493,8 @@ PamImage<BWPixel> fixBody(PamImage<BWPixel> const& im_in, int bodyTop, int bodyB
 	for (int y = 1; y < height; ++y) 
 		for(int x=0;x<width;++x) 
 			vert_edge.pix(x,y) = im_in.pix(x,y)-im_in.pix(x,y-1);
-
-	vector<double> row_histo(height, 0.0);
-	vector<double> col_histo(width, 0.0);
-
-	project_x(im_in,row_histo,0,width);
-	project_y(im_in,col_histo,0,height);
-	fastblur(row_histo,(int)row_histo.size(),5,3,0.9);
-	fastblur(col_histo,(int)col_histo.size(),3,3,0.9);
 	
+	PamImage<unsigned> sum = CumulativeCount(im_in);
 	
 
 	vector<double> top(width,double(bodyTop));
