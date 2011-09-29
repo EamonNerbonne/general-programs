@@ -9,6 +9,7 @@ namespace LvqLibCli {
 		Gm = GmModelType,
 		G2m = G2mModelType,
 		Ggm = GgmModelType,
+		Gpq = GpqModelType,
 	};
 
 	ref class LvqDatasetCli;

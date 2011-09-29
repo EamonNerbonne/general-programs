@@ -42,8 +42,10 @@ template <typename T> EIGEN_STRONG_INLINE double projectionSquareNorm(T const & 
 	return (projectionMatrix.transpose() * projectionMatrix).diagonal().sum();
 }
 
-template <typename T> void normalizeProjection(T & projectionMatrix) {
-	projectionMatrix *= LvqFloat(LvqFloat(1.0)/sqrt(projectionSquareNorm(projectionMatrix)));
+template <typename T> LvqFloat normalizeProjection(T & projectionMatrix) {
+	LvqFloat scale = LvqFloat(LvqFloat(1.0)/sqrt(projectionSquareNorm(projectionMatrix)));
+	projectionMatrix *= scale;
+	return scale;
 }
 
 

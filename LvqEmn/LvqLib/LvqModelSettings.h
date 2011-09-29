@@ -25,7 +25,7 @@ struct LvqModelSettings
 
 	int Dimensionality;
 
-	enum LvqModelType { AutoModelType, LgmModelType, GmModelType, G2mModelType, GgmModelType };
+	enum LvqModelType { AutoModelType, LgmModelType, GmModelType, G2mModelType, GgmModelType, GpqModelType };
 	LvqModelType ModelType;
 	boost::mt19937 RngParams;
 	LvqModelRuntimeSettings RuntimeSettings;

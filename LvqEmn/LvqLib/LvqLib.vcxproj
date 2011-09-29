@@ -532,6 +532,7 @@
   <ItemGroup>
     <ClCompile Include="GgmLvqModel.cpp" />
     <ClCompile Include="GoodBadMatch.cpp" />
+    <ClCompile Include="GpqLvqModel.cpp" />
     <ClCompile Include="LvqLib.cpp" />
     <ClCompile Include="LvqModel.cpp" />
     <ClCompile Include="CreateDataset.cpp" />
@@ -567,6 +568,7 @@
     <ClInclude Include="GgmLvqModel.h" />
     <ClInclude Include="GgmLvqPrototype.h" />
     <ClInclude Include="GoodBadMatch.h" />
+    <ClInclude Include="GpqLvqModel.h" />
     <ClInclude Include="LvqLib.h" />
     <ClInclude Include="LvqModel.h" />
     <ClInclude Include="LvqModelSettings.h" />

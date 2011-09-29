@@ -352,9 +352,11 @@ LvqDatasetStats LvqDataset::ComputeCostAndErrorRate(std::vector<int> const & sub
 #ifdef DEBUGHELP
 	if(model->sentinal != initSentinal)		throw "Whoops!";
 #endif
+	Vector_N point;
 	for(int i=0;i<(int)subset.size();++i) {
 		assert(points.sum() == points.sum());
-		MatchQuality matchQ = model->ComputeMatches(points.col(subset[i]), pointLabels[subset[i]]);
+		point = points.col(subset[i]);
+		MatchQuality matchQ = model->ComputeMatches(point, pointLabels[subset[i]]);
 #ifdef DEBUGHELP
 		if(model->sentinal != initSentinal)		throw "Whoops!";
 #endif

@@ -94,7 +94,9 @@ void TestModel(LvqModelType modelType, unsigned seed, bool useNgUpdate, LvqDatas
 	LvqModel* model= CreateLvqModel(settings, dataset, 0, 0);
 	t.stop();
 
-	cerr<<"constructing "<< (modelType==LgmModelType? "Lgm":modelType==GmModelType?"Gm":modelType==G2mModelType?"G2m":"Ggm" ) <<(useNgUpdate?" (NG update)":"")<<": "<<t.value()<<"s\n";
+	cerr<<"constructing "
+		<< (modelType==LgmModelType? "Lgm":modelType==GmModelType?"Gm":modelType==G2mModelType?"G2m":modelType==GpqModelType?"Gpq":"Ggm" )
+		<<(useNgUpdate?" (NG update)":"")<<": "<<t.value()<<"s\n";
 
 	PrintModelStatus("Initial", model, dataset);
 
@@ -110,7 +112,9 @@ void TestModel(LvqModelType modelType, unsigned seed, bool useNgUpdate, LvqDatas
 		}
 	}
 	t.stop();
-	cerr<<"training "<< (modelType==LgmModelType? "Lgm":modelType==GmModelType?"Gm":modelType==G2mModelType?"G2m":"Ggm" ) <<": "<<t.value()<<"s\n";
+	cerr<<"training "
+		<< (modelType==LgmModelType? "Lgm":modelType==GmModelType?"Gm":modelType==G2mModelType?"G2m":modelType==GpqModelType?"Gpq":"Ggm" )
+		<<": "<<t.value()<<"s\n";
 	FreeModel(model);
 }
 

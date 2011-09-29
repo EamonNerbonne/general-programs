@@ -9,7 +9,7 @@ extern "C" {
 	struct LvqModel;
 	struct DataShape { int pointCount, dimCount, classCount; };
 	struct CostAndErrorRate { double meanCost, errorRate;};
-	enum LvqModelType { AutoModelType, LgmModelType, GmModelType, G2mModelType, GgmModelType };
+	enum LvqModelType { AutoModelType, LgmModelType, GmModelType, G2mModelType, GgmModelType, GpqModelType };
 
 	struct LvqModelSettingsRaw {
 		LvqModelType ModelType;
