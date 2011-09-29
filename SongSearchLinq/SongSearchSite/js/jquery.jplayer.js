@@ -86,7 +86,7 @@
     $.jPlayer.defaults = {
         cssPrefix: "jqjp",
         swfPath: "js",
-        volume: 80,
+        volume: 100,
         oggSupport: false,
         nativeSupport: true,
         flashSupport: true,
@@ -121,7 +121,7 @@
         playedPercentAbsolute: 0,
         playedTime: 0,
         totalTime: 0,
-        gainScale: 0.3
+        gainScale: 1.0
     };
 
     var _cssIdDefaultsForActions = {
@@ -228,7 +228,7 @@
                     return self.config.flashSupport && type == "audio/mpeg" && self._checkForFlash(8);
                 },
                 loadSong: function (type, src, replaygain) {
-                    self.config.diag.gainScale = Math.min(1.0, 0.5 * Math.pow(10, (replaygain || 0.0) / 20.0));
+                    self.config.diag.gainScale = Math.min(1.0, Math.pow(10, (replaygain || 0.0) / 20.0));
                     self._getMovie().fl_setFile_mp3(src);
                     self._getMovie().fl_volume_mp3(Math.sqrt(100 * self.config.volume * self.config.diag.gainScale));
                     self.config.diag.src = src;
