@@ -265,6 +265,7 @@ namespace LvqGui {
 				} else {
 					saveFile.Directory.Create();
 					saveFile.Create().Close();
+					Console.WriteLine("Now starting:" + DatasetLabel + "\\" + ShortnameFor(settings) + " (" + DateTime.Now + ")");
 					return false;
 				}
 		}
@@ -316,7 +317,7 @@ namespace LvqGui {
 			return FindOptimalLr(sink, settings, cancel).ContinueWith(_ => {
 				double durationSec = timer.Elapsed.TotalSeconds;
 				sink.WriteLine("Search Complete!  Took " + durationSec + "s");
-				Console.WriteLine("Optimizing " + ShortnameFor(settings) + " took " + durationSec + "s");
+				Console.WriteLine("Optimizing " + ShortnameFor(settings) + " took " + durationSec + "s ("+DateTime.Now+")");
 			}, TaskContinuationOptions.ExecuteSynchronously);
 		}
 
