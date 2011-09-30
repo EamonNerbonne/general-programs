@@ -196,7 +196,7 @@ namespace LvqLibCli {
 		if(getOrder)
 			classLabelOrdering.resize(trainingSet->GetTrainingSubsetSize(datafold) * epochsToDo);
 		msclr::lock l(trainSync);
-		TrainModel(trainingSet->GetTrainingDataset(), trainingSet->GetTestDataset(), datafold, trainingSet->Folds(), nativeModel, epochsToDo, StatCallbackTrampoline, &statCollector, getOrder?&classLabelOrdering[0]:nullptr,sortedTrain);
+		TrainModel(trainingSet->GetTrainingDataset(), trainingSet->GetTestDataset(), datafold, trainingSet->Folds(), nativeModel, epochsToDo, stats?StatCallbackTrampoline:nullptr, &statCollector, getOrder?&classLabelOrdering[0]:nullptr,sortedTrain);
 		GC::KeepAlive(trainingSet);
 		msclr::lock l2(copySync);
 		SinkStats(stats, statCollector.statsList);
