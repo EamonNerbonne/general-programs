@@ -101,7 +101,27 @@ namespace LvqGui {
 		public string ShortnameFor(LvqModelSettingsCli settings) {
 			return ShortnameFor(_itersToRun, settings);
 		}
+		//{-8.46,0.42,-1.11,-1.49,1.51,0.79}
+		static readonly double[,,] heurEffects = //proto,type,heur
+	{
+	{
+	{0,0,0.06,2.21,7.37,-3.39},
+	{0,0,-2.48,-1.97,-0.76,1.6},
+	{0,0,0.03,-4.88,-1.91,0}},
+	{
+	{-12.42,-0.66,0.72,-3.74,0.69,0.07},
+	{-6.65,1.12,-2.42,1.84,1.51,2.43},
+	{-3.65,1.27,-2.42,-4.33,2.17,0}
+	}
+	};
 
+
+		static double EstimateAccuracy(LvqModelType modeltype, int protoCount, bool NGi, bool NG, bool rP, bool slowbad, bool Pi, bool Bi) {
+			int protoIdx = protoCount==1?0:1;
+			int typeIdx = modeltype==LvqModelType.Ggm?0:modeltype==LvqModelType.Gm?2:1;
+			bool[] heurs = new[]{NGi,NG,rP,slowbad,Pi,Bi};
+			return heurs.Select((on,heurIdx) =>on? heurEffects[protoIdx,typeIdx,heurIdx]:0).Sum();
+		}
 
 		public Task StartAllLrTesting(CancellationToken cancel, LvqModelSettingsCli? baseSettings = null) {
 			LvqModelSettingsCli effectiveSettings = baseSettings ?? new LvqModelSettingsCli();
@@ -116,7 +136,8 @@ namespace LvqGui {
 				from ng in new[] { true, false }
 				from slowbad in new[] { true, false }
 				let relevanceCost = new[] { !rp, ngi, bi, pi, ng, slowbad }.Count(b => b)
-				orderby relevanceCost, pi
+				let estAccur = EstimateAccuracy(modeltype,protoCount,ngi,ng,rp,slowbad,pi,bi)
+				orderby relevanceCost, estAccur
 				select effectiveSettings.WithTestingChanges2(modeltype, protoCount, offset, rp, ngi, bi, pi, ng, slowbad) into settings
 				let shortname = ShortnameFor(settings)
 				select TestLrIfNecessary(null, settings, cancel)
