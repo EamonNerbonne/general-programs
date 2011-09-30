@@ -57,7 +57,7 @@ for (dirname, dataset) in shuffle datasets do
                 {
                     if LvqMultiModel.AnnounceModelTrainingGeneration(dataset, settings, iters) then
                         printfn "Starting %s / %s" dataset.DatasetLabel (settings.ToShorthand())
-                        let model = new LvqMultiModel(dataset, settings)
+                        let model = new LvqMultiModel(dataset, settings, false)
                         model.TrainUptoIters(float iters, dataset, CancellationToken.None)
                         model.SaveStats(dataset, iters)
                     else

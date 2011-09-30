@@ -20,12 +20,12 @@ namespace LvqGui {
 	public class LvqMultiModel {
 		readonly LvqModelCli[] subModels;
 		readonly LvqModelSettingsCli originalSettings;
-		public LvqMultiModel(LvqDatasetCli forDataset, LvqModelSettingsCli lvqModelSettingsCli) {
+		public LvqMultiModel(LvqDatasetCli forDataset, LvqModelSettingsCli lvqModelSettingsCli, bool trackStats=true) {
 			originalSettings = lvqModelSettingsCli;
 			string shorthand = lvqModelSettingsCli.ToShorthand() + "--" + forDataset.DatasetLabel;
 			subModels =
 				Enumerable.Range(0, lvqModelSettingsCli.ParallelModels).AsParallel()
-				.Select(modelfold => new LvqModelCli(shorthand, forDataset, modelfold + lvqModelSettingsCli.FoldOffset, lvqModelSettingsCli, true))
+				.Select(modelfold => new LvqModelCli(shorthand, forDataset, modelfold + lvqModelSettingsCli.FoldOffset, lvqModelSettingsCli, trackStats))
 				.OrderBy(model => model.InitDataFold)
 				.ToArray();
 			nnErrIdx = subModels[0].TrainingStatNames.AsEnumerable().IndexOf(name => name.Contains("NN Error"));
