@@ -52,7 +52,7 @@ namespace LvqGui {
 		public int SelectedSubModel { get; set; }
 
 		public struct Statistic { public double[] Value, StandardError; public int BestIdx;}
-		public static double GetItersPerEpoch(LvqDatasetCli dataset) { return (double)dataset.PointCount * (dataset.IsFolded() ? (dataset.Folds() - 1.0) / dataset.Folds() : 1.0); }
+		public static double GetItersPerEpoch(LvqDatasetCli dataset) { return dataset.PointCount * (dataset.IsFolded() ? (dataset.Folds() - 1.0) / dataset.Folds() : 1.0); }
 
 		public Statistic CurrentRawStats(LvqDatasetCli selectedDataset) { return MeanStdErrStats(EvaluateFullStats(selectedDataset)); }
 		public IEnumerable<LvqTrainingStatCli> EvaluateFullStats(LvqDatasetCli selectedDataset) { return subModels.Select(m => m.EvaluateStats(selectedDataset, m.InitDataFold)); }
@@ -161,7 +161,6 @@ namespace LvqGui {
 		}
 		public void SortedTrain(LvqDatasetCli trainingSet, CancellationToken cancel) {
 			if (cancel.IsCancellationRequested) return;
-			int selectedSubModel = SelectedSubModel;
 			var helpers = subModels
 				.Select((model, modelIndex) =>
 						Task.Factory.StartNew(
@@ -304,10 +303,8 @@ namespace LvqGui {
 				projection = selectedModel.CurrentProjectionAndPrototypes(dataset);
 				if (!projection.HasValue) return null;
 				bounds = ExpandToShape(renderwidth, renderheight, ComputeProjectionBounds(projection.Prototypes.Select(lp => lp.point), projection.Points.Select(lp => lp.point)));
-				if (!hideBoundaries)
-					closestClass = selectedModel.ClassBoundaries(bounds.Left, bounds.Right, bounds.Bottom, bounds.Top, renderwidth, renderheight);
-				else
-					closestClass = default(MatrixContainer<byte>);
+				closestClass = hideBoundaries ? default(MatrixContainer<byte>) 
+					: selectedModel.ClassBoundaries(bounds.Left, bounds.Right, bounds.Bottom, bounds.Top, renderwidth, renderheight);
 			}
 			Debug.Assert(NotDefault(projection));
 			Debug.Assert(NotDefault(bounds));

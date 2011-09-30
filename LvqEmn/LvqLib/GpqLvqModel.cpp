@@ -110,8 +110,22 @@ MatchQuality GpqLvqModel::learnFrom(Vector_N const & trainPoint, int trainLabel)
 	}
 
 	Vector_2 lrScaled = lr_P * (muJ2_BjT_Bj_pJ + muK2_BkT_Bk_pK);
+	//really I should be updating all points now ala P_point += Pdelta * P_pseudoInverse * P_point;
+	// alternatively P_point = Pnew * P_T * inv(P*P_T) * P_point
+	//but the following code isn't so hot.
 
-	P.noalias() += lrScaled * trainPoint.transpose();
+	/*
+	Pnew.noalias() = P + lrScaled * trainPoint.transpose();
+
+	Matrix_22 P_PT_inv = (P * P.transpose()).inverse();
+	Matrix_22 remap = (Pnew * P.transpose()) * P_PT_inv;
+
+	P.noalias() = Pnew;
+
+	for_each(prototype.begin(), prototype.end(), [&remap](GpqLvqPrototype & proto) {	proto.P_point = 0.5*proto.P_point + 0.5 * (remap * proto.P_point);	});
+	/*/
+	P += lrScaled * trainPoint.transpose();
+	/**/
 
 	totalMuJLr += lr_point * retval.muJ;
 	totalMuKLr -= lr_point * retval.muK;

@@ -23,6 +23,7 @@ class GpqLvqModel : public LvqProjectionModelBase<GpqLvqModel>
 	typedef std::vector<GpqLvqPrototype, Eigen::aligned_allocator<GpqLvqPrototype> > protoList;
 	double totalMuJLr, totalMuKLr;
 	protoList prototype;
+	//Matrix_P Pnew;
 	std::vector<CorrectAndWorstMatches::MatchOk> ngMatchCache;
 	//we will preallocate a few temp vectors to reduce malloc/free overhead.
 	void NormalizeBoundaries();
