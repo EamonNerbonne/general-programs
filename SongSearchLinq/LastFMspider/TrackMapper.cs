@@ -27,7 +27,7 @@ namespace LastFMspider
     /// </summary>
     public class TrackMapper
     {
-        int[] sqliteFromDense;
+    	readonly int[] sqliteFromDense;
         int[] denseFromSqlite;
         public TrackMapper(BitArray referencedTracks, int totalReferenced) {
             sqliteFromDense = new int[totalReferenced];

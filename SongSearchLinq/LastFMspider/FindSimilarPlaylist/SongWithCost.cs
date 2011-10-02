@@ -8,7 +8,9 @@ namespace LastFMspider {
 			public double cost = double.PositiveInfinity;
 			public int index = -1;
 			public int graphDist = -1;
-			public HashSet<TrackId> basedOn = new HashSet<TrackId>();
+			public readonly HashSet<SongWithCost> basedOn = new HashSet<SongWithCost>();
+			public readonly HashSet<SongWithCost> dependants = new HashSet<SongWithCost>();
+
 
 			public int CompareTo(SongWithCost other) { return cost.CompareTo(other.cost); }
 		}

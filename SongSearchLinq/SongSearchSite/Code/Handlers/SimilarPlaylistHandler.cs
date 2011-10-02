@@ -14,21 +14,24 @@ namespace SongSearchSite.Code.Handlers {
 		public void ProcessRequest(HttpContext context) {
 			try {
 				PlaylistEntry[] playlistFromJson = JsonConvert.DeserializeObject<PlaylistEntry[]>(context.Request["playlist"]);
-				var playlistSongNames =
+				var playlistSongs =
 					from entry in playlistFromJson
 					let songdata = entry.LookupBestGuess(SongDbContainer.AppBaseUri(context)) as SongFileData
 					where songdata != null
-					from songref in songdata.PossibleSongs
-					select songref;
+					//from songref in songdata.PossibleSongs
+					select songdata;
 
+				double lookupDur;
 				var timer = Stopwatch.StartNew();
 				var res =
 					FindSimilarPlaylist.ProcessPlaylist(
-						tools: SongDbContainer.LastFmTools,
-						seedSongs: playlistSongNames,
+						 SongDbContainer.LastFmTools,
+						 SongDbContainer.FuzzySongSearcher.FindAcceptableMatch,
+						playlistSongs,
+						new SongRef[]{},
+						out lookupDur,
 						MaxSuggestionLookupCount: 1000,
 						SuggestionCountTarget: 50,
-						fuzzySearch: SongDbContainer.FuzzySongSearcher.FindBestMatch,
 						shouldAbort: count => !context.Response.IsClientConnected || (timer.Elapsed.TotalMilliseconds + count * 350 > 20000));
 
 				if (!context.Response.IsClientConnected)
@@ -57,7 +60,8 @@ namespace SongSearchSite.Code.Handlers {
 							unknown = unknownForJson,
 							lookups = res.LookupsDone,
 							weblookups = res.LookupsWebTotal,
-							milliseconds = timer.ElapsedMilliseconds
+							milliseconds = (int)timer.ElapsedMilliseconds,
+							msSimDb = (int)(lookupDur+0.5)
 						}
 					)
 				);

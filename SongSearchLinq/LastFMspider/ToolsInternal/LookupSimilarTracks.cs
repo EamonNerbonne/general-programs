@@ -55,13 +55,18 @@ namespace LastFMspider {
 			return lookupTask.Result;
 		}
 
-		static bool IsFresh(TrackSimilarityListInfo cachedVersion, TimeSpan maxAge) {
+		public static bool IsFresh(TrackSimilarityListInfo cachedVersion, TimeSpan maxAge = default(TimeSpan)) {
 			if (maxAge == default(TimeSpan)) maxAge = normalMaxAge;
 			return cachedVersion.ListID.HasValue && cachedVersion.LookupTimestamp.HasValue && cachedVersion.LookupTimestamp.Value >= DateTime.UtcNow - maxAge;
 		}
 
-		public static void RefreshCache(LastFMSQLiteCache backingDB, TrackId track, TimeSpan maxAge = default(TimeSpan)) {
-			TrackSimilarityListInfo list = backingDB.LookupSimilarityListInfo.Execute(track);
+		public static void RefreshCache(LastFMSQLiteCache backingDB, TrackId track, TimeSpan maxAge = default(TimeSpan))
+		{
+			RefreshCache(backingDB, backingDB.LookupSimilarityListInfo.Execute(track), maxAge);
+		}
+
+		public static void RefreshCache(LastFMSQLiteCache backingDB, TrackSimilarityListInfo list, TimeSpan maxAge = default(TimeSpan))
+		{
 			if (!IsFresh(list, maxAge)) {
 				var songref = backingDB.LookupTrack.Execute(list.TrackId);
 				if (songref != null)

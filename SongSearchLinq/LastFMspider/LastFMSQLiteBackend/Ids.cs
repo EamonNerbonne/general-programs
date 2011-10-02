@@ -22,6 +22,8 @@ namespace LastFMspider.LastFMSQLiteBackend {
 		public TrackId(uint id) { this.id = id; }
 		internal TrackId(long? id) { this.id = (uint)(id ?? 0); }
 		public override string ToString() { throw new NotImplementedException("May not use ToString - returns nonsense in db queries!"); }
+		public override bool Equals(object obj) { return obj is TrackId && ((TrackId)obj).id == id; }
+		public override int GetHashCode() {return (int)id;}
 		internal struct Factory : IIdFactory<TrackId> { public TrackId CastToId(uint id) { return new TrackId(id); } }
 	}
 

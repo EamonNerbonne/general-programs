@@ -55,18 +55,26 @@ namespace LastFMspider {
 			}
 		}
 
-		public SongMatch FindBestMatch(SongRef search) {
-			var matches = FindMatchingSongs(search);
-			if (matches.Length > 0)
+		public SongFileData FindAcceptableMatch(SongRef search) {
+			var matches = FindMatchingSongs(search, MaxMatchCount:1);
+			if (matches.Length > 0 && matches[0].GoodEnough)
+				return matches[0].Song;
+			else
+				return null;
+		}
+		public SongMatch FindAnyMatch(SongRef search) {
+			var matches = FindMatchingSongs(search, MaxMatchCount: 1);
+			if (matches.Length > 0 )
 				return matches[0];
 			else
 				return SongMatch.NoMatch;
 		}
 
-		const int MaxMatchCount = 50;
+		const int MaxMatchCountDefault = 50;
 		[ThreadStatic]
 		static int[] songmatchcount;
-		public SongMatch[] FindMatchingSongs(SongRef search, bool suppressAbsoluteCost = false) {
+		public SongMatch[] FindMatchingSongs(SongRef search, bool suppressAbsoluteCost = false, int MaxMatchCount = 0) {
+			MaxMatchCount = MaxMatchCount == 0 ? MaxMatchCountDefault : MaxMatchCount;
 			int[] matchcounts = songmatchcount;
 			if (matchcounts == null)
 				songmatchcount = matchcounts = new int[songs.Length];//cache to save mem-allocation overhead.
@@ -120,7 +128,7 @@ namespace LastFMspider {
 				SortedIntersectionAlgorithm.SortedIntersection(
 					(from trigram in searchTrigrams
 					 orderby songsByTrigram[trigram].Length
-					 select songsByTrigram[trigram]).ToArray()).Where(songIndex=>trigramCountBySong[songIndex] == searchTrigrams.Length).Select(songIndex => songs[songIndex]);
+					 select songsByTrigram[trigram]).ToArray()).Where(songIndex => trigramCountBySong[songIndex] == searchTrigrams.Length).Select(songIndex => songs[songIndex]);
 		}
 	}
 }

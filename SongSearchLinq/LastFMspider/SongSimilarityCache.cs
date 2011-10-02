@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using System.Data.SQLite;
 using System.Threading.Tasks;
 using System.Threading;
@@ -48,7 +49,7 @@ namespace LastFMspider {
 		void StartQueue() {
 			bool willStart = false;
 			lock (sync)
-				if (!isActive && BgLookupQueue.Count > 0)
+				if (!isActive && (BgLookupQueue.Count > 0))
 					willStart = isActive = true;
 
 			if (willStart)
@@ -59,5 +60,10 @@ namespace LastFMspider {
 			BgLookupQueue.Add(listtasks);
 			StartQueue();
 		}
+		internal void RefreshCacheIfNeeded(TrackSimilarityListInfo[] listtasks) {
+			BgLookupQueue.Add(listtasks.Where(simListInfo => LookupSimilarTracksHelper.IsFresh(simListInfo)).Select(simListInfo => simListInfo.TrackId).ToArray());
+			StartQueue();
+		}
+
 	}
 }

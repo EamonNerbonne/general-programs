@@ -9,6 +9,7 @@ namespace LastFMspider {
 		readonly double trigramCost, artistCost, titleCost, artistCanonicalizedCost, titleCanonicalizedCost, absoluteQualityCost;
 		public readonly double Cost;
 		public readonly SongFileData Song;
+		public SongFileData SongIfAcceptable { get { return GoodEnough ? Song : null; } }
 		public SongMatch(SongFileData Song, double trigramCost = 0.0, double artistCost = 0.0, double titleCost = 0.0, double artistCanonicalizedCost = 0.0, double titleCanonicalizedCost = 0.0, double absoluteQualityCost = 0.0) {
 			this.trigramCost = trigramCost;
 			this.artistCost = artistCost;

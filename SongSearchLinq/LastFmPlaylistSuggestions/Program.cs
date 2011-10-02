@@ -29,7 +29,7 @@ namespace LastFmPlaylistSuggestions {
 			foreach (var m3ufile in m3us) {
 				try {
 					using (new DTimer("Processing " + m3ufile.Name))
-						ProcessM3U(tools, searchEngine.FindBestMatch, m3ufile.AsInfo(), m3uDir.AsInfo());
+						ProcessM3U(tools, searchEngine.FindAnyMatch, m3ufile.AsInfo(), m3uDir.AsInfo());
 				} catch (Exception e) {
 					Console.WriteLine("Unexpected error on processing " + m3ufile);
 					Console.WriteLine(e.ToString());
@@ -77,8 +77,10 @@ namespace LastFmPlaylistSuggestions {
 					unknown.Add,
 					oopsSong => Console.WriteLine("Can't deal with: " + oopsSong.HumanLabel + "\nat:" + oopsSong.SongUri.ToString()));
 
+			double lookupDur;
 			//OK, so we now have the playlist in the var "playlist" with knowns in "known" except for the unknowns, which are in "unknown" as far as possible.
-			var res = FindSimilarPlaylist.ProcessPlaylist(tools, fuzzySearch, known.Select(song=>song.PossibleSongs.FirstOrDefault()).Concat(unknown), 1000);
+			var res = FindSimilarPlaylist.ProcessPlaylist(tools,
+				songref => fuzzySearch(songref).SongIfAcceptable, known, unknown, out lookupDur, 1000);
 
 			FileInfo outputplaylist = new FileInfo(Path.Combine(m3uDir.FullName, Path.GetFileNameWithoutExtension(m3ufile.Name) + "-similar.m3u"));
 			using (var stream = outputplaylist.Open(FileMode.Create))
@@ -94,7 +96,7 @@ namespace LastFmPlaylistSuggestions {
 							track.cost,
 							songref,
 							tools.FindByName[songref].Any() ? "" : "***",
-							string.Join(";  ", track.basedOn.Select(id => tools.LastFmCache.LookupTrack.Execute(id).ToString()).ToArray())
+							string.Join(";  ", track.basedOn.Select(songWithCost => tools.LastFmCache.LookupTrack.Execute(songWithCost.trackid).ToString()).ToArray())
 						);
 				}
 			}

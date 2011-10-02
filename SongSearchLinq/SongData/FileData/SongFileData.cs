@@ -19,6 +19,7 @@ namespace SongDataLib {
 		public readonly int year, track, trackcount, bitrate, length, samplerate, channels;
 		public readonly double? track_gain;
 		public int? rating;
+		public uint TrackID;
 		public readonly int filesize;
 		DateTime m_lastWriteTimeUtc;
 		public Popularity popularity = new Popularity { ArtistPopularity = 0, TitlePopularity = 0 };
