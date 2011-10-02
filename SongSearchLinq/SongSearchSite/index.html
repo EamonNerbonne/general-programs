@@ -8,23 +8,26 @@
     <!--    <link rel="Stylesheet" href="ui-lightness/jquery-ui-1.8.11.custom.css" type="text/css" />-->
 </head>
 <body>
-    <div class="similarItemsDisplay">
-        <div class="scrollable">
-            <div id="similar">
-                <ul class="known">
+    <!--scrollable-->
+    <div id="playlistsAndSimilarTracks">
+        <div id="msgPerf">
+        </div>
+        <div id="playlistForm">
+            <div id="playlistNameBox">
+                <input type="checkbox" id="showOnlyOwnLists" />Show only my playlists<br />
+                Playlist:
+                <input id="playlistName" type="text" name="playlistName" autocomplete="off" />
+                <div class="help">
+                    fill in name save playlist, clear to delete playlist</div>
+            </div>
+            <ul id="playlistNames">
+            </ul>
+        </div>
+        <div id="similar">
+            <div id="similarScrollable">
+                <ul id="similarKnown">
                 </ul>
-                <div id="playlistForm">
-                    <div id="playlistNameBox">
-                        <input type="checkbox" id="showOnlyOwnLists" />Show only my playlists<br />
-                        Playlist:
-                        <input id="playlistName" type="text" name="playlistName" autocomplete="off" />
-                        <div class="help">
-                            fill in name save playlist, clear to delete playlist</div>
-                    </div>
-                    <ul id="playlistNames">
-                    </ul>
-                </div>
-                <ul class="unknown">
+                <ul id="similarUnknown">
                 </ul>
             </div>
         </div>

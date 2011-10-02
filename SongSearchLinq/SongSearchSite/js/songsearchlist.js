@@ -232,7 +232,7 @@ $(document).ready(function ($) {
                     .click(playlistClick).dblclick(playlistClick); //TODO: enable drag/drop.
             playlistDragnDropInit();
 
-            $("#similar .known").click(knownClick);
+            $("#similar #similarKnown").click(knownClick);
 
             playlistStorage.loadLastList();
         },
@@ -365,7 +365,7 @@ $(document).ready(function ($) {
 
 
     var isGetQueued = false;
-    var leftColSel = $(".similarItemsDisplay"), knownSel = $("#similar .known"), unknownSel = $("#similar .unknown");
+    var similarColSel = $("#similar"), perfMsgSel = $("#msgPerf"), knownSel = $("#similarKnown"), unknownSel = $("#similarUnknown");
 
     function updateSimilarDisplay(data) {
         var known = data.known, unknown = data.unknown;
@@ -373,7 +373,7 @@ $(document).ready(function ($) {
         for (var i = 0; i < unknown.length; i++)
             unknownSel.append($(document.createElement("li")).text(unknown[i]));
         knownSel.empty();
-        leftColSel.removeClass("waiting");
+        similarColSel.removeClass("waiting");
         for (var i = 0; i < known.length; i++) {
             knownSel.append(
                 $(document.createElement("li"))
@@ -404,30 +404,31 @@ $(document).ready(function ($) {
             else {
                 isGetQueued = false;
                 simStateSet.current = "getting";
-                leftColSel.removeClass("proc-error");
-                leftColSel.removeAttr("data-errname");
-                leftColSel.removeAttr("data-errtrace");
-                leftColSel.removeAttr("data-errmsg");
-                leftColSel.addClass("processing");
+                similarColSel.removeClass("proc-error");
+                similarColSel.removeAttr("data-errname");
+                similarColSel.removeAttr("data-errtrace");
+                similarColSel.removeAttr("data-errmsg");
+                similarColSel.addClass("processing");
                 getSimilarImpl();
             }
         },
         done: function (data) {
             if (!data || data.error || !data.known || !data.unknown) { this.error("data-error", false, data); }
             else {
-                if (mouseInSimilar) { simDispDataWait = data; leftColSel.addClass("waiting"); }
+                if (mouseInSimilar) { simDispDataWait = data; similarColSel.addClass("waiting"); }
                 else updateSimilarDisplay(data);
-                leftColSel.attr("data-lookups", data.lookups);
-                leftColSel.attr("data-weblookups", data.weblookups);
-                leftColSel.attr("data-milliseconds", data.milliseconds);
+                perfMsgSel.attr("data-lookups", data.lookups);
+                perfMsgSel.attr("data-weblookups", data.weblookups);
+                perfMsgSel.attr("data-milliseconds", data.milliseconds);
+                perfMsgSel.attr("data-simdb-ms", data.msSimDb);
 
                 if (simStateSet.current == "done") return;
                 simStateSet.current = "done";
-                leftColSel.removeClass("proc-error");
-                leftColSel.removeAttr("data-errname");
-                leftColSel.removeAttr("data-errtrace");
-                leftColSel.removeAttr("data-errmsg");
-                leftColSel.removeClass("processing");
+                similarColSel.removeClass("proc-error");
+                similarColSel.removeAttr("data-errname");
+                similarColSel.removeAttr("data-errtrace");
+                similarColSel.removeAttr("data-errmsg");
+                similarColSel.removeClass("processing");
                 if (isGetQueued)
                     simStateSet.getting();
             }
@@ -436,16 +437,16 @@ $(document).ready(function ($) {
             dataStatus = status || dataStatus;
             isGetQueued = isGetQueued || retry;
             if (errordetail) {
-                leftColSel.attr("data-errmsg", errordetail.message);
-                leftColSel.attr("data-errtrace", errordetail.fulltrace);
-                leftColSel.attr("data-errname", errordetail.error);
-            } else leftColSel.attr("data-errname", dataStatus);
+                similarColSel.attr("data-errmsg", errordetail.message);
+                similarColSel.attr("data-errtrace", errordetail.fulltrace);
+                similarColSel.attr("data-errname", errordetail.error);
+            } else similarColSel.attr("data-errname", dataStatus);
 
             if (simStateSet.current == "error") return;
             simStateSet.current = "error";
-            leftColSel.addClass("proc-error");
-            leftColSel.removeClass("processing");
-            leftColSel.removeAttr("data-lookups");
+            similarColSel.addClass("proc-error");
+            similarColSel.removeClass("processing");
+            perfMsgSel.removeAttr("data-lookups");
             if (isGetQueued)
                 simStateSet.getting();
         },
@@ -456,7 +457,7 @@ $(document).ready(function ($) {
 
     var mouseInSimilar = false;
     knownSel.mouseenter(function (e) { mouseInSimilar = true; });
-    knownSel.add(leftColSel).mouseleave(function (e) {
+    knownSel.add(similarColSel).mouseleave(function (e) {
         mouseInSimilar = false;
         if (simDispDataWait) {
             updateSimilarDisplay(simDispDataWait);

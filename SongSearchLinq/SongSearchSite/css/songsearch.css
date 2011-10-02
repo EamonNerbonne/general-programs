@@ -38,15 +38,6 @@ body {
     background: #fdf6e3;
     color: #586e75;
 }
-.scrollable {
-    position: absolute;
-    overflow-y: auto;
-    overflow-x: hidden;
-    top: 2.2em;
-    bottom: 0;
-    left: 0;
-    right: 0;
-}
 
 a {
     color: #268bd2;
@@ -260,7 +251,7 @@ a:focus {
     color: #073642;
 }
 
-.similarItemsDisplay {
+#playlistsAndSimilarTracks {
     position: absolute;
     left: 30em;
     right: 0;
@@ -268,39 +259,53 @@ a:focus {
     margin-bottom: -3em;
     top: 0;
 }
-#similar {
-    padding-top: 0.3em;
+
+
+#playlistForm {
+    position: absolute;
+    top: 2.2em;
+    bottom: 0;
+    left: 0;right:55%; 
 }
-.known, .unknown {
+
+#similar {
+    position: absolute;
+    top: 2.2em;
+    bottom: 0;
+    left:45%;right: 0; 
+}
+
+#similarScrollable {
+    position: absolute;
+    width:100%;height:100%;
+}
+
+#similarScrollable, #playlistForm {
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+#similarKnown, #similarUnknown {
     display: block;
     margin: 0;
-    padding: 0;
-    padding-left: 1%;
-    padding-right: 1%;
+    padding: 0.3em;
 }
-.unknown {
-    float: left;
-    width: 35%;
+#similarUnknown {
     color: #93a1a1;
     font-size: 80%;
 }
-.known {
-    float: right;
-    width: 60%;
-}
-.known li, .unknown li {
+#similarKnown li, #similarUnknown li {
     display: block;
     font-size: 80.0%;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
-.known li {
+#similarKnown li {
     cursor: pointer;
     border-bottom: 1px solid #eee8d5;
     position: relative;
 }
-#playlistForm {padding-left:0.5em;float:left;width:36%;}
 #playlistName {width:13em;}
 #playlistNameBox >.help {visibility:hidden; font-style:italic; font-size:80%;}
 #playlistNameBox >#playlistName:focus + .help {visibility:visible;}
@@ -319,9 +324,25 @@ a:focus {
     padding-right: 0.5em;
 }
 
-.similarItemsDisplay:before {
+#msgPerf {
     display: block;
     position: absolute;
+    top: 0.5em;
+    right: 60%;
+    text-align: right;
+    font-size: 60%;
+    z-index: -1;
+    color: #93a1a1;
+}
+
+#msgPerf[data-lookups]:after {
+    content: attr(data-simdb-ms)  ":" attr(data-milliseconds)  "ms; " attr(data-lookups) "sql; " attr(data-weblookups) "webT; ";
+}
+
+#similar:before {
+    display: block;
+    position: absolute;
+    
     top: 50%;
     width: 100%;
     text-align: center;
@@ -332,27 +353,22 @@ a:focus {
     content: "Similar Tracks";
     border-radius: 1em;
 }
-.similarItemsDisplay[data-lookups]:after {
-    display: block;
-    position: absolute;
-    top: 0.5em;
-    right: 60%;
-    text-align: right;
-    font-size: 60%;
-    z-index: -1;
-    color: #93a1a1;
-    content: attr(data-milliseconds) "ms; " attr(data-lookups) "sql; " attr(data-weblookups) "webT; ";
+#similar:before {
+    content: "Similar Tracks";
 }
-
-
-.processing:before {
+#similar.processing:before {
     content: "Getting Similar Tracks...";
 }
-.proc-error:before {
+#similar.proc-error:before {
     color: #cb4b16;
     content: "Error (" attr(data-errname) ")";
 }
-.proc-error[data-errtrace]:after {
+#similar.waiting:before {
+    content: "Suggestions Ready!";
+    color: #b58900;
+}
+
+#similar.proc-error[data-errtrace]:after {
     display: block;
     position: absolute;
     padding: 0.5em;
@@ -367,10 +383,6 @@ a:focus {
     box-shadow: 0 0 1.0em #eee8d5;
     border-radius: 1em;
     content: attr(data-errtrace);
-}
-.waiting:before {
-    content: "Suggestions Ready!";
-    color: #b58900;
 }
 
 
@@ -393,13 +405,6 @@ a:focus {
     font-weight: bold;
     color: #839496;
     font-size: 100%;
-}
-
-
-
-.jp-controls button {
-    padding: 0;
-    margin: 0;
 }
 .jp-playlistBox:before {
     display: block;
@@ -572,19 +577,6 @@ li[data-staticrating] > div {
     background: #6c71c4;
 }
 
-#audio-container {
-    padding: 0.5em;
-    font-size: 80%;
-}
-#audio-container audio {
-    display: block;
-    width: 100%;
-}
-#audio-container object {
-    display: block;
-    width: 100%;
-    margin-top: 0.5em;
-}
 h3 {
     font-size: 110%;
     margin: 0 0 0.5em 0;
@@ -600,6 +592,3 @@ td {
     display: none;
 }
 
-#savePlaylistIframe {
-    display: none;
-}

@@ -5,10 +5,6 @@ div.jp-interface
     min-width: 20em;
     box-shadow:0 0 0.5em #93a1a1;
 }
-div.jp-single-player div.jp-interface
-{
-    border-bottom: none;
-}
 .jp-playlist-player
 {
     position: absolute;
