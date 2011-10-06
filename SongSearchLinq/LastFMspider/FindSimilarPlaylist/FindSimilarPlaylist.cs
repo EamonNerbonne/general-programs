@@ -19,6 +19,7 @@ namespace LastFMspider {
 			public int ResultsCount() { return knownTracks.Count + unknownTracks.Count; }
 			public int LookupsDone;
 			public int LookupsWebTotal;
+			public int SqlErrorsTotal;
 		}
 		static bool NeverAbort(int i) { return false; }
 
@@ -146,6 +147,7 @@ namespace LastFMspider {
 
 				Console.WriteLine("{0} similar tracks generated, of which {1} found locally.", res.ResultsCount(), res.knownTracks.Count);
 				res.LookupsWebTotal = LookupSimilarTracksHelper.WebLookupsSoFar();
+				res.SqlErrorsTotal = SongSimilarityCache.ErrorCount;
 				return new { sw.Elapsed.TotalMilliseconds, res };
 			});
 			simLookupMs = lookupRes.TotalMilliseconds;

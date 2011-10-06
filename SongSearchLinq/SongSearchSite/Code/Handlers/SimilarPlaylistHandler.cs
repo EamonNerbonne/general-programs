@@ -60,6 +60,7 @@ namespace SongSearchSite.Code.Handlers {
 							unknown = unknownForJson,
 							lookups = res.LookupsDone,
 							weblookups = res.LookupsWebTotal,
+							lookuperrs = res.SqlErrorsTotal,
 							milliseconds = (int)timer.ElapsedMilliseconds,
 							msSimDb = (int)(lookupDur+0.5)
 						}

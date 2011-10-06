@@ -30,9 +30,11 @@ namespace LastFMspider {
 
 		public ArtistSimilarityList LookupSimilarArtists(string artist, TimeSpan fromDays = default(TimeSpan)) { return ToolsInternal.LookupSimilarArtists(tools.LastFmCache, artist, fromDays); }
 
+
 		readonly ConcurrentBag<TrackId[]> BgLookupQueue = new ConcurrentBag<TrackId[]>();
 		bool isActive;
 		readonly object sync = new object();
+		public static int ErrorCount;
 
 		void ProcessQueue() {
 			TrackId[] tracksToUpdate;
@@ -40,7 +42,9 @@ namespace LastFMspider {
 				foreach (var track in tracksToUpdate)
 					try {
 						LookupSimilarTracksHelper.RefreshCache(tools.LastFmCache, track);
-					} catch (SQLiteException) { }
+					} catch (SQLiteException) {
+						Interlocked.Increment(ref ErrorCount);
+					}
 			lock (sync)
 				isActive = false;
 			StartQueue();
@@ -61,9 +65,8 @@ namespace LastFMspider {
 			StartQueue();
 		}
 		internal void RefreshCacheIfNeeded(TrackSimilarityListInfo[] listtasks) {
-			BgLookupQueue.Add(listtasks.Where(simListInfo => LookupSimilarTracksHelper.IsFresh(simListInfo)).Select(simListInfo => simListInfo.TrackId).ToArray());
+			BgLookupQueue.Add(listtasks.Where(simListInfo => !LookupSimilarTracksHelper.IsFresh(simListInfo)).Select(simListInfo => simListInfo.TrackId).ToArray());
 			StartQueue();
 		}
-
 	}
 }

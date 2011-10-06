@@ -419,6 +419,7 @@ $(document).ready(function ($) {
                 else updateSimilarDisplay(data);
                 perfMsgSel.attr("data-lookups", data.lookups);
                 perfMsgSel.attr("data-weblookups", data.weblookups);
+                perfMsgSel.attr("data-lookuperrs", data.lookuperrs);
                 perfMsgSel.attr("data-milliseconds", data.milliseconds);
                 perfMsgSel.attr("data-simdb-ms", data.msSimDb);
 
