@@ -49,7 +49,7 @@ let heuristics =
         ({ DataSettings = on; ModelSettings = s.ModelSettings}, { DataSettings = off; ModelSettings = s.ModelSettings}))}
     let heurM name code activator = 
         {
-            Name = ResultAnalysis.latexLiteral code + " --- "+ name;
+            Name = name;
             Code = code;
             Activator = (fun s ->
                 let (on, off) = activator s.ModelSettings
@@ -303,12 +303,12 @@ heuristics
         |> Utils.toDict fst ((Seq.map snd) >> Seq.sort >> Seq.toArray)
         |> (fun dict -> (Utils.getMaybe dict Better |> Utils.orDefault (Array.empty),  Utils.getMaybe dict Worse |> Utils.orDefault (Array.empty), Utils.getMaybe dict Irrelevant |> Utils.orDefault (Array.empty))) 
         |> (fun (better, worse, irrelevant) ->
-            (heur.Name, better.Length + worse.Length, irrelevant.Length, float better.Length / float (better.Length + worse.Length), better, worse,irrelevant)
+            (heur, better.Length + worse.Length, irrelevant.Length, float better.Length / float (better.Length + worse.Length), better, worse,irrelevant)
         )
     ) 
     |> Seq.toList
-    |> List.map (fun (name, count, ignoreCount,ratio, better, worse,irrelevant) ->
-            sprintf @"\noindent %s was an improvement in $%1.1f\%%$ of %i cases and irrelevant in %i:" name (100.*ratio) count ignoreCount + "\n\n"
+    |> List.map (fun (heur, count, ignoreCount,ratio, better, worse,irrelevant) ->
+            sprintf @"\section{%s} \noindent %s was an improvement in $%1.1f\%%$ of %i cases and irrelevant in %i:" (ResultAnalysis.latexLiteral heur.Code) heur.Name (100.*ratio) count ignoreCount + "\n\n"
             + sprintf @"\noindent\begin{longtable}{lrccl@{}r}\toprule"  + "\n"
             + sprintf @"$p$-value & $\Delta\%%$ &\multicolumn{1}{c}{before}&\multicolumn{1}{c}{after}  & \multicolumn{2}{c}{Scenario} \\\midrule"  + "\n"
             + @"&&\multicolumn{2}{c}{Improved} \\ \cmidrule(r){3-4}" + "\n"
