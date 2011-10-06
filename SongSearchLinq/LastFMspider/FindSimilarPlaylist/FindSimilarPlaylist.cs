@@ -140,7 +140,8 @@ namespace LastFMspider {
 						Console.Write(msg.PadRight(16, ' '));
 					}
 				}
-				Task.Factory.ContinueWhenAll(bgLookupCache.Values.ToArray(), simListTasks => tools.SimilarSongs.RefreshCacheIfNeeded(simListTasks.Select(task => task.Result).ToArray()));
+				if(bgLookupCache.Any())
+					Task.Factory.ContinueWhenAll(bgLookupCache.Values.ToArray(), simListTasks => tools.SimilarSongs.RefreshCacheIfNeeded(simListTasks.Select(task => task.Result).ToArray()));
 				// bgLookupCache.Where(kvp => !LookupSimilarTracksHelper.IsFresh(kvp.Value.Result)).ToArray());	
 
 				Console.WriteLine("{0} similar tracks generated, of which {1} found locally.", res.ResultsCount(), res.knownTracks.Count);
