@@ -43,7 +43,7 @@ namespace EmnExtensions.IO {
 		public static LFile ConstructIfExists(string path) { return LongPathFile.Exists(path) ? new LFile(path) : null; }
 
 		public FileStream OpenRead() { return OpenRead(FullName); }
-		public static FileStream OpenRead(string pathOrUrl) { return LongPathFile.Open(pathOrUrl, FileMode.Open, FileAccess.Read); }
+		public static FileStream OpenRead(string pathOrUrl) { return LongPathFile.Open(pathOrUrl, FileMode.Open, FileAccess.Read, FileShare.Read); }
 
 		public Stream Open(FileMode fileMode) { return LongPathFile.Open(FullName, fileMode, FileAccess.ReadWrite); }
 
