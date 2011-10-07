@@ -23,7 +23,7 @@ namespace LastFMspider {
 		}
 		static bool NeverAbort(int i) { return false; }
 
-		public static SimilarPlaylistResults ProcessPlaylist(SongTools tools, Func<SongRef, SongFileData> fuzzySearch, IEnumerable<SongFileData> seedSongs, IEnumerable<SongRef> unknownSeedSongs, out double simLookupMs,
+		public static SimilarPlaylistResults ProcessPlaylist(SongTools tools, Func<TrackId, Tuple<SongRef, SongFileData>> fuzzySearch, IEnumerable<SongFileData> seedSongs, IEnumerable<SongRef> unknownSeedSongs, out double simLookupMs,
 	int MaxSuggestionLookupCount = 100, int SuggestionCountTarget = 50, Func<int, bool> shouldAbort = null
 	) {
 			var simSongDb = tools.LastFmCache;
@@ -41,7 +41,25 @@ namespace LastFMspider {
 				out simLookupMs, MaxSuggestionLookupCount, SuggestionCountTarget, shouldAbort);
 		}
 
-		public static SimilarPlaylistResults ProcessPlaylist(SongTools tools, Func<SongRef, SongFileData> fuzzySearch, IEnumerable<TrackId> seedSongs, HashSet<SongFileData> seedSongSet, out double simLookupMs,
+		static Tuple<SongRef, SongFileData> GetSong(SongTools tools, Func<SongRef, SongFileData> fuzzySearch, TrackId trackId) {
+			//			return cache.GetOrAdd(trackId, id => {
+			var currentSongRef = tools.LastFmCache.LookupTrack.Execute(trackId);
+			return Tuple.Create(currentSongRef,
+						currentSongRef == null ? default(SongFileData)
+						: tools.FindByName[currentSongRef].Any() ? (
+							from songcandidate in tools.FindByName[currentSongRef]
+							orderby SongMatch.AbsoluteSongCost(songcandidate)
+							select songcandidate).First()
+							: fuzzySearch(currentSongRef));
+			//		});
+		}
+
+		public static Func<TrackId, Tuple<SongRef, SongFileData>> UncachedFuzzySearch(SongTools tools, FuzzySongSearcher searcher) {
+			return trackid => GetSong(tools, searcher.FindAcceptableMatch, trackid);
+		}
+
+
+		public static SimilarPlaylistResults ProcessPlaylist(SongTools tools, Func<TrackId, Tuple<SongRef, SongFileData>> fuzzySearch, IEnumerable<TrackId> seedSongs, HashSet<SongFileData> seedSongSet, out double simLookupMs,
 			int MaxSuggestionLookupCount = 100, int SuggestionCountTarget = 50, Func<int, bool> shouldAbort = null
 			) {
 
@@ -93,13 +111,12 @@ namespace LastFMspider {
 					currentSong.index = -1;
 					if (currentSong.graphDist != 0) {
 						res.similarList.Add(currentSong);
-						object songOrRef = GetSong(simSongDb, tools, fuzzySearch, currentSong.trackid);
-						if (songOrRef != null) {
-							if (songOrRef is SongRef)
-								res.unknownTracks.Add((SongRef)songOrRef);
-							else if (!seedSongSet.Contains((SongFileData)songOrRef))
-								res.knownTracks.Add((SongFileData)songOrRef);
-						}
+						var songOrRef = fuzzySearch(currentSong.trackid);
+						if (songOrRef.Item2 != null) {
+							if (!seedSongSet.Contains(songOrRef.Item2))
+								res.knownTracks.Add(songOrRef.Item2);
+						} else if (songOrRef.Item1 != null)
+							res.unknownTracks.Add(songOrRef.Item1);
 					}
 
 #if !NOPRECACHE
@@ -117,7 +134,7 @@ namespace LastFMspider {
 							similarSong.basedOn.Add(srcSong);
 							srcSong.dependants.Add(similarSong);
 						}
-						double directCost = (simRank + similarSong.basedOn.Select(srcSong => srcSong.dependants.Count + 50).Sum()) / (similarSong.basedOn.Count * Math.Sqrt(similarSong.basedOn.Count));
+						double directCost = (simRank + similarSong.basedOn.Sum(srcSong => srcSong.dependants.Count + 50)) / (similarSong.basedOn.Count * Math.Sqrt(similarSong.basedOn.Count));
 						simRank++;
 						if (similarSong.index == -1 && similarSong.cost < double.PositiveInfinity) //not in heap but with cost: we've already been fully processed!
 							continue;
@@ -141,7 +158,7 @@ namespace LastFMspider {
 						Console.Write(msg.PadRight(16, ' '));
 					}
 				}
-				if(bgLookupCache.Any())
+				if (bgLookupCache.Any())
 					Task.Factory.ContinueWhenAll(bgLookupCache.Values.ToArray(), simListTasks => tools.SimilarSongs.RefreshCacheIfNeeded(simListTasks.Select(task => task.Result).ToArray()));
 				// bgLookupCache.Where(kvp => !LookupSimilarTracksHelper.IsFresh(kvp.Value.Result)).ToArray());	
 
@@ -156,17 +173,5 @@ namespace LastFMspider {
 
 		//static readonly ConcurrentDictionary<TrackId, object> cache = new ConcurrentDictionary<TrackId, object>();
 
-		static object GetSong(LastFMSQLiteCache simSongDb, SongTools tools, Func<SongRef, SongFileData> fuzzySearch, TrackId trackId) {
-//			return cache.GetOrAdd(trackId, id => {
-				var currentSongRef = simSongDb.LookupTrack.Execute(trackId);
-				return currentSongRef == null ? null
-						: (tools.FindByName[currentSongRef].Any() ? (
-								from songcandidate in tools.FindByName[currentSongRef]
-								orderby SongMatch.AbsoluteSongCost(songcandidate)
-								select songcandidate
-							  ).First()
-						: (fuzzySearch(currentSongRef) ?? (object)currentSongRef));
-	//		});
-		}
 	}
 }

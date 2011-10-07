@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using System.Web;
 using EmnExtensions.Text;
 using LastFMspider;
+using LastFMspider.LastFMSQLiteBackend;
 using SongDataLib;
 //using SuffixTreeLib;
 
@@ -85,6 +86,7 @@ namespace SongSearchSite {
 		Task<SearchableSongFiles> searchEngine;
 		SongTools tools;
 		Task<FuzzySongSearcher> fuzzySearcher;
+		Task<Func<TrackId, Tuple<SongRef, SongFileData>>> fuzzyTrackLookup;
 		PlaylistDb playlistDb;
 		ConcurrentDictionary<SortOrdering, int[]> rankMap;
 
@@ -98,7 +100,7 @@ namespace SongSearchSite {
 		bool isFresh;
 		DateTime loaded;
 
-		private void Init() {
+		void Init() {
 			if (isFresh)
 				return;
 			isFresh = true;
@@ -122,6 +124,13 @@ namespace SongSearchSite {
 
 			searchEngine = searchData.ContinueWith(sd => new SearchableSongFiles(sd.Result, null));
 			fuzzySearcher = searchData.ContinueWith(sd => new FuzzySongSearcher(tools.SongFilesSearchData.Songs));
+			fuzzyTrackLookup = fuzzySearcher.ContinueWith(searcherTask => {
+				var uncached = FindSimilarPlaylist.UncachedFuzzySearch(tools, searcherTask.Result);
+				var cache = new ConcurrentDictionary<TrackId, Tuple<SongRef, SongFileData>>();
+
+				return (Func<TrackId, Tuple<SongRef, SongFileData>>)(trackid => cache.GetOrAdd(trackid, uncached));
+			});
+
 			playlistDb = new PlaylistDb(tools.ConfigFile);
 			localSongs = searchData.ContinueWith(sd =>
 				new SortedList<string, SongFileData>(
@@ -147,6 +156,8 @@ namespace SongSearchSite {
 		private SongDbContainer() { Init(); }
 		public static SearchableSongFiles SearchableSongDB { get { return Singleton.searchEngine.Result; } }
 		public static FuzzySongSearcher FuzzySongSearcher { get { return Singleton.fuzzySearcher.Result; } }
+		public static Func<TrackId, Tuple<SongRef, SongFileData>> MemoizedFuzzyTrackLookup { get { return Singleton.fuzzyTrackLookup.Result; } }
+
 		public static SongTools LastFmTools { get { return Singleton.tools; } }
 		public static PlaylistDb PlaylistDb { get { return Singleton.playlistDb; } }
 		public static DateTime LoadTime { get { return Singleton.loaded; } }
@@ -178,5 +189,6 @@ namespace SongSearchSite {
 			string songNormedPath = appRelativeUri.Substring(songsPrefix.Length);
 			return GetSongByNormalizedPath(songNormedPath);
 		}
+
 	}
 }

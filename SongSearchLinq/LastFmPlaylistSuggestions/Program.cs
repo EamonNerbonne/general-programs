@@ -9,9 +9,7 @@ using LastFMspider;
 using SongDataLib;
 
 namespace LastFmPlaylistSuggestions {
-
-
-	class Program {
+	static class Program {
 		static void Main(string[] args) {
 			//args.PrintAllDebug();
 			//Console.ReadLine();
@@ -29,7 +27,7 @@ namespace LastFmPlaylistSuggestions {
 			foreach (var m3ufile in m3us) {
 				try {
 					using (new DTimer("Processing " + m3ufile.Name))
-						ProcessM3U(tools, searchEngine.FindAnyMatch, m3ufile.AsInfo(), m3uDir.AsInfo());
+						ProcessM3U(tools, searchEngine, m3ufile.AsInfo(), m3uDir.AsInfo());
 				} catch (Exception e) {
 					Console.WriteLine("Unexpected error on processing " + m3ufile);
 					Console.WriteLine(e.ToString());
@@ -66,7 +64,7 @@ namespace LastFmPlaylistSuggestions {
 			}
 		}
 
-		static void ProcessM3U(SongTools tools, Func<SongRef, SongMatch> fuzzySearch, FileInfo m3ufile, DirectoryInfo m3uDir) {
+		static void ProcessM3U(SongTools tools, FuzzySongSearcher fuzzySearcher, FileInfo m3ufile, DirectoryInfo m3uDir) {
 			Console.WriteLine("Trying " + m3ufile.FullName);
 			IEnumerable<ISongFileData> playlist = SongFileDataFactory.LoadExtM3U(LFile.Construct(m3ufile));
 			var known = new List<SongFileData>();
@@ -79,8 +77,7 @@ namespace LastFmPlaylistSuggestions {
 
 			double lookupDur;
 			//OK, so we now have the playlist in the var "playlist" with knowns in "known" except for the unknowns, which are in "unknown" as far as possible.
-			var res = FindSimilarPlaylist.ProcessPlaylist(tools,
-				songref => fuzzySearch(songref).SongIfAcceptable, known, unknown, out lookupDur, 1000);
+			var res = FindSimilarPlaylist.ProcessPlaylist(tools, FindSimilarPlaylist.UncachedFuzzySearch(tools, fuzzySearcher), known, unknown, out lookupDur, 1000);
 
 			FileInfo outputplaylist = new FileInfo(Path.Combine(m3uDir.FullName, Path.GetFileNameWithoutExtension(m3ufile.Name) + "-similar.m3u"));
 			using (var stream = outputplaylist.Open(FileMode.Create))
@@ -108,7 +105,7 @@ namespace LastFmPlaylistSuggestions {
 				//        from trigram in 
 				foreach (var missingTrack in
 					from track in res.unknownTracks
-					let bestMatch = fuzzySearch(track)
+					let bestMatch = fuzzySearcher.FindAnyMatch(track)
 					let orderCost = bestMatch.Cost
 					orderby orderCost
 					select new { Search = track, Match = bestMatch.Song, Cost = bestMatch.Cost, Explain = bestMatch.Explain }

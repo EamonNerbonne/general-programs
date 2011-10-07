@@ -26,7 +26,7 @@ namespace SongSearchSite.Code.Handlers {
 				var res =
 					FindSimilarPlaylist.ProcessPlaylist(
 						 SongDbContainer.LastFmTools,
-						 SongDbContainer.FuzzySongSearcher.FindAcceptableMatch,
+						 SongDbContainer.MemoizedFuzzyTrackLookup,
 						playlistSongs,
 						new SongRef[]{},
 						out lookupDur,
