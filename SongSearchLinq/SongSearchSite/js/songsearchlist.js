@@ -695,7 +695,7 @@ $(document).ready(function ($) {
             var target = e.originalEvent.target;
             var targetPlaylistLI = $(target).parents().andSelf().filter("li").first();
             var sourcePlaylistLI = playlistElem.children().eq(draggedRawData.position);
-            if (targetPlaylistLI[0] === sourcePlaylistLI[0]) return true;
+            if (targetPlaylistLI[0] && targetPlaylistLI[0] === sourcePlaylistLI[0]) return true;
 
 
             var isDraggedFromThisBrowser = sourcePlaylistLI.length && sourcePlaylistLI.data("songdata").href == draggedData.href;
