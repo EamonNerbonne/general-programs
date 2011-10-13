@@ -168,7 +168,9 @@ $(document).ready(function ($) {
 
     // Local copy of jQuery selectors, for performance.
     var jpPlayTime = $("#jplayer_play_time");
+    var jpPlayTime_LastText;
     var jpTotalTime = $("#jplayer_total_time");
+    var jpTotalTime_LastText;
     function playlistClick(e) {
         if (!e) var e = window.event;
         var target = e.target || e.srcElement;
@@ -240,8 +242,13 @@ $(document).ready(function ($) {
         swfPath: ""
     })
 	.jPlayer("onProgressChange", function (loadPercent, playedPercentRelative, playedPercentAbsolute, playedTime, totalTime) {
-	    jpPlayTime.text($.jPlayer.convertTime(playedTime));
-	    jpTotalTime.text($.jPlayer.convertTime(totalTime));
+	    var playedTimeText = $.jPlayer.convertTime(playedTime),
+            totalTimeText = $.jPlayer.convertTime(totalTime);
+	    if (playedTimeText != jpPlayTime_LastText) 
+	        jpPlayTime.text(jpPlayTime_LastText = playedTimeText);
+	    if (totalTimeText != jpTotalTime_LastText)
+	        jpTotalTime.text(jpTotalTime_LastText = totalTimeText);
+
 	    if (useNotifications && !hasBeenNotified) {
 	        hasBeenNotified = true;
 	        if (window.webkitNotifications.checkPermission() != 0)
