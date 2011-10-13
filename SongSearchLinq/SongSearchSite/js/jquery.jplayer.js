@@ -91,7 +91,7 @@
         nativeSupport: true,
         flashSupport: true,
         customCssIds: false,
-        graphicsFix: true,
+        graphicsFix: false,
         errorAlerts: false,
         warningAlerts: false,
         position: "absolute",
@@ -115,6 +115,7 @@
 
     var _diagInit = {
         isPlaying: false,
+        isFrameRequested: false,
         src: "",
         loadPercent: 0,
         playedPercentRelative: 0,
@@ -287,9 +288,7 @@
                     self.config.isFileSet = true;
                     self.jPlayerOnProgressChange(0, 0, 0, 0, 0);
                     clearInterval(self.config.jPlayerControllerId);
-                    //self.config.audio.addEventListener("canplay", function () {
-                        self.config.audio.volume = self.config.volume * self.config.diag.gainScale / 100; // Fix for Chrome 4: Event solves initial volume not being set correctly.
-                    //}, false);
+                    self.config.audio.volume = self.config.volume * self.config.diag.gainScale / 100;
                     self.handlers.setButtons(false);
                 },
                 clearFile: function () {
@@ -372,7 +371,7 @@
             };
 
             var audioTypes = ["audio/ogg", "application/ogg", "audio/mpeg"];
-            var backends = ["html5", "flash" ]; //chrome's mp3 streaming support isn't too stellar; prefer flash.
+            var backends = ["html5", "flash"]; //chrome's mp3 streaming support isn't too stellar; prefer flash.
             var support = {};
             $.each(audioTypes, function (i, audioType) {
                 support[audioType] = $.grep(backends, function (backend, j) {
@@ -537,16 +536,35 @@
         },
         onProgressChangeCustom: function () { }, // Replaced in onProgressChange()
         jPlayerOnProgressChange: function (lp, ppr, ppa, pt, tt) { // Called from Flash / HTML5 interval
-            var diag = this.config.diag;
+            var config = this.config;
+            var diag = config.diag;
+            var cssSelector = config.cssSelector;
+            var customchange = this.onProgressChangeCustom;
             diag.loadPercent = lp;
             diag.playedPercentRelative = ppr;
             diag.playedPercentAbsolute = ppa;
             diag.playedTime = pt;
             diag.totalTime = tt;
-            this.config.cssSelector.loadBar.width(lp + "%"); //if loadBar doesn't exist, this doesn't do anything.
-            this.config.cssSelector.playBar.width(ppr + "%");
-            this.onProgressChangeCustom(lp, ppr, ppa, pt, tt);
-            this._forceUpdate();
+            if (diag.isFrameRequested) return;
+            diag.isFrameRequested = true;
+            function setProgressBarWidths(step) {
+                customchange(diag.loadPercent, diag.playedPercentRelative, diag.playedPercentAbsolute, diag.playedTime, diag.totalTime);
+                cssSelector.loadBar.width(diag.loadPercent + "%"); //if loadBar doesn't exist, this doesn't do anything.
+                cssSelector.playBar.width(diag.playedPercentRelative + "%");
+                diag.isFrameRequested = false;
+            }
+            
+            if (window.requestAnimationFrame)
+                window.requestAnimationFrame(setProgressBarWidths);
+            else if (window.mozRequestAnimationFrame)
+                window.mozRequestAnimationFrame(setProgressBarWidths);
+            else if (window.webkitRequestAnimationFrame)
+                window.webkitRequestAnimationFrame(setProgressBarWidths);
+            else
+             {
+                setProgressBarWidths();
+                this._forceUpdate();
+            }
         },
         jPlayerController: function (override) { // The HTML5 interval function.
             var pt = 0, tt = 0, ppa = 0, lp = 0, ppr = 0;
