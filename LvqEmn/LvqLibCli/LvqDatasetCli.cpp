@@ -1,5 +1,6 @@
 #include "StdAfx.h"
 #include "LvqDatasetCli.h"
+#include "LvqModelCli.h"
 
 #include "LvqTypedefs.h"
 #include "SmartSum.h"
@@ -27,11 +28,22 @@ namespace LvqLibCli {
 		: colors(colors)
 		, label(label)
 		, folds(folds)
-		, datasets( gcnew List<GcManualPtr<LvqDataset>^ >(1))
+		, datasets( gcnew array<GcManualPtr<LvqDataset>^ >(1))
 	{
-		datasets->Add(gcnew GcManualPtr<LvqDataset>( newDataset, MemAllocEstimateDataset(newDataset), FreeDataset) );
+		datasets[0] = gcnew GcManualPtr<LvqDataset>(newDataset, MemAllocEstimateDataset(newDataset), FreeDataset);
 		ExtendAndNormalize(newDataset,extend,normalizeDims);
 		DataShape shape = GetDataShape(newDataset);
+		pointCount = shape.pointCount;
+		dimCount = shape.dimCount;
+		classCount = shape.classCount;
+	}
+	LvqDatasetCli::LvqDatasetCli(String^label, int folds, ColorArray^ colors, array<GcManualPtr<LvqDataset>^ >^ newDatasets) 
+		: colors(colors)
+		, label(label)
+		, folds(folds)
+		, datasets(newDatasets)
+	{
+		DataShape shape = GetDataShape(datasets[0]->get());
 		pointCount = shape.pointCount;
 		dimCount = shape.dimCount;
 		classCount = shape.classCount;
@@ -49,6 +61,14 @@ namespace LvqLibCli {
 			return gcnew LvqDatasetCli(label,folds,extend,normalizeDims,colors,
 				CreateStarDataset(rngParamsSeed,rngInstSeed,dims,classCount*pointsPerClass, classCount,
 				starDims, numStarTails,starMeanSep,starClassRelOffset,randomlyRotate,noiseSigma,globalNoiseMaxSigma));
+	}
+
+	LvqDatasetCli^ LvqDatasetCli::ConstructByModelExtension(array<LvqModelCli^>^ models) {
+		array<GcManualPtr<LvqDataset>^ >^ newDatasets = gcnew array<GcManualPtr<LvqDataset>^ >(models->Length);
+		for(int i=0;i<newDatasets->Length;++i) {
+			newDatasets[i] = models[i]->ExtendDatasetByProjection(this, i);
+		}
+		return gcnew LvqDatasetCli("X"+label, folds, colors,newDatasets);
 	}
 
 	Tuple<double,double> ^ LvqDatasetCli::GetPcaNnErrorRate() {
