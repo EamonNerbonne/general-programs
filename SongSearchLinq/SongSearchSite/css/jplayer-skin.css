@@ -66,12 +66,14 @@ div.jp-load-bar
 {
     background: #fdf6e3;
     width: 0px;
+    position:absolute;
     height: 100%;
 }
 div.jp-play-bar
 {
     background: #268bd2;
     width: 0px;
+    position:absolute;
     height: 100%;
 }
 ul.jp-controls li.jp-volume-min
