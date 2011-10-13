@@ -22,6 +22,8 @@ protected:
 
 
 public:
+	virtual Matrix_NN PrototypeDistances(Matrix_NN const & points);
+
 	static const LvqModelSettings::LvqModelType ThisModelType = LvqModelSettings::GgmModelType;
 	//for templates:
 

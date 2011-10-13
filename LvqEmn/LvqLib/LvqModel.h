@@ -46,6 +46,8 @@ protected:
 	virtual bool IdenticalMu()const {return false;}
 
 public:
+	virtual Matrix_NN PrototypeDistances(Matrix_NN const & points)=0;
+
 	typedef std::queue<std::vector<double>> Statistics;
 	int epochsTrained;
 	double unscaledLearningRate() const { 

@@ -2,6 +2,7 @@
 #include "LgmLvqModel.h"
 #include "utils.h"
 #include "LvqConstants.h"
+#include "SmartSum.h"
 
 LgmLvqModel::LgmLvqModel( LvqModelSettings & initSettings)
 	: LvqModel(initSettings)
@@ -140,4 +141,16 @@ void LgmLvqModel::DoOptionalNormalization() {
 			for(size_t i=0;i<P.size();++i) normalizeProjection(P[i]);
 		}
 	}
+}
+
+
+Matrix_NN LgmLvqModel::PrototypeDistances(Matrix_NN const & points) {
+	Matrix_NN tmpPointsDiff, tmpPointsDiffProj, tmpDists;
+	Matrix_NN newPoints(prototype.size(), points.cols());
+	for(size_t protoI=0;protoI<prototype.size();++protoI) {
+		tmpPointsDiff.noalias() = points.colwise() - prototype[protoI];
+		tmpPointsDiffProj.noalias() = P[protoI] * tmpPointsDiff;
+		newPoints.row(protoI).noalias() = tmpPointsDiffProj.colwise().squaredNorm();
+	}
+	return newPoints;
 }

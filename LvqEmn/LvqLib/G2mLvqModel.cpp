@@ -252,3 +252,13 @@ G2mLvqPrototype::G2mLvqPrototype(Matrix_22 const & Binit, int protoLabel, Vector
 	, point(initialVal) 
 	, classLabel(protoLabel)
 { }
+
+
+Matrix_NN G2mLvqModel::PrototypeDistances(Matrix_NN const & points) {
+	Matrix_2N P_points = P*points;
+	Matrix_NN newPoints(prototype.size(), points.cols());
+	for(size_t protoI=0;protoI<prototype.size();++protoI) {
+		newPoints.row(protoI).noalias() = (prototype[protoI].B * (P_points.colwise() - prototype[protoI].P_point)).colwise().squaredNorm();
+	}
+	return newPoints;
+}

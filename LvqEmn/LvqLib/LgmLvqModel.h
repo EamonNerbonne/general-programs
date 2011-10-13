@@ -23,6 +23,8 @@ protected:
 
 
 public:
+	virtual Matrix_NN PrototypeDistances(Matrix_NN const & points);
+
 	static const LvqModelSettings::LvqModelType ThisModelType = LvqModelSettings::LgmModelType;
 	inline int PrototypeLabel(int protoIndex) const {return pLabel(protoIndex);}
 	inline int PrototypeCount() const {return static_cast<int>(pLabel.size());}
