@@ -22,7 +22,18 @@ public:
 		CombineWith(valA, weight);
 	}
 
-	void CombineWith(ArrayT const & val, double weight) {
+	/*void CombineWith(ArrayT const & val, double weight) {
+		if(weight == 0.0) return;//ignore zero-weight stuff...
+		double newWeightSum = weightSum + weight;
+		double mScale = weight / newWeightSum;
+		double sScale = weightSum * weight / newWeightSum;
+		weightSum = newWeightSum;
+		sX += (val - meanX) *(val - meanX) * sScale;
+		meanX += (val - meanX) * mScale;
+	}*/
+
+	template <typename Derived>
+	void CombineWith(ArrayBase<Derived> const & val, double weight) {
 		if(weight == 0.0) return;//ignore zero-weight stuff...
 		double newWeightSum = weightSum + weight;
 		double mScale = weight / newWeightSum;
@@ -31,6 +42,7 @@ public:
 		sX += (val - meanX) *(val - meanX) * sScale;
 		meanX += (val - meanX) * mScale;
 	}
+
 
 	void CombineWithSum(SmartSum const & other) {
 		double newWeightSum = weightSum + other.weightSum;
