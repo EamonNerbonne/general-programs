@@ -210,3 +210,7 @@ extern "C"  CostAndErrorRate ComputeCostAndErrorRate(LvqDataset const * dataset,
 	CostAndErrorRate result = { stats.meanCost(), stats.errorRate()};
 	return result;
 }
+
+extern "C" LvqDataset* CreateExtendedDataset(LvqDataset const * dataset, int fold,int foldCount, LvqModel const * model) {
+	return dataset->ExtendUsingModel(fold, foldCount, *model);
+}
