@@ -432,3 +432,21 @@ int LvqDataset::GetTestSubsetSize(int fold, int foldcount) const {
 	return totalLength;
 }
 
+
+LvqDataset* LvqDataset::ExtendUsingModel(int fold,int foldCount, LvqModel const & model) const {
+	Matrix_NN protoDistances = model.PrototypeDistances(points);
+	assert(points.cols()==protoDistances.cols());
+
+	vector<int> trainingset = this->GetTrainingSubset(fold,foldCount);
+	SmartSum<Eigen::Dynamic> distribution(protoDistances.rows());
+	for_each(trainingset.cbegin(),trainingset.cend(),[&](int colIndex) {
+		distribution.CombineWith(protoDistances.col(colIndex).array(), 1.0);
+	});
+
+
+	Matrix_NN newPoints(points.rows() + protoDistances.rows(), points.cols());
+	newPoints.topRows(points.rows()).noalias() = points;
+	newPoints.bottomRows(protoDistances.rows()).noalias() = distribution.GetSampleVariance().sqrt().inverse().matrix().asDiagonal() * (protoDistances.colwise() - distribution.GetMean().matrix());
+	
+	return new LvqDataset(newPoints, pointLabels, classCount);//classcount, and labels unchanged!
+}

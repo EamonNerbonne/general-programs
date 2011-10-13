@@ -47,19 +47,26 @@ private:
 	int classCount;
 	LvqDataset(LvqDataset const & src, std::vector<int> const & subset);
 public:
-	Matrix_NN const & getPoints()const {return points;}
-	std::vector<int> const & getPointLabels()const {return pointLabels;}
-	int getClassCount()const {return classCount;}
-	int getPointCount()const {return static_cast<int>(pointLabels.size());}
+	LvqDataset(Matrix_NN const & points, std::vector<int> pointLabels, int classCount);
+	LvqDataset* Extract(std::vector<int> const & subset) const;
+	LvqDataset* ExtendUsingModel(int fold,int foldCount, LvqModel const & model) const;
+
+
 	void shufflePoints(boost::mt19937& rng);
 	void ExtendByCorrelations();
 	void NormalizeDimensions();
 
-	LvqDataset* Extract(std::vector<int> const & subset) const;
+
+
+	Matrix_NN const & getPoints()const {return points;}
+	std::vector<int> const & getPointLabels()const {return pointLabels;}
+	int getClassCount()const {return classCount;}
+	int getPointCount()const {return static_cast<int>(pointLabels.size());}
+
+
 	Matrix_NN ExtractPoints(std::vector<int> const & subset) const;
 	std::vector<int> ExtractLabels(std::vector<int> const & subset) const;
 
-	LvqDataset(Matrix_NN const & points, std::vector<int> pointLabels, int classCount);
 	Matrix_NN ComputeClassMeans(std::vector<int> const & subset) const;
 	Matrix_P ComputePcaProjection(std::vector<int> const & subset) const;
 
