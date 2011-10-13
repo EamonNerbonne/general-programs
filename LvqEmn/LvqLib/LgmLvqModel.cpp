@@ -144,13 +144,13 @@ void LgmLvqModel::DoOptionalNormalization() {
 }
 
 
-Matrix_NN LgmLvqModel::PrototypeDistances(Matrix_NN const & points) {
+Matrix_NN LgmLvqModel::PrototypeDistances(Matrix_NN const & points) const {
 	Matrix_NN tmpPointsDiff, tmpPointsDiffProj, tmpDists;
 	Matrix_NN newPoints(prototype.size(), points.cols());
 	for(size_t protoI=0;protoI<prototype.size();++protoI) {
 		tmpPointsDiff.noalias() = points.colwise() - prototype[protoI];
 		tmpPointsDiffProj.noalias() = P[protoI] * tmpPointsDiff;
-		newPoints.row(protoI).noalias() = tmpPointsDiffProj.colwise().squaredNorm();
+		newPoints.row(protoI).noalias() = tmpPointsDiffProj.colwise().norm();//not squaredNorm?
 	}
 	return newPoints;
 }

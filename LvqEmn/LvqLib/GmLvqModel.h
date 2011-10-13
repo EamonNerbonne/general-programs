@@ -25,7 +25,7 @@ protected:
 	virtual void AppendOtherStats(std::vector<double> & stats, LvqDataset const * trainingSet, std::vector<int>const & trainingSubset, LvqDataset const * testSet, std::vector<int>const & testSubset) const;
 
 public:
-	virtual Matrix_NN PrototypeDistances(Matrix_NN const & points);
+	virtual Matrix_NN PrototypeDistances(Matrix_NN const & points) const;
 
 	//for templates:
 	

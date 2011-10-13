@@ -33,7 +33,7 @@ protected:
 
 
 public:
-	virtual Matrix_NN PrototypeDistances(Matrix_NN const & points);
+	virtual Matrix_NN PrototypeDistances(Matrix_NN const & points) const;
 
 
 	static const LvqModelSettings::LvqModelType ThisModelType = LvqModelSettings::GpqModelType;
