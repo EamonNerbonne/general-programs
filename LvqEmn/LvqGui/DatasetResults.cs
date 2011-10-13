@@ -159,6 +159,7 @@ namespace LvqGui {
 			var basicExample = CreateDataset.CreateFactory(dataset.DatasetLabel);
 
 			return from dir in TestLr.resultsDir.GetDirectories()
+				   where basicExample != null
 				   let dirSplitName = CreateDataset.CreateFactory(dir.Name)
 				   where dirSplitName != null && dirSplitName.GetType() == basicExample.GetType() && basicExample.LrTrainingShorthand() == dirSplitName.LrTrainingShorthand()
 				   orderby dirSplitName.HasTestfile() == basicExample.HasTestfile() descending

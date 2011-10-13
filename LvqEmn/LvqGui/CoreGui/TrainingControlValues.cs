@@ -321,9 +321,7 @@ namespace LvqGui {
 				Console.WriteLine("Cannot extend dataset; model must a as many folds as dataset.");
 				return;
 			}
-			
-
-			throw new NotImplementedException();
+			Owner.Dispatcher.BeginInvoke(()=>Owner.Datasets.Add(dataset.ConstructByModelExtension(model.SubModels.ToArray())));
 		}
 	}
 }
