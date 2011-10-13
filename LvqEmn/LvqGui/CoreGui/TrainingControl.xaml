@@ -118,6 +118,7 @@
             <Button Content="Unload Model" Click="UnloadModel"/>
             <Button Content="Unload Dataset" Click="UnloadDataset"/>
             <Button Content="GC" Click="DoGC"/>
+            <Button Content="Extend Dataset" Click="DoExtendDatasetWithProtoDistances"/>
         </TextBlock>
     </Grid>
 </UserControl>

@@ -59,7 +59,7 @@ namespace LvqLibCli {
 	{ 
 		msclr::lock l(trainSync);
 		trainingSet->LastModel = this;
-		LvqModel* nativeModel =  CreateLvqModel(modelSettings->ToNativeSettings(), trainingSet->GetTrainingDataset(), datafold,trainingSet->Folds());
+		LvqModel* nativeModel =  CreateLvqModel(modelSettings->ToNativeSettings(), trainingSet->GetTrainingDataset(datafold), datafold,trainingSet->Folds());
 		model = Wrap(nativeModel);
 
 		DataShape modelShape = GetModelShape(nativeModel);
@@ -68,7 +68,7 @@ namespace LvqLibCli {
 		protoCount = modelShape.pointCount;
 
 		StatCollector statCollector;
-		ComputeModelStats(trainingSet->GetTrainingDataset(), trainingSet->GetTestDataset(), datafold, trainingSet->Folds(), nativeModel, StatCallbackTrampoline, &statCollector);
+		ComputeModelStats(trainingSet->GetTrainingDataset(datafold), trainingSet->GetTestDataset(datafold), datafold, trainingSet->Folds(), nativeModel, StatCallbackTrampoline, &statCollector);
 		msclr::lock l2(copySync);
 		SinkStats(stats, statCollector.statsList);
 		modelCopy = Wrap(CloneLvqModel(nativeModel));
@@ -89,7 +89,7 @@ namespace LvqLibCli {
 			StatCollector statCollector;
 			LvqTrainingStatCli cliStat;
 			msclr::lock l2(copySync);
-			ComputeModelStats(dataset->GetTrainingDataset(), dataset->GetTestDataset(), datafold,dataset->Folds(), modelCopy->get(), StatCallbackTrampoline, &statCollector);
+			ComputeModelStats(dataset->GetTrainingDataset(datafold), dataset->GetTestDataset(datafold), datafold,dataset->Folds(), modelCopy->get(), StatCallbackTrampoline, &statCollector);
 			cppToCli(statCollector.statsList.front(),cliStat);
 			return cliStat;
 		} finally {
@@ -151,9 +151,9 @@ namespace LvqLibCli {
 		Matrix_2N points(LVQ_LOW_DIM_SPACE,(size_t)dataset->PointCount), prototypes(LVQ_LOW_DIM_SPACE,(size_t)protoCount);
 		vector<int> pointLabels(dataset->PointCount), protoLabels(protoCount);
 
-		GetPointLabels(dataset->GetTrainingDataset(), &pointLabels[0]);
+		GetPointLabels(dataset->GetTrainingDataset(initDataFold), &pointLabels[0]);
 		msclr::lock l(copySync);
-		ProjectPoints(modelCopy->get(), dataset->GetTrainingDataset(), points.data());
+		ProjectPoints(modelCopy->get(), dataset->GetTrainingDataset(initDataFold), points.data());
 		ProjectPrototypes(modelCopy->get(), prototypes.data());
 		GetPrototypeLabels(modelCopy->get(), &protoLabels[0]);
 		l.release();
@@ -196,7 +196,7 @@ namespace LvqLibCli {
 		if(getOrder)
 			classLabelOrdering.resize(trainingSet->GetTrainingSubsetSize(datafold) * epochsToDo);
 		msclr::lock l(trainSync);
-		TrainModel(trainingSet->GetTrainingDataset(), trainingSet->GetTestDataset(), datafold, trainingSet->Folds(), nativeModel, epochsToDo, stats?StatCallbackTrampoline:nullptr, &statCollector, getOrder?&classLabelOrdering[0]:nullptr,sortedTrain);
+		TrainModel(trainingSet->GetTrainingDataset(datafold), trainingSet->GetTestDataset(datafold), datafold, trainingSet->Folds(), nativeModel, epochsToDo, stats?StatCallbackTrampoline:nullptr, &statCollector, getOrder?&classLabelOrdering[0]:nullptr,sortedTrain);
 		GC::KeepAlive(trainingSet);
 		msclr::lock l2(copySync);
 		SinkStats(stats, statCollector.statsList);

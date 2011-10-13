@@ -312,5 +312,18 @@ namespace LvqGui {
 			var selectedModel = SelectedLvqModel;
 			return selectedModel != null ? selectedModel.CurrentLearningRate : 0.0;
 		}
+
+		public void DoExtendDatasetWithProtoDistances()
+		{
+			var model = SelectedLvqModel;
+			var dataset = SelectedDataset;
+			if (model.ModelCount != dataset.Folds()) {
+				Console.WriteLine("Cannot extend dataset; model must a as many folds as dataset.");
+				return;
+			}
+			
+
+			throw new NotImplementedException();
+		}
 	}
 }

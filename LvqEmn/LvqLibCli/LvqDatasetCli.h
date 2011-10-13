@@ -1,5 +1,6 @@
 #pragma once
 using namespace System;
+using namespace System::Collections::Generic;
 #include <boost/random/mersenne_twister.hpp>
 //#include "LvqTypedefs.h"
 #include "LvqLib.h"
@@ -10,8 +11,8 @@ namespace LvqLibCli {
 	public ref class LvqDatasetCli
 	{
 		typedef array<System::Windows::Media::Color> ColorArray;
+		List<GcManualPtr<LvqDataset>^ >^ datasets;
 
-		GcManualPtr<LvqDataset> dataset;
 		String^ label;
 		LvqModelCli^ lastModel;
 		LvqDatasetCli ^testSet;
@@ -25,8 +26,8 @@ namespace LvqLibCli {
 		//std::vector<int> GetTrainingSubset(int fold);
 		//std::vector<int> GetTestSubset(int fold);
 		int GetTrainingSubsetSize(int fold);
-		LvqDataset const * GetTrainingDataset() {return dataset;}
-		LvqDataset const * GetTestDataset() {return testSet==nullptr?dataset:testSet->dataset;} 
+		LvqDataset const * GetTrainingDataset(int fold) {return *(datasets[fold%datasets->Count]);}
+		LvqDataset const * GetTestDataset(int fold) {return (testSet==nullptr?this:testSet)->GetTrainingDataset(fold);} 
 		array<int>^ ClassLabels();
 		//array<LvqFloat,2>^ RawPoints();
 		property ColorArray^ ClassColors { ColorArray^ get(){return colors;} void set(ColorArray^ newcolors){colors=newcolors;}}

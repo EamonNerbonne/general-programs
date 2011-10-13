@@ -27,8 +27,9 @@ namespace LvqLibCli {
 		: colors(colors)
 		, label(label)
 		, folds(folds)
-		, dataset(newDataset, MemAllocEstimateDataset(newDataset), FreeDataset) 
+		, datasets( gcnew List<GcManualPtr<LvqDataset>^ >(1))
 	{
+		datasets->Add(gcnew GcManualPtr<LvqDataset>( newDataset, MemAllocEstimateDataset(newDataset), FreeDataset) );
 		ExtendAndNormalize(newDataset,extend,normalizeDims);
 		DataShape shape = GetDataShape(newDataset);
 		pointCount = shape.pointCount;
@@ -52,12 +53,12 @@ namespace LvqLibCli {
 
 	Tuple<double,double> ^ LvqDatasetCli::GetPcaNnErrorRate() {
 		if(HasTestSet())
-			return Tuple::Create(NearestNeighborSplitPcaErrorRate(GetTrainingDataset(), GetTestDataset()), double::NaN);
+			return Tuple::Create(NearestNeighborSplitPcaErrorRate(GetTrainingDataset(0), GetTestDataset(0)), double::NaN);
 
 		SmartSum<1> nnErrorRate(1);
 		for(int fold=0; fold<folds; ++fold) {
 			nnErrorRate.CombineWith(
-				NearestNeighborXvalPcaErrorRate(GetTrainingDataset(),fold,folds),
+				NearestNeighborXvalPcaErrorRate(GetTrainingDataset(fold),fold,folds),
 				1.0
 				);
 		}
@@ -67,10 +68,10 @@ namespace LvqLibCli {
 	array<int>^ LvqDatasetCli::ClassLabels(){
 		array<int>^ retval = gcnew array<int>(pointCount);
 		pin_ptr<int> pinRetval = &retval[0];
-		GetPointLabels(dataset, pinRetval);
+		GetPointLabels(GetTrainingDataset(0), pinRetval);
 		return retval;
 	}
-	int LvqDatasetCli::GetTrainingSubsetSize(int fold) { return ::GetTrainingSubsetSize(GetTrainingDataset(), fold,folds); }//TODO:ABI: make this a public methods taking pointers.
+	int LvqDatasetCli::GetTrainingSubsetSize(int fold) { return ::GetTrainingSubsetSize(GetTrainingDataset(fold), fold,folds); }//TODO:ABI: make this a public methods taking pointers.
 	int LvqDatasetCli::ClassCount::get(){return classCount;}
 	int LvqDatasetCli::PointCount::get(){return pointCount;}
 	int LvqDatasetCli::Dimensions::get(){return dimCount;}
