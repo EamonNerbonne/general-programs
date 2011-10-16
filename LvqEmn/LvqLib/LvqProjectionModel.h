@@ -17,6 +17,7 @@ public:
 	typedef Eigen::Matrix<unsigned char,Eigen::Dynamic,Eigen::Dynamic,Eigen::RowMajor> ClassDiagramT;
 	virtual ~LvqProjectionModel() { }
 	Matrix_P const & projectionMatrix() const {return P;}
+	virtual Matrix_NN GetCombinedTransforms() const {return P;}
 	virtual int Dimensions() const {return static_cast<int>(P.cols());}
 	virtual Matrix_2N GetProjectedPrototypes() const=0;
 	virtual int classifyProjected(Vector_2 const & unknownProjectedPoint) const=0;

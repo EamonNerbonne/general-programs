@@ -24,6 +24,8 @@ protected:
 
 public:
 	virtual Matrix_NN PrototypeDistances(Matrix_NN const & points) const;
+	virtual Matrix_NN GetCombinedTransforms() const;
+
 
 	static const LvqModelSettings::LvqModelType ThisModelType = LvqModelSettings::LgmModelType;
 	inline int PrototypeLabel(int protoIndex) const {return pLabel(protoIndex);}

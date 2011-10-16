@@ -47,6 +47,7 @@ protected:
 
 public:
 	virtual Matrix_NN PrototypeDistances(Matrix_NN const & points) const=0;
+	virtual Matrix_NN GetCombinedTransforms() const=0;
 
 	typedef std::queue<std::vector<double>> Statistics;
 	int epochsTrained;

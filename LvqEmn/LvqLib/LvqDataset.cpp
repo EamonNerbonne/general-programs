@@ -444,9 +444,48 @@ LvqDataset* LvqDataset::ExtendUsingModel(int fold,int foldCount, LvqModel const 
 	});
 
 
-	Matrix_NN newPoints(points.rows() + protoDistances.rows(), points.cols());
-	newPoints.topRows(points.rows()).noalias() = points;
-	newPoints.bottomRows(protoDistances.rows()).noalias() = distribution.GetSampleVariance().sqrt().inverse().matrix().asDiagonal() * (protoDistances.colwise() - distribution.GetMean().matrix());
-	
+
+	//Matrix_NN newPoints(points.rows() + protoDistances.rows(), points.cols());
+	//newPoints.topRows(points.rows()).noalias() = points;
+	//newPoints.bottomRows(protoDistances.rows()).noalias() = distribution.GetSampleVariance().sqrt().inverse().matrix().asDiagonal() * (protoDistances.colwise() - distribution.GetMean().matrix());
+	//return new LvqDataset(newPoints, pointLabels, classCount);//classcount, and labels unchanged!
+
+	Matrix_NN modelProj = model.GetCombinedTransforms();
+	//the model projections may be many and some may be linearly dependant or at least non-orthogonal.  To avoid adding unnecessary dimensions, I want to get rid of the gunk.
+
+
+	auto qr_decomp = modelProj.fullPivHouseholderQr(); // I don't care about the unitary matrix
+	auto R = qr_decomp.matrixQR().triangularView<Upper>();
+	auto P = qr_decomp.colsPermutation();
+	//now we have modelProj == Q R P^T with Q unitary and thus uninteresting.
+#if false
+	Matrix_NN Rdebug = R, Pdebug=P;
+	std::cout <<"\nR: \n" << Rdebug ;
+	std::cout <<"\nP: \n" << Pdebug <<"\n";
+	Matrix_NN altProj = Rdebug * P.transpose();
+	cout<<"\norigRows: "<<modelProj.rows()<<"; new rows:"<<altProj.rows()<<"\n";
+	std::cout <<"mp: "<< (modelProj*points.col(0)).norm() << "; "<<(altProj*points.col(0)).norm() <<"\n";
+	std::cout.flush();
+#endif
+	modelProj = (R.toDenseMatrix() * P.transpose()).topRows(min(modelProj.rows(),modelProj.cols()));
+	normalizeProjection(modelProj);
+
+
+	Matrix_NN distanceFeatures = distribution.GetSampleVariance().sqrt().inverse().matrix().asDiagonal() * (protoDistances.colwise() - distribution.GetMean().matrix());
+	Matrix_NN projectionFeatures = modelProj * points;
+	Vector_N pFmean = Vector_N::Zero(projectionFeatures.rows());
+	for_each(trainingset.cbegin(),trainingset.cend(),[&](int colIndex) { pFmean += projectionFeatures.col(colIndex); });
+	pFmean /= double(trainingset.size());
+	projectionFeatures.colwise() -= pFmean;
+	double pFvar=0;
+	for_each(trainingset.cbegin(),trainingset.cend(),[&](int colIndex) { pFvar += projectionFeatures.col(colIndex).squaredNorm(); });
+	pFvar /= double(trainingset.size() * projectionFeatures.rows());
+
+
+	Matrix_NN newPoints(modelProj.rows()+ protoDistances.rows(), points.cols());
+	newPoints.topRows(modelProj.rows()).noalias() = projectionFeatures/sqrt(pFvar);
+	newPoints.bottomRows(protoDistances.rows()).noalias() = distanceFeatures;
+
+
 	return new LvqDataset(newPoints, pointLabels, classCount);//classcount, and labels unchanged!
 }

@@ -98,7 +98,7 @@ void LgmLvqModel::AppendTrainingStatNames(std::vector<std::wstring> & retval) co
 	retval.push_back(L"Projection Norm Maximum!norm!Prototype Matrix");
 	retval.push_back(L"Projection Norm Mean!norm!Prototype Matrix");
 	retval.push_back(L"Projection Norm Minimum!norm!Prototype Matrix");
-	
+
 	retval.push_back(L"Cumulative \u03BC-J-scaled Learning Rate!!Cumulative \u03BC-scaled Learning Rates");
 	retval.push_back(L"Cumulative \u03BC-K-scaled Learning Rate!!Cumulative \u03BC-scaled Learning Rates");
 
@@ -153,4 +153,15 @@ Matrix_NN LgmLvqModel::PrototypeDistances(Matrix_NN const & points) const {
 		newPoints.row(protoI).noalias() = (tmpPointsDiffProj.colwise().norm().array() + 0.01).inverse().matrix();//not squaredNorm?
 	}
 	return newPoints;
+}
+
+Matrix_NN LgmLvqModel::GetCombinedTransforms() const{
+	size_t totalRows = std::accumulate(P.cbegin(),P.cend(),size_t(0), [] (size_t val, Matrix_NN const & p) { return val + p.rows(); });
+	Matrix_NN retval(totalRows,P[0].cols());
+	size_t rowInit=0;
+	std::for_each(P.cbegin(),P.cend(),[&rowInit,&retval] (Matrix_NN const & p) {
+		retval.middleRows(rowInit, p.rows()).noalias() = p;
+		rowInit += p.rows();
+	});
+	return retval;
 }
