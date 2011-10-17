@@ -70,17 +70,36 @@ namespace LvqLibCli {
 		}
 		return gcnew LvqDatasetCli("X"+label, folds, colors,newDatasets);
 	}
+	using namespace System::Threading::Tasks;
+	ref class NnErrComputer {
+		int fold;
+		LvqDatasetCli^ dataset;
+		double Execute() {
+			double retval= NearestNeighborXvalPcaErrorRate(dataset->GetTrainingDataset(fold),fold,dataset->Folds());
+			GC::KeepAlive(dataset);
+			return retval;
+		}
+
+	public:
+		Task<double>^ nn;
+		NnErrComputer(int fold,LvqDatasetCli^ dataset) :fold(fold), dataset(dataset){
+			nn = Task::Factory->StartNew(gcnew Func<double>(this, &NnErrComputer::Execute));
+		}
+	};
 
 	Tuple<double,double> ^ LvqDatasetCli::GetPcaNnErrorRate() {
+
 		if(HasTestSet())
 			return Tuple::Create(NearestNeighborSplitPcaErrorRate(GetTrainingDataset(0), GetTestDataset(0)), double::NaN);
-
+		
+		auto nnErr = gcnew array<NnErrComputer^>(folds);
+		for(int fold=0; fold<folds; ++fold) {
+			nnErr[fold] = gcnew NnErrComputer(fold,this);
+		}
+		
 		SmartSum<1> nnErrorRate(1);
 		for(int fold=0; fold<folds; ++fold) {
-			nnErrorRate.CombineWith(
-				NearestNeighborXvalPcaErrorRate(GetTrainingDataset(fold),fold,folds),
-				1.0
-				);
+			nnErrorRate.CombineWith(nnErr[fold]->nn->Result, 1.0);
 		}
 		return Tuple::Create(nnErrorRate.GetMean()(0,0),nnErrorRate.GetSampleVariance()(0,0));
 	}
