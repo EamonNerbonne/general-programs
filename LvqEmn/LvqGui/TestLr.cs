@@ -374,9 +374,9 @@ namespace LvqGui {
 			yield return new GaussianCloudSettings { ParamsSeed = rngParam++, InstanceSeed = rngInst++, Dimensions = 8, PointsPerClass = (int)(10000 / Math.Sqrt(8) / 3), }.CreateDataset();
 			yield return new StarSettings { ParamsSeed = rngParam++, InstanceSeed = rngInst++, Dimensions = 12, ClusterDimensionality = 6, NumberOfClusters = 3, NumberOfClasses = 4, PointsPerClass = (int)(10000 / Math.Sqrt(12) / 4), NoiseSigma = 2.5, }.CreateDataset();
 			yield return new StarSettings { ParamsSeed = rngParam++, InstanceSeed = rngInst++, Dimensions = 8, ClusterDimensionality = 4, NumberOfClusters = 3, PointsPerClass = (int)(10000 / Math.Sqrt(8) / 3), NoiseSigma = 2.5, }.CreateDataset();
-			yield return LoadDatasetImpl.Load(10, "segmentationNormed_combined", rngInst++);
-			yield return LoadDatasetImpl.Load(10, "colorado", rngInst++);
-			yield return LoadDatasetImpl.Load(10, "pendigits.train", rngInst++);
+			yield return LoadDatasetImpl.Load(10, "segmentationNormed_combined.data", rngInst++);
+			yield return LoadDatasetImpl.Load(10, "colorado.data", rngInst++);
+			yield return LoadDatasetImpl.Load(10, "pendigits.train.data", rngInst++);
 			// ReSharper restore RedundantAssignment
 		}
 		static readonly LvqDatasetCli[] basedatasets = Datasets().ToArray();

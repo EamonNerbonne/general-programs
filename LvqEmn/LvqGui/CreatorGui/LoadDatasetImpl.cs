@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Text.RegularExpressions;
 using EmnExtensions.Filesystem;
@@ -57,7 +58,7 @@ namespace LvqGui {
 		public static readonly DirectoryInfo dataDir = FSUtil.FindDataDir(new[] { @"data\datasets\", @"uni\Thesis\datasets\" }, typeof(LoadDatasetImpl));
 
 		public static LvqDatasetCli Load(int folds, string name, uint rngInst) {
-			var dataFile = dataDir.GetFiles(name + ".data").FirstOrDefault();
+			var dataFile = dataDir.GetFiles(name).FirstOrDefault();
 			return LoadData(dataFile, new LoadedDatasetSettings { InstanceSeed = rngInst, Folds = folds });
 		}
 
@@ -94,7 +95,7 @@ namespace LvqGui {
 				throw new ArgumentException("Cannot use n-fold crossvalidation and a separate test-set simultaneously");
 
 
-			var labelFile = new FileInfo(dataFile.Directory + @"\" + Path.GetFileNameWithoutExtension(dataFile.Name) + ".label");
+			var labelFile = new FileInfo(dataFile.Directory + @"\" + dataFile.Name.Replace(".data",".label" ));
 			var pointclouds = labelFile.Exists ? LoadDatasetHelper(dataFile, labelFile) : LoadDatasetHelper(dataFile);
 			var pointArray = pointclouds.Item1;
 			int[] labelArray = pointclouds.Item2;
@@ -118,40 +119,81 @@ namespace LvqGui {
 				classCount: settings.ClassCount);
 		}
 
+		public static int ReadInt32BigEndian(this BinaryReader reader) {
+			uint val = (uint)reader.ReadInt32();
+			return
+				(int)
+				((val & 0xff000000) >> 24 | (val & 0x00ff0000) >> 8 | (val & 0x0000ff00) << 8 | (val & 0x000000ff) << 24);
+		}
+
+		public static object ReadGzIdx(FileInfo file) {
+			using (var stream = new GZipStream(file.OpenRead(), CompressionMode.Decompress, false))
+			using (var reader = new BinaryReader(stream)) {
+				int magic = reader.ReadInt32BigEndian();
+
+				if ((magic & 0xffff0000) != 0)
+					throw new FileFormatException("Incorrect magic number; should start with two 0 bytes");
+
+				if ((magic & 0xff00) != 0x800)
+					throw new FileFormatException("Incorrect magic number; should be 0x8?? - only supports unsigned byte data");
+				int dimCount = magic & 0xff;
+				if (dimCount == 0 || dimCount > 4)
+					throw new FileFormatException("number of dimensions isn't in range [1,4], that's probably corrupt.");
+				int dim0 = reader.ReadInt32BigEndian();
+				int dimsRest = Enumerable.Range(1, dimCount).Select(_ => reader.ReadInt32BigEndian()).Aggregate(1, (product, num) => { checked { return product * num; } });
+
+				if (dimCount == 1) {
+					byte[] labels = reader.ReadBytes(dim0);
+					int[] iLabels = new int[labels.Length];
+					labels.CopyTo(iLabels, 0);//this converts from byte to int!
+					return iLabels;
+				} else {
+					double[,] data = new double[dim0, dimsRest];
+					for (int i = 0; i < dim0; ++i)
+						for (int j = 0; j < dimsRest; ++j)
+							data[i, dimsRest] = reader.ReadByte();
+					return data;
+				}
+			}
+		}
+
 		public static Tuple<LvqFloat[,], int[], int> LoadDatasetHelper(FileInfo datafile, FileInfo labelfile) {
 			var dataVectors =
+				datafile.Extension.ToLowerInvariant() == ".gz" ? (LvqFloat[,])ReadGzIdx(datafile) :
 				(from dataline in datafile.GetLines()
 				 select (
 					 from dataDim in dataline.Split(dimSep)
 					 select LvqFloat.Parse(dataDim, CultureInfo.InvariantCulture)
 					 ).ToArray()
-				).ToArray();
+				).ToArray().ToRectangularArray();
 
-			var itemLabels = (
+			var itemLabels =
+				labelfile.Extension.ToLowerInvariant() == ".gz" ? (int[])ReadGzIdx(labelfile) :
+				(
 					from labelline in labelfile.GetLines()
 					select int.Parse(labelline, CultureInfo.InvariantCulture)
 					).ToArray();
 
+			if (dataVectors.GetLength(0) != itemLabels.Length)
+				throw new FileFormatException("Labels have different length than data!");
+
+			var denseLabelsAndCount = MakeLabelsDense(itemLabels);
+
+			return Tuple.Create(dataVectors, denseLabelsAndCount.Item1, denseLabelsAndCount.Item2);
+		}
+
+		private static Tuple<int[], int> MakeLabelsDense(int[] itemLabels) {
 			var denseLabelLookup =
 				itemLabels
-				.Distinct()
-				.OrderBy(label => label)
-				.Select((OldLabel, Index) => new { OldLabel, NewLabel = Index })
-				.ToDictionary(a => a.OldLabel, a => a.NewLabel);
+					.Distinct()
+					.OrderBy(label => label)
+					.Select((OldLabel, Index) => new { OldLabel, NewLabel = Index })
+					.ToDictionary(a => a.OldLabel, a => a.NewLabel);
 
-			itemLabels =
+			return Tuple.Create(
 				itemLabels
-				.Select(oldlabel => denseLabelLookup[oldlabel])
-				.ToArray();
-
-			var labelSet = new HashSet<int>(itemLabels);
-			int minLabel = labelSet.Min();
-			int maxLabel = labelSet.Max();
-			int labelCount = labelSet.Count;
-			if (labelCount != maxLabel + 1 || minLabel != 0)
-				throw new FileFormatException("Class labels must be consecutive integers starting at 0");
-
-			return Tuple.Create(dataVectors.ToRectangularArray(), itemLabels, labelCount);
+					.Select(oldlabel => denseLabelLookup[oldlabel])
+					.ToArray(), denseLabelLookup.Count);
 		}
 
 		public static Tuple<LvqFloat[,], int[], int> LoadDatasetHelper(FileInfo dataAndLabelFile) {
