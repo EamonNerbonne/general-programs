@@ -140,7 +140,7 @@ namespace LvqGui {
 				if (dimCount == 0 || dimCount > 4)
 					throw new FileFormatException("number of dimensions isn't in range [1,4], that's probably corrupt.");
 				int dim0 = reader.ReadInt32BigEndian();
-				int dimsRest = Enumerable.Range(1, dimCount).Select(_ => reader.ReadInt32BigEndian()).Aggregate(1, (product, num) => { checked { return product * num; } });
+				int dimsRest = Enumerable.Range(1, dimCount-1).Select(_ => reader.ReadInt32BigEndian()).Aggregate(1, (product, num) => { checked { return product * num; } });
 
 				if (dimCount == 1) {
 					byte[] labels = reader.ReadBytes(dim0);
@@ -151,7 +151,7 @@ namespace LvqGui {
 					double[,] data = new double[dim0, dimsRest];
 					for (int i = 0; i < dim0; ++i)
 						for (int j = 0; j < dimsRest; ++j)
-							data[i, dimsRest] = reader.ReadByte();
+							data[i, j] = reader.ReadByte();
 					return data;
 				}
 			}
@@ -175,7 +175,7 @@ namespace LvqGui {
 					).ToArray();
 
 			if (dataVectors.GetLength(0) != itemLabels.Length)
-				throw new FileFormatException("Labels have different length than data!");
+				throw new FileFormatException("Labels have different length(" + itemLabels.Length + " than data(" + dataVectors.GetLength(0) + ")!");
 
 			var denseLabelsAndCount = MakeLabelsDense(itemLabels);
 
