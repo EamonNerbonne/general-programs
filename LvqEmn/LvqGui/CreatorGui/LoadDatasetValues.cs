@@ -40,7 +40,7 @@ namespace LvqGui {
 		}
 
 		LvqDatasetCli CreateDataset(uint seed, int folds) {
-			var dataFileOpenDialog = new OpenFileDialog { Multiselect = folds == 0, Filter = "Dataset|*.data" };
+			var dataFileOpenDialog = new OpenFileDialog { Multiselect = folds == 0, Filter = "Dataset|*.data;*.data.gz" };
 			using (var lvqGuiKey = Registry.CurrentUser.OpenSubKey(@"Software\LvqGui"))
 				if (lvqGuiKey != null)
 					dataFileOpenDialog.InitialDirectory = lvqGuiKey.GetValue("DataDir") as string;
