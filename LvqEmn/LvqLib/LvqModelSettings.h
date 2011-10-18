@@ -51,8 +51,10 @@ struct LvqModelSettings
 	void AssertModelIsOfRightType(T * ) {
 		if(ModelType == AutoModelType)
 			ModelType = T::ThisModelType;
-		else if(ModelType != T::ThisModelType)
-			throw "Invalid Model Type!";
+		else if(ModelType != T::ThisModelType) {
+			std::cerr<< "Invalid Model Type!\n";
+			std::exit(10);
+		}
 	}
 
 	LvqModelSettings& self(){return *this;}

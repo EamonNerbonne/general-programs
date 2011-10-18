@@ -11,8 +11,10 @@ GpqLvqModel::GpqLvqModel(LvqModelSettings & initSettings)
 	, totalMuJLr(0.0)
 	, totalMuKLr(0.0)
 {
-	if(initSettings.Dimensionality!=0 && initSettings.Dimensionality!=2)
-		throw "Illegal Dimensionality";
+	if(initSettings.Dimensionality!=0 && initSettings.Dimensionality!=2){
+		std::cerr<< "Illegal Dimensionality\n";
+		std::exit(10);
+	}
 	using namespace std;
 	initSettings.AssertModelIsOfRightType(this);
 

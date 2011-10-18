@@ -13,8 +13,10 @@ G2mLvqModel::G2mLvqModel(LvqModelSettings & initSettings)
 	, m_vJ(initSettings.Dimensions())
 	, m_vK(initSettings.Dimensions())
 {
-	if(initSettings.Dimensionality!=0 && initSettings.Dimensionality!=2)
-		throw "Illegal Dimensionality";
+	if(initSettings.Dimensionality!=0 && initSettings.Dimensionality!=2){
+		cerr<< "Illegal Dimensionality\n";
+		std::exit(10);
+	}
 	using namespace std;
 	initSettings.AssertModelIsOfRightType(this);
 

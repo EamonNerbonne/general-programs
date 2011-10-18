@@ -317,10 +317,10 @@ namespace LvqGui {
 		{
 			var model = SelectedLvqModel;
 			var dataset = SelectedDataset;
-			if (model.ModelCount != dataset.Folds()) {
+			/*if (model.ModelCount != dataset.Folds()) {
 				Console.WriteLine("Cannot extend dataset; model must a as many folds as dataset.");
 				return;
-			}
+			}*/
 			Owner.Dispatcher.BeginInvoke(()=>Owner.Datasets.Add(dataset.ConstructByModelExtension(model.SubModels.ToArray())));
 		}
 	}

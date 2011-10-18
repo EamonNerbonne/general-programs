@@ -17,8 +17,10 @@ GgmLvqModel::GgmLvqModel(LvqModelSettings & initSettings)
 	, m_vK(initSettings.Dimensions())
 	, m_PpseudoinvT(LVQ_LOW_DIM_SPACE,initSettings.Dimensions())
 {
-	if(initSettings.Dimensionality!=0 && initSettings.Dimensionality!=2)
-		throw "Illegal Dimensionality";
+	if(initSettings.Dimensionality!=0 && initSettings.Dimensionality!=2){
+		std::cerr<< "Illegal Dimensionality\n";
+		std::exit(10);
+	}
 	using namespace std;
 	initSettings.AssertModelIsOfRightType(this);
 

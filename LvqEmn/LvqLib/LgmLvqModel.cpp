@@ -15,8 +15,10 @@ LgmLvqModel::LgmLvqModel( LvqModelSettings & initSettings)
 {
 	if(initSettings.Dimensionality ==0)
 		initSettings.Dimensionality = (int) initSettings.Dimensions();
-	if(initSettings.Dimensionality < 0 || initSettings.Dimensionality > (int) initSettings.Dimensions())
-		throw "Dimensionality out of range";
+	if(initSettings.Dimensionality < 0 || initSettings.Dimensionality > (int) initSettings.Dimensions()){
+		std::cerr<< "Dimensionality out of range\n";
+		std::exit(10);
+	}
 
 	tmpDestDimsV1.resize(initSettings.Dimensionality);
 	tmpDestDimsV2.resize(initSettings.Dimensionality);

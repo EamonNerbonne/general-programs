@@ -63,6 +63,6 @@ namespace LvqLibCli {
 		array<int>^ Train(int epochsToDo,LvqDatasetCli^ trainingSet, int datafold, bool getOrder,bool sortedTrain); 
 		void TrainUpto(int epochsToReach,LvqDatasetCli^ trainingSet, int datafold);
 	internal:
-		GcManualPtr<LvqDataset>^ ExtendDatasetByProjection(LvqDatasetCli^ dataset, int datafold);
+		Tuple<GcManualPtr<LvqDataset>^,GcManualPtr<LvqDataset>^>^ ExtendDatasetByProjection(LvqDatasetCli^ dataset, int datafold);
 	};
 }

@@ -433,7 +433,7 @@ int LvqDataset::GetTestSubsetSize(int fold, int foldcount) const {
 }
 
 
-LvqDataset* LvqDataset::ExtendUsingModel(int fold,int foldCount, LvqModel const & model) const {
+std::pair<LvqDataset*,LvqDataset*> LvqDataset::ExtendUsingModel(LvqDataset const * testdataset,int fold,int foldCount, LvqModel const & model) const {
 	Matrix_NN protoDistances = model.PrototypeDistances(points);
 	assert(points.cols()==protoDistances.cols());
 
@@ -442,7 +442,10 @@ LvqDataset* LvqDataset::ExtendUsingModel(int fold,int foldCount, LvqModel const 
 	for_each(trainingset.cbegin(),trainingset.cend(),[&](int colIndex) {
 		distribution.CombineWith(protoDistances.col(colIndex).array(), 1.0);
 	});
-
+	Matrix_NN protoDistancesTest;
+	if(foldCount==0)
+		protoDistancesTest	= model.PrototypeDistances(testdataset->points);
+	
 
 
 	//Matrix_NN newPoints(points.rows() + protoDistances.rows(), points.cols());
@@ -458,7 +461,7 @@ LvqDataset* LvqDataset::ExtendUsingModel(int fold,int foldCount, LvqModel const 
 	auto R = qr_decomp.matrixQR().triangularView<Upper>();
 	auto P = qr_decomp.colsPermutation();
 	//now we have modelProj == Q R P^T with Q unitary and thus uninteresting.
-#if false
+#if 0
 	Matrix_NN Rdebug = R, Pdebug=P;
 	std::cout <<"\nR: \n" << Rdebug ;
 	std::cout <<"\nP: \n" << Pdebug <<"\n";
@@ -472,20 +475,38 @@ LvqDataset* LvqDataset::ExtendUsingModel(int fold,int foldCount, LvqModel const 
 
 
 	Matrix_NN distanceFeatures = distribution.GetSampleVariance().sqrt().inverse().matrix().asDiagonal() * (protoDistances.colwise() - distribution.GetMean().matrix());
+	Matrix_NN distanceFeaturesTest	;
+	if(foldCount==0)
+		distanceFeaturesTest = distribution.GetSampleVariance().sqrt().inverse().matrix().asDiagonal() * (protoDistancesTest.colwise() - distribution.GetMean().matrix());
+
 	Matrix_NN projectionFeatures = modelProj * points;
 	Vector_N pFmean = Vector_N::Zero(projectionFeatures.rows());
 	for_each(trainingset.cbegin(),trainingset.cend(),[&](int colIndex) { pFmean += projectionFeatures.col(colIndex); });
 	pFmean /= double(trainingset.size());
 	projectionFeatures.colwise() -= pFmean;
+
 	double pFvar=0;
 	for_each(trainingset.cbegin(),trainingset.cend(),[&](int colIndex) { pFvar += projectionFeatures.col(colIndex).squaredNorm(); });
 	pFvar /= double(trainingset.size() * projectionFeatures.rows());
 
 
-	Matrix_NN newPoints(modelProj.rows()+ protoDistances.rows(), points.cols());
+	Matrix_NN newPoints(modelProj.rows()+ distanceFeatures.rows(), points.cols());
 	newPoints.topRows(modelProj.rows()).noalias() = projectionFeatures/sqrt(pFvar);
-	newPoints.bottomRows(protoDistances.rows()).noalias() = distanceFeatures;
+	newPoints.bottomRows(distanceFeatures.rows()).noalias() = distanceFeatures;
 
 
-	return new LvqDataset(newPoints, pointLabels, classCount);//classcount, and labels unchanged!
+
+	Matrix_NN newPointsTest;
+	
+	if(foldCount==0) {
+		Matrix_NN projectionFeaturesTest = (modelProj * testdataset->points).colwise() - pFmean;
+
+		newPointsTest = Matrix_NN(modelProj.rows()+ distanceFeaturesTest.rows(), testdataset->points.cols());
+		newPointsTest.topRows(modelProj.rows()).noalias() = projectionFeaturesTest/sqrt(pFvar);
+		newPointsTest.bottomRows(distanceFeaturesTest.rows()).noalias() = distanceFeaturesTest;
+
+		return std::make_pair(new LvqDataset(newPoints, pointLabels, classCount),
+			new LvqDataset(newPointsTest,testdataset->pointLabels, classCount));
+	}
+	return std::make_pair(new LvqDataset(newPoints, pointLabels, classCount),nullptr);//classcount, and labels unchanged!
 }

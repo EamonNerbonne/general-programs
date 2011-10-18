@@ -211,6 +211,8 @@ extern "C"  CostAndErrorRate ComputeCostAndErrorRate(LvqDataset const * dataset,
 	return result;
 }
 
-extern "C" LvqDataset* CreateExtendedDataset(LvqDataset const * dataset, int fold,int foldCount, LvqModel const * model) {
-	return dataset->ExtendUsingModel(fold, foldCount, *model);
+extern "C" void CreateExtendedDataset(LvqDataset const * dataset, LvqDataset const * testdataset, int fold,int foldCount, LvqModel const * model, LvqDataset** newTraining, LvqDataset** newTest) {
+	auto extendedDataset=dataset->ExtendUsingModel( testdataset,fold, foldCount, *model);
+	*newTraining = extendedDataset.first;
+	*newTest = extendedDataset.second;
 }

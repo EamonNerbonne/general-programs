@@ -49,7 +49,7 @@ private:
 public:
 	LvqDataset(Matrix_NN const & points, std::vector<int> pointLabels, int classCount);
 	LvqDataset* Extract(std::vector<int> const & subset) const;
-	LvqDataset* ExtendUsingModel(int fold,int foldCount, LvqModel const & model) const;
+	std::pair<LvqDataset*,LvqDataset*> ExtendUsingModel( LvqDataset const * testdataset,int fold,int foldCount, LvqModel const & model) const;
 
 
 	void shufflePoints(boost::mt19937& rng);

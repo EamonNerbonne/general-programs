@@ -62,13 +62,41 @@ namespace LvqLibCli {
 				CreateStarDataset(rngParamsSeed,rngInstSeed,dims,classCount*pointsPerClass, classCount,
 				starDims, numStarTails,starMeanSep,starClassRelOffset,randomlyRotate,noiseSigma,globalNoiseMaxSigma));
 	}
+	using namespace System::Threading::Tasks;
+	ref class ModelExtensionComputer {
+		int fold;
+		LvqDatasetCli^ dataset;
+		array<LvqModelCli^>^ models;
+		Tuple<GcManualPtr<LvqDataset>^,GcManualPtr<LvqDataset>^>^ Execute() {
+			auto retval =models[fold]->ExtendDatasetByProjection(dataset, fold);
+			GC::KeepAlive(this);
+			return retval;
+		}
+		
+	public:
+		Task<Tuple<GcManualPtr<LvqDataset>^,GcManualPtr<LvqDataset>^>^>^ newDatasetTask;
+		ModelExtensionComputer(int fold,LvqDatasetCli^ dataset,array<LvqModelCli^>^ models) :fold(fold), dataset(dataset), models(models){
+			newDatasetTask = Task::Factory->StartNew(gcnew Func<Tuple<GcManualPtr<LvqDataset>^,GcManualPtr<LvqDataset>^>^>(this, &ModelExtensionComputer::Execute));
+		}
+	};
+
 
 	LvqDatasetCli^ LvqDatasetCli::ConstructByModelExtension(array<LvqModelCli^>^ models) {
-		array<GcManualPtr<LvqDataset>^ >^ newDatasets = gcnew array<GcManualPtr<LvqDataset>^ >(models->Length);
-		for(int i=0;i<newDatasets->Length;++i) {
-			newDatasets[i] = models[i]->ExtendDatasetByProjection(this, i);
+		auto newDatasetComputer = gcnew array<ModelExtensionComputer^ >(models->Length);
+		for(int i=0;i<models->Length;++i) {
+			newDatasetComputer[i] = gcnew ModelExtensionComputer(i,this,models);
 		}
-		return gcnew LvqDatasetCli("X"+label, folds, colors,newDatasets);
+		auto newDatasets = gcnew array<GcManualPtr<LvqDataset>^ >(models->Length);
+		auto newDatasetsTest = gcnew array<GcManualPtr<LvqDataset>^ >(models->Length);
+		for(int i=0;i<newDatasets->Length;++i) {
+			newDatasets[i] = newDatasetComputer[i]->newDatasetTask->Result->Item1;
+			newDatasetsTest[i] = newDatasetComputer[i]->newDatasetTask->Result->Item2;
+		}
+		auto retval = gcnew LvqDatasetCli("X"+label, folds, colors,newDatasets);
+		if(this->HasTestSet())
+			retval->TestSet = gcnew LvqDatasetCli("X"+TestSet->label, folds, colors,newDatasetsTest);
+		
+		return retval;
 	}
 	using namespace System::Threading::Tasks;
 	ref class NnErrComputer {

@@ -59,8 +59,8 @@ namespace LvqGui {
 						return null;
 					}
 				} else if (dataFileOpenDialog.FileNames.Length == 2) {
-					var trainFile = dataFileOpenDialog.FileNames.Where(name => Path.GetFileNameWithoutExtension(name).EndsWith("train")).Select(name => new FileInfo(name)).FirstOrDefault();
-					var testFile = dataFileOpenDialog.FileNames.Where(name => Path.GetFileNameWithoutExtension(name).EndsWith("test")).Select(name => new FileInfo(name)).FirstOrDefault();
+					var trainFile = dataFileOpenDialog.FileNames.Where(name =>name.Contains("train.")).Select(name => new FileInfo(name)).FirstOrDefault();
+					var testFile = dataFileOpenDialog.FileNames.Where(name => name.Contains("test.")).Select(name => new FileInfo(name)).FirstOrDefault();
 					if (trainFile == null || testFile == null)
 						return null;
 					try {
