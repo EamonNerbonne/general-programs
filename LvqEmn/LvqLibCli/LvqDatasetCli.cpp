@@ -135,10 +135,10 @@ namespace LvqLibCli {
 	array<int>^ LvqDatasetCli::ClassLabels(){
 		array<int>^ retval = gcnew array<int>(pointCount);
 		pin_ptr<int> pinRetval = &retval[0];
-		GetPointLabels(GetTrainingDataset(0), pinRetval);
+		GetPointLabels(GetTrainingDataset(0), 0,0,false, pinRetval);
 		return retval;
 	}
-	int LvqDatasetCli::GetTrainingSubsetSize(int fold) { return ::GetTrainingSubsetSize(GetTrainingDataset(fold), fold,folds); }//TODO:ABI: make this a public methods taking pointers.
+	int LvqDatasetCli::GetTrainingSubsetSize(int fold) { return ::GetSubsetSize(GetTrainingDataset(fold), fold,folds,false); }
 	int LvqDatasetCli::ClassCount::get(){return classCount;}
 	int LvqDatasetCli::PointCount::get(){return pointCount;}
 	int LvqDatasetCli::Dimensions::get(){return dimCount;}

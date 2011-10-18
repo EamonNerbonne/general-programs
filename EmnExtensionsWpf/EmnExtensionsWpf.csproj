@@ -132,6 +132,7 @@
     <Compile Include="ByteArrayConverter.cs" />
     <Compile Include="ColorConversion.cs" />
     <Compile Include="Colormaps.cs" />
+    <Compile Include="Plot\LabelledPoint.cs" />
     <Compile Include="Plot\VizEngines\VizPointCloudBitmap.cs" />
     <Compile Include="Plot\VizEngines\VizDataRange.cs" />
     <Compile Include="DispatcherUtils.cs" />

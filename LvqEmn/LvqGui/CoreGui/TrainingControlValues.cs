@@ -84,6 +84,14 @@ namespace LvqGui {
 		}
 		bool _ShowPrototypes;
 
+		public bool ShowTestEmbedding {
+			get { return _ShowTestEmbedding; }
+			set { if (!_ShowTestEmbedding.Equals(value)) { _ShowTestEmbedding = value; _propertyChanged("ShowTestEmbedding"); } }
+		}
+		private bool _ShowTestEmbedding;
+
+		
+
 		public int EpochsPerClick {
 			get { return _EpochsPerClick; }
 			set { if (value < 1) throw new ArgumentException("Must train for at least 1 epoch at a  time"); if (!Equals(_EpochsPerClick, value)) { _EpochsPerClick = value; _propertyChanged("EpochsPerClick"); } }

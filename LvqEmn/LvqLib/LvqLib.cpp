@@ -12,8 +12,7 @@ using std::wstring;
 using std::transform;
 
 extern"C" LvqDataset* CreateDatasetRaw(
-	unsigned rngParamSeed, unsigned rngInstSeed, int dimCount, int pointCount, int classCount,  //TODO:remove foldCount
-	LvqFloat* data, int*labels) {
+	unsigned rngParamSeed, unsigned rngInstSeed, int dimCount, int pointCount, int classCount, LvqFloat* data, int*labels) {
 		mt19937 rngParams(rngParamSeed), rngInst(rngInstSeed);
 		Matrix_NN points(dimCount,pointCount);
 		points = Map<Matrix_NN>(data,dimCount,pointCount);
@@ -24,15 +23,14 @@ extern"C" LvqDataset* CreateDatasetRaw(
 		return dataset;
 }
 extern"C" LvqDataset* CreateGaussianClouds(
-	unsigned rngParamSeed, unsigned rngInstSeed, int dimCount, int pointCount, int classCount, //TODO:remove foldCount
-	double meansep) {
+	unsigned rngParamSeed, unsigned rngInstSeed, int dimCount, int pointCount, int classCount, double meansep) {
 		mt19937 rngParams(rngParamSeed), rngInst(rngInstSeed);
 		LvqDataset* dataset= CreateDataset::ConstructGaussianClouds(rngParams,rngInst,dimCount,classCount,pointCount/classCount,meansep);
 		dataset->shufflePoints(rngInst);
 		return dataset;
 }
 extern"C" LvqDataset* CreateStarDataset(
-	unsigned rngParamSeed, unsigned rngInstSeed, int dimCount, int pointCount, int classCount, //TODO:remove foldCount
+	unsigned rngParamSeed, unsigned rngInstSeed, int dimCount, int pointCount, int classCount,
 	int starDims, int numStarTails, double starMeanSep, double starClassRelOffset, bool randomlyRotate, double noiseSigma, double globalNoiseMaxSigma){
 		mt19937 rngParams(rngParamSeed), rngInst(rngInstSeed);
 		LvqDataset* dataset= CreateDataset::ConstructStarDataset(rngParams,rngInst,dimCount,starDims,numStarTails,classCount,pointCount/classCount,starMeanSep,starClassRelOffset,randomlyRotate,noiseSigma,globalNoiseMaxSigma);
@@ -68,8 +66,7 @@ extern"C" double NearestNeighborXvalRawErrorRate(LvqDataset const * trainingSet,
 	return trainingSet->NearestNeighborErrorRate(trainingSet->GetTrainingSubset(fold,foldCount), trainingSet, trainingSet->GetTestSubset(fold, foldCount));
 }
 
-extern"C" int GetTrainingSubsetSize(LvqDataset const * trainingSet, int fold, int foldCount) { return trainingSet->GetTrainingSubsetSize(fold,foldCount); }
-extern"C" int GetTestSubsetSize(LvqDataset const * trainingSet, int fold, int foldCount){ return trainingSet->GetTestSubsetSize(fold,foldCount); }
+extern"C" int GetSubsetSize(LvqDataset const * trainingSet, int fold, int foldCount, bool isTest) { return isTest? trainingSet->GetTestSubsetSize(fold,foldCount):trainingSet->GetTrainingSubsetSize(fold,foldCount); }
 
 extern"C" DataShape GetDataShape(LvqDataset const * dataset){
 	DataShape shape;
@@ -79,8 +76,8 @@ extern"C" DataShape GetDataShape(LvqDataset const * dataset){
 	return shape;
 }
 
-extern"C" void GetPointLabels(LvqDataset const * dataset, int* pointLabels) {
-	vector<int> labels = dataset->getPointLabels();
+extern"C" void GetPointLabels(LvqDataset const * dataset, int fold,int foldCount, bool isTest, int* pointLabels) {
+	vector<int> labels = dataset->ExtractLabels(isTest? dataset->GetTestSubset(fold,foldCount):dataset->GetTrainingSubset(fold,foldCount));
 	copy(labels.begin(),labels.end(),pointLabels);
 }
 
@@ -129,7 +126,7 @@ extern "C" DataShape GetModelShape(LvqModel const * model) {
 	DataShape shape;
 	shape.classCount = model->ClassCount();
 	shape.dimCount = model->Dimensions();
-	shape.pointCount = (int)model->GetPrototypeLabels().size();//TODO:efficiency
+	shape.pointCount = (int)model->GetPrototypeLabels().size();
 	return shape;
 }
 
@@ -137,14 +134,14 @@ extern "C"void ProjectPrototypes(LvqModel const* model, LvqFloat* pointData){
 	auto projModel=dynamic_cast<LvqProjectionModel const *>(model);
 	Matrix_2N pProtos = projModel->GetProjectedPrototypes();
 	Map<Matrix_2N> mappedData(pointData,LVQ_LOW_DIM_SPACE,pProtos.cols());
-	mappedData = pProtos;//TODO:copying
+	mappedData = pProtos;//this is perhaps unnecessary copying
 }
 
-extern "C" void ProjectPoints(LvqModel const* model, LvqDataset const * dataset, LvqFloat* pointData) {
+extern "C" void ProjectPoints(LvqModel const* model, LvqDataset const * dataset, int fold, int folds, bool isTest, LvqFloat* pointData) {
 	auto projModel=dynamic_cast<LvqProjectionModel const *>(model);
-	Matrix_2N pPoints = dataset->ProjectPoints(projModel);
-	Map<Matrix_2N> mappedData(pointData,LVQ_LOW_DIM_SPACE,pPoints.cols());
-	mappedData = pPoints;//TODO:copying
+	Matrix_NN points = dataset->ExtractPoints(isTest?dataset->GetTestSubset(fold,folds): dataset->GetTrainingSubset(fold,folds));
+	Map<Matrix_2N> mappedData(pointData,LVQ_LOW_DIM_SPACE,points.cols());
+	mappedData = projModel->projectionMatrix() * points;//this is perhaps unnecessary copying
 }
 
 extern "C" void GetProjectionMatrix(LvqModel const* model, LvqFloat* matrixDataTgt){//2 * dimCount
@@ -157,7 +154,7 @@ extern "C" void ClassBoundaries(LvqModel const* model, double x0, double x1, dou
 	LvqProjectionModel::ClassDiagramT image(yRows,xCols);
 	projModel->ClassBoundaryDiagram(x0,x1,y0,y1,image);
 	Map<LvqProjectionModel::ClassDiagramT> mappedImage(imageData,image.rows(),image.cols());
-	mappedImage = image;//TODO:copying
+	mappedImage = image;//this is perhaps unnecessary copying
 }
 
 extern "C" void GetPrototypeLabels(LvqModel const* model, int* protoLabels){

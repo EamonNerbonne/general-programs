@@ -705,7 +705,7 @@ namespace EmnExtensions.Wpf.Plot {
 			int fixedSlot;
 
 			CalcTickPositions(range, minReqTickCount, preferredNum, out totalSlotSize, out slotOrderOfMagnitude, out firstTickMult, out lastTickMult, out subDivTicks, out tickCount, out fixedSlot);
-			subDivTicks = subDivTicks.Take(1).ToArray();//TODO: does this look better?
+			subDivTicks = subDivTicks.Take(1).ToArray();
 			//convert subDivTicks into "cumulative" multiples, i.e. 2,2,5 into 20,10,5,1
 			int[] subMultiple = new int[subDivTicks.Length + 1];
 			subMultiple[subDivTicks.Length] = 1;

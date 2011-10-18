@@ -15,7 +15,7 @@ ResultAnalysis.analyzedModels ()
     |> Seq.groupBy (fun res-> res.DatasetBaseShorthand) 
     |> Seq.map 
         (fun (key, group) ->
-            let sortedGroup = group |> Seq.toArray |> Array.map (fun res -> ((res.Results |> Array.map (fun r-> r.TrainingError) |> Array.min, res.MeanError), res)) |> Array.sortBy fst |> Array.map snd
+            let sortedGroup = group |> Seq.toArray |> Array.map (fun res -> ((res.Results |> Array.map (fun r-> r.TrainingError) |> Array.average, res.MeanError), res)) |> Array.sortBy fst |> Array.map snd
             let mappedGroup = sortedGroup |> Seq.map (fun res -> 
                 let trn = res.Results |> Seq.map (fun x->x.TrainingError*100.) |> Seq.toList |> Utils.sampleDistribution
                 let tst = res.Results |> Seq.map (fun x->x.TestError*100.) |> Seq.toList |> Utils.sampleDistribution

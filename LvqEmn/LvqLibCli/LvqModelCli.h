@@ -57,7 +57,7 @@ namespace LvqLibCli {
 
 		MatrixContainer<unsigned char> ClassBoundaries(double x0, double x1, double y0, double y1,int xCols, int yRows);
 
-		ModelProjection CurrentProjectionAndPrototypes(LvqDatasetCli^ dataset);
+		ModelProjection CurrentProjectionAndPrototypes(LvqDatasetCli^ dataset, bool showTestEmbedding);
 		property array<int>^ PrototypeLabels {array<int>^ get(); }
 
 		array<int>^ Train(int epochsToDo,LvqDatasetCli^ trainingSet, int datafold, bool getOrder,bool sortedTrain); 

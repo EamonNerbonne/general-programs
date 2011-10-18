@@ -21,7 +21,7 @@
 #pragma warning(pop)
 //#pragma warning(push,3)
 #pragma warning(disable: 4714) //OK to ignore __forceinline
-#pragma warning(disable: 4244) //temporarily OK to ignore 64 vs. 32 bit issues. //TODO: remove 
+//#pragma warning(disable: 4244) //temporarily OK to ignore 64 vs. 32 bit issues.
 #endif
 #include <Eigen/Core>
 #include <Eigen/LU> 

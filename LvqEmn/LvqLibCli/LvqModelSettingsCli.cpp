@@ -3,7 +3,6 @@
 #include "LvqDatasetCli.h"
 #include "utils.h"
 namespace LvqLibCli {
-	//TODO:ABI:LvqModelSettings
 	LvqModelSettingsRaw LvqModelSettingsCli::ToNativeSettings() {
 
 		LvqModelSettingsRaw nativeSettings = { (::LvqModelType)ModelType, Dimensionality, PrototypesPerClass, RandomInitialProjection, RandomInitialBorders, NormalizeProjection, NormalizeBoundaries, GloballyNormalize, NgUpdateProtos, NgInitializeProtos, ProjOptimalInit, BLocalInit, UpdatePointsWithoutB, SlowStartLrBad, LR0, LrScaleP, LrScaleB, LrScaleBad, ParamsSeed, InstanceSeed, TrackProjectionQuality, ParallelModels };

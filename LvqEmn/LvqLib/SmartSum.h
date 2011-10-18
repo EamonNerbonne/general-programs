@@ -10,7 +10,7 @@ class SmartSum {
 	ArrayT meanX, sX;
 	double weightSum;
 public:
-	SmartSum(int dims) : meanX(ArrayT::Zero(dims) ), sX(ArrayT::Zero(dims)), weightSum(0.0) {}
+	SmartSum(size_t dims) : meanX(ArrayT::Zero(dims) ), sX(ArrayT::Zero(dims)), weightSum(0.0) {}
 	SmartSum() : meanX(ArrayT::Zero(CompileTimeDims) ), sX(ArrayT::Zero(CompileTimeDims)), weightSum(0.0) {
 		assert(CompileTimeDims != Eigen::Dynamic && CompileTimeDims>0);
 	}

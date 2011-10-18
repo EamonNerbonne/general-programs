@@ -79,7 +79,7 @@ MatchQuality GmLvqModel::learnFrom(Vector_N const & trainPoint, int trainLabel) 
 
 	if(ngMatchCache.size()>0) {
 		double lrSub = lr_point;
-		double lrDelta = exp(-LVQ_NG_FACTOR/learningRate);//TODO: this is rather ADHOC
+		double lrDelta = exp(-LVQ_NG_FACTOR/learningRate);//this is rather ad hoc
 		for(int i=1;i<fullmatch.foundOk;++i) {
 			lrSub*=lrDelta;
 			Vector_N &Js = prototype[fullmatch.matchesOk[i].idx];
@@ -150,7 +150,7 @@ void GmLvqModel::ClassBoundaryDiagram(double x0, double x1, double y0, double y1
 			// x = xBase + xCol * xDelta;  y = yBase + yCol * yDelta;
 			Matrix_NN::Index bestProtoI;
 			diff_x_y.colwise().squaredNorm().minCoeff(&bestProtoI);
-			classDiagram(yRow, xCol) = this->pLabel[bestProtoI];
+			classDiagram(yRow, xCol) =(unsigned char) this->pLabel[bestProtoI];
 
 			diff_x_y.row(0).array() += xDelta;
 		}

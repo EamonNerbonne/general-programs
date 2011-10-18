@@ -30,7 +30,9 @@ private:
 
 protected:
 	LvqModelRuntimeSettings settings;
-	double iterationScaleFactor;//TODO:make private;
+private:
+	double iterationScaleFactor;
+protected:
 	double stepLearningRate() { //starts at 1.0, descending with power -0.75
 		double scaledIter = trainIter*iterationScaleFactor+1.0;
 		++trainIter;
@@ -56,7 +58,7 @@ public:
 		return 1.0 / sqrt(scaledIter*sqrt(scaledIter)); 
 	}
 
-	boost::mt19937 & RngIter() {return *settings.RngIter;}//TODO:remove.
+	boost::mt19937 & RngIter() {return *settings.RngIter;}
 	void resetLearningRate() {trainIter=0; }
 
 	std::vector<std::wstring> TrainingStatNames() const;

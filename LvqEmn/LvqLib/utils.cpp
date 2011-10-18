@@ -15,7 +15,7 @@ void makeRandomOrder(boost::mt19937 & randGen, int* const toFill, int count){
 
 	//boost::function<int (int max)> rnd = bind(rnd_helper, randGen, _1);
 
-	random_shuffle(toFill, toFill +count, [&](int options) { return randGen()%options;});
+	random_shuffle(toFill, toFill +count, [&](ptrdiff_t options) { return randGen()%options;});
 //	shuffle(randGen,toFill,count);
 	assert(accumulate(toFill,toFill+count,0) == (sqr(count) - count) /2 );
 }

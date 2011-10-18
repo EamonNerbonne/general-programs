@@ -15,6 +15,7 @@ using EmnExtensions.MathHelpers;
 using EmnExtensions.Wpf;
 using EmnExtensions.Wpf.Plot.VizEngines;
 using LvqLibCli;
+using EmnExtensions.Wpf.Plot;
 
 namespace LvqGui {
 	public class LvqMultiModel {
@@ -271,12 +272,12 @@ namespace LvqGui {
 			return subModels[subModelIdx].ClassBoundaries(x0, x1, y0, y1, xCols, yRows);
 		}
 
-		public ModelProjection CurrentModelProjection(int subModelIdx, LvqDatasetCli dataset) {
-			return subModels[subModelIdx].CurrentProjectionAndPrototypes(dataset);
+		public ModelProjection CurrentModelProjection(int subModelIdx, LvqDatasetCli dataset, bool showTestEmbedding) {
+			return subModels[subModelIdx].CurrentProjectionAndPrototypes(dataset, showTestEmbedding);
 		}
 
 		public class ModelProjectionAndImage {
-			public Point[] RawPoints;
+			public LabelledPoint[] RawPoints;
 			public Point[][] PrototypesByLabel;
 			public Point[][] PointsByLabel;
 			public Rect Bounds;
@@ -287,7 +288,7 @@ namespace LvqGui {
 			public LvqDatasetCli forDataset;
 		}
 
-		public ModelProjectionAndImage CurrentProjectionAndImage(LvqDatasetCli dataset, int width, int height, bool hideBoundaries, int currSubModel) {
+		public ModelProjectionAndImage CurrentProjectionAndImage(LvqDatasetCli dataset, int width, int height, bool hideBoundaries, int currSubModel,bool showTestEmbedding) {//TODO:testembed
 #if DEBUG
 			int renderwidth = (width + 7) / 8;
 			int renderheight = (height + 7) / 8;
@@ -300,7 +301,7 @@ namespace LvqGui {
 			Rect bounds;
 			MatrixContainer<byte> closestClass;
 			lock (selectedModel.ReadSync) {
-				projection = selectedModel.CurrentProjectionAndPrototypes(dataset);
+				projection = selectedModel.CurrentProjectionAndPrototypes(dataset, showTestEmbedding);
 				if (!projection.HasValue) return null;
 				bounds = ExpandToShape(renderwidth, renderheight, ComputeProjectionBounds(projection.Prototypes.Select(lp => lp.point), projection.Points.Select(lp => lp.point)));
 				closestClass = hideBoundaries ? default(MatrixContainer<byte>) 
@@ -318,7 +319,7 @@ namespace LvqGui {
 				Bounds = bounds,
 				PrototypesByLabel = GroupPointsByLabel(projection.Prototypes, dataset.ClassCount),
 				PointsByLabel = GroupPointsByLabel(projection.Points, dataset.ClassCount),
-				RawPoints = ToPointArray(projection.Points),
+				RawPoints = projection.Points.Select(lp=>new LabelledPoint{ label=lp.label,point=lp.point}).ToArray(),
 				forDataset = dataset,
 				forModels = this,
 				forSubModel = currSubModel,

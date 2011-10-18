@@ -5,7 +5,7 @@ using System.Windows;
 using System.Windows.Media;
 
 namespace EmnExtensions.Wpf.Plot.VizEngines {
-	public class VizPointCloudBitmap : VizDynamicBitmap<Point[]>, IVizPixelScatter
+	public class VizPointCloudBitmap : VizDynamicBitmap<LabelledPoint[]>
 		//for efficiency reasons, accept data in a Point[] rather than the more general IEnumerable<Point>
 	{
 		struct UintColor {
@@ -27,9 +27,6 @@ namespace EmnExtensions.Wpf.Plot.VizEngines {
 		double m_CoverageGradient = 5.0;
 		public double CoverageGradient { get { return m_CoverageGradient; } set { m_CoverageGradient = value; InvalidateDataBounds(); } }
 
-		int[] m_PointLabels;
-		public int[] PointLabels { get { return m_PointLabels; } set { m_PointLabels = value; OnRenderOptionsChanged(); } }
-
 		Color[] m_ClassColors;
 		UintColor[] m_MappedColors;
 		public Color[] ClassColors { get { return m_ClassColors; } set { m_ClassColors = value; RecomputeColors(); } }
@@ -44,7 +41,7 @@ namespace EmnExtensions.Wpf.Plot.VizEngines {
 		protected override void UpdateBitmap(int pW, int pH, Matrix dataToBitmap) {
 			Trace.WriteLine("UpdateBitmap");
 
-			if (dataToBitmap.IsIdentity || m_PointLabels == null || m_ClassColors == null || m_PointLabels.Length != Data.Length) return;//this is the default mapping; it may occur when generating a scatter plot without data - don't bother plotting.
+			if (dataToBitmap.IsIdentity || m_ClassColors == null || Data== null || Data.Length==0) return;//this is the default mapping; it may occur when generating a scatter plot without data - don't bother plotting.
 
 			double thickness = Plot.MetaData.RenderThickness ?? VizPixelScatterHelpers.PointCountToThickness(OverridePointCountEstimate ?? (Data == null ? 0 : Data.Length));
 			thickness *= Math.Sqrt(pW * pH / 90000.0);
@@ -112,13 +109,11 @@ namespace EmnExtensions.Wpf.Plot.VizEngines {
 		void MakeSinglePoint2dHistogram(int pW, int pH, Matrix dataToBitmap) {
 			var data = Data;
 			for (int i = 0; i < data.Length; i++) {
-				Point point = data[i];
-				int label = m_PointLabels[i];
-				Point displaypoint = dataToBitmap.Transform(point);
+				Point displaypoint = dataToBitmap.Transform(data[i].point);
 				int x = (int)(displaypoint.X);
 				int y = (int)(displaypoint.Y);
 				if (x >= 0 && x < pW && y >= 0 && y < pH) {
-					AddPixel(x + pW * y, label);
+					AddPixel(x + pW * y, data[i].label);
 				}
 			}
 		}
@@ -126,9 +121,8 @@ namespace EmnExtensions.Wpf.Plot.VizEngines {
 		void MakeSoftDiamondPoint2dHistogram(int pW, int pH, Matrix dataToBitmap) {
 			var data = Data;
 			for (int i = 0; i < data.Length; i++) {
-				Point point = data[i];
-				int label = m_PointLabels[i];
-				Point displaypoint = dataToBitmap.Transform(point);
+				Point displaypoint = dataToBitmap.Transform(data[i].point);
+				int label = data[i].label;
 				int x = (int)(displaypoint.X);
 				int y = (int)(displaypoint.Y);
 				if (x >= 1 && x < pW - 1 && y >= 1 && y < pH - 1) {
@@ -146,9 +140,8 @@ namespace EmnExtensions.Wpf.Plot.VizEngines {
 		void MakeDiamondPoint2dHistogram(int pW, int pH, Matrix dataToBitmap) {
 			var data = Data;
 			for (int i = 0; i < data.Length; i++) {
-				Point point = data[i];
-				int label = m_PointLabels[i];
-				Point displaypoint = dataToBitmap.Transform(point);
+				int label = data[i].label;
+				Point displaypoint = dataToBitmap.Transform(data[i].point);
 				int x = (int)(displaypoint.X);
 				int y = (int)(displaypoint.Y);
 				if (x >= 1 && x < pW - 1 && y >= 1 && y < pH - 1) {
@@ -164,9 +157,8 @@ namespace EmnExtensions.Wpf.Plot.VizEngines {
 		void MakeSquarePoint2dHistogram(int pW, int pH, Matrix dataToBitmap) {
 			var data = Data;
 			for (int i = 0; i < data.Length; i++) {
-				Point point = data[i];
-				int label = m_PointLabels[i];
-				Point displaypoint = dataToBitmap.Transform(point);
+				int label = data[i].label;
+				Point displaypoint = dataToBitmap.Transform(data[i].point);
 				int x = (int)(displaypoint.X);
 				int y = (int)(displaypoint.Y);
 				if (x >= 1 && x < pW - 1 && y >= 1 && y < pH - 1) {
@@ -192,9 +184,8 @@ namespace EmnExtensions.Wpf.Plot.VizEngines {
 		void Make21Point2dHistogram(int pW, int pH, Matrix dataToBitmap) {
 			var data = Data;
 			for (int i = 0; i < data.Length; i++) {
-				Point point = data[i];
-				int label = m_PointLabels[i];
-				Point displaypoint = dataToBitmap.Transform(point);
+				int label = data[i].label;
+				Point displaypoint = dataToBitmap.Transform(data[i].point);
 				int x = (int)(displaypoint.X);
 				int y = (int)(displaypoint.Y);
 				if (x >= 2 && x < pW - 2 && y >= 2 && y < pH - 2) {
@@ -287,14 +278,15 @@ namespace EmnExtensions.Wpf.Plot.VizEngines {
 		}
 		#endregion
 
-		protected override void OnDataChanged(Point[] oldData) {
+		protected override void OnDataChanged(LabelledPoint[] oldData) {
 			InvalidateDataBounds();
-			m_OuterDataBounds = VizPixelScatterHelpers.ComputeOuterBounds(Data);
+
+			m_OuterDataBounds = VizPixelScatterHelpers.ComputeOuterBounds(Data.Select(lp=>lp.point).ToArray());
 			TriggerChange(GraphChange.Projection); //because we need to relayout the points in the plot
 		}
 
 		protected override Rect ComputeBounds() {
-			return m_OuterDataBounds.IsEmpty ? m_OuterDataBounds : VizPixelScatterHelpers.ComputeInnerBoundsByRatio(Data, CoverageRatio, CoverageRatio, CoverageGradient, m_OuterDataBounds);
+			return m_OuterDataBounds.IsEmpty ? m_OuterDataBounds : VizPixelScatterHelpers.ComputeInnerBoundsByRatio(Data.Select(lp => lp.point).ToArray(), CoverageRatio, CoverageRatio, CoverageGradient, m_OuterDataBounds);
 		}
 
 		public override void OnRenderOptionsChanged() {

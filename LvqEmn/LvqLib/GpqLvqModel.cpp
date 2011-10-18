@@ -97,7 +97,7 @@ MatchQuality GpqLvqModel::learnFrom(Vector_N const & trainPoint, int trainLabel)
 
 	if(ngMatchCache.size()>0) {
 		double lrSub = lr_point;
-		double lrDelta = exp(-LVQ_NG_FACTOR/learningRate);//TODO: this is rather ADHOC
+		double lrDelta = exp(-LVQ_NG_FACTOR/learningRate);//this is rather ad hoc
 		for(int i=1;i<fullmatch.foundOk;++i) {
 			lrSub*=lrDelta;
 			GpqLvqPrototype &Js = prototype[fullmatch.matchesOk[i].idx];
@@ -221,7 +221,7 @@ void GpqLvqModel::ClassBoundaryDiagram(double x0, double x1, double y0, double y
 			// x = xBase + xCol * xDelta;  y = yBase + yCol * yDelta;
 			Matrix_NN::Index bestProtoI;
 			B_diff_x_y.colwise().squaredNorm().minCoeff(&bestProtoI);
-			classDiagram(yRow, xCol) = this->prototype[bestProtoI].classLabel;
+			classDiagram(yRow, xCol) = (unsigned char)this->prototype[bestProtoI].classLabel;
 
 			B_diff_x_y.noalias() += B_xDelta;
 		}

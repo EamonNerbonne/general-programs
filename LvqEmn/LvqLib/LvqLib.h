@@ -48,10 +48,9 @@ extern "C" {
 	__declspec(dllexport) double NearestNeighborSplitRawErrorRate(LvqDataset const * trainingSet, LvqDataset const * testSet);
 	__declspec(dllexport) double NearestNeighborXvalPcaErrorRate(LvqDataset  const * trainingSet, int fold,int foldCount);
 	__declspec(dllexport) double NearestNeighborXvalRawErrorRate(LvqDataset  const * trainingSet, int fold,int foldCount);
-	__declspec(dllexport) int GetTrainingSubsetSize(LvqDataset const * trainingSet, int fold,int foldCount);
-	__declspec(dllexport) int GetTestSubsetSize(LvqDataset const * trainingSet, int fold,int foldCount);
+	__declspec(dllexport) int GetSubsetSize(LvqDataset const * trainingSet, int fold,int foldCount, bool isTest);
 	__declspec(dllexport) DataShape GetDataShape(LvqDataset const * dataset);
-	__declspec(dllexport) void GetPointLabels(LvqDataset const * dataset, int* pointLabels);
+	__declspec(dllexport) void GetPointLabels(LvqDataset const * dataset, int fold,int foldCount, bool isTest, int* pointLabels);
 
 	__declspec(dllexport) LvqModel* CreateLvqModel(LvqModelSettingsRaw rawSettings, LvqDataset const* dataset, int fold,int foldCount);
 	__declspec(dllexport) LvqModel* CloneLvqModel(LvqModel const * model);
@@ -60,7 +59,7 @@ extern "C" {
 	__declspec(dllexport) void FreeModel(LvqModel* model);
 	__declspec(dllexport) DataShape GetModelShape(LvqModel const * model);
 	__declspec(dllexport) void ProjectPrototypes(LvqModel const* model, LvqFloat* pointData);
-	__declspec(dllexport) void ProjectPoints(LvqModel const* model, LvqDataset const * dataset, LvqFloat* pointData);
+	__declspec(dllexport) void ProjectPoints(LvqModel const* model, LvqDataset const * dataset,int fold, int folds, bool isTest, LvqFloat* pointData);
 	__declspec(dllexport) void GetProjectionMatrix(LvqModel const* model, LvqFloat* matrixDataTgt);//2 * dimCount
 	__declspec(dllexport) void ClassBoundaries(LvqModel const* model, double x0, double x1, double y0, double y1, int xCols, int yRows, unsigned char* imageData);
 	__declspec(dllexport) void GetPrototypeLabels(LvqModel const* model, int* protoLabels);

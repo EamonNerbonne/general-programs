@@ -24,7 +24,7 @@ namespace LvqGui {
 		readonly TaskScheduler lvqPlotTaskScheduler;//corresponds to lvqPlotDispatcher
 
 
-		public Task DisplayModel(LvqDatasetCli dataset, LvqMultiModel model, int new_subModelIdx, StatisticsViewMode viewMode, bool showBoundaries, bool showPrototypes) {
+		public Task DisplayModel(LvqDatasetCli dataset, LvqMultiModel model, int new_subModelIdx, StatisticsViewMode viewMode, bool showBoundaries, bool showPrototypes, bool showTestEmbedding) {
 			if (lvqPlotDispatcher.HasShutdownStarted) throw new InvalidOperationException("Dispatcher shutting down");
 			return lvqPlotTaskScheduler.StartNewTask(() => {
 				lock (plotsSync) {
@@ -42,6 +42,7 @@ namespace LvqGui {
 						else
 							subplots = oldsubplots;
 						subplots.selectedSubModel = new_subModelIdx;
+						subplots.showTestEmbedding = showTestEmbedding;
 					}
 				}
 				ShowBoundaries(showBoundaries);
@@ -89,6 +90,14 @@ namespace LvqGui {
 								protoPlot.Plot.MetaData.Hidden = !visible;
 					});
 			QueueUpdate();
+		}
+
+		public void ShowTestEmbedding(bool showTestEmbedding) {
+			lock (plotsSync)
+				if (subplots != null && subplots.showTestEmbedding != showTestEmbedding) {
+					subplots.showTestEmbedding = showTestEmbedding;
+					QueueUpdate();
+				}
 		}
 
 
@@ -310,5 +319,6 @@ namespace LvqGui {
 				default: return fullname;
 			}
 		}
+
 	}
 }

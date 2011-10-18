@@ -18,6 +18,7 @@ namespace LvqGui {
 		public readonly IVizEngine<LvqStatPlots>[] statPlots;
 		public readonly PlotControl[] plots;
 		public int selectedSubModel;
+		public bool showTestEmbedding;
 
 		public LvqStatPlots(LvqDatasetCli dataset, LvqMultiModel model) {
 			this.dataset = dataset;
@@ -38,7 +39,7 @@ namespace LvqGui {
 		}
 
 		public LvqMultiModel.ModelProjectionAndImage CurrentProjection() {
-			return model.CurrentProjectionAndImage(dataset, LastWidthHeight == null ? 0 : LastWidthHeight.Item1, LastWidthHeight == null ? 0 : LastWidthHeight.Item2, classBoundaries != null && classBoundaries.Plot.MetaData.Hidden, selectedSubModel);
+			return model.CurrentProjectionAndImage(dataset, LastWidthHeight == null ? 0 : LastWidthHeight.Item1, LastWidthHeight == null ? 0 : LastWidthHeight.Item2, classBoundaries != null && classBoundaries.Plot.MetaData.Hidden, selectedSubModel, showTestEmbedding);
 		}
 
 
@@ -92,10 +93,10 @@ namespace LvqGui {
 				).ToArray();
 		}
 
-		static IVizEngine<Point[]> MakePointCloudGraph(LvqDatasetCli dataset, int? zIndex = null) {
+		static IVizEngine<LabelledPoint[]> MakePointCloudGraph(LvqDatasetCli dataset, int? zIndex = null) {
 			return Plot.Create(
 						new PlotMetaData { ZIndex = zIndex ?? 0 },
-						new VizPointCloudBitmap { CoverageRatio = 0.95, CoverageGradient = 5.0, ClassColors = dataset.ClassColors, PointLabels = dataset.ClassLabels() }).Visualisation;
+						new VizPointCloudBitmap { CoverageRatio = 0.95, CoverageGradient = 5.0, ClassColors = dataset.ClassColors }).Visualisation;
 		}
 
 		IVizEngine<LvqMultiModel.ModelProjectionAndImage> MakeClassBoundaryGraph() {
@@ -111,7 +112,7 @@ namespace LvqGui {
 
 			if (!hideBoundaries) {
 				if (width != lastProjection.Width || height != lastProjection.Height || lastProjection.ImageData == null || selectedSubModel != lastProjection.forSubModel) {
-					lastProjection = lastProjection.forModels.CurrentProjectionAndImage(lastProjection.forDataset, width, height, false, selectedSubModel);
+					lastProjection = lastProjection.forModels.CurrentProjectionAndImage(lastProjection.forDataset, width, height, false, selectedSubModel, showTestEmbedding);
 					SetScatterBounds(lastProjection.Bounds);
 				}
 				bmp.WritePixels(new Int32Rect(0, 0, width, height), lastProjection.ImageData, width * 4, 0);

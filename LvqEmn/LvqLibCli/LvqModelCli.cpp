@@ -145,19 +145,27 @@ namespace LvqLibCli {
 		return retval;
 	}
 
-	ModelProjection LvqModelCli::CurrentProjectionAndPrototypes(LvqDatasetCli^ dataset) {
+	ModelProjection LvqModelCli::CurrentProjectionAndPrototypes(LvqDatasetCli^ dataset, bool showTestEmbedding) {
 		if(modelCopy==nullptr || !IsProjectionModel) return ModelProjection();
+		int folds = dataset->Folds();
+		LvqDataset const * underlyingDataset = showTestEmbedding?dataset->GetTrainingDataset(initDataFold):dataset->GetTestDataset(initDataFold);
+		bool isTestFold = showTestEmbedding && ! dataset->HasTestSet();
+		int datasetSubsetSize = GetSubsetSize(underlyingDataset,initDataFold,folds,isTestFold);
 
-		Matrix_2N points(LVQ_LOW_DIM_SPACE,(size_t)dataset->PointCount), prototypes(LVQ_LOW_DIM_SPACE,(size_t)protoCount);
-		vector<int> pointLabels(dataset->PointCount), protoLabels(protoCount);
+		Matrix_2N points(LVQ_LOW_DIM_SPACE, datasetSubsetSize), prototypes(LVQ_LOW_DIM_SPACE,(size_t)protoCount);
 
-		GetPointLabels(dataset->GetTrainingDataset(initDataFold), &pointLabels[0]);
+		vector<int> pointLabels(datasetSubsetSize), protoLabels(protoCount);
+
+
+
+		GetPointLabels(underlyingDataset, initDataFold, folds, isTestFold, &pointLabels[0]);
 		msclr::lock l(copySync);
-		ProjectPoints(modelCopy->get(), dataset->GetTrainingDataset(initDataFold), points.data());
+		ProjectPoints(modelCopy->get(), underlyingDataset,initDataFold,folds,isTestFold, points.data());
 		ProjectPrototypes(modelCopy->get(), prototypes.data());
 		GetPrototypeLabels(modelCopy->get(), &protoLabels[0]);
 		l.release();
-
+		GC::KeepAlive(dataset);
+		GC::KeepAlive(this);
 		return ModelProjection(ToCliLabelledPoints(points, pointLabels) ,ToCliLabelledPoints(prototypes,protoLabels));
 	}
 
