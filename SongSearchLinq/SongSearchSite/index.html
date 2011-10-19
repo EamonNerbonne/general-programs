@@ -15,7 +15,9 @@
         <div id="playlistForm">
             <div id="playlistNameBox">
                 <input type="checkbox" id="showOnlyOwnLists" />Show only my playlists<br />
-                Playlist:
+                                 <button id="do_removeAll">New Playlist</button>
+
+                (Re)name Playlist:
                 <input id="playlistName" type="text" name="playlistName" autocomplete="off" />
                 <div class="help">
                     fill in name save playlist, clear to delete playlist</div>
@@ -70,7 +72,6 @@
                     <li id="jplayer_volume_max" class="jp-volume-max">
                         <img src="img/volume.png" alt="max volume" /></li>
                     <li><span id="do_shuffle">S</span></li>
-                    <li><span id="do_removeAll">X</span></li>
                     <li id="repeat_playlist_box_li">
                         <input type="checkbox" id="repeat_playlist_box" /></li>
                 </ul>
