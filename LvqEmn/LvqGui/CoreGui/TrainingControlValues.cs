@@ -38,7 +38,7 @@ namespace LvqGui {
 		public IEnumerable<LvqMultiModel> MatchingLvqModels { get { return Owner.LvqModels.Where(model => model == null || model.InitSet == SelectedDataset); } } // model.FitsDataShape(SelectedDataset) is unhandy
 
 		public double ItersPerEpoch { get { return SelectedDataset == null ? double.NaN : LvqMultiModel.GetItersPerEpoch(SelectedDataset); } }
-		
+
 
 		public LvqMultiModel SelectedLvqModel {
 			get { return _SelectedLvqModel; }
@@ -90,7 +90,7 @@ namespace LvqGui {
 		}
 		private bool _ShowTestEmbedding;
 
-		
+
 
 		public int EpochsPerClick {
 			get { return _EpochsPerClick; }
@@ -321,15 +321,17 @@ namespace LvqGui {
 			return selectedModel != null ? selectedModel.CurrentLearningRate : 0.0;
 		}
 
-		public void DoExtendDatasetWithProtoDistances()
-		{
+		public void DoExtendDatasetWithProtoDistances() {
 			var model = SelectedLvqModel;
 			var dataset = SelectedDataset;
 			/*if (model.ModelCount != dataset.Folds()) {
 				Console.WriteLine("Cannot extend dataset; model must a as many folds as dataset.");
 				return;
 			}*/
-			Owner.Dispatcher.BeginInvoke(()=>Owner.Datasets.Add(dataset.ConstructByModelExtension(model.SubModels.ToArray())));
+			if (model != null && dataset != null)
+				Owner.Dispatcher.BeginInvoke(() => Owner.Datasets.Add(dataset.ConstructByModelExtension(model.SubModels.ToArray())));
+			else
+				Console.WriteLine("You must select a dataset & model to extend a dataset by model");
 		}
 	}
 }
