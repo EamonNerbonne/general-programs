@@ -92,9 +92,10 @@ namespace LvqLibCli {
 			newDatasets[i] = newDatasetComputer[i]->newDatasetTask->Result->Item1;
 			newDatasetsTest[i] = newDatasetComputer[i]->newDatasetTask->Result->Item2;
 		}
-		auto retval = gcnew LvqDatasetCli("X"+label, folds, colors,newDatasets);
+		DataShape shape=GetDataShape(newDatasets[0]->get());
+		auto retval = gcnew LvqDatasetCli(System::Text::RegularExpressions::Regex::Replace(label,"\\-[0-9]+D[^-]*(?=\\-)|$","$0X"+shape.dimCount), folds, colors, newDatasets);
 		if(this->HasTestSet())
-			retval->TestSet = gcnew LvqDatasetCli("X"+TestSet->label, folds, colors,newDatasetsTest);
+			retval->TestSet = gcnew LvqDatasetCli(System::Text::RegularExpressions::Regex::Replace(TestSet->label,"\\-[0-9]+D[^-]*(?=\\-)|$","$0X"+shape.dimCount), folds, colors, newDatasetsTest);
 		
 		return retval;
 	}
