@@ -7,6 +7,7 @@ namespace LvqGui {
 		uint InstanceSeed { get; set; }
 		bool ExtendDataByCorrelation { get; set; }
 		bool NormalizeDimensions { get; set; }
+		bool NormalizeByScaling { get; set; }
 		int Folds { get; set; }
 		string Shorthand { get; }
 		IDatasetCreator Clone();
@@ -15,6 +16,7 @@ namespace LvqGui {
 		public uint InstanceSeed { get; set; }
 		public bool ExtendDataByCorrelation { get; set; }
 		public bool NormalizeDimensions { get; set; }
+		public bool NormalizeByScaling { get; set; }
 		int _Folds = 10;
 		public int Folds { get { return _Folds; } set { _Folds = value; } }
 		IDatasetCreator IDatasetCreator.Clone() { return Clone(); }
@@ -37,6 +39,7 @@ namespace LvqGui {
 			obj = obj.Clone();
 			obj.ExtendDataByCorrelation = false;
 			obj.NormalizeDimensions = false;
+			obj.NormalizeByScaling = true;
 			obj.InstanceSeed = 0;
 			return obj.Shorthand;
 		}

@@ -21,7 +21,9 @@ type ModelResults =
 let applyDatasetTweaks (tweaks:string) (settings:IDatasetCreator) = 
     let copy = settings.Clone()
     copy.ExtendDataByCorrelation <- tweaks.Contains("x")
-    copy.NormalizeDimensions <- tweaks.Contains("n")
+    copy.NormalizeDimensions <- tweaks.Contains("n") || tweaks.Contains("S")
+    copy.NormalizeByScaling <-  tweaks.Contains("S")
+
     if copy :? LoadedDatasetSettings then
         let ldSettings = copy :?> LoadedDatasetSettings
         let segmentVersion = if tweaks.Contains("N") then "segmentationNormed_" else "segmentation_"
@@ -33,7 +35,9 @@ let applyDatasetTweaks (tweaks:string) (settings:IDatasetCreator) =
 let datasetSettings () = 
     let datasetAnnotation (settings:IDatasetCreator) segmentNorm =
         if settings.ExtendDataByCorrelation then "x" else ""
-        + if settings.NormalizeDimensions then "n" else ""
+        + if settings.NormalizeDimensions then 
+                if settings.NormalizeByScaling then "S" else "n"
+            else ""
         + if segmentNorm then "N" else ""
     let decodeDataset (settings:IDatasetCreator) =
         match settings.Clone() with
@@ -42,7 +46,7 @@ let datasetSettings () =
                 ldSettings.Filename <- ldSettings.Filename.Replace("segmentationNormed_","segmentationX_")
                 if ldSettings.TestFilename <> null then
                     ldSettings.TestFilename <- ldSettings.TestFilename.Replace("segmentationNormed_","segmentationX_")
-                ldSettings.NormalizeDimensions <- true
+                //ldSettings.NormalizeDimensions <- true//TODO:NormalizeByScaling
                 ldSettings.DimCount <- 19
                 (ldSettings.BaseShorthand(), datasetAnnotation settings true)
             elif ldSettings.Filename.StartsWith("segmentation_") then

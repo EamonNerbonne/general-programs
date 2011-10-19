@@ -86,6 +86,12 @@ namespace LvqGui {
 			get { return settings.NormalizeDimensions; }
 			set { if (Equals(settings.NormalizeDimensions, value)) return; settings.NormalizeDimensions = value; _propertyChanged("NormalizeDimensions"); }
 		}
+		public bool NormalizeByScaling {
+			get { return _NormalizeByScaling; }
+			set { if (!object.Equals(_NormalizeByScaling, value)) { _NormalizeByScaling = value; _propertyChanged("NormalizeByScaling"); } }
+		}
+		private bool _NormalizeByScaling;
+
 
 		public override string Shorthand { get { return settings.Shorthand; } set { settings.Shorthand = value; _propertyChanged("Shorthand"); } }
 		public override string ShorthandErrors { get { return settings.ShorthandErrors; } }
@@ -95,10 +101,12 @@ namespace LvqGui {
 			owner.PropertyChanged += (o, e) => {
 				if (e.PropertyName == "ExtendDataByCorrelation") ExtendDataByCorrelation = owner.ExtendDataByCorrelation;
 				else if (e.PropertyName == "NormalizeDimensions") NormalizeDimensions = owner.NormalizeDimensions;
+				else if (e.PropertyName == "NormalizeByScaling") NormalizeByScaling = owner.NormalizeByScaling;
 			};
 			PropertyChanged += (o, e) => {
 				if (e.PropertyName == "ExtendDataByCorrelation") owner.ExtendDataByCorrelation = ExtendDataByCorrelation;
 				else if (e.PropertyName == "NormalizeDimensions") owner.NormalizeDimensions = NormalizeDimensions;
+				else if (e.PropertyName == "NormalizeByScaling") owner.NormalizeByScaling = NormalizeByScaling;
 			};
 			//this.ReseedBoth();
 		}

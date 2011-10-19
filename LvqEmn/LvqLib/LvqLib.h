@@ -43,7 +43,7 @@ extern "C" {
 	__declspec(dllexport) void CreatePointCloud(unsigned rngParamSeed, unsigned rngInstSeed, int dimCount, int pointCount, double meansep, LvqFloat* target);
 	__declspec(dllexport) void FreeDataset(LvqDataset* dataset);
 	__declspec(dllexport) size_t MemAllocEstimateDataset(LvqDataset* dataset);
-	__declspec(dllexport) void ExtendAndNormalize(LvqDataset * dataset, bool extend, bool normalize);
+	__declspec(dllexport) void ExtendAndNormalize(LvqDataset * dataset, bool extend, bool normalize, bool normalizeByScaling);
 	__declspec(dllexport) double NearestNeighborSplitPcaErrorRate(LvqDataset const * trainingSet, LvqDataset const * testSet);
 	__declspec(dllexport) double NearestNeighborSplitRawErrorRate(LvqDataset const * trainingSet, LvqDataset const * testSet);
 	__declspec(dllexport) double NearestNeighborXvalPcaErrorRate(LvqDataset  const * trainingSet, int fold,int foldCount);

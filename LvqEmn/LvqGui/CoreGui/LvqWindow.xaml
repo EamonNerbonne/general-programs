@@ -38,6 +38,7 @@
                 <StackPanel>
                     <CheckBox Content="Extend data by correlation" IsChecked="{Binding ExtendDataByCorrelation, Mode=TwoWay}"/>
                     <CheckBox Content="Normalize each Dimension" IsChecked="{Binding NormalizeDimensions, Mode=TwoWay}"/>
+                    <CheckBox Content="Normalize only by scaling" IsChecked="{Binding NormalizeByScaling, Mode=TwoWay}"/>
 
                     <TabControl >
                         <TabItem Header="Load Data">

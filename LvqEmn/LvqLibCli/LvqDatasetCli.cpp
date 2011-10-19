@@ -12,26 +12,26 @@ namespace LvqLibCli {
 	using boost::mt19937;
 
 
-	LvqDatasetCli ^ LvqDatasetCli::ConstructFromArray(String^ label, int folds, bool extend, bool normalizeDims, ColorArray^ colors, unsigned rngInstSeed, array<LvqFloat,2>^ points,
+	LvqDatasetCli ^ LvqDatasetCli::ConstructFromArray(String^ label, int folds, bool extend, bool normalizeDims,bool normalizeByScaling, ColorArray^ colors, unsigned rngInstSeed, array<LvqFloat,2>^ points,
 		array<int>^ pointLabels, int classCount) {
 
 			vector<int> cppLabels;
 			Matrix_NN cppPoints;
 			cliToCpp(points,cppPoints);
 			cliToCpp(pointLabels,cppLabels);
-			return gcnew LvqDatasetCli(label,folds,extend,normalizeDims,colors,
+			return gcnew LvqDatasetCli(label,folds,extend,normalizeDims,normalizeByScaling,colors,
 				CreateDatasetRaw(0u,rngInstSeed,(int)cppPoints.rows(),(int)cppPoints.cols(),classCount,
 				cppPoints.data(), cppLabels.data()));
 	}
 
-	LvqDatasetCli::LvqDatasetCli(String^label, int folds,bool extend, bool normalizeDims, ColorArray^ colors, LvqDataset * newDataset) 
+	LvqDatasetCli::LvqDatasetCli(String^label, int folds,bool extend, bool normalizeDims, bool normalizeByScaling, ColorArray^ colors, LvqDataset * newDataset) 
 		: colors(colors)
 		, label(label)
 		, folds(folds)
 		, datasets( gcnew array<GcManualPtr<LvqDataset>^ >(1))
 	{
 		datasets[0] = gcnew GcManualPtr<LvqDataset>(newDataset, MemAllocEstimateDataset(newDataset), FreeDataset);
-		ExtendAndNormalize(newDataset,extend,normalizeDims);
+		ExtendAndNormalize(newDataset,extend,normalizeDims, normalizeByScaling);
 		DataShape shape = GetDataShape(newDataset);
 		pointCount = shape.pointCount;
 		dimCount = shape.dimCount;
@@ -49,16 +49,16 @@ namespace LvqLibCli {
 		classCount = shape.classCount;
 	}
 
-	LvqDatasetCli^ LvqDatasetCli::ConstructGaussianClouds(String^label, int folds, bool extend,  bool normalizeDims, ColorArray^ colors, unsigned rngParamsSeed, unsigned rngInstSeed, int dims, 
+	LvqDatasetCli^ LvqDatasetCli::ConstructGaussianClouds(String^label, int folds, bool extend,  bool normalizeDims, bool normalizeByScaling, ColorArray^ colors, unsigned rngParamsSeed, unsigned rngInstSeed, int dims, 
 		int classCount, int pointsPerClass, double meansep) {
-			return gcnew LvqDatasetCli(label,folds,extend,normalizeDims,colors, 
+			return gcnew LvqDatasetCli(label,folds,extend,normalizeDims, normalizeByScaling,colors, 
 				CreateGaussianClouds(rngParamsSeed,rngInstSeed,dims,classCount*pointsPerClass, classCount, 
 				meansep));
 	}
 
-	LvqDatasetCli^ LvqDatasetCli::ConstructStarDataset(String^label, int folds, bool extend,  bool normalizeDims, ColorArray^ colors, unsigned rngParamsSeed, unsigned rngInstSeed, int dims, 
+	LvqDatasetCli^ LvqDatasetCli::ConstructStarDataset(String^label, int folds, bool extend,  bool normalizeDims,bool normalizeByScaling, ColorArray^ colors, unsigned rngParamsSeed, unsigned rngInstSeed, int dims, 
 		int starDims, int numStarTails,	int classCount, int pointsPerClass, double starMeanSep, double starClassRelOffset, bool randomlyRotate, double noiseSigma, double globalNoiseMaxSigma) {
-			return gcnew LvqDatasetCli(label,folds,extend,normalizeDims,colors,
+			return gcnew LvqDatasetCli(label,folds,extend,normalizeDims, normalizeByScaling,colors,
 				CreateStarDataset(rngParamsSeed,rngInstSeed,dims,classCount*pointsPerClass, classCount,
 				starDims, numStarTails,starMeanSep,starClassRelOffset,randomlyRotate,noiseSigma,globalNoiseMaxSigma));
 	}

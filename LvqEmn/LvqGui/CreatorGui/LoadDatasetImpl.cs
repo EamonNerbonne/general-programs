@@ -22,7 +22,7 @@ namespace LvqGui {
 				(\,(?<TestFilename>.*?))?
 				\-(?<DimCount>[0-9]+)D
 				(?<ExtendDataByCorrelation>x?)
-				(?<NormalizeDimensions>n?)
+				(?<NormalizeDimensions>(?<NormalizeByScaling>S?)|n)
 				\-(?<ClassCount>[0-9]+)
 				\,(?<PointCount>[0-9]+)
 				(\[(?<InstanceSeed_>[0-9a-fA-F]+)\])?
@@ -35,7 +35,7 @@ namespace LvqGui {
 
 
 		protected override string GetShorthand() {
-			return Filename + (TestFilename != null ? "," + TestFilename : "") + "-" + DimCount + "D" + (ExtendDataByCorrelation ? "x" : "") + (NormalizeDimensions ? "n" : "") + "-"
+			return Filename + (TestFilename != null ? "," + TestFilename : "") + "-" + DimCount + "D" + (ExtendDataByCorrelation ? "x" : "") + (!NormalizeDimensions ? "" : NormalizeByScaling ? "S":"n") + "-"
 				+ ClassCount + "," + PointCount
 				+ (InstanceSeed == defaults.InstanceSeed ? "" : "[" + InstanceSeed.ToString("x") + "]")
 				+ (Folds == defaults.Folds ? "" : "^" + Folds);
@@ -112,6 +112,7 @@ namespace LvqGui {
 				label: settings.Shorthand,
 				extend: settings.ExtendDataByCorrelation,
 				normalizeDims: settings.NormalizeDimensions,
+				normalizeByScaling: settings.NormalizeByScaling,
 				folds: settings.Folds,
 				colors: WpfTools.MakeDistributedColors(settings.ClassCount, new MersenneTwister(colorSeed)),
 				points: pointArray,

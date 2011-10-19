@@ -18,7 +18,7 @@ namespace LvqGui {
 
 		protected override string RegexText {
 			get {
-				return @"^\s*(.*?--)?nrm-(?<Dimensions>\d+)D(?<ExtendDataByCorrelation>x?)(?<NormalizeDimensions>n?)-(?<NumberOfClasses>\d+)x(?<PointsPerClass>\d+)
+				return @"^\s*(.*?--)?nrm-(?<Dimensions>\d+)D(?<ExtendDataByCorrelation>x?)(?<NormalizeDimensions>(?<NormalizeByScaling>S?)|n)-(?<NumberOfClasses>\d+)x(?<PointsPerClass>\d+)
 					\,(?<ClassCenterDeviation>[^\[]+)(\[(?<ParamsSeed_>[\dA-Fa-f]+)?\,(?<InstanceSeed_>[\dA-Fa-f]+)?\])?(\^(?<Folds>\d+))?\s*$"
 					+ "|" +
 				  @"^\s*(.*?--)?nrm-(?<Dimensions>\d+)D(?<ExtendDataByCorrelation>\*?)(?<NormalizeDimensions>n?)-(?<NumberOfClasses>\d+)\*(?<PointsPerClass>\d+):(?<ClassCenterDeviation>[^\[]+)\[(?<ParamsSeed>\d+):(?<InstanceSeed>\d+)\]/(?<Folds>\d+)\s*$";
@@ -26,7 +26,7 @@ namespace LvqGui {
 		}
 
 		protected override string GetShorthand() {
-			return "nrm-" + Dimensions + "D" + (ExtendDataByCorrelation ? "x" : "") + (NormalizeDimensions ? "n" : "") + "-" + NumberOfClasses + "x" + PointsPerClass + ","
+			return "nrm-" + Dimensions + "D" + (ExtendDataByCorrelation ? "x" : "") + (!NormalizeDimensions ? "" : NormalizeByScaling ? "S" : "n") + "-" + NumberOfClasses + "x" + PointsPerClass + ","
 				+ ClassCenterDeviation.ToString("r") + (ParamsSeed == defaults.ParamsSeed && InstanceSeed == defaults.InstanceSeed ? "" :
 				"[" + (ParamsSeed == defaults.ParamsSeed ? "" : ParamsSeed.ToString("x")) + "," + (InstanceSeed == defaults.InstanceSeed ? "" : InstanceSeed.ToString("x")) + "]")
 				+ (Folds == defaults.Folds ? "" : "^" + Folds);
@@ -38,6 +38,7 @@ namespace LvqGui {
 														 folds: Folds,
 														 extend: ExtendDataByCorrelation,
 														 normalizeDims: NormalizeDimensions,
+														 normalizeByScaling: NormalizeByScaling,
 														 colors: WpfTools.MakeDistributedColors(NumberOfClasses, new MersenneTwister((int)ParamsSeed)),
 														 rngParamsSeed: ParamsSeed,
 														 rngInstSeed: InstanceSeed,

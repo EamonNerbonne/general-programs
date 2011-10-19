@@ -54,7 +54,7 @@ public:
 
 	void shufflePoints(boost::mt19937& rng);
 	void ExtendByCorrelations();
-	void NormalizeDimensions();
+	void NormalizeDimensions(bool normalizeByScaling);
 
 
 

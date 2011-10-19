@@ -46,9 +46,9 @@ extern"C"  void CreatePointCloud(unsigned rngParamSeed, unsigned rngInstSeed, in
 extern"C" void FreeDataset(LvqDataset* dataset) {delete dataset;}
 extern"C" size_t MemAllocEstimateDataset(LvqDataset* dataset) {return dataset->MemAllocEstimate();}
 
-extern"C" void ExtendAndNormalize(LvqDataset * dataset, bool extend, bool normalize) {
+extern"C" void ExtendAndNormalize(LvqDataset * dataset, bool extend, bool normalize, bool normalizeByScaling) {
 	if(extend) dataset->ExtendByCorrelations();
-	if(normalize) dataset->NormalizeDimensions();
+	if(normalize) dataset->NormalizeDimensions(normalizeByScaling);
 }
 
 extern"C" double NearestNeighborSplitPcaErrorRate(LvqDataset const * trainingSet, LvqDataset const * testSet) {

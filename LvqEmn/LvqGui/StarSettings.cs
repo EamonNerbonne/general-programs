@@ -29,7 +29,7 @@ namespace LvqGui {
 				^\s*(.*?--)?
 				star-(?<Dimensions>\d+)D
 				(?<ExtendDataByCorrelation>x?)
-				(?<NormalizeDimensions>n?)-
+				(?<NormalizeDimensions>(?<NormalizeByScaling>S?)|n)-
 				(?<NumberOfClasses>\d+)x(?<PointsPerClass>\d+)
 				,(?<NumberOfClusters>\d+)
 				\((?<ClusterDimensionality>\d+)D(?<RandomlyTransformFirst>r?)\)
@@ -51,7 +51,7 @@ namespace LvqGui {
 		}
 
 		protected override string GetShorthand() {
-			return "star-" + Dimensions + "D" + (ExtendDataByCorrelation ? "x" : "") + (NormalizeDimensions ? "n" : "") + "-" + NumberOfClasses + "x" + PointsPerClass + ","
+			return "star-" + Dimensions + "D" + (ExtendDataByCorrelation ? "x" : "") + (!NormalizeDimensions ? "" : NormalizeByScaling ? "S" : "n") + "-" + NumberOfClasses + "x" + PointsPerClass + ","
 				+ NumberOfClusters + "(" + ClusterDimensionality + "D" + (RandomlyTransformFirst ? "r" : "") + ")x" + ClusterCenterDeviation.ToString("r") + "i"
 				+ IntraClusterClassRelDev.ToString("r") + (NoiseSigma != 1.0 ? "n" + NoiseSigma.ToString("r") : "")
 				+ (GlobalNoiseMaxSigma != 0.0 ? "g" + GlobalNoiseMaxSigma.ToString("r") : "")
@@ -65,6 +65,7 @@ namespace LvqGui {
 				folds: Folds,
 				extend: ExtendDataByCorrelation,
 				normalizeDims: NormalizeDimensions,
+				normalizeByScaling: NormalizeByScaling,
 				rngParamsSeed: ParamsSeed,
 				rngInstSeed: InstanceSeed,
 				dims: Dimensions,

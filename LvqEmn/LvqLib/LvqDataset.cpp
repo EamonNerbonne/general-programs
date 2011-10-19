@@ -316,9 +316,11 @@ void LvqDataset::ExtendByCorrelations() {
 #endif
 }
 
-void LvqDataset::NormalizeDimensions() {
+void LvqDataset::NormalizeDimensions(bool normalizeByScaling) {
 	points = points.colwise() - MeanPoint(points);
+
 	Vector_N variance =  points.rowwise().squaredNorm() / (points.cols()-1.0);
+
 	assert((variance.array() >= 0).all());
 	vector<int> remapping;
 	Vector_N inv_stddev =  variance.array().sqrt().inverse().matrix();
@@ -326,6 +328,10 @@ void LvqDataset::NormalizeDimensions() {
 	for(int indim=0;indim<variance.rows();indim++) 
 		if(variance(indim) >= std::numeric_limits<LvqFloat>::min()) 
 			remapping.push_back(indim);
+
+	if(normalizeByScaling)
+		inv_stddev = Vector_N::Ones(inv_stddev.size()) * (1.0/sqrt(variance.sum() / remapping.size()));
+
 	if((ptrdiff_t)remapping.size()<points.rows())
 		cout<<"Retaining "<< remapping.size() <<" of "<< points.rows()<<" dimensions\n";
 	for(size_t pI=0; pI < static_cast<size_t>(points.cols()); pI++) {

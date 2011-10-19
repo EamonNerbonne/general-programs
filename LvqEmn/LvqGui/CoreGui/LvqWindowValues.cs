@@ -36,6 +36,13 @@ namespace LvqGui {
 		}
 		private bool _NormalizeDimensions;
 
+		public bool NormalizeByScaling {
+			get { return _NormalizeByScaling; }
+			set { if (!Equals(_NormalizeByScaling, value)) { _NormalizeByScaling = value; _propertyChanged("NormalizeByScaling"); } }
+		}
+		private bool _NormalizeByScaling;
+
+		
 
 
 		public ObservableCollection<LvqDatasetCli> Datasets { get; private set; }
