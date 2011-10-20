@@ -283,10 +283,6 @@ vector<Matrix_22> BinitPerProto(Matrix_P const & P, LvqModelSettings & initSetti
 			for(size_t protoIndex=0; protoIndex < (size_t)protoLabels.size(); ++protoIndex)
 				initB.push_back(Matrix_22::Identity());
 		}
-	} else if(!initSettings.BLocalInit) {
-		auto globalB = BinitByPca(lowdimpoints);
-		for(size_t protoIndex=0; protoIndex < (size_t)protoLabels.size(); ++protoIndex)
-			initB.push_back(globalB);
 	} else if(initSettings.NgInitializeProtos) {
 		initB = BinitByProtos(lowdimpoints,  initSettings.Dataset->ExtractLabels(initSettings.Trainingset), P * prototypes, protoLabels);
 	} else {
