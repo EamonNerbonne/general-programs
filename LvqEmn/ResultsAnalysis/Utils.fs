@@ -4,7 +4,7 @@ open System
 open System.Linq
 
 //---------------------------------------------------BASICS
-type SampleDistribution = { Count: int; Mean:float; Variance: float; } member this.StdErr = Math.Sqrt( this.Variance / float this.Count);
+type SampleDistribution = { Mean:float; Count: int; Variance: float; } member this.StdErr = Math.Sqrt( this.Variance / float this.Count);
 
 let pass x f = f x 
 let apply f x = f x 
