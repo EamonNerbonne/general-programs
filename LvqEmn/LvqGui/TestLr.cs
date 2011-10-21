@@ -131,7 +131,7 @@ namespace LvqGui {
 				from modeltype in ModelTypes
 				from rp in new[] { true, false }
 				from ngi in new[] { true, false }
-				from bi in new[] { true, false }
+				let bi=false //from bi in new[] { true, false }
 				from pi in new[] { true, false }
 				from ng in new[] { true, false }
 				from slowbad in new[] { true, false }
