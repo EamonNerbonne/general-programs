@@ -165,7 +165,7 @@ namespace LvqGui {
 				Title = "No Model Selected",
 				Background = Brushes.Gray,
 				Content = new Grid(),
-				Visibility = hide? Visibility.Hidden:Visibility.Visible
+				Visibility = hide ? Visibility.Hidden : Visibility.Visible
 			};
 
 			subPlotWindow.SizeChanged += (o, e) => RelayoutSubPlotWindow();
@@ -257,17 +257,23 @@ namespace LvqGui {
 
 		static DirectoryInfo GraphDir(LvqDatasetCli dataset, LvqModelSettingsCli modelSettings) {
 			DirectoryInfo autoDir = outputDir.CreateSubdirectory(@"auto");
-			var dSettings = CreateDataset.CreateFactory(dataset.DatasetLabel);
-			string dSettingsShorthand = dSettings.Shorthand;
-			DirectoryInfo datasetDir = autoDir.GetDirectories().FirstOrDefault(dir => {
-				var otherSettings = CreateDataset.CreateFactory(dir.Name);
-				return otherSettings != null && otherSettings.Shorthand == dSettingsShorthand;
-			}) ?? autoDir.CreateSubdirectory(dSettingsShorthand);
+			string dSettingsShorthand = CanonicalizeDatasetShorthand(dataset.DatasetLabel);
+			DirectoryInfo datasetDir = autoDir.GetDirectories()
+				.FirstOrDefault(dir => CanonicalizeDatasetShorthand(dir.Name) == dSettingsShorthand)
+				?? autoDir.CreateSubdirectory(dSettingsShorthand);
 			string mSettingsShorthand = modelSettings.ToShorthand();
-			return datasetDir.GetDirectories().FirstOrDefault( dir => {
-				var otherSettings = CreateLvqModelValues.TryParseShorthand(dir.Name);
-				return otherSettings.HasValue && otherSettings.Value.ToShorthand() == mSettingsShorthand;
-			}) ?? datasetDir.CreateSubdirectory(mSettingsShorthand);
+			return datasetDir.GetDirectories().FirstOrDefault(dir => CanonicalizeModelShorthand(dir.Name) == mSettingsShorthand) 
+				?? datasetDir.CreateSubdirectory(mSettingsShorthand);
+		}
+
+		static string CanonicalizeDatasetShorthand(string shorthand)
+		{
+			var dSettings = CreateDataset.CreateFactory(shorthand);
+			return dSettings == null ? shorthand : dSettings.Shorthand;
+		}
+		static string CanonicalizeModelShorthand(string shorthand) {
+			var otherSettings = CreateLvqModelValues.TryParseShorthand(shorthand);
+			return otherSettings.HasValue ? otherSettings.Value.ToShorthand() : shorthand;
 		}
 
 		public Task SaveAllGraphs(bool alsoEmbedding) {
