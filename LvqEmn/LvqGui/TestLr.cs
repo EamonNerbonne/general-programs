@@ -131,7 +131,8 @@ namespace LvqGui {
 				from modeltype in ModelTypes
 				from rp in new[] { true, false }
 				from ngi in new[] { true, false }
-				let bi=false //from bi in new[] { true, false }
+				//let bi=false 
+				from bi in new[] { true, false }
 				from pi in new[] { true, false }
 				from ng in new[] { true, false }
 				from slowbad in new[] { true, false }
@@ -264,7 +265,7 @@ namespace LvqGui {
 					return true;
 				} else {
 					saveFile.Directory.Create();
-					saveFile.Create().Close();
+					//saveFile.Create().Close();//this is in general handy, but I'll manage it manually for now rather than leave around 0-byte files from failed runs.
 					Console.WriteLine("Now starting:" + DatasetLabel + "\\" + ShortnameFor(settings) + " (" + DateTime.Now + ")");
 					return false;
 				}
