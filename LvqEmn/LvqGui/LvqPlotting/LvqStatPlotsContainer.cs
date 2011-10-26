@@ -280,7 +280,6 @@ namespace LvqGui {
 			return Task.Factory.StartNew(() => GetDisplayUpdateTask(subplots).Wait()).ContinueWith(_ => {
 
 				if (subplots == null) { Console.WriteLine("No plots to save!"); return; }
-				Console.Write("Saving");
 
 				DirectoryInfo modelDir = GraphDir(subplots.dataset, CreateLvqModelValues.ParseShorthand(subplots.model.ModelLabel));
 				double iterations = subplots.model.CurrentRawStats(subplots.dataset).Value[LvqTrainingStatCli.TrainingIterationI];
@@ -301,7 +300,7 @@ namespace LvqGui {
 				}
 				File.WriteAllText(modelDir.FullName + "\\stats" + iterPostfix + ".txt", subplots.model.CurrentStatsString(subplots.dataset));
 				File.WriteAllText(modelDir.FullName + "\\fullstats" + iterPostfix + ".txt", subplots.model.CurrentFullStatsString(subplots.dataset));
-				Console.WriteLine("done.");
+				Console.Write(";");
 			}, lvqPlotTaskScheduler);
 		}
 
