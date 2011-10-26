@@ -80,6 +80,11 @@ namespace LvqLibCli {
 		}
 	};
 
+	using namespace System::Text::RegularExpressions;
+
+	ref struct RegexConsts {
+		static initonly Regex^ dimcountregex = gcnew Regex("\\-[0-9]+D[^-]*(?=\\-)|$");
+	};
 
 	LvqDatasetCli^ LvqDatasetCli::ConstructByModelExtension(array<LvqModelCli^>^ models) {
 		auto newDatasetComputer = gcnew array<ModelExtensionComputer^ >(models->Length);
@@ -93,9 +98,9 @@ namespace LvqLibCli {
 			newDatasetsTest[i] = newDatasetComputer[i]->newDatasetTask->Result->Item2;
 		}
 		DataShape shape=GetDataShape(newDatasets[0]->get());
-		auto retval = gcnew LvqDatasetCli(System::Text::RegularExpressions::Regex::Replace(label,"\\-[0-9]+D[^-]*(?=\\-)|$","$0X"+shape.dimCount), folds, colors, newDatasets);
+		auto retval = gcnew LvqDatasetCli(RegexConsts::dimcountregex->Replace(label,"$0X"+shape.dimCount,1), folds, colors, newDatasets);
 		if(this->HasTestSet())
-			retval->TestSet = gcnew LvqDatasetCli(System::Text::RegularExpressions::Regex::Replace(TestSet->label,"\\-[0-9]+D[^-]*(?=\\-)|$","$0X"+shape.dimCount), folds, colors, newDatasetsTest);
+			retval->TestSet = gcnew LvqDatasetCli(RegexConsts::dimcountregex->Replace(TestSet->label,"$0X"+shape.dimCount,1), folds, colors, newDatasetsTest);
 		
 		return retval;
 	}
