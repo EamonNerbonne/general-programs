@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Media;
 using EmnExtensions.Wpf;
+using EmnExtensions.Threading;
 using LvqLibCli;
 
 namespace LvqGui {
@@ -156,25 +157,30 @@ namespace LvqGui {
 			var selectedModel = Values.TrainingControlValues.SelectedLvqModel;
 			var allmodels = Values.TrainingControlValues.MatchingLvqModels.ToArray();
 			var graphSettings = new { Values.TrainingControlValues.ShowBoundaries, Values.TrainingControlValues.ShowPrototypes, Values.TrainingControlValues.CurrProjStats, Values.TrainingControlValues.ShowTestEmbedding };
-			lvqPlotContainer = lvqPlotContainer ?? new LvqStatPlotsContainer(ClosingToken);
+			var lvqInnerPlotContainer = new LvqStatPlotsContainer(ClosingToken, true);
+
 			TaskCompletionSource<object> done = new TaskCompletionSource<object>();
 			done.SetResult(null);
 			Task doneTask = done.Task;
 
+			int counter = 0;
+			Console.WriteLine("Saving "+allmodels.Length +" model graphs:");
 			return
 				allmodels.Aggregate(doneTask, (task, model) =>
-					task.ContinueWith(_ => lvqPlotContainer.DisplayModel(model.InitSet, model, model.SelectedSubModel, StatisticsViewMode.CurrentOnly, graphSettings.ShowBoundaries, graphSettings.ShowPrototypes, graphSettings.ShowTestEmbedding)
-							.ContinueWith(__ => lvqPlotContainer.SaveAllGraphs(true)
-								.ContinueWith(____ => lvqPlotContainer.SaveAllGraphs(false)
-									.ContinueWith(_____ => lvqPlotContainer.DisplayModel(model.InitSet, model, model.SelectedSubModel, StatisticsViewMode.CurrentAndMean, graphSettings.ShowBoundaries, graphSettings.ShowPrototypes, graphSettings.ShowTestEmbedding)
-										.ContinueWith(______ => lvqPlotContainer.SaveAllGraphs(false)
-											.Wait()
-										).Wait()
-									).Wait()
-								).Wait()
-							).Wait()
-						)
-				).ContinueWith(_ => lvqPlotContainer.DisplayModel(selectedModel.InitSet, selectedModel, selectedModel.SelectedSubModel, graphSettings.CurrProjStats, graphSettings.ShowBoundaries, graphSettings.ShowPrototypes, graphSettings.ShowTestEmbedding).Wait());
+					task.Then(() => lvqInnerPlotContainer.DisplayModel(model.InitSet, model, model.SelectedSubModel, StatisticsViewMode.CurrentOnly, graphSettings.ShowBoundaries, graphSettings.ShowPrototypes, graphSettings.ShowTestEmbedding))
+							.Then(() => lvqInnerPlotContainer.SaveAllGraphs(true))
+							.Then(() => lvqInnerPlotContainer.SaveAllGraphs(false))
+							.Then(() => lvqInnerPlotContainer.DisplayModel(model.InitSet, model, model.SelectedSubModel, StatisticsViewMode.CurrentAndMean, graphSettings.ShowBoundaries, graphSettings.ShowPrototypes, graphSettings.ShowTestEmbedding))
+							.Then(() => lvqInnerPlotContainer.SaveAllGraphs(false))
+							.ContinueWith(_ => {
+								Interlocked.Increment(ref counter);
+								Console.WriteLine(counter + "/" + allmodels.Length);
+							})
+				).Then(() => lvqInnerPlotContainer.DisplayModel(selectedModel.InitSet, selectedModel, selectedModel.SelectedSubModel, graphSettings.CurrProjStats, graphSettings.ShowBoundaries, graphSettings.ShowPrototypes, graphSettings.ShowTestEmbedding))
+				.ContinueWith(_ => {
+					lvqInnerPlotContainer.Dispose();
+					Console.WriteLine("saved.");
+				});
 		}
 	}
 }
