@@ -141,7 +141,7 @@ namespace LvqGui {
 			return minidx;
 		}
 
-		static readonly int ParWindow = Environment.ProcessorCount;
+		static readonly int ParWindow = Environment.ProcessorCount*2;
 		public bool FitsDataShape(LvqDatasetCli selectedDataset) { return subModels.First().FitsDataShape(selectedDataset); }
 		readonly object epochsSynch = new object();
 		int epochsDone;
@@ -209,7 +209,7 @@ namespace LvqGui {
 						trainingqueue.Add(Tuple.Create(model, currentTarget));
 				}
 				trainingqueue.CompleteAdding();
-				var helpers = Enumerable.Range(0, Math.Min(ParWindow, ModelCount))
+				var helpers = Enumerable.Range(0, ParWindow)
 					.Select(ignored =>
 							Task.Factory.StartNew(
 								() => {
