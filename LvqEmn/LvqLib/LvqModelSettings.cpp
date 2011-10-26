@@ -213,6 +213,7 @@ vector<Matrix_22> BinitByProtos(Matrix_P const & lowdimpoints, vector<int> const
 
 	int classCount=protoLabels.maxCoeff() + 1;
 	vector<Matrix_P> protosByClass;
+	vector<vector<size_t>> protoIdxesByClass;
 	for(int label=0;label < classCount; ++label) {
 		vector<size_t> lblProtoIdxs;
 		for(size_t i=0; i < (size_t)protoLabels.size(); ++i) 
@@ -222,6 +223,7 @@ vector<Matrix_22> BinitByProtos(Matrix_P const & lowdimpoints, vector<int> const
 		for(size_t i=0;i< lblProtoIdxs.size(); ++i) 
 			lblProtos.col(i) = lowdimProtos.col(lblProtoIdxs[i]);
 
+		protoIdxesByClass.push_back(lblProtoIdxs);
 		protosByClass.push_back(lblProtos);
 	}
 
@@ -230,7 +232,7 @@ vector<Matrix_22> BinitByProtos(Matrix_P const & lowdimpoints, vector<int> const
 	for(size_t pointI = 0; pointI < pointLabels.size(); ++pointI) {
 		Matrix_P::Index protoI;
 		(protosByClass[ pointLabels[pointI] ].colwise() - lowdimpoints.col(pointI)).colwise().squaredNorm().minCoeff(&protoI);
-		pointsNearestToProto[protoI].push_back(lowdimpoints.col(pointI));
+		pointsNearestToProto[protoIdxesByClass[pointLabels[pointI]][protoI]].push_back(lowdimpoints.col(pointI));
 	}
 
 	vector<Matrix_22> invCov(protoLabels.size());
