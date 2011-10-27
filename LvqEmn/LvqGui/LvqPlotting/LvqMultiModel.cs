@@ -205,11 +205,12 @@ namespace LvqGui {
 				while (epochsCurrent != epochsTarget) {
 					epochsCurrent += ((epochsTarget - epochsCurrent) + 1) / 2;
 					int currentTarget = epochsCurrent;
-					foreach (var model in subModels)
+					foreach (var model in subModels) {
 						trainingqueue.Add(Tuple.Create(model, currentTarget));
+					}
 				}
 				trainingqueue.CompleteAdding();
-				var helpers = Enumerable.Range(0, ParWindow)
+				var helpers = Enumerable.Range(0, Math.Min(subModels.Length, ParWindow))
 					.Select(ignored =>
 							Task.Factory.StartNew(
 								() => {
