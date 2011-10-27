@@ -170,14 +170,16 @@ namespace LvqGui {
 					task.Then(() => lvqInnerPlotContainer.DisplayModel(model.InitSet, model, model.SelectedSubModel, StatisticsViewMode.CurrentOnly, graphSettings.ShowBoundaries, graphSettings.ShowPrototypes, graphSettings.ShowTestEmbedding))
 							.Then(() => lvqInnerPlotContainer.SaveAllGraphs(true))
 							.Then(() => lvqInnerPlotContainer.SaveAllGraphs(false))
-							.Then(() => lvqInnerPlotContainer.DisplayModel(model.InitSet, model, model.SelectedSubModel, StatisticsViewMode.CurrentAndMean, graphSettings.ShowBoundaries, graphSettings.ShowPrototypes, graphSettings.ShowTestEmbedding))
+							.Then(() => lvqInnerPlotContainer.DisplayModel(model.InitSet, model, model.SelectedSubModel, StatisticsViewMode.MeanAndStderr, graphSettings.ShowBoundaries, graphSettings.ShowPrototypes, graphSettings.ShowTestEmbedding))
 							.Then(() => lvqInnerPlotContainer.SaveAllGraphs(false))
 							.ContinueWith(_ => {
 								Interlocked.Increment(ref counter);
 								Console.WriteLine(counter + "/" + allmodels.Length);
 							})
 				).Then(() => lvqInnerPlotContainer.DisplayModel(selectedModel.InitSet, selectedModel, selectedModel.SelectedSubModel, graphSettings.CurrProjStats, graphSettings.ShowBoundaries, graphSettings.ShowPrototypes, graphSettings.ShowTestEmbedding))
-				.ContinueWith(_ => {
+				.ContinueWith(t => {
+					if (t.Status == TaskStatus.Faulted)
+						Console.WriteLine(t.Exception);
 					lvqInnerPlotContainer.Dispose();
 					Console.WriteLine("saved.");
 				});
