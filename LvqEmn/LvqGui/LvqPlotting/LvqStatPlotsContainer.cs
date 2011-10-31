@@ -24,7 +24,7 @@ namespace LvqGui {
 		readonly TaskScheduler lvqPlotTaskScheduler;//corresponds to lvqPlotDispatcher
 
 
-		public Task DisplayModel(LvqDatasetCli dataset, LvqMultiModel model, int new_subModelIdx, StatisticsViewMode viewMode, bool showBoundaries, bool showPrototypes, bool showTestEmbedding) {
+		public Task DisplayModel(LvqDatasetCli dataset, LvqMultiModel model, int new_subModelIdx, StatisticsViewMode viewMode, bool showBoundaries, bool showPrototypes, bool showTestEmbedding, bool showTestErrorRates) {
 			if (lvqPlotDispatcher.HasShutdownStarted) throw new InvalidOperationException("Dispatcher shutting down");
 			return lvqPlotTaskScheduler.StartNewTask(() => {
 				lock (plotsSync) {
@@ -44,11 +44,13 @@ namespace LvqGui {
 						subplots.selectedSubModel = new_subModelIdx;
 						subplots.showTestEmbedding = showTestEmbedding;
 					}
+					ShowBoundaries(showBoundaries);
+					ShowCurrentProjectionStats(viewMode);
+					ShowPrototypes(showPrototypes);
+					RelayoutSubPlotWindow(true);
+					ShowTestErrorRates(showTestErrorRates);
+					QueueUpdate();
 				}
-				ShowBoundaries(showBoundaries);
-				ShowCurrentProjectionStats(viewMode);
-				ShowPrototypes(showPrototypes);
-				RelayoutSubPlotWindow(true);
 			});
 		}
 
@@ -69,7 +71,7 @@ namespace LvqGui {
 				if (subplots != null && subplots.statPlots != null)
 					retval = lvqPlotDispatcher.BeginInvoke(() => {
 						foreach (var plot in subplots.statPlots)
-							if (plot.Plot.MetaData.Tag == LvqStatPlotFactory.IsCurrPlotTag) {
+							if (LvqStatPlotFactory.IsCurrPlot(plot.Plot)) {
 								plot.Plot.MetaData.Hidden = viewMode == StatisticsViewMode.MeanAndStderr;
 								((VizLineSegments)((ITranformed<Point[]>)plot.Plot.Visualisation).Implementation).DashStyle = viewMode == StatisticsViewMode.CurrentOnly ? DashStyles.Solid : LvqStatPlotFactory.CurrPlotDashStyle;
 							} else
@@ -99,6 +101,18 @@ namespace LvqGui {
 					QueueUpdate();
 				}
 		}
+
+		public void ShowTestErrorRates(bool showTestErrorRates) {
+			lock (plotsSync)
+				if (subplots != null && subplots.plots != null)
+					lvqPlotDispatcher.BeginInvoke(() => {
+						if (subplots != null && subplots.plots != null)
+							foreach (var statPlot in subplots.plots.SelectMany(plot => plot.Graphs).Where(LvqStatPlotFactory.IsTestPlot)) 
+								statPlot.MetaData.Hidden = !showTestErrorRates;
+					});
+			QueueUpdate();
+		}
+
 
 
 		void RelayoutSubPlotWindow(bool resetChildrenFirst = false) {
@@ -324,6 +338,7 @@ namespace LvqGui {
 				default: return fullname;
 			}
 		}
+
 
 	}
 }

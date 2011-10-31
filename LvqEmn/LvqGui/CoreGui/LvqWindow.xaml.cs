@@ -82,7 +82,8 @@ namespace LvqGui {
 				lvqPlotContainer.ShowPrototypes(Values.TrainingControlValues.ShowPrototypes);
 			if (e.PropertyName == "ShowTestEmbedding" && lvqPlotContainer != null)
 				lvqPlotContainer.ShowTestEmbedding(Values.TrainingControlValues.ShowTestEmbedding);
-
+			if (e.PropertyName == "ShowTestErrorRates" && lvqPlotContainer != null)
+				lvqPlotContainer.ShowTestErrorRates(Values.TrainingControlValues.ShowTestErrorRates);
 			if (e.PropertyName == "CurrProjStats" && lvqPlotContainer != null)
 				lvqPlotContainer.ShowCurrentProjectionStats(Values.TrainingControlValues.CurrProjStats);
 			if (e.PropertyName == "SelectedDataset" || e.PropertyName == "SelectedLvqModel" || e.PropertyName == "SubModelIndex")
@@ -95,7 +96,7 @@ namespace LvqGui {
 				lvqPlotContainer = new LvqStatPlotsContainer(ClosingToken);
 
 			if (lvqPlotContainer != null)
-				lvqPlotContainer.DisplayModel(Values.TrainingControlValues.SelectedDataset, Values.TrainingControlValues.SelectedLvqModel, Values.TrainingControlValues.SubModelIndex, Values.TrainingControlValues.CurrProjStats, Values.TrainingControlValues.ShowBoundaries, Values.TrainingControlValues.ShowPrototypes, Values.TrainingControlValues.ShowTestEmbedding);
+				lvqPlotContainer.DisplayModel(Values.TrainingControlValues.SelectedDataset, Values.TrainingControlValues.SelectedLvqModel, Values.TrainingControlValues.SubModelIndex, Values.TrainingControlValues.CurrProjStats, Values.TrainingControlValues.ShowBoundaries, Values.TrainingControlValues.ShowPrototypes, Values.TrainingControlValues.ShowTestEmbedding, Values.TrainingControlValues.ShowTestErrorRates);
 		}
 
 		public bool Fullscreen {
@@ -156,7 +157,7 @@ namespace LvqGui {
 		public Task SaveAllGraphs() {
 			var selectedModel = Values.TrainingControlValues.SelectedLvqModel;
 			var allmodels = Values.TrainingControlValues.MatchingLvqModels.ToArray();
-			var graphSettings = new { Values.TrainingControlValues.ShowBoundaries, Values.TrainingControlValues.ShowPrototypes, Values.TrainingControlValues.CurrProjStats, Values.TrainingControlValues.ShowTestEmbedding };
+			var graphSettings = new { Values.TrainingControlValues.ShowBoundaries, Values.TrainingControlValues.ShowPrototypes, Values.TrainingControlValues.CurrProjStats, Values.TrainingControlValues.ShowTestEmbedding, Values.TrainingControlValues.ShowTestErrorRates };
 			var lvqInnerPlotContainer = new LvqStatPlotsContainer(ClosingToken, true);
 
 			TaskCompletionSource<object> done = new TaskCompletionSource<object>();
@@ -164,19 +165,19 @@ namespace LvqGui {
 			Task doneTask = done.Task;
 
 			int counter = 0;
-			Console.WriteLine("Saving "+allmodels.Length +" model graphs:");
+			Console.WriteLine("Saving " + allmodels.Length + " model graphs:");
 			return
 				allmodels.Aggregate(doneTask, (task, model) =>
-					task.Then(() => lvqInnerPlotContainer.DisplayModel(model.InitSet, model, model.SelectedSubModel, StatisticsViewMode.CurrentOnly, graphSettings.ShowBoundaries, graphSettings.ShowPrototypes, graphSettings.ShowTestEmbedding))
+					task.Then(() => lvqInnerPlotContainer.DisplayModel(model.InitSet, model, model.SelectedSubModel, StatisticsViewMode.CurrentOnly, graphSettings.ShowBoundaries, graphSettings.ShowPrototypes, graphSettings.ShowTestEmbedding, graphSettings.ShowTestErrorRates))
 							.Then(() => lvqInnerPlotContainer.SaveAllGraphs(true))
 							.Then(() => lvqInnerPlotContainer.SaveAllGraphs(false))
-							.Then(() => lvqInnerPlotContainer.DisplayModel(model.InitSet, model, model.SelectedSubModel, StatisticsViewMode.MeanAndStderr, graphSettings.ShowBoundaries, graphSettings.ShowPrototypes, graphSettings.ShowTestEmbedding))
+							.Then(() => lvqInnerPlotContainer.DisplayModel(model.InitSet, model, model.SelectedSubModel, StatisticsViewMode.MeanAndStderr, graphSettings.ShowBoundaries, graphSettings.ShowPrototypes, graphSettings.ShowTestEmbedding, graphSettings.ShowTestErrorRates))
 							.Then(() => lvqInnerPlotContainer.SaveAllGraphs(false))
 							.ContinueWith(_ => {
 								Interlocked.Increment(ref counter);
 								Console.WriteLine(counter + "/" + allmodels.Length);
 							})
-				).Then(() => lvqInnerPlotContainer.DisplayModel(selectedModel.InitSet, selectedModel, selectedModel.SelectedSubModel, graphSettings.CurrProjStats, graphSettings.ShowBoundaries, graphSettings.ShowPrototypes, graphSettings.ShowTestEmbedding))
+				).Then(() => lvqInnerPlotContainer.DisplayModel(selectedModel.InitSet, selectedModel, selectedModel.SelectedSubModel, graphSettings.CurrProjStats, graphSettings.ShowBoundaries, graphSettings.ShowPrototypes, graphSettings.ShowTestEmbedding, graphSettings.ShowTestErrorRates))
 				.ContinueWith(t => {
 					if (t.Status == TaskStatus.Faulted)
 						Console.WriteLine(t.Exception);

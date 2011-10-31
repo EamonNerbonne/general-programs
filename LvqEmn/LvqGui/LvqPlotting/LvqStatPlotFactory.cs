@@ -32,21 +32,29 @@ namespace LvqGui {
 		}
 
 		static IEnumerable<PlotWithViz<LvqStatPlots>> MakePlotsForStatIdx(string dataLabel, string yunitLabel, Color color, int statIdx, bool doVariants) {
+			bool isTest=dataLabel.StartsWith("Test");
 			if (doVariants) {
-				yield return MakeStderrRangePlot(yunitLabel, color, statIdx);
-				yield return MakeCurrentModelPlot(yunitLabel, color, statIdx);
+				yield return MakeStderrRangePlot(yunitLabel, color, statIdx, isTest);
+				yield return MakeCurrentModelPlot(yunitLabel, color, statIdx, isTest);
 			}
-			yield return MakeMeanPlot(dataLabel, yunitLabel, color, statIdx);
+			yield return MakeMeanPlot(dataLabel, yunitLabel, color, statIdx, isTest);
 		}
 
-		public static readonly object IsCurrPlotTag = new object();
+		static readonly object IsCurrPlotTag = new object();
+		static readonly object IsTestPlotTag = new object();
+		static readonly object IsCurrTestPlotTag = new object();
+
+		public static bool IsTestPlot(IPlot plot) {return plot.MetaData.Tag == IsTestPlotTag || plot.MetaData.Tag==IsCurrTestPlotTag;}
+		public static bool IsCurrPlot(IPlot plot) { return plot.MetaData.Tag == IsCurrPlotTag || plot.MetaData.Tag == IsCurrTestPlotTag; }
+
+
 		public static readonly DashStyle CurrPlotDashStyle = new DashStyle(new[] { 0.0, 3.0 }, 0.0);
-		static PlotWithViz<LvqStatPlots> MakeCurrentModelPlot(string yunitLabel, Color color, int statIdx) {
-			return MakePlotHelper(null, color, yunitLabel, IsCurrPlotTag, SelectedModelToPointsMapper(statIdx), CurrPlotDashStyle);
+		static PlotWithViz<LvqStatPlots> MakeCurrentModelPlot(string yunitLabel, Color color, int statIdx, bool isTest) {
+			return MakePlotHelper(null, color, yunitLabel, isTest?IsCurrTestPlotTag: IsCurrPlotTag, SelectedModelToPointsMapper(statIdx), CurrPlotDashStyle);
 		}
 
-		static PlotWithViz<LvqStatPlots> MakeMeanPlot(string dataLabel, string yunitLabel, Color color, int statIdx) {
-			return MakePlotHelper(dataLabel, color, yunitLabel, null, ModelToPointsMapper(statIdx));
+		static PlotWithViz<LvqStatPlots> MakeMeanPlot(string dataLabel, string yunitLabel, Color color, int statIdx, bool isTest) {
+			return MakePlotHelper(dataLabel, color, yunitLabel,isTest?IsTestPlotTag: null, ModelToPointsMapper(statIdx));
 		}
 
 		static PlotWithViz<LvqStatPlots> MakePlotHelper(string dataLabel, Color color, string yunitLabel, object tag, Func<LvqStatPlots, Point[]> mapper, DashStyle dashStyle = null) {
@@ -68,7 +76,7 @@ namespace LvqGui {
 		}
 
 
-		static PlotWithViz<LvqStatPlots> MakeStderrRangePlot(string yunitLabel, Color color, int statIdx) {
+		static PlotWithViz<LvqStatPlots> MakeStderrRangePlot(string yunitLabel, Color color, int statIdx, bool isTest) {
 			//Blend(color, Colors.White)
 			color.ScA = 0.25f;
 			return Plot.Create(
@@ -77,6 +85,7 @@ namespace LvqGui {
 					XUnitLabel = "Training iterations",
 					YUnitLabel = yunitLabel,
 					AxisBindings = TickedAxisLocation.BelowGraph | TickedAxisLocation.LeftOfGraph,
+					Tag = isTest?IsTestPlotTag:null,
 					ZIndex = 0
 				},
 				new VizDataRange {

@@ -90,7 +90,13 @@ namespace LvqGui {
 		}
 		private bool _ShowTestEmbedding;
 
+		public bool ShowTestErrorRates {
+			get { return _ShowTestErrorRates; }
+			set { if (!_ShowTestErrorRates.Equals(value)) { _ShowTestErrorRates = value; _propertyChanged("ShowTestErrorRates"); } }
+		}
+		private bool _ShowTestErrorRates;
 
+		
 
 		public int EpochsPerClick {
 			get { return _EpochsPerClick; }

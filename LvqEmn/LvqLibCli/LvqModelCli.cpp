@@ -148,7 +148,7 @@ namespace LvqLibCli {
 	ModelProjection LvqModelCli::CurrentProjectionAndPrototypes(LvqDatasetCli^ dataset, bool showTestEmbedding) {
 		if(modelCopy==nullptr || !IsProjectionModel) return ModelProjection();
 		int folds = dataset->Folds();
-		LvqDataset const * underlyingDataset = showTestEmbedding?dataset->GetTrainingDataset(initDataFold):dataset->GetTestDataset(initDataFold);
+		LvqDataset const * underlyingDataset = showTestEmbedding?dataset->GetTestDataset(initDataFold):dataset->GetTrainingDataset(initDataFold);
 		bool isTestFold = showTestEmbedding && ! dataset->HasTestSet();
 		int datasetSubsetSize = GetSubsetSize(underlyingDataset,initDataFold,folds,isTestFold);
 
