@@ -20,6 +20,6 @@ namespace LvqGui {
 		void InitializeModel(object sender, RoutedEventArgs e) { ((CreateLvqModelValues)DataContext).ConfirmCreation(); }
 
 		void OptimizeOrCreate(object sender, RoutedEventArgs e) { ((CreateLvqModelValues)DataContext).OptimizeOrCreate(); }
-		void OptimizeAllOrCreateAll(object sender, RoutedEventArgs e) { ((CreateLvqModelValues)DataContext).OptimizeAllOrCreateAll(); }
+		void OptimizeAll(object sender, RoutedEventArgs e) { ((CreateLvqModelValues)DataContext).OptimizeAll(); }
 	}
 }

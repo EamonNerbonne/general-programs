@@ -30,7 +30,7 @@ namespace LvqGui {
 		public string ShorthandErrors { get { return ShorthandHelper.VerifyShorthand(this, shR); } }
 		public abstract LvqDatasetCli CreateDataset();
 		public static T ParseSettings(string shorthand) { return new T { Shorthand = shorthand }; }
-		public static T TryParse(string shorthand) { return ShorthandHelper.TryParseShorthand(defaults, shR, shorthand); }
+		public static T TryParse(string shorthand) { return ShorthandHelper.TryParseShorthand(defaults, shR, shorthand).AsNullable(); }
 	}
 
 	public static class CreateDataset {

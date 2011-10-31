@@ -50,18 +50,21 @@ namespace LvqGui {
 		readonly LvqDatasetCli _dataset;
 		readonly long _itersToRun;
 		readonly int _folds;
-
+		readonly DirectoryInfo datasetResultsDir;
+		
 		public TestLr(long itersToRun, uint p_offset) {
 			_itersToRun = itersToRun;
 			offset = p_offset;
 			_folds = basedatasets.Length;
+			datasetResultsDir = ResultsDatasetDir(null);
 		}
 
-		public TestLr(long itersToRun, LvqDatasetCli dataset, int folds) {
-			_itersToRun = itersToRun;
+		public TestLr(LvqDatasetCli dataset) {
+			_itersToRun = 30L * 1000L * 1000L;
 			offset = 0;
 			_dataset = dataset;
-			_folds = folds;
+			_folds = 3;
+			datasetResultsDir = ResultsDatasetDir(dataset);
 		}
 
 
@@ -102,7 +105,7 @@ namespace LvqGui {
 			return ShortnameFor(_itersToRun, settings);
 		}
 		//{-8.46,0.42,-1.11,-1.49,1.51,0.79}
-		static readonly double[,,] heurEffects = //proto,type,heur
+		static readonly double[, ,] heurEffects = //proto,type,heur
 	{
 	{
 	{0,0,0.96,1.23,8.06,-2.12},
@@ -117,16 +120,46 @@ namespace LvqGui {
 
 
 		static double EstimateAccuracy(LvqModelType modeltype, int protoCount, bool NGi, bool NG, bool rP, bool slowbad, bool Pi, bool Bi) {
-			int protoIdx = protoCount==1?0:1;
-			int typeIdx = modeltype==LvqModelType.Ggm?0:modeltype==LvqModelType.Gm?2:1;
-			bool[] heurs = new[]{NGi,NG,rP,slowbad,Pi,Bi};
-			return heurs.Select((on,heurIdx) =>on? heurEffects[protoIdx,typeIdx,heurIdx]:0).Sum();
+			int protoIdx = protoCount == 1 ? 0 : 1;
+			int typeIdx = modeltype == LvqModelType.Ggm ? 0 : modeltype == LvqModelType.Gm ? 2 : 1;
+			bool[] heurs = new[] { NGi, NG, rP, slowbad, Pi, Bi };
+			return heurs.Select((on, heurIdx) => on ? heurEffects[protoIdx, typeIdx, heurIdx] : 0).Sum();
 		}
 
-		public Task StartAllLrTesting(CancellationToken cancel, LvqModelSettingsCli? baseSettings = null) {
-			LvqModelSettingsCli effectiveSettings = baseSettings ?? new LvqModelSettingsCli();
+		public enum LrTestingStatus { SomeUnstartedResults, SomeUnfinishedResults, AllResultsComplete };
+
+		public static LrTestingStatus HasAllLrTestingResults(LvqDatasetCli dataset) {
+			var testlr = new TestLr(dataset);
+
+			return (LrTestingStatus)
+				testlr.AllLrTestingSettings().Min(settings => {
+					var resultsFilePath = testlr.GetLogfilepath(settings).First();
+					return (int)(!resultsFilePath.Exists
+							? LrTestingStatus.SomeUnstartedResults
+							: resultsFilePath.Length == 0
+								? LrTestingStatus.SomeUnfinishedResults
+								: LrTestingStatus.AllResultsComplete);
+				});
+		}
+
+		public Task StartAllLrTesting(CancellationToken cancel) {
+			var allsettings = AllLrTestingSettings();
+
+
 			var testingTasks =
 			(
+				from settings in allsettings
+				//let bi=false 
+				let shortname = ShortnameFor(settings)
+				select TestLrIfNecessary(null, settings, cancel)
+				 ).ToArray();
+
+			return
+				Task.Factory.ContinueWhenAll(testingTasks, Task.WaitAll, cancel, TaskContinuationOptions.ExecuteSynchronously, LowPriorityTaskScheduler.DefaultLowPriorityScheduler);
+		}
+
+		IEnumerable<LvqModelSettingsCli> AllLrTestingSettings() {
+			return
 				from protoCount in new[] { 5, 1 }
 				from modeltype in ModelTypes
 				from rp in new[] { true, false }
@@ -137,15 +170,9 @@ namespace LvqGui {
 				from ng in new[] { true, false }
 				from slowbad in new[] { true, false }
 				let relevanceCost = new[] { !rp, ngi, bi, pi, ng, slowbad }.Count(b => b)
-				let estAccur = EstimateAccuracy(modeltype,protoCount,ngi,ng,rp,slowbad,pi,bi)
+				let estAccur = EstimateAccuracy(modeltype, protoCount, ngi, ng, rp, slowbad, pi, bi)
 				orderby relevanceCost, estAccur
-				select effectiveSettings.WithTestingChanges2(modeltype, protoCount, offset, rp, ngi, bi, pi, ng, slowbad) into settings
-				let shortname = ShortnameFor(settings)
-				select TestLrIfNecessary(null, settings, cancel)
-				 ).ToArray();
-
-			return
-				Task.Factory.ContinueWhenAll(testingTasks, Task.WaitAll, cancel, TaskContinuationOptions.ExecuteSynchronously, LowPriorityTaskScheduler.DefaultLowPriorityScheduler);
+				select new LvqModelSettingsCli().WithTestingChanges2(modeltype, protoCount, offset, rp, ngi, bi, pi, ng, slowbad);
 		}
 
 
@@ -251,8 +278,10 @@ namespace LvqGui {
 		}
 		static readonly object fsSync = new object();
 
+
+
 		bool AttemptToClaimSettings(LvqModelSettingsCli settings, TextWriter sink) {
-			var saveFile = new FileInfo(GetLogfilepath(settings).First());
+			var saveFile = GetLogfilepath(settings).First();
 			lock (fsSync)
 				if (saveFile.Exists) {
 					if (saveFile.Length > 0) {
@@ -265,14 +294,14 @@ namespace LvqGui {
 					return true;
 				} else {
 					saveFile.Directory.Create();
-					//saveFile.Create().Close();//this is in general handy, but I'll manage it manually for now rather than leave around 0-byte files from failed runs.
+					saveFile.Create().Close();//this is in general handy, but I'll manage it manually for now rather than leave around 0-byte files from failed runs.
 					Console.WriteLine("Now starting:" + DatasetLabel + "\\" + ShortnameFor(settings) + " (" + DateTime.Now + ")");
 					return false;
 				}
 		}
 
 		bool AttemptToUnclaimSettings(LvqModelSettingsCli settings, TextWriter sink) {
-			var saveFile = new FileInfo(GetLogfilepath(settings).First());
+			var saveFile = GetLogfilepath(settings).First();
 			lock (fsSync)
 				if (saveFile.Exists) {
 					if (saveFile.Length > 0) {
@@ -318,49 +347,39 @@ namespace LvqGui {
 			return FindOptimalLr(sink, settings, cancel).ContinueWith(_ => {
 				double durationSec = timer.Elapsed.TotalSeconds;
 				sink.WriteLine("Search Complete!  Took " + durationSec + "s");
-				Console.WriteLine("Optimizing " + ShortnameFor(settings) + " took " + durationSec + "s ("+DateTime.Now+")");
+				Console.WriteLine("Optimizing " + ShortnameFor(settings) + " took " + durationSec + "s (" + DateTime.Now + ")");
 			}, TaskContinuationOptions.ExecuteSynchronously);
 		}
 
 		string DatasetLabel { get { return _dataset != null ? _dataset.DatasetLabel : "base"; } }
 
 		void SaveLogFor(LvqModelSettingsCli settings, string logcontents) {
-			string logfilepath = GetLogfilepath(settings).First(path => !File.Exists(path) || new FileInfo(path).Length == 0);
-			// ReSharper disable AssignNullToNotNullAttribute
-			Directory.CreateDirectory(Path.GetDirectoryName(logfilepath));
-			// ReSharper restore AssignNullToNotNullAttribute
-			File.WriteAllText(logfilepath, logcontents);
+			FileInfo logfilepath = GetLogfilepath(settings).First(path => path.Exists || path.Length == 0);
+			logfilepath.Directory.Create();
+			File.WriteAllText(logfilepath.FullName, logcontents);
 		}
 
-		IEnumerable<string> GetLogfilepath(LvqModelSettingsCli settings) {
+		IEnumerable<FileInfo> GetLogfilepath(LvqModelSettingsCli settings) {
 			return
-				SettingsFile(settings).Select(fi => fi.FullName).Concat(
+				new[] { SettingsFile(settings) }.Concat(
 				Enumerable.Range(1, 1000)
 				.Select(i => ShortnameFor(settings) + " (" + i + ")" + ".txt")
-				.Select(filename => Path.Combine(resultsDir.FullName, DatasetLabel + "\\" + filename)));
+				.Select(filename => new FileInfo(Path.Combine(resultsDir.FullName, DatasetLabel + "\\" + filename))));
 		}
 
-		IEnumerable<FileInfo> SettingsFile(LvqModelSettingsCli settings) {
-			var dirs = ResultsDatasetDir().ToArray();
+		FileInfo SettingsFile(LvqModelSettingsCli settings) {
+			
 			string mSettingsShorthand = settings.ToShorthand();
 			string prefix = ItersPrefix(_itersToRun) + "-";
-			var files = dirs.Where(dir => dir.Exists).SelectMany(dir => dir.GetFiles(prefix + "*.txt").Where(file => {
-				var otherSettings = CreateLvqModelValues.TryParseShorthand(Path.GetFileNameWithoutExtension(file.Name).Substring(prefix.Length));
-				return otherSettings.HasValue && otherSettings.Value.ToShorthand() == mSettingsShorthand;
-			}));
 
-			return files.DefaultIfEmpty(new FileInfo(Path.Combine(dirs.First().FullName + "\\", prefix + mSettingsShorthand + ".txt")));
-
+			return new FileInfo(Path.Combine(datasetResultsDir.FullName + "\\", prefix + mSettingsShorthand + ".txt"));
 		}
-
-		IEnumerable<DirectoryInfo> ResultsDatasetDir() {
-			if (_dataset == null) return new[] { resultsDir.CreateSubdirectory("base") };
-			var dSettings = CreateDataset.CreateFactory(_dataset.DatasetLabel);
-			string dSettingsShorthand = dSettings.Shorthand;
-			return resultsDir.GetDirectories().Where(dir => {
-				var otherSettings = CreateDataset.CreateFactory(dir.Name);
-				return otherSettings != null && otherSettings.Shorthand == dSettingsShorthand;
-			}).DefaultIfEmpty(new DirectoryInfo(resultsDir.FullName + "\\" + dSettingsShorthand));
+		
+		static DirectoryInfo ResultsDatasetDir(LvqDatasetCli dataset) {
+			if (dataset == null) 
+				return resultsDir.CreateSubdirectory("base");
+			else
+				return new DirectoryInfo(resultsDir.FullName + "\\" + dataset.DatasetLabel);
 		}
 
 

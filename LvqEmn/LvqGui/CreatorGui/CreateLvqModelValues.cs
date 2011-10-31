@@ -219,23 +219,23 @@ namespace LvqGui {
 				return settings.ToShorthand()
 				+ (ForDataset == null ? "" : "--" + ForDataset.DatasetLabel);
 			}
-			set {
-				ShorthandHelper.ParseShorthand(this,default(LvqModelSettingsCli), shR, value);
+			set
+			{
+				settings = ParseShorthand(value);
+				foreach (var group in shR.GetGroupNames())
+					if (!string.IsNullOrEmpty(group))
+						_propertyChanged(group);
 			}
 		}
 
 		public override string ShorthandErrors { get { return ShorthandHelper.VerifyShorthand(this, shR); } }
 
 		public static LvqModelSettingsCli ParseShorthand(string shorthand) {
-			object parsedSettings = default(LvqModelSettingsCli);
-			ShorthandHelper.ParseShorthand(parsedSettings,default(LvqModelSettingsCli), shR, shorthand);
-			return (LvqModelSettingsCli)parsedSettings;
+			return ShorthandHelper.TryParseShorthand(default(LvqModelSettingsCli), shR, shorthand).Value;
 		}
 
 		public static LvqModelSettingsCli? TryParseShorthand(string shorthand) {
-			object parsedSettings = default(LvqModelSettingsCli);
-			bool success = ShorthandHelper.TryParseShorthand(parsedSettings, default(LvqModelSettingsCli), shR, shorthand);
-			return success ? (LvqModelSettingsCli?)parsedSettings : null;
+			return ShorthandHelper.TryParseShorthand(default(LvqModelSettingsCli), shR, shorthand).AsNullableStruct < LvqModelSettingsCli>();
 		}
 
 		public CreateLvqModelValues(LvqWindowValues owner) {
@@ -260,16 +260,23 @@ namespace LvqGui {
 		public bool HasOptimizedLr { get { return DatasetResults.GetBestResult(ForDataset, settings) != null; } }
 		public string OptimizeButtonText { get { return HasOptimizedLr ? "Create with Optimal LR" : "Find optimal LR"; } }
 
-		public bool HasOptimizedLrAll { get { return DatasetResults.GetBestResults(ForDataset, settings) != null; } }
-		public string OptimizeAllButtonText { get { return HasOptimizedLrAll ? "Create all types' with Optimal LR" : "Find all types' optimal LR"; } }
-
+		public TestLr.LrTestingStatus OptimizedLrAllStatus { get { return TestLr.HasAllLrTestingResults(ForDataset); } }
+		public string OptimizeAllButtonText { get
+		{
+			var status = TestLr.HasAllLrTestingResults(ForDataset);
+			return status == TestLr.LrTestingStatus.AllResultsComplete
+			       	? "All LR optimization complete."
+			       	: status == TestLr.LrTestingStatus.SomeUnfinishedResults
+			       	  	? "Waiting for unfinished results..."
+			       	  	: "Find all types' Optimal LR";
+		} }
+		public bool OptimizedLrAllIncomplete { get { return OptimizedLrAllStatus!= TestLr.LrTestingStatus.AllResultsComplete; } }
 
 		public void OptimizeLr() {//on gui thread.
 			var settingsCopy = settings;
 			settingsCopy.InstanceSeed = 0;
 			settingsCopy.ParamsSeed = 1;
-			const long iterCount = 30L * 1000L * 1000L;
-			var testLr = new TestLr(iterCount, ForDataset, 3);
+			var testLr = new TestLr(ForDataset);
 			string shortname = testLr.ShortnameFor(settingsCopy);
 			var logWindow = LogControl.ShowNewLogWindow(shortname, owner.win.ActualWidth, owner.win.ActualHeight * 0.6);
 			testLr.TestLrIfNecessary(logWindow.Item2.Writer, settingsCopy, Owner.WindowClosingToken).ContinueWith(t => {
@@ -278,17 +285,12 @@ namespace LvqGui {
 		}
 
 		public void OptimizeLrAll() {//on gui thread.
-			var settingsCopy = settings;
-			settingsCopy.InstanceSeed = 0;
-			settingsCopy.ParamsSeed = 1;
-			settingsCopy.PrototypesPerClass = 0;
-			settingsCopy.ModelType = LvqModelType.Gm;
-			const long iterCount = 30L * 1000L * 1000L;
-			var testLr = new TestLr(iterCount, ForDataset, 3);
-			testLr.StartAllLrTesting(Owner.WindowClosingToken, settingsCopy).ContinueWith(_ => Console.WriteLine("completed lr optimization for " + settingsCopy.ToShorthand()));
+			LvqDatasetCli dataset = ForDataset;
+			var testLr = new TestLr(dataset);
+			testLr.StartAllLrTesting(Owner.WindowClosingToken).ContinueWith(_ => Console.WriteLine("completed lr optimization for " + (dataset.DatasetLabel??"<unknown>")));
 		}
 
-		static readonly string[] depProps = new[] { "HasOptimizedLr", "OptimizeButtonText", "HasOptimizedLrAll", "OptimizeAllButtonText" };
+		static readonly string[] depProps = new[] { "HasOptimizedLr", "OptimizeButtonText","OptimizedLrAllIncomplete", "OptimizedLrAllStatus", "OptimizeAllButtonText" };
 		protected override IEnumerable<string> GloballyDependantProps { get { return base.GloballyDependantProps.Concat(depProps); } }
 
 		public void OptimizeOrCreate() {//gui thread
@@ -299,26 +301,13 @@ namespace LvqGui {
 				CreateSingleModel(owner, ForDataset, bestResult.GetOptimizedSettings());
 		}
 
-		public void OptimizeAllOrCreateAll() {
+		public void OptimizeAll() {
 			var dataset = ForDataset;
-			var bestResults = DatasetResults.GetBestResults(ForDataset, settings);
-			if (bestResults == null)
+			var status = OptimizedLrAllStatus;
+			if (status == TestLr.LrTestingStatus.SomeUnstartedResults)
 				OptimizeLrAll();
-			else {
-				foreach (var bres in bestResults)
-					Console.WriteLine(bres.resultsFile.Name);
-
-
-				Task.Factory
-					.StartNew(() => {
-						var newModels = bestResults.AsParallel().Select(res => new LvqMultiModel(dataset, res.GetOptimizedSettings())).ToArray();
-						Console.WriteLine("Created: " + string.Join(", ", newModels.Select(m => m.ModelLabel)));
-						owner.Dispatcher.BeginInvoke(() => {
-							foreach (var newModel in newModels)
-								owner.LvqModels.Add(newModel);
-						});
-					});
-			}
+			else
+				Console.WriteLine("All results already started/complete");
 		}
 	}
 }

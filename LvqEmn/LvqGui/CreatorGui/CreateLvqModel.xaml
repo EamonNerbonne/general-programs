@@ -125,12 +125,12 @@
 
         <StackPanel Orientation="Horizontal" Grid.Row="30" Grid.ColumnSpan="2" FlowDirection="RightToLeft">
             <Button Click="InitializeModel" >Initialize Model</Button>
-            <Button Click="OptimizeOrCreate"  Content="{Binding OptimizeButtonText, Mode=OneWay}"/>
-            <Button Click="OptimizeAllOrCreateAll" Content="{Binding OptimizeAllButtonText, Mode=OneWay}"/>
+            <Button Click="OptimizeOrCreate"  Content="{Binding OptimizeButtonText, Mode=OneWay}" />
+            <Button Click="OptimizeAll" Content="{Binding OptimizeAllButtonText, Mode=OneWay}" IsEnabled="{Binding OptimizedLrAllIncomplete, Mode=OneWay}"/>
         </StackPanel>
         <TextBlock VerticalAlignment="Center" Grid.Row="31" Grid.ColumnSpan="2" HorizontalAlignment="Right">
             Optimize LR done: <Run Text="{Binding HasOptimizedLr, Mode=OneWay}"/>
-            Optimize LR All done: <Run Text="{Binding HasOptimizedLrAll, Mode=OneWay}"/>
+            Optimize LR All: <Run Text="{Binding OptimizedLrAllStatus, Mode=OneWay}"/>
 
         </TextBlock>
         <TextBlock Grid.Row="32" Grid.ColumnSpan="2" Text="{Binding ShorthandErrors, Mode=OneWay}" HorizontalAlignment="Left" TextWrapping="Wrap" />

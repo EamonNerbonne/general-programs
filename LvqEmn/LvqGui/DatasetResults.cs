@@ -79,10 +79,10 @@ namespace LvqGui {
 
 		static readonly Regex resultsFilenameRegex = new Regex(@"^(?<iters>[0-9]?e[0-9])+\-(?<shorthand>[^ ]*?)\.txt$");
 
-		public static IEnumerable<DatasetResults> FromDataset(LvqDatasetCli dataset) {
+		public static IEnumerable<DatasetResults> FromDataset(LvqDatasetCli dataset, string settingsStr) {
 			return
 				from datasetResultsDir in GetDatasetResultDir(dataset)
-				from resultFile in datasetResultsDir.GetFiles("*.txt")
+				from resultFile in datasetResultsDir.GetFiles("*" + (settingsStr ?? "") + "*.txt")
 				where resultFile.Length > 0
 				let parsedResults = ProcFile(resultFile)
 				where parsedResults != null
@@ -90,20 +90,19 @@ namespace LvqGui {
 		}
 
 		public static DatasetResults ProcFile(FileInfo resultFile) {
-			if(resultFile.Length == 0) return null;
-			var itersAndSettings= ExtractItersAndSettings(resultFile.Name);
-			if(!itersAndSettings.Item1) return null;
+			if (resultFile.Length == 0) return null;
+			var itersAndSettings = ExtractItersAndSettings(resultFile.Name);
+			if (!itersAndSettings.Item1) return null;
 			return new DatasetResults(resultFile, itersAndSettings.Item2, itersAndSettings.Item3);
 		}
 
-		public static Tuple<bool,double,LvqModelSettingsCli> ExtractItersAndSettings(string filename)
-		{
+		public static Tuple<bool, double, LvqModelSettingsCli> ExtractItersAndSettings(string filename) {
 			var match = resultsFilenameRegex.Match(filename);
-			if (!match.Success) return Tuple.Create(false,default(double),default(LvqModelSettingsCli));
+			if (!match.Success) return Tuple.Create(false, default(double), default(LvqModelSettingsCli));
 			double iters = double.Parse(match.Groups["iters"].Value.StartsWith("e") ? "1" + match.Groups["iters"].Value : match.Groups["iters"].Value);
 			string shorthand = match.Groups["shorthand"].Value;
-			LvqModelSettingsCli  modelSettings = CreateLvqModelValues.ParseShorthand(shorthand);
-			return Tuple.Create(true,iters,modelSettings);
+			LvqModelSettingsCli modelSettings = CreateLvqModelValues.ParseShorthand(shorthand);
+			return Tuple.Create(true, iters, modelSettings);
 		}
 
 		/// <summary>
@@ -113,7 +112,7 @@ namespace LvqGui {
 			var lrIgnoredSettings = WithoutLrOrSeeds(settings);
 
 			var matchingFiles =
-				from result in FromDataset(dataset)
+				from result in FromDataset(dataset, lrIgnoredSettings.ToShorthand())
 				where WithoutLrOrSeeds(result.unoptimizedSettings).ToShorthand() == lrIgnoredSettings.ToShorthand()
 				orderby result.trainedIterations descending, dataset.DatasetLabel == result.resultsFile.Directory.Name descending
 				select result;
@@ -121,36 +120,13 @@ namespace LvqGui {
 			return matchingFiles.FirstOrDefault();
 		}
 
-		/// <summary>
-		/// Gets the set of dataset lr-optimized results for the given dataset and settings with the largest number of iterations, or null if not all modeltype/prototype combos are done.
-		/// </summary>
-		public static DatasetResults[] GetBestResults(LvqDatasetCli dataset, LvqModelSettingsCli settings) {
-			var settingsNoLr = WithoutLrOrSeeds(settings);
-
-			var matchingFiles =
-				from result in FromDataset(dataset)
-				where WithoutLrOrSeeds(result.unoptimizedSettings).ToShorthand() ==
-				 WithModelAndPrototypes(settingsNoLr, result.unoptimizedSettings.ModelType, result.unoptimizedSettings.PrototypesPerClass).ToShorthand()
-				group result by Tuple.Create(result.trainedIterations, result.resultsFile.Directory.Name) into resGroup
-				where resGroup.Select(res => new { res.unoptimizedSettings.ModelType, res.unoptimizedSettings.PrototypesPerClass })
-						.ContainsAll(TestLr.ModelTypes.SelectMany(mt => TestLr.PrototypesPerClassOpts.Select(ppc => new { ModelType = mt, PrototypesPerClass = ppc })))
-				orderby resGroup.Key.Item1 descending, resGroup.Key.Item2 == dataset.DatasetLabel descending
-				select resGroup.ToArray();
-
-			return matchingFiles.FirstOrDefault();
-		}
-
 		public static LvqModelSettingsCli WithoutLrOrSeeds(LvqModelSettingsCli p_settings) {
-			p_settings.LR0 = 0;
-			p_settings.LrScaleB = 0;
-			p_settings.LrScaleP = 0;
-			p_settings.ParamsSeed = 0;
-			p_settings.InstanceSeed = 0;
-			return p_settings;
-		}
-		static LvqModelSettingsCli WithModelAndPrototypes(LvqModelSettingsCli p_settings, LvqModelType modelType, int protos) {
-			p_settings.ModelType = modelType;
-			p_settings.PrototypesPerClass = protos;
+			LvqModelSettingsCli defaults = default(LvqModelSettingsCli);
+			p_settings.LR0 = defaults.LR0;
+			p_settings.LrScaleB = defaults.LrScaleB;
+			p_settings.LrScaleP = defaults.LrScaleP;
+			p_settings.ParamsSeed = defaults.ParamsSeed;
+			p_settings.InstanceSeed = defaults.InstanceSeed;
 			return p_settings;
 		}
 
