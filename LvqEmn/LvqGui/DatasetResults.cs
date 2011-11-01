@@ -81,13 +81,21 @@ namespace LvqGui {
 
 		public static IEnumerable<DatasetResults> FromDataset(LvqDatasetCli dataset, string settingsStr) {
 			return
+				from creator in MaybeGetCreator(dataset)
+				from parsedResults in FromDataset(creator, settingsStr)
+				select parsedResults;
+		}
+
+		public static IEnumerable<DatasetResults> FromDataset(IDatasetCreator dataset, string settingsStr=null) {
+			return
 				from datasetResultsDir in GetDatasetResultDir(dataset)
-				from resultFile in datasetResultsDir.GetFiles("*" + (settingsStr ?? "") + "*.txt")
+				from resultFile in datasetResultsDir.GetFiles("*" + (settingsStr==null?"":settingsStr+"*") + ".txt")
 				where resultFile.Length > 0
 				let parsedResults = ProcFile(resultFile)
 				where parsedResults != null
 				select parsedResults;
 		}
+
 
 		public static DatasetResults ProcFile(FileInfo resultFile) {
 			if (resultFile.Length == 0) return null;
@@ -130,10 +138,12 @@ namespace LvqGui {
 			return p_settings;
 		}
 
-		static IEnumerable<DirectoryInfo> GetDatasetResultDir(LvqDatasetCli dataset) {
-			if (dataset == null) return Enumerable.Empty<DirectoryInfo>();
-			var basicExample = CreateDataset.CreateFactory(dataset.DatasetLabel);
 
+		static IEnumerable<IDatasetCreator> MaybeGetCreator(LvqDatasetCli dataset) {
+			if (dataset == null) return Enumerable.Empty<IDatasetCreator>();
+			return Enumerable.Repeat(CreateDataset.CreateFactory(dataset.DatasetLabel),1);
+		}
+		static IEnumerable<DirectoryInfo> GetDatasetResultDir(IDatasetCreator basicExample) {
 			return from dir in TestLr.resultsDir.GetDirectories()
 				   where basicExample != null
 				   let dirSplitName = CreateDataset.CreateFactory(dir.Name)
