@@ -12,10 +12,14 @@ let loadAllResults datasetName =
         |> Seq.filter (fun res -> res <> null)
         |> Seq.toList
 
+let groupErrorsByLr (lrs:list<DatasetResults.LrAndError>) = 
+    lrs
+    |> Utils.groupList (fun lr -> lr.LR) (fun lr -> lr.Errors)
+
 let groupResultsByLr (results:list<DatasetResults>) = 
     results
-    |> List.collect (fun res -> res.GetLrs() |> Seq.toList |> List.map (fun lr -> (lr.LR, lr.Errors, res)))
-    |> Utils.groupList (fun (lr, err, result) -> lr) (fun (lr, err, result) -> err )
+    |> List.collect (fun res -> res.GetLrs() |> Seq.toList)
+    |> groupErrorsByLr
 
 let coreSettingsEq a b = DatasetResults.WithoutLrOrSeeds(a).ToShorthand() =  DatasetResults.WithoutLrOrSeeds(b).ToShorthand()
 

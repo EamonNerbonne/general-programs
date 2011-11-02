@@ -109,18 +109,45 @@ let lrTestingResults =
             yield (dataKey, dataHeur, dr.unoptimizedSettings,  dr.GetLrs() |> Seq.toArray)
     ]
 
-let plainLrTestingResults
+let hasNoHeuristics (settings:LvqModelSettingsCli) = (LvqModelSettingsCli()).WithChanges(settings.ModelType, settings.PrototypesPerClass, settings.ParamsSeed, settings.InstanceSeed).Equals(settings)
+
+let basicTypes = new System.Collections.Generic.HashSet<LvqModelSettingsCli>(GeneralSettings.basicTypes)
+let plainLrTestingResults =
+    lrTestingResults |> List.filter
+        (fun (_,dHeur,settings,_) -> 
+            (dHeur = "" || dHeur="n")
+                && basicTypes.Contains(settings)
+        )   
 
 
-let lrOptIters (results:list<DatasetResults>) = 
-    results
-    |> Seq.map (fun datasetResults ->  (datasetResults.GetLrs () |> Seq.length |> float) * datasetResults.trainedIterations)
-    |> Seq.sum
+let plainCompleteLrTestingResults = 
+    plainLrTestingResults 
+    |> Utils.groupList (fun (dKey,_,_,_) -> dKey) id
+    |> List.filter (fun rs -> List.length (snd rs) = 12) // only include datasets with all basic combos
+    |> List.collect snd
 
-let resAnalysisIters = 
-    ResultAnalysis.analyzedModels ()
-    |> Seq.map (fun res -> res.Results)
-    |> Seq.concat
-    |> Seq.sumBy (fun res -> res.Iterations)
+let trainingErr (errs:TestLr.ErrorRates) = errs.training
 
-let totalIters = 3. * lrOptIters datasetResults +  7. * lrOptIters baseDatasetResults + 10.* resAnalysisIters
+let meanBestLrLookup = 
+    plainCompleteLrTestingResults
+        |> Utils.groupList (fun (dKey,dHeur,mSettings,lrs) -> (dHeur, mSettings.ToShorthand()))  (fun (dKey,dHeur,mSettings,lrs) -> lrs)
+        |> List.map 
+            (fun (key, lrs) ->
+                let (lr, trainErr) = 
+                    Seq.collect id lrs 
+                        |> List.ofSeq
+                        |> ResultParsing.groupErrorsByLr
+                        |> List.map (Utils.apply2nd (ResultParsing.meanStderrOfErrs >> trainingErr))
+                        |> List.sortBy snd
+                        |> List.head
+                let trainErrOfBestLr = 
+                    lrs |> List.map 
+                        (fun oneDatasetResultArr -> 
+                            oneDatasetResultArr 
+                            |> Array.map (fun lrAndErr -> lrAndErr.Errors.training)
+                            |> Array.min
+                        )
+                    |> List.average
+                (key,(lr, trainErr,trainErrOfBestLr))
+            )
+        
