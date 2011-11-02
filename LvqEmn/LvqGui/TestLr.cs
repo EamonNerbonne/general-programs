@@ -146,9 +146,8 @@ namespace LvqGui {
 				Task.Factory.ContinueWhenAll(testingTasks, Task.WaitAll, cancel, TaskContinuationOptions.ExecuteSynchronously, LowPriorityTaskScheduler.DefaultLowPriorityScheduler);
 		}
 
-		IEnumerable<LvqModelSettingsCli> AllLrTestingSettings() {
-			return
-				from protoCount in new[] { 5, 1 }
+		static readonly LvqModelSettingsCli[] AllLrTestingSettingsNoOffset =
+				(from protoCount in new[] { 5, 1 }
 				from modeltype in ModelTypes
 				from rp in new[] { true, false }
 				from ngi in new[] { true, false }
@@ -169,11 +168,19 @@ namespace LvqGui {
 					ProjOptimalInit = pi,
 					SlowStartLrBad = slowbad,
 					UpdatePointsWithoutB = NoB,
-				}.WithTestingChanges(offset)
+				}
+				 where settings.Equals(CreateLvqModelValues.TryParseShorthand(settings.ToShorthand()))
 				let estAccur = EstimateAccuracy(settings)
 				orderby relevanceCost, estAccur
-				select settings;
+				select settings).ToArray();
+		
+
+		IEnumerable<LvqModelSettingsCli> AllLrTestingSettings() {
+			return
+				from settings in AllLrTestingSettingsNoOffset
+				select settings.WithTestingChanges(offset);
 		}
+
 
 
 		Task FindOptimalLr(TextWriter sink, LvqModelSettingsCli settings, CancellationToken cancel) {
