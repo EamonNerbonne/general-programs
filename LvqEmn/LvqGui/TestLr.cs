@@ -15,25 +15,13 @@ using LvqLibCli;
 
 namespace LvqGui {
 	public static class TestLrHelper {
+		public static LvqModelSettingsCli WithTestingChanges(this LvqModelSettingsCli settings, uint offset) {
+			settings.ParamsSeed = 1 + 2 * offset;
+			settings.InstanceSeed = 2 * offset;
+			return settings;
+		}
 		public static LvqModelSettingsCli WithTestingChanges(this LvqModelSettingsCli settings, LvqModelType type, int protos, uint offset) {
 			return settings.WithChanges(type, protos, 1 + 2 * offset, 2 * offset);
-		}
-		public static LvqModelSettingsCli WithTestingChanges2(this LvqModelSettingsCli settings, LvqModelType type, int protos, uint offset,
-				bool rp,
-				bool ngi,
-				bool bi,
-				bool pi,
-				bool ng,
-				bool slowbad
-			) {
-			var newsettings = settings.WithChanges(type, protos, 1 + 2 * offset, 2 * offset);
-			newsettings.RandomInitialProjection = rp;
-			newsettings.NgInitializeProtos = ngi;
-			newsettings.NgUpdateProtos = ng;
-			newsettings.BLocalInit = bi;
-			newsettings.ProjOptimalInit = pi;
-			newsettings.SlowStartLrBad = slowbad;
-			return newsettings;
 		}
 
 		public static LvqModelSettingsCli WithLrChanges(this LvqModelSettingsCli baseSettings, double lr0, double lrScaleP, double lrScaleB) {
@@ -51,7 +39,7 @@ namespace LvqGui {
 		readonly long _itersToRun;
 		readonly int _folds;
 		readonly DirectoryInfo datasetResultsDir;
-		
+
 		public TestLr(long itersToRun, uint p_offset) {
 			_itersToRun = itersToRun;
 			offset = p_offset;
@@ -106,23 +94,23 @@ namespace LvqGui {
 		}
 		//{-8.46,0.42,-1.11,-1.49,1.51,0.79}
 		static readonly double[, ,] heurEffects = //proto,type,heur
-	{
-	{
-	{0,0,0.78,0.59,6.24,1.24},
-	{0,0,-4.23,-4.72,-3.23,0.35},
-	{0,0,0.98,-6.89,-1.62,0}},
-	{
-	{-9.74,0.24,1.09,-3.27,0.83,0.26},
-	{-6.84,1.39,-2.44,2.46,0.79,1.2},
-	{-1.36,1.41,-2.93,-4.18,1.8,0}
-	}
-	};
+			{
+				{
+					{0, 0,3.61 ,2.40 ,0, 0.48 ,2.16 ,},
+					{0, 0, -8.53 ,-6.60 ,-0.27 , -5.73 ,-0.28 ,},
+					{0, 0,0.30 ,-5.34 ,0, -2.48 , 0,},
+				},
+				{
+					{-15.93 ,-0.54 ,0.97 ,-5.54 ,0, -0.48 ,-3.23 ,},
+					{-9.72 ,-3.15 ,-2.71 ,4.82 ,-1.06 ,2.85 ,1.47 ,},
+					{1.73 ,-0.79 ,-1.73 ,-6.40 ,0, 2.77 , 0,},
+				},
+			};
 
-
-		static double EstimateAccuracy(LvqModelType modeltype, int protoCount, bool NGi, bool NG, bool rP, bool slowbad, bool Pi, bool Bi) {
-			int protoIdx = protoCount == 1 ? 0 : 1;
-			int typeIdx = modeltype == LvqModelType.Ggm ? 0 : modeltype == LvqModelType.Gm ? 2 : 1;
-			bool[] heurs = new[] { NGi, NG, rP, slowbad, Pi, Bi };
+		static double EstimateAccuracy(LvqModelSettingsCli settings) {
+			int protoIdx = settings.PrototypesPerClass == 1 ? 0 : 1;
+			int typeIdx = settings.ModelType == LvqModelType.Ggm ? 0 : settings.ModelType == LvqModelType.Gm ? 2 : 1;
+			bool[] heurs = new[] { settings.NgInitializeProtos, settings.NgUpdateProtos, !settings.RandomInitialProjection, settings.SlowStartLrBad, settings.ProjOptimalInit, settings.BLocalInit };
 			return heurs.Select((on, heurIdx) => on ? heurEffects[protoIdx, typeIdx, heurIdx] : 0).Sum();
 		}
 
@@ -164,15 +152,27 @@ namespace LvqGui {
 				from modeltype in ModelTypes
 				from rp in new[] { true, false }
 				from ngi in new[] { true, false }
-				//let bi=false 
+				from NoB in new[] { true, false }
 				from bi in new[] { true, false }
 				from pi in new[] { true, false }
 				from ng in new[] { true, false }
 				from slowbad in new[] { true, false }
-				let relevanceCost = new[] { !rp, ngi, bi, pi, ng, slowbad }.Count(b => b)
-				let estAccur = EstimateAccuracy(modeltype, protoCount, ngi, ng, rp, slowbad, pi, bi)
+				let relevanceCost = new[] { !rp, ngi, bi, pi, ng, slowbad, NoB }.Count(b => b)
+				where relevanceCost < 2
+				let settings = new LvqModelSettingsCli {
+					ModelType = modeltype,
+					PrototypesPerClass = protoCount,
+					RandomInitialProjection = rp,
+					NgInitializeProtos = ngi,
+					NgUpdateProtos = ng,
+					BLocalInit = bi,
+					ProjOptimalInit = pi,
+					SlowStartLrBad = slowbad,
+					UpdatePointsWithoutB = NoB,
+				}.WithTestingChanges(offset)
+				let estAccur = EstimateAccuracy(settings)
 				orderby relevanceCost, estAccur
-				select new LvqModelSettingsCli().WithTestingChanges2(modeltype, protoCount, offset, rp, ngi, bi, pi, ng, slowbad);
+				select settings;
 		}
 
 
@@ -368,15 +368,15 @@ namespace LvqGui {
 		}
 
 		FileInfo SettingsFile(LvqModelSettingsCli settings) {
-			
+
 			string mSettingsShorthand = settings.ToShorthand();
 			string prefix = ItersPrefix(_itersToRun) + "-";
 
 			return new FileInfo(Path.Combine(datasetResultsDir.FullName + "\\", prefix + mSettingsShorthand + ".txt"));
 		}
-		
+
 		static DirectoryInfo ResultsDatasetDir(LvqDatasetCli dataset) {
-			if (dataset == null) 
+			if (dataset == null)
 				return resultsDir.CreateSubdirectory("base");
 			else
 				return new DirectoryInfo(resultsDir.FullName + "\\" + dataset.DatasetLabel);
