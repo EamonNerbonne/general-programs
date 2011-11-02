@@ -292,10 +292,10 @@ namespace LvqGui {
 			lock (fsSync)
 				if (saveFile.Exists) {
 					if (saveFile.Length > 0) {
-						Console.WriteLine("already done:" + DatasetLabel + "\\" + ShortnameFor(settings));
+						//Console.WriteLine("already done:" + DatasetLabel + "\\" + ShortnameFor(settings));
 						if (sink != null) sink.WriteLine("already done!");
 					} else {
-						Console.WriteLine("already started:" + DatasetLabel + "\\" + ShortnameFor(settings));
+						//Console.WriteLine("already started:" + DatasetLabel + "\\" + ShortnameFor(settings));
 						if (sink != null) sink.WriteLine("already started!");
 					}
 					return true;
