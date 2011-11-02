@@ -32,31 +32,32 @@ let applyDatasetTweaks (tweaks:string) (settings:IDatasetCreator) =
             ldSettings.TestFilename <- ldSettings.TestFilename.Replace("segmentationX_", segmentVersion)
     copy
 
-let datasetSettings () = 
+let decodeDataset (settings:IDatasetCreator) =
     let datasetAnnotation (settings:IDatasetCreator) segmentNorm =
         if settings.ExtendDataByCorrelation then "x" else ""
         + if settings.NormalizeDimensions then 
                 if settings.NormalizeByScaling then "S" else "n"
             else ""
         + if segmentNorm then "N" else ""
-    let decodeDataset (settings:IDatasetCreator) =
-        match settings.Clone() with
-        | :? LoadedDatasetSettings as ldSettings ->
-            if ldSettings.Filename.StartsWith("segmentationNormed_") then
-                ldSettings.Filename <- ldSettings.Filename.Replace("segmentationNormed_","segmentationX_")
-                if ldSettings.TestFilename <> null then
-                    ldSettings.TestFilename <- ldSettings.TestFilename.Replace("segmentationNormed_","segmentationX_")
-                //ldSettings.NormalizeDimensions <- true//TODO:NormalizeByScaling
-                ldSettings.DimCount <- 19
-                (ldSettings.BaseShorthand(), datasetAnnotation settings true)
-            elif ldSettings.Filename.StartsWith("segmentation_") then
-                ldSettings.Filename <- ldSettings.Filename.Replace("segmentation_","segmentationX_")
-                if ldSettings.TestFilename <> null then
-                    ldSettings.TestFilename <- ldSettings.TestFilename.Replace("segmentation_","segmentationX_")
-                (ldSettings.BaseShorthand(), datasetAnnotation settings false)
-            else
-                (ldSettings.BaseShorthand(), datasetAnnotation settings false)
-        | _ -> (settings.BaseShorthand(), datasetAnnotation settings false)
+    match settings.Clone() with
+    | :? LoadedDatasetSettings as ldSettings ->
+        if ldSettings.Filename.StartsWith("segmentationNormed_") then
+            ldSettings.Filename <- ldSettings.Filename.Replace("segmentationNormed_","segmentationX_")
+            if ldSettings.TestFilename <> null then
+                ldSettings.TestFilename <- ldSettings.TestFilename.Replace("segmentationNormed_","segmentationX_")
+            //ldSettings.NormalizeDimensions <- true//TODO:NormalizeByScaling
+            ldSettings.DimCount <- 19
+            (ldSettings.BaseShorthand(), datasetAnnotation settings true)
+        elif ldSettings.Filename.StartsWith("segmentation_") then
+            ldSettings.Filename <- ldSettings.Filename.Replace("segmentation_","segmentationX_")
+            if ldSettings.TestFilename <> null then
+                ldSettings.TestFilename <- ldSettings.TestFilename.Replace("segmentation_","segmentationX_")
+            (ldSettings.BaseShorthand(), datasetAnnotation settings false)
+        else
+            (ldSettings.BaseShorthand(), datasetAnnotation settings false)
+    | _ -> (settings.BaseShorthand(), datasetAnnotation settings false)
+
+let datasetSettings () = 
     LvqMultiModel.statsDir.GetDirectories()
     |> Seq.map (fun dir -> (dir, CreateDataset.CreateFactory(dir.Name) |> decodeDataset))
     |> Seq.toArray

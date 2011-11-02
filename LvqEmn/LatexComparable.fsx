@@ -1,4 +1,4 @@
-﻿#I @"ResultsAnalysis\bin\Release"
+﻿#I @"ResultsAnalysis\bin\ReleaseMingw"
 #r "ResultsAnalysis"
 #r "LvqLibCli"
 #r "LvqGui"

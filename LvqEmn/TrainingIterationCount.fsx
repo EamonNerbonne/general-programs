@@ -9,7 +9,7 @@ open LvqGui
 let datasetResults =
         let filepattern = "*.txt"
         TestLr.resultsDir.GetDirectories()
-        |>Seq.filter (fun dir -> dir.Name <> "base")
+        |> Seq.filter (fun dir -> dir.Name <> "base")
         |> Seq.collect (fun dir-> dir.GetFiles("*.txt"))
         |> Seq.map LvqGui.DatasetResults.ProcFile
         |> Seq.filter (fun res -> res <> null)

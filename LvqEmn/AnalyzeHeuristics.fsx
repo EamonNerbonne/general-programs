@@ -39,7 +39,6 @@ let isHeuristicApplied (heuristic:Heuristic) settings =
     on.Equiv settings && off.Equiv settings |> not && on.ModelSettings = CreateLvqModelValues.ParseShorthand(on.ModelSettings.ToShorthand())
 
 
-
 let heuristics = 
     let heur name code activator = { Name=name; Code=code; Activator = activator; }
     let heurD name letter = { Name = name; Code = letter; Activator = (fun s -> 
@@ -191,7 +190,7 @@ type Difference =
 
 
 
-let compare baseResults heurResults =
+let compare (baseResults, heurResults) =
     let lvqSettings = getSettings baseResults
     let errs (model:ResultAnalysis.ModelResults) = model.Results |> Seq.map (fun res->res.CanonicalError*100.) |> Seq.toList 
     let heurErr = errs heurResults
@@ -206,13 +205,17 @@ let compare baseResults heurResults =
     let difference = if p > 0.01 * Math.Abs(errChange) then Irrelevant elif isBetter then Better else Worse
     ( difference,  ( p, bestErrChange, errChange, Utils.sampleDistribution baseErr, Utils.sampleDistribution heurErr, scenarioLatex, betterRatio,resCount) )
 
-let maybeCompare datasetResults modelResults heuristic =
+let optCompare datasetResults modelResults heuristic =
     modelResults
     |> getSettings 
     |> applyHeuristic heuristic 
     |> Option.map (fun settingsWithHeuristic -> settingsWithHeuristic.Key)
     |> Option.bind (Utils.getMaybe datasetResults)
-    |> Option.map (fun heuristicResults -> compare modelResults heuristicResults)
+    |> Option.map (fun (heuristicResults:ResultAnalysis.ModelResults) -> (modelResults, heuristicResults))
+
+let maybeCompare datasetResults modelResults heuristic = 
+    optCompare datasetResults modelResults heuristic 
+        |> Option.map compare
     
 
 let resultsByDatasetByModel =
@@ -233,17 +236,35 @@ resultsByDatasetByModel |> Seq.filter (fun kvp->kvp.Key.Contains("star"))
     |> Seq.sumBy snd
 
 
+let countActiveHeuristics (mr:ResultAnalysis.ModelResults) =
+    let ms = mr.ModelSettings
+    let modelHeurs = [ms.BLocalInit; ms.NgInitializeProtos;  ms.NgUpdateProtos; ms.ProjOptimalInit; not ms.RandomInitialProjection; ms.SlowStartLrBad;  ms.UpdatePointsWithoutB] |> List.filter id |> List.length
+    modelHeurs + mr.DatasetTweaks.Length
+
 let allFilters = 
     let simplifyName (name:string) = if name.Contains("-") then name.Substring(0, name.IndexOf("-")) else name
-    List.append [
-        ("Everything", (fun (mr:ResultAnalysis.ModelResults) -> true));
-        ("Ggm,1", (fun mr -> mr.ModelSettings.ModelType = LvqModelType.Ggm && mr.ModelSettings.PrototypesPerClass = 1));
+    let singleOrAnythingFilters = [
+        ("", (fun (mr:ResultAnalysis.ModelResults) -> true));
+        ("Single heuristic", (fun mr -> countActiveHeuristics mr < 2));
+        ]
+    let modelFilters = [
+        ("Ggm,1", (fun (mr:ResultAnalysis.ModelResults) -> mr.ModelSettings.ModelType = LvqModelType.Ggm && mr.ModelSettings.PrototypesPerClass = 1));
         ("G2m,1", (fun mr -> mr.ModelSettings.ModelType = LvqModelType.G2m && mr.ModelSettings.PrototypesPerClass = 1));
         ("Gm,1", (fun mr -> mr.ModelSettings.ModelType = LvqModelType.Gm && mr.ModelSettings.PrototypesPerClass = 1));
         ("Ggm,5", (fun mr -> mr.ModelSettings.ModelType = LvqModelType.Ggm && mr.ModelSettings.PrototypesPerClass = 5));
         ("G2m,5", (fun mr -> mr.ModelSettings.ModelType = LvqModelType.G2m && mr.ModelSettings.PrototypesPerClass = 5));
         ("Gm,5", (fun mr -> mr.ModelSettings.ModelType = LvqModelType.Gm && mr.ModelSettings.PrototypesPerClass = 5));
-    ] (
+        ]
+    let singleOrEverythingModelFilters =
+        [for (name, filter) in singleOrAnythingFilters do
+            yield (name, filter)
+            for (name2, filter2) in modelFilters do
+                yield ((if name = "" then name2 else name + ": " + name2), fun x -> filter x && filter2 x)
+        ]        
+            
+
+
+    List.append singleOrEverythingModelFilters (
         heuristics |> List.map (fun heur ->  (heur.Code, getSettings >> isHeuristicApplied heur) )
         |> List.append (
             Seq.toList resultsByDatasetByModel.Keys
@@ -252,15 +273,17 @@ let allFilters =
         )
     )
 
-let analysisGiven (filter:ResultAnalysis.ModelResults -> bool) (heur:Heuristic) = 
+let analysisPairsGiven (filter:ResultAnalysis.ModelResults -> bool) (heur:Heuristic) = 
     seq {
         for datasetRes in resultsByDatasetByModel.Values do
             for modelRes in datasetRes.Values do
                 if filter modelRes then
-                    match maybeCompare datasetRes modelRes heur with
+                    match optCompare datasetRes modelRes heur with
                     | None -> ()
                     | Some(comparison) -> yield comparison
     }
+
+let analysisGiven filter heur = analysisPairsGiven filter heur |> Seq.map compare
 
 @"<!DOCTYPE html>
 <html><head>
@@ -274,7 +297,8 @@ let analysisGiven (filter:ResultAnalysis.ModelResults -> bool) (heur:Heuristic) 
 "<table><thead><tr><td>within</td><td>" + (heuristics |> List.map (fun heur->heur.Code) |> String.concat " </td><td> ") + "</td></tr></thead><tbody>" +
     (allFilters |> List.map (fun (filtername, filter) -> 
             "<tr><td>" + filtername + " </td><td> " + 
-                (heuristics |> List.map (fun heur ->
+            (heuristics |> List.map 
+                (fun heur ->
                     let analysis = analysisGiven filter heur |> Seq.map snd |> Seq.toList
                     if List.isEmpty analysis |> not then
                         let changeRatio = analysis |> List.averageBy (fun (p, bestErrChange, errChange,before,after, scenario, betterRatio,resCount) -> betterRatio) 
@@ -293,13 +317,7 @@ let analysisGiven (filter:ResultAnalysis.ModelResults -> bool) (heur:Heuristic) 
 
 heuristics
     |> Seq.map (fun heur -> 
-        seq {
-            for datasetRes in resultsByDatasetByModel.Values do
-                for modelRes in datasetRes.Values do
-                    match maybeCompare datasetRes modelRes heur with
-                    | None -> ()
-                    | Some(comparison) -> yield comparison
-        }
+        analysisGiven (fun _ -> true) heur
         |> Utils.toDict fst ((Seq.map snd) >> Seq.sort >> Seq.toArray)
         |> (fun dict -> (Utils.getMaybe dict Better |> Utils.orDefault (Array.empty),  Utils.getMaybe dict Worse |> Utils.orDefault (Array.empty), Utils.getMaybe dict Irrelevant |> Utils.orDefault (Array.empty))) 
         |> (fun (better, worse, irrelevant) ->
@@ -323,3 +341,13 @@ heuristics
         )
     |> String.concat ""
     |> (fun contents -> File.WriteAllText(EmnExtensions.Filesystem.FSUtil.FindDataDir(@"uni\Thesis\doc", System.Reflection.Assembly.GetAssembly(typeof<CreateDataset>)).FullName + @"\AnalyzeHeuristics.tex", contents))
+
+(*
+heuristics |> List.map (fun heur ->
+        
+
+    )
+
+    *)
+
+    
