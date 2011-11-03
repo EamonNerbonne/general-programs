@@ -29,7 +29,7 @@ ResultAnalysis.analyzedModels ()
                             ""
                 "   " +  ResultAnalysis.latexLiteral res.DatasetTweaks + "&" + ResultAnalysis.latexLiteral (res.ModelSettings.WithDefaultLr().ToShorthand()) + "&" + errStr
                 )
-            @"\section{" + ResultAnalysis.niceDatasetName key + "}\n\n"
+            @"\section{" + ResultAnalysis.friendlyDatasetLatexName key + "}\n\n"
                 + @"\noindent\begin{longtable}{lllll}\toprule \multicolumn{2}{l}{model \& tweaks} & training error & test error& NN error\\\midrule" + "\n" 
                 + String.concat "\\\\\n" mappedGroup
                 + "\n" + @"\\ \bottomrule\end{longtable}" + "\n\n" 

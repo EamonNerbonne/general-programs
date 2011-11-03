@@ -201,7 +201,7 @@ let compare (baseResults, heurResults) =
     let errChange = (heurResults.MeanError - baseResults.MeanError) / Math.Max(baseResults.MeanError,heurResults.MeanError) * 100. 
     let bestErrChange = (List.min heurErr - List.min baseErr) / Math.Max(List.min heurErr, List.min baseErr) * 100.
     let tweaksL = ResultAnalysis.latexLiteral (lvqSettings.DataSettings + " " + lvqSettings.ModelSettings.ToShorthand()) 
-    let scenarioLatex = ResultAnalysis.niceDatasetName baseResults.DatasetBaseShorthand + @"\phantom{" + tweaksL + @"}&\llap{" + tweaksL + "}"
+    let scenarioLatex = ResultAnalysis.friendlyDatasetLatexName baseResults.DatasetBaseShorthand + @"\phantom{" + tweaksL + @"}&\llap{" + tweaksL + "}"
     let difference = if p > 0.01 * Math.Abs(errChange) then Irrelevant elif isBetter then Better else Worse
     ( difference,  ( p, bestErrChange, errChange, Utils.sampleDistribution baseErr, Utils.sampleDistribution heurErr, scenarioLatex, betterRatio,resCount) )
 
@@ -231,11 +231,6 @@ let resultsByDatasetByModel =
                 )
 
 
-resultsByDatasetByModel |> Seq.filter (fun kvp->kvp.Key.Contains("star"))
-    |>Seq.map(fun kvp -> (kvp.Key, kvp.Value.Count))
-    |> Seq.sumBy snd
-
-
 let countActiveHeuristics (mr:ResultAnalysis.ModelResults) =
     let ms = mr.ModelSettings
     let modelHeurs = [ms.BLocalInit; ms.NgInitializeProtos;  ms.NgUpdateProtos; ms.ProjOptimalInit; not ms.RandomInitialProjection; ms.SlowStartLrBad;  ms.UpdatePointsWithoutB] |> List.filter id |> List.length
@@ -261,15 +256,12 @@ let allFilters =
             for (name2, filter2) in modelFilters do
                 yield ((if name = "" then name2 else name + ": " + name2), fun x -> filter x && filter2 x)
         ]        
-            
-
-
     List.append singleOrEverythingModelFilters (
         heuristics |> List.map (fun heur ->  (heur.Code, getSettings >> isHeuristicApplied heur) )
         |> List.append (
             Seq.toList resultsByDatasetByModel.Keys
             |> List.filter (fun key -> resultsByDatasetByModel.[key].Count > 65)
-            |> List.map (fun datasetKey ->(simplifyName datasetKey, (fun modelRes->modelRes.DatasetBaseShorthand = datasetKey)))
+            |> List.map (fun datasetKey ->(defaultArg (ResultAnalysis.friendlyDatasetName datasetKey) datasetKey, (fun modelRes->modelRes.DatasetBaseShorthand = datasetKey)))
         )
     )
 
@@ -319,11 +311,11 @@ heuristics
     |> Seq.map (fun heur -> 
         analysisGiven (fun _ -> true) heur
         |> Utils.toDict fst ((Seq.map snd) >> Seq.sort >> Seq.toArray)
-        |> (fun dict -> (Utils.getMaybe dict Better |> Utils.orDefault (Array.empty),  Utils.getMaybe dict Worse |> Utils.orDefault (Array.empty), Utils.getMaybe dict Irrelevant |> Utils.orDefault (Array.empty))) 
+        |> (fun dict -> (defaultArg (Utils.getMaybe dict Better) Array.empty,  Utils.getMaybe dict Worse |> Utils.orDefault (Array.empty), Utils.getMaybe dict Irrelevant |> Utils.orDefault (Array.empty))) 
         |> (fun (better, worse, irrelevant) ->
             (heur, better.Length + worse.Length, irrelevant.Length, float better.Length / float (better.Length + worse.Length), better, worse,irrelevant)
         )
-    ) 
+    )
     |> Seq.toList
     |> List.map (fun (heur, count, ignoreCount,ratio, better, worse,irrelevant) ->
             sprintf @"\section{%s} \noindent %s was an improvement in $%1.1f\%%$ of %i cases and irrelevant in %i:" (ResultAnalysis.latexLiteral heur.Code) heur.Name (100.*ratio) count ignoreCount + "\n\n"

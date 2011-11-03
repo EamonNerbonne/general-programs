@@ -51,7 +51,7 @@ let shuffle seq =
     EmnExtensions.Algorithms.ShuffleAlgorithm.Shuffle arr
     arr
 
-let inline getMaybe (dict:System.Collections.Generic.Dictionary<'a,'b>) key =
+let inline getMaybe (dict:System.Collections.Generic.IDictionary<'a,'b>) key =
     let value = ref Unchecked.defaultof<'b>
     if dict.TryGetValue(key, value) then
         Some(value.Value)
