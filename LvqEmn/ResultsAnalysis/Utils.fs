@@ -45,6 +45,60 @@ let twoTailedPairedTtest xs ys =
     let p = alglib.studenttdistr.studenttdistribution(corrDistr.Count - 1, -Math.Abs(t)) * 2.0
     (corrDistr.Mean < 0.0, p)
 
+let unequalVarianceTtest xs ys = 
+    let xDistr = sampleDistribution xs
+    let yDistr = sampleDistribution ys
+    let corrDistr = List.zip xs ys |>List.map (fun (x,y) -> x - y) |> sampleDistribution
+    let xNVar = xDistr.Variance / float xDistr.Count
+    let yNVar = yDistr.Variance / float yDistr.Count
+    let scaledVar = xNVar + yNVar
+    let t = (xDistr.Mean - yDistr.Mean) / Math.Sqrt scaledVar
+    let sqr x = x * x
+    let nu = sqr scaledVar / (sqr xNVar / (float xDistr.Count - 1.) + sqr yNVar / (float yDistr.Count - 1.) )
+
+    let p = alglib.studenttdistr.studenttdistribution(int nu, -Math.Abs(t)) * 2.0
+    (corrDistr.Mean < 0.0, p)
+
+
+let welchTwoTailedPairedTtest xs ys = 
+    let xArr = xs |> Array.ofList
+    let yArr = ys |> Array.ofList
+
+    let mutable tt = 0.
+    let mutable tx = 0.
+    let mutable ty = 0.
+
+    alglib.unequalvariancettest(xArr, xArr.Length, yArr, yArr.Length, &tt, &tx,&ty)
+    (tx<ty,tt)
+
+let mannWhitneyUTest xs ys = 
+    let xArr = xs |> Array.ofList
+    let yArr = ys |> Array.ofList
+
+    let mutable tt = 0.
+    let mutable tx = 0.
+    let mutable ty = 0.
+
+    alglib.mannwhitneyutest(xArr, xArr.Length, yArr, yArr.Length, &tt, &tx,&ty)
+    (tx<ty,tt)
+
+
+let xs = [for i in 1..10 -> float i]
+let ys = [for i in 1..10 -> 2.0 * float i - 3.0]
+(*
+#I @"bin\ReleaseMingw"
+#r "ResultsAnalysis"
+#r "EmnExtensions"
+#time "on"
+
+open EmnExtensions.Text
+open EmnExtensions
+open System.Collections.Generic
+open System.Linq
+open System
+open Utils
+*)
+
 
 let shuffle seq =
     let arr = Seq.toArray seq
