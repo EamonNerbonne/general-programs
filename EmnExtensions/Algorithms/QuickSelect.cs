@@ -8,6 +8,12 @@ using EmnExtensions.DebugTools;
 
 namespace EmnExtensions.Algorithms {
 	public static class SelectionAlgorithm {
+		public static double Median(double[] list) {
+			if (list.Length == 0) return double.NaN;
+			else if (list.Length % 2 == 0) return 0.5 * (QuickSelect(list, list.Length / 2 - 1) + QuickSelect(list, list.Length / 2, list.Length / 2 , list.Length));
+			else return QuickSelect(list, (list.Length - 1) / 2);
+		}
+
 		public static double QuickSelect(double[] list, int k) {
 			return QuickSelect(list, k, 0, list.Length);
 		}
@@ -23,7 +29,7 @@ namespace EmnExtensions.Algorithms {
 				else //if (k == splitI)
 					return list[k];
 			}
-			//when this returns, all elements of list[i] <= list[k] iif i <= k
+			//when this returns, all elements of list[i] <= list[k] for i <= k
 		}
 		static int partition(double[] list, int startI, int endI, int pivotI) {
 			double pivotValue = list[pivotI];
