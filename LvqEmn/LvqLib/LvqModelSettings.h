@@ -31,7 +31,6 @@ struct LvqModelSettings
 	LvqModelRuntimeSettings RuntimeSettings;
 	std::vector<int> PrototypeDistribution;
 	LvqDataset const * Dataset;
-	std::vector<int> Trainingset;
 
 	size_t ClassCount() const { return PrototypeDistribution.size(); }
 	std::pair<Matrix_NN,Eigen::VectorXi> InitByClassMeans() const;
@@ -44,7 +43,7 @@ struct LvqModelSettings
 	Matrix_P initTransform();
 	int PrototypeCount() const;
 
-	LvqModelSettings(LvqModelType modelType, boost::mt19937 & rngParams, boost::mt19937 & rngIter, std::vector<int> protodistrib, LvqDataset const * dataset, std::vector<int> trainingset); 
+	LvqModelSettings(LvqModelType modelType, boost::mt19937 & rngParams, boost::mt19937 & rngIter, std::vector<int> protodistrib, LvqDataset const * dataset); 
 	size_t Dimensions() const;
 
 	template<typename T>

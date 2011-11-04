@@ -27,7 +27,7 @@ LvqDataset* CreateDataset::ConstructGaussianClouds(boost::mt19937 & rngParams, b
 		allpoints.block(0, classLabel*pointsPerClass, dims, pointsPerClass) = CreateDataset::MakePointCloud(rngParams,rngInst, dims, pointsPerClass,  meansep * classCount);
 	}
 
-	vector<int> trainingLabels(allpoints.cols());
+	VectorXi trainingLabels = VectorXi::Zero(allpoints.cols());
 	for(int i=0; i<(int)trainingLabels.size(); ++i) 
 		trainingLabels[i] = i/pointsPerClass;
 
@@ -62,7 +62,7 @@ LvqDataset* CreateDataset::ConstructStarDataset(boost::mt19937 & rngParams, boos
 
 	Vector_N starRaw(starDims),fullPoint(dims);
 	Matrix_NN points(dims, pointsPerClass * classCount);
-	vector<int> pointLabels(points.cols());
+	VectorXi pointLabels = VectorXi::Zero(points.cols());
 	int pointIndex=0;
 
 	for(int label=0;label<classCount;++label) {

@@ -25,8 +25,8 @@ namespace LvqLibCli {
 		WrappedModel^ model;
 		WrappedModel^ modelCopy;
 		List<LvqTrainingStatCli>^ stats;
-		LvqDatasetCli^ initSet;
-		int initDataFold,classCount,dimCount,protoCount;
+		LvqDatasetCli^ trainingSet;
+		int dataFold,classCount,dimCount,protoCount;
 		Object^trainSync;
 		Object^copySync;
 
@@ -39,13 +39,13 @@ namespace LvqLibCli {
 		bool FitsDataShape(LvqDatasetCli^ dataset);
 
 		property String^ ModelLabel {String^ get(){return label;}}
-		property int InitDataFold {int get(){return initDataFold;}}
-		property LvqDatasetCli^ InitDataset {LvqDatasetCli^ get(){return initSet;}}
+		property int DataFold {int get(){return dataFold;}}
+		property LvqDatasetCli^ TrainingSet {LvqDatasetCli^ get(){return trainingSet;}}
 
 		LvqModelCli(String^ label, LvqDatasetCli^ trainingSet,int datafold, LvqModelSettingsCli^ modelSettings, bool trackStats);
 
 		array<LvqTrainingStatCli>^ GetTrainingStatsAfter(int statI);
-		LvqTrainingStatCli EvaluateStats(LvqDatasetCli^ testset, int datafold);
+		LvqTrainingStatCli EvaluateStats();
 
 		LvqTrainingStatCli GetTrainingStat(int statI);
 		property int TrainingStatCount {int get();}
@@ -57,11 +57,11 @@ namespace LvqLibCli {
 
 		MatrixContainer<unsigned char> ClassBoundaries(double x0, double x1, double y0, double y1,int xCols, int yRows);
 
-		ModelProjection CurrentProjectionAndPrototypes(LvqDatasetCli^ dataset, bool showTestEmbedding);
+		ModelProjection CurrentProjectionAndPrototypes(bool showTestEmbedding);
 		property array<int>^ PrototypeLabels {array<int>^ get(); }
 
-		array<int>^ Train(int epochsToDo,LvqDatasetCli^ trainingSet, int datafold, bool getOrder,bool sortedTrain); 
-		void TrainUpto(int epochsToReach,LvqDatasetCli^ trainingSet, int datafold);
+		array<int>^ Train(int epochsToDo, bool getOrder,bool sortedTrain); 
+		void TrainUpto(int epochsToReach);
 	internal:
 		Tuple<GcManualPtr<LvqDataset>^,GcManualPtr<LvqDataset>^>^ ExtendDatasetByProjection(LvqDatasetCli^ dataset, int datafold);
 	};

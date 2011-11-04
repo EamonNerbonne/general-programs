@@ -19,34 +19,55 @@ namespace LvqLibCli {
 			Matrix_NN cppPoints;
 			cliToCpp(points,cppPoints);
 			cliToCpp(pointLabels,cppLabels);
-			return gcnew LvqDatasetCli(label,folds,extend,normalizeDims,normalizeByScaling,colors,
-				CreateDatasetRaw(0u,rngInstSeed,(int)cppPoints.rows(),(int)cppPoints.cols(),classCount,
-				cppPoints.data(), cppLabels.data()));
+			LvqDataset* nativedataset = CreateDatasetRaw(0u,rngInstSeed,(int)cppPoints.rows(),(int)cppPoints.cols(),classCount, cppPoints.data(), cppLabels.data());
+			return gcnew LvqDatasetCli(label,folds,extend,normalizeDims,normalizeByScaling,colors,nativedataset);
+	}
+
+	GcAutoPtr<vector<DataShape> >^ GetShapes( array<GcManualPtr<LvqDataset>^ >^ newDatasets) {
+		vector<DataShape> shapes;
+		for(int i=0;i<newDatasets->Length;i++) {
+
+			DataShape shape = GetDataShape(newDatasets[i]->get());
+			shapes.push_back(shape);
+			assert(shape.dimCount == shapes[0].dimCount);
+			assert(shape.classCount == shapes[0].classCount);
+			assert(abs((int)shape.pointCount - (int)shapes[0].pointCount)<=1);
+			//std::cout<<shape.pointCount<<"; ";
+		}
+		//std::cout<<"\n";
+		return gcnew GcAutoPtr<vector<DataShape> >(new vector<DataShape>(shapes), sizeof(shapes)+shapes.size()*sizeof(DataShape));
 	}
 
 	LvqDatasetCli::LvqDatasetCli(String^label, int folds,bool extend, bool normalizeDims, bool normalizeByScaling, ColorArray^ colors, LvqDataset * newDataset) 
 		: colors(colors)
 		, label(label)
-		, folds(folds)
-		, datasets( gcnew array<GcManualPtr<LvqDataset>^ >(1))
+		, datasets(gcnew array<GcManualPtr<LvqDataset>^ >(folds))
 	{
-		datasets[0] = gcnew GcManualPtr<LvqDataset>(newDataset, MemAllocEstimateDataset(newDataset), FreeDataset);
 		ExtendAndNormalize(newDataset,extend,normalizeDims, normalizeByScaling);
-		DataShape shape = GetDataShape(newDataset);
-		pointCount = shape.pointCount;
-		dimCount = shape.dimCount;
-		classCount = shape.classCount;
+
+		array<GcManualPtr<LvqDataset>^ >^ testDatasets = gcnew array<GcManualPtr<LvqDataset>^ >(folds);
+
+		for(int i=0;i<folds;i++) {
+			auto trn = CreateDatasetFold(newDataset,i,folds,false);
+			datasets[i] = gcnew GcManualPtr<LvqDataset>(trn, MemAllocEstimateDataset(trn), FreeDataset);
+
+			auto tst = CreateDatasetFold(newDataset,i,folds,true);
+			testDatasets[i] = gcnew GcManualPtr<LvqDataset>(tst, MemAllocEstimateDataset(tst), FreeDataset);
+
+		}
+		FreeDataset(newDataset);
+		datashape = GetShapes(datasets);
+		
+
+		TestSet = gcnew LvqDatasetCli(nullptr, colors,testDatasets);
 	}
-	LvqDatasetCli::LvqDatasetCli(String^label, int folds, ColorArray^ colors, array<GcManualPtr<LvqDataset>^ >^ newDatasets) 
+
+	LvqDatasetCli::LvqDatasetCli(String^label, ColorArray^ colors, array<GcManualPtr<LvqDataset>^ >^ newDatasets) 
 		: colors(colors)
 		, label(label)
-		, folds(folds)
 		, datasets(newDatasets)
 	{
-		DataShape shape = GetDataShape(datasets[0]->get());
-		pointCount = shape.pointCount;
-		dimCount = shape.dimCount;
-		classCount = shape.classCount;
+		datashape = GetShapes(datasets);
 	}
 
 	LvqDatasetCli^ LvqDatasetCli::ConstructGaussianClouds(String^label, int folds, bool extend,  bool normalizeDims, bool normalizeByScaling, ColorArray^ colors, unsigned rngParamsSeed, unsigned rngInstSeed, int dims, 
@@ -98,9 +119,8 @@ namespace LvqLibCli {
 			newDatasetsTest[i] = newDatasetComputer[i]->newDatasetTask->Result->Item2;
 		}
 		DataShape shape=GetDataShape(newDatasets[0]->get());
-		auto retval = gcnew LvqDatasetCli(RegexConsts::dimcountregex->Replace(label,"$0X"+shape.dimCount,1), folds, colors, newDatasets);
-		if(this->HasTestSet())
-			retval->TestSet = gcnew LvqDatasetCli(RegexConsts::dimcountregex->Replace(TestSet->label,"$0X"+shape.dimCount,1), folds, colors, newDatasetsTest);
+		auto retval = gcnew LvqDatasetCli(RegexConsts::dimcountregex->Replace(label,"$0X"+shape.dimCount,1), colors, newDatasets);
+		retval->TestSet = gcnew LvqDatasetCli(RegexConsts::dimcountregex->Replace(TestSet->label,"$0X"+shape.dimCount,1), colors, newDatasetsTest);
 		
 		return retval;
 	}
@@ -109,7 +129,7 @@ namespace LvqLibCli {
 		int fold;
 		LvqDatasetCli^ dataset;
 		double Execute() {
-			double retval= NearestNeighborXvalPcaErrorRate(dataset->GetTrainingDataset(fold),fold,dataset->Folds());
+			double retval= NearestNeighborSplitPcaErrorRate(dataset->GetTrainingDataset(fold),dataset->GetTestDataset(fold));
 			GC::KeepAlive(dataset);
 			return retval;
 		}
@@ -122,30 +142,26 @@ namespace LvqLibCli {
 	};
 
 	Tuple<double,double> ^ LvqDatasetCli::GetPcaNnErrorRate() {
-
-		if(HasTestSet())
-			return Tuple::Create(NearestNeighborSplitPcaErrorRate(GetTrainingDataset(0), GetTestDataset(0)), double::NaN);
 		
-		auto nnErr = gcnew array<NnErrComputer^>(folds);
-		for(int fold=0; fold<folds; ++fold) {
+		auto nnErr = gcnew array<NnErrComputer^>(Folds());
+		for(int fold=0; fold<Folds(); ++fold) {
 			nnErr[fold] = gcnew NnErrComputer(fold,this);
 		}
 		
 		SmartSum<1> nnErrorRate(1);
-		for(int fold=0; fold<folds; ++fold) {
+		for(int fold=0; fold<Folds(); ++fold) {
 			nnErrorRate.CombineWith(nnErr[fold]->nn->Result, 1.0);
 		}
 		return Tuple::Create(nnErrorRate.GetMean()(0,0),nnErrorRate.GetSampleVariance()(0,0));
 	}
 
-	array<int>^ LvqDatasetCli::ClassLabels(){
-		array<int>^ retval = gcnew array<int>(pointCount);
+	array<int>^ LvqDatasetCli::ClassLabels(int fold) {
+		array<int>^ retval = gcnew array<int>(PointCount(fold));
 		pin_ptr<int> pinRetval = &retval[0];
-		GetPointLabels(GetTrainingDataset(0), 0,0,false, pinRetval);
+		GetPointLabels(GetTrainingDataset(fold), pinRetval);
 		return retval;
 	}
-	int LvqDatasetCli::GetTrainingSubsetSize(int fold) { return ::GetSubsetSize(GetTrainingDataset(fold), fold,folds,false); }
-	int LvqDatasetCli::ClassCount::get(){return classCount;}
-	int LvqDatasetCli::PointCount::get(){return pointCount;}
-	int LvqDatasetCli::Dimensions::get(){return dimCount;}
+	int LvqDatasetCli::PointCount(int fold) { return FoldShape(fold).pointCount; }
+	int LvqDatasetCli::ClassCount::get(){return FoldShape(0).classCount;}
+	int LvqDatasetCli::Dimensions::get(){return FoldShape(0).dimCount;}
 }

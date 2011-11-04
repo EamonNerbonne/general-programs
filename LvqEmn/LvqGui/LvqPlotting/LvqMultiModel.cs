@@ -27,7 +27,7 @@ namespace LvqGui {
 			subModels =
 				Enumerable.Range(0, lvqModelSettingsCli.ParallelModels).AsParallel()
 				.Select(modelfold => new LvqModelCli(shorthand, forDataset, modelfold + lvqModelSettingsCli.FoldOffset, lvqModelSettingsCli, trackStats))
-				.OrderBy(model => model.InitDataFold)
+				.OrderBy(model => model.DataFold)
 				.ToArray();
 			nnErrIdx = subModels[0].TrainingStatNames.AsEnumerable().IndexOf(name => name.Contains("NN Error"));
 		}
@@ -38,7 +38,7 @@ namespace LvqGui {
 
 		public int ModelCount { get { return subModels.Length; } }
 
-		public LvqDatasetCli InitSet { get { return subModels.First().InitDataset; } }
+		public LvqDatasetCli InitSet { get { return subModels.First().TrainingSet; } }
 
 		public bool IsProjectionModel { get { return subModels.First().IsProjectionModel; } }
 
@@ -53,10 +53,10 @@ namespace LvqGui {
 		public int SelectedSubModel { get; set; }
 
 		public struct Statistic { public double[] Value, StandardError; public int BestIdx;}
-		public static double GetItersPerEpoch(LvqDatasetCli dataset) { return dataset.PointCount * (dataset.IsFolded() ? (dataset.Folds() - 1.0) / dataset.Folds() : 1.0); }
+		public static double GetItersPerEpoch(LvqDatasetCli dataset,int fold) { return dataset.PointCount(fold); }
 
 		public Statistic CurrentRawStats(LvqDatasetCli selectedDataset) { return MeanStdErrStats(EvaluateFullStats(selectedDataset)); }
-		public IEnumerable<LvqTrainingStatCli> EvaluateFullStats(LvqDatasetCli selectedDataset) { return subModels.Select(m => m.EvaluateStats(selectedDataset, m.InitDataFold)); }
+		public IEnumerable<LvqTrainingStatCli> EvaluateFullStats(LvqDatasetCli selectedDataset) { return subModels.Select(m => m.EvaluateStats()); }
 		public int GetBestSubModelIdx(LvqDatasetCli selectedDataset) { return MinIdx(EvaluateFullStats(selectedDataset).Select(stat => stat.values[LvqTrainingStatCli.TrainingErrorI])); }
 
 		public string CurrentStatsString(LvqDatasetCli selectedDataset) {
@@ -153,7 +153,7 @@ namespace LvqGui {
 			var helpers = subModels
 				.Select((model, modelIndex) =>
 						Task.Factory.StartNew(
-							() => model.Train(1, trainingSet, model.InitDataFold, modelIndex == selectedSubModel, false)
+							() => model.Train(1, modelIndex == selectedSubModel, false)
 							,
 							cancel, TaskCreationOptions.None, LowPriorityTaskScheduler.DefaultLowPriorityScheduler)
 				).ToArray();
@@ -165,7 +165,7 @@ namespace LvqGui {
 			var helpers = subModels
 				.Select((model, modelIndex) =>
 						Task.Factory.StartNew(
-							() => model.Train(1, trainingSet, model.InitDataFold, false, true)
+							() => model.Train(1, false, true)
 							,
 							cancel, TaskCreationOptions.None, LowPriorityTaskScheduler.DefaultLowPriorityScheduler)
 				).ToArray();
@@ -181,7 +181,7 @@ namespace LvqGui {
 		}
 
 		public void TrainUptoIters(double itersToTrainUpto, LvqDatasetCli trainingSet, CancellationToken cancel) {
-			TrainUptoEpochs((int)(itersToTrainUpto / GetItersPerEpoch(trainingSet)), trainingSet, cancel);
+			TrainUptoEpochs((int)(itersToTrainUpto / GetItersPerEpoch(trainingSet,0)), trainingSet, cancel);
 		}
 
 		public void TrainUptoEpochs(int epochsToTrainUpto, LvqDatasetCli trainingSet, CancellationToken cancel) {
@@ -215,7 +215,7 @@ namespace LvqGui {
 							Task.Factory.StartNew(
 								() => {
 									foreach (var next in trainingqueue.GetConsumingEnumerable(cancel))
-										next.Item1.TrainUpto(next.Item2, trainingSet, next.Item1.InitDataFold);
+										next.Item1.TrainUpto(next.Item2);
 								},
 								cancel, TaskCreationOptions.None, LowPriorityTaskScheduler.DefaultLowPriorityScheduler)
 					).ToArray();
@@ -273,8 +273,8 @@ namespace LvqGui {
 			return subModels[subModelIdx].ClassBoundaries(x0, x1, y0, y1, xCols, yRows);
 		}
 
-		public ModelProjection CurrentModelProjection(int subModelIdx, LvqDatasetCli dataset, bool showTestEmbedding) {
-			return subModels[subModelIdx].CurrentProjectionAndPrototypes(dataset, showTestEmbedding);
+		public ModelProjection CurrentModelProjection(int subModelIdx, bool showTestEmbedding) {
+			return subModels[subModelIdx].CurrentProjectionAndPrototypes(showTestEmbedding);
 		}
 
 		public class ModelProjectionAndImage {
@@ -302,7 +302,7 @@ namespace LvqGui {
 			Rect bounds;
 			MatrixContainer<byte> closestClass;
 			lock (selectedModel.ReadSync) {
-				projection = selectedModel.CurrentProjectionAndPrototypes(dataset, showTestEmbedding);
+				projection = selectedModel.CurrentProjectionAndPrototypes( showTestEmbedding);
 				if (!projection.HasValue) return null;
 				bounds = ExpandToShape(renderwidth, renderheight, ComputeProjectionBounds(projection.Prototypes.Select(lp => lp.point), projection.Points.Select(lp => lp.point)));
 				closestClass = hideBoundaries ? default(MatrixContainer<byte>) 

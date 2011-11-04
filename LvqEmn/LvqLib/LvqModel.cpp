@@ -22,13 +22,6 @@ sentinal(initSentinal),
 	iterationScaleFactor = LVQ_ITERFACTOR_PERPROTO/sqrt((double)protoCount);
 }
 
-/*static Vector_N fromStlVector(vector<double> const & vec) {
-	Vector_N retval(vec.size());
-	for(size_t i=0;i<vec.size();++i)
-		retval(i) = vec[i];
-	return retval;
-}*/
-
 double LvqModel::RegisterEpochDone(int itersTrained, double elapsed, int epochs) {
 	totalIter +=itersTrained;
 	totalElapsed += elapsed;
@@ -36,54 +29,13 @@ double LvqModel::RegisterEpochDone(int itersTrained, double elapsed, int epochs)
 	return totalIter;
 }
 
-//void LvqModel::AddTrainingStat(Statistics& statQueue, LvqDataset const * trainingSet, std::vector<int>const & trainingSubset, LvqDataset const * testSet, vector<int>const & testSubset, LvqDatasetStats const & trainingstatsIgnore) const {
-//#ifdef DEBUGHELP
-//	if(sentinal != initSentinal)		throw "Whoops!";
-//#endif
-//
-//	vector<double> stats;
-//	LvqDatasetStats trainingstats = trainingSet->ComputeCostAndErrorRate(trainingSubset,this);
-//	stats.push_back(double(totalIter));
-//	stats.push_back(totalElapsed);
-//	stats.push_back(trainingstats.errorRate());
-//	stats.push_back(trainingstats.meanCost());
-//	LvqDatasetStats teststats;
-//	if(testSet && testSubset.size() >0) 
-//		teststats = testSet->ComputeCostAndErrorRate(testSubset,this);
-//	stats.push_back(teststats.errorRate());
-//	stats.push_back(teststats.meanCost());
-//
-//	stats.push_back(trainingstats.distanceGood().GetMean()[0]);
-//	stats.push_back(trainingstats.distanceBad().GetMean()[0]);
-//
-//	stats.push_back(trainingstats.distanceGood().GetVariance()[0]);
-//	stats.push_back(trainingstats.distanceBad().GetVariance()[0]);
-//
-//	stats.push_back(totalLR * settings.LR0);
-//
-//	stats.push_back(trainingstats.muJmean());
-//	if(!this->IdenticalMu()) stats.push_back(trainingstats.muKmean());
-//	stats.push_back(trainingstats.muJmax());
-//	if(!this->IdenticalMu()) stats.push_back(trainingstats.muKmax());
-//
-//#ifdef DEBUGHELP
-//	if(sentinal != initSentinal)		throw "Whoops!";
-//#endif
-//	this->AppendOtherStats(stats, trainingSet,trainingSubset,testSet,testSubset); 
-//
-//	statQueue.push(std::move(stats));
-//#ifdef DEBUGHELP
-//	if(sentinal != initSentinal)		throw "Whoops!";
-//#endif
-//}
-
-void LvqModel::AddTrainingStat(Statistics& statQueue, LvqDataset const * trainingSet, vector<int>const & trainingSubset, LvqDataset const * testSet, vector<int>const & testSubset) const {
+void LvqModel::AddTrainingStat(Statistics& statQueue, LvqDataset const * trainingSet, LvqDataset const * testSet) const {
 #ifdef DEBUGHELP
 	if(sentinal != initSentinal)		throw "Whoops!";
 #endif
 	LvqDatasetStats trainingstats;
-	if(trainingSet && trainingSubset.size() >0) 
-		trainingstats = trainingSet->ComputeCostAndErrorRate(trainingSubset,this);
+	if(trainingSet) 
+		trainingstats = trainingSet->ComputeCostAndErrorRate(*this);
 
 	vector<double> stats;
 	stats.push_back(double(totalIter));
@@ -91,8 +43,8 @@ void LvqModel::AddTrainingStat(Statistics& statQueue, LvqDataset const * trainin
 	stats.push_back(trainingstats.errorRate());
 	stats.push_back(trainingstats.meanCost());
 	LvqDatasetStats teststats;
-	if(testSet && testSubset.size() >0) 
-		teststats = testSet->ComputeCostAndErrorRate(testSubset,this);
+	if(testSet ) 
+		teststats = testSet->ComputeCostAndErrorRate(*this);
 	stats.push_back(teststats.errorRate());
 	stats.push_back(teststats.meanCost());
 
@@ -112,7 +64,7 @@ void LvqModel::AddTrainingStat(Statistics& statQueue, LvqDataset const * trainin
 #ifdef DEBUGHELP
 	if(sentinal != initSentinal)		throw "Whoops!";
 #endif
-	this->AppendOtherStats(stats, trainingSet,trainingSubset,testSet,testSubset); 
+	this->AppendOtherStats(stats, trainingSet,testSet); 
 
 	statQueue.push(std::move(stats));
 #ifdef DEBUGHELP
@@ -150,4 +102,4 @@ std::vector<std::wstring> LvqModel::TrainingStatNames() const {
 }
 
 void LvqModel::AppendTrainingStatNames(std::vector<std::wstring> & ) const { }
-void LvqModel::AppendOtherStats(std::vector<double> & , LvqDataset const * , std::vector<int>const & , LvqDataset const * , std::vector<int>const & ) const { }
+void LvqModel::AppendOtherStats(std::vector<double> & , LvqDataset const * , LvqDataset const *  ) const { }

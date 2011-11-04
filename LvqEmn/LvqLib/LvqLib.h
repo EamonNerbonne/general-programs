@@ -37,7 +37,11 @@ extern "C" {
 	__declspec(dllexport) LvqDataset* CreateStarDataset(
 		unsigned rngParamSeed, unsigned rngInstSeed, int dimCount, int pointCount, int classCount,
 		int starDims, int numStarTails, double starMeanSep,	double starClassRelOffset, bool randomlyRotate, double noiseSigma, double globalNoiseMaxSigma);
-	__declspec(dllexport) void CreateExtendedDataset(LvqDataset const * dataset, LvqDataset const * testdataset, int fold,int foldCount, LvqModel const * model, LvqDataset** newTraining, LvqDataset** newTest);
+
+	__declspec(dllexport) LvqDataset* CreateDatasetFold(LvqDataset* underlying, int fold, int foldCount, bool isTestFold);
+
+	__declspec(dllexport) void CreateExtendedDataset(LvqDataset const * dataset, LvqDataset const * testdataset, LvqModel const * model, LvqDataset** newTraining, LvqDataset** newTest);
+	
 
 
 	__declspec(dllexport) void CreatePointCloud(unsigned rngParamSeed, unsigned rngInstSeed, int dimCount, int pointCount, double meansep, LvqFloat* target);
@@ -46,20 +50,17 @@ extern "C" {
 	__declspec(dllexport) void ExtendAndNormalize(LvqDataset * dataset, bool extend, bool normalize, bool normalizeByScaling);
 	__declspec(dllexport) double NearestNeighborSplitPcaErrorRate(LvqDataset const * trainingSet, LvqDataset const * testSet);
 	__declspec(dllexport) double NearestNeighborSplitRawErrorRate(LvqDataset const * trainingSet, LvqDataset const * testSet);
-	__declspec(dllexport) double NearestNeighborXvalPcaErrorRate(LvqDataset  const * trainingSet, int fold,int foldCount);
-	__declspec(dllexport) double NearestNeighborXvalRawErrorRate(LvqDataset  const * trainingSet, int fold,int foldCount);
-	__declspec(dllexport) int GetSubsetSize(LvqDataset const * trainingSet, int fold,int foldCount, bool isTest);
 	__declspec(dllexport) DataShape GetDataShape(LvqDataset const * dataset);
-	__declspec(dllexport) void GetPointLabels(LvqDataset const * dataset, int fold,int foldCount, bool isTest, int* pointLabels);
+	__declspec(dllexport) void GetPointLabels(LvqDataset const * dataset, int* pointLabels);
 
-	__declspec(dllexport) LvqModel* CreateLvqModel(LvqModelSettingsRaw rawSettings, LvqDataset const* dataset, int fold,int foldCount);
+	__declspec(dllexport) LvqModel* CreateLvqModel(LvqModelSettingsRaw rawSettings, LvqDataset const* dataset, int modelFold);
 	__declspec(dllexport) LvqModel* CloneLvqModel(LvqModel const * model);
 	__declspec(dllexport) void CopyLvqModel(LvqModel const * src,LvqModel * dest);
 	__declspec(dllexport) size_t MemAllocEstimateModel(LvqModel const * model);
 	__declspec(dllexport) void FreeModel(LvqModel* model);
 	__declspec(dllexport) DataShape GetModelShape(LvqModel const * model);
 	__declspec(dllexport) void ProjectPrototypes(LvqModel const* model, LvqFloat* pointData);
-	__declspec(dllexport) void ProjectPoints(LvqModel const* model, LvqDataset const * dataset,int fold, int folds, bool isTest, LvqFloat* pointData);
+	__declspec(dllexport) void ProjectPoints(LvqModel const* model, LvqDataset const * dataset, LvqFloat* pointData);
 	__declspec(dllexport) void GetProjectionMatrix(LvqModel const* model, LvqFloat* matrixDataTgt);//2 * dimCount
 	__declspec(dllexport) void ClassBoundaries(LvqModel const* model, double x0, double x1, double y0, double y1, int xCols, int yRows, unsigned char* imageData);
 	__declspec(dllexport) void GetPrototypeLabels(LvqModel const* model, int* protoLabels);
@@ -69,9 +70,9 @@ extern "C" {
 	__declspec(dllexport) void ResetLearningRate(LvqModel * model); 
 	__declspec(dllexport) void GetTrainingStatNames(LvqModel const* model, 
 		void (*addNames)(void* context, size_t statsCount, wchar_t const **names), void* context);
-	__declspec(dllexport) void TrainModel(LvqDataset const * trainingset, LvqDataset const * testset, int fold,int foldCount, LvqModel* model, int epochsToDo,
+	__declspec(dllexport) void TrainModel(LvqDataset const * trainingset, LvqDataset const * testset, LvqModel* model, int epochsToDo,
 		void (*addStat)(void* context, size_t statsCount, LvqStat* stats), void* context, int* labelOrderSink, bool sortedTrain);
-	__declspec(dllexport) void ComputeModelStats(LvqDataset const * trainingset, LvqDataset const * testset, int fold,int foldCount, LvqModel const * model,
+	__declspec(dllexport) void ComputeModelStats(LvqDataset const * trainingset, LvqDataset const * testset, LvqModel const * model,
 		void (*addStat)(void* context, size_t statsCount, LvqStat* stats), void* context);
-	__declspec(dllexport) CostAndErrorRate ComputeCostAndErrorRate(LvqDataset const * dataset, int fold,int foldCount, LvqModel const * model);
+	__declspec(dllexport) CostAndErrorRate ComputeCostAndErrorRate(LvqDataset const * dataset, LvqModel const * model);
 }

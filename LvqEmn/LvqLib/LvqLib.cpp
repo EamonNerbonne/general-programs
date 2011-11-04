@@ -16,9 +16,10 @@ extern"C" LvqDataset* CreateDatasetRaw(
 		mt19937 rngParams(rngParamSeed), rngInst(rngInstSeed);
 		Matrix_NN points(dimCount,pointCount);
 		points = Map<Matrix_NN>(data,dimCount,pointCount);
-		vector<int> vLabels(labels,labels+pointCount);
+		VectorXi::Map(labels,pointCount);
+		//vector<int> vLabels(labels,labels+pointCount);
 
-		LvqDataset* dataset= new LvqDataset(points,vLabels,classCount);
+		LvqDataset* dataset= new LvqDataset(points,VectorXi::Map(labels,pointCount),classCount);
 		dataset->shufflePoints(rngInst);
 		return dataset;
 }
@@ -38,6 +39,12 @@ extern"C" LvqDataset* CreateStarDataset(
 		return dataset;
 }
 
+extern"C" LvqDataset* CreateDatasetFold(LvqDataset* underlying, int fold, int foldCount, bool isTestFold){
+	//std::cout<< "Creating dataset "<< (isTestFold?"test":"") <<" fold #"<<fold<<"/"<<foldCount<<"\n";
+	return underlying->Extract(isTestFold?underlying->GetTestSubset(fold,foldCount):underlying->GetTrainingSubset(fold,foldCount));
+}
+
+
 extern"C"  void CreatePointCloud(unsigned rngParamSeed, unsigned rngInstSeed, int dimCount, int pointCount, double meansep,  LvqFloat* target){
 	Map<Matrix_NN> tgt(target,dimCount,pointCount);
 	tgt=CreateDataset::MakePointCloud(as_lvalue(mt19937(rngParamSeed)),as_lvalue(mt19937(rngInstSeed)),dimCount,pointCount,meansep);
@@ -52,38 +59,27 @@ extern"C" void ExtendAndNormalize(LvqDataset * dataset, bool extend, bool normal
 }
 
 extern"C" double NearestNeighborSplitPcaErrorRate(LvqDataset const * trainingSet, LvqDataset const * testSet) {
-	return trainingSet->NearestNeighborPcaErrorRate(trainingSet->GetEverythingSubset(), testSet, testSet->GetEverythingSubset());
+	return trainingSet->NearestNeighborPcaErrorRate(*testSet);
 }
 extern"C" double NearestNeighborSplitRawErrorRate(LvqDataset const * trainingSet, LvqDataset const * testSet) {
-	return trainingSet->NearestNeighborErrorRate(trainingSet->GetEverythingSubset(), testSet, testSet->GetEverythingSubset());
+	return trainingSet->NearestNeighborErrorRate(*testSet);
 }
-
-
-extern"C" double NearestNeighborXvalPcaErrorRate(LvqDataset const * trainingSet, int fold,int foldCount){
-	return trainingSet->NearestNeighborPcaErrorRate(trainingSet->GetTrainingSubset(fold,foldCount), trainingSet, trainingSet->GetTestSubset(fold, foldCount));
-}
-extern"C" double NearestNeighborXvalRawErrorRate(LvqDataset const * trainingSet, int fold,int foldCount){
-	return trainingSet->NearestNeighborErrorRate(trainingSet->GetTrainingSubset(fold,foldCount), trainingSet, trainingSet->GetTestSubset(fold, foldCount));
-}
-
-extern"C" int GetSubsetSize(LvqDataset const * trainingSet, int fold, int foldCount, bool isTest) { return isTest? trainingSet->GetTestSubsetSize(fold,foldCount):trainingSet->GetTrainingSubsetSize(fold,foldCount); }
 
 extern"C" DataShape GetDataShape(LvqDataset const * dataset){
 	DataShape shape;
-	shape.classCount = dataset->getClassCount();
-	shape.dimCount = dataset->dimensions();
-	shape.pointCount = dataset->getPointCount();
+	shape.classCount = dataset->classCount();
+	shape.dimCount = (int)dataset->dimCount();
+	shape.pointCount = (int)dataset->pointCount();
 	return shape;
 }
 
-extern"C" void GetPointLabels(LvqDataset const * dataset, int fold,int foldCount, bool isTest, int* pointLabels) {
-	vector<int> labels = dataset->ExtractLabels(isTest? dataset->GetTestSubset(fold,foldCount):dataset->GetTrainingSubset(fold,foldCount));
-	copy(labels.begin(),labels.end(),pointLabels);
+extern"C" void GetPointLabels(LvqDataset const * dataset, int* pointLabels) {
+	VectorXi::Map(pointLabels,dataset->pointCount()) = dataset->getPointLabels();
 }
 
-extern"C" LvqModel* CreateLvqModel(LvqModelSettingsRaw rawSettings, LvqDataset const* dataset, int modelFold, int foldCount){
+extern"C" LvqModel* CreateLvqModel(LvqModelSettingsRaw rawSettings, LvqDataset const* dataset, int modelFold){
 	vector<int> protoDistrib;
-	for(int i=0;i<dataset->getClassCount();++i)
+	for(int i=0;i<dataset->classCount();++i)
 		protoDistrib.push_back(rawSettings.PrototypesPerClass);
 
 	LvqModelSettings initSettings(
@@ -91,8 +87,7 @@ extern"C" LvqModel* CreateLvqModel(LvqModelSettingsRaw rawSettings, LvqDataset c
 		as_lvalue(mt19937(rawSettings.ParamsSeed+modelFold)), 
 		as_lvalue(mt19937(rawSettings.InstanceSeed+modelFold)), 
 		protoDistrib, 
-		dataset,
-		dataset->GetTrainingSubset(modelFold, foldCount)
+		dataset
 		);
 	initSettings.RandomInitialProjection = rawSettings.RandomInitialProjection;
 	initSettings.RandomInitialBorders =rawSettings. RandomInitialBorders;
@@ -137,11 +132,10 @@ extern "C"void ProjectPrototypes(LvqModel const* model, LvqFloat* pointData){
 	mappedData = pProtos;//this is perhaps unnecessary copying
 }
 
-extern "C" void ProjectPoints(LvqModel const* model, LvqDataset const * dataset, int fold, int folds, bool isTest, LvqFloat* pointData) {
+extern "C" void ProjectPoints(LvqModel const* model, LvqDataset const * dataset,  LvqFloat* pointData) {
 	auto projModel=dynamic_cast<LvqProjectionModel const *>(model);
-	Matrix_NN points = dataset->ExtractPoints(isTest?dataset->GetTestSubset(fold,folds): dataset->GetTrainingSubset(fold,folds));
-	Map<Matrix_2N> mappedData(pointData,LVQ_LOW_DIM_SPACE,points.cols());
-	mappedData = projModel->projectionMatrix() * points;//this is perhaps unnecessary copying
+	Map<Matrix_2N> mappedData(pointData,LVQ_LOW_DIM_SPACE,dataset->pointCount());
+	mappedData = dataset->ProjectPoints(*projModel);//this is perhaps unnecessary copying
 }
 
 extern "C" void GetProjectionMatrix(LvqModel const* model, LvqFloat* matrixDataTgt){//2 * dimCount
@@ -180,10 +174,9 @@ extern "C" void GetTrainingStatNames(LvqModel const* model, void (*addNames)(voi
 	addNames(context,names.size(),&mappedNames[0]);
 }
 
-extern "C" void TrainModel(LvqDataset const * trainingset, LvqDataset const * testset, int fold, int foldCount, LvqModel* model, int epochsToDo, void (*addStat)(void* context, size_t statsCount, LvqStat* stats), void* context, int* labelOrderSink, bool sortedTrain){
+extern "C" void TrainModel(LvqDataset const * trainingset, LvqDataset const * testset, LvqModel* model, int epochsToDo, void (*addStat)(void* context, size_t statsCount, LvqStat* stats), void* context, int* labelOrderSink, bool sortedTrain){
 	LvqModel::Statistics stats;
-	bool isSplitSet = foldCount==0;
-	trainingset->TrainModel(epochsToDo,model,addStat?&stats:nullptr,trainingset->GetTrainingSubset(fold,foldCount),testset,isSplitSet?testset->GetEverythingSubset(): testset->GetTestSubset(fold,foldCount), labelOrderSink,sortedTrain);
+	trainingset->TrainModel(epochsToDo,*model,addStat?&stats:nullptr,testset, labelOrderSink,sortedTrain);
 	if(addStat)
 		while(!stats.empty()){
 			addStat(context,stats.front().size(),& stats.front()[0]);
@@ -191,25 +184,24 @@ extern "C" void TrainModel(LvqDataset const * trainingset, LvqDataset const * te
 		}
 }
 
-extern "C" void ComputeModelStats(LvqDataset const * trainingset, LvqDataset const * testset, int fold, int foldCount, LvqModel const * model, void (*addStat)(void* context, size_t statsCount, LvqStat* stats), void* context) {
+extern "C" void ComputeModelStats(LvqDataset const * trainingset, LvqDataset const * testset, LvqModel const * model, void (*addStat)(void* context, size_t statsCount, LvqStat* stats), void* context) {
 	LvqModel::Statistics stats;
-	bool isSplitSet = foldCount==0;
-	model->AddTrainingStat(stats,trainingset,trainingset->GetTrainingSubset(fold,foldCount), testset, isSplitSet ? testset->GetEverythingSubset() : testset->GetTestSubset(fold,foldCount));
+	model->AddTrainingStat(stats,trainingset, testset);
 	while(!stats.empty()){
 		addStat(context,stats.front().size(),& stats.front()[0]);
 		stats.pop();
 	}
 }
 
-extern "C"  CostAndErrorRate ComputeCostAndErrorRate(LvqDataset const * dataset, int fold,int foldCount, LvqModel const * model){
-	auto stats = dataset->ComputeCostAndErrorRate(dataset->GetTrainingSubset(fold,foldCount),model);
+extern "C"  CostAndErrorRate ComputeCostAndErrorRate(LvqDataset const * dataset, LvqModel const * model){
+	auto stats = dataset->ComputeCostAndErrorRate(*model);
 
 	CostAndErrorRate result = { stats.meanCost(), stats.errorRate()};
 	return result;
 }
 
-extern "C" void CreateExtendedDataset(LvqDataset const * dataset, LvqDataset const * testdataset, int fold,int foldCount, LvqModel const * model, LvqDataset** newTraining, LvqDataset** newTest) {
-	auto extendedDataset=dataset->ExtendUsingModel( testdataset,fold, foldCount, *model);
+extern "C" void CreateExtendedDataset(LvqDataset const * dataset, LvqDataset const * testdataset,LvqModel const * model, LvqDataset** newTraining, LvqDataset** newTest) {
+	auto extendedDataset=dataset->ExtendUsingModel( testdataset,*model);
 	*newTraining = extendedDataset.first;
 	*newTest = extendedDataset.second;
 }

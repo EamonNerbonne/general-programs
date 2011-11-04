@@ -148,32 +148,32 @@ namespace LvqGui {
 
 		static readonly LvqModelSettingsCli[] AllLrTestingSettingsNoOffset =
 				(from protoCount in new[] { 5, 1 }
-				from modeltype in ModelTypes
-				from rp in new[] { true, false }
-				from ngi in new[] { true, false }
-				from NoB in new[] { true, false }
-				from bi in new[] { true, false }
-				from pi in new[] { true, false }
-				from ng in new[] { true, false }
-				from slowbad in new[] { true, false }
-				let relevanceCost = new[] { !rp, ngi, bi, pi, ng, slowbad, NoB }.Count(b => b)
-				where relevanceCost < 2
-				let settings = new LvqModelSettingsCli {
-					ModelType = modeltype,
-					PrototypesPerClass = protoCount,
-					RandomInitialProjection = rp,
-					NgInitializeProtos = ngi,
-					NgUpdateProtos = ng,
-					BLocalInit = bi,
-					ProjOptimalInit = pi,
-					SlowStartLrBad = slowbad,
-					UpdatePointsWithoutB = NoB,
-				}
+				 from modeltype in ModelTypes
+				 from rp in new[] { true, false }
+				 from ngi in new[] { true, false }
+				 from NoB in new[] { true, false }
+				 from bi in new[] { true, false }
+				 from pi in new[] { true, false }
+				 from ng in new[] { true, false }
+				 from slowbad in new[] { true, false }
+				 let relevanceCost = new[] { !rp, ngi, bi, pi, ng, slowbad, NoB }.Count(b => b)
+				 where relevanceCost < 2
+				 let settings = new LvqModelSettingsCli {
+					 ModelType = modeltype,
+					 PrototypesPerClass = protoCount,
+					 RandomInitialProjection = rp,
+					 NgInitializeProtos = ngi,
+					 NgUpdateProtos = ng,
+					 BLocalInit = bi,
+					 ProjOptimalInit = pi,
+					 SlowStartLrBad = slowbad,
+					 UpdatePointsWithoutB = NoB,
+				 }
 				 where settings.Equals(CreateLvqModelValues.TryParseShorthand(settings.ToShorthand()))
-				let estAccur = EstimateAccuracy(settings)
-				orderby relevanceCost, estAccur
-				select settings).ToArray();
-		
+				 let estAccur = EstimateAccuracy(settings)
+				 orderby relevanceCost, estAccur
+				 select settings).ToArray();
+
 
 		IEnumerable<LvqModelSettingsCli> AllLrTestingSettings() {
 			return
@@ -234,8 +234,8 @@ namespace LvqGui {
 					var model = new LvqModelCli("model", dataset, fold, settings, false);
 
 					nnErrorIdx = model.TrainingStatNames.AsEnumerable().IndexOf(name => name.Contains("NN Error")); // threading irrelevant; all the same & atomic.
-					model.Train((int)(iters / dataset.GetTrainingSubsetSize(fold)), dataset, fold, false, false);
-					return model.EvaluateStats(dataset, fold);
+					model.Train((int)(iters / dataset.PointCount(fold)), false, false);
+					return model.EvaluateStats();
 				}, cancel, TaskCreationOptions.PreferFairness, LowPriorityTaskScheduler.DefaultLowPriorityScheduler);
 			}
 
@@ -406,6 +406,11 @@ namespace LvqGui {
 			yield return LoadDatasetImpl.Load(10, "pendigits.train.data", rngInst++);
 			// ReSharper restore RedundantAssignment
 		}
-		static readonly LvqDatasetCli[] basedatasets = Datasets().ToArray();
+		static LvqDatasetCli[] m_basedatasets;
+		static LvqDatasetCli[] basedatasets {
+			get {
+				return m_basedatasets ?? (m_basedatasets = Datasets().ToArray());
+			}
+		}
 	}
 }

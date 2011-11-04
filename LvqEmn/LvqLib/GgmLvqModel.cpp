@@ -207,8 +207,8 @@ void GgmLvqModel::AppendTrainingStatNames(std::vector<std::wstring> & retval) co
 	retval.push_back(L"Prototype bias min!bias!Prototype bias");
 	retval.push_back(L"Cumulative \u03BC-scaled Learning Rate!!Cumulative \u03BC-scaled Learning Rates");
 }
-void GgmLvqModel::AppendOtherStats(std::vector<double> & stats, LvqDataset const * trainingSet, std::vector<int>const & trainingSubset, LvqDataset const * testSet, std::vector<int>const & testSubset) const {
-	LvqProjectionModel::AppendOtherStats(stats,trainingSet,trainingSubset,testSet,testSubset);
+void GgmLvqModel::AppendOtherStats(std::vector<double> & stats, LvqDataset const * trainingSet, LvqDataset const * testSet) const {
+	LvqProjectionModel::AppendOtherStats(stats,trainingSet,testSet);
 	MeanMinMax norm, det, bias;
 	std::for_each(prototype.begin(),prototype.end(), [&](GgmLvqPrototype const & proto) {
 		norm.Add(projectionSquareNorm(proto.B));

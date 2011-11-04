@@ -57,7 +57,7 @@ unsigned int secure_rand() {
 void PrintModelStatus(char const * label,LvqModel const * model,LvqDataset const * dataset) {
 	using namespace std;
 
-	auto stats = ComputeCostAndErrorRate(dataset,0,0,model);
+	auto stats = ComputeCostAndErrorRate(dataset,model);
 
 	cerr << label<< ": "<<stats.errorRate << ", "<<stats.meanCost;
 	if(IsProjectionModel(model)) {
@@ -91,7 +91,7 @@ void TestModel(LvqModelType modelType, unsigned seed, bool useNgUpdate, LvqDatas
 	settings.ParamsSeed = seed;
 	settings.InstanceSeed = seed;
 	t.start();
-	LvqModel* model= CreateLvqModel(settings, dataset, 0, 0);
+	LvqModel* model= CreateLvqModel(settings, dataset,0);
 	t.stop();
 
 	cerr<<"constructing "
@@ -107,7 +107,7 @@ void TestModel(LvqModelType modelType, unsigned seed, bool useNgUpdate, LvqDatas
 		int itersUpto=iters*(i+1)/num_groups;
 		int itersTodo = itersUpto-itersDone;
 		if(itersTodo>0) {
-			TrainModel(dataset,dataset,0,0,model,itersTodo,nullptr,nullptr,nullptr,false);
+			TrainModel(dataset,dataset,model,itersTodo,nullptr,nullptr,nullptr,false);
 			PrintModelStatus("Trained",model, dataset);
 		}
 	}

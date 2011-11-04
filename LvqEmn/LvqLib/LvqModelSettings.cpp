@@ -61,7 +61,7 @@ LvqModelRuntimeSettings::LvqModelRuntimeSettings(int classCount, boost::mt19937 
 	, RngIter(rngIter) { }
 
 
-LvqModelSettings::LvqModelSettings(LvqModelType modelType, boost::mt19937 & rngParams, boost::mt19937 & rngIter, std::vector<int> protodistrib, LvqDataset const * dataset, std::vector<int> trainingset) 
+LvqModelSettings::LvqModelSettings(LvqModelType modelType, boost::mt19937 & rngParams, boost::mt19937 & rngIter, std::vector<int> protodistrib, LvqDataset const * dataset) 
 	: RandomInitialProjection(true)
 	, RandomInitialBorders(false) 
 	, NgUpdateProtos(false)
@@ -71,13 +71,12 @@ LvqModelSettings::LvqModelSettings(LvqModelType modelType, boost::mt19937 & rngP
 	, Dimensionality(0)
 	, ModelType(modelType)
 	, RngParams(rngParams)
-	, RuntimeSettings(static_cast<int>(dataset->getClassCount()), rngIter)
+	, RuntimeSettings(static_cast<int>(dataset->classCount()), rngIter)
 	, PrototypeDistribution(protodistrib)
 	, Dataset(dataset)
-	, Trainingset(trainingset)
 { }
 
-size_t LvqModelSettings::Dimensions() const { return Dataset->dimensions(); }
+size_t LvqModelSettings::Dimensions() const { return Dataset->dimCount(); }
 
 int LvqModelSettings::PrototypeCount() const {	return accumulate(PrototypeDistribution.begin(), PrototypeDistribution.end(), 0); }
 
@@ -85,9 +84,9 @@ int LvqModelSettings::PrototypeCount() const {	return accumulate(PrototypeDistri
 pair<Matrix_NN, VectorXi> LvqModelSettings::InitByClassMeans() const {
 	using std::make_pair;
 	int prototypecount = PrototypeCount();
-	Matrix_NN  prototypes(Dataset->dimensions(),prototypecount);
+	Matrix_NN  prototypes(Dataset->dimCount(),prototypecount);
 	VectorXi labels(prototypecount);
-	Matrix_NN classmeans = Dataset->ComputeClassMeans(Trainingset);
+	Matrix_NN classmeans = Dataset->ComputeClassMeans();
 	int pi=0;
 	for(size_t i = 0; i < PrototypeDistribution.size(); ++i) {
 		for(int subpi =0; subpi < PrototypeDistribution[i]; ++subpi, ++pi){
@@ -111,10 +110,9 @@ pair<Matrix_NN, VectorXi> LvqModelSettings::InitByNg() {
 		return InitByClassMeans();
 
 	vector<vector<int> > setsByClass(ClassCount());
-	for(size_t si=0;si<Trainingset.size();++si) {
-		int pointIndex = Trainingset[si];
-		int label = Dataset->getPointLabels()[pointIndex];
-		setsByClass[label].push_back(pointIndex);
+	for(size_t pointIndex=0;pointIndex<Dataset->pointCount();++pointIndex) {
+		int label = Dataset->getPointLabels()(pointIndex);
+		setsByClass[label].push_back((int)pointIndex);
 	}
 
 	int prototypecount = PrototypeCount();
@@ -123,8 +121,11 @@ pair<Matrix_NN, VectorXi> LvqModelSettings::InitByNg() {
 
 	int pi=0;
 	for(size_t i = 0; i < PrototypeDistribution.size(); ++i) {
-		NeuralGas ng(RngParams, PrototypeDistribution[i], Dataset, setsByClass[i]);
-		ng.do_training(RngParams, Dataset, setsByClass[i]);
+		Matrix_NN classPoints(Dataset->dimCount(),setsByClass[i].size());
+		for(size_t si=0;si<setsByClass[i].size();++si)
+			classPoints.col(si) = Dataset->getPoints().col(setsByClass[i][si]);
+		NeuralGas ng(RngParams, PrototypeDistribution[i], classPoints);
+		ng.do_training(RngParams, classPoints);
 		prototypes.block(0, pi, Dimensions(), PrototypeDistribution[i]).noalias() = ng.Prototypes();
 		for(int subpi =0; subpi < PrototypeDistribution[i]; ++subpi, ++pi)
 			labels(pi) = (int)i;
@@ -145,7 +146,7 @@ void LvqModelSettings::ProjInit(Matrix_NN const& prototypes, Matrix_P & P){
 	size_t iter=0;
 	const size_t finalIter = 10000;
 
-	vector<int> shuffledset(Trainingset);
+	vector<int> shuffledset(Dataset->GetTestSubset(0,1));
 	Vector_N  dists, vJ, vK, point;
 	//auto dims = Dimensions();
 
@@ -208,7 +209,7 @@ Matrix_22 BinitByPca(Matrix_P const & lowdimpoints) {
 }
 
 
-vector<Matrix_22> BinitByProtos(Matrix_P const & lowdimpoints, vector<int> const & pointLabels, Matrix_P const & lowdimProtos, VectorXi const & protoLabels) {
+vector<Matrix_22> BinitByProtos(Matrix_P const & lowdimpoints, VectorXi const & pointLabels, Matrix_P const & lowdimProtos, VectorXi const & protoLabels) {
 	Matrix_22 globalCov = Covariance::ComputeWithMean(lowdimpoints);
 
 	int classCount=protoLabels.maxCoeff() + 1;
@@ -229,7 +230,7 @@ vector<Matrix_22> BinitByProtos(Matrix_P const & lowdimpoints, vector<int> const
 
 	vector<vector<Vector_2> > pointsNearestToProto(protoLabels.size());
 
-	for(size_t pointI = 0; pointI < pointLabels.size(); ++pointI) {
+	for(ptrdiff_t pointI = 0; pointI < pointLabels.size(); ++pointI) {
 		Matrix_P::Index protoI;
 		(protosByClass[ pointLabels[pointI] ].colwise() - lowdimpoints.col(pointI)).colwise().squaredNorm().minCoeff(&protoI);
 		pointsNearestToProto[protoIdxesByClass[pointLabels[pointI]][protoI]].push_back(lowdimpoints.col(pointI));
@@ -256,7 +257,7 @@ vector<Matrix_22> BinitByProtos(Matrix_P const & lowdimpoints, vector<int> const
 }
 
 
-vector<Matrix_22> BinitByLastProto(Matrix_P const & lowdimpoints, vector<int> const & pointLabels, Matrix_P const & lowdimProtos, VectorXi const & protoLabels) {
+vector<Matrix_22> BinitByLastProto(Matrix_P const & lowdimpoints, VectorXi const & pointLabels, Matrix_P const & lowdimProtos, VectorXi const & protoLabels) {
 	int classCount=protoLabels.maxCoeff() + 1;
 	Matrix_P classMeans(LVQ_LOW_DIM_SPACE, classCount);
 	for(int i = 0; i < protoLabels.size(); ++i) 
@@ -273,7 +274,7 @@ vector<Matrix_22> BinitByLastProto(Matrix_P const & lowdimpoints, vector<int> co
 }
 
 vector<Matrix_22> BinitPerProto(Matrix_P const & P, LvqModelSettings & initSettings,	Matrix_NN const & prototypes,	VectorXi const & protoLabels) {
-	Matrix_P const lowdimpoints = P * initSettings.Dataset->ExtractPoints(initSettings.Trainingset);
+	Matrix_P const lowdimpoints = P * initSettings.Dataset->getPoints();
 
 	vector<Matrix_22> initB;
 	if(!initSettings.BLocalInit) {
@@ -286,9 +287,9 @@ vector<Matrix_22> BinitPerProto(Matrix_P const & P, LvqModelSettings & initSetti
 				initB.push_back(Matrix_22::Identity());
 		}
 	} else if(initSettings.NgInitializeProtos) {
-		initB = BinitByProtos(lowdimpoints,  initSettings.Dataset->ExtractLabels(initSettings.Trainingset), P * prototypes, protoLabels);
+		initB = BinitByProtos(lowdimpoints,  initSettings.Dataset->getPointLabels()  , P * prototypes, protoLabels);
 	} else {
-		initB = BinitByLastProto(lowdimpoints,  initSettings.Dataset->ExtractLabels(initSettings.Trainingset), P * prototypes, protoLabels);
+		initB = BinitByLastProto(lowdimpoints,  initSettings.Dataset->getPointLabels(), P * prototypes, protoLabels);
 	}
 
 	if(initSettings.RandomInitialBorders) {
@@ -319,7 +320,7 @@ tuple<Matrix_P,Matrix_NN, VectorXi, vector<Matrix_22> > LvqModelSettings::InitPr
 
 
 Matrix_P LvqModelSettings::pcaTransform() const {
-	return Dataset->ComputePcaProjection(Trainingset);
+	return Dataset->ComputePcaProjection();
 }
 
 

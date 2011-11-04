@@ -8,26 +8,26 @@
 #include "NearestNeighbor.h"
 #include "prefetch.h"
 using namespace std;
-LvqDataset::LvqDataset(Matrix_NN const & points, vector<int> pointLabels, int classCountPar) 
+LvqDataset::LvqDataset(Matrix_NN const & points, VectorXi const & pointLabels, int classCountPar) 
 	: points(points)
 	, pointLabels(pointLabels)
-	, classCount(classCountPar)
+	, m_classCount(classCountPar)
 {
-	assert(points.cols() == int(pointLabels.size()));
-	assert(*std::max_element(pointLabels.begin(),pointLabels.end()) < classCount);
-	assert(*std::min_element(pointLabels.begin(),pointLabels.end()) >= 0);
+	assert(points.cols() == pointLabels.size());
+	assert(pointLabels.maxCoeff() < classCountPar);
+	assert(pointLabels.minCoeff()>= 0);
 
 	//pointLabels.shrink_to_fit();
 }
 LvqDataset::LvqDataset(LvqDataset const & src, std::vector<int> const & subset)
 	: points(src.points.rows(),subset.size())
 	, pointLabels(subset.size())
-	, classCount(src.classCount)
+	, m_classCount(src.m_classCount)
 {
 	for(int i=0;i<(int)subset.size();++i) {
 		int pI = subset[i];
 		points.col(i).noalias() = src.points.col(pI);
-		pointLabels[i] = src.pointLabels[pI];
+		pointLabels(i) = src.pointLabels(pI);
 	}
 }
 
@@ -53,80 +53,66 @@ LvqDataset * LvqDataset::Extract(std::vector<int> const & subset) const {
 	return new LvqDataset(*this,subset);
 }
 
-Matrix_NN LvqDataset::ComputeClassMeans(std::vector<int> const & subset) const {
-	Matrix_NN means( points.rows(), classCount);
+Matrix_NN LvqDataset::ComputeClassMeans() const {
+	Matrix_NN means(points.rows(), classCount());
 	means.setZero();
-	boost::scoped_array<int> freq(new int[classCount]);
-	for(int i=0;i<classCount;++i) freq[i]=0;
+	VectorXi freq = VectorXi::Zero(classCount());
 
-	for(int i=0;i<(int)subset.size();++i) {
-		means.col(pointLabels[subset[i]]) += points.col(subset[i]);
-		freq[pointLabels[subset[i]]]++;
+	for(int i=0;i<pointCount();++i) {
+		means.col(pointLabels[i]) += points.col(i);
+		freq(pointLabels[i])++;
 	}
-	for(int i=0;i<classCount;i++) {
+	for(int i=0;i<classCount();i++) {
 		if(freq[i] >0)
 			means.col(i) /= double(freq[i]);
 	}
 	return means;
 }
 
-int LvqDataset::NearestNeighborClassify(std::vector<int> const & subset, Vector_N point) const {
+int LvqDataset::NearestNeighborClassify(Vector_N point) const {
 	double distance(std::numeric_limits<double>::infinity());
 	int match(-1);
 
-	for(int i=0;i<(int)subset.size();++i) {
-		int pI = subset[i];
-		double pDist = (points.col(pI) - point).squaredNorm();
+	for(int i=0;i<pointCount();++i) {
+		double pDist = (points.col(i) - point).squaredNorm();
 		if(pDist < distance) {
-			match = pointLabels[pI];
+			match = pointLabels(i);
 			distance = pDist;
 		}
 	}
 	return match;
 }
 
-int LvqDataset::NearestNeighborClassify(std::vector<int> const & subset, Matrix_P projection, Vector_2 & projected_point) const {
+int LvqDataset::NearestNeighborClassify(Matrix_P projection, Vector_2 & projected_point) const {
 	double distance(std::numeric_limits<double>::infinity());
 	int match(-1);
 
-	for(int i=0;i<(int)subset.size();++i) {
-		int pI = subset[i];
-		double pDist = (projection*points.col(pI) - projected_point).squaredNorm();
+	for(int i=0;i<pointCount();++i) {
+		double pDist = (projection*points.col(i) - projected_point).squaredNorm();
 		if(pDist < distance) {
-			match = pointLabels[pI];
+			match = pointLabels(i);
 			distance = pDist;
 		}
 	}
 	return match;
 }
 
-double LvqDataset::NearestNeighborProjectedErrorRate(std::vector<int> const & neighborhood,LvqDataset const* testData, std::vector<int> const & testSet, Matrix_P projection) const {
-	std::vector<int> neighborLabels;
-	Matrix_P neighbors;
-
-	neighbors.resize(projection.rows(),neighborhood.size());
-	neighborLabels.resize(neighborhood.size());
-	for(int i=0;i<(int)neighborhood.size();++i) {
-		int pI = neighborhood[i];
-		neighbors.col(i).noalias() = projection * points.col(pI);
-		neighborLabels[i] = pointLabels[pI];
-	}
+double LvqDataset::NearestNeighborProjectedErrorRate(LvqDataset const& testData, Matrix_P projection) const {
+	Matrix_P neighbors = projection * points;
 
 	NearestNeighbor nn(neighbors);
 
 	Vector_2 testPoint;
 	int errs =0;
-	for(int i=0;i<(int)testSet.size();++i) {
-		int testI = testSet[i];
-		testPoint.noalias() = projection * testData->points.col(testI);
-
-		 Matrix_NN::Index neighborI=nn.nearestIdx(testPoint);
+	for(int testI=0;testI<testData.pointCount();++testI) {
+		testPoint.noalias() = projection * testData.points.col(testI);
+		Matrix_NN::Index neighborI = nn.nearestIdx(testPoint);
 
 #ifdef __GNUC__
 		 //COMPILER HACK!
 		 //g++ 4.6 optimizer somehow borks the nearest neighbor search unless I look at the distances it produces.
 		 //this forces it to actually compute the NN.
-		 Matrix_NN::Index neighbor2I = (neighborI+1)%neighborLabels.size();
+		Matrix_NN::Index neighbor2I = (neighborI + 1)%pointCount();
 		double directDist = (neighbors.col(neighbor2I) - testPoint).squaredNorm();
 		double indirectDist = (neighbors.col(neighborI) - testPoint).squaredNorm();
 		if(directDist < indirectDist)
@@ -148,72 +134,34 @@ double LvqDataset::NearestNeighborProjectedErrorRate(std::vector<int> const & ne
 		}
 */
 
-		if(neighborLabels[neighborI] != testData->pointLabels[testI]) 
+		if(pointLabels(neighborI) != testData.pointLabels(testI)) 
 			errs++;
 	}
-	return double(errs) / double(testSet.size());
-}
-
-//double LvqDataset::NearestNeighborErrorRate(std::vector<int> const & neighborhood,LvqDataset const* testData, std::vector<int> const & testSet, Matrix_P projection) const {
-//	std::vector<int> neighborLabels;
-//	Matrix_P neighbors;
-//
-//	neighbors.resize(projection.rows(),neighborhood.size());
-//	neighborLabels.resize(neighborhood.size());
-//	for(int i=0;i<(int)neighborhood.size();++i) {
-//		int pI = neighborhood[i];
-//		neighbors.col(i).noalias() = projection * points.col(pI);
-//		neighborLabels[i] = pointLabels[pI];
-//	}
-//	Vector_2 testPoint;
-//	int errs =0;
-//	for(int i=0;i<(int)testSet.size();++i) {
-//		int testI = testSet[i];
-//		testPoint.noalias() = projection * testData->points.col(testI);
-//
-//		Matrix_NN::Index neighborI;
-//
-//		(neighbors.colwise() - testPoint).colwise().squaredNorm().minCoeff(&neighborI);
-//
-//		if(neighborLabels[neighborI] != testData->pointLabels[testI]) 
-//			errs++;
-//	}
-//	return double(errs) / double(testSet.size());
-//}
-
-double LvqDataset::NearestNeighborPcaErrorRate(std::vector<int> const & neighborhood, LvqDataset const* testData, std::vector<int> const & testSet) const {
-	return NearestNeighborProjectedErrorRate(neighborhood,testData,testSet,ComputePcaProjection(neighborhood));
-}
-Matrix_P LvqDataset::ComputePcaProjection(std::vector<int> const & subset) const{
-	return PcaProjectInto2d(ExtractPoints(subset));
+	return double(errs) / double(testData.pointCount());
 }
 
 
-double LvqDataset::NearestNeighborErrorRate(std::vector<int> const & neighborhood, LvqDataset const* testData, std::vector<int> const & testSet) const {
-	std::vector<int> neighborLabels;
-	Matrix_NN neighbors;
+double LvqDataset::NearestNeighborPcaErrorRate(LvqDataset const& testData) const {
+	return NearestNeighborProjectedErrorRate(testData,ComputePcaProjection());
+}
+Matrix_P LvqDataset::ComputePcaProjection() const{
+	return PcaProjectInto2d(points);
+}
 
-	neighbors.resize(points.rows(),neighborhood.size());
-	neighborLabels.resize(neighborhood.size());
-	for(int i=0;i<(int)neighborhood.size();++i) {
-		int pI = neighborhood[i];
-		neighbors.col(i).noalias() = points.col(pI);
-		neighborLabels[i] = pointLabels[pI];
-	}
 
+double LvqDataset::NearestNeighborErrorRate(LvqDataset const& testData) const {
 	Vector_N testPoint;
 	int errs =0;
-	for(int i=0;i<(int)testSet.size();++i) {
-		int testI = testSet[i];
-		testPoint.noalias() =  testData->points.col(testI);
+	for(size_t testI=0;testI<testData.pointCount();++testI) {
+		testPoint.noalias() =  testData.points.col(testI);
 
 		Matrix_NN::Index neighborI;
-		(neighbors.colwise() - testPoint).colwise().squaredNorm().minCoeff(&neighborI);
+		(points.colwise() - testPoint).colwise().squaredNorm().minCoeff(&neighborI);
 
-		if(neighborLabels[neighborI] != testData->pointLabels[testI]) 
+		if(pointLabels(neighborI) != testData.pointLabels(testI)) 
 			errs++;
 	}
-	return double(errs) / double(testSet.size());
+	return double(errs) / double(testData.pointCount());
 }
 
 
@@ -223,16 +171,17 @@ size_t LvqDataset::MemAllocEstimate() const {
 
 
 void LvqDataset::shufflePoints(boost::mt19937& rng) {
-	vector<int> shufLabels(getPointCount());
+	VectorXi shufLabels(pointCount());
 	Matrix_NN shufPoints(points.rows(),points.cols());
 
 	using boost::scoped_array;
-	scoped_array<int> idxs(new int[getPointCount()]);
+
+	scoped_array<int> idxs(new int[pointCount()]);
 	makeRandomOrder(rng,idxs.get(),static_cast<int>(points.cols()));
 
 	for(int colI=0;colI<points.cols();++colI) {
 		shufPoints.col(idxs[colI]) = points.col(colI);
-		shufLabels[idxs[colI]] = pointLabels[colI];
+		shufLabels(idxs[colI]) = pointLabels(colI);
 	}
 	points = shufPoints;
 	pointLabels = shufLabels;
@@ -242,7 +191,7 @@ bool shouldCollect(unsigned epochsDone) {
 	return epochsDone<512 || epochsDone%2==0 && shouldCollect(epochsDone/2);
 }
 
-void LvqDataset::TrainModel(int epochs, LvqModel * model, LvqModel::Statistics * statisticsSink, vector<int> const  & trainingSubset, LvqDataset const * testData, std::vector<int> const  & testSubset, int* labelOrderSink, bool sortedTrain) const {
+void LvqDataset::TrainModel(int epochs, LvqModel & model, LvqModel::Statistics * statisticsSink, LvqDataset const * testData, int* labelOrderSink, bool sortedTrain) const {
 	int dims = static_cast<int>(points.rows());
 	Vector_N pointA(dims);
 	int cacheLines = (dims*sizeof(points(0,0) ) +63)/ 64 ;
@@ -250,14 +199,14 @@ void LvqDataset::TrainModel(int epochs, LvqModel * model, LvqModel::Statistics *
 	size_t labelOrderSinkIdx=0;
 
 	for(int epoch=0; epoch<epochs; ++epoch) {
-		prefetchStream(&(model->RngIter()), (sizeof(boost::mt19937) +63)/ 64);
-		vector<int> shuffledOrder(trainingSubset);
-		shuffle(model->RngIter(), shuffledOrder, shuffledOrder.size());
+		prefetchStream(&(model.RngIter()), (sizeof(boost::mt19937) +63)/ 64);
+		vector<int> shuffledOrder(GetTestSubset(0,1));
+		shuffle(model.RngIter(), shuffledOrder, shuffledOrder.size());
 		if(sortedTrain) {
 			Vector_N sortBy;
-			if(dynamic_cast<LvqProjectionModel*>(model)) {
-				Matrix_P projected = ProjectPoints(dynamic_cast<LvqProjectionModel*>(model));
-				sortBy = ( projected).row(0).transpose();//PcaProjectInto2d(projected) *
+			if(dynamic_cast<LvqProjectionModel*>(&model)) {
+				Matrix_P projected = ProjectPoints(dynamic_cast<LvqProjectionModel&>(model));
+				sortBy = (projected).row(0).transpose();
 			} else {
 				sortBy = (PcaProjectInto2d(points) * points).row(0).transpose();
 			}
@@ -266,7 +215,7 @@ void LvqDataset::TrainModel(int epochs, LvqModel * model, LvqModel::Statistics *
 		
 		BenchTimer t;
 		t.start();
-		bool collectStats = 	statisticsSink && shouldCollect(model->epochsTrained+1); 
+		bool collectStats = 	statisticsSink && shouldCollect(model.epochsTrained+1); 
 
 		for(int tI=0; tI<(int)shuffledOrder.size(); ++tI) {
 			int pointIndex = shuffledOrder[tI];
@@ -275,14 +224,14 @@ void LvqDataset::TrainModel(int epochs, LvqModel * model, LvqModel::Statistics *
 				labelOrderSink[labelOrderSinkIdx++] = pointClass;
 			pointA = points.col(pointIndex);
 			prefetch( &points.coeff (0, shuffledOrder[(tI+1)%shuffledOrder.size()]), cacheLines);
-			model->learnFrom(pointA, pointClass);
+			model.learnFrom(pointA, pointClass);
 		}
 		t.stop();
-		model->RegisterEpochDone( (int)(1*shuffledOrder.size()), t.value(CPU_TIMER), 1);
+		model.RegisterEpochDone( (int)(1*shuffledOrder.size()), t.value(CPU_TIMER), 1);
 		if(collectStats)
-			model->AddTrainingStat(*statisticsSink, this, trainingSubset, testData, testSubset);
+			model.AddTrainingStat(*statisticsSink, this,  testData);
 
-		model->DoOptionalNormalization();
+		model.DoOptionalNormalization();
 	}
 }
 
@@ -348,17 +297,15 @@ void LvqDataset::NormalizeDimensions(bool normalizeByScaling) {
 
 using Eigen::Array2d;
 
-LvqDatasetStats LvqDataset::ComputeCostAndErrorRate(std::vector<int> const & subset, LvqModel const * model) const{
-	assert(subset.size() > 0);
+LvqDatasetStats LvqDataset::ComputeCostAndErrorRate(LvqModel const & model) const{
 	LvqDatasetStats stats;
 #ifdef DEBUGHELP
 	if(model->sentinal != initSentinal)		throw "Whoops!";
 #endif
 	Vector_N point;
-	for(int i=0;i<(int)subset.size();++i) {
-		assert(points.sum() == points.sum());
-		point = points.col(subset[i]);
-		MatchQuality matchQ = model->ComputeMatches(point, pointLabels[subset[i]]);
+	for(int i=0;i<pointCount();++i) {
+		point = points.col(i);
+		MatchQuality matchQ = model.ComputeMatches(point, pointLabels(i));
 #ifdef DEBUGHELP
 		if(model->sentinal != initSentinal)		throw "Whoops!";
 #endif
@@ -368,85 +315,52 @@ LvqDatasetStats LvqDataset::ComputeCostAndErrorRate(std::vector<int> const & sub
 	return stats;
 }
 
-Matrix_P LvqDataset::ProjectPoints(LvqProjectionModel const * model) const {
-	return model->projectionMatrix() * points;
-}
-
-std::vector<int> LvqDataset::GetEverythingSubset() const {
-	std::vector<int> idxs((size_t)getPointCount());
-	for(int i=0;i<getPointCount();i++) idxs[i]=i; return idxs; 
+Matrix_P LvqDataset::ProjectPoints(LvqProjectionModel const & model) const {
+	return model.projectionMatrix() * points;
 }
 
 std::vector<int> LvqDataset::GetTrainingSubset(int fold, int foldcount) const {
+
 	if(foldcount==0) 
-		return GetEverythingSubset();
+		return GetTestSubset(0,1);
 	else {
 		fold = fold % foldcount;
-		int pointCount = getPointCount();
-		int foldStart = fold * pointCount / foldcount;
-		int foldEnd = (fold+1) * pointCount / foldcount;
-		int totalLength = foldStart + pointCount - foldEnd;
+		size_t foldStart = fold * pointCount() / foldcount;
+		size_t foldEnd = (fold+1) * pointCount() / foldcount;
+		size_t totalLength = foldStart + pointCount() - foldEnd;
 
 		std::vector<int> retval(totalLength);
 		int j=0;
-		for(int i=0;i<foldStart;++i)
-			retval[j++] = i;
-		for(int i=foldEnd;i<pointCount;++i)
-			retval[j++]=i;
+		for(size_t i=0;i<foldStart;++i)
+			retval[j++] = (int)i;
+		for(size_t i=foldEnd;i<pointCount();++i)
+			retval[j++]=(int)i;
 		return retval;
 	}
 }
 
-int LvqDataset::GetTrainingSubsetSize(int fold, int foldcount) const {
-	if(foldcount==0) 
-		return getPointCount();
-
-	fold = fold % foldcount;
-	int pointCount = getPointCount();
-	int foldStart = fold * pointCount / foldcount;
-	int foldEnd = (fold+1) * pointCount / foldcount;
-	int totalLength = foldStart + pointCount - foldEnd;
-	return totalLength;
-}
-
-
 std::vector<int> LvqDataset::GetTestSubset(int fold, int foldcount) const {
 	if(foldcount==0) return std::vector<int>();
 	fold = fold % foldcount;
-	int pointCount = getPointCount();
-	int foldStart = fold * pointCount / foldcount;
-	int foldEnd = (fold+1) * pointCount / foldcount;
+	size_t foldStart = fold * pointCount() / foldcount;
+	size_t foldEnd = (fold+1) * pointCount() / foldcount;
 	std::vector<int> retval(foldEnd-foldStart);
 	for(size_t i=0;i<retval.size();++i)
-		retval[i] = foldStart + (int)i;
+		retval[i] =  (int)(foldStart + i);
 	return retval;
 }
 
-int LvqDataset::GetTestSubsetSize(int fold, int foldcount) const {
-	if(foldcount==0) 
-		return 0;
-
-	fold = fold % foldcount;
-	int pointCount = getPointCount();
-	int foldStart = fold * pointCount / foldcount;
-	int foldEnd = (fold+1) * pointCount / foldcount;
-	int totalLength = foldEnd - foldStart;
-	return totalLength;
-}
+std::vector<int> LvqDataset::InRandomOrder(boost::mt19937& rng ) const { vector<int> order(GetTestSubset(0,1)); shuffle(rng,order,order.size()); return order; }
 
 
-std::pair<LvqDataset*,LvqDataset*> LvqDataset::ExtendUsingModel(LvqDataset const * testdataset,int fold,int foldCount, LvqModel const & model) const {
+std::pair<LvqDataset*,LvqDataset*> LvqDataset::ExtendUsingModel(LvqDataset const * testdataset, LvqModel const & model) const {
 	Matrix_NN protoDistances = model.PrototypeDistances(points);
 	assert(points.cols()==protoDistances.cols());
 
-	vector<int> trainingset = this->GetTrainingSubset(fold,foldCount);
+	
 	SmartSum<Eigen::Dynamic> distribution(protoDistances.rows());
-	for_each(trainingset.cbegin(),trainingset.cend(),[&](int colIndex) {
+	for(ptrdiff_t colIndex=0; colIndex < points.cols();++colIndex)
 		distribution.CombineWith(protoDistances.col(colIndex).array(), 1.0);
-	});
-	Matrix_NN protoDistancesTest;
-	if(foldCount==0)
-		protoDistancesTest	= model.PrototypeDistances(testdataset->points);
 	
 
 
@@ -477,19 +391,17 @@ std::pair<LvqDataset*,LvqDataset*> LvqDataset::ExtendUsingModel(LvqDataset const
 
 
 	Matrix_NN distanceFeatures = distribution.GetSampleVariance().sqrt().inverse().matrix().asDiagonal() * (protoDistances.colwise() - distribution.GetMean().matrix());
-	Matrix_NN distanceFeaturesTest	;
-	if(foldCount==0)
-		distanceFeaturesTest = distribution.GetSampleVariance().sqrt().inverse().matrix().asDiagonal() * (protoDistancesTest.colwise() - distribution.GetMean().matrix());
+
 
 	Matrix_NN projectionFeatures = modelProj * points;
-	Vector_N pFmean = Vector_N::Zero(projectionFeatures.rows());
-	for_each(trainingset.cbegin(),trainingset.cend(),[&](int colIndex) { pFmean += projectionFeatures.col(colIndex); });
-	pFmean /= double(trainingset.size());
+	
+	Vector_N pFmean = projectionFeatures.colwise().mean();
 	projectionFeatures.colwise() -= pFmean;
 
 	double pFvar=0;
-	for_each(trainingset.cbegin(),trainingset.cend(),[&](int colIndex) { pFvar += projectionFeatures.col(colIndex).squaredNorm(); });
-	pFvar /= double(trainingset.size() * projectionFeatures.rows());
+	for(ptrdiff_t colIndex=0;colIndex < points.cols();++colIndex)
+		pFvar += projectionFeatures.col(colIndex).squaredNorm();
+	pFvar /= double(points.cols() * projectionFeatures.rows());
 
 
 	Matrix_NN newPoints(modelProj.rows()+ distanceFeatures.rows(), points.cols());
@@ -497,18 +409,17 @@ std::pair<LvqDataset*,LvqDataset*> LvqDataset::ExtendUsingModel(LvqDataset const
 	newPoints.bottomRows(distanceFeatures.rows()).noalias() = distanceFeatures;
 
 
+	if(testdataset==nullptr)
+		return std::make_pair(new LvqDataset(newPoints, pointLabels, classCount()), (LvqDataset*)nullptr);
 
-	Matrix_NN newPointsTest;
+	Matrix_NN protoDistancesTest = model.PrototypeDistances(testdataset->points);
+	Matrix_NN distanceFeaturesTest	= distribution.GetSampleVariance().sqrt().inverse().matrix().asDiagonal() * (protoDistancesTest.colwise() - distribution.GetMean().matrix());
 	
-	if(foldCount==0) {
-		Matrix_NN projectionFeaturesTest = (modelProj * testdataset->points).colwise() - pFmean;
+	Matrix_NN projectionFeaturesTest = (modelProj * testdataset->points).colwise() - pFmean;
 
-		newPointsTest = Matrix_NN(modelProj.rows()+ distanceFeaturesTest.rows(), testdataset->points.cols());
-		newPointsTest.topRows(modelProj.rows()).noalias() = projectionFeaturesTest/sqrt(pFvar);
-		newPointsTest.bottomRows(distanceFeaturesTest.rows()).noalias() = distanceFeaturesTest;
+	Matrix_NN newPointsTest = Matrix_NN(modelProj.rows()+ distanceFeaturesTest.rows(), testdataset->points.cols());
+	newPointsTest.topRows(modelProj.rows()).noalias() = projectionFeaturesTest/sqrt(pFvar);
+	newPointsTest.bottomRows(distanceFeaturesTest.rows()).noalias() = distanceFeaturesTest;
 
-		return std::make_pair(new LvqDataset(newPoints, pointLabels, classCount),
-			new LvqDataset(newPointsTest,testdataset->pointLabels, classCount));
-	}
-	return std::make_pair(new LvqDataset(newPoints, pointLabels, classCount),nullptr);//classcount, and labels unchanged!
+	return std::make_pair(new LvqDataset(newPoints, pointLabels, classCount()), new LvqDataset(newPointsTest,testdataset->pointLabels, classCount()));
 }

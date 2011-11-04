@@ -85,11 +85,11 @@ namespace LvqGui {
 
 		static IVizEngine<Point[]>[] MakePerClassScatterGraph(LvqDatasetCli dataset, float colorIntensity, int? PointCount = null, int? zIndex = null) {
 			return (
-					from classColor in dataset.ClassColors
+					from classColor in dataset.ClassColors//.Select((color,index)=>new{color,index})
 					let darkColor = Color.FromScRgb(1.0f, classColor.ScR * colorIntensity, classColor.ScG * colorIntensity, classColor.ScB * colorIntensity)
 					select Plot.Create(
 						new PlotMetaData { RenderColor = darkColor, ZIndex = zIndex ?? 0 },
-						new VizPixelScatterSmart { CoverageRatio = 0.95, OverridePointCountEstimate = PointCount ?? dataset.PointCount, CoverageGradient = 5.0 }).Visualisation
+						new VizPixelScatterSmart { CoverageRatio = 0.95, OverridePointCountEstimate = PointCount ?? dataset.PointCount(0), CoverageGradient = 5.0 }).Visualisation
 				).ToArray();
 		}
 

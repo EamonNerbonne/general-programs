@@ -37,7 +37,7 @@ namespace LvqGui {
 
 		public IEnumerable<LvqMultiModel> MatchingLvqModels { get { return Owner.LvqModels.Where(model => model == null || model.InitSet == SelectedDataset); } } // model.FitsDataShape(SelectedDataset) is unhandy
 
-		public double ItersPerEpoch { get { return SelectedDataset == null ? double.NaN : LvqMultiModel.GetItersPerEpoch(SelectedDataset); } }
+		public double ItersPerEpoch { get { return SelectedDataset == null ? double.NaN : LvqMultiModel.GetItersPerEpoch(SelectedDataset,0); } }
 
 
 		public LvqMultiModel SelectedLvqModel {
@@ -219,7 +219,7 @@ namespace LvqGui {
 			var allModels = Owner.LvqModels.ToArray();
 			Parallel.ForEach(Partitioner.Create(allModels, true), new ParallelOptions { MaxDegreeOfParallelism = 3, CancellationToken = owner.WindowClosingToken }, model => {
 				var dataset = model.InitSet;
-				int uptoEpochs = (int)(uptoIters / LvqMultiModel.GetItersPerEpoch(dataset) + 0.5);
+				int uptoEpochs = (int)(uptoIters / LvqMultiModel.GetItersPerEpoch(dataset,0) + 0.5);
 				TrainSelectedModel((_dataset, _model) => {
 					using (new DTimer("Training up to " + uptoEpochs + " epochs"))
 						_model.TrainUptoEpochs(uptoEpochs, dataset, Owner.WindowClosingToken);

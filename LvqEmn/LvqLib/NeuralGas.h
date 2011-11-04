@@ -25,13 +25,13 @@ class NeuralGas {
 	std::vector<std::pair<double, Index> > tmp_prototypes_ordering;
 
 public:
-	NeuralGas(boost::mt19937& rng, unsigned proto_count, LvqDataset const * dataset, std::vector<int> training_subset, int totalIterCount=NG_DEFAULT_ITERS, size_t statMoments=2000);
+	NeuralGas(boost::mt19937& rng, unsigned proto_count, Matrix_NN const & dataset, int totalIterCount=NG_DEFAULT_ITERS, size_t statMoments=2000);
 
 	double lr() const;
 	double lambda() const;
 
 	double learnFrom(Vector_N const & point);
-	void do_training(boost::mt19937& rng, LvqDataset const * dataset, std::vector<int> training_subset);
+	void do_training(boost::mt19937& rng, Matrix_NN const & dataset);
 	std::vector<std::pair<int, double> > const & trainCosts_tracked() {return trainCosts;}
 
 	Matrix_NN const & Prototypes() const { return prototypes; }

@@ -173,8 +173,8 @@ void GmLvqModel::AppendTrainingStatNames(std::vector<std::wstring> & retval) con
 	retval.push_back(L"Cumulative \u03BC-K-scaled Learning Rate!!Cumulative \u03BC-scaled Learning Rates");
 }
 
-void GmLvqModel::AppendOtherStats(std::vector<double> & stats, LvqDataset const * trainingSet, std::vector<int>const & trainingSubset, LvqDataset const * testSet, std::vector<int>const & testSubset) const {
-	LvqProjectionModel::AppendOtherStats(stats,trainingSet,trainingSubset,testSet,testSubset);
+void GmLvqModel::AppendOtherStats(std::vector<double> & stats, LvqDataset const * trainingSet, LvqDataset const * testSet) const {
+	LvqProjectionModel::AppendOtherStats(stats,trainingSet,testSet);
 	stats.push_back(totalMuJLr);
 	stats.push_back(totalMuKLr);
 }

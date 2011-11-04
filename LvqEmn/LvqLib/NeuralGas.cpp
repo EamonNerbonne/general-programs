@@ -49,35 +49,36 @@ double NeuralGas::learnFrom(Vector_N const & point) {
 	return cost;
 }
 
-void NeuralGas::do_training(boost::mt19937& rng, LvqDataset const * dataset, std::vector<int> training_subset){
-	assert(dataset->dimensions() == prototypes.rows());
-	assert(training_subset.size() > (size_t)prototypes.cols());
+void NeuralGas::do_training(boost::mt19937& rng, Matrix_NN const & dataset){
+	assert(dataset.rows() == prototypes.rows());
+	assert(dataset.cols() > prototypes.cols());
 	Vector_N point(prototypes.rows());
 
 	int cacheLines = ((int)point.rows() * sizeof(point(0)) + 63)/ 64 ;
-
-	Matrix_NN const & points = dataset->getPoints();
+	vector<int> order(dataset.cols());
+	for(int i=0;i<order.size();++i) order[i]=i;
+	
 	while(trainIter < finalIter) {
-		shuffle(rng, training_subset, training_subset.size());
-		for(size_t tI=0;tI < training_subset.size() && trainIter < finalIter; ++tI) {
-			point = points.col(training_subset[tI]);
-			prefetch( &points.coeff (0, training_subset[(tI+1)%training_subset.size()]), cacheLines);
+		shuffle(rng,order,order.size());
+		for(size_t tI=0;tI < order.size() && trainIter < finalIter; ++tI) {
+			point = dataset.col(order[tI]);
+			prefetch( &dataset.coeff (0, order[(tI+1)%order.size()]), cacheLines);
 			learnFrom(point);
 		}
 	}
 }
 
-NeuralGas::NeuralGas(boost::mt19937 & rng, unsigned proto_count, LvqDataset const * dataset, std::vector<int> training_subset, int totalIterCount, size_t statMoments) 
+NeuralGas::NeuralGas(boost::mt19937 & rng, unsigned proto_count, Matrix_NN const & dataset, int totalIterCount, size_t statMoments) 
 	: trainIter(0)
 	, finalIter(totalIterCount)
 	, trainCosts(min(statMoments, (size_t)totalIterCount))
 	, totalElapsed(0.0)
 {
-	prototypes.resize(dataset->dimensions(), proto_count);
+	prototypes.resize(dataset.rows(), proto_count);
 	tmp_deltaFrom.resizeLike(prototypes);
-	tmp_delta.resize(dataset->dimensions());
+	tmp_delta.resize(dataset.rows());
 	tmp_prototypes_ordering.resize(proto_count);
 	for(size_t i =0; i< proto_count; ++i)
-		prototypes.col(i) = dataset->getPoints().col(training_subset[rng() % training_subset.size()]);
+		prototypes.col(i) = dataset.col(rng() % dataset.cols());
 }
 

@@ -43,7 +43,7 @@ protected:
 	//subclasses must append the stats they intend to collect and call their base-classes AppendTrainingStatNames
 	virtual void AppendTrainingStatNames(std::vector<std::wstring> & retval) const;
 	//subclasses must append the stats and the base-classe implementation in the same order as they did for AppendTrainingStatNames
-	virtual void AppendOtherStats(std::vector<double> & stats, LvqDataset const * trainingSet, std::vector<int>const & trainingSubset, LvqDataset const * testSet, std::vector<int>const & testSubset) const;
+	virtual void AppendOtherStats(std::vector<double> & stats, LvqDataset const * trainingSet, LvqDataset const * testSet) const;
 	LvqModel(LvqModelSettings & initSettings);
 	virtual bool IdenticalMu()const {return false;}
 
@@ -65,8 +65,7 @@ public:
 
 	double RegisterEpochDone(int itersTrained, double elapsed, int epochs);
 
-	//void AddTrainingStat(Statistics& statQueue, LvqDataset const * trainingSet, std::vector<int>const & trainingSubset, LvqDataset const * testSet, std::vector<int>const & testSubset, LvqDatasetStats const & trainingstats) const;
-	void AddTrainingStat(Statistics& statQueue, LvqDataset const * trainingSet, std::vector<int>const & trainingSubset, LvqDataset const * testSet, std::vector<int>const & testSubset) const;
+	void AddTrainingStat(Statistics& statQueue, LvqDataset const * trainingSet, LvqDataset const * testSet) const;
 
 	virtual int classify(Vector_N const & unknownPoint) const=0; 
 	virtual MatchQuality ComputeMatches(Vector_N const & unknownPoint, int pointLabel) const=0;

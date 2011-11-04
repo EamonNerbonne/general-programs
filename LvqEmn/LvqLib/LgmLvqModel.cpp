@@ -105,8 +105,8 @@ void LgmLvqModel::AppendTrainingStatNames(std::vector<std::wstring> & retval) co
 	retval.push_back(L"Cumulative \u03BC-K-scaled Learning Rate!!Cumulative \u03BC-scaled Learning Rates");
 
 }
-void LgmLvqModel::AppendOtherStats(std::vector<double> & stats, LvqDataset const * trainingSet, std::vector<int>const & trainingSubset, LvqDataset const * testSet, std::vector<int>const & testSubset) const {
-	LvqModel::AppendOtherStats(stats,trainingSet,trainingSubset,testSet,testSubset);
+void LgmLvqModel::AppendOtherStats(std::vector<double> & stats, LvqDataset const * trainingSet, LvqDataset const * testSet) const {
+	LvqModel::AppendOtherStats(stats,trainingSet,testSet);
 	double minNorm=std::numeric_limits<double>::max();
 	double maxNorm=0.0;
 	double normSum=0.0;

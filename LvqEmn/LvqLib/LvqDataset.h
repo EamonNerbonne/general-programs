@@ -43,52 +43,50 @@ struct LvqDataset
 {
 private:
 	Matrix_NN points; //one dimension per row, one point per column
-	std::vector<int> pointLabels;
-	int classCount;
+	VectorXi pointLabels;
+	int m_classCount;
 	LvqDataset(LvqDataset const & src, std::vector<int> const & subset);
 public:
-	LvqDataset(Matrix_NN const & points, std::vector<int> pointLabels, int classCount);
+
+	LvqDataset(Matrix_NN const & points, VectorXi const & pointLabels, int classCount);
 	LvqDataset* Extract(std::vector<int> const & subset) const;
-	std::pair<LvqDataset*,LvqDataset*> ExtendUsingModel( LvqDataset const * testdataset,int fold,int foldCount, LvqModel const & model) const;
+	std::pair<LvqDataset*,LvqDataset*> ExtendUsingModel(LvqDataset const * testdataset, LvqModel const & model) const;
 
 
 	void shufflePoints(boost::mt19937& rng);
 	void ExtendByCorrelations();
 	void NormalizeDimensions(bool normalizeByScaling);
 
-
-
-	Matrix_NN const & getPoints()const {return points;}
-	std::vector<int> const & getPointLabels()const {return pointLabels;}
-	int getClassCount()const {return classCount;}
-	int getPointCount()const {return static_cast<int>(pointLabels.size());}
+	Matrix_NN const & getPoints() const {return points;}
+	VectorXi const & getPointLabels()const {return pointLabels;}
+	int classCount() const {return m_classCount;}
+	size_t pointCount()const {return pointLabels.size();}
+	size_t dimCount() const { return points.rows();}
 
 
 	Matrix_NN ExtractPoints(std::vector<int> const & subset) const;
 	std::vector<int> ExtractLabels(std::vector<int> const & subset) const;
 
-	Matrix_NN ComputeClassMeans(std::vector<int> const & subset) const;
-	Matrix_P ComputePcaProjection(std::vector<int> const & subset) const;
+	Matrix_NN ComputeClassMeans() const;
+	Matrix_P ComputePcaProjection() const;
 
-	int NearestNeighborClassify(std::vector<int> const & subset, Vector_N point) const;
-	int NearestNeighborClassify(std::vector<int> const & subset, Matrix_P projection, Vector_2 & point) const;
+	int NearestNeighborClassify(Vector_N point) const;
+	int NearestNeighborClassify(Matrix_P projection, Vector_2 & point) const;
 
-	double NearestNeighborProjectedErrorRate(std::vector<int> const & neighborhood, LvqDataset const* testData, std::vector<int> const & testSet, Matrix_P projection) const;
-	double NearestNeighborPcaErrorRate(std::vector<int> const & neighborhood, LvqDataset const* testData, std::vector<int> const & testSet) const;
-	double NearestNeighborErrorRate(std::vector<int> const & neighborhood, LvqDataset const* testData, std::vector<int> const & testSet) const;
+	double NearestNeighborProjectedErrorRate(LvqDataset const & testData, Matrix_P projection) const;
+	double NearestNeighborPcaErrorRate(LvqDataset const & testData) const;
+	double NearestNeighborErrorRate(LvqDataset const & testData) const;
 
-	void TrainModel(int epochs, LvqModel * model, LvqModel::Statistics * statisticsSink, std::vector<int> const & trainingSubset, LvqDataset const * testData, std::vector<int> const & testSubset, int*labelOrderSink, bool sortedTrain) const;
+	void TrainModel(int epochs, LvqModel & model, LvqModel::Statistics * statisticsSink, LvqDataset const* testData, int*labelOrderSink, bool sortedTrain) const;
 
-	LvqDatasetStats ComputeCostAndErrorRate(std::vector<int> const & subset, LvqModel const * model) const;
+	LvqDatasetStats ComputeCostAndErrorRate(LvqModel const & model) const;
 
-	Matrix_P ProjectPoints(LvqProjectionModel const * model) const;
+	Matrix_P ProjectPoints(LvqProjectionModel const & model) const;
 	size_t MemAllocEstimate() const;
-	int dimensions() const { return static_cast<int>(points.rows());}
 
-	std::vector<int> GetEverythingSubset() const;
+	
 	std::vector<int> GetTrainingSubset(int fold, int foldcount) const;
-	int GetTrainingSubsetSize(int fold, int foldcount) const;
+	std::vector<int> InRandomOrder(boost::mt19937& rng ) const;
 	std::vector<int> GetTestSubset(int fold, int foldcount) const;
-	int GetTestSubsetSize(int fold, int foldcount) const;
 };
 //#pragma managed(pop)
