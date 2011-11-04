@@ -189,21 +189,30 @@ type Difference =
 
 
 
+let comparisonP  (baseErrs, heurErrs) = Utils.twoTailedPairedTtest heurErrs baseErrs
+let comparisonErrChange (baseErr:float, heurErr:float) =  (heurErr - baseErr) / Math.Max(heurErr, baseErr) * 100.
+let comparisonRelevance (baseErrs, heurErrs) =
+     let (isBetter, p) = comparisonP (baseErrs, heurErrs)
+     if p > 0.01 * Math.Abs(comparisonErrChange (List.average baseErrs, List.average heurErrs)) then Irrelevant elif isBetter then Better else Worse
+let comparisonBetterRatio (baseErrs, heurErrs) = float (List.zip heurErrs baseErrs |> List.filter (fun (hE,bE) -> hE < bE) |> List.length) / float (List.length heurErrs)
+let scenarioLatexShorthand baseResults =
+    let lvqSettings = getSettings baseResults
+    let tweaksL = ResultAnalysis.latexLiteral (lvqSettings.DataSettings + " " + lvqSettings.ModelSettings.ToShorthand()) 
+    ResultAnalysis.friendlyDatasetLatexName baseResults.DatasetBaseShorthand + @"\phantom{" + tweaksL + @"}&\llap{" + tweaksL + "}"
+
 
 let compare (baseResults, heurResults) =
-    let lvqSettings = getSettings baseResults
     let errs (model:ResultAnalysis.ModelResults) = model.Results |> Seq.map (fun res->res.CanonicalError*100.) |> Seq.toList 
-    let heurErr = errs heurResults
-    let baseErr = errs baseResults
-    let resCount = List.length heurErr
-    let betterRatio = float (List.zip heurErr baseErr |> List.filter (fun (hE,bE) -> hE < bE) |> List.length) / float (List.length heurErr)
-    let (isBetter, p) = Utils.twoTailedPairedTtest heurErr baseErr
-    let errChange = (heurResults.MeanError - baseResults.MeanError) / Math.Max(baseResults.MeanError,heurResults.MeanError) * 100. 
-    let bestErrChange = (List.min heurErr - List.min baseErr) / Math.Max(List.min heurErr, List.min baseErr) * 100.
-    let tweaksL = ResultAnalysis.latexLiteral (lvqSettings.DataSettings + " " + lvqSettings.ModelSettings.ToShorthand()) 
-    let scenarioLatex = ResultAnalysis.friendlyDatasetLatexName baseResults.DatasetBaseShorthand + @"\phantom{" + tweaksL + @"}&\llap{" + tweaksL + "}"
-    let difference = if p > 0.01 * Math.Abs(errChange) then Irrelevant elif isBetter then Better else Worse
-    ( difference,  ( p, bestErrChange, errChange, Utils.sampleDistribution baseErr, Utils.sampleDistribution heurErr, scenarioLatex, betterRatio,resCount) )
+    let bothErrs = (errs baseResults, errs heurResults)
+    let resCount = bothErrs |> fst |> List.length
+    let betterRatio = bothErrs |> comparisonBetterRatio
+    let (isBetter, p) = bothErrs |> comparisonP
+    let errChange = bothErrs |> Utils.apply2 List.average |> comparisonErrChange
+    let bestErrChange = bothErrs |> Utils.apply2 List.min |> comparisonErrChange
+    let difference = bothErrs |> comparisonRelevance
+    let bothDistribs = bothErrs |> Utils.apply2 Utils.sampleDistribution
+    let scenarioLatex = scenarioLatexShorthand baseResults
+    ( (difference,scenarioLatex),  ((p,  bothDistribs),((errChange, bestErrChange),  (betterRatio, resCount))) )
 
 let optCompare datasetResults modelResults heuristic =
     modelResults
@@ -213,10 +222,6 @@ let optCompare datasetResults modelResults heuristic =
     |> Option.bind (Utils.getMaybe datasetResults)
     |> Option.map (fun (heuristicResults:ResultAnalysis.ModelResults) -> (modelResults, heuristicResults))
 
-let maybeCompare datasetResults modelResults heuristic = 
-    optCompare datasetResults modelResults heuristic 
-        |> Option.map compare
-    
 
 let resultsByDatasetByModel =
     ResultAnalysis.analyzedModels () 
@@ -277,6 +282,10 @@ let analysisPairsGiven (filter:ResultAnalysis.ModelResults -> bool) (heur:Heuris
 
 let analysisGiven filter heur = analysisPairsGiven filter heur |> Seq.map compare
 
+let getTrainingError (r:ResultAnalysis.Result) =  r.TrainingError
+let curry f x y = f (x, y)
+let uncurry f (x, y) = f x y
+
 @"<!DOCTYPE html>
 <html><head>
 <style type=""text/css"">
@@ -291,12 +300,16 @@ let analysisGiven filter heur = analysisPairsGiven filter heur |> Seq.map compar
             "<tr><td>" + filtername + " </td><td> " + 
             (heuristics |> List.map 
                 (fun heur ->
-                    let analysis = analysisGiven filter heur |> Seq.map snd |> Seq.toList
+                    let analysis = analysisPairsGiven filter heur |> Seq.map (Utils.apply2 (fun mr -> mr.Results |> Array.map getTrainingError |> List.ofArray)) |> Seq.toList
                     if List.isEmpty analysis |> not then
-                        let changeRatio = analysis |> List.averageBy (fun (p, bestErrChange, errChange,before,after, scenario, betterRatio,resCount) -> betterRatio) 
-                        let avgChange = analysis |> List.averageBy (fun (p, bestErrChange, errChange,before,after, scenario, betterRatio,resCount) -> errChange)
-                        let avgBestChange = analysis |> List.averageBy (fun (p, bestErrChange, errChange,before,after, scenario, betterRatio,resCount) -> bestErrChange)
-                        sprintf "%.3f of %d<br/> %.2f; %.2f" changeRatio (List.sumBy (fun (p, bestErrChange,errChange,before,after, scenario, betterRatio,resCount)->resCount) analysis) avgChange avgBestChange
+                        let allBaseErrs = List.collect fst analysis
+                        let allHeurErrs = List.collect snd analysis
+                        let bothErrs = (allBaseErrs, allHeurErrs)
+                        let changeRatio = comparisonBetterRatio bothErrs
+                        let totalResCount =  allBaseErrs |> List.length
+                        let avgChange = analysis |> List.averageBy (Utils.apply2 List.average >> comparisonErrChange)
+                        let avgBestChange =  analysis |> List.averageBy (Utils.apply2 List.min >> comparisonErrChange)
+                        sprintf "%.3f of %d<br/> %.2f; %.2f" changeRatio totalResCount avgChange avgBestChange
                     else 
                         ""
                 ) |> String.concat " </td><td> "
@@ -310,22 +323,22 @@ let analysisGiven filter heur = analysisPairsGiven filter heur |> Seq.map compar
 heuristics
     |> Seq.map (fun heur -> 
         analysisGiven (fun _ -> true) heur
-        |> Utils.toDict fst ((Seq.map snd) >> Seq.sort >> Seq.toArray)
-        |> (fun dict -> (defaultArg (Utils.getMaybe dict Better) Array.empty,  Utils.getMaybe dict Worse |> Utils.orDefault (Array.empty), Utils.getMaybe dict Irrelevant |> Utils.orDefault (Array.empty))) 
+        |> Utils.toDict (fst>>fst) (Seq.sortBy snd >> Seq.toArray)
+        |> (fun dict -> (defaultArg (Utils.getMaybe dict Better) Array.empty,  defaultArg (Utils.getMaybe dict Worse) Array.empty, defaultArg (Utils.getMaybe dict Irrelevant) Array.empty)) 
         |> (fun (better, worse, irrelevant) ->
-            (heur, better.Length + worse.Length, irrelevant.Length, float better.Length / float (better.Length + worse.Length), better, worse,irrelevant)
+            (heur, (better.Length + worse.Length, irrelevant.Length, float better.Length / float (better.Length + worse.Length)), (better, worse,irrelevant))
         )
     )
     |> Seq.toList
-    |> List.map (fun (heur, count, ignoreCount,ratio, better, worse,irrelevant) ->
+    |> List.map (fun (heur, (count, ignoreCount,ratio), (better, worse,irrelevant)) ->
             sprintf @"\section{%s} \noindent %s was an improvement in $%1.1f\%%$ of %i cases and irrelevant in %i:" (ResultAnalysis.latexLiteral heur.Code) heur.Name (100.*ratio) count ignoreCount + "\n\n"
             + sprintf @"\noindent\begin{longtable}{lrccl@{}r}\toprule"  + "\n"
             + sprintf @"$p$-value & $\Delta\%%$ &\multicolumn{1}{c}{before}&\multicolumn{1}{c}{after}  & \multicolumn{2}{c}{Scenario} \\\midrule"  + "\n"
             + @"&&\multicolumn{2}{c}{Improved} \\ \cmidrule(r){3-4}" + "\n"
-            + String.concat "\\\\\n" (Array.map (fun (p, bestErrChange,errChange,before,after, scenario, betterRatio, resCount) -> sprintf @" %0.2g & %0.1f &%s&%s&%s" p errChange (Utils.latexstderr before) (Utils.latexstderr after) scenario) better)
+            + String.concat "\\\\\n" (Array.map (fun ( (difference,scenarioLatex),  ((p,  bothDistribs),((errChange, bestErrChange),  (betterRatio, resCount))) ) -> sprintf @" %0.2g & %0.1f &%s&%s&%s" p errChange (bothDistribs|>fst|> Utils.latexstderr ) (bothDistribs|>snd|> Utils.latexstderr ) scenarioLatex) better)
             + @"\\\midrule" + "\n"
             + @"&&\multicolumn{2}{c}{Degraded} \\ \cmidrule(r){3-4}" + "\n"
-            + String.concat "\\\\\n" (Array.map (fun (p, bestErrChange,errChange,before,after, scenario, betterRatio, resCount) -> sprintf @" %0.2g & %0.1f &%s&%s&%s" p errChange (Utils.latexstderr before) (Utils.latexstderr after) scenario) worse)
+            + String.concat "\\\\\n" (Array.map (fun ( (difference,scenarioLatex),  ((p,  bothDistribs),((errChange, bestErrChange),  (betterRatio, resCount))) ) -> sprintf @" %0.2g & %0.1f &%s&%s&%s" p errChange (bothDistribs|>fst|> Utils.latexstderr ) (bothDistribs|>snd|> Utils.latexstderr ) scenarioLatex) worse)
 //            + @"\\\midrule" + "\n"
             //+ @"&&\multicolumn{2}{c}{Irrelevant} \\ \cmidrule(r){3-4}" + "\n"
             //+ String.concat "\\\\\n" (Array.map (fun (p, bestErrChange,errChange,before,after, scenario, betterRatio, resCount) -> sprintf @" %0.2g & %0.1f &%s&%s&%s" p errChange (Utils.latexstderr before) (Utils.latexstderr after) scenario) irrelevant)
