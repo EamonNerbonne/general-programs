@@ -244,8 +244,8 @@ let countActiveHeuristics (mr:ResultAnalysis.ModelResults) =
 let allFilters = 
     let simplifyName (name:string) = if name.Contains("-") then name.Substring(0, name.IndexOf("-")) else name
     let singleOrAnythingFilters = [
-        ("", (fun (mr:ResultAnalysis.ModelResults) -> true));
-        ("Single heuristic", (fun mr -> countActiveHeuristics mr < 2));
+        ("No other heuristics", (fun mr -> countActiveHeuristics mr < 2));
+        ("Incl. other heuristics", (fun (mr:ResultAnalysis.ModelResults) -> true));
         ]
     let modelFilters = [
         ("Ggm,1", (fun (mr:ResultAnalysis.ModelResults) -> mr.ModelSettings.ModelType = LvqModelType.Ggm && mr.ModelSettings.PrototypesPerClass = 1));
@@ -289,10 +289,14 @@ let uncurry f (x, y) = f x y
 @"<!DOCTYPE html>
 <html><head>
 <style type=""text/css"">
-  table { border-collapse:collapse; }
-  td { white-space: nowrap; }
-  td:nth-child(2n+1) { background: #ccc; }
+  table { border-collapse:collapse; border-bottom: 2px solid #666;border-top: 2px solid #666;}
+  td { white-space: nowrap; border-bottom:1px solid #888;}
+  td:nth-child(2n+1) { background: #ddd; }
   body { font-family: Calibri, Sans-serif; }
+  .better {background: rgba(96, 192, 255, 0.3);}
+  .muchbetter {background: rgba(96, 192, 255, 0.8);}
+  .worse {background: rgba(255, 128, 128, 0.3);}
+  .muchworse {background: rgba(255, 128, 128, 0.8);}
 </style>
 </head><body>" +
 "<table><thead><tr><td>within</td><td>" + (heuristics |> List.map (fun heur->heur.Code) |> String.concat " </td><td> ") + "</td></tr></thead><tbody>" +
@@ -302,14 +306,30 @@ let uncurry f (x, y) = f x y
                 (fun heur ->
                     let analysis = analysisPairsGiven filter heur |> Seq.map (Utils.apply2 (fun mr -> mr.Results |> Array.map getTrainingError |> List.ofArray)) |> Seq.toList
                     if List.isEmpty analysis |> not then
-                        let allBaseErrs = List.collect fst analysis
-                        let allHeurErrs = List.collect snd analysis
-                        let bothErrs = (allBaseErrs, allHeurErrs)
-                        let changeRatio = comparisonBetterRatio bothErrs
-                        let totalResCount =  allBaseErrs |> List.length
-                        let avgChange = analysis |> List.averageBy (Utils.apply2 List.average >> comparisonErrChange)
-                        let avgBestChange =  analysis |> List.averageBy (Utils.apply2 List.min >> comparisonErrChange)
-                        sprintf "%.3f of %d<br/> %.2f; %.2f" changeRatio totalResCount avgChange avgBestChange
+//                        let allBaseErrs = List.collect fst analysis
+//                        let allHeurErrs = List.collect snd analysis
+//                        let bothErrs = (allBaseErrs, allHeurErrs)
+//                        let changeRatio = comparisonBetterRatio bothErrs
+                        let totalResCount =  analysis |> List.length
+
+                        let medianErrs = analysis |> List.map (Utils.apply2 (Array.ofList>> EmnExtensions.Algorithms.SelectionAlgorithm.Median)) //List.zip allBaseErrs allHeurErrs
+                        let medianErrsChange = medianErrs |> List.averageBy comparisonErrChange
+                        let medianErrsChangeRatio = (medianErrs |> List.unzip |> comparisonBetterRatio) * 100.
+                        let medianErrsChangeP = medianErrs |> List.unzip |> comparisonP
+
+                        let bestErrs = analysis |> List.map (Utils.apply2 List.min)
+                        let bestErrsChange =  bestErrs |> List.averageBy comparisonErrChange
+                        let bestErrsChangeRatio = (bestErrs |> List.unzip |> comparisonBetterRatio )*100.
+                        let bestErrsChangeP = bestErrs |> List.unzip |> comparisonP
+
+                        let classifyP (better, p) = 
+                            if p > 0.05 then ""
+                            else 
+                                if p > 0.01 then "" else "much"
+                                +
+                                if better then "better" else "worse"
+
+                        sprintf "<div class=\"%s\">%.1f%%; %.2f</div> <div class=\"%s\">%.1f%%; %.2f</div>" (classifyP medianErrsChangeP) medianErrsChangeRatio medianErrsChange (classifyP bestErrsChangeP) bestErrsChangeRatio bestErrsChange
                     else 
                         ""
                 ) |> String.concat " </td><td> "
@@ -335,10 +355,10 @@ heuristics
             + sprintf @"\noindent\begin{longtable}{lrccl@{}r}\toprule"  + "\n"
             + sprintf @"$p$-value & $\Delta\%%$ &\multicolumn{1}{c}{before}&\multicolumn{1}{c}{after}  & \multicolumn{2}{c}{Scenario} \\\midrule"  + "\n"
             + @"&&\multicolumn{2}{c}{Improved} \\ \cmidrule(r){3-4}" + "\n"
-            + String.concat "\\\\\n" (Array.map (fun ( (difference,scenarioLatex),  ((p,  bothDistribs),((errChange, bestErrChange),  (betterRatio, resCount))) ) -> sprintf @" %0.2g & %0.1f &%s&%s&%s" p errChange (bothDistribs|>fst|> Utils.latexstderr ) (bothDistribs|>snd|> Utils.latexstderr ) scenarioLatex) better)
+            + String.concat "\\\\\n" (Array.map (fun ( (difference,scenarioLatex),  ((p,  bothDistribs),((errChange, bestErrChange), (betterRatio, resCount))) ) -> sprintf @" %0.2g & %0.1f &%s&%s&%s" p errChange (bothDistribs|>fst|> Utils.latexstderr ) (bothDistribs|>snd|> Utils.latexstderr ) scenarioLatex) better)
             + @"\\\midrule" + "\n"
             + @"&&\multicolumn{2}{c}{Degraded} \\ \cmidrule(r){3-4}" + "\n"
-            + String.concat "\\\\\n" (Array.map (fun ( (difference,scenarioLatex),  ((p,  bothDistribs),((errChange, bestErrChange),  (betterRatio, resCount))) ) -> sprintf @" %0.2g & %0.1f &%s&%s&%s" p errChange (bothDistribs|>fst|> Utils.latexstderr ) (bothDistribs|>snd|> Utils.latexstderr ) scenarioLatex) worse)
+            + String.concat "\\\\\n" (Array.map (fun ( (difference,scenarioLatex),  ((p,  bothDistribs),((errChange, bestErrChange), (betterRatio, resCount))) ) -> sprintf @" %0.2g & %0.1f &%s&%s&%s" p errChange (bothDistribs|>fst|> Utils.latexstderr ) (bothDistribs|>snd|> Utils.latexstderr ) scenarioLatex) worse)
 //            + @"\\\midrule" + "\n"
             //+ @"&&\multicolumn{2}{c}{Irrelevant} \\ \cmidrule(r){3-4}" + "\n"
             //+ String.concat "\\\\\n" (Array.map (fun (p, bestErrChange,errChange,before,after, scenario, betterRatio, resCount) -> sprintf @" %0.2g & %0.1f &%s&%s&%s" p errChange (Utils.latexstderr before) (Utils.latexstderr after) scenario) irrelevant)
