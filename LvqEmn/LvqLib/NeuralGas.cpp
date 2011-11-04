@@ -56,7 +56,7 @@ void NeuralGas::do_training(boost::mt19937& rng, Matrix_NN const & dataset){
 
 	int cacheLines = ((int)point.rows() * sizeof(point(0)) + 63)/ 64 ;
 	vector<int> order(dataset.cols());
-	for(int i=0;i<order.size();++i) order[i]=i;
+	for(size_t i=0;i<order.size();++i) order[i]=i;
 	
 	while(trainIter < finalIter) {
 		shuffle(rng,order,order.size());

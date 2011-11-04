@@ -60,8 +60,8 @@ public:
 	Matrix_NN const & getPoints() const {return points;}
 	VectorXi const & getPointLabels()const {return pointLabels;}
 	int classCount() const {return m_classCount;}
-	size_t pointCount()const {return pointLabels.size();}
-	size_t dimCount() const { return points.rows();}
+	ptrdiff_t pointCount()const {return pointLabels.size();}
+	ptrdiff_t dimCount() const { return points.rows();}
 
 
 	Matrix_NN ExtractPoints(std::vector<int> const & subset) const;

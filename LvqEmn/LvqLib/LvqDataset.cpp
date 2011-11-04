@@ -58,13 +58,13 @@ Matrix_NN LvqDataset::ComputeClassMeans() const {
 	means.setZero();
 	VectorXi freq = VectorXi::Zero(classCount());
 
-	for(int i=0;i<pointCount();++i) {
+	for(ptrdiff_t i=0;i<pointCount();++i) {
 		means.col(pointLabels[i]) += points.col(i);
 		freq(pointLabels[i])++;
 	}
 	for(int i=0;i<classCount();i++) {
-		if(freq[i] >0)
-			means.col(i) /= double(freq[i]);
+		if(freq(i) >0)
+			means.col(i) /= double(freq(i));
 	}
 	return means;
 }
@@ -73,7 +73,7 @@ int LvqDataset::NearestNeighborClassify(Vector_N point) const {
 	double distance(std::numeric_limits<double>::infinity());
 	int match(-1);
 
-	for(int i=0;i<pointCount();++i) {
+	for(ptrdiff_t i=0;i<pointCount();++i) {
 		double pDist = (points.col(i) - point).squaredNorm();
 		if(pDist < distance) {
 			match = pointLabels(i);
@@ -87,7 +87,7 @@ int LvqDataset::NearestNeighborClassify(Matrix_P projection, Vector_2 & projecte
 	double distance(std::numeric_limits<double>::infinity());
 	int match(-1);
 
-	for(int i=0;i<pointCount();++i) {
+	for(ptrdiff_t i=0;i<pointCount();++i) {
 		double pDist = (projection*points.col(i) - projected_point).squaredNorm();
 		if(pDist < distance) {
 			match = pointLabels(i);
@@ -104,7 +104,7 @@ double LvqDataset::NearestNeighborProjectedErrorRate(LvqDataset const& testData,
 
 	Vector_2 testPoint;
 	int errs =0;
-	for(int testI=0;testI<testData.pointCount();++testI) {
+	for(ptrdiff_t testI=0;testI<testData.pointCount();++testI) {
 		testPoint.noalias() = projection * testData.points.col(testI);
 		Matrix_NN::Index neighborI = nn.nearestIdx(testPoint);
 
@@ -152,7 +152,7 @@ Matrix_P LvqDataset::ComputePcaProjection() const{
 double LvqDataset::NearestNeighborErrorRate(LvqDataset const& testData) const {
 	Vector_N testPoint;
 	int errs =0;
-	for(size_t testI=0;testI<testData.pointCount();++testI) {
+	for(ptrdiff_t testI=0;testI<testData.pointCount();++testI) {
 		testPoint.noalias() =  testData.points.col(testI);
 
 		Matrix_NN::Index neighborI;
@@ -325,15 +325,15 @@ std::vector<int> LvqDataset::GetTrainingSubset(int fold, int foldcount) const {
 		return GetTestSubset(0,1);
 	else {
 		fold = fold % foldcount;
-		size_t foldStart = fold * pointCount() / foldcount;
-		size_t foldEnd = (fold+1) * pointCount() / foldcount;
-		size_t totalLength = foldStart + pointCount() - foldEnd;
+		ptrdiff_t foldStart = fold * pointCount() / foldcount;
+		ptrdiff_t foldEnd = (fold+1) * pointCount() / foldcount;
+		ptrdiff_t totalLength = foldStart + pointCount() - foldEnd;
 
 		std::vector<int> retval(totalLength);
 		int j=0;
-		for(size_t i=0;i<foldStart;++i)
+		for(ptrdiff_t i=0;i<foldStart;++i)
 			retval[j++] = (int)i;
-		for(size_t i=foldEnd;i<pointCount();++i)
+		for(ptrdiff_t i=foldEnd;i<pointCount();++i)
 			retval[j++]=(int)i;
 		return retval;
 	}
@@ -342,10 +342,10 @@ std::vector<int> LvqDataset::GetTrainingSubset(int fold, int foldcount) const {
 std::vector<int> LvqDataset::GetTestSubset(int fold, int foldcount) const {
 	if(foldcount==0) return std::vector<int>();
 	fold = fold % foldcount;
-	size_t foldStart = fold * pointCount() / foldcount;
-	size_t foldEnd = (fold+1) * pointCount() / foldcount;
+	ptrdiff_t foldStart = fold * pointCount() / foldcount;
+	ptrdiff_t foldEnd = (fold+1) * pointCount() / foldcount;
 	std::vector<int> retval(foldEnd-foldStart);
-	for(size_t i=0;i<retval.size();++i)
+	for(ptrdiff_t i=0;i<(ptrdiff_t)retval.size();++i)
 		retval[i] =  (int)(foldStart + i);
 	return retval;
 }

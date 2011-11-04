@@ -110,7 +110,7 @@ pair<Matrix_NN, VectorXi> LvqModelSettings::InitByNg() {
 		return InitByClassMeans();
 
 	vector<vector<int> > setsByClass(ClassCount());
-	for(size_t pointIndex=0;pointIndex<Dataset->pointCount();++pointIndex) {
+	for(ptrdiff_t pointIndex=0;pointIndex<Dataset->pointCount();++pointIndex) {
 		int label = Dataset->getPointLabels()(pointIndex);
 		setsByClass[label].push_back((int)pointIndex);
 	}
