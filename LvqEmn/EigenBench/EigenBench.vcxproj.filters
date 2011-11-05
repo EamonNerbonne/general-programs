@@ -18,6 +18,9 @@
     <ClCompile Include="EigenBench.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="GgmLvqBench.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="standard.h">
@@ -47,7 +50,7 @@
     <ClInclude Include="resizeTest.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="covarience.h">
+    <ClInclude Include="covariance.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

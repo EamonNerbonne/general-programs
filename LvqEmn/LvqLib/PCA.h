@@ -1,5 +1,5 @@
 #pragma once
-#include "Eigen/EigenValues"
+#include <Eigen/EigenValues>
 #include "LvqTypedefs.h"
 #include "CovarianceAndMean.h"
 

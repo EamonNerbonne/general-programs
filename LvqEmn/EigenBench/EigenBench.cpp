@@ -1,16 +1,13 @@
-#include "standard.h"
-
+/*#include "standard.h"
 #include "diagUpdateBench.h"
-
 #include "projectionBench.h"
 #include "subtractBench.h"
 #include "matmulTest.h"
 #include "copyVecTest.h"
 #include "prodNormTest.h"
 #include "resizeTest.h"
-#include "covarience.h"
+#include "covariance.h"
 
-#include <Eigen/StdVector>
 #include <vector>
 #include <fstream>
 //from http://www.codeproject.com/KB/files/filesize.aspx
@@ -47,10 +44,11 @@ int main(int , char*argv []){
 #endif
 #endif
 	cout<<": ";
+	docovbench();
 
 	cout << file_size(argv[0])/1024 <<"KB\n"; //resizeTest() <<"s; "
 
-
-	return docovbench();
-
+	return 0;
 }
+
+*/

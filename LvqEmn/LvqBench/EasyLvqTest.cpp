@@ -66,8 +66,8 @@ void PrintModelStatus(char const * label,LvqModel const * model,LvqDataset const
 		ProjectPrototypes(model,protos.data());
 
 
-		Vector_2 minV= protos.colwise().minCoeff();
-		Vector_2 maxV= protos.colwise().maxCoeff();
+		Vector_2 minV= protos.rowwise().minCoeff();
+		Vector_2 maxV= protos.rowwise().maxCoeff();
 		Vector_2 range = maxV-minV;
 		minV-=range;
 		maxV+=range;
@@ -83,7 +83,7 @@ void PrintModelStatus(char const * label,LvqModel const * model,LvqDataset const
 
 void TestModel(LvqModelType modelType, unsigned seed, bool useNgUpdate, LvqDataset const * dataset, int protosPerClass, int iters) {
 	Eigen::BenchTimer t;
-	DataShape dataShape = GetDataShape(dataset);
+	GetDataShape(dataset);
 	LvqModelSettingsRaw settings = defaultLvqModelSettings;
 	settings.ModelType = modelType;
 	settings.PrototypesPerClass = protosPerClass;
@@ -120,20 +120,28 @@ void TestModel(LvqModelType modelType, unsigned seed, bool useNgUpdate, LvqDatas
 
 void EasyLvqTest() {
 
-	Eigen::BenchTimer t;
+	Eigen::BenchTimer t, tLgm, tG2m, tGm,tGgm;
 	LvqDataset* dataset = CreateGaussianClouds(37,37, DIMS, CLASSCOUNT*POINTS_PER_CLASS, CLASSCOUNT, MEANSEP); 
 
 	for(int bI=0;bI<BENCH_RUNS;++bI)
 	{
 		t.start();
+		tLgm.start();
 		TestModel(LgmModelType, 0, false,  dataset, PROTOSPERCLASS, 2*(ITERS + DIMS -1)/DIMS);
+		tLgm.stop();
 
-		TestModel(G2mModelType, 1, false, dataset, PROTOSPERCLASS, ITERS);
-
+		tGm.start();
 		TestModel(GmModelType, 2, false, dataset, PROTOSPERCLASS, ITERS);
+		tGm.stop();
 
+		tG2m.start();
+		TestModel(G2mModelType, 1, false, dataset, PROTOSPERCLASS, ITERS);
+		tG2m.stop();
+
+
+		tGgm.start();
 		TestModel(GgmModelType, 3, false, dataset, PROTOSPERCLASS, ITERS);
-
+		tGgm.stop();
 
 		cerr<<"\n";
 		t.stop();
@@ -141,5 +149,5 @@ void EasyLvqTest() {
 
 	FreeDataset(dataset);
 	cout.precision(3);
-	cout<<t.best()<<"s";
+	cout<<t.best()<<"s ("<<tLgm.best()<<", "<<tGm.best()<<", "<<tG2m.best()<<", "<<tGgm.best()<<")";
 }

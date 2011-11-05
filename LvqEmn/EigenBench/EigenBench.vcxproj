@@ -162,10 +162,11 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="EigenBench.cpp" />
+    <ClCompile Include="GgmLvqBench.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="copyVecTest.h" />
-    <ClInclude Include="covarience.h" />
+    <ClInclude Include="covariance.h" />
     <ClInclude Include="diagUpdateBench.h" />
     <ClInclude Include="matmulTest.h" />
     <ClInclude Include="mulBench.h" />

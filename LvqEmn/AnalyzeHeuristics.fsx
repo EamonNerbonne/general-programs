@@ -299,7 +299,7 @@ let uncurry f (x, y) = f x y
   .muchworse {background: rgba(255, 128, 128, 0.8);}
 </style>
 </head><body>" +
-"<table><thead><tr><td>within</td><td>" + (heuristics |> List.map (fun heur->heur.Code) |> String.concat " </td><td> ") + "</td></tr></thead><tbody>" +
+"<table><thead><tr><td><div style=\"text-align:right;\">Heuristic</div>Assumption</td><td>" + (heuristics |> List.map (fun heur->heur.Code) |> String.concat " </td><td> ") + "</td></tr></thead><tbody>" +
     (allFilters |> List.map (fun (filtername, filter) -> 
             "<tr><td>" + filtername + " </td><td> " + 
             (heuristics |> List.map 
