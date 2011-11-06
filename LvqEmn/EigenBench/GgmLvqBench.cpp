@@ -1,16 +1,16 @@
 //by Eamon Nerbonne, 2011
 //Compile this program with any of the following preprocessor flags defined; 
-//e.g. g++ GgmLvqBench.cpp -std=c++0x  -DNDEBUG  -DLVQFLOAT=float -DLVQ_LOW_DIM_SPACE=4 -O3 -march=native
+//e.g. g++ GgmLvqBench.cpp -std=c++0x  -DNDEBUG  -DLVQFLOAT=float -DLVQDIM=4 -O3 -march=native
 //When run, the best timing of 10 runs is written to standard out, and 4 error rates for each of the 10 runs are written to standard error; the 4 error rates represent accuracies during training and should generally decrease.
 //You can define EIGEN_DONT_VECTORIZE to disable eigen's vectorization
 //You can define NO_BOOST to use the mt19937 implementation provided by the compiler and not boost's, however the generated dataset may differ and this may (very slightly) affect performance
 //You can define LVQFLOAT as float or double; computations will use that type; (default: double)
-//You can define LVQ_LOW_DIM_SPACE as some fixed number in range [2..19] (default:2) which controls the number of dimensions the algorithm will work in.  Other positive numbers might work too.
+//You can define LVQDIM as some fixed number in range [2..19] (default:2) which controls the number of dimensions the algorithm will work in.  Other positive numbers might work too.
 
-//note; -funsafe-math-optimizations makes a huge difference for 8-dim doubles, no idea why...
 
-#ifndef LVQ_LOW_DIM_SPACE
-#define LVQ_LOW_DIM_SPACE 2
+//#define LVQDYNAMIC
+#ifndef LVQDIM
+#define LVQDIM 2
 #endif
 #ifndef LVQFLOAT
 #define LVQFLOAT double
@@ -27,7 +27,7 @@
 #include <iostream>
 #include <typeinfo>
 #include <Eigen/Core>
-#include <Eigen/EigenValues>
+#include <Eigen/Eigenvalues>
 #include <Eigen/StdVector>
 #include <vector>
 #include <algorithm>
@@ -69,11 +69,16 @@ typedef std::variate_generator<mtGen&, uniformDistrib > uniformDistribGen;
 using namespace Eigen;
 using namespace std;
 
+#ifdef LVQDYNAMIC
+#define LVQDIM_DECL Dynamic
+#else
+#define LVQDIM_DECL LVQDIM
+#endif
 
 
 #define str(s) #s
-#define LVQ_BENCH_SETTINGS_HELPER(dim, type) (str(dim) " dimensions of " str(type) "s")
-#define VERSIONSTR_BENCHSETTINGS LVQ_BENCH_SETTINGS_HELPER(LVQ_LOW_DIM_SPACE, LVQFLOAT)
+#define LVQ_BENCH_SETTINGS_HELPER(dimdecl,dim, type) (str(dim) "(" str(dimdecl) ") dimensions of " str(type) "s")
+#define VERSIONSTR_BENCHSETTINGS LVQ_BENCH_SETTINGS_HELPER(LVQDIM_DECL, LVQDIM, LVQFLOAT)
 #ifdef EIGEN_DONT_VECTORIZE
 #define VERSIONSTR_VECTORIZATION "NV"
 #else
@@ -104,23 +109,22 @@ using namespace std;
 #define MEANSEP (LVQFLOAT(2.0))
 
 #define DIMS 19
-#define EPOCHS (2 + 128 / (LVQ_LOW_DIM_SPACE * LVQ_LOW_DIM_SPACE))
+#define EPOCHS 3
 #define CLASSCOUNT 4
 #define PROTOSPERCLASS 2
+#define BENCH_RUNS (4 + 100/LVQDIM/LVQDIM)
 #ifdef NDEBUG
-#define BENCH_RUNS 10
 #define POINTS_PER_CLASS 3000
 #else
-#define BENCH_RUNS 3
 #define POINTS_PER_CLASS 300
 #endif
 
-typedef Matrix<LVQFLOAT, LVQ_LOW_DIM_SPACE, Dynamic> Matrix_LN;
+typedef Matrix<LVQFLOAT, LVQDIM_DECL, Dynamic> Matrix_LN;
 typedef Matrix_LN Matrix_P;
 typedef Matrix<LVQFLOAT, Dynamic, Dynamic> Matrix_NN;
-typedef Matrix<LVQFLOAT, LVQ_LOW_DIM_SPACE, LVQ_LOW_DIM_SPACE> Matrix_LL;
+typedef Matrix<LVQFLOAT, LVQDIM_DECL, LVQDIM_DECL> Matrix_LL;
 typedef Matrix<LVQFLOAT, Dynamic, 1> Vector_N;
-typedef Matrix<LVQFLOAT, LVQ_LOW_DIM_SPACE, 1> Vector_L;
+typedef Matrix<LVQFLOAT, LVQDIM_DECL, 1> Vector_L;
 typedef Matrix<unsigned char,Dynamic,Dynamic,RowMajor> ClassDiagramT;
 typedef Map<Vector_N, Aligned> MVectorXd;
 
@@ -177,15 +181,19 @@ class GgmLvqPrototype
 public:
 	inline Vector_L const & projectedPosition() const{return P_point;}
 
-	GgmLvqPrototype() : classLabel(-1) {}
+	GgmLvqPrototype() 
+				: B()
+		, P_point()
+, classLabel(-1) {}
 
 	GgmLvqPrototype(int protoLabel, Vector_N const & initialVal, Matrix_P const & P, Matrix_LL const & scaleB) 
-		: classLabel(protoLabel)
+		: B(scaleB)
+		, P_point(P*initialVal)
+		, classLabel(protoLabel)
 		, point(initialVal) 
 		, bias(0.0)
 	{
-		B = scaleB;
-		ComputePP(P);
+//		ComputePP(P);
 		RecomputeBias();
 	}
 
@@ -193,8 +201,9 @@ public:
 		Vector_L P_Diff = P_testPoint - P_point;
 		return (B * P_Diff).squaredNorm() + bias;//waslazy
 	}
-
+#ifndef LVQDYNAMIC
 	EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+#endif
 };
 
 
@@ -284,8 +293,8 @@ typedef PrincipalComponentAnalysisTemplate<Matrix_P> PcaLowDim;
 
 inline static Matrix_LL CovarianceL(Matrix_LN const & points) { // faster for small matrices
 	Vector_L mean = points.rowwise().mean();
-	Vector_L diff = Vector_L::Zero();
-	Matrix_LL cov = Matrix_LL::Zero();
+	Vector_L diff = Vector_L::Zero(points.rows());
+	Matrix_LL cov = Matrix_LL::Zero(points.rows(),points.rows());
 	for(int i=0;i<points.cols();++i) {
 		diff.noalias() = points.col(i) - mean;
 		cov.noalias() += diff * diff.transpose(); 
@@ -311,12 +320,11 @@ static Matrix_LL normalizingB(Matrix_LL const & cov) {
 }
 
 
-inline Matrix_P PcaProjectIntoLd(Matrix_NN const & points) { 
+inline Matrix_P PcaProjectIntoLd(Matrix_NN const & points, ptrdiff_t lowDimCount) { 
 	Matrix_NN transform;
 	Vector_N eigenvalues;
 	PcaHighDim::DoPcaFromCov(CovarianceN(points),transform,eigenvalues);
-	return transform.topRows<LVQ_LOW_DIM_SPACE>();
-
+	return transform.topRows(lowDimCount);
 }
 
 class GgmLvqModel
@@ -347,11 +355,11 @@ public:
 		, classCount(classCount)
 		, m_vJ(points.rows())
 		, m_vK(points.rows())
-		, m_PpseudoinvT(LVQ_LOW_DIM_SPACE,points.rows())
+		, m_PpseudoinvT(LVQDIM,points.rows())
 	{
 		iterationScaleFactor = LVQ_ITERFACTOR_PERPROTO/sqrt((LVQFLOAT)protosPerClass*classCount);
 
-		P = PcaProjectIntoLd(points);
+		P = PcaProjectIntoLd(points,LVQDIM);
 		normalizeProjection(P);
 
 		auto protos = InitByClassMeans(classCount,protosPerClass,points,labels);
@@ -374,18 +382,19 @@ public:
 		LVQFLOAT yDelta = (y1-y0) / rows;
 		LVQFLOAT xBase = x0+xDelta*(LVQFLOAT)0.5;
 		LVQFLOAT yBase = y0+yDelta*(LVQFLOAT)0.5;
+		typedef Matrix<LVQFLOAT,2,1> Vector_2;
 
-		Matrix_P B_diff_x0_y(LVQ_LOW_DIM_SPACE,prototype.size()); //Contains B_i * (testPoint[x, y0] - P*proto_i)  for all proto's i
-		//will update to include changes to X.
-		Matrix_P B_xDelta(LVQ_LOW_DIM_SPACE,prototype.size());//Contains B_i * (xDelta, 0)  for all proto's i
-		Matrix_P B_yDelta(LVQ_LOW_DIM_SPACE,prototype.size());//Contains B_i * (0 , yDelta)  for all proto's i
+		Matrix_LN B_diff_x0_y(LVQDIM,prototype.size()) //Contains B_i * (testPoint[x, y0] - P*proto_i)  for all proto's i
+																									//will update to include changes to X.
+		, B_xDelta(LVQDIM,prototype.size())//Contains B_i * (xDelta, 0)  for all proto's i
+		, B_yDelta(LVQDIM,prototype.size());//Contains B_i * (0 , yDelta)  for all proto's i
 		Vector_N pBias((ptrdiff_t)prototype.size());//Contains prototype[i].bias for all proto's i
 
 		for(ptrdiff_t pi=0; pi < (ptrdiff_t)prototype.size(); ++pi) {
 			auto & current_proto = prototype[(size_t)pi];
-			B_diff_x0_y.col(pi).noalias() = current_proto.B * ( Vector_L(xBase,yBase) - current_proto.P_point);
-			B_xDelta.col(pi).noalias() = current_proto.B * Vector_L(xDelta,0.0);
-			B_yDelta.col(pi).noalias() = current_proto.B * Vector_L(0.0,yDelta);
+			B_diff_x0_y.col(pi).noalias() = current_proto.B.leftCols<2>() * (Vector_2(xBase,yBase) -current_proto.P_point.topRows<2>() );
+			B_xDelta.col(pi).noalias() = current_proto.B.leftCols<2>() * Vector_2(xDelta,0.0);
+			B_yDelta.col(pi).noalias() = current_proto.B.leftCols<2>() * Vector_2(0.0,yDelta);
 			pBias(pi) = current_proto.bias;
 		}
 
@@ -487,7 +496,7 @@ public:
 	}
 
 	Matrix_LN GetProjectedPrototypes() const {
-		Matrix_LN retval(LVQ_LOW_DIM_SPACE, static_cast<int>(prototype.size()));
+		Matrix_LN retval(P.rows(), static_cast<int>(prototype.size()));
 		for(unsigned i=0;i<prototype.size();++i)
 			retval.col(i) = prototype[i].projectedPosition();
 		return retval;
@@ -551,7 +560,7 @@ static void PrintModelStatus(char const * label,GgmLvqModel const & model, Matri
 	model.ClassBoundaryDiagram(minV(0),maxV(0),minV(1),maxV(1), diagram);
 	Matrix_P projMatrix = model.Projection();
 	
-	cerr<<diagram.cast<unsigned>().sum()<<";";
+	cerr<<" ignore:"<<diagram.cast<unsigned>().sum()<<";";
 	cerr<<endl;
 }
 
