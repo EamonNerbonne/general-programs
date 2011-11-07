@@ -34,7 +34,6 @@ GgmLvqModel::GgmLvqModel(LvqModelSettings & initSettings)
 	prototype.resize(protoLabels.size());
 	for(size_t protoIndex=0; protoIndex < (size_t)protoLabels.size(); ++protoIndex) {
 		prototype[protoIndex] = 	GgmLvqPrototype(initSettings.RngParams, initSettings.RandomInitialBorders, protoLabels(protoIndex), prototypes.col(protoIndex), P, initB[protoIndex]);
-		prototype[protoIndex].ComputePP(P);
 	}
 
 	int maxProtoCount = accumulate(initSettings.PrototypeDistribution.begin(), initSettings.PrototypeDistribution.end(), 0, [](int a, int b) -> int { return max(a,b); });
@@ -81,87 +80,53 @@ MatchQuality GgmLvqModel::learnFrom(Vector_N const & trainPoint, int trainLabel)
 	double muJ2 = 2*ggmQuality.muJ;
 	double muK2 = 2*ggmQuality.muK;
 
-	if(!isfinite_emn(muJ2+muK2)) {
-		DBG(matches.matchBad);
-		DBG(matches.matchGood);
+	MVectorXd vJ(m_vJ.data(),m_vJ.size());
+	MVectorXd vK(m_vK.data(),m_vK.size());
 
-		DBG(matches.distBad);
-		DBG(matches.distGood);
+	Vector_2 P_vJ= J.P_point - P_trainPoint;
+	Vector_2 P_vK = K.P_point - P_trainPoint;
+	Vector_2 muJ2_Bj_P_vJ = muJ2 *  (J.B * P_vJ) ;
+	Vector_2 muK2_Bk_P_vK = muK2 *  (K.B * P_vK) ;
+	vJ = J.point - trainPoint;
+	vK = K.point - trainPoint;
+	Vector_2 muJ2_BjT_Bj_P_vJ =  J.B.transpose() * muJ2_Bj_P_vJ ;
+	Vector_2 muK2_BkT_Bk_P_vK = K.B.transpose() * muK2_Bk_P_vK ;
 
-		DBG(muJ2);
-		DBG(muK2);
+	Matrix_22 neg_muJ2_JBinvT = -muJ2* J.B.inverse().transpose();
+	Matrix_22 neg_muK2_KBinvT = -muK2* K.B.inverse().transpose();
 
-		DBG(prototype[matches.matchBad].bias);
-		DBG(prototype[matches.matchGood].bias);
+	J.B.noalias() += lr_B * (muJ2_Bj_P_vJ * P_vJ.transpose() + neg_muJ2_JBinvT );
+	K.B.noalias() += (lr_bad*lr_B) * (muK2_Bk_P_vK * P_vK.transpose() + neg_muK2_KBinvT) ;
+	J.RecomputeBias();
+	K.RecomputeBias();
 
-		DBG(prototype[matches.matchBad].B);
-		DBG(prototype[matches.matchGood].B);
+	J.point.noalias() += P.transpose()* (lr_point * muJ2_BjT_Bj_P_vJ);
+	K.point.noalias() += P.transpose() * (lr_bad * lr_point * muK2_BkT_Bk_P_vK) ;
 
-		DBG(prototype[matches.matchBad].B.determinant());
-		DBG(prototype[matches.matchGood].B.determinant());
+	if(ngMatchCache.size()>0) {
+		double lrSub = 1.0;
+		double lrDelta = exp(-LVQ_NG_FACTOR/learningRate);//this is rather ad hoc
+		for(int i=1;i<fullmatch.foundOk;++i) {
+			lrSub*=lrDelta;
+			GgmLvqPrototype &Js = prototype[fullmatch.matchesOk[i].idx];
+			double muJ2_s =  (1.0/4.0) * (1.0 - sqr(std::tanh((fullmatch.matchesOk[i].dist - fullmatch.distBad)/4.0)));
+			Vector_2 P_vJs = Js.P_point - P_trainPoint;
+			Vector_2 muJ2_Bj_P_vJs = muJ2_s * (Js.B * P_vJs);
 
-		muJ2 = 0.0;
-		muK2 = 0.0;
-	} else {
-		MVectorXd vJ(m_vJ.data(),m_vJ.size());
-		MVectorXd vK(m_vK.data(),m_vK.size());
+			Js.point.noalias() += P.transpose() * (lrSub * lr_point * (Js.B.transpose() * muJ2_Bj_P_vJs));
+			Matrix_22 neg_muJ2_JBinvTs = -muJ2_s* Js.B.inverse().transpose();
 
-		Vector_2 P_vJ= J.P_point - P_trainPoint;
-		Vector_2 P_vK = K.P_point - P_trainPoint;
-		Vector_2 muJ2_Bj_P_vJ = muJ2 *  (J.B * P_vJ) ;
-		Vector_2 muK2_Bk_P_vK = muK2 *  (K.B * P_vK) ;
-		vJ = J.point - trainPoint;
-		vK = K.point - trainPoint;
-		Vector_2 muJ2_BjT_Bj_P_vJ =  J.B.transpose() * muJ2_Bj_P_vJ ;
-		Vector_2 muK2_BkT_Bk_P_vK = K.B.transpose() * muK2_Bk_P_vK ;
-
-#ifdef AUTO_BIAS
-		Matrix_22 neg_muJ2_JBinvT = -muJ2* J.B.inverse().transpose();
-		Matrix_22 neg_muK2_KBinvT = -muK2* K.B.inverse().transpose();
-
-		J.B.noalias() += lr_B * (muJ2_Bj_P_vJ * P_vJ.transpose() + neg_muJ2_JBinvT );
-		K.B.noalias() += (lr_bad*lr_B) * (muK2_Bk_P_vK * P_vK.transpose() + neg_muK2_KBinvT) ;
-		J.RecomputeBias();
-		K.RecomputeBias();
-#else
-		J.B.noalias() += lr_B * muJ2_Bj_P_vJ * P_vJ.transpose() ;
-		K.B.noalias() += lr_bad*lr_B * muK2_Bk_P_vK * P_vK.transpose() ;
-		//J.bias += mu2*lr_B;
-		//K.bias -= mu2*lr_B;
-#endif
-
-
-		J.point.noalias() += P.transpose()* (lr_point * muJ2_BjT_Bj_P_vJ);
-		K.point.noalias() += P.transpose() * (lr_bad * lr_point * muK2_BkT_Bk_P_vK) ;
-
-		if(ngMatchCache.size()>0) {
-			double lrSub = 1.0;
-			double lrDelta = exp(-LVQ_NG_FACTOR/learningRate);//this is rather ad hoc
-			for(int i=1;i<fullmatch.foundOk;++i) {
-				lrSub*=lrDelta;
-				GgmLvqPrototype &Js = prototype[fullmatch.matchesOk[i].idx];
-				double muJ2_s =  (1.0/4.0) * (1.0 - sqr(std::tanh((fullmatch.matchesOk[i].dist - fullmatch.distBad)/4.0)));
-				Vector_2 P_vJs = Js.P_point - P_trainPoint;
-				Vector_2 muJ2_Bj_P_vJs = muJ2_s * (Js.B * P_vJs);
-
-				Js.point.noalias() += P.transpose() * (lrSub * lr_point * (Js.B.transpose() * muJ2_Bj_P_vJs));
-#ifdef AUTO_BIAS
-				Matrix_22 neg_muJ2_JBinvTs = -muJ2_s* Js.B.inverse().transpose();
-
-				Js.B.noalias() += lrSub*lr_B * (muJ2_Bj_P_vJs * P_vJs.transpose() + neg_muJ2_JBinvTs);
-#else
-				Js.B.noalias() += lrSub*lr_B * muJ2_Bj_P_vJs * P_vJs.transpose() ;
-#endif
-			}
+			Js.B.noalias() += lrSub*lr_B * (muJ2_Bj_P_vJs * P_vJs.transpose() + neg_muJ2_JBinvTs);
 		}
-
-		P.noalias() += (lr_P * muK2_BkT_Bk_P_vK) * vK.transpose() + (lr_P * muJ2_BjT_Bj_P_vJ) * vJ.transpose();
-		if(settings.NormalizeProjection)
-			normalizeProjection(P);
-
-		for(size_t i=0;i < protoCount;++i)
-			prototype[i].ComputePP(P);
 	}
+
+	P.noalias() += (lr_P * muK2_BkT_Bk_P_vK) * vK.transpose() + (lr_P * muJ2_BjT_Bj_P_vJ) * vJ.transpose();
+	if(settings.NormalizeProjection)
+		normalizeProjection(P);
+
+	for(size_t i=0;i < protoCount;++i)
+		prototype[i].ComputePP(P);
+	
 	totalMuLr+= -lr_point*ggmQuality.muJ;
 	return ggmQuality;
 }
@@ -267,48 +232,19 @@ void GgmLvqModel::ClassBoundaryDiagram(double x0, double x1, double y0, double y
 }
 
 void GgmLvqModel::DoOptionalNormalization() {
-	/*THIS IS JUST BAD; we normalize each iter.
-	if(settings.NormalizeProjection) {
-	normalizeProjection(P);
-	for(size_t i=0;i<prototype.size();++i)
-	prototype[i].ComputePP(P);
-	}
-
-
-	if(settings.NormalizeBoundaries) {
-	if(settings.GloballyNormalize) {
-	double overallNorm = std::accumulate(prototype.begin(), prototype.end(),0.0,
-	[](double cur, GgmLvqPrototype const & proto) -> double { return cur + projectionSquareNorm(proto.B); } 
-	// (cur, proto) => cur + projectionSquareNorm(proto.B)
-	);
-	double scale = 1.0/sqrt(overallNorm / prototype.size());
-	for(size_t i=0;i<prototype.size();++i) prototype[i].B*=scale;
-	} else {
-	for(size_t i=0;i<prototype.size();++i) normalizeProjection(prototype[i].B);
-	}
-	#ifdef AUTO_BIAS
-	for(size_t i=0;i<prototype.size();++i) prototype[i].RecomputeBias();
-	#endif
-	}
-	*/
+	//THIS IS JUST BAD; we normalize each iter.
 }
 
 GgmLvqPrototype::GgmLvqPrototype() : classLabel(-1) {}
 
 GgmLvqPrototype::GgmLvqPrototype(boost::mt19937 & rng, bool randInit, int protoLabel, Vector_N const & initialVal,Matrix_P const & P, Matrix_22 const & scaleB) 
-	: classLabel(protoLabel)
+	: B(randInit?randomUnscalingMatrix<Matrix_22>(rng, LVQ_LOW_DIM_SPACE)*scaleB: scaleB)
+	, P_point(P*initialVal)
+	, classLabel(protoLabel)
 	, point(initialVal) 
 	, bias(0.0)
 {
-	B = scaleB;
-	if(randInit)
-		B = randomUnscalingMatrix<Matrix_22>(rng, LVQ_LOW_DIM_SPACE) * scaleB;	
-	else 
-		B = scaleB;
-	ComputePP(P);
-#ifdef AUTO_BIAS
 	RecomputeBias();
-#endif
 }
 
 

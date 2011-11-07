@@ -181,10 +181,7 @@ class GgmLvqPrototype
 public:
 	inline Vector_L const & projectedPosition() const{return P_point;}
 
-	GgmLvqPrototype() 
-				: B()
-		, P_point()
-, classLabel(-1) {}
+	GgmLvqPrototype() : classLabel(-1) {}
 
 	GgmLvqPrototype(int protoLabel, Vector_N const & initialVal, Matrix_P const & P, Matrix_LL const & scaleB) 
 		: B(scaleB)
@@ -193,7 +190,6 @@ public:
 		, point(initialVal) 
 		, bias(0.0)
 	{
-//		ComputePP(P);
 		RecomputeBias();
 	}
 
@@ -220,10 +216,8 @@ static LVQFLOAT normalizeProjection(Matrix_P & projectionMatrix) {
 }
 
 static Matrix_NN ComputeClassMeans(int classCount, Matrix_NN const & points, VectorXi const & labels)  {
-	Matrix_NN means(points.rows(), classCount);
-	means.setZero();
+	Matrix_NN means = Matrix_NN::Zero(points.rows(), classCount);
 	VectorXi freq = VectorXi::Zero(classCount);
-	
 
 	for(ptrdiff_t i=0;i<points.cols();++i) {
 		means.col(labels(i)) += points.col(i);
@@ -367,7 +361,6 @@ public:
 		VectorXi protoLabels = get<1>(protos);
 
 		Matrix_LL initB = 	normalizingB(CovarianceL(P * points));
-
 
 		prototype.resize((size_t)protoLabels.size());
 		for(ptrdiff_t protoIndex=0; protoIndex < protoLabels.size(); ++protoIndex) {

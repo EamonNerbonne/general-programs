@@ -20,12 +20,10 @@ class GgmLvqPrototype
 		P_point.noalias() = P * point;
 	}
 
-#ifdef AUTO_BIAS
 	EIGEN_STRONG_INLINE void RecomputeBias() {
 		bias = - log(sqr(B.determinant()));
 		assert(isfinite_emn(bias));
 	}
-#endif
 
 public:
 	inline int label() const {return classLabel;}

@@ -54,8 +54,7 @@ LvqDataset * LvqDataset::Extract(std::vector<int> const & subset) const {
 }
 
 Matrix_NN LvqDataset::ComputeClassMeans() const {
-	Matrix_NN means(points.rows(), classCount());
-	means.setZero();
+	Matrix_NN means = Matrix_NN::Zero(points.rows(), classCount());
 	VectorXi freq = VectorXi::Zero(classCount());
 
 	for(ptrdiff_t i=0;i<pointCount();++i) {
