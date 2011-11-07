@@ -55,16 +55,12 @@ namespace LvqGui {
 			set { if (Equals(settings.NormalizeDimensions, value)) return; settings.NormalizeDimensions = value; _propertyChanged("NormalizeDimensions"); }
 		}
 		public bool NormalizeByScaling {
-			get { return _NormalizeByScaling; }
-			set { if (!object.Equals(_NormalizeByScaling, value)) { _NormalizeByScaling = value; _propertyChanged("NormalizeByScaling"); } }
+			get { return settings.NormalizeByScaling; }
+			set { if (!object.Equals(settings.NormalizeByScaling, value)) { settings.NormalizeByScaling = value; _propertyChanged("NormalizeByScaling"); } }
 		}
-		private bool _NormalizeByScaling;
-
 		
-
 		public override string Shorthand { get { return settings.Shorthand; } set { settings.Shorthand = value; _propertyChanged("Shorthand"); } }
 		public override string ShorthandErrors { get { return settings.ShorthandErrors; } }
-
 
 		public CreateGaussianCloudsDatasetValues(LvqWindowValues owner) {
 			this.owner = owner;
