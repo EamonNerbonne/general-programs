@@ -340,7 +340,5 @@ namespace LvqGui {
 				default: return fullname;
 			}
 		}
-
-
 	}
 }
