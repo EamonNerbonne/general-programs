@@ -72,10 +72,10 @@ namespace LvqGui {
 					retval = lvqPlotDispatcher.BeginInvoke(() => {
 						foreach (var plot in subplots.statPlots)
 							if (LvqStatPlotFactory.IsCurrPlot(plot.Plot)) {
-								plot.Plot.MetaData.Hidden = viewMode == StatisticsViewMode.MeanAndStderr;
+								plot.Plot.MetaData.Hidden = viewMode == StatisticsViewMode.MeanAndStderr || !currShowTestErrorRates && LvqStatPlotFactory.IsTestPlot(plot.Plot);
 								((VizLineSegments)((ITranformed<Point[]>)plot.Plot.Visualisation).Implementation).DashStyle = viewMode == StatisticsViewMode.CurrentOnly ? DashStyles.Solid : LvqStatPlotFactory.CurrPlotDashStyle;
 							} else
-								plot.Plot.MetaData.Hidden = viewMode == StatisticsViewMode.CurrentOnly;
+								plot.Plot.MetaData.Hidden = viewMode == StatisticsViewMode.CurrentOnly || !currShowTestErrorRates && LvqStatPlotFactory.IsTestPlot(plot.Plot);
 					}).AsTask();
 				currViewMode = viewMode;
 			}
@@ -102,13 +102,16 @@ namespace LvqGui {
 				}
 		}
 
+		bool currShowTestErrorRates;
 		public void ShowTestErrorRates(bool showTestErrorRates) {
+			currShowTestErrorRates = showTestErrorRates;
 			lock (plotsSync)
 				if (subplots != null && subplots.plots != null)
 					lvqPlotDispatcher.BeginInvoke(() => {
 						if (subplots != null && subplots.plots != null)
-							foreach (var statPlot in subplots.plots.SelectMany(plot => plot.Graphs).Where(LvqStatPlotFactory.IsTestPlot)) 
-								statPlot.MetaData.Hidden = !showTestErrorRates;
+							foreach (var plot in subplots.plots.SelectMany(plot => plot.Graphs).Where(LvqStatPlotFactory.IsTestPlot))
+								plot.MetaData.Hidden = !showTestErrorRates
+									|| currViewMode == (LvqStatPlotFactory.IsCurrPlot(plot) ? StatisticsViewMode.MeanAndStderr : StatisticsViewMode.CurrentOnly);
 					});
 			QueueUpdate();
 		}
@@ -276,12 +279,11 @@ namespace LvqGui {
 				.FirstOrDefault(dir => CanonicalizeDatasetShorthand(dir.Name) == dSettingsShorthand)
 				?? autoDir.CreateSubdirectory(dSettingsShorthand);
 			string mSettingsShorthand = modelSettings.ToShorthand();
-			return datasetDir.GetDirectories().FirstOrDefault(dir => CanonicalizeModelShorthand(dir.Name) == mSettingsShorthand) 
+			return datasetDir.GetDirectories().FirstOrDefault(dir => CanonicalizeModelShorthand(dir.Name) == mSettingsShorthand)
 				?? datasetDir.CreateSubdirectory(mSettingsShorthand);
 		}
 
-		static string CanonicalizeDatasetShorthand(string shorthand)
-		{
+		static string CanonicalizeDatasetShorthand(string shorthand) {
 			var dSettings = CreateDataset.CreateFactory(shorthand);
 			return dSettings == null ? shorthand : dSettings.Shorthand;
 		}
