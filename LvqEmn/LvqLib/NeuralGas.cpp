@@ -9,7 +9,7 @@ using namespace std;
 #define NG_LAMBDA_START 10.0
 #define NG_LAMBDA_END 0.01
 #define NG_LR_START 0.5
-#define NG_LR_END 0.5
+#define NG_LR_END 0.005
 static double ln_lambda_start = log(NG_LAMBDA_START);
 static double ln_lambda_end = log(NG_LAMBDA_END);
 static double ln_lr_start = log(NG_LR_START);
