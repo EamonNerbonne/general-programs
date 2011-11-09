@@ -126,6 +126,8 @@ let plainCompleteLrTestingResults =
     |> List.filter (fun rs -> List.length (snd rs) = 12) // only include datasets with all basic combos
     |> List.collect snd
 
+let relevantDatasets = List.map (fun (x, _,_,_) ->x) plainCompleteLrTestingResults |> Set.ofList |> Set.toList |> List.map (fun x-> defaultArg (ResultAnalysis.friendlyDatasetName x) x)
+
 let trainingErr (errs:TestLr.ErrorRates) = errs.training
 
 let meanBestLrLookup = 
@@ -137,17 +139,65 @@ let meanBestLrLookup =
                     Seq.collect id lrs 
                         |> List.ofSeq
                         |> ResultParsing.groupErrorsByLr
-                        |> List.map (Utils.apply2nd (ResultParsing.meanStderrOfErrs >> trainingErr))
+                        |> List.map (Utils.apply2nd (ResultParsing.meanStderrOfErrs >> (fun err-> (err.training, err.test))))
                         |> List.sortBy snd
                         |> List.head
                 let trainErrOfBestLr = 
                     lrs |> List.map 
                         (fun oneDatasetResultArr -> 
-                            oneDatasetResultArr 
-                            |> Array.map (fun lrAndErr -> lrAndErr.Errors.training)
-                            |> Array.min
+                            let (bestTrainErr, testErrForBestTrainErr) =
+                                oneDatasetResultArr 
+                                |> Array.map (fun lrAndErr -> (lrAndErr.Errors.training,lrAndErr.Errors.test) )
+                                |> Array.min
+                            let errForStdLr = 
+                                oneDatasetResultArr
+                                |> Seq.filter (fun xyz -> xyz.LR = lr)
+                                |> Seq.head
+
+                            ((bestTrainErr,100. - 100.*bestTrainErr/errForStdLr.Errors.training), (testErrForBestTrainErr,100. - 100.*testErrForBestTrainErr/errForStdLr.Errors.test))
                         )
-                    |> List.average
+                    |> List.unzip
+                    |> Utils.apply2 (List.unzip >> (Utils.apply2 List.average))
+                    
                 (key,(lr, trainErr,trainErrOfBestLr))
             )
-        
+
+meanBestLrLookup
+    |> Utils.groupList (fst>>snd) (Utils.apply1st fst)
+    |> List.map
+        (fun (mKey, sublist) ->
+            let (rLr, rMedErr, rBestErr) = sublist |> List.filter (fst>> (fun x -> x = "")) |> List.head |> snd
+            let (nLr, nMedErr, nBestErr) = sublist |> List.filter (fst>> (fun x -> x = "n")) |> List.head |> snd
+            let toPerc x= x*100.
+            sprintf @"%s & $%.1f \%%$ & $%.1f \%%$ & $%.1f \%%$ & $%.1f \%%$ \\"
+                mKey (rBestErr |> fst |>fst |>toPerc) (rBestErr |> snd |>fst |>toPerc) (nBestErr |> fst |>fst |>toPerc) (nBestErr |> snd |>fst |>toPerc)
+        )
+    |> String.concat "\n"
+    |> printfn "%s"
+
+meanBestLrLookup
+    |> Utils.groupList (fst>>snd) (Utils.apply1st fst)
+    |> List.map
+        (fun (mKey, sublist) ->
+            let (rLr, rMedErr, rBestErr) = sublist |> List.filter (fst>> (fun x -> x = "")) |> List.head |> snd
+            let (nLr, nMedErr, nBestErr) = sublist |> List.filter (fst>> (fun x -> x = "n")) |> List.head |> snd
+            let toPerc x= x*100.
+            sprintf @"%s & $%.1f \%%$ & $%.1f \%%$ & $%.1f \%%$ & $%.1f \%%$ \\"
+                mKey (rBestErr |> fst|>snd) (rBestErr |> snd |>snd) (nBestErr |> fst|>snd) (nBestErr |> snd |>snd)
+        )
+    |> String.concat "\n"
+    |> printfn "%s"
+
+meanBestLrLookup
+    |> Utils.groupList (fst>>snd) (Utils.apply1st fst)
+    |> List.map
+        (fun (mKey, sublist) ->
+            let (rLr, rMedErr, rBestErr) = sublist |> List.filter (fst>> (fun x -> x = "")) |> List.head |> snd
+            let (nLr, nMedErr, nBestErr) = sublist |> List.filter (fst>> (fun x -> x = "n")) |> List.head |> snd
+            let toPerc x= x*100.
+            
+            sprintf @"%s & $%.3f $ & $%.3f $ & $%.3f $ & $%.3f $ & $%.3f $ & $%.3f $ \\"
+                mKey rLr.Lr0 rLr.LrP rLr.LrB nLr.Lr0  nLr.LrP nLr.LrB
+        )
+    |> String.concat "\n"
+    |> printfn "%s"
