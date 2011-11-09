@@ -187,6 +187,11 @@ type Difference =
     | Worse
     | Irrelevant
 
+//let comparisonErrChange (baseErrs, heurErrs) =  
+//    let meanBaseErr:float = List.average baseErrs
+//    let meanHeurErr = List.average heurErrs
+//    let scaleErr = Math.Max(meanBaseErr, meanHeurErr)
+//    List.zip baseErrs heurErrs |> List.map (fun (baseErr,heurErr) -> (heurErr - baseErr) / scaleErr * 100.) |> List.average
 
 
 let comparisonP  (baseErrs, heurErrs) = Utils.twoTailedPairedTtest heurErrs baseErrs
@@ -244,8 +249,9 @@ let countActiveHeuristics (mr:ResultAnalysis.ModelResults) =
 let allFilters = 
     let simplifyName (name:string) = if name.Contains("-") then name.Substring(0, name.IndexOf("-")) else name
     let singleOrAnythingFilters = [
-        ("No other heuristics", (fun mr -> countActiveHeuristics mr < 2));
-        ("Incl. other heuristics", (fun (mr:ResultAnalysis.ModelResults) -> true));
+        ("no other heuristics", (fun mr -> countActiveHeuristics mr <= 1));
+        ("any heuristics", (fun (mr:ResultAnalysis.ModelResults) -> true));
+        ("normalization only", (fun (mr:ResultAnalysis.ModelResults) -> mr.DatasetTweaks.Contains('n') && countActiveHeuristics mr <= 2 ));
         ]
     let modelFilters = [
         ("Ggm,1", (fun (mr:ResultAnalysis.ModelResults) -> mr.ModelSettings.ModelType = LvqModelType.Ggm && mr.ModelSettings.PrototypesPerClass = 1));
@@ -256,10 +262,12 @@ let allFilters =
         ("Gm,5", (fun mr -> mr.ModelSettings.ModelType = LvqModelType.Gm && mr.ModelSettings.PrototypesPerClass = 5));
         ]
     let singleOrEverythingModelFilters =
-        [for (name, filter) in singleOrAnythingFilters do
+        [
+        for (name, filter) in singleOrAnythingFilters do
             yield (name, filter)
-            for (name2, filter2) in modelFilters do
-                yield ((if name = "" then name2 else name + ": " + name2), fun x -> filter x && filter2 x)
+        for (modelFilterName, modelFilter) in modelFilters do
+            for (heurFilterName, heurFilter) in singleOrAnythingFilters do
+                yield (modelFilterName + "(" + heurFilterName + ")", fun x -> modelFilter x && heurFilter x)
         ]        
     List.append singleOrEverythingModelFilters (
         heuristics |> List.map (fun heur ->  (heur.Code, getSettings >> isHeuristicApplied heur) )
@@ -290,13 +298,16 @@ let uncurry f (x, y) = f x y
 <html><head>
 <style type=""text/css"">
   table { border-collapse:collapse; border-bottom: 2px solid #666;border-top: 2px solid #666;}
-  td { white-space: nowrap; border-bottom:1px solid #888;}
-  td:nth-child(2n+1) { background: #ddd; }
+  td { white-space: nowrap; border-bottom:1px solid #888; padding:0;}
+  td:first-child, thead { background: #eee; }
   body { font-family: Calibri, Sans-serif; }
-  .better {background: rgba(96, 192, 255, 0.3);}
+  .slightlybetter {background: rgba(96, 192, 255, 0.2);}
+  .better {background: rgba(96, 192, 255, 0.5);}
   .muchbetter {background: rgba(96, 192, 255, 0.8);}
-  .worse {background: rgba(255, 128, 128, 0.3);}
+  .slightlyworse {background: rgba(255, 128, 128, 0.2);}
+  .worse {background: rgba(255, 128, 128, 0.5);}
   .muchworse {background: rgba(255, 128, 128, 0.8);}
+  div {padding:0 0.2em;}
 </style>
 </head><body>" +
 "<table><thead><tr><td><div style=\"text-align:right;\">Heuristic</div>Assumption</td><td>" + (heuristics |> List.map (fun heur->heur.Code) |> String.concat " </td><td> ") + "</td></tr></thead><tbody>" +
@@ -323,13 +334,11 @@ let uncurry f (x, y) = f x y
                         let bestErrsChangeP = bestErrs |> List.unzip |> comparisonP
 
                         let classifyP (better, p) = 
-                            if p > 0.05 then ""
-                            else 
-                                if p > 0.01 then "" else "much"
-                                +
-                                if better then "better" else "worse"
+                            if p > 0.05 then "slightly" else if p > 0.01 then "" else "much"
+                            +
+                            if better then "better" else "worse"
 
-                        sprintf "<div class=\"%s\">%.1f%%; %.2f</div> <div class=\"%s\">%.1f%%; %.2f</div>" (classifyP medianErrsChangeP) medianErrsChangeRatio medianErrsChange (classifyP bestErrsChangeP) bestErrsChangeRatio bestErrsChange
+                        sprintf "<div class=\"%s\">%.1f%%; %.2f%%</div> <div class=\"%s\">%.1f%%; %.2f%%</div>" (classifyP medianErrsChangeP) medianErrsChangeRatio medianErrsChange (classifyP bestErrsChangeP) bestErrsChangeRatio bestErrsChange
                     else 
                         ""
                 ) |> String.concat " </td><td> "
