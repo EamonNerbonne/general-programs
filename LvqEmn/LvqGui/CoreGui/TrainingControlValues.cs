@@ -125,7 +125,7 @@ namespace LvqGui {
 			EpochsPerAnimation = 25;
 			_ShowBoundaries = true;
 			_ShowPrototypes = true;
-			_CurrProjStats = StatisticsViewMode.CurrentAndMean;
+			_CurrProjStats = StatisticsViewMode.MeanAndStderr;
 			owner.LvqModels.CollectionChanged += LvqModels_CollectionChanged;
 		}
 
