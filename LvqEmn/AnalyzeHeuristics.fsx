@@ -97,15 +97,15 @@ let heuristics =
             on.BLocalInit <- true
             off.BLocalInit <- false
             (on, off))
-        (*heurM @"Optimizing $P$ and seting $B_i$ to the local covariance" "Pi+,Bi+" (fun s  -> 
+        heurM @"Initializing prototype positions by neural gas and seting $B_i$ to the local covariance" "NGi+,Bi+" (fun s  -> 
             let mutable on = s
             let mutable off = s
             on.BLocalInit <- true
             off.BLocalInit <- false
-            on.ProjOptimalInit <- true
-            off.ProjOptimalInit <- false
+            on.NgInitializeProtos <- true
+            off.NgInitializeProtos <- false
             (on, off))
-        heurM @"Optimizing $P$, setting $B_i$ to the local covariance, and initially using a lower learning rate for incorrect prototypes" "Pi+,Bi+,!" (fun s  -> 
+        (*heurM @"Optimizing $P$, setting $B_i$ to the local covariance, and initially using a lower learning rate for incorrect prototypes" "Pi+,Bi+,!" (fun s  -> 
             let mutable on = s
             let mutable off = s
             on.BLocalInit <- true
@@ -194,7 +194,11 @@ type Difference =
 //    List.zip baseErrs heurErrs |> List.map (fun (baseErr,heurErr) -> (heurErr - baseErr) / scaleErr * 100.) |> List.average
 
 
-let comparisonP  (baseErrs, heurErrs) = Utils.twoTailedPairedTtest heurErrs baseErrs
+let comparisonP  (baseErrs, heurErrs) = 
+    if List.length baseErrs >= 2 then
+        Utils.twoTailedPairedTtest heurErrs baseErrs
+    else
+        (false, 1.)
 let comparisonErrChange (baseErr:float, heurErr:float) =  (heurErr - baseErr) / Math.Max(heurErr, baseErr) * 100.
 let comparisonRelevance (baseErrs, heurErrs) =
      let (isBetter, p) = comparisonP (baseErrs, heurErrs)
@@ -248,10 +252,11 @@ let countActiveHeuristics (mr:ResultAnalysis.ModelResults) =
 
 let allFilters = 
     let simplifyName (name:string) = if name.Contains("-") then name.Substring(0, name.IndexOf("-")) else name
+    let normFilter = ("normalization only", (fun (mr:ResultAnalysis.ModelResults) -> mr.DatasetTweaks.Contains('n') && countActiveHeuristics mr = 1 ))
     let singleOrAnythingFilters = [
-        ("no other heuristics", (fun mr -> countActiveHeuristics mr <= 1));
+        ("no other heuristics", (fun mr -> countActiveHeuristics mr = 0));
         ("any heuristics", (fun (mr:ResultAnalysis.ModelResults) -> true));
-        ("normalization only", (fun (mr:ResultAnalysis.ModelResults) -> mr.DatasetTweaks.Contains('n') && countActiveHeuristics mr <= 2 ));
+        normFilter;
         ]
     let modelFilters = [
         ("Ggm,1", (fun (mr:ResultAnalysis.ModelResults) -> mr.ModelSettings.ModelType = LvqModelType.Ggm && mr.ModelSettings.PrototypesPerClass = 1));
@@ -261,22 +266,38 @@ let allFilters =
         ("G2m,5", (fun mr -> mr.ModelSettings.ModelType = LvqModelType.G2m && mr.ModelSettings.PrototypesPerClass = 5));
         ("Gm,5", (fun mr -> mr.ModelSettings.ModelType = LvqModelType.Gm && mr.ModelSettings.PrototypesPerClass = 5));
         ]
-    let singleOrEverythingModelFilters =
-        [
-        for (name, filter) in singleOrAnythingFilters do
-            yield (name, filter)
-        for (modelFilterName, modelFilter) in modelFilters do
-            for (heurFilterName, heurFilter) in singleOrAnythingFilters do
-                yield (modelFilterName + "(" + heurFilterName + ")", fun x -> modelFilter x && heurFilter x)
-        ]        
-    List.append singleOrEverythingModelFilters (
-        heuristics |> List.map (fun heur ->  (heur.Code, getSettings >> isHeuristicApplied heur) )
-        |> List.append (
-            Seq.toList resultsByDatasetByModel.Keys
+    let datasetFilters = 
+        Seq.toList resultsByDatasetByModel.Keys
             |> List.filter (fun key -> resultsByDatasetByModel.[key].Count > 65)
-            |> List.map (fun datasetKey ->(defaultArg (ResultAnalysis.friendlyDatasetName datasetKey) datasetKey, (fun modelRes->modelRes.DatasetBaseShorthand = datasetKey)))
-        )
-    )
+            |> List.map (fun datasetKey ->(defaultArg (ResultAnalysis.friendlyDatasetName datasetKey) datasetKey, (fun (mr:ResultAnalysis.ModelResults)  ->mr.DatasetBaseShorthand = datasetKey)))
+    
+    let comb (nameA, filterA) (nameB, filterB) = 
+        (nameA + " * " + nameB, fun x -> filterA x && filterB x)
+
+    let perModelHeurFilters =
+        [
+        for mFilt in modelFilters do
+            for hFilt in singleOrAnythingFilters do
+                yield comb mFilt hFilt
+        ]
+    let perModelDatasetFilters = 
+        [
+        for dFilt in datasetFilters do
+            for dnFilt in [dFilt; comb dFilt normFilter] do
+                for mFilt in modelFilters do
+                    yield comb dnFilt mFilt
+                
+        ]
+    List.concat 
+        [  
+            singleOrAnythingFilters;
+            modelFilters;
+            datasetFilters;
+            perModelHeurFilters;
+            perModelDatasetFilters;
+            heuristics |> List.map (fun heur ->  (heur.Code, getSettings >> isHeuristicApplied heur) );
+        ]
+    
 
 let analysisPairsGiven (filter:ResultAnalysis.ModelResults -> bool) (heur:Heuristic) = 
     seq {
@@ -299,12 +320,12 @@ let uncurry f (x, y) = f x y
 <style type=""text/css"">
   table { border-collapse:collapse; border-bottom: 2px solid #666;border-top: 2px solid #666;}
   td { white-space: nowrap; border-bottom:1px solid #888; padding:0;}
-  td:first-child, thead { background: #eee; }
+  td:nth-child(2n+1), thead { background: #eee; }
   body { font-family: Calibri, Sans-serif; }
   .slightlybetter {background: rgba(96, 192, 255, 0.2);}
+  .slightlyworse {background: rgba(255, 128, 128, 0.2);}
   .better {background: rgba(96, 192, 255, 0.5);}
   .muchbetter {background: rgba(96, 192, 255, 0.8);}
-  .slightlyworse {background: rgba(255, 128, 128, 0.2);}
   .worse {background: rgba(255, 128, 128, 0.5);}
   .muchworse {background: rgba(255, 128, 128, 0.8);}
   div {padding:0 0.2em;}
@@ -325,20 +346,23 @@ let uncurry f (x, y) = f x y
 
                         let medianErrs = analysis |> List.map (Utils.apply2 (Array.ofList>> EmnExtensions.Algorithms.SelectionAlgorithm.Median)) //List.zip allBaseErrs allHeurErrs
                         let medianErrsChange = medianErrs |> List.averageBy comparisonErrChange
-                        let medianErrsChangeRatio = (medianErrs |> List.unzip |> comparisonBetterRatio) * 100.
-                        let medianErrsChangeP = medianErrs |> List.unzip |> comparisonP
+                        //let medianErrsChangeRatio = (medianErrs |> List.unzip |> comparisonBetterRatio) * 100.
+                        //let medianErrsChangeP = medianErrs |> List.unzip |> comparisonP
 
                         let bestErrs = analysis |> List.map (Utils.apply2 List.min)
                         let bestErrsChange =  bestErrs |> List.averageBy comparisonErrChange
-                        let bestErrsChangeRatio = (bestErrs |> List.unzip |> comparisonBetterRatio )*100.
-                        let bestErrsChangeP = bestErrs |> List.unzip |> comparisonP
+                        //let bestErrsChangeRatio = (bestErrs |> List.unzip |> comparisonBetterRatio )*100.
+                        //let bestErrsChangeP = bestErrs |> List.unzip |> comparisonP
 
                         let classifyP (better, p) = 
-                            if p > 0.05 then "slightly" else if p > 0.01 then "" else "much"
-                            +
-                            if better then "better" else "worse"
+                            if p = 1. then
+                                ""
+                            else
+                                if p > 0.05 then "slightly" else if p > 0.01 then "" else "much"
+                                +
+                                if better then "better" else "worse"
 
-                        sprintf "<div class=\"%s\">%.1f%%; %.2f%%</div> <div class=\"%s\">%.1f%%; %.2f%%</div>" (classifyP medianErrsChangeP) medianErrsChangeRatio medianErrsChange (classifyP bestErrsChangeP) bestErrsChangeRatio bestErrsChange
+                        sprintf "%.2f%%; %.2f%%" medianErrsChange bestErrsChange
                     else 
                         ""
                 ) |> String.concat " </td><td> "
