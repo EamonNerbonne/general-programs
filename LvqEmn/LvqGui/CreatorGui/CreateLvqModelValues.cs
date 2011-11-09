@@ -231,7 +231,10 @@ namespace LvqGui {
 		public override string ShorthandErrors { get { return ShorthandHelper.VerifyShorthand(this, shR); } }
 
 		public static LvqModelSettingsCli ParseShorthand(string shorthand) {
-			return ShorthandHelper.TryParseShorthand(default(LvqModelSettingsCli), shR, shorthand).Value;
+			var maybeParsed= ShorthandHelper.TryParseShorthand(default(LvqModelSettingsCli), shR, shorthand);
+			if (maybeParsed.HasValue)
+				return maybeParsed.Value;
+			else throw new ArgumentException("Can't parse: " + shorthand);
 		}
 
 		public static LvqModelSettingsCli? TryParseShorthand(string shorthand) {

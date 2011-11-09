@@ -77,7 +77,7 @@ namespace LvqGui {
 				(best, option) => Math.Abs(option - needle) < best.Err ? new { Err = Math.Abs(option - needle), Val = option } : best).Val;
 		}
 
-		static readonly Regex resultsFilenameRegex = new Regex(@"^(?<iters>[0-9]?e[0-9])+\-(?<shorthand>[^ ]*?)\.txt$");
+		static readonly Regex resultsFilenameRegex = new Regex(@"^(?<iters>[0-9]?e[0-9]+)\-(?<shorthand>[^ ]*?)\.txt$");
 
 		public static IEnumerable<DatasetResults> FromDataset(LvqDatasetCli dataset, string settingsStr) {
 			return
