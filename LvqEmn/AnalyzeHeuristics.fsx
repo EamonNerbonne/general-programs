@@ -103,7 +103,7 @@ let heuristics =
             on.NgInitializeProtos <- true
             off.NgInitializeProtos <- false
             (on, off))
-        (*
+        //(*
         heurM @"Optimizing $P$, setting $B_i$ to the local covariance, and initially using a lower learning rate for incorrect prototypes" "NGi+Bcov+SlowK" (fun s  -> 
             let mutable on = s
             let mutable off = s
@@ -372,6 +372,12 @@ let uncurry f (x, y) = f x y
 let constF x _ = x
 
 let latexCompareHeurs = 
+    let filterSelection = (fun (name:string,_) -> name.Contains("+") |> not)
+    let heurSelection = (fun heur -> heur.Code.Contains("+") |> not)
+
+    let heuristics = heuristics |> List.filter heurSelection
+    let allFilters = allFilters |> List.filter filterSelection
+
     let strconcat xs = String.concat "" xs
     let coldef = heuristics |> List.map (constF "@{}>{\columncolor{white}[0mm][1mm]}r@{\hspace{1mm}}@{}>{\columncolor{white}[0mm][1mm]}r@{\hspace{1mm}}") |> String.concat "|"
     let headerrow = (heuristics |> List.map (fun heur-> sprintf @"& \multicolumn{2}{c}{\multirow{2}{*}{%s}}" heur.Code) |> strconcat)
