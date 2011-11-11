@@ -394,7 +394,7 @@ std::pair<LvqDataset*,LvqDataset*> LvqDataset::ExtendUsingModel(LvqDataset const
 
 	Matrix_NN projectionFeatures = modelProj * points;
 	
-	Vector_N pFmean = projectionFeatures.colwise().mean();
+	Vector_N pFmean = projectionFeatures.rowwise().mean();
 	projectionFeatures.colwise() -= pFmean;
 
 	double pFvar=0;

@@ -120,7 +120,7 @@ namespace LvqLibCli {
 		}
 		DataShape shape=GetDataShape(newDatasets[0]->get());
 		auto retval = gcnew LvqDatasetCli(RegexConsts::dimcountregex->Replace(label,"$0X"+shape.dimCount,1), colors, newDatasets);
-		retval->TestSet = gcnew LvqDatasetCli(RegexConsts::dimcountregex->Replace(TestSet->label,"$0X"+shape.dimCount,1), colors, newDatasetsTest);
+		retval->TestSet = gcnew LvqDatasetCli(TestSet->label==nullptr?nullptr: RegexConsts::dimcountregex->Replace(TestSet->label,"$0X"+shape.dimCount,1), colors, newDatasetsTest);
 		
 		return retval;
 	}

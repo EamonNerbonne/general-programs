@@ -56,7 +56,7 @@ namespace LvqGui {
 		public static double GetItersPerEpoch(LvqDatasetCli dataset,int fold) { return dataset.PointCount(fold); }
 
 		public Statistic CurrentRawStats(LvqDatasetCli selectedDataset) { return MeanStdErrStats(EvaluateFullStats(selectedDataset)); }
-		public IEnumerable<LvqTrainingStatCli> EvaluateFullStats(LvqDatasetCli selectedDataset) { return subModels.Select(m => m.EvaluateStats()); }
+		public IEnumerable<LvqTrainingStatCli> EvaluateFullStats(LvqDatasetCli selectedDataset) { return subModels.Select(m => Task.Factory.StartNew(()=>m.EvaluateStats())).ToArray().Select(t=>t.Result); }
 		public int GetBestSubModelIdx(LvqDatasetCli selectedDataset) { return MinIdx(EvaluateFullStats(selectedDataset).Select(stat => stat.values[LvqTrainingStatCli.TrainingErrorI])); }
 
 		public string CurrentStatsString(LvqDatasetCli selectedDataset) {
@@ -89,12 +89,15 @@ namespace LvqGui {
 		public LvqTrainingStatCli[] SelectedStats(int submodel) { return subModels[submodel].TrainingStats; }
 		readonly object statCacheSync = new object();
 		readonly List<Statistic> statCache = new List<Statistic>();
+		Statistic[] cachedStatCache = new Statistic[]{};
 		int statProcIdx;
 		public Statistic[] TrainingStats {
 			get {
 				lock (statCacheSync) {
 					var newstats = subModels.Select(m => m.GetTrainingStatsAfter(statProcIdx)).ToArray();
 					int newStatCount = newstats.Min(statArray => statArray == null ? 0 : statArray.Length);
+					if (newStatCount == 0)
+						return cachedStatCache;
 					statProcIdx += newStatCount;
 					for (int i = 0; i < newStatCount; ++i)
 						statCache.Add(MeanStdErrStats(newstats.Select(modelstats => modelstats[i])));
@@ -104,7 +107,7 @@ namespace LvqGui {
 						for (int i = 512; i < statCache.Count; i++) statCache[i - 256] = statCache[i];
 						statCache.RemoveRange(statCache.Count - 256, 256);
 					}
-					return statCache.ToArray();
+					return (cachedStatCache=statCache.ToArray());
 				}
 			}
 		}

@@ -41,9 +41,22 @@ let sampleCorrelation listA listB =
 
 let twoTailedPairedTtest xs ys = 
     let corrDistr = List.zip xs ys |>List.map (fun (x,y) -> x - y) |> sampleDistribution
-    let t = corrDistr.Mean / corrDistr.StdErr
-    let p = alglib.studenttdistr.studenttdistribution(corrDistr.Count - 1, -Math.Abs(t)) * 2.0
-    (corrDistr.Mean < 0.0, p)
+    if corrDistr.Count < 2 then
+        (false, 1.0)
+    else
+        let t = corrDistr.Mean / corrDistr.StdErr
+        let p = alglib.studenttdistr.studenttdistribution(corrDistr.Count - 1, -Math.Abs(t)) * 2.0
+        (corrDistr.Mean < 0.0, p)
+
+let twoTailedOneSampleTtest xs =
+    let corrDistr = sampleDistribution xs
+    if corrDistr.Count < 2 then
+        (false, 1.0)
+    else
+        let t = corrDistr.Mean / corrDistr.StdErr
+        let p = alglib.studenttdistr.studenttdistribution(corrDistr.Count - 1, -Math.Abs(t)) * 2.0
+        (corrDistr.Mean < 0.0, p)
+
 
 let unequalVarianceTtest xs ys = 
     let xDistr = sampleDistribution xs

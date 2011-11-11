@@ -25,7 +25,6 @@ let normalizeDatatweaks str = new System.String(str |> Seq.sortBy (fun c -> - in
 
 let getSettings (modelResults:ResultAnalysis.ModelResults) = { DataSettings = normalizeDatatweaks modelResults.DatasetTweaks; ModelSettings = modelResults.ModelSettings.WithDefaultLr().WithDefaultNnTracking()  }
 
-
 type Heuristic = 
     { Name:string; Code:string; Activator: HeuristicsSettings -> (HeuristicsSettings * HeuristicsSettings); }
     //member this.IsActive settings =  (this.Activator settings |> fst).Equiv settings
@@ -38,10 +37,9 @@ let isHeuristicApplied (heuristic:Heuristic) settings =
     let (on, off) = heuristic.Activator settings
     on.Equiv settings && off.Equiv settings |> not && on.ModelSettings = CreateLvqModelValues.ParseShorthand(on.ModelSettings.ToShorthand())
 
-
 let heuristics = 
     let heur name code activator = { Name=name; Code=code; Activator = activator; }
-    let heurD name letter = { Name = name; Code = letter; Activator = (fun s -> 
+    let heurD name code letter = { Name = name; Code = code; Activator = (fun s -> 
         let on = normalizeDatatweaks (s.DataSettings + letter)
         let off = s.DataSettings.Replace(letter,"")
 
@@ -55,49 +53,49 @@ let heuristics =
                 ({ DataSettings = s.DataSettings; ModelSettings = on }, { DataSettings = s.DataSettings; ModelSettings = off }))
         }
     [
-        heurM @"Initializing prototype positions by neural gas" "NGi+" (fun s  -> 
+        heurM @"Initializing prototype positions by neural gas" "NGi" (fun s  -> 
             let mutable on = s
             let mutable off = s
             on.NgInitializeProtos <- true
             off.NgInitializeProtos <- false
             (on,off))
-        heurM @"Using neural gas-like prototype updates" "NG+" (fun s  -> 
+        heurM @"Using neural gas-like prototype updates" "NGu" (fun s  -> 
             let mutable on = s
             let mutable off = s
             on.NgUpdateProtos <- true
             off.NgUpdateProtos <- false
             (on, off))
-        heurM @"Initializing $P$ by PCA" "rP" (fun s  -> 
+        heurM @"Initializing $P$ by PCA" "Ppca" (fun s  -> 
             let mutable on = s
             let mutable off = s
             on.RandomInitialProjection <- false
             off.RandomInitialProjection <- true
             (on, off))
-        heurM @"Initially using a lower learning rate for incorrect prototypes" "!" (fun s  -> 
+        heurM @"Initially using a lower learning rate for incorrect prototypes" "SlowK" (fun s  -> 
             let mutable on = s
             let mutable off = s
             on.SlowStartLrBad <- true
             off.SlowStartLrBad <- false
             (on, off))
-        heurM @"Using the gm-lvq update rule for prototype positions in g2m-lvq models" "noB+" (fun s  -> 
+        heurM @"Using the gm-lvq update rule for prototype positions in g2m-lvq models" "wGMu" (fun s  -> 
             let mutable on = s
             let mutable off = s
             on.UpdatePointsWithoutB <- true
             off.UpdatePointsWithoutB <- false
             (on, off))
-        heurM @"Optimizing $P$ initially by minimizing $\sqrt{d_J} - \sqrt{d_K}$" "Pi+" (fun s  -> 
+        heurM @"Optimizing $P$ initially by minimizing $\sqrt{d_J} - \sqrt{d_K}$" "Popt" (fun s  -> 
             let mutable on = s
             let mutable off = s
             on.ProjOptimalInit <- true
             off.ProjOptimalInit <- false
             (on, off))
-        heurM @"Initializing $B_i$ to the local covariance" "Bi+" (fun s  -> 
+        heurM @"Initializing $B_i$ to the local covariance" "Bcov" (fun s  -> 
             let mutable on = s
             let mutable off = s
             on.BLocalInit <- true
             off.BLocalInit <- false
             (on, off))
-        heurM @"Initializing prototype positions by neural gas and seting $B_i$ to the local covariance" "NGi+,Bi+" (fun s  -> 
+        heurM @"Initializing prototype positions by neural gas and seting $B_i$ to the local covariance" "NGi+Bcov" (fun s  -> 
             let mutable on = s
             let mutable off = s
             on.BLocalInit <- true
@@ -105,33 +103,34 @@ let heuristics =
             on.NgInitializeProtos <- true
             off.NgInitializeProtos <- false
             (on, off))
-        (*heurM @"Optimizing $P$, setting $B_i$ to the local covariance, and initially using a lower learning rate for incorrect prototypes" "Pi+,Bi+,!" (fun s  -> 
+        (*
+        heurM @"Optimizing $P$, setting $B_i$ to the local covariance, and initially using a lower learning rate for incorrect prototypes" "NGi+Bcov+SlowK" (fun s  -> 
             let mutable on = s
             let mutable off = s
             on.BLocalInit <- true
             off.BLocalInit <- false
-            on.ProjOptimalInit <- true
-            off.ProjOptimalInit <- false
+            on.NgInitializeProtos <- true
+            off.NgInitializeProtos <- false
             on.SlowStartLrBad <- true
             off.SlowStartLrBad <- false
             (on, off))
-        heurM @"Neural gas prototype initialization followed by $P$ optimization" "NGi+,Pi+" (fun s  -> 
+        heurM @"Neural gas prototype initialization followed by $P$ optimization" "NGi+Popt" (fun s  -> 
             let mutable on = s
             let mutable off = s
             on.NgInitializeProtos <- true
             off.NgInitializeProtos <- false
-            on.ProjOptimalInit <- true
-            off.ProjOptimalInit <- false
-            (on, off))
-        heurM @"$P$ optimization and neural gas-like updates" "NG+,Pi+" (fun s  -> 
-            let mutable on = s
-            let mutable off = s
-            on.NgUpdateProtos <- true
-            off.NgUpdateProtos <- false
             on.ProjOptimalInit <- true
             off.ProjOptimalInit <- false
             (on, off))
-        heurM @"Neural gas prototype initialization and initially using lower learning rates for incorrect prototypes" "NGi+,!" (fun s  -> 
+        heurM @"$P$ optimization and neural gas-like updates" "NGu+Popt" (fun s  -> 
+            let mutable on = s
+            let mutable off = s
+            on.NgUpdateProtos <- true
+            off.NgUpdateProtos <- false
+            on.ProjOptimalInit <- true
+            off.ProjOptimalInit <- false
+            (on, off))
+        heurM @"Neural gas prototype initialization and initially using lower learning rates for incorrect prototypes" "NGi+SlowK" (fun s  -> 
             let mutable on = s
             let mutable off = s
             on.NgInitializeProtos <- true
@@ -139,7 +138,7 @@ let heuristics =
             on.SlowStartLrBad <- true
             off.SlowStartLrBad <- false
             (on, off))
-        heurM @"Neural gas-like updates and initially using lower learning rates for incorrect prototypes" "NG+,!" (fun s  -> 
+        heurM @"Neural gas-like updates and initially using lower learning rates for incorrect prototypes" "NGu+SlowK" (fun s  -> 
             let mutable on = s
             let mutable off = s
             on.NgUpdateProtos <- true
@@ -147,7 +146,7 @@ let heuristics =
             on.SlowStartLrBad <- true
             off.SlowStartLrBad <- false
             (on, off))
-        heurM @"Neural gas prototype initialization and neural gas-like updates" "NGi+,NG+" (fun s  -> 
+        heurM @"Neural gas prototype initialization and neural gas-like updates" "NGi+NGu" (fun s  -> 
             let mutable on = s
             let mutable off = s
             on.NgInitializeProtos <- true
@@ -155,31 +154,10 @@ let heuristics =
             on.NgUpdateProtos <- true
             off.NgUpdateProtos <- false
             (on, off))
-        heurM @"Neural gas prototype initialization, neural gas-like updates and $P$ initialization by PCA" "NGi+,NG+,rP" (fun s  -> 
-            let mutable on = s
-            let mutable off = s
-            on.NgInitializeProtos <- true
-            off.NgInitializeProtos <- false
-            on.RandomInitialProjection <- false
-            off.RandomInitialProjection <- true
-            on.NgUpdateProtos <- true
-            off.NgUpdateProtos <- false
-            (on, off))
-        heurM @"Neural gas prototype initialization, neural gas-like updates, $P$ initialization by PCA and  initially using lower learning rates for incorrect prototypes" "NGi+,NG+,rP,!" (fun s  -> 
-            let mutable on = s
-            let mutable off = s
-            on.NgInitializeProtos <- true
-            off.NgInitializeProtos <- false
-            on.RandomInitialProjection <- false
-            off.RandomInitialProjection <- true
-            on.NgUpdateProtos <- true
-            off.NgUpdateProtos <- false
-            on.SlowStartLrBad <- true
-            off.SlowStartLrBad <- false
-            (on, off))*)
-        heurD "Extend dataset by correlations (x)" "x"
-        heurD "Normalize each dimension (n)" "n"
-        heurD "pre-normalized segmentation dataset (N)" "N"
+            //*)
+        heurD "Normalize each dimension" "normalize" "n"
+        heurD "Extend dataset by correlations" "extend" "x"
+        //heurD "pre-normalized segmentation dataset (N)" "N"
     ]
 
 type Difference = 
@@ -252,19 +230,23 @@ let countActiveHeuristics (mr:ResultAnalysis.ModelResults) =
 
 let allFilters = 
     let simplifyName (name:string) = if name.Contains("-") then name.Substring(0, name.IndexOf("-")) else name
-    let normFilter = ("normalization only", (fun (mr:ResultAnalysis.ModelResults) -> mr.DatasetTweaks.Contains('n') && countActiveHeuristics mr = 1 ))
+    let normOnlyFilter = ("only normalization", (fun (mr:ResultAnalysis.ModelResults) -> mr.DatasetTweaks.Contains('n') && countActiveHeuristics mr = 1 ))
+    let normFilter = ("normalization", (fun (mr:ResultAnalysis.ModelResults) -> mr.DatasetTweaks.Contains('n') ))
+    let noFilter = ("", (fun (mr:ResultAnalysis.ModelResults) -> true))
+
+    let singleHeurFilter = ("only this heuristic", (fun (mr:ResultAnalysis.ModelResults)  -> countActiveHeuristics mr = 0))
     let singleOrAnythingFilters = [
-        ("no other heuristics", (fun mr -> countActiveHeuristics mr = 0));
-        ("any heuristics", (fun (mr:ResultAnalysis.ModelResults) -> true));
-        normFilter;
+        singleHeurFilter;
+        ("all results", (fun (mr:ResultAnalysis.ModelResults) -> true));
+        normOnlyFilter;
         ]
     let modelFilters = [
-        ("Ggm,1", (fun (mr:ResultAnalysis.ModelResults) -> mr.ModelSettings.ModelType = LvqModelType.Ggm && mr.ModelSettings.PrototypesPerClass = 1));
-        ("G2m,1", (fun mr -> mr.ModelSettings.ModelType = LvqModelType.G2m && mr.ModelSettings.PrototypesPerClass = 1));
-        ("Gm,1", (fun mr -> mr.ModelSettings.ModelType = LvqModelType.Gm && mr.ModelSettings.PrototypesPerClass = 1));
-        ("Ggm,5", (fun mr -> mr.ModelSettings.ModelType = LvqModelType.Ggm && mr.ModelSettings.PrototypesPerClass = 5));
-        ("G2m,5", (fun mr -> mr.ModelSettings.ModelType = LvqModelType.G2m && mr.ModelSettings.PrototypesPerClass = 5));
-        ("Gm,5", (fun mr -> mr.ModelSettings.ModelType = LvqModelType.Gm && mr.ModelSettings.PrototypesPerClass = 5));
+        ("GGM 1", (fun (mr:ResultAnalysis.ModelResults) -> mr.ModelSettings.ModelType = LvqModelType.Ggm && mr.ModelSettings.PrototypesPerClass = 1));
+        ("G2M 1", (fun mr -> mr.ModelSettings.ModelType = LvqModelType.G2m && mr.ModelSettings.PrototypesPerClass = 1));
+        ("GM 1", (fun mr -> mr.ModelSettings.ModelType = LvqModelType.Gm && mr.ModelSettings.PrototypesPerClass = 1));
+        ("GGM,5", (fun mr -> mr.ModelSettings.ModelType = LvqModelType.Ggm && mr.ModelSettings.PrototypesPerClass = 5));
+        ("G2M 5", (fun mr -> mr.ModelSettings.ModelType = LvqModelType.G2m && mr.ModelSettings.PrototypesPerClass = 5));
+        ("GM 5", (fun mr -> mr.ModelSettings.ModelType = LvqModelType.Gm && mr.ModelSettings.PrototypesPerClass = 5));
         ]
     let datasetFilters = 
         Seq.toList resultsByDatasetByModel.Keys
@@ -272,18 +254,26 @@ let allFilters =
             |> List.map (fun datasetKey ->(defaultArg (ResultAnalysis.friendlyDatasetName datasetKey) datasetKey, (fun (mr:ResultAnalysis.ModelResults)  ->mr.DatasetBaseShorthand = datasetKey)))
     
     let comb (nameA, filterA) (nameB, filterB) = 
-        (nameA + " * " + nameB, fun x -> filterA x && filterB x)
+        ((if nameB <> "" then nameA + " * " + nameB else nameA), (fun x -> filterA x && filterB x))
 
     let perModelHeurFilters =
         [
-        for mFilt in modelFilters do
-            for hFilt in singleOrAnythingFilters do
+        for hFilt in [noFilter; singleHeurFilter;normFilter; normOnlyFilter;] do
+            for mFilt in modelFilters do
                 yield comb mFilt hFilt
         ]
+    let datasetAndNormedFilters =
+        [
+        for dFilt in datasetFilters do
+            yield dFilt
+            yield comb dFilt singleHeurFilter
+            yield comb dFilt normOnlyFilter
+        ]
+
     let perModelDatasetFilters = 
         [
         for dFilt in datasetFilters do
-            for dnFilt in [dFilt; comb dFilt normFilter] do
+            for dnFilt in [comb dFilt singleHeurFilter; comb dFilt normOnlyFilter] do
                 for mFilt in modelFilters do
                     yield comb dnFilt mFilt
                 
@@ -291,11 +281,10 @@ let allFilters =
     List.concat 
         [  
             singleOrAnythingFilters;
-            modelFilters;
-            datasetFilters;
+            datasetAndNormedFilters;
             perModelHeurFilters;
-            perModelDatasetFilters;
             heuristics |> List.map (fun heur ->  (heur.Code, getSettings >> isHeuristicApplied heur) );
+            perModelDatasetFilters;
         ]
     
 
@@ -319,8 +308,10 @@ let uncurry f (x, y) = f x y
 <html><head>
 <style type=""text/css"">
   table { border-collapse:collapse; border-bottom: 2px solid #666;border-top: 2px solid #666;}
-  td { white-space: nowrap; border-bottom:1px solid #888; padding:0;}
-  td:nth-child(2n+1), thead { background: #eee; }
+  tr { border-top: 1px solid #888;}
+  tr.noborder {border-top:none;}
+  th { background: #eee;  text-align:left; font-weight:normal; }
+  td { text-align:right;}
   body { font-family: Calibri, Sans-serif; }
   .slightlybetter {background: rgba(96, 192, 255, 0.2);}
   .slightlyworse {background: rgba(255, 128, 128, 0.2);}
@@ -331,29 +322,17 @@ let uncurry f (x, y) = f x y
   div {padding:0 0.2em;}
 </style>
 </head><body>" +
-"<table><thead><tr><td><div style=\"text-align:right;\">Heuristic</div>Assumption</td><td>" + (heuristics |> List.map (fun heur->heur.Code) |> String.concat " </td><td> ") + "</td></tr></thead><tbody>" +
+"<table><thead><tr><th class=\"head\"><div style=\"text-align:right;\">Heuristic</div>Assumption</th><th colspan=\"2\">" + (heuristics |> List.map (fun heur->heur.Code) |> String.concat " </th><th colspan=\"2\"> ") + "</th></tr></thead><tbody>" +
     (allFilters |> List.map (fun (filtername, filter) -> 
-            "<tr><td>" + filtername + " </td><td> " + 
+            "<tr><th rowspan=\"2\">" + filtername + " </td> " + 
             (heuristics |> List.map 
                 (fun heur ->
-                    let analysis = analysisPairsGiven filter heur |> Seq.map (Utils.apply2 (fun mr -> mr.Results |> Array.map getTrainingError |> List.ofArray)) |> Seq.toList
+                    let rawAnalysis =analysisPairsGiven filter heur |> List.ofSeq
+                    let analysis = rawAnalysis |> List.map (Utils.apply2 (fun mr -> mr.Results |> Array.map (fun  (r:ResultAnalysis.Result)->(r.TrainingError,r.TestError)) |> List.ofArray))
+                    
                     if List.isEmpty analysis |> not then
-//                        let allBaseErrs = List.collect fst analysis
-//                        let allHeurErrs = List.collect snd analysis
-//                        let bothErrs = (allBaseErrs, allHeurErrs)
-//                        let changeRatio = comparisonBetterRatio bothErrs
                         let totalResCount =  analysis |> List.length
-
-                        let medianErrs = analysis |> List.map (Utils.apply2 (Array.ofList>> EmnExtensions.Algorithms.SelectionAlgorithm.Median)) //List.zip allBaseErrs allHeurErrs
-                        let medianErrsChange = medianErrs |> List.averageBy comparisonErrChange
-                        //let medianErrsChangeRatio = (medianErrs |> List.unzip |> comparisonBetterRatio) * 100.
-                        //let medianErrsChangeP = medianErrs |> List.unzip |> comparisonP
-
-                        let bestErrs = analysis |> List.map (Utils.apply2 List.min)
-                        let bestErrsChange =  bestErrs |> List.averageBy comparisonErrChange
-                        //let bestErrsChangeRatio = (bestErrs |> List.unzip |> comparisonBetterRatio )*100.
-                        //let bestErrsChangeP = bestErrs |> List.unzip |> comparisonP
-
+                        let pairsOfTrnTst_2_pairOfTrnsTsts x = x |> List.map (fun ((trnA,tstA),(trnB,tstB)) -> ((trnA,trnB),(tstA,tstB) )) |> List.unzip
                         let classifyP (better, p) = 
                             if p = 1. then
                                 ""
@@ -361,17 +340,109 @@ let uncurry f (x, y) = f x y
                                 if p > 0.05 then "slightly" else if p > 0.01 then "" else "much"
                                 +
                                 if better then "better" else "worse"
+                        
+                        let stringifyErrPatterns errs = 
+                            let errsChange = errs |> Utils.apply2 (List.map comparisonErrChange)
+                            let (trnErrsChange, tstErrsChange) = errsChange |> Utils.apply2 List.average
+                            let (trnErrsChangeP,tstErrsChangeP) = errsChange |> Utils.apply2 Utils.twoTailedOneSampleTtest
+                            sprintf @"<td class=""%s"">%.1f</td><td class=""%s"">%.1f</td>" (classifyP trnErrsChangeP) trnErrsChange (classifyP tstErrsChangeP) tstErrsChange
+                        let allErrs = 
+                            analysis 
+                                |> List.map (Utils.apply2 List.unzip) 
+                                |> pairsOfTrnTst_2_pairOfTrnsTsts
+                                |> Utils.apply2 (List.map (uncurry List.zip) >> List.concat)
+                        
+                        let meanErrs = analysis |> List.map (Utils.apply2 (List.unzip >> Utils.apply2 List.average)) |> pairsOfTrnTst_2_pairOfTrnsTsts // Array.ofList>> EmnExtensions.Algorithms.SelectionAlgorithm.Median)) //List.zip allBaseErrs allHeurErrs
 
-                        sprintf "%.2f%%; %.2f%%" medianErrsChange bestErrsChange
+                        let bestErrs = analysis |> List.map (Utils.apply2 List.min) |> pairsOfTrnTst_2_pairOfTrnsTsts
+                        
+                        (stringifyErrPatterns allErrs, stringifyErrPatterns bestErrs)
                     else 
-                        ""
-                ) |> String.concat " </td><td> "
-            ) + "</td></tr>\n" 
+                        ("<td></td><td></td>", "<td></td><td></td>")
+                ) |> List.unzip 
+                |> Utils.apply2 (String.concat "")
+                |> (fun (allErrRow,bestErrRow) -> allErrRow + "</tr><tr class=\"noborder\">" + bestErrRow)
+            ) + "</tr>\n" 
         ) |> String.concat ""
     )
     +  "</tbody></table>"
 + "</body></html>"
 |> (fun contents -> File.WriteAllText(EmnExtensions.Filesystem.FSUtil.FindDataDir(@"uni\Thesis\doc", System.Reflection.Assembly.GetAssembly(typeof<CreateDataset>)).FullName + @"\compare.html", contents))
+
+let constF x _ = x
+
+let latexCompareHeurs = 
+    let strconcat xs = String.concat "" xs
+    let coldef = heuristics |> List.map (constF "@{}>{\columncolor{white}[0mm][1mm]}r@{\hspace{1mm}}@{}>{\columncolor{white}[0mm][1mm]}r@{\hspace{1mm}}") |> String.concat "|"
+    let headerrow = (heuristics |> List.map (fun heur-> sprintf @"& \multicolumn{2}{c}{\multirow{2}{*}{%s}}" heur.Code) |> strconcat)
+
+    let mainbody = 
+        let classifyP (better, p) = 
+            let slightlybetterC = "0.875,0.95,1"
+            let betterC = "0.6875,0.875,1"
+            let muchbetterC = "0.5,0.8,1"
+            let slightlyworseC = "1,0.9,0.9"
+            let worseC = "1, 0.75, 0.75"
+            let muchworseC = "1, 0.6, 0.6"
+            let blankC = "1,1,1"
+            match (better, p) with
+            | (_, 1.) -> blankC
+            | (true, p) when p > 0.05 -> slightlybetterC
+            | (true, p) when p > 0.01 -> betterC
+            | (true, _) -> muchbetterC
+            | (false, p) when p > 0.05 -> slightlyworseC
+            | (false, p) when p > 0.01 -> worseC
+            | (false, _) -> muchworseC
+        let nicerFilters = allFilters |> List.map (Utils.apply1st (fun name -> name.Split([|" * "|], StringSplitOptions.None))) |> List.filter (fst >> (fun names->names.Length < 3))
+        let rows = 
+            [
+            for (filternames, filter) in nicerFilters ->
+                let (rowtitle1, rowtitle2) = 
+                    match filternames with
+                    | [|n1;n2|] -> (sprintf @"\multicolumn{2}{c}{%s}" n1,sprintf @"\multicolumn{2}{c}{%s}" n2)
+                    | [|n1|] -> (sprintf @"\multicolumn{2}{c}{\multirow{2}{*}{%s}}" n1,"&")
+                    | _ -> failwith "Illegal filter names!"
+                let (allErrRow,bestErrRow) = 
+                    [
+                        for heur in heuristics ->
+                            let rawAnalysis =analysisPairsGiven filter heur |> List.ofSeq
+                            let analysis = rawAnalysis |> List.map (Utils.apply2 (fun mr -> mr.Results |> Array.map (fun  (r:ResultAnalysis.Result)->(r.TrainingError,r.TestError)) |> List.ofArray))
+                    
+                            if List.isEmpty analysis |> not then
+                                let totalResCount =  analysis |> List.length
+                                let pairsOfTrnTst_2_pairOfTrnsTsts x = x |> List.map (fun ((trnA,tstA),(trnB,tstB)) -> ((trnA,trnB),(tstA,tstB) )) |> List.unzip
+                        
+                                let stringifyErrPatterns errs = 
+                                    let errsChange = errs |> Utils.apply2 (List.map comparisonErrChange)
+                                    let (trnErrsChange, tstErrsChange) = errsChange |> Utils.apply2 List.average
+                                    let (trnErrsChangeP,tstErrsChangeP) = errsChange |> Utils.apply2 Utils.twoTailedOneSampleTtest
+                                    sprintf @"&\cellcolor[rgb]{%s}$%.1f$ &\cellcolor[rgb]{%s}$%.1f$" (classifyP trnErrsChangeP) trnErrsChange (classifyP tstErrsChangeP) tstErrsChange
+                                let allErrs = 
+                                    analysis 
+                                        |> List.map (Utils.apply2 List.unzip) 
+                                        |> pairsOfTrnTst_2_pairOfTrnsTsts
+                                        |> Utils.apply2 (List.map (uncurry List.zip) >> List.concat)
+                        
+                                let meanErrs = analysis |> List.map (Utils.apply2 (List.unzip >> Utils.apply2 List.average)) |> pairsOfTrnTst_2_pairOfTrnsTsts // Array.ofList>> EmnExtensions.Algorithms.SelectionAlgorithm.Median)) //List.zip allBaseErrs allHeurErrs
+
+                                let bestErrs = analysis |> List.map (Utils.apply2 List.min) |> pairsOfTrnTst_2_pairOfTrnsTsts
+                        
+                                (stringifyErrPatterns allErrs, stringifyErrPatterns bestErrs)
+                            else 
+                                (" & & ", " & & ")
+                    ] |> List.unzip 
+                    |> Utils.apply2 (String.concat "")
+                rowtitle1 +  allErrRow + @"\\" + "\n" + rowtitle2 + bestErrRow  + @"\\" + "\n" 
+            ]
+        rows |> String.concat "\hline "
+    @"\noindent\begin{longtable}{lr" + coldef + @"}\toprule 
+     & Heuristic " + headerrow + @"\\
+     Scenario\\\midrule
+     " + mainbody + @"
+     \bottomrule\end{longtable}"
+
+File.WriteAllText(EmnExtensions.Filesystem.FSUtil.FindDataDir(@"uni\Thesis\doc", System.Reflection.Assembly.GetAssembly(typeof<CreateDataset>)).FullName + @"\compare.tex", latexCompareHeurs)
+
 
 heuristics
     |> Seq.map (fun heur -> 
@@ -392,20 +463,9 @@ heuristics
             + @"\\\midrule" + "\n"
             + @"&&\multicolumn{2}{c}{Degraded} \\ \cmidrule(r){3-4}" + "\n"
             + String.concat "\\\\\n" (Array.map (fun ( (difference,scenarioLatex),  ((p,  bothDistribs),((errChange, bestErrChange), (betterRatio, resCount))) ) -> sprintf @" %0.2g & %0.1f &%s&%s&%s" p errChange (bothDistribs|>fst|> Utils.latexstderr ) (bothDistribs|>snd|> Utils.latexstderr ) scenarioLatex) worse)
-//            + @"\\\midrule" + "\n"
-            //+ @"&&\multicolumn{2}{c}{Irrelevant} \\ \cmidrule(r){3-4}" + "\n"
-            //+ String.concat "\\\\\n" (Array.map (fun (p, bestErrChange,errChange,before,after, scenario, betterRatio, resCount) -> sprintf @" %0.2g & %0.1f &%s&%s&%s" p errChange (Utils.latexstderr before) (Utils.latexstderr after) scenario) irrelevant)
             + "\n" + @"\\ \bottomrule\end{longtable}" + "\n\n" 
         )
     |> String.concat ""
     |> (fun contents -> File.WriteAllText(EmnExtensions.Filesystem.FSUtil.FindDataDir(@"uni\Thesis\doc", System.Reflection.Assembly.GetAssembly(typeof<CreateDataset>)).FullName + @"\AnalyzeHeuristics.tex", contents))
-
-(*
-heuristics |> List.map (fun heur ->
-        
-
-    )
-
-    *)
 
     
