@@ -177,6 +177,8 @@ void LvqModelSettings::ProjInit(Matrix_NN const& prototypes, Matrix_P & P){
 					vK = prototypes.col(wKi) - point;
 
 					P +=  lr * (1.0/sqrt(bestKd)* P * vK * vK.transpose() - 1.0/sqrt(bestJd)*P * vJ * vJ.transpose());
+//					P +=  (-lr ) * P * vJ * vJ.transpose();
+
 					normalizeProjection(P);
 		}
 	}
