@@ -157,7 +157,7 @@ namespace LvqGui {
 				 from ng in new[] { true, false }
 				 from slowbad in new[] { true, false }
 				 let relevanceCost = new[] { !rp, ngi, bi, pi, ng, slowbad, NoB }.Count(b => b)
-				 where relevanceCost <= 1
+				 where relevanceCost <= 2
 				 let settings = new LvqModelSettingsCli {
 					 ModelType = modeltype,
 					 PrototypesPerClass = protoCount,
