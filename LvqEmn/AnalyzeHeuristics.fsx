@@ -234,7 +234,7 @@ let allFilters =
     let normFilter = ("normalization", (fun (mr:ResultAnalysis.ModelResults) -> mr.DatasetTweaks.Contains('n') ))
     let noFilter = ("", (fun (mr:ResultAnalysis.ModelResults) -> true))
 
-    let singleHeurFilter = ("only this heuristic", (fun (mr:ResultAnalysis.ModelResults)  -> countActiveHeuristics mr = 0))
+    let singleHeurFilter = ("no other heuristics", (fun (mr:ResultAnalysis.ModelResults)  -> countActiveHeuristics mr = 0))
     let singleOrAnythingFilters = [
         singleHeurFilter;
         ("all results", (fun (mr:ResultAnalysis.ModelResults) -> true));
