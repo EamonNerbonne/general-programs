@@ -1,5 +1,5 @@
 @echo off
-mingw32-make -j >%~dp0\_Build-mingw.log
+make -j >%~dp0\_Build-mingw.log
 IF ERRORLEVEL 1 (
 	echo buildFailed > "%~dp0\_BuildFailed-mingw"
 ) ELSE (

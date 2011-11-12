@@ -26,6 +26,11 @@
 #include <fstream>
 #include <iostream>
 #include <typeinfo>
+
+#define EIGEN_VECTORIZE_SSE3
+#define EIGEN_VECTORIZE_SSSE3
+#define EIGEN_VECTORIZE_SSE4_1
+
 #include <Eigen/Core>
 #include <Eigen/Eigenvalues>
 #include <Eigen/StdVector>
@@ -111,10 +116,10 @@ using namespace std;
 #define DIMS 19
 #define EPOCHS 3
 #define CLASSCOUNT 4
-#define PROTOSPERCLASS 2
-#define BENCH_RUNS (4 + 100/LVQDIM/LVQDIM)
+#define PROTOSPERCLASS 3
+#define BENCH_RUNS (10)
 #ifdef NDEBUG
-#define POINTS_PER_CLASS 3000
+#define POINTS_PER_CLASS 40000
 #else
 #define POINTS_PER_CLASS 300
 #endif
@@ -146,7 +151,7 @@ struct GoodBadMatch {
 		, distBad(std::numeric_limits<LVQFLOAT>::infinity())
 	{}
 
-	MatchQuality GgmQuality(){
+	EIGEN_STRONG_INLINE MatchQuality GgmQuality(){
 		MatchQuality retval;
 		retval.isErr = distGood >= distBad;
 
@@ -209,7 +214,7 @@ template <typename T> EIGEN_STRONG_INLINE static LVQFLOAT projectionSquareNorm(T
 	return (projectionMatrix.transpose() * projectionMatrix).diagonal().sum();
 }
 
-static LVQFLOAT normalizeProjection(Matrix_P & projectionMatrix) {
+EIGEN_STRONG_INLINE static LVQFLOAT normalizeProjection(Matrix_P & projectionMatrix) {
 	LVQFLOAT scale = LVQFLOAT(LVQFLOAT(1.0)/sqrt(projectionSquareNorm(projectionMatrix)));
 	projectionMatrix *= scale;
 	return scale;
@@ -549,7 +554,7 @@ static void PrintModelStatus(char const * label,GgmLvqModel const & model, Matri
 	minV-=range;
 	maxV+=range;
 
-	ClassDiagramT diagram(800,800);
+	ClassDiagramT diagram(500,500);
 	model.ClassBoundaryDiagram(minV(0),maxV(0),minV(1),maxV(1), diagram);
 	Matrix_P projMatrix = model.Projection();
 	
