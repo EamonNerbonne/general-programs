@@ -21,8 +21,13 @@ namespace EmnExtensions.Wpf.Plot.VizEngines {
 		protected void TriggerChange(GraphChange graphChange) { if (m_owner != null) m_owner.GraphChanged(graphChange); }
 
 		Thickness m_Margin;
-		public Thickness Margin { get { return m_Margin; } }
-		protected void SetMargin(Thickness newMargin) { if (m_Margin != newMargin) { m_Margin = newMargin; TriggerChange(GraphChange.Projection); } }
+		public Thickness Margin { get { return m_owner != null ? m_owner.MetaData.OverrideMargin ?? m_Margin : m_Margin; } }
+		protected void SetMargin(Thickness newMargin) {
+			var oldMargin = Margin;
+			m_Margin = newMargin;
+			if (Margin != oldMargin)
+				TriggerChange(GraphChange.Projection);
+		}
 
 		public abstract void DrawGraph(DrawingContext context);
 		public abstract void SetTransform(Matrix boundsToDisplay, Rect displayClip, double forDpiX, double forDpiY);

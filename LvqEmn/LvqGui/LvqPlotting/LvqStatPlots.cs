@@ -31,7 +31,7 @@ namespace LvqGui {
 				}
 				classBoundaries = MakeClassBoundaryGraph();
 				dataClouds = MakePointCloudGraph(dataset).Map((LvqMultiModel.ModelProjectionAndImage proj) => proj.RawPoints);
-				scatterPlotControl = MakeScatterPlotControl(prototypeClouds.Select(viz => viz.Plot).Concat(new[] { classBoundaries.Plot,dataClouds.Plot }));
+				scatterPlotControl = MakeScatterPlotControl(prototypeClouds.Select(viz => viz.Plot).Concat(new[] { classBoundaries.Plot, dataClouds.Plot }));
 			}
 
 			plots = MakeDataPlots(dataset, model);//required
@@ -39,7 +39,8 @@ namespace LvqGui {
 		}
 
 		public LvqMultiModel.ModelProjectionAndImage CurrentProjection() {
-			return model.CurrentProjectionAndImage(dataset, LastWidthHeight == null ? 0 : LastWidthHeight.Item1, LastWidthHeight == null ? 0 : LastWidthHeight.Item2, classBoundaries != null && classBoundaries.Plot.MetaData.Hidden, selectedSubModel, showTestEmbedding);
+			var widthHeight = LastWidthHeight;
+			return model.CurrentProjectionAndImage(dataset, widthHeight == null ? 0 : widthHeight.Item1, widthHeight == null ? 0 : widthHeight.Item2, classBoundaries != null && classBoundaries.Plot.MetaData.Hidden, selectedSubModel, showTestEmbedding);
 		}
 
 
@@ -88,8 +89,16 @@ namespace LvqGui {
 					from classColor in dataset.ClassColors//.Select((color,index)=>new{color,index})
 					let darkColor = Color.FromScRgb(1.0f, classColor.ScR * colorIntensity, classColor.ScG * colorIntensity, classColor.ScB * colorIntensity)
 					select Plot.Create(
-						new PlotMetaData { RenderColor = darkColor, ZIndex = zIndex ?? 0 },
-						new VizPixelScatterSmart { CoverageRatio = 0.95, OverridePointCountEstimate = PointCount ?? dataset.PointCount(0), CoverageGradient = 5.0 }).Visualisation
+						new PlotMetaData {
+							RenderColor = darkColor,
+							ZIndex = zIndex ?? 0,
+							OverrideMargin = new Thickness(0),
+						},
+						new VizPixelScatterSmart {
+							CoverageRatio = 0.95,
+							OverridePointCountEstimate = PointCount ?? dataset.PointCount(0),
+							CoverageGradient = 5.0,
+						}).Visualisation
 				).ToArray();
 		}
 

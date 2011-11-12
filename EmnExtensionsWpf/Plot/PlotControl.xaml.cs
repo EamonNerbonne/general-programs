@@ -46,8 +46,8 @@ namespace EmnExtensions.Wpf.Plot {
 				AlignmentY = AlignmentY.Top,
 			};
 			drawingUi = new PlainDrawing(dg);
-			plotArea.Background = bgBrush;
-			//manualRender = true;
+			//plotArea.Background = bgBrush;
+			manualRender = true;
 		}
 
 		public bool ShowAxes { get { return (bool)GetValue(ShowAxesProperty); } set { SetValue(ShowAxesProperty, value); } }
@@ -128,10 +128,12 @@ namespace EmnExtensions.Wpf.Plot {
 				switch (graphChange) {
 					case GraphChange.Drawing:
 						needRedrawGraphs = true;
+						InvalidateMeasure();
 						InvalidateVisual();
 						break;
 					case GraphChange.Projection:
 						InvalidateMeasure();
+						InvalidateVisual();
 						break;
 					case GraphChange.Labels:
 						RequireRedisplay();
@@ -271,6 +273,7 @@ namespace EmnExtensions.Wpf.Plot {
 					graph.Visualisation.SetTransform(Matrix.Identity, Rect.Empty, m_dpiX, m_dpiY);
 				}
 			}
+
 			Rect axisBounds = Axes.Aggregate(Rect.Empty, (bound, axis) => Rect.Union(bound, new Rect(axis.RenderSize)));
 			foreach (var axis in Axes)
 				axis.SetGridLineExtent(axisBounds.Size);
@@ -334,11 +337,11 @@ namespace EmnExtensions.Wpf.Plot {
 
 		void PrintToStream(Stream writeTo) {
 			try {
-				manualRender = true;
+				//manualRender = true;
 				m_dpiX = 288.0; m_dpiY = 288.0;
 				WpfTools.PrintXPS(this, 350, 350, writeTo, FileMode.Create, FileAccess.ReadWrite);
 			} finally {
-				manualRender = false;
+				//manualRender = false;
 				m_dpiX = 96.0; m_dpiY = 96.0;
 				RequireRedisplay();
 			}

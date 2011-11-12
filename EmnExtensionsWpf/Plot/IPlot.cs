@@ -22,6 +22,7 @@ namespace EmnExtensions.Wpf.Plot {
 		void TriggerChange(GraphChange changeType);
 
 		Rect? OverrideBounds { get; }
+		Thickness? OverrideMargin { get; }
 		Rect? MinimalBounds { get; }
 
 		Color? RenderColor { get; set; }
