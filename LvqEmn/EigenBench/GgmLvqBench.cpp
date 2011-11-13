@@ -19,6 +19,7 @@
 
 
 #ifdef _MSC_VER
+#pragma warning (disable: 4714)
 #pragma warning( push, 3 )
 #pragma warning (disable: 4242)
 #endif
@@ -335,12 +336,44 @@ class GgmLvqModel
 
 	Matrix_P P;
 
-	
-	protoList prototype;
+	Matrix_NN prototypes;
+	Matrix_P P_prototypes;
+	mutable Matrix_P vDelta;
+	VectorXi prototype_labels;
+	Vector_N bias;
+	mutable Vector_N accum;
+	//protoList prototype;
+
+	vector<Matrix_P> B_transposed_by_rows;
 
 	//we will preallocate a few temp vectors to reduce malloc/free overhead.
 	Vector_N m_vJ, m_vK;
 	Matrix_P m_PpseudoinvT;
+
+	EIGEN_STRONG_INLINE void ComputePP() {
+		P_prototypes.noalias() = P * prototypes;
+	}
+
+	EIGEN_STRONG_INLINE Matrix_LL GetB(ptrdiff_t i) {
+		Matrix_LL B(LVQDIM,LVQDIM);
+		for(ptrdiff_t row =0; row<LVQDIM;row++) {
+			B.row(row).noalias() = B_transposed_by_rows[row].col(i).transpose();
+		}
+		return B;
+	}
+	EIGEN_STRONG_INLINE void SetB(ptrdiff_t i, Matrix_LL B) {
+		for(ptrdiff_t row =0; row<LVQDIM;row++) {
+			B_transposed_by_rows[row].col(i).noalias() = B.row(row).transpose();
+		}
+		bias(i) = - log(sqr(B.determinant()));
+	}
+
+	EIGEN_STRONG_INLINE void RecomputeBias(ptrdiff_t i) {
+		Matrix_LL B(GetB(i));
+		bias(i) = - log(sqr(B.determinant()));
+		assert(bias(i)==bias(i));//notnan
+	}
+
 
 	LVQFLOAT stepLearningRate() { //starts at 1.0, descending with power -0.75
 		LVQFLOAT scaledIter = trainIter*iterationScaleFactor+(LVQFLOAT)1.0;
@@ -352,6 +385,13 @@ public:
 		: trainIter(0)
 		, epochsTrained(0)
 		, classCount(classCount)
+		, prototypes(points.rows(),classCount*protosPerClass)
+		, P_prototypes(LVQDIM,classCount*protosPerClass)
+		, vDelta(LVQDIM,classCount*protosPerClass)
+		, prototype_labels(classCount*protosPerClass)
+		, bias(classCount*protosPerClass)
+		, accum(classCount*protosPerClass)
+		, B_transposed_by_rows(LVQDIM)
 		, m_vJ(points.rows())
 		, m_vK(points.rows())
 		, m_PpseudoinvT(LVQDIM,points.rows())
@@ -362,15 +402,20 @@ public:
 		normalizeProjection(P);
 
 		auto protos = InitByClassMeans(classCount,protosPerClass,points,labels);
-		Matrix_NN prototypes = get<0>(protos);
-		VectorXi protoLabels = get<1>(protos);
+		prototypes = get<0>(protos);
+		prototype_labels = get<1>(protos);
 
 		Matrix_LL initB = 	normalizingB(CovarianceL(P * points));
-
-		prototype.resize((size_t)protoLabels.size());
-		for(ptrdiff_t protoIndex=0; protoIndex < protoLabels.size(); ++protoIndex) {
-			prototype[(size_t)protoIndex] = 	GgmLvqPrototype(protoLabels(protoIndex), prototypes.col(protoIndex), P, initB);
+		for(ptrdiff_t row =0; row<LVQDIM;row++) {
+			B_transposed_by_rows[row] = Matrix_P(LVQDIM,prototypes.cols());
+			B_transposed_by_rows[row].colwise() = initB.row(row).transpose();
 		}
+
+		for(ptrdiff_t protoIndex=0; protoIndex < prototype_labels.size(); ++protoIndex) {
+			RecomputeBias(protoIndex);
+		}
+
+		ComputePP();
 	}
 
 	void ClassBoundaryDiagram(LVQFLOAT x0, LVQFLOAT x1, LVQFLOAT y0, LVQFLOAT y1, ClassDiagramT & classDiagram) const {
@@ -382,18 +427,19 @@ public:
 		LVQFLOAT yBase = y0+yDelta*(LVQFLOAT)0.5;
 		typedef Matrix<LVQFLOAT,2,1> Vector_2;
 
-		Matrix_LN B_diff_x0_y(LVQDIM,prototype.size()) //Contains B_i * (testPoint[x, y0] - P*proto_i)  for all proto's i
+		Matrix_LN B_diff_x0_y(LVQDIM,prototype_labels.size()) //Contains B_i * (testPoint[x, y0] - P*proto_i)  for all proto's i
 																									//will update to include changes to X.
-		, B_xDelta(LVQDIM,prototype.size())//Contains B_i * (xDelta, 0)  for all proto's i
-		, B_yDelta(LVQDIM,prototype.size());//Contains B_i * (0 , yDelta)  for all proto's i
-		Vector_N pBias((ptrdiff_t)prototype.size());//Contains prototype[i].bias for all proto's i
+		, B_xDelta(LVQDIM,prototype_labels.size())//Contains B_i * (xDelta, 0)  for all proto's i
+		, B_yDelta(LVQDIM,prototype_labels.size());//Contains B_i * (0 , yDelta)  for all proto's i
 
-		for(ptrdiff_t pi=0; pi < (ptrdiff_t)prototype.size(); ++pi) {
-			auto & current_proto = prototype[(size_t)pi];
-			B_diff_x0_y.col(pi).noalias() = current_proto.B.leftCols<2>() * (Vector_2(xBase,yBase) -current_proto.P_point.topRows<2>() );
-			B_xDelta.col(pi).noalias() = current_proto.B.leftCols<2>() * Vector_2(xDelta,0.0);
-			B_yDelta.col(pi).noalias() = current_proto.B.leftCols<2>() * Vector_2(0.0,yDelta);
-			pBias(pi) = current_proto.bias;
+		for(ptrdiff_t pi=0; pi < (ptrdiff_t)prototype_labels.size(); ++pi) {
+			Matrix_LN smallB(LVQDIM, 2);
+			for(ptrdiff_t row =0; row<LVQDIM;row++) {
+				smallB.row(row) = B_transposed_by_rows[row].col(pi).transpose().leftCols<2>();
+			}
+			B_diff_x0_y.col(pi).noalias() = smallB* (Vector_2(xBase,yBase) - P_prototypes.col(pi).topRows<2>() );
+			B_xDelta.col(pi).noalias() = smallB * Vector_2(xDelta,0.0);
+			B_yDelta.col(pi).noalias() = smallB * Vector_2(0.0,yDelta);
 		}
 
 		for(int yRow=0; yRow < rows; yRow++) {
@@ -401,8 +447,8 @@ public:
 			for(int xCol=0; xCol < cols; xCol++) {
 				// x = xBase + xCol * xDelta;  y = yBase + yCol * yDelta;
 				Matrix_NN::Index bestProtoI;
-				(B_diff_x_y.colwise().squaredNorm() + pBias.transpose()).minCoeff(&bestProtoI);
-				classDiagram(yRow, xCol) =(unsigned char) prototype[(size_t)bestProtoI].classLabel;
+				(B_diff_x_y.colwise().squaredNorm() + bias.transpose()).minCoeff(&bestProtoI);
+				classDiagram(yRow, xCol) =(unsigned char) prototype_labels((ptrdiff_t)bestProtoI);
 
 				B_diff_x_y.noalias() += B_xDelta;
 			}
@@ -411,16 +457,22 @@ public:
 	}
 
 
-	inline LVQFLOAT SqrDistanceTo(size_t protoIndex, Vector_L const & P_otherPoint) const { return prototype[protoIndex].SqrDistanceTo(P_otherPoint); }
+	//inline LVQFLOAT SqrDistanceTo(size_t protoIndex, Vector_L const & P_otherPoint) const { return P_prototypes.col(protoIndex).SqrDistanceTo(P_otherPoint); }
 
 	//end for templates
 
 	EIGEN_STRONG_INLINE GoodBadMatch findMatches(Vector_L const & trainPoint, int trainLabel) const {
 		GoodBadMatch match;
 		assert(trainPoint.sum() == trainPoint.sum());//no NaN
-		for(size_t i=0;i < prototype.size();i++) {
-			LVQFLOAT curDist = SqrDistanceTo(i, trainPoint);
-			if(prototype[i].classLabel == trainLabel) {
+		vDelta.noalias() =  P_prototypes.colwise() - trainPoint;
+		accum.noalias() = bias + (B_transposed_by_rows[0].array() * vDelta.array()).colwise().sum().square().transpose().matrix();
+		for(ptrdiff_t i=1;i<LVQDIM;i++) {
+			accum.noalias() += (B_transposed_by_rows[i].array() * vDelta.array()).colwise().sum().square().transpose().matrix();
+		}
+
+		for(ptrdiff_t i=0;i < prototypes.cols();i++) {
+			LVQFLOAT curDist = accum(i);
+			if(prototype_labels(i) == trainLabel) {
 				if(curDist < match.distGood) {
 					match.matchGood = (int)i;
 					match.distGood = curDist;
@@ -438,7 +490,6 @@ public:
 	MatchQuality ComputeMatches(Vector_N const & unknownPoint, int pointLabel) const { return this->findMatches(P * unknownPoint, pointLabel).GgmQuality(); }
 	MatchQuality learnFrom(Vector_N const & trainPoint, int trainLabel) {
 		using namespace std;
-		const size_t protoCount = prototype.size();
 		LVQFLOAT learningRate = stepLearningRate();
 
 
@@ -454,50 +505,49 @@ public:
 		GoodBadMatch matches = findMatches(P_trainPoint, trainLabel);
 
 		//now matches.good is "J" and matches.bad is "K".
-		GgmLvqPrototype &J = prototype[(size_t)matches.matchGood];
-		GgmLvqPrototype &K = prototype[(size_t)matches.matchBad];
+		ptrdiff_t Ji = matches.matchGood;
+		ptrdiff_t Ki = matches.matchBad;
 		MatchQuality ggmQuality = matches.GgmQuality();
 		LVQFLOAT muJ2 = 2*ggmQuality.mu;
 		LVQFLOAT muK2 = -muJ2;
+
+		Matrix_LL BJ= GetB(Ji),
+			BK = GetB(Ki);
 		
 		MVectorXd vJ(m_vJ.data(),m_vJ.size());
 		MVectorXd vK(m_vK.data(),m_vK.size());
 
-		Vector_L P_vJ= J.P_point - P_trainPoint;
-		Vector_L P_vK = K.P_point - P_trainPoint;
-		Vector_L muJ2_Bj_P_vJ = muJ2 *  (J.B * P_vJ) ;
-		Vector_L muK2_Bk_P_vK = muK2 *  (K.B * P_vK) ;
-		vJ = J.point - trainPoint;
-		vK = K.point - trainPoint;
-		Vector_L muJ2_BjT_Bj_P_vJ =  J.B.transpose() * muJ2_Bj_P_vJ ;
-		Vector_L muK2_BkT_Bk_P_vK = K.B.transpose() * muK2_Bk_P_vK ;
+		Vector_L P_vJ= P_prototypes.col(Ji) - P_trainPoint;
+		Vector_L P_vK = P_prototypes.col(Ki) - P_trainPoint;
+		Vector_L muJ2_Bj_P_vJ = muJ2 *  (BJ * P_vJ) ;
+		Vector_L muK2_Bk_P_vK = muK2 *  (BK * P_vK) ;
+		vJ = prototypes.col(Ji) - trainPoint;
+		vK = prototypes.col(Ki) - trainPoint;
+		Vector_L muJ2_BjT_Bj_P_vJ =  BJ.transpose() * muJ2_Bj_P_vJ ;
+		Vector_L muK2_BkT_Bk_P_vK = BK.transpose() * muK2_Bk_P_vK ;
 
-		Matrix_LL neg_muJ2_JBinvT = -muJ2* J.B.inverse().transpose();
-		Matrix_LL neg_muK2_KBinvT = -muK2* K.B.inverse().transpose();
+		Matrix_LL neg_muJ2_JBinvT = -muJ2* BJ.inverse().transpose();
+		Matrix_LL neg_muK2_KBinvT = -muK2* BK.inverse().transpose();
 
-		J.B.noalias() += lr_B * (muJ2_Bj_P_vJ * P_vJ.transpose() + neg_muJ2_JBinvT );
-		K.B.noalias() += (lr_bad*lr_B) * (muK2_Bk_P_vK * P_vK.transpose() + neg_muK2_KBinvT) ;
-		J.RecomputeBias();
-		K.RecomputeBias();
+		BJ.noalias() += lr_B * (muJ2_Bj_P_vJ * P_vJ.transpose() + neg_muJ2_JBinvT );
+		BK.noalias() += (lr_bad*lr_B) * (muK2_Bk_P_vK * P_vK.transpose() + neg_muK2_KBinvT) ;
+		SetB(Ji,BJ);
+		SetB(Ki,BK);
 
-		J.point.noalias() += P.transpose()* (lr_point * muJ2_BjT_Bj_P_vJ);
-		K.point.noalias() += P.transpose() * (lr_bad * lr_point * muK2_BkT_Bk_P_vK) ;
+		prototypes.col(Ji).noalias() += P.transpose()* (lr_point * muJ2_BjT_Bj_P_vJ);
+		prototypes.col(Ki).noalias() += P.transpose() * (lr_bad * lr_point * muK2_BkT_Bk_P_vK) ;
 
 
 		P.noalias() += (lr_P * muK2_BkT_Bk_P_vK) * vK.transpose() + (lr_P * muJ2_BjT_Bj_P_vJ) * vJ.transpose();
 		normalizeProjection(P);
 
-		for(size_t i=0;i < protoCount;++i)
-			prototype[i].ComputePP(P);
+		ComputePP();
 		
 		return ggmQuality;
 	}
 
-	Matrix_LN GetProjectedPrototypes() const {
-		Matrix_LN retval(P.rows(), static_cast<int>(prototype.size()));
-		for(unsigned i=0;i<prototype.size();++i)
-			retval.col(i) = prototype[i].projectedPosition();
-		return retval;
+	Matrix_LN const & GetProjectedPrototypes() const {
+		return P_prototypes;
 	}
 
 	vector<int> GetPrototypeLabels() const;
