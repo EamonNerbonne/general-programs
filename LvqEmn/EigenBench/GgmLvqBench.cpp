@@ -164,53 +164,6 @@ struct GoodBadMatch {
 	}
 };
 
-
-class GgmLvqPrototype
-{
-	friend class GgmLvqModel;
-	Matrix_LL B;
-	Vector_L P_point;
-
-	int classLabel; //only set during initialization.
-	Vector_N point;
-	LVQFLOAT bias;//-ln(det(B)^2)
-
-	EIGEN_STRONG_INLINE void ComputePP(Matrix_P const & P) {
-		P_point.noalias() = P * point;
-	}
-
-	EIGEN_STRONG_INLINE void RecomputeBias() {
-		bias = - log(sqr(B.determinant()));
-		assert(bias==bias);//notnan
-	}
-
-public:
-	inline Vector_L const & projectedPosition() const{return P_point;}
-
-	GgmLvqPrototype() : classLabel(-1) {}
-
-	GgmLvqPrototype(int protoLabel, Vector_N const & initialVal, Matrix_P const & P, Matrix_LL const & scaleB) 
-		: B(scaleB)
-		, P_point(P*initialVal)
-		, classLabel(protoLabel)
-		, point(initialVal) 
-		, bias(0.0)
-	{
-		RecomputeBias();
-	}
-
-	inline LVQFLOAT SqrDistanceTo(Vector_L const & P_testPoint) const {
-		Vector_L P_Diff = P_testPoint - P_point;
-		return (B * P_Diff).squaredNorm() + bias;//waslazy
-	}
-#ifndef LVQDYNAMIC
-	EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-#endif
-};
-
-
-typedef vector<GgmLvqPrototype, aligned_allocator<GgmLvqPrototype> > protoList;
-
 template <typename T> EIGEN_STRONG_INLINE static LVQFLOAT projectionSquareNorm(T const & projectionMatrix) {
 	return (projectionMatrix.transpose() * projectionMatrix).diagonal().sum();
 }
