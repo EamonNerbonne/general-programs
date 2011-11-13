@@ -12,9 +12,8 @@ namespace LvqLibCli {
 	using boost::mt19937;
 
 
-	LvqDatasetCli ^ LvqDatasetCli::ConstructFromArray(String^ label, int folds, bool extend, bool normalizeDims,bool normalizeByScaling, ColorArray^ colors, unsigned rngInstSeed, array<LvqFloat,2>^ points,
-		array<int>^ pointLabels, int classCount) {
-
+	LvqDatasetCli ^ LvqDatasetCli::ConstructFromArray(String^ label, int folds, bool extend, bool normalizeDims,bool normalizeByScaling, ColorArray^ colors, unsigned rngInstSeed, 
+		array<LvqFloat,2>^ points, array<int>^ pointLabels, int classCount) {
 			vector<int> cppLabels;
 			Matrix_NN cppPoints;
 			cliToCpp(points,cppPoints);
@@ -59,14 +58,16 @@ namespace LvqLibCli {
 		datashape = GetShapes(datasets);
 		
 
-		TestSet = gcnew LvqDatasetCli(nullptr, colors,testDatasets);
+		testSet = gcnew LvqDatasetCli(nullptr, colors,testDatasets,nullptr);
 	}
 
-	LvqDatasetCli::LvqDatasetCli(String^label, ColorArray^ colors, array<GcManualPtr<LvqDataset>^ >^ newDatasets) 
+	LvqDatasetCli::LvqDatasetCli(String^label, ColorArray^ colors, array<GcManualPtr<LvqDataset>^ >^ newDatasets, array<GcManualPtr<LvqDataset>^ >^ newTestDatasets) 
 		: colors(colors)
 		, label(label)
 		, datasets(newDatasets)
+		, testSet(newTestDatasets==nullptr?nullptr:gcnew LvqDatasetCli(nullptr,colors,newTestDatasets,nullptr))
 	{
+		if(newTestDatasets!=nullptr && newDatasets->Length!=newTestDatasets->Length) throw gcnew ArgumentException("newTestDatasets","test datasets must have the same number of folds as the training datasets");
 		datashape = GetShapes(datasets);
 	}
 
@@ -119,10 +120,7 @@ namespace LvqLibCli {
 			newDatasetsTest[i] = newDatasetComputer[i]->newDatasetTask->Result->Item2;
 		}
 		DataShape shape=GetDataShape(newDatasets[0]->get());
-		auto retval = gcnew LvqDatasetCli(RegexConsts::dimcountregex->Replace(label,"$0X"+shape.dimCount,1), colors, newDatasets);
-		retval->TestSet = gcnew LvqDatasetCli(TestSet->label==nullptr?nullptr: RegexConsts::dimcountregex->Replace(TestSet->label,"$0X"+shape.dimCount,1), colors, newDatasetsTest);
-		
-		return retval;
+		return gcnew LvqDatasetCli(RegexConsts::dimcountregex->Replace(label,"$0X"+shape.dimCount,1), colors, newDatasets,newDatasetsTest);
 	}
 	using namespace System::Threading::Tasks;
 	ref class NnErrComputer {

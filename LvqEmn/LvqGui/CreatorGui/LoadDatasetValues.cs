@@ -64,8 +64,7 @@ namespace LvqGui {
 					if (trainFile == null || testFile == null)
 						return null;
 					try {
-						var dataset = LoadDataset(trainFile, seed, folds, testFile.Name);
-						dataset.TestSet = LoadDataset(testFile, seed, folds);
+						var dataset = LoadDataset(trainFile, seed, folds, testFile);
 						return dataset;
 					} catch (FileFormatException fe) {
 						Console.WriteLine("Can't load file: {0}", fe);
@@ -75,8 +74,8 @@ namespace LvqGui {
 			} else return null;
 		}
 
-		LvqDatasetCli LoadDataset(FileInfo dataFile, uint seed, int folds, string testFile = null) {
-			return LoadDatasetImpl.LoadData(dataFile, new LoadedDatasetSettings { TestFilename = testFile, ExtendDataByCorrelation = owner.ExtendDataByCorrelation, NormalizeDimensions = owner.NormalizeDimensions, NormalizeByScaling=owner.NormalizeByScaling, InstanceSeed = seed, Folds = folds });
+		LvqDatasetCli LoadDataset(FileInfo dataFile, uint seed, int folds, FileInfo testFile = null) {
+			return LoadDatasetImpl.LoadData(dataFile, testFile, new LoadedDatasetSettings { TestFilename = testFile==null?null:testFile.Name, ExtendDataByCorrelation = owner.ExtendDataByCorrelation, NormalizeDimensions = owner.NormalizeDimensions, NormalizeByScaling=owner.NormalizeByScaling, InstanceSeed = seed, Folds = folds });
 		}
 
 		public void ConfirmCreation() {

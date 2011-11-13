@@ -47,8 +47,7 @@ namespace LvqGui {
 			if (trainFile == null) return null;
 			var testFile = TestFilename == null ? null : LoadDatasetImpl.dataDir.GetFiles(TestFilename).FirstOrDefault();
 			if (testFile == null && TestFilename != null) return null;
-			var trainSet = LoadDatasetImpl.LoadData(trainFile, this);
-			trainSet.TestSet = testFile == null ? null : LoadDatasetImpl.LoadData(testFile, this);
+			var trainSet = LoadDatasetImpl.LoadData(trainFile,testFile, this);
 			return trainSet;
 		}
 	}
@@ -59,7 +58,7 @@ namespace LvqGui {
 
 		public static LvqDatasetCli Load(int folds, string name, uint rngInst) {
 			var dataFile = dataDir.GetFiles(name).FirstOrDefault();
-			return LoadData(dataFile, new LoadedDatasetSettings { InstanceSeed = rngInst, Folds = folds });
+			return LoadData(dataFile,null, new LoadedDatasetSettings { InstanceSeed = rngInst, Folds = folds });
 		}
 
 
@@ -88,22 +87,24 @@ namespace LvqGui {
 
 
 
-		public static LvqDatasetCli LoadData(FileInfo dataFile, LoadedDatasetSettings settings) {
+		public static LvqDatasetCli LoadData(FileInfo dataFile, FileInfo testFile, LoadedDatasetSettings settings) {
 			settings = settings.Clone();
 			settings.Filename = dataFile.Name;
 			if (settings.Folds != 0 && settings.TestFilename != null)
 				throw new ArgumentException("Cannot use n-fold crossvalidation and a separate test-set simultaneously");
 
 
-			var labelFile = new FileInfo(dataFile.Directory + @"\" + dataFile.Name.Replace(".data",".label" ));
-			var pointclouds = labelFile.Exists ? LoadDatasetHelper(dataFile, labelFile) : LoadDatasetHelper(dataFile);
-			var pointArray = pointclouds.Item1;
-			int[] labelArray = pointclouds.Item2;
+			var trainingdata = LoadRawData(dataFile);
+			//var testdata = testFile == null ? null : LoadRawData(testFile);
+			if (testFile != null)
+				throw new NotImplementedException("This still needs to be implemented");
+			var pointArray = trainingdata.Item1;
+			int[] labelArray = trainingdata.Item2;
 			long colorSeedLong = labelArray.Select((label, i) => label * (long)(i + 1)).Sum();
 			int colorSeed = (int)(colorSeedLong + (colorSeedLong >> 32));
 
 			settings.DimCount = pointArray.GetLength(1);
-			settings.ClassCount = pointclouds.Item3;
+			settings.ClassCount = trainingdata.Item3;
 			settings.PointCount = pointArray.GetLength(0);
 
 
@@ -117,7 +118,15 @@ namespace LvqGui {
 				colors: WpfTools.MakeDistributedColors(settings.ClassCount, new MersenneTwister(colorSeed)),
 				points: pointArray,
 				pointLabels: labelArray,
+				//testPoints: testdata==null?null:testdata.Item1,
+				//testLabels: testdata == null ? null : testdata.Item2,
 				classCount: settings.ClassCount);
+		}
+
+		private static Tuple<double[,], int[], int> LoadRawData(FileInfo dataFile)
+		{
+			var labelFile = new FileInfo(dataFile.Directory + @"\" + dataFile.Name.Replace(".data",".label" ));
+			return labelFile.Exists ? LoadDatasetHelper(dataFile, labelFile) : LoadDatasetHelper(dataFile);
 		}
 
 		public static int ReadInt32BigEndian(this BinaryReader reader) {

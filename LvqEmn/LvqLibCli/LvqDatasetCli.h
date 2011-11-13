@@ -16,10 +16,10 @@ namespace LvqLibCli {
 
 		String^ label;
 		LvqModelCli^ lastModel;
-		LvqDatasetCli ^testSet;
+		initonly LvqDatasetCli ^testSet;
 		ColorArray^ colors;
 		LvqDatasetCli(String^label, int folds, bool extend, bool normalizeDims,bool normalizeByScaling, ColorArray^ colors, LvqDataset * newDataset);
-		LvqDatasetCli(String^label, ColorArray^ colors, array<GcManualPtr<LvqDataset>^ >^ newDatasets);
+		LvqDatasetCli(String^label, ColorArray^ colors, array<GcManualPtr<LvqDataset>^ >^ newDatasets, array<GcManualPtr<LvqDataset>^ >^ newTestDatasets);
 		DataShape FoldShape(int fold) { return (*datashape->get())[fold]; }
 	public:
 		bool IsFolded() {return datasets->Length>1;}
@@ -27,16 +27,16 @@ namespace LvqLibCli {
 		bool HasTestSet() {return testSet != nullptr;}
 		int PointCount(int fold);
 		LvqDataset const * GetTrainingDataset(int fold) {return *(datasets[fold%datasets->Length]);}
-		LvqDataset const * GetTestDataset(int fold) {return (testSet==nullptr?this:testSet)->GetTrainingDataset(fold);} 
+		LvqDataset const * GetTestDataset(int fold) {return testSet==nullptr?nullptr:testSet->GetTrainingDataset(fold);} 
 		array<int>^ ClassLabels(int fold);
 		//array<LvqFloat,2>^ RawPoints();
-		property ColorArray^ ClassColors { ColorArray^ get(){return colors;} void set(ColorArray^ newcolors){colors=newcolors;}}
+		property ColorArray^ ClassColors { ColorArray^ get(){return colors;} void set(ColorArray^ newcolors){colors=newcolors;} }
 		property int ClassCount {int get();}
 		property int Dimensions {int get();}
 		property String^ DatasetLabel {String^ get(){return label;}}
-		property LvqModelCli^ LastModel { LvqModelCli^ get(){return lastModel;} void set(LvqModelCli^ newval){lastModel = newval;}}
+		property LvqModelCli^ LastModel { LvqModelCli^ get(){return lastModel;} void set(LvqModelCli^ newval){lastModel = newval;} }
 
-		property LvqDatasetCli^ TestSet { LvqDatasetCli^ get(){return testSet;} void set(LvqDatasetCli^ newval){testSet = newval;}}
+		property LvqDatasetCli^ TestSet { LvqDatasetCli^ get(){return testSet;} }
 
 		Tuple<double,double> ^ GetPcaNnErrorRate();
 

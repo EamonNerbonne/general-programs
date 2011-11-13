@@ -33,11 +33,12 @@ let createConfirmationDataset resultsName =
 
 let datasets = 
     TestLr.resultsDir.GetDirectories() 
-    |> Seq.map (fun dir -> (dir.Name, dir.Name |> createConfirmationDataset))
-    |> Seq.filter (fun (_,dataset) -> dataset.IsSome)
-    |> Seq.filter (fun (_,dataset) -> dataset.Value.TestSet = null)
-    |> Seq.map (fun (dirname,dataset) -> (dirname,dataset.Value))
-    |> Seq.toArray
+    |> Seq.toList
+    |> List.map (fun dir -> (dir.Name, dir.Name |> createConfirmationDataset))
+    |> List.filter (fun (_,dataset) -> dataset.IsSome)
+    |> List.filter (fun (_,dataset) -> dataset.Value.TestSet = null)
+    |> List.map (fun (dirname,dataset) -> (dirname,dataset.Value))
+    |> List.toArray
 
 let bestModelsForDataset (dirname:string, dataset:LvqDatasetCli) = 
     ResultParsing.loadAllResults dirname
