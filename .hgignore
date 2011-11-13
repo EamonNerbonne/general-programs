@@ -55,3 +55,4 @@ programs/LvqEmn/LvqGui.psess
 uni/Thesis/doc/G2M-heuristics.out
 uni/Thesis/doc/G2M-heuristics.toc
 *.synctex.gz
+programs/LvqEmn/EigenBench.psess
