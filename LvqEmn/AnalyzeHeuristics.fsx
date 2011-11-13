@@ -52,13 +52,41 @@ let heuristics =
                 let (on, off) = activator s.ModelSettings
                 ({ DataSettings = s.DataSettings; ModelSettings = on }, { DataSettings = s.DataSettings; ModelSettings = off }))
         }
-    [
-        heurM @"Initializing prototype positions by neural gas" "NGi" (fun s  -> 
+    let heurC a b =
+        {
+            Name = a.Name + ", " + b.Name;
+            Code = a.Code + " + "+ b.Code;
+            Activator = (fun s ->
+                let (onA,offA) = a.Activator s
+                let (on,_) = b.Activator onA
+                let (_,off) = b.Activator offA
+                (on,off)
+                )
+        }
+    let normHeur = heurD "Normalize each dimension" "normalize" "n"
+    let normSnotNheur =
+        heur "Scale features identically when normalizing" "S"
+            (fun s -> 
+                let on = normalizeDatatweaks (s.DataSettings.Replace("n","") + "S")
+                let off = normalizeDatatweaks (s.DataSettings.Replace("S","") + "n")
+
+                ({ DataSettings = on; ModelSettings = s.ModelSettings}, { DataSettings = off; ModelSettings = s.ModelSettings})
+            )
+    let NGiHeur = heurM @"Initializing prototype positions by neural gas" "NGi" (fun s  -> 
             let mutable on = s
             let mutable off = s
             on.NgInitializeProtos <- true
             off.NgInitializeProtos <- false
             (on,off))
+    let SlowK =         heurM @"Initially using a lower learning rate for incorrect prototypes" "SlowK" (fun s  -> 
+            let mutable on = s
+            let mutable off = s
+            on.SlowStartLrBad <- true
+            off.SlowStartLrBad <- false
+            (on, off))
+
+    [
+        NGiHeur
         heurM @"Using neural gas-like prototype updates" "NGu" (fun s  -> 
             let mutable on = s
             let mutable off = s
@@ -71,12 +99,7 @@ let heuristics =
             on.RandomInitialProjection <- false
             off.RandomInitialProjection <- true
             (on, off))
-        heurM @"Initially using a lower learning rate for incorrect prototypes" "SlowK" (fun s  -> 
-            let mutable on = s
-            let mutable off = s
-            on.SlowStartLrBad <- true
-            off.SlowStartLrBad <- false
-            (on, off))
+        SlowK
         heurM @"Using the gm-lvq update rule for prototype positions in g2m-lvq models" "wGMu" (fun s  -> 
             let mutable on = s
             let mutable off = s
@@ -155,7 +178,11 @@ let heuristics =
             off.NgUpdateProtos <- false
             (on, off))
             //*)
-        heurD "Normalize each dimension" "normalize" "n"
+        normHeur
+        normSnotNheur
+        heurC NGiHeur normHeur
+        heurC SlowK normHeur
+        normHeur |> heurC NGiHeur |> heurC SlowK
         heurD "Extend dataset by correlations" "extend" "x"
         //heurD "pre-normalized segmentation dataset (N)" "N"
     ]
@@ -221,6 +248,18 @@ let resultsByDatasetByModel =
                         | modelResArr -> failwith (sprintf "whoops: %A" modelResArr)
                     )
                 )
+
+//let allResults = resultsByDatasetByModel.Values |> Seq.collect (fun v-> v.Values) |> List.ofSeq
+//
+//let borkedResults = 
+//    allResults 
+//        |> List.filter
+//            (fun res ->
+//                res.Results |> Seq.forall (fun run -> run.TestError = run.TrainingError)
+//            )
+//    
+//for result in borkedResults do
+//    result.ModelStatFile.Delete()
 
 
 let countActiveHeuristics (mr:ResultAnalysis.ModelResults) =
