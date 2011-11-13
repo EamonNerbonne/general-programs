@@ -36,7 +36,6 @@ let datasets =
     |> Seq.toList
     |> List.map (fun dir -> (dir.Name, dir.Name |> createConfirmationDataset))
     |> List.filter (fun (_,dataset) -> dataset.IsSome)
-    |> List.filter (fun (_,dataset) -> dataset.Value.TestSet = null)
     |> List.map (fun (dirname,dataset) -> (dirname,dataset.Value))
     |> List.toArray
 
