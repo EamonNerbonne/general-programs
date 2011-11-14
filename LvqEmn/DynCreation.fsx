@@ -50,9 +50,10 @@ let shuffle seq =
 
 let iters = 100000000L
 
-for (dirname, dataset) in shuffle datasets do
-    Async.Parallel 
-        [ for (_, _, settings) in shuffle (bestModelsForDataset (dirname, dataset)) ->
+seq {
+    for (dirname, dataset) in (shuffle datasets) ->
+        [ 
+        for (_, _, settings) in shuffle (bestModelsForDataset (dirname, dataset)) ->
             async
                 {
                     if LvqMultiModel.AnnounceModelTrainingGeneration(dataset, settings, iters) then
@@ -60,8 +61,15 @@ for (dirname, dataset) in shuffle datasets do
                         let model = new LvqMultiModel(dataset, settings, false)
                         model.TrainUptoIters(float iters, dataset, CancellationToken.None)
                         model.SaveStats(dataset, iters)
+                        return true
                     else
                         printfn "Already done %s / %s" dataset.DatasetLabel (settings.ToShorthand())
+                        return false
                 }
         ]
-    |> Async.RunSynchronously |> ignore
+        |> Async.Parallel 
+        |> Async.RunSynchronously
+        |> Seq.exists id
+}
+//|> Seq.exists id
+|> Seq.iter ignore
