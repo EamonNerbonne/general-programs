@@ -84,28 +84,23 @@ let heuristics =
             on.SlowStartLrBad <- true
             off.SlowStartLrBad <- false
             (on, off))
-
-    [
-        normHeur
-        NGiHeur
-        heurM @"Using neural gas-like prototype updates" "NGu" (fun s  -> 
-            let mutable on = s
-            let mutable off = s
-            on.NgUpdateProtos <- true
-            off.NgUpdateProtos <- false
-            (on, off))
-        heurM @"Initializing $P$ by PCA" "Ppca" (fun s  -> 
+    let Ppca = heurM @"Initializing $P$ by PCA" "Ppca" (fun s  -> 
             let mutable on = s
             let mutable off = s
             on.RandomInitialProjection <- false
             off.RandomInitialProjection <- true
             (on, off))
+
+    [
+        normHeur
         SlowK
-        heurM @"Using the gm-lvq update rule for prototype positions in g2m-lvq models" "wGMu" (fun s  -> 
+        NGiHeur
+        Ppca
+        heurM @"Using neural gas-like prototype updates" "NGu" (fun s  -> 
             let mutable on = s
             let mutable off = s
-            on.UpdatePointsWithoutB <- true
-            off.UpdatePointsWithoutB <- false
+            on.NgUpdateProtos <- true
+            off.NgUpdateProtos <- false
             (on, off))
         heurM @"Optimizing $P$ initially by minimizing $\sqrt{d_J} - \sqrt{d_K}$" "Popt" (fun s  -> 
             let mutable on = s
@@ -119,6 +114,21 @@ let heuristics =
             on.BLocalInit <- true
             off.BLocalInit <- false
             (on, off))
+        heurM @"Using the gm-lvq update rule for prototype positions in g2m-lvq models" "wGMu" (fun s  -> 
+            let mutable on = s
+            let mutable off = s
+            on.UpdatePointsWithoutB <- true
+            off.UpdatePointsWithoutB <- false
+            (on, off))
+
+
+        normSnotNheur
+        heurC NGiHeur normHeur
+        heurC SlowK normHeur
+        heurC Ppca normHeur
+        normHeur |> heurC NGiHeur |> heurC SlowK
+        heurD "Extend dataset by correlations" "extend" "x"
+
         heurM @"Initializing prototype positions by neural gas and seting $B_i$ to the local covariance" "NGi+Bcov" (fun s  -> 
             let mutable on = s
             let mutable off = s
@@ -127,8 +137,7 @@ let heuristics =
             on.NgInitializeProtos <- true
             off.NgInitializeProtos <- false
             (on, off))
-        //(*
-        heurM @"Optimizing $P$, setting $B_i$ to the local covariance, and initially using a lower learning rate for incorrect prototypes" "NGi+Bcov+SlowK" (fun s  -> 
+        (*heurM @"Optimizing $P$, setting $B_i$ to the local covariance, and initially using a lower learning rate for incorrect prototypes" "NGi+Bcov+SlowK" (fun s  -> 
             let mutable on = s
             let mutable off = s
             on.BLocalInit <- true
@@ -137,7 +146,7 @@ let heuristics =
             off.NgInitializeProtos <- false
             on.SlowStartLrBad <- true
             off.SlowStartLrBad <- false
-            (on, off))
+            (on, off))*)
         heurM @"Neural gas prototype initialization followed by $P$ optimization" "NGi+Popt" (fun s  -> 
             let mutable on = s
             let mutable off = s
@@ -179,11 +188,6 @@ let heuristics =
             off.NgUpdateProtos <- false
             (on, off))
             //*)
-        normSnotNheur
-        heurC NGiHeur normHeur
-        heurC SlowK normHeur
-        normHeur |> heurC NGiHeur |> heurC SlowK
-        heurD "Extend dataset by correlations" "extend" "x"
         //heurD "pre-normalized segmentation dataset (N)" "N"
     ]
 
@@ -277,15 +281,17 @@ let allFilters =
     let singleOrAnythingFilters = [
         singleHeurFilter;
         ("all results", (fun (mr:ResultAnalysis.ModelResults) -> true));
+        ("1ppc, no other heuristics", (fun (mr:ResultAnalysis.ModelResults)  -> countActiveHeuristics mr = 0 && mr.ModelSettings.PrototypesPerClass = 1))
+        ("5ppc, no other heuristics", (fun (mr:ResultAnalysis.ModelResults)  -> countActiveHeuristics mr = 0 && mr.ModelSettings.PrototypesPerClass = 5))
         normOnlyFilter;
         ]
     let modelFilters = [
-        ("GGM 1", (fun (mr:ResultAnalysis.ModelResults) -> mr.ModelSettings.ModelType = LvqModelType.Ggm && mr.ModelSettings.PrototypesPerClass = 1));
+        ("GM 1", (fun (mr:ResultAnalysis.ModelResults) -> mr.ModelSettings.ModelType = LvqModelType.Gm && mr.ModelSettings.PrototypesPerClass = 1));
         ("G2M 1", (fun mr -> mr.ModelSettings.ModelType = LvqModelType.G2m && mr.ModelSettings.PrototypesPerClass = 1));
-        ("GM 1", (fun mr -> mr.ModelSettings.ModelType = LvqModelType.Gm && mr.ModelSettings.PrototypesPerClass = 1));
-        ("GGM,5", (fun mr -> mr.ModelSettings.ModelType = LvqModelType.Ggm && mr.ModelSettings.PrototypesPerClass = 5));
-        ("G2M 5", (fun mr -> mr.ModelSettings.ModelType = LvqModelType.G2m && mr.ModelSettings.PrototypesPerClass = 5));
+        ("GGM 1", (fun (mr:ResultAnalysis.ModelResults) -> mr.ModelSettings.ModelType = LvqModelType.Ggm && mr.ModelSettings.PrototypesPerClass = 1));
         ("GM 5", (fun mr -> mr.ModelSettings.ModelType = LvqModelType.Gm && mr.ModelSettings.PrototypesPerClass = 5));
+        ("G2M 5", (fun mr -> mr.ModelSettings.ModelType = LvqModelType.G2m && mr.ModelSettings.PrototypesPerClass = 5));
+        ("GGM,5", (fun mr -> mr.ModelSettings.ModelType = LvqModelType.Ggm && mr.ModelSettings.PrototypesPerClass = 5));
         ]
     let datasetFilters = 
         Seq.toList resultsByDatasetByModel.Keys
@@ -297,7 +303,7 @@ let allFilters =
 
     let perModelHeurFilters =
         [
-        for hFilt in [noFilter; singleHeurFilter;normFilter; normOnlyFilter;] do
+        for hFilt in [singleHeurFilter; normOnlyFilter; noFilter; normFilter;] do
             for mFilt in modelFilters do
                 yield comb mFilt hFilt
         ]
@@ -320,8 +326,8 @@ let allFilters =
     List.concat 
         [  
             singleOrAnythingFilters;
-            datasetAndNormedFilters;
             perModelHeurFilters;
+            datasetAndNormedFilters;
             heuristics |> List.map (fun heur ->  (heur.Code, getSettings >> isHeuristicApplied heur) );
             perModelDatasetFilters;
         ]
@@ -350,7 +356,9 @@ let uncurry f (x, y) = f x y
   tr { border-top: 1px solid #888;}
   tr.noborder {border-top:none;}
   th { background: #eee;  text-align:left; font-weight:normal; }
-  td { text-align:right;}
+  th:first-child { min-width:11em; }
+  td { text-align:right; padding:0 0.2em;}
+  td:first-child, td:first-child ~ td:nth-child(2n - 1), th:first-child ~ td:nth-child(2n) {  border-left:1px solid black;  }
   body { font-family: Calibri, Sans-serif; }
   .slightlybetter {background: rgba(96, 192, 255, 0.2);}
   .slightlyworse {background: rgba(255, 128, 128, 0.2);}
