@@ -90,7 +90,7 @@ let heuristics =
             on.RandomInitialProjection <- false
             off.RandomInitialProjection <- true
             (on, off))
-
+    let extend = heurD "Extend dataset by correlations" "extend" "x"
     [
         normHeur
         SlowK
@@ -127,15 +127,16 @@ let heuristics =
         heurC SlowK normHeur
         heurC Ppca normHeur
         normHeur |> heurC NGiHeur |> heurC SlowK
-        heurD "Extend dataset by correlations" "extend" "x"
-
-        heurM @"Initializing prototype positions by neural gas and seting $B_i$ to the local covariance" "NGi+Bcov" (fun s  -> 
+        extend
+        heurC extend normHeur
+        heurM @"Initializing prototype positions by neural gas and seting $B_i$ to the local covariance" "NGi?+Bcov" (fun s  -> 
             let mutable on = s
             let mutable off = s
             on.BLocalInit <- true
             off.BLocalInit <- false
-            on.NgInitializeProtos <- true
-            off.NgInitializeProtos <- false
+            if s.PrototypesPerClass > 1 then
+                on.NgInitializeProtos <- true
+                off.NgInitializeProtos <- false
             (on, off))
         (*heurM @"Optimizing $P$, setting $B_i$ to the local covariance, and initially using a lower learning rate for incorrect prototypes" "NGi+Bcov+SlowK" (fun s  -> 
             let mutable on = s
@@ -147,13 +148,14 @@ let heuristics =
             on.SlowStartLrBad <- true
             off.SlowStartLrBad <- false
             (on, off))*)
-        heurM @"Neural gas prototype initialization followed by $P$ optimization" "NGi+Popt" (fun s  -> 
+        heurM @"Neural gas prototype initialization followed by $P$ optimization" "NGi?+Popt" (fun s  -> 
             let mutable on = s
             let mutable off = s
-            on.NgInitializeProtos <- true
-            off.NgInitializeProtos <- false
             on.ProjOptimalInit <- true
             off.ProjOptimalInit <- false
+            if s.PrototypesPerClass > 1 then
+                on.NgInitializeProtos <- true
+                off.NgInitializeProtos <- false
             (on, off))
         heurM @"$P$ optimization and neural gas-like updates" "NGu+Popt" (fun s  -> 
             let mutable on = s
@@ -243,15 +245,33 @@ let optCompare datasetResults modelResults heuristic =
 
 let resultsByDatasetByModel =
     ResultAnalysis.analyzedModels () 
-        |> Utils.toDict (fun modelRes -> modelRes.DatasetBaseShorthand) 
-                (Utils.toDict 
-                    (fun modelRes -> (getSettings modelRes).Key) 
-                    (fun modelRess -> 
-                        match Seq.toArray modelRess with
-                        | [| modelRes |] -> modelRes
-                        | modelResArr -> failwith (sprintf "whoops: %A" modelResArr)
+        |> Seq.groupBy (fun modelRes -> modelRes.DatasetBaseShorthand) 
+        |> Seq.map (Utils.apply2nd List.ofSeq)
+        |> List.ofSeq
+        |> List.filter (snd >> (fun xs->List.length xs >85))
+        |> List.map
+                (Utils.apply2nd
+                    (Utils.toDict
+                        (fun modelRes -> (getSettings modelRes).Key) 
+                        (fun modelRess -> 
+                            match Seq.toArray modelRess with
+                            | [| modelRes |] -> modelRes
+                            | modelResArr -> failwith (sprintf "whoops: %A" modelResArr)
+                        )
                     )
                 )
+        |> dict
+            
+
+//        |> Utils.toDict (fun modelRes -> modelRes.DatasetBaseShorthand) 
+//                (Utils.toDict 
+//                    (fun modelRes -> (getSettings modelRes).Key) 
+//                    (fun modelRess -> 
+//                        match Seq.toArray modelRess with
+//                        | [| modelRes |] -> modelRes
+//                        | modelResArr -> failwith (sprintf "whoops: %A" modelResArr)
+//                    )
+//                )
 
 //let allResults = resultsByDatasetByModel.Values |> Seq.collect (fun v-> v.Values) |> List.ofSeq
 //
@@ -266,10 +286,13 @@ let resultsByDatasetByModel =
 //    result.ModelStatFile.Delete()
 
 
-let countActiveHeuristics (mr:ResultAnalysis.ModelResults) =
-    let ms = mr.ModelSettings
+let countActiveHeuristicsB (settings:HeuristicsSettings) =
+    let ms = settings.ModelSettings
     let modelHeurs = [ms.BLocalInit; ms.NgInitializeProtos;  ms.NgUpdateProtos; ms.ProjOptimalInit; not ms.RandomInitialProjection; ms.SlowStartLrBad;  ms.UpdatePointsWithoutB] |> List.filter id |> List.length
-    modelHeurs + mr.DatasetTweaks.Length
+    modelHeurs + settings.DataSettings.Length
+
+let countActiveHeuristics = getSettings >> countActiveHeuristicsB
+
 
 let allFilters = 
     let simplifyName (name:string) = if name.Contains("-") then name.Substring(0, name.IndexOf("-")) else name
@@ -278,12 +301,21 @@ let allFilters =
     let noFilter = ("", (fun (mr:ResultAnalysis.ModelResults) -> true))
 
     let singleHeurFilter = ("no other heuristics", (fun (mr:ResultAnalysis.ModelResults)  -> countActiveHeuristics mr = 0))
+    let onlyHeurFilter heur = 
+        ("only " + heur.Code, (fun (mr:ResultAnalysis.ModelResults) ->
+                let settings = getSettings mr
+                let (on,off) = heur.Activator settings
+                countActiveHeuristicsB off = 0 && on.Equiv settings
+            )
+        )
     let singleOrAnythingFilters = [
-        singleHeurFilter;
         ("all results", (fun (mr:ResultAnalysis.ModelResults) -> true));
+        singleHeurFilter;
         ("1ppc, no other heuristics", (fun (mr:ResultAnalysis.ModelResults)  -> countActiveHeuristics mr = 0 && mr.ModelSettings.PrototypesPerClass = 1))
         ("5ppc, no other heuristics", (fun (mr:ResultAnalysis.ModelResults)  -> countActiveHeuristics mr = 0 && mr.ModelSettings.PrototypesPerClass = 5))
         normOnlyFilter;
+        ("1ppc, normalization only", (fun (mr:ResultAnalysis.ModelResults)  -> mr.DatasetTweaks.Contains('n') && countActiveHeuristics mr = 1 && mr.ModelSettings.PrototypesPerClass = 1))
+        ("5ppc, normalization only", (fun (mr:ResultAnalysis.ModelResults)  -> mr.DatasetTweaks.Contains('n') && countActiveHeuristics mr = 1 && mr.ModelSettings.PrototypesPerClass = 5))
         ]
     let modelFilters = [
         ("GM 1", (fun (mr:ResultAnalysis.ModelResults) -> mr.ModelSettings.ModelType = LvqModelType.Gm && mr.ModelSettings.PrototypesPerClass = 1));
@@ -303,16 +335,15 @@ let allFilters =
 
     let perModelHeurFilters =
         [
-        for hFilt in [singleHeurFilter; normOnlyFilter; noFilter; normFilter;] do
+        for hFilt in [singleHeurFilter; normOnlyFilter; ] do
             for mFilt in modelFilters do
                 yield comb mFilt hFilt
         ]
     let datasetAndNormedFilters =
         [
-        for dFilt in datasetFilters do
-            yield dFilt
-            yield comb dFilt singleHeurFilter
-            yield comb dFilt normOnlyFilter
+        for hFilt in [noFilter; singleHeurFilter; normOnlyFilter;] do
+            for dFilt in datasetFilters do
+                yield comb dFilt hFilt
         ]
 
     let perModelDatasetFilters = 
@@ -329,6 +360,7 @@ let allFilters =
             perModelHeurFilters;
             datasetAndNormedFilters;
             heuristics |> List.map (fun heur ->  (heur.Code, getSettings >> isHeuristicApplied heur) );
+            heuristics |> List.filter (fun heur ->heur.Code <> "normalize" && heur.Code <> "extend" && heur.Code <> "S") |>List.map onlyHeurFilter;
             perModelDatasetFilters;
         ]
     
