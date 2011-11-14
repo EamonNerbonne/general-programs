@@ -86,6 +86,7 @@ let heuristics =
             (on, off))
 
     [
+        normHeur
         NGiHeur
         heurM @"Using neural gas-like prototype updates" "NGu" (fun s  -> 
             let mutable on = s
@@ -178,7 +179,6 @@ let heuristics =
             off.NgUpdateProtos <- false
             (on, off))
             //*)
-        normHeur
         normSnotNheur
         heurC NGiHeur normHeur
         heurC SlowK normHeur
@@ -411,8 +411,9 @@ let uncurry f (x, y) = f x y
 let constF x _ = x
 
 let latexCompareHeurs = 
-    let filterSelection = (fun (name:string,_) -> name.Contains("+") |> not)
-    let heurSelection = (fun heur -> heur.Code.Contains("+") |> not)
+    let subSetSelection (name:string) = not (name.Contains("+") || name = "S")
+    let filterSelection = fst>>subSetSelection
+    let heurSelection = (fun heur -> heur.Code) >> subSetSelection
 
     let heuristics = heuristics |> List.filter heurSelection
     let allFilters = allFilters |> List.filter filterSelection
