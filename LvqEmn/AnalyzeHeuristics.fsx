@@ -123,20 +123,22 @@ let heuristics =
 
 
         normSnotNheur
-        heurC NGiHeur normHeur
-        heurC SlowK normHeur
-        heurC Ppca normHeur
-        normHeur |> heurC NGiHeur |> heurC SlowK
+        heurC normHeur NGiHeur
+        heurC normHeur SlowK
+        heurC normHeur  Ppca
+        SlowK |> heurC NGiHeur |> heurC normHeur
+        Ppca |> heurC NGiHeur |> heurC normHeur
+        Ppca |> heurC SlowK |> heurC normHeur
+        Ppca |> heurC SlowK |> heurC NGiHeur |> heurC normHeur
         extend
         heurC extend normHeur
-        heurM @"Initializing prototype positions by neural gas and seting $B_i$ to the local covariance" "NGi?+Bcov" (fun s  -> 
+        heurM @"Initializing prototype positions by neural gas and seting $B_i$ to the local covariance" "NGi+Bcov" (fun s  -> 
             let mutable on = s
             let mutable off = s
             on.BLocalInit <- true
             off.BLocalInit <- false
-            if s.PrototypesPerClass > 1 then
-                on.NgInitializeProtos <- true
-                off.NgInitializeProtos <- false
+            on.NgInitializeProtos <- true
+            off.NgInitializeProtos <- false
             (on, off))
         (*heurM @"Optimizing $P$, setting $B_i$ to the local covariance, and initially using a lower learning rate for incorrect prototypes" "NGi+Bcov+SlowK" (fun s  -> 
             let mutable on = s
@@ -148,14 +150,13 @@ let heuristics =
             on.SlowStartLrBad <- true
             off.SlowStartLrBad <- false
             (on, off))*)
-        heurM @"Neural gas prototype initialization followed by $P$ optimization" "NGi?+Popt" (fun s  -> 
+        heurM @"Neural gas prototype initialization followed by $P$ optimization" "NGi+Popt" (fun s  -> 
             let mutable on = s
             let mutable off = s
             on.ProjOptimalInit <- true
             off.ProjOptimalInit <- false
-            if s.PrototypesPerClass > 1 then
-                on.NgInitializeProtos <- true
-                off.NgInitializeProtos <- false
+            on.NgInitializeProtos <- true
+            off.NgInitializeProtos <- false
             (on, off))
         heurM @"$P$ optimization and neural gas-like updates" "NGu+Popt" (fun s  -> 
             let mutable on = s
