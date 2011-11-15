@@ -298,16 +298,10 @@ using Eigen::Array2d;
 
 LvqDatasetStats LvqDataset::ComputeCostAndErrorRate(LvqModel const & model) const{
 	LvqDatasetStats stats;
-#ifdef DEBUGHELP
-	if(model->sentinal != initSentinal)		throw "Whoops!";
-#endif
 	Vector_N point;
 	for(int i=0;i<pointCount();++i) {
 		point = points.col(i);
 		MatchQuality matchQ = model.ComputeMatches(point, pointLabels(i));
-#ifdef DEBUGHELP
-		if(model->sentinal != initSentinal)		throw "Whoops!";
-#endif
 
 		stats.Add(matchQ);
 	}

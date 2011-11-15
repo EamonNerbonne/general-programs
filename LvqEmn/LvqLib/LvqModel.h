@@ -5,8 +5,6 @@
 #include "GoodBadMatch.h"
 #include "LvqModelSettings.h"
 
-//#define DEBUGHELP
-
 #ifdef _MSC_VER
 #pragma intrinsic(pow)
 #endif
@@ -14,14 +12,8 @@
 using namespace Eigen;
 struct LvqDataset;
 class LvqDatasetStats;
-#ifdef DEBUGHELP
-const size_t initSentinal = 0xdeadbeefdeadbeef;
-#endif
 struct LvqModel
 {
-#ifdef DEBUGHELP
-	size_t sentinal;
-#endif
 private:
 	double trainIter;
 	double totalIter;
@@ -72,9 +64,6 @@ public:
 	virtual MatchQuality learnFrom(Vector_N const & newPoint, int classLabel)=0;
 	virtual void DoOptionalNormalization()=0;
 	virtual ~LvqModel() { 
-#ifdef DEBUGHELP
-		sentinal = 0; 
-#endif
 	}
 	virtual LvqModel* clone() const=0;
 	virtual void CopyTo(LvqModel& target) const=0;
