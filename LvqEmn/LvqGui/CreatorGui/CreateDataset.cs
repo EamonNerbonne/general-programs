@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using System.Text.RegularExpressions;
 using LvqLibCli;
 
@@ -58,6 +59,15 @@ namespace LvqGui {
 			yield return CreateFactory(@"pendigits.combined.data-16D-10,10992");
 			yield return CreateFactory(@"segmentation_test.data-19D-7,2100");
 			yield return CreateFactory(@"optdigits.combined.data-64D-10,5620");
+		}
+
+		public static IEnumerable<IDatasetCreator> StandardAndNormalizedDatasets() {
+			foreach(var factory in StandardDatasets()){
+				var normalized = factory.Clone();
+				normalized.NormalizeDimensions = true;
+				yield return factory;
+				yield return normalized;
+			}
 		}
 
 

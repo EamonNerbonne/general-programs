@@ -72,6 +72,7 @@
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
                     <Label Grid.Row="0">Model Type</Label>
                     <ComboBox Grid.Row="0"  Grid.Column="1"  Name="modelType" SelectedIndex="1" ItemsSource="{Binding  RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type my:LvqWindow} }, Path=ModelTypes}"/>
@@ -84,8 +85,10 @@
                     <StackPanel Grid.Row="4" Grid.Column="1" HorizontalAlignment="Left"  Orientation="Horizontal">
                         <Button Click="LrSearch_Click">Lr Search</Button>
                         <Button Click="LrSearchAll_Click">Lr Search All Types</Button>
+                        <Button Click="LrSearchCore_Click">Lr Search Core datasets</Button>
                     </StackPanel>
-                    
+
+
                 </Grid>
             </TabItem>
         </TabControl>

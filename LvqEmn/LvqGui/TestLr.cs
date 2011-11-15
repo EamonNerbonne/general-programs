@@ -160,6 +160,7 @@ namespace LvqGui {
 				 //where relevanceCost <= 1 || relevanceCost <=2 && ngi && (bi || slowbad || pi || !rp)
 				 //where relevanceCost ==0 || relevanceCost==1 && (ngi||slowbad||!rp)
 				 where !bi && !pi && !ng && !NoB
+				 //where relevanceCost <=1
 				 let settings = new LvqModelSettingsCli {
 					 ModelType = modeltype,
 					 PrototypesPerClass = protoCount,

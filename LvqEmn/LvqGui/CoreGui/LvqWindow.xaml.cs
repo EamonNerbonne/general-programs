@@ -153,6 +153,20 @@ namespace LvqGui {
 				.ContinueWith(t => { Console.WriteLine("wheee!!!!"); t.Wait(); })
 				);
 		}
+		void LrSearchCore_Click(object sender, RoutedEventArgs e) {
+			Process.GetCurrentProcess().PriorityClass = ProcessPriorityClass.Idle;
+			ThreadPool.QueueUserWorkItem(_ =>{
+				
+				foreach(var datasetFactory in CreateDataset.StandardAndNormalizedDatasets()){
+					var dataset = datasetFactory.CreateDataset();
+					new TestLr(dataset).StartAllLrTesting(ClosingToken).Wait();
+					if (ClosingToken.IsCancellationRequested) return;
+					Console.WriteLine("Completed LR testing for " + dataset.DatasetLabel);
+				}
+				Console.WriteLine("All lr searching complete");
+			}
+			);
+		}
 
 		public Task SaveAllGraphs() {
 			var selectedModel = Values.TrainingControlValues.SelectedLvqModel;
@@ -185,5 +199,6 @@ namespace LvqGui {
 					Console.WriteLine("saved.");
 				});
 		}
+
 	}
 }
