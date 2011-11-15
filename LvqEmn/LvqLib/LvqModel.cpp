@@ -8,9 +8,6 @@ using namespace Eigen;
 
 LvqModel::LvqModel(LvqModelSettings & initSettings)
 	: 
-#ifdef DEBUGHELP
-sentinal(initSentinal),
-#endif
 	trainIter(0)
 	, totalIter(0)
 	, totalElapsed(0.0)
@@ -30,9 +27,6 @@ double LvqModel::RegisterEpochDone(int itersTrained, double elapsed, int epochs)
 }
 
 void LvqModel::AddTrainingStat(Statistics& statQueue, LvqDataset const * trainingSet, LvqDataset const * testSet) const {
-#ifdef DEBUGHELP
-	if(sentinal != initSentinal)		throw "Whoops!";
-#endif
 	LvqDatasetStats trainingstats;
 	if(trainingSet) 
 		trainingstats = trainingSet->ComputeCostAndErrorRate(*this);
@@ -61,15 +55,9 @@ void LvqModel::AddTrainingStat(Statistics& statQueue, LvqDataset const * trainin
 	stats.push_back(trainingstats.muJmax());
 	if(!this->IdenticalMu()) stats.push_back(trainingstats.muKmax());
 
-#ifdef DEBUGHELP
-	if(sentinal != initSentinal)		throw "Whoops!";
-#endif
 	this->AppendOtherStats(stats, trainingSet,testSet); 
 
 	statQueue.push(std::move(stats));
-#ifdef DEBUGHELP
-	if(sentinal != initSentinal)		throw "Whoops!";
-#endif
 }
 
 std::vector<std::wstring> LvqModel::TrainingStatNames() const {
