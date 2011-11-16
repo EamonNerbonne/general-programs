@@ -390,7 +390,7 @@ let uncurry f (x, y) = f x y
   tr.noborder {border-top:none;}
   th { background: #eee;  text-align:left; font-weight:normal; }
   th:first-child { min-width:11em; }
-  td { text-align:right; padding:0 0.2em;}
+  td { text-align:right; padding:0 0.2em; white-space:nowrap;}
   td:first-child, td:first-child ~ td:nth-child(2n - 1), th:first-child ~ td:nth-child(2n) {  border-left:1px solid black;  }
   body { font-family: Calibri, Sans-serif; }
   .slightlybetter {background: rgba(96, 192, 255, 0.2);}
@@ -422,10 +422,13 @@ let uncurry f (x, y) = f x y
                                 if better then "better" else "worse"
                         
                         let stringifyErrPatterns errs = 
+                            let count = errs |> snd |> List.length
+                            let (beforeTrnDistrib, beforeTstDistrib) = errs |> Utils.apply2 (List.map fst >> List.average >> (*) 100.)
+                            let (trnDistrib, tstDistrib) = errs |> Utils.apply2 (List.map snd >> List.average >> (*) 100.)
                             let errsChange = errs |> Utils.apply2 (List.map comparisonErrChange)
                             let (trnErrsChange, tstErrsChange) = errsChange |> Utils.apply2 List.average
                             let (trnErrsChangeP,tstErrsChangeP) = errsChange |> Utils.apply2 Utils.twoTailedOneSampleTtest
-                            sprintf @"<td class=""%s"">%.1f</td><td class=""%s"">%.1f</td>" (classifyP trnErrsChangeP) trnErrsChange (classifyP tstErrsChangeP) tstErrsChange
+                            sprintf @"<td class=""%s"">%.1f &rarr; %.1f<br/>[%i] %.1f</td><td class=""%s"">%.1f &rarr; %.1f<br/>[%i] %.1f</td>" (classifyP trnErrsChangeP)  beforeTrnDistrib trnDistrib count trnErrsChange (classifyP tstErrsChangeP) beforeTstDistrib tstDistrib count tstErrsChange
                         let allErrs = 
                             analysis 
                                 |> List.map (Utils.apply2 List.unzip) 
