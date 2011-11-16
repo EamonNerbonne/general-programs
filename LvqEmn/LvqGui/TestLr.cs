@@ -151,15 +151,16 @@ namespace LvqGui {
 				 from modeltype in ModelTypes
 				 from rp in new[] { true, false }
 				 from ngi in new[] { true, false }
+				 from slowbad in new[] { true, false }
 				 from NoB in new[] { true, false }
 				 from bi in new[] { true, false }
 				 from pi in new[] { true, false }
 				 from ng in new[] { true, false }
-				 from slowbad in new[] { true, false }
 				 let relevanceCost = new[] { !rp, ngi, bi, pi, ng, slowbad, NoB }.Count(b => b)
-				 //where relevanceCost <= 1 || relevanceCost <=2 && ngi && (bi || slowbad || pi || !rp)
 				 //where relevanceCost ==0 || relevanceCost==1 && (ngi||slowbad||!rp)
-				 where !bi && !pi && !ng && !NoB
+				 where relevanceCost <= 1 
+					|| relevanceCost <= 2 && ngi && (bi || slowbad || pi || !rp)
+					|| !bi && !pi && !ng && !NoB
 				 //where relevanceCost <=1
 				 let settings = new LvqModelSettingsCli {
 					 ModelType = modeltype,
