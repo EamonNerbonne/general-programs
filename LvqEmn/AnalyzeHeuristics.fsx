@@ -207,7 +207,7 @@ type Difference =
 
 
 let comparisonP  (baseErrs, heurErrs) = 
-    if List.length baseErrs >= 2 then
+    if List.length baseErrs >= 2 && baseErrs <> heurErrs then
         Utils.twoTailedPairedTtest heurErrs baseErrs
     else
         (false, 1.)
@@ -376,11 +376,14 @@ let analysisPairsGiven (filter:ResultAnalysis.ModelResults -> bool) (heur:Heuris
                     | Some(comparison) -> yield comparison
     }
 
+
+
 let analysisGiven filter heur = analysisPairsGiven filter heur |> Seq.map compare
 
 let getTrainingError (r:ResultAnalysis.Result) =  r.TrainingError
 let curry f x y = f (x, y)
 let uncurry f (x, y) = f x y
+let uncurry3 f (x, y, z) = f x y z
 
 @"<!DOCTYPE html>
 <html><head>
@@ -453,6 +456,23 @@ let uncurry f (x, y) = f x y
 |> (fun contents -> File.WriteAllText(EmnExtensions.Filesystem.FSUtil.FindDataDir(@"uni\Thesis\doc", System.Reflection.Assembly.GetAssembly(typeof<CreateDataset>)).FullName + @"\compare.html", contents))
 
 let constF x _ = x
+let classifyPtex (better, p) = 
+    let slightlybetterC = "0.875,0.95,1"
+    let betterC = "0.6875,0.875,1"
+    let muchbetterC = "0.5,0.8,1"
+    let slightlyworseC = "1,0.9,0.9"
+    let worseC = "1, 0.75, 0.75"
+    let muchworseC = "1, 0.6, 0.6"
+    let blankC = "1,1,1"
+    match (better, p) with
+    | (_, 1.) -> blankC
+    | (true, p) when p > 0.05 -> slightlybetterC
+    | (true, p) when p > 0.01 -> betterC
+    | (true, _) -> muchbetterC
+    | (false, p) when p > 0.05 -> slightlyworseC
+    | (false, p) when p > 0.01 -> worseC
+    | (false, _) -> muchworseC
+
 
 let latexCompareHeurs = 
     let subSetSelection (name:string) = not (name.Contains("+") || name = "S")
@@ -467,22 +487,6 @@ let latexCompareHeurs =
     let headerrow = (heuristics |> List.map (fun heur-> sprintf @"& \multicolumn{2}{c}{\multirow{2}{*}{%s}}" heur.Code) |> strconcat)
 
     let mainbody = 
-        let classifyP (better, p) = 
-            let slightlybetterC = "0.875,0.95,1"
-            let betterC = "0.6875,0.875,1"
-            let muchbetterC = "0.5,0.8,1"
-            let slightlyworseC = "1,0.9,0.9"
-            let worseC = "1, 0.75, 0.75"
-            let muchworseC = "1, 0.6, 0.6"
-            let blankC = "1,1,1"
-            match (better, p) with
-            | (_, 1.) -> blankC
-            | (true, p) when p > 0.05 -> slightlybetterC
-            | (true, p) when p > 0.01 -> betterC
-            | (true, _) -> muchbetterC
-            | (false, p) when p > 0.05 -> slightlyworseC
-            | (false, p) when p > 0.01 -> worseC
-            | (false, _) -> muchworseC
         let nicerFilters = allFilters |> List.map (Utils.apply1st (fun name -> name.Split([|" * "|], StringSplitOptions.None))) |> List.filter (fst >> (fun names->names.Length < 3))
         let rows = 
             [
@@ -506,7 +510,7 @@ let latexCompareHeurs =
                                     let errsChange = errs |> Utils.apply2 (List.map comparisonErrChange)
                                     let (trnErrsChange, tstErrsChange) = errsChange |> Utils.apply2 List.average
                                     let (trnErrsChangeP,tstErrsChangeP) = errsChange |> Utils.apply2 Utils.twoTailedOneSampleTtest
-                                    sprintf @"&\cellcolor[rgb]{%s}$%.1f$ &\cellcolor[rgb]{%s}$%.1f$" (classifyP trnErrsChangeP) trnErrsChange (classifyP tstErrsChangeP) tstErrsChange
+                                    sprintf @"&\cellcolor[rgb]{%s}$%.1f$ &\cellcolor[rgb]{%s}$%.1f$" (classifyPtex trnErrsChangeP) trnErrsChange (classifyPtex tstErrsChangeP) tstErrsChange
                                 let allErrs = 
                                     analysis 
                                         |> List.map (Utils.apply2 List.unzip) 
@@ -531,7 +535,92 @@ let latexCompareHeurs =
      " + mainbody + @"
      \bottomrule\end{longtable}"
 
-File.WriteAllText(EmnExtensions.Filesystem.FSUtil.FindDataDir(@"uni\Thesis\doc", System.Reflection.Assembly.GetAssembly(typeof<CreateDataset>)).FullName + @"\compare.tex", latexCompareHeurs)
+
+File.WriteAllText(EmnExtensions.Filesystem.FSUtil.FindDataDir(@"uni\Thesis\doc", System.Reflection.Assembly.GetAssembly(typeof<CreateDataset>)).FullName + @"\compare.tex", latexCompareHeurs )
+
+let analysisRawFor (scenarioSettings:HeuristicsSettings) (heur:Heuristic) = 
+    let (heurSettings,shouldBescenarioSettings) = heur.Activator scenarioSettings
+    [
+        if  heur.Code = "none" || (shouldBescenarioSettings.Equiv scenarioSettings && heurSettings.Equiv scenarioSettings |> not) then
+            for datasetRes in resultsByDatasetByModel.Values do
+                let maybeBaseRes = Utils.getMaybe datasetRes scenarioSettings.Key
+                let maybeHeurRes = Utils.getMaybe datasetRes heurSettings.Key
+                match (maybeBaseRes, maybeHeurRes) with
+                | (Some baseRes, Some heurRes) ->
+                    yield (baseRes, heurRes)
+                | _ -> ()
+    ]
+
+let latexHeurRaws = 
+    let scenarios =
+        [
+            for protos in [1;5] do
+                for modeltype in [LvqModelType.Gm;LvqModelType.G2m;LvqModelType.Ggm] do
+                    let mutable mutablesettings = new LvqModelSettingsCli()
+                    mutablesettings.PrototypesPerClass <- protos
+                    mutablesettings.ModelType <- modeltype
+                    let modelsettings = mutablesettings
+                    for datasetSettings in [""; "n"] do
+                        let scenarioName = (modeltype.ToString ()).ToUpper () + " " + protos.ToString () + (if datasetSettings = "n" then " norm.{}" else "")
+                        let heursettings=
+                            { 
+                                DataSettings = datasetSettings
+                                ModelSettings = modelsettings
+                            }
+                        yield (scenarioName, heursettings)
+        ]
+    let subSetSelection (name:string) = not (name.Contains("+") || name = "S" || name = "normalize")
+    let heurSelection = (fun heur -> heur.Code) >> subSetSelection
+
+    let relevantHeuristics = List.Cons ({ Name="base"; Code="none"; Activator = (fun s->(s,s)); }, heuristics |> List.filter heurSelection)
+
+    let strconcat xs = String.concat "" xs
+    let coldef = relevantHeuristics |> List.map (constF ("@{}>{\columncolor{white}[0mm][1mm]}r@{\hspace{1mm}}" |> String.replicate 1)) |> String.concat "|"
+    let headerrow = (relevantHeuristics |> List.map (fun heur-> sprintf @"& \multicolumn{1}{@{\hspace{1mm}}r@{\hspace{1mm}}}{%s}" heur.Code) |> strconcat)
+
+    let mainbody = 
+        let rows = 
+            [
+                for (scenarioName, scenarioSettings) in scenarios ->
+                    let (trnAnalysis, testAnalysis, nnAnalysis) =
+                        [
+                            for heur in relevantHeuristics -> 
+                                let rawAnalysis = 
+                                    if heur.Code = "none" && scenarioSettings.DataSettings = "n" then
+                                        analysisRawFor {DataSettings = ""; ModelSettings = scenarioSettings.ModelSettings} (List.head heuristics)
+                                    else
+                                        analysisRawFor scenarioSettings heur
+
+                                if List.isEmpty rawAnalysis |> not then
+                                    let ((trnA, tstA, nnA), (trnB, tstB, nnB)) = 
+                                        rawAnalysis 
+                                        |> List.map (Utils.apply2 (fun mr -> mr.Results |> Array.map (fun  (r:ResultAnalysis.Result)->(r.TrainingError,r.TestError, r.NnError)) |> List.ofArray))
+                                        |> List.unzip
+                                        |> Utils.apply2 (List.concat >>List.unzip3)
+
+                                    let totalResCount =  rawAnalysis |> List.length
+
+                                    let stringifyErrPatterns errsA errsB =
+                                        let comparison = comparisonP (errsA, errsB)
+                                        let meanErr = 100. * List.average errsB
+                                        sprintf @"&\cellcolor[rgb]{%s}$%.1f$" (classifyPtex comparison) meanErr
+                        
+                                    (stringifyErrPatterns trnA trnB, stringifyErrPatterns tstA tstB, stringifyErrPatterns nnA nnB)
+                                else 
+                                    ("&","&","&")
+                        ] |> List.unzip3 |> Utils.apply3 strconcat
+                    sprintf @"\multirow{3}{*}{%s} &$\!\!\!\!\!$training: %s\\ & test: %s\\& NN: %s\\" scenarioName trnAnalysis testAnalysis nnAnalysis
+            ] 
+        rows |> String.concat @"\hline"
+    
+    @"\noindent\begin{longtable}{l@{}@{}r@{\hspace{1mm}}" + coldef + @"}\toprule 
+     Scenario &" + headerrow + @"\\\midrule
+     " + mainbody + @"
+     \bottomrule\end{longtable}"
+
+
+File.WriteAllText(EmnExtensions.Filesystem.FSUtil.FindDataDir(@"uni\Thesis\doc", System.Reflection.Assembly.GetAssembly(typeof<CreateDataset>)).FullName + @"\G2MLVQ_rawresults.tex", latexHeurRaws)
+
 
 
 heuristics
@@ -558,4 +647,3 @@ heuristics
     |> String.concat ""
     |> (fun contents -> File.WriteAllText(EmnExtensions.Filesystem.FSUtil.FindDataDir(@"uni\Thesis\doc", System.Reflection.Assembly.GetAssembly(typeof<CreateDataset>)).FullName + @"\AnalyzeHeuristics.tex", contents))
 
-    
