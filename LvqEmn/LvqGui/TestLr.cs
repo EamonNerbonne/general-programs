@@ -149,23 +149,23 @@ namespace LvqGui {
 		static readonly LvqModelSettingsCli[] AllLrTestingSettingsNoOffset =
 				(from protoCount in new[] { 5, 1 }
 				 from modeltype in ModelTypes
-				 from rp in new[] { true, false }
+				 from ppca in new[] { true, false }
 				 from ngi in new[] { true, false }
 				 from slowbad in new[] { true, false }
 				 from NoB in new[] { true, false }
 				 from bi in new[] { true, false }
 				 from pi in new[] { true, false }
 				 from ng in new[] { true, false }
-				 let relevanceCost = new[] { !rp, ngi, bi, pi, ng, slowbad, NoB }.Count(b => b)
+				 let relevanceCost = new[] { ppca, ngi, slowbad, bi, pi, ng, NoB }.Count(b => b)
 				 //where relevanceCost ==0 || relevanceCost==1 && (ngi||slowbad||!rp)
 				 where relevanceCost <= 1 
-					|| relevanceCost <= 2 && (ngi || !rp) && (bi || slowbad || pi || !rp)
+					|| relevanceCost <= 2 && !NoB && !ng && !pi
 					|| !bi && !pi && !ng && !NoB
 				 //where relevanceCost <=1
 				 let settings = new LvqModelSettingsCli {
 					 ModelType = modeltype,
 					 PrototypesPerClass = protoCount,
-					 RandomInitialProjection = rp,
+					 RandomInitialProjection = !ppca,
 					 NgInitializeProtos = ngi,
 					 NgUpdateProtos = ng,
 					 BLocalInit = bi,
