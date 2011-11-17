@@ -159,7 +159,7 @@ namespace LvqGui {
 				 let relevanceCost = new[] { !rp, ngi, bi, pi, ng, slowbad, NoB }.Count(b => b)
 				 //where relevanceCost ==0 || relevanceCost==1 && (ngi||slowbad||!rp)
 				 where relevanceCost <= 1 
-					|| relevanceCost <= 2 && ngi && (bi || slowbad || pi || !rp)
+					|| relevanceCost <= 2 && (ngi || !rp) && (bi || slowbad || pi || !rp)
 					|| !bi && !pi && !ng && !NoB
 				 //where relevanceCost <=1
 				 let settings = new LvqModelSettingsCli {
