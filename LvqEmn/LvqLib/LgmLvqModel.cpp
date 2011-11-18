@@ -152,7 +152,7 @@ Matrix_NN LgmLvqModel::PrototypeDistances(Matrix_NN const & points) const {
 	for(size_t protoI=0;protoI<prototype.size();++protoI) {
 		tmpPointsDiff.noalias() = points.colwise() - prototype[protoI];
 		tmpPointsDiffProj.noalias() = P[protoI] * tmpPointsDiff;
-		newPoints.row(protoI).noalias() = (tmpPointsDiffProj.colwise().norm().array() + std::numeric_limits<double>::min()).log().matrix();//not squaredNorm?
+		newPoints.row(protoI).noalias() = (tmpPointsDiffProj.colwise().norm().array() + std::numeric_limits<double>::min()).log().matrix();//not squaredNorm? is never going to matter, so I should use (faster) squaredNorm... oh well.
 	}
 	return newPoints;
 }
