@@ -34,3 +34,7 @@ let resAnalysisIters =
     |> Seq.sumBy (fun res -> res.Iterations)
 
 let totalIters = 3. * lrOptIters datasetResults +  7. * lrOptIters baseDatasetResults + 10.* resAnalysisIters
+
+printfn "Total iters: %f" totalIters
+
+
