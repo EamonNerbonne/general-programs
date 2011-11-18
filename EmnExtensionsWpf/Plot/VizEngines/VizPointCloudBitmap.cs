@@ -38,13 +38,14 @@ namespace EmnExtensions.Wpf.Plot.VizEngines {
 
 		public int? OverridePointCountEstimate { get; set; }
 
-		protected override void UpdateBitmap(int pW, int pH, Matrix dataToBitmap) {
+		protected override void UpdateBitmap(int pW, int pH, Matrix dataToBitmap, double viewAreaSize) {
 			Trace.WriteLine("UpdateBitmap");
 
 			if (dataToBitmap.IsIdentity || m_ClassColors == null || Data== null || Data.Length==0) return;//this is the default mapping; it may occur when generating a scatter plot without data - don't bother plotting.
 
 			double thickness = Plot.MetaData.RenderThickness ?? VizPixelScatterHelpers.PointCountToThickness(OverridePointCountEstimate ?? (Data == null ? 0 : Data.Length));
-			thickness *= Math.Sqrt(pW * pH / 90000.0);
+			//Console.WriteLine(thickness + " * " + Math.Sqrt(viewAreaSize / 90000.0));
+			thickness *= Math.Sqrt(viewAreaSize / 90000.0);
 			var thicknessTranslation = DecodeThickness(thickness);
 
 			Make2dHistogramInRegion(pW, pH, dataToBitmap, thicknessTranslation.Item2);

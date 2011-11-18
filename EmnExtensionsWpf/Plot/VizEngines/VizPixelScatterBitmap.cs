@@ -19,7 +19,7 @@ namespace EmnExtensions.Wpf.Plot.VizEngines {
 
 		public int? OverridePointCountEstimate { get; set; }
 
-		protected override void UpdateBitmap(int pW, int pH, Matrix dataToBitmap) {
+		protected override void UpdateBitmap(int pW, int pH, Matrix dataToBitmap, double viewAreaSize) {
 			Trace.WriteLine("UpdateBitmap");
 
 			if (dataToBitmap.IsIdentity) return;//this is the default mapping; it may occur when generating a scatter plot without data - don't bother plotting.

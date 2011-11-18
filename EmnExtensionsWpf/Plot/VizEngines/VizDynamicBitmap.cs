@@ -30,10 +30,11 @@ namespace EmnExtensions.Wpf.Plot.VizEngines {
 				using (m_drawing.Open())
 					return;
 
+			double scaleX = dpiX / 96.0, scaleY = dpiY / 96.0;
 
 			Rect drawingClip = ComputeRelevantDisplay(displayClip, OuterDataBound, dataToDisplay);
 
-			Rect snappedDrawingClip = SnapRect(drawingClip, 96.0 / dpiX, 96.0 / dpiY);
+			Rect snappedDrawingClip = SnapRect(drawingClip, 1.0/scaleX, 1.0/scaleY);
 
 			var dataToBitmapToDisplay = SplitDataToDisplay(dataToDisplay, snappedDrawingClip, dpiX, dpiY);
 
@@ -45,8 +46,8 @@ namespace EmnExtensions.Wpf.Plot.VizEngines {
 
 
 
-			int pW = (int)(0.5 + snappedDrawingClip.Width * dpiX / 96.0);
-			int pH = (int)(0.5 + snappedDrawingClip.Height * dpiY / 96.0);
+			int pW = (int)(0.5 + snappedDrawingClip.Width * scaleX);
+			int pH = (int)(0.5 + snappedDrawingClip.Height * scaleY);
 			if (m_bmp == null || m_bmp.PixelWidth < pW || m_bmp.PixelHeight < pH || dpiX != m_bmp.DpiX || dpiY != m_bmp.DpiY) {
 				int width = Math.Max(m_bmp == null ? 1 : m_bmp.PixelWidth, pW + EXTRA_RESIZE_PIX);
 				int height = Math.Max(m_bmp == null ? 1 : m_bmp.PixelHeight, pH + EXTRA_RESIZE_PIX);
@@ -63,7 +64,7 @@ namespace EmnExtensions.Wpf.Plot.VizEngines {
 				Trace.WriteLine("new WriteableBitmap");
 			}
 
-			UpdateBitmap(pW, pH, dataToBitmapToDisplay.Item1);
+			UpdateBitmap(pW, pH, dataToBitmapToDisplay.Item1, displayClip.Width * displayClip.Height * scaleX * scaleY);
 			//painting.
 			Trace.WriteLine("retransform");
 		}
@@ -87,7 +88,7 @@ namespace EmnExtensions.Wpf.Plot.VizEngines {
 			return Tuple.Create(dataToBitmap, bitmapToDisplay);
 		}
 
-		protected abstract void UpdateBitmap(int pW, int pH, Matrix dataToBitmap);
+		protected abstract void UpdateBitmap(int pW, int pH, Matrix dataToBitmap, double externalViewArea);
 
 		//DataBound includes the portion of the data to display; may exclude irrelevant portions.  
 		//The actual display may be larger due to various reasons and that can be inefficient.

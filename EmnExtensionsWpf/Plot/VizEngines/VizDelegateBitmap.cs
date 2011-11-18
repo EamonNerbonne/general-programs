@@ -24,7 +24,7 @@ namespace EmnExtensions.Wpf.Plot.VizEngines {
 
 		protected override Rect ComputeBounds() { return BoundsComputer(Data); }
 
-		protected override void UpdateBitmap(int pW, int pH, Matrix dataToBitmap) { UpdateBitmapDelegate(m_bmp, dataToBitmap, pW, pH, Data); }
+		protected override void UpdateBitmap(int pW, int pH, Matrix dataToBitmap, double viewAreaSize) { UpdateBitmapDelegate(m_bmp, dataToBitmap, pW, pH, Data); }
 		protected override void OnDataChanged(T oldData) { InvalidateDataBounds(); TriggerChange(GraphChange.Projection); }
 
 		public override void OnRenderOptionsChanged() { } //we don't use color changes.
