@@ -165,11 +165,11 @@ namespace LvqGui {
 				(Bi(?<BLocalInit>\+?),)?
 				(noB(?<UpdatePointsWithoutB>\+?),)?
 				(pQ(?<TrackProjectionQuality>\+?),)?
-				(lrX(?<LrScaleBad>[0-9]*(\.[0-9]*)?(e[0-9]+)?),)?
+				(lrX(?<LrScaleBad>[0-9]*(\.[0-9]*)?([eE]-?[0-9]+)?),)?
 				(?<SlowStartLrBad>\!?)
-				(lr0(?<LR0>[0-9]*(\.[0-9]*)?(e[0-9]+)?),
-				lrP(?<LrScaleP>[0-9]*(\.[0-9]*)?(e[0-9]+)?),
-				lrB(?<LrScaleB>[0-9]*(\.[0-9]*)?(e[0-9]+)?),)?
+				(lr0(?<LR0>[0-9]*(\.[0-9]*)?([eE]-?[0-9]+)?),
+				lrP(?<LrScaleP>[0-9]*(\.[0-9]*)?([eE]-?[0-9]+)?),
+				lrB(?<LrScaleB>[0-9]*(\.[0-9]*)?([eE]-?[0-9]+)?),)?
 				(\[(?<ParamsSeed_>[0-9a-fA-F]+)?\,(?<InstanceSeed_>[0-9a-fA-F]+)?\])?(\^(?<ParallelModels>[0-9]+))?(_(?<FoldOffset>[0-9]+))?\,?"
 		+ "|" +//top regex is newest
 			@"(?<ModelType>\b[A-Z][A-Za-z0-9]*)

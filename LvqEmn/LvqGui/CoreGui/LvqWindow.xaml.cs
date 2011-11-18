@@ -191,8 +191,7 @@ namespace LvqGui {
 								Interlocked.Increment(ref counter);
 								Console.WriteLine(counter + "/" + allmodels.Length);
 							})
-				).Then(() => lvqInnerPlotContainer.DisplayModel(selectedModel.InitSet, selectedModel, selectedModel.SelectedSubModel, graphSettings.CurrProjStats, graphSettings.ShowBoundaries, graphSettings.ShowPrototypes, graphSettings.ShowTestEmbedding, graphSettings.ShowTestErrorRates))
-				.ContinueWith(t => {
+				).ContinueWith(t => {
 					if (t.Status == TaskStatus.Faulted)
 						Console.WriteLine(t.Exception);
 					lvqInnerPlotContainer.Dispose();
