@@ -297,13 +297,13 @@ let countActiveHeuristics = getSettings >> countActiveHeuristicsB
 
 let allFilters = 
     let simplifyName (name:string) = if name.Contains("-") then name.Substring(0, name.IndexOf("-")) else name
-    let normOnlyFilter = ("only normalization", (fun (mr:ResultAnalysis.ModelResults) -> mr.DatasetTweaks.Contains('n') && countActiveHeuristics mr = 1 ))
-    let normFilter = ("normalization", (fun (mr:ResultAnalysis.ModelResults) -> mr.DatasetTweaks.Contains('n') ))
+    let normOnlyFilter = (@"only \textsf{normalize}", (fun (mr:ResultAnalysis.ModelResults) -> mr.DatasetTweaks.Contains('n') && countActiveHeuristics mr = 1 ))
+    let normFilter = ("\textsf{normalize}", (fun (mr:ResultAnalysis.ModelResults) -> mr.DatasetTweaks.Contains('n') ))
     let noFilter = ("", (fun (mr:ResultAnalysis.ModelResults) -> true))
 
     let singleHeurFilter = ("no other heuristics", (fun (mr:ResultAnalysis.ModelResults)  -> countActiveHeuristics mr = 0))
     let onlyHeurFilter heur = 
-        ("only " + heur.Code, (fun (mr:ResultAnalysis.ModelResults) ->
+        (@"only \textsf{" + heur.Code + "}", (fun (mr:ResultAnalysis.ModelResults) ->
                 let settings = getSettings mr
                 let (on,off) = heur.Activator settings
                 countActiveHeuristicsB off = 0 && on.Equiv settings
@@ -315,8 +315,8 @@ let allFilters =
         ("1ppc, no other heuristics", (fun (mr:ResultAnalysis.ModelResults)  -> countActiveHeuristics mr = 0 && mr.ModelSettings.PrototypesPerClass = 1))
         ("5ppc, no other heuristics", (fun (mr:ResultAnalysis.ModelResults)  -> countActiveHeuristics mr = 0 && mr.ModelSettings.PrototypesPerClass = 5))
         normOnlyFilter;
-        ("1ppc, normalization only", (fun (mr:ResultAnalysis.ModelResults)  -> mr.DatasetTweaks.Contains('n') && countActiveHeuristics mr = 1 && mr.ModelSettings.PrototypesPerClass = 1))
-        ("5ppc, normalization only", (fun (mr:ResultAnalysis.ModelResults)  -> mr.DatasetTweaks.Contains('n') && countActiveHeuristics mr = 1 && mr.ModelSettings.PrototypesPerClass = 5))
+        (@"1ppc, only \textsf{normalize}", (fun (mr:ResultAnalysis.ModelResults)  -> mr.DatasetTweaks.Contains('n') && countActiveHeuristics mr = 1 && mr.ModelSettings.PrototypesPerClass = 1))
+        (@"5ppc, only \textsf{normalize}", (fun (mr:ResultAnalysis.ModelResults)  -> mr.DatasetTweaks.Contains('n') && countActiveHeuristics mr = 1 && mr.ModelSettings.PrototypesPerClass = 5))
         ]
     let modelFilters = [
         ("GM 1", (fun (mr:ResultAnalysis.ModelResults) -> mr.ModelSettings.ModelType = LvqModelType.Gm && mr.ModelSettings.PrototypesPerClass = 1));
@@ -360,7 +360,7 @@ let allFilters =
             singleOrAnythingFilters;
             perModelHeurFilters;
             datasetAndNormedFilters;
-            heuristics |> List.map (fun heur ->  (heur.Code, getSettings >> isHeuristicApplied heur) );
+            heuristics |> List.map (fun heur ->  (@"\textsf{" + heur.Code + "}", getSettings >> isHeuristicApplied heur) );
             heuristics |> List.filter (fun heur ->heur.Code <> "normalize" && heur.Code <> "extend" && heur.Code <> "S") |>List.map onlyHeurFilter;
             perModelDatasetFilters;
         ]
@@ -484,7 +484,7 @@ let latexCompareHeurs =
 
     let strconcat xs = String.concat "" xs
     let coldef = heuristics |> List.map (constF "@{}>{\columncolor{white}[0mm][1mm]}r@{\hspace{1mm}}@{}>{\columncolor{white}[0mm][1mm]}r@{\hspace{1mm}}") |> String.concat "|"
-    let headerrow = (heuristics |> List.map (fun heur-> sprintf @"& \multicolumn{2}{c}{\multirow{2}{*}{%s}}" heur.Code) |> strconcat)
+    let headerrow = (heuristics |> List.map (fun heur-> sprintf @"& \multicolumn{2}{c}{\multirow{2}{*}{\textsf{%s}}}" heur.Code) |> strconcat)
 
     let mainbody = 
         let nicerFilters = allFilters |> List.map (Utils.apply1st (fun name -> name.Split([|" * "|], StringSplitOptions.None))) |> List.filter (fst >> (fun names->names.Length < 3))
@@ -561,7 +561,7 @@ let latexHeurRaws =
                     mutablesettings.ModelType <- modeltype
                     let modelsettings = mutablesettings
                     for datasetSettings in [""; "n"] do
-                        let scenarioName = (modeltype.ToString ()).ToUpper () + " " + protos.ToString () + (if datasetSettings = "n" then " norm.{}" else "")
+                        let scenarioName = (modeltype.ToString ()).ToUpper () + " " + protos.ToString () + (if datasetSettings = "n" then @" \textsf{normalize}" else "")
                         let heursettings=
                             { 
                                 DataSettings = datasetSettings
@@ -576,7 +576,7 @@ let latexHeurRaws =
 
     let strconcat xs = String.concat "" xs
     let coldef = relevantHeuristics |> List.map (constF ("@{}>{\columncolor{white}[0mm][1mm]}r@{\hspace{1mm}}" |> String.replicate 1)) |> String.concat "|"
-    let headerrow = (relevantHeuristics |> List.map (fun heur-> sprintf @"& \multicolumn{1}{@{\hspace{1mm}}r@{\hspace{1mm}}}{%s}" heur.Code) |> strconcat)
+    let headerrow = (relevantHeuristics |> List.map (fun heur-> sprintf @"& \multicolumn{1}{@{\hspace{1mm}}r@{\hspace{1mm}}}{\textsf{%s}}" heur.Code) |> strconcat)
 
     let mainbody = 
         let rows = 
