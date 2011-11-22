@@ -69,6 +69,7 @@ public:
 
 	Matrix_NN ComputeClassMeans() const;
 	Matrix_P ComputePcaProjection() const;
+	Matrix_NN ComputePcaProjection(int dims) const;
 
 	int NearestNeighborClassify(Vector_N point) const;
 	int NearestNeighborClassify(Matrix_P projection, Vector_2 & point) const;

@@ -3,8 +3,10 @@
 
 template<typename TDerivedModel, typename TProcessedPoint> class LvqModelFindMatches {
 protected:
-
-	EIGEN_STRONG_INLINE GoodBadMatch findMatches(TProcessedPoint const & trainPoint, int trainLabel) const {
+#ifdef NDEBUG
+	EIGEN_STRONG_INLINE 
+#endif
+		GoodBadMatch findMatches(TProcessedPoint const & trainPoint, int trainLabel) const {
 		GoodBadMatch match;
 		TDerivedModel const & self = static_cast<TDerivedModel const &>(*this);
 		assert( match.matchBad <0 && match.matchGood <0 );

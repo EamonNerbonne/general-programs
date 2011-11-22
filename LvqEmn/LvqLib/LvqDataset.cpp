@@ -147,6 +147,9 @@ Matrix_P LvqDataset::ComputePcaProjection() const{
 	return PcaProjectInto2d(points);
 }
 
+Matrix_NN LvqDataset::ComputePcaProjection(int dims) const{
+	return PcaProjectIntoNd(points, dims);
+}
 
 double LvqDataset::NearestNeighborErrorRate(LvqDataset const& testData) const {
 	Vector_N testPoint;

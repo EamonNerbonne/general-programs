@@ -6,6 +6,7 @@
 #include "G2mLvqModel.h"
 #include "LgmLvqModel.h"
 #include "GmLvqModel.h"
+#include "GmFullLvqModel.h"
 #include "GpqLvqModel.h"
 
 #include "LvqDataset.h"
@@ -29,7 +30,9 @@ LvqModel* ConstructLvqModel(LvqModelSettings & initSettings) {
 		return new LgmLvqModel(initSettings);
 		break;
 	case LvqModelSettings::GmModelType:
-		return new GmLvqModel(initSettings);
+
+		return initSettings.Dimensionality==0||initSettings.Dimensionality==LVQ_LOW_DIM_SPACE? (LvqModel*)new GmLvqModel(initSettings)
+			: new GmFullLvqModel(initSettings);
 		break;
 	case LvqModelSettings::G2mModelType:
 		return new G2mLvqModel(initSettings);
@@ -138,7 +141,7 @@ pair<Matrix_NN, VectorXi> LvqModelSettings::InitProtosBySetting()  {
 	return NgInitializeProtos ? InitByNg() : InitByClassMeans();
 }
 
-void LvqModelSettings::ProjInit(Matrix_NN const& prototypes, Matrix_P & P){
+void LvqModelSettings::ProjInit(Matrix_NN const& prototypes, Matrix_NN & P){
 	size_t protocount = prototypes.cols();
 	vector<int> classOffsets;
 	classOffsets.push_back(0);
@@ -176,7 +179,7 @@ void LvqModelSettings::ProjInit(Matrix_NN const& prototypes, Matrix_P & P){
 					vJ = prototypes.col(wJi) - point;
 					vK = prototypes.col(wKi) - point;
 
-					P +=  lr * (1.0/sqrt(bestKd)* P * vK * vK.transpose() - 1.0/sqrt(bestJd)*P * vJ * vJ.transpose());
+					P +=  lr * (1.0/sqrt(bestKd)* (P * vK) * vK.transpose() - 1.0/sqrt(bestJd) * (P * vJ) * vJ.transpose());
 //					P +=  (-lr ) * P * vJ * vJ.transpose();
 
 					normalizeProjection(P);
@@ -184,7 +187,7 @@ void LvqModelSettings::ProjInit(Matrix_NN const& prototypes, Matrix_P & P){
 	}
 }
 
-tuple<Matrix_P,Matrix_NN, VectorXi> LvqModelSettings::InitProtosAndProjectionBySetting() {
+tuple<Matrix_NN,Matrix_NN, VectorXi> LvqModelSettings::InitProtosAndProjectionBySetting() {
 	using std::make_tuple;
 
 	auto P = initTransform();
@@ -321,15 +324,15 @@ tuple<Matrix_P,Matrix_NN, VectorXi, vector<Matrix_22> > LvqModelSettings::InitPr
 }
 
 
-Matrix_P LvqModelSettings::pcaTransform() const {
-	return Dataset->ComputePcaProjection();
+Matrix_NN LvqModelSettings::pcaTransform() const {
+	return Dataset->ComputePcaProjection(Dimensionality==0?LVQ_LOW_DIM_SPACE:Dimensionality);
 }
 
 
 
-inline void randomProjectionMatrix(boost::mt19937 & rngParams, Matrix_P & mat) {
+inline void randomProjectionMatrix(boost::mt19937 & rngParams, Matrix_NN & mat) {
 	RandomMatrixInit(rngParams,mat,0.0,1.0);
-	Eigen::JacobiSVD<Matrix_P> svd(mat, Eigen::ComputeThinU | Eigen::ComputeThinV);
+	Eigen::JacobiSVD<Matrix_NN> svd(mat, Eigen::ComputeThinU | Eigen::ComputeThinV);
 	if(mat.rows()>mat.cols())
 		mat.noalias() = svd.matrixU();
 	else
@@ -347,8 +350,10 @@ inline void randomProjectionMatrix(boost::mt19937 & rngParams, Matrix_P & mat) {
 #endif
 }
 
-Matrix_P LvqModelSettings::initTransform() {
-	Matrix_P P(LVQ_LOW_DIM_SPACE, Dimensions());
+
+
+Matrix_NN LvqModelSettings::initTransform() {
+	Matrix_NN P(Dimensionality == 0 ? LVQ_LOW_DIM_SPACE : Dimensionality, Dimensions());
 	if(!RandomInitialProjection)
 		P = pcaTransform();
 	else

@@ -53,5 +53,6 @@ struct PrincipalComponentAnalysisTemplate {
 typedef PrincipalComponentAnalysisTemplate<Matrix_NN> PcaHighDim;
 typedef PrincipalComponentAnalysisTemplate<Matrix_P> PcaLowDim;
 
-Matrix_P Pca2dFromCov(Matrix_NN const & covarianceMatrix) ;
-inline Matrix_P PcaProjectInto2d(Matrix_NN const & points) { return Pca2dFromCov( Covariance::ComputeWithMean(points) ); }
+Matrix_NN PcaFromCov(Matrix_NN const & covarianceMatrix) ;
+inline Matrix_P PcaProjectInto2d(Matrix_NN const & points) { return PcaFromCov( Covariance::ComputeWithMean(points) ).topRows<2>(); }
+inline Matrix_NN PcaProjectIntoNd(Matrix_NN const & points, int dims) { return PcaFromCov( Covariance::ComputeWithMean(points) ).topRows(dims); }

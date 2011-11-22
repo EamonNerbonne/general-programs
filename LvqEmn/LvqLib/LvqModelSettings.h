@@ -36,11 +36,11 @@ struct LvqModelSettings
 	std::pair<Matrix_NN,Eigen::VectorXi> InitByClassMeans() const;
 	std::pair<Matrix_NN,Eigen::VectorXi> InitByNg() ;
 	std::pair<Matrix_NN,Eigen::VectorXi> InitProtosBySetting();
-	std::tuple<Matrix_P, Matrix_NN, Eigen::VectorXi> InitProtosAndProjectionBySetting();
+	std::tuple<Matrix_NN, Matrix_NN, Eigen::VectorXi> InitProtosAndProjectionBySetting();
 	std::tuple<Matrix_P, Matrix_NN, Eigen::VectorXi, std::vector<Matrix_22> > InitProtosProjectionBoundariesBySetting();
 
-	Matrix_P pcaTransform() const;
-	Matrix_P initTransform();
+	Matrix_NN pcaTransform() const;
+	Matrix_NN initTransform();
 	int PrototypeCount() const;
 
 	LvqModelSettings(LvqModelType modelType, boost::mt19937 & rngParams, boost::mt19937 & rngIter, std::vector<int> protodistrib, LvqDataset const * dataset); 
@@ -59,7 +59,7 @@ struct LvqModelSettings
 	LvqModelSettings& self(){return *this;}
 
 private:
-	void ProjInit(Matrix_NN const& prototypes, Matrix_P & P);
+	void ProjInit(Matrix_NN const& prototypes, Matrix_NN & P);
 };
 
 struct LvqModel;
