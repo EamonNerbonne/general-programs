@@ -27,6 +27,7 @@ let makeLvqSettings modelType prototypes lrB lrP lr0 =
     tmp.LR0 <- lr0
     tmp.LrScaleB <- lrP
     tmp.LrScaleP <- lrB
+    tmp
     
 
 let Ggm1 = makeLvqSettings LvqModelType.Ggm 1
@@ -46,4 +47,5 @@ let testSettings settings =
                 model.TrainUptoIters(iterCount,dataset, CancellationToken.None)
                 yield model.CurrentErrorRates(dataset)
         ]
-    results
+    let averageErr= results|> List.averageBy (fun res->res.CanonicalError)
+    (averageErr, results)
