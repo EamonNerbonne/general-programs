@@ -8,7 +8,7 @@
 open LvqLibCli
 open LvqGui
 open System.Threading
-
+open System
 
 let datasets = 
     [
@@ -39,6 +39,8 @@ let Gm5 = makeLvqSettings LvqModelType.Gm 5 0.
 
 let iterCount = 5e6
 
+type TestResults = { GeoMean:float; Mean:float; Settings:LvqModelSettingsCli; Results:TestLr.ErrorRates list}
+
 let testSettings settings =
     let results =
         [
@@ -48,4 +50,8 @@ let testSettings settings =
                 yield model.CurrentErrorRates(dataset)
         ]
     let averageErr= results|> List.averageBy (fun res->res.CanonicalError)
-    (averageErr, results)
+    let geomAverageErr= results|> List.averageBy  (fun res-> Math.Log res.CanonicalError) |> Math.Exp
+    { GeoMean = geomAverageErr; Mean = averageErr;Settings = settings; Results = results}
+
+
+let gmr= Gm1 0.01 0.02 |> testSettings
