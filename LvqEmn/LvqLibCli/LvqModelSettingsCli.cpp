@@ -11,7 +11,7 @@ namespace LvqLibCli {
 
 	String^ LvqModelSettingsCli::ToShorthand() {
 		return ModelType.ToString()
-			+ (ModelType == LvqModelType::Lgm ? "[" + Dimensionality + "]" : (TrackProjectionQuality ? "+" : "")) + ","
+			+ (ModelType == LvqModelType::Lgm || Dimensionality != 2 ? "[" + Dimensionality + "]" : (TrackProjectionQuality ? "+" : "")) + ","
 			+ PrototypesPerClass + ","
 			+ (RandomInitialProjection != LvqModelSettingsCli().RandomInitialProjection ? "rP" + (RandomInitialProjection ? "+" : "") + ",":"")
 			+ (RandomInitialBorders != LvqModelSettingsCli().RandomInitialBorders && (ModelType == LvqModelType::Ggm || ModelType==LvqModelType::G2m) ? "rB" + (RandomInitialBorders ? "+" : "") + "," : "")
