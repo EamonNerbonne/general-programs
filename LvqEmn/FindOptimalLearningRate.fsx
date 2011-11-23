@@ -37,9 +37,9 @@ let G2m5 = makeLvqSettings LvqModelType.G2m 5
 let Gm1 = makeLvqSettings LvqModelType.Gm 1 0.
 let Gm5 = makeLvqSettings LvqModelType.Gm 5 0.
 
-let iterCount = 5e6
+type TestResults = { GeoMean:float; Mean:float;  Results:TestLr.ErrorRates list; Settings:LvqModelSettingsCli;}
 
-type TestResults = { GeoMean:float; Mean:float; Settings:LvqModelSettingsCli; Results:TestLr.ErrorRates list}
+let iterCount = 1e7
 
 let testSettings settings =
     let results =
@@ -53,5 +53,15 @@ let testSettings settings =
     let geomAverageErr= results|> List.averageBy  (fun res-> Math.Log res.CanonicalError) |> Math.Exp
     { GeoMean = geomAverageErr; Mean = averageErr;Settings = settings; Results = results}
 
-
-let gmr= Gm1 0.01 0.02 |> testSettings
+let lrs = 
+    [
+        for x in [0..100] ->
+            async 
+                {
+                    let lr0 = float x * 0.001
+                    return (Gm5 0.01 lr0 |> testSettings)
+                }
+    ]
+    |> Async.Parallel 
+    |> Async.RunSynchronously
+    |> Array.sortBy (fun res -> res.GeoMean)
