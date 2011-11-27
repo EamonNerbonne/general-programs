@@ -1,10 +1,11 @@
 ﻿using System.Windows;
 
-namespace EmnExtensions.Wpf.Plot.VizEngines {
+namespace EmnExtensions.Wpf.VizEngines {
 	public class VizPixelScatterSmart : VizTransformed<Point[], Point[]>, IVizPixelScatter {
 		const int MaxPointsInStreamGeometry = 10000;
 
-		IVizPixelScatter engine = new VizPixelScatterGeom();
+		IVizPixelScatter engine;
+		public VizPixelScatterSmart(IPlotMetaData metadata) {engine = new VizPixelScatterGeom(metadata);}
 		protected override IVizEngine<Point[]> Implementation { get { return engine; } }
 
 		public override void ChangeData(Point[] newData) {
@@ -12,14 +13,13 @@ namespace EmnExtensions.Wpf.Plot.VizEngines {
 			bool reconstructEngine = engine is VizPixelScatterBitmap != useBmpPlot;
 
 			if (reconstructEngine) {
-				IVizPixelScatter newImplementation = useBmpPlot ? (IVizPixelScatter)new VizPixelScatterBitmap() : new VizPixelScatterGeom();
-				newImplementation.Plot = Plot;
+				IVizPixelScatter newImplementation = useBmpPlot ? (IVizPixelScatter)new VizPixelScatterBitmap(MetaData) : new VizPixelScatterGeom(MetaData);
 				newImplementation.CoverageRatio = CoverageRatio;
 				newImplementation.CoverageGradient = CoverageGradient;
 				newImplementation.OverridePointCountEstimate = OverridePointCountEstimate;
 				engine = newImplementation;
-				Plot.GraphChanged(GraphChange.Projection);
-				Plot.GraphChanged(GraphChange.Drawing);
+				MetaData.GraphChanged(GraphChange.Projection);
+				MetaData.GraphChanged(GraphChange.Drawing);
 			}
 			Implementation.ChangeData(newData);
 		}

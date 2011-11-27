@@ -1,6 +1,8 @@
 ﻿// ReSharper disable UnusedMember.Global
 using System;
 using System.Linq;
+using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Windows.Controls;
 using EmnExtensions.Text;
@@ -51,19 +53,18 @@ namespace EmnExtensions.Wpf {
 			Unloaded += LogControl_Unloaded;
 			Loaded += LogControl_Loaded;
 
-			var clearLogMenuItem = new MenuItem {Header = "Clear log"};
+			var clearLogMenuItem = new MenuItem { Header = "Clear log" };
 			clearLogMenuItem.Click += (s, e) => Reset();
 
 			this.ContextMenu = new ContextMenu { Items = { clearLogMenuItem } };
 		}
 
-		void Reset()
-		{
+		void Reset() {
 			Document = new FlowDocument {
-			                            	TextAlignment = TextAlignment.Left,
-			                            	FontFamily = new FontFamily("Consolas"),
-			                            	FontSize = 10.0
-			                            };
+				TextAlignment = TextAlignment.Left,
+				FontFamily = new FontFamily("Consolas"),
+				FontSize = 10.0
+			};
 		}
 
 		bool wantsStdOut, wantsStdErr;

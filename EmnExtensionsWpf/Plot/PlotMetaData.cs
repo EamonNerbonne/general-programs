@@ -1,13 +1,21 @@
-﻿using System.Windows;
+﻿using System;
+using System.Windows;
 using System.Windows.Media;
 using System.Windows.Threading;
 
-namespace EmnExtensions.Wpf.Plot {
-	public sealed class PlotMetaData : DispatcherObject, IPlotMetaDataWriteable {
-		public IPlot Plot { get; set; }
+namespace EmnExtensions.Wpf {
+	public sealed class PlotMetaData : IPlotMetaDataWriteable {
+		IVizEngine m_viz;
+		public IVizEngine Visualisation {
+			get { return m_viz; }
+			set { if (m_viz != null) throw new InvalidOperationException("The plot for this metadata has already been set."); m_viz = value; }
+		}
 
-		void TriggerChange(GraphChange changeType) { if (Plot != null) Plot.GraphChanged(changeType); }
-		void IPlotMetaData.TriggerChange(GraphChange changeType) { TriggerChange(changeType); }
+		public void TriggerChange(GraphChange changeType) {
+			if (Container != null) Container.GraphChanged(Visualisation, changeType);
+			if (changeType == GraphChange.RenderOptions && Visualisation != null) Visualisation.OnRenderOptionsChanged();
+		}
+		void IPlotMetaData.GraphChanged(GraphChange changeType) { TriggerChange(changeType); }
 
 		string m_xUnitLabel, m_yUnitLabel, m_DataLabel;
 		public string XUnitLabel { get { return m_xUnitLabel; } set { if (m_xUnitLabel != value) { m_xUnitLabel = value; TriggerChange(GraphChange.Labels); } } }
@@ -28,8 +36,10 @@ namespace EmnExtensions.Wpf.Plot {
 
 		public object Tag { get; set; }
 
+		public IPlotContainer Container { get; set; }
+
 		Color? m_PrimaryColor;
-		public Color? RenderColor { get { return m_PrimaryColor; } set { m_PrimaryColor = value; TriggerChange(GraphChange.RenderOptions);} }
+		public Color? RenderColor { get { return m_PrimaryColor; } set { m_PrimaryColor = value; TriggerChange(GraphChange.RenderOptions); } }
 
 		int zIndex;
 		public int ZIndex { get { return zIndex; } set { zIndex = value; TriggerChange(GraphChange.Drawing); } }
@@ -39,8 +49,24 @@ namespace EmnExtensions.Wpf.Plot {
 
 		bool hidden;
 		public bool Hidden {
-			get {return hidden;}
+			get { return hidden; }
 			set { if (hidden != value) { hidden = value; TriggerChange(GraphChange.Visibility); } }
+		}
+
+		public PlotMetaData() { }
+		public PlotMetaData(IPlotMetaData clone) {
+			this.XUnitLabel = clone.XUnitLabel;
+			this.YUnitLabel = clone.YUnitLabel;
+			this.DataLabel = clone.DataLabel;
+			this.AxisBindings = clone.AxisBindings;
+			this.OverrideBounds = clone.OverrideBounds;
+			this.OverrideMargin = clone.OverrideMargin;
+			this.MinimalBounds = clone.MinimalBounds;
+			this.Tag = clone.Tag;
+			this.RenderColor = clone.RenderColor;
+			this.ZIndex = clone.ZIndex;
+			this.RenderThickness = clone.RenderThickness;
+			this.Hidden = clone.Hidden;
 		}
 	}
 }

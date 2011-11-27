@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using System.Threading;
 
 namespace LvqGui {
-	public static class SeedUtils {
+	public static class DispatcherUtils {
 		public static DispatcherOperation BeginInvoke(this Dispatcher d, Action action) {
 			return d.BeginInvoke(action);
 		}
@@ -40,6 +40,7 @@ namespace LvqGui {
 		public static Task StartNewTask(this TaskScheduler scheduler,Action action,CancellationToken cancellationToken = default(CancellationToken), TaskCreationOptions creationOptions = TaskCreationOptions.None) {
 			return Task.Factory.StartNew(action, cancellationToken == default(CancellationToken) ? CancellationToken.None : cancellationToken, creationOptions, scheduler);
 		}
+
 		public static Task<T> StartNewTask<T>(this TaskScheduler scheduler, Func<T> func, CancellationToken cancellationToken = default(CancellationToken), TaskCreationOptions creationOptions = TaskCreationOptions.None) {
 			return Task.Factory.StartNew(func, cancellationToken == default(CancellationToken) ? CancellationToken.None : cancellationToken, creationOptions, scheduler);
 		}

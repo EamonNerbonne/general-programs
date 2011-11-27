@@ -1,10 +1,12 @@
 ﻿using System.Windows;
 using System.Windows.Media;
 
-namespace EmnExtensions.Wpf.Plot.VizEngines {
+namespace EmnExtensions.Wpf.VizEngines {
 	public class VizDrawing : PlotVizBase<Drawing> {
 		readonly MatrixTransform m_trans = new MatrixTransform();
 		readonly RectangleGeometry m_clip = new RectangleGeometry();
+
+		public VizDrawing(IPlotMetaData owner) : base(owner) { }
 
 		public override void DrawGraph(DrawingContext context) {
 			context.PushClip(m_clip);

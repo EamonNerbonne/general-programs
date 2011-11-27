@@ -2,7 +2,7 @@
 using System.Windows;
 using System.Windows.Media;
 
-namespace EmnExtensions.Wpf.Plot.VizEngines {
+namespace EmnExtensions.Wpf.VizEngines {
 	public class VizGeometry : PlotVizBase<Geometry> {
 		readonly MatrixTransform m_ProjectionTransform = new MatrixTransform();
 		readonly GeometryGroup combinesGeom = new GeometryGroup();
@@ -12,9 +12,11 @@ namespace EmnExtensions.Wpf.Plot.VizEngines {
 		Brush m_Fill = Brushes.Black;
 		Pen m_Pen = defaultPen;
 
-		public VizGeometry() {
+		public VizGeometry(IPlotMetaData owner)
+			: base(owner) {
 			combinesGeom.Transform = m_ProjectionTransform;
 			RecomputeMargin();
+			RecreatePen();
 		}
 
 		static readonly Pen defaultPen = (Pen)new Pen { Brush = Brushes.Black, EndLineCap = PenLineCap.Square, StartLineCap = PenLineCap.Square, Thickness = 1.5, }.GetAsFrozen();
@@ -96,8 +98,8 @@ namespace EmnExtensions.Wpf.Plot.VizEngines {
 		void RecreatePen() {
 			Color currentColor = ((SolidColorBrush)m_Pen.Brush).Color;
 			double currentThickness = m_Pen.Thickness;
-			Color newColor = Plot.MetaData.RenderColor ?? currentColor;
-			double newThickness = Plot.MetaData.RenderThickness ?? currentThickness;
+			Color newColor = MetaData.RenderColor ?? currentColor;
+			double newThickness = MetaData.RenderThickness ?? currentThickness;
 			if (newThickness != currentThickness || newColor != currentColor) {
 				if (newColor != currentColor)
 					TriggerChange(GraphChange.Labels);

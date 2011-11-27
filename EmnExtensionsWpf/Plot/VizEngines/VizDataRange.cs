@@ -3,7 +3,7 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Media;
 
-namespace EmnExtensions.Wpf.Plot.VizEngines {
+namespace EmnExtensions.Wpf.VizEngines {
 	public interface IVizDataRange : IVizEngine<Tuple<Point[], Point[]>> {
 		double CoverageRatioY { get; set; }
 		double CoverageRatioX { get; set; }
@@ -11,9 +11,12 @@ namespace EmnExtensions.Wpf.Plot.VizEngines {
 	}
 
 	public class VizDataRange : VizTransformed<Tuple<Point[], Point[]>, StreamGeometry>, IVizDataRange {
-		readonly IVizEngine<StreamGeometry> impl = new VizGeometry { AutosizeBounds = false, IsStroked = false, IsFilled = true };
+		readonly IVizEngine<StreamGeometry> impl;
+
 		StreamGeometry geomCache;
 		Tuple<Point[], Point[]> currentPoints;
+
+		public VizDataRange(IPlotMetaData owner) { impl = new VizGeometry(owner) { AutosizeBounds = false, IsStroked = false, IsFilled = true }; }
 
 		protected override IVizEngine<StreamGeometry> Implementation { get { return impl; } }
 
@@ -38,7 +41,7 @@ namespace EmnExtensions.Wpf.Plot.VizEngines {
 				VizPixelScatterHelpers.RecomputeBounds(currentPoints.Item1.Concat(currentPoints.Item2).ToArray(), CoverageRatioX, CoverageRatioY, CoverageRatioGrad, out outerBounds, out innerBounds);
 			if (innerBounds != m_InnerBounds) {
 				m_InnerBounds = innerBounds;
-				if (Plot != null) Plot.GraphChanged(GraphChange.Projection);
+				if (MetaData != null) MetaData.GraphChanged(GraphChange.Projection);
 			}
 		}
 		Rect m_InnerBounds;

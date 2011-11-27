@@ -3,7 +3,7 @@ using System.Diagnostics;
 using System.Windows;
 using System.Windows.Media;
 
-namespace EmnExtensions.Wpf.Plot.VizEngines {
+namespace EmnExtensions.Wpf.VizEngines {
 	public class VizPixelScatterBitmap : VizDynamicBitmap<Point[]>, IVizPixelScatter
 		//for efficiency reasons, accept data in a Point[] rather than the more general IEnumerable<Point>
 	{
@@ -19,12 +19,15 @@ namespace EmnExtensions.Wpf.Plot.VizEngines {
 
 		public int? OverridePointCountEstimate { get; set; }
 
+		public VizPixelScatterBitmap(IPlotMetaData metadata) : base(metadata) { }
+
+
 		protected override void UpdateBitmap(int pW, int pH, Matrix dataToBitmap, double viewAreaSize) {
 			Trace.WriteLine("UpdateBitmap");
 
 			if (dataToBitmap.IsIdentity) return;//this is the default mapping; it may occur when generating a scatter plot without data - don't bother plotting.
 
-			double thickness = Plot.MetaData.RenderThickness ?? VizPixelScatterHelpers.PointCountToThickness(OverridePointCountEstimate ?? (Data == null ? 0 : Data.Length));
+			double thickness = MetaData.RenderThickness ?? VizPixelScatterHelpers.PointCountToThickness(OverridePointCountEstimate ?? (Data == null ? 0 : Data.Length));
 			Tuple<double, bool> thicknessTranslation = DecodeThickness(thickness);
 
 			Make2dHistogramInRegion(pW, pH, dataToBitmap, thicknessTranslation.Item2);
@@ -88,7 +91,7 @@ namespace EmnExtensions.Wpf.Plot.VizEngines {
 		}
 
 		void ConvertHistogramToColorDensityImage(int pW, int pH, double alpha) {
-			Color pointColor = Plot.MetaData.RenderColor ?? Colors.Black;
+			Color pointColor = MetaData.RenderColor ?? Colors.Black;
 
 			int numPixels = pW * pH;
 			uint[] alphaLookup = PregenerateAlphaLookup(alpha, m_image, numPixels, pointColor.ScA);
@@ -146,6 +149,5 @@ namespace EmnExtensions.Wpf.Plot.VizEngines {
 		}
 
 		public override bool SupportsColor { get { return true; } }
-
 	}
 }

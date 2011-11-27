@@ -6,7 +6,7 @@ using System.Windows;
 using System.Windows.Media;
 using System.Windows.Xps;
 using System.Windows.Xps.Packaging;
-using EmnExtensions.Wpf.Plot;
+using EmnExtensions.Wpf;
 
 namespace EmnExtensions.Wpf {
 	public static partial class WpfTools {

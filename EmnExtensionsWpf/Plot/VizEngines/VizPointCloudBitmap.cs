@@ -4,7 +4,7 @@ using System.Diagnostics;
 using System.Windows;
 using System.Windows.Media;
 
-namespace EmnExtensions.Wpf.Plot.VizEngines {
+namespace EmnExtensions.Wpf.VizEngines {
 	public class VizPointCloudBitmap : VizDynamicBitmap<LabelledPoint[]>
 		//for efficiency reasons, accept data in a Point[] rather than the more general IEnumerable<Point>
 	{
@@ -19,6 +19,7 @@ namespace EmnExtensions.Wpf.Plot.VizEngines {
 		uint[] m_image;
 		UintColor[] m_accumulator;
 
+		public VizPointCloudBitmap(IPlotMetaData metadata) : base(metadata) { }
 
 		protected override Rect? OuterDataBound { get { return m_OuterDataBounds; } }
 		double m_CoverageRatio = 0.9999;
@@ -43,7 +44,7 @@ namespace EmnExtensions.Wpf.Plot.VizEngines {
 
 			if (dataToBitmap.IsIdentity || m_ClassColors == null || Data== null || Data.Length==0) return;//this is the default mapping; it may occur when generating a scatter plot without data - don't bother plotting.
 
-			double thickness = Plot.MetaData.RenderThickness ?? VizPixelScatterHelpers.PointCountToThickness(OverridePointCountEstimate ?? (Data == null ? 0 : Data.Length));
+			double thickness = MetaData.RenderThickness ?? VizPixelScatterHelpers.PointCountToThickness(OverridePointCountEstimate ?? (Data == null ? 0 : Data.Length));
 			//Console.WriteLine(thickness + " * " + Math.Sqrt(viewAreaSize / 90000.0));
 			thickness *= Math.Sqrt(viewAreaSize / 90000.0);
 			var thicknessTranslation = DecodeThickness(thickness);

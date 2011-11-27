@@ -2,13 +2,35 @@
 #r "ResultsAnalysis"
 #r "LvqLibCli"
 #r "LvqGui"
+
+#r "PresentationCore"
+#r "System.Xaml"
+#r "PresentationFramework"
+#r "WindowsBase"
+#r "EmnExtensionsWpf"
 #r "EmnExtensions"
 #time "on"
 
 open LvqLibCli
 open LvqGui
 open System.Threading
+open System.Threading.Tasks
+open System.Windows.Threading
+open System.Windows
 open System
+open System.Xaml
+open System.Windows.Media
+open EmnExtensions.Wpf
+open EmnExtensions.Wpf.Plot
+open EmnExtensions.Wpf.Plot.VizEngines
+
+
+let dispatcher:Dispatcher = WpfTools.StartNewDispatcher(ThreadPriority.BelowNormal)
+let scheduler:TaskScheduler = dispatcher.GetScheduler().Result
+
+let schedule func = (Task.Factory.StartNew (func, CancellationToken.None, TaskCreationOptions.None, scheduler))
+//let schedule (action:Action) = (Task.Factory.StartNew (action, CancellationToken.None, TaskCreationOptions.None, scheduler))
+
 
 let datasets = 
     [
@@ -25,8 +47,8 @@ let makeLvqSettings modelType prototypes lrB lrP lr0 =
     tmp.ModelType <- modelType
     tmp.PrototypesPerClass <- prototypes
     tmp.LR0 <- lr0
-    tmp.LrScaleB <- lrP
-    tmp.LrScaleP <- lrB
+    tmp.LrScaleB <- lrB
+    tmp.LrScaleP <- lrP
     tmp
     
 
@@ -53,15 +75,56 @@ let testSettings settings =
     let geomAverageErr= results|> List.averageBy  (fun res-> Math.Log res.CanonicalError) |> Math.Exp
     { GeoMean = geomAverageErr; Mean = averageErr;Settings = settings; Results = results}
 
-let lrs = 
-    [
-        for x in [0..100] ->
-            async 
-                {
-                    let lr0 = float x * 0.001
-                    return (Gm5 0.01 lr0 |> testSettings)
-                }
-    ]
+
+let logscale steps (v0, v1) = 
+    let lnScale = Math.Log(v1 / v0)
+    [ for i in [0..steps-1] -> v0 * Math.Exp(lnScale * (float i / (float steps - 1.))) ]
+
+    //[0.001 -> 0.1]
+
+let lrsChecker lr0range settingsFactory = 
+    [ for lr0 in lr0range -> async { return (lr0 |> settingsFactory |> testSettings) } ]
     |> Async.Parallel 
     |> Async.RunSynchronously
     |> Array.sortBy (fun res -> res.GeoMean)
+
+let lrs = lrsChecker (logscale 100 (0.001,0.1)) (G2m5 0.1 0.01)
+
+let lrs1 = lrsChecker (logscale 30 (0.0002,0.002)) (G2m5 0.1 0.01)
+let lrs2 = lrsChecker (logscale 10 (0.001,0.002)) (G2m5 0.1 0.01)
+
+let lrs3 = lrsChecker (logscale 10 (0.01,2.)) (fun lrB -> G2m5 lrB 0.01 0.001714487966)
+
+
+let plotControl = 
+    (Task.Factory.StartNew (fun () -> 
+        let plotControl=  new PlotControl ()
+        let window = new System.Windows.Window () 
+        window.Content <- plotControl
+        window.Show ()
+        plotControl
+    , CancellationToken.None, TaskCreationOptions.None, scheduler
+    )).Result
+
+let plot = 
+    (
+        schedule 
+            (fun () ->
+                let plotviz:IPlot = 
+                    let plotmetadata = new PlotMetaData ()
+                    let viz = new VizLineSegments ()
+                    Plot.Create(plotmetadata, viz)
+                plotControl.Graphs.Add(plotviz)
+                plotviz
+            )
+    ).Result
+
+Task.Factory.StartNew (fun () -> 
+    let plotviz = 
+        let plotmetadata = new PlotMetaData ()
+        let viz = new VizLineSegments ()
+
+    plotControl.Graphs.Add(plotviz)
+    , CancellationToken.None, TaskCreationOptions.None, scheduler
+    )
+let plotControl.Graphs.[0]

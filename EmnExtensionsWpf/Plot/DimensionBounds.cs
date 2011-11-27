@@ -10,7 +10,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 
 
-namespace EmnExtensions.Wpf.Plot {
+namespace EmnExtensions.Wpf {
 	[DebuggerDisplay("[{Start}, {End}]")]
 	[TypeConverter(typeof(DimensionBoundsConverter))]
 	public struct DimensionBounds {

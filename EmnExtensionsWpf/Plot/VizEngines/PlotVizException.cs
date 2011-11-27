@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Linq;
 
-namespace EmnExtensions.Wpf.Plot.VizEngines
+namespace EmnExtensions.Wpf.VizEngines
 {
 	[Serializable]
 	public class PlotVizException : Exception

@@ -8,8 +8,7 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Threading;
 using EmnExtensions.Wpf;
-using EmnExtensions.Wpf.Plot;
-using EmnExtensions.Wpf.Plot.VizEngines;
+using EmnExtensions.Wpf.VizEngines;
 using LvqLibCli;
 using EmnExtensions.Filesystem;
 using System.IO;
@@ -59,7 +58,7 @@ namespace LvqGui {
 				if (subplots != null && subplots.classBoundaries != null)
 					lvqPlotDispatcher.BeginInvoke(() => {
 						if (subplots != null && subplots.classBoundaries != null)
-							subplots.classBoundaries.Plot.MetaData.Hidden = !visible;
+							subplots.classBoundaries.MetaData.Hidden = !visible;
 					});
 			QueueUpdate();
 		}
@@ -71,16 +70,16 @@ namespace LvqGui {
 				if (subplots != null && subplots.statPlots != null)
 					retval = lvqPlotDispatcher.BeginInvoke(() => {
 						foreach (var plot in subplots.statPlots)
-							if (LvqStatPlotFactory.IsCurrPlot(plot.Plot)) {
-								plot.Plot.MetaData.Hidden = viewMode == StatisticsViewMode.MeanAndStderr || !currShowTestErrorRates && LvqStatPlotFactory.IsTestPlot(plot.Plot);
-								((VizLineSegments)((ITranformed<Point[]>)plot.Plot.Visualisation).Implementation).DashStyle = viewMode == StatisticsViewMode.CurrentOnly ? DashStyles.Solid : LvqStatPlotFactory.CurrPlotDashStyle;
+							if (LvqStatPlotFactory.IsCurrPlot(plot)) {
+								plot.MetaData.Hidden = viewMode == StatisticsViewMode.MeanAndStderr || !currShowTestErrorRates && LvqStatPlotFactory.IsTestPlot(plot);
+								((VizLineSegments)((ITranformed<Point[]>)plot).Implementation).DashStyle = viewMode == StatisticsViewMode.CurrentOnly ? DashStyles.Solid : LvqStatPlotFactory.CurrPlotDashStyle;
 							} else
-								plot.Plot.MetaData.Hidden = viewMode == StatisticsViewMode.CurrentOnly || !currShowTestErrorRates && LvqStatPlotFactory.IsTestPlot(plot.Plot);
+								plot.MetaData.Hidden = viewMode == StatisticsViewMode.CurrentOnly || !currShowTestErrorRates && LvqStatPlotFactory.IsTestPlot(plot);
 					}).AsTask();
 				currViewMode = viewMode;
 			}
 			QueueUpdate();
-			return retval ?? SeedUtils.CompletedTask();
+			return retval ?? DispatcherUtils.CompletedTask();
 		}
 
 		public void ShowPrototypes(bool visible) {
@@ -89,7 +88,7 @@ namespace LvqGui {
 					lvqPlotDispatcher.BeginInvoke(() => {
 						if (subplots != null && subplots.classBoundaries != null)
 							foreach (var protoPlot in subplots.prototypeClouds)
-								protoPlot.Plot.MetaData.Hidden = !visible;
+								protoPlot.MetaData.Hidden = !visible;
 					});
 			QueueUpdate();
 		}
@@ -239,8 +238,8 @@ namespace LvqGui {
 
 					var graphOperationsLazy =
 						from plot in subplots.statPlots
-						group plot by plot.Dispatcher into plotgroup
-						select plotgroup.Key.BeginInvokeBackground(() => { foreach (var sp in plotgroup) sp.ChangeData(subplots); });
+						group plot by plot.GetDispatcher() into plotgroup
+						select (plotgroup.Key??subplots.plots[0].Dispatcher).BeginInvokeBackground(() => { foreach (var sp in plotgroup) sp.ChangeData(subplots); });
 
 					foreach (var op in graphOperationsLazy) yield return op;
 				}

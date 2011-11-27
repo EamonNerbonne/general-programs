@@ -6,14 +6,13 @@ using System.Windows.Media;
 using EmnExtensions;
 using EmnExtensions.MathHelpers;
 using EmnExtensions.Wpf;
-using EmnExtensions.Wpf.Plot;
-using EmnExtensions.Wpf.Plot.VizEngines;
+using EmnExtensions.Wpf.VizEngines;
 using LvqLibCli;
 
 namespace LvqGui {
 
 	static class LvqStatPlotFactory {
-		public static IEnumerable<PlotWithViz<LvqStatPlots>> Create(string statisticGroup, IEnumerable<LvqStatName> stats, bool isMultiModel, bool hasTestSet) {
+		public static IEnumerable<IVizEngine<LvqStatPlots>> Create(string statisticGroup, IEnumerable<LvqStatName> stats, bool isMultiModel, bool hasTestSet) {
 			var relevantStatistics = (hasTestSet ? stats : stats.Where(stat => !stat.TrainingStatLabel.StartsWith("Test"))).ToArray();
 
 			return
@@ -31,7 +30,7 @@ namespace LvqGui {
 				WpfTools.MakeDistributedColors(length, new MersenneTwister(42));
 		}
 
-		static IEnumerable<PlotWithViz<LvqStatPlots>> MakePlotsForStatIdx(string dataLabel, string yunitLabel, Color color, int statIdx, bool doVariants) {
+		static IEnumerable<IVizEngine<LvqStatPlots>> MakePlotsForStatIdx(string dataLabel, string yunitLabel, Color color, int statIdx, bool doVariants) {
 			bool isTest=dataLabel.StartsWith("Test");
 			if (doVariants) {
 				yield return MakeStderrRangePlot(yunitLabel, color, statIdx, isTest);
@@ -44,55 +43,52 @@ namespace LvqGui {
 		static readonly object IsTestPlotTag = new object();
 		static readonly object IsCurrTestPlotTag = new object();
 
-		public static bool IsTestPlot(IPlot plot) {return plot.MetaData.Tag == IsTestPlotTag || plot.MetaData.Tag==IsCurrTestPlotTag;}
-		public static bool IsCurrPlot(IPlot plot) { return plot.MetaData.Tag == IsCurrPlotTag || plot.MetaData.Tag == IsCurrTestPlotTag; }
+		public static bool IsTestPlot(IPlotMetaData plot) { return plot.Tag == IsTestPlotTag || plot.Tag == IsCurrTestPlotTag; }
+		public static bool IsCurrPlot(IPlotMetaData plot) { return plot.Tag == IsCurrPlotTag || plot.Tag == IsCurrTestPlotTag; }
+		public static bool IsTestPlot(IVizEngine plot) { return IsTestPlot(plot.MetaData);}
+		public static bool IsCurrPlot(IVizEngine plot) { return IsCurrPlot(plot.MetaData); }
 
 
 		public static readonly DashStyle CurrPlotDashStyle = new DashStyle(new[] { 0.0, 3.0 }, 0.0);
-		static PlotWithViz<LvqStatPlots> MakeCurrentModelPlot(string yunitLabel, Color color, int statIdx, bool isTest) {
+		static IVizEngine<LvqStatPlots> MakeCurrentModelPlot(string yunitLabel, Color color, int statIdx, bool isTest) {
 			return MakePlotHelper(null, color, yunitLabel, isTest?IsCurrTestPlotTag: IsCurrPlotTag, SelectedModelToPointsMapper(statIdx), CurrPlotDashStyle);
 		}
 
-		static PlotWithViz<LvqStatPlots> MakeMeanPlot(string dataLabel, string yunitLabel, Color color, int statIdx, bool isTest) {
+		static IVizEngine<LvqStatPlots> MakeMeanPlot(string dataLabel, string yunitLabel, Color color, int statIdx, bool isTest) {
 			return MakePlotHelper(dataLabel, color, yunitLabel,isTest?IsTestPlotTag: null, ModelToPointsMapper(statIdx));
 		}
 
-		static PlotWithViz<LvqStatPlots> MakePlotHelper(string dataLabel, Color color, string yunitLabel, object tag, Func<LvqStatPlots, Point[]> mapper, DashStyle dashStyle = null) {
-			return Plot.Create(
-				new PlotMetaData {
-					DataLabel = dataLabel,
-					RenderColor = color,
-					XUnitLabel = "Training iterations",
-					YUnitLabel = yunitLabel,
-					AxisBindings = TickedAxisLocation.BelowGraph | TickedAxisLocation.LeftOfGraph,
-					ZIndex = 1,
-					Tag = tag,
-				},
-				new VizLineSegments {
-					CoverageRatioY = yunitLabel.StartsWith("max") ? 1.0 : 0.90,
-					CoverageRatioGrad = 20.0,
-					DashStyle = dashStyle ?? DashStyles.Solid,
-				}.Map(mapper));
+		static IVizEngine<LvqStatPlots> MakePlotHelper(string dataLabel, Color color, string yunitLabel, object tag, Func<LvqStatPlots, Point[]> mapper, DashStyle dashStyle = null) {
+			var lineplot= Plot.CreateLine(new PlotMetaData {
+			                                                                       	DataLabel = dataLabel,
+			                                                                       	RenderColor = color,
+			                                                                       	XUnitLabel = "Training iterations",
+			                                                                       	YUnitLabel = yunitLabel,
+			                                                                       	AxisBindings = TickedAxisLocation.BelowGraph | TickedAxisLocation.LeftOfGraph,
+			                                                                       	ZIndex = 1,
+			                                                                       	Tag = tag,
+			                                                                       });
+			lineplot.CoverageRatioY = yunitLabel.StartsWith("max") ? 1.0 : 0.90;
+			lineplot.CoverageRatioGrad = 20.0;
+			lineplot.DashStyle = dashStyle ?? DashStyles.Solid;
+			return lineplot.Map(mapper);
 		}
 
 
-		static PlotWithViz<LvqStatPlots> MakeStderrRangePlot(string yunitLabel, Color color, int statIdx, bool isTest) {
+		static IVizEngine<LvqStatPlots> MakeStderrRangePlot(string yunitLabel, Color color, int statIdx, bool isTest) {
 			//Blend(color, Colors.White)
 			color.ScA = 0.25f;
-			return Plot.Create(
-				new PlotMetaData {
-					RenderColor = color,
-					XUnitLabel = "Training iterations",
-					YUnitLabel = yunitLabel,
-					AxisBindings = TickedAxisLocation.BelowGraph | TickedAxisLocation.LeftOfGraph,
-					Tag = isTest?IsTestPlotTag:null,
-					ZIndex = 0
-				},
-				new VizDataRange {
-					CoverageRatioY = yunitLabel.StartsWith("max") ? 1.0 : 0.90,
-					CoverageRatioGrad = 20.0,
-				}.Map(ModelToRangeMapper(statIdx))
-				);
+			var rangeplot = Plot.CreateDataRange(new PlotMetaData {
+			                                                                                         	RenderColor = color,
+			                                                                                         	XUnitLabel = "Training iterations",
+			                                                                                         	YUnitLabel = yunitLabel,
+			                                                                                         	AxisBindings = TickedAxisLocation.BelowGraph | TickedAxisLocation.LeftOfGraph,
+			                                                                                         	Tag = isTest?IsTestPlotTag:null,
+			                                                                                         	ZIndex = 0
+			                                                                                         });
+			rangeplot.CoverageRatioY = yunitLabel.StartsWith("max") ? 1.0 : 0.90;
+			rangeplot.CoverageRatioGrad = 20.0;
+			return rangeplot.Map(ModelToRangeMapper(statIdx));
 		}
 
 		static Func<LvqStatPlots, Point[]> ModelToPointsMapper(int statIdx) {

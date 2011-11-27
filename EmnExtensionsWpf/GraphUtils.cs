@@ -5,7 +5,7 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using EmnExtensions.Wpf.Plot.VizEngines;
+using EmnExtensions.Wpf.VizEngines;
 
 namespace EmnExtensions.Wpf {
 	public static class GraphUtils {

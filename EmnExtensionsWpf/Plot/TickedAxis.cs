@@ -6,7 +6,7 @@ using System.Windows;
 using System.Windows.Media;
 using System.Globalization;
 
-namespace EmnExtensions.Wpf.Plot {
+namespace EmnExtensions.Wpf {
 	[Flags]
 	public enum TickedAxisLocation { None = 0, LeftOfGraph = 1, AboveGraph = 2, RightOfGraph = 4, BelowGraph = 8, Any = 15, Auto = 16, Default = LeftOfGraph | BelowGraph | Auto }
 

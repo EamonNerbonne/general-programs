@@ -5,7 +5,7 @@ using System;
 using System.Windows;
 using EmnExtensions.Algorithms;
 
-namespace EmnExtensions.Wpf.Plot.VizEngines {
+namespace EmnExtensions.Wpf.VizEngines {
 	public interface IVizPixelScatter : IVizEngine<Point[]> {
 		double CoverageRatio { get; set; }
 		double CoverageGradient { get; set; }
@@ -14,7 +14,7 @@ namespace EmnExtensions.Wpf.Plot.VizEngines {
 	public static class VizPixelScatterHelpers {
 		public const double SquareSidePerThickness = Math.PI / 4.0;
 		//public static double PointCountToThickness(int pointCount) { return 15.0 / (0.5 + Math.Log(Math.Max(pointCount, 1))); }
-		public static double PointCountToThickness(int pointCount) { return 250.0 / Math.Sqrt(pointCount+5000); }
+		public static double PointCountToThickness(int pointCount) { return 225.0 / Math.Sqrt(pointCount+2500); }
 
 		public static void RecomputeBounds(Point[] points, double coverageX, double coverageY, double coverageGrad, out Rect outerBounds, out Rect coveredBounds) {
 			if (HasPoints(points)) {

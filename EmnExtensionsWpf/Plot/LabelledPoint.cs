@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Windows;
 
-namespace EmnExtensions.Wpf.Plot {
+namespace EmnExtensions.Wpf {
 	public struct LabelledPoint {
 		public Point point;
 		public int label;

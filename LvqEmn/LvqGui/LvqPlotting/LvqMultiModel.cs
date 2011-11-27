@@ -13,9 +13,8 @@ using EmnExtensions;
 using EmnExtensions.Filesystem;
 using EmnExtensions.MathHelpers;
 using EmnExtensions.Wpf;
-using EmnExtensions.Wpf.Plot.VizEngines;
+using EmnExtensions.Wpf.VizEngines;
 using LvqLibCli;
-using EmnExtensions.Wpf.Plot;
 
 namespace LvqGui {
 	public class LvqMultiModel {

@@ -1,12 +1,13 @@
 ﻿//#define PERMIT_SQUARE_CAPS
 //using square line caps breaks ghostscript's gxps conversion; disabled.
 
+using System;
 using System.Windows;
 using System.Windows.Media;
 
-namespace EmnExtensions.Wpf.Plot.VizEngines {
+namespace EmnExtensions.Wpf.VizEngines {
 	public class VizPixelScatterGeom : VizTransformed<Point[], StreamGeometry>, IVizPixelScatter {
-		readonly VizGeometry impl = new VizGeometry { AutosizeBounds = false };
+		readonly VizGeometry impl;
 		Point[] currentData;
 		Rect? computedInnerBounds;
 		StreamGeometry transformedData;
@@ -16,19 +17,25 @@ namespace EmnExtensions.Wpf.Plot.VizEngines {
 			impl.ChangeData(transformedData);
 
 			InvalidateBounds();
-			SetPenSize(OverridePointCountEstimate ?? (newData == null ? 0 : newData.Length));
+			
+		}
+		public VizPixelScatterGeom(IPlotMetaData metadata) {
+			 impl = new VizGeometry(metadata) { AutosizeBounds = false };
 		}
 
 		void InvalidateBounds() {
 			computedInnerBounds = null;
-			if (Plot != null)
-				if (!Plot.MetaData.OverrideBounds.HasValue)
-					Plot.GraphChanged(GraphChange.Projection);
+			if (!MetaData.OverrideBounds.HasValue)
+				MetaData.GraphChanged(GraphChange.Projection);
 		}
 		public int? OverridePointCountEstimate { get; set; }
 
-		void SetPenSize(int pointCount) {
-			double thickness = Plot.MetaData.RenderThickness ?? VizPixelScatterHelpers.PointCountToThickness(pointCount);
+		double lastAreaScale = 1.0;
+		void SetPenSize() {
+			int pointCount = OverridePointCountEstimate ?? (currentData == null ? 0 : currentData.Length);
+			double thickness = MetaData.RenderThickness ?? VizPixelScatterHelpers.PointCountToThickness(pointCount);
+			thickness *= lastAreaScale;
+			if (Math.Abs(impl.Pen.Thickness - thickness) < 0.1) return;
 
 #if PERMIT_SQUARE_CAPS
 			var linecap = PenLineCap.Round;
@@ -47,6 +54,12 @@ namespace EmnExtensions.Wpf.Plot.VizEngines {
 			impl.Pen = penCopy;
 		}
 
+		public override void SetTransform(Matrix boundsToDisplay, Rect displayClip, double forDpiX, double forDpiY) {
+			lastAreaScale=Math.Sqrt(displayClip.Width*displayClip.Height / 90000.0);
+			SetPenSize();
+			base.SetTransform(boundsToDisplay, displayClip, forDpiX, forDpiY);
+		}
+
 		double m_Coverage = 0.9999;
 		public double CoverageRatio { get { return m_Coverage; } set { m_Coverage = value; InvalidateBounds(); } }
 
@@ -61,5 +74,6 @@ namespace EmnExtensions.Wpf.Plot.VizEngines {
 		public override Rect DataBounds { get { return computedInnerBounds ?? (computedInnerBounds = RecomputeBounds()).Value; } }
 
 		protected override IVizEngine<StreamGeometry> Implementation { get { return impl; } }
+
 	}
 }

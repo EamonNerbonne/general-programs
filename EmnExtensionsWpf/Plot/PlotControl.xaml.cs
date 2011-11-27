@@ -17,13 +17,13 @@ using System.Windows.Xps.Packaging;
 using EmnExtensions.MathHelpers;
 using Microsoft.Win32;
 
-namespace EmnExtensions.Wpf.Plot {
+namespace EmnExtensions.Wpf {
 	public partial class PlotControl : IPlotContainer {
 		bool needRedrawGraphs;
-		readonly ObservableCollection<IPlot> graphs = new ObservableCollection<IPlot>();
-		IEnumerable<IPlot> visibleGraphs { get { return graphs.Where(g => !g.MetaData.Hidden); } }
-		public ObservableCollection<IPlot> Graphs { get { return graphs; } }
-		public IEnumerable<IPlot> GraphsEnumerable { get { return graphs; } set { Graphs.Clear(); foreach (var plot in value) Graphs.Add(plot); } }
+		readonly ObservableCollection<IVizEngine> graphs = new ObservableCollection<IVizEngine>();
+		IEnumerable<IVizEngine> visibleGraphs { get { return graphs.Where(g => !g.MetaData.Hidden); } }
+		public ObservableCollection<IVizEngine> Graphs { get { return graphs; } }
+		public IEnumerable<IVizEngine> GraphsEnumerable { get { return graphs; } set { Graphs.Clear(); foreach (var plot in value) Graphs.Add(plot); } }
 		readonly DrawingBrush bgBrush;
 		readonly UIElement drawingUi;
 
@@ -73,7 +73,7 @@ namespace EmnExtensions.Wpf.Plot {
 		public void AutoPickColors(MersenneTwister rnd = null) {
 			var ColoredPlots = (
 									from graph in Graphs
-									where graph != null && graph.Visualisation != null && graph.Visualisation.SupportsColor
+									where graph != null && graph.SupportsColor
 									select graph
 							   ).ToArray();
 			var randomColors = WpfTools.MakeDistributedColors(ColoredPlots.Length, rnd);
@@ -81,21 +81,21 @@ namespace EmnExtensions.Wpf.Plot {
 				plotAndColor.Item1.MetaData.RenderColor = plotAndColor.Item2;
 		}
 
-		void RegisterChanged(IEnumerable<IPlot> newGraphs) {
-			foreach (IPlot newgraph in newGraphs)
-				newgraph.Container = this;
+		void RegisterChanged(IEnumerable<IVizEngine> newGraphs) {
+			foreach (IVizEngine newgraph in newGraphs)
+				newgraph.MetaData.Container = this;
 		}
-		static void UnregisterChanged(IEnumerable<IPlot> oldGraphs) {
-			foreach (IPlot oldgraph in oldGraphs)
-				oldgraph.Container = null;
+		static void UnregisterChanged(IEnumerable<IVizEngine> oldGraphs) {
+			foreach (IVizEngine oldgraph in oldGraphs)
+				oldgraph.MetaData.Container = null;
 		}
 
 		void graphs_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e) {
 			if (e.OldItems != null)
-				UnregisterChanged(e.OldItems.Cast<IPlot>());
+				UnregisterChanged(e.OldItems.Cast<IVizEngine>());
 			if (e.NewItems != null)
-				RegisterChanged(e.NewItems.Cast<IPlot>());
-			if (e.OldItems != null && e.OldItems.Count > 0 || e.NewItems != null && e.NewItems.Cast<IPlot>().Any(p => !p.MetaData.Hidden))
+				RegisterChanged(e.NewItems.Cast<IVizEngine>());
+			if (e.OldItems != null && e.OldItems.Count > 0 || e.NewItems != null && e.NewItems.Cast<IVizEngine>().Any(p => !p.MetaData.Hidden))
 				RequireRedisplay();
 		}
 
@@ -110,7 +110,7 @@ namespace EmnExtensions.Wpf.Plot {
 				if (graph.MetaData.DataLabel == null) continue;
 				TextBlock label = new TextBlock();
 				label.Inlines.Add(new Image {
-					Source = new DrawingImage(graph.Visualisation.SampleDrawing).AsFrozen(),
+					Source = new DrawingImage(graph.SampleDrawing).AsFrozen(),
 					Stretch = Stretch.None,
 					Margin = new Thickness(2, 0, 2, 0)
 				});
@@ -121,7 +121,7 @@ namespace EmnExtensions.Wpf.Plot {
 
 
 
-		void IPlotContainer.GraphChanged(IPlot plot, GraphChange graphChange) {
+		void IPlotContainer.GraphChanged(IVizEngine plot, GraphChange graphChange) {
 			if (GraphChange.Visibility == graphChange)
 				RequireRedisplay();
 			else if (!plot.MetaData.Hidden)
@@ -162,7 +162,7 @@ namespace EmnExtensions.Wpf.Plot {
 		}
 		static DimensionBounds ToDimBounds(Rect bounds, bool isHorizontal) { return bounds.IsEmpty || bounds.Width == 0 || bounds.Height == 0 ? DimensionBounds.Empty : isHorizontal ? DimensionBounds.FromRectX(bounds) : DimensionBounds.FromRectY(bounds); }
 		static DimensionMargins ToDimMargins(Thickness margins, bool isHorizontal) { return isHorizontal ? DimensionMargins.FromThicknessX(margins) : DimensionMargins.FromThicknessY(margins); }
-		static TickedAxisLocation ChooseProjection(IPlot graph) { return ProjectionCorners.FirstOrDefault(corner => (graph.MetaData.AxisBindings & corner) == corner); }
+		static TickedAxisLocation ChooseProjection(IVizEngine graph) { return ProjectionCorners.FirstOrDefault(corner => (graph.MetaData.AxisBindings & corner) == corner); }
 		#endregion
 
 		void RecomputeBounds() {
@@ -177,7 +177,7 @@ namespace EmnExtensions.Wpf.Plot {
 					.Aggregate(DimensionBounds.Empty, DimensionBounds.Merge);
 				DimensionMargins margin =
 					boundGraphs
-					.Select(graph => ToDimMargins(graph.Visualisation.Margin, axis.IsHorizontal))
+					.Select(graph => ToDimMargins(graph.Margin, axis.IsHorizontal))
 					.Aggregate(DimensionMargins.Empty, DimensionMargins.Merge);
 				string dataUnits = string.Join(", ", boundGraphs.Select(graph => axis.IsHorizontal ? graph.MetaData.XUnitLabel : graph.MetaData.YUnitLabel).Distinct().Where(s => !string.IsNullOrWhiteSpace(s)).ToArray());
 				// ReSharper restore AccessToModifiedClosure
@@ -219,7 +219,7 @@ namespace EmnExtensions.Wpf.Plot {
 					if ((axis.AxisPos & gridLineAxes) != 0)
 						drawingContext.DrawDrawing(axis.GridLines);
 			foreach (var graph in visibleGraphs.OrderBy(g => g.MetaData.ZIndex))
-				graph.Visualisation.DrawGraph(drawingContext);
+				graph.DrawGraph(drawingContext);
 			//drawingContext.Pop();
 		}
 
@@ -268,9 +268,9 @@ namespace EmnExtensions.Wpf.Plot {
 				if (cornerProjection.ContainsKey(graphCorner)) {
 					var trans = cornerProjection[graphCorner];
 					Rect bounds = new Rect(new Point(trans.HorizontalClip.Start, trans.VerticalClip.Start), new Point(trans.HorizontalClip.End, trans.VerticalClip.End));
-					graph.Visualisation.SetTransform(trans.Transform, bounds, m_dpiX, m_dpiY);
+					graph.SetTransform(trans.Transform, bounds, m_dpiX, m_dpiY);
 				} else {
-					graph.Visualisation.SetTransform(Matrix.Identity, Rect.Empty, m_dpiX, m_dpiY);
+					graph.SetTransform(Matrix.Identity, Rect.Empty, m_dpiX, m_dpiY);
 				}
 			}
 

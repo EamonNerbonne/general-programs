@@ -1,7 +1,7 @@
 ﻿using System.Windows;
 using System.Windows.Media;
 
-namespace EmnExtensions.Wpf.Plot.VizEngines {
+namespace EmnExtensions.Wpf.VizEngines {
 	public interface IVizLineSegments : IVizEngine<Point[]> {
 		double CoverageRatioY { get; set; }
 		double CoverageRatioX { get; set; }
@@ -9,9 +9,12 @@ namespace EmnExtensions.Wpf.Plot.VizEngines {
 	}
 
 	public class VizLineSegments : VizTransformed<Point[], StreamGeometry>, IVizLineSegments {
-		readonly VizGeometry impl = new VizGeometry { AutosizeBounds = false };
+		readonly VizGeometry impl;
+		
 		StreamGeometry geomCache;
 		Point[] currentPoints;
+
+		public VizLineSegments(IPlotMetaData owner) { impl = new VizGeometry(owner) { AutosizeBounds = false }; }
 
 		protected override IVizEngine<StreamGeometry> Implementation { get { return impl; } }
 
@@ -37,7 +40,7 @@ namespace EmnExtensions.Wpf.Plot.VizEngines {
 			VizPixelScatterHelpers.RecomputeBounds(newData, CoverageRatioX, CoverageRatioY, CoverageRatioGrad, out outerBounds, out innerBounds);
 			if (innerBounds != m_InnerBounds) {
 				m_InnerBounds = innerBounds;
-				if (Plot != null) Plot.GraphChanged(GraphChange.Projection);
+				MetaData.GraphChanged(GraphChange.Projection);
 			}
 		}
 		Rect m_InnerBounds;

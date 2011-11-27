@@ -6,7 +6,7 @@ using EmnExtensions.Text;
 using System.Linq;
 using System.Diagnostics;
 
-namespace EmnExtensions.Wpf.Plot {
+namespace EmnExtensions.Wpf {
 	[DebuggerDisplay("{AtStart} [] {AtEnd}")]
 	[TypeConverter(typeof(DimensionMarginsConverter))]
 	public struct DimensionMargins {

@@ -5,9 +5,10 @@ using System.Windows.Media.Imaging;
 using System.Windows;
 using System.Diagnostics;
 
-namespace EmnExtensions.Wpf.Plot.VizEngines {
+namespace EmnExtensions.Wpf.VizEngines {
 	public abstract class VizDynamicBitmap<T> : PlotVizBase<T> {
-		protected VizDynamicBitmap() { BitmapScalingMode = BitmapScalingMode.Linear; }
+		protected VizDynamicBitmap(IPlotMetaData owner) : base(owner) { BitmapScalingMode = BitmapScalingMode.Linear; }
+
 		public BitmapScalingMode BitmapScalingMode { get { return m_scalingMode; } set { m_scalingMode = value; if (m_drawing != null) RenderOptions.SetBitmapScalingMode(m_drawing, value); } }
 		BitmapScalingMode m_scalingMode;
 

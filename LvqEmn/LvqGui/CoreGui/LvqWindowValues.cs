@@ -34,7 +34,7 @@ namespace LvqGui {
 			get { return _NormalizeDimensions; }
 			set { if (!_NormalizeDimensions.Equals(value)) { _NormalizeDimensions = value; _propertyChanged("NormalizeDimensions"); } }
 		}
-		private bool _NormalizeDimensions;
+		private bool _NormalizeDimensions=true;
 
 		public bool NormalizeByScaling {
 			get { return _NormalizeByScaling; }

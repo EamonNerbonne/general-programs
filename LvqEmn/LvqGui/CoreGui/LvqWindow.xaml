@@ -1,7 +1,6 @@
 ﻿<Window x:Class="LvqGui.LvqWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-       	xmlns:emnPlot="clr-namespace:EmnExtensions.Wpf.Plot;assembly=EmnExtensionsWpf"
        	xmlns:emn="clr-namespace:EmnExtensions.Wpf;assembly=EmnExtensionsWpf"
 
         Title="Lvq Gui" Height="1000" Width="500" xmlns:my="clr-namespace:LvqGui">

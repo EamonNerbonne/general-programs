@@ -3,10 +3,10 @@ using System.Windows;
 using System.Windows.Media;
 using System.Windows.Threading;
 
-namespace EmnExtensions.Wpf.Plot {
+namespace EmnExtensions.Wpf {
 	public interface IPlotContainer {
 		Dispatcher Dispatcher { get; }
-		void GraphChanged(IPlot plot, GraphChange changeType);
+		void GraphChanged(IVizEngine plot, GraphChange changeType);
 	}
 
 	public interface IPlotMetaData {
@@ -15,11 +15,11 @@ namespace EmnExtensions.Wpf.Plot {
 		string DataLabel { get; }
 		int ZIndex { get; }
 
-		IPlot Plot { set; }
 		TickedAxisLocation AxisBindings { get; set; }
 		bool Hidden { get; set; }
 
 		void TriggerChange(GraphChange changeType);
+		void GraphChanged(GraphChange changeType);
 
 		Rect? OverrideBounds { get; }
 		Thickness? OverrideMargin { get; }
@@ -27,8 +27,9 @@ namespace EmnExtensions.Wpf.Plot {
 
 		Color? RenderColor { get; set; }
 		double? RenderThickness { get; }
-		Dispatcher Dispatcher { get; }
-		object Tag { get;  }
+		object Tag { get; }
+		IPlotContainer Container { get; set; }
+		IVizEngine Visualisation { get; }
 	}
 
 	public interface IPlotMetaDataWriteable : IPlotMetaData {
@@ -39,21 +40,6 @@ namespace EmnExtensions.Wpf.Plot {
 		new Rect? OverrideBounds { get; set; }
 		new Rect? MinimalBounds { get; set; }
 		new double? RenderThickness { get; set; }
-		new IPlot Plot { get; set; }
 		new object Tag { get; set; }
-	}
-
-
-	public interface IPlot {
-		IPlotContainer Container { set; }
-		IPlotMetaData MetaData { get; }
-		IVizEngine Visualisation { get; }
-		void GraphChanged(GraphChange changeType);
-	}
-
-	public static class PlotExtensions {
-		public static Rect EffectiveDataBounds(this IPlot plot) { return plot.MetaData.OverrideBounds ?? Rect.Union(plot.Visualisation.DataBounds, plot.MetaData.MinimalBounds ?? Rect.Empty); }
-		public static IVizEngine<TIn> Map<TOut, TIn>(this IVizEngine<TOut> impl, Func<TIn, TOut> map) { return new VizEngines.VizMapped<TIn, TOut>(impl, map); }
-		public static DispatcherOperation BeginDataChange<T>(this IDataSink<T> sink, T data, DispatcherPriority priority = DispatcherPriority.Background) { return sink.Dispatcher.BeginInvoke((Action<T>)sink.ChangeData, priority, data); }
 	}
 }
