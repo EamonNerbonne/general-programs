@@ -166,6 +166,11 @@ void GmLvqModel::DoOptionalNormalization() {
 	}
 }
 
+ void GmLvqModel::compensateProjectionUpdate(Matrix_22 /*U*/, double /*scale*/) {
+	for(size_t i=0;i < prototype.size();++i) 
+		RecomputeProjection((int)i);
+}
+
 
 void GmLvqModel::AppendTrainingStatNames(std::vector<std::wstring> & retval) const {
 	LvqProjectionModel::AppendTrainingStatNames(retval);

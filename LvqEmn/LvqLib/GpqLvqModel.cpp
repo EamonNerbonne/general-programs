@@ -253,6 +253,14 @@ void GpqLvqModel::DoOptionalNormalization() {
 	}
 }
 
+void GpqLvqModel::compensateProjectionUpdate(Matrix_22 U, double scale) {
+	for(size_t i=0;i < prototype.size();++i) {
+		prototype[i].B *= U;
+		prototype[i].P_point = U.transpose()*prototype[i].P_point * scale;
+	}
+}
+
+
 Matrix_NN GpqLvqModel::PrototypeDistances(Matrix_NN const & points) const {
 	Matrix_2N P_points = P*points;
 	Matrix_NN newPoints(prototype.size(), points.cols());

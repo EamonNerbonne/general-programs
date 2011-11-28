@@ -62,7 +62,8 @@ extern "C" {
 	__declspec(dllexport) void ProjectPrototypes(LvqModel const* model, LvqFloat* pointData);
 	__declspec(dllexport) void ProjectPoints(LvqModel const* model, LvqDataset const * dataset, LvqFloat* pointData);
 	__declspec(dllexport) void GetProjectionMatrix(LvqModel const* model, LvqFloat* matrixDataTgt);//2 * dimCount
-	__declspec(dllexport) void ClassBoundaries(LvqModel const* model, double x0, double x1, double y0, double y1, int xCols, int yRows, unsigned char* imageData);
+	__declspec(dllexport) void ClassBoundaries(LvqModel const * model, double x0, double x1, double y0, double y1, int xCols, int yRows, unsigned char* imageData);
+	__declspec(dllexport) void NormalizeProjectionRotation(LvqModel * model);
 	__declspec(dllexport) void GetPrototypeLabels(LvqModel const* model, int* protoLabels);
 	__declspec(dllexport) int GetEpochsTrained(LvqModel const* model);
 	__declspec(dllexport) double GetUnscaledLearningRate(LvqModel const* model);

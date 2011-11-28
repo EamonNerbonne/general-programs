@@ -233,23 +233,13 @@ void GgmLvqModel::ClassBoundaryDiagram(double x0, double x1, double y0, double y
 
 void GgmLvqModel::DoOptionalNormalization() {
 	//THIS IS JUST BAD; we normalize each iter.
-#if false
-	//however, we _can_ rotate P...
-	auto qr_decomp = P.fullPivHouseholderQr(); // I don't care about the unitary matrix
-	auto R = qr_decomp.matrixQR().triangularView<Upper>();
-	auto Permute = qr_decomp.colsPermutation();
-	
-	//now we have P == Q R Permute^T with Q unitary and thus uninteresting (but we need to compensate B with Q).
-	P = (R.toDenseMatrix() * Permute.transpose()).topRows(min(P.rows(),P.cols()));
+}
 
-	if(settings.NormalizeProjection)
-		normalizeProjection(P);
-
+ void GgmLvqModel::compensateProjectionUpdate(Matrix_22 U, double /*scale*/) {
 	for(size_t i=0;i < prototype.size();++i) {
-		prototype[i].B *= qr_decomp.matrixQ();
+		prototype[i].B *= U;
 		prototype[i].ComputePP(P);
 	}
-#endif
 }
 
 GgmLvqPrototype::GgmLvqPrototype() : classLabel(-1) {}

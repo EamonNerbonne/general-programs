@@ -72,6 +72,7 @@ namespace LvqLibCli {
 		msclr::lock l2(copySync);
 		SinkStats(stats, statCollector.statsList);
 		modelCopy = Wrap(CloneLvqModel(nativeModel));
+		NormalizeProjectionRotation(modelCopy->get());
 		GC::KeepAlive(this);
 	}
 
@@ -207,6 +208,9 @@ namespace LvqLibCli {
 		msclr::lock l2(copySync);
 		SinkStats(stats, statCollector.statsList);
 		CopyLvqModel((LvqModel const *)nativeModel,modelCopy->get());
+
+		NormalizeProjectionRotation(modelCopy->get());
+
 		array<int>^ retval;
 		if(getOrder)
 			cppToCli(classLabelOrdering, retval);

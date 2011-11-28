@@ -19,6 +19,8 @@ protected:
 	virtual void AppendTrainingStatNames(std::vector<std::wstring> & retval) const;
 	virtual void AppendOtherStats(std::vector<double> & stats, LvqDataset const * trainingSet, LvqDataset const * testSet) const;
 	virtual bool IdenticalMu() const {return true;}
+	virtual void compensateProjectionUpdate(Matrix_22 U, double scale);
+
 
 
 public:

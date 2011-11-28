@@ -143,13 +143,19 @@ extern "C" void GetProjectionMatrix(LvqModel const* model, LvqFloat* matrixDataT
 	copy(mat.data(), mat.data()+mat.size(), matrixDataTgt);
 }
 
-extern "C" void ClassBoundaries(LvqModel const* model, double x0, double x1, double y0, double y1, int xCols, int yRows, unsigned char* imageData) {
-	auto projModel=dynamic_cast<LvqProjectionModel const *>(model);
+extern "C" void ClassBoundaries(LvqModel const * model, double x0, double x1, double y0, double y1, int xCols, int yRows, unsigned char* imageData) {
+	auto projModel=dynamic_cast<LvqProjectionModel const*>(model);
 	LvqProjectionModel::ClassDiagramT image(yRows,xCols);
 	projModel->ClassBoundaryDiagram(x0,x1,y0,y1,image);
 	Map<LvqProjectionModel::ClassDiagramT> mappedImage(imageData,image.rows(),image.cols());
 	mappedImage = image;//this is perhaps unnecessary copying
 }
+
+extern "C" void NormalizeProjectionRotation(LvqModel * model) {
+	auto projModel=dynamic_cast<LvqProjectionModel *>(model);
+	projModel->normalizeProjectionRotation();
+}
+
 
 extern "C" void GetPrototypeLabels(LvqModel const* model, int* protoLabels){
 	vector<int> labels = model->GetPrototypeLabels();

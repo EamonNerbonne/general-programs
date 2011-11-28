@@ -247,6 +247,14 @@ void G2mLvqModel::DoOptionalNormalization() {
 	}
 }
 
+void G2mLvqModel::compensateProjectionUpdate(Matrix_22 U, double scale) {
+	for(size_t i=0;i < prototype.size();++i) {
+		prototype[i].B *= U;
+		prototype[i].ComputePP(P);
+	}
+}
+
+
 G2mLvqPrototype::G2mLvqPrototype() : classLabel(-1) {}
 
 G2mLvqPrototype::G2mLvqPrototype(Matrix_22 const & Binit, int protoLabel, Vector_N const & initialVal) 

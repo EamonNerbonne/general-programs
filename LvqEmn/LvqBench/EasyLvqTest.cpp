@@ -73,7 +73,10 @@ void PrintModelStatus(char const * label,LvqModel const * model,LvqDataset const
 		maxV+=range;
 
 		ClassDiagramT diagram(800,800);
-		ClassBoundaries(model,minV(0),maxV(0),minV(1),maxV(1),(int)diagram.cols(),(int)diagram.rows(),diagram.data());
+		auto mutablemodel= CloneLvqModel(model);
+		NormalizeProjectionRotation(mutablemodel);
+		ClassBoundaries(mutablemodel,minV(0),maxV(0),minV(1),maxV(1),(int)diagram.cols(),(int)diagram.rows(),diagram.data());
+		FreeModel(mutablemodel);
 		Matrix_P projMatrix(2,shape.dimCount);
 		GetProjectionMatrix(model,projMatrix.data());
 		cerr<<" [norm: "<< projectionSquareNorm(projMatrix) <<"]"<<diagram.cast<unsigned>().sum()<<";";

@@ -304,7 +304,7 @@ namespace LvqGui {
 			Rect bounds;
 			MatrixContainer<byte> closestClass;
 			lock (selectedModel.ReadSync) {
-				projection = selectedModel.CurrentProjectionAndPrototypes( showTestEmbedding);
+				projection = selectedModel.CurrentProjectionAndPrototypes(showTestEmbedding);
 				if (!projection.HasValue) return null;
 				bounds = ExpandToShape(renderwidth, renderheight, ComputeProjectionBounds(projection.Prototypes.Select(lp => lp.point), projection.Points.Select(lp => lp.point)));
 				closestClass = hideBoundaries ? default(MatrixContainer<byte>) 

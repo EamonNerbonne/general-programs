@@ -27,3 +27,17 @@ LvqProjectionModel::LvqProjectionModel(LvqModelSettings & initSettings)
 }
 
 
+void LvqProjectionModel::normalizeProjectionRotation() {
+	JacobiSVD<Matrix_NN> svd(P, ComputeThinU | ComputeThinV);
+	//now P == U * S * V^T; with U&V unitary.
+	auto Vt = svd.matrixV().transpose();
+	auto U = svd.matrixU();
+	auto S = svd.singularValues();
+
+	P = S.asDiagonal() * Vt;
+	double scale=1.0;
+	if(settings.NormalizeProjection)
+		scale = normalizeProjection(P);
+
+	compensateProjectionUpdate(U,scale);
+}
