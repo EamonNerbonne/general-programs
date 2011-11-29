@@ -2,35 +2,18 @@
 #r "ResultsAnalysis"
 #r "LvqLibCli"
 #r "LvqGui"
-
+#r "EmnExtensions"
 #r "PresentationCore"
-#r "System.Xaml"
-#r "PresentationFramework"
 #r "WindowsBase"
 #r "EmnExtensionsWpf"
-#r "EmnExtensions"
 #time "on"
 
 open LvqLibCli
 open LvqGui
 open System.Threading
-open System.Threading.Tasks
-open System.Windows.Threading
-open System.Windows
 open System
-open System.Xaml
 open System.Windows.Media
 open EmnExtensions.Wpf
-open EmnExtensions.Wpf.Plot
-open EmnExtensions.Wpf.Plot.VizEngines
-
-
-let dispatcher:Dispatcher = WpfTools.StartNewDispatcher(ThreadPriority.BelowNormal)
-let scheduler:TaskScheduler = dispatcher.GetScheduler().Result
-
-let schedule func = (Task.Factory.StartNew (func, CancellationToken.None, TaskCreationOptions.None, scheduler))
-//let schedule (action:Action) = (Task.Factory.StartNew (action, CancellationToken.None, TaskCreationOptions.None, scheduler))
-
 
 let datasets = 
     [
@@ -88,43 +71,28 @@ let lrsChecker lr0range settingsFactory =
     |> Async.RunSynchronously
     |> Array.sortBy (fun res -> res.GeoMean)
 
-let lrs = lrsChecker (logscale 100 (0.001,0.1)) (G2m5 0.1 0.01)
 
-let lrs1 = lrsChecker (logscale 30 (0.0002,0.002)) (G2m5 0.1 0.01)
-let lrs2 = lrsChecker (logscale 10 (0.001,0.002)) (G2m5 0.1 0.01)
+let seeTopResults results =results |> (Seq.take 10 >> Seq.map (fun res->((res.GeoMean, res.Mean), (res.Settings.LR0, (res.Settings.LrScaleP, res.Settings.LrScaleB))))  >> List.ofSeq)
 
-let lrs3 = lrsChecker (logscale 10 (0.01,2.)) (fun lrB -> G2m5 lrB 0.01 0.001714487966)
+let lrsGm5 = lrsChecker (logscale 30 (0.001,0.1)) (Gm5 0.01)
 
 
-let plotControl = 
-    (Task.Factory.StartNew (fun () -> 
-        let plotControl=  new PlotControl ()
-        let window = new System.Windows.Window () 
-        window.Content <- plotControl
-        window.Show ()
-        plotControl
-    , CancellationToken.None, TaskCreationOptions.None, scheduler
-    )).Result
+let lrsGgm5 = lrsChecker (logscale 100 (0.001,0.1)) (Ggm5 0.01 0.1)
 
-let plot = 
-    (
-        schedule 
-            (fun () ->
-                let plotviz:IPlot = 
-                    let plotmetadata = new PlotMetaData ()
-                    let viz = new VizLineSegments ()
-                    Plot.Create(plotmetadata, viz)
-                plotControl.Graphs.Add(plotviz)
-                plotviz
-            )
-    ).Result
+let lrsGgm5_1 = lrsChecker (logscale 30 (0.05,0.5)) (Ggm5 0.1 0.01)
+let lrsGm5_1 = lrsChecker (logscale 15 (0.02,0.04)) (Gm5 0.01)
 
-Task.Factory.StartNew (fun () -> 
-    let plotviz = 
-        let plotmetadata = new PlotMetaData ()
-        let viz = new VizLineSegments ()
+let lrsGgm5_2 = lrsChecker (logscale 15 (0.0005,0.5)) (fun lrp ->  Ggm5 0.01 lrp 0.1519597691)
+let lrsGm5_2 = lrsChecker (logscale 15 (0.0005, 0.5)) (fun lrp -> Gm5 lrp 0.02438027308)
 
-    plotControl.Graphs.Add(plotviz)
-    , CancellationToken.None, TaskCreationOptions.None, scheduler
-    )
-let plotControl.Graphs.[0]
+
+let lrsGgm5_3 = lrsChecker (logscale 15 (0.005,0.1)) (fun lrp ->  Ggm5 0.01 lrp 0.1519597691)
+let lrsGm5_3 = lrsChecker (logscale 15 (0.1, 1.0)) (fun lrp -> Gm5 lrp 0.02438027308)
+
+let lrsGgm5_4 = lrsChecker (logscale 200 (0.005,1.0)) (fun lrb ->  Ggm5 lrb 0.06518363449 0.1519597691)
+let lrsGm5_4 = lrsChecker (logscale 100 (0.005, 0.1)) (fun lr0 -> Gm5 0.719685673 lr0)
+
+let lrsGm5_5 = lrsChecker (logscale 30 (0.1, 1.0)) (fun lrp -> Gm5 lrp 0.009158078185)
+let lrsGgm5_5 = lrsChecker (logscale 30 (0.05,0.5)) (fun lr0 ->  Ggm5 0.32685526 0.06518363449 lr0)
+
+Ggm5 0.01 0.1 0.1519597691
