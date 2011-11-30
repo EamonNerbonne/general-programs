@@ -95,4 +95,55 @@ let lrsGm5_4 = lrsChecker (logscale 100 (0.005, 0.1)) (fun lr0 -> Gm5 0.71968567
 let lrsGm5_5 = lrsChecker (logscale 30 (0.1, 1.0)) (fun lrp -> Gm5 lrp 0.009158078185)
 let lrsGgm5_5 = lrsChecker (logscale 30 (0.05,0.5)) (fun lr0 ->  Ggm5 0.32685526 0.06518363449 lr0)
 
+let lrsGgm5_6 = lrsChecker (logscale 60 (0.02,0.3)) (fun lrP ->  Ggm5 0.32685526 lrP 0.05413183669)
+let lrsGm5_5b = lrsChecker (logscale 40 (0.2, 1.0)) (fun lrp -> Gm5 lrp 0.02)
+
+
+let lrsGgm5_7 = lrsChecker (logscale 50 (0.1,1.0)) (fun lrB ->  Ggm5 lrB 0.05243711009 0.05413183669)
+let lrsGm5_6 = lrsChecker (logscale 30 (0.003, 0.02)) (fun lr0 -> Gm5 0.9236708572 lr0)
+
+let lrsGm5_7 = lrsChecker (logscale 40 (0.3, 3.0)) (fun lrp -> Gm5 lrp 0.01110028628)
+let lrsGgm5_8 = lrsChecker (logscale 50 (0.01,0.1)) (fun lr0 ->  Ggm5 1.0 0.05243711009 lr0)
+
+let lrsGgm5_9a = lrsChecker (logscale 50 (0.02,0.2)) (fun lrP ->  Ggm5 1.0 lrP 0.0429193426)
+let lrsGgm5_9b = lrsChecker (logscale 50 (0.3,3.0)) (fun lrB ->  Ggm5 lrB 0.05243711009 0.0429193426)
+
+let lrsGgm5_10 = lrsChecker (logscale 10 (0.03,0.06)) (fun lr0 ->  Ggm5 2.730894534 0.02413585281 lr0)
+
+let lrsGgm5_10a = lrsChecker (logscale 50 (0.01,0.1)) (fun lrP ->  Ggm5 2.730894534 lrP 0.04409203477)
+let lrsGgm5_10b = lrsChecker (logscale 50 (1.0,9.0)) (fun lrB ->  Ggm5 lrB 0.02413585281 0.04409203477)
+
+let lrsGgm5_11a = lrsChecker (logscale 50 (0.01,0.1)) (fun lrP ->  Ggm5 4.909932517 lrP 0.04409203477)
+let lrsGgm5_11b = lrsChecker (logscale 50 (1.0,9.0)) (fun lrB ->  Ggm5 lrB 0.03806885289 0.04409203477)
+let lrsGgm5_11c = lrsChecker (logscale 50 (0.01,0.1)) (fun lr0 ->  Ggm5 4.909932517 0.03806885289 lr0)
+
+testSettings (Ggm5 5.151758465 0.04770197608 0.03084017782)
+
+let lrsGgm5_12a = lrsChecker (logscale 50 (0.005,0.1)) (fun lrP ->  Ggm5 5.151758465 lrP 0.03084017782)
+//let lrsGgm5_12b = lrsChecker (logscale 50 (1.0,9.0)) (fun lrB ->  Ggm5 lrB 0.04770197608 0.03084017782)
+let lrsGgm5_12c = lrsChecker (logscale 50 (0.005,0.05)) (fun lr0 ->  Ggm5 5.151758465 0.04770197608 lr0)
+
+testSettings (Ggm5 5.151758465 0.05351299581 0.03422167947)
+
+
+let lrsG2m5_1a = lrsChecker (logscale 100 (0.003,0.3)) (fun lrP ->  G2m5 0.003 lrP 0.02)
+let lrsG2m5_1b = lrsChecker (logscale 100 (0.0001,0.1)) (fun lrB ->  G2m5 lrB 0.03 0.02)
+let lrsG2m5_1c = lrsChecker (logscale 100 (0.001,0.1)) (fun lr0 ->  G2m5 0.003 0.03 lr0)
+
+testSettings (G2m5 0.004865286995 0.06450102881 0.02036034817)
+
+
+let lrsG2m5_2a = lrsChecker (logscale 30 (0.02,0.2)) (fun lrP ->  G2m5 0.004865286995 lrP 0.02036034817)
+let lrsG2m5_2b = lrsChecker (logscale 40 (0.001,0.02)) (fun lrB ->  G2m5 lrB 0.06450102881 0.02036034817)
+let lrsG2m5_2c = lrsChecker (logscale 30 (0.005,0.08)) (fun lr0 ->  G2m5 0.004865286995 0.06450102881 lr0)
+
+
+testSettings (G2m5 0.003391984072 0.06729917063 0.01864307978)
+
+let lrsG2m5_3a = lrsChecker (logscale 25 (0.03,0.15)) (fun lrP ->  G2m5 0.003391984072 lrP 0.01864307978)
+let lrsG2m5_3b = lrsChecker (logscale 35 (0.001,0.01)) (fun lrB ->  G2m5 lrB 0.06729917063 0.01864307978)
+let lrsG2m5_3c = lrsChecker (logscale 20 (0.01,0.04)) (fun lr0 ->  G2m5 0.003391984072 0.06729917063 lr0)
+
+
+
 Ggm5 0.01 0.1 0.1519597691
