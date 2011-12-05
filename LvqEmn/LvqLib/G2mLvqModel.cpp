@@ -100,7 +100,7 @@ MatchQuality G2mLvqModel::learnFrom(Vector_N const & trainPoint, int trainLabel)
 		double XmuJ2 = 2.0*+2.0*distbadRaw / (sqr(distgood) + sqr(distbadRaw));
 		J.point.noalias() -= P.transpose()* (lr_point * XmuJ2 *P_vJ);
 	} else {
-		J.point.noalias() -= P.transpose()* (lr_point * muJ2_BjT_Bj_P_vJ);
+		J.point.noalias() -= P.transpose() * (lr_point * muJ2_BjT_Bj_P_vJ);
 	}
 	K.point.noalias() -= P.transpose() * (lr_bad*lr_point * muK2_BkT_Bk_P_vK) ;
 	if(ngMatchCache.size()>0) {

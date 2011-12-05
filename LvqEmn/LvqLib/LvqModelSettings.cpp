@@ -8,6 +8,7 @@
 #include "GmLvqModel.h"
 #include "GmFullLvqModel.h"
 #include "GpqLvqModel.h"
+#include "LpqLvqModel.h"
 
 #include "LvqDataset.h"
 #include "NeuralGas.h"
@@ -42,6 +43,8 @@ LvqModel* ConstructLvqModel(LvqModelSettings & initSettings) {
 		break;
 	case LvqModelSettings::GpqModelType:
 		return new GpqLvqModel(initSettings);
+	case LvqModelSettings::LpqModelType:
+		return new LpqLvqModel(initSettings);
 	default:
 		return 0;
 		break;

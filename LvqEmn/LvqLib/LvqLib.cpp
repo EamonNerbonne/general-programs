@@ -153,7 +153,8 @@ extern "C" void ClassBoundaries(LvqModel const * model, double x0, double x1, do
 
 extern "C" void NormalizeProjectionRotation(LvqModel * model) {
 	auto projModel=dynamic_cast<LvqProjectionModel *>(model);
-	projModel->normalizeProjectionRotation();
+	if(projModel!=nullptr)
+		projModel->normalizeProjectionRotation();
 }
 
 
