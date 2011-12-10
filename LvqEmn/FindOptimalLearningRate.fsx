@@ -41,6 +41,8 @@ let G2m1 = makeLvqSettings LvqModelType.G2m 1
 let G2m5 = makeLvqSettings LvqModelType.G2m 5
 let Gm1 = makeLvqSettings LvqModelType.Gm 1 0.
 let Gm5 = makeLvqSettings LvqModelType.Gm 5 0.
+let Lgm1 = makeLvqSettings LvqModelType.Lgm 1 0.
+let Lgm5 = makeLvqSettings LvqModelType.Lgm 5 0.
 
 type TestResults = { GeoMean:float; Mean:float;  Results:TestLr.ErrorRates list; Settings:LvqModelSettingsCli;}
 
@@ -168,6 +170,22 @@ testSettings (G2m5 0.005233059919 0.0676296965 0.01450902498)
 let lrsG2m5_7a = lrsChecker (logscale 30 (0.055,0.08)) (fun lrP ->  G2m5 0.005233059919 lrP 0.01450902498)
 let lrsG2m5_7b = lrsChecker (logscale 30 (0.004,0.007)) (fun lrB ->  G2m5 lrB 0.0676296965 0.01450902498)
 let lrsG2m5_7c = lrsChecker (logscale 40 (0.012,0.022)) (fun lr0 ->  G2m5 0.005233059919 0.0676296965 lr0)
+
+testSettings (G2m5 0.005360131131 0.06698813151 0.01633390101)
+
+let lrsLgm5_1a = lrsChecker (logscale 30 (0.001,1.0)) (fun lr0 ->  Lgm5 0.005233059919 lr0)
+let lrsLgm5_1b = lrsChecker (logscale 30 (0.001,1.0)) (fun lrP ->  Lgm5 lrP 0.01450902498)
+
+
+testSettings (Lgm5  0.428222218 0.08082231124)
+
+let lrsLgm5_2a = lrsChecker (logscale 40 (0.01,1.0)) (fun lr0 ->  Lgm5 0.428222218 lr0)
+let lrsLgm5_2b = lrsChecker (logscale 40 (0.03,3.0)) (fun lrP ->  Lgm5 lrP 0.08082231124)
+
+testSettings (Lgm5  0.4020495836 0.01800782036)
+
+let lrsLgm5_3a = lrsChecker (logscale 30 (0.002,0.05)) (fun lr0 ->  Lgm5 0.4020495836 lr0)
+let lrsLgm5_3b = lrsChecker (logscale 30 (0.05,2.0)) (fun lrP ->  Lgm5 lrP 0.01800782036)
 
 
 Ggm5 0.01 0.1 0.1519597691
