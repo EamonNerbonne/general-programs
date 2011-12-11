@@ -130,3 +130,29 @@ let orDefault defaultValue =
     function
     | None -> defaultValue
     | Some(value) -> value
+
+
+type SmartSum(meanX:float, sX: float, weightSum:float) = 
+    let meanX = meanX
+    let sX = sX
+    let weightSum = weightSum
+    new () = SmartSum(0., 0., 0.)
+    member this.Variance = sX / weightSum
+    member this.SampleVariance = sX / (weightSum - 1.)
+    member this.Mean = meanX
+    member this.WeightSum = weightSum
+    member this.DevSum = sX
+    member this.CombineWith value weight = 
+            let newWeightSum = weightSum + weight
+            let mScale = weight / newWeightSum
+            let sScale = weightSum * mScale
+            let centered = value - meanX
+            SmartSum ( meanX + centered * mScale, sX + centered * centered * sScale, newWeightSum)
+    member this.CombineWithSum (that:SmartSum) = 
+            let newWeightSum = weightSum + that.WeightSum
+            let mScale = that.WeightSum / newWeightSum
+            let sScale = weightSum * mScale
+            let centered = that.Mean - meanX
+            SmartSum (meanX + centered * mScale, sX + centered * centered * sScale, newWeightSum)
+
+

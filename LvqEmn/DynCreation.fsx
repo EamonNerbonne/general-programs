@@ -11,7 +11,7 @@ open System.Threading
 
 //let saveGraphs model dataset = 
 //    use statPlots = new LvqStatPlotsContainer(CancellationToken.None, true)
-//    statPlots.DisplayModel(dataset,model,model.GetBestSubModelIdx(dataset),StatisticsViewMode.CurrentOnly, true,true).Wait()
+//    statPlots.DisplayModel(dataset,model,model.GetBestSubModelIdx(),StatisticsViewMode.CurrentOnly, true,true).Wait()
 //    statPlots.SaveAllGraphs(true).Wait()
 //    statPlots.ShowCurrentProjectionStats(StatisticsViewMode.CurrentAndMean).Wait()
 //    statPlots.SaveAllGraphs(false).Wait()
