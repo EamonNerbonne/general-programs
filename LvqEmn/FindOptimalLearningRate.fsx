@@ -187,5 +187,5 @@ testSettings (Lgm5  0.4020495836 0.01800782036)
 let lrsLgm5_3a = lrsChecker (logscale 30 (0.002,0.05)) (fun lr0 ->  Lgm5 0.4020495836 lr0)
 let lrsLgm5_3b = lrsChecker (logscale 30 (0.05,2.0)) (fun lrP ->  Lgm5 lrP 0.01800782036)
 
+testSettings (Lgm5  0.656526238 0.008685645737)
 
-Ggm5 0.01 0.1 0.1519597691
