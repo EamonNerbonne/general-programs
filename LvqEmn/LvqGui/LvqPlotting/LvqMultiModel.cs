@@ -47,19 +47,19 @@ namespace LvqGui {
 
 		public double CurrentLearningRate { get { return subModels.Sum(model => model.UnscaledLearningRate) / ModelCount; } }
 
-		public TestLr.ErrorRates CurrentErrorRates(LvqDatasetCli dataset) { return new TestLr.ErrorRates(CurrentRawStats(dataset), nnErrIdx); }
+		public TestLr.ErrorRates CurrentErrorRates() { return new TestLr.ErrorRates(CurrentRawStats(), nnErrIdx); }
 
 		public int SelectedSubModel { get; set; }
 
 		public struct Statistic { public double[] Value, StandardError; public int BestIdx;}
 		public static double GetItersPerEpoch(LvqDatasetCli dataset,int fold) { return dataset.PointCount(fold); }
 
-		public Statistic CurrentRawStats(LvqDatasetCli selectedDataset) { return MeanStdErrStats(EvaluateFullStats(selectedDataset)); }
-		public IEnumerable<LvqTrainingStatCli> EvaluateFullStats(LvqDatasetCli selectedDataset) { return subModels.Select(m => Task.Factory.StartNew(()=>m.EvaluateStats())).ToArray().Select(t=>t.Result); }
-		public int GetBestSubModelIdx(LvqDatasetCli selectedDataset) { return MinIdx(EvaluateFullStats(selectedDataset).Select(stat => stat.values[LvqTrainingStatCli.TrainingErrorI])); }
+		public Statistic CurrentRawStats() { return MeanStdErrStats(EvaluateFullStats()); }
+		public IEnumerable<LvqTrainingStatCli> EvaluateFullStats() { return subModels.Select(m => Task.Factory.StartNew(()=>m.EvaluateStats())).ToArray().Select(t=>t.Result); }
+		public int GetBestSubModelIdx() { return MinIdx(EvaluateFullStats().Select(stat => stat.values[LvqTrainingStatCli.TrainingErrorI])); }
 
-		public string CurrentStatsString(LvqDatasetCli selectedDataset) {
-			var meanstats = CurrentRawStats(selectedDataset);
+		public string CurrentStatsString() {
+			var meanstats = CurrentRawStats();
 			StringBuilder sb = new StringBuilder();
 			for (int i = 0; i < TrainingStatNames.Length; i++)
 				sb.AppendLine(TrainingStatNames[i].Split('!')[0] + ": " + Statistics.GetFormatted(meanstats.Value[i], meanstats.StandardError[i]));
@@ -67,9 +67,9 @@ namespace LvqGui {
 
 			return sb.ToString();
 		}
-		public string CurrentFullStatsString(LvqDatasetCli selectedDataset)
+		public string CurrentFullStatsString()
 		{
-			var allstats = EvaluateFullStats(selectedDataset).ToArray();
+			var allstats = EvaluateFullStats().ToArray();
 			return FullStatsString(allstats);
 		}
 
@@ -179,7 +179,7 @@ namespace LvqGui {
 			int epochsTarget;
 			lock (epochsSynch)
 				epochsTarget = epochsDone += epochsToDo;
-			TrainImpl(cancel, epochsTarget - epochsToDo, epochsTarget, trainingSet);
+			TrainImpl(cancel, epochsTarget - epochsToDo, epochsTarget);
 		}
 
 		public void TrainUptoIters(double itersToTrainUpto, LvqDatasetCli trainingSet, CancellationToken cancel) {
@@ -195,10 +195,10 @@ namespace LvqGui {
 				epochsCurrent = epochsDone;
 				epochsDone = epochsToTrainUpto;
 			}
-			TrainImpl(cancel, epochsCurrent, epochsToTrainUpto, trainingSet);
+			TrainImpl(cancel, epochsCurrent, epochsToTrainUpto);
 		}
 
-		void TrainImpl(CancellationToken cancel, int epochsCurrent, int epochsTarget, LvqDatasetCli trainingSet) {
+		void TrainImpl(CancellationToken cancel, int epochsCurrent, int epochsTarget) {
 
 			Interlocked.Increment(ref trainersRunning);
 			try {
@@ -258,7 +258,7 @@ namespace LvqGui {
 		}
 
 		public void SaveStats(LvqDatasetCli dataset, long iterIntent) {
-			var allstats = EvaluateFullStats(dataset).ToArray();
+			var allstats = EvaluateFullStats().ToArray();
 
 
 			if (TestLr.ItersPrefix(iterIntent) != TestLr.ItersPrefix((long)Math.Round(allstats.Select(stat => stat.values[LvqTrainingStatCli.TrainingIterationI]).Average())))
@@ -306,7 +306,7 @@ namespace LvqGui {
 			lock (selectedModel.ReadSync) {
 				projection = selectedModel.CurrentProjectionAndPrototypes(showTestEmbedding);
 				if (!projection.HasValue) return null;
-				bounds = ExpandToShape(renderwidth, renderheight, ComputeProjectionBounds(projection.Prototypes.Select(lp => lp.point), projection.Points.Select(lp => lp.point)));
+				bounds = ExpandToShape(renderwidth, renderheight, ComputeProjectionBounds(projection.Points));
 				closestClass = hideBoundaries ? default(MatrixContainer<byte>) 
 					: selectedModel.ClassBoundaries(bounds.Left, bounds.Right, bounds.Bottom, bounds.Top, renderwidth, renderheight);
 			}
@@ -413,9 +413,9 @@ namespace LvqGui {
 		}
 
 
-		static Rect ComputeProjectionBounds(IEnumerable<Point> prototypePositions, IEnumerable<Point> cliLvqLabelledPoint) {
+		static Rect ComputeProjectionBounds(CliLvqLabelledPoint[] cliLvqLabelledPoint) {
 			Rect outer, inner;
-			VizPixelScatterHelpers.RecomputeBounds(cliLvqLabelledPoint.ToArray(), 0.95, 0.95, 10.0, out outer, out inner);
+			VizPixelScatterHelpers.RecomputeBounds(ToPointArray(cliLvqLabelledPoint), 0.95, 0.95, 10.0, out outer, out inner);
 			//			inner.Union(VizPixelScatterHelpers.ComputeOuterBounds(prototypePositions.ToArray()));
 			return inner;
 		}

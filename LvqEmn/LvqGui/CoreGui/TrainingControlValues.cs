@@ -157,7 +157,7 @@ namespace LvqGui {
 
 		public void PrintCurrentStats() {
 			var selectedModel = SelectedLvqModel;
-			Console.WriteLine(selectedModel.CurrentStatsString(SelectedDataset));
+			Console.WriteLine(selectedModel.CurrentStatsString());
 		}
 
 		public void ConfirmTraining() {
@@ -204,7 +204,7 @@ namespace LvqGui {
 				using (new DTimer("Training up to " + uptoEpochs + " epochs"))
 					model.TrainUptoIters(uptoIters, dataset, Owner.WindowClosingToken);
 
-				var newIdx = model.GetBestSubModelIdx(dataset);
+				var newIdx = model.GetBestSubModelIdx();
 				owner.Dispatcher.BeginInvoke(() => {
 					if (SelectedLvqModel == model)
 						SubModelIndex = newIdx;
@@ -224,7 +224,7 @@ namespace LvqGui {
 					using (new DTimer("Training up to " + uptoEpochs + " epochs"))
 						_model.TrainUptoEpochs(uptoEpochs, dataset, Owner.WindowClosingToken);
 
-					var newIdx = _model.GetBestSubModelIdx(dataset);
+					var newIdx = _model.GetBestSubModelIdx();
 					owner.Dispatcher.BeginInvoke(() => {
 						if (SelectedLvqModel == _model)
 							SubModelIndex = newIdx;

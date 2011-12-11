@@ -297,7 +297,7 @@ namespace LvqGui {
 				if (subplots == null) { Console.WriteLine("No plots to save!"); return; }
 
 				DirectoryInfo modelDir = GraphDir(subplots.dataset, CreateLvqModelValues.ParseShorthand(subplots.model.ModelLabel));
-				double iterations = subplots.model.CurrentRawStats(subplots.dataset).Value[LvqTrainingStatCli.TrainingIterationI];
+				double iterations = subplots.model.CurrentRawStats().Value[LvqTrainingStatCli.TrainingIterationI];
 				string iterPostfix = "-" + TestLr.ItersPrefix((long)(iterations + 0.5));
 
 				Grid plotGrid = (Grid)subPlotWindow.Content;
@@ -313,8 +313,8 @@ namespace LvqGui {
 					File.WriteAllBytes(filepath, plotControl.PrintToByteArray());
 					Console.Write(".");
 				}
-				File.WriteAllText(modelDir.FullName + "\\stats" + iterPostfix + ".txt", subplots.model.CurrentStatsString(subplots.dataset));
-				File.WriteAllText(modelDir.FullName + "\\fullstats" + iterPostfix + ".txt", subplots.model.CurrentFullStatsString(subplots.dataset));
+				File.WriteAllText(modelDir.FullName + "\\stats" + iterPostfix + ".txt", subplots.model.CurrentStatsString());
+				File.WriteAllText(modelDir.FullName + "\\fullstats" + iterPostfix + ".txt", subplots.model.CurrentFullStatsString());
 				Console.Write(";");
 			}, lvqPlotTaskScheduler);
 		}
