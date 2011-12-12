@@ -88,44 +88,6 @@ let lrsChecker lr0range settingsFactory =
     |> Async.RunSynchronously
     |> Array.sortBy (fun res -> res.GeoMean)
 
-
-
-let seeTopResults results =results |> (Seq.take 10 >> Seq.map (fun res->((res.GeoMean, res.Mean), (res.Settings.LR0, (res.Settings.LrScaleP, res.Settings.LrScaleB))))  >> List.ofSeq)
-
-let lrsGm5_6 = lrsChecker (logscale 30 (0.003, 0.02)) (fun lr0 -> Gm5 0.9236708572 lr0)
-let lrsGm5_7 = lrsChecker (logscale 40 (0.3, 3.0)) (fun lrp -> Gm5 lrp 0.01110028628)
-
-let lrsGgm5_12a = lrsChecker (logscale 50 (0.005,0.1)) (fun lrP ->  Ggm5 5.151758465 lrP 0.03084017782)
-//let lrsGgm5_12b = lrsChecker (logscale 50 (1.0,9.0)) (fun lrB ->  Ggm5 lrB 0.04770197608 0.03084017782)
-let lrsGgm5_12c = lrsChecker (logscale 50 (0.005,0.05)) (fun lr0 ->  Ggm5 5.151758465 0.04770197608 lr0)
-
-testSettings (Ggm5 5.151758465 0.05351299581 0.03422167947)
-
-let lrsG2m5_7a = lrsChecker (logscale 30 (0.055,0.08)) (fun lrP ->  G2m5 0.005233059919 lrP 0.01450902498)
-let lrsG2m5_7b = lrsChecker (logscale 30 (0.004,0.007)) (fun lrB ->  G2m5 lrB 0.0676296965 0.01450902498)
-let lrsG2m5_7c = lrsChecker (logscale 40 (0.012,0.022)) (fun lr0 ->  G2m5 0.005233059919 0.0676296965 lr0)
-
-testSettings (G2m5 0.005360131131 0.06698813151 0.01633390101)
-
-let lrsLgm5_1a = lrsChecker (logscale 30 (0.001,1.0)) (fun lr0 ->  Lgm5 0.005233059919 lr0)
-let lrsLgm5_1b = lrsChecker (logscale 30 (0.001,1.0)) (fun lrP ->  Lgm5 lrP 0.01450902498)
-
-
-testSettings (Lgm5  0.428222218 0.08082231124)
-
-let lrsLgm5_2a = lrsChecker (logscale 40 (0.01,1.0)) (fun lr0 ->  Lgm5 0.428222218 lr0)
-let lrsLgm5_2b = lrsChecker (logscale 40 (0.03,3.0)) (fun lrP ->  Lgm5 lrP 0.08082231124)
-
-testSettings (Lgm5  0.4020495836 0.01800782036)
-
-let lrsLgm5_3a = lrsChecker (logscale 30 (0.002,0.05)) (fun lr0 ->  Lgm5 0.4020495836 lr0)
-let lrsLgm5_3b = lrsChecker (logscale 30 (0.05,2.0)) (fun lrP ->  Lgm5 lrP 0.01800782036)
-
-testSettings (Lgm5  0.656526238 0.008685645737)
-testSettings (G2m5 0.005360131131 0.06698813151 0.01633390101)
-
-let lrsG2m1 = lrsChecker (logscale 10 (0.004,0.02)) (fun lrB ->  G2m1 lrB 0.06698813151 0.01633390101)
-
 let improveLr (testResultList:TestResults list) (lrUnpack, lrPack) =
     let errMargin = 0.0000001
     let unpackLogErrs testResults = testResults.Results |> Seq.concat |> Seq.concat |> List.ofSeq |> List.map (fun err -> Math.Log (err + errMargin))
@@ -169,8 +131,8 @@ let improvementStep (controller:ControllerState) (initialSettings:LvqModelSettin
     let (newBaseLr, newLrDevScale) = improveLr (List.ofArray results) (controller.Unpacker, controller.Packer)
     let newSettings = controller.Packer initialSettings newBaseLr
     let finalResults =  testSettings newSettings
-    let degradedCount = controller.DegradedCount + (if finalResults.GeoMean > initResults.GeoMean then 3 else -1)
-    let newState = { Unpacker = controller.Unpacker; Packer = controller.Packer; DegradedCount = degradedCount; LrDevScale = newLrDevScale }
+    let degradedCount = controller.DegradedCount + (if finalResults.GeoMean > initResults.GeoMean then 5 else -1)
+    let newState = { Unpacker = controller.Unpacker; Packer = controller.Packer; DegradedCount = degradedCount; LrDevScale = 0.8*newLrDevScale + 0.2*controller.LrDevScale }
     (newState, newSettings)
 
 let improvementSteps (controllers:ControllerState list) (initialSettings:LvqModelSettingsCli) =
@@ -180,10 +142,38 @@ let improvementSteps (controllers:ControllerState list) (initialSettings:LvqMode
         ) ([], initialSettings) controllers
 
 let rec fullyImprove (controllers:ControllerState list) (initialSettings:LvqModelSettingsCli) =
-    if (controllers |> List.forall (fun controllerState -> controllerState.DegradedCount > 5)) then
+    if (controllers |> List.forall (fun controllerState -> controllerState.DegradedCount > 9)) then
         (initialSettings, controllers)
     else
         let (nextControllers, nextSettings) = improvementSteps controllers initialSettings
         fullyImprove nextControllers nextSettings
 
 let optimizedGm1 = fullyImprove [lrPcontrol; lr0control] (Gm1 0.1 0.01)
+let optimizedGm1b = fullyImprove [lrPcontrol; lr0control] (Gm1 10.0 0.001)
+let optimizedGm5 = fullyImprove [lrPcontrol; lr0control] (Gm1 1.0 0.001)
+
+
+
+
+
+//let seeTopResults results =results |> (Seq.take 10 >> Seq.map (fun res->((res.GeoMean, res.Mean), (res.Settings.LR0, (res.Settings.LrScaleP, res.Settings.LrScaleB))))  >> List.ofSeq)
+
+//let lrsGm5_6 = lrsChecker (logscale 30 (0.003, 0.02)) (fun lr0 -> Gm5 0.9236708572 lr0)
+//let lrsGm5_7 = lrsChecker (logscale 40 (0.3, 3.0)) (fun lrp -> Gm5 lrp 0.01110028628)
+
+//let lrsGgm5_12a = lrsChecker (logscale 50 (0.005,0.1)) (fun lrP ->  Ggm5 5.151758465 lrP 0.03084017782)
+//let lrsGgm5_12b = lrsChecker (logscale 50 (1.0,9.0)) (fun lrB ->  Ggm5 lrB 0.04770197608 0.03084017782)
+//let lrsGgm5_12c = lrsChecker (logscale 50 (0.005,0.05)) (fun lr0 ->  Ggm5 5.151758465 0.04770197608 lr0)
+//testSettings (Ggm5 5.151758465 0.05351299581 0.03422167947)
+
+//let lrsG2m5_7a = lrsChecker (logscale 30 (0.055,0.08)) (fun lrP ->  G2m5 0.005233059919 lrP 0.01450902498)
+//let lrsG2m5_7b = lrsChecker (logscale 30 (0.004,0.007)) (fun lrB ->  G2m5 lrB 0.0676296965 0.01450902498)
+//let lrsG2m5_7c = lrsChecker (logscale 40 (0.012,0.022)) (fun lr0 ->  G2m5 0.005233059919 0.0676296965 lr0)
+//testSettings (G2m5 0.005360131131 0.06698813151 0.01633390101)
+
+//let lrsLgm5_3a = lrsChecker (logscale 30 (0.002,0.05)) (fun lr0 ->  Lgm5 0.4020495836 lr0)
+//let lrsLgm5_3b = lrsChecker (logscale 30 (0.05,2.0)) (fun lrP ->  Lgm5 lrP 0.01800782036)
+//testSettings (Lgm5  0.656526238 0.008685645737)
+
+//let lrsG2m1 = lrsChecker (logscale 10 (0.004,0.02)) (fun lrB ->  G2m1 lrB 0.06698813151 0.01633390101)
+
