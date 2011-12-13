@@ -127,12 +127,18 @@ let improvementStep (controller:ControllerState) (initialSettings:LvqModelSettin
     let baseLr = controller.Unpacker initialSettings
     let lowLr = baseLr / (controller.LrDevScale ** 3.)
     let highLr = baseLr * (controller.LrDevScale ** 3.)
-    let results = lrsChecker (logscale 30 (lowLr,highLr)) (controller.Packer initialSettings)
+    let results = lrsChecker (logscale 25 (lowLr,highLr)) (controller.Packer initialSettings)
     let (newBaseLr, newLrDevScale) = improveLr (List.ofArray results) (controller.Unpacker, controller.Packer)
+    let effNewLrDevScale = if newLrDevScale > controller.LrDevScale then 0.05 * newLrDevScale + 0.95 *controller.LrDevScale else 0.5*newLrDevScale + 0.5*controller.LrDevScale
     let newSettings = controller.Packer initialSettings newBaseLr
     let finalResults =  testSettings newSettings
-    let degradedCount = controller.DegradedCount + (if finalResults.GeoMean > initResults.GeoMean then 5 else -1)
-    let newState = { Unpacker = controller.Unpacker; Packer = controller.Packer; DegradedCount = degradedCount; LrDevScale = 0.8*newLrDevScale + 0.2*controller.LrDevScale }
+    let degradedCount = 
+        controller.DegradedCount + 
+            if finalResults.GeoMean > initResults.GeoMean then 5
+            else if controller.DegradedCount <= 0 then 0
+            else -1
+
+    let newState = { Unpacker = controller.Unpacker; Packer = controller.Packer; DegradedCount = degradedCount; LrDevScale = effNewLrDevScale }
     (newState, newSettings)
 
 let improvementSteps (controllers:ControllerState list) (initialSettings:LvqModelSettingsCli) =
@@ -142,15 +148,15 @@ let improvementSteps (controllers:ControllerState list) (initialSettings:LvqMode
         ) ([], initialSettings) controllers
 
 let rec fullyImprove (controllers:ControllerState list) (initialSettings:LvqModelSettingsCli) =
-    if (controllers |> List.forall (fun controllerState -> controllerState.DegradedCount > 9)) then
+    if (controllers |> List.forall (fun controllerState -> controllerState.DegradedCount > 11)) then
         (initialSettings, controllers)
     else
         let (nextControllers, nextSettings) = improvementSteps controllers initialSettings
         fullyImprove nextControllers nextSettings
 
 let optimizedGm1 = fullyImprove [lrPcontrol; lr0control] (Gm1 0.1 0.01)
+let optimizedGm1a = fullyImprove [lrPcontrol; lr0control] (Gm1 1.0 0.001)
 let optimizedGm1b = fullyImprove [lrPcontrol; lr0control] (Gm1 10.0 0.001)
-let optimizedGm5 = fullyImprove [lrPcontrol; lr0control] (Gm1 1.0 0.001)
 
 
 
