@@ -88,19 +88,6 @@ let lrsChecker lr0range settingsFactory =
     |> Async.RunSynchronously
     |> Array.sortBy (fun res -> res.GeoMean)
 
-let improveLr (testResultList:TestResults list) (lrUnpack, lrPack) =
-    let errMargin = 0.0000001
-    let unpackLogErrs testResults = testResults.Results |> Seq.concat |> Seq.concat |> List.ofSeq |> List.map (fun err -> Math.Log (err + errMargin))
-    let bestToWorst = testResultList |> List.sortBy (unpackLogErrs >> List.average)
-    let bestLogErrs = List.head bestToWorst |> unpackLogErrs
-           
-
-    //extract list of error rates from each testresult
-    let logLrs = testResultList |> List.map (fun res-> lrUnpack res.Settings |> Math.Log)
-    let relevance = List.Cons (1.0, bestToWorst |> List.tail |> List.map (unpackLogErrs >> Utils.unequalVarianceTtest bestLogErrs >> snd))
-    let logLrDistr = List.zip logLrs relevance |> List.fold (fun (ss:SmartSum) (lr, rel) -> ss.CombineWith lr rel) (new SmartSum())
-    let (logLrmean,logLrdev) = (logLrDistr.Mean, Math.Sqrt logLrDistr.Variance)
-    (Math.Exp logLrmean, Math.Exp logLrdev)
 
 type ControllerState = { Unpacker: LvqModelSettingsCli -> float; Packer: LvqModelSettingsCli -> float -> LvqModelSettingsCli; DegradedCount: int; LrDevScale: float }
 let lrBcontrol = { 
@@ -122,6 +109,20 @@ let lr0control = {
         LrDevScale = 3.
     }
 
+let improveLr (testResultList:TestResults list) (lrUnpack, lrPack) =
+    let errMargin = 0.0000001
+    let unpackLogErrs testResults = testResults.Results |> Seq.concat |> Seq.concat |> List.ofSeq |> List.map (fun err -> Math.Log (err + errMargin))
+    let bestToWorst = testResultList |> List.sortBy (unpackLogErrs >> List.average)
+    let bestLogErrs = List.head bestToWorst |> unpackLogErrs
+           
+
+    //extract list of error rates from each testresult
+    let logLrs = testResultList |> List.map (fun res-> lrUnpack res.Settings |> Math.Log)
+    let relevance = List.Cons (1.0, bestToWorst |> List.tail |> List.map (unpackLogErrs >> Utils.twoTailedPairedTtest bestLogErrs >> snd))
+    let logLrDistr = List.zip logLrs relevance |> List.fold (fun (ss:SmartSum) (lr, rel) -> ss.CombineWith lr rel) (new SmartSum())
+    let (logLrmean,logLrdev) = (logLrDistr.Mean, Math.Sqrt logLrDistr.Variance)
+    (Math.Exp logLrmean, Math.Exp logLrdev)
+
 let improvementStep (controller:ControllerState) (initialSettings:LvqModelSettingsCli) =
     let initResults = testSettings initialSettings
     let baseLr = controller.Unpacker initialSettings
@@ -129,7 +130,7 @@ let improvementStep (controller:ControllerState) (initialSettings:LvqModelSettin
     let highLr = baseLr * (controller.LrDevScale ** 3.)
     let results = lrsChecker (logscale 25 (lowLr,highLr)) (controller.Packer initialSettings)
     let (newBaseLr, newLrDevScale) = improveLr (List.ofArray results) (controller.Unpacker, controller.Packer)
-    let effNewLrDevScale = if newLrDevScale > controller.LrDevScale then 0.05 * newLrDevScale + 0.95 *controller.LrDevScale else 0.5*newLrDevScale + 0.5*controller.LrDevScale
+    let effNewLrDevScale = if newLrDevScale > controller.LrDevScale then 0.1 * newLrDevScale + 0.9 *controller.LrDevScale else 0.5*newLrDevScale + 0.5*controller.LrDevScale
     let newSettings = controller.Packer initialSettings newBaseLr
     let finalResults =  testSettings newSettings
     let degradedCount = 
@@ -157,6 +158,8 @@ let rec fullyImprove (controllers:ControllerState list) (initialSettings:LvqMode
 let optimizedGm1 = fullyImprove [lrPcontrol; lr0control] (Gm1 0.1 0.01)
 let optimizedGm1a = fullyImprove [lrPcontrol; lr0control] (Gm1 1.0 0.001)
 let optimizedGm1b = fullyImprove [lrPcontrol; lr0control] (Gm1 10.0 0.001)
+let optimizedGm1c = fullyImprove [lrPcontrol; lr0control] (Gm1 1.0 0.001)
+let optimizedGm1d = fullyImprove [lrPcontrol; lr0control] (Gm1 1.0 0.001) //with twoTailedPairedTtest
 
 
 
