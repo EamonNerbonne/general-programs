@@ -15,6 +15,7 @@ open System
 open System.Windows.Media
 open EmnExtensions.Wpf
 open Utils
+open System.Threading.Tasks
 
 let datasets = 
     [
@@ -55,7 +56,7 @@ let testSettings parOverride rndSeed (settings : LvqModelSettingsCli) =
     let results =
         [
             for dataset in datasets ->
-                System.Threading.Tasks.Task.Factory.StartNew( (fun () ->
+                Task.Factory.StartNew( (fun () ->
                     let mutable parsettings = settings
                     parsettings.ParallelModels <- parOverride
                     parsettings.ParamsSeed <- 2u * rndSeed + 1u
@@ -74,7 +75,7 @@ let testSettings parOverride rndSeed (settings : LvqModelSettingsCli) =
                             ]
                         ) |> List.ofSeq
                     errs
-                ), Tasks.TaskCreationOptions.LongRunning)
+                ), TaskCreationOptions.LongRunning)
         ] |> List.map (fun task -> task.Result) |> List.toArray
 
     let averageErr = results |> Array.averageBy (List.averageBy List.average)
@@ -90,7 +91,7 @@ let logscale steps (v0, v1) =
     //[0.001 -> 0.1]
 
 let lrsChecker rndSeed lr0range settingsFactory = 
-    [ for lr0 in lr0range ->  System.Threading.Tasks.Task.Factory.StartNew ((fun () -> lr0 |> settingsFactory |> testSettings 3 rndSeed), Tasks.TaskCreationOptions.LongRunning) ]
+    [ for lr0 in lr0range ->  Task.Factory.StartNew ((fun () -> lr0 |> settingsFactory |> testSettings 3 rndSeed), TaskCreationOptions.LongRunning) ]
     |> Array.ofList
     |> Array.map (fun task -> task.Result)
     |> Array.sortBy (fun res -> res.GeoMean)
@@ -137,10 +138,10 @@ let improvementStep (controller:ControllerState) (initialSettings:LvqModelSettin
     let baseLr = controller.Unpacker initialSettings
     let lowLr = baseLr / (controller.LrDevScale ** 2.)
     let highLr = baseLr * (controller.LrDevScale ** 2.)
-    let results = lrsChecker  (currSeed+2u) (logscale 50 (lowLr,highLr)) (controller.Packer initialSettings)
+    let results = lrsChecker  (currSeed+2u) (logscale 40 (lowLr,highLr)) (controller.Packer initialSettings)
     let (newBaseLr, newLrDevScale) = improveLr (List.ofArray results) (controller.Unpacker, controller.Packer)
-    let logLrDiff = Math.Abs(Math.Log(baseLr / newBaseLr))
-    let effNewLrDevScale = 0.3*newLrDevScale + 0.4*controller.LrDevScale + 0.4*logLrDiff
+    let logLrDiff_LrDevScale = Math.Abs(Math.Log(baseLr / newBaseLr))
+    let effNewLrDevScale = 0.3*newLrDevScale + 0.4*controller.LrDevScale + 0.4*logLrDiff_LrDevScale
     let newSettings = controller.Packer initialSettings newBaseLr
     let finalResults =  testSettings 10 currSeed newSettings
     printfn "[%f..%f]: %f -> %f: %f -> %f"  lowLr highLr baseLr newBaseLr initResults.GeoMean finalResults.GeoMean
