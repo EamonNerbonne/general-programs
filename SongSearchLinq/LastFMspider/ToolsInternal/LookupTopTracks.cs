@@ -4,7 +4,7 @@ using SongDataLib;
 
 namespace LastFMspider {
 	internal static partial class ToolsInternal {
-		static readonly TimeSpan NormalMaxAge = TimeSpan.FromDays(365.0);
+		static readonly TimeSpan NormalMaxAge = TimeSpan.FromDays(90.0);
 
 		public static ArtistTopTracksList LookupTopTracks(LastFMSQLiteCache LastFmCache, string artist, TimeSpan maxAge = default(TimeSpan)) {
 			//artist = artist.ToLatinLowercase();

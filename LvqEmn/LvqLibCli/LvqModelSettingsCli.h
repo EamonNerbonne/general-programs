@@ -51,6 +51,7 @@ namespace LvqLibCli {
 		bool NgUpdateProtos, NgInitializeProtos, ProjOptimalInit,BLocalInit, UpdatePointsWithoutB;
 		bool SlowStartLrBad;
 		unsigned  InstanceSeed;
+		double MuOffset;
 
 		static initonly LvqModelSettingsCli defaults;
 

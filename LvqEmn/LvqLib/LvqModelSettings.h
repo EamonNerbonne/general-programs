@@ -12,7 +12,7 @@ struct LvqModelRuntimeSettings
 {
 	bool TrackProjectionQuality,NormalizeProjection,NormalizeBoundaries,GloballyNormalize,UpdatePointsWithoutB, SlowStartLrBad;
 	int ClassCount;
-	double LrScaleP, LrScaleB, LR0,LrScaleBad;
+	double MuOffset, LrScaleP, LrScaleB, LR0,LrScaleBad;
 	copy_ptr<boost::mt19937> RngIter;
 	LvqModelRuntimeSettings(int classCount, boost::mt19937 & rngIter); 
 };

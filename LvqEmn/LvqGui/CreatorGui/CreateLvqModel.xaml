@@ -107,6 +107,9 @@
         <Label Grid.Row="17">LrScaleBad</Label>
         <TextBox Grid.Row="17" Grid.Column="1" Text="{Binding LrScaleBad, Mode=TwoWay, ValidatesOnExceptions=True}"/>
 
+        <Label Grid.Row="18">MuOffset</Label>
+        <TextBox Grid.Row="18" Grid.Column="1" Text="{Binding MuOffset, Mode=TwoWay, ValidatesOnExceptions=True}"/>
+
 
         <Button Grid.Row="20" Content="Reset Initialization Seed" Click="ReseedParam" />
         <TextBox Grid.Row="20" Grid.Column="1" Text="{Binding ParamsSeed, Mode=TwoWay, ValidatesOnExceptions=True, Converter={StaticResource hexConverter}}"  />

@@ -42,6 +42,9 @@ namespace SongDataLib {
 						} catch (Exception e) {
 							errSink("Cannot scan audio file (corrupt file will be skipped): " + songUri, e); song = null;
 						}
+					} else if (song is SongFileData && ((SongFileData)song).LastWriteTimeUtc < DateTime.UtcNow - TimeSpan.FromDays(90)) {
+						var songfile = (SongFileData)song;
+						songfile.popularity = dcf.PopularityEstimator.EstimatePopularity(songfile.artist, songfile.title);
 					}
 					//else if (song is SongFileData) {
 					//    var songF = ((SongFileData)song);
