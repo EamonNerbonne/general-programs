@@ -297,7 +297,7 @@ a:focus {
     z-index:1;
 }
 
-#similarScrollable, #playlistForm {
+#similarScrollable, #playlistNames {
     overflow-y: auto;
     overflow-x: hidden;
 }
@@ -327,7 +327,7 @@ a:focus {
 #playlistNameBox >.help {visibility:hidden; font-style:italic; font-size:80%;}
 #playlistNameBox >#playlistName:focus + .help {visibility:visible;}
 #playlistNameBox:hover >#playlistName + .help {visibility:visible;}
-#playlistNames { font-size: 80%; position:relative; padding:0 0 0 0.5em; margin:0.2em 0;}
+#playlistNames { font-size: 80%; position:absolute; padding:0 0 0 0.5em; margin:0.2em 0; left:0;right:0;bottom:0;top:8em;}
 #playlistNames li { display:block; cursor:pointer;}
 #playlistNames li:after {
     content: "(" attr(data-CumulativePlayCount) ")";
