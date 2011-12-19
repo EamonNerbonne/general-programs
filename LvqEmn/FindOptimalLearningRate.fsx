@@ -49,12 +49,19 @@ type TestResults = { GeoMean:float; Mean:float;  Results:float list list []; Set
 
 let iterCount = 1e7
 
-let testSettings settings =
+let rnd = new EmnExtensions.MathHelpers.MersenneTwister ()
+
+let testSettings parOverride rndSeed (settings : LvqModelSettingsCli) =
     let results =
         [
             for dataset in datasets ->
-                async{
-                    let model = new LvqMultiModel(dataset,settings,false)
+                System.Threading.Tasks.Task.Factory.StartNew( (fun () ->
+                    let mutable parsettings = settings
+                    parsettings.ParallelModels <- parOverride
+                    parsettings.ParamsSeed <- 2u * rndSeed + 1u
+                    parsettings.InstanceSeed <- 2u * rndSeed
+                    
+                    let model = new LvqMultiModel(dataset,parsettings,false)
                     model.TrainUptoIters(iterCount,dataset, CancellationToken.None)
                     let errs = 
                         model.EvaluateFullStats() 
@@ -66,9 +73,9 @@ let testSettings settings =
                                     yield stat.values.[model.nnErrIdx]    
                             ]
                         ) |> List.ofSeq
-                    return errs
-                }
-        ] |> Async.Parallel |> Async.RunSynchronously
+                    errs
+                ), Tasks.TaskCreationOptions.LongRunning)
+        ] |> List.map (fun task -> task.Result) |> List.toArray
 
     let averageErr = results |> Array.averageBy (List.averageBy List.average)
     let geomAverageErr= results  |> Array.averageBy (List.averageBy List.average >> Math.Log) |> Math.Exp
@@ -82,10 +89,10 @@ let logscale steps (v0, v1) =
 
     //[0.001 -> 0.1]
 
-let lrsChecker lr0range settingsFactory = 
-    [ for lr0 in lr0range -> async { return (lr0 |> settingsFactory |> testSettings) } ]
-    |> Async.Parallel 
-    |> Async.RunSynchronously
+let lrsChecker rndSeed lr0range settingsFactory = 
+    [ for lr0 in lr0range ->  System.Threading.Tasks.Task.Factory.StartNew ((fun () -> lr0 |> settingsFactory |> testSettings 3 rndSeed), Tasks.TaskCreationOptions.LongRunning) ]
+    |> Array.ofList
+    |> Array.map (fun task -> task.Result)
     |> Array.sortBy (fun res -> res.GeoMean)
 
 
@@ -119,50 +126,53 @@ let improveLr (testResultList:TestResults list) (lrUnpack, lrPack) =
     //extract list of error rates from each testresult
     let logLrs = testResultList |> List.map (fun res-> lrUnpack res.Settings |> Math.Log)
     let relevance = List.Cons (1.0, bestToWorst |> List.tail |> List.map (unpackLogErrs >> Utils.twoTailedPairedTtest bestLogErrs >> snd))
+    printfn "%A" (bestToWorst |> List.map (fun res->lrUnpack res.Settings) |> List.zip relevance)
     let logLrDistr = List.zip logLrs relevance |> List.fold (fun (ss:SmartSum) (lr, rel) -> ss.CombineWith lr rel) (new SmartSum())
-    let (logLrmean,logLrdev) = (logLrDistr.Mean, Math.Sqrt logLrDistr.Variance)
+    let (logLrmean, logLrdev) = (logLrDistr.Mean, Math.Sqrt logLrDistr.Variance)
     (Math.Exp logLrmean, Math.Exp logLrdev)
 
 let improvementStep (controller:ControllerState) (initialSettings:LvqModelSettingsCli) =
-    let initResults = testSettings initialSettings
+    let currSeed = rnd.NextUInt32 ()
+    let initResults = testSettings 10 currSeed initialSettings
     let baseLr = controller.Unpacker initialSettings
-    let lowLr = baseLr / (controller.LrDevScale ** 3.)
-    let highLr = baseLr * (controller.LrDevScale ** 3.)
-    let results = lrsChecker (logscale 25 (lowLr,highLr)) (controller.Packer initialSettings)
+    let lowLr = baseLr / (controller.LrDevScale ** 2.)
+    let highLr = baseLr * (controller.LrDevScale ** 2.)
+    let results = lrsChecker  (currSeed+2u) (logscale 50 (lowLr,highLr)) (controller.Packer initialSettings)
     let (newBaseLr, newLrDevScale) = improveLr (List.ofArray results) (controller.Unpacker, controller.Packer)
-    let effNewLrDevScale = if newLrDevScale > controller.LrDevScale then 0.1 * newLrDevScale + 0.9 *controller.LrDevScale else 0.5*newLrDevScale + 0.5*controller.LrDevScale
+    let logLrDiff = Math.Abs(Math.Log(baseLr / newBaseLr))
+    let effNewLrDevScale = 0.3*newLrDevScale + 0.4*controller.LrDevScale + 0.4*logLrDiff
     let newSettings = controller.Packer initialSettings newBaseLr
-    let finalResults =  testSettings newSettings
-    let degradedCount = 
-        controller.DegradedCount + 
-            if finalResults.GeoMean > initResults.GeoMean then 5
-            else if controller.DegradedCount <= 0 then 0
-            else -1
-
-    let newState = { Unpacker = controller.Unpacker; Packer = controller.Packer; DegradedCount = degradedCount; LrDevScale = effNewLrDevScale }
-    (newState, newSettings)
+    let finalResults =  testSettings 10 currSeed newSettings
+    printfn "[%f..%f]: %f -> %f: %f -> %f"  lowLr highLr baseLr newBaseLr initResults.GeoMean finalResults.GeoMean
+    if finalResults.GeoMean > initResults.GeoMean then
+        ({ Unpacker = controller.Unpacker; Packer = controller.Packer; DegradedCount = controller.DegradedCount + 1; LrDevScale = controller.LrDevScale }, initialSettings)
+    else
+        ({ Unpacker = controller.Unpacker; Packer = controller.Packer; DegradedCount = controller.DegradedCount; LrDevScale = effNewLrDevScale }, newSettings)
 
 let improvementSteps (controllers:ControllerState list) (initialSettings:LvqModelSettingsCli) =
     List.fold (fun (controllerStates, settings) nextController ->
             let (newControllerState, newSettings) = improvementStep nextController settings
             (newControllerState :: controllerStates, newSettings)
         ) ([], initialSettings) controllers
+    |> apply1st List.rev
 
 let rec fullyImprove (controllers:ControllerState list) (initialSettings:LvqModelSettingsCli) =
-    if (controllers |> List.forall (fun controllerState -> controllerState.DegradedCount > 11)) then
+    if controllers |> List.sumBy (fun controllerState -> controllerState.DegradedCount) > 3 * (List.length controllers) then
         (initialSettings, controllers)
     else
         let (nextControllers, nextSettings) = improvementSteps controllers initialSettings
         fullyImprove nextControllers nextSettings
 
-let optimizedGm1 = fullyImprove [lrPcontrol; lr0control] (Gm1 0.1 0.01)
-let optimizedGm1a = fullyImprove [lrPcontrol; lr0control] (Gm1 1.0 0.001)
-let optimizedGm1b = fullyImprove [lrPcontrol; lr0control] (Gm1 10.0 0.001)
-let optimizedGm1c = fullyImprove [lrPcontrol; lr0control] (Gm1 1.0 0.001)
-let optimizedGm1d = fullyImprove [lrPcontrol; lr0control] (Gm1 1.0 0.001) //with twoTailedPairedTtest
+//let optimizedGm1 = fullyImprove [lrPcontrol; lr0control] (Gm1 0.1 0.01)
+//let optimizedGm1a = fullyImprove [lrPcontrol; lr0control] (Gm1 1.0 0.001)
+//let optimizedGm1b = fullyImprove [lrPcontrol; lr0control] (Gm1 10.0 0.001)
+//let optimizedGm1c = fullyImprove [lrPcontrol; lr0control] (Gm1 10.0 0.001)
+//let optimizedGm1d = fullyImprove [lrPcontrol; lr0control] (Gm1 1.0 0.001) //with twoTailedPairedTtest
 
-
-
+let optimizedGm1a = fullyImprove [lrPcontrol; lr0control] (Gm1 1.0 0.001) //with twoTailedPairedTtest p:10.21 0: 0.001021487854;
+printfn "%A" optimizedGm1a
+let optimizedGm5a = fullyImprove [lrPcontrol; lr0control] (Gm5 1.0 0.001) //with twoTailedPairedTtest//p:8.320748474 0:0.001832159873
+printfn "%A" optimizedGm5a
 
 
 //let seeTopResults results =results |> (Seq.take 10 >> Seq.map (fun res->((res.GeoMean, res.Mean), (res.Settings.LR0, (res.Settings.LrScaleP, res.Settings.LrScaleB))))  >> List.ofSeq)
