@@ -60,6 +60,7 @@ LvqModelRuntimeSettings::LvqModelRuntimeSettings(int classCount, boost::mt19937 
 	, UpdatePointsWithoutB(false)
 	, SlowStartLrBad(false)
 	, ClassCount(classCount)
+	, MuOffset(0.0)
 	, LrScaleP(LVQ_LrScaleP)
 	, LrScaleB(LVQ_LrScaleB)
 	, LR0(LVQ_LR0)

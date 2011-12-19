@@ -101,7 +101,8 @@ extern"C" LvqModel* CreateLvqModel(LvqModelSettingsRaw rawSettings, LvqDataset c
 	initSettings.BLocalInit =rawSettings. BLocalInit;
 	initSettings.RuntimeSettings.UpdatePointsWithoutB = rawSettings.UpdatePointsWithoutB;
 	initSettings.RuntimeSettings.SlowStartLrBad = rawSettings.SlowStartLrBad;
-	initSettings.Dimensionality =rawSettings. Dimensionality;
+	initSettings.Dimensionality = rawSettings. Dimensionality;
+	initSettings.RuntimeSettings.MuOffset = rawSettings.MuOffset;
 	initSettings.RuntimeSettings.LrScaleP = rawSettings.LrScaleP;
 	initSettings.RuntimeSettings.LrScaleB = rawSettings.LrScaleB;
 	initSettings.RuntimeSettings.LR0 =rawSettings. LR0;

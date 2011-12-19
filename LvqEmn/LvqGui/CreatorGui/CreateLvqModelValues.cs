@@ -134,6 +134,12 @@ namespace LvqGui {
 			set { if (!settings.LrScaleBad.Equals(value)) { settings.LrScaleBad = value; _propertyChanged("LrScaleBad"); } }
 		}
 
+		public double MuOffset {
+			get { return settings.MuOffset; }
+			set { if (!settings.MuOffset.Equals(value)) { settings.MuOffset = value; _propertyChanged("MuOffset"); } }
+		}
+		
+
 		public bool SlowStartLrBad {
 			get { return settings.SlowStartLrBad; }
 			set { if (!settings.SlowStartLrBad.Equals(value)) { settings.SlowStartLrBad = value; _propertyChanged("SlowStartLrBad"); } }
@@ -164,7 +170,7 @@ namespace LvqGui {
 				(Pi(?<ProjOptimalInit>\+?),)?
 				(Bi(?<BLocalInit>\+?),)?
 				(noB(?<UpdatePointsWithoutB>\+?),)?
-				(pQ(?<TrackProjectionQuality>\+?),)?
+				(mu(?<MuOffset>[0-9]*(\.[0-9]*)?([eE]-?[0-9]+)?),)?
 				(lrX(?<LrScaleBad>[0-9]*(\.[0-9]*)?([eE]-?[0-9]+)?),)?
 				(?<SlowStartLrBad>\!?)
 				(lr0(?<LR0>[0-9]*(\.[0-9]*)?([eE]-?[0-9]+)?),

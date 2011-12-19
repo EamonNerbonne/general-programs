@@ -5,7 +5,8 @@
 namespace LvqLibCli {
 	LvqModelSettingsRaw LvqModelSettingsCli::ToNativeSettings() {
 
-		LvqModelSettingsRaw nativeSettings = { (::LvqModelType)ModelType, Dimensionality, PrototypesPerClass, RandomInitialProjection, RandomInitialBorders, NormalizeProjection, NormalizeBoundaries, GloballyNormalize, NgUpdateProtos, NgInitializeProtos, ProjOptimalInit, BLocalInit, UpdatePointsWithoutB, SlowStartLrBad, LR0, LrScaleP, LrScaleB, LrScaleBad, ParamsSeed, InstanceSeed, TrackProjectionQuality, ParallelModels };
+		LvqModelSettingsRaw nativeSettings = { (::LvqModelType)ModelType, Dimensionality, PrototypesPerClass, RandomInitialProjection, RandomInitialBorders, NormalizeProjection, NormalizeBoundaries, GloballyNormalize, NgUpdateProtos, NgInitializeProtos
+			, ProjOptimalInit, BLocalInit, UpdatePointsWithoutB, SlowStartLrBad, MuOffset, LR0, LrScaleP, LrScaleB, LrScaleBad, ParamsSeed, InstanceSeed, TrackProjectionQuality, ParallelModels };
 		return nativeSettings;
 	}
 
@@ -23,6 +24,7 @@ namespace LvqLibCli {
 			+ (ProjOptimalInit != LvqModelSettingsCli().ProjOptimalInit && (ModelType != LvqModelType::Lgm && ModelType != LvqModelType::Lpq) ? "Pi" + (ProjOptimalInit ? "+" : "") + "," : "")
 			+ (BLocalInit != LvqModelSettingsCli().BLocalInit && (ModelType != LvqModelType::Lpq && ModelType != LvqModelType::Lgm && ModelType != LvqModelType::Gm) ? "Bi" + (BLocalInit ? "+" : "") + "," : "")
 			+ (UpdatePointsWithoutB != LvqModelSettingsCli().UpdatePointsWithoutB && ModelType == LvqModelType::G2m ? "noB" + (UpdatePointsWithoutB ? "+" : "") + "," : "")
+			+ (MuOffset == 0.0?"": "mu" + MuOffset.ToString("r") + ",")
 			+ (LrScaleBad != LvqModelSettingsCli().LrScaleBad ? "lrX" + LrScaleBad.ToString("r") + ",":"")
 			+ (SlowStartLrBad ? "!" : "")
 			+ (LR0==LVQ_LR0 &&LrScaleP==LVQ_LrScaleP&&LrScaleB==LVQ_LrScaleB?"":

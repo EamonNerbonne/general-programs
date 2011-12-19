@@ -79,29 +79,30 @@ MatchQuality GgmLvqModel::learnFrom(Vector_N const & trainPoint, int trainLabel)
 	MatchQuality ggmQuality = matches.GgmQuality();
 	double muJ2 = 2*ggmQuality.muJ;
 	double muK2 = 2*ggmQuality.muK;
+	double muJ2_alt = muJ2 + settings.MuOffset;
 
 	MVectorXd vJ(m_vJ.data(),m_vJ.size());
 	MVectorXd vK(m_vK.data(),m_vK.size());
 
 	Vector_2 P_vJ= J.P_point - P_trainPoint;
 	Vector_2 P_vK = K.P_point - P_trainPoint;
-	Vector_2 muJ2_Bj_P_vJ = muJ2 *  (J.B * P_vJ) ;
-	Vector_2 muK2_Bk_P_vK = muK2 *  (K.B * P_vK) ;
+	Vector_2 Bj_P_vJ = J.B * P_vJ;
+	Vector_2 Bk_P_vK = K.B * P_vK;
 	vJ = J.point - trainPoint;
 	vK = K.point - trainPoint;
-	Vector_2 muJ2_BjT_Bj_P_vJ =  J.B.transpose() * muJ2_Bj_P_vJ ;
-	Vector_2 muK2_BkT_Bk_P_vK = K.B.transpose() * muK2_Bk_P_vK ;
+	Vector_2 BjT_Bj_P_vJ =  J.B.transpose() * Bj_P_vJ ;
+	Vector_2 BkT_Bk_P_vK = K.B.transpose() * Bk_P_vK ;
 
-	Matrix_22 neg_muJ2_JBinvT = -muJ2* J.B.inverse().transpose();
-	Matrix_22 neg_muK2_KBinvT = -muK2* K.B.inverse().transpose();
+	Matrix_22 JBinvT =  J.B.inverse().transpose();
+	Matrix_22 KBinvT =  K.B.inverse().transpose();
 
-	J.B.noalias() += lr_B * (muJ2_Bj_P_vJ * P_vJ.transpose() + neg_muJ2_JBinvT );
-	K.B.noalias() += (lr_bad*lr_B) * (muK2_Bk_P_vK * P_vK.transpose() + neg_muK2_KBinvT) ;
+	J.B.noalias() += (lr_B * (muJ2_alt)) * (Bj_P_vJ * P_vJ.transpose() - JBinvT );
+	K.B.noalias() += (lr_bad*lr_B*muK2) * (Bk_P_vK * P_vK.transpose() - KBinvT) ;
 	J.RecomputeBias();
 	K.RecomputeBias();
 
-	J.point.noalias() += P.transpose()* (lr_point * muJ2_BjT_Bj_P_vJ);
-	K.point.noalias() += P.transpose() * (lr_bad * lr_point * muK2_BkT_Bk_P_vK) ;
+	J.point.noalias() += P.transpose()* ((lr_point * (muJ2_alt)) * BjT_Bj_P_vJ);
+	K.point.noalias() += P.transpose() * ((lr_bad * lr_point * muK2) * BkT_Bk_P_vK) ;
 
 	if(ngMatchCache.size()>0) {
 		double lrSub = 1.0;
@@ -111,7 +112,7 @@ MatchQuality GgmLvqModel::learnFrom(Vector_N const & trainPoint, int trainLabel)
 			GgmLvqPrototype &Js = prototype[fullmatch.matchesOk[i].idx];
 			double muJ2_s =  (1.0/4.0) * (1.0 - sqr(std::tanh((fullmatch.matchesOk[i].dist - fullmatch.distBad)/4.0)));
 			Vector_2 P_vJs = Js.P_point - P_trainPoint;
-			Vector_2 muJ2_Bj_P_vJs = muJ2_s * (Js.B * P_vJs);
+			Vector_2 muJ2_Bj_P_vJs = (muJ2_s + settings.MuOffset) * (Js.B * P_vJs);
 
 			Js.point.noalias() += P.transpose() * (lrSub * lr_point * (Js.B.transpose() * muJ2_Bj_P_vJs));
 			Matrix_22 neg_muJ2_JBinvTs = -muJ2_s* Js.B.inverse().transpose();
@@ -120,7 +121,7 @@ MatchQuality GgmLvqModel::learnFrom(Vector_N const & trainPoint, int trainLabel)
 		}
 	}
 
-	P.noalias() += (lr_P * muK2_BkT_Bk_P_vK) * vK.transpose() + (lr_P * muJ2_BjT_Bj_P_vJ) * vJ.transpose();
+	P.noalias() += ((lr_P * muK2) * BkT_Bk_P_vK) * vK.transpose() + ((lr_P * muJ2) * BjT_Bj_P_vJ) * vJ.transpose();
 	if(settings.NormalizeProjection)
 		normalizeProjection(P);
 
