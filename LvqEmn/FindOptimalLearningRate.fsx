@@ -170,10 +170,19 @@ let rec fullyImprove (controllers:ControllerState list) (initialSettings:LvqMode
 //let optimizedGm1c = fullyImprove [lrPcontrol; lr0control] (Gm1 10.0 0.001)
 //let optimizedGm1d = fullyImprove [lrPcontrol; lr0control] (Gm1 1.0 0.001) //with twoTailedPairedTtest
 
-let optimizedGm1a = fullyImprove [lrPcontrol; lr0control] (Gm1 1.0 0.001) //with twoTailedPairedTtest p:10.21 0: 0.001021487854;
-printfn "%A" optimizedGm1a
-let optimizedGm5a = fullyImprove [lrPcontrol; lr0control] (Gm5 1.0 0.001) //with twoTailedPairedTtest//p:8.320748474 0:0.001832159873
-printfn "%A" optimizedGm5a
+//let optimizedGm1a = fullyImprove [lrPcontrol; lr0control] (Gm1 1.0 0.001) //with twoTailedPairedTtest p:10.21 0: 0.001021487854;
+//printfn "%A" optimizedGm1a
+//testSettings 10 0u (Gm1 0.6836046038 0.002198585515) 
+//
+//let optimizedGm5a = fullyImprove [lrPcontrol; lr0control] (Gm5 1.0 0.001) //with twoTailedPairedTtest//p:8.320748474 0:0.001832159873
+//printfn "%A" optimizedGm5a
+//testSettings 10 0u (Gm5 4.536289905 0.002672680891) 
+//
+let optimizedGgm1a = fullyImprove [lrBcontrol; lrPcontrol; lr0control] (Ggm1 5.0 0.05 0.03) //with twoTailedPairedTtest p:10.21 0: 0.001021487854;
+printfn "%A" (fst optimizedGgm1a)
+printfn "%A" (snd optimizedGgm1a)
+
+//testSettings 10 0u (Gm1 0.6836046038 0.002198585515) 
 
 
 //let seeTopResults results =results |> (Seq.take 10 >> Seq.map (fun res->((res.GeoMean, res.Mean), (res.Settings.LR0, (res.Settings.LrScaleP, res.Settings.LrScaleB))))  >> List.ofSeq)
