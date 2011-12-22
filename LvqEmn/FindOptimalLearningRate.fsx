@@ -178,11 +178,22 @@ let rec fullyImprove (controllers:ControllerState list) (initialSettings:LvqMode
 //printfn "%A" optimizedGm5a
 //testSettings 10 0u (Gm5 4.536289905 0.002672680891) 
 //
-let optimizedGgm1a = fullyImprove [lrBcontrol; lrPcontrol; lr0control] (Ggm1 5.0 0.05 0.03) //with twoTailedPairedTtest p:10.21 0: 0.001021487854;
-printfn "%A" (fst optimizedGgm1a)
-printfn "%A" (snd optimizedGgm1a)
+//let optimizedGgm1a = fullyImprove [lrBcontrol; lrPcontrol; lr0control] (Ggm1 5.0 0.05 0.03) //with twoTailedPairedTtest p:10.21 0: 0.001021487854;
+//printfn "%A" (fst optimizedGgm1a)
+//printfn "%A" (snd optimizedGgm1a)
 
-//testSettings 10 0u (Gm1 0.6836046038 0.002198585515) 
+
+//let optimizedG2m1a = fullyImprove [lrBcontrol; lrPcontrol; lr0control] (G2m1 0.005 0.06 0.02) //with twoTailedPairedTtest p:10.21 0: 0.001021487854;
+//printfn "%A" ((fst optimizedG2m1a).ToShorthand ()) //"G2m+,1,!lr00.021797623944739782,lrP0.17013535127904061,lrB0.0028710442546792839,"
+//printfn "%A" (snd optimizedG2m1a)
+//testSettings 10 0u (G2m1 0.0028710442546792839 0.17013535127904061 0.021797623944739782)  //geomean: 0.1325558145 mean: 0.1666461318
+
+
+
+let optimizedG2m5a = fullyImprove [lrBcontrol; lrPcontrol; lr0control] (G2m5 0.005 0.06 0.02) //G2m+,5,NGi+,!lr00.014854479268703827,lrP0.12643192802795739,lrB0.003687418675856426,
+testSettings 10 0u (G2m5 0.003687418675856426 0.12643192802795739 0.014854479268703827) //GeoMean: 0.1112603019 Mean: 0.1257493826
+printfn "%A" ((fst optimizedG2m5a).ToShorthand ()) 
+printfn "%A" (snd optimizedG2m5a)
 
 
 //let seeTopResults results =results |> (Seq.take 10 >> Seq.map (fun res->((res.GeoMean, res.Mean), (res.Settings.LR0, (res.Settings.LrScaleP, res.Settings.LrScaleB))))  >> List.ofSeq)
@@ -193,16 +204,16 @@ printfn "%A" (snd optimizedGgm1a)
 //let lrsGgm5_12a = lrsChecker (logscale 50 (0.005,0.1)) (fun lrP ->  Ggm5 5.151758465 lrP 0.03084017782)
 //let lrsGgm5_12b = lrsChecker (logscale 50 (1.0,9.0)) (fun lrB ->  Ggm5 lrB 0.04770197608 0.03084017782)
 //let lrsGgm5_12c = lrsChecker (logscale 50 (0.005,0.05)) (fun lr0 ->  Ggm5 5.151758465 0.04770197608 lr0)
-//testSettings (Ggm5 5.151758465 0.05351299581 0.03422167947)
+//testSettings 10 0u (Ggm5 5.151758465 0.05351299581 0.03422167947)
 
 //let lrsG2m5_7a = lrsChecker (logscale 30 (0.055,0.08)) (fun lrP ->  G2m5 0.005233059919 lrP 0.01450902498)
 //let lrsG2m5_7b = lrsChecker (logscale 30 (0.004,0.007)) (fun lrB ->  G2m5 lrB 0.0676296965 0.01450902498)
 //let lrsG2m5_7c = lrsChecker (logscale 40 (0.012,0.022)) (fun lr0 ->  G2m5 0.005233059919 0.0676296965 lr0)
-//testSettings (G2m5 0.005360131131 0.06698813151 0.01633390101)
+//testSettings 10 0u (G2m5 0.005360131131 0.06698813151 0.01633390101)
 
 //let lrsLgm5_3a = lrsChecker (logscale 30 (0.002,0.05)) (fun lr0 ->  Lgm5 0.4020495836 lr0)
 //let lrsLgm5_3b = lrsChecker (logscale 30 (0.05,2.0)) (fun lrP ->  Lgm5 lrP 0.01800782036)
-//testSettings (Lgm5  0.656526238 0.008685645737)
+//testSettings 10 0u (Lgm5  0.656526238 0.008685645737)
 
 //let lrsG2m1 = lrsChecker (logscale 10 (0.004,0.02)) (fun lrB ->  G2m1 lrB 0.06698813151 0.01633390101)
 
