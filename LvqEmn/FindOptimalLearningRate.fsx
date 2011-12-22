@@ -185,7 +185,7 @@ let rec improveAndTest (initialShorthand:string) =
         [
             if needsB then yield lrBcontrol
             yield lrPcontrol
-            yield lrPcontrol
+            yield lr0control
        ]
     let improvedSettings = fullyImprove controllers initialSettings |> fst
     let testedResults = testSettings 10 1u improvedSettings //GeoMean: 0.1981672332 Mean: 0.2310214097
