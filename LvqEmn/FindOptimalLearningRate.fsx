@@ -172,17 +172,22 @@ let rec fullyImprove (controllers:ControllerState list) (initialSettings:LvqMode
 
 //let optimizedGm1a = fullyImprove [lrPcontrol; lr0control] (Gm1 1.0 0.001) //with twoTailedPairedTtest p:10.21 0: 0.001021487854;
 //printfn "%A" optimizedGm1a
-//testSettings 10 0u (Gm1 0.6836046038 0.002198585515) 
+//testSettings 10 0u (Gm1 0.6836046038 0.002198585515) //geomean: 0.1981672332 mean: 0.2310214097
 //
 //let optimizedGm5a = fullyImprove [lrPcontrol; lr0control] (Gm5 1.0 0.001) //with twoTailedPairedTtest//p:8.320748474 0:0.001832159873
 //printfn "%A" optimizedGm5a
-//testSettings 10 0u (Gm5 4.536289905 0.002672680891) 
-//
-let optimizedGgm1a = fullyImprove [lrBcontrol; lrPcontrol; lr0control] (Ggm1 5.0 0.05 0.03) //with twoTailedPairedTtest p:10.21 0: 0.001021487854;
-printfn "%A" (fst optimizedGgm1a)
-printfn "%A" (snd optimizedGgm1a)
+//testSettings 10 0u (Gm5 4.536289905 0.002672680891) //GeoMean: 0.1389671982 Mean: 0.1519136112
 
-//testSettings 10 0u (Gm1 0.6836046038 0.002198585515) 
+//let optimizedGgm1a = fullyImprove [lrBcontrol; lrPcontrol; lr0control] (Ggm1 5.0 0.05 0.03)
+//printfn "%s" ((fst optimizedGgm1a).ToShorthand())
+//printfn "%A" (snd optimizedGgm1a)
+//testSettings 10 0u (Ggm1 2.3443026990433924 0.054767623178213938 0.029892794513821885) //GeoMean: 0.1298214422 Mean: 0.162846497
+
+let optimizedGgm5a = fullyImprove [lrBcontrol; lrPcontrol; lr0control] (Ggm5 5.0 0.05 0.03) //Ggm+,5,NGi+,!lr00.041993068719849549,lrP0.05551136786774067,lrB11.462570954856234,
+testSettings 10 0u (fst optimizedGgm5a) //GeoMean: 0.1105839335 Mean: 0.124578113
+printfn "%s" ((fst optimizedGgm5a).ToShorthand())
+printfn "%A" (snd optimizedGgm5a)
+
 
 
 //let seeTopResults results =results |> (Seq.take 10 >> Seq.map (fun res->((res.GeoMean, res.Mean), (res.Settings.LR0, (res.Settings.LrScaleP, res.Settings.LrScaleB))))  >> List.ofSeq)
