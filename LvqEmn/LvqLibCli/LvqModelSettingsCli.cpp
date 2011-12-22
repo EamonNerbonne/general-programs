@@ -27,10 +27,9 @@ namespace LvqLibCli {
 			+ (MuOffset == 0.0?"": "mu" + MuOffset.ToString("r") + ",")
 			+ (LrScaleBad != LvqModelSettingsCli().LrScaleBad ? "lrX" + LrScaleBad.ToString("r") + ",":"")
 			+ (SlowStartLrBad ? "!" : "")
-			+ (LR0==LVQ_LR0 &&LrScaleP==LVQ_LrScaleP&&LrScaleB==LVQ_LrScaleB?"":
-			"lr0" + LR0.ToString("r") + ","
-			+ "lrP" + LrScaleP.ToString("r") + ","
-			+ "lrB" + LrScaleB.ToString("r") + ",")
+			+ (LR0==LVQ_LR0  ?  "": "lr0" + LR0.ToString("r") + ","	)
+			+ (LrScaleP==LVQ_LrScaleP  ?  ""  :   "lrP" + LrScaleP.ToString("r") + ","	)
+			+ (LrScaleB==LVQ_LrScaleB  || ModelType ==  LvqModelType::Lgm || ModelType == LvqModelType::Lpq || ModelType == LvqModelType::Gm ?  "": "lrB" + LrScaleB.ToString("r") + ",")
 			+ ( ParamsSeed != LvqModelSettingsCli().ParamsSeed ||InstanceSeed != LvqModelSettingsCli().InstanceSeed
 				? "[" +  ( ParamsSeed != LvqModelSettingsCli().ParamsSeed ? ParamsSeed.ToString("x"):"") 
 				+ "," +  (InstanceSeed != LvqModelSettingsCli().InstanceSeed?InstanceSeed.ToString("x"):"") + "]"
