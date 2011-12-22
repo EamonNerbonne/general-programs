@@ -46,7 +46,12 @@ let Gm5 = makeLvqSettings LvqModelType.Gm 5 0.
 let Lgm1 = makeLvqSettings LvqModelType.Lgm 1 0.
 let Lgm5 = makeLvqSettings LvqModelType.Lgm 5 0.
 
-type TestResults = { GeoMean:float; Mean:float;  Results:float list list []; Settings:LvqModelSettingsCli;}
+type TestResults = { GeoMean:float; Mean:float;  Results:float list list []; Settings:LvqModelSettingsCli; }
+
+let printResults results =
+    let resDistr = results.Results |> List.concat |> List.concat |> Utils.sampleDistribution
+    printfn "%s GeoMean: %f; Mean: %f ~ %f" (results.Settings.ToShorthand ()) results.GeoMean results.Mean resDistr.StdErr
+    
 
 let iterCount = 1e7
 
@@ -138,7 +143,7 @@ let improvementStep (controller:ControllerState) (initialSettings:LvqModelSettin
     let baseLr = controller.Unpacker initialSettings
     let lowLr = baseLr / (controller.LrDevScale ** 2.)
     let highLr = baseLr * (controller.LrDevScale ** 2.)
-    let results = lrsChecker  (currSeed+2u) (logscale 40 (lowLr,highLr)) (controller.Packer initialSettings)
+    let results = lrsChecker (currSeed+2u) (logscale 40 (lowLr,highLr)) (controller.Packer initialSettings)
     let (newBaseLr, newLrDevScale) = improveLr (List.ofArray results) (controller.Unpacker, controller.Packer)
     let logLrDiff_LrDevScale = Math.Abs(Math.Log(baseLr / newBaseLr))
     let effNewLrDevScale = 0.3*newLrDevScale + 0.4*controller.LrDevScale + 0.4*logLrDiff_LrDevScale
@@ -175,8 +180,8 @@ let rec improveAndTest (initialShorthand:string) =
        ]
     let improvedSettings = fullyImprove controllers initialSettings |> fst
     let testedResults = testSettings 10 1u improvedSettings //GeoMean: 0.1981672332 Mean: 0.2310214097
-    printfn "%s GeoMean: %f; Mean: %f" (improvedSettings.ToShorthand ()) testedResults.GeoMean testedResults.Mean
-    (improvedSettings, testedResults)
+    printResults testedResults
+    testedResults
 
 //old manual:
 //testSettings 10 0u (Ggm5 5.151758465 0.05351299581 0.03422167947)
@@ -187,24 +192,23 @@ let rec improveAndTest (initialShorthand:string) =
 
 
 
-"Gm+,1,!lrP0.6836046038,lrB0.002198585515," |> CreateLvqModelValues.ParseShorthand |>  testSettings 10 1u //GeoMean: 0.1981672332 Mean: 0.2310214097
 //let optimizedGm1a = fullyImprove [lrPcontrol; lr0control] (Gm1 1.0 0.001)  //Gm+,1,!lrP0.6836046038,lrB0.002198585515,
-//"Gm+,1,!lrP0.6836046038,lrB0.002198585515," |> L testSettings 10 1u (fst Gm1 optimizedGm1a) //GeoMean: 0.1981672332 Mean: 0.2310214097
+//"Gm+,1,!lrP0.6836046038,lrB0.002198585515," |> CreateLvqModelValues.ParseShorthand |>  testSettings 10 1u  |> printResults //GeoMean: 0.1992510151 Mean: 0.2294874713
 
-//let optimizedGm5a = fullyImprove [lrPcontrol; lr0control] (Gm5 1.0 0.001) //Gm+,5,NGi+,!lrP4.536289905,lrB0.002672680891,
-//testSettings 10 1u (fst optimizedGm5a) //GeoMean: 0.1389671982 Mean: 0.1519136112
+let optimizedGm5a = fullyImprove [lrPcontrol; lr0control] (Gm5 1.0 0.001) //Gm+,5,NGi+,!lrP4.536289905,lrB0.002672680891,
+"Gm+,5,NGi+,!lrP4.536289905,lrB0.002672680891," |> CreateLvqModelValues.ParseShorthand |>  testSettings 10 1u |> printResults//GeoMean: 0.1389671982 Mean: 0.1519136112
 
-//let optimizedG2m1a = fullyImprove [lrBcontrol; lrPcontrol; lr0control] (G2m1 0.005 0.06 0.02) //G2m+,1,!lr00.021797623944739782,lrP0.17013535127904061,lrB0.0028710442546792839,
-//testSettings 10 1u (fst optimizedG2m1a)  //geomean: 0.1325558145 mean: 0.1666461318
+let optimizedG2m1a = fullyImprove [lrBcontrol; lrPcontrol; lr0control] (G2m1 0.005 0.06 0.02) //G2m+,1,!lr00.021797623944739782,lrP0.17013535127904061,lrB0.0028710442546792839,
+"G2m+,1,!lr00.021797623944739782,lrP0.17013535127904061,lrB0.0028710442546792839," |> CreateLvqModelValues.ParseShorthand |> testSettings 10 1u  |> printResults  //geomean: 0.1325558145 mean: 0.1666461318
 
-//let optimizedG2m5a = fullyImprove [lrBcontrol; lrPcontrol; lr0control] (G2m5 0.005 0.06 0.02) //G2m+,5,NGi+,!lr00.014854479268703827,lrP0.12643192802795739,lrB0.003687418675856426,
-//testSettings 10 1u (fst optimizedG2m5a) //GeoMean: 0.1112603019 Mean: 0.1257493826
+let optimizedG2m5a = fullyImprove [lrBcontrol; lrPcontrol; lr0control] (G2m5 0.005 0.06 0.02) //G2m+,5,NGi+,!lr00.014854479268703827,lrP0.12643192802795739,lrB0.003687418675856426,
+"G2m+,5,NGi+,!lr00.014854479268703827,lrP0.12643192802795739,lrB0.003687418675856426," |> CreateLvqModelValues.ParseShorthand |> testSettings 10 1u |> printResults //GeoMean: 0.1112603019 Mean: 0.1257493826
 
-//let optimizedGgm1a = fullyImprove [lrBcontrol; lrPcontrol; lr0control] (Ggm1 5.0 0.05 0.03) //Ggm+,5,NGi+,!lr00.029892794513821885,lrP0.054767623178213938,lrB2.3443026990433924,
-//testSettings 10 1u (fst optimizedGgm1a) //GeoMean: 0.1298214422 Mean: 0.162846497
+let optimizedGgm1a = fullyImprove [lrBcontrol; lrPcontrol; lr0control] (Ggm1 5.0 0.05 0.03) //Ggm+,1,NGi+,!lr00.029892794513821885,lrP0.054767623178213938,lrB2.3443026990433924,
+"Ggm+,1,NGi+,!lr00.029892794513821885,lrP0.054767623178213938,lrB2.3443026990433924," |> CreateLvqModelValues.ParseShorthand |> testSettings 10 1u  |> printResults  //GeoMean: 0.1298214422 Mean: 0.162846497
 
-//let optimizedGgm5a = fullyImprove [lrBcontrol; lrPcontrol; lr0control] (Ggm5 5.0 0.05 0.03) //Ggm+,5,NGi+,!lr00.041993068719849549,lrP0.05551136786774067,lrB11.462570954856234,
-//testSettings 10 1u (fst optimizedGgm5a) //GeoMean: 0.1105839335 Mean: 0.124578113
+let optimizedGgm5a = fullyImprove [lrBcontrol; lrPcontrol; lr0control] (Ggm5 5.0 0.05 0.03) //Ggm+,5,NGi+,!lr00.041993068719849549,lrP0.05551136786774067,lrB11.462570954856234,
+"Ggm+,5,NGi+,!lr00.041993068719849549,lrP0.05551136786774067,lrB11.462570954856234," |> CreateLvqModelValues.ParseShorthand |> testSettings 10 1u |> printResults  //GeoMean: 0.1105839335 Mean: 0.124578113
 
 
 
