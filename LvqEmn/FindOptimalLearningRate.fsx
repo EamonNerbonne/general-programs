@@ -236,4 +236,3 @@ improveAndTest "Ggm+,1,lr00.03,lrP0.05,lrB2.0,"
 improveAndTest "Ggm+,5,NGi+,lr00.04,lrP0.05,lrB10.0,"
 
 
-let optimizedGm1a = fullyImprove [lrPcontrol; lr0control] (Gm1 1.0 0.001)  //Gm+,1,!lrP0.6836046038,lr00.002198585515,
