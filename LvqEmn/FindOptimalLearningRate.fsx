@@ -198,7 +198,7 @@ let rec improveAndTest (initialShorthand:string) =
 //testSettings 10 1u (Ggm5 5.151758465 0.05351299581 0.03422167947) |> printResults
 //Ggm+,5,NGi+,!lr00.03422167947,lrP0.05351299581,lrB5.151758465, GeoMean: 0.108734; Training: 0.099645 ~ 0.005651; Test: 0.115992 ~ 0.006615; NN: 0.156203 ~ 0.008947
 //testSettings 10 1u (Lgm5  0.656526238 0.008685645737) |> printResults
-
+//Lgm[2],5,NGi+,!lr00.008685645737,lrP0.656526238, GeoMean: 0.013450; Training: 0.013415 ~ 0.001996; Test: 0.025856 ~ 0.002333
 
 
 
