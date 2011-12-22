@@ -164,50 +164,34 @@ let rec fullyImprove (controllers:ControllerState list) (initialSettings:LvqMode
         let (nextControllers, nextSettings) = improvementSteps controllers initialSettings
         fullyImprove nextControllers nextSettings
 
-//let optimizedGm1 = fullyImprove [lrPcontrol; lr0control] (Gm1 0.1 0.01)
-//let optimizedGm1a = fullyImprove [lrPcontrol; lr0control] (Gm1 1.0 0.001)
-//let optimizedGm1b = fullyImprove [lrPcontrol; lr0control] (Gm1 10.0 0.001)
-//let optimizedGm1c = fullyImprove [lrPcontrol; lr0control] (Gm1 10.0 0.001)
-//let optimizedGm1d = fullyImprove [lrPcontrol; lr0control] (Gm1 1.0 0.001) //with twoTailedPairedTtest
 
-//let optimizedGm1a = fullyImprove [lrPcontrol; lr0control] (Gm1 1.0 0.001) //with twoTailedPairedTtest p:10.21 0: 0.001021487854;
-//printfn "%A" optimizedGm1a
-//testSettings 10 0u (Gm1 0.6836046038 0.002198585515) //geomean: 0.1981672332 mean: 0.2310214097
-//
-//let optimizedGm5a = fullyImprove [lrPcontrol; lr0control] (Gm5 1.0 0.001) //with twoTailedPairedTtest//p:8.320748474 0:0.001832159873
-//printfn "%A" optimizedGm5a
-//testSettings 10 0u (Gm5 4.536289905 0.002672680891) //GeoMean: 0.1389671982 Mean: 0.1519136112
-
-//let optimizedGgm1a = fullyImprove [lrBcontrol; lrPcontrol; lr0control] (Ggm1 5.0 0.05 0.03)
-//printfn "%s" ((fst optimizedGgm1a).ToShorthand())
-//printfn "%A" (snd optimizedGgm1a)
-//testSettings 10 0u (Ggm1 2.3443026990433924 0.054767623178213938 0.029892794513821885) //GeoMean: 0.1298214422 Mean: 0.162846497
-
-let optimizedGgm5a = fullyImprove [lrBcontrol; lrPcontrol; lr0control] (Ggm5 5.0 0.05 0.03) //Ggm+,5,NGi+,!lr00.041993068719849549,lrP0.05551136786774067,lrB11.462570954856234,
-testSettings 10 0u (fst optimizedGgm5a) //GeoMean: 0.1105839335 Mean: 0.124578113
-printfn "%s" ((fst optimizedGgm5a).ToShorthand())
-printfn "%A" (snd optimizedGgm5a)
+//old manual:
+//testSettings 10 0u (Ggm5 5.151758465 0.05351299581 0.03422167947)
+//testSettings 10 0u (G2m5 0.005360131131 0.06698813151 0.01633390101)
+//testSettings 10 0u (Lgm5  0.656526238 0.008685645737)
 
 
+//let optimizedGm1a = fullyImprove [lrPcontrol; lr0control] (Gm1 1.0 0.001)  //Gm+,1,!lrP0.6836046038,lrB0.002198585515,
+//testSettings 10 0u (fst Gm1 optimizedGm1a) //GeoMean: 0.1981672332 Mean: 0.2310214097
 
-//let seeTopResults results =results |> (Seq.take 10 >> Seq.map (fun res->((res.GeoMean, res.Mean), (res.Settings.LR0, (res.Settings.LrScaleP, res.Settings.LrScaleB))))  >> List.ofSeq)
+//let optimizedGm5a = fullyImprove [lrPcontrol; lr0control] (Gm5 1.0 0.001) //Gm+,5,NGi+,!lrP4.536289905,lrB0.002672680891,
+//testSettings 10 0u (fst optimizedGm5a) //GeoMean: 0.1389671982 Mean: 0.1519136112
 
-//let lrsGm5_6 = lrsChecker (logscale 30 (0.003, 0.02)) (fun lr0 -> Gm5 0.9236708572 lr0)
-//let lrsGm5_7 = lrsChecker (logscale 40 (0.3, 3.0)) (fun lrp -> Gm5 lrp 0.01110028628)
+//let optimizedG2m1a = fullyImprove [lrBcontrol; lrPcontrol; lr0control] (G2m1 0.005 0.06 0.02) //G2m+,1,!lr00.021797623944739782,lrP0.17013535127904061,lrB0.0028710442546792839,
+//testSettings 10 0u (fst optimizedG2m1a)  //geomean: 0.1325558145 mean: 0.1666461318
 
-//let lrsGgm5_12a = lrsChecker (logscale 50 (0.005,0.1)) (fun lrP ->  Ggm5 5.151758465 lrP 0.03084017782)
-//let lrsGgm5_12b = lrsChecker (logscale 50 (1.0,9.0)) (fun lrB ->  Ggm5 lrB 0.04770197608 0.03084017782)
-//let lrsGgm5_12c = lrsChecker (logscale 50 (0.005,0.05)) (fun lr0 ->  Ggm5 5.151758465 0.04770197608 lr0)
-//testSettings (Ggm5 5.151758465 0.05351299581 0.03422167947)
+//let optimizedG2m5a = fullyImprove [lrBcontrol; lrPcontrol; lr0control] (G2m5 0.005 0.06 0.02) //G2m+,5,NGi+,!lr00.014854479268703827,lrP0.12643192802795739,lrB0.003687418675856426,
+//testSettings 10 0u (fst optimizedG2m5a) //GeoMean: 0.1112603019 Mean: 0.1257493826
 
-//let lrsG2m5_7a = lrsChecker (logscale 30 (0.055,0.08)) (fun lrP ->  G2m5 0.005233059919 lrP 0.01450902498)
-//let lrsG2m5_7b = lrsChecker (logscale 30 (0.004,0.007)) (fun lrB ->  G2m5 lrB 0.0676296965 0.01450902498)
-//let lrsG2m5_7c = lrsChecker (logscale 40 (0.012,0.022)) (fun lr0 ->  G2m5 0.005233059919 0.0676296965 lr0)
-//testSettings (G2m5 0.005360131131 0.06698813151 0.01633390101)
+//let optimizedGgm1a = fullyImprove [lrBcontrol; lrPcontrol; lr0control] (Ggm1 5.0 0.05 0.03) //Ggm+,5,NGi+,!lr00.029892794513821885,lrP0.054767623178213938,lrB2.3443026990433924,
+//testSettings 10 0u (fst optimizedGgm1a) //GeoMean: 0.1298214422 Mean: 0.162846497
 
-//let lrsLgm5_3a = lrsChecker (logscale 30 (0.002,0.05)) (fun lr0 ->  Lgm5 0.4020495836 lr0)
-//let lrsLgm5_3b = lrsChecker (logscale 30 (0.05,2.0)) (fun lrP ->  Lgm5 lrP 0.01800782036)
-//testSettings (Lgm5  0.656526238 0.008685645737)
+//let optimizedGgm5a = fullyImprove [lrBcontrol; lrPcontrol; lr0control] (Ggm5 5.0 0.05 0.03) //Ggm+,5,NGi+,!lr00.041993068719849549,lrP0.05551136786774067,lrB11.462570954856234,
+//testSettings 10 0u (fst optimizedGgm5a) //GeoMean: 0.1105839335 Mean: 0.124578113
 
-//let lrsG2m1 = lrsChecker (logscale 10 (0.004,0.02)) (fun lrB ->  G2m1 lrB 0.06698813151 0.01633390101)
+
+//printfn "%A" ((fst optimizedG2m1a).ToShorthand ()) 
+//printfn "%A" (snd optimizedG2m1a)
+
+
 
