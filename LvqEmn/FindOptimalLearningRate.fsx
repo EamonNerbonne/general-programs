@@ -192,11 +192,11 @@ let rec improveAndTest (initialShorthand:string) =
 
 
 
-//let optimizedGm1a = fullyImprove [lrPcontrol; lr0control] (Gm1 1.0 0.001)  //Gm+,1,!lrP0.6836046038,lrB0.002198585515,
-//"Gm+,1,!lrP0.6836046038,lrB0.002198585515," |> CreateLvqModelValues.ParseShorthand |>  testSettings 10 1u  |> printResults //GeoMean: 0.1992510151 Mean: 0.2294874713
+//let optimizedGm1a = fullyImprove [lrPcontrol; lr0control] (Gm1 1.0 0.001)  //Gm+,1,!lrP0.6836046038,lr00.002198585515,
+//"Gm+,1,!lr00.002198585515,lrP0.6836046038," |> CreateLvqModelValues.ParseShorthand |>  testSettings 10 1u  |> printResults //GeoMean: 0.199251 Mean: 0.2294874713
 
 let optimizedGm5a = fullyImprove [lrPcontrol; lr0control] (Gm5 1.0 0.001) //Gm+,5,NGi+,!lrP4.536289905,lrB0.002672680891,
-"Gm+,5,NGi+,!lrP4.536289905,lrB0.002672680891," |> CreateLvqModelValues.ParseShorthand |>  testSettings 10 1u |> printResults//GeoMean: 0.1389671982 Mean: 0.1519136112
+"Gm+,5,NGi+,!lr00.002672680891,lrP4.536289905," |> CreateLvqModelValues.ParseShorthand |>  testSettings 10 1u |> printResults//GeoMean: 0.1389671982 Mean: 0.1519136112
 
 let optimizedG2m1a = fullyImprove [lrBcontrol; lrPcontrol; lr0control] (G2m1 0.005 0.06 0.02) //G2m+,1,!lr00.021797623944739782,lrP0.17013535127904061,lrB0.0028710442546792839,
 "G2m+,1,!lr00.021797623944739782,lrP0.17013535127904061,lrB0.0028710442546792839," |> CreateLvqModelValues.ParseShorthand |> testSettings 10 1u  |> printResults  //geomean: 0.1325558145 mean: 0.1666461318
