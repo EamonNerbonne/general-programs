@@ -220,15 +220,9 @@ let rec improveAndTest (initialShorthand:string) =
 //let optimizedGgm5a = fullyImprove [lrBcontrol; lrPcontrol; lr0control] (Ggm5 5.0 0.05 0.03) 
 //Ggm+,5,NGi+,!lr00.041993068719849549,lrP0.05551136786774067,lrB11.462570954856234, GeoMean: 0.109760; Training: 0.100846 ~ 0.005662; Test: 0.115616 ~ 0.006224; NN: 0.156829 ~ 0.008567
 
-//"Gm+,1,!lr00.002198585515,lrP0.6836046038," |> CreateLvqModelValues.ParseShorthand |>  testSettings 10 1u  |> printResults
-//"Gm+,5,NGi+,!lr00.002672680891,lrP4.536289905," |> CreateLvqModelValues.ParseShorthand |>  testSettings 10 1u |> printResults//GeoMean: 0.1389671982 Mean: 0.1519136112
-//"G2m+,1,!lr00.021797623944739782,lrP0.17013535127904061,lrB0.0028710442546792839," |> CreateLvqModelValues.ParseShorthand |> testSettings 10 1u  |> printResults  //geomean: 0.1325558145 mean: 0.1666461318
-//"G2m+,5,NGi+,!lr00.014854479268703827,lrP0.12643192802795739,lrB0.003687418675856426," |> CreateLvqModelValues.ParseShorthand |> testSettings 10 1u |> printResults //GeoMean: 0.1112603019 Mean: 0.1257493826
-//"Ggm+,1,NGi+,!lr00.029892794513821885,lrP0.054767623178213938,lrB2.3443026990433924," |> CreateLvqModelValues.ParseShorthand |> testSettings 10 1u  |> printResults  //GeoMean: 0.1298214422 Mean: 0.162846497
-//"Ggm+,5,NGi+,!lr00.041993068719849549,lrP0.05551136786774067,lrB11.462570954856234," |> CreateLvqModelValues.ParseShorthand |> testSettings 10 1u |> printResults  //GeoMean: 0.1105839335 Mean: 0.124578113
-
 
 improveAndTest "Gm+,1,lr00.002,lrP0.7,"
+//Gm+,1,lr00.0015362340577901401,lrP10.716927113263273, GeoMean: 0.204712; Training: 0.254759 ~ 0.023125; Test: 0.258960 ~ 0.023035; NN: 0.238742 ~ 0.015294
 improveAndTest "Gm+,5,NGi+,lr00.003,lrP5.0,"
 improveAndTest "G2m+,1,lr00.01,lrP0.2,lrB0.003,"
 improveAndTest "G2m+,5,NGi+,!lr00.01,lrP0.1,lrB0.004,"
@@ -236,3 +230,4 @@ improveAndTest "Ggm+,1,lr00.03,lrP0.05,lrB2.0,"
 improveAndTest "Ggm+,5,NGi+,lr00.04,lrP0.05,lrB10.0,"
 
 
+//"Ggm+,5,NGi+,!lr00.041993068719849549,lrP0.05551136786774067,lrB11.462570954856234," |> CreateLvqModelValues.ParseShorthand |> testSettings 10 1u |> printResults  //GeoMean: 0.1105839335 Mean: 0.124578113
