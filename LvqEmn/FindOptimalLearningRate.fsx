@@ -105,7 +105,7 @@ let logscale steps (v0, v1) =
     //[0.001 -> 0.1]
 
 let lrsChecker rndSeed lr0range settingsFactory = 
-    [ for lr0 in lr0range ->  Task.Factory.StartNew ((fun () -> lr0 |> settingsFactory |> testSettings 3 rndSeed), TaskCreationOptions.LongRunning) ]
+    [ for lr0 in lr0range ->  Task.Factory.StartNew ((fun () -> lr0 |> settingsFactory |> testSettings 2 rndSeed), TaskCreationOptions.LongRunning) ]
     |> Array.ofList
     |> Array.map (fun task -> task.Result)
     |> Array.sortBy (fun res -> res.GeoMean)
@@ -191,68 +191,35 @@ let improveAndTest (initialSettings:LvqModelSettingsCli) =
     printResults testedResults
     testedResults
 
+
+[ "Gm+,1,!lr00.002,lrP0.7,"; "Gm+,5,NGi+,!lr00.003,lrP5.0,";  "G2m+,1,!lr00.01,lrP0.2,lrB0.003,"; "G2m+,5,NGi+,!lr00.01,lrP0.1,lrB0.004,"; "Ggm+,1,!lr00.03,lrP0.05,lrB2.0,"; "Ggm+,5,NGi+,!lr00.04,lrP0.05,lrB10.0,"]
+    |> List.map CreateLvqModelValues.ParseShorthand |> List.map improveAndTest
+
+[ "Gm+,1,lr00.002,lrP0.7,"; "Gm+,5,NGi+,lr00.003,lrP5.0,";  "G2m+,1,lr00.01,lrP0.2,lrB0.003,"; "G2m+,5,NGi+,lr00.01,lrP0.1,lrB0.004,"; "Ggm+,1,lr00.03,lrP0.05,lrB2.0,"; "Ggm+,5,NGi+,lr00.04,lrP0.05,lrB10.0,"]
+    |> List.map CreateLvqModelValues.ParseShorthand |> List.map improveAndTest
+
+[ "G2m+,1,Bi+,!lr00.01,lrP0.2,lrB0.003,"; "G2m+,5,NGi+,Bi+,!lr00.01,lrP0.1,lrB0.004,";  "Ggm+,1,Bi+,!lr00.03,lrP0.05,lrB2.0,"; "Ggm+,5,NGi+,Bi+,!lr00.04,lrP0.05,lrB10.0,"]
+    |> List.map CreateLvqModelValues.ParseShorthand |> List.map improveAndTest
+
+[ "Gm+,5,lr00.003,lrP5.0,"; "G2m+,5,lr00.01,lrP0.1,lrB0.004,"; "Ggm+,5,lr00.04,lrP0.05,lrB10.0,"]
+     |> List.map CreateLvqModelValues.ParseShorthand |> List.map improveAndTest
+
+
 //old manually found generally optimal lrs.
-//testSettings 10 1u (G2m5 0.005360131131 0.06698813151 0.01633390101) |> printResults
 //G2m+,5,NGi+,!lr00.01633390101,lrP0.06698813151,lrB0.005360131131, GeoMean: 0.112609; Training: 0.107573 ~ 0.005773; Test: 0.117510 ~ 0.006234; NN: 0.157420 ~ 0.008930
-//testSettings 10 1u (Ggm5 5.151758465 0.05351299581 0.03422167947) |> printResults
 //Ggm+,5,NGi+,!lr00.03422167947,lrP0.05351299581,lrB5.151758465, GeoMean: 0.108734; Training: 0.099645 ~ 0.005651; Test: 0.115992 ~ 0.006615; NN: 0.156203 ~ 0.008947
-//testSettings 10 1u (Lgm5  0.656526238 0.008685645737) |> printResults
 //Lgm[2],5,NGi+,!lr00.008685645737,lrP0.656526238, GeoMean: 0.013450; Training: 0.013415 ~ 0.001996; Test: 0.025856 ~ 0.002333
 
-
-
-//let optimizedGm1a = fullyImprove [lrPcontrol; lr0control] (Gm1 1.0 0.001)  //Gm+,1,!lrP0.6836046038,lr00.002198585515,
+//opt results found with slightly buggy lr-searching code:
 //Gm+,1,!lr00.002198585515,lrP0.6836046038, GeoMean: 0.198965; Training: 0.231766 ~ 0.016449; Test: 0.235295 ~ 0.016556; NN: 0.231495 ~ 0.012812
-
-//let optimizedGm5a = fullyImprove [lrPcontrol; lr0control] (Gm5 1.0 0.001) //Gm+,5,NGi+,!lrP4.536289905,lrB0.002672680891,
 //Gm+,5,NGi+,!lr00.002672680891,lrP4.536289905, GeoMean: 0.146610; Training: 0.139755 ~ 0.005796; Test: 0.150053 ~ 0.006342; NN: 0.191839 ~ 0.009377
-
-//let optimizedG2m1a = fullyImprove [lrBcontrol; lrPcontrol; lr0control] (G2m1 0.005 0.06 0.02)
 //G2m+,1,!lr00.021797623944739782,lrP0.17013535127904061,lrB0.0028710442546792839, GeoMean: 0.132753; Training: 0.153857 ~ 0.013621; Test: 0.161181 ~ 0.013461; NN: 0.183951 ~ 0.013869
-
-//let optimizedG2m5a = fullyImprove [lrBcontrol; lrPcontrol; lr0control] (G2m5 0.005 0.06 0.02) 
 //G2m+,5,NGi+,!lr00.014854479268703827,lrP0.12643192802795739,lrB0.003687418675856426, GeoMean: 0.110085; Training: 0.107585 ~ 0.005728; Test: 0.115503 ~ 0.006225; NN: 0.152425 ~ 0.009088
-
-//let optimizedGgm1a = fullyImprove [lrBcontrol; lrPcontrol; lr0control] (Ggm1 5.0 0.05 0.03) 
 //Ggm+,1,!lr00.029892794513821885,lrP0.054767623178213938,lrB2.3443026990433924, GeoMean: 0.130877; Training: 0.147363 ~ 0.013599; Test: 0.159768 ~ 0.013463; NN: 0.184574 ~ 0.013776
-
-//let optimizedGgm5a = fullyImprove [lrBcontrol; lrPcontrol; lr0control] (Ggm5 5.0 0.05 0.03) 
 //Ggm+,5,NGi+,!lr00.041993068719849549,lrP0.05551136786774067,lrB11.462570954856234, GeoMean: 0.109760; Training: 0.100846 ~ 0.005662; Test: 0.115616 ~ 0.006224; NN: 0.156829 ~ 0.008567
-
-
-[
-     "Gm+,1,lr00.002,lrP0.7,"
-     "Gm+,5,NGi+,lr00.003,lrP5.0,"
-     "G2m+,1,lr00.01,lrP0.2,lrB0.003,"
-     "G2m+,5,NGi+,lr00.01,lrP0.1,lrB0.004,"
-     "Ggm+,1,lr00.03,lrP0.05,lrB2.0,"
-     "Ggm+,5,NGi+,lr00.04,lrP0.05,lrB10.0,"
-] |> List.map CreateLvqModelValues.ParseShorthand
-    |> List.map improveAndTest
-
-
 
 //Gm+,1,lr00.0015362340577901401,lrP10.716927113263273, GeoMean: 0.204712; Training: 0.254759 ~ 0.023125; Test: 0.258960 ~ 0.023035; NN: 0.238742 ~ 0.015294
 //Gm+,5,NGi+,lr00.0010506456510214184,lrP10.86820020351132, GeoMean: 0.145488; Training: 0.139510 ~ 0.005856; Test: 0.146856 ~ 0.006128; NN: 0.189431 ~ 0.009042
 //G2m+,1,lr00.011351487563176185,lrP0.37880915860796677,lrB0.019197822041416398, GeoMean: 0.136813; Training: 0.176091 ~ 0.019647; Test: 0.183255 ~ 0.019495; NN: 0.178905 ~ 0.013180
 //G2m+,5,NGi+,!lr00.008485565595514527,lrP0.20435996513932222,lrB0.0080282005308666866, GeoMean: 0.112069; Training: 0.107313 ~ 0.005653; Test: 0.115319 ~ 0.006189; NN: 0.157401 ~ 0.008932
 //Ggm+,1,lr00.026198578230780471,lrP0.13652588690969647,lrB1.2496647995734971, GeoMean: 0.136166; Training: 0.156286 ~ 0.015549; Test: 0.166200 ~ 0.015428; NN: 0.189529 ~ 0.013612
-
-
-"G2m+,5,NGi+,lr00.01,lrP0.1,lrB0.004," |> CreateLvqModelValues.ParseShorthand |> improveAndTest
-
-
-["G2m+,1,Bi+,!lr00.01,lrP0.2,lrB0.003,"; "G2m+,5,NGi+,Bi+,!lr00.01,lrP0.1,lrB0.004,";  "Ggm+,1,Bi+,!lr00.03,lrP0.05,lrB2.0,"; "Ggm+,5,NGi+,Bi+,!lr00.04,lrP0.05,lrB10.0,"]
-    |> List.map CreateLvqModelValues.ParseShorthand 
-    |> List.map improveAndTest
-
-
-[
-     "Gm+,5,lr00.003,lrP5.0,"
-     "G2m+,5,lr00.01,lrP0.1,lrB0.004,"
-     "Ggm+,5,lr00.04,lrP0.05,lrB10.0,"
-] |> List.map CreateLvqModelValues.ParseShorthand
-    |> List.map improveAndTest
-
-
-//"Ggm+,5,NGi+,!lr00.041993068719849549,lrP0.05551136786774067,lrB11.462570954856234," |> CreateLvqModelValues.ParseShorthand |> testSettings 10 1u |> printResults  //GeoMean: 0.1105839335 Mean: 0.124578113
