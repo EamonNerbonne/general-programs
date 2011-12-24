@@ -224,6 +224,7 @@ let rec improveAndTest (initialShorthand:string) =
 improveAndTest "Gm+,1,lr00.002,lrP0.7,"
 //Gm+,1,lr00.0015362340577901401,lrP10.716927113263273, GeoMean: 0.204712; Training: 0.254759 ~ 0.023125; Test: 0.258960 ~ 0.023035; NN: 0.238742 ~ 0.015294
 improveAndTest "Gm+,5,NGi+,lr00.003,lrP5.0,"
+//Gm+,5,NGi+,lr00.0010506456510214184,lrP10.86820020351132, GeoMean: 0.145488; Training: 0.139510 ~ 0.005856; Test: 0.146856 ~ 0.006128; NN: 0.189431 ~ 0.009042
 improveAndTest "G2m+,1,lr00.01,lrP0.2,lrB0.003,"
 //G2m+,1,lr00.011351487563176185,lrP0.37880915860796677,lrB0.019197822041416398, GeoMean: 0.136813; Training: 0.176091 ~ 0.019647; Test: 0.183255 ~ 0.019495; NN: 0.178905 ~ 0.013180
 improveAndTest "G2m+,5,NGi+,!lr00.01,lrP0.1,lrB0.004,"
