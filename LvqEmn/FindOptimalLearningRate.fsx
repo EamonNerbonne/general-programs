@@ -178,8 +178,7 @@ let rec fullyImprove (controllers:ControllerState list) (initialSettings:LvqMode
         let (nextControllers, nextSettings) = improvementSteps controllers initialSettings
         fullyImprove nextControllers nextSettings
 
-let rec improveAndTest (initialShorthand:string) =
-    let initialSettings = CreateLvqModelValues.ParseShorthand initialShorthand
+let improveAndTest (initialSettings:LvqModelSettingsCli) =
     let needsB = [LvqModelType.G2m; LvqModelType.Ggm ; LvqModelType.Gpq] |> List.exists (fun modelType -> initialSettings.ModelType = modelType)
     let controllers = 
         [
@@ -221,17 +220,39 @@ let rec improveAndTest (initialShorthand:string) =
 //Ggm+,5,NGi+,!lr00.041993068719849549,lrP0.05551136786774067,lrB11.462570954856234, GeoMean: 0.109760; Training: 0.100846 ~ 0.005662; Test: 0.115616 ~ 0.006224; NN: 0.156829 ~ 0.008567
 
 
-improveAndTest "Gm+,1,lr00.002,lrP0.7,"
+[
+     "Gm+,1,lr00.002,lrP0.7,"
+     "Gm+,5,NGi+,lr00.003,lrP5.0,"
+     "G2m+,1,lr00.01,lrP0.2,lrB0.003,"
+     "G2m+,5,NGi+,lr00.01,lrP0.1,lrB0.004,"
+     "Ggm+,1,lr00.03,lrP0.05,lrB2.0,"
+     "Ggm+,5,NGi+,lr00.04,lrP0.05,lrB10.0,"
+] |> List.map CreateLvqModelValues.ParseShorthand
+    |> List.map improveAndTest
+
+
+
 //Gm+,1,lr00.0015362340577901401,lrP10.716927113263273, GeoMean: 0.204712; Training: 0.254759 ~ 0.023125; Test: 0.258960 ~ 0.023035; NN: 0.238742 ~ 0.015294
-improveAndTest "Gm+,5,NGi+,lr00.003,lrP5.0,"
 //Gm+,5,NGi+,lr00.0010506456510214184,lrP10.86820020351132, GeoMean: 0.145488; Training: 0.139510 ~ 0.005856; Test: 0.146856 ~ 0.006128; NN: 0.189431 ~ 0.009042
-improveAndTest "G2m+,1,lr00.01,lrP0.2,lrB0.003,"
 //G2m+,1,lr00.011351487563176185,lrP0.37880915860796677,lrB0.019197822041416398, GeoMean: 0.136813; Training: 0.176091 ~ 0.019647; Test: 0.183255 ~ 0.019495; NN: 0.178905 ~ 0.013180
-improveAndTest "G2m+,5,NGi+,!lr00.01,lrP0.1,lrB0.004,"
 //G2m+,5,NGi+,!lr00.008485565595514527,lrP0.20435996513932222,lrB0.0080282005308666866, GeoMean: 0.112069; Training: 0.107313 ~ 0.005653; Test: 0.115319 ~ 0.006189; NN: 0.157401 ~ 0.008932
-improveAndTest "Ggm+,1,lr00.03,lrP0.05,lrB2.0,"
 //Ggm+,1,lr00.026198578230780471,lrP0.13652588690969647,lrB1.2496647995734971, GeoMean: 0.136166; Training: 0.156286 ~ 0.015549; Test: 0.166200 ~ 0.015428; NN: 0.189529 ~ 0.013612
-improveAndTest "Ggm+,5,NGi+,lr00.04,lrP0.05,lrB10.0,"
+
+
+"G2m+,5,NGi+,lr00.01,lrP0.1,lrB0.004," |> CreateLvqModelValues.ParseShorthand |> improveAndTest
+
+
+["G2m+,1,Bi+,!lr00.01,lrP0.2,lrB0.003,"; "G2m+,5,NGi+,Bi+,!lr00.01,lrP0.1,lrB0.004,";  "Ggm+,1,Bi+,!lr00.03,lrP0.05,lrB2.0,"; "Ggm+,5,NGi+,Bi+,!lr00.04,lrP0.05,lrB10.0,"]
+    |> List.map CreateLvqModelValues.ParseShorthand 
+    |> List.map improveAndTest
+
+
+[
+     "Gm+,5,lr00.003,lrP5.0,"
+     "G2m+,5,lr00.01,lrP0.1,lrB0.004,"
+     "Ggm+,5,lr00.04,lrP0.05,lrB10.0,"
+] |> List.map CreateLvqModelValues.ParseShorthand
+    |> List.map improveAndTest
 
 
 //"Ggm+,5,NGi+,!lr00.041993068719849549,lrP0.05551136786774067,lrB11.462570954856234," |> CreateLvqModelValues.ParseShorthand |> testSettings 10 1u |> printResults  //GeoMean: 0.1105839335 Mean: 0.124578113
