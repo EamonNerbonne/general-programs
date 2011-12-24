@@ -111,24 +111,24 @@ let lrsChecker rndSeed lr0range settingsFactory =
     |> Array.sortBy (fun res -> res.GeoMean)
 
 
-type ControllerState = { Unpacker: LvqModelSettingsCli -> float; Packer: LvqModelSettingsCli -> float -> LvqModelSettingsCli; DegradedCount: int; LrDevScale: float }
+type ControllerState = { Unpacker: LvqModelSettingsCli -> float; Packer: LvqModelSettingsCli -> float -> LvqModelSettingsCli; DegradedCount: int; LrLogDevScale: float }
 let lrBcontrol = { 
         Unpacker = (fun settings-> settings.LrScaleB)
         Packer = fun (settings:LvqModelSettingsCli) lrB -> settings.WithLrChanges(settings.LR0, settings.LrScaleP, lrB)
         DegradedCount = 0
-        LrDevScale = 3.
+        LrLogDevScale = 1.
     }
 let lrPcontrol = {
         Unpacker = fun settings -> settings.LrScaleP
         Packer = fun settings lrP -> settings.WithLrChanges(settings.LR0, lrP, settings.LrScaleB)
         DegradedCount = 0
-        LrDevScale = 3.
+        LrLogDevScale = 1.
     }
 let lr0control = {
         Unpacker = fun settings -> settings.LR0
         Packer = fun settings lr0 -> settings.WithLrChanges(lr0, settings.LrScaleP, settings.LrScaleB)
         DegradedCount = 0
-        LrDevScale = 3.
+        LrLogDevScale = 1.
     }
 
 let improveLr (testResultList:TestResults list) (lrUnpack, lrPack) =
@@ -141,28 +141,28 @@ let improveLr (testResultList:TestResults list) (lrUnpack, lrPack) =
     //extract list of error rates from each testresult
     let logLrs = testResultList |> List.map (fun res-> lrUnpack res.Settings |> Math.Log)
     let relevance = List.Cons (1.0, bestToWorst |> List.tail |> List.map (unpackLogErrs >> Utils.twoTailedPairedTtest bestLogErrs >> snd))
-    printfn "%A" (bestToWorst |> List.map (fun res->lrUnpack res.Settings) |> List.zip relevance)
+    //printfn "%A" (bestToWorst |> List.map (fun res->lrUnpack res.Settings) |> List.zip relevance)
     let logLrDistr = List.zip logLrs relevance |> List.fold (fun (ss:SmartSum) (lr, rel) -> ss.CombineWith lr rel) (new SmartSum())
     let (logLrmean, logLrdev) = (logLrDistr.Mean, Math.Sqrt logLrDistr.Variance)
-    (Math.Exp logLrmean, Math.Exp logLrdev)
+    (Math.Exp logLrmean, logLrdev)
 
 let improvementStep (controller:ControllerState) (initialSettings:LvqModelSettingsCli) =
     let currSeed = rnd.NextUInt32 ()
     let initResults = testSettings 10 currSeed initialSettings
     let baseLr = controller.Unpacker initialSettings
-    let lowLr = baseLr / (controller.LrDevScale ** 2.)
-    let highLr = baseLr * (controller.LrDevScale ** 2.)
+    let lowLr = baseLr * Math.Exp(-2. * controller.LrLogDevScale)
+    let highLr = baseLr * Math.Exp(2. * controller.LrLogDevScale)
     let results = lrsChecker (currSeed+2u) (logscale 40 (lowLr,highLr)) (controller.Packer initialSettings)
-    let (newBaseLr, newLrDevScale) = improveLr (List.ofArray results) (controller.Unpacker, controller.Packer)
+    let (newBaseLr, newLrLogDevScale) = improveLr (List.ofArray results) (controller.Unpacker, controller.Packer)
     let logLrDiff_LrDevScale = Math.Abs(Math.Log(baseLr / newBaseLr))
-    let effNewLrDevScale = 0.3*newLrDevScale + 0.4*controller.LrDevScale + 0.4*logLrDiff_LrDevScale
+    let effNewLrDevScale = 0.3*newLrLogDevScale + 0.4*controller.LrLogDevScale + 0.4*logLrDiff_LrDevScale
     let newSettings = controller.Packer initialSettings newBaseLr
     let finalResults =  testSettings 10 currSeed newSettings
-    printfn "[%f..%f]: %f -> %f: %f -> %f"  lowLr highLr baseLr newBaseLr initResults.GeoMean finalResults.GeoMean
+    printfn "   [%f..%f]: %f -> %f: %f -> %f"  lowLr highLr baseLr newBaseLr initResults.GeoMean finalResults.GeoMean
     if finalResults.GeoMean > initResults.GeoMean then
-        ({ Unpacker = controller.Unpacker; Packer = controller.Packer; DegradedCount = controller.DegradedCount + 1; LrDevScale = controller.LrDevScale }, initialSettings)
+        ({ Unpacker = controller.Unpacker; Packer = controller.Packer; DegradedCount = controller.DegradedCount + 1; LrLogDevScale = controller.LrLogDevScale }, initialSettings)
     else
-        ({ Unpacker = controller.Unpacker; Packer = controller.Packer; DegradedCount = controller.DegradedCount; LrDevScale = effNewLrDevScale }, newSettings)
+        ({ Unpacker = controller.Unpacker; Packer = controller.Packer; DegradedCount = controller.DegradedCount; LrLogDevScale = effNewLrDevScale }, newSettings)
 
 let improvementSteps (controllers:ControllerState list) (initialSettings:LvqModelSettingsCli) =
     List.fold (fun (controllerStates, settings) nextController ->
