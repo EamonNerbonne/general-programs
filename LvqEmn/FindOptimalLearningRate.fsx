@@ -253,6 +253,9 @@ let improveAndTest (initialSettings:LvqModelSettingsCli) =
 //Ggm+,1,rP,Pi+,!lr00.00600455666344858,lrP0.019610532810998588,lrB7.3065159834390485, GeoMean: 0.162128; Training: 0.178558 ~ 0.020440; Test: 0.190066 ~ 0.020332; NN: 0.180100 ~ 0.011334
 //Ggm+,5,rP,NGi+,Pi+,!lr00.030660295859354536,lrP0.057562752246332685,lrB10, GeoMean: 0.110216; Training: 0.100585 ~ 0.005550; Test: 0.116573 ~ 0.006215; NN: 0.157756 ~ 0.008705
 
+[ "G2m+,1,rP,Bi+,!lr00.01,lrP0.2,lrB0.003,"; "G2m+,5,rP,NGi+,Bi+,!lr00.01,lrP0.1,lrB0.004,";  "Ggm+,1,rP,Bi+,!lr00.03,lrP0.05,lrB2.0,"; "Ggm+,5,rP,NGi+,Bi+,!lr00.04,lrP0.05,lrB10.0,"]
+    |> List.map CreateLvqModelValues.ParseShorthand |> List.map improveAndTest
+
 
 
 //opt results found with slightly buggy lr-searching code:
