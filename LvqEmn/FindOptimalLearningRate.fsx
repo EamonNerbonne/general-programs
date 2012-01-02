@@ -191,9 +191,21 @@ let improveAndTest (initialSettings:LvqModelSettingsCli) =
     printResults testedResults
     testedResults
 
+[ "Ggm+,1,mu0.01,!lr00.03,lrP0.05,lrB2.0,"; "Ggm+,5,NGi+,mu0.01,!lr00.04,lrP0.05,lrB10.0,"]
+    |> List.map CreateLvqModelValues.ParseShorthand |> List.map improveAndTest
+
+
 
 [ "Gm+,1,!lr00.002,lrP0.7,"; "Gm+,5,NGi+,!lr00.003,lrP5.0,";  "G2m+,1,!lr00.01,lrP0.2,lrB0.003,"; "G2m+,5,NGi+,!lr00.01,lrP0.1,lrB0.004,"; "Ggm+,1,!lr00.03,lrP0.05,lrB2.0,"; "Ggm+,5,NGi+,!lr00.04,lrP0.05,lrB10.0,"]
     |> List.map CreateLvqModelValues.ParseShorthand |> List.map improveAndTest
+
+//Gm+,1,!lr00.0038877816654436658,lrP0.96761971430277682, GeoMean: 0.197028; Training: 0.234192 ~ 0.018166; Test: 0.236151 ~ 0.018031; NN: 0.228910 ~ 0.013086
+//Gm+,5,NGi+,!lr00.0036724339401134373,lrP1.9369353690973385, GeoMean: 0.145380; Training: 0.141175 ~ 0.005675; Test: 0.146742 ~ 0.006303; NN: 0.187359 ~ 0.009059
+//G2m+,1,!lr00.010951089127661249,lrP0.37429179637936294,lrB0.0059060776640765212, GeoMean: 0.132667; Training: 0.153962 ~ 0.013695; Test: 0.161566 ~ 0.013537; NN: 0.179985 ~ 0.012951
+//G2m+,5,NGi+,!lr00.016371733635629902,lrP0.094684549417746067,lrB0.0037018583189398729, GeoMean: 0.111405; Training: 0.106720 ~ 0.005719; Test: 0.116140 ~ 0.006153; NN: 0.155239 ~ 0.008940
+//Ggm+,1,!lr00.034895439303295049,lrP0.041804162402435605,lrB2.7245635557464731, GeoMean: 0.140815; Training: 0.155720 ~ 0.014295; Test: 0.168813 ~ 0.014235; NN: 0.192676 ~ 0.014554
+//Ggm+,5,NGi+,!lr00.043391990424161225,lrP0.04680103944403835,lrB16.253814831422766, GeoMean: 0.109878; Training: 0.100954 ~ 0.005817; Test: 0.116450 ~ 0.006573; NN: 0.158399 ~ 0.008808
+
 
 [ "Gm+,1,lr00.002,lrP0.7,"; "Gm+,5,NGi+,lr00.003,lrP5.0,";  "G2m+,1,lr00.01,lrP0.2,lrB0.003,"; "G2m+,5,NGi+,lr00.01,lrP0.1,lrB0.004,"; "Ggm+,1,lr00.03,lrP0.05,lrB2.0,"; "Ggm+,5,NGi+,lr00.04,lrP0.05,lrB10.0,"]
     |> List.map CreateLvqModelValues.ParseShorthand |> List.map improveAndTest
