@@ -137,12 +137,18 @@ let improveLr (testResultList:TestResults list) (lrUnpack, lrPack) =
     let bestToWorst = testResultList |> List.sortBy (unpackLogErrs >> List.average)
     let bestLogErrs = List.head bestToWorst |> unpackLogErrs
            
-
+       
     //extract list of error rates from each testresult
     let logLrs = testResultList |> List.map (fun res-> lrUnpack res.Settings |> Math.Log)
     let relevance = List.Cons (1.0, bestToWorst |> List.tail |> List.map (unpackLogErrs >> Utils.twoTailedPairedTtest bestLogErrs >> snd))
+
+    let relLength = List.length relevance
+    let linearlyScaledRelevance = List.init relLength (fun i -> float (relLength - i) / float relLength)
+
+    let effRelevance = List.zip relevance linearlyScaledRelevance |> List.map (fun (a,b) -> a + b)
+    
     //printfn "%A" (bestToWorst |> List.map (fun res->lrUnpack res.Settings) |> List.zip relevance)
-    let logLrDistr = List.zip logLrs relevance |> List.fold (fun (ss:SmartSum) (lr, rel) -> ss.CombineWith lr rel) (new SmartSum())
+    let logLrDistr = List.zip logLrs effRelevance |> List.fold (fun (ss:SmartSum) (lr, rel) -> ss.CombineWith lr rel) (new SmartSum ())
     let (logLrmean, logLrdev) = (logLrDistr.Mean, Math.Sqrt logLrDistr.Variance)
     (Math.Exp logLrmean, logLrdev)
 
@@ -150,8 +156,8 @@ let improvementStep (controller:ControllerState) (initialSettings:LvqModelSettin
     let currSeed = rnd.NextUInt32 ()
     let initResults = testSettings 10 currSeed initialSettings
     let baseLr = controller.Unpacker initialSettings
-    let lowLr = baseLr * Math.Exp(-2. * controller.LrLogDevScale)
-    let highLr = baseLr * Math.Exp(2. * controller.LrLogDevScale)
+    let lowLr = baseLr * Math.Exp(-Math.Sqrt(6.) * controller.LrLogDevScale)
+    let highLr = baseLr * Math.Exp(Math.Sqrt(6.) * controller.LrLogDevScale)
     let results = lrsChecker (currSeed + 2u) (logscale 40 (lowLr,highLr)) (controller.Packer initialSettings)
     let (newBaseLr, newLrLogDevScale) = improveLr (List.ofArray results) (controller.Unpacker, controller.Packer)
     let logLrDiff_LrDevScale = Math.Abs(Math.Log(baseLr / newBaseLr))
@@ -160,7 +166,7 @@ let improvementStep (controller:ControllerState) (initialSettings:LvqModelSettin
     let finalResults =  testSettings 10 currSeed newSettings
     printfn "   [%f..%f]: %f -> %f: %f -> %f"  lowLr highLr baseLr newBaseLr initResults.GeoMean finalResults.GeoMean
     if finalResults.GeoMean > initResults.GeoMean then
-        ({ Unpacker = controller.Unpacker; Packer = controller.Packer; DegradedCount = controller.DegradedCount + 1; LrLogDevScale = controller.LrLogDevScale }, initialSettings)
+        ({ Unpacker = controller.Unpacker; Packer = controller.Packer; DegradedCount = controller.DegradedCount + 1; LrLogDevScale = effNewLrDevScale }, newSettings)
     else
         ({ Unpacker = controller.Unpacker; Packer = controller.Packer; DegradedCount = controller.DegradedCount; LrLogDevScale = effNewLrDevScale }, newSettings)
 
@@ -253,9 +259,21 @@ let improveAndTest (initialSettings:LvqModelSettingsCli) =
 //Ggm+,1,rP,Pi+,!lr00.00600455666344858,lrP0.019610532810998588,lrB7.3065159834390485, GeoMean: 0.162128; Training: 0.178558 ~ 0.020440; Test: 0.190066 ~ 0.020332; NN: 0.180100 ~ 0.011334
 //Ggm+,5,rP,NGi+,Pi+,!lr00.030660295859354536,lrP0.057562752246332685,lrB10, GeoMean: 0.110216; Training: 0.100585 ~ 0.005550; Test: 0.116573 ~ 0.006215; NN: 0.157756 ~ 0.008705
 
+
 [ "G2m+,1,rP,Bi+,!lr00.01,lrP0.2,lrB0.003,"; "G2m+,5,rP,NGi+,Bi+,!lr00.01,lrP0.1,lrB0.004,";  "Ggm+,1,rP,Bi+,!lr00.03,lrP0.05,lrB2.0,"; "Ggm+,5,rP,NGi+,Bi+,!lr00.04,lrP0.05,lrB10.0,"]
     |> List.map CreateLvqModelValues.ParseShorthand |> List.map improveAndTest
+//G2m+,1,rP,Bi+,!lr00.0073465822586451755,lrP0.20635087705272231,lrB0.0078093990953440095, GeoMean: 0.170479; Training: 0.199028 ~ 0.016675; Test: 0.204476 ~ 0.016374; NN: 0.189640 ~ 0.011449
+//G2m+,5,rP,NGi+,Bi+,!lr00.0041016834167051158,lrP0.14117930931640629,lrB0.0019488272250434663, GeoMean: 0.118191; Training: 0.112642 ~ 0.005094; Test: 0.121636 ~ 0.005985; NN: 0.154076 ~ 0.008524
+//Ggm+,1,rP,Bi+,!lr00.032102932227514112,lrP0.029471001544332763,lrB2.6811184828637229, GeoMean: 0.121519; Training: 0.135138 ~ 0.012699; Test: 0.147892 ~ 0.012621; NN: 0.163031 ~ 0.010159
+//Ggm+,5,rP,NGi+,Bi+,!lr00.013518875656570728,lrP0.044065072328627664,lrB13.770948971313608, GeoMean: 0.107899; Training: 0.097335 ~ 0.005415; Test: 0.112898 ~ 0.006467; NN: 0.156381 ~ 0.008638
 
+
+[  "Ggm+,1,rP,Pi+,!lr00.03,lrP0.05,lrB2.0," ; "G2m+,1,Bi+,!lr00.01,lrP0.2,lrB0.003,";]//these have dubious results
+    |> List.map CreateLvqModelValues.ParseShorthand |> List.map improveAndTest
+//Ggm+,1,rP,Pi+,!lr00.017312776311494311,lrP0.03939857702056547,lrB2.3627186806992886, GeoMean: 0.179763; Training: 0.247141 ~ 0.033278; Test: 0.259587 ~ 0.032659; NN: 0.183608 ~ 0.011793
+//G2m+,1,Bi+,!lr00.0075635039116126066,lrP0.23126856601273685,lrB0.0074754688380316075, GeoMean: 0.156818; Training: 0.176094 ~ 0.015290; Test: 0.182465 ~ 0.015208; NN: 0.189536 ~ 0.012917
+//Ggm+,1,rP,Pi+,!lr00.0035106660148076637,lrP0.016232278317424579,lrB13.232916613888372, GeoMean: 0.152714; Training: 0.168280 ~ 0.013889; Test: 0.180639 ~ 0.014036; NN: 0.192337 ~ 0.012132
+//G2m+,1,Bi+,!lr00.005973312365862838,lrP0.40642138141748779,lrB0.01068668264562603, GeoMean: 0.156372; Training: 0.181192 ~ 0.015413; Test: 0.186727 ~ 0.015355; NN: 0.188637 ~ 0.012829
 
 
 //opt results found with slightly buggy lr-searching code:
