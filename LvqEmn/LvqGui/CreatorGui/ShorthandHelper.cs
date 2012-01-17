@@ -138,7 +138,7 @@ namespace LvqGui {
 		}
 		public List<string> TryParseShorthandWithErrs(T defaults, Regex shR, string newShorthand) {
 			var toSet = new object[PropertyStore.properties.Length];
-			List<string> errors = new List<string>();
+			var errors = new List<string>();
 			DecomposeShorthand(shR, newShorthand, (p, v) => toSet[p.Index] = v, errors.Add);
 			if (!errors.Any())
 				for (int i = 0; i < toSet.Length; i++) {
@@ -173,8 +173,8 @@ namespace LvqGui {
 			for (int i = 0; i < groups.Length; i++) {
 				Group captureGroup = groups[i];
 				string groupName = shR.GroupNameFromNumber(i);
-				bool isHexEncoded = groupName.EndsWith("_");
-				if (isHexEncoded) groupName = groupName.Substring(0, groupName.Length - 1);
+				bool isHexEncodedOrNegated = groupName.EndsWith("_");
+				if (isHexEncodedOrNegated) groupName = groupName.Substring(0, groupName.Length - 1);
 				var propIdx = PropertyStore.GetIndex(groupName);
 
 				if (propIdx == -1 && i != 0) {
@@ -185,8 +185,8 @@ namespace LvqGui {
 						var prop = PropertyStore.properties[propIdx];
 						string captureVal = captureGroup.Value;
 						object val = prop.Type.Equals(typeof(bool))
-										? captureVal != ""
-										: isHexEncoded && prop.Type == typeof(uint)
+										? captureVal != "" ^ isHexEncodedOrNegated
+										: isHexEncodedOrNegated && prop.Type == typeof(uint)
 											? Convert.ToUInt32(captureVal, 16)
 											: TypeDescriptor.GetConverter(prop.Type).ConvertFromString(Regex.Replace(captureVal, "ModelType$",
 																													 ""));

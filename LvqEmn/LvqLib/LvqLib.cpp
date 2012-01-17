@@ -89,18 +89,18 @@ extern"C" LvqModel* CreateLvqModel(LvqModelSettingsRaw rawSettings, LvqDataset c
 		protoDistrib, 
 		dataset
 		);
-	initSettings.RandomInitialProjection = rawSettings.RandomInitialProjection;
+	initSettings.Ppca = rawSettings.Ppca;
 	initSettings.RandomInitialBorders =rawSettings. RandomInitialBorders;
-	initSettings.RuntimeSettings.TrackProjectionQuality = rawSettings.TrackProjectionQuality;
-	initSettings.RuntimeSettings.NormalizeProjection = rawSettings.NormalizeProjection;
-	initSettings.RuntimeSettings.NormalizeBoundaries =rawSettings. NormalizeBoundaries;
-	initSettings.RuntimeSettings.GloballyNormalize =rawSettings. GloballyNormalize;
-	initSettings.NgUpdateProtos =rawSettings. NgUpdateProtos;
-	initSettings.NgInitializeProtos =rawSettings. NgInitializeProtos;
-	initSettings.ProjOptimalInit =rawSettings. ProjOptimalInit;
-	initSettings.BLocalInit =rawSettings. BLocalInit;
-	initSettings.RuntimeSettings.UpdatePointsWithoutB = rawSettings.UpdatePointsWithoutB;
-	initSettings.RuntimeSettings.SlowStartLrBad = rawSettings.SlowStartLrBad;
+	initSettings.RuntimeSettings.NoNnErrorRateTracking = rawSettings.NoNnErrorRateTracking;
+	initSettings.RuntimeSettings.unnormedP = rawSettings.unnormedP;
+	initSettings.RuntimeSettings.unnormedB = rawSettings.unnormedB;
+	initSettings.RuntimeSettings.LocallyNormalize = rawSettings.LocallyNormalize;
+	initSettings.NGu =rawSettings. NGu;
+	initSettings.NGi =rawSettings. NGi;
+	initSettings.Popt =rawSettings. Popt;
+	initSettings.Bcov =rawSettings. Bcov;
+	initSettings.RuntimeSettings.wGMu = rawSettings.wGMu;
+	initSettings.RuntimeSettings.SlowK = rawSettings.SlowK;
 	initSettings.Dimensionality = rawSettings. Dimensionality;
 	initSettings.RuntimeSettings.MuOffset = rawSettings.MuOffset;
 	initSettings.RuntimeSettings.LrScaleP = rawSettings.LrScaleP;

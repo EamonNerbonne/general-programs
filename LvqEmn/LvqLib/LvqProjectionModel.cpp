@@ -8,7 +8,7 @@ void LvqProjectionModel::AppendTrainingStatNames(std::vector<std::wstring> & ret
 	LvqModel::AppendTrainingStatNames(retval);
 	if(!dynamic_cast<GgmLvqModel const*>(this))
 		retval.push_back(L"Projection Norm!norm!Projection Matrix");
-	if(settings.TrackProjectionQuality)
+	if(!settings.NoNnErrorRateTracking)
 		retval.push_back(L"Projected NN Error Rate!error rate!Projection Quality");
 }
 
@@ -16,7 +16,7 @@ void LvqProjectionModel::AppendOtherStats(std::vector<double> & stats, LvqDatase
 	LvqModel::AppendOtherStats(stats,trainingSet,testSet);
 	if(!dynamic_cast<GgmLvqModel const*>(this))
 		stats.push_back(projectionSquareNorm(P));
-	if(settings.TrackProjectionQuality)
+	if(!settings.NoNnErrorRateTracking)
 		stats.push_back(trainingSet ? trainingSet->NearestNeighborProjectedErrorRate(*testSet,this->P) : 0.0);
 }
 
@@ -36,7 +36,7 @@ void LvqProjectionModel::normalizeProjectionRotation() {
 
 	P = S.asDiagonal() * Vt;
 	double scale=1.0;
-	if(settings.NormalizeProjection)
+	if(!settings.unnormedP)
 		scale = normalizeProjection(P);
 
 	compensateProjectionUpdate(U,scale);

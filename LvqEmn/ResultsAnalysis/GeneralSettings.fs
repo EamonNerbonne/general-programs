@@ -22,13 +22,13 @@ let variants = allvariants |> List.filter (snd >> (fun s -> not <| s.StartsWith(
 let heuristics =
     [
         (LvqModelSettingsCli(), "core");
-        (LvqModelSettingsCli(UpdatePointsWithoutB = true), "NoB");
-        (LvqModelSettingsCli(SlowStartLrBad = true ), "SlowStartLrBad");
-        (LvqModelSettingsCli(NgUpdateProtos = true), "NgUpdate");
-        (LvqModelSettingsCli(NgInitializeProtos = true), "NgInit");
-        (LvqModelSettingsCli(NgInitializeProtos = true, ProjOptimalInit = true), "NgInit+Pi");
-        (LvqModelSettingsCli(NgInitializeProtos = true, ProjOptimalInit = true, BLocalInit = true), "NgInit+Pi+Bi");
-        (LvqModelSettingsCli(NgInitializeProtos = true, SlowStartLrBad = true ), "NgInit+SlowStartLrBad");
+        (LvqModelSettingsCli(wGMu = true), "NoB");
+        (LvqModelSettingsCli(SlowK = true ), "SlowK");
+        (LvqModelSettingsCli(NGu = true), "NgUpdate");
+        (LvqModelSettingsCli(NGi = true), "NgInit");
+        (LvqModelSettingsCli(NGi = true, Popt = true), "NgInit+Pi");
+        (LvqModelSettingsCli(NGi = true, Popt = true, Bcov = true), "NgInit+Pi+Bi");
+        (LvqModelSettingsCli(NGi = true, SlowK = true ), "NgInit+SlowK");
     ]
 
 let relevantVariants baseHeuristicSettings =

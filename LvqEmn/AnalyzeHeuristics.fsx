@@ -75,20 +75,20 @@ let heuristics =
     let NGiHeur = heurM @"Initializing prototype positions by neural gas" "NGi" (fun s  -> 
             let mutable on = s
             let mutable off = s
-            on.NgInitializeProtos <- true
-            off.NgInitializeProtos <- false
+            on.NGi <- true
+            off.NGi <- false
             (on,off))
     let SlowK =         heurM @"Initially using a lower learning rate for incorrect prototypes" "SlowK" (fun s  -> 
             let mutable on = s
             let mutable off = s
-            on.SlowStartLrBad <- true
-            off.SlowStartLrBad <- false
+            on.SlowK <- true
+            off.SlowK <- false
             (on, off))
     let Ppca = heurM @"Initializing $P$ by PCA" "Ppca" (fun s  -> 
             let mutable on = s
             let mutable off = s
-            on.RandomInitialProjection <- false
-            off.RandomInitialProjection <- true
+            on.Ppca <- true
+            off.Ppca <- false
             (on, off))
     let extend = heurD "Extend dataset by correlations" "extend" "x"
     [
@@ -99,26 +99,26 @@ let heuristics =
         heurM @"Using neural gas-like prototype updates" "NGu" (fun s  -> 
             let mutable on = s
             let mutable off = s
-            on.NgUpdateProtos <- true
-            off.NgUpdateProtos <- false
+            on.NGu <- true
+            off.NGu <- false
             (on, off))
         heurM @"Optimizing $P$ initially by minimizing $\sqrt{d_J} - \sqrt{d_K}$" "Popt" (fun s  -> 
             let mutable on = s
             let mutable off = s
-            on.ProjOptimalInit <- true
-            off.ProjOptimalInit <- false
+            on.Popt <- true
+            off.Popt <- false
             (on, off))
         heurM @"Initializing $B_i$ to the local covariance" "Bcov" (fun s  -> 
             let mutable on = s
             let mutable off = s
-            on.BLocalInit <- true
-            off.BLocalInit <- false
+            on.Bcov <- true
+            off.Bcov <- false
             (on, off))
         heurM @"Using the gm-lvq update rule for prototype positions in g2m-lvq models" "wGMu" (fun s  -> 
             let mutable on = s
             let mutable off = s
-            on.UpdatePointsWithoutB <- true
-            off.UpdatePointsWithoutB <- false
+            on.wGMu <- true
+            off.wGMu <- false
             (on, off))
 
 
@@ -135,60 +135,60 @@ let heuristics =
         heurM @"Initializing prototype positions by neural gas and seting $B_i$ to the local covariance" "NGi+Bcov" (fun s  -> 
             let mutable on = s
             let mutable off = s
-            on.BLocalInit <- true
-            off.BLocalInit <- false
-            on.NgInitializeProtos <- true
-            off.NgInitializeProtos <- false
+            on.Bcov <- true
+            off.Bcov <- false
+            on.NGi <- true
+            off.NGi <- false
             (on, off))
         (*heurM @"Optimizing $P$, setting $B_i$ to the local covariance, and initially using a lower learning rate for incorrect prototypes" "NGi+Bcov+SlowK" (fun s  -> 
             let mutable on = s
             let mutable off = s
-            on.BLocalInit <- true
-            off.BLocalInit <- false
-            on.NgInitializeProtos <- true
-            off.NgInitializeProtos <- false
-            on.SlowStartLrBad <- true
-            off.SlowStartLrBad <- false
+            on.Bcov <- true
+            off.Bcov <- false
+            on.NGi <- true
+            off.NGi <- false
+            on.SlowK <- true
+            off.SlowK <- false
             (on, off))*)
         heurM @"Neural gas prototype initialization followed by $P$ optimization" "NGi+Popt" (fun s  -> 
             let mutable on = s
             let mutable off = s
-            on.ProjOptimalInit <- true
-            off.ProjOptimalInit <- false
-            on.NgInitializeProtos <- true
-            off.NgInitializeProtos <- false
+            on.Popt <- true
+            off.Popt <- false
+            on.NGi <- true
+            off.NGi <- false
             (on, off))
         heurM @"$P$ optimization and neural gas-like updates" "NGu+Popt" (fun s  -> 
             let mutable on = s
             let mutable off = s
-            on.NgUpdateProtos <- true
-            off.NgUpdateProtos <- false
-            on.ProjOptimalInit <- true
-            off.ProjOptimalInit <- false
+            on.NGu <- true
+            off.NGu <- false
+            on.Popt <- true
+            off.Popt <- false
             (on, off))
         heurM @"Neural gas prototype initialization and initially using lower learning rates for incorrect prototypes" "NGi+SlowK" (fun s  -> 
             let mutable on = s
             let mutable off = s
-            on.NgInitializeProtos <- true
-            off.NgInitializeProtos <- false
-            on.SlowStartLrBad <- true
-            off.SlowStartLrBad <- false
+            on.NGi <- true
+            off.NGi <- false
+            on.SlowK <- true
+            off.SlowK <- false
             (on, off))
         heurM @"Neural gas-like updates and initially using lower learning rates for incorrect prototypes" "NGu+SlowK" (fun s  -> 
             let mutable on = s
             let mutable off = s
-            on.NgUpdateProtos <- true
-            off.NgUpdateProtos <- false
-            on.SlowStartLrBad <- true
-            off.SlowStartLrBad <- false
+            on.NGu <- true
+            off.NGu <- false
+            on.SlowK <- true
+            off.SlowK <- false
             (on, off))
         heurM @"Neural gas prototype initialization and neural gas-like updates" "NGi+NGu" (fun s  -> 
             let mutable on = s
             let mutable off = s
-            on.NgInitializeProtos <- true
-            off.NgInitializeProtos <- false
-            on.NgUpdateProtos <- true
-            off.NgUpdateProtos <- false
+            on.NGi <- true
+            off.NGi <- false
+            on.NGu <- true
+            off.NGu <- false
             (on, off))
             //*)
         //heurD "pre-normalized segmentation dataset (N)" "N"
@@ -289,7 +289,7 @@ let resultsByDatasetByModel =
 
 let countActiveHeuristicsB (settings:HeuristicsSettings) =
     let ms = settings.ModelSettings
-    let modelHeurs = [ms.BLocalInit; ms.NgInitializeProtos;  ms.NgUpdateProtos; ms.ProjOptimalInit; not ms.RandomInitialProjection; ms.SlowStartLrBad;  ms.UpdatePointsWithoutB] |> List.filter id |> List.length
+    let modelHeurs = [ms.Bcov; ms.NGi;  ms.NGu; ms.Popt; ms.Ppca; ms.SlowK;  ms.wGMu] |> List.filter id |> List.length
     modelHeurs + settings.DataSettings.Length
 
 let countActiveHeuristics = getSettings >> countActiveHeuristicsB

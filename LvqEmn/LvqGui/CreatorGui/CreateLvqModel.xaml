@@ -69,30 +69,30 @@
         <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding Dimensionality, Mode=TwoWay, ValidatesOnExceptions=True}"/>
         <Label Grid.Row="4">Prototypes per class</Label>
         <TextBox Grid.Row="4" Grid.Column="1" Text="{Binding PrototypesPerClass, Mode=TwoWay, ValidatesOnExceptions=True}" />
-        <Label Grid.Row="5">Random initial projection</Label>
-        <CheckBox Grid.Row="5" Grid.Column="1"  IsChecked="{Binding RandomInitialProjection, Mode= TwoWay, ValidatesOnExceptions=True}"/>
+        <Label Grid.Row="5">Ppca</Label>
+        <CheckBox Grid.Row="5" Grid.Column="1"  IsChecked="{Binding Ppca, Mode= TwoWay, ValidatesOnExceptions=True}"/>
         <Label Grid.Row="6">Random initial boundaries (g2m, ggm)</Label>
         <CheckBox Grid.Row="6" Grid.Column="1"  IsChecked="{Binding RandomInitialBorders, Mode= TwoWay, ValidatesOnExceptions=True}"/>
-        <Label Grid.Row="7">Normalize projection each epoch</Label>
-        <CheckBox Grid.Row="7" Grid.Column="1"  IsChecked="{Binding NormalizeProjection, Mode= TwoWay, ValidatesOnExceptions=True}"/>
-        <Label Grid.Row="8">Normalize boundaries each epoch (g2m)</Label>
-        <CheckBox Grid.Row="8" Grid.Column="1"  IsChecked="{Binding NormalizeBoundaries, Mode= TwoWay, ValidatesOnExceptions=True}"/>
-        <Label Grid.Row="9">Globally normalize (lgm, g2m, ggm)</Label>
-        <CheckBox Grid.Row="9" Grid.Column="1"  IsChecked="{Binding GloballyNormalize, Mode= TwoWay, ValidatesOnExceptions=True}"/>
+        <Label Grid.Row="7">Suppress projection normalization</Label>
+        <CheckBox Grid.Row="7" Grid.Column="1"  IsChecked="{Binding unnormedP, Mode= TwoWay, ValidatesOnExceptions=True}"/>
+        <Label Grid.Row="8">Suppress boundary normalization (g2m)</Label>
+        <CheckBox Grid.Row="8" Grid.Column="1"  IsChecked="{Binding unnormedB, Mode= TwoWay, ValidatesOnExceptions=True}"/>
+        <Label Grid.Row="9">Locally normalize (lgm, g2m, ggm)</Label>
+        <CheckBox Grid.Row="9" Grid.Column="1"  IsChecked="{Binding LocallyNormalize, Mode= TwoWay, ValidatesOnExceptions=True}"/>
         <Label Grid.Row="10">NG-inspired updates (gsm, g2m, ggm)</Label>
-        <CheckBox Grid.Row="10" Grid.Column="1"  IsChecked="{Binding NgUpdateProtos, Mode= TwoWay, ValidatesOnExceptions=True}"/>
+        <CheckBox Grid.Row="10" Grid.Column="1"  IsChecked="{Binding NGu, Mode= TwoWay, ValidatesOnExceptions=True}"/>
         <Label Grid.Row="11">NG prototype initialization</Label>
         <StackPanel Orientation="Horizontal" Grid.Row="11" Grid.Column="1" >
-        <CheckBox  IsChecked="{Binding NgInitializeProtos, Mode= TwoWay, ValidatesOnExceptions=True}"/>
+        <CheckBox  IsChecked="{Binding NGi, Mode= TwoWay, ValidatesOnExceptions=True}"/>
             <Label>... and spread P: </Label>
-            <CheckBox  IsChecked="{Binding ProjOptimalInit, Mode= TwoWay, ValidatesOnExceptions=True}"/>
+            <CheckBox  IsChecked="{Binding Popt, Mode= TwoWay, ValidatesOnExceptions=True}"/>
             <Label>... and init B:</Label>
-            <CheckBox  IsChecked="{Binding BLocalInit, Mode= TwoWay, ValidatesOnExceptions=True}"/>
+            <CheckBox  IsChecked="{Binding Bcov, Mode= TwoWay, ValidatesOnExceptions=True}"/>
         </StackPanel>
         <Label Grid.Row="12">Don't use B for point update (g2m)</Label>
-        <CheckBox Grid.Row="12" Grid.Column="1"  IsChecked="{Binding UpdatePointsWithoutB, Mode= TwoWay, ValidatesOnExceptions=True}"/>
+        <CheckBox Grid.Row="12" Grid.Column="1"  IsChecked="{Binding wGMu, Mode= TwoWay, ValidatesOnExceptions=True}"/>
         <Label Grid.Row="13">Slow start LrBad</Label>
-        <CheckBox Grid.Row="13" Grid.Column="1"  IsChecked="{Binding SlowStartLrBad, Mode= TwoWay, ValidatesOnExceptions=True}"/>
+        <CheckBox Grid.Row="13" Grid.Column="1"  IsChecked="{Binding SlowK, Mode= TwoWay, ValidatesOnExceptions=True}"/>
 
         <Label Grid.Row="14">LR0</Label>
         <TextBox Grid.Row="14" Grid.Column="1" Text="{Binding LR0, Mode=TwoWay, ValidatesOnExceptions=True}"/>
@@ -121,7 +121,7 @@
         <Label Grid.Row="26">Fold offset</Label>
         <TextBox Grid.Row="26" Grid.Column="1" Text="{Binding FoldOffset, Mode=TwoWay, ValidatesOnExceptions=True}" />
         <Label Grid.Row="28">Track Projection Quality (slow)</Label>
-        <CheckBox Grid.Row="28" Grid.Column="1"  IsChecked="{Binding TrackProjectionQuality, Mode= TwoWay, ValidatesOnExceptions=True}"/>
+        <CheckBox Grid.Row="28" Grid.Column="1"  IsChecked="{Binding NoNnErrorRateTracking, Mode= TwoWay, ValidatesOnExceptions=True}"/>
         
         <Label Grid.Row="29">Shorthand</Label>
         <TextBox  Grid.Row="29" Grid.Column="1" Text="{Binding Shorthand, Mode=TwoWay, ValidatesOnExceptions=True, UpdateSourceTrigger=PropertyChanged}" />        <!--, UpdateSourceTrigger=PropertyChanged-->

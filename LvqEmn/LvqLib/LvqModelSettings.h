@@ -10,9 +10,9 @@
 
 struct LvqModelRuntimeSettings
 {
-	bool TrackProjectionQuality,NormalizeProjection,NormalizeBoundaries,GloballyNormalize,UpdatePointsWithoutB, SlowStartLrBad;
+	bool NoNnErrorRateTracking, unnormedP, unnormedB, LocallyNormalize, wGMu, SlowK;
 	int ClassCount;
-	double MuOffset, LrScaleP, LrScaleB, LR0,LrScaleBad;
+	double MuOffset, LrScaleP, LrScaleB, LR0, LrScaleBad;
 	copy_ptr<boost::mt19937> RngIter;
 	LvqModelRuntimeSettings(int classCount, boost::mt19937 & rngIter); 
 };
@@ -21,7 +21,7 @@ struct LvqDataset;
 
 struct LvqModelSettings
 {
-	bool RandomInitialProjection, RandomInitialBorders, NgUpdateProtos, NgInitializeProtos, ProjOptimalInit, BLocalInit;
+	bool Ppca, RandomInitialBorders, NGu, NGi, Popt, Bcov;
 
 	int Dimensionality;
 

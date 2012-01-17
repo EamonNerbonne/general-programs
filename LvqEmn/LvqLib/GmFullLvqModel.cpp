@@ -32,7 +32,7 @@ GmFullLvqModel::GmFullLvqModel(LvqModelSettings & initSettings)
 
 	int maxProtoCount = accumulate(initSettings.PrototypeDistribution.begin(), initSettings.PrototypeDistribution.end(), 0, [](int a, int b) -> int { return max(a,b); });
 
-	if(initSettings.NgUpdateProtos && maxProtoCount>1) 
+	if(initSettings.NGu && maxProtoCount>1) 
 		ngMatchCache.resize(maxProtoCount);//otherwise size 0!
 	DoOptionalNormalization();
 }
@@ -42,7 +42,7 @@ MatchQuality GmFullLvqModel::learnFrom(Vector_N const & trainPoint, int trainLab
 
 	double lr_point = settings.LR0 * learningRate,
 		lr_P = lr_point * settings.LrScaleP,
-		lr_bad = (settings.SlowStartLrBad  ?  sqr(1.0 - learningRate)  :  1.0) * settings.LrScaleBad;
+		lr_bad = (settings.SlowK  ?  sqr(1.0 - learningRate)  :  1.0) * settings.LrScaleBad;
 
 
 	assert(lr_P>=0 && lr_point>=0);
@@ -132,7 +132,7 @@ size_t GmFullLvqModel::MemAllocEstimate() const {
 
 
 void GmFullLvqModel::DoOptionalNormalization() {
-	if(settings.NormalizeProjection) {
+	if(!settings.unnormedP) {
 		normalizeProjection(P);
 		for(size_t i=0;i<prototype.size();++i)
 			RecomputeProjection((int)i);

@@ -26,9 +26,9 @@ let datasets =
            
 let makeLvqSettings modelType prototypes lrB lrP lr0 = 
     let mutable tmp = new LvqModelSettingsCli()
-    tmp.NgInitializeProtos <- true
-    tmp.SlowStartLrBad <- true
-    tmp.RandomInitialProjection <- true
+    tmp.NGi <- true
+    tmp.SlowK <- true
+    tmp.Ppca <- false
     tmp.ModelType <- modelType
     tmp.PrototypesPerClass <- prototypes
     tmp.LR0 <- lr0
@@ -261,6 +261,8 @@ let improveAndTest (initialSettings:LvqModelSettingsCli) =
 //Gm+,5,!lr00.014436364028250253,lrP4.1723684183930017, GeoMean: 0.145107; Training: 0.142599 ~ 0.006693; Test: 0.147589 ~ 0.007084; NN: 0.191037 ~ 0.009788
 //G2m+,5,!lr00.021321341205010495,lrP0.091882049596472823,lrB0.004, GeoMean: 0.112979; Training: 0.109479 ~ 0.005921; Test: 0.117902 ~ 0.006281; NN: 0.156378 ~ 0.008937
 //Ggm+,5,!lr00.050458991795075986,lrP0.024937315351058434,lrB6.70093253950599, GeoMean: 0.110744; Training: 0.103601 ~ 0.006250; Test: 0.119595 ~ 0.007006; NN: 0.160679 ~ 0.009186
+
+//Gm+,5,!lr00.011406617619241778,lrP6.1416586372960822, GeoMean: 0.146599; Training: 0.144508 ~ 0.007207; Test: 0.150884 ~ 0.007713; NN: 0.193510 ~ 0.010641
 
 
 [ "Gm+,1,rP,!lr00.002,lrP0.7,"; "Gm+,5,rP,NGi+,!lr00.003,lrP5.0,";  "G2m+,1,rP,!lr00.01,lrP0.2,lrB0.003,"; "G2m+,5,rP,NGi+,!lr00.01,lrP0.1,lrB0.004,"; "Ggm+,1,rP,!lr00.03,lrP0.05,lrB2.0,"; "Ggm+,5,rP,NGi+,!lr00.04,lrP0.05,lrB10.0,"]

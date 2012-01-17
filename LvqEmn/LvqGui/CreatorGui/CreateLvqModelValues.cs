@@ -59,29 +59,31 @@ namespace LvqGui {
 			}
 		}
 
-		public bool TrackProjectionQuality {
-			get { return settings.TrackProjectionQuality; }
-			set { if (!settings.TrackProjectionQuality.Equals(value)) { settings.TrackProjectionQuality = value; _propertyChanged("TrackProjectionQuality"); } }
+		public bool NoNnErrorRateTracking {
+			get { return settings.NoNnErrorRateTracking; }
+			set { if (!settings.NoNnErrorRateTracking.Equals(value)) { settings.NoNnErrorRateTracking = value; _propertyChanged("NoNnErrorRateTracking"); } }
 		}
 
-		public bool NormalizeProjection {
-			get { return settings.NormalizeProjection; }
-			set { if (!settings.NormalizeProjection.Equals(value)) { settings.NormalizeProjection = value; _propertyChanged("NormalizeProjection"); } }
+		public bool unnormedP
+		{
+			get { return settings.unnormedP; }
+			set { if (!settings.unnormedP.Equals(value)) { settings.unnormedP = value; _propertyChanged("unnormedP"); } }
 		}
 
-		public bool NormalizeBoundaries {
-			get { return settings.NormalizeBoundaries; }
-			set { if (!settings.NormalizeBoundaries.Equals(value)) { settings.NormalizeBoundaries = value; _propertyChanged("NormalizeBoundaries"); } }
+		public bool unnormedB {
+			get { return settings.unnormedB; }
+			set { if (!settings.unnormedB.Equals(value)) { settings.unnormedB = value; _propertyChanged("unnormedB"); } }
 		}
 
-		public bool GloballyNormalize {
-			get { return settings.GloballyNormalize; }
-			set { if (!settings.GloballyNormalize.Equals(value)) { settings.GloballyNormalize = value; _propertyChanged("GloballyNormalize"); } }
+		public bool LocallyNormalize
+		{
+			get { return settings.LocallyNormalize; }
+			set { if (!settings.LocallyNormalize.Equals(value)) { settings.LocallyNormalize = value; _propertyChanged("LocallyNormalize"); } }
 		}
 
-		public bool RandomInitialProjection {
-			get { return settings.RandomInitialProjection; }
-			set { if (!settings.RandomInitialProjection.Equals(value)) { settings.RandomInitialProjection = value; _propertyChanged("RandomInitialProjection"); } }
+		public bool Ppca {
+			get { return settings.Ppca; }
+			set { if (!settings.Ppca.Equals(value)) { settings.Ppca = value; _propertyChanged("Ppca"); } }
 		}
 
 		public bool RandomInitialBorders {
@@ -89,29 +91,29 @@ namespace LvqGui {
 			set { if (!settings.RandomInitialBorders.Equals(value)) { settings.RandomInitialBorders = value; _propertyChanged("RandomInitialBorders"); } }
 		}
 
-		public bool NgUpdateProtos {
-			get { return settings.NgUpdateProtos; }
-			set { if (!settings.NgUpdateProtos.Equals(value)) { settings.NgUpdateProtos = value; _propertyChanged("NgUpdateProtos"); } }
+		public bool NGu {
+			get { return settings.NGu; }
+			set { if (!settings.NGu.Equals(value)) { settings.NGu = value; _propertyChanged("NGu"); } }
 		}
 
-		public bool NgInitializeProtos {
-			get { return settings.NgInitializeProtos; }
-			set { if (!Equals(settings.NgInitializeProtos, value)) { settings.NgInitializeProtos = value; _propertyChanged("NgInitializeProtos"); } }
+		public bool NGi {
+			get { return settings.NGi; }
+			set { if (!Equals(settings.NGi, value)) { settings.NGi = value; _propertyChanged("NGi"); } }
 		}
 
-		public bool ProjOptimalInit {
-			get { return settings.ProjOptimalInit; }
-			set { if (!Equals(settings.ProjOptimalInit, value)) { settings.ProjOptimalInit = value; _propertyChanged("ProjOptimalInit"); } }
+		public bool Popt {
+			get { return settings.Popt; }
+			set { if (!Equals(settings.Popt, value)) { settings.Popt = value; _propertyChanged("Popt"); } }
 		}
 
-		public bool BLocalInit {
-			get { return settings.BLocalInit; }
-			set { if (!Equals(settings.BLocalInit, value)) { settings.BLocalInit = value; _propertyChanged("BLocalInit"); } }
+		public bool Bcov {
+			get { return settings.Bcov; }
+			set { if (!Equals(settings.Bcov, value)) { settings.Bcov = value; _propertyChanged("Bcov"); } }
 		}
 
-		public bool UpdatePointsWithoutB {
-			get { return settings.UpdatePointsWithoutB; }
-			set { if (!settings.UpdatePointsWithoutB.Equals(value)) { settings.UpdatePointsWithoutB = value; _propertyChanged("UpdatePointsWithoutB"); } }
+		public bool wGMu {
+			get { return settings.wGMu; }
+			set { if (!settings.wGMu.Equals(value)) { settings.wGMu = value; _propertyChanged("wGMu"); } }
 		}
 
 		public double LrScaleP {
@@ -140,9 +142,9 @@ namespace LvqGui {
 		}
 		
 
-		public bool SlowStartLrBad {
-			get { return settings.SlowStartLrBad; }
-			set { if (!settings.SlowStartLrBad.Equals(value)) { settings.SlowStartLrBad = value; _propertyChanged("SlowStartLrBad"); } }
+		public bool SlowK {
+			get { return settings.SlowK; }
+			set { if (!settings.SlowK.Equals(value)) { settings.SlowK = value; _propertyChanged("SlowK"); } }
 		}
 
 		public uint ParamsSeed {
@@ -158,21 +160,21 @@ namespace LvqGui {
 		static readonly Regex shR =
 	new Regex(@"^([^:]*\:|\s*\\lvqseed\{)?\s*?(" +
 			@"(?<ModelType>\b[A-Z][A-Za-z0-9]*)
-				(\[(?<Dimensionality>[^\]]+)\]|(?<TrackProjectionQuality>\+?)),
+				(\[(?<Dimensionality>[^\]]+)\]|(?<NoNnErrorRateTracking_>\+?)),
 				(?<PrototypesPerClass>[0-9]+),
-				(rP(?<RandomInitialProjection>\+?),)?
+				(rP(?<Ppca_>\+?),)?
 				(rB(?<RandomInitialBorders>\+?),)?
-				(nP(?<NormalizeProjection>\+?),)?
-				(nB(?<NormalizeBoundaries>\+?),)?
-				(gn(?<GloballyNormalize>\+?),)?
-				(NG(?<NgUpdateProtos>\+?),)?
-				(NGi(?<NgInitializeProtos>\+?),)?
-				(Pi(?<ProjOptimalInit>\+?),)?
-				(Bi(?<BLocalInit>\+?),)?
-				(noB(?<UpdatePointsWithoutB>\+?),)?
+				(nP(?<unnormedP_>\+?),)?
+				(nB(?<unnormedB_>\+?),)?
+				(gn(?<LocallyNormalize_>\+?),)?
+				(NG(?<NGu>\+?),)?
+				(NGi(?<NGi>\+?),)?
+				(Pi(?<Popt>\+?),)?
+				(Bi(?<Bcov>\+?),)?
+				(noB(?<wGMu>\+?),)?
 				(mu(?<MuOffset>[0-9]*(\.[0-9]*)?([eE]-?[0-9]+)?),)?
 				(lrX(?<LrScaleBad>[0-9]*(\.[0-9]*)?([eE]-?[0-9]+)?),)?
-				(?<SlowStartLrBad>\!?)
+				(?<SlowK>\!?)
 				(lr0(?<LR0>[0-9]*(\.[0-9]*)?([eE]-?[0-9]+)?),)?
 				(lrP(?<LrScaleP>[0-9]*(\.[0-9]*)?([eE]-?[0-9]+)?),)?
 				(lrB(?<LrScaleB>[0-9]*(\.[0-9]*)?([eE]-?[0-9]+)?),)?

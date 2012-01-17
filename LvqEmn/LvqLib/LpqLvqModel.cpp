@@ -35,7 +35,7 @@ LpqLvqModel::LpqLvqModel(LvqModelSettings & initSettings)
 
 	for(size_t protoIndex = 0; protoIndex < protoCount; ++protoIndex) {
 		P[protoIndex].setIdentity(initSettings.Dimensionality, initSettings.Dimensions());
-		if(initSettings.RandomInitialProjection)
+		if(!initSettings.Ppca)
 			projectionRandomizeUniformScaled(initSettings.RngParams, P[protoIndex]);
 		P_prototype[protoIndex] = P[protoIndex] * InitProto.first.col(protoIndex);
 	}
@@ -55,7 +55,7 @@ MatchQuality LpqLvqModel::learnFrom(Vector_N const & trainPoint, int trainLabel)
 
 	double lr_mu_K2 = lr_point * 2.0*retval.muK;
 	double lr_mu_J2 = lr_point * 2.0*retval.muJ;
-	double lr_bad = (settings.SlowStartLrBad  ?  sqr(1.0 - learningRate)  :  1.0) * settings.LrScaleBad;
+	double lr_bad = (settings.SlowK  ?  sqr(1.0 - learningRate)  :  1.0) * settings.LrScaleBad;
 
 	int J = matches.matchGood;
 	int K = matches.matchBad;
@@ -132,8 +132,8 @@ vector<int> LpqLvqModel::GetPrototypeLabels() const {
 }
 
 void LpqLvqModel::DoOptionalNormalization() {
-	if(settings.NormalizeProjection) {
-		if(settings.GloballyNormalize) {
+	if(!settings.unnormedP) {
+		if(!settings.LocallyNormalize) {
 			double overallNorm = std::accumulate(P.begin(), P.end(),0.0,[](double cur, Matrix_NN const & mat)->double { return cur + projectionSquareNorm(mat); });
 			double scale = 1.0/sqrt(overallNorm / P.size());
 			for(size_t i=0;i<P.size();++i) P[i]*=scale;

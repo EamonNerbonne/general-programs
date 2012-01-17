@@ -110,7 +110,7 @@ namespace LvqGui {
 		static double EstimateAccuracy(LvqModelSettingsCli settings) {
 			int protoIdx = settings.PrototypesPerClass == 1 ? 0 : 1;
 			int typeIdx = settings.ModelType == LvqModelType.Ggm ? 0 : settings.ModelType == LvqModelType.Gm ? 2 : 1;
-			bool[] heurs = new[] { settings.NgInitializeProtos, settings.NgUpdateProtos, !settings.RandomInitialProjection, settings.SlowStartLrBad, settings.ProjOptimalInit, settings.BLocalInit };
+			bool[] heurs = new[] { settings.NGi, settings.NGu, settings.Ppca, settings.SlowK, settings.Popt, settings.Bcov };
 			return heurs.Select((on, heurIdx) => on ? heurEffects[protoIdx, typeIdx, heurIdx] : 0).Sum();
 		}
 
@@ -165,13 +165,13 @@ namespace LvqGui {
 				 let settings = new LvqModelSettingsCli {
 					 ModelType = modeltype,
 					 PrototypesPerClass = protoCount,
-					 RandomInitialProjection = !ppca,
-					 NgInitializeProtos = ngi,
-					 NgUpdateProtos = ng,
-					 BLocalInit = bi,
-					 ProjOptimalInit = pi,
-					 SlowStartLrBad = slowbad,
-					 UpdatePointsWithoutB = NoB,
+					 Ppca = ppca,
+					 NGi = ngi,
+					 NGu = ng,
+					 Bcov = bi,
+					 Popt = pi,
+					 SlowK = slowbad,
+					 wGMu = NoB,
 				 }
 				 where settings.Equals(CreateLvqModelValues.TryParseShorthand(settings.ToShorthand()))
 				 let estAccur = EstimateAccuracy(settings)

@@ -5,28 +5,29 @@
 namespace LvqLibCli {
 	LvqModelSettingsRaw LvqModelSettingsCli::ToNativeSettings() {
 
-		LvqModelSettingsRaw nativeSettings = { (::LvqModelType)ModelType, Dimensionality, PrototypesPerClass, RandomInitialProjection, RandomInitialBorders, NormalizeProjection, NormalizeBoundaries, GloballyNormalize, NgUpdateProtos, NgInitializeProtos
-			, ProjOptimalInit, BLocalInit, UpdatePointsWithoutB, SlowStartLrBad, MuOffset, LR0, LrScaleP, LrScaleB, LrScaleBad, ParamsSeed, InstanceSeed, TrackProjectionQuality, ParallelModels };
+		LvqModelSettingsRaw nativeSettings = { (::LvqModelType)ModelType, Dimensionality, PrototypesPerClass, Ppca, RandomInitialBorders
+			, unnormedP, unnormedB, LocallyNormalize, NGu, NGi, Popt, Bcov, wGMu, SlowK, MuOffset, LR0, LrScaleP, LrScaleB, LrScaleBad
+			, ParamsSeed, InstanceSeed, NoNnErrorRateTracking, ParallelModels };
 		return nativeSettings;
 	}
 
 	String^ LvqModelSettingsCli::ToShorthand() {
 		return ModelType.ToString()
-			+ (ModelType == LvqModelType::Lgm||ModelType == LvqModelType::Lpq || Dimensionality != 2 ? "[" + Dimensionality + "]" : (TrackProjectionQuality ? "+" : "")) + ","
+			+ (ModelType == LvqModelType::Lgm||ModelType == LvqModelType::Lpq || Dimensionality != 2 ? "[" + Dimensionality + "]" : (!NoNnErrorRateTracking ? "+" : "")) + ","
 			+ PrototypesPerClass + ","
-			+ (RandomInitialProjection != LvqModelSettingsCli().RandomInitialProjection ? "rP" + (RandomInitialProjection ? "+" : "") + ",":"")
+			+ (Ppca != LvqModelSettingsCli().Ppca ? "rP" + (!Ppca ? "+" : "") + ",":"")
 			+ (RandomInitialBorders != LvqModelSettingsCli().RandomInitialBorders && (ModelType == LvqModelType::Ggm || ModelType==LvqModelType::G2m) ? "rB" + (RandomInitialBorders ? "+" : "") + "," : "")
-			+ (NormalizeProjection != LvqModelSettingsCli().NormalizeProjection ? "nP" + (NormalizeProjection ? "+" : "") + ",":"")
-			+ (NormalizeBoundaries != LvqModelSettingsCli().NormalizeBoundaries && ModelType == LvqModelType::G2m ? "nB" + (NormalizeBoundaries ? "+" : "") + "," : "")
-			+ (GloballyNormalize !=LvqModelSettingsCli().GloballyNormalize && (ModelType == LvqModelType::G2m && NormalizeBoundaries || ModelType == LvqModelType::Lgm && NormalizeProjection||ModelType == LvqModelType::Lpq && NormalizeProjection) ? "gn" + (GloballyNormalize ? "+" : "") + "," : "")
-			+ (NgUpdateProtos != LvqModelSettingsCli().NgUpdateProtos && ModelType != LvqModelType::Lgm && ModelType != LvqModelType::Lpq && PrototypesPerClass > 1 ? "NG" + (NgUpdateProtos ? "+" : "") + "," : "")
-			+ (NgInitializeProtos != LvqModelSettingsCli().NgInitializeProtos && PrototypesPerClass > 1 ? "NGi" + (NgInitializeProtos ? "+" : "") + "," : "")
-			+ (ProjOptimalInit != LvqModelSettingsCli().ProjOptimalInit && (ModelType != LvqModelType::Lgm && ModelType != LvqModelType::Lpq) ? "Pi" + (ProjOptimalInit ? "+" : "") + "," : "")
-			+ (BLocalInit != LvqModelSettingsCli().BLocalInit && (ModelType != LvqModelType::Lpq && ModelType != LvqModelType::Lgm && ModelType != LvqModelType::Gm) ? "Bi" + (BLocalInit ? "+" : "") + "," : "")
-			+ (UpdatePointsWithoutB != LvqModelSettingsCli().UpdatePointsWithoutB && ModelType == LvqModelType::G2m ? "noB" + (UpdatePointsWithoutB ? "+" : "") + "," : "")
+			+ (unnormedP != LvqModelSettingsCli().unnormedP ? "nP" + (!unnormedP ? "+" : "") + ",":"")
+			+ (unnormedB != LvqModelSettingsCli().unnormedB && ModelType == LvqModelType::G2m ? "nB" + (!unnormedB ? "+" : "") + "," : "")
+			+ (LocallyNormalize !=LvqModelSettingsCli().LocallyNormalize && (ModelType == LvqModelType::G2m && !unnormedB || ModelType == LvqModelType::Lgm && !unnormedP||ModelType == LvqModelType::Lpq && !unnormedP) ? "gn" + (!LocallyNormalize ? "+" : "") + "," : "")
+			+ (NGu != LvqModelSettingsCli().NGu && ModelType != LvqModelType::Lgm && ModelType != LvqModelType::Lpq && PrototypesPerClass > 1 ? "NG" + (NGu ? "+" : "") + "," : "")
+			+ (NGi != LvqModelSettingsCli().NGi && PrototypesPerClass > 1 ? "NGi" + (NGi ? "+" : "") + "," : "")
+			+ (Popt != LvqModelSettingsCli().Popt && (ModelType != LvqModelType::Lgm && ModelType != LvqModelType::Lpq) ? "Pi" + (Popt ? "+" : "") + "," : "")
+			+ (Bcov != LvqModelSettingsCli().Bcov && (ModelType != LvqModelType::Lpq && ModelType != LvqModelType::Lgm && ModelType != LvqModelType::Gm) ? "Bi" + (Bcov ? "+" : "") + "," : "")
+			+ (wGMu != LvqModelSettingsCli().wGMu && ModelType == LvqModelType::G2m ? "noB" + (wGMu ? "+" : "") + "," : "")
 			+ (MuOffset == 0.0?"": "mu" + MuOffset.ToString("r") + ",")
 			+ (LrScaleBad != LvqModelSettingsCli().LrScaleBad ? "lrX" + LrScaleBad.ToString("r") + ",":"")
-			+ (SlowStartLrBad ? "!" : "")
+			+ (SlowK ? "!" : "")
 			+ (LR0==LVQ_LR0  ?  "": "lr0" + LR0.ToString("r") + ","	)
 			+ (LrScaleP==LVQ_LrScaleP  ?  ""  :   "lrP" + LrScaleP.ToString("r") + ","	)
 			+ (LrScaleB==LVQ_LrScaleB  || ModelType ==  LvqModelType::Lgm || ModelType == LvqModelType::Lpq || ModelType == LvqModelType::Gm ?  "": "lrB" + LrScaleB.ToString("r") + ",")
@@ -55,7 +56,7 @@ namespace LvqLibCli {
 	}
 	LvqModelSettingsCli LvqModelSettingsCli::WithDefaultNnTracking(){
 		LvqModelSettingsCli retval = *this;
-		retval.TrackProjectionQuality = LvqModelSettingsCli().TrackProjectionQuality;
+		retval.NoNnErrorRateTracking = LvqModelSettingsCli().NoNnErrorRateTracking;
 		return retval;
 	}
 }

@@ -33,12 +33,12 @@ G2mLvqModel::G2mLvqModel(LvqModelSettings & initSettings)
 		prototype[protoIndex].ComputePP(P);
 	}
 
-	if(initSettings.BLocalInit || initSettings.RandomInitialBorders)
+	if(initSettings.Bcov || initSettings.RandomInitialBorders)
 		NormalizeBoundaries();
 
 	int maxProtoCount = accumulate(initSettings.PrototypeDistribution.begin(), initSettings.PrototypeDistribution.end(), 0, [](int a, int b) -> int { return max(a,b); });
 
-	if(initSettings.NgUpdateProtos && maxProtoCount>1) 
+	if(initSettings.NGu && maxProtoCount>1) 
 		ngMatchCache.resize(maxProtoCount);//otherwise size 0!
 }
 
@@ -51,7 +51,7 @@ MatchQuality G2mLvqModel::learnFrom(Vector_N const & trainPoint, int trainLabel)
 	double lr_point = settings.LR0 * learningRate,
 		lr_P = lr_point * settings.LrScaleP,
 		lr_B = lr_point * settings.LrScaleB,
-		lr_bad = (settings.SlowStartLrBad  ?  sqr(1.0 - learningRate)  :  1.0) * settings.LrScaleBad;
+		lr_bad = (settings.SlowK  ?  sqr(1.0 - learningRate)  :  1.0) * settings.LrScaleBad;
 
 	assert(lr_P>=0 && lr_B>=0 && lr_point>=0);
 
@@ -94,7 +94,7 @@ MatchQuality G2mLvqModel::learnFrom(Vector_N const & trainPoint, int trainLabel)
 	J.B.noalias() -= lr_B * muJ2_Bj_P_vJ * P_vJ.transpose() ;
 	K.B.noalias() -= lr_bad*lr_B * muK2_Bk_P_vK * P_vK.transpose() ;
 	double distbadRaw=0.0;
-	if(settings.UpdatePointsWithoutB) {
+	if(settings.wGMu) {
 		double distgood = P_vJ.squaredNorm();
 		distbadRaw = P_vK.squaredNorm();
 		double XmuJ2 = 2.0*+2.0*distbadRaw / (sqr(distgood) + sqr(distbadRaw));
@@ -109,7 +109,7 @@ MatchQuality G2mLvqModel::learnFrom(Vector_N const & trainPoint, int trainLabel)
 		for(int i=1;i<fullmatch.foundOk;++i) {
 			lrSub*=lrDelta;
 			G2mLvqPrototype &Js = prototype[fullmatch.matchesOk[i].idx];
-			if(settings.UpdatePointsWithoutB) {
+			if(settings.wGMu) {
 				double muJ2s = 2.0 * +2.0*distbadRaw / (sqr((Js.P_point - P_trainPoint).squaredNorm()) + sqr(distbadRaw));
 				Js.point.noalias() -= P.transpose() * (lrSub * muJ2s * (Js.P_point - P_trainPoint));
 			} else {
@@ -225,7 +225,7 @@ void G2mLvqModel::ClassBoundaryDiagram(double x0, double x1, double y0, double y
 }
 
 void G2mLvqModel::NormalizeBoundaries() {
-		if(settings.GloballyNormalize) {
+		if(!settings.LocallyNormalize) {
 			double overallNorm = std::accumulate(prototype.begin(), prototype.end(),0.0,
 				[](double cur, G2mLvqPrototype const & proto) -> double { return cur + projectionSquareNorm(proto.B); } 
 			// (cur, proto) => cur + projectionSquareNorm(proto.B)
@@ -237,12 +237,12 @@ void G2mLvqModel::NormalizeBoundaries() {
 		}
 }
 void G2mLvqModel::DoOptionalNormalization() {
-	if(settings.NormalizeProjection) {
+	if(!settings.unnormedP) {
 		normalizeProjection(P);
 		for(size_t i=0;i<prototype.size();++i)
 			prototype[i].ComputePP(P);
 	}
-	if(settings.NormalizeBoundaries) {
+	if(!settings.unnormedB) {
 		NormalizeBoundaries();	
 	}
 }

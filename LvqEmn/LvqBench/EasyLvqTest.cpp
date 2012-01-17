@@ -90,7 +90,7 @@ void TestModel(LvqModelType modelType, unsigned seed, bool useNgUpdate, LvqDatas
 	LvqModelSettingsRaw settings = defaultLvqModelSettings;
 	settings.ModelType = modelType;
 	settings.PrototypesPerClass = protosPerClass;
-	settings.NgUpdateProtos = useNgUpdate;
+	settings.NGu = useNgUpdate;
 	settings.ParamsSeed = seed;
 	settings.InstanceSeed = seed;
 	t.start();

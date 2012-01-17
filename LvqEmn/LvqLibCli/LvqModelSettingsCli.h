@@ -21,9 +21,6 @@ namespace LvqLibCli {
 		int _PrototypesPerClass;
 		int _ParallelModels, _FoldOffset;
 		unsigned _ParamsSeed;
-		bool _NonRandomInitialProjection;
-		bool _NonNormalizeProjection, _NonNormalizeBoundaries, _NonGloballyNormalize;
-		bool _NonTrackProjectionQuality;
 		Nullable<double> _LR0, _LrScaleP, _LrScaleB, _LrScaleBad;
 		Nullable<LvqModelType> _ModelType;
 	public:
@@ -34,11 +31,6 @@ namespace LvqLibCli {
 		property unsigned ParamsSeed  { unsigned get() {return _ParamsSeed + 1; } void set(unsigned val) { _ParamsSeed = val - 1; } }
 		property int ParallelModels  { int get() {return _ParallelModels + 10; } void set(int val) { _ParallelModels = val - 10; } }
 		property int FoldOffset  { int get() {return _FoldOffset ; } void set(int val) { _FoldOffset = val; } }
-		property bool RandomInitialProjection { bool get() {return !_NonRandomInitialProjection; } void set(bool val) { _NonRandomInitialProjection = !val; } }
-		property bool NormalizeProjection { bool get() {return !_NonNormalizeProjection; } void set(bool val) { _NonNormalizeProjection = !val; } }
-		property bool NormalizeBoundaries { bool get() {return !_NonNormalizeBoundaries; } void set(bool val) { _NonNormalizeBoundaries = !val; } }
-		property bool GloballyNormalize { bool get() {return !_NonGloballyNormalize; } void set(bool val) { _NonGloballyNormalize = !val; } }
-		property bool TrackProjectionQuality { bool get() {return !_NonTrackProjectionQuality; } void set(bool val) { _NonTrackProjectionQuality = !val; } }
 
 		property double LR0 { double get() { return _LR0.HasValue?_LR0.Value:LVQ_LR0; } void set(double val) { _LR0 = val==LVQ_LR0?Nullable<double>(): Nullable<double>(val); } }
 		property double LrScaleP { double get() { return _LrScaleP.HasValue?_LrScaleP.Value:LVQ_LrScaleP; } void set(double val) { _LrScaleP = val==LVQ_LrScaleP?Nullable<double>(): Nullable<double>(val); } }
@@ -48,15 +40,14 @@ namespace LvqLibCli {
 
 		bool RandomInitialBorders;
 
-		bool NgUpdateProtos, NgInitializeProtos, ProjOptimalInit,BLocalInit, UpdatePointsWithoutB;
-		bool SlowStartLrBad;
+		bool NGu, NGi, Ppca, Popt,Bcov, wGMu, NoNnErrorRateTracking;
+		bool SlowK,unnormedP, unnormedB, LocallyNormalize;
 		unsigned  InstanceSeed;
 		double MuOffset;
 
 		static initonly LvqModelSettingsCli defaults;
 
 
-//		LvqModelSettingsCli^ Copy();
 		LvqModelSettingsCli WithChanges(LvqModelType type, int protos, unsigned rngParams, unsigned rngIter);
 		LvqModelSettingsCli WithDefaultLr();
 		LvqModelSettingsCli WithDefaultNnTracking();

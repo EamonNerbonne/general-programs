@@ -53,12 +53,12 @@ LvqModel* ConstructLvqModel(LvqModelSettings & initSettings) {
 
 
 LvqModelRuntimeSettings::LvqModelRuntimeSettings(int classCount, boost::mt19937 & rngIter)
-	: TrackProjectionQuality(true)
-	, NormalizeProjection(true)
-	, NormalizeBoundaries(true)
-	, GloballyNormalize(true)
-	, UpdatePointsWithoutB(false)
-	, SlowStartLrBad(false)
+	: NoNnErrorRateTracking(false)
+	, unnormedP(false)
+	, unnormedB(false)
+	, LocallyNormalize(false)
+	, wGMu(false)
+	, SlowK(false)
 	, ClassCount(classCount)
 	, MuOffset(0.0)
 	, LrScaleP(LVQ_LrScaleP)
@@ -69,12 +69,12 @@ LvqModelRuntimeSettings::LvqModelRuntimeSettings(int classCount, boost::mt19937 
 
 
 LvqModelSettings::LvqModelSettings(LvqModelType modelType, boost::mt19937 & rngParams, boost::mt19937 & rngIter, std::vector<int> protodistrib, LvqDataset const * dataset) 
-	: RandomInitialProjection(true)
+	: Ppca(false)
 	, RandomInitialBorders(false) 
-	, NgUpdateProtos(false)
-	, NgInitializeProtos(false)
-	, ProjOptimalInit(false)
-	, BLocalInit(false)
+	, NGu(false)
+	, NGi(false)
+	, Popt(false)
+	, Bcov(false)
 	, Dimensionality(0)
 	, ModelType(modelType)
 	, RngParams(rngParams)
@@ -142,7 +142,7 @@ pair<Matrix_NN, VectorXi> LvqModelSettings::InitByNg() {
 }
 
 pair<Matrix_NN, VectorXi> LvqModelSettings::InitProtosBySetting()  {
-	return NgInitializeProtos ? InitByNg() : InitByClassMeans();
+	return NGi ? InitByNg() : InitByClassMeans();
 }
 
 void LvqModelSettings::ProjInit(Matrix_NN const& prototypes, Matrix_NN & P){
@@ -199,7 +199,7 @@ tuple<Matrix_NN,Matrix_NN, VectorXi> LvqModelSettings::InitProtosAndProjectionBy
 	auto prototypes = protos.first;
 	auto labels = protos.second;
 
-	if(ProjOptimalInit) 
+	if(Popt) 
 		ProjInit(prototypes, P);
 
 	return make_tuple(P, prototypes, labels);
@@ -286,7 +286,7 @@ vector<Matrix_22> BinitPerProto(Matrix_P const & P, LvqModelSettings & initSetti
 	Matrix_P const lowdimpoints = P * initSettings.Dataset->getPoints();
 
 	vector<Matrix_22> initB;
-	if(!initSettings.BLocalInit) {
+	if(!initSettings.Bcov) {
 		if(initSettings.ModelType == LvqModelSettings::GgmModelType) {
 			auto globalB = BinitByPca(lowdimpoints);
 			for(size_t protoIndex=0; protoIndex < (size_t)protoLabels.size(); ++protoIndex)
@@ -295,7 +295,7 @@ vector<Matrix_22> BinitPerProto(Matrix_P const & P, LvqModelSettings & initSetti
 			for(size_t protoIndex=0; protoIndex < (size_t)protoLabels.size(); ++protoIndex)
 				initB.push_back(Matrix_22::Identity());
 		}
-	} else if(initSettings.NgInitializeProtos) {
+	} else if(initSettings.NGi) {
 		initB = BinitByProtos(lowdimpoints,  initSettings.Dataset->getPointLabels()  , P * prototypes, protoLabels);
 	} else {
 		initB = BinitByLastProto(lowdimpoints,  initSettings.Dataset->getPointLabels(), P * prototypes, protoLabels);
@@ -358,7 +358,7 @@ inline void randomProjectionMatrix(boost::mt19937 & rngParams, Matrix_NN & mat) 
 
 Matrix_NN LvqModelSettings::initTransform() {
 	Matrix_NN P(Dimensionality == 0 ? LVQ_LOW_DIM_SPACE : Dimensionality, Dimensions());
-	if(!RandomInitialProjection)
+	if(Ppca)
 		P = pcaTransform();
 	else
 		randomProjectionMatrix(RngParams, P);
