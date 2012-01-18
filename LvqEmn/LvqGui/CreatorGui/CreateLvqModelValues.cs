@@ -197,9 +197,7 @@ namespace LvqGui {
 					|(?<wGMu>wGMu,)
 					|(?<SlowK>SlowK,)
 					|(?<NoNnErrorRateTracking>NoNnErrorRateTracking,)
-				)*
-				(
-					mu(?<MuOffset>[0-9]*(\.[0-9]*)?([eE]-?[0-9]+)?),
+					|mu(?<MuOffset>[0-9]*(\.[0-9]*)?([eE]-?[0-9]+)?),
 					|lrX(?<LrScaleBad>[0-9]*(\.[0-9]*)?([eE]-?[0-9]+)?),
 					|lr0(?<LR0>[0-9]*(\.[0-9]*)?([eE]-?[0-9]+)?),
 					|lrP(?<LrScaleP>[0-9]*(\.[0-9]*)?([eE]-?[0-9]+)?),

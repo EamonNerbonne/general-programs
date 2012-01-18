@@ -210,6 +210,7 @@ let newRes=
         |> List.map CreateLvqModelValues.TryParseShorthand 
         |> List.filter (fun settings -> settings.HasValue)
         |> List.map (fun settings -> settings.Value)
+        //|> List.map (fun settings -> settings.ToShorthand())
         |> List.map (testSettings 100 1u >> printResults >> (fun resline -> System.IO.File.AppendAllText (TestLr.resultsDir.FullName + "\\uniform-results2.txt", resline + "\n"); resline ))
 
 [ "Gm+,1,!lr00.002,lrP0.7,"; "Gm+,5,NGi+,!lr00.003,lrP5.0,";  "G2m+,1,!lr00.01,lrP0.2,lrB0.003,"; "G2m+,5,NGi+,!lr00.01,lrP0.1,lrB0.004,"; "Ggm+,1,!lr00.03,lrP0.05,lrB2.0,"; "Ggm+,5,NGi+,!lr00.04,lrP0.05,lrB10.0,"]
