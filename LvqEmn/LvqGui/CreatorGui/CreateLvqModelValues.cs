@@ -179,7 +179,35 @@ namespace LvqGui {
 				(lrP(?<LrScaleP>[0-9]*(\.[0-9]*)?([eE]-?[0-9]+)?),)?
 				(lrB(?<LrScaleB>[0-9]*(\.[0-9]*)?([eE]-?[0-9]+)?),)?
 				(\[(?<ParamsSeed_>[0-9a-fA-F]+)?\,(?<InstanceSeed_>[0-9a-fA-F]+)?\])?(\^(?<ParallelModels>[0-9]+))?(_(?<FoldOffset>[0-9]+))?\,?
-			)(--.*|\}\{[^\}]*\})?\s*$"
+			"
+			+ @"
+				|
+				(?<ModelType>\b[A-Z][A-Za-z0-9]*)(\[(?<Dimensionality>[^\]]+)\])?
+				-(?<PrototypesPerClass>[0-9]+),
+				(
+					(?<Ppca>Ppca,)
+					|(?<RandomInitialBorders>RandomInitialBorders,)
+					|(?<unnormedP>unnormedP,)
+					|(?<unnormedB>unnormedB,)
+					|(?<LocallyNormalize>LocallyNormalize,)
+					|(?<NGu>NGu,)
+					|(?<NGi>NGi,)
+					|(?<Popt>Popt)
+					|(?<Bcov>Bcov,)
+					|(?<wGMu>wGMu,)
+					|(?<SlowK>SlowK,)
+					|(?<NoNnErrorRateTracking>NoNnErrorRateTracking,)
+				)*
+				(
+					mu(?<MuOffset>[0-9]*(\.[0-9]*)?([eE]-?[0-9]+)?),
+					|lrX(?<LrScaleBad>[0-9]*(\.[0-9]*)?([eE]-?[0-9]+)?),
+					|lr0(?<LR0>[0-9]*(\.[0-9]*)?([eE]-?[0-9]+)?),
+					|lrP(?<LrScaleP>[0-9]*(\.[0-9]*)?([eE]-?[0-9]+)?),
+					|lrB(?<LrScaleB>[0-9]*(\.[0-9]*)?([eE]-?[0-9]+)?),
+				)*
+				(\[(?<ParamsSeed_>[0-9a-fA-F]+)?\,(?<InstanceSeed_>[0-9a-fA-F]+)?\])?(\^(?<ParallelModels>[0-9]+))?(_(?<FoldOffset>[0-9]+))?\,?
+			"
+			+ @")(--.*|\}\{[^\}]*\})?\s*$"
 			,
 		RegexOptions.ExplicitCapture | RegexOptions.IgnorePatternWhitespace);
 

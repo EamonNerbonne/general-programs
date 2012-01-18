@@ -13,24 +13,25 @@ namespace LvqLibCli {
 
 	String^ LvqModelSettingsCli::ToShorthand() {
 		return ModelType.ToString()
-			+ (ModelType == LvqModelType::Lgm||ModelType == LvqModelType::Lpq || Dimensionality != 2 ? "[" + Dimensionality + "]" : (!NoNnErrorRateTracking ? "+" : "")) + ","
-			+ PrototypesPerClass + ","
-			+ (Ppca != LvqModelSettingsCli().Ppca ? "rP" + (!Ppca ? "+" : "") + ",":"")
-			+ (RandomInitialBorders != LvqModelSettingsCli().RandomInitialBorders && (ModelType == LvqModelType::Ggm || ModelType==LvqModelType::G2m) ? "rB" + (RandomInitialBorders ? "+" : "") + "," : "")
-			+ (unnormedP != LvqModelSettingsCli().unnormedP ? "nP" + (!unnormedP ? "+" : "") + ",":"")
-			+ (unnormedB != LvqModelSettingsCli().unnormedB && ModelType == LvqModelType::G2m ? "nB" + (!unnormedB ? "+" : "") + "," : "")
-			+ (LocallyNormalize !=LvqModelSettingsCli().LocallyNormalize && (ModelType == LvqModelType::G2m && !unnormedB || ModelType == LvqModelType::Lgm && !unnormedP||ModelType == LvqModelType::Lpq && !unnormedP) ? "gn" + (!LocallyNormalize ? "+" : "") + "," : "")
-			+ (NGu != LvqModelSettingsCli().NGu && ModelType != LvqModelType::Lgm && ModelType != LvqModelType::Lpq && PrototypesPerClass > 1 ? "NG" + (NGu ? "+" : "") + "," : "")
-			+ (NGi != LvqModelSettingsCli().NGi && PrototypesPerClass > 1 ? "NGi" + (NGi ? "+" : "") + "," : "")
-			+ (Popt != LvqModelSettingsCli().Popt && (ModelType != LvqModelType::Lgm && ModelType != LvqModelType::Lpq) ? "Pi" + (Popt ? "+" : "") + "," : "")
-			+ (Bcov != LvqModelSettingsCli().Bcov && (ModelType != LvqModelType::Lpq && ModelType != LvqModelType::Lgm && ModelType != LvqModelType::Gm) ? "Bi" + (Bcov ? "+" : "") + "," : "")
-			+ (wGMu != LvqModelSettingsCli().wGMu && ModelType == LvqModelType::G2m ? "noB" + (wGMu ? "+" : "") + "," : "")
-			+ (MuOffset == 0.0?"": "mu" + MuOffset.ToString("r") + ",")
-			+ (LrScaleBad != LvqModelSettingsCli().LrScaleBad ? "lrX" + LrScaleBad.ToString("r") + ",":"")
-			+ (SlowK ? "!" : "")
+			+ (Dimensionality != LvqModelSettingsCli().Dimensionality ? "[" + Dimensionality + "]" : "") + "-" + PrototypesPerClass + ","
+			
+			+ (Ppca && ModelType != LvqModelType::Lgm && ModelType != LvqModelType::Lgm ? "Ppca,":"")
+			+ (RandomInitialBorders && (ModelType == LvqModelType::G2m || ModelType == LvqModelType::Gpq || ModelType == LvqModelType::Ggm) ? "RandomInitialBorders,":"")
+			+ ( unnormedP?"unnormedP,":"")
+			+ (unnormedB && (ModelType == LvqModelType::G2m || ModelType == LvqModelType::Gpq) ? "unnormedB," : "")
+			+ (LocallyNormalize && (ModelType == LvqModelType::G2m || ModelType == LvqModelType::Lgm || ModelType == LvqModelType::Lpq || ModelType == LvqModelType::Gpq) ? "LocallyNormalize," : "")
+			+ (NGu && PrototypesPerClass > 1 && (ModelType == LvqModelType::G2m ||  ModelType == LvqModelType::Gpq || ModelType == LvqModelType::Ggm || ModelType == LvqModelType::Gm) ? "NGu," : "")
+			+ (NGi && PrototypesPerClass > 1 ? "NGi," : "")
+			+ (Popt && (ModelType == LvqModelType::G2m ||  ModelType == LvqModelType::Gpq || ModelType == LvqModelType::Ggm || ModelType == LvqModelType::Gm) ? "Popt," : "")
+			+ (Bcov && (ModelType == LvqModelType::G2m ||  ModelType == LvqModelType::Gpq || ModelType == LvqModelType::Ggm) ? "Bcov," : "")
+			+ (wGMu && (ModelType == LvqModelType::G2m ||  ModelType == LvqModelType::Gpq) ? "wGMu," : "")
+			+ (SlowK ? "SlowK," : "")
+			+ (NoNnErrorRateTracking ? "NoNnErrorRateTracking," : "")
 			+ (LR0==LVQ_LR0  ?  "": "lr0" + LR0.ToString("r") + ","	)
 			+ (LrScaleP==LVQ_LrScaleP  ?  ""  :   "lrP" + LrScaleP.ToString("r") + ","	)
 			+ (LrScaleB==LVQ_LrScaleB  || ModelType ==  LvqModelType::Lgm || ModelType == LvqModelType::Lpq || ModelType == LvqModelType::Gm ?  "": "lrB" + LrScaleB.ToString("r") + ",")
+			+ (LrScaleBad != LvqModelSettingsCli().LrScaleBad ? "lrX" + LrScaleBad.ToString("r") + ",":"")
+			+ (MuOffset == 0.0?"": "mu" + MuOffset.ToString("r") + ",")
 			+ ( ParamsSeed != LvqModelSettingsCli().ParamsSeed ||InstanceSeed != LvqModelSettingsCli().InstanceSeed
 				? "[" +  ( ParamsSeed != LvqModelSettingsCli().ParamsSeed ? ParamsSeed.ToString("x"):"") 
 				+ "," +  (InstanceSeed != LvqModelSettingsCli().InstanceSeed?InstanceSeed.ToString("x"):"") + "]"
