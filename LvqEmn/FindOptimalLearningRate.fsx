@@ -113,6 +113,17 @@ let lrsChecker rndSeed lr0range settingsFactory =
 
 
 type ControllerState = { Unpacker: LvqModelSettingsCli -> float; Packer: LvqModelSettingsCli -> float -> LvqModelSettingsCli; DegradedCount: int; LrLogDevScale: float }
+let muControl = { 
+        Unpacker = (fun settings-> settings.MuOffset)
+        Packer = 
+            fun (settings:LvqModelSettingsCli) mu -> 
+                let mutable settingsCopy = settings
+                settingsCopy.MuOffset <- mu
+                settingsCopy
+        DegradedCount = 0
+        LrLogDevScale = 1.
+    }
+
 let lrBcontrol = { 
         Unpacker = (fun settings-> settings.LrScaleB)
         Packer = fun (settings:LvqModelSettingsCli) lrB -> settings.WithLrChanges(settings.LR0, settings.LrScaleP, lrB)
@@ -189,6 +200,7 @@ let improveAndTest (initialSettings:LvqModelSettingsCli) =
     let needsB = [LvqModelType.G2m; LvqModelType.Ggm ; LvqModelType.Gpq] |> List.exists (fun modelType -> initialSettings.ModelType = modelType)
     let controllers = 
         [
+            if initialSettings.MuOffset <> 0. && LvqModelType.Ggm = initialSettings.ModelType then yield muControl
             if needsB then yield lrBcontrol
             yield lrPcontrol
             yield lr0control
@@ -199,6 +211,8 @@ let improveAndTest (initialSettings:LvqModelSettingsCli) =
     Console.WriteLine resultString
     System.IO.File.AppendAllText (TestLr.resultsDir.FullName + "\\uniform-results.txt", resultString + "\n")
     testedResults
+
+let cleanupShorthand = CreateLvqModelValues.ParseShorthand >> (fun s->s.ToShorthand())
 
 let resPath = TestLr.resultsDir.FullName + "\\uniform-results.txt"
 
@@ -225,7 +239,18 @@ let newRes=
      |> List.map CreateLvqModelValues.ParseShorthand |> List.map improveAndTest
 [ "Gm+,1,rP,!lr00.002,lrP0.7,"; "Gm+,5,rP,NGi+,!lr00.003,lrP5.0,";  "G2m+,1,rP,!lr00.01,lrP0.2,lrB0.003,"; "G2m+,5,rP,NGi+,!lr00.01,lrP0.1,lrB0.004,"; "Ggm+,1,rP,!lr00.03,lrP0.05,lrB2.0,"; "Ggm+,5,rP,NGi+,!lr00.04,lrP0.05,lrB10.0,"]
     |> List.map CreateLvqModelValues.ParseShorthand |> List.map improveAndTest
+
 [ "Gm+,1,rP,Pi+,!lr00.002,lrP0.7,"; "Gm+,5,rP,NGi+,Pi+,!lr00.003,lrP5.0,";  "G2m+,1,rP,Pi+,!lr00.01,lrP0.2,lrB0.003,"; "G2m+,5,rP,NGi+,Pi+,!lr00.01,lrP0.1,lrB0.004,"; "Ggm+,1,rP,Pi+,!lr00.03,lrP0.05,lrB2.0,"; "Ggm+,5,rP,NGi+,Pi+,!lr00.04,lrP0.05,lrB10.0,"]
     |> List.map CreateLvqModelValues.ParseShorthand |> List.map improveAndTest
 [ "G2m+,1,rP,Bi+,!lr00.01,lrP0.2,lrB0.003,"; "G2m+,5,rP,NGi+,Bi+,!lr00.01,lrP0.1,lrB0.004,";  "Ggm+,1,rP,Bi+,!lr00.03,lrP0.05,lrB2.0,"; "Ggm+,5,rP,NGi+,Bi+,!lr00.04,lrP0.05,lrB10.0,"]
     |> List.map CreateLvqModelValues.ParseShorthand |> List.map improveAndTest
+
+[ "Gm+,1,rP,!lr00.002,lrP0.7,"; "Gm+,5,rP,NGi+,!lr00.003,lrP5.0,";  "G2m+,1,rP,!lr00.01,lrP0.2,lrB0.003,"; "G2m+,5,rP,NGi+,!lr00.01,lrP0.1,lrB0.004,"; "Ggm+,1,rP,!lr00.03,lrP0.05,lrB2.0,"; "Ggm+,5,rP,NGi+,!lr00.04,lrP0.05,lrB10.0,"]
+    |> List.map CreateLvqModelValues.ParseShorthand |> List.map improveAndTest
+
+[ "Ggm-1,Ppca,SlowK,lr00.03,lrP0.05,lrB2.0,mu0.01,"; "Ggm-5,Ppca,NGi,SlowK,lr00.04,lrP0.05,lrB10.0,mu0.01,"]
+    |> List.map CreateLvqModelValues.ParseShorthand |> List.map improveAndTest
+[ "Ggm-1,Ppca,SlowK,Bcov,lr00.03,lrP0.05,lrB2.0,mu0.01,"; "Ggm-5,Ppca,NGi,SlowK,Bcov,lr00.04,lrP0.05,lrB10.0,mu0.01,"]
+    |> List.map CreateLvqModelValues.ParseShorthand |> List.map improveAndTest
+
+cleanupShorthand "Gm+,1,rP,!lr00.01,lrP0.05,lrB0.005,"
