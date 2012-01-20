@@ -33,7 +33,10 @@ namespace LvqGui {
 				(?<NumberOfClasses>\d+)x(?<PointsPerClass>\d+)
 				,(?<NumberOfClusters>\d+)
 				\((?<ClusterDimensionality>\d+)D(?<RandomlyTransformFirst>r?)\)
-				x(?<ClusterCenterDeviation>[^~i]+)[~i](?<IntraClusterClassRelDev>[^\[n]+)(n(?<NoiseSigma>[^\[g]+))?(g(?<GlobalNoiseMaxSigma>[^\[]+))?
+				x(?<ClusterCenterDeviation>[^~i]+)
+				[~i](?<IntraClusterClassRelDev>[^\[gn]+)
+				(n(?<NoiseSigma>[^\[g]+))?
+				(g(?<GlobalNoiseMaxSigma>[^\[]+))?
 				(\[(?<ParamsSeed_>[\dA-Fa-f]+)?\,(?<InstanceSeed_>[\dA-Fa-f]+)?\])?
 				(\^(?<Folds>\d+))?\s*$"
 					;
