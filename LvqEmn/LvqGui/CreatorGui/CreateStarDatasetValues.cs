@@ -5,8 +5,7 @@ using System.Windows.Threading;
 using LvqLibCli;
 
 namespace LvqGui {
-
-	public class CreateStarDatasetValues : HasShorthandBase, IHasSeed {
+	public sealed class CreateStarDatasetValues : HasShorthandBase, IHasSeed {
 		readonly LvqWindowValues owner;
 
 		StarSettings settings = new StarSettings();
