@@ -214,10 +214,8 @@ let improveAndTest (initialSettings:LvqModelSettingsCli) =
 
 let cleanupShorthand = CreateLvqModelValues.ParseShorthand >> (fun s->s.ToShorthand())
 
-let resPath = TestLr.resultsDir.FullName + "\\uniform-results.txt"
-
-let newRes=
-    System.IO.File.ReadAllLines resPath 
+let recomputeRes () =
+    System.IO.File.ReadAllLines ( TestLr.resultsDir.FullName + "\\uniform-results.txt") 
         |> List.ofArray 
         |> List.map (fun s-> if s.Contains " " then  s.Substring(0, s.IndexOf " ") else s)
         |> List.filter (String.IsNullOrEmpty >> not)
