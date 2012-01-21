@@ -192,7 +192,7 @@ namespace LvqGui {
 					|(?<LocallyNormalize>LocallyNormalize,)
 					|(?<NGu>NGu,)
 					|(?<NGi>NGi,)
-					|(?<Popt>Popt)
+					|(?<Popt>Popt,)
 					|(?<Bcov>Bcov,)
 					|(?<wGMu>wGMu,)
 					|(?<SlowK>SlowK,)
