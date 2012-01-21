@@ -225,30 +225,21 @@ let recomputeRes () =
         //|> List.map (fun settings -> settings.ToShorthand())
         |> List.map (testSettings 100 1u >> printResults >> (fun resline -> System.IO.File.AppendAllText (TestLr.resultsDir.FullName + "\\uniform-results2.txt", resline + "\n"); resline ))
 
-[ "Gm+,1,!lr00.002,lrP0.7,"; "Gm+,5,NGi+,!lr00.003,lrP5.0,";  "G2m+,1,!lr00.01,lrP0.2,lrB0.003,"; "G2m+,5,NGi+,!lr00.01,lrP0.1,lrB0.004,"; "Ggm+,1,!lr00.03,lrP0.05,lrB2.0,"; "Ggm+,5,NGi+,!lr00.04,lrP0.05,lrB10.0,"]
-    |> List.map CreateLvqModelValues.ParseShorthand |> List.map improveAndTest
-[ "Gm+,1,lr00.002,lrP0.7,"; "Gm+,5,NGi+,lr00.003,lrP5.0,";  "G2m+,1,lr00.01,lrP0.2,lrB0.003,"; "G2m+,5,NGi+,lr00.01,lrP0.1,lrB0.004,"; "Ggm+,1,lr00.03,lrP0.05,lrB2.0,"; "Ggm+,5,NGi+,lr00.04,lrP0.05,lrB10.0,"]
-    |> List.map CreateLvqModelValues.ParseShorthand |> List.map improveAndTest
-[ "G2m+,1,Bi+,!lr00.01,lrP0.2,lrB0.003,"; "G2m+,5,NGi+,Bi+,!lr00.01,lrP0.1,lrB0.004,";  "Ggm+,1,Bi+,!lr00.03,lrP0.05,lrB2.0,"; "Ggm+,5,NGi+,Bi+,!lr00.04,lrP0.05,lrB10.0,"]
-    |> List.map CreateLvqModelValues.ParseShorthand |> List.map improveAndTest
-[ "Gm+,5,lr00.003,lrP5.0,"; "G2m+,5,lr00.01,lrP0.1,lrB0.004,"; "Ggm+,5,lr00.04,lrP0.05,lrB10.0,"]
-     |> List.map CreateLvqModelValues.ParseShorthand |> List.map improveAndTest
-[ "Gm+,5,!lr00.003,lrP5.0,"; "G2m+,5,!lr00.01,lrP0.1,lrB0.004,"; "Ggm+,5,!lr00.04,lrP0.05,lrB10.0,"]
-     |> List.map CreateLvqModelValues.ParseShorthand |> List.map improveAndTest
-[ "Gm+,1,rP,!lr00.002,lrP0.7,"; "Gm+,5,rP,NGi+,!lr00.003,lrP5.0,";  "G2m+,1,rP,!lr00.01,lrP0.2,lrB0.003,"; "G2m+,5,rP,NGi+,!lr00.01,lrP0.1,lrB0.004,"; "Ggm+,1,rP,!lr00.03,lrP0.05,lrB2.0,"; "Ggm+,5,rP,NGi+,!lr00.04,lrP0.05,lrB10.0,"]
-    |> List.map CreateLvqModelValues.ParseShorthand |> List.map improveAndTest
+[
+    "Gm-1,Ppca,lr00.0023470636537914176,lrP0.64159546099407383,"
+    "Gm-5,Ppca,NGi,lr00.0016158659721191326,lrP3.2468108385746781,"
+    "G2m-1,Ppca,lr00.011105139389010876,lrP0.059436558911411613,lrB0.0061673466019574593,"
+    "G2m-5,Ppca,NGi,lr00.0065223330884271709,lrP0.10644132253097752,lrB0.0083807363542505245,"
+    "Ggm-1,Ppca,lr00.036522029648289552,lrP0.027741269506042728,lrB1.8616657337784004,"
+    "Ggm-5,Ppca,NGi,lr00.015451755083162108,lrP0.016035575978628532,lrB23.664516018325713,"
+] |> List.map CreateLvqModelValues.ParseShorthand |> List.map improveAndTest
 
-[ "Gm+,1,rP,Pi+,!lr00.002,lrP0.7,"; "Gm+,5,rP,NGi+,Pi+,!lr00.003,lrP5.0,";  "G2m+,1,rP,Pi+,!lr00.01,lrP0.2,lrB0.003,"; "G2m+,5,rP,NGi+,Pi+,!lr00.01,lrP0.1,lrB0.004,"; "Ggm+,1,rP,Pi+,!lr00.03,lrP0.05,lrB2.0,"; "Ggm+,5,rP,NGi+,Pi+,!lr00.04,lrP0.05,lrB10.0,"]
-    |> List.map CreateLvqModelValues.ParseShorthand |> List.map improveAndTest
-[ "G2m+,1,rP,Bi+,!lr00.01,lrP0.2,lrB0.003,"; "G2m+,5,rP,NGi+,Bi+,!lr00.01,lrP0.1,lrB0.004,";  "Ggm+,1,rP,Bi+,!lr00.03,lrP0.05,lrB2.0,"; "Ggm+,5,rP,NGi+,Bi+,!lr00.04,lrP0.05,lrB10.0,"]
-    |> List.map CreateLvqModelValues.ParseShorthand |> List.map improveAndTest
+[
+    "Gm-1,Ppca,SlowK,lrX0.5,lr00.0023470636537914176,lrP0.64159546099407383,"
+    "Gm-5,Ppca,NGi,SlowK,lrX0.5,lr00.0016158659721191326,lrP3.2468108385746781,"
+    "G2m-1,Ppca,SlowK,lrX0.5,lr00.011105139389010876,lrP0.059436558911411613,lrB0.0061673466019574593,"
+    "G2m-5,Ppca,NGi,SlowK,lrX0.5,lr00.0065223330884271709,lrP0.10644132253097752,lrB0.0083807363542505245,"
+    "Ggm-1,Ppca,SlowK,lrX0.5,lr00.036522029648289552,lrP0.027741269506042728,lrB1.8616657337784004,"
+    "Ggm-5,Ppca,NGi,SlowK,lrX0.5,lr00.015451755083162108,lrP0.016035575978628532,lrB23.664516018325713,"
+] |> List.map CreateLvqModelValues.ParseShorthand |> List.map improveAndTest
 
-[ "Gm+,1,rP,!lr00.002,lrP0.7,"; "Gm+,5,rP,NGi+,!lr00.003,lrP5.0,";  "G2m+,1,rP,!lr00.01,lrP0.2,lrB0.003,"; "G2m+,5,rP,NGi+,!lr00.01,lrP0.1,lrB0.004,"; "Ggm+,1,rP,!lr00.03,lrP0.05,lrB2.0,"; "Ggm+,5,rP,NGi+,!lr00.04,lrP0.05,lrB10.0,"]
-    |> List.map CreateLvqModelValues.ParseShorthand |> List.map improveAndTest
-
-[ "Ggm-1,Ppca,SlowK,lr00.03,lrP0.05,lrB2.0,mu0.01,"; "Ggm-5,Ppca,NGi,SlowK,lr00.04,lrP0.05,lrB10.0,mu0.01,"]
-    |> List.map CreateLvqModelValues.ParseShorthand |> List.map improveAndTest
-[ "Ggm-1,Ppca,SlowK,Bcov,lr00.03,lrP0.05,lrB2.0,mu0.01,"; "Ggm-5,Ppca,NGi,SlowK,Bcov,lr00.04,lrP0.05,lrB10.0,mu0.01,"]
-    |> List.map CreateLvqModelValues.ParseShorthand |> List.map improveAndTest
-
-cleanupShorthand "Gm+,1,rP,!lr00.01,lrP0.05,lrB0.005,"
