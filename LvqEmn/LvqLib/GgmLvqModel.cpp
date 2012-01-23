@@ -79,7 +79,7 @@ MatchQuality GgmLvqModel::learnFrom(Vector_N const & trainPoint, int trainLabel)
 	MatchQuality ggmQuality = matches.GgmQuality();
 	double muJ2 = 2*ggmQuality.muJ;
 	double muK2 = 2*ggmQuality.muK;
-	double muJ2_alt = muJ2 + settings.MuOffset;
+	double muJ2_alt = muJ2 + settings.MuOffset * learningRate;
 
 	MVectorXd vJ(m_vJ.data(),m_vJ.size());
 	MVectorXd vK(m_vK.data(),m_vK.size());
@@ -112,7 +112,7 @@ MatchQuality GgmLvqModel::learnFrom(Vector_N const & trainPoint, int trainLabel)
 			GgmLvqPrototype &Js = prototype[fullmatch.matchesOk[i].idx];
 			double muJ2_s =  (1.0/4.0) * (1.0 - sqr(std::tanh((fullmatch.matchesOk[i].dist - fullmatch.distBad)/4.0)));
 			Vector_2 P_vJs = Js.P_point - P_trainPoint;
-			Vector_2 muJ2_Bj_P_vJs = (muJ2_s + settings.MuOffset) * (Js.B * P_vJs);
+			Vector_2 muJ2_Bj_P_vJs = (muJ2_s + settings.MuOffset*learningRate) * (Js.B * P_vJs);
 
 			Js.point.noalias() += P.transpose() * (lrSub * lr_point * (Js.B.transpose() * muJ2_Bj_P_vJs));
 			Matrix_22 neg_muJ2_JBinvTs = -muJ2_s* Js.B.inverse().transpose();

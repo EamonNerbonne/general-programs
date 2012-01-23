@@ -247,7 +247,7 @@ void G2mLvqModel::DoOptionalNormalization() {
 	}
 }
 
-void G2mLvqModel::compensateProjectionUpdate(Matrix_22 U, double scale) {
+void G2mLvqModel::compensateProjectionUpdate(Matrix_22 U, double /*scale*/) {
 	for(size_t i=0;i < prototype.size();++i) {
 		prototype[i].B *= U;
 		prototype[i].ComputePP(P);
