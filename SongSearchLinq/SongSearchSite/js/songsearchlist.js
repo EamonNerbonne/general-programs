@@ -244,7 +244,7 @@ $(document).ready(function ($) {
 	.jPlayer("onProgressChange", function (loadPercent, playedPercentRelative, playedPercentAbsolute, playedTime, totalTime) {
 	    var playedTimeText = $.jPlayer.convertTime(playedTime),
             totalTimeText = $.jPlayer.convertTime(totalTime);
-	    if (playedTimeText != jpPlayTime_LastText) 
+	    if (playedTimeText != jpPlayTime_LastText)
 	        jpPlayTime.text(jpPlayTime_LastText = playedTimeText);
 	    if (totalTimeText != jpTotalTime_LastText)
 	        jpTotalTime.text(jpTotalTime_LastText = totalTimeText);
@@ -297,11 +297,11 @@ $(document).ready(function ($) {
         loadPlaylistSync({ list: [], name: null });
     }
 
-    function loadPlaylistSync(listdata) {
+    function loadPlaylistSync(listdata, suppressPlay) {
         playlistElem.empty();
         var list = listdata.list;
         for (i = 0; i < list.length; i++) addToPlaylistRaw(list[i]);
-        if (list.length > 0) playlistChange($("#jplayer_playlist ul li")[0]);
+        if (list.length > 0 ) playlistChange($("#jplayer_playlist ul li")[0], suppressPlay);
         else $("#jquery_jplayer").jPlayer("stop");
         playlistStorage.playlistLoaded(listdata);
         simStateSet.getting();
@@ -312,7 +312,7 @@ $(document).ready(function ($) {
         simStateSet.getting();
     }
 
-    function loadPlaylistAsync(listdata) {
+    function loadPlaylistAsync(listdata, suppressPlay) {
         function oops(ignore, errorstatus, errormessage) {
             alert(errorstatus + " while bouncing playlist off server\n" + (errormessage || ""));
         };
@@ -322,7 +322,7 @@ $(document).ready(function ($) {
             url: "bounce-playlist",
             data: { playlist: JSON.stringify(listdata.list), format: "json" },
             timeout: 62 * 1000,
-            success: function (data) { if (data && data.error) oops(null, data.error, data.message); else { listdata.list = data; loadPlaylistSync(listdata); } },
+            success: function (data) { if (data && data.error) oops(null, data.error, data.message); else { listdata.list = data; loadPlaylistSync(listdata, suppressPlay); } },
             error: oops
         });
     }
@@ -363,7 +363,7 @@ $(document).ready(function ($) {
     }
 
     function addToPlaylist(song) {
-        var shouldStart = playlistElem.children().length == 0;
+        var shouldStart = playlistElem.children().length == 0 ;
         var newItem = addToPlaylistRaw(song);
         playlistRefreshUi();
         if (shouldStart) playlistChange(newItem);
@@ -508,10 +508,10 @@ $(document).ready(function ($) {
         }
     }
 
-    function playlistChange(newCurrentItem) {
+    function playlistChange(newCurrentItem, suppressPlay) {
         if (newCurrentItem != playlistItem)
             playlistConfig(newCurrentItem);
-        if (playlistItem)
+        if (playlistItem && !suppressPlay)
             $("#jquery_jplayer").jPlayer("play");
         else
             $("#jquery_jplayer").jPlayer("stop");
@@ -755,9 +755,9 @@ $(document).ready(function ($) {
                 if (!lastList)
                     return;
                 else if (!lastList.list)
-                    loadPlaylistAsync({ list: lastList, name: null, PlaylistID: null });
+                    loadPlaylistAsync({ list: lastList, name: null, PlaylistID: null }, true);
                 else if (!lastList.PlaylistID)
-                    loadPlaylistAsync(lastList);
+                    loadPlaylistAsync(lastList, true);
                 else if (state.currentPlaylists) {
                     loadLastListFromCurrentPlaylists(lastList);
                 } else {
@@ -968,7 +968,7 @@ $(document).ready(function ($) {
             if (bestMatch)
                 public.loadPlaylistByID(bestMatch.PlaylistID);
             else
-                loadPlaylistAsync({ list: lastListToLoad.list, name: null, PlaylistID: null });
+                loadPlaylistAsync({ list: lastListToLoad.list, name: null, PlaylistID: null }, true);
         }
 
 
