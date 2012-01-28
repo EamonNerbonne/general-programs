@@ -15,6 +15,7 @@ open System
 open System.Windows.Media
 open EmnExtensions.Wpf
 open EmnExtensions.Text
+open System.IO
 open Utils
 open System.Threading.Tasks
 
@@ -217,7 +218,7 @@ let isTested (lvqSettings:LvqModelSettingsCli) =
     System.IO.File.ReadAllLines (TestLr.resultsDir.FullName + "\\uniform-results.txt")
         |> Array.map (fun line -> (line.Split [|' '|]).[0] |> CreateLvqModelValues.TryParseShorthand)
         |> Seq.filter (fun settingsOrNull -> settingsOrNull.HasValue)
-        |> Seq.map (fun settingsOrNull -> settingsOrNull.Value.WithDefaultLr())
+        |> Seq.map (fun settingsOrNull -> settingsOrNull.Value.WithTestingChanges(0u).WithDefaultLr())
         |> Seq.exists canonicalSettings.Equals
 
 let cleanupShorthand = CreateLvqModelValues.ParseShorthand >> (fun s->s.ToShorthand())
@@ -241,3 +242,16 @@ let recomputeRes () =
     "Ggm-1,Ppca,lr00.036522029648289552,lrP0.027741269506042728,lrB1.8616657337784004,"
     "Ggm-5,Ppca,NGi,lr00.015451755083162108,lrP0.016035575978628532,lrB23.664516018325713,"
 ] |> List.map CreateLvqModelValues.ParseShorthand |> Seq.filter (isTested>>not) |> Seq.map improveAndTest //|>Seq.map(fun s -> s.ToShorthand()) 
+
+
+TestLr.resultsDir.GetFiles("*.txt", System.IO.SearchOption.AllDirectories)
+    |> Seq.map (fun fileInfo -> fileInfo.Name  |> LvqGui.DatasetResults.ExtractItersAndSettings)
+    |> Seq.filter (fun (ok,_,_) -> ok)
+    |> Seq.map (fun (_,_,settings) -> settings.WithTestingChanges(0u).WithDefaultLr())
+    |> Seq.distinct
+    |> Seq.filter (isTested>>not)
+    |> Seq.sortBy (fun s-> s.ToShorthand().Length)
+    |> Seq.take 20
+    |> Utils.shuffle
+    |> Seq.filter (isTested>>not) //seq is lazy, so this last minute rechecks availability of results.
+    |> Seq.map improveAndTest
