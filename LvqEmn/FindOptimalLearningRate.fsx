@@ -240,4 +240,4 @@ let recomputeRes () =
     "G2m-5,Ppca,NGi,lr00.0065223330884271709,lrP0.10644132253097752,lrB0.0083807363542505245,"
     "Ggm-1,Ppca,lr00.036522029648289552,lrP0.027741269506042728,lrB1.8616657337784004,"
     "Ggm-5,Ppca,NGi,lr00.015451755083162108,lrP0.016035575978628532,lrB23.664516018325713,"
-] |> List.map CreateLvqModelValues.ParseShorthand |> List.filter (isTested>>not) |>List.map(fun s -> s.ToShorthand())
+] |> List.map CreateLvqModelValues.ParseShorthand |> Seq.filter (isTested>>not) |> Seq.map improveAndTest //|>Seq.map(fun s -> s.ToShorthand()) 
