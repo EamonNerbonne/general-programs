@@ -212,6 +212,14 @@ let improveAndTest (initialSettings:LvqModelSettingsCli) =
     System.IO.File.AppendAllText (TestLr.resultsDir.FullName + "\\uniform-results.txt", resultString + "\n")
     testedResults
 
+let isTested (lvqSettings:LvqModelSettingsCli) = 
+    let canonicalSettings = (lvqSettings.ToShorthand() |> CreateLvqModelValues.ParseShorthand).WithDefaultLr()
+    System.IO.File.ReadAllLines (TestLr.resultsDir.FullName + "\\uniform-results.txt")
+        |> Array.map (fun line -> (line.Split [|' '|]).[0] |> CreateLvqModelValues.TryParseShorthand)
+        |> Seq.filter (fun settingsOrNull -> settingsOrNull.HasValue)
+        |> Seq.map (fun settingsOrNull -> settingsOrNull.Value.WithDefaultLr())
+        |> Seq.exists canonicalSettings.Equals
+
 let cleanupShorthand = CreateLvqModelValues.ParseShorthand >> (fun s->s.ToShorthand())
 
 let recomputeRes () =
@@ -232,29 +240,4 @@ let recomputeRes () =
     "G2m-5,Ppca,NGi,lr00.0065223330884271709,lrP0.10644132253097752,lrB0.0083807363542505245,"
     "Ggm-1,Ppca,lr00.036522029648289552,lrP0.027741269506042728,lrB1.8616657337784004,"
     "Ggm-5,Ppca,NGi,lr00.015451755083162108,lrP0.016035575978628532,lrB23.664516018325713,"
-] |> List.map CreateLvqModelValues.ParseShorthand |> List.map improveAndTest
-
-[
-    "Gm-1,Ppca,SlowK,lrX0.5,lr00.0023470636537914176,lrP0.64159546099407383,"
-    "Gm-5,Ppca,NGi,SlowK,lrX0.5,lr00.0016158659721191326,lrP3.2468108385746781,"
-    "G2m-1,Ppca,SlowK,lrX0.5,lr00.011105139389010876,lrP0.059436558911411613,lrB0.0061673466019574593,"
-    "G2m-5,Ppca,NGi,SlowK,lrX0.5,lr00.0065223330884271709,lrP0.10644132253097752,lrB0.0083807363542505245,"
-    "Ggm-1,Ppca,SlowK,lrX0.5,lr00.036522029648289552,lrP0.027741269506042728,lrB1.8616657337784004,"
-    "Ggm-5,Ppca,NGi,SlowK,lrX0.5,lr00.015451755083162108,lrP0.016035575978628532,lrB23.664516018325713,"
-] |> List.map CreateLvqModelValues.ParseShorthand |> List.map improveAndTest
-
-[
-    "Gm-1,Ppca,SlowK,NGu,lr00.0023470636537914176,lrP0.64159546099407383,"
-    "Gm-5,Ppca,NGi,SlowK,NGu,lr00.0016158659721191326,lrP3.2468108385746781,"
-    "G2m-1,Ppca,SlowK,NGu,lr00.011105139389010876,lrP0.059436558911411613,lrB0.0061673466019574593,"
-    "G2m-5,Ppca,NGi,SlowK,NGu,lr00.0065223330884271709,lrP0.10644132253097752,lrB0.0083807363542505245,"
-    "Ggm-1,Ppca,SlowK,NGu,lr00.036522029648289552,lrP0.027741269506042728,lrB1.8616657337784004,"
-    "Ggm-5,Ppca,NGi,SlowK,NGu,lr00.015451755083162108,lrP0.016035575978628532,lrB23.664516018325713,"
-] |> List.map CreateLvqModelValues.ParseShorthand |> List.map improveAndTest
-
-[
-    "Gm-5,Ppca,SlowK,lr00.0016158659721191326,lrP3.2468108385746781,"
-    "G2m-5,Ppca,SlowK,lr00.0065223330884271709,lrP0.10644132253097752,lrB0.0083807363542505245,"
-    "Ggm-5,Ppca,SlowK,lr00.015451755083162108,lrP0.016035575978628532,lrB23.664516018325713,"
-] |> List.map CreateLvqModelValues.ParseShorthand |> List.map improveAndTest
-
+] |> List.map CreateLvqModelValues.ParseShorthand |> List.filter (isTested>>not) |>List.map(fun s -> s.ToShorthand())
