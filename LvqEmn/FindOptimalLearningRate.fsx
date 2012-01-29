@@ -198,6 +198,7 @@ let rec fullyImprove (controllers:ControllerState list) (initialSettings:LvqMode
         fullyImprove nextControllers nextSettings
 
 let improveAndTest (initialSettings:LvqModelSettingsCli) =
+    printfn "Optimizing %s" (initialSettings.ToShorthand ())
     let needsB = [LvqModelType.G2m; LvqModelType.Ggm ; LvqModelType.Gpq] |> List.exists (fun modelType -> initialSettings.ModelType = modelType)
     let controllers = 
         [
@@ -273,7 +274,12 @@ TestLr.resultsDir.GetFiles("*.txt", System.IO.SearchOption.AllDirectories)
     |> Seq.distinct
     |> Seq.filter (isTested>>not)
     |> Seq.sortBy (fun s-> s.ToShorthand().Length)
-    |> Seq.take 20
-    |> Utils.shuffle
+    //|> Seq.take 20 |> Utils.shuffle
     |> Seq.filter (isTested>>not) //seq is lazy, so this last minute rechecks availability of results.
+    |> Seq.map (fun settings -> 
+                            match settings.ModelType with
+                            | LvqModelType.Gm -> settings.WithLrChanges( 0.002,2.,0.)
+                            | LvqModelType.Ggm -> settings.WithLrChanges( 0.03,0.05,4.)
+                            | _ -> settings.WithLrChanges( 0.01,0.4,0.006)
+                            ) 
     |> Seq.map improveAndTest
