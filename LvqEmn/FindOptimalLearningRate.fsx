@@ -247,7 +247,7 @@ TestLr.resultsDir.GetFiles("*.txt", System.IO.SearchOption.AllDirectories)
     |> Seq.map (fun settings -> 
                             match settings.ModelType with
                             | LvqModelType.Gm -> settings.WithLrChanges( 0.002,2.,0.)
-                            | LvqModelType.Ggm -> settings.WithLrChanges( 0.03,0.05,4)
+                            | LvqModelType.Ggm -> settings.WithLrChanges( 0.03,0.05,4.)
                             | _ -> settings.WithLrChanges( 0.01,0.4,0.006)
                             ) 
     |> Seq.map improveAndTest
