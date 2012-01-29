@@ -64,7 +64,7 @@ let datasetSettings () =
  
 let analyzedModels () = 
     let decodeLine (line:string) =
-        let name = line.SubstringBefore(":")
+        let name = line.SubstringBeforeLast(":")
         let nums = line.Substring(name.Length+1).Split(',') |> Array.map float
         (name, nums)
     let getLines (file:FileInfo) = 

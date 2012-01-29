@@ -234,6 +234,38 @@ let recomputeRes () =
         //|> List.map (fun settings -> settings.ToShorthand())
         |> List.map (testSettings 100 1u >> printResults >> (fun resline -> System.IO.File.AppendAllText (TestLr.resultsDir.FullName + "\\uniform-results2.txt", resline + "\n"); resline ))
 
+let baseSettings (lvqSettings:LvqModelSettingsCli) = 
+    let mutable basicSettings = new LvqModelSettingsCli ()
+    basicSettings.ModelType <- lvqSettings.ModelType
+    basicSettings.Dimensionality <- lvqSettings.Dimensionality
+    basicSettings.PrototypesPerClass <- lvqSettings.PrototypesPerClass
+    basicSettings
+
+type MeanTestResults = { GeoMean:float; Training: float * float; Test: float * float; NN: float * float; Settings:LvqModelSettingsCli; }
+
+
+let allUniformResults () = 
+    let parseLine line =
+        let maybeSettings = line.SubstringBeforeFirst " " |> CreateLvqModelValues.TryParseShorthand
+        if not maybeSettings.HasValue then 
+            None
+        else
+            let trnChunkTraining = (line.SubstringAfterFirst "Training: ").SubstringBeforeFirst ";" |> string.Split [|" ~ "|]
+            let tstChunkTraining = (line.SubstringAfterFirst "Test: ").SubstringBeforeFirst ";" |> string.Split [|" ~ "|]
+            let nnChunkTraining = (line.SubstringAfterFirst "NN: ") |> string.Split [|" ~ "|]
+            Some({
+                GeoMean = (line.SubstringAfterFirst "GeoMean: ").SubstringBeforeFirst ";" |> float.Parse
+                Training = (float.Parse trnChunkTraining.[0], float.Parse trnChunkTraining.[1])
+                Test = (float.Parse trnChunkTraining.[0], float.Parse trnChunkTraining.[1])
+                NN = (float.Parse trnChunkTraining.[0], float.Parse trnChunkTraining.[1])
+                Settings = maybeSettings.Value
+            })
+
+    System.IO.File.ReadAllLines (TestLr.resultsDir.FullName + "\\uniform-results.txt")
+        |> Seq.pick parseLine
+        |> Seq.toList
+
+
 TestLr.resultsDir.GetFiles("*.txt", System.IO.SearchOption.AllDirectories)
     |> Seq.map (fun fileInfo -> fileInfo.Name  |> LvqGui.DatasetResults.ExtractItersAndSettings)
     |> Seq.filter (fun (ok,_,_) -> ok)
