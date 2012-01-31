@@ -8,9 +8,11 @@
     <style type="text/css">
       #articles {white-space:pre-wrap; font-size:small; display:none;}
       #article {min-width:3em;}
+      body { font: 11pt Verdana, sans-serif; }
     </style>
     <script type="text/javascript">
       function Entry(line) {
+          line=line.substring(1);
           var openIdx= line.lastIndexOf("[");
           this.prefix = line.substring(0,openIdx);
           var rest = line.substring(openIdx+1,line.lastIndexOf("]")).split(":");
@@ -24,13 +26,12 @@
       var articleEl;
       function computePrefs() {
           if(prefixes) return;
-          var prefLines = document.getElementById("articles").firstChild.nodeValue.split("\n");
+          var prefLines = document.getElementById("articles").firstChild.nodeValue.match(/\s[^\[]*\[[^\]]+\]/g);
           
           prefixes = [];
           for(var i=0;i<prefLines.length;i++) 
               if(prefLines[i].length>0)
                 prefixes.push(new Entry(prefLines[i]));
-          
       }
       
       window.onload = computePrefs;
@@ -55,14 +56,31 @@
     </script>
 </head>
 <body>
-     It's <i>an</i> unanticipated result, but it's <i>a</i> unanimous result...
-    <br/>Detail: <span id="articleDetail">&nbsp;</span>
-    <br/>It is <span id="article">a</span> <input id="searchquery" type="text" name="q" placeholder="enter word here" autofocus="autofocus" onkeyup="findPrefix()"/>
- 
+    <p><i>It's <b>an</b> unanticipated result, but it's <b>a</b> unanimous result...</i></p>
+    <p>It is <span id="article">a</span> <input id="searchquery" type="text" name="q" placeholder="enter word here" autofocus="autofocus" onkeyup="findPrefix()" oninput="findPrefix()"/></p>
+    <p>Detail: <span id="articleDetail">&nbsp;</span></p>
      <p>
-     This page determines wether "a" or "an" should precede a word.  It does this using the method described in <a href="http://stackoverflow.com/questions/1288291/how-can-i-correctly-prefix-a-word-with-a-and-an/1288473#1288473">this stackoverflow response</a>.  The dataset used is the wikipedia-article-text dump.  Some additional preprocessing was done to remove as much wiki-markup as possible and extract only things vague resembling sentences using regular expressions.  If the word following 'a' or 'an' was quoted, those quotes were ignored.  The entire resultant dataset is merely 13KB in size and could be compressed further; it's included inline in this page.
+     This page determines whether "a" or "an" should precede a word.  It does this using the method described in <a href="http://stackoverflow.com/questions/1288291/how-can-i-correctly-prefix-a-word-with-a-and-an/1288473#1288473">this stackoverflow response</a>.  The dataset used is the wikipedia-article-text dump.  Some additional preprocessing was done to remove as much wiki-markup as possible and extract only things vague resembling sentences using regular expressions.  If the word following 'a' or 'an' was quoted, those quotes were ignored.  The entire resultant dataset is merely 13KB in size and could be compressed further; it's included inline in this page.
      </p>
- 
+     <p>Try...</p>
+     <ul>
+     <li>unanticipated result</li>
+     <li>unanimous vote</li>
+     <li>honest decision</li>
+     <li>honeysuckle shrub</li>
+     <li>0800 number</li>
+     <li>∞ of oregano</li>
+     <li>NASA scientist</li>
+     <li>NSA analyst</li>
+     <li>FIAT car</li>
+     <li>FAA policy</li>
+     </ul>
+     <p>
+      You may use, modify, redistribute and do whatever with this page (the data+script are included in its source), but please don't misrepresent its source.  If you've any questions, you can mail me at firstname@lastname.org.
+     </p>
+     <p>
+     --Eamon Nerbonne
+     </p>
     <div id="articles">
 -i[an:18:5]
 –i[an:9:1]
