@@ -198,7 +198,7 @@ let improvementStep (controller:ControllerState) (initialSettings:LvqModelSettin
 
     let newDegradedCount = degradedCount + if finalResults.GeoMean > initResults.GeoMean || effNewLrDevScale <= 0.1 then 1 else 0 
     let newControllerState = { Controller = controller.Controller; LrLogDevScale = effNewLrDevScale; }
-    printfn "  %s [%f..%f]: %f -> %f: %f -> %f (%d,×%f)" controller.Controller.Name lowLr highLr baseLr newBaseLr initResults.GeoMean finalResults.GeoMean newDegradedCount (Math.Exp(-Math.Sqrt(3.) * effNewLrDevScale))
+    printfn "  %s [%f..%f]@%f: %f -> %f: %f -> %f (%d,×%f)" controller.Controller.Name lowLr highLr iterCount baseLr newBaseLr initResults.GeoMean finalResults.GeoMean newDegradedCount (Math.Exp(-Math.Sqrt(3.) * effNewLrDevScale))
     (newControllerState, (newSettings, newDegradedCount))
 
 let improvementSteps (controllers:ControllerState list) (initialSettings:LvqModelSettingsCli) degradedCount=
