@@ -95,7 +95,7 @@ let testSettings parOverride rndSeed (settings : LvqModelSettingsCli) =
                     parsettings.ParallelModels <- parOverride
                     parsettings.ParamsSeed <- 2u * rndSeed + 1u
                     parsettings.InstanceSeed <- 2u * rndSeed
-                    
+                    //printfn "%s: %s" dataset.DatasetLabel (settings.ToShorthand())
                     let model = new LvqMultiModel(dataset,parsettings,false)
                     model.TrainUptoIters(iterCount,dataset, CancellationToken.None)
                     let errs = 
@@ -108,6 +108,7 @@ let testSettings parOverride rndSeed (settings : LvqModelSettingsCli) =
                                     yield stat.values.[model.nnErrIdx]    
                             ]
                         ) |> List.ofSeq
+                    //printfn "%s: %s [DONE]" dataset.DatasetLabel (settings.ToShorthand())
                     errs
                 ), TaskCreationOptions.LongRunning)
         ] |> List.map (fun task -> task.Result) |> List.toArray
@@ -202,7 +203,7 @@ let improvementStep (controller:ControllerState) (initialSettings:LvqModelSettin
     let newSettings = controller.Packer initialSettings newBaseLr
     let finalResults =  testSettings 10 currSeed newSettings
     let newControllerState = stepController controller effNewLrDevScale (finalResults.GeoMean > initResults.GeoMean)
-    printfn "  %s [%f..%f]: %f -> %f: %f -> %f (%d,±%f%%)" controller.Name lowLr highLr baseLr newBaseLr initResults.GeoMean finalResults.GeoMean newControllerState.DegradedCount (Math.Exp(Math.Sqrt(3.) * newControllerState.LrLogDevScale) * 100.)
+    printfn "  %s [%f..%f]: %f -> %f: %f -> %f (%d,±%f)" controller.Name lowLr highLr baseLr newBaseLr initResults.GeoMean finalResults.GeoMean newControllerState.DegradedCount newControllerState.LrLogDevScale
     (newControllerState, newSettings)
 
 let improvementSteps (controllers:ControllerState list) (initialSettings:LvqModelSettingsCli) =
@@ -264,6 +265,11 @@ let baseSettings (lvqSettings:LvqModelSettingsCli) =
     basicSettings.PrototypesPerClass <- lvqSettings.PrototypesPerClass
     basicSettings
 
+let withDefaultLr (settings:LvqModelSettingsCli) = 
+    match settings.ModelType with
+        | LvqModelType.Gm -> settings.WithLrChanges( 0.002,2.,0.)
+        | LvqModelType.Ggm -> settings.WithLrChanges( 0.03,0.05,4.)
+        | _ -> settings.WithLrChanges( 0.01,0.4,0.006)
 
 let allUniformResults () = 
     let parseLine (line:string) =
@@ -283,7 +289,7 @@ let allUniformResults () =
                         GeoMean = (line.SubstringAfterFirst "GeoMean: ").SubstringUntil ";" |> float
                         Training = (trnChunkTraining.[0], trnChunkTraining.[1])
                         Test = (trnChunkTraining.[0], trnChunkTraining.[1])
-                        NN = (trnChunkTraining.[0], trnChunkTraining.[1])
+                        NN = (nnChunkTraining.[0], nnChunkTraining.[1])
                         Settings = maybeSettings.Value
             })
 
@@ -295,10 +301,10 @@ let allUniformResults () =
 
 allUniformResults ()
     |> List.sortBy (fun res->res.GeoMean)
-    |> List.filter (fun res->res.Settings.ModelType = LvqModelType.G2m && res.Settings.PrototypesPerClass = 1)
+//    |> List.filter (fun res->res.Settings.ModelType = LvqModelType.G2m && res.Settings.PrototypesPerClass = 1)
     |> List.map printMeanResults
 
-"G2m-1,Ppca,SlowK," |> CreateLvqModelValues.ParseShorthand |> improveAndTest
+"G2m-1,Ppca,SlowK," |> CreateLvqModelValues.ParseShorthand |>withDefaultLr |> improveAndTest
 
 TestLr.resultsDir.GetFiles("*.txt", SearchOption.AllDirectories)
     |> Seq.map (fun fileInfo -> fileInfo.Name  |> LvqGui.DatasetResults.ExtractItersAndSettings)
@@ -309,10 +315,5 @@ TestLr.resultsDir.GetFiles("*.txt", SearchOption.AllDirectories)
     |> Seq.sortBy (fun s-> s.ToShorthand().Length)
     //|> Seq.take 20 |> Utils.shuffle
     |> Seq.filter (isTested>>not) //seq is lazy, so this last minute rechecks availability of results.
-    |> Seq.map (fun settings -> 
-                            match settings.ModelType with
-                            | LvqModelType.Gm -> settings.WithLrChanges( 0.002,2.,0.)
-                            | LvqModelType.Ggm -> settings.WithLrChanges( 0.03,0.05,4.)
-                            | _ -> settings.WithLrChanges( 0.01,0.4,0.006)
-                            ) 
+    |> Seq.map withDefaultLr
     |> Seq.map improveAndTest

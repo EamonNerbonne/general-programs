@@ -18,12 +18,14 @@ using LvqLibCli;
 
 namespace LvqGui
 {
-	public class LvqMultiModel
+	public sealed class LvqMultiModel
 	{
 		readonly LvqModelCli[] subModels;
 		readonly LvqModelSettingsCli originalSettings;
 		public LvqMultiModel(LvqDatasetCli forDataset, LvqModelSettingsCli lvqModelSettingsCli, bool trackStats = true)
 		{
+			if (lvqModelSettingsCli.LR0 == 0.0 || lvqModelSettingsCli.LrScaleP == 0.0)
+				throw new ArgumentException("Suspicious settings with 0 learning rate: " + lvqModelSettingsCli.ToShorthand());
 			originalSettings = lvqModelSettingsCli;
 			string shorthand = lvqModelSettingsCli.ToShorthand() + "--" + forDataset.DatasetLabel;
 			subModels =
