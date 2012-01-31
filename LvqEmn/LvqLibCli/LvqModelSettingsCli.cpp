@@ -6,7 +6,7 @@ namespace LvqLibCli {
 	LvqModelSettingsRaw LvqModelSettingsCli::ToNativeSettings() {
 
 		LvqModelSettingsRaw nativeSettings = { (::LvqModelType)ModelType, Dimensionality, PrototypesPerClass, Ppca, RandomInitialBorders
-			, unnormedP, unnormedB, LocallyNormalize, NGu, NGi, Popt, Bcov, wGMu, SlowK, MuOffset, LR0, LrScaleP, LrScaleB, LrScaleBad
+			, unnormedP, noKP, unnormedB, LocallyNormalize, NGu, NGi, Popt, Bcov, wGMu, SlowK, MuOffset, LR0, LrScaleP, LrScaleB, LrScaleBad
 			, ParamsSeed, InstanceSeed, NoNnErrorRateTracking, ParallelModels };
 		return nativeSettings;
 	}
@@ -18,6 +18,7 @@ namespace LvqLibCli {
 			+ (Ppca && ModelType != LvqModelType::Lgm && ModelType != LvqModelType::Lgm ? "Ppca,":"")
 			+ (RandomInitialBorders && (ModelType == LvqModelType::G2m || ModelType == LvqModelType::Gpq || ModelType == LvqModelType::Ggm) ? "RandomInitialBorders,":"")
 			+ ( unnormedP?"unnormedP,":"")
+			+ (noKP?"noKP,":"")
 			+ (unnormedB && (ModelType == LvqModelType::G2m || ModelType == LvqModelType::Gpq) ? "unnormedB," : "")
 			+ (LocallyNormalize && (ModelType == LvqModelType::G2m || ModelType == LvqModelType::Lgm || ModelType == LvqModelType::Lpq || ModelType == LvqModelType::Gpq) ? "LocallyNormalize," : "")
 			+ (NGu && PrototypesPerClass > 1 && (ModelType == LvqModelType::G2m ||  ModelType == LvqModelType::Gpq || ModelType == LvqModelType::Ggm || ModelType == LvqModelType::Gm) ? "NGu," : "")

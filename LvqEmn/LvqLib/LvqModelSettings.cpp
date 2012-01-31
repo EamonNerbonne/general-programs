@@ -55,6 +55,7 @@ LvqModel* ConstructLvqModel(LvqModelSettings & initSettings) {
 LvqModelRuntimeSettings::LvqModelRuntimeSettings(int classCount, boost::mt19937 & rngIter)
 	: NoNnErrorRateTracking(false)
 	, unnormedP(false)
+	, noKP(false)
 	, unnormedB(false)
 	, LocallyNormalize(false)
 	, wGMu(false)

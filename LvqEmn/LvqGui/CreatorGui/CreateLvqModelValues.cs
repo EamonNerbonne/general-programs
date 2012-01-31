@@ -69,6 +69,10 @@ namespace LvqGui {
 			get { return settings.unnormedP; }
 			set { if (!settings.unnormedP.Equals(value)) { settings.unnormedP = value; _propertyChanged("unnormedP"); } }
 		}
+		public bool noKP {
+			get { return settings.noKP; }
+			set { if (!settings.noKP.Equals(value)) { settings.noKP = value; _propertyChanged("noKP"); } }
+		}
 
 		public bool unnormedB {
 			get { return settings.unnormedB; }
@@ -188,6 +192,7 @@ namespace LvqGui {
 					(?<Ppca>Ppca,)
 					|(?<RandomInitialBorders>RandomInitialBorders,)
 					|(?<unnormedP>unnormedP,)
+					|(?<noKP>noKP,)
 					|(?<unnormedB>unnormedB,)
 					|(?<LocallyNormalize>LocallyNormalize,)
 					|(?<NGu>NGu,)

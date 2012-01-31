@@ -120,8 +120,12 @@ MatchQuality GgmLvqModel::learnFrom(Vector_N const & trainPoint, int trainLabel)
 			Js.B.noalias() += lrSub*lr_B * (muJ2_Bj_P_vJs * P_vJs.transpose() + neg_muJ2_JBinvTs);
 		}
 	}
+	if(settings.noKP) {
+		P.noalias() += ((lr_P * muJ2) * BjT_Bj_P_vJ) * vJ.transpose();
+	} else {
+		P.noalias() += ((lr_P * muK2) * BkT_Bk_P_vK) * vK.transpose() + ((lr_P * muJ2) * BjT_Bj_P_vJ) * vJ.transpose();
+	}
 
-	P.noalias() += ((lr_P * muK2) * BkT_Bk_P_vK) * vK.transpose() + ((lr_P * muJ2) * BjT_Bj_P_vJ) * vJ.transpose();
 	if(!settings.unnormedP)
 		normalizeProjection(P);
 

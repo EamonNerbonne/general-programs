@@ -118,8 +118,12 @@ MatchQuality G2mLvqModel::learnFrom(Vector_N const & trainPoint, int trainLabel)
 			}
 		}
 	}
-
-	P.noalias() -= (lr_P * muJ2_BjT_Bj_P_vJ) * vJ.transpose() + (lr_P * muK2_BkT_Bk_P_vK) * vK.transpose() ;
+	if(settings.noKP) {
+		P.noalias() -= (lr_P * muJ2_BjT_Bj_P_vJ) * vJ.transpose();
+		normalizeProjection(P);
+	} else {
+		P.noalias() -= (lr_P * muK2_BkT_Bk_P_vK) * vK.transpose() + (lr_P * muJ2_BjT_Bj_P_vJ) * vJ.transpose();
+	}
 
 	for(size_t i=0;i<prototype.size();++i)
 		prototype[i].ComputePP(P);
