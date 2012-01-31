@@ -50,18 +50,36 @@ let Lgm5 = makeLvqSettings LvqModelType.Lgm 5 0.
 
 type TestResults = { GeoMean:float; Mean:float;  Results:float list list []; Settings:LvqModelSettingsCli; }
 
-let printResults results =
+type MeanTestResults = { GeoMean:float; Training: float * float; Test: float * float; NN: float * float; Settings:LvqModelSettingsCli; }
+
+let toMeanResults (results:TestResults) = 
     let trainDistr = results.Results |> List.concat |> List.map  (fun es -> List.nth es 0) |> Utils.sampleDistribution
+    let trainErr = (trainDistr.Mean, trainDistr.StdErr)
+
     let testDistr = results.Results |> List.concat |> List.map  (fun es -> List.nth es 1) |> Utils.sampleDistribution
+    let testErr = (testDistr.Mean, testDistr.StdErr)
     let x = (results.Results.[0] |> List.head) |> List.length
+    let nnErr = 
+        if (results.Results.[0] |> List.head) |> List.length = 3 then 
+            let nnDistr = results.Results |> List.concat |> List.map  (fun es -> List.nth es 2) |> Utils.sampleDistribution
+            (nnDistr.Mean, nnDistr.StdErr)
+        else 
+            (Double.NaN, Double.NaN)
+    {
+        GeoMean = results.GeoMean
+        Training = trainErr
+        Test = testErr
+        NN = nnErr
+        Settings = results.Settings
+    }
 
-    if x = 3 then 
-        let nnDistr = results.Results |> List.concat |> List.map  (fun es -> List.nth es 2) |> Utils.sampleDistribution
-        sprintf "%s GeoMean: %f; Training: %f ~ %f; Test: %f ~ %f; NN: %f ~ %f" (results.Settings.ToShorthand ()) results.GeoMean trainDistr.Mean trainDistr.StdErr testDistr.Mean testDistr.StdErr nnDistr.Mean nnDistr.StdErr
+let printMeanResults results =
+    if results.NN |> fst |> Double.IsNaN then 
+        sprintf "%s GeoMean: %f; Training: %f ~ %f; Test: %f ~ %f" (results.Settings.ToShorthand ()) results.GeoMean (fst results.Training) (snd results.Training) (fst results.Test) (snd results.Test)
     else 
-        sprintf "%s GeoMean: %f; Training: %f ~ %f; Test: %f ~ %f" (results.Settings.ToShorthand ()) results.GeoMean trainDistr.Mean trainDistr.StdErr testDistr.Mean testDistr.StdErr
+        sprintf "%s GeoMean: %f; Training: %f ~ %f; Test: %f ~ %f; NN: %f ~ %f" (results.Settings.ToShorthand ()) results.GeoMean (fst results.Training) (snd results.Training) (fst results.Test) (snd results.Test) (fst results.NN) (snd results.NN)
 
-
+let printResults = toMeanResults >> printMeanResults
     
 
 let iterCount = 1e7
@@ -107,14 +125,14 @@ let logscale steps (v0, v1) =
     //[0.001 -> 0.1]
 
 let lrsChecker rndSeed lr0range settingsFactory = 
-    [ for lr0 in lr0range ->  Task.Factory.StartNew ((fun () -> lr0 |> settingsFactory |> testSettings 2 rndSeed), TaskCreationOptions.LongRunning) ]
+    [ for lr0 in lr0range ->  Task.Factory.StartNew ((fun () -> lr0 |> settingsFactory |> testSettings 1 rndSeed), TaskCreationOptions.LongRunning) ]
     |> Array.ofList
     |> Array.map (fun task -> task.Result)
     |> Array.sortBy (fun res -> res.GeoMean)
 
 
-type ControllerState = { Unpacker: LvqModelSettingsCli -> float; Packer: LvqModelSettingsCli -> float -> LvqModelSettingsCli; DegradedCount: int; LrLogDevScale: float }
-let muControl = { 
+type ControllerState = { Name: string; Unpacker: LvqModelSettingsCli -> float; Packer: LvqModelSettingsCli -> float -> LvqModelSettingsCli; DegradedCount: int; LrLogDevScale: float }
+(*let muControl = { 
         Unpacker = (fun settings-> settings.MuOffset)
         Packer = 
             fun (settings:LvqModelSettingsCli) mu -> 
@@ -123,21 +141,24 @@ let muControl = {
                 settingsCopy
         DegradedCount = 0
         LrLogDevScale = 1.
-    }
+    }*)
 
 let lrBcontrol = { 
+        Name = "LrB"
         Unpacker = (fun settings-> settings.LrScaleB)
         Packer = fun (settings:LvqModelSettingsCli) lrB -> settings.WithLrChanges(settings.LR0, settings.LrScaleP, lrB)
         DegradedCount = 0
         LrLogDevScale = 1.
     }
 let lrPcontrol = {
+        Name = "LrP"
         Unpacker = fun settings -> settings.LrScaleP
         Packer = fun settings lrP -> settings.WithLrChanges(settings.LR0, lrP, settings.LrScaleB)
         DegradedCount = 0
         LrLogDevScale = 1.
     }
 let lr0control = {
+        Name = "Lr0"
         Unpacker = fun settings -> settings.LR0
         Packer = fun settings lr0 -> settings.WithLrChanges(lr0, settings.LrScaleP, settings.LrScaleB)
         DegradedCount = 0
@@ -158,7 +179,7 @@ let improveLr (testResultList:TestResults list) (lrUnpack, lrPack) =
     let relLength = List.length relevance
     let linearlyScaledRelevance = List.init relLength (fun i -> float (relLength - i) / float relLength)
 
-    let effRelevance = List.zip relevance linearlyScaledRelevance |> List.map (fun (a,b) -> a + b)
+    let effRelevance = List.zip relevance linearlyScaledRelevance |> List.map (fun (a,b) -> (a + b) * (a + b))
     
     //printfn "%A" (bestToWorst |> List.map (fun res->lrUnpack res.Settings) |> List.zip relevance)
     let logLrDistr = List.zip logLrs effRelevance |> List.fold (fun (ss:SmartSum) (lr, rel) -> ss.CombineWith lr rel) (new SmartSum ())
@@ -169,15 +190,15 @@ let improvementStep (controller:ControllerState) (initialSettings:LvqModelSettin
     let currSeed = rnd.NextUInt32 ()
     let initResults = testSettings 10 currSeed initialSettings
     let baseLr = controller.Unpacker initialSettings
-    let lowLr = baseLr * Math.Exp(-Math.Sqrt(6.) * controller.LrLogDevScale)
-    let highLr = baseLr * Math.Exp(Math.Sqrt(6.) * controller.LrLogDevScale)
-    let results = lrsChecker (currSeed + 2u) (logscale 40 (lowLr,highLr)) (controller.Packer initialSettings)
+    let lowLr = baseLr * Math.Exp(-Math.Sqrt(3.) * controller.LrLogDevScale)
+    let highLr = baseLr * Math.Exp(Math.Sqrt(3.) * controller.LrLogDevScale)
+    let results = lrsChecker (currSeed + 2u) (logscale 20 (lowLr,highLr)) (controller.Packer initialSettings)
     let (newBaseLr, newLrLogDevScale) = improveLr (List.ofArray results) (controller.Unpacker, controller.Packer)
-    let logLrDiff_LrDevScale = Math.Abs(Math.Log(baseLr / newBaseLr))
-    let effNewLrDevScale = 0.3*newLrLogDevScale + 0.4*controller.LrLogDevScale + 0.4*logLrDiff_LrDevScale
+    let logLrDiff_LrDevScale = 2. * Math.Abs(Math.Log(baseLr / newBaseLr))
+    let effNewLrDevScale = 0.3*newLrLogDevScale + 0.3*controller.LrLogDevScale + 0.4*logLrDiff_LrDevScale
     let newSettings = controller.Packer initialSettings newBaseLr
     let finalResults =  testSettings 10 currSeed newSettings
-    printfn "   [%f..%f]: %f -> %f: %f -> %f"  lowLr highLr baseLr newBaseLr initResults.GeoMean finalResults.GeoMean
+    printfn "  %s [%f..%f]: %f -> %f: %f -> %f" controller.Name lowLr highLr baseLr newBaseLr initResults.GeoMean finalResults.GeoMean
     if finalResults.GeoMean > initResults.GeoMean then
         ({ Unpacker = controller.Unpacker; Packer = controller.Packer; DegradedCount = controller.DegradedCount + 1; LrLogDevScale = effNewLrDevScale }, newSettings)
     else
@@ -202,7 +223,7 @@ let improveAndTest (initialSettings:LvqModelSettingsCli) =
     let needsB = [LvqModelType.G2m; LvqModelType.Ggm ; LvqModelType.Gpq] |> List.exists (fun modelType -> initialSettings.ModelType = modelType)
     let controllers = 
         [
-            if initialSettings.MuOffset <> 0. && LvqModelType.Ggm = initialSettings.ModelType then yield muControl
+           // if initialSettings.MuOffset <> 0. && LvqModelType.Ggm = initialSettings.ModelType then yield muControl
             if needsB then yield lrBcontrol
             yield lrPcontrol
             yield lr0control
@@ -242,30 +263,41 @@ let baseSettings (lvqSettings:LvqModelSettingsCli) =
     basicSettings.PrototypesPerClass <- lvqSettings.PrototypesPerClass
     basicSettings
 
-type MeanTestResults = { GeoMean:float; Training: float * float; Test: float * float; NN: float * float; Settings:LvqModelSettingsCli; }
-
 
 let allUniformResults () = 
-    let parseLine line =
-        let maybeSettings = line.SubstringBeforeFirst " " |> CreateLvqModelValues.TryParseShorthand
+    let parseLine (line:string) =
+        let maybeSettings = line.SubstringUntil " " |> CreateLvqModelValues.TryParseShorthand
         if not maybeSettings.HasValue then 
             None
         else
-            let trnChunkTraining = (line.SubstringAfterFirst "Training: ").SubstringBeforeFirst ";" |> string.Split [|" ~ "|]
-            let tstChunkTraining = (line.SubstringAfterFirst "Test: ").SubstringBeforeFirst ";" |> string.Split [|" ~ "|]
-            let nnChunkTraining = (line.SubstringAfterFirst "NN: ") |> string.Split [|" ~ "|]
+            let trnChunkTraining = ((line.SubstringAfterFirst "Training: ").SubstringUntil ";" ).Split([|" ~ "|], StringSplitOptions.None) |> Array.map float
+            let tstChunkTraining = ((line.SubstringAfterFirst "Test: ").SubstringUntil ";").Split([|" ~ "|], StringSplitOptions.None) |> Array.map float
+            let nnChunkTraining = 
+                if line.Contains("NN: ") then
+                    ((line.SubstringAfterFirst "NN: ")).Split([|" ~ "|], StringSplitOptions.None) |> Array.map float
+                else
+                    [|Double.NaN; Double.NaN|]
+
             Some({
-                GeoMean = (line.SubstringAfterFirst "GeoMean: ").SubstringBeforeFirst ";" |> float.Parse
-                Training = (float.Parse trnChunkTraining.[0], float.Parse trnChunkTraining.[1])
-                Test = (float.Parse trnChunkTraining.[0], float.Parse trnChunkTraining.[1])
-                NN = (float.Parse trnChunkTraining.[0], float.Parse trnChunkTraining.[1])
-                Settings = maybeSettings.Value
+                        GeoMean = (line.SubstringAfterFirst "GeoMean: ").SubstringUntil ";" |> float
+                        Training = (trnChunkTraining.[0], trnChunkTraining.[1])
+                        Test = (trnChunkTraining.[0], trnChunkTraining.[1])
+                        NN = (trnChunkTraining.[0], trnChunkTraining.[1])
+                        Settings = maybeSettings.Value
             })
 
     File.ReadAllLines (TestLr.resultsDir.FullName + "\\uniform-results.txt")
-        |> Seq.pick parseLine
+        |> Seq.map parseLine
+        |> Seq.filter Option.isSome
+        |> Seq.map Option.get
         |> Seq.toList
 
+allUniformResults ()
+    |> List.sortBy (fun res->res.GeoMean)
+    |> List.filter (fun res->res.Settings.ModelType = LvqModelType.G2m && res.Settings.PrototypesPerClass = 1)
+    |> List.map printMeanResults
+
+"G2m-1,Ppca,SlowK," |> CreateLvqModelValues.ParseShorthand |> improveAndTest
 
 TestLr.resultsDir.GetFiles("*.txt", SearchOption.AllDirectories)
     |> Seq.map (fun fileInfo -> fileInfo.Name  |> LvqGui.DatasetResults.ExtractItersAndSettings)
