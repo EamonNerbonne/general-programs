@@ -12,28 +12,33 @@ namespace LvqLibCli {
 	}
 
 	String^ LvqModelSettingsCli::ToShorthand() {
+		bool isG2mVariant = ModelType == LvqModelType::G2m ||  ModelType == LvqModelType::Gpq;
+		bool isLgmVariant = ModelType == LvqModelType::Lgm ||  ModelType == LvqModelType::Lpq;
+		bool hasB = isG2mVariant || ModelType == LvqModelType::Ggm;
+		bool hasGlobalP = hasB || ModelType == LvqModelType::Gm;
 		return ModelType.ToString()
 			+ (Dimensionality != LvqModelSettingsCli().Dimensionality ? "[" + Dimensionality + "]" : "") + "-" + PrototypesPerClass + ","
-			
-			+ (Ppca && ModelType != LvqModelType::Lgm && ModelType != LvqModelType::Lgm ? "Ppca,":"")
-			+ (RandomInitialBorders && (ModelType == LvqModelType::G2m || ModelType == LvqModelType::Gpq || ModelType == LvqModelType::Ggm) ? "RandomInitialBorders,":"")
-			+ ( unnormedP?"unnormedP,":"")
-			+ (noKP?"noKP,":"")
-			+ (unnormedB && (ModelType == LvqModelType::G2m || ModelType == LvqModelType::Gpq) ? "unnormedB," : "")
-			+ (LocallyNormalize && (ModelType == LvqModelType::G2m || ModelType == LvqModelType::Lgm || ModelType == LvqModelType::Lpq || ModelType == LvqModelType::Gpq) ? "LocallyNormalize," : "")
-			+ (NGu && PrototypesPerClass > 1 && (ModelType == LvqModelType::G2m ||  ModelType == LvqModelType::Gpq || ModelType == LvqModelType::Ggm || ModelType == LvqModelType::Gm) ? "NGu," : "")
+			+ (Ppca && hasGlobalP ? "Ppca,":"")
+			+ (RandomInitialBorders && hasB ? "RandomInitialBorders,":"")
+			+ ( unnormedP ? "unnormedP," : "")
+			+ (noKP ? "noKP," : "")
+			+ (unnormedB && isG2mVariant ? "unnormedB," : "")
+			+ (LocallyNormalize && (isLgmVariant || isG2mVariant) ? "LocallyNormalize," : "")
+			+ (NGu && PrototypesPerClass > 1 && hasGlobalP ? "NGu," : "")
 			+ (NGi && PrototypesPerClass > 1 ? "NGi," : "")
-			+ (Popt && (ModelType == LvqModelType::G2m ||  ModelType == LvqModelType::Gpq || ModelType == LvqModelType::Ggm || ModelType == LvqModelType::Gm) ? "Popt," : "")
-			+ (Bcov && (ModelType == LvqModelType::G2m ||  ModelType == LvqModelType::Gpq || ModelType == LvqModelType::Ggm) ? "Bcov," : "")
-			+ (wGMu && (ModelType == LvqModelType::G2m ||  ModelType == LvqModelType::Gpq) ? "wGMu," : "")
+			+ (Popt && hasGlobalP ? "Popt," : "")
+			+ (Bcov && hasB ? "Bcov," : "")
+			+ (wGMu && isG2mVariant ? "wGMu," : "")
 			+ (SlowK ? "SlowK," : "")
 			+ (NoNnErrorRateTracking ? "NoNnErrorRateTracking," : "")
-			+ (LR0==LVQ_LR0  ?  "": "lr0" + LR0.ToString("r") + ","	)
-			+ (LrScaleP==LVQ_LrScaleP  ?  ""  :   "lrP" + LrScaleP.ToString("r") + ","	)
-			+ (LrScaleB==LVQ_LrScaleB  || ModelType ==  LvqModelType::Lgm || ModelType == LvqModelType::Lpq || ModelType == LvqModelType::Gm ?  "": "lrB" + LrScaleB.ToString("r") + ",")
+			+ (LR0==0.0 && LrScaleP==0.0 && (LrScaleB==0.0||!hasB) ?"" :
+				( "lr" + LR0.ToString("r") + ","	)
+				+ ("lrP" + LrScaleP.ToString("r") + ","	)
+				+ (!hasB ?  "": "lrB" + LrScaleB.ToString("r") + ",")
+			)
 			+ (LrScaleBad != LvqModelSettingsCli().LrScaleBad ? "lrX" + LrScaleBad.ToString("r") + ",":"")
-			+ (MuOffset == 0.0?"": "mu" + MuOffset.ToString("r") + ",")
-			+ ( ParamsSeed != LvqModelSettingsCli().ParamsSeed ||InstanceSeed != LvqModelSettingsCli().InstanceSeed
+			+ (MuOffset ==  LvqModelSettingsCli().MuOffset ?"": "mu" + MuOffset.ToString("r") + ",")
+			+ (ParamsSeed != LvqModelSettingsCli().ParamsSeed ||InstanceSeed != LvqModelSettingsCli().InstanceSeed
 				? "[" +  ( ParamsSeed != LvqModelSettingsCli().ParamsSeed ? ParamsSeed.ToString("x"):"") 
 				+ "," +  (InstanceSeed != LvqModelSettingsCli().InstanceSeed?InstanceSeed.ToString("x"):"") + "]"
 			: "" )

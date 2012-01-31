@@ -21,7 +21,7 @@ namespace LvqLibCli {
 		int _PrototypesPerClass;
 		int _ParallelModels, _FoldOffset;
 		unsigned _ParamsSeed;
-		Nullable<double> _LR0, _LrScaleP, _LrScaleB, _LrScaleBad;
+		Nullable<double> _LrScaleBad;
 		Nullable<LvqModelType> _ModelType;
 	public:
 		property LvqModelType ModelType { LvqModelType get() { return _ModelType.HasValue?_ModelType.Value:LvqModelType::Ggm; } void set(LvqModelType val) { _ModelType = val==LvqModelType::Ggm?Nullable<LvqModelType>():Nullable<LvqModelType>(val); } }
@@ -32,12 +32,9 @@ namespace LvqLibCli {
 		property int ParallelModels  { int get() {return _ParallelModels + 10; } void set(int val) { _ParallelModels = val - 10; } }
 		property int FoldOffset  { int get() {return _FoldOffset ; } void set(int val) { _FoldOffset = val; } }
 
-		property double LR0 { double get() { return _LR0.HasValue?_LR0.Value:LVQ_LR0; } void set(double val) { _LR0 = val==LVQ_LR0?Nullable<double>(): Nullable<double>(val); } }
-		property double LrScaleP { double get() { return _LrScaleP.HasValue?_LrScaleP.Value:LVQ_LrScaleP; } void set(double val) { _LrScaleP = val==LVQ_LrScaleP?Nullable<double>(): Nullable<double>(val); } }
-		property double LrScaleB { double get() { return _LrScaleB.HasValue?_LrScaleB.Value:LVQ_LrScaleB; } void set(double val) { _LrScaleB =  val==LVQ_LrScaleB?Nullable<double>():Nullable<double>(val); } }
 		property double LrScaleBad { double get() { return _LrScaleBad.HasValue?_LrScaleBad.Value:LVQ_LrScaleBad; } void set(double val) { _LrScaleBad = val==LVQ_LrScaleBad?Nullable<double>(): Nullable<double>(val); } }
 
-
+		double LR0, LrScaleP, LrScaleB;
 		bool RandomInitialBorders;
 
 		bool NGu, NGi, Ppca, Popt, Bcov, wGMu, NoNnErrorRateTracking;

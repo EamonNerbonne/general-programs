@@ -70,7 +70,7 @@ namespace LvqGui {
 
 		static readonly char[] comma = new[] { ',' };
 		static double[] ExtractLrs(string line) {
-			return line.SubstringAfterFirst("{").SubstringBeforeFirst("}").Split(comma).Select(double.Parse).ToArray();
+			return line.SubstringAfterFirst("{").SubstringUntil("}").Split(comma).Select(double.Parse).ToArray();
 		}
 		static double ClosestMatch(IEnumerable<double> haystack, double needle) {
 			return haystack.Aggregate(new { Err = double.PositiveInfinity, Val = needle },
