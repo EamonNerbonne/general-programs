@@ -82,11 +82,9 @@ let printMeanResults results =
 let printResults = toMeanResults >> printMeanResults
     
 
-let iterCount = 1e7
-
 let rnd = new EmnExtensions.MathHelpers.MersenneTwister ()
 
-let testSettings parOverride rndSeed (settings : LvqModelSettingsCli) =
+let testSettings parOverride rndSeed iterCount (settings : LvqModelSettingsCli)  =
     let results =
         [
             for dataset in datasets ->
@@ -125,17 +123,16 @@ let logscale steps (v0, v1) =
 
     //[0.001 -> 0.1]
 
-let lrsChecker rndSeed lr0range settingsFactory = 
-    [ for lr0 in lr0range ->  Task.Factory.StartNew ((fun () -> lr0 |> settingsFactory |> testSettings 1 rndSeed), TaskCreationOptions.LongRunning) ]
+let lrsChecker rndSeed lr0range settingsFactory iterCount = 
+    [ for lr0 in lr0range ->  Task.Factory.StartNew ((fun () -> lr0 |> settingsFactory |> testSettings 1 rndSeed iterCount), TaskCreationOptions.LongRunning) ]
     |> Array.ofList
     |> Array.map (fun task -> task.Result)
     |> Array.sortBy (fun res -> res.GeoMean)
 
 
-type ControllerState = { Name: string; Unpacker: LvqModelSettingsCli -> float; Packer: LvqModelSettingsCli -> float -> LvqModelSettingsCli; DegradedCount: int; LrLogDevScale: float }
+type ControllerDef = { Name: string; Unpacker: LvqModelSettingsCli -> float; Packer: LvqModelSettingsCli -> float -> LvqModelSettingsCli; }
+type ControllerState = { Controller: ControllerDef;  LrLogDevScale: float }
 
-let stepController controller newLrDevScale wasError = 
-    { Name = controller.Name; Unpacker = controller.Unpacker; Packer = controller.Packer; DegradedCount = controller.DegradedCount + (if wasError then 1 else 0); LrLogDevScale = newLrDevScale }
 (*let muControl = { 
         Unpacker = (fun settings-> settings.MuOffset)
         Packer = 
@@ -147,35 +144,30 @@ let stepController controller newLrDevScale wasError =
         LrLogDevScale = 1.
     }*)
 
-let lrBcontrol = { 
-        Name = "LrB"
-        Unpacker = (fun settings-> settings.LrScaleB)
-        Packer = fun (settings:LvqModelSettingsCli) lrB -> settings.WithLrChanges(settings.LR0, settings.LrScaleP, lrB)
-        DegradedCount = 0
-        LrLogDevScale = 2.
-    }
-let lrPcontrol = {
-        Name = "LrP"
-        Unpacker = fun settings -> settings.LrScaleP
-        Packer = fun settings lrP -> settings.WithLrChanges(settings.LR0, lrP, settings.LrScaleB)
-        DegradedCount = 0
-        LrLogDevScale = 2.
-    }
-let lr0control = {
-        Name = "Lr0"
-        Unpacker = fun settings -> settings.LR0
-        Packer = fun settings lr0 -> settings.WithLrChanges(lr0, settings.LrScaleP, settings.LrScaleB)
-        DegradedCount = 0
-        LrLogDevScale = 2.
-    }
+let lrBcontrol = { LrLogDevScale = 2.;  Controller =
+                            { 
+                                Name = "LrB"
+                                Unpacker = (fun settings-> settings.LrScaleB)
+                                Packer = fun (settings:LvqModelSettingsCli) lrB -> settings.WithLrChanges(settings.LR0, settings.LrScaleP, lrB)
+                            } }
+let lrPcontrol =  { LrLogDevScale = 2.;  Controller =
+                            {
+                                Name = "LrP"
+                                Unpacker = fun settings -> settings.LrScaleP
+                                Packer = fun settings lrP -> settings.WithLrChanges(settings.LR0, lrP, settings.LrScaleB)
+                            } }
+let lr0control =  { LrLogDevScale = 2.;  Controller =
+                            {
+                                Name = "Lr0"
+                                Unpacker = fun settings -> settings.LR0
+                                Packer = fun settings lr0 -> settings.WithLrChanges(lr0, settings.LrScaleP, settings.LrScaleB)
+                            } }
 
 let improveLr (testResultList:TestResults list) (lrUnpack, lrPack) =
     let errMargin = 0.0000001
     let unpackLogErrs testResults = testResults.Results |> Seq.concat |> Seq.concat |> List.ofSeq |> List.map (fun err -> Math.Log (err + errMargin))
     let bestToWorst = testResultList |> List.sortBy (unpackLogErrs >> List.average)
     let bestLogErrs = List.head bestToWorst |> unpackLogErrs
-           
-       
     //extract list of error rates from each testresult
     let logLrs = testResultList |> List.map (fun res-> lrUnpack res.Settings |> Math.Log)
     let relevance = List.Cons (1.0, bestToWorst |> List.tail |> List.map (unpackLogErrs >> Utils.twoTailedPairedTtest bestLogErrs >> snd))
@@ -183,42 +175,44 @@ let improveLr (testResultList:TestResults list) (lrUnpack, lrPack) =
     let relLength = List.length relevance
     let linearlyScaledRelevance = List.init relLength (fun i -> float (relLength - i) / float relLength)
 
-    let effRelevance = List.zip relevance linearlyScaledRelevance |> List.map (fun (a,b) -> (a + b) * (a + b))
+    let effRelevance = List.zip relevance linearlyScaledRelevance |> List.map (fun (a,b) -> Math.Sqrt((a + b) * (a + b)))
     
     //printfn "%A" (bestToWorst |> List.map (fun res->lrUnpack res.Settings) |> List.zip relevance)
     let logLrDistr = List.zip logLrs effRelevance |> List.fold (fun (ss:SmartSum) (lr, rel) -> ss.CombineWith lr rel) (new SmartSum ())
     let (logLrmean, logLrdev) = (logLrDistr.Mean, Math.Sqrt logLrDistr.Variance)
     (Math.Exp logLrmean, logLrdev)
 
-let improvementStep (controller:ControllerState) (initialSettings:LvqModelSettingsCli) =
+let improvementStep (controller:ControllerState) (initialSettings:LvqModelSettingsCli) degradedCount =
     let currSeed = rnd.NextUInt32 ()
-    let initResults = testSettings 10 currSeed initialSettings
-    let baseLr = controller.Unpacker initialSettings
+    let iterCount = Math.Min(2e7, Math.Pow(1.33, float degradedCount) * 5e5)
+    let initResults = testSettings 10 currSeed iterCount initialSettings
+    let baseLr = controller.Controller.Unpacker initialSettings
     let lowLr = baseLr * Math.Exp(-Math.Sqrt(3.) * controller.LrLogDevScale)
     let highLr = baseLr * Math.Exp(Math.Sqrt(3.) * controller.LrLogDevScale)
-    let results = lrsChecker (currSeed + 2u) (logscale 20 (lowLr,highLr)) (controller.Packer initialSettings)
-    let (newBaseLr, newLrLogDevScale) = improveLr (List.ofArray results) (controller.Unpacker, controller.Packer)
+    let results = lrsChecker (currSeed + 2u) (logscale 20 (lowLr,highLr)) (controller.Controller.Packer initialSettings) iterCount
+    let (newBaseLr, newLrLogDevScale) = improveLr (List.ofArray results) (controller.Controller.Unpacker, controller.Controller.Packer)
     let logLrDiff_LrDevScale = 2. * Math.Abs(Math.Log(baseLr / newBaseLr))
     let effNewLrDevScale = 0.3*newLrLogDevScale + 0.3*controller.LrLogDevScale + 0.4*logLrDiff_LrDevScale
-    let newSettings = controller.Packer initialSettings newBaseLr
-    let finalResults =  testSettings 10 currSeed newSettings
-    let newControllerState = stepController controller effNewLrDevScale (finalResults.GeoMean > initResults.GeoMean)
-    printfn "  %s [%f..%f]: %f -> %f: %f -> %f (%d,±%f)" controller.Name lowLr highLr baseLr newBaseLr initResults.GeoMean finalResults.GeoMean newControllerState.DegradedCount newControllerState.LrLogDevScale
-    (newControllerState, newSettings)
+    let newSettings = controller.Controller.Packer initialSettings newBaseLr
+    let finalResults =  testSettings 10 currSeed iterCount newSettings
 
-let improvementSteps (controllers:ControllerState list) (initialSettings:LvqModelSettingsCli) =
-    List.fold (fun (controllerStates, settings) nextController ->
-            let (newControllerState, newSettings) = improvementStep nextController settings
-            (newControllerState :: controllerStates, newSettings)
-        ) ([], initialSettings) controllers
+    let newDegradedCount = degradedCount + if finalResults.GeoMean > initResults.GeoMean || effNewLrDevScale < 0.1 then 1 else 0 
+    let newControllerState = { Controller = controller.Controller; LrLogDevScale = effNewLrDevScale; }
+    printfn "  %s [%f..%f]: %f -> %f: %f -> %f (%d,×%f)" controller.Controller.Name lowLr highLr baseLr newBaseLr initResults.GeoMean finalResults.GeoMean newDegradedCount (Math.Exp(-Math.Sqrt(3.) * effNewLrDevScale))
+    (newControllerState, (newSettings, newDegradedCount))
+
+let improvementSteps (controllers:ControllerState list) (initialSettings:LvqModelSettingsCli) degradedCount=
+    List.fold (fun (controllerStates, (settings, currDegradedCount)) nextController ->
+            improvementStep nextController settings currDegradedCount
+                |> apply1st (fun newControllerState -> newControllerState :: controllerStates)
+        ) ([], (initialSettings, degradedCount)) controllers
     |> apply1st List.rev
 
-let rec fullyImprove (controllers:ControllerState list) (initialSettings:LvqModelSettingsCli) =
-    if controllers |> List.sumBy (fun controllerState -> controllerState.DegradedCount) > 3 * (List.length controllers)  then
-        (initialSettings, controllers)
+let rec fullyImprove (controllers, (initialSettings, degradedCount)) =
+    if degradedCount > 11 then
+        (controllers, initialSettings)
     else
-        let (nextControllers, nextSettings) = improvementSteps controllers initialSettings
-        fullyImprove nextControllers nextSettings
+        improvementSteps controllers initialSettings degradedCount |> Utils.apply2nd fst
 
 let improveAndTest (initialSettings:LvqModelSettingsCli) =
     printfn "Optimizing %s" (initialSettings.ToShorthand ())
@@ -226,12 +220,12 @@ let improveAndTest (initialSettings:LvqModelSettingsCli) =
     let controllers = 
         [
            // if initialSettings.MuOffset <> 0. && LvqModelType.Ggm = initialSettings.ModelType then yield muControl
-            if needsB then yield lrBcontrol
-            yield lrPcontrol
             yield lr0control
+            yield lrPcontrol
+            if needsB then yield lrBcontrol
        ]
-    let improvedSettings = fullyImprove controllers initialSettings |> fst
-    let testedResults = testSettings 100 1u improvedSettings
+    let improvedSettings = fullyImprove (controllers, (initialSettings,0)) |> snd
+    let testedResults = testSettings 100 1u 1e7 improvedSettings
     let resultString = printResults testedResults
     Console.WriteLine resultString
     File.AppendAllText (TestLr.resultsDir.FullName + "\\uniform-results.txt", resultString + "\n")
@@ -256,7 +250,7 @@ let recomputeRes () =
         |> List.filter (fun settings -> settings.HasValue)
         |> List.map (fun settings -> settings.Value)
         //|> List.map (fun settings -> settings.ToShorthand())
-        |> List.map (testSettings 100 1u >> printResults >> (fun resline -> File.AppendAllText (TestLr.resultsDir.FullName + "\\uniform-results2.txt", resline + "\n"); resline ))
+        |> List.map (testSettings 100 1u 1e7 >> printResults >> (fun resline -> File.AppendAllText (TestLr.resultsDir.FullName + "\\uniform-results2.txt", resline + "\n"); resline ))
 
 let baseSettings (lvqSettings:LvqModelSettingsCli) = 
     let mutable basicSettings = new LvqModelSettingsCli ()
