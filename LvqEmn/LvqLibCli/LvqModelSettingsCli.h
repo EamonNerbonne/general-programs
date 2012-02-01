@@ -50,8 +50,10 @@ namespace LvqLibCli {
 		LvqModelSettingsCli WithDefaultNnTracking();
 		LvqModelSettingsRaw ToNativeSettings();
 		String^ ToShorthand();
+		LvqModelSettingsCli Canonicalize();
 
 	private:
+		String^ toShorthandRaw();
 		static LvqModelSettingsCli() {defaults = LvqModelSettingsCli(); }
 	};
 }
