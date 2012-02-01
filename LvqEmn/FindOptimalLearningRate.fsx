@@ -294,7 +294,7 @@ let allUniformResults () =
         |> Seq.toList
 
 allUniformResults ()
-    |> List.sortBy (fun res->res.GeoMean)
+    |> List.sortBy (fun res->res.Test)
 //    |> List.filter (fun res->res.Settings.ModelType = LvqModelType.G2m && res.Settings.PrototypesPerClass = 1)
     |> List.map printMeanResults
 

@@ -16,41 +16,41 @@ open System.Linq
 open System
 
 
-type HeuristicsSettings = 
-    { DataSettings: string; ModelSettings: LvqModelSettingsCli }
-    member this.Equiv other = this.DataSettings = other.DataSettings && this.ModelSettings.ToShorthand() = other.ModelSettings.ToShorthand()
-    member this.Key = this.DataSettings + "|" + (this.ModelSettings.ToShorthand())
+type HeuristicsSettings = { DataSettings: string; ModelSettings: LvqModelSettingsCli }
 
 let normalizeDatatweaks str = new System.String(str |> Seq.sortBy (fun c -> - int32 c) |> Seq.distinct |> Seq.toArray)
 
-let getSettings (modelResults:ResultAnalysis.ModelResults) = { DataSettings = normalizeDatatweaks modelResults.DatasetTweaks; ModelSettings = modelResults.ModelSettings.WithDefaultLr().WithDefaultNnTracking()  }
+let getSettings (modelResults:ResultAnalysis.ModelResults) = { DataSettings = normalizeDatatweaks modelResults.DatasetTweaks; ModelSettings = modelResults.ModelSettings.WithDefaultLr().WithDefaultNnTracking().Canonicalize()  }
 
 type Heuristic = 
-    { Name:string; Code:string; Activator: HeuristicsSettings -> (HeuristicsSettings * HeuristicsSettings); }
+    { Name:string; Code:string; Activator: HeuristicsSettings -> (HeuristicsSettings option * HeuristicsSettings ); }
     //member this.IsActive settings =  (this.Activator settings |> fst).Equiv settings
 
-let applyHeuristic (heuristic:Heuristic) settings = 
-    let (on, off) = heuristic.Activator settings
-    if off.Equiv settings && on.Equiv settings |> not && on.ModelSettings = CreateLvqModelValues.ParseShorthand(on.ModelSettings.ToShorthand()) then Some(on) else None
-
-let isHeuristicApplied (heuristic:Heuristic) settings = 
-    let (on, off) = heuristic.Activator settings
-    on.Equiv settings && off.Equiv settings |> not && on.ModelSettings = CreateLvqModelValues.ParseShorthand(on.ModelSettings.ToShorthand())
+let applyHeuristic (heuristic:Heuristic) = heuristic.Activator >> fst
+let unapplyHeuristic (heuristic:Heuristic) = heuristic.Activator >> snd
+let reapplyHeuristic (heuristic:Heuristic) = unapplyHeuristic heuristic >> applyHeuristic heuristic
+let isHeuristicApplied (heuristic:Heuristic) settings = reapplyHeuristic heuristic settings = Some(settings)
 
 let heuristics = 
     let heur name code activator = { Name=name; Code=code; Activator = activator; }
     let heurD name code letter = { Name = name; Code = code; Activator = (fun s -> 
         let on = normalizeDatatweaks (s.DataSettings + letter)
         let off = s.DataSettings.Replace(letter,"")
-
-        ({ DataSettings = on; ModelSettings = s.ModelSettings}, { DataSettings = off; ModelSettings = s.ModelSettings}))}
+        (
+            ( if off = s.DataSettings && on <> s.DataSettings then Some({ DataSettings = on; ModelSettings = s.ModelSettings}) else None ),
+            { DataSettings = off; ModelSettings = s.ModelSettings}
+        ))}
+        
     let heurM name code activator = 
         {
             Name = name;
             Code = code;
             Activator = (fun s ->
                 let (on, off) = activator s.ModelSettings
-                ({ DataSettings = s.DataSettings; ModelSettings = on }, { DataSettings = s.DataSettings; ModelSettings = off }))
+                (
+                    (if off = s.ModelSettings && on <> s.ModelSettings && on = on.Canonicalize() then Some({ DataSettings = s.DataSettings; ModelSettings = on }) else None), 
+                    { DataSettings = s.DataSettings; ModelSettings = off }
+                ))
         }
     let heurC a b =
         {
@@ -58,9 +58,9 @@ let heuristics =
             Code = a.Code + " + "+ b.Code;
             Activator = (fun s ->
                 let (onA,offA) = a.Activator s
-                let (on,_) = b.Activator onA
+                let on = Option.bind (b.Activator>>fst) onA
                 let (_,off) = b.Activator offA
-                (on,off)
+                ((if off = s then on else None), off)
                 )
         }
     let normHeur = heurD "Normalize each dimension" "normalize" "n"
@@ -69,8 +69,10 @@ let heuristics =
             (fun s -> 
                 let on = normalizeDatatweaks (s.DataSettings.Replace("n","") + "S")
                 let off = normalizeDatatweaks (s.DataSettings.Replace("S","") + "n")
-
-                ({ DataSettings = on; ModelSettings = s.ModelSettings}, { DataSettings = off; ModelSettings = s.ModelSettings})
+                (
+                    ( if off = s.DataSettings && on <> s.DataSettings then Some({ DataSettings = on; ModelSettings = s.ModelSettings}) else None ),
+                    { DataSettings = off; ModelSettings = s.ModelSettings}
+                )
             )
     let NGiHeur = heurM @"Initializing prototype positions by neural gas" "NGi" (fun s  -> 
             let mutable on = s
@@ -239,7 +241,7 @@ let optCompare datasetResults modelResults heuristic =
     modelResults
     |> getSettings 
     |> applyHeuristic heuristic 
-    |> Option.map (fun settingsWithHeuristic -> settingsWithHeuristic.Key)
+    //|> Option.map (fun settingsWithHeuristic -> settingsWithHeuristic.Key)
     |> Option.bind (Utils.getMaybe datasetResults)
     |> Option.map (fun (heuristicResults:ResultAnalysis.ModelResults) -> (modelResults, heuristicResults))
 
@@ -253,7 +255,7 @@ let resultsByDatasetByModel =
         |> List.map
                 (Utils.apply2nd
                     (Utils.toDict
-                        (fun modelRes -> (getSettings modelRes).Key) 
+                        (fun modelRes -> (getSettings modelRes)) 
                         (fun modelRess -> 
                             match Seq.toArray modelRess with
                             | [| modelRes |] -> modelRes
@@ -306,8 +308,8 @@ let allFilters =
         (@"only \textsf{" + heur.Code + "}", (fun (mr:ResultAnalysis.ModelResults) ->
                 let settings = getSettings mr
                 let (on,off) = heur.Activator settings
-                countActiveHeuristicsB off = 0 && on.Equiv settings
-            )
+                countActiveHeuristicsB off = 0 && (off |> heur.Activator |> fst) = Some(settings)
+            ) 
         )
     let singleOrAnythingFilters = [
         ("all results", (fun (mr:ResultAnalysis.ModelResults) -> true));
@@ -541,10 +543,10 @@ File.WriteAllText(EmnExtensions.Filesystem.FSUtil.FindDataDir(@"uni\Thesis\doc",
 let analysisRawFor (scenarioSettings:HeuristicsSettings) (heur:Heuristic) = 
     let (heurSettings,shouldBescenarioSettings) = heur.Activator scenarioSettings
     [
-        if  heur.Code = "none" || (shouldBescenarioSettings.Equiv scenarioSettings && heurSettings.Equiv scenarioSettings |> not) then
+        if  heur.Code = "none" || (shouldBescenarioSettings = scenarioSettings && heurSettings <> Some(scenarioSettings)) then
             for datasetRes in resultsByDatasetByModel.Values do
-                let maybeBaseRes = Utils.getMaybe datasetRes scenarioSettings.Key
-                let maybeHeurRes = Utils.getMaybe datasetRes heurSettings.Key
+                let maybeBaseRes = Utils.getMaybe datasetRes scenarioSettings
+                let maybeHeurRes = Option.bind (Utils.getMaybe datasetRes) heurSettings
                 match (maybeBaseRes, maybeHeurRes) with
                 | (Some baseRes, Some heurRes) ->
                     yield (baseRes, heurRes)
@@ -572,7 +574,7 @@ let latexHeurRaws =
     let subSetSelection (name:string) = not (name.Contains("+") || name = "S" || name = "normalize")
     let heurSelection = (fun heur -> heur.Code) >> subSetSelection
 
-    let relevantHeuristics = List.Cons ({ Name="base"; Code="none"; Activator = (fun s->(s,s)); }, heuristics |> List.filter heurSelection)
+    let relevantHeuristics = List.Cons ({ Name="base"; Code="none"; Activator = (fun s->(Some(s),s)); }, heuristics |> List.filter heurSelection)
 
     let strconcat xs = String.concat "" xs
     let coldef = relevantHeuristics |> List.map (constF ("@{}>{\columncolor{white}[0mm][1mm]}r@{\hspace{1mm}}" |> String.replicate 1)) |> String.concat "|"
