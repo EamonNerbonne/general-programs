@@ -148,19 +148,19 @@ let lrBcontrol = { LrLogDevScale = 2.;  Controller =
                             { 
                                 Name = "LrB"
                                 Unpacker = (fun settings-> settings.LrScaleB)
-                                Packer = fun (settings:LvqModelSettingsCli) lrB -> settings.WithLrChanges(settings.LR0, settings.LrScaleP, lrB)
+                                Packer = fun (settings:LvqModelSettingsCli) lrB -> settings.WithLr(settings.LR0, settings.LrScaleP, lrB)
                             } }
 let lrPcontrol =  { LrLogDevScale = 2.;  Controller =
                             {
                                 Name = "LrP"
                                 Unpacker = fun settings -> settings.LrScaleP
-                                Packer = fun settings lrP -> settings.WithLrChanges(settings.LR0, lrP, settings.LrScaleB)
+                                Packer = fun settings lrP -> settings.WithLr(settings.LR0, lrP, settings.LrScaleB)
                             } }
 let lr0control =  { LrLogDevScale = 2.;  Controller =
                             {
                                 Name = "Lr0"
                                 Unpacker = fun settings -> settings.LR0
-                                Packer = fun settings lr0 -> settings.WithLrChanges(lr0, settings.LrScaleP, settings.LrScaleB)
+                                Packer = fun settings lr0 -> settings.WithLr(lr0, settings.LrScaleP, settings.LrScaleB)
                             } }
 
 let improveLr (testResultList:TestResults list) (lrUnpack, lrPack) =
@@ -261,9 +261,9 @@ let baseSettings (lvqSettings:LvqModelSettingsCli) =
 
 let withDefaultLr (settings:LvqModelSettingsCli) = 
     match settings.ModelType with
-        | LvqModelType.Gm -> settings.WithLrChanges( 0.002,2.,0.)
-        | LvqModelType.Ggm -> settings.WithLrChanges( 0.03,0.05,4.)
-        | _ -> settings.WithLrChanges( 0.01,0.4,0.006)
+        | LvqModelType.Gm -> settings.WithLr(0.002, 2., 0.)
+        | LvqModelType.Ggm -> settings.WithLr(0.03, 0.05, 4.)
+        | _ -> settings.WithLr(0.01, 0.4, 0.006)
 
 let allUniformResults () = 
     let parseLine (line:string) =
@@ -282,7 +282,7 @@ let allUniformResults () =
             Some({
                         GeoMean = (line.SubstringAfterFirst "GeoMean: ").SubstringUntil ";" |> float
                         Training = (trnChunkTraining.[0], trnChunkTraining.[1])
-                        Test = (trnChunkTraining.[0], trnChunkTraining.[1])
+                        Test = (tstChunkTraining.[0], tstChunkTraining.[1])
                         NN = (nnChunkTraining.[0], nnChunkTraining.[1])
                         Settings = maybeSettings.Value
             })
@@ -298,7 +298,10 @@ allUniformResults ()
 //    |> List.filter (fun res->res.Settings.ModelType = LvqModelType.G2m && res.Settings.PrototypesPerClass = 1)
     |> List.map printMeanResults
 
-"G2m-1,Ppca,SlowK," |> CreateLvqModelValues.ParseShorthand |>withDefaultLr |> improveAndTest
+["Gpq-1,SlowK,";"Gm-1,noKP,";"Gpq-5,";"Gpq-5,NGi,";"Gpq-5,SlowK,NGi,";"Gm-5,noKP,";"Gm-5,noKP,NGi,";"Gm-5,noKP,SlowK,";"Gm-5,noKP,NGi,SlowK,"]
+    |> List.map (CreateLvqModelValues.ParseShorthand >> withDefaultLr) 
+    |> List.filter (isTested>>not)
+    |> List.map improveAndTest
 
 TestLr.resultsDir.GetFiles("*.txt", SearchOption.AllDirectories)
     |> Seq.map (fun fileInfo -> fileInfo.Name  |> LvqGui.DatasetResults.ExtractItersAndSettings)
