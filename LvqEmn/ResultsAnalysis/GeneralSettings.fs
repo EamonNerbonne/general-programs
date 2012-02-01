@@ -4,7 +4,7 @@ open LvqLibCli
 open LvqGui
 
 let allvariants:list< (LvqModelSettingsCli -> LvqModelSettingsCli) * string > =
-    let setProtosAndType lvqType protos (settings:LvqModelSettingsCli) = settings.WithChanges(lvqType, protos, settings.ParamsSeed, settings.InstanceSeed)
+    let setProtosAndType lvqType protos (settings:LvqModelSettingsCli) = settings.WithChanges(lvqType, protos)
     [
         (setProtosAndType LvqModelType.Lgm 1 , "lgm 1ppc");
         (setProtosAndType LvqModelType.Gm 1 , "gm 1ppc");

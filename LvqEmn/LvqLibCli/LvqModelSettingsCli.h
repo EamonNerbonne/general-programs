@@ -15,7 +15,7 @@ namespace LvqLibCli {
 
 	ref class LvqDatasetCli;
 
-	public value class LvqModelSettingsCli
+	public value class LvqModelSettingsCli : public IEquatable<LvqModelSettingsCli>
 	{
 		int _Dimensionality;
 		int _PrototypesPerClass;
@@ -44,13 +44,19 @@ namespace LvqLibCli {
 
 		static initonly LvqModelSettingsCli defaults;
 
-
-		LvqModelSettingsCli WithChanges(LvqModelType type, int protos, unsigned rngParams, unsigned rngIter);
+		LvqModelSettingsCli WithDefaultSeeds();
+		LvqModelSettingsCli WithSeeds(unsigned rngParams, unsigned rngIter);
+		LvqModelSettingsCli WithChanges(LvqModelType type, int protos);
+		LvqModelSettingsCli WithLr(double lr0, double lrB, double lrP);
 		LvqModelSettingsCli WithDefaultLr();
 		LvqModelSettingsCli WithDefaultNnTracking();
 		LvqModelSettingsRaw ToNativeSettings();
 		String^ ToShorthand();
 		LvqModelSettingsCli Canonicalize();
+
+		static bool operator==(LvqModelSettingsCli a, LvqModelSettingsCli b) { return a.Equals(b); }
+		static bool operator!=(LvqModelSettingsCli a, LvqModelSettingsCli b) { return !a.Equals(b); }
+		virtual bool Equals(LvqModelSettingsCli other) { return Object::Equals(*this, other); }
 
 	private:
 		String^ toShorthandRaw();

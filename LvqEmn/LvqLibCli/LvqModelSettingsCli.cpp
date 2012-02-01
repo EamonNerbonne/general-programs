@@ -51,21 +51,30 @@ namespace LvqLibCli {
 		
 		return retval;
 	}
-
-	LvqModelSettingsCli LvqModelSettingsCli::WithChanges(LvqModelType type, int protos, unsigned rngParams, unsigned rngIter){
+	LvqModelSettingsCli LvqModelSettingsCli::WithChanges(LvqModelType type, int protos){
 		LvqModelSettingsCli retval = *this;
 		retval.ModelType = type;
 		retval.PrototypesPerClass = protos;
+		return retval;
+	}
+	LvqModelSettingsCli LvqModelSettingsCli::WithSeeds(unsigned rngParams, unsigned rngIter){
+		LvqModelSettingsCli retval = *this;
 		retval.ParamsSeed = rngParams;
 		retval.InstanceSeed = rngIter;
 		return retval;
 	}
-	LvqModelSettingsCli LvqModelSettingsCli::WithDefaultLr(){
+	LvqModelSettingsCli LvqModelSettingsCli::WithLr(double lr0, double lrB, double lrP) {
 		LvqModelSettingsCli retval = *this;
-		retval.LR0 = LvqModelSettingsCli().LR0;
-		retval.LrScaleP = LvqModelSettingsCli().LrScaleP;
-		retval.LrScaleB = LvqModelSettingsCli().LrScaleB;
+		retval.LR0 = lr0;
+		retval.LrScaleP = lrP;
+		retval.LrScaleB = lrB;
 		return retval;
+	}
+	LvqModelSettingsCli LvqModelSettingsCli::WithDefaultLr(){
+		return WithLr(LvqModelSettingsCli().LR0, LvqModelSettingsCli().LrScaleP, LvqModelSettingsCli().LrScaleB);
+	}
+	LvqModelSettingsCli LvqModelSettingsCli::WithDefaultSeeds(){
+		return WithSeeds(LvqModelSettingsCli().ParamsSeed, LvqModelSettingsCli().InstanceSeed);
 	}
 	LvqModelSettingsCli LvqModelSettingsCli::WithDefaultNnTracking(){
 		LvqModelSettingsCli retval = *this;

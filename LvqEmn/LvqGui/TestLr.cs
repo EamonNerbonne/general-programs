@@ -15,22 +15,7 @@ using LvqLibCli;
 
 namespace LvqGui {
 	public static class TestLrHelper {
-		public static LvqModelSettingsCli WithTestingChanges(this LvqModelSettingsCli settings, uint offset) {
-			settings.ParamsSeed = 1 + 2 * offset;
-			settings.InstanceSeed = 2 * offset;
-			return settings;
-		}
-		public static LvqModelSettingsCli WithTestingChanges(this LvqModelSettingsCli settings, LvqModelType type, int protos, uint offset) {
-			return settings.WithChanges(type, protos, 1 + 2 * offset, 2 * offset);
-		}
-
-		public static LvqModelSettingsCli WithLrChanges(this LvqModelSettingsCli baseSettings, double lr0, double lrScaleP, double lrScaleB) {
-			var newSettings = baseSettings;
-			newSettings.LR0 = lr0;
-			newSettings.LrScaleB = lrScaleB;
-			newSettings.LrScaleP = lrScaleP;
-			return newSettings;
-		}
+		public static LvqModelSettingsCli WithTestingChanges(this LvqModelSettingsCli settings, uint offset) { return settings.WithSeeds(1 + 2 * offset, 2 * offset); }
 	}
 
 	public class TestLr {
@@ -158,7 +143,7 @@ namespace LvqGui {
 				 from ng in new[] { true, false }
 				 let relevanceCost = new[] { ppca, ngi, slowbad, bi, pi, ng, NoB }.Count(b => b)
 				 //where relevanceCost ==0 || relevanceCost==1 && (ngi||slowbad||!rp)
-				 where relevanceCost <= 1 
+				 where relevanceCost <= 1
 					|| relevanceCost <= 2 && !NoB && !ng && !pi
 					|| !bi && !pi && !ng && !NoB
 				 //where relevanceCost <=1
@@ -204,7 +189,7 @@ namespace LvqGui {
 				from lr0 in lr0range
 				from lrP in lrPrange
 				from lrB in lrBrange
-				let errs = ErrorOf(sink, _itersToRun, settings.WithLrChanges(lr0, lrP, lrB), cancel)
+				let errs = ErrorOf(sink, _itersToRun, settings.WithLr(lr0, lrP, lrB), cancel)
 				select new LrAndErrorRates { lr0 = lr0, lrP = lrP, lrB = lrB, errs = errs }
 				).ToArray();
 

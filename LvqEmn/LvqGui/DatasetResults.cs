@@ -117,27 +117,16 @@ namespace LvqGui {
 		/// Gets the lr-optimized result for the given dataset and settings with the largest number of iterations, or null if no results have been done for this settings+dataset combination.
 		/// </summary>
 		public static DatasetResults GetBestResult(LvqDatasetCli dataset, LvqModelSettingsCli settings) {
-			var lrIgnoredSettings = WithoutLrOrSeeds(settings);
+			var lrIgnoredSettings = settings.WithDefaultLr().WithDefaultSeeds().Canonicalize();
 
 			var matchingFiles =
 				from result in FromDataset(dataset, lrIgnoredSettings.ToShorthand())
-				where WithoutLrOrSeeds(result.unoptimizedSettings).ToShorthand() == lrIgnoredSettings.ToShorthand()
+				where result.unoptimizedSettings.WithDefaultLr().WithDefaultSeeds().Canonicalize() == lrIgnoredSettings
 				orderby result.trainedIterations descending, dataset.DatasetLabel == result.resultsFile.Directory.Name descending
 				select result;
 
 			return matchingFiles.FirstOrDefault();
 		}
-
-		public static LvqModelSettingsCli WithoutLrOrSeeds(LvqModelSettingsCli p_settings) {
-			LvqModelSettingsCli defaults = default(LvqModelSettingsCli);
-			p_settings.LR0 = defaults.LR0;
-			p_settings.LrScaleB = defaults.LrScaleB;
-			p_settings.LrScaleP = defaults.LrScaleP;
-			p_settings.ParamsSeed = defaults.ParamsSeed;
-			p_settings.InstanceSeed = defaults.InstanceSeed;
-			return p_settings;
-		}
-
 
 		static IEnumerable<IDatasetCreator> MaybeGetCreator(LvqDatasetCli dataset) {
 			if (dataset == null) return Enumerable.Empty<IDatasetCreator>();

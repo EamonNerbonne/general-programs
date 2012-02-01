@@ -21,12 +21,12 @@ let groupResultsByLr (results:list<DatasetResults>) =
     |> List.collect (fun res -> res.GetLrs() |> Seq.toList)
     |> groupErrorsByLr
 
-let coreSettingsEq a b = DatasetResults.WithoutLrOrSeeds(a).ToShorthand() =  DatasetResults.WithoutLrOrSeeds(b).ToShorthand()
+let coreSettingsEq (a:LvqModelSettingsCli) (b:LvqModelSettingsCli) = a.WithDefaultLr().WithDefaultSeeds().Canonicalize() =  b.WithDefaultLr().WithDefaultSeeds().Canonicalize()
 
 let onlyFirst10results = List.filter (fun (result:DatasetResults) ->result.unoptimizedSettings.InstanceSeed < 20u)
 
-let chooseResults results exampleSettings = 
-    results |> List.filter (fun (result:DatasetResults) -> coreSettingsEq exampleSettings result.unoptimizedSettings)
+let chooseResults (results:DatasetResults list) exampleSettings = 
+    results |> List.filter (fun result -> coreSettingsEq exampleSettings result.unoptimizedSettings)
 
 //let loadResultsByLr datasetName (settings:LvqLibCli.LvqModelSettingsCli) = 
 //    loadAllResults datasetName |> filterResults settings  |> groupResultsByLr
@@ -54,4 +54,4 @@ let uncoveredSettings allResults alltypes =
     |> List.filter (fun settings -> settings.ModelType = LvqModelType.Lgm |> not )
     |> List.map (fun settings -> settings.ToShorthand())
 
-let isCanonical (settings:LvqModelSettingsCli) = CreateLvqModelValues.ParseShorthand(settings.ToShorthand()) = settings
+let isCanonical (settings:LvqModelSettingsCli) = settings.Canonicalize() = settings
