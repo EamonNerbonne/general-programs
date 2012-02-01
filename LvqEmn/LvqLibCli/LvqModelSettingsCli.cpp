@@ -63,7 +63,7 @@ namespace LvqLibCli {
 		retval.InstanceSeed = rngIter;
 		return retval;
 	}
-	LvqModelSettingsCli LvqModelSettingsCli::WithLr(double lr0, double lrB, double lrP) {
+	LvqModelSettingsCli LvqModelSettingsCli::WithLr(double lr0, double lrP, double lrB) {
 		LvqModelSettingsCli retval = *this;
 		retval.LR0 = lr0;
 		retval.LrScaleP = lrP;

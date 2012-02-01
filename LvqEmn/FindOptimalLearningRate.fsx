@@ -309,8 +309,9 @@ TestLr.resultsDir.GetFiles("*.txt", SearchOption.AllDirectories)
     |> Seq.map (fun (_,_,settings) -> settings.WithTestingChanges(0u).WithDefaultLr())
     |> Seq.distinct
     |> Seq.filter (isTested>>not)
+    |> Seq.map withDefaultLr
     |> Seq.sortBy (fun s-> s.ToShorthand().Length)
     //|> Seq.take 20 |> Utils.shuffle
     |> Seq.filter (isTested>>not) //seq is lazy, so this last minute rechecks availability of results.
-    |> Seq.map withDefaultLr
+    //|> Seq.map (fun s->s.ToShorthand()) |> Seq.toList
     |> Seq.map improveAndTest

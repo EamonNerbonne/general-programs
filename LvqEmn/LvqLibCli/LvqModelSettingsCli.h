@@ -47,7 +47,7 @@ namespace LvqLibCli {
 		LvqModelSettingsCli WithDefaultSeeds();
 		LvqModelSettingsCli WithSeeds(unsigned rngParams, unsigned rngIter);
 		LvqModelSettingsCli WithChanges(LvqModelType type, int protos);
-		LvqModelSettingsCli WithLr(double lr0, double lrB, double lrP);
+		LvqModelSettingsCli WithLr(double lr0, double lrP, double lrB);
 		LvqModelSettingsCli WithDefaultLr();
 		LvqModelSettingsCli WithDefaultNnTracking();
 		LvqModelSettingsRaw ToNativeSettings();
