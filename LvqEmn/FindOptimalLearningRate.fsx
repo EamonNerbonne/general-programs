@@ -124,7 +124,7 @@ let logscale steps (v0, v1) =
     //[0.001 -> 0.1]
 
 let lrsChecker rndSeed lr0range settingsFactory iterCount = 
-    [ for lr0 in lr0range ->  Task.Factory.StartNew ((fun () -> lr0 |> settingsFactory |> testSettings 1 rndSeed iterCount), TaskCreationOptions.LongRunning) ]
+    [ for lr0 in lr0range ->  Task.Factory.StartNew ((fun () -> lr0 |> settingsFactory |> testSettings 2 rndSeed iterCount), TaskCreationOptions.LongRunning) ]
     |> Array.ofList
     |> Array.map (fun task -> task.Result)
     |> Array.sortBy (fun res -> res.GeoMean)
@@ -175,7 +175,7 @@ let improveLr (testResultList:TestResults list) (lrUnpack, lrPack) =
     let relLength = List.length relevance
     let linearlyScaledRelevance = List.init relLength (fun i -> float (relLength - i) / float relLength)
 
-    let effRelevance = List.zip relevance linearlyScaledRelevance |> List.map (fun (a,b) -> Math.Sqrt((a + b) * (a + b)))
+    let effRelevance = List.zip relevance linearlyScaledRelevance |> List.map (fun (a,b) -> (a + b)*Math.Sqrt(a+b))
     
     //printfn "%A" (bestToWorst |> List.map (fun res->lrUnpack res.Settings) |> List.zip relevance)
     let logLrDistr = List.zip logLrs effRelevance |> List.fold (fun (ss:SmartSum) (lr, rel) -> ss.CombineWith lr rel) (new SmartSum ())
@@ -184,7 +184,7 @@ let improveLr (testResultList:TestResults list) (lrUnpack, lrPack) =
 
 let improvementStep (controller:ControllerState) (initialSettings:LvqModelSettingsCli) degradedCount =
     let currSeed = rnd.NextUInt32 ()
-    let iterCount = Math.Min(2e7, Math.Pow(1.33, float degradedCount) * 5e5)
+    let iterCount = Math.Min(1e7, Math.Pow(1.5, float degradedCount) * 1e5)
     let initResults = testSettings 10 currSeed iterCount initialSettings
     let baseLr = controller.Controller.Unpacker initialSettings
     let lowLr = baseLr * Math.Exp(-Math.Sqrt(3.) * controller.LrLogDevScale)
@@ -192,13 +192,13 @@ let improvementStep (controller:ControllerState) (initialSettings:LvqModelSettin
     let results = lrsChecker (currSeed + 2u) (logscale 20 (lowLr,highLr)) (controller.Controller.Packer initialSettings) iterCount
     let (newBaseLr, newLrLogDevScale) = improveLr (List.ofArray results) (controller.Controller.Unpacker, controller.Controller.Packer)
     let logLrDiff_LrDevScale = 2. * Math.Abs(Math.Log(baseLr / newBaseLr))
-    let effNewLrDevScale =Math.Max(0.1, 0.3*newLrLogDevScale + 0.3*controller.LrLogDevScale + 0.4*logLrDiff_LrDevScale)
+    let effNewLrDevScale =Math.Max(0.2, 0.3*newLrLogDevScale + 0.3*controller.LrLogDevScale + 0.4*logLrDiff_LrDevScale)
     let newSettings = controller.Controller.Packer initialSettings newBaseLr
     let finalResults =  testSettings 10 currSeed iterCount newSettings
 
-    let newDegradedCount = degradedCount + if finalResults.GeoMean > initResults.GeoMean || effNewLrDevScale <= 0.1 then 1 else 0 
+    let newDegradedCount = degradedCount + (if finalResults.GeoMean > initResults.GeoMean || effNewLrDevScale <= 0.2 then 1 else 0 )
     let newControllerState = { Controller = controller.Controller; LrLogDevScale = effNewLrDevScale; }
-    printfn "  %s [%f..%f]@%f: %f -> %f: %f -> %f (%d,×%f)" controller.Controller.Name lowLr highLr iterCount baseLr newBaseLr initResults.GeoMean finalResults.GeoMean newDegradedCount (Math.Exp(-Math.Sqrt(3.) * effNewLrDevScale))
+    printfn "  %s [%f..%f]@%f: %f -> %f: %f -> %f (%d,×%f)" controller.Controller.Name lowLr highLr iterCount baseLr newBaseLr initResults.GeoMean finalResults.GeoMean newDegradedCount (Math.Exp(Math.Sqrt(3.) * effNewLrDevScale))
     (newControllerState, (newSettings, newDegradedCount))
 
 let improvementSteps (controllers:ControllerState list) (initialSettings:LvqModelSettingsCli) degradedCount=
@@ -210,9 +210,9 @@ let improvementSteps (controllers:ControllerState list) (initialSettings:LvqMode
 
 let rec fullyImprove (controllers, (initialSettings, degradedCount)) =
     if degradedCount > 11 then
-        (controllers, initialSettings)
-    else
         improvementSteps controllers initialSettings degradedCount |> Utils.apply2nd fst
+    else
+        improvementSteps controllers initialSettings degradedCount |> fullyImprove
 
 let improveAndTest (initialSettings:LvqModelSettingsCli) =
     printfn "Optimizing %s" (initialSettings.ToShorthand ())
