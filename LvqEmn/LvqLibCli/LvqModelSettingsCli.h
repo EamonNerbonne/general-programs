@@ -37,7 +37,7 @@ namespace LvqLibCli {
 		double LR0, LrScaleP, LrScaleB;
 		bool RandomInitialBorders;
 
-		bool NGu, NGi, Ppca, Popt, Bcov, wGMu, NoNnErrorRateTracking;
+		bool NGu, NGi, Ppca, Popt, Bcov,LrRaw, wGMu, NoNnErrorRateTracking;
 		bool SlowK,unnormedP, noKP, unnormedB, LocallyNormalize;
 		unsigned  InstanceSeed;
 		double MuOffset;

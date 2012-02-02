@@ -130,6 +130,11 @@ namespace LvqGui {
 			set { if (!Equals(settings.Bcov, value)) { settings.Bcov = value; _propertyChanged("Bcov"); } }
 		}
 
+		public bool LrRaw {
+			get { return settings.LrRaw; }
+			set { if (!Equals(settings.LrRaw, value)) { settings.LrRaw = value; _propertyChanged("LrRaw"); } }
+		}
+
 		public bool wGMu {
 			get { return settings.wGMu; }
 			set { if (!settings.wGMu.Equals(value)) { settings.wGMu = value; _propertyChanged("wGMu"); } }

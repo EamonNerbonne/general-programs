@@ -112,11 +112,14 @@
         <Label Grid.Row="19">MuOffset</Label>
         <TextBox Grid.Row="19" Grid.Column="1" Text="{Binding MuOffset, Mode=TwoWay, ValidatesOnExceptions=True}"/>
 
+        <Label Grid.Row="20">Unscaled LR</Label>
+        <CheckBox Grid.Row="20" Grid.Column="1"  IsChecked="{Binding LrRaw, Mode= TwoWay, ValidatesOnExceptions=True}"/>
 
-        <Button Grid.Row="20" Content="Reset Initialization Seed" Click="ReseedParam" />
-        <TextBox Grid.Row="20" Grid.Column="1" Text="{Binding ParamsSeed, Mode=TwoWay, ValidatesOnExceptions=True, Converter={StaticResource hexConverter}}"  />
-        <Button Grid.Row="21" Content="Reset Iteration Seed" Click="ReseedInst" />
-        <TextBox Grid.Row="21" Grid.Column="1" Text="{Binding InstanceSeed, Mode=TwoWay, ValidatesOnExceptions=True, Converter={StaticResource hexConverter}}" />
+
+        <Button Grid.Row="23" Content="Reset Initialization Seed" Click="ReseedParam" />
+        <TextBox Grid.Row="23" Grid.Column="1" Text="{Binding ParamsSeed, Mode=TwoWay, ValidatesOnExceptions=True, Converter={StaticResource hexConverter}}"  />
+        <Button Grid.Row="24" Content="Reset Iteration Seed" Click="ReseedInst" />
+        <TextBox Grid.Row="24" Grid.Column="1" Text="{Binding InstanceSeed, Mode=TwoWay, ValidatesOnExceptions=True, Converter={StaticResource hexConverter}}" />
 
         <Label Grid.Row="25">Parallel models</Label>
         <TextBox Grid.Row="25" Grid.Column="1" Text="{Binding ParallelModels, Mode=TwoWay, ValidatesOnExceptions=True}" />

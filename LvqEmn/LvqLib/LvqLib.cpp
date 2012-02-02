@@ -96,18 +96,18 @@ extern"C" LvqModel* CreateLvqModel(LvqModelSettingsRaw rawSettings, LvqDataset c
 	initSettings.RuntimeSettings.noKP = rawSettings.noKP;
 	initSettings.RuntimeSettings.unnormedB = rawSettings.unnormedB;
 	initSettings.RuntimeSettings.LocallyNormalize = rawSettings.LocallyNormalize;
-	initSettings.NGu =rawSettings. NGu;
-	initSettings.NGi =rawSettings. NGi;
-	initSettings.Popt =rawSettings. Popt;
-	initSettings.Bcov =rawSettings. Bcov;
+	initSettings.NGu =rawSettings.NGu;
+	initSettings.NGi =rawSettings.NGi;
+	initSettings.Popt =rawSettings.Popt;
+	initSettings.Bcov =rawSettings.Bcov;
 	initSettings.RuntimeSettings.wGMu = rawSettings.wGMu;
 	initSettings.RuntimeSettings.SlowK = rawSettings.SlowK;
 	initSettings.Dimensionality = rawSettings. Dimensionality;
 	initSettings.RuntimeSettings.MuOffset = rawSettings.MuOffset;
-	initSettings.RuntimeSettings.LrScaleP = rawSettings.LrScaleP;
-	initSettings.RuntimeSettings.LrScaleB = rawSettings.LrScaleB;
-	initSettings.RuntimeSettings.LR0 =rawSettings. LR0;
-	initSettings.RuntimeSettings.LrScaleBad =rawSettings. LrScaleBad;
+	initSettings.RuntimeSettings.LrScaleP = rawSettings.LrRaw ? rawSettings.LrScaleP / rawSettings.LR0 : rawSettings.LrScaleP;
+	initSettings.RuntimeSettings.LrScaleB = rawSettings.LrRaw ? rawSettings.LrScaleB / rawSettings.LR0 : rawSettings.LrScaleB;
+	initSettings.RuntimeSettings.LR0 = rawSettings.LR0;
+	initSettings.RuntimeSettings.LrScaleBad = rawSettings.LrScaleBad;
 
 	return ConstructLvqModel(initSettings);
 }
