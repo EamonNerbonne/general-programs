@@ -199,7 +199,7 @@ let improvementStep (controller:ControllerState) (initialSettings:LvqModelSettin
 
     let newDegradedCount = degradedCount + (if finalResults.GeoMean > initResults.GeoMean || effNewLrDevScale <= 0.2 then 1 else 0 )
     let newControllerState = { Controller = controller.Controller; LrLogDevScale = effNewLrDevScale; }
-    printfn "  %s [%f..%f]@%f: %f -> %f: %f -> %f (%d,×%f)" controller.Controller.Name lowLr highLr iterCount baseLr newBaseLr initResults.GeoMean finalResults.GeoMean newDegradedCount (Math.Exp(Math.Sqrt(3.) * effNewLrDevScale))
+    printfn "  %s [%f..%f]@%d: %f -> %f: %f -> %f (%d,×%f)" controller.Controller.Name lowLr highLr (int iterCount) baseLr newBaseLr initResults.GeoMean finalResults.GeoMean newDegradedCount (Math.Exp(Math.Sqrt(3.) * effNewLrDevScale))
     (newControllerState, (newSettings, newDegradedCount))
 
 let improvementSteps (controllers:ControllerState list) (initialSettings:LvqModelSettingsCli) degradedCount=
@@ -261,10 +261,12 @@ let baseSettings (lvqSettings:LvqModelSettingsCli) =
     basicSettings
 
 let withDefaultLr (settings:LvqModelSettingsCli) = 
-    match settings.ModelType with
-        | LvqModelType.Gm -> settings.WithLr(0.002, 2., 0.)
-        | LvqModelType.Ggm -> settings.WithLr(0.03, 0.05, 4.)
-        | _ -> settings.WithLr(0.01, 0.4, 0.006)
+    let withlr = 
+        match settings.ModelType with
+            | LvqModelType.Gm -> settings.WithLr(0.002, 2., 0.)
+            | LvqModelType.Ggm -> settings.WithLr(0.03, 0.05, 4.)
+            | _ -> settings.WithLr(0.01, 0.4, 0.006)
+    if withlr.LrRaw then withlr.WithLr(s.LR0,s.LrScaleP * s.LR0, s.LrScaleB* s.LR0) else withlr
 
 let allUniformResults () = 
     let parseLine (line:string) =
@@ -300,7 +302,7 @@ allUniformResults ()
     |> List.filter (fun res->res.Settings.ModelType = LvqModelType.Gm && res.Settings.PrototypesPerClass = 1)
     |> List.map printMeanResults
 
-["Gpq-1,SlowK,";"Gm-1,noKP,";"Gpq-5,";"Gpq-5,NGi,";"Gpq-5,SlowK,NGi,";"Gm-5,noKP,";"Gm-5,noKP,NGi,";"Gm-5,noKP,SlowK,";"Gm-5,noKP,NGi,SlowK,"]
+["Gpq-1,Ppca,LrRaw,";"Gm-1,LrRaw,";"G2m-1,Ppca,LrRaw,";"Ggm-1,Ppca,Bcov,SlowK,LrRaw,";"Gm-3,LrRaw,";"G2m-5,Ppca,NGi,LrRaw,";"Ggm-5,Ppca,SlowK,LrRaw,";"Gm-5,Ppca,NGi,LrRaw,"]
     |> List.map (CreateLvqModelValues.ParseShorthand >> withDefaultLr) 
     |> List.filter (isTested>>not)
     |> List.map improveAndTest
