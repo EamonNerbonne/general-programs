@@ -1,4 +1,5 @@
 ﻿using System;
+using MoreLinq;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -400,6 +401,39 @@ namespace LvqGui {
 			get {
 				return m_basedatasets ?? (m_basedatasets = Datasets().ToArray());
 			}
+		}
+
+		public static LvqModelSettingsCli ChooseReasonableLr(LvqModelSettingsCli settings) {
+			var options = (
+				from tuple in UniformResults()
+				let resSettings = tuple.Item1
+				let modeltype = resSettings.ModelType
+				where modeltype == settings.ModelType || settings.ModelType == LvqModelType.Lpq && resSettings.ModelType == LvqModelType.Lgm
+				where (settings.PrototypesPerClass == 1) == (resSettings.PrototypesPerClass == 1)
+				select resSettings
+				).ToArray();
+			string myshorthand = settings.WithDefaultNnTracking().WithDefaultSeeds().WithDefaultLr().ToShorthand();
+
+			if (options.Any()) {
+				var bestResults = options.MinBy(resSettings => EmnExtensions.Algorithms.Levenshtein.LevenshteinDistance(myshorthand, resSettings.WithDefaultLr().ToShorthand()));
+				return settings.WithLr(bestResults.LR0, bestResults.LrScaleP, bestResults.LrScaleB);
+			} else {
+				return settings.ModelType == LvqModelType.Gm ? settings.WithLr(0.002, 2.0, 0.0)
+					: settings.ModelType == LvqModelType.Ggm ? settings.WithLr(0.03, 0.05, 4.0)
+					: settings.WithLr(0.01, 0.4, 0.006);
+			}
+		}
+
+		static IEnumerable<Tuple<LvqModelSettingsCli, double>> UniformResults() {
+			return
+				from line in File.ReadAllLines(TestLr.resultsDir.FullName + "\\uniform-results.txt")
+				let settingsOrNull = CreateLvqModelValues.TryParseShorthand(line.SubstringUntil(" "))
+				where settingsOrNull.HasValue
+				let settings = settingsOrNull.Value
+				let geomean = double.Parse(line.SubstringAfterFirst("GeoMean: ").SubstringUntil(";"))
+				group Tuple.Create(settings, geomean) by settings.WithDefaultLr().WithDefaultSeeds().WithDefaultNnTracking() into settingsGroup
+				select settingsGroup.MinBy(tuple => tuple.Item2)
+				;
 		}
 	}
 }

@@ -31,6 +31,14 @@ namespace LvqGui {
 			}
 		}
 		
+		[NotInShorthand]
+		public double AnimEpochSuggestion {
+			get {
+				return _ForDataset == null || PrototypesPerClass <= 0 ? double.NaN
+					: 1000.0*1000.0 / ((settings.EstimateCost(_ForDataset.ClassCount, _ForDataset.Dimensions) +0.5) * _ForDataset.PointCount(0));
+			}
+		}
+		
 
 		LvqModelSettingsCli settings;
 
@@ -73,8 +81,7 @@ namespace LvqGui {
 			set { if (!settings.NoNnErrorRateTracking.Equals(value)) { settings.NoNnErrorRateTracking = value; _propertyChanged("NoNnErrorRateTracking"); } }
 		}
 
-		public bool unnormedP
-		{
+		public bool unnormedP {
 			get { return settings.unnormedP; }
 			set { if (!settings.unnormedP.Equals(value)) { settings.unnormedP = value; _propertyChanged("unnormedP"); } }
 		}
@@ -88,8 +95,7 @@ namespace LvqGui {
 			set { if (!settings.unnormedB.Equals(value)) { settings.unnormedB = value; _propertyChanged("unnormedB"); } }
 		}
 
-		public bool LocallyNormalize
-		{
+		public bool LocallyNormalize {
 			get { return settings.LocallyNormalize; }
 			set { if (!settings.LocallyNormalize.Equals(value)) { settings.LocallyNormalize = value; _propertyChanged("LocallyNormalize"); } }
 		}
@@ -227,8 +233,7 @@ namespace LvqGui {
 				return settings.ToShorthand()
 				+ (ForDataset == null ? "" : "--" + ForDataset.DatasetLabel);
 			}
-			set
-			{
+			set {
 				settings = ParseShorthand(value);
 				foreach (var group in shR.GetGroupNames())
 					if (!string.IsNullOrEmpty(group))
@@ -239,14 +244,14 @@ namespace LvqGui {
 		public override string ShorthandErrors { get { return ShorthandHelper.VerifyShorthand(this, shR); } }
 
 		public static LvqModelSettingsCli ParseShorthand(string shorthand) {
-			var maybeParsed= ShorthandHelper.TryParseShorthand(default(LvqModelSettingsCli), shR, shorthand);
+			var maybeParsed = ShorthandHelper.TryParseShorthand(default(LvqModelSettingsCli), shR, shorthand);
 			if (maybeParsed.HasValue)
 				return maybeParsed.Value;
 			else throw new ArgumentException("Can't parse: " + shorthand);
 		}
 
 		public static LvqModelSettingsCli? TryParseShorthand(string shorthand) {
-			return ShorthandHelper.TryParseShorthand(default(LvqModelSettingsCli), shR, shorthand).AsNullableStruct < LvqModelSettingsCli>();
+			return ShorthandHelper.TryParseShorthand(default(LvqModelSettingsCli), shR, shorthand).AsNullableStruct<LvqModelSettingsCli>();
 		}
 
 		public CreateLvqModelValues(LvqWindowValues owner) {
@@ -255,15 +260,22 @@ namespace LvqGui {
 			//this.ReseedBoth();
 		}
 
-		public Task ConfirmCreation() { return CreateSingleModel(owner, ForDataset, settings); }
+		public Task ConfirmCreation() { return CreateSingleModel(owner, ForDataset, settings.Canonicalize()); }
 
 		static Task CreateSingleModel(LvqWindowValues owner, LvqDatasetCli dataset, LvqModelSettingsCli settingsCopy) {
 			TaskCompletionSource<object> whenDone = new TaskCompletionSource<object>();
 			Task.Factory
 				.StartNew(() => {
-					var newModel = new LvqMultiModel(dataset, settingsCopy);
-					Console.WriteLine("Created: " + newModel.ModelLabel);
-					owner.Dispatcher.BeginInvoke(owner.LvqModels.Add, newModel).Completed += (s, e) => whenDone.SetResult(null);
+					if (settingsCopy.LR0 == 0.0 && settingsCopy.LrScaleP == 0.0 && settingsCopy.LrScaleB == 0.0)
+						settingsCopy = TestLr.ChooseReasonableLr(settingsCopy);
+
+					if (settingsCopy.LR0 == 0.0)
+						Console.WriteLine("Cannot create model with 0 LR!");
+					else {
+						var newModel = new LvqMultiModel(dataset, settingsCopy);
+						Console.WriteLine("Created: " + newModel.ModelLabel);
+						owner.Dispatcher.BeginInvoke(owner.LvqModels.Add, newModel).Completed += (s, e) => whenDone.SetResult(null);
+					}
 				});
 			return whenDone.Task;
 		}
@@ -272,16 +284,17 @@ namespace LvqGui {
 		public string OptimizeButtonText { get { return HasOptimizedLr ? "Create with Optimal LR" : "Find optimal LR"; } }
 
 		public TestLr.LrTestingStatus OptimizedLrAllStatus { get { return TestLr.HasAllLrTestingResults(ForDataset); } }
-		public string OptimizeAllButtonText { get
-		{
-			var status = TestLr.HasAllLrTestingResults(ForDataset);
-			return status == TestLr.LrTestingStatus.AllResultsComplete
-			       	? "All LR optimization complete."
-			       	: status == TestLr.LrTestingStatus.SomeUnfinishedResults
-			       	  	? "Waiting for unfinished results..."
-			       	  	: "Find all types' Optimal LR";
-		} }
-		public bool OptimizedLrAllIncomplete { get { return OptimizedLrAllStatus!= TestLr.LrTestingStatus.AllResultsComplete; } }
+		public string OptimizeAllButtonText {
+			get {
+				var status = TestLr.HasAllLrTestingResults(ForDataset);
+				return status == TestLr.LrTestingStatus.AllResultsComplete
+						? "All LR optimization complete."
+						: status == TestLr.LrTestingStatus.SomeUnfinishedResults
+							? "Waiting for unfinished results..."
+							: "Find all types' Optimal LR";
+			}
+		}
+		public bool OptimizedLrAllIncomplete { get { return OptimizedLrAllStatus != TestLr.LrTestingStatus.AllResultsComplete; } }
 
 		public void OptimizeLr() {//on gui thread.
 			var settingsCopy = settings;
@@ -298,10 +311,10 @@ namespace LvqGui {
 		public void OptimizeLrAll() {//on gui thread.
 			LvqDatasetCli dataset = ForDataset;
 			var testLr = new TestLr(dataset);
-			testLr.StartAllLrTesting(Owner.WindowClosingToken).ContinueWith(_ => Console.WriteLine("completed lr optimization for " + (dataset.DatasetLabel??"<unknown>")));
+			testLr.StartAllLrTesting(Owner.WindowClosingToken).ContinueWith(_ => Console.WriteLine("completed lr optimization for " + (dataset.DatasetLabel ?? "<unknown>")));
 		}
 
-		static readonly string[] depProps = new[] { "HasOptimizedLr", "OptimizeButtonText","OptimizedLrAllIncomplete", "OptimizedLrAllStatus", "OptimizeAllButtonText", "EstCost" };
+		static readonly string[] depProps = new[] { "HasOptimizedLr", "OptimizeButtonText", "OptimizedLrAllIncomplete", "OptimizedLrAllStatus", "OptimizeAllButtonText", "EstCost", "AnimEpochSuggestion" };
 		protected override IEnumerable<string> GloballyDependantProps { get { return base.GloballyDependantProps.Concat(depProps); } }
 
 		public void OptimizeOrCreate() {//gui thread

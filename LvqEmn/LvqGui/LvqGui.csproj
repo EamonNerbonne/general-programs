@@ -335,7 +335,11 @@
     <Reference Include="ExpressionToCodeLib">
       <HintPath>..\..\..\..\ExpressionToCode\ExpressionToCodeLib\bin\Release\ExpressionToCodeLib.dll</HintPath>
     </Reference>
+    <Reference Include="MoreLinq">
+      <HintPath>..\..\Support Tools\MoreLinq\MoreLinq.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
+    <Reference Include="System.Data" />
     <Reference Include="System.Xaml" />
     <Reference Include="System.Xml" />
     <Reference Include="System.Core">

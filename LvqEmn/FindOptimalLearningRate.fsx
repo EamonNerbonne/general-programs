@@ -295,7 +295,8 @@ let allUniformResults () =
 
 allUniformResults ()
     |> List.sortBy (fun res->res.GeoMean)
-    |> List.filter (fun res->res.Settings.ModelType = LvqModelType.Gm)
+    |> Seq.distinctBy (fun res-> res.Settings.WithDefaultLr()) |> Seq.toList
+    |> List.filter (fun res->res.Settings.ModelType = LvqModelType.Gm && res.Settings.PrototypesPerClass = 1)
     |> List.map printMeanResults
 
 ["Gpq-1,SlowK,";"Gm-1,noKP,";"Gpq-5,";"Gpq-5,NGi,";"Gpq-5,SlowK,NGi,";"Gm-5,noKP,";"Gm-5,noKP,NGi,";"Gm-5,noKP,SlowK,";"Gm-5,noKP,NGi,SlowK,"]
