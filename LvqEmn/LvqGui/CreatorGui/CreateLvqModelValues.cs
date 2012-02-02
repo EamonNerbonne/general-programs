@@ -23,6 +23,15 @@ namespace LvqGui {
 		}
 		LvqDatasetCli _ForDataset;
 
+		[NotInShorthand]
+		public double EstCost {
+			get {
+				return _ForDataset == null || PrototypesPerClass <= 0 ? double.NaN
+					: settings.EstimateCost(_ForDataset.ClassCount, _ForDataset.Dimensions);
+			}
+		}
+		
+
 		LvqModelSettingsCli settings;
 
 		public LvqModelType ModelType {
@@ -144,7 +153,6 @@ namespace LvqGui {
 			get { return settings.MuOffset; }
 			set { if (!settings.MuOffset.Equals(value)) { settings.MuOffset = value; _propertyChanged("MuOffset"); } }
 		}
-		
 
 		public bool SlowK {
 			get { return settings.SlowK; }
@@ -293,7 +301,7 @@ namespace LvqGui {
 			testLr.StartAllLrTesting(Owner.WindowClosingToken).ContinueWith(_ => Console.WriteLine("completed lr optimization for " + (dataset.DatasetLabel??"<unknown>")));
 		}
 
-		static readonly string[] depProps = new[] { "HasOptimizedLr", "OptimizeButtonText","OptimizedLrAllIncomplete", "OptimizedLrAllStatus", "OptimizeAllButtonText" };
+		static readonly string[] depProps = new[] { "HasOptimizedLr", "OptimizeButtonText","OptimizedLrAllIncomplete", "OptimizedLrAllStatus", "OptimizeAllButtonText", "EstCost" };
 		protected override IEnumerable<string> GloballyDependantProps { get { return base.GloballyDependantProps.Concat(depProps); } }
 
 		public void OptimizeOrCreate() {//gui thread

@@ -4,7 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              mc:Ignorable="d" 
-             d:DesignHeight="650" d:DesignWidth="300">
+             d:DesignHeight="759" d:DesignWidth="300">
     <UserControl.Resources>
         <Style TargetType="{x:Type Label}" BasedOn="{StaticResource PropLabel}"/>
         <Style TargetType="{x:Type TextBox}" BasedOn="{StaticResource PropBox}"/>
@@ -139,5 +139,6 @@
 
         </TextBlock>
         <TextBlock Grid.Row="32" Grid.ColumnSpan="2" Text="{Binding ShorthandErrors, Mode=OneWay}" HorizontalAlignment="Left" TextWrapping="Wrap" />
+        <Label Grid.Row="33" Grid.ColumnSpan="2" Content="{Binding EstCost, Mode=OneWay}" HorizontalAlignment="Left"/>
     </Grid>
 </UserControl>
