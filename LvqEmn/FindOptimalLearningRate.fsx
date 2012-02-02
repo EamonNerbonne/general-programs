@@ -96,6 +96,7 @@ let testSettings parOverride rndSeed iterCount (settings : LvqModelSettingsCli) 
                     //printfn "%s: %s" dataset.DatasetLabel (settings.ToShorthand())
                     let model = new LvqMultiModel(dataset,parsettings,false)
                     model.TrainUptoIters(iterCount,dataset, CancellationToken.None)
+                    model.TrainUptoEpochs(1,dataset, CancellationToken.None)//always train at least 1 epoch
                     let errs = 
                         model.EvaluateFullStats() 
                         |> Seq.map (fun stat-> 
@@ -184,7 +185,7 @@ let improveLr (testResultList:TestResults list) (lrUnpack, lrPack) =
 
 let improvementStep (controller:ControllerState) (initialSettings:LvqModelSettingsCli) degradedCount =
     let currSeed = rnd.NextUInt32 ()
-    let iterCount = Math.Min(1e7, Math.Pow(1.5, float degradedCount) * 1e5)
+    let iterCount = Math.Min(1e7, Math.Pow(1.5, float degradedCount) * 7.7e4) * Math.Min(1.0,2.5 / initialSettings.EstimateCost(10,32))
     let initResults = testSettings 10 currSeed iterCount initialSettings
     let baseLr = controller.Controller.Unpacker initialSettings
     let lowLr = baseLr * Math.Exp(-Math.Sqrt(3.) * controller.LrLogDevScale)
@@ -310,9 +311,10 @@ TestLr.resultsDir.GetFiles("*.txt", SearchOption.AllDirectories)
     |> Seq.map (fun (_,_,settings) -> settings.WithTestingChanges(0u).WithDefaultLr())
     |> Seq.distinct
     |> Seq.filter (isTested>>not)
-    |> Seq.map withDefaultLr
     |> Seq.sortBy (fun s-> s.ToShorthand().Length)
     //|> Seq.take 20 |> Utils.shuffle
+    |> Seq.map withDefaultLr
     |> Seq.filter (isTested>>not) //seq is lazy, so this last minute rechecks availability of results.
-    //|> Seq.map (fun s->s.ToShorthand()) |> Seq.toList
+    //|> Seq.map (fun s->s.ToShorthand()) 
     |> Seq.map improveAndTest
+    |> Seq.toList
