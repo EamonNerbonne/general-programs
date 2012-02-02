@@ -200,7 +200,7 @@ namespace LvqGui
 
 		public void TrainUptoIters(double itersToTrainUpto, LvqDatasetCli trainingSet, CancellationToken cancel)
 		{
-			TrainUptoEpochs((int)(itersToTrainUpto / GetItersPerEpoch(trainingSet, 0)), trainingSet, cancel);
+			TrainUptoEpochs((int)(itersToTrainUpto / GetItersPerEpoch(trainingSet, 0) + 0.5), trainingSet, cancel);
 		}
 
 		public void TrainUptoEpochs(int epochsToTrainUpto, LvqDatasetCli trainingSet, CancellationToken cancel)

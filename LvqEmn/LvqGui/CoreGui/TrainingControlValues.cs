@@ -199,9 +199,8 @@ namespace LvqGui {
 
 		public void TrainUptoIters() {
 			double uptoIters = ItersToTrainUpto;
-			int uptoEpochs = (int)(uptoIters / ItersPerEpoch);
 			TrainSelectedModel((dataset, model) => {
-				using (new DTimer("Training up to " + uptoEpochs + " epochs"))
+				using (new DTimer("Training up to " + uptoIters + " iters"))
 					model.TrainUptoIters(uptoIters, dataset, Owner.WindowClosingToken);
 
 				var newIdx = model.GetBestSubModelIdx();
@@ -219,10 +218,9 @@ namespace LvqGui {
 			var allModels = Owner.LvqModels.ToArray();
 			Parallel.ForEach(Partitioner.Create(allModels, true), new ParallelOptions { MaxDegreeOfParallelism = 3, CancellationToken = owner.WindowClosingToken }, model => {
 				var dataset = model.InitSet;
-				int uptoEpochs = (int)(uptoIters / LvqMultiModel.GetItersPerEpoch(dataset,0) + 0.5);
 				TrainSelectedModel((_dataset, _model) => {
-					using (new DTimer("Training up to " + uptoEpochs + " epochs"))
-						_model.TrainUptoEpochs(uptoEpochs, dataset, Owner.WindowClosingToken);
+					using (new DTimer("Training up to " + uptoIters + " iters"))
+						_model.TrainUptoIters(uptoIters, dataset, Owner.WindowClosingToken);
 
 					var newIdx = _model.GetBestSubModelIdx();
 					owner.Dispatcher.BeginInvoke(() => {
