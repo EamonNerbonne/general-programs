@@ -97,6 +97,8 @@ namespace LvqGui {
 
 		public CreateStarDatasetValues(LvqWindowValues owner) {
 			this.owner = owner;
+			settings.NormalizeDimensions = owner.NormalizeDimensions;
+			settings.NormalizeByScaling = owner.NormalizeByScaling;
 			owner.PropertyChanged += (o, e) => {
 				if (e.PropertyName == "ExtendDataByCorrelation") ExtendDataByCorrelation = owner.ExtendDataByCorrelation;
 				else if (e.PropertyName == "NormalizeDimensions") NormalizeDimensions = owner.NormalizeDimensions;
