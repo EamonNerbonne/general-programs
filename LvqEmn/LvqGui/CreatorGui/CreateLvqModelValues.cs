@@ -81,18 +81,18 @@ namespace LvqGui {
 			set { if (!settings.NoNnErrorRateTracking.Equals(value)) { settings.NoNnErrorRateTracking = value; _propertyChanged("NoNnErrorRateTracking"); } }
 		}
 
-		public bool unnormedP {
-			get { return settings.unnormedP; }
-			set { if (!settings.unnormedP.Equals(value)) { settings.unnormedP = value; _propertyChanged("unnormedP"); } }
+		public bool neiP {
+			get { return settings.neiP; }
+			set { if (!settings.neiP.Equals(value)) { settings.neiP = value; _propertyChanged("neiP"); } }
 		}
 		public bool noKP {
 			get { return settings.noKP; }
 			set { if (!settings.noKP.Equals(value)) { settings.noKP = value; _propertyChanged("noKP"); } }
 		}
 
-		public bool unnormedB {
-			get { return settings.unnormedB; }
-			set { if (!settings.unnormedB.Equals(value)) { settings.unnormedB = value; _propertyChanged("unnormedB"); } }
+		public bool neiB {
+			get { return settings.neiB; }
+			set { if (!settings.neiB.Equals(value)) { settings.neiB = value; _propertyChanged("neiB"); } }
 		}
 
 		public bool LocallyNormalize {
@@ -210,9 +210,9 @@ namespace LvqGui {
 				(
 					(?<Ppca>Ppca,)
 					|(?<RandomInitialBorders>RandomInitialBorders,)
-					|(?<unnormedP>unnormedP,)
+					|(?<neiP>neiP,)
 					|(?<noKP>noKP,)
-					|(?<unnormedB>unnormedB,)
+					|(?<neiB>neiB,)
 					|(?<LocallyNormalize>LocallyNormalize,)
 					|(?<NGu>NGu,)
 					|(?<NGi>NGi,)

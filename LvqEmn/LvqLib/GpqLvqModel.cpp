@@ -133,7 +133,14 @@ MatchQuality GpqLvqModel::learnFrom(Vector_N const & trainPoint, int trainLabel)
 	/*/
 	P.noalias() += lrScaled * trainPoint.transpose();
 	/**/
-	if(settings.noKP) normalizeProjection(P);
+	if(settings.noKP||settings.neiP) {
+		normalizeProjection(P);//returns scale
+		//for(size_t i=0;i<prototype.size();++i) prototype[i].P_point *= scale; //not necessary if you rescale _every_ iter anyhow.
+	}
+	if(settings.neiB) {
+		NormalizeBoundaries();	
+	}
+
 
 	totalMuJLr += lr_point * retval.muJ;
 	totalMuKLr -= lr_point * retval.muK;
@@ -249,12 +256,12 @@ void GpqLvqModel::NormalizeBoundaries() {
 }
 
 void GpqLvqModel::DoOptionalNormalization() {
-	if(!settings.unnormedP) {
+	if(!(settings.noKP||settings.neiP)) {
 		LvqFloat scale = normalizeProjection(P);
 		for(size_t i=0;i<prototype.size();++i)
 			prototype[i].P_point *= scale;
 	}
-	if(!settings.unnormedB) {
+	if(!settings.neiB) {
 		NormalizeBoundaries();	
 	}
 }

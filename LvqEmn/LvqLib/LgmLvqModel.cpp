@@ -76,6 +76,17 @@ MatchQuality LgmLvqModel::learnFrom(Vector_N const & trainPoint, int trainLabel)
 	P[J].noalias() -= (settings.LrScaleP *  lr_mu_J2) * (Pj_vJ * vJ.transpose() );
 	P[K].noalias() -=(settings.LrScaleP * lr_mu_K2) * (Pk_vK * vK.transpose() );
 
+	if(settings.neiP) {
+		if(!settings.LocallyNormalize) {
+			double overallNorm = std::accumulate(P.begin(), P.end(),0.0,[](double cur, Matrix_NN const & mat)->double { return cur + projectionSquareNorm(mat); });
+			double scale = 1.0/sqrt(overallNorm / P.size());
+			for(size_t i=0;i<P.size();++i) P[i]*=scale;
+		} else {
+			for(size_t i=0;i<P.size();++i) normalizeProjection(P[i]);
+		}
+	}
+
+
 	totalMuJLr += lr_point * retval.muJ;
 	totalMuKLr -= lr_point * retval.muK;
 
@@ -133,7 +144,7 @@ vector<int> LgmLvqModel::GetPrototypeLabels() const {
 }
 
 void LgmLvqModel::DoOptionalNormalization() {
-	if(!settings.unnormedP) {
+	if(!settings.neiP) {
 		if(!settings.LocallyNormalize) {
 			double overallNorm = std::accumulate(P.begin(), P.end(),0.0,[](double cur, Matrix_NN const & mat)->double { return cur + projectionSquareNorm(mat); });
 			double scale = 1.0/sqrt(overallNorm / P.size());

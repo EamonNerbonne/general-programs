@@ -120,10 +120,12 @@ MatchQuality G2mLvqModel::learnFrom(Vector_N const & trainPoint, int trainLabel)
 	}
 	if(settings.noKP) {
 		P.noalias() -= (lr_P * muJ2_BjT_Bj_P_vJ) * vJ.transpose();
-		normalizeProjection(P);
 	} else {
 		P.noalias() -= (lr_P * muK2_BkT_Bk_P_vK) * vK.transpose() + (lr_P * muJ2_BjT_Bj_P_vJ) * vJ.transpose();
 	}
+
+	if(settings.neiP || settings.noKP) normalizeProjection(P);
+	if(settings.neiB) NormalizeBoundaries();	
 
 	for(size_t i=0;i<prototype.size();++i)
 		prototype[i].ComputePP(P);
@@ -241,12 +243,12 @@ void G2mLvqModel::NormalizeBoundaries() {
 		}
 }
 void G2mLvqModel::DoOptionalNormalization() {
-	if(!settings.unnormedP) {
+	if(!settings.neiP && !settings.noKP) {
 		normalizeProjection(P);
 		for(size_t i=0;i<prototype.size();++i)
 			prototype[i].ComputePP(P);
 	}
-	if(!settings.unnormedB) {
+	if(!settings.neiB) {
 		NormalizeBoundaries();	
 	}
 }

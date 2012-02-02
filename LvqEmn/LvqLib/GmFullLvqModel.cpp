@@ -98,7 +98,11 @@ MatchQuality GmFullLvqModel::learnFrom(Vector_N const & trainPoint, int trainLab
 	}
 
 	P.noalias() -= (lr_P * muJ2_P_vJ) * vJ.transpose();
-	P.noalias() -= (lr_P * muK2_P_vK) * vK.transpose();
+	if(!settings.noKP)
+		P.noalias() -= (lr_P * muK2_P_vK) * vK.transpose();
+
+	if(settings.neiP || settings.noKP)
+		normalizeProjection(P);
 
 	for(int i=0;i<pLabel.size();++i)
 		RecomputeProjection(i);
@@ -132,7 +136,7 @@ size_t GmFullLvqModel::MemAllocEstimate() const {
 
 
 void GmFullLvqModel::DoOptionalNormalization() {
-	if(!settings.unnormedP) {
+	if(!settings.neiP && !settings.noKP) {
 		normalizeProjection(P);
 		for(size_t i=0;i<prototype.size();++i)
 			RecomputeProjection((int)i);

@@ -10,7 +10,7 @@
 
 struct LvqModelRuntimeSettings
 {
-	bool NoNnErrorRateTracking, unnormedP,noKP, unnormedB, LocallyNormalize, wGMu, SlowK;
+	bool NoNnErrorRateTracking, neiP,noKP, neiB, LocallyNormalize, wGMu, SlowK;
 	int ClassCount;
 	double MuOffset, LrScaleP, LrScaleB, LR0, LrScaleBad;
 	copy_ptr<boost::mt19937> RngIter;

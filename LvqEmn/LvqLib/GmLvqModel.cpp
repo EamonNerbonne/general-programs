@@ -90,9 +90,12 @@ MatchQuality GmLvqModel::learnFrom(Vector_N const & trainPoint, int trainLabel) 
 	}
 	if(settings.noKP) {
 		P.noalias() -= (lr_P * muJ2_P_vJ) * vJ.transpose();
-		normalizeProjection(P);
 	} else {
 		P.noalias() -= (lr_P * muJ2_P_vJ) * vJ.transpose() + (lr_P * muK2_P_vK) * vK.transpose();
+	}
+
+	if(settings.neiP || settings.noKP) {
+		normalizeProjection(P);
 	}
 
 	for(int i=0;i<pLabel.size();++i)
@@ -163,7 +166,7 @@ void GmLvqModel::ClassBoundaryDiagram(double x0, double x1, double y0, double y1
 }
 
 void GmLvqModel::DoOptionalNormalization() {
-	if(!settings.unnormedP) {
+	if(!(settings.neiP || settings.noKP)) {
 		normalizeProjection(P);
 		for(size_t i=0;i<prototype.size();++i)
 			RecomputeProjection((int)i);

@@ -36,7 +36,7 @@ void LvqProjectionModel::normalizeProjectionRotation() {
 
 	P = S.asDiagonal() * Vt;
 	double scale=1.0;
-	if(!settings.unnormedP)
+	if(!settings.neiP)
 		scale = normalizeProjection(P);
 
 	compensateProjectionUpdate(U,scale);

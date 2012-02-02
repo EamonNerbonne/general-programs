@@ -38,7 +38,7 @@ namespace LvqLibCli {
 		bool RandomInitialBorders;
 
 		bool NGu, NGi, Ppca, Popt, Bcov,LrRaw, wGMu, NoNnErrorRateTracking;
-		bool SlowK,unnormedP, noKP, unnormedB, LocallyNormalize;
+		bool SlowK,neiP, noKP, neiB, LocallyNormalize;
 		unsigned  InstanceSeed;
 		double MuOffset;
 

@@ -126,7 +126,7 @@ MatchQuality GgmLvqModel::learnFrom(Vector_N const & trainPoint, int trainLabel)
 		P.noalias() += ((lr_P * muK2) * BkT_Bk_P_vK) * vK.transpose() + ((lr_P * muJ2) * BjT_Bj_P_vJ) * vJ.transpose();
 	}
 
-	if(!settings.unnormedP)
+	if(!settings.neiP)
 		normalizeProjection(P);
 
 	for(size_t i=0;i < protoCount;++i)

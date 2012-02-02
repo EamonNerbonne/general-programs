@@ -17,7 +17,7 @@ extern "C" {
 		int PrototypesPerClass;
 		bool Ppca;
 		bool RandomInitialBorders;
-		bool unnormedP, noKP, unnormedB, LocallyNormalize;
+		bool neiP, noKP, neiB, LocallyNormalize;
 		bool NGu, NGi, Popt, Bcov, LrRaw, wGMu;
 		bool SlowK;
 		double MuOffset, LR0, LrScaleP, LrScaleB, LrScaleBad;

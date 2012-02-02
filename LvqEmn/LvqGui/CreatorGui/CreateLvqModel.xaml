@@ -73,12 +73,12 @@
         <CheckBox Grid.Row="5" Grid.Column="1"  IsChecked="{Binding Ppca, Mode= TwoWay, ValidatesOnExceptions=True}"/>
         <Label Grid.Row="6">Random initial boundaries (g2m, ggm)</Label>
         <CheckBox Grid.Row="6" Grid.Column="1"  IsChecked="{Binding RandomInitialBorders, Mode= TwoWay, ValidatesOnExceptions=True}"/>
-        <Label Grid.Row="7">Suppress projection normalization</Label>
-        <CheckBox Grid.Row="7" Grid.Column="1"  IsChecked="{Binding unnormedP, Mode= TwoWay, ValidatesOnExceptions=True}"/>
+        <Label Grid.Row="7">normalize every iteration: P (not ggm)</Label>
+        <CheckBox Grid.Row="7" Grid.Column="1"  IsChecked="{Binding neiP, Mode= TwoWay, ValidatesOnExceptions=True}"/>
         <Label Grid.Row="8">noKP</Label>
         <CheckBox Grid.Row="8" Grid.Column="1"  IsChecked="{Binding noKP, Mode= TwoWay, ValidatesOnExceptions=True}"/>
-        <Label Grid.Row="9">Suppress boundary normalization (g2m)</Label>
-        <CheckBox Grid.Row="9" Grid.Column="1"  IsChecked="{Binding unnormedB, Mode= TwoWay, ValidatesOnExceptions=True}"/>
+        <Label Grid.Row="9">normalize every iteration: B (g2m, gpq)</Label>
+        <CheckBox Grid.Row="9" Grid.Column="1"  IsChecked="{Binding neiB, Mode= TwoWay, ValidatesOnExceptions=True}"/>
         <Label Grid.Row="10">Locally normalize (lgm, g2m, ggm)</Label>
         <CheckBox Grid.Row="10" Grid.Column="1"  IsChecked="{Binding LocallyNormalize, Mode= TwoWay, ValidatesOnExceptions=True}"/>
         <Label Grid.Row="11">NG-inspired updates (gsm, g2m, ggm)</Label>
