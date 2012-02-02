@@ -81,9 +81,9 @@ LvqDataset* CreateDataset::ConstructStarDataset(boost::mt19937 & rngParams, boos
 		}
 	}
 
-	Vector_N perDimSigma(dims);
-	UniformRandomizeMatrix(perDimSigma, rngParams, 0.0, globalNoiseMaxSigma);
 	if(globalNoiseMaxSigma > 0.0) {
+		Vector_N perDimSigma(dims);
+		UniformRandomizeMatrix(perDimSigma, rngParams, 0.0, globalNoiseMaxSigma);
 		Matrix_NN globalNoise(dims, pointsPerClass * classCount);
 		RandomMatrixInit(rngInst, globalNoise, 0.0, 1.0);
 		globalNoise = perDimSigma.asDiagonal() * globalNoise;
