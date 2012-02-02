@@ -109,12 +109,12 @@ namespace LvqGui
 					statProcIdx += newStatCount;
 					for (int i = 0; i < newStatCount; ++i)
 						statCache.Add(MeanStdErrStats(newstats.Select(modelstats => modelstats[i])));
-					while (statCache.Count > 512)
+					while (statCache.Count > 256)
 					{
 						//Console.WriteLine("Trimming from " + statCache.Count);
-						for (int i = 1; i < 256; i++) statCache[i] = statCache[2 * i];
-						for (int i = 512; i < statCache.Count; i++) statCache[i - 256] = statCache[i];
-						statCache.RemoveRange(statCache.Count - 256, 256);
+						for (int i = 1; i < 128; i++) statCache[i] = statCache[2 * i];
+						for (int i = 256; i < statCache.Count; i++) statCache[i - 128] = statCache[i];
+						statCache.RemoveRange(statCache.Count - 128, 128);
 					}
 					return (cachedStatCache = statCache.ToArray());
 				}

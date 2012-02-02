@@ -190,7 +190,7 @@ void LvqDataset::shufflePoints(boost::mt19937& rng) {
 }
 
 bool shouldCollect(unsigned epochsDone) {
-	return epochsDone<512 || epochsDone%2==0 && shouldCollect(epochsDone/2);
+	return epochsDone<256 || epochsDone%2==0 && shouldCollect(epochsDone/2);
 }
 
 void LvqDataset::TrainModel(int epochs, LvqModel & model, LvqModel::Statistics * statisticsSink, LvqDataset const * testData, int* labelOrderSink, bool sortedTrain) const {
