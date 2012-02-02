@@ -219,6 +219,7 @@ namespace LvqGui {
 					|(?<Popt>Popt,)
 					|(?<Bcov>Bcov,)
 					|(?<wGMu>wGMu,)
+					|(?<LrRaw>LrRaw,)
 					|(?<SlowK>SlowK,)
 					|(?<NoNnErrorRateTracking>NoNnErrorRateTracking,)
 					|mu(?<MuOffset>[0-9]*(\.[0-9]*)?([eE]-?[0-9]+)?),

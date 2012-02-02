@@ -266,7 +266,7 @@ let withDefaultLr (settings:LvqModelSettingsCli) =
             | LvqModelType.Gm -> settings.WithLr(0.002, 2., 0.)
             | LvqModelType.Ggm -> settings.WithLr(0.03, 0.05, 4.)
             | _ -> settings.WithLr(0.01, 0.4, 0.006)
-    if withlr.LrRaw then withlr.WithLr(s.LR0,s.LrScaleP * s.LR0, s.LrScaleB* s.LR0) else withlr
+    if withlr.LrRaw then withlr.WithLr(withlr.LR0, withlr.LrScaleP * withlr.LR0, withlr.LrScaleB* withlr.LR0) else withlr
 
 let allUniformResults () = 
     let parseLine (line:string) =
