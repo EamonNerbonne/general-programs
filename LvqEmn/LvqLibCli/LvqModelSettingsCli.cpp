@@ -81,4 +81,34 @@ namespace LvqLibCli {
 		retval.NoNnErrorRateTracking = LvqModelSettingsCli().NoNnErrorRateTracking;
 		return retval;
 	}
+
+	static double costfactors[9][4] = 
+		{	
+			{9.9, 10.2, 2.11, 16.9},//g2m
+			{7,8,2.54,700},//g2m ngu
+			{10.7,9.1,2.18,441},//ggm
+			{20,12.5,2.19,777},//ggm ngu
+			{5.3,7.1,2.37,5},//gm
+			{6,6.5,2.57,500},//gm ngu
+			{104,210,0.062,-1010},//gpq
+			{48.7,2090.101,-515},//gpq ngu
+			{7.4,14.8,8,-40},//lgm
+		};
+
+	double LvqModelSettingsCli::EstimateCost(int classes, int dataDims) {
+		bool ngu = NGu && PrototypesPerClass >1;
+		double* currfactors	=
+			ModelType==LvqModelType::G2m && !ngu ? costfactors[0]
+		:	ModelType==LvqModelType::G2m && ngu ? costfactors[1]
+		:	ModelType==LvqModelType::Ggm && !ngu ? costfactors[2]
+		:	ModelType==LvqModelType::Ggm && ngu ? costfactors[3]
+		:	ModelType==LvqModelType::Gm && !ngu ? costfactors[4]
+		:	ModelType==LvqModelType::Gm && ngu ? costfactors[5]
+		:	ModelType==LvqModelType::Gpq && !ngu ? costfactors[6]
+		:	ModelType==LvqModelType::Gpq && ngu ? costfactors[7]
+		:	costfactors[8]//Lgm, Lpq
+			;
+
+		return ((classes*PrototypesPerClass + currfactors[0])*(dataDims + currfactors[1])*currfactors[2] + currfactors[3])*0.001;
+	}
 }

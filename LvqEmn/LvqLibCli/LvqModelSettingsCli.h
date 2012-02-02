@@ -51,6 +51,7 @@ namespace LvqLibCli {
 		LvqModelSettingsCli WithDefaultLr();
 		LvqModelSettingsCli WithDefaultNnTracking();
 		LvqModelSettingsRaw ToNativeSettings();
+		double EstimateCost(int classes, int dataDims);
 		String^ ToShorthand();
 		LvqModelSettingsCli Canonicalize();
 
