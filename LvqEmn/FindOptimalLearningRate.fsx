@@ -299,7 +299,7 @@ let allUniformResults () =
 allUniformResults ()
     |> List.sortBy (fun res->res.GeoMean)
     |> Seq.distinctBy (fun res-> res.Settings.WithDefaultLr()) |> Seq.toList
-    |> List.filter (fun res->res.Settings.ModelType = LvqModelType.Gm && res.Settings.PrototypesPerClass = 1)
+    //|> List.filter (fun res->res.Settings.ModelType = LvqModelType.Gm && res.Settings.PrototypesPerClass = 1)
     |> List.map printMeanResults
 
 ["Gpq-1,Ppca,LrRaw,";"Gm-1,LrRaw,";"G2m-1,Ppca,LrRaw,";"Ggm-1,Ppca,Bcov,SlowK,LrRaw,";"Gm-3,LrRaw,";"G2m-5,Ppca,NGi,LrRaw,";"Ggm-5,Ppca,SlowK,LrRaw,";"Gm-5,Ppca,NGi,LrRaw,"]
@@ -320,3 +320,5 @@ TestLr.resultsDir.GetFiles("*.txt", SearchOption.AllDirectories)
     //|> Seq.map (fun s->s.ToShorthand()) 
     |> Seq.map improveAndTest
     |> Seq.toList
+
+//["Gpq-1,SlowK,";"Gm-1,noKP,";"Gpq-5,";"Gpq-5,NGi,";"Gpq-5,SlowK,NGi,";"Gm-5,noKP,";"Gm-5,noKP,NGi,";"Gm-5,noKP,SlowK,";"Gm-5,noKP,NGi,SlowK,"]
