@@ -68,9 +68,11 @@ namespace LvqLibCli {
 		protoCount = modelShape.pointCount;
 
 		StatCollector statCollector;
-		ComputeModelStats(trainingSet->GetTrainingDataset(datafold), trainingSet->GetTestDataset(datafold), nativeModel, StatCallbackTrampoline, &statCollector);
 		msclr::lock l2(copySync);
-		SinkStats(stats, statCollector.statsList);
+		if(stats) {
+			ComputeModelStats(trainingSet->GetTrainingDataset(datafold), trainingSet->GetTestDataset(datafold), nativeModel, StatCallbackTrampoline, &statCollector);
+			SinkStats(stats, statCollector.statsList);
+		}
 		modelCopy = Wrap(CloneLvqModel(nativeModel));
 		NormalizeProjectionRotation(modelCopy->get());
 		GC::KeepAlive(this);
