@@ -52,7 +52,7 @@ namespace LvqGui
 
 		public double CurrentLearningRate { get { return subModels.Sum(model => model.UnscaledLearningRate) / ModelCount; } }
 
-		public LrOptimizer.ErrorRates CurrentErrorRates() { return new LrOptimizer.ErrorRates(CurrentRawStats(), nnErrIdx); }
+		public ErrorRates CurrentErrorRates() { return new ErrorRates(CurrentRawStats(), nnErrIdx); }
 
 		public int SelectedSubModel { get; set; }
 

@@ -133,7 +133,7 @@ namespace LvqGui {
 			int protos = Use5Protos.IsChecked == true ? 5 : 1;
 			long iterCount = (long)iterCountSelectbox.SelectedItem;
 			var testLr = new LrOptimizer(iterCount, offset);
-			var settings = new LvqModelSettingsCli().WithChanges(modeltype, protos).WithTestingChanges(testLr.offset);
+			var settings = LrOptimizer.WithSeedFromOffset(new LvqModelSettingsCli().WithChanges(modeltype, protos), testLr.offset);
 			string shortname = testLr.ShortnameFor(settings);
 
 			var logWindow = LogControl.ShowNewLogWindow(shortname, ActualWidth, ActualHeight * 0.6);

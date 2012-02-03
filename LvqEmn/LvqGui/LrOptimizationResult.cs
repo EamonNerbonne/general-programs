@@ -42,14 +42,6 @@ namespace LvqGui {
 			return resultLines.Select(resLine => ParseLine(resLine, lr0range, lrPrange, lrBrange));
 		}
 
-		public struct Lr { public double Lr0, LrP, LrB; public override string ToString() { return Lr0 + " p" + LrP + " b" + LrB; } }
-		public struct LrAndError : IComparable<LrAndError>, IComparable {
-			public Lr LR; public LrOptimizer.ErrorRates Errors;
-			public int CompareTo(LrAndError other) { return Errors.CompareTo(other.Errors); }
-			public override string ToString() { return LR + " @ " + Errors; }
-
-			public int CompareTo(object obj) { return CompareTo((LrAndError)obj); }
-		}
 
 		static LrAndError ParseLine(string resultLine, double[] lr0range, double[] lrPrange, double[] lrBrange) {
 			var resLrThenErr = resultLine.Split(':');
@@ -59,12 +51,12 @@ namespace LvqGui {
 
 			Tuple<double, double>[] errs = errsThenCumulLr0.Take(3).Select(errStr => errStr.Split('~').Select(double.Parse).ToArray()).Select(errval => Tuple.Create(errval[0], errval.Skip(1).FirstOrDefault())).ToArray();
 			return new LrAndError {
-				LR = new Lr {
+				LR = new LearningRates {
 					Lr0 = ClosestMatch(lr0range, lrs[0]),
 					LrP = ClosestMatch(lrPrange, lrs[1]),
 					LrB = ClosestMatch(lrBrange, lrs[2]),
 				},
-				Errors = new LrOptimizer.ErrorRates(errs[0].Item1, errs[0].Item2, errs[1].Item1, errs[1].Item2, errs[2].Item1, errs[2].Item2, double.Parse(errsThenCumulLr0[3].Trim(' ', '[', ']'))),
+				Errors = new ErrorRates(errs[0].Item1, errs[0].Item2, errs[1].Item1, errs[1].Item2, errs[2].Item1, errs[2].Item2, double.Parse(errsThenCumulLr0[3].Trim(' ', '[', ']'))),
 			};
 		}
 

@@ -16,7 +16,6 @@ using LvqLibCli;
 
 namespace LvqGui {
 	public static class LrOptimizationHelper {
-		public static LvqModelSettingsCli WithTestingChanges(this LvqModelSettingsCli settings, uint offset) { return settings.WithSeeds(1 + 2 * offset, 2 * offset); }
 	}
 
 	public class LrOptimizer {
@@ -168,7 +167,7 @@ namespace LvqGui {
 		IEnumerable<LvqModelSettingsCli> AllLrTestingSettings() {
 			return
 				from settings in AllLrTestingSettingsNoOffset
-				select settings.WithTestingChanges(offset);
+				select LrOptimizer.WithSeedFromOffset(settings, offset);
 		}
 
 
@@ -187,18 +186,18 @@ namespace LvqGui {
 			sink.WriteLine("For " + settings.ModelType + " with " + settings.PrototypesPerClass + " prototypes and " + _itersToRun + " iters training:");
 
 			var errorRates = (
-				from lr0 in lr0range
+				from lr0 in lr0range 
 				from lrP in lrPrange
 				from lrB in lrBrange
-				let errs = ErrorOf(sink, _itersToRun, settings.WithLr(lr0, lrP, lrB), cancel)
-				select new LrAndErrorRates { lr0 = lr0, lrP = lrP, lrB = lrB, errs = errs }
+				let errorRatesTask = ErrorOf(sink, _itersToRun, settings.WithLr(lr0, lrP, lrB), cancel)
+				select new  {lr0, lrP, lrB, errorRatesTask }
 				).ToArray();
 
-			return Task.Factory.ContinueWhenAll(errorRates.Select(run => run.errs).ToArray(),
+			return Task.Factory.ContinueWhenAll(errorRates.Select(run => run.errorRatesTask).ToArray(),
 				tasks => {
-					foreach (var result in errorRates.OrderBy(err => err.errs.Result.CanonicalError))
+					foreach (var result in errorRates.OrderBy(err => err.errorRatesTask.Result.CanonicalError))
 						sink.Write("\n" + result.lr0.ToString("g4").PadRight(9) + "p" + result.lrP.ToString("g4").PadRight(9) + "b" + result.lrB.ToString("g4").PadRight(9) + ": "
-								+ result.errs.Result + "[" + result.errs.Result.cumLearningRate + "]"
+								+ result.errorRatesTask.Result + "[" + result.errorRatesTask.Result.cumLearningRate + "]"
 							);
 
 					sink.WriteLine();
@@ -236,43 +235,6 @@ namespace LvqGui {
 				cancel, TaskContinuationOptions.ExecuteSynchronously, LowPriorityTaskScheduler.DefaultLowPriorityScheduler);
 		}
 
-		class LrAndErrorRates {
-			public double lr0, lrP, lrB;
-			public Task<ErrorRates> errs;
-		}
-
-		public struct ErrorRates : IComparable<ErrorRates>, IComparable {
-			public readonly double training, trainingStderr, test, testStderr, nn, nnStderr, cumLearningRate;
-			public ErrorRates(double training, double trainingStderr, double test, double testStderr, double nn, double nnStderr, double cumLearningRate) {
-				this.training = training;
-				this.trainingStderr = trainingStderr;
-				this.test = test;
-				this.testStderr = testStderr;
-				this.nn = nn;
-				this.nnStderr = nnStderr;
-				this.cumLearningRate = cumLearningRate;
-			}
-			public ErrorRates(LvqMultiModel.Statistic stats, int nnIdx) {
-				training = stats.Value[LvqTrainingStatCli.TrainingErrorI];
-				test = stats.Value[LvqTrainingStatCli.TestErrorI];
-				nn = nnIdx == -1 ? double.NaN : stats.Value[nnIdx];
-				trainingStderr = stats.StandardError[LvqTrainingStatCli.TrainingErrorI];
-				testStderr = stats.StandardError[LvqTrainingStatCli.TestErrorI];
-				nnStderr = nnIdx == -1 ? double.NaN : stats.StandardError[nnIdx];
-				cumLearningRate = stats.Value[LvqTrainingStatCli.CumLearningRateI];
-			}
-
-			public double CanonicalError { get { return training * 0.9 + (nn.IsFinite() ? test * 0.05 + nn * 0.05 : test * 0.1); } }
-			public override string ToString() {
-				return Statistics.GetFormatted(training, trainingStderr, 1) + "; " +
-					Statistics.GetFormatted(test, testStderr, 1) + "; " +
-					Statistics.GetFormatted(nn, nnStderr, 1) + "; ";
-			}
-
-			public int CompareTo(ErrorRates other) { return CanonicalError.CompareTo(other.CanonicalError); }
-
-			public int CompareTo(object obj) { return CompareTo((ErrorRates)obj); }
-		}
 		static readonly object fsSync = new object();
 
 
@@ -435,5 +397,7 @@ namespace LvqGui {
 				select settingsGroup.MinBy(tuple => tuple.Item2)
 				;
 		}
+
+		public static LvqModelSettingsCli WithSeedFromOffset(LvqModelSettingsCli settings, uint offset) { return settings.WithSeeds(1 + 2 * offset, 2 * offset); }
 	}
 }

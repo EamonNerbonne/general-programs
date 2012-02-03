@@ -365,6 +365,7 @@
     </Compile>
     <Compile Include="CloneableAs.cs" />
     <Compile Include="CreatorGui\CreateDataset.cs" />
+    <Compile Include="LrAndError.cs" />
     <Compile Include="LrOptimizationResult.cs" />
     <Compile Include="GaussianCloudDatasetSettings.cs" />
     <Compile Include="LvqPlotting\StatisticsViewMode.cs" />
