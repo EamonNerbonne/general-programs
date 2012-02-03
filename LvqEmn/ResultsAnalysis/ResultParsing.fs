@@ -5,7 +5,7 @@ open LvqLibCli
 
 //---------------------------------------------------PARSING
 
-let loadAllResults datasetName =
+let loadDatasetLrOptResults datasetName =
         let filepattern = "*.txt"
         TestLr.resultsDir.GetDirectories(datasetName).[0].GetFiles(filepattern)
         |> Seq.map LvqGui.DatasetResults.ProcFile
@@ -27,9 +27,6 @@ let onlyFirst10results = List.filter (fun (result:DatasetResults) ->result.unopt
 
 let chooseResults (results:DatasetResults list) exampleSettings = 
     results |> List.filter (fun result -> coreSettingsEq exampleSettings result.unoptimizedSettings)
-
-//let loadResultsByLr datasetName (settings:LvqLibCli.LvqModelSettingsCli) = 
-//    loadAllResults datasetName |> filterResults settings  |> groupResultsByLr
 
 let unpackErrs errs = 
     (List.map (fun (err:TestLr.ErrorRates) -> err.training) errs,

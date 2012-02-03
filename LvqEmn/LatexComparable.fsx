@@ -8,7 +8,7 @@ open LvqGui
 
 
 
-let allResults = ResultParsing.loadAllResults "base"
+let allResults = ResultParsing.loadDatasetLrOptResults "base"
 let tenResults = ResultParsing.onlyFirst10results allResults
 
 

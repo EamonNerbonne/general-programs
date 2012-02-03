@@ -40,7 +40,7 @@ let datasets =
     |> List.toArray
 
 let bestModelsForDataset (dirname:string, dataset:LvqDatasetCli) = 
-    ResultParsing.loadAllResults dirname
+    ResultParsing.loadDatasetLrOptResults dirname
     |> Seq.map  (fun res -> (dirname, dataset, res.GetOptimizedSettings(Utils.nullable 1u, Utils.nullable 0u)))
 
 let shuffle seq =
