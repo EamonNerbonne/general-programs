@@ -8,14 +8,14 @@ open LvqGui
 
 let allResults = LrOptResults.loadDatasetLrOptResults "base"
 
-LatexOverallErrorTables.lvqMethodsOptimalLrErrorsTable "base" allResults GeneralSettings.allTypes |> printfn "%s"
+LatexOverallErrorTables.lvqMethodsOptimalLrErrorsTable "base" allResults ModelSettings.allCoreModelSettings |> printfn "%s"
 
-LatexOverallErrorTables.lvqMethodsNonOptimalLrErrorsTable "base" allResults GeneralSettings.allTypes |> printfn "%s"
+LatexOverallErrorTables.lvqMethodsNonOptimalLrErrorsTable "base" allResults ModelSettings.allCoreModelSettings |> printfn "%s"
 
-ErrorCorrelations.initCorrs allResults GeneralSettings.basicTypes
+ErrorCorrelations.initCorrs allResults ModelSettings.coreProjectingModelSettings
 
-ErrorCorrelations.meanInitCorrs allResults GeneralSettings.basicTypes
+ErrorCorrelations.meanInitCorrs allResults ModelSettings.coreProjectingModelSettings
 
-ErrorCorrelations.errTypeCorrTableLatex allResults false GeneralSettings.allTypes
+ErrorCorrelations.errTypeCorrTableLatex allResults false ModelSettings.allCoreModelSettings
 
 

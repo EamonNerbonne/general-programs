@@ -25,13 +25,10 @@ let lrTestingResults =
 
 let hasNoHeuristics (settings:LvqModelSettingsCli) = settings.WithDefaultLr().WithDefaultSeeds().WithDefaultNnTracking() = LvqModelSettingsCli.defaults
 
-let basicTypes = new System.Collections.Generic.HashSet<LvqModelSettingsCli>(GeneralSettings.basicTypes)
+
 let plainLrTestingResults =
-    lrTestingResults |> List.filter
-        (fun (_,dHeur,settings,_) -> 
-            (dHeur = "" || dHeur="n")
-                && basicTypes.Contains(settings)
-        )   
+    let isBasicType = (new System.Collections.Generic.HashSet<LvqModelSettingsCli>(ModelSettings.coreProjectingModelSettings)).Contains
+    lrTestingResults |> List.filter (fun (_,dHeur,settings,_) -> (dHeur = "" || dHeur="n") && isBasicType settings)   
 
 
 let plainCompleteLrTestingResults = 
