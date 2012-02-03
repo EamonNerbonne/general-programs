@@ -1,4 +1,4 @@
-﻿#I @"ResultsAnalysis\bin\ReleaseMingw"
+﻿#I @"ResultsAnalysis\bin\ReleaseMingw2"
 #r "ResultsAnalysis"
 #r "LvqLibCli"
 #r "LvqGui"
@@ -8,8 +8,8 @@ open LvqGui
 
 
 
-let allResults = ResultParsing.loadDatasetLrOptResults "base"
-let tenResults = ResultParsing.onlyFirst10results allResults
+let allResults = LrOptResults.loadDatasetLrOptResults "base"
+let tenResults = List.filter (fun (result:DatasetResults) ->result.unoptimizedSettings.InstanceSeed < 20u) allResults
 
 
 List.map (LatexifyCompareMethods.latexifyCompareHeuristic tenResults) GeneralSettings.heuristics |> String.concat "\n\n" |> printfn "%s"

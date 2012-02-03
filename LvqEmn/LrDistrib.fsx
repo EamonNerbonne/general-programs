@@ -52,8 +52,8 @@ let meanBestLrLookup =
                 let (lr, trainErr) = 
                     Seq.collect id lrs 
                         |> List.ofSeq
-                        |> ResultParsing.groupErrorsByLr
-                        |> List.map (Utils.apply2nd (ResultParsing.meanStderrOfErrs >> (fun err-> (err.training, err.test))))
+                        |> LrOptResults.groupErrorsByLr
+                        |> List.map (Utils.apply2nd (LrOptResults.meanStderrOfErrs >> (fun err-> (err.training, err.test))))
                         |> List.sortBy snd
                         |> List.head
                 let trainErrOfBestLr = 

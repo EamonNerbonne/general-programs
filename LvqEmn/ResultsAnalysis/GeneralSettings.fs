@@ -35,7 +35,9 @@ let relevantVariants baseHeuristicSettings =
     let basicSettings = LvqModelSettingsCli()
     variants
         |> List.map (fun (variant, variantName) -> (variant basicSettings, variant baseHeuristicSettings, variantName) )
-        |> List.filter (fun (baseSettings, heurSettings, _) -> baseSettings = heurSettings || ResultParsing.isCanonical heurSettings )
+        |> List.filter (fun (baseSettings, heurSettings, _) -> baseSettings = heurSettings || heurSettings.Canonicalize() = heurSettings )
+
+
 
 
 let alltypes = heuristics |> List.collect (fun (setting, name) -> variants |> List.map (fun (alt, altname) -> (alt setting, name + ":" + altname))) |> List.map fst 

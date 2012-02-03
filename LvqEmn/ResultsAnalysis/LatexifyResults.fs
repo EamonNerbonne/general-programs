@@ -21,10 +21,10 @@ let latexifyLrRelevanceConfusable (title:string)  (allResults:list<DatasetResult
     let nnError (errs:TestLr.ErrorRates) = (errs.nn, errs.nnStderr)
     let latexifyConfusableRow (settings, label:string) = 
         let resultsByLr = 
-            ResultParsing.chooseResults allResults settings 
-            |> ResultParsing.groupResultsByLr //list of LRs, each has a list of results in file order
+            LrOptResults.lrOptResultsForSettings allResults settings 
+            |> LrOptResults.groupResultsByLr //list of LRs, each has a list of results in file order
             |> List.map snd //ignore lr
-            |> List.map (fun  errs -> List.map (trainingError >> fst) errs)//ResultParsing.meanStderrOfErrs errs |> errTypeSelector))
+            |> List.map (fun  errs -> List.map (trainingError >> fst) errs)//LrOptResults.meanStderrOfErrs errs |> errTypeSelector))
             |> List.sortBy List.average 
             |> List.toArray
         let resultCount =  Array.length resultsByLr
@@ -64,13 +64,13 @@ let latexifyConfusable (title:string)  (allResults:list<DatasetResults>) setting
 
     let latexifyConfusableRow (settings, label:string) = 
         let bestErrs = 
-            ResultParsing.chooseResults allResults settings 
-            |> ResultParsing.groupResultsByLr //list of LRs, each has a list of results in file order
+            LrOptResults.lrOptResultsForSettings allResults settings 
+            |> LrOptResults.groupResultsByLr //list of LRs, each has a list of results in file order
             |> List.map snd //ignore lr
-            |> List.map ResultParsing.meanStderrOfErrs //get err distrib
+            |> List.map LrOptResults.meanStderrOfErrs //get err distrib
             |> List.map (fun  err -> 
                     errTypes |> List.map ((|>) err)
-                )//ResultParsing.meanStderrOfErrs errs |> errTypeSelector))
+                )//LrOptResults.meanStderrOfErrs errs |> errTypeSelector))
             |> List.sort
             |> List.head
 

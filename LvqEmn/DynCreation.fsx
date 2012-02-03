@@ -1,4 +1,4 @@
-﻿#I @"ResultsAnalysis\bin\ReleaseMingw"
+﻿#I @"ResultsAnalysis\bin\ReleaseMingw2"
 #r "ResultsAnalysis"
 #r "LvqLibCli"
 #r "LvqGui"
@@ -40,7 +40,7 @@ let datasets =
     |> List.toArray
 
 let bestModelsForDataset (dirname:string, dataset:LvqDatasetCli) = 
-    ResultParsing.loadDatasetLrOptResults dirname
+    LrOptResults.loadDatasetLrOptResults dirname
     |> Seq.map  (fun res -> (dirname, dataset, res.GetOptimizedSettings(Utils.nullable 1u, Utils.nullable 0u)))
 
 let shuffle seq =
