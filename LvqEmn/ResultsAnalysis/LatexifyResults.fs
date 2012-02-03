@@ -35,7 +35,6 @@ let latexifyLrRelevanceConfusable (title:string)  (allResults:list<DatasetResult
         + sprintf " & $%.1f" (100. - 100. * confusableRatio) + "\\%$ "
         // + " & " + sprintf " $ %1.3f $ & $ %1.3f $" bestlr.Lr0 bestlr.LrP + (if bestlr.LrB > 0.0 then sprintf  " & $ %1.3f $" bestlr.LrB else "&")
         
-            
     @"\noindent " + title  + " (training error):\\\\\n" + 
         @"\begin{tabular}{@{}lrrrrl@{}}\toprule"+"\n"
         + @"  \multicolumn{1}{c}{Model Type} & \multicolumn{1}{c}{best} &\multicolumn{1}{c}{\footnotesize upper quartile} & \multicolumn{1}{c}{median} &\multicolumn{1}{c}{\footnotesize lower quartile} & \multicolumn{1}{c}{lr-relevance} \\\midrule" + "\n" //&  & &  &

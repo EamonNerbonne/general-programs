@@ -19,28 +19,7 @@ let allvariants:list< (LvqModelSettingsCli -> LvqModelSettingsCli) * string > =
 
 let variants = allvariants |> List.filter (snd >> (fun s -> not <| s.StartsWith("lgm")))
 
-let heuristics =
-    [
-        (LvqModelSettingsCli(), "core");
-        (LvqModelSettingsCli(wGMu = true), "NoB");
-        (LvqModelSettingsCli(SlowK = true ), "SlowK");
-        (LvqModelSettingsCli(NGu = true), "NgUpdate");
-        (LvqModelSettingsCli(NGi = true), "NgInit");
-        (LvqModelSettingsCli(NGi = true, Popt = true), "NgInit+Pi");
-        (LvqModelSettingsCli(NGi = true, Popt = true, Bcov = true), "NgInit+Pi+Bi");
-        (LvqModelSettingsCli(NGi = true, SlowK = true ), "NgInit+SlowK");
-    ]
 
-let relevantVariants baseHeuristicSettings =
-    let basicSettings = LvqModelSettingsCli()
-    variants
-        |> List.map (fun (variant, variantName) -> (variant basicSettings, variant baseHeuristicSettings, variantName) )
-        |> List.filter (fun (baseSettings, heurSettings, _) -> baseSettings = heurSettings || heurSettings.Canonicalize() = heurSettings )
-
-
-
-
-let alltypes = heuristics |> List.collect (fun (setting, name) -> variants |> List.map (fun (alt, altname) -> (alt setting, name + ":" + altname))) |> List.map fst 
 
 let basicTypesWithName = variants |> List.map (fun (variant, varName) -> (LvqModelSettingsCli() |> variant, varName))
 let allTypesWithName =  allvariants |> List.map (fun (variant, varName) -> (LvqModelSettingsCli() |> variant, varName))
