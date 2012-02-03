@@ -1,8 +1,37 @@
-﻿module LatexifyResults
+﻿module LatexOverallErrorTables
 open LvqGui
 open EmnExtensions
 
-let latexifyLrRelevanceConfusable (title:string)  (allResults:list<DatasetResults>) settingsList =
+//For table in Results section with overall error rates of the basic methods.
+let lvqMethodsOptimalLrErrorsTable (title:string)  (allResults:list<DatasetResults>) settingsList =
+    let trainingError (errs:TestLr.ErrorRates) = (errs.training, errs.trainingStderr)
+    let testError (errs:TestLr.ErrorRates) = (errs.test, errs.testStderr)
+    let nnError (errs:TestLr.ErrorRates) = (errs.nn, errs.nnStderr)
+    let errTypes = [trainingError; testError; nnError]
+
+    let lvqMethodErrorRateRow (settings, label:string) = 
+        let bestErrs = 
+            LrOptResults.groupErrorsByLrForSetting allResults settings //list of LRs, each has a list of results in file order
+            |> List.map snd //ignore lr
+            |> List.map LrOptResults.meanStderrOfErrs //get err distrib
+            |> List.map (fun  err -> 
+                    errTypes |> List.map ((|>) err)
+                )//LrOptResults.meanStderrOfErrs errs |> errTypeSelector))
+            |> List.sort
+            |> List.head
+
+        label
+        + String.concat "" (List.map (fun (mean, stderr) -> if System.Double.IsNaN mean then " & " else sprintf @" & $%.1f \pm %.2f $" (mean*100.) (stderr*100.)) bestErrs)
+            
+    @"\noindent " + title  + " (best run):\\\\\n" + 
+        @"\begin{tabular}{@{}lrrr@{}}\toprule"+"\n"
+        + @"     \multicolumn{1}{c}{Model Type}   & \multicolumn{1}{c}{training error} & \multicolumn{1}{c}{test error} & \multicolumn{1}{c}{NN error} \\\midrule" + "\n" //&  & &  &
+        + String.concat "\\\\\n" (settingsList |> List.map lvqMethodErrorRateRow)
+        + "\n" + @"\bottomrule\end{tabular}"
+
+
+//For table in Results section with overall error rates at various non-optimal lrs
+let lvqMethodsNonOptimalLrErrorsTable (title:string)  (allResults:list<DatasetResults>) settingsList =
     let trainingError (errs:TestLr.ErrorRates) = (errs.training, errs.trainingStderr)
     let testError (errs:TestLr.ErrorRates) = (errs.test, errs.testStderr)
     let nnError (errs:TestLr.ErrorRates) = (errs.nn, errs.nnStderr)
@@ -41,29 +70,4 @@ let latexifyLrRelevanceConfusable (title:string)  (allResults:list<DatasetResult
         + String.concat "\\\\\n" (settingsList |> List.map latexifyConfusableRow)
         + "\n" + @"\bottomrule\end{tabular}"
 
-let latexifyConfusable (title:string)  (allResults:list<DatasetResults>) settingsList =
-    let trainingError (errs:TestLr.ErrorRates) = (errs.training, errs.trainingStderr)
-    let testError (errs:TestLr.ErrorRates) = (errs.test, errs.testStderr)
-    let nnError (errs:TestLr.ErrorRates) = (errs.nn, errs.nnStderr)
-    let errTypes = [trainingError; testError; nnError]
-
-    let latexifyConfusableRow (settings, label:string) = 
-        let bestErrs = 
-            LrOptResults.groupErrorsByLrForSetting allResults settings //list of LRs, each has a list of results in file order
-            |> List.map snd //ignore lr
-            |> List.map LrOptResults.meanStderrOfErrs //get err distrib
-            |> List.map (fun  err -> 
-                    errTypes |> List.map ((|>) err)
-                )//LrOptResults.meanStderrOfErrs errs |> errTypeSelector))
-            |> List.sort
-            |> List.head
-
-        label
-        + String.concat "" (List.map (fun (mean, stderr) -> if System.Double.IsNaN mean then " & " else sprintf @" & $%.1f \pm %.2f $" (mean*100.) (stderr*100.)) bestErrs)
-            
-    @"\noindent " + title  + " (best run):\\\\\n" + 
-        @"\begin{tabular}{@{}lrrr@{}}\toprule"+"\n"
-        + @"     \multicolumn{1}{c}{Model Type}   & \multicolumn{1}{c}{training error} & \multicolumn{1}{c}{test error} & \multicolumn{1}{c}{NN error} \\\midrule" + "\n" //&  & &  &
-        + String.concat "\\\\\n" (settingsList |> List.map latexifyConfusableRow)
-        + "\n" + @"\bottomrule\end{tabular}"
 

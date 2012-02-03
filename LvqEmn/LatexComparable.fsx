@@ -9,8 +9,9 @@ open LvqGui
 let allResults = LrOptResults.loadDatasetLrOptResults "base"
 let tenResults = List.filter (fun (result:DatasetResults) ->result.unoptimizedSettings.InstanceSeed < 20u) allResults
 
-LatexifyResults.latexifyConfusable "base" allResults GeneralSettings.allTypesWithName |> printfn "%s"
-LatexifyResults.latexifyLrRelevanceConfusable "base" allResults GeneralSettings.allTypesWithName |> printfn "%s"
+LatexOverallErrorTables.lvqMethodsOptimalLrErrorsTable "base" allResults GeneralSettings.allTypesWithName |> printfn "%s"
+
+LatexOverallErrorTables.lvqMethodsNonOptimalLrErrorsTable "base" allResults GeneralSettings.allTypesWithName |> printfn "%s"
 
 ErrorCorrelations.initCorrs allResults GeneralSettings.basicTypes
 
