@@ -115,6 +115,9 @@
         <Label Grid.Row="20">Unscaled LR</Label>
         <CheckBox Grid.Row="20" Grid.Column="1"  IsChecked="{Binding LrRaw, Mode= TwoWay, ValidatesOnExceptions=True}"/>
 
+        <Label Grid.Row="21">Scale-compensating P</Label>
+        <CheckBox Grid.Row="21" Grid.Column="1"  IsChecked="{Binding scP, Mode= TwoWay, ValidatesOnExceptions=True}"/>
+
 
         <Button Grid.Row="23" Content="Reset Initialization Seed" Click="ReseedParam" />
         <TextBox Grid.Row="23" Grid.Column="1" Text="{Binding ParamsSeed, Mode=TwoWay, ValidatesOnExceptions=True, Converter={StaticResource hexConverter}}"  />

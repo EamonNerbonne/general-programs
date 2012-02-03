@@ -7,7 +7,7 @@ class GmFullLvqModel : public LvqModel, public LvqModelFindMatches<GmFullLvqMode
 	std::vector<Vector_N> prototype;
 	std::vector<Vector_N> P_prototype;
 	VectorXi pLabel;
-	double totalMuJLr,totalMuKLr;
+	double totalMuJLr,totalMuKLr, lastAutoPupdate;
 
 	std::vector<CorrectAndWorstMatches::MatchOk> ngMatchCache;
 

@@ -7,7 +7,7 @@ class GmLvqModel : public LvqProjectionModelBase<GmLvqModel>
 	std::vector<Vector_N> prototype;
 	std::vector<Vector_2, Eigen::aligned_allocator<Vector_2> > P_prototype;
 	VectorXi pLabel;
-	double totalMuJLr,totalMuKLr;
+	double totalMuJLr,totalMuKLr,lastAutoPupdate;
 
 	std::vector<CorrectAndWorstMatches::MatchOk> ngMatchCache;
 

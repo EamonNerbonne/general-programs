@@ -21,7 +21,7 @@ public:
 class GpqLvqModel : public LvqProjectionModelBase<GpqLvqModel>
 {
 	typedef std::vector<GpqLvqPrototype, Eigen::aligned_allocator<GpqLvqPrototype> > protoList;
-	double totalMuJLr, totalMuKLr;
+	double totalMuJLr, totalMuKLr, lastAutoPupdate;
 	protoList prototype;
 	//Matrix_P Pnew;
 	std::vector<CorrectAndWorstMatches::MatchOk> ngMatchCache;

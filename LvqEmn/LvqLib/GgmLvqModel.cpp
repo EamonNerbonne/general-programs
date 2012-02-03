@@ -13,6 +13,7 @@ using namespace Eigen;
 GgmLvqModel::GgmLvqModel(LvqModelSettings & initSettings)
 	: LvqProjectionModelBase(initSettings)
 	, totalMuLr(0.0)
+	, lastAutoPupdate(0.0)
 	, m_vJ(initSettings.Dimensions())
 	, m_vK(initSettings.Dimensions())
 	, m_PpseudoinvT(LVQ_LOW_DIM_SPACE,initSettings.Dimensions())
@@ -96,6 +97,11 @@ MatchQuality GgmLvqModel::learnFrom(Vector_N const & trainPoint, int trainLabel)
 	Matrix_22 JBinvT =  J.B.inverse().transpose();
 	Matrix_22 KBinvT =  K.B.inverse().transpose();
 
+	if(settings.scP) {
+		lastAutoPupdate = 0.9 * lastAutoPupdate -log(matches.distBad+matches.distGood - J.bias - K.bias);
+	}
+
+
 	J.B.noalias() += (lr_B * (muJ2_alt)) * (Bj_P_vJ * P_vJ.transpose() - JBinvT );
 	K.B.noalias() += (lr_bad*lr_B*muK2) * (Bk_P_vK * P_vK.transpose() - KBinvT) ;
 	J.RecomputeBias();
@@ -120,13 +126,19 @@ MatchQuality GgmLvqModel::learnFrom(Vector_N const & trainPoint, int trainLabel)
 			Js.B.noalias() += lrSub*lr_B * (muJ2_Bj_P_vJs * P_vJs.transpose() + neg_muJ2_JBinvTs);
 		}
 	}
+	
+	if(settings.scP) {
+		P *= exp(lastAutoPupdate*4*learningRate*0.00001);
+	}
+
+
 	if(settings.noKP) {
 		P.noalias() += ((lr_P * muJ2) * BjT_Bj_P_vJ) * vJ.transpose();
 	} else {
 		P.noalias() += ((lr_P * muK2) * BkT_Bk_P_vK) * vK.transpose() + ((lr_P * muJ2) * BjT_Bj_P_vJ) * vJ.transpose();
 	}
 
-	if(!settings.neiP)
+	if(!settings.scP)
 		normalizeProjection(P);
 
 	for(size_t i=0;i < protoCount;++i)

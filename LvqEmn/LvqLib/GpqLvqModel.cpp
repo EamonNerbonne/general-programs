@@ -10,6 +10,7 @@ GpqLvqModel::GpqLvqModel(LvqModelSettings & initSettings)
 	: LvqProjectionModelBase(initSettings)
 	, totalMuJLr(0.0)
 	, totalMuKLr(0.0)
+	, lastAutoPupdate(0.0)
 {
 	if(initSettings.Dimensionality!=0 && initSettings.Dimensionality!=2){
 		std::cerr<< "Illegal Dimensionality\n";
@@ -111,6 +112,16 @@ MatchQuality GpqLvqModel::learnFrom(Vector_N const & trainPoint, int trainLabel)
 		}
 	}
 
+	if(settings.scP) {
+		//double scale = -log(matches.distBad+matches.matchGood)*4*learningRate;
+		//P *= exp(scale);P *= 1+x;
+		lastAutoPupdate = 0.9 * lastAutoPupdate -log(matches.distBad+matches.distGood);
+		double thisupdate = lastAutoPupdate*4*learningRate*0.00001;
+
+		P *= exp(thisupdate);
+	}
+
+
 	Vector_2 lrScaled;
  	if(settings.noKP) {
 		lrScaled.noalias() = lr_P * (muJ2_BjT_Bj_pJ);
@@ -133,7 +144,7 @@ MatchQuality GpqLvqModel::learnFrom(Vector_N const & trainPoint, int trainLabel)
 	/*/
 	P.noalias() += lrScaled * trainPoint.transpose();
 	/**/
-	if(settings.noKP||settings.neiP) {
+	if(!settings.scP && (settings.neiP || settings.noKP)) {
 		normalizeProjection(P);//returns scale
 		//for(size_t i=0;i<prototype.size();++i) prototype[i].P_point *= scale; //not necessary if you rescale _every_ iter anyhow.
 	}
@@ -256,7 +267,7 @@ void GpqLvqModel::NormalizeBoundaries() {
 }
 
 void GpqLvqModel::DoOptionalNormalization() {
-	if(!(settings.noKP||settings.neiP)) {
+	if(!(settings.noKP||settings.neiP||settings.scP)) {
 		LvqFloat scale = normalizeProjection(P);
 		for(size_t i=0;i<prototype.size();++i)
 			prototype[i].P_point *= scale;

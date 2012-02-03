@@ -159,7 +159,7 @@ namespace LvqGui {
 					 SlowK = slowbad,
 					 wGMu = NoB,
 				 }
-				 where settings.Equals(CreateLvqModelValues.TryParseShorthand(settings.ToShorthand()))
+				 where settings == settings.Canonicalize()
 				 let estAccur = EstimateAccuracy(settings)
 				 orderby relevanceCost, estAccur
 				 select settings).ToArray();

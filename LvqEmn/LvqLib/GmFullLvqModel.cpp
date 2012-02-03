@@ -8,6 +8,7 @@ GmFullLvqModel::GmFullLvqModel(LvqModelSettings & initSettings)
 	: LvqModel(initSettings) 
 	, totalMuJLr(0.0)
 	, totalMuKLr(0.0)
+	, lastAutoPupdate(0.0)
 	, m_vJ(initSettings.Dimensions())
 	, m_vK(initSettings.Dimensions())
 	, m_vTmp1(size_t(initSettings.Dimensionality))
@@ -97,11 +98,21 @@ MatchQuality GmFullLvqModel::learnFrom(Vector_N const & trainPoint, int trainLab
 		}
 	}
 
+	if(settings.scP) {
+		//double scale = -log(matches.distBad+matches.matchGood)*4*learningRate;
+		//P *= exp(scale);P *= 1+x;
+		lastAutoPupdate = 0.9 * lastAutoPupdate -log(matches.distBad+matches.distGood);
+		double thisupdate = lastAutoPupdate*4*learningRate*0.00001;
+
+		P *= exp(thisupdate);
+	}
+
+
 	P.noalias() -= (lr_P * muJ2_P_vJ) * vJ.transpose();
 	if(!settings.noKP)
 		P.noalias() -= (lr_P * muK2_P_vK) * vK.transpose();
 
-	if(settings.neiP || settings.noKP)
+	if(!settings.scP && (settings.neiP || settings.noKP))
 		normalizeProjection(P);
 
 	for(int i=0;i<pLabel.size();++i)
@@ -136,7 +147,7 @@ size_t GmFullLvqModel::MemAllocEstimate() const {
 
 
 void GmFullLvqModel::DoOptionalNormalization() {
-	if(!settings.neiP && !settings.noKP) {
+	if(!settings.scP && !settings.neiP && !settings.noKP) {
 		normalizeProjection(P);
 		for(size_t i=0;i<prototype.size();++i)
 			RecomputeProjection((int)i);

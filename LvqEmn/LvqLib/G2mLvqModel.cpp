@@ -10,6 +10,7 @@ G2mLvqModel::G2mLvqModel(LvqModelSettings & initSettings)
 	: LvqProjectionModelBase(initSettings)
 	, totalMuJLr(0.0)
 	, totalMuKLr(0.0)
+	, lastAutoPupdate(0.0)
 	, m_vJ(initSettings.Dimensions())
 	, m_vK(initSettings.Dimensions())
 {
@@ -118,15 +119,24 @@ MatchQuality G2mLvqModel::learnFrom(Vector_N const & trainPoint, int trainLabel)
 			}
 		}
 	}
+	if(settings.scP) {
+		//double scale = -log(matches.distBad+matches.matchGood)*4*learningRate;
+		//P *= exp(scale);P *= 1+x;
+		lastAutoPupdate = 0.9 * lastAutoPupdate -log(matches.distBad+matches.distGood);
+		double thisupdate = lastAutoPupdate*4*learningRate*0.00001;
+
+		P *= exp(thisupdate);
+	}
+
 	if(settings.noKP) {
 		P.noalias() -= (lr_P * muJ2_BjT_Bj_P_vJ) * vJ.transpose();
 	} else {
 		P.noalias() -= (lr_P * muK2_BkT_Bk_P_vK) * vK.transpose() + (lr_P * muJ2_BjT_Bj_P_vJ) * vJ.transpose();
 	}
 
-	if(settings.neiP || settings.noKP) normalizeProjection(P);
+	if(!settings.scP&& (settings.neiP || settings.noKP)) { normalizeProjection(P); }
 	if(settings.neiB) NormalizeBoundaries();	
-
+	
 	for(size_t i=0;i<prototype.size();++i)
 		prototype[i].ComputePP(P);
 
@@ -243,7 +253,7 @@ void G2mLvqModel::NormalizeBoundaries() {
 		}
 }
 void G2mLvqModel::DoOptionalNormalization() {
-	if(!settings.neiP && !settings.noKP) {
+	if(!settings.scP && !settings.neiP && !settings.noKP) {
 		normalizeProjection(P);
 		for(size_t i=0;i<prototype.size();++i)
 			prototype[i].ComputePP(P);

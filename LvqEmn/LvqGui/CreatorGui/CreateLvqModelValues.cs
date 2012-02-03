@@ -85,6 +85,11 @@ namespace LvqGui {
 			get { return settings.neiP; }
 			set { if (!settings.neiP.Equals(value)) { settings.neiP = value; _propertyChanged("neiP"); } }
 		}
+		public bool scP {
+			get { return settings.scP; }
+			set { if (!settings.scP.Equals(value)) { settings.scP = value; _propertyChanged("scP"); } }
+		}
+
 		public bool noKP {
 			get { return settings.noKP; }
 			set { if (!settings.noKP.Equals(value)) { settings.noKP = value; _propertyChanged("noKP"); } }
@@ -187,8 +192,8 @@ namespace LvqGui {
 				(?<PrototypesPerClass>[0-9]+),
 				(rP(?<Ppca_>\+?),)?
 				(rB(?<RandomInitialBorders>\+?),)?
-				(nP(?<unnormedP_>\+?),)?
-				(nB(?<unnormedB_>\+?),)?
+				(nP(?<neiP_>\+?),)?
+				(nB(?<neiB_>\+?),)?
 				(gn(?<LocallyNormalize_>\+?),)?
 				(NG(?<NGu>\+?),)?
 				(NGi(?<NGi>\+?),)?
@@ -211,6 +216,7 @@ namespace LvqGui {
 					(?<Ppca>Ppca,)
 					|(?<RandomInitialBorders>RandomInitialBorders,)
 					|(?<neiP>neiP,)
+					|(?<scP>scP,)
 					|(?<noKP>noKP,)
 					|(?<neiB>neiB,)
 					|(?<LocallyNormalize>LocallyNormalize,)

@@ -6,7 +6,7 @@ namespace LvqLibCli {
 	LvqModelSettingsRaw LvqModelSettingsCli::ToNativeSettings() {
 
 		LvqModelSettingsRaw nativeSettings = { (::LvqModelType)ModelType, Dimensionality, PrototypesPerClass, Ppca, RandomInitialBorders
-			, neiP, noKP, neiB, LocallyNormalize, NGu, NGi, Popt, Bcov, LrRaw, wGMu, SlowK, MuOffset, LR0, LrScaleP, LrScaleB, LrScaleBad
+			, neiP, scP,noKP, neiB, LocallyNormalize, NGu, NGi, Popt, Bcov, LrRaw, wGMu, SlowK, MuOffset, LR0, LrScaleP, LrScaleB, LrScaleBad
 			, ParamsSeed, InstanceSeed, NoNnErrorRateTracking, ParallelModels };
 		return nativeSettings;
 	}
@@ -15,7 +15,7 @@ namespace LvqLibCli {
 	String^ LvqModelSettingsCli::toShorthandRaw() {
 		return ModelType.ToString()
 			+ (Dimensionality != LvqModelSettingsCli().Dimensionality ? "[" + Dimensionality + "]" : "") + "-" + PrototypesPerClass + ","
-			+ (Ppca ? "Ppca,":"") + (RandomInitialBorders ? "RandomInitialBorders,":"") + (neiP ? "neiP," : "") + (noKP ? "noKP," : "") + (neiB ? "neiB," : "")
+			+ (Ppca ? "Ppca,":"") + (RandomInitialBorders ? "RandomInitialBorders,":"") + (neiP ? "neiP," : "") + (scP?"scP,":"")+ (noKP ? "noKP," : "") + (neiB ? "neiB," : "")
 			+ (LocallyNormalize ? "LocallyNormalize," : "") + (NGu ? "NGu," : "") + (NGi ? "NGi," : "") + (Popt ? "Popt," : "") + (Bcov ? "Bcov," : "") + (wGMu ? "wGMu," : "") + (SlowK ? "SlowK," : "")
 			+ (NoNnErrorRateTracking ? "NoNnErrorRateTracking," : "") + (LrRaw ? "LrRaw," : "")
 			+ (LR0==0.0 && LrScaleP==0.0 && LrScaleB==0.0 ?"" : "lr" + LR0.ToString("r") + "," + "lrP" + LrScaleP.ToString("r") + "," + (LrScaleB==0.0 ? "" : "lrB" + LrScaleB.ToString("r") + ","))
@@ -44,6 +44,7 @@ namespace LvqLibCli {
 		retval.NGi =retval.NGi && PrototypesPerClass > 1;
 		retval.neiB = retval.neiB && isG2mVariant;
 		retval.neiP = retval.neiP && ModelType != LvqModelType::Ggm;
+		retval.scP = retval.scP && hasGlobalP;
 		retval.wGMu = retval.wGMu && isG2mVariant;
 		retval.LocallyNormalize = retval.LocallyNormalize && (isLgmVariant || isG2mVariant);
 		retval.RandomInitialBorders = retval.RandomInitialBorders && hasB;

@@ -93,6 +93,7 @@ extern"C" LvqModel* CreateLvqModel(LvqModelSettingsRaw rawSettings, LvqDataset c
 	initSettings.RandomInitialBorders =rawSettings. RandomInitialBorders;
 	initSettings.RuntimeSettings.NoNnErrorRateTracking = rawSettings.NoNnErrorRateTracking;
 	initSettings.RuntimeSettings.neiP = rawSettings.neiP;
+	initSettings.RuntimeSettings.scP = rawSettings.scP;
 	initSettings.RuntimeSettings.noKP = rawSettings.noKP;
 	initSettings.RuntimeSettings.neiB = rawSettings.neiB;
 	initSettings.RuntimeSettings.LocallyNormalize = rawSettings.LocallyNormalize;
