@@ -21,8 +21,7 @@ let latexifyLrRelevanceConfusable (title:string)  (allResults:list<DatasetResult
     let nnError (errs:TestLr.ErrorRates) = (errs.nn, errs.nnStderr)
     let latexifyConfusableRow (settings, label:string) = 
         let resultsByLr = 
-            LrOptResults.lrOptResultsForSettings allResults settings 
-            |> LrOptResults.groupResultsByLr //list of LRs, each has a list of results in file order
+            LrOptResults.groupErrorsByLrForSetting allResults settings //list of LRs, each has a list of results in file order
             |> List.map snd //ignore lr
             |> List.map (fun  errs -> List.map (trainingError >> fst) errs)//LrOptResults.meanStderrOfErrs errs |> errTypeSelector))
             |> List.sortBy List.average 
@@ -64,8 +63,7 @@ let latexifyConfusable (title:string)  (allResults:list<DatasetResults>) setting
 
     let latexifyConfusableRow (settings, label:string) = 
         let bestErrs = 
-            LrOptResults.lrOptResultsForSettings allResults settings 
-            |> LrOptResults.groupResultsByLr //list of LRs, each has a list of results in file order
+            LrOptResults.groupErrorsByLrForSetting allResults settings //list of LRs, each has a list of results in file order
             |> List.map snd //ignore lr
             |> List.map LrOptResults.meanStderrOfErrs //get err distrib
             |> List.map (fun  err -> 

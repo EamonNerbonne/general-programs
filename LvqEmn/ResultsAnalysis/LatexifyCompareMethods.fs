@@ -7,8 +7,7 @@ open System
 let latexifyCompareMethods (datasetName:string) (allresults:list<DatasetResults>) settingsList =
     let latexifyConfusableRow (baseSettings:LvqModelSettingsCli, settings:LvqModelSettingsCli, label:string) = 
         let getResults s = 
-            LrOptResults.lrOptResultsForSettings allresults s
-            |> LrOptResults.groupResultsByLr //list of LRs, each has a list of results in file order
+            LrOptResults.groupErrorsByLrForSetting allresults s //list of LRs, each has a list of results in file order
             |> List.map snd //list of LRs without their values, each  has a list of results in file order
             |> List.map (fun errs -> (LrOptResults.meanStderrOfErrs errs, errs))//list of LRs, each mean+stderrs for error rates
             |> List.sortBy (fst>> (fun err-> err.CanonicalError))

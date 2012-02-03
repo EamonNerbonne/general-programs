@@ -14,18 +14,15 @@ let loadDatasetLrOptResults datasetName =
 
 let groupErrorsByLr (lrs:list<DatasetResults.LrAndError>) = lrs |> Utils.groupList (fun lr -> lr.LR) (fun lr -> lr.Errors)
 
-let getLrAndErrors (lrOptResult:DatasetResults) = lrOptResult.GetLrs()
+let groupErrorsByLrForSetting (results:DatasetResults list) (exampleSettings:LvqModelSettingsCli) =
+    results 
+        |> List.filter (fun result -> exampleSettings.WithDefaultLr().WithDefaultSeeds().Canonicalize() = result.unoptimizedSettings.WithDefaultLr().WithDefaultSeeds().Canonicalize())
+        |> List.collect (fun lrOptResult ->  lrOptResult.GetLrs() |> Seq.toList) 
+        |> groupErrorsByLr
 
-let groupResultsByLr lrOptResult = Seq.collect getLrAndErrors  >> Seq.toList  >> groupErrorsByLr <| lrOptResult
+let unpackToListErrs (errs:TestLr.ErrorRates list) = [errs |> List.map (fun err-> err.training); errs |> List.map (fun err -> err.test); errs |> List.map (fun err -> err.nn)]
 
-let unpackErrs (errs:TestLr.ErrorRates list) =  (errs |> List.map (fun err-> err.training), errs |> List.map (fun err -> err.test), errs |> List.map (fun err -> err.nn))
-
-let unpackToListErrs = unpackErrs >> (fun (trnErrList, testErrList, nnErrList) -> [trnErrList; testErrList; nnErrList])
-
+#nowarn "25"
 let meanStderrOfErrs errs =
-    let (trnD, tstD, nnD) = unpackErrs errs |> Utils.apply3 Utils.sampleDistribution
+    let [trnD; tstD; nnD] = unpackToListErrs errs |> List.map Utils.sampleDistribution
     TestLr.ErrorRates(trnD.Mean, trnD.StdErr, tstD.Mean,tstD.StdErr,nnD.Mean,nnD.StdErr, 0.0)
-
-let lrOptResultsForSettings (results:DatasetResults list) (exampleSettings:LvqModelSettingsCli) = 
-    results |> 
-        List.filter (fun result -> exampleSettings.WithDefaultLr().WithDefaultSeeds().Canonicalize() = result.unoptimizedSettings.WithDefaultLr().WithDefaultSeeds().Canonicalize())
