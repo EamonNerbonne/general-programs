@@ -4,23 +4,18 @@ open EmnExtensions
 
 //For table in Results section with overall error rates of the basic methods.
 let lvqMethodsOptimalLrErrorsTable (title:string)  (allResults:list<DatasetResults>) settingsList =
-    let trainingError (errs:TestLr.ErrorRates) = (errs.training, errs.trainingStderr)
-    let testError (errs:TestLr.ErrorRates) = (errs.test, errs.testStderr)
-    let nnError (errs:TestLr.ErrorRates) = (errs.nn, errs.nnStderr)
-    let errTypes = [trainingError; testError; nnError]
+    let errorExtractors = [LrOptResults.extractTrainingError; LrOptResults.extractTestError; LrOptResults.extractNnError]
 
-    let lvqMethodErrorRateRow (settings, label:string) = 
+    let lvqMethodErrorRateRow settings = 
         let bestErrs = 
             LrOptResults.groupErrorsByLrForSetting allResults settings //list of LRs, each has a list of results in file order
             |> List.map snd //ignore lr
             |> List.map LrOptResults.meanStderrOfErrs //get err distrib
-            |> List.map (fun  err -> 
-                    errTypes |> List.map ((|>) err)
-                )//LrOptResults.meanStderrOfErrs errs |> errTypeSelector))
-            |> List.sort
-            |> List.head
+            |> List.map (fun err -> errorExtractors |> List.map ((|>) err))
+            |> List.sort //implicitly by first entry, the mean training error rate.
+            |> List.head //select best error rates corresponding to crossvalidated runs with lr having lowest mean training error rate
 
-        label
+        (settings.ToShorthand())
         + String.concat "" (List.map (fun (mean, stderr) -> if System.Double.IsNaN mean then " & " else sprintf @" & $%.1f \pm %.2f $" (mean*100.) (stderr*100.)) bestErrs)
             
     @"\noindent " + title  + " (best run):\\\\\n" + 
@@ -32,14 +27,11 @@ let lvqMethodsOptimalLrErrorsTable (title:string)  (allResults:list<DatasetResul
 
 //For table in Results section with overall error rates at various non-optimal lrs
 let lvqMethodsNonOptimalLrErrorsTable (title:string)  (allResults:list<DatasetResults>) settingsList =
-    let trainingError (errs:TestLr.ErrorRates) = (errs.training, errs.trainingStderr)
-    let testError (errs:TestLr.ErrorRates) = (errs.test, errs.testStderr)
-    let nnError (errs:TestLr.ErrorRates) = (errs.nn, errs.nnStderr)
-    let latexifyConfusableRow (settings, label:string) = 
+    let latexifyConfusableRow settings = 
         let resultsByLr = 
             LrOptResults.groupErrorsByLrForSetting allResults settings //list of LRs, each has a list of results in file order
             |> List.map snd //ignore lr
-            |> List.map (fun  errs -> List.map (trainingError >> fst) errs)//LrOptResults.meanStderrOfErrs errs |> errTypeSelector))
+            |> List.map (List.map (LrOptResults.extractTrainingError >> fst))//LrOptResults.meanStderrOfErrs errs |> errTypeSelector))
             |> List.sortBy List.average 
             |> List.toArray
         let resultCount =  Array.length resultsByLr
@@ -59,7 +51,7 @@ let lvqMethodsNonOptimalLrErrorsTable (title:string)  (allResults:list<DatasetRe
             let distrib = Utils.sampleDistribution errs
             sprintf @"$%.1f \pm %.2f $" (distrib.Mean*100.) (distrib.StdErr*100.)
 
-        label
+        (settings.ToShorthand())
         + String.concat "" (Seq.map (fun (trainErrs) -> " & " + prErr trainErrs) rankedResults)
         + sprintf " & $%.1f" (100. - 100. * confusableRatio) + "\\%$ "
         // + " & " + sprintf " $ %1.3f $ & $ %1.3f $" bestlr.Lr0 bestlr.LrP + (if bestlr.LrB > 0.0 then sprintf  " & $ %1.3f $" bestlr.LrB else "&")

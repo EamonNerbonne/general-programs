@@ -20,6 +20,10 @@ let groupErrorsByLrForSetting (results:DatasetResults list) (exampleSettings:Lvq
         |> List.collect (fun lrOptResult ->  lrOptResult.GetLrs() |> Seq.toList) 
         |> groupErrorsByLr
 
+let extractTrainingError (errs:TestLr.ErrorRates) = (errs.training, errs.trainingStderr)
+let extractTestError (errs:TestLr.ErrorRates) = (errs.test, errs.testStderr)
+let extractNnError (errs:TestLr.ErrorRates) = (errs.nn, errs.nnStderr)
+
 let unpackToListErrs (errs:TestLr.ErrorRates list) = [errs |> List.map (fun err-> err.training); errs |> List.map (fun err -> err.test); errs |> List.map (fun err -> err.nn)]
 
 #nowarn "25"
