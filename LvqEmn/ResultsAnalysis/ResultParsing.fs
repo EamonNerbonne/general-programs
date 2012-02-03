@@ -12,14 +12,9 @@ let loadDatasetLrOptResults datasetName =
         |> Seq.filter (fun res -> res <> null)
         |> Seq.toList
 
-let groupErrorsByLr (lrs:list<DatasetResults.LrAndError>) = 
-    lrs
-    |> Utils.groupList (fun lr -> lr.LR) (fun lr -> lr.Errors)
+let groupErrorsByLr (lrs:list<DatasetResults.LrAndError>) = lrs |> Utils.groupList (fun lr -> lr.LR) (fun lr -> lr.Errors)
 
-let groupResultsByLr (results:list<DatasetResults>) = 
-    results
-    |> List.collect (fun res -> res.GetLrs() |> Seq.toList)
-    |> groupErrorsByLr
+let groupResultsByLr (results:list<DatasetResults>) = results |> Seq.collect (fun res -> res.GetLrs() )  |> Seq.toList   |> groupErrorsByLr
 
 let coreSettingsEq (a:LvqModelSettingsCli) (b:LvqModelSettingsCli) = a.WithDefaultLr().WithDefaultSeeds().Canonicalize() =  b.WithDefaultLr().WithDefaultSeeds().Canonicalize()
 
@@ -28,16 +23,9 @@ let onlyFirst10results = List.filter (fun (result:DatasetResults) ->result.unopt
 let chooseResults (results:DatasetResults list) exampleSettings = 
     results |> List.filter (fun result -> coreSettingsEq exampleSettings result.unoptimizedSettings)
 
-let unpackErrs errs = 
-    (List.map (fun (err:TestLr.ErrorRates) -> err.training) errs,
-        List.map (fun (err:TestLr.ErrorRates) -> err.test) errs,
-        List.map (fun (err:TestLr.ErrorRates) -> err.nn) errs)
+let unpackErrs (errs:TestLr.ErrorRates list) =  (errs |> List.map (fun err-> err.training), errs |> List.map (fun err -> err.test), errs |> List.map (fun err -> err.nn))
 
-let unpackToListErrs errs = 
-    [List.map (fun (err:TestLr.ErrorRates) -> err.training) errs;
-        List.map (fun (err:TestLr.ErrorRates) -> err.test) errs;
-        List.map (fun (err:TestLr.ErrorRates) -> err.nn) errs]
-
+let unpackToListErrs = unpackErrs >> (fun (trnErrList, testErrList, nnErrList) -> [trnErrList; testErrList; nnErrList])
 
 let meanStderrOfErrs errs =
     let (trnD, tstD, nnD) = unpackErrs errs |> Utils.apply3 Utils.sampleDistribution
