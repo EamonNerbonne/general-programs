@@ -1,8 +1,8 @@
-﻿module GeneralSettings
+﻿module ModelSettings
 
 open LvqLibCli
 
-let allTypes =
+let allCoreModelSettings =
     let defaults = LvqModelSettingsCli.defaults
     [
         defaults.WithChanges(LvqModelType.Lgm, 1)
@@ -15,5 +15,5 @@ let allTypes =
         defaults.WithChanges(LvqModelType.Ggm, 5)
     ] 
 
-let basicTypes = allTypes |> List.filter (fun settings -> settings.ModelType <> LvqModelType.Lgm)
+let coreProjectingModelSettings = allCoreModelSettings |> List.filter (fun settings -> settings.ModelType <> LvqModelType.Lgm)
 
