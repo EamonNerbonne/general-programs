@@ -2,19 +2,6 @@
 open LvqGui
 open EmnExtensions
 
-let bestResults cutoffscale useall (results:list<TestLr.ErrorRates>) = 
-    let best = results |> List.head
-    let cutoff = best.training + cutoffscale*best.trainingStderr
-    results |> List.filter (fun err-> err.training - err.trainingStderr*cutoffscale < cutoff)
-
-//    let cutoff = results |> List.head |> snd |> List.map toCutoff
-//    let filterF = if useall then List.forall2 else List.exists2
-//    results |> List.filter (snd >> List.map toCutoffMin >> filterF (fun cutoffval currval -> cutoffval > currval) cutoff)
-
-let certainlyConfusable = bestResults 1.00 true
-let possiblyConfusable =  bestResults 1.96 true
-let certainlyOneConfusable =  bestResults 1.00 false
-
 let latexifyLrRelevanceConfusable (title:string)  (allResults:list<DatasetResults>) settingsList =
     let trainingError (errs:TestLr.ErrorRates) = (errs.training, errs.trainingStderr)
     let testError (errs:TestLr.ErrorRates) = (errs.test, errs.testStderr)
