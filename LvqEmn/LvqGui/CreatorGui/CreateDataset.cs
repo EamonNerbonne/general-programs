@@ -37,13 +37,13 @@ namespace LvqGui {
 
 	public static class CreateDataset {
 		public static void IncInstanceSeed(this IDatasetCreator obj) { obj.InstanceSeed++; }
-		public static string BaseShorthand(this IDatasetCreator obj) {
+		public static IDatasetCreator BaseClone(this IDatasetCreator obj) {
 			obj = obj.Clone();
 			obj.ExtendDataByCorrelation = false;
 			obj.NormalizeDimensions = false;
-			obj.NormalizeByScaling = true;
+			obj.NormalizeByScaling = false;
 			obj.InstanceSeed = 0;
-			return obj.Shorthand;
+			return obj;
 		}
 
 		public static IDatasetCreator CreateFactory(string shorthand) {

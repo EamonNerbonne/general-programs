@@ -1,4 +1,4 @@
-﻿#I @"ResultsAnalysis\bin\ReleaseMingw"
+﻿#I @"ResultsAnalysis\bin\ReleaseMingw2"
 #r "ResultsAnalysis"
 #r "LvqLibCli"
 #r "LvqGui"
@@ -109,7 +109,7 @@ let lrTestingResults =
             yield (dataKey, dataHeur, dr.unoptimizedSettings,  dr.GetLrs() |> Seq.toArray)
     ]
 
-let hasNoHeuristics (settings:LvqModelSettingsCli) = (LvqModelSettingsCli()).WithChanges(settings.ModelType, settings.PrototypesPerClass, settings.ParamsSeed, settings.InstanceSeed).Equals(settings)
+let hasNoHeuristics (settings:LvqModelSettingsCli) = settings.WithDefaultLr().WithDefaultSeeds().WithDefaultNnTracking() = LvqModelSettingsCli.defaults
 
 let basicTypes = new System.Collections.Generic.HashSet<LvqModelSettingsCli>(GeneralSettings.basicTypes)
 let plainLrTestingResults =

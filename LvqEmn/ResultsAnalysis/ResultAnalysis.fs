@@ -6,6 +6,29 @@ open EmnExtensions.Text
 open LvqGui
 open LvqLibCli
 
+let decodeDataset (settings:IDatasetCreator) =
+    let datasetAnnotation (settings:IDatasetCreator) segmentNorm =
+        if settings.ExtendDataByCorrelation then "x" else ""
+        + if settings.NormalizeDimensions then 
+                if settings.NormalizeByScaling then "S" else "n"
+            else ""
+        + if segmentNorm then "N" else ""
+    match settings.Clone() with
+    | :? LoadedDatasetSettings as ldSettings when ldSettings.Filename.StartsWith("segmentationNormed_") ->
+        ldSettings.Filename <- ldSettings.Filename.Replace("segmentationNormed_","segmentationX_")
+        if ldSettings.TestFilename <> null then
+            ldSettings.TestFilename <- ldSettings.TestFilename.Replace("segmentationNormed_","segmentationX_")
+        //ldSettings.NormalizeDimensions <- true//TODO:NormalizeByScaling
+        ldSettings.DimCount <- 19
+        (ldSettings.BaseClone().Shorthand, datasetAnnotation settings true)
+    | :? LoadedDatasetSettings as ldSettings when ldSettings.Filename.StartsWith("segmentation_") ->
+        ldSettings.Filename <- ldSettings.Filename.Replace("segmentation_","segmentationX_")
+        if ldSettings.TestFilename <> null then
+            ldSettings.TestFilename <- ldSettings.TestFilename.Replace("segmentation_","segmentationX_")
+        (ldSettings.BaseClone().Shorthand, datasetAnnotation settings false)
+    | _ -> (settings.BaseClone().Shorthand, datasetAnnotation settings false)
+
+
 type Result = 
     { Iterations: float; TrainingError: float; TestError:float; NnError: float } 
     member this.CanonicalError = this.TrainingError * 0.9 + if this.NnError.IsFinite() then 0.05 * this.TestError + 0.05 * this.NnError else 0.1 * this.TestError
@@ -17,50 +40,6 @@ type Result =
 type ModelResults =
     {  DatasetBaseShorthand:string; DatasetTweaks:string; ModelStatFile: FileInfo; ModelSettings: LvqModelSettingsCli; Results: Result [] }
     member this.MeanError = this.Results |> Array.averageBy (fun res -> res.CanonicalError)
-
-let applyDatasetTweaks (tweaks:string) (settings:IDatasetCreator) = 
-    let copy = settings.Clone()
-    copy.ExtendDataByCorrelation <- tweaks.Contains("x")
-    copy.NormalizeDimensions <- tweaks.Contains("n") || tweaks.Contains("S")
-    copy.NormalizeByScaling <-  tweaks.Contains("S")
-
-    if copy :? LoadedDatasetSettings then
-        let ldSettings = copy :?> LoadedDatasetSettings
-        let segmentVersion = if tweaks.Contains("N") then "segmentationNormed_" else "segmentation_"
-        ldSettings.Filename <- ldSettings.Filename.Replace("segmentationX_", segmentVersion)
-        if ldSettings.TestFilename <> null then
-            ldSettings.TestFilename <- ldSettings.TestFilename.Replace("segmentationX_", segmentVersion)
-    copy
-
-let decodeDataset (settings:IDatasetCreator) =
-    let datasetAnnotation (settings:IDatasetCreator) segmentNorm =
-        if settings.ExtendDataByCorrelation then "x" else ""
-        + if settings.NormalizeDimensions then 
-                if settings.NormalizeByScaling then "S" else "n"
-            else ""
-        + if segmentNorm then "N" else ""
-    match settings.Clone() with
-    | :? LoadedDatasetSettings as ldSettings ->
-        if ldSettings.Filename.StartsWith("segmentationNormed_") then
-            ldSettings.Filename <- ldSettings.Filename.Replace("segmentationNormed_","segmentationX_")
-            if ldSettings.TestFilename <> null then
-                ldSettings.TestFilename <- ldSettings.TestFilename.Replace("segmentationNormed_","segmentationX_")
-            //ldSettings.NormalizeDimensions <- true//TODO:NormalizeByScaling
-            ldSettings.DimCount <- 19
-            (ldSettings.BaseShorthand(), datasetAnnotation settings true)
-        elif ldSettings.Filename.StartsWith("segmentation_") then
-            ldSettings.Filename <- ldSettings.Filename.Replace("segmentation_","segmentationX_")
-            if ldSettings.TestFilename <> null then
-                ldSettings.TestFilename <- ldSettings.TestFilename.Replace("segmentation_","segmentationX_")
-            (ldSettings.BaseShorthand(), datasetAnnotation settings false)
-        else
-            (ldSettings.BaseShorthand(), datasetAnnotation settings false)
-    | _ -> (settings.BaseShorthand(), datasetAnnotation settings false)
-
-let datasetSettings () = 
-    LvqMultiModel.statsDir.GetDirectories()
-    |> Seq.map (fun dir -> (dir, CreateDataset.CreateFactory(dir.Name) |> decodeDataset))
-    |> Seq.toArray
  
 let analyzedModels () = 
     let decodeLine (line:string) =
@@ -93,9 +72,11 @@ let analyzedModels () =
                         Results = results
                     })
         | _ -> None
-
-    datasetSettings ()
-    |> Seq.collect (fun (datasetdir, dataset) -> datasetdir.GetFiles("*.txt") |> Array.map (loadModelResults dataset))
+    let loadFromDatasetDir (dir:DirectoryInfo) = 
+        dir.GetFiles("*.txt") 
+            |> Array.map (CreateDataset.CreateFactory(dir.Name) |> decodeDataset |> loadModelResults)
+    LvqMultiModel.statsDir.GetDirectories()
+    |> Seq.collect loadFromDatasetDir
     |> Seq.filter Option.isSome
     |> Seq.map Option.get
     |> Seq.toArray
