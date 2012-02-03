@@ -302,14 +302,14 @@ allUniformResults ()
     //|> List.filter (fun res->res.Settings.ModelType = LvqModelType.Gm && res.Settings.PrototypesPerClass = 1)
     |> List.map printMeanResults
 
-["Gpq-1,Ppca,";"Gm-5,noKP,NGi,SlowK,";
-    "G2m-1,neiP,";"G2m-1,neiB,";"Gm-1,neiP,";"G2m-1,neiB,neiP,";
-    "G2m-1,neiP,Ppca,";"G2m-1,neiB,Ppca,";"Gm-1,neiP,Ppca,";"G2m-1,neiB,neiP,Ppca,";
-    "G2m-5,neiP,Ppca,";"G2m-5,neiB,Ppca,";"Gm-5,neiP,Ppca,";"G2m-5,neiB,neiP,Ppca,";
-    "G2m-5,neiP,Ppca,NGi,";"G2m-5,neiB,Ppca,NGi,";"Gm-5,neiP,Ppca,NGi,";"G2m-5,neiB,neiP,Ppca,NGi,";
-    "Gm-1,neiP,SlowK,";"Gm-1,neiP,Ppca,SlowK,";"Gm-5,neiP,Ppca,SlowK,";"Gm-5,neiP,Ppca,NGi,SlowK,";
-    "Gpq-1,neiP,";"Gpq-1,neiB,";"Gpq-1,neiB,neiP,";"Gpq-1,neiP,Ppca,";"Gpq-1,neiB,Ppca,";"Gpq-1,neiB,neiP,Ppca,";
-    "Gpq-5,neiP,NGi,";"Gpq-5,neiB,NGi,";"Gpq-5,neiB,neiP,NGi,";"Gpq-5,neiP,Ppca,NGi,";"Gpq-5,neiB,Ppca,NGi,";"Gpq-5,neiB,neiP,Ppca,NGi,";
+[
+    "G2m-1,scP,";"Gpq-1,scP,";"Gm-1,scP,";
+    "G2m-5,scP,NGi,";"Gpq-5,scP,NGi,";"Gm-5,scP,NGi,";
+    "G2m-1,scP,Ppca,";"Gpq-1,scP,Ppca,";"Gm-1,scP,Ppca,";
+    "G2m-5,scP,Ppca,NGi,";"Gpq-5,scP,Ppca,NGi,";"Gm-5,scP,Ppca,NGi,";
+    "G2m-5,scP,Ppca,";"Gpq-5,scP,Ppca,";"Gm-5,scP,Ppca,";
+    "G2m-5,scP,";"Gpq-5,scP,";"Gm-5,scP,";
+    "Lgm-1,neiP,";"Lgm-5,NGi,neiP,";
     ]
     |> List.map (CreateLvqModelValues.ParseShorthand >> withDefaultLr) 
     |> List.filter (isTested>>not)
