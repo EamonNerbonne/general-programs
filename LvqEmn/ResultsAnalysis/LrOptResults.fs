@@ -8,13 +8,13 @@ open LvqLibCli
 let loadDatasetLrOptResults datasetName =
         let filepattern = "*.txt"
         TestLr.resultsDir.GetDirectories(datasetName).[0].GetFiles(filepattern)
-        |> Seq.map LvqGui.DatasetResults.ProcFile
+        |> Seq.map LvqGui.LrOptimizationResult.ProcFile
         |> Seq.filter (fun res -> res <> null)
         |> Seq.toList
 
-let groupErrorsByLr (lrs:list<DatasetResults.LrAndError>) = lrs |> Utils.groupList (fun lr -> lr.LR) (fun lr -> lr.Errors)
+let groupErrorsByLr (lrs:list<LrOptimizationResult.LrAndError>) = lrs |> Utils.groupList (fun lr -> lr.LR) (fun lr -> lr.Errors)
 
-let groupErrorsByLrForSetting (results:DatasetResults list) (exampleSettings:LvqModelSettingsCli) =
+let groupErrorsByLrForSetting (results:LrOptimizationResult list) (exampleSettings:LvqModelSettingsCli) =
     results 
         |> List.filter (fun result -> exampleSettings.WithDefaultLr().WithDefaultSeeds().Canonicalize() = result.unoptimizedSettings.WithDefaultLr().WithDefaultSeeds().Canonicalize())
         |> List.collect (fun lrOptResult ->  lrOptResult.GetLrs() |> Seq.toList) 

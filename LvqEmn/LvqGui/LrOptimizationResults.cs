@@ -10,11 +10,11 @@ using EmnExtensions.Text;
 using LvqLibCli;
 
 namespace LvqGui {
-	public sealed class DatasetResults {
+	public sealed class LrOptimizationResult {
 		public readonly FileInfo resultsFile;
 		public readonly double trainedIterations;
 		public readonly LvqModelSettingsCli unoptimizedSettings;
-		DatasetResults(FileInfo fi, double iters, LvqModelSettingsCli settings) { unoptimizedSettings = settings; trainedIterations = iters; resultsFile = fi; }
+		LrOptimizationResult(FileInfo fi, double iters, LvqModelSettingsCli settings) { unoptimizedSettings = settings; trainedIterations = iters; resultsFile = fi; }
 
 		public LvqModelSettingsCli GetOptimizedSettings(uint? paramSeed = null, uint? instSeed = null) {
 			IEnumerable<LrAndError> lrs = GetLrs();
@@ -79,14 +79,14 @@ namespace LvqGui {
 
 		static readonly Regex resultsFilenameRegex = new Regex(@"^(?<iters>[0-9]?e[0-9]+)\-(?<shorthand>[^ ]*?)\.txt$");
 
-		public static IEnumerable<DatasetResults> FromDataset(LvqDatasetCli dataset, string settingsStr) {
+		public static IEnumerable<LrOptimizationResult> FromDataset(LvqDatasetCli dataset, string settingsStr) {
 			return
 				from creator in MaybeGetCreator(dataset)
 				from parsedResults in FromDataset(creator, settingsStr)
 				select parsedResults;
 		}
 
-		public static IEnumerable<DatasetResults> FromDataset(IDatasetCreator dataset, string settingsStr=null) {
+		public static IEnumerable<LrOptimizationResult> FromDataset(IDatasetCreator dataset, string settingsStr=null) {
 			return
 				from datasetResultsDir in GetDatasetResultDir(dataset)
 				from resultFile in datasetResultsDir.GetFiles("*" + (settingsStr==null?"":settingsStr+"*") + ".txt")
@@ -97,11 +97,11 @@ namespace LvqGui {
 		}
 
 
-		public static DatasetResults ProcFile(FileInfo resultFile) {
+		public static LrOptimizationResult ProcFile(FileInfo resultFile) {
 			if (resultFile.Length == 0) return null;
 			var itersAndSettings = ExtractItersAndSettings(resultFile.Name);
 			if (!itersAndSettings.Item1) return null;
-			return new DatasetResults(resultFile, itersAndSettings.Item2, itersAndSettings.Item3);
+			return new LrOptimizationResult(resultFile, itersAndSettings.Item2, itersAndSettings.Item3);
 		}
 
 		public static Tuple<bool, double, LvqModelSettingsCli> ExtractItersAndSettings(string filename) {
@@ -116,7 +116,7 @@ namespace LvqGui {
 		/// <summary>
 		/// Gets the lr-optimized result for the given dataset and settings with the largest number of iterations, or null if no results have been done for this settings+dataset combination.
 		/// </summary>
-		public static DatasetResults GetBestResult(LvqDatasetCli dataset, LvqModelSettingsCli settings) {
+		public static LrOptimizationResult GetBestResult(LvqDatasetCli dataset, LvqModelSettingsCli settings) {
 			var lrIgnoredSettings = settings.WithDefaultLr().WithDefaultSeeds().Canonicalize();
 
 			var matchingFiles =

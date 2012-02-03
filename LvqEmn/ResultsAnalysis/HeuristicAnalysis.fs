@@ -7,7 +7,7 @@ type HeuristicsSettings = { DataSettings: string; ModelSettings: LvqModelSetting
 
 let normalizeDatatweaks str = new System.String(str |> Seq.sortBy (fun c -> - int32 c) |> Seq.distinct |> Seq.toArray)
 
-let getSettings (modelResults:ResultAnalysis.ModelResults) = { DataSettings = normalizeDatatweaks modelResults.DatasetTweaks; ModelSettings = modelResults.ModelSettings.WithDefaultLr().WithDefaultNnTracking().Canonicalize()  }
+let getSettings (modelResults:LvqRunAnalysis.ModelResults) = { DataSettings = normalizeDatatweaks modelResults.DatasetTweaks; ModelSettings = modelResults.ModelSettings.WithDefaultLr().WithDefaultNnTracking().Canonicalize()  }
 
 type Heuristic = 
     { Name:string; Code:string; Activator: HeuristicsSettings -> (HeuristicsSettings option * HeuristicsSettings ); }
@@ -207,12 +207,12 @@ let comparisonRelevance (baseErrs, heurErrs) =
 let comparisonBetterRatio (baseErrs, heurErrs) = float (List.zip heurErrs baseErrs |> List.filter (fun (hE,bE) -> hE < bE) |> List.length) / float (List.length heurErrs)
 let scenarioLatexShorthand baseResults =
     let lvqSettings = getSettings baseResults
-    let tweaksL = ResultAnalysis.latexLiteral (lvqSettings.DataSettings + " " + lvqSettings.ModelSettings.ToShorthand()) 
-    ResultAnalysis.friendlyDatasetLatexName baseResults.DatasetBaseShorthand + @"\phantom{" + tweaksL + @"}&\llap{" + tweaksL + "}"
+    let tweaksL = LvqRunAnalysis.latexLiteral (lvqSettings.DataSettings + " " + lvqSettings.ModelSettings.ToShorthand()) 
+    LvqRunAnalysis.friendlyDatasetLatexName baseResults.DatasetBaseShorthand + @"\phantom{" + tweaksL + @"}&\llap{" + tweaksL + "}"
 
 
 let compare (baseResults, heurResults) =
-    let errs (model:ResultAnalysis.ModelResults) = model.Results |> Seq.map (fun res->res.CanonicalError*100.) |> Seq.toList 
+    let errs (model:LvqRunAnalysis.ModelResults) = model.Results |> Seq.map (fun res->res.CanonicalError*100.) |> Seq.toList 
     let bothErrs = (errs baseResults, errs heurResults)
     let resCount = bothErrs |> fst |> List.length
     let betterRatio = bothErrs |> comparisonBetterRatio
@@ -230,11 +230,11 @@ let optCompare datasetResults modelResults heuristic =
     |> applyHeuristic heuristic 
     //|> Option.map (fun settingsWithHeuristic -> settingsWithHeuristic.Key)
     |> Option.bind (Utils.getMaybe datasetResults)
-    |> Option.map (fun (heuristicResults:ResultAnalysis.ModelResults) -> (modelResults, heuristicResults))
+    |> Option.map (fun (heuristicResults:LvqRunAnalysis.ModelResults) -> (modelResults, heuristicResults))
 
 
 let resultsByDatasetByModel =
-    ResultAnalysis.analyzedModels () 
+    LvqRunAnalysis.analyzedModels () 
         |> Seq.groupBy (fun modelRes -> modelRes.DatasetBaseShorthand) 
         |> Seq.map (Utils.apply2nd List.ofSeq)
         |> List.ofSeq
@@ -286,31 +286,31 @@ let countActiveHeuristics = getSettings >> countActiveHeuristicsB
 
 let allFilters = 
     let simplifyName (name:string) = if name.Contains("-") then name.Substring(0, name.IndexOf("-")) else name
-    let normOnlyFilter = (@"only \textsf{normalize}", (fun (mr:ResultAnalysis.ModelResults) -> mr.DatasetTweaks.Contains("n") && countActiveHeuristics mr = 1 ))
-    let normFilter = ("\textsf{normalize}", (fun (mr:ResultAnalysis.ModelResults) -> mr.DatasetTweaks.Contains("n") ))
-    let noFilter = ("", (fun (mr:ResultAnalysis.ModelResults) -> true))
+    let normOnlyFilter = (@"only \textsf{normalize}", (fun (mr:LvqRunAnalysis.ModelResults) -> mr.DatasetTweaks.Contains("n") && countActiveHeuristics mr = 1 ))
+    let normFilter = ("\textsf{normalize}", (fun (mr:LvqRunAnalysis.ModelResults) -> mr.DatasetTweaks.Contains("n") ))
+    let noFilter = ("", (fun (mr:LvqRunAnalysis.ModelResults) -> true))
 
-    let singleHeurFilter = ("no other heuristics", (fun (mr:ResultAnalysis.ModelResults)  -> countActiveHeuristics mr = 0))
+    let singleHeurFilter = ("no other heuristics", (fun (mr:LvqRunAnalysis.ModelResults)  -> countActiveHeuristics mr = 0))
     let onlyHeurFilter heur = 
-        (@"only \textsf{" + heur.Code + "}", (fun (mr:ResultAnalysis.ModelResults) ->
+        (@"only \textsf{" + heur.Code + "}", (fun (mr:LvqRunAnalysis.ModelResults) ->
                 let settings = getSettings mr
                 let (on,off) = heur.Activator settings
                 countActiveHeuristicsB off = 0 && (off |> heur.Activator |> fst) = Some(settings)
             ) 
         )
     let singleOrAnythingFilters = [
-        ("all results", (fun (mr:ResultAnalysis.ModelResults) -> true));
+        ("all results", (fun (mr:LvqRunAnalysis.ModelResults) -> true));
         singleHeurFilter;
-        ("1ppc, no other heuristics", (fun (mr:ResultAnalysis.ModelResults)  -> countActiveHeuristics mr = 0 && mr.ModelSettings.PrototypesPerClass = 1))
-        ("5ppc, no other heuristics", (fun (mr:ResultAnalysis.ModelResults)  -> countActiveHeuristics mr = 0 && mr.ModelSettings.PrototypesPerClass = 5))
+        ("1ppc, no other heuristics", (fun (mr:LvqRunAnalysis.ModelResults)  -> countActiveHeuristics mr = 0 && mr.ModelSettings.PrototypesPerClass = 1))
+        ("5ppc, no other heuristics", (fun (mr:LvqRunAnalysis.ModelResults)  -> countActiveHeuristics mr = 0 && mr.ModelSettings.PrototypesPerClass = 5))
         normOnlyFilter;
-        (@"1ppc, only \textsf{normalize}", (fun (mr:ResultAnalysis.ModelResults)  -> mr.DatasetTweaks.Contains("n") && countActiveHeuristics mr = 1 && mr.ModelSettings.PrototypesPerClass = 1))
-        (@"5ppc, only \textsf{normalize}", (fun (mr:ResultAnalysis.ModelResults)  -> mr.DatasetTweaks.Contains("n") && countActiveHeuristics mr = 1 && mr.ModelSettings.PrototypesPerClass = 5))
+        (@"1ppc, only \textsf{normalize}", (fun (mr:LvqRunAnalysis.ModelResults)  -> mr.DatasetTweaks.Contains("n") && countActiveHeuristics mr = 1 && mr.ModelSettings.PrototypesPerClass = 1))
+        (@"5ppc, only \textsf{normalize}", (fun (mr:LvqRunAnalysis.ModelResults)  -> mr.DatasetTweaks.Contains("n") && countActiveHeuristics mr = 1 && mr.ModelSettings.PrototypesPerClass = 5))
         ]
     let modelFilters = [
-        ("GM 1", (fun (mr:ResultAnalysis.ModelResults) -> mr.ModelSettings.ModelType = LvqModelType.Gm && mr.ModelSettings.PrototypesPerClass = 1));
+        ("GM 1", (fun (mr:LvqRunAnalysis.ModelResults) -> mr.ModelSettings.ModelType = LvqModelType.Gm && mr.ModelSettings.PrototypesPerClass = 1));
         ("G2M 1", (fun mr -> mr.ModelSettings.ModelType = LvqModelType.G2m && mr.ModelSettings.PrototypesPerClass = 1));
-        ("GGM 1", (fun (mr:ResultAnalysis.ModelResults) -> mr.ModelSettings.ModelType = LvqModelType.Ggm && mr.ModelSettings.PrototypesPerClass = 1));
+        ("GGM 1", (fun (mr:LvqRunAnalysis.ModelResults) -> mr.ModelSettings.ModelType = LvqModelType.Ggm && mr.ModelSettings.PrototypesPerClass = 1));
         ("GM 5", (fun mr -> mr.ModelSettings.ModelType = LvqModelType.Gm && mr.ModelSettings.PrototypesPerClass = 5));
         ("G2M 5", (fun mr -> mr.ModelSettings.ModelType = LvqModelType.G2m && mr.ModelSettings.PrototypesPerClass = 5));
         ("GGM,5", (fun mr -> mr.ModelSettings.ModelType = LvqModelType.Ggm && mr.ModelSettings.PrototypesPerClass = 5));
@@ -318,7 +318,7 @@ let allFilters =
     let datasetFilters = 
         Seq.toList resultsByDatasetByModel.Keys
             |> List.filter (fun key -> resultsByDatasetByModel.[key].Count > 65)
-            |> List.map (fun datasetKey ->(defaultArg (ResultAnalysis.friendlyDatasetName datasetKey) datasetKey, (fun (mr:ResultAnalysis.ModelResults)  ->mr.DatasetBaseShorthand = datasetKey)))
+            |> List.map (fun datasetKey ->(defaultArg (LvqRunAnalysis.friendlyDatasetName datasetKey) datasetKey, (fun (mr:LvqRunAnalysis.ModelResults)  ->mr.DatasetBaseShorthand = datasetKey)))
     
     let comb (nameA, filterA) (nameB, filterB) = 
         ((if nameB <> "" then nameA + " * " + nameB else nameA), (fun x -> filterA x && filterB x))
@@ -355,7 +355,7 @@ let allFilters =
         ]
     
 
-let analysisPairsGiven (filter:ResultAnalysis.ModelResults -> bool) (heur:Heuristic) = 
+let analysisPairsGiven (filter:LvqRunAnalysis.ModelResults -> bool) (heur:Heuristic) = 
     seq {
         for datasetRes in resultsByDatasetByModel.Values do
             for modelRes in datasetRes.Values do
@@ -369,7 +369,7 @@ let analysisPairsGiven (filter:ResultAnalysis.ModelResults -> bool) (heur:Heuris
 
 let analysisGiven filter heur = analysisPairsGiven filter heur |> Seq.map compare
 
-let getTrainingError (r:ResultAnalysis.Result) =  r.TrainingError
+let getTrainingError (r:LvqRunAnalysis.SingleLvqRunOutcome) =  r.TrainingError
 let curry f x y = f (x, y)
 let uncurry f (x, y) = f x y
 let uncurry3 f (x, y, z) = f x y z

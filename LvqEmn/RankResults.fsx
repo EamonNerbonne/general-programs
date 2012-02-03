@@ -1,4 +1,4 @@
-﻿#I @"ResultsAnalysis\bin\ReleaseMingw"
+﻿#I @"ResultsAnalysis\bin\ReleaseMingw2"
 #r "ResultsAnalysis"
 #r "LvqLibCli"
 #r "LvqGui"
@@ -11,7 +11,7 @@ open System.IO
 
 
 
-ResultAnalysis.analyzedModels ()
+LvqRunAnalysis.analyzedModels ()
     |> Seq.groupBy (fun res-> res.DatasetBaseShorthand) 
     |> Seq.map 
         (fun (key, group) ->
@@ -20,16 +20,16 @@ ResultAnalysis.analyzedModels ()
                 let trn = res.Results |> Seq.map (fun x->x.TrainingError*100.) |> Seq.toList |> Utils.sampleDistribution
                 let tst = res.Results |> Seq.map (fun x->x.TestError*100.) |> Seq.toList |> Utils.sampleDistribution
                 let nn = res.Results |> Seq.map (fun x->x.NnError*100.) |> Seq.toList |> Utils.sampleDistribution
-                let (bestTrn, bestTest, bestNn) = res.Results |> Array.minBy (fun (x:ResultAnalysis.Result) -> x.TrainingError) |> (fun x -> (x.TrainingError*100.,x.TestError*100.,x.NnError*100.))
+                let (bestTrn, bestTest, bestNn) = res.Results |> Array.minBy (fun (x:LvqRunAnalysis.SingleLvqRunOutcome) -> x.TrainingError) |> (fun x -> (x.TrainingError*100.,x.TestError*100.,x.NnError*100.))
                 let errStr =
                     Utils.latexstderr trn + "(" + bestTrn.ToString("f1") + ")" + "&" + Utils.latexstderr tst + "(" + bestTest.ToString("f1") + ")" + "&" + 
                         if nn.Mean.IsFinite() then
                             Utils.latexstderr nn + "(" + bestNn.ToString("f1") + ")"
                         else
                             ""
-                "   " +  ResultAnalysis.latexLiteral res.DatasetTweaks + "&" + ResultAnalysis.latexLiteral (res.ModelSettings.WithDefaultLr().ToShorthand()) + "&" + errStr
+                "   " +  LvqRunAnalysis.latexLiteral res.DatasetTweaks + "&" + LvqRunAnalysis.latexLiteral (res.ModelSettings.WithDefaultLr().ToShorthand()) + "&" + errStr
                 )
-            @"\section{" + ResultAnalysis.friendlyDatasetLatexName key + "}\n\n"
+            @"\section{" + LvqRunAnalysis.friendlyDatasetLatexName key + "}\n\n"
                 + @"\noindent\begin{longtable}{lllll}\toprule \multicolumn{2}{l}{model \& tweaks} & training error & test error& NN error\\\midrule" + "\n" 
                 + String.concat "\\\\\n" mappedGroup
                 + "\n" + @"\\ \bottomrule\end{longtable}" + "\n\n" 

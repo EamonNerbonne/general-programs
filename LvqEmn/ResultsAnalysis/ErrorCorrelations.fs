@@ -41,11 +41,12 @@ let errTypeCorrTableLatex results onlyBestResults settingsList =
             |> (fun list -> List.zip (corrNames ["train";"test";"NN"]) list)
         (settings.ToShorthand()) + " & " + String.Join(" & ", List.map (fun (errname, x:Utils.SampleDistribution) -> if Double.IsNaN(x.Mean) then "" else Utils.latexstderr x) errTypeCorrelations)
 
-    @"\begin{tabular}{llll} model type & training $\leftrightarrow$ test & training $\leftrightarrow$ NN &  test $\leftrightarrow$ NN  \\\hline" + "\n" + 
+    @"\begin{tabular}{llll}\toprule" + "\n"
+    + @"model type & training $\leftrightarrow$ test & training $\leftrightarrow$ NN &  test $\leftrightarrow$ NN  \\\midrule" + "\n" + 
     (settingsList 
     |> List.map errTypeCorrelationLatex 
     |> String.concat "\\\\\n") + "\n"
-    + @"\end{tabular}" + "\n"
+    + @"\bottomrule\end{tabular}" + "\n"
     
 
 //-------------------------------------------------------------------------------initialization correlations

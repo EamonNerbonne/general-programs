@@ -328,7 +328,7 @@ allUniformResults ()
     |> List.map improveAndTest
 
 TestLr.resultsDir.GetFiles("*.txt", SearchOption.AllDirectories)
-    |> Seq.map (fun fileInfo -> fileInfo.Name  |> LvqGui.DatasetResults.ExtractItersAndSettings)
+    |> Seq.map (fun fileInfo -> fileInfo.Name  |> LvqGui.LrOptimizationResult.ExtractItersAndSettings)
     |> Seq.filter (fun (ok,_,_) -> ok)
     |> Seq.map (fun (_,_,settings) -> settings.WithTestingChanges(0u).WithDefaultLr())
     |> Seq.distinct

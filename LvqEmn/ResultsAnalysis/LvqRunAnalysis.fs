@@ -1,4 +1,4 @@
-﻿module ResultAnalysis
+﻿module LvqRunAnalysis
 
 open System.IO
 open EmnExtensions
@@ -6,7 +6,7 @@ open EmnExtensions.Text
 open LvqGui
 open LvqLibCli
 
-let decodeDataset (settings:IDatasetCreator) =
+let decodeDatasetSettingsAndName (settings:IDatasetCreator) =
     let datasetAnnotation (settings:IDatasetCreator) segmentNorm =
         if settings.ExtendDataByCorrelation then "x" else ""
         + if settings.NormalizeDimensions then 
@@ -29,7 +29,7 @@ let decodeDataset (settings:IDatasetCreator) =
     | _ -> (settings.BaseClone().Shorthand, datasetAnnotation settings false)
 
 
-type Result = 
+type SingleLvqRunOutcome = 
     { Iterations: float; TrainingError: float; TestError:float; NnError: float } 
     member this.CanonicalError = this.TrainingError * 0.9 + if this.NnError.IsFinite() then 0.05 * this.TestError + 0.05 * this.NnError else 0.1 * this.TestError
     static member (+) (a, b) = { Iterations= a.Iterations + b.Iterations; TrainingError = a.TrainingError + b.TrainingError; TestError= a.TestError + b.TestError; NnError = a.NnError + b.NnError }
@@ -38,7 +38,7 @@ type Result =
     static member get_Zero () = { Iterations = 0.; TrainingError = 0.; TestError = 0.; NnError = 0. }
 
 type ModelResults =
-    {  DatasetBaseShorthand:string; DatasetTweaks:string; ModelStatFile: FileInfo; ModelSettings: LvqModelSettingsCli; Results: Result [] }
+    {  DatasetBaseShorthand:string; DatasetTweaks:string; ModelStatFile: FileInfo; ModelSettings: LvqModelSettingsCli; Results: SingleLvqRunOutcome [] }
     member this.MeanError = this.Results |> Array.averageBy (fun res -> res.CanonicalError)
  
 let analyzedModels () = 
@@ -64,7 +64,7 @@ let analyzedModels () =
             let zippedResults = Array.zip itersArr (Array.zip3 lines.["Training Error"] lines.["Test Error"] nnErrs)
             Some(Array.map (fun (i,(trn,tst,nn)) -> { Iterations = i; TrainingError = trn; TestError = tst; NnError = nn }) zippedResults)
     let loadModelResults dataset (modelstatfile:FileInfo) = 
-        let (success, iters, settings) = DatasetResults.ExtractItersAndSettings modelstatfile.Name
+        let (success, iters, settings) = LrOptimizationResult.ExtractItersAndSettings modelstatfile.Name
         match (success, getResults modelstatfile) with
         | (true, Some(results)) -> 
             Some({
@@ -74,7 +74,7 @@ let analyzedModels () =
         | _ -> None
     let loadFromDatasetDir (dir:DirectoryInfo) = 
         dir.GetFiles("*.txt") 
-            |> Array.map (CreateDataset.CreateFactory(dir.Name) |> decodeDataset |> loadModelResults)
+            |> Array.map (CreateDataset.CreateFactory(dir.Name) |> decodeDatasetSettingsAndName |> loadModelResults)
     LvqMultiModel.statsDir.GetDirectories()
     |> Seq.collect loadFromDatasetDir
     |> Seq.filter Option.isSome

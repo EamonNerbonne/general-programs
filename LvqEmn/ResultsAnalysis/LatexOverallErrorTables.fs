@@ -3,7 +3,7 @@ open LvqGui
 open EmnExtensions
 
 //For table in Results section with overall error rates of the basic methods.
-let lvqMethodsOptimalLrErrorsTable (title:string)  (allResults:list<DatasetResults>) settingsList =
+let lvqMethodsOptimalLrErrorsTable (title:string)  (allResults:list<LrOptimizationResult>) settingsList =
     let errorExtractors = [LrOptResults.extractTrainingError; LrOptResults.extractTestError; LrOptResults.extractNnError]
 
     let lvqMethodErrorRateRow settings = 
@@ -26,7 +26,7 @@ let lvqMethodsOptimalLrErrorsTable (title:string)  (allResults:list<DatasetResul
 
 
 //For table in Results section with overall error rates at various non-optimal lrs
-let lvqMethodsNonOptimalLrErrorsTable (title:string)  (allResults:list<DatasetResults>) settingsList =
+let lvqMethodsNonOptimalLrErrorsTable (title:string)  (allResults:list<LrOptimizationResult>) settingsList =
     let latexifyConfusableRow settings = 
         let resultsByLr = 
             LrOptResults.groupErrorsByLrForSetting allResults settings //list of LRs, each has a list of results in file order

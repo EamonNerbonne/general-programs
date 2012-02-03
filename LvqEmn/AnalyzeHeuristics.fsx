@@ -42,7 +42,7 @@ open System
             (heuristics |> List.map 
                 (fun heur ->
                     let rawAnalysis =analysisPairsGiven filter heur |> List.ofSeq
-                    let analysis = rawAnalysis |> List.map (Utils.apply2 (fun mr -> mr.Results |> Array.map (fun  (r:ResultAnalysis.Result)->(r.TrainingError,r.TestError)) |> List.ofArray))
+                    let analysis = rawAnalysis |> List.map (Utils.apply2 (fun mr -> mr.Results |> Array.map (fun  (r:LvqRunAnalysis.SingleLvqRunOutcome)->(r.TrainingError,r.TestError)) |> List.ofArray))
                     
                     if List.isEmpty analysis |> not then
                         let totalResCount =  analysis |> List.length
@@ -131,7 +131,7 @@ let latexCompareHeurs =
                     [
                         for heur in heuristics ->
                             let rawAnalysis =analysisPairsGiven filter heur |> List.ofSeq
-                            let analysis = rawAnalysis |> List.map (Utils.apply2 (fun mr -> mr.Results |> Array.map (fun  (r:ResultAnalysis.Result)->(r.TrainingError,r.TestError)) |> List.ofArray))
+                            let analysis = rawAnalysis |> List.map (Utils.apply2 (fun mr -> mr.Results |> Array.map (fun  (r:LvqRunAnalysis.SingleLvqRunOutcome)->(r.TrainingError,r.TestError)) |> List.ofArray))
                     
                             if List.isEmpty analysis |> not then
                                 let totalResCount =  analysis |> List.length
@@ -225,7 +225,7 @@ let latexHeurRaws =
                                 if List.isEmpty rawAnalysis |> not then
                                     let ((trnA, tstA, nnA), (trnB, tstB, nnB)) = 
                                         rawAnalysis 
-                                        |> List.map (Utils.apply2 (fun mr -> mr.Results |> Array.map (fun  (r:ResultAnalysis.Result)->(r.TrainingError,r.TestError, r.NnError)) |> List.ofArray))
+                                        |> List.map (Utils.apply2 (fun mr -> mr.Results |> Array.map (fun  (r:LvqRunAnalysis.SingleLvqRunOutcome)->(r.TrainingError,r.TestError, r.NnError)) |> List.ofArray))
                                         |> List.unzip
                                         |> Utils.apply2 (List.concat >>List.unzip3)
 
@@ -265,7 +265,7 @@ heuristics
     )
     |> Seq.toList
     |> List.map (fun (heur, (count, ignoreCount,ratio), (better, worse,irrelevant)) ->
-            sprintf @"\section{%s} \noindent %s was an improvement in $%1.1f\%%$ of %i cases and irrelevant in %i:" (ResultAnalysis.latexLiteral heur.Code) heur.Name (100.*ratio) count ignoreCount + "\n\n"
+            sprintf @"\section{%s} \noindent %s was an improvement in $%1.1f\%%$ of %i cases and irrelevant in %i:" (LvqRunAnalysis.latexLiteral heur.Code) heur.Name (100.*ratio) count ignoreCount + "\n\n"
             + sprintf @"\noindent\begin{longtable}{lrccl@{}r}\toprule"  + "\n"
             + sprintf @"$p$-value & $\Delta\%%$ &\multicolumn{1}{c}{before}&\multicolumn{1}{c}{after}  & \multicolumn{2}{c}{Scenario} \\\midrule"  + "\n"
             + @"&&\multicolumn{2}{c}{Improved} \\ \cmidrule(r){3-4}" + "\n"

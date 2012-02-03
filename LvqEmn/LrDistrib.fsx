@@ -11,7 +11,7 @@ let allLrOptResults =
         TestLr.resultsDir.GetDirectories()
         |> Seq.filter (fun dir -> dir.Name <> "base")
         |> Seq.collect (fun dir-> dir.GetFiles("*.txt"))
-        |> Seq.map LvqGui.DatasetResults.ProcFile
+        |> Seq.map LvqGui.LrOptimizationResult.ProcFile
         |> Seq.filter (fun res -> res <> null && res.trainedIterations > 2.e7 && res.trainedIterations < 4.e7)
         |> Seq.toList
 
@@ -19,7 +19,7 @@ let lrTestingResults =
     [
         for lrOptResult in allLrOptResults do
             let dFactory = CreateDataset.CreateFactory lrOptResult.resultsFile.Directory.Name
-            let (dataKey, dataHeur) =  ResultAnalysis.decodeDataset dFactory
+            let (dataKey, dataHeur) =  LvqRunAnalysis.decodeDatasetSettingsAndName dFactory
             yield (dataKey, dataHeur, lrOptResult.unoptimizedSettings,  lrOptResult.GetLrs() |> Seq.toArray)
     ]
 
@@ -37,7 +37,7 @@ let plainCompleteLrTestingResults =
     |> List.filter (fun rs -> List.length (snd rs) = 12) // only include datasets with all basic combos
     |> List.collect snd
 
-let relevantDatasets = List.map (fun (x, _,_,_) ->x) plainCompleteLrTestingResults |> Set.ofList |> Set.toList |> List.map (fun x-> defaultArg (ResultAnalysis.friendlyDatasetName x) x)
+let relevantDatasets = List.map (fun (x, _,_,_) ->x) plainCompleteLrTestingResults |> Set.ofList |> Set.toList |> List.map (fun x-> defaultArg (LvqRunAnalysis.friendlyDatasetName x) x)
 
 let trainingErr (errs:TestLr.ErrorRates) = errs.training
 

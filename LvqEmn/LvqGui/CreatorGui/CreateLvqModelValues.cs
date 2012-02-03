@@ -292,7 +292,7 @@ namespace LvqGui {
 			return whenDone.Task;
 		}
 
-		public bool HasOptimizedLr { get { return DatasetResults.GetBestResult(ForDataset, settings) != null; } }
+		public bool HasOptimizedLr { get { return LrOptimizationResult.GetBestResult(ForDataset, settings) != null; } }
 		public string OptimizeButtonText { get { return HasOptimizedLr ? "Create with Optimal LR" : "Find optimal LR"; } }
 
 		public TestLr.LrTestingStatus OptimizedLrAllStatus { get { return TestLr.HasAllLrTestingResults(ForDataset); } }
@@ -330,7 +330,7 @@ namespace LvqGui {
 		protected override IEnumerable<string> GloballyDependantProps { get { return base.GloballyDependantProps.Concat(depProps); } }
 
 		public void OptimizeOrCreate() {//gui thread
-			var bestResult = DatasetResults.GetBestResult(ForDataset, settings);
+			var bestResult = LrOptimizationResult.GetBestResult(ForDataset, settings);
 			if (bestResult == null)
 				OptimizeLr();
 			else
