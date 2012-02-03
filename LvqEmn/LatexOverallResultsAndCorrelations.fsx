@@ -18,4 +18,3 @@ ErrorCorrelations.meanInitCorrs allResults ModelSettings.coreProjectingModelSett
 
 ErrorCorrelations.errTypeCorrTableLatex allResults false ModelSettings.allCoreModelSettings |> printfn "%s"
 
-

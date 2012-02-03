@@ -9,14 +9,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using EmnExtensions;
 using EmnExtensions.Filesystem;
-using EmnExtensions.MathHelpers;
 using EmnExtensions.Text;
 using ExpressionToCodeLib;
 using LvqLibCli;
 
 namespace LvqGui {
-	public static class LrOptimizationHelper {
-	}
 
 	public class LrOptimizer {
 		public readonly uint offset;
@@ -167,7 +164,7 @@ namespace LvqGui {
 		IEnumerable<LvqModelSettingsCli> AllLrTestingSettings() {
 			return
 				from settings in AllLrTestingSettingsNoOffset
-				select LrOptimizer.WithSeedFromOffset(settings, offset);
+				select WithSeedFromOffset(settings, offset);
 		}
 
 
@@ -186,20 +183,18 @@ namespace LvqGui {
 			sink.WriteLine("For " + settings.ModelType + " with " + settings.PrototypesPerClass + " prototypes and " + _itersToRun + " iters training:");
 
 			var errorRates = (
-				from lr0 in lr0range 
+				from lr0 in lr0range
 				from lrP in lrPrange
 				from lrB in lrBrange
-				let errorRatesTask = ErrorOf(sink, _itersToRun, settings.WithLr(lr0, lrP, lrB), cancel)
-				select new  {lr0, lrP, lrB, errorRatesTask }
+				select ErrorOf(sink, _itersToRun, settings.WithLr(lr0, lrP, lrB), cancel)
 				).ToArray();
 
-			return Task.Factory.ContinueWhenAll(errorRates.Select(run => run.errorRatesTask).ToArray(),
+			return Task.Factory.ContinueWhenAll(errorRates,
 				tasks => {
-					foreach (var result in errorRates.OrderBy(err => err.errorRatesTask.Result.CanonicalError))
-						sink.Write("\n" + result.lr0.ToString("g4").PadRight(9) + "p" + result.lrP.ToString("g4").PadRight(9) + "b" + result.lrB.ToString("g4").PadRight(9) + ": "
-								+ result.errorRatesTask.Result + "[" + result.errorRatesTask.Result.cumLearningRate + "]"
-							);
-
+					var lrAndErrors = tasks.Select(t => t.Result).ToArray();
+					foreach (var lrErr in lrAndErrors.OrderBy(lrErr => lrErr.Errors.CanonicalError)) 
+						sink.Write("\n" + lrErr.ToStorageString());
+					
 					sink.WriteLine();
 				}, cancel, TaskContinuationOptions.ExecuteSynchronously, LowPriorityTaskScheduler.DefaultLowPriorityScheduler);
 		}
@@ -211,7 +206,7 @@ namespace LvqGui {
 				yield return start * Math.Exp(lnScale * ((double)i / (steps - 1)));
 		}
 
-		Task<ErrorRates> ErrorOf(TextWriter sink, long iters, LvqModelSettingsCli settings, CancellationToken cancel) {
+		Task<LrAndError> ErrorOf(TextWriter sink, long iters, LvqModelSettingsCli settings, CancellationToken cancel) {
 			int nnErrorIdx = -1;
 			var results = new Task<LvqTrainingStatCli>[_folds];
 
@@ -230,7 +225,7 @@ namespace LvqGui {
 
 			return Task.Factory.ContinueWhenAll(results, tasks => {
 				sink.Write(".");
-				return new ErrorRates(LvqMultiModel.MeanStdErrStats(tasks.Select(task => task.Result).ToArray()), nnErrorIdx);
+				return new LrAndError(settings, LvqMultiModel.MeanStdErrStats(tasks.Select(task => task.Result).ToArray()), nnErrorIdx);
 			},
 				cancel, TaskContinuationOptions.ExecuteSynchronously, LowPriorityTaskScheduler.DefaultLowPriorityScheduler);
 		}
@@ -388,7 +383,7 @@ namespace LvqGui {
 
 		static IEnumerable<Tuple<LvqModelSettingsCli, double>> UniformResults() {
 			return
-				from line in File.ReadAllLines(LrOptimizer.resultsDir.FullName + "\\uniform-results.txt")
+				from line in File.ReadAllLines(resultsDir.FullName + "\\uniform-results.txt")
 				let settingsOrNull = CreateLvqModelValues.TryParseShorthand(line.SubstringUntil(" "))
 				where settingsOrNull.HasValue
 				let settings = settingsOrNull.Value

@@ -40,10 +40,10 @@
                     <CheckBox Content="Normalize only by scaling" IsChecked="{Binding NormalizeByScaling, Mode=TwoWay}"/>
 
                     <TabControl >
-                        <TabItem Header="Load Data">
+                        <TabItem Header="Load Data" IsSelected="True">
                             <my:LoadDataset DataContext="{Binding LoadDatasetValues}"/>
                         </TabItem>
-                        <TabItem Header="Gaussian Clouds"  IsSelected="True" >
+                        <TabItem Header="Gaussian Clouds">
                             <my:CreateGaussianCloudDataset DataContext="{Binding CreateGaussianCloudsDatasetValues}"/>
                         </TabItem>
                         <TabItem Header="Star Dataset">

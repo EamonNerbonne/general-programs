@@ -29,4 +29,4 @@ let unpackToListErrs (errs:ErrorRates list) = [errs |> List.map (fun err-> err.t
 #nowarn "25"
 let meanStderrOfErrs errs =
     let [trnD; tstD; nnD] = unpackToListErrs errs |> List.map Utils.sampleDistribution
-    ErrorRates(trnD.Mean, trnD.StdErr, tstD.Mean,tstD.StdErr,nnD.Mean,nnD.StdErr, 0.0)
+    ErrorRates(trnD.Mean, trnD.StdErr, tstD.Mean,tstD.StdErr,nnD.Mean,nnD.StdErr)

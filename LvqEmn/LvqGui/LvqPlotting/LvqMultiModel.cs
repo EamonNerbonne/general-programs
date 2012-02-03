@@ -52,8 +52,6 @@ namespace LvqGui
 
 		public double CurrentLearningRate { get { return subModels.Sum(model => model.UnscaledLearningRate) / ModelCount; } }
 
-		public ErrorRates CurrentErrorRates() { return new ErrorRates(CurrentRawStats(), nnErrIdx); }
-
 		public int SelectedSubModel { get; set; }
 
 		public struct Statistic { public double[] Value, StandardError; public int BestIdx;}

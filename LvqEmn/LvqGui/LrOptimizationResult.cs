@@ -39,34 +39,14 @@ namespace LvqGui {
 			double[] lrPrange = ExtractLrs(fileLines.First(line => line.StartsWith("lrPrange:")));
 			double[] lrBrange = ExtractLrs(fileLines.First(line => line.StartsWith("lrBrange:")));
 			string[] resultLines = fileLines.SkipWhile(line => !line.StartsWith(".")).Skip(1).Where(line => !line.StartsWith("Search Complete!") && !string.IsNullOrWhiteSpace(line)).ToArray();
-			return resultLines.Select(resLine => ParseLine(resLine, lr0range, lrPrange, lrBrange));
+			return resultLines.Select(resLine => LrAndError.ParseLine(resLine, lr0range, lrPrange, lrBrange));
 		}
 
 
-		static LrAndError ParseLine(string resultLine, double[] lr0range, double[] lrPrange, double[] lrBrange) {
-			var resLrThenErr = resultLine.Split(':');
-			double[] lrs = resLrThenErr[0].Split('p', 'b').Select(double.Parse).ToArray();
-
-			var errsThenCumulLr0 = resLrThenErr[1].Split(';');
-
-			Tuple<double, double>[] errs = errsThenCumulLr0.Take(3).Select(errStr => errStr.Split('~').Select(double.Parse).ToArray()).Select(errval => Tuple.Create(errval[0], errval.Skip(1).FirstOrDefault())).ToArray();
-			return new LrAndError {
-				LR = new LearningRates {
-					Lr0 = ClosestMatch(lr0range, lrs[0]),
-					LrP = ClosestMatch(lrPrange, lrs[1]),
-					LrB = ClosestMatch(lrBrange, lrs[2]),
-				},
-				Errors = new ErrorRates(errs[0].Item1, errs[0].Item2, errs[1].Item1, errs[1].Item2, errs[2].Item1, errs[2].Item2, double.Parse(errsThenCumulLr0[3].Trim(' ', '[', ']'))),
-			};
-		}
 
 		static readonly char[] comma = new[] { ',' };
 		static double[] ExtractLrs(string line) {
 			return line.SubstringAfterFirst("{").SubstringUntil("}").Split(comma).Select(double.Parse).ToArray();
-		}
-		static double ClosestMatch(IEnumerable<double> haystack, double needle) {
-			return haystack.Aggregate(new { Err = double.PositiveInfinity, Val = needle },
-				(best, option) => Math.Abs(option - needle) < best.Err ? new { Err = Math.Abs(option - needle), Val = option } : best).Val;
 		}
 
 		static readonly Regex resultsFilenameRegex = new Regex(@"^(?<iters>[0-9]?e[0-9]+)\-(?<shorthand>[^ ]*?)\.txt$");
