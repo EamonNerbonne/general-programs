@@ -229,12 +229,12 @@ let improveAndTest (initialSettings:LvqModelSettingsCli) =
     let testedResults = testSettings 100 1u 1e7 improvedSettings
     let resultString = printResults testedResults
     Console.WriteLine resultString
-    File.AppendAllText (TestLr.resultsDir.FullName + "\\uniform-results.txt", resultString + "\n")
+    File.AppendAllText (LrOptimizer.resultsDir.FullName + "\\uniform-results.txt", resultString + "\n")
     testedResults
 
 let isTested (lvqSettings:LvqModelSettingsCli) = 
     let canonicalSettings = (lvqSettings.ToShorthand() |> CreateLvqModelValues.ParseShorthand).WithDefaultLr()
-    File.ReadAllLines (TestLr.resultsDir.FullName + "\\uniform-results.txt")
+    File.ReadAllLines (LrOptimizer.resultsDir.FullName + "\\uniform-results.txt")
         |> Array.map (fun line -> (line.Split [|' '|]).[0] |> CreateLvqModelValues.TryParseShorthand)
         |> Seq.filter (fun settingsOrNull -> settingsOrNull.HasValue)
         |> Seq.map (fun settingsOrNull -> settingsOrNull.Value.WithTestingChanges(0u).WithDefaultLr())
@@ -243,7 +243,7 @@ let isTested (lvqSettings:LvqModelSettingsCli) =
 let cleanupShorthand = CreateLvqModelValues.ParseShorthand >> (fun s->s.ToShorthand())
 
 let recomputeRes () =
-    File.ReadAllLines ( TestLr.resultsDir.FullName + "\\uniform-results.txt") 
+    File.ReadAllLines ( LrOptimizer.resultsDir.FullName + "\\uniform-results.txt") 
         |> List.ofArray 
         |> List.map (fun s-> if s.Contains " " then  s.Substring(0, s.IndexOf " ") else s)
         |> List.filter (String.IsNullOrEmpty >> not)
@@ -251,7 +251,7 @@ let recomputeRes () =
         |> List.filter (fun settings -> settings.HasValue)
         |> List.map (fun settings -> settings.Value)
         //|> List.map (fun settings -> settings.ToShorthand())
-        |> List.map (testSettings 100 1u 1e7 >> printResults >> (fun resline -> File.AppendAllText (TestLr.resultsDir.FullName + "\\uniform-results2.txt", resline + "\n"); resline ))
+        |> List.map (testSettings 100 1u 1e7 >> printResults >> (fun resline -> File.AppendAllText (LrOptimizer.resultsDir.FullName + "\\uniform-results2.txt", resline + "\n"); resline ))
 
 let baseSettings (lvqSettings:LvqModelSettingsCli) = 
     let mutable basicSettings = new LvqModelSettingsCli ()
@@ -290,7 +290,7 @@ let allUniformResults () =
                         Settings = maybeSettings.Value
             })
 
-    File.ReadAllLines (TestLr.resultsDir.FullName + "\\uniform-results.txt")
+    File.ReadAllLines (LrOptimizer.resultsDir.FullName + "\\uniform-results.txt")
         |> Seq.map parseLine
         |> Seq.filter Option.isSome
         |> Seq.map Option.get
@@ -327,7 +327,7 @@ allUniformResults ()
     //|> List.map (fun s->s.ToShorthand())
     |> List.map improveAndTest
 
-TestLr.resultsDir.GetFiles("*.txt", SearchOption.AllDirectories)
+LrOptimizer.resultsDir.GetFiles("*.txt", SearchOption.AllDirectories)
     |> Seq.map (fun fileInfo -> fileInfo.Name  |> LvqGui.LrOptimizationResult.ExtractItersAndSettings)
     |> Seq.filter (fun (ok,_,_) -> ok)
     |> Seq.map (fun (_,_,settings) -> settings.WithTestingChanges(0u).WithDefaultLr())

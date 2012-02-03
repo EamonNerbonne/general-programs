@@ -15,25 +15,25 @@ using ExpressionToCodeLib;
 using LvqLibCli;
 
 namespace LvqGui {
-	public static class TestLrHelper {
+	public static class LrOptimizationHelper {
 		public static LvqModelSettingsCli WithTestingChanges(this LvqModelSettingsCli settings, uint offset) { return settings.WithSeeds(1 + 2 * offset, 2 * offset); }
 	}
 
-	public class TestLr {
+	public class LrOptimizer {
 		public readonly uint offset;
 		readonly LvqDatasetCli _dataset;
 		readonly long _itersToRun;
 		readonly int _folds;
 		readonly DirectoryInfo datasetResultsDir;
 
-		public TestLr(long itersToRun, uint p_offset) {
+		public LrOptimizer(long itersToRun, uint p_offset) {
 			_itersToRun = itersToRun;
 			offset = p_offset;
 			_folds = basedatasets.Length;
 			datasetResultsDir = ResultsDatasetDir(null);
 		}
 
-		public TestLr(LvqDatasetCli dataset) {
+		public LrOptimizer(LvqDatasetCli dataset) {
 			_itersToRun = 30L * 1000L * 1000L;
 			offset = 0;
 			_dataset = dataset;
@@ -103,7 +103,7 @@ namespace LvqGui {
 		public enum LrTestingStatus { SomeUnstartedResults, SomeUnfinishedResults, AllResultsComplete };
 
 		public static LrTestingStatus HasAllLrTestingResults(LvqDatasetCli dataset) {
-			var testlr = new TestLr(dataset);
+			var testlr = new LrOptimizer(dataset);
 
 			return (LrTestingStatus)
 				testlr.AllLrTestingSettings().Min(settings => {
@@ -382,15 +382,15 @@ namespace LvqGui {
 
 		public static IEnumerable<LvqModelType> ModelTypes { get { return new[] { LvqModelType.Ggm, LvqModelType.G2m, LvqModelType.Gm }; } }//  (LvqModelType[])Enum.GetValues(typeof(LvqModelType)); } }
 		public static IEnumerable<int> PrototypesPerClassOpts { get { yield return 5; yield return 1; } }
-		public static readonly DirectoryInfo resultsDir = FSUtil.FindDataDir(@"uni\Thesis\doc\results\", Assembly.GetAssembly(typeof(TestLr)));
+		public static readonly DirectoryInfo resultsDir = FSUtil.FindDataDir(@"uni\Thesis\doc\results\", Assembly.GetAssembly(typeof(LrOptimizer)));
 		static IEnumerable<LvqDatasetCli> Datasets() {
 			// ReSharper disable RedundantAssignment
 			uint rngParam = 1000;
 			uint rngInst = 1001;
-			yield return new GaussianCloudSettings { ParamsSeed = rngParam++, InstanceSeed = rngInst++, Dimensions = 16, PointsPerClass = (int)(10000 / Math.Sqrt(16) / 3), }.CreateDataset();
-			yield return new GaussianCloudSettings { ParamsSeed = rngParam++, InstanceSeed = rngInst++, Dimensions = 8, PointsPerClass = (int)(10000 / Math.Sqrt(8) / 3), }.CreateDataset();
-			yield return new StarSettings { ParamsSeed = rngParam++, InstanceSeed = rngInst++, Dimensions = 12, ClusterDimensionality = 6, NumberOfClusters = 3, NumberOfClasses = 4, PointsPerClass = (int)(10000 / Math.Sqrt(12) / 4), NoiseSigma = 2.5, }.CreateDataset();
-			yield return new StarSettings { ParamsSeed = rngParam++, InstanceSeed = rngInst++, Dimensions = 8, ClusterDimensionality = 4, NumberOfClusters = 3, PointsPerClass = (int)(10000 / Math.Sqrt(8) / 3), NoiseSigma = 2.5, }.CreateDataset();
+			yield return new GaussianCloudDatasetSettings { ParamsSeed = rngParam++, InstanceSeed = rngInst++, Dimensions = 16, PointsPerClass = (int)(10000 / Math.Sqrt(16) / 3), }.CreateDataset();
+			yield return new GaussianCloudDatasetSettings { ParamsSeed = rngParam++, InstanceSeed = rngInst++, Dimensions = 8, PointsPerClass = (int)(10000 / Math.Sqrt(8) / 3), }.CreateDataset();
+			yield return new StarDatasetSettings { ParamsSeed = rngParam++, InstanceSeed = rngInst++, Dimensions = 12, ClusterDimensionality = 6, NumberOfClusters = 3, NumberOfClasses = 4, PointsPerClass = (int)(10000 / Math.Sqrt(12) / 4), NoiseSigma = 2.5, }.CreateDataset();
+			yield return new StarDatasetSettings { ParamsSeed = rngParam++, InstanceSeed = rngInst++, Dimensions = 8, ClusterDimensionality = 4, NumberOfClusters = 3, PointsPerClass = (int)(10000 / Math.Sqrt(8) / 3), NoiseSigma = 2.5, }.CreateDataset();
 			yield return LoadDatasetImpl.Load(10, "segmentationNormed_combined.data", rngInst++);
 			yield return LoadDatasetImpl.Load(10, "colorado.data", rngInst++);
 			yield return LoadDatasetImpl.Load(10, "pendigits.train.data", rngInst++);
@@ -426,7 +426,7 @@ namespace LvqGui {
 
 		static IEnumerable<Tuple<LvqModelSettingsCli, double>> UniformResults() {
 			return
-				from line in File.ReadAllLines(TestLr.resultsDir.FullName + "\\uniform-results.txt")
+				from line in File.ReadAllLines(LrOptimizer.resultsDir.FullName + "\\uniform-results.txt")
 				let settingsOrNull = CreateLvqModelValues.TryParseShorthand(line.SubstringUntil(" "))
 				where settingsOrNull.HasValue
 				let settings = settingsOrNull.Value

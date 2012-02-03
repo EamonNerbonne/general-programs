@@ -3,7 +3,7 @@ using EmnExtensions.Wpf;
 using LvqLibCli;
 
 namespace LvqGui {
-	public sealed class StarSettings : DatasetCreatorBase<StarSettings> {
+	public sealed class StarDatasetSettings : DatasetCreatorBase<StarDatasetSettings> {
 #if DEBUG
 		public int Dimensions=8;
 		public int PointsPerClass=100;

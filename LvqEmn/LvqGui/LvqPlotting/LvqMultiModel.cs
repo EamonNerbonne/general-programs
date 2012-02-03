@@ -52,7 +52,7 @@ namespace LvqGui
 
 		public double CurrentLearningRate { get { return subModels.Sum(model => model.UnscaledLearningRate) / ModelCount; } }
 
-		public TestLr.ErrorRates CurrentErrorRates() { return new TestLr.ErrorRates(CurrentRawStats(), nnErrIdx); }
+		public LrOptimizer.ErrorRates CurrentErrorRates() { return new LrOptimizer.ErrorRates(CurrentRawStats(), nnErrIdx); }
 
 		public int SelectedSubModel { get; set; }
 
@@ -269,7 +269,7 @@ namespace LvqGui
 				var otherSettings = CreateDataset.CreateFactory(dir.Name);
 				return otherSettings != null && otherSettings.Shorthand == dSettingsShorthand;
 			}) ?? statsDir.CreateSubdirectory(dSettingsShorthand);
-			string iterPrefix = TestLr.ItersPrefix(iterIntent) + "-";
+			string iterPrefix = LrOptimizer.ItersPrefix(iterIntent) + "-";
 			string mSettingsShorthand = modelSettings.ToShorthand();
 
 			return datasetDir.GetFiles(iterPrefix + "*.txt").FirstOrDefault(file =>
@@ -293,7 +293,7 @@ namespace LvqGui
 			var allstats = EvaluateFullStats().ToArray();
 
 
-			if (TestLr.ItersPrefix(iterIntent) != TestLr.ItersPrefix((long)Math.Round(allstats.Select(stat => stat.values[LvqTrainingStatCli.TrainingIterationI]).Average())))
+			if (LrOptimizer.ItersPrefix(iterIntent) != LrOptimizer.ItersPrefix((long)Math.Round(allstats.Select(stat => stat.values[LvqTrainingStatCli.TrainingIterationI]).Average())))
 				throw new InvalidOperationException("Trained the wrong number of iterations; aborting.");
 			string statsString = FullStatsString(allstats);
 

@@ -1,10 +1,9 @@
-﻿using System.Text.RegularExpressions;
-using EmnExtensions.MathHelpers;
+﻿using EmnExtensions.MathHelpers;
 using EmnExtensions.Wpf;
 using LvqLibCli;
 
 namespace LvqGui {
-	public sealed class GaussianCloudSettings : DatasetCreatorBase<GaussianCloudSettings> {
+	public sealed class GaussianCloudDatasetSettings : DatasetCreatorBase<GaussianCloudDatasetSettings> {
 		public int NumberOfClasses = 3;
 #if DEBUG
 		public int Dimensions=8;
@@ -49,8 +48,8 @@ namespace LvqGui {
 		}
 
 
-		public static GaussianCloudSettings InstableCross() {
-			return new GaussianCloudSettings {
+		public static GaussianCloudDatasetSettings InstableCross() {
+			return new GaussianCloudDatasetSettings {
 				PointsPerClass = 1000,
 				Folds = 10,
 				NumberOfClasses = 3,
@@ -60,8 +59,8 @@ namespace LvqGui {
 				InstanceSeed = 0xc62ef64e,
 			};
 		}
-		public static GaussianCloudSettings PlainCurvedBoundaryExample() {
-			return new GaussianCloudSettings {
+		public static GaussianCloudDatasetSettings PlainCurvedBoundaryExample() {
+			return new GaussianCloudDatasetSettings {
 				PointsPerClass = 1000,
 				Folds = 10,
 				NumberOfClasses = 3,

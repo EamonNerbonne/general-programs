@@ -262,7 +262,7 @@ namespace LvqGui {
 
 		public static bool AnnouncePlotGeneration(LvqDatasetCli dataset, LvqModelSettingsCli shorthand, long iterIntent) {
 			DirectoryInfo modelDir = GraphDir(dataset, shorthand);
-			string iterPostfix = "-" + TestLr.ItersPrefix(iterIntent);
+			string iterPostfix = "-" + LrOptimizer.ItersPrefix(iterIntent);
 
 			string statspath = modelDir.FullName + "\\fullstats" + iterPostfix + ".txt";
 			bool exists = File.Exists(statspath);
@@ -298,7 +298,7 @@ namespace LvqGui {
 
 				DirectoryInfo modelDir = GraphDir(subplots.dataset, CreateLvqModelValues.ParseShorthand(subplots.model.ModelLabel));
 				double iterations = subplots.model.CurrentRawStats().Value[LvqTrainingStatCli.TrainingIterationI];
-				string iterPostfix = "-" + TestLr.ItersPrefix((long)(iterations + 0.5));
+				string iterPostfix = "-" + LrOptimizer.ItersPrefix((long)(iterations + 0.5));
 
 				Grid plotGrid = (Grid)subPlotWindow.Content;
 				PlotControl[] plotControls = plotGrid.Children.OfType<PlotControl>().ToArray();

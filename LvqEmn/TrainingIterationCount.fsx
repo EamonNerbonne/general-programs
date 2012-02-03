@@ -8,7 +8,7 @@ open LvqGui
 
 let datasetResults =
         let filepattern = "*.txt"
-        TestLr.resultsDir.GetDirectories()
+        LrOptimizer.resultsDir.GetDirectories()
         |> Seq.filter (fun dir -> dir.Name <> "base")
         |> Seq.collect (fun dir-> dir.GetFiles("*.txt"))
         |> Seq.map LvqGui.LrOptimizationResult.ProcFile
@@ -17,7 +17,7 @@ let datasetResults =
 
 let baseDatasetResults =
         let filepattern = "*.txt"
-        TestLr.resultsDir.GetDirectories("base").[0].GetFiles("*.txt")
+        LrOptimizer.resultsDir.GetDirectories("base").[0].GetFiles("*.txt")
         |> Seq.map LvqGui.LrOptimizationResult.ProcFile
         |> Seq.filter (fun res -> res <> null)
         |> Seq.toList

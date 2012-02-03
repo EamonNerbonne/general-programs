@@ -279,7 +279,7 @@ namespace LvqGui {
 			Task.Factory
 				.StartNew(() => {
 					if (settingsCopy.LR0 == 0.0 && settingsCopy.LrScaleP == 0.0 && settingsCopy.LrScaleB == 0.0)
-						settingsCopy = TestLr.ChooseReasonableLr(settingsCopy);
+						settingsCopy = LrOptimizer.ChooseReasonableLr(settingsCopy);
 
 					if (settingsCopy.LR0 == 0.0)
 						Console.WriteLine("Cannot create model with 0 LR!");
@@ -295,24 +295,24 @@ namespace LvqGui {
 		public bool HasOptimizedLr { get { return LrOptimizationResult.GetBestResult(ForDataset, settings) != null; } }
 		public string OptimizeButtonText { get { return HasOptimizedLr ? "Create with Optimal LR" : "Find optimal LR"; } }
 
-		public TestLr.LrTestingStatus OptimizedLrAllStatus { get { return TestLr.HasAllLrTestingResults(ForDataset); } }
+		public LrOptimizer.LrTestingStatus OptimizedLrAllStatus { get { return LrOptimizer.HasAllLrTestingResults(ForDataset); } }
 		public string OptimizeAllButtonText {
 			get {
-				var status = TestLr.HasAllLrTestingResults(ForDataset);
-				return status == TestLr.LrTestingStatus.AllResultsComplete
+				var status = LrOptimizer.HasAllLrTestingResults(ForDataset);
+				return status == LrOptimizer.LrTestingStatus.AllResultsComplete
 						? "All LR optimization complete."
-						: status == TestLr.LrTestingStatus.SomeUnfinishedResults
+						: status == LrOptimizer.LrTestingStatus.SomeUnfinishedResults
 							? "Waiting for unfinished results..."
 							: "Find all types' Optimal LR";
 			}
 		}
-		public bool OptimizedLrAllIncomplete { get { return OptimizedLrAllStatus != TestLr.LrTestingStatus.AllResultsComplete; } }
+		public bool OptimizedLrAllIncomplete { get { return OptimizedLrAllStatus != LrOptimizer.LrTestingStatus.AllResultsComplete; } }
 
 		public void OptimizeLr() {//on gui thread.
 			var settingsCopy = settings;
 			settingsCopy.InstanceSeed = 0;
 			settingsCopy.ParamsSeed = 1;
-			var testLr = new TestLr(ForDataset);
+			var testLr = new LrOptimizer(ForDataset);
 			string shortname = testLr.ShortnameFor(settingsCopy);
 			var logWindow = LogControl.ShowNewLogWindow(shortname, owner.win.ActualWidth, owner.win.ActualHeight * 0.6);
 			testLr.TestLrIfNecessary(logWindow.Item2.Writer, settingsCopy, Owner.WindowClosingToken).ContinueWith(t => {
@@ -322,7 +322,7 @@ namespace LvqGui {
 
 		public void OptimizeLrAll() {//on gui thread.
 			LvqDatasetCli dataset = ForDataset;
-			var testLr = new TestLr(dataset);
+			var testLr = new LrOptimizer(dataset);
 			testLr.StartAllLrTesting(Owner.WindowClosingToken).ContinueWith(_ => Console.WriteLine("completed lr optimization for " + (dataset.DatasetLabel ?? "<unknown>")));
 		}
 
@@ -340,7 +340,7 @@ namespace LvqGui {
 		public void OptimizeAll() {
 			var dataset = ForDataset;
 			var status = OptimizedLrAllStatus;
-			if (status == TestLr.LrTestingStatus.SomeUnstartedResults)
+			if (status == LrOptimizer.LrTestingStatus.SomeUnstartedResults)
 				OptimizeLrAll();
 			else
 				Console.WriteLine("All results already started/complete");

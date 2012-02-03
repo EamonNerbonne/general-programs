@@ -365,17 +365,17 @@
     </Compile>
     <Compile Include="CloneableAs.cs" />
     <Compile Include="CreatorGui\CreateDataset.cs" />
-    <Compile Include="LrOptimizationResults.cs" />
-    <Compile Include="GaussianCloudSettings.cs" />
+    <Compile Include="LrOptimizationResult.cs" />
+    <Compile Include="GaussianCloudDatasetSettings.cs" />
     <Compile Include="LvqPlotting\StatisticsViewMode.cs" />
-    <Compile Include="StarSettings.cs" />
+    <Compile Include="StarDatasetSettings.cs" />
     <Compile Include="HexConverter.cs" />
     <Compile Include="LvqPlotting\LvqMultiModel.cs" />
     <Compile Include="LvqPlotting\LvqStatName.cs" />
     <Compile Include="LvqPlotting\LvqStatPlotFactory.cs" />
     <Compile Include="LvqPlotting\LvqStatPlots.cs" />
     <Compile Include="CreatorGui\ShorthandHelper.cs" />
-    <Compile Include="TestLr.cs" />
+    <Compile Include="LrOptimizer.cs" />
     <Compile Include="UpdateSync.cs" />
     <Page Include="CoreGui\AppSettings.xaml">
       <SubType>Designer</SubType>

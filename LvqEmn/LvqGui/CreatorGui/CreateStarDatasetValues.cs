@@ -8,8 +8,8 @@ namespace LvqGui {
 	public sealed class CreateStarDatasetValues : HasShorthandBase, IHasSeed {
 		readonly LvqWindowValues owner;
 
-		StarSettings settings = new StarSettings();
-		public StarSettings Settings { get { return settings; } set { if (settings != value) { settings = value; AllPropertiesChanged(); } } }
+		StarDatasetSettings settings = new StarDatasetSettings();
+		public StarDatasetSettings Settings { get { return settings; } set { if (settings != value) { settings = value; AllPropertiesChanged(); } } }
 
 
 		public int Dimensions {

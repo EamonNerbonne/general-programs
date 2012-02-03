@@ -132,7 +132,7 @@ namespace LvqGui {
 			LvqModelType modeltype = (LvqModelType)modelType.SelectedItem;
 			int protos = Use5Protos.IsChecked == true ? 5 : 1;
 			long iterCount = (long)iterCountSelectbox.SelectedItem;
-			var testLr = new TestLr(iterCount, offset);
+			var testLr = new LrOptimizer(iterCount, offset);
 			var settings = new LvqModelSettingsCli().WithChanges(modeltype, protos).WithTestingChanges(testLr.offset);
 			string shortname = testLr.ShortnameFor(settings);
 
@@ -149,7 +149,7 @@ namespace LvqGui {
 			long iterCount = (long)iterCountSelectbox.SelectedItem;
 			Process.GetCurrentProcess().PriorityClass = ProcessPriorityClass.Idle;
 			ThreadPool.QueueUserWorkItem(_ =>
-				new TestLr(iterCount, offset).StartAllLrTesting(ClosingToken)
+				new LrOptimizer(iterCount, offset).StartAllLrTesting(ClosingToken)
 				.ContinueWith(t => { Console.WriteLine("wheee!!!!"); t.Wait(); })
 				);
 		}
@@ -159,7 +159,7 @@ namespace LvqGui {
 				
 				foreach(var datasetFactory in CreateDataset.StandardAndNormalizedDatasets()){
 					var dataset = datasetFactory.CreateDataset();
-					new TestLr(dataset).StartAllLrTesting(ClosingToken).Wait();
+					new LrOptimizer(dataset).StartAllLrTesting(ClosingToken).Wait();
 					if (ClosingToken.IsCancellationRequested) return;
 					Console.WriteLine("Completed LR testing for " + dataset.DatasetLabel);
 				}

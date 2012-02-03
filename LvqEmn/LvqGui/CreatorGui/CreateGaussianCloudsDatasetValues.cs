@@ -8,8 +8,8 @@ namespace LvqGui {
 	public class CreateGaussianCloudsDatasetValues : HasShorthandBase, IHasSeed {
 		readonly LvqWindowValues owner;
 
-		GaussianCloudSettings settings = new GaussianCloudSettings();
-		public GaussianCloudSettings Settings { get { return settings; } set { if (settings != value) { settings = value; AllPropertiesChanged(); } } }
+		GaussianCloudDatasetSettings settings = new GaussianCloudDatasetSettings();
+		public GaussianCloudDatasetSettings Settings { get { return settings; } set { if (settings != value) { settings = value; AllPropertiesChanged(); } } }
 
 		public int Dimensions {
 			get { return settings.Dimensions; }

@@ -8,7 +8,7 @@ open LvqGui
 //open HeuristicAnalysis
 
 let allLrOptResults =
-        TestLr.resultsDir.GetDirectories()
+        LrOptimizer.resultsDir.GetDirectories()
         |> Seq.filter (fun dir -> dir.Name <> "base")
         |> Seq.collect (fun dir-> dir.GetFiles("*.txt"))
         |> Seq.map LvqGui.LrOptimizationResult.ProcFile
@@ -39,7 +39,7 @@ let plainCompleteLrTestingResults =
 
 let relevantDatasets = List.map (fun (x, _,_,_) ->x) plainCompleteLrTestingResults |> Set.ofList |> Set.toList |> List.map (fun x-> defaultArg (LvqRunAnalysis.friendlyDatasetName x) x)
 
-let trainingErr (errs:TestLr.ErrorRates) = errs.training
+let trainingErr (errs:LrOptimizer.ErrorRates) = errs.training
 
 let meanBestLrLookup = 
     plainCompleteLrTestingResults

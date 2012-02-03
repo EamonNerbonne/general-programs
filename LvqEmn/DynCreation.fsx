@@ -32,7 +32,7 @@ let createConfirmationDataset resultsName =
 
 
 let datasets = 
-    TestLr.resultsDir.GetDirectories() 
+    LrOptimizer.resultsDir.GetDirectories() 
     |> Seq.toList
     |> List.map (fun dir -> (dir.Name, dir.Name |> createConfirmationDataset))
     |> List.filter (fun (_,dataset) -> dataset.IsSome)

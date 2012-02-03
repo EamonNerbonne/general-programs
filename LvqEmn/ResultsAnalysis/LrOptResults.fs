@@ -7,7 +7,7 @@ open LvqLibCli
 
 let loadDatasetLrOptResults datasetName =
         let filepattern = "*.txt"
-        TestLr.resultsDir.GetDirectories(datasetName).[0].GetFiles(filepattern)
+        LrOptimizer.resultsDir.GetDirectories(datasetName).[0].GetFiles(filepattern)
         |> Seq.map LvqGui.LrOptimizationResult.ProcFile
         |> Seq.filter (fun res -> res <> null)
         |> Seq.toList
@@ -20,13 +20,13 @@ let groupErrorsByLrForSetting (results:LrOptimizationResult list) (exampleSettin
         |> List.collect (fun lrOptResult ->  lrOptResult.GetLrs() |> Seq.toList) 
         |> groupErrorsByLr
 
-let extractTrainingError (errs:TestLr.ErrorRates) = (errs.training, errs.trainingStderr)
-let extractTestError (errs:TestLr.ErrorRates) = (errs.test, errs.testStderr)
-let extractNnError (errs:TestLr.ErrorRates) = (errs.nn, errs.nnStderr)
+let extractTrainingError (errs:LrOptimizer.ErrorRates) = (errs.training, errs.trainingStderr)
+let extractTestError (errs:LrOptimizer.ErrorRates) = (errs.test, errs.testStderr)
+let extractNnError (errs:LrOptimizer.ErrorRates) = (errs.nn, errs.nnStderr)
 
-let unpackToListErrs (errs:TestLr.ErrorRates list) = [errs |> List.map (fun err-> err.training); errs |> List.map (fun err -> err.test); errs |> List.map (fun err -> err.nn)]
+let unpackToListErrs (errs:LrOptimizer.ErrorRates list) = [errs |> List.map (fun err-> err.training); errs |> List.map (fun err -> err.test); errs |> List.map (fun err -> err.nn)]
 
 #nowarn "25"
 let meanStderrOfErrs errs =
     let [trnD; tstD; nnD] = unpackToListErrs errs |> List.map Utils.sampleDistribution
-    TestLr.ErrorRates(trnD.Mean, trnD.StdErr, tstD.Mean,tstD.StdErr,nnD.Mean,nnD.StdErr, 0.0)
+    LrOptimizer.ErrorRates(trnD.Mean, trnD.StdErr, tstD.Mean,tstD.StdErr,nnD.Mean,nnD.StdErr, 0.0)

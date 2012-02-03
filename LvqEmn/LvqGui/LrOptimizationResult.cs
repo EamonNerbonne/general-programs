@@ -44,7 +44,7 @@ namespace LvqGui {
 
 		public struct Lr { public double Lr0, LrP, LrB; public override string ToString() { return Lr0 + " p" + LrP + " b" + LrB; } }
 		public struct LrAndError : IComparable<LrAndError>, IComparable {
-			public Lr LR; public TestLr.ErrorRates Errors;
+			public Lr LR; public LrOptimizer.ErrorRates Errors;
 			public int CompareTo(LrAndError other) { return Errors.CompareTo(other.Errors); }
 			public override string ToString() { return LR + " @ " + Errors; }
 
@@ -64,7 +64,7 @@ namespace LvqGui {
 					LrP = ClosestMatch(lrPrange, lrs[1]),
 					LrB = ClosestMatch(lrBrange, lrs[2]),
 				},
-				Errors = new TestLr.ErrorRates(errs[0].Item1, errs[0].Item2, errs[1].Item1, errs[1].Item2, errs[2].Item1, errs[2].Item2, double.Parse(errsThenCumulLr0[3].Trim(' ', '[', ']'))),
+				Errors = new LrOptimizer.ErrorRates(errs[0].Item1, errs[0].Item2, errs[1].Item1, errs[1].Item2, errs[2].Item1, errs[2].Item2, double.Parse(errsThenCumulLr0[3].Trim(' ', '[', ']'))),
 			};
 		}
 
@@ -133,7 +133,7 @@ namespace LvqGui {
 			return Enumerable.Repeat(CreateDataset.CreateFactory(dataset.DatasetLabel),1);
 		}
 		static IEnumerable<DirectoryInfo> GetDatasetResultDir(IDatasetCreator basicExample) {
-			return from dir in TestLr.resultsDir.GetDirectories()
+			return from dir in LrOptimizer.resultsDir.GetDirectories()
 				   where basicExample != null
 				   let dirSplitName = CreateDataset.CreateFactory(dir.Name)
 				   where dirSplitName != null && dirSplitName.GetType() == basicExample.GetType() && basicExample.LrTrainingShorthand() == dirSplitName.LrTrainingShorthand()
