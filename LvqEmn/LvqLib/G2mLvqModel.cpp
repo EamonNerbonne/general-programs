@@ -34,8 +34,7 @@ G2mLvqModel::G2mLvqModel(LvqModelSettings & initSettings)
 		prototype[protoIndex].ComputePP(P);
 	}
 
-	if(initSettings.Bcov || initSettings.RandomInitialBorders)
-		NormalizeBoundaries();
+	NormalizeBoundaries();
 
 	int maxProtoCount = accumulate(initSettings.PrototypeDistribution.begin(), initSettings.PrototypeDistribution.end(), 0, [](int a, int b) -> int { return max(a,b); });
 
