@@ -237,7 +237,7 @@ let isTested (lvqSettings:LvqModelSettingsCli) =
     File.ReadAllLines (LrOptimizer.resultsDir.FullName + "\\uniform-results.txt")
         |> Array.map (fun line -> (line.Split [|' '|]).[0] |> CreateLvqModelValues.TryParseShorthand)
         |> Seq.filter (fun settingsOrNull -> settingsOrNull.HasValue)
-        |> Seq.map (fun settingsOrNull -> settingsOrNull.Value.WithTestingChanges(0u).WithDefaultLr())
+        |> Seq.map (fun settingsOrNull -> settingsOrNull.Value.WithDefaultSeeds().WithDefaultLr())
         |> Seq.exists canonicalSettings.Equals
 
 let cleanupShorthand = CreateLvqModelValues.ParseShorthand >> (fun s->s.ToShorthand())
@@ -296,12 +296,34 @@ let allUniformResults () =
         |> Seq.map Option.get
         |> Seq.toList
 
-allUniformResults ()
-    |> List.sortBy (fun res->res.GeoMean)
-    |> Seq.distinctBy (fun res-> res.Settings.WithDefaultLr()) |> Seq.toList
+//allUniformResults () |> List.sortBy (fun res->res.GeoMean) |> Seq.distinctBy (fun res-> res.Settings.WithDefaultLr()) |> Seq.toList
     //|> List.filter (fun res->res.Settings.ModelType = LvqModelType.Gm && res.Settings.PrototypesPerClass = 1)
-    |> List.map printMeanResults
+    //|> List.map printMeanResults
 
+let showNeiEffect () =
+    let allRes = allUniformResults () |> List.rev |> Seq.distinctBy (fun res -> res.Settings.WithDefaultLr()) |> Seq.toList
+    let withoutSpecial settings = 
+                                                let mutable newSettings:LvqModelSettingsCli = settings
+                                                newSettings.neiB <- false
+                                                newSettings.neiP <- false
+                                                newSettings.scP <- false
+                                                newSettings
+    let withSpecial = 
+        allRes |> List.map (fun res->res.Settings.WithDefaultLr())
+            |> List.filter (fun settings-> withoutSpecial settings <> settings)
+            |> List.map withoutSpecial
+            |> (fun list-> new System.Collections.Generic.HashSet<LvqModelSettingsCli>(list) )
+    allRes 
+        |> List.filter (fun res ->  (withoutSpecial res.Settings).WithDefaultLr() |> withSpecial.Contains)
+        |> Seq.groupBy (fun res -> (withoutSpecial res.Settings).WithDefaultLr())
+        |> Seq.map (fun (group,members) -> members |> Seq.toList |> List.sortBy (fun res->res.GeoMean))
+        |> Seq.toList
+        |> List.sortBy (fun (best::_) -> best.GeoMean)
+        |> List.map (List.map printMeanResults)
+    
+
+
+showNeiEffect () 
 
 (*["Gpq-1,Ppca,";"Gm-5,noKP,NGi,SlowK,";
     "G2m-1,neiP,";"G2m-1,neiB,";"Gm-1,neiP,";"G2m-1,neiB,neiP,";
@@ -330,7 +352,7 @@ allUniformResults ()
 LrOptimizer.resultsDir.GetFiles("*.txt", SearchOption.AllDirectories)
     |> Seq.map (fun fileInfo -> fileInfo.Name  |> LvqGui.LrOptimizationResult.ExtractItersAndSettings)
     |> Seq.filter (fun (ok,_,_) -> ok)
-    |> Seq.map (fun (_,_,settings) -> settings.WithTestingChanges(0u).WithDefaultLr())
+    |> Seq.map (fun (_,_,settings) -> settings.WithDefaultSeeds().WithDefaultLr())
     |> Seq.distinct
     |> Seq.filter (isTested>>not)
     |> Seq.sortBy (fun s-> s.ToShorthand().Length)

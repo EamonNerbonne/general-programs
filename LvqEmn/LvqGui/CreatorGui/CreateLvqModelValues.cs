@@ -334,7 +334,7 @@ namespace LvqGui {
 			if (bestResult == null)
 				OptimizeLr();
 			else
-				CreateSingleModel(owner, ForDataset, bestResult.GetOptimizedSettings());
+				CreateSingleModel(owner, ForDataset, bestResult.GetOptimizedSettings(settings.ParamsSeed, settings.InstanceSeed ));
 		}
 
 		public void OptimizeAll() {
