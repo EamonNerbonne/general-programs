@@ -50,7 +50,6 @@ MatchQuality GgmLvqModel::learnFrom(Vector_N const & trainPoint, int trainLabel)
 	const size_t protoCount = prototype.size();
 	double learningRate = stepLearningRate();
 
-
 	double lr_point = -settings.LR0 * learningRate,
 		lr_P = lr_point * settings.LrScaleP,
 		lr_B = lr_point * settings.LrScaleB,// * (1.0 - learningRate),
@@ -262,12 +261,15 @@ void GgmLvqModel::DoOptionalNormalization() {
 GgmLvqPrototype::GgmLvqPrototype() : classLabel(-1) {}
 
 GgmLvqPrototype::GgmLvqPrototype(boost::mt19937 & rng, bool randInit, int protoLabel, Vector_N const & initialVal,Matrix_P const & P, Matrix_22 const & scaleB) 
-	: B(randInit?randomUnscalingMatrix<Matrix_22>(rng, LVQ_LOW_DIM_SPACE)*scaleB: scaleB)
+	: B(scaleB)//randInit?randomUnscalingMatrix<Matrix_22>(rng, LVQ_LOW_DIM_SPACE)*scaleB: 
 	, P_point(P*initialVal)
 	, classLabel(protoLabel)
 	, point(initialVal) 
 	, bias(0.0)
 {
+	auto rndmat = randomUnscalingMatrix<Matrix_22>(rng, LVQ_LOW_DIM_SPACE);
+	if(randInit)
+		B = rndmat*B;
 	RecomputeBias();
 }
 
