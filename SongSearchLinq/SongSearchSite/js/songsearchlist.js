@@ -1,5 +1,4 @@
-﻿
-$(document).ready(function ($) {
+﻿$(document).ready(function ($) {
     ///////////////////////////////////////////////////////////////////////////////////////////general javascript comparison function
 
     function unwrapStringOrNumber(obj) {
@@ -301,7 +300,7 @@ $(document).ready(function ($) {
         playlistElem.empty();
         var list = listdata.list;
         for (i = 0; i < list.length; i++) addToPlaylistRaw(list[i]);
-        if (list.length > 0 ) playlistChange($("#jplayer_playlist ul li")[0], suppressPlay);
+        if (list.length > 0) playlistChange($("#jplayer_playlist ul li")[0], suppressPlay);
         else $("#jquery_jplayer").jPlayer("stop");
         playlistStorage.playlistLoaded(listdata);
         simStateSet.getting();
@@ -363,7 +362,7 @@ $(document).ready(function ($) {
     }
 
     function addToPlaylist(song) {
-        var shouldStart = playlistElem.children().length == 0 ;
+        var shouldStart = playlistElem.children().length == 0;
         var newItem = addToPlaylistRaw(song);
         playlistRefreshUi();
         if (shouldStart) playlistChange(newItem);
@@ -752,17 +751,20 @@ $(document).ready(function ($) {
             },
             loadLastList: function () {
                 var lastList = JSON.parse(localStorage.playlist);
-                if (!lastList)
+                var listName = window.location.hash.match(/^\#\<.+\>$/) && window.location.hash.slice(2, -1) || lastList && lastList.name
+                if (!lastList && !listName)
                     return;
+                else if (listName) {
+                    if (state.currentPlaylists) {
+                        loadLastListFromCurrentPlaylists(listName);
+                    } else {
+                        cmdQ.lastListToLoad = listName;
+                    }
+                }
                 else if (!lastList.list)
                     loadPlaylistAsync({ list: lastList, name: null, PlaylistID: null }, true);
-                else if (!lastList.PlaylistID)
+                else
                     loadPlaylistAsync(lastList, true);
-                else if (state.currentPlaylists) {
-                    loadLastListFromCurrentPlaylists(lastList);
-                } else {
-                    cmdQ.lastListToLoad = lastList;
-                }
             }
         };
 
@@ -780,9 +782,14 @@ $(document).ready(function ($) {
             playlistID: null,
             playlistName: null,
             currentPlaylists: null,
-            changeNameFromData: function (newName) { state.playlistName = newName; $("#playlistName")[0].value = newName; }
+            changeNameFromData: function (newName) { state.playlistName = newName; $("#playlistName")[0].value = newName; window.songsearchSetPlaylistHashUri();  }
         };
         var playlistNamesUl = $("#playlistNames");
+        window.songsearchSetPlaylistHashUri = function () {
+            if (state.playlistName && window.location.hash.match(/^\#?(\<.+\>)?$/)) {
+                window.location.hash = '#<' + state.playlistName + '>';
+            }
+        }
 
 
         function setBusy() { if (cmdQ.isBusy) throw "already busy!"; cmdQ.isBusy = true; }
@@ -961,14 +968,13 @@ $(document).ready(function ($) {
                 error: function (xhr, status, errorThrown) { alert(errorThrown); }
             });
         }
-        function loadLastListFromCurrentPlaylists(lastListToLoad) {
+        function loadLastListFromCurrentPlaylists(lastListToLoadName) {
             var bestMatch = state.currentPlaylists.filter(function (playlist) {
-                return playlist.PlaylistTitle === lastListToLoad.name;
+                return playlist.PlaylistTitle.toLowerCase() === lastListToLoadName.toLowerCase();
             })[0];
-            if (bestMatch)
+            if (bestMatch) {
                 public.loadPlaylistByID(bestMatch.PlaylistID);
-            else
-                loadPlaylistAsync({ list: lastListToLoad.list, name: null, PlaylistID: null }, true);
+            }
         }
 
 

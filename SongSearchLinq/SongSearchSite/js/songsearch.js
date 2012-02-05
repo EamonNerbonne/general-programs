@@ -10,7 +10,8 @@ $(document).ready(function ($) {
     function encodeQuery(str) { return encodeURIComponent(str.replace(/^\s+|\s+(?=\s|$)/g, "").toLowerCase()); }
 
     function updateResults() {
-        var qHash = window.location.hash.substring(1), qInput = searchqueryEl.value;
+        var qHash = window.location.hash, qInput = searchqueryEl.value;
+        qHash = qHash.match(/^\#\<.+\>$/) ? '' : qHash.substring(1);
         try {
             qHash = decodeURIComponent(qHash);
         } catch (e) { }
@@ -41,7 +42,10 @@ $(document).ready(function ($) {
         return function (search) { el[attrName] = (prefix || "") + (avoidEncode ? search : encodeQuery(search)); };
     }
 
-    function updateHash() { window.location.hash = "#" + lastquery; }
+    function updateHash() {
+        window.location.hash = "#" + lastquery;
+        window.songsearchSetPlaylistHashUri();
+    }
 
     var queryTargets = [];
     $("a.matchLink").each(function (idx, aEl) { queryTargets.push(QueryTarget(aEl, "href", aEl.href, false)); });
