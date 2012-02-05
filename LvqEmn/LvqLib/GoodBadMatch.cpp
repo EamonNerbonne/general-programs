@@ -9,13 +9,24 @@ using std::tanh;
 		retval.distGood = distGood;
 		//retval.muK =  -2.0*distGood / (sqr(distGood) + sqr(distBad));
 		//retval.muJ = +2.0*distBad / (sqr(distGood) + sqr(distBad));
+		if(distGood == 0.0) {
+			if(distBad == 0.0) {
+				retval.muK =  -1.0;
+				retval.muJ = +1.0;
+			} else {
+				retval.muK = 0.0;
+				retval.muJ = +2.0 / (distBad);
+			}
+		} else if (distBad==0.0) {
+			retval.muK =  -2.0 / distGood;
+			retval.muJ = 0.0;
+		} else {
+			double distRatioSq = sqr(distGood/distBad);
+			double distRatioSqP1 = 1+ distRatioSq;
 
-		double distRatioSq = sqr(distGood/distBad);
-		double distRatioSqP1 = 1+ distRatioSq;
-
-		retval.muK =  -2.0*distRatioSq / (distGood * distRatioSqP1);
-		retval.muJ = +2.0 / (distBad * distRatioSqP1);
-
+			retval.muK =  -2.0*distRatioSq / (distGood * distRatioSqP1);
+			retval.muJ = +2.0 / (distBad * distRatioSqP1);
+		}
 		assert(isfinite_emn(retval.costFunc) && isfinite_emn(retval.muJ) && isfinite_emn(retval.muK));
 		return retval;
 	}
