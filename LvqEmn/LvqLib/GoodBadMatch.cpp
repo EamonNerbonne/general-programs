@@ -11,6 +11,7 @@ using std::tanh;
 		//retval.muJ = +2.0*distBad / (sqr(distGood) + sqr(distBad));
 		if(distGood < std::numeric_limits<double>::min()) {//< std::numeric_limits<double>::min()
 			if(distBad < std::numeric_limits<double>::min()) {
+				retval.costFunc = 0.0;
 				retval.muK =  -1.0;
 				retval.muJ = +1.0;
 			} else {
