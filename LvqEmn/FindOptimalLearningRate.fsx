@@ -323,9 +323,10 @@ let showNeiEffect () =
     
 
 
-showNeiEffect () 
+showNeiEffect () |> printfn "%A"
 
-["Gpq-1,Ppca,";"Gm-5,noKP,NGi,SlowK,";
+(*
+   ["Gpq-1,Ppca,";"Gm-5,noKP,NGi,SlowK,";
     "G2m-1,neiP,";"G2m-1,neiB,";"Gm-1,neiP,";"G2m-1,neiB,neiP,";
     "G2m-1,neiP,Ppca,";"G2m-1,neiB,Ppca,";"Gm-1,neiP,Ppca,";"G2m-1,neiB,neiP,Ppca,";
     "G2m-5,neiP,Ppca,";"G2m-5,neiB,Ppca,";"Gm-5,neiP,Ppca,";"G2m-5,neiB,neiP,Ppca,";
@@ -334,7 +335,8 @@ showNeiEffect ()
     "Gpq-1,neiP,";"Gpq-1,neiB,";"Gpq-1,neiB,neiP,";"Gpq-1,neiP,Ppca,";"Gpq-1,neiB,Ppca,";"Gpq-1,neiB,neiP,Ppca,";
     "Gpq-5,neiP,NGi,";"Gpq-5,neiB,NGi,";"Gpq-5,neiB,neiP,NGi,";"Gpq-5,neiP,Ppca,NGi,";"Gpq-5,neiB,Ppca,NGi,";"Gpq-5,neiB,neiP,Ppca,NGi,";
     ]
-(*
+//*)
+//(*
 [
     "G2m-1,scP,";"Gpq-1,scP,";"Gm-1,scP,";
     "G2m-5,scP,NGi,";"Gpq-5,scP,NGi,";"Gm-5,scP,NGi,";
@@ -343,7 +345,8 @@ showNeiEffect ()
     "G2m-5,scP,Ppca,";"Gpq-5,scP,Ppca,";"Gm-5,scP,Ppca,";
     "G2m-5,scP,";"Gpq-5,scP,";"Gm-5,scP,";
     "Lgm-1,neiP,";"Lgm-5,NGi,neiP,";
-    ]*)
+    ]
+   // *)
     |> List.map (CreateLvqModelValues.ParseShorthand >> withDefaultLr) 
     |> List.filter (isTested>>not)
     |> Seq.distinct |>Seq.toList
