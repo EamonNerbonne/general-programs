@@ -9,15 +9,15 @@ using std::tanh;
 		retval.distGood = distGood;
 		//retval.muK =  -2.0*distGood / (sqr(distGood) + sqr(distBad));
 		//retval.muJ = +2.0*distBad / (sqr(distGood) + sqr(distBad));
-		if(distGood == 0.0) {
-			if(distBad == 0.0) {
+		if(distGood < std::numeric_limits<double>::min()) {//< std::numeric_limits<double>::min()
+			if(distBad < std::numeric_limits<double>::min()) {
 				retval.muK =  -1.0;
 				retval.muJ = +1.0;
 			} else {
 				retval.muK = 0.0;
 				retval.muJ = +2.0 / (distBad);
 			}
-		} else if (distBad==0.0) {
+		} else if (distBad< std::numeric_limits<double>::min()) {
 			retval.muK =  -2.0 / distGood;
 			retval.muJ = 0.0;
 		} else {
