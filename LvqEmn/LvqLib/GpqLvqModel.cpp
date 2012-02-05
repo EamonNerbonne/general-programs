@@ -31,8 +31,8 @@ GpqLvqModel::GpqLvqModel(LvqModelSettings & initSettings)
 		prototype[protoIndex] = GpqLvqPrototype(initB[protoIndex], protoLabels(protoIndex), P*prototypes.col(protoIndex));
 	}
 
-	if(initSettings.Bcov || initSettings.RandomInitialBorders)
-		NormalizeBoundaries();
+	normalizeProjection(P);
+	NormalizeBoundaries();
 
 	int maxProtoCount = accumulate(initSettings.PrototypeDistribution.begin(), initSettings.PrototypeDistribution.end(), 0, [](int a, int b) -> int { return max(a,b); });
 
