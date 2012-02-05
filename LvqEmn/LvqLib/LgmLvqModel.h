@@ -17,6 +17,8 @@ class LgmLvqModel : public LvqModel, public LvqModelFindMatches<LgmLvqModel,Vect
 	mutable Vector_N tmpSrcDimsV1, tmpSrcDimsV2; //vectors of dimension DIMS
 	mutable Vector_N tmpDestDimsV1,tmpDestDimsV2; //vector of dimension DIMSOUT
 
+	
+
 protected:
 	virtual void AppendTrainingStatNames(std::vector<std::wstring> & retval) const;
 	virtual void AppendOtherStats(std::vector<double> & stats, LvqDataset const * trainingSet,  LvqDataset const * testSet) const;

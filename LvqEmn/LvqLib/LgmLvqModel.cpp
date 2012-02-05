@@ -4,6 +4,18 @@
 #include "LvqConstants.h"
 #include "SmartSum.h"
 
+
+static inline void NormalizeP(bool locally, vector<Matrix_NN > & P) {
+	if(!locally) {
+		double overallNorm = std::accumulate(P.begin(), P.end(),0.0,[](double cur, Matrix_NN const & mat)->double { return cur + projectionSquareNorm(mat); });
+		double scale = 1.0/sqrt(overallNorm / P.size());
+		for(size_t i=0;i<P.size();++i) P[i]*=scale;
+	} else {
+		for(size_t i=0;i<P.size();++i) normalizeProjection(P[i]);
+	}
+}
+
+
 LgmLvqModel::LgmLvqModel( LvqModelSettings & initSettings)
 	: LvqModel(initSettings)
 	, totalMuJLr(0.0)
@@ -38,6 +50,8 @@ LgmLvqModel::LgmLvqModel( LvqModelSettings & initSettings)
 		P[protoIndex].setIdentity(initSettings.Dimensionality, initSettings.Dimensions());
 		projectionRandomizeUniformScaled(initSettings.RngParams, P[protoIndex]);
 	}
+
+	NormalizeP(settings.LocallyNormalize, P);
 }
 
 
@@ -77,13 +91,7 @@ MatchQuality LgmLvqModel::learnFrom(Vector_N const & trainPoint, int trainLabel)
 	P[K].noalias() -=(settings.LrScaleP * lr_mu_K2) * (Pk_vK * vK.transpose() );
 
 	if(settings.neiP) {
-		if(!settings.LocallyNormalize) {
-			double overallNorm = std::accumulate(P.begin(), P.end(),0.0,[](double cur, Matrix_NN const & mat)->double { return cur + projectionSquareNorm(mat); });
-			double scale = 1.0/sqrt(overallNorm / P.size());
-			for(size_t i=0;i<P.size();++i) P[i]*=scale;
-		} else {
-			for(size_t i=0;i<P.size();++i) normalizeProjection(P[i]);
-		}
+		NormalizeP(settings.LocallyNormalize, P);
 	}
 
 
@@ -144,15 +152,8 @@ vector<int> LgmLvqModel::GetPrototypeLabels() const {
 }
 
 void LgmLvqModel::DoOptionalNormalization() {
-	if(!settings.neiP) {
-		if(!settings.LocallyNormalize) {
-			double overallNorm = std::accumulate(P.begin(), P.end(),0.0,[](double cur, Matrix_NN const & mat)->double { return cur + projectionSquareNorm(mat); });
-			double scale = 1.0/sqrt(overallNorm / P.size());
-			for(size_t i=0;i<P.size();++i) P[i]*=scale;
-		} else {
-			for(size_t i=0;i<P.size();++i) normalizeProjection(P[i]);
-		}
-	}
+	if(!settings.neiP) 
+		NormalizeP(settings.LocallyNormalize, P);
 }
 
 
