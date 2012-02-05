@@ -25,8 +25,6 @@ struct GoodBadMatch {
 	MatchQuality LvqQuality();
 	MatchQuality GgmQuality();
 
-	double MuK() const {return -2.0*distGood / (sqr(distGood) + sqr(distBad));}
-	double MuJ() const { return +2.0*distBad / (sqr(distGood) + sqr(distBad));}
 };
 
 

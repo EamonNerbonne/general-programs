@@ -7,8 +7,16 @@ using std::tanh;
 		retval.costFunc = (distGood - distBad)/(distGood+distBad);
 		retval.distBad = distBad;
 		retval.distGood = distGood;
-		retval.muK = MuK();
-		retval.muJ = MuJ();
+		//retval.muK =  -2.0*distGood / (sqr(distGood) + sqr(distBad));
+		//retval.muJ = +2.0*distBad / (sqr(distGood) + sqr(distBad));
+
+		double distRatioSq = sqr(distGood/distBad);
+		double distRatioSqP1 = 1+ distRatioSq;
+
+		retval.muK =  -2.0*distRatioSq / (distGood * distRatioSqP1);
+		retval.muJ = +2.0 / (distBad * distRatioSqP1);
+
+		assert(isfinite_emn(retval.costFunc) && isfinite_emn(retval.muJ) && isfinite_emn(retval.muK));
 		return retval;
 	}
 

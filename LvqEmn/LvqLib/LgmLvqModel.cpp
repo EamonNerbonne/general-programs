@@ -6,12 +6,17 @@
 
 
 static inline void NormalizeP(bool locally, vector<Matrix_NN > & P) {
-	if(!locally) {
-		double overallNorm = std::accumulate(P.begin(), P.end(),0.0,[](double cur, Matrix_NN const & mat)->double { return cur + projectionSquareNorm(mat); });
+	if(locally) {
+		for(size_t i=0;i<P.size();++i) normalizeProjection(P[i]);
+	} else {
+		double overallNorm = std::accumulate(P.begin(), P.end(),0.0,[](double cur, Matrix_NN const & mat)->double { 
+			double norm = projectionSquareNorm(mat);
+			assert(isfinite_emn(norm));
+			return cur + norm;
+		});
+		assert(isfinite_emn(overallNorm));
 		double scale = 1.0/sqrt(overallNorm / P.size());
 		for(size_t i=0;i<P.size();++i) P[i]*=scale;
-	} else {
-		for(size_t i=0;i<P.size();++i) normalizeProjection(P[i]);
 	}
 }
 
@@ -65,6 +70,9 @@ MatchQuality LgmLvqModel::learnFrom(Vector_N const & trainPoint, int trainLabel)
 
 	//now matches.good is "J" and matches.bad is "K".
 	MatchQuality retval = matches.LvqQuality();
+
+	if(!isfinite_emn(retval.muJ + retval.muK))
+		return retval;
 
 	double lr_mu_K2 = lr_point * 2.0*retval.muK;
 	double lr_mu_J2 = lr_point * 2.0*retval.muJ;
