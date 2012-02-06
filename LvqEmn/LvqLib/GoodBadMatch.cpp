@@ -9,24 +9,24 @@ using std::tanh;
 		retval.distGood = distGood;
 		//retval.muK =  -2.0*distGood / (sqr(distGood) + sqr(distBad));
 		//retval.muJ = +2.0*distBad / (sqr(distGood) + sqr(distBad));
-		if(distGood < std::numeric_limits<double>::min()) {//< std::numeric_limits<double>::min()
-			if(distBad < std::numeric_limits<double>::min()) {
-				retval.costFunc = 0.0;
-				retval.muK =  -1.0;
-				retval.muJ = +1.0;
-			} else {
-				retval.muK = 0.0;
-				retval.muJ = +2.0 / (distBad);
-			}
-		} else if (distBad< std::numeric_limits<double>::min()) {
-			retval.muK =  -2.0 / distGood;
-			retval.muJ = 0.0;
-		} else {
+		if(retval.costFunc <1 && retval.costFunc > -1) {
+			//implies neither distance is zero
+
 			double distRatioSq = sqr(distGood/distBad);
 			double distRatioSqP1 = 1+ distRatioSq;
 
 			retval.muK =  -2.0*distRatioSq / (distGood * distRatioSqP1);
 			retval.muJ = +2.0 / (distBad * distRatioSqP1);
+		} else if(retval.costFunc == 1.0 && distGood > 2*std::numeric_limits<double>::min()) { //distBad == 0.0
+			retval.muK =  -2.0 / distGood;
+			retval.muJ = 0.0;
+		} else if(retval.costFunc == -1.0 && distBad > 2*std::numeric_limits<double>::min()) { //distGood == 0.0
+			retval.muK = 0.0;
+			retval.muJ = +2.0 / distBad;
+		} else { //costfunc undefined i.e. distances too small to compute
+			retval.costFunc = 0.0; //so approximate with distBad == distGood == tiny
+			retval.muK =  -1.0; // this makes no sense, but whatever.
+			retval.muJ = +1.0;
 		}
 		assert(isfinite_emn(retval.costFunc) && isfinite_emn(retval.muJ) && isfinite_emn(retval.muK));
 		return retval;
