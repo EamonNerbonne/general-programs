@@ -3,29 +3,28 @@
 using std::tanh;
 	MatchQuality GoodBadMatch::LvqQuality() {
 		MatchQuality retval;
-		retval.isErr = distGood >= distBad;
-		retval.costFunc = (distGood - distBad)/(distGood+distBad);
+		
 		retval.distBad = distBad;
 		retval.distGood = distGood;
 		//retval.muK =  -2.0*distGood / (sqr(distGood) + sqr(distBad));
 		//retval.muJ = +2.0*distBad / (sqr(distGood) + sqr(distBad));
-		if(retval.costFunc <1 && retval.costFunc > -1) {
-			//implies neither distance is zero
-
+		if(distGood > 2*std::numeric_limits<double>::min() && distBad > distGood) { //implies neither distance is zero
+			retval.isErr = true;
+			retval.costFunc = (distGood - distBad)/(distGood+distBad);
 			double distRatioSq = sqr(distGood/distBad);
 			double distRatioSqP1 = 1+ distRatioSq;
-
 			retval.muK =  -2.0*distRatioSq / (distGood * distRatioSqP1);
 			retval.muJ = +2.0 / (distBad * distRatioSqP1);
-		} else if(retval.costFunc == 1.0 && distGood > 2*std::numeric_limits<double>::min()) { //distBad == 0.0
-			retval.muK =  -2.0 / distGood;
-			retval.muJ = 0.0;
-		} else if(retval.costFunc == -1.0 && distBad > 2*std::numeric_limits<double>::min()) { //distGood == 0.0
-			retval.muK = 0.0;
-			retval.muJ = +2.0 / distBad;
-		} else { //costfunc undefined i.e. distances too small to compute
+		} else if(distBad > 2*std::numeric_limits<double>::min() && distGood >= distBad) { //implies neither distance is zero
+			retval.isErr = false;
+			retval.costFunc = (distGood - distBad)/(distGood+distBad);
+			double distRatioSq = sqr(distBad/distGood);
+			double distRatioSqP1 = 1+ distRatioSq;
+			retval.muK = -2.0 / (distGood * distRatioSqP1);
+			retval.muJ =  +2.0*distRatioSq / (distBad * distRatioSqP1);
+		} else {//smaller distance is just too small
 			retval.costFunc = 0.0; //so approximate with distBad == distGood == tiny
-			retval.muK =  -1.0; // this makes no sense, but whatever.
+			retval.muK =  -1.0; // this makes no sense:should be much higher, but whatever; won't matter.
 			retval.muJ = +1.0;
 		}
 		assert(isfinite_emn(retval.costFunc) && isfinite_emn(retval.muJ) && isfinite_emn(retval.muK));
