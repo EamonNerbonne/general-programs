@@ -45,11 +45,8 @@ MatchQuality GpqLvqModel::learnFrom(Vector_N const & trainPoint, int trainLabel)
 	double learningRate = stepLearningRate();
 
 	double lr_point = settings.LR0 * learningRate,
-		lr_P = lr_point * settings.LrScaleP,
-		lr_B = lr_point * settings.LrScaleB,
 		lr_bad = (settings.SlowK  ?  sqr(1.0 - learningRate)  :  1.0) * settings.LrScaleBad;
 
-	assert(lr_P>=0 && lr_B>=0 && lr_point>=0);
 
 	Vector_2 P_trainPoint( P * trainPoint );
 
@@ -71,30 +68,30 @@ MatchQuality GpqLvqModel::learnFrom(Vector_N const & trainPoint, int trainLabel)
 	GpqLvqPrototype &J = prototype[matches.matchGood];
 	GpqLvqPrototype &K = prototype[matches.matchBad];
 	MatchQuality retval = matches.LvqQuality();
-	double muK2 = 2 * retval.muK,
-		muJ2 = 2 * retval.muJ;
+	double muK2lr = max(-2.0, 2 * retval.muK*lr_point),
+		muJ2lr =min(2.0, 2 * retval.muJ*lr_point);
 
 	//if(!isfinite_emn(muK2) || !isfinite_emn(muJ2) || muK2 > 1e30 || muJ2>1e30)		return retval;
 
 	Vector_2 pJ= J.P_point - P_trainPoint;
 	Vector_2 pK = K.P_point - P_trainPoint;
-	Vector_2 muJ2_Bj_pJ = muJ2 *  (J.B * pJ) ;
-	Vector_2 muK2_Bk_pK = muK2 *  (K.B * pK) ;
-	Vector_2 muJ2_BjT_Bj_pJ =  J.B.transpose() * muJ2_Bj_pJ ;
-	Vector_2 muK2_BkT_Bk_pK = K.B.transpose() * muK2_Bk_pK ;
+	Vector_2 muJ2lr_Bj_pJ = muJ2lr *  (J.B * pJ) ;
+	Vector_2 muK2lr_Bk_pK = muK2lr *  (K.B * pK) ;
+	Vector_2 muJ2lr_BjT_Bj_pJ =  J.B.transpose() * muJ2lr_Bj_pJ ;
+	Vector_2 muK2lr_BkT_Bk_pK = K.B.transpose() * muK2lr_Bk_pK ;
 
-	J.B.noalias() -= lr_B * muJ2_Bj_pJ * pJ.transpose() ;
-	K.B.noalias() -= lr_bad * lr_B * muK2_Bk_pK * pK.transpose() ;
+	J.B.noalias() -= settings.LrScaleB * muJ2lr_Bj_pJ * pJ.transpose() ;
+	K.B.noalias() -= lr_bad * settings.LrScaleB * muK2lr_Bk_pK * pK.transpose() ;
 	double distbadRaw=0.0;
 	if(settings.wGMu) {
 		double distgood = pJ.squaredNorm();
 		distbadRaw = pK.squaredNorm();
-		double XmuJ2 = 2.0*+2.0*distbadRaw / (sqr(distgood) + sqr(distbadRaw));
-		J.P_point.noalias() -= (lr_point * XmuJ2) *pJ;
+		double XmuJ2lr = lr_point* 2.0*+2.0*distbadRaw / (sqr(distgood) + sqr(distbadRaw));
+		J.P_point.noalias() -= XmuJ2lr * pJ;
 	} else {
-		J.P_point.noalias() -= lr_point * muJ2_BjT_Bj_pJ;
+		J.P_point.noalias() -=  muJ2lr_BjT_Bj_pJ;
 	}
-	K.P_point.noalias() -= lr_bad*lr_point * muK2_BkT_Bk_pK;
+	K.P_point.noalias() -= lr_bad * muK2lr_BkT_Bk_pK;
 
 	if(ngMatchCache.size()>0) {
 		double lrSub = lr_point;
@@ -103,11 +100,11 @@ MatchQuality GpqLvqModel::learnFrom(Vector_N const & trainPoint, int trainLabel)
 			lrSub*=lrDelta;
 			GpqLvqPrototype &Js = prototype[fullmatch.matchesOk[i].idx];
 			if(settings.wGMu) {
-				double muJ2s = 2.0 * +2.0*distbadRaw / (sqr((Js.P_point - P_trainPoint).squaredNorm()) + sqr(distbadRaw));
-				Js.P_point.noalias() -= lrSub * muJ2s * (Js.P_point - P_trainPoint);
+				double muJ2s =min(2.0, lrSub *2.0 * 2.0*distbadRaw / (sqr((Js.P_point - P_trainPoint).squaredNorm()) + sqr(distbadRaw)));
+				Js.P_point.noalias() -=  muJ2s * (Js.P_point - P_trainPoint);
 			} else {
-				double muJ2s = 2.0 * +2.0*fullmatch.distBad / (sqr(fullmatch.matchesOk[i].dist) + sqr(fullmatch.distBad));
-				Js.P_point.noalias() -= lrSub * muJ2s * (Js.B.transpose() * (Js.B * (Js.P_point - P_trainPoint)));
+				double muJ2s = min(2.0, lrSub *2.0 * 2.0*fullmatch.distBad / (sqr(fullmatch.matchesOk[i].dist) + sqr(fullmatch.distBad)));
+				Js.P_point.noalias() -=  muJ2s * (Js.B.transpose() * (Js.B * (Js.P_point - P_trainPoint)));
 			}
 		}
 	}
@@ -124,9 +121,9 @@ MatchQuality GpqLvqModel::learnFrom(Vector_N const & trainPoint, int trainLabel)
 
 	Vector_2 lrScaled;
  	if(settings.noKP) {
-		lrScaled.noalias() = lr_P * (muJ2_BjT_Bj_pJ);
+		lrScaled.noalias() = settings.LrScaleP * (muJ2lr_BjT_Bj_pJ);
 	} else {
-		lrScaled.noalias() = lr_P * (muJ2_BjT_Bj_pJ + muK2_BkT_Bk_pK);
+		lrScaled.noalias() = settings.LrScaleP * (muJ2lr_BjT_Bj_pJ + muK2lr_BkT_Bk_pK);
 	}
 	//really I should be updating all points now ala P_point += Pdelta * P_pseudoInverse * P_point;
 	// alternatively P_point = Pnew * P_T * inv(P*P_T) * P_point

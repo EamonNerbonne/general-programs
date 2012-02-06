@@ -9,8 +9,12 @@ static inline void NormalizeP(bool locally, vector<Matrix_NN > & P) {
 	if(locally) {
 		for(size_t i=0;i<P.size();++i) normalizeProjection(P[i]);
 	} else {
-		double overallNorm = std::accumulate(P.begin(), P.end(),0.0,[](double cur, Matrix_NN const & mat)->double { 
+		double overallNorm = std::accumulate(P.begin(), P.end(),0.0,[](double cur, Matrix_NN & mat)->double { 
 			double norm = projectionSquareNorm(mat);
+			/*if(norm > 1e100) {
+				mat *= 1.0/sqrt(norm);
+				norm = 1.0;
+			}*/
 			assert(isfinite_emn(norm));
 			return cur + norm;
 		});
@@ -74,8 +78,8 @@ MatchQuality LgmLvqModel::learnFrom(Vector_N const & trainPoint, int trainLabel)
 	if(!isfinite_emn(retval.muJ + retval.muK))
 		return retval;
 
-	double lr_mu_K2 = lr_point * 2.0*retval.muK;
-	double lr_mu_J2 = lr_point * 2.0*retval.muJ;
+	double lr_mu_K2 = max(-2.0, lr_point * 2.0*retval.muK);
+	double lr_mu_J2 = min(2.0,lr_point * 2.0*retval.muJ);
 	double lr_bad = (settings.SlowK  ?  sqr(1.0 - learningRate)  :  1.0) * settings.LrScaleBad;
 
 	int J = matches.matchGood;
