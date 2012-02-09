@@ -13,8 +13,9 @@ if(CMAKE_COMPILER_IS_GNUCXX)
     set(CPU_ARCH "native")
   endif()
 	set(CMAKE_CXX_FLAGS_DEBUG " -Wall -Wno-parentheses -std=c++0x -m64 -march=${CPU_ARCH} -mtune=native -O2")
-	set(CMAKE_CXX_FLAGS_RELEASE "  -Wall -Wno-parentheses -std=c++0x -DNDEBUG -m64 -march=${CPU_ARCH} -mtune=native -O3 ")
+	set(CMAKE_CXX_FLAGS_RELEASE "  -Wall -Wno-parentheses -std=c++0x  -m64 -march=${CPU_ARCH} -mtune=native -O3 ")
 	
+  set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -DNDEBUG")
 
   set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -ftree-loop-distribution -ftree-loop-im -ftree-loop-ivcanon -fivopts")#*slightly* good for build3v
   set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -fassociative-math -fno-trapping-math -fno-signed-zeros -fno-math-errno")#-ffinite-math-only  -funsafe-math-optimizations -ffast-math
