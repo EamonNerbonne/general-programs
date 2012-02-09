@@ -10,7 +10,13 @@ protected:
 		GoodBadMatch match;
 		TDerivedModel const & self = static_cast<TDerivedModel const &>(*this);
 		assert( match.matchBad <0 && match.matchGood <0 );
-		assert(trainPoint.sum() == trainPoint.sum());
+#ifndef NDEBUG
+		if(!isfinite_emn(trainPoint.sum())) {
+			std::cout << trainPoint<<"\n";
+			std::cout.flush();
+			assert(isfinite_emn(trainPoint.sum()));
+		}
+#endif
 		for(int i=0;i<self.PrototypeCount();i++) {
 			double curDist = self.SqrDistanceTo(i, trainPoint);
 			if(self.PrototypeLabel(i) == trainLabel) {

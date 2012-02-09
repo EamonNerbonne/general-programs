@@ -283,8 +283,10 @@ void LvqDataset::NormalizeDimensions(bool normalizeByScaling) {
 	if(normalizeByScaling)
 		inv_stddev = Vector_N::Ones(inv_stddev.size()) * (1.0/sqrt(variance.sum() / remapping.size()));
 
-	if((ptrdiff_t)remapping.size()<points.rows())
+	if((ptrdiff_t)remapping.size()<points.rows()) {
 		cout<<"Retaining "<< remapping.size() <<" of "<< points.rows()<<" dimensions\n";
+		cout.flush();
+	}
 	for(size_t pI=0; pI < static_cast<size_t>(points.cols()); pI++) {
 		for(size_t outdim=0; outdim<remapping.size(); outdim++) {
 			int indim = remapping[outdim];
