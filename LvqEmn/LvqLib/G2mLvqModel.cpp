@@ -34,6 +34,7 @@ G2mLvqModel::G2mLvqModel(LvqModelSettings & initSettings)
 		prototype[protoIndex].ComputePP(P);
 	}
 
+	bScaleCache.resize(initSettings.ClassCount());//otherwise size 0!
 	NormalizeBoundaries();
 
 	int maxProtoCount = accumulate(initSettings.PrototypeDistribution.begin(), initSettings.PrototypeDistribution.end(), 0, [](int a, int b) -> int { return max(a,b); });
@@ -102,20 +103,49 @@ MatchQuality G2mLvqModel::learnFrom(Vector_N const & trainPoint, int trainLabel)
 	} else {
 		J.point.noalias() -= P.transpose() * (lr_point * muJ2_BjT_Bj_P_vJ);
 	}
+	#ifndef NDEBUG
+			if(!isfinite_emn(J.point.squaredNorm())) {
+				cout<< "J inf "<<muK2<<" "<<muJ2<<"\n"<<J.B<<"\n"<<J.point.transpose()<< "\n";
+				cout<<epochsTrained<<" "<<settings.LR0<<" "<<settings.LrScaleP<<" " <<settings.LrScaleB<<" "<<totalMuJLr<<" "<<totalMuKLr<<"\n\n";
+				cout.flush();
+			}
+#endif
+
 	K.point.noalias() -= P.transpose() * (lr_bad*lr_point * muK2_BkT_Bk_P_vK) ;
+#ifndef NDEBUG
+			if(!isfinite_emn(K.point.squaredNorm())) {
+				cout<< "K inf "<<muK2<<" "<<muJ2<<"\n"<<K.B<<"\n"<<K.point.transpose()<< "\n";
+				cout<<epochsTrained<<" "<<settings.LR0<<" "<<settings.LrScaleP<<" " <<settings.LrScaleB<<" "<<totalMuJLr<<" "<<totalMuKLr<<"\n\n";
+				cout.flush();
+			}
+#endif
+
+
 	if(ngMatchCache.size()>0) {
 		double lrSub = lr_point;
 		double lrDelta = exp(-LVQ_NG_FACTOR/learningRate);//this is rather ad hoc
 		for(int i=1;i<fullmatch.foundOk;++i) {
 			lrSub*=lrDelta;
 			G2mLvqPrototype &Js = prototype[fullmatch.matchesOk[i].idx];
+			double muJ2slr;
 			if(settings.wGMu) {
-				double muJ2s = 2.0 * +2.0*distbadRaw / (sqr((Js.P_point - P_trainPoint).squaredNorm()) + sqr(distbadRaw));
-				Js.point.noalias() -= P.transpose() * (lrSub * muJ2s * (Js.P_point - P_trainPoint));
+				double gmDistGood = (Js.P_point - P_trainPoint).squaredNorm();
+				muJ2slr = min (1000.0, lrSub *2.0 * +2.0*distbadRaw / (sqr(gmDistGood) + sqr(distbadRaw)));
+				if(muJ2slr > 0.0 && muJ2slr < 1e20)
+					Js.point.noalias() -= P.transpose() * ( muJ2slr * (Js.P_point - P_trainPoint));
 			} else {
-				double muJ2s = 2.0 * +2.0*fullmatch.distBad / (sqr(fullmatch.matchesOk[i].dist) + sqr(fullmatch.distBad));
-				Js.point.noalias() -= P.transpose() * (lrSub * muJ2s * (Js.B.transpose() * (Js.B * (Js.P_point - P_trainPoint))));
+				muJ2slr =min(1000.0, lrSub * 2.0 * +2.0*fullmatch.distBad / (sqr(fullmatch.matchesOk[i].dist) + sqr(fullmatch.distBad)));
+				if(muJ2slr > 0.0 && muJ2slr < 1e20)
+					Js.point.noalias() -= P.transpose() * ( muJ2slr * (Js.B.transpose() * (Js.B * (Js.P_point - P_trainPoint))));
 			}
+#ifndef NDEBUG
+			if(!isfinite_emn(Js.point.squaredNorm()) ||muJ2slr<0.0 || muJ2slr>500) {
+				cout<< "Js "<<muK2<<" "<<muJ2<<" "<<muJ2slr<<"\n"<<Js.B<<"\n"<<Js.point.transpose()<< "\n";
+				cout<< fullmatch.distBad<< " ["<<i<<"] "<< fullmatch.matchesOk[i].dist<<" ("<<fullmatch.matchesOk[i].dist<<")\n";
+				cout<<epochsTrained<<" "<<settings.LR0<<" "<<settings.LrScaleP<<" " <<settings.LrScaleB<<" "<<totalMuJLr<<" "<<totalMuKLr<<"\n\n";
+				cout.flush();
+			}
+#endif
 		}
 	}
 	if(settings.scP) {
@@ -132,7 +162,15 @@ MatchQuality G2mLvqModel::learnFrom(Vector_N const & trainPoint, int trainLabel)
 	} else {
 		P.noalias() -= (lr_P * muK2_BkT_Bk_P_vK) * vK.transpose() + (lr_P * muJ2_BjT_Bj_P_vJ) * vJ.transpose();
 	}
-
+#ifndef NDEBUG
+	double norm=P.squaredNorm();
+	if(!(norm>0.0 && isfinite_emn(norm))) {
+		cout<< "Pinf "<<muK2<<" "<<muJ2<<" "<<muJ2_BjT_Bj_P_vJ.transpose()<<" "<<muK2_BkT_Bk_P_vK.transpose()<< "\n";
+		cout<<this->epochsTrained<<" "<<settings.LR0<<" "<<settings.LrScaleP<<" " <<settings.LrScaleB<<"\n";
+		cout.flush();
+		exit(100);
+	}
+#endif
 	if(!settings.scP&& (settings.neiP || settings.noKP)) { normalizeProjection(P); }
 	if(settings.neiB) NormalizeBoundaries();	
 	
@@ -219,7 +257,7 @@ void G2mLvqModel::ClassBoundaryDiagram(double x0, double x1, double y0, double y
 	Matrix_P B_yDelta(LVQ_LOW_DIM_SPACE,PrototypeCount());//Contains B_i * (0 , yDelta)  for all proto's i
 
 	for(int pi=0; pi < this->PrototypeCount(); ++pi) {
-		auto & current_proto = this->prototype[pi];
+		auto & current_proto = this->prototype[pi]; 
 		B_diff_x0_y.col(pi).noalias() = current_proto.B * ( Vector_2(xBase,yBase) - current_proto.P_point);
 		B_xDelta.col(pi).noalias() = current_proto.B * Vector_2(xDelta,0.0);
 		B_yDelta.col(pi).noalias() = current_proto.B * Vector_2(0.0,yDelta);
@@ -241,16 +279,19 @@ void G2mLvqModel::ClassBoundaryDiagram(double x0, double x1, double y0, double y
 
 void G2mLvqModel::NormalizeBoundaries() {
 		if(!settings.LocallyNormalize) {
-			double overallNorm = std::accumulate(prototype.begin(), prototype.end(),0.0,
-				[](double cur, G2mLvqPrototype const & proto) -> double { return cur + projectionSquareNorm(proto.B); } 
-			// (cur, proto) => cur + projectionSquareNorm(proto.B)
-			);
-			double scale = 1.0/sqrt(overallNorm / prototype.size());
-			for(size_t i=0;i<prototype.size();++i) prototype[i].B*=scale;
+			for(size_t i =0;i<bScaleCache.size();++i)
+				bScaleCache[i] = 0.0;
+			for(size_t ip =0;ip<prototype.size();++ip)
+				bScaleCache[prototype[ip].classLabel] += projectionSquareNorm(prototype[ip].B);
+			for(size_t i =0;i<bScaleCache.size();++i)
+				bScaleCache[i] = 1.0/sqrt(bScaleCache[i]);
+			for(size_t ip =0;ip<prototype.size();++ip)
+				prototype[ip].B *= bScaleCache[prototype[ip].classLabel];
 		} else {
 			for(size_t i=0;i<prototype.size();++i) normalizeProjection(prototype[i].B);
 		}
 }
+
 void G2mLvqModel::DoOptionalNormalization() {
 	if(!settings.scP && !settings.neiP && !settings.noKP) {
 		normalizeProjection(P);
