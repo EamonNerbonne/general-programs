@@ -11,7 +11,7 @@ class G2mLvqModel : public LvqProjectionModelBase<G2mLvqModel>
 	double lastAutoPupdate;
 	protoList prototype;
 	std::vector<CorrectAndWorstMatches::MatchOk> ngMatchCache;
-	std::vector<double> bScaleCache;
+	//std::vector<double> bScaleCache;
 
 	//we will preallocate a few temp vectors to reduce malloc/free overhead.
 	Vector_N m_vJ, m_vK;

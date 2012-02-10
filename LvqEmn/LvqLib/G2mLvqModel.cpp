@@ -34,7 +34,7 @@ G2mLvqModel::G2mLvqModel(LvqModelSettings & initSettings)
 		prototype[protoIndex].ComputePP(P);
 	}
 
-	bScaleCache.resize(initSettings.ClassCount());//otherwise size 0!
+//	bScaleCache.resize(initSettings.ClassCount());//otherwise size 0!
 	NormalizeBoundaries();
 
 	int maxProtoCount = accumulate(initSettings.PrototypeDistribution.begin(), initSettings.PrototypeDistribution.end(), 0, [](int a, int b) -> int { return max(a,b); });
@@ -130,11 +130,11 @@ MatchQuality G2mLvqModel::learnFrom(Vector_N const & trainPoint, int trainLabel)
 			double muJ2slr;
 			if(settings.wGMu) {
 				double gmDistGood = (Js.P_point - P_trainPoint).squaredNorm();
-				muJ2slr = min (1000.0, lrSub *2.0 * +2.0*distbadRaw / (sqr(gmDistGood) + sqr(distbadRaw)));
+				muJ2slr =  lrSub *2.0 * +2.0*distbadRaw / (sqr(gmDistGood) + sqr(distbadRaw));
 				if(muJ2slr > 0.0 && muJ2slr < 1e20)
 					Js.point.noalias() -= P.transpose() * ( muJ2slr * (Js.P_point - P_trainPoint));
 			} else {
-				muJ2slr =min(1000.0, lrSub * 2.0 * +2.0*fullmatch.distBad / (sqr(fullmatch.matchesOk[i].dist) + sqr(fullmatch.distBad)));
+				muJ2slr = lrSub * 2.0 * +2.0*fullmatch.distBad / (sqr(fullmatch.matchesOk[i].dist) + sqr(fullmatch.distBad));
 				if(muJ2slr > 0.0 && muJ2slr < 1e20)
 					Js.point.noalias() -= P.transpose() * ( muJ2slr * (Js.B.transpose() * (Js.B * (Js.P_point - P_trainPoint))));
 			}
@@ -279,14 +279,19 @@ void G2mLvqModel::ClassBoundaryDiagram(double x0, double x1, double y0, double y
 
 void G2mLvqModel::NormalizeBoundaries() {
 		if(!settings.LocallyNormalize) {
-			for(size_t i =0;i<bScaleCache.size();++i)
-				bScaleCache[i] = 0.0;
-			for(size_t ip =0;ip<prototype.size();++ip)
-				bScaleCache[prototype[ip].classLabel] += projectionSquareNorm(prototype[ip].B);
-			for(size_t i =0;i<bScaleCache.size();++i)
-				bScaleCache[i] = 1.0/sqrt(bScaleCache[i]);
-			for(size_t ip =0;ip<prototype.size();++ip)
-				prototype[ip].B *= bScaleCache[prototype[ip].classLabel];
+			double overallNorm = std::accumulate(prototype.begin(), prototype.end(),0.0,
+				[](double cur, G2mLvqPrototype const & proto) -> double { return cur + projectionSquareNorm(proto.B); } 
+			);
+			double scale = 1.0/sqrt(overallNorm / prototype.size());
+			for(size_t i=0;i<prototype.size();++i) prototype[i].B*=scale;
+			//for(size_t i =0;i<bScaleCache.size();++i)
+			//	bScaleCache[i] = 0.0;
+			//for(size_t ip =0;ip<prototype.size();++ip)
+			//	bScaleCache[prototype[ip].classLabel] += projectionSquareNorm(prototype[ip].B);
+			//for(size_t i =0;i<bScaleCache.size();++i)
+			//	bScaleCache[i] = 1.0/sqrt(bScaleCache[i]);
+			//for(size_t ip =0;ip<prototype.size();++ip)
+			//	prototype[ip].B *= bScaleCache[prototype[ip].classLabel];
 		} else {
 			for(size_t i=0;i<prototype.size();++i) normalizeProjection(prototype[i].B);
 		}
@@ -297,6 +302,11 @@ void G2mLvqModel::DoOptionalNormalization() {
 		normalizeProjection(P);
 		for(size_t i=0;i<prototype.size();++i)
 			prototype[i].ComputePP(P);
+	}
+	for(size_t i=0;i<prototype.size();++i) {
+		double matNorm = projectionSquareNorm(prototype[i].B);
+		double scale = 0.0001*1.0/sqrt(matNorm) + (1.0-0.0001)*1.0;//this should have virtually no effect on all but the smallest matrices: and these must be made larger to avoid 0 distances.
+		prototype[i].B*=scale;
 	}
 	if(!settings.neiB) {
 		NormalizeBoundaries();	
