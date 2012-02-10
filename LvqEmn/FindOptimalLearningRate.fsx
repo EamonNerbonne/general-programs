@@ -70,14 +70,12 @@ LrOptimizer.resultsDir.GetFiles("*.txt", SearchOption.AllDirectories)
     |> Seq.toList
 
 let recomputeRes () =
-    File.ReadAllLines ( LrOptimizer.resultsDir.FullName + "\\uniform-results.txt") 
-        |> List.ofArray 
-        |> List.map (fun s-> if s.Contains " " then  s.Substring(0, s.IndexOf " ") else s)
-        |> List.filter (String.IsNullOrEmpty >> not)
-        |> List.map CreateLvqModelValues.TryParseShorthand 
-        |> List.filter (fun settings -> settings.HasValue)
-        |> List.map (fun settings -> settings.Value)
-        //|> List.map (fun settings -> settings.ToShorthand())
+    allUniformResults () 
+        |> List.sortBy (fun res->res.GeoMean) 
+//        |> Seq.distinctBy (fun res-> res.Settings.WithDefaultLr()) 
+        |> Seq.toList
+        |> List.map (fun res->res.Settings.WithDefaultLr())
+        |> List.filter (fun settings -> settings.ModelType = LvqModelType.G2m)
         |> List.map (OptimalLrSearch.testSettings 100 1u 1e7 >> OptimalLrSearch.printResults >> (fun resline -> File.AppendAllText (LrOptimizer.resultsDir.FullName + "\\uniform-results2.txt", resline + "\n"); resline ))
 
 
