@@ -43,7 +43,7 @@ LrOptimizer.resultsDir.GetFiles("*.txt", SearchOption.AllDirectories)
     |> Seq.map withDefaultLr
     |> Seq.filter (isTested>>not) //seq is lazy, so this last minute rechecks availability of results.
     //|> Seq.map (fun s->s.ToShorthand()) 
-    |> Seq.map improveAndTest 0
+    |> Seq.map (improveAndTest 0)
     |> Seq.toList
 
 let recomputeRes () =
