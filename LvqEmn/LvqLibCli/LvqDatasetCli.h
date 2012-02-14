@@ -20,7 +20,7 @@ namespace LvqLibCli {
 		ColorArray^ colors;
 		LvqDatasetCli(String^label, int folds, bool extend, bool normalizeDims,bool normalizeByScaling, ColorArray^ colors, LvqDataset * newDataset);
 		LvqDatasetCli(String^label, ColorArray^ colors, array<GcManualPtr<LvqDataset>^ >^ newDatasets, array<GcManualPtr<LvqDataset>^ >^ newTestDatasets);
-		DataShape FoldShape(int fold) { return (*datashape->get())[fold]; }
+		DataShape FoldShape(int fold) { return (*datashape->get())[fold%datasets->Length]; }
 	public:
 		bool IsFolded() {return datasets->Length>1;}
 		int Folds() {return datasets->Length;}
