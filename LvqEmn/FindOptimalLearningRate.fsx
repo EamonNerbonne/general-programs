@@ -6,56 +6,31 @@
 #r "PresentationCore"
 #r "WindowsBase"
 #r "EmnExtensionsWpf"
+#r "FSharp.PowerPack" 
 #time "on"
 
-open LvqLibCli
 open LvqGui
-open System.Threading
-open System
 open System.IO
-open System.Windows.Media
-open EmnExtensions.Wpf
-open System.Threading.Tasks
-
+open LvqLibCli
+open System
 open Utils
 open OptimalLrSearch
 
+let optimizeSettingsList = 
+        List.map (CreateLvqModelValues.ParseShorthand >> withDefaultLr) 
+        >> List.filter (isTested>>not)
+        >> Seq.distinct >> Seq.toList
+        //|> List.map (fun s->s.ToShorthand())
+        >> List.map (improveAndTest 0)
+
+
 allUniformResults ()
     |> List.sortBy (fun res->res.GeoMean)
-    //|> Seq.distinctBy (fun res-> res.Settings.WithDefaultLr()) |> Seq.toList
-    |> List.filter (fun res->res.Settings.ModelType = LvqModelType.G2m)
+    |> Seq.distinctBy (fun res-> res.Settings.WithDefaultLr()) |> Seq.toList
+    //|> List.filter (fun res->res.Settings.ModelType = LvqModelType.G2m)
     |> List.map printMeanResults
-    |> List.iter (fun line -> File.AppendAllText (LrOptimizer.resultsDir.FullName + "\\uniform-results-orig.txt",line + "\n"))
+   // |> List.iter (fun line -> File.AppendAllText (LrOptimizer.resultsDir.FullName + "\\uniform-results-orig.txt",line + "\n"))
 
-
-//(*
-[
-    "Gpq-1,Ppca,";"Gm-5,noKP,NGi,SlowK,";
-    "G2m-1,neiP,";"G2m-1,neiB,";"Gm-1,neiP,";"G2m-1,neiB,neiP,";
-    "G2m-1,neiP,Ppca,";"G2m-1,neiB,Ppca,";"Gm-1,neiP,Ppca,";"G2m-1,neiB,neiP,Ppca,";
-    "G2m-5,neiP,Ppca,";"G2m-5,neiB,Ppca,";"Gm-5,neiP,Ppca,";"G2m-5,neiB,neiP,Ppca,";
-    "G2m-5,neiP,Ppca,NGi,";"G2m-5,neiB,Ppca,NGi,";"Gm-5,neiP,Ppca,NGi,";"G2m-5,neiB,neiP,Ppca,NGi,";
-    "Gm-1,neiP,SlowK,";"Gm-1,neiP,Ppca,SlowK,";"Gm-5,neiP,Ppca,SlowK,";"Gm-5,neiP,Ppca,NGi,SlowK,";
-    "Gpq-1,neiP,";"Gpq-1,neiB,";"Gpq-1,neiB,neiP,";"Gpq-1,neiP,Ppca,";"Gpq-1,neiB,Ppca,";"Gpq-1,neiB,neiP,Ppca,";
-    "Gpq-5,neiP,NGi,";"Gpq-5,neiB,NGi,";"Gpq-5,neiB,neiP,NGi,";"Gpq-5,neiP,Ppca,NGi,";"Gpq-5,neiB,Ppca,NGi,";"Gpq-5,neiB,neiP,Ppca,NGi,";
-    ]
-//*)
-(*
-[
-    "G2m-1,scP,";"Gpq-1,scP,";"Gm-1,scP,";
-    "G2m-5,scP,NGi,";"Gpq-5,scP,NGi,";"Gm-5,scP,NGi,";
-    "G2m-1,scP,Ppca,";"Gpq-1,scP,Ppca,";"Gm-1,scP,Ppca,";
-    "G2m-5,scP,Ppca,NGi,";"Gpq-5,scP,Ppca,NGi,";"Gm-5,scP,Ppca,NGi,";
-    "G2m-5,scP,Ppca,";"Gpq-5,scP,Ppca,";"Gm-5,scP,Ppca,";
-    "G2m-5,scP,";"Gpq-5,scP,";"Gm-5,scP,";
-    "Lgm-1,neiP,";"Lgm-5,NGi,neiP,";
-    ]
-   // *)
-    |> List.map (CreateLvqModelValues.ParseShorthand >> withDefaultLr) 
-    |> List.filter (isTested>>not)
-    |> Seq.distinct |>Seq.toList
-    //|> List.map (fun s->s.ToShorthand())
-    |> List.map improveAndTest
 
 LrOptimizer.resultsDir.GetFiles("*.txt", SearchOption.AllDirectories)
     |> Seq.map (fun fileInfo -> fileInfo.Name  |> LvqGui.LrOptimizationResult.ExtractItersAndSettings)
@@ -63,12 +38,12 @@ LrOptimizer.resultsDir.GetFiles("*.txt", SearchOption.AllDirectories)
     |> Seq.map (fun (_,_,settings) -> settings.WithDefaultSeeds().WithDefaultLr())
     |> Seq.distinct
     |> Seq.filter (isTested>>not)
-    |> Seq.sortBy (fun s-> s.ToShorthand().Length)
+    |> Seq.sortBy (fun s-> -s.ToShorthand().Length)
     //|> Seq.take 20 |> Utils.shuffle
     |> Seq.map withDefaultLr
     |> Seq.filter (isTested>>not) //seq is lazy, so this last minute rechecks availability of results.
     //|> Seq.map (fun s->s.ToShorthand()) 
-    |> Seq.map improveAndTest
+    |> Seq.map improveAndTest 0
     |> Seq.toList
 
 let recomputeRes () =
