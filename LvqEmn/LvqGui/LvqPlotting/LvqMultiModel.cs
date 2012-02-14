@@ -22,6 +22,7 @@ namespace LvqGui
 	{
 		readonly LvqModelCli[] subModels;
 		readonly LvqModelSettingsCli originalSettings;
+		
 		public LvqMultiModel(LvqDatasetCli forDataset, LvqModelSettingsCli lvqModelSettingsCli, bool trackStats = true)
 		{
 			if (lvqModelSettingsCli.LR0 == 0.0 || lvqModelSettingsCli.LrScaleP == 0.0)
@@ -160,7 +161,7 @@ namespace LvqGui
 		int epochsDone;
 		static int trainersRunning;
 		public static void WaitForTraining() { while (trainersRunning != 0) Thread.Sleep(1); }
-		public void TrainAndPrintOrder(LvqDatasetCli trainingSet, CancellationToken cancel)
+		public void TrainAndPrintOrder(CancellationToken cancel)
 		{
 			if (cancel.IsCancellationRequested) return;
 			int selectedSubModel = SelectedSubModel;
@@ -174,7 +175,7 @@ namespace LvqGui
 			var labelOrdering = Task.Factory.ContinueWhenAll(helpers, tasks => tasks.Select(task => task.Result).Single(labelOrder => labelOrder != null)).Result;
 			Console.WriteLine(string.Join("", labelOrdering.Select(i => (char)(i < 10 ? i + '0' : i - 10 + 'a'))));
 		}
-		public void SortedTrain(LvqDatasetCli trainingSet, CancellationToken cancel)
+		public void SortedTrain(CancellationToken cancel)
 		{
 			if (cancel.IsCancellationRequested) return;
 			var helpers = subModels
@@ -187,7 +188,7 @@ namespace LvqGui
 			Task.WaitAll(helpers);
 		}
 
-		public void TrainEpochs(int epochsToDo, LvqDatasetCli trainingSet, CancellationToken cancel)
+		public void TrainEpochs(int epochsToDo, CancellationToken cancel)
 		{
 			if (cancel.IsCancellationRequested) return;
 			int epochsTarget;
@@ -196,12 +197,12 @@ namespace LvqGui
 			TrainImpl(cancel, epochsTarget - epochsToDo, epochsTarget);
 		}
 
-		public void TrainUptoIters(double itersToTrainUpto, LvqDatasetCli trainingSet, CancellationToken cancel)
+		public void TrainUptoIters(double itersToTrainUpto, CancellationToken cancel)
 		{
-			TrainUptoEpochs((int)(itersToTrainUpto / GetItersPerEpoch(trainingSet, 0) + 0.5), trainingSet, cancel);
+			TrainUptoEpochs((int)(itersToTrainUpto / GetItersPerEpoch(InitSet, 0) + 0.5), cancel);
 		}
 
-		public void TrainUptoEpochs(int epochsToTrainUpto, LvqDatasetCli trainingSet, CancellationToken cancel)
+		public void TrainUptoEpochs(int epochsToTrainUpto, CancellationToken cancel)
 		{
 			if (cancel.IsCancellationRequested) return;
 			int epochsCurrent;
@@ -286,7 +287,7 @@ namespace LvqGui
 			return isFresh;
 		}
 
-		public void SaveStats(LvqDatasetCli dataset, long iterIntent)
+		public void SaveStats(long iterIntent)
 		{
 			var allstats = EvaluateFullStats().ToArray();
 
@@ -295,11 +296,9 @@ namespace LvqGui
 				throw new InvalidOperationException("Trained the wrong number of iterations; aborting.");
 			string statsString = FullStatsString(allstats);
 
-			FileInfo statFile = StatFile(dataset, originalSettings, iterIntent);
+			FileInfo statFile = StatFile(InitSet, originalSettings, iterIntent);
 			File.WriteAllText(statFile.FullName, statsString);
 		}
-
-
 
 		public MatrixContainer<byte> ClassBoundaries(int subModelIdx, double x0, double x1, double y0, double y1, int xCols, int yRows)
 		{

@@ -164,17 +164,17 @@ namespace LvqGui {
 			int epochsToTrainFor = EpochsPerClick;
 			TrainSelectedModel((dataset, model) => {
 				using (new DTimer("Training " + epochsToTrainFor + " epochs"))
-					model.TrainEpochs(epochsToTrainFor, dataset, Owner.WindowClosingToken);
+					model.TrainEpochs(epochsToTrainFor, Owner.WindowClosingToken);
 				//var newIdx = model.GetBestSubModelIdx(dataset);
 				//owner.Dispatcher.BeginInvoke(() => { SubModelIndex = newIdx; });
 			}, SelectedDataset, SelectedLvqModel);
 		}
 
 		public void ConfirmTrainingPrintOrder() {
-			TrainSelectedModel((dataset, model) => model.TrainAndPrintOrder(dataset, Owner.WindowClosingToken), SelectedDataset, SelectedLvqModel);
+			TrainSelectedModel((dataset, model) => model.TrainAndPrintOrder(Owner.WindowClosingToken), SelectedDataset, SelectedLvqModel);
 		}
 		public void ConfirmTrainingSortedOrder() {
-			TrainSelectedModel((dataset, model) => model.SortedTrain(dataset, Owner.WindowClosingToken), SelectedDataset, SelectedLvqModel);
+			TrainSelectedModel((dataset, model) => model.SortedTrain(Owner.WindowClosingToken), SelectedDataset, SelectedLvqModel);
 		}
 
 		void TrainSelectedModel(Action<LvqDatasetCli, LvqMultiModel> trainImpl, LvqDatasetCli selectedDataset, LvqMultiModel selectedModel) {
@@ -201,7 +201,7 @@ namespace LvqGui {
 			double uptoIters = ItersToTrainUpto;
 			TrainSelectedModel((dataset, model) => {
 				using (new DTimer("Training up to " + uptoIters + " iters"))
-					model.TrainUptoIters(uptoIters, dataset, Owner.WindowClosingToken);
+					model.TrainUptoIters(uptoIters, Owner.WindowClosingToken);
 
 				var newIdx = model.GetBestSubModelIdx();
 				owner.Dispatcher.BeginInvoke(() => {
@@ -220,7 +220,7 @@ namespace LvqGui {
 				var dataset = model.InitSet;
 				TrainSelectedModel((_dataset, _model) => {
 					using (new DTimer("Training up to " + uptoIters + " iters"))
-						_model.TrainUptoIters(uptoIters, dataset, Owner.WindowClosingToken);
+						_model.TrainUptoIters(uptoIters, Owner.WindowClosingToken);
 
 					var newIdx = _model.GetBestSubModelIdx();
 					owner.Dispatcher.BeginInvoke(() => {
@@ -249,7 +249,7 @@ namespace LvqGui {
 					}
 					overallTask.Enqueue(
 						Task.Factory.StartNew(() => {
-							selectedModel.TrainEpochs(epochsToTrainFor, selectedDataset, Owner.WindowClosingToken);
+							selectedModel.TrainEpochs(epochsToTrainFor, Owner.WindowClosingToken);
 							PotentialUpdate(selectedDataset, selectedModel);
 						},
 						Owner.WindowClosingToken));
