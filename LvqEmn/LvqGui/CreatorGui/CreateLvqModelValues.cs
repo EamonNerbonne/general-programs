@@ -249,7 +249,7 @@ namespace LvqGui {
 				settings = ParseShorthand(value);
 				foreach (var group in shR.GetGroupNames())
 					if (!string.IsNullOrEmpty(group))
-						_propertyChanged(group);
+						_propertyChanged(group.TrimEnd('_'));
 			}
 		}
 
