@@ -8,35 +8,46 @@ open EmnExtensions.Text
 open LvqGui
 open LvqLibCli
 open Utils
+open Microsoft.FSharp.Collections
 
 let datasets = 
-    Lazy.Create (fun () ->
-        [
-            for datasetFactory in CreateDataset.StandardDatasets() do
-                datasetFactory.NormalizeDimensions <- true
-                yield datasetFactory.CreateDataset()
-        ]
-    )
+    [
+        for datasetFactory in CreateDataset.StandardDatasets() do
+            datasetFactory.NormalizeDimensions <- true
+            datasetFactory.InstanceSeed <- 1000u
 
-type TestResults = { GeoMean:float; Mean:float;  Results:float list list []; Settings:LvqModelSettingsCli; }
+            let infiniteVariations = 
+                Seq.initInfinite (fun i ->
+                        datasetFactory.IncInstanceSeed()
+                        datasetFactory.CreateDataset()
+                    )
+            yield LazyList.ofSeq infiniteVariations
+    ]
 
-type MeanTestResults = { GeoMean:float; Training: float * float; Test: float * float; NN: float * float; Settings:LvqModelSettingsCli; }
+type TestResults = { GeoMean:float; Results:float list list []; Settings:LvqModelSettingsCli; }
+let extractGeoMeanDistrFromResults =  Array.toList >> Utils.flipList  >> List.map (List.concat >> List.averageBy Math.Log >> Math.Exp) >> Utils.sampleDistribution
+
+type MeanTestResults = { GeoMean:float * float; Training: float * float; Test: float * float; NN: float * float; Settings:LvqModelSettingsCli; }
+
 
 let toMeanResults (results:TestResults) = 
-    let trainDistr = results.Results |> List.concat |> List.map  (fun es -> List.nth es 0) |> Utils.sampleDistribution
-    let trainErr = (trainDistr.Mean, trainDistr.StdErr)
+    let combineDistributions distributions = (distributions |> Array.averageBy (fun distr->distr.Mean), (distributions |> Array.sumBy (fun distr -> distr.StdErr *  distr.StdErr)) / float ( Array.length distributions) |> Math.Sqrt)
+    let extractNthErrorDistribution errorRateIndex =
+        results.Results 
+        |> Array.map (List.map  (fun es -> List.nth es errorRateIndex) >> Utils.sampleDistribution)
+        |> combineDistributions
 
-    let testDistr = results.Results |> List.concat |> List.map  (fun es -> List.nth es 1) |> Utils.sampleDistribution
-    let testErr = (testDistr.Mean, testDistr.StdErr)
-    let x = (results.Results.[0] |> List.head) |> List.length
-    let nnErr = 
-        if (results.Results.[0] |> List.head) |> List.length = 3 then 
-            let nnDistr = results.Results |> List.concat |> List.map  (fun es -> List.nth es 2) |> Utils.sampleDistribution
-            (nnDistr.Mean, nnDistr.StdErr)
-        else 
-            (Double.NaN, Double.NaN)
+    let geoMeans = extractGeoMeanDistrFromResults results.Results
+
+
+    let trainErr = extractNthErrorDistribution 0
+   //  List.concat |> List.map  (fun es -> List.nth es 0) |> Utils.sampleDistribution
+
+    let testErr = extractNthErrorDistribution 1
+    let isNnErrorMeasured = (results.Results.[0] |> List.head) |> List.length = 3
+    let nnErr = if isNnErrorMeasured then extractNthErrorDistribution 2 else (Double.NaN, Double.NaN)
     {
-        GeoMean = results.GeoMean
+        GeoMean = (geoMeans.Mean, geoMeans.StdErr)
         Training = trainErr
         Test = testErr
         NN = nnErr
@@ -45,41 +56,51 @@ let toMeanResults (results:TestResults) =
 
 let printMeanResults results =
     if results.NN |> fst |> Double.IsNaN then 
-        sprintf "%s GeoMean: %f; Training: %f ~ %f; Test: %f ~ %f" (results.Settings.ToShorthand ()) results.GeoMean (fst results.Training) (snd results.Training) (fst results.Test) (snd results.Test)
+        sprintf "%s GeoMean: %f ~ %f; Training: %f ~ %f; Test: %f ~ %f" (results.Settings.ToShorthand ()) (fst results.GeoMean) (snd results.GeoMean) (fst results.Training) (snd results.Training) (fst results.Test) (snd results.Test)
     else 
-        sprintf "%s GeoMean: %f; Training: %f ~ %f; Test: %f ~ %f; NN: %f ~ %f" (results.Settings.ToShorthand ()) results.GeoMean (fst results.Training) (snd results.Training) (fst results.Test) (snd results.Test) (fst results.NN) (snd results.NN)
+        sprintf "%s GeoMean: %f ~ %f; Training: %f ~ %f; Test: %f ~ %f; NN: %f ~ %f" (results.Settings.ToShorthand ()) (fst results.GeoMean) (snd results.GeoMean)  (fst results.Training) (snd results.Training) (fst results.Test) (snd results.Test) (fst results.NN) (snd results.NN)
 
 let printResults = toMeanResults >> printMeanResults
 
+
+
 let testSettings parOverride rndSeed iterCount (settings : LvqModelSettingsCli)  =
+    let foldGroupCount = (parOverride+9)/10
     let results =
         [
-            for dataset in datasets.Value ->
-                Task.Factory.StartNew( (fun () ->
-                    let mutable parsettings = settings
-                    parsettings.ParallelModels <- parOverride
-                    parsettings.ParamsSeed <- 2u * rndSeed + 1u
-                    parsettings.InstanceSeed <- 2u * rndSeed
-                    let model = new LvqMultiModel(dataset,parsettings,false)
-                    model.TrainUptoIters(iterCount,dataset, CancellationToken.None)
-                    model.TrainUptoEpochs(1,dataset, CancellationToken.None)//always train at least 1 epoch
-                    let errs = 
-                        model.EvaluateFullStats() 
-                        |> Seq.map (fun stat-> 
-                            [
-                                yield stat.values.[LvqTrainingStatCli.TrainingErrorI]
-                                yield stat.values.[LvqTrainingStatCli.TestErrorI]
-                                if model.nnErrIdx > 0 then
-                                    yield stat.values.[model.nnErrIdx]    
-                            ]
-                        ) |> List.ofSeq
-                    errs
-                ), TaskCreationOptions.LongRunning)
-        ] |> List.map (fun task -> task.Result) |> List.toArray
+            for datasetGenerator in datasets -> 
+                [for (foldGroup, dataset) in LazyList.take foldGroupCount datasetGenerator |> LazyList.toList |> List.zip (List.init foldGroupCount id) ->
+                    Task.Factory.StartNew( (fun () ->
+                            let groupOffset = foldGroup * 10
+                            let mutable parsettings = settings
+                            parsettings.ParallelModels <- Math.Min(parOverride - groupOffset,10)
+                            let rndSeedOffset = 2u * rndSeed + uint32 groupOffset
+                            parsettings.ParamsSeed <- rndSeedOffset + 1u
+                            parsettings.InstanceSeed <- rndSeedOffset
 
-    let averageErr = results |> Array.averageBy (List.averageBy List.average)
-    let geomAverageErr= results  |> Array.averageBy (List.averageBy List.average >> Math.Log) |> Math.Exp
-    { GeoMean = geomAverageErr; Mean = averageErr;Settings = settings; Results = results}
+                            let model = new LvqMultiModel(dataset,parsettings,false)
+                            model.TrainUptoIters(iterCount, CancellationToken.None)
+                            model.TrainUptoEpochs(1, CancellationToken.None)//always train at least 1 epoch
+                            let errs = 
+                                model.EvaluateFullStats() 
+                                |> Seq.map (fun stat-> 
+                                    [
+                                        yield stat.values.[LvqTrainingStatCli.TrainingErrorI]
+                                        yield stat.values.[LvqTrainingStatCli.TestErrorI]
+                                        if model.nnErrIdx > 0 then
+                                            yield stat.values.[model.nnErrIdx]    
+                                    ]
+                                ) |> List.ofSeq
+                            errs
+                        ), TaskCreationOptions.LongRunning)
+                ] //we have a list (per dataset) of a list (per 10-fold group) of a Task returing a list per fold of a list per error type
+        ] |> List.map (List.map (fun task -> task.Result) >> List.concat) 
+        |> List.toArray
+    { 
+        Settings = settings
+        Results = results
+        GeoMean = results |> extractGeoMeanDistrFromResults |> (fun distr->distr.Mean)
+    }
 
 let logscale steps (v0, v1) = 
     let lnScale = Math.Log(v1 / v0)
@@ -179,7 +200,7 @@ let rec fullyImprove (controllers, (initialSettings, degradedCount)) =
 
 let uniformResultsFilePath = LrOptimizer.resultsDir.FullName + "\\uniform-results.txt"
 
-let improveAndTest (initialSettings:LvqModelSettingsCli) =
+let improveAndTest skipOptRounds (initialSettings:LvqModelSettingsCli) =
     printfn "Optimizing %s" (initialSettings.ToShorthand ())
     let needsB = [LvqModelType.G2m; LvqModelType.Ggm ; LvqModelType.Gpq] |> List.exists (fun modelType -> initialSettings.ModelType = modelType)
     let controllers = 
@@ -189,7 +210,7 @@ let improveAndTest (initialSettings:LvqModelSettingsCli) =
             yield lrPcontrol
             if needsB then yield lrBcontrol
        ]
-    let improvedSettings = fullyImprove (controllers, (initialSettings,0)) |> snd
+    let improvedSettings = fullyImprove (controllers, (initialSettings,skipOptRounds)) |> snd
     let testedResults = testSettings 100 1u 1e7 improvedSettings
     let resultString = printResults testedResults
     Console.WriteLine resultString
@@ -211,19 +232,18 @@ let allUniformResults () =
         if not maybeSettings.HasValue then 
             None
         else
-            let trnChunkTraining = ((line.SubstringAfterFirst "Training: ").SubstringUntil ";" ).Split([|" ~ "|], StringSplitOptions.None) |> Array.map float
-            let tstChunkTraining = ((line.SubstringAfterFirst "Test: ").SubstringUntil ";").Split([|" ~ "|], StringSplitOptions.None) |> Array.map float
-            let nnChunkTraining = 
-                if line.Contains("NN: ") then
-                    ((line.SubstringAfterFirst "NN: ")).Split([|" ~ "|], StringSplitOptions.None) |> Array.map float
+            let parseChunk prefix = 
+                if line.Contains(prefix) then
+                    let arr = ((line.SubstringAfterFirst prefix).SubstringUntil ";").Split([|" ~ "|], StringSplitOptions.None) |> Array.map float
+                    (arr.[0], if arr.Length >1 then arr.[1] else Double.NaN)
                 else
-                    [|Double.NaN; Double.NaN|]
-
+                    (Double.NaN, Double.NaN)
+                        
             Some({
-                        GeoMean = (line.SubstringAfterFirst "GeoMean: ").SubstringUntil ";" |> float
-                        Training = (trnChunkTraining.[0], trnChunkTraining.[1])
-                        Test = (tstChunkTraining.[0], tstChunkTraining.[1])
-                        NN = (nnChunkTraining.[0], nnChunkTraining.[1])
+                        GeoMean = parseChunk  "GeoMean: "
+                        Training = parseChunk "Training: "
+                        Test = parseChunk "Test: "
+                        NN = parseChunk "NN: "
                         Settings = maybeSettings.Value
             })
 
