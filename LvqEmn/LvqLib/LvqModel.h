@@ -51,6 +51,7 @@ public:
 	}
 
 	boost::mt19937 & RngIter() {return *settings.RngIter;}
+	LvqModelRuntimeSettings const & ModelSettings() const {return settings;}
 	void resetLearningRate() {trainIter=0; }
 
 	std::vector<std::wstring> TrainingStatNames() const;
