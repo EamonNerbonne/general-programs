@@ -169,10 +169,11 @@ let improveLr (testResultList:TestResults list) (lrUnpack, lrPack) =
 let improvementStep (controller:ControllerState) (initialSettings:LvqModelSettingsCli) degradedCount =
     let currSeed = EmnExtensions.MathHelpers.RndHelper.ThreadLocalRandom.NextUInt32 ()
     let iterCount = Math.Min(1e7, Math.Pow(1.5, float degradedCount) * 7.7e4) * Math.Min(1.0,2.5 / initialSettings.EstimateCost(10,32))
-    let initResults = testSettings 10 currSeed iterCount initialSettings
     let baseLr = controller.Controller.Unpacker initialSettings
     let lowLr = baseLr * Math.Exp(-Math.Sqrt(3.) * controller.LrLogDevScale)
     let highLr = baseLr * Math.Exp(Math.Sqrt(3.) * controller.LrLogDevScale)
+    printfn "  %s [%f..%f]@%d: %f -> " controller.Controller.Name lowLr highLr (int iterCount) baseLr
+    let initResults = testSettings 10 currSeed iterCount initialSettings
     let results = lrsChecker (currSeed + 2u) (logscale 20 (lowLr,highLr)) (controller.Controller.Packer initialSettings) iterCount
     let (newBaseLr, newLrLogDevScale) = improveLr (List.ofArray results) (controller.Controller.Unpacker, controller.Controller.Packer)
     let logLrDiff_LrDevScale = 2. * Math.Abs(Math.Log(baseLr / newBaseLr))
@@ -182,7 +183,7 @@ let improvementStep (controller:ControllerState) (initialSettings:LvqModelSettin
 
     let newDegradedCount = degradedCount + (if finalResults.GeoMean > initResults.GeoMean || effNewLrDevScale <= 0.2 then 1 else 0 )
     let newControllerState = { Controller = controller.Controller; LrLogDevScale = effNewLrDevScale; }
-    printfn "  %s [%f..%f]@%d: %f -> %f: %f -> %f (%d,×%f)" controller.Controller.Name lowLr highLr (int iterCount) baseLr newBaseLr initResults.GeoMean finalResults.GeoMean newDegradedCount (Math.Exp(Math.Sqrt(3.) * effNewLrDevScale))
+    printfn "                                       %f: %f -> %f (%d,×%f)" newBaseLr initResults.GeoMean finalResults.GeoMean newDegradedCount (Math.Exp(Math.Sqrt(3.) * effNewLrDevScale))
     (newControllerState, (newSettings, newDegradedCount))
 
 let improvementSteps (controllers:ControllerState list) (initialSettings:LvqModelSettingsCli) degradedCount=
