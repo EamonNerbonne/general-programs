@@ -50,8 +50,8 @@ MatchQuality G2mLvqModel::learnFrom(Vector_N const & trainPoint, int trainLabel)
 	double learningRate = stepLearningRate();
 
 	double lr_point = settings.LR0 * learningRate,
-		lr_P = lr_point * settings.LrScaleP,
-		lr_B = lr_point * settings.LrScaleB,
+		lr_P = min(1.0, lr_point * settings.LrScaleP),
+		lr_B = min(1.0, lr_point * settings.LrScaleB),
 		lr_bad = (settings.SlowK  ?  sqr(1.0 - learningRate)  :  1.0) * settings.LrScaleBad;
 
 	assert(lr_P>=0 && lr_B>=0 && lr_point>=0);
@@ -106,7 +106,7 @@ MatchQuality G2mLvqModel::learnFrom(Vector_N const & trainPoint, int trainLabel)
 	#ifndef NDEBUG
 			if(!isfinite_emn(J.point.squaredNorm())) {
 				cout<< "J inf "<<muK2<<" "<<muJ2<<"\n"<<J.B<<"\n"<<J.point.transpose()<< "\n";
-				cout<<epochsTrained<<" "<<settings.LR0<<" "<<settings.LrScaleP<<" " <<settings.LrScaleB<<" "<<totalMuJLr<<" "<<totalMuKLr<<"\n\n";
+				cout<<prototype.size()<<"/"<<settings.ClassCount<<", "<<J.point.size()<<" " <<epochsTrained<<" "<<settings.LR0<<" "<<settings.LrScaleP<<" " <<settings.LrScaleB<<" "<<totalMuJLr<<" "<<totalMuKLr<<"\n\n";
 				cout.flush();
 			}
 #endif
@@ -115,7 +115,7 @@ MatchQuality G2mLvqModel::learnFrom(Vector_N const & trainPoint, int trainLabel)
 #ifndef NDEBUG
 			if(!isfinite_emn(K.point.squaredNorm())) {
 				cout<< "K inf "<<muK2<<" "<<muJ2<<"\n"<<K.B<<"\n"<<K.point.transpose()<< "\n";
-				cout<<epochsTrained<<" "<<settings.LR0<<" "<<settings.LrScaleP<<" " <<settings.LrScaleB<<" "<<totalMuJLr<<" "<<totalMuKLr<<"\n\n";
+				cout<<prototype.size()<<"/"<<settings.ClassCount<<", "<<J.point.size()<<" "<<epochsTrained<<" "<<settings.LR0<<" "<<settings.LrScaleP<<" " <<settings.LrScaleB<<" "<<totalMuJLr<<" "<<totalMuKLr<<"\n\n";
 				cout.flush();
 			}
 #endif
@@ -142,7 +142,7 @@ MatchQuality G2mLvqModel::learnFrom(Vector_N const & trainPoint, int trainLabel)
 			if(!isfinite_emn(Js.point.squaredNorm()) ||muJ2slr<0.0 || muJ2slr>500) {
 				cout<< "Js "<<muK2<<" "<<muJ2<<" "<<muJ2slr<<"\n"<<Js.B<<"\n"<<Js.point.transpose()<< "\n";
 				cout<< fullmatch.distBad<< " ["<<i<<"] "<< fullmatch.matchesOk[i].dist<<" ("<<fullmatch.matchesOk[i].dist<<")\n";
-				cout<<epochsTrained<<" "<<settings.LR0<<" "<<settings.LrScaleP<<" " <<settings.LrScaleB<<" "<<totalMuJLr<<" "<<totalMuKLr<<"\n\n";
+				cout<<prototype.size()<<"/"<<settings.ClassCount<<", "<<J.point.size()<<" "<<epochsTrained<<" "<<settings.LR0<<" "<<settings.LrScaleP<<" " <<settings.LrScaleB<<" "<<totalMuJLr<<" "<<totalMuKLr<<"\n\n";
 				cout.flush();
 			}
 #endif
@@ -166,9 +166,9 @@ MatchQuality G2mLvqModel::learnFrom(Vector_N const & trainPoint, int trainLabel)
 	double norm=P.squaredNorm();
 	if(!(norm>0.0 && isfinite_emn(norm))) {
 		cout<< "Pinf "<<muK2<<" "<<muJ2<<" "<<muJ2_BjT_Bj_P_vJ.transpose()<<" "<<muK2_BkT_Bk_P_vK.transpose()<< "\n";
-		cout<<this->epochsTrained<<" "<<settings.LR0<<" "<<settings.LrScaleP<<" " <<settings.LrScaleB<<"\n";
+		cout<<prototype.size()<<"/"<<settings.ClassCount<<", "<<J.point.size()<<" "<<epochsTrained<<" "<<settings.LR0<<" "<<settings.LrScaleP<<" " <<settings.LrScaleB<<"\n";
 		cout.flush();
-		exit(100);
+		assert(false);
 	}
 #endif
 	if(!settings.scP&& (settings.neiP || settings.noKP)) { normalizeProjection(P); }
@@ -305,7 +305,7 @@ void G2mLvqModel::DoOptionalNormalization() {
 	}
 	for(size_t i=0;i<prototype.size();++i) {
 		double matNorm = projectionSquareNorm(prototype[i].B);
-		double scale = 0.000001*1.0/sqrt(matNorm) + (1.0-0.00001)*1.0;//this should have virtually no effect on all but the smallest matrices: and these must be made larger to avoid 0 distances.
+		double scale = 0.00001*1.0/sqrt(matNorm) + (1.0-0.0001)*1.0;//this should have virtually no effect on all but the smallest matrices: and these must be made larger to avoid 0 distances.
 		prototype[i].B*=scale;
 	}
 	if(!settings.neiB) {
