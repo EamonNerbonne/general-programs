@@ -305,7 +305,7 @@ void G2mLvqModel::DoOptionalNormalization() {
 	}
 	for(size_t i=0;i<prototype.size();++i) {
 		double matNorm = projectionSquareNorm(prototype[i].B);
-		double scale = 0.0001*1.0/sqrt(matNorm) + (1.0-0.0001)*1.0;//this should have virtually no effect on all but the smallest matrices: and these must be made larger to avoid 0 distances.
+		double scale = 0.000001*1.0/sqrt(matNorm) + (1.0-0.00001)*1.0;//this should have virtually no effect on all but the smallest matrices: and these must be made larger to avoid 0 distances.
 		prototype[i].B*=scale;
 	}
 	if(!settings.neiB) {
