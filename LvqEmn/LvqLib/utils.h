@@ -14,12 +14,6 @@
 #include <math.h>
 
 #include "LvqTypedefs.h"
-#define DBG(X) (std::cout<< #X <<":\n"<<(X)<<"\n")
-#ifdef NDEBUG
-#define DEBUGPRINT(X) ((void)0)
-#else
-#define DEBUGPRINT(X) DBG(X)
-#endif
 
 //randomizes all values of the matrix; each is independently drawn from a normal distribution with provided mean and sigma (=stddev).
 template<typename T> void RandomMatrixInit(boost::mt19937 & rng, Eigen::MatrixBase< T>& mat, double mean, double sigma) {

@@ -64,4 +64,4 @@ using Eigen::MatrixXi;
 #pragma warning (disable: 4127)
 #endif
 
-#define DBG(X) (std::cout<< #X <<":\n"<<(X)<<"\n")
+#define DBG(X) (std::cout<< #X <<": "<<(X)<<"\n")
