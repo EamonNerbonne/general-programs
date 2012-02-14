@@ -20,10 +20,12 @@ open System.Threading.Tasks
 open Utils
 open OptimalLrSearch
 
-
-allUniformResults () |> List.sortBy (fun res->res.GeoMean) |> Seq.distinctBy (fun res-> res.Settings.WithDefaultLr()) |> Seq.toList
-    //|> List.filter (fun res->res.Settings.ModelType = LvqModelType.Gm && res.Settings.PrototypesPerClass = 1)
+allUniformResults ()
+    |> List.sortBy (fun res->res.GeoMean)
+    //|> Seq.distinctBy (fun res-> res.Settings.WithDefaultLr()) |> Seq.toList
+    |> List.filter (fun res->res.Settings.ModelType = LvqModelType.G2m)
     |> List.map printMeanResults
+    |> List.iter (fun line -> File.AppendAllText (LrOptimizer.resultsDir.FullName + "\\uniform-results-orig.txt",line + "\n"))
 
 
 //(*
@@ -74,7 +76,7 @@ let recomputeRes () =
         |> List.sortBy (fun res->res.GeoMean) 
 //        |> Seq.distinctBy (fun res-> res.Settings.WithDefaultLr()) 
         |> Seq.toList
-        |> List.map (fun res->res.Settings.WithDefaultLr())
+        |> List.map (fun res->res.Settings)
         |> List.filter (fun settings -> settings.ModelType = LvqModelType.G2m)
         |> List.map (OptimalLrSearch.testSettings 100 1u 1e7 >> OptimalLrSearch.printResults >> (fun resline -> File.AppendAllText (LrOptimizer.resultsDir.FullName + "\\uniform-results2.txt", resline + "\n"); resline ))
 
