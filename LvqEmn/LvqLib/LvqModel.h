@@ -14,7 +14,7 @@ struct LvqDataset;
 class LvqDatasetStats;
 struct LvqModel
 {
-private:
+public:
 	double trainIter;
 	double totalIter;
 	double totalElapsed;

@@ -15,7 +15,7 @@ void LvqProjectionModel::AppendTrainingStatNames(std::vector<std::wstring> & ret
 void LvqProjectionModel::AppendOtherStats(std::vector<double> & stats, LvqDataset const * trainingSet, LvqDataset const * testSet) const { 
 	LvqModel::AppendOtherStats(stats,trainingSet,testSet);
 	if(!dynamic_cast<GgmLvqModel const*>(this))
-		stats.push_back(projectionSquareNorm(P));
+		stats.push_back(P.squaredNorm());
 	if(!settings.NoNnErrorRateTracking)
 		stats.push_back(trainingSet ? trainingSet->NearestNeighborProjectedErrorRate(*testSet,this->P) : 0.0);
 }

@@ -62,7 +62,7 @@ namespace LvqGui {
 						ShowGridLines = true,
 						//Title = statGroup.Key + ": " + model.ModelLabel,
 						Tag = statGroup.Key,
-						GraphsEnumerable = LvqStatPlotFactory.Create(statGroup.Key, statGroup, model.IsMultiModel, dataset.IsFolded() || dataset.HasTestSet()).ToArray(),
+						GraphsEnumerable = LvqStatPlotFactory.Create(statGroup.Key, statGroup, model.IsMultiModel, dataset.IsFolded() || dataset.HasTestSet(), dataset.ClassColors, model.OriginalSettings.PrototypesPerClass).ToArray(),
 						PlotName = statGroup.Key
 					}
 				).ToArray();

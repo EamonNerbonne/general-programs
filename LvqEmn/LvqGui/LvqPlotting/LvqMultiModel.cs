@@ -21,13 +21,13 @@ namespace LvqGui
 	public sealed class LvqMultiModel
 	{
 		readonly LvqModelCli[] subModels;
-		readonly LvqModelSettingsCli originalSettings;
+		public readonly LvqModelSettingsCli OriginalSettings;
 		
 		public LvqMultiModel(LvqDatasetCli forDataset, LvqModelSettingsCli lvqModelSettingsCli, bool trackStats = true)
 		{
 			if (lvqModelSettingsCli.LR0 == 0.0 || lvqModelSettingsCli.LrScaleP == 0.0)
 				throw new ArgumentException("Suspicious settings with 0 learning rate: " + lvqModelSettingsCli.ToShorthand());
-			originalSettings = lvqModelSettingsCli;
+			OriginalSettings = lvqModelSettingsCli;
 			string shorthand = lvqModelSettingsCli.ToShorthand() + "--" + forDataset.DatasetLabel;
 			subModels =
 				Enumerable.Range(0, lvqModelSettingsCli.ParallelModels).AsParallel()
@@ -296,7 +296,7 @@ namespace LvqGui
 				throw new InvalidOperationException("Trained the wrong number of iterations; aborting.");
 			string statsString = FullStatsString(allstats);
 
-			FileInfo statFile = StatFile(InitSet, originalSettings, iterIntent);
+			FileInfo statFile = StatFile(InitSet, OriginalSettings, iterIntent);
 			File.WriteAllText(statFile.FullName, statsString);
 		}
 

@@ -15,6 +15,9 @@
 
 #include "LvqTypedefs.h"
 
+#define DBG(X) (std::cout<< #X <<": "<<(X)<<"\n")
+
+
 //randomizes all values of the matrix; each is independently drawn from a normal distribution with provided mean and sigma (=stddev).
 template<typename T> void RandomMatrixInit(boost::mt19937 & rng, Eigen::MatrixBase< T>& mat, double mean, double sigma) {
 	using namespace boost;
@@ -31,13 +34,8 @@ template <typename T> T & as_lvalue(T && temporary_value) {return temporary_valu
 template <typename T> T sqr(T val) {return val*val;}
 
 
-
-template <typename T> EIGEN_STRONG_INLINE double projectionSquareNorm(T const & projectionMatrix) {
-	return (projectionMatrix.transpose() * projectionMatrix).diagonal().sum();
-}
-
 template <typename T> LvqFloat normalizeProjection(T & projectionMatrix) {
-	LvqFloat scale = LvqFloat(LvqFloat(1.0)/sqrt(projectionSquareNorm(projectionMatrix)));
+	LvqFloat scale = LvqFloat(LvqFloat(1.0)/projectionMatrix.norm());
 	projectionMatrix *= scale;
 	return scale;
 }

@@ -48,6 +48,7 @@ protected:
 			DBG(settings.LrScaleB);
 			DBG(settings.MuOffset);
 			DBG(settings.LrScaleBad);
+			DBG(self.trainIter);
 		}
 		assert( match.matchBad >= 0 && match.matchGood >=0 );
 #endif

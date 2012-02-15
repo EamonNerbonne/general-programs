@@ -192,7 +192,7 @@ void GgmLvqModel::AppendOtherStats(std::vector<double> & stats, LvqDataset const
 	LvqProjectionModel::AppendOtherStats(stats,trainingSet,testSet);
 	MeanMinMax norm, det, bias;
 	std::for_each(prototype.begin(),prototype.end(), [&](GgmLvqPrototype const & proto) {
-		norm.Add(projectionSquareNorm(proto.B));
+		norm.Add(proto.B.squaredNorm());
 		det.Add(abs(proto.B.determinant()));
 		bias.Add(proto.bias);
 	});

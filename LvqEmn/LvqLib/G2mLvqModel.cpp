@@ -3,7 +3,10 @@
 #include "utils.h"
 #include "LvqConstants.h"
 #include "MeanMinMax.h"
+#include <iterator>
+#include <boost/scoped_array.hpp>
 using namespace std;
+using boost::scoped_array;
 using namespace Eigen;
 
 G2mLvqModel::G2mLvqModel(LvqModelSettings & initSettings)
@@ -103,21 +106,32 @@ MatchQuality G2mLvqModel::learnFrom(Vector_N const & trainPoint, int trainLabel)
 	} else {
 		J.point.noalias() -= P.transpose() * (lr_point * muJ2_BjT_Bj_P_vJ);
 	}
-	#ifndef NDEBUG
-			if(!isfinite_emn(J.point.squaredNorm())) {
-				cout<< "J inf "<<muK2<<" "<<muJ2<<"\n"<<J.B<<"\n"<<J.point.transpose()<< "\n";
-				cout<<prototype.size()<<"/"<<settings.ClassCount<<", "<<J.point.size()<<" " <<epochsTrained<<" "<<settings.LR0<<" "<<settings.LrScaleP<<" " <<settings.LrScaleB<<" "<<totalMuJLr<<" "<<totalMuKLr<<"\n\n";
-				cout.flush();
-			}
+#ifndef NDEBUG
+	if(!isfinite_emn(J.B.squaredNorm()) || J.B.squaredNorm() <std::numeric_limits<double>::min()*2 ) {
+		cout<< "Jb Bad\n";
+		DBG(muK2); DBG(muJ2); DBG(J.B.norm()); DBG(J.B); DBG(J.point.transpose());
+		DBG(prototype.size()); DBG(settings.ClassCount); DBG(J.point.size()); DBG(epochsTrained); DBG(settings.LR0); DBG(settings.LrScaleP); DBG(settings.LrScaleB); DBG(totalMuJLr); DBG(totalMuKLr);
+		DBG(trainIter);
+	}
+	if(!isfinite_emn(J.point.squaredNorm())) {
+		cout<< "J inf\n";
+		DBG(muK2); DBG(muJ2); DBG(J.B.norm()); DBG(J.B); DBG(J.point.transpose());
+		DBG(prototype.size()); DBG(settings.ClassCount); DBG(J.point.size()); DBG(epochsTrained); DBG(settings.LR0); DBG(settings.LrScaleP); DBG(settings.LrScaleB); DBG(totalMuJLr); DBG(totalMuKLr);
+		DBG(trainIter);
+	}
 #endif
 
 	K.point.noalias() -= P.transpose() * (lr_bad*lr_point * muK2_BkT_Bk_P_vK) ;
+
+	J.B*=1e-100/J.B.norm() + 1.0;//this should have virtually no effect on all but the smallest matrices: and these must be made larger to avoid 0 distances.
+
 #ifndef NDEBUG
-			if(!isfinite_emn(K.point.squaredNorm())) {
-				cout<< "K inf "<<muK2<<" "<<muJ2<<"\n"<<K.B<<"\n"<<K.point.transpose()<< "\n";
-				cout<<prototype.size()<<"/"<<settings.ClassCount<<", "<<J.point.size()<<" "<<epochsTrained<<" "<<settings.LR0<<" "<<settings.LrScaleP<<" " <<settings.LrScaleB<<" "<<totalMuJLr<<" "<<totalMuKLr<<"\n\n";
-				cout.flush();
-			}
+	if(!isfinite_emn(K.point.squaredNorm())) {
+		cout<< "K inf\n";
+		DBG(muK2); DBG(muJ2); DBG(K.B.norm()); DBG(K.B); DBG(K.point.transpose());
+		DBG(prototype.size()); DBG(settings.ClassCount); DBG(J.point.size()); DBG(epochsTrained); DBG(settings.LR0); DBG(settings.LrScaleP); DBG(settings.LrScaleB); DBG(totalMuJLr); DBG(totalMuKLr);
+		DBG(trainIter);
+	}
 #endif
 
 
@@ -140,10 +154,10 @@ MatchQuality G2mLvqModel::learnFrom(Vector_N const & trainPoint, int trainLabel)
 			}
 #ifndef NDEBUG
 			if(!isfinite_emn(Js.point.squaredNorm()) ||muJ2slr<0.0 || muJ2slr>500) {
-				cout<< "Js "<<muK2<<" "<<muJ2<<" "<<muJ2slr<<"\n"<<Js.B<<"\n"<<Js.point.transpose()<< "\n";
-				cout<< fullmatch.distBad<< " ["<<i<<"] "<< fullmatch.matchesOk[i].dist<<" ("<<fullmatch.matchesOk[i].dist<<")\n";
-				cout<<prototype.size()<<"/"<<settings.ClassCount<<", "<<J.point.size()<<" "<<epochsTrained<<" "<<settings.LR0<<" "<<settings.LrScaleP<<" " <<settings.LrScaleB<<" "<<totalMuJLr<<" "<<totalMuKLr<<"\n\n";
-				cout.flush();
+				DBG(muK2); DBG(muJ2); DBG(muJ2slr); DBG(Js.B.norm()); DBG(Js.B); DBG(Js.point.transpose());
+				DBG( fullmatch.distBad); DBG(i); DBG(fullmatch.matchesOk[i].dist); DBG(fullmatch.matchesOk[i].dist);
+				DBG(prototype.size()); DBG(settings.ClassCount); DBG(J.point.size()); DBG(epochsTrained); DBG(settings.LR0); DBG(settings.LrScaleP); DBG(settings.LrScaleB); DBG(totalMuJLr); DBG(totalMuKLr);
+				DBG(trainIter);
 			}
 #endif
 		}
@@ -165,9 +179,17 @@ MatchQuality G2mLvqModel::learnFrom(Vector_N const & trainPoint, int trainLabel)
 #ifndef NDEBUG
 	double norm=P.squaredNorm();
 	if(!(norm>0.0 && isfinite_emn(norm))) {
-		cout<< "Pinf "<<muK2<<" "<<muJ2<<" "<<muJ2_BjT_Bj_P_vJ.transpose()<<" "<<muK2_BkT_Bk_P_vK.transpose()<< "\n";
-		cout<<prototype.size()<<"/"<<settings.ClassCount<<", "<<J.point.size()<<" "<<epochsTrained<<" "<<settings.LR0<<" "<<settings.LrScaleP<<" " <<settings.LrScaleB<<"\n";
+		cout<< "Pinf\n";
+		DBG(muK2); DBG(muJ2); DBG(muJ2_BjT_Bj_P_vJ.norm()); DBG(muK2_BkT_Bk_P_vK.transpose());
+		DBG(matches.distGood); DBG(matches.distBad); DBG(J.point.transpose()); DBG(K.point.transpose());
+		DBG(prototype.size()); DBG(settings.ClassCount); DBG(J.point.size()); DBG(epochsTrained); DBG(settings.LR0); DBG(settings.LrScaleP); DBG(settings.LrScaleB); DBG(totalMuJLr); DBG(totalMuKLr);
+		DBG(trainIter);
 		cout.flush();
+		scoped_array<double> bnorm(new double[prototype.size()]);
+		for(size_t i=0;i<prototype.size();++i) {
+			bnorm[i] = prototype[i].B.norm();
+		}
+
 		assert(false);
 	}
 #endif
@@ -213,30 +235,55 @@ vector<int> G2mLvqModel::GetPrototypeLabels() const {
 
 void G2mLvqModel::AppendTrainingStatNames(std::vector<std::wstring> & retval) const {
 	LvqProjectionModel::AppendTrainingStatNames(retval);
-	retval.push_back(L"Maximum norm(B)!norm!Border Matrix norm");
+	std::for_each(prototype.begin(),prototype.end(), [&](G2mLvqPrototype const & proto) {
+		retval.push_back(L"!norm!Border Matrix: norms as log(||B||^2)");
+	});
+	std::for_each(prototype.begin(),prototype.end(), [&](G2mLvqPrototype const & proto) {
+		retval.push_back(L"!determinant!Border Matrix: determinants as log(abs(|B|))");
+	});
+	/*retval.push_back(L"Maximum norm(B)!norm!Border Matrix norm");
 	retval.push_back(L"Mean norm(B)!norm!Border Matrix norm");
 	retval.push_back(L"Minimum norm(B)!norm!Border Matrix norm");
 	retval.push_back(L"Maximum |B|!determinant!Border Matrix absolute determinant");
 	retval.push_back(L"Mean |B|!determinant!Border Matrix absolute determinant");
-	retval.push_back(L"Minimum |B|!determinant!Border Matrix absolute determinant");
+	retval.push_back(L"Minimum |B|!determinant!Border Matrix absolute determinant");*/
 	retval.push_back(L"Cumulative \u03BC-J-scaled Learning Rate!!Cumulative \u03BC-scaled Learning Rates");
 	retval.push_back(L"Cumulative \u03BC-K-scaled Learning Rate!!Cumulative \u03BC-scaled Learning Rates");
 }
 void G2mLvqModel::AppendOtherStats(std::vector<double> & stats, LvqDataset const * trainingSet, LvqDataset const * testSet) const {
 	LvqProjectionModel::AppendOtherStats(stats,trainingSet,testSet);
-	MeanMinMax norm;
+
+	{
+		vector<pair<int,double>> logNormBpair;
+		std::transform(prototype.cbegin(), prototype.cend(), std::back_inserter(logNormBpair), [&](G2mLvqPrototype const & proto) { return make_pair(proto.classLabel, log(proto.B.squaredNorm()));});
+		std::sort(logNormBpair.begin(), logNormBpair.end());
+		vector<double> logNormB;
+		std::transform(logNormBpair.cbegin(), logNormBpair.cend(), std::back_inserter(logNormB), [&](pair<int,double> const & val) { return val.second;});
+		std::copy(logNormB.begin(), logNormB.end(),std::back_inserter(stats));
+	}
+	{
+		vector<pair<int,double>> logDetBpair;
+		std::transform(prototype.cbegin(), prototype.cend(), std::back_inserter(logDetBpair), [&](G2mLvqPrototype const & proto) { return make_pair(proto.classLabel, log(abs(proto.B.determinant())));});
+		std::sort(logDetBpair.begin(), logDetBpair.end());
+		vector<double> logDetB;
+		std::transform(logDetBpair.cbegin(), logDetBpair.cend(), std::back_inserter(logDetB), [&](pair<int,double> const & val) { return val.second;});
+		std::copy(logDetB.begin(), logDetB.end(),std::back_inserter(stats));
+	}
+/*	MeanMinMax norm;
 	MeanMinMax det;
+	
 	std::for_each(prototype.begin(),prototype.end(), [&](G2mLvqPrototype const & proto) {
-		norm.Add(projectionSquareNorm(proto.B));
+		norm.Add(proto.B.squaredNorm());
 		det.Add(abs(proto.B.determinant()));
-	});
-	stats.push_back(norm.max());
+	});*/
+
+	/*stats.push_back(norm.max());
 	stats.push_back(norm.mean());
 	stats.push_back(norm.min());
 
 	stats.push_back(det.max());
 	stats.push_back(det.mean());
-	stats.push_back(det.min());
+	stats.push_back(det.min());*/
 
 	stats.push_back(totalMuJLr);
 	stats.push_back(totalMuKLr);
@@ -280,7 +327,7 @@ void G2mLvqModel::ClassBoundaryDiagram(double x0, double x1, double y0, double y
 void G2mLvqModel::NormalizeBoundaries() {
 		if(!settings.LocallyNormalize) {
 			double overallNorm = std::accumulate(prototype.begin(), prototype.end(),0.0,
-				[](double cur, G2mLvqPrototype const & proto) -> double { return cur + projectionSquareNorm(proto.B); } 
+				[](double cur, G2mLvqPrototype const & proto) -> double { return cur + proto.B.squaredNorm(); } 
 			);
 			double scale = 1.0/sqrt(overallNorm / prototype.size());
 			for(size_t i=0;i<prototype.size();++i) prototype[i].B*=scale;
@@ -304,8 +351,7 @@ void G2mLvqModel::DoOptionalNormalization() {
 			prototype[i].ComputePP(P);
 	}
 	for(size_t i=0;i<prototype.size();++i) {
-		double matNorm = projectionSquareNorm(prototype[i].B);
-		double scale = 0.00001*1.0/sqrt(matNorm) + (1.0-0.0001)*1.0;//this should have virtually no effect on all but the smallest matrices: and these must be made larger to avoid 0 distances.
+		double scale = 0.00001*1.0/prototype[i].B.norm() + (1.0-0.0001)*1.0;//this should have virtually no effect on all but the smallest matrices: and these must be made larger to avoid 0 distances.
 		prototype[i].B*=scale;
 	}
 	if(!settings.neiB) {
@@ -320,7 +366,6 @@ void G2mLvqModel::compensateProjectionUpdate(Matrix_22 U, double /*scale*/) {
 	}
 }
 
-
 G2mLvqPrototype::G2mLvqPrototype() : classLabel(-1) {}
 
 G2mLvqPrototype::G2mLvqPrototype(Matrix_22 const & Binit, int protoLabel, Vector_N const & initialVal) 
@@ -328,7 +373,6 @@ G2mLvqPrototype::G2mLvqPrototype(Matrix_22 const & Binit, int protoLabel, Vector
 	, point(initialVal) 
 	, classLabel(protoLabel)
 { }
-
 
 Matrix_NN G2mLvqModel::PrototypeDistances(Matrix_NN const & points) const {
 	Matrix_2N P_points = P*points;

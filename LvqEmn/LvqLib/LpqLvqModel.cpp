@@ -76,7 +76,7 @@ MatchQuality LpqLvqModel::learnFrom(Vector_N const & trainPoint, int trainLabel)
 
 	if(settings.neiP) {
 		if(!settings.LocallyNormalize) {
-			double overallNorm = std::accumulate(P.begin(), P.end(),0.0,[](double cur, Matrix_NN const & mat)->double { return cur + projectionSquareNorm(mat); });
+			double overallNorm = std::accumulate(P.begin(), P.end(),0.0,[](double cur, Matrix_NN const & mat)->double { return cur + mat.squaredNorm(); });
 			double scale = 1.0/sqrt(overallNorm / P.size());
 			for(size_t i=0;i<P.size();++i) P[i]*=scale;
 		} else {
@@ -120,7 +120,7 @@ void LpqLvqModel::AppendOtherStats(std::vector<double> & stats, LvqDataset const
 	double normSum=0.0;
 
 	for(size_t i=0;i<P.size();++i) {
-		double norm = projectionSquareNorm(P[i]);
+		double norm = P[i].squaredNorm();
 		if(norm <minNorm) minNorm = norm;
 		if(norm > maxNorm) maxNorm = norm;
 		normSum+=norm;
@@ -144,7 +144,7 @@ vector<int> LpqLvqModel::GetPrototypeLabels() const {
 void LpqLvqModel::DoOptionalNormalization() {
 	if(!settings.neiP) {
 		if(!settings.LocallyNormalize) {
-			double overallNorm = std::accumulate(P.begin(), P.end(),0.0,[](double cur, Matrix_NN const & mat)->double { return cur + projectionSquareNorm(mat); });
+			double overallNorm = std::accumulate(P.begin(), P.end(),0.0,[](double cur, Matrix_NN const & mat)->double { return cur + mat.squaredNorm(); });
 			double scale = 1.0/sqrt(overallNorm / P.size());
 			for(size_t i=0;i<P.size();++i) P[i]*=scale;
 		} else {

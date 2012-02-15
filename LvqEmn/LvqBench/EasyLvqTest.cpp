@@ -79,7 +79,7 @@ void PrintModelStatus(char const * label,LvqModel const * model,LvqDataset const
 		FreeModel(mutablemodel);
 		Matrix_P projMatrix(2,shape.dimCount);
 		GetProjectionMatrix(model,projMatrix.data());
-		cerr<<" [norm: "<< projectionSquareNorm(projMatrix) <<"]"<<diagram.cast<unsigned>().sum()<<";";
+		cerr<<" [norm^2: "<< projMatrix.squaredNorm() <<"]"<<diagram.cast<unsigned>().sum()<<";";
 	}
 	cerr<<endl;
 }

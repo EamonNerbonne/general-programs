@@ -200,7 +200,7 @@ void GpqLvqModel::AppendOtherStats(std::vector<double> & stats, LvqDataset const
 	MeanMinMax norm;
 	MeanMinMax det;
 	std::for_each(prototype.begin(),prototype.end(), [&](GpqLvqPrototype const & proto) {
-		norm.Add(projectionSquareNorm(proto.B));
+		norm.Add(proto.B.squaredNorm());
 		det.Add(abs(proto.B.determinant()));
 	});
 	stats.push_back(norm.max());
@@ -253,7 +253,7 @@ void GpqLvqModel::ClassBoundaryDiagram(double x0, double x1, double y0, double y
 void GpqLvqModel::NormalizeBoundaries() {
 		if(!settings.LocallyNormalize) {
 			double overallNorm = std::accumulate(prototype.begin(), prototype.end(),0.0,
-				[](double cur, GpqLvqPrototype const & proto) -> double { return cur + projectionSquareNorm(proto.B); } 
+				[](double cur, GpqLvqPrototype const & proto) -> double { return cur + proto.B.squaredNorm(); } 
 			// (cur, proto) => cur + projectionSquareNorm(proto.B)
 			);
 			double scale = 1.0/sqrt(overallNorm / prototype.size());

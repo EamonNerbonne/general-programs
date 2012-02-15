@@ -10,7 +10,7 @@ static inline void NormalizeP(bool locally, vector<Matrix_NN > & P) {
 		for(size_t i=0;i<P.size();++i) normalizeProjection(P[i]);
 	} else {
 		double overallNorm = std::accumulate(P.begin(), P.end(),0.0,[](double cur, Matrix_NN & mat)->double { 
-			double norm = projectionSquareNorm(mat);
+			double norm = mat.squaredNorm();
 			/*if(norm > 1e100) {
 				mat *= 1.0/sqrt(norm);
 				norm = 1.0;
@@ -142,7 +142,7 @@ void LgmLvqModel::AppendOtherStats(std::vector<double> & stats, LvqDataset const
 	double normSum=0.0;
 
 	for(size_t i=0;i<P.size();++i) {
-		double norm = projectionSquareNorm(P[i]);
+		double norm = P[i].squaredNorm();
 		if(norm <minNorm) minNorm = norm;
 		if(norm > maxNorm) maxNorm = norm;
 		normSum+=norm;

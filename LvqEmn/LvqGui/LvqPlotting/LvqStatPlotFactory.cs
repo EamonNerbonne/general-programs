@@ -12,21 +12,22 @@ using LvqLibCli;
 namespace LvqGui {
 
 	static class LvqStatPlotFactory {
-		public static IEnumerable<IVizEngine<LvqStatPlots>> Create(string statisticGroup, IEnumerable<LvqStatName> stats, bool isMultiModel, bool hasTestSet) {
+		public static IEnumerable<IVizEngine<LvqStatPlots>> Create(string statisticGroup, IEnumerable<LvqStatName> stats, bool isMultiModel, bool hasTestSet, Color[]classColors,int protosPerClass) {
 			var relevantStatistics = (hasTestSet ? stats : stats.Where(stat => !stat.TrainingStatLabel.StartsWith("Test"))).ToArray();
 
 			return
-				relevantStatistics.Zip(GetPlotColorsForStatGroup(statisticGroup, relevantStatistics.Length),
+				relevantStatistics.Zip(GetPlotColorsForStatGroup(statisticGroup, relevantStatistics.Length, classColors, protosPerClass),
 					(stat, color) => MakePlotsForStatIdx(stat.TrainingStatLabel, stat.UnitLabel, color, stat.Index, isMultiModel)
 				).SelectMany(s => s);
 		}
 
 		static readonly Color[] errorColors = new[] { Colors.Red, Color.FromRgb(0x8b, 0x8b, 0), };
 		static readonly Color[] costColors = new[] { Colors.Blue, Colors.DarkCyan, };
-		static IEnumerable<Color> GetPlotColorsForStatGroup(string windowTitle, int length) {
+		static IEnumerable<Color> GetPlotColorsForStatGroup(string windowTitle, int length, Color[] classColors, int protosPerClass) {
 			return
 				windowTitle == "Error Rates" ? errorColors :
 				windowTitle == "Cost Function" ? costColors :
+				windowTitle.StartsWith("Border Matrix: ") && length == classColors.Length * protosPerClass ? classColors.SelectMany(color=>Enumerable.Repeat(color,protosPerClass)) :
 				WpfTools.MakeDistributedColors(length, new MersenneTwister(42));
 		}
 
@@ -60,7 +61,7 @@ namespace LvqGui {
 
 		static IVizEngine<LvqStatPlots> MakePlotHelper(string dataLabel, Color color, string yunitLabel, object tag, Func<LvqStatPlots, Point[]> mapper, DashStyle dashStyle = null) {
 			var lineplot= Plot.CreateLine(new PlotMetaData {
-			                                                                       	DataLabel = dataLabel,
+																					DataLabel = dataLabel == "" ? null : dataLabel,
 			                                                                       	RenderColor = color,
 			                                                                       	XUnitLabel = "Training iterations",
 			                                                                       	YUnitLabel = yunitLabel,
@@ -126,6 +127,5 @@ namespace LvqGui {
 			}
 			return newret;
 		}
-
 	}
 }
