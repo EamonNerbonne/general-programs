@@ -202,35 +202,49 @@ let rec fullyImprove (controllers, (initialSettings, degradedCount)) =
     else
         improvementSteps controllers initialSettings degradedCount |> fullyImprove
 
-let uniformResultsFilePath = LrOptimizer.resultsDir.FullName + "\\uniform-results.txt"
 
-let improveAndTest skipOptRounds (initialSettings:LvqModelSettingsCli) =
+let mutable hasBeenLowered = false
+let lowerPriority () = 
+    if not hasBeenLowered then
+        hasBeenLowered <- true
+        use proc = System.Diagnostics.Process.GetCurrentProcess ()
+        proc.PriorityClass <- System.Diagnostics.ProcessPriorityClass.Idle
+
+
+
+
+let improveAndTest filename scaleSearchRange (initialSettings:LvqModelSettingsCli) =
+    lowerPriority ()
     printfn "Optimizing %s" (initialSettings.ToShorthand ())
     let needsB = [LvqModelType.G2m; LvqModelType.Ggm ; LvqModelType.Gpq] |> List.exists (fun modelType -> initialSettings.ModelType = modelType)
     let controllers = 
-        [
-           // if initialSettings.MuOffset <> 0. && LvqModelType.Ggm = initialSettings.ModelType then yield muControl
-            yield lr0control
-            yield lrPcontrol
-            if needsB then yield lrBcontrol
-       ]
-    let improvedSettings = fullyImprove (controllers, (initialSettings,skipOptRounds)) |> snd
+            ([
+               // if initialSettings.MuOffset <> 0. && LvqModelType.Ggm = initialSettings.ModelType then yield muControl
+                yield lr0control
+                yield lrPcontrol
+                if needsB then yield lrBcontrol
+           ])
+           |> List.map (fun state -> { Controller = state.Controller; LrLogDevScale = state.LrLogDevScale * scaleSearchRange})
+    let improvedSettings = fullyImprove (controllers, (initialSettings, 0)) |> snd
     let testedResults = finalTestSettings improvedSettings
     let resultString = printResults testedResults
     Console.WriteLine resultString
-    File.AppendAllText (uniformResultsFilePath, resultString + "\n")
+    File.AppendAllText (LrOptimizer.resultsDir.FullName + "\\" + filename, resultString + "\n")
     testedResults
 
-let isTested (lvqSettings:LvqModelSettingsCli) = 
+let isTested filename (lvqSettings:LvqModelSettingsCli) = 
     let canonicalSettings = (lvqSettings.ToShorthand() |> CreateLvqModelValues.ParseShorthand).WithDefaultLr()
-    File.ReadAllLines uniformResultsFilePath
+    let path = LrOptimizer.resultsDir.FullName + "\\" + filename
+    File.Exists path &&
+        File.ReadAllLines (LrOptimizer.resultsDir.FullName + "\\" + filename)
         |> Array.map (fun line -> (line.Split [|' '|]).[0] |> CreateLvqModelValues.TryParseShorthand)
         |> Seq.filter (fun settingsOrNull -> settingsOrNull.HasValue)
         |> Seq.map (fun settingsOrNull -> settingsOrNull.Value.WithDefaultSeeds().WithDefaultLr())
         |> Seq.exists canonicalSettings.Equals
 
 let cleanupShorthand = CreateLvqModelValues.ParseShorthand >> (fun s->s.ToShorthand())
-let allUniformResults () = 
+
+let allUniformResults filename = 
     let parseLine (line:string) =
         let maybeSettings = line.SubstringUntil " " |> CreateLvqModelValues.TryParseShorthand
         if not maybeSettings.HasValue then 
@@ -251,7 +265,7 @@ let allUniformResults () =
                         Settings = maybeSettings.Value
             })
 
-    File.ReadAllLines (LrOptimizer.resultsDir.FullName + "\\uniform-results.txt")
+    File.ReadAllLines (LrOptimizer.resultsDir.FullName + "\\"+filename)
         |> Seq.map parseLine
         |> Seq.filter Option.isSome
         |> Seq.map Option.get
