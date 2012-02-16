@@ -236,10 +236,10 @@ vector<int> G2mLvqModel::GetPrototypeLabels() const {
 void G2mLvqModel::AppendTrainingStatNames(std::vector<std::wstring> & retval) const {
 	LvqProjectionModel::AppendTrainingStatNames(retval);
 	std::for_each(prototype.begin(),prototype.end(), [&](G2mLvqPrototype const & proto) {
-		retval.push_back(L"!norm!Border Matrix: norms as log(||B||^2)");
+		retval.push_back(L"!log-norm!Border Matrix: log(||B||^2)");
 	});
 	std::for_each(prototype.begin(),prototype.end(), [&](G2mLvqPrototype const & proto) {
-		retval.push_back(L"!determinant!Border Matrix: determinants as log(abs(|B|))");
+		retval.push_back(L"!log-determinant!Border Matrix: log(abs(|B|))");
 	});
 	/*retval.push_back(L"Maximum norm(B)!norm!Border Matrix norm");
 	retval.push_back(L"Mean norm(B)!norm!Border Matrix norm");
@@ -255,7 +255,7 @@ void G2mLvqModel::AppendOtherStats(std::vector<double> & stats, LvqDataset const
 
 	{
 		vector<pair<int,double>> logNormBpair;
-		std::transform(prototype.cbegin(), prototype.cend(), std::back_inserter(logNormBpair), [&](G2mLvqPrototype const & proto) { return make_pair(proto.classLabel, log(proto.B.squaredNorm()));});
+		std::transform(prototype.cbegin(), prototype.cend(), std::back_inserter(logNormBpair), [&](G2mLvqPrototype const & proto) { return make_pair(proto.classLabel, log(proto.B.squaredNorm() + std::numeric_limits<double>::min()));});
 		std::sort(logNormBpair.begin(), logNormBpair.end());
 		vector<double> logNormB;
 		std::transform(logNormBpair.cbegin(), logNormBpair.cend(), std::back_inserter(logNormB), [&](pair<int,double> const & val) { return val.second;});
@@ -263,7 +263,7 @@ void G2mLvqModel::AppendOtherStats(std::vector<double> & stats, LvqDataset const
 	}
 	{
 		vector<pair<int,double>> logDetBpair;
-		std::transform(prototype.cbegin(), prototype.cend(), std::back_inserter(logDetBpair), [&](G2mLvqPrototype const & proto) { return make_pair(proto.classLabel, log(abs(proto.B.determinant())));});
+		std::transform(prototype.cbegin(), prototype.cend(), std::back_inserter(logDetBpair), [&](G2mLvqPrototype const & proto) { return make_pair(proto.classLabel, log(abs(proto.B.determinant()) + std::numeric_limits<double>::min() ));});
 		std::sort(logDetBpair.begin(), logDetBpair.end());
 		vector<double> logDetB;
 		std::transform(logDetBpair.cbegin(), logDetBpair.cend(), std::back_inserter(logDetB), [&](pair<int,double> const & val) { return val.second;});
@@ -349,10 +349,6 @@ void G2mLvqModel::DoOptionalNormalization() {
 		normalizeProjection(P);
 		for(size_t i=0;i<prototype.size();++i)
 			prototype[i].ComputePP(P);
-	}
-	for(size_t i=0;i<prototype.size();++i) {
-		double scale = 0.00001*1.0/prototype[i].B.norm() + (1.0-0.0001)*1.0;//this should have virtually no effect on all but the smallest matrices: and these must be made larger to avoid 0 distances.
-		prototype[i].B*=scale;
 	}
 	if(!settings.neiB) {
 		NormalizeBoundaries();	

@@ -321,7 +321,10 @@ namespace LvqGui {
 
 		static string plotnameLookup(string fullname) {
 			switch (fullname) {
-				case "Border Matrix absolute determinant": return "Bdet";
+				case "Border Matrix absolute determinant": 
+				case "Border Matrix: log(abs(|B|))":
+					return "Bdet";
+				case "Border Matrix: log(||B||^2)":
 				case "Border Matrix norm": return "Bnorm";
 				case "Projection Matrix":
 				case "Prototype Matrix": return "Pnorm";
