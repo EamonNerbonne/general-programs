@@ -102,7 +102,7 @@ let testSettings parOverride rndSeed iterCount (settings : LvqModelSettingsCli) 
         GeoMean = results |> extractGeoMeanDistrFromResults |> (fun distr->distr.Mean)
     }
 
-let finalTestSettings = testSettings 30 1u 1e7
+
 
 
 let logscale steps (v0, v1) = 
@@ -169,9 +169,12 @@ let improveLr (testResultList:TestResults list) (lrUnpack, lrPack) =
     let (logLrmean, logLrdev) = (logLrDistr.Mean, Math.Sqrt logLrDistr.Variance)
     (Math.Exp logLrmean, logLrdev)
 
+let estimateRelativeCost (settings:LvqModelSettingsCli) = Math.Max(1.0, Math.Min( 10.0, settings.EstimateCost(10,32) / 2.5))
+let finalTestSettings settings = testSettings 30 1u (1e7 / estimateRelativeCost settings) settings
+
 let improvementStep (controller:ControllerState) (initialSettings:LvqModelSettingsCli) degradedCount =
     let currSeed = EmnExtensions.MathHelpers.RndHelper.ThreadLocalRandom.NextUInt32 ()
-    let iterCount = Math.Min(1e7, Math.Pow(1.5, float degradedCount) * 7.7e4) * Math.Min(1.0,2.5 / initialSettings.EstimateCost(10,32))
+    let iterCount = Math.Min(1e7, Math.Pow(1.5, float degradedCount) * 7.7e4) / estimateRelativeCost initialSettings
     let baseLr = controller.Controller.Unpacker initialSettings
     let lowLr = baseLr * Math.Exp(-Math.Sqrt(3.) * controller.LrLogDevScale)
     let highLr = baseLr * Math.Exp(Math.Sqrt(3.) * controller.LrLogDevScale)
@@ -209,8 +212,6 @@ let lowerPriority () =
         hasBeenLowered <- true
         use proc = System.Diagnostics.Process.GetCurrentProcess ()
         proc.PriorityClass <- System.Diagnostics.ProcessPriorityClass.Idle
-
-
 
 
 let improveAndTest filename scaleSearchRange (initialSettings:LvqModelSettingsCli) =
