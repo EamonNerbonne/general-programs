@@ -102,6 +102,9 @@ let testSettings parOverride rndSeed iterCount (settings : LvqModelSettingsCli) 
         GeoMean = results |> extractGeoMeanDistrFromResults |> (fun distr->distr.Mean)
     }
 
+let finalTestSettings = testSettings 30 1u 1e7
+
+
 let logscale steps (v0, v1) = 
     let lnScale = Math.Log(v1 / v0)
     [ for i in [0..steps-1] -> v0 * Math.Exp(lnScale * (float i / (float steps - 1.))) ]
@@ -173,13 +176,13 @@ let improvementStep (controller:ControllerState) (initialSettings:LvqModelSettin
     let lowLr = baseLr * Math.Exp(-Math.Sqrt(3.) * controller.LrLogDevScale)
     let highLr = baseLr * Math.Exp(Math.Sqrt(3.) * controller.LrLogDevScale)
     printfn "  %s [%f..%f]@%d: %f -> " controller.Controller.Name lowLr highLr (int iterCount) baseLr
-    let initResults = testSettings 10 currSeed iterCount initialSettings
-    let results = lrsChecker (currSeed + 2u) (logscale 20 (lowLr,highLr)) (controller.Controller.Packer initialSettings) iterCount
+    let initResults = testSettings 8 currSeed iterCount initialSettings
+    let results = lrsChecker (currSeed + 2u) (logscale 15 (lowLr,highLr)) (controller.Controller.Packer initialSettings) iterCount
     let (newBaseLr, newLrLogDevScale) = improveLr (List.ofArray results) (controller.Controller.Unpacker, controller.Controller.Packer)
     let logLrDiff_LrDevScale = 2. * Math.Abs(Math.Log(baseLr / newBaseLr))
-    let effNewLrDevScale =Math.Max(0.2, 0.3*newLrLogDevScale + 0.3*controller.LrLogDevScale + 0.4*logLrDiff_LrDevScale)
+    let effNewLrDevScale =Math.Max(0.2, 0.25*newLrLogDevScale + 0.5*controller.LrLogDevScale + 0.25*logLrDiff_LrDevScale)
     let newSettings = controller.Controller.Packer initialSettings newBaseLr
-    let finalResults =  testSettings 10 currSeed iterCount newSettings
+    let finalResults =  testSettings 8 currSeed iterCount newSettings
 
     let newDegradedCount = degradedCount + (if finalResults.GeoMean > initResults.GeoMean || effNewLrDevScale <= 0.2 then 1 else 0 )
     let newControllerState = { Controller = controller.Controller; LrLogDevScale = effNewLrDevScale; }
@@ -212,7 +215,7 @@ let improveAndTest skipOptRounds (initialSettings:LvqModelSettingsCli) =
             if needsB then yield lrBcontrol
        ]
     let improvedSettings = fullyImprove (controllers, (initialSettings,skipOptRounds)) |> snd
-    let testedResults = testSettings 100 1u 1e7 improvedSettings
+    let testedResults = finalTestSettings improvedSettings
     let resultString = printResults testedResults
     Console.WriteLine resultString
     File.AppendAllText (uniformResultsFilePath, resultString + "\n")

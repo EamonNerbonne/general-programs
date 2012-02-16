@@ -53,7 +53,7 @@ let recomputeRes () =
         |> Seq.toList
         |> List.map (fun res->res.Settings)
         |> List.filter (fun settings -> settings.ModelType = LvqModelType.G2m)
-        |> List.map (OptimalLrSearch.testSettings 100 1u 1e7 >> OptimalLrSearch.printResults >> (fun resline -> File.AppendAllText (LrOptimizer.resultsDir.FullName + "\\uniform-results2.txt", resline + "\n"); resline ))
+        |> List.map (OptimalLrSearch.finalTestSettings >> OptimalLrSearch.printResults >> (fun resline -> File.AppendAllText (LrOptimizer.resultsDir.FullName + "\\uniform-results2.txt", resline + "\n"); resline ))
 
 
 
