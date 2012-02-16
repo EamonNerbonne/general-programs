@@ -78,8 +78,8 @@ MatchQuality LgmLvqModel::learnFrom(Vector_N const & trainPoint, int trainLabel)
 	if(!isfinite_emn(retval.muJ + retval.muK))
 		return retval;
 
-	double lr_mu_K2 = max(-2.0, lr_point * 2.0*retval.muK);
-	double lr_mu_J2 = min(2.0,lr_point * 2.0*retval.muJ);
+	double lr_mu_K2 = lr_point * 2.0*retval.muK;
+	double lr_mu_J2 = lr_point * 2.0*retval.muJ;
 	double lr_bad = (settings.SlowK  ?  sqr(1.0 - learningRate)  :  1.0) * settings.LrScaleBad;
 
 	int J = matches.matchGood;

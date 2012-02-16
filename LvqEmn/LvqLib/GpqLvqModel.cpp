@@ -68,8 +68,8 @@ MatchQuality GpqLvqModel::learnFrom(Vector_N const & trainPoint, int trainLabel)
 	GpqLvqPrototype &J = prototype[matches.matchGood];
 	GpqLvqPrototype &K = prototype[matches.matchBad];
 	MatchQuality retval = matches.LvqQuality();
-	double muK2lr = max(-2.0, 2 * retval.muK*lr_point),
-		muJ2lr =min(2.0, 2 * retval.muJ*lr_point);
+	double muK2lr = 2 * retval.muK*lr_point,
+		muJ2lr =  2 * retval.muJ*lr_point;
 
 	//if(!isfinite_emn(muK2) || !isfinite_emn(muJ2) || muK2 > 1e30 || muJ2>1e30)		return retval;
 
