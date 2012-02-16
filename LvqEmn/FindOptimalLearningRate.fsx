@@ -28,6 +28,7 @@ let researchRes () =
         |> List.sortBy (fun res->res.GeoMean) 
         |> List.map (fun res->res.Settings)
         |> Seq.filter (isTested newStore >> not) //seq is lazy, so this last minute rechecks availability of results.
+//        |> Seq.append (allUniformResults newStore |> Seq.map  (fun res->res.Settings))
         |> Seq.map (improveAndTest newStore 0.4)
         |> Seq.toList
 
