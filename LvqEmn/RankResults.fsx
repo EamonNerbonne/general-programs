@@ -1,4 +1,4 @@
-﻿#I @"ResultsAnalysis\bin\ReleaseMingw2"
+﻿#I @"ResultsAnalysis\bin\ReleaseMingw"
 #r "ResultsAnalysis"
 #r "LvqLibCli"
 #r "LvqGui"
@@ -35,6 +35,6 @@ LvqRunAnalysis.analyzedModels ()
                 + "\n" + @"\\ \bottomrule\end{longtable}" + "\n\n" 
         )
     |> String.concat ""
-    |>  (fun contents -> File.WriteAllText(EmnExtensions.Filesystem.FSUtil.FindDataDir(@"uni\Thesis\doc", System.Reflection.Assembly.GetAssembly(typeof<LvqGui.CreateDataset>)).FullName + @"\RankResults.tex", contents))
+    |>  (fun contents -> File.WriteAllText(EmnExtensions.Filesystem.FSUtil.FindDataDir(@"uni\Thesis\doc", System.Reflection.Assembly.GetAssembly(typeof<LvqGui.CreateDataset>)).FullName + @"\RankResults.tex", "% !TeX root = RankResults-overall.tex\n" + contents))
     
 
