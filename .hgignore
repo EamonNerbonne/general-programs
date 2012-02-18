@@ -58,3 +58,4 @@ uni/Thesis/doc/G2M-heuristics.toc
 programs/LvqEmn/EigenBench.psess
 uni/Thesis/doc/plots/auto
 *.csproj.DotSettings
+*.orig
