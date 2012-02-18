@@ -77,6 +77,7 @@ LvqModelSettings::LvqModelSettings(LvqModelType modelType, boost::mt19937 & rngP
 	, NGi(false)
 	, Popt(false)
 	, Bcov(false)
+	, decay(1.0)
 	, Dimensionality(0)
 	, ModelType(modelType)
 	, RngParams(rngParams)

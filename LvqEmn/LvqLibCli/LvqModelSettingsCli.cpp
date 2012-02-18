@@ -6,7 +6,7 @@ namespace LvqLibCli {
 	LvqModelSettingsRaw LvqModelSettingsCli::ToNativeSettings() {
 
 		LvqModelSettingsRaw nativeSettings = { (::LvqModelType)ModelType, Dimensionality, PrototypesPerClass, Ppca, RandomInitialBorders
-			, neiP, scP,noKP, neiB, LocallyNormalize, NGu, NGi, Popt, Bcov, LrRaw, wGMu, SlowK, MuOffset, LR0, LrScaleP, LrScaleB, LrScaleBad
+			, neiP, scP,noKP, neiB, LocallyNormalize, NGu, NGi, Popt, Bcov, LrRaw, wGMu, SlowK, MuOffset, LR0, LrScaleP, LrScaleB, LrScaleBad, decay
 			, ParamsSeed, InstanceSeed, NoNnErrorRateTracking, ParallelModels };
 		return nativeSettings;
 	}
@@ -20,6 +20,7 @@ namespace LvqLibCli {
 			+ (NoNnErrorRateTracking ? "NoNnErrorRateTracking," : "") + (LrRaw ? "LrRaw," : "")
 			+ (LR0==0.0 && LrScaleP==0.0 && LrScaleB==0.0 ?"" : "lr" + LR0.ToString("r") + "," + "lrP" + LrScaleP.ToString("r") + "," + (LrScaleB==0.0 ? "" : "lrB" + LrScaleB.ToString("r") + ","))
 			+ (LrScaleBad != LvqModelSettingsCli().LrScaleBad ? "lrX" + LrScaleBad.ToString("r") + ",":"") + (MuOffset ==  LvqModelSettingsCli().MuOffset ? "" : "mu" + MuOffset.ToString("r") + ",")
+			+ (decay ==  LvqModelSettingsCli().decay ? "" : "d" + decay.ToString("r") + ",")
 			+ (ParamsSeed != LvqModelSettingsCli().ParamsSeed ||InstanceSeed != LvqModelSettingsCli().InstanceSeed
 				? "[" +  ( ParamsSeed != LvqModelSettingsCli().ParamsSeed ? ParamsSeed.ToString("x"):"") 
 				+ "," +  (InstanceSeed != LvqModelSettingsCli().InstanceSeed?InstanceSeed.ToString("x"):"") + "]"

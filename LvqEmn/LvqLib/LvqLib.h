@@ -20,13 +20,13 @@ extern "C" {
 		bool neiP,scP, noKP, neiB, LocallyNormalize;
 		bool NGu, NGi, Popt, Bcov, LrRaw, wGMu;
 		bool SlowK;
-		double MuOffset, LR0, LrScaleP, LrScaleB, LrScaleBad;
+		double MuOffset, LR0, LrScaleP, LrScaleB, LrScaleBad, decay;
 		unsigned ParamsSeed, InstanceSeed;
 		bool NoNnErrorRateTracking;
 		int ParallelModels; //only used in C#!
 	};
 
-	const LvqModelSettingsRaw defaultLvqModelSettings = { AutoModelType, 2, 1, false, false, false, false, false, false, false, false, false, false,false,false, false, false, 0.0, LVQ_LR0, LVQ_LrScaleP, LVQ_LrScaleB, LVQ_LrScaleBad, 37, 42, false, 10	};
+	const LvqModelSettingsRaw defaultLvqModelSettings = { AutoModelType, 2, 1, false, false, false, false, false, false, false, false, false, false,false,false, false, false, 0.0, LVQ_LR0, LVQ_LrScaleP, LVQ_LrScaleB, LVQ_LrScaleBad, 1., 37, 42, false, 10	};
 
 	__declspec(dllexport) LvqDataset* CreateDatasetRaw(
 		unsigned rngParamSeed, unsigned rngInstSeed, int dimCount, int pointCount, int classCount,

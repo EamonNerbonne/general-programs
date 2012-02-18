@@ -387,7 +387,7 @@ namespace LvqGui {
 				let settingsOrNull = CreateLvqModelValues.TryParseShorthand(line.SubstringUntil(" "))
 				where settingsOrNull.HasValue
 				let settings = settingsOrNull.Value
-				let geomean = double.Parse(line.SubstringAfterFirst("GeoMean: ").SubstringUntil(";"))
+				let geomean = double.Parse(line.SubstringAfterFirst("GeoMean: ").SubstringUntil(";").SubstringUntil("~"))
 				group Tuple.Create(settings, geomean) by settings.WithDefaultLr().WithDefaultSeeds().WithDefaultNnTracking() into settingsGroup
 				select settingsGroup.MinBy(tuple => tuple.Item2)
 				;

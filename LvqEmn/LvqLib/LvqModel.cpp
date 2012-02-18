@@ -6,6 +6,10 @@
 using namespace std;
 using namespace Eigen;
 
+static double correctScaleFactorForDecay(double decay) {
+	return (3./4.) * (decay*2.0 + 2.) / (decay*2.0 + 1.) * sqrt ((decay*2.0 + 3.5) / (decay*2.0 + 0.3)) * sqrt(sqrt( (decay*2.0 + 2.5) / (decay*2.0 + 0.15)));
+}
+
 LvqModel::LvqModel(LvqModelSettings & initSettings)
 	: 
 	trainIter(0)
@@ -16,7 +20,9 @@ LvqModel::LvqModel(LvqModelSettings & initSettings)
 	, epochsTrained(0)
 {
 	int protoCount = accumulate(initSettings.PrototypeDistribution.begin(), initSettings.PrototypeDistribution.end(), 0);
-	iterationScaleFactor = LVQ_ITERFACTOR_PERPROTO/sqrt((double)protoCount);
+	iterationScaleFactor = LVQ_ITERFACTOR_PERPROTO/sqrt((double)protoCount) * (correctScaleFactorForDecay(initSettings.decay) / correctScaleFactorForDecay(1.0));
+	iterationScalePower = - (2.0 * initSettings.decay + 1) / (2.0 * initSettings.decay + 2.0);
+	//printf("decay correction: %f\n", (correctScaleFactorForDecay(initSettings.decay) / correctScaleFactorForDecay(1.0)));
 }
 
 double LvqModel::RegisterEpochDone(int itersTrained, double elapsed, int epochs) {

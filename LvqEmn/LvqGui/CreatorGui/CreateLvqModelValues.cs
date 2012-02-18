@@ -165,6 +165,11 @@ namespace LvqGui {
 			set { if (!settings.LrScaleBad.Equals(value)) { settings.LrScaleBad = value; _propertyChanged("LrScaleBad"); } }
 		}
 
+		public double decay {
+			get { return settings.decay; }
+			set { if (!settings.decay.Equals(value)) { settings.decay = value; _propertyChanged("decay"); } }
+		}
+
 		public double MuOffset {
 			get { return settings.MuOffset; }
 			set { if (!settings.MuOffset.Equals(value)) { settings.MuOffset = value; _propertyChanged("MuOffset"); } }
@@ -229,6 +234,7 @@ namespace LvqGui {
 					|(?<SlowK>SlowK,)
 					|(?<NoNnErrorRateTracking>NoNnErrorRateTracking,)
 					|mu(?<MuOffset>[0-9]*(\.[0-9]*)?([eE]-?[0-9]+)?),
+					|d(?<decay>[0-9]*(\.[0-9]*)?([eE]-?[0-9]+)?),
 					|lrX(?<LrScaleBad>[0-9]*(\.[0-9]*)?([eE]-?[0-9]+)?),
 					|lr(?<LR0>[0-9]*(\.[0-9]*)?([eE]-?[0-9]+)?),
 					|lrP(?<LrScaleP>[0-9]*(\.[0-9]*)?([eE]-?[0-9]+)?),

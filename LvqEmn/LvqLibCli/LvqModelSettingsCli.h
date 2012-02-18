@@ -22,6 +22,7 @@ namespace LvqLibCli {
 		int _ParallelModels, _FoldOffset;
 		unsigned _ParamsSeed;
 		Nullable<double> _LrScaleBad;
+		Nullable<double> _decay;
 		Nullable<LvqModelType> _ModelType;
 	public:
 		property LvqModelType ModelType { LvqModelType get() { return _ModelType.HasValue?_ModelType.Value:LvqModelType::Ggm; } void set(LvqModelType val) { _ModelType = val==LvqModelType::Ggm?Nullable<LvqModelType>():Nullable<LvqModelType>(val); } }
@@ -33,6 +34,7 @@ namespace LvqLibCli {
 		property int FoldOffset  { int get() {return _FoldOffset ; } void set(int val) { _FoldOffset = val; } }
 
 		property double LrScaleBad { double get() { return _LrScaleBad.HasValue?_LrScaleBad.Value:LVQ_LrScaleBad; } void set(double val) { _LrScaleBad = val==LVQ_LrScaleBad?Nullable<double>(): Nullable<double>(val); } }
+		property double decay { double get() { return _decay.HasValue?_decay.Value:1.0; } void set(double val) { _decay = val==1.0?Nullable<double>() : Nullable<double>(val); } }
 
 		double LR0, LrScaleP, LrScaleB;
 		bool RandomInitialBorders;

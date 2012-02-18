@@ -6,7 +6,8 @@
 #include "LvqModelSettings.h"
 
 #ifdef _MSC_VER
-#pragma intrinsic(pow)
+#pragma intrinsic(log)
+#pragma intrinsic(exp)
 #endif
 
 using namespace Eigen;
@@ -23,12 +24,12 @@ public:
 protected:
 	LvqModelRuntimeSettings settings;
 private:
-	double iterationScaleFactor;
+	double iterationScaleFactor, iterationScalePower;
 protected:
 	double stepLearningRate() { //starts at 1.0, descending with power -0.75
 		double scaledIter = trainIter*iterationScaleFactor+1.0;
 		++trainIter;
-		double lr= 1.0 / sqrt(scaledIter*sqrt(scaledIter)); // significantly faster than exp(-0.75*log(scaledIter)) 
+		double lr= exp(iterationScalePower *  log(scaledIter)); // significantly faster than exp(-0.75*log(scaledIter)) 
 		totalLR+=lr;
 		return lr;
 	}
@@ -47,7 +48,7 @@ public:
 	int epochsTrained;
 	double unscaledLearningRate() const { 
 		double scaledIter = trainIter*iterationScaleFactor+1.0;
-		return 1.0 / sqrt(scaledIter*sqrt(scaledIter)); 
+		return exp(iterationScalePower *  log(scaledIter)); 
 	}
 
 	boost::mt19937 & RngIter() {return *settings.RngIter;}

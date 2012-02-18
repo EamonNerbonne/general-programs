@@ -109,6 +109,7 @@ extern"C" LvqModel* CreateLvqModel(LvqModelSettingsRaw rawSettings, LvqDataset c
 	initSettings.RuntimeSettings.LrScaleB = rawSettings.LrRaw ? rawSettings.LrScaleB / rawSettings.LR0 : rawSettings.LrScaleB;
 	initSettings.RuntimeSettings.LR0 = rawSettings.LR0;
 	initSettings.RuntimeSettings.LrScaleBad = rawSettings.LrScaleBad;
+	initSettings.decay = rawSettings.decay;
 
 	return ConstructLvqModel(initSettings);
 }
