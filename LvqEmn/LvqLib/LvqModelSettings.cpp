@@ -78,6 +78,7 @@ LvqModelSettings::LvqModelSettings(LvqModelType modelType, boost::mt19937 & rngP
 	, Popt(false)
 	, Bcov(false)
 	, decay(1.0)
+	, iterScaleFactor(LVQ_ITERFACTOR_PERPROTO)
 	, Dimensionality(0)
 	, ModelType(modelType)
 	, RngParams(rngParams)

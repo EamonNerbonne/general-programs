@@ -41,6 +41,33 @@ GgmLvqModel::GgmLvqModel(LvqModelSettings & initSettings)
 
 	if(initSettings.NGu && maxProtoCount>1) 
 		ngMatchCache.resize(maxProtoCount);//otherwise size 0!
+
+	if(settings.scP) {
+		Matrix_2N pPoints = initSettings.Dataset->ProjectPoints(*this);
+		VectorXi const & label = initSettings.Dataset->getPointLabels();
+		double sumLogScale=0.0;
+		for(ptrdiff_t pI = 0; pI<label.size();++pI) {
+			auto matches = findMatches(pPoints.col(pI), label(pI));
+			double logScale = log((prototype[matches.matchGood].P_point -pPoints.col(pI)).squaredNorm() + (prototype[matches.matchBad].P_point -pPoints.col(pI)).squaredNorm());
+			sumLogScale+=logScale;
+		}
+		double meanLogScale = sumLogScale / label.size();
+		/*
+		if not zero, we need to "subtract" this mean out from each match
+			so E(ln(dJ+dk)) -= mean
+			so each ln(dJ+dk) -= mean
+			so each dJ+dK /= exp(mean)
+			so each dJ+dK *= exp(-mean)
+			so P^2*[...] *= exp(-mean);
+			so P *= exp(-mean/2)
+
+		*/
+		//
+		lastAutoPupdate = -0.5 * meanLogScale;
+		P *= exp(lastAutoPupdate);
+		for(size_t i=0;i<prototype.size();++i)
+			prototype[i].ComputePP(P);
+	}
 }
 
 typedef Map<Vector_N, Aligned> MVectorXd;
@@ -97,7 +124,8 @@ MatchQuality GgmLvqModel::learnFrom(Vector_N const & trainPoint, int trainLabel)
 	Matrix_22 KBinvT =  K.B.inverse().transpose();
 
 	if(settings.scP) {
-		lastAutoPupdate = 0.9 * lastAutoPupdate -log(matches.distBad+matches.distGood - J.bias - K.bias);
+		double logScale = log((prototype[matches.matchGood].P_point -P_trainPoint).squaredNorm() + (prototype[matches.matchBad].P_point - P_trainPoint).squaredNorm());
+		lastAutoPupdate = LVQ_AutoScaleP_Momentum * lastAutoPupdate - logScale;
 	}
 
 
@@ -127,7 +155,7 @@ MatchQuality GgmLvqModel::learnFrom(Vector_N const & trainPoint, int trainLabel)
 	}
 	
 	if(settings.scP) {
-		P *= exp(lastAutoPupdate*4*learningRate*0.00001);
+		P *= exp(lastAutoPupdate*4*learningRate*LVQ_AutoScaleP_Lr);
 	}
 
 
@@ -248,7 +276,7 @@ void GgmLvqModel::ClassBoundaryDiagram(double x0, double x1, double y0, double y
 }
 
 void GgmLvqModel::DoOptionalNormalization() {
-	//THIS IS JUST BAD; we normalize each iter.
+	//THIS IS JUST BAD for GGM; we normalize each iter.
 }
 
  void GgmLvqModel::compensateProjectionUpdate(Matrix_22 U, double /*scale*/) {

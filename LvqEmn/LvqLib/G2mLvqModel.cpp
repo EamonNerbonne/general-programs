@@ -5,6 +5,7 @@
 #include "MeanMinMax.h"
 #include <iterator>
 #include <boost/scoped_array.hpp>
+#include "LvqDataset.h"
 using namespace std;
 using boost::scoped_array;
 using namespace Eigen;
@@ -44,6 +45,33 @@ G2mLvqModel::G2mLvqModel(LvqModelSettings & initSettings)
 
 	if(initSettings.NGu && maxProtoCount>1) 
 		ngMatchCache.resize(maxProtoCount);//otherwise size 0!
+
+	if(settings.scP) {
+		Matrix_2N pPoints = initSettings.Dataset->ProjectPoints(*this);
+		VectorXi const & label = initSettings.Dataset->getPointLabels();
+		double sumLogScale=0.0;
+		for(ptrdiff_t pI = 0; pI<label.size();++pI) {
+			auto matches = findMatches(pPoints.col(pI), label(pI));
+			double logScale = log(matches.distGood + matches.distBad);
+			sumLogScale+=logScale;
+		}
+		double meanLogScale = sumLogScale / label.size();
+		/*
+		if not zero, we need to "subtract" this mean out from each match
+			so E(ln(dJ+dk)) -= mean
+			so each ln(dJ+dk) -= mean
+			so each dJ+dK /= exp(mean)
+			so each dJ+dK *= exp(-mean)
+			so P^2*[...] *= exp(-mean);
+			so P *= exp(-mean/2)
+		*/
+		//
+		lastAutoPupdate = -0.5 * meanLogScale;
+		P *= exp(lastAutoPupdate);
+		for(size_t i=0;i<prototype.size();++i)
+			prototype[i].ComputePP(P);
+	}
+
 }
 
 typedef Map<Vector_N, Aligned> MVectorXd;
@@ -165,8 +193,8 @@ MatchQuality G2mLvqModel::learnFrom(Vector_N const & trainPoint, int trainLabel)
 	if(settings.scP) {
 		//double scale = -log(matches.distBad+matches.matchGood)*4*learningRate;
 		//P *= exp(scale);P *= 1+x;
-		lastAutoPupdate = 0.9 * lastAutoPupdate -log(matches.distBad+matches.distGood);
-		double thisupdate = lastAutoPupdate*4*learningRate*0.00001;
+		lastAutoPupdate = LVQ_AutoScaleP_Momentum * lastAutoPupdate -log(matches.distBad+matches.distGood);
+		double thisupdate = lastAutoPupdate*4*learningRate*LVQ_AutoScaleP_Lr;
 
 		P *= exp(thisupdate);
 	}

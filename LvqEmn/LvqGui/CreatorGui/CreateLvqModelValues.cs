@@ -169,6 +169,10 @@ namespace LvqGui {
 			get { return settings.decay; }
 			set { if (!settings.decay.Equals(value)) { settings.decay = value; _propertyChanged("decay"); } }
 		}
+		public double iterScaleFactor {
+			get { return settings.iterScaleFactor; }
+			set { if (!settings.iterScaleFactor.Equals(value)) { settings.iterScaleFactor = value; _propertyChanged("iterScaleFactor"); } }
+		}
 
 		public double MuOffset {
 			get { return settings.MuOffset; }
@@ -235,6 +239,7 @@ namespace LvqGui {
 					|(?<NoNnErrorRateTracking>NoNnErrorRateTracking,)
 					|mu(?<MuOffset>[0-9]*(\.[0-9]*)?([eE]-?[0-9]+)?),
 					|d(?<decay>[0-9]*(\.[0-9]*)?([eE]-?[0-9]+)?),
+					|is(?<iterScaleFactor>[0-9]*(\.[0-9]*)?([eE]-?[0-9]+)?),
 					|lrX(?<LrScaleBad>[0-9]*(\.[0-9]*)?([eE]-?[0-9]+)?),
 					|lr(?<LR0>[0-9]*(\.[0-9]*)?([eE]-?[0-9]+)?),
 					|lrP(?<LrScaleP>[0-9]*(\.[0-9]*)?([eE]-?[0-9]+)?),
@@ -332,7 +337,8 @@ namespace LvqGui {
 			testLr.StartAllLrTesting(Owner.WindowClosingToken).ContinueWith(_ => Console.WriteLine("completed lr optimization for " + (dataset.DatasetLabel ?? "<unknown>")));
 		}
 
-		static readonly string[] depProps = new[] { "HasOptimizedLr", "OptimizeButtonText", "OptimizedLrAllIncomplete", "OptimizedLrAllStatus", "OptimizeAllButtonText", "EstCost", "AnimEpochSuggestion" };
+		static readonly string[] depProps = new[] { "HasOptimizedLr", "OptimizeButtonText", "OptimizedLrAllIncomplete", "OptimizedLrAllStatus",
+			"OptimizeAllButtonText", "EstCost", "AnimEpochSuggestion" };
 		protected override IEnumerable<string> GloballyDependantProps { get { return base.GloballyDependantProps.Concat(depProps); } }
 
 		public void OptimizeOrCreate() {//gui thread

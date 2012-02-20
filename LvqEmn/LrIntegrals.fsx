@@ -38,9 +38,20 @@ let makeWindow initializer =
             initializer window
             window.Show ()
             ), [| |])
+
+let makePlots pointArrs =
+    makeWindow (fun window ->
+        let plot = new PlotControl ()
+        plot.ShowGridLines <- true
+        for pointsArr in pointArrs do
+            let engine = Plot.CreateLine ()
+            engine.ChangeData pointsArr
+            plot.Graphs.Add engine
+        window.Content <- plot
+        )
     
 
-let makePlot points =
+let makePlot points = 
     let pointsArr = points |> Seq.map (fun (x,y) -> new Windows.Point (x, y)) |> Seq.toArray
     makeWindow (fun window ->
         let plot = new PlotControl ()
@@ -65,5 +76,12 @@ Seq.init 5000 (fun i ->
         let y = lrAsum 1e7 pwr k
         let std = lrAsum 1e7 2. 0.00002
         (pwr * 0.5,  rescale pwr / rescale 2.)
+    ) 
+    |> makePlot
+
+Seq.init 5000 (fun i -> 
+        let x = float i / 50000.0
+        let y = Math.Exp x
+        (x, y) 
     ) 
     |> makePlot

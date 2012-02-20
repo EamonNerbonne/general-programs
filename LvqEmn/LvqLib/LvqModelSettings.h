@@ -22,7 +22,7 @@ struct LvqDataset;
 struct LvqModelSettings
 {
 	bool Ppca, RandomInitialBorders, NGu, NGi, Popt, Bcov;
-	double decay;
+	double decay, iterScaleFactor;
 
 	int Dimensionality;
 

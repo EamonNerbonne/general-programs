@@ -6,7 +6,7 @@ namespace LvqLibCli {
 	LvqModelSettingsRaw LvqModelSettingsCli::ToNativeSettings() {
 
 		LvqModelSettingsRaw nativeSettings = { (::LvqModelType)ModelType, Dimensionality, PrototypesPerClass, Ppca, RandomInitialBorders
-			, neiP, scP,noKP, neiB, LocallyNormalize, NGu, NGi, Popt, Bcov, LrRaw, wGMu, SlowK, MuOffset, LR0, LrScaleP, LrScaleB, LrScaleBad, decay
+			, neiP, scP,noKP, neiB, LocallyNormalize, NGu, NGi, Popt, Bcov, LrRaw, wGMu, SlowK, MuOffset, LR0, LrScaleP, LrScaleB, LrScaleBad, decay, iterScaleFactor
 			, ParamsSeed, InstanceSeed, NoNnErrorRateTracking, ParallelModels };
 		return nativeSettings;
 	}
@@ -21,6 +21,7 @@ namespace LvqLibCli {
 			+ (LR0==0.0 && LrScaleP==0.0 && LrScaleB==0.0 ?"" : "lr" + LR0.ToString("r") + "," + "lrP" + LrScaleP.ToString("r") + "," + (LrScaleB==0.0 ? "" : "lrB" + LrScaleB.ToString("r") + ","))
 			+ (LrScaleBad != LvqModelSettingsCli().LrScaleBad ? "lrX" + LrScaleBad.ToString("r") + ",":"") + (MuOffset ==  LvqModelSettingsCli().MuOffset ? "" : "mu" + MuOffset.ToString("r") + ",")
 			+ (decay ==  LvqModelSettingsCli().decay ? "" : "d" + decay.ToString("r") + ",")
+			+ (iterScaleFactor ==  LvqModelSettingsCli().iterScaleFactor ? "" : "is" + iterScaleFactor.ToString("r") + ",")
 			+ (ParamsSeed != LvqModelSettingsCli().ParamsSeed ||InstanceSeed != LvqModelSettingsCli().InstanceSeed
 				? "[" +  ( ParamsSeed != LvqModelSettingsCli().ParamsSeed ? ParamsSeed.ToString("x"):"") 
 				+ "," +  (InstanceSeed != LvqModelSettingsCli().InstanceSeed?InstanceSeed.ToString("x"):"") + "]"
@@ -74,6 +75,18 @@ namespace LvqLibCli {
 		retval.LrScaleB = lrB;
 		return retval;
 	}
+
+	LvqModelSettingsCli LvqModelSettingsCli::WithIterScale(double newIterScaleFactor) {
+		LvqModelSettingsCli retval = *this;
+		retval.iterScaleFactor = newIterScaleFactor;
+		return retval;
+	}
+	LvqModelSettingsCli LvqModelSettingsCli::WithDecay(double newDecay) {
+		LvqModelSettingsCli retval = *this;
+		retval.decay = newDecay;
+		return retval;
+	}
+
 	LvqModelSettingsCli LvqModelSettingsCli::WithDefaultLr(){
 		return WithLr(LvqModelSettingsCli().LR0, LvqModelSettingsCli().LrScaleP, LvqModelSettingsCli().LrScaleB);
 	}

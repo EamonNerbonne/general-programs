@@ -2,6 +2,7 @@
 #include "GmFullLvqModel.h"
 #include "utils.h"
 #include "LvqConstants.h"
+#include "LvqDataset.h"
 using namespace std;
 
 GmFullLvqModel::GmFullLvqModel(LvqModelSettings & initSettings)
@@ -36,6 +37,36 @@ GmFullLvqModel::GmFullLvqModel(LvqModelSettings & initSettings)
 	if(initSettings.NGu && maxProtoCount>1) 
 		ngMatchCache.resize(maxProtoCount);//otherwise size 0!
 	DoOptionalNormalization();
+
+	if(settings.scP) {
+		Matrix_NN pPoints =P * initSettings.Dataset->getPoints();
+		Vector_N alignedMapHack = pPoints.col(0);
+		auto alignedMap(Vector_N::MapAligned(alignedMapHack.data(),alignedMapHack.size()));
+		VectorXi const & label = initSettings.Dataset->getPointLabels();
+		double sumLogScale=0.0;
+		for(ptrdiff_t pI = 0; pI<label.size();++pI) {
+			alignedMap.noalias() = pPoints.col(pI);
+			auto matches = findMatches(alignedMap, label(pI));
+			double logScale = log(matches.distGood + matches.distBad);
+			sumLogScale+=logScale;
+		}
+		double meanLogScale = sumLogScale / label.size();
+		/*
+		if not zero, we need to "subtract" this mean out from each match
+			so E(ln(dJ+dk)) -= mean
+			so each ln(dJ+dk) -= mean
+			so each dJ+dK /= exp(mean)
+			so each dJ+dK *= exp(-mean)
+			so P^2*[...] *= exp(-mean);
+			so P *= exp(-mean/2)
+
+		*/
+		//
+		lastAutoPupdate = -0.5 * meanLogScale;
+		P *= exp(lastAutoPupdate);
+		for(int i=0;i<pLabel.size();++i)
+			RecomputeProjection(i);
+	}
 }
 
 MatchQuality GmFullLvqModel::learnFrom(Vector_N const & trainPoint, int trainLabel) {
@@ -101,8 +132,8 @@ MatchQuality GmFullLvqModel::learnFrom(Vector_N const & trainPoint, int trainLab
 	if(settings.scP) {
 		//double scale = -log(matches.distBad+matches.matchGood)*4*learningRate;
 		//P *= exp(scale);P *= 1+x;
-		lastAutoPupdate = 0.9 * lastAutoPupdate -log(matches.distBad+matches.distGood);
-		double thisupdate = lastAutoPupdate*4*learningRate*0.00001;
+		lastAutoPupdate = LVQ_AutoScaleP_Momentum * lastAutoPupdate -log(matches.distBad+matches.distGood);
+		double thisupdate = lastAutoPupdate*4*learningRate*LVQ_AutoScaleP_Lr;
 
 		P *= exp(thisupdate);
 	}

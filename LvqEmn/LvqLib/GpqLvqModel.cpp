@@ -3,6 +3,7 @@
 #include "utils.h"
 #include "LvqConstants.h"
 #include "MeanMinMax.h"
+#include "LvqDataset.h"
 using namespace std;
 using namespace Eigen;
 
@@ -38,6 +39,33 @@ GpqLvqModel::GpqLvqModel(LvqModelSettings & initSettings)
 
 	if(initSettings.NGu && maxProtoCount>1) 
 		ngMatchCache.resize(maxProtoCount);//otherwise size 0!
+	if(settings.scP) {
+		Matrix_2N pPoints = initSettings.Dataset->ProjectPoints(*this);
+		VectorXi const & label = initSettings.Dataset->getPointLabels();
+		double sumLogScale=0.0;
+		for(ptrdiff_t pI = 0; pI<label.size();++pI) {
+			auto matches = findMatches(pPoints.col(pI), label(pI));
+			double logScale = log(matches.distGood + matches.distBad);
+			sumLogScale+=logScale;
+		}
+		double meanLogScale = sumLogScale / label.size();
+		/*
+		if not zero, we need to "subtract" this mean out from each match
+			so E(ln(dJ+dk)) -= mean
+			so each ln(dJ+dk) -= mean
+			so each dJ+dK /= exp(mean)
+			so each dJ+dK *= exp(-mean)
+			so P^2*[...] *= exp(-mean);
+			so P *= exp(-mean/2)
+
+		*/
+		//
+		lastAutoPupdate = -0.5 * meanLogScale;
+		double scale=exp(lastAutoPupdate);
+		P *= scale;
+		for(size_t i=0;i<prototype.size();++i) prototype[i].P_point *= scale; //not necessary if you rescale _every_ iter anyhow.
+	}
+
 }
 
 MatchQuality GpqLvqModel::learnFrom(Vector_N const & trainPoint, int trainLabel) {
@@ -112,8 +140,8 @@ MatchQuality GpqLvqModel::learnFrom(Vector_N const & trainPoint, int trainLabel)
 	if(settings.scP) {
 		//double scale = -log(matches.distBad+matches.matchGood)*4*learningRate;
 		//P *= exp(scale);P *= 1+x;
-		lastAutoPupdate = 0.9 * lastAutoPupdate -log(matches.distBad+matches.distGood);
-		double thisupdate = lastAutoPupdate*4*learningRate*0.00001;
+		lastAutoPupdate = LVQ_AutoScaleP_Momentum * lastAutoPupdate -log(matches.distBad+matches.distGood);
+		double thisupdate = lastAutoPupdate*4*learningRate*LVQ_AutoScaleP_Lr;
 
 		P *= exp(thisupdate);
 	}

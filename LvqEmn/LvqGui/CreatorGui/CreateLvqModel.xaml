@@ -120,16 +120,18 @@
 
         <Label Grid.Row="22">decay</Label>
         <TextBox Grid.Row="22" Grid.Column="1" Text="{Binding decay, Mode=TwoWay, ValidatesOnExceptions=True}"/>
+        <Label Grid.Row="23">iterScaleFactor</Label>
+        <TextBox Grid.Row="23" Grid.Column="1" Text="{Binding iterScaleFactor, Mode=TwoWay, ValidatesOnExceptions=True}"/>
 
-        <Button Grid.Row="23" Content="Reset Initialization Seed" Click="ReseedParam" />
-        <TextBox Grid.Row="23" Grid.Column="1" Text="{Binding ParamsSeed, Mode=TwoWay, ValidatesOnExceptions=True, Converter={StaticResource hexConverter}}"  />
-        <Button Grid.Row="24" Content="Reset Iteration Seed" Click="ReseedInst" />
-        <TextBox Grid.Row="24" Grid.Column="1" Text="{Binding InstanceSeed, Mode=TwoWay, ValidatesOnExceptions=True, Converter={StaticResource hexConverter}}" />
+        <Button Grid.Row="24" Content="Reset Initialization Seed" Click="ReseedParam" />
+        <TextBox Grid.Row="24" Grid.Column="1" Text="{Binding ParamsSeed, Mode=TwoWay, ValidatesOnExceptions=True, Converter={StaticResource hexConverter}}"  />
+        <Button Grid.Row="25" Content="Reset Iteration Seed" Click="ReseedInst" />
+        <TextBox Grid.Row="25" Grid.Column="1" Text="{Binding InstanceSeed, Mode=TwoWay, ValidatesOnExceptions=True, Converter={StaticResource hexConverter}}" />
 
-        <Label Grid.Row="25">Parallel models</Label>
-        <TextBox Grid.Row="25" Grid.Column="1" Text="{Binding ParallelModels, Mode=TwoWay, ValidatesOnExceptions=True}" />
-        <Label Grid.Row="26">Fold offset</Label>
-        <TextBox Grid.Row="26" Grid.Column="1" Text="{Binding FoldOffset, Mode=TwoWay, ValidatesOnExceptions=True}" />
+        <Label Grid.Row="26">Parallel models</Label>
+        <TextBox Grid.Row="26" Grid.Column="1" Text="{Binding ParallelModels, Mode=TwoWay, ValidatesOnExceptions=True}" />
+        <Label Grid.Row="27">Fold offset</Label>
+        <TextBox Grid.Row="27" Grid.Column="1" Text="{Binding FoldOffset, Mode=TwoWay, ValidatesOnExceptions=True}" />
         <Label Grid.Row="28">Don't plot Nn error rate (faster)</Label>
         <CheckBox Grid.Row="28" Grid.Column="1"  IsChecked="{Binding NoNnErrorRateTracking, Mode= TwoWay, ValidatesOnExceptions=True}"/>
         
