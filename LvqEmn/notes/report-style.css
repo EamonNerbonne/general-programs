@@ -1,0 +1,119 @@
+/*===============page-wide basics=====================*/
+body {
+    font-family:   "Lora", "Judson", "Gentium Book Basic" ,"Crimson Text", Gentium, "Gentium Basic" , "Palatino Linotype" , Constantia, "Minion Pro", serif;
+    font-size: 13px;
+}
+body, p {
+    text-align: justify;
+    -webkit-hyphens: auto;
+    -moz-hyphens: auto;
+    hyphens: auto;
+}
+p {  margin: 0.5em 0; }
+p + p { text-indent: 1.5em; }
+.highlight { background-color: #ffff00; }
+.centered { text-align: center; }
+
+/*================= Page Layout assuming body > .margincontainer > .textcontainer==============*/
+body {
+    padding: 0;
+    margin: 0;
+    background: #ddd;
+}
+
+.textcontainer {
+  box-shadow: 0 0 1.5cm rgba(0,0,0,0.5);
+  padding: 3.5cm 4.29cm 1cm 4.29cm;
+  background: white;
+    max-width: 12.42cm;
+    margin: 0 auto;
+}
+@media print {/* Print: avoid backgrounds and color differences for visited links*/
+    body { background: white; }
+    .textcontainer { box-shadow: none; }
+    a:visited {color:Blue;}
+}
+@media screen {/* Highlight targetted references (screen only) */
+  li:target, figure:target figcaption {
+   background: rgba(255,255,0,0.5); box-shadow: 0 0 0.2em rgba(255,255,0,1.0); 
+   -webkit-transition: all 0.8s 0.2s ease-in; 
+   -moz-transition: all 0.8s 0.2s ease-in; 
+   transition: all 0.8s 0.2s ease-in; 
+   }  
+}
+
+
+
+/*=====================section titles=========================*/
+h1, h2 {
+    margin: 1em 0 0.6em;
+    font-weight:normal;
+}
+section h1, aside h1, nav h1 { color: Black; text-align: left; font-size: 18pt; }
+section h1:before { content: attr(data-fullpath) " "; padding-right:1em; }
+section section h1 { font-size: 14pt; }
+section section section h1 { font-size: 12pt; }
+
+
+/*=====================titlepage============================*/
+.titlepage { }
+.authorsbox { margin: 2cm 0.5cm; text-align: right; }
+header h1, header h2, header h3 {
+    font-size: 30pt;
+    text-align: center;
+    margin: 0;
+}
+header h2 { font-size: 20pt; }
+header h3 { font-size: 12pt; }
+
+
+/*=========================figure===========================*/
+figure > img {max-width:100%; height:auto;}
+figure {margin:0.5em 1em;}
+figcaption[data-figurenumber]:before {font-weight:bold; content: 'Figure ' attr(data-figurenumber) ': ';}
+
+/*=========================ToC==============================*/
+.generateTableOfContents table {border-collapse: collapse; font-weight:bold;}
+.generateTableOfContents td { vertical-align:top; padding:0.5em 0 0 0; }
+.generateTableOfContents td td { padding:0.3em 0 0 0; }
+.generateTableOfContents a { text-decoration:none; }
+.generateTableOfContents td:first-child { padding-right: 1em; }
+.generateTableOfContents table table { font-weight:normal; }
+
+
+/*============== Basic Table layouts ==================================*/
+table {
+    hyphens: manual;
+    -moz-hyphens: manual;
+    -webkit-hyphens: manual;
+    text-align: left;
+}
+th { padding: 0.1em 0.5em; }
+
+/*====================== Nice table border styling ======================*/
+table.bookstyleborders {
+    border-collapse: collapse;
+    border: 2px solid black;
+    border-style: solid none;
+}
+table.bookstyleborders tr { border-top: 1px solid #333; }
+table.bookstyleborders td { padding: 0.6em 0.5em; }
+
+
+/*================== Definition lists ================================*/
+dl { margin: 0; margin-left: 1em; }
+dt, dd { margin: 0; display: inline; }
+dt {  margin-left: -1em; font-weight: bold; padding-right: 0.2em; }
+dd:before { content: " "; }
+dd:after { content: "\A"; white-space: pre; }
+
+
+/*================== Bibliography========================================*/
+.bibliography li { -moz-border-radius: 0.7em; padding:0.1em 0.5em 0.1em 3em; text-indent:-2.5em;}
+.bibliography li[data-citationnumber]:before { content: '[' attr(data-citationnumber) '] '; padding-right:0.1em; }
+.bibliography ul { list-style:none; padding:0;margin:0;}
+
+
+
+
+

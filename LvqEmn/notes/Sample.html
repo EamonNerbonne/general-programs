@@ -1,0 +1,77 @@
+﻿<!DOCTYPE html>
+<html lang="en-us">
+<head>
+    <title>Html title goes here [TODO]</title>
+    <link href='http://fonts.googleapis.com/css?family=Lora:400,700italic,400italic,700'
+        rel='stylesheet' type='text/css' />
+    <link rel="stylesheet" type="text/css" href="report-style.css" />
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+</head>
+<body>
+    <article class="textcontainer">
+        <header class="titlepage">
+            <hgroup>
+                <h1>Title</h1>
+                <h2>Subtitle</h2>
+            </hgroup>
+            <div class="authorsbox">
+                <div>Author 1</div>
+                <div>Author 2</div>
+            </div>
+        </header>
+        <nav>
+            <h1>Contents </h1>
+            <div class="generateTableOfContents"></div>
+        </nav>
+        <aside>
+            <h1>Abstract</h1>
+            <p>...</p>
+        </aside>
+        <section id="section-whatever-id">
+            <h1>Introduction </h1>
+            <p> bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla</p>
+            <section id="sectionGaga">
+                <h1>Sub-section! </h1>
+                <p> supercalifragilisticexpialidocious supercalifragilisticexpialidocious supercalifragilisticexpialidocious supercalifragilisticexpialidocious</p>
+                <p> bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla</p>
+            </section>
+            <p> bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla</p>
+        </section>
+        <section>
+            <!-- Chapter 2 -->
+            <h1>Another section</h1>
+            <p>In Euler integration the value of a function is computed at discrete timesteps
+                <script type="math/tex">t_{i}</script>
+                where
+                <script type="math/tex">t_{i+1} = t_{i} + \Delta t</script>
+                . The value of a function at the next timestep is computed using a linear extrapolation <a href="#bib-eigen">[ref]</a>
+                from its current value and its derivative (<a href="#some-id">[ref]</a>): in  <a href="#section-whatever-id">[ref]</a></p>
+            <script type="math/tex; mode=display">
+ g(t_{i+1}) = g(t_{i}) + \dot{g}(t_{i}) \Delta t
+                </script>
+                <figure id="some-id">
+                    <div>image could go here</div>
+                    <figcaption>Caption for image</figcaption>
+                </figure>
+        </section>
+        <aside class="bibliography">
+            <h1>References </h1>
+            <ul>
+                <li id="bib-eigen">B. Jacob et al. <a href="http://eigen.tuxfamily.org/">Eigen</a>,
+                    February 2012. </li>
+            </ul>
+        </aside>
+    </article>
+    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+    <script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    extensions: ["tex2jax.js"],
+    jax: ["input/TeX","output/HTML-CSS"],
+//    tex2jax: {inlineMath: [["$","$"],["\\(","\\)"]]}
+    //, "HTML-CSS": { scale: 105 }
+  });
+    </script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS_HTML-full"></script>
+    <script type="text/javascript" src="generateTOC.js"></script>
+</body>
+</html>
