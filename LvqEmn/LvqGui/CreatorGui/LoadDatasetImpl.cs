@@ -14,7 +14,7 @@ using LvqFloat = System.Double;
 
 namespace LvqGui {
 
-	public class LoadedDatasetSettings : DatasetCreatorBase<LoadedDatasetSettings> {
+	public sealed class LoadedDatasetSettings : DatasetCreatorBase<LoadedDatasetSettings> {
 		protected override string RegexText {
 			get {
 				return @"^
@@ -95,6 +95,7 @@ namespace LvqGui {
 
 
 			var trainingdata = LoadRawData(dataFile);
+			
 			//var testdata = testFile == null ? null : LoadRawData(testFile);
 			if (testFile != null)
 				throw new NotImplementedException("This still needs to be implemented");
@@ -118,6 +119,7 @@ namespace LvqGui {
 				colors: WpfTools.MakeDistributedColors(settings.ClassCount, new MersenneTwister(colorSeed)),
 				points: pointArray,
 				pointLabels: labelArray,
+				 
 				//testPoints: testdata==null?null:testdata.Item1,
 				//testLabels: testdata == null ? null : testdata.Item2,
 				classCount: settings.ClassCount);
