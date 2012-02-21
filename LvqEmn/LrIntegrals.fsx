@@ -66,15 +66,20 @@ let norm =
     let decay = 1.0
     Math.Sqrt ((decay*2.0 + 3.5) / (decay*2.0 + 0.3)) * Math.Sqrt( Math.Sqrt ((decay*2.0 + 2.5) / (decay*2.0 + 0.15)))
 
-Seq.init 1000 (fun i -> 
+Seq.init 300 (fun i -> 
         let rescale decay = (3./4.) * (decay*2. + 2.) / (decay*2. + 1.) // * Math.Sqrt ((pwr + 3.5) / (pwr + 0.3)) * Math.Sqrt( Math.Sqrt ((pwr + 2.5) / (pwr + 0.15)))
+
+        let protos = 2
+        let classes = 10
         let decay = 1.
-        let iter = 1000. * float i
+        let scale = 0.0001
+
+        let iter = 10000. * float i
 
         //let k = 0.00002 / (0.8 * Math.Log (pwr*4. + 1.2)) // Math.Sqrt (Math.Sqrt (pwr + 0.1 ) )
-        let k = 0.0001 / Math.Sqrt (30.) / rescale decay
+        let k =  scale / Math.Sqrt (protos * classes |> float) / rescale decay
 
-        let y = lrA iter decay k
+        let y = 0.01 * lrAsum iter decay k
         (iter, y)
     ) 
     |> makePlot
