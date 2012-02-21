@@ -3,6 +3,7 @@
 #include "utils.h"
 #include "LvqConstants.h"
 #include "SmartSum.h"
+#include "RandomMatrix.h"
 
 LpqLvqModel::LpqLvqModel(LvqModelSettings & initSettings)
 	: LvqModel(initSettings)
@@ -27,15 +28,22 @@ LpqLvqModel::LpqLvqModel(LvqModelSettings & initSettings)
 
 	using namespace std;
 	auto InitProto = initSettings.InitProtosBySetting();
-
+	auto defP =  initSettings.initTransform();
 	pLabel = InitProto.second;
 	size_t protoCount = pLabel.size();
 	P_prototype.resize(protoCount);
 	P.resize(protoCount);
 
 	for(size_t protoIndex = 0; protoIndex < protoCount; ++protoIndex) {
-		P[protoIndex].setIdentity(initSettings.Dimensionality, initSettings.Dimensions());
-		projectionRandomizeUniformScaled(initSettings.RngParams, P[protoIndex]);
+		if(initSettings.Ppca || initSettings.Popt) {
+			Matrix_NN rot = Matrix_NN(defP.rows(), defP.rows());
+			randomProjectionMatrix(initSettings.RngParams, rot);
+			P[protoIndex] = rot * defP;
+		}else {
+			P[protoIndex] = defP;
+			randomProjectionMatrix(initSettings.RngParams, P[protoIndex]);
+		}
+		normalizeProjection(P[protoIndex]);
 		P_prototype[protoIndex] = P[protoIndex] * InitProto.first.col(protoIndex);
 	}
 }

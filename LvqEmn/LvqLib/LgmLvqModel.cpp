@@ -3,7 +3,7 @@
 #include "utils.h"
 #include "LvqConstants.h"
 #include "SmartSum.h"
-
+#include "RandomMatrix.h"
 
 static inline void NormalizeP(bool locally, vector<Matrix_NN > & P) {
 	if(locally) {
@@ -48,6 +48,7 @@ LgmLvqModel::LgmLvqModel( LvqModelSettings & initSettings)
 
 	using namespace std;
 	auto InitProto = initSettings.InitProtosBySetting();
+	auto defP =  initSettings.initTransform();
 
 	pLabel = InitProto.second;
 	size_t protoCount = pLabel.size();
@@ -56,8 +57,16 @@ LgmLvqModel::LgmLvqModel( LvqModelSettings & initSettings)
 
 	for(size_t protoIndex = 0; protoIndex < protoCount; ++protoIndex) {
 		prototype[protoIndex] = InitProto.first.col(protoIndex);
-		P[protoIndex].setIdentity(initSettings.Dimensionality, initSettings.Dimensions());
-		projectionRandomizeUniformScaled(initSettings.RngParams, P[protoIndex]);
+		
+		if(initSettings.Ppca || initSettings.Popt) {
+			Matrix_NN rot = Matrix_NN(defP.rows(), defP.rows());
+			randomProjectionMatrix(initSettings.RngParams, rot);
+			P[protoIndex] = rot * defP;
+		}else {
+			P[protoIndex] = defP;
+			randomProjectionMatrix(initSettings.RngParams, P[protoIndex]);
+		}
+		normalizeProjection(P[protoIndex]);
 	}
 
 	NormalizeP(settings.LocallyNormalize, P);
@@ -102,10 +111,13 @@ MatchQuality LgmLvqModel::learnFrom(Vector_N const & trainPoint, int trainLabel)
 	P[J].noalias() -= (settings.LrScaleP *  lr_mu_J2) * (Pj_vJ * vJ.transpose() );
 	P[K].noalias() -=(settings.LrScaleP * lr_mu_K2) * (Pk_vK * vK.transpose() );
 
+	
 	if(settings.neiP) {
-		NormalizeP(settings.LocallyNormalize, P);
+		if(settings.LocallyNormalize) {//optimization: only need to normalize changed projections.
+			normalizeProjection(P[J]);
+			normalizeProjection(P[K]);
+		} else NormalizeP(settings.LocallyNormalize, P);
 	}
-
 
 	totalMuJLr += lr_point * retval.muJ;
 	totalMuKLr -= lr_point * retval.muK;
