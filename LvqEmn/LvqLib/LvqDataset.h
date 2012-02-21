@@ -55,7 +55,8 @@ public:
 
 	void shufflePoints(boost::mt19937& rng);
 	void ExtendByCorrelations();
-	void NormalizeDimensions(bool normalizeByScaling);
+	std::pair<Vector_N,Vector_N> NormalizationParameters() const;
+	void ApplyNormalization(std::pair<Vector_N,Vector_N> pars, bool normalizeByScaling);
 
 	Matrix_NN const & getPoints() const {return points;}
 	VectorXi const & getPointLabels()const {return pointLabels;}

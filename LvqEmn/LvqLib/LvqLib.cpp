@@ -12,8 +12,8 @@ using std::wstring;
 using std::transform;
 
 extern"C" LvqDataset* CreateDatasetRaw(
-	unsigned rngParamSeed, unsigned rngInstSeed, int dimCount, int pointCount, int classCount, LvqFloat* data, int*labels) {
-		mt19937 rngParams(rngParamSeed), rngInst(rngInstSeed);
+	unsigned rngInstSeed, int dimCount, int pointCount, int classCount, LvqFloat* data, int*labels) {
+		mt19937  rngInst(rngInstSeed);
 		Matrix_NN points(dimCount,pointCount);
 		points = Map<Matrix_NN>(data,dimCount,pointCount);
 		VectorXi::Map(labels,pointCount);
@@ -53,9 +53,16 @@ extern"C"  void CreatePointCloud(unsigned rngParamSeed, unsigned rngInstSeed, in
 extern"C" void FreeDataset(LvqDataset* dataset) {delete dataset;}
 extern"C" size_t MemAllocEstimateDataset(LvqDataset* dataset) {return dataset->MemAllocEstimate();}
 
-extern"C" void ExtendAndNormalize(LvqDataset * dataset, bool extend, bool normalize, bool normalizeByScaling) {
-	if(extend) dataset->ExtendByCorrelations();
-	if(normalize) dataset->NormalizeDimensions(normalizeByScaling);
+extern"C" void ExtendAndNormalize(LvqDataset * dataset,LvqDataset * testdataset, bool extend, bool normalize, bool normalizeByScaling) {
+	if(extend) {
+		dataset->ExtendByCorrelations();
+		testdataset->ExtendByCorrelations();
+	}
+	if(normalize) {
+		auto parameters = dataset->NormalizationParameters();
+		dataset->ApplyNormalization(parameters,normalizeByScaling);
+		testdataset->ApplyNormalization(parameters,normalizeByScaling);
+	}
 }
 
 extern"C" double NearestNeighborSplitPcaErrorRate(LvqDataset const * trainingSet, LvqDataset const * testSet) {

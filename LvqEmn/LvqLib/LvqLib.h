@@ -29,7 +29,7 @@ extern "C" {
 	const LvqModelSettingsRaw defaultLvqModelSettings = { AutoModelType, 2, 1, false, false, false, false, false, false, false, false, false, false,false,false, false, false, 0.0, LVQ_LR0, LVQ_LrScaleP, LVQ_LrScaleB, LVQ_LrScaleBad, 1.,LVQ_ITERFACTOR_PERPROTO, 37, 42, false, 10	};
 
 	__declspec(dllexport) LvqDataset* CreateDatasetRaw(
-		unsigned rngParamSeed, unsigned rngInstSeed, int dimCount, int pointCount, int classCount,
+										    unsigned rngInstSeed, int dimCount, int pointCount, int classCount,
 		LvqFloat* data, int*labels);
 	__declspec(dllexport) LvqDataset* CreateGaussianClouds(
 		unsigned rngParamSeed, unsigned rngInstSeed, int dimCount, int pointCount, int classCount,
@@ -46,8 +46,8 @@ extern "C" {
 
 	__declspec(dllexport) void CreatePointCloud(unsigned rngParamSeed, unsigned rngInstSeed, int dimCount, int pointCount, double meansep, LvqFloat* target);
 	__declspec(dllexport) void FreeDataset(LvqDataset* dataset);
-	__declspec(dllexport) size_t MemAllocEstimateDataset(LvqDataset* dataset);
-	__declspec(dllexport) void ExtendAndNormalize(LvqDataset * dataset, bool extend, bool normalize, bool normalizeByScaling);
+	__declspec(dllexport) size_t MemAllocEstimateDataset(LvqDataset* dataset); 
+	__declspec(dllexport) void ExtendAndNormalize(LvqDataset * dataset, LvqDataset * testdataset, bool extend, bool normalize, bool normalizeByScaling);
 	__declspec(dllexport) double NearestNeighborSplitPcaErrorRate(LvqDataset const * trainingSet, LvqDataset const * testSet);
 	__declspec(dllexport) double NearestNeighborSplitRawErrorRate(LvqDataset const * trainingSet, LvqDataset const * testSet);
 	__declspec(dllexport) DataShape GetDataShape(LvqDataset const * dataset);

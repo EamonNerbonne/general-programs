@@ -267,10 +267,18 @@ void LvqDataset::ExtendByCorrelations() {
 #endif
 }
 
-void LvqDataset::NormalizeDimensions(bool normalizeByScaling) {
-	points = points.colwise() - MeanPoint(points);
+std::pair<Vector_N,Vector_N> LvqDataset::NormalizationParameters() const {
+	auto mean = MeanPoint(points);
 
-	Vector_N variance =  points.rowwise().squaredNorm() / (points.cols()-1.0);
+	Vector_N variance =  (points.colwise() - mean).rowwise().squaredNorm() / (points.cols()-1.0);
+
+	return make_pair(mean,variance);
+}
+void LvqDataset::ApplyNormalization(std::pair<Vector_N,Vector_N> pars, bool normalizeByScaling) {
+	auto mean = pars.first;
+	auto variance = pars.second;
+	
+	points = points.colwise() - mean;
 
 	assert((variance.array() >= 0).all());
 	vector<int> remapping;
