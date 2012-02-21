@@ -52,6 +52,11 @@ public:
 	LvqDataset* Extract(std::vector<int> const & subset) const;
 	std::pair<LvqDataset*,LvqDataset*> ExtendUsingModel(LvqDataset const * testdataset, LvqModel const & model) const;
 
+	LvqDataset ExtendWithOther(LvqDataset const & otherdataset) const;
+	LvqDataset CreateLogDistDataset(LvqModel const & model) const;
+	LvqDataset CreateInvSqrtDistDataset(LvqModel const & model) const;
+	LvqDataset CreateQrProjectedDataset(LvqModel const & model) const;
+
 
 	void shufflePoints(boost::mt19937& rng);
 	void ExtendByCorrelations();

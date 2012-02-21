@@ -359,7 +359,76 @@ std::vector<int> LvqDataset::GetTestSubset(int fold, int foldcount) const {
 std::vector<int> LvqDataset::InRandomOrder(boost::mt19937& rng ) const { vector<int> order(GetTestSubset(0,1)); shuffle(rng,order,order.size()); return order; }
 
 
+LvqDataset LvqDataset::ExtendWithOther(LvqDataset const & other) const {
+	assert(other.classCount() == classCount());
+	assert(other.pointCount() == pointCount());
+	assert((pointLabels - other.pointLabels).isZero());
+
+	size_t newDimCount = dimCount() + other.dimCount();
+	Matrix_NN stackedPoints = Matrix_NN(newDimCount,pointCount());
+	stackedPoints.topRows(dimCount()) = points;
+	stackedPoints.bottomRows(other.dimCount()) = other.points;
+	return LvqDataset(stackedPoints, pointLabels, classCount());
+}
+
+LvqDataset LvqDataset::CreateLogDistDataset(LvqModel const & model) const  {
+	Matrix_NN protoDistances = (model.PrototypeDistances(points).array() + std::numeric_limits<double>::min()).log().matrix();
+	 
+	assert(points.cols()==protoDistances.cols());
+	return LvqDataset(protoDistances, pointLabels, classCount());
+}
+
+LvqDataset LvqDataset::CreateInvSqrtDistDataset(LvqModel const & model) const {
+	Matrix_NN protoDistances = (model.PrototypeDistances(points).array() + 0.01).inverse().matrix();
+	 
+	assert(points.cols()==protoDistances.cols());
+	return LvqDataset(protoDistances, pointLabels, classCount());
+
+}
+
+
+LvqDataset LvqDataset::CreateQrProjectedDataset(LvqModel const & model) const {
+	Matrix_NN modelProj = model.GetCombinedTransforms(); //the model projections may be many and some may be linearly dependant or at least non-orthogonal.  To avoid adding unnecessary dimensions, I want to get rid of the gunk.
+
+	auto qr_decomp = modelProj.fullPivHouseholderQr(); // I don't care about the unitary matrix
+	auto R = qr_decomp.matrixQR().triangularView<Upper>();
+	auto P = qr_decomp.colsPermutation();
+	//now we have modelProj == Q R P^T with Q unitary and thus uninteresting.
+
+	modelProj = (R.toDenseMatrix() * P.transpose()).topRows(min(modelProj.rows(),modelProj.cols()));
+	normalizeProjection(modelProj);
+	Matrix_NN projectionFeatures = modelProj * points;
+	return LvqDataset(projectionFeatures, pointLabels,classCount());
+}
+
+
+
 std::pair<LvqDataset*,LvqDataset*> LvqDataset::ExtendUsingModel(LvqDataset const * testdataset, LvqModel const & model) const {
+	LvqDataset logDs = CreateLogDistDataset(model);
+	auto logDsNorm = logDs.NormalizationParameters();
+	logDs.ApplyNormalization(logDsNorm, false);
+
+	LvqDataset projDs = CreateQrProjectedDataset(model);
+	auto projDsNorm = logDs.NormalizationParameters();
+	projDs.ApplyNormalization(projDsNorm, false);
+	
+	LvqDataset combinedDs = logDs.ExtendWithOther(projDs);
+
+	if(!testdataset) 
+		return make_pair(new LvqDataset(combinedDs), (LvqDataset*)nullptr);
+	
+
+	LvqDataset testLogDs = testdataset->CreateLogDistDataset(model);
+	testLogDs.ApplyNormalization(logDsNorm, false);
+
+	LvqDataset testProjDs = CreateQrProjectedDataset(model);
+	testProjDs.ApplyNormalization(projDsNorm, false);
+	
+	LvqDataset testCombinedDs = testLogDs.ExtendWithOther(testProjDs);
+	
+	return make_pair(new LvqDataset(combinedDs), new LvqDataset(testCombinedDs));
+
+/*
 	Matrix_NN protoDistances = model.PrototypeDistances(points);
 	assert(points.cols()==protoDistances.cols());
 
@@ -427,5 +496,5 @@ std::pair<LvqDataset*,LvqDataset*> LvqDataset::ExtendUsingModel(LvqDataset const
 	newPointsTest.topRows(modelProj.rows()).noalias() = projectionFeaturesTest/sqrt(pFvar);
 	newPointsTest.bottomRows(distanceFeaturesTest.rows()).noalias() = distanceFeaturesTest;
 
-	return std::make_pair(new LvqDataset(newPoints, pointLabels, classCount()), new LvqDataset(newPointsTest,testdataset->pointLabels, classCount()));
+	return std::make_pair(new LvqDataset(newPoints, pointLabels, classCount()), new LvqDataset(newPointsTest,testdataset->pointLabels, classCount()));*/
 }
