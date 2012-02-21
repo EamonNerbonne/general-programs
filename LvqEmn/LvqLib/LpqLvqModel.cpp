@@ -67,20 +67,20 @@ MatchQuality LpqLvqModel::learnFrom(Vector_N const & trainPoint, int trainLabel)
 	int J = matches.matchGood;
 	int K = matches.matchBad;
 
-	Vector_N & Pj_vJ = tmpDestDimsV1;
-	Vector_N & Pk_vK = tmpDestDimsV2;
+	Vector_N & negPj_vJ = tmpDestDimsV1;
+	Vector_N & negPk_vK = tmpDestDimsV2;
 
-	Pj_vJ.noalias() = P[J]* trainPoint;
-	Pk_vK.noalias() = P[K]* trainPoint;
+	negPj_vJ.noalias() = P[J]* trainPoint;
+	negPk_vK.noalias() = P[K]* trainPoint;
 
-	Pj_vJ =P_prototype[J] - Pj_vJ;
-	Pk_vK = P_prototype[K] - Pk_vK;
+	negPj_vJ.noalias() -= P_prototype[J];
+	negPk_vK.noalias() -= P_prototype[K];
 
-	P_prototype[J].noalias() -= (lr_mu_J2)* Pj_vJ;
-	P_prototype[K].noalias() -= (lr_bad * lr_mu_K2) * Pk_vK;
+	P_prototype[J].noalias() += (lr_mu_J2)* negPj_vJ;
+	P_prototype[K].noalias() += (lr_bad * lr_mu_K2) * negPk_vK;
 
-	P[J].noalias() += (settings.LrScaleP *  lr_mu_J2) * (Pj_vJ * trainPoint.transpose() );
-	P[K].noalias() +=(settings.LrScaleP * lr_mu_K2) * (Pk_vK * trainPoint.transpose() );
+	P[J].noalias() += (-settings.LrScaleP *  lr_mu_J2) * (negPj_vJ * trainPoint.transpose());
+	P[K].noalias() +=(-settings.LrScaleP * lr_mu_K2) * (negPk_vK * trainPoint.transpose());
 
 	if(settings.neiP) {
 		if(!settings.LocallyNormalize) {
@@ -88,7 +88,8 @@ MatchQuality LpqLvqModel::learnFrom(Vector_N const & trainPoint, int trainLabel)
 			double scale = 1.0/sqrt(overallNorm / P.size());
 			for(size_t i=0;i<P.size();++i) P[i]*=scale;
 		} else {
-			for(size_t i=0;i<P.size();++i) normalizeProjection(P[i]);
+			normalizeProjection(P[J]);
+			normalizeProjection(P[K]);
 		}
 	}
 

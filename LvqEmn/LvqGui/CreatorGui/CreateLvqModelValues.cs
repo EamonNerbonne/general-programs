@@ -51,7 +51,7 @@ namespace LvqGui {
 			get { return settings.Dimensionality; }
 			set {
 				if (value < 0 || (ForDataset != null && value > ForDataset.Dimensions)) throw new ArgumentException("Internal dimensionality must be 0 (auto) or between 1 and the dimensions of the data.");
-				if (settings.ModelType != LvqModelType.Lgm && settings.ModelType != LvqModelType.Gm && value != 2 && value != 0) throw new ArgumentException("2D Projection models must have exactly 2 internal dimensions.");
+				if (settings.ModelType != LvqModelType.Lgm && settings.ModelType != LvqModelType.Lpq && settings.ModelType != LvqModelType.Gm && value != 2 && value != 0) throw new ArgumentException("2D Projection models must have exactly 2 internal dimensions.");
 				if (!Equals(settings.Dimensionality, value)) { settings.Dimensionality = value; _propertyChanged("Dimensionality"); }
 			}
 		}

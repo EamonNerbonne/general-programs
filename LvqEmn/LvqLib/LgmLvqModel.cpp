@@ -99,8 +99,8 @@ MatchQuality LgmLvqModel::learnFrom(Vector_N const & trainPoint, int trainLabel)
 	Vector_N & Pj_vJ = tmpDestDimsV1;
 	Vector_N & Pk_vK = tmpDestDimsV2;
 
-	vJ = prototype[J] - trainPoint;
-	vK = prototype[K] - trainPoint;
+	vJ.noalias() = prototype[J] - trainPoint;
+	vK.noalias() = prototype[K] - trainPoint;
 
 	Pj_vJ.noalias() =P[J] * vJ;
 	Pk_vK.noalias() = P[K] * vK;
