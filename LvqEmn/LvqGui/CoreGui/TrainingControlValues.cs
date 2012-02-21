@@ -68,7 +68,7 @@ namespace LvqGui {
 		public IEnumerable<object> ModelClasses {
 			get {
 				if (SelectedDataset == null) return new object[0] { };
-				return SelectedDataset.ClassColors.Select((col, i) => new { ClassLabel = i, ClassColor = (SolidColorBrush)new SolidColorBrush(col).GetAsFrozen() }).ToArray();
+				return SelectedDataset.ClassColors.Zip(SelectedDataset.ClassNames, (col, name) => new { ClassLabel = name, ClassColor = (SolidColorBrush)new SolidColorBrush(col).GetAsFrozen() }).ToArray();
 			}
 		}
 

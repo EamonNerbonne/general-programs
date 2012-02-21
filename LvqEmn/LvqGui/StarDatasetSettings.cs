@@ -1,4 +1,6 @@
-﻿using EmnExtensions.MathHelpers;
+﻿using System.Globalization;
+using System.Linq;
+using EmnExtensions.MathHelpers;
 using EmnExtensions.Wpf;
 using LvqLibCli;
 
@@ -64,7 +66,7 @@ namespace LvqGui {
 				dims: Dimensions,
 				starDims: ClusterDimensionality,
 				numStarTails: NumberOfClusters,
-				classCount: NumberOfClasses,
+				classes: Enumerable.Range(0, NumberOfClasses).Select(i => i + 'A' <= 'Z' ? ((char)('A' + i)).ToString(CultureInfo.InvariantCulture) : i.ToString(CultureInfo.InvariantCulture)).ToArray(),
 				pointsPerClass: PointsPerClass,
 				starMeanSep: ClusterCenterDeviation,
 				starClassRelOffset: IntraClusterClassRelDev,

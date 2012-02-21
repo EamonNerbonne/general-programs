@@ -1,6 +1,8 @@
-﻿using EmnExtensions.MathHelpers;
+﻿using System.Linq;
+using EmnExtensions.MathHelpers;
 using EmnExtensions.Wpf;
 using LvqLibCli;
+using System.Globalization;
 
 namespace LvqGui {
 	public sealed class GaussianCloudDatasetSettings : DatasetCreatorBase<GaussianCloudDatasetSettings> {
@@ -41,7 +43,7 @@ namespace LvqGui {
 														 rngParamsSeed: ParamsSeed,
 														 rngInstSeed: InstanceSeed,
 														 dims: Dimensions,
-														 classCount: NumberOfClasses,
+														 classes: Enumerable.Range(0, NumberOfClasses).Select(i=>i+'A'<='Z'? ((char)('A'+i)).ToString(CultureInfo.InvariantCulture):i.ToString(CultureInfo.InvariantCulture) ).ToArray(),
 														 pointsPerClass: PointsPerClass,
 														 meansep: ClassCenterDeviation
 				);

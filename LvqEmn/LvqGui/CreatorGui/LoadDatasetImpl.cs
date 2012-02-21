@@ -97,16 +97,32 @@ namespace LvqGui {
 			var trainingdata = LoadRawData(dataFile);
 			
 			//var testdata = testFile == null ? null : LoadRawData(testFile);
-			if (testFile != null)
-				throw new NotImplementedException("This still needs to be implemented");
+			var testdata = testFile==null? Tuple.Create(default(LvqFloat[,]),default(int[]),default(string[])) : LoadRawData(testFile);
+
 			var pointArray = trainingdata.Item1;
 			int[] labelArray = trainingdata.Item2;
+
 			long colorSeedLong = labelArray.Select((label, i) => label * (long)(i + 1)).Sum();
 			int colorSeed = (int)(colorSeedLong + (colorSeedLong >> 32));
 
 			settings.DimCount = pointArray.GetLength(1);
-			settings.ClassCount = trainingdata.Item3;
+			settings.ClassCount = trainingdata.Item3.Length;
 			settings.PointCount = pointArray.GetLength(0);
+
+
+			var testPointArray = testdata.Item1;
+			var testLabelArray = testdata.Item2;
+			if (testPointArray != null)
+			{
+				if (settings.DimCount != testPointArray.GetLength(1))
+					throw new InvalidOperationException("training file " + dataFile.Name + " has " + settings.DimCount +
+					                                    " dimensions, but test file " + testFile.Name + " has " +
+					                                    testPointArray.GetLength(1));
+				if (!trainingdata.Item3.SequenceEqual(testdata.Item3))
+					throw new InvalidOperationException("training file " + dataFile.Name + " has classes: " + string.Join(",",trainingdata.Item3)  +
+					                                    " classes, but test file " + testFile.Name + " has " + string.Join(",",testdata.Item3));
+			}
+
 
 
 			return LvqDatasetCli.ConstructFromArray(
@@ -117,15 +133,14 @@ namespace LvqGui {
 				normalizeByScaling: settings.NormalizeByScaling,
 				folds: settings.Folds,
 				colors: WpfTools.MakeDistributedColors(settings.ClassCount, new MersenneTwister(colorSeed)),
+				classes: trainingdata.Item3,
 				points: pointArray,
 				pointLabels: labelArray,
-				 
-				//testPoints: testdata==null?null:testdata.Item1,
-				//testLabels: testdata == null ? null : testdata.Item2,
-				classCount: settings.ClassCount);
+				testpoints:testPointArray,
+				testpointLabels:testLabelArray);
 		}
 
-		private static Tuple<double[,], int[], int> LoadRawData(FileInfo dataFile)
+		private static Tuple<double[,], int[], string[]> LoadRawData(FileInfo dataFile)
 		{
 			var labelFile = new FileInfo(dataFile.Directory + @"\" + dataFile.Name.Replace(".data",".label" ));
 			return labelFile.Exists ? LoadDatasetHelper(dataFile, labelFile) : LoadDatasetHelper(dataFile);
@@ -169,7 +184,7 @@ namespace LvqGui {
 			}
 		}
 
-		public static Tuple<LvqFloat[,], int[], int> LoadDatasetHelper(FileInfo datafile, FileInfo labelfile) {
+		public static Tuple<LvqFloat[,], int[], string[]> LoadDatasetHelper(FileInfo datafile, FileInfo labelfile) {
 			var dataVectors =
 				datafile.Extension.ToLowerInvariant() == ".gz" ? (LvqFloat[,])ReadGzIdx(datafile) :
 				(from dataline in datafile.GetLines()
@@ -194,7 +209,7 @@ namespace LvqGui {
 			return Tuple.Create(dataVectors, denseLabelsAndCount.Item1, denseLabelsAndCount.Item2);
 		}
 
-		private static Tuple<int[], int> MakeLabelsDense(int[] itemLabels) {
+		private static Tuple<int[], string[]> MakeLabelsDense(int[] itemLabels) {
 			var denseLabelLookup =
 				itemLabels
 					.Distinct()
@@ -205,10 +220,10 @@ namespace LvqGui {
 			return Tuple.Create(
 				itemLabels
 					.Select(oldlabel => denseLabelLookup[oldlabel])
-					.ToArray(), denseLabelLookup.Count);
+					.ToArray(), denseLabelLookup.OrderBy(kv => kv.Value).Select(kv => kv.Key.ToString(CultureInfo.InvariantCulture)).ToArray());
 		}
 
-		public static Tuple<LvqFloat[,], int[], int> LoadDatasetHelper(FileInfo dataAndLabelFile) {
+		public static Tuple<LvqFloat[,], int[], string[]> LoadDatasetHelper(FileInfo dataAndLabelFile) {
 			bool commasplit = dataAndLabelFile.GetLines().Take(10).All(line => line.Contains(','));
 
 			var splitLines =
@@ -251,6 +266,7 @@ namespace LvqGui {
 				itemLabels
 				.Select(oldlabel => denseLabelLookup[oldlabel])
 				.ToArray();
+			
 
 			var labelSet = new HashSet<int>(itemIntLabels);
 			int minLabel = labelSet.Min();
@@ -258,8 +274,9 @@ namespace LvqGui {
 			int labelCount = labelSet.Count;
 			if (labelCount != maxLabel + 1 || minLabel != 0)
 				throw new FileFormatException("Class labels must be consecutive integers starting at 0");
+			var origLabelLookup = denseLabelLookup.OrderBy(kv => kv.Value).Select(kv => kv.Key).ToArray();
 
-			return Tuple.Create(dataVectors.ToRectangularArray(), itemIntLabels, labelCount);
+			return Tuple.Create(dataVectors.ToRectangularArray(), itemIntLabels, origLabelLookup);
 		}
 	}
 }

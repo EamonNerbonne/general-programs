@@ -12,14 +12,51 @@ namespace LvqLibCli {
 	using boost::mt19937;
 
 
-	LvqDatasetCli ^ LvqDatasetCli::ConstructFromArray(String^ label, int folds, bool extend, bool normalizeDims,bool normalizeByScaling, ColorArray^ colors, unsigned rngInstSeed, 
-		array<LvqFloat,2>^ points, array<int>^ pointLabels, int classCount) {
-			vector<int> cppLabels;
-			Matrix_NN cppPoints;
-			cliToCpp(points,cppPoints);
-			cliToCpp(pointLabels,cppLabels);
-			LvqDataset* nativedataset = CreateDatasetRaw(0u,rngInstSeed,(int)cppPoints.rows(),(int)cppPoints.cols(),classCount, cppPoints.data(), cppLabels.data());
-			return gcnew LvqDatasetCli(label,folds,extend,normalizeDims,normalizeByScaling,colors,nativedataset);
+	LvqDataset* toNativeDataset(array<LvqFloat,2>^ points, array<int>^ pointLabels, unsigned shuffleSeed, int classCount) {
+		
+		vector<int> cppLabels;
+		Matrix_NN cppPoints;
+		cliToCpp(points,cppPoints);
+		cliToCpp(pointLabels,cppLabels);
+		return CreateDatasetRaw(shuffleSeed,(int)cppPoints.rows(),(int)cppPoints.cols(),classCount, cppPoints.data(), cppLabels.data());
+	}
+
+	LvqDatasetCli^ LvqDatasetCli::Unfolder(String^label, int folds,bool extend, bool normalizeDims, bool normalizeByScaling, ColorArray^ colors, array<String^>^ classes, LvqDataset * newDataset) {
+		array<GcManualPtr<LvqDataset>^ >^ datasets = gcnew array<GcManualPtr<LvqDataset>^ >(folds);
+		array<GcManualPtr<LvqDataset>^ >^ testDatasets = gcnew array<GcManualPtr<LvqDataset>^ >(folds);
+
+		for(int i=0;i<folds;i++) {
+			auto trn = CreateDatasetFold(newDataset,i,folds,false);
+			auto tst = CreateDatasetFold(newDataset,i,folds,true);
+			ExtendAndNormalize(trn,tst,extend,normalizeDims,normalizeByScaling);
+
+			datasets[i] = gcnew GcManualPtr<LvqDataset>(trn, MemAllocEstimateDataset(trn), FreeDataset);
+			testDatasets[i] = gcnew GcManualPtr<LvqDataset>(tst, MemAllocEstimateDataset(tst), FreeDataset);
+		}
+		FreeDataset(newDataset);
+		
+		return gcnew LvqDatasetCli(label,colors,classes,datasets,testDatasets);
+	}
+
+	LvqDatasetCli ^ LvqDatasetCli::ConstructFromArray(String^ label, int folds, bool extend, bool normalizeDims,bool normalizeByScaling, ColorArray^ colors, array<String^>^ classes, unsigned rngInstSeed, 
+		array<LvqFloat,2>^ points, array<int>^ pointLabels, array<LvqFloat,2>^ testpoints, array<int>^ testpointLabels) {
+			LvqDataset* nativedataset = toNativeDataset(points, pointLabels, rngInstSeed,colors->Length);
+			if(!testpoints)
+				return Unfolder(label,folds,extend,normalizeDims,normalizeByScaling,colors,classes,nativedataset);
+
+			LvqDataset* nativetestdataset = toNativeDataset(testpoints, testpointLabels, rngInstSeed+1,colors->Length);
+
+			ExtendAndNormalize(nativedataset,nativetestdataset,extend,normalizeDims,normalizeByScaling);
+
+
+			array<GcManualPtr<LvqDataset>^ >^ datasetArr = gcnew array<GcManualPtr<LvqDataset>^ > {
+				 gcnew GcManualPtr<LvqDataset>(nativedataset, MemAllocEstimateDataset(nativedataset), FreeDataset)
+			};
+			array<GcManualPtr<LvqDataset>^ >^ testdatasetArr = gcnew array<GcManualPtr<LvqDataset>^ > {
+				 gcnew GcManualPtr<LvqDataset>(nativetestdataset, MemAllocEstimateDataset(nativetestdataset), FreeDataset)
+			};
+
+			return gcnew LvqDatasetCli(label, colors, classes, datasetArr, testdatasetArr);
 	}
 
 	GcAutoPtr<vector<DataShape> >^ GetShapes( array<GcManualPtr<LvqDataset>^ >^ newDatasets) {
@@ -37,51 +74,30 @@ namespace LvqLibCli {
 		return gcnew GcAutoPtr<vector<DataShape> >(new vector<DataShape>(shapes), sizeof(shapes)+shapes.size()*sizeof(DataShape));
 	}
 
-	LvqDatasetCli::LvqDatasetCli(String^label, int folds,bool extend, bool normalizeDims, bool normalizeByScaling, ColorArray^ colors, LvqDataset * newDataset) 
+
+
+	LvqDatasetCli::LvqDatasetCli(String^label, ColorArray^ colors, array<String^>^ classes, array<GcManualPtr<LvqDataset>^ >^ newDatasets, array<GcManualPtr<LvqDataset>^ >^ newTestDatasets) 
 		: colors(colors)
-		, label(label)
-		, datasets(gcnew array<GcManualPtr<LvqDataset>^ >(folds))
-	{
-		ExtendAndNormalize(newDataset,extend,normalizeDims, normalizeByScaling);
-
-		array<GcManualPtr<LvqDataset>^ >^ testDatasets = gcnew array<GcManualPtr<LvqDataset>^ >(folds);
-
-		for(int i=0;i<folds;i++) {
-			auto trn = CreateDatasetFold(newDataset,i,folds,false);
-			datasets[i] = gcnew GcManualPtr<LvqDataset>(trn, MemAllocEstimateDataset(trn), FreeDataset);
-
-			auto tst = CreateDatasetFold(newDataset,i,folds,true);
-			testDatasets[i] = gcnew GcManualPtr<LvqDataset>(tst, MemAllocEstimateDataset(tst), FreeDataset);
-
-		}
-		FreeDataset(newDataset);
-		datashape = GetShapes(datasets);
-		
-
-		testSet = gcnew LvqDatasetCli(nullptr, colors,testDatasets,nullptr);
-	}
-
-	LvqDatasetCli::LvqDatasetCli(String^label, ColorArray^ colors, array<GcManualPtr<LvqDataset>^ >^ newDatasets, array<GcManualPtr<LvqDataset>^ >^ newTestDatasets) 
-		: colors(colors)
+		, classNames(classes)
 		, label(label)
 		, datasets(newDatasets)
-		, testSet(newTestDatasets==nullptr?nullptr:gcnew LvqDatasetCli(nullptr,colors,newTestDatasets,nullptr))
+		, testSet(newTestDatasets==nullptr?nullptr:gcnew LvqDatasetCli(nullptr,colors, classes, newTestDatasets,nullptr))
 	{
 		if(newTestDatasets!=nullptr && newDatasets->Length!=newTestDatasets->Length) throw gcnew ArgumentException("newTestDatasets","test datasets must have the same number of folds as the training datasets");
 		datashape = GetShapes(datasets);
 	}
 
-	LvqDatasetCli^ LvqDatasetCli::ConstructGaussianClouds(String^label, int folds, bool extend,  bool normalizeDims, bool normalizeByScaling, ColorArray^ colors, unsigned rngParamsSeed, unsigned rngInstSeed, int dims, 
-		int classCount, int pointsPerClass, double meansep) {
-			return gcnew LvqDatasetCli(label,folds,extend,normalizeDims, normalizeByScaling,colors, 
-				CreateGaussianClouds(rngParamsSeed,rngInstSeed,dims,classCount*pointsPerClass, classCount, 
+	LvqDatasetCli^ LvqDatasetCli::ConstructGaussianClouds(String^label, int folds, bool extend,  bool normalizeDims, bool normalizeByScaling, ColorArray^ colors, array<String^>^ classes, unsigned rngParamsSeed, unsigned rngInstSeed, int dims, 
+		int pointsPerClass, double meansep) {
+			return Unfolder(label,folds,extend,normalizeDims, normalizeByScaling, colors, classes,
+				CreateGaussianClouds(rngParamsSeed,rngInstSeed,dims,classes->Length*pointsPerClass, classes->Length, 
 				meansep));
 	}
 
-	LvqDatasetCli^ LvqDatasetCli::ConstructStarDataset(String^label, int folds, bool extend,  bool normalizeDims,bool normalizeByScaling, ColorArray^ colors, unsigned rngParamsSeed, unsigned rngInstSeed, int dims, 
-		int starDims, int numStarTails,	int classCount, int pointsPerClass, double starMeanSep, double starClassRelOffset, bool randomlyRotate, double noiseSigma, double globalNoiseMaxSigma) {
-			return gcnew LvqDatasetCli(label,folds,extend,normalizeDims, normalizeByScaling,colors,
-				CreateStarDataset(rngParamsSeed,rngInstSeed,dims,classCount*pointsPerClass, classCount,
+	LvqDatasetCli^ LvqDatasetCli::ConstructStarDataset(String^label, int folds, bool extend,  bool normalizeDims,bool normalizeByScaling, ColorArray^ colors, array<String^>^ classes, unsigned rngParamsSeed, unsigned rngInstSeed, int dims, 
+		int starDims, int numStarTails,	 int pointsPerClass, double starMeanSep, double starClassRelOffset, bool randomlyRotate, double noiseSigma, double globalNoiseMaxSigma) {
+			return Unfolder(label,folds,extend,normalizeDims, normalizeByScaling, colors, classes,
+				CreateStarDataset(rngParamsSeed,rngInstSeed,dims,classes->Length*pointsPerClass, classes->Length,
 				starDims, numStarTails,starMeanSep,starClassRelOffset,randomlyRotate,noiseSigma,globalNoiseMaxSigma));
 	}
 	using namespace System::Threading::Tasks;
@@ -120,7 +136,7 @@ namespace LvqLibCli {
 			newDatasetsTest[i] = newDatasetComputer[i]->newDatasetTask->Result->Item2;
 		}
 		DataShape shape=GetDataShape(newDatasets[0]->get());
-		return gcnew LvqDatasetCli(RegexConsts::dimcountregex->Replace(label,"$0X"+shape.dimCount,1), colors, newDatasets,newDatasetsTest);
+		return gcnew LvqDatasetCli(RegexConsts::dimcountregex->Replace(label,"$0X"+shape.dimCount,1), colors, classNames, newDatasets, newDatasetsTest);
 	}
 	using namespace System::Threading::Tasks;
 	ref class NnErrComputer {
