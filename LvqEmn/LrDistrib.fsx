@@ -23,7 +23,7 @@ let lrTestingResults =
             yield (dataKey, dataHeur, lrOptResult.unoptimizedSettings,  lrOptResult.GetLrs() |> Seq.toArray)
     ]
 
-let hasNoHeuristics (settings:LvqModelSettingsCli) = settings.WithDefaultLr().WithDefaultSeeds().WithDefaultNnTracking() = LvqModelSettingsCli.defaults
+let hasNoHeuristics (settings:LvqModelSettingsCli) = settings.WithCanonicalizedDefaults() = LvqModelSettingsCli.defaults
 
 
 let plainLrTestingResults =
@@ -39,7 +39,7 @@ let plainCompleteLrTestingResults =
 
 let relevantDatasets = List.map (fun (x, _,_,_) ->x) plainCompleteLrTestingResults |> Set.ofList |> Set.toList |> List.map (fun x-> defaultArg (LvqRunAnalysis.friendlyDatasetName x) x)
 
-let trainingErr (errs:LrOptimizer.ErrorRates) = errs.training
+let trainingErr (errs:ErrorRates) = errs.training
 
 let meanBestLrLookup = 
     plainCompleteLrTestingResults

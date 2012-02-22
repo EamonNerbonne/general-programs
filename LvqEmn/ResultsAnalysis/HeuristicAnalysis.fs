@@ -7,7 +7,7 @@ type HeuristicsSettings = { DataSettings: string; ModelSettings: LvqModelSetting
 
 let normalizeDatatweaks str = new System.String(str |> Seq.sortBy (fun c -> - int32 c) |> Seq.distinct |> Seq.toArray)
 
-let getSettings (modelResults:LvqRunAnalysis.ModelResults) = { DataSettings = normalizeDatatweaks modelResults.DatasetTweaks; ModelSettings = modelResults.ModelSettings.WithDefaultLr().WithDefaultNnTracking().Canonicalize()  }
+let getSettings (modelResults:LvqRunAnalysis.ModelResults) = { DataSettings = normalizeDatatweaks modelResults.DatasetTweaks; ModelSettings = modelResults.ModelSettings.WithCanonicalizedDefaults().WithDefaultNnTracking()  }
 
 type Heuristic = 
     { Name:string; Code:string; Activator: HeuristicsSettings -> (HeuristicsSettings option * HeuristicsSettings ); }

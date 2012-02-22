@@ -59,8 +59,8 @@ seq {
                     if LvqMultiModel.AnnounceModelTrainingGeneration(dataset, settings, iters) then
                         printfn "Starting %s / %s" dataset.DatasetLabel (settings.ToShorthand())
                         let model = new LvqMultiModel(dataset, settings, false)
-                        model.TrainUptoIters(float iters, dataset, CancellationToken.None)
-                        model.SaveStats(dataset, iters)
+                        model.TrainUptoIters(float iters, CancellationToken.None)
+                        model.SaveStats(iters)
                         return true
                     else
                         printfn "Already done %s / %s" dataset.DatasetLabel (settings.ToShorthand())

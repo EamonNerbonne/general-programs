@@ -87,12 +87,19 @@ namespace LvqLibCli {
 		return retval;
 	}
 
-	LvqModelSettingsCli LvqModelSettingsCli::WithDefaultLr(){
-		return WithLr(LvqModelSettingsCli().LR0, LvqModelSettingsCli().LrScaleP, LvqModelSettingsCli().LrScaleB);
+	LvqModelSettingsCli LvqModelSettingsCli::WithCanonicalizedDefaults(){
+		return WithLr(LvqModelSettingsCli().LR0, LvqModelSettingsCli().LrScaleP, LvqModelSettingsCli().LrScaleB)
+			.WithSeeds(LvqModelSettingsCli().ParamsSeed, LvqModelSettingsCli().InstanceSeed)
+			.WithIterScale(LvqModelSettingsCli().iterScaleFactor) 
+			.WithDecay(LvqModelSettingsCli().decay)
+			.Canonicalize();
 	}
-	LvqModelSettingsCli LvqModelSettingsCli::WithDefaultSeeds(){
-		return WithSeeds(LvqModelSettingsCli().ParamsSeed, LvqModelSettingsCli().InstanceSeed);
+	LvqModelSettingsCli LvqModelSettingsCli::WithLrAndDecay(double lr0, double lrP, double lrB, double decay, double iterScaleFactor){
+		return WithLr(lr0, lrP, lrB)
+			.WithIterScale(iterScaleFactor) 
+			.WithDecay(decay);
 	}
+
 	LvqModelSettingsCli LvqModelSettingsCli::WithDefaultNnTracking(){
 		LvqModelSettingsCli retval = *this;
 		retval.NoNnErrorRateTracking = LvqModelSettingsCli().NoNnErrorRateTracking;

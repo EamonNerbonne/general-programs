@@ -49,13 +49,15 @@ namespace LvqLibCli {
 
 		static initonly LvqModelSettingsCli defaults;
 
-		LvqModelSettingsCli WithDefaultSeeds();
 		LvqModelSettingsCli WithSeeds(unsigned rngParams, unsigned rngIter);
 		LvqModelSettingsCli WithChanges(LvqModelType type, int protos);
-		LvqModelSettingsCli WithLr(double lr0, double lrP, double lrB);
 		LvqModelSettingsCli WithIterScale(double newIterScale);
 		LvqModelSettingsCli WithDecay(double newDecay);
-		LvqModelSettingsCli WithDefaultLr();
+		LvqModelSettingsCli WithLr(double lr0, double lrP, double lrB);
+
+		LvqModelSettingsCli WithCanonicalizedDefaults();
+		LvqModelSettingsCli WithLrAndDecay(double lr0, double lrP, double lrB, double decay, double iterScaleFactor);
+
 		LvqModelSettingsCli WithDefaultNnTracking();
 		LvqModelSettingsRaw ToNativeSettings();
 		double EstimateCost(int classes, int dataDims);

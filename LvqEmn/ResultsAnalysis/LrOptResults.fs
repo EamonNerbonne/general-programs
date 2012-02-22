@@ -16,7 +16,7 @@ let groupErrorsByLr (lrs:list<LrAndError>) = lrs |> Utils.groupList (fun lr -> l
 
 let groupErrorsByLrForSetting (results:LrOptimizationResult list) (exampleSettings:LvqModelSettingsCli) =
     results 
-        |> List.filter (fun result -> exampleSettings.WithDefaultLr().WithDefaultSeeds().Canonicalize() = result.unoptimizedSettings.WithDefaultLr().WithDefaultSeeds().Canonicalize())
+        |> List.filter (fun result -> exampleSettings.WithCanonicalizedDefaults() = result.unoptimizedSettings.WithCanonicalizedDefaults())
         |> List.collect (fun lrOptResult ->  lrOptResult.GetLrs() |> Seq.toList) 
         |> groupErrorsByLr
 
