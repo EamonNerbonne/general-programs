@@ -179,7 +179,7 @@ let improveLr (testResultList:TestResults list) (lrUnpack, lrPack) =
     let relLength = List.length relevance
     let linearlyScaledRelevance = List.init relLength (fun i -> float (relLength - i) / float relLength)
 
-    let effRelevance = List.zip relevance linearlyScaledRelevance |> List.map (fun (a,b) -> (a + b)*Math.Sqrt(a+b))
+    let effRelevance = List.zip relevance linearlyScaledRelevance |> List.map (fun (a,b) -> (a + b) * Math.Sqrt (a + b))
     
     //printfn "%A" (bestToWorst |> List.map (fun res->lrUnpack res.Settings) |> List.zip relevance)
     let logLrDistr = List.zip logLrs effRelevance |> List.fold (fun (ss:SmartSum) (lr, rel) -> ss.CombineWith lr rel) (new SmartSum ())
@@ -252,13 +252,13 @@ let improveAndTestWithControllers scaleSearchRange controllersToOptimize filenam
 let improveAndTest = improveAndTestWithControllers 1.0 learningRateControllers
 
 let isTested filename (lvqSettings:LvqModelSettingsCli) = 
-    let canonicalSettings = (lvqSettings.ToShorthand() |> CreateLvqModelValues.ParseShorthand).WithDefaultLr()
+    let canonicalSettings = (lvqSettings.ToShorthand() |> CreateLvqModelValues.ParseShorthand).WithCanonicalizedDefaults()
     let path = LrOptimizer.resultsDir.FullName + "\\" + filename
     File.Exists path &&
         File.ReadAllLines (LrOptimizer.resultsDir.FullName + "\\" + filename)
         |> Array.map (fun line -> (line.Split [|' '|]).[0] |> CreateLvqModelValues.TryParseShorthand)
         |> Seq.filter (fun settingsOrNull -> settingsOrNull.HasValue)
-        |> Seq.map (fun settingsOrNull -> settingsOrNull.Value.WithDefaultSeeds().WithDefaultLr())
+        |> Seq.map (fun settingsOrNull -> settingsOrNull.Value.WithCanonicalizedDefaults())
         |> Seq.exists canonicalSettings.Equals
 
 let cleanupShorthand = CreateLvqModelValues.ParseShorthand >> (fun s->s.ToShorthand())

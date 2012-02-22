@@ -369,11 +369,12 @@ namespace LvqGui {
 				where (settings.PrototypesPerClass == 1) == (resSettings.PrototypesPerClass == 1)
 				select resSettings
 				).ToArray();
-			string myshorthand = settings.WithDefaultNnTracking().WithDefaultSeeds().WithDefaultLr().ToShorthand();
+			string myshorthand = settings.WithCanonicalizedDefaults().ToShorthand();
 
 			if (options.Any()) {
-				var bestResults = options.MinBy(resSettings => EmnExtensions.Algorithms.Levenshtein.LevenshteinDistance(myshorthand, resSettings.WithDefaultLr().ToShorthand()));
-				return settings.WithLr(bestResults.LR0, bestResults.LrScaleP, bestResults.LrScaleB);
+				var bestResults = options.MinBy(resSettings => EmnExtensions.Algorithms.Levenshtein.LevenshteinDistance(myshorthand, resSettings.WithCanonicalizedDefaults().ToShorthand()));
+				return settings.WithLrAndDecay(bestResults.LR0, bestResults.LrScaleP, bestResults.LrScaleB,bestResults.decay,bestResults.iterScaleFactor)
+					;
 			} else {
 				return settings.ModelType == LvqModelType.Gm ? settings.WithLr(0.002, 2.0, 0.0)
 					: settings.ModelType == LvqModelType.Ggm ? settings.WithLr(0.03, 0.05, 4.0)
@@ -388,7 +389,7 @@ namespace LvqGui {
 				where settingsOrNull.HasValue
 				let settings = settingsOrNull.Value
 				let geomean = double.Parse(line.SubstringAfterFirst("GeoMean: ").SubstringUntil(";").SubstringUntil("~"))
-				group Tuple.Create(settings, geomean) by settings.WithDefaultLr().WithDefaultSeeds().WithDefaultNnTracking() into settingsGroup
+				group Tuple.Create(settings, geomean) by settings.WithCanonicalizedDefaults() into settingsGroup
 				select settingsGroup.MinBy(tuple => tuple.Item2)
 				;
 		}

@@ -89,11 +89,11 @@ namespace LvqGui {
 		/// Gets the lr-optimized result for the given dataset and settings with the largest number of iterations, or null if no results have been done for this settings+dataset combination.
 		/// </summary>
 		public static LrOptimizationResult GetBestResult(LvqDatasetCli dataset, LvqModelSettingsCli settings) {
-			var lrIgnoredSettings = settings.WithDefaultLr().WithDefaultSeeds().Canonicalize();
+			var lrIgnoredSettings = settings.WithCanonicalizedDefaults();
 
 			var matchingFiles =
 				from result in FromDataset(dataset, lrIgnoredSettings.ToShorthand())
-				where result.unoptimizedSettings.WithDefaultLr().WithDefaultSeeds().Canonicalize() == lrIgnoredSettings
+				where result.unoptimizedSettings.WithCanonicalizedDefaults() == lrIgnoredSettings
 				orderby result.trainedIterations descending, dataset.DatasetLabel == result.resultsFile.Directory.Name descending
 				select result;
 
