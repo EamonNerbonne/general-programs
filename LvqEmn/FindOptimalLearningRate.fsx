@@ -1,4 +1,4 @@
-﻿#I @"ResultsAnalysis\bin\ReleaseMingw2"
+﻿#I @"ResultsAnalysis\bin\ReleaseMingw"
 #r "ResultsAnalysis"
 #r "LvqLibCli"
 #r "LvqGui"
@@ -32,6 +32,8 @@ let optimizeSettingsList =
     //@"Ggm-1,scP,Ppca,SlowK,lr0.023856933148000251,lrP0.024547811783315155,lrB5.74323779391736,"
     @"Gm-1,scP,lr0.00031107939389401281,lrP14.02245453771569,"
     @"G2m-1,Ppca,scP,lr0.011832180266966016,lrP0.14806611543379794,lrB0.016147051104712921,"
+        //@"G2m-1,scP,lr0.01462705218920733,lrP0.29149194963539737,lrB0.00958803473805164,"
+        "Gpq-1,scP,lr0.023511667560001521,lrP0.18261865403223981,lrB0.030664100544367488,"
     ]
     |> optimizeSettingsList
 
@@ -46,7 +48,6 @@ let researchRes () =
 //        |> List.rev
         |> List.map (fun res->res.Settings)
         |> Seq.filter (isTested tempStore >> not) //seq is lazy, so this last minute rechecks availability of results.
-//        |> Seq.append (allUniformResults newStore |> Seq.map  (fun res->res.Settings))
         |> Seq.map (improveAndTestWithControllers 1.0 learningRateControllers tempStore)
         |> Seq.toList
 

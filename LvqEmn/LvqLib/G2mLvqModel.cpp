@@ -193,7 +193,9 @@ MatchQuality G2mLvqModel::learnFrom(Vector_N const & trainPoint, int trainLabel)
 	if(settings.scP) {
 		//double scale = -log(matches.distBad+matches.matchGood)*4*learningRate;
 		//P *= exp(scale);P *= 1+x;
-		lastAutoPupdate = LVQ_AutoScaleP_Momentum * lastAutoPupdate -log(matches.distBad+matches.distGood);
+		double logScale = log((prototype[matches.matchGood].P_point -P_trainPoint).squaredNorm() + (prototype[matches.matchBad].P_point - P_trainPoint).squaredNorm());
+		//double logScale =  log(matches.distBad+matches.distGood);
+		lastAutoPupdate = LVQ_AutoScaleP_Momentum * lastAutoPupdate - logScale;
 		double thisupdate = lastAutoPupdate*4*learningRate*LVQ_AutoScaleP_Lr;
 
 		P *= exp(thisupdate);
