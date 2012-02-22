@@ -23,13 +23,15 @@ let optimizeSettingsList =
         List.map (CreateLvqModelValues.ParseShorthand >> withDefaultLr) 
         >> Seq.distinctBy (fun s-> s.WithCanonicalizedDefaults())  >> Seq.toList
         //>> List.map (fun s->s.ToShorthand())
-        >> Seq.filter (isTested newStore >> not) 
-        >> Seq.map (improveAndTest newStore)
+        >> Seq.filter (isTested tempStore >> not) 
+        >> Seq.map (improveAndTest tempStore)
         >> Seq.toList
 
 
-//[@"G2m-1,scP,lr0.019456673102934145,lrP0.2311637035171763,lrB0.011238703940835445,"]
-//    |> optimizeSettingsList
+[
+//    @"Ggm-1,scP,Ppca,SlowK,lr0.023856933148000251,lrP0.024547811783315155,lrB5.74323779391736,"
+    ]
+    |> optimizeSettingsList
 
 
 let researchRes () =
@@ -87,9 +89,13 @@ showEffect    defaultStore removeEachIterStuffs
 let bestCurrentSettings () = 
     allUniformResults defaultStore
         |> List.sortBy (fun res->res.GeoMean)
-        |> Seq.distinctBy (fun res-> res.Settings.WithCanonicalizedDefaults()) |> Seq.toList
+        |> Seq.groupBy (fun res-> res.Settings.WithCanonicalizedDefaults())
+        |> Seq.collect snd |>Seq.toList
+        //|> Seq.distinctBy (fun res-> res.Settings.WithCanonicalizedDefaults()) |> Seq.toList
+
         //|> List.filter (fun res->res.Settings.ModelType = LvqModelType.G2m)
         |> List.map printMeanResults
+        |> String.concat "\n"
        // |> List.iter (fun line -> File.AppendAllText (LrOptimizer.resultsDir.FullName + "\\uniform-results-orig.txt",line + "\n"))
 
 let improveKnownCombos () = 
