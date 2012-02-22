@@ -1,4 +1,4 @@
-﻿#I @"ResultsAnalysis\bin\ReleaseMingw2"
+﻿#I @"ResultsAnalysis\bin\ReleaseMingw"
 #r "ResultsAnalysis"
 #r "LvqLibCli"
 #r "LvqGui"
@@ -30,6 +30,8 @@ let optimizeSettingsList =
 
 [
 //    @"Ggm-1,scP,Ppca,SlowK,lr0.023856933148000251,lrP0.024547811783315155,lrB5.74323779391736,"
+        //@"G2m-1,scP,lr0.01462705218920733,lrP0.29149194963539737,lrB0.00958803473805164,"
+        "Gpq-1,scP,lr0.023511667560001521,lrP0.18261865403223981,lrB0.030664100544367488,"
     ]
     |> optimizeSettingsList
 
