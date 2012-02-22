@@ -19,6 +19,18 @@ open OptimalLrSearch
 let defaultStore = "uniform-results.txt"
 let newStore = "uniform-results-new.txt"
 let tempStore = "uniform-results-tmp.txt"
+let optimizeSettingsList = 
+        List.map (CreateLvqModelValues.ParseShorthand >> withDefaultLr) 
+        >> List.filter (isTested defaultStore >>not)
+        >> Seq.distinct >> Seq.toList
+        //>> List.map (fun s->s.ToShorthand())
+        >> Seq.filter (isTested newStore >> not) 
+        >> Seq.map (improveAndTest newStore)
+        >> Seq.toList
+
+
+//[@"G2m-1,scP,lr0.019456673102934145,lrP0.2311637035171763,lrB0.011238703940835445,"]
+//    |> optimizeSettingsList
 
 
 let researchRes () =
@@ -71,14 +83,6 @@ let showEffect filename removeRelevantSetting =
 
 showEffect    defaultStore removeEachIterStuffs
 
-let optimizeSettingsList = 
-        List.map (CreateLvqModelValues.ParseShorthand >> withDefaultLr) 
-        >> List.filter (isTested defaultStore >>not)
-        >> Seq.distinct >> Seq.toList
-        //|> List.map (fun s->s.ToShorthand())
-        >> Seq.filter (isTested newStore >> not) 
-        >> Seq.map (improveAndTest defaultStore)
-        >> Seq.toList
 
 
 let bestCurrentSettings () = 

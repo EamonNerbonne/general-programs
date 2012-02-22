@@ -112,7 +112,7 @@ let logscale steps (v0, v1) =
     //[0.001 -> 0.1]
 
 let lrsChecker rndSeed lr0range settingsFactory iterCount = 
-    [ for lr0 in lr0range ->  Task.Factory.StartNew ((fun () -> lr0 |> settingsFactory |> testSettings 2 rndSeed iterCount), TaskCreationOptions.LongRunning) ]
+    [ for lr0 in lr0range ->  Task.Factory.StartNew ((fun () -> lr0 |> settingsFactory |> testSettings 1 rndSeed iterCount), TaskCreationOptions.LongRunning) ]
     |> Array.ofList
     |> Array.map (fun task -> task.Result)
     |> Array.sortBy (fun res -> res.GeoMean)
@@ -160,7 +160,7 @@ let iterScaleControl =  {
                                 InitLrLogDevScale = 1.
                        }
 let decayControl =  {
-                                Name = "iterScale"
+                                Name = "decay"
                                 Unpacker = fun settings -> settings.decay
                                 Packer = fun settings decay -> settings.WithDecay decay
                                 Applies = fun _ -> true
@@ -191,7 +191,7 @@ let finalTestSettings settings = testSettings 30 1u (1e7 / estimateRelativeCost 
 
 let improvementStep (controller:ControllerState) (initialSettings:LvqModelSettingsCli) degradedCount =
     let currSeed = EmnExtensions.MathHelpers.RndHelper.ThreadLocalRandom.NextUInt32 ()
-    let iterCount = Math.Min(1e7, Math.Pow(1.5, float degradedCount) * 7.71e4) / estimateRelativeCost initialSettings
+    let iterCount = Math.Min(1e7, Math.Pow(1.33, float degradedCount) * 8e4) / estimateRelativeCost initialSettings
     let baseLr = controller.Controller.Unpacker initialSettings
     let lowLr = baseLr * Math.Exp(-Math.Sqrt(3.) * controller.LrLogDevScale)
     let highLr = baseLr * Math.Exp(Math.Sqrt(3.) * controller.LrLogDevScale)
@@ -207,7 +207,7 @@ let improvementStep (controller:ControllerState) (initialSettings:LvqModelSettin
 
     let newDegradedCount = degradedCount + (if finalResults.GeoMean > initResults.GeoMean || effNewLrDevScale <= minimalLrDevScale then 1 else 0 )
     let newControllerState = { Controller = controller.Controller; LrLogDevScale = effNewLrDevScale; }
-    printfn "                                                 %f @ %f   (%d,×%f)" finalResults.GeoMean newBaseLr newDegradedCount (Math.Exp(Math.Sqrt(3.) * effNewLrDevScale))
+    printfn "                                    %f @ %f   (%d,×%f)" finalResults.GeoMean newBaseLr newDegradedCount (Math.Exp(Math.Sqrt(3.) * effNewLrDevScale))
     (newControllerState, (newSettings, newDegradedCount))
 
 let improvementSteps (controllers:ControllerState list) (initialSettings:LvqModelSettingsCli) degradedCount=
@@ -218,7 +218,7 @@ let improvementSteps (controllers:ControllerState list) (initialSettings:LvqMode
     |> apply1st List.rev
 
 let rec fullyImprove (controllers, (initialSettings, degradedCount)) =
-    if degradedCount > 11 then
+    if degradedCount > 16 then
         improvementSteps controllers initialSettings degradedCount |> Utils.apply2nd fst
     else
         improvementSteps controllers initialSettings degradedCount |> fullyImprove
@@ -291,9 +291,11 @@ let allUniformResults filename =
         |> Seq.toList
 
 let withDefaultLr (settings:LvqModelSettingsCli) = 
-    let withlr = 
-        match settings.ModelType with
-            | LvqModelType.Gm -> settings.WithLr(0.002, 2., 0.)
-            | LvqModelType.Ggm -> settings.WithLr(0.03, 0.05, 4.)
-            | _ -> settings.WithLr(0.01, 0.4, 0.006)
-    if withlr.LrRaw then withlr.WithLr(withlr.LR0, withlr.LrScaleP * withlr.LR0, withlr.LrScaleB* withlr.LR0) else withlr
+    if settings.LR0 <> 0. then settings
+    else
+        let withlr = 
+            match settings.ModelType with
+                | LvqModelType.Gm -> settings.WithLr(0.002, 2., 0.)
+                | LvqModelType.Ggm -> settings.WithLr(0.03, 0.05, 4.)
+                | _ -> settings.WithLr(0.01, 0.4, 0.006)
+        if withlr.LrRaw then withlr.WithLr(withlr.LR0, withlr.LrScaleP * withlr.LR0, withlr.LrScaleB* withlr.LR0) else withlr
