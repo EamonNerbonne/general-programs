@@ -23,13 +23,14 @@ let tempStore = "uniform-results-tmp.txt"
 
 let researchRes () =
     allUniformResults defaultStore
-        |> List.rev
-        |> Seq.distinctBy (fun res -> res.Settings.WithDefaultLr()) |> Seq.toList
         |> List.sortBy (fun res->res.GeoMean) 
+        |> Seq.distinctBy (fun res -> res.Settings.WithDefaultLr()) |> Seq.toList
+        |> List.sortBy (fun res -> res.Settings.ActiveRefinementCount ())
+//        |> List.rev
         |> List.map (fun res->res.Settings)
         |> Seq.filter (isTested newStore >> not) //seq is lazy, so this last minute rechecks availability of results.
 //        |> Seq.append (allUniformResults newStore |> Seq.map  (fun res->res.Settings))
-        |> Seq.map (improveAndTest newStore 0.4)
+        |> Seq.map (improveAndTestWithControllers 1.0 decayControllers newStore)
         |> Seq.toList
 
 let recomputeRes filename =
@@ -70,7 +71,7 @@ let optimizeSettingsList =
         >> List.filter (isTested defaultStore >>not)
         >> Seq.distinct >> Seq.toList
         //|> List.map (fun s->s.ToShorthand())
-        >> List.map (improveAndTest defaultStore 1.)
+        >> List.map (improveAndTest defaultStore)
 
 let bestCurrentSettings () = 
     allUniformResults defaultStore
@@ -92,7 +93,7 @@ let improveKnownCombos () =
         |> Seq.map withDefaultLr
         |> Seq.filter (isTested defaultStore >> not) //seq is lazy, so this last minute rechecks availability of results.
         //|> Seq.map (fun s->s.ToShorthand()) 
-        |> Seq.map (improveAndTest defaultStore 1.)
+        |> Seq.map (improveAndTest defaultStore)
         |> Seq.toList
 
 

@@ -39,10 +39,11 @@ namespace LvqLibCli {
 		property double iterScaleFactor { double get() { return _iterScaleFactor.HasValue?_iterScaleFactor.Value: LVQ_ITERFACTOR_PERPROTO; } void set(double val) { _iterScaleFactor = val==LVQ_ITERFACTOR_PERPROTO?Nullable<double>() : Nullable<double>(val); } }
 
 		double LR0, LrScaleP, LrScaleB;
-		bool RandomInitialBorders;
+		bool RandomInitialBorders, NGu, NGi, Ppca, Popt, Bcov,LrRaw, wGMu, NoNnErrorRateTracking;
+		bool SlowK, neiP, scP, noKP, neiB, LocallyNormalize;
 
-		bool NGu, NGi, Ppca, Popt, Bcov,LrRaw, wGMu, NoNnErrorRateTracking;
-		bool SlowK,neiP, scP, noKP, neiB, LocallyNormalize;
+		int ActiveRefinementCount() { return (int)RandomInitialBorders + NGu + NGi + Ppca + Popt + Bcov,LrRaw + wGMu + NoNnErrorRateTracking+ SlowK + neiP + scP + noKP + neiB + LocallyNormalize;}
+
 		unsigned  InstanceSeed;
 		double MuOffset;
 
