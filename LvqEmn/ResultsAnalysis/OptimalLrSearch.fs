@@ -195,7 +195,7 @@ let finalTestSettings settings = testSettings 30 1u (1e7 / estimateRelativeCost 
 
 let improvementStep (controller:ControllerState) (initialSettings:LvqModelSettingsCli) degradedCount =
     let currSeed = EmnExtensions.MathHelpers.RndHelper.ThreadLocalRandom.NextUInt32 ()
-    let iterCount = Math.Min(1e7, Math.Pow(1.21, float degradedCount) * 7.1e4) / estimateRelativeCost initialSettings
+    let iterCount = Math.Min(1e7, Math.Pow(1.36, float degradedCount) * 7.4e4) / estimateRelativeCost initialSettings
     let baseLr = controller.Controller.Unpacker initialSettings
     let lowLr = baseLr * Math.Exp(-Math.Sqrt(3.) * controller.LrLogDevScale)
     let highLr = baseLr * Math.Exp(Math.Sqrt(3.) * controller.LrLogDevScale)
@@ -209,23 +209,18 @@ let improvementStep (controller:ControllerState) (initialSettings:LvqModelSettin
     let newSettings = controller.Controller.Packer initialSettings newBaseLr
     //let finalResults =  testSettings 5 currSeed iterCount newSettings
 
-    let newDegradedCount = degradedCount + 1
     let newControllerState = { Controller = controller.Controller; LrLogDevScale = effNewLrDevScale; }
     printfn "                                                            %f;   (%f ~ %f)" newBaseLr errM errDV
-    (newControllerState, (newSettings, newDegradedCount))
+    (newControllerState, newSettings)
 
-let improvementSteps (controllers:ControllerState list) (initialSettings:LvqModelSettingsCli) degradedCount=
-    List.fold (fun (controllerStates, (settings, currDegradedCount)) nextController ->
-            improvementStep nextController settings currDegradedCount
+let improvementSteps (controllers:ControllerState list, initialSettings:LvqModelSettingsCli) degradedCount=
+    List.fold (fun (controllerStates, settings) nextController ->
+            improvementStep nextController settings degradedCount
                 |> apply1st (fun newControllerState -> newControllerState :: controllerStates)
-        ) ([], (initialSettings, degradedCount)) controllers
+        ) ([], initialSettings) controllers
     |> apply1st List.rev
 
-let rec fullyImprove (controllers, (initialSettings, degradedCount)) =
-    if degradedCount > 25 then
-        improvementSteps controllers initialSettings degradedCount |> Utils.apply2nd fst
-    else
-        improvementSteps controllers initialSettings degradedCount |> fullyImprove
+let fullyImprove state = [0..16] |> List.fold (fun cstate degradedCount -> improvementSteps cstate degradedCount) state
 
 
 let mutable hasBeenLowered = false
@@ -245,7 +240,7 @@ let improveAndTestWithControllers scaleSearchRange controllersToOptimize filenam
     let states = controllersToOptimize 
                                |> List.filter (fun controller->controller.Applies initialSettings) 
                                |> List.map (fun controller -> { Controller = controller; LrLogDevScale = controller.InitLrLogDevScale * scaleSearchRange})
-    let improvedSettings = fullyImprove (states, (initialSettings, 0)) |> snd
+    let improvedSettings = fullyImprove (states, initialSettings) |> snd
     let testedResults = finalTestSettings improvedSettings
     let resultString = printResults testedResults
     Console.WriteLine DateTime.Now

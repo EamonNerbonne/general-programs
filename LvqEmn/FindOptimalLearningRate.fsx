@@ -23,13 +23,15 @@ let optimizeSettingsList =
         List.map (CreateLvqModelValues.ParseShorthand >> withDefaultLr) 
         >> Seq.distinctBy (fun s-> s.WithCanonicalizedDefaults())  >> Seq.toList
         //>> List.map (fun s->s.ToShorthand())
-        >> Seq.filter (isTested tempStore >> not) 
+       // >> Seq.filter (isTested tempStore >> not) 
         >> Seq.map (improveAndTest tempStore)
         >> Seq.toList
 
 
 [
-//    @"Ggm-1,scP,Ppca,SlowK,lr0.023856933148000251,lrP0.024547811783315155,lrB5.74323779391736,"
+    //@"Ggm-1,scP,Ppca,SlowK,lr0.023856933148000251,lrP0.024547811783315155,lrB5.74323779391736,"
+    @"Gm-1,scP,lr0.00031107939389401281,lrP14.02245453771569,"
+    @"G2m-1,Ppca,scP,lr0.011832180266966016,lrP0.14806611543379794,lrB0.016147051104712921,"
     ]
     |> optimizeSettingsList
 
