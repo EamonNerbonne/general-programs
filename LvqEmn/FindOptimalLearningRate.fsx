@@ -21,8 +21,7 @@ let newStore = "uniform-results-new.txt"
 let tempStore = "uniform-results-tmp.txt"
 let optimizeSettingsList = 
         List.map (CreateLvqModelValues.ParseShorthand >> withDefaultLr) 
-        >> List.filter (isTested defaultStore >>not)
-        >> Seq.distinct >> Seq.toList
+        >> Seq.distinctBy (fun s-> s.WithCanonicalizedDefaults())  >> Seq.toList
         //>> List.map (fun s->s.ToShorthand())
         >> Seq.filter (isTested newStore >> not) 
         >> Seq.map (improveAndTest newStore)
