@@ -25,12 +25,14 @@ let researchRes () =
     allUniformResults defaultStore
         |> List.sortBy (fun res->res.GeoMean) 
         |> Seq.distinctBy (fun res -> res.Settings.WithDefaultLr()) |> Seq.toList
+        |> List.filter(fun res-> res.Settings.scP)
+        |> List.sortBy (fun res->res.Settings.ToShorthand())
         |> List.sortBy (fun res -> res.Settings.ActiveRefinementCount ())
 //        |> List.rev
         |> List.map (fun res->res.Settings)
         |> Seq.filter (isTested newStore >> not) //seq is lazy, so this last minute rechecks availability of results.
 //        |> Seq.append (allUniformResults newStore |> Seq.map  (fun res->res.Settings))
-        |> Seq.map (improveAndTestWithControllers 1.0 decayControllers newStore)
+        |> Seq.map (improveAndTestWithControllers 1.0 learningRateControllers newStore)
         |> Seq.toList
 
 let recomputeRes filename =
@@ -44,34 +46,40 @@ let recomputeRes filename =
 
 
 
-let showNeiEffect filename =
+let removeEachIterStuffs settings = 
+                                            let mutable newSettings:LvqModelSettingsCli = settings
+                                            newSettings.neiB <- false
+                                            newSettings.neiP <- false
+                                            newSettings.scP <- false
+                                            newSettings
+
+
+let showEffect filename removeRelevantSetting =
     let allRes = allUniformResults filename |> List.rev |> Seq.distinctBy (fun res -> res.Settings.WithDefaultLr()) |> Seq.toList
-    let withoutSpecial settings = 
-                                                let mutable newSettings:LvqModelSettingsCli = settings
-                                                newSettings.neiB <- false
-                                                newSettings.neiP <- false
-                                                newSettings.scP <- false
-                                                newSettings
-    let withSpecial = 
+    let havingInterestingCompanions = 
         allRes |> List.map (fun res->res.Settings.WithDefaultLr())
-            |> List.filter (fun settings-> withoutSpecial settings <> settings)
-            |> List.map withoutSpecial
+            |> List.filter (fun settings-> removeRelevantSetting settings <> settings)
+            |> List.map removeRelevantSetting
             |> (fun list-> new System.Collections.Generic.HashSet<LvqModelSettingsCli>(list) )
     allRes 
-        |> List.filter (fun res ->  (withoutSpecial res.Settings).WithDefaultLr() |> withSpecial.Contains)
-        |> Seq.groupBy (fun res -> (withoutSpecial res.Settings).WithDefaultLr())
+        |> List.filter (fun res ->  (removeRelevantSetting res.Settings).WithDefaultLr() |> havingInterestingCompanions.Contains)
+        |> Seq.groupBy (fun res -> (removeRelevantSetting res.Settings).WithDefaultLr())
         |> Seq.map (fun (group,members) -> members |> Seq.toList |> List.sortBy (fun res->res.GeoMean))
         |> Seq.toList
         |> List.sortBy (fun (best::_) -> best.GeoMean)
         |> List.map (List.map printMeanResults)
-    
+
+showEffect    defaultStore removeEachIterStuffs
 
 let optimizeSettingsList = 
         List.map (CreateLvqModelValues.ParseShorthand >> withDefaultLr) 
         >> List.filter (isTested defaultStore >>not)
         >> Seq.distinct >> Seq.toList
         //|> List.map (fun s->s.ToShorthand())
-        >> List.map (improveAndTest defaultStore)
+        >> Seq.filter (isTested newStore >> not) 
+        >> Seq.map (improveAndTest defaultStore)
+        >> Seq.toList
+
 
 let bestCurrentSettings () = 
     allUniformResults defaultStore
