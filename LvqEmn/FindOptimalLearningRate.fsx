@@ -42,9 +42,9 @@ let researchRes () =
         |> List.sortBy (fun res -> res.Settings.ActiveRefinementCount ())
 //        |> List.rev
         |> List.map (fun res->res.Settings)
-        |> Seq.filter (isTested newStore >> not) //seq is lazy, so this last minute rechecks availability of results.
+        |> Seq.filter (isTested tempStore >> not) //seq is lazy, so this last minute rechecks availability of results.
 //        |> Seq.append (allUniformResults newStore |> Seq.map  (fun res->res.Settings))
-        |> Seq.map (improveAndTestWithControllers 1.0 learningRateControllers newStore)
+        |> Seq.map (improveAndTestWithControllers 1.0 learningRateControllers tempStore)
         |> Seq.toList
 
 let recomputeRes filename =
