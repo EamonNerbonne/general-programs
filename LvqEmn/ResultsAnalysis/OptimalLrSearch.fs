@@ -136,35 +136,35 @@ let lrBcontrol = {
                             Unpacker = (fun settings-> settings.LrScaleB)
                             Packer = fun (settings:LvqModelSettingsCli) lrB -> settings.WithLr(settings.LR0, settings.LrScaleP, lrB)
                             Applies = fun settings -> [LvqModelType.G2m; LvqModelType.Ggm ; LvqModelType.Gpq] |> List.exists (fun modelType -> settings.ModelType = modelType)
-                            InitLrLogDevScale = 1.
+                            InitLrLogDevScale = 2.
                         }
 let lrPcontrol =  {
                             Name = "LrP"
                             Unpacker = fun settings -> settings.LrScaleP
                             Packer = fun settings lrP -> settings.WithLr(settings.LR0, lrP, settings.LrScaleB)
                             Applies = fun _ -> true
-                            InitLrLogDevScale = 1.
+                            InitLrLogDevScale = 2.
                         } 
 let lr0control =  {
                                 Name = "Lr0"
                                 Unpacker = fun settings -> settings.LR0
                                 Packer = fun settings lr0 -> settings.WithLr(lr0, settings.LrScaleP, settings.LrScaleB)
                                 Applies = fun _ -> true
-                                InitLrLogDevScale = 1.
+                                InitLrLogDevScale = 2.
                        }
 let iterScaleControl =  {
                                 Name = "iterScale"
                                 Unpacker = fun settings -> settings.iterScaleFactor
                                 Packer = fun settings iterScale -> settings.WithIterScale iterScale
                                 Applies = fun _ -> true
-                                InitLrLogDevScale = 1.
+                                InitLrLogDevScale = 2.
                        }
 let decayControl =  {
                                 Name = "decay"
                                 Unpacker = fun settings -> settings.decay
                                 Packer = fun settings decay -> settings.WithDecay decay
                                 Applies = fun _ -> true
-                                InitLrLogDevScale = 1.
+                                InitLrLogDevScale = 2.
                        }
 
 let improveLr (testResultList:TestResults list) (lrUnpack, lrPack) =
