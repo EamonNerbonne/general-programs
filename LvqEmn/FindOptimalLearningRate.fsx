@@ -52,12 +52,12 @@ let researchRes () =
         |> List.sortBy (fun res->res.GeoMean) 
         |> Seq.distinctBy (fun res -> res.Settings.WithCanonicalizedDefaults()) |> Seq.toList
         |> List.filter(fun res->not res.Settings.scP)
-        |> List.sortBy (fun res->res.Settings.ToShorthand())
+        //|> List.sortBy (fun res->res.Settings.ToShorthand())
         |> List.sortBy (fun res -> res.Settings.ActiveRefinementCount ())
 //        |> List.rev
         |> List.map (fun res->res.Settings)
-        |> Seq.filter (isTested tempStore >> not) //seq is lazy, so this last minute rechecks availability of results.
-        |> Seq.map (improveAndTestWithControllers 1.0 learningRateControllers tempStore)
+        |> Seq.filter (isTested newStore >> not) //seq is lazy, so this last minute rechecks availability of results.
+        |> Seq.map (improveAndTestWithControllers 1.0 decayControllers newStore)
         |> Seq.toList
 
 let recomputeRes filename =
