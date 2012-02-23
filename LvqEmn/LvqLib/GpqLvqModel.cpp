@@ -60,7 +60,7 @@ GpqLvqModel::GpqLvqModel(LvqModelSettings & initSettings)
 
 		*/
 		//
-		lastAutoPupdate = -0.5 * meanLogScale;
+		double lastAutoPupdate = -0.5 * meanLogScale;
 		double scale=exp(lastAutoPupdate);
 		P *= scale;
 		for(size_t i=0;i<prototype.size();++i) prototype[i].P_point *= scale; //not necessary if you rescale _every_ iter anyhow.

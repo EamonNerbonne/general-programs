@@ -231,7 +231,8 @@ let lowerPriority () =
         proc.PriorityClass <- System.Diagnostics.ProcessPriorityClass.Idle
 
 let learningRateControllers = [lr0control; lrPcontrol; lrBcontrol]
-let decayControllers = [iterScaleControl; decayControl; lr0control]
+let decayControllers = [lr0control;iterScaleControl; decayControl]
+let allControllers = [lr0control; lrPcontrol; lrBcontrol;iterScaleControl; decayControl]
 
 let improveAndTestWithControllers scaleSearchRange controllersToOptimize filename (initialSettings:LvqModelSettingsCli) =
     lowerPriority ()

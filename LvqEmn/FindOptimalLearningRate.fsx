@@ -23,15 +23,25 @@ let temp2Store = "uniform-results-tmp2.txt"
 let optimizeSettingsList = 
         List.map (CreateLvqModelValues.ParseShorthand >> withDefaultLr) 
         >> Seq.distinctBy (fun s-> s.WithCanonicalizedDefaults())  >> Seq.toList
-        //>> List.rev
-        >> Seq.filter (isTested temp2Store >> not) 
-        >> Seq.map (improveAndTest temp2Store)
+        >> List.rev
+        >> Seq.filter (isTested tempStore >> not) 
+        >> Seq.map (improveAndTestWithControllers 1.0 allControllers tempStore)
         >> Seq.toList
 
 
 [
     //"Ggm-1,scP,Ppca,SlowK,lr0.023856933148000251,lrP0.024547811783315155,lrB5.74323779391736,"
     //"Gm-1,scP,lr0.00031107939389401281,lrP14.02245453771569,"// GeoMean: 0.200119 ~ 0.001250; Training: 0.247116 ~ 0.005440; Test: 0.249612 ~ 0.005917; NN: 0.235402 ~ 0.004090
+    
+//    "Ggm-5,Ppca,scP,NGi,SlowK,lr0.010642145293080753,lrP0.039826223786304772,lrB53.420046186514462, "
+//    "Ggm-1,scP,Ppca,lr0.015907068045327617,lrP0.10751518999560114,lrB2.2281412699827672, "
+//    "Ggm-1,scP,Bcov,lr0.016864906604885335,lrP0.12489875104765052,lrB3.6457807781465017,"
+//    "Ggm-1,scP,lr0.0070894501970626515,lrP0.28634698318942875,lrB13.199124471880509,"
+//    "Ggm-1,scP,Ppca,SlowK,lr0.023856933148000251,lrP0.024547811783315155,lrB5.74323779391736, "
+//    "Ggm-1,scP,Ppca,Bcov,SlowK,lr0.032431021403821612,lrP0.024604412062745919,lrB4.9332431650390651,"
+//    "Ggm-5,scP,Ppca,NGu,NGi,SlowK,lr0.0070305007512141164,lrP0.056754615837412821,lrB68.622497141366978,"
+//    "Ggm-5,scP,Ppca,NGi,lr0.0041363963876378494,lrP0.13282169510056088,lrB53.9131929003227, "
+//    "Ggm-5,Ppca,SlowK,lr0.023002796709016129,lrP0.012961349492535364,lrB9.928512858671569, "
 
     "Gpq-1,Ppca,scP,lr0.012358494489286302,lrP0.11032533067623808,lrB0.02295090037869002,"// GeoMean: 0.136670 ~ 0.000897; Training: 0.171710 ~ 0.006362; Test: 0.176939 ~ 0.006621; NN: 0.166823 ~ 0.003912
     "G2m-1,Ppca,scP,lr0.011832180266966016,lrP0.14806611543379794,lrB0.016147051104712921,"// GeoMean: 0.133304 ~ 0.000994; Training: 0.172748 ~ 0.006247; Test: 0.177301 ~ 0.006536; NN: 0.166293 ~ 0.002987
@@ -49,7 +59,7 @@ let optimizeSettingsList =
     "Gpq-5,scP,NGi,lr0.047494016517064176,lrP0.041604983107655237,lrB0.018100546049847184,"// GeoMean: 0.113179 ~ 0.000829; Training: 0.114339 ~ 0.003825; Test: 0.125227 ~ 0.004332; NN: 0.162770 ~ 0.004756
     "G2m-5,scP,NGi,lr0.010538507687204799,lrP0.38796279359979308,lrB0.12897475832613819,"// GeoMean: 0.109049 ~ 0.000885; Training: 0.106623 ~ 0.002312; Test: 0.117771 ~ 0.002924; NN: 0.156530 ~ 0.003461
 
-    "G2m-5,scP,lr0.027493759451317022,lrP0.14237999639527971,lrB0.017299899679362487,"// GeoMean: 0.107888 ~ 0.000854; Training: 0.111457 ~ 0.002939; Test: 0.118621 ~ 0.003476; NN: 0.153824 ~ 0.003695
+    
     ]
     |> optimizeSettingsList
 
