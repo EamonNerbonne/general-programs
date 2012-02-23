@@ -19,12 +19,13 @@ open OptimalLrSearch
 let defaultStore = "uniform-results.txt"
 let newStore = "uniform-results-new.txt"
 let tempStore = "uniform-results-tmp.txt"
+let temp2Store = "uniform-results-tmp2.txt"
 let optimizeSettingsList = 
         List.map (CreateLvqModelValues.ParseShorthand >> withDefaultLr) 
         >> Seq.distinctBy (fun s-> s.WithCanonicalizedDefaults())  >> Seq.toList
-        //>> List.map (fun s->s.ToShorthand())
-       // >> Seq.filter (isTested tempStore >> not) 
-        >> Seq.map (improveAndTest tempStore)
+        //>> List.rev
+        >> Seq.filter (isTested temp2Store >> not) 
+        >> Seq.map (improveAndTest temp2Store)
         >> Seq.toList
 
 
