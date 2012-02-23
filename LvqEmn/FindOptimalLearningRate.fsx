@@ -23,15 +23,15 @@ let temp2Store = "uniform-results-tmp2.txt"
 let optimizeSettingsList = 
         List.map (CreateLvqModelValues.ParseShorthand >> withDefaultLr) 
         >> Seq.distinctBy (fun s-> s.WithCanonicalizedDefaults())  >> Seq.toList
-        >> List.rev
+        //>> List.rev
         >> Seq.filter (isTested tempStore >> not) 
-        >> Seq.map (improveAndTestWithControllers 1.0 allControllers tempStore)
+        >> Seq.map (improveAndTestWithControllers 1.0 learningRateControllers tempStore)
         >> Seq.toList
 
 
 [
-    //"Ggm-1,scP,Ppca,SlowK,lr0.023856933148000251,lrP0.024547811783315155,lrB5.74323779391736,"
-    //"Gm-1,scP,lr0.00031107939389401281,lrP14.02245453771569,"// GeoMean: 0.200119 ~ 0.001250; Training: 0.247116 ~ 0.005440; Test: 0.249612 ~ 0.005917; NN: 0.235402 ~ 0.004090
+    "Ggm-1,scP,Ppca,SlowK,lr0.023856933148000251,lrP0.024547811783315155,lrB5.74323779391736,"
+    "Gm-1,scP,lr0.00031107939389401281,lrP14.02245453771569,"// GeoMean: 0.200119 ~ 0.001250; Training: 0.247116 ~ 0.005440; Test: 0.249612 ~ 0.005917; NN: 0.235402 ~ 0.004090
     
 //    "Ggm-5,Ppca,scP,NGi,SlowK,lr0.010642145293080753,lrP0.039826223786304772,lrB53.420046186514462, "
 //    "Ggm-1,scP,Ppca,lr0.015907068045327617,lrP0.10751518999560114,lrB2.2281412699827672, "
