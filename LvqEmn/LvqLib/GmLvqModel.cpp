@@ -55,7 +55,7 @@ GmLvqModel::GmLvqModel(LvqModelSettings & initSettings)
 
 		*/
 		//
-		lastAutoPupdate = -0.5 * meanLogScale;
+		double lastAutoPupdate = -0.5 * meanLogScale;
 		P *= exp(lastAutoPupdate);
 		for(int i=0;i<pLabel.size();++i)
 			RecomputeProjection(i);
