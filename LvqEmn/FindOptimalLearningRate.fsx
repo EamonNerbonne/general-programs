@@ -45,7 +45,7 @@ let researchRes () =
     allUniformResults defaultStore
         |> List.sortBy (fun res->res.GeoMean) 
         |> Seq.distinctBy (fun res -> res.Settings.WithCanonicalizedDefaults()) |> Seq.toList
-        |> List.filter(fun res-> res.Settings.scP)
+        |> List.filter(fun res->not res.Settings.scP)
         |> List.sortBy (fun res->res.Settings.ToShorthand())
         |> List.sortBy (fun res -> res.Settings.ActiveRefinementCount ())
 //        |> List.rev
