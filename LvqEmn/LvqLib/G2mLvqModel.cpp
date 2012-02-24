@@ -266,10 +266,12 @@ vector<int> G2mLvqModel::GetPrototypeLabels() const {
 void G2mLvqModel::AppendTrainingStatNames(std::vector<std::wstring> & retval) const {
 	LvqProjectionModel::AppendTrainingStatNames(retval);
 	std::for_each(prototype.begin(),prototype.end(), [&](G2mLvqPrototype const & proto) {
-		retval.push_back(L"!log-norm!Border Matrix: log(||B||^2)");
+		wstring name =wstring( L"#log-norm ") + to_wstring(proto.classLabel);
+		retval.push_back(name+ L"!log-norm!B-norm: log(||B||^2)");
 	});
 	std::for_each(prototype.begin(),prototype.end(), [&](G2mLvqPrototype const & proto) {
-		retval.push_back(L"!log-determinant!Border Matrix: log(abs(|B|))");
+		wstring name = wstring(L"#log-det ") + to_wstring(proto.classLabel);
+		retval.push_back(name + L"!log-determinant!Border Matrix: log(abs(|B|))");
 	});
 	/*retval.push_back(L"Maximum norm(B)!norm!Border Matrix norm");
 	retval.push_back(L"Mean norm(B)!norm!Border Matrix norm");
@@ -280,6 +282,7 @@ void G2mLvqModel::AppendTrainingStatNames(std::vector<std::wstring> & retval) co
 	retval.push_back(L"Cumulative \u03BC-J-scaled Learning Rate!!Cumulative \u03BC-scaled Learning Rates");
 	retval.push_back(L"Cumulative \u03BC-K-scaled Learning Rate!!Cumulative \u03BC-scaled Learning Rates");
 }
+
 void G2mLvqModel::AppendOtherStats(std::vector<double> & stats, LvqDataset const * trainingSet, LvqDataset const * testSet) const {
 	LvqProjectionModel::AppendOtherStats(stats,trainingSet,testSet);
 
