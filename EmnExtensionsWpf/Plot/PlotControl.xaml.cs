@@ -106,17 +106,23 @@ namespace EmnExtensions.Wpf {
 			InvalidateVisual();
 
 			labelarea.Children.Clear();
+			bool any = false;
+			TextBlock label = new TextBlock();
+			label.TextWrapping = TextWrapping.Wrap;
 			foreach (var graph in Graphs) {
 				if (graph.MetaData.DataLabel == null) continue;
-				TextBlock label = new TextBlock();
+				if (any)
+					label.Inlines.Add(";  ");
+				any = true;
 				label.Inlines.Add(new Image {
 					Source = new DrawingImage(graph.SampleDrawing).AsFrozen(),
 					Stretch = Stretch.None,
 					Margin = new Thickness(2, 0, 2, 0)
 				});
 				label.Inlines.Add(graph.MetaData.DataLabel);
-				labelarea.Children.Add(label);
 			}
+			if (any) 
+				labelarea.Children.Add(label);
 		}
 
 
