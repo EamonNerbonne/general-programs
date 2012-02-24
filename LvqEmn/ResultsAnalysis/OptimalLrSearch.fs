@@ -117,7 +117,7 @@ let lrsChecker rndSeed lr0range settingsFactory iterCount =
     |> Array.map (fun task -> task.Result)
     |> Array.sortBy (fun res -> res.GeoMean)
 
-type ControllerDef = { Name: string; Unpacker: LvqModelSettingsCli -> float; Packer: LvqModelSettingsCli -> float -> LvqModelSettingsCli; InitLrLogDevScale: float; Applies: LvqModelSettingsCli->bool }
+type ControllerDef = { Name: string; Unpacker: LvqModelSettingsCli -> float; Packer: LvqModelSettingsCli -> float -> LvqModelSettingsCli; InitLrLogDevScale: float; Applies: LvqModelSettingsCli->bool; StartAt: int32 }
 type ControllerState = { Controller: ControllerDef;  LrLogDevScale: float }
 
 (*let muControl = { 
@@ -137,6 +137,7 @@ let lrBcontrol = {
                             Packer = fun (settings:LvqModelSettingsCli) lrB -> settings.WithLr(settings.LR0, settings.LrScaleP, lrB)
                             Applies = fun settings -> [LvqModelType.G2m; LvqModelType.Ggm ; LvqModelType.Gpq] |> List.exists (fun modelType -> settings.ModelType = modelType)
                             InitLrLogDevScale = 2.
+                            StartAt = 0
                         }
 let lrPcontrol =  {
                             Name = "LrP"
@@ -144,6 +145,7 @@ let lrPcontrol =  {
                             Packer = fun settings lrP -> settings.WithLr(settings.LR0, lrP, settings.LrScaleB)
                             Applies = fun _ -> true
                             InitLrLogDevScale = 2.
+                            StartAt = 0
                         } 
 let lr0control =  {
                                 Name = "Lr0"
@@ -151,6 +153,7 @@ let lr0control =  {
                                 Packer = fun settings lr0 -> settings.WithLr(lr0, settings.LrScaleP, settings.LrScaleB)
                                 Applies = fun _ -> true
                                 InitLrLogDevScale = 2.
+                                StartAt = 0
                        }
 let iterScaleControl =  {
                                 Name = "iterScale"
@@ -158,6 +161,7 @@ let iterScaleControl =  {
                                 Packer = fun settings iterScale -> settings.WithIterScale iterScale
                                 Applies = fun _ -> true
                                 InitLrLogDevScale = 2.
+                                StartAt = 12
                        }
 let decayControl =  {
                                 Name = "decay"
@@ -165,7 +169,12 @@ let decayControl =  {
                                 Packer = fun settings decay -> settings.WithDecay decay
                                 Applies = fun _ -> true
                                 InitLrLogDevScale = 2.
+                                StartAt = 12
                        }
+
+let learningRateControllers = [lr0control; lrPcontrol; lrBcontrol]
+let decayControllers = [iterScaleControl; decayControl; lr0control]
+let allControllers = [lr0control; lrPcontrol; lrBcontrol;iterScaleControl; decayControl]
 
 let improveLr (testResultList:TestResults list) (lrUnpack, lrPack) =
     let errMargin = 0.0000001
@@ -179,7 +188,7 @@ let improveLr (testResultList:TestResults list) (lrUnpack, lrPack) =
     let relLength = List.length relevance
     let linearlyScaledRelevance = List.init relLength (fun i -> float (relLength - i) / float relLength)
 
-    let effRelevance = List.zip relevance linearlyScaledRelevance |> List.map (fun (a,b) -> (a + b) * Math.Sqrt (a + b))
+    let effRelevance = List.zip relevance linearlyScaledRelevance |> List.map (fun (a,b) -> (a + b) * (a + b))
     
     //printfn "%A" (bestToWorst |> List.map (fun res->lrUnpack res.Settings) |> List.zip relevance)
     let logLrDistr = List.zip logLrs effRelevance |> List.fold (fun (ss:SmartSum) (lr, rel) -> ss.CombineWith lr rel) (new SmartSum ())
@@ -200,7 +209,6 @@ let improvementStep (controller:ControllerState) (initialSettings:LvqModelSettin
     let lowLr = baseLr * Math.Exp(-Math.Sqrt(3.) * controller.LrLogDevScale)
     let highLr = baseLr * Math.Exp(Math.Sqrt(3.) * controller.LrLogDevScale)
     //let initResults = testSettings 5 currSeed iterCount initialSettings
-    printfn "  %d: %s [×%f: %f..%f]@%d:   %f ->" degradedCount controller.Controller.Name (Math.Exp(Math.Sqrt(3.) * controller.LrLogDevScale)) lowLr highLr (int iterCount) baseLr
     let results = lrsChecker (currSeed + 2u) (logscale 15 (lowLr,highLr)) (controller.Controller.Packer initialSettings) iterCount
     let ((newBaseLr, newLrLogDevScale), (errM,errDV)) = improveLr (List.ofArray results) (controller.Controller.Unpacker, controller.Controller.Packer)
     let logLrDiff_LrDevScale = 2. * Math.Abs(Math.Log(baseLr / newBaseLr))
@@ -210,17 +218,25 @@ let improvementStep (controller:ControllerState) (initialSettings:LvqModelSettin
     //let finalResults =  testSettings 5 currSeed iterCount newSettings
 
     let newControllerState = { Controller = controller.Controller; LrLogDevScale = effNewLrDevScale; }
-    printfn "                                                            %f;   (%f ~ %f)" newBaseLr errM errDV
+    printfn "  %d: %s [×%f: %f..%f]@%d:   %f -> %f;   (%f ~ %f) %s"  degradedCount controller.Controller.Name (Math.Exp(Math.Sqrt(3.) * controller.LrLogDevScale)) lowLr highLr (int iterCount) baseLr newBaseLr errM errDV (newSettings.WithCanonicalizedDefaults().ToShorthand())
     (newControllerState, newSettings)
 
 let improvementSteps (controllers:ControllerState list, initialSettings:LvqModelSettingsCli) degradedCount=
     List.fold (fun (controllerStates, settings) nextController ->
-            improvementStep nextController settings degradedCount
-                |> apply1st (fun newControllerState -> newControllerState :: controllerStates)
+            let newState = 
+                if degradedCount < nextController.Controller.StartAt then
+                    (nextController, settings)
+                else
+                    improvementStep nextController settings degradedCount
+            newState |> apply1st (fun newControllerState -> newControllerState :: controllerStates)
         ) ([], initialSettings) controllers
     |> apply1st List.rev
 
-let fullyImprove state = [0..16] |> List.fold (fun cstate degradedCount -> improvementSteps cstate degradedCount) state
+let rec fullyImprove degradedCount state  =
+    if degradedCount > 16 then
+        state
+    else
+        improvementSteps state degradedCount |> fullyImprove (degradedCount + 1)
 
 
 let mutable hasBeenLowered = false
@@ -230,18 +246,15 @@ let lowerPriority () =
         use proc = System.Diagnostics.Process.GetCurrentProcess ()
         proc.PriorityClass <- System.Diagnostics.ProcessPriorityClass.Idle
 
-let learningRateControllers = [lr0control; lrPcontrol; lrBcontrol]
-let decayControllers = [lr0control;iterScaleControl; decayControl]
-let allControllers = [lr0control; lrPcontrol; lrBcontrol;iterScaleControl; decayControl]
 
-let improveAndTestWithControllers scaleSearchRange controllersToOptimize filename (initialSettings:LvqModelSettingsCli) =
+let improveAndTestWithControllers offset scaleSearchRange controllersToOptimize filename (initialSettings:LvqModelSettingsCli) =
     lowerPriority ()
     printfn "Optimizing %s" (initialSettings.ToShorthand ())
     let needsB = [LvqModelType.G2m; LvqModelType.Ggm ; LvqModelType.Gpq] |> List.exists (fun modelType -> initialSettings.ModelType = modelType)
     let states = controllersToOptimize 
                                |> List.filter (fun controller->controller.Applies initialSettings) 
                                |> List.map (fun controller -> { Controller = controller; LrLogDevScale = controller.InitLrLogDevScale * scaleSearchRange})
-    let improvedSettings = fullyImprove (states, initialSettings) |> snd
+    let improvedSettings = fullyImprove offset (states, initialSettings) |> snd
     let testedResults = finalTestSettings improvedSettings
     let resultString = printResults testedResults
     Console.WriteLine DateTime.Now
@@ -249,7 +262,7 @@ let improveAndTestWithControllers scaleSearchRange controllersToOptimize filenam
     File.AppendAllText (LrOptimizer.resultsDir.FullName + "\\" + filename, resultString + "\n")
     testedResults
 
-let improveAndTest = improveAndTestWithControllers 1.0 learningRateControllers
+let improveAndTest = improveAndTestWithControllers 0 1.0 learningRateControllers
 
 let isTested filename (lvqSettings:LvqModelSettingsCli) = 
     let canonicalSettings = (lvqSettings.ToShorthand() |> CreateLvqModelValues.ParseShorthand).WithCanonicalizedDefaults()

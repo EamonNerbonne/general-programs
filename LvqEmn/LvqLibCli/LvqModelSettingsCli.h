@@ -42,7 +42,8 @@ namespace LvqLibCli {
 		bool RandomInitialBorders, NGu, NGi, Ppca, Popt, Bcov,LrRaw, wGMu, NoNnErrorRateTracking;
 		bool SlowK, neiP, scP, noKP, neiB, LocallyNormalize;
 
-		int ActiveRefinementCount() { return (int)RandomInitialBorders  + (int)NGu  + (int)NGi  + (int)Ppca  + (int)Popt  + (int)Bcov + (int)LrRaw  + (int)wGMu  + (int)NoNnErrorRateTracking + (int)SlowK  + (int)neiP  + (int)scP  + (int)noKP  + (int)neiB  + (int)LocallyNormalize;}
+		int ActiveRefinementCount();
+		int LikelyRefinementRanking();
 
 		unsigned  InstanceSeed;
 		double MuOffset;

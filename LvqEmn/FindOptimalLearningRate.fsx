@@ -11,6 +11,7 @@
 
 open LvqGui
 open System.IO
+open System.Linq
 open LvqLibCli
 open System
 open Utils
@@ -25,7 +26,7 @@ let optimizeSettingsList =
         >> Seq.distinctBy (fun s-> s.WithCanonicalizedDefaults())  >> Seq.toList
         //>> List.rev
         >> Seq.filter (isTested tempStore >> not) 
-        >> Seq.map (improveAndTestWithControllers 1.0 learningRateControllers tempStore)
+        >> Seq.map (improveAndTestWithControllers 0 1.0 learningRateControllers tempStore)
         >> Seq.toList
 
 
@@ -68,13 +69,14 @@ let researchRes () =
     allUniformResults defaultStore
         |> List.sortBy (fun res->res.GeoMean) 
         |> Seq.distinctBy (fun res -> res.Settings.WithCanonicalizedDefaults()) |> Seq.toList
-        |> List.filter(fun res->not res.Settings.scP)
+        |> List.filter(fun res->not res.Settings.scP && res.Settings.ModelType <> LvqModelType.Lgm)
         //|> List.sortBy (fun res->res.Settings.ToShorthand())
-        |> List.sortBy (fun res -> res.Settings.ActiveRefinementCount ())
-//        |> List.rev
+        |> List.sortBy (fun res -> res.Settings.LikelyRefinementRanking ())
+        //|> List.rev
         |> List.map (fun res->res.Settings)
-        |> Seq.filter (isTested newStore >> not) //seq is lazy, so this last minute rechecks availability of results.
-        |> Seq.map (improveAndTestWithControllers 1.0 decayControllers newStore)
+        //|> (fun ss -> ss.AsParallel().WithDegreeOfParallelism(2))
+        |> Seq.filter (isTested newStore)// >> not) //seq is lazy, so this last minute rechecks availability of results.
+        |> Seq.map (improveAndTestWithControllers 11 0.7 decayControllers newStore)
         |> Seq.toList
 
 let recomputeRes filename =
