@@ -77,7 +77,7 @@ namespace LvqGui {
 				var newModelGroup = e.NewItems.Cast<LvqMultiModel>().First();
 				TrainingControlValues.SelectedDataset = newModelGroup.InitSet;
 				TrainingControlValues.SelectedLvqModel = newModelGroup;
-				win.trainingTab.IsSelected = true;
+				//win.trainingTab.IsSelected = true;
 			}
 			if (e.OldItems != null && e.OldItems.Contains(TrainingControlValues.SelectedLvqModel)) {
 				var newModel = LvqModels.LastOrDefault();

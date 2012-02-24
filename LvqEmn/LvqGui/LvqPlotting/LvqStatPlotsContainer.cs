@@ -118,6 +118,7 @@ namespace LvqGui {
 
 
 		void RelayoutSubPlotWindow(bool resetChildrenFirst = false) {
+
 			Grid plotGrid = (Grid)subPlotWindow.Content;
 			if (subplots == null) {
 				plotGrid.Children.Clear();
@@ -131,13 +132,15 @@ namespace LvqGui {
 				if (subplots.scatterPlotControl != null)
 					plotGrid.Children.Add(subplots.scatterPlotControl);
 				foreach (var plot in subplots.plots) plotGrid.Children.Add(plot);
+				BuildContextMenu(plotGrid.Children.Cast<PlotControl>());
 				foreach (PlotControl plot in plotGrid.Children) {
 					plot.Margin = new Thickness(2.0);
 					plot.Background = Brushes.White;
 				}
 			}
 
-			int plotCount = plotGrid.Children.Count;
+			PlotControl[] visibleChildren = plotGrid.Children.Cast<PlotControl>().Where(plot => plot.Visibility == Visibility.Visible).ToArray();
+			int plotCount = visibleChildren.Length;
 
 			var layout = (
 					from CellsWide in Enumerable.Range((int)Math.Sqrt(plotCount * ratio), 2)
@@ -155,10 +158,26 @@ namespace LvqGui {
 			if (plotGrid.RowDefinitions.Count > layout.CellsHigh) plotGrid.RowDefinitions.RemoveRange(layout.CellsHigh, plotGrid.RowDefinitions.Count - layout.CellsHigh);
 
 
-			for (int i = 0; i < plotGrid.Children.Count; ++i) {
-				Grid.SetRow(plotGrid.Children[i], i / layout.CellsWide);
-				Grid.SetColumn(plotGrid.Children[i], i % layout.CellsWide);
+			for (int i = 0; i < visibleChildren.Length; ++i) {
+				Grid.SetRow(visibleChildren[i], i / layout.CellsWide);
+				Grid.SetColumn(visibleChildren[i], i % layout.CellsWide);
 			}
+		}
+
+		void BuildContextMenu( IEnumerable<PlotControl> plots) {
+			var items = plots.Select(plot => new MenuItem { Header = plot.Title, IsCheckable = true, IsChecked = plot.Visibility == Visibility.Visible, Tag = plot }).ToArray();
+			foreach (var menuitem in items) {
+				menuitem.Checked += menuitem_Checked;
+				menuitem.Unchecked += menuitem_Checked;
+			}
+			subPlotWindow.ContextMenu = new ContextMenu { ItemsSource = items };
+		}
+
+		void menuitem_Checked(object sender, RoutedEventArgs e) {
+			MenuItem item = (MenuItem)sender;
+			PlotControl plot = (PlotControl)item.Tag;
+			plot.Visibility = item.IsChecked ? Visibility.Visible : Visibility.Collapsed;
+			RelayoutSubPlotWindow();
 		}
 		Window subPlotWindow;
 		CancellationToken exitToken;
