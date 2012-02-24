@@ -63,7 +63,7 @@ GgmLvqModel::GgmLvqModel(LvqModelSettings & initSettings)
 
 		*/
 		//
-		double lastAutoPupdate = -0.5 * meanLogScale;
+		lastAutoPupdate = -0.5 * meanLogScale;
 		P *= exp(lastAutoPupdate);
 		for(size_t i=0;i<prototype.size();++i)
 			prototype[i].ComputePP(P);

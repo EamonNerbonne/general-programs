@@ -135,4 +135,17 @@ namespace LvqLibCli {
 
 		return ((classes*PrototypesPerClass + currfactors[0])*(dataDims + currfactors[1])*currfactors[2] + currfactors[3])*0.001;
 	}
+
+	 int LvqModelSettingsCli::ActiveRefinementCount() { return (int)RandomInitialBorders  + (int)NGu  + (int)NGi  + (int)Ppca  + (int)Popt  + (int)Bcov + (int)LrRaw  + (int)wGMu  + (int)NoNnErrorRateTracking + (int)SlowK  + (int)neiP  + (int)scP  + (int)noKP  + (int)neiB  + (int)LocallyNormalize;}
+	 int LvqModelSettingsCli::LikelyRefinementRanking() { 
+		 LvqModelSettingsCli copy = *this;
+		 copy.Ppca = !copy.Ppca;
+		 if(ModelType == LvqModelType::Ggm)
+			 copy.SlowK = !copy.SlowK;
+		 if(PrototypesPerClass >1)
+			 copy.NGi = !copy.NGi;
+		 //maybe: GM: noKP, GM SlowK?
+		 return copy.ActiveRefinementCount();
+
+	 }
 }
