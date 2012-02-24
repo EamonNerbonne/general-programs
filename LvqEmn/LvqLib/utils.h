@@ -12,6 +12,7 @@
 #include <boost/function.hpp>
 #include <boost/bind/bind.hpp>
 #include <math.h>
+#include <sstream>
 
 #include "LvqTypedefs.h"
 
@@ -33,6 +34,7 @@ template <typename T> T & as_lvalue(T && temporary_value) {return temporary_valu
 
 template <typename T> T sqr(T val) {return val*val;}
 
+template <typename T> std::wstring to_wstring (const T& obj) { std::wstringstream sink; sink << obj; return sink.str(); }
 
 template <typename T> LvqFloat normalizeProjection(T & projectionMatrix) {
 	LvqFloat scale = LvqFloat(LvqFloat(1.0)/projectionMatrix.norm());
