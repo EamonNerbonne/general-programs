@@ -42,7 +42,7 @@ namespace EmnExtensions.Wpf.VizEngines {
 		protected override void UpdateBitmap(int pW, int pH, Matrix dataToBitmap, double viewAreaSize) {
 			Trace.WriteLine("UpdateBitmap");
 
-			if (dataToBitmap.IsIdentity || m_ClassColors == null || Data== null || Data.Length==0) return;//this is the default mapping; it may occur when generating a scatter plot without data - don't bother plotting.
+			if (dataToBitmap.IsIdentity || m_ClassColors == null || Data == null || Data.Length == 0) return;//this is the default mapping; it may occur when generating a scatter plot without data - don't bother plotting.
 
 			double thickness = MetaData.RenderThickness ?? VizPixelScatterHelpers.PointCountToThickness(OverridePointCountEstimate ?? (Data == null ? 0 : Data.Length));
 			//Console.WriteLine(thickness + " * " + Math.Sqrt(viewAreaSize / 90000.0));
@@ -252,12 +252,21 @@ namespace EmnExtensions.Wpf.VizEngines {
 		}
 
 		void CopyImageRegionToWriteableBitmap(int pW, int pH) {
-			m_bmp.WritePixels(
-				sourceRect: new Int32Rect(0, 0, pW, pH),
-				sourceBuffer: m_image,
-				sourceBufferStride: pW * sizeof(uint),
-				destinationX: 0,
-				destinationY: 0);
+			try {
+				m_bmp.WritePixels(
+					sourceRect: new Int32Rect(0, 0, pW, pH),
+					sourceBuffer: m_image,
+					sourceBufferStride: pW * sizeof(uint),
+					destinationX: 0,
+					destinationY: 0);
+			} catch (ArgumentOutOfRangeException ae) {
+				Console.WriteLine(ae);
+				Console.WriteLine("pW: " + pW);
+				Console.WriteLine("pH: " + pH);
+				Console.WriteLine("m_bmp.PixelWidth: " + m_bmp.PixelWidth);
+				Console.WriteLine("m_bmp.PixelHeight: " + m_bmp.PixelHeight);
+				Console.WriteLine("m_image.Length: " + m_image.Length+"\n\n");
+			}
 		}
 
 		static uint[] PregenerateAlphaLookup(double alpha, uint[] image, int numPixels) {
@@ -265,7 +274,7 @@ namespace EmnExtensions.Wpf.VizEngines {
 			double transparencyPerOverlap = (1.0 - alpha);
 			uint[] alphaLookup = new uint[maximalOverlapCount + 1];
 			for (int overlap = 0; overlap < alphaLookup.Length; overlap++) {
-				double overlappingAlpha = (1.0 - Math.Pow(transparencyPerOverlap, overlap/2.0));
+				double overlappingAlpha = (1.0 - Math.Pow(transparencyPerOverlap, overlap / 2.0));
 				alphaLookup[overlap] = (uint)(overlappingAlpha * 255.5) << 24;
 			}
 			return alphaLookup;
@@ -283,7 +292,7 @@ namespace EmnExtensions.Wpf.VizEngines {
 		protected override void OnDataChanged(LabelledPoint[] oldData) {
 			InvalidateDataBounds();
 
-			m_OuterDataBounds = VizPixelScatterHelpers.ComputeOuterBounds(Data.Select(lp=>lp.point).ToArray());
+			m_OuterDataBounds = VizPixelScatterHelpers.ComputeOuterBounds(Data.Select(lp => lp.point).ToArray());
 			TriggerChange(GraphChange.Projection); //because we need to relayout the points in the plot
 		}
 

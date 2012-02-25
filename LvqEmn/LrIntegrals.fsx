@@ -1,5 +1,6 @@
 ﻿#I @"ResultsAnalysis\bin\ReleaseMingw"
 #r "EmnExtensionsWpf"
+#r "EmnExtensions"
 #r "PresentationCore"
 #r "WindowsBase"
 #r "PresentationFramework"
@@ -39,20 +40,25 @@ let makeWindow initializer =
             window.Show ()
             ), [| |])
 
+
+let toPoint (x,y) = new Windows.Point (x, y)
+let toPoints x =  x |> Seq.map toPoint |> Seq.toArray
+
 let makePlots pointArrs =
     makeWindow (fun window ->
         let plot = new PlotControl ()
         plot.ShowGridLines <- true
-        for pointsArr in pointArrs do
-            let engine = Plot.CreateLine ()
+        for (name, pointsArr) in pointArrs do
+            let engine = Plot.CreateLine ( new PlotMetaData ( DataLabel = name ) )
             engine.ChangeData pointsArr
             plot.Graphs.Add engine
+        plot.AutoPickColors(EmnExtensions.MathHelpers.RndHelper.ThreadLocalRandom)
         window.Content <- plot
         )
     
 
 let makePlot points = 
-    let pointsArr = points |> Seq.map (fun (x,y) -> new Windows.Point (x, y)) |> Seq.toArray
+    let pointsArr = toPoints points
     makeWindow (fun window ->
         let plot = new PlotControl ()
         plot.ShowGridLines <- true
@@ -66,23 +72,28 @@ let norm =
     let decay = 1.0
     Math.Sqrt ((decay*2.0 + 3.5) / (decay*2.0 + 0.3)) * Math.Sqrt( Math.Sqrt ((decay*2.0 + 2.5) / (decay*2.0 + 0.15)))
 
-Seq.init 300 (fun i -> 
-        let rescale decay = (3./4.) * (decay*2. + 2.) / (decay*2. + 1.) // * Math.Sqrt ((pwr + 3.5) / (pwr + 0.3)) * Math.Sqrt( Math.Sqrt ((pwr + 2.5) / (pwr + 0.15)))
+[0.0; 0.1; 0.5; 1.0; 2.0; 10.0; 1000.0;]
+    |> List.map (fun decay ->
+            let graph =
+                Seq.init 1000 (fun i -> 
+                        let rescale decay = (3./4.) * (decay*2. + 2.) / (decay*2. + 1.) //( Math.Sqrt ((decay*2.  + 3.5) / (decay*2.  + 0.3)) * Math.Sqrt( Math.Sqrt ((decay*2.  + 2.5) / (decay*2.  + 0.15))))
 
-        let protos = 2
-        let classes = 10
-        let decay = 1.
-        let scale = 0.0001
+                        let protos = 2
+                        let classes = 10
+                        //let decay = 0.1
+                        let scale = 0.0001
 
-        let iter = 10000. * float i
+                        let iter = 100000. * float i
 
-        //let k = 0.00002 / (0.8 * Math.Log (pwr*4. + 1.2)) // Math.Sqrt (Math.Sqrt (pwr + 0.1 ) )
-        let k =  scale / Math.Sqrt (protos * classes |> float) / rescale decay
+                        //let k = 0.00002 / (0.8 * Math.Log (pwr*4. + 1.2)) // Math.Sqrt (Math.Sqrt (pwr + 0.1 ) )
+                        let k =  scale / Math.Sqrt (protos * classes |> float) * rescale decay
 
-        let y = 0.01 * lrAsum iter decay k
-        (iter, y)
-    ) 
-    |> makePlot
+                        let y =  lrAsum iter decay k
+                        (iter, y)
+                    ) |> toPoints 
+            ("decay: " + decay.ToString(), graph)
+            )
+                |> makePlots
 
 Seq.init 5000 (fun i -> 
         let x = float i / 50000.0

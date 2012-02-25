@@ -60,7 +60,7 @@ namespace LvqGui {
 					group statname by statname.StatGroup into statGroup
 					select new PlotControl {
 						ShowGridLines = true,
-						Title = statGroup.Key,
+						//Title = statGroup.Key,
 						Tag = statGroup.Key,
 						GraphsEnumerable = LvqStatPlotFactory.Create(statGroup.Key, statGroup, model.IsMultiModel, dataset.IsFolded() || dataset.HasTestSet(), dataset.ClassColors, model.OriginalSettings.PrototypesPerClass).ToArray(),
 						PlotName = statGroup.Key

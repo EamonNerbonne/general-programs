@@ -61,7 +61,7 @@ namespace LvqGui {
 
 		static IVizEngine<LvqStatPlots> MakePlotHelper(string dataLabel, Color color, string yunitLabel, object tag, Func<LvqStatPlots, Point[]> mapper, DashStyle dashStyle = null) {
 			var lineplot= Plot.CreateLine(new PlotMetaData {
-																					DataLabel = dataLabel == "" ? null : dataLabel,
+																					DataLabel = string.IsNullOrEmpty(dataLabel) || dataLabel.StartsWith("#") ? null : dataLabel,
 			                                                                       	RenderColor = color,
 			                                                                       	XUnitLabel = "Training iterations",
 			                                                                       	YUnitLabel = yunitLabel,

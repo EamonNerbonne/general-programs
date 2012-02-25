@@ -165,7 +165,7 @@ namespace LvqGui {
 		}
 
 		void BuildContextMenu( IEnumerable<PlotControl> plots) {
-			var items = plots.Select(plot => new MenuItem { Header = plot.Title, IsCheckable = true, IsChecked = plot.Visibility == Visibility.Visible, Tag = plot }).ToArray();
+			var items = plots.Select(plot => new MenuItem { Header = plot.PlotName, IsCheckable = true, IsChecked = plot.Visibility == Visibility.Visible, Tag = plot }).ToArray();
 			foreach (var menuitem in items) {
 				menuitem.Checked += menuitem_Checked;
 				menuitem.Unchecked += menuitem_Checked;
@@ -193,7 +193,11 @@ namespace LvqGui {
 
 		void MakeSubPlotWindow() {
 			double borderWidth = (SystemParameters.MaximizedPrimaryScreenWidth - SystemParameters.FullPrimaryScreenWidth) / 2.0;
-			if (subPlotWindow != null && subPlotWindow.IsLoaded) return;
+			if (subPlotWindow != null && subPlotWindow.IsLoaded) {
+				if(!hide)
+					subPlotWindow.Show();
+				return;
+			}
 			subPlotWindow = new Window {
 				Width = SystemParameters.FullPrimaryScreenWidth * 0.7,
 				Height = SystemParameters.MaximizedPrimaryScreenHeight - borderWidth * 2,
@@ -202,7 +206,7 @@ namespace LvqGui {
 				Content = new Grid(),
 				Visibility = hide ? Visibility.Hidden : Visibility.Visible
 			};
-
+			subPlotWindow.Closing += subPlotWindow_Closing;
 			subPlotWindow.SizeChanged += (o, e) => RelayoutSubPlotWindow();
 			subPlotWindow.Show();
 			subPlotWindow.Top = 0;
@@ -214,6 +218,13 @@ namespace LvqGui {
 					if (mainWindow != null && mainWindow.Left + mainWindow.Width > subWindowLeft)
 						mainWindow.Left = Math.Max(0, subWindowLeft - +mainWindow.Width);
 				});
+		}
+
+		void subPlotWindow_Closing(object sender, System.ComponentModel.CancelEventArgs e) {
+			if (!reallyClosing) {
+				e.Cancel = true;
+				subPlotWindow.Hide();
+			}
 		}
 
 		public void QueueUpdate() { ThreadPool.QueueUserWorkItem(UpdateQueueProcessor); }
@@ -263,9 +274,11 @@ namespace LvqGui {
 					foreach (var op in graphOperationsLazy) yield return op;
 				}
 		}
-
+		bool reallyClosing = false;
 		public void Dispose() {
+			reallyClosing = true;
 			lvqPlotDispatcher.Invoke(new Action(() => {
+				
 				subPlotWindow.Close();
 				lvqPlotDispatcher.InvokeShutdown();
 			}));
@@ -344,8 +357,9 @@ namespace LvqGui {
 				case "Border Matrix: log(abs(|B|))":
 					return "Bdet";
 				case "Border Matrix: log(||B||^2)":
+				case "B-norm: log(||B||^2)":
 				case "Border Matrix norm": return "Bnorm";
-				case "Projection Matrix":
+				case "Projection Norm":
 				case "Prototype Matrix": return "Pnorm";
 				case "Cost Function": return "cost";
 				case "Cumulative Learning Rates": return "cumullr";
@@ -354,7 +368,7 @@ namespace LvqGui {
 				case "Prototype Distance Variance": return "distVar";
 				case "Error Rates": return "err";
 				case "embed": return "embed";
-				case "Projection Quality": return "nn";
+				case "NN Error": return "nn";
 				case "Prototype bias": return "bias";
 				case "max μ": return "maxmu";
 				case "mean μ": return "meanmu";
