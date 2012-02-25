@@ -194,7 +194,8 @@ namespace LvqGui {
 		void MakeSubPlotWindow() {
 			double borderWidth = (SystemParameters.MaximizedPrimaryScreenWidth - SystemParameters.FullPrimaryScreenWidth) / 2.0;
 			if (subPlotWindow != null && subPlotWindow.IsLoaded) {
-				subPlotWindow.Show();
+				if(!hide)
+					subPlotWindow.Show();
 				return;
 			}
 			subPlotWindow = new Window {
@@ -356,8 +357,9 @@ namespace LvqGui {
 				case "Border Matrix: log(abs(|B|))":
 					return "Bdet";
 				case "Border Matrix: log(||B||^2)":
+				case "B-norm: log(||B||^2)":
 				case "Border Matrix norm": return "Bnorm";
-				case "Projection Matrix":
+				case "Projection Norm":
 				case "Prototype Matrix": return "Pnorm";
 				case "Cost Function": return "cost";
 				case "Cumulative Learning Rates": return "cumullr";
@@ -366,7 +368,7 @@ namespace LvqGui {
 				case "Prototype Distance Variance": return "distVar";
 				case "Error Rates": return "err";
 				case "embed": return "embed";
-				case "Projection Quality": return "nn";
+				case "NN Error": return "nn";
 				case "Prototype bias": return "bias";
 				case "max μ": return "maxmu";
 				case "mean μ": return "meanmu";
