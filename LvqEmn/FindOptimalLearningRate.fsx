@@ -20,6 +20,7 @@ open OptimalLrSearch
 let defaultStore = "uniform-results.txt"
 let newStore = "uniform-results-new.txt"
 let tempStore = "uniform-results-tmp.txt"
+let decayStore = "uniform-results-withDecay.txt"
 let temp2Store = "uniform-results-tmp2.txt"
 let optimizeSettingsList = 
         List.map (CreateLvqModelValues.ParseShorthand >> withDefaultLr) 
@@ -69,14 +70,14 @@ let researchRes () =
     allUniformResults defaultStore
         |> List.sortBy (fun res->res.GeoMean) 
         |> Seq.distinctBy (fun res -> res.Settings.WithCanonicalizedDefaults()) |> Seq.toList
-        |> List.filter(fun res->not res.Settings.scP && res.Settings.ModelType <> LvqModelType.Lgm)
+        //|> List.filter(fun res->not res.Settings.scP && res.Settings.ModelType <> LvqModelType.Lgm)
         //|> List.sortBy (fun res->res.Settings.ToShorthand())
         |> List.sortBy (fun res -> res.Settings.LikelyRefinementRanking ())
         //|> List.rev
         |> List.map (fun res->res.Settings)
         //|> (fun ss -> ss.AsParallel().WithDegreeOfParallelism(2))
-        |> Seq.filter (isTested newStore)// >> not) //seq is lazy, so this last minute rechecks availability of results.
-        |> Seq.map (improveAndTestWithControllers 11 0.7 decayControllers newStore)
+        |> Seq.filter (isTested decayStore >> not) //seq is lazy, so this last minute rechecks availability of results.
+        |> Seq.map (improveAndTestWithControllers 11 0.5 decayControllers decayStore)
         |> Seq.toList
 
 let recomputeRes filename =
