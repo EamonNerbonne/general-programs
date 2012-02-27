@@ -30,7 +30,7 @@ let optimizeSettingsList =
         >> Seq.map (improveAndTestWithControllers 0 1.0 learningRateControllers tempStore)
         >> Seq.toList
 
-
+(*
 [
     "Ggm-1,scP,Ppca,SlowK,lr0.023856933148000251,lrP0.024547811783315155,lrB5.74323779391736,"
     "Gm-1,scP,lr0.00031107939389401281,lrP14.02245453771569,"// GeoMean: 0.200119 ~ 0.001250; Training: 0.247116 ~ 0.005440; Test: 0.249612 ~ 0.005917; NN: 0.235402 ~ 0.004090
@@ -60,11 +60,95 @@ let optimizeSettingsList =
     "G2m-5,Ppca,scP,lr0.023603993984004434,lrP0.14795089865689767,lrB0.0054090355108190723,"// GeoMean: 0.108298 ~ 0.000924; Training: 0.110655 ~ 0.002151; Test: 0.117819 ~ 0.002976; NN: 0.153458 ~ 0.003406
     "Gpq-5,scP,NGi,lr0.047494016517064176,lrP0.041604983107655237,lrB0.018100546049847184,"// GeoMean: 0.113179 ~ 0.000829; Training: 0.114339 ~ 0.003825; Test: 0.125227 ~ 0.004332; NN: 0.162770 ~ 0.004756
     "G2m-5,scP,NGi,lr0.010538507687204799,lrP0.38796279359979308,lrB0.12897475832613819,"// GeoMean: 0.109049 ~ 0.000885; Training: 0.106623 ~ 0.002312; Test: 0.117771 ~ 0.002924; NN: 0.156530 ~ 0.003461
-
-    
     ]
     |> optimizeSettingsList
+    *)
+let heuristics=
+    [
+        (fun (s: LvqModelSettingsCli) -> 
+            let mutable copy = s
+            copy.Bcov <- true
+            copy
+            )
+        (fun (s: LvqModelSettingsCli) -> 
+            let mutable copy=s
+            copy.LocallyNormalize <- true
+            copy
+            )
+        (fun (s: LvqModelSettingsCli) -> 
+            let mutable copy=s
+            copy.NGi <- true
+            copy
+            )
+        (fun (s: LvqModelSettingsCli) -> 
+            let mutable copy=s
+            copy.NGu <- true
+            copy
+            )
+        (fun (s: LvqModelSettingsCli) -> 
+            let mutable copy=s
+            copy.Popt <- true
+            copy
+            )
+        (fun (s: LvqModelSettingsCli) -> 
+            let mutable copy=s
+            copy.Ppca <- true
+            copy
+            )
+        (fun (s: LvqModelSettingsCli) -> 
+            let mutable copy=s
+            copy.SlowK <- true
+            copy
+            )
+        (fun (s: LvqModelSettingsCli) -> 
+            let mutable copy=s
+            copy.neiB <- true
+            copy
+            )
+        (fun (s: LvqModelSettingsCli) -> 
+            let mutable copy=s
+            copy.neiP <- true
+            copy
+            )
+        (fun (s: LvqModelSettingsCli) -> 
+            let mutable copy=s
+            copy.scP <- true
+            copy
+            )
+        (fun (s: LvqModelSettingsCli) -> 
+            let mutable copy=s
+            copy.wGMu <- true
+            copy
+            )
+        (fun (s: LvqModelSettingsCli) -> 
+            let mutable copy=s
+            if s.ModelType = LvqModelType.Gm then
+                copy.noKP <- true
+            copy
+            )
+        id
+        ]
+        |> List.map (fun f -> f>> (fun (s: LvqModelSettingsCli)->s.Canonicalize()))
 
+let basics = ["Ggm-1,";"Ggm-5,";"Gm-1,";"Gm-5,";"G2m-1,";"G2m-5,";"Gpq-1,";"Gpq-5,";"Lgm-1,";"Lgm-5,"] |> List.map CreateLvqModelValues.ParseShorthand
+
+
+let interestingSettings = 
+    basics 
+        |> List.collect (fun s-> List.map (fun f-> f s) heuristics)
+        |> Seq.distinct 
+        |> Seq.collect (fun s-> List.map (fun f-> f s) heuristics)
+        |> Seq.distinct 
+        |> Seq.collect (fun s-> List.map (fun f-> f s) heuristics)
+        |> Seq.distinct |>Seq.toList
+        |> List.sortBy (fun s->s.LikelyRefinementRanking())
+        |> Seq.filter (isTested defaultStore >> not) //seq is lazy, so this last minute rechecks availability of results.
+        |> Seq.filter (isTested "uniform-results-scp-gm-ggm.txt" >> not) //seq is lazy, so this last minute rechecks availability of results.
+        |> Seq.filter (isTested "uniform-results-scp-g2m-gpq-normalizes-BPv.txt" >> not) //seq is lazy, so this last minute rechecks availability of results.
+        |> Seq.map withDefaultLr
+        |> Seq.map (improveAndTestWithControllers 11 1.0 allControllers temp2Store)
+        |> Seq.toList
+        //|> List.map(fun s->s.ToShorthand())
 
 let researchRes () =
     allUniformResults defaultStore
