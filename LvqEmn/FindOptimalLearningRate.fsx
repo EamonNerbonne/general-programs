@@ -133,7 +133,7 @@ let heuristics=
 let basics = ["Ggm-1,";"Ggm-5,";"Gm-1,";"Gm-5,";"G2m-1,";"G2m-5,";"Gpq-1,";"Gpq-5,";"Lgm-1,";"Lgm-5,"] |> List.map CreateLvqModelValues.ParseShorthand
 
 
-let interestingSettings = 
+let interestingSettings () = 
     basics 
         |> List.collect (fun s-> List.map (fun f-> f s) heuristics)
         |> Seq.distinct 
