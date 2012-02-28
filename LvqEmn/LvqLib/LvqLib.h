@@ -40,7 +40,7 @@ extern "C" {
 
 	__declspec(dllexport) LvqDataset* CreateDatasetFold(LvqDataset* underlying, int fold, int foldCount, bool isTestFold);
 
-	__declspec(dllexport) void CreateExtendedDataset(LvqDataset const * dataset, LvqDataset const * testdataset, LvqModel const * model, LvqDataset** newTraining, LvqDataset** newTest);
+	__declspec(dllexport) void CreateExtendedDataset(LvqDataset const * dataset, LvqDataset const * testdataset,LvqDataset const * extendDataset, LvqDataset const * extendTestdataset, LvqModel const * model, LvqDataset** newTraining, LvqDataset** newTest);
 	
 
 

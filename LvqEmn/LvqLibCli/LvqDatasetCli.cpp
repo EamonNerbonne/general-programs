@@ -35,7 +35,7 @@ namespace LvqLibCli {
 		}
 		FreeDataset(newDataset);
 		
-		return gcnew LvqDatasetCli(label,colors,classes,datasets,testDatasets);
+		return gcnew LvqDatasetCli(label,colors,classes,datasets,testDatasets,nullptr);
 	}
 
 	LvqDatasetCli ^ LvqDatasetCli::ConstructFromArray(String^ label, int folds, bool extend, bool normalizeDims,bool normalizeByScaling, ColorArray^ colors, array<String^>^ classes, unsigned rngInstSeed, 
@@ -56,7 +56,7 @@ namespace LvqLibCli {
 				 gcnew GcManualPtr<LvqDataset>(nativetestdataset, MemAllocEstimateDataset(nativetestdataset), FreeDataset)
 			};
 
-			return gcnew LvqDatasetCli(label, colors, classes, datasetArr, testdatasetArr);
+			return gcnew LvqDatasetCli(label, colors, classes, datasetArr, testdatasetArr,nullptr);
 	}
 
 	GcAutoPtr<vector<DataShape> >^ GetShapes( array<GcManualPtr<LvqDataset>^ >^ newDatasets) {
@@ -76,12 +76,13 @@ namespace LvqLibCli {
 
 
 
-	LvqDatasetCli::LvqDatasetCli(String^label, ColorArray^ colors, array<String^>^ classes, array<GcManualPtr<LvqDataset>^ >^ newDatasets, array<GcManualPtr<LvqDataset>^ >^ newTestDatasets) 
-		: colors(colors)
+	LvqDatasetCli::LvqDatasetCli(String^label, ColorArray^ colors, array<String^>^ classes, array<GcManualPtr<LvqDataset>^ >^ newDatasets, array<GcManualPtr<LvqDataset>^ >^ newTestDatasets, LvqDatasetCli^ parent) 
+		: parent(parent)
+		, colors(colors)
 		, classNames(classes)
 		, label(label)
 		, datasets(newDatasets)
-		, testSet(newTestDatasets==nullptr?nullptr:gcnew LvqDatasetCli(nullptr,colors, classes, newTestDatasets,nullptr))
+		, testSet(newTestDatasets==nullptr?nullptr:gcnew LvqDatasetCli(nullptr,colors, classes, newTestDatasets,nullptr, parent==nullptr?nullptr:parent->testSet))
 	{
 		if(newTestDatasets!=nullptr && newDatasets->Length!=newTestDatasets->Length) throw gcnew ArgumentException("newTestDatasets","test datasets must have the same number of folds as the training datasets");
 		datashape = GetShapes(datasets);
@@ -103,17 +104,17 @@ namespace LvqLibCli {
 	using namespace System::Threading::Tasks;
 	ref class ModelExtensionComputer {
 		int fold;
-		LvqDatasetCli^ dataset;
+		LvqDatasetCli^ dataset, ^toInclude;
 		array<LvqModelCli^>^ models;
 		Tuple<GcManualPtr<LvqDataset>^,GcManualPtr<LvqDataset>^>^ Execute() {
-			auto retval =models[fold]->ExtendDatasetByProjection(dataset, fold);
+			auto retval =models[fold]->ExtendDatasetByProjection(dataset, toInclude,fold);
 			GC::KeepAlive(this);
 			return retval;
 		}
 		
 	public:
 		Task<Tuple<GcManualPtr<LvqDataset>^,GcManualPtr<LvqDataset>^>^>^ newDatasetTask;
-		ModelExtensionComputer(int fold,LvqDatasetCli^ dataset,array<LvqModelCli^>^ models) :fold(fold), dataset(dataset), models(models){
+		ModelExtensionComputer(int fold,LvqDatasetCli^ dataset,LvqDatasetCli^ toInclude,array<LvqModelCli^>^ models) :fold(fold), dataset(dataset), toInclude(toInclude), models(models){
 			newDatasetTask = Task::Factory->StartNew(gcnew Func<Tuple<GcManualPtr<LvqDataset>^,GcManualPtr<LvqDataset>^>^>(this, &ModelExtensionComputer::Execute));
 		}
 	};
@@ -125,9 +126,12 @@ namespace LvqLibCli {
 	};
 
 	LvqDatasetCli^ LvqDatasetCli::ConstructByModelExtension(array<LvqModelCli^>^ models) {
+		LvqDatasetCli^toInclude = this;
+		while(toInclude->parent !=nullptr) toInclude = toInclude->parent;
+
 		auto newDatasetComputer = gcnew array<ModelExtensionComputer^ >(models->Length);
 		for(int i=0;i<models->Length;++i) {
-			newDatasetComputer[i] = gcnew ModelExtensionComputer(i,this,models);
+			newDatasetComputer[i] = gcnew ModelExtensionComputer(i,this,toInclude,models);
 		}
 		auto newDatasets = gcnew array<GcManualPtr<LvqDataset>^ >(models->Length);
 		auto newDatasetsTest = gcnew array<GcManualPtr<LvqDataset>^ >(models->Length);
@@ -136,8 +140,9 @@ namespace LvqLibCli {
 			newDatasetsTest[i] = newDatasetComputer[i]->newDatasetTask->Result->Item2;
 		}
 		DataShape shape=GetDataShape(newDatasets[0]->get());
-		return gcnew LvqDatasetCli(RegexConsts::dimcountregex->Replace(label,"$0X"+shape.dimCount,1), colors, classNames, newDatasets, newDatasetsTest);
+		return gcnew LvqDatasetCli(RegexConsts::dimcountregex->Replace(label,"$0X"+shape.dimCount,1), colors, classNames, newDatasets, newDatasetsTest, this);
 	}
+
 	using namespace System::Threading::Tasks;
 	ref class NnErrComputer {
 		int fold;

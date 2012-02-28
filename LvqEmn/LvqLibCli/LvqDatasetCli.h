@@ -11,6 +11,7 @@ namespace LvqLibCli {
 	public ref class LvqDatasetCli
 	{
 		typedef array<System::Windows::Media::Color> ColorArray;
+		initonly LvqDatasetCli^ parent;
 		array<GcManualPtr<LvqDataset>^ >^ datasets;
 		GcAutoPtr<vector<DataShape> >^ datashape;
 		array<String^>^ classNames;
@@ -18,7 +19,7 @@ namespace LvqLibCli {
 		LvqModelCli^ lastModel;
 		initonly LvqDatasetCli ^testSet;
 		ColorArray^ colors;
-		LvqDatasetCli(String^label, ColorArray^ colors,array<String^>^ classes, array<GcManualPtr<LvqDataset>^ >^ newDatasets, array<GcManualPtr<LvqDataset>^ >^ newTestDatasets);
+		LvqDatasetCli(String^label, ColorArray^ colors,array<String^>^ classes, array<GcManualPtr<LvqDataset>^ >^ newDatasets, array<GcManualPtr<LvqDataset>^ >^ newTestDatasets, LvqDatasetCli^ parent);
 		static LvqDatasetCli^ Unfolder(String^label, int folds,bool extend, bool normalizeDims, bool normalizeByScaling, ColorArray^ colors, array<String^>^ classes, LvqDataset * newDataset);
 		DataShape FoldShape(int fold) { return (*datashape->get())[fold%datasets->Length]; }
 	public:

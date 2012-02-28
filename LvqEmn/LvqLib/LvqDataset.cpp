@@ -373,13 +373,13 @@ LvqDataset LvqDataset::ExtendWithOther(LvqDataset const & other) const {
 
 LvqDataset LvqDataset::CreateLogDistDataset(LvqModel const & model) const  {
 	Matrix_NN protoDistances = (model.PrototypeDistances(points).array() + std::numeric_limits<double>::min()).log().matrix();
-	 
+	//protoDistances = protoDistances.rowwise() - protoDistances.colwise().minCoeff();
 	assert(points.cols()==protoDistances.cols());
 	return LvqDataset(protoDistances, pointLabels, classCount());
 }
 
 LvqDataset LvqDataset::CreateInvSqrtDistDataset(LvqModel const & model) const {
-	Matrix_NN protoDistances = (model.PrototypeDistances(points).array() + 0.01).inverse().matrix();
+	Matrix_NN protoDistances = (model.PrototypeDistances(points).array().sqrt() + 0.01).inverse().matrix();
 	 
 	assert(points.cols()==protoDistances.cols());
 	return LvqDataset(protoDistances, pointLabels, classCount());
@@ -403,16 +403,16 @@ LvqDataset LvqDataset::CreateQrProjectedDataset(LvqModel const & model) const {
 
 
 
-std::pair<LvqDataset*,LvqDataset*> LvqDataset::ExtendUsingModel(LvqDataset const * testdataset, LvqModel const & model) const {
-	LvqDataset logDs = CreateLogDistDataset(model);
+std::pair<LvqDataset*,LvqDataset*> LvqDataset::ExtendUsingModel(LvqDataset const * testdataset,LvqDataset const * extendDataset, LvqDataset const * extendTestdataset,  LvqModel const & model) const {
+	LvqDataset logDs = this->CreateLogDistDataset(model);
 	auto logDsNorm = logDs.NormalizationParameters();
 	logDs.ApplyNormalization(logDsNorm, false);
 
-	LvqDataset projDs = CreateQrProjectedDataset(model);
-	auto projDsNorm = logDs.NormalizationParameters();
-	projDs.ApplyNormalization(projDsNorm, false);
+	//LvqDataset projDs = CreateQrProjectedDataset(model);
+	//auto projDsNorm = projDs.NormalizationParameters();
+	//projDs.ApplyNormalization(projDsNorm, false);
 	
-	LvqDataset combinedDs = logDs.ExtendWithOther(projDs);
+	LvqDataset combinedDs = extendDataset==nullptr?logDs:extendDataset->ExtendWithOther(logDs);
 
 	if(!testdataset) 
 		return make_pair(new LvqDataset(combinedDs), (LvqDataset*)nullptr);
@@ -421,10 +421,10 @@ std::pair<LvqDataset*,LvqDataset*> LvqDataset::ExtendUsingModel(LvqDataset const
 	LvqDataset testLogDs = testdataset->CreateLogDistDataset(model);
 	testLogDs.ApplyNormalization(logDsNorm, false);
 
-	LvqDataset testProjDs = CreateQrProjectedDataset(model);
-	testProjDs.ApplyNormalization(projDsNorm, false);
+	//LvqDataset testProjDs = testdataset->CreateQrProjectedDataset(model);
+	//testProjDs.ApplyNormalization(projDsNorm, false);
 	
-	LvqDataset testCombinedDs = testLogDs.ExtendWithOther(testProjDs);
+	LvqDataset testCombinedDs = extendTestdataset==nullptr?testLogDs: extendTestdataset->ExtendWithOther(testLogDs);
 	
 	return make_pair(new LvqDataset(combinedDs), new LvqDataset(testCombinedDs));
 

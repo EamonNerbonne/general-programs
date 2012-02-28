@@ -50,7 +50,7 @@ public:
 
 	LvqDataset(Matrix_NN const & points, VectorXi const & pointLabels, int classCount);
 	LvqDataset* Extract(std::vector<int> const & subset) const;
-	std::pair<LvqDataset*,LvqDataset*> ExtendUsingModel(LvqDataset const * testdataset, LvqModel const & model) const;
+	std::pair<LvqDataset*,LvqDataset*> ExtendUsingModel(LvqDataset const * testdataset,LvqDataset const * extendDataset, LvqDataset const * extendTestdataset, LvqModel const & model) const;
 
 	LvqDataset ExtendWithOther(LvqDataset const & otherdataset) const;
 	LvqDataset CreateLogDistDataset(LvqModel const & model) const;

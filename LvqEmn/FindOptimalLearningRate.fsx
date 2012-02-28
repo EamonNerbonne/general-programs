@@ -152,6 +152,9 @@ let interestingSettings () =
 
 let researchRes () =
     allUniformResults defaultStore
+        |> List.filter(fun res->not res.Settings.scP )
+        |> List.append (allUniformResults "uniform-results-scp-gm-ggm.txt" )
+        |> List.append (allUniformResults "uniform-results-scp-g2m-gpq-normalizes-BPv.txt" )
         |> List.sortBy (fun res->res.GeoMean) 
         |> Seq.distinctBy (fun res -> res.Settings.WithCanonicalizedDefaults()) |> Seq.toList
         //|> List.filter(fun res->not res.Settings.scP && res.Settings.ModelType <> LvqModelType.Lgm)
@@ -161,7 +164,7 @@ let researchRes () =
         |> List.map (fun res->res.Settings)
         //|> (fun ss -> ss.AsParallel().WithDegreeOfParallelism(2))
         |> Seq.filter (isTested decayStore >> not) //seq is lazy, so this last minute rechecks availability of results.
-        |> Seq.map (improveAndTestWithControllers 11 0.5 decayControllers decayStore)
+        |> Seq.map (improveAndTestWithControllers 7 0.5 decayControllers decayStore)
         |> Seq.toList
 
 let recomputeRes filename =

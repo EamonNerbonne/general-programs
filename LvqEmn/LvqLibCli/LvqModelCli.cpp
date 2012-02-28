@@ -220,11 +220,12 @@ namespace LvqLibCli {
 		GC::KeepAlive(this);
 	}
 
-	Tuple<GcManualPtr<LvqDataset>^,GcManualPtr<LvqDataset>^>^ LvqModelCli::ExtendDatasetByProjection(LvqDatasetCli^ dataset, int datafold) {
+	Tuple<GcManualPtr<LvqDataset>^,GcManualPtr<LvqDataset>^>^ LvqModelCli::ExtendDatasetByProjection(LvqDatasetCli^ dataset, LvqDatasetCli^ toInclude, int datafold) {
 		msclr::lock l2(copySync);
 		LvqModel* nativeModel=modelCopy->get();
 		LvqDataset* newDataset, *newTestDataset;
-		CreateExtendedDataset(dataset->GetTrainingDataset(datafold),dataset->GetTestDataset(datafold),nativeModel,&newDataset, &newTestDataset);
+		
+		CreateExtendedDataset(dataset->GetTrainingDataset(datafold),dataset->GetTestDataset(datafold),toInclude->GetTrainingDataset(datafold),toInclude->GetTestDataset(datafold), nativeModel,&newDataset, &newTestDataset);
 
 		return
 			Tuple::Create(
