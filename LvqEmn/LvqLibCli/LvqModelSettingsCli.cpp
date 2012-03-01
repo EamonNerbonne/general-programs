@@ -39,7 +39,7 @@ namespace LvqLibCli {
 
 		
 		retval.noKP = retval.noKP && hasGlobalP;
-		retval.Popt =  retval.Popt && hasGlobalP;
+		//retval.Popt =  retval.Popt && hasGlobalP;
 		//retval.Ppca = retval.Ppca && (hasGlobalP || );
 		retval.NoNnErrorRateTracking = retval.NoNnErrorRateTracking && hasGlobalP;
 		retval.NGu = retval.NGu && PrototypesPerClass > 1 && hasGlobalP;
