@@ -160,7 +160,7 @@ let iterScaleControl =  {
                                 Unpacker = fun settings -> settings.iterScaleFactor
                                 Packer = fun settings iterScale -> settings.WithIterScale iterScale
                                 Applies = fun _ -> true
-                                InitLrLogDevScale = 1.
+                                InitLrLogDevScale = 3.
                                 StartAt = 12
                        }
 let decayControl =  {
@@ -168,7 +168,7 @@ let decayControl =  {
                                 Unpacker = fun settings -> settings.decay
                                 Packer = fun settings decay -> settings.WithDecay decay
                                 Applies = fun _ -> true
-                                InitLrLogDevScale = 1.
+                                InitLrLogDevScale = 3.
                                 StartAt = 12
                        }
 
@@ -180,6 +180,9 @@ let improveLr (testResultList:TestResults list) (lrUnpack, lrPack) =
     let errMargin = 0.0000001
     let unpackLogErrs testResults = testResults.Results |> Seq.concat |> Seq.concat |> List.ofSeq |> List.map (fun err -> Math.Log (err + errMargin))
     let bestToWorst = testResultList |> List.sortBy (unpackLogErrs >> List.average)
+    let bestToWorstErrs = bestToWorst |> List.map (unpackLogErrs >> List.average)
+    let lowestLogErr =bestToWorstErrs |> List.head
+    let highestLogErr =bestToWorstErrs |> (List.rev >>List.head)
     let bestLogErrs = List.head bestToWorst |> unpackLogErrs
     //extract list of error rates from each testresult
     let logLrs = testResultList |> List.map (fun res-> lrUnpack res.Settings |> Math.Log)
@@ -187,8 +190,9 @@ let improveLr (testResultList:TestResults list) (lrUnpack, lrPack) =
 
     let relLength = List.length relevance
     let linearlyScaledRelevance = List.init relLength (fun i -> float (relLength - i) / float relLength)
+    let byErrRelevance = bestToWorstErrs |> List.map (fun logErr ->1. -  (logErr - lowestLogErr) / (highestLogErr - lowestLogErr)  )
 
-    let effRelevance = List.zip relevance linearlyScaledRelevance |> List.map (fun (a,b) -> (a + b) * Math.Sqrt(a + b))
+    let effRelevance = List.zip3 relevance linearlyScaledRelevance byErrRelevance |> List.map (fun (a,b,c) -> Math.Sqrt(a * b * c))
     
     //printfn "%A" (bestToWorst |> List.map (fun res->lrUnpack res.Settings) |> List.zip relevance)
     let logLrDistr = List.zip logLrs effRelevance |> List.fold (fun (ss:SmartSum) (lr, rel) -> ss.CombineWith lr rel) (new SmartSum ())

@@ -130,7 +130,9 @@ let heuristics=
         ]
         |> List.map (fun f -> f>> (fun (s: LvqModelSettingsCli)->s.Canonicalize()))
 
-let basics = ["Ggm-1,";"Ggm-5,";"Gm-1,";"Gm-5,";"G2m-1,";"G2m-5,";"Gpq-1,";"Gpq-5,";"Lgm-1,";"Lgm-5,"] |> List.map CreateLvqModelValues.ParseShorthand
+let basics = ["Ggm-1,";"Ggm-5,";"Gm-1,";"Gm-5,";"G2m-1,";"G2m-5,";"Gpq-1,";"Gpq-5,";"Lgm-1,";"Lgm-5,";"Lgm[6]-1,";"Lgm[6]-5,"] |> List.map CreateLvqModelValues.ParseShorthand
+//let basics = ["Ggm-1,";"Ggm-3,";"Ggm-5,";"Gm-1,";"Gm-3,";"Gm-5,";"G2m-1,";"G2m-3,";"G2m-5,";"Gpq-1,";"Gpq-3,";"Gpq-5,";"Lgm-1,";"Lgm-3,";"Lgm-5,";"Lgm[6]-1,";"Lgm[6]-3,";"Lgm[6]-5,"] |> List.map CreateLvqModelValues.ParseShorthand
+
 
 
 let interestingSettings () = 
@@ -143,10 +145,9 @@ let interestingSettings () =
         |> Seq.distinct |>Seq.toList
         |> List.sortBy (fun s->s.LikelyRefinementRanking())
         |> Seq.filter (isTested defaultStore >> not) //seq is lazy, so this last minute rechecks availability of results.
-        |> Seq.filter (isTested "uniform-results-scp-gm-ggm.txt" >> not) //seq is lazy, so this last minute rechecks availability of results.
-        |> Seq.filter (isTested "uniform-results-scp-g2m-gpq-normalizes-BPv.txt" >> not) //seq is lazy, so this last minute rechecks availability of results.
+        |> Seq.filter (isTested temp2Store >> not) //seq is lazy, so this last minute rechecks availability of results.
         |> Seq.map withDefaultLr
-        |> Seq.map (improveAndTestWithControllers 11 1.0 allControllers temp2Store)
+        |> Seq.map (improveAndTestWithControllers 0 1.0 allControllers temp2Store)
         |> Seq.toList
         //|> List.map(fun s->s.ToShorthand())
 
@@ -208,14 +209,8 @@ showEffect    defaultStore removeEachIterStuffs
 let bestCurrentSettings () = 
     allUniformResults defaultStore
         |> List.sortBy (fun res->res.GeoMean)
-        |> Seq.groupBy (fun res-> res.Settings.WithCanonicalizedDefaults())
-        |> Seq.collect snd |>Seq.toList
-        //|> Seq.distinctBy (fun res-> res.Settings.WithCanonicalizedDefaults()) |> Seq.toList
-
-        //|> List.filter (fun res->res.Settings.ModelType = LvqModelType.G2m)
         |> List.map printMeanResults
-        |> String.concat "\n"
-       // |> List.iter (fun line -> File.AppendAllText (LrOptimizer.resultsDir.FullName + "\\uniform-results-orig.txt",line + "\n"))
+        |> List.iter (fun line -> File.AppendAllText (LrOptimizer.resultsDir.FullName + tempStore,line + "\n"))
 
 let improveKnownCombos () = 
     LrOptimizer.resultsDir.GetFiles("*.txt", SearchOption.AllDirectories)
