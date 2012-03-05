@@ -160,16 +160,16 @@ let iterScaleControl =  {
                                 Unpacker = fun settings -> settings.iterScaleFactor
                                 Packer = fun settings iterScale -> settings.WithIterScale iterScale
                                 Applies = fun _ -> true
-                                InitLrLogDevScale = 3.
-                                StartAt = 12
+                                InitLrLogDevScale = 2.5
+                                StartAt = 13
                        }
 let decayControl =  {
                                 Name = "decay"
                                 Unpacker = fun settings -> settings.decay
                                 Packer = fun settings decay -> settings.WithDecay decay
                                 Applies = fun _ -> true
-                                InitLrLogDevScale = 3.
-                                StartAt = 12
+                                InitLrLogDevScale = 2.5
+                                StartAt = 13
                        }
 
 let learningRateControllers = [lr0control; lrPcontrol; lrBcontrol]
