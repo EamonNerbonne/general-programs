@@ -47,23 +47,23 @@ LgmLvqModel::LgmLvqModel( LvqModelSettings & initSettings)
 	initSettings.AssertModelIsOfRightType(this);
 
 	using namespace std;
-	auto InitProto = initSettings.InitProtosBySetting();
-	auto defP =  initSettings.initTransform();
+	auto projAndProtos = initSettings.InitProtosAndProjectionBySetting();
+	auto initP = get<0>(projAndProtos);
 
-	pLabel = InitProto.second;
+	pLabel = get<2>(projAndProtos);
 	size_t protoCount = pLabel.size();
 	prototype.resize(protoCount);
 	P.resize(protoCount);
 
 	for(size_t protoIndex = 0; protoIndex < protoCount; ++protoIndex) {
-		prototype[protoIndex] = InitProto.first.col(protoIndex);
+		prototype[protoIndex] = get<1>(projAndProtos).col(protoIndex);
 		
 		if(initSettings.Ppca || initSettings.Popt) {
-			Matrix_NN rot = Matrix_NN(defP.rows(), defP.rows());
+			Matrix_NN rot = Matrix_NN(initP.rows(), initP.rows());
 			randomProjectionMatrix(initSettings.RngParams, rot);
-			P[protoIndex] = rot * defP;
+			P[protoIndex] = rot * initP;
 		}else {
-			P[protoIndex] = defP;
+			P[protoIndex] = initP;
 			randomProjectionMatrix(initSettings.RngParams, P[protoIndex]);
 		}
 		normalizeProjection(P[protoIndex]);

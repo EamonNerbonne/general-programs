@@ -27,24 +27,25 @@ LpqLvqModel::LpqLvqModel(LvqModelSettings & initSettings)
 	initSettings.AssertModelIsOfRightType(this);
 
 	using namespace std;
-	auto InitProto = initSettings.InitProtosBySetting();
-	auto defP =  initSettings.initTransform();
-	pLabel = InitProto.second;
+	auto projAndProtos = initSettings.InitProtosAndProjectionBySetting();
+	auto initP = get<0>(projAndProtos);
+
+	pLabel = get<2>(projAndProtos);
 	size_t protoCount = pLabel.size();
 	P_prototype.resize(protoCount);
 	P.resize(protoCount);
 
 	for(size_t protoIndex = 0; protoIndex < protoCount; ++protoIndex) {
 		if(initSettings.Ppca || initSettings.Popt) {
-			Matrix_NN rot = Matrix_NN(defP.rows(), defP.rows());
+			Matrix_NN rot = Matrix_NN(initP.rows(), initP.rows());
 			randomProjectionMatrix(initSettings.RngParams, rot);
-			P[protoIndex] = rot * defP;
+			P[protoIndex] = rot * initP;
 		}else {
-			P[protoIndex] = defP;
+			P[protoIndex] = initP;
 			randomProjectionMatrix(initSettings.RngParams, P[protoIndex]);
 		}
 		normalizeProjection(P[protoIndex]);
-		P_prototype[protoIndex] = P[protoIndex] * InitProto.first.col(protoIndex);
+		P_prototype[protoIndex] = P[protoIndex] * get<1>(projAndProtos).col(protoIndex);
 	}
 }
 
