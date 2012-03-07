@@ -35,7 +35,7 @@ namespace LvqGui {
 
 
 		protected override string GetShorthand() {
-			return Filename + (TestFilename != null ? "," + TestFilename : "") + "-" + DimCount + "D" + (ExtendDataByCorrelation ? "x" : "") + (!NormalizeDimensions ? "" : NormalizeByScaling ? "S":"n") + "-"
+			return Filename + (TestFilename != null ? "," + TestFilename : "") + "-" + DimCount + "D" + (ExtendDataByCorrelation ? "x" : "") + (!NormalizeDimensions ? "" : NormalizeByScaling ? "S" : "n") + "-"
 				+ ClassCount + "," + PointCount
 				+ (InstanceSeed == defaults.InstanceSeed ? "" : "[" + InstanceSeed.ToString("x") + "]")
 				+ (Folds == defaults.Folds ? "" : "^" + Folds);
@@ -47,7 +47,7 @@ namespace LvqGui {
 			if (trainFile == null) return null;
 			var testFile = TestFilename == null ? null : LoadDatasetImpl.dataDir.GetFiles(TestFilename).FirstOrDefault();
 			if (testFile == null && TestFilename != null) return null;
-			var trainSet = LoadDatasetImpl.LoadData(trainFile,testFile, this);
+			var trainSet = LoadDatasetImpl.LoadData(trainFile, testFile, this);
 			return trainSet;
 		}
 	}
@@ -58,7 +58,7 @@ namespace LvqGui {
 
 		public static LvqDatasetCli Load(int folds, string name, uint rngInst) {
 			var dataFile = dataDir.GetFiles(name).FirstOrDefault();
-			return LoadData(dataFile,null, new LoadedDatasetSettings { InstanceSeed = rngInst, Folds = folds });
+			return LoadData(dataFile, null, new LoadedDatasetSettings { InstanceSeed = rngInst, Folds = folds });
 		}
 
 
@@ -95,9 +95,9 @@ namespace LvqGui {
 
 
 			var trainingdata = LoadRawData(dataFile);
-			
+
 			//var testdata = testFile == null ? null : LoadRawData(testFile);
-			var testdata = testFile==null? Tuple.Create(default(LvqFloat[,]),default(int[]),default(string[])) : LoadRawData(testFile);
+			var testdata = testFile == null ? Tuple.Create(default(LvqFloat[,]), default(int[]), default(string[])) : LoadRawData(testFile);
 
 			var pointArray = trainingdata.Item1;
 			int[] labelArray = trainingdata.Item2;
@@ -112,15 +112,14 @@ namespace LvqGui {
 
 			var testPointArray = testdata.Item1;
 			var testLabelArray = testdata.Item2;
-			if (testPointArray != null)
-			{
+			if (testPointArray != null) {
 				if (settings.DimCount != testPointArray.GetLength(1))
 					throw new InvalidOperationException("training file " + dataFile.Name + " has " + settings.DimCount +
-					                                    " dimensions, but test file " + testFile.Name + " has " +
-					                                    testPointArray.GetLength(1));
+														" dimensions, but test file " + testFile.Name + " has " +
+														testPointArray.GetLength(1));
 				if (!trainingdata.Item3.SequenceEqual(testdata.Item3))
-					throw new InvalidOperationException("training file " + dataFile.Name + " has classes: " + string.Join(",",trainingdata.Item3)  +
-					                                    " classes, but test file " + testFile.Name + " has " + string.Join(",",testdata.Item3));
+					throw new InvalidOperationException("training file " + dataFile.Name + " has classes: " + string.Join(",", trainingdata.Item3) +
+														" classes, but test file " + testFile.Name + " has " + string.Join(",", testdata.Item3));
 			}
 
 
@@ -136,13 +135,12 @@ namespace LvqGui {
 				classes: trainingdata.Item3,
 				points: pointArray,
 				pointLabels: labelArray,
-				testpoints:testPointArray,
-				testpointLabels:testLabelArray);
+				testpoints: testPointArray,
+				testpointLabels: testLabelArray);
 		}
 
-		private static Tuple<double[,], int[], string[]> LoadRawData(FileInfo dataFile)
-		{
-			var labelFile = new FileInfo(dataFile.Directory + @"\" + dataFile.Name.Replace(".data",".label" ));
+		private static Tuple<double[,], int[], string[]> LoadRawData(FileInfo dataFile) {
+			var labelFile = new FileInfo(dataFile.Directory + @"\" + dataFile.Name.Replace(".data", ".label"));
 			return labelFile.Exists ? LoadDatasetHelper(dataFile, labelFile) : LoadDatasetHelper(dataFile);
 		}
 
@@ -167,7 +165,7 @@ namespace LvqGui {
 				if (dimCount == 0 || dimCount > 4)
 					throw new FileFormatException("number of dimensions isn't in range [1,4], that's probably corrupt.");
 				int dim0 = reader.ReadInt32BigEndian();
-				int dimsRest = Enumerable.Range(1, dimCount-1).Select(_ => reader.ReadInt32BigEndian()).Aggregate(1, (product, num) => { checked { return product * num; } });
+				int dimsRest = Enumerable.Range(1, dimCount - 1).Select(_ => reader.ReadInt32BigEndian()).Aggregate(1, (product, num) => { checked { return product * num; } });
 
 				if (dimCount == 1) {
 					byte[] labels = reader.ReadBytes(dim0);
@@ -223,11 +221,24 @@ namespace LvqGui {
 					.ToArray(), denseLabelLookup.OrderBy(kv => kv.Value).Select(kv => kv.Key.ToString(CultureInfo.InvariantCulture)).ToArray());
 		}
 
+		static IEnumerable<string> LoadLines(Stream stream, string extension) {
+			using (var decompS = extension == ".gz" ? new GZipStream(stream, CompressionMode.Decompress, false) : null)
+			using (var reader = new StreamReader(decompS ?? stream))
+				for (string line = reader.ReadLine(); line != null; line = reader.ReadLine())
+					yield return line;
+		}
+		static string[] LoadLines(FileInfo file)
+		{
+			using (var stream = file.OpenRead())
+				return LoadLines(stream, file.Extension).ToArray();
+		}
+
 		public static Tuple<LvqFloat[,], int[], string[]> LoadDatasetHelper(FileInfo dataAndLabelFile) {
-			bool commasplit = dataAndLabelFile.GetLines().Take(10).All(line => line.Contains(','));
+			string[] lines = LoadLines(dataAndLabelFile);
+			bool commasplit = lines.Take(10).All(line => line.Contains(','));
 
 			var splitLines =
-				(from dataline in dataAndLabelFile.GetLines()
+				(from dataline in lines
 				 select commasplit ? dataline.Split(dimSep) : dataline.Split(spaceSep, StringSplitOptions.RemoveEmptyEntries));
 
 			bool lastColClass = splitLines.Take(10).All(splitLine => Regex.IsMatch(splitLine[splitLine.Length - 1], @"^[a-zA-Z]\w*$"));
@@ -278,5 +289,6 @@ namespace LvqGui {
 
 			return Tuple.Create(dataVectors.ToRectangularArray(), itemIntLabels, origLabelLookup);
 		}
+
 	}
 }
