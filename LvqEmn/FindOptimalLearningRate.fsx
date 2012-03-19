@@ -145,12 +145,14 @@ let interestingSettings () =
         |> Seq.collect (fun s-> List.map (fun f-> f s) heuristics)
         |> Seq.distinct 
         |> Seq.collect (fun s-> List.map (fun f-> f s) heuristics)
+        |> Seq.distinct 
+        |> Seq.collect (fun s-> List.map (fun f-> f s) heuristics)
         |> Seq.distinct |>Seq.toList
+        |> List.filter (fun s->s.LikelyRefinementRanking() <4)
         |> List.sortBy (fun s->s.LikelyRefinementRanking())
         |> Seq.filter (isTested defaultStore >> not) //seq is lazy, so this last minute rechecks availability of results.
-        |> Seq.filter (isTested temp2Store >> not) //seq is lazy, so this last minute rechecks availability of results.
         |> Seq.map withDefaultLr
-        |> Seq.map (improveAndTestWithControllers 0 1.0 allControllers temp2Store)
+        |> Seq.map (improveAndTestWithControllers 0 1.0 allControllers defaultStore)
         |> Seq.toList
         //|> List.map(fun s->s.ToShorthand())
 
@@ -182,16 +184,12 @@ let recomputeRes filename =
 
 
 
-let removeEachIterStuffs settings = 
-                                            let mutable newSettings:LvqModelSettingsCli = settings
-                                            newSettings.neiB <- false
-                                            newSettings.neiP <- false
-                                            newSettings.scP <- false
-                                            newSettings
 
 
-let showEffect filename removeRelevantSetting =
-    let allRes = allUniformResults filename |> List.rev |> Seq.distinctBy (fun res -> res.Settings.WithCanonicalizedDefaults()) |> Seq.toList
+let showEffect filename removeRelevantSetting resultsFilter =
+    let allRes = allUniformResults filename 
+                        |> List.filter resultsFilter
+                        |> List.rev |> Seq.distinctBy (fun res -> res.Settings.WithCanonicalizedDefaults()) |> Seq.toList
     let havingInterestingCompanions = 
         allRes |> List.map (fun res->res.Settings.WithCanonicalizedDefaults())
             |> List.filter (fun settings-> removeRelevantSetting settings <> settings)
@@ -205,7 +203,15 @@ let showEffect filename removeRelevantSetting =
         |> List.sortBy (fun (best::_) -> best.GeoMean)
         |> List.map (List.map printMeanResults)
 
-showEffect    defaultStore removeEachIterStuffs
+let removeEachIterStuffs settings = 
+                                            let mutable newSettings:LvqModelSettingsCli = settings
+//                                            newSettings.neiB <- false
+//                                            newSettings.neiP <- false
+                                            newSettings.Bcov <- false
+//                                            newSettings.Popt <- false
+//                                            newSettings.Ppca <- false
+                                            newSettings
+showEffect defaultStore removeEachIterStuffs (fun res->res.Settings.ModelType = LvqModelType.Ggm && res.Settings.PrototypesPerClass = 5)
 
 
 

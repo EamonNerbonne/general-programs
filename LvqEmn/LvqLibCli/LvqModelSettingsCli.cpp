@@ -139,9 +139,14 @@ namespace LvqLibCli {
 	 int LvqModelSettingsCli::ActiveRefinementCount() { return (int)RandomInitialBorders  + (int)NGu  + (int)NGi  + (int)Ppca  + (int)Popt  + (int)Bcov + (int)LrRaw  + (int)wGMu  + (int)NoNnErrorRateTracking + (int)SlowK  + (int)neiP  + (int)scP  + (int)noKP  + (int)neiB  + (int)LocallyNormalize;}
 	 int LvqModelSettingsCli::LikelyRefinementRanking() { 
 		 LvqModelSettingsCli copy = *this;
-		 copy.Ppca = !copy.Ppca;
+		 if(ModelType == LvqModelType::Lgm || ModelType == LvqModelType::Lpq)
+			 copy.Popt = !copy.Popt;
+		 else
+			copy.Ppca = !copy.Ppca;
 		 if(ModelType == LvqModelType::Ggm)
 			 copy.SlowK = !copy.SlowK;
+		 if(ModelType == LvqModelType::Gpq)
+			 copy.scP = !copy.scP;
 		 if(PrototypesPerClass >1)
 			 copy.NGi = !copy.NGi;
 		 //maybe: GM: noKP, GM SlowK?
