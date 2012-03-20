@@ -78,11 +78,11 @@ namespace LvqLibCli {
 		GC::KeepAlive(this);
 	}
 
-	int LvqModelCli::ClassCount::get(){return classCount;}
-	int LvqModelCli::Dimensions::get(){return dimCount;}
+	int LvqModelCli::ClassCount::get() { return classCount; }
+	int LvqModelCli::Dimensions::get() { return dimCount; }
 	bool LvqModelCli::IsProjectionModel::get(){ try{return ::IsProjectionModel(modelCopy->get()); }finally{GC::KeepAlive(this);} }
 
-	double LvqModelCli::UnscaledLearningRate::get() { try { return GetUnscaledLearningRate (modelCopy->get());}finally{ GC::KeepAlive(this); } }
+	double LvqModelCli::MeanUnscaledLearningRate::get() { try { return GetMeanUnscaledLearningRate(modelCopy->get());}finally{ GC::KeepAlive(this); } }
 
 
 	bool LvqModelCli::FitsDataShape(LvqDatasetCli^ dataset) {return dataset!=nullptr && dataset->ClassCount == this->ClassCount && dataset->Dimensions == this->Dimensions;}

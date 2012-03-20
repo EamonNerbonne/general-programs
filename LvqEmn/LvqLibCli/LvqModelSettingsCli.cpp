@@ -6,7 +6,7 @@ namespace LvqLibCli {
 	LvqModelSettingsRaw LvqModelSettingsCli::ToNativeSettings() {
 
 		LvqModelSettingsRaw nativeSettings = { (::LvqModelType)ModelType, Dimensionality, PrototypesPerClass, Ppca, RandomInitialBorders
-			, neiP, scP,noKP, neiB, LocallyNormalize, NGu, NGi, Popt, Bcov, LrRaw, wGMu, SlowK, MuOffset, LR0, LrScaleP, LrScaleB, LrScaleBad, decay, iterScaleFactor
+			, neiP, scP,noKP, neiB, LocallyNormalize, NGu, NGi, Popt, Bcov, LrRaw, LrPp, wGMu, SlowK, MuOffset, LR0, LrScaleP, LrScaleB, LrScaleBad, decay, iterScaleFactor
 			, ParamsSeed, InstanceSeed, NoNnErrorRateTracking, ParallelModels };
 		return nativeSettings;
 	}
@@ -17,7 +17,7 @@ namespace LvqLibCli {
 			+ (Dimensionality != LvqModelSettingsCli().Dimensionality ? "[" + Dimensionality + "]" : "") + "-" + PrototypesPerClass + ","
 			+ (Ppca ? "Ppca,":"") + (RandomInitialBorders ? "RandomInitialBorders,":"") + (neiP ? "neiP," : "") + (scP?"scP,":"")+ (noKP ? "noKP," : "") + (neiB ? "neiB," : "")
 			+ (LocallyNormalize ? "LocallyNormalize," : "") + (NGu ? "NGu," : "") + (NGi ? "NGi," : "") + (Popt ? "Popt," : "") + (Bcov ? "Bcov," : "") + (wGMu ? "wGMu," : "") + (SlowK ? "SlowK," : "")
-			+ (NoNnErrorRateTracking ? "NoNnErrorRateTracking," : "") + (LrRaw ? "LrRaw," : "")
+			+ (NoNnErrorRateTracking ? "NoNnErrorRateTracking," : "") + (LrRaw ? "LrRaw," : "") + (LrPp ? "LrPp," : "")
 			+ (LR0==0.0 && LrScaleP==0.0 && LrScaleB==0.0 ?"" : "lr" + LR0.ToString("r") + "," + "lrP" + LrScaleP.ToString("r") + "," + (LrScaleB==0.0 ? "" : "lrB" + LrScaleB.ToString("r") + ","))
 			+ (LrScaleBad != LvqModelSettingsCli().LrScaleBad ? "lrX" + LrScaleBad.ToString("r") + ",":"") + (MuOffset ==  LvqModelSettingsCli().MuOffset ? "" : "mu" + MuOffset.ToString("r") + ",")
 			+ (decay ==  LvqModelSettingsCli().decay ? "" : "d" + decay.ToString("r") + ",")
@@ -136,7 +136,7 @@ namespace LvqLibCli {
 		return ((classes*PrototypesPerClass + currfactors[0])*(dataDims + currfactors[1])*currfactors[2] + currfactors[3])*0.001;
 	}
 
-	 int LvqModelSettingsCli::ActiveRefinementCount() { return (int)RandomInitialBorders  + (int)NGu  + (int)NGi  + (int)Ppca  + (int)Popt  + (int)Bcov + (int)LrRaw  + (int)wGMu  + (int)NoNnErrorRateTracking + (int)SlowK  + (int)neiP  + (int)scP  + (int)noKP  + (int)neiB  + (int)LocallyNormalize;}
+	 int LvqModelSettingsCli::ActiveRefinementCount() { return (int)RandomInitialBorders  + (int)NGu  + (int)NGi  + (int)Ppca  + (int)Popt  + (int)Bcov + (int)LrRaw + (int)LrPp + (int)wGMu  + (int)NoNnErrorRateTracking + (int)SlowK  + (int)neiP  + (int)scP  + (int)noKP  + (int)neiB  + (int)LocallyNormalize;}
 	 int LvqModelSettingsCli::LikelyRefinementRanking() { 
 		 LvqModelSettingsCli copy = *this;
 		 if(ModelType == LvqModelType::Lgm || ModelType == LvqModelType::Lpq)

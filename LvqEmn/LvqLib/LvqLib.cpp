@@ -115,6 +115,7 @@ extern"C" LvqModel* CreateLvqModel(LvqModelSettingsRaw rawSettings, LvqDataset c
 	initSettings.RuntimeSettings.LrScaleP = rawSettings.LrRaw ? rawSettings.LrScaleP / rawSettings.LR0 : rawSettings.LrScaleP;
 	initSettings.RuntimeSettings.LrScaleB = rawSettings.LrRaw ? rawSettings.LrScaleB / rawSettings.LR0 : rawSettings.LrScaleB;
 	initSettings.RuntimeSettings.LR0 = rawSettings.LR0;
+	initSettings.LrPp = rawSettings.LrPp;
 	initSettings.RuntimeSettings.LrScaleBad = rawSettings.LrScaleBad;
 	initSettings.decay = rawSettings.decay;
 	initSettings.iterScaleFactor = rawSettings.iterScaleFactor;
@@ -176,8 +177,8 @@ extern "C" void GetPrototypeLabels(LvqModel const* model, int* protoLabels){
 extern "C" int GetEpochsTrained(LvqModel const* model){
 	return model->epochsTrained;
 }
-extern "C" double GetUnscaledLearningRate(LvqModel const* model){
-	return model->unscaledLearningRate();
+extern "C" double GetMeanUnscaledLearningRate(LvqModel const* model){
+	return model->meanUnscaledLearningRate();
 }
 extern "C" bool IsProjectionModel(LvqModel const* model) {
 	return nullptr != dynamic_cast<LvqProjectionModel const*>(model); 

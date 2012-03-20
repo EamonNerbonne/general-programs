@@ -70,15 +70,6 @@ GmFullLvqModel::GmFullLvqModel(LvqModelSettings & initSettings)
 }
 
 MatchQuality GmFullLvqModel::learnFrom(Vector_N const & trainPoint, int trainLabel) {
-	double learningRate = stepLearningRate();
-
-	double lr_point = settings.LR0 * learningRate,
-		lr_P = lr_point * settings.LrScaleP,
-		lr_bad = (settings.SlowK  ?  sqr(1.0 - learningRate)  :  1.0) * settings.LrScaleBad;
-
-
-	assert(lr_P>=0 && lr_point>=0);
-
 	auto P_trainPoint(Vector_N::MapAligned(m_vTmp1.data(),m_vTmp1.size()));
 	P_trainPoint.noalias() = P * trainPoint;
 
@@ -93,6 +84,13 @@ MatchQuality GmFullLvqModel::learnFrom(Vector_N const & trainPoint, int trainLab
 	} else {
 		matches = findMatches(P_trainPoint, trainLabel);
 	}
+
+	double learningRate = stepLearningRate(matches.matchGood);
+	double lr_point = settings.LR0 * learningRate,
+		lr_P = lr_point * settings.LrScaleP,
+		lr_bad = (settings.SlowK  ?  sqr(1.0 - learningRate)  :  1.0) * settings.LrScaleBad;
+	assert(lr_P>=0 && lr_point>=0);
+
 
 	//now matches.good is "J" and matches.bad is "K".
 	MatchQuality retval = matches.LvqQuality();

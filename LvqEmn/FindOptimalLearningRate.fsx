@@ -71,6 +71,11 @@ let heuristics=
             copy
             )
         (fun (s: LvqModelSettingsCli) -> 
+            let mutable copy = s
+            copy.LrPp <- true
+            copy
+            )
+        (fun (s: LvqModelSettingsCli) -> 
             let mutable copy=s
             copy.LocallyNormalize <- true
             copy

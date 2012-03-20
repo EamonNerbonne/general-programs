@@ -70,10 +70,6 @@ GpqLvqModel::GpqLvqModel(LvqModelSettings & initSettings)
 
 MatchQuality GpqLvqModel::learnFrom(Vector_N const & trainPoint, int trainLabel) {
 	using namespace std;
-	double learningRate = stepLearningRate();
-
-	double lr_point = settings.LR0 * learningRate,
-		lr_bad = (settings.SlowK  ?  sqr(1.0 - learningRate)  :  1.0) * settings.LrScaleBad;
 
 
 	Vector_2 P_trainPoint( P * trainPoint );
@@ -91,6 +87,10 @@ MatchQuality GpqLvqModel::learnFrom(Vector_N const & trainPoint, int trainLabel)
 	} else {
 		matches = findMatches(P_trainPoint, trainLabel);
 	}
+	double learningRate = stepLearningRate(matches.matchGood);
+	double lr_point = settings.LR0 * learningRate,
+		lr_bad = (settings.SlowK  ?  sqr(1.0 - learningRate)  :  1.0) * settings.LrScaleBad;
+
 
 	//now matches.good is "J" and matches.bad is "K".
 	GpqLvqPrototype &J = prototype[matches.matchGood];

@@ -336,10 +336,6 @@ Matrix_NN LvqModelSettings::pcaTransform() const {
 	return Dataset->ComputePcaProjection(Dimensionality==0?LVQ_LOW_DIM_SPACE:Dimensionality);
 }
 
-
-
-
-
 Matrix_NN LvqModelSettings::initTransform() {
 	Matrix_NN P(Dimensionality == 0 ? LVQ_LOW_DIM_SPACE : Dimensionality, Dimensions());
 	if(Ppca)

@@ -322,7 +322,7 @@ namespace LvqGui {
 
 		public double GetLearningRate() {
 			var selectedModel = SelectedLvqModel;
-			return selectedModel != null ? selectedModel.CurrentLearningRate : 0.0;
+			return selectedModel != null ? selectedModel.CurrentMeanLearningRate : 0.0;
 		}
 
 		public void DoExtendDatasetWithProtoDistances() {

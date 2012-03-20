@@ -20,8 +20,11 @@ LvqModel::LvqModel(LvqModelSettings & initSettings)
 	, epochsTrained(0)
 {
 	int protoCount = accumulate(initSettings.PrototypeDistribution.begin(), initSettings.PrototypeDistribution.end(), 0);
-	iterationScaleFactor = initSettings.iterScaleFactor /sqrt((double)protoCount) * correctScaleFactorForDecay(initSettings.decay);
+	iterationScaleFactor = initSettings.iterScaleFactor * correctScaleFactorForDecay(initSettings.decay)  / (initSettings.LrPp  ? 1.0  :  sqrt((double)protoCount));
 	iterationScalePower = - (2.0 * initSettings.decay + 1) / (2.0 * initSettings.decay + 2.0);
+
+	if(initSettings.LrPp)
+		per_proto_trainIter.resize(protoCount,0.0);
 }
 
 double LvqModel::RegisterEpochDone(int itersTrained, double elapsed, int epochs) {

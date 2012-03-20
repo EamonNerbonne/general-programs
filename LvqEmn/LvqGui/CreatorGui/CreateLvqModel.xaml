@@ -19,6 +19,13 @@
             <ColumnDefinition Width="Auto" />
             <ColumnDefinition Width="121.353*" />
         </Grid.ColumnDefinitions>
+        
+        
+        
+        
+        
+        
+        
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
@@ -27,6 +34,16 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
@@ -112,9 +129,6 @@
         <Label Grid.Row="19">MuOffset</Label>
         <TextBox Grid.Row="19" Grid.Column="1" Text="{Binding MuOffset, Mode=TwoWay, ValidatesOnExceptions=True}"/>
 
-        <Label Grid.Row="20">Unscaled LR</Label>
-        <CheckBox Grid.Row="20" Grid.Column="1"  IsChecked="{Binding LrRaw, Mode= TwoWay, ValidatesOnExceptions=True}"/>
-
         <Label Grid.Row="21">Scale-compensating P</Label>
         <CheckBox Grid.Row="21" Grid.Column="1"  IsChecked="{Binding scP, Mode= TwoWay, ValidatesOnExceptions=True}"/>
 
@@ -123,32 +137,37 @@
         <Label Grid.Row="23">iterScaleFactor</Label>
         <TextBox Grid.Row="23" Grid.Column="1" Text="{Binding iterScaleFactor, Mode=TwoWay, ValidatesOnExceptions=True}"/>
 
-        <Button Grid.Row="24" Content="Reset Initialization Seed" Click="ReseedParam" />
-        <TextBox Grid.Row="24" Grid.Column="1" Text="{Binding ParamsSeed, Mode=TwoWay, ValidatesOnExceptions=True, Converter={StaticResource hexConverter}}"  />
-        <Button Grid.Row="25" Content="Reset Iteration Seed" Click="ReseedInst" />
-        <TextBox Grid.Row="25" Grid.Column="1" Text="{Binding InstanceSeed, Mode=TwoWay, ValidatesOnExceptions=True, Converter={StaticResource hexConverter}}" />
+        <Label Grid.Row="24">Unscaled LR</Label>
+        <CheckBox Grid.Row="24" Grid.Column="1"  IsChecked="{Binding LrRaw, Mode= TwoWay, ValidatesOnExceptions=True}"/>
+        <Label Grid.Row="25">LR decays per prototype</Label>
+        <CheckBox Grid.Row="25" Grid.Column="1"  IsChecked="{Binding LrPp, Mode= TwoWay, ValidatesOnExceptions=True}"/>
 
-        <Label Grid.Row="26">Parallel models</Label>
-        <TextBox Grid.Row="26" Grid.Column="1" Text="{Binding ParallelModels, Mode=TwoWay, ValidatesOnExceptions=True}" />
-        <Label Grid.Row="27">Fold offset</Label>
-        <TextBox Grid.Row="27" Grid.Column="1" Text="{Binding FoldOffset, Mode=TwoWay, ValidatesOnExceptions=True}" />
-        <Label Grid.Row="28">Don't plot Nn error rate (faster)</Label>
-        <CheckBox Grid.Row="28" Grid.Column="1"  IsChecked="{Binding NoNnErrorRateTracking, Mode= TwoWay, ValidatesOnExceptions=True}"/>
+        <Button Grid.Row="30" Content="Reset Initialization Seed" Click="ReseedParam" />
+        <TextBox Grid.Row="30" Grid.Column="1" Text="{Binding ParamsSeed, Mode=TwoWay, ValidatesOnExceptions=True, Converter={StaticResource hexConverter}}"  />
+        <Button Grid.Row="31" Content="Reset Iteration Seed" Click="ReseedInst" />
+        <TextBox Grid.Row="31" Grid.Column="1" Text="{Binding InstanceSeed, Mode=TwoWay, ValidatesOnExceptions=True, Converter={StaticResource hexConverter}}" />
+
+        <Label Grid.Row="32">Parallel models</Label>
+        <TextBox Grid.Row="32" Grid.Column="1" Text="{Binding ParallelModels, Mode=TwoWay, ValidatesOnExceptions=True}" />
+        <Label Grid.Row="33">Fold offset</Label>
+        <TextBox Grid.Row="33" Grid.Column="1" Text="{Binding FoldOffset, Mode=TwoWay, ValidatesOnExceptions=True}" />
+        <Label Grid.Row="34">Don't plot Nn error rate (faster)</Label>
+        <CheckBox Grid.Row="34" Grid.Column="1"  IsChecked="{Binding NoNnErrorRateTracking, Mode= TwoWay, ValidatesOnExceptions=True}"/>
         
-        <Label Grid.Row="29">Shorthand</Label>
-        <TextBox  Grid.Row="29" Grid.Column="1" Text="{Binding Shorthand, Mode=TwoWay, ValidatesOnExceptions=True, UpdateSourceTrigger=PropertyChanged}" />        <!--, UpdateSourceTrigger=PropertyChanged-->
+        <Label Grid.Row="35">Shorthand</Label>
+        <TextBox  Grid.Row="35" Grid.Column="1" Text="{Binding Shorthand, Mode=TwoWay, ValidatesOnExceptions=True, UpdateSourceTrigger=PropertyChanged}" />        <!--, UpdateSourceTrigger=PropertyChanged-->
 
-        <StackPanel Orientation="Horizontal" Grid.Row="30" Grid.ColumnSpan="2" FlowDirection="RightToLeft">
+        <StackPanel Orientation="Horizontal" Grid.Row="40" Grid.ColumnSpan="2" FlowDirection="RightToLeft">
             <Button Click="InitializeModel" >Initialize Model</Button>
             <Button Click="OptimizeOrCreate"  Content="{Binding OptimizeButtonText, Mode=OneWay}" />
             <Button Click="OptimizeAll" Content="{Binding OptimizeAllButtonText, Mode=OneWay}" IsEnabled="{Binding OptimizedLrAllIncomplete, Mode=OneWay}"/>
         </StackPanel>
-        <TextBlock VerticalAlignment="Center" Grid.Row="31" Grid.ColumnSpan="2" HorizontalAlignment="Right">
+        <TextBlock VerticalAlignment="Center" Grid.Row="41" Grid.ColumnSpan="2" HorizontalAlignment="Right">
             Optimize LR done: <Run Text="{Binding HasOptimizedLr, Mode=OneWay}"/>
             Optimize LR All: <Run Text="{Binding OptimizedLrAllStatus, Mode=OneWay}"/>
         </TextBlock>
-        <TextBlock Grid.Row="32" Grid.ColumnSpan="2" Text="{Binding ShorthandErrors, Mode=OneWay}" HorizontalAlignment="Left" TextWrapping="Wrap" />
-        <TextBlock VerticalAlignment="Center" Grid.Row="33" Grid.ColumnSpan="2" HorizontalAlignment="Left">
+        <TextBlock Grid.Row="42" Grid.ColumnSpan="2" Text="{Binding ShorthandErrors, Mode=OneWay}" HorizontalAlignment="Left" TextWrapping="Wrap" />
+        <TextBlock VerticalAlignment="Center" Grid.Row="43" Grid.ColumnSpan="2" HorizontalAlignment="Left">
             Estimated iteration cost: <Run Text="{Binding EstCost, Mode=OneWay}"/>;
             Reasonable animation step: <Run Text="{Binding AnimEpochSuggestion, Mode=OneWay}"/> epochs.
         </TextBlock>

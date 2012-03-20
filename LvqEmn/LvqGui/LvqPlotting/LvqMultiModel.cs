@@ -51,7 +51,7 @@ namespace LvqGui
 
 		public bool IsMultiModel { get { return ModelCount > 1; } }
 
-		public double CurrentLearningRate { get { return subModels.Sum(model => model.UnscaledLearningRate) / ModelCount; } }
+		public double CurrentMeanLearningRate { get { return subModels.Sum(model => model.MeanUnscaledLearningRate) / ModelCount; } }
 
 		public int SelectedSubModel { get; set; }
 

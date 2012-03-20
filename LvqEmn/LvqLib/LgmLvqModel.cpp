@@ -74,12 +74,12 @@ LgmLvqModel::LgmLvqModel( LvqModelSettings & initSettings)
 
 
 MatchQuality LgmLvqModel::learnFrom(Vector_N const & trainPoint, int trainLabel) {
-	double learningRate = stepLearningRate();
-	double lr_point = settings.LR0 * learningRate;
 
 	using namespace std;
 
 	GoodBadMatch matches = findMatches(trainPoint, trainLabel);
+	double learningRate = stepLearningRate(matches.matchGood);
+	double lr_point = settings.LR0 * learningRate;
 
 	//now matches.good is "J" and matches.bad is "K".
 	MatchQuality retval = matches.LvqQuality();

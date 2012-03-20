@@ -20,15 +20,17 @@ public:
 	double totalIter;
 	double totalElapsed;
 	double totalLR;
+	std::vector<double> per_proto_trainIter;
 
 protected:
 	LvqModelRuntimeSettings settings;
 private:
 	double iterationScaleFactor, iterationScalePower;
 protected:
-	double stepLearningRate() { //starts at 1.0, descending with power -0.75
-		double scaledIter = trainIter*iterationScaleFactor+1.0;
-		++trainIter;
+	double stepLearningRate(size_t protoIndex) { //starts at 1.0, descending with power -0.75
+		double &iters = per_proto_trainIter.size() ? per_proto_trainIter[protoIndex] : trainIter;
+		double scaledIter = iters*iterationScaleFactor+1.0;
+		++iters;
 		double lr= exp(iterationScalePower *  log(scaledIter)); // significantly faster than exp(-0.75*log(scaledIter)) 
 		totalLR+=lr;
 		return lr;
@@ -46,8 +48,9 @@ public:
 
 	typedef std::queue<std::vector<double>> Statistics;
 	int epochsTrained;
-	double unscaledLearningRate() const { 
-		double scaledIter = trainIter*iterationScaleFactor+1.0;
+	double meanUnscaledLearningRate() const {
+		double meanIters =per_proto_trainIter.size() ? std::accumulate(per_proto_trainIter.cbegin(), per_proto_trainIter.cend(), 0) / per_proto_trainIter.size() : trainIter;
+		double scaledIter = meanIters*iterationScaleFactor+1.0;
 		return exp(iterationScalePower *  log(scaledIter)); 
 	}
 

@@ -118,7 +118,6 @@ namespace LvqGui {
 
 
 		//		public static void ParseShorthand(object shorthandObj, object defaults, Regex shR, string newShorthand) {
-
 		//		public static bool TryParseShorthand(object shorthandObj, object defaults, Regex shR, string newShorthand) {
 		//public static string VerifyShorthand(T shorthandObj, Regex shR) { IHasShorthand
 		//		public static T TryParseShorthand<T>(T defaults, Regex shR, string newShorthand) where T : class,new() {

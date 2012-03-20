@@ -15,18 +15,15 @@ extern "C" {
 		LvqModelType ModelType;
 		int Dimensionality;
 		int PrototypesPerClass;
-		bool Ppca;
-		bool RandomInitialBorders;
-		bool neiP,scP, noKP, neiB, LocallyNormalize;
-		bool NGu, NGi, Popt, Bcov, LrRaw, wGMu;
-		bool SlowK;
+		bool Ppca, RandomInitialBorders, neiP, scP, noKP, neiB, LocallyNormalize;
+		bool NGu, NGi, Popt, Bcov, LrRaw, LrPp, wGMu, SlowK;
 		double MuOffset, LR0, LrScaleP, LrScaleB, LrScaleBad, decay, iterScaleFactor;
 		unsigned ParamsSeed, InstanceSeed;
 		bool NoNnErrorRateTracking;
 		int ParallelModels; //only used in C#!
 	};
 
-	const LvqModelSettingsRaw defaultLvqModelSettings = { AutoModelType, 2, 1, false, false, false, false, false, false, false, false, false, false,false,false, false, false, 0.0, LVQ_LR0, LVQ_LrScaleP, LVQ_LrScaleB, LVQ_LrScaleBad, 1.,LVQ_ITERFACTOR_PERPROTO, 37, 42, false, 10	};
+	const LvqModelSettingsRaw defaultLvqModelSettings = { AutoModelType, 2, 1, false, false, false, false, false, false, false, false, false, false,false,false, false, false, false, 0.0, LVQ_LR0, LVQ_LrScaleP, LVQ_LrScaleB, LVQ_LrScaleBad, 1.,LVQ_ITERFACTOR_PERPROTO, 37, 42, false, 10	};
 
 	__declspec(dllexport) LvqDataset* CreateDatasetRaw(
 										    unsigned rngInstSeed, int dimCount, int pointCount, int classCount,
@@ -66,7 +63,7 @@ extern "C" {
 	__declspec(dllexport) void NormalizeProjectionRotation(LvqModel * model);
 	__declspec(dllexport) void GetPrototypeLabels(LvqModel const* model, int* protoLabels);
 	__declspec(dllexport) int GetEpochsTrained(LvqModel const* model);
-	__declspec(dllexport) double GetUnscaledLearningRate(LvqModel const* model);
+	__declspec(dllexport) double GetMeanUnscaledLearningRate(LvqModel const* model);
 	__declspec(dllexport) bool IsProjectionModel(LvqModel const* model);
 	__declspec(dllexport) void ResetLearningRate(LvqModel * model); 
 	__declspec(dllexport) void GetTrainingStatNames(LvqModel const* model, 

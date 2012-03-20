@@ -140,6 +140,11 @@ namespace LvqGui {
 			set { if (!Equals(settings.LrRaw, value)) { settings.LrRaw = value; _propertyChanged("LrRaw"); } }
 		}
 
+		public bool LrPp {
+			get { return settings.LrPp; }
+			set { if (!Equals(settings.LrPp, value)) { settings.LrPp = value; _propertyChanged("LrPp"); } }
+		}
+
 		public bool wGMu {
 			get { return settings.wGMu; }
 			set { if (!settings.wGMu.Equals(value)) { settings.wGMu = value; _propertyChanged("wGMu"); } }
@@ -235,6 +240,7 @@ namespace LvqGui {
 					|(?<Bcov>Bcov,)
 					|(?<wGMu>wGMu,)
 					|(?<LrRaw>LrRaw,)
+					|(?<LrPp>LrPp,)
 					|(?<SlowK>SlowK,)
 					|(?<NoNnErrorRateTracking>NoNnErrorRateTracking,)
 					|mu(?<MuOffset>[0-9]*(\.[0-9]*)?([eE]-?[0-9]+)?),

@@ -78,14 +78,6 @@ typedef Map<Vector_N, Aligned> MVectorXd;
 
 MatchQuality G2mLvqModel::learnFrom(Vector_N const & trainPoint, int trainLabel) {
 	using namespace std;
-	double learningRate = stepLearningRate();
-
-	double lr_point = settings.LR0 * learningRate,
-		lr_P = min(1.0, lr_point * settings.LrScaleP),
-		lr_B = min(1.0, lr_point * settings.LrScaleB),
-		lr_bad = (settings.SlowK  ?  sqr(1.0 - learningRate)  :  1.0) * settings.LrScaleBad;
-
-	assert(lr_P>=0 && lr_B>=0 && lr_point>=0);
 
 	Vector_2 P_trainPoint( P * trainPoint );
 
@@ -102,6 +94,13 @@ MatchQuality G2mLvqModel::learnFrom(Vector_N const & trainPoint, int trainLabel)
 	} else {
 		matches = findMatches(P_trainPoint, trainLabel);
 	}
+	double learningRate = stepLearningRate(matches.matchGood);
+
+	double lr_point = settings.LR0 * learningRate,
+		lr_P = min(1.0, lr_point * settings.LrScaleP),
+		lr_B = min(1.0, lr_point * settings.LrScaleB),
+		lr_bad = (settings.SlowK  ?  sqr(1.0 - learningRate)  :  1.0) * settings.LrScaleBad;
+	assert(lr_P>=0 && lr_B>=0 && lr_point>=0);
 
 	//now matches.good is "J" and matches.bad is "K".
 	G2mLvqPrototype &J = prototype[matches.matchGood];
