@@ -1,4 +1,4 @@
-﻿#I @"ResultsAnalysis\bin\ReleaseMingw"
+﻿#I @"ResultsAnalysis\bin\ReleaseMingw2"
 #r "ResultsAnalysis"
 #r "LvqLibCli"
 #r "LvqGui"
@@ -137,7 +137,7 @@ let heuristics=
 
 //let basics = ["Ggm-1,";"Ggm-5,";"Gm-1,";"Gm-5,";"G2m-1,";"G2m-5,";"Gpq-1,";"Gpq-5,";"Lgm-1,";"Lgm-5,";"Lgm[6]-1,";"Lgm[6]-5,"] |> List.map CreateLvqModelValues.ParseShorthand
 let basics = ["Ggm-1,";"Ggm-3,";"Ggm-5,";"Gm-1,";"Gm-3,";"Gm-5,";"G2m-1,";"G2m-3,";"G2m-5,";"Gpq-1,";"Gpq-3,";"Gpq-5,";
-                        //"Lgm-1,";"Lgm-3,";"Lgm-5,";"Lgm[6]-1,";"Lgm[6]-3,";"Lgm[6]-5,"
+                        "Lgm-1,";"Lgm-3,";"Lgm-5,";"Lgm[6]-1,";"Lgm[6]-3,";"Lgm[6]-5,"
                         ]
                         |> List.map CreateLvqModelValues.ParseShorthand
 
@@ -154,7 +154,7 @@ let interestingSettings () =
         |> Seq.collect (fun s-> List.map (fun f-> f s) heuristics)
         |> Seq.distinct |>Seq.toList
         |> List.filter (fun s->s.LikelyRefinementRanking() <4)
-        |> List.filter (fun s->s.LrPp)
+        |> List.filter (fun s-> not s.LrPp || s.ModelType = LvqModelType.Lgm)
         |> List.sortBy (fun s->s.LikelyRefinementRanking())
         |> Seq.filter (isTested defaultStore >> not) //seq is lazy, so this last minute rechecks availability of results.
         |> Seq.map withDefaultLr
