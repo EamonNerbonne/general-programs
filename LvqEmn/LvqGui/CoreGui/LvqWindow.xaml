@@ -54,6 +54,7 @@
             </TabItem>
 
             <TabItem Header="Create Lvq Model" Name="modelTab">
+                
                 <my:CreateLvqModel DataContext="{Binding CreateLvqModelValues}"/>
             </TabItem>
             <TabItem Header="Train Model" Name="trainingTab">
