@@ -6,7 +6,7 @@ struct MatchQuality {
 	double distGood,distBad;
 	double costFunc;
 	double muJ,muK;
-	double lr;
+	//double lr;
 	bool isErr;
 };
 

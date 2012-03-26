@@ -617,6 +617,7 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="FgmLvqModel.cpp" />
     <ClCompile Include="GgmLvqModel.cpp" />
     <ClCompile Include="GmFullLvqModel.cpp" />
     <ClCompile Include="GoodBadMatch.cpp" />
@@ -657,6 +658,8 @@
   <ItemGroup>
     <ClInclude Include="copy_ptr.h" />
     <ClInclude Include="CovarianceAndMean.h" />
+    <ClInclude Include="FgmLvqModel.h" />
+    <ClInclude Include="FgmLvqPrototype.h" />
     <ClInclude Include="GgmLvqModel.h" />
     <ClInclude Include="GgmLvqPrototype.h" />
     <ClInclude Include="GmFullLvqModel.h" />

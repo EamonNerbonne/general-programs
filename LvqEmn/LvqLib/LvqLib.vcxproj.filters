@@ -72,6 +72,9 @@
     <ClCompile Include="LpqLvqModel.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="FgmLvqModel.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="G2mLvqModel.h">
@@ -171,6 +174,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="LpqLvqModel.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="FgmLvqPrototype.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="FgmLvqModel.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
