@@ -33,9 +33,13 @@
  * For more examples see http://www.mozilla.org/unix/customizing.html
  */
 
-pre {
+/*pre {
   max-width: 22cm;
   overflow:auto;
+  }*/
+  
+  body{
+    -moz-hyphens: auto;
   }
   
   *:focus {
@@ -43,11 +47,21 @@ pre {
   outline:none;
   }
   
+@-moz-document domain(wizards.com) {
+  #one_controller_container, .mb_t_p_t_post_div p {
+    font-family: Calibri !important;
+    font-size: 14px !important;
+  }
+}
+
+@-moz-document domain(aclo.onin.nl) { tbody td { padding: 0 0.5em !important; } td[bgcolor="#999999"] { display: none; } }
+
+
 @-moz-document domain(google.com), domain(google.nl) {
   .vspib, #vspb {display:none !important;}
 }
   
-@-moz-document domain(icanhascheezburger.com) {
+@-moz-document domain(icanhascheezburger.comX), domain(dailysquee.comX), domain(dailypun.comX), domain(cheezeburger.comX), domain(somuchpun.comX),domain(failblog.orgX) {
   .slide-notification
   , .socmarks
   , div[id^="emailShare"]
@@ -72,7 +86,16 @@ pre {
   , .widget_recent_comments
   , #pane2 > div
   , #pane2 > p
+  , #showSlideInNotificationContainer
+  , #footer_wrapper
+  , body > br
+  , #statcounter_image
+  , #header_wrapper
+  , #panemain
+  , #wpstats
+  , body > iframe
    {display:none !important;}
+   #body_wrapper {overflow:visible!important;}
     #mainbody{
     width:100%  !important; margin:0  !important;position:static !important;
     border:none!important;
