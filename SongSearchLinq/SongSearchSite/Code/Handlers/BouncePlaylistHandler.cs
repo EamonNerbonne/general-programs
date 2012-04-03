@@ -76,7 +76,8 @@ namespace SongSearchSite.Code.Handlers {
 			var m3ustring = MakeM3u(playlistLocal, songdata => filename + @"\" + Path.GetFileName(songdata.SongUri.LocalPath));
 			using (ZipFile zip = new ZipFile()) {
 				zip.CompressionLevel = Ionic.Zlib.CompressionLevel.BestSpeed;
-				zip.AddFiles(playlistLocal.Select(localSong => localSong.SongUri.LocalPath), false, filename);
+				zip.AddFiles(playlistLocal.Select(localSong => 
+					localSong.SongUri.LocalPath).Distinct(), false, filename);
 
 				zip.AddEntry(filename + ".m3u", Encoding.GetEncoding(1252).GetBytes(m3ustring));
 				zip.AddEntry(filename + ".m3u8", Encoding.UTF8.GetBytes(m3ustring));
