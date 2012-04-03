@@ -3,6 +3,7 @@
 #include "LvqModel.h"
 
 #include "GgmLvqModel.h"
+#include "FgmLvqModel.h"
 #include "G2mLvqModel.h"
 #include "LgmLvqModel.h"
 #include "GmLvqModel.h"
@@ -40,6 +41,9 @@ LvqModel* ConstructLvqModel(LvqModelSettings & initSettings) {
 		break;
 	case LvqModelSettings::GgmModelType:
 		return new GgmLvqModel(initSettings);
+		break;
+	case LvqModelSettings::FgmModelType:
+		return new FgmLvqModel(initSettings);
 		break;
 	case LvqModelSettings::GpqModelType:
 		return new GpqLvqModel(initSettings);
@@ -291,7 +295,7 @@ vector<Matrix_22> BinitPerProto(Matrix_P const & P, LvqModelSettings & initSetti
 
 	vector<Matrix_22> initB;
 	if(!initSettings.Bcov) {
-		if(initSettings.ModelType == LvqModelSettings::GgmModelType) {
+		if(initSettings.ModelType == LvqModelSettings::GgmModelType || initSettings.ModelType == LvqModelSettings::FgmModelType) {
 			auto globalB = BinitByPca(lowdimpoints);
 			for(size_t protoIndex=0; protoIndex < (size_t)protoLabels.size(); ++protoIndex)
 				initB.push_back(globalB);
@@ -308,7 +312,7 @@ vector<Matrix_22> BinitPerProto(Matrix_P const & P, LvqModelSettings & initSetti
 	if(initSettings.RandomInitialBorders) {
 		for(size_t protoIndex=0; protoIndex < (size_t)protoLabels.size(); ++protoIndex){
 			Matrix_22 rndMat;
-			if(initSettings.ModelType == LvqModelSettings::GgmModelType) 
+			if(initSettings.ModelType == LvqModelSettings::GgmModelType || initSettings.ModelType == LvqModelSettings::FgmModelType) 
 				rndMat = randomUnscalingMatrix<Matrix_22>(initSettings.RngParams, LVQ_LOW_DIM_SPACE);
 			else  //G2mModelType
 				projectionRandomizeUniformScaled(initSettings.RngParams, rndMat);

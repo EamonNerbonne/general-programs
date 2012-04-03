@@ -172,7 +172,7 @@ namespace LvqGui {
 		Task FindOptimalLr(TextWriter sink, LvqModelSettingsCli settings, CancellationToken cancel) {
 			var lr0range = _dataset != null ? LogRange(0.3 / settings.PrototypesPerClass, 0.01 / settings.PrototypesPerClass, 6) : LogRange(0.3, 0.01, 8);
 			var lrPrange = _dataset != null ? LogRange(0.3 / settings.PrototypesPerClass, 0.01 / settings.PrototypesPerClass, 6) : LogRange(0.5, 0.03, 8);
-			var lrBrange = settings.ModelType != LvqModelType.Ggm && settings.ModelType != LvqModelType.G2m ? new[] { 0.0 }
+			var lrBrange = settings.ModelType != LvqModelType.Ggm && settings.ModelType != LvqModelType.G2m && settings.ModelType != LvqModelType.Gpq && settings.ModelType != LvqModelType.Fgm ? new[] { 0.0 }
 				: _dataset == null ? LogRange(0.1, 0.003, 4)
 				: settings.ModelType == LvqModelType.G2m ? LogRange(0.03 / settings.PrototypesPerClass, 0.001 / settings.PrototypesPerClass, 5)
 				: LogRange(0.1 * settings.PrototypesPerClass, 0.003 * settings.PrototypesPerClass, 5) //!!!!
@@ -378,6 +378,7 @@ namespace LvqGui {
 			} else {
 				return settings.ModelType == LvqModelType.Gm ? settings.WithLr(0.002, 2.0, 0.0)
 					: settings.ModelType == LvqModelType.Ggm ? settings.WithLr(0.03, 0.05, 4.0)
+					: settings.ModelType == LvqModelType.Fgm ? settings.WithLr(0.03, 0.05, 4.0)
 					: settings.WithLr(0.01, 0.4, 0.006);
 			}
 		}

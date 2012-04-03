@@ -32,8 +32,9 @@ namespace LvqLibCli {
 
 	LvqModelSettingsCli LvqModelSettingsCli::Canonicalize() {
 		bool isG2mVariant = ModelType == LvqModelType::G2m ||  ModelType == LvqModelType::Gpq;
+		bool isGgmVariant = ModelType == LvqModelType::Ggm ||  ModelType == LvqModelType::Fgm;
 		bool isLgmVariant = ModelType == LvqModelType::Lgm ||  ModelType == LvqModelType::Lpq;
-		bool hasB = isG2mVariant || ModelType == LvqModelType::Ggm;
+		bool hasB = isG2mVariant || isGgmVariant;
 		bool hasGlobalP = hasB || ModelType == LvqModelType::Gm;
 		LvqModelSettingsCli retval = *this;
 
@@ -45,14 +46,14 @@ namespace LvqLibCli {
 		retval.NGu = retval.NGu && PrototypesPerClass > 1 && hasGlobalP;
 		retval.NGi =retval.NGi && PrototypesPerClass > 1;
 		retval.neiB = retval.neiB && isG2mVariant;
-		retval.neiP = retval.neiP && ModelType != LvqModelType::Ggm;
+		retval.neiP = retval.neiP && !isGgmVariant;
 		retval.scP = retval.scP && hasGlobalP;
 		retval.wGMu = retval.wGMu && isG2mVariant;
 		retval.LocallyNormalize = retval.LocallyNormalize && (isLgmVariant || isG2mVariant);
 		retval.RandomInitialBorders = retval.RandomInitialBorders && hasB;
 		retval.Bcov = retval.Bcov && hasB;
 		if(!hasB) retval.LrScaleB=0.0;
-		if(ModelType != LvqModelType::Ggm) retval.MuOffset = 0.0;
+		if(!isGgmVariant) retval.MuOffset = 0.0;
 		
 		return retval;
 	}
@@ -124,8 +125,8 @@ namespace LvqLibCli {
 		double* currfactors	=
 			ModelType==LvqModelType::G2m && !ngu ? costfactors[0]
 		:	ModelType==LvqModelType::G2m && ngu ? costfactors[1]
-		:	ModelType==LvqModelType::Ggm && !ngu ? costfactors[2]
-		:	ModelType==LvqModelType::Ggm && ngu ? costfactors[3]
+		:	ModelType==LvqModelType::Ggm && !ngu ? costfactors[2] 
+		:	ModelType==LvqModelType::Ggm && ngu || ModelType==LvqModelType::Fgm ? costfactors[3] //unreasonable for Fgm, but whatever
 		:	ModelType==LvqModelType::Gm && !ngu ? costfactors[4]
 		:	ModelType==LvqModelType::Gm && ngu ? costfactors[5]
 		:	ModelType==LvqModelType::Gpq && !ngu ? costfactors[6]

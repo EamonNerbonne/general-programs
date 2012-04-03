@@ -106,7 +106,7 @@ MatchQuality FgmLvqModel::learnFrom(Vector_N const & trainPoint, int trainLabel)
 
 		if(proto.classLabel == trainLabel ) {
 			mu2 = muJ * m_probs(i) * 2.0;
-			mu2_alt = mu2 + settings.MuOffset * learningRate;
+			mu2_alt = mu2 + (bestJ == i ? settings.MuOffset * learningRate: 0);
 			assert(mu2 >= 0.0);
 			totalMuJLr -= lr_point * mu2;//compensate for lr_point negative
 		}
@@ -130,7 +130,7 @@ MatchQuality FgmLvqModel::learnFrom(Vector_N const & trainPoint, int trainLabel)
 		}
 
 
-		proto.B.noalias() += (lr_B * (mu2_alt)) * (B_P_v * P_v.transpose() - BinvT );
+		proto.B.noalias() += (lr_B * (mu2)) * (B_P_v * P_v.transpose() - BinvT );
 		proto.RecomputeBias();
 
 		proto.point.noalias() += P.transpose()* ((lr_point * (mu2_alt)) * BT_B_P_v);

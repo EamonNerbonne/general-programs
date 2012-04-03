@@ -22,7 +22,7 @@ class FgmLvqModel : public LvqProjectionModelBase<FgmLvqModel>
 	std::tuple<MatchQuality,double,double,size_t> ComputeMatchesInternal(Vector_2 const & P_point, int label) const {
 		double bestJdist = std::numeric_limits<double>::infinity(), bestKdist = std::numeric_limits<double>::infinity();
 		size_t bestJ=-1, bestK;
-		for(size_t i=0;i<PrototypeCount();i++) {
+		for(size_t i=0;i<(size_t)PrototypeCount();i++) {
 			double dist = SqrDistanceTo(i, P_point);
 			if(label==PrototypeLabel(i)){
 				if(dist<bestJdist) {
@@ -40,7 +40,7 @@ class FgmLvqModel : public LvqProjectionModelBase<FgmLvqModel>
 		double minDist = std::min(bestJdist, bestKdist);
 		m_probs.block(0,0,m_probs.size(),1).array() = (-0.5*(m_dists.array() - minDist)).exp();
 		double probJsum=0.0, probKsum=0.0;
-		for(size_t i=0;i<PrototypeCount();i++) {
+		for(size_t i=0;i<(size_t)PrototypeCount();i++) {
 			if(label==PrototypeLabel(i))
 				probJsum+=m_probs(i);
 			else

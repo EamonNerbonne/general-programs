@@ -11,6 +11,7 @@ namespace LvqLibCli {
 		Ggm = GgmModelType,
 		Gpq = GpqModelType,
 		Lpq = LpqModelType,
+		Fgm = FgmModelType,
 	};
 
 	ref class LvqDatasetCli;
