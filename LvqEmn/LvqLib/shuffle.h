@@ -2,8 +2,8 @@
 #include <boost/random/mersenne_twister.hpp>
 
 template<typename arrayT>
-void shuffle(boost::mt19937 & randGen, arrayT& arr, size_t size){
-	for(size_t i = 0; i<size;++i) {
+void shuffle(boost::mt19937 & randGen, arrayT& arr, unsigned size){
+	for(unsigned i = 0; i<size;++i) {
 		unsigned range = size-i;
 		unsigned capped;
 		while(true) {

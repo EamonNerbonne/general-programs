@@ -203,7 +203,7 @@ void LvqDataset::TrainModel(int epochs, LvqModel & model, LvqModel::Statistics *
 	for(int epoch=0; epoch<epochs; ++epoch) {
 		prefetchStream(&(model.RngIter()), (sizeof(boost::mt19937) +63)/ 64);
 		vector<int> shuffledOrder(GetTestSubset(0,1));
-		shuffle(model.RngIter(), shuffledOrder, shuffledOrder.size());
+		shuffle(model.RngIter(), shuffledOrder, (unsigned)shuffledOrder.size());
 		if(sortedTrain) {
 			Vector_N sortBy;
 			if(dynamic_cast<LvqProjectionModel*>(&model)) {
@@ -356,7 +356,7 @@ std::vector<int> LvqDataset::GetTestSubset(int fold, int foldcount) const {
 	return retval;
 }
 
-std::vector<int> LvqDataset::InRandomOrder(boost::mt19937& rng ) const { vector<int> order(GetTestSubset(0,1)); shuffle(rng,order,order.size()); return order; }
+std::vector<int> LvqDataset::InRandomOrder(boost::mt19937& rng ) const { vector<int> order(GetTestSubset(0,1)); shuffle(rng,order, (unsigned)order.size()); return order; }
 
 
 LvqDataset LvqDataset::ExtendWithOther(LvqDataset const & other) const {

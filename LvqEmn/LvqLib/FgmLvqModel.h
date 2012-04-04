@@ -21,7 +21,8 @@ class FgmLvqModel : public LvqProjectionModelBase<FgmLvqModel>
 	//also sets m_dists and m_probs:
 	std::tuple<MatchQuality,double,double,size_t> ComputeMatchesInternal(Vector_2 const & P_point, int label) const {
 		double bestJdist = std::numeric_limits<double>::infinity(), bestKdist = std::numeric_limits<double>::infinity();
-		size_t bestJ=-1, bestK;
+		size_t bestJ=(size_t)-1 //this is just a non-sense initialization to ensure an access violation in case of a bug; it should never be used.
+			, bestK;
 		for(size_t i=0;i<(size_t)PrototypeCount();i++) {
 			double dist = SqrDistanceTo(i, P_point);
 			if(label==PrototypeLabel(i)){

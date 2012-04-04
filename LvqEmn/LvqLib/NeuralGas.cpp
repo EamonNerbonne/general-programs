@@ -59,7 +59,7 @@ void NeuralGas::do_training(boost::mt19937& rng, Matrix_NN const & dataset){
 	for(size_t i=0;i<order.size();++i) order[i]=(int)i;
 	
 	while(trainIter < finalIter) {
-		shuffle(rng,order,order.size());
+		shuffle(rng,order, (unsigned)order.size());
 		for(size_t tI=0;tI < order.size() && trainIter < finalIter; ++tI) {
 			point = dataset.col(order[tI]);
 			prefetch( &dataset.coeff (0, order[(tI+1)%order.size()]), cacheLines);

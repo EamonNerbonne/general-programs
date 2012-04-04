@@ -166,7 +166,7 @@ void LvqModelSettings::ProjInit(Matrix_NN const& prototypes, Matrix_NN & P){
 	//auto dims = Dimensions();
 
 	while(iter < finalIter) {
-		shuffle(RngParams, shuffledset, shuffledset.size());
+		shuffle(RngParams, shuffledset, (unsigned)shuffledset.size());
 		for(size_t tI=0;tI < shuffledset.size() && iter < finalIter; ++tI, ++iter) {
 			int classLabel = Dataset->getPointLabels()[shuffledset[tI]];
 			double lr = 0.01 * (finalIter/100.0) / (finalIter/100.0 + iter);
