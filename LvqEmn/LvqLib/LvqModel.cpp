@@ -78,20 +78,20 @@ std::vector<std::wstring> LvqModel::TrainingStatNames() const {
 	retval.push_back(L"Test Cost!cost function!Cost Function");
 	retval.push_back(L"Nearest Correct Prototype Distance!distance!Prototype Distance");
 	retval.push_back(L"Nearest Incorrect Prototype Distance!distance!Prototype Distance");
-	retval.push_back(L"Nearest Correct Prototype Distance Variance!distance variance!Prototype Distance Variance");
-	retval.push_back(L"Nearest Incorrect Prototype Distance Variance!distance variance!Prototype Distance Variance");
+	retval.push_back(L"Nearest Correct Prototype Distance Variance!distance variance!$Prototype Distance Variance");
+	retval.push_back(L"Nearest Incorrect Prototype Distance Variance!distance variance!$Prototype Distance Variance");
 
-	retval.push_back(L"Cumulative Learning Rate!!Cumulative Learning Rates");
+	retval.push_back(L"Cumulative Learning Rate!!$Cumulative Learning Rates");
 
 	//retval.push_back(L"Cumulative \u03BC-scaled Learning Rate!!Cumulative Learning Rates");
 	if(this->IdenticalMu()) {
 		retval.push_back(L"mean \u03BC!mean \u03BC!mean \u03BC");//greek:\u03BC math:\U0001D707
-		retval.push_back(L"max \u03BC!max \u03BC!max \u03BC");//greek:\u03BC math:\U0001D707
+		retval.push_back(L"max \u03BC!max \u03BC!$max \u03BC");//greek:\u03BC math:\U0001D707
 	} else {
 		retval.push_back(L"mean \u03BC J!mean \u03BC!mean \u03BC");
 		retval.push_back(L"mean \u03BC K!mean \u03BC!mean \u03BC");
-		retval.push_back(L"max \u03BC J!max \u03BC!max \u03BC");
-		retval.push_back(L"max \u03BC K!max \u03BC!max \u03BC");
+		retval.push_back(L"max \u03BC J!max \u03BC!$max \u03BC");
+		retval.push_back(L"max \u03BC K!max \u03BC!$max \u03BC");
 	}
 	AppendTrainingStatNames(retval); 
 	return retval;

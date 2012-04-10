@@ -18,6 +18,8 @@ namespace LvqLibCli {
 		Matrix_NN cppPoints;
 		cliToCpp(points,cppPoints);
 		cliToCpp(pointLabels,cppLabels);
+		//Console::WriteLine(cppLabels.size());
+		//for each(auto i in cppLabels) Console::WriteLine(i);
 		return CreateDatasetRaw(shuffleSeed,(int)cppPoints.rows(),(int)cppPoints.cols(),classCount, cppPoints.data(), cppLabels.data());
 	}
 

@@ -10,21 +10,25 @@ GmLvqModel::GmLvqModel(LvqModelSettings & initSettings)
 	, totalMuJLr(0.0)
 	, totalMuKLr(0.0)
 	, lastAutoPupdate(0.0)
-	, m_vJ(initSettings.Dimensions())
-	, m_vK(initSettings.Dimensions())
+	, m_vJ(initSettings.InputDimensions())
+	, m_vK(initSettings.InputDimensions())
 {
 	initSettings.AssertModelIsOfRightType(this);
 
 	auto InitProtos = initSettings.InitProtosAndProjectionBySetting(); 
 	auto prototypes = get<1>(InitProtos);
+	pLabel.resize(get<2>(InitProtos).size());
 	pLabel =  get<2>(InitProtos);
 	size_t protoCount = pLabel.size();
+
+	P.resize(initSettings.Dimensionality, initSettings.InputDimensions());
 	P = get<0>(InitProtos);
 
 	prototype.resize(protoCount);
 	P_prototype.resize(protoCount);
 
 	for(size_t protoIndex=0; protoIndex < protoCount; ++protoIndex) {
+		prototype[protoIndex].resize(initSettings.InputDimensions());
 		prototype[protoIndex] = prototypes.col(protoIndex);
 		RecomputeProjection(protoIndex);
 	}

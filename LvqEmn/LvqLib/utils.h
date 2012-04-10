@@ -36,7 +36,7 @@ template <typename T> T sqr(T val) {return val*val;}
 
 template <typename T> std::wstring to_wstring (const T& obj) { std::wstringstream sink; sink << obj; return sink.str(); }
 
-template <typename T> LvqFloat normalizeProjection(T & projectionMatrix) {
+template <typename T> EIGEN_STRONG_INLINE LvqFloat normalizeProjection(T & projectionMatrix) {
 	LvqFloat scale = LvqFloat(LvqFloat(1.0)/projectionMatrix.norm());
 	projectionMatrix *= scale;
 	return scale;
@@ -58,6 +58,14 @@ template <typename T> void projectionRandomizeUniformScaled(boost::mt19937 & ran
 
 	normalizeProjection(projectionMatrix);
 }
+
+inline Matrix_22 MakeUpperTriangular(Matrix_22 fullMat) {
+	Matrix_22 square = fullMat.transpose()*fullMat;
+	//auto decomposition = square.llt();
+	Matrix_22 retval = square.llt().matrixL();
+	return retval.transpose();
+}
+
 
 void makeRandomOrder(boost::mt19937 & randGen, int*const toFill, int count);
 Matrix_NN shuffleMatrixCols(boost::mt19937 & randGen, Matrix_NN const & src);

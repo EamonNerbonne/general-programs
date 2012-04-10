@@ -7,7 +7,7 @@
 void LvqProjectionModel::AppendTrainingStatNames(std::vector<std::wstring> & retval) const { 
 	LvqModel::AppendTrainingStatNames(retval);
 	if(!dynamic_cast<GgmLvqModel const*>(this))
-		retval.push_back(L"Projection Norm!norm!Projection Norm");
+		retval.push_back(L"Projection Norm!norm!$Projection Norm");
 	if(!settings.NoNnErrorRateTracking)
 		retval.push_back(L"Projected NN Error Rate!error rate!NN Error");
 }
@@ -23,6 +23,7 @@ void LvqProjectionModel::AppendOtherStats(std::vector<double> & stats, LvqDatase
 
 LvqProjectionModel::LvqProjectionModel(LvqModelSettings & initSettings) 
 	: LvqModel(initSettings)
+	, P(initSettings.OutputDimensions(), initSettings.InputDimensions())
 {
 }
 

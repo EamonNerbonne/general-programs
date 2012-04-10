@@ -13,6 +13,12 @@ LvqDataset::LvqDataset(Matrix_NN const & points, VectorXi const & pointLabels, i
 	, pointLabels(pointLabels)
 	, m_classCount(classCountPar)
 {
+	//DBG(points.cols());
+	//DBG(pointLabels.size());
+	//DBG(pointLabels.maxCoeff());
+	//DBG(pointLabels.minCoeff());
+	//DBG(pointLabels);
+	//DBG(classCountPar);
 	assert(points.cols() == pointLabels.size());
 	assert(pointLabels.maxCoeff() < classCountPar);
 	assert(pointLabels.minCoeff()>= 0);
@@ -311,7 +317,7 @@ using Eigen::Array2d;
 
 LvqDatasetStats LvqDataset::ComputeCostAndErrorRate(LvqModel const & model) const{
 	LvqDatasetStats stats;
-	Vector_N point;
+	Vector_N point(points.rows());
 	for(int i=0;i<pointCount();++i) {
 		point = points.col(i);
 		MatchQuality matchQ = model.ComputeMatches(point, pointLabels(i));

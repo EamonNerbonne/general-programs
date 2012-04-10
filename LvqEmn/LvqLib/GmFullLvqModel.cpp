@@ -10,11 +10,11 @@ GmFullLvqModel::GmFullLvqModel(LvqModelSettings & initSettings)
 	, totalMuJLr(0.0)
 	, totalMuKLr(0.0)
 	, lastAutoPupdate(0.0)
-	, m_vJ(initSettings.Dimensions())
-	, m_vK(initSettings.Dimensions())
-	, m_vTmp1(size_t(initSettings.Dimensionality))
-	, m_vTmp2(size_t(initSettings.Dimensionality))
-	, m_vTmp3(size_t(initSettings.Dimensionality))
+	, m_vJ(initSettings.InputDimensions())
+	, m_vK(initSettings.InputDimensions())
+	, m_vTmp1(size_t(initSettings.OutputDimensions()))
+	, m_vTmp2(size_t(initSettings.OutputDimensions()))
+	, m_vTmp3(size_t(initSettings.OutputDimensions()))
 {
 	initSettings.AssertModelIsOfRightType(this);
 

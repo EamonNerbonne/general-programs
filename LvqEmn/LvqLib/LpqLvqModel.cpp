@@ -9,14 +9,14 @@ LpqLvqModel::LpqLvqModel(LvqModelSettings & initSettings)
 	: LvqModel(initSettings)
 	, totalMuJLr(0.0)
 	, totalMuKLr(0.0)
-	, tmpSrcDimsV1(initSettings.Dimensions())
-	, tmpSrcDimsV2(initSettings.Dimensions())
+	, tmpSrcDimsV1(initSettings.InputDimensions())
+	, tmpSrcDimsV2(initSettings.InputDimensions())
 	, tmpDestDimsV1()
 	, tmpDestDimsV2()
 {
 	if(initSettings.Dimensionality ==0)
-		initSettings.Dimensionality = (int) initSettings.Dimensions();
-	if(initSettings.Dimensionality < 0 || initSettings.Dimensionality > (int) initSettings.Dimensions()){
+		initSettings.Dimensionality = (int) initSettings.InputDimensions();//hmmm
+	if(initSettings.Dimensionality < 0 || initSettings.Dimensionality > (int) initSettings.InputDimensions()){
 		std::cerr<< "Dimensionality out of range\n";
 		std::exit(10);
 	}

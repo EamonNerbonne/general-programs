@@ -15,11 +15,11 @@ FgmLvqModel::FgmLvqModel(LvqModelSettings & initSettings)
 	, totalMuJLr(0.0)
 	, totalMuKLr(0.0)
 	, lastAutoPupdate(0.0)
-	, m_vJ(initSettings.Dimensions())
-	, m_vK(initSettings.Dimensions())
-	, m_Pdelta(LVQ_LOW_DIM_SPACE,initSettings.Dimensions())
+	, m_vJ(initSettings.InputDimensions())
+	, m_vK(initSettings.InputDimensions())
+	, m_Pdelta(LVQ_LOW_DIM_SPACE,initSettings.InputDimensions())
 {
-	if(initSettings.Dimensionality!=0 && initSettings.Dimensionality!=2){
+	if(initSettings.OutputDimensions() != 2) {
 		std::cerr<< "Illegal Dimensionality\n";
 		std::exit(10);
 	}
@@ -37,7 +37,8 @@ FgmLvqModel::FgmLvqModel(LvqModelSettings & initSettings)
 	m_probs.resize(protoLabels.size());
 
 	for(size_t protoIndex=0; protoIndex < (size_t)protoLabels.size(); ++protoIndex) {
-		prototype[protoIndex] = 	FgmLvqPrototype(initSettings.RngParams, initSettings.RandomInitialBorders, protoLabels(protoIndex), prototypes.col(protoIndex), P, initB[protoIndex]);
+		prototype[protoIndex].point.resize(initSettings.InputDimensions());
+		prototype[protoIndex] = 	FgmLvqPrototype(initSettings.RngParams, initSettings.RandomInitialBorders, protoLabels(protoIndex), prototypes.col(protoIndex), P,MakeUpperTriangular(initB[protoIndex]));
 	}
 
 	if(settings.scP) {
@@ -118,10 +119,10 @@ MatchQuality FgmLvqModel::learnFrom(Vector_N const & trainPoint, int trainLabel)
 		}
 
 		Vector_2 P_v= proto.P_point - P_trainPoint;
-		Vector_2 B_P_v = proto.B * P_v;
+		Vector_2 B_P_v = proto.B.triangularView<Eigen::Upper>() * P_v;
 		v = proto.point - trainPoint;
-		Vector_2 BT_B_P_v =  proto.B.transpose() * B_P_v ;
-		Matrix_22 BinvT =  proto.B.inverse().transpose();
+		Vector_2 BT_B_P_v =  proto.B.triangularView<Eigen::Upper>().transpose() * B_P_v ;
+		Matrix_22 BinvT =  proto.B.inverse().transpose().triangularView<Eigen::Upper>();//TODO:triangular
 
 		if(settings.scP) {
 			rawDistSum += (proto.P_point - P_trainPoint).squaredNorm();
@@ -130,7 +131,7 @@ MatchQuality FgmLvqModel::learnFrom(Vector_N const & trainPoint, int trainLabel)
 		}
 
 
-		proto.B.noalias() += (lr_B * (mu2)) * (B_P_v * P_v.transpose() - BinvT );
+		proto.B.triangularView<Eigen::Upper>() += (lr_B * (mu2)) * (B_P_v * P_v.transpose() - BinvT );
 		proto.RecomputeBias();
 
 		proto.point.noalias() += P.transpose()* ((lr_point * (mu2_alt)) * BT_B_P_v);
@@ -197,7 +198,7 @@ void FgmLvqModel::AppendOtherStats(std::vector<double> & stats, LvqDataset const
 	MeanMinMax norm, det, bias;
 	std::for_each(prototype.begin(),prototype.end(), [&](FgmLvqPrototype const & proto) {
 		norm.Add(proto.B.squaredNorm());
-		det.Add(abs(proto.B.determinant()));
+		det.Add(abs(proto.B.triangularView<Eigen::Upper>().determinant()));
 		bias.Add(proto.bias);
 	});
 
@@ -231,9 +232,9 @@ void FgmLvqModel::ClassBoundaryDiagram(double x0, double x1, double y0, double y
 
 	for(int pi=0; pi < this->PrototypeCount(); ++pi) {
 		auto & current_proto = this->prototype[pi];
-		B_diff_x0_y.col(pi).noalias() = current_proto.B * ( Vector_2(xBase,yBase) - current_proto.P_point);
-		B_xDelta.col(pi).noalias() = current_proto.B * Vector_2(xDelta,0.0);
-		B_yDelta.col(pi).noalias() = current_proto.B * Vector_2(0.0,yDelta);
+		B_diff_x0_y.col(pi).noalias() = current_proto.B.triangularView<Eigen::Upper>() * ( Vector_2(xBase,yBase) - current_proto.P_point);
+		B_xDelta.col(pi).noalias() = current_proto.B.triangularView<Eigen::Upper>() * Vector_2(xDelta,0.0);
+		B_yDelta.col(pi).noalias() = current_proto.B.triangularView<Eigen::Upper>() * Vector_2(0.0,yDelta);
 		pBias(pi) = current_proto.bias;
 	}
 
@@ -257,12 +258,12 @@ void FgmLvqModel::DoOptionalNormalization() {
 
  void FgmLvqModel::compensateProjectionUpdate(Matrix_22 U, double /*scale*/) {
 	for(size_t i=0;i < prototype.size();++i) {
-		prototype[i].B *= U;
+		prototype[i].B.noalias() = MakeUpperTriangular(prototype[i].B * U);
 		prototype[i].ComputePP(P);
 	}
 }
 
-FgmLvqPrototype::FgmLvqPrototype() : classLabel(-1) {}
+ FgmLvqPrototype::FgmLvqPrototype() : classLabel(-1), B(Matrix_22::Zero()) {}
 
 FgmLvqPrototype::FgmLvqPrototype(boost::mt19937 & rng, bool randInit, int protoLabel, Vector_N const & initialVal,Matrix_P const & P, Matrix_22 const & scaleB) 
 	: B(scaleB)//randInit?randomUnscalingMatrix<Matrix_22>(rng, LVQ_LOW_DIM_SPACE)*scaleB: 
@@ -273,7 +274,7 @@ FgmLvqPrototype::FgmLvqPrototype(boost::mt19937 & rng, bool randInit, int protoL
 {
 	auto rndmat = randomUnscalingMatrix<Matrix_22>(rng, LVQ_LOW_DIM_SPACE);
 	if(randInit)
-		B = rndmat*B;
+		B = MakeUpperTriangular(rndmat*B);
 	RecomputeBias();
 }
 
@@ -282,7 +283,7 @@ Matrix_NN FgmLvqModel::PrototypeDistances(Matrix_NN const & points) const {
 	Matrix_2N P_points = P*points;
 	Matrix_NN newPoints(prototype.size(), points.cols());
 	for(size_t protoI=0;protoI<prototype.size();++protoI) {
-		newPoints.row(protoI).noalias() = (prototype[protoI].B * (P_points.colwise() - prototype[protoI].P_point)).colwise().squaredNorm();
+		newPoints.row(protoI).noalias() = (prototype[protoI].B.triangularView<Eigen::Upper>() * (P_points.colwise() - prototype[protoI].P_point)).colwise().squaredNorm();
 	}
 	return newPoints;
 }
