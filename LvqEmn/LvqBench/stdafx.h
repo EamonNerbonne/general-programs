@@ -9,8 +9,9 @@
 #pragma warning (push, 3)
 #endif
 
-#define EIGEN_VECTORIZE_SSE3
-#define EIGEN_VECTORIZE_SSSE3
+//#define EIGEN_DONT_VECTORIZE
+//#define EIGEN_VECTORIZE_SSE3
+//#define EIGEN_VECTORIZE_SSSE3
 //#define EIGEN_VECTORIZE_SSE4_1
 #define EIGEN_USE_NEW_STDVECTOR
 

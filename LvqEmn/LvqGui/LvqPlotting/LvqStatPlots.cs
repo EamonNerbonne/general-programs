@@ -24,7 +24,7 @@ namespace LvqGui {
 			this.dataset = dataset;
 			this.model = model;
 			if (model.IsProjectionModel) {
-				prototypeClouds = MakePerClassScatterGraph(dataset, 0.3f,  Math.Min(model.SubModels.First().PrototypeLabels.Length, 3), 1)
+				prototypeClouds = MakePerClassScatterGraph(dataset, 0.3f, Math.Min(model.SubModels.First().PrototypeLabels.Length, 3), 1)
 					.Select((graph, i) => graph.Map((LvqMultiModel.ModelProjectionAndImage proj) => proj.PrototypesByLabel[i])).ToArray();
 				foreach (IPlotMetaDataWriteable metadata in prototypeClouds.Select(viz => viz.MetaData)) {
 					metadata.OverrideBounds = Rect.Empty;
@@ -63,7 +63,8 @@ namespace LvqGui {
 						//Title = statGroup.Key,
 						Tag = statGroup.Key,
 						GraphsEnumerable = LvqStatPlotFactory.Create(statGroup.Key, statGroup, model.IsMultiModel, dataset.IsFolded() || dataset.HasTestSet(), dataset.ClassColors, model.OriginalSettings.PrototypesPerClass).ToArray(),
-						PlotName = statGroup.Key
+						PlotName = statGroup.Key,
+						Visibility = statGroup.First().HideByDefault ? Visibility.Collapsed : Visibility.Visible,
 					}
 				).ToArray();
 		}

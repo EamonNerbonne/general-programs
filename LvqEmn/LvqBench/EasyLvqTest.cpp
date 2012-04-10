@@ -99,7 +99,15 @@ void TestModel(LvqModelType modelType, unsigned seed, bool useNgUpdate, LvqDatas
 	t.stop();
 
 	cerr<<"constructing "
-		<< (modelType==LgmModelType? "Lgm":modelType==GmModelType?"Gm":modelType==G2mModelType?"G2m":modelType==GpqModelType?"Gpq":"Ggm" )
+		<< (
+			modelType==LgmModelType? "Lgm":
+			modelType==GmModelType?"Gm":
+			modelType==G2mModelType?"G2m":
+			modelType==GpqModelType?"Gpq":
+			modelType==GgmModelType?"Ggm":
+			modelType==FgmModelType?"Fgm":
+			"???"
+			)
 		<<(useNgUpdate?" (NG update)":"")<<": "<<t.value()<<"s\n";
 
 	PrintModelStatus("Initial", model, dataset);
@@ -124,38 +132,40 @@ void TestModel(LvqModelType modelType, unsigned seed, bool useNgUpdate, LvqDatas
 
 void EasyLvqTest() {
 
-	Eigen::BenchTimer t, tLgm, tLgmBig, tG2m,tGpq, tGm,tGgm;
+	Eigen::BenchTimer t, tLgm, tLgmBig, tG2m,tGpq, tGm,tGgm,tFgm;
 	LvqDataset* dataset = CreateGaussianClouds(37,37, DIMS, CLASSCOUNT*POINTS_PER_CLASS, CLASSCOUNT, MEANSEP); 
 
 	for(int bI=0;bI<BENCH_RUNS;++bI)
 	{
 		t.start();
-		tLgm.start();
-		TestModel(LgmModelType, 0, false,  dataset, PROTOSPERCLASS, 2, 6*(ITERS + DIMS -1)/DIMS);
-		tLgm.stop();
 
-		tLgmBig.start();
-		TestModel(LgmModelType, 0, false,  dataset, PROTOSPERCLASS, 8, 3*(ITERS + DIMS -1)/DIMS);
-		tLgmBig.stop();
+		//tLgm.start();
+		//TestModel(LgmModelType, 0, false,  dataset, PROTOSPERCLASS, 2, 6*(ITERS + DIMS -1)/DIMS);
+		//tLgm.stop();
 
-		tGm.start();
-		TestModel(GmModelType, 0, false, dataset, PROTOSPERCLASS,2, ITERS);
-		tGm.stop();
+		//tLgmBig.start();
+		//TestModel(LgmModelType, 0, false,  dataset, PROTOSPERCLASS, 8, 3*(ITERS + DIMS -1)/DIMS);
+		//tLgmBig.stop();
 
-		tG2m.start();
-		TestModel(G2mModelType, 0, false, dataset, PROTOSPERCLASS,2, ITERS);
-		tG2m.stop();
+		//tGm.start();
+		//TestModel(GmModelType, 0, false, dataset, PROTOSPERCLASS,2, ITERS);
+		//tGm.stop();
 
+		//tG2m.start();
+		//TestModel(G2mModelType, 0, false, dataset, PROTOSPERCLASS,2, ITERS);
+		//tG2m.stop();
 
-		tGpq.start();
-		TestModel(GpqModelType, 0, false, dataset, PROTOSPERCLASS,2, 3*ITERS);
-		tGpq.stop();
+		//tGpq.start();
+		//TestModel(GpqModelType, 0, false, dataset, PROTOSPERCLASS,2, 3*ITERS);
+		//tGpq.stop();
 
-		tGgm.start();
-		TestModel(GgmModelType, 0, false, dataset, PROTOSPERCLASS,2, ITERS);
-		tGgm.stop();
+		//tGgm.start();
+		//TestModel(GgmModelType, 0, false, dataset, PROTOSPERCLASS,2, ITERS);
+		//tGgm.stop();
 
-
+		tFgm.start();
+		TestModel(FgmModelType, 0, false, dataset, PROTOSPERCLASS,2, ITERS);
+		tFgm.stop();
 
 		cerr<<"\n";
 		t.stop();
@@ -163,9 +173,13 @@ void EasyLvqTest() {
 
 	FreeDataset(dataset);
 	cout.precision(3);
-	cout<<t.best()<<"s (lgm: "<<tLgm.best()
-		<<", lgm[8]:"<<tLgmBig.best()
-		<<", g2m:"<<tG2m.best()
-		<<", gpq:"<<tGpq.best()
-		<<", ggm:"<<tGgm.best()<<")";
+	cout<<t.best()<<"s ("
+		//<<"lgm: "<<tLgm.best()
+		//<<", lgm[8]:"<<tLgmBig.best()
+		//<<", gm:"<<tGm.best()
+		//<<", g2m:"<<tG2m.best()
+		//<<", gpq:"<<tGpq.best()
+		//<<", ggm:"<<tGgm.best()
+		<<", fgm:"<<tFgm.best()
+		<<")";
 }

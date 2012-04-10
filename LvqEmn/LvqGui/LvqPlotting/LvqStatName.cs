@@ -4,6 +4,7 @@ namespace LvqGui
 {
 	class LvqStatName {
 		public readonly string TrainingStatLabel, UnitLabel, StatGroup;
+		public readonly bool HideByDefault;
 		public readonly int Index;
 
 		LvqStatName(string compoundName, int index) {
@@ -15,6 +16,9 @@ namespace LvqGui
 			TrainingStatLabel = splitName[0];
 			UnitLabel = splitName[1];
 			StatGroup = splitName.Length > 2 ? splitName[2] : null;
+			HideByDefault = StatGroup != null && StatGroup.StartsWith("$");
+			if (HideByDefault) StatGroup = StatGroup.Substring(1);
+
 		}
 		public static LvqStatName Create(string compoundName, int index) { return new LvqStatName(compoundName, index); }
 	}
