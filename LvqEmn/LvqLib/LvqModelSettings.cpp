@@ -162,7 +162,7 @@ void LvqModelSettings::ProjInit(Matrix_NN const& prototypes, Matrix_NN & P){
 	const size_t finalIter = 10000;
 
 	vector<int> shuffledset(Dataset->GetTestSubset(0,1));
-	Vector_N  dists, vJ, vK, point;
+	Vector_N  dists(protocount), vJ(InputDimensions()), vK(InputDimensions()), point(InputDimensions());
 	//auto dims = Dimensions();
 
 	while(iter < finalIter) {
