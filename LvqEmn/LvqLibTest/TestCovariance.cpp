@@ -5,6 +5,7 @@
 #include "CovarianceAndMean.h"
 #include "CreateDataset.h"
 #include "LvqTypedefs.h"
+#include <iostream>
 
 #define DIMS 17
 	using boost::mt19937;
