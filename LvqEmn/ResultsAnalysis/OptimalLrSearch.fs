@@ -69,7 +69,7 @@ let testSettings parOverride rndSeed iterCount (settings : LvqModelSettingsCli) 
     let results =
         [
             for datasetGenerator in datasets -> 
-                [for (foldGroup, dataset) in LazyList.take foldGroupCount datasetGenerator |> LazyList.toList |> List.zip (List.init foldGroupCount id) ->
+                [for (foldGroup, dataset) in LazyList.take foldGroupCount datasetGenerator |> Seq.toList |> List.zip (List.init foldGroupCount id) ->
                     Task.Factory.StartNew( (fun () ->
                             let groupOffset = foldGroup * 10
                             let mutable parsettings = settings
@@ -112,7 +112,7 @@ let logscale steps (v0, v1) =
     //[0.001 -> 0.1]
 
 let lrsChecker rndSeed lr0range settingsFactory iterCount = 
-    [ for lr0 in lr0range ->  Task.Factory.StartNew ((fun () -> lr0 |> settingsFactory |> testSettings 1 rndSeed iterCount), TaskCreationOptions.LongRunning) ]
+    [ for (lr0, index) in Seq.zip lr0range (Seq.initInfinite id) ->  Task.Factory.StartNew ((fun () -> lr0 |> settingsFactory |> testSettings 1 (rndSeed + uint32 index) iterCount), TaskCreationOptions.LongRunning) ]
     |> Array.ofList
     |> Array.map (fun task -> task.Result)
     |> Array.sortBy (fun res -> res.GeoMean)
@@ -181,21 +181,25 @@ let improveLr (testResultList:TestResults list) (lrUnpack, lrPack) =
     let unpackLogErrs testResults = testResults.Results |> Seq.concat |> Seq.concat |> List.ofSeq |> List.map (fun err -> Math.Log (err + errMargin))
     let bestToWorst = testResultList |> List.sortBy (unpackLogErrs >> List.average)
     let bestToWorstErrs = bestToWorst |> List.map (unpackLogErrs >> List.average)
+    let logErrDistribution = Utils.sampleDistribution bestToWorstErrs
     let lowestLogErr =bestToWorstErrs |> List.head
     let highestLogErr =bestToWorstErrs |> (List.rev >>List.head)
     let bestLogErrs = List.head bestToWorst |> unpackLogErrs
     //extract list of error rates from each testresult
     let logLrs = testResultList |> List.map (fun res-> lrUnpack res.Settings |> Math.Log)
-    let relevance = List.Cons (1.0, bestToWorst |> List.tail |> List.map (unpackLogErrs >> Utils.twoTailedPairedTtest bestLogErrs >> snd))
+    let byTtestRelevance = List.Cons (1.0, bestToWorst |> List.tail |> List.map (unpackLogErrs >> Utils.twoTailedPairedTtest bestLogErrs >> snd))
+    //note that tTestRelevance isn't exactly ideal since different seeds were used in different results; however at least the same dataset was used...
 
-    let relLength = List.length relevance
-    let linearlyScaledRelevance = List.init relLength (fun i -> float (relLength - i) / float relLength)
+    let testResultCount = List.length testResultList
+    let linearlyScaledRelevance = List.init testResultCount (fun i -> float (testResultCount - i) / float testResultCount)
     let byErrRelevance = bestToWorstErrs |> List.map (fun logErr ->1. -  (logErr - lowestLogErr) / (highestLogErr - lowestLogErr)  )
+    let byErrDistrRelevance = bestToWorstErrs |> List.map (fun logErr -> 0.5 * (1. - Math.Tanh ((logErr - logErrDistribution.Mean) / logErrDistribution.StdDev )))
 
-    let effRelevance = List.zip3 relevance linearlyScaledRelevance byErrRelevance |> List.map (fun (a,b,c) -> Math.Sqrt(a * b * c))
+    let effRelevance = [byTtestRelevance; linearlyScaledRelevance; byErrRelevance; byErrDistrRelevance] |> Utils.flipList |> List.map (List.average >> (fun rel -> Math.Pow(rel, 1.5)))
+    //let effRelevance = List.zip3 relevance linearlyScaledRelevance byErrRelevance |> List.map (fun (a,b,c) -> Math.Sqrt(a * b * c))
     
     //printfn "%A" (bestToWorst |> List.map (fun res->lrUnpack res.Settings) |> List.zip relevance)
-    let logLrDistr = List.zip logLrs effRelevance |> List.fold (fun (ss:SmartSum) (lr, rel) -> ss.CombineWith lr rel) (new SmartSum ())
+    let logLrDistr = List.zip logLrs effRelevance |> List.fold (fun (ss:SmartSum) (lr, rel) -> ss.CombineWith lr (rel + 0.1)) (new SmartSum ())
     let (logLrmean, logLrdev) = (logLrDistr.Mean, Math.Sqrt logLrDistr.Variance)
 
     let geoMeanDistr = List.zip bestToWorst effRelevance |> List.fold (fun (ss:SmartSum) (tr, rel) -> ss.CombineWith tr.GeoMean rel) (new SmartSum ())
@@ -216,8 +220,9 @@ let improvementStep (controller:ControllerState) (initialSettings:LvqModelSettin
     let results = lrsChecker (currSeed + 2u) (logscale 20 (lowLr,highLr)) (controller.Controller.Packer initialSettings) iterCount
     let ((newBaseLr, newLrLogDevScale), (errM,errDV)) = improveLr (List.ofArray results) (controller.Controller.Unpacker, controller.Controller.Packer)
     let logLrDiff_LrDevScale = 2. * Math.Abs(Math.Log(baseLr / newBaseLr))
-    let minimalLrDevScale = 0.1 * controller.Controller.InitLrLogDevScale
-    let effNewLrDevScale =Math.Max(minimalLrDevScale , 0.25*newLrLogDevScale + 0.5*controller.LrLogDevScale + 0.25*logLrDiff_LrDevScale)
+    let minimalLrDevScale = 0.2 * controller.Controller.InitLrLogDevScale
+    let maximalLrDevScale = 2. * controller.Controller.InitLrLogDevScale
+    let effNewLrDevScale = Math.Max(minimalLrDevScale, Math.Min(0.25*newLrLogDevScale + 0.5*controller.LrLogDevScale + 0.25*logLrDiff_LrDevScale, maximalLrDevScale))
     let newSettings = controller.Controller.Packer initialSettings newBaseLr
     //let finalResults =  testSettings 5 currSeed iterCount newSettings
 

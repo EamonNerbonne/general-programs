@@ -16,7 +16,7 @@ extern"C" LvqDataset* CreateDatasetRaw(
 		mt19937  rngInst(rngInstSeed);
 		Matrix_NN points(dimCount,pointCount);
 		points = Map<Matrix_NN>(data,dimCount,pointCount);
-		std::cout<<"pc:"<<pointCount<<std::endl;
+		//std::cout<<"pc:"<<pointCount<<std::endl;
 		VectorXi labelVec(pointCount);
 		for(int i=0;i<pointCount;++i) labelVec(i) = labels[i];//VS11 workaround
 		//VectorXi::Map(labels,pointCount);

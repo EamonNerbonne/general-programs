@@ -400,7 +400,7 @@
     <Compile Include="LvqPlotting\StatisticsViewMode.cs" />
     <Compile Include="StarDatasetSettings.cs" />
     <Compile Include="HexConverter.cs" />
-    <Compile Include="LvqPlotting\LvqMultiModel.cs" />
+    <Compile Include="LvqMultiModel.cs" />
     <Compile Include="LvqPlotting\LvqStatName.cs" />
     <Compile Include="LvqPlotting\LvqStatPlotFactory.cs" />
     <Compile Include="LvqPlotting\LvqStatPlots.cs" />
