@@ -5,6 +5,7 @@
     <file relUrl="bin/CassiniTest.exe" publishTime="01/27/2010 20:47:51" />
     <file relUrl="bin/SongData.dll" publishTime="01/27/2010 22:07:39" />
     <file relUrl="bin/SongSearchSite.pdb" publishTime="01/27/2010 22:53:26" />
+    <file relUrl="bin/taglib-sharp.dll" publishTime="08/15/2009 13:33:45" />
     <file relUrl="bin/EmnExtensions.dll" publishTime="01/27/2010 22:07:38" />
     <file relUrl="tableview.xsl" publishTime="05/29/2009 17:18:07" />
     <file relUrl="IndexStatus.aspx" publishTime="05/07/2008 22:32:42" />
@@ -20,7 +21,6 @@
     <file relUrl="bin/HttpHeaderHelper.dll" publishTime="01/27/2010 22:53:25" />
     <file relUrl="bin/CassiniTest.pdb" publishTime="01/27/2010 20:47:51" />
     <file relUrl="Default.aspx" publishTime="07/18/2009 13:46:03" />
-    <file relUrl="bin/taglib-sharp.dll" publishTime="08/15/2009 13:33:45" />
     <file relUrl="bin/Cassini.pdb" publishTime="01/27/2010 20:47:51" />
   </publishProfile>
 </publishData>
