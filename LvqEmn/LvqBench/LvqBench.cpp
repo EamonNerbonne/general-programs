@@ -19,6 +19,9 @@ int file_size(const char* sFileName)
 }
 
 int main(int , char*argv []){ 
+#ifdef _MSC_VER
+	_controlfp(_DN_FLUSH, _MCW_DN); 
+#endif
 	using std::cout;
 	cout<<"LvqBench";
 #ifdef EIGEN_DONT_VECTORIZE

@@ -244,6 +244,7 @@ namespace LvqGui
 								},
 								cancel, TaskCreationOptions.None, LowPriorityTaskScheduler.DefaultLowPriorityScheduler)
 					).ToArray();
+				
 				Task.WaitAll(helpers, cancel);
 			}
 			finally

@@ -29,14 +29,14 @@ LgmLvqModel::LgmLvqModel( LvqModelSettings & initSettings)
 	: LvqModel(initSettings)
 	, totalMuJLr(0.0)
 	, totalMuKLr(0.0)
-	, tmpSrcDimsV1(initSettings.Dimensions())
-	, tmpSrcDimsV2(initSettings.Dimensions())
+	, tmpSrcDimsV1(initSettings.InputDimensions())
+	, tmpSrcDimsV2(initSettings.InputDimensions())
 	, tmpDestDimsV1()
 	, tmpDestDimsV2()
 {
 	if(initSettings.Dimensionality ==0)
-		initSettings.Dimensionality = (int) initSettings.Dimensions();
-	if(initSettings.Dimensionality < 0 || initSettings.Dimensionality > (int) initSettings.Dimensions()){
+		initSettings.Dimensionality = (int) initSettings.InputDimensions();
+	if(initSettings.Dimensionality < 0 || initSettings.Dimensionality > (int) initSettings.InputDimensions()){
 		std::cerr<< "Dimensionality out of range\n";
 		std::exit(10);
 	}
@@ -50,12 +50,15 @@ LgmLvqModel::LgmLvqModel( LvqModelSettings & initSettings)
 	auto projAndProtos = initSettings.InitProtosAndProjectionBySetting();
 	auto initP = get<0>(projAndProtos);
 
+	pLabel.resize( get<2>(projAndProtos).size());
 	pLabel = get<2>(projAndProtos);
 	size_t protoCount = pLabel.size();
 	prototype.resize(protoCount);
 	P.resize(protoCount);
 
 	for(size_t protoIndex = 0; protoIndex < protoCount; ++protoIndex) {
+		prototype[protoIndex].resize(initSettings.InputDimensions());
+		P[protoIndex].resize(initP.rows(),initP.cols());
 		prototype[protoIndex] = get<1>(projAndProtos).col(protoIndex);
 		
 		if(initSettings.Ppca || initSettings.Popt) {

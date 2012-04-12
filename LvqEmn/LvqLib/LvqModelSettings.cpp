@@ -91,7 +91,7 @@ LvqModelSettings::LvqModelSettings(LvqModelType modelType, boost::mt19937 & rngP
 	, Dataset(dataset)
 { }
 
-size_t LvqModelSettings::Dimensions() const { return Dataset->dimCount(); }
+size_t LvqModelSettings::InputDimensions() const { return Dataset->dimCount(); }
 
 int LvqModelSettings::PrototypeCount() const {	return accumulate(PrototypeDistribution.begin(), PrototypeDistribution.end(), 0); }
 
@@ -131,7 +131,7 @@ pair<Matrix_NN, VectorXi> LvqModelSettings::InitByNg() {
 	}
 
 	int prototypecount = PrototypeCount();
-	Matrix_NN prototypes(Dimensions(), prototypecount);
+	Matrix_NN prototypes(InputDimensions(), prototypecount);
 	VectorXi labels(prototypecount);
 
 	int pi=0;
@@ -141,7 +141,7 @@ pair<Matrix_NN, VectorXi> LvqModelSettings::InitByNg() {
 			classPoints.col(si) = Dataset->getPoints().col(setsByClass[i][si]);
 		NeuralGas ng(RngParams, PrototypeDistribution[i], classPoints);
 		ng.do_training(RngParams, classPoints);
-		prototypes.block(0, pi, Dimensions(), PrototypeDistribution[i]).noalias() = ng.Prototypes();
+		prototypes.block(0, pi, InputDimensions(), PrototypeDistribution[i]).noalias() = ng.Prototypes();
 		for(int subpi =0; subpi < PrototypeDistribution[i]; ++subpi, ++pi)
 			labels(pi) = (int)i;
 	}
@@ -341,7 +341,7 @@ Matrix_NN LvqModelSettings::pcaTransform() const {
 }
 
 Matrix_NN LvqModelSettings::initTransform() {
-	Matrix_NN P(Dimensionality == 0 ? LVQ_LOW_DIM_SPACE : Dimensionality, Dimensions());
+	Matrix_NN P(Dimensionality == 0 ? LVQ_LOW_DIM_SPACE : Dimensionality, InputDimensions());
 	if(Ppca)
 		P = pcaTransform();
 	else

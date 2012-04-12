@@ -15,8 +15,8 @@ G2mLvqModel::G2mLvqModel(LvqModelSettings & initSettings)
 	, totalMuJLr(0.0)
 	, totalMuKLr(0.0)
 	, lastAutoPupdate(0.0)
-	, m_vJ(initSettings.Dimensions())
-	, m_vK(initSettings.Dimensions())
+	, m_vJ(initSettings.InputDimensions())
+	, m_vK(initSettings.InputDimensions())
 {
 	if(initSettings.Dimensionality!=0 && initSettings.Dimensionality!=2){
 		cerr<< "Illegal Dimensionality\n";
@@ -34,6 +34,7 @@ G2mLvqModel::G2mLvqModel(LvqModelSettings & initSettings)
 	prototype.resize(protoLabels.size());
 
 	for(size_t protoIndex=0; protoIndex < (size_t) protoLabels.size(); ++protoIndex) {
+		prototype[protoIndex].point.resize(initSettings.InputDimensions());
 		prototype[protoIndex] = G2mLvqPrototype(initB[protoIndex], protoLabels(protoIndex), prototypes.col(protoIndex));
 		prototype[protoIndex].ComputePP(P);
 	}

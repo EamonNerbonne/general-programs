@@ -164,7 +164,7 @@ namespace LvqGui {
 			}
 		}
 
-		void BuildContextMenu( IEnumerable<PlotControl> plots) {
+		void BuildContextMenu(IEnumerable<PlotControl> plots) {
 			var items = plots.Select(plot => new MenuItem { Header = plot.PlotName, IsCheckable = true, IsChecked = plot.Visibility == Visibility.Visible, Tag = plot }).ToArray();
 			foreach (var menuitem in items) {
 				menuitem.Checked += menuitem_Checked;
@@ -194,7 +194,7 @@ namespace LvqGui {
 		void MakeSubPlotWindow() {
 			double borderWidth = (SystemParameters.MaximizedPrimaryScreenWidth - SystemParameters.FullPrimaryScreenWidth) / 2.0;
 			if (subPlotWindow != null && subPlotWindow.IsLoaded) {
-				if(!hide)
+				if (!hide)
 					subPlotWindow.Show();
 				return;
 			}
@@ -269,7 +269,7 @@ namespace LvqGui {
 					var graphOperationsLazy =
 						from plot in subplots.statPlots
 						group plot by plot.GetDispatcher() into plotgroup
-						select (plotgroup.Key??subplots.plots[0].Dispatcher).BeginInvokeBackground(() => { foreach (var sp in plotgroup) sp.ChangeData(subplots); });
+						select (plotgroup.Key ?? subplots.plots[0].Dispatcher).BeginInvokeBackground(() => { foreach (var sp in plotgroup) sp.ChangeData(subplots); });
 
 					foreach (var op in graphOperationsLazy) yield return op;
 				}
@@ -277,11 +277,11 @@ namespace LvqGui {
 		bool reallyClosing = false;
 		public void Dispose() {
 			reallyClosing = true;
-			lvqPlotDispatcher.Invoke(new Action(() => {
-				
-				subPlotWindow.Close();
-				lvqPlotDispatcher.InvokeShutdown();
-			}));
+			if (!lvqPlotDispatcher.HasShutdownStarted)
+				lvqPlotDispatcher.Invoke(new Action(() => {
+					subPlotWindow.Close();
+					lvqPlotDispatcher.InvokeShutdown();
+				}));
 		}
 
 		public static void QueueUpdateIfCurrent(LvqStatPlotsContainer plotData) {
@@ -353,7 +353,7 @@ namespace LvqGui {
 
 		static string plotnameLookup(string fullname) {
 			switch (fullname) {
-				case "Border Matrix absolute determinant": 
+				case "Border Matrix absolute determinant":
 				case "Border Matrix: log(abs(|B|))":
 					return "Bdet";
 				case "Border Matrix: log(||B||^2)":

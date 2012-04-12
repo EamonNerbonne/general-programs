@@ -14,11 +14,11 @@ GgmLvqModel::GgmLvqModel(LvqModelSettings & initSettings)
 	: LvqProjectionModelBase(initSettings)
 	, totalMuLr(0.0)
 	, lastAutoPupdate(0.0)
-	, m_vJ(initSettings.Dimensions())
-	, m_vK(initSettings.Dimensions())
-	, m_PpseudoinvT(LVQ_LOW_DIM_SPACE,initSettings.Dimensions())
+	, m_vJ(initSettings.InputDimensions())
+	, m_vK(initSettings.InputDimensions())
+	, m_PpseudoinvT(LVQ_LOW_DIM_SPACE,initSettings.InputDimensions())
 {
-	if(initSettings.Dimensionality!=0 && initSettings.Dimensionality!=2){
+	if(initSettings.OutputDimensions() !=2){
 		std::cerr<< "Illegal Dimensionality\n";
 		std::exit(10);
 	}
@@ -34,6 +34,7 @@ GgmLvqModel::GgmLvqModel(LvqModelSettings & initSettings)
 
 	prototype.resize(protoLabels.size());
 	for(size_t protoIndex=0; protoIndex < (size_t)protoLabels.size(); ++protoIndex) {
+		prototype[protoIndex].point.resize(initSettings.InputDimensions());
 		prototype[protoIndex] = 	GgmLvqPrototype(initSettings.RngParams, initSettings.RandomInitialBorders, protoLabels(protoIndex), prototypes.col(protoIndex), P, initB[protoIndex]);
 	}
 
@@ -106,7 +107,8 @@ MatchQuality GgmLvqModel::learnFrom(Vector_N const & trainPoint, int trainLabel)
 	MatchQuality ggmQuality = matches.GgmQuality();
 	double muJ2 = 2*ggmQuality.muJ;
 	double muK2 = 2*ggmQuality.muK;
-	double muJ2_alt = muJ2 + settings.MuOffset * learningRate;
+	double muJ2_alt = settings.MuOffset ==0 || ggmQuality.isErr? muJ2 : muJ2 + settings.MuOffset * learningRate * exp(-0.5*ggmQuality.distGood);
+	double muK2_alt = settings.MuOffset ==0 || !ggmQuality.isErr? muK2 : muK2 - settings.MuOffset * learningRate * exp(-0.5*ggmQuality.distBad);
 
 	MVectorXd vJ(m_vJ.data(),m_vJ.size());
 	MVectorXd vK(m_vK.data(),m_vK.size());
@@ -129,13 +131,13 @@ MatchQuality GgmLvqModel::learnFrom(Vector_N const & trainPoint, int trainLabel)
 	}
 
 
-	J.B.noalias() += (lr_B * (muJ2_alt)) * (Bj_P_vJ * P_vJ.transpose() - JBinvT );
-	K.B.noalias() += (lr_bad*lr_B*muK2) * (Bk_P_vK * P_vK.transpose() - KBinvT) ;
+	J.B.noalias() += (lr_B * muJ2_alt) * (Bj_P_vJ * P_vJ.transpose() - JBinvT );
+	K.B.noalias() += (lr_bad*lr_B*muK2_alt) * (Bk_P_vK * P_vK.transpose() - KBinvT) ;
 	J.RecomputeBias();
 	K.RecomputeBias();
 
-	J.point.noalias() += P.transpose()* ((lr_point * (muJ2_alt)) * BjT_Bj_P_vJ);
-	K.point.noalias() += P.transpose() * ((lr_bad * lr_point * muK2) * BkT_Bk_P_vK) ;
+	J.point.noalias() += P.transpose()* ((lr_point * muJ2_alt) * BjT_Bj_P_vJ);
+	K.point.noalias() += P.transpose() * ((lr_bad * lr_point * muK2_alt) * BkT_Bk_P_vK) ;
 
 	if(ngMatchCache.size()>0) {
 		double lrSub = 1.0;
@@ -171,7 +173,7 @@ MatchQuality GgmLvqModel::learnFrom(Vector_N const & trainPoint, int trainLabel)
 	for(size_t i=0;i < protoCount;++i)
 		prototype[i].ComputePP(P);
 	
-	totalMuLr+= -lr_point*ggmQuality.muJ;
+	totalMuLr += -0.5*lr_point*muJ2_alt + 0.5*lr_point*muK2_alt;
 	return ggmQuality;
 }
 
@@ -205,12 +207,12 @@ vector<int> GgmLvqModel::GetPrototypeLabels() const {
 
 void GgmLvqModel::AppendTrainingStatNames(std::vector<std::wstring> & retval) const {
 	LvqProjectionModel::AppendTrainingStatNames(retval);
-	retval.push_back(L"Maximum norm(B)!norm!Border Matrix norm");
-	retval.push_back(L"Mean norm(B)!norm!Border Matrix norm");
-	retval.push_back(L"Minimum norm(B)!norm!Border Matrix norm");
-	retval.push_back(L"Maximum |B|!determinant!Border Matrix absolute determinant");
-	retval.push_back(L"Mean |B|!determinant!Border Matrix absolute determinant");
-	retval.push_back(L"Minimum |B|!determinant!Border Matrix absolute determinant");
+	retval.push_back(L"Maximum norm(B)!norm!$Border Matrix norm");
+	retval.push_back(L"Mean norm(B)!norm!$Border Matrix norm");
+	retval.push_back(L"Minimum norm(B)!norm!$Border Matrix norm");
+	retval.push_back(L"Maximum |B|!determinant!$Border Matrix absolute determinant");
+	retval.push_back(L"Mean |B|!determinant!$Border Matrix absolute determinant");
+	retval.push_back(L"Minimum |B|!determinant!$Border Matrix absolute determinant");
 	retval.push_back(L"Prototype bias max!bias!Prototype bias");
 	retval.push_back(L"Prototype bias mean!bias!Prototype bias");
 	retval.push_back(L"Prototype bias min!bias!Prototype bias");

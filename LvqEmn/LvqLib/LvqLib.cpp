@@ -16,10 +16,13 @@ extern"C" LvqDataset* CreateDatasetRaw(
 		mt19937  rngInst(rngInstSeed);
 		Matrix_NN points(dimCount,pointCount);
 		points = Map<Matrix_NN>(data,dimCount,pointCount);
-		VectorXi::Map(labels,pointCount);
+		std::cout<<"pc:"<<pointCount<<std::endl;
+		VectorXi labelVec(pointCount);
+		for(int i=0;i<pointCount;++i) labelVec(i) = labels[i];//VS11 workaround
+		//VectorXi::Map(labels,pointCount);
 		//vector<int> vLabels(labels,labels+pointCount);
-
-		LvqDataset* dataset= new LvqDataset(points,VectorXi::Map(labels,pointCount),classCount);
+		//DBG(labelVec);
+		LvqDataset* dataset= new LvqDataset(points, labelVec, classCount);
 		dataset->shufflePoints(rngInst);
 		return dataset;
 }

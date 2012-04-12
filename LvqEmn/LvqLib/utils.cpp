@@ -17,7 +17,7 @@ void makeRandomOrder(boost::mt19937 & randGen, int* const toFill, int count){
 
 	random_shuffle(toFill, toFill +count, [&](ptrdiff_t options) { return randGen()%options;});
 //	shuffle(randGen,toFill,count);
-	assert(accumulate(toFill,toFill+count,0) == (sqr(count) - count) /2 );
+	assert(accumulate(toFill,toFill+count,0ll) == (sqr((long long)count) - count) /2 );
 }
 
 Matrix_NN shuffleMatrixCols(boost::mt19937 & randGen, Matrix_NN const & src){
