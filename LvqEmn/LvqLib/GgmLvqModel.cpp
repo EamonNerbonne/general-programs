@@ -107,8 +107,8 @@ MatchQuality GgmLvqModel::learnFrom(Vector_N const & trainPoint, int trainLabel)
 	MatchQuality ggmQuality = matches.GgmQuality();
 	double muJ2 = 2*ggmQuality.muJ;
 	double muK2 = 2*ggmQuality.muK;
-	double muJ2_alt = settings.MuOffset ==0 || ggmQuality.isErr? muJ2 : muJ2 + settings.MuOffset * learningRate * exp(-0.5*ggmQuality.distGood);
-	double muK2_alt = settings.MuOffset ==0 || !ggmQuality.isErr? muK2 : muK2 - settings.MuOffset * learningRate * exp(-0.5*ggmQuality.distBad);
+	double muJ2_alt = settings.MuOffset ==0 ? muJ2 : muJ2 + settings.MuOffset * learningRate * exp(-0.5*ggmQuality.distGood);
+	double muK2_alt = true||settings.MuOffset ==0 || !ggmQuality.isErr? muK2 : muK2 - settings.MuOffset * learningRate * exp(-0.5*ggmQuality.distBad);
 
 	MVectorXd vJ(m_vJ.data(),m_vJ.size());
 	MVectorXd vK(m_vK.data(),m_vK.size());
