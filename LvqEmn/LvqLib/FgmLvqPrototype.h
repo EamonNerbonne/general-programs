@@ -37,7 +37,7 @@ public:
 
 	inline double SqrDistanceTo(Vector_2 const & P_testPoint) const {
 		Vector_2 P_Diff = P_testPoint - P_point;
-		return (B * P_Diff).squaredNorm() + bias;//waslazy
+		return (B.triangularView<Eigen::Upper>() * P_Diff).squaredNorm() + bias;
 	}
 
 	EIGEN_MAKE_ALIGNED_OPERATOR_NEW
