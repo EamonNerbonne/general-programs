@@ -367,7 +367,7 @@
       <WarningLevel>Level4</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <MinimalRebuild>false</MinimalRebuild>
-      <ExceptionHandling>false</ExceptionHandling>
+      <ExceptionHandling>Async</ExceptionHandling>
       <FloatingPointExceptions>false</FloatingPointExceptions>
       <AdditionalOptions>/MP4 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>

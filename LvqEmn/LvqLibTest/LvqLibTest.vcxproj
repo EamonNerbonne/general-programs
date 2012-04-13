@@ -267,7 +267,7 @@
       <AdditionalIncludeDirectories>..\LvqLib</AdditionalIncludeDirectories>
       <FloatingPointModel>Fast</FloatingPointModel>
       <ExceptionHandling>Async</ExceptionHandling>
-      <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
+      <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
       <FloatingPointExceptions>false</FloatingPointExceptions>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <OmitFramePointers>true</OmitFramePointers>
