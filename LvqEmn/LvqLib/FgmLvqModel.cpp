@@ -53,12 +53,12 @@ FgmLvqModel::FgmLvqModel(LvqModelSettings & initSettings)
 		double meanLogScale = sumLogScale / label.size();
 		/*
 		if not zero, we need to "subtract" this mean out from each match
-			so E(ln(dJ+dk)) -= mean
-			so each ln(dJ+dk) -= mean
-			so each dJ+dK /= exp(mean)
-			so each dJ+dK *= exp(-mean)
-			so P^2*[...] *= exp(-mean);
-			so P *= exp(-mean/2)
+		so E(ln(dJ+dk)) -= mean
+		so each ln(dJ+dk) -= mean
+		so each dJ+dK /= exp(mean)
+		so each dJ+dK *= exp(-mean)
+		so P^2*[...] *= exp(-mean);
+		so P *= exp(-mean/2)
 
 		*/
 		//
@@ -77,8 +77,8 @@ MatchQuality FgmLvqModel::learnFrom(Vector_N const & trainPoint, int trainLabel)
 
 	Vector_2 P_trainPoint( P * trainPoint );
 
-	
-	
+
+
 	auto matchInfo = ComputeMatchesInternal(P_trainPoint, trainLabel);
 	MatchQuality quality = get<0>(matchInfo);
 	double probJsum = get<1>(matchInfo);
@@ -96,8 +96,8 @@ MatchQuality FgmLvqModel::learnFrom(Vector_N const & trainPoint, int trainLabel)
 
 	assert(lr_P<=0 && lr_B<=0 && lr_point<=0);
 	m_Pdelta.setZero();
-	
-	
+
+
 	double rawDistSum = 0.0;
 
 	MVectorXd v(m_vJ.data(),m_vJ.size());
@@ -106,13 +106,13 @@ MatchQuality FgmLvqModel::learnFrom(Vector_N const & trainPoint, int trainLabel)
 		double mu2,mu2_alt;
 
 		if(proto.classLabel == trainLabel ) {
-			mu2 = muJ * m_probs(i) * 2.0;
-			mu2_alt = mu2 + (bestJ == i ? settings.MuOffset * learningRate: 0);
+			mu2 = muJ * m_probs(i) * 2.0;//positive
+			mu2_alt = mu2 + (settings.MuOffset != 0.0 ? settings.MuOffset * learningRate *  exp(-0.5*m_dists(i)) : 0);
 			assert(mu2 >= 0.0);
 			totalMuJLr -= lr_point * mu2;//compensate for lr_point negative
 		}
 		else {
-			mu2 = muK * m_probs(i) * 2.0;
+			mu2 = muK * m_probs(i) * 2.0;//negative
 			mu2_alt = mu2 * lr_bad; //only applies to B and point!
 			assert(lr_point <=0.0 && mu2 <=0.0);
 			totalMuKLr += lr_point * mu2; 
@@ -122,22 +122,31 @@ MatchQuality FgmLvqModel::learnFrom(Vector_N const & trainPoint, int trainLabel)
 		Vector_2 B_P_v = proto.B.triangularView<Eigen::Upper>() * P_v;
 		v = proto.point - trainPoint;
 		Vector_2 BT_B_P_v =  proto.B.triangularView<Eigen::Upper>().transpose() * B_P_v ;
-		Matrix_22 BinvT =  proto.B.inverse().transpose().triangularView<Eigen::Upper>();//TODO:triangular
+
+		//inverse of upper triangular matrix is upper trangular.
+		//  - thus the inverses transpose is lower triangular
+		//  - thus the upper triangular component of the transpose of the inverse is diagonal.
+
+		//note: since A^{-1} A = I; we have trivially that the diagonal of the inverse is the coefficient-wise reciprocal of the diagonal
+
+		//Matrix_22 BinvT =  proto.B.inverse().transpose().triangularView<Eigen::Upper>();//TODO:triangular
+		Vector_2 BinvTdiag = proto.B.diagonal().cwiseInverse();
 
 		if(settings.scP) {
 			rawDistSum += (proto.P_point - P_trainPoint).squaredNorm();
 			//if(settings.scP) lastAutoPupdate *= LVQ_AutoScaleP_Momentum;
-//			lastAutoPupdate -=  log( (proto.P_point - P_trainPoint).squaredNorm() + (prototype[matches.matchBad].P_point - P_trainPoint).squaredNorm());
+			//			lastAutoPupdate -=  log( (proto.P_point - P_trainPoint).squaredNorm() + (prototype[matches.matchBad].P_point - P_trainPoint).squaredNorm());
 		}
 
 
-		proto.B.triangularView<Eigen::Upper>() += (lr_B * (mu2)) * (B_P_v * P_v.transpose() - BinvT );
+		proto.B.triangularView<Eigen::Upper>() += (lr_B * (mu2_alt)) * (B_P_v * P_v.transpose() );
+		proto.B.diagonal() -= (lr_B * (mu2_alt)) * BinvTdiag;
 		proto.RecomputeBias();
 
 		proto.point.noalias() += P.transpose()* ((lr_point * (mu2_alt)) * BT_B_P_v);
-	
+
 		//if(settings.scP) P *= exp(lastAutoPupdate*4*learningRate*LVQ_AutoScaleP_Lr);
-	
+
 
 		if(!settings.noKP || proto.classLabel == trainLabel) {
 			m_Pdelta.noalias() += ((lr_P * mu2) * BT_B_P_v) * v.transpose();
@@ -149,7 +158,7 @@ MatchQuality FgmLvqModel::learnFrom(Vector_N const & trainPoint, int trainLabel)
 
 	for(size_t i=0; i < protoCount;++i)
 		prototype[i].ComputePP(P);
-	
+
 	return quality;
 }
 
@@ -197,7 +206,7 @@ void FgmLvqModel::AppendOtherStats(std::vector<double> & stats, LvqDataset const
 	LvqProjectionModel::AppendOtherStats(stats,trainingSet,testSet);
 	MeanMinMax norm, det, bias;
 	std::for_each(prototype.begin(),prototype.end(), [&](FgmLvqPrototype const & proto) {
-		norm.Add(proto.B.squaredNorm());
+		norm.Add(proto.B(1,0));
 		det.Add(abs(proto.B.triangularView<Eigen::Upper>().determinant()));
 		bias.Add(proto.bias);
 	});
@@ -256,14 +265,14 @@ void FgmLvqModel::DoOptionalNormalization() {
 	//THIS IS JUST BAD for GGM; we normalize each iter.
 }
 
- void FgmLvqModel::compensateProjectionUpdate(Matrix_22 U, double /*scale*/) {
+void FgmLvqModel::compensateProjectionUpdate(Matrix_22 U, double /*scale*/) {
 	for(size_t i=0;i < prototype.size();++i) {
 		prototype[i].B.noalias() = MakeUpperTriangular(prototype[i].B * U);
 		prototype[i].ComputePP(P);
 	}
 }
 
- FgmLvqPrototype::FgmLvqPrototype() : classLabel(-1), B(Matrix_22::Zero()) {}
+FgmLvqPrototype::FgmLvqPrototype() :  B(Matrix_22::Zero()), classLabel(-1) {}
 
 FgmLvqPrototype::FgmLvqPrototype(boost::mt19937 & rng, bool randInit, int protoLabel, Vector_N const & initialVal,Matrix_P const & P, Matrix_22 const & scaleB) 
 	: B(scaleB)//randInit?randomUnscalingMatrix<Matrix_22>(rng, LVQ_LOW_DIM_SPACE)*scaleB: 
