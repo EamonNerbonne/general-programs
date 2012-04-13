@@ -30,7 +30,7 @@ let optimizeSettingsList =
         >> Seq.distinctBy (fun s-> s.WithCanonicalizedDefaults())  >> Seq.toList
         //>> List.rev
 //        >> Seq.filter (isTested temp2Store >> not) 
-        >> Seq.map (improveAndTestWithControllers 0 1.0 learningRateControllers temp2Store)
+        >> Seq.map (improveAndTestWithControllers 0 1.0 allControllers temp2Store)
         >> Seq.toList
 
 [
