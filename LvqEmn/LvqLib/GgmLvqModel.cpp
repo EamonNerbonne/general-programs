@@ -35,7 +35,7 @@ GgmLvqModel::GgmLvqModel(LvqModelSettings & initSettings)
 	prototype.resize(protoLabels.size());
 	for(size_t protoIndex=0; protoIndex < (size_t)protoLabels.size(); ++protoIndex) {
 		prototype[protoIndex].point.resize(initSettings.InputDimensions());
-		prototype[protoIndex] = 	GgmLvqPrototype(initSettings.RngParams, initSettings.RandomInitialBorders, protoLabels(protoIndex), prototypes.col(protoIndex), P, initB[protoIndex]);
+		prototype[protoIndex] = 	GgmLvqPrototype(initSettings.RngParams, initSettings.RandomInitialBorders, protoLabels(protoIndex), prototypes.col(protoIndex), P, MakeUpperTriangular(initB[protoIndex]));
 	}
 
 	int maxProtoCount = accumulate(initSettings.PrototypeDistribution.begin(), initSettings.PrototypeDistribution.end(), 0, [](int a, int b) -> int { return max(a,b); });
@@ -55,12 +55,12 @@ GgmLvqModel::GgmLvqModel(LvqModelSettings & initSettings)
 		double meanLogScale = sumLogScale / label.size();
 		/*
 		if not zero, we need to "subtract" this mean out from each match
-			so E(ln(dJ+dk)) -= mean
-			so each ln(dJ+dk) -= mean
-			so each dJ+dK /= exp(mean)
-			so each dJ+dK *= exp(-mean)
-			so P^2*[...] *= exp(-mean);
-			so P *= exp(-mean/2)
+		so E(ln(dJ+dk)) -= mean
+		so each ln(dJ+dk) -= mean
+		so each dJ+dK /= exp(mean)
+		so each dJ+dK *= exp(-mean)
+		so P^2*[...] *= exp(-mean);
+		so P *= exp(-mean/2)
 
 		*/
 		//
@@ -115,24 +115,31 @@ MatchQuality GgmLvqModel::learnFrom(Vector_N const & trainPoint, int trainLabel)
 
 	Vector_2 P_vJ= J.P_point - P_trainPoint;
 	Vector_2 P_vK = K.P_point - P_trainPoint;
-	Vector_2 Bj_P_vJ = J.B * P_vJ;
-	Vector_2 Bk_P_vK = K.B * P_vK;
+	Vector_2 Bj_P_vJ = J.B.triangularView<Eigen::Upper>() * P_vJ;
+	Vector_2 Bk_P_vK = K.B.triangularView<Eigen::Upper>() * P_vK;
 	vJ = J.point - trainPoint;
 	vK = K.point - trainPoint;
-	Vector_2 BjT_Bj_P_vJ =  J.B.transpose() * Bj_P_vJ ;
-	Vector_2 BkT_Bk_P_vK = K.B.transpose() * Bk_P_vK ;
+	Vector_2 BjT_Bj_P_vJ =  J.B.triangularView<Eigen::Upper>().transpose() * Bj_P_vJ ;
+	Vector_2 BkT_Bk_P_vK = K.B.triangularView<Eigen::Upper>().transpose() * Bk_P_vK ;
 
-	Matrix_22 JBinvT =  J.B.inverse().transpose();
-	Matrix_22 KBinvT =  K.B.inverse().transpose();
+	//Matrix_22 JBinvT =  J.B.inverse().transpose();
+	Vector_2 JBinvTdiag = J.B.diagonal().cwiseInverse();
+
+	//Matrix_22 KBinvT =  K.B.inverse().transpose();
+	Vector_2 KBinvTdiag = K.B.diagonal().cwiseInverse();
 
 	if(settings.scP) {
 		double logScale = log((prototype[matches.matchGood].P_point -P_trainPoint).squaredNorm() + (prototype[matches.matchBad].P_point - P_trainPoint).squaredNorm());
 		lastAutoPupdate = LVQ_AutoScaleP_Momentum * lastAutoPupdate - logScale;
 	}
 
+	
+	J.B.triangularView<Eigen::Upper>() += (lr_B * muJ2_alt) * (Bj_P_vJ * P_vJ.transpose() );
+	J.B.diagonal() -= (lr_B * muJ2_alt) * JBinvTdiag;
 
-	J.B.noalias() += (lr_B * muJ2_alt) * (Bj_P_vJ * P_vJ.transpose() - JBinvT );
-	K.B.noalias() += (lr_bad*lr_B*muK2_alt) * (Bk_P_vK * P_vK.transpose() - KBinvT) ;
+	K.B.triangularView<Eigen::Upper>() += (lr_bad*lr_B*muK2_alt) * (Bk_P_vK * P_vK.transpose()) ;
+	K.B.diagonal() -= (lr_bad*lr_B*muK2_alt) * KBinvTdiag;
+
 	J.RecomputeBias();
 	K.RecomputeBias();
 
@@ -147,15 +154,16 @@ MatchQuality GgmLvqModel::learnFrom(Vector_N const & trainPoint, int trainLabel)
 			GgmLvqPrototype &Js = prototype[fullmatch.matchesOk[i].idx];
 			double muJ2_s =  (1.0/4.0) * (1.0 - sqr(std::tanh((fullmatch.matchesOk[i].dist - fullmatch.distBad)/4.0)));
 			Vector_2 P_vJs = Js.P_point - P_trainPoint;
-			Vector_2 muJ2_Bj_P_vJs = (muJ2_s + settings.MuOffset*learningRate) * (Js.B * P_vJs);
+			Vector_2 muJ2_Bj_P_vJs = (muJ2_s + settings.MuOffset*learningRate) * (Js.B.triangularView<Eigen::Upper>() * P_vJs);
 
-			Js.point.noalias() += P.transpose() * (lrSub * lr_point * (Js.B.transpose() * muJ2_Bj_P_vJs));
-			Matrix_22 neg_muJ2_JBinvTs = -muJ2_s* Js.B.inverse().transpose();
+			Js.point.noalias() += P.transpose() * (lrSub * lr_point * (Js.B.triangularView<Eigen::Upper>().transpose() * muJ2_Bj_P_vJs));
+			Vector_2 neg_muJ2_JBinvTs_diag = -muJ2_s* Js.B.diagonal().cwiseInverse();
 
-			Js.B.noalias() += lrSub*lr_B * (muJ2_Bj_P_vJs * P_vJs.transpose() + neg_muJ2_JBinvTs);
+			Js.B.triangularView<Eigen::Upper>() += lrSub*lr_B * (muJ2_Bj_P_vJs * P_vJs.transpose());
+			Js.B.diagonal() += lrSub*lr_B * neg_muJ2_JBinvTs_diag;
 		}
 	}
-	
+
 	if(settings.scP) {
 		P *= exp(lastAutoPupdate*4*learningRate*LVQ_AutoScaleP_Lr);
 	}
@@ -172,7 +180,7 @@ MatchQuality GgmLvqModel::learnFrom(Vector_N const & trainPoint, int trainLabel)
 
 	for(size_t i=0;i < protoCount;++i)
 		prototype[i].ComputePP(P);
-	
+
 	totalMuLr += -0.5*lr_point*muJ2_alt + 0.5*lr_point*muK2_alt;
 	return ggmQuality;
 }
@@ -257,9 +265,9 @@ void GgmLvqModel::ClassBoundaryDiagram(double x0, double x1, double y0, double y
 
 	for(int pi=0; pi < this->PrototypeCount(); ++pi) {
 		auto & current_proto = this->prototype[pi];
-		B_diff_x0_y.col(pi).noalias() = current_proto.B * ( Vector_2(xBase,yBase) - current_proto.P_point);
-		B_xDelta.col(pi).noalias() = current_proto.B * Vector_2(xDelta,0.0);
-		B_yDelta.col(pi).noalias() = current_proto.B * Vector_2(0.0,yDelta);
+		B_diff_x0_y.col(pi).noalias() = current_proto.B.triangularView<Eigen::Upper>() * ( Vector_2(xBase,yBase) - current_proto.P_point);
+		B_xDelta.col(pi).noalias() = current_proto.B.triangularView<Eigen::Upper>() * Vector_2(xDelta,0.0);
+		B_yDelta.col(pi).noalias() = current_proto.B.triangularView<Eigen::Upper>() * Vector_2(0.0,yDelta);
 		pBias(pi) = current_proto.bias;
 	}
 
@@ -281,9 +289,9 @@ void GgmLvqModel::DoOptionalNormalization() {
 	//THIS IS JUST BAD for GGM; we normalize each iter.
 }
 
- void GgmLvqModel::compensateProjectionUpdate(Matrix_22 U, double /*scale*/) {
+void GgmLvqModel::compensateProjectionUpdate(Matrix_22 U, double /*scale*/) {
 	for(size_t i=0;i < prototype.size();++i) {
-		prototype[i].B *= U;
+		prototype[i].B.noalias() = MakeUpperTriangular(prototype[i].B * U);
 		prototype[i].ComputePP(P);
 	}
 }
@@ -299,7 +307,7 @@ GgmLvqPrototype::GgmLvqPrototype(boost::mt19937 & rng, bool randInit, int protoL
 {
 	auto rndmat = randomUnscalingMatrix<Matrix_22>(rng, LVQ_LOW_DIM_SPACE);
 	if(randInit)
-		B = rndmat*B;
+		B = MakeUpperTriangular(rndmat*B);
 	RecomputeBias();
 }
 
@@ -308,7 +316,7 @@ Matrix_NN GgmLvqModel::PrototypeDistances(Matrix_NN const & points) const {
 	Matrix_2N P_points = P*points;
 	Matrix_NN newPoints(prototype.size(), points.cols());
 	for(size_t protoI=0;protoI<prototype.size();++protoI) {
-		newPoints.row(protoI).noalias() = (prototype[protoI].B * (P_points.colwise() - prototype[protoI].P_point)).colwise().squaredNorm();
+		newPoints.row(protoI).noalias() = (prototype[protoI].B.triangularView<Eigen::Upper>() * (P_points.colwise() - prototype[protoI].P_point)).colwise().squaredNorm();
 	}
 	return newPoints;
 }
