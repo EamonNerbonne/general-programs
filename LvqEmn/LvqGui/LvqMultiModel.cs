@@ -143,8 +143,8 @@ namespace LvqGui {
 
 		static readonly int ParWindow = Environment.ProcessorCount * 2;
 		public bool FitsDataShape(LvqDatasetCli selectedDataset) { return subModels.First().FitsDataShape(selectedDataset); }
-		readonly object epochsSynch = new object();
-		int epochsDone;
+		//readonly object epochsSynch = new object();
+		volatile int epochsDone;
 		static int trainersRunning;
 		public static void WaitForTraining() { while (trainersRunning != 0) Thread.Sleep(1); }
 		public void TrainAndPrintOrder(CancellationToken cancel) {
@@ -174,11 +174,9 @@ namespace LvqGui {
 
 		public void TrainEpochs(int epochsToDo, CancellationToken cancel) {
 			if (cancel.IsCancellationRequested) return;
-			int epochsTarget;
-			lock (epochsSynch)
-				epochsTarget = epochsDone += epochsToDo;
-			toLog.Add("Start upto " + epochsTarget+ " of "+subModels[0].ModelLabel);
-			TrainImpl(cancel, epochsToDo);
+			int epochsTarget = Interlocked.Add(ref epochsDone, epochsToDo);
+			toLog.Add("Start upto " + epochsTarget + " of " + subModels[0].ModelLabel);
+			TrainImpl(cancel, epochsTarget - epochsToDo, epochsTarget);
 			toLog.Add("End upto " + epochsTarget + " of " + subModels[0].ModelLabel);
 		}
 
@@ -188,15 +186,15 @@ namespace LvqGui {
 
 		public void TrainUptoEpochs(int epochsToTrainUpto, CancellationToken cancel) {
 			if (cancel.IsCancellationRequested) return;
-			int epochsCurrent;
-			lock (epochsSynch) {
-				if (epochsDone >= epochsToTrainUpto)
-					return;
-				epochsCurrent = epochsDone;
-				epochsDone = epochsToTrainUpto;
+			int epochsCurrent = epochsDone;
+			while (true) {
+				if (epochsCurrent >= epochsToTrainUpto) return;
+				int prevEpochs = Interlocked.CompareExchange(ref epochsDone, epochsToTrainUpto, epochsCurrent);
+				if (prevEpochs == epochsCurrent) break;//successfully swapped;
+				epochsCurrent = prevEpochs;
 			}
 			toLog.Add("Start upto " + epochsToTrainUpto + " of " + subModels[0].ModelLabel);
-			TrainImpl(cancel, epochsToTrainUpto - epochsCurrent);
+			TrainImpl(cancel, epochsCurrent, epochsToTrainUpto);
 			toLog.Add("End upto " + epochsToTrainUpto + " of " + subModels[0].ModelLabel);
 		}
 
@@ -215,16 +213,14 @@ namespace LvqGui {
 		}
 
 
-		void TrainImpl(CancellationToken cancel, int epochsTarget) {
+		void TrainImpl(CancellationToken cancel, int epochsCurrent, int epochsTarget) {
 			Interlocked.Increment(ref trainersRunning);
 			try {
 				var trainingqueue = new BlockingCollection<Tuple<LvqModelCli, int>>();
-				int epochsDone = 0;
-				while (epochsDone < epochsTarget) {
-					epochsDone += ((epochsTarget - epochsDone) + 1) / 2;
-					int currentTarget = epochsDone;
+				while (epochsCurrent < epochsTarget) {
+					epochsCurrent += (epochsTarget - epochsCurrent + 1) / 2;
 					foreach (var model in subModels) {
-						trainingqueue.Add(Tuple.Create(model, currentTarget));
+						trainingqueue.Add(Tuple.Create(model, epochsCurrent));
 					}
 				}
 				trainingqueue.CompleteAdding();
