@@ -199,7 +199,7 @@ let improveLr (testResultList:TestResults list) (lrUnpack, lrPack) =
     //let effRelevance = List.zip3 relevance linearlyScaledRelevance byErrRelevance |> List.map (fun (a,b,c) -> Math.Sqrt(a * b * c))
     
     //printfn "%A" (bestToWorst |> List.map (fun res->lrUnpack res.Settings) |> List.zip relevance)
-    let logLrDistr = List.zip logLrs effRelevance |> List.fold (fun (ss:SmartSum) (lr, rel) -> ss.CombineWith lr (rel + 0.1)) (new SmartSum ())
+    let logLrDistr = List.zip logLrs effRelevance |> List.fold (fun (ss:SmartSum) (lr, rel) -> ss.CombineWith lr (rel + 0.2)) (new SmartSum ())
     let (logLrmean, logLrdev) = (logLrDistr.Mean, Math.Sqrt logLrDistr.Variance)
 
     let geoMeanDistr = List.zip bestToWorst effRelevance |> List.fold (fun (ss:SmartSum) (tr, rel) -> ss.CombineWith tr.GeoMean rel) (new SmartSum ())
