@@ -21,7 +21,7 @@ class GgmLvqPrototype
 	}
 
 	EIGEN_STRONG_INLINE void RecomputeBias() {
-		bias = - log(sqr(B.determinant()));
+		bias = - log(sqr(B.diagonal().prod())); //B.diagonal().prod() == B.determinant() due to upper triangular B.
 		assert(isfinite_emn(bias));
 	}
 
