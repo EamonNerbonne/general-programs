@@ -227,3 +227,19 @@ extern "C" void CreateExtendedDataset(LvqDataset const * dataset, LvqDataset con
 	*newTraining = extendedDataset.first;
 	*newTest = extendedDataset.second;
 }
+
+
+extern "C" void ChooseSaneDefaultLr(LvqModelSettingsRaw * settings) {
+	if( settings->ModelType == GmModelType) {
+		settings->LR0 = 0.002;
+		settings->LrScaleP = 2.0;
+	} else if( settings->ModelType == GgmModelType || settings->ModelType == FgmModelType) {
+		settings->LR0 = 0.03;
+		settings->LrScaleP = 0.05;
+		settings->LrScaleB = 4.0;
+	} else {//lgm, g2m
+		settings->LR0 = 0.01;
+		settings->LrScaleP = 0.4;
+		settings->LrScaleB = 0.006;
+	}
+}

@@ -25,6 +25,10 @@ extern "C" {
 
 	const LvqModelSettingsRaw defaultLvqModelSettings = { AutoModelType, 2, 1, false, false, false, false, false, false, false, false, false, false,false,false, false, false, false, 0.0, LVQ_LR0, LVQ_LrScaleP, LVQ_LrScaleB, LVQ_LrScaleBad, 1.,LVQ_ITERFACTOR_PERPROTO, 37, 42, false, 10	};
 
+	__declspec(dllexport)	void ChooseSaneDefaultLr(LvqModelSettingsRaw * settings);
+
+
+
 	__declspec(dllexport) LvqDataset* CreateDatasetRaw(
 										    unsigned rngInstSeed, int dimCount, int pointCount, int classCount,
 		LvqFloat* data, int*labels);
