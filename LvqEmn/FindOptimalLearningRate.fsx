@@ -34,6 +34,19 @@ let optimizeSettingsList =
         >> Seq.toList
 
 [
+    "Ggm-1,"
+    "Ggm-1,SlowK,"
+    "Ggm-1,Ppca,"
+    "Ggm-1,Bcov,"
+    "Ggm-1,Bcov,Ppca,"
+    "Ggm-1,SlowK,Ppca,"
+    "Ggm-1,SlowK,Bcov,"
+    "Ggm-1,SlowK,Ppca,Bcov,"
+    ]
+    |> optimizeSettingsList
+
+
+[
     "Ggm-1,mu0.01,"
     "Ggm-1,mu0.03,"
     "Ggm-1,mu0.1,"
