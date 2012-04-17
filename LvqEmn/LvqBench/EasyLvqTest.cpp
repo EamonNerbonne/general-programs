@@ -140,33 +140,33 @@ void EasyLvqTest() {
 	{
 		t.start();
 
-		tLgm.start();
-		TestModel(LgmModelType, 0, false,  dataset, PROTOSPERCLASS, 2, 6*(ITERS + DIMS -1)/DIMS);
-		tLgm.stop();
+		//tLgm.start();
+		//TestModel(LgmModelType, 0, false,  dataset, PROTOSPERCLASS, 2, 6*(ITERS + DIMS -1)/DIMS);
+		//tLgm.stop();
 
-		tLgmBig.start();
-		TestModel(LgmModelType, 0, false,  dataset, PROTOSPERCLASS, 8, 3*(ITERS + DIMS -1)/DIMS);
-		tLgmBig.stop();
+		//tLgmBig.start();
+		//TestModel(LgmModelType, 0, false,  dataset, PROTOSPERCLASS, 8, 3*(ITERS + DIMS -1)/DIMS);
+		//tLgmBig.stop();
 
-		tGm.start();
-		TestModel(GmModelType, 0, false, dataset, PROTOSPERCLASS,2, ITERS);
-		tGm.stop();
+		//tGm.start();
+		//TestModel(GmModelType, 0, false, dataset, PROTOSPERCLASS,2, ITERS);
+		//tGm.stop();
 
-		tG2m.start();
-		TestModel(G2mModelType, 0, false, dataset, PROTOSPERCLASS,2, ITERS);
-		tG2m.stop();
+		//tG2m.start();
+		//TestModel(G2mModelType, 0, false, dataset, PROTOSPERCLASS,2, ITERS);
+		//tG2m.stop();
 
-		tGpq.start();
-		TestModel(GpqModelType, 0, false, dataset, PROTOSPERCLASS,2, 5*ITERS/2);
-		tGpq.stop();
+		//tGpq.start();
+		//TestModel(GpqModelType, 0, false, dataset, PROTOSPERCLASS,2, 5*ITERS/2);
+		//tGpq.stop();
 
 		tGgm.start();
 		TestModel(GgmModelType, 0, false, dataset, PROTOSPERCLASS,2, ITERS);
 		tGgm.stop();
 
-		tFgm.start();
-		TestModel(FgmModelType, 0, false, dataset, PROTOSPERCLASS,2, ITERS/2);
-		tFgm.stop();
+		//tFgm.start();
+		//TestModel(FgmModelType, 0, false, dataset, PROTOSPERCLASS,2, ITERS/2);
+		//tFgm.stop();
 
 		cerr<<"\n";
 		t.stop();
@@ -175,12 +175,12 @@ void EasyLvqTest() {
 	FreeDataset(dataset);
 	cout.precision(3);
 	cout<<t.best()<<"s ("
-		<<"lgm: "<<tLgm.best()
-		<<", lgm[8]:"<<tLgmBig.best()
-		<<", gm:"<<tGm.best()
-		<<", g2m:"<<tG2m.best()
-		<<", gpq:"<<tGpq.best()
+		//<<"lgm: "<<tLgm.best()
+		//<<", lgm[8]:"<<tLgmBig.best()
+		//<<", gm:"<<tGm.best()
+		//<<", g2m:"<<tG2m.best()
+		//<<", gpq:"<<tGpq.best()
 		<<", ggm:"<<tGgm.best()
-		<<", fgm:"<<tFgm.best()
+		//<<", fgm:"<<tFgm.best()
 		<<")";
 }

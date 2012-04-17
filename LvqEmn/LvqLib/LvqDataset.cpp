@@ -180,19 +180,22 @@ size_t LvqDataset::MemAllocEstimate() const {
 
 void LvqDataset::shufflePoints(boost::mt19937& rng) {
 	VectorXi shufLabels(pointCount());
+	//DBG(shufLabels.size());
 	Matrix_NN shufPoints(points.rows(),points.cols());
-
+	//DBG(shufPoints.size());
 	using boost::scoped_array;
 
 	scoped_array<int> idxs(new int[pointCount()]);
 	makeRandomOrder(rng,idxs.get(),static_cast<int>(points.cols()));
 
 	for(int colI=0;colI<points.cols();++colI) {
-		shufPoints.col(idxs[colI]) = points.col(colI);
+		shufPoints.col(idxs[colI]).noalias() = points.col(colI);
 		shufLabels(idxs[colI]) = pointLabels(colI);
 	}
-	points = shufPoints;
-	pointLabels = shufLabels;
+	points.noalias() = shufPoints;
+	//pointLabels.noalias() = shufLabels;
+	for(int i=0;i<points.cols();++i) pointLabels(i) = shufLabels(i);//VS11 workaround
+//	DBG(pointLabels);
 }
 
 bool shouldCollect(unsigned epochsDone) {
