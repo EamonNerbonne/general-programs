@@ -175,9 +175,7 @@ namespace LvqGui {
 		public void TrainEpochs(int epochsToDo, CancellationToken cancel) {
 			if (cancel.IsCancellationRequested) return;
 			int epochsTarget = Interlocked.Add(ref epochsDone, epochsToDo);
-			toLog.Add("Start upto " + epochsTarget + " of " + subModels[0].ModelLabel);
 			TrainImpl(cancel, epochsTarget - epochsToDo, epochsTarget);
-			toLog.Add("End upto " + epochsTarget + " of " + subModels[0].ModelLabel);
 		}
 
 		public void TrainUptoIters(double itersToTrainUpto, CancellationToken cancel) {
@@ -193,9 +191,7 @@ namespace LvqGui {
 				if (prevEpochs == epochsCurrent) break;//successfully swapped;
 				epochsCurrent = prevEpochs;
 			}
-			toLog.Add("Start upto " + epochsToTrainUpto + " of " + subModels[0].ModelLabel);
 			TrainImpl(cancel, epochsCurrent, epochsToTrainUpto);
-			toLog.Add("End upto " + epochsToTrainUpto + " of " + subModels[0].ModelLabel);
 		}
 
 		static BlockingCollection<string> toLog = new BlockingCollection<string>();
@@ -228,8 +224,11 @@ namespace LvqGui {
 					.Select(ignored =>
 							Task.Factory.StartNew(
 								() => {
-									foreach (var next in trainingqueue.GetConsumingEnumerable(cancel))
+									foreach (var next in trainingqueue.GetConsumingEnumerable(cancel)) {
+										toLog.Add("#" + next.Item1.DataFold + " S" + next.Item2 + "    " + next.Item1.ModelLabel);
 										next.Item1.TrainUpto(next.Item2);
+										toLog.Add("#" + next.Item1.DataFold + " E" + next.Item2 + "    " + next.Item1.ModelLabel);
+									}
 								},
 								cancel, TaskCreationOptions.None, LowPriorityTaskScheduler.DefaultLowPriorityScheduler)
 					).ToArray();
