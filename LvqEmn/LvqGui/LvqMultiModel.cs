@@ -225,9 +225,9 @@ namespace LvqGui {
 							Task.Factory.StartNew(
 								() => {
 									foreach (var next in trainingqueue.GetConsumingEnumerable(cancel)) {
-										toLog.Add("#" + next.Item1.DataFold + " S" + next.Item2 + "    " + next.Item1.ModelLabel);
+										toLog.Add(next.Item1.ModelLabel+ "  #" + next.Item1.DataFold + "   " + next.Item2.ToString(CultureInfo.InvariantCulture).PadLeft(6,'.') + "Begin");
 										next.Item1.TrainUpto(next.Item2);
-										toLog.Add("#" + next.Item1.DataFold + " E" + next.Item2 + "    " + next.Item1.ModelLabel);
+										toLog.Add(next.Item1.ModelLabel + "  #" + next.Item1.DataFold + "   " + next.Item2.ToString(CultureInfo.InvariantCulture).PadLeft(6, '.') + "End");
 									}
 								},
 								cancel, TaskCreationOptions.None, LowPriorityTaskScheduler.DefaultLowPriorityScheduler)
