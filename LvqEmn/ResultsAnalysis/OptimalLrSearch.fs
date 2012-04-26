@@ -14,7 +14,7 @@ let datasets =
     [
         for datasetFactory in CreateDataset.StandardDatasets() do
             datasetFactory.NormalizeDimensions <- true
-            datasetFactory.InstanceSeed <- 1000u
+            datasetFactory.InstanceSeed <- 0x1000u
 
             let infiniteVariations = 
                 Seq.initInfinite (fun i ->
@@ -211,19 +211,21 @@ let estimateRelativeCost (settings:LvqModelSettingsCli) = Math.Max(1.0, Math.Min
 let finalTestSettings settings = testSettings 50 1u (1e7 / estimateRelativeCost settings) settings
 
 let improvementStep (controller:ControllerState) (initialSettings:LvqModelSettingsCli) degradedCount =
-    let currSeed = EmnExtensions.MathHelpers.RndHelper.ThreadLocalRandom.NextUInt32 ()
+    let stepCount = 20
+    let currSeed = initialSettings.InstanceSeed //EmnExtensions.MathHelpers.RndHelper.ThreadLocalRandom.NextUInt32 ()
     let iterCount = Math.Min(1e7, Math.Pow(1.36, float degradedCount) * 7.4e4) / estimateRelativeCost initialSettings
     let baseLr = controller.Controller.Unpacker initialSettings
     let lowLr = baseLr * Math.Exp(-Math.Sqrt(3.) * controller.LrLogDevScale)
     let highLr = baseLr * Math.Exp(Math.Sqrt(3.) * controller.LrLogDevScale)
     //let initResults = testSettings 5 currSeed iterCount initialSettings
-    let results = lrsChecker (currSeed + 2u) (logscale 20 (lowLr,highLr)) (controller.Controller.Packer initialSettings) iterCount
+    let results = lrsChecker (currSeed + 2u) (logscale stepCount (lowLr,highLr)) (controller.Controller.Packer initialSettings) iterCount
     let ((newBaseLr, newLrLogDevScale), (errM,errDV)) = improveLr (List.ofArray results) (controller.Controller.Unpacker, controller.Controller.Packer)
     let logLrDiff_LrDevScale = 2. * Math.Abs(Math.Log(baseLr / newBaseLr))
     let minimalLrDevScale = 0.2 * controller.Controller.InitLrLogDevScale
     let maximalLrDevScale = 2. * controller.Controller.InitLrLogDevScale
     let effNewLrDevScale = Math.Max(minimalLrDevScale, Math.Min(0.25*newLrLogDevScale + 0.5*controller.LrLogDevScale + 0.25*logLrDiff_LrDevScale, maximalLrDevScale))
-    let newSettings = controller.Controller.Packer initialSettings newBaseLr
+    let mutable newSettings = controller.Controller.Packer initialSettings newBaseLr
+    newSettings.InstanceSeed <- currSeed + uint32 stepCount * 2u
     //let finalResults =  testSettings 5 currSeed iterCount newSettings
 
     let newControllerState = { Controller = controller.Controller; LrLogDevScale = effNewLrDevScale; }
