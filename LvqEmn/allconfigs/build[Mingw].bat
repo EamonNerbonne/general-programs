@@ -1,7 +1,11 @@
-@echo off
-mkdir %~dp0\..\build\mingw
-cd %~dp0\..\build\mingw
+REM @echo off
+set OLDDIR=%CD%
+set BASEDIR=%~dp0
+
+mkdir %BASEDIR%\..\build\mingw
+cd %BASEDIR%\..\build\mingw
 
 REM start /belownormal /wait /B
-cmake -G "MinGW Makefiles" ..\..\allconfigs
-timethis "%~dp0\build[Mingw]Helper.bat"  %1 %2 %3 %4 %5 %6 %7 %8 %9 >>%~dp0\_BuildTime-mingw.log
+cmake -G "MinGW Makefiles" "%BASEDIR%."
+timethis "%BASEDIR%\build[Mingw]Helper.bat"  %1 %2 %3 %4 %5 %6 %7 %8 %9 >>"%BASEDIR%\_BuildTime-mingw.log"
+chdir /d %OLDDIR% &rem restore current directory
