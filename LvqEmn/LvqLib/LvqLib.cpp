@@ -11,7 +11,7 @@ using std::copy;
 using std::wstring;
 using std::transform;
 
-extern"C" LvqDataset* CreateDatasetRaw(
+extern "C" LvqDataset* CreateDatasetRaw(
 	unsigned rngInstSeed, int dimCount, int pointCount, int classCount, LvqFloat* data, int*labels) {
 		mt19937  rngInst(rngInstSeed);
 		Matrix_NN points(dimCount,pointCount);
@@ -26,14 +26,14 @@ extern"C" LvqDataset* CreateDatasetRaw(
 		dataset->shufflePoints(rngInst);
 		return dataset;
 }
-extern"C" LvqDataset* CreateGaussianClouds(
+extern "C" LvqDataset* CreateGaussianClouds(
 	unsigned rngParamSeed, unsigned rngInstSeed, int dimCount, int pointCount, int classCount, double meansep) {
 		mt19937 rngParams(rngParamSeed), rngInst(rngInstSeed);
 		LvqDataset* dataset= CreateDataset::ConstructGaussianClouds(rngParams,rngInst,dimCount,classCount,pointCount/classCount,meansep);
 		dataset->shufflePoints(rngInst);
 		return dataset;
 }
-extern"C" LvqDataset* CreateStarDataset(
+extern "C" LvqDataset* CreateStarDataset(
 	unsigned rngParamSeed, unsigned rngInstSeed, int dimCount, int pointCount, int classCount,
 	int starDims, int numStarTails, double starMeanSep, double starClassRelOffset, bool randomlyRotate, double noiseSigma, double globalNoiseMaxSigma){
 		mt19937 rngParams(rngParamSeed), rngInst(rngInstSeed);
@@ -42,21 +42,21 @@ extern"C" LvqDataset* CreateStarDataset(
 		return dataset;
 }
 
-extern"C" LvqDataset* CreateDatasetFold(LvqDataset* underlying, int fold, int foldCount, bool isTestFold){
+extern "C" LvqDataset* CreateDatasetFold(LvqDataset* underlying, int fold, int foldCount, bool isTestFold){
 	//std::cout<< "Creating dataset "<< (isTestFold?"test":"") <<" fold #"<<fold<<"/"<<foldCount<<"\n";
 	return underlying->Extract(isTestFold?underlying->GetTestSubset(fold,foldCount):underlying->GetTrainingSubset(fold,foldCount));
 }
 
 
-extern"C"  void CreatePointCloud(unsigned rngParamSeed, unsigned rngInstSeed, int dimCount, int pointCount, double meansep,  LvqFloat* target){
+extern "C"  void CreatePointCloud(unsigned rngParamSeed, unsigned rngInstSeed, int dimCount, int pointCount, double meansep,  LvqFloat* target){
 	Map<Matrix_NN> tgt(target,dimCount,pointCount);
 	tgt=CreateDataset::MakePointCloud(as_lvalue(mt19937(rngParamSeed)),as_lvalue(mt19937(rngInstSeed)),dimCount,pointCount,meansep);
 }
 
-extern"C" void FreeDataset(LvqDataset* dataset) {delete dataset;}
-extern"C" size_t MemAllocEstimateDataset(LvqDataset* dataset) {return dataset->MemAllocEstimate();}
+extern "C" void FreeDataset(LvqDataset* dataset) {delete dataset;}
+extern "C" size_t MemAllocEstimateDataset(LvqDataset* dataset) {return dataset->MemAllocEstimate();}
 
-extern"C" void ExtendAndNormalize(LvqDataset * dataset,LvqDataset * testdataset, bool extend, bool normalize, bool normalizeByScaling) {
+extern "C" void ExtendAndNormalize(LvqDataset * dataset,LvqDataset * testdataset, bool extend, bool normalize, bool normalizeByScaling) {
 	if(extend) {
 		dataset->ExtendByCorrelations();
 		testdataset->ExtendByCorrelations();
@@ -68,14 +68,14 @@ extern"C" void ExtendAndNormalize(LvqDataset * dataset,LvqDataset * testdataset,
 	}
 }
 
-extern"C" double NearestNeighborSplitPcaErrorRate(LvqDataset const * trainingSet, LvqDataset const * testSet) {
+extern "C" double NearestNeighborSplitPcaErrorRate(LvqDataset const * trainingSet, LvqDataset const * testSet) {
 	return trainingSet->NearestNeighborPcaErrorRate(*testSet);
 }
-extern"C" double NearestNeighborSplitRawErrorRate(LvqDataset const * trainingSet, LvqDataset const * testSet) {
+extern "C" double NearestNeighborSplitRawErrorRate(LvqDataset const * trainingSet, LvqDataset const * testSet) {
 	return trainingSet->NearestNeighborErrorRate(*testSet);
 }
 
-extern"C" DataShape GetDataShape(LvqDataset const * dataset){
+extern "C" DataShape GetDataShape(LvqDataset const * dataset){
 	DataShape shape;
 	shape.classCount = dataset->classCount();
 	shape.dimCount = (int)dataset->dimCount();
@@ -83,11 +83,11 @@ extern"C" DataShape GetDataShape(LvqDataset const * dataset){
 	return shape;
 }
 
-extern"C" void GetPointLabels(LvqDataset const * dataset, int* pointLabels) {
+extern "C" void GetPointLabels(LvqDataset const * dataset, int* pointLabels) {
 	VectorXi::Map(pointLabels,dataset->pointCount()) = dataset->getPointLabels();
 }
 
-extern"C" LvqModel* CreateLvqModel(LvqModelSettingsRaw rawSettings, LvqDataset const* dataset, int modelFold){
+extern "C" LvqModel* CreateLvqModel(LvqModelSettingsRaw rawSettings, LvqDataset const* dataset, int modelFold){
 	vector<int> protoDistrib;
 	for(int i=0;i<dataset->classCount();++i)
 		protoDistrib.push_back(rawSettings.PrototypesPerClass);
@@ -125,11 +125,11 @@ extern"C" LvqModel* CreateLvqModel(LvqModelSettingsRaw rawSettings, LvqDataset c
 	return ConstructLvqModel(initSettings);
 }
 
-extern"C" LvqModel* CloneLvqModel(LvqModel const * model){ return model->clone(); }
-extern"C" void CopyLvqModel(LvqModel const * src,LvqModel * dest){
+extern "C" LvqModel* CloneLvqModel(LvqModel const * model){ return model->clone(); }
+extern "C" void CopyLvqModel(LvqModel const * src,LvqModel * dest){
 	src->CopyTo(*dest);
 }
-extern"C" size_t MemAllocEstimateModel(LvqModel const * model){ return model->MemAllocEstimate();}
+extern "C" size_t MemAllocEstimateModel(LvqModel const * model){ return model->MemAllocEstimate();}
 void FreeModel(LvqModel* model){delete model;}
 
 extern "C" DataShape GetModelShape(LvqModel const * model) {
@@ -140,7 +140,7 @@ extern "C" DataShape GetModelShape(LvqModel const * model) {
 	return shape;
 }
 
-extern "C"void ProjectPrototypes(LvqModel const* model, LvqFloat* pointData){
+extern "C" void ProjectPrototypes(LvqModel const* model, LvqFloat* pointData){
 	auto projModel=dynamic_cast<LvqProjectionModel const *>(model);
 	Matrix_2N pProtos = projModel->GetProjectedPrototypes();
 	Map<Matrix_2N> mappedData(pointData,LVQ_LOW_DIM_SPACE,pProtos.cols());
