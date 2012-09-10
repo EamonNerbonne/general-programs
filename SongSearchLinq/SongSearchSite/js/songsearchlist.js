@@ -477,7 +477,7 @@
             type: "POST",
             url: "similar-to",
             data: { playlist: JSON.stringify(savePlaylist_ExtractFromHtml()) },
-            timeout: 10000,
+            timeout: 60*1000,
             success: function (data) { simStateSet.done(data); },
             error: function (xhr, status, errorThrown) { simStateSet.error(status, status == "timeout"); }
         });
@@ -865,7 +865,7 @@
                 type: "POST",
                 url: "rename-playlist",
                 data: { playlistID: _playlistID, newName: _newName },
-                timeout: 10000,
+                timeout: 60000,
                 success: function (data) {
                     try {
                         state.playlistName = _newName;
@@ -884,7 +884,7 @@
                 type: "POST",
                 url: "store-playlist",
                 data: { playlistTitle: _playlistTitle, playlistContents: JSON.stringify(_playlistContents) },
-                timeout: 10000,
+                timeout: 60000,
                 success: function (data) {
                     try {
                         state.playlistID = data;
@@ -904,7 +904,7 @@
                 type: "POST",
                 url: "update-playlist",
                 data: { playlistTitle: _playlistTitle, playlistContents: JSON.stringify(_playlistContents), lastVersionId: _lastVersionId },
-                timeout: 10000,
+                timeout: 60000,
                 success: function (data) {
                     try {
                         state.playlistID = data;
@@ -925,7 +925,7 @@
                 type: "POST",
                 url: "load-playlist",
                 data: { playlistID: playlistID },
-                timeout: 10000,
+                timeout: 60000,
                 success: function (data) {
                     try {
                         state.playlistContents = JSON.parse(data.PlaylistContents);
@@ -946,7 +946,7 @@
                 type: "POST",
                 url: showOwnListsCheckbox.prop("checked") ? "list-user-playlists" : "list-all-playlists",
                 data: {},
-                timeout: 30000,
+                timeout: 60000,
                 success: function (data) {
                     state.currentPlaylists = data;
                     playlistNamesUl.empty();
