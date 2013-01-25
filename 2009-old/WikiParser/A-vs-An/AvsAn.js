@@ -6,14 +6,10 @@
 		var prefLines = document.getElementById("articles").firstChild.nodeValue.replace(/\s([^\[]*)\[(an?):(\d+):(\d+)\]/g, function (m, prefix, article, anCount, aCount) {
 			var node = trieRoot;
 			while (prefix) {
-				var letter = prefix[0];
-				var next = node[letter];
-				if (!next)
-					node[letter] = next = {};
-				node = next;
+				node = node[prefix[0]] || (node[prefix[0]] = {});
 				prefix = prefix.substring(1);
 			}
-			trie.data = { article: article, anCount: parseInt(anCount), aCount: parseInt(aCount) };
+			node.data = { article: article, anCount: parseInt(anCount), aCount: parseInt(aCount) };
 		});
 		return trieRoot;
 	}();
