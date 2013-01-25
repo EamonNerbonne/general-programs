@@ -23,7 +23,7 @@
 <body>
 	<p><i>It's <b>an</b> unanticipated result, but it's <b>a</b> unanimous result...</i></p>
 	<p>It is <span id="article">a</span>
-		<input id="searchquery" type="text" name="q" placeholder="enter word here" autofocus="autofocus" onkeyup="findPrefix()" oninput="findPrefix()" /> <span id="articleDetail">&nbsp;</span></p>
+		<input id="searchquery" type="text" name="q" placeholder="enter word here" autofocus="autofocus" /> <span id="articleDetail">&nbsp;</span></p>
 	<h3>Details: </h3>
 	<p>This page determines whether "a" or "an" should precede a word.  It does this using the method described in <a href="http://stackoverflow.com/questions/1288291/how-can-i-correctly-prefix-a-word-with-a-and-an/1288473#1288473">this stackoverflow response</a>.  The dataset used is the wikipedia-article-text dump.  Some additional preprocessing was done to remove as much wiki-markup as possible and extract only things vague resembling sentences using regular expressions.  If the word following 'a' or 'an' was quoted, those quotes were ignored.  The entire resultant dataset is merely 13KB in size and could be compressed further; it's included inline in this page.
 	</p>
@@ -984,85 +984,4 @@ Zen)[an:10:0]
 [a:5153633:26808177]
 	</div>
 </body>
-<script type="text/javascript">
-	function Entry(line) {
-		line = line.substring(1);//strip whitespace
-		var openIdx = line.lastIndexOf("[");
-		this.prefix = line.substring(0, openIdx);
-		var rest = line.substring(openIdx + 1, line.lastIndexOf("]")).split(":");
-		this.type = rest[0];
-		this.anCount = rest[1];
-		this.aCount = rest[2];
-	}
-	Entry.prototype.match = function match(input) { return input.substring(0, this.prefix.length) == this.prefix; }
-	Entry.prototype.toString = function toString() { return this.prefix + "[" + this.type + ":" + this.anCount + ":" + this.aCount + "]"; }
-	var prefixes;
-	var articleEl;
-	function computePrefs() {
-		if (prefixes) return;
-		var prefLines = document.getElementById("articles").firstChild.nodeValue.match(/\s([^\[]*)\[([^\]:]+)\]/g);
-
-		prefixes = [];
-		for (var i = 0; i < prefLines.length; i++)
-			if (prefLines[i].length > 0)
-				prefixes.push(new Entry(prefLines[i]));
-	}
-
-	function alt() {
-		var trieRoot = {};
-		//prefixes = [];
-		var prefLines = document.getElementById("articles").firstChild.nodeValue.replace(/\s([^\[]*)\[(an?):(\d+):(\d+)\]/g, function (m, prefix, article, anCount, aCount) {
-			var trie = trieRoot;
-			while (prefix) {
-				var letter = prefix[0];
-				var next = trie[letter];
-				if (!next)
-					trie[letter] = next = {};
-				trie = next;
-				prefix = prefix.substring(1);
-			}
-			trie.data = { article: article, anCount: parseInt(anCount), aCount: parseInt(aCount) };
-		});
-		return trieRoot;
-	}
-	var prefixTrie = alt();
-	function findTrieNode(word) {
-		var origWord = word;
-		var trieNode = prefixTrie;
-		var data;
-		while (trieNode && word) {
-			data = trieNode.data || data;
-			trieNode = trieNode[word[0]];
-			word = word.substring(1);
-		}
-		return { prefix: origWord.substring(0,origWord.length-word.length), data:data };
-	}
-	var articleEl = document.getElementById("article");
-	var articleDetailEl = document.getElementById("articleDetail");
-	function findPrefix() {
-		var input = document.getElementById("searchquery").value.replace(/^\s+|\s+$/g, "") + " ";
-		var node = findTrieNode(input);
-		articleEl.replaceChild(document.createTextNode(node.data.article), articleEl.firstChild);
-		articleDetailEl.replaceChild(document.createTextNode(node.prefix + "[" + node.data.article + ":" + node.data.anCount + ":" + node.data.aCount + "]"), articleDetailEl.firstChild);
-	}
-	//window.onload = computePrefs;
-	function oldFindPrefix() {
-		if (!prefixes) computePrefs();
-		var input = document.getElementById("searchquery").value.replace(/^\s+|\s+$/g, "") + " ";
-		//alert(input);
-		var bestMatch;
-		for (var i = 0; i < prefixes.length; i++) {
-			var entry = prefixes[i];
-			if (entry.match(input)) {
-				bestMatch = entry;
-				break;
-			}
-		}
-		//alert(bestMatch.prefix);
-		var articleEl = document.getElementById("article");
-		var articleDetailEl = document.getElementById("articleDetail");
-		articleEl.replaceChild(document.createTextNode(bestMatch.type), articleEl.firstChild);
-		articleDetailEl.replaceChild(document.createTextNode(bestMatch.toString()), articleDetailEl.firstChild);
-	}
-</script>
-</html>
+<script type="text/javascript" src="AvsAn.js"></script></html>
