@@ -1,21 +1,20 @@
-(function(){
+var trie = (function(){
 	"use strict";
-	var prefixTrie = function () {
-		var trieRoot = {};
-		//prefixes = [];
+	var trie = function () {
+		var root = {};
 		var prefLines = document.getElementById("articles").firstChild.nodeValue.replace(/\s([^\[]*)\[(an?):(\d+):(\d+)\]/g, function (m, prefix, article, anCount, aCount) {
-			var node = trieRoot;
+			var node = root;
 			while (prefix) {
 				node = node[prefix[0]] || (node[prefix[0]] = {});
 				prefix = prefix.substring(1);
 			}
 			node.data = { article: article, anCount: parseInt(anCount), aCount: parseInt(aCount) };
 		});
-		return trieRoot;
+		return root;
 	}();
 
 	function findTrieNode(word) {
-		var suffix = word, node = prefixTrie, data;
+		var suffix = word, node = trie, data;
 		while (true) {
 			data = node.data || data;
 			if (!suffix) break;
@@ -35,4 +34,6 @@
 		articleEl.replaceChild(document.createTextNode(node.data.article), articleEl.firstChild);
 		articleDetailEl.replaceChild(document.createTextNode(node.prefix + "[" + node.data.article + ":" + node.data.anCount + ":" + node.data.aCount + "]"), articleDetailEl.firstChild);
 	}
+
+	return prefixTrie;
 })();
