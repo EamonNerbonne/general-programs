@@ -33,6 +33,7 @@
 
 	inputEl.onkeyup = inputEl.oninput = function () {
 		var input = document.getElementById("searchquery").value.replace(/^\s+|\s+$/g, "") + " ";
+		input = input.replace(/^[\(\"'“‘-]/, ""); //strip initial punctuation symbols
 		var node = findTrieNode(input);
 		var article = node.data.aCount > node.data.anCount ? "a" : "an";
 		articleEl.replaceChild(document.createTextNode(article), articleEl.firstChild);
