@@ -12,24 +12,24 @@ var AvsAn = (function () {
 		node.data = { aCount: aCount, anCount: anCount, prefix: prefix, article: aCount >= anCount ? "a" : "an" };
 	});
 
-	//Usage example: AvsAn.query("example ") 
-	//Note that the terminal space indicates this is a complete word - this is sometimes significant, particularly for acronyms!
-	//returns: { 
-	//   prefix: "e", //the prefix sufficient to determine the article
-	//   aCount: 9682, //the number of times "a" was seen for this prefix
-	//   anCount: 1028246, //the number of times "an" was seen for this prefix
-	//   article: "an", //the most common article
-	//}
-	function query(word) {
-		var node = root, data = node.data;
-		for (var sI = 0; sI < word.length; sI++) {
-			node = node[word[sI]];
-			if (!node) break;
-			if (node.data) data = node.data;
-			//data = node.data || data;
-		}
-		return data;
-	}
-
-	return { query: query, raw: root };
+	return { raw: root, 
+    //Usage example: AvsAn.query("example ") 
+    //Note that the terminal space indicates this is a complete word - this is sometimes significant, particularly for acronyms!
+    //returns: { 
+    //   prefix: "e", //the prefix sufficient to determine the article
+    //   aCount: 9682, //the number of times "a" was seen for this prefix
+    //   anCount: 1028246, //the number of times "an" was seen for this prefix
+    //   article: "an", //the most common article
+    //}
+    query: 	function (word) {
+      var node = root, data = node.data;
+      for (var sI = 0; sI < word.length; sI++) {
+        node = node[word[sI]];
+        if (!node) break;
+        if (node.data) data = node.data;
+        //data = node.data || data;
+      }
+      return data;
+    }
+  };
 })();
