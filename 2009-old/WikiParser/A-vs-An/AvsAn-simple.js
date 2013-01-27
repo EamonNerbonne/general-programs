@@ -12,18 +12,19 @@ var AvsAnSimple = (function () {
 		node.article = aVsAn === "]" ? "a" : "an";
 	});
 
-	//Usage example: AvsAnSimple.query("example ") 
-	//Note that the terminal space indicates this is a complete word - this is sometimes significant, particularly for acronyms!
-	//example returns: "an"
-	function query(word) {
-		var node = root, article = node.article;
-		for (var sI = 0; sI < word.length; sI++) {
-			node = node[word[sI]];
-			if (!node) break;
-			if (node.article) article = node.article;
+	return {
+		raw: root,
+		//Usage example: AvsAnSimple.query("example ") 
+		//Note that the terminal space indicates this is a complete word - this is sometimes significant, particularly for acronyms!
+		//example returns: "an"
+		query: function (word) {
+			var node = root, article = node.article;
+			for (var sI = 0; sI < word.length; sI++) {
+				node = node[word[sI]];
+				if (!node) break;
+				if (node.article) article = node.article;
+			}
+			return article;
 		}
-		return article;
-	}
-
-	return { query: query, raw: root };
+	};
 })();
