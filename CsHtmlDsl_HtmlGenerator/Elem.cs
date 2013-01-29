@@ -8,10 +8,11 @@ using System.Web.Mvc;
 
 namespace HtmlGenerator
 {
-	public interface INode { }
-	public interface IContentNode : INode { }
+	public interface INodeContainer { }
+	public interface INodeContent { }
 
-	public class TextNode : IContentNode
+
+	public class TextNode : INodeContent
 	{
 		public readonly string Content;
 
@@ -24,7 +25,7 @@ namespace HtmlGenerator
 	{
 	}
 
-	public class Wrapper<TSelf> where TSelf : Wrapper<TSelf>, INode
+	public class Wrapper<TSelf> where TSelf : Wrapper<TSelf>, INodeContainer
 	{
 		public Elem<TSelf> Elem(string name) { return new Elem<TSelf>((TSelf)this); }
 
@@ -40,17 +41,17 @@ namespace HtmlGenerator
 		public Elem<TSelf> body { get { return ElemHelper(); } }
 		public Elem<TSelf> p { get { return ElemHelper(); } }
 
-		public TSelf this[IContentNode content] { get { return (TSelf)this; } }
+		public TSelf this[INodeContent content] { get { return (TSelf)this; } }
 		public TSelf this[TextNode content] { get { return (TSelf)this; } }
 	}
 
 
-	public class Fragment : Wrapper<Fragment>, IContentNode
+	public class Fragment : Wrapper<Fragment>, INodeContainer, INodeContent
 	{
 		public static Fragment New { get { return new Fragment(); } }
 	}
 
-	public class Elem<TParent> : Wrapper<Elem<TParent>>, INode where TParent : INode
+	public class Elem<TParent> : Wrapper<Elem<TParent>>, INodeContainer, INodeContent where TParent : INodeContainer
 	{
 		readonly TParent parent;
 
