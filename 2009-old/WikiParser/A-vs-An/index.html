@@ -41,8 +41,14 @@
 		<li>FIAT car</li>
 		<li>FAA policy</li>
 	</ul>
-	<p>You may use, modify, redistribute and do whatever you want with <a href="AvsAn.js">the data+script</a> used on this page, but please don't misrepresent its source.  If you've any questions, you can mail me at firstname@lastname.org.  
+	<p>You may use, modify, redistribute and do whatever you want with the data+script used on this page, but please don't misrepresent its source.  If you've any questions, you can mail me at firstname@lastname.org.  
 	</p>
+	<p>Downloads:</p>
+	<ul>
+		<li>Variant including counts of a's and an's : <a href="AvsAn.js">AvsAn.js</a> (10111 bytes, minified+gzipped it's 5434 bytes)</li>
+		<li>Variant including only which article is more common: <a href="AvsAn-simple.js">AvsAn-simple.js</a> (4823 bytes, minified+gzipped it's 2553 bytes)</li>
+		<li>node.js package (alternative implementation by Chad Kirby): <a href="https://github.com/uplake/Articles">github: uplake / Articles</a></li>
+	</ul>
 	<p>--Eamon Nerbonne
 	</p>
 </body>
@@ -59,7 +65,7 @@
 			input = input.replace(/^[\(\"'“‘-]/, ""); //strip initial punctuation symbols
 			var res = AvsAn.query(input);
 			articleEl.replaceChild(document.createTextNode(res.article), articleEl.firstChild);
-			articleDetailEl.replaceChild(document.createTextNode(res.prefix + "[" + res.article + ":" + res.aCount + ":" + res.anCount + "]"), articleDetailEl.firstChild);
+			articleDetailEl.replaceChild(document.createTextNode("prefix: \""+res.prefix +"\" ("+ res.aCount + " vs. " + res.anCount + ")"), articleDetailEl.firstChild);
 		}
 	})();
 </script>
