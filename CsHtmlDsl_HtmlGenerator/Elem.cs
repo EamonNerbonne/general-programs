@@ -51,6 +51,7 @@ namespace HtmlGenerator
 		public static Fragment New { get { return new Fragment(); } }
 	}
 
+
 	public class Elem<TParent> : Wrapper<Elem<TParent>>, INodeContainer, INodeContent where TParent : INodeContainer
 	{
 		readonly TParent parent;
@@ -68,9 +69,20 @@ namespace HtmlGenerator
 		}
 	}
 
-	public abstract class Helper
-	{
-		public static string MyElem = "";
+
+	public class Sibling<TPreceding> : Wrapper<Sibling<TParent>>, INodeContainer, INodeContent where TParent : INodeContainer {
+		readonly TParent parent;
+
+		public Elem(TParent parent) { this.parent = parent; }
+
+		public Elem<TParent> _id(string id) { return this; }
+		public Elem<TParent> _class(string classname) { return this; }
+
+		public TParent End { get { return parent; } }
+
+		public Elem<TParent> Attr(string asdf, string s) {
+			return this;
+		}
 	}
 
 	public sealed class Experiment : Helper
@@ -97,7 +109,6 @@ namespace HtmlGenerator
 				.span["meer text"]
 				["text"][doc];
 
-			var e = MyElem;
 
 			var bla = Fragment.New.div._id("asdf").b["test"].End
 				;
