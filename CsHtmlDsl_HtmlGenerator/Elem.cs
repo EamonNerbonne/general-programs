@@ -70,22 +70,7 @@ namespace HtmlGenerator
 	}
 
 
-	public class Sibling<TPreceding> : Wrapper<Sibling<TParent>>, INodeContainer, INodeContent where TParent : INodeContainer {
-		readonly TParent parent;
-
-		public Elem(TParent parent) { this.parent = parent; }
-
-		public Elem<TParent> _id(string id) { return this; }
-		public Elem<TParent> _class(string classname) { return this; }
-
-		public TParent End { get { return parent; } }
-
-		public Elem<TParent> Attr(string asdf, string s) {
-			return this;
-		}
-	}
-
-	public sealed class Experiment : Helper
+	public sealed class Experiment
 	{
 		public static void No1()
 		{
