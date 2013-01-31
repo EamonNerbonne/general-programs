@@ -11,23 +11,23 @@ namespace HtmlGenerator
 	}
 
 
-	public interface IBuilderContext<TNode, TParent> 
+	public interface IBuilderContext<TNode, TParent>
 	{
 		[Pure]
 		TParent Complete(TNode node);
 	}
 
-	public abstract class ChildFactory<TSelf, TParent, TContext, TNode> : INodeBuilder<TSelf>
-		where TSelf : ChildFactory<TSelf, TParent, TContext, TNode>
-		where TContext : struct, IBuilderContext<TNode, TParent> 
+	public abstract class ChildElemFactory<TSelf, TParent, TContext, TNode> : INodeBuilder<TSelf>
+		where TSelf : ChildElemFactory<TSelf, TParent, TContext, TNode>
+		where TContext : struct, IBuilderContext<TNode, TParent>
 	{
 		internal readonly TContext context;
 
-		protected ChildFactory(TContext context) { this.context = context; }
+		protected ChildElemFactory(TContext context) { this.context = context; }
 
 		internal abstract TNode Finish();
 
-		public BuildHElem<TSelf, HElemBuilderCompleter<TSelf>> CustomElement(string name) { return new BuildHElem<TSelf, HElemBuilderCompleter<TSelf>>(new HElemBuilderCompleter<TSelf>((TSelf) this) , name, null, null); }
+		public BuildHElem<TSelf, HElemBuilderCompleter<TSelf>> CustomElement(string name) { return new BuildHElem<TSelf, HElemBuilderCompleter<TSelf>>(new HElemBuilderCompleter<TSelf>((TSelf)this), name, null, null); }
 
 		BuildHElem<TSelf, HElemBuilderCompleter<TSelf>> ElemHelper([CallerMemberName] string name = null) { return CustomElement(name); }
 
@@ -42,7 +42,7 @@ namespace HtmlGenerator
 		public BuildHElem<TSelf, HElemBuilderCompleter<TSelf>> body { get { return ElemHelper(); } }
 		public BuildHElem<TSelf, HElemBuilderCompleter<TSelf>> p { get { return ElemHelper(); } }
 
-		public TSelf this[IEnumerable<HNode> nodes] { get { return nodes.Aggregate((TSelf)this, (acc, node) => acc[node]); } }
+		public TSelf this[params HNodeContent[] nodes] { get { return nodes.SelectMany(node=> node is HFragment ?((HFragment)node).Nodes :new[]{ (HNode)node}).Aggregate((TSelf)this, (acc, node) => acc[node]); } }
 
 		public abstract TSelf this[HNode node] { get; }
 

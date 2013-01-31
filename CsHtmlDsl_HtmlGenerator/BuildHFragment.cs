@@ -5,7 +5,7 @@
 		public HFragment Complete(HFragment node) { return node; }
 	}
 
-	public class BuildHFragment : ChildFactory<BuildHFragment, HFragment, HFragmentCompleter, HFragment>
+	public class BuildHFragment : ChildElemFactory<BuildHFragment, HFragment, HFragmentCompleter, HFragment>
 	{
 		readonly SList<HNode> children;
 		BuildHFragment(SList<HNode> children) : base(new HFragmentCompleter())  { this.children = children; }

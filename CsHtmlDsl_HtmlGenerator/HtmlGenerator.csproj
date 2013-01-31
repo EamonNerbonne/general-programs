@@ -74,7 +74,7 @@
   <ItemGroup>
     <Compile Include="BuildHElem.cs" />
     <Compile Include="BuildHFragment.cs" />
-    <Compile Include="ChildFactory.cs" />
+    <Compile Include="ChildElemFactory.cs" />
     <Compile Include="Experiment.cs" />
     <Compile Include="HAttr.cs" />
     <Compile Include="HElem.cs" />

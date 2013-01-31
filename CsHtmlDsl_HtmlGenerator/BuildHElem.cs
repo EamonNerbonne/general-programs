@@ -2,7 +2,7 @@
 
 namespace HtmlGenerator
 {
-	public sealed class BuildHElem<TParent, TContext> : ChildFactory<BuildHElem<TParent, TContext>, TParent, TContext, HElem>
+	public sealed class BuildHElem<TParent, TContext> : ChildElemFactory<BuildHElem<TParent, TContext>, TParent, TContext, HElem>
 		where TContext : struct, IBuilderContext<HElem, TParent>
 	{
 		readonly string name;

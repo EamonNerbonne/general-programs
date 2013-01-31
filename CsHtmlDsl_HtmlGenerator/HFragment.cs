@@ -7,7 +7,7 @@ using System.Xml.Linq;
 
 namespace HtmlGenerator
 {
-	public sealed class HFragment : IEnumerable<HNode>
+	public sealed class HFragment : HNodeContent
 	{
 		public readonly IReadOnlyList<HNode> Nodes;
 		public HFragment(IReadOnlyList<HNode> nodes) { Nodes = nodes; }
@@ -41,8 +41,5 @@ namespace HtmlGenerator
 			temp.RemoveNodes();
 			return retval;
 		}
-
-		public IEnumerator<HNode> GetEnumerator() { return Nodes.GetEnumerator(); }
-		IEnumerator IEnumerable.GetEnumerator() { return GetEnumerator(); }
 	}
 }

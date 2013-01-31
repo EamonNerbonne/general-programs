@@ -2,15 +2,14 @@
 {
 	public sealed class Experiment
 	{
-		public static void No1()
+		public static HFragment No1()
 		{
-
 			HFragment fragment = HFragment.New.
 				div._class("test \"it'")
 				["test >"]
-				.b["bolded"]
-				.i["italic & bold\nand a multiline string"].End
-				.End
+					.b["bolded"]
+						.i["italic & bold\nand a multiline string"].End
+					.End
 				.End
 				["plain text"]
 				.form._method("get")["nothing to see!"].End
@@ -27,6 +26,9 @@
 				.End;
 
 			HElem div = HElem.New("div")["asdasd"].b["test"].End.End;
+
+
+			return HFragment.New[fragment, doc1, div, "end of story!"].End;
 
 			//var bla = Fragment.New.div._id("asdf").b["test"].End
 			//	;
