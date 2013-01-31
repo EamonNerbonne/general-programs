@@ -2,27 +2,31 @@
 
 namespace HtmlGenerator
 {
-	public sealed class BuildHElem<TParent> : ChildFactory<BuildHElem<TParent>> where TParent : INodeBuilder<TParent>
+	public sealed class BuildHElem<TParent, TContext> : ChildFactory<BuildHElem<TParent, TContext>, TParent, TContext, HElem>
+		where TContext : struct, IBuilderContext<HElem, TParent>
 	{
 		readonly string name;
-		readonly TParent parent;
 		readonly SList<HAttr> attrs;
 		readonly SList<HNode> children;
 
-		internal BuildHElem(TParent parent, string name, SList<HAttr> attrs, SList<HNode> children) { this.name = name; this.attrs = attrs; this.children = children; this.parent = parent; }
+		internal BuildHElem(TContext context, string name, SList<HAttr> attrs, SList<HNode> children) : base(context) { this.name = name; this.attrs = attrs; this.children = children; }
 
 
-		public TParent End { get { return parent[new HElem(name, attrs.ToArray(), children.ToArray())]; } }
+		//TParent End { get { return parent[Finish()]; } }
 
-		public BuildHElem<TParent> CustomAttribute(string attr, string value) { return new BuildHElem<TParent>(parent, name, attrs.Prepend(new HAttr(attr, value)), children); }
+		internal override HElem Finish() { return new HElem(name, attrs.ToArray(), children.ToArray()); }
 
-		BuildHElem<TParent> AttrHelper(string value, [CallerMemberName] string attr = null) { return CustomAttribute(attr.Substring(1), value); }
+		public BuildHElem<TParent, TContext> CustomAttribute(string attr, string value) { return new BuildHElem<TParent, TContext>(context, name, attrs.Prepend(new HAttr(attr, value)), children); }
 
-		public BuildHElem<TParent> _id(string value) { return AttrHelper(value); }
-		public BuildHElem<TParent> _class(string value) { return AttrHelper(value); }
-		public BuildHElem<TParent> _method(string value) { return AttrHelper(value); }
+		BuildHElem<TParent, TContext> AttrHelper(string value, [CallerMemberName] string attr = null) { return CustomAttribute(attr.Substring(1), value); }
+
+		public BuildHElem<TParent, TContext> _id(string value) { return AttrHelper(value); }
+		public BuildHElem<TParent, TContext> _class(string value) { return AttrHelper(value); }
+		public BuildHElem<TParent, TContext> _method(string value) { return AttrHelper(value); }
 
 
-		public override BuildHElem<TParent> this[HNode node] { get { return new BuildHElem<TParent>(parent, name, attrs, children.Prepend(node)); } }
+		public override BuildHElem<TParent, TContext> this[HNode node] { get { return new BuildHElem<TParent, TContext>(context, name, attrs, children.Prepend(node)); } }
 	}
+
+
 }

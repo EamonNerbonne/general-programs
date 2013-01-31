@@ -75,6 +75,7 @@
     <Compile Include="BuildHElem.cs" />
     <Compile Include="BuildHFragment.cs" />
     <Compile Include="ChildFactory.cs" />
+    <Compile Include="Experiment.cs" />
     <Compile Include="HAttr.cs" />
     <Compile Include="HElem.cs" />
     <Compile Include="HFragment.cs" />

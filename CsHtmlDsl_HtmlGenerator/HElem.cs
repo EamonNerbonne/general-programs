@@ -8,6 +8,8 @@ namespace HtmlGenerator
 {
 	public sealed class HElem : HNode
 	{
+		public static BuildHElem<HElem, HElemCompleter> New(string name) { return new BuildHElem<HElem, HElemCompleter>(new HElemCompleter(), name, null, null); }
+
 		public readonly string Name;
 		public readonly IReadOnlyList<HAttr> Attributes;
 		public readonly IReadOnlyList<HNode> Children;
