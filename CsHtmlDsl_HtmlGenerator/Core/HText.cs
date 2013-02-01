@@ -3,7 +3,7 @@ using System.Text.RegularExpressions;
 using System.Web;
 using System.Xml;
 
-namespace HtmlGenerator.Base
+namespace HtmlGenerator.Core
 {
 	public class HText : HNode
 	{

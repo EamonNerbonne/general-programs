@@ -1,7 +1,7 @@
 ﻿using System.IO;
 using System.Xml;
 
-namespace HtmlGenerator.Base
+namespace HtmlGenerator.Core
 {
 	public abstract class HNodeContent
 	{

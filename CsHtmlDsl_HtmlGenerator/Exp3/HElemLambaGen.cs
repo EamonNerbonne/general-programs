@@ -1,11 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using HtmlGenerator.Base;
+﻿using HtmlGenerator.Core;
 
-namespace HtmlGenerator
+namespace HtmlGenerator.Exp3
 {
 	struct HElemLambaGen
 	{
@@ -18,7 +13,4 @@ namespace HtmlGenerator
 		public static HElemLambaGen Create(string name) { return new HElemLambaGen { Name = name }; }
 		public HElem Finish() { return new HElem(Name, Attrs.ToArray(), Kids.ToArray()); }
 	}
-
-
-
 }

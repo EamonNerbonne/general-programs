@@ -1,4 +1,4 @@
-namespace HtmlGenerator.Base
+namespace HtmlGenerator.Core
 {
 	public interface INodeBuilder<out TSelf> where TSelf : INodeBuilder<TSelf>
 	{

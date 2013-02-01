@@ -1,6 +1,6 @@
 using System.Diagnostics.Contracts;
 
-namespace HtmlGenerator.Base
+namespace HtmlGenerator.Core
 {
 	public interface IBuilderContext<TNode, TParent>
 	{

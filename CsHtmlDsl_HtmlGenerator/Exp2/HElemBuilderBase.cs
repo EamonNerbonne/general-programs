@@ -1,8 +1,8 @@
 ﻿using System.Linq;
 using System.Runtime.CompilerServices;
-using HtmlGenerator.Base;
+using HtmlGenerator.Core;
 
-namespace HtmlGenerator
+namespace HtmlGenerator.Exp2
 {
 	internal static class BuilderHelper
 	{

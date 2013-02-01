@@ -1,4 +1,4 @@
-﻿using HtmlGenerator.Base;
+﻿using HtmlGenerator.Core;
 
 namespace HtmlGenerator
 {

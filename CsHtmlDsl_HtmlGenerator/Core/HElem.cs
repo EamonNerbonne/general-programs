@@ -5,8 +5,9 @@ using System.Linq;
 using System.Xml;
 using System.Xml.Linq;
 using HtmlGenerator.Exp1;
+using HtmlGenerator.Exp2;
 
-namespace HtmlGenerator.Base
+namespace HtmlGenerator.Core
 {
 	public sealed class HElem : HNode
 	{

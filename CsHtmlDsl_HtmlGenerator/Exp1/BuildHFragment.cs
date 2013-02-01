@@ -1,7 +1,6 @@
-﻿using HtmlGenerator.Base;
-using HtmlGenerator.Exp1;
+﻿using HtmlGenerator.Core;
 
-namespace HtmlGenerator
+namespace HtmlGenerator.Exp1
 {
 	public struct HFragmentCompleter : IBuilderContext<HFragment, HFragment>
 	{

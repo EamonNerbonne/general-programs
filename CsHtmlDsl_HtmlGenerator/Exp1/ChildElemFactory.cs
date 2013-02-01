@@ -1,6 +1,6 @@
 ﻿using System.Linq;
 using System.Runtime.CompilerServices;
-using HtmlGenerator.Base;
+using HtmlGenerator.Core;
 
 namespace HtmlGenerator.Exp1
 {

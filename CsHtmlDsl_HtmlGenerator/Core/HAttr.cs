@@ -2,7 +2,7 @@
 using System.Web;
 using System.Xml;
 
-namespace HtmlGenerator.Base
+namespace HtmlGenerator.Core
 {
 	public sealed class HAttr
 	{

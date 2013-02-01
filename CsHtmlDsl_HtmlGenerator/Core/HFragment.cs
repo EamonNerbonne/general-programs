@@ -1,12 +1,11 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Xml;
 using System.Xml.Linq;
-using HtmlGenerator.Base;
+using HtmlGenerator.Exp1;
 
-namespace HtmlGenerator
+namespace HtmlGenerator.Core
 {
 	public sealed class HFragment : HNodeContent
 	{

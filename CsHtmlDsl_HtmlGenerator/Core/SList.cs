@@ -1,4 +1,4 @@
-﻿namespace HtmlGenerator
+﻿namespace HtmlGenerator.Core
 {
 	class SList<T>
 	{

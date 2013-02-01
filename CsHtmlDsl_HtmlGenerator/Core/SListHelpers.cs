@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace HtmlGenerator
+namespace HtmlGenerator.Core
 {
 	static class SListHelpers
 	{
