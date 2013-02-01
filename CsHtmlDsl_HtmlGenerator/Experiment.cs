@@ -2,6 +2,46 @@
 {
 	public sealed class Experiment
 	{
+		public static HElem No2()
+		{
+
+			return HElem
+				.html
+					.head
+						.title["some title"].End
+						.link.CustomAttribute("src", "asdasd").CustomAttribute("type", "asdasdasd").End
+					.End
+					.body
+						.h1["header"].End
+						.p["a paragraph with "]
+							.b["marked "]
+								.i["up"].End
+							.End
+							[" text!"]
+						.End
+					.End
+				.End;
+
+		}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 		public static HFragment No1()
 		{
 			HFragment fragment = HFragment.New.

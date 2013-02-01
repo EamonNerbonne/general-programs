@@ -12,21 +12,17 @@ namespace HtmlGenerator
 		public readonly IReadOnlyList<HNode> Nodes;
 		public HFragment(IReadOnlyList<HNode> nodes) { Nodes = nodes; }
 
-		public string SerializeAsString(bool indent)
+
+
+
+		//public abstract void WriteToString(TextWriter writer, bool indent, int level);
+		public override void WriteToString(TextWriter sw, bool indent, int i)
 		{
-			using (var sw = new StringWriter())
-			{
-				foreach (var kid in Nodes)
-					kid.WriteToString(sw, indent, 0);
-				sw.Flush();
-				return sw.ToString();
-			}
+			foreach (var kid in Nodes)
+				kid.WriteToString(sw, indent, i);
 		}
 
-		public static BuildHFragment New { get { return new BuildHFragment(); } }
-
-
-		public void WriteToXml(XmlWriter xw)
+		public override void WriteToXml(XmlWriter xw)
 		{
 			foreach (var kid in Nodes)
 				kid.WriteToXml(xw);
@@ -41,5 +37,7 @@ namespace HtmlGenerator
 			temp.RemoveNodes();
 			return retval;
 		}
+
+		public static BuildHFragment New { get { return new BuildHFragment(); } }
 	}
 }

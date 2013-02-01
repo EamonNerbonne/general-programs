@@ -78,6 +78,7 @@
     <Compile Include="Experiment.cs" />
     <Compile Include="HAttr.cs" />
     <Compile Include="HElem.cs" />
+    <Compile Include="HElemBuilderBase.cs" />
     <Compile Include="HFragment.cs" />
     <Compile Include="HNode.cs" />
     <Compile Include="Program.cs" />

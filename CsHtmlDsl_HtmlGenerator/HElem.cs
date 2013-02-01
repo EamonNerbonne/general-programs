@@ -3,12 +3,14 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Xml;
+using System.Xml.Linq;
 
 namespace HtmlGenerator
 {
 	public sealed class HElem : HNode
 	{
 		public static BuildHElem<HElem, HElemCompleter> New(string name) { return new BuildHElem<HElem, HElemCompleter>(new HElemCompleter(), name, null, null); }
+		public static HElemBuilder_html<HElem, HElemCompleter> html { get { return new HElemBuilder_html<HElem, HElemCompleter>().Init(new HElemCompleter(), "html", null, null); } }
 
 		public readonly string Name;
 		public readonly IReadOnlyList<HAttr> Attributes;
@@ -76,6 +78,14 @@ namespace HtmlGenerator
 			}
 		}
 
-
+		public XElement SerializeAsXml()
+		{
+			var temp = new XDocument();
+			using (var xw = temp.CreateWriter())
+				WriteToXml(xw);
+			var retval = temp.Root;
+			retval.Remove();
+			return retval;
+		}
 	}
 }

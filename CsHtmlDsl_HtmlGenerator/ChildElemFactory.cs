@@ -42,7 +42,7 @@ namespace HtmlGenerator
 		public BuildHElem<TSelf, HElemBuilderCompleter<TSelf>> body { get { return ElemHelper(); } }
 		public BuildHElem<TSelf, HElemBuilderCompleter<TSelf>> p { get { return ElemHelper(); } }
 
-		public TSelf this[params HNodeContent[] nodes] { get { return nodes.SelectMany(node=> node is HFragment ?((HFragment)node).Nodes :new[]{ (HNode)node}).Aggregate((TSelf)this, (acc, node) => acc[node]); } }
+		public TSelf this[params HNodeContent[] nodes] { get { return nodes.SelectMany(node => node is HFragment ? ((HFragment)node).Nodes : new[] { (HNode)node }).Aggregate((TSelf)this, (acc, node) => acc[node]); } }
 
 		public abstract TSelf this[HNode node] { get; }
 
@@ -51,8 +51,8 @@ namespace HtmlGenerator
 
 	public struct HElemBuilderCompleter<TParent> : IBuilderContext<HElem, TParent> where TParent : INodeBuilder<TParent>
 	{
-		readonly TParent parent;
-		public HElemBuilderCompleter(TParent parent) : this() { this.parent = parent; }
+		readonly INodeBuilder<TParent> parent;
+		public HElemBuilderCompleter(INodeBuilder<TParent> parent) : this() { this.parent = parent; }
 
 		public TParent Complete(HElem node) { return parent[node]; }
 	}
