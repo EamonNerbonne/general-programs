@@ -79,6 +79,7 @@
     <Compile Include="HAttr.cs" />
     <Compile Include="HElem.cs" />
     <Compile Include="HElemBuilderBase.cs" />
+    <Compile Include="HElemLambaGen.cs" />
     <Compile Include="HFragment.cs" />
     <Compile Include="HNode.cs" />
     <Compile Include="Program.cs" />
@@ -90,6 +91,10 @@
   <ItemGroup>
     <None Include="App.config" />
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Exp1\" />
+    <Folder Include="Exp2\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(SolutionDir)\.nuget\nuget.targets" />
