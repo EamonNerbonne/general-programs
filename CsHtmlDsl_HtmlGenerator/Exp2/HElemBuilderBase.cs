@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿// ReSharper disable UnusedMember.Global
+using System.Linq;
 using System.Runtime.CompilerServices;
 using HtmlGenerator.Core;
 
@@ -19,7 +20,7 @@ namespace HtmlGenerator.Exp2
 		}
 	}
 
-	internal interface IHElemBuilderInit<TContext>
+	internal interface IHElemBuilderInit<in TContext>
 	{
 		void InitImpl(TContext context, string name, SList<HAttr> attrs, SList<HNode> children);
 	}
@@ -28,27 +29,28 @@ namespace HtmlGenerator.Exp2
 		where TSelf : HElemBuilderBase<TSelf, TParent, TContext>, new()
 		where TContext : struct, IBuilderContext<HElem, TParent>
 	{
-		TContext context;
-		string name;
-		SList<HAttr> attrs;
-		SList<HNode> children;
+		TContext context_;
+		string name_;
+		SList<HAttr> attrs_;
+		SList<HNode> children_;
 
-		public HElemBuilderBase() { }
-		void IHElemBuilderInit<TContext>.InitImpl(TContext context, string name, SList<HAttr> attrs, SList<HNode> children) { this.context = context; this.name = name; this.attrs = attrs; this.children = children; }
+		void IHElemBuilderInit<TContext>.InitImpl(TContext context, string name, SList<HAttr> attrs, SList<HNode> children) { context_ = context; name_ = name; attrs_ = attrs; children_ = children; }
 
 		public TSelf this[params HNodeContent[] nodes] { get { return (TSelf)nodes.SelectMany(node => node is HFragment ? ((HFragment)node).Nodes : new[] { (HNode)node }).Aggregate((INodeBuilder<TSelf>)this, (acc, node) => acc[node]); } }
 
-		public TParent End { get { return context.Complete(Finish()); } }
-		HElem Finish() { return new HElem(name, attrs.ToArray(), children.ToArray()); }
+		public TParent End { get { return context_.Complete(Finish()); } }
+		HElem Finish() { return new HElem(name_, attrs_.ToArray(), children_.ToArray()); }
 
 
 		internal TChild Kid<TChild>([CallerMemberName]string childName = null)
 			where TChild : HElemBuilderBase<TChild, TSelf, HElemBuilderCompleter<TSelf>>, new() { return new TChild().Init(new HElemBuilderCompleter<TSelf>(this), childName, null, null); }
 
 
-		public HElemBuilderGeneral<TSelf, HElemBuilderCompleter<TSelf>> CustomElement(string childName) { return Kid<HElemBuilderGeneral<TSelf, HElemBuilderCompleter<TSelf>>>(childName); }
+// ReSharper disable ExplicitCallerInfoArgument
+		public HElemBuilder_flow<TSelf, HElemBuilderCompleter<TSelf>> CustomElement(string childName) { return Kid<HElemBuilder_flow<TSelf, HElemBuilderCompleter<TSelf>>>(childName); }
+// ReSharper restore ExplicitCallerInfoArgument
 
-		public TSelf CustomAttribute(string attr, string value) { return new TSelf().Init(context, name, attrs.Prepend(new HAttr(attr, value)), children); }
+		public TSelf CustomAttribute(string attr, string value) { return new TSelf().Init(context_, name_, attrs_.Prepend(new HAttr(attr, value)), children_); }
 
 		internal TSelf AttrHelper(string value, [CallerMemberName] string attr = null) { return CustomAttribute(attr.Substring(1), value); }
 
@@ -89,16 +91,10 @@ namespace HtmlGenerator.Exp2
 			get
 			{
 				var retval = new TSelf();
-				retval.Init(context, name, attrs, children.Prepend(node));
+				retval.Init(context_, name_, attrs_, children_.Prepend(node));
 				return retval;
 			}
 		}
-	}
-
-	public sealed class HElemBuilderGeneral<TParent, TContext> : HElemBuilderBase<HElemBuilderGeneral<TParent, TContext>, TParent, TContext>
-		where TContext : struct, IBuilderContext<HElem, TParent>
-	{
-
 	}
 
 	public sealed class HElemBuilder_text<TParent, TContext> : HElemBuilderBase<HElemBuilder_text<TParent, TContext>, TParent, TContext>
@@ -114,12 +110,6 @@ namespace HtmlGenerator.Exp2
 		public HElemBuilder_flow<HElemBuilder_html<TParent, TContext>, HElemBuilderCompleter<HElemBuilder_html<TParent, TContext>>> body { get { return Kid<HElemBuilder_flow<HElemBuilder_html<TParent, TContext>, HElemBuilderCompleter<HElemBuilder_html<TParent, TContext>>>>(); } }
 	}
 
-	//public sealed class HElemBuilder_html2<TParent, TContext> : HElemBuilderBase<HElemBuilder_html2<TParent, TContext>, TParent, TContext>
-	//where TContext : struct, IBuilderContext<HElem, TParent>
-	//{
-	//	public HElemBuilder_metadata<HElemBuilder_html<TParent, TContext>, HElemBuilderCompleter<HElemBuilder_html<TParent, TContext>>> head { get { return Kid<HElemBuilder_metadata<HElemBuilder_html<TParent, TContext>, HElemBuilderCompleter<HElemBuilder_html<TParent, TContext>>>>(); } }
-	//	public HElemBuilder_flow<HElemBuilder_html<TParent, TContext>, HElemBuilderCompleter<HElemBuilder_html<TParent, TContext>>> body { get { return Kid<HElemBuilder_flow<HElemBuilder_html<TParent, TContext>, HElemBuilderCompleter<HElemBuilder_html<TParent, TContext>>>>(); } }
-	//}
 
 
 	public sealed class HElemBuilder_metadata<TParent, TContext> : HElemBuilderBase<HElemBuilder_metadata<TParent, TContext>, TParent, TContext>
@@ -133,19 +123,6 @@ namespace HtmlGenerator.Exp2
 		public HElemBuilder_text<HElemBuilder_metadata<TParent, TContext>, HElemBuilderCompleter<HElemBuilder_metadata<TParent, TContext>>> script { get { return Kid<HElemBuilder_text<HElemBuilder_metadata<TParent, TContext>, HElemBuilderCompleter<HElemBuilder_metadata<TParent, TContext>>>>(); } }
 		public HElemBuilder_text<HElemBuilder_metadata<TParent, TContext>, HElemBuilderCompleter<HElemBuilder_metadata<TParent, TContext>>> style { get { return Kid<HElemBuilder_text<HElemBuilder_metadata<TParent, TContext>, HElemBuilderCompleter<HElemBuilder_metadata<TParent, TContext>>>>(); } }
 		public HElemBuilder_text<HElemBuilder_metadata<TParent, TContext>, HElemBuilderCompleter<HElemBuilder_metadata<TParent, TContext>>> title { get { return Kid<HElemBuilder_text<HElemBuilder_metadata<TParent, TContext>, HElemBuilderCompleter<HElemBuilder_metadata<TParent, TContext>>>>(); } }
-
-	}
-
-
-	public sealed class HElemBuilder_body<TParent, TContext> : HElemBuilderBase<HElemBuilder_body<TParent, TContext>, TParent, TContext>
-where TContext : struct, IBuilderContext<HElem, TParent>
-	{
-
-	}
-
-	public sealed class HElemBuilder_phrasing<TParent, TContext> : HElemBuilderBase<HElemBuilder_phrasing<TParent, TContext>, TParent, TContext>
-where TContext : struct, IBuilderContext<HElem, TParent>
-	{
 
 	}
 
