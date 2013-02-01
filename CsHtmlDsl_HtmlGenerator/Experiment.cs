@@ -1,4 +1,6 @@
-﻿namespace HtmlGenerator
+﻿using HtmlGenerator.Base;
+
+namespace HtmlGenerator
 {
 	public sealed class Experiment
 	{

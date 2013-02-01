@@ -1,4 +1,7 @@
-﻿namespace HtmlGenerator
+﻿using HtmlGenerator.Base;
+using HtmlGenerator.Exp1;
+
+namespace HtmlGenerator
 {
 	public struct HFragmentCompleter : IBuilderContext<HFragment, HFragment>
 	{

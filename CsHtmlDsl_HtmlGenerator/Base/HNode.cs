@@ -1,10 +1,7 @@
-﻿using System.Collections.Generic;
-using System.IO;
-using System.Linq;
+﻿using System.IO;
 using System.Xml;
-using System.Xml.Linq;
 
-namespace HtmlGenerator
+namespace HtmlGenerator.Base
 {
 	public abstract class HNodeContent
 	{

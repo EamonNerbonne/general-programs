@@ -72,28 +72,29 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="BuildHElem.cs" />
-    <Compile Include="BuildHFragment.cs" />
-    <Compile Include="ChildElemFactory.cs" />
+    <Compile Include="Exp1\BuildHElem.cs" />
+    <Compile Include="Exp1\BuildHFragment.cs" />
+    <Compile Include="Exp1\ChildElemFactory.cs" />
+    <Compile Include="Base\INodeBuilder.cs" />
+    <Compile Include="Base\IBuilderContext.cs" />
     <Compile Include="Experiment.cs" />
-    <Compile Include="HAttr.cs" />
-    <Compile Include="HElem.cs" />
+    <Compile Include="Base\HAttr.cs" />
+    <Compile Include="Base\HElem.cs" />
     <Compile Include="HElemBuilderBase.cs" />
     <Compile Include="HElemLambaGen.cs" />
     <Compile Include="HFragment.cs" />
-    <Compile Include="HNode.cs" />
+    <Compile Include="Base\HNode.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SList.cs" />
     <Compile Include="SListHelpers.cs" />
-    <Compile Include="HText.cs" />
+    <Compile Include="Base\HText.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Exp1\" />
     <Folder Include="Exp2\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

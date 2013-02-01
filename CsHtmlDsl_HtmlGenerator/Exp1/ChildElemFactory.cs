@@ -1,22 +1,9 @@
-﻿using System.Collections.Generic;
-using System.Diagnostics.Contracts;
-using System.Linq;
+﻿using System.Linq;
 using System.Runtime.CompilerServices;
+using HtmlGenerator.Base;
 
-namespace HtmlGenerator
+namespace HtmlGenerator.Exp1
 {
-	public interface INodeBuilder<out TSelf> where TSelf : INodeBuilder<TSelf>
-	{
-		TSelf this[HNode node] { get; }
-	}
-
-
-	public interface IBuilderContext<TNode, TParent>
-	{
-		[Pure]
-		TParent Complete(TNode node);
-	}
-
 	public abstract class ChildElemFactory<TSelf, TParent, TContext, TNode> : INodeBuilder<TSelf>
 		where TSelf : ChildElemFactory<TSelf, TParent, TContext, TNode>
 		where TContext : struct, IBuilderContext<TNode, TParent>
@@ -47,17 +34,5 @@ namespace HtmlGenerator
 		public abstract TSelf this[HNode node] { get; }
 
 		public TParent End { get { return context.Complete(Finish()); } }
-	}
-
-	public struct HElemBuilderCompleter<TParent> : IBuilderContext<HElem, TParent> where TParent : INodeBuilder<TParent>
-	{
-		readonly INodeBuilder<TParent> parent;
-		public HElemBuilderCompleter(INodeBuilder<TParent> parent) : this() { this.parent = parent; }
-
-		public TParent Complete(HElem node) { return parent[node]; }
-	}
-	public struct HElemCompleter : IBuilderContext<HElem, HElem>
-	{
-		public HElem Complete(HElem node) { return node; }
 	}
 }

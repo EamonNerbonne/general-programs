@@ -1,6 +1,7 @@
 ﻿using System.Runtime.CompilerServices;
+using HtmlGenerator.Base;
 
-namespace HtmlGenerator
+namespace HtmlGenerator.Exp1
 {
 	public sealed class BuildHElem<TParent, TContext> : ChildElemFactory<BuildHElem<TParent, TContext>, TParent, TContext, HElem>
 		where TContext : struct, IBuilderContext<HElem, TParent>
