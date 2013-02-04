@@ -14,99 +14,88 @@ using System.Text;
 using System.Threading;
 using KNucleotideFastaBench;
 
-struct BaseSeq
-{
-	const uint BasesPerULong = 32;
+#if true
+struct DnaSequence {
+	const int BasesPerRaw = 32;
 	readonly ulong[] rawdata;
-	readonly int length;
-	public BaseSeq(IEnumerable<Base> bases)
-	{
-		rawdata = new ulong[16];
-		length = 0;
-		var buffer = new Base[32];
+	public readonly int Length;
+	public DnaSequence(IEnumerable<Base> bases) {
 		var list = new List<ulong>(32);
-		var bufI = 0;
-		foreach (var b in bases)
-		{
-			if (bufI == 32)
-			{
-				ulong next=0;
-				for (int i = 0; i < bufI; i++)
-					next |= (ulong) buffer[i] << i*2;
+		int i = 0;
+		ulong next = 0;
+		foreach (var b in bases) {
+			next |= (ulong)b << i * 2;
+			i++;
+			if (i == BasesPerRaw) {
+				i = 0;
 				list.Add(next);
-				rawdata[length/BasesPerULong] = next;
-				length += bufI;
-				bufI = 0;
+				next = 0;
 			}
 		}
-		if (length/BasesPerULong >= rawdata.Length)
-			Array.Resize(ref rawdata, rawdata.Length*2);
-		ulong next1=0;
-		for (int i1 = 0; i1 < bufI; i1++)
-			next1 |= (ulong) buffer[i1] << i1*2;
-		rawdata[length/BasesPerULong] = next1;
-		length += bufI;
-		Array.Resize(ref rawdata, length);
+		Length = list.Count * BasesPerRaw + i;
+		if (i != 0) list.Add(next);
+		rawdata = list.ToArray();
 	}
 
-	public Base this[int i]
-	{
-		get
-		{
-			var dataIndex = i/32;
-			var innerOffset = (i%32)*2;
-			return (Base) (rawdata[dataIndex] >> innerOffset & 3);
-		}
-	}
-
+	public Base this[int i] { get { return (Base)(rawdata[i >> 5] >> (i & 31) * 2 & 3); } }
 }
-
-
-public struct DnaSeq : IEquatable<DnaSeq>
-{
-	public BitArray Array;
-	public int Start;
-	public int Length;
-	public uint Hash;
-
-	public DnaSeq(BitArray array, int start, int length)
-	{
-
-		Array = array; Start = start; Length = length;
-		Hash = 0;
-		int hashOff = 0;
-		for (int i = 0; i < Length; i++)
-		{
-			Hash = (Array[(Start + i) * 2] ? 1u : 0) + (Array[(Start + i) * 2 + 1] ? 2u : 0) << hashOff;
-			hashOff = hashOff + 2 % 32;
+#elif true
+struct DnaSequence {
+	const int BasesPerRawLog = 4;
+	readonly uint[] rawdata;
+	public readonly int Length;
+	public DnaSequence(IEnumerable<Base> bases) {
+		var list = new List<uint>(64);
+		int i = 0;
+		uint next = 0;
+		foreach (var b in bases) {
+			next |= (uint)b << i * 2;
+			i++;
+			if (i == 16) {
+				i = 0;
+				list.Add(next);
+				next = 0;
+			}
 		}
+		Length = list.Count * 16 + i;
+		if (i != 0) list.Add(next);
+		rawdata = list.ToArray();
 	}
 
-	public DnaSeq(BitArray array) : this(array, 0, array.Length / 2) { }
-
-	public override int GetHashCode() { return (int)Hash; }
-
-	public bool Equals(DnaSeq other)
-	{
-		if (Length != other.Length || Hash != other.Hash) return false;
-		for (int i = 0; i < Length*2; i++)
-			if (Array[Start*2 + i] != other.Array[other.Start*2 + i]) return false;
-		return true;
+	public Base this[int i] { get { return (Base)(rawdata[i >> 4] >> (i & 15) * 2 & 3); } }
+}
+#else 
+struct DnaSequence {
+	readonly Base[] data;
+	public DnaSequence(IEnumerable<Base> bases) { data = bases.ToArray(); }
+	public int Length { get { return data.Length; } }
+	public Base this[int i] { get { return data[i]; } }
+}
+#endif
+struct DnaFragment : IEquatable<DnaFragment> {
+	public readonly ulong data;
+	public DnaFragment(DnaSequence seq, int offset, int length) {
+		data = (ulong)length & 31;
+		for (int i = 0; i < length; i++)
+			data |= (ulong)seq[offset + i] << 62 - i * 2;
 	}
-
-	public override string ToString()
-	{
-		var arr = Array;
-		return string.Concat(Enumerable.Range(Start, Length).Select(i => ((Base)((arr[i * 2] ? 1u : 0) + (arr[i * 2 + 1] ? 2u : 0))).ToString()));
+	public DnaFragment(string seq) {
+		data = (ulong)seq.Length & 31;
+		for (int i = 0; i < seq.Length; i++)
+			data |= (ulong)seq[i].ToBase() << 62 - i * 2;
 	}
+	public int Length { get { return (int)data & 31; } }
+	public Base Get(int i) { return (Base)(data >> 62 - i * 2 & 3); }
+	public IEnumerable<Base> All() { var x = this; return Enumerable.Range(0, Length).Select(x.Get); }
+	public override string ToString() { return string.Concat(All()); }
+	public override int GetHashCode() { return (int)(data ^ (data >> 32)); }
+	public bool Equals(DnaFragment other) { return data == other.data; }
 }
 
 enum Base : byte { A, C, G, T }
 
-static class Extensions
-{
-	public static Base ToBase(this char c)
-	{
+static class Extensions {
+	public static Base ToBase(this char c) {
 		c = char.ToUpperInvariant(c);
 		if (c == 'A') return Base.A;
 		if (c == 'C') return Base.C;
@@ -115,12 +104,10 @@ static class Extensions
 		throw new ArgumentOutOfRangeException("c");
 	}
 
-	public static BitArray GetBits(this IEnumerable<char> bases)
-	{
+	public static BitArray GetBits(this IEnumerable<char> bases) {
 		var typedBases = bases.Select(ToBase).ToArray();
 		var array = new BitArray(typedBases.Length * 2);
-		for (var i = 0; i < typedBases.Length; i++)
-		{
+		for (var i = 0; i < typedBases.Length; i++) {
 			var b = typedBases[i];
 			array[2 * i] = ((byte)b & 1) == 1;
 			array[2 * i + 1] = ((byte)b & 2) == 2;
@@ -128,129 +115,75 @@ static class Extensions
 		return array;
 	}
 
-	public static IEnumerable<string> Lines(this TextReader reader)
-	{
+	public static IEnumerable<string> Lines(this TextReader reader) {
 		for (var line = reader.ReadLine(); line != null; line = reader.ReadLine())
 			yield return line;
 	}
 }
 
-public static class Program
-{
+static class Program {
 	public static int TaskCount;
 	public static int Current = -1;
 	public static KNucleotide[] kna;
 
-	public static void Main(string[] args)
-	{
+	public static void Main(string[] args) {
 
 		var sw = ThreadCpuTimer.StartNew();
 
-		try
-		{
-#if true
-			var console_In = args[0] != null ? File.OpenText(args[0]) : Console.In;
-			var inputSequence = console_In.Lines().SkipWhile(s => !s.StartsWith(">THREE")).Skip(1)
-				.TakeWhile(s => !s.StartsWith(">")).Where(s => !s.StartsWith(";")).
-				SelectMany(l => l);
-#else
-			StreamReader source = new StreamReader(args[0] != null ? File.OpenRead(args[0]) : Console.OpenStandardInput());
+		try {
+			var console_In = args.Length > 0 ? File.OpenText(args[0]) : Console.In;
+			var bases = console_In.Lines().SkipWhile(s => !s.StartsWith(">THREE")).Skip(1)
+				.TakeWhile(s => !s.StartsWith(">")).Where(s => !s.StartsWith(";"))
+				.SelectMany(s => s).Select(c => c.ToBase()).ToArray();
 
-			var input = new List<string>();
+			var seq = new DnaSequence(bases);
 
-			while ((line = source.ReadLine()) != null)
-				if (line.StartsWith( ">THREE"))
-					break;
-
-			while ((line = source.ReadLine()) != null)
-			{
-				char c = line[0];
-				if (c == '>') break;
-				if (c != ';') input.Add(line.ToUpper());
-			}
-#endif
 			var lengths = new[] { 1, 2, 3, 4, 6, 12, 18 };
 
-			TaskCount = lengths.Aggregate(0, (cnt, len) => cnt + len);
-			kna = new KNucleotide[TaskCount];
+			var kna = lengths.Select(len => Enumerable.Range(0, len).Select(i => new KNucleotide(seq, len, i)).ToArray()).ToArray();
 
-			var bases = inputSequence.GetBits();
-			lengths.Aggregate(0, (cnt, len) => {
-				for (int i = 0; i < len; i++)
-					kna[cnt + i] = new KNucleotide(bases, len, i);
-				return cnt + len;
-			});
-
-			var threads = new Thread[Environment.ProcessorCount];
-			for (int i = 0; i < threads.Length; i++)
-				(threads[i] = new Thread(CountFrequencies)).Start();
-
-			foreach (var t in threads)
-				t.Join();
-
-			var seqs = new[]
-				{
-					null, null,
-					"GGT", "GGTA", "GGTATT", "GGTATTTTAATT",
-					"GGTATTTTAATTTATAGT"
-				};
-
-			int index = 0;
-			lengths.Aggregate(0, (cnt, len) => {
-				if (len < 3)
-				{
-					for (int i = 1; i < len; i++)
-						kna[cnt].AddFrequencies(kna[cnt + i]);
-					kna[cnt].WriteFrequencies();
+			foreach (var set in kna)
+				foreach (var knF in set) {
+					var tim = Stopwatch.StartNew();
+					knF.KFrequency();
+					Console.Error.WriteLine("len: " + knF.length + "; frame: " + knF.frame + "; " + tim.Elapsed.TotalMilliseconds);
 				}
-				else
-				{
-					var fragment = new DnaSeq(seqs[index].GetBits());
-					int freq = 0;
-					for (int i = 0; i < len; i++)
-						freq += kna[cnt + i].GetCount(fragment);
-					Console.WriteLine("{0}\t{1}", freq, fragment);
-				}
-				index++;
-				return cnt + len;
-			});
-		}
-		finally
-		{
+
+			var fragments = new[] { "GGT", "GGTA", "GGTATT", "GGTATTTTAATT", 
+				"GGTATTTTAATTTATAGT" }.Select(s => new DnaFragment(s));
+			kna[0][0].WriteFrequencies();
+			kna[1][0].AddFrequencies(kna[1][1]);
+			kna[1][0].WriteFrequencies();
+
+
+			foreach (var result in fragments.Zip(kna.Skip(2), (frag, set) =>
+				set.Sum(knF => knF.GetCount(frag)) + "\t" + frag))
+				Console.WriteLine(result);
+
+		} finally {
 
 			Console.Error.WriteLine("Took " + sw.WallClockMilliseconds() / 1000.0 + "s; t0: " + sw.CpuMilliseconds() / 1000.0 + "s; " + GC.GetTotalMemory(false) / 1024 / 1024 + "MB");
 		}
 	}
 
-	static void CountFrequencies()
-	{
-		int index;
-		while ((index = Interlocked.Increment(ref Current)) < TaskCount)
-			kna[index].KFrequency();
-	}
-
 }
 
-public class KNucleotide
-{
+class KNucleotide {
 	class Count { public int V;}
 
-	readonly Dictionary<DnaSeq, Count> frequencies
-		= new Dictionary<DnaSeq, Count>();
+	readonly Dictionary<DnaFragment, Count> frequencies
+		= new Dictionary<DnaFragment, Count>();
 
-	readonly BitArray sequence;
-	readonly int length;
-	readonly int frame;
+	readonly DnaSequence seq;
+	public readonly int length;
+	public readonly int frame;
 
-	public KNucleotide(BitArray s, int l, int f)
-	{
-		sequence = s; length = l; frame = f;
+	public KNucleotide(DnaSequence s, int l, int f) {
+		seq = s; length = l; frame = f;
 	}
 
-	public void AddFrequencies(KNucleotide other)
-	{
-		foreach (var kvp in other.frequencies)
-		{
+	public void AddFrequencies(KNucleotide other) {
+		foreach (var kvp in other.frequencies) {
 			Count count;
 			if (frequencies.TryGetValue(kvp.Key, out count))
 				count.V += kvp.Value.V;
@@ -259,46 +192,29 @@ public class KNucleotide
 		}
 	}
 
-	public void WriteFrequencies()
-	{
-		var items = new List<KeyValuePair<DnaSeq, Count>>(frequencies);
-		items.Sort(SortByFrequencyAndCode);
-		double percent = 100.0 / (sequence.Length / 2 - length + 1);
-		foreach (var item in items)
-			Console.WriteLine("{0} {1:f3}",
-						item.Key.ToString(), item.Value.V * percent);
+	public void WriteFrequencies() {
+		double percent = 100.0 / (seq.Length - length + 1);
+		foreach (var item in frequencies
+			.OrderByDescending(kv => kv.Value.V).ThenBy(kv => kv.Key.data))
+			Console.WriteLine(item.Key + " " + (item.Value.V * percent).ToString("f3"));
 		Console.WriteLine();
 	}
 
-	public int GetCount(DnaSeq fragment)
-	{
+	public int GetCount(DnaFragment fragment) {
 		Count count;
-		if (!frequencies.TryGetValue(fragment, out count))
-			count = new Count();
-		return count.V;
+		return frequencies.TryGetValue(fragment, out count) ? count.V : 0;
 	}
 
-	public void KFrequency()
-	{
-		int n = sequence.Length / 2 - length + 1;
-		for (int i = frame; i < n; i += length)
-		{
-			var key = new DnaSeq(sequence, i, length);
+	public void KFrequency() {
+		int n = seq.Length - length + 1;
+		for (int i = frame; i < n; i += length) {
+			var key = new DnaFragment(seq, i, length);
 			Count count;
 			if (frequencies.TryGetValue(key, out count))
 				count.V++;
 			else
 				frequencies[key] = new Count { V = 1 };
 		}
-	}
-
-	int SortByFrequencyAndCode(
-			KeyValuePair<DnaSeq, Count> i0,
-			KeyValuePair<DnaSeq, Count> i1)
-	{
-		int order = i1.Value.V.CompareTo(i0.Value.V);
-		if (order != 0) return order;
-		return i0.Key.ToString().CompareTo(i1.Key.ToString());
 	}
 }
 
