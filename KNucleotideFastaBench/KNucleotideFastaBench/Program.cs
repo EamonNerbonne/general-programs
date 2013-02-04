@@ -5,66 +5,137 @@
  */
 
 using System;
+using System.Collections;
+using System.Diagnostics;
 using System.IO;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using KNucleotideFastaBench;
 
-public struct ByteString : IEquatable<ByteString>
+struct BaseSeq
 {
-	public byte[] Array;
+	const uint BasesPerULong = 32;
+	readonly ulong[] rawdata;
+	readonly int length;
+	public BaseSeq(IEnumerable<Base> bases)
+	{
+		rawdata = new ulong[16];
+		length = 0;
+		var buffer = new Base[32];
+		var list = new List<ulong>(32);
+		var bufI = 0;
+		foreach (var b in bases)
+		{
+			if (bufI == 32)
+			{
+				ulong next=0;
+				for (int i = 0; i < bufI; i++)
+					next |= (ulong) buffer[i] << i*2;
+				list.Add(next);
+				rawdata[length/BasesPerULong] = next;
+				length += bufI;
+				bufI = 0;
+			}
+		}
+		if (length/BasesPerULong >= rawdata.Length)
+			Array.Resize(ref rawdata, rawdata.Length*2);
+		ulong next1=0;
+		for (int i1 = 0; i1 < bufI; i1++)
+			next1 |= (ulong) buffer[i1] << i1*2;
+		rawdata[length/BasesPerULong] = next1;
+		length += bufI;
+		Array.Resize(ref rawdata, length);
+	}
+
+	public Base this[int i]
+	{
+		get
+		{
+			var dataIndex = i/32;
+			var innerOffset = (i%32)*2;
+			return (Base) (rawdata[dataIndex] >> innerOffset & 3);
+		}
+	}
+
+}
+
+
+public struct DnaSeq : IEquatable<DnaSeq>
+{
+	public BitArray Array;
 	public int Start;
 	public int Length;
+	public uint Hash;
 
-	public ByteString(byte[] array, int start, int length)
+	public DnaSeq(BitArray array, int start, int length)
 	{
+
 		Array = array; Start = start; Length = length;
-	}
-
-	public ByteString(string text)
-	{
-		Start = 0; Length = text.Length;
-		Array = Encoding.ASCII.GetBytes(text);
-	}
-
-	public override int GetHashCode()
-	{
-		int hc = 0;
+		Hash = 0;
+		int hashOff = 0;
 		for (int i = 0; i < Length; i++)
-			hc = hc * 31 + Array[Start + i];
-		return hc;
+		{
+			Hash = (Array[(Start + i) * 2] ? 1u : 0) + (Array[(Start + i) * 2 + 1] ? 2u : 0) << hashOff;
+			hashOff = hashOff + 2 % 32;
+		}
 	}
 
-	public bool Equals(ByteString other)
+	public DnaSeq(BitArray array) : this(array, 0, array.Length / 2) { }
+
+	public override int GetHashCode() { return (int)Hash; }
+
+	public bool Equals(DnaSeq other)
 	{
-		if (Length != other.Length) return false;
-		for (int i = 0; i < Length; i++)
-			if (Array[Start + i] != other.Array[other.Start + i]) return false;
+		if (Length != other.Length || Hash != other.Hash) return false;
+		for (int i = 0; i < Length*2; i++)
+			if (Array[Start*2 + i] != other.Array[other.Start*2 + i]) return false;
 		return true;
 	}
 
 	public override string ToString()
 	{
-		return Encoding.ASCII.GetString(Array, Start, Length);
+		var arr = Array;
+		return string.Concat(Enumerable.Range(Start, Length).Select(i => ((Base)((arr[i * 2] ? 1u : 0) + (arr[i * 2 + 1] ? 2u : 0))).ToString()));
 	}
 }
 
-public static class Extensions
+enum Base : byte { A, C, G, T }
+
+static class Extensions
 {
-	public static byte[] GetBytes(this List<string> lines)
+	public static Base ToBase(this char c)
 	{
-		int count = lines.Aggregate(0, (cnt, str) => cnt + str.Length);
-		var array = new byte[count];
-		lines.Aggregate(0, (pos, str) => {
-			Encoding.ASCII.GetBytes(str, 0, str.Length, array, pos);
-			return pos + str.Length;
-		});
+		c = char.ToUpperInvariant(c);
+		if (c == 'A') return Base.A;
+		if (c == 'C') return Base.C;
+		if (c == 'G') return Base.G;
+		if (c == 'T') return Base.T;
+		throw new ArgumentOutOfRangeException("c");
+	}
+
+	public static BitArray GetBits(this IEnumerable<char> bases)
+	{
+		var typedBases = bases.Select(ToBase).ToArray();
+		var array = new BitArray(typedBases.Length * 2);
+		for (var i = 0; i < typedBases.Length; i++)
+		{
+			var b = typedBases[i];
+			array[2 * i] = ((byte)b & 1) == 1;
+			array[2 * i + 1] = ((byte)b & 2) == 2;
+		}
 		return array;
 	}
+
+	public static IEnumerable<string> Lines(this TextReader reader)
+	{
+		for (var line = reader.ReadLine(); line != null; line = reader.ReadLine())
+			yield return line;
+	}
 }
 
-public class Program
+public static class Program
 {
 	public static int TaskCount;
 	public static int Current = -1;
@@ -72,63 +143,83 @@ public class Program
 
 	public static void Main(string[] args)
 	{
-		string line;
-		StreamReader source = new StreamReader(Console.OpenStandardInput());
-		var input = new List<string>();
 
-		while ((line = source.ReadLine()) != null)
-			if (line[0] == '>' && line.Substring(1, 5) == "THREE")
-				break;
+		var sw = ThreadCpuTimer.StartNew();
 
-		while ((line = source.ReadLine()) != null)
+		try
 		{
-			char c = line[0];
-			if (c == '>') break;
-			if (c != ';') input.Add(line.ToUpper());
-		}
+#if true
+			var console_In = args[0] != null ? File.OpenText(args[0]) : Console.In;
+			var inputSequence = console_In.Lines().SkipWhile(s => !s.StartsWith(">THREE")).Skip(1)
+				.TakeWhile(s => !s.StartsWith(">")).Where(s => !s.StartsWith(";")).
+				SelectMany(l => l);
+#else
+			StreamReader source = new StreamReader(args[0] != null ? File.OpenRead(args[0]) : Console.OpenStandardInput());
 
-		var lengths = new[] { 1, 2, 3, 4, 6, 12, 18 };
+			var input = new List<string>();
 
-		TaskCount = lengths.Aggregate(0, (cnt, len) => cnt + len);
-		kna = new KNucleotide[TaskCount];
+			while ((line = source.ReadLine()) != null)
+				if (line.StartsWith( ">THREE"))
+					break;
 
-		var bytes = input.GetBytes();
-		lengths.Aggregate(0, (cnt, len) => {
-			for (int i = 0; i < len; i++)
-				kna[cnt + i] = new KNucleotide(bytes, len, i);
-			return cnt + len;
-		});
-
-		var threads = new Thread[Environment.ProcessorCount];
-		for (int i = 0; i < threads.Length; i++)
-			(threads[i] = new Thread(CountFrequencies)).Start();
-
-		foreach (var t in threads)
-			t.Join();
-
-		var seqs = new[] { null, null,
-                "GGT", "GGTA", "GGTATT", "GGTATTTTAATT",
-                "GGTATTTTAATTTATAGT"};
-
-		int index = 0;
-		lengths.Aggregate(0, (cnt, len) => {
-			if (len < 3)
+			while ((line = source.ReadLine()) != null)
 			{
-				for (int i = 1; i < len; i++)
-					kna[cnt].AddFrequencies(kna[cnt + i]);
-				kna[cnt].WriteFrequencies();
+				char c = line[0];
+				if (c == '>') break;
+				if (c != ';') input.Add(line.ToUpper());
 			}
-			else
-			{
-				var fragment = seqs[index];
-				int freq = 0;
+#endif
+			var lengths = new[] { 1, 2, 3, 4, 6, 12, 18 };
+
+			TaskCount = lengths.Aggregate(0, (cnt, len) => cnt + len);
+			kna = new KNucleotide[TaskCount];
+
+			var bases = inputSequence.GetBits();
+			lengths.Aggregate(0, (cnt, len) => {
 				for (int i = 0; i < len; i++)
-					freq += kna[cnt + i].GetCount(fragment);
-				Console.WriteLine("{0}\t{1}", freq, fragment);
-			}
-			index++;
-			return cnt + len;
-		});
+					kna[cnt + i] = new KNucleotide(bases, len, i);
+				return cnt + len;
+			});
+
+			var threads = new Thread[Environment.ProcessorCount];
+			for (int i = 0; i < threads.Length; i++)
+				(threads[i] = new Thread(CountFrequencies)).Start();
+
+			foreach (var t in threads)
+				t.Join();
+
+			var seqs = new[]
+				{
+					null, null,
+					"GGT", "GGTA", "GGTATT", "GGTATTTTAATT",
+					"GGTATTTTAATTTATAGT"
+				};
+
+			int index = 0;
+			lengths.Aggregate(0, (cnt, len) => {
+				if (len < 3)
+				{
+					for (int i = 1; i < len; i++)
+						kna[cnt].AddFrequencies(kna[cnt + i]);
+					kna[cnt].WriteFrequencies();
+				}
+				else
+				{
+					var fragment = new DnaSeq(seqs[index].GetBits());
+					int freq = 0;
+					for (int i = 0; i < len; i++)
+						freq += kna[cnt + i].GetCount(fragment);
+					Console.WriteLine("{0}\t{1}", freq, fragment);
+				}
+				index++;
+				return cnt + len;
+			});
+		}
+		finally
+		{
+
+			Console.Error.WriteLine("Took " + sw.WallClockMilliseconds() / 1000.0 + "s; t0: " + sw.CpuMilliseconds() / 1000.0 + "s; " + GC.GetTotalMemory(false) / 1024 / 1024 + "MB");
+		}
 	}
 
 	static void CountFrequencies()
@@ -142,20 +233,16 @@ public class Program
 
 public class KNucleotide
 {
+	class Count { public int V;}
 
-	private class Count
-	{
-		public int V;
-		public Count(int v) { V = v; }
-	}
+	readonly Dictionary<DnaSeq, Count> frequencies
+		= new Dictionary<DnaSeq, Count>();
 
-	private Dictionary<ByteString, Count> frequencies
-		= new Dictionary<ByteString, Count>();
-	private byte[] sequence;
-	int length;
-	int frame;
+	readonly BitArray sequence;
+	readonly int length;
+	readonly int frame;
 
-	public KNucleotide(byte[] s, int l, int f)
+	public KNucleotide(BitArray s, int l, int f)
 	{
 		sequence = s; length = l; frame = f;
 	}
@@ -174,40 +261,40 @@ public class KNucleotide
 
 	public void WriteFrequencies()
 	{
-		var items = new List<KeyValuePair<ByteString, Count>>(frequencies);
+		var items = new List<KeyValuePair<DnaSeq, Count>>(frequencies);
 		items.Sort(SortByFrequencyAndCode);
-		double percent = 100.0 / (sequence.Length - length + 1);
+		double percent = 100.0 / (sequence.Length / 2 - length + 1);
 		foreach (var item in items)
 			Console.WriteLine("{0} {1:f3}",
 						item.Key.ToString(), item.Value.V * percent);
 		Console.WriteLine();
 	}
 
-	public int GetCount(string fragment)
+	public int GetCount(DnaSeq fragment)
 	{
 		Count count;
-		if (!frequencies.TryGetValue(new ByteString(fragment), out count))
-			count = new Count(0);
+		if (!frequencies.TryGetValue(fragment, out count))
+			count = new Count();
 		return count.V;
 	}
 
 	public void KFrequency()
 	{
-		int n = sequence.Length - length + 1;
+		int n = sequence.Length / 2 - length + 1;
 		for (int i = frame; i < n; i += length)
 		{
-			var key = new ByteString(sequence, i, length);
+			var key = new DnaSeq(sequence, i, length);
 			Count count;
 			if (frequencies.TryGetValue(key, out count))
 				count.V++;
 			else
-				frequencies[key] = new Count(1);
+				frequencies[key] = new Count { V = 1 };
 		}
 	}
 
 	int SortByFrequencyAndCode(
-			KeyValuePair<ByteString, Count> i0,
-			KeyValuePair<ByteString, Count> i1)
+			KeyValuePair<DnaSeq, Count> i0,
+			KeyValuePair<DnaSeq, Count> i1)
 	{
 		int order = i1.Value.V.CompareTo(i0.Value.V);
 		if (order != 0) return order;
