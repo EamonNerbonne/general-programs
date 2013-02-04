@@ -84,7 +84,7 @@
     <Compile Include="Core\HAttr.cs" />
     <Compile Include="Core\HElem.cs" />
     <Compile Include="Exp2\HElemBuilderBase.cs" />
-    <Compile Include="Exp3\HElemLambaGen.cs" />
+    <Compile Include="Exp3\HElemSimpleBuilder.cs" />
     <Compile Include="Core\HFragment.cs" />
     <Compile Include="Core\HNode.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
