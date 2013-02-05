@@ -1,8 +1,10 @@
 ﻿using System;
-using System.Diagnostics;
+using System.Collections.Concurrent;
 using System.IO;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using KNucleotideFastaBench;
 
 enum Base : byte { A, C, G, T }
@@ -49,54 +51,129 @@ static class Program
 
 		var sw = ThreadCpuTimer.StartNew();
 
-		try
-		{
-			var console_In = args.Length > 0 ? File.OpenText(args[0]) : Console.In;
-			var bases = console_In.Lines()
-				.SkipWhile(s => !s.StartsWith(">THREE")).Skip(1)
-				.TakeWhile(s => !s.StartsWith(">")).Where(s => !s.StartsWith(";"))
-				.SelectMany(s => s).Select(ToBase).Batch(1024 * 1024).ToArray();
+		var workers = new[] { 1, 2, 3, 4, 6, 12, 18 }.Select(l => {
+			var queue = new BlockingCollection<Base[]>(8);
+			/*
+			return new {
+				queue,
+				task = Task.Factory.StartNew(() => DnaStats.Create(l, queue.GetConsumingEnumerable()), TaskCreationOptions.LongRunning)
+			};
+			 /*/
+			var tcs = new TaskCompletionSource<DnaStats>();
+			new Thread(() => tcs.SetResult(DnaStats.Create(l, queue.GetConsumingEnumerable()))) {
+				Priority = ThreadPriority.BelowNormal
+			}.Start();
+			return new { queue, task = tcs.Task };
+			/**/
+		}).ToArray();
 
-			GC.Collect(2, GCCollectionMode.Optimized, false);
+		var console_In = args.Length > 0 ? File.OpenText(args[0]) : Console.In;
+		var batches = console_In.Lines()
+			.SkipWhile(s => !s.StartsWith(">THREE")).Skip(1)
+			.TakeWhile(s => !s.StartsWith(">")).Where(s => !s.StartsWith(";"))
+			.SelectMany(s => s).Select(ToBase).Batch(1024 * 64);
 
-			var kna = new[] { 1, 2, 3, 4, 6, 12, 18 }.Select(DnaCounter.Create).ToArray();
+		foreach (var batch in batches)
+			foreach (var worker in workers.Reverse())
+				worker.queue.Add(batch);
 
-			foreach (var h in kna)
-			{
-				var lenT = Stopwatch.StartNew();
-				h.Process(bases);
-				Console.Error.WriteLine("len: " + h.len + ": " + lenT.ElapsedMilliseconds);
-			}
+		foreach (var worker in workers.Reverse())
+			worker.queue.CompleteAdding();
 
-			var fragments = new[] { "GGT", "GGTA", "GGTATT", "GGTATTTTAATT", 
+		var fragments = new[] { "GGT", "GGTA", "GGTATT", "GGTATTTTAATT", 
 				"GGTATTTTAATTTATAGT" };
 
-			((DnaCounter.DenseCounter)kna[0]).WriteFrequencies();
-			((DnaCounter.DenseCounter)kna[1]).WriteFrequencies();
+		Console.WriteLine(workers[0].task.Result.Summary());
+		Console.WriteLine(workers[1].task.Result.Summary());
 
-			foreach (var result in fragments.Zip(kna.Skip(2), (frag, h) => h.GetCount(frag.Select(ToBase).ToArray()) + "\t" + frag))
-				Console.WriteLine(result);
-		}
-		finally
-		{
-			Console.Error.WriteLine("Took " + sw.WallClockMilliseconds() / 1000.0 + "s; t0: " + sw.CpuMilliseconds() / 1000.0 + "s; " + GC.GetTotalMemory(false) / 1024 / 1024 + "MB");
-		}
+		foreach (var result in fragments.Zip(workers.Skip(2), (frag, h) => h.task.Result.GetCount(frag.Select(ToBase).ToArray()) + "\t" + frag))
+			Console.WriteLine(result);
+		Console.Error.WriteLine("Took " + sw.WallClockMilliseconds() / 1000.0 + "s; t0: " + sw.CpuMilliseconds() / 1000.0 + "s; " + GC.GetTotalMemory(false) / 1024 / 1024 + "MB");
+		//Console.ReadLine();
 	}
 }
 
-abstract class DnaCounter
+struct DnaStats
 {
-	public abstract int GetCount(Base[] fragment);
-	public abstract void Process(IEnumerable<Base[]> seq);
-	public readonly int len;
-	protected DnaCounter(int l) { len = l; }
-	public static DnaCounter Create(int length)
+	public Func<Base[], int> GetCount;
+	public Func<string> Summary;
+
+	public static DnaStats Create(int length, IEnumerable<Base[]> seq)
 	{
-		return length > 8 ? new SparseCounter(length)
-			: (DnaCounter)new DenseCounter(length);
+		return length > 8 ? Impl<SparseCounter>(length, seq)
+			: Impl<DenseCounter>(length, seq);
 	}
 
+	static DnaStats Impl<T>(int length, IEnumerable<Base[]> seq)
+	where T : struct, ICounter
+	{
+		T impl = new T();
+		impl.Init(length);
+		int total = 0;
+		ulong dna = 0;
+		foreach (var seg in seq)
+			foreach (var b in seg)
+			{
+				dna = Push(dna, b, length);
+				total++;
+				if (total < length) continue;
+				impl.Add(dna);
+			}
+		return new DnaStats {
+			GetCount = frag => impl.GetCount(DnaFragment(frag, 0, frag.Length)),
+			Summary = () => impl.Summary(length, total),
+		};
+	}
 
+	interface ICounter
+	{
+		void Init(int len);
+		void Add(ulong dna);
+		int GetCount(ulong dna);
+		string Summary(int len, int total);
+	}
+
+	public struct DenseCounter : ICounter
+	{
+		int[] counts;
+		public void Init(int len) { counts = new int[1 << len * 2]; }
+		public void Add(ulong dna) { counts[dna]++; }
+		public int GetCount(ulong dna) { return counts[dna]; }
+
+		public string Summary(int len, int total)
+		{
+			return string.Concat(
+				counts.Select((c, dna) => new {
+					p = c * 100.0 / (total - len + 1),
+					dna = Stringify((ulong)dna, len)
+				})
+				.OrderByDescending(x => x.p).ThenBy(x => x.dna)
+				.Select(x => x.dna + " " + x.p.ToString("f3") + "\n")
+				);
+		}
+	}
+
+	struct SparseCounter : ICounter
+	{
+		class Count { public int V;}
+		Dictionary<ulong, Count> counts;
+		public void Init(int len) { counts = new Dictionary<ulong, Count>(1<<16); }
+		public string Summary(int len, int total) { return null; }
+
+		public void Add(ulong dna)
+		{
+			Count count;
+			if (counts.TryGetValue(dna, out count))
+				count.V++;
+			else
+				counts[dna] = new Count { V = 1 };
+		}
+		public int GetCount(ulong dna)
+		{
+			Count count;
+			return counts.TryGetValue(dna, out count) ? count.V : 0;
+		}
+	}
 	static ulong DnaFragment(Base[] seq, int offset, int length)
 	{
 		var dna = 0ul;
@@ -108,73 +185,4 @@ abstract class DnaCounter
 	static ulong Push(ulong dna, Base b, int l) { return dna >> 2 | (ulong)b << l * 2 - 2; }
 	static IEnumerable<Base> All(ulong dna, int l) { return Enumerable.Repeat(dna, l).Select(Get); }
 	static string Stringify(ulong dna, int l) { return string.Concat(All(dna, l)); }
-
-	public sealed class DenseCounter : DnaCounter
-	{
-		int[] counts;
-		int total;
-		public DenseCounter(int l) : base(l) { counts = new int[1 << l * 2]; }
-
-		public override int GetCount(Base[] fragment)
-		{
-			return counts[DnaFragment(fragment, 0, len)];
-		}
-
-		public override void Process(IEnumerable<Base[]> seq)
-		{
-			ulong dna = 0;
-			foreach (var seg in seq)
-				foreach (var b in seg)
-				{
-					dna = Push(dna, b, len);
-					total++;
-					if (total < len) continue;
-					counts[dna]++;
-				}
-		}
-
-		public void WriteFrequencies()
-		{
-			Console.WriteLine(
-				string.Concat(counts.Select((c, dna) => new {
-					p = c * 100.0 / (total - len + 1),
-					dna = Stringify((ulong)dna, len)
-				})
-				.OrderByDescending(x => x.p).ThenBy(x => x.dna)
-				.Select(x => x.dna + " " + x.p.ToString("f3") + "\n")
-				));
-		}
-	}
-
-	sealed class SparseCounter : DnaCounter
-	{
-		public SparseCounter(int l) : base(l) { }
-		class Count { public int V;}
-
-		Dictionary<ulong, Count> counts = new Dictionary<ulong, Count>();
-		int total;
-
-		public override int GetCount(Base[] fragment)
-		{
-			Count count;
-			return counts.TryGetValue(DnaFragment(fragment, 0, len), out count) ? count.V : 0;
-		}
-
-		public override void Process(IEnumerable<Base[]> seq)
-		{
-			ulong dna = 0;
-			foreach (var seg in seq)
-				foreach (var b in seg)
-				{
-					dna = Push(dna, b, len);
-					total++;
-					if (total < len) continue;
-					Count count;
-					if (counts.TryGetValue(dna, out count))
-						count.V++;
-					else
-						counts[dna] = new Count { V = 1 };
-				}
-		}
-	}
 }

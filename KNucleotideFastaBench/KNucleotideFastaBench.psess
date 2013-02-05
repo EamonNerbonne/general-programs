@@ -36,7 +36,7 @@
   </PostinstrumentEvent>
   <Binaries>
     <ProjBinary>
-      <Path>KNucleotideFastaBench\obj\Debug\KNucleotideFastaBench.exe</Path>
+      <Path>KNucleotideFastaBench\obj\Release\KNucleotideFastaBench.exe</Path>
       <ArgumentTimestamp>01/01/0001 00:00:00</ArgumentTimestamp>
       <Instrument>true</Instrument>
       <Sample>true</Sample>
@@ -48,9 +48,9 @@
       <LaunchProject>true</LaunchProject>
       <OverrideProjectSettings>false</OverrideProjectSettings>
       <LaunchMethod>Executable</LaunchMethod>
-      <ExecutablePath>KNucleotideFastaBench\bin\Debug\KNucleotideFastaBench.exe</ExecutablePath>
-      <StartupDirectory>KNucleotideFastaBench\bin\Debug\</StartupDirectory>
-      <Arguments>..\..\knucleotide-input.txt</Arguments>
+      <ExecutablePath>KNucleotideFastaBench\bin\Release\KNucleotideFastaBench.exe</ExecutablePath>
+      <StartupDirectory>KNucleotideFastaBench\bin\Release\</StartupDirectory>
+      <Arguments>..\..\knucleotide-input.txt.big</Arguments>
       <NetAppHost>IIS</NetAppHost>
       <NetBrowser>InternetExplorer</NetBrowser>
       <ExcludeSmallFuncs>true</ExcludeSmallFuncs>
@@ -78,6 +78,12 @@
     </Report>
     <Report>
       <Path>KNucleotideFastaBench130204(4).vsp</Path>
+    </Report>
+    <Report>
+      <Path>KNucleotideFastaBench130205.vsp</Path>
+    </Report>
+    <Report>
+      <Path>KNucleotideFastaBench130205(1).vsp</Path>
     </Report>
   </Reports>
   <Launches>
