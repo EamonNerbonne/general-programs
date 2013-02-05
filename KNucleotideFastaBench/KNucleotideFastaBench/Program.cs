@@ -154,8 +154,6 @@ abstract class DnaCounter
 		Dictionary<ulong, Count> counts = new Dictionary<ulong, Count>();
 		int total;
 
-
-
 		public override int GetCount(Base[] fragment)
 		{
 			Count count;
@@ -180,5 +178,3 @@ abstract class DnaCounter
 		}
 	}
 }
-
-
