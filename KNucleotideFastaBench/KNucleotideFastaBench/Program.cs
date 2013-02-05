@@ -5,6 +5,7 @@
  */
 
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Collections.Generic;
 using System.Linq;
@@ -72,8 +73,9 @@ public class Program
 
 	public static void Main(string[] args)
 	{
+		var sw = Stopwatch.StartNew();
 		string line;
-		StreamReader source = new StreamReader(Console.OpenStandardInput());
+		var source = File.OpenText(args[0]);
 		var input = new List<string>();
 
 		while ((line = source.ReadLine()) != null)
@@ -99,7 +101,7 @@ public class Program
 			return cnt + len;
 		});
 
-		var threads = new Thread[Environment.ProcessorCount];
+		var threads = new Thread[1];
 		for (int i = 0; i < threads.Length; i++)
 			(threads[i] = new Thread(CountFrequencies)).Start();
 
@@ -129,6 +131,7 @@ public class Program
 			index++;
 			return cnt + len;
 		});
+		Console.WriteLine("Took " + sw.Elapsed.TotalSeconds + "s; " + GC.GetTotalMemory(false)/1024/1024 + "MB");
 	}
 
 	static void CountFrequencies()
