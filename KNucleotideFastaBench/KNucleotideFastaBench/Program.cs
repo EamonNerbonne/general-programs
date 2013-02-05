@@ -79,32 +79,21 @@ static class Program {
 
 			GC.Collect(2, GCCollectionMode.Optimized, false);
 
-			var lengths = new[] { 1, 2, 3, 4, 6, 12, 18 };
+			var kna = new[] { 1, 2, 3, 4, 6, 12, 18 }.Select(len => new KNucleotide(len)).ToArray();
 
-			var kna = lengths.Select(len => Enumerable.Range(0, len).Select(i => new KNucleotide()).ToArray()).ToArray();
-
-			foreach (var set in kna) {
+			foreach (var h in kna) {
 				var lenT = Stopwatch.StartNew();
-				Console.Error.Write("len: " + set.Length);
-				int i = 0;
-				foreach (var knF in set) {
-					var tim = Stopwatch.StartNew();
-					set[0].KFrequency(bases, set.Length, i++);
-					Console.Error.Write("; " + tim.ElapsedMilliseconds);
-				}
-				Console.Error.WriteLine(": " + lenT.ElapsedMilliseconds);
-
+				h.KFrequency(bases);
+				Console.Error.WriteLine("len: " + h.Length + ": " + lenT.ElapsedMilliseconds);
 			}
 
 			var fragments = new[] { "GGT", "GGTA", "GGTATT", "GGTATTTTAATT", 
 				"GGTATTTTAATTTATAGT" }.Select(s => new DnaFragment(s));
-			kna[0][0].WriteFrequencies(bases, 1);
-			//kna[1][0].AddFrequencies(kna[1][1]);
-			kna[1][0].WriteFrequencies(bases, 2);
 
+			kna[0].WriteFrequencies(bases);
+			kna[1].WriteFrequencies(bases);
 
-			foreach (var result in fragments.Zip(kna.Skip(2), (frag, set) =>
-				set.Sum(knF => knF.GetCount(frag)) + "\t" + frag))
+			foreach (var result in fragments.Zip(kna.Skip(2), (frag, h) => h.GetCount(frag) + "\t" + frag))
 				Console.WriteLine(result);
 
 		} finally {
@@ -117,16 +106,18 @@ static class Program {
 
 class KNucleotide {
 	class Count { public int V;}
+	public readonly int Length;
 
 	Dictionary<DnaFragment, Count> frequencies = new Dictionary<DnaFragment, Count>(DnaFragment.Comparer);
+	public KNucleotide(int l) { Length = l; }
 
 	public void AddFrequencies(KNucleotide other) {
 		foreach (var kvp in other.frequencies)
 			frequencies[kvp.Key] = new Count { V = GetCount(kvp.Key) + kvp.Value.V };
 	}
 
-	public void WriteFrequencies(Base[] seq, int length) {
-		double percent = 100.0 / (seq.Length - length + 1);
+	public void WriteFrequencies(Base[] seq) {
+		double percent = 100.0 / (seq.Length - Length + 1);
 		foreach (var item in frequencies
 			.OrderByDescending(kv => kv.Value.V).ThenBy(kv => kv.Key.ToString()))
 			Console.WriteLine(item.Key + " " + (item.Value.V * percent).ToString("f3"));
@@ -138,10 +129,10 @@ class KNucleotide {
 		return frequencies.TryGetValue(fragment, out count) ? count.V : 0;
 	}
 
-	public void KFrequency(Base[] seq, int length, int frame) {
-		int n = seq.Length - length + 1;
-		for (int i = frame; i < n; i += length) {
-			var key = new DnaFragment(seq, i, length);
+	public void KFrequency(Base[] seq) {
+		int n = seq.Length - Length + 1;
+		for (int i = 0; i < n; i++) {
+			var key = new DnaFragment(seq, i, Length);
 			Count count;
 			if (frequencies.TryGetValue(key, out count))
 				count.V++;
