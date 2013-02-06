@@ -24,7 +24,7 @@ static class Program {
 
 	static IEnumerable<T[]> Batch<T>(this IEnumerable<T> list, int batchSize) {
 		int i = 0;
-		T[] arr = new T[batchSize];
+		var arr = new T[batchSize];
 		foreach (var t in list) {
 			arr[i++] = t;
 			if (i == batchSize) {
@@ -39,7 +39,7 @@ static class Program {
 		}
 	}
 
-	public static void Main(string[] args) {
+	public static void Main() {
 		var sw = Stopwatch.StartNew();
 
 		var workers =
@@ -54,9 +54,7 @@ static class Program {
 				};
 			}).ToArray();
 
-		var console_In = args.Length > 0 ? File.OpenText(args[0]) : Console.In; //!
-
-		var batches = console_In.Lines()
+		var batches = Console.In.Lines()
 			.SkipWhile(s => !s.StartsWith(">THREE")).Skip(1)
 			.TakeWhile(s => !s.StartsWith(">")).Where(s => !s.StartsWith(";"))
 			.SelectMany(s => s).Select(ToBase).Batch(1024 * 64);

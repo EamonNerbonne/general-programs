@@ -3,3 +3,12 @@
 				Priority = ThreadPriority.BelowNormal
 			}.Start();
 			return new { queue, task = tcs.Task };
+
+
+OR
+
+
+			return new {
+				queue,
+				task = Task.Factory.StartNew(() => DnaStats.Create(l, queue.GetConsumingEnumerable()), TaskCreationOptions.LongRunning)
+			};

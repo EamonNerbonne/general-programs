@@ -75,7 +75,7 @@ public class Program
 	{
 		var sw = Stopwatch.StartNew();
 		string line;
-		var source = File.OpenText(args[0]);
+		var source = Console.In;
 		var input = new List<string>();
 
 		while ((line = source.ReadLine()) != null)
