@@ -1,0 +1,5 @@
+			var tcs = new TaskCompletionSource<DnaStats>();
+			new Thread(() => tcs.SetResult(DnaStats.Create(l, queue.GetConsumingEnumerable()))) {
+				Priority = ThreadPriority.BelowNormal
+			}.Start();
+			return new { queue, task = tcs.Task };

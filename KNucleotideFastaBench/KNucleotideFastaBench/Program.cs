@@ -1,220 +1,165 @@
-﻿/* The Computer Benchmarks Game
- * http://shootout.alioth.debian.org/
- *
- * byte processing, C# 3.0 idioms, frame level paralellism by Robert F. Tobler
- */
-
-using System;
+﻿using System;
+using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.IO;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading;
+using System.Threading.Tasks;
 
-public struct ByteString : IEquatable<ByteString>
-{
-	public byte[] Array;
-	public int Start;
-	public int Length;
+enum Base : byte { A, C, G, T }
 
-	public ByteString(byte[] array, int start, int length)
-	{
-		Array = array; Start = start; Length = length;
+static class Program {
+	public static Base ToBase(this char c) {
+		if (c == 'A' || c == 'a') return Base.A;
+		if (c == 'C' || c == 'c') return Base.C;
+		if (c == 'G' || c == 'g') return Base.G;
+		if (c == 'T' || c == 't') return Base.T;
+		throw new ArgumentOutOfRangeException("c");
 	}
 
-	public ByteString(string text)
-	{
-		Start = 0; Length = text.Length;
-		Array = Encoding.ASCII.GetBytes(text);
+	public static IEnumerable<string> Lines(this TextReader inp) {
+		for (var line = inp.ReadLine(); line != null; line = inp.ReadLine())
+			yield return line;
 	}
 
-	public override int GetHashCode()
-	{
-		int hc = 0;
-		for (int i = 0; i < Length; i++)
-			hc = hc * 31 + Array[Start + i];
-		return hc;
+	static IEnumerable<T[]> Batch<T>(this IEnumerable<T> list, int batchSize) {
+		int i = 0;
+		T[] arr = new T[batchSize];
+		foreach (var t in list) {
+			arr[i++] = t;
+			if (i == batchSize) {
+				yield return arr;
+				i = 0;
+				arr = new T[batchSize];
+			}
+		}
+		if (i > 0) {
+			Array.Resize(ref arr, i);
+			yield return arr;
+		}
 	}
 
-	public bool Equals(ByteString other)
-	{
-		if (Length != other.Length) return false;
-		for (int i = 0; i < Length; i++)
-			if (Array[Start + i] != other.Array[other.Start + i]) return false;
-		return true;
-	}
-
-	public override string ToString()
-	{
-		return Encoding.ASCII.GetString(Array, Start, Length);
-	}
-}
-
-public static class Extensions
-{
-	public static byte[] GetBytes(this List<string> lines)
-	{
-		int count = lines.Aggregate(0, (cnt, str) => cnt + str.Length);
-		var array = new byte[count];
-		lines.Aggregate(0, (pos, str) => {
-			Encoding.ASCII.GetBytes(str, 0, str.Length, array, pos);
-			return pos + str.Length;
-		});
-		return array;
-	}
-}
-
-public class Program
-{
-	public static int TaskCount;
-	public static int Current = -1;
-	public static KNucleotide[] kna;
-
-	public static void Main(string[] args)
-	{
+	public static void Main(string[] args) {
 		var sw = Stopwatch.StartNew();
-		string line;
-		var source = File.OpenText(args[0]);
-		var input = new List<string>();
 
-		while ((line = source.ReadLine()) != null)
-			if (line[0] == '>' && line.Substring(1, 5) == "THREE")
-				break;
+		var workers =
+			new[] { 1, 2, 3, 4, 6, 12, 18 }.Select(length => {
+				var queue = new BlockingCollection<Base[]>(4);
+				var list = queue.GetConsumingEnumerable();
+				return new {
+					queue,
+					task = Task.Factory.StartNew(
+						() => new DnaStats(length, list),
+						TaskCreationOptions.LongRunning)
+				};
+			}).ToArray();
 
-		while ((line = source.ReadLine()) != null)
-		{
-			char c = line[0];
-			if (c == '>') break;
-			if (c != ';') input.Add(line.ToUpper());
-		}
+		var console_In = args.Length > 0 ? File.OpenText(args[0]) : Console.In; //!
 
-		var lengths = new[] { 1, 2, 3, 4, 6, 12, 18 };
+		var batches = console_In.Lines()
+			.SkipWhile(s => !s.StartsWith(">THREE")).Skip(1)
+			.TakeWhile(s => !s.StartsWith(">")).Where(s => !s.StartsWith(";"))
+			.SelectMany(s => s).Select(ToBase).Batch(1024 * 64);
 
-		TaskCount = lengths.Aggregate(0, (cnt, len) => cnt + len);
-		kna = new KNucleotide[TaskCount];
+		foreach (var batch in batches)
+			foreach (var worker in workers.Reverse())
+				worker.queue.Add(batch);
 
-		var bytes = input.GetBytes();
-		lengths.Aggregate(0, (cnt, len) => {
-			for (int i = 0; i < len; i++)
-				kna[cnt + i] = new KNucleotide(bytes, len, i);
-			return cnt + len;
-		});
+		foreach (var worker in workers.Reverse())
+			worker.queue.CompleteAdding();
 
-		var threads = new Thread[1];
-		for (int i = 0; i < threads.Length; i++)
-			(threads[i] = new Thread(CountFrequencies)).Start();
+		var fragments = new[] {
+			"GGT", "GGTA", "GGTATT", "GGTATTTTAATT",
+			"GGTATTTTAATTTATAGT"
+		};
 
-		foreach (var t in threads)
-			t.Join();
+		Console.WriteLine(workers[0].task.Result.Summary());
+		Console.WriteLine(workers[1].task.Result.Summary());
 
-		var seqs = new[] { null, null,
-                "GGT", "GGTA", "GGTATT", "GGTATTTTAATT",
-                "GGTATTTTAATTTATAGT"};
-
-		int index = 0;
-		lengths.Aggregate(0, (cnt, len) => {
-			if (len < 3)
-			{
-				for (int i = 1; i < len; i++)
-					kna[cnt].AddFrequencies(kna[cnt + i]);
-				kna[cnt].WriteFrequencies();
-			}
-			else
-			{
-				var fragment = seqs[index];
-				int freq = 0;
-				for (int i = 0; i < len; i++)
-					freq += kna[cnt + i].GetCount(fragment);
-				Console.WriteLine("{0}\t{1}", freq, fragment);
-			}
-			index++;
-			return cnt + len;
-		});
-		Console.WriteLine("Took " + sw.Elapsed.TotalSeconds + "s; " + GC.GetTotalMemory(false)/1024/1024 + "MB");
-	}
-
-	static void CountFrequencies()
-	{
-		int index;
-		while ((index = Interlocked.Increment(ref Current)) < TaskCount)
-			kna[index].KFrequency();
-	}
-
-}
-
-public class KNucleotide
-{
-
-	private class Count
-	{
-		public int V;
-		public Count(int v) { V = v; }
-	}
-
-	private Dictionary<ByteString, Count> frequencies
-		= new Dictionary<ByteString, Count>();
-	private byte[] sequence;
-	int length;
-	int frame;
-
-	public KNucleotide(byte[] s, int l, int f)
-	{
-		sequence = s; length = l; frame = f;
-	}
-
-	public void AddFrequencies(KNucleotide other)
-	{
-		foreach (var kvp in other.frequencies)
-		{
-			Count count;
-			if (frequencies.TryGetValue(kvp.Key, out count))
-				count.V += kvp.Value.V;
-			else
-				frequencies[kvp.Key] = kvp.Value;
-		}
-	}
-
-	public void WriteFrequencies()
-	{
-		var items = new List<KeyValuePair<ByteString, Count>>(frequencies);
-		items.Sort(SortByFrequencyAndCode);
-		double percent = 100.0 / (sequence.Length - length + 1);
-		foreach (var item in items)
-			Console.WriteLine("{0} {1:f3}",
-						item.Key.ToString(), item.Value.V * percent);
-		Console.WriteLine();
-	}
-
-	public int GetCount(string fragment)
-	{
-		Count count;
-		if (!frequencies.TryGetValue(new ByteString(fragment), out count))
-			count = new Count(0);
-		return count.V;
-	}
-
-	public void KFrequency()
-	{
-		int n = sequence.Length - length + 1;
-		for (int i = frame; i < n; i += length)
-		{
-			var key = new ByteString(sequence, i, length);
-			Count count;
-			if (frequencies.TryGetValue(key, out count))
-				count.V++;
-			else
-				frequencies[key] = new Count(1);
-		}
-	}
-
-	int SortByFrequencyAndCode(
-			KeyValuePair<ByteString, Count> i0,
-			KeyValuePair<ByteString, Count> i1)
-	{
-		int order = i1.Value.V.CompareTo(i0.Value.V);
-		if (order != 0) return order;
-		return i0.Key.ToString().CompareTo(i1.Key.ToString());
+		foreach (var result in fragments.Zip(workers.Skip(2), (dna, stats) =>
+			stats.task.Result.GetCount(dna.Select(ToBase).ToArray()) + "\t" + dna))
+			Console.WriteLine(result);
+		Console.Error.WriteLine("Took " + sw.Elapsed.TotalSeconds + "s; " + GC.GetTotalMemory(false) / 1024 / 1024 + "MB");
 	}
 }
 
+class DnaStats {
+	public Func<Base[], int> GetCount;
+	public Func<string> Summary;
+
+	public DnaStats(int length, IEnumerable<Base[]> seq) {
+		if (length > 8)
+			Init<NormalHash>(seq, length);
+		else
+			Init<ArrayHash>(seq, length);
+	}
+
+	void Init<T>(IEnumerable<Base[]> seq, int len)
+		where T : struct, ICounter {
+		T impl = new T();
+		impl.Init(len);
+		int total = 0;
+		ulong current = 0;
+		foreach (var seg in seq)
+			foreach (var b in seg) {
+				current = current >> 2 | (ulong)b << len * 2 - 2;
+				total++;
+				if (total < len) continue;
+				impl.Add(current);
+			}
+
+		GetCount = dna =>
+			impl.GetCount(
+				dna.Select((b, i) => (ulong)b << 2 * i)
+					.Aggregate((x, y) => x | y));
+		Summary = () => impl.Summary(len, total);
+	}
+
+	interface ICounter {
+		void Init(int len);
+		void Add(ulong dna);
+		int GetCount(ulong dna);
+		string Summary(int len, int total);
+	}
+
+	struct ArrayHash : ICounter {
+		int[] counts;
+		public void Init(int len) { counts = new int[1 << len * 2]; }
+		public void Add(ulong dna) { counts[dna]++; }
+		public int GetCount(ulong dna) { return counts[dna]; }
+
+		public string Summary(int len, int total) {
+			return string.Concat(
+				counts.Select((c, dna) => new {
+					p = c * 100.0 / (total - len + 1),
+					dna = string.Concat(All((ulong)dna, len))
+				})
+					.OrderByDescending(x => x.p).ThenBy(x => x.dna)
+					.Select(x => x.dna + " " + x.p.ToString("f3") + "\n")
+				);
+		}
+	}
+
+	struct NormalHash : ICounter {
+		class IntRef { public int val; }
+		Dictionary<ulong, IntRef> counts;
+		public void Init(int len) {
+			counts = new Dictionary<ulong, IntRef>(1 << 16);
+		}
+		public void Add(ulong dna) {
+			IntRef count;
+			if (!counts.TryGetValue(dna, out count))
+				counts[dna] = count = new IntRef();
+			count.val++;
+		}
+		public int GetCount(ulong dna) {
+			IntRef count;
+			return counts.TryGetValue(dna, out count) ? count.val : 0;
+		}
+		public string Summary(int len, int total) { return null; }
+	}
+
+	static IEnumerable<Base> All(ulong dna, int l) {
+		return Enumerable.Range(0, l).Select(i => (Base)(dna >> i * 2 & 3));
+	}
+}
