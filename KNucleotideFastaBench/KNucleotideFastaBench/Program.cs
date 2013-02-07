@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Diagnostics;
-using System.IO;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -9,36 +8,6 @@ using System.Threading.Tasks;
 enum Base : byte { A, C, G, T }
 
 static class Program {
-	public static Base ToBase(this char c) {
-		if (c == 'A' || c == 'a') return Base.A;
-		if (c == 'C' || c == 'c') return Base.C;
-		if (c == 'G' || c == 'g') return Base.G;
-		if (c == 'T' || c == 't') return Base.T;
-		throw new ArgumentOutOfRangeException("c");
-	}
-
-	public static IEnumerable<string> Lines(this TextReader inp) {
-		for (var line = inp.ReadLine(); line != null; line = inp.ReadLine())
-			yield return line;
-	}
-
-	static IEnumerable<T[]> Batch<T>(this IEnumerable<T> list, int batchSize) {
-		int i = 0;
-		var arr = new T[batchSize];
-		foreach (var t in list) {
-			arr[i++] = t;
-			if (i == batchSize) {
-				yield return arr;
-				i = 0;
-				arr = new T[batchSize];
-			}
-		}
-		if (i > 0) {
-			Array.Resize(ref arr, i);
-			yield return arr;
-		}
-	}
-
 	public static void Main() {
 		var sw = Stopwatch.StartNew();
 
@@ -54,10 +23,7 @@ static class Program {
 				};
 			}).ToArray();
 
-		var batches = Console.In.Lines()
-			.SkipWhile(s => !s.StartsWith(">THREE")).Skip(1)
-			.TakeWhile(s => !s.StartsWith(">")).Where(s => !s.StartsWith(";"))
-			.SelectMany(s => s).Select(ToBase).Batch(1024 * 64);
+		var batches = ReadLinesIntoChunks();
 
 		foreach (var batch in batches)
 			foreach (var worker in workers.Reverse())
@@ -75,14 +41,51 @@ static class Program {
 		Console.WriteLine(workers[1].task.Result.Summary());
 
 		foreach (var result in fragments.Zip(workers.Skip(2), (dna, stats) =>
-			stats.task.Result.GetCount(dna.Select(ToBase).ToArray()) + "\t" + dna))
+			stats.task.Result.CountOf(dna.Select(c => toBase[c].Value).ToArray()) + "\t" + dna))
 			Console.WriteLine(result);
 		Console.Error.WriteLine("Took " + sw.Elapsed.TotalSeconds + "s; " + GC.GetTotalMemory(false) / 1024 / 1024 + "MB");
 	}
+
+
+	static IEnumerable<Base[]> ReadLinesIntoChunks() {
+		string line;
+		do {
+			line = Console.ReadLine();
+		} while (line != null && !line.StartsWith(">THREE"));
+		const int batchSize = 64 * 1024;
+		int i = 0;
+		var arr = new Base[batchSize];
+
+		while (true) {
+			line = Console.ReadLine();
+			if (line == null || line.StartsWith(">")) 
+				break;
+			if (!line.StartsWith(";"))
+				foreach (var c in line) {
+					arr[i++] = toBase[c].Value;
+					if (i == batchSize) {
+						yield return arr;
+						i = 0;
+						arr = new Base[batchSize];
+					}
+				}
+		}
+
+		if (i > 0) {
+			Array.Resize(ref arr, i);
+			yield return arr;
+		}
+	}
+
+	static readonly Base?[] toBase =
+		Enumerable.Range(0, 't' + 1).Select(i => {
+			Base b;
+			return Enum.TryParse(((char)i).ToString(), true, out b) ? b : default(Base?);
+		}).ToArray();
 }
 
 class DnaStats {
-	public Func<Base[], int> GetCount;
+	public Func<Base[], int> CountOf;
 	public Func<string> Summary;
 
 	public DnaStats(int length, IEnumerable<Base[]> seq) {
@@ -106,7 +109,7 @@ class DnaStats {
 				impl.Add(current);
 			}
 
-		GetCount = dna =>
+		CountOf = dna =>
 			impl.GetCount(
 				dna.Select((b, i) => (ulong)b << 2 * i)
 					.Aggregate((x, y) => x | y));
