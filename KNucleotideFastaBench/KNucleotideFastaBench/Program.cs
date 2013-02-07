@@ -9,8 +9,7 @@ enum Base : byte { A, C, G, T }
 
 static class Program {
 	public static void Main() {
-		var sw = Stopwatch.StartNew();
-
+		//Start concurrent workers that will count dna fragments
 		var workers =
 			new[] { 1, 2, 3, 4, 6, 12, 18 }.Select(length => {
 				var queue = new BlockingCollection<Base[]>(4);
@@ -22,48 +21,60 @@ static class Program {
 						TaskCreationOptions.LongRunning)
 				};
 			}).ToArray();
+		
+		//Read lines into chunks.  The exact size isn't that important.
+		//Smaller chunks are more concurrent but less CPU efficient.
+		var batches = ReadLinesIntoChunks(64 * 1024);
 
-		var batches = ReadLinesIntoChunks();
-
+		//Pass chunks into concurrent consumers
 		foreach (var batch in batches)
 			foreach (var worker in workers.Reverse())
 				worker.queue.Add(batch);
 
-		foreach (var worker in workers.Reverse())
-			worker.queue.CompleteAdding();
+		foreach (var w in workers)
+			w.queue.CompleteAdding();
+
 
 		var fragments = new[] {
 			"GGT", "GGTA", "GGTATT", "GGTATTTTAATT",
 			"GGTATTTTAATTTATAGT"
 		};
 
-		Console.WriteLine(workers[0].task.Result.Summary());
-		Console.WriteLine(workers[1].task.Result.Summary());
-
-		foreach (var result in fragments.Zip(workers.Skip(2), (dna, stats) =>
-			stats.task.Result.CountOf(dna.Select(c => toBase[c].Value).ToArray()) + "\t" + dna))
-			Console.WriteLine(result);
-		Console.Error.WriteLine("Took " + sw.Elapsed.TotalSeconds + "s; " + GC.GetTotalMemory(false) / 1024 / 1024 + "MB");
+		//Show output for each consumer
+		for (int i = 0; i < workers.Length; i++) {
+			var stats = workers[i].task.Result;
+			if (i < 2)
+				Console.WriteLine(stats.Summary());
+			else {
+				var dna = fragments[i - 2];
+				Console.WriteLine(
+					stats.CountOf(dna.Select(c => toBase[c].Value).ToArray())
+						+ "\t" + dna
+					);
+			}
+		}
 	}
 
 
-	static IEnumerable<Base[]> ReadLinesIntoChunks() {
+	static IEnumerable<Base[]> ReadLinesIntoChunks(int batchSize) {
 		string line;
 		do {
 			line = Console.ReadLine();
 		} while (line != null && !line.StartsWith(">THREE"));
-		const int batchSize = 64 * 1024;
+		//we just skipped all lines upto section three
+
 		int i = 0;
 		var arr = new Base[batchSize];
 
 		while (true) {
 			line = Console.ReadLine();
-			if (line == null || line.StartsWith(">")) 
-				break;
-			if (!line.StartsWith(";"))
+			if (line == null || line.StartsWith(">"))
+				break; //stop when end or new section is reached
+			if (!line.StartsWith(";")) //ignore comments
 				foreach (var c in line) {
 					arr[i++] = toBase[c].Value;
 					if (i == batchSize) {
+						//ok, our batch is full, so yield it to consumers.
 						yield return arr;
 						i = 0;
 						arr = new Base[batchSize];
@@ -72,16 +83,16 @@ static class Program {
 		}
 
 		if (i > 0) {
+			//last batch isn't entirely full, but don't forget it.
 			Array.Resize(ref arr, i);
 			yield return arr;
 		}
 	}
 
-	static readonly Base?[] toBase =
-		Enumerable.Range(0, 't' + 1).Select(i => {
-			Base b;
-			return Enum.TryParse(((char)i).ToString(), true, out b) ? b : default(Base?);
-		}).ToArray();
+	static readonly Base?[] toBase = Enumerable.Range(0, 't' + 1).Select(i => {
+		Base b;
+		return Enum.TryParse(((char)i).ToString(), true, out b) ? b : default(Base?);
+	}).ToArray();
 }
 
 class DnaStats {
@@ -89,9 +100,9 @@ class DnaStats {
 	public Func<string> Summary;
 
 	public DnaStats(int length, IEnumerable<Base[]> seq) {
-		if (length > 8)
-			Init<NormalHash>(seq, length);
-		else
+		if (length > 8)  //use a sparse hash (dictionary) for longer fragments
+			Init<NormalHash>(seq, length); 
+		else //...and use a dense hash (aka array) for very short fragments.
 			Init<ArrayHash>(seq, length);
 	}
 
@@ -100,12 +111,15 @@ class DnaStats {
 		T impl = new T();
 		impl.Init(len);
 		int total = 0;
-		ulong current = 0;
+		ulong current = 0; //represents bases as the rightmost packed bits
 		foreach (var seg in seq)
 			foreach (var b in seg) {
+				//push new base into packed representation:
 				current = current >> 2 | (ulong)b << len * 2 - 2;
 				total++;
+				
 				if (total < len) continue;
+				//only count this if we have filled our representation.
 				impl.Add(current);
 			}
 
