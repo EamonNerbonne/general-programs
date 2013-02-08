@@ -124,20 +124,23 @@ static class Program {
 	struct Sparse : ICounter {
 		ulong mask;
 		public Sparse(BlockingCollection<ulong[]> seq, int len) {
-			mask = (1ul << len * 2) - 1;
+			var mask = (1ul << len * 2) - 1;
+			this.mask = mask;
 			var first = seq.GetConsumingEnumerable().First();
 
-			Enumerable.Range(0,Environment.ProcessorCount/2+1).AsParallel().Select(_ => {
-				var d = new Dictionary<ulong, IntRef>(1 << 16);
+			Enumerable.Range(0, Environment.ProcessorCount/2 + 1).AsParallel().Select(p => {
+				var d = new Dictionary<ulong, IntRef>();
+				if (p == 0)
+					foreach (var dna in first.Skip(len - 1))
+						//only count dna if its already long enough
+						Add(d, dna & mask);
 
 				foreach (var arr in seq.GetConsumingEnumerable())
-					foreach (var dna in arr) 
+					foreach (var dna in arr)
 						//only count dna if its already long enough
-						Add(dna & mask);
-					
-
-
-			})
+						Add(d, dna & mask);
+				return d;
+			});
 
 			counts = new Dictionary<ulong, IntRef>(1 << 16);
 
