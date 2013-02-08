@@ -54,10 +54,10 @@ static class Program {
 			if (w.len < 3)
 				Console.WriteLine(((Dense)w.task.Result).Summary(w.len));
 			else {
-				var dna = "GGTATTTTAATTTATAGT".Substring(0, w.len);
+				var dna = "ggtattttaatttatagt".Substring(0, w.len);
 				Console.WriteLine(
 					w.task.Result.Count(dna.Reverse().Aggregate(0ul, (v, c) => v << 2 | toBase[c].Value))
-						+ "\t" + dna
+						+ "\t" + dna.ToUpper()
 					);
 			}
 		}
@@ -76,18 +76,17 @@ static class Program {
 
 		while (true) {
 			line = Console.ReadLine();
-			if (line == null || line.StartsWith(">"))
+			if (line == null)
 				break; //stop when end or new section is reached
-			if (!line.StartsWith(";")) //ignore comments
-				foreach (var c in line) {
-					arr[i++] = toBase[c].Value;
-					if (i == size) {
-						//ok, our batch is full, so yield it to consumers.
-						yield return arr;
-						i = 0;
-						arr = new byte[size];
-					}
+			foreach (var c in line) {
+				arr[i++] = toBase[c].Value;
+				if (i == size) {
+					//ok, our batch is full, so yield it to consumers.
+					yield return arr;
+					i = 0;
+					arr = new byte[size];
 				}
+			}
 		}
 
 		if (i > 0) {
