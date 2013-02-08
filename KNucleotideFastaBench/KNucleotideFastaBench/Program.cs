@@ -1,62 +1,70 @@
-﻿using System;
+﻿/* The Computer Language Benchmarks Game
+   http://benchmarksgame.alioth.debian.org/
+
+   contributed by Eamon Nerbonne
+*/
+using System;
 using System.Collections.Concurrent;
-using System.Diagnostics;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 
-enum Base : byte { A, C, G, T }
-
 static class Program {
+	const string bases = "ACGT";
+	static byte?[] toBase = new byte?['t' + 1];
+
 	public static void Main() {
+		for (var i = 0; i < 8; i++)
+			toBase["ACGTacgt"[i]] = (byte)(i & 3);
+
+		var sw = Stopwatch.StartNew();
+
 		//Start concurrent workers that will count dna fragments
-		var workers =
-			new[] { 1, 2, 3, 4, 6, 12, 18 }.Select(length => {
-				var queue = new BlockingCollection<Base[]>(4);
-				var list = queue.GetConsumingEnumerable();
-				return new {
-					queue,
-					task = Task.Factory.StartNew(
-						() => new DnaStats(length, list),
-						TaskCreationOptions.LongRunning)
-				};
-			}).ToArray();
-		
+		var workers = new[] { 1, 2, 3, 4, 6, 12, 18 }.Select(len => {
+			var queue = new BlockingCollection<byte[]>(4);
+			return new {
+				len,
+				queue,
+				task = Task.Factory.StartNew(
+					() =>
+						//use a sparse hash (dictionary) for longer fragments
+						len > 8 ? new Sparse(queue.GetConsumingEnumerable(), len)
+						//...and use a dense hash (aka array) for very short fragments.
+						: (ICounter)new Dense(queue.GetConsumingEnumerable(), len),
+					TaskCreationOptions.LongRunning)
+			};
+		}).ToArray();
+
 		//Read lines into chunks.  The exact size isn't that important.
 		//Smaller chunks are more concurrent but less CPU efficient.
-		var batches = ReadLinesIntoChunks(64 * 1024);
+		var chunks = LinesToChunks(64 * 1024);
 
-		//Pass chunks into concurrent consumers
-		foreach (var batch in batches)
-			foreach (var worker in workers.Reverse())
-				worker.queue.Add(batch);
+		//Pass chunks into concurrent consumers; add to last workers first
+		//as a minor threading optimization.
+		foreach (var chunk in chunks)
+			foreach (var w in workers.Reverse())
+				w.queue.Add(chunk);
 
-		foreach (var w in workers)
+		foreach (var w in workers.Reverse())
 			w.queue.CompleteAdding();
 
-
-		var fragments = new[] {
-			"GGT", "GGTA", "GGTATT", "GGTATTTTAATT",
-			"GGTATTTTAATTTATAGT"
-		};
-
 		//Show output for each consumer
-		for (int i = 0; i < workers.Length; i++) {
-			var stats = workers[i].task.Result;
-			if (i < 2)
-				Console.WriteLine(stats.Summary());
+		foreach (var w in workers) {
+			if (w.len < 3)
+				Console.WriteLine(((Dense)w.task.Result).Summary(w.len));
 			else {
-				var dna = fragments[i - 2];
+				var dna = "GGTATTTTAATTTATAGT".Substring(0, w.len);
 				Console.WriteLine(
-					stats.CountOf(dna.Select(c => toBase[c].Value).ToArray())
+					w.task.Result.Count(dna.Reverse().Aggregate(0ul, (v, c) => v << 2 | toBase[c].Value))
 						+ "\t" + dna
 					);
 			}
 		}
+		Console.WriteLine(sw.Elapsed);
 	}
 
-
-	static IEnumerable<Base[]> ReadLinesIntoChunks(int batchSize) {
+	static IEnumerable<byte[]> LinesToChunks(int size) {
 		string line;
 		do {
 			line = Console.ReadLine();
@@ -64,7 +72,7 @@ static class Program {
 		//we just skipped all lines upto section three
 
 		int i = 0;
-		var arr = new Base[batchSize];
+		var arr = new byte[size];
 
 		while (true) {
 			line = Console.ReadLine();
@@ -73,11 +81,11 @@ static class Program {
 			if (!line.StartsWith(";")) //ignore comments
 				foreach (var c in line) {
 					arr[i++] = toBase[c].Value;
-					if (i == batchSize) {
+					if (i == size) {
 						//ok, our batch is full, so yield it to consumers.
 						yield return arr;
 						i = 0;
-						arr = new Base[batchSize];
+						arr = new byte[size];
 					}
 				}
 		}
@@ -89,65 +97,34 @@ static class Program {
 		}
 	}
 
-	static readonly Base?[] toBase = Enumerable.Range(0, 't' + 1).Select(i => {
-		Base b;
-		return Enum.TryParse(((char)i).ToString(), true, out b) ? b : default(Base?);
-	}).ToArray();
-}
-
-class DnaStats {
-	public Func<Base[], int> CountOf;
-	public Func<string> Summary;
-
-	public DnaStats(int length, IEnumerable<Base[]> seq) {
-		if (length > 8)  //use a sparse hash (dictionary) for longer fragments
-			Init<NormalHash>(seq, length); 
-		else //...and use a dense hash (aka array) for very short fragments.
-			Init<ArrayHash>(seq, length);
-	}
-
-	void Init<T>(IEnumerable<Base[]> seq, int len)
-		where T : struct, ICounter {
-		T impl = new T();
-		impl.Init(len);
-		int total = 0;
-		ulong current = 0; //represents bases as the rightmost packed bits
-		foreach (var seg in seq)
-			foreach (var b in seg) {
-				//push new base into packed representation:
-				current = current >> 2 | (ulong)b << len * 2 - 2;
-				total++;
-				
-				if (total < len) continue;
-				//only count this if we have filled our representation.
-				impl.Add(current);
+	static void Init<T>(T impl, IEnumerable<byte[]> seq, int len)
+		where T : ICounter {
+		int i = 0;
+		ulong dna = 0; //represent dna bases as the rightmost packed bits
+		foreach (var arr in seq)
+			foreach (ulong b in arr) {
+				dna = dna >> 2 | b << len * 2 - 2;//push into packed bits
+				i++;
+				if (i >= len) //only count dna if its already long enough
+					impl.Add(dna);
 			}
-
-		CountOf = dna =>
-			impl.GetCount(
-				dna.Select((b, i) => (ulong)b << 2 * i)
-					.Aggregate((x, y) => x | y));
-		Summary = () => impl.Summary(len, total);
 	}
 
-	interface ICounter {
-		void Init(int len);
-		void Add(ulong dna);
-		int GetCount(ulong dna);
-		string Summary(int len, int total);
-	}
-
-	struct ArrayHash : ICounter {
+	struct Dense : ICounter {
+		public Dense(IEnumerable<byte[]> seq, int len) {
+			counts = new int[1 << len * 2];
+			Init(this, seq, len);
+		}
 		int[] counts;
-		public void Init(int len) { counts = new int[1 << len * 2]; }
 		public void Add(ulong dna) { counts[dna]++; }
-		public int GetCount(ulong dna) { return counts[dna]; }
-
-		public string Summary(int len, int total) {
+		public int Count(ulong dna) { return counts[dna]; }
+		public string Summary(int len) {
+			var scale = 100.0 / counts.Sum();
 			return string.Concat(
 				counts.Select((c, dna) => new {
-					p = c * 100.0 / (total - len + 1),
-					dna = string.Concat(All((ulong)dna, len))
+					p = c * scale,
+					dna = string.Concat(Enumerable.Range(0, len)
+									.Select(i => bases[dna >> i * 2 & 3]))
 				})
 					.OrderByDescending(x => x.p).ThenBy(x => x.dna)
 					.Select(x => x.dna + " " + x.p.ToString("f3") + "\n")
@@ -155,26 +132,28 @@ class DnaStats {
 		}
 	}
 
-	struct NormalHash : ICounter {
-		class IntRef { public int val; }
-		Dictionary<ulong, IntRef> counts;
-		public void Init(int len) {
+	struct Sparse : ICounter {
+		public Sparse(IEnumerable<byte[]> seq, int len) {
 			counts = new Dictionary<ulong, IntRef>(1 << 16);
+			Init(this, seq, len);
 		}
+		Dictionary<ulong, IntRef> counts;
 		public void Add(ulong dna) {
 			IntRef count;
 			if (!counts.TryGetValue(dna, out count))
-				counts[dna] = count = new IntRef();
-			count.val++;
+				counts[dna] = new IntRef { val = 1 };
+			else
+				count.val++;
 		}
-		public int GetCount(ulong dna) {
+		public int Count(ulong dna) {
 			IntRef count;
 			return counts.TryGetValue(dna, out count) ? count.val : 0;
 		}
-		public string Summary(int len, int total) { return null; }
 	}
 
-	static IEnumerable<Base> All(ulong dna, int l) {
-		return Enumerable.Range(0, l).Select(i => (Base)(dna >> i * 2 & 3));
+	class IntRef { public int val; }
+	interface ICounter {
+		void Add(ulong dna);
+		int Count(ulong dna);
 	}
 }
