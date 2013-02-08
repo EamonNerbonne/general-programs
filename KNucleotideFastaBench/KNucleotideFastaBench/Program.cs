@@ -15,10 +15,8 @@ static class Program {
 	static byte?[] toBase = new byte?['t' + 1];
 
 	public static void Main() {
-		for (var i = 0; i < 8; i++)
-			toBase["ACGTacgt"[i]] = (byte)(i & 3);
-
-		var sw = Stopwatch.StartNew();
+		for (var i = 0; i < 4; i++)
+			toBase["acgt"[i]] = (byte)i;
 
 		//Start concurrent workers that will count dna fragments
 		var workers = new[] { 1, 2, 3, 4, 6, 12, 18 }.Select(len => {
@@ -38,11 +36,9 @@ static class Program {
 
 		//Read lines into chunks.  The exact size isn't that important.
 		//Smaller chunks are more concurrent but less CPU efficient.
-		var chunks = LinesToChunks(64 * 1024);
-
-		//Pass chunks into concurrent consumers; add to last workers first
-		//as a minor threading optimization.
-		foreach (var chunk in chunks)
+		foreach (var chunk in LinesToChunks(1 << 16))
+			//Pass chunks into concurrent consumers; add to last workers first
+			//as a minor threading optimization.
 			foreach (var w in workers.Reverse())
 				w.queue.Add(chunk);
 
@@ -56,28 +52,26 @@ static class Program {
 			else {
 				var dna = "ggtattttaatttatagt".Substring(0, w.len);
 				Console.WriteLine(
-					w.task.Result.Count(dna.Reverse().Aggregate(0ul, (v, c) => v << 2 | toBase[c].Value))
-						+ "\t" + dna.ToUpper()
-					);
+					w.task.Result.Count(dna.Reverse().Aggregate(0ul,
+							(v, c) => v << 2 | toBase[c].Value))
+					+ "\t" + dna.ToUpper()
+				);
 			}
 		}
-		Console.WriteLine(sw.Elapsed);
 	}
 
 	static IEnumerable<byte[]> LinesToChunks(int size) {
 		string line;
-		do {
-			line = Console.ReadLine();
-		} while (line != null && !line.StartsWith(">THREE"));
+		while ((line = Console.ReadLine()) != null)
+			if (line.StartsWith(">THREE"))
+				break;
+
 		//we just skipped all lines upto section three
 
 		int i = 0;
 		var arr = new byte[size];
 
-		while (true) {
-			line = Console.ReadLine();
-			if (line == null)
-				break; //stop when end or new section is reached
+		while ((line = Console.ReadLine()) != null)
 			foreach (var c in line) {
 				arr[i++] = toBase[c].Value;
 				if (i == size) {
@@ -87,7 +81,6 @@ static class Program {
 					arr = new byte[size];
 				}
 			}
-		}
 
 		if (i > 0) {
 			//last batch isn't entirely full, but don't forget it.
