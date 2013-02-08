@@ -20,16 +20,16 @@ static class Program {
 
 		//Start concurrent workers that will count dna fragments
 		var workers = new[] { 1, 2, 3, 4, 6, 12, 18 }.Select(len => {
-			var queue = new BlockingCollection<byte[]>(4);
+			var queue = new BlockingCollection<ulong[]>(4);
 			return new {
 				len,
 				queue,
 				task = Task.Factory.StartNew(
 					() =>
 						//use a sparse hash (dictionary) for longer fragments
-						len > 8 ? new Sparse(queue.GetConsumingEnumerable(), len)
+						len > 8 ? new Sparse(queue, len)
 						//...and use a dense hash (aka array) for very short fragments.
-						: (ICounter)new Dense(queue.GetConsumingEnumerable(), len),
+						: (ICounter)new Dense(queue, len),
 					TaskCreationOptions.LongRunning)
 			};
 		}).ToArray();
@@ -52,7 +52,7 @@ static class Program {
 			else {
 				var dna = "ggtattttaatttatagt".Substring(0, w.len);
 				Console.WriteLine(
-					w.task.Result.Count(dna.Reverse().Aggregate(0ul,
+					w.task.Result.Count(dna.Aggregate(0ul,
 							(v, c) => v << 2 | toBase[c].Value))
 					+ "\t" + dna.ToUpper()
 				);
@@ -60,7 +60,7 @@ static class Program {
 		}
 	}
 
-	static IEnumerable<byte[]> LinesToChunks(int size) {
+	static IEnumerable<ulong[]> LinesToChunks(int size) {
 		string line;
 		while ((line = Console.ReadLine()) != null)
 			if (line.StartsWith(">THREE"))
@@ -69,16 +69,18 @@ static class Program {
 		//we just skipped all lines upto section three
 
 		int i = 0;
-		var arr = new byte[size];
+		var arr = new ulong[size];
+		ulong dna = 0;
 
 		while ((line = Console.ReadLine()) != null)
 			foreach (var c in line) {
-				arr[i++] = toBase[c].Value;
+				dna = dna << 2 | toBase[c].Value;
+				arr[i++] = dna;
 				if (i == size) {
 					//ok, our batch is full, so yield it to consumers.
 					yield return arr;
 					i = 0;
-					arr = new byte[size];
+					arr = new ulong[size];
 				}
 			}
 
@@ -89,33 +91,28 @@ static class Program {
 		}
 	}
 
-	static void Init<T>(T impl, IEnumerable<byte[]> seq, int len)
-		where T : ICounter {
-		int i = 0;
-		ulong dna = 0; //represent dna bases as the rightmost packed bits
-		foreach (var arr in seq)
-			foreach (ulong b in arr) {
-				dna = dna >> 2 | b << len * 2 - 2;//push into packed bits
-				i++;
-				if (i >= len) //only count dna if its already long enough
-					impl.Add(dna);
-			}
-	}
-
 	struct Dense : ICounter {
-		public Dense(IEnumerable<byte[]> seq, int len) {
+		int mask;
+		public Dense(BlockingCollection<ulong[]> seq, int len) {
 			counts = new int[1 << len * 2];
-			Init(this, seq, len);
+			mask = (1 << len * 2) - 1;
+			int i = 0;
+
+			foreach (var arr in seq.GetConsumingEnumerable())
+				foreach (var dna in arr) {
+					i++;
+					if (i >= len) //only count dna if its already long enough
+						counts[(int)dna & mask]++;
+				}
 		}
 		int[] counts;
-		public void Add(ulong dna) { counts[dna]++; }
-		public int Count(ulong dna) { return counts[dna]; }
+		public int Count(ulong dna) { return counts[(int)dna & mask]; }
 		public string Summary(int len) {
 			var scale = 100.0 / counts.Sum();
 			return string.Concat(
 				counts.Select((c, dna) => new {
 					p = c * scale,
-					dna = string.Concat(Enumerable.Range(0, len)
+					dna = string.Concat(Enumerable.Range(0, len).Reverse()
 									.Select(i => bases[dna >> i * 2 & 3]))
 				})
 					.OrderByDescending(x => x.p).ThenBy(x => x.dna)
@@ -125,18 +122,44 @@ static class Program {
 	}
 
 	struct Sparse : ICounter {
-		public Sparse(IEnumerable<byte[]> seq, int len) {
+		ulong mask;
+		public Sparse(BlockingCollection<ulong[]> seq, int len) {
+			mask = (1ul << len * 2) - 1;
+			var first = seq.GetConsumingEnumerable().First();
+
+			Enumerable.Range(0,Environment.ProcessorCount/2+1).AsParallel().Select(_ => {
+				var d = new Dictionary<ulong, IntRef>(1 << 16);
+
+				foreach (var arr in seq.GetConsumingEnumerable())
+					foreach (var dna in arr) 
+						//only count dna if its already long enough
+						Add(dna & mask);
+					
+
+
+			})
+
 			counts = new Dictionary<ulong, IntRef>(1 << 16);
-			Init(this, seq, len);
+
+
+			int i = 0;
+
+			foreach (var arr in seq.GetConsumingEnumerable())
+				foreach (var dna in arr) {
+					i++;
+					if (i >= len) //only count dna if its already long enough
+						Add(dna & mask);
+				}
 		}
 		Dictionary<ulong, IntRef> counts;
-		public void Add(ulong dna) {
+		static void Add(Dictionary<ulong, IntRef> dict, ulong dna) {
 			IntRef count;
-			if (!counts.TryGetValue(dna, out count))
-				counts[dna] = new IntRef { val = 1 };
+			if (!dict.TryGetValue(dna, out count))
+				dict[dna] = new IntRef { val = 1 };
 			else
 				count.val++;
 		}
+
 		public int Count(ulong dna) {
 			IntRef count;
 			return counts.TryGetValue(dna, out count) ? count.val : 0;
@@ -145,7 +168,7 @@ static class Program {
 
 	class IntRef { public int val; }
 	interface ICounter {
-		void Add(ulong dna);
+		//void Add(ulong dna);
 		int Count(ulong dna);
 	}
 }
