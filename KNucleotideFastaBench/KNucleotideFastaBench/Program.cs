@@ -20,13 +20,14 @@ static class Program {
 
 		//Start concurrent workers that will count dna fragments
 		var workers = new[] { 1, 2, 3, 4, 6, 12, 18 }.Select(len => {
-			var queue = new BlockingCollection<ulong[]>(4);
+			var queue = new BlockingCollection<ulong[]>(2);
 			return new {
 				len,
 				queue,
 				task = Task.Factory.StartNew(
 					() =>
 						//use a sparse hash (dictionary) for longer fragments
+						//len > 16 ? new Sparse(queue, len): 
 						len > 8 ? new Sparse(queue, len)
 						//...and use a dense hash (aka array) for very short fragments.
 						: (ICounter)new Dense(queue, len),
@@ -36,7 +37,7 @@ static class Program {
 
 		//Read lines into chunks.  The exact size isn't that important.
 		//Smaller chunks are more concurrent but less CPU efficient.
-		foreach (var chunk in LinesToChunks(1 << 16))
+		foreach (var chunk in LinesToChunks(1 << 18))
 			//Pass chunks into concurrent consumers; add to last workers first
 			//as a minor threading optimization.
 			foreach (var w in workers.Reverse())
@@ -128,7 +129,7 @@ static class Program {
 			this.mask = mask;
 			var first = seq.GetConsumingEnumerable().First();
 
-			Enumerable.Range(0, Environment.ProcessorCount/2 + 1).AsParallel().Select(p => {
+			counts = Enumerable.Range(0, 3).AsParallel().Select(p => {
 				var d = new Dictionary<ulong, IntRef>();
 				if (p == 0)
 					foreach (var dna in first.Skip(len - 1))
@@ -140,19 +141,16 @@ static class Program {
 						//only count dna if its already long enough
 						Add(d, dna & mask);
 				return d;
-			});
-
-			counts = new Dictionary<ulong, IntRef>(1 << 16);
-
-
-			int i = 0;
-
-			foreach (var arr in seq.GetConsumingEnumerable())
-				foreach (var dna in arr) {
-					i++;
-					if (i >= len) //only count dna if its already long enough
-						Add(dna & mask);
+			}).Aggregate((a, b) => {
+				foreach (var kv in b) {
+					IntRef count;
+					if (!a.TryGetValue(kv.Key, out count))
+						a[kv.Key] = kv.Value;
+					else
+						count.val += kv.Value.val;
 				}
+				return a;
+			});
 		}
 		Dictionary<ulong, IntRef> counts;
 		static void Add(Dictionary<ulong, IntRef> dict, ulong dna) {
@@ -168,7 +166,50 @@ static class Program {
 			return counts.TryGetValue(dna, out count) ? count.val : 0;
 		}
 	}
+	struct Sparse32 : ICounter {
+		uint mask;
+		public Sparse32(BlockingCollection<ulong[]> seq, int len) {
+			var mask = (1u << len * 2) - 1;
+			this.mask = mask;
+			var first = seq.GetConsumingEnumerable().First();
 
+			counts = Enumerable.Range(0, 2).AsParallel().Select(p => {
+				var d = new Dictionary<uint, IntRef>();
+				if (p == 0)
+					foreach (uint dna in first.Skip(len - 1))
+						//only count dna if its already long enough
+						Add(d, dna & mask);
+
+				foreach (var arr in seq.GetConsumingEnumerable())
+					foreach (uint dna in arr)
+						//only count dna if its already long enough
+						Add(d, dna & mask);
+				return d;
+			}).Aggregate((a, b) => {
+				foreach (var kv in b) {
+					IntRef count;
+					if (!a.TryGetValue(kv.Key, out count))
+						a[kv.Key] = kv.Value;
+					else
+						count.val += kv.Value.val;
+				}
+				return a;
+			});
+		}
+		Dictionary<uint, IntRef> counts;
+		static void Add(Dictionary<uint, IntRef> dict, uint dna) {
+			IntRef count;
+			if (!dict.TryGetValue(dna, out count))
+				dict[dna] = new IntRef { val = 1 };
+			else
+				count.val++;
+		}
+
+		public int Count(ulong dna) {
+			IntRef count;
+			return counts.TryGetValue((uint)dna, out count) ? count.val : 0;
+		}
+	}
 	class IntRef { public int val; }
 	interface ICounter {
 		//void Add(ulong dna);
