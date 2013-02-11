@@ -1,0 +1,50 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+	<title></title>
+	<style>
+		.card {
+			width:7cm;
+			height:7cm;
+			padding:0 1cm;
+			border:1px solid #ddd;
+			float:left;
+			page-break-inside:avoid;
+			position:relative;
+		}
+			/*.card:before {
+				content:'';
+				position:absolute;
+				top:0.6cm;
+				border-top:1px solid red;
+				left:0; right:0;
+			}*/
+			.card h1 > span + span {
+				float:right;
+			}
+		h1 {
+			margin:0;padding:0;
+			font: bold 17px Calibri;
+		}
+		.card > div {
+			text-align:center;
+			font: normal 13px Calibri;
+			color:#888;
+			padding-top:1cm;
+			
+		}
+
+	</style>
+</head>
+<body>
+	<div id="allCards" data-bind="foreach: cards">
+		<div class="card">
+			<h1><span data-bind="text: Name.English"></span><span data-bind="text: Price"></span></h1>
+			<div data-bind="text: SetName.English"></div>
+		</div>
+	</div>
+</body>
+<script src="Scripts/knockout-2.2.1.debug.js"></script>
+<script src="Scripts/DominionSets.js"></script>
+<script src="Scripts/ShowSets.js"></script>
+</html>
