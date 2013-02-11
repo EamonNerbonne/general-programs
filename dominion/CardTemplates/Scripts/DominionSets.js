@@ -1,4 +1,4 @@
-[
+var DominionSets = [
   {
     "Name": {
       "English": "Basic Cards",
