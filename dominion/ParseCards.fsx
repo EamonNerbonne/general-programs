@@ -1,5 +1,7 @@
 open System.IO
 
+#r @"packages\Newtonsoft.Json.4.5.11\lib\net40\Newtonsoft.Json.dll";
+
 let table = 
     __SOURCE_DIRECTORY__ + @"\dominion - Card Names (translated).csv"
     |> File.ReadAllLines 
@@ -63,6 +65,7 @@ let cols =
                                 Price = tryGet priceCol i |> orDefault ""
                             }
                          )
+                    |> List.filter (fun card -> card.Name.English <> "")
             {
                 Name = nameCols |> List.map (fun arr -> arr.[1], arr.[0]) |> mkName
                 Cards = cards
@@ -70,30 +73,5 @@ let cols =
         )
     //|> Seq.gr
 
+File.WriteAllText (__SOURCE_DIRECTORY__ + @"\cards.json", Newtonsoft.Json.JsonConvert.SerializeObject (cols, Newtonsoft.Json.Formatting.Indented))
 
-
-
-
-//	var englishCols = 
-//		cols.Where(col=>col[1]=="English")
-//		.Select(col=>col.Take(1).Concat(col.Skip(2)).ToArray())
-//		.ToArray();
-//	var setsIHave = englishCols.Where(col=>!badCols.Contains(col[0])).ToArray();
-//	setsIHave.Select(col=>col.First()).Dump();
-//	
-//	setsIHave.SelectMany(set=>set.Skip(1).Select(card=>new { card, set=set.First() })).OrderBy(c=>c.card) .Dump();
-//}
-//
-//class Set {
-//	public string English, Deutsch, Nederlands, Francais;
-//	public Card[] Cards;
-//}
-//
-//class Card {
-//	public string Set;
-//	public string English, Deutsch, Nederlands, Francais;
-//	public string Price;
-//}
-//
-//// Define other methods and classes here
-//
