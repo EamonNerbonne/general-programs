@@ -4,13 +4,13 @@
 	<title></title>
 	<style>
 		.card {
-			width:7cm;
-			height:7cm;
-			padding:0 1cm;
-			border:1px solid #ddd;
-			float:left;
-			page-break-inside:avoid;
-			position:relative;
+			width: 7cm;
+			height: 7cm;
+			padding: 0 1cm;
+			border: 1px solid #ddd;
+			float: left;
+			page-break-inside: avoid;
+			position: relative;
 		}
 			/*.card:before {
 				content:'';
@@ -19,28 +19,69 @@
 				border-top:1px solid red;
 				left:0; right:0;
 			}*/
-			.card h1 > span + span {
-				float:right;
+
+			.card > h1 {
+				margin: 0;
+				padding: 0;
+				font: bold 17px Calibri;
+				line-height:100%;
 			}
-		h1 {
-			margin:0;padding:0;
-			font: bold 17px Calibri;
+
+				.card > h1 > span + span {
+					float: right;
+				}
+
+			.card > div {
+				text-align: center;
+				font: normal 13px Calibri;
+				color: #888;
+				padding-top: 1cm;
+			}
+
+		body {
+			padding: 0;
+			margin: 0;
+			font-family: 'Segoe UI', Verdana, sans-serif;
 		}
-		.card > div {
-			text-align:center;
-			font: normal 13px Calibri;
-			color:#888;
-			padding-top:1cm;
-			
+		.coins {
+			border-radius:2cm;
+			background:#fd6;
+			padding:0 0.1cm;
+		}
+		.potions {
+			color:#06e;
+		}
+		#settings {
+			border-radius: 0 0 1em 1em;
+			background: #eee;
+			padding: 0.5cm;
+			margin: 0 1cm 2cm 1cm;
 		}
 
+		@media print {
+			#settings {
+				display: none;
+			}
+		}
 	</style>
 </head>
 <body>
-	<div id="allCards" data-bind="foreach: cards">
-		<div class="card">
-			<h1><span data-bind="text: Name.English"></span><span data-bind="text: Price"></span></h1>
-			<div data-bind="text: SetName.English"></div>
+	<div id="settings" data-bind="foreach: Sets">
+		<div>
+			<label>
+				<input type="checkbox" data-bind="checked: haveSet" />
+				<span data-bind="text: Name.English"></span></label>
+
+		</div>
+	</div>
+	<div id="allCards" data-bind="foreach: Cards">
+		<div class="card" data-bind="visible: Set.haveSet">
+			<h1><span data-bind="text: Name.English"></span>
+				<span class="otherprice" data-bind="text: OtherPrice.replace('P','&#x25B2;')"></span>
+				<span class="potions" data-bind="text: PotionPrice"></span>
+				<span class="coins" data-bind="text: CoinPrice"></span>
+			</h1>
+			<div data-bind="text: Set.Name.English"></div>
 		</div>
 	</div>
 </body>

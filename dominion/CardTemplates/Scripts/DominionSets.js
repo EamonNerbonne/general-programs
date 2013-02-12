@@ -1054,7 +1054,7 @@ var DominionSets = [
           "Dutch": "Alchemist",
           "French": ""
         },
-        "Price": "3+1P"
+        "Price": "3P"
       },
       {
         "Name": {
@@ -1063,7 +1063,7 @@ var DominionSets = [
           "Dutch": "Apotheker",
           "French": ""
         },
-        "Price": "2+1P"
+        "Price": "2P"
       },
       {
         "Name": {
@@ -1081,7 +1081,7 @@ var DominionSets = [
           "Dutch": "Oude Bekende",
           "French": ""
         },
-        "Price": "3+1P"
+        "Price": "3P"
       },
       {
         "Name": {
@@ -1090,7 +1090,7 @@ var DominionSets = [
           "Dutch": "Golem",
           "French": ""
         },
-        "Price": "4+1P"
+        "Price": "4P"
       },
       {
         "Name": {
@@ -1108,7 +1108,7 @@ var DominionSets = [
           "Dutch": "Steen der Wijzen",
           "French": ""
         },
-        "Price": "3+1P"
+        "Price": "3P"
       },
       {
         "Name": {
@@ -1117,7 +1117,7 @@ var DominionSets = [
           "Dutch": "",
           "French": ""
         },
-        "Price": "6+1P"
+        "Price": "6P"
       },
       {
         "Name": {
@@ -1126,7 +1126,7 @@ var DominionSets = [
           "Dutch": "Visioen",
           "French": ""
         },
-        "Price": "2+1P"
+        "Price": "2P"
       },
       {
         "Name": {
@@ -1144,7 +1144,7 @@ var DominionSets = [
           "Dutch": "Universiteit",
           "French": ""
         },
-        "Price": "2+1P"
+        "Price": "2P"
       },
       {
         "Name": {

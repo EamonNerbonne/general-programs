@@ -1,6 +1,7 @@
 ﻿/// <reference path="knockout-2.2.1.debug.js" />
 /// <reference path="DominionSets.js" />
 
+
 Array.prototype.bind = function (mapper) {
 	var ret = [], tmp;
 	for (var i = 0; i < this.length; i++) {
@@ -11,12 +12,24 @@ Array.prototype.bind = function (mapper) {
 	return ret;
 };
 
-var cards = DominionSets.bind(function (a) {
-	return a.Cards.map(function (c) {
-		c.SetName = a.Name;
-		return c;
+(function () {
+	DominionSets.forEach(function (set) {
+		set.Cards.forEach(function (card) {
+			card.Set = set;
+			var priceMatch = card.Price.match(/^(\d+)(P?)$/);
+			card.CoinPrice = priceMatch && priceMatch[1];
+			card.PotionPrice = priceMatch && priceMatch[2].replace('P','▲');
+			card.OtherPrice = !priceMatch && card.Price || "";
+		});
+		set.haveSet = ko.observable(true);
 	});
-});
-cards.sort(function (a, b) { return a.Name.English.localeCompare(b.Name.English); });
+	var viewModel = {
+		Cards: DominionSets
+					.bind(function (a) { return a.Cards; })
+					.sort(function (a, b) { return a.Name.English.localeCompare(b.Name.English); }),
+		Sets: DominionSets
+	};
 
-ko.applyBindings({ cards: cards });
+
+	ko.applyBindings(viewModel);
+})();
