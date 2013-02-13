@@ -20,15 +20,16 @@
 			border: 1px solid #ddd;
 			border-right:none;
 			border-bottom:none;
+			-webkit-print-color-adjust:exact;
 		}
 		.card {
-			width: 8.9cm;
+			width: 9cm;
 			height: 6.8cm;
 			padding: 0;
 			border: 1px solid #ddd;
 			border-left:none;
 			border-top:none;
-			float: left;
+			display:inline-block;
 			page-break-inside: avoid;
 			position: relative;
 		}
@@ -54,7 +55,7 @@
 
 				.card > h1 > .name {
 					padding-left: 2.5cm;
-					text-shadow: 0 0 3mm white, 0 0 4mm white;
+					/*text-shadow: 0 0 3mm white, 0 0 4mm white;*/
 				}
 
 			.card > div {
@@ -72,14 +73,15 @@
 
 		.coins {
 			border-radius: 2cm;
-			background: #fd6;
 			width:1.4em;
 			height:1.4em;
 			line-height:140%;
 			text-align:center;
 			vertical-align:baseline;
 			display:inline-block;
-			box-shadow: white 0 0 0.8em,rgba(0,0,0,0.5) 0 0 0.3em inset;
+			background: #fc5;
+			border:1px solid rgba(0,0,0,0.4);
+			/*box-shadow: white 0 0 0.8em,rgba(0,0,0,0.5) 0 0 0.3em inset;*/
 		}
 
 			.coins:empty {
@@ -88,7 +90,7 @@
 
 		.potions {
 			color: #06e;
-			text-shadow: 0 0 3mm white, 0 0 2mm white;
+			/*text-shadow: 0 0 3mm white, 0 0 2mm white;*/
 		}
 
 		#settings {
@@ -114,7 +116,7 @@
 		}
 
 		.victory-card h1 {
-			background: #6f4;
+			background: #7f5;
 		}
 
 		.treasure-card h1 {
@@ -123,13 +125,13 @@
 
 
 		.reaction-card h1 {
-			background: #7af;
+			background: #8bf;
 		}
 		/*a,v,t,r done, now: av at vt vr tr; NOT  ar */
 
 		.action-card.victory-card h1 {
-			background: -webkit-repeating-linear-gradient(-45deg, #fff, #fff 5mm, #6f4 5mm, #6f4 10mm);
-			background: repeating-linear-gradient(-45deg, #fff, #fff 5mm, #6f4 5mm, #6f4 10mm);
+			background: -webkit-repeating-linear-gradient(-45deg, #fff, #fff 5mm, #7f5 5mm, #7f5 10mm);
+			background: repeating-linear-gradient(-45deg, #fff, #fff 5mm, #7f5 5mm, #7f5 10mm);
 		}
 
 		.action-card.treasure-card h1 {
@@ -138,18 +140,18 @@
 		}
 
 		.treasure-card.victory-card h1 {
-			background: -webkit-repeating-linear-gradient(-45deg, #fd6, #fd6 5mm, #6f4 5mm, #6f4 10mm);
-			background: repeating-linear-gradient(-45deg, #fd6, #fd6 5mm, #6f4 5mm, #6f4 10mm);
+			background: -webkit-repeating-linear-gradient(-45deg, #fd6, #fd6 5mm, #7f5 5mm, #7f5 10mm);
+			background: repeating-linear-gradient(-45deg, #fd6, #fd6 5mm, #7f5 5mm, #7f5 10mm);
 		}
 
 		.reaction-card.victory-card h1 {
-			background: -webkit-repeating-linear-gradient(-45deg, #7af, #7af 5mm, #6f4 5mm, #6f4 10mm);
-			background: repeating-linear-gradient(-45deg, #7af, #7af 5mm, #6f4 5mm, #6f4 10mm);
+			background: -webkit-repeating-linear-gradient(-45deg, #8bf, #8bf 5mm, #7f5 5mm, #7f5 10mm);
+			background: repeating-linear-gradient(-45deg, #8bf, #8bf 5mm, #7f5 5mm, #7f5 10mm);
 		}
 
 		.reaction-card.treasure-card h1 {
-			background: -webkit-repeating-linear-gradient(-45deg, #7af, #7af 5mm, #fd6 5mm, #fd6 10mm);
-			background: repeating-linear-gradient(-45deg, #7af, #7af 5mm, #fd6 5mm, #fd6 10mm);
+			background: -webkit-repeating-linear-gradient(-45deg, #8bf, #8bf 5mm, #fd6 5mm, #fd6 10mm);
+			background: repeating-linear-gradient(-45deg, #8bf, #8bf 5mm, #fd6 5mm, #fd6 10mm);
 		}
 
 
@@ -158,7 +160,7 @@
 		}
 
 		.curse-card h1 {
-			background: #d5f;
+			background: #d6f;
 		}
 
 		.ruins-card h1 {
@@ -169,7 +171,7 @@
 		}
 
 		.core-card h1:before {
-			background: rgba(0,0,0,0.2);
+			background: rgba(0,0,0,0.3);
 			font-weight: normal;
 			content: '\2713';
 			color: white;
@@ -184,7 +186,7 @@
 			position:absolute;
 			margin-left: 0.5mm;
 			margin-top:0.5mm;
-			text-shadow: 0 0 1mm rgba(0,0,0,0.4);
+			/*text-shadow: 0 0 1mm rgba(0,0,0,0.4);*/
 		}
 		
 		.attack-card h1:after {
@@ -202,7 +204,7 @@
 			text-align: center;
 			float: right;
 			margin-right: 4mm;
-			text-shadow: 0 0 1mm rgba(0,0,0,0.4);
+			/*text-shadow: 0 0 1mm rgba(0,0,0,0.4);*/
 		}
 	</style>
 </head>
@@ -228,8 +230,7 @@
 			</label>
 		</div>
 	</div>
-	<div id="allCards" data-bind="foreach: Cards">
-		<div class="card" data-bind="visible: Set.haveSet, css:CssClasses">
+	<div id="allCards" data-bind="foreach: Cards"><div class="card" data-bind="visible: Set.haveSet, css:CssClasses">
 
 			<h1><span class="cost">
 				<span class="otherprice" data-bind="text: OtherPrice"></span>
@@ -239,8 +240,7 @@
 				<span data-bind="text: translatedName" class="name"></span>
 			</h1>
 			<div data-bind="text: Set.translatedName"></div>
-		</div>
-	</div>
+		</div></div>
 </body>
 <script src="Scripts/knockout-2.2.1.debug.js"></script>
 <script src="Scripts/DominionSets.js"></script>
