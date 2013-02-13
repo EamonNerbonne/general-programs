@@ -1,12 +1,25 @@
 ﻿<!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
+	<meta charset="utf-8" />
 	<title></title>
 	<style>
+		/*
+			v victory
+			t treasure
+			a action
+			r reaction
+			k attack
+			d duration
+			D defense
+			C curse
+			R ruins
+			S shelter
+*/
 		.card {
-			width: 7cm;
+			width: 8.9cm;
 			height: 7cm;
-			padding: 0 1cm;
+			padding: 0;
 			border: 1px solid #ddd;
 			float: left;
 			page-break-inside: avoid;
@@ -22,13 +35,19 @@
 
 			.card > h1 {
 				margin: 0;
-				padding: 0;
+				padding: 0 0 1mm;
 				font: bold 17px Calibri;
-				line-height:100%;
+				line-height: 100%;
 			}
 
-				.card > h1 > span + span {
-					float: right;
+				.card > h1 > .cost {
+					padding: 0 0.6cm;
+					position: absolute;
+				}
+
+				.card > h1 > .name {
+					padding-left: 2.5cm;
+					text-shadow: 0 0 3mm white, 0 0 4mm white;
 				}
 
 			.card > div {
@@ -43,14 +62,28 @@
 			margin: 0;
 			font-family: 'Segoe UI', Verdana, sans-serif;
 		}
+
 		.coins {
-			border-radius:2cm;
-			background:#fd6;
-			padding:0 0.1cm;
+			border-radius: 2cm;
+			background: #fd6;
+			width:1.4em;
+			height:1.4em;
+			line-height:140%;
+			text-align:center;
+			vertical-align:baseline;
+			display:inline-block;
+			box-shadow: white 0 0 0.8em,rgba(0,0,0,0.5) 0 0 0.3em inset;
 		}
+
+			.coins:empty {
+				display: none;
+			}
+
 		.potions {
-			color:#06e;
+			color: #06e;
+			text-shadow: 0 0 3mm white, 0 0 2mm white;
 		}
+
 		#settings {
 			border-radius: 0 0 1em 1em;
 			background: #eee;
@@ -62,6 +95,76 @@
 			#settings {
 				display: none;
 			}
+		}
+
+		.card h1 {
+			border-bottom: 1px solid #ddd;
+			background: #eee;
+		}
+
+		.action-card h1 {
+			background: #fff;
+		}
+
+		.victory-card h1 {
+			background: #6f4;
+		}
+
+		.treasure-card h1 {
+			background: #fd6;
+		}
+
+
+		.reaction-card h1 {
+			background: #7af;
+		}
+		/*a,v,t,r done, now: av at vt vr tr; NOT  ar */
+
+		.action-card.victory-card h1 {
+			background: repeating-linear-gradient(-45deg, #fff, #fff 5mm, #6f4 5mm, #6f4 10mm);
+		}
+
+		.action-card.treasure-card h1 {
+			background: repeating-linear-gradient(-45deg, #fff, #fff 5mm, #fd6 5mm, #fd6 10mm);
+		}
+
+		.treasure-card.victory-card h1 {
+			background: repeating-linear-gradient(-45deg, #fd6, #fd6 5mm, #6f4 5mm, #6f4 10mm);
+		}
+
+		.reaction-card.victory-card h1 {
+			background: repeating-linear-gradient(-45deg, #7af, #7af 5mm, #6f4 5mm, #6f4 10mm);
+		}
+
+		.reaction-card.treasure-card h1 {
+			background: repeating-linear-gradient(-45deg, #7af, #7af 5mm, #fd6 5mm, #fd6 10mm);
+		}
+
+
+		.duration-card h1 {
+			background: #e95;
+		}
+
+		.curse-card h1 {
+			background: #d5f;
+		}
+
+		.attack-card h1:after {
+			background: #f44;
+			font-weight: normal;
+			content: '\2694';
+			color: white;
+			width: 5mm;
+			height: 6mm;
+			font-family: 'DejaVu Sans', 'Segoe UI Symbol', sans-serif;
+			font-size: 120%;
+			line-height: 110%;
+			border-radius: 3mm;
+			display: block;
+			text-align: center;
+			float: right;
+			margin-right: 4mm;
+			text-shadow: 0 0 1mm rgba(0,0,0,0.4);
 		}
 	</style>
 </head>
@@ -75,11 +178,14 @@
 		</div>
 	</div>
 	<div id="allCards" data-bind="foreach: Cards">
-		<div class="card" data-bind="visible: Set.haveSet">
-			<h1><span data-bind="text: Name.English"></span>
-				<span class="otherprice" data-bind="text: OtherPrice.replace('P','&#x25B2;')"></span>
-				<span class="potions" data-bind="text: PotionPrice"></span>
+		<div class="card" data-bind="visible: Set.haveSet, css:CssClasses">
+
+			<h1><span class="cost">
+				<span class="otherprice" data-bind="text: OtherPrice"></span>
 				<span class="coins" data-bind="text: CoinPrice"></span>
+				<span class="potions" data-bind="text: PotionPrice"></span>
+			</span>
+				<span data-bind="text: Name.English" class="name"></span>
 			</h1>
 			<div data-bind="text: Set.Name.English"></div>
 		</div>

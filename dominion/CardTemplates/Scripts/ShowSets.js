@@ -13,15 +13,31 @@ Array.prototype.bind = function (mapper) {
 };
 
 (function () {
-	DominionSets.forEach(function (set) {
-		set.Cards.forEach(function (card) {
-			card.Set = set;
+	var cardClasses = {
+		v: "victory",
+		t: "treasure",
+		a: "action",
+		r: "reaction",
+		k: "attack",
+		d: "duration",
+		D: "defense",
+		C: "curse",
+		R: "ruins",
+		S: "shelter",
+	};
+
+	DominionSets.forEach(function (Set) {
+		Set.Cards.forEach(function (card) {
+			card.Set = Set;
 			var priceMatch = card.Price.match(/^(\d+)(P?)$/);
 			card.CoinPrice = priceMatch && priceMatch[1];
-			card.PotionPrice = priceMatch && priceMatch[2].replace('P','▲');
+			card.PotionPrice = priceMatch && priceMatch[2].replace('P', '▲');
 			card.OtherPrice = !priceMatch && card.Price || "";
+			card.CssClasses = card.Type.split("").map(function(letter) {
+				return cardClasses[letter] + "-card";
+			}).join(" ");
 		});
-		set.haveSet = ko.observable(true);
+		Set.haveSet = ko.observable(true);
 	});
 	var viewModel = {
 		Cards: DominionSets
