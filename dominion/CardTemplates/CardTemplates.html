@@ -16,11 +16,18 @@
 			R ruins
 			S shelter
 */
+		#allCards {
+			border: 1px solid #ddd;
+			border-right:none;
+			border-bottom:none;
+		}
 		.card {
 			width: 8.9cm;
-			height: 7cm;
+			height: 6.8cm;
 			padding: 0;
 			border: 1px solid #ddd;
+			border-left:none;
+			border-top:none;
 			float: left;
 			page-break-inside: avoid;
 			position: relative;
@@ -121,22 +128,27 @@
 		/*a,v,t,r done, now: av at vt vr tr; NOT  ar */
 
 		.action-card.victory-card h1 {
+			background: -webkit-repeating-linear-gradient(-45deg, #fff, #fff 5mm, #6f4 5mm, #6f4 10mm);
 			background: repeating-linear-gradient(-45deg, #fff, #fff 5mm, #6f4 5mm, #6f4 10mm);
 		}
 
 		.action-card.treasure-card h1 {
+			background: -webkit-repeating-linear-gradient(-45deg, #fff, #fff 5mm, #fd6 5mm, #fd6 10mm);
 			background: repeating-linear-gradient(-45deg, #fff, #fff 5mm, #fd6 5mm, #fd6 10mm);
 		}
 
 		.treasure-card.victory-card h1 {
+			background: -webkit-repeating-linear-gradient(-45deg, #fd6, #fd6 5mm, #6f4 5mm, #6f4 10mm);
 			background: repeating-linear-gradient(-45deg, #fd6, #fd6 5mm, #6f4 5mm, #6f4 10mm);
 		}
 
 		.reaction-card.victory-card h1 {
+			background: -webkit-repeating-linear-gradient(-45deg, #7af, #7af 5mm, #6f4 5mm, #6f4 10mm);
 			background: repeating-linear-gradient(-45deg, #7af, #7af 5mm, #6f4 5mm, #6f4 10mm);
 		}
 
 		.reaction-card.treasure-card h1 {
+			background: -webkit-repeating-linear-gradient(-45deg, #7af, #7af 5mm, #fd6 5mm, #fd6 10mm);
 			background: repeating-linear-gradient(-45deg, #7af, #7af 5mm, #fd6 5mm, #fd6 10mm);
 		}
 
@@ -149,6 +161,32 @@
 			background: #d5f;
 		}
 
+		.ruins-card h1 {
+			background: #b75;
+		}
+		.shelter-card h1 {
+			background: #f64;
+		}
+
+		.core-card h1:before {
+			background: rgba(0,0,0,0.2);
+			font-weight: normal;
+			content: '\2713';
+			color: white;
+			width: 4mm;
+			height: 4mm;
+			font-family: 'DejaVu Sans', 'Segoe UI Symbol', sans-serif;
+			font-size: 120%;
+			line-height: 80%;
+			border-radius: 5mm;
+			display: block;
+			text-align: center;
+			position:absolute;
+			margin-left: 0.5mm;
+			margin-top:0.5mm;
+			text-shadow: 0 0 1mm rgba(0,0,0,0.4);
+		}
+		
 		.attack-card h1:after {
 			background: #f44;
 			font-weight: normal;
@@ -169,12 +207,25 @@
 	</style>
 </head>
 <body>
-	<div id="settings" data-bind="foreach: Sets">
-		<div>
+	<div id="settings" >
+		<div data-bind="foreach: Sets">
+			<div>
 			<label>
 				<input type="checkbox" data-bind="checked: haveSet" />
-				<span data-bind="text: Name.English"></span></label>
-
+				<span data-bind="text: translatedName"></span></label>
+				</div>
+		</div>
+		<div>
+			<label>
+				Language:
+				 <select data-bind="options: Languages, value:Language" ></select>
+			</label>
+		</div>
+		<div>
+			<label>
+				Ordering:
+				 <select data-bind="options: Orders, value:Order, optionsText: 'txt'" ></select>
+			</label>
 		</div>
 	</div>
 	<div id="allCards" data-bind="foreach: Cards">
@@ -185,9 +236,9 @@
 				<span class="coins" data-bind="text: CoinPrice"></span>
 				<span class="potions" data-bind="text: PotionPrice"></span>
 			</span>
-				<span data-bind="text: Name.English" class="name"></span>
+				<span data-bind="text: translatedName" class="name"></span>
 			</h1>
-			<div data-bind="text: Set.Name.English"></div>
+			<div data-bind="text: Set.translatedName"></div>
 		</div>
 	</div>
 </body>

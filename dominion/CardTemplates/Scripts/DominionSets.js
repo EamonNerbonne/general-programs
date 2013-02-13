@@ -1,39 +1,39 @@
 var DominionSets = [
   {
-  	Name: { English: "Basic Cards", German: "", Dutch: "", French: "" },
+  	Name: { English: "Basic Cards", German: "Basis Karten", Dutch: "Basis Kaarten", French: "" },
   	Cards: [
       {
       	Name: { English: "Estate", German: "Anwesen", Dutch: "Landgoed", French: "Domaine" },
       	Price: "2",
-      	Type: "v"
+      	Type: "vc"
       }, {
       	Name: { English: "Duchy", German: "Herzogtum", Dutch: "Hertogdom", French: "Duché" },
       	Price: "5",
-      	Type: "v"
+      	Type: "vc"
       }, {
       	Name: { English: "Province", German: "Provinz", Dutch: "Provincie", French: "Province" },
       	Price: "8",
-      	Type: "v"
+      	Type: "vc"
       }, {
       	Name: { English: "Copper", German: "Kupfer", Dutch: "Koper", French: "Cuivre" },
       	Price: "0",
-      	Type: "t"
+      	Type: "tc"
       }, {
       	Name: { English: "Silver", German: "Silber", Dutch: "Silver", French: "Argent" },
       	Price: "3",
-      	Type: "t"
+      	Type: "tc"
       }, {
       	Name: { English: "Gold", German: "Gold", Dutch: "Goud", French: "Or" },
       	Price: "6",
-      	Type: "t"
+      	Type: "tc"
       }, {
       	Name: { English: "Curse", German: "Fluch", Dutch: "Vloek", French: "" },
       	Price: "0",
-      	Type: "C"
+      	Type: "Cc"
       }
   	]
   }, {
-  	Name: { English: "Base Set", German: "", Dutch: "", French: "" },
+  	Name: { English: "Dominion", German: "Dominion", Dutch: "Dominion", French: "Dominion" },
   	Cards: [
       {
       	Name: { English: "Adventurer", German: "Abenteurer", Dutch: "Avonturier", French: "Aventurier" },
@@ -94,7 +94,7 @@ var DominionSets = [
       }, {
       	Name: { English: "Moat", German: "Burggraben", Dutch: "Slotgracht", French: "Douves" },
       	Price: "2",
-      	Type: "a"
+      	Type: "ar"
       }, {
       	Name: { English: "Moneylender", German: "Geldverleiher", Dutch: "Geldschieter", French: "Prêteur sur gages" },
       	Price: "4",
@@ -457,11 +457,11 @@ var DominionSets = [
       }, {
       	Name: { English: "Platinum", German: "Platin", Dutch: "", French: "" },
       	Price: "9",
-      	Type: "t"
+      	Type: "tc"
       }, {
       	Name: { English: "Colony", German: "Kolonie", Dutch: "", French: "" },
       	Price: "11",
-      	Type: "v"
+      	Type: "vc"
       }
   	]
   }, {
@@ -513,12 +513,12 @@ var DominionSets = [
       	Type: "a"
       }, {
       	Name: { English: "Vineyard", German: "Weinberg", Dutch: "", French: "" },
-      	Price: "1P",
+      	Price: "0P",
       	Type: "v"
       }, {
       	Name: { English: "Potion", German: "Trank", Dutch: "", French: "" },
       	Price: "4",
-      	Type: "t"
+      	Type: "tc"
       }
   	]
   }, {
@@ -866,7 +866,7 @@ var DominionSets = [
       }, {
       	Name: { English: "Ruins", German: "", Dutch: "", French: "" },
       	Price: "0",
-      	Type: "aR"
+      	Type: "aRc"
       }, {
       	Name: { English: "Knights", German: "", Dutch: "", French: "" },
       	Price: "5",
@@ -874,7 +874,7 @@ var DominionSets = [
       }, {
       	Name: { English: "Shelters", German: "", Dutch: "", French: "" },
       	Price: "*",
-      	Type: "S"
+      	Type: "Sc"
       }
   	]
   }
