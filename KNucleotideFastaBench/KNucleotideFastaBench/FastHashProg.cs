@@ -135,7 +135,7 @@ static class Program {
     Entry[] table, overflow;
     int mask, nextOverflow;
 
-    // borrowed from java-version, which borrows it from the JDK
+    // borrowed from JDK
     static int hash(ulong h) {
       h ^= (h >> 20) ^ (h >> 12);
       return (int)(h ^ (h >> 7) ^ (h >> 4));
@@ -143,8 +143,7 @@ static class Program {
 
     public int get(ulong key) {
       int idx = hash(key) & mask;
-      if (table[idx].value == 0) 
-        return 0;
+      if (table[idx].value == 0) return 0;
       else if (table[idx].key == key)
         return table[idx].value;
       else {
@@ -179,13 +178,14 @@ static class Program {
             EnsureOverflowOk();
             break;
           }
-          else
+          else {
             idx = overflow[idx].next;
+          }
         }
       }
     }
 
-    void EnsureOverflowOk() {
+    private void EnsureOverflowOk() {
       if (nextOverflow < overflow.Length) return;
       var oldTable = table;
       var oldOverflow = overflow;
@@ -209,8 +209,9 @@ static class Program {
         var entry = oldOverflow[i];
         entry.next = -1;
         var idx = hash(entry.key) & mask;
-        if (table[idx].value == 0) 
+        if (table[idx].value == 0) {
           table[idx] = entry;
+        }
         else if (table[idx].next == -1) {
           table[idx].next = nextOverflow;
           overflow[nextOverflow++] = entry;
