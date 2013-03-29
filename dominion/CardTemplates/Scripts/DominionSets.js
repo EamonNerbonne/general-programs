@@ -328,7 +328,7 @@ var DominionSets = [
       }, {
       	Name: { English: "Smugglers", German: "Schmuggler", Dutch: "Smokkelaar", French: "" },
       	Price: "3",
-      	Type: "ak"
+      	Type: "a"
       }, {
       	Name: { English: "Tactician", German: "Taktiker", Dutch: "Strateeg", French: "" },
       	Price: "5",
@@ -699,7 +699,7 @@ var DominionSets = [
       	Price: "4",
       	Type: "a"
       }, {
-      	Name: { English: "Stable", German: "Stallungen", Dutch: "Stallen", French: "" },
+      	Name: { English: "Stables", German: "Stallungen", Dutch: "Stallen", French: "" },
       	Price: "5",
       	Type: "a"
       }, {
