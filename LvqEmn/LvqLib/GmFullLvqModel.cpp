@@ -20,15 +20,19 @@ GmFullLvqModel::GmFullLvqModel(LvqModelSettings & initSettings)
 
 	auto InitProtos = initSettings.InitProtosAndProjectionBySetting(); 
 	auto prototypes = get<1>(InitProtos);
-	pLabel =  get<2>(InitProtos);
+	pLabel.resizeLike(get<2>(InitProtos));
+	pLabel = get<2>(InitProtos);
 	size_t protoCount = pLabel.size();
+	P.resizeLike(get<0>(InitProtos));
 	P = get<0>(InitProtos);
 
 	prototype.resize(protoCount);
 	P_prototype.resize(protoCount);
 
 	for(size_t protoIndex=0; protoIndex < protoCount; ++protoIndex) {
+		prototype[protoIndex].resizeLike(prototypes.col(protoIndex));
 		prototype[protoIndex] = prototypes.col(protoIndex);
+		P_prototype[protoIndex].resize(P.rows());
 		RecomputeProjection(protoIndex);
 	}
 
@@ -53,12 +57,12 @@ GmFullLvqModel::GmFullLvqModel(LvqModelSettings & initSettings)
 		double meanLogScale = sumLogScale / label.size();
 		/*
 		if not zero, we need to "subtract" this mean out from each match
-			so E(ln(dJ+dk)) -= mean
-			so each ln(dJ+dk) -= mean
-			so each dJ+dK /= exp(mean)
-			so each dJ+dK *= exp(-mean)
-			so P^2*[...] *= exp(-mean);
-			so P *= exp(-mean/2)
+		so E(ln(dJ+dk)) -= mean
+		so each ln(dJ+dk) -= mean
+		so each dJ+dK /= exp(mean)
+		so each dJ+dK *= exp(-mean)
+		so P^2*[...] *= exp(-mean);
+		so P *= exp(-mean/2)
 
 		*/
 		//
