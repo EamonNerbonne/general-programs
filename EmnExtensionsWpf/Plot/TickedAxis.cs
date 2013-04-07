@@ -367,6 +367,7 @@ namespace EmnExtensions.Wpf {
 		Size ComputeSize(double constraintAxisAlignedWidth) {
 			Size tickLabelSize = CondTranspose(TickLabelSizeGuess);//height==thickness, width == along span of axis
 			Rect minBounds = m_axisLegend.Bounds;
+			minBounds.Intersect(new Rect(new Point(0.0, 0.0), new Size(double.PositiveInfinity, double.PositiveInfinity)));
 			minBounds.Union(new Point(0, 0));
 			minBounds.Height += TickLength + LabelOffset + tickLabelSize.Height;
 
