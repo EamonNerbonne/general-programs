@@ -15,7 +15,6 @@
 #include "NeuralGas.h"
 #include "shuffle.h"
 #include "CovarianceAndMean.h"
-#include "RandomMatrix.h"
 #include "randomProjectionMatrix.h"
 #include "randomUnscalingMatrix.h"
 #include "PCA.h"
@@ -211,6 +210,8 @@ tuple<Matrix_NN,Matrix_NN, VectorXi> LvqModelSettings::InitProtosAndProjectionBy
 
 	if(Popt) 
 		ProjInit(prototypes, P);
+
+	
 
 	return make_tuple(P, prototypes, labels);
 }
