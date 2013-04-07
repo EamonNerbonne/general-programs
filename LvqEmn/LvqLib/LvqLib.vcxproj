@@ -702,7 +702,12 @@
     <ClInclude Include="NeuralGas.h" />
     <ClInclude Include="PCA.h" />
     <ClInclude Include="prefetch.h" />
-    <ClInclude Include="RandomMatrix.h" />
+    <ClInclude Include="uniformRandomizeMatrix.h" />
+    <ClInclude Include="randomMatrixInit.h" />
+    <ClInclude Include="randomOrthogonalMatrix.h" />
+    <ClInclude Include="randomProjectionMatrix.h" />
+    <ClInclude Include="randomScalingMatrix.h" />
+    <ClInclude Include="randomUnscalingMatrix.h" />
     <ClInclude Include="shuffle.h" />
     <ClInclude Include="SmartSum.h" />
     <ClInclude Include="stdafx.h" />

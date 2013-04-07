@@ -2,7 +2,6 @@
 #include "LvqProjectionModel.h"
 #include "LvqDataset.h"
 #include "utils.h"
-#include "RandomMatrix.h"
 #include "GgmLvqModel.h"
 void LvqProjectionModel::AppendTrainingStatNames(std::vector<std::wstring> & retval) const { 
 	LvqModel::AppendTrainingStatNames(retval);

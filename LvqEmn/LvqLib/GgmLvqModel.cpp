@@ -1,12 +1,12 @@
 #include "stdafx.h"
 #include "GgmLvqModel.h"
 #include "utils.h"
-#include "RandomMatrix.h"
 #include "LvqConstants.h"
 #include "MeanMinMax.h"
 #include "LvqDataset.h"
 #include "PCA.h"
 #include "CovarianceAndMean.h"
+#include "randomUnscalingMatrix.h"
 using namespace std;
 using namespace Eigen;
 

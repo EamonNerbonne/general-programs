@@ -16,6 +16,8 @@
 #include "shuffle.h"
 #include "CovarianceAndMean.h"
 #include "RandomMatrix.h"
+#include "randomProjectionMatrix.h"
+#include "randomUnscalingMatrix.h"
 #include "PCA.h"
 
 #include <numeric>

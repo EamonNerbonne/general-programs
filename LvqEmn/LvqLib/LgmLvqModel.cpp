@@ -3,7 +3,8 @@
 #include "utils.h"
 #include "LvqConstants.h"
 #include "SmartSum.h"
-#include "RandomMatrix.h"
+#include "randomProjectionMatrix.h"
+
 
 static inline void NormalizeP(bool locally, vector<Matrix_NN > & P) {
 	if(locally) {

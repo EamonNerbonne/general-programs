@@ -3,7 +3,7 @@
 #include "utils.h"
 #include "LvqConstants.h"
 #include "SmartSum.h"
-#include "RandomMatrix.h"
+#include "randomProjectionMatrix.h"
 
 LpqLvqModel::LpqLvqModel(LvqModelSettings & initSettings)
 	: LvqModel(initSettings)

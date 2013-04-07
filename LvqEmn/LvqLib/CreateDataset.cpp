@@ -2,7 +2,11 @@
 
 #include "CreateDataset.h"
 #include "LvqDataset.h"
-#include "RandomMatrix.h"
+#include "randomMatrixInit.h"
+#include "uniformRandomizeMatrix.h"
+#include "randomUnscalingMatrix.h"
+#include "randomScalingMatrix.h"
+#include "randomOrthogonalMatrix.h"
 
 using namespace std;
 
@@ -11,11 +15,11 @@ using namespace std;
 Matrix_NN CreateDataset::MakePointCloud(boost::mt19937 & rngParams, boost::mt19937 & rngInst, int dims, int pointCount, double meansep) {
 
 	Vector_N offset(dims);
-	RandomMatrixInit(rngParams, offset, 0, meansep/sqrt(static_cast<double>(dims)));
+	randomMatrixInit(rngParams, offset, 0, meansep/sqrt(static_cast<double>(dims)));
 
 	Matrix_NN P = randomScalingMatrix<Matrix_NN>(rngParams, dims,1.0);
 	Matrix_NN points(dims,pointCount);
-	RandomMatrixInit(rngInst, points, 0, 1.0);
+	randomMatrixInit(rngInst, points, 0, 1.0);
 
 	return P * points + offset * Vector_N::Ones(pointCount).transpose();
 }
@@ -36,7 +40,7 @@ LvqDataset* CreateDataset::ConstructGaussianClouds(boost::mt19937 & rngParams, b
 
 Matrix_NN MakeTailMeans(boost::mt19937 & rndGen, int numStarTails, int starDim, double meansep) {
 	Matrix_NN tailMeans(starDim,numStarTails);
-	RandomMatrixInit(rndGen, tailMeans, 0, numStarTails*meansep/sqrt(static_cast<double>(starDim)));
+	randomMatrixInit(rndGen, tailMeans, 0, numStarTails*meansep/sqrt(static_cast<double>(starDim)));
 	return tailMeans;
 }
 
@@ -69,12 +73,12 @@ LvqDataset* CreateDataset::ConstructStarDataset(boost::mt19937 & rngParams, boos
 		Matrix_NN currentTailMeans = tailMeans + MakeTailMeans(rngParams, numStarTails, starDims, starMeanSep * starClassRelOffset);
 		for(int i=0;i<pointsPerClass;++i) {
 			int starIdx = starRndChoose();
-			RandomMatrixInit(rngInst, starRaw, 0, 1.0);
+			randomMatrixInit(rngInst, starRaw, 0, 1.0);
 
 			fullPoint.block(0,0,starDims,1)	= currentTailMeans.col(starIdx) + tailTransforms[starIdx] * starRaw;
 
 			Eigen::Block<Vector_N> restBlock(fullPoint.block(starDims, 0, dims - starDims, 1));
-			RandomMatrixInit(rngInst, restBlock,0,noiseSigma);
+			randomMatrixInit(rngInst, restBlock,0,noiseSigma);
 			points.block(0, pointIndex, dims, 1) = postInitTransform* fullPoint;
 			pointLabels[pointIndex] = label;
 			pointIndex++;
@@ -83,9 +87,9 @@ LvqDataset* CreateDataset::ConstructStarDataset(boost::mt19937 & rngParams, boos
 
 	if(globalNoiseMaxSigma > 0.0) {
 		Vector_N perDimSigma(dims);
-		UniformRandomizeMatrix(perDimSigma, rngParams, 0.0, globalNoiseMaxSigma);
+		uniformRandomizeMatrix(perDimSigma, rngParams, 0.0, globalNoiseMaxSigma);
 		Matrix_NN globalNoise(dims, pointsPerClass * classCount);
-		RandomMatrixInit(rngInst, globalNoise, 0.0, 1.0);
+		randomMatrixInit(rngInst, globalNoise, 0.0, 1.0);
 		globalNoise = perDimSigma.asDiagonal() * globalNoise;
 		points += globalNoise;
 	}

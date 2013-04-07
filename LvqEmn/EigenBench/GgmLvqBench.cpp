@@ -617,7 +617,7 @@ static void TestModel(mtGen & shuffleRand, Matrix_NN const & points, VectorXi co
 }
 
 //randomizes all values of the matrix; each is independently drawn from a normal distribution with provided mean and sigma (=stddev).
-template<typename T> static void RandomMatrixInit(mtGen & rng, Eigen::MatrixBase< T>& mat, LVQFLOAT mean, LVQFLOAT sigma) {
+template<typename T> static void randomMatrixInit(mtGen & rng, Eigen::MatrixBase< T>& mat, LVQFLOAT mean, LVQFLOAT sigma) {
 	normDistrib distrib(mean,sigma);
 	normDistribGen rndGen(rng, distrib);
 	
@@ -630,7 +630,7 @@ template <typename T> static T randomUnscalingMatrix(mtGen & rngParams, int dims
 	T P(dims, dims);
 	LVQFLOAT Pdet = 0.0;
 	while(!(Pdet >0.1 &&Pdet < 10)) {
-		RandomMatrixInit(rngParams, P, 0, 1.0);
+		randomMatrixInit(rngParams, P, 0, 1.0);
 		Pdet = P.determinant();
 		assert(Pdet!=0);
 		if(fabs(Pdet) <= std::numeric_limits<LVQFLOAT>::epsilon()) continue;//exceedingly unlikely.
@@ -658,11 +658,11 @@ template <typename T> static T randomScalingMatrix(mtGen & rngParams, int dims,L
 static Matrix_NN MakePointCloud(mtGen & rngParams, mtGen & rngInst, int dims, int pointCount, LVQFLOAT meansep) {
 
 	Vector_N offset(dims);
-	RandomMatrixInit(rngParams, offset, 0, meansep/sqrt(static_cast<LVQFLOAT>(dims)));
+	randomMatrixInit(rngParams, offset, 0, meansep/sqrt(static_cast<LVQFLOAT>(dims)));
 
 	Matrix_NN P = randomScalingMatrix<Matrix_NN>(rngParams, dims,1.0);
 	Matrix_NN points(dims,pointCount);
-	RandomMatrixInit(rngInst, points, 0, 1.0);
+	randomMatrixInit(rngInst, points, 0, 1.0);
 
 	return P * points + offset * Vector_N::Ones(pointCount).transpose();
 }

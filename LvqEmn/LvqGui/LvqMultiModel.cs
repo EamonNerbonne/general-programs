@@ -1,4 +1,5 @@
-﻿using System;
+﻿#pragma warning disable 420 //disable warning about reference to a volatile field; Interlocked is OK.
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;

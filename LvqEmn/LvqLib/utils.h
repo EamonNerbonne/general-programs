@@ -19,17 +19,6 @@
 #define DBG(X) (std::cout<< #X <<": "<<(X)<<"\n")
 
 
-//randomizes all values of the matrix; each is independently drawn from a normal distribution with provided mean and sigma (=stddev).
-template<typename T> void RandomMatrixInit(boost::mt19937 & rng, Eigen::MatrixBase< T>& mat, double mean, double sigma) {
-	using namespace boost;
-	normal_distribution<> distrib(mean,sigma);
-	variate_generator<mt19937&, normal_distribution<> > rndGen(rng, distrib);
-	for(int j=0; j<mat.cols(); j++)
-		for(int i=0; i<mat.rows(); i++)
-			mat(i,j) = rndGen();
-}
-
-
 template <typename T> T & as_lvalue(T && temporary_value) {return temporary_value;}
 
 template <typename T> T sqr(T val) {return val*val;}
