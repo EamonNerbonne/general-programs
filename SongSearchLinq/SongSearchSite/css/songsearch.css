@@ -423,6 +423,9 @@ a:focus {
     color: #839496;
     font-size: 100%;
 }
+.jp-playlistBox {
+    background:white;
+}
 .jp-playlistBox:before {
     display: block;
     position: absolute;
@@ -432,8 +435,7 @@ a:focus {
     font-size: 250%;
     font-weight: bold;
     margin-top: -1em;
-    z-index: -1;
-    color: #eee8d5;
+    color: #eee;/* #eee8d5;*/
     content: "Playlist";
 }
 .jp-playlist ul li {
