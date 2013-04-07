@@ -23,8 +23,8 @@
 			-webkit-print-color-adjust:exact;
 		}
 		.card {
-			width: 9cm;
-			height: 6.8cm;
+			width: 90mm;
+			height: 68mm;
 			padding: 0;
 			border: 1px solid #ddd;
 			border-left:none;
@@ -207,6 +207,8 @@
 			/*text-shadow: 0 0 1mm rgba(0,0,0,0.4);*/
 		}
 	</style>
+	<style id="CardStyleElem">
+	</style>
 </head>
 <body>
 	<div id="settings" >
@@ -228,6 +230,9 @@
 				Ordering:
 				 <select data-bind="options: Orders, value:Order, optionsText: 'txt'" ></select>
 			</label>
+		</div>
+		<div>
+				Override card size: <input type="text" data-bind="value: CardWidth, valueUpdate: 'afterkeydown'" />mm x <input type="text" data-bind="value: CardHeight, valueUpdate: 'afterkeydown'" />mm (default 90 x 68)
 		</div>
 	</div>
 	<div id="allCards" data-bind="foreach: Cards"><div class="card" data-bind="visible: Set.haveSet, css:CssClasses">

@@ -78,6 +78,8 @@ Array.prototype.bind = function (mapper) {
 		Language: lang,
 		Orders: sortOrders,
 		Order: order,
+		CardWidth: ko.observable(90),
+		CardHeight: ko.observable(68),
 		Cards: ko.computed(function () {
 			var cmp = order().cmp;
 			return DominionSets
@@ -87,6 +89,15 @@ Array.prototype.bind = function (mapper) {
 		Sets: DominionSets
 	};
 
+	ko.computed(function () {
+		var width = Number(viewModel.CardWidth()) || 90;
+		var height = Number(viewModel.CardHeight()) || 68;
+		var style = '.card { width:' + width + 'mm; height:' + height + 'mm; }';
+		var el = document.getElementById('CardStyleElem');
+		while(el.lastChild)
+			el.removeChild(el.lastChild);
+		el.appendChild(document.createTextNode(style));
+	}).extend({ throttle: 500 });
 
 	ko.applyBindings(viewModel);
 })();
