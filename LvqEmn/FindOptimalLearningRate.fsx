@@ -28,51 +28,11 @@ let temp2Store = "uniform-results-tmp2.txt"
 let optimizeSettingsList = 
         List.map (CreateLvqModelValues.ParseShorthand >> withDefaultLr) 
         >> Seq.distinctBy (fun s-> s.WithCanonicalizedDefaults())  >> Seq.toList
-        //>> List.rev
-//        >> Seq.filter (isTested temp2Store >> not) 
-        >> Seq.map (improveAndTestWithControllers 0 1.0 allControllers temp2Store)
+        >> List.rev
+        >> Seq.filter (isTested defaultStore >> not) 
+        >> Seq.filter (isTested newStore >> not) 
+        >> Seq.map (improveAndTestWithControllers 0 1.0 allControllers newStore)
         >> Seq.toList
-
-[
-    "Ggm-1,"
-    "Ggm-1,SlowK,"
-    "Ggm-1,Ppca,"
-    "Ggm-1,Bcov,"
-    "Ggm-1,Bcov,Ppca,"
-    "Ggm-1,SlowK,Ppca,"
-    "Ggm-1,SlowK,Bcov,"
-    "Ggm-1,SlowK,Ppca,Bcov,"
-    ]
-    |> optimizeSettingsList
-
-
-[
-    "Ggm-1,mu0.01,"
-    "Ggm-1,mu0.03,"
-    "Ggm-1,mu0.1,"
-    "Ggm-1,SlowK,mu0.01,"
-    "Ggm-1,SlowK,mu0.03,"
-    "Ggm-1,SlowK,mu0.1,"
-    "Ggm-1,Ppca,mu0.01,"
-    "Ggm-1,Ppca,mu0.03,"
-    "Ggm-1,Ppca,mu0.1,"
-    "Ggm-1,Bcov,mu0.01,"
-    "Ggm-1,Bcov,mu0.03,"
-    "Ggm-1,Bcov,mu0.1,"
-    "Ggm-1,Bcov,Ppca,mu0.01,"
-    "Ggm-1,Bcov,Ppca,mu0.03,"
-    "Ggm-1,Bcov,Ppca,mu0.1,"
-    "Ggm-1,SlowK,Ppca,mu0.01,"
-    "Ggm-1,SlowK,Ppca,mu0.03,"
-    "Ggm-1,SlowK,Ppca,mu0.1,"
-    "Ggm-1,SlowK,Bcov,mu0.01,"
-    "Ggm-1,SlowK,Bcov,mu0.03,"
-    "Ggm-1,SlowK,Bcov,mu0.1,"
-    "Ggm-1,SlowK,Ppca,Bcov,mu0.01,"
-    "Ggm-1,SlowK,Ppca,Bcov,mu0.03,"
-    "Ggm-1,SlowK,Ppca,Bcov,mu0.1,"
-    ]
-    |> optimizeSettingsList
     
 let heuristics=
     [
@@ -173,28 +133,13 @@ let interestingSettings () =
         |> Seq.toList
         //|> List.map(fun s->s.ToShorthand())
 
-let researchRes () =
-    allUniformResults defaultStore
-        |> List.filter(fun res->not res.Settings.scP )
-        |> List.append (allUniformResults "uniform-results-scp-gm-ggm.txt" )
-        |> List.append (allUniformResults "uniform-results-scp-g2m-gpq-normalizes-BPv.txt" )
-        |> List.sortBy (fun res->res.GeoMean) 
-        |> Seq.distinctBy (fun res -> res.Settings.WithCanonicalizedDefaults()) |> Seq.toList
-        //|> List.filter(fun res->not res.Settings.scP && res.Settings.ModelType <> LvqModelType.Lgm)
-        //|> List.sortBy (fun res->res.Settings.ToShorthand())
-        |> List.sortBy (fun res -> res.Settings.LikelyRefinementRanking ())
-        //|> List.rev
-        |> List.map (fun res->res.Settings)
-        //|> (fun ss -> ss.AsParallel().WithDegreeOfParallelism(2))
-        |> Seq.filter (isTested decayStore >> not) //seq is lazy, so this last minute rechecks availability of results.
-        |> Seq.map (improveAndTestWithControllers 7 0.5 decayControllers decayStore)
-        |> Seq.toList
+
 
 let recomputeRes filename =
     allUniformResults filename 
-        |> List.rev
-        |> Seq.distinctBy (fun res -> res.Settings.WithCanonicalizedDefaults()) |> Seq.toList
         |> List.sortBy (fun res->res.GeoMean) 
+       // |> List.rev
+        |> Seq.distinctBy (fun res -> res.Settings.WithCanonicalizedDefaults()) |> Seq.toList
         |> List.map (fun res->res.Settings)
         |> List.filter (fun settings -> settings.ModelType = LvqModelType.G2m)
         |> List.map (OptimalLrSearch.finalTestSettings >> OptimalLrSearch.printResults >> (fun resline -> File.AppendAllText (LrOptimizer.resultsDir.FullName + "\\" + tempStore, resline + "\n"); resline ))
@@ -233,10 +178,16 @@ showEffect defaultStore removeEachIterStuffs (fun res->res.Settings.ModelType = 
 
 
 let bestCurrentSettings () = 
-    allUniformResults defaultStore
-        |> List.sortBy (fun res->res.GeoMean)
-        |> List.map printMeanResults
-        |> List.iter (fun line -> File.AppendAllText (LrOptimizer.resultsDir.FullName + tempStore,line + "\n"))
+    let newBestList = 
+        [defaultStore; newStore; tempStore]
+            |> List.collect allUniformResults
+            |> List.append (allUniformResults tempStore)
+            |> List.sortBy (fun res->res.GeoMean)
+            |> Seq.distinctBy (fun res -> res.Settings.Canonicalize()) |> Seq.toList
+            |> List.map printMeanResults
+    File.Delete (LrOptimizer.resultsDir.FullName + tempStore)
+    newBestList
+        |> List.iter (fun line -> File.AppendAllText (LrOptimizer.resultsDir.FullName + defaultStore,line + "\n"))
 
 let improveKnownCombos () = 
     LrOptimizer.resultsDir.GetFiles("*.txt", SearchOption.AllDirectories)
@@ -255,3 +206,46 @@ let improveKnownCombos () =
 
 
 //showNeiEffect defaultStore |> printfn "%A"
+
+
+[
+    "Ggm-1,"
+    "Ggm-1,SlowK,"
+    "Ggm-1,Ppca,"
+    "Ggm-1,Bcov,"
+    "Ggm-1,Bcov,Ppca,"
+    "Ggm-1,SlowK,Ppca,"
+    "Ggm-1,SlowK,Bcov,"
+    "Ggm-1,SlowK,Ppca,Bcov,"
+    ]
+    |> optimizeSettingsList
+
+
+[
+    "Ggm-1,mu0.01,"
+    "Ggm-1,mu0.03,"
+    "Ggm-1,mu0.1,"
+    "Ggm-1,SlowK,mu0.01,"
+    "Ggm-1,SlowK,mu0.03,"
+    "Ggm-1,SlowK,mu0.1,"
+    "Ggm-1,Ppca,mu0.01,"
+    "Ggm-1,Ppca,mu0.03,"
+    "Ggm-1,Ppca,mu0.1,"
+    "Ggm-1,Bcov,mu0.01,"
+    "Ggm-1,Bcov,mu0.03,"
+    "Ggm-1,Bcov,mu0.1,"
+    "Ggm-1,Bcov,Ppca,mu0.01,"
+    "Ggm-1,Bcov,Ppca,mu0.03,"
+    "Ggm-1,Bcov,Ppca,mu0.1,"
+    "Ggm-1,SlowK,Ppca,mu0.01,"
+    "Ggm-1,SlowK,Ppca,mu0.03,"
+    "Ggm-1,SlowK,Ppca,mu0.1,"
+    "Ggm-1,SlowK,Bcov,mu0.01,"
+    "Ggm-1,SlowK,Bcov,mu0.03,"
+    "Ggm-1,SlowK,Bcov,mu0.1,"
+    "Ggm-1,SlowK,Ppca,Bcov,mu0.01,"
+    "Ggm-1,SlowK,Ppca,Bcov,mu0.03,"
+    "Ggm-1,SlowK,Ppca,Bcov,mu0.1,"
+    ]
+    |> optimizeSettingsList
+
