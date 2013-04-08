@@ -135,7 +135,7 @@ let lrBcontrol = {
                             Name = "LrB"
                             Unpacker = (fun settings-> settings.LrScaleB)
                             Packer = fun (settings:LvqModelSettingsCli) lrB -> settings.WithLr(settings.LR0, settings.LrScaleP, lrB)
-                            Applies = fun settings -> [LvqModelType.G2m; LvqModelType.Ggm ; LvqModelType.Gpq] |> List.exists (fun modelType -> settings.ModelType = modelType)
+                            Applies = fun settings -> [LvqModelType.G2m; LvqModelType.Ggm ; LvqModelType.Gpq ; LvqModelType.Fgm] |> List.exists (fun modelType -> settings.ModelType = modelType)
                             InitLrLogDevScale = 2.
                             StartAt = 0
                         }
