@@ -28,8 +28,9 @@
 //#pragma warning(push,3)
 #pragma warning(disable: 4714) //OK to ignore __forceinline
 //#pragma warning(disable: 4244) //temporarily OK to ignore 64 vs. 32 bit issues.
-#endif
 #pragma warning (disable:4244)
+#endif
+
 #include <Eigen/Core>
 #include <Eigen/LU> 
 #include <Eigen/QR> 
@@ -39,7 +40,6 @@
 //EIGEN_DEFINE_STL_VECTOR_SPECIALIZATION(Eigen::Vector2d)
 
 #include <Bench/BenchTimer.h>
-#pragma warning (default:4244)
 
 
 #include <cmath>
@@ -69,6 +69,8 @@ using Eigen::MatrixXi;
 
 #ifdef _MSC_VER
 //#pragma warning(pop)
+#pragma warning (default:4244)
+
 #pragma warning (disable: 4127)
 #endif
 
