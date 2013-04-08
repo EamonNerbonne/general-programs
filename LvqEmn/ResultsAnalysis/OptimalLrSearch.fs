@@ -307,12 +307,15 @@ let allUniformResults filename =
                         NN = parseChunk "NN: "
                         Settings = maybeSettings.Value
             })
-
-    File.ReadAllLines (LrOptimizer.resultsDir.FullName + "\\"+filename)
-        |> Seq.map parseLine
-        |> Seq.filter Option.isSome
-        |> Seq.map Option.get
-        |> Seq.toList
+    let path = LrOptimizer.resultsDir.FullName + "\\"+filename
+    if not <| File.Exists path then
+        []
+    else
+        File.ReadAllLines path
+            |> Seq.map parseLine
+            |> Seq.filter Option.isSome
+            |> Seq.map Option.get
+            |> Seq.toList
 
 let withDefaultLr (settings:LvqModelSettingsCli) = 
     if settings.LR0 <> 0. then settings
