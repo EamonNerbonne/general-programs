@@ -108,7 +108,7 @@ MatchQuality GgmLvqModel::learnFrom(Vector_N const & trainPoint, int trainLabel)
 	double muJ2 = 2*ggmQuality.muJ;
 	double muK2 = 2*ggmQuality.muK;
 	double muJ2_alt = settings.MuOffset ==0 ? muJ2 : muJ2 + settings.MuOffset * learningRate * exp(-0.5*ggmQuality.distGood);
-	double muK2_alt = true||settings.MuOffset ==0 || !ggmQuality.isErr? muK2 : muK2 - settings.MuOffset * learningRate * exp(-0.5*ggmQuality.distBad);
+	//double muK2_alt =  settings.MuOffset ==0 ? muK2 : muK2 - settings.MuOffset * learningRate * exp(-0.5*ggmQuality.distBad);
 
 	MVectorXd vJ(m_vJ.data(),m_vJ.size());
 	MVectorXd vK(m_vK.data(),m_vK.size());
@@ -137,14 +137,14 @@ MatchQuality GgmLvqModel::learnFrom(Vector_N const & trainPoint, int trainLabel)
 	J.B.triangularView<Eigen::Upper>() += (lr_B * muJ2_alt) * (Bj_P_vJ * P_vJ.transpose() );
 	J.B.diagonal() -= (lr_B * muJ2_alt) * JBinvTdiag;
 
-	K.B.triangularView<Eigen::Upper>() += (lr_bad*lr_B*muK2_alt) * (Bk_P_vK * P_vK.transpose()) ;
-	K.B.diagonal() -= (lr_bad*lr_B*muK2_alt) * KBinvTdiag;
+	K.B.triangularView<Eigen::Upper>() += (lr_bad*lr_B*muK2) * (Bk_P_vK * P_vK.transpose()) ;
+	K.B.diagonal() -= (lr_bad*lr_B*muK2) * KBinvTdiag;
 
 	J.RecomputeBias();
 	K.RecomputeBias();
 
 	J.point.noalias() += P.transpose()* ((lr_point * muJ2_alt) * BjT_Bj_P_vJ);
-	K.point.noalias() += P.transpose() * ((lr_bad * lr_point * muK2_alt) * BkT_Bk_P_vK) ;
+	K.point.noalias() += P.transpose() * ((lr_bad * lr_point * muK2) * BkT_Bk_P_vK) ;
 
 	if(ngMatchCache.size()>0) {
 		double lrSub = 1.0;
@@ -181,7 +181,7 @@ MatchQuality GgmLvqModel::learnFrom(Vector_N const & trainPoint, int trainLabel)
 	for(size_t i=0;i < protoCount;++i)
 		prototype[i].ComputePP(P);
 
-	totalMuLr += -0.5*lr_point*muJ2_alt + 0.5*lr_point*muK2_alt;
+	totalMuLr += -0.5*lr_point*muJ2_alt + 0.5*lr_point*muK2;
 	return ggmQuality;
 }
 
