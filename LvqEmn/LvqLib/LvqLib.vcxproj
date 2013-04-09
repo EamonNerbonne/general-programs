@@ -651,6 +651,7 @@
     <ClCompile Include="LvqProjectionModel.cpp" />
     <ClCompile Include="NearestNeighbor.cpp" />
     <ClCompile Include="NeuralGas.cpp" />
+    <ClCompile Include="NormalLvqModel.cpp" />
     <ClCompile Include="PCA.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
@@ -700,6 +701,7 @@
     <ClInclude Include="MeanMinMax.h" />
     <ClInclude Include="NearestNeighbor.h" />
     <ClInclude Include="NeuralGas.h" />
+    <ClInclude Include="NormalLvqModel.h" />
     <ClInclude Include="PCA.h" />
     <ClInclude Include="prefetch.h" />
     <ClInclude Include="uniformRandomizeMatrix.h" />
