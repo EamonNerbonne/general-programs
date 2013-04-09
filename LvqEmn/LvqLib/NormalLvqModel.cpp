@@ -45,9 +45,11 @@ NormalLvqModel::NormalLvqModel(LvqModelSettings & initSettings)
 	, tmpSrcDimsV2(initSettings.InputDimensions())
 	, tmpDestDimsV1()
 	, tmpDestDimsV2()
+	, tmpDestDimsV3()
+	, tmpDestDimsV4()
 {
 	using namespace std;
-	if(initSettings.Dimensionality ==0)
+	if(initSettings.Dimensionality == 0)
 		initSettings.Dimensionality = (int) initSettings.InputDimensions();
 	if(initSettings.Dimensionality < 0 || initSettings.Dimensionality > (int) initSettings.InputDimensions()){
 		std::cerr<< "Dimensionality out of range\n";
@@ -107,6 +109,8 @@ NormalLvqModel::NormalLvqModel(LvqModelSettings & initSettings)
 		}
 
 		P[protoIndex] = MakeUpperTriangular(P[protoIndex]);
+		normalizeProjection(P[protoIndex]);
+
 		pBias(protoIndex) = ComputeBias(P[protoIndex]);
 	}
 
@@ -126,47 +130,68 @@ MatchQuality NormalLvqModel::learnFrom(Vector_N const & trainPoint, int trainLab
 		lr_P = lr_point * settings.LrScaleP,
 		lr_bad = (settings.SlowK  ?  sqr(1.0 - learningRate)  :  1.0) * settings.LrScaleBad;
 
-	assert(lr_P<=0 && lr_point<=0);
+	assert(lr_P<=0 && lr_point<=0 && lr_bad>=0);
 
 	//now matches.good is "J" and matches.bad is "K".
 	int J = matches.matchGood, K = matches.matchBad;
 	MatchQuality retval = matches.GgmQuality();
+#if (1==1)
 	double muJ2 = 2*retval.muJ;
+	assert(muJ2 >=0);
+	double muJ2_alt = settings.MuOffset ==0 ? muJ2 : muJ2 + settings.MuOffset * learningRate ;// * exp(-0.5*retval.distGood);
+	assert(muJ2_alt >=0);
 	double muK2 = 2*retval.muK;
-	double muJ2_alt = settings.MuOffset ==0 ? muJ2 : muJ2 + settings.MuOffset * learningRate * exp(-0.5*retval.distGood);
+	assert(muK2 <=0 );
+#else
+	double muJ2_alt = settings.MuOffset ;// * exp(-0.5*retval.distGood);
+	double muK2 = 0.0;//settings.MuOffset * exp(-0.5*retval.distGood);
+#endif
 	//double muK2_alt =  settings.MuOffset ==0 ? muK2 : muK2 - settings.MuOffset * learningRate * exp(-0.5*ggmQuality.distBad);
 
 	Vector_N & vJ = tmpSrcDimsV1;
 	Vector_N & vK = tmpSrcDimsV2;
 	Vector_N & Pj_vJ = tmpDestDimsV1;
 	Vector_N & Pk_vK = tmpDestDimsV2;
-	Vector_N & PjInvTdiag = tmpDestDimsV2;
-	Vector_N & PkInvTdiag = tmpDestDimsV2;
+	Vector_N & PjInvTdiag = tmpDestDimsV3;
+	Vector_N & PkInvTdiag = tmpDestDimsV4;
 
 	vJ.noalias() = prototype[J] - trainPoint;
 	vK.noalias() = prototype[K] - trainPoint;
 
+	DBGN(vJ);
+
 	Pj_vJ.noalias() =P[J] * vJ;
 	Pk_vK.noalias() = P[K] * vK;
+	DBGN(Pj_vJ);
 
 	PjInvTdiag = P[J].diagonal().cwiseInverse();
 	PkInvTdiag = P[K].diagonal().cwiseInverse();
 
-	P[J].triangularView<Eigen::Upper>() += (lr_P * muJ2_alt) * (vJ * Pj_vJ.transpose());
-	P[J].diagonal() -= (lr_P * muJ2_alt) * PjInvTdiag;
+	DBGN(PjInvTdiag);
+	DBGN(PkInvTdiag);
 
-	P[K].triangularView<Eigen::Upper>() += (lr_bad*lr_P*muK2) * (vK * Pk_vK.transpose()) ;
+
+	prototype[J].noalias() += P[J].transpose()* ((lr_point * muJ2_alt) * Pj_vJ);
+	prototype[K].noalias() += P[K].transpose() * ((lr_bad * lr_point * muK2) * Pk_vK) ;
+
+	DBGN(prototype[J]);
+
+	DBGN(P[J]);
+	P[J].triangularView<Eigen::Upper>() += (lr_P * muJ2_alt) * (Pj_vJ * vJ.transpose());
+	DBGN(P[J]);
+
+	P[J].diagonal() -= (lr_P * muJ2_alt) * PjInvTdiag;
+	
+	DBGN(P[J]);
+
+	P[K].triangularView<Eigen::Upper>() += (lr_bad*lr_P*muK2) * (Pk_vK * vK.transpose()) ;
 	P[K].diagonal() -= (lr_bad*lr_P*muK2) * PkInvTdiag;
 
 	pBias(J) = ComputeBias(P[J]);
 	pBias(K) = ComputeBias(P[K]);
 
-	prototype[J].noalias() += P[J].transpose()* ((lr_point * muJ2_alt) * Pj_vJ);
-	prototype[K].noalias() += P[K].transpose() * ((lr_bad * lr_point * muK2) * Pk_vK) ;
-
-
 	totalMuJLr -= 0.5* lr_point * muJ2_alt;
-	totalMuKLr -= lr_point * retval.muK;
+	totalMuKLr += 0.5 * lr_point * muK2;
 
 	return retval;
 }

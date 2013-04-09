@@ -53,7 +53,7 @@ namespace LvqLibCli {
 		retval.RandomInitialBorders = retval.RandomInitialBorders && hasB;
 		retval.Bcov = retval.Bcov && hasB;
 		if(!hasB) retval.LrScaleB=0.0;
-		if(!isGgmVariant) retval.MuOffset = 0.0;
+		if(!isGgmVariant && ModelType != LvqModelType::Normal) retval.MuOffset = 0.0;
 		
 		return retval;
 	}

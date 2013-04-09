@@ -97,6 +97,7 @@ namespace EmnExtensions.Wpf {
 
 		public void AppendThreadSafe(string text) {
 			lock (curLine) {
+				//File.AppendAllText(@"C:\logger.log", text, Encoding.UTF8);
 				curLine.Append(text);
 				Invalidate();
 			}

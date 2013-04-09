@@ -19,6 +19,7 @@ protected:
 #endif
 		for(int i=0;i<self.PrototypeCount();i++) {
 			double curDist = self.SqrDistanceTo(i, trainPoint);
+			
 			if(self.PrototypeLabel(i) == trainLabel) {
 				if(!(curDist >= match.distGood)) {
 					match.matchGood = i;
