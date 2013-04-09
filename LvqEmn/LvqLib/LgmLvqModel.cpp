@@ -149,8 +149,8 @@ void LgmLvqModel::AppendTrainingStatNames(std::vector<std::wstring> & retval) co
 
 	retval.push_back(L"Cumulative \u03BC-J-scaled Learning Rate!!Cumulative \u03BC-scaled Learning Rates");
 	retval.push_back(L"Cumulative \u03BC-K-scaled Learning Rate!!Cumulative \u03BC-scaled Learning Rates");
-
 }
+
 void LgmLvqModel::AppendOtherStats(std::vector<double> & stats, LvqDataset const * trainingSet, LvqDataset const * testSet) const {
 	LvqModel::AppendOtherStats(stats,trainingSet,testSet);
 	double minNorm=std::numeric_limits<double>::max();
@@ -186,7 +186,8 @@ void LgmLvqModel::DoOptionalNormalization() {
 
 
 Matrix_NN LgmLvqModel::PrototypeDistances(Matrix_NN const & points) const {
-	Matrix_NN tmpPointsDiff, tmpPointsDiffProj, tmpDists;
+	Matrix_NN tmpPointsDiff(points.rows(), points.cols())
+		, tmpPointsDiffProj(P[0].rows(), points.cols());
 	Matrix_NN newPoints(prototype.size(), points.cols());
 	for(size_t protoI=0;protoI<prototype.size();++protoI) {
 		tmpPointsDiff.noalias() = points.colwise() - prototype[protoI];
