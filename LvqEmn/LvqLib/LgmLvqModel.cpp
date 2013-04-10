@@ -67,7 +67,6 @@ LgmLvqModel::LgmLvqModel( LvqModelSettings & initSettings)
 			randomProjectionMatrix(initSettings.RngParams, rot);
 			P[protoIndex] = rot * initP;
 		}else {
-			P[protoIndex] = initP;
 			randomProjectionMatrix(initSettings.RngParams, P[protoIndex]);
 		}
 		normalizeProjection(P[protoIndex]);
