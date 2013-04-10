@@ -51,8 +51,8 @@ NormalLvqModel::NormalLvqModel(LvqModelSettings & initSettings)
 	, tmpDestDimsV4()
 {
 	using namespace std;
-//	if(initSettings.Dimensionality == 0)
-		initSettings.Dimensionality = (int) initSettings.InputDimensions();
+	//	if(initSettings.Dimensionality == 0)
+	initSettings.Dimensionality = (int) initSettings.InputDimensions();
 	//if(initSettings.Dimensionality < 0 || initSettings.Dimensionality > (int) initSettings.InputDimensions()){
 	//	std::cerr<< "Dimensionality out of range\n";
 	//	std::exit(10);
@@ -123,7 +123,7 @@ NormalLvqModel::NormalLvqModel(LvqModelSettings & initSettings)
 
 MatchQuality NormalLvqModel::learnFrom(Vector_N const & trainPoint, int trainLabel) {
 	using namespace std;
-//	const size_t protoCount = prototype.size();
+	//	const size_t protoCount = prototype.size();
 
 	GoodBadMatch matches = findMatches(trainPoint, trainLabel);
 
@@ -183,7 +183,7 @@ MatchQuality NormalLvqModel::learnFrom(Vector_N const & trainPoint, int trainLab
 	DBGN(P[J]);
 
 	P[J].diagonal() -= (lr_P * muJ2_alt) * PjInvTdiag;
-	
+
 	DBGN(P[J]);
 
 	P[K].triangularView<Eigen::Upper>() += (lr_bad*lr_P*muK2) * (Pk_vK * vK.transpose()) ;
@@ -220,6 +220,16 @@ void NormalLvqModel::AppendTrainingStatNames(std::vector<std::wstring> & retval)
 
 	retval.push_back(L"Cumulative \u03BC-J-scaled Learning Rate!!Cumulative \u03BC-scaled Learning Rates");
 	retval.push_back(L"Cumulative \u03BC-K-scaled Learning Rate!!Cumulative \u03BC-scaled Learning Rates");
+
+	for(int i=0;i<prototype.size();++i) {
+		wstring name =wstring( L"#pos-norm ") + to_wstring(pLabel(i));
+		retval.push_back(name+ L"!pos-norm!Per-prototype: ||w||");
+	}
+	for(int i=0;i<prototype.size();++i) {
+		wstring name =wstring( L"#bias ") + to_wstring(pLabel(i));
+		retval.push_back(name+ L"!bias!Per-prototype: -log(|P|^2)");
+	};
+
 }
 
 void NormalLvqModel::AppendOtherStats(std::vector<double> & stats, LvqDataset const * trainingSet, LvqDataset const * testSet) const {
@@ -241,6 +251,14 @@ void NormalLvqModel::AppendOtherStats(std::vector<double> & stats, LvqDataset co
 
 	stats.push_back(totalMuJLr);
 	stats.push_back(totalMuKLr);
+
+
+	for(int i=0;i<prototype.size();++i) {
+		stats.push_back(prototype[i].norm());
+	};
+	for(int i=0;i<prototype.size();++i) {
+		stats.push_back(pBias(i));
+	};
 }
 
 vector<int> NormalLvqModel::GetPrototypeLabels() const {
