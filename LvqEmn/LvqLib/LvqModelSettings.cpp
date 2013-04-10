@@ -6,6 +6,7 @@
 #include "FgmLvqModel.h"
 #include "G2mLvqModel.h"
 #include "LgmLvqModel.h"
+#include "NormalLvqModel.h"
 #include "GmLvqModel.h"
 #include "GmFullLvqModel.h"
 #include "GpqLvqModel.h"
@@ -31,6 +32,9 @@ LvqModel* ConstructLvqModel(LvqModelSettings & initSettings) {
 	switch(initSettings.ModelType) {
 	case LvqModelSettings::LgmModelType:
 		return new LgmLvqModel(initSettings);
+		break;
+	case LvqModelSettings::NormalModelType:
+		return new NormalLvqModel(initSettings);
 		break;
 	case LvqModelSettings::GmModelType:
 
