@@ -254,7 +254,7 @@ void GgmLvqModel::AppendTrainingStatNames(std::vector<std::wstring> & retval) co
 	});
 	std::for_each(prototype.begin(),prototype.end(), [&](GgmLvqPrototype const & proto) {
 		wstring name =wstring( L"#bias ") + to_wstring(proto.classLabel);
-		retval.push_back(name+ L"!bias!Per-prototype: -log(|B|²)");
+		retval.push_back(name+ L"!bias!Per-prototype: -log(|B|^2)");
 	});
 }
 void GgmLvqModel::AppendOtherStats(std::vector<double> & stats, LvqDataset const * trainingSet, LvqDataset const * testSet) const {
