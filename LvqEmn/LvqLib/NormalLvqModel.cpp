@@ -23,10 +23,12 @@ inline Matrix_NN MakeUpperTriangular(Matrix_NN fullMat) {
 	//auto decomposition = square.llt();
 	Matrix_NN retval = square.llt().matrixL();
 	DBGN(retval);
+#ifndef NDEBUG
 	Matrix_NN alt = square.llt().matrixU();
 	DBGN(alt);
 	Matrix_NN alt2 = square.llt().matrixLLT();
 	DBGN(alt2);
+#endif
 
 	Matrix_NN topR = retval.transpose().topRows(fullMat.rows());
 	DBGN(topR);
