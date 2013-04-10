@@ -4,9 +4,10 @@
 #define WIN32_LEAN_AND_MEAN // Exclude rarely-used stuff from Windows headers
 #define _CRT_RAND_S
 #pragma warning (disable:4996)
+#pragma warning (disable:4714)
+#pragma warning (push, 3)
 #pragma warning (disable:4099)
 #pragma warning (disable:4505)
-#pragma warning (push, 3)
 #endif
 
 //#define EIGEN_DONT_VECTORIZE
@@ -26,9 +27,9 @@
 #include <boost/random/normal_distribution.hpp>
 #include <boost/random/mersenne_twister.hpp>
 
+#include <Eigen/Core>
 
 #ifdef _MSC_VER
 #pragma warning(pop)
 #endif
-#include <Eigen/Core>
 
