@@ -28,12 +28,48 @@ let temp2Store = "uniform-results-tmp2.txt"
 let optimizeSettingsList = 
         List.map (CreateLvqModelValues.ParseShorthand >> withDefaultLr) 
         >> Seq.distinctBy (fun s-> s.WithCanonicalizedDefaults())  >> Seq.toList
-        >> List.rev
-        >> Seq.filter (isTested defaultStore >> not) 
-        >> Seq.filter (isTested newStore >> not) 
-        >> Seq.map (improveAndTestWithControllers 0 1.0 allControllers newStore)
+        //>> List.rev
+        //>> Seq.filter (isTested defaultStore >> not) 
+        >> Seq.filter (isTested temp2Store >> not) 
+        >> Seq.map (improveAndTestWithControllers 0 1.0 allControllers temp2Store)
         >> Seq.toList
-    
+
+        
+[
+    "Ggm-1,NGi,Ppca,"
+    "Ggm-2,NGi,Ppca,"
+    "Ggm-3,NGi,Ppca,"
+    "Ggm-1,NGi,Ppca,SlowK,"
+    "Ggm-2,NGi,Ppca,SlowK,"
+    "Ggm-3,NGi,Ppca,SlowK,"
+    "Ggm-1,NGi,Ppca,mu0.01,"
+    "Ggm-2,NGi,Ppca,mu0.01,"
+    "Ggm-3,NGi,Ppca,mu0.01,"
+    "Ggm-1,NGi,Ppca,mu0.03,"
+    "Ggm-2,NGi,Ppca,mu0.03,"
+    "Ggm-3,NGi,Ppca,mu0.03,"
+    "Ggm-1,NGi,Ppca,mu0.1,"
+    "Ggm-2,NGi,Ppca,mu0.1,"
+    "Ggm-3,NGi,Ppca,mu0.1,"
+    "Ggm-1,NGi,Ppca,Bcov,"
+    "Ggm-2,NGi,Ppca,Bcov,"
+    "Ggm-3,NGi,Ppca,Bcov,"
+    "Ggm-1,NGi,Ppca,SlowK,Bcov,"
+    "Ggm-2,NGi,Ppca,SlowK,Bcov,"
+    "Ggm-3,NGi,Ppca,SlowK,Bcov,"
+    "Ggm-1,NGi,Ppca,mu0.01,Bcov,"
+    "Ggm-2,NGi,Ppca,mu0.01,Bcov,"
+    "Ggm-3,NGi,Ppca,mu0.01,Bcov,"
+    "Ggm-1,NGi,Ppca,mu0.03,Bcov,"
+    "Ggm-2,NGi,Ppca,mu0.03,Bcov,"
+    "Ggm-3,NGi,Ppca,mu0.03,Bcov,"
+    "Ggm-1,NGi,Ppca,mu0.1,Bcov,"
+    "Ggm-2,NGi,Ppca,mu0.1,Bcov,"
+    "Ggm-3,NGi,Ppca,mu0.1,Bcov,"
+    ]
+    |> optimizeSettingsList
+
+
 let heuristics=
     [
         (fun (s: LvqModelSettingsCli) -> 
@@ -173,7 +209,7 @@ let removeEachIterStuffs settings =
 //                                            newSettings.Popt <- false
 //                                            newSettings.Ppca <- false
                                             newSettings
-showEffect defaultStore removeEachIterStuffs (fun res->res.Settings.ModelType = LvqModelType.Ggm && res.Settings.PrototypesPerClass = 5)
+showEffect defaultStore removeEachIterStuffs (fun res->res.Settings.ModelType = LvqModelType.Ggm && res.Settings.PrototypesPerClass = 3)
 
 
 
@@ -209,14 +245,16 @@ let improveKnownCombos () =
 
 
 [
-    "Ggm-1,"
-    "Ggm-1,SlowK,"
-    "Ggm-1,Ppca,"
-    "Ggm-1,Bcov,"
-    "Ggm-1,Bcov,Ppca,"
-    "Ggm-1,SlowK,Ppca,"
-    "Ggm-1,SlowK,Bcov,"
-    "Ggm-1,SlowK,Ppca,Bcov,"
+    "Fgm-1,mu0.1,"
+    "Fgm-1,scP,mu0.1,"
+    "Fgm-1,scP,Ppca,mu0.1,"
+    "Fgm-1,scP,Popt,mu0.1,"
+    "Fgm-1,scP,Ppca,Popt,mu0.1,"
+    "Fgm-1,SlowK,mu0.1,"
+    "Fgm-1,SlowK,scP,mu0.1,"
+    "Fgm-1,SlowK,scP,Ppca,mu0.1,"
+    "Fgm-1,SlowK,scP,Popt,mu0.1,"
+    "Fgm-1,SlowK,scP,Ppca,Popt,mu0.1,"
     ]
     |> optimizeSettingsList
 
