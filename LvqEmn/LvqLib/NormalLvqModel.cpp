@@ -49,12 +49,12 @@ NormalLvqModel::NormalLvqModel(LvqModelSettings & initSettings)
 	, tmpDestDimsV4()
 {
 	using namespace std;
-	if(initSettings.Dimensionality == 0)
+//	if(initSettings.Dimensionality == 0)
 		initSettings.Dimensionality = (int) initSettings.InputDimensions();
-	if(initSettings.Dimensionality < 0 || initSettings.Dimensionality > (int) initSettings.InputDimensions()){
-		std::cerr<< "Dimensionality out of range\n";
-		std::exit(10);
-	}
+	//if(initSettings.Dimensionality < 0 || initSettings.Dimensionality > (int) initSettings.InputDimensions()){
+	//	std::cerr<< "Dimensionality out of range\n";
+	//	std::exit(10);
+	//}
 
 	tmpDestDimsV1.resize(initSettings.Dimensionality);
 	tmpDestDimsV2.resize(initSettings.Dimensionality);
