@@ -72,8 +72,9 @@ public:
 	inline int PrototypeCount() const {return static_cast<int>(prototype.size());}
 	
 	EIGEN_STRONG_INLINE double SqrDistanceTo(size_t protoIndex, Vector_N const & otherPoint) const { 
-		tmpSrcDimsV1 = otherPoint - prototype[protoIndex];
-		return (P[protoIndex] * tmpSrcDimsV1).squaredNorm() + pBias[protoIndex];
+		tmpSrcDimsV1.noalias() = otherPoint - prototype[protoIndex];
+		tmpDestDimsV1.noalias() = P[protoIndex] * tmpSrcDimsV1;
+		return (tmpDestDimsV1).squaredNorm() + pBias[protoIndex];
 	}
 
 	//end for templates
