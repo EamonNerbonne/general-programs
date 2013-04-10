@@ -133,15 +133,30 @@ MatchQuality GgmLvqModel::learnFrom(Vector_N const & trainPoint, int trainLabel)
 		lastAutoPupdate = LVQ_AutoScaleP_Momentum * lastAutoPupdate - logScale;
 	}
 
-	
+
 	J.B.triangularView<Eigen::Upper>() += (lr_B * muJ2_alt) * (Bj_P_vJ * P_vJ.transpose() );
 	J.B.diagonal() -= (lr_B * muJ2_alt) * JBinvTdiag;
 
 	K.B.triangularView<Eigen::Upper>() += (lr_bad*lr_B*muK2) * (Bk_P_vK * P_vK.transpose()) ;
 	K.B.diagonal() -= (lr_bad*lr_B*muK2) * KBinvTdiag;
 
+#ifndef NDEBUG
+	auto oldJbias= J.bias;
+	auto oldKbias= K.bias;
+#endif
 	J.RecomputeBias();
 	K.RecomputeBias();
+
+#ifndef NDEBUG
+	if(K.bias > 10 || K.bias < -10) {
+		cout<< "hmm "<<K.classLabel<<" "<<K.bias<<" <- "<<oldKbias << "\n\n";
+		//K.B.diagonal() += (lr_B*0.001) * K.B.diagonal().cwiseInverse();
+		//K.RecomputeBias();
+	}
+	if(J.bias > 10 || J.bias < -10) {
+		cout<< "hmm! "<<J.classLabel<<" "<<J.bias<<" <- "<<oldJbias << "\n\n";
+	}
+#endif
 
 	J.point.noalias() += P.transpose()* ((lr_point * muJ2_alt) * BjT_Bj_P_vJ);
 	K.point.noalias() += P.transpose() * ((lr_bad * lr_point * muK2) * BkT_Bk_P_vK) ;
@@ -178,8 +193,16 @@ MatchQuality GgmLvqModel::learnFrom(Vector_N const & trainPoint, int trainLabel)
 	if(!settings.scP)
 		normalizeProjection(P);
 
-	for(size_t i=0;i < protoCount;++i)
+	for(size_t i=0;i < protoCount;++i) {
 		prototype[i].ComputePP(P);
+#ifndef NDEBUG
+		if(prototype[i].P_point.squaredNorm() > 1000 ) {
+			std::cout<<"Suspicious point (class "<<prototype[i].classLabel<<") "<<prototype[i].point.transpose()<<"\n";
+			std::cout<<"iters: "<<trainIter<< ", J: "<<J.classLabel<<", K: "<< K.classLabel<<"\n\n";
+		}
+#endif
+
+	}
 
 	totalMuLr += -0.5*lr_point*muJ2_alt + 0.5*lr_point*muK2;
 	return ggmQuality;
@@ -225,6 +248,14 @@ void GgmLvqModel::AppendTrainingStatNames(std::vector<std::wstring> & retval) co
 	retval.push_back(L"Prototype bias mean!bias!Prototype bias");
 	retval.push_back(L"Prototype bias min!bias!Prototype bias");
 	retval.push_back(L"Cumulative \u03BC-scaled Learning Rate!!Cumulative \u03BC-scaled Learning Rates");
+	std::for_each(prototype.begin(),prototype.end(), [&](GgmLvqPrototype const & proto) {
+		wstring name =wstring( L"#pos-norm ") + to_wstring(proto.classLabel);
+		retval.push_back(name+ L"!pos-norm!Per-prototype: ||w||");
+	});
+	std::for_each(prototype.begin(),prototype.end(), [&](GgmLvqPrototype const & proto) {
+		wstring name =wstring( L"#bias ") + to_wstring(proto.classLabel);
+		retval.push_back(name+ L"!bias!Per-prototype: -log(|B|²)");
+	});
 }
 void GgmLvqModel::AppendOtherStats(std::vector<double> & stats, LvqDataset const * trainingSet, LvqDataset const * testSet) const {
 	LvqProjectionModel::AppendOtherStats(stats,trainingSet,testSet);
@@ -247,6 +278,15 @@ void GgmLvqModel::AppendOtherStats(std::vector<double> & stats, LvqDataset const
 	stats.push_back(bias.mean());
 	stats.push_back(bias.min());
 	stats.push_back(totalMuLr);
+
+	std::for_each(prototype.begin(),prototype.end(), [&](GgmLvqPrototype const & proto) {
+		stats.push_back(proto.point.norm());
+	});
+	std::for_each(prototype.begin(),prototype.end(), [&](GgmLvqPrototype const & proto) {
+		stats.push_back(proto.bias);
+	});
+
+
 }
 
 void GgmLvqModel::ClassBoundaryDiagram(double x0, double x1, double y0, double y1, LvqProjectionModel::ClassDiagramT & classDiagram) const {
