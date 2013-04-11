@@ -94,6 +94,11 @@ namespace LvqLibCli {
 			msclr::lock l2(copySync);
 			ComputeModelStats(trainingSet->GetTrainingDataset(dataFold), trainingSet->GetTestDataset(dataFold), modelCopy->get(), StatCallbackTrampoline, &statCollector);
 			cppToCli(statCollector.statsList.front(),cliStat);
+			//double err =  cliStat.values[LvqTrainingStatCli::TrainingErrorI];
+			//if(err == 0.0)
+			//	Console::WriteLine(L"Wow, no errors!");
+
+			GC::KeepAlive(this);
 			return cliStat;
 		} finally {
 			GC::KeepAlive(this);
@@ -216,8 +221,8 @@ namespace LvqLibCli {
 		array<int>^ retval;
 		if(getOrder)
 			cppToCli(classLabelOrdering, retval);
-		return retval;
 		GC::KeepAlive(this);
+		return retval;
 	}
 
 	Tuple<GcManualPtr<LvqDataset>^,GcManualPtr<LvqDataset>^>^ LvqModelCli::ExtendDatasetByProjection(LvqDatasetCli^ dataset, LvqDatasetCli^ toInclude, int datafold) {
@@ -227,6 +232,7 @@ namespace LvqLibCli {
 		
 		CreateExtendedDataset(dataset->GetTrainingDataset(datafold),dataset->GetTestDataset(datafold),toInclude->GetTrainingDataset(datafold),toInclude->GetTestDataset(datafold), nativeModel,&newDataset, &newTestDataset);
 
+		GC::KeepAlive(this);
 		return
 			Tuple::Create(
 				gcnew GcManualPtr<LvqDataset>(newDataset, MemAllocEstimateDataset(newDataset), FreeDataset),

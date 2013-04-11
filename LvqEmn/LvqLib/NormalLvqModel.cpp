@@ -12,28 +12,17 @@
 using namespace std;
 using namespace Eigen;
 
-#define DBGN(X) 
-//#define DBGN(X) (std::cout<< #X <<":\n"<<(X)<<"\n\n")
+//#define DBGN(X) 
+#define DBGN(X) (std::cout<< #X <<":\n"<<(X)<<"\n\n")
 
 inline Matrix_NN MakeUpperTriangular(Matrix_NN fullMat) {
-
-	DBGN(fullMat);
 	Matrix_NN square = fullMat.transpose()*fullMat;
-	DBGN(square);
-	//auto decomposition = square.llt();
 	Matrix_NN retval = square.llt().matrixL();
-	DBGN(retval);
-#ifndef NDEBUG
-	Matrix_NN alt = square.llt().matrixU();
-	DBGN(alt);
-	Matrix_NN alt2 = square.llt().matrixLLT();
-	DBGN(alt2);
-#endif
 
 	Matrix_NN topR = retval.transpose().topRows(fullMat.rows());
-	DBGN(topR);
 	return topR;
 }
+
 
 double ComputeBias(Matrix_NN const & mat) {
 	return - log(sqr(mat.diagonal().prod())); //mat.diagonal().prod() == mat.determinant() due to upper triangular B.
@@ -139,9 +128,9 @@ MatchQuality NormalLvqModel::learnFrom(Vector_N const & trainPoint, int trainLab
 	MatchQuality retval = matches.GgmQuality();
 #if (1==1)
 	double muJ2 = 2*retval.muJ;
-	assert(muJ2 >=0);
+	assert(muJ2 >=0 );
 	double muJ2_alt = settings.MuOffset ==0 ? muJ2 : muJ2 + settings.MuOffset * learningRate ;// * exp(-0.5*retval.distGood);
-	assert(muJ2_alt >=0);
+	assert(muJ2_alt >=0 );
 	double muK2 = 2*retval.muK;
 	assert(muK2 <=0 );
 #else
@@ -160,31 +149,32 @@ MatchQuality NormalLvqModel::learnFrom(Vector_N const & trainPoint, int trainLab
 	vJ.noalias() = prototype[J] - trainPoint;
 	vK.noalias() = prototype[K] - trainPoint;
 
-	DBGN(vJ);
 
 	Pj_vJ.noalias() =P[J] * vJ;
 	Pk_vK.noalias() = P[K] * vK;
-	DBGN(Pj_vJ);
 
 	PjInvTdiag = P[J].diagonal().cwiseInverse();
 	PkInvTdiag = P[K].diagonal().cwiseInverse();
 
-	DBGN(PjInvTdiag);
-	DBGN(PkInvTdiag);
-
-
 	prototype[J].noalias() += P[J].transpose()* ((lr_point * muJ2_alt) * Pj_vJ);
 	prototype[K].noalias() += P[K].transpose() * ((lr_bad * lr_point * muK2) * Pk_vK) ;
+#ifndef NDEBUG
+	if(!isfinite_emn(prototype[J].norm())) {
+		DBGN(prototype[J]);
+		DBGN(P[J]);
+		DBGN(Pj_vJ);
+	}
+	if(!isfinite_emn(prototype[K].norm())) {
+		DBGN(prototype[K]);
+		DBGN(P[K]);
+		DBGN(Pj_vJ);
+	}
 
-	DBGN(prototype[J]);
+#endif
 
-	DBGN(P[J]);
 	P[J].triangularView<Eigen::Upper>() += (lr_P * muJ2_alt) * (Pj_vJ * vJ.transpose());
-	DBGN(P[J]);
 
 	P[J].diagonal() -= (lr_P * muJ2_alt) * PjInvTdiag;
-
-	DBGN(P[J]);
 
 	P[K].triangularView<Eigen::Upper>() += (lr_bad*lr_P*muK2) * (Pk_vK * vK.transpose()) ;
 	P[K].diagonal() -= (lr_bad*lr_P*muK2) * PkInvTdiag;

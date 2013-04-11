@@ -71,3 +71,7 @@ Matrix_NN shuffleMatrixCols(boost::mt19937 & randGen, Matrix_NN const & src);
 #else
 inline bool isfinite_emn(double x) {return !(std::isinf(x)  || std::isnan(x));}
 #endif
+
+#ifdef _MSC_VER
+inline bool isnan(double d) { return _isnan(d) != 0; }
+#endif

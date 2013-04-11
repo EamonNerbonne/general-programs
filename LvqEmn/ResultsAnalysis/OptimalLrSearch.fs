@@ -112,7 +112,12 @@ let logscale steps (v0, v1) =
     //[0.001 -> 0.1]
 
 let lrsChecker rndSeed lr0range settingsFactory iterCount = 
-    [ for (lr0, index) in Seq.zip lr0range (Seq.initInfinite id) ->  Task.Factory.StartNew ((fun () -> lr0 |> settingsFactory |> testSettings 1 (rndSeed + uint32 index) iterCount), TaskCreationOptions.LongRunning) ]
+    [ 
+        for (lr0, index) in Seq.zip lr0range (Seq.initInfinite id) -> 
+            Task.Factory.StartNew(
+                (fun () -> lr0 |> settingsFactory |> testSettings 1 (rndSeed + uint32 index) iterCount),
+                TaskCreationOptions.LongRunning)
+    ]
     |> Array.ofList
     |> Array.map (fun task -> task.Result)
     |> Array.sortBy (fun res -> res.GeoMean)
@@ -136,7 +141,7 @@ let lrBcontrol = {
                             Unpacker = (fun settings-> settings.LrScaleB)
                             Packer = fun (settings:LvqModelSettingsCli) lrB -> settings.WithLr(settings.LR0, settings.LrScaleP, lrB)
                             Applies = fun settings -> [LvqModelType.G2m; LvqModelType.Ggm ; LvqModelType.Gpq ; LvqModelType.Fgm] |> List.exists (fun modelType -> settings.ModelType = modelType)
-                            InitLrLogDevScale = 2.
+                            InitLrLogDevScale = 1.5
                             StartAt = 0
                         }
 let lrPcontrol =  {
@@ -144,7 +149,7 @@ let lrPcontrol =  {
                             Unpacker = fun settings -> settings.LrScaleP
                             Packer = fun settings lrP -> settings.WithLr(settings.LR0, lrP, settings.LrScaleB)
                             Applies = fun _ -> true
-                            InitLrLogDevScale = 2.
+                            InitLrLogDevScale = 1.5
                             StartAt = 0
                         } 
 let lr0control =  {
@@ -152,7 +157,7 @@ let lr0control =  {
                                 Unpacker = fun settings -> settings.LR0
                                 Packer = fun settings lr0 -> settings.WithLr(lr0, settings.LrScaleP, settings.LrScaleB)
                                 Applies = fun _ -> true
-                                InitLrLogDevScale = 2.
+                                InitLrLogDevScale = 1.5
                                 StartAt = 0
                        }
 let iterScaleControl =  {
@@ -161,7 +166,7 @@ let iterScaleControl =  {
                                 Packer = fun settings iterScale -> settings.WithIterScale iterScale
                                 Applies = fun _ -> true
                                 InitLrLogDevScale = 2.5
-                                StartAt = 13
+                                StartAt = 11
                        }
 let decayControl =  {
                                 Name = "decay"
@@ -169,7 +174,7 @@ let decayControl =  {
                                 Packer = fun settings decay -> settings.WithDecay decay
                                 Applies = fun _ -> true
                                 InitLrLogDevScale = 2.5
-                                StartAt = 13
+                                StartAt = 10
                        }
 
 let learningRateControllers = [lr0control; lrPcontrol; lrBcontrol]
@@ -187,6 +192,8 @@ let improveLr (testResultList:TestResults list) (lrUnpack, lrPack) =
     let bestLogErrs = List.head bestToWorst |> unpackLogErrs
     //extract list of error rates from each testresult
     let logLrs = testResultList |> List.map (fun res-> lrUnpack res.Settings |> Math.Log)
+    printfn "%s" <| (List.head bestToWorst).Settings.ToShorthand()
+    printfn "%A" <| (List.head bestToWorst).Results
     let byTtestRelevance = List.Cons (1.0, bestToWorst |> List.tail |> List.map (unpackLogErrs >> Utils.twoTailedPairedTtest bestLogErrs >> snd))
     //note that tTestRelevance isn't exactly ideal since different seeds were used in different results; however at least the same dataset was used...
 
@@ -197,8 +204,8 @@ let improveLr (testResultList:TestResults list) (lrUnpack, lrPack) =
 
     let effRelevance = [byTtestRelevance; linearlyScaledRelevance; byErrRelevance; byErrDistrRelevance] |> Utils.flipList |> List.map (List.average >> (fun rel -> Math.Pow(rel, 1.5)))
     //let effRelevance = List.zip3 relevance linearlyScaledRelevance byErrRelevance |> List.map (fun (a,b,c) -> Math.Sqrt(a * b * c))
-    
-    //printfn "%A" (bestToWorst |> List.map (fun res->lrUnpack res.Settings) |> List.zip relevance)
+    [byTtestRelevance; linearlyScaledRelevance; byErrRelevance; byErrDistrRelevance] |> Utils.flipList |> printfn "%A"
+    printfn "%A" (bestToWorst |> List.map (fun res->lrUnpack res.Settings) |> List.zip3 effRelevance bestToWorstErrs)
     let logLrDistr = List.zip logLrs effRelevance |> List.fold (fun (ss:SmartSum) (lr, rel) -> ss.CombineWith lr (rel + 0.2)) (new SmartSum ())
     let (logLrmean, logLrdev) = (logLrDistr.Mean, Math.Sqrt logLrDistr.Variance)
 
@@ -207,7 +214,7 @@ let improveLr (testResultList:TestResults list) (lrUnpack, lrPack) =
 
     ((Math.Exp logLrmean, logLrdev),(geoMeanMean, geoMeanDev))
 
-let estimateRelativeCost (settings:LvqModelSettingsCli) = Math.Max(1.0, Math.Min( 10.0, settings.EstimateCost(10,32) / 2.5))
+let estimateRelativeCost (settings:LvqModelSettingsCli) = Math.Max(1.0, Math.Min( 20.0, settings.EstimateCost(10,32) / 2.5))
 let finalTestSettings settings = testSettings 50 1u (1e7 / estimateRelativeCost settings) settings
 
 let improvementStep (controller:ControllerState) (initialSettings:LvqModelSettingsCli) degradedCount =
@@ -220,10 +227,10 @@ let improvementStep (controller:ControllerState) (initialSettings:LvqModelSettin
     //let initResults = testSettings 5 currSeed iterCount initialSettings
     let results = lrsChecker (currSeed + 2u) (logscale stepCount (lowLr,highLr)) (controller.Controller.Packer initialSettings) iterCount
     let ((newBaseLr, newLrLogDevScale), (errM,errDV)) = improveLr (List.ofArray results) (controller.Controller.Unpacker, controller.Controller.Packer)
-    let logLrDiff_LrDevScale = 2. * Math.Abs(Math.Log(baseLr / newBaseLr))
+    let logLrDiff_LrDevScale = 2. *1. * Math.Abs(Math.Log(baseLr / newBaseLr))
     let minimalLrDevScale = 0.2 * controller.Controller.InitLrLogDevScale
     let maximalLrDevScale = 2. * controller.Controller.InitLrLogDevScale
-    let effNewLrDevScale = Math.Max(minimalLrDevScale, Math.Min(0.25*newLrLogDevScale + 0.5*controller.LrLogDevScale + 0.25*logLrDiff_LrDevScale, maximalLrDevScale))
+    let effNewLrDevScale = Math.Max(minimalLrDevScale, Math.Min(0.25*1.*newLrLogDevScale + 0.5*controller.LrLogDevScale + 0.25*logLrDiff_LrDevScale, maximalLrDevScale))
     let mutable newSettings = controller.Controller.Packer initialSettings newBaseLr
     newSettings.InstanceSeed <- currSeed + uint32 stepCount * 2u
     //let finalResults =  testSettings 5 currSeed iterCount newSettings
