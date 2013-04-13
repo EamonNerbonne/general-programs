@@ -12,8 +12,11 @@
 using namespace std;
 using namespace Eigen;
 
-//#define DBGN(X) 
+#ifdef NDEBUG
+#define DBGN(X) 
+#else
 #define DBGN(X) (std::cout<< #X <<":\n"<<(X)<<"\n\n")
+#endif
 
 inline Matrix_NN MakeUpperTriangular(Matrix_NN fullMat) {
 	Matrix_NN square = fullMat.transpose()*fullMat;
@@ -40,12 +43,7 @@ NormalLvqModel::NormalLvqModel(LvqModelSettings & initSettings)
 	, tmpDestDimsV4()
 {
 	using namespace std;
-	//	if(initSettings.Dimensionality == 0)
 	initSettings.Dimensionality = (int) initSettings.InputDimensions();
-	//if(initSettings.Dimensionality < 0 || initSettings.Dimensionality > (int) initSettings.InputDimensions()){
-	//	std::cerr<< "Dimensionality out of range\n";
-	//	std::exit(10);
-	//}
 
 	tmpDestDimsV1.resize(initSettings.Dimensionality);
 	tmpDestDimsV2.resize(initSettings.Dimensionality);
@@ -53,27 +51,6 @@ NormalLvqModel::NormalLvqModel(LvqModelSettings & initSettings)
 	tmpDestDimsV4.resize(initSettings.Dimensionality);
 
 	initSettings.AssertModelIsOfRightType(this);
-
-
-	/*
-	for(size_t protoIndex = 0; protoIndex < protoCount; ++protoIndex) {
-	prototype[protoIndex].resize(initSettings.InputDimensions());
-	P[protoIndex].resize(initP.rows(),initP.cols());
-	prototype[protoIndex] = get<1>(projAndProtos).col(protoIndex);
-
-	if(initSettings.Ppca || initSettings.Popt) {
-	Matrix_NN rot = Matrix_NN(initP.rows(), initP.rows());
-	randomProjectionMatrix(initSettings.RngParams, rot);
-	P[protoIndex] = rot * initP;
-	}else {
-	P[protoIndex] = initP;
-	randomProjectionMatrix(initSettings.RngParams, P[protoIndex]);
-	}
-	normalizeProjection(P[protoIndex]);
-	}
-
-	NormalizeP(settings.LocallyNormalize, P);
-	*/
 	auto InitProtos = initSettings.InitProtosAndProjectionBySetting();
 	auto initP = get<0>(InitProtos);
 
@@ -89,7 +66,7 @@ NormalLvqModel::NormalLvqModel(LvqModelSettings & initSettings)
 		prototype[protoIndex].resize(initSettings.InputDimensions());
 		prototype[protoIndex] = prototypes.col(protoIndex);
 
-		P[protoIndex].resize(initP.rows(), initP.cols());
+		P[protoIndex].resizeLike(initP);
 
 		if(initSettings.Ppca || initSettings.Popt) {
 			Matrix_NN rot = Matrix_NN(initP.rows(), initP.rows());
@@ -104,16 +81,10 @@ NormalLvqModel::NormalLvqModel(LvqModelSettings & initSettings)
 
 		pBias(protoIndex) = ComputeBias(P[protoIndex]);
 	}
-
-	//int maxProtoCount = accumulate(initSettings.PrototypeDistribution.begin(), initSettings.PrototypeDistribution.end(), 0, [](int a, int b) -> int { return max(a,b); });
 }
-
-//typedef Map<Vector_N, Aligned> MVectorXd;
 
 MatchQuality NormalLvqModel::learnFrom(Vector_N const & trainPoint, int trainLabel) {
 	using namespace std;
-	//	const size_t protoCount = prototype.size();
-
 	GoodBadMatch matches = findMatches(trainPoint, trainLabel);
 
 	double learningRate = stepLearningRate(matches.matchGood);
@@ -137,7 +108,6 @@ MatchQuality NormalLvqModel::learnFrom(Vector_N const & trainPoint, int trainLab
 	double muJ2_alt = settings.MuOffset ;// * exp(-0.5*retval.distGood);
 	double muK2 = 0.0;//settings.MuOffset * exp(-0.5*retval.distGood);
 #endif
-	//double muK2_alt =  settings.MuOffset ==0 ? muK2 : muK2 - settings.MuOffset * learningRate * exp(-0.5*ggmQuality.distBad);
 
 	Vector_N & vJ = tmpSrcDimsV1;
 	Vector_N & vK = tmpSrcDimsV2;
@@ -153,8 +123,8 @@ MatchQuality NormalLvqModel::learnFrom(Vector_N const & trainPoint, int trainLab
 	Pj_vJ.noalias() =P[J] * vJ;
 	Pk_vK.noalias() = P[K] * vK;
 
-	PjInvTdiag = P[J].diagonal().cwiseInverse();
-	PkInvTdiag = P[K].diagonal().cwiseInverse();
+	PjInvTdiag.noalias() = P[J].diagonal().cwiseInverse();
+	PkInvTdiag.noalias() = P[K].diagonal().cwiseInverse();
 
 	prototype[J].noalias() += P[J].transpose()* ((lr_point * muJ2_alt) * Pj_vJ);
 	prototype[K].noalias() += P[K].transpose() * ((lr_bad * lr_point * muK2) * Pk_vK) ;
@@ -172,12 +142,12 @@ MatchQuality NormalLvqModel::learnFrom(Vector_N const & trainPoint, int trainLab
 
 #endif
 
-	P[J].triangularView<Eigen::Upper>() += (lr_P * muJ2_alt) * (Pj_vJ * vJ.transpose());
+	P[J].selfadjointView<Eigen::Upper>().rankUpdate(Pj_vJ ,vJ, lr_P * muJ2_alt);// (lr_P * muJ2_alt)* (Pj_vJ * vJ.transpose());
 
-	P[J].diagonal() -= (lr_P * muJ2_alt) * PjInvTdiag;
+	P[J].diagonal().noalias() -= (lr_P * muJ2_alt) * PjInvTdiag;
 
 	P[K].triangularView<Eigen::Upper>() += (lr_bad*lr_P*muK2) * (Pk_vK * vK.transpose()) ;
-	P[K].diagonal() -= (lr_bad*lr_P*muK2) * PkInvTdiag;
+	P[K].diagonal().noalias() -= (lr_bad*lr_P*muK2) * PkInvTdiag;
 
 	pBias(J) = ComputeBias(P[J]);
 	pBias(K) = ComputeBias(P[K]);
@@ -211,11 +181,11 @@ void NormalLvqModel::AppendTrainingStatNames(std::vector<std::wstring> & retval)
 	retval.push_back(L"Cumulative \u03BC-J-scaled Learning Rate!!Cumulative \u03BC-scaled Learning Rates");
 	retval.push_back(L"Cumulative \u03BC-K-scaled Learning Rate!!Cumulative \u03BC-scaled Learning Rates");
 
-	for(int i=0;i<prototype.size();++i) {
+	for(size_t i=0;i<prototype.size();++i) {
 		wstring name =wstring( L"#pos-norm ") + to_wstring(pLabel(i));
 		retval.push_back(name+ L"!pos-norm!Per-prototype: ||w||");
 	}
-	for(int i=0;i<prototype.size();++i) {
+	for(size_t i=0;i<prototype.size();++i) {
 		wstring name =wstring( L"#bias ") + to_wstring(pLabel(i));
 		retval.push_back(name+ L"!bias!Per-prototype: -log(|P|^2)");
 	};
@@ -243,10 +213,10 @@ void NormalLvqModel::AppendOtherStats(std::vector<double> & stats, LvqDataset co
 	stats.push_back(totalMuKLr);
 
 
-	for(int i=0;i<prototype.size();++i) {
+	for(size_t i=0;i<prototype.size();++i) {
 		stats.push_back(prototype[i].norm());
 	};
-	for(int i=0;i<prototype.size();++i) {
+	for(size_t i=0;i<prototype.size();++i) {
 		stats.push_back(pBias(i));
 	};
 }
