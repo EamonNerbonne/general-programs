@@ -47,11 +47,12 @@ class NormalLvqModel : public LvqModel, public LvqModelFindMatches<NormalLvqMode
 	vector<Vector_N> prototype;
 	VectorXi pLabel;
 	Vector_N pBias;
-	double totalMuJLr,totalMuKLr;
+	double totalMuJLr,totalMuKLr, logSumUpdateSize, lastStatIter;
+
 	//calls dimensionality of input-space DIMS, output space DIMSOUT
 	//we will preallocate a few vectors to reduce malloc/free overhead.
 
-	mutable Vector_N tmpSrcDimsV1, tmpSrcDimsV2; //vectors of dimension DIMS
+	mutable Vector_N tmpSrcDimsV1, tmpSrcDimsV2,tmpSrcDimsV3,tmpSrcDimsV4; //vectors of dimension DIMS
 	mutable Vector_N tmpDestDimsV1,tmpDestDimsV2,tmpDestDimsV3,tmpDestDimsV4; //vector of dimension DIMSOUT
 
 	

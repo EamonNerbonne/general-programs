@@ -35,8 +35,12 @@ NormalLvqModel::NormalLvqModel(LvqModelSettings & initSettings)
 	: LvqModel(initSettings)
 	, totalMuJLr(0.0)
 	, totalMuKLr(0.0)
+	, logSumUpdateSize(0.0)
+	, lastStatIter(0.0)
 	, tmpSrcDimsV1(initSettings.InputDimensions())
 	, tmpSrcDimsV2(initSettings.InputDimensions())
+	, tmpSrcDimsV3(initSettings.InputDimensions())
+	, tmpSrcDimsV4(initSettings.InputDimensions())
 	, tmpDestDimsV1()
 	, tmpDestDimsV2()
 	, tmpDestDimsV3()
@@ -111,6 +115,8 @@ MatchQuality NormalLvqModel::learnFrom(Vector_N const & trainPoint, int trainLab
 
 	Vector_N & vJ = tmpSrcDimsV1;
 	Vector_N & vK = tmpSrcDimsV2;
+	Vector_N & dpJ = tmpSrcDimsV3;
+	Vector_N & dpK = tmpSrcDimsV4;
 	Vector_N & Pj_vJ = tmpDestDimsV1;
 	Vector_N & Pk_vK = tmpDestDimsV2;
 	Vector_N & PjInvTdiag = tmpDestDimsV3;
@@ -126,8 +132,36 @@ MatchQuality NormalLvqModel::learnFrom(Vector_N const & trainPoint, int trainLab
 	PjInvTdiag.noalias() = P[J].diagonal().cwiseInverse();
 	PkInvTdiag.noalias() = P[K].diagonal().cwiseInverse();
 
-	prototype[J].noalias() += P[J].transpose()* ((lr_point * muJ2_alt) * Pj_vJ);
-	prototype[K].noalias() += P[K].transpose() * ((lr_bad * lr_point * muK2) * Pk_vK) ;
+	dpJ.noalias() = P[J].transpose()* Pj_vJ;
+	dpK.noalias() = P[K].transpose() *  Pk_vK;
+
+	LvqFloat vJ_abssum = vJ.cwiseAbs().sum();
+	LvqFloat vK_abssum = vK.cwiseAbs().sum();
+	LvqFloat Pj_vJ_abssum = Pj_vJ.cwiseAbs().sum();
+	LvqFloat Pk_vK_abssum = Pk_vK.cwiseAbs().sum();
+	LvqFloat dpJ_abssum = dpJ.cwiseAbs().sum();
+	LvqFloat dpK_abssum = dpK.cwiseAbs().sum();
+
+	LvqFloat updateSize = 
+		fabs(muJ2_alt * (
+		dpJ_abssum * lr_point  // change due to pJ
+		+ Pj_vJ_abssum * vJ_abssum * lr_P  //change due to P_J
+		+PjInvTdiag.cwiseAbs().sum() * lr_P )
+		)
+		+fabs(muK2 * lr_bad * (
+		dpK_abssum *  lr_point // change due to pK
+		+Pk_vK_abssum * vK_abssum * lr_P //change due to P_J
+		+PkInvTdiag.cwiseAbs().sum() *lr_P
+		)
+		);
+	logSumUpdateSize += updateSize;
+	if(updateSize>1){
+		//cout<< trainIter<<": "<<updateSize<<"!\n";
+		muJ2_alt/=updateSize;
+		muK2 /=updateSize;
+	}
+	prototype[J].noalias() += (lr_point * muJ2_alt) * dpJ;// P[J].transpose()* ((lr_point * muJ2_alt) * Pj_vJ);
+	prototype[K].noalias() += (lr_bad * lr_point * muK2) * dpK;// P[K].transpose() * ((lr_bad * lr_point * muK2) * Pk_vK) ;
 #ifndef NDEBUG
 	if(!isfinite_emn(prototype[J].norm())) {
 		DBGN(prototype[J]);
@@ -142,7 +176,9 @@ MatchQuality NormalLvqModel::learnFrom(Vector_N const & trainPoint, int trainLab
 
 #endif
 
-	P[J].selfadjointView<Eigen::Upper>().rankUpdate(Pj_vJ ,vJ, lr_P * muJ2_alt);// (lr_P * muJ2_alt)* (Pj_vJ * vJ.transpose());
+	P[J].triangularView<Eigen::Upper>() += (lr_bad*lr_P*muK2) * (lr_P * muJ2_alt)* (Pj_vJ * vJ.transpose());
+	
+	//P[J].selfadjointView<Eigen::Upper>().rankUpdate(Pj_vJ ,vJ, lr_P * muJ2_alt);
 
 	P[J].diagonal().noalias() -= (lr_P * muJ2_alt) * PjInvTdiag;
 
@@ -181,6 +217,8 @@ void NormalLvqModel::AppendTrainingStatNames(std::vector<std::wstring> & retval)
 	retval.push_back(L"Cumulative \u03BC-J-scaled Learning Rate!!Cumulative \u03BC-scaled Learning Rates");
 	retval.push_back(L"Cumulative \u03BC-K-scaled Learning Rate!!Cumulative \u03BC-scaled Learning Rates");
 
+	retval.push_back(L"Cumulative(log(update))!cumulative-log!Cumulative updates");
+
 	for(size_t i=0;i<prototype.size();++i) {
 		wstring name =wstring( L"#pos-norm ") + to_wstring(pLabel(i));
 		retval.push_back(name+ L"!pos-norm!Per-prototype: ||w||");
@@ -212,6 +250,12 @@ void NormalLvqModel::AppendOtherStats(std::vector<double> & stats, LvqDataset co
 	stats.push_back(totalMuJLr);
 	stats.push_back(totalMuKLr);
 
+	//if(trainIter > lastStatIter) 
+	stats.push_back(logSumUpdateSize/trainIter );// / (trainIter - lastStatIter)
+//	else
+		//stats.push_back(numeric_limits<double>::quiet_NaN());
+	//logSumUpdateSize = 0.0;
+	//lastStatIter=trainIter;
 
 	for(size_t i=0;i<prototype.size();++i) {
 		stats.push_back(prototype[i].norm());

@@ -37,16 +37,26 @@ let optimizeSettingsList =
         
 [
     //"Lgm[0]-1,"
+    "Normal-1,"
     "Normal-1,mu0.1,"
+    "Normal-1,SlowK,"
+    "Normal-1,mu0.1,SlowK,"
     "Normal-2,"
     "Normal-2,mu0.1,"
     "Normal-2,NGi,"
     "Normal-2,NGi,mu0.1,"
+    "Normal-2,SlowK,"
+    "Normal-2,mu0.1,SlowK,"
+    "Normal-2,NGi,SlowK,"
+    "Normal-2,NGi,mu0.1,SlowK,"
     "Normal-3,"
     "Normal-3,mu0.1,"
     "Normal-3,NGi,"
     "Normal-3,NGi,mu0.1,"
-    "Normal-1,"
+    "Normal-3,SlowK,"
+    "Normal-3,mu0.1,SlowK,"
+    "Normal-3,NGi,SlowK,"
+    "Normal-3,NGi,mu0.1,SlowK,"
     ]
     |> optimizeSettingsList
 
