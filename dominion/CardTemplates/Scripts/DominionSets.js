@@ -271,7 +271,7 @@ var DominionSets = [
       	Type: "a"
       }, {
       	Name: { English: "Fishing Village", German: "Fischerdof", Dutch: "Vissersdorp", French: "" },
-      	Price: "2",
+      	Price: "3",
       	Type: "ad"
       }, {
       	Name: { English: "Ghost Ship", German: "Geisterschiff", Dutch: "De vliegende hollander", French: "" },
