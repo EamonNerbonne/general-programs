@@ -38,6 +38,7 @@ struct LvqModelSettings
 	std::pair<Matrix_NN,Eigen::VectorXi> InitByNg() ;
 	std::pair<Matrix_NN,Eigen::VectorXi> InitProtosBySetting();
 	std::tuple<Matrix_NN, Matrix_NN, Eigen::VectorXi> InitProtosAndProjectionBySetting();
+	std::tuple<std::vector<Matrix_NN>,Matrix_NN, Eigen::VectorXi> InitProjectionProtosBySetting();
 	std::tuple<Matrix_P, Matrix_NN, Eigen::VectorXi, std::vector<Matrix_22> > InitProtosProjectionBoundariesBySetting();
 
 	Matrix_NN pcaTransform() const;

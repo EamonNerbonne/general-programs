@@ -38,7 +38,7 @@ FgmLvqModel::FgmLvqModel(LvqModelSettings & initSettings)
 
 	for(size_t protoIndex=0; protoIndex < (size_t)protoLabels.size(); ++protoIndex) {
 		prototype[protoIndex].point.resize(initSettings.InputDimensions());
-		prototype[protoIndex] = 	FgmLvqPrototype(initSettings.RngParams, initSettings.RandomInitialBorders, protoLabels(protoIndex), prototypes.col(protoIndex), P,MakeUpperTriangular(initB[protoIndex]));
+		prototype[protoIndex] = 	FgmLvqPrototype(initSettings.RngParams, initSettings.RandomInitialBorders, protoLabels(protoIndex), prototypes.col(protoIndex), P,MakeUpperTriangular<Matrix_22>(initB[protoIndex]));
 	}
 
 	if(settings.scP) {
@@ -267,7 +267,7 @@ void FgmLvqModel::DoOptionalNormalization() {
 
 void FgmLvqModel::compensateProjectionUpdate(Matrix_22 U, double /*scale*/) {
 	for(size_t i=0;i < prototype.size();++i) {
-		prototype[i].B.noalias() = MakeUpperTriangular(prototype[i].B * U);
+		prototype[i].B.noalias() = MakeUpperTriangular<Matrix_22>(prototype[i].B * U);
 		prototype[i].ComputePP(P);
 	}
 }
@@ -283,7 +283,7 @@ FgmLvqPrototype::FgmLvqPrototype(boost::mt19937 & rng, bool randInit, int protoL
 {
 	auto rndmat = randomUnscalingMatrix<Matrix_22>(rng, LVQ_LOW_DIM_SPACE);
 	if(randInit)
-		B = MakeUpperTriangular(rndmat*B);
+		B = MakeUpperTriangular<Matrix_22>(rndmat*B);
 	RecomputeBias();
 }
 

@@ -10,6 +10,16 @@ static double correctScaleFactorForDecay(double decay) {
 	return (3./4.) * (decay*2.0 + 2.) / (decay*2.0 + 1.);// * sqrt ((decay*2.0 + 3.5) / (decay*2.0 + 0.3)) * sqrt(sqrt( (decay*2.0 + 2.5) / (decay*2.0 + 0.15)));
 }
 
+int protoCount(LvqModelSettings const & initSettings) {
+	return accumulate(initSettings.PrototypeDistribution.begin(), initSettings.PrototypeDistribution.end(), 0);
+}
+
+double computeIterScaleFactor(LvqModelSettings const & initSettings) {
+	//we correct the scale factor for decay so that roughtly speaking a similar total learning rate is achieved regardless of decay.
+	//i.e. as decay rises, the iter scale factor is slightly decreased.
+	return initSettings.iterScaleFactor * correctScaleFactorForDecay(initSettings.decay)  / (initSettings.LrPp  ? 1.0  :  sqrt((double)protoCount(initSettings)));
+}
+
 LvqModel::LvqModel(LvqModelSettings & initSettings)
 	: 
 	trainIter(0)
@@ -17,14 +27,13 @@ LvqModel::LvqModel(LvqModelSettings & initSettings)
 	, totalElapsed(0.0)
 	, totalLR(0.0)
 	, settings(initSettings.RuntimeSettings)
+	, iterationScaleFactor(computeIterScaleFactor(initSettings))
+	, iterationScalePower(- (2.0 * initSettings.decay + 1) / (2.0 * initSettings.decay + 2.0))
+	//iterationScalePower is between -1/2 and -1 as decay scales from 0.0 to posinf.
 	, epochsTrained(0)
 {
-	int protoCount = accumulate(initSettings.PrototypeDistribution.begin(), initSettings.PrototypeDistribution.end(), 0);
-	iterationScaleFactor = initSettings.iterScaleFactor * correctScaleFactorForDecay(initSettings.decay)  / (initSettings.LrPp  ? 1.0  :  sqrt((double)protoCount));
-	iterationScalePower = - (2.0 * initSettings.decay + 1) / (2.0 * initSettings.decay + 2.0);
-
 	if(initSettings.LrPp)
-		per_proto_trainIter.resize(protoCount,0.0);
+		per_proto_trainIter.resize(protoCount(initSettings), 0.0);
 }
 
 double LvqModel::RegisterEpochDone(int itersTrained, double elapsed, int epochs) {

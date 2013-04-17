@@ -18,13 +18,6 @@ using namespace Eigen;
 #define DBGN(X) (std::cout<< #X <<":\n"<<(X)<<"\n\n")
 #endif
 
-inline Matrix_NN MakeUpperTriangular(Matrix_NN fullMat) {
-	Matrix_NN square = fullMat.transpose()*fullMat;
-	Matrix_NN retval = square.llt().matrixL();
-
-	Matrix_NN topR = retval.transpose().topRows(fullMat.rows());
-	return topR;
-}
 
 
 double ComputeBias(Matrix_NN const & mat) {
@@ -35,8 +28,9 @@ NormalLvqModel::NormalLvqModel(LvqModelSettings & initSettings)
 	: LvqModel(initSettings)
 	, totalMuJLr(0.0)
 	, totalMuKLr(0.0)
-	, logSumUpdateSize(0.0)
+	, sumUpdateSize(0.0)
 	, lastStatIter(0.0)
+	, updatesOverOne(0)
 	, tmpSrcDimsV1(initSettings.InputDimensions())
 	, tmpSrcDimsV2(initSettings.InputDimensions())
 	, tmpSrcDimsV3(initSettings.InputDimensions())
@@ -55,7 +49,7 @@ NormalLvqModel::NormalLvqModel(LvqModelSettings & initSettings)
 	tmpDestDimsV4.resize(initSettings.Dimensionality);
 
 	initSettings.AssertModelIsOfRightType(this);
-	auto InitProtos = initSettings.InitProtosAndProjectionBySetting();
+	auto InitProtos = initSettings.InitProjectionProtosBySetting();
 	auto initP = get<0>(InitProtos);
 
 	Matrix_NN prototypes = get<1>(InitProtos);
@@ -70,22 +64,16 @@ NormalLvqModel::NormalLvqModel(LvqModelSettings & initSettings)
 		prototype[protoIndex].resize(initSettings.InputDimensions());
 		prototype[protoIndex] = prototypes.col(protoIndex);
 
-		P[protoIndex].resizeLike(initP);
+		P[protoIndex].resizeLike(initP[protoIndex] );
+		P[protoIndex] = initP[protoIndex];
 
-		if(initSettings.Ppca || initSettings.Popt) {
-			Matrix_NN rot = Matrix_NN(initP.rows(), initP.rows());
-			randomProjectionMatrix(initSettings.RngParams, rot);
-			P[protoIndex] = rot * initP;
-		} else {
-			randomProjectionMatrix(initSettings.RngParams, P[protoIndex]);
-		}
-
-		P[protoIndex] = MakeUpperTriangular(P[protoIndex]);
-		normalizeProjection(P[protoIndex]);
 
 		pBias(protoIndex) = ComputeBias(P[protoIndex]);
 	}
 }
+
+inline bool hasNoMuOffset(double scaledIter) { return scaledIter >= 200; }
+inline double scaleMuOffset(double scaledIter) { return sqr(sqr(1.0 - scaledIter*0.005)); }
 
 MatchQuality NormalLvqModel::learnFrom(Vector_N const & trainPoint, int trainLabel) {
 	using namespace std;
@@ -104,7 +92,8 @@ MatchQuality NormalLvqModel::learnFrom(Vector_N const & trainPoint, int trainLab
 #if (1==1)
 	double muJ2 = 2*retval.muJ;
 	assert(muJ2 >=0 );
-	double muJ2_alt = settings.MuOffset ==0 ? muJ2 : muJ2 + settings.MuOffset * learningRate ;// * exp(-0.5*retval.distGood);
+
+	double muJ2_alt = settings.MuOffset == 0 || hasNoMuOffset(trainIter*iterationScaleFactor) ? muJ2 : muJ2 + settings.MuOffset *scaleMuOffset( trainIter*iterationScaleFactor);//  * exp(-0.5*retval.distGood);
 	assert(muJ2_alt >=0 );
 	double muK2 = 2*retval.muK;
 	assert(muK2 <=0 );
@@ -143,8 +132,9 @@ MatchQuality NormalLvqModel::learnFrom(Vector_N const & trainPoint, int trainLab
 	LvqFloat dpK_abssum = dpK.cwiseAbs().sum();
 
 	LvqFloat updateSize = 
-		fabs(muJ2_alt * (
-		dpJ_abssum * lr_point  // change due to pJ
+		fabs(muJ2_alt * dpJ_abssum * lr_point  
+		+muJ2_alt * (
+		//dpJ_abssum * lr_point  // change due to pJ
 		+ Pj_vJ_abssum * vJ_abssum * lr_P  //change due to P_J
 		+PjInvTdiag.cwiseAbs().sum() * lr_P )
 		)
@@ -154,11 +144,12 @@ MatchQuality NormalLvqModel::learnFrom(Vector_N const & trainPoint, int trainLab
 		+PkInvTdiag.cwiseAbs().sum() *lr_P
 		)
 		);
-	logSumUpdateSize += updateSize;
-	if(updateSize>1){
+	sumUpdateSize += updateSize;
+	if(updateSize>1) {
 		//cout<< trainIter<<": "<<updateSize<<"!\n";
 		muJ2_alt/=updateSize;
 		muK2 /=updateSize;
+		updatesOverOne++;
 	}
 	prototype[J].noalias() += (lr_point * muJ2_alt) * dpJ;// P[J].transpose()* ((lr_point * muJ2_alt) * Pj_vJ);
 	prototype[K].noalias() += (lr_bad * lr_point * muK2) * dpK;// P[K].transpose() * ((lr_bad * lr_point * muK2) * Pk_vK) ;
@@ -176,7 +167,7 @@ MatchQuality NormalLvqModel::learnFrom(Vector_N const & trainPoint, int trainLab
 
 #endif
 
-	P[J].triangularView<Eigen::Upper>() += (lr_bad*lr_P*muK2) * (lr_P * muJ2_alt)* (Pj_vJ * vJ.transpose());
+	P[J].triangularView<Eigen::Upper>() += (lr_P * muJ2_alt)* (Pj_vJ * vJ.transpose());
 	
 	//P[J].selfadjointView<Eigen::Upper>().rankUpdate(Pj_vJ ,vJ, lr_P * muJ2_alt);
 
@@ -217,7 +208,12 @@ void NormalLvqModel::AppendTrainingStatNames(std::vector<std::wstring> & retval)
 	retval.push_back(L"Cumulative \u03BC-J-scaled Learning Rate!!Cumulative \u03BC-scaled Learning Rates");
 	retval.push_back(L"Cumulative \u03BC-K-scaled Learning Rate!!Cumulative \u03BC-scaled Learning Rates");
 
-	retval.push_back(L"Cumulative(log(update))!cumulative-log!Cumulative updates");
+	retval.push_back(L"Mean update size!update size!Mean update size");
+
+	retval.push_back(L"Proportion of updates over 1!proportion!Mean update size");
+	retval.push_back(L"mu offset scaling!rate!Rates");
+	retval.push_back(L"base learning rate!rate!Rates");
+
 
 	for(size_t i=0;i<prototype.size();++i) {
 		wstring name =wstring( L"#pos-norm ") + to_wstring(pLabel(i));
@@ -251,7 +247,13 @@ void NormalLvqModel::AppendOtherStats(std::vector<double> & stats, LvqDataset co
 	stats.push_back(totalMuKLr);
 
 	//if(trainIter > lastStatIter) 
-	stats.push_back(logSumUpdateSize/trainIter );// / (trainIter - lastStatIter)
+	stats.push_back(sumUpdateSize/(trainIter - lastStatIter) );// / (trainIter - lastStatIter)
+	stats.push_back(updatesOverOne/(trainIter - lastStatIter) );// / (trainIter - lastStatIter)
+	stats.push_back(hasNoMuOffset(trainIter*iterationScaleFactor)?0.0:scaleMuOffset(trainIter*iterationScaleFactor) );// / (trainIter - lastStatIter)
+	stats.push_back(meanUnscaledLearningRate() );// / (trainIter - lastStatIter)
+	lastStatIter=trainIter;
+	updatesOverOne=0;
+	sumUpdateSize=0.0;
 //	else
 		//stats.push_back(numeric_limits<double>::quiet_NaN());
 	//logSumUpdateSize = 0.0;

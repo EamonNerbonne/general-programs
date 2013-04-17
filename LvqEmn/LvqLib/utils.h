@@ -48,12 +48,20 @@ template <typename T> void projectionRandomizeUniformScaled(boost::mt19937 & ran
 	normalizeProjection(projectionMatrix);
 }
 
-inline Matrix_22 MakeUpperTriangular(Matrix_22 fullMat) {
-	Matrix_22 square = fullMat.transpose()*fullMat;
+template <typename TMat>
+inline TMat MakeUpperTriangular(TMat const & fullMat) {
+	TMat square(fullMat.transpose()*fullMat);
 	//auto decomposition = square.llt();
-	Matrix_22 retval = square.llt().matrixL();
+	TMat retval = square.llt().matrixL();
 	return retval.transpose();
 }
+//inline Matrix_NN MakeUpperTriangular(Matrix_NN const & fullMat) {
+//	Matrix_NN square = fullMat.transpose()*fullMat;
+//	Matrix_NN retval = square.llt().matrixL();
+//
+//	Matrix_NN topR = retval.transpose().topRows(fullMat.rows());
+//	return topR;
+//}
 
 
 void makeRandomOrder(boost::mt19937 & randGen, int*const toFill, int count);

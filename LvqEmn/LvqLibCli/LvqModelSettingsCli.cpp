@@ -34,6 +34,7 @@ namespace LvqLibCli {
 		bool isG2mVariant = ModelType == LvqModelType::G2m ||  ModelType == LvqModelType::Gpq;
 		bool isGgmVariant = ModelType == LvqModelType::Ggm ||  ModelType == LvqModelType::Fgm;
 		bool isLgmVariant = ModelType == LvqModelType::Lgm ||  ModelType == LvqModelType::Lpq;
+		bool hasLocalizedP = isLgmVariant || ModelType== LvqModelType::Normal;
 		bool hasB = isG2mVariant || isGgmVariant;
 		bool hasGlobalP = hasB || ModelType == LvqModelType::Gm;
 		LvqModelSettingsCli retval = *this;
@@ -51,7 +52,7 @@ namespace LvqLibCli {
 		retval.wGMu = retval.wGMu && isG2mVariant;
 		retval.LocallyNormalize = retval.LocallyNormalize && (isLgmVariant || isG2mVariant);
 		retval.RandomInitialBorders = retval.RandomInitialBorders && hasB;
-		retval.Bcov = retval.Bcov && hasB;
+		retval.Bcov = retval.Bcov && (hasB || hasLocalizedP);
 		if(!hasB) retval.LrScaleB=0.0;
 		if(!isGgmVariant && ModelType != LvqModelType::Normal) retval.MuOffset = 0.0;
 		if(ModelType == LvqModelType::Normal) retval.Dimensionality=0;

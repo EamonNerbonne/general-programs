@@ -24,12 +24,11 @@ public:
 
 protected:
 	LvqModelRuntimeSettings settings;
-private:
 	double iterationScaleFactor, iterationScalePower;
-protected:
+
 	EIGEN_STRONG_INLINE double stepLearningRate(size_t protoIndex) { //starts at 1.0, descending with power -0.75
 		double &iters = per_proto_trainIter.size() ? per_proto_trainIter[protoIndex] : trainIter;
-		double scaledIter = iters*iterationScaleFactor+1.0;
+		double scaledIter = iters*iterationScaleFactor + 1.0;
 		++iters;
 		double lr= exp(iterationScalePower *  log(scaledIter)); // significantly faster than exp(-0.75*log(scaledIter)) 
 		totalLR+=lr;

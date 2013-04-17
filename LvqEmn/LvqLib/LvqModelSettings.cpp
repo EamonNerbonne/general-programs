@@ -197,7 +197,7 @@ void LvqModelSettings::ProjInit(Matrix_NN const& prototypes, Matrix_NN & P){
 					vK = prototypes.col(wKi) - point;
 
 					P +=  lr * (1.0/sqrt(bestKd)* (P * vK) * vK.transpose() - 1.0/sqrt(bestJd) * (P * vJ) * vJ.transpose());
-//					P +=  (-lr ) * P * vJ * vJ.transpose();
+					//					P +=  (-lr ) * P * vJ * vJ.transpose();
 
 					normalizeProjection(P);
 		}
@@ -215,69 +215,164 @@ tuple<Matrix_NN,Matrix_NN, VectorXi> LvqModelSettings::InitProtosAndProjectionBy
 	if(Popt) 
 		ProjInit(prototypes, P);
 
-	
+
 
 	return make_tuple(P, prototypes, labels);
 }
 
 
-Matrix_22 normalizingB(Matrix_22 const & cov) {
-	Vector_2 eigVal;
-	Matrix_22 pca2d;
-	PcaLowDim::DoPcaFromCov(cov,pca2d,eigVal);
+template <int TPointDims>
+Matrix<LvqFloat, TPointDims, TPointDims>  normalizingB(Matrix<LvqFloat, TPointDims, TPointDims> const & cov) {
+	typedef Matrix<LvqFloat, TPointDims, Eigen::Dynamic> TPoints;
+	typedef Matrix<LvqFloat, TPointDims, 1> TPoint;
+	typedef Matrix<LvqFloat, TPointDims, TPointDims> TCov;
+
+	TPoint eigVal;
+	TCov pca2d;
+	PrincipalComponentAnalysisTemplate<TPoints>::DoPcaFromCov(cov,pca2d,eigVal);
 	return eigVal.array().sqrt().inverse().matrix().asDiagonal()*pca2d;
 }
 
+
 Matrix_22 BinitByPca(Matrix_P const & lowdimpoints) {
-	return normalizingB(Covariance::ComputeWithMean(lowdimpoints));
+	return normalizingB<LVQ_LOW_DIM_SPACE>(Covariance::ComputeWithMean(lowdimpoints));
 }
 
-
-vector<Matrix_22> BinitByProtos(Matrix_P const & lowdimpoints, VectorXi const & pointLabels, Matrix_P const & lowdimProtos, VectorXi const & protoLabels) {
-	Matrix_22 globalCov = Covariance::ComputeWithMean(lowdimpoints);
+template <int TPointDims>
+vector< Matrix<LvqFloat, TPointDims, TPointDims> > DistMatByProtos(Matrix<LvqFloat, TPointDims, Eigen::Dynamic> const & points, VectorXi const & pointLabels, Matrix<LvqFloat, TPointDims, Eigen::Dynamic> const & protos, VectorXi const & protoLabels) {
+	typedef Matrix<LvqFloat, TPointDims, Eigen::Dynamic> TPoints;
+	typedef Matrix<LvqFloat, TPointDims, 1> TPoint;
+	typedef Matrix<LvqFloat, TPointDims, TPointDims> TCov;
+	TCov globalCov = Covariance::ComputeWithMean(points);
 
 	int classCount=protoLabels.maxCoeff() + 1;
-	vector<Matrix_P> protosByClass;
+	vector<TPoints> protosByClass;
 	vector<vector<size_t>> protoIdxesByClass;
 	for(int label=0;label < classCount; ++label) {
 		vector<size_t> lblProtoIdxs;
 		for(size_t i=0; i < (size_t)protoLabels.size(); ++i) 
 			if (protoLabels(i) == (int)label) 
 				lblProtoIdxs.push_back(i);
-		Matrix_P lblProtos(LVQ_LOW_DIM_SPACE, lblProtoIdxs.size());
+		TPoints lblProtos(points.rows(), lblProtoIdxs.size());
 		for(size_t i=0;i< lblProtoIdxs.size(); ++i) 
-			lblProtos.col(i) = lowdimProtos.col(lblProtoIdxs[i]);
+			lblProtos.col(i) = protos.col(lblProtoIdxs[i]);
 
 		protoIdxesByClass.push_back(lblProtoIdxs);
 		protosByClass.push_back(lblProtos);
 	}
 
-	vector<vector<Vector_2> > pointsNearestToProto(protoLabels.size());
+	vector<vector<TPoint> > pointsNearestToProto(protoLabels.size());
 
 	for(ptrdiff_t pointI = 0; pointI < pointLabels.size(); ++pointI) {
-		Matrix_P::Index protoI;
-		(protosByClass[ pointLabels[pointI] ].colwise() - lowdimpoints.col(pointI)).colwise().squaredNorm().minCoeff(&protoI);
-		pointsNearestToProto[protoIdxesByClass[pointLabels[pointI]][protoI]].push_back(lowdimpoints.col(pointI));
+		typename TPoints::Index protoI;
+		(protosByClass[ pointLabels[pointI] ].colwise() - points.col(pointI)).colwise().squaredNorm().minCoeff(&protoI);
+		pointsNearestToProto[protoIdxesByClass[pointLabels[pointI]][protoI]].push_back(points.col(pointI));
 	}
 
-	vector<Matrix_22> invCov(protoLabels.size());
+	vector<TCov> invCov(protoLabels.size());
 
 	for(size_t protoI = 0; protoI < (size_t)protoLabels.size(); ++protoI) {
+		invCov[protoI].resize(points.rows(),points.rows());
 		if( pointsNearestToProto[protoI].size() < 3 ) {
-			invCov[protoI] = normalizingB(globalCov);
+			invCov[protoI] = normalizingB<TPointDims>(globalCov);
 		} else{
-			Matrix_P nearestPoints(LVQ_LOW_DIM_SPACE, pointsNearestToProto[protoI].size());
+			TPoints nearestPoints(points.rows(), pointsNearestToProto[protoI].size());
 
 			for(size_t pointI = 0; pointI < pointsNearestToProto[protoI].size(); ++pointI) 
 				nearestPoints.col(pointI) = pointsNearestToProto[protoI][pointI];
 
-			Vector_2 protoPosition = lowdimProtos.col(protoI);
-			Matrix_22 cov = Covariance::Compute<Matrix_P>(nearestPoints, protoPosition);
+			TPoint protoPosition = protos.col(protoI);
+			TCov cov = Covariance::Compute<TPoints>(nearestPoints, protoPosition);
 
-			invCov[protoI] = normalizingB(cov);
+			invCov[protoI] = normalizingB<TPointDims>(cov);
 		}
 	}
 	return invCov;
+}
+
+tuple<vector<Matrix_NN>,Matrix_NN, VectorXi> LvqModelSettings::InitProjectionProtosBySetting() {
+	using std::make_tuple;
+
+
+	auto protos = InitProtosBySetting();
+	auto prototypes = protos.first;
+	auto labels = protos.second;
+
+	auto coreP = initTransform();
+	if(Popt) 
+		ProjInit(prototypes, coreP);
+
+
+	vector<Matrix_NN> P;
+
+	if(Bcov) {
+		P = DistMatByProtos<Eigen::Dynamic>(Dataset->getPoints(), Dataset->getPointLabels(),prototypes,labels);
+		for(size_t i = 0;i< P.size();++i) {
+			MakeUpperTriangular<Matrix_NN>(P[i]);
+		}
+	}else
+		for(ptrdiff_t i = 0;i< prototypes.cols(); ++i) {
+			Matrix_NN rot = Matrix_NN(coreP.rows(), coreP.rows());
+			randomProjectionMatrix(RngParams, rot);
+			if(Ppca || Popt) 
+				rot = rot * coreP;
+			MakeUpperTriangular<Matrix_NN>(rot);
+			normalizeProjection(rot);
+			P.push_back(rot);
+		}
+		return make_tuple(P, prototypes, labels);
+}
+
+
+
+
+
+vector<Matrix_22> BinitByProtos(Matrix_P const & lowdimpoints, VectorXi const & pointLabels, Matrix_P const & lowdimProtos, VectorXi const & protoLabels) {
+	return DistMatByProtos<2>(lowdimpoints,pointLabels,lowdimProtos,protoLabels);
+	//Matrix_22 globalCov = Covariance::ComputeWithMean(lowdimpoints);
+
+	//int classCount=protoLabels.maxCoeff() + 1;
+	//vector<Matrix_P> protosByClass;
+	//vector<vector<size_t>> protoIdxesByClass;
+	//for(int label=0;label < classCount; ++label) {
+	//	vector<size_t> lblProtoIdxs;
+	//	for(size_t i=0; i < (size_t)protoLabels.size(); ++i) 
+	//		if (protoLabels(i) == (int)label) 
+	//			lblProtoIdxs.push_back(i);
+	//	Matrix_P lblProtos(LVQ_LOW_DIM_SPACE, lblProtoIdxs.size());
+	//	for(size_t i=0;i< lblProtoIdxs.size(); ++i) 
+	//		lblProtos.col(i) = lowdimProtos.col(lblProtoIdxs[i]);
+
+	//	protoIdxesByClass.push_back(lblProtoIdxs);
+	//	protosByClass.push_back(lblProtos);
+	//}
+
+	//vector<vector<Vector_2> > pointsNearestToProto(protoLabels.size());
+
+	//for(ptrdiff_t pointI = 0; pointI < pointLabels.size(); ++pointI) {
+	//	Matrix_P::Index protoI;
+	//	(protosByClass[ pointLabels[pointI] ].colwise() - lowdimpoints.col(pointI)).colwise().squaredNorm().minCoeff(&protoI);
+	//	pointsNearestToProto[protoIdxesByClass[pointLabels[pointI]][protoI]].push_back(lowdimpoints.col(pointI));
+	//}
+
+	//vector<Matrix_22> invCov(protoLabels.size());
+
+	//for(size_t protoI = 0; protoI < (size_t)protoLabels.size(); ++protoI) {
+	//	if( pointsNearestToProto[protoI].size() < 3 ) {
+	//		invCov[protoI] = normalizingB(globalCov);
+	//	} else{
+	//		Matrix_P nearestPoints(LVQ_LOW_DIM_SPACE, pointsNearestToProto[protoI].size());
+
+	//		for(size_t pointI = 0; pointI < pointsNearestToProto[protoI].size(); ++pointI) 
+	//			nearestPoints.col(pointI) = pointsNearestToProto[protoI][pointI];
+
+	//		Vector_2 protoPosition = lowdimProtos.col(protoI);
+	//		Matrix_22 cov = Covariance::Compute<Matrix_P>(nearestPoints, protoPosition);
+
+	//		invCov[protoI] = normalizingB(cov);
+	//	}
+	//}
+	//return invCov;
 }
 
 

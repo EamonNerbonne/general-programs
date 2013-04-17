@@ -165,7 +165,7 @@ let iterScaleControl =  {
                                 Unpacker = fun settings -> settings.iterScaleFactor
                                 Packer = fun settings iterScale -> settings.WithIterScale iterScale
                                 Applies = fun _ -> true
-                                InitLrLogDevScale = 2.5
+                                InitLrLogDevScale = 5.
                                 StartAt = 11
                        }
 let decayControl =  {
@@ -173,7 +173,7 @@ let decayControl =  {
                                 Unpacker = fun settings -> settings.decay
                                 Packer = fun settings decay -> settings.WithDecay decay
                                 Applies = fun _ -> true
-                                InitLrLogDevScale = 2.5
+                                InitLrLogDevScale = 5.
                                 StartAt = 10
                        }
 
