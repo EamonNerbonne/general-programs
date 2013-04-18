@@ -55,10 +55,11 @@ namespace LvqGui {
 			yield return CreateFactory(@"page-blocks.data-10D-5,5473");
 			yield return CreateFactory(@"colorado.data-6D-14,28000");
 			yield return CreateFactory(@"star-8D-9x10000,3(5Dr)x10i0.8n7g5[a9cd2154,1]");
-			yield return CreateFactory(@"nrm-24D-3x30000,1[5122ea19,]");
+			//yield return CreateFactory(@"nrm-24D-3x30000,1[5122ea19,]");
 			yield return CreateFactory(@"pendigits.combined.data-16D-10,10992");
-			yield return CreateFactory(@"segmentation_test.data-19D-7,2100");
-			yield return CreateFactory(@"optdigits.combined.data-64D-10,5620");
+			yield return CreateFactory(@"segmentation.data-19D-7,2100");
+			//yield return CreateFactory(@"optdigits.combined.data-64D-10,5620");
+			yield return CreateFactory(@"letter-recognition.data-16Dn-26,20000");
 		}
 
 		public static IEnumerable<IDatasetCreator> StandardAndNormalizedDatasets() {

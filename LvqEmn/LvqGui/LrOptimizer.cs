@@ -65,11 +65,7 @@ namespace LvqGui {
 			return ItersPrefix(iters) + "-" + settings.ToShorthand();
 		}
 
-		public static string ItersPrefix(long iters) {
-			int pow10 = (int)(Math.Log10(iters) + Math.Log10(10.0 / 9.5));
-			int prefix = (int)(iters / Math.Pow(10.0, pow10) + 0.5);
-			return (prefix == 1 ? "" : prefix.ToString()) + "e" + pow10;
-		}
+
 
 		public string ShortnameFor(LvqModelSettingsCli settings) {
 			return ShortnameFor(_itersToRun, settings);
@@ -318,7 +314,7 @@ namespace LvqGui {
 				new[] { SettingsFile(settings) }.Concat(
 				Enumerable.Range(1, 1000)
 				.Select(i => ShortnameFor(settings) + " (" + i + ")" + ".txt")
-				.Select(filename => new FileInfo(Path.Combine(resultsDir.FullName, DatasetLabel + "\\" + filename))));
+				.Select(filename => new FileInfo(Path.Combine(LrGuesser.resultsDir.FullName, DatasetLabel + "\\" + filename))));
 		}
 
 		FileInfo SettingsFile(LvqModelSettingsCli settings) {
@@ -331,15 +327,14 @@ namespace LvqGui {
 
 		static DirectoryInfo ResultsDatasetDir(LvqDatasetCli dataset) {
 			if (dataset == null)
-				return resultsDir.CreateSubdirectory("base");
+				return LrGuesser.resultsDir.CreateSubdirectory("base");
 			else
-				return new DirectoryInfo(resultsDir.FullName + "\\" + dataset.DatasetLabel);
+				return new DirectoryInfo(LrGuesser.resultsDir.FullName + "\\" + dataset.DatasetLabel);
 		}
 
 
 		public static IEnumerable<LvqModelType> ModelTypes { get { return new[] { LvqModelType.Ggm, LvqModelType.G2m, LvqModelType.Gm }; } }//  (LvqModelType[])Enum.GetValues(typeof(LvqModelType)); } }
 		public static IEnumerable<int> PrototypesPerClassOpts { get { yield return 5; yield return 1; } }
-		public static readonly DirectoryInfo resultsDir = FSUtil.FindDataDir(@"uni\Thesis\doc\results\", Assembly.GetAssembly(typeof(LrOptimizer)));
 		static IEnumerable<LvqDatasetCli> Datasets() {
 			// ReSharper disable RedundantAssignment
 			uint rngParam = 1000;
@@ -354,46 +349,13 @@ namespace LvqGui {
 			// ReSharper restore RedundantAssignment
 		}
 		static LvqDatasetCli[] m_basedatasets;
+
 		static LvqDatasetCli[] basedatasets {
 			get {
 				return m_basedatasets ?? (m_basedatasets = Datasets().ToArray());
 			}
 		}
 
-		public static LvqModelSettingsCli ChooseReasonableLr(LvqModelSettingsCli settings) {
-			var options = (
-				from tuple in UniformResults()
-				let resSettings = tuple.Item1
-				let modeltype = resSettings.ModelType
-				where modeltype == settings.ModelType || settings.ModelType == LvqModelType.Lpq && resSettings.ModelType == LvqModelType.Lgm
-				where (settings.PrototypesPerClass == 1) == (resSettings.PrototypesPerClass == 1)
-				select resSettings
-				).ToArray();
-			string myshorthand = settings.WithCanonicalizedDefaults().ToShorthand();
-
-			if (options.Any()) {
-				var bestResults = options.MinBy(resSettings => EmnExtensions.Algorithms.Levenshtein.LevenshteinDistance(myshorthand, resSettings.WithCanonicalizedDefaults().ToShorthand()));
-				return settings.WithLrAndDecay(bestResults.LR0, bestResults.LrScaleP, bestResults.LrScaleB,bestResults.decay,bestResults.iterScaleFactor)
-					;
-			} else {
-				return settings.ModelType == LvqModelType.Gm ? settings.WithLr(0.002, 2.0, 0.0)
-					: settings.ModelType == LvqModelType.Ggm ? settings.WithLr(0.03, 0.05, 4.0)
-					: settings.ModelType == LvqModelType.Fgm ? settings.WithLr(0.03, 0.05, 4.0)
-					: settings.WithLr(0.01, 0.4, 0.006);
-			}
-		}
-
-		static IEnumerable<Tuple<LvqModelSettingsCli, double>> UniformResults() {
-			return
-				from line in File.ReadAllLines(resultsDir.FullName + "\\uniform-results.txt")
-				let settingsOrNull = CreateLvqModelValues.TryParseShorthand(line.SubstringUntil(" "))
-				where settingsOrNull.HasValue
-				let settings = settingsOrNull.Value
-				let geomean = double.Parse(line.SubstringAfterFirst("GeoMean: ").SubstringUntil(";").SubstringUntil("~"))
-				group Tuple.Create(settings, geomean) by settings.WithCanonicalizedDefaults() into settingsGroup
-				select settingsGroup.MinBy(tuple => tuple.Item2)
-				;
-		}
 
 		public static LvqModelSettingsCli WithSeedFromOffset(LvqModelSettingsCli settings, uint offset) { return settings.WithSeeds(1 + 2 * offset, 2 * offset); }
 	}

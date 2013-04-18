@@ -24,10 +24,21 @@ let datasets =
             yield LazyList.ofSeq infiniteVariations
     ]
 
-type TestResults = { GeoMean:float; Results:float list list []; Settings:LvqModelSettingsCli; }
-let extractGeoMeanDistrFromResults =  Array.toList >> Utils.flipList  >> List.map (List.concat >> List.averageBy Math.Log >> Math.Exp) >> Utils.sampleDistribution
+let sqr (x:float) = x * x
 
-type MeanTestResults = { GeoMean:float * float; Training: float * float; Test: float * float; NN: float * float; Settings:LvqModelSettingsCli; }
+type TestResults = { Mean2:float; Results:float list list []; Settings:LvqModelSettingsCli; }
+let extractMean2DistrFromResults = 
+    Array.toList 
+    >> Utils.flipList  
+    >> List.map (
+        List.concat 
+        >> List.map (fun x -> x + 0.01) 
+        >> List.averageBy Math.Log 
+        >> (fun x-> Math.Exp x - 0.01)
+        )
+    >> Utils.sampleDistribution
+
+type MeanTestResults = { Mean2:float * float; Training: float * float; Test: float * float; NN: float * float; Settings:LvqModelSettingsCli; }
 
 
 let toMeanResults (results:TestResults) = 
@@ -37,7 +48,7 @@ let toMeanResults (results:TestResults) =
         |> Array.map (List.map  (fun es -> List.nth es errorRateIndex) >> Utils.sampleDistribution)
         |> combineDistributions
 
-    let geoMeans = extractGeoMeanDistrFromResults results.Results
+    let mean2s = extractMean2DistrFromResults results.Results
 
 
     let trainErr = extractNthErrorDistribution 0
@@ -47,7 +58,7 @@ let toMeanResults (results:TestResults) =
     let isNnErrorMeasured = (results.Results.[0] |> List.head) |> List.length = 3
     let nnErr = if isNnErrorMeasured then extractNthErrorDistribution 2 else (Double.NaN, Double.NaN)
     {
-        GeoMean = (geoMeans.Mean, geoMeans.StdErr)
+        Mean2 = (mean2s.Mean, mean2s.StdErr)
         Training = trainErr
         Test = testErr
         NN = nnErr
@@ -56,9 +67,9 @@ let toMeanResults (results:TestResults) =
 
 let printMeanResults results =
     if results.NN |> fst |> Double.IsNaN then 
-        sprintf "%s GeoMean: %f ~ %f; Training: %f ~ %f; Test: %f ~ %f" (results.Settings.ToShorthand ()) (fst results.GeoMean) (snd results.GeoMean) (fst results.Training) (snd results.Training) (fst results.Test) (snd results.Test)
+        sprintf "%s GeoMean: %f ~ %f; Training: %f ~ %f; Test: %f ~ %f" (results.Settings.ToShorthand ()) (fst results.Mean2) (snd results.Mean2) (fst results.Training) (snd results.Training) (fst results.Test) (snd results.Test)
     else 
-        sprintf "%s GeoMean: %f ~ %f; Training: %f ~ %f; Test: %f ~ %f; NN: %f ~ %f" (results.Settings.ToShorthand ()) (fst results.GeoMean) (snd results.GeoMean)  (fst results.Training) (snd results.Training) (fst results.Test) (snd results.Test) (fst results.NN) (snd results.NN)
+        sprintf "%s GeoMean: %f ~ %f; Training: %f ~ %f; Test: %f ~ %f; NN: %f ~ %f" (results.Settings.ToShorthand ()) (fst results.Mean2) (snd results.Mean2)  (fst results.Training) (snd results.Training) (fst results.Test) (snd results.Test) (fst results.NN) (snd results.NN)
 
 let printResults = toMeanResults >> printMeanResults
 
@@ -99,7 +110,7 @@ let testSettings parOverride rndSeed iterCount (settings : LvqModelSettingsCli) 
     { 
         Settings = settings
         Results = results
-        GeoMean = results |> extractGeoMeanDistrFromResults |> (fun distr->distr.Mean)
+        Mean2 = results |> extractMean2DistrFromResults |> (fun distr->distr.Mean)
     }
 
 
@@ -120,7 +131,7 @@ let lrsChecker rndSeed lr0range settingsFactory iterCount =
     ]
     |> Array.ofList
     |> Array.map (fun task -> task.Result)
-    |> Array.sortBy (fun res -> res.GeoMean)
+    |> Array.sortBy (fun res -> res.Mean2)
 
 type ControllerDef = { Name: string; Unpacker: LvqModelSettingsCli -> float; Packer: LvqModelSettingsCli -> float -> LvqModelSettingsCli; InitLrLogDevScale: float; Applies: LvqModelSettingsCli->bool; StartAt: int32 }
 type ControllerState = { Controller: ControllerDef;  LrLogDevScale: float }
@@ -166,7 +177,7 @@ let iterScaleControl =  {
                                 Packer = fun settings iterScale -> settings.WithIterScale iterScale
                                 Applies = fun _ -> true
                                 InitLrLogDevScale = 5.
-                                StartAt = 11
+                                StartAt = 12
                        }
 let decayControl =  {
                                 Name = "decay"
@@ -176,13 +187,24 @@ let decayControl =  {
                                 InitLrLogDevScale = 5.
                                 StartAt = 10
                        }
+let muControl =  {
+                                Name = "decay"
+                                Unpacker = fun settings -> settings.MuOffset
+                                Packer = fun settings mu -> 
+                                                    let mutable retval = settings
+                                                    retval.MuOffset <- mu
+                                                    retval
+                                Applies = fun settings -> settings.MuOffset > 0.0
+                                InitLrLogDevScale = 1.
+                                StartAt = 3
+                       }
 
 let learningRateControllers = [lr0control; lrPcontrol; lrBcontrol]
 let decayControllers = [iterScaleControl; decayControl; lr0control]
 let allControllers = [lr0control; lrPcontrol; lrBcontrol;iterScaleControl; decayControl]
 
 let improveLr (testResultList:TestResults list) (lrUnpack, lrPack) =
-    let errMargin = 0.0000001
+    let errMargin = 0.01
     let unpackLogErrs testResults = testResults.Results |> Seq.concat |> Seq.concat |> List.ofSeq |> List.map (fun err -> Math.Log (err + errMargin))
     let bestToWorst = testResultList |> List.sortBy (unpackLogErrs >> List.average)
     let bestToWorstErrs = bestToWorst |> List.map (unpackLogErrs >> List.average)
@@ -204,39 +226,50 @@ let improveLr (testResultList:TestResults list) (lrUnpack, lrPack) =
 
     let effRelevance = [byTtestRelevance; linearlyScaledRelevance; byErrRelevance; byErrDistrRelevance] |> Utils.flipList |> List.map (List.average >> (fun rel -> Math.Pow(rel, 1.5)))
     //let effRelevance = List.zip3 relevance linearlyScaledRelevance byErrRelevance |> List.map (fun (a,b,c) -> Math.Sqrt(a * b * c))
-    [byTtestRelevance; linearlyScaledRelevance; byErrRelevance; byErrDistrRelevance] |> Utils.flipList |> printfn "%A"
-    printfn "%A" (bestToWorst |> List.map (fun res->lrUnpack res.Settings) |> List.zip3 effRelevance bestToWorstErrs)
+    //[byTtestRelevance; linearlyScaledRelevance; byErrRelevance; byErrDistrRelevance] |> Utils.flipList |> printfn "%A"
+    //printfn "%A" (bestToWorst |> List.map (fun res->lrUnpack res.Settings) |> List.zip3 effRelevance bestToWorstErrs)
     let logLrDistr = List.zip logLrs effRelevance |> List.fold (fun (ss:SmartSum) (lr, rel) -> ss.CombineWith lr (rel + 0.2)) (new SmartSum ())
     let (logLrmean, logLrdev) = (logLrDistr.Mean, Math.Sqrt logLrDistr.Variance)
 
-    let geoMeanDistr = List.zip bestToWorst effRelevance |> List.fold (fun (ss:SmartSum) (tr, rel) -> ss.CombineWith tr.GeoMean rel) (new SmartSum ())
+    let geoMeanDistr = List.zip bestToWorst effRelevance |> List.fold (fun (ss:SmartSum) (tr, rel) -> ss.CombineWith tr.Mean2 rel) (new SmartSum ())
     let (geoMeanMean, geoMeanDev) = (geoMeanDistr.Mean, Math.Sqrt geoMeanDistr.Variance)
 
     ((Math.Exp logLrmean, logLrdev),(geoMeanMean, geoMeanDev))
 
-let estimateRelativeCost (settings:LvqModelSettingsCli) = Math.Max(1.0, Math.Min( 20.0, settings.EstimateCost(10,32) / 2.5))
+let estimateRelativeCost (settings:LvqModelSettingsCli) = Math.Max(1.0, Math.Min( 10.0, settings.EstimateCost(10,32) / 2.5))
 let finalTestSettings settings = testSettings 50 1u (1e7 / estimateRelativeCost settings) settings
 
 let improvementStep (controller:ControllerState) (initialSettings:LvqModelSettingsCli) degradedCount =
     let stepCount = 20
     let currSeed = initialSettings.InstanceSeed //EmnExtensions.MathHelpers.RndHelper.ThreadLocalRandom.NextUInt32 ()
     let iterCount = Math.Min(1e7, Math.Pow(1.36, float degradedCount) * 7.4e4) / estimateRelativeCost initialSettings
+    
+    let workingSettings =
+        if iterCount >= 100000.0 || controller.Controller.Name = iterScaleControl.Name then
+            initialSettings
+        else
+            let iterScaleCorrection = 100000.0 / iterCount
+            iterScaleControl.Unpacker initialSettings * iterScaleCorrection
+                |> iterScaleControl.Packer initialSettings
+
     let baseLr = controller.Controller.Unpacker initialSettings
     let lowLr = baseLr * Math.Exp(-Math.Sqrt(3.) * controller.LrLogDevScale)
     let highLr = baseLr * Math.Exp(Math.Sqrt(3.) * controller.LrLogDevScale)
     //let initResults = testSettings 5 currSeed iterCount initialSettings
-    let results = lrsChecker (currSeed + 2u) (logscale stepCount (lowLr,highLr)) (controller.Controller.Packer initialSettings) iterCount
+    let results = lrsChecker (currSeed + 2u) (logscale stepCount (lowLr,highLr)) (controller.Controller.Packer workingSettings) iterCount
     let ((newBaseLr, newLrLogDevScale), (errM,errDV)) = improveLr (List.ofArray results) (controller.Controller.Unpacker, controller.Controller.Packer)
     let logLrDiff_LrDevScale = 2. *1. * Math.Abs(Math.Log(baseLr / newBaseLr))
     let minimalLrDevScale = 0.2 * controller.Controller.InitLrLogDevScale
     let maximalLrDevScale = 2. * controller.Controller.InitLrLogDevScale
-    let effNewLrDevScale = Math.Max(minimalLrDevScale, Math.Min(0.25*1.*newLrLogDevScale + 0.5*controller.LrLogDevScale + 0.25*logLrDiff_LrDevScale, maximalLrDevScale))
+    let effNewLrDevScale = Math.Max(minimalLrDevScale, Math.Min(0.4*newLrLogDevScale + 0.5*controller.LrLogDevScale + (0.1+0.2)*logLrDiff_LrDevScale, maximalLrDevScale))
     let mutable newSettings = controller.Controller.Packer initialSettings newBaseLr
     newSettings.InstanceSeed <- currSeed + uint32 stepCount * 2u
     //let finalResults =  testSettings 5 currSeed iterCount newSettings
 
     let newControllerState = { Controller = controller.Controller; LrLogDevScale = effNewLrDevScale; }
-    printfn "  %d: %s [×%f: %f..%f]@%d:   %f -> %f;   (%f ~ %f) %s"  degradedCount controller.Controller.Name (Math.Exp(Math.Sqrt(3.) * controller.LrLogDevScale)) lowLr highLr (int iterCount) baseLr newBaseLr errM errDV (newSettings.WithCanonicalizedDefaults().ToShorthand())
+    printfn "  %d: %s [×%f: %f..%f]@%d:   %f -> %f;   (%f ~ %f) %s"  
+        degradedCount controller.Controller.Name (Math.Exp(Math.Sqrt(3.) * controller.LrLogDevScale)) lowLr highLr (int iterCount) 
+        baseLr newBaseLr errM errDV (newSettings.WithCanonicalizedDefaults().ToShorthand())
     (newControllerState, newSettings)
 
 let improvementSteps (controllers:ControllerState list, initialSettings:LvqModelSettingsCli) degradedCount=
@@ -277,16 +310,16 @@ let improveAndTestWithControllers offset scaleSearchRange controllersToOptimize 
     let resultString = printResults testedResults
     Console.WriteLine DateTime.Now
     Console.WriteLine resultString
-    File.AppendAllText (LrOptimizer.resultsDir.FullName + "\\" + filename, resultString + "\n")
+    File.AppendAllText (LrGuesser.resultsDir.FullName + "\\" + filename, resultString + "\n")
     testedResults
 
 let improveAndTest = improveAndTestWithControllers 0 1.0 learningRateControllers
 
 let isTested filename (lvqSettings:LvqModelSettingsCli) = 
     let canonicalSettings = (lvqSettings.ToShorthand() |> CreateLvqModelValues.ParseShorthand).WithCanonicalizedDefaults()
-    let path = LrOptimizer.resultsDir.FullName + "\\" + filename
+    let path = LrGuesser.resultsDir.FullName + "\\" + filename
     File.Exists path &&
-        File.ReadAllLines (LrOptimizer.resultsDir.FullName + "\\" + filename)
+        File.ReadAllLines (LrGuesser.resultsDir.FullName + "\\" + filename)
         |> Array.map (fun line -> (line.Split [|' '|]).[0] |> CreateLvqModelValues.TryParseShorthand)
         |> Seq.filter (fun settingsOrNull -> settingsOrNull.HasValue)
         |> Seq.map (fun settingsOrNull -> settingsOrNull.Value.WithCanonicalizedDefaults())
@@ -308,13 +341,13 @@ let allUniformResults filename =
                     (Double.NaN, Double.NaN)
                         
             Some({
-                        GeoMean = parseChunk  "GeoMean: "
+                        Mean2 = parseChunk  "GeoMean: "
                         Training = parseChunk "Training: "
                         Test = parseChunk "Test: "
                         NN = parseChunk "NN: "
                         Settings = maybeSettings.Value
             })
-    let path = LrOptimizer.resultsDir.FullName + "\\"+filename
+    let path = LrGuesser.resultsDir.FullName + "\\"+filename
     if not <| File.Exists path then
         []
     else

@@ -135,9 +135,9 @@ namespace LvqLibCli {
 		:	costfactors[8]//Lgm, Lpq, Normal
 		;
 
-		double effDims =  ModelType==LvqModelType::Normal  ?  dataDims * sqrt((double) dataDims)  :  dataDims;
+		//double effDims =  ModelType==LvqModelType::Normal  ?  dataDims * sqrt((double) dataDims)  :  dataDims;
 
-		return ((classes*PrototypesPerClass + currfactors[0])*(effDims + currfactors[1])*currfactors[2] + currfactors[3])*0.001;
+		return ((classes*PrototypesPerClass + currfactors[0])*(dataDims + currfactors[1])*currfactors[2] + currfactors[3])*0.001;
 	}
 
 	int LvqModelSettingsCli::ActiveRefinementCount() { return (int)RandomInitialBorders  + (int)NGu  + (int)NGi  + (int)Ppca  + (int)Popt  + (int)Bcov + (int)LrRaw + (int)LrPp + (int)wGMu  + (int)NoNnErrorRateTracking + (int)SlowK  + (int)neiP  + (int)scP  + (int)noKP  + (int)neiB  + (int)LocallyNormalize;}

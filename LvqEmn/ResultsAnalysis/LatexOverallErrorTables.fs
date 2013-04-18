@@ -1,4 +1,5 @@
-﻿module LatexOverallErrorTables
+﻿
+module LatexOverallErrorTables
 open LvqGui
 open EmnExtensions
 

@@ -395,8 +395,8 @@
     <Compile Include="CloneableAs.cs" />
     <Compile Include="CreatorGui\CreateDataset.cs" />
     <Compile Include="LrAndError.cs" />
-    <Compile Include="LrOptimizationResult.cs" />
     <Compile Include="GaussianCloudDatasetSettings.cs" />
+    <Compile Include="LrGuesser.cs" />
     <Compile Include="LvqPlotting\StatisticsViewMode.cs" />
     <Compile Include="StarDatasetSettings.cs" />
     <Compile Include="HexConverter.cs" />
@@ -405,7 +405,6 @@
     <Compile Include="LvqPlotting\LvqStatPlotFactory.cs" />
     <Compile Include="LvqPlotting\LvqStatPlots.cs" />
     <Compile Include="CreatorGui\ShorthandHelper.cs" />
-    <Compile Include="LrOptimizer.cs" />
     <Compile Include="UpdateSync.cs" />
     <Page Include="CoreGui\AppSettings.xaml">
       <SubType>Designer</SubType>

@@ -18,8 +18,5 @@ namespace LvqGui {
 		void ReseedInst(object sender, RoutedEventArgs e) { ((IHasSeed)DataContext).ReseedInst(); }
 
 		void InitializeModel(object sender, RoutedEventArgs e) { ((CreateLvqModelValues)DataContext).ConfirmCreation(); }
-
-		void OptimizeOrCreate(object sender, RoutedEventArgs e) { ((CreateLvqModelValues)DataContext).OptimizeOrCreate(); }
-		void OptimizeAll(object sender, RoutedEventArgs e) { ((CreateLvqModelValues)DataContext).OptimizeAll(); }
 	}
 }

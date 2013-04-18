@@ -49,7 +49,6 @@ namespace LvqGui {
 			return line.SubstringAfterFirst("{").SubstringUntil("}").Split(comma).Select(double.Parse).ToArray();
 		}
 
-		static readonly Regex resultsFilenameRegex = new Regex(@"^(?<iters>[0-9]?e[0-9]+)\-(?<shorthand>[^ ]*?)\.txt$");
 
 		public static IEnumerable<LrOptimizationResult> FromDataset(LvqDatasetCli dataset, string settingsStr) {
 			return
@@ -76,14 +75,6 @@ namespace LvqGui {
 			return new LrOptimizationResult(resultFile, itersAndSettings.Item2, itersAndSettings.Item3);
 		}
 
-		public static Tuple<bool, double, LvqModelSettingsCli> ExtractItersAndSettings(string filename) {
-			var match = resultsFilenameRegex.Match(filename);
-			if (!match.Success) return Tuple.Create(false, default(double), default(LvqModelSettingsCli));
-			double iters = double.Parse(match.Groups["iters"].Value.StartsWith("e") ? "1" + match.Groups["iters"].Value : match.Groups["iters"].Value);
-			string shorthand = match.Groups["shorthand"].Value;
-			LvqModelSettingsCli modelSettings = CreateLvqModelValues.ParseShorthand(shorthand);
-			return Tuple.Create(true, iters, modelSettings);
-		}
 
 		/// <summary>
 		/// Gets the lr-optimized result for the given dataset and settings with the largest number of iterations, or null if no results have been done for this settings+dataset combination.
@@ -105,7 +96,7 @@ namespace LvqGui {
 			return Enumerable.Repeat(CreateDataset.CreateFactory(dataset.DatasetLabel),1);
 		}
 		static IEnumerable<DirectoryInfo> GetDatasetResultDir(IDatasetCreator basicExample) {
-			return from dir in LrOptimizer.resultsDir.GetDirectories()
+			return from dir in LrGuesser.resultsDir.GetDirectories()
 				   where basicExample != null
 				   let dirSplitName = CreateDataset.CreateFactory(dir.Name)
 				   where dirSplitName != null && dirSplitName.GetType() == basicExample.GetType() && basicExample.LrTrainingShorthand() == dirSplitName.LrTrainingShorthand()

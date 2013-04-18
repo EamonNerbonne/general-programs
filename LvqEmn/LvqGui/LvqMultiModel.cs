@@ -245,6 +245,13 @@ namespace LvqGui {
 				model.ResetLearningRate();
 		}
 
+		public static string ItersPrefix(long iters)
+		{
+			int pow10 = (int)(Math.Log10(iters) + Math.Log10(10.0 / 9.5));
+			int prefix = (int)(iters / Math.Pow(10.0, pow10) + 0.5);
+			return (prefix == 1 ? "" : prefix.ToString()) + "e" + pow10;
+		}
+
 		public static readonly DirectoryInfo statsDir = FSUtil.FindDataDir(@"uni\Thesis\doc\stats", typeof(LvqStatPlotsContainer));
 		static FileInfo StatFile(LvqDatasetCli dataset, LvqModelSettingsCli modelSettings, long iterIntent) {
 			var dSettings = CreateDataset.CreateFactory(dataset.DatasetLabel);
@@ -253,7 +260,7 @@ namespace LvqGui {
 				var otherSettings = CreateDataset.CreateFactory(dir.Name);
 				return otherSettings != null && otherSettings.Shorthand == dSettingsShorthand;
 			}) ?? statsDir.CreateSubdirectory(dSettingsShorthand);
-			string iterPrefix = LrOptimizer.ItersPrefix(iterIntent) + "-";
+			string iterPrefix = ItersPrefix(iterIntent) + "-";
 			string mSettingsShorthand = modelSettings.ToShorthand();
 
 			return datasetDir.GetFiles(iterPrefix + "*.txt").FirstOrDefault(file => {
@@ -274,7 +281,7 @@ namespace LvqGui {
 			var allstats = EvaluateFullStats().ToArray();
 
 
-			if (LrOptimizer.ItersPrefix(iterIntent) != LrOptimizer.ItersPrefix((long)Math.Round(allstats.Select(stat => stat.values[LvqTrainingStatCli.TrainingIterationI]).Average())))
+			if (ItersPrefix(iterIntent) != ItersPrefix((long)Math.Round(allstats.Select(stat => stat.values[LvqTrainingStatCli.TrainingIterationI]).Average())))
 				throw new InvalidOperationException("Trained the wrong number of iterations; aborting.");
 			string statsString = FullStatsString(allstats);
 

@@ -30,33 +30,37 @@ let optimizeSettingsList =
         >> Seq.distinctBy (fun s-> s.WithCanonicalizedDefaults())  >> Seq.toList
         //>> List.rev
         //>> Seq.filter (isTested defaultStore >> not) 
-        >> Seq.filter (isTested temp2Store >> not) 
-        >> Seq.map (improveAndTestWithControllers 0 1.0 allControllers temp2Store)
+        //>> Seq.filter (isTested newStore >> not) 
+        >> Seq.map (improveAndTestWithControllers 0 1.0 allControllers newStore)
         >> Seq.toList
 
         
 [
-    //"Lgm[0]-1,"
-    "Normal-1,"
-    "Normal-1,mu0.1,"
+    "Normal-1,mu0.01,"
     "Normal-1,SlowK,"
-    "Normal-1,mu0.1,SlowK,"
+    "Normal-1,mu0.01,SlowK,"
+    "Normal-1,mu0.01,Bcov,"
+    "Normal-1,mu0.01,Bcov,SlowK,"
+    "Normal-1,Bcov,SlowK,"
+    "Normal-1,Bcov,"
+    "Normal-1,"
     "Normal-2,"
-    "Normal-2,mu0.1,"
+    "Normal-2,mu0.01,"
     "Normal-2,NGi,"
-    "Normal-2,NGi,mu0.1,"
+    "Normal-2,NGi,mu0.01,"
     "Normal-2,SlowK,"
-    "Normal-2,mu0.1,SlowK,"
+    "Normal-2,mu0.01,SlowK,"
     "Normal-2,NGi,SlowK,"
-    "Normal-2,NGi,mu0.1,SlowK,"
+    "Normal-2,NGi,mu0.01,SlowK,"
     "Normal-3,"
-    "Normal-3,mu0.1,"
+    "Normal-3,mu0.01,"
     "Normal-3,NGi,"
-    "Normal-3,NGi,mu0.1,"
+    "Normal-3,NGi,mu0.01,"
     "Normal-3,SlowK,"
-    "Normal-3,mu0.1,SlowK,"
+    "Normal-3,mu0.01,SlowK,"
     "Normal-3,NGi,SlowK,"
-    "Normal-3,NGi,mu0.1,SlowK,"
+    "Normal-3,NGi,mu0.01,SlowK,"
+
     ]
     |> optimizeSettingsList
 
@@ -164,12 +168,12 @@ let interestingSettings () =
 
 let recomputeRes filename =
     allUniformResults filename 
-        |> List.sortBy (fun res->res.GeoMean) 
+        |> List.sortBy (fun res->res.Mean2) 
        // |> List.rev
         |> Seq.distinctBy (fun res -> res.Settings.WithCanonicalizedDefaults()) |> Seq.toList
         |> List.map (fun res->res.Settings)
         |> List.filter (fun settings -> settings.ModelType = LvqModelType.G2m)
-        |> List.map (OptimalLrSearch.finalTestSettings >> OptimalLrSearch.printResults >> (fun resline -> File.AppendAllText (LrOptimizer.resultsDir.FullName + "\\" + tempStore, resline + "\n"); resline ))
+        |> List.map (OptimalLrSearch.finalTestSettings >> OptimalLrSearch.printResults >> (fun resline -> File.AppendAllText (LrGuesser.resultsDir.FullName + "\\" + tempStore, resline + "\n"); resline ))
 
 
 
@@ -187,9 +191,9 @@ let showEffect filename removeRelevantSetting resultsFilter =
     allRes 
         |> List.filter (fun res ->  (removeRelevantSetting res.Settings).WithCanonicalizedDefaults() |> havingInterestingCompanions.Contains)
         |> Seq.groupBy (fun res -> (removeRelevantSetting res.Settings).WithCanonicalizedDefaults())
-        |> Seq.map (fun (group,members) -> members |> Seq.toList |> List.sortBy (fun res->res.GeoMean))
+        |> Seq.map (fun (group,members) -> members |> Seq.toList |> List.sortBy (fun res->res.Mean2))
         |> Seq.toList
-        |> List.sortBy (fun (best::_) -> best.GeoMean)
+        |> List.sortBy (List.head >> (fun best-> best.Mean2))
         |> List.map (List.map printMeanResults)
 
 let removeEachIterStuffs settings = 
@@ -209,27 +213,12 @@ let bestCurrentSettings () =
         [defaultStore; newStore; tempStore]
             |> List.collect allUniformResults
             |> List.append (allUniformResults tempStore)
-            |> List.sortBy (fun res->res.GeoMean)
+            |> List.sortBy (fun res->res.Mean2)
             |> Seq.distinctBy (fun res -> res.Settings.Canonicalize()) |> Seq.toList
             |> List.map printMeanResults
-    File.Delete (LrOptimizer.resultsDir.FullName + tempStore)
+    File.Delete (LrGuesser.resultsDir.FullName + tempStore)
     newBestList
-        |> List.iter (fun line -> File.AppendAllText (LrOptimizer.resultsDir.FullName + defaultStore,line + "\n"))
-
-let improveKnownCombos () = 
-    LrOptimizer.resultsDir.GetFiles("*.txt", SearchOption.AllDirectories)
-        |> Seq.map (fun fileInfo -> fileInfo.Name  |> LvqGui.LrOptimizationResult.ExtractItersAndSettings)
-        |> Seq.filter (fun (ok,_,_) -> ok)
-        |> Seq.map (fun (_,_,settings) -> settings.WithCanonicalizedDefaults())
-        |> Seq.distinct
-        |> Seq.filter (isTested defaultStore >>not)
-        |> Seq.sortBy (fun s-> s.ToShorthand().Length)
-        //|> Seq.take 20 |> Utils.shuffle
-        |> Seq.map withDefaultLr
-        |> Seq.filter (isTested defaultStore >> not) //seq is lazy, so this last minute rechecks availability of results.
-        //|> Seq.map (fun s->s.ToShorthand()) 
-        |> Seq.map (improveAndTest defaultStore)
-        |> Seq.toList
+        |> List.iter (fun line -> File.AppendAllText (LrGuesser.resultsDir.FullName + defaultStore,line + "\n"))
 
 
 //showNeiEffect defaultStore |> printfn "%A"

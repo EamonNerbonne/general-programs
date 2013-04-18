@@ -75,7 +75,7 @@ Matrix_NN shuffleMatrixCols(boost::mt19937 & randGen, Matrix_NN const & src);
 
 //#pragma managed(pop)
 #ifdef _MSC_VER
-#define isfinite_emn(x) (_finite(x)) 
+inline bool isfinite_emn(double x) {return _finite(x) != 0;}
 #else
 inline bool isfinite_emn(double x) {return !(std::isinf(x)  || std::isnan(x));}
 #endif

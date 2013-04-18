@@ -445,11 +445,11 @@ namespace LvqGui {
 		public Task ConfirmCreation() { return CreateSingleModel(owner, ForDataset, settings.Canonicalize()); }
 
 		static Task CreateSingleModel(LvqWindowValues owner, LvqDatasetCli dataset, LvqModelSettingsCli settingsCopy) {
-			TaskCompletionSource<object> whenDone = new TaskCompletionSource<object>();
+			var whenDone = new TaskCompletionSource<object>();
 			Task.Factory
 				.StartNew(() => {
 					if (settingsCopy.LR0 == 0.0 && settingsCopy.LrScaleP == 0.0 && settingsCopy.LrScaleB == 0.0)
-						settingsCopy = LrOptimizer.ChooseReasonableLr(settingsCopy);
+						settingsCopy = LrGuesser.ChooseReasonableLr(settingsCopy);
 
 					if (settingsCopy.LR0 == 0.0)
 						Console.WriteLine("Cannot create model with 0 LR!");
@@ -462,41 +462,6 @@ namespace LvqGui {
 			return whenDone.Task;
 		}
 
-		public bool HasOptimizedLr { get { return LrOptimizationResult.GetBestResult(ForDataset, settings) != null; } }
-		public string OptimizeButtonText { get { return HasOptimizedLr ? "Create with Optimal LR" : "Find optimal LR"; } }
-
-		public LrOptimizer.LrTestingStatus OptimizedLrAllStatus { get { return LrOptimizer.HasAllLrTestingResults(ForDataset); } }
-
-		public string OptimizeAllButtonText {
-			get {
-				var status = LrOptimizer.HasAllLrTestingResults(ForDataset);
-				return status == LrOptimizer.LrTestingStatus.AllResultsComplete
-					? "All LR optimization complete."
-					: status == LrOptimizer.LrTestingStatus.SomeUnfinishedResults
-						? "Waiting for unfinished results..."
-						: "Find all types' Optimal LR";
-			}
-		}
-
-		public bool OptimizedLrAllIncomplete { get { return OptimizedLrAllStatus != LrOptimizer.LrTestingStatus.AllResultsComplete; } }
-
-		public void OptimizeLr() {
-//on gui thread.
-			var settingsCopy = settings;
-			settingsCopy.InstanceSeed = 0;
-			settingsCopy.ParamsSeed = 1;
-			var testLr = new LrOptimizer(ForDataset);
-			string shortname = testLr.ShortnameFor(settingsCopy);
-			var logWindow = LogControl.ShowNewLogWindow(shortname, owner.win.ActualWidth, owner.win.ActualHeight*0.6);
-			testLr.TestLrIfNecessary(logWindow.Item2.Writer, settingsCopy, Owner.WindowClosingToken).ContinueWith(t => { logWindow.Item1.Dispatcher.BeginInvoke(() => logWindow.Item1.Background = Brushes.White); });
-		}
-
-		public void OptimizeLrAll() {
-//on gui thread.
-			LvqDatasetCli dataset = ForDataset;
-			var testLr = new LrOptimizer(dataset);
-			testLr.StartAllLrTesting(Owner.WindowClosingToken).ContinueWith(_ => Console.WriteLine("completed lr optimization for " + (dataset.DatasetLabel ?? "<unknown>")));
-		}
 
 		static readonly string[] depProps = new[] {
 			"HasOptimizedLr", "OptimizeButtonText", "OptimizedLrAllIncomplete", "OptimizedLrAllStatus",
@@ -505,23 +470,6 @@ namespace LvqGui {
 
 		protected override IEnumerable<string> GloballyDependantProps { get { return base.GloballyDependantProps.Concat(depProps); } }
 
-		public void OptimizeOrCreate() {
-//gui thread
-			var bestResult = LrOptimizationResult.GetBestResult(ForDataset, settings);
-			if (bestResult == null)
-				OptimizeLr();
-			else
-				CreateSingleModel(owner, ForDataset, bestResult.GetOptimizedSettings(settings.ParamsSeed, settings.InstanceSeed));
-		}
-
-		public void OptimizeAll() {
-			var dataset = ForDataset;
-			var status = OptimizedLrAllStatus;
-			if (status == LrOptimizer.LrTestingStatus.SomeUnstartedResults)
-				OptimizeLrAll();
-			else
-				Console.WriteLine("All results already started/complete");
-		}
 	}
 
 	static class LvqModelTypeHelpers {

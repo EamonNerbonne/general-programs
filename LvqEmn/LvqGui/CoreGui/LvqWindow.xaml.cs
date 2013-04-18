@@ -127,46 +127,6 @@ namespace LvqGui {
 		public IEnumerable<long> Iters { get { return new[] { 100000L, 1000000L, 10000000L, }; } }
 		// ReSharper restore MemberCanBeMadeStatic.Global
 
-		void LrSearch_Click(object sender, RoutedEventArgs e) {
-			uint offset = uint.Parse(rngOffsetTextBox.Text);
-			LvqModelType modeltype = (LvqModelType)modelType.SelectedItem;
-			int protos = Use5Protos.IsChecked == true ? 5 : 1;
-			long iterCount = (long)iterCountSelectbox.SelectedItem;
-			var testLr = new LrOptimizer(iterCount, offset);
-			var settings = LrOptimizer.WithSeedFromOffset(new LvqModelSettingsCli().WithChanges(modeltype, protos), testLr.offset);
-			string shortname = testLr.ShortnameFor(settings);
-
-			var logWindow = LogControl.ShowNewLogWindow(shortname, ActualWidth, ActualHeight * 0.6);
-			ThreadPool.QueueUserWorkItem(_ => testLr.TestLrIfNecessary(logWindow.Item2.Writer, settings, ClosingToken)
-									.ContinueWith(t => {
-										logWindow.Item1.Dispatcher.BeginInvoke(() => logWindow.Item1.Background = Brushes.White);
-										t.Wait();
-									}));
-		}
-
-		void LrSearchAll_Click(object sender, RoutedEventArgs e) {
-			uint offset = uint.Parse(rngOffsetTextBox.Text);
-			long iterCount = (long)iterCountSelectbox.SelectedItem;
-			Process.GetCurrentProcess().PriorityClass = ProcessPriorityClass.Idle;
-			ThreadPool.QueueUserWorkItem(_ =>
-				new LrOptimizer(iterCount, offset).StartAllLrTesting(ClosingToken)
-				.ContinueWith(t => { Console.WriteLine("wheee!!!!"); t.Wait(); })
-				);
-		}
-		void LrSearchCore_Click(object sender, RoutedEventArgs e) {
-			Process.GetCurrentProcess().PriorityClass = ProcessPriorityClass.Idle;
-			ThreadPool.QueueUserWorkItem(_ =>{
-				
-				foreach(var datasetFactory in CreateDataset.StandardAndNormalizedDatasets()){
-					var dataset = datasetFactory.CreateDataset();
-					new LrOptimizer(dataset).StartAllLrTesting(ClosingToken).Wait();
-					if (ClosingToken.IsCancellationRequested) return;
-					Console.WriteLine("Completed LR testing for " + dataset.DatasetLabel);
-				}
-				Console.WriteLine("All lr searching complete");
-			}
-			);
-		}
 
 		public Task SaveAllGraphs() {
 			var selectedModel = Values.TrainingControlValues.SelectedLvqModel;
