@@ -262,7 +262,7 @@ vector< Matrix<LvqFloat, TPointDims, TPointDims> > DistMatByProtos(Matrix<LvqFlo
 	}
 
 	//vector<vector<TPoint> > pointsNearestToProto(protoLabels.size());
-	vector<TCov, Eigen::aligned_allocator<TCov> > covariances(protoLabels.size(), TCov::Zero(points.rows(),points.rows()) );
+	vector<TPoint, Eigen::aligned_allocator<TPoint> > variances(protoLabels.size(), TPoint::Zero(points.rows()) );
 	VectorXi protoMatchCounts = VectorXi::Zero(protoLabels.size());
 	TPoint diff = TPoint::Zero(points.rows());
 
@@ -273,40 +273,42 @@ vector< Matrix<LvqFloat, TPointDims, TPointDims> > DistMatByProtos(Matrix<LvqFlo
 		auto protoI = protoIdxesByClass[pointLabels[pointI]][protoClasswiseI];
 
 		diff.noalias() = points.col(pointI) - protos.col(protoI);
-		covariances[protoI].noalias() += diff * diff.transpose(); 
+		
+		variances[protoI].noalias() += diff.array().square().matrix(); 
 		protoMatchCounts(protoI)++;
 
 		//pointsNearestToProto[protoIdxesByClass[pointLabels[pointI]][protoI]].push_back(points.col(pointI));
 	}
 
-	TCov sumCov = TCov::Zero(points.rows(),points.rows());
+	TPoint sumV = TPoint::Zero(points.rows());
 	for(size_t protoI = 0; protoI < (size_t)protoLabels.size(); ++protoI) {
-		sumCov.noalias() += covariances[protoI];
+		sumV.noalias() += variances[protoI];
 	}
-	sumCov *= 1.0/(protoMatchCounts.sum() - 1.0);
+	sumV *= 1.0/(protoMatchCounts.sum() - 1.0);
 	for(size_t protoI = 0; protoI < (size_t)protoLabels.size(); ++protoI) {
-		covariances[protoI].noalias() += sumCov;
-		covariances[protoI] *= 1.0/protoMatchCounts(protoI);
+		variances[protoI].noalias() += sumV;
+		variances[protoI] *= 1.0/protoMatchCounts(protoI);
 	}
-
 
 	vector<TCov> normalizingMat(protoLabels.size());
-
+	VectorXi x;
+	
 	for(size_t protoI = 0; protoI < (size_t)protoLabels.size(); ++protoI) {
 		normalizingMat[protoI].resize(points.rows(),points.rows());
 		bool useLocalCov = protoMatchCounts(protoI) > points.rows() * 2;
 		if( useLocalCov ) {
-			normalizingMat[protoI] = normalizingB<TPointDims>(covariances[protoI]);
+			normalizingMat[protoI] = variances[protoI].array().sqrt().inverse().matrix().asDiagonal();
 			double sum = normalizingMat[protoI].sum();
 			double det =  normalizingMat[protoI].determinant();
 			if(!isfinite_emn(sum) || !isfinite_emn(det) || fabs(det) > sqrt(std::numeric_limits<double>::max())) {
-				std::cout<<"hmm: "<<sum<<", "<<det<<"!\n";
+				//std::cout<<"hmm: "<<sum<<", "<<det<<"!\n";
 				useLocalCov = false;
 			}
 		}
 		if(!useLocalCov)
-			normalizingMat[protoI] = normalizingB<TPointDims>(sumCov);
-		std::cout<<"protoI"<<protoI<<"("<<useLocalCov<<")"<<" sum:"<< normalizingMat[protoI].sum() <<" det:"<<normalizingMat[protoI].determinant()<<"\n";
+			normalizingMat[protoI] = sumV.array().sqrt().inverse().matrix().asDiagonal();
+			//normalizingMat[protoI] = normalizingB<TPointDims>(sumCov);
+		//std::cout<<"protoI"<<protoI<<"("<<useLocalCov<<")"<<" sum:"<< normalizingMat[protoI].sum() <<" det:"<<normalizingMat[protoI].determinant()<<"\n";
 	}
 	return normalizingMat;
 }

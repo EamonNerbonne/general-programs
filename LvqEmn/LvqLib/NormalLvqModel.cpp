@@ -74,8 +74,8 @@ NormalLvqModel::NormalLvqModel(LvqModelSettings & initSettings)
 	}
 }
 
-inline bool hasNoMuOffset(double scaledIter) { return scaledIter >= 100; }
-inline double scaleMuOffset(double scaledIter) { return sqr(sqr(sqr(1.0 - scaledIter*0.01))); }
+inline bool hasNoMuOffset(double scaledIter) { return scaledIter >= 40; }
+inline double scaleMuOffset(double scaledIter) { return sqr(sqr(sqr(1.0 - scaledIter*0.025))); }
 
 MatchQuality NormalLvqModel::learnFrom(Vector_N const & trainPoint, int trainLabel) {
 	using namespace std;

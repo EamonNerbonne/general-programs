@@ -176,19 +176,19 @@ let iterScaleControl =  {
                                 Unpacker = fun settings -> settings.iterScaleFactor
                                 Packer = fun settings iterScale -> settings.WithIterScale iterScale
                                 Applies = fun _ -> true
-                                InitLrLogDevScale = 5.
-                                StartAt = 12
+                                InitLrLogDevScale = 4.
+                                StartAt = 14
                        }
 let decayControl =  {
                                 Name = "decay"
                                 Unpacker = fun settings -> settings.decay
                                 Packer = fun settings decay -> settings.WithDecay decay
                                 Applies = fun _ -> true
-                                InitLrLogDevScale = 5.
+                                InitLrLogDevScale = 3.
                                 StartAt = 10
                        }
 let muControl =  {
-                                Name = "decay"
+                                Name = "mu"
                                 Unpacker = fun settings -> settings.MuOffset
                                 Packer = fun settings mu -> 
                                                     let mutable retval = settings
@@ -201,7 +201,7 @@ let muControl =  {
 
 let learningRateControllers = [lr0control; lrPcontrol; lrBcontrol]
 let decayControllers = [iterScaleControl; decayControl; lr0control]
-let allControllers = [lr0control; lrPcontrol; lrBcontrol;iterScaleControl; decayControl]
+let allControllers = [muControl; lr0control;iterScaleControl; lrPcontrol; lrBcontrol; decayControl ]
 
 let improveLr (testResultList:TestResults list) (lrUnpack, lrPack) =
     let errMargin = 0.01
@@ -245,10 +245,12 @@ let improvementStep (controller:ControllerState) (initialSettings:LvqModelSettin
     let iterCount = Math.Min(1e7, Math.Pow(1.36, float degradedCount) * 7.4e4) / estimateRelativeCost initialSettings
     
     let workingSettings =
-        if iterCount >= 100000.0 || controller.Controller.Name = iterScaleControl.Name then
+        //we'll drop the LR more quickly than usual for small runs.
+        let safeIterCount = 1300000.0
+        if iterCount >= safeIterCount || controller.Controller.Name = iterScaleControl.Name then
             initialSettings
         else
-            let iterScaleCorrection = 100000.0 / iterCount
+            let iterScaleCorrection = safeIterCount / iterCount
             iterScaleControl.Unpacker initialSettings * iterScaleCorrection
                 |> iterScaleControl.Packer initialSettings
 
@@ -272,7 +274,8 @@ let improvementStep (controller:ControllerState) (initialSettings:LvqModelSettin
         baseLr newBaseLr errM errDV (newSettings.WithCanonicalizedDefaults().ToShorthand())
     (newControllerState, newSettings)
 
-let improvementSteps (controllers:ControllerState list, initialSettings:LvqModelSettingsCli) degradedCount=
+let improvementSteps (controllers:ControllerState list, initialSettings:LvqModelSettingsCli) degradedCount =
+    let controllerOrdering = if degradedCount % 2 = 0 then controllers else List.rev controllers
     List.fold (fun (controllerStates, settings) nextController ->
             let newState = 
                 if degradedCount < nextController.Controller.StartAt then
@@ -280,7 +283,7 @@ let improvementSteps (controllers:ControllerState list, initialSettings:LvqModel
                 else
                     improvementStep nextController settings degradedCount
             newState |> apply1st (fun newControllerState -> newControllerState :: controllerStates)
-        ) ([], initialSettings) controllers
+        ) ([], initialSettings) controllerOrdering
     |> apply1st List.rev
 
 let rec fullyImprove degradedCount state  =
