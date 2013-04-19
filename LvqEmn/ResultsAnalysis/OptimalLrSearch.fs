@@ -176,7 +176,7 @@ let iterScaleControl =  {
                                 Unpacker = fun settings -> settings.iterScaleFactor
                                 Packer = fun settings iterScale -> settings.WithIterScale iterScale
                                 Applies = fun _ -> true
-                                InitLrLogDevScale = 4.
+                                InitLrLogDevScale = 5.
                                 StartAt = 14
                        }
 let decayControl =  {
@@ -184,7 +184,7 @@ let decayControl =  {
                                 Unpacker = fun settings -> settings.decay
                                 Packer = fun settings decay -> settings.WithDecay decay
                                 Applies = fun _ -> true
-                                InitLrLogDevScale = 3.
+                                InitLrLogDevScale = 4.
                                 StartAt = 10
                        }
 let muControl =  {
@@ -195,7 +195,7 @@ let muControl =  {
                                                     retval.MuOffset <- mu
                                                     retval
                                 Applies = fun settings -> settings.MuOffset > 0.0
-                                InitLrLogDevScale = 1.
+                                InitLrLogDevScale = 1.5
                                 StartAt = 3
                        }
 
