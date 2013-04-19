@@ -78,6 +78,9 @@
     <ClCompile Include="NormalLvqModel.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="LgrLvqModel.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="G2mLvqModel.h">
@@ -201,6 +204,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="NormalLvqModel.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="LgrLvqModel.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

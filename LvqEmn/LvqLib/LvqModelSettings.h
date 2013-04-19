@@ -26,7 +26,7 @@ struct LvqModelSettings
 
 	int Dimensionality;
 
-	enum LvqModelType { AutoModelType, LgmModelType, GmModelType, G2mModelType, GgmModelType, GpqModelType, LpqModelType, FgmModelType, NormalModelType }; 
+	enum LvqModelType { AutoModelType, LgmModelType, GmModelType, G2mModelType, GgmModelType, GpqModelType, LpqModelType, FgmModelType, NormalModelType, LgrModelType }; //TODO: use enum classes.
 	LvqModelType ModelType;
 	boost::mt19937 RngParams;
 	LvqModelRuntimeSettings RuntimeSettings;
@@ -39,6 +39,7 @@ struct LvqModelSettings
 	std::pair<Matrix_NN,Eigen::VectorXi> InitProtosBySetting();
 	std::tuple<Matrix_NN, Matrix_NN, Eigen::VectorXi> InitProtosAndProjectionBySetting();
 	std::tuple<std::vector<Matrix_NN>,Matrix_NN, Eigen::VectorXi> InitProjectionProtosBySetting();
+	std::tuple<Matrix_NN, Matrix_NN, Eigen::VectorXi> InitRelevanceProtosBySetting();
 	std::tuple<Matrix_P, Matrix_NN, Eigen::VectorXi, std::vector<Matrix_22> > InitProtosProjectionBoundariesBySetting();
 
 	Matrix_NN pcaTransform() const;

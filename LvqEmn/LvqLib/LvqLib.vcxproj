@@ -639,6 +639,7 @@
     <ClCompile Include="GmFullLvqModel.cpp" />
     <ClCompile Include="GoodBadMatch.cpp" />
     <ClCompile Include="GpqLvqModel.cpp" />
+    <ClCompile Include="LgrLvqModel.cpp" />
     <ClCompile Include="LpqLvqModel.cpp" />
     <ClCompile Include="LvqLib.cpp" />
     <ClCompile Include="LvqModel.cpp" />
@@ -683,6 +684,7 @@
     <ClInclude Include="GmFullLvqModel.h" />
     <ClInclude Include="GoodBadMatch.h" />
     <ClInclude Include="GpqLvqModel.h" />
+    <ClInclude Include="LgrLvqModel.h" />
     <ClInclude Include="LpqLvqModel.h" />
     <ClInclude Include="LvqLib.h" />
     <ClInclude Include="LvqModel.h" />

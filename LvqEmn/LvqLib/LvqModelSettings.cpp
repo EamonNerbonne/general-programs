@@ -239,11 +239,10 @@ Matrix_22 BinitByPca(Matrix_P const & lowdimpoints) {
 }
 
 template <int TPointDims>
-vector< Matrix<LvqFloat, TPointDims, TPointDims> > DistMatByProtos(Matrix<LvqFloat, TPointDims, Eigen::Dynamic> const & points, VectorXi const & pointLabels, Matrix<LvqFloat, TPointDims, Eigen::Dynamic> const & protos, VectorXi const & protoLabels) {
+vector< Matrix<LvqFloat, TPointDims, 1> > DistMatByProtos(Matrix<LvqFloat, TPointDims, Eigen::Dynamic> const & points, VectorXi const & pointLabels, Matrix<LvqFloat, TPointDims, Eigen::Dynamic> const & protos, VectorXi const & protoLabels) {
 	typedef Matrix<LvqFloat, TPointDims, Eigen::Dynamic> TPoints;
 	typedef Matrix<LvqFloat, TPointDims, 1> TPoint;
 	typedef Matrix<LvqFloat, TPointDims, TPointDims> TCov;
-	TCov globalCov = Covariance::ComputeWithMean(points);
 
 	int classCount=protoLabels.maxCoeff() + 1;
 	vector<TPoints> protosByClass;
@@ -273,7 +272,7 @@ vector< Matrix<LvqFloat, TPointDims, TPointDims> > DistMatByProtos(Matrix<LvqFlo
 		auto protoI = protoIdxesByClass[pointLabels[pointI]][protoClasswiseI];
 
 		diff.noalias() = points.col(pointI) - protos.col(protoI);
-		
+
 		variances[protoI].noalias() += diff.array().square().matrix(); 
 		protoMatchCounts(protoI)++;
 
@@ -290,14 +289,14 @@ vector< Matrix<LvqFloat, TPointDims, TPointDims> > DistMatByProtos(Matrix<LvqFlo
 		variances[protoI] *= 1.0/protoMatchCounts(protoI);
 	}
 
-	vector<TCov> normalizingMat(protoLabels.size());
+	vector<TPoint> normalizingMat(protoLabels.size());
 	VectorXi x;
-	
+
 	for(size_t protoI = 0; protoI < (size_t)protoLabels.size(); ++protoI) {
-		normalizingMat[protoI].resize(points.rows(),points.rows());
+		normalizingMat[protoI].resize(points.rows());
 		bool useLocalCov = protoMatchCounts(protoI) > points.rows() * 2;
 		if( useLocalCov ) {
-			normalizingMat[protoI] = variances[protoI].array().sqrt().inverse().matrix().asDiagonal();
+			normalizingMat[protoI] = variances[protoI].array().sqrt().inverse().matrix();
 			double sum = normalizingMat[protoI].sum();
 			double det =  normalizingMat[protoI].determinant();
 			if(!isfinite_emn(sum) || !isfinite_emn(det) || fabs(det) > sqrt(std::numeric_limits<double>::max())) {
@@ -306,8 +305,8 @@ vector< Matrix<LvqFloat, TPointDims, TPointDims> > DistMatByProtos(Matrix<LvqFlo
 			}
 		}
 		if(!useLocalCov)
-			normalizingMat[protoI] = sumV.array().sqrt().inverse().matrix().asDiagonal();
-			//normalizingMat[protoI] = normalizingB<TPointDims>(sumCov);
+			normalizingMat[protoI] = sumV.array().sqrt().inverse().matrix();
+		//normalizingMat[protoI] = normalizingB<TPointDims>(sumCov);
 		//std::cout<<"protoI"<<protoI<<"("<<useLocalCov<<")"<<" sum:"<< normalizingMat[protoI].sum() <<" det:"<<normalizingMat[protoI].determinant()<<"\n";
 	}
 	return normalizingMat;
@@ -329,9 +328,11 @@ tuple<vector<Matrix_NN>,Matrix_NN, VectorXi> LvqModelSettings::InitProjectionPro
 	vector<Matrix_NN> P;
 
 	if(Bcov) {
-		P = DistMatByProtos<Eigen::Dynamic>(Dataset->getPoints(), Dataset->getPointLabels(),prototypes,labels);
-		for(size_t i = 0;i< P.size();++i) {
-			MakeUpperTriangular<Matrix_NN>(P[i]);
+		auto scalingRelevancesByProtos = DistMatByProtos<Eigen::Dynamic>(Dataset->getPoints(), Dataset->getPointLabels(),prototypes,labels);
+		P.reserve(scalingRelevancesByProtos.size());
+		for(size_t i = 0;i< scalingRelevancesByProtos.size();++i) {
+			P[i].resizeLike(scalingRelevancesByProtos[i].asDiagonal());
+			P[i]= scalingRelevancesByProtos[i].asDiagonal();
 		}
 	}else
 		for(ptrdiff_t i = 0;i< prototypes.cols(); ++i) {
@@ -346,12 +347,47 @@ tuple<vector<Matrix_NN>,Matrix_NN, VectorXi> LvqModelSettings::InitProjectionPro
 		return make_tuple(P, prototypes, labels);
 }
 
+tuple<Matrix_NN,Matrix_NN, VectorXi> LvqModelSettings::InitRelevanceProtosBySetting() {
+	using std::make_tuple;
+
+
+	auto protos = InitProtosBySetting();
+	auto prototypes = protos.first;
+	auto labels = protos.second;
+
+	//
+	//Vector_N cwiseSqrSum((Dataset->getPoints().colwise() - meanPoint).array().square().rowwise().sum() / )
+
+	Matrix_NN relevances;
+	relevances.resizeLike(prototypes);
+
+
+	if(Bcov) {
+		auto relevancesTemp =  DistMatByProtos<Eigen::Dynamic>(Dataset->getPoints(), Dataset->getPointLabels(),prototypes,labels);
+		for(size_t i = 0;i< relevancesTemp.size();++i) {
+			relevances.col(i) = relevancesTemp[i];
+		}
+	}else{
+		Vector_N meanPoint(Dataset->getPoints().rowwise().mean());
+		Vector_N variance( (Dataset->getPoints().colwise() - meanPoint).array().square().matrix().rowwise().sum() / ( Dataset->getPoints().cols() - LvqFloat(1.0)));
+		Vector_N relevance( variance.array().sqrt().inverse() );
+		for(size_t i = 0;i< relevances.cols();++i) {
+			relevances.col(i) = relevance;
+		}
+	}
+	return make_tuple(relevances, prototypes, labels);
+}
 
 
 
 
 vector<Matrix_22> BinitByProtos(Matrix_P const & lowdimpoints, VectorXi const & pointLabels, Matrix_P const & lowdimProtos, VectorXi const & protoLabels) {
-	return DistMatByProtos<2>(lowdimpoints,pointLabels,lowdimProtos,protoLabels);
+	auto protoscalers=DistMatByProtos<2>(lowdimpoints,pointLabels,lowdimProtos,protoLabels);
+	vector<Matrix_22> B;
+	std::for_each(protoscalers.cbegin(), protoscalers.cend(), [&] (Vector_2 const & scale) {
+		B.push_back(scale.asDiagonal());
+	});
+	return B;
 }
 
 
