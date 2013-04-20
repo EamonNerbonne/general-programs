@@ -77,6 +77,7 @@ let printResults = toMeanResults >> printMeanResults
 
 let testSettings parOverride rndSeed iterCount (settings : LvqModelSettingsCli)  =
     let foldGroupCount = (parOverride+9)/10
+    let relevantDatasets =  if settings.IsProjectionModel() then datasets |> List.rev |> List.tail |> List.rev else datasets
     let results =
         [
             for datasetGenerator in datasets -> 
@@ -300,6 +301,12 @@ let lowerPriority () =
         use proc = System.Diagnostics.Process.GetCurrentProcess ()
         proc.PriorityClass <- System.Diagnostics.ProcessPriorityClass.Idle
 
+let saveResults (results:TestResults) (filename:string) =
+   let resultString:string = printResults results 
+   File.AppendAllText (LrGuesser.resultsDir.FullName + "\\" + filename, resultString + "\n")
+   Console.WriteLine resultString
+   Console.WriteLine DateTime.Now
+
 
 let improveAndTestWithControllers offset scaleSearchRange controllersToOptimize filename (initialSettings:LvqModelSettingsCli) =
     lowerPriority ()
@@ -310,10 +317,7 @@ let improveAndTestWithControllers offset scaleSearchRange controllersToOptimize 
                                |> List.map (fun controller -> { Controller = controller; LrLogDevScale = controller.InitLrLogDevScale * scaleSearchRange})
     let improvedSettings = fullyImprove offset (states, initialSettings) |> snd
     let testedResults = finalTestSettings improvedSettings
-    let resultString = printResults testedResults
-    Console.WriteLine DateTime.Now
-    Console.WriteLine resultString
-    File.AppendAllText (LrGuesser.resultsDir.FullName + "\\" + filename, resultString + "\n")
+    saveResults testedResults filename
     testedResults
 
 let improveAndTest = improveAndTestWithControllers 0 1.0 learningRateControllers
