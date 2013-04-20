@@ -188,7 +188,7 @@ let recomputeRes filename =
         |> Seq.distinctBy (fun res -> res.Settings.WithCanonicalizedDefaults()) |> Seq.toList
         |> List.map (fun res->res.Settings)
         |> List.filter (fun settings -> settings.ModelType = LvqModelType.G2m)
-        |> List.map (OptimalLrSearch.finalTestSettings >> OptimalLrSearch.printResults >> (fun resline -> File.AppendAllText (LrGuesser.resultsDir.FullName + "\\" + tempStore, resline + "\n"); resline ))
+        |> List.map (OptimalLrSearch.finalTestSettings >> OptimalLrSearch.saveResults)
 
 
 //recomputeRes defaultStore
