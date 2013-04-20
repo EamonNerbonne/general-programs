@@ -43,7 +43,7 @@ namespace LvqGui {
 		public double AnimEpochSuggestion {
 			get {
 				return _ForDataset == null || PrototypesPerClass <= 0 ? double.NaN
-					: 1000.0*1000.0/((settings.EstimateCost(_ForDataset.ClassCount, _ForDataset.Dimensions) + 0.5)*_ForDataset.PointCount(0));
+					: 1000.0 * 1000.0 / ((settings.EstimateCost(_ForDataset.ClassCount, _ForDataset.Dimensions) + 0.5) * _ForDataset.PointCount(0));
 			}
 		}
 
@@ -54,7 +54,7 @@ namespace LvqGui {
 			get { return settings.ModelType; }
 			set {
 				if (!Equals(settings.ModelType, value)) {
-					if (Dimensionality != 0 && value.Is2DModel()) Dimensionality = 2;
+//					if (Dimensionality != 0 && value.IsFixedDimModel()) Dimensionality = 0;
 					settings.ModelType = value;
 					_propertyChanged("ModelType");
 				}
@@ -65,7 +65,7 @@ namespace LvqGui {
 			get { return settings.Dimensionality; }
 			set {
 				if (value < 0 || (ForDataset != null && value > ForDataset.Dimensions)) throw new ArgumentException("Internal dimensionality must be 0 (auto) or between 1 and the dimensions of the data.");
-				if (settings.ModelType.Is2DModel() && value != 2 && value != 0) throw new ArgumentException("2D Projection models must have exactly 2 internal dimensions.");
+				if (settings.ModelType.IsFixedDimModel() && value != 0) throw new ArgumentException("Fixed dimension models cannot specify custom dimensionality.");
 				if (!Equals(settings.Dimensionality, value)) {
 					settings.Dimensionality = value;
 					_propertyChanged("Dimensionality");
@@ -473,6 +473,6 @@ namespace LvqGui {
 	}
 
 	static class LvqModelTypeHelpers {
-		public static bool Is2DModel(this LvqModelType modelType) { return modelType != LvqModelType.Lgm && modelType != LvqModelType.Normal && modelType != LvqModelType.Lpq && modelType != LvqModelType.Gm; }
+		public static bool IsFixedDimModel(this LvqModelType modelType) { return LvqModelSettingsCli.IsFixedDimensionalityModel(modelType); }
 	}
 }

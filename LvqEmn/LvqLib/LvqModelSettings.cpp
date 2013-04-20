@@ -11,6 +11,7 @@
 #include "GmFullLvqModel.h"
 #include "GpqLvqModel.h"
 #include "LpqLvqModel.h"
+#include "LgrLvqModel.h"
 
 #include "LvqDataset.h"
 #include "NeuralGas.h"
@@ -54,6 +55,8 @@ LvqModel* ConstructLvqModel(LvqModelSettings & initSettings) {
 		return new GpqLvqModel(initSettings);
 	case LvqModelSettings::LpqModelType:
 		return new LpqLvqModel(initSettings);
+	case LvqModelSettings::LgrModelType:
+		return new LgrLvqModel(initSettings);
 	default:
 		return 0;
 		break;
@@ -298,8 +301,8 @@ vector< Matrix<LvqFloat, TPointDims, 1> > DistMatByProtos(Matrix<LvqFloat, TPoin
 		if( useLocalCov ) {
 			normalizingMat[protoI] = variances[protoI].array().sqrt().inverse().matrix();
 			double sum = normalizingMat[protoI].sum();
-			double det =  normalizingMat[protoI].determinant();
-			if(!isfinite_emn(sum) || !isfinite_emn(det) || fabs(det) > sqrt(std::numeric_limits<double>::max())) {
+			double det =  normalizingMat[protoI].prod();
+			if(!isfinite_emn(sum) || !isfinite_emn(det) ) {
 				//std::cout<<"hmm: "<<sum<<", "<<det<<"!\n";
 				useLocalCov = false;
 			}
@@ -329,7 +332,7 @@ tuple<vector<Matrix_NN>,Matrix_NN, VectorXi> LvqModelSettings::InitProjectionPro
 
 	if(Bcov) {
 		auto scalingRelevancesByProtos = DistMatByProtos<Eigen::Dynamic>(Dataset->getPoints(), Dataset->getPointLabels(),prototypes,labels);
-		P.reserve(scalingRelevancesByProtos.size());
+		P.resize(scalingRelevancesByProtos.size());
 		for(size_t i = 0;i< scalingRelevancesByProtos.size();++i) {
 			P[i].resizeLike(scalingRelevancesByProtos[i].asDiagonal());
 			P[i]= scalingRelevancesByProtos[i].asDiagonal();
@@ -371,7 +374,7 @@ tuple<Matrix_NN,Matrix_NN, VectorXi> LvqModelSettings::InitRelevanceProtosBySett
 		Vector_N meanPoint(Dataset->getPoints().rowwise().mean());
 		Vector_N variance( (Dataset->getPoints().colwise() - meanPoint).array().square().matrix().rowwise().sum() / ( Dataset->getPoints().cols() - LvqFloat(1.0)));
 		Vector_N relevance( variance.array().sqrt().inverse() );
-		for(size_t i = 0;i< relevances.cols();++i) {
+		for(ptrdiff_t i = 0;i< relevances.cols();++i) {
 			relevances.col(i) = relevance;
 		}
 	}

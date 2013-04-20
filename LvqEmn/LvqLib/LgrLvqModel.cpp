@@ -33,6 +33,7 @@ LgrLvqModel::LgrLvqModel( LvqModelSettings & initSettings)
 	, tmpV1(initSettings.InputDimensions())
 	, tmpV2(initSettings.InputDimensions())
 	, tmpV3(initSettings.InputDimensions())
+	, tmpV4(initSettings.InputDimensions())
 {
 	initSettings.Dimensionality = (int) initSettings.InputDimensions();
 
@@ -54,6 +55,9 @@ LgrLvqModel::LgrLvqModel( LvqModelSettings & initSettings)
 		proto.R = relevances.col(protoIndex);
 		proto.pos.resizeLike(protos.col(protoIndex));
 		proto.pos = protos.col(protoIndex);
+		prototype.push_back(proto);
+		double a = prototype[protoIndex].R.rows();
+		double b = prototype[protoIndex].pos.rows();
 	}
 
 	NormalizeRelevances();

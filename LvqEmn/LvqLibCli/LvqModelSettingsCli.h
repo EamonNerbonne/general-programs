@@ -31,7 +31,7 @@ namespace LvqLibCli {
 	public:
 		property LvqModelType ModelType { LvqModelType get() { return _ModelType.HasValue?_ModelType.Value:LvqModelType::Ggm; } void set(LvqModelType val) { _ModelType = val==LvqModelType::Ggm?Nullable<LvqModelType>():Nullable<LvqModelType>(val); } }
 
-		property int Dimensionality { int get() {return _Dimensionality + 2; } void set(int val) { _Dimensionality = val - 2; } }
+		property int Dimensionality { int get() {return _Dimensionality; } void set(int val) { _Dimensionality = val; } }
 		property int PrototypesPerClass  { int get() {return _PrototypesPerClass + 1; } void set(int val) { _PrototypesPerClass = val - 1; } }
 		property unsigned ParamsSeed  { unsigned get() {return _ParamsSeed + 1; } void set(unsigned val) { _ParamsSeed = val - 1; } }
 		property int ParallelModels  { int get() {return _ParallelModels + 10; } void set(int val) { _ParallelModels = val - 10; } }
@@ -71,6 +71,17 @@ namespace LvqLibCli {
 		static bool operator==(LvqModelSettingsCli a, LvqModelSettingsCli b) { return a.Equals(b); }
 		static bool operator!=(LvqModelSettingsCli a, LvqModelSettingsCli b) { return !a.Equals(b); }
 		virtual bool Equals(LvqModelSettingsCli other) { return Object::Equals(*this, other); }
+
+		static inline bool IsFixedDimensionalityModel(LvqModelType modelType) {
+		return  
+			modelType == LvqModelType::Fgm
+			|| modelType == LvqModelType::Ggm
+			|| modelType == LvqModelType::Gpq
+			|| modelType == LvqModelType::G2m
+			|| modelType == LvqModelType::Normal
+			|| modelType == LvqModelType::Lgr
+			;
+	}
 
 	private:
 		String^ toShorthandRaw();

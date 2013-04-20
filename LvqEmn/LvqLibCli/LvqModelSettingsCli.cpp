@@ -12,9 +12,11 @@ namespace LvqLibCli {
 	}
 	String^ LvqModelSettingsCli::ToShorthand() { return Canonicalize().toShorthandRaw(); }
 
+
+
 	String^ LvqModelSettingsCli::toShorthandRaw() {
 		return ModelType.ToString()
-			+ (Dimensionality != LvqModelSettingsCli().Dimensionality && ModelType != LvqModelType::Normal ? "[" + Dimensionality + "]" : "") + "-" + PrototypesPerClass + ","
+			+ (Dimensionality != LvqModelSettingsCli().Dimensionality && !IsFixedDimensionalityModel(ModelType) ? "[" + Dimensionality + "]" : "") + "-" + PrototypesPerClass + ","
 			+ (Ppca ? "Ppca,":"") + (RandomInitialBorders ? "RandomInitialBorders,":"") + (neiP ? "neiP," : "") + (scP?"scP,":"")+ (noKP ? "noKP," : "") + (neiB ? "neiB," : "")
 			+ (LocallyNormalize ? "LocallyNormalize," : "") + (NGu ? "NGu," : "") + (NGi ? "NGi," : "") + (Popt ? "Popt," : "") + (Bcov ? "Bcov," : "") + (wGMu ? "wGMu," : "") + (SlowK ? "SlowK," : "")
 			+ (NoNnErrorRateTracking ? "NoNnErrorRateTracking," : "") + (LrRaw ? "LrRaw," : "") + (LrPp ? "LrPp," : "")
@@ -55,7 +57,7 @@ namespace LvqLibCli {
 		retval.Bcov = retval.Bcov && (hasB || hasLocalizedP);
 		if(!hasB) retval.LrScaleB=0.0;
 		if(!isGgmVariant && ModelType != LvqModelType::Normal) retval.MuOffset = 0.0;
-		if(ModelType == LvqModelType::Normal) retval.Dimensionality=0;
+		if(IsFixedDimensionalityModel(ModelType)) retval.Dimensionality=0;
 		return retval;
 	}
 	LvqModelSettingsCli LvqModelSettingsCli::WithChanges(LvqModelType type, int protos){
