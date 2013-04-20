@@ -13,7 +13,7 @@ open OptimalLrSearch
 
 let defaultStore = "uniform-results.txt"
 allUniformResults defaultStore
-    |> List.sortBy (fun res->res.GeoMean)
+    |> List.sortBy (fun res->res.Mean2)
     |> Seq.distinctBy (fun res-> res.Settings.WithCanonicalizedDefaults()) |> Seq.toList
     //|> List.filter (fun res->res.Settings.ModelType = LvqModelType.G2m)
     |> List.map printMeanResults

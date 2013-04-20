@@ -154,7 +154,7 @@ let heuristics=
 
 //let basics = ["Ggm-1,";"Ggm-5,";"Gm-1,";"Gm-5,";"G2m-1,";"G2m-5,";"Gpq-1,";"Gpq-5,";"Lgm-1,";"Lgm-5,";"Lgm[6]-1,";"Lgm[6]-5,"] |> List.map CreateLvqModelValues.ParseShorthand
 let basics = ["Ggm-1,";"Ggm-3,";"Ggm-5,";"Gm-1,";"Gm-3,";"Gm-5,";"G2m-1,";"G2m-3,";"G2m-5,";"Gpq-1,";"Gpq-3,";"Gpq-5,";
-                        "Lgm-1,";"Lgm-3,";"Lgm-5,";"Lgm[6]-1,";"Lgm[6]-3,";"Lgm[6]-5,"
+                        "Lgm[3]-1,";"Lgm[3]-3,";"Lgm[3]-5,";"Lgm-1,";"Lgm-3,";"Lgm-5,"
                         ]
                         |> List.map CreateLvqModelValues.ParseShorthand
 
@@ -191,7 +191,7 @@ let recomputeRes filename =
         |> List.map (OptimalLrSearch.finalTestSettings >> OptimalLrSearch.printResults >> (fun resline -> File.AppendAllText (LrGuesser.resultsDir.FullName + "\\" + tempStore, resline + "\n"); resline ))
 
 
-
+//recomputeRes defaultStore
 
 
 let showEffect filename removeRelevantSetting resultsFilter =
