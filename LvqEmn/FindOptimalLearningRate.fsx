@@ -223,6 +223,18 @@ showEffect defaultStore removeEachIterStuffs (fun res->res.Settings.ModelType = 
 
 
 
+let sortFile file = 
+    let newBestList = 
+        allUniformResults file
+        |> List.append (allUniformResults tempStore)
+        |> List.sortBy (fun res->res.Mean2)
+        |> Seq.distinctBy (fun res -> res.Settings.Canonicalize()) |> Seq.toList
+        |> List.map printMeanResults
+    File.Delete (LrGuesser.resultsDir.FullName + file)
+    newBestList
+        |> List.iter (fun line -> File.AppendAllText (LrGuesser.resultsDir.FullName + file, line + "\n"))
+
+
 let bestCurrentSettings () = 
     let newBestList = 
         [defaultStore; newStore; tempStore]
