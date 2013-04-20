@@ -56,8 +56,6 @@ LgrLvqModel::LgrLvqModel( LvqModelSettings & initSettings)
 		proto.pos.resizeLike(protos.col(protoIndex));
 		proto.pos = protos.col(protoIndex);
 		prototype.push_back(proto);
-		double a = prototype[protoIndex].R.rows();
-		double b = prototype[protoIndex].pos.rows();
 	}
 
 	NormalizeRelevances();
