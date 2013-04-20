@@ -229,6 +229,19 @@ let sortFile file =
         |> List.append (allUniformResults tempStore)
         |> List.sortBy (fun res->res.Mean2)
         |> Seq.distinctBy (fun res -> res.Settings.Canonicalize()) |> Seq.toList
+//        |> List.map (fun x -> 
+//            let mutable settings = x.Settings
+//            if settings.ModelType = LvqModelType.Lgm || settings.ModelType = LvqModelType.Lpq || settings.ModelType = LvqModelType.Gm then
+//                settings.Dimensionality <- (
+//                     if settings.Dimensionality = 0 then
+//                         if settings.ModelType = LvqModelType.Gm then 2 else 3
+//                     else if settings.Dimensionality = 6 then
+//                         0
+//                     else 
+//                         settings.Dimensionality
+//                    )
+//            { Mean2 = x.Mean2; NN = x.NN; Test = x.Test; Training = x.Training; Settings = settings }
+//        )
         |> List.map printMeanResults
     File.Delete (LrGuesser.resultsDir.FullName + file)
     newBestList
