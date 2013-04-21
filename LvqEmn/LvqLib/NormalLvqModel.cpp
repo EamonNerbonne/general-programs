@@ -29,10 +29,7 @@ NormalLvqModel::NormalLvqModel(LvqModelSettings & initSettings)
 	, totalMuJLr(0.0)
 	, totalMuKLr(0.0)
 	, sumUpdateSize(0.0)
-	, lastSumUpdateSize(0.0)
 	, updatesOverOne(0)
-	, lastUpdatesOverOne(0)
-	, lastStatIter(0.0)
 	, tmpSrcDimsV1(initSettings.InputDimensions())
 	, tmpSrcDimsV2(initSettings.InputDimensions())
 	, tmpSrcDimsV3(initSettings.InputDimensions())
@@ -68,7 +65,6 @@ NormalLvqModel::NormalLvqModel(LvqModelSettings & initSettings)
 
 		P[protoIndex].resizeLike(initP[protoIndex] );
 		P[protoIndex] = initP[protoIndex];
-
 
 		pBias(protoIndex) = ComputeBias(P[protoIndex]);
 	}
@@ -215,12 +211,12 @@ void NormalLvqModel::AppendTrainingStatNames(std::vector<std::wstring> & retval)
 	retval.push_back(L"Cumulative \u03BC-J-scaled Learning Rate!!Cumulative \u03BC-scaled Learning Rates");
 	retval.push_back(L"Cumulative \u03BC-K-scaled Learning Rate!!Cumulative \u03BC-scaled Learning Rates");
 
-	retval.push_back(L"Mean update size!!Mean update size");
-
-	retval.push_back(L"Proportion of updates over 1!!Mean update size");
-	retval.push_back(L"mu offset scaling!!Rates");
-	retval.push_back(L"base learning rate!!Rates");
 	retval.push_back(L"Cumulative update size!!Cumulative update size");
+
+	retval.push_back(L"Cumulative count!!Updates over 1");
+	retval.push_back(L"mu offset scaling!!MuJ Offset");
+	retval.push_back(L"base learning rate!!Learning Rate");
+	retval.push_back(L"Mean update size!!Mean update size");
 
 
 	for(size_t i=0;i<prototype.size();++i) {
@@ -255,15 +251,12 @@ void NormalLvqModel::AppendOtherStats(std::vector<double> & stats, LvqDataset co
 	stats.push_back(totalMuKLr);
 
 	//if(trainIter > lastStatIter) 
-	stats.push_back((sumUpdateSize - lastSumUpdateSize)  /  (trainIter - lastStatIter) );// / (trainIter - lastStatIter)
-	stats.push_back((updatesOverOne - lastUpdatesOverOne)  /  (trainIter - lastStatIter) );// / (trainIter - lastStatIter)
+	stats.push_back(sumUpdateSize );// / (trainIter - lastStatIter)
+	stats.push_back(updatesOverOne );// / (trainIter - lastStatIter)
 	stats.push_back(hasNoMuOffset(trainIter)?0.0:scaleMuOffset(trainIter) );// / (trainIter - lastStatIter)
 	stats.push_back(meanUnscaledLearningRate() );// / (trainIter - lastStatIter)
-	lastStatIter=trainIter;
-	lastUpdatesOverOne = updatesOverOne;
-	lastSumUpdateSize = sumUpdateSize;
 
-	stats.push_back(sumUpdateSize);
+	stats.push_back(sumUpdateSize / trainIter);
 	//	else
 	//stats.push_back(numeric_limits<double>::quiet_NaN());
 	//logSumUpdateSize = 0.0;

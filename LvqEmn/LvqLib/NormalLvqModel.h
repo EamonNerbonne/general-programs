@@ -49,12 +49,8 @@ class NormalLvqModel : public LvqModel, public LvqModelFindMatches<NormalLvqMode
 	Vector_N pBias;
 	double totalMuJLr,totalMuKLr;
 	double sumUpdateSize;
-	mutable double lastSumUpdateSize;
 
 	unsigned updatesOverOne;
-	mutable unsigned lastUpdatesOverOne;
-
-	mutable double lastStatIter;
 
 	//calls dimensionality of input-space DIMS, output space DIMSOUT
 	//we will preallocate a few vectors to reduce malloc/free overhead.
