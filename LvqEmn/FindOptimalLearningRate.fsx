@@ -34,6 +34,48 @@ let optimizeSettingsList =
         >> Seq.map (improveAndTestWithControllers 0 1.0 allControllers newStore)
         >> Seq.toList
 
+
+let sortFile file = 
+    let newBestList = 
+        allUniformResults file
+        |> List.append (allUniformResults tempStore)
+        |> List.sortBy (fun res->res.Mean2)
+        |> Seq.distinctBy (fun res -> res.Settings.Canonicalize()) |> Seq.toList
+        |> List.map printMeanResults
+    File.Delete (LrGuesser.resultsDir.FullName + file)
+    newBestList
+        |> List.iter (fun line -> File.AppendAllText (LrGuesser.resultsDir.FullName + file, line + "\n"))
+//for file in [defaultStore;newStore;tempStore;decayStore;temp2Store] do
+//    sortFile file
+
+
+[
+    "Lgr-1,"
+    "Lgr-1,SlowK,"
+    "Lgr-2,"
+    "Lgr-2,SlowK,"
+    "Lgr-2,NGi,"
+    "Lgr-2,NGi,SlowK,"
+    "Lgr-3,"
+    "Lgr-3,SlowK,"
+    "Lgr-3,NGi,"
+    "Lgr-3,NGi,SlowK,"
+    "Lgr-5,"
+    "Lgr-5,SlowK,"
+    "Lgr-5,NGi,"
+    "Lgr-5,NGi,SlowK,"
+    ]
+    |> optimizeSettingsList
+
+[
+    "Lgr-8,"
+    "Lgr-8,SlowK,"
+    "Lgr-8,NGi,"
+    "Lgr-8,NGi,SlowK,"
+    ]
+    |> optimizeSettingsList
+
+
         
 [
     "Normal-1,mu0.01,"
@@ -221,18 +263,6 @@ let removeEachIterStuffs settings =
                                             newSettings
 showEffect defaultStore removeEachIterStuffs (fun res->res.Settings.ModelType = LvqModelType.Ggm && res.Settings.PrototypesPerClass = 3)
 
-
-
-let sortFile file = 
-    let newBestList = 
-        allUniformResults file
-        |> List.append (allUniformResults tempStore)
-        |> List.sortBy (fun res->res.Mean2)
-        |> Seq.distinctBy (fun res -> res.Settings.Canonicalize()) |> Seq.toList
-        |> List.map printMeanResults
-    File.Delete (LrGuesser.resultsDir.FullName + file)
-    newBestList
-        |> List.iter (fun line -> File.AppendAllText (LrGuesser.resultsDir.FullName + file, line + "\n"))
 
 
 let bestCurrentSettings () = 
