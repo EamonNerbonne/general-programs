@@ -84,6 +84,8 @@ namespace LvqGui {
 				lvqPlotContainer.ShowTestEmbedding(Values.TrainingControlValues.ShowTestEmbedding);
 			if (e.PropertyName == "ShowTestErrorRates" && lvqPlotContainer != null)
 				lvqPlotContainer.ShowTestErrorRates(Values.TrainingControlValues.ShowTestErrorRates);
+			if (e.PropertyName == "ShowNnErrorRates" && lvqPlotContainer != null)
+				lvqPlotContainer.ShowNnErrorRates(Values.TrainingControlValues.ShowNnErrorRates);
 			if (e.PropertyName == "CurrProjStats" && lvqPlotContainer != null)
 				lvqPlotContainer.ShowCurrentProjectionStats(Values.TrainingControlValues.CurrProjStats);
 			if (e.PropertyName == "SelectedDataset" || e.PropertyName == "SelectedLvqModel" || e.PropertyName == "SubModelIndex")

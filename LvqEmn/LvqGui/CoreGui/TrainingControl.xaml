@@ -97,6 +97,7 @@
             <CheckBox Content="Show Prototypes" IsChecked="{Binding ShowPrototypes}"/>
             <CheckBox Content="Show Test instead of Training embedding" IsChecked="{Binding ShowTestEmbedding}"/>
             <CheckBox Content="Show Test error rates" IsChecked="{Binding ShowTestErrorRates}"/>
+            <CheckBox Content="Show Nn error rates" IsChecked="{Binding ShowNnErrorRates}"/>
         </StackPanel>
         <ListView ItemsSource="{Binding ModelClasses, Mode=OneWay}" Grid.Row="9" Grid.ColumnSpan="2" Background="Transparent" BorderThickness="0">
             <ListView.ItemTemplate>

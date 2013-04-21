@@ -71,10 +71,16 @@ namespace LvqGui {
 					retval = lvqPlotDispatcher.BeginInvoke(() => {
 						foreach (var plot in subplots.statPlots)
 							if (LvqStatPlotFactory.IsCurrPlot(plot)) {
-								plot.MetaData.Hidden = viewMode == StatisticsViewMode.MeanAndStderr || !currShowTestErrorRates && LvqStatPlotFactory.IsTestPlot(plot);
+								plot.MetaData.Hidden = viewMode == StatisticsViewMode.MeanAndStderr 
+									|| !currShowTestErrorRates && LvqStatPlotFactory.IsTestPlot(plot)
+									|| !currShowNnErrorRates && LvqStatPlotFactory.IsNnPlot(plot)
+									;
 								((VizLineSegments)((ITranformed<Point[]>)plot).Implementation).DashStyle = viewMode == StatisticsViewMode.CurrentOnly ? DashStyles.Solid : LvqStatPlotFactory.CurrPlotDashStyle;
 							} else
-								plot.MetaData.Hidden = viewMode == StatisticsViewMode.CurrentOnly || !currShowTestErrorRates && LvqStatPlotFactory.IsTestPlot(plot);
+								plot.MetaData.Hidden = viewMode == StatisticsViewMode.CurrentOnly 
+									|| !currShowTestErrorRates && LvqStatPlotFactory.IsTestPlot(plot)
+									|| !currShowNnErrorRates && LvqStatPlotFactory.IsNnPlot(plot)
+									;
 					}).AsTask();
 				currViewMode = viewMode;
 			}
@@ -115,6 +121,19 @@ namespace LvqGui {
 			QueueUpdate();
 		}
 
+		bool currShowNnErrorRates;
+		public void ShowNnErrorRates(bool showNnErrorRates) {
+			currShowNnErrorRates = showNnErrorRates;
+			lock (plotsSync)
+				if (subplots != null && subplots.plots != null)
+					lvqPlotDispatcher.BeginInvoke(() => {
+						if (subplots != null && subplots.plots != null)
+							foreach (var plot in subplots.plots.SelectMany(plot => plot.Graphs).Where(LvqStatPlotFactory.IsNnPlot))
+								plot.MetaData.Hidden = !showNnErrorRates
+									|| currViewMode == (LvqStatPlotFactory.IsCurrPlot(plot) ? StatisticsViewMode.MeanAndStderr : StatisticsViewMode.CurrentOnly);
+					});
+			QueueUpdate();
+		}
 
 
 		void RelayoutSubPlotWindow(bool resetChildrenFirst = false) {
@@ -163,20 +182,34 @@ namespace LvqGui {
 				Grid.SetColumn(visibleChildren[i], i % layout.CellsWide);
 			}
 		}
-
+		HashSet<string> VisiblePlots = new HashSet<string>(new[] { "embed", "NN Error", "Error Rates" });
 		void BuildContextMenu(IEnumerable<PlotControl> plots) {
-			var items = plots.Select(plot => new MenuItem { Header = plot.PlotName, IsCheckable = true, IsChecked = plot.Visibility == Visibility.Visible, Tag = plot }).ToArray();
-			foreach (var menuitem in items) {
-				menuitem.Checked += menuitem_Checked;
-				menuitem.Unchecked += menuitem_Checked;
+			List<MenuItem> items = new List<MenuItem>();
+			foreach (var plot in plots) {
+				var visible = VisiblePlots.Contains(plot.PlotName);
+				plot.Visibility = visible ? Visibility.Visible : Visibility.Collapsed;
+				var menuItem = new MenuItem {
+					Header = plot.PlotName,
+					IsCheckable = true,
+					IsChecked = plot.Visibility == Visibility.Visible,
+					Tag = plot
+				};
+				menuItem.Checked += menuitem_Checked;
+				menuItem.Unchecked += menuitem_Checked;
+				items.Add(menuItem);
 			}
-			subPlotWindow.ContextMenu = new ContextMenu { ItemsSource = items };
+
+			subPlotWindow.ContextMenu = new ContextMenu { ItemsSource = items.ToArray() };
 		}
 
 		void menuitem_Checked(object sender, RoutedEventArgs e) {
 			MenuItem item = (MenuItem)sender;
 			PlotControl plot = (PlotControl)item.Tag;
 			plot.Visibility = item.IsChecked ? Visibility.Visible : Visibility.Collapsed;
+			if (item.IsChecked)
+				VisiblePlots.Add(plot.PlotName);
+			else
+				VisiblePlots.Remove(plot.PlotName);
 			RelayoutSubPlotWindow();
 		}
 		Window subPlotWindow;

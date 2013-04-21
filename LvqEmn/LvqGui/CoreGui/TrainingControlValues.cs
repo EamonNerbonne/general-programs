@@ -37,7 +37,7 @@ namespace LvqGui {
 
 		public IEnumerable<LvqMultiModel> MatchingLvqModels { get { return Owner.LvqModels.Where(model => model == null || model.InitSet == SelectedDataset); } } // model.FitsDataShape(SelectedDataset) is unhandy
 
-		public double ItersPerEpoch { get { return SelectedDataset == null ? double.NaN : LvqMultiModel.GetItersPerEpoch(SelectedDataset,0); } }
+		public double ItersPerEpoch { get { return SelectedDataset == null ? double.NaN : LvqMultiModel.GetItersPerEpoch(SelectedDataset, 0); } }
 
 
 		public LvqMultiModel SelectedLvqModel {
@@ -96,7 +96,11 @@ namespace LvqGui {
 		}
 		private bool _ShowTestErrorRates;
 
-		
+		public bool ShowNnErrorRates {
+			get { return _ShowNnErrorRates; }
+			set { if (!_ShowNnErrorRates.Equals(value)) { _ShowNnErrorRates = value; _propertyChanged("ShowNnErrorRates"); } }
+		}
+		private bool _ShowNnErrorRates;
 
 		public int EpochsPerClick {
 			get { return _EpochsPerClick; }
