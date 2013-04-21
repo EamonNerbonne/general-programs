@@ -49,32 +49,6 @@ let sortFile file =
 //    sortFile file
 
 
-[
-    "Lgr-1,"
-    "Lgr-1,SlowK,"
-    "Lgr-2,"
-    "Lgr-2,SlowK,"
-    "Lgr-2,NGi,"
-    "Lgr-2,NGi,SlowK,"
-    "Lgr-3,"
-    "Lgr-3,SlowK,"
-    "Lgr-3,NGi,"
-    "Lgr-3,NGi,SlowK,"
-    "Lgr-5,"
-    "Lgr-5,SlowK,"
-    "Lgr-5,NGi,"
-    "Lgr-5,NGi,SlowK,"
-    ]
-    |> optimizeSettingsList
-
-[
-    "Lgr-8,"
-    "Lgr-8,SlowK,"
-    "Lgr-8,NGi,"
-    "Lgr-8,NGi,SlowK,"
-    ]
-    |> optimizeSettingsList
-
 
         
 
@@ -249,92 +223,13 @@ let bestCurrentSettings () =
 //showNeiEffect defaultStore |> printfn "%A"
 
 
-[
-    "Fgm-1,mu0.1,"
-    "Fgm-1,scP,mu0.1,"
-    "Fgm-1,scP,Ppca,mu0.1,"
-    "Fgm-1,scP,Popt,mu0.1,"
-    "Fgm-1,scP,Ppca,Popt,mu0.1,"
-    "Fgm-1,SlowK,mu0.1,"
-    "Fgm-1,SlowK,scP,mu0.1,"
-    "Fgm-1,SlowK,scP,Ppca,mu0.1,"
-    "Fgm-1,SlowK,scP,Popt,mu0.1,"
-    "Fgm-1,SlowK,scP,Ppca,Popt,mu0.1,"
-    ]
-    |> optimizeSettingsList
-
-
-[
-    "Ggm-1,mu0.01,"
-    "Ggm-1,mu0.03,"
-    "Ggm-1,mu0.1,"
-    "Ggm-1,SlowK,mu0.01,"
-    "Ggm-1,SlowK,mu0.03,"
-    "Ggm-1,SlowK,mu0.1,"
-    "Ggm-1,Ppca,mu0.01,"
-    "Ggm-1,Ppca,mu0.03,"
-    "Ggm-1,Ppca,mu0.1,"
-    "Ggm-1,Bcov,mu0.01,"
-    "Ggm-1,Bcov,mu0.03,"
-    "Ggm-1,Bcov,mu0.1,"
-    "Ggm-1,Bcov,Ppca,mu0.01,"
-    "Ggm-1,Bcov,Ppca,mu0.03,"
-    "Ggm-1,Bcov,Ppca,mu0.1,"
-    "Ggm-1,SlowK,Ppca,mu0.01,"
-    "Ggm-1,SlowK,Ppca,mu0.03,"
-    "Ggm-1,SlowK,Ppca,mu0.1,"
-    "Ggm-1,SlowK,Bcov,mu0.01,"
-    "Ggm-1,SlowK,Bcov,mu0.03,"
-    "Ggm-1,SlowK,Bcov,mu0.1,"
-    "Ggm-1,SlowK,Ppca,Bcov,mu0.01,"
-    "Ggm-1,SlowK,Ppca,Bcov,mu0.03,"
-    "Ggm-1,SlowK,Ppca,Bcov,mu0.1,"
-    ]
-    |> optimizeSettingsList
-
-
         
 [
-    "Normal-1,mu0.01,"
-    "Normal-1,mu0.01,SlowK,"
     "Normal-1,mu0.01,Bcov,"
-    "Normal-1,mu0.01,Bcov,SlowK,"
-    "Normal-1,"
-    "Normal-1,SlowK,"
-    "Normal-1,Bcov,"
-    "Normal-1,Bcov,SlowK,"
-    "Normal-2,mu0.01,"
     "Normal-2,NGi,mu0.01,"
-    "Normal-2,mu0.01,SlowK,"
-    "Normal-2,NGi,mu0.01,SlowK,"
-    "Normal-2,mu0.01,Bcov,"
     "Normal-2,NGi,mu0.01,Bcov,"
-    "Normal-2,mu0.01,SlowK,Bcov,"
-    "Normal-2,NGi,mu0.01,SlowK,Bcov,"
-    "Normal-2,"
-    "Normal-2,NGi,"
-    "Normal-2,SlowK,"
-    "Normal-2,NGi,SlowK,"
-    "Normal-2,Bcov,"
-    "Normal-2,NGi,Bcov,"
-    "Normal-2,SlowK,Bcov,"
-    "Normal-2,NGi,SlowK,Bcov,"
-    "Normal-3,mu0.01,"
     "Normal-3,NGi,mu0.01,"
-    "Normal-3,mu0.01,SlowK,"
-    "Normal-3,NGi,mu0.01,SlowK,"
-    "Normal-3,mu0.01,Bcov,"
     "Normal-3,NGi,mu0.01,Bcov,"
-    "Normal-3,mu0.01,SlowK,Bcov,"
-    "Normal-3,NGi,mu0.01,SlowK,Bcov,"
-    "Normal-3,"
-    "Normal-3,NGi,"
-    "Normal-3,SlowK,"
-    "Normal-3,NGi,SlowK,"
-    "Normal-3,Bcov,"
-    "Normal-3,NGi,Bcov,"
-    "Normal-3,SlowK,Bcov,"
-    "Normal-3,NGi,SlowK,Bcov,"
     ]
     |> optimizeSettingsList
 
