@@ -48,28 +48,23 @@ LgmLvqModel::LgmLvqModel( LvqModelSettings & initSettings)
 	initSettings.AssertModelIsOfRightType(this);
 
 	using namespace std;
-	auto projAndProtos = initSettings.InitProtosAndProjectionBySetting();
-	auto initP = get<0>(projAndProtos);
+	auto InitProtos = initSettings.InitProjectionProtosBySetting();
+	auto initP = get<0>(InitProtos);
 
-	pLabel.resize( get<2>(projAndProtos).size());
-	pLabel = get<2>(projAndProtos);
+	Matrix_NN prototypes = get<1>(InitProtos);
+	pLabel.resizeLike(get<2>(InitProtos));
+	pLabel = get<2>(InitProtos);
+
 	size_t protoCount = pLabel.size();
 	prototype.resize(protoCount);
 	P.resize(protoCount);
 
 	for(size_t protoIndex = 0; protoIndex < protoCount; ++protoIndex) {
 		prototype[protoIndex].resize(initSettings.InputDimensions());
-		P[protoIndex].resize(initP.rows(),initP.cols());
-		prototype[protoIndex] = get<1>(projAndProtos).col(protoIndex);
-		
-		if(initSettings.Ppca || initSettings.Popt) {
-			Matrix_NN rot = Matrix_NN(initP.rows(), initP.rows());
-			randomProjectionMatrix(initSettings.RngParams, rot);
-			P[protoIndex] = rot * initP;
-		}else {
-			randomProjectionMatrix(initSettings.RngParams, P[protoIndex]);
-		}
-		normalizeProjection(P[protoIndex]);
+		prototype[protoIndex] = prototypes.col(protoIndex);
+
+		P[protoIndex].resizeLike(initP[protoIndex] );
+		P[protoIndex] = initP[protoIndex];
 	}
 
 	NormalizeP(settings.LocallyNormalize, P);
