@@ -8,7 +8,7 @@ void LvqProjectionModel::AppendTrainingStatNames(std::vector<std::wstring> & ret
 	if(!dynamic_cast<GgmLvqModel const*>(this))
 		retval.push_back(L"Projection Norm!norm!$Projection Norm");
 	if(!settings.NoNnErrorRateTracking)
-		retval.push_back(L"Projected NN Error Rate!error rate!NN Error");
+		retval.push_back(L"NN Error!error rate!Error Rates");
 }
 
 void LvqProjectionModel::AppendOtherStats(std::vector<double> & stats, LvqDataset const * trainingSet, LvqDataset const * testSet) const { 
