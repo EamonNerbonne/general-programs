@@ -77,6 +77,7 @@ let printResults = toMeanResults >> printMeanResults
 
 let testSettings parOverride rndSeed iterCount (settings : LvqModelSettingsCli)  =
     let foldGroupCount = (parOverride+9)/10
+    let relevantDatasets =  if settings.IsProjectionModel() then datasets |> List.rev |> List.tail |> List.rev else datasets
     let results =
         [
             for datasetGenerator in datasets -> 
@@ -88,10 +89,12 @@ let testSettings parOverride rndSeed iterCount (settings : LvqModelSettingsCli) 
                             let rndSeedOffset = 2u * rndSeed + uint32 groupOffset
                             parsettings.ParamsSeed <- rndSeedOffset + 1u
                             parsettings.InstanceSeed <- rndSeedOffset
-
+                            //printfn "INIT %s %f %s" dataset.DatasetLabel iterCount (parsettings.ToShorthand())
                             let model = new LvqMultiModel(dataset,parsettings,false)
+                            //printfn "OPTI %s %f %s" dataset.DatasetLabel iterCount (parsettings.ToShorthand())
                             model.TrainUptoIters(iterCount, CancellationToken.None)
                             model.TrainUptoEpochs(1, CancellationToken.None)//always train at least 1 epoch
+                            //printfn "EVAL %s %f %s" dataset.DatasetLabel iterCount (parsettings.ToShorthand())
                             let errs = 
                                 model.EvaluateFullStats() 
                                 |> Seq.map (fun stat-> 
@@ -102,6 +105,7 @@ let testSettings parOverride rndSeed iterCount (settings : LvqModelSettingsCli) 
                                             yield stat.values.[model.nnErrIdx]    
                                     ]
                                 ) |> List.ofSeq
+                            //printfn "STOP %s %f %s" dataset.DatasetLabel iterCount (parsettings.ToShorthand())
                             errs
                         ), TaskCreationOptions.LongRunning)
                 ] //we have a list (per dataset) of a list (per 10-fold group) of a Task returing a list per fold of a list per error type
@@ -300,6 +304,12 @@ let lowerPriority () =
         use proc = System.Diagnostics.Process.GetCurrentProcess ()
         proc.PriorityClass <- System.Diagnostics.ProcessPriorityClass.Idle
 
+let saveResults (filename:string) (results:TestResults) =
+   let resultString:string = printResults results 
+   File.AppendAllText (LrGuesser.resultsDir.FullName + "\\" + filename, resultString + "\n")
+   Console.WriteLine resultString
+   Console.WriteLine DateTime.Now
+
 
 let improveAndTestWithControllers offset scaleSearchRange controllersToOptimize filename (initialSettings:LvqModelSettingsCli) =
     lowerPriority ()
@@ -310,10 +320,7 @@ let improveAndTestWithControllers offset scaleSearchRange controllersToOptimize 
                                |> List.map (fun controller -> { Controller = controller; LrLogDevScale = controller.InitLrLogDevScale * scaleSearchRange})
     let improvedSettings = fullyImprove offset (states, initialSettings) |> snd
     let testedResults = finalTestSettings improvedSettings
-    let resultString = printResults testedResults
-    Console.WriteLine DateTime.Now
-    Console.WriteLine resultString
-    File.AppendAllText (LrGuesser.resultsDir.FullName + "\\" + filename, resultString + "\n")
+    saveResults filename testedResults
     testedResults
 
 let improveAndTest = improveAndTestWithControllers 0 1.0 learningRateControllers

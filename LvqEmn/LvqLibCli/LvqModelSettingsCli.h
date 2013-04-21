@@ -73,15 +73,25 @@ namespace LvqLibCli {
 		virtual bool Equals(LvqModelSettingsCli other) { return Object::Equals(*this, other); }
 
 		static inline bool IsFixedDimensionalityModel(LvqModelType modelType) {
-		return  
-			modelType == LvqModelType::Fgm
-			|| modelType == LvqModelType::Ggm
-			|| modelType == LvqModelType::Gpq
-			|| modelType == LvqModelType::G2m
-			|| modelType == LvqModelType::Normal
-			|| modelType == LvqModelType::Lgr
-			;
-	}
+			return  
+				modelType == LvqModelType::Fgm
+				|| modelType == LvqModelType::Ggm
+				|| modelType == LvqModelType::Gpq
+				|| modelType == LvqModelType::G2m
+				|| modelType == LvqModelType::Normal
+				|| modelType == LvqModelType::Lgr
+				;
+		}
+
+		inline bool IsProjectionModel() {
+			return  
+				ModelType == LvqModelType::Fgm
+				|| ModelType == LvqModelType::Ggm
+				|| ModelType == LvqModelType::Gpq
+				|| ModelType == LvqModelType::G2m
+				|| ModelType == LvqModelType::Gm && Dimensionality == 2
+				;
+		}
 
 	private:
 		String^ toShorthandRaw();
