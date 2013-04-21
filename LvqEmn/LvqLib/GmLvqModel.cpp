@@ -23,6 +23,7 @@ GmLvqModel::GmLvqModel(LvqModelSettings & initSettings)
 
 	P.resize(initSettings.Dimensionality, initSettings.InputDimensions());
 	P = get<0>(InitProtos);
+	normalizeProjection(P);
 
 	prototype.resize(protoCount);
 	P_prototype.resize(protoCount);

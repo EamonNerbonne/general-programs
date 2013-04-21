@@ -25,6 +25,7 @@ GmFullLvqModel::GmFullLvqModel(LvqModelSettings & initSettings)
 	size_t protoCount = pLabel.size();
 	P.resizeLike(get<0>(InitProtos));
 	P = get<0>(InitProtos);
+	normalizeProjection(P);
 
 	prototype.resize(protoCount);
 	P_prototype.resize(protoCount);

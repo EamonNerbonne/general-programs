@@ -331,11 +331,11 @@ tuple<vector<Matrix_NN>,Matrix_NN, VectorXi> LvqModelSettings::InitProjectionPro
 	vector<Matrix_NN> P;
 
 	if(Bcov) {
-		auto scalingRelevancesByProtos = DistMatByProtos<Eigen::Dynamic>(Dataset->getPoints(), Dataset->getPointLabels(),prototypes,labels);
+		auto scalingRelevancesByProtos = DistMatByProtos<Eigen::Dynamic>(coreP * Dataset->getPoints(), Dataset->getPointLabels(),prototypes,labels);
 		P.resize(scalingRelevancesByProtos.size());
 		for(size_t i = 0;i< scalingRelevancesByProtos.size();++i) {
-			P[i].resizeLike(scalingRelevancesByProtos[i].asDiagonal());
-			P[i]= scalingRelevancesByProtos[i].asDiagonal();
+			P[i].resizeLike(coreP);
+			P[i]=MakeUpperTriangular<Matrix_NN>(scalingRelevancesByProtos[i].asDiagonal() * coreP);
 		}
 	}else
 		for(ptrdiff_t i = 0;i< prototypes.cols(); ++i) {
@@ -466,6 +466,5 @@ Matrix_NN LvqModelSettings::initTransform() {
 		P = pcaTransform();
 	else
 		randomProjectionMatrix(RngParams, P);
-	normalizeProjection(P);
 	return P;
 }

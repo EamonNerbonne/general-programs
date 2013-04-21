@@ -146,12 +146,12 @@ MatchQuality NormalLvqModel::learnFrom(Vector_N const & trainPoint, int trainLab
 		);
 	LvqFloat updateSize = updateSizeJ + updateSizeK;
 
-	if(updateSize > 1) {
+	if(updateSize > 1.0) {
 		//cout<< trainIter<<": "<<updateSize<<"!\n";
 		muJ2_alt/= updateSize;
 		muK2 /= updateSize;
 		updatesOverOne++;
-		sumUpdateSize += 1;
+		sumUpdateSize += 1.0;
 	} else 
 		sumUpdateSize += updateSize;
 	prototype[J].noalias() += (lr_point * muJ2_alt) * dpJ;// P[J].transpose()* ((lr_point * muJ2_alt) * Pj_vJ);
@@ -212,8 +212,8 @@ void NormalLvqModel::AppendTrainingStatNames(std::vector<std::wstring> & retval)
 	retval.push_back(L"Cumulative \u03BC-K-scaled Learning Rate!!Cumulative \u03BC-scaled Learning Rates");
 
 	retval.push_back(L"Cumulative update size!!Cumulative update size");
+	retval.push_back(L"Updates over 1!!Updates over 1");
 
-	retval.push_back(L"Cumulative count!!Updates over 1");
 	retval.push_back(L"mu offset scaling!!MuJ Offset");
 	retval.push_back(L"base learning rate!!Learning Rate");
 	retval.push_back(L"Mean update size!!Mean update size");

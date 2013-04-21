@@ -22,6 +22,7 @@ GpqLvqModel::GpqLvqModel(LvqModelSettings & initSettings)
 
 	auto InitProtos = initSettings.InitProtosProjectionBoundariesBySetting();
 	P = get<0>(InitProtos);
+	normalizeProjection(P);
 	Matrix_NN prototypes = get<1>(InitProtos);
 	VectorXi protoLabels = get<2>(InitProtos);
 	vector<Matrix_22> initB = get<3>(InitProtos);
