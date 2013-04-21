@@ -34,50 +34,6 @@ let optimizeSettingsList =
         >> Seq.map (improveAndTestWithControllers 0 1.0 allControllers newStore)
         >> Seq.toList
 
-        
-[
-    "Normal-1,mu0.01,"
-    "Normal-1,mu0.01,SlowK,"
-    "Normal-1,mu0.01,Bcov,"
-    "Normal-1,mu0.01,Bcov,SlowK,"
-    "Normal-1,"
-    "Normal-1,SlowK,"
-    "Normal-1,Bcov,"
-    "Normal-1,Bcov,SlowK,"
-    "Normal-2,mu0.01,"
-    "Normal-2,NGi,mu0.01,"
-    "Normal-2,mu0.01,SlowK,"
-    "Normal-2,NGi,mu0.01,SlowK,"
-    "Normal-2,mu0.01,Bcov,"
-    "Normal-2,NGi,mu0.01,Bcov,"
-    "Normal-2,mu0.01,SlowK,Bcov,"
-    "Normal-2,NGi,mu0.01,SlowK,Bcov,"
-    "Normal-2,"
-    "Normal-2,NGi,"
-    "Normal-2,SlowK,"
-    "Normal-2,NGi,SlowK,"
-    "Normal-2,Bcov,"
-    "Normal-2,NGi,Bcov,"
-    "Normal-2,SlowK,Bcov,"
-    "Normal-2,NGi,SlowK,Bcov,"
-    "Normal-3,mu0.01,"
-    "Normal-3,NGi,mu0.01,"
-    "Normal-3,mu0.01,SlowK,"
-    "Normal-3,NGi,mu0.01,SlowK,"
-    "Normal-3,mu0.01,Bcov,"
-    "Normal-3,NGi,mu0.01,Bcov,"
-    "Normal-3,mu0.01,SlowK,Bcov,"
-    "Normal-3,NGi,mu0.01,SlowK,Bcov,"
-    "Normal-3,"
-    "Normal-3,NGi,"
-    "Normal-3,SlowK,"
-    "Normal-3,NGi,SlowK,"
-    "Normal-3,Bcov,"
-    "Normal-3,NGi,Bcov,"
-    "Normal-3,SlowK,Bcov,"
-    "Normal-3,NGi,SlowK,Bcov,"
-    ]
-    |> optimizeSettingsList
 
 
 let heuristics=
@@ -188,10 +144,9 @@ let recomputeRes filename =
         |> Seq.distinctBy (fun res -> res.Settings.WithCanonicalizedDefaults()) |> Seq.toList
         |> List.map (fun res->res.Settings)
         |> List.filter (fun settings -> settings.ModelType = LvqModelType.G2m)
-        |> List.map (OptimalLrSearch.finalTestSettings >> OptimalLrSearch.saveResults)
+        |> List.map (OptimalLrSearch.finalTestSettings >> OptimalLrSearch.saveResults tempStore)
 
 
-//recomputeRes defaultStore
 
 
 let showEffect filename removeRelevantSetting resultsFilter =
@@ -307,3 +262,50 @@ let bestCurrentSettings () =
     ]
     |> optimizeSettingsList
 
+
+        
+[
+    "Normal-1,mu0.01,"
+    "Normal-1,mu0.01,SlowK,"
+    "Normal-1,mu0.01,Bcov,"
+    "Normal-1,mu0.01,Bcov,SlowK,"
+    "Normal-1,"
+    "Normal-1,SlowK,"
+    "Normal-1,Bcov,"
+    "Normal-1,Bcov,SlowK,"
+    "Normal-2,mu0.01,"
+    "Normal-2,NGi,mu0.01,"
+    "Normal-2,mu0.01,SlowK,"
+    "Normal-2,NGi,mu0.01,SlowK,"
+    "Normal-2,mu0.01,Bcov,"
+    "Normal-2,NGi,mu0.01,Bcov,"
+    "Normal-2,mu0.01,SlowK,Bcov,"
+    "Normal-2,NGi,mu0.01,SlowK,Bcov,"
+    "Normal-2,"
+    "Normal-2,NGi,"
+    "Normal-2,SlowK,"
+    "Normal-2,NGi,SlowK,"
+    "Normal-2,Bcov,"
+    "Normal-2,NGi,Bcov,"
+    "Normal-2,SlowK,Bcov,"
+    "Normal-2,NGi,SlowK,Bcov,"
+    "Normal-3,mu0.01,"
+    "Normal-3,NGi,mu0.01,"
+    "Normal-3,mu0.01,SlowK,"
+    "Normal-3,NGi,mu0.01,SlowK,"
+    "Normal-3,mu0.01,Bcov,"
+    "Normal-3,NGi,mu0.01,Bcov,"
+    "Normal-3,mu0.01,SlowK,Bcov,"
+    "Normal-3,NGi,mu0.01,SlowK,Bcov,"
+    "Normal-3,"
+    "Normal-3,NGi,"
+    "Normal-3,SlowK,"
+    "Normal-3,NGi,SlowK,"
+    "Normal-3,Bcov,"
+    "Normal-3,NGi,Bcov,"
+    "Normal-3,SlowK,Bcov,"
+    "Normal-3,NGi,SlowK,Bcov,"
+    ]
+    |> optimizeSettingsList
+
+//recomputeRes defaultStore
