@@ -205,7 +205,7 @@ let muControl =  {
 
 let learningRateControllers = [lr0control; lrPcontrol; lrBcontrol]
 let decayControllers = [iterScaleControl; decayControl; lr0control]
-let allControllers = [muControl; lr0control;iterScaleControl; lrPcontrol; lrBcontrol; decayControl ]
+let allControllers = [lr0control; muControl; iterScaleControl; lrPcontrol; lrBcontrol; decayControl ]
 
 let improveLr (testResultList:TestResults list) (lrUnpack, lrPack) =
     let errMargin = 0.01
