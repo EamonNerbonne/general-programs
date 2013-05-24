@@ -70,8 +70,8 @@ NormalLvqModel::NormalLvqModel(LvqModelSettings & initSettings)
 	}
 }
 
-inline bool hasNoMuOffset(double trainIter) { return trainIter >= 400000.0; }
-inline double scaleMuOffset(double trainIter) { return sqr(sqr(sqr(1.0 - trainIter/400000.0))); }
+inline bool hasNoMuOffset(double trainIter, double scale) { return trainIter*scale >= 65.0; }
+inline double scaleMuOffset(double trainIter, double scale) { return sqr(sqr(sqr(1.0 - trainIter*scale/65.0))); }
 
 MatchQuality NormalLvqModel::learnFrom(Vector_N const & trainPoint, int trainLabel) {
 	using namespace std;
@@ -91,7 +91,7 @@ MatchQuality NormalLvqModel::learnFrom(Vector_N const & trainPoint, int trainLab
 	double muJ2 = 2*retval.muJ;
 	assert(muJ2 >=0 );
 
-	double muJ2_alt = settings.MuOffset == 0 || hasNoMuOffset(trainIter) ? muJ2 : muJ2 + settings.MuOffset *scaleMuOffset(trainIter);//  * exp(-0.5*retval.distGood);
+	double muJ2_alt = settings.MuOffset == 0 || hasNoMuOffset(trainIter, iterationScaleFactor) ? muJ2 : muJ2 + settings.MuOffset *scaleMuOffset(trainIter,iterationScaleFactor);//  * exp(-0.5*retval.distGood);
 	assert(muJ2_alt >=0 );
 	double muK2 = 2*retval.muK;
 	assert(muK2 <=0 );
@@ -253,7 +253,7 @@ void NormalLvqModel::AppendOtherStats(std::vector<double> & stats, LvqDataset co
 	//if(trainIter > lastStatIter) 
 	stats.push_back(sumUpdateSize );// / (trainIter - lastStatIter)
 	stats.push_back(updatesOverOne );// / (trainIter - lastStatIter)
-	stats.push_back(hasNoMuOffset(trainIter)?0.0:scaleMuOffset(trainIter) );// / (trainIter - lastStatIter)
+	stats.push_back(hasNoMuOffset(trainIter, iterationScaleFactor)?0.0:scaleMuOffset(trainIter, iterationScaleFactor) );// / (trainIter - lastStatIter)
 	stats.push_back(meanUnscaledLearningRate() );// / (trainIter - lastStatIter)
 
 	stats.push_back(sumUpdateSize / trainIter);

@@ -226,11 +226,14 @@ let bestCurrentSettings () =
 
         
 [
-    "Normal-1,mu0.01,Bcov,"
+    "Normal-1,mu0.01,"
+    "Normal-1,mu0.01,Bcov,SlowK,"
+    "Normal-2,NGi,mu0.01,SlowK,"
     "Normal-2,NGi,mu0.01,"
-    "Normal-2,NGi,mu0.01,Bcov,"
+    "Normal-2,NGi,mu0.01,Bcov,SlowK,"
+    "Normal-3,NGi,mu0.01,SlowK,"
     "Normal-3,NGi,mu0.01,"
-    "Normal-3,NGi,mu0.01,Bcov,"
+    "Normal-3,NGi,mu0.01,Bcov,SlowK,"
     ]
     |> optimizeSettingsList
 
