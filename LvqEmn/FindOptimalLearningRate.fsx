@@ -159,7 +159,8 @@ let recomputeRes filename =
        // |> List.rev
         |> Seq.distinctBy (fun res -> res.Settings.WithCanonicalizedDefaults()) |> Seq.toList
         |> List.map (fun res->res.Settings)
-        |> List.filter (fun settings -> settings.ModelType = LvqModelType.G2m)
+        |> List.filter (isTested tempStore >> not)
+        //|> List.filter (fun settings -> settings.ModelType = LvqModelType.G2m)
         |> List.map (OptimalLrSearch.finalTestSettings >> OptimalLrSearch.saveResults tempStore)
 
 
@@ -233,4 +234,5 @@ let bestCurrentSettings () =
     ]
     |> optimizeSettingsList
 
-//recomputeRes defaultStore
+//
+recomputeRes defaultStore
