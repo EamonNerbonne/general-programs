@@ -1,0 +1,259 @@
+﻿<h1>Sample output:</h1>
+<div id="good_node">
+    <div>
+        <h1 class="Some text">Some text</h1>
+        <h2 class="More text">More text</h2>
+        <h3 title="Allows &quot;double quotes&quot;">Allows "double quotes"</h3>
+        <h4 title="&amp; isn't &amp;amp;">&amp; isn't &amp;amp;</h4>
+        <h5 title="&lt;escaped ok='true'&gt;">&lt;escaped ok='true'&gt;</h5>
+        <h6 title="Bold text">Bold text</h6>
+        <ul class="list">
+            <li class="item">1 &lt;ok&gt;</li>
+            <li class="item">2 &lt;ok&gt;</li>
+            <li class="item">3 &lt;ok&gt;</li>
+            <li class="item">4 &lt;ok&gt;</li>
+            <li class="item">5 &lt;ok&gt;</li>
+            <li class="item">6 &lt;ok&gt;</li>
+            <li class="item">7 &lt;ok&gt;</li>
+            <li class="item">8 &lt;ok&gt;</li>
+            <li class="item">9 &lt;ok&gt;</li>
+            <li class="item">10 &lt;ok&gt;</li>
+        </ul>
+    </div>
+</div>
+<div id="sink_node" style="display:none;"></div>
+<script>
+    var sink_node = document.getElementById('sink_node');
+    var good_node = document.getElementById('good_node');
+    function htmlencode(str) {
+        return (
+            document.createElement("i")
+            .appendChild(
+                document.createTextNode(str)
+            ).parentNode.innerHTML
+        );
+    }
+    function simplify_spaces(str) {
+        return str.replace(/(^|>)\s+($|<)/g, '$1$2');
+    }
+
+
+    //Resig Template Function (modified to support ')
+    function resig_template(str) {
+        var strFunc =
+        "var p=[];" +
+                    "with(obj){p.push('" +
+
+        str.replace(/[\r\t\n]/g, " ")
+            .replace(/'(?=[^#]*#>)/g, "\t")
+            .split("'").join("\\'")
+            .split("\t").join("'")
+            .replace(/<#=(.+?)#>/g, "',$1,'")
+            .split("<#").join("');")
+            .split("#>").join("p.push('")
+            + "');}return p.join('');";
+
+        return new Function("obj", strFunc);
+    }
+
+    //Resig modified template function (no "with" block)
+    function resig_template2(str) {
+        var strFunc =
+        "var p=[];" +
+                    "p.push('" +
+
+        str.replace(/[\r\t\n]/g, " ")
+            .replace(/'(?=[^#]*#>)/g, "\t")
+            .split("'").join("\\'")
+            .split("\t").join("'")
+            .replace(/<#=(.+?)#>/g, "',$1,'")
+            .split("<#").join("');")
+            .split("#>").join("p.push('")
+            + "');return p.join('');";
+
+        return new Function("data", strFunc);
+    }
+
+    function jq_template(str) {
+        var tmpl = $.template(null, str);
+        return function (context) {
+            return tmpl($, {
+                data: context
+            }).join("");
+        };
+    }
+    function hogan_template(str) {
+        var tmpl = Hogan.compile(str);
+        return tmpl.render.bind(tmpl);
+    }
+
+</script>
+
+<!--External Template Definitions-->
+<script type="text/x-template" id="DoTTemplateText">
+    <div>
+        <h1 class='{{!it.h1}}'>{{!it.h1}}</h1>
+        <h2 class='{{!it.h2}}'>{{!it.h2}}</h2>
+        <h3 title='{{!it.h3}}'>{{!it.h3}}</h3>
+        <h4 title='{{!it.h4}}'>{{!it.h4}}</h4>
+        <h5 title='{{!it.h5}}'>{{!it.h5}}</h5>
+        <h6 title='{{!it.h6}}'>{{!it.h6}}</h6>
+        <ul class='list'>
+            {{~it.list :value:index}}
+            <li class='item'>{{!value}}</li>
+            {{~}}
+        </ul>
+    </div>
+</script>
+<script type="text/x-template" id="kendoTemplateText">
+    <div>
+        <h1 class="#: data.h1 #">#: data.h1 #</h1>
+        <h2 class="#: data.h2 #">#: data.h2 #</h2>
+        <h3 title="#: data.h3 #">#: data.h3 #</h3>
+        <h4 title="#: data.h4 #">#: data.h4 #</h4>
+        <h5 title="#: data.h5 #">#: data.h5 #</h5>
+        <h6 title="#: data.h6 #">#: data.h6 #</h6>
+        <ul class='list'>
+            # for (var i = 0, l = data.list.length; i < l; i++) { #
+            <li class='item'>#: data.list[i] #</li>
+            # } #
+        </ul>
+    </div>
+</script>
+<script type="text/x-template" id="underscoreTemplateText">
+    <div>
+        <h1 class="<%- data.h1 %>"><%- data.h1 %></h1>
+        <h2 class="<%- data.h2 %>"><%- data.h2 %></h2>
+        <h3 title="<%- data.h3 %>"><%- data.h3 %></h3>
+        <h4 title="<%- data.h4 %>"><%- data.h4 %></h4>
+        <h5 title="<%- data.h5 %>"><%- data.h5 %></h5>
+        <h6 title="<%- data.h6 %>"><%- data.h6 %></h6>
+        <ul class='list'>
+            <% for (var i = 0, l = data.list.length; i < l; i++) { %>
+            <li class='item'><%- data.list[i] %></li>
+            <% } %>
+        </ul>
+    </div>
+</script>
+<script type="text/x-template" id="resigTemplateText">
+    <div>
+        <h1 class="<#= h1 #>"><#= h1 #></h1>
+        <h2 class="<#= h2 #>"><#= h2 #></h2>
+        <h3 title="<#= h3 #>"><#= h3 #></h3>
+        <h4 title="<#= h4 #>"><#= h4 #></h4>
+        <h5 title="<#= h5 #>"><#= h5 #></h5>
+        <h6 title="<#= h6 #>"><#= h6 #></h6>
+        <ul class='list'>
+            <# for (var i=0, l=list.length; i < l; i++) { #>
+                <li class='item'><#= list[i] #></li>
+                <# } #>
+        </ul>
+    </div>
+</script>
+<script type="text/x-template" id="resig2TemplateText">
+    <div>
+        <h1 class="<#= data.h1#>"><#= data.h1 #></h1>
+        <h2 class="<#= data.h2#>"><#= data.h2 #></h2>
+        <h3 title="<#= data.h3#>"><#= data.h3 #></h3>
+        <h4 title="<#= data.h4#>"><#= data.h4 #></h4>
+        <h5 title="<#= data.h5#>"><#= data.h5 #></h5>
+        <h6 title="<#= data.h6#>"><#= data.h6 #></h6>
+        <ul class='list'>
+            <# for (var i=0, l=data.list.length; i < l; i++) { #>
+                <li class='item'><#= data.list[i] #></li>
+                <# } #>
+        </ul>
+    </div>
+</script>
+<script type="text/x-template" id="jQueryTemplateText">
+    <div>
+        <h1 class='${h1}'>${h1}</h1>
+        <h2 class='${h2}'>${h2}</h2>
+        <h3 title='${h3}'>${h3}</h3>
+        <h4 title='${h4}'>${h4}</h4>
+        <h5 title='${h5}'>${h5}</h5>
+        <h6 title='${h6}'>${h6}</h6>
+        <ul class='list'>
+            {{each list}}
+            <li class='item'>${$value}</li>
+            {{/each}}
+        </ul>
+    </div>
+</script>
+<script type="text/x-template" id="mustacheTemplateText">
+    <div>
+        <h1 class='{{h1}}'>{{h1}}</h1>
+        <h2 class='{{h2}}'>{{h2}}</h2>
+        <h3 title='{{h3}}'>{{h3}}</h3>
+        <h4 title='{{h4}}'>{{h4}}</h4>
+        <h5 title='{{h5}}'>{{h5}}</h5>
+        <h6 title='{{h6}}'>{{h6}}</h6>
+        <ul class='list'>
+            {{#list}}
+            <li class='item'>{{.}}</li>
+            {{/list}}
+        </ul>
+    </div>
+</script>
+<script type="text/x-template" id="handlebarsTemplateText">
+    <div>
+        <h1 class='{{h1}}'>{{h1}}</h1>
+        <h2 class='{{h2}}'>{{h2}}</h2>
+        <h3 title='{{h3}}'>{{h3}}</h3>
+        <h4 title='{{h4}}'>{{h4}}</h4>
+        <h5 title='{{h5}}'>{{h5}}</h5>
+        <h6 title='{{h6}}'>{{h6}}</h6>
+        <ul class='list'>
+            {{#each list}}
+            <li class='item'>{{.}}</li>
+            {{/each}}
+        </ul>
+    </div>
+</script>
+
+<script src="//code.jquery.com/jquery-2.0.3.min.js"></script>
+<script src="//olado.github.io/doT/doT.min.js"></script>
+<script src="//documentcloud.github.com/underscore/underscore.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/mustache.js/0.7.2/mustache.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/hogan.js/2.0.0/hogan.js"></script>
+<script src="http://builds.handlebarsjs.com.s3.amazonaws.com/handlebars-v1.1.2.js"></script>
+<script src="//cdn.kendostatic.com/2013.3.1119/js/kendo.all.min.js"></script>
+<script src="//jashkenas.github.com/coffee-script/extras/coffee-script.js"></script>
+<script src="//ajax.microsoft.com/ajax/jquery.templates/beta1/jquery.tmpl.min.js"></script>
+
+<script>
+    window.sharedVariables = {
+        h1: "Some text",
+        h2: "More text",
+        h3: "Allows \"double quotes\"",
+        h4: "& isn't &amp;",
+        h5: "<escaped ok='true'>",
+        h6: "Bold text",
+        list: ['1 <ok>', '2 <ok>', '3 <ok>', '4 <ok>', '5 <ok>', '6 <ok>', '7 <ok>', '8 <ok>', '9 <ok>', '10 <ok>']
+    };
+    function getTemplate(id) { return document.getElementById(id).textContent; }
+    var templates = {
+        DoT: doT.compile(getTemplate("DoTTemplateText"), { append: false }),
+        DoT_append: doT.compile(getTemplate("DoTTemplateText"), { append: true }),
+        jQuery: jq_template(getTemplate("jQueryTemplateText")),
+        Mustache: Mustache.compile(getTemplate("mustacheTemplateText")),
+        Hogan: hogan_template(getTemplate("mustacheTemplateText")),
+        Handlebars: Handlebars.compile(getTemplate("handlebarsTemplateText")),
+        KendoUI: kendo.template(getTemplate("kendoTemplateText")),
+        Underscore: _.template(getTemplate("underscoreTemplateText"), null, { variable: 'data' }),
+        Resig: resig_template(getTemplate("resigTemplateText")),
+        Resig_no_with: resig_template2(getTemplate("resig2TemplateText"))
+    }
+
+    function mkTest(template, name) {
+        return function () {
+            sink_node.setAttribute('data-generator', name);
+            sink_node.innerHTML = template(sharedVariables);
+        };
+    }
+    var test = {};
+    for (var name in templates) {
+        test[name] = mkTest(templates[name], name);
+    }
+
+</script>
