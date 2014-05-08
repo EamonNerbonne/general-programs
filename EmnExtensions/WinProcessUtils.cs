@@ -11,7 +11,7 @@ namespace EmnExtensions {
 			public string StandardOutputContents, StandardErrorContents;
 			public int ExitCode;
 		}
-		public static ExecutionResult ExecuteProcessSynchronously(string filename, string arguments, string input) {
+		public static ExecutionResult ExecuteProcessSynchronously(string filename, string arguments, string input, ProcessPriorityClass? priority=null) {
 			using (
 				var proc = Process.Start(
 					new ProcessStartInfo {
@@ -24,6 +24,8 @@ namespace EmnExtensions {
 						Arguments = arguments,
 					}
 				)) {
+				if(priority !=null)
+					proc.PriorityClass = priority.Value;
 				StringBuilder error = new StringBuilder(), output = new StringBuilder();
 				Thread.MemoryBarrier();
 				proc.ErrorDataReceived += (s, e) => error.Append(e.Data);
