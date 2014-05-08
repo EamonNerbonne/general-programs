@@ -2,23 +2,23 @@ var HtmlFactory16 = (function (D) {
 	"use strict";
 	var isArray = Array.isArray || function isArray(vArg) { return Object.prototype.toString.call(vArg) === "[object Array]"; };
 
-	function unfoldArgumentInto(el, arr) {//can't check for window.Node: not available in IE8.
-		var len = arr.length;
+	function unfoldArgumentInto() {//can't check for window.Node: not available in IE8.
+		var len = arguments.length;
 		for (var i = 0; i < len; i++) {
-			var argVal = arr[i];
+			var argVal = arguments[i];
 			if (argVal instanceof Node)
-				el.appendChild(argVal);
+				this.appendChild(argVal);
 			else if (isArray(argVal))
-				unfoldArgumentInto(el, argVal);
+				unfoldArgumentInto.apply(this,argVal);
 			else if (argVal !== null && argVal !== undefined)
-				el.appendChild(D.createTextNode(argVal));
+				this.appendChild(D.createTextNode(argVal));
 		}
 	}
 
 	function mkElem(name) {
 		var elFactory = function () {
 			var el = D.createElement(name);
-			unfoldArgumentInto(el, arguments);
+			unfoldArgumentInto.apply(el, arguments);
 			return el;
 		}
 		elFactory.attrs = function (attrs) {
@@ -26,7 +26,7 @@ var HtmlFactory16 = (function (D) {
 				var el = D.createElement(name);
 				for (var key in attrs)
 					el.setAttribute(key, attrs[key]);
-				unfoldArgumentInto(el, arguments);
+				unfoldArgumentInto.apply(el, arguments);
 				return el;
 			}
 		}
