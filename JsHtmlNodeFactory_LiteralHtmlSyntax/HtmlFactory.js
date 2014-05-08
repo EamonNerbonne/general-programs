@@ -1,13 +1,16 @@
 var HtmlFactory = (function (D) {
     "use strict";
-    function unfoldArgumentInto(el, arr) {//can't check for window.Node: not available in IE8.
+    var isArray = Array.isArray || function isArray(vArg) { return Object.prototype.toString.call(vArg) === "[object Array]"; };
+
+
+	function unfoldArgumentInto(el, arr) {//can't check for window.Node: not available in IE8.
         var len = arr.length;
         for (var i = 0; i < len; i++) {
             var argVal = arr[i];
             if (argVal !== null && argVal !== undefined) {
                 if (argVal.nodeType)
                     el.appendChild(argVal);
-                else if (argVal instanceof Array)
+                else if (isArray(argVal))
                     unfoldArgumentInto(el, argVal);
                 else  //assume it's text or convertable to text
                     el.appendChild(D.createTextNode(argVal));
@@ -33,7 +36,7 @@ var HtmlFactory = (function (D) {
                         for (var prop in attrContentArg) {
                             var propVal = attrContentArg[prop];
                             if (propVal !== undefined) {
-                                if (typeof propVal === "function" && prop.substr(0, 2) === 'on') {
+                            	if (prop.charCodeAt(0) === 111 && prop.charCodeAt(1) === 110 && typeof val === "function") {
                                     el.addEventListener(prop.substr(2), propVal, false);
                                 } else {
                                     el.setAttribute(prop, propVal);
