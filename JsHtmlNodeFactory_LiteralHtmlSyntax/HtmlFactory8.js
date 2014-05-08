@@ -9,7 +9,7 @@ var HtmlFactory8 = (function (D) {
 					el.appendChild(argVal);
 				else if (Array.isArray(argVal))
 					unfoldArgumentInto(el, argVal);
-				else  //assume it's text or convertable to text
+				else
 					el.appendChild(D.createTextNode(argVal));
 			}
 		}
@@ -30,7 +30,7 @@ var HtmlFactory8 = (function (D) {
 						el.appendChild(argVal);
 					else if (Array.isArray(argVal))
 						unfoldArgumentInto(el, argVal);
-					else  //assume it's text or convertable to text
+					else
 						el.appendChild(D.createTextNode(argVal));
 				}
 			}
@@ -42,6 +42,5 @@ var HtmlFactory8 = (function (D) {
 	var retval = {};
 	for (var elI = 0; elI < elNames.length; elI++)
 		retval[elNames[elI]] = mkElem(elNames[elI]);
-	//creates a document fragment; appends all arguments as content.
 	return retval;
 })(document);
