@@ -16,3 +16,9 @@ function mkDom(obj) {
 	return K.span.attrs({ title: obj.depth })(obj.c, " [", obj.kids.map(mkDom), "] ");
 }
 mkDom(structure);
+
+
+
+//see: http://jsperf.com/array-type-checking/8
+//see: http://jsperf.com/js-coerce-null/10
+//see: http://jsperf.com/instanceof-vs-typeof-nodetype/2
