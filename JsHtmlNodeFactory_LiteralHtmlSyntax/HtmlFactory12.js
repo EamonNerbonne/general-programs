@@ -37,10 +37,10 @@ var HtmlFactory12 = (function (D) {
 			return el;
 		}
 		elFactory.attrs = function (attrs) {
+			var el = D.createElement(name);
+			for (var key in attrs)
+				el.setAttribute(key, attrs[key]);
 			return function () {
-				var el = D.createElement(name);
-				for (var key in attrs)
-					el.setAttribute(key, attrs[key]);
 				var len = arguments.length;
 				for (var i = 0; i < len; i++) {
 					var argVal = arguments[i];
