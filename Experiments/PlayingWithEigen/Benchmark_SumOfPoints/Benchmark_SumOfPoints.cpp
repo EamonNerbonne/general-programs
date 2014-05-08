@@ -1,6 +1,3 @@
-// QuickBench.cpp : Defines the entry point for the console application.
-//
-
 #include <bench\BenchTimer.h>
 #include <vector>
 #include <iostream>
