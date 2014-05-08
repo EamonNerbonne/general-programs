@@ -13,7 +13,6 @@ var HtmlFactory15 = (function (D) {
 			else if (argVal !== null && argVal !== undefined)
 				el.appendChild(D.createTextNode(argVal));
 		}
-		return el;
 	}
 
 	function mkElem(name) {
