@@ -10,7 +10,7 @@ var HtmlFactory14 = (function (D) {
 				el.appendChild(argVal);
 			else if (isArray(argVal))
 				unfoldArgumentInto(el, argVal);
-			else if (argVal !== null && argVal !== undefined) 
+			else if (argVal !== null && argVal !== undefined)
 				el.appendChild(D.createTextNode(argVal));
 		}
 		return el;
@@ -49,7 +49,7 @@ var HtmlFactory14 = (function (D) {
 				return el;
 			}
 		}
-		return elFactory
+		return elFactory;
 	}
 
 	var elNames = "a,abbr,address,article,aside,audio,b,blockquote,body,br,button,cite,code,del,details,dfn,div,em,fieldset,figcaption,figure,footer,form,h1,h2,h3,h4,h5,h6,head,header,hgroup,hr,html,i,img,input,ins,kbd,label,legend,li,link,mark,meta,meter,nav,noscript,ol,optgroup,option,p,pre,q,samp,script,section,select,small,source,span,strong,style,sub,summary,sup,table,tbody,td,textarea,tfoot,th,thead,time,title,tr,ul,var,video,area,base,bdo,canvas,caption,col,colgroup,command,datalist,dd,dl,dt,embed,iframe,keygen,map,menu,object,output,param,progress,rp,rt,ruby".split(",");
