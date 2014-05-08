@@ -6,14 +6,12 @@ var HtmlFactory13 = (function (D) {
 		var len = arr.length;
 		for (var i = 0; i < len; i++) {
 			var argVal = arr[i];
-			if (argVal != null) {
-				if (argVal.nodeType)
-					el.appendChild(argVal);
-				else if (Array.isArray(argVal))
-					unfoldArgumentInto(el, argVal);
-				else
-					el.appendChild(D.createTextNode(argVal));
-			}
+			if (argVal instanceof Node)
+				el.appendChild(argVal);
+			else if (isArray(argVal))
+				unfoldArgumentInto(el, argVal);
+			else if (argVal !== null && argVal !== undefined) 
+				el.appendChild(D.createTextNode(argVal));
 		}
 		return el;
 	}
@@ -24,14 +22,12 @@ var HtmlFactory13 = (function (D) {
 			var len = arguments.length;
 			for (var i = 0; i < len; i++) {
 				var argVal = arguments[i];
-				if (argVal != null) {
-					if (argVal.nodeType)
-						el.appendChild(argVal);
-					else if (Array.isArray(argVal))
-						unfoldArgumentInto(el, argVal);
-					else
-						el.appendChild(D.createTextNode(argVal));
-				}
+				if (argVal instanceof Node)
+					el.appendChild(argVal);
+				else if (isArray(argVal))
+					unfoldArgumentInto(el, argVal);
+				else if (argVal !== null && argVal !== undefined)
+					el.appendChild(D.createTextNode(argVal));
 			}
 			return el;
 		}
@@ -43,14 +39,12 @@ var HtmlFactory13 = (function (D) {
 				var len = arguments.length;
 				for (var i = 0; i < len; i++) {
 					var argVal = arguments[i];
-					if (argVal != null) {
-						if (argVal.nodeType)
-							el.appendChild(argVal);
-						else if (Array.isArray(argVal))
-							unfoldArgumentInto(el, argVal);
-						else
-							el.appendChild(D.createTextNode(argVal));
-					}
+					if (argVal instanceof Node)
+						el.appendChild(argVal);
+					else if (isArray(argVal))
+						unfoldArgumentInto(el, argVal);
+					else if (argVal !== null && argVal !== undefined)
+						el.appendChild(D.createTextNode(argVal));
 				}
 				return el;
 			}
