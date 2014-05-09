@@ -31,14 +31,6 @@ var HtmlFactory22 = (function (D) {
 		}
 	}
 
-	function setAttrs(node, attrs) {
-		if (attrs)
-			for (var key in attrs)
-				if (key.charCodeAt(0) === 111 && key.charCodeAt(1) === 110 && typeof val === "function")
-					node.addEventListener(key.substr(2), val); //starts with on
-				else
-					node.setAttribute(key, attrs[key]);
-	}
 
 	function mkFrag() {
 		var node = D.createDocumentFragment();
@@ -48,7 +40,12 @@ var HtmlFactory22 = (function (D) {
 
 	function fillNode(node) {
 		return function (attrs) {
-			setAttrs(node,attrs);
+			if (attrs)
+				for (var key in attrs)
+					if (key.charCodeAt(0) === 111 && key.charCodeAt(1) === 110 && typeof val === "function")
+						node.addEventListener(key.substr(2), val); //starts with on
+					else
+						node.setAttribute(key, attrs[key]);
 			appendArrayInto(node, arguments, 1);
 			return node;
 		}
@@ -57,7 +54,12 @@ var HtmlFactory22 = (function (D) {
 	function mkElem(name) {
 		return function (attrs) {
 			var node = D.createElement(name);
-			setAttrs(node,attrs);
+			if (attrs)
+				for (var key in attrs)
+					if (key.charCodeAt(0) === 111 && key.charCodeAt(1) === 110 && typeof val === "function")
+						node.addEventListener(key.substr(2), val); //starts with on
+					else
+						node.setAttribute(key, attrs[key]);
 			appendArrayInto(node, arguments, 1);
 			return node;
 		}
