@@ -55,14 +55,24 @@ var HtmlFactory19 = (function (D) {
 					else
 						node.setAttribute(key, attrs[key]);
 			var len = arguments.length;
-			for (var i = 1; i < len; i++) {
-				var argVal = arguments[i];
+			if (len > 1) {
+				var argVal = arguments[1];
 				if (argVal instanceof Node)
 					node.appendChild(argVal);
 				else if (isArray(argVal))
 					appendArrayInto(node, argVal);
 				else if (argVal !== null && argVal !== undefined)
-					node.appendChild(D.createTextNode(argVal));
+					node.textContent = argVal;
+
+				for (var i = 2; i < len; i++) {
+					argVal = arguments[i];
+					if (argVal instanceof Node)
+						node.appendChild(argVal);
+					else if (isArray(argVal))
+						appendArrayInto(node, argVal);
+					else if (argVal !== null && argVal !== undefined)
+						node.appendChild(D.createTextNode(argVal));
+				}
 			}
 			return node;
 		}
