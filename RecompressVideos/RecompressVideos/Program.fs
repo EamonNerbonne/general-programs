@@ -116,22 +116,20 @@ let extract_chapters out_dir cleaners (tmp_file:FileInfo) =
         printfn "Extracting chapters: %s" chapters_file.FullName
         let res = WinProcessUtil.ExecuteProcessSynchronously("mkvextract.exe", "chapters \"" + tmp_file.FullName + "\"", "")
 
-        if res.ExitCode <> 0 then
-            System.Console.WriteLine res.StandardOutputContents
-            System.Console.WriteLine res.StandardErrorContents
-            failwith ("chapters extraction failed to extract " + chapters_file.FullName)
+        try
+            if res.ExitCode <> 0 then
+                System.Console.WriteLine res.StandardOutputContents
+                System.Console.WriteLine res.StandardErrorContents
+                failwith ("chapters extraction failed to extract " + chapters_file.FullName)
 
-        let hopefullyXml = Regex.Match(res.StandardOutputContents, @"<.*>").Value
-        System.Xml.Linq.XDocument.Parse(hopefullyXml) |> ignore
+            let hopefullyXml = Regex.Match(res.StandardOutputContents, @"<.*>").Value
 
-        let contents = hopefullyXml
-    
-        if contents <> "" then
+            System.Xml.Linq.XDocument.Parse(hopefullyXml) |> ignore
             addCleaner cleaners (fun () -> chapters_file.Delete())
-            File.WriteAllText(chapters_file.FullName, contents)
+            File.WriteAllText(chapters_file.FullName, hopefullyXml)
             Some chapters_file
-        else
-            None        
+        with
+            | _ -> None
 
 let identify_output_file out_dir (src_file:FileInfo) =
     let name = Regex.Replace(Path.GetFileNameWithoutExtension(src_file.Name), @"(bluray|x264|-rovers)", "")
