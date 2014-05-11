@@ -184,6 +184,9 @@ let processFiles (in_dir:DirectoryInfo) (out_dir:DirectoryInfo) =
 
 [<EntryPoint>]
 let main argv = 
+    let inputDir = new DirectoryInfo(argv.[0])
+    if not <| inputDir.Exists then
+        failwith ("Can't find input dir: " + argv.[0])
     System.Diagnostics.Process.GetCurrentProcess().PriorityClass <- System.Diagnostics.ProcessPriorityClass.Idle
     processFiles (new DirectoryInfo(argv.[0]))  (new DirectoryInfo @"E:\TmpVideoOut\")
 
