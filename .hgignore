@@ -76,3 +76,4 @@ SongSearchLinq/PlaylistFixer/x86
 SongSearchLinq/SongDiskCrawler/x86
 SongSearchLinq/SongSearchSite/x86
 SongSearchLinq/LastFMspider/x86
+*.vspx
