@@ -17,8 +17,8 @@ open System.Xml.Linq
 open System.Xml
 open System.IO
 open EmnExtensions.Wpf
-open EmnExtensions.Wpf.Plot
-open EmnExtensions.Wpf.Plot.VizEngines
+open EmnExtensions.Wpf
+open EmnExtensions.Wpf.VizEngines
 open System.Windows
 open System.Collections.Generic
 
@@ -64,13 +64,11 @@ let main() =
 
     //let xn s = XName.Get(s)
 //    let wikiNamespace = XNamespace.Get("http://www.mediawiki.org/xml/export-0.4/")
-
-    let scatterViz = new VizEngines.VizLineSegments(CoverageRatioY = 1.0)
-
+    let metadata = new PlotMetaData( DataLabel = "wikiData", XUnitLabel = "Letter", YUnitLabel = "Freq")
+    let scatterViz = Plot.CreateLine(metadata, CoverageRatioY=1.0)
     let plotWin = 
-        let metadata = new PlotMetaData( DataLabel = "wikiData", XUnitLabel = "Letter", YUnitLabel = "Freq")
         
-        let plotControl = new PlotControl( ShowGridLines=true, GraphsEnumerable = (Plot.Create(metadata, scatterViz) |> Seq.singleton |> Seq.cast) ) 
+        let plotControl = new PlotControl( ShowGridLines=true, GraphsEnumerable = (scatterViz |> Seq.singleton |> Seq.cast) ) 
         let win = new Window(Title = "WikiPlot", Content = plotControl)
         win.Show()
         win
