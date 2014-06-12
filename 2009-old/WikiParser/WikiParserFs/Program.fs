@@ -74,7 +74,7 @@ let main() =
         win
 
     
-    let wikiFile = new FileInfo(@"D:\EamonLargeDocs\wikipedia\enwiki-latest-pages-articles.xml")
+    let wikiFile = new FileInfo(@"F:\wikipedia\enwiki-latest-pages-articles.xml")
     let wikiPages = streamTopLevelEls wikiFile (fun reader -> reader.LocalName = "page")
     let syncContext = System.Threading.SynchronizationContext.Current
 
