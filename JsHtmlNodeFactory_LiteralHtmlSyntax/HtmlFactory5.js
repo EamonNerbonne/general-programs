@@ -9,7 +9,7 @@ var HtmlFactory5 = (function (D) {
 					el.appendChild(argVal);
 				else if (Array.isArray(argVal))
 					unfoldArgumentInto(el, argVal);
-				else  //assume it's text or convertable to text
+				else
 					el.appendChild(D.createTextNode(argVal));
 			}
 		}

@@ -1,19 +1,18 @@
-var HtmlFactory8 = (function (D) {
+var HtmlFactory15 = (function (D) {
 	"use strict";
+	var isArray = Array.isArray || function isArray(vArg) { return Object.prototype.toString.call(vArg) === "[object Array]"; };
+
 	function unfoldArgumentInto(el, arr) {//can't check for window.Node: not available in IE8.
 		var len = arr.length;
 		for (var i = 0; i < len; i++) {
 			var argVal = arr[i];
-			if (argVal != null) {
-				if (argVal.nodeType)
-					el.appendChild(argVal);
-				else if (Array.isArray(argVal))
-					unfoldArgumentInto(el, argVal);
-				else
-					el.appendChild(D.createTextNode(argVal));
-			}
+			if (argVal instanceof Node)
+				el.appendChild(argVal);
+			else if (isArray(argVal))
+				unfoldArgumentInto(el, argVal);
+			else if (argVal !== null && argVal !== undefined)
+				el.appendChild(D.createTextNode(argVal));
 		}
-		return el;
 	}
 
 	function mkElem(name) {
@@ -25,14 +24,12 @@ var HtmlFactory8 = (function (D) {
 			var len = arguments.length;
 			for (var i = 1; i < len; i++) {
 				var argVal = arguments[i];
-				if (argVal != null) {
-					if (argVal.nodeType)
-						el.appendChild(argVal);
-					else if (Array.isArray(argVal))
-						unfoldArgumentInto(el, argVal);
-					else
-						el.appendChild(D.createTextNode(argVal));
-				}
+				if (argVal instanceof Node)
+					el.appendChild(argVal);
+				else if (isArray(argVal))
+					unfoldArgumentInto(el, argVal);
+				else if (argVal !== null && argVal !== undefined)
+					el.appendChild(D.createTextNode(argVal));
 			}
 			return el;
 		}
