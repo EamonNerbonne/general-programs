@@ -40,6 +40,7 @@
 #include <numeric>
 
 
+//#define NO_BOOST
 #ifndef NO_BOOST
 #include <boost/random/variate_generator.hpp>
 #include <boost/random/mersenne_twister.hpp>
@@ -165,7 +166,8 @@ struct GoodBadMatch {
 };
 
 template <typename T> EIGEN_STRONG_INLINE static LVQFLOAT projectionSquareNorm(T const & projectionMatrix) {
-	return (projectionMatrix.transpose() * projectionMatrix).diagonal().sum();
+	auto projectionSquareExpression = projectionMatrix.transpose() * projectionMatrix;
+	return projectionSquareExpression.diagonal().sum();
 }
 
 EIGEN_STRONG_INLINE static LVQFLOAT normalizeProjection(Matrix_P & projectionMatrix) {
