@@ -27,8 +27,12 @@
 #pragma warning(pop)
 //#pragma warning(push,3)
 #pragma warning(disable: 4714) //OK to ignore __forceinline
-//#pragma warning(disable: 4244) //temporarily OK to ignore 64 vs. 32 bit issues.
-#pragma warning (disable:4244)
+#pragma warning(disable: 4510) //OK to not create default constructor
+#pragma warning(disable: 4610) //OK to not create default constructor
+#pragma warning(disable: 4701) //too many false positives for uninitalized locals
+#pragma warning(disable: 4789) //??? in eigen.
+#pragma warning(disable: 4267) 
+#pragma warning (disable:4244)//temporarily OK to ignore 64 vs. 32 bit issues.
 #endif
 
 #include <Eigen/Core>
