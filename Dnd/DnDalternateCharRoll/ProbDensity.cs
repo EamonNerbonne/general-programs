@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using EmnExtensions.MathHelpers;
@@ -49,6 +48,11 @@ namespace DnDalternateCharRoll
 			return new ProbDensity<TOut>(rawprobs.Select(p => ProbValue.Create(p.p, f(p.result))).ToArray());
 		}
 
+		public ProbDensity<T> Filter(Func<T, bool> test) {
+			return new ProbDensity<T>(rawprobs.Where(p => test(p.result)).ToArray());
+			
+		}
+
 		public T Try(Random r)
 		{
 			double roll = r.NextDouble();
@@ -56,12 +60,10 @@ namespace DnDalternateCharRoll
 			if (index < 0) index = ~index;
 			return rawprobs[index].result;
 		}
-
 	}
 
 	public static class ProbDensity
 	{
-
 		public static ProbDensity<int> Add(this ProbDensity<int> distr, int offset) { return distr.MapValues(v => v + offset); }
 		public static ProbDensity<int> Add(this ProbDensity<int> a, ProbDensity<int> b) { return Combine(a, b, (av, bv) => av + bv); }
 		public static ProbDensity<double> Add(this ProbDensity<double> distr, double offset) { return distr.MapValues(v => v + offset); }
@@ -69,7 +71,7 @@ namespace DnDalternateCharRoll
 
 		public static ProbDensity<T> Create<T>(IEnumerable<ProbValue<T>> probabilities) { return new ProbDensity<T>(probabilities); }
 
-		public static ProbDensity<TR> Combine<TA, TB, TR>(ProbDensity<TA> a, ProbDensity<TB> b, Func<TA, TB, TR> f)
+		public static ProbDensity<TR> Combine<TA, TB, TR>(this ProbDensity<TA> a, ProbDensity<TB> b, Func<TA, TB, TR> f)
 		{
 			return Create(
 				from ap in a.rawprobs
@@ -78,7 +80,11 @@ namespace DnDalternateCharRoll
 				);
 		}
 
-		public static ProbDensity<TR> MapMany<TA, TB, TR>(ProbDensity<TA> a, Func<TA, ProbDensity<TB>> b, Func<TA, TB, TR> f)
+		public static MeanVarDistrib Distribution(this ProbDensity<int> distr) {
+			return distr.rawprobs.Aggregate(new MeanVarDistrib(), (acc, pv) => acc.Add(pv.result, pv.p));
+		}
+
+		public static ProbDensity<TR> MapMany<TA, TB, TR>(this ProbDensity<TA> a, Func<TA, ProbDensity<TB>> b, Func<TA, TB, TR> f)
 		{
 			return Create(
 				from ap in a.rawprobs
@@ -86,9 +92,6 @@ namespace DnDalternateCharRoll
 				select ProbValue.Create(ap.p * bp.p, f(ap.result, bp.result))
 				);
 		}
-
-
-
 
 		public static ProbDensity<T> UniformDistribution<T>(IEnumerable<T> values)
 		{
