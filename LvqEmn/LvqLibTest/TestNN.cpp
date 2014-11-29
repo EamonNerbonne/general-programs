@@ -52,39 +52,41 @@ BOOST_AUTO_TEST_CASE( nn_test )
 
 	BenchTimer timeRawNN,timePca,timePcaNN, timeG2m;
 	for(int fold =0;fold<FOLDS;++fold) {
-		vector<int> testSet(dataset->GetTestSubset(fold,FOLDS));
-		vector<int> trainingSet(dataset->GetTrainingSubset(fold,FOLDS));
+		scoped_ptr<LvqDataset> testSet(dataset->Extract(dataset->GetTestSubset(fold,FOLDS)));
+		scoped_ptr<LvqDataset> trainingSet(dataset->Extract(dataset->GetTrainingSubset(fold, FOLDS)));
+		
 
 		timeRawNN.start();
-		double rawErrorRate = dataset->NearestNeighborErrorRate(trainingSet,dataset.get(),testSet);
+		double rawErrorRate = trainingSet->NearestNeighborErrorRate(*testSet);
 		timeRawNN.stop();
 
 		LOG("Raw: "<<rawErrorRate);
 
 		timeG2m.start();
-		G2mLvqModel model(as_lvalue(LvqModelSettings(LvqModelSettings::AutoModelType,rng,rng,protoDistrib,dataset.get(),trainingSet)));
+		auto settings = LvqModelSettings(LvqModelSettings::AutoModelType, rng, rng, protoDistrib, trainingSet.get());
+		G2mLvqModel model(settings);
 		LvqModel::Statistics stats;
-		dataset->TrainModel(25, &model, &stats, trainingSet, dataset.get(), testSet,nullptr,false);
+		trainingSet->TrainModel(25, model, &stats, testSet.get(), nullptr, false);
 		timeG2m.stop();
 
-		LvqDatasetStats statsG2m = dataset->ComputeCostAndErrorRate(testSet,&model);
+		LvqDatasetStats statsG2m = testSet->ComputeCostAndErrorRate(model);
 		LOG(", G2m: "<<statsG2m.errorRate());
 
-		double g2mNNrate = dataset->NearestNeighborProjectedErrorRate(trainingSet,dataset.get(),testSet, model.projectionMatrix() );
+		double g2mNNrate = trainingSet->NearestNeighborProjectedErrorRate(*testSet, model.projectionMatrix());
 		LOG(", G2mNN: "<<g2mNNrate );
 
 		timePca.start();
-		Matrix_P transform= PcaProjectInto2d(dataset->ExtractPoints(trainingSet) );
+		Matrix_P transform = PcaProjectInto2d(trainingSet->getPoints());
 		timePca.stop();
 
 		timePcaNN.start();
-		double pcaErrorRate = dataset->NearestNeighborProjectedErrorRate(trainingSet,dataset.get(),testSet,transform);
+		double pcaErrorRate = trainingSet->NearestNeighborProjectedErrorRate(*testSet, transform);
 		timePcaNN.stop();
 
 		BOOST_CHECK(pcaErrorRate >= rawErrorRate);
 		LOG(", PcaNN: "<<pcaErrorRate );
 
-		double identTransRate = dataset->NearestNeighborProjectedErrorRate(trainingSet,dataset.get(),testSet, checkerbox);
+		double identTransRate = trainingSet->NearestNeighborProjectedErrorRate(*testSet, checkerbox);
 		BOOST_CHECK(identTransRate >= pcaErrorRate);
 		BOOST_CHECK(identTransRate >= g2mNNrate);
 		LOG(", identNN: "<<identTransRate <<"\n");

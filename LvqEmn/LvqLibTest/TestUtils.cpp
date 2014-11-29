@@ -8,6 +8,13 @@ using boost::mt19937;
 using std::cout;
 using std::cerr;
 
+
+template <typename T> EIGEN_STRONG_INLINE static double projectionSquareNorm(T const & projectionMatrix) {
+	auto projectionSquareExpression = projectionMatrix.transpose() * projectionMatrix;
+	return projectionSquareExpression.diagonal().sum();
+}
+
+
 BOOST_AUTO_TEST_CASE( normtest )
 {
 	mt19937 rng(1338);

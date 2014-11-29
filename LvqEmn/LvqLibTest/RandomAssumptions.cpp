@@ -7,6 +7,12 @@ struct container {
 	container(mt19937 & rng) : rnd(rng){}
 	mt19937 rnd;
 	unsigned operator()(){ return rnd();	}
+	template<typename T> void generate(T begin, T end){
+		while (begin != end) {
+			*begin = rnd();
+			begin++;
+		}
+	}
 };
 
 BOOST_AUTO_TEST_CASE( random_test )
@@ -24,7 +30,8 @@ BOOST_AUTO_TEST_CASE( random_test )
 	BOOST_CHECK_EQUAL(x(), rnd3());
 	BOOST_CHECK_EQUAL(rnd1(), rnd2());
 
-	mt19937 rndA(x), rndB(x);
+	mt19937 rndA(x);
+	mt19937 rndB(x);
 
 	BOOST_CHECK_NE(rndA(), rndB());
 	
