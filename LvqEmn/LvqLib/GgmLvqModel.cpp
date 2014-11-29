@@ -170,9 +170,9 @@ MatchQuality GgmLvqModel::learnFrom(Vector_N const & trainPoint, int trainLabel)
 			GgmLvqPrototype &Js = prototype[fullmatch.matchesOk[i].idx];
 			double muJ2_s =  (1.0/4.0) * (1.0 - sqr(std::tanh((fullmatch.matchesOk[i].dist - fullmatch.distBad)/4.0)));
 			Vector_2 P_vJs = Js.P_point - P_trainPoint;
-			Vector_2 muJ2_Bj_P_vJs = (muJ2_s + settings.MuOffset*learningRate) * (Js.B.triangularView<Eigen::Upper>() * P_vJs);
+			Vector_2 muJ2_Bj_P_vJs = (muJ2_s + settings.MuOffset*learningRate) * (Js.B * P_vJs); //really Js.B.triangularView<Eigen::Upper>(), but eigen isn't happy.
 
-			Js.point.noalias() += P.transpose() * (lrSub * lr_point * (Js.B.triangularView<Eigen::Upper>().transpose() * muJ2_Bj_P_vJs));
+			Js.point.noalias() += P.transpose() * (lrSub * lr_point * (Js.B.transpose() * muJ2_Bj_P_vJs)); //really Js.B.triangularView<Eigen::Upper>().transpose(), but eigen isn't happy.
 			Vector_2 neg_muJ2_JBinvTs_diag = -muJ2_s* Js.B.diagonal().cwiseInverse();
 
 			Js.B.triangularView<Eigen::Upper>() += lrSub*lr_B * (muJ2_Bj_P_vJs * P_vJs.transpose());
