@@ -12,8 +12,8 @@ if(CMAKE_COMPILER_IS_GNUCXX)
 #  else ()
     set(CPU_ARCH "native")
 #  endif()
-	set(CMAKE_CXX_FLAGS_DEBUG " -Wall -Wno-unused-local-typedefs -Wno-parentheses -std=c++0x -m64 -march=${CPU_ARCH} -mtune=native -O2")
-	set(CMAKE_CXX_FLAGS_RELEASE "  -Wall -Wno-unused-local-typedefs -Wno-parentheses -std=c++0x  -m64 -march=${CPU_ARCH} -mtune=native -O3 ")
+	set(CMAKE_CXX_FLAGS_DEBUG " -Wfatal-errors -Wall -Wno-unused-local-typedefs -Wno-parentheses -std=c++11 -m64 -march=${CPU_ARCH} -mtune=native -O2")
+	set(CMAKE_CXX_FLAGS_RELEASE "  -Wfatal-errors -Wall -Wno-unused-local-typedefs -Wno-parentheses -std=c++11  -m64 -march=${CPU_ARCH} -mtune=native -O3 ")
 	
     set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -DNDEBUG")
 
