@@ -77,3 +77,5 @@ SongSearchLinq/SongDiskCrawler/x86
 SongSearchLinq/SongSearchSite/x86
 SongSearchLinq/LastFMspider/x86
 *.vspx
+LvqEmn/build
+packages
