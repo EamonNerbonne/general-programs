@@ -38,7 +38,7 @@ namespace EmnExtensions.MathHelpers
 
 		public static MeanVarDistrib Of(IEnumerable<double> vals) { return vals.Aggregate(new MeanVarDistrib(), (mv, v) => mv.Add(v)); }
 
-		public override string ToString() { return Mean.ToString(CultureInfo.InvariantCulture) + " +/- " + Math.Sqrt(SampleVar).ToString(CultureInfo.InvariantCulture); }
+		public override string ToString() { return Mean.ToString(CultureInfo.InvariantCulture) + " +/- " + StdDev.ToString(CultureInfo.InvariantCulture); }
 
 	}
 
