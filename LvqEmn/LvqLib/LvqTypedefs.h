@@ -1,5 +1,18 @@
 #pragma once
+
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable: 4793) // I don't care that you do SSE stuff in native mode, not managed mode... that's kinda the point, actually!
+#pragma warning(disable: 4714) //OK to ignore __forceinline
+#pragma warning(disable: 4510) //OK to not create default constructor
+#pragma warning(disable: 4610) //OK to not create default constructor
+#pragma warning(disable: 4701)
+#endif
+
 #include <Eigen/Core>
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
 
 #define LVQ_LOW_DIM_SPACE 2
 typedef double LvqFloat;
