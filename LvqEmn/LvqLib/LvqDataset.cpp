@@ -13,16 +13,17 @@ LvqDataset::LvqDataset(Matrix_NN const & points, VectorXi const & pointLabels, i
 	, pointLabels(pointLabels)
 	, m_classCount(classCountPar)
 {
-	//DBG(points.cols());
-	//DBG(pointLabels.size());
-	//DBG(pointLabels.maxCoeff());
-	//DBG(pointLabels.minCoeff());
+	DBG(this->points.cols());
+	DBG(this->pointLabels.size());
+	DBG(this->pointLabels.maxCoeff());
+	DBG(this->pointLabels.minCoeff());
 	//DBG(pointLabels);
-	//DBG(classCountPar);
+	DBG(this->m_classCount);
 	assert(points.cols() == pointLabels.size());
 	assert(pointLabels.maxCoeff() < classCountPar);
-	assert(pointLabels.minCoeff()>= 0);
-
+	assert(pointLabels.minCoeff() >= 0);
+	DBG(this->points.mean());
+	DBG(points.mean());
 	//pointLabels.shrink_to_fit();
 }
 LvqDataset::LvqDataset(LvqDataset const & src, std::vector<int> const & subset)
@@ -30,6 +31,7 @@ LvqDataset::LvqDataset(LvqDataset const & src, std::vector<int> const & subset)
 	, pointLabels(subset.size())
 	, m_classCount(src.m_classCount)
 {
+	DBG(src.points.mean());
 	for(int i=0;i<(int)subset.size();++i) {
 		int pI = subset[i];
 		points.col(i).noalias() = src.points.col(pI);
@@ -278,7 +280,7 @@ void LvqDataset::ExtendByCorrelations() {
 
 std::pair<Vector_N,Vector_N> LvqDataset::NormalizationParameters() const {
 	auto mean = MeanPoint(points);
-
+	DBG(mean);
 	Vector_N variance =  (points.colwise() - mean).rowwise().squaredNorm() / (points.cols()-1.0);
 
 	return make_pair(mean,variance);
@@ -286,7 +288,10 @@ std::pair<Vector_N,Vector_N> LvqDataset::NormalizationParameters() const {
 void LvqDataset::ApplyNormalization(std::pair<Vector_N,Vector_N> pars, bool normalizeByScaling) {
 	auto mean = pars.first;
 	auto variance = pars.second;
-	
+	DBG(mean);
+	DBG(variance);
+
+
 	points = points.colwise() - mean;
 
 	assert((variance.array() >= 0).all());

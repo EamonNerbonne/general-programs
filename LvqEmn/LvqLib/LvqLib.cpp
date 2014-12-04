@@ -10,6 +10,7 @@ using std::vector;
 using std::copy;
 using std::wstring;
 using std::transform;
+#define DBG(X) (std::cout<< #X <<": "<<(X)<<"\n")
 
 extern "C" LvqDataset* CreateDatasetRaw(
 	unsigned rngInstSeed, int dimCount, int pointCount, int classCount, LvqFloat* data, int*labels) {
