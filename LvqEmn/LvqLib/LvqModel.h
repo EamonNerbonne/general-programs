@@ -48,7 +48,7 @@ public:
 	typedef std::queue<std::vector<double>> Statistics;
 	int epochsTrained;
 	double meanUnscaledLearningRate() const {
-		double meanIters =per_proto_trainIter.size() ? std::accumulate(per_proto_trainIter.cbegin(), per_proto_trainIter.cend(), 0) / per_proto_trainIter.size() : trainIter;
+		double meanIters =per_proto_trainIter.size() ? std::accumulate(per_proto_trainIter.cbegin(), per_proto_trainIter.cend(), 0.0) / per_proto_trainIter.size() : trainIter;
 		double scaledIter = meanIters*iterationScaleFactor+1.0;
 		return exp(iterationScalePower *  log(scaledIter)); 
 	}

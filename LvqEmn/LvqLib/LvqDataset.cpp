@@ -35,8 +35,10 @@ LvqDataset::LvqDataset(LvqDataset const & src, std::vector<int> const & subset)
 	for(int i=0;i<(int)subset.size();++i) {
 		int pI = subset[i];
 		points.col(i).noalias() = src.points.col(pI);
+
 		pointLabels(i) = src.pointLabels(pI);
 	}
+
 }
 
 Matrix_NN LvqDataset::ExtractPoints(std::vector<int> const & subset) const {
@@ -286,6 +288,7 @@ std::pair<Vector_N,Vector_N> LvqDataset::NormalizationParameters() const {
 	return make_pair(mean,variance);
 }
 void LvqDataset::ApplyNormalization(std::pair<Vector_N,Vector_N> pars, bool normalizeByScaling) {
+	
 	auto mean = pars.first;
 	auto variance = pars.second;
 	DBG(mean);
@@ -294,7 +297,7 @@ void LvqDataset::ApplyNormalization(std::pair<Vector_N,Vector_N> pars, bool norm
 
 	points = points.colwise() - mean;
 
-	assert((variance.array() >= 0).all());
+	//assert((variance.array() >= 0).all());
 	vector<int> remapping;
 	Vector_N inv_stddev =  variance.array().sqrt().inverse().matrix();
 
