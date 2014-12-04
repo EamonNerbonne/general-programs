@@ -282,7 +282,6 @@ void LvqDataset::ExtendByCorrelations() {
 
 std::pair<Vector_N,Vector_N> LvqDataset::NormalizationParameters() const {
 	auto mean = MeanPoint(points);
-	DBG(mean);
 	Vector_N variance =  (points.colwise() - mean).rowwise().squaredNorm() / (points.cols()-1.0);
 
 	return make_pair(mean,variance);
@@ -291,9 +290,6 @@ void LvqDataset::ApplyNormalization(std::pair<Vector_N,Vector_N> pars, bool norm
 	
 	auto mean = pars.first;
 	auto variance = pars.second;
-	DBG(mean);
-	DBG(variance);
-
 
 	points = points.colwise() - mean;
 
