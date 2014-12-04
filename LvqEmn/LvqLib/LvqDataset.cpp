@@ -28,7 +28,7 @@ LvqDataset::LvqDataset(Matrix_NN const & points, VectorXi const & pointLabels, i
 }
 LvqDataset::LvqDataset(LvqDataset const & src, std::vector<int> const & subset)
 	: points(src.points.rows(),subset.size())
-	, pointLabels(subset.size())
+	, pointLabels((ptrdiff_t)subset.size())
 	, m_classCount(src.m_classCount)
 {
 	DBG(src.points.mean());

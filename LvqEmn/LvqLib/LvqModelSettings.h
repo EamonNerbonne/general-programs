@@ -47,8 +47,8 @@ struct LvqModelSettings
 	int PrototypeCount() const;
 
 	LvqModelSettings(LvqModelType modelType, boost::mt19937 & rngParams, boost::mt19937 & rngIter, std::vector<int> protodistrib, LvqDataset const * dataset); 
-	size_t InputDimensions() const;
-	size_t OutputDimensions() const { return Dimensionality == 0 ? LVQ_LOW_DIM_SPACE : Dimensionality; }
+	ptrdiff_t InputDimensions() const;
+	ptrdiff_t OutputDimensions() const { return Dimensionality == 0 ? LVQ_LOW_DIM_SPACE : Dimensionality; }
 
 	template<typename T>
 	void AssertModelIsOfRightType(T * ) {

@@ -99,7 +99,7 @@ LvqModelSettings::LvqModelSettings(LvqModelType modelType, boost::mt19937 & rngP
 	, Dataset(dataset)
 { }
 
-size_t LvqModelSettings::InputDimensions() const { return Dataset->dimCount(); }
+ptrdiff_t LvqModelSettings::InputDimensions() const { return Dataset->dimCount(); }
 
 int LvqModelSettings::PrototypeCount() const {	return accumulate(PrototypeDistribution.begin(), PrototypeDistribution.end(), 0); }
 
