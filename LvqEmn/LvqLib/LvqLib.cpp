@@ -23,7 +23,7 @@ extern "C" LvqDataset* CreateDatasetRaw(
 		//VectorXi::Map(labels,pointCount);
 		//vector<int> vLabels(labels,labels+pointCount);
 		//DBG(labelVec);
-		LvqDataset* dataset= new LvqDataset(points, labelVec, classCount);
+		LvqDataset* dataset = new LvqDataset(points, labelVec, classCount);
 		dataset->shufflePoints(rngInst);
 		return dataset;
 }
