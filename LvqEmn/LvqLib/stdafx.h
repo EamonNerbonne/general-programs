@@ -1,13 +1,5 @@
 #pragma once
 #ifdef _MSC_VER
-#define WIN32_LEAN_AND_MEAN // Exclude rarely-used stuff from Windows headers
-#pragma warning (disable:4996)
-#pragma warning (disable:4099)
-
-#pragma warning(disable: 4505)
-#pragma warning(disable: 4512)
-#pragma warning(disable: 4428)
-#pragma warning(push,3)
 #endif
 
 
@@ -17,6 +9,8 @@
 //#define EIGEN_VECTORIZE_SSSE3
 //#define EIGEN_VECTORIZE_SSE4_1
 //#define EIGEN_VECTORIZE_SSE4_2
+//#define EIGEN_VECTORIZE_AVX
+//#define EIGEN_VECTORIZE_FMA
 
 #define EIGEN_NO_AUTOMATIC_RESIZING
 #define EIGEN_USE_NEW_STDVECTOR
@@ -24,26 +18,25 @@
 
 
 #ifdef _MSC_VER
-#pragma warning(pop)
-//#pragma warning(push,3)
+#define WIN32_LEAN_AND_MEAN // Exclude rarely-used stuff from Windows headers
+#pragma warning(push)
+#pragma warning(disable: 4996) // Don't warn about standard functions that are "unsafe" because they don't validate input.
 #pragma warning(disable: 4714) //OK to ignore __forceinline
 #pragma warning(disable: 4510) //OK to not create default constructor
 #pragma warning(disable: 4610) //OK to not create default constructor
 #pragma warning(disable: 4701) //too many false positives for uninitalized locals
-#pragma warning(disable: 4789) //??? in eigen.
-#pragma warning(disable: 4267) 
-#pragma warning (disable:4244)//temporarily OK to ignore 64 vs. 32 bit issues.
+#pragma warning(disable: 4800)//eigen internal perf warning
 #endif
 
 #include <Eigen/Core>
 #include <Eigen/LU> 
 #include <Eigen/QR> 
 #include <Eigen/StdVector>
-//EIGEN_DEFINE_STL_VECTOR_SPECIALIZATION(Eigen::Matrix2d)
-
-//EIGEN_DEFINE_STL_VECTOR_SPECIALIZATION(Eigen::Vector2d)
-
 #include <Bench/BenchTimer.h>
+
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
 
 
 #include <cmath>

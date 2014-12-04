@@ -7,6 +7,7 @@
 #pragma warning (disable:4714)
 #pragma warning (push, 3)
 #pragma warning (disable:4099)
+#pragma warning (disable:4701)
 #pragma warning (disable:4505)
 #endif
 
@@ -27,6 +28,14 @@
 #include <boost/random/normal_distribution.hpp>
 #include <boost/random/mersenne_twister.hpp>
 
+#ifdef _MSC_VER
+#pragma warning (push)
+#pragma warning (disable:4996)
+#pragma warning (disable:4714)
+#pragma warning (disable:4099)
+#pragma warning (disable:4701)
+#pragma warning (disable:4505)
+#endif
 #include <Eigen/Core>
 
 #ifdef _MSC_VER
