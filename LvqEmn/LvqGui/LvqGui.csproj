@@ -361,9 +361,6 @@
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="ExpressionToCodeLib">
-      <HintPath>..\..\..\..\ExpressionToCode\ExpressionToCodeLib\bin\Release\ExpressionToCodeLib.dll</HintPath>
-    </Reference>
     <Reference Include="MoreLinq">
       <HintPath>..\..\Support Tools\MoreLinq\MoreLinq.dll</HintPath>
     </Reference>
