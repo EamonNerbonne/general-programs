@@ -1,5 +1,7 @@
 REM @echo off
-mingw32-make "MAKE=mingw32-make -j8" SHELL=cmd.exe -j8 >%~dp0\_Build-mingw.log
+REM mingw32-make "MAKE=mingw32-make -j8" SHELL=cmd.exe -j8 >%~dp0\_Build-mingw.log
+
+mingw32-make "MAKE=mingw32-make" SHELL=cmd.exe  >%~dp0\_Build-mingw.log
 IF ERRORLEVEL 1 (
 	echo buildFailed > "%~dp0\_BuildFailed-mingw"
 ) ELSE (
