@@ -17,7 +17,7 @@ struct LvqModelRuntimeSettings
 	LvqModelRuntimeSettings(int classCount, boost::mt19937 & rngIter); 
 };
 
-struct LvqDataset;
+class LvqDataset;
 
 struct LvqModelSettings
 {

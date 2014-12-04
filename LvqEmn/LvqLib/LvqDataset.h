@@ -39,9 +39,8 @@ public:
 	SmartSum<1> distanceBad() const {return distBad;}
 };
 
-struct LvqDataset
+class LvqDataset
 {
-private:
 	Matrix_NN points; //one dimension per row, one point per column
 	VectorXi pointLabels;
 	int m_classCount;

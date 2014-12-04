@@ -5,7 +5,7 @@ extern "C" {
 	typedef double LvqStat;
 	typedef double LvqFloat;
 
-	struct LvqDataset;
+	class LvqDataset;
 	struct LvqModel;
 	struct DataShape { int pointCount, dimCount, classCount; };
 	struct CostAndErrorRate { double meanCost, errorRate;};

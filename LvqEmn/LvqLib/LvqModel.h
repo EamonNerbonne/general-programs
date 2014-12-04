@@ -11,7 +11,7 @@
 #endif
 
 using namespace Eigen;
-struct LvqDataset;
+class LvqDataset;
 class LvqDatasetStats;
 struct LvqModel
 {

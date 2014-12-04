@@ -4,7 +4,7 @@ using namespace System::Collections::Generic;
 #include <boost/random/mersenne_twister.hpp>
 //#include "LvqTypedefs.h"
 #include "LvqLib.h"
-struct LvqDataset;
+class LvqDataset;
 
 namespace LvqLibCli {
 	ref class LvqModelCli;
