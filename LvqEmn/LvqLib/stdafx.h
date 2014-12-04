@@ -21,9 +21,9 @@
 
 #ifdef _MSC_VER
 #define WIN32_LEAN_AND_MEAN // Exclude rarely-used stuff from Windows headers
+#pragma warning(disable: 4714) //OK to ignore __forceinline
 #pragma warning(push)
 #pragma warning(disable: 4996) // Don't warn about standard functions that are "unsafe" because they don't validate input.
-#pragma warning(disable: 4714) //OK to ignore __forceinline
 #pragma warning(disable: 4510) //OK to not create default constructor
 #pragma warning(disable: 4610) //OK to not create default constructor
 #pragma warning(disable: 4701) //too many false positives for uninitalized locals
@@ -66,10 +66,4 @@ using Eigen::VectorXi;
 using Eigen::MatrixXi;
 
 
-#ifdef _MSC_VER
-//#pragma warning(pop)
-#pragma warning (default:4244)
-
-#pragma warning (disable: 4127)
-#endif
 

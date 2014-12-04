@@ -1,6 +1,11 @@
 #pragma once
 #include <boost/random/mersenne_twister.hpp>
 
+#ifdef _MSC_VER
+#pragma warning(push) //don't warn about while(true)
+#pragma warning(disable:4127) //don't warn about while(true)
+#endif
+
 template<typename arrayT>
 void shuffle(boost::mt19937 & randGen, arrayT& arr, unsigned size){
 	for(unsigned i = 0; i<size;++i) {
@@ -17,6 +22,11 @@ void shuffle(boost::mt19937 & randGen, arrayT& arr, unsigned size){
 		std::swap(arr[i],arr [ i + capped]);
 	}
 }
+
+#ifdef _MSC_VER
+#pragma warning(pop) //don't warn about while(true)
+#endif
+
 // (Slower) alternative is something like:
 //	random_shuffle(start, end, shuffle_rnd_helper(randGen) );
 //
