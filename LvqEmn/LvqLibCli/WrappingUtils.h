@@ -28,8 +28,6 @@ namespace LvqLibCli {
 		MatrixContainer(int rows, int cols) : cols(cols),rows(rows) {arr=gcnew array<T>(rows*cols); }
 	};
 
-	//template<typename TIn, typename TOut> TOut cliToCpp(TIn arr);
-	//template<typename TIn, typename TOut> TOut cppToCli(TIn const & arr);
 	using namespace std;
 	using namespace System;
 	using namespace Eigen;
