@@ -27,6 +27,7 @@ extern "C" LvqDataset* CreateDatasetRaw(
 		dataset->shufflePoints(rngInst);
 		return dataset;
 }
+
 extern "C" LvqDataset* CreateGaussianClouds(
 	unsigned rngParamSeed, unsigned rngInstSeed, int dimCount, int pointCount, int classCount, double meansep) {
 		mt19937 rngParams(rngParamSeed), rngInst(rngInstSeed);
@@ -34,6 +35,7 @@ extern "C" LvqDataset* CreateGaussianClouds(
 		dataset->shufflePoints(rngInst);
 		return dataset;
 }
+
 extern "C" LvqDataset* CreateStarDataset(
 	unsigned rngParamSeed, unsigned rngInstSeed, int dimCount, int pointCount, int classCount,
 	int starDims, int numStarTails, double starMeanSep, double starClassRelOffset, bool randomlyRotate, double noiseSigma, double globalNoiseMaxSigma){
@@ -47,7 +49,6 @@ extern "C" LvqDataset* CreateDatasetFold(LvqDataset* underlying, int fold, int f
 	//std::cout<< "Creating dataset "<< (isTestFold?"test":"") <<" fold #"<<fold<<"/"<<foldCount<<"\n";
 	return underlying->Extract(isTestFold?underlying->GetTestSubset(fold,foldCount):underlying->GetTrainingSubset(fold,foldCount));
 }
-
 
 extern "C"  void CreatePointCloud(unsigned rngParamSeed, unsigned rngInstSeed, int dimCount, int pointCount, double meansep,  LvqFloat* target){
 	Map<Matrix_NN> tgt(target,dimCount,pointCount);
