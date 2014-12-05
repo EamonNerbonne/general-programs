@@ -30,15 +30,15 @@ MatrixXd func(MatrixXd const & input) {
 
 int main(int , wchar_t* [])
 {
-	MatrixXd sample = VectorXd::LinSpaced(6, 1, 6) * VectorXd::LinSpaced(12, 1, 12).transpose();
+	MatrixXd sample = VectorXd::LinSpaced(6, 1, 6) * VectorXd::LinSpaced(28000, 1, 28000).transpose();
 	cout << sample.rowwise().mean() << "\n\n";
 	unique_ptr<Wrapper> ptr(new Wrapper(sample));
 	cout << ptr->data.rowwise().mean() << "\n\n";
 	//for (size_t i = 0; i < sample.cols(); ++i)
 	//	output.col(i) = sample.col(i);
 
-	cout << sample <<"\n\n";
+	/*cout << sample <<"\n\n";
 	cout << ptr->data << "\n\n";
-	return 0;
+	*/return 0;
 }
 
