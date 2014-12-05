@@ -332,6 +332,7 @@
       <FloatingPointModel>Fast</FloatingPointModel>
       <AdditionalOptions>/MP4</AdditionalOptions>
       <OpenMPSupport>true</OpenMPSupport>
+      <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
     </ClCompile>
     <Link>
       <AdditionalDependencies>LvqLib.lib;%(AdditionalDependencies)</AdditionalDependencies>
