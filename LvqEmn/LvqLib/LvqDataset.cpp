@@ -13,17 +13,17 @@ LvqDataset::LvqDataset(Matrix_NN const & points, VectorXi const & pointLabels, i
 	, pointLabels(pointLabels)
 	, m_classCount(classCountPar)
 {
-	DBG(this->points.cols());
-	DBG(this->pointLabels.size());
-	DBG(this->pointLabels.maxCoeff());
-	DBG(this->pointLabels.minCoeff());
+	//DBG(this->points.cols());
+	//DBG(this->pointLabels.size());
+	//DBG(this->pointLabels.maxCoeff());
+	//DBG(this->pointLabels.minCoeff());
 	//DBG(pointLabels);
-	DBG(this->m_classCount);
+	//DBG(this->m_classCount);
 	assert(points.cols() == pointLabels.size());
 	assert(pointLabels.maxCoeff() < classCountPar);
 	assert(pointLabels.minCoeff() >= 0);
-	DBG(this->points.mean());
-	DBG(points.mean());
+	//DBG(this->points.mean());
+	//DBG(points.mean());
 	//pointLabels.shrink_to_fit();
 }
 LvqDataset::LvqDataset(LvqDataset const & src, std::vector<int> const & subset)
@@ -31,7 +31,7 @@ LvqDataset::LvqDataset(LvqDataset const & src, std::vector<int> const & subset)
 	, pointLabels((ptrdiff_t)subset.size())
 	, m_classCount(src.m_classCount)
 {
-	DBG(src.points.mean());
+	//DBG(src.points.mean());
 	for(int i=0;i<(int)subset.size();++i) {
 		int pI = subset[i];
 		points.col(i).noalias() = src.points.col(pI);
