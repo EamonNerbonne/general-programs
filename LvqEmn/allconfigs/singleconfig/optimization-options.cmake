@@ -6,14 +6,9 @@ message("Using build type ${CMAKE_BUILD_TYPE}")
 if(CMAKE_COMPILER_IS_GNUCXX)
 	message("Compiler is Gcc")
   
-#  if($ENV{NUMBER_OF_PROCESSORS} EQUAL "8")
-#    set(CPU_ARCH "corei7")
-#    message("Using i7 without AVX")
-#  else ()
     set(CPU_ARCH "native")
-#  endif()
-	set(CMAKE_CXX_FLAGS_DEBUG " -Wfatal-errors -Wall -Wno-unused-local-typedefs -Wno-parentheses -std=c++11 -m64 -march=${CPU_ARCH} -mtune=native -O2")
-	set(CMAKE_CXX_FLAGS_RELEASE "  -Wfatal-errors -Wall -Wno-unused-local-typedefs -Wno-parentheses -std=c++11  -m64 -march=${CPU_ARCH} -mtune=native -O3 ")
+	set(CMAKE_CXX_FLAGS_DEBUG " -Wall -fabi-version=8 -Wno-unused-local-typedefs -Wno-parentheses -std=c++11 -m64 -march=${CPU_ARCH} -mtune=native -O2")
+	set(CMAKE_CXX_FLAGS_RELEASE " -Wall -fabi-version=8 -Wno-unused-local-typedefs -Wno-parentheses -std=c++11  -m64 -march=${CPU_ARCH} -mtune=native -O3 ")
 	
     set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -DNDEBUG")
 
