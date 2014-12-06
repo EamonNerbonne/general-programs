@@ -79,3 +79,4 @@ SongSearchLinq/LastFMspider/x86
 *.vspx
 LvqEmn/build
 packages
+LvqEmn/allconfigs/*.errlog
