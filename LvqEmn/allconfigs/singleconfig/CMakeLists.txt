@@ -14,5 +14,5 @@ endfunction(build_project)
 
 #build_project(EigenBench)
 build_project(LvqLib)
-#build_project(LvqBench)
+build_project(LvqBench)
 #build_project(LvqLibTest)
