@@ -8,9 +8,9 @@ set(CMAKE_SHARED_LIBRARY_PREFIX "")
 
 message("Using compiler at ${CMAKE_CXX_COMPILER}")
 
-set(EigenVersion 3)
-set(EigenVectorize OFF)
-add_subdirectory("singleconfig" "buildNV")
+# set(EigenVersion 3)
+# set(EigenVectorize OFF)
+# add_subdirectory("singleconfig" "buildNV")
 
 set(EigenVersion 3)
 set(EigenVectorize ON)
