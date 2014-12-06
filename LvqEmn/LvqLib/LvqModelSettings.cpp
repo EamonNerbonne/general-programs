@@ -242,7 +242,7 @@ Matrix_22 BinitByPca(Matrix_P const & lowdimpoints) {
 }
 
 template <int TPointDims>
-vector< Matrix<LvqFloat, TPointDims, 1> > DistMatByProtos(Matrix<LvqFloat, TPointDims, Eigen::Dynamic> const & points, VectorXi const & pointLabels, Matrix<LvqFloat, TPointDims, Eigen::Dynamic> const & protos, VectorXi const & protoLabels) {
+vector< Matrix<LvqFloat, TPointDims, 1>, Eigen::aligned_allocator<Matrix<LvqFloat, TPointDims, 1>> > DistMatByProtos(Matrix<LvqFloat, TPointDims, Eigen::Dynamic> const & points, VectorXi const & pointLabels, Matrix<LvqFloat, TPointDims, Eigen::Dynamic> const & protos, VectorXi const & protoLabels) {
 	typedef Matrix<LvqFloat, TPointDims, Eigen::Dynamic> TPoints;
 	typedef Matrix<LvqFloat, TPointDims, 1> TPoint;
 	typedef Matrix<LvqFloat, TPointDims, TPointDims> TCov;
@@ -292,7 +292,7 @@ vector< Matrix<LvqFloat, TPointDims, 1> > DistMatByProtos(Matrix<LvqFloat, TPoin
 		variances[protoI] *= 1.0/protoMatchCounts(protoI);
 	}
 
-	vector<TPoint> normalizingMat(protoLabels.size());
+	vector<TPoint, Eigen::aligned_allocator<TPoint> > normalizingMat(protoLabels.size());
 	VectorXi x;
 
 	for(size_t protoI = 0; protoI < (size_t)protoLabels.size(); ++protoI) {
@@ -384,9 +384,9 @@ tuple<Matrix_NN,Matrix_NN, VectorXi> LvqModelSettings::InitRelevanceProtosBySett
 
 
 
-vector<Matrix_22> BinitByProtos(Matrix_P const & lowdimpoints, VectorXi const & pointLabels, Matrix_P const & lowdimProtos, VectorXi const & protoLabels) {
+vector<Matrix_22, Eigen::aligned_allocator<Matrix_22> > BinitByProtos(Matrix_P const & lowdimpoints, VectorXi const & pointLabels, Matrix_P const & lowdimProtos, VectorXi const & protoLabels) {
 	auto protoscalers=DistMatByProtos<2>(lowdimpoints,pointLabels,lowdimProtos,protoLabels);
-	vector<Matrix_22> B;
+	vector<Matrix_22, Eigen::aligned_allocator<Matrix_22>> B;
 	std::for_each(protoscalers.cbegin(), protoscalers.cend(), [&] (Vector_2 const & scale) {
 		B.push_back(scale.asDiagonal());
 	});
@@ -394,7 +394,7 @@ vector<Matrix_22> BinitByProtos(Matrix_P const & lowdimpoints, VectorXi const & 
 }
 
 
-vector<Matrix_22> BinitByLastProto(Matrix_P const & lowdimpoints, VectorXi const & pointLabels, Matrix_P const & lowdimProtos, VectorXi const & protoLabels) {
+vector<Matrix_22, Eigen::aligned_allocator<Matrix_22>> BinitByLastProto(Matrix_P const & lowdimpoints, VectorXi const & pointLabels, Matrix_P const & lowdimProtos, VectorXi const & protoLabels) {
 	int classCount=protoLabels.maxCoeff() + 1;
 	Matrix_P classMeans(LVQ_LOW_DIM_SPACE, classCount);
 	for(int i = 0; i < protoLabels.size(); ++i) 
@@ -403,17 +403,17 @@ vector<Matrix_22> BinitByLastProto(Matrix_P const & lowdimpoints, VectorXi const
 	for(int i = 0; i < classCount; ++i) 
 		protoSubLabels(i) = i;
 
-	vector<Matrix_22> initClassB = BinitByProtos(lowdimpoints,  pointLabels, classMeans, protoSubLabels);
-	vector<Matrix_22> initB;
+	vector<Matrix_22, Eigen::aligned_allocator<Matrix_22>> initClassB = BinitByProtos(lowdimpoints, pointLabels, classMeans, protoSubLabels);
+	vector<Matrix_22, Eigen::aligned_allocator<Matrix_22>> initB;
 	for(int i = 0; i < protoLabels.size(); ++i) 
 		initB.push_back(initClassB[protoLabels(i)]);
 	return initB;
 }
 
-vector<Matrix_22> BinitPerProto(Matrix_P const & P, LvqModelSettings & initSettings,	Matrix_NN const & prototypes,	VectorXi const & protoLabels) {
+vector<Matrix_22, Eigen::aligned_allocator<Matrix_22>> BinitPerProto(Matrix_P const & P, LvqModelSettings & initSettings, Matrix_NN const & prototypes, VectorXi const & protoLabels) {
 	Matrix_P const lowdimpoints = P * initSettings.Dataset->getPoints();
 
-	vector<Matrix_22> initB;
+	vector<Matrix_22, Eigen::aligned_allocator<Matrix_22>> initB;
 	if(!initSettings.Bcov) {
 		if(initSettings.ModelType == LvqModelSettings::GgmModelType || initSettings.ModelType == LvqModelSettings::FgmModelType) {
 			auto globalB = BinitByPca(lowdimpoints);
@@ -444,7 +444,7 @@ vector<Matrix_22> BinitPerProto(Matrix_P const & P, LvqModelSettings & initSetti
 }
 
 
-tuple<Matrix_P,Matrix_NN, VectorXi, vector<Matrix_22> > LvqModelSettings::InitProtosProjectionBoundariesBySetting() {
+tuple<Matrix_P, Matrix_NN, VectorXi, vector<Matrix_22, Eigen::aligned_allocator<Matrix_22>> > LvqModelSettings::InitProtosProjectionBoundariesBySetting() {
 	using std::get;
 	using std::make_tuple;
 

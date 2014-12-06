@@ -31,7 +31,7 @@ GgmLvqModel::GgmLvqModel(LvqModelSettings & initSettings)
 	Matrix_NN prototypes = get<1>(InitProtos);
 	VectorXi protoLabels = get<2>(InitProtos);
 
-	vector<Matrix_22> initB = get<3>(InitProtos);
+	vector<Matrix_22, Eigen::aligned_allocator<Matrix_22>> initB = get<3>(InitProtos);
 
 	prototype.resize(protoLabels.size());
 	for(size_t protoIndex=0; protoIndex < (size_t)protoLabels.size(); ++protoIndex) {
