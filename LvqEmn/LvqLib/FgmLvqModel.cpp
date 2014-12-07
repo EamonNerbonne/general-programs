@@ -10,6 +10,9 @@
 using namespace std;
 using namespace Eigen;
 
+//this is like Ggm, except the cost function includes the probabilities of the point being not just in the nearest prototypes distribution, but of all points.
+
+
 FgmLvqModel::FgmLvqModel(LvqModelSettings & initSettings)
 	: LvqProjectionModelBase(initSettings)
 	, totalMuJLr(0.0)
