@@ -44,7 +44,7 @@ namespace LvqLibCli {
 
 		retval.noKP = retval.noKP && hasGlobalP;
 		//retval.Popt =  retval.Popt && hasGlobalP;
-		//retval.Ppca = retval.Ppca && (hasGlobalP || );
+		retval.Ppca = retval.Ppca && (hasGlobalP || hasLocalizedP);
 		retval.NoNnErrorRateTracking = retval.NoNnErrorRateTracking && hasGlobalP;
 		retval.NGu = retval.NGu && PrototypesPerClass > 1 && hasGlobalP;
 		retval.NGi =retval.NGi && PrototypesPerClass > 1;
@@ -54,7 +54,7 @@ namespace LvqLibCli {
 		retval.wGMu = retval.wGMu && isG2mVariant;
 		retval.LocallyNormalize = retval.LocallyNormalize && (isLgmVariant || isG2mVariant);
 		retval.RandomInitialBorders = retval.RandomInitialBorders && hasB;
-		retval.Bcov = retval.Bcov && (hasB || hasLocalizedP);
+		retval.Bcov = retval.Bcov && (hasB || hasLocalizedP || ModelType == LvqModelType::Lgr);
 		if(!hasB) retval.LrScaleB=0.0;
 		if(!isGgmVariant && ModelType != LvqModelType::Normal) retval.MuOffset = 0.0;
 		if(IsFixedDimensionalityModel(ModelType)) retval.Dimensionality=0;
