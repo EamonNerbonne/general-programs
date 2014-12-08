@@ -78,13 +78,13 @@ namespace LvqLibCli {
 
 
 
-	LvqDatasetCli::LvqDatasetCli(String^label, ColorArray^ colors, array<String^>^ classes, array<GcManualPtr<LvqDataset>^ >^ newDatasets, array<GcManualPtr<LvqDataset>^ >^ newTestDatasets, LvqDatasetCli^ parent) 
-		: parent(parent)
+	LvqDatasetCli::LvqDatasetCli(String^label, ColorArray^ colors, array<String^>^ classes, array<GcManualPtr<LvqDataset>^ >^ newDatasets, array<GcManualPtr<LvqDataset>^ >^ newTestDatasets, LvqDatasetCli^ original)
+		: original(original)
 		, colors(colors)
 		, classNames(classes)
 		, label(label)
 		, datasets(newDatasets)
-		, testSet(newTestDatasets==nullptr?nullptr:gcnew LvqDatasetCli(nullptr,colors, classes, newTestDatasets,nullptr, parent==nullptr?nullptr:parent->testSet))
+		, testSet(newTestDatasets == nullptr ? nullptr : gcnew LvqDatasetCli(nullptr, colors, classes, newTestDatasets, nullptr, original == nullptr ? nullptr : original->testSet))
 	{
 		if(newTestDatasets!=nullptr && newDatasets->Length!=newTestDatasets->Length) throw gcnew ArgumentException("newTestDatasets","test datasets must have the same number of folds as the training datasets");
 		datashape = GetShapes(datasets);
@@ -128,8 +128,7 @@ namespace LvqLibCli {
 	};
 
 	LvqDatasetCli^ LvqDatasetCli::ConstructByModelExtension(array<LvqModelCli^>^ models) {
-		LvqDatasetCli^toInclude = this;
-		while(toInclude->parent !=nullptr) toInclude = toInclude->parent;
+		LvqDatasetCli^toInclude = original != nullptr ? original : this;
 
 		auto newDatasetComputer = gcnew array<ModelExtensionComputer^ >(models->Length);
 		for(int i=0;i<models->Length;++i) {
@@ -142,7 +141,7 @@ namespace LvqLibCli {
 			newDatasetsTest[i] = newDatasetComputer[i]->newDatasetTask->Result->Item2;
 		}
 		DataShape shape=GetDataShape(newDatasets[0]->get());
-		return gcnew LvqDatasetCli(RegexConsts::dimcountregex->Replace(label,"$0X"+shape.dimCount,1), colors, classNames, newDatasets, newDatasetsTest, this);
+		return gcnew LvqDatasetCli(RegexConsts::dimcountregex->Replace(label, "$0X" + shape.dimCount, 1), colors, classNames, newDatasets, newDatasetsTest, toInclude);
 	}
 
 	using namespace System::Threading::Tasks;

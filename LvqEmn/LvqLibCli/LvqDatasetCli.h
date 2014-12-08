@@ -11,7 +11,7 @@ namespace LvqLibCli {
 	public ref class LvqDatasetCli
 	{
 		typedef array<System::Windows::Media::Color> ColorArray;
-		initonly LvqDatasetCli^ parent;
+		initonly LvqDatasetCli^ original;
 		array<GcManualPtr<LvqDataset>^ >^ datasets;
 		GcAutoPtr<vector<DataShape> >^ datashape;
 		array<String^>^ classNames;
