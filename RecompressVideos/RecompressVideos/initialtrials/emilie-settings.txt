@@ -1,0 +1,1 @@
+avs4x264mod --x264-binary x264-10b.exe --input-depth 16 --preset placebo --tune film --open-gop --non-deterministic --keyint 4000 --min-keyint 25 --me umh --merange 40  --crf 25 --aq-strength 0.65 --nr 1000 -o emilie-smooth-deepcolor.mkv emilie_denoised_deepcolor.avs

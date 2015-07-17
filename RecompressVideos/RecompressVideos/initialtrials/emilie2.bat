@@ -1,0 +1,2 @@
+avs4x264mod --x264-binary x264-10b.exe --threads 6 --preset placebo --tune film --open-gop --non-deterministic --keyint 5000 --min-keyint 25 --crf 19 --nr 500 --input-depth 16 -o "emilie2-out50.mkv"  "emilie_denoised_deepcolor.avs"
+mkvmerge.exe emilie2-out50.mkv -D emilie2.mts -o emilie2-out50-done.mkv

@@ -1,0 +1,1 @@
+avs4x264mod --x264-binary x264-10b.exe --threads 3 --preset placebo --tune film --open-gop --non-deterministic --keyint 5000 --min-keyint 25 --crf 25 --aq-strength 0.75 --nr 2500 --input-depth 16 -o lifeZ3.mkv  lifeZ3.avs
