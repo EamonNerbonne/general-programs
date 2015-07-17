@@ -59,7 +59,10 @@ let generate_avs_script out_dir cleaners (tmp_file:FileInfo) =
     avs_file
 
 let recompress_video out_dir cleaners (avs_file:FileInfo) =
-    let base_args = "--x264-binary x264-10b.exe --threads 3 --preset placebo --tune film --open-gop --non-deterministic --keyint 5000 --min-keyint 25 --crf 23 --nr 200 --aq-strength 0.8 --input-depth 16"
+    let base_args = "--x264-binary x264-10b.exe --threads 3 --preset placebo --non-deterministic --keyint 5000 --min-keyint 25 --crf 20 --nr 100 --aq-strength 0.8 --input-depth 16"
+    //--open-gop: seeking then sucks.
+    //for hd; consider --crf 20 --nr 100
+    //for film; consider  --tune film
     let video_file = file_within_ext out_dir avs_file.Name "-video.mkv"
     if video_file.Exists then
 //        failwith <| sprintf "File %s already exists" video_file.FullName
@@ -163,9 +166,9 @@ let processFile (out_dir:DirectoryInfo) (src_file:FileInfo) =
         let cleaners = initializeCleaners()
         try
             let avs_file = generate_avs_script out_dir cleaners src_file
-            let video_file = recompress_video out_dir cleaners avs_file
             let flac_file = extract_audio out_dir cleaners src_file
             let opus_file = compress_audio out_dir cleaners flac_file
+            let video_file = recompress_video out_dir cleaners avs_file
             let maybe_chapters_file = extract_chapters out_dir cleaners src_file
             recombine_video_audio_chapters out_dir cleaners video_file opus_file maybe_chapters_file output_file
             cleanup cleaners
@@ -174,21 +177,28 @@ let processFile (out_dir:DirectoryInfo) (src_file:FileInfo) =
             printfn "Finished: %s" output_file.FullName
             ()
 
-let acceptable_extensions = Set.ofList [ ".mkv"; ".mp4"; ".avi" ]
+let acceptable_extensions = Set.ofList [ ".mkv"; ".mp4"; ".avi"; ".m4v" ]
     
 
-let processFiles (in_dir:DirectoryInfo) (out_dir:DirectoryInfo) = 
+let processFiles (out_dir:DirectoryInfo) (in_dir:DirectoryInfo) = 
     let files = in_dir.GetFiles() |> Array.filter (fun f -> f.Extension |> acceptable_extensions.Contains)
+    printfn "files: %A" files
     Parallel.ForEach(files, new ParallelOptions(MaxDegreeOfParallelism = 2), processFile out_dir) |> ignore
     ()
 
 
 [<EntryPoint>]
 let main argv = 
-    let inputDir = new DirectoryInfo(argv.[0])
-    if not <| inputDir.Exists then
-        failwith ("Can't find input dir: " + argv.[0])
     System.Diagnostics.Process.GetCurrentProcess().PriorityClass <- System.Diagnostics.ProcessPriorityClass.Idle
-    processFiles (new DirectoryInfo(argv.[0]))  (new DirectoryInfo @"E:\TmpVideoOut\")
+    let out_dir = new DirectoryInfo @"E:\TmpVideoOut\"
+    if File.Exists argv.[0] then
+        printfn "file!"
+        processFile out_dir (new FileInfo(argv.[0]))
+    else
+        printfn "dir!"
+        let inputDir = new DirectoryInfo(argv.[0])
+        if not <| inputDir.Exists then
+            failwith ("Can't find input dir: " + argv.[0])
+        processFiles out_dir inputDir
 
-    0 // return an integer exit code
+    0// return an integer exit code
