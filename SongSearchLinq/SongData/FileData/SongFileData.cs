@@ -65,22 +65,24 @@ namespace SongDataLib {
 		}
 
 		static void GetTag(LFile fileObj, out IAudioCodec properties, out ILookup<string, string> customtags, out Tag tag) {
-			//if (fileObj.Extension.ToLowerInvariant() == ".mp3") {
-			//    prefer reading only start of file.
-			//    taglib doesn't really support this, unfortunately.
-			//}
-			
-			TagLib.File file = TagLib.File.Create(fileObj.FullName);
-			properties = file.Properties;
-			tag = file.Tag;
-			customtags = GetCustomTags(file);
+            //if (fileObj.Extension.ToLowerInvariant() == ".mp3") {
+            //    prefer reading only start of file.
+            //    taglib doesn't really support this, unfortunately.
+            //}
+            var filePath = fileObj.FullName;
+            using (var stream = System.IO.File.Open(filePath, System.IO.FileMode.Open, System.IO.FileAccess.Read))
+            using (var file = File.Create(new StreamFileAbstraction(filePath, stream, stream))) {
+                properties = file.Properties;
+                tag = file.Tag;
+                customtags = GetCustomTags(file);
+            }
 		}
 
 		static ILookup<string, string> GetCustomTags(TagLib.File file) {
 			return GetCustomTagsList(file).ToLookup(keyval => keyval.Item1.ToLowerInvariant(), keyval => keyval.Item2);
 		}
 
-		static IEnumerable<Tuple<string, string>> GetCustomTagsList(TagLib.File file) {
+		static IEnumerable<Tuple<string, string>> GetCustomTagsList(File file) {
 			TagTypes types = file.TagTypes;
 			if (types.HasFlag(TagTypes.Xiph)) {
 				var filetag = (file.GetTag(TagTypes.Xiph, false) as TagLib.Ogg.XiphComment);
@@ -101,55 +103,57 @@ namespace SongDataLib {
 				throw new NotImplementedException();
 		}
 
-		private static IEnumerable<TagLib.Id3v2.UserTextInformationFrame> UserTextInformationFrames(TagLib.File file) {
+		private static IEnumerable<TagLib.Id3v2.UserTextInformationFrame> UserTextInformationFrames(File file) {
 			return ((TagLib.Id3v2.Tag)file.GetTag(TagTypes.Id3v2, false))
 				.GetFrames("TXXX").Cast<TagLib.Id3v2.UserTextInformationFrame>();
 		}
 
 		public void WriteRatingToFile() {
-			var file = TagLib.File.Create(SongUri.LocalPath);
-			TagTypes types = file.TagTypes & (~TagTypes.Id3v1);
-			if (types.HasFlag(TagTypes.Xiph) || file is TagLib.Ogg.File) {
-				var filetag = (file.GetTag(TagTypes.Xiph, true) as TagLib.Ogg.XiphComment);
-				if (rating == null)
-					filetag.RemoveField("rating");//case insensitive
-				else
-					filetag.SetField("rating", rating.Value.ToString());
+            using (var stream = System.IO.File.Open(SongUri.LocalPath, System.IO.FileMode.Open, System.IO.FileAccess.ReadWrite))
+            using (var file = File.Create(new StreamFileAbstraction(SongUri.LocalPath, stream, stream))) {
+                TagTypes types = file.TagTypes & (~TagTypes.Id3v1);
+                if (types.HasFlag(TagTypes.Xiph) || file is TagLib.Ogg.File) {
+                    var filetag = (file.GetTag(TagTypes.Xiph, true) as TagLib.Ogg.XiphComment);
+                    if (rating == null)
+                        filetag.RemoveField("rating");//case insensitive
+                    else
+                        filetag.SetField("rating", rating.Value.ToString());
 
-				types = types & (~TagTypes.Xiph);
-			}
+                    types = types & (~TagTypes.Xiph);
+                }
 
-			if (types.HasFlag(TagTypes.Id3v2) || file is TagLib.Mpeg.AudioFile) {
-				var filetag = ((TagLib.Id3v2.Tag)file.GetTag(TagTypes.Id3v2, true));
-				var ratingfields = UserTextInformationFrames(file).Where(frame => frame.Description.ToLowerInvariant() == "rating").ToArray();
-				foreach (var fieldtodelete in ratingfields.Where(frame => frame.Description != "rating" || rating == null))
-					filetag.RemoveFrame(fieldtodelete);
+                if (types.HasFlag(TagTypes.Id3v2) || file is TagLib.Mpeg.AudioFile) {
+                    var filetag = ((TagLib.Id3v2.Tag)file.GetTag(TagTypes.Id3v2, true));
+                    var ratingfields = UserTextInformationFrames(file).Where(frame => frame.Description.ToLowerInvariant() == "rating").ToArray();
+                    foreach (var fieldtodelete in ratingfields.Where(frame => frame.Description != "rating" || rating == null))
+                        filetag.RemoveFrame(fieldtodelete);
 
-				if (rating != null)
-					TagLib.Id3v2.UserTextInformationFrame.Get(filetag, "rating", true).Text = new[] { rating.Value.ToString() };
-				types = types & (~TagTypes.Id3v2);
-			}
+                    if (rating != null)
+                        TagLib.Id3v2.UserTextInformationFrame.Get(filetag, "rating", true).Text = new[] { rating.Value.ToString() };
+                    types = types & (~TagTypes.Id3v2);
+                }
 
-			if (types.HasFlag(TagTypes.Ape)) {
-				var filetag = (file.GetTag(TagTypes.Ape, false) as TagLib.Ape.Tag);
-				if (rating == null)
-					filetag.RemoveItem("rating");//case insensitive
-				else
-					filetag.SetValue("rating", rating.Value.ToString());
-				types = types & (~TagTypes.Ape);
-			}
+                if (types.HasFlag(TagTypes.Ape)) {
+                    var filetag = (file.GetTag(TagTypes.Ape, false) as TagLib.Ape.Tag);
+                    if (rating == null)
+                        filetag.RemoveItem("rating");//case insensitive
+                    else
+                        filetag.SetValue("rating", rating.Value.ToString());
+                    types = types & (~TagTypes.Ape);
+                }
 
-			if (types.HasFlag(TagTypes.Asf)) {
-				var filetag = file.GetTag(TagTypes.Asf, false) as TagLib.Asf.Tag;
-				if (rating == null)
-					filetag.RemoveDescriptors("rating");
-				filetag.SetDescriptorString(rating.Value.ToString(), "rating");//note reversed order!
-				types = types & (~TagTypes.Asf);
-			}
+                if (types.HasFlag(TagTypes.Asf)) {
+                    var filetag = file.GetTag(TagTypes.Asf, false) as TagLib.Asf.Tag;
+                    if (rating == null)
+                        filetag.RemoveDescriptors("rating");
+                    filetag.SetDescriptorString(rating.Value.ToString(), "rating");//note reversed order!
+                    types = types & (~TagTypes.Asf);
+                }
 
-			if (types != TagTypes.None)
-				throw new NotImplementedException();
-			file.Save();
+                if (types != TagTypes.None)
+                    throw new NotImplementedException();
+                file.Save();
+            }
 		}
 
 		//faster to not recreate XNames.
