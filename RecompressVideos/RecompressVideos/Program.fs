@@ -43,7 +43,7 @@ let generate_avs_script out_dir cleaners (tmp_file:FileInfo) =
         FFVideoSource(""" + tmp_file.FullName + @""")
         #Trim(4315,5750)
         ConvertToYV12 #required for MCTD
-        MCTD(settings=""medium"",radius=3,sigma=9,limitC=3,bt=5,bwbh=32,owoh=16,enhance=true,dbF=""GradFun3(lsb=true,radius=16,smode=2)"")
+        MCTD(settings=""medium"",radius=3,sigma=7,limitC=3,bt=5,bwbh=32,owoh=16,enhance=true,dbF=""GradFun3(lsb=true,radius=16,smode=2)"")
         #limitC=2: do less noise reduction on chrome planes
         Dither_out() #required for x264
         "
