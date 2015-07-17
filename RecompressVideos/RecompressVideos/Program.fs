@@ -45,6 +45,7 @@ let generate_avs_script out_dir cleaners (tmp_file:FileInfo) =
         ConvertToYV12 #required for MCTD
         MCTD(settings=""medium"",radius=3,sigma=7,limitC=3,bt=5,bwbh=32,owoh=16,enhance=true,dbF=""GradFun3(lsb=true,radius=16,smode=2)"")
         #limitC=2: do less noise reduction on chrome planes
+        #sigma 9: take noise reduction a little more seriously
         Dither_out() #required for x264
         "
     let avs_file = file_within_ext out_dir tmp_file.Name ".avs"
