@@ -76,7 +76,8 @@ namespace SongDataLib {
 			extension = extension.ToLowerInvariant();
 			return extension == ".mp3"
 				|| extension == ".ogg"
-				|| extension == ".mpc"
+                || extension == ".opus"
+                || extension == ".mpc"
 				|| extension == ".mpp"
 				|| extension == ".mp+"
 				|| extension == ".wma"

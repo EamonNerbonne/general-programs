@@ -121,7 +121,8 @@ namespace SongSearchSite.Code.Handlers
 				case ".mp3": return MIME_MP3;
 				case ".wma": return MIME_WMA;
 				case ".wav": return MIME_WAV;
-				case ".ogg": return MIME_OGG;
+                case ".opus":
+                case ".ogg": return MIME_OGG;
 				case ".mpc":
 				case ".mpp":
 				case ".mp+": return MIME_MPC;
