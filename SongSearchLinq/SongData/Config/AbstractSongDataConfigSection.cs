@@ -24,8 +24,6 @@ namespace SongDataLib {
 		static readonly XmlWriterSettings settings = new XmlWriterSettings {
 			CheckCharacters = false,
 			Indent = true,
-			//Encoding = Encoding.UTF8,
-
 		};
 
 		public void RescanAndSave(FileKnownFilter filter, SongDataLoadDelegate handler) {
@@ -39,11 +37,11 @@ namespace SongDataLib {
 				List<ISongFileData> songs = new List<ISongFileData>();
 				//writer.WriteLine("<songs>");//we're not using an XmlWriter so that if part of the writer throws an unexpected exception, the writer isn't left in an invalid state.
 				ScanSongs(filter, (song, ratio) => {
-					//var songdata =song as SongData;
-					//if (songdata !=null) 
-					//    songdata.popularity = dcf.PopularityEstimator.EstimatePopularity (songdata.artist, songdata.title);
+                    //var songdata = song as SongFileData;
+                    //if (songdata != null)
+                    //    songdata.popularity = dcf.PopularityEstimator.EstimatePopularity(songdata.artist, songdata.title);
 
-					songs.Add(song);
+                    songs.Add(song);
 					handler(song, ratio);
 				}, (msg, ex) => {
 					Console.WriteLine(msg+"\n("+ex.Message+")");

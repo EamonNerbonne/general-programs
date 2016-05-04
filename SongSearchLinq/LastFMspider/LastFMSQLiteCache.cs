@@ -9,7 +9,7 @@ namespace LastFMspider {
 	public sealed class LastFMSQLiteCache : IDisposable {
 		public readonly object SyncRoot = new object();
 
-		DbConnection Connection { get; set; }
+		public DbConnection Connection { get; set; }
 
 		public void DoInTransaction(Action action) { DoInTransaction(rollback => action()); }
 		public void DoInTransaction(Action<Action> action) {
@@ -79,8 +79,6 @@ namespace LastFMspider {
 		public LookupArtist LookupArtist { get { lock (SyncRoot) return c_LookupArtist ?? (c_LookupArtist = new LookupArtist(this)); } }
 		LookupTrackID c_LookupTrackID;
 		public LookupTrackID LookupTrackID { get { lock (SyncRoot) return c_LookupTrackID ?? (c_LookupTrackID = new LookupTrackID(this)); } }
-		InsertSimilarityList c_InsertSimilarityList;
-		public InsertSimilarityList InsertSimilarityList { get { lock (SyncRoot) return c_InsertSimilarityList ?? (c_InsertSimilarityList = new InsertSimilarityList(this)); } }
 		AllTracks c_AllTracks;
 		public AllTracks AllTracks { get { lock (SyncRoot) return c_AllTracks ?? (c_AllTracks = new AllTracks(this)); } }
 		TracksWithoutSimilarityList c_TracksWithoutSimilarityList;
@@ -113,8 +111,6 @@ namespace LastFMspider {
 		public SetArtistAlternate SetArtistAlternate { get { lock (SyncRoot) return c_SetArtistAlternate ?? (c_SetArtistAlternate = new SetArtistAlternate(this)); } }
 		LookupArtistInfo c_LookupArtistInfo;
 		public LookupArtistInfo LookupArtistInfo { get { lock (SyncRoot) return c_LookupArtistInfo ?? (c_LookupArtistInfo = new LookupArtistInfo(this)); } }
-		TrackSetCurrentSimList c_TrackSetCurrentSimList;
-		internal TrackSetCurrentSimList TrackSetCurrentSimList { get { lock (SyncRoot) return c_TrackSetCurrentSimList ?? (c_TrackSetCurrentSimList = new TrackSetCurrentSimList(this)); } }
 		ArtistSetCurrentTopTracks c_ArtistSetCurrentTopTracks;
 		internal ArtistSetCurrentTopTracks ArtistSetCurrentTopTracks { get { lock (SyncRoot) return c_ArtistSetCurrentTopTracks ?? (c_ArtistSetCurrentTopTracks = new ArtistSetCurrentTopTracks(this)); } }
 		ArtistSetCurrentSimList c_ArtistSetCurrentSimList;
@@ -134,5 +130,4 @@ namespace LastFMspider {
 			}
 		}
 	}
-
 }

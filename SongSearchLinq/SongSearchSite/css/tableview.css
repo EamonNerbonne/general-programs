@@ -15,62 +15,99 @@ $blue:      #268bd2;
 $cyan:      #2aa198;
 $green:     #859900;*/
 
-body{background:#fdf6e3; color:#586e75;}
+body {
+    background: #fdf6e3;
+    color: #586e75;
+}
 
-table
-{
+table {
     border-collapse: collapse;
     width: 100%;
-    font-size:80%;
-    line-height:0.9;
-    vertical-align:middle;
+    font-size: 80%;
+    line-height: 0.9;
+    vertical-align: middle;
 }
-thead{color:#657b83;}
 
-tr
-{
+thead {
+    color: #657b83;
+}
+
+tr {
     border: solid #eee8d5;
     border-width: 1px 0 0 0;
     cursor: pointer;
-    height:1.5em;
+    height: 1.5em;
 }
 
-tr:nth-child(5n)
-{
+tr:nth-child(5n) {
     border: solid #93a1a1;
     border-width: 1px 0;
     background: #eee8d5;
 }
 
-tr > *:nth-child(2)
-{
+tr > *:nth-child(2) {
     font-style: italic;
 }
-td:first-child{color:#002b36;width:5em;} 
-td {width:auto;max-width:25%; }
-body
-{
+
+td {
+    width: auto;
+    max-width: 25%;
+}
+
+body {
     font-family: Segoe UI, 'Droid Sans', Arial, Sans-Serif; /* Segoe UI, Calibri, Bitstream Vera Sans, Gill Sans, Verdana, Sans-Serif;*/
     font-size: 15px;
     padding: 0;
     margin: 0;
 }
 
-.popTbar 
-{
-    position:absolute;
-    top:0;
-    left:0;
-    bottom:50%;
-    max-width:5em;
-    background:#d33682;
+.popTbar {
+    height: 0.5em;
+    max-width: 5em;
+    background: #d33682;
 }
-.popAbar 
-{
-    position:absolute;
-    top:50%;
-    left:0;
-    bottom:0;
-    max-width:5em;
-    background:#6c71c4;
+
+.popAbar {
+    height: 0.5em;
+    max-width: 5em;
+    background: #6c71c4;
+}
+
+.popularity-column {
+    width: 5em;
+}
+
+tr[data-label] > .rating-column:before {
+    content: "\2003";
+}
+
+tr[data-rating="1"] > .rating-column:before {
+    content: "\25bc\25bc";
+    color: #dc322f;
+}
+
+tr[data-rating="2"] > .rating-column:before {
+    content: "\2003\25bc";
+    color: #cb4b16;
+}
+
+tr[data-rating="3"] > .rating-column:before {
+    content: "\2003\2003\25b2";
+    color: #859900;
+}
+
+tr[data-rating="4"] > .rating-column:before {
+    content: "\2003\2003\25b2\25b2";
+    color: #859900;
+}
+
+tr[data-rating="5"] > .rating-column:before {
+    content: "\2003\2003\25b2\25b2\25b2";
+    color: #2aa198;
+}
+
+tr > td:nth-child(5),
+tr > td:nth-child(6) {
+    text-align: right;
+    padding-right: 0.5em;
 }

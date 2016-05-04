@@ -9,7 +9,7 @@ using SongDataLib;
 
 namespace LastFMspider {
 	internal static partial class ToolsInternal {
-		public static int PrecacheArtistTopTracks(SongTools tools) {
+		public static int _PrecacheArtistTopTracks(SongTools tools) {
 			var LastFmCache = tools.LastFmCache;
 
 			DateTime maxDate = DateTime.UtcNow - TimeSpan.FromDays(365.0);
@@ -46,7 +46,7 @@ namespace LastFMspider {
 						if ((info.LookupTimestamp.HasValue && info.LookupTimestamp.Value > maxDate) || info.ArtistInfo.IsAlternateOf.HasValue) {
 							msg.AppendFormat("done.");
 						} else {
-							var newEntry = OldApiClient.Artist.GetTopTracks(artist.ArtistName);
+							var newEntry = _OldApiClient.Artist.GetTopTracks(artist.ArtistName);
 							msg.AppendFormat("={0,3} ", newEntry.TopTracks.Length);
 							if (newEntry.TopTracks.Length > 0)
 								msg.AppendFormat("{1}: {0}", newEntry.TopTracks[0].Track.Substring(0, Math.Min(newEntry.TopTracks[0].Track.Length, 30)), newEntry.TopTracks[0].Reach);

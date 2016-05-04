@@ -15,9 +15,11 @@ namespace LastFMspider {
 			if (toptracksInfo.ArtistInfo.IsAlternateOf.HasValue)
 				return LookupTopTracks(LastFmCache, LastFmCache.LookupArtist.Execute(toptracksInfo.ArtistInfo.IsAlternateOf), maxAge);
 
-			ArtistTopTracksList toptracks;
+            return ArtistTopTracksList.CreateErrorList(artist, 1);//TODO:statuscodes...
+
+            ArtistTopTracksList toptracks;
 			try {
-				toptracks = OldApiClient.Artist.GetTopTracks(artist);
+				toptracks = _OldApiClient.Artist.GetTopTracks(artist);
 			} catch (Exception) {
 				toptracks = ArtistTopTracksList.CreateErrorList(artist, 1);//TODO:statuscodes...
 			}

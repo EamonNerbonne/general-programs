@@ -50,10 +50,9 @@ CREATE TABLE IF NOT EXISTS  [Track] (
   [ArtistID] INTEGER  NOT NULL,
   [FullTitle] TEXT  NOT NULL,
   [LowercaseTitle] TEXT  NOT NULL,
-  [CurrentSimilarTrackList] INTEGER NULL,
+  [CurrentSimilarTrackList] BLOB NULL,
   [CurrentSimilarTrackListTimestamp] INTEGER NULL,
-	CONSTRAINT fk_of_artist FOREIGN KEY(ArtistID) REFERENCES Artist(ArtistID),
-	CONSTRAINT fk_cur_stl FOREIGN KEY(CurrentSimilarTrackList) REFERENCES SimilarTrackList(ListID)
+	CONSTRAINT fk_of_artist FOREIGN KEY(ArtistID) REFERENCES Artist(ArtistID)
 );
 CREATE UNIQUE INDEX IF NOT EXISTS [Unique_Track_ArtistID_LowercaseTitle] ON [Track]([ArtistID]  ASC,  [LowercaseTitle]  ASC);
 CREATE INDEX IF NOT EXISTS [IDX_Track_CurrentSimilarTrackListTimestamp] ON [Track]([CurrentSimilarTrackListTimestamp]  ASC);

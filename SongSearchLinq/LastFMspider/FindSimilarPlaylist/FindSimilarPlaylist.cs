@@ -18,8 +18,6 @@ namespace LastFMspider {
 			public readonly List<SongWithCost> similarList = new List<SongWithCost>();
 			public int ResultsCount() { return knownTracks.Count + unknownTracks.Count; }
 			public int LookupsDone;
-			public int LookupsWebTotal;
-			public int SqlErrorsTotal;
 		}
 		static bool NeverAbort(int i) { return false; }
 
@@ -158,20 +156,12 @@ namespace LastFMspider {
 						Console.Write(msg.PadRight(16, ' '));
 					}
 				}
-				if (bgLookupCache.Any())
-					Task.Factory.ContinueWhenAll(bgLookupCache.Values.ToArray(), simListTasks => tools.SimilarSongs.RefreshCacheIfNeeded(simListTasks.Select(task => task.Result).ToArray()));
-				// bgLookupCache.Where(kvp => !LookupSimilarTracksHelper.IsFresh(kvp.Value.Result)).ToArray());	
 
-				Console.WriteLine("{0} similar tracks generated, of which {1} found locally.", res.ResultsCount(), res.knownTracks.Count);
-				res.LookupsWebTotal = LookupSimilarTracksHelper.WebLookupsSoFar();
-				res.SqlErrorsTotal = SongSimilarityCache.ErrorCount;
+                Console.WriteLine("{0} similar tracks generated, of which {1} found locally.", res.ResultsCount(), res.knownTracks.Count);
 				return new { sw.Elapsed.TotalMilliseconds, res };
 			});
 			simLookupMs = lookupRes.TotalMilliseconds;
 			return lookupRes.res;
 		}
-
-		//static readonly ConcurrentDictionary<TrackId, object> cache = new ConcurrentDictionary<TrackId, object>();
-
 	}
 }

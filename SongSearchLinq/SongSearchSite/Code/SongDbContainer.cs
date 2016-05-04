@@ -51,11 +51,11 @@ namespace SongSearchSite {
 		}
 
 		public static Uri SongBaseUri(HttpContext context) {
-			return new Uri(context.Request.Url, context.Request.ApplicationPath + "/" + songsPrefix);
+			return new Uri(context.Request.Url, context.Request.ApplicationPath.TrimEnd('/') + "/" + songsPrefix);
 		}
 
 		public static Uri AppBaseUri(HttpContext context) {
-			return new Uri(context.Request.Url, context.Request.ApplicationPath + "/");
+			return new Uri(context.Request.Url, context.Request.ApplicationPath.TrimEnd('/') + "/");
 		}
 
 		public static Func<Uri, Uri> LocalSongPathToAbsolutePathMapper(HttpContext context) {

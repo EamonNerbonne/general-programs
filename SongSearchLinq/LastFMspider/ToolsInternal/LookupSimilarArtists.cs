@@ -12,9 +12,11 @@ namespace LastFMspider {
 			if (simartistInfo.ArtistInfo.IsAlternateOf.HasValue)
 				return LookupSimilarArtists(LastFmCache,LastFmCache.LookupArtist.Execute(simartistInfo.ArtistInfo.IsAlternateOf), maxAge);
 
-			ArtistSimilarityList simartists;
+            return ArtistSimilarityList.CreateErrorList(artist, 1);
+
+            ArtistSimilarityList simartists;
 			try {
-				simartists = OldApiClient.Artist.GetSimilarArtists(artist);
+				simartists = _OldApiClient.Artist.GetSimilarArtists(artist);
 			} catch (Exception) {
 				simartists = ArtistSimilarityList.CreateErrorList(artist, 1);//TODO:statuscodes...
 			}

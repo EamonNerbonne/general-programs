@@ -14,24 +14,11 @@ namespace LastFMspider {
 		public SongTools(SongDataConfigFile configFile = null) { this.configFile = configFile ?? new SongDataConfigFile(true); }
 		public SongDataConfigFile ConfigFile { get { return configFile; } }
 
-		//SongFiles m_SongsOnDisk;
-		//public SongFiles SongsOnDisk {
-		//    get {
-		//        return m_SongsOnDisk ?? (
-		//            m_SongsOnDisk = m_SongFilesSearchData != null
-		//                ? new SongFiles(m_SongFilesSearchData.songs.Cast<SongFileData>().ToArray())
-		//                : new SongFiles(ConfigFile, null));
-		//    }
-		//}
-
 		SongFilesSearchData m_SongFilesSearchData;
 		public SongFilesSearchData SongFilesSearchData {
 			get {
 				return m_SongFilesSearchData ?? (
-					m_SongFilesSearchData =
-					//m_SongsOnDisk != null
-					//    ? new SongFilesSearchData(m_SongsOnDisk.Songs) :
-							 SongFilesSearchData.FastLoad(configFile, song => song is SongFileData)
+					m_SongFilesSearchData = SongFilesSearchData.FastLoad(configFile, song => song is SongFileData)
 				);
 			}
 		}

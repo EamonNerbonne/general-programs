@@ -10,7 +10,7 @@ using SongDataLib;
 namespace LastFMspider {
 	internal static partial class ToolsInternal {
 
-		public static int PrecacheArtistSimilarity(SongTools tools) {
+		public static int _PrecacheArtistSimilarity(SongTools tools) {
 			var LastFmCache = tools.LastFmCache;
 			DateTime maxDate = DateTime.UtcNow - TimeSpan.FromDays(365.0);
 
@@ -45,7 +45,7 @@ namespace LastFMspider {
 						if ((info.LookupTimestamp.HasValue && info.LookupTimestamp.Value > maxDate) || info.ArtistInfo.IsAlternateOf.HasValue) {
 							msg.AppendFormat("done.");
 						} else {
-							ArtistSimilarityList newEntry = OldApiClient.Artist.GetSimilarArtists(artist.ArtistName);
+							ArtistSimilarityList newEntry = _OldApiClient.Artist.GetSimilarArtists(artist.ArtistName);
 							msg.AppendFormat("={0,3} ", newEntry.Similar.Length);
 							if (newEntry.Similar.Length > 0)
 								msg.AppendFormat("{1}: {0}", newEntry.Similar[0].Artist.Substring(0, Math.Min(newEntry.Similar[0].Artist.Length, 30)), newEntry.Similar[0].Rating);

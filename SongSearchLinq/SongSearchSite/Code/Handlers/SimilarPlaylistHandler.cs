@@ -18,7 +18,6 @@ namespace SongSearchSite.Code.Handlers {
 					from entry in playlistFromJson
 					let songdata = entry.LookupBestGuess(SongDbContainer.AppBaseUri(context)) as SongFileData
 					where songdata != null
-					//from songref in songdata.PossibleSongs
 					select songdata;
 
 				double lookupDur;
@@ -59,8 +58,6 @@ namespace SongSearchSite.Code.Handlers {
 							known = knownForJson,
 							unknown = unknownForJson,
 							lookups = res.LookupsDone,
-							weblookups = res.LookupsWebTotal,
-							lookuperrs = res.SqlErrorsTotal,
 							milliseconds = (int)timer.ElapsedMilliseconds,
 							msSimDb = (int)(lookupDur+0.5)
 						}

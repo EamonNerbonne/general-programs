@@ -34,6 +34,8 @@
     <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <BootstrapperEnabled>true</BootstrapperEnabled>
+    <NuGetPackageImportStamp>
+    </NuGetPackageImportStamp>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
     <DebugSymbols>true</DebugSymbols>
@@ -48,7 +50,6 @@
     <CodeAnalysisModuleSuppressionsFile>GlobalSuppressions.cs</CodeAnalysisModuleSuppressionsFile>
     <LangVersion>default</LangVersion>
     <ErrorReport>prompt</ErrorReport>
-    
     <CodeAnalysisRuleSetDirectories>
             ;C:\Program Files (x86)\Microsoft Visual Studio 10.0\Team Tools\Static Analysis Tools\\Rule Sets
         </CodeAnalysisRuleSetDirectories>
@@ -70,7 +71,6 @@
     <CodeAnalysisModuleSuppressionsFile>GlobalSuppressions.cs</CodeAnalysisModuleSuppressionsFile>
     <LangVersion>default</LangVersion>
     <ErrorReport>prompt</ErrorReport>
-    
     <CodeAnalysisRuleSetDirectories>
             ;C:\Program Files (x86)\Microsoft Visual Studio 10.0\Team Tools\Static Analysis Tools\\Rule Sets
         </CodeAnalysisRuleSetDirectories>
@@ -81,14 +81,13 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
+    <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.Core">
       <RequiredTargetFramework>3.5</RequiredTargetFramework>
     </Reference>
-    <Reference Include="System.Data.SQLite">
-      <HintPath>..\packages\System.Data.SQLite.1.0.88.0\lib\net45\System.Data.SQLite.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Data.SQLite.Linq">
-      <HintPath>..\packages\System.Data.SQLite.1.0.88.0\lib\net45\System.Data.SQLite.Linq.dll</HintPath>
+    <Reference Include="System.Data.SQLite, Version=1.0.99.0, Culture=neutral, PublicKeyToken=db937bc2d44ff139, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Data.SQLite.Core.1.0.99.0\lib\net451\System.Data.SQLite.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="System.Runtime.Serialization">
       <RequiredTargetFramework>3.0</RequiredTargetFramework>
@@ -110,7 +109,6 @@
     <Compile Include="ArtistTopTracksListInfo.cs" />
     <Compile Include="PlaylistDb.cs" />
     <Compile Include="PlaylistDbBuilder.cs" />
-    <Compile Include="DbPool.cs" />
     <Compile Include="FindSimilarPlaylist\FindSimilarPlaylist.cs" />
     <Compile Include="FindSimilarPlaylist\SongWithCost.cs" />
     <Compile Include="FindSimilarPlaylist\SongWithCostCache.cs" />
@@ -118,7 +116,6 @@
     <Compile Include="FuzzySongSearcher\FuzzySongSearcher.cs" />
     <Compile Include="FuzzySongSearcher\SongMatch.cs" />
     <Compile Include="FuzzySongSearcher\Trigrammer.cs" />
-    <Compile Include="ICachedInfo.cs" />
     <Compile Include="LastFmDbBuilder.cs" />
     <Compile Include="LastFMSQLiteBackend\AbstractLfmCacheOperation.cs" />
     <Compile Include="LastFMSQLiteBackend\AbstractLfmCacheQuery.cs" />
@@ -130,11 +127,9 @@
     <Compile Include="LastFMSQLiteBackend\DbUtil.cs" />
     <Compile Include="LastFMSQLiteBackend\Ids.cs" />
     <Compile Include="LastFMSQLiteBackend\LookupArtistInfo.cs" />
-    <Compile Include="LastFMSQLiteBackend\TrackSetCurrentSimList.cs" />
     <Compile Include="LastFMSQLiteBackend\InsertArtistSimilarityList.cs" />
     <Compile Include="LastFMSQLiteBackend\InsertArtistTopTracksList.cs" />
     <Compile Include="LastFMSQLiteBackend\InsertArtist.cs" />
-    <Compile Include="LastFMSQLiteBackend\InsertSimilarityList.cs" />
     <Compile Include="LastFMSQLiteBackend\InsertTrack.cs" />
     <Compile Include="LastFMSQLiteBackend\LookupArtist.cs" />
     <Compile Include="LastFMSQLiteBackend\LookupArtistSimilarityList.cs" />
@@ -176,15 +171,12 @@
     <Compile Include="SongSimilarityCache.cs" />
     <Compile Include="SongSimilarityList.cs" />
     <Compile Include="TagRef.cs" />
-    <Compile Include="ToolsInternal\EnsureCurrent.cs" />
     <Compile Include="ToolsInternal\LookupSimilarArtists.cs" />
     <Compile Include="ToolsInternal\LookupSimilarTracks.cs" />
     <Compile Include="ToolsInternal\LookupTopTracks.cs" />
-    <Compile Include="ToolsInternal\PrecacheLocalFiles.cs" />
     <Compile Include="ToolsInternal\EnsureLocalFilesInDB.cs" />
     <Compile Include="ToolsInternal\PrecacheArtistSimilarity.cs" />
     <Compile Include="ToolsInternal\PrecacheArtistTopTracks.cs" />
-    <Compile Include="ToolsInternal\PrecacheSongSimilarity.cs" />
     <Compile Include="TrackMapper.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -247,6 +239,13 @@
     <Folder Include="PlaylistActions\" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  <Import Project="..\packages\System.Data.SQLite.Core.1.0.99.0\build\net451\System.Data.SQLite.Core.targets" Condition="Exists('..\packages\System.Data.SQLite.Core.1.0.99.0\build\net451\System.Data.SQLite.Core.targets')" />
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('..\packages\System.Data.SQLite.Core.1.0.99.0\build\net451\System.Data.SQLite.Core.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\System.Data.SQLite.Core.1.0.99.0\build\net451\System.Data.SQLite.Core.targets'))" />
+  </Target>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

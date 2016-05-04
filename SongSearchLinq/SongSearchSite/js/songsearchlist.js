@@ -68,6 +68,7 @@
             case ".mp3": return "audio/mpeg";
             case ".wma": return "audio/x-ms-wma";
             case ".wav": return "audio/wav";
+            case ".opus":
             case ".ogg": return "audio/ogg";
             case ".mpc":
             case ".mpp":
@@ -424,8 +425,6 @@
                 if (mouseInSimilar) { simDispDataWait = data; similarColSel.addClass("waiting"); }
                 else updateSimilarDisplay(data);
                 perfMsgSel.attr("data-lookups", data.lookups);
-                perfMsgSel.attr("data-weblookups", data.weblookups);
-                perfMsgSel.attr("data-lookuperrs", data.lookuperrs);
                 perfMsgSel.attr("data-milliseconds", data.milliseconds);
                 perfMsgSel.attr("data-simdb-ms", data.msSimDb);
 

@@ -4,7 +4,7 @@ namespace LastFMspider.LastFMSQLiteBackend {
 	public class LookupSimilarityList : AbstractLfmCacheOperation {
 		public LookupSimilarityList(LastFMSQLiteCache lfmCache) : base(lfmCache) { }
 		public SongSimilarityList Execute(TrackSimilarityListInfo list) {
-			if (!list.ListID.HasValue) return null;
+			if (!list.TrackId.HasValue) return null;
 
 			return DoInLockedTransaction(() => {
 				var similarto =
@@ -18,10 +18,9 @@ namespace LastFMspider.LastFMSQLiteBackend {
 									};
 
 				return new SongSimilarityList {
-					id = list.ListID,
+					//id = list.ListID,
 					songref = lfmCache.LookupTrack.Execute(list.TrackId),
 					similartracks = similarto.ToArray(),
-					LookupTimestamp = list.LookupTimestamp.Value.ToUniversalTime(),
 					StatusCode = list.StatusCode,
 				};
 			});

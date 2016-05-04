@@ -22,7 +22,7 @@ namespace LastFMspider {
 	}
 
 
-	public struct ArtistTopTracksListInfo:ICachedInfo<ArtistTopTracksListInfo, TopTracksListId> {//TODO: this should be a class?
+	public struct ArtistTopTracksListInfo {//TODO: this should be a class?
 		public readonly ArtistInfo ArtistInfo;
 
 		readonly TopTracksListId _ListID;

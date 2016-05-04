@@ -12,10 +12,10 @@ namespace LastFMspider {
 		public SimilarityTo(T id, float sim) { this.OtherId = id; this.Similarity = sim; }
 	}
 
-	internal struct SimilarityList<T, F>
+	public struct SimilarityList<T, F>
 		where T : struct,IId
 		where F : struct, IIdFactory<T> {
-		internal readonly byte[] encodedSims;
+		public readonly byte[] encodedSims;
 		public bool HasValue { get { return encodedSims != null; } }
 		public IEnumerable<SimilarityTo<T>> Similarities { get { return DecodeRatingBlob(encodedSims); } }
 		public SimilarityList(byte[] encodedSims) { this.encodedSims = encodedSims; }

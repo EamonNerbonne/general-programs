@@ -10,11 +10,10 @@ namespace LastFMspider.LastFMSQLiteBackend {
 		protected override string CommandText {
 			get {
 				return @"
-SELECT L.ListID, L.LookupTimestamp, L.StatusCode, L.SimilarTracks
-FROM Track T, SimilarTrackList L
-WHERE T.TrackID=@trackId
-AND L.ListID = T.CurrentSimilarTrackList
-";
+                    SELECT T.CurrentSimilarTrackListTimestamp, T.CurrentSimilarTrackList
+                    FROM Track T
+                    WHERE T.TrackID=@trackId
+                ";
 			}
 		}
 
@@ -25,7 +24,7 @@ AND L.ListID = T.CurrentSimilarTrackList
 		}
 		public TrackSimilarityListInfo Execute(TrackId id) {
 			if (!id.HasValue) return TrackSimilarityListInfo.CreateUnknown(id);
-			return  DoInLockedTransaction(() => ExecuteImpl(id));
+			return DoInLockedTransaction(() => ExecuteImpl(id));
 		}
 		TrackSimilarityListInfo ExecuteImpl(TrackId id) {
 			trackId.Value = id.Id;
@@ -33,11 +32,10 @@ AND L.ListID = T.CurrentSimilarTrackList
 			//we expect exactly one hit - or none
 			if (vals == null) return TrackSimilarityListInfo.CreateUnknown(id);
 			return new TrackSimilarityListInfo(
-				listID: new SimilarTracksListId((long)vals[0]),
 				trackId: id,
-				lookupTimestamp: vals[1].CastDbObjectAsDateTime().Value,
-				statusCode: (int?)vals[2].CastDbObjectAs<long?>(),
-				similarTracks: new SimilarityList<TrackId, TrackId.Factory>(vals[3].CastDbObjectAs<byte[]>()));
+				lookupTimestamp: vals[0].CastDbObjectAsDateTime(),
+				statusCode: 0,
+				similarTracks: new SimilarityList<TrackId, TrackId.Factory>(vals[1].CastDbObjectAs<byte[]>()));
 		}
 	}
 }

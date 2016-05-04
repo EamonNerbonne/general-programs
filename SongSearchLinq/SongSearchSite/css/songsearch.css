@@ -353,7 +353,7 @@ a:focus {
 }
 
 #msgPerf[data-lookups]:after {
-    content: attr(data-simdb-ms)  ":" attr(data-milliseconds)  "ms; " attr(data-lookups) "sql; " attr(data-weblookups) "web; " attr(data-lookuperrs) "err; ";
+    content: attr(data-simdb-ms)  ":" attr(data-milliseconds)  "ms; " attr(data-lookups) "sql; ";
 }
 
 #similar:before {
