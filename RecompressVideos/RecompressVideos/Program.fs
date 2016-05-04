@@ -62,7 +62,7 @@ let generate_avs_script out_dir cleaners (tmp_file:FileInfo) =
 let recompress_video out_dir cleaners (avs_file:FileInfo) =
     let base_args = "--x264-binary x264-10b.exe --threads 3 --preset placebo --non-deterministic --min-keyint 25 --crf 18 --aq-strength 0.8 --input-depth 16 --keyint 5000 "
     //--open-gop: seeking then sucks.
-    //for hd; consider --crf 20 --nr 100
+    //for hd; consider --crf 20
     //for film; consider  --tune film
     let video_file = file_within_ext out_dir avs_file.Name "-video.mkv"
     if video_file.Exists then
@@ -143,14 +143,13 @@ let identify_output_file out_dir (src_file:FileInfo) =
     
 
 let recombine_video_audio_chapters out_dir cleaners (video_file:FileInfo) (opus_file:FileInfo) (maybe_chapters_file: FileInfo option) (output_file:FileInfo) =
-    
     let chapter_options = 
         match maybe_chapters_file with
             | None -> ""
             | Some(chapters_file) -> " --chapters \"" + chapters_file.FullName + "\""
     printfn "Merging output: %s" output_file.FullName
  
-    let res = WinProcessUtil.ExecuteProcessSynchronously("mkvmerge.exe", "\"" + video_file.FullName + "\" \"" + opus_file.FullName + "\" -o \"" + output_file.FullName + "\" " + chapter_options, "")
+    let res = WinProcessUtil.ExecuteProcessSynchronously("mkvmerge.exe", "\"" + video_file.FullName + "\" -D \"" + opus_file.FullName + "\" -o \"" + output_file.FullName + "\" " + chapter_options, "")
 
     if res.ExitCode <> 0 then
         System.Console.WriteLine res.StandardOutputContents
