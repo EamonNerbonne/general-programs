@@ -60,7 +60,7 @@ let generate_avs_script out_dir cleaners (tmp_file:FileInfo) =
     avs_file
 
 let recompress_video out_dir cleaners (avs_file:FileInfo) =
-    let base_args = "--x264-binary x264-10b.exe --threads 3 --preset placebo --non-deterministic --keyint 5000 --min-keyint 25 --crf 20 --nr 100 --aq-strength 0.8 --input-depth 16"
+    let base_args = "--x264-binary x264-10b.exe --threads 3 --preset placebo --non-deterministic --min-keyint 25 --crf 18 --aq-strength 0.8 --input-depth 16 --keyint 5000 "
     //--open-gop: seeking then sucks.
     //for hd; consider --crf 20 --nr 100
     //for film; consider  --tune film
