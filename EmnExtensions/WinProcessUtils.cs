@@ -14,7 +14,7 @@ namespace EmnExtensions {
         public Encoding StandardInputEncoding;
         public Encoding StandardOutputAndErrorEncoding;
         public Encoding StandardErrorOverrideEncoding;
-
+        public string WorkingDirectory;
     }
     /// <summary>
     /// Useful in LINQpad queries
@@ -30,6 +30,7 @@ namespace EmnExtensions {
                 UseShellExecute = false,//required to be able to redirect streams
                 FileName = filename,
                 Arguments = arguments,
+                WorkingDirectory = startOptions.WorkingDirectory,
             };
             if (startOptions.StandardOutputAndErrorEncoding != null) {
                 processStartInfo.StandardOutputEncoding = startOptions.StandardOutputAndErrorEncoding;
