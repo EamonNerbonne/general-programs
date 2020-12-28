@@ -3,26 +3,26 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Text;
-using Microsoft.Experimental.IO;
 
 namespace EmnExtensions.IO {
+    [Obsolete]
 	public abstract class LPathEntry {
 		protected static readonly Assembly mscorlib = Assembly.GetAssembly(typeof(File));
 		protected static T mkFn<T>(MethodInfo mi) { return (T)(object)Delegate.CreateDelegate(typeof(T), mi); }
 
 		readonly string fullname;
-		public string FullName { get { return LongPathCommon.RemoveLongPathPrefix(fullname); } }
+		public string FullName { get { return fullname; } }
 		protected string RawPath { get { return fullname; } }
 
 		internal LPathEntry(string path, bool addTrailingSlash) {
-			var rawpath = LongPathCommon.NormalizeLongPath(path);
+			var rawpath = path;
 			fullname = addTrailingSlash && !rawpath.EndsWith(Path.DirectorySeparatorChar.ToString()) ? rawpath + Path.DirectorySeparatorChar : rawpath;
 		}
 
 		public override string ToString() { return FullName; }
 	}
 
+    [Obsolete]
 	public sealed class LFile : LPathEntry, IEquatable<LFile> {
 		static readonly Type lpf = mscorlib.GetType("System.IO.LongPathFile");
 		static readonly Func<string, DateTimeOffset> getLastWriteTime = mkFn<Func<string, DateTimeOffset>>(lpf.GetMethod("GetLastWriteTime", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static));
@@ -30,7 +30,7 @@ namespace EmnExtensions.IO {
 
 		public LFile(string path) : base(path, false) { }
 
-		public bool Exists { get { return LongPathFile.Exists(FullName); } }
+		public bool Exists { get { return File.Exists(FullName); } }
 
 		public string Extension { get { return Path.GetExtension(FullName); } }
 
@@ -40,25 +40,25 @@ namespace EmnExtensions.IO {
 		public long Length { get { return getLength(FullName); } }
 		public static LFile Construct(string path) { return new LFile(path); }
 		public static LFile Construct(FileInfo fileinfo) { return new LFile(fileinfo.FullName); }
-		public static LFile ConstructIfExists(string path) { return LongPathFile.Exists(path) ? new LFile(path) : null; }
+		public static LFile ConstructIfExists(string path) { return File.Exists(path) ? new LFile(path) : null; }
 
 		public FileStream OpenRead() { return OpenRead(FullName); }
-		public static FileStream OpenRead(string pathOrUrl) { return LongPathFile.Open(pathOrUrl, FileMode.Open, FileAccess.Read, FileShare.Read); }
+		public static FileStream OpenRead(string pathOrUrl) { return File.Open(pathOrUrl, FileMode.Open, FileAccess.Read, FileShare.Read); }
 
-		public Stream Open(FileMode fileMode) { return LongPathFile.Open(FullName, fileMode, FileAccess.ReadWrite); }
+		public Stream Open(FileMode fileMode) { return File.Open(FullName, fileMode, FileAccess.ReadWrite); }
 
-		public LFile Move(string newpath) { LongPathFile.Move(FullName, newpath); return Construct(newpath); }
+		public LFile Move(string newpath) { File.Move(FullName, newpath); return Construct(newpath); }
 
 		public static bool Delete(string path) {
-			if (LongPathFile.Exists(path)) {
-				LongPathFile.Delete(path);
+			if (File.Exists(path)) {
+				File.Delete(path);
 				return true;
 			} else
 				return false;
 		}
 		public bool Delete() { return Delete(FullName); }
 
-		public static void Move(string path, string newpath) { LongPathFile.Move(path, newpath); }
+		public static void Move(string path, string newpath) { File.Move(path, newpath); }
 		public LDirectory Directory {
 			get {
 				var fullname = FullName;
@@ -76,21 +76,22 @@ namespace EmnExtensions.IO {
 		public override bool Equals(object obj) { return Equals(obj as LFile); }
 		public override int GetHashCode() { return RawPath.GetHashCode() + 42; }
 	}
-
+	
+    [Obsolete]
 	public sealed class LDirectory : LPathEntry, IEquatable<LDirectory> {
 		public LDirectory(string path) : base(path, true) { }
 
-		public bool Exists { get { return LongPathDirectory.Exists(FullName); } }
+		public bool Exists { get { return Directory.Exists(FullName); } }
 
 		public static LDirectory Construct(string path) { return new LDirectory(path); }
 		public static LDirectory Construct(DirectoryInfo dirInfo) { return new LDirectory(dirInfo.FullName); }
 
-		public IEnumerable<LFile> GetFiles() { return LongPathDirectory.EnumerateFiles(FullName).Select(LFile.Construct); }
-		public IEnumerable<LFile> GetFiles(string searchPattern) { return LongPathDirectory.EnumerateFiles(FullName, searchPattern).Select(LFile.Construct); }
+		public IEnumerable<LFile> GetFiles() { return Directory.EnumerateFiles(FullName).Select(LFile.Construct); }
+		public IEnumerable<LFile> GetFiles(string searchPattern) { return Directory.EnumerateFiles(FullName, searchPattern).Select(LFile.Construct); }
 		public IEnumerable<LFile> GetFiles(string searchPattern, SearchOption searchOption) {
 			return searchOption == SearchOption.TopDirectoryOnly ? GetFiles(searchPattern) : GetDescendantAndSelfDirectories().SelectMany(dir => dir.GetFiles(searchPattern));
 		}
-		public IEnumerable<LDirectory> GetDirectories() { return LongPathDirectory.EnumerateDirectories(FullName).Select(LDirectory.Construct); }
+		public IEnumerable<LDirectory> GetDirectories() { return Directory.EnumerateDirectories(FullName).Select(LDirectory.Construct); }
 		public IEnumerable<LDirectory> GetDescendantDirectories() { return GetDescendantAndSelfDirectories().Skip(1); }
 		IEnumerable<LDirectory> GetDescendantAndSelfDirectories() {
 			Stack<LDirectory> todo = new Stack<LDirectory>();
@@ -109,7 +110,7 @@ namespace EmnExtensions.IO {
 		public void Create() {
 			if (!Exists)
 				Parent.Create();
-			LongPathDirectory.Create(FullName);
+			Directory.CreateDirectory(FullName);
 		}
 
 		public LDirectory CreateSubdirectory(string subdirname) {
