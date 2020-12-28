@@ -1,32 +1,31 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using Xunit;
 using System.Threading.Tasks;
 using System.Threading;
 using EmnExtensions;
 using EmnExtensions.DebugTools;
-using PowerAssert;
+using ExpressionToCodeLib;
 
 namespace EmnExtensionsTest {
 	public class LowPriorityTaskSchedulerTest {
-		public void CheckPerfAndSpeed(Action<TaskScheduler> action,double msdnRatio=1.0,double defRatio=1.1) {
+		void CheckPerfAndSpeed(Action<TaskScheduler> action,double msdnRatio=1.0,double defRatio=1.1) {
 			TaskScheduler msdnVariant = new LimitedConcurrencyLevelTaskScheduler(8);
 			TaskScheduler myScheduler = new LowPriorityTaskScheduler(8, ThreadPriority.Normal);//for fair comparison
 
 			var defTime = DTimer.BenchmarkAction(() => action(TaskScheduler.Default), 3);
 			var msdnTime = DTimer.BenchmarkAction(() => action(msdnVariant),3);
 			var myTime = DTimer.BenchmarkAction(() => action(myScheduler),3);
-			PAssert.IsTrue(() => myTime.TotalMilliseconds <= msdnTime.TotalMilliseconds * msdnRatio);
-			PAssert.IsTrue(() => myTime.TotalMilliseconds <= defTime.TotalMilliseconds * defRatio);
+			PAssert.That(() => myTime.TotalMilliseconds <= msdnTime.TotalMilliseconds * msdnRatio);
+			PAssert.That(() => myTime.TotalMilliseconds <= defTime.TotalMilliseconds * defRatio);
 		}
 
 
 		[Fact]
 		public void TasksExecuteOncePerfTest() { CheckPerfAndSpeed(TasksExecuteOnce); }
 
-		public void TasksExecuteOnce(TaskScheduler scheduler) {
+		void TasksExecuteOnce(TaskScheduler scheduler) {
 			int a = 0, b = 0, c = 0;
 
 			const int count = 5432;
@@ -74,7 +73,7 @@ namespace EmnExtensionsTest {
 		[Fact]
 		public void ParallelForPerfTest() { CheckPerfAndSpeed(ParallelFor,1.05); }
 
-		public void ParallelFor(TaskScheduler scheduler) {
+		void ParallelFor(TaskScheduler scheduler) {
 			long[] vals = new long[100000];
 			const long scale = 1;
 			const int max = 8000;
@@ -93,7 +92,7 @@ namespace EmnExtensionsTest {
 		[Fact]
 		public void ManyIndependantTasksPerfTest() { CheckPerfAndSpeed(ManyIndependantTasks); }
 
-		public void ManyIndependantTasks(TaskScheduler scheduler) {
+		void ManyIndependantTasks(TaskScheduler scheduler) {
 			Task<long>[] tasks = new Task<long>[10000];
 			const int scale =10;
 			const int max = 25000;

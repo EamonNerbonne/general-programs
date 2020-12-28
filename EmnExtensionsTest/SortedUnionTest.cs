@@ -1,12 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using Xunit;
 using EmnExtensions.MathHelpers;
 using EmnExtensions.Algorithms;
 using EmnExtensions.DebugTools;
-using PowerAssert;
+using ExpressionToCodeLib;
 
 namespace EmnExtensionsTest {
 	public class SortedUnionTest {
@@ -23,8 +21,8 @@ namespace EmnExtensionsTest {
 			var distinctList = DTimer.TimeFunc(() => sets.SelectMany(x => x).Distinct().OrderBy(x => x).ToArray(), t => distinctTime = t);
 			var sortedUnionList = DTimer.TimeFunc(() => SortedUnionAlgorithm.SortedUnion(sets).ToArray(), t => sortedUnionTime = t);
 
-			PAssert.IsTrue(() => distinctList.SequenceEqual(sortedUnionList));
-			PAssert.IsTrue(() => TimeSpan.FromMilliseconds(sortedUnionTime.TotalMilliseconds*5.0) < distinctTime);
+			PAssert.That(() => distinctList.SequenceEqual(sortedUnionList));
+			PAssert.That(() => TimeSpan.FromMilliseconds(sortedUnionTime.TotalMilliseconds*5.0) < distinctTime);
 		}
 	}
 }
