@@ -12,8 +12,6 @@ namespace LvqLibCli {
 	}
 	String^ LvqModelSettingsCli::ToShorthand() { return Canonicalize().toShorthandRaw(); }
 
-
-
 	String^ LvqModelSettingsCli::toShorthandRaw() {
 		return ModelType.ToString()
 			+ (Dimensionality != LvqModelSettingsCli().Dimensionality && !IsFixedDimensionalityModel(ModelType) ? "[" + Dimensionality + "]" : "") + "-" + PrototypesPerClass + ","

@@ -28,9 +28,10 @@ namespace LvqLibCli {
 		MatrixContainer(int rows, int cols) : cols(cols),rows(rows) {arr=gcnew array<T>(rows*cols); }
 	};
 
-	using namespace std;
 	using namespace System;
 	using namespace Eigen;
+	using std::wstring;
+	using std::vector;
 
 #define MAKE_NOOP_CONVERSION(T) \
 	inline void cliToCpp(T  val, T& retval) {retval=val;} \

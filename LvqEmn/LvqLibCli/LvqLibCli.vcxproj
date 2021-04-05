@@ -33,7 +33,7 @@
   <PropertyGroup Label="Globals">
     <ProjectGUID>{A4353940-C302-4556-BA67-3C4E977D1948}</ProjectGUID>
     <RootNamespace>LvqLibCli</RootNamespace>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFramework>net50</TargetFramework>
     <Keyword>ManagedCProj</Keyword>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -41,61 +41,61 @@
   <PropertyGroup Label="Configuration" Condition="'$(Configuration)|$(Platform)'=='Debug|X64'">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <CharacterSet>Unicode</CharacterSet>
-    <CLRSupport>true</CLRSupport>
+    <CLRSupport>NetCore</CLRSupport>
     <PlatformToolset>v142</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugGui|X64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <CharacterSet>Unicode</CharacterSet>
-    <CLRSupport>true</CLRSupport>
+    <CLRSupport>NetCore</CLRSupport>
     <PlatformToolset>v120</PlatformToolset>
     <WholeProgramOptimization>false</WholeProgramOptimization>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug2|X64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <CharacterSet>Unicode</CharacterSet>
-    <CLRSupport>true</CLRSupport>
+    <CLRSupport>NetCore</CLRSupport>
     <PlatformToolset>v110</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Label="Configuration" Condition="'$(Configuration)|$(Platform)'=='Release|X64'">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <CharacterSet>Unicode</CharacterSet>
-    <CLRSupport>true</CLRSupport>
+    <CLRSupport>NetCore</CLRSupport>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <PlatformToolset>v120</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseMingw|X64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <CharacterSet>Unicode</CharacterSet>
-    <CLRSupport>true</CLRSupport>
+    <CLRSupport>NetCore</CLRSupport>
     <WholeProgramOptimization>false</WholeProgramOptimization>
     <PlatformToolset>v120</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseMingw2|X64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <CharacterSet>Unicode</CharacterSet>
-    <CLRSupport>true</CLRSupport>
+    <CLRSupport>NetCore</CLRSupport>
     <WholeProgramOptimization>false</WholeProgramOptimization>
     <PlatformToolset>v110</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseExtra|X64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <CharacterSet>Unicode</CharacterSet>
-    <CLRSupport>true</CLRSupport>
+    <CLRSupport>NetCore</CLRSupport>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <PlatformToolset>v110</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseNoVec|X64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <CharacterSet>Unicode</CharacterSet>
-    <CLRSupport>true</CLRSupport>
+    <CLRSupport>NetCore</CLRSupport>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <PlatformToolset>v120</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release2|X64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <CharacterSet>Unicode</CharacterSet>
-    <CLRSupport>true</CLRSupport>
+    <CLRSupport>NetCore</CLRSupport>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <PlatformToolset>v110</PlatformToolset>
   </PropertyGroup>
@@ -189,6 +189,9 @@
       <AdditionalOptions>/MP4</AdditionalOptions>
       <OpenMPSupport>true</OpenMPSupport>
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
+      <LanguageStandard>stdcpp14</LanguageStandard>
+      <LanguageStandard_C>stdc17</LanguageStandard_C>
+      <ConformanceMode>false</ConformanceMode>
     </ClCompile>
     <Link>
       <AdditionalDependencies>LvqLib.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -464,6 +467,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+	<FrameworkReference Include="Microsoft.WindowsDesktop.App.WPF" />
     <ClCompile Include="LvqDatasetCli.cpp" />
     <ClCompile Include="LvqModelCli.cpp" />
     <ClCompile Include="LvqModelSettingsCli.cpp" />
@@ -479,8 +483,6 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='ReleaseNoVec|X64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release2|X64'">Create</PrecompiledHeader>
     </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
     <ClInclude Include="GcAutoPtr.h" />
     <ClInclude Include="LvqDatasetCli.h" />
     <ClInclude Include="LvqModelCli.h" />
@@ -489,12 +491,6 @@
     <ClInclude Include="PointSet.h" />
     <ClInclude Include="Stdafx.h" />
     <ClInclude Include="WrappingUtils.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <Reference Include="PresentationCore" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Windows" />
-    <Reference Include="WindowsBase" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

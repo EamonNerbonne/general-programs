@@ -12,6 +12,7 @@
 #include <boost/random/normal_distribution.hpp>
 #include <boost/function.hpp>
 #include <boost/bind/bind.hpp>
+#include <random>
 #include <math.h>
 #include <sstream>
 

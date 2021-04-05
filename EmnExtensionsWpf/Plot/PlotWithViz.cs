@@ -7,7 +7,7 @@ using System.Windows.Threading;
 using EmnExtensions.Wpf.VizEngines;
 
 namespace EmnExtensions.Wpf {
-	public static class Plot {
+	public static class PlotHelpers {
 		static T HelpCreate<T>(Func<IPlotMetaData, T> factory,IPlotMetaData metadata = null) where T:IVizEngine {
 			var newmetadata = metadata == null ? new PlotMetaData() : new PlotMetaData(metadata);
 			var plot = factory(newmetadata);

@@ -15,7 +15,9 @@
 #pragma warning(disable: 4510) //OK to not create default constructor
 #pragma warning(disable: 4610) //OK to not create default constructor
 #pragma warning(disable: 4701)
+#pragma managed(push, off)
 #include <Eigen/Core>
+#pragma managed(pop)
 #pragma warning(pop)
 
 #include "GcAutoPtr.h"

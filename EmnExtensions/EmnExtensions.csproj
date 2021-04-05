@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFrameworks>netcoreapp31;net48</TargetFrameworks>
+    <TargetFrameworks>net50</TargetFrameworks>
     <Authors>Eamon Nerbonne</Authors>
   </PropertyGroup>
 </Project>

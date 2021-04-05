@@ -1,8 +1,7 @@
 ﻿<UserControl x:Class="EmnExtensions.Wpf.OldGraph.ColorMapLegend"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:emnExt="clr-namespace:EmnExtensions.Wpf"
-	xmlns:emnExtOldGraph="clr-namespace:EmnExtensions.Wpf.OldGraph" >
+    xmlns:emnExt="clr-namespace:EmnExtensions.Wpf">
         <Grid>
             <Grid.RowDefinitions>
                 <RowDefinition Height="16" />
@@ -15,7 +14,7 @@
             <emnExt:DynamicBitmap x:Name="colormapControl" Height="16"  VerticalAlignment="Top" >
             </emnExt:DynamicBitmap>
 
-            <emnExtOldGraph:TickedLegendControl x:Name="colorLegend" Grid.Row="1" SnapTo="Top"  StartVal="0.0" EndVal="1.0"  />
+            <emnExt:TickedLegendControl x:Name="colorLegend" Grid.Row="1" SnapTo="Top"  StartVal="0.0" EndVal="1.0"  />
         </Grid>
 
 </UserControl>

@@ -2,13 +2,12 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:emnExt="clr-namespace:EmnExtensions.Wpf"
-    xmlns:emnPlot="clr-namespace:EmnExtensions.Wpf.Plot"
-			 IsHitTestVisible="False"
+    IsHitTestVisible="False"
 			 >
 	<Grid>
-		<emnPlot:TickedAxis x:Name="tickedAxisBot" AxisPos="BelowGraph"/>
-		<emnPlot:TickedAxis x:Name="tickedAxisLft" AxisPos="LeftOfGraph"/>
-		<emnPlot:TickedAxis x:Name="tickedAxisTop" AxisPos="AboveGraph" />
-		<emnPlot:TickedAxis x:Name="tickedAxisRgt" AxisPos="RightOfGraph"/>
+		<emnExt:TickedAxis x:Name="tickedAxisBot" AxisPos="BelowGraph"/>
+		<emnExt:TickedAxis x:Name="tickedAxisLft" AxisPos="LeftOfGraph"/>
+		<emnExt:TickedAxis x:Name="tickedAxisTop" AxisPos="AboveGraph" />
+		<emnExt:TickedAxis x:Name="tickedAxisRgt" AxisPos="RightOfGraph"/>
 	</Grid>
 </UserControl>

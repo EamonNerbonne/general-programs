@@ -20,7 +20,7 @@ FgmLvqModel::FgmLvqModel(LvqModelSettings & initSettings)
 	, lastAutoPupdate(0.0)
 	, m_vJ(initSettings.InputDimensions())
 	, m_vK(initSettings.InputDimensions())
-	, m_Pdelta(LVQ_LOW_DIM_SPACE,initSettings.InputDimensions())
+	, m_Pdelta(LVQ_LOW_DIM_SPACE, initSettings.InputDimensions())
 {
 	if(initSettings.OutputDimensions() != 2) {
 		std::cerr<< "Illegal Dimensionality\n";
