@@ -2,3 +2,6 @@
 obj/
 bin/
 /SongSearchLinq/packages/
+**/X64/Debug/
+/LvqEmn/packages/
+*.vcxproj.user
