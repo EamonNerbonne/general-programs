@@ -47,7 +47,7 @@ let twoTailedPairedTtest xs ys =
         (false, 1.0)
     else
         let t = corrDistr.Mean / corrDistr.StdErr
-        let p = alglib.studenttdistr.studenttdistribution(corrDistr.Count - 1, -Math.Abs(t)) * 2.0
+        let p = alglib.studenttdistr.studenttdistribution(corrDistr.Count - 1, -Math.Abs(t), null) * 2.0
         (corrDistr.Mean < 0.0, p)
 
 let twoTailedOneSampleTtest xs =
@@ -56,7 +56,7 @@ let twoTailedOneSampleTtest xs =
         (false, 1.0)
     else
         let t = corrDistr.Mean / corrDistr.StdErr
-        let p = alglib.studenttdistr.studenttdistribution(corrDistr.Count - 1, -Math.Abs(t)) * 2.0
+        let p = alglib.studenttdistr.studenttdistribution(corrDistr.Count - 1, -Math.Abs(t), null) * 2.0
         (corrDistr.Mean < 0.0, p)
 
 
@@ -71,7 +71,7 @@ let unequalVarianceTtest xs ys =
     let sqr x = x * x
     let nu = sqr scaledVar / (sqr xNVar / (float xDistr.Count - 1.) + sqr yNVar / (float yDistr.Count - 1.) )
 
-    let p = alglib.studenttdistr.studenttdistribution(int nu, -Math.Abs(t)) * 2.0
+    let p = alglib.studenttdistr.studenttdistribution(int nu, -Math.Abs(t), null) * 2.0
     (corrDistr.Mean < 0.0, p)
 
 
