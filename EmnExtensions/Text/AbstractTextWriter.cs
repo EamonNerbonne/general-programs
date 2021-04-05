@@ -79,12 +79,10 @@ namespace EmnExtensions.Text {
 			WriteString(value.ToString(FormatProvider));
 		}
 
-		[CLSCompliant(false)]
 		public override void Write(uint value) {
 			WriteString(value.ToString(FormatProvider));
 		}
 
-		[CLSCompliant(false)]
 		public override void Write(ulong value) {
 			WriteString(value.ToString(FormatProvider));
 		}

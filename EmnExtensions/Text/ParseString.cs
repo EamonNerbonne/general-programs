@@ -28,13 +28,11 @@ namespace EmnExtensions.Text
 			else return null;
 		}
 
-		[CLSCompliant(false)]
 		public static ulong? ParseAsUInt64(this string s) {
 			ulong val;
 			if(ulong.TryParse(s, out val)) return val;
 			else return null;
 		}
-		[CLSCompliant(false)]
 		public static ulong? ParseAsUInt64(this string s, NumberStyles style, IFormatProvider provider) {
 			ulong val;
 			if (ulong.TryParse(s, style, provider, out val)) return val;

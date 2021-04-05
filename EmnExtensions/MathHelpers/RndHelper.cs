@@ -39,7 +39,6 @@ namespace EmnExtensions.MathHelpers
 
 		public static int usages = 0;
 
-		[CLSCompliant(false)]
         public static uint MakeSecureUInt() {
             byte[] bytes = new byte[4];
             cryptGen.GetBytes(bytes);
@@ -48,7 +47,6 @@ namespace EmnExtensions.MathHelpers
             return retval;
         }
 
-		[CLSCompliant(false)]
         public static ulong MakeSecureULong() {
             byte[] bytes = new byte[8];
             cryptGen.GetBytes(bytes);
