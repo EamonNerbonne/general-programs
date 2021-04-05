@@ -5,7 +5,7 @@
 #include "LvqModel.h"
 #include "LvqProjectionModel.h"
 #include<algorithm>
-using boost::mt19937;
+using std::mt19937;
 using std::vector;
 using std::copy;
 using std::wstring;

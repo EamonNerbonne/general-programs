@@ -53,7 +53,7 @@ public:
 		return exp(iterationScalePower *  log(scaledIter)); 
 	}
 
-	boost::mt19937 & RngIter() {return *settings.RngIter;}
+	std::mt19937 & RngIter() {return *settings.RngIter;}
 	LvqModelRuntimeSettings const & ModelSettings() const {return settings;}
 	void resetLearningRate() {trainIter=0; }
 

@@ -34,7 +34,7 @@
 #include <Eigen/LU> 
 #include <Eigen/QR> 
 #include <Eigen/StdVector>
-#include <Bench/BenchTimer.h>
+#include <bench/BenchTimer.h>
 
 #ifdef _MSC_VER
 #pragma warning(pop)
@@ -45,6 +45,7 @@
 
 #include <iostream>
 #include <algorithm>
+#include <random>
 #include <numeric>
 #include <vector>
 

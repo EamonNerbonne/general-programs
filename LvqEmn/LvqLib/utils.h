@@ -39,8 +39,8 @@ inline bool almostEqual(double x, double y, double leeway=1.0) {
 	return diff <= leeway*std::numeric_limits<double>::epsilon()*sum;
 }
 
-template <typename T> void projectionRandomizeUniformScaled(boost::mt19937 & randGen, T & projectionMatrix) { //initializes all coefficients randomly to -1..1, then normalizes.
-	boost::uniform_01<boost::mt19937> uniform01_rand(randGen);
+template <typename T> void projectionRandomizeUniformScaled(std::mt19937 & randGen, T & projectionMatrix) { //initializes all coefficients randomly to -1..1, then normalizes.
+	boost::uniform_01<std::mt19937> uniform01_rand(randGen);
 
 	for(int col=0; col < projectionMatrix.cols(); col++)
 		for(int row=0; row < projectionMatrix.rows(); row++) //column-major storage
@@ -65,8 +65,8 @@ inline TMat MakeUpperTriangular(TMat const & fullMat) {
 //}
 
 
-void makeRandomOrder(boost::mt19937 & randGen, int*const toFill, int count);
-Matrix_NN shuffleMatrixCols(boost::mt19937 & randGen, Matrix_NN const & src);
+void makeRandomOrder(std::mt19937 & randGen, int*const toFill, int count);
+Matrix_NN shuffleMatrixCols(std::mt19937 & randGen, Matrix_NN const & src);
 
 #ifdef _MSC_VER
 #define FOREACH(RANGEVAR_DECL, ITERATOR) for each(RANGEVAR_DECL in ITERATOR)

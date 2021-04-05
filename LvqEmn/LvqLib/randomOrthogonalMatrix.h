@@ -1,7 +1,7 @@
 #pragma once
 #include "stdafx.h"
 
-template <typename T> T randomOrthogonalMatrix(boost::mt19937 & rngParams, int dims) {
+template <typename T> T randomOrthogonalMatrix(std::mt19937 & rngParams, int dims) {
 	T P(dims,dims);
 	double Pdet = 0.0;
 	while(!(0.1 < fabs(Pdet) && fabs(Pdet) < 10)) {

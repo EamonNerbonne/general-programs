@@ -49,7 +49,7 @@ double NeuralGas::learnFrom(Vector_N const & point) {
 	return cost;
 }
 
-void NeuralGas::do_training(boost::mt19937& rng, Matrix_NN const & dataset){
+void NeuralGas::do_training(std::mt19937& rng, Matrix_NN const & dataset){
 	assert(dataset.rows() == prototypes.rows());
 	assert(dataset.cols() > prototypes.cols());
 	Vector_N point(prototypes.rows());
@@ -68,7 +68,7 @@ void NeuralGas::do_training(boost::mt19937& rng, Matrix_NN const & dataset){
 	}
 }
 
-NeuralGas::NeuralGas(boost::mt19937 & rng, unsigned proto_count, Matrix_NN const & dataset, int totalIterCount, size_t statMoments) 
+NeuralGas::NeuralGas(std::mt19937 & rng, unsigned proto_count, Matrix_NN const & dataset, int totalIterCount, size_t statMoments) 
 	: trainIter(0)
 	, finalIter(totalIterCount)
 	, trainCosts(min(statMoments, (size_t)totalIterCount))

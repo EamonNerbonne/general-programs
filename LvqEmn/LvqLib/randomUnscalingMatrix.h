@@ -4,8 +4,7 @@
 #include "randomMatrixInit.h"
 
 
-
-template <typename T> T randomUnscalingMatrix(boost::mt19937 & rngParams, int dims) {
+template <typename T> T randomUnscalingMatrix(std::mt19937 & rngParams, int dims) {
 	T P(dims, dims);
 	double Pdet = 0.0;
 	while(!(Pdet >0.1 &&Pdet < 10)) {

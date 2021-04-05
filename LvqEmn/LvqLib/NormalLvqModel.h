@@ -31,7 +31,7 @@ using std::vector;
 //
 //	NormalLvqPrototype();
 //
-//	NormalLvqPrototype(boost::mt19937 & rng, bool randInit, int protoLabel, Vector_N const & initialVal, Matrix_NN const & P);
+//	NormalLvqPrototype(std::mt19937 & rng, bool randInit, int protoLabel, Vector_N const & initialVal, Matrix_NN const & P);
 //
 //	inline double SqrDistanceTo(Vector_N const & testPoint, Vector_N & tmp) const {
 //		tmp.noalias() = P * testPoint - P_point;

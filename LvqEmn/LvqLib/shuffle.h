@@ -7,7 +7,7 @@
 #endif
 
 template<typename arrayT>
-void shuffle(boost::mt19937 & randGen, arrayT& arr, unsigned size){
+void shuffle(std::mt19937 & randGen, arrayT& arr, unsigned size){
 	for(unsigned i = 0; i<size;++i) {
 		unsigned range = size-i;
 		unsigned capped;
@@ -31,8 +31,8 @@ void shuffle(boost::mt19937 & randGen, arrayT& arr, unsigned size){
 //	random_shuffle(start, end, shuffle_rnd_helper(randGen) );
 //
 //struct shuffle_rnd_helper {
-//	boost::mt19937 & randGen;
-//	shuffle_rnd_helper(boost::mt19937 & randGen) : randGen(randGen) {}
+//	std::mt19937 & randGen;
+//	shuffle_rnd_helper(std::mt19937 & randGen) : randGen(randGen) {}
 //	int operator()(int max) {return randGen()%max;}
 //};
 

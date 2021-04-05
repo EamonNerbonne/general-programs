@@ -182,7 +182,7 @@ size_t LvqDataset::MemAllocEstimate() const {
 }
 
 
-void LvqDataset::shufflePoints(boost::mt19937& rng) {
+void LvqDataset::shufflePoints(std::mt19937& rng) {
 	VectorXi shufLabels(pointCount());
 	//DBG(shufLabels.size());
 	Matrix_NN shufPoints(points.rows(),points.cols());
@@ -203,7 +203,7 @@ void LvqDataset::shufflePoints(boost::mt19937& rng) {
 }
 
 bool shouldCollect(unsigned epochsDone) {
-	return epochsDone<256 || epochsDone%2==0 && shouldCollect(epochsDone/2);
+	return epochsDone<256 || (epochsDone%2==0 && shouldCollect(epochsDone/2));
 }
 
 void LvqDataset::TrainModel(int epochs, LvqModel & model, LvqModel::Statistics * statisticsSink, LvqDataset const * testData, int* labelOrderSink, bool sortedTrain) const {
@@ -214,7 +214,7 @@ void LvqDataset::TrainModel(int epochs, LvqModel & model, LvqModel::Statistics *
 	size_t labelOrderSinkIdx=0;
 
 	for(int epoch=0; epoch<epochs; ++epoch) {
-		prefetchStream(&(model.RngIter()), (sizeof(boost::mt19937) +63)/ 64);
+		prefetchStream(&(model.RngIter()), (sizeof(std::mt19937) +63)/ 64);
 		vector<int> shuffledOrder(GetTestSubset(0,1));
 		shuffle(model.RngIter(), shuffledOrder, (unsigned)shuffledOrder.size());
 		if(sortedTrain) {
@@ -369,7 +369,7 @@ std::vector<int> LvqDataset::GetTestSubset(int fold, int foldcount) const {
 	return retval;
 }
 
-std::vector<int> LvqDataset::InRandomOrder(boost::mt19937& rng ) const { vector<int> order(GetTestSubset(0,1)); shuffle(rng,order, (unsigned)order.size()); return order; }
+std::vector<int> LvqDataset::InRandomOrder(std::mt19937& rng ) const { vector<int> order(GetTestSubset(0,1)); shuffle(rng,order, (unsigned)order.size()); return order; }
 
 
 LvqDataset LvqDataset::ExtendWithOther(LvqDataset const & other) const {

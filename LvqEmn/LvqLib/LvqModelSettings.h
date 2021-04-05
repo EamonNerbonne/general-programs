@@ -13,8 +13,8 @@ struct LvqModelRuntimeSettings
 	bool NoNnErrorRateTracking, neiP, scP, noKP, neiB, LocallyNormalize, wGMu, SlowK;
 	int ClassCount;
 	double MuOffset, LrScaleP, LrScaleB, LR0, LrScaleBad;
-	copy_ptr<boost::mt19937> RngIter;
-	LvqModelRuntimeSettings(int classCount, boost::mt19937 & rngIter); 
+	copy_ptr<std::mt19937> RngIter;
+	LvqModelRuntimeSettings(int classCount, std::mt19937 & rngIter); 
 };
 
 class LvqDataset;
@@ -28,7 +28,7 @@ struct LvqModelSettings
 
 	enum LvqModelType { AutoModelType, LgmModelType, GmModelType, G2mModelType, GgmModelType, GpqModelType, LpqModelType, FgmModelType, NormalModelType, LgrModelType }; //TODO: use enum classes.
 	LvqModelType ModelType;
-	boost::mt19937 RngParams;
+	std::mt19937 RngParams;
 	LvqModelRuntimeSettings RuntimeSettings;
 	std::vector<int> PrototypeDistribution;
 	LvqDataset const * Dataset;
@@ -46,7 +46,7 @@ struct LvqModelSettings
 	Matrix_NN initTransform();
 	int PrototypeCount() const;
 
-	LvqModelSettings(LvqModelType modelType, boost::mt19937 & rngParams, boost::mt19937 & rngIter, std::vector<int> protodistrib, LvqDataset const * dataset); 
+	LvqModelSettings(LvqModelType modelType, std::mt19937 & rngParams, std::mt19937 & rngIter, std::vector<int> protodistrib, LvqDataset const * dataset); 
 	ptrdiff_t InputDimensions() const;
 	ptrdiff_t OutputDimensions() const { return Dimensionality == 0 ? LVQ_LOW_DIM_SPACE : Dimensionality; }
 

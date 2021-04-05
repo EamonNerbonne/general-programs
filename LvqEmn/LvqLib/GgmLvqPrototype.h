@@ -33,7 +33,7 @@ public:
 
 	GgmLvqPrototype();
 
-	GgmLvqPrototype(boost::mt19937 & rng, bool randInit, int protoLabel, Vector_N const & initialVal, Matrix_P const & P, Matrix_22 const & scaleB);
+	GgmLvqPrototype(std::mt19937 & rng, bool randInit, int protoLabel, Vector_N const & initialVal, Matrix_P const & P, Matrix_22 const & scaleB);
 
 	inline double SqrDistanceTo(Vector_2 const & P_testPoint) const {
 		Vector_2 P_Diff = P_testPoint - P_point;

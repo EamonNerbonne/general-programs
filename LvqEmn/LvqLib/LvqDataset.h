@@ -57,7 +57,7 @@ public:
 	LvqDataset CreateQrProjectedDataset(LvqModel const & model) const;
 
 
-	void shufflePoints(boost::mt19937& rng);
+	void shufflePoints(std::mt19937& rng);
 	void ExtendByCorrelations();
 	std::pair<Vector_N,Vector_N> NormalizationParameters() const;
 	void ApplyNormalization(std::pair<Vector_N,Vector_N> pars, bool normalizeByScaling);
@@ -92,7 +92,7 @@ public:
 
 	
 	std::vector<int> GetTrainingSubset(int fold, int foldcount) const;
-	std::vector<int> InRandomOrder(boost::mt19937& rng ) const;
+	std::vector<int> InRandomOrder(std::mt19937& rng ) const;
 	std::vector<int> GetTestSubset(int fold, int foldcount) const;
 };
 //#pragma managed(pop)

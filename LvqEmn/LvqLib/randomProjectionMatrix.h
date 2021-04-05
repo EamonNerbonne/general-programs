@@ -4,7 +4,7 @@
 #include "randomMatrixInit.h"
 
 
-inline void randomProjectionMatrix(boost::mt19937 & rngParams, Matrix_NN & mat) {
+inline void randomProjectionMatrix(std::mt19937 & rngParams, Matrix_NN & mat) {
 	randomMatrixInit(rngParams,mat,0.0,1.0);
 	Eigen::JacobiSVD<Matrix_NN> svd(mat, Eigen::ComputeThinU | Eigen::ComputeThinV);
 	if(mat.rows()>mat.cols())

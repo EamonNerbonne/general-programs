@@ -278,7 +278,7 @@ void FgmLvqModel::compensateProjectionUpdate(Matrix_22 U, double /*scale*/) {
 
 FgmLvqPrototype::FgmLvqPrototype() :  B(Matrix_22::Zero()), classLabel(-1) {}
 
-FgmLvqPrototype::FgmLvqPrototype(boost::mt19937 & rng, bool randInit, int protoLabel, Vector_N const & initialVal,Matrix_P const & P, Matrix_22 const & scaleB) 
+FgmLvqPrototype::FgmLvqPrototype(std::mt19937 & rng, bool randInit, int protoLabel, Vector_N const & initialVal,Matrix_P const & P, Matrix_22 const & scaleB) 
 	: B(scaleB)//randInit?randomUnscalingMatrix<Matrix_22>(rng, LVQ_LOW_DIM_SPACE)*scaleB: 
 	, P_point(P*initialVal)
 	, classLabel(protoLabel)

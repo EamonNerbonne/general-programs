@@ -2,11 +2,12 @@
 #include "utils.h"
 
 #include "shuffle.h"
+
 using std::vector;
 
 
-void makeRandomOrder(boost::mt19937 & randGen, int* const toFill, int count){
-	using std::random_shuffle;
+void makeRandomOrder(std::mt19937 & randGen, int* const toFill, int count){
+	using std::shuffle;
 	using std::accumulate;
 	using boost::bind;
 
@@ -15,12 +16,15 @@ void makeRandomOrder(boost::mt19937 & randGen, int* const toFill, int count){
 
 	//boost::function<int (int max)> rnd = bind(rnd_helper, randGen, _1);
 
-	random_shuffle(toFill, toFill +count, [&](ptrdiff_t options) { return randGen()%options;});
+	shuffle(toFill, toFill +count, 
+		randGen
+		//[&](ptrdiff_t options) { return randGen()%options;}
+	);
 //	shuffle(randGen,toFill,count);
 	assert(accumulate(toFill,toFill+count,0ll) == (sqr((long long)count) - count) /2 );
 }
 
-Matrix_NN shuffleMatrixCols(boost::mt19937 & randGen, Matrix_NN const & src){
+Matrix_NN shuffleMatrixCols(std::mt19937 & randGen, Matrix_NN const & src){
 	using boost::scoped_array;
 	scoped_array<int> idxs(new int[src.cols()]);
 	makeRandomOrder(randGen,idxs.get(),static_cast<int>(src.cols()));

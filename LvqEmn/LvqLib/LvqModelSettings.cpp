@@ -26,7 +26,7 @@
 
 using std::pair;
 using std::tuple;
-using boost::mt19937;
+using std::mt19937;
 
 
 LvqModel* ConstructLvqModel(LvqModelSettings & initSettings) {
@@ -64,7 +64,7 @@ LvqModel* ConstructLvqModel(LvqModelSettings & initSettings) {
 }
 
 
-LvqModelRuntimeSettings::LvqModelRuntimeSettings(int classCount, boost::mt19937 & rngIter)
+LvqModelRuntimeSettings::LvqModelRuntimeSettings(int classCount, std::mt19937 & rngIter)
 	: NoNnErrorRateTracking(false)
 	, neiP(false)
 	, scP(false)
@@ -82,7 +82,7 @@ LvqModelRuntimeSettings::LvqModelRuntimeSettings(int classCount, boost::mt19937 
 	, RngIter(rngIter) { }
 
 
-LvqModelSettings::LvqModelSettings(LvqModelType modelType, boost::mt19937 & rngParams, boost::mt19937 & rngIter, std::vector<int> protodistrib, LvqDataset const * dataset) 
+LvqModelSettings::LvqModelSettings(LvqModelType modelType, std::mt19937 & rngParams, std::mt19937 & rngIter, std::vector<int> protodistrib, LvqDataset const * dataset) 
 	: Ppca(false)
 	, RandomInitialBorders(false) 
 	, NGu(false)
@@ -161,50 +161,53 @@ pair<Matrix_NN, VectorXi> LvqModelSettings::InitProtosBySetting()  {
 	return NGi ? InitByNg() : InitByClassMeans();
 }
 
-void LvqModelSettings::ProjInit(Matrix_NN const& prototypes, Matrix_NN & P){
-	size_t protocount = prototypes.cols();
-	vector<int> classOffsets;
-	classOffsets.push_back(0);
-	partial_sum(PrototypeDistribution.begin(),PrototypeDistribution.end(), back_inserter(classOffsets));
-	size_t iter=0;
-	const size_t finalIter = 10000;
+void LvqModelSettings::ProjInit(Matrix_NN const& prototypes, Matrix_NN& P) {
+    size_t protocount = prototypes.cols();
+    vector<int> classOffsets;
+    classOffsets.push_back(0);
+    partial_sum(PrototypeDistribution.begin(), PrototypeDistribution.end(), back_inserter(classOffsets));
+    size_t iter = 0;
+    const size_t finalIter = 10000;
 
-	vector<int> shuffledset(Dataset->GetTestSubset(0,1));
-	Vector_N  dists(protocount), vJ(InputDimensions()), vK(InputDimensions()), point(InputDimensions());
-	//auto dims = Dimensions();
+    vector<int> shuffledset(Dataset->GetTestSubset(0, 1));
+    Vector_N  dists(protocount), vJ(InputDimensions()), vK(InputDimensions()), point(InputDimensions());
+    //auto dims = Dimensions();
 
-	while(iter < finalIter) {
-		shuffle(RngParams, shuffledset, (unsigned)shuffledset.size());
-		for(size_t tI=0;tI < shuffledset.size() && iter < finalIter; ++tI, ++iter) {
-			int classLabel = Dataset->getPointLabels()[shuffledset[tI]];
-			double lr = 0.01 * (finalIter/100.0) / (finalIter/100.0 + iter);
-			Matrix_P::Index wJi=-1, wKi=-1;
-			double bestJd(std::numeric_limits<double>::infinity()), bestKd(std::numeric_limits<double>::infinity());
-			point = Dataset->getPoints().col(shuffledset[tI]);
-			dists = (P * (prototypes.colwise() - point)).colwise().squaredNorm();
+    while (iter < finalIter) {
+        shuffle(RngParams, shuffledset, (unsigned)shuffledset.size());
+        for (size_t tI = 0;tI < shuffledset.size() && iter < finalIter; ++tI, ++iter) {
+            int classLabel = Dataset->getPointLabels()[shuffledset[tI]];
+            double lr = 0.01 * (finalIter / 100.0) / (finalIter / 100.0 + iter);
+            Matrix_P::Index wJi = -1, wKi = -1;
+            double bestJd(std::numeric_limits<double>::infinity()), bestKd(std::numeric_limits<double>::infinity());
+            point = Dataset->getPoints().col(shuffledset[tI]);
+            dists = (P * (prototypes.colwise() - point)).colwise().squaredNorm();
 
-			for(int i=classOffsets[classLabel];i<classOffsets[classLabel+1];i++)
-				if(bestJd > dists(i)) {
-					wJi = i;
-					bestJd = dists(i);
-				}
-				for(int i=0; i < (int)protocount; i ++) 
-					if(i == classOffsets[classLabel])
-						i = classOffsets[classLabel+1];
-					else if(bestKd > dists(i)) {
-						wKi = i;
-						bestKd = dists(i);
-					}
+            for (int i = classOffsets[classLabel];i < classOffsets[classLabel + 1];i++) {
+                if (bestJd > dists(i)) {
+                    wJi = i;
+                    bestJd = dists(i);
+                }
+			}
 
-					vJ = prototypes.col(wJi) - point;
-					vK = prototypes.col(wKi) - point;
+            for (int i = 0; i < (int)protocount; i++) {
+                if (i == classOffsets[classLabel])
+                    i = classOffsets[classLabel + 1];
+                else if (bestKd > dists(i)) {
+                    wKi = i;
+                    bestKd = dists(i);
+                }
+			}
 
-					P +=  lr * (1.0/sqrt(bestKd)* (P * vK) * vK.transpose() - 1.0/sqrt(bestJd) * (P * vJ) * vJ.transpose());
-					//					P +=  (-lr ) * P * vJ * vJ.transpose();
+            vJ = prototypes.col(wJi) - point;
+            vK = prototypes.col(wKi) - point;
 
-					normalizeProjection(P);
-		}
-	}
+            P += lr * (1.0 / sqrt(bestKd) * (P * vK) * vK.transpose() - 1.0 / sqrt(bestJd) * (P * vJ) * vJ.transpose());
+            //					P +=  (-lr ) * P * vJ * vJ.transpose();
+
+            normalizeProjection(P);
+        }
+    }
 }
 
 tuple<Matrix_NN,Matrix_NN, VectorXi> LvqModelSettings::InitProtosAndProjectionBySetting() {

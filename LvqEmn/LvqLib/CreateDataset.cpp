@@ -12,7 +12,7 @@ using namespace std;
 
 //Generates a gaussian cloud
 //center is normally distributed with center~N(0,
-Matrix_NN CreateDataset::MakePointCloud(boost::mt19937 & rngParams, boost::mt19937 & rngInst, int dims, int pointCount, double meansep) {
+Matrix_NN CreateDataset::MakePointCloud(std::mt19937 & rngParams, std::mt19937 & rngInst, int dims, int pointCount, double meansep) {
 
 	Vector_N offset(dims);
 	randomMatrixInit(rngParams, offset, 0, meansep/sqrt(static_cast<double>(dims)));
@@ -24,7 +24,7 @@ Matrix_NN CreateDataset::MakePointCloud(boost::mt19937 & rngParams, boost::mt199
 	return P * points + offset * Vector_N::Ones(pointCount).transpose();
 }
 
-LvqDataset* CreateDataset::ConstructGaussianClouds(boost::mt19937 & rngParams, boost::mt19937 & rngInst, int dims, int classCount, int pointsPerClass, double meansep){
+LvqDataset* CreateDataset::ConstructGaussianClouds(std::mt19937 & rngParams, std::mt19937 & rngInst, int dims, int classCount, int pointsPerClass, double meansep){
 
 	Matrix_NN allpoints(dims, classCount*pointsPerClass);
 	for(int classLabel=0;classLabel < classCount; classLabel++) {
@@ -38,13 +38,13 @@ LvqDataset* CreateDataset::ConstructGaussianClouds(boost::mt19937 & rngParams, b
 	return new LvqDataset(allpoints, trainingLabels, classCount); 
 }
 
-Matrix_NN MakeTailMeans(boost::mt19937 & rndGen, int numStarTails, int starDim, double meansep) {
+Matrix_NN MakeTailMeans(std::mt19937 & rndGen, int numStarTails, int starDim, double meansep) {
 	Matrix_NN tailMeans(starDim,numStarTails);
 	randomMatrixInit(rndGen, tailMeans, 0, numStarTails*meansep/sqrt(static_cast<double>(starDim)));
 	return tailMeans;
 }
 
-vector<Matrix_NN> MakeTailTransforms(boost::mt19937 & rndGen, int numStarTails, int starDim) {
+vector<Matrix_NN> MakeTailTransforms(std::mt19937 & rndGen, int numStarTails, int starDim) {
 	vector<Matrix_NN> tailTransforms;
 	for(int i=0;i<numStarTails;i++) 
 		tailTransforms.push_back(randomScalingMatrix<Matrix_NN>(rndGen, starDim,0.5));
@@ -52,9 +52,9 @@ vector<Matrix_NN> MakeTailTransforms(boost::mt19937 & rndGen, int numStarTails, 
 }
 
 typedef boost::uniform_int<> starChoiceDistrib;
-typedef boost::variate_generator<boost::mt19937 &, starChoiceDistrib> starChoiceGen;
+typedef boost::variate_generator<std::mt19937 &, starChoiceDistrib> starChoiceGen;
 
-LvqDataset* CreateDataset::ConstructStarDataset(boost::mt19937 & rngParams, boost::mt19937 & rngInst, int dims, int starDims, int numStarTails, int classCount, int pointsPerClass,
+LvqDataset* CreateDataset::ConstructStarDataset(std::mt19937 & rngParams, std::mt19937 & rngInst, int dims, int starDims, int numStarTails, int classCount, int pointsPerClass,
 		double starMeanSep, double starClassRelOffset, bool randomlyRotate, double noiseSigma, double globalNoiseMaxSigma){
 	Matrix_NN postInitTransform = randomOrthogonalMatrix<Matrix_NN>(rngParams,dims);//always compute random transform, even if not needed, to ensure identical usage of random generator
 	if(!randomlyRotate) postInitTransform.setIdentity();
