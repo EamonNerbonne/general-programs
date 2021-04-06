@@ -4,6 +4,7 @@
     <Authors>Eamon Nerbonne</Authors>
     <UseWPF>true</UseWPF>
     <RootNamespace>EmnExtensions.Wpf</RootNamespace>
+    <Platforms>x64</Platforms>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.Windows.Compatibility" Version="5.0.2" />

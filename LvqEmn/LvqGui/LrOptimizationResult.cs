@@ -70,7 +70,7 @@ namespace LvqGui {
 
 		public static LrOptimizationResult ProcFile(FileInfo resultFile) {
 			if (resultFile.Length == 0) return null;
-			var itersAndSettings = ExtractItersAndSettings(resultFile.Name);
+			var itersAndSettings = LrGuesser.ExtractItersAndSettings(resultFile.Name);
 			if (!itersAndSettings.Item1) return null;
 			return new LrOptimizationResult(resultFile, itersAndSettings.Item2, itersAndSettings.Item3);
 		}

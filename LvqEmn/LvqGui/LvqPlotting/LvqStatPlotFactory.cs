@@ -9,6 +9,7 @@ using EmnExtensions.MathHelpers;
 using EmnExtensions.Wpf;
 using EmnExtensions.Wpf.VizEngines;
 using LvqLibCli;
+using Vector = System.Windows.Vector;
 
 namespace LvqGui {
 
@@ -79,7 +80,7 @@ namespace LvqGui {
 		}
 
 		static IVizEngine<LvqStatPlots> MakePlotHelper(string dataLabel, Color color, string yunitLabel, object tag, Func<LvqStatPlots, Point[]> mapper, DashStyle dashStyle = null) {
-			var lineplot = Plot.CreateLine(new PlotMetaData {
+			var lineplot = PlotHelpers.CreateLine(new PlotMetaData {
 				DataLabel = string.IsNullOrEmpty(dataLabel) || dataLabel.StartsWith("#") ? null : dataLabel,
 				RenderColor = color,
 				XUnitLabel = "Training iterations",
@@ -98,7 +99,7 @@ namespace LvqGui {
 		static IVizEngine<LvqStatPlots> MakeStderrRangePlot(string yunitLabel, Color color, int statIdx, bool isTest, bool isNn) {
 			//Blend(color, Colors.White)
 			color.ScA = 0.25f;
-			var rangeplot = Plot.CreateDataRange(new PlotMetaData {
+			var rangeplot = PlotHelpers.CreateDataRange(new PlotMetaData {
 				RenderColor = color,
 				XUnitLabel = "Training iterations",
 				YUnitLabel = yunitLabel,

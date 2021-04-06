@@ -3,10 +3,16 @@
     <TargetFramework>net5.0-windows</TargetFramework>
     <Authors>Eamon Nerbonne</Authors>
     <UseWPF>true</UseWPF>
+    <Platforms>x64</Platforms>
+    <OutputType>WinExe</OutputType>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="ExpressionToCodeLib" Version="3.4.0" />
     <PackageReference Include="Microsoft.Windows.Compatibility" Version="5.0.2" />
+    <PackageReference Include="morelinq" Version="3.3.2" />
+    <Page Include="App.xaml" />
     <ProjectReference Include="..\..\EmnExtensionsWpf\EmnExtensionsWpf.csproj" />
     <ProjectReference Include="..\..\EmnExtensions\EmnExtensions.csproj" />
+    <ProjectReference Include="..\LvqLibCli\LvqLibCli.vcxproj" />
   </ItemGroup>
 </Project>

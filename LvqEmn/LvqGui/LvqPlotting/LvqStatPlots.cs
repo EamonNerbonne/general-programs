@@ -85,7 +85,7 @@ namespace LvqGui {
 			return (
 					from classColor in dataset.ClassColors//.Select((color,index)=>new{color,index})
 					let darkColor = Color.FromScRgb(1.0f, classColor.ScR * colorIntensity, classColor.ScG * colorIntensity, classColor.ScB * colorIntensity)
-					select Plot.CreatePixelScatter(
+					select PlotHelpers.CreatePixelScatter(
 						new PlotMetaData {
 							RenderColor = darkColor,
 							ZIndex = zIndex ?? 0,
@@ -97,7 +97,7 @@ namespace LvqGui {
 		}
 
 		static IVizEngine<LabelledPoint[]> MakePointCloudGraph(LvqDatasetCli dataset, int? zIndex = null) {
-			return Plot.CreatePointCloud(new PlotMetaData { ZIndex = zIndex ?? 0 })
+			return PlotHelpers.CreatePointCloud(new PlotMetaData { ZIndex = zIndex ?? 0 })
 				.Update(plot => {
 					plot.CoverageRatio = 0.95;
 					plot.CoverageGradient = 5.0;
@@ -106,7 +106,7 @@ namespace LvqGui {
 		}
 
 		IVizEngine<LvqMultiModel.ModelProjectionAndImage> MakeClassBoundaryGraph() {
-			return Plot.CreateBitmapDelegate<LvqMultiModel.ModelProjectionAndImage>(UpdateClassBoundaries, new PlotMetaData { ZIndex = -1, OverrideBounds = Rect.Empty });
+			return PlotHelpers.CreateBitmapDelegate<LvqMultiModel.ModelProjectionAndImage>(UpdateClassBoundaries, new PlotMetaData { ZIndex = -1, OverrideBounds = Rect.Empty });
 		}
 
 		Tuple<int, int> lastWidthHeight;

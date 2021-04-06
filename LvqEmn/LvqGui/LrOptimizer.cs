@@ -62,7 +62,7 @@ namespace LvqGui {
 
 
 		public static string ShortnameFor(long iters, LvqModelSettingsCli settings) {
-			return ItersPrefix(iters) + "-" + settings.ToShorthand();
+			return LvqMultiModel.ItersPrefix(iters) + "-" + settings.ToShorthand();
 		}
 
 
@@ -320,7 +320,7 @@ namespace LvqGui {
 		FileInfo SettingsFile(LvqModelSettingsCli settings) {
 
 			string mSettingsShorthand = settings.ToShorthand();
-			string prefix = ItersPrefix(_itersToRun) + "-";
+			string prefix = LvqMultiModel.ItersPrefix(_itersToRun) + "-";
 
 			return new FileInfo(Path.Combine(datasetResultsDir.FullName + "\\", prefix + mSettingsShorthand + ".txt"));
 		}

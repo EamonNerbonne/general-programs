@@ -33,7 +33,7 @@ namespace LvqGui
 
 			if (options.Any())
 			{
-				var bestResults = options.MinBy(resSettings => myshorthand.LevenshteinDistance(resSettings.WithCanonicalizedDefaults().ToShorthand()));
+				var bestResults = options.MinBy(resSettings => myshorthand.LevenshteinDistance(resSettings.WithCanonicalizedDefaults().ToShorthand())).First();
 				return settings.WithLrAndDecay(bestResults.LR0, bestResults.LrScaleP, bestResults.LrScaleB, bestResults.decay, bestResults.iterScaleFactor)
 					;
 			}
@@ -56,7 +56,7 @@ namespace LvqGui
 				let settings = settingsOrNull.Value
 				let geomean = Double.Parse(line.SubstringAfterFirst("GeoMean: ").SubstringUntil(";").SubstringUntil("~"))
 				group Tuple.Create(settings, geomean) by settings.WithCanonicalizedDefaults() into settingsGroup
-				select settingsGroup.MinBy(tuple => tuple.Item2)
+				select settingsGroup.MinBy(tuple => tuple.Item2).First()
 				;
 		}
 
