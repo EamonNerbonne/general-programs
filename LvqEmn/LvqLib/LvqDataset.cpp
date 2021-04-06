@@ -187,9 +187,8 @@ void LvqDataset::shufflePoints(std::mt19937& rng) {
 	//DBG(shufLabels.size());
 	Matrix_NN shufPoints(points.rows(),points.cols());
 	//DBG(shufPoints.size());
-	using boost::scoped_array;
 
-	scoped_array<int> idxs(new int[pointCount()]);
+	std::unique_ptr<int[]> idxs(new int[pointCount()]);
 	makeRandomOrder(rng,idxs.get(),static_cast<int>(points.cols()));
 
 	for(int colI=0;colI<points.cols();++colI) {

@@ -22,11 +22,10 @@
 
 #include <iostream>
 
-#include <boost/smart_ptr/scoped_ptr.hpp>
 #include <boost/random/variate_generator.hpp>
 #include <boost/random/uniform_int.hpp>
 #include <boost/random/normal_distribution.hpp>
-#include <boost/random/mersenne_twister.hpp>
+#include <random>
 
 #ifdef _MSC_VER
 #pragma warning (push)

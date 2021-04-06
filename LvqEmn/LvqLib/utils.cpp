@@ -25,8 +25,7 @@ void makeRandomOrder(std::mt19937 & randGen, int* const toFill, int count){
 }
 
 Matrix_NN shuffleMatrixCols(std::mt19937 & randGen, Matrix_NN const & src){
-	using boost::scoped_array;
-	scoped_array<int> idxs(new int[src.cols()]);
+	std::unique_ptr<int[]> idxs(new int[src.cols()]);
 	makeRandomOrder(randGen,idxs.get(),static_cast<int>(src.cols()));
 
 	Matrix_NN retval(src.rows(),src.cols());

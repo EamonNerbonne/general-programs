@@ -1,10 +1,10 @@
 #include "stdafx.h"
-#include <boost/random/mersenne_twister.hpp>
+#include <random>
 #include "CreateDataset.h"
 #include "utils.h"
 
 using namespace Eigen;
-using boost::mt19937;
+using std::mt19937;
 using std::cout;
 using std::cerr;
 

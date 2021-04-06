@@ -9,7 +9,7 @@
 //#include "LvqDataset.h"
 
 namespace LvqLibCli {
-	using boost::mt19937;
+	using std::mt19937;
 
 
 	LvqDataset* toNativeDataset(array<LvqFloat,2>^ points, array<int>^ pointLabels, unsigned shuffleSeed, int classCount) {

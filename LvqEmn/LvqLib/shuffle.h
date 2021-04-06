@@ -1,5 +1,5 @@
 #pragma once
-#include <boost/random/mersenne_twister.hpp>
+#include <random>
 
 #ifdef _MSC_VER
 #pragma warning(push) //don't warn about while(true)

@@ -1,7 +1,7 @@
 #pragma once
 #include "LvqTypedefs.h"
 #include <vector>
-#include <boost/random/mersenne_twister.hpp>
+#include <random>
 
 class LvqDataset;
 

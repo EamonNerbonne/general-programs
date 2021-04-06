@@ -1,5 +1,5 @@
 #include "stdafx.h"
-#include <boost/random/mersenne_twister.hpp>
+#include <random>
 #include "PCA.h"
 #include "CreateDataset.h"
 
@@ -7,7 +7,7 @@ using namespace Eigen;
 
 BOOST_AUTO_TEST_CASE( pca_vs_svd_test )
 {
-	using boost::mt19937;
+	using std::mt19937;
 	using std::cout;
 	using std::cerr;
 	mt19937 rng(1338);

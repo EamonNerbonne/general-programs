@@ -1,7 +1,6 @@
 #include "stdafx.h"
 
 #include <vcclr.h>
-#include <boost/scoped_ptr.hpp>
 #include <queue>
 #include "LvqModelCli.h"
 #include "LvqModelSettingsCli.h"
@@ -197,7 +196,7 @@ namespace LvqLibCli {
 		return image;
 
 		//LvqProjectionModel::ClassDiagramT classDiagram(yRows,xCols);
-		//boost::scoped_ptr<LvqProjectionModel> projectionModelClone(static_cast<LvqProjectionModel*>(projectionModelCopy->clone()));
+		//unique_ptr<LvqProjectionModel> projectionModelClone(static_cast<LvqProjectionModel*>(projectionModelCopy->clone()));
 		//projectionModelClone->ClassBoundaryDiagram(x0,x1,y0,y1,classDiagram);
 		//return ToCli<MatrixContainer<unsigned char> >::From(classDiagram.transpose());
 	}

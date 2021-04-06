@@ -4,10 +4,8 @@
 #include "LvqConstants.h"
 #include "MeanMinMax.h"
 #include <iterator>
-#include <boost/scoped_array.hpp>
 #include "LvqDataset.h"
 using namespace std;
-using boost::scoped_array;
 using namespace Eigen;
 
 G2mLvqModel::G2mLvqModel(LvqModelSettings & initSettings)
@@ -216,7 +214,7 @@ MatchQuality G2mLvqModel::learnFrom(Vector_N const & trainPoint, int trainLabel)
 		DBG(prototype.size()); DBG(settings.ClassCount); DBG(J.point.size()); DBG(epochsTrained); DBG(settings.LR0); DBG(settings.LrScaleP); DBG(settings.LrScaleB); DBG(totalMuJLr); DBG(totalMuKLr);
 		DBG(trainIter);
 		cout.flush();
-		scoped_array<double> bnorm(new double[prototype.size()]);
+		unique_ptr<double[]> bnorm(new double[prototype.size()]);
 		for(size_t i=0;i<prototype.size();++i) {
 			bnorm[i] = prototype[i].B.norm();
 		}

@@ -1,5 +1,5 @@
 #pragma once
-#include <boost/random/mersenne_twister.hpp>
+#include <random>
 #include <Eigen/Core>
 #include "randomMatrixInit.h"
 

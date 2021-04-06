@@ -1,9 +1,7 @@
 #pragma once
 #include "LvqModel.h"
 #include "LvqModelFindMatches.h"
-#include <boost/scoped_array.hpp>
 
-using boost::scoped_array;
 using std::vector;
 class LgmLvqModel : public LvqModel, public LvqModelFindMatches<LgmLvqModel,Vector_N>
 {

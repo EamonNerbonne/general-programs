@@ -1,6 +1,6 @@
 #pragma once
 #include <vector>
-#include <boost/random/mersenne_twister.hpp>
+#include <random>
 #include <Eigen/Core>
 #include <tuple>
 #include <boost/shared_ptr.hpp>

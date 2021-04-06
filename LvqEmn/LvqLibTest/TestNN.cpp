@@ -1,7 +1,6 @@
 #include "stdafx.h"
 
-#include <boost/random/mersenne_twister.hpp>
-#include <boost/scoped_ptr.hpp>
+#include <random>
 #include "LvqModelSettings.h"
 
 #include "CreateDataset.h"
@@ -11,11 +10,11 @@
 
 #include <bench/BenchTimer.h>
 
-using boost::mt19937;
+using std::mt19937;
 using std::cout;
 using std::cerr;
-using boost::scoped_ptr;
 using std::vector;
+using std::unique_ptr;
 
 #define DIMS 32
 #define CLASSES 4
@@ -36,7 +35,7 @@ using std::vector;
 BOOST_AUTO_TEST_CASE( nn_test )
 {
 	mt19937 rng(1337);
-	scoped_ptr<LvqDataset> dataset(CreateDataset::ConstructGaussianClouds(rng,rng,DIMS, CLASSES,POINTS_PER_CLASS,MEANSEP));
+	unique_ptr<LvqDataset> dataset(CreateDataset::ConstructGaussianClouds(rng,rng,DIMS, CLASSES,POINTS_PER_CLASS,MEANSEP));
 	dataset->shufflePoints(rng);
 
 	vector<int> protoDistrib;
@@ -52,8 +51,8 @@ BOOST_AUTO_TEST_CASE( nn_test )
 
 	BenchTimer timeRawNN,timePca,timePcaNN, timeG2m;
 	for(int fold =0;fold<FOLDS;++fold) {
-		scoped_ptr<LvqDataset> testSet(dataset->Extract(dataset->GetTestSubset(fold,FOLDS)));
-		scoped_ptr<LvqDataset> trainingSet(dataset->Extract(dataset->GetTrainingSubset(fold, FOLDS)));
+		unique_ptr<LvqDataset> testSet(dataset->Extract(dataset->GetTestSubset(fold,FOLDS)));
+		unique_ptr<LvqDataset> trainingSet(dataset->Extract(dataset->GetTrainingSubset(fold, FOLDS)));
 		
 
 		timeRawNN.start();

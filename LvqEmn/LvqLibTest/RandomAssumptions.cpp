@@ -1,6 +1,6 @@
 #include "stdafx.h"
-#include <boost/random/mersenne_twister.hpp>
-using boost::mt19937;
+#include <random>
+using std::mt19937;
 
 
 struct container {

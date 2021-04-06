@@ -1,7 +1,7 @@
 #pragma once
 using namespace System;
 using namespace System::Collections::Generic;
-#include <boost/random/mersenne_twister.hpp>
+#include <random>
 //#include "LvqTypedefs.h"
 #include "LvqLib.h"
 class LvqDataset;
