@@ -17,6 +17,8 @@ using LvqLibCli;
 
 namespace LvqGui.CoreGui
 {
+    public sealed record ColoredClassLabels(string ClassLabel, SolidColorBrush ClassColor);
+
     public sealed class TrainingControlValues : INotifyPropertyChanged
     {
         public LvqWindowValues Owner { get; }
@@ -101,16 +103,8 @@ namespace LvqGui.CoreGui
 
         StatisticsViewMode _CurrProjStats;
 
-        public IEnumerable<object> ModelClasses
-        {
-            get {
-                if (SelectedDataset == null) {
-                    return Array.Empty<object>();
-                }
-
-                return SelectedDataset.ClassColors.Zip(SelectedDataset.ClassNames, (col, name) => new { ClassLabel = name, ClassColor = (SolidColorBrush)new SolidColorBrush(col).GetAsFrozen() }).ToArray();
-            }
-        }
+        public IEnumerable<ColoredClassLabels> ModelClasses
+            => SelectedDataset == null ? Array.Empty<ColoredClassLabels>() : SelectedDataset.ClassColors.Zip(SelectedDataset.ClassNames, (col, name) => new ColoredClassLabels(name, (SolidColorBrush)new SolidColorBrush(col).GetAsFrozen())).ToArray();
 
         public bool ShowBoundaries
         {
