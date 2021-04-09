@@ -24,17 +24,16 @@ namespace EmnExtensions.Wpf
     /// Go ahead and use your control in the XAML file.
     /// <MyNamespace:GraphControl />
     /// </summary>
-    public class GraphControl : FrameworkElement
+    public sealed class GraphControl : FrameworkElement
     {
         static readonly Random GraphColorRandom = new Random();
 
         static Brush RandomGraphColor()
         {
-            double r, g, b, sum;
-            r = GraphColorRandom.NextDouble() + 0.01;
-            g = GraphColorRandom.NextDouble() + 0.01;
-            b = GraphColorRandom.NextDouble() + 0.01;
-            sum = GraphColorRandom.NextDouble() * 0.5 + 0.5;
+            var r = GraphColorRandom.NextDouble() + 0.01;
+            var g = GraphColorRandom.NextDouble() + 0.01;
+            var b = GraphColorRandom.NextDouble() + 0.01;
+            var sum = GraphColorRandom.NextDouble() * 0.5 + 0.5;
             var brush = new SolidColorBrush(
                 new Color {
                     A = 255,

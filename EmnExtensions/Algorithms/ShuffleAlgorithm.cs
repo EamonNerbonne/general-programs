@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using EmnExtensions.MathHelpers;
 
@@ -10,10 +10,9 @@ namespace EmnExtensions.Algorithms
         { //array's are ILists
             Random r = RndHelper.ThreadLocalRandom;
             for (var i = arrayToShuffle.Count - 1; i > 0; i--) {
-                T tmp;
                 var rndIndex = r.Next(i + 1);
                 //                if(rndIndex==i)continue;//this optimization probably doesn't speed things up.
-                tmp = arrayToShuffle[i];
+                var tmp = arrayToShuffle[i];
                 arrayToShuffle[i] = arrayToShuffle[rndIndex];
                 arrayToShuffle[rndIndex] = tmp;
             }

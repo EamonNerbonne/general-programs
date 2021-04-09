@@ -421,13 +421,12 @@ namespace EmnExtensions.MathHelpers
 
         void init(uint[] key)
         {
-            int i, j, k;
             init(19650218U);
 
             var keyLength = key.Length;
-            i = 1;
-            j = 0;
-            k = N > keyLength ? N : keyLength;
+            var i = 1;
+            var j = 0;
+            var k = N > keyLength ? N : keyLength;
 
             for (; k > 0; k--) {
                 _mt[i] = (uint)((_mt[i] ^ (_mt[i - 1] ^ _mt[i - 1] >> 30) * 1664525U) + key[j] + j); /* non linear */
