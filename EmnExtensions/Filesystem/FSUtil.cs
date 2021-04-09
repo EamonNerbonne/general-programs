@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -15,8 +15,7 @@ namespace EmnExtensions.Filesystem
         /// </summary>
         public static bool IsValidAbsolutePath(string path)
         {
-            Uri pathUri;
-            if (!Uri.TryCreate(path, UriKind.Absolute, out pathUri)) {
+            if (!Uri.TryCreate(path, UriKind.Absolute, out var pathUri)) {
                 return false;
             }
 

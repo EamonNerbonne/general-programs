@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace EmnExtensions.Collections
@@ -77,10 +77,7 @@ namespace EmnExtensions.Collections
 
         public void RemoveEdge(T1 from, T2 to)
         {
-            HashSet<T2> reachableFrom;
-            HashSet<T1> reachesTo;
-
-            if (forwardLookup.TryGetValue(from, out reachableFrom) && reverseLookup.TryGetValue(to, out reachesTo)) {
+            if (forwardLookup.TryGetValue(from, out var reachableFrom) && reverseLookup.TryGetValue(to, out var reachesTo)) {
                 reachableFrom.Remove(to);
                 reachesTo.Remove(from);
             }

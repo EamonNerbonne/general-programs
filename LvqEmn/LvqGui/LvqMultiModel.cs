@@ -1,4 +1,4 @@
-﻿#pragma warning disable 420 //disable warning about reference to a volatile field; Interlocked is OK.
+#pragma warning disable 420 //disable warning about reference to a volatile field; Interlocked is OK.
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -546,8 +546,7 @@ namespace LvqGui
 
         static Rect ComputeProjectionBounds(CliLvqLabelledPoint[] cliLvqLabelledPoint)
         {
-            Rect outer, inner;
-            VizPixelScatterHelpers.RecomputeBounds(ToPointArray(cliLvqLabelledPoint), 0.95, 0.95, 10.0, out outer, out inner);
+            VizPixelScatterHelpers.RecomputeBounds(ToPointArray(cliLvqLabelledPoint), 0.95, 0.95, 10.0, out var outer, out var inner);
             //            inner.Union(VizPixelScatterHelpers.ComputeOuterBounds(prototypePositions.ToArray()));
             return inner;
         }

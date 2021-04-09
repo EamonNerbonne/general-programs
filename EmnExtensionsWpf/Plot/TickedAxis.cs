@@ -355,9 +355,7 @@ namespace EmnExtensions.Wpf
                 m_tickLabels = null;
                 m_redrawGridLines = true;
             } else {
-                int newSlotOrderOfMagnitude;
-                int newTickCount;
-                var newTicks = FindAllTicks(DataBound, m_minReqTickCount, preferredNrOfTicks, AttemptBorderTicks, out newSlotOrderOfMagnitude, out newTickCount);
+                var newTicks = FindAllTicks(DataBound, m_minReqTickCount, preferredNrOfTicks, AttemptBorderTicks, out var newSlotOrderOfMagnitude, out var newTickCount);
                 if (m_ticks == null && mayIncrease
                     || m_ticks != null && !TickArrEqual(m_ticks, newTicks) && (mayIncrease || m_ticks.Count(tick => tick.Rank <= 1) > newTicks.Count(tick => tick.Rank <= 1))) {
                     m_slotOrderOfMagnitude = newSlotOrderOfMagnitude;
@@ -926,12 +924,7 @@ namespace EmnExtensions.Wpf
 
         static Tick[] FindAllTicks(DimensionBounds range, int minReqTickCount, double preferredNum, bool attemptBorderTicks, out int slotOrderOfMagnitude, out int tickCount)
         {
-            double totalSlotSize;
-            int[] subDivTicks;
-            long firstTickMult, lastTickMult;
-            int fixedSlot;
-
-            CalcTickPositions(range, minReqTickCount, preferredNum, out totalSlotSize, out slotOrderOfMagnitude, out firstTickMult, out lastTickMult, out subDivTicks, out tickCount, out fixedSlot);
+            CalcTickPositions(range, minReqTickCount, preferredNum, out var totalSlotSize, out slotOrderOfMagnitude, out var firstTickMult, out var lastTickMult, out var subDivTicks, out tickCount, out var fixedSlot);
             subDivTicks = subDivTicks.Take(1).ToArray();
             //convert subDivTicks into "cumulative" multiples, i.e. 2,2,5 into 20,10,5,1
             var subMultiple = new int[subDivTicks.Length + 1];
@@ -1017,6 +1010,7 @@ namespace EmnExtensions.Wpf
         /// </param>
         /// <param name="tickCount">output: the number of major ticks the range has been subdived over.</param>
         /// <param name="slotOrderOfMagnitude">output: The order of magnitude of the difference between consecutive major ticks, in base 10 - useful for deciding how many digits of a label to print.</param>
+        /// <param name="fixedSlot"></param>
         static void CalcTickPositions(DimensionBounds range, int minReqTickCount, double preferredNum, out double slotSize, out int slotOrderOfMagnitude, out long firstTickAtSlotMultiple, out long lastTickAtSlotMultiple, out int[] ticks, out int tickCount, out int fixedSlot)
         {
             if (preferredNum > 10.0) {

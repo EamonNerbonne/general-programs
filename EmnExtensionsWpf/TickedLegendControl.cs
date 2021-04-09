@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Globalization;
 using System.Windows;
 using System.Windows.Media;
@@ -164,9 +164,7 @@ namespace EmnExtensions.Wpf
             orderOfMagnitudeDiff = (int)Math.Floor(Math.Log10(Math.Abs(startVal - endVal)));
             orderOfMagnitude = (int)Math.Floor(Math.Log10(Math.Max(Math.Abs(startVal), Math.Abs(endVal))));
             var text = MakeText(8.88888888888888888);
-            FormattedText baseL, powL, textL;
-            double labelWidth;
-            MakeLegendText(out baseL, out powL, out textL, out labelWidth);
+            MakeLegendText(out var baseL, out var powL, out var textL, out var labelWidth);
 
             if (IsHorizontal) {
                 return new Size(constraint.Width.IsFinite() ? constraint.Width : labelWidth, Math.Max(constraint.Height.IsFinite() ? constraint.Height : 0, 17 + text.Height * 2));
@@ -226,9 +224,7 @@ namespace EmnExtensions.Wpf
 
             drawingContext.DrawGeometry(null, tickPen, geom);
 
-            FormattedText baseL, powL, textL;
-            double totalLabelWidth;
-            MakeLegendText(out baseL, out powL, out textL, out totalLabelWidth);
+            MakeLegendText(out var baseL, out var powL, out var textL, out var totalLabelWidth);
             var centerPix = ticksPixelsDim / 2;
 
             if (!IsHorizontal) {
@@ -306,10 +302,7 @@ namespace EmnExtensions.Wpf
 
         static void FindAllTicks(double preferredNum, double minVal, double maxVal, Action<double, int> foundTickWithRank)
         {
-            double firstTickAt, totalSlotSize;
-            int[] subDivTicks;
-            int orderOfMagnitude;
-            CalcTickPositions(minVal, maxVal, preferredNum, out firstTickAt, out totalSlotSize, out subDivTicks, out orderOfMagnitude);
+            CalcTickPositions(minVal, maxVal, preferredNum, out var firstTickAt, out var totalSlotSize, out var subDivTicks, out var orderOfMagnitude);
             //we want the first tick to start before the range
             firstTickAt -= totalSlotSize;
             //convert subDivTicks into multiples:

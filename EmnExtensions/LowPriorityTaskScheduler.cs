@@ -155,8 +155,7 @@ namespace EmnExtensions
         void SlipstreamQueueExecute(WorkerThread t)
         {
             // ReSharper restore UnusedParameter.Local
-            Task another;
-            while (TryGetQueuedTask(out another)) {
+            while (TryGetQueuedTask(out var another)) {
                 TryExecuteTask(another);
 #if DEBUG_TRACK_ITEMS
                 t.normalCount++;

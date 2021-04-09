@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Globalization;
 
 namespace EmnExtensions.Text
@@ -7,8 +7,7 @@ namespace EmnExtensions.Text
     {
         public static DateTime? ParseAsDateTime(this string s)
         {
-            DateTime val;
-            if (DateTime.TryParse(s, out val)) {
+            if (DateTime.TryParse(s, out var val)) {
                 return val;
             }
 
@@ -17,8 +16,7 @@ namespace EmnExtensions.Text
 
         public static DateTime? ParseAsDateTime(this string s, DateTimeStyles style, IFormatProvider provider)
         {
-            DateTime val;
-            if (DateTime.TryParse(s, provider, style, out val)) {
+            if (DateTime.TryParse(s, provider, style, out var val)) {
                 return val;
             }
 
@@ -28,8 +26,7 @@ namespace EmnExtensions.Text
 
         public static int? ParseAsInt32(this string s)
         {
-            int val;
-            if (int.TryParse(s, out val)) {
+            if (int.TryParse(s, out var val)) {
                 return val;
             }
 
@@ -38,8 +35,7 @@ namespace EmnExtensions.Text
 
         public static int? ParseAsInt32(this string s, NumberStyles style, IFormatProvider provider)
         {
-            int val;
-            if (int.TryParse(s, style, provider, out val)) {
+            if (int.TryParse(s, style, provider, out var val)) {
                 return val;
             }
 
@@ -48,8 +44,7 @@ namespace EmnExtensions.Text
 
         public static ulong? ParseAsUInt64(this string s)
         {
-            ulong val;
-            if (ulong.TryParse(s, out val)) {
+            if (ulong.TryParse(s, out var val)) {
                 return val;
             }
 
@@ -58,8 +53,7 @@ namespace EmnExtensions.Text
 
         public static ulong? ParseAsUInt64(this string s, NumberStyles style, IFormatProvider provider)
         {
-            ulong val;
-            if (ulong.TryParse(s, style, provider, out val)) {
+            if (ulong.TryParse(s, style, provider, out var val)) {
                 return val;
             }
 
@@ -68,8 +62,7 @@ namespace EmnExtensions.Text
 
         public static long? ParseAsInt64(this string s)
         {
-            long val;
-            if (long.TryParse(s, out val)) {
+            if (long.TryParse(s, out var val)) {
                 return val;
             }
 
@@ -78,8 +71,7 @@ namespace EmnExtensions.Text
 
         public static long? ParseAsInt64(this string s, NumberStyles style, IFormatProvider provider)
         {
-            long val;
-            if (long.TryParse(s, style, provider, out val)) {
+            if (long.TryParse(s, style, provider, out var val)) {
                 return val;
             }
 
@@ -88,8 +80,7 @@ namespace EmnExtensions.Text
 
         public static double? ParseAsDouble(this string s)
         {
-            double val;
-            if (double.TryParse(s, out val)) {
+            if (double.TryParse(s, out var val)) {
                 return val;
             }
 
@@ -98,8 +89,7 @@ namespace EmnExtensions.Text
 
         public static double? ParseAsDouble(this string s, NumberStyles style, IFormatProvider provider)
         {
-            double val;
-            if (double.TryParse(s, style, provider, out val)) {
+            if (double.TryParse(s, style, provider, out var val)) {
                 return val;
             }
 

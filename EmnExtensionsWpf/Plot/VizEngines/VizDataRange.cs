@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Windows;
 using System.Windows.Media;
@@ -72,9 +72,9 @@ namespace EmnExtensions.Wpf.VizEngines
 
         void RecomputeBounds()
         {
-            Rect innerBounds = Rect.Empty, outerBounds;
+            Rect innerBounds = Rect.Empty;
             if (currentPoints != null) {
-                VizPixelScatterHelpers.RecomputeBounds(currentPoints.Item1.Concat(currentPoints.Item2).ToArray(), CoverageRatioX, CoverageRatioY, CoverageRatioGrad, out outerBounds, out innerBounds);
+                VizPixelScatterHelpers.RecomputeBounds(currentPoints.Item1.Concat(currentPoints.Item2).ToArray(), CoverageRatioX, CoverageRatioY, CoverageRatioGrad, out var outerBounds, out innerBounds);
             }
 
             if (innerBounds != m_InnerBounds) {

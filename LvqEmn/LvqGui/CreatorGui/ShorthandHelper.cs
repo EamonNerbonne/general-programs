@@ -248,8 +248,7 @@ namespace LvqGui
 
             public static int GetIndex(string name)
             {
-                int idx;
-                if (propIndex.TryGetValue(name, out idx)) {
+                if (propIndex.TryGetValue(name, out var idx)) {
                     return idx;
                 }
 

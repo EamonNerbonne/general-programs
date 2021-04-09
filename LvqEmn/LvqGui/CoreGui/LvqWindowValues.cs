@@ -1,4 +1,4 @@
-﻿// ReSharper disable UnusedMember.Global
+// ReSharper disable UnusedMember.Global
 // ReSharper disable MemberCanBePrivate.Global
 // ReSharper disable UnusedAutoPropertyAccessor.Global
 
@@ -140,8 +140,7 @@ namespace LvqGui
 
         public LvqMultiModel ResolveModel(LvqModelCli lastModel)
         {
-            LvqMultiModel multiModel;
-            modelGroupLookup.TryGetValue(lastModel, out multiModel);
+            modelGroupLookup.TryGetValue(lastModel, out var multiModel);
             return multiModel;
         }
 

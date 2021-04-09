@@ -1,4 +1,4 @@
-﻿using System.Windows;
+using System.Windows;
 using System.Windows.Media;
 
 namespace EmnExtensions.Wpf.VizEngines
@@ -76,8 +76,7 @@ namespace EmnExtensions.Wpf.VizEngines
 
         void RecomputeBounds(Point[] newData)
         {
-            Rect innerBounds, outerBounds;
-            VizPixelScatterHelpers.RecomputeBounds(newData, CoverageRatioX, CoverageRatioY, CoverageRatioGrad, out outerBounds, out innerBounds);
+            VizPixelScatterHelpers.RecomputeBounds(newData, CoverageRatioX, CoverageRatioY, CoverageRatioGrad, out var outerBounds, out var innerBounds);
             if (innerBounds != m_InnerBounds) {
                 m_InnerBounds = innerBounds;
                 MetaData.GraphChanged(GraphChange.Projection);

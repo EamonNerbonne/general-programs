@@ -1,4 +1,4 @@
-﻿//#define PERMIT_SQUARE_CAPS
+//#define PERMIT_SQUARE_CAPS
 //using square line caps breaks ghostscript's gxps conversion; disabled.
 
 using System;
@@ -94,8 +94,7 @@ namespace EmnExtensions.Wpf.VizEngines
 
         Rect RecomputeBounds()
         {
-            Rect innerBounds, outerBounds;
-            VizPixelScatterHelpers.RecomputeBounds(currentData, CoverageRatio, CoverageRatio, CoverageGradient, out outerBounds, out innerBounds);
+            VizPixelScatterHelpers.RecomputeBounds(currentData, CoverageRatio, CoverageRatio, CoverageGradient, out var outerBounds, out var innerBounds);
             return innerBounds;
         }
 

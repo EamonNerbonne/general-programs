@@ -92,8 +92,7 @@ namespace EmnExtensions
                 var retval = -1;
                 var max = default(T);
                 var currentIndex = -1;
-                T current;
-                while (enumerator.GetNext(out current)) {
+                while (enumerator.GetNext(out T current)) {
                     currentIndex++;
                     if (filter(currentIndex, current) && (retval == -1 || current.CompareTo(max) > 0)) {
                         max = current;

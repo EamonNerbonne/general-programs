@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using EmnExtensions.Collections;
 
@@ -39,8 +39,7 @@ namespace EmnExtensions.Algorithms
                 throw new ArgumentException("startNodes must contain at least one node");
             }
 
-            DistanceTo current;
-            while (toProcess.RemoveTop(out current)) {
+            while (toProcess.RemoveTop(out var current)) {
                 nodeIndex[current.targetNode] = -2; //i.e. processed
                 foreach (var outEdge in graph(current.targetNode)) {
                     if (nodeIndex[outEdge.targetNode] == -2) { } else { //OK, next goes to outEdge...
