@@ -72,7 +72,7 @@ namespace EmnExtensions.Wpf.VizEngines
 
         void RecomputeBounds()
         {
-            Rect innerBounds = Rect.Empty;
+            var innerBounds = Rect.Empty;
             if (currentPoints != null) {
                 VizPixelScatterHelpers.RecomputeBounds(currentPoints.Item1.Concat(currentPoints.Item2).ToArray(), CoverageRatioX, CoverageRatioY, CoverageRatioGrad, out var outerBounds, out innerBounds);
             }
