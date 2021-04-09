@@ -5,3 +5,4 @@ bin/
 **/X64/Debug/
 /LvqEmn/packages/
 *.vcxproj.user
+x64/
