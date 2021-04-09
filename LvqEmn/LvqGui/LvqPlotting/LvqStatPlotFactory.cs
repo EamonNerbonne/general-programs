@@ -59,11 +59,11 @@ namespace LvqGui
             yield return MakeMeanPlot(dataLabel, yunitLabel, color, statIdx, isTest, isNn);
         }
 
-        static readonly object IsCurrPlotTag = new object();
-        static readonly object IsTestPlotTag = new object();
-        static readonly object IsNnPlotTag = new object();
-        static readonly object IsCurrTestPlotTag = new object();
-        static readonly object IsCurrNnPlotTag = new object();
+        static readonly object IsCurrPlotTag = new();
+        static readonly object IsTestPlotTag = new();
+        static readonly object IsNnPlotTag = new();
+        static readonly object IsCurrTestPlotTag = new();
+        static readonly object IsCurrNnPlotTag = new();
 
 
         public static bool IsTestPlot(IPlotMetaData plot) => plot.Tag == IsTestPlotTag || plot.Tag == IsCurrTestPlotTag;

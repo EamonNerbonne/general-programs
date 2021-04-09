@@ -51,7 +51,7 @@ namespace LvqGui
             into settingsGroup
             select settingsGroup.MinBy(tuple => tuple.Item2).First();
 
-        static readonly Regex resultsFilenameRegex = new Regex(@"^(?<iters>[0-9]?e[0-9]+)\-(?<shorthand>[^ ]*?)\.txt$");
+        static readonly Regex resultsFilenameRegex = new(@"^(?<iters>[0-9]?e[0-9]+)\-(?<shorthand>[^ ]*?)\.txt$");
 
         public static Tuple<bool, double, LvqModelSettingsCli> ExtractItersAndSettings(string filename)
         {
