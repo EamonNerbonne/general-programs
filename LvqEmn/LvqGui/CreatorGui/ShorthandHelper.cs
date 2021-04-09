@@ -208,7 +208,7 @@ namespace LvqGui.CreatorGui
                 var groupName = shR.GroupNameFromNumber(i);
                 var isHexEncodedOrNegated = groupName.EndsWith("_", StringComparison.Ordinal);
                 if (isHexEncodedOrNegated) {
-                    groupName = groupName.Substring(0, groupName.Length - 1);
+                    groupName = groupName[..^1];
                 }
 
                 var propIdx = PropertyStore.GetIndex(groupName);
