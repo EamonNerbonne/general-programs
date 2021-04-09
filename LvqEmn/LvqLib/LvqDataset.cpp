@@ -38,7 +38,6 @@ LvqDataset::LvqDataset(LvqDataset const & src, std::vector<int> const & subset)
 
 		pointLabels(i) = src.pointLabels(pI);
 	}
-
 }
 
 Matrix_NN LvqDataset::ExtractPoints(std::vector<int> const & subset) const {
